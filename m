@@ -1,1323 +1,1752 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 5/5] omap mmc: Add new omap hsmmc controller for 2430 and 34xx
-Date: Sun, 07 Dec 2008 13:51:39 -0800
-Message-ID: <20081207215139.10456.46405.stgit@localhost>
-References: <20081207213617.10456.43951.stgit@localhost>
+Subject: Re: [PATCH 5/6] ARM: OMAP3: Add basic support for Pandora handheld
+	console, v2
+Date: Sun, 7 Dec 2008 14:38:16 -0800
+Message-ID: <20081207223813.GC7388@atomide.com>
+References: <20081205195846.31125.21080.stgit@localhost> <20081205200627.31125.50861.stgit@localhost> <20081207113509.GC1646@flint.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="gKMricLos+KVdGMg"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-bos.mailhop.org ([63.208.196.178]:61164 "EHLO
+Received: from mho-01-bos.mailhop.org ([63.208.196.178]:55623 "EHLO
 	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752497AbYLGVvl (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 7 Dec 2008 16:51:41 -0500
-In-Reply-To: <20081207213617.10456.43951.stgit@localhost>
+	with ESMTP id S1753547AbYLGWi0 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 7 Dec 2008 17:38:26 -0500
+Content-Disposition: inline
+In-Reply-To: <20081207113509.GC1646@flint.arm.linux.org.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: drzeus-mmc@drzeus.cx, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.arm.linux.org.uk
-Cc: linux-omap@vger.kernel.org, Madhusudhan Chikkature <madhu.cr@ti.com>
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: linux-arm-kernel@lists.arm.linux.org.uk, linux-omap@vger.kernel.org, Grazvydas Ignotas <notasas@gmail.com>
 
-From: Madhusudhan Chikkature <madhu.cr@ti.com>
 
-Add omap hsmmc controller for 2430 and 34xx.
+--gKMricLos+KVdGMg
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-Note that this controller has different registers compared to
-the earlier omap MMC controller, so sharing code currently is
-not possible.
+Hi,
 
-Various updates and fixes from linux-omap list have been
-merged into this patch.
+* Russell King - ARM Linux <linux@arm.linux.org.uk> [081207 03:35]:
+> On Fri, Dec 05, 2008 at 12:06:27PM -0800, Tony Lindgren wrote:
+> > +#include <linux/clk.h>
+> 
+> Not required.
+> 
+> > +#include <linux/delay.h>
+> 
+> Not required.
+> 
+> > +#include <linux/err.h>
+> 
+> Not required.
+> 
+> > +#include <linux/init.h>
+> > +#include <linux/io.h>
+> 
+> May not be required.
+> 
 
-Cc: Pierre Ossman <drzeus-mmc@drzeus.cx>
-Signed-off-by: Madhusudhan Chikkature<madhu.cr@ti.com>
+Fixed in the attached patch.
+
+<snip>
+
+> > +static void __init omap3pandora_flash_init(void)
+> > +{
+> > +	u8 cs = 0;
+> > +	u8 nandcs = GPMC_CS_NUM + 1;
+> > +
+> > +	u32 gpmc_base_add = OMAP34XX_GPMC_VIRT;
+> 
+> If it's a virtual address why is it an integer?
+
+Will be fixed in a separate patch, see below.
+
+> > +
+> > +	/* find out the chip-select on which NAND exists */
+> > +	while (cs < GPMC_CS_NUM) {
+> > +		u32 ret = 0;
+> > +		ret = gpmc_cs_read_reg(cs, GPMC_CS_CONFIG1);
+> > +
+> > +		if ((ret & 0xC00) == 0x800) {
+> > +			printk(KERN_INFO "Found NAND on CS%d\n", cs);
+> > +			if (nandcs > GPMC_CS_NUM)
+> > +				nandcs = cs;
+> > +		}
+> > +		cs++;
+> > +	}
+> 
+> Shouldn't this be some generic bit of code?
+
+Good point. I'll put together a separate patch against
+gpmc.c that does this for other boards too.
+
+I've also updated this patch to drop the NAND support, that will
+be added in a separate patch.
+
+> 
+> > +
+> > +	if (nandcs > GPMC_CS_NUM) {
+> > +		printk(KERN_INFO "NAND: Unable to find configuration "
+> > +				 "in GPMC\n ");
+> > +		return;
+> > +	}
+> > +
+> > +	if (nandcs < GPMC_CS_NUM) {
+> > +		omap3pandora_nand_data.cs = nandcs;
+> > +		omap3pandora_nand_data.gpmc_cs_baseaddr = (void *)
+> > +			(gpmc_base_add + GPMC_CS0_BASE + nandcs * GPMC_CS_SIZE);
+> > +		omap3pandora_nand_data.gpmc_baseaddr = (void *) (gpmc_base_add);
+> 
+> Unnecessary casts with proper typing of gpmc_base_add.
+> 
+> > +
+> > +		printk(KERN_INFO "Registering NAND on CS%d\n", nandcs);
+> 
+> Shouldn't something also update omap3pandora_nand_resource?
+
+Dropped in the attached patch.
+
+Regards,
+
+Tony
+
+--gKMricLos+KVdGMg
+Content-Type: text/x-diff; charset=us-ascii
+Content-Disposition: inline; filename="pandora-v2.patch"
+
+>From 6d887d5a17ce03442830a572999ca87804c8f430 Mon Sep 17 00:00:00 2001
+From: Grazvydas Ignotas <notasas@gmail.com>
+Date: Fri, 5 Dec 2008 11:32:44 -0800
+Subject: [PATCH] ARM: OMAP3: Add basic support for Pandora handheld console
+
+This patch adds support for basic features: uarts, i2c,
+and rtc. Also includes defconfig.
+
+Signed-off-by: Grazvydas Ignotas <notasas@gmail.com>
 Signed-off-by: Tony Lindgren <tony@atomide.com>
----
- drivers/mmc/host/Kconfig      |   11 
- drivers/mmc/host/Makefile     |    1 
- drivers/mmc/host/omap_hsmmc.c | 1242 +++++++++++++++++++++++++++++++++++++++++
- 3 files changed, 1254 insertions(+), 0 deletions(-)
- create mode 100644 drivers/mmc/host/omap_hsmmc.c
 
-diff --git a/drivers/mmc/host/Kconfig b/drivers/mmc/host/Kconfig
-index dfa585f..63e3356 100644
---- a/drivers/mmc/host/Kconfig
-+++ b/drivers/mmc/host/Kconfig
-@@ -76,6 +76,17 @@ config MMC_OMAP
- 
- 	  If unsure, say N.
- 
-+config MMC_OMAP_HS
-+	tristate "TI OMAP High Speed Multimedia Card Interface support"
-+	depends on (ARCH_OMAP2 && ARCH_OMAP2430) || ARCH_OMAP3
-+	select TWL4030_CORE
-+	help
-+	  This selects the TI OMAP High Speed Multimedia card Interface.
-+	  If you have an OMAP2(2430) or OMAP3 board with a Multimedia Card slot,
-+	  say Y or M here.
-+
-+	  If unsure, say N.
-+
- config MMC_WBSD
- 	tristate "Winbond W83L51xD SD/MMC Card Interface support"
- 	depends on ISA_DMA_API
-diff --git a/drivers/mmc/host/Makefile b/drivers/mmc/host/Makefile
-index c794cc5..ba477bc 100644
---- a/drivers/mmc/host/Makefile
-+++ b/drivers/mmc/host/Makefile
-@@ -15,6 +15,7 @@ obj-$(CONFIG_MMC_RICOH_MMC)	+= ricoh_mmc.o
- obj-$(CONFIG_MMC_WBSD)		+= wbsd.o
- obj-$(CONFIG_MMC_AU1X)		+= au1xmmc.o
- obj-$(CONFIG_MMC_OMAP)		+= omap.o
-+obj-$(CONFIG_MMC_OMAP_HS)	+= omap_hsmmc.o
- obj-$(CONFIG_MMC_AT91)		+= at91_mci.o
- obj-$(CONFIG_MMC_ATMELMCI)	+= atmel-mci.o
- obj-$(CONFIG_MMC_TIFM_SD)	+= tifm_sd.o
-diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
+diff --git a/arch/arm/configs/omap3_pandora_defconfig b/arch/arm/configs/omap3_pandora_defconfig
 new file mode 100644
-index 0000000..4ab1325
+index 0000000..09543f4
 --- /dev/null
-+++ b/drivers/mmc/host/omap_hsmmc.c
-@@ -0,0 +1,1242 @@
++++ b/arch/arm/configs/omap3_pandora_defconfig
+@@ -0,0 +1,1409 @@
++#
++# Automatically generated make config: don't edit
++# Linux kernel version: 2.6.28-rc7
++# Fri Dec  5 11:54:09 2008
++#
++CONFIG_ARM=y
++CONFIG_SYS_SUPPORTS_APM_EMULATION=y
++CONFIG_GENERIC_GPIO=y
++CONFIG_GENERIC_TIME=y
++CONFIG_GENERIC_CLOCKEVENTS=y
++CONFIG_MMU=y
++# CONFIG_NO_IOPORT is not set
++CONFIG_GENERIC_HARDIRQS=y
++CONFIG_STACKTRACE_SUPPORT=y
++CONFIG_HAVE_LATENCYTOP_SUPPORT=y
++CONFIG_LOCKDEP_SUPPORT=y
++CONFIG_TRACE_IRQFLAGS_SUPPORT=y
++CONFIG_HARDIRQS_SW_RESEND=y
++CONFIG_GENERIC_IRQ_PROBE=y
++CONFIG_RWSEM_GENERIC_SPINLOCK=y
++# CONFIG_ARCH_HAS_ILOG2_U32 is not set
++# CONFIG_ARCH_HAS_ILOG2_U64 is not set
++CONFIG_GENERIC_HWEIGHT=y
++CONFIG_GENERIC_CALIBRATE_DELAY=y
++CONFIG_GENERIC_HARDIRQS_NO__DO_IRQ=y
++CONFIG_VECTORS_BASE=0xffff0000
++CONFIG_DEFCONFIG_LIST="/lib/modules/$UNAME_RELEASE/.config"
++
++#
++# General setup
++#
++CONFIG_EXPERIMENTAL=y
++CONFIG_BROKEN_ON_SMP=y
++CONFIG_INIT_ENV_ARG_LIMIT=32
++CONFIG_LOCALVERSION=""
++CONFIG_LOCALVERSION_AUTO=y
++CONFIG_SWAP=y
++CONFIG_SYSVIPC=y
++CONFIG_SYSVIPC_SYSCTL=y
++# CONFIG_POSIX_MQUEUE is not set
++CONFIG_BSD_PROCESS_ACCT=y
++# CONFIG_BSD_PROCESS_ACCT_V3 is not set
++# CONFIG_TASKSTATS is not set
++# CONFIG_AUDIT is not set
++CONFIG_IKCONFIG=y
++CONFIG_IKCONFIG_PROC=y
++CONFIG_LOG_BUF_SHIFT=14
++# CONFIG_CGROUPS is not set
++CONFIG_GROUP_SCHED=y
++CONFIG_FAIR_GROUP_SCHED=y
++# CONFIG_RT_GROUP_SCHED is not set
++CONFIG_USER_SCHED=y
++# CONFIG_CGROUP_SCHED is not set
++CONFIG_SYSFS_DEPRECATED=y
++CONFIG_SYSFS_DEPRECATED_V2=y
++# CONFIG_RELAY is not set
++# CONFIG_NAMESPACES is not set
++CONFIG_BLK_DEV_INITRD=y
++CONFIG_INITRAMFS_SOURCE=""
++CONFIG_CC_OPTIMIZE_FOR_SIZE=y
++CONFIG_SYSCTL=y
++CONFIG_EMBEDDED=y
++CONFIG_UID16=y
++# CONFIG_SYSCTL_SYSCALL is not set
++CONFIG_KALLSYMS=y
++# CONFIG_KALLSYMS_ALL is not set
++CONFIG_KALLSYMS_EXTRA_PASS=y
++CONFIG_HOTPLUG=y
++CONFIG_PRINTK=y
++CONFIG_BUG=y
++CONFIG_ELF_CORE=y
++CONFIG_COMPAT_BRK=y
++CONFIG_BASE_FULL=y
++CONFIG_FUTEX=y
++CONFIG_ANON_INODES=y
++CONFIG_EPOLL=y
++CONFIG_SIGNALFD=y
++CONFIG_TIMERFD=y
++CONFIG_EVENTFD=y
++CONFIG_SHMEM=y
++CONFIG_AIO=y
++CONFIG_VM_EVENT_COUNTERS=y
++CONFIG_SLAB=y
++# CONFIG_SLUB is not set
++# CONFIG_SLOB is not set
++# CONFIG_PROFILING is not set
++# CONFIG_MARKERS is not set
++CONFIG_HAVE_OPROFILE=y
++# CONFIG_KPROBES is not set
++CONFIG_HAVE_KPROBES=y
++CONFIG_HAVE_KRETPROBES=y
++CONFIG_HAVE_CLK=y
++CONFIG_HAVE_GENERIC_DMA_COHERENT=y
++CONFIG_SLABINFO=y
++CONFIG_RT_MUTEXES=y
++# CONFIG_TINY_SHMEM is not set
++CONFIG_BASE_SMALL=0
++CONFIG_MODULES=y
++# CONFIG_MODULE_FORCE_LOAD is not set
++CONFIG_MODULE_UNLOAD=y
++# CONFIG_MODULE_FORCE_UNLOAD is not set
++CONFIG_MODVERSIONS=y
++CONFIG_MODULE_SRCVERSION_ALL=y
++CONFIG_KMOD=y
++CONFIG_BLOCK=y
++# CONFIG_LBD is not set
++# CONFIG_BLK_DEV_IO_TRACE is not set
++# CONFIG_LSF is not set
++# CONFIG_BLK_DEV_BSG is not set
++# CONFIG_BLK_DEV_INTEGRITY is not set
++
++#
++# IO Schedulers
++#
++CONFIG_IOSCHED_NOOP=y
++CONFIG_IOSCHED_AS=y
++CONFIG_IOSCHED_DEADLINE=y
++CONFIG_IOSCHED_CFQ=y
++CONFIG_DEFAULT_AS=y
++# CONFIG_DEFAULT_DEADLINE is not set
++# CONFIG_DEFAULT_CFQ is not set
++# CONFIG_DEFAULT_NOOP is not set
++CONFIG_DEFAULT_IOSCHED="anticipatory"
++CONFIG_CLASSIC_RCU=y
++# CONFIG_FREEZER is not set
++
++#
++# System Type
++#
++# CONFIG_ARCH_AAEC2000 is not set
++# CONFIG_ARCH_INTEGRATOR is not set
++# CONFIG_ARCH_REALVIEW is not set
++# CONFIG_ARCH_VERSATILE is not set
++# CONFIG_ARCH_AT91 is not set
++# CONFIG_ARCH_CLPS7500 is not set
++# CONFIG_ARCH_CLPS711X is not set
++# CONFIG_ARCH_EBSA110 is not set
++# CONFIG_ARCH_EP93XX is not set
++# CONFIG_ARCH_FOOTBRIDGE is not set
++# CONFIG_ARCH_NETX is not set
++# CONFIG_ARCH_H720X is not set
++# CONFIG_ARCH_IMX is not set
++# CONFIG_ARCH_IOP13XX is not set
++# CONFIG_ARCH_IOP32X is not set
++# CONFIG_ARCH_IOP33X is not set
++# CONFIG_ARCH_IXP23XX is not set
++# CONFIG_ARCH_IXP2000 is not set
++# CONFIG_ARCH_IXP4XX is not set
++# CONFIG_ARCH_L7200 is not set
++# CONFIG_ARCH_KIRKWOOD is not set
++# CONFIG_ARCH_KS8695 is not set
++# CONFIG_ARCH_NS9XXX is not set
++# CONFIG_ARCH_LOKI is not set
++# CONFIG_ARCH_MV78XX0 is not set
++# CONFIG_ARCH_MXC is not set
++# CONFIG_ARCH_ORION5X is not set
++# CONFIG_ARCH_PNX4008 is not set
++# CONFIG_ARCH_PXA is not set
++# CONFIG_ARCH_RPC is not set
++# CONFIG_ARCH_SA1100 is not set
++# CONFIG_ARCH_S3C2410 is not set
++# CONFIG_ARCH_SHARK is not set
++# CONFIG_ARCH_LH7A40X is not set
++# CONFIG_ARCH_DAVINCI is not set
++CONFIG_ARCH_OMAP=y
++# CONFIG_ARCH_MSM is not set
++
++#
++# TI OMAP Implementations
++#
++CONFIG_ARCH_OMAP_OTG=y
++# CONFIG_ARCH_OMAP1 is not set
++# CONFIG_ARCH_OMAP2 is not set
++CONFIG_ARCH_OMAP3=y
++
++#
++# OMAP Feature Selections
++#
++# CONFIG_OMAP_DEBUG_POWERDOMAIN is not set
++# CONFIG_OMAP_DEBUG_CLOCKDOMAIN is not set
++# CONFIG_OMAP_RESET_CLOCKS is not set
++# CONFIG_OMAP_MUX is not set
++CONFIG_OMAP_MCBSP=y
++# CONFIG_OMAP_MPU_TIMER is not set
++CONFIG_OMAP_32K_TIMER=y
++CONFIG_OMAP_32K_TIMER_HZ=128
++CONFIG_OMAP_DM_TIMER=y
++# CONFIG_OMAP_LL_DEBUG_UART1 is not set
++# CONFIG_OMAP_LL_DEBUG_UART2 is not set
++CONFIG_OMAP_LL_DEBUG_UART3=y
++CONFIG_ARCH_OMAP34XX=y
++CONFIG_ARCH_OMAP3430=y
++
++#
++# OMAP Board Type
++#
++# CONFIG_MACH_OMAP3_BEAGLE is not set
++# CONFIG_MACH_OMAP_LDP is not set
++# CONFIG_MACH_OVERO is not set
++CONFIG_MACH_OMAP3_PANDORA=y
++
++#
++# Boot options
++#
++
++#
++# Power management
++#
++
++#
++# Processor Type
++#
++CONFIG_CPU_32=y
++CONFIG_CPU_32v6K=y
++CONFIG_CPU_V7=y
++CONFIG_CPU_32v7=y
++CONFIG_CPU_ABRT_EV7=y
++CONFIG_CPU_PABRT_IFAR=y
++CONFIG_CPU_CACHE_V7=y
++CONFIG_CPU_CACHE_VIPT=y
++CONFIG_CPU_COPY_V6=y
++CONFIG_CPU_TLB_V7=y
++CONFIG_CPU_HAS_ASID=y
++CONFIG_CPU_CP15=y
++CONFIG_CPU_CP15_MMU=y
++
++#
++# Processor Features
++#
++CONFIG_ARM_THUMB=y
++CONFIG_ARM_THUMBEE=y
++# CONFIG_CPU_ICACHE_DISABLE is not set
++# CONFIG_CPU_DCACHE_DISABLE is not set
++# CONFIG_CPU_BPREDICT_DISABLE is not set
++CONFIG_HAS_TLS_REG=y
++# CONFIG_OUTER_CACHE is not set
++
++#
++# Bus support
++#
++# CONFIG_PCI_SYSCALL is not set
++# CONFIG_ARCH_SUPPORTS_MSI is not set
++# CONFIG_PCCARD is not set
++
++#
++# Kernel Features
++#
++CONFIG_TICK_ONESHOT=y
++CONFIG_NO_HZ=y
++CONFIG_HIGH_RES_TIMERS=y
++CONFIG_GENERIC_CLOCKEVENTS_BUILD=y
++CONFIG_VMSPLIT_3G=y
++# CONFIG_VMSPLIT_2G is not set
++# CONFIG_VMSPLIT_1G is not set
++CONFIG_PAGE_OFFSET=0xC0000000
++# CONFIG_PREEMPT is not set
++CONFIG_HZ=128
++CONFIG_AEABI=y
++CONFIG_OABI_COMPAT=y
++CONFIG_ARCH_FLATMEM_HAS_HOLES=y
++# CONFIG_ARCH_SPARSEMEM_DEFAULT is not set
++# CONFIG_ARCH_SELECT_MEMORY_MODEL is not set
++CONFIG_SELECT_MEMORY_MODEL=y
++CONFIG_FLATMEM_MANUAL=y
++# CONFIG_DISCONTIGMEM_MANUAL is not set
++# CONFIG_SPARSEMEM_MANUAL is not set
++CONFIG_FLATMEM=y
++CONFIG_FLAT_NODE_MEM_MAP=y
++CONFIG_PAGEFLAGS_EXTENDED=y
++CONFIG_SPLIT_PTLOCK_CPUS=4
++# CONFIG_RESOURCES_64BIT is not set
++# CONFIG_PHYS_ADDR_T_64BIT is not set
++CONFIG_ZONE_DMA_FLAG=0
++CONFIG_VIRT_TO_BUS=y
++CONFIG_UNEVICTABLE_LRU=y
++# CONFIG_LEDS is not set
++CONFIG_ALIGNMENT_TRAP=y
++
++#
++# Boot options
++#
++CONFIG_ZBOOT_ROM_TEXT=0x0
++CONFIG_ZBOOT_ROM_BSS=0x0
++CONFIG_CMDLINE=" debug "
++# CONFIG_XIP_KERNEL is not set
++# CONFIG_KEXEC is not set
++
++#
++# CPU Power Management
++#
++# CONFIG_CPU_FREQ is not set
++# CONFIG_CPU_IDLE is not set
++
++#
++# Floating point emulation
++#
++
++#
++# At least one emulation must be selected
++#
++CONFIG_FPE_NWFPE=y
++# CONFIG_FPE_NWFPE_XP is not set
++# CONFIG_FPE_FASTFPE is not set
++CONFIG_VFP=y
++CONFIG_VFPv3=y
++CONFIG_NEON=y
++
++#
++# Userspace binary formats
++#
++CONFIG_BINFMT_ELF=y
++# CONFIG_CORE_DUMP_DEFAULT_ELF_HEADERS is not set
++CONFIG_HAVE_AOUT=y
++# CONFIG_BINFMT_AOUT is not set
++CONFIG_BINFMT_MISC=y
++
++#
++# Power management options
++#
++# CONFIG_PM is not set
++CONFIG_ARCH_SUSPEND_POSSIBLE=y
++CONFIG_NET=y
++
++#
++# Networking options
++#
++CONFIG_PACKET=y
++# CONFIG_PACKET_MMAP is not set
++CONFIG_UNIX=y
++CONFIG_XFRM=y
++# CONFIG_XFRM_USER is not set
++# CONFIG_XFRM_SUB_POLICY is not set
++# CONFIG_XFRM_MIGRATE is not set
++# CONFIG_XFRM_STATISTICS is not set
++CONFIG_NET_KEY=y
++# CONFIG_NET_KEY_MIGRATE is not set
++CONFIG_INET=y
++# CONFIG_IP_MULTICAST is not set
++# CONFIG_IP_ADVANCED_ROUTER is not set
++CONFIG_IP_FIB_HASH=y
++CONFIG_IP_PNP=y
++CONFIG_IP_PNP_DHCP=y
++CONFIG_IP_PNP_BOOTP=y
++CONFIG_IP_PNP_RARP=y
++# CONFIG_NET_IPIP is not set
++# CONFIG_NET_IPGRE is not set
++# CONFIG_ARPD is not set
++# CONFIG_SYN_COOKIES is not set
++# CONFIG_INET_AH is not set
++# CONFIG_INET_ESP is not set
++# CONFIG_INET_IPCOMP is not set
++# CONFIG_INET_XFRM_TUNNEL is not set
++# CONFIG_INET_TUNNEL is not set
++CONFIG_INET_XFRM_MODE_TRANSPORT=y
++CONFIG_INET_XFRM_MODE_TUNNEL=y
++CONFIG_INET_XFRM_MODE_BEET=y
++# CONFIG_INET_LRO is not set
++CONFIG_INET_DIAG=y
++CONFIG_INET_TCP_DIAG=y
++# CONFIG_TCP_CONG_ADVANCED is not set
++CONFIG_TCP_CONG_CUBIC=y
++CONFIG_DEFAULT_TCP_CONG="cubic"
++# CONFIG_TCP_MD5SIG is not set
++# CONFIG_IPV6 is not set
++# CONFIG_NETWORK_SECMARK is not set
++# CONFIG_NETFILTER is not set
++# CONFIG_IP_DCCP is not set
++# CONFIG_IP_SCTP is not set
++# CONFIG_TIPC is not set
++# CONFIG_ATM is not set
++# CONFIG_BRIDGE is not set
++# CONFIG_NET_DSA is not set
++# CONFIG_VLAN_8021Q is not set
++# CONFIG_DECNET is not set
++# CONFIG_LLC2 is not set
++# CONFIG_IPX is not set
++# CONFIG_ATALK is not set
++# CONFIG_X25 is not set
++# CONFIG_LAPB is not set
++# CONFIG_ECONET is not set
++# CONFIG_WAN_ROUTER is not set
++# CONFIG_NET_SCHED is not set
++
++#
++# Network testing
++#
++# CONFIG_NET_PKTGEN is not set
++# CONFIG_HAMRADIO is not set
++# CONFIG_CAN is not set
++# CONFIG_IRDA is not set
++# CONFIG_BT is not set
++# CONFIG_AF_RXRPC is not set
++# CONFIG_PHONET is not set
++# CONFIG_WIRELESS is not set
++# CONFIG_RFKILL is not set
++# CONFIG_NET_9P is not set
++
++#
++# Device Drivers
++#
++
++#
++# Generic Driver Options
++#
++CONFIG_UEVENT_HELPER_PATH="/sbin/hotplug"
++CONFIG_STANDALONE=y
++CONFIG_PREVENT_FIRMWARE_BUILD=y
++# CONFIG_FW_LOADER is not set
++# CONFIG_DEBUG_DRIVER is not set
++# CONFIG_DEBUG_DEVRES is not set
++# CONFIG_SYS_HYPERVISOR is not set
++# CONFIG_CONNECTOR is not set
++CONFIG_MTD=y
++# CONFIG_MTD_DEBUG is not set
++# CONFIG_MTD_CONCAT is not set
++CONFIG_MTD_PARTITIONS=y
++# CONFIG_MTD_REDBOOT_PARTS is not set
++# CONFIG_MTD_CMDLINE_PARTS is not set
++# CONFIG_MTD_AFS_PARTS is not set
++# CONFIG_MTD_AR7_PARTS is not set
++
++#
++# User Modules And Translation Layers
++#
++CONFIG_MTD_CHAR=y
++CONFIG_MTD_BLKDEVS=y
++CONFIG_MTD_BLOCK=y
++# CONFIG_FTL is not set
++# CONFIG_NFTL is not set
++# CONFIG_INFTL is not set
++# CONFIG_RFD_FTL is not set
++# CONFIG_SSFDC is not set
++# CONFIG_MTD_OOPS is not set
++
++#
++# RAM/ROM/Flash chip drivers
++#
++# CONFIG_MTD_CFI is not set
++# CONFIG_MTD_JEDECPROBE is not set
++CONFIG_MTD_MAP_BANK_WIDTH_1=y
++CONFIG_MTD_MAP_BANK_WIDTH_2=y
++CONFIG_MTD_MAP_BANK_WIDTH_4=y
++# CONFIG_MTD_MAP_BANK_WIDTH_8 is not set
++# CONFIG_MTD_MAP_BANK_WIDTH_16 is not set
++# CONFIG_MTD_MAP_BANK_WIDTH_32 is not set
++CONFIG_MTD_CFI_I1=y
++CONFIG_MTD_CFI_I2=y
++# CONFIG_MTD_CFI_I4 is not set
++# CONFIG_MTD_CFI_I8 is not set
++# CONFIG_MTD_RAM is not set
++# CONFIG_MTD_ROM is not set
++# CONFIG_MTD_ABSENT is not set
++
++#
++# Mapping drivers for chip access
++#
++# CONFIG_MTD_COMPLEX_MAPPINGS is not set
++# CONFIG_MTD_PLATRAM is not set
++
++#
++# Self-contained MTD device drivers
++#
++# CONFIG_MTD_DATAFLASH is not set
++# CONFIG_MTD_M25P80 is not set
++# CONFIG_MTD_SLRAM is not set
++# CONFIG_MTD_PHRAM is not set
++# CONFIG_MTD_MTDRAM is not set
++# CONFIG_MTD_BLOCK2MTD is not set
++
++#
++# Disk-On-Chip Device Drivers
++#
++# CONFIG_MTD_DOC2000 is not set
++# CONFIG_MTD_DOC2001 is not set
++# CONFIG_MTD_DOC2001PLUS is not set
++CONFIG_MTD_NAND=y
++# CONFIG_MTD_NAND_VERIFY_WRITE is not set
++# CONFIG_MTD_NAND_ECC_SMC is not set
++# CONFIG_MTD_NAND_MUSEUM_IDS is not set
++# CONFIG_MTD_NAND_GPIO is not set
++CONFIG_MTD_NAND_IDS=y
++# CONFIG_MTD_NAND_DISKONCHIP is not set
++# CONFIG_MTD_NAND_NANDSIM is not set
++# CONFIG_MTD_NAND_PLATFORM is not set
++# CONFIG_MTD_ALAUDA is not set
++# CONFIG_MTD_ONENAND is not set
++
++#
++# UBI - Unsorted block images
++#
++# CONFIG_MTD_UBI is not set
++# CONFIG_PARPORT is not set
++CONFIG_BLK_DEV=y
++# CONFIG_BLK_DEV_COW_COMMON is not set
++CONFIG_BLK_DEV_LOOP=y
++# CONFIG_BLK_DEV_CRYPTOLOOP is not set
++# CONFIG_BLK_DEV_NBD is not set
++# CONFIG_BLK_DEV_UB is not set
++CONFIG_BLK_DEV_RAM=y
++CONFIG_BLK_DEV_RAM_COUNT=16
++CONFIG_BLK_DEV_RAM_SIZE=16384
++# CONFIG_BLK_DEV_XIP is not set
++# CONFIG_CDROM_PKTCDVD is not set
++# CONFIG_ATA_OVER_ETH is not set
++# CONFIG_MISC_DEVICES is not set
++CONFIG_HAVE_IDE=y
++# CONFIG_IDE is not set
++
++#
++# SCSI device support
++#
++# CONFIG_RAID_ATTRS is not set
++CONFIG_SCSI=y
++CONFIG_SCSI_DMA=y
++# CONFIG_SCSI_TGT is not set
++# CONFIG_SCSI_NETLINK is not set
++CONFIG_SCSI_PROC_FS=y
++
++#
++# SCSI support type (disk, tape, CD-ROM)
++#
++CONFIG_BLK_DEV_SD=y
++# CONFIG_CHR_DEV_ST is not set
++# CONFIG_CHR_DEV_OSST is not set
++# CONFIG_BLK_DEV_SR is not set
++# CONFIG_CHR_DEV_SG is not set
++# CONFIG_CHR_DEV_SCH is not set
++
++#
++# Some SCSI devices (e.g. CD jukebox) support multiple LUNs
++#
++# CONFIG_SCSI_MULTI_LUN is not set
++# CONFIG_SCSI_CONSTANTS is not set
++# CONFIG_SCSI_LOGGING is not set
++# CONFIG_SCSI_SCAN_ASYNC is not set
++CONFIG_SCSI_WAIT_SCAN=m
++
++#
++# SCSI Transports
++#
++# CONFIG_SCSI_SPI_ATTRS is not set
++# CONFIG_SCSI_FC_ATTRS is not set
++# CONFIG_SCSI_ISCSI_ATTRS is not set
++# CONFIG_SCSI_SAS_LIBSAS is not set
++# CONFIG_SCSI_SRP_ATTRS is not set
++CONFIG_SCSI_LOWLEVEL=y
++# CONFIG_ISCSI_TCP is not set
++# CONFIG_SCSI_DEBUG is not set
++# CONFIG_SCSI_DH is not set
++# CONFIG_ATA is not set
++# CONFIG_MD is not set
++CONFIG_NETDEVICES=y
++# CONFIG_DUMMY is not set
++# CONFIG_BONDING is not set
++# CONFIG_MACVLAN is not set
++# CONFIG_EQUALIZER is not set
++# CONFIG_TUN is not set
++# CONFIG_VETH is not set
++# CONFIG_NET_ETHERNET is not set
++# CONFIG_NETDEV_1000 is not set
++# CONFIG_NETDEV_10000 is not set
++
++#
++# Wireless LAN
++#
++# CONFIG_WLAN_PRE80211 is not set
++# CONFIG_WLAN_80211 is not set
++# CONFIG_IWLWIFI_LEDS is not set
++
++#
++# USB Network Adapters
++#
++# CONFIG_USB_CATC is not set
++# CONFIG_USB_KAWETH is not set
++# CONFIG_USB_PEGASUS is not set
++# CONFIG_USB_RTL8150 is not set
++# CONFIG_USB_USBNET is not set
++# CONFIG_WAN is not set
++# CONFIG_PPP is not set
++# CONFIG_SLIP is not set
++# CONFIG_NETCONSOLE is not set
++# CONFIG_NETPOLL is not set
++# CONFIG_NET_POLL_CONTROLLER is not set
++# CONFIG_ISDN is not set
++
++#
++# Input device support
++#
++CONFIG_INPUT=y
++# CONFIG_INPUT_FF_MEMLESS is not set
++# CONFIG_INPUT_POLLDEV is not set
++
++#
++# Userland interfaces
++#
++CONFIG_INPUT_MOUSEDEV=y
++CONFIG_INPUT_MOUSEDEV_PSAUX=y
++CONFIG_INPUT_MOUSEDEV_SCREEN_X=800
++CONFIG_INPUT_MOUSEDEV_SCREEN_Y=480
++CONFIG_INPUT_JOYDEV=y
++CONFIG_INPUT_EVDEV=y
++# CONFIG_INPUT_EVBUG is not set
++
++#
++# Input Device Drivers
++#
++CONFIG_INPUT_KEYBOARD=y
++# CONFIG_KEYBOARD_ATKBD is not set
++# CONFIG_KEYBOARD_SUNKBD is not set
++# CONFIG_KEYBOARD_LKKBD is not set
++# CONFIG_KEYBOARD_XTKBD is not set
++# CONFIG_KEYBOARD_NEWTON is not set
++# CONFIG_KEYBOARD_STOWAWAY is not set
++# CONFIG_KEYBOARD_GPIO is not set
++CONFIG_INPUT_MOUSE=y
++# CONFIG_MOUSE_PS2 is not set
++# CONFIG_MOUSE_SERIAL is not set
++# CONFIG_MOUSE_APPLETOUCH is not set
++# CONFIG_MOUSE_BCM5974 is not set
++# CONFIG_MOUSE_VSXXXAA is not set
++# CONFIG_MOUSE_GPIO is not set
++# CONFIG_INPUT_JOYSTICK is not set
++# CONFIG_INPUT_TABLET is not set
++CONFIG_INPUT_TOUCHSCREEN=y
++CONFIG_TOUCHSCREEN_ADS7846=y
++# CONFIG_TOUCHSCREEN_FUJITSU is not set
++# CONFIG_TOUCHSCREEN_GUNZE is not set
++# CONFIG_TOUCHSCREEN_ELO is not set
++# CONFIG_TOUCHSCREEN_MTOUCH is not set
++# CONFIG_TOUCHSCREEN_INEXIO is not set
++# CONFIG_TOUCHSCREEN_MK712 is not set
++# CONFIG_TOUCHSCREEN_PENMOUNT is not set
++# CONFIG_TOUCHSCREEN_TOUCHRIGHT is not set
++# CONFIG_TOUCHSCREEN_TOUCHWIN is not set
++# CONFIG_TOUCHSCREEN_USB_COMPOSITE is not set
++# CONFIG_TOUCHSCREEN_TOUCHIT213 is not set
++# CONFIG_INPUT_MISC is not set
++
++#
++# Hardware I/O ports
++#
++# CONFIG_SERIO is not set
++# CONFIG_GAMEPORT is not set
++
++#
++# Character devices
++#
++CONFIG_VT=y
++CONFIG_CONSOLE_TRANSLATIONS=y
++CONFIG_VT_CONSOLE=y
++CONFIG_HW_CONSOLE=y
++# CONFIG_VT_HW_CONSOLE_BINDING is not set
++CONFIG_DEVKMEM=y
++# CONFIG_SERIAL_NONSTANDARD is not set
++
++#
++# Serial drivers
++#
++CONFIG_SERIAL_8250=y
++CONFIG_SERIAL_8250_CONSOLE=y
++CONFIG_SERIAL_8250_NR_UARTS=32
++CONFIG_SERIAL_8250_RUNTIME_UARTS=4
++CONFIG_SERIAL_8250_EXTENDED=y
++CONFIG_SERIAL_8250_MANY_PORTS=y
++CONFIG_SERIAL_8250_SHARE_IRQ=y
++CONFIG_SERIAL_8250_DETECT_IRQ=y
++CONFIG_SERIAL_8250_RSA=y
++
++#
++# Non-8250 serial port support
++#
++CONFIG_SERIAL_CORE=y
++CONFIG_SERIAL_CORE_CONSOLE=y
++CONFIG_UNIX98_PTYS=y
++# CONFIG_LEGACY_PTYS is not set
++# CONFIG_IPMI_HANDLER is not set
++CONFIG_HW_RANDOM=y
++# CONFIG_NVRAM is not set
++# CONFIG_R3964 is not set
++# CONFIG_RAW_DRIVER is not set
++# CONFIG_TCG_TPM is not set
++CONFIG_I2C=y
++CONFIG_I2C_BOARDINFO=y
++CONFIG_I2C_CHARDEV=y
++CONFIG_I2C_HELPER_AUTO=y
++
++#
++# I2C Hardware Bus support
++#
++
++#
++# I2C system bus drivers (mostly embedded / system-on-chip)
++#
++# CONFIG_I2C_GPIO is not set
++# CONFIG_I2C_OCORES is not set
++CONFIG_I2C_OMAP=y
++# CONFIG_I2C_SIMTEC is not set
++
++#
++# External I2C/SMBus adapter drivers
++#
++# CONFIG_I2C_PARPORT_LIGHT is not set
++# CONFIG_I2C_TAOS_EVM is not set
++# CONFIG_I2C_TINY_USB is not set
++
++#
++# Other I2C/SMBus bus drivers
++#
++# CONFIG_I2C_PCA_PLATFORM is not set
++# CONFIG_I2C_STUB is not set
++
++#
++# Miscellaneous I2C Chip support
++#
++# CONFIG_DS1682 is not set
++# CONFIG_AT24 is not set
++# CONFIG_SENSORS_EEPROM is not set
++# CONFIG_SENSORS_PCF8574 is not set
++# CONFIG_PCF8575 is not set
++# CONFIG_SENSORS_PCA9539 is not set
++# CONFIG_SENSORS_PCF8591 is not set
++# CONFIG_ISP1301_OMAP is not set
++# CONFIG_TPS65010 is not set
++# CONFIG_SENSORS_MAX6875 is not set
++# CONFIG_SENSORS_TSL2550 is not set
++# CONFIG_I2C_DEBUG_CORE is not set
++# CONFIG_I2C_DEBUG_ALGO is not set
++# CONFIG_I2C_DEBUG_BUS is not set
++# CONFIG_I2C_DEBUG_CHIP is not set
++CONFIG_SPI=y
++# CONFIG_SPI_DEBUG is not set
++CONFIG_SPI_MASTER=y
++
++#
++# SPI Master Controller Drivers
++#
++# CONFIG_SPI_BITBANG is not set
++CONFIG_SPI_OMAP24XX=y
++
++#
++# SPI Protocol Masters
++#
++# CONFIG_SPI_AT25 is not set
++# CONFIG_SPI_SPIDEV is not set
++# CONFIG_SPI_TLE62X0 is not set
++CONFIG_ARCH_REQUIRE_GPIOLIB=y
++CONFIG_GPIOLIB=y
++# CONFIG_DEBUG_GPIO is not set
++# CONFIG_GPIO_SYSFS is not set
++
++#
++# Memory mapped GPIO expanders:
++#
++
++#
++# I2C GPIO expanders:
++#
++# CONFIG_GPIO_MAX732X is not set
++# CONFIG_GPIO_PCA953X is not set
++# CONFIG_GPIO_PCF857X is not set
++CONFIG_GPIO_TWL4030=y
++
++#
++# PCI GPIO expanders:
++#
++
++#
++# SPI GPIO expanders:
++#
++# CONFIG_GPIO_MAX7301 is not set
++# CONFIG_GPIO_MCP23S08 is not set
++# CONFIG_W1 is not set
++# CONFIG_POWER_SUPPLY is not set
++# CONFIG_HWMON is not set
++# CONFIG_THERMAL is not set
++# CONFIG_THERMAL_HWMON is not set
++# CONFIG_WATCHDOG is not set
++CONFIG_SSB_POSSIBLE=y
++
++#
++# Sonics Silicon Backplane
++#
++# CONFIG_SSB is not set
++
++#
++# Multifunction device drivers
++#
++# CONFIG_MFD_CORE is not set
++# CONFIG_MFD_SM501 is not set
++# CONFIG_MFD_ASIC3 is not set
++# CONFIG_HTC_EGPIO is not set
++# CONFIG_HTC_PASIC3 is not set
++CONFIG_TWL4030_CORE=y
++# CONFIG_MFD_TMIO is not set
++# CONFIG_MFD_T7L66XB is not set
++# CONFIG_MFD_TC6387XB is not set
++# CONFIG_MFD_TC6393XB is not set
++# CONFIG_PMIC_DA903X is not set
++# CONFIG_MFD_WM8400 is not set
++# CONFIG_MFD_WM8350_I2C is not set
++
++#
++# Multimedia devices
++#
++
++#
++# Multimedia core support
++#
++# CONFIG_VIDEO_DEV is not set
++# CONFIG_DVB_CORE is not set
++# CONFIG_VIDEO_MEDIA is not set
++
++#
++# Multimedia drivers
++#
++CONFIG_DAB=y
++# CONFIG_USB_DABUSB is not set
++
++#
++# Graphics support
++#
++# CONFIG_VGASTATE is not set
++# CONFIG_VIDEO_OUTPUT_CONTROL is not set
++# CONFIG_FB is not set
++# CONFIG_BACKLIGHT_LCD_SUPPORT is not set
++
++#
++# Display device support
++#
++# CONFIG_DISPLAY_SUPPORT is not set
++
++#
++# Console display driver support
++#
++# CONFIG_VGA_CONSOLE is not set
++CONFIG_DUMMY_CONSOLE=y
++# CONFIG_SOUND is not set
++CONFIG_HID_SUPPORT=y
++CONFIG_HID=y
++# CONFIG_HID_DEBUG is not set
++# CONFIG_HIDRAW is not set
++
++#
++# USB Input Devices
++#
++CONFIG_USB_HID=y
++# CONFIG_HID_PID is not set
++# CONFIG_USB_HIDDEV is not set
++
++#
++# Special HID drivers
++#
++# CONFIG_HID_COMPAT is not set
++# CONFIG_HID_A4TECH is not set
++# CONFIG_HID_APPLE is not set
++# CONFIG_HID_BELKIN is not set
++# CONFIG_HID_BRIGHT is not set
++# CONFIG_HID_CHERRY is not set
++# CONFIG_HID_CHICONY is not set
++# CONFIG_HID_CYPRESS is not set
++# CONFIG_HID_DELL is not set
++# CONFIG_HID_EZKEY is not set
++# CONFIG_HID_GYRATION is not set
++# CONFIG_HID_LOGITECH is not set
++# CONFIG_HID_MICROSOFT is not set
++# CONFIG_HID_MONTEREY is not set
++# CONFIG_HID_PANTHERLORD is not set
++# CONFIG_HID_PETALYNX is not set
++# CONFIG_HID_SAMSUNG is not set
++# CONFIG_HID_SONY is not set
++# CONFIG_HID_SUNPLUS is not set
++# CONFIG_THRUSTMASTER_FF is not set
++# CONFIG_ZEROPLUS_FF is not set
++CONFIG_USB_SUPPORT=y
++CONFIG_USB_ARCH_HAS_HCD=y
++CONFIG_USB_ARCH_HAS_OHCI=y
++# CONFIG_USB_ARCH_HAS_EHCI is not set
++CONFIG_USB=y
++# CONFIG_USB_DEBUG is not set
++# CONFIG_USB_ANNOUNCE_NEW_DEVICES is not set
++
++#
++# Miscellaneous USB options
++#
++CONFIG_USB_DEVICEFS=y
++CONFIG_USB_DEVICE_CLASS=y
++# CONFIG_USB_DYNAMIC_MINORS is not set
++# CONFIG_USB_OTG is not set
++# CONFIG_USB_OTG_WHITELIST is not set
++# CONFIG_USB_OTG_BLACKLIST_HUB is not set
++CONFIG_USB_MON=y
++# CONFIG_USB_WUSB is not set
++# CONFIG_USB_WUSB_CBAF is not set
++
++#
++# USB Host Controller Drivers
++#
++# CONFIG_USB_C67X00_HCD is not set
++# CONFIG_USB_ISP116X_HCD is not set
++# CONFIG_USB_OHCI_HCD is not set
++# CONFIG_USB_SL811_HCD is not set
++# CONFIG_USB_R8A66597_HCD is not set
++# CONFIG_USB_HWA_HCD is not set
++CONFIG_USB_MUSB_HDRC=y
++CONFIG_USB_MUSB_SOC=y
++
++#
++# OMAP 343x high speed USB support
++#
++CONFIG_USB_MUSB_HOST=y
++# CONFIG_USB_MUSB_PERIPHERAL is not set
++# CONFIG_USB_MUSB_OTG is not set
++# CONFIG_USB_GADGET_MUSB_HDRC is not set
++CONFIG_USB_MUSB_HDRC_HCD=y
++# CONFIG_MUSB_PIO_ONLY is not set
++CONFIG_USB_INVENTRA_DMA=y
++# CONFIG_USB_TI_CPPI_DMA is not set
++# CONFIG_USB_MUSB_DEBUG is not set
++
++#
++# USB Device Class drivers
++#
++# CONFIG_USB_ACM is not set
++# CONFIG_USB_PRINTER is not set
++# CONFIG_USB_WDM is not set
++# CONFIG_USB_TMC is not set
++
++#
++# NOTE: USB_STORAGE depends on SCSI but BLK_DEV_SD may also be needed;
++#
++
++#
++# see USB_STORAGE Help for more information
++#
++# CONFIG_USB_STORAGE is not set
++# CONFIG_USB_LIBUSUAL is not set
++
++#
++# USB Imaging devices
++#
++# CONFIG_USB_MDC800 is not set
++# CONFIG_USB_MICROTEK is not set
++
++#
++# USB port drivers
++#
++# CONFIG_USB_SERIAL is not set
++
++#
++# USB Miscellaneous drivers
++#
++# CONFIG_USB_EMI62 is not set
++# CONFIG_USB_EMI26 is not set
++# CONFIG_USB_ADUTUX is not set
++# CONFIG_USB_SEVSEG is not set
++# CONFIG_USB_RIO500 is not set
++# CONFIG_USB_LEGOTOWER is not set
++# CONFIG_USB_LCD is not set
++# CONFIG_USB_BERRY_CHARGE is not set
++# CONFIG_USB_LED is not set
++# CONFIG_USB_CYPRESS_CY7C63 is not set
++# CONFIG_USB_CYTHERM is not set
++# CONFIG_USB_PHIDGET is not set
++# CONFIG_USB_IDMOUSE is not set
++# CONFIG_USB_FTDI_ELAN is not set
++# CONFIG_USB_APPLEDISPLAY is not set
++# CONFIG_USB_LD is not set
++# CONFIG_USB_TRANCEVIBRATOR is not set
++# CONFIG_USB_IOWARRIOR is not set
++# CONFIG_USB_TEST is not set
++# CONFIG_USB_ISIGHTFW is not set
++# CONFIG_USB_VST is not set
++CONFIG_USB_GADGET=y
++# CONFIG_USB_GADGET_DEBUG is not set
++# CONFIG_USB_GADGET_DEBUG_FILES is not set
++CONFIG_USB_GADGET_VBUS_DRAW=2
++CONFIG_USB_GADGET_SELECTED=y
++# CONFIG_USB_GADGET_AT91 is not set
++# CONFIG_USB_GADGET_ATMEL_USBA is not set
++# CONFIG_USB_GADGET_FSL_USB2 is not set
++# CONFIG_USB_GADGET_LH7A40X is not set
++CONFIG_USB_GADGET_OMAP=y
++CONFIG_USB_OMAP=y
++# CONFIG_USB_GADGET_PXA25X is not set
++# CONFIG_USB_GADGET_PXA27X is not set
++# CONFIG_USB_GADGET_S3C2410 is not set
++# CONFIG_USB_GADGET_M66592 is not set
++# CONFIG_USB_GADGET_AMD5536UDC is not set
++# CONFIG_USB_GADGET_FSL_QE is not set
++# CONFIG_USB_GADGET_NET2280 is not set
++# CONFIG_USB_GADGET_GOKU is not set
++# CONFIG_USB_GADGET_DUMMY_HCD is not set
++# CONFIG_USB_GADGET_DUALSPEED is not set
++# CONFIG_USB_ZERO is not set
++CONFIG_USB_ETH=y
++CONFIG_USB_ETH_RNDIS=y
++# CONFIG_USB_GADGETFS is not set
++# CONFIG_USB_FILE_STORAGE is not set
++# CONFIG_USB_G_SERIAL is not set
++# CONFIG_USB_MIDI_GADGET is not set
++# CONFIG_USB_G_PRINTER is not set
++# CONFIG_USB_CDC_COMPOSITE is not set
++CONFIG_MMC=y
++# CONFIG_MMC_DEBUG is not set
++# CONFIG_MMC_UNSAFE_RESUME is not set
++
++#
++# MMC/SD/SDIO Card Drivers
++#
++CONFIG_MMC_BLOCK=y
++CONFIG_MMC_BLOCK_BOUNCE=y
++# CONFIG_SDIO_UART is not set
++# CONFIG_MMC_TEST is not set
++
++#
++# MMC/SD/SDIO Host Controller Drivers
++#
++# CONFIG_MMC_SDHCI is not set
++# CONFIG_MMC_OMAP is not set
++# CONFIG_MMC_SPI is not set
++# CONFIG_MEMSTICK is not set
++# CONFIG_ACCESSIBILITY is not set
++# CONFIG_NEW_LEDS is not set
++CONFIG_RTC_LIB=y
++CONFIG_RTC_CLASS=y
++CONFIG_RTC_HCTOSYS=y
++CONFIG_RTC_HCTOSYS_DEVICE="rtc0"
++# CONFIG_RTC_DEBUG is not set
++
++#
++# RTC interfaces
++#
++CONFIG_RTC_INTF_SYSFS=y
++CONFIG_RTC_INTF_PROC=y
++CONFIG_RTC_INTF_DEV=y
++# CONFIG_RTC_INTF_DEV_UIE_EMUL is not set
++# CONFIG_RTC_DRV_TEST is not set
++
++#
++# I2C RTC drivers
++#
++# CONFIG_RTC_DRV_DS1307 is not set
++# CONFIG_RTC_DRV_DS1374 is not set
++# CONFIG_RTC_DRV_DS1672 is not set
++# CONFIG_RTC_DRV_MAX6900 is not set
++# CONFIG_RTC_DRV_RS5C372 is not set
++# CONFIG_RTC_DRV_ISL1208 is not set
++# CONFIG_RTC_DRV_X1205 is not set
++# CONFIG_RTC_DRV_PCF8563 is not set
++# CONFIG_RTC_DRV_PCF8583 is not set
++# CONFIG_RTC_DRV_M41T80 is not set
++CONFIG_RTC_DRV_TWL4030=y
++# CONFIG_RTC_DRV_S35390A is not set
++# CONFIG_RTC_DRV_FM3130 is not set
++# CONFIG_RTC_DRV_RX8581 is not set
++
++#
++# SPI RTC drivers
++#
++# CONFIG_RTC_DRV_M41T94 is not set
++# CONFIG_RTC_DRV_DS1305 is not set
++# CONFIG_RTC_DRV_DS1390 is not set
++# CONFIG_RTC_DRV_MAX6902 is not set
++# CONFIG_RTC_DRV_R9701 is not set
++# CONFIG_RTC_DRV_RS5C348 is not set
++# CONFIG_RTC_DRV_DS3234 is not set
++
++#
++# Platform RTC drivers
++#
++# CONFIG_RTC_DRV_CMOS is not set
++# CONFIG_RTC_DRV_DS1286 is not set
++# CONFIG_RTC_DRV_DS1511 is not set
++# CONFIG_RTC_DRV_DS1553 is not set
++# CONFIG_RTC_DRV_DS1742 is not set
++# CONFIG_RTC_DRV_STK17TA8 is not set
++# CONFIG_RTC_DRV_M48T86 is not set
++# CONFIG_RTC_DRV_M48T35 is not set
++# CONFIG_RTC_DRV_M48T59 is not set
++# CONFIG_RTC_DRV_BQ4802 is not set
++# CONFIG_RTC_DRV_V3020 is not set
++
++#
++# on-CPU RTC drivers
++#
++# CONFIG_DMADEVICES is not set
++# CONFIG_REGULATOR is not set
++# CONFIG_UIO is not set
++
++#
++# File systems
++#
++CONFIG_EXT2_FS=y
++# CONFIG_EXT2_FS_XATTR is not set
++# CONFIG_EXT2_FS_XIP is not set
++CONFIG_EXT3_FS=y
++# CONFIG_EXT3_FS_XATTR is not set
++# CONFIG_EXT4_FS is not set
++CONFIG_JBD=y
++# CONFIG_REISERFS_FS is not set
++# CONFIG_JFS_FS is not set
++# CONFIG_FS_POSIX_ACL is not set
++CONFIG_FILE_LOCKING=y
++# CONFIG_XFS_FS is not set
++# CONFIG_OCFS2_FS is not set
++CONFIG_DNOTIFY=y
++CONFIG_INOTIFY=y
++CONFIG_INOTIFY_USER=y
++CONFIG_QUOTA=y
++# CONFIG_QUOTA_NETLINK_INTERFACE is not set
++CONFIG_PRINT_QUOTA_WARNING=y
++# CONFIG_QFMT_V1 is not set
++CONFIG_QFMT_V2=y
++CONFIG_QUOTACTL=y
++# CONFIG_AUTOFS_FS is not set
++# CONFIG_AUTOFS4_FS is not set
++# CONFIG_FUSE_FS is not set
++
++#
++# CD-ROM/DVD Filesystems
++#
++# CONFIG_ISO9660_FS is not set
++# CONFIG_UDF_FS is not set
++
++#
++# DOS/FAT/NT Filesystems
++#
++CONFIG_FAT_FS=y
++CONFIG_MSDOS_FS=y
++CONFIG_VFAT_FS=y
++CONFIG_FAT_DEFAULT_CODEPAGE=437
++CONFIG_FAT_DEFAULT_IOCHARSET="iso8859-1"
++# CONFIG_NTFS_FS is not set
++
++#
++# Pseudo filesystems
++#
++CONFIG_PROC_FS=y
++CONFIG_PROC_SYSCTL=y
++CONFIG_PROC_PAGE_MONITOR=y
++CONFIG_SYSFS=y
++CONFIG_TMPFS=y
++# CONFIG_TMPFS_POSIX_ACL is not set
++# CONFIG_HUGETLB_PAGE is not set
++# CONFIG_CONFIGFS_FS is not set
++
++#
++# Miscellaneous filesystems
++#
++# CONFIG_ADFS_FS is not set
++# CONFIG_AFFS_FS is not set
++# CONFIG_HFS_FS is not set
++# CONFIG_HFSPLUS_FS is not set
++# CONFIG_BEFS_FS is not set
++# CONFIG_BFS_FS is not set
++# CONFIG_EFS_FS is not set
++# CONFIG_JFFS2_FS is not set
++# CONFIG_CRAMFS is not set
++# CONFIG_VXFS_FS is not set
++# CONFIG_MINIX_FS is not set
++# CONFIG_OMFS_FS is not set
++# CONFIG_HPFS_FS is not set
++# CONFIG_QNX4FS_FS is not set
++# CONFIG_ROMFS_FS is not set
++# CONFIG_SYSV_FS is not set
++# CONFIG_UFS_FS is not set
++# CONFIG_NETWORK_FILESYSTEMS is not set
++
++#
++# Partition Types
++#
++CONFIG_PARTITION_ADVANCED=y
++# CONFIG_ACORN_PARTITION is not set
++# CONFIG_OSF_PARTITION is not set
++# CONFIG_AMIGA_PARTITION is not set
++# CONFIG_ATARI_PARTITION is not set
++# CONFIG_MAC_PARTITION is not set
++CONFIG_MSDOS_PARTITION=y
++# CONFIG_BSD_DISKLABEL is not set
++# CONFIG_MINIX_SUBPARTITION is not set
++# CONFIG_SOLARIS_X86_PARTITION is not set
++# CONFIG_UNIXWARE_DISKLABEL is not set
++# CONFIG_LDM_PARTITION is not set
++# CONFIG_SGI_PARTITION is not set
++# CONFIG_ULTRIX_PARTITION is not set
++# CONFIG_SUN_PARTITION is not set
++# CONFIG_KARMA_PARTITION is not set
++# CONFIG_EFI_PARTITION is not set
++# CONFIG_SYSV68_PARTITION is not set
++CONFIG_NLS=y
++CONFIG_NLS_DEFAULT="iso8859-1"
++CONFIG_NLS_CODEPAGE_437=y
++# CONFIG_NLS_CODEPAGE_737 is not set
++# CONFIG_NLS_CODEPAGE_775 is not set
++# CONFIG_NLS_CODEPAGE_850 is not set
++# CONFIG_NLS_CODEPAGE_852 is not set
++# CONFIG_NLS_CODEPAGE_855 is not set
++# CONFIG_NLS_CODEPAGE_857 is not set
++# CONFIG_NLS_CODEPAGE_860 is not set
++# CONFIG_NLS_CODEPAGE_861 is not set
++# CONFIG_NLS_CODEPAGE_862 is not set
++# CONFIG_NLS_CODEPAGE_863 is not set
++# CONFIG_NLS_CODEPAGE_864 is not set
++# CONFIG_NLS_CODEPAGE_865 is not set
++# CONFIG_NLS_CODEPAGE_866 is not set
++# CONFIG_NLS_CODEPAGE_869 is not set
++# CONFIG_NLS_CODEPAGE_936 is not set
++# CONFIG_NLS_CODEPAGE_950 is not set
++# CONFIG_NLS_CODEPAGE_932 is not set
++# CONFIG_NLS_CODEPAGE_949 is not set
++# CONFIG_NLS_CODEPAGE_874 is not set
++# CONFIG_NLS_ISO8859_8 is not set
++# CONFIG_NLS_CODEPAGE_1250 is not set
++# CONFIG_NLS_CODEPAGE_1251 is not set
++# CONFIG_NLS_ASCII is not set
++CONFIG_NLS_ISO8859_1=y
++# CONFIG_NLS_ISO8859_2 is not set
++# CONFIG_NLS_ISO8859_3 is not set
++# CONFIG_NLS_ISO8859_4 is not set
++# CONFIG_NLS_ISO8859_5 is not set
++# CONFIG_NLS_ISO8859_6 is not set
++# CONFIG_NLS_ISO8859_7 is not set
++# CONFIG_NLS_ISO8859_9 is not set
++# CONFIG_NLS_ISO8859_13 is not set
++# CONFIG_NLS_ISO8859_14 is not set
++# CONFIG_NLS_ISO8859_15 is not set
++# CONFIG_NLS_KOI8_R is not set
++# CONFIG_NLS_KOI8_U is not set
++# CONFIG_NLS_UTF8 is not set
++# CONFIG_DLM is not set
++
++#
++# Kernel hacking
++#
++# CONFIG_PRINTK_TIME is not set
++CONFIG_ENABLE_WARN_DEPRECATED=y
++CONFIG_ENABLE_MUST_CHECK=y
++CONFIG_FRAME_WARN=1024
++CONFIG_MAGIC_SYSRQ=y
++# CONFIG_UNUSED_SYMBOLS is not set
++# CONFIG_DEBUG_FS is not set
++# CONFIG_HEADERS_CHECK is not set
++CONFIG_DEBUG_KERNEL=y
++# CONFIG_DEBUG_SHIRQ is not set
++CONFIG_DETECT_SOFTLOCKUP=y
++# CONFIG_BOOTPARAM_SOFTLOCKUP_PANIC is not set
++CONFIG_BOOTPARAM_SOFTLOCKUP_PANIC_VALUE=0
++CONFIG_SCHED_DEBUG=y
++# CONFIG_SCHEDSTATS is not set
++# CONFIG_TIMER_STATS is not set
++# CONFIG_DEBUG_OBJECTS is not set
++# CONFIG_DEBUG_SLAB is not set
++# CONFIG_DEBUG_RT_MUTEXES is not set
++# CONFIG_RT_MUTEX_TESTER is not set
++# CONFIG_DEBUG_SPINLOCK is not set
++CONFIG_DEBUG_MUTEXES=y
++# CONFIG_DEBUG_LOCK_ALLOC is not set
++# CONFIG_PROVE_LOCKING is not set
++# CONFIG_LOCK_STAT is not set
++# CONFIG_DEBUG_SPINLOCK_SLEEP is not set
++# CONFIG_DEBUG_LOCKING_API_SELFTESTS is not set
++# CONFIG_DEBUG_KOBJECT is not set
++# CONFIG_DEBUG_BUGVERBOSE is not set
++CONFIG_DEBUG_INFO=y
++# CONFIG_DEBUG_VM is not set
++# CONFIG_DEBUG_WRITECOUNT is not set
++# CONFIG_DEBUG_MEMORY_INIT is not set
++# CONFIG_DEBUG_LIST is not set
++# CONFIG_DEBUG_SG is not set
++CONFIG_FRAME_POINTER=y
++# CONFIG_BOOT_PRINTK_DELAY is not set
++# CONFIG_RCU_TORTURE_TEST is not set
++# CONFIG_RCU_CPU_STALL_DETECTOR is not set
++# CONFIG_BACKTRACE_SELF_TEST is not set
++# CONFIG_DEBUG_BLOCK_EXT_DEVT is not set
++# CONFIG_FAULT_INJECTION is not set
++# CONFIG_LATENCYTOP is not set
++CONFIG_HAVE_FUNCTION_TRACER=y
++
++#
++# Tracers
++#
++# CONFIG_FUNCTION_TRACER is not set
++# CONFIG_IRQSOFF_TRACER is not set
++# CONFIG_SCHED_TRACER is not set
++# CONFIG_CONTEXT_SWITCH_TRACER is not set
++# CONFIG_BOOT_TRACER is not set
++# CONFIG_STACK_TRACER is not set
++# CONFIG_DYNAMIC_PRINTK_DEBUG is not set
++# CONFIG_SAMPLES is not set
++CONFIG_HAVE_ARCH_KGDB=y
++# CONFIG_KGDB is not set
++# CONFIG_DEBUG_USER is not set
++# CONFIG_DEBUG_ERRORS is not set
++# CONFIG_DEBUG_STACK_USAGE is not set
++# CONFIG_DEBUG_LL is not set
++
++#
++# Security options
++#
++# CONFIG_KEYS is not set
++# CONFIG_SECURITY is not set
++# CONFIG_SECURITYFS is not set
++# CONFIG_SECURITY_FILE_CAPABILITIES is not set
++CONFIG_CRYPTO=y
++
++#
++# Crypto core or helper
++#
++# CONFIG_CRYPTO_FIPS is not set
++CONFIG_CRYPTO_ALGAPI=y
++CONFIG_CRYPTO_AEAD=y
++CONFIG_CRYPTO_BLKCIPHER=y
++CONFIG_CRYPTO_HASH=y
++CONFIG_CRYPTO_RNG=y
++CONFIG_CRYPTO_MANAGER=y
++# CONFIG_CRYPTO_GF128MUL is not set
++# CONFIG_CRYPTO_NULL is not set
++# CONFIG_CRYPTO_CRYPTD is not set
++# CONFIG_CRYPTO_AUTHENC is not set
++# CONFIG_CRYPTO_TEST is not set
++
++#
++# Authenticated Encryption with Associated Data
++#
++# CONFIG_CRYPTO_CCM is not set
++# CONFIG_CRYPTO_GCM is not set
++# CONFIG_CRYPTO_SEQIV is not set
++
++#
++# Block modes
++#
++CONFIG_CRYPTO_CBC=y
++# CONFIG_CRYPTO_CTR is not set
++# CONFIG_CRYPTO_CTS is not set
++CONFIG_CRYPTO_ECB=m
++# CONFIG_CRYPTO_LRW is not set
++CONFIG_CRYPTO_PCBC=m
++# CONFIG_CRYPTO_XTS is not set
++
++#
++# Hash modes
++#
++# CONFIG_CRYPTO_HMAC is not set
++# CONFIG_CRYPTO_XCBC is not set
++
++#
++# Digest
++#
++# CONFIG_CRYPTO_CRC32C is not set
++# CONFIG_CRYPTO_MD4 is not set
++CONFIG_CRYPTO_MD5=y
++# CONFIG_CRYPTO_MICHAEL_MIC is not set
++# CONFIG_CRYPTO_RMD128 is not set
++# CONFIG_CRYPTO_RMD160 is not set
++# CONFIG_CRYPTO_RMD256 is not set
++# CONFIG_CRYPTO_RMD320 is not set
++# CONFIG_CRYPTO_SHA1 is not set
++# CONFIG_CRYPTO_SHA256 is not set
++# CONFIG_CRYPTO_SHA512 is not set
++# CONFIG_CRYPTO_TGR192 is not set
++# CONFIG_CRYPTO_WP512 is not set
++
++#
++# Ciphers
++#
++# CONFIG_CRYPTO_AES is not set
++# CONFIG_CRYPTO_ANUBIS is not set
++# CONFIG_CRYPTO_ARC4 is not set
++# CONFIG_CRYPTO_BLOWFISH is not set
++# CONFIG_CRYPTO_CAMELLIA is not set
++# CONFIG_CRYPTO_CAST5 is not set
++# CONFIG_CRYPTO_CAST6 is not set
++CONFIG_CRYPTO_DES=y
++# CONFIG_CRYPTO_FCRYPT is not set
++# CONFIG_CRYPTO_KHAZAD is not set
++# CONFIG_CRYPTO_SALSA20 is not set
++# CONFIG_CRYPTO_SEED is not set
++# CONFIG_CRYPTO_SERPENT is not set
++# CONFIG_CRYPTO_TEA is not set
++# CONFIG_CRYPTO_TWOFISH is not set
++
++#
++# Compression
++#
++# CONFIG_CRYPTO_DEFLATE is not set
++# CONFIG_CRYPTO_LZO is not set
++
++#
++# Random Number Generation
++#
++# CONFIG_CRYPTO_ANSI_CPRNG is not set
++CONFIG_CRYPTO_HW=y
++
++#
++# Library routines
++#
++CONFIG_BITREVERSE=y
++CONFIG_CRC_CCITT=y
++# CONFIG_CRC16 is not set
++# CONFIG_CRC_T10DIF is not set
++# CONFIG_CRC_ITU_T is not set
++CONFIG_CRC32=y
++# CONFIG_CRC7 is not set
++CONFIG_LIBCRC32C=y
++CONFIG_PLIST=y
++CONFIG_HAS_IOMEM=y
++CONFIG_HAS_IOPORT=y
++CONFIG_HAS_DMA=y
+diff --git a/arch/arm/mach-omap2/Kconfig b/arch/arm/mach-omap2/Kconfig
+index 4832fcc..3754b79 100644
+--- a/arch/arm/mach-omap2/Kconfig
++++ b/arch/arm/mach-omap2/Kconfig
+@@ -55,3 +55,7 @@ config MACH_OMAP_LDP
+ config MACH_OVERO
+ 	bool "Gumstix Overo board"
+ 	depends on ARCH_OMAP3 && ARCH_OMAP34XX
++
++config MACH_OMAP3_PANDORA
++	bool "OMAP3 Pandora"
++	depends on ARCH_OMAP3 && ARCH_OMAP34XX
+\ No newline at end of file
+diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
+index c693923..f12c43e 100644
+--- a/arch/arm/mach-omap2/Makefile
++++ b/arch/arm/mach-omap2/Makefile
+@@ -32,4 +32,5 @@ obj-$(CONFIG_MACH_OMAP_APOLLON)		+= board-apollon.o
+ obj-$(CONFIG_MACH_OMAP3_BEAGLE)		+= board-omap3beagle.o
+ obj-$(CONFIG_MACH_OMAP_LDP)		+= board-ldp.o
+ obj-$(CONFIG_MACH_OVERO)		+= board-overo.o
++obj-$(CONFIG_MACH_OMAP3_PANDORA)	+= board-omap3pandora.o
+ 
+diff --git a/arch/arm/mach-omap2/board-omap3pandora.c b/arch/arm/mach-omap2/board-omap3pandora.c
+new file mode 100644
+index 0000000..7236c7b
+--- /dev/null
++++ b/arch/arm/mach-omap2/board-omap3pandora.c
+@@ -0,0 +1,180 @@
 +/*
-+ * drivers/mmc/host/omap_hsmmc.c
++ * board-omap3pandora.c (Pandora Handheld Console)
 + *
-+ * Driver for OMAP2430/3430 MMC controller.
++ * This program is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU General Public License
++ * version 2 as published by the Free Software Foundation.
 + *
-+ * Copyright (C) 2007 Texas Instruments.
++ * This program is distributed in the hope that it will be useful, but
++ * WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++ * General Public License for more details.
 + *
-+ * Authors:
-+ *	Syed Mohammed Khasim	<x0khasim@ti.com>
-+ *	Madhusudhan		<madhu.cr@ti.com>
-+ *	Mohit Jalori		<mjalori@ti.com>
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
++ * 02110-1301 USA
 + *
-+ * This file is licensed under the terms of the GNU General Public License
-+ * version 2. This program is licensed "as is" without any warranty of any
-+ * kind, whether express or implied.
 + */
 +
-+#include <linux/module.h>
 +#include <linux/init.h>
-+#include <linux/interrupt.h>
-+#include <linux/delay.h>
-+#include <linux/dma-mapping.h>
++#include <linux/kernel.h>
 +#include <linux/platform_device.h>
-+#include <linux/workqueue.h>
-+#include <linux/timer.h>
-+#include <linux/clk.h>
-+#include <linux/mmc/host.h>
-+#include <linux/io.h>
-+#include <linux/semaphore.h>
-+#include <asm/dma.h>
-+#include <mach/hardware.h>
++
++#include <linux/spi/spi.h>
++#include <linux/spi/ads7846.h>
++#include <linux/i2c/twl4030.h>
++
++#include <asm/mach-types.h>
++#include <asm/mach/arch.h>
++#include <asm/mach/map.h>
++
 +#include <mach/board.h>
-+#include <mach/mmc.h>
-+#include <mach/cpu.h>
++#include <mach/common.h>
++#include <mach/gpio.h>
++#include <mach/hardware.h>
++#include <mach/mcspi.h>
 +
-+/* OMAP HSMMC Host Controller Registers */
-+#define OMAP_HSMMC_SYSCONFIG	0x0010
-+#define OMAP_HSMMC_CON		0x002C
-+#define OMAP_HSMMC_BLK		0x0104
-+#define OMAP_HSMMC_ARG		0x0108
-+#define OMAP_HSMMC_CMD		0x010C
-+#define OMAP_HSMMC_RSP10	0x0110
-+#define OMAP_HSMMC_RSP32	0x0114
-+#define OMAP_HSMMC_RSP54	0x0118
-+#define OMAP_HSMMC_RSP76	0x011C
-+#define OMAP_HSMMC_DATA		0x0120
-+#define OMAP_HSMMC_HCTL		0x0128
-+#define OMAP_HSMMC_SYSCTL	0x012C
-+#define OMAP_HSMMC_STAT		0x0130
-+#define OMAP_HSMMC_IE		0x0134
-+#define OMAP_HSMMC_ISE		0x0138
-+#define OMAP_HSMMC_CAPA		0x0140
++#define OMAP3_PANDORA_TS_GPIO		94
 +
-+#define VS18			(1 << 26)
-+#define VS30			(1 << 25)
-+#define SDVS18			(0x5 << 9)
-+#define SDVS30			(0x6 << 9)
-+#define SDVSCLR			0xFFFFF1FF
-+#define SDVSDET			0x00000400
-+#define AUTOIDLE		0x1
-+#define SDBP			(1 << 8)
-+#define DTO			0xe
-+#define ICE			0x1
-+#define ICS			0x2
-+#define CEN			(1 << 2)
-+#define CLKD_MASK		0x0000FFC0
-+#define CLKD_SHIFT		6
-+#define DTO_MASK		0x000F0000
-+#define DTO_SHIFT		16
-+#define INT_EN_MASK		0x307F0033
-+#define INIT_STREAM		(1 << 1)
-+#define DP_SELECT		(1 << 21)
-+#define DDIR			(1 << 4)
-+#define DMA_EN			0x1
-+#define MSBS			(1 << 5)
-+#define BCE			(1 << 1)
-+#define FOUR_BIT		(1 << 1)
-+#define CC			0x1
-+#define TC			0x02
-+#define OD			0x1
-+#define ERR			(1 << 15)
-+#define CMD_TIMEOUT		(1 << 16)
-+#define DATA_TIMEOUT		(1 << 20)
-+#define CMD_CRC			(1 << 17)
-+#define DATA_CRC		(1 << 21)
-+#define CARD_ERR		(1 << 28)
-+#define STAT_CLEAR		0xFFFFFFFF
-+#define INIT_STREAM_CMD		0x00000000
-+#define DUAL_VOLT_OCR_BIT	7
-+#define SRC			(1 << 25)
-+#define SRD			(1 << 26)
-+
-+/*
-+ * FIXME: Most likely all the data using these _DEVID defines should come
-+ * from the platform_data, or implemented in controller and slot specific
-+ * functions.
-+ */
-+#define OMAP_MMC1_DEVID		0
-+#define OMAP_MMC2_DEVID		1
-+
-+#define OMAP_MMC_DATADIR_NONE	0
-+#define OMAP_MMC_DATADIR_READ	1
-+#define OMAP_MMC_DATADIR_WRITE	2
-+#define MMC_TIMEOUT_MS		20
-+#define OMAP_MMC_MASTER_CLOCK	96000000
-+#define DRIVER_NAME		"mmci-omap-hs"
-+
-+/*
-+ * One controller can have multiple slots, like on some omap boards using
-+ * omap.c controller driver. Luckily this is not currently done on any known
-+ * omap_hsmmc.c device.
-+ */
-+#define mmc_slot(host)		(host->pdata->slots[host->slot_id])
-+
-+/*
-+ * MMC Host controller read/write API's
-+ */
-+#define OMAP_HSMMC_READ(base, reg)	\
-+	__raw_readl((base) + OMAP_HSMMC_##reg)
-+
-+#define OMAP_HSMMC_WRITE(base, reg, val) \
-+	__raw_writel((val), (base) + OMAP_HSMMC_##reg)
-+
-+struct mmc_omap_host {
-+	struct	device		*dev;
-+	struct	mmc_host	*mmc;
-+	struct	mmc_request	*mrq;
-+	struct	mmc_command	*cmd;
-+	struct	mmc_data	*data;
-+	struct	clk		*fclk;
-+	struct	clk		*iclk;
-+	struct	clk		*dbclk;
-+	struct	semaphore	sem;
-+	struct	work_struct	mmc_carddetect_work;
-+	void	__iomem		*base;
-+	resource_size_t		mapbase;
-+	unsigned int		id;
-+	unsigned int		dma_len;
-+	unsigned int		dma_dir;
-+	unsigned char		bus_mode;
-+	unsigned char		datadir;
-+	u32			*buffer;
-+	u32			bytesleft;
-+	int			suspended;
-+	int			irq;
-+	int			carddetect;
-+	int			use_dma, dma_ch;
-+	int			initstr;
-+	int			slot_id;
-+	int			dbclk_enabled;
-+	struct	omap_mmc_platform_data	*pdata;
++static struct omap_uart_config omap3pandora_uart_config __initdata = {
++	.enabled_uarts	= (1 << 2), /* UART3 */
 +};
 +
-+/*
-+ * Stop clock to the card
-+ */
-+static void omap_mmc_stop_clock(struct mmc_omap_host *host)
-+{
-+	OMAP_HSMMC_WRITE(host->base, SYSCTL,
-+		OMAP_HSMMC_READ(host->base, SYSCTL) & ~CEN);
-+	if ((OMAP_HSMMC_READ(host->base, SYSCTL) & CEN) != 0x0)
-+		dev_dbg(mmc_dev(host->mmc), "MMC Clock is not stoped\n");
-+}
-+
-+/*
-+ * Send init stream sequence to card
-+ * before sending IDLE command
-+ */
-+static void send_init_stream(struct mmc_omap_host *host)
-+{
-+	int reg = 0;
-+	unsigned long timeout;
-+
-+	disable_irq(host->irq);
-+	OMAP_HSMMC_WRITE(host->base, CON,
-+		OMAP_HSMMC_READ(host->base, CON) | INIT_STREAM);
-+	OMAP_HSMMC_WRITE(host->base, CMD, INIT_STREAM_CMD);
-+
-+	timeout = jiffies + msecs_to_jiffies(MMC_TIMEOUT_MS);
-+	while ((reg != CC) && time_before(jiffies, timeout))
-+		reg = OMAP_HSMMC_READ(host->base, STAT) & CC;
-+
-+	OMAP_HSMMC_WRITE(host->base, CON,
-+		OMAP_HSMMC_READ(host->base, CON) & ~INIT_STREAM);
-+	enable_irq(host->irq);
-+}
-+
-+static inline
-+int mmc_omap_cover_is_closed(struct mmc_omap_host *host)
-+{
-+	if (host->pdata->slots[host->slot_id].get_cover_state)
-+		return host->pdata->slots[host->slot_id].get_cover_state(host->dev, host->slot_id);
-+	return 1;
-+}
-+
-+static ssize_t
-+mmc_omap_show_cover_switch(struct device *dev, struct device_attribute *attr,
-+			   char *buf)
-+{
-+	struct mmc_host *mmc = container_of(dev, struct mmc_host, class_dev);
-+	struct mmc_omap_host *host = mmc_priv(mmc);
-+
-+	return sprintf(buf, "%s\n", mmc_omap_cover_is_closed(host) ? "closed" :
-+		       "open");
-+}
-+
-+static DEVICE_ATTR(cover_switch, S_IRUGO, mmc_omap_show_cover_switch, NULL);
-+
-+static ssize_t
-+mmc_omap_show_slot_name(struct device *dev, struct device_attribute *attr,
-+			char *buf)
-+{
-+	struct mmc_host *mmc = container_of(dev, struct mmc_host, class_dev);
-+	struct mmc_omap_host *host = mmc_priv(mmc);
-+	struct omap_mmc_slot_data slot = host->pdata->slots[host->slot_id];
-+
-+	return sprintf(buf, "slot:%s\n", slot.name);
-+}
-+
-+static DEVICE_ATTR(slot_name, S_IRUGO, mmc_omap_show_slot_name, NULL);
-+
-+/*
-+ * Configure the response type and send the cmd.
-+ */
-+static void
-+mmc_omap_start_command(struct mmc_omap_host *host, struct mmc_command *cmd,
-+	struct mmc_data *data)
-+{
-+	int cmdreg = 0, resptype = 0, cmdtype = 0;
-+
-+	dev_dbg(mmc_dev(host->mmc), "%s: CMD%d, argument 0x%08x\n",
-+		mmc_hostname(host->mmc), cmd->opcode, cmd->arg);
-+	host->cmd = cmd;
-+
-+	/*
-+	 * Clear status bits and enable interrupts
-+	 */
-+	OMAP_HSMMC_WRITE(host->base, STAT, STAT_CLEAR);
-+	OMAP_HSMMC_WRITE(host->base, ISE, INT_EN_MASK);
-+	OMAP_HSMMC_WRITE(host->base, IE, INT_EN_MASK);
-+
-+	if (cmd->flags & MMC_RSP_PRESENT) {
-+		if (cmd->flags & MMC_RSP_136)
-+			resptype = 1;
-+		else
-+			resptype = 2;
-+	}
-+
-+	/*
-+	 * Unlike OMAP1 controller, the cmdtype does not seem to be based on
-+	 * ac, bc, adtc, bcr. Only CMD12 needs a val of 0x3, rest 0x0.
-+	 */
-+	if (cmd->opcode == 12)
-+		cmdtype = 0x3;
-+
-+	cmdreg = (cmd->opcode << 24) | (resptype << 16) | (cmdtype << 22);
-+
-+	if (data) {
-+		cmdreg |= DP_SELECT | MSBS | BCE;
-+		if (data->flags & MMC_DATA_READ)
-+			cmdreg |= DDIR;
-+		else
-+			cmdreg &= ~(DDIR);
-+	}
-+
-+	if (host->use_dma)
-+		cmdreg |= DMA_EN;
-+
-+	OMAP_HSMMC_WRITE(host->base, ARG, cmd->arg);
-+	OMAP_HSMMC_WRITE(host->base, CMD, cmdreg);
-+}
-+
-+/*
-+ * Notify the transfer complete to MMC core
-+ */
-+static void
-+mmc_omap_xfer_done(struct mmc_omap_host *host, struct mmc_data *data)
-+{
-+	host->data = NULL;
-+
-+	if (host->use_dma && host->dma_ch != -1)
-+		dma_unmap_sg(mmc_dev(host->mmc), data->sg, host->dma_len,
-+			host->dma_dir);
-+
-+	host->datadir = OMAP_MMC_DATADIR_NONE;
-+
-+	if (!data->error)
-+		data->bytes_xfered += data->blocks * (data->blksz);
-+	else
-+		data->bytes_xfered = 0;
-+
-+	if (!data->stop) {
-+		host->mrq = NULL;
-+		mmc_request_done(host->mmc, data->mrq);
-+		return;
-+	}
-+	mmc_omap_start_command(host, data->stop, NULL);
-+}
-+
-+/*
-+ * Notify the core about command completion
-+ */
-+static void
-+mmc_omap_cmd_done(struct mmc_omap_host *host, struct mmc_command *cmd)
-+{
-+	host->cmd = NULL;
-+
-+	if (cmd->flags & MMC_RSP_PRESENT) {
-+		if (cmd->flags & MMC_RSP_136) {
-+			/* response type 2 */
-+			cmd->resp[3] = OMAP_HSMMC_READ(host->base, RSP10);
-+			cmd->resp[2] = OMAP_HSMMC_READ(host->base, RSP32);
-+			cmd->resp[1] = OMAP_HSMMC_READ(host->base, RSP54);
-+			cmd->resp[0] = OMAP_HSMMC_READ(host->base, RSP76);
-+		} else {
-+			/* response types 1, 1b, 3, 4, 5, 6 */
-+			cmd->resp[0] = OMAP_HSMMC_READ(host->base, RSP10);
-+		}
-+	}
-+	if (host->data == NULL || cmd->error) {
-+		host->mrq = NULL;
-+		mmc_request_done(host->mmc, cmd->mrq);
-+	}
-+}
-+
-+/*
-+ * DMA clean up for command errors
-+ */
-+static void mmc_dma_cleanup(struct mmc_omap_host *host)
-+{
-+	host->data->error = -ETIMEDOUT;
-+
-+	if (host->use_dma && host->dma_ch != -1) {
-+		dma_unmap_sg(mmc_dev(host->mmc), host->data->sg, host->dma_len,
-+			host->dma_dir);
-+		omap_free_dma(host->dma_ch);
-+		host->dma_ch = -1;
-+		up(&host->sem);
-+	}
-+	host->data = NULL;
-+	host->datadir = OMAP_MMC_DATADIR_NONE;
-+}
-+
-+/*
-+ * Readable error output
-+ */
-+#ifdef CONFIG_MMC_DEBUG
-+static void mmc_omap_report_irq(struct mmc_omap_host *host, u32 status)
-+{
-+	/* --- means reserved bit without definition at documentation */
-+	static const char *mmc_omap_status_bits[] = {
-+		"CC", "TC", "BGE", "---", "BWR", "BRR", "---", "---", "CIRQ",
-+		"OBI", "---", "---", "---", "---", "---", "ERRI", "CTO", "CCRC",
-+		"CEB", "CIE", "DTO", "DCRC", "DEB", "---", "ACE", "---",
-+		"---", "---", "---", "CERR", "CERR", "BADA", "---", "---", "---"
-+	};
-+	int i;
-+
-+	dev_dbg(mmc_dev(host->mmc), "MMC IRQ 0x%x :", status);
-+
-+	for (i = 0; i < ARRAY_SIZE(mmc_omap_status_bits); i++)
-+		if (status & (1 << i))
-+			/*
-+			 * KERN_* facility is not used here because this should
-+			 * print a single line.
-+			 */
-+			printk(" %s", mmc_omap_status_bits[i]);
-+
-+	printk("\n");
-+
-+}
-+#endif  /* CONFIG_MMC_DEBUG */
-+
-+
-+/*
-+ * MMC controller IRQ handler
-+ */
-+static irqreturn_t mmc_omap_irq(int irq, void *dev_id)
-+{
-+	struct mmc_omap_host *host = dev_id;
-+	struct mmc_data *data;
-+	int end_cmd = 0, end_trans = 0, status;
-+
-+	if (host->cmd == NULL && host->data == NULL) {
-+		OMAP_HSMMC_WRITE(host->base, STAT,
-+			OMAP_HSMMC_READ(host->base, STAT));
-+		return IRQ_HANDLED;
-+	}
-+
-+	data = host->data;
-+	status = OMAP_HSMMC_READ(host->base, STAT);
-+	dev_dbg(mmc_dev(host->mmc), "IRQ Status is %x\n", status);
-+
-+	if (status & ERR) {
-+#ifdef CONFIG_MMC_DEBUG
-+		mmc_omap_report_irq(host, status);
-+#endif
-+		if ((status & CMD_TIMEOUT) ||
-+			(status & CMD_CRC)) {
-+			if (host->cmd) {
-+				if (status & CMD_TIMEOUT) {
-+					OMAP_HSMMC_WRITE(host->base, SYSCTL,
-+						OMAP_HSMMC_READ(host->base,
-+								SYSCTL) | SRC);
-+					while (OMAP_HSMMC_READ(host->base,
-+								SYSCTL) & SRC) ;
-+					host->cmd->error = -ETIMEDOUT;
-+				} else {
-+					host->cmd->error = -EILSEQ;
-+				}
-+				end_cmd = 1;
-+			}
-+			if (host->data)
-+				mmc_dma_cleanup(host);
-+		}
-+		if ((status & DATA_TIMEOUT) ||
-+			(status & DATA_CRC)) {
-+			if (host->data) {
-+				if (status & DATA_TIMEOUT)
-+					mmc_dma_cleanup(host);
-+				else
-+					host->data->error = -EILSEQ;
-+				OMAP_HSMMC_WRITE(host->base, SYSCTL,
-+					OMAP_HSMMC_READ(host->base,
-+							SYSCTL) | SRD);
-+				while (OMAP_HSMMC_READ(host->base,
-+							SYSCTL) & SRD) ;
-+				end_trans = 1;
-+			}
-+		}
-+		if (status & CARD_ERR) {
-+			dev_dbg(mmc_dev(host->mmc),
-+				"Ignoring card err CMD%d\n", host->cmd->opcode);
-+			if (host->cmd)
-+				end_cmd = 1;
-+			if (host->data)
-+				end_trans = 1;
-+		}
-+	}
-+
-+	OMAP_HSMMC_WRITE(host->base, STAT, status);
-+
-+	if (end_cmd || (status & CC))
-+		mmc_omap_cmd_done(host, host->cmd);
-+	if (end_trans || (status & TC))
-+		mmc_omap_xfer_done(host, data);
-+
-+	return IRQ_HANDLED;
-+}
-+
-+/*
-+ * Switch MMC operating voltage
-+ */
-+static int omap_mmc_switch_opcond(struct mmc_omap_host *host, int vdd)
-+{
-+	u32 reg_val = 0;
-+	int ret;
-+
-+	/* Disable the clocks */
-+	clk_disable(host->fclk);
-+	clk_disable(host->iclk);
-+	clk_disable(host->dbclk);
-+
-+	/* Turn the power off */
-+	ret = mmc_slot(host).set_power(host->dev, host->slot_id, 0, 0);
-+	if (ret != 0)
-+		goto err;
-+
-+	/* Turn the power ON with given VDD 1.8 or 3.0v */
-+	ret = mmc_slot(host).set_power(host->dev, host->slot_id, 1, vdd);
-+	if (ret != 0)
-+		goto err;
-+
-+	clk_enable(host->fclk);
-+	clk_enable(host->iclk);
-+	clk_enable(host->dbclk);
-+
-+	OMAP_HSMMC_WRITE(host->base, HCTL,
-+		OMAP_HSMMC_READ(host->base, HCTL) & SDVSCLR);
-+	reg_val = OMAP_HSMMC_READ(host->base, HCTL);
-+	/*
-+	 * If a MMC dual voltage card is detected, the set_ios fn calls
-+	 * this fn with VDD bit set for 1.8V. Upon card removal from the
-+	 * slot, mmc_omap_detect fn sets the VDD back to 3V.
-+	 *
-+	 * Only MMC1 supports 3.0V.  MMC2 will not function if SDVS30 is
-+	 * set in HCTL.
-+	 */
-+	if (host->id == OMAP_MMC1_DEVID && (((1 << vdd) == MMC_VDD_32_33) ||
-+				((1 << vdd) == MMC_VDD_33_34)))
-+		reg_val |= SDVS30;
-+	if ((1 << vdd) == MMC_VDD_165_195)
-+		reg_val |= SDVS18;
-+
-+	OMAP_HSMMC_WRITE(host->base, HCTL, reg_val);
-+
-+	OMAP_HSMMC_WRITE(host->base, HCTL,
-+		OMAP_HSMMC_READ(host->base, HCTL) | SDBP);
-+
-+	return 0;
-+err:
-+	dev_dbg(mmc_dev(host->mmc), "Unable to switch operating voltage\n");
-+	return ret;
-+}
-+
-+/*
-+ * Work Item to notify the core about card insertion/removal
-+ */
-+static void mmc_omap_detect(struct work_struct *work)
-+{
-+	u16 vdd = 0;
-+	struct mmc_omap_host *host = container_of(work, struct mmc_omap_host,
-+						mmc_carddetect_work);
-+
-+	sysfs_notify(&host->mmc->class_dev.kobj, NULL, "cover_switch");
-+	if (host->carddetect) {
-+		if (!(OMAP_HSMMC_READ(host->base, HCTL) & SDVSDET)) {
-+			/*
-+			 * Set the VDD back to 3V when the card is removed
-+			 * before the set_ios fn turns off the power.
-+			 */
-+			vdd = fls(host->mmc->ocr_avail) - 1;
-+			if (omap_mmc_switch_opcond(host, vdd) != 0)
-+				host->mmc->ios.vdd = vdd;
-+		}
-+		mmc_detect_change(host->mmc, (HZ * 200) / 1000);
-+	} else {
-+		OMAP_HSMMC_WRITE(host->base, SYSCTL,
-+			OMAP_HSMMC_READ(host->base, SYSCTL) | SRD);
-+		while (OMAP_HSMMC_READ(host->base, SYSCTL) & SRD) ;
-+		mmc_detect_change(host->mmc, (HZ * 50) / 1000);
-+	}
-+}
-+
-+/*
-+ * ISR for handling card insertion and removal
-+ */
-+static irqreturn_t omap_mmc_cd_handler(int irq, void *dev_id)
-+{
-+	struct mmc_omap_host *host = (struct mmc_omap_host *)dev_id;
-+
-+	host->carddetect = mmc_slot(host).card_detect(irq);
-+	schedule_work(&host->mmc_carddetect_work);
-+
-+	return IRQ_HANDLED;
-+}
-+
-+/*
-+ * DMA call back function
-+ */
-+static void mmc_omap_dma_cb(int lch, u16 ch_status, void *data)
-+{
-+	struct mmc_omap_host *host = data;
-+
-+	if (ch_status & OMAP2_DMA_MISALIGNED_ERR_IRQ)
-+		dev_dbg(mmc_dev(host->mmc), "MISALIGNED_ADRS_ERR\n");
-+
-+	if (host->dma_ch < 0)
-+		return;
-+
-+	omap_free_dma(host->dma_ch);
-+	host->dma_ch = -1;
-+	/*
-+	 * DMA Callback: run in interrupt context.
-+	 * mutex_unlock will through a kernel warning if used.
-+	 */
-+	up(&host->sem);
-+}
-+
-+/*
-+ * Configure dma src and destination parameters
-+ */
-+static int mmc_omap_config_dma_param(int sync_dir, struct mmc_omap_host *host,
-+				struct mmc_data *data)
-+{
-+	if (sync_dir == 0) {
-+		omap_set_dma_dest_params(host->dma_ch, 0,
-+			OMAP_DMA_AMODE_CONSTANT,
-+			(host->mapbase + OMAP_HSMMC_DATA), 0, 0);
-+		omap_set_dma_src_params(host->dma_ch, 0,
-+			OMAP_DMA_AMODE_POST_INC,
-+			sg_dma_address(&data->sg[0]), 0, 0);
-+	} else {
-+		omap_set_dma_src_params(host->dma_ch, 0,
-+			OMAP_DMA_AMODE_CONSTANT,
-+			(host->mapbase + OMAP_HSMMC_DATA), 0, 0);
-+		omap_set_dma_dest_params(host->dma_ch, 0,
-+			OMAP_DMA_AMODE_POST_INC,
-+			sg_dma_address(&data->sg[0]), 0, 0);
-+	}
-+	return 0;
-+}
-+/*
-+ * Routine to configure and start DMA for the MMC card
-+ */
-+static int
-+mmc_omap_start_dma_transfer(struct mmc_omap_host *host, struct mmc_request *req)
-+{
-+	int sync_dev, sync_dir = 0;
-+	int dma_ch = 0, ret = 0, err = 1;
-+	struct mmc_data *data = req->data;
-+
-+	/*
-+	 * If for some reason the DMA transfer is still active,
-+	 * we wait for timeout period and free the dma
-+	 */
-+	if (host->dma_ch != -1) {
-+		set_current_state(TASK_UNINTERRUPTIBLE);
-+		schedule_timeout(100);
-+		if (down_trylock(&host->sem)) {
-+			omap_free_dma(host->dma_ch);
-+			host->dma_ch = -1;
-+			up(&host->sem);
-+			return err;
-+		}
-+	} else {
-+		if (down_trylock(&host->sem))
-+			return err;
-+	}
-+
-+	if (!(data->flags & MMC_DATA_WRITE)) {
-+		host->dma_dir = DMA_FROM_DEVICE;
-+		if (host->id == OMAP_MMC1_DEVID)
-+			sync_dev = OMAP24XX_DMA_MMC1_RX;
-+		else
-+			sync_dev = OMAP24XX_DMA_MMC2_RX;
-+	} else {
-+		host->dma_dir = DMA_TO_DEVICE;
-+		if (host->id == OMAP_MMC1_DEVID)
-+			sync_dev = OMAP24XX_DMA_MMC1_TX;
-+		else
-+			sync_dev = OMAP24XX_DMA_MMC2_TX;
-+	}
-+
-+	ret = omap_request_dma(sync_dev, "MMC/SD", mmc_omap_dma_cb,
-+			host, &dma_ch);
-+	if (ret != 0) {
-+		dev_dbg(mmc_dev(host->mmc),
-+			"%s: omap_request_dma() failed with %d\n",
-+			mmc_hostname(host->mmc), ret);
-+		return ret;
-+	}
-+
-+	host->dma_len = dma_map_sg(mmc_dev(host->mmc), data->sg,
-+			data->sg_len, host->dma_dir);
-+	host->dma_ch = dma_ch;
-+
-+	if (!(data->flags & MMC_DATA_WRITE))
-+		mmc_omap_config_dma_param(1, host, data);
-+	else
-+		mmc_omap_config_dma_param(0, host, data);
-+
-+	if ((data->blksz % 4) == 0)
-+		omap_set_dma_transfer_params(dma_ch, OMAP_DMA_DATA_TYPE_S32,
-+			(data->blksz / 4), data->blocks, OMAP_DMA_SYNC_FRAME,
-+			sync_dev, sync_dir);
-+	else
-+		/* REVISIT: The MMC buffer increments only when MSB is written.
-+		 * Return error for blksz which is non multiple of four.
-+		 */
-+		return -EINVAL;
-+
-+	omap_start_dma(dma_ch);
-+	return 0;
-+}
-+
-+static void set_data_timeout(struct mmc_omap_host *host,
-+			     struct mmc_request *req)
-+{
-+	unsigned int timeout, cycle_ns;
-+	uint32_t reg, clkd, dto = 0;
-+
-+	reg = OMAP_HSMMC_READ(host->base, SYSCTL);
-+	clkd = (reg & CLKD_MASK) >> CLKD_SHIFT;
-+	if (clkd == 0)
-+		clkd = 1;
-+
-+	cycle_ns = 1000000000 / (clk_get_rate(host->fclk) / clkd);
-+	timeout = req->data->timeout_ns / cycle_ns;
-+	timeout += req->data->timeout_clks;
-+	if (timeout) {
-+		while ((timeout & 0x80000000) == 0) {
-+			dto += 1;
-+			timeout <<= 1;
-+		}
-+		dto = 31 - dto;
-+		timeout <<= 1;
-+		if (timeout && dto)
-+			dto += 1;
-+		if (dto >= 13)
-+			dto -= 13;
-+		else
-+			dto = 0;
-+		if (dto > 14)
-+			dto = 14;
-+	}
-+
-+	reg &= ~DTO_MASK;
-+	reg |= dto << DTO_SHIFT;
-+	OMAP_HSMMC_WRITE(host->base, SYSCTL, reg);
-+}
-+
-+/*
-+ * Configure block length for MMC/SD cards and initiate the transfer.
-+ */
-+static int
-+mmc_omap_prepare_data(struct mmc_omap_host *host, struct mmc_request *req)
-+{
-+	int ret;
-+	host->data = req->data;
-+
-+	if (req->data == NULL) {
-+		host->datadir = OMAP_MMC_DATADIR_NONE;
-+		OMAP_HSMMC_WRITE(host->base, BLK, 0);
-+		return 0;
-+	}
-+
-+	OMAP_HSMMC_WRITE(host->base, BLK, (req->data->blksz)
-+					| (req->data->blocks << 16));
-+	set_data_timeout(host, req);
-+
-+	host->datadir = (req->data->flags & MMC_DATA_WRITE) ?
-+			OMAP_MMC_DATADIR_WRITE : OMAP_MMC_DATADIR_READ;
-+
-+	if (host->use_dma) {
-+		ret = mmc_omap_start_dma_transfer(host, req);
-+		if (ret != 0) {
-+			dev_dbg(mmc_dev(host->mmc), "MMC start dma failure\n");
-+			return ret;
-+		}
-+	}
-+	return 0;
-+}
-+
-+/*
-+ * Request function. for read/write operation
-+ */
-+static void omap_mmc_request(struct mmc_host *mmc, struct mmc_request *req)
-+{
-+	struct mmc_omap_host *host = mmc_priv(mmc);
-+
-+	WARN_ON(host->mrq != NULL);
-+	host->mrq = req;
-+	mmc_omap_prepare_data(host, req);
-+	mmc_omap_start_command(host, req->cmd, req->data);
-+}
-+
-+
-+/* Routine to configure clock values. Exposed API to core */
-+static void omap_mmc_set_ios(struct mmc_host *mmc, struct mmc_ios *ios)
-+{
-+	struct mmc_omap_host *host = mmc_priv(mmc);
-+	u16 dsor = 0;
-+	unsigned long regval;
-+	unsigned long timeout;
-+
-+	switch (ios->power_mode) {
-+	case MMC_POWER_OFF:
-+		mmc_slot(host).set_power(host->dev, host->slot_id, 0, 0);
-+		break;
-+	case MMC_POWER_UP:
-+		mmc_slot(host).set_power(host->dev, host->slot_id, 1, ios->vdd);
-+		break;
-+	}
-+
-+	switch (mmc->ios.bus_width) {
-+	case MMC_BUS_WIDTH_4:
-+		OMAP_HSMMC_WRITE(host->base, HCTL,
-+			OMAP_HSMMC_READ(host->base, HCTL) | FOUR_BIT);
-+		break;
-+	case MMC_BUS_WIDTH_1:
-+		OMAP_HSMMC_WRITE(host->base, HCTL,
-+			OMAP_HSMMC_READ(host->base, HCTL) & ~FOUR_BIT);
-+		break;
-+	}
-+
-+	if (host->id == OMAP_MMC1_DEVID) {
-+		/* Only MMC1 can operate at 3V/1.8V */
-+		if ((OMAP_HSMMC_READ(host->base, HCTL) & SDVSDET) &&
-+			(ios->vdd == DUAL_VOLT_OCR_BIT)) {
-+				/*
-+				 * The mmc_select_voltage fn of the core does
-+				 * not seem to set the power_mode to
-+				 * MMC_POWER_UP upon recalculating the voltage.
-+				 * vdd 1.8v.
-+				 */
-+				if (omap_mmc_switch_opcond(host, ios->vdd) != 0)
-+					dev_dbg(mmc_dev(host->mmc),
-+						"Switch operation failed\n");
-+		}
-+	}
-+
-+	if (ios->clock) {
-+		dsor = OMAP_MMC_MASTER_CLOCK / ios->clock;
-+		if (dsor < 1)
-+			dsor = 1;
-+
-+		if (OMAP_MMC_MASTER_CLOCK / dsor > ios->clock)
-+			dsor++;
-+
-+		if (dsor > 250)
-+			dsor = 250;
-+	}
-+	omap_mmc_stop_clock(host);
-+	regval = OMAP_HSMMC_READ(host->base, SYSCTL);
-+	regval = regval & ~(CLKD_MASK);
-+	regval = regval | (dsor << 6) | (DTO << 16);
-+	OMAP_HSMMC_WRITE(host->base, SYSCTL, regval);
-+	OMAP_HSMMC_WRITE(host->base, SYSCTL,
-+		OMAP_HSMMC_READ(host->base, SYSCTL) | ICE);
-+
-+	/* Wait till the ICS bit is set */
-+	timeout = jiffies + msecs_to_jiffies(MMC_TIMEOUT_MS);
-+	while ((OMAP_HSMMC_READ(host->base, SYSCTL) & ICS) != 0x2
-+		&& time_before(jiffies, timeout))
-+		msleep(1);
-+
-+	OMAP_HSMMC_WRITE(host->base, SYSCTL,
-+		OMAP_HSMMC_READ(host->base, SYSCTL) | CEN);
-+
-+	if (ios->power_mode == MMC_POWER_ON)
-+		send_init_stream(host);
-+
-+	if (ios->bus_mode == MMC_BUSMODE_OPENDRAIN)
-+		OMAP_HSMMC_WRITE(host->base, CON,
-+				OMAP_HSMMC_READ(host->base, CON) | OD);
-+}
-+
-+static int omap_hsmmc_get_cd(struct mmc_host *mmc)
-+{
-+	struct mmc_omap_host *host = mmc_priv(mmc);
-+	struct omap_mmc_platform_data *pdata = host->pdata;
-+
-+	if (!pdata->slots[0].card_detect)
-+		return -ENOSYS;
-+	return pdata->slots[0].card_detect(pdata->slots[0].card_detect_irq);
-+}
-+
-+static int omap_hsmmc_get_ro(struct mmc_host *mmc)
-+{
-+	struct mmc_omap_host *host = mmc_priv(mmc);
-+	struct omap_mmc_platform_data *pdata = host->pdata;
-+
-+	if (!pdata->slots[0].get_ro)
-+		return -ENOSYS;
-+	return pdata->slots[0].get_ro(host->dev, 0);
-+}
-+
-+static struct mmc_host_ops mmc_omap_ops = {
-+	.request = omap_mmc_request,
-+	.set_ios = omap_mmc_set_ios,
-+	.get_cd = omap_hsmmc_get_cd,
-+	.get_ro = omap_hsmmc_get_ro,
-+	/* NYET -- enable_sdio_irq */
++static struct twl4030_gpio_platform_data omap3pandora_gpio_data = {
++	.gpio_base	= OMAP_MAX_GPIO_LINES,
++	.irq_base	= TWL4030_GPIO_IRQ_BASE,
++	.irq_end	= TWL4030_GPIO_IRQ_END,
 +};
 +
-+static int __init omap_mmc_probe(struct platform_device *pdev)
-+{
-+	struct omap_mmc_platform_data *pdata = pdev->dev.platform_data;
-+	struct mmc_host *mmc;
-+	struct mmc_omap_host *host = NULL;
-+	struct resource *res;
-+	int ret = 0, irq;
-+	u32 hctl, capa;
++static struct twl4030_usb_data omap3pandora_usb_data = {
++	.usb_mode	= T2_USB_MODE_ULPI,
++};
 +
-+	if (pdata == NULL) {
-+		dev_err(&pdev->dev, "Platform Data is missing\n");
-+		return -ENXIO;
-+	}
++static struct twl4030_platform_data omap3pandora_twldata = {
++	.irq_base	= TWL4030_IRQ_BASE,
++	.irq_end	= TWL4030_IRQ_END,
++	.gpio		= &omap3pandora_gpio_data,
++	.usb		= &omap3pandora_usb_data,
++};
 +
-+	if (pdata->nr_slots == 0) {
-+		dev_err(&pdev->dev, "No Slots\n");
-+		return -ENXIO;
-+	}
-+
-+	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-+	irq = platform_get_irq(pdev, 0);
-+	if (res == NULL || irq < 0)
-+		return -ENXIO;
-+
-+	res = request_mem_region(res->start, res->end - res->start + 1,
-+							pdev->name);
-+	if (res == NULL)
-+		return -EBUSY;
-+
-+	mmc = mmc_alloc_host(sizeof(struct mmc_omap_host), &pdev->dev);
-+	if (!mmc) {
-+		ret = -ENOMEM;
-+		goto err;
-+	}
-+
-+	host		= mmc_priv(mmc);
-+	host->mmc	= mmc;
-+	host->pdata	= pdata;
-+	host->dev	= &pdev->dev;
-+	host->use_dma	= 1;
-+	host->dev->dma_mask = &pdata->dma_mask;
-+	host->dma_ch	= -1;
-+	host->irq	= irq;
-+	host->id	= pdev->id;
-+	host->slot_id	= 0;
-+	host->mapbase	= res->start;
-+	host->base	= ioremap(host->mapbase, SZ_4K);
-+
-+	platform_set_drvdata(pdev, host);
-+	INIT_WORK(&host->mmc_carddetect_work, mmc_omap_detect);
-+
-+	mmc->ops	= &mmc_omap_ops;
-+	mmc->f_min	= 400000;
-+	mmc->f_max	= 52000000;
-+
-+	sema_init(&host->sem, 1);
-+
-+	host->iclk = clk_get(&pdev->dev, "mmchs_ick");
-+	if (IS_ERR(host->iclk)) {
-+		ret = PTR_ERR(host->iclk);
-+		host->iclk = NULL;
-+		goto err1;
-+	}
-+	host->fclk = clk_get(&pdev->dev, "mmchs_fck");
-+	if (IS_ERR(host->fclk)) {
-+		ret = PTR_ERR(host->fclk);
-+		host->fclk = NULL;
-+		clk_put(host->iclk);
-+		goto err1;
-+	}
-+
-+	if (clk_enable(host->fclk) != 0) {
-+		clk_put(host->iclk);
-+		clk_put(host->fclk);
-+		goto err1;
-+	}
-+
-+	if (clk_enable(host->iclk) != 0) {
-+		clk_disable(host->fclk);
-+		clk_put(host->iclk);
-+		clk_put(host->fclk);
-+		goto err1;
-+	}
-+
-+	host->dbclk = clk_get(&pdev->dev, "mmchsdb_fck");
-+	/*
-+	 * MMC can still work without debounce clock.
-+	 */
-+	if (IS_ERR(host->dbclk))
-+		dev_dbg(mmc_dev(host->mmc), "Failed to get debounce clock\n");
-+	else
-+		if (clk_enable(host->dbclk) != 0)
-+			dev_dbg(mmc_dev(host->mmc), "Enabling debounce"
-+							" clk failed\n");
-+		else
-+			host->dbclk_enabled = 1;
-+
-+#ifdef CONFIG_MMC_BLOCK_BOUNCE
-+	mmc->max_phys_segs = 1;
-+	mmc->max_hw_segs = 1;
-+#endif
-+	mmc->max_blk_size = 512;       /* Block Length at max can be 1024 */
-+	mmc->max_blk_count = 0xFFFF;    /* No. of Blocks is 16 bits */
-+	mmc->max_req_size = mmc->max_blk_size * mmc->max_blk_count;
-+	mmc->max_seg_size = mmc->max_req_size;
-+
-+	mmc->ocr_avail = mmc_slot(host).ocr_mask;
-+	mmc->caps |= MMC_CAP_MMC_HIGHSPEED | MMC_CAP_SD_HIGHSPEED;
-+
-+	if (pdata->slots[host->slot_id].wires >= 4)
-+		mmc->caps |= MMC_CAP_4_BIT_DATA;
-+
-+	/* Only MMC1 supports 3.0V */
-+	if (host->id == OMAP_MMC1_DEVID) {
-+		hctl = SDVS30;
-+		capa = VS30 | VS18;
-+	} else {
-+		hctl = SDVS18;
-+		capa = VS18;
-+	}
-+
-+	OMAP_HSMMC_WRITE(host->base, HCTL,
-+			OMAP_HSMMC_READ(host->base, HCTL) | hctl);
-+
-+	OMAP_HSMMC_WRITE(host->base, CAPA,
-+			OMAP_HSMMC_READ(host->base, CAPA) | capa);
-+
-+	/* Set the controller to AUTO IDLE mode */
-+	OMAP_HSMMC_WRITE(host->base, SYSCONFIG,
-+			OMAP_HSMMC_READ(host->base, SYSCONFIG) | AUTOIDLE);
-+
-+	/* Set SD bus power bit */
-+	OMAP_HSMMC_WRITE(host->base, HCTL,
-+			OMAP_HSMMC_READ(host->base, HCTL) | SDBP);
-+
-+	/* Request IRQ for MMC operations */
-+	ret = request_irq(host->irq, mmc_omap_irq, IRQF_DISABLED,
-+			mmc_hostname(mmc), host);
-+	if (ret) {
-+		dev_dbg(mmc_dev(host->mmc), "Unable to grab HSMMC IRQ\n");
-+		goto err_irq;
-+	}
-+
-+	if (pdata->init != NULL) {
-+		if (pdata->init(&pdev->dev) != 0) {
-+			dev_dbg(mmc_dev(host->mmc),
-+				"Unable to configure MMC IRQs\n");
-+			goto err_irq_cd_init;
-+		}
-+	}
-+
-+	/* Request IRQ for card detect */
-+	if ((mmc_slot(host).card_detect_irq) && (mmc_slot(host).card_detect)) {
-+		ret = request_irq(mmc_slot(host).card_detect_irq,
-+				  omap_mmc_cd_handler,
-+				  IRQF_TRIGGER_RISING | IRQF_TRIGGER_FALLING
-+					  | IRQF_DISABLED,
-+				  mmc_hostname(mmc), host);
-+		if (ret) {
-+			dev_dbg(mmc_dev(host->mmc),
-+				"Unable to grab MMC CD IRQ\n");
-+			goto err_irq_cd;
-+		}
-+	}
-+
-+	OMAP_HSMMC_WRITE(host->base, ISE, INT_EN_MASK);
-+	OMAP_HSMMC_WRITE(host->base, IE, INT_EN_MASK);
-+
-+	mmc_add_host(mmc);
-+
-+	if (host->pdata->slots[host->slot_id].name != NULL) {
-+		ret = device_create_file(&mmc->class_dev, &dev_attr_slot_name);
-+		if (ret < 0)
-+			goto err_slot_name;
-+	}
-+	if (mmc_slot(host).card_detect_irq && mmc_slot(host).card_detect &&
-+			host->pdata->slots[host->slot_id].get_cover_state) {
-+		ret = device_create_file(&mmc->class_dev, &dev_attr_cover_switch);
-+		if (ret < 0)
-+			goto err_cover_switch;
-+	}
-+
-+	return 0;
-+
-+err_cover_switch:
-+	device_remove_file(&mmc->class_dev, &dev_attr_cover_switch);
-+err_slot_name:
-+	mmc_remove_host(mmc);
-+err_irq_cd:
-+	free_irq(mmc_slot(host).card_detect_irq, host);
-+err_irq_cd_init:
-+	free_irq(host->irq, host);
-+err_irq:
-+	clk_disable(host->fclk);
-+	clk_disable(host->iclk);
-+	clk_put(host->fclk);
-+	clk_put(host->iclk);
-+	if (host->dbclk_enabled) {
-+		clk_disable(host->dbclk);
-+		clk_put(host->dbclk);
-+	}
-+
-+err1:
-+	iounmap(host->base);
-+err:
-+	dev_dbg(mmc_dev(host->mmc), "Probe Failed\n");
-+	release_mem_region(res->start, res->end - res->start + 1);
-+	if (host)
-+		mmc_free_host(mmc);
-+	return ret;
-+}
-+
-+static int omap_mmc_remove(struct platform_device *pdev)
-+{
-+	struct mmc_omap_host *host = platform_get_drvdata(pdev);
-+	struct resource *res;
-+	u16 vdd = 0;
-+
-+	if (!(OMAP_HSMMC_READ(host->base, HCTL) & SDVSDET)) {
-+	/*
-+	 * Set the vdd back to 3V,
-+	 * applicable for dual volt support.
-+	 */
-+		vdd = fls(host->mmc->ocr_avail) - 1;
-+		if (omap_mmc_switch_opcond(host, vdd) != 0)
-+			host->mmc->ios.vdd = vdd;
-+	}
-+
-+	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-+	if (res)
-+		release_mem_region(res->start, res->end - res->start + 1);
-+
-+	platform_set_drvdata(pdev, NULL);
-+	if (host) {
-+		mmc_remove_host(host->mmc);
-+		if (host->pdata->cleanup)
-+			host->pdata->cleanup(&pdev->dev);
-+		free_irq(host->irq, host);
-+		if (mmc_slot(host).card_detect_irq)
-+			free_irq(mmc_slot(host).card_detect_irq, host);
-+		flush_scheduled_work();
-+
-+		clk_disable(host->fclk);
-+		clk_disable(host->iclk);
-+		clk_put(host->fclk);
-+		clk_put(host->iclk);
-+		if (host->dbclk_enabled) {
-+			clk_disable(host->dbclk);
-+			clk_put(host->dbclk);
-+		}
-+
-+		mmc_free_host(host->mmc);
-+		iounmap(host->base);
-+	}
-+
-+	return 0;
-+}
-+
-+#ifdef CONFIG_PM
-+static int omap_mmc_suspend(struct platform_device *pdev, pm_message_t state)
-+{
-+	int ret = 0;
-+	struct mmc_omap_host *host = platform_get_drvdata(pdev);
-+
-+	if (host && host->suspended)
-+		return 0;
-+
-+	if (host) {
-+		ret = mmc_suspend_host(host->mmc, state);
-+		if (ret == 0) {
-+			host->suspended = 1;
-+
-+			OMAP_HSMMC_WRITE(host->base, ISE, 0);
-+			OMAP_HSMMC_WRITE(host->base, IE, 0);
-+
-+			if (host->pdata->suspend) {
-+				ret = host->pdata->suspend(&pdev->dev, host->slot_id);
-+				if (ret)
-+					dev_dbg(mmc_dev(host->mmc),
-+						"Unable to handle MMC board"
-+						" level suspend\n");
-+			}
-+
-+			if (!(OMAP_HSMMC_READ(host->base, HCTL) & SDVSDET)) {
-+				OMAP_HSMMC_WRITE(host->base, HCTL,
-+					OMAP_HSMMC_READ(host->base, HCTL)
-+					& SDVSCLR);
-+				OMAP_HSMMC_WRITE(host->base, HCTL,
-+					OMAP_HSMMC_READ(host->base, HCTL)
-+					| SDVS30);
-+				OMAP_HSMMC_WRITE(host->base, HCTL,
-+					OMAP_HSMMC_READ(host->base, HCTL)
-+					| SDBP);
-+			}
-+
-+			clk_disable(host->fclk);
-+			clk_disable(host->iclk);
-+			clk_disable(host->dbclk);
-+		}
-+
-+	}
-+	return ret;
-+}
-+
-+/* Routine to resume the MMC device */
-+static int omap_mmc_resume(struct platform_device *pdev)
-+{
-+	int ret = 0;
-+	struct mmc_omap_host *host = platform_get_drvdata(pdev);
-+
-+	if (host && !host->suspended)
-+		return 0;
-+
-+	if (host) {
-+
-+		ret = clk_enable(host->fclk);
-+		if (ret)
-+			goto clk_en_err;
-+
-+		ret = clk_enable(host->iclk);
-+		if (ret) {
-+			clk_disable(host->fclk);
-+			clk_put(host->fclk);
-+			goto clk_en_err;
-+		}
-+
-+		if (clk_enable(host->dbclk) != 0)
-+			dev_dbg(mmc_dev(host->mmc),
-+					"Enabling debounce clk failed\n");
-+
-+		if (host->pdata->resume) {
-+			ret = host->pdata->resume(&pdev->dev, host->slot_id);
-+			if (ret)
-+				dev_dbg(mmc_dev(host->mmc),
-+					"Unmask interrupt failed\n");
-+		}
-+
-+		/* Notify the core to resume the host */
-+		ret = mmc_resume_host(host->mmc);
-+		if (ret == 0)
-+			host->suspended = 0;
-+	}
-+
-+	return ret;
-+
-+clk_en_err:
-+	dev_dbg(mmc_dev(host->mmc),
-+		"Failed to enable MMC clocks during resume\n");
-+	return ret;
-+}
-+
-+#else
-+#define omap_mmc_suspend	NULL
-+#define omap_mmc_resume		NULL
-+#endif
-+
-+static struct platform_driver omap_mmc_driver = {
-+	.probe		= omap_mmc_probe,
-+	.remove		= omap_mmc_remove,
-+	.suspend	= omap_mmc_suspend,
-+	.resume		= omap_mmc_resume,
-+	.driver		= {
-+		.name = DRIVER_NAME,
-+		.owner = THIS_MODULE,
++static struct i2c_board_info __initdata omap3pandora_i2c_boardinfo[] = {
++	{
++		I2C_BOARD_INFO("tps65950", 0x48),
++		.flags = I2C_CLIENT_WAKE,
++		.irq = INT_34XX_SYS_NIRQ,
++		.platform_data = &omap3pandora_twldata,
 +	},
 +};
 +
-+static int __init omap_mmc_init(void)
++static int __init omap3pandora_i2c_init(void)
 +{
-+	/* Register the MMC driver */
-+	return platform_driver_register(&omap_mmc_driver);
++	omap_register_i2c_bus(1, 2600, omap3pandora_i2c_boardinfo,
++			ARRAY_SIZE(omap3pandora_i2c_boardinfo));
++	/* i2c2 pins are not connected */
++	omap_register_i2c_bus(3, 400, NULL, 0);
++	return 0;
 +}
 +
-+static void __exit omap_mmc_cleanup(void)
++static void __init omap3pandora_init_irq(void)
 +{
-+	/* Unregister MMC driver */
-+	platform_driver_unregister(&omap_mmc_driver);
++	omap2_init_common_hw();
++	omap_init_irq();
++	omap_gpio_init();
 +}
 +
-+module_init(omap_mmc_init);
-+module_exit(omap_mmc_cleanup);
++static void __init omap3pandora_ads7846_init(void)
++{
++	int gpio = OMAP3_PANDORA_TS_GPIO;
++	int ret;
 +
-+MODULE_DESCRIPTION("OMAP High Speed Multimedia Card driver");
-+MODULE_LICENSE("GPL");
-+MODULE_ALIAS("platform:" DRIVER_NAME);
-+MODULE_AUTHOR("Texas Instruments Inc");
++	ret = gpio_request(gpio, "ads7846_pen_down");
++	if (ret < 0) {
++		printk(KERN_ERR "Failed to request GPIO %d for "
++				"ads7846 pen down IRQ\n", gpio);
++		return;
++	}
++
++	gpio_direction_input(gpio);
++}
++
++static int ads7846_get_pendown_state(void)
++{
++	return !gpio_get_value(OMAP3_PANDORA_TS_GPIO);
++}
++
++static struct ads7846_platform_data ads7846_config = {
++	.x_max			= 0x0fff,
++	.y_max			= 0x0fff,
++	.x_plate_ohms		= 180,
++	.pressure_max		= 255,
++	.debounce_max		= 10,
++	.debounce_tol		= 3,
++	.debounce_rep		= 1,
++	.get_pendown_state	= ads7846_get_pendown_state,
++	.keep_vref_on		= 1,
++};
++
++static struct omap2_mcspi_device_config ads7846_mcspi_config = {
++	.turbo_mode	= 0,
++	.single_channel	= 1,	/* 0: slave, 1: master */
++};
++
++static struct spi_board_info omap3pandora_spi_board_info[] __initdata = {
++	{
++		.modalias		= "ads7846",
++		.bus_num		= 1,
++		.chip_select		= 0,
++		.max_speed_hz		= 1500000,
++		.controller_data	= &ads7846_mcspi_config,
++		.irq			= OMAP_GPIO_IRQ(OMAP3_PANDORA_TS_GPIO),
++		.platform_data		= &ads7846_config,
++	}
++};
++
++static struct platform_device omap3pandora_lcd_device = {
++	.name		= "pandora_lcd",
++	.id		= -1,
++};
++
++static struct omap_lcd_config omap3pandora_lcd_config __initdata = {
++	.ctrl_name	= "internal",
++};
++
++static struct omap_board_config_kernel omap3pandora_config[] __initdata = {
++	{ OMAP_TAG_UART,	&omap3pandora_uart_config },
++	{ OMAP_TAG_LCD,		&omap3pandora_lcd_config },
++};
++
++static struct platform_device *omap3pandora_devices[] __initdata = {
++	&omap3pandora_lcd_device,
++};
++
++static void __init omap3pandora_init(void)
++{
++	omap3pandora_i2c_init();
++	platform_add_devices(omap3pandora_devices,
++			ARRAY_SIZE(omap3pandora_devices));
++	omap_board_config = omap3pandora_config;
++	omap_board_config_size = ARRAY_SIZE(omap3pandora_config);
++	omap_serial_init();
++	spi_register_board_info(omap3pandora_spi_board_info,
++			ARRAY_SIZE(omap3pandora_spi_board_info));
++	omap3pandora_ads7846_init();
++}
++
++static void __init omap3pandora_map_io(void)
++{
++	omap2_set_globals_343x();
++	omap2_map_common_io();
++}
++
++MACHINE_START(OMAP3_PANDORA, "Pandora Handheld Console")
++	.phys_io	= 0x48000000,
++	.io_pg_offst	= ((0xd8000000) >> 18) & 0xfffc,
++	.boot_params	= 0x80000100,
++	.map_io		= omap3pandora_map_io,
++	.init_irq	= omap3pandora_init_irq,
++	.init_machine	= omap3pandora_init,
++	.timer		= &omap_timer,
++MACHINE_END
 
+--gKMricLos+KVdGMg--
