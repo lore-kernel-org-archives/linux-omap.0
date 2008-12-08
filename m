@@ -1,38 +1,43 @@
-From: Liam Girdwood <lrg@slimlogic.co.uk>
-Subject: RE: [PATCH 1/1] Relocating struct regulator_dev to
- include/linux/regulator/driver.h.
-Date: Mon, 08 Dec 2008 10:55:41 +0000
-Message-ID: <1228733741.8961.44.camel@vega.slimlogic.co.uk>
-References: <1228729009-6796-1-git-send-email-mani.pillai@ti.com>
-	 <20081208094024.GA7114@sirena.org.uk>
-	 <19F8576C6E063C45BE387C64729E739403E90E7851@dbde02.ent.ti.com>
+From: Sakari Ailus <sakari.ailus@nokia.com>
+Subject: Re: [PATCH] Add OMAP2 camera driver
+Date: Mon, 08 Dec 2008 14:05:26 +0200
+Message-ID: <493D0D86.3080108@nokia.com>
+References: <A24693684029E5489D1D202277BE894415C11947@dlee02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from slimlogic.co.uk ([89.16.172.20]:49985 "EHLO slimlogic.co.uk"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751228AbYLHLZE (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 8 Dec 2008 06:25:04 -0500
-In-Reply-To: <19F8576C6E063C45BE387C64729E739403E90E7851@dbde02.ent.ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <video4linux-list-bounces@redhat.com>
+In-Reply-To: <A24693684029E5489D1D202277BE894415C11947@dlee02.ent.ti.com>
+List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
+	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
+List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
+List-Post: <mailto:video4linux-list@redhat.com>
+List-Help: <mailto:video4linux-list-request@redhat.com?subject=help>
+List-Subscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
+	<mailto:video4linux-list-request@redhat.com?subject=subscribe>
+Sender: video4linux-list-bounces@redhat.com
+Errors-To: video4linux-list-bounces@redhat.com
+To: "ext Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>
+Cc: "video4linux-list@redhat.com" <video4linux-list@redhat.com>, "linux-omap@vger.kernel.org Mailing List" <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
-To: "Pillai, Manikandan" <mani.pillai@ti.com>
-Cc: Mark Brown <broonie@sirena.org.uk>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Mon, 2008-12-08 at 16:12 +0530, Pillai, Manikandan wrote:
-> Hi Mark,
-> 
-> Looks like I don't need this change. I just am testing my changes without this
-> patch.
-> 
-> Did not see the rdev_get_drvdata() ?
-> 
+ext Aguirre Rodriguez, Sergio Alberto wrote:
+> Although the end result of making OMAP3 cam driver independent from
+> ISP doesn't make much sense to me, as in OMAP3 the ISP is needed even
+> for the minimal handling required for receiving data from the sensors
+> that the camera driver supports. (Minimal datapath is CCP2->SDRAM or
+> CSI2->SDRAM, and that requires ISP MMU and the corresponding
+> receivers, which are considered part of the ISP)
 
-Btw, do you have any other regulator patches ? (there may be a merge
-window soon).
+The benefit is that this driver could have use beyond the OMAP 3 
+platform as it could be used with other ISPs. It's not dependent on any 
+particular sensors either.
 
-Thanks
+-- 
+Sakari Ailus
+sakari.ailus@nokia.com
 
-Liam 
-
+--
+video4linux-list mailing list
+Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
+https://www.redhat.com/mailman/listinfo/video4linux-list
