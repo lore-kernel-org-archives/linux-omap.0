@@ -1,63 +1,135 @@
-From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Subject: RE: [PATCH] Add Omnivision OV9640 sensor support.
-Date: Mon, 8 Dec 2008 09:54:58 +0530
-Message-ID: <19F8576C6E063C45BE387C64729E739403E90E768D@dbde02.ent.ti.com>
-References: <5d5443650812070140w423d6fe9ua2f0ff9d2974bbd7@mail.gmail.com>
+From: Tomi Valkeinen <tomi.valkeinen@nokia.com>
+Subject: Re: Bug in linux omap clock framework?
+Date: Mon, 08 Dec 2008 09:59:38 +0200
+Message-ID: <1228723178.8668.6.camel@tubuntu>
+References: <21FAA8D4A5AB5E4096AC4BE4BF42EB140157D444@vaebe104.NOE.Nokia.com>
+	 <877i6ejxb4.fsf@deeprootsystems.com>
+Reply-To: tomi.valkeinen@nokia.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:50404 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754765AbYLHEZc convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 7 Dec 2008 23:25:32 -0500
-In-Reply-To: <5d5443650812070140w423d6fe9ua2f0ff9d2974bbd7@mail.gmail.com>
-Content-Language: en-US
+Received: from smtp.nokia.com ([192.100.122.230]:30295 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751009AbYLHH7z (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 8 Dec 2008 02:59:55 -0500
+In-Reply-To: <877i6ejxb4.fsf@deeprootsystems.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Trilok Soni <soni.trilok@gmail.com>, Hans Verkuil <hverkuil@xs4all.nl>
-Cc: v4l <video4linux-list@redhat.com>, "linux-omap@vger.kernel.org Mailing List" <linux-omap@vger.kernel.org>, Sakari Ailus <sakari.ailus@nokia.com>
+To: ext Kevin Hilman <khilman@deeprootsystems.com>
+Cc: linux-omap@vger.kernel.org
 
-Hi Soni,
-
-Thanks,
-Vaibhav Hiremath
-
-> -----Original Message-----
-> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
-> owner@vger.kernel.org] On Behalf Of Trilok Soni
-> Sent: Sunday, December 07, 2008 3:11 PM
-> To: Hans Verkuil
-> Cc: v4l; linux-omap@vger.kernel.org Mailing List; Sakari Ailus
-> Subject: Re: [PATCH] Add Omnivision OV9640 sensor support.
+On Fri, 2008-12-05 at 10:23 -0800, ext Kevin Hilman wrote:
+> <Tomi.Valkeinen@nokia.com> writes:
 > 
-> Hi Hans,
-> 
-> On Mon, Dec 1, 2008 at 6:21 PM, Trilok Soni <soni.trilok@gmail.com>
-> wrote:
-> > Hi Hans,
+> > Hi,
 > >
-> >>
-> >> I reviewed this sensor driver and it's fine except for one thing:
-> >> setting the default registers from outside the driver. This is a
-> really
-> >> bad idea. I2C drivers should be self-contained. I've made the
-> same
-> >> comment in the tvp514x driver review which I'm copying below
-> (with some
-> >> small edits):
+> > I have had strange clk_enable() crashes with DSS2, and now I managed to
+> > isolate it. With the included patch, on OMAP3 SDP board, with default
+> > kernel config, I always get the crash below. In this example case it
+> > happens at specific time on boot, but with DSS2 it happens randomly at
+> > runtime, when I enable the DSS clocks.
 > >
-> > I knew that you are going to comment on that, and I agree on those
-> > points. I will pull in that register initialization to the driver.
+> > diff --git a/drivers/video/omap/omapfb_main.c
+> > b/drivers/video/omap/omapfb_main.c
+> > index 3bb4247..2d5ef0d 100644
+> > --- a/drivers/video/omap/omapfb_main.c
+> > +++ b/drivers/video/omap/omapfb_main.c
+> > @@ -27,6 +27,7 @@
+> >  #include <linux/platform_device.h>
+> >  #include <linux/mm.h>
+> >  #include <linux/uaccess.h>
+> > +#include <linux/clk.h>
+> >  
+> >  #include <mach/dma.h>
+> >  #include <mach/omapfb.h>
+> > @@ -1806,6 +1807,18 @@ static int omapfb_probe(struct platform_device
+> > *pdev)
+> >  {
+> >         BUG_ON(fbdev_pdev != NULL);
+> >  
+> > +       {
+> > +               struct clk *c1, *c2;
+> > +               c1 = clk_get(&pdev->dev, "dss_ick");
+> > +               c2 = clk_get(&pdev->dev, "dss1_fck");
+> > +               while(1) {
+> > +                       clk_enable(c1);
+> > +                       clk_enable(c2);
+> > +                       clk_disable(c1);
+> > +                       clk_disable(c2);
+> > +               }
+> > +       }
+> > +
+> >         /* Delay actual initialization until the LCD is registered */
+> >         fbdev_pdev = pdev;
+> >         if (fbdev_panel != NULL)
+> > @@ -1958,7 +1971,7 @@ module_param_named(rotate, def_rotate, uint,
+> > 0664);
+> >  module_param_named(mirror, def_mirror, uint, 0664);
+> >  module_param_named(manual_update, manual_update, bool, 0664);
+> >  
+> > -module_init(omapfb_init);
+> > +late_initcall(omapfb_init);
+> >  module_exit(omapfb_cleanup);
+> >  
+> >  MODULE_DESCRIPTION("TI OMAP framebuffer driver");
 > >
+> >
+> > And the crash:
+> >
+> >
+> >
+> > <1>Unhandled fault: external abort on non-linefetch (0x1028) at
+> > 0xd8200098
+> > Unhandled fault: external abort on non-linefetch (0x1028) at 0xd8200098
+> > Internal error: : 1028 [#1]
+> > Internal error: : 1028 [#1]
+> > Modules linked in:Modules linked in:
+> >
+> > CPU: 0    Not tainted  (2.6.28-rc6-omap1-05264-g1705711-dirty #6)
+> > CPU: 0    Not tainted  (2.6.28-rc6-omap1-05264-g1705711-dirty #6)
+> > PC is at __irq_svc+0x34/0x80
+> > PC is at __irq_svc+0x34/0x80
+> > LR is at _omap2_clk_enable+0xa0/0xe0
+> > LR is at _omap2_clk_enable+0xa0/0xe0
 > 
-> Attached the updated ov9640 sensor patch.
+> What looks to be happening is an interrupt is firing in the middle of
+> your clk_enable() call, and accesses to the Interrupt controller
+> registers are triggering a fault.
 > 
+> As a temporary workaround, could you try wrapping your clk_enable() 
+> with an IRQ save/restore?  Something like:
+> 
+>   local_irq_save(flags);
+>   clk_enable(c);
+>   local_irq_restore(flags);
+> 
+> If this works, then we need to investigate in more detail which
+> interrupt is firing, and why the INTC registers are not accessible.
+
+No, I get the same error with irq_saves also. However, if I wrap the
+whole while loop inside local_irq_save, then it doesn't crash.
+
+So this does crash:
+
+		while(1) {
+			local_irq_save(flags);
+			clk_enable(c1);
+			local_irq_restore(flags);
+
+			local_irq_save(flags);
+			clk_disable(c1);
+			local_irq_restore(flags);
+		}
+
+And this doesn't:
+
+		local_irq_save(flags);
+		while(1) {
+			clk_enable(c1);
+			clk_disable(c1);
+		}
+
+ Tomi
 
 
-[Hiremath, Vaibhav] I just had quick walk through of code and I think you may want to take look at the review comments received for TVP514x driver (Especially for I2C).
-
-> --
-> ---Trilok Soni
-> http://triloksoni.wordpress.com
-> http://www.linkedin.com/in/triloksoni
