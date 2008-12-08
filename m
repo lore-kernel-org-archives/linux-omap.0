@@ -1,32 +1,34 @@
-From: Mark Brown <broonie@sirena.org.uk>
-Subject: Re: [PATCH 1/1] Relocating struct regulator_dev to include/linux/regulator/driver.h.
-Date: Mon, 8 Dec 2008 10:55:21 +0000
-Message-ID: <20081208105520.GA5159@sirena.org.uk>
-References: <1228729009-6796-1-git-send-email-mani.pillai@ti.com> <20081208094024.GA7114@sirena.org.uk> <19F8576C6E063C45BE387C64729E739403E90E7851@dbde02.ent.ti.com>
+From: David Brownell <david-b@pacbell.net>
+Subject: Re: [PATCH 1/1] Default MUX configuration added for GPIO140-143, GPIO0 and GPIO9
+Date: Mon, 8 Dec 2008 03:11:21 -0800
+Message-ID: <200812080311.21966.david-b@pacbell.net>
+References: <1228729239-7757-1-git-send-email-mani.pillai@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from cassiel.sirena.org.uk ([80.68.93.111]:2357 "EHLO
-	cassiel.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751566AbYLHKz0 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 8 Dec 2008 05:55:26 -0500
+Received: from smtp125.sbc.mail.sp1.yahoo.com ([69.147.65.184]:36504 "HELO
+	smtp125.sbc.mail.sp1.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1751473AbYLHLLX (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 8 Dec 2008 06:11:23 -0500
+In-Reply-To: <1228729239-7757-1-git-send-email-mani.pillai@ti.com>
 Content-Disposition: inline
-In-Reply-To: <19F8576C6E063C45BE387C64729E739403E90E7851@dbde02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Pillai, Manikandan" <mani.pillai@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "lrg@slimlogic.co.uk" <lrg@slimlogic.co.uk>
+To: Manikandan Pillai <mani.pillai@ti.com>
+Cc: linux-omap@vger.kernel.org
 
-On Mon, Dec 08, 2008 at 04:12:30PM +0530, Pillai, Manikandan wrote:
+On Monday 08 December 2008, Manikandan Pillai wrote:
+> +MUX_CFG_34XX("AF6_34XX_GPIO140", 0x16c,
+> +               OMAP34XX_MUX_MODE4 | OMAP34XX_PIN_INPUT_PULLUP)
 
-> Did not see the rdev_get_drvdata() ?
 
-It's declared in include/linux/regulator/driver.h.
++MUX_CFG_34XX("AF6_34XX_GPIO140_UP", 0x16c,
+                               ^^^
++               OMAP34XX_MUX_MODE4 | OMAP34XX_PIN_INPUT_PULLUP)
 
-> -----Original Message-----
-> From: Mark Brown [mailto:broonie@sirena.org.uk] 
-> Sent: Monday, December 08, 2008 3:10 PM
-> To: Pillai, Manikandan
-
-Note that the standard in the Linux community is not to top quote; doing
-so is generally considered bad form.
+as I commented before.  Stick to the naming convention,
+so that folk don't need to guess about whether a given
+GPIO is configured with a pullup, a pulldown, or neither.
+And so they can choose the right option.
