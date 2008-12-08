@@ -1,34 +1,38 @@
-From: David Brownell <david-b@pacbell.net>
-Subject: Re: [PATCH 1/1] Default MUX configuration added for GPIO140-143, GPIO0 and GPIO9
-Date: Mon, 8 Dec 2008 03:11:21 -0800
-Message-ID: <200812080311.21966.david-b@pacbell.net>
-References: <1228729239-7757-1-git-send-email-mani.pillai@ti.com>
+From: Liam Girdwood <lrg@slimlogic.co.uk>
+Subject: RE: [PATCH 1/1] Relocating struct regulator_dev to
+ include/linux/regulator/driver.h.
+Date: Mon, 08 Dec 2008 10:55:41 +0000
+Message-ID: <1228733741.8961.44.camel@vega.slimlogic.co.uk>
+References: <1228729009-6796-1-git-send-email-mani.pillai@ti.com>
+	 <20081208094024.GA7114@sirena.org.uk>
+	 <19F8576C6E063C45BE387C64729E739403E90E7851@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp125.sbc.mail.sp1.yahoo.com ([69.147.65.184]:36504 "HELO
-	smtp125.sbc.mail.sp1.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1751473AbYLHLLX (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 8 Dec 2008 06:11:23 -0500
-In-Reply-To: <1228729239-7757-1-git-send-email-mani.pillai@ti.com>
-Content-Disposition: inline
+Received: from slimlogic.co.uk ([89.16.172.20]:49985 "EHLO slimlogic.co.uk"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751228AbYLHLZE (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 8 Dec 2008 06:25:04 -0500
+In-Reply-To: <19F8576C6E063C45BE387C64729E739403E90E7851@dbde02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Manikandan Pillai <mani.pillai@ti.com>
-Cc: linux-omap@vger.kernel.org
+To: "Pillai, Manikandan" <mani.pillai@ti.com>
+Cc: Mark Brown <broonie@sirena.org.uk>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Monday 08 December 2008, Manikandan Pillai wrote:
-> +MUX_CFG_34XX("AF6_34XX_GPIO140", 0x16c,
-> +               OMAP34XX_MUX_MODE4 | OMAP34XX_PIN_INPUT_PULLUP)
+On Mon, 2008-12-08 at 16:12 +0530, Pillai, Manikandan wrote:
+> Hi Mark,
+> 
+> Looks like I don't need this change. I just am testing my changes without this
+> patch.
+> 
+> Did not see the rdev_get_drvdata() ?
+> 
 
+Btw, do you have any other regulator patches ? (there may be a merge
+window soon).
 
-+MUX_CFG_34XX("AF6_34XX_GPIO140_UP", 0x16c,
-                               ^^^
-+               OMAP34XX_MUX_MODE4 | OMAP34XX_PIN_INPUT_PULLUP)
+Thanks
 
-as I commented before.  Stick to the naming convention,
-so that folk don't need to guess about whether a given
-GPIO is configured with a pullup, a pulldown, or neither.
-And so they can choose the right option.
+Liam 
+
