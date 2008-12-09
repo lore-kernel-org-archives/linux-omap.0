@@ -1,65 +1,56 @@
-From: Sakari Ailus <sakari.ailus@nokia.com>
-Subject: Re: [PATCH] Add OMAP2 camera driver
-Date: Tue, 09 Dec 2008 10:53:43 +0200
-Message-ID: <493E3217.8050503@nokia.com>
-References: <5d5443650811261044w30748b75w5a47ce8b04680f79@mail.gmail.com> <20081208194235.4991873d@pedra.chehab.org>
+From: Tomi Valkeinen <tomi.valkeinen@nokia.com>
+Subject: Re: Bug in linux omap clock framework?
+Date: Tue, 09 Dec 2008 11:15:00 +0200
+Message-ID: <1228814100.8668.100.camel@tubuntu>
+References: <21FAA8D4A5AB5E4096AC4BE4BF42EB140157D444@vaebe104.NOE.Nokia.com>
+	 <alpine.DEB.2.00.0812061635110.21247@utopia.booyaka.com>
+Reply-To: tomi.valkeinen@nokia.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:38618 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752181AbYLIIyu (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 9 Dec 2008 03:54:50 -0500
-In-Reply-To: <20081208194235.4991873d@pedra.chehab.org>
+Received: from smtp.nokia.com ([192.100.105.134]:54884 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751135AbYLIJPo (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 9 Dec 2008 04:15:44 -0500
+In-Reply-To: <alpine.DEB.2.00.0812061635110.21247@utopia.booyaka.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: ext Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: Trilok Soni <soni.trilok@gmail.com>, v4l <video4linux-list@redhat.com>, "linux-omap@vger.kernel.org Mailing List" <linux-omap@vger.kernel.org>, hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+To: ext Paul Walmsley <paul@pwsan.com>
+Cc: linux-omap@vger.kernel.org, khilman@deeprootsystems.com
 
-ext Mauro Carvalho Chehab wrote:
-> On Thu, 27 Nov 2008 00:14:51 +0530
-> "Trilok Soni" <soni.trilok@gmail.com> wrote:
+On Sat, 2008-12-06 at 16:51 -0700, ext Paul Walmsley wrote:
+> Hi Tomi,
 > 
->> +
->> +/*
->> + *
->> + * DMA hardware.
->> + *
->> + */
->> +
->> +/* Ack all interrupt on CSR and IRQSTATUS_L0 */
->> +static void omap24xxcam_dmahw_ack_all(unsigned long base)
+> nice test case.
 > 
-> Oh, no! yet another dma video buffers handling...
+> On Fri, 5 Dec 2008, Tomi.Valkeinen@nokia.com wrote:
 > 
-> Soni, couldn't this be converted to use videobuf?
+> > I have had strange clk_enable() crashes with DSS2, and now I managed to
+> > isolate it. With the included patch, on OMAP3 SDP board, with default
+> > kernel config, I always get the crash below. In this example case it
+> > happens at specific time on boot, but with DSS2 it happens randomly at
+> > runtime, when I enable the DSS clocks.
+> 
+> Looks like there's some problem with the DSS driver's usage of 
+> dss_tv_fclk.  Enabling dss_tv_fclk before entering your test code's 
+> while-loop makes the problem go away here.  Patch below.
+> 
+> As an aside, your test patch does not actually disable dss1_fclk, since it 
+> is already enabled by the time the while-loop starts.  So you might also 
+> want to add a clk_disable(c2) before your while-loop starts, when you 
+> test.
+> 
+> Based on the traceback that you sent, I'd conjecture that probably some 
+> part of the DSS subsystem is generating an interrupt via DSS_IRQ; but then 
+> dss_iclk ends up disabled, and the MPU INTC is not able to communicate 
+> with the DSS, and the INTC wedges.  (The aborting access is to 0xd8200098, 
+> the INTCPS_PENDING_IRQ0 register, rather than a DSS register.)  Probably 
+> some IRQs need to be masked before disabling the dss_iclk.
 
-Yes, it could be.
+It doesn't seem to be DSS related, the same crash happens also with
+cam_ick and sgx_ick.
 
-The DMA part is definitely the ugliest part of omap24xxcam.
+ Tomi
 
-This is actually also a DMA controller driver. The system DMA driver 
-could not be used as such as it was limited to just one controller --- 
-the OMAP 2 camera block has its own DMA controller with four transfers 
-in queue (maximum).
 
-There's also an MMU, not the system MMU but the camera block MMU. This 
-MMU is not being used now by omap24xxcam at all since when omap24xxcam 
-driver was written, there was not too much time available and no generic 
-MMU framework. So the MMU support was left out. Instead, there's a hack 
-to allocate as large as possible continuous memory areas and avoid 
-overruns that way. DMA transfer overruns happen on large proportion of 
-frames without this hack.
-
-Hiroshi Doyu is working on a generic IOMMU framework for OMAPs that 
-could be used here. With that framework available, converting the OMAP 2 
-camera driver to use videobuf would be a lot easier. The performance 
-would be better, too. A generic DMA controller driver would be also good 
-to have but not mandatory.
-
-Cheers,
-
--- 
-Sakari Ailus
-sakari.ailus@nokia.com
