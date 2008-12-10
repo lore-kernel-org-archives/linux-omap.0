@@ -1,72 +1,229 @@
-From: "vimal singh" <vimalsingh@ti.com>
-Subject: [PATCH - Omapzoom][NAND] 32-bit read in prefetch for NAND
-Date: Wed, 10 Dec 2008 15:47:58 +0530 (IST)
-Message-ID: <57874.192.168.10.89.1228904278.squirrel@dbdmail.itg.ti.com>
-References: <55273.192.168.10.89.1225979835.squirrel@dbdmail.itg.ti.com>
+From: jouni.hogander@nokia.com (=?utf-8?Q?H=C3=B6gander?= Jouni)
+Subject: Re: Bug in linux omap clock framework?
+Date: Wed, 10 Dec 2008 12:44:04 +0200
+Message-ID: <87hc5ccnt7.fsf@trdhcp146196.ntc.nokia.com>
+References: <21FAA8D4A5AB5E4096AC4BE4BF42EB140157D444@vaebe104.NOE.Nokia.com>
+	<alpine.DEB.2.00.0812061635110.21247@utopia.booyaka.com>
+	<1228726770.8668.66.camel@tubuntu>
+	<alpine.DEB.2.00.0812080218190.5902@utopia.booyaka.com>
+	<1228831086.31061.9.camel@tubuntu>
+	<87prk0cwfy.fsf@trdhcp146196.ntc.nokia.com>
+	<1228895990.31061.13.camel@tubuntu>
+	<87tz9c4dy7.fsf@trdhcp146196.ntc.nokia.com>
+	<1228899430.31061.23.camel@tubuntu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:58903 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755162AbYLJKSG (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 10 Dec 2008 05:18:06 -0500
-Received: from dlep36.itg.ti.com ([157.170.170.91])
-	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id mBAAHw4Q006125
-	for <linux-omap@vger.kernel.org>; Wed, 10 Dec 2008 04:18:03 -0600
-Received: from webmail.ti.com (localhost [127.0.0.1])
-	by dlep36.itg.ti.com (8.13.8/8.13.8) with ESMTP id mBAAHu91020367
-	for <linux-omap@vger.kernel.org>; Wed, 10 Dec 2008 04:17:57 -0600 (CST)
-In-Reply-To: <55273.192.168.10.89.1225979835.squirrel@dbdmail.itg.ti.com>
+Received: from smtp.nokia.com ([192.100.122.230]:63983 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754767AbYLJKof convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 10 Dec 2008 05:44:35 -0500
+In-Reply-To: <1228899430.31061.23.camel@tubuntu> (Tomi Valkeinen's message of
+	"Wed, 10 Dec 2008 10:57:10 +0200")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
+To: tomi.valkeinen@nokia.com
+Cc: ext Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org, khilman@deeprootsystems.com
 
-Changing 16-bit read access to 32-bit to improve the performance in prefetch
-support.
+Tomi Valkeinen <tomi.valkeinen@nokia.com> writes:
 
-Signed-off-by: Vimal Singh <vimalsingh@ti.com>
----
- drivers/mtd/nand/omap2.c |   12 ++++++------
- 1 files changed, 6 insertions(+), 6 deletions(-)
+> On Wed, 2008-12-10 at 10:44 +0200, H=C3=B6gander Jouni wrote:
+>> Tomi Valkeinen <tomi.valkeinen@nokia.com> writes:
+>>=20
+>> > On Wed, 2008-12-10 at 09:37 +0200, H=C3=B6gander Jouni wrote:
+>> >> "ext Tomi Valkeinen" <tomi.valkeinen@nokia.com> writes:
+>> >>=20
+>> >> > Hi,
+>> >> >
+>> >> > On Mon, 2008-12-08 at 02:24 -0700, ext Paul Walmsley wrote:
+>> >> >> Hi Tomi,
+>> >> >>=20
+>> >> >> On Mon, 8 Dec 2008, Tomi Valkeinen wrote:
+>> >> >>=20
+>> >> >> > On Sat, 2008-12-06 at 16:51 -0700, ext Paul Walmsley wrote:
+>> >> >> > > Hi Tomi,
+>> >> >> > >=20
+>> >> >> > > nice test case.
+>> >> >> > >=20
+>> >> >> > > On Fri, 5 Dec 2008, Tomi.Valkeinen@nokia.com wrote:
+>> >> >> > >=20
+>> >> >> > > > I have had strange clk_enable() crashes with DSS2, and n=
+ow I managed to
+>> >> >> > > > isolate it. With the included patch, on OMAP3 SDP board,=
+ with default
+>> >> >> > > > kernel config, I always get the crash below. In this exa=
+mple case it
+>> >> >> > > > happens at specific time on boot, but with DSS2 it happe=
+ns randomly at
+>> >> >> > > > runtime, when I enable the DSS clocks.
+>> >> >> > >=20
+>> >> >>=20
+>> >> >> At this point my guess would be that it is a DSS driver proble=
+m, but I=20
+>> >> >> don't think it is clear yet.
+>> >> >>=20
+>> >> >
+>> >> > I don't know much about power and clock domains, but I believe =
+I found
+>> >> > the reason and fix for this. At least this should point to the =
+right
+>> >> > direction.
+>> >> >
+>> >> > It looks to me that when I do clk_enable() to a clock which is =
+inside a
+>> >> > turned off powerdomain, clk_enable() function will return befor=
+e the
+>> >> > powerdomain is fully turned on. Reading PM_PWSTST_DSS shows tha=
+t the
+>> >> > powerdomain is still in transition state.
+>> >> >
+>> >> > The following change waits until the powerdomain has finished t=
+he
+>> >> > transition. At least it fixed the problem for me, and other thi=
+ngs seem
+>> >> > to be still working =3D).
+>> >> >
+>> >> >
+>> >> > diff --git a/arch/arm/mach-omap2/clockdomain.c b/arch/arm/mach-=
+omap2/clockdomain.c
+>> >> > index fa62f14..f713d0b 100644
+>> >> > --- a/arch/arm/mach-omap2/clockdomain.c
+>> >> > +++ b/arch/arm/mach-omap2/clockdomain.c
+>> >> > @@ -567,6 +567,8 @@ int omap2_clkdm_clk_enable(struct clockdoma=
+in *clkdm, struct clk *clk)
+>> >> >         else
+>> >> >                 omap2_clkdm_wakeup(clkdm);
+>> >> > =20
+>> >> > +       pwrdm_wait_transition(clkdm->pwrdm.ptr);
+>> >> > +
+>> >>=20
+>> >> Altough this patch is fixing the problem, I'll guess it's because=
+ of
+>> >> delay it causes rather than waiting for
+>> >> PM_PWSTST_DSS. omap2_clkdm_clk_enable alone doesn't switch pwrdm =
+to
+>> >> on. This is because clockdomain/powerdomains are controlled by HW=
+ (hw
+>> >> supervised).
+>> >>=20
+>> >> I think the right answer is to use ST_*_IDLE & ST_*_STDBY bits in
+>> >> omap2_clk_wait_ready.
+>> >
+>> > But ST_DSS_IDLE says active only after both interface and function=
+al
+>> > clock are on, so it doesn't help here.
+>>=20
+>> Yes and in ST_DSS_IDLE description it is saying that if it's "0x1
+>> Display sub-system is in idle mode and cannot be accessed". So it on=
+ly
+>> way to get it out of idle is to enable both clocks it needs to be do=
+ne.
+>>=20
+>> If you look at arch/arm/mach-omap2/clock.c:omap2_clk_wait_ready it i=
+s
+>> actually checking that both clocks are enabled.
+>
+> But the ST_DSS_IDLE doesn't help here. The kernel crashes after enabl=
+ing
+> dss_ick, before your code can even enable dss_fck. The same happens i=
+f
+> you do it other way around, first dss_fck and then dss_ick.
+>
+>> > Why is it wrong to wait for PM_PWSTST_DSS? Do you mean that this c=
+rash
+>> > is not caused by the DSS being not powered on, but by something el=
+se,
+>> > and so the small delay just accidentally fixes the problem?
+>>=20
+>> Something like that.
+>>=20
+>> If you look at your code:
+>>=20
+>> +static int __init omapfb_init(void)
+>> +{
+>> +	struct clk *c1, *c2, *c3;
+>> +
+>> +	c1 =3D clk_get(NULL, "dss_ick");
+>> +	c2 =3D clk_get(NULL, "dss1_alwon_fck");
+>> +	c3 =3D clk_get(NULL, "dss_tv_fck");
+>> +
+>> +	base =3D ioremap(DISPC_BASE, SZ_1K);
+>> +	printk("mapped to %p\n", base);
+>> +
+>> +	clk_enable(c1);
+>>=20
+>> At this point ST_DSS_IDLE should not be yet checked (because fck is
+>> not enabled yet.
+>>=20
+>> +	clk_enable(c2);
+>>=20
+>> But at this point (actually inside clk_enable and
+>> omap2_clk_wait_ready) ST_DSS_IDLE should be checked before those
+>> register accesses in next two lines. You can verify my comment by
+>> adding "while(ST_DSS_IDLE);" here.
+>
+> Doesn't omap2_clk_wait_ready alread check this?
 
-Index: omapkernel/drivers/mtd/nand/omap2.c
-===================================================================
---- omapkernel.orig/drivers/mtd/nand/omap2.c	2008-11-06 18:33:49.000000000 +0530
-+++ omapkernel/drivers/mtd/nand/omap2.c	2008-11-06 18:36:32.000000000 +0530
-@@ -375,27 +375,27 @@
- 	struct omap_nand_info *info = container_of(mtd,
- 						struct omap_nand_info, mtd);
- 	uint32_t prefetch_status = 0, read_count = 0;
--	u16 *p = (u16 *)buf;
-+	u32 *p = (u32 *)buf;
+Yes, you are right this is already done.
 
- 	if ((use_dma && len <= mtd->oobsize) || (!use_dma)) {
+>
+> And again, the problem is not accessing DSS registers. The problem is
+> that clk_enable(dss_ick) crashes. so the following code crashes also:
+>
+> static int __init test_init(void)
+> {
+> 	struct clk *c1 =3D clk_get(NULL, "dss_ick");
+>
+> 	while(1) {
+> 		clk_enable(c1);
+> 		clk_disable(c1);
+> 	}
+>
+> 	return 0;
+> }
+>
 
- 		/* take care of subpage reads */
--		if (len % 2 != 0) {
-+		for (; len % 4 != 0; ) {
- 			*buf++ = __raw_readb(info->nand.IO_ADDR_R);
--			p = (u16 *) buf;
- 			len--;
- 		}
-+		p = (u32 *) buf;
+Are you still using SDP and default config + latest linux-omap? I'm
+not able to reproduce this using your example code.
 
- 		/* configure and start prefetch transfer */
- 		gpmc_prefetch_start(info->gpmc_cs, 0x0, len, 0x0);
+>
+>>=20
+>> +
+>> +	dispc_write_reg(DISPC_IRQENABLE, 0);
+>> +	dispc_write_reg(DISPC_IRQSTATUS, 0);
+>> +
+>> +	clk_disable(c1);
+>> +	clk_disable(c2);
+>> +
+>> +	printk("usecounts %d, %d, %d\n", clk_get_usecount(c1),
+>> +			clk_get_usecount(c2),
+>> +			clk_get_usecount(c3));
+>> +
+>> +	/*clk_enable(c2);*/
+>> +	/*clk_enable(c3);*/
+>> +
+>> +	while(1) {
+>> +		clk_enable(c1);
+>> +		clk_disable(c1);
+>> +	}
+>> +
+>> +	return 0;
+>> +}
+>> +
+>> +module_init(omapfb_init);
+>> +MODULE_LICENSE("GPL");
+>> >  Tomi
+>> >
+>> >
+>>=20
+>
 
- 		do {
- 			prefetch_status = gpmc_prefetch_status();
--			read_count = ((prefetch_status >> 24) & 0x7F) >> 1;
--			__raw_readsw(info->nand_pref_fifo_add, p,
-+			read_count = ((prefetch_status >> 24) & 0x7F) >> 2;
-+			__raw_readsl(info->nand_pref_fifo_add, p,
- 							read_count);
- 			p += read_count;
--			len -= read_count << 1;
-+			len -= read_count << 2;
- 		} while (len);
+--=20
+Jouni H=C3=B6gander
 
- 		/* disable and stop the PFPW engine */
-
-
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
