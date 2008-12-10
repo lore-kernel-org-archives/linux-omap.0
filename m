@@ -1,61 +1,52 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: Bug in linux omap clock framework?
-Date: Tue, 9 Dec 2008 16:14:47 -0700 (MST)
-Message-ID: <alpine.DEB.2.00.0812091612240.5902@utopia.booyaka.com>
-References: <21FAA8D4A5AB5E4096AC4BE4BF42EB140157D444@vaebe104.NOE.Nokia.com>  <alpine.DEB.2.00.0812061635110.21247@utopia.booyaka.com>  <1228726770.8668.66.camel@tubuntu>  <alpine.DEB.2.00.0812080218190.5902@utopia.booyaka.com>
- <1228831086.31061.9.camel@tubuntu>
+From: Jeff Steele <jsteele@coloradocollege.edu>
+Subject: status of USB on omap35xx ?
+Date: Tue, 09 Dec 2008 17:50:50 -0700
+Message-ID: <1228870250.32014.148.camel@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:39777 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754741AbYLIXOs (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 9 Dec 2008 18:14:48 -0500
-In-Reply-To: <1228831086.31061.9.camel@tubuntu>
+Received: from exchange-fe1.coloradocollege.edu ([198.59.5.40]:25902 "EHLO
+	exchange-fe1.ColoradoCollege.edu" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752017AbYLJBGB (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 9 Dec 2008 20:06:01 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@nokia.com>
-Cc: linux-omap@vger.kernel.org, khilman@deeprootsystems.com
+To: linux-omap@vger.kernel.org
 
-Hi Tomi,
+Hi All,
 
-On Tue, 9 Dec 2008, Tomi Valkeinen wrote:
-
-> I don't know much about power and clock domains, but I believe I found
-> the reason and fix for this. At least this should point to the right
-> direction.
-> 
-> It looks to me that when I do clk_enable() to a clock which is inside a
-> turned off powerdomain, clk_enable() function will return before the
-> powerdomain is fully turned on. Reading PM_PWSTST_DSS shows that the
-> powerdomain is still in transition state.
-> 
-> The following change waits until the powerdomain has finished the
-> transition. At least it fixed the problem for me, and other things seem
-> to be still working =).
-
-Nice work - this makes sense.  Tested your patch here also. 
-
-Care to put together a patch with something similar to the description 
-above and your Signed-off-by, and send it to the list?  This should go 
-into l-o.
+I'm hoping to use a Gumstix Overo (OMAP 3503 chip) for a new project,
+but I'm a little confused about what USB features are currently working
+in the omap-git tree kernel.
 
 
-- Paul
+Can someone tell me :
 
 
-> diff --git a/arch/arm/mach-omap2/clockdomain.c b/arch/arm/mach-omap2/clockdomain.c
-> index fa62f14..f713d0b 100644
-> --- a/arch/arm/mach-omap2/clockdomain.c
-> +++ b/arch/arm/mach-omap2/clockdomain.c
-> @@ -567,6 +567,8 @@ int omap2_clkdm_clk_enable(struct clockdomain *clkdm, struct clk *clk)
->         else
->                 omap2_clkdm_wakeup(clkdm);
->  
-> +       pwrdm_wait_transition(clkdm->pwrdm.ptr);
-> +
->         return 0;
->  }
-> 
-> 
+1) Is the USB OTG port working for HS bulk transfers when operating as a
+device("gadget") ? For example, is there a version
+of /drivers/usb/gadget/zero.c that works on 35xx processors ?
+
+
+2) Is it possible to use the USB Host port and the OTG port
+simultaneously ?
+
+One scenario I'm envisioning is to read bulk data from a device via the
+host port, process it, and then feed it out the OTG port to a "real"
+host computer.
+
+3) Is the Host port working pretty reliably, or are there any issues
+still to be resolved ?
+
+
+I don't mind if I need to apply patches or edit/re-compile a few lines
+of kernel code, but I don't want to get stranded too deep in
+un-supported territory...
+
+
+Thanks,
+
+Jeff
+
 
