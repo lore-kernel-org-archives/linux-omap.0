@@ -1,29 +1,45 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: 2.6.27-omap2 tag?
-Date: Wed, 10 Dec 2008 09:07:31 -0800
-Message-ID: <20081210170731.GD26387@atomide.com>
-References: <8bf247760812100529p7b7c1505ufdb0564b3547a4b0@mail.gmail.com> <94a0d4530812100540t7b2ff0efh5f8b6379e08d2168@mail.gmail.com>
+From: Felipe Balbi <me@felipebalbi.com>
+Subject: Re: status of USB on omap35xx ?
+Date: Wed, 10 Dec 2008 19:40:30 +0200
+Message-ID: <20081210174030.GD9799@frodo>
+References: <1228870250.32014.148.camel@localhost.localdomain> <20081210144604.GD13287@gandalf.research.nokia.com> <1228926833.32014.162.camel@localhost.localdomain>
+Reply-To: me@felipebalbi.com
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-bos.mailhop.org ([63.208.196.178]:57263 "EHLO
-	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752871AbYLJRHd (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 10 Dec 2008 12:07:33 -0500
+Received: from ns1.siteground211.com ([209.62.36.12]:54325 "EHLO
+	serv01.siteground211.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753675AbYLJRkh convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 10 Dec 2008 12:40:37 -0500
 Content-Disposition: inline
-In-Reply-To: <94a0d4530812100540t7b2ff0efh5f8b6379e08d2168@mail.gmail.com>
+In-Reply-To: <1228926833.32014.162.camel@localhost.localdomain>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Contreras <felipe.contreras@gmail.com>
-Cc: Sriram V <vshrirama@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Jeff Steele <jsteele@coloradocollege.edu>
+Cc: linux-omap <linux-omap@vger.kernel.org>
 
-* Felipe Contreras <felipe.contreras@gmail.com> [081210 05:40]:
-> On Wed, Dec 10, 2008 at 3:29 PM, Sriram V <vshrirama@gmail.com> wrote:
-> > Hi,
-> >  Is there a Linux-2.6.27-omap2 tag somewhere?
+On Wed, Dec 10, 2008 at 09:33:53AM -0700, Jeff Steele wrote:
+> On Wed, 2008-12-10 at 16:46 +0200, Felipe Balbi wrote:
+> > > 3) Is the Host port working pretty reliably, or are there any issues
+> > > still to be resolved ?
+> > 
+> > ehci driver still needs some work. You can help
+> > 
 > 
-> No, probably because 2.6.27-omap1 is good enough.
+> 
+> 
+> What are the issues ? 
+> 
+> ???
+> ???I really only need to read bulk packets from one HS device that is
+> present at boot.
 
-Yeah there was no need to do 2.6.27-omap2 this time.
+It think it still has a problem during probe. If you read the driver
+you'll see there are some infinite while loops without timeout actions.
+And one of them is looping forever due to clock issues.
 
-Tony
+Donno if that's fixed by now. Worth trying.
+
+-- 
+balbi
