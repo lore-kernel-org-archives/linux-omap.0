@@ -1,229 +1,61 @@
-From: jouni.hogander@nokia.com (=?utf-8?Q?H=C3=B6gander?= Jouni)
-Subject: Re: Bug in linux omap clock framework?
-Date: Wed, 10 Dec 2008 12:44:04 +0200
-Message-ID: <87hc5ccnt7.fsf@trdhcp146196.ntc.nokia.com>
-References: <21FAA8D4A5AB5E4096AC4BE4BF42EB140157D444@vaebe104.NOE.Nokia.com>
-	<alpine.DEB.2.00.0812061635110.21247@utopia.booyaka.com>
-	<1228726770.8668.66.camel@tubuntu>
-	<alpine.DEB.2.00.0812080218190.5902@utopia.booyaka.com>
-	<1228831086.31061.9.camel@tubuntu>
-	<87prk0cwfy.fsf@trdhcp146196.ntc.nokia.com>
-	<1228895990.31061.13.camel@tubuntu>
-	<87tz9c4dy7.fsf@trdhcp146196.ntc.nokia.com>
-	<1228899430.31061.23.camel@tubuntu>
+From: "Trilok Soni" <soni.trilok@gmail.com>
+Subject: Re: [PATCH] Add OMAP2 camera driver
+Date: Wed, 10 Dec 2008 17:13:12 +0530
+Message-ID: <5d5443650812100343t41fb7db8p1956d6aa0b184c26@mail.gmail.com>
+References: <5d5443650811261044w30748b75w5a47ce8b04680f79@mail.gmail.com>
+	 <20081208194235.4991873d@pedra.chehab.org>
+	 <493E3217.8050503@nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:63983 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754767AbYLJKof convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 10 Dec 2008 05:44:35 -0500
-In-Reply-To: <1228899430.31061.23.camel@tubuntu> (Tomi Valkeinen's message of
-	"Wed, 10 Dec 2008 10:57:10 +0200")
+Received: from wf-out-1314.google.com ([209.85.200.171]:19508 "EHLO
+	wf-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750748AbYLJLnN (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 10 Dec 2008 06:43:13 -0500
+Received: by wf-out-1314.google.com with SMTP id 27so143343wfd.4
+        for <linux-omap@vger.kernel.org>; Wed, 10 Dec 2008 03:43:13 -0800 (PST)
+In-Reply-To: <493E3217.8050503@nokia.com>
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: tomi.valkeinen@nokia.com
-Cc: ext Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org, khilman@deeprootsystems.com
+To: Sakari Ailus <sakari.ailus@nokia.com>
+Cc: ext Mauro Carvalho Chehab <mchehab@infradead.org>, v4l <video4linux-list@redhat.com>, "linux-omap@vger.kernel.org Mailing List" <linux-omap@vger.kernel.org>, hiroshi DOYU <Hiroshi.DOYU@nokia.com>
 
-Tomi Valkeinen <tomi.valkeinen@nokia.com> writes:
+Hi Sakari,
 
-> On Wed, 2008-12-10 at 10:44 +0200, H=C3=B6gander Jouni wrote:
->> Tomi Valkeinen <tomi.valkeinen@nokia.com> writes:
->>=20
->> > On Wed, 2008-12-10 at 09:37 +0200, H=C3=B6gander Jouni wrote:
->> >> "ext Tomi Valkeinen" <tomi.valkeinen@nokia.com> writes:
->> >>=20
->> >> > Hi,
->> >> >
->> >> > On Mon, 2008-12-08 at 02:24 -0700, ext Paul Walmsley wrote:
->> >> >> Hi Tomi,
->> >> >>=20
->> >> >> On Mon, 8 Dec 2008, Tomi Valkeinen wrote:
->> >> >>=20
->> >> >> > On Sat, 2008-12-06 at 16:51 -0700, ext Paul Walmsley wrote:
->> >> >> > > Hi Tomi,
->> >> >> > >=20
->> >> >> > > nice test case.
->> >> >> > >=20
->> >> >> > > On Fri, 5 Dec 2008, Tomi.Valkeinen@nokia.com wrote:
->> >> >> > >=20
->> >> >> > > > I have had strange clk_enable() crashes with DSS2, and n=
-ow I managed to
->> >> >> > > > isolate it. With the included patch, on OMAP3 SDP board,=
- with default
->> >> >> > > > kernel config, I always get the crash below. In this exa=
-mple case it
->> >> >> > > > happens at specific time on boot, but with DSS2 it happe=
-ns randomly at
->> >> >> > > > runtime, when I enable the DSS clocks.
->> >> >> > >=20
->> >> >>=20
->> >> >> At this point my guess would be that it is a DSS driver proble=
-m, but I=20
->> >> >> don't think it is clear yet.
->> >> >>=20
->> >> >
->> >> > I don't know much about power and clock domains, but I believe =
-I found
->> >> > the reason and fix for this. At least this should point to the =
-right
->> >> > direction.
->> >> >
->> >> > It looks to me that when I do clk_enable() to a clock which is =
-inside a
->> >> > turned off powerdomain, clk_enable() function will return befor=
-e the
->> >> > powerdomain is fully turned on. Reading PM_PWSTST_DSS shows tha=
-t the
->> >> > powerdomain is still in transition state.
->> >> >
->> >> > The following change waits until the powerdomain has finished t=
-he
->> >> > transition. At least it fixed the problem for me, and other thi=
-ngs seem
->> >> > to be still working =3D).
->> >> >
->> >> >
->> >> > diff --git a/arch/arm/mach-omap2/clockdomain.c b/arch/arm/mach-=
-omap2/clockdomain.c
->> >> > index fa62f14..f713d0b 100644
->> >> > --- a/arch/arm/mach-omap2/clockdomain.c
->> >> > +++ b/arch/arm/mach-omap2/clockdomain.c
->> >> > @@ -567,6 +567,8 @@ int omap2_clkdm_clk_enable(struct clockdoma=
-in *clkdm, struct clk *clk)
->> >> >         else
->> >> >                 omap2_clkdm_wakeup(clkdm);
->> >> > =20
->> >> > +       pwrdm_wait_transition(clkdm->pwrdm.ptr);
->> >> > +
->> >>=20
->> >> Altough this patch is fixing the problem, I'll guess it's because=
- of
->> >> delay it causes rather than waiting for
->> >> PM_PWSTST_DSS. omap2_clkdm_clk_enable alone doesn't switch pwrdm =
-to
->> >> on. This is because clockdomain/powerdomains are controlled by HW=
- (hw
->> >> supervised).
->> >>=20
->> >> I think the right answer is to use ST_*_IDLE & ST_*_STDBY bits in
->> >> omap2_clk_wait_ready.
->> >
->> > But ST_DSS_IDLE says active only after both interface and function=
-al
->> > clock are on, so it doesn't help here.
->>=20
->> Yes and in ST_DSS_IDLE description it is saying that if it's "0x1
->> Display sub-system is in idle mode and cannot be accessed". So it on=
-ly
->> way to get it out of idle is to enable both clocks it needs to be do=
-ne.
->>=20
->> If you look at arch/arm/mach-omap2/clock.c:omap2_clk_wait_ready it i=
-s
->> actually checking that both clocks are enabled.
+On Tue, Dec 9, 2008 at 2:23 PM, Sakari Ailus <sakari.ailus@nokia.com> wrote:
+> The DMA part is definitely the ugliest part of omap24xxcam.
 >
-> But the ST_DSS_IDLE doesn't help here. The kernel crashes after enabl=
-ing
-> dss_ick, before your code can even enable dss_fck. The same happens i=
-f
-> you do it other way around, first dss_fck and then dss_ick.
+> This is actually also a DMA controller driver. The system DMA driver could
+> not be used as such as it was limited to just one controller --- the OMAP 2
+> camera block has its own DMA controller with four transfers in queue
+> (maximum).
 >
->> > Why is it wrong to wait for PM_PWSTST_DSS? Do you mean that this c=
-rash
->> > is not caused by the DSS being not powered on, but by something el=
-se,
->> > and so the small delay just accidentally fixes the problem?
->>=20
->> Something like that.
->>=20
->> If you look at your code:
->>=20
->> +static int __init omapfb_init(void)
->> +{
->> +	struct clk *c1, *c2, *c3;
->> +
->> +	c1 =3D clk_get(NULL, "dss_ick");
->> +	c2 =3D clk_get(NULL, "dss1_alwon_fck");
->> +	c3 =3D clk_get(NULL, "dss_tv_fck");
->> +
->> +	base =3D ioremap(DISPC_BASE, SZ_1K);
->> +	printk("mapped to %p\n", base);
->> +
->> +	clk_enable(c1);
->>=20
->> At this point ST_DSS_IDLE should not be yet checked (because fck is
->> not enabled yet.
->>=20
->> +	clk_enable(c2);
->>=20
->> But at this point (actually inside clk_enable and
->> omap2_clk_wait_ready) ST_DSS_IDLE should be checked before those
->> register accesses in next two lines. You can verify my comment by
->> adding "while(ST_DSS_IDLE);" here.
->
-> Doesn't omap2_clk_wait_ready alread check this?
+> There's also an MMU, not the system MMU but the camera block MMU. This MMU
+> is not being used now by omap24xxcam at all since when omap24xxcam driver
+> was written, there was not too much time available and no generic MMU
+> framework. So the MMU support was left out. Instead, there's a hack to
+> allocate as large as possible continuous memory areas and avoid overruns
+> that way. DMA transfer overruns happen on large proportion of frames without
+> this hack.
 
-Yes, you are right this is already done.
+This is due to legacy and carried forward to every new kernel version
+from year 2004. I hope someone having H4 EVM can do it lot faster than
+me, as I only have N8xx tablets, and debugging on them might be slow.
 
 >
-> And again, the problem is not accessing DSS registers. The problem is
-> that clk_enable(dss_ick) crashes. so the following code crashes also:
->
-> static int __init test_init(void)
-> {
-> 	struct clk *c1 =3D clk_get(NULL, "dss_ick");
->
-> 	while(1) {
-> 		clk_enable(c1);
-> 		clk_disable(c1);
-> 	}
->
-> 	return 0;
-> }
->
+> Hiroshi Doyu is working on a generic IOMMU framework for OMAPs that could be
+> used here. With that framework available, converting the OMAP 2 camera
+> driver to use videobuf would be a lot easier. The performance would be
+> better, too. A generic DMA controller driver would be also good to have but
+> not mandatory.
 
-Are you still using SDP and default config + latest linux-omap? I'm
-not able to reproduce this using your example code.
+This is not yet mainlined, so let's incorporate IOMMU bits once it
+gets mainlined.
 
->
->>=20
->> +
->> +	dispc_write_reg(DISPC_IRQENABLE, 0);
->> +	dispc_write_reg(DISPC_IRQSTATUS, 0);
->> +
->> +	clk_disable(c1);
->> +	clk_disable(c2);
->> +
->> +	printk("usecounts %d, %d, %d\n", clk_get_usecount(c1),
->> +			clk_get_usecount(c2),
->> +			clk_get_usecount(c3));
->> +
->> +	/*clk_enable(c2);*/
->> +	/*clk_enable(c3);*/
->> +
->> +	while(1) {
->> +		clk_enable(c1);
->> +		clk_disable(c1);
->> +	}
->> +
->> +	return 0;
->> +}
->> +
->> +module_init(omapfb_init);
->> +MODULE_LICENSE("GPL");
->> >  Tomi
->> >
->> >
->>=20
->
 
---=20
-Jouni H=C3=B6gander
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-- 
+---Trilok Soni
+http://triloksoni.wordpress.com
+http://www.linkedin.com/in/triloksoni
