@@ -1,44 +1,113 @@
-From: "Trilok Soni" <soni.trilok@gmail.com>
-Subject: Re: [PATCH] Add TI TSC2005 Touchscreen driver
-Date: Wed, 10 Dec 2008 12:44:21 +0530
-Message-ID: <5d5443650812092314s4b51abb2me5e0f16a36d2c18c@mail.gmail.com>
-References: <5d5443650812080949h5aff6010mb7341f581841f126@mail.gmail.com>
-	 <20081208182648.GA9740@uranus.ravnborg.org>
-	 <20081209131705.GC6667@pure.research.nokia.com>
+From: jouni.hogander@nokia.com (=?utf-8?Q?H=C3=B6gander?= Jouni)
+Subject: Re: Bug in linux omap clock framework?
+Date: Wed, 10 Dec 2008 09:37:37 +0200
+Message-ID: <87prk0cwfy.fsf@trdhcp146196.ntc.nokia.com>
+References: <21FAA8D4A5AB5E4096AC4BE4BF42EB140157D444@vaebe104.NOE.Nokia.com>
+	<alpine.DEB.2.00.0812061635110.21247@utopia.booyaka.com>
+	<1228726770.8668.66.camel@tubuntu>
+	<alpine.DEB.2.00.0812080218190.5902@utopia.booyaka.com>
+	<1228831086.31061.9.camel@tubuntu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-input-owner@vger.kernel.org>
-In-Reply-To: <20081209131705.GC6667@pure.research.nokia.com>
-Content-Disposition: inline
-Sender: linux-input-owner@vger.kernel.org
-To: Lauri Leukkunen <lauri.leukkunen@nokia.com>
-Cc: ext Sam Ravnborg <sam@ravnborg.org>, David Brownell <david-b@pacbell.net>, dmitry.torokhov@gmail.com, "linux-omap@vger.kernel.org Mailing List" <linux-omap@vger.kernel.org>, linux-kernel@vger.kernel.org, spi-devel-general@lists.sourceforge.net, linux-input@vger.kernel.org
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from smtp.nokia.com ([192.100.105.134]:55297 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754410AbYLJHhq convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 10 Dec 2008 02:37:46 -0500
+In-Reply-To: <1228831086.31061.9.camel@tubuntu> (ext Tomi Valkeinen's message
+	of "Tue, 09 Dec 2008 15:58:06 +0200")
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: tomi.valkeinen@nokia.com
+Cc: ext Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org, khilman@deeprootsystems.com
 
-Hi Lauri,
+"ext Tomi Valkeinen" <tomi.valkeinen@nokia.com> writes:
 
-On Tue, Dec 9, 2008 at 6:47 PM, Lauri Leukkunen
-<lauri.leukkunen@nokia.com> wrote:
-> On 08/12/08 19:26 +0100, ext Sam Ravnborg wrote:
->> > Add Texas Instruments TSC2005 chip touchscreen driver.
->> >
->> > Signed-off-by: Trilok Soni <soni.trilok@gmail.com>
->>
->> Hi Trilok.
->> A few nitpicks below.
->>
->> In general a very clean written driver with adequate comments - nice work!
+> Hi,
 >
-> Umm, isn't this code mostly written by Nokia? At least I remember modifying
-> some of it, and this version looks like Konsta Karsisto might be the last
-> person touching it. Originally I think it's written by Imre Deak, probably
-> based on the tsc2301 code.
+> On Mon, 2008-12-08 at 02:24 -0700, ext Paul Walmsley wrote:
+>> Hi Tomi,
+>>=20
+>> On Mon, 8 Dec 2008, Tomi Valkeinen wrote:
+>>=20
+>> > On Sat, 2008-12-06 at 16:51 -0700, ext Paul Walmsley wrote:
+>> > > Hi Tomi,
+>> > >=20
+>> > > nice test case.
+>> > >=20
+>> > > On Fri, 5 Dec 2008, Tomi.Valkeinen@nokia.com wrote:
+>> > >=20
+>> > > > I have had strange clk_enable() crashes with DSS2, and now I m=
+anaged to
+>> > > > isolate it. With the included patch, on OMAP3 SDP board, with =
+default
+>> > > > kernel config, I always get the crash below. In this example c=
+ase it
+>> > > > happens at specific time on boot, but with DSS2 it happens ran=
+domly at
+>> > > > runtime, when I enable the DSS clocks.
+>> > >=20
+>>=20
+>> At this point my guess would be that it is a DSS driver problem, but=
+ I=20
+>> don't think it is clear yet.
+>>=20
+>
+> I don't know much about power and clock domains, but I believe I foun=
+d
+> the reason and fix for this. At least this should point to the right
+> direction.
+>
+> It looks to me that when I do clk_enable() to a clock which is inside=
+ a
+> turned off powerdomain, clk_enable() function will return before the
+> powerdomain is fully turned on. Reading PM_PWSTST_DSS shows that the
+> powerdomain is still in transition state.
+>
+> The following change waits until the powerdomain has finished the
+> transition. At least it fixed the problem for me, and other things se=
+em
+> to be still working =3D).
+>
+>
+> diff --git a/arch/arm/mach-omap2/clockdomain.c b/arch/arm/mach-omap2/=
+clockdomain.c
+> index fa62f14..f713d0b 100644
+> --- a/arch/arm/mach-omap2/clockdomain.c
+> +++ b/arch/arm/mach-omap2/clockdomain.c
+> @@ -567,6 +567,8 @@ int omap2_clkdm_clk_enable(struct clockdomain *cl=
+kdm, struct clk *clk)
+>         else
+>                 omap2_clkdm_wakeup(clkdm);
+> =20
+> +       pwrdm_wait_transition(clkdm->pwrdm.ptr);
+> +
 
-Yes, you are the author. Please check first few lines of this patch,
---from field has your name :)
+Altough this patch is fixing the problem, I'll guess it's because of
+delay it causes rather than waiting for
+PM_PWSTST_DSS. omap2_clkdm_clk_enable alone doesn't switch pwrdm to
+on. This is because clockdomain/powerdomains are controlled by HW (hw
+supervised).
 
--- 
----Trilok Soni
-http://triloksoni.wordpress.com
-http://www.linkedin.com/in/triloksoni
+I think the right answer is to use ST_*_IDLE & ST_*_STDBY bits in
+omap2_clk_wait_ready.
+
+>         return 0;
+>  }
+>
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap"=
+ in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+--=20
+Jouni H=C3=B6gander
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
