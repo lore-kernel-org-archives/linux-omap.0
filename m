@@ -1,44 +1,29 @@
-From: Jeff Steele <jsteele@coloradocollege.edu>
-Subject: Re: status of USB on omap35xx ?
-Date: Wed, 10 Dec 2008 09:33:53 -0700
-Message-ID: <1228926833.32014.162.camel@localhost.localdomain>
-References: <1228870250.32014.148.camel@localhost.localdomain>
-	 <20081210144604.GD13287@gandalf.research.nokia.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: 2.6.27-omap2 tag?
+Date: Wed, 10 Dec 2008 09:07:31 -0800
+Message-ID: <20081210170731.GD26387@atomide.com>
+References: <8bf247760812100529p7b7c1505ufdb0564b3547a4b0@mail.gmail.com> <94a0d4530812100540t7b2ff0efh5f8b6379e08d2168@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from exchange-fe1.coloradocollege.edu ([198.59.5.40]:30781 "EHLO
-	exchange-fe1.ColoradoCollege.edu" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754614AbYLJQdy convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 10 Dec 2008 11:33:54 -0500
-In-Reply-To: <20081210144604.GD13287@gandalf.research.nokia.com>
+Received: from mho-01-bos.mailhop.org ([63.208.196.178]:57263 "EHLO
+	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752871AbYLJRHd (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 10 Dec 2008 12:07:33 -0500
+Content-Disposition: inline
+In-Reply-To: <94a0d4530812100540t7b2ff0efh5f8b6379e08d2168@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap <linux-omap@vger.kernel.org>
+To: Felipe Contreras <felipe.contreras@gmail.com>
+Cc: Sriram V <vshrirama@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Wed, 2008-12-10 at 16:46 +0200, Felipe Balbi wrote:
-> > 3) Is the Host port working pretty reliably, or are there any issue=
-s
-> > still to be resolved ?
->=20
-> ehci driver still needs some work. You can help
->=20
+* Felipe Contreras <felipe.contreras@gmail.com> [081210 05:40]:
+> On Wed, Dec 10, 2008 at 3:29 PM, Sriram V <vshrirama@gmail.com> wrote:
+> > Hi,
+> >  Is there a Linux-2.6.27-omap2 tag somewhere?
+> 
+> No, probably because 2.6.27-omap1 is good enough.
 
+Yeah there was no need to do 2.6.27-omap2 this time.
 
-
-What are the issues ?=20
-
-=EF=BB=BF
-=EF=BB=BFI really only need to read bulk packets from one HS device tha=
-t is
-present at boot.
-
-
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Tony
