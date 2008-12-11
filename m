@@ -1,7 +1,8 @@
 From: "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>
-Subject: [REVIEW PATCH 06/14] OMAP: CAM: Add ISP SCM
-Date: Thu, 11 Dec 2008 14:38:01 -0600
-Message-ID: <A24693684029E5489D1D202277BE894415E6E19B@dlee02.ent.ti.com>
+Subject: [REVIEW PATCH 03/14] OMAP: CAM: Add ISP user header and register
+ defs
+Date: Thu, 11 Dec 2008 14:37:51 -0600
+Message-ID: <A24693684029E5489D1D202277BE894415E6E197@dlee02.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="iso-8859-1"
 Content-Transfer-Encoding: quoted-printable
@@ -21,1018 +22,39 @@ Cc: Sakari Ailus <sakari.ailus@nokia.com>, "Tuukka.O Toivonen" <tuukka.o.toivone
 	Hari" <hnagalla@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
->From 8526bbc7e5fe3f5cb73931c5db25e39402389b5b Mon Sep 17 00:00:00 2001
+>From 5d7f45b62896c8279a1ebd2a9fbbaf0de58863d8 Mon Sep 17 00:00:00 2001
 From: Sergio Aguirre <saaguirre@ti.com>
-Date: Thu, 11 Dec 2008 13:35:49 -0600
-Subject: [PATCH] OMAP: CAM: Add ISP SCM
+Date: Thu, 11 Dec 2008 13:35:51 -0600
+Subject: [PATCH] OMAP: CAM: Add ISP user header and register defs
 
-This adds the OMAP ISP SCM modules to the kernel. Includes:
-* ISP Autofocus Driver
-* ISP H3A Driver
-* ISP Histogram Driver
+This adds the defines used by ISP driver (ispreg.h), and the defines
+needed by the user to operate ISP in app level (isp_user.h)
 
 Signed-off-by: Sergio Aguirre <saaguirre@ti.com>
 ---
- drivers/media/video/isp/isp_af.c  |  755 +++++++++++++++++++++++++++++++
- drivers/media/video/isp/isp_af.h  |  118 +++++
- drivers/media/video/isp/isph3a.c  |  883 +++++++++++++++++++++++++++++++=
+ arch/arm/plat-omap/include/mach/isp_user.h |  668 +++++++++++
+ drivers/media/video/isp/ispreg.h           | 1657 ++++++++++++++++++++++=
 ++++++
- drivers/media/video/isp/isph3a.h  |  119 +++++
- drivers/media/video/isp/isphist.c |  577 ++++++++++++++++++++++++
- drivers/media/video/isp/isphist.h |   97 ++++
- 6 files changed, 2549 insertions(+), 0 deletions(-)
- create mode 100644 drivers/media/video/isp/isp_af.c
- create mode 100644 drivers/media/video/isp/isp_af.h
- create mode 100644 drivers/media/video/isp/isph3a.c
- create mode 100644 drivers/media/video/isp/isph3a.h
- create mode 100644 drivers/media/video/isp/isphist.c
- create mode 100644 drivers/media/video/isp/isphist.h
+ 2 files changed, 2325 insertions(+), 0 deletions(-)
+ create mode 100644 arch/arm/plat-omap/include/mach/isp_user.h
+ create mode 100644 drivers/media/video/isp/ispreg.h
 
-diff --git a/drivers/media/video/isp/isp_af.c b/drivers/media/video/isp/i=
-sp_af.c
+diff --git a/arch/arm/plat-omap/include/mach/isp_user.h b/arch/arm/plat-o=
+map/include/mach/isp_user.h
 new file mode 100644
-index 0000000..bc4ae32
+index 0000000..5eb5598
 --- /dev/null
-+++ b/drivers/media/video/isp/isp_af.c
-@@ -0,0 +1,755 @@
++++ b/arch/arm/plat-omap/include/mach/isp_user.h
+@@ -0,0 +1,668 @@
 +/*
-+ * drivers/media/video/isp/isp_af.c
++ * include/asm-arm/arch-omap/isp_user.h
 + *
-+ * AF module for TI's OMAP3 Camera ISP
-+ *
-+ * Copyright (C) 2008 Texas Instruments.
-+ *
-+ * This package is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ *
-+ * THIS PACKAGE IS PROVIDED ``AS IS'' AND WITHOUT ANY EXPRESS OR
-+ * IMPLIED WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED
-+ * WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
-+ */
-+
-+/* Linux specific include files */
-+#include <asm/cacheflush.h>
-+
-+#include <linux/cdev.h>
-+#include <linux/device.h>
-+#include <linux/delay.h>
-+#include <linux/fs.h>
-+#include <linux/mm.h>
-+#include <linux/module.h>
-+#include <linux/platform_device.h>
-+#include <linux/uaccess.h>
-+#include <linux/io.h>
-+#include <linux/mman.h>
-+#include <linux/syscalls.h>
-+#include <linux/errno.h>
-+#include <linux/types.h>
-+#include <linux/dma-mapping.h>
-+
-+#include <media/v4l2-int-device.h>
-+
-+#include "isp.h"
-+#include "ispreg.h"
-+#include "isph3a.h"
-+#include "isp_af.h"
-+#include "ispmmu.h"
-+
-+/**
-+ * struct isp_af_buffer - AF frame stats buffer.
-+ * @virt_addr: Virtual address to mmap the buffer.
-+ * @phy_addr: Physical address of the buffer.
-+ * @addr_align: Virtual Address 32 bytes aligned.
-+ * @ispmmu_addr: Address of the buffer mapped by the ISPMMU.
-+ * @mmap_addr: Mapped memory area of buffer. For userspace access.
-+ * @locked: 1 - Buffer locked from write. 0 - Buffer can be overwritten.
-+ * @frame_num: Frame number from which the statistics are taken.
-+ * @lens_position: Lens position currently set in the DW9710 Coil motor =
-driver.
-+ * @next: Pointer to link next buffer.
-+ */
-+struct isp_af_buffer {
-+       unsigned long virt_addr;
-+       unsigned long phy_addr;
-+       unsigned long addr_align;
-+       unsigned long ispmmu_addr;
-+       unsigned long mmap_addr;
-+
-+       u8 locked;
-+       u16 frame_num;
-+       struct isp_af_xtrastats xtrastats;
-+       struct isp_af_buffer *next;
-+};
-+
-+/**
-+ * struct isp_af_status - AF status.
-+ * @initialized: 1 - Buffers initialized.
-+ * @update: 1 - Update registers.
-+ * @stats_req: 1 - Future stats requested.
-+ * @stats_done: 1 - Stats ready for user.
-+ * @frame_req: Number of frame requested for statistics.
-+ * @af_buff: Array of statistics buffers to access.
-+ * @stats_buf_size: Statistics buffer size.
-+ * @curr_cfg_buf_size: Current user configured stats buff size.
-+ * @min_buf_size: Minimum statisitics buffer size.
-+ * @frame_count: Frame Count.
-+ * @stats_wait: Wait primitive for locking/unlocking the stats request.
-+ * @buffer_lock: Spinlock for statistics buffers access.
-+ */
-+static struct isp_af_status {
-+       u8 initialized;
-+       u8 update;
-+       u8 stats_req;
-+       u8 stats_done;
-+       u16 frame_req;
-+
-+       struct isp_af_buffer af_buff[H3A_MAX_BUFF];
-+       unsigned int stats_buf_size;
-+       unsigned int min_buf_size;
-+       unsigned int curr_cfg_buf_size;
-+
-+       u32 frame_count;
-+       wait_queue_head_t stats_wait;
-+       spinlock_t buffer_lock;         /* For stats buffers read/write s=
-ync */
-+} afstat;
-+
-+struct af_device *af_dev_configptr;
-+static struct isp_af_buffer *active_buff;
-+static int af_major =3D -1;
-+static int camnotify;
-+
-+/**
-+ * isp_af_setxtrastats - Receives extra statistics from prior frames.
-+ * @xtrastats: Pointer to structure containing extra statistics fields l=
-ike
-+ *             field count and timestamp of frame.
-+ *
-+ * Called from update_vbq in camera driver
-+ **/
-+void isp_af_setxtrastats(struct isp_af_xtrastats *xtrastats, u8 updatefl=
-ag)
-+{
-+       int i, past_i;
-+
-+       if (active_buff =3D=3D NULL)
-+               return;
-+
-+       for (i =3D 0; i < H3A_MAX_BUFF; i++) {
-+               if (afstat.af_buff[i].frame_num =3D=3D active_buff->frame=
-_num)
-+                       break;
-+       }
-+
-+       if (i =3D=3D H3A_MAX_BUFF)
-+               return;
-+
-+       if (i =3D=3D 0) {
-+               if (afstat.af_buff[H3A_MAX_BUFF - 1].locked =3D=3D 0)
-+                       past_i =3D H3A_MAX_BUFF - 1;
-+               else
-+                       past_i =3D H3A_MAX_BUFF - 2;
-+       } else if (i =3D=3D 1) {
-+               if (afstat.af_buff[0].locked =3D=3D 0)
-+                       past_i =3D 0;
-+               else
-+                       past_i =3D H3A_MAX_BUFF - 1;
-+       } else {
-+               if (afstat.af_buff[i - 1].locked =3D=3D 0)
-+                       past_i =3D i - 1;
-+               else
-+                       past_i =3D i - 2;
-+       }
-+
-+       if (updateflag & AF_UPDATEXS_TS)
-+               afstat.af_buff[past_i].xtrastats.ts =3D xtrastats->ts;
-+
-+       if (updateflag & AF_UPDATEXS_FIELDCOUNT)
-+               afstat.af_buff[past_i].xtrastats.field_count =3D
-+                                                       xtrastats->field_=
-count;
-+}
-+EXPORT_SYMBOL(isp_af_setxtrastats);
-+
-+/*
-+ * Helper function to update buffer cache pages
-+ */
-+static void isp_af_update_req_buffer(struct isp_af_buffer *buffer)
-+{
-+       int size =3D afstat.stats_buf_size;
-+
-+       size =3D PAGE_ALIGN(size);
-+       /* Update the kernel pages of the requested buffer */
-+       dmac_inv_range((void *)buffer->addr_align, (void *)buffer->addr_a=
-lign +
-+                                                                       s=
-ize);
-+}
-+
-+#define IS_OUT_OF_BOUNDS(value, min, max) \
-+       (((value) < (min)) || ((value) > (max)))
-+
-+/* Function to check paxel parameters */
-+int isp_af_check_paxel(void)
-+{
-+       struct af_paxel *paxel_cfg =3D &af_dev_configptr->config->paxel_c=
-onfig;
-+       struct af_iir *iir_cfg =3D &af_dev_configptr->config->iir_config;
-+
-+       /* Check horizontal Count */
-+       if (IS_OUT_OF_BOUNDS(paxel_cfg->hz_cnt, AF_PAXEL_HORIZONTAL_COUNT=
-_MIN,
-+                                       AF_PAXEL_HORIZONTAL_COUNT_MAX)) {
-+               DPRINTK_ISP_AF("Error : Horizontal Count is incorrect");
-+               return -AF_ERR_HZ_COUNT;
-+       }
-+
-+       /*Check Vertical Count */
-+       if (IS_OUT_OF_BOUNDS(paxel_cfg->vt_cnt, AF_PAXEL_VERTICAL_COUNT_M=
-IN,
-+                                       AF_PAXEL_VERTICAL_COUNT_MAX)) {
-+               DPRINTK_ISP_AF("Error : Vertical Count is incorrect");
-+               return -AF_ERR_VT_COUNT;
-+       }
-+
-+       /*Check Height */
-+       if (IS_OUT_OF_BOUNDS(paxel_cfg->height, AF_PAXEL_HEIGHT_MIN,
-+                                       AF_PAXEL_HEIGHT_MAX)) {
-+               DPRINTK_ISP_AF("Error : Height is incorrect");
-+               return -AF_ERR_HEIGHT;
-+       }
-+
-+       /*Check width */
-+       if (IS_OUT_OF_BOUNDS(paxel_cfg->width, AF_PAXEL_WIDTH_MIN,
-+                                       AF_PAXEL_WIDTH_MAX)) {
-+               DPRINTK_ISP_AF("Error : Width is incorrect");
-+               return -AF_ERR_WIDTH;
-+       }
-+
-+       /*Check Line Increment */
-+       if (IS_OUT_OF_BOUNDS(paxel_cfg->line_incr, AF_PAXEL_INCREMENT_MIN=
-,
-+                                       AF_PAXEL_INCREMENT_MAX)) {
-+               DPRINTK_ISP_AF("Error : Line Increment is incorrect");
-+               return -AF_ERR_INCR;
-+       }
-+
-+       /*Check Horizontal Start */
-+       if ((paxel_cfg->hz_start % 2 !=3D 0) ||
-+                       (paxel_cfg->hz_start < (iir_cfg->hz_start_pos + 2=
-)) ||
-+                       IS_OUT_OF_BOUNDS(paxel_cfg->hz_start,
-+                       AF_PAXEL_HZSTART_MIN, AF_PAXEL_HZSTART_MAX)) {
-+               DPRINTK_ISP_AF("Error : Horizontal Start is incorrect");
-+               return -AF_ERR_HZ_START;
-+       }
-+
-+       /*Check Vertical Start */
-+       if (IS_OUT_OF_BOUNDS(paxel_cfg->vt_start, AF_PAXEL_VTSTART_MIN,
-+                                       AF_PAXEL_VTSTART_MAX)) {
-+               DPRINTK_ISP_AF("Error : Vertical Start is incorrect");
-+               return -AF_ERR_VT_START;
-+       }
-+       return 0;
-+}
-+
-+/**
-+ * isp_af_check_iir - Function to check IIR Coefficient.
-+ **/
-+int isp_af_check_iir(void)
-+{
-+       struct af_iir *iir_cfg =3D &af_dev_configptr->config->iir_config;
-+       int index;
-+
-+       for (index =3D 0; index < AF_NUMBER_OF_COEF; index++) {
-+               if ((iir_cfg->coeff_set0[index]) > AF_COEF_MAX) {
-+                       DPRINTK_ISP_AF("Error : Coefficient for set 0 is =
-"
-+                                                               "incorrec=
-t");
-+                       return -AF_ERR_IIR_COEF;
-+               }
-+
-+               if ((iir_cfg->coeff_set1[index]) > AF_COEF_MAX) {
-+                       DPRINTK_ISP_AF("Error : Coefficient for set 1 is =
-"
-+                                                               "incorrec=
-t");
-+                       return -AF_ERR_IIR_COEF;
-+               }
-+       }
-+
-+       if (IS_OUT_OF_BOUNDS(iir_cfg->hz_start_pos, AF_IIRSH_MIN,
-+                                                               AF_IIRSH_=
-MAX)) {
-+               DPRINTK_ISP_AF("Error : IIRSH is incorrect");
-+               return -AF_ERR_IIRSH;
-+       }
-+
-+       return 0;
-+}
-+/**
-+ * isp_af_unlock_buffers - Helper function to unlock all buffers.
-+ **/
-+static void isp_af_unlock_buffers(void)
-+{
-+       int i;
-+       unsigned long irqflags;
-+
-+       spin_lock_irqsave(&afstat.buffer_lock, irqflags);
-+       for (i =3D 0; i < H3A_MAX_BUFF; i++)
-+               afstat.af_buff[i].locked =3D 0;
-+
-+       spin_unlock_irqrestore(&afstat.buffer_lock, irqflags);
-+}
-+
-+/*
-+ * Helper function to link allocated buffers
-+ */
-+static void isp_af_link_buffers(void)
-+{
-+       int i;
-+
-+       for (i =3D 0; i < H3A_MAX_BUFF; i++) {
-+               if ((i + 1) < H3A_MAX_BUFF)
-+                       afstat.af_buff[i].next =3D &afstat.af_buff[i + 1]=
-;
-+               else
-+                       afstat.af_buff[i].next =3D &afstat.af_buff[0];
-+       }
-+}
-+
-+/* Function to perform hardware set up */
-+int isp_af_configure(struct af_configuration *afconfig)
-+{
-+       int result;
-+       int buff_size, i;
-+       unsigned int busyaf;
-+       struct af_configuration *af_curr_cfg =3D af_dev_configptr->config=
-;
-+
-+       if (NULL =3D=3D afconfig) {
-+               printk(KERN_ERR "Null argument in configuration. \n");
-+               return -EINVAL;
-+       }
-+
-+       memcpy(af_curr_cfg, afconfig, sizeof(struct af_configuration));
-+       /* Get the value of PCR register */
-+       busyaf =3D omap_readl(ISPH3A_PCR);
-+
-+       if ((busyaf & AF_BUSYAF) =3D=3D AF_BUSYAF) {
-+               DPRINTK_ISP_AF("AF_register_setup_ERROR : Engine Busy");
-+               DPRINTK_ISP_AF("\n Configuration cannot be done ");
-+               return -AF_ERR_ENGINE_BUSY;
-+       }
-+
-+       /* Check IIR Coefficient and start Values */
-+       result =3D isp_af_check_iir();
-+       if (result < 0)
-+               return result;
-+
-+       /* Check Paxel Values */
-+       result =3D isp_af_check_paxel();
-+       if (result < 0)
-+               return result;
-+
-+       /* Check HMF Threshold Values */
-+       if (af_curr_cfg->hmf_config.threshold > AF_THRESHOLD_MAX) {
-+               DPRINTK_ISP_AF("Error : HMF Threshold is incorrect");
-+               return -AF_ERR_THRESHOLD;
-+       }
-+
-+       /* Compute buffer size */
-+       buff_size =3D (af_curr_cfg->paxel_config.hz_cnt + 1) *
-+                       (af_curr_cfg->paxel_config.vt_cnt + 1) * AF_PAXEL=
-_SIZE;
-+
-+       afstat.curr_cfg_buf_size =3D buff_size;
-+       /* Deallocate the previous buffers */
-+       if (afstat.stats_buf_size && (buff_size > afstat.stats_buf_size))=
- {
-+               isp_af_enable(0);
-+               for (i =3D 0; i < H3A_MAX_BUFF; i++) {
-+                       ispmmu_unmap(afstat.af_buff[i].ispmmu_addr);
-+                       dma_free_coherent(NULL, afstat.min_buf_size,
-+                                       (void *)afstat.af_buff[i].virt_ad=
-dr,
-+                                       (dma_addr_t)afstat.af_buff[i].phy=
-_addr);
-+                       afstat.af_buff[i].virt_addr =3D 0;
-+               }
-+               afstat.stats_buf_size =3D 0;
-+       }
-+
-+       if (!afstat.af_buff[0].virt_addr) {
-+               afstat.stats_buf_size =3D buff_size;
-+               afstat.min_buf_size =3D PAGE_ALIGN(afstat.stats_buf_size)=
-;
-+
-+               for (i =3D 0; i < H3A_MAX_BUFF; i++) {
-+                       afstat.af_buff[i].virt_addr =3D
-+                                       (unsigned long)dma_alloc_coherent=
-(NULL,
-+                                       afstat.min_buf_size,
-+                                       (dma_addr_t *)
-+                                       &afstat.af_buff[i].phy_addr,
-+                                       GFP_KERNEL | GFP_DMA);
-+                       if (afstat.af_buff[i].virt_addr =3D=3D 0) {
-+                               printk(KERN_ERR "Can't acquire memory for=
- "
-+                                                       "buffer[%d]\n", i=
-);
-+                               return -ENOMEM;
-+                       }
-+                       afstat.af_buff[i].addr_align =3D
-+                                               afstat.af_buff[i].virt_ad=
-dr;
-+                       while ((afstat.af_buff[i].addr_align & 0xFFFFFFC0=
-) !=3D
-+                                               afstat.af_buff[i].addr_al=
-ign)
-+                               afstat.af_buff[i].addr_align++;
-+                       afstat.af_buff[i].ispmmu_addr =3D
-+                               ispmmu_map(afstat.af_buff[i].phy_addr,
-+                                                       afstat.min_buf_si=
-ze);
-+               }
-+               isp_af_unlock_buffers();
-+               isp_af_link_buffers();
-+
-+               /* First active buffer */
-+               if (active_buff =3D=3D NULL)
-+                       active_buff =3D &afstat.af_buff[0];
-+               isp_af_set_address(active_buff->ispmmu_addr);
-+       }
-+
-+       result =3D isp_af_register_setup(af_dev_configptr);
-+       if (result < 0)
-+               return result;
-+       af_dev_configptr->size_paxel =3D buff_size;
-+       afstat.initialized =3D 1;
-+       /* Set configuration flag to indicate HW setup done */
-+       if (af_curr_cfg->af_config)
-+               isp_af_enable(1);
-+       else
-+               isp_af_enable(0);
-+
-+       /* Success */
-+       return 0;
-+}
-+EXPORT_SYMBOL(isp_af_configure);
-+
-+int isp_af_register_setup(struct af_device *af_dev)
-+{
-+       unsigned int pcr =3D 0, pax1 =3D 0, pax2 =3D 0, paxstart =3D 0;
-+       unsigned int coef =3D 0;
-+       unsigned int base_coef_set0 =3D 0;
-+       unsigned int base_coef_set1 =3D 0;
-+       int index;
-+
-+       /* Configure Hardware Registers */
-+       /* Set PCR Register */
-+       pcr =3D omap_readl(ISPH3A_PCR);   /* Read PCR Register */
-+
-+       /* Set Accumulator Mode */
-+       if (af_dev->config->mode =3D=3D ACCUMULATOR_PEAK)
-+               pcr |=3D FVMODE;
-+       else
-+               pcr &=3D ~FVMODE;
-+
-+       /* Set A-law */
-+       if (af_dev->config->alaw_enable =3D=3D H3A_AF_ALAW_ENABLE)
-+               pcr |=3D AF_ALAW_EN;
-+       else
-+               pcr &=3D ~AF_ALAW_EN;
-+
-+       /* Set RGB Position */
-+       pcr &=3D ~RGBPOS;
-+       pcr |=3D (af_dev->config->rgb_pos) << AF_RGBPOS_SHIFT;
-+
-+       /* HMF Configurations */
-+       if (af_dev->config->hmf_config.enable =3D=3D H3A_AF_HMF_ENABLE) {
-+               pcr &=3D ~AF_MED_EN;
-+               /* Enable HMF */
-+               pcr |=3D AF_MED_EN;
-+
-+               /* Set Median Threshold */
-+               pcr &=3D ~MED_TH;
-+               pcr |=3D (af_dev->config->hmf_config.threshold) <<
-+                                                       AF_MED_TH_SHIFT;
-+       } else
-+               pcr &=3D ~AF_MED_EN;
-+
-+       omap_writel(pcr, ISPH3A_PCR);
-+
-+       pax1 &=3D ~PAXW;
-+       pax1 |=3D (af_dev->config->paxel_config.width) << AF_PAXW_SHIFT;
-+
-+       /* Set height in AFPAX1 */
-+       pax1 &=3D ~PAXH;
-+       pax1 |=3D af_dev->config->paxel_config.height;
-+
-+       omap_writel(pax1, ISPH3A_AFPAX1);
-+
-+       /* Configure AFPAX2 Register */
-+       /* Set Line Increment in AFPAX2 Register */
-+       pax2 &=3D ~AFINCV;
-+       pax2 |=3D (af_dev->config->paxel_config.line_incr) << AF_LINE_INC=
-R_SHIFT;
-+       /* Set Vertical Count */
-+       pax2 &=3D ~PAXVC;
-+       pax2 |=3D (af_dev->config->paxel_config.vt_cnt) << AF_VT_COUNT_SH=
-IFT;
-+       /* Set Horizontal Count */
-+       pax2 &=3D ~PAXHC;
-+       pax2 |=3D af_dev->config->paxel_config.hz_cnt;
-+       omap_writel(pax2, ISPH3A_AFPAX2);
-+
-+       /* Configure PAXSTART Register */
-+       /*Configure Horizontal Start */
-+       paxstart &=3D ~PAXSH;
-+       paxstart |=3D (af_dev->config->paxel_config.hz_start) <<
-+                                                       AF_HZ_START_SHIFT=
-;
-+       /* Configure Vertical Start */
-+       paxstart &=3D ~PAXSV;
-+       paxstart |=3D af_dev->config->paxel_config.vt_start;
-+       omap_writel(paxstart, ISPH3A_AFPAXSTART);
-+
-+       /*SetIIRSH Register */
-+       omap_writel(af_dev->config->iir_config.hz_start_pos, ISPH3A_AFIIR=
-SH);
-+
-+       /*Set IIR Filter0 Coefficients */
-+       base_coef_set0 =3D ISPH3A_AFCOEF010;
-+       for (index =3D 0; index <=3D 8; index +=3D 2) {
-+               coef &=3D ~COEF_MASK0;
-+               coef |=3D af_dev->config->iir_config.coeff_set0[index];
-+               coef &=3D ~COEF_MASK1;
-+               coef |=3D (af_dev->config->iir_config.coeff_set0[index + =
-1]) <<
-+                                                               AF_COEF_S=
-HIFT;
-+               omap_writel(coef, base_coef_set0);
-+               base_coef_set0 =3D base_coef_set0 + AFCOEF_OFFSET;
-+       }
-+
-+       /* set AFCOEF0010 Register */
-+       omap_writel(af_dev->config->iir_config.coeff_set0[10],
-+                                                       ISPH3A_AFCOEF010)=
-;
-+
-+       /*Set IIR Filter1 Coefficients */
-+
-+       base_coef_set1 =3D ISPH3A_AFCOEF110;
-+       for (index =3D 0; index <=3D 8; index +=3D 2) {
-+               coef &=3D ~COEF_MASK0;
-+               coef |=3D af_dev->config->iir_config.coeff_set1[index];
-+               coef &=3D ~COEF_MASK1;
-+               coef |=3D (af_dev->config->iir_config.coeff_set1[index + =
-1]) <<
-+                                                               AF_COEF_S=
-HIFT;
-+               omap_writel(coef, base_coef_set1);
-+
-+               base_coef_set1 =3D base_coef_set1 + AFCOEF_OFFSET;
-+       }
-+       omap_writel(af_dev->config->iir_config.coeff_set1[10],
-+                                                       ISPH3A_AFCOEF1010=
-);
-+
-+       return 0;
-+}
-+
-+/* Function to set address */
-+void isp_af_set_address(unsigned long address)
-+{
-+       omap_writel(address, ISPH3A_AFBUFST);
-+}
-+
-+static int isp_af_stats_available(struct isp_af_data *afdata)
-+{
-+       int i, ret;
-+       unsigned long irqflags;
-+
-+       spin_lock_irqsave(&afstat.buffer_lock, irqflags);
-+       for (i =3D 0; i < H3A_MAX_BUFF; i++) {
-+               if ((afdata->frame_number =3D=3D afstat.af_buff[i].frame_=
-num) &&
-+                                               (afstat.af_buff[i].frame_=
-num !=3D
-+                                               active_buff->frame_num)) =
-{
-+                       afstat.af_buff[i].locked =3D 1;
-+                       spin_unlock_irqrestore(&afstat.buffer_lock, irqfl=
-ags);
-+                       isp_af_update_req_buffer(&afstat.af_buff[i]);
-+                       afstat.af_buff[i].frame_num =3D 0;
-+                       ret =3D copy_to_user((void *)afdata->af_statistic=
-s_buf,
-+                                       (void *)afstat.af_buff[i].virt_ad=
-dr,
-+                                       afstat.curr_cfg_buf_size);
-+                       if (ret) {
-+                               printk(KERN_ERR "Failed copy_to_user for =
-"
-+                                       "H3A stats buff, %d\n", ret);
-+                       }
-+                       afdata->xtrastats.ts =3D afstat.af_buff[i].xtrast=
-ats.ts;
-+                       afdata->xtrastats.field_count =3D
-+                                       afstat.af_buff[i].xtrastats.field=
-_count;
-+                       return 0;
-+               }
-+       }
-+       spin_unlock_irqrestore(&afstat.buffer_lock, irqflags);
-+       /* Stats unavailable */
-+
-+       return -1;
-+}
-+
-+void isp_af_notify(int notify)
-+{
-+       camnotify =3D notify;
-+       if (camnotify && afstat.initialized) {
-+               printk(KERN_DEBUG "Warning Camera Off \n");
-+               afstat.stats_req =3D 0;
-+               afstat.stats_done =3D 1;
-+               wake_up_interruptible(&afstat.stats_wait);
-+       }
-+}
-+EXPORT_SYMBOL(isp_af_notify);
-+/*
-+ * This API allows the user to update White Balance gains, as well as
-+ * exposure time and analog gain. It is also used to request frame
-+ * statistics.
-+ */
-+int isp_af_request_statistics(struct isp_af_data *afdata)
-+{
-+       int ret =3D 0;
-+       u16 frame_diff =3D 0;
-+       u16 frame_cnt =3D afstat.frame_count;
-+       wait_queue_t wqt;
-+
-+       if (!af_dev_configptr->config->af_config) {
-+               printk(KERN_ERR "AF engine not enabled\n");
-+               return -EINVAL;
-+       }
-+
-+       if (afdata->update !=3D 0) {
-+               if (afdata->update & REQUEST_STATISTICS) {
-+                       isp_af_unlock_buffers();
-+                               /* Stats available? */
-+                       DPRINTK_ISP_AF("Stats available?\n");
-+                       ret =3D isp_af_stats_available(afdata);
-+                       if (!ret)
-+                               goto out;
-+
-+                       /* Stats in near future? */
-+                       DPRINTK_ISP_AF("Stats in near future?\n");
-+                       if (afdata->frame_number > frame_cnt)
-+                               frame_diff =3D afdata->frame_number - fra=
-me_cnt;
-+                       else if (afdata->frame_number < frame_cnt) {
-+                               if ((frame_cnt > (MAX_FRAME_COUNT -
-+                                                       MAX_FUTURE_FRAMES=
-)) &&
-+                                                       (afdata->frame_nu=
-mber <
-+                                                       MAX_FRAME_COUNT))=
- {
-+                                       frame_diff =3D afdata->frame_numb=
-er +
-+                                                       MAX_FRAME_COUNT -
-+                                                       frame_cnt;
-+                               } else {
-+                                       /* Frame unavailable */
-+                                       frame_diff =3D MAX_FUTURE_FRAMES =
-+ 1;
-+                               }
-+                       }
-+
-+                       if (frame_diff > MAX_FUTURE_FRAMES) {
-+                               printk(KERN_ERR "Invalid frame requested"
-+                                       ", returning current frame stats\=
-n");
-+                               afdata->frame_number =3D frame_cnt;
-+                       }
-+                       if (!camnotify) {
-+                               /* Block until frame in near future compl=
-etes */
-+                               afstat.frame_req =3D afdata->frame_number=
-;
-+                               afstat.stats_req =3D 1;
-+                               afstat.stats_done =3D 0;
-+                               init_waitqueue_entry(&wqt, current);
-+                               ret =3D wait_event_interruptible(afstat.
-+                                                       stats_wait,
-+                                                       afstat.stats_done=
- =3D=3D 1);
-+                               if (ret < 0) {
-+                                       afdata->af_statistics_buf =3D NUL=
-L;
-+                                       return ret;
-+                               }
-+                               DPRINTK_ISP_AF("ISP AF request status"
-+                                                       " interrupt raise=
-d\n");
-+
-+                               /* Stats now available */
-+                               ret =3D isp_af_stats_available(afdata);
-+                               if (ret) {
-+                                       printk(KERN_ERR "After waiting fo=
-r"
-+                                               " stats, stats not availa=
-ble!!"
-+                                               "\n");
-+                                       afdata->af_statistics_buf =3D NUL=
-L;
-+                               }
-+                       }
-+               } else
-+                       afdata->af_statistics_buf =3D NULL;
-+       } else
-+               afdata->af_statistics_buf =3D NULL;
-+
-+out:
-+       afdata->curr_frame =3D afstat.frame_count;
-+
-+       return 0;
-+}
-+EXPORT_SYMBOL(isp_af_request_statistics);
-+
-+/* This function will handle the H3A interrupt. */
-+static void isp_af_isr(unsigned long status, isp_vbq_callback_ptr arg1,
-+                                                               void *arg=
-2)
-+{
-+       u16 frame_align;
-+
-+       if ((H3A_AF_DONE & status) !=3D H3A_AF_DONE)
-+               return;
-+
-+       /* timestamp stats buffer */
-+       do_gettimeofday(&active_buff->xtrastats.ts);
-+
-+       /* Exchange buffers */
-+       active_buff =3D active_buff->next;
-+       if (active_buff->locked =3D=3D 1)
-+               active_buff =3D active_buff->next;
-+       isp_af_set_address(active_buff->ispmmu_addr);
-+
-+       /* Update frame counter */
-+       afstat.frame_count++;
-+       frame_align =3D afstat.frame_count;
-+       if (afstat.frame_count > MAX_FRAME_COUNT) {
-+               afstat.frame_count =3D 1;
-+               frame_align++;
-+       }
-+       active_buff->frame_num =3D afstat.frame_count;
-+
-+       /* Future Stats requested? */
-+       if (afstat.stats_req) {
-+               /* Is the frame we want already done? */
-+               if (frame_align >=3D (afstat.frame_req + 1)) {
-+                       afstat.stats_req =3D 0;
-+                       afstat.stats_done =3D 1;
-+                       wake_up_interruptible(&afstat.stats_wait);
-+               }
-+       }
-+}
-+
-+/* Function to Enable/Disable AF Engine */
-+int isp_af_enable(int enable)
-+{
-+       unsigned int pcr;
-+
-+       pcr =3D omap_readl(ISPH3A_PCR);
-+
-+       /* Set AF_EN bit in PCR Register */
-+       if (enable) {
-+               if (isp_set_callback(CBK_H3A_AF_DONE, isp_af_isr,
-+                                               (void *)NULL, (void *)NUL=
-L)) {
-+                       printk(KERN_ERR "No callback for AF\n");
-+                       return -EINVAL;
-+               }
-+
-+               pcr |=3D AF_EN;
-+       } else {
-+               isp_unset_callback(CBK_H3A_AF_DONE);
-+               pcr &=3D ~AF_EN;
-+       }
-+       omap_writel(pcr, ISPH3A_PCR);
-+       return 0;
-+}
-+
-+/* Function to register the AF character device driver. */
-+int __init isp_af_init(void)
-+{
-+       /*allocate memory for device structure and initialize it with 0 *=
-/
-+       af_dev_configptr =3D kzalloc(sizeof(struct af_device), GFP_KERNEL=
-);
-+       if (!af_dev_configptr)
-+               goto err_nomem1;
-+
-+       active_buff =3D NULL;
-+
-+       af_dev_configptr->config =3D (struct af_configuration *)
-+                       kzalloc(sizeof(struct af_configuration), GFP_KERN=
-EL);
-+
-+       if (af_dev_configptr->config =3D=3D NULL)
-+               goto err_nomem2;
-+
-+       memset(&afstat, 0, sizeof(afstat));
-+
-+       init_waitqueue_head(&afstat.stats_wait);
-+       spin_lock_init(&afstat.buffer_lock);
-+
-+       return 0;
-+
-+err_nomem2:
-+       kfree(af_dev_configptr);
-+err_nomem1:
-+       printk(KERN_ERR "Error: kmalloc fail");
-+       return -ENOMEM;
-+}
-+
-+void __exit isp_af_exit(void)
-+{
-+       int i;
-+
-+       if (afstat.af_buff) {
-+               /* Free buffers */
-+               for (i =3D 0; i < H3A_MAX_BUFF; i++) {
-+                       ispmmu_unmap(afstat.af_buff[i].ispmmu_addr);
-+                       dma_free_coherent(NULL, afstat.min_buf_size,
-+                                       (void *)afstat.af_buff[i].virt_ad=
-dr,
-+                                       (dma_addr_t)afstat.af_buff[i].phy=
-_addr);
-+               }
-+       }
-+       kfree(af_dev_configptr->config);
-+       kfree(af_dev_configptr);
-+
-+       memset(&afstat, 0, sizeof(afstat));
-+
-+       af_major =3D -1;
-+       isp_af_enable(0);
-+}
-diff --git a/drivers/media/video/isp/isp_af.h b/drivers/media/video/isp/i=
-sp_af.h
-new file mode 100644
-index 0000000..83f127d
---- /dev/null
-+++ b/drivers/media/video/isp/isp_af.h
-@@ -0,0 +1,118 @@
-+/*
-+ * drivers/media/video/isp/isp_af.h
-+ *
-+ * Include file for AF module in TI's OMAP3 Camera ISP
++ * Include file for OMAP ISP module in TI's OMAP3.
 + *
 + * Copyright (C) 2008 Texas Instruments, Inc.
 + *
-+ * This package is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ *
-+ * THIS PACKAGE IS PROVIDED ``AS IS'' AND WITHOUT ANY EXPRESS OR
-+ * IMPLIED WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED
-+ * WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
-+ */
-+
-+/* Device Constants */
-+#ifndef OMAP_ISP_AF_H
-+#define OMAP_ISP_AF_H
-+
-+#include <mach/isp_user.h>
-+
-+#define AF_MAJOR_NUMBER                        0
-+#define ISPAF_NAME                     "OMAPISP_AF"
-+#define AF_NR_DEVS                     1
-+#define AF_TIMEOUT                     ((300 * HZ) / 1000)
-+
-+
-+
-+/* Print Macros */
-+/*list of error code */
-+#define AF_ERR_HZ_COUNT                        800     /* Invalid Horizo=
-ntal Count */
-+#define AF_ERR_VT_COUNT                        801     /* Invalid Vertic=
-al Count */
-+#define AF_ERR_HEIGHT                  802     /* Invalid Height */
-+#define AF_ERR_WIDTH                   803     /* Invalid width */
-+#define AF_ERR_INCR                    804     /* Invalid Increment */
-+#define AF_ERR_HZ_START                        805     /* Invalid horizo=
-ntal Start */
-+#define AF_ERR_VT_START                        806     /* Invalud vertic=
-al Start */
-+#define AF_ERR_IIRSH                   807     /* Invalid IIRSH value */
-+#define AF_ERR_IIR_COEF                        808     /* Invalid Coeffi=
-cient */
-+#define AF_ERR_SETUP                   809     /* Setup not done */
-+#define AF_ERR_THRESHOLD               810     /* Invalid Threshold */
-+#define AF_ERR_ENGINE_BUSY             811     /* Engine is busy */
-+
-+#define AFPID                          0x0     /* Peripheral Revision
-+                                                * and Class Information
-+                                                */
-+
-+#define AFCOEF_OFFSET                  0x00000004      /* COEFFICIENT BA=
-SE
-+                                                        * ADDRESS
-+                                                        */
-+
-+/*
-+ * PCR fields
-+ */
-+#define AF_BUSYAF                      (1 << 15)
-+#define FVMODE                         (1 << 14)
-+#define RGBPOS                         (0x7 << 11)
-+#define MED_TH                         (0xFF << 3)
-+#define AF_MED_EN                      (1 << 2)
-+#define AF_ALAW_EN                     (1 << 1)
-+#define AF_EN                          (1 << 0)
-+
-+/*
-+ * AFPAX1 fields
-+ */
-+#define PAXW                           (0x7F << 16)
-+#define PAXH                           0x7F
-+
-+/*
-+ * AFPAX2 fields
-+ */
-+#define AFINCV                         (0xF << 13)
-+#define PAXVC                          (0x7F << 6)
-+#define PAXHC                          0x3F
-+
-+/*
-+ * AFPAXSTART fields
-+ */
-+#define PAXSH                          (0xFFF<<16)
-+#define PAXSV                          0xFFF
-+
-+/*
-+ * COEFFICIENT MASK
-+ */
-+
-+#define COEF_MASK0                     0xFFF
-+#define COEF_MASK1                     (0xFFF<<16)
-+
-+/* BIT SHIFTS */
-+#define AF_RGBPOS_SHIFT                        11
-+#define AF_MED_TH_SHIFT                        3
-+#define AF_PAXW_SHIFT                  16
-+#define AF_LINE_INCR_SHIFT             13
-+#define AF_VT_COUNT_SHIFT              6
-+#define AF_HZ_START_SHIFT              16
-+#define AF_COEF_SHIFT                  16
-+
-+#define AF_UPDATEXS_TS                 (1 << 0)
-+#define AF_UPDATEXS_FIELDCOUNT (1 << 1)
-+#define AF_UPDATEXS_LENSPOS            (1 << 2)
-+
-+/* Structure for device of AF Engine */
-+struct af_device {
-+       struct af_configuration *config; /*Device configuration structure=
- */
-+       int size_paxel;         /*Paxel size in bytes */
-+};
-+
-+int isp_af_check_paxel(void);
-+int isp_af_check_iir(void);
-+int isp_af_register_setup(struct af_device *af_dev);
-+int isp_af_enable(int);
-+void isp_af_notify(int notify);
-+int isp_af_request_statistics(struct isp_af_data *afdata);
-+int isp_af_configure(struct af_configuration *afconfig);
-+void isp_af_set_address(unsigned long);
-+void isp_af_setxtrastats(struct isp_af_xtrastats *xtrastats, u8 updatefl=
-ag);
-+#endif /* OMAP_ISP_AF_H */
-diff --git a/drivers/media/video/isp/isph3a.c b/drivers/media/video/isp/i=
-sph3a.c
-new file mode 100644
-index 0000000..25fceb4
---- /dev/null
-+++ b/drivers/media/video/isp/isph3a.c
-@@ -0,0 +1,883 @@
-+/*
-+ * drivers/media/video/isp/isph3a.c
-+ *
-+ * H3A module for TI's OMAP3 Camera ISP
-+ *
-+ * Copyright (C) 2008 Texas Instruments.
-+ *
 + * Contributors:
-+ *     Sergio Aguirre <saaguirre@ti.com>
-+ *     Troy Laramy
++ *     Mohit Jalori <mjalori@ti.com>
 + *
 + * This package is free software; you can redistribute it and/or modify
 + * it under the terms of the GNU General Public License version 2 as
@@ -1043,1151 +65,718 @@ index 0000000..25fceb4
 + * WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 + */
 +
-+#include <asm/cacheflush.h>
++#ifndef OMAP_ISP_USER_H
++#define OMAP_ISP_USER_H
 +
-+#include <linux/mm.h>
-+#include <linux/mman.h>
-+#include <linux/syscalls.h>
-+#include <linux/module.h>
-+#include <linux/errno.h>
-+#include <linux/types.h>
-+#include <linux/dma-mapping.h>
-+#include <linux/io.h>
-+#include <linux/uaccess.h>
++/* ISP Private IOCTLs */
++#define VIDIOC_PRIVATE_ISP_CCDC_CFG    \
++       _IOWR('V', BASE_VIDIOC_PRIVATE + 1, struct ispccdc_update_config)
++#define VIDIOC_PRIVATE_ISP_PRV_CFG \
++       _IOWR('V', BASE_VIDIOC_PRIVATE + 2, struct ispprv_update_config)
++#define VIDIOC_PRIVATE_ISP_AEWB_CFG \
++       _IOWR('V', BASE_VIDIOC_PRIVATE + 4, struct isph3a_aewb_config)
++#define VIDIOC_PRIVATE_ISP_AEWB_REQ \
++       _IOWR('V', BASE_VIDIOC_PRIVATE + 5, struct isph3a_aewb_data)
++#define VIDIOC_PRIVATE_ISP_HIST_CFG \
++       _IOWR('V', BASE_VIDIOC_PRIVATE + 6, struct isp_hist_config)
++#define VIDIOC_PRIVATE_ISP_HIST_REQ \
++       _IOWR('V', BASE_VIDIOC_PRIVATE + 7, struct isp_hist_data)
++#define VIDIOC_PRIVATE_ISP_AF_CFG \
++       _IOWR('V', BASE_VIDIOC_PRIVATE + 8, struct af_configuration)
++#define VIDIOC_PRIVATE_ISP_AF_REQ \
++       _IOWR('V', BASE_VIDIOC_PRIVATE + 9, struct isp_af_data)
 +
-+#include "isp.h"
-+#include "ispreg.h"
-+#include "isph3a.h"
-+#include "ispmmu.h"
-+#include "isppreview.h"
++/* AE/AWB related structures and flags*/
 +
-+/**
-+ * struct isph3a_aewb_buffer - AE, AWB frame stats buffer.
-+ * @virt_addr: Virtual address to mmap the buffer.
-+ * @phy_addr: Physical address of the buffer.
-+ * @addr_align: Virtual Address 32 bytes aligned.
-+ * @ispmmu_addr: Address of the buffer mapped by the ISPMMU.
-+ * @mmap_addr: Mapped memory area of buffer. For userspace access.
-+ * @locked: 1 - Buffer locked from write. 0 - Buffer can be overwritten.
-+ * @frame_num: Frame number from which the statistics are taken.
-+ * @next: Pointer to link next buffer.
-+ */
-+struct isph3a_aewb_buffer {
-+       unsigned long virt_addr;
-+       unsigned long phy_addr;
-+       unsigned long addr_align;
-+       unsigned long ispmmu_addr;
-+       unsigned long mmap_addr;        /* For userspace */
-+       struct timeval ts;
++/* Flags for update field */
++#define REQUEST_STATISTICS     (1 << 0)
++#define SET_COLOR_GAINS                (1 << 1)
++#define SET_DIGITAL_GAIN       (1 << 2)
++#define SET_EXPOSURE           (1 << 3)
++#define SET_ANALOG_GAIN                (1 << 4)
 +
-+       u8 locked;
-+       u16 frame_num;
-+       struct isph3a_aewb_buffer *next;
-+};
++#define MAX_FRAME_COUNT                0x0FFF
++#define MAX_FUTURE_FRAMES      10
 +
-+/**
-+ * struct isph3a_aewb_status - AE, AWB status.
-+ * @initialized: 1 - Buffers initialized.
-+ * @update: 1 - Update registers.
-+ * @stats_req: 1 - Future stats requested.
-+ * @stats_done: 1 - Stats ready for user.
-+ * @frame_req: Number of frame requested for statistics.
-+ * @h3a_buff: Array of statistics buffers to access.
-+ * @stats_buf_size: Statistics buffer size.
-+ * @min_buf_size: Minimum statisitics buffer size.
-+ * @win_count: Window Count.
-+ * @frame_count: Frame Count.
-+ * @stats_wait: Wait primitive for locking/unlocking the stats request.
-+ * @buffer_lock: Spinlock for statistics buffers access.
-+ */
-+static struct isph3a_aewb_status {
-+       u8 initialized;
-+       u8 update;
-+       u8 stats_req;
-+       u8 stats_done;
-+       u16 frame_req;
++#define MAX_SATURATION_LIM     1023
++#define MIN_WIN_H              2
++#define MAX_WIN_H              256
++#define MIN_WIN_W              6
++#define MAX_WIN_W              256
++#define MAX_WINVC              128
++#define MAX_WINHC              36
++#define MAX_WINSTART           4095
++#define MIN_SUB_INC            2
++#define MAX_SUB_INC            32
 +
-+       struct isph3a_aewb_buffer h3a_buff[H3A_MAX_BUFF];
-+       unsigned int stats_buf_size;
-+       unsigned int min_buf_size;
-+       unsigned int curr_cfg_buf_size;
++/* Range Constants */
++#define AF_IIRSH_MIN                   0
++#define AF_IIRSH_MAX                   4094
++#define AF_PAXEL_HORIZONTAL_COUNT_MIN  0
++#define AF_PAXEL_HORIZONTAL_COUNT_MAX  35
++#define AF_PAXEL_VERTICAL_COUNT_MIN    0
++#define AF_PAXEL_VERTICAL_COUNT_MAX    127
++#define AF_PAXEL_INCREMENT_MIN         0
++#define AF_PAXEL_INCREMENT_MAX         14
++#define AF_PAXEL_HEIGHT_MIN            0
++#define AF_PAXEL_HEIGHT_MAX            127
++#define AF_PAXEL_WIDTH_MIN             0
++#define AF_PAXEL_WIDTH_MAX             127
++#define AF_PAXEL_HZSTART_MIN           2
++#define AF_PAXEL_HZSTART_MAX           4094
 +
-+       u16 win_count;
-+       u32 frame_count;
-+       wait_queue_head_t stats_wait;
-+       spinlock_t buffer_lock;         /* For stats buffers read/write s=
-ync */
-+} aewbstat;
++#define AF_PAXEL_VTSTART_MIN           0
++#define AF_PAXEL_VTSTART_MAX           4095
++#define AF_THRESHOLD_MAX               255
++#define AF_COEF_MAX                    4095
++#define AF_PAXEL_SIZE                  48
 +
 +/**
-+ * struct isph3a_aewb_regs - Current value of AE, AWB configuration regi=
-sters.
-+ * reg_pcr: Peripheral control register.
-+ * reg_win1: Control register.
-+ * reg_start: Start position register.
-+ * reg_blk: Black line register.
-+ * reg_subwin: Configuration register.
-+ */
-+static struct isph3a_aewb_regs {
-+       u32 reg_pcr;
-+       u32 reg_win1;
-+       u32 reg_start;
-+       u32 reg_blk;
-+       u32 reg_subwin;
-+} aewb_regs;
-+
-+static struct isph3a_aewb_config aewb_config_local =3D {
-+       .saturation_limit =3D 0x3FF,
-+       .win_height =3D 0,
-+       .win_width =3D 0,
-+       .ver_win_count =3D 0,
-+       .hor_win_count =3D 0,
-+       .ver_win_start =3D 0,
-+       .hor_win_start =3D 0,
-+       .blk_ver_win_start =3D 0,
-+       .blk_win_height =3D 0,
-+       .subsample_ver_inc =3D 0,
-+       .subsample_hor_inc =3D 0,
-+       .alaw_enable =3D 0,
-+       .aewb_enable =3D 0,
-+};
-+
-+/* Structure for saving/restoring h3a module registers */
-+static struct isp_reg isph3a_reg_list[] =3D {
-+       {ISPH3A_AEWWIN1, 0},
-+       {ISPH3A_AEWINSTART, 0},
-+       {ISPH3A_AEWINBLK, 0},
-+       {ISPH3A_AEWSUBWIN, 0},
-+       {ISPH3A_AEWBUFST, 0},
-+       {ISPH3A_AFPAX1, 0},
-+       {ISPH3A_AFPAX2, 0},
-+       {ISPH3A_AFPAXSTART, 0},
-+       {ISPH3A_AFIIRSH, 0},
-+       {ISPH3A_AFBUFST, 0},
-+       {ISPH3A_AFCOEF010, 0},
-+       {ISPH3A_AFCOEF032, 0},
-+       {ISPH3A_AFCOEF054, 0},
-+       {ISPH3A_AFCOEF076, 0},
-+       {ISPH3A_AFCOEF098, 0},
-+       {ISPH3A_AFCOEF0010, 0},
-+       {ISPH3A_AFCOEF110, 0},
-+       {ISPH3A_AFCOEF132, 0},
-+       {ISPH3A_AFCOEF154, 0},
-+       {ISPH3A_AFCOEF176, 0},
-+       {ISPH3A_AFCOEF198, 0},
-+       {ISPH3A_AFCOEF1010, 0},
-+       {ISP_TOK_TERM, 0}
-+};
-+
-+static struct ispprev_wbal h3awb_update;
-+static struct isph3a_aewb_buffer *active_buff;
-+static struct isph3a_aewb_xtrastats h3a_xtrastats[H3A_MAX_BUFF];
-+static int camnotify;
-+static int wb_update;
-+static void isph3a_print_status(void);
-+
-+/**
-+ * isph3a_aewb_setxtrastats - Receives extra statistics from prior frame=
-s.
-+ * @xtrastats: Pointer to structure containing extra statistics fields l=
-ike
-+ *             field count and timestamp of frame.
-+ *
-+ * Called from update_vbq in camera driver
-+ **/
-+void isph3a_aewb_setxtrastats(struct isph3a_aewb_xtrastats *xtrastats)
-+{
-+       int i;
-+       if (active_buff =3D=3D NULL)
-+               return;
-+
-+       for (i =3D 0; i < H3A_MAX_BUFF; i++) {
-+               if (aewbstat.h3a_buff[i].frame_num =3D=3D active_buff->fr=
-ame_num) {
-+                       if (i =3D=3D 0) {
-+                               if (aewbstat.h3a_buff[H3A_MAX_BUFF - 1].
-+                                                               locked =3D=
-=3D 0) {
-+                                       h3a_xtrastats[H3A_MAX_BUFF - 1] =3D
-+                                                               *xtrastat=
-s;
-+                               } else {
-+                                       h3a_xtrastats[H3A_MAX_BUFF - 2] =3D
-+                                                               *xtrastat=
-s;
-+                               }
-+                       } else if (i =3D=3D 1) {
-+                               if (aewbstat.h3a_buff[0].locked =3D=3D 0)
-+                                       h3a_xtrastats[0] =3D *xtrastats;
-+                               else {
-+                                       h3a_xtrastats[H3A_MAX_BUFF - 1] =3D
-+                                                               *xtrastat=
-s;
-+                               }
-+                       } else {
-+                               if (aewbstat.h3a_buff[i - 1].locked =3D=3D=
- 0)
-+                                       h3a_xtrastats[i - 1] =3D *xtrasta=
-ts;
-+                               else
-+                                       h3a_xtrastats[i - 2] =3D *xtrasta=
-ts;
-+                       }
-+                       return;
-+               }
-+       }
-+}
-+EXPORT_SYMBOL(isph3a_aewb_setxtrastats);
-+
-+/**
-+ * isph3a_aewb_enable - Enables AE, AWB engine in the H3A module.
-+ * @enable: 1 - Enables the AE & AWB engine.
-+ *
-+ * Client should configure all the AE & AWB registers in H3A before this=
++ * struct isph3a_aewb_config - AE AWB configuration reset values.
++ * saturation_limit: Saturation limit.
++ * @win_height: Window Height. Range 2 - 256, even values only.
++ * @win_width: Window Width. Range 6 - 256, even values only.
++ * @ver_win_count: Vertical Window Count. Range 1 - 128.
++ * @hor_win_count: Horizontal Window Count. Range 1 - 36.
++ * @ver_win_start: Vertical Window Start. Range 0 - 4095.
++ * @hor_win_start: Horizontal Window Start. Range 0 - 4095.
++ * @blk_ver_win_start: Black Vertical Windows Start. Range 0 - 4095.
++ * @blk_win_height: Black Window Height. Range 2 - 256, even values only=
 .
-+ **/
-+static void isph3a_aewb_enable(u8 enable)
-+{
-+       omap_writel(IRQ0STATUS_H3A_AWB_DONE_IRQ, ISP_IRQ0STATUS);
-+
-+       if (enable) {
-+               aewb_regs.reg_pcr |=3D ISPH3A_PCR_AEW_EN;
-+               omap_writel(omap_readl(ISPH3A_PCR) | ISPH3A_PCR_AEW_EN,
-+                                                               ISPH3A_PC=
-R);
-+               DPRINTK_ISPH3A("    H3A enabled \n");
-+       } else {
-+               aewb_regs.reg_pcr &=3D ~ISPH3A_PCR_AEW_EN;
-+               omap_writel(omap_readl(ISPH3A_PCR) & ~ISPH3A_PCR_AEW_EN,
-+                                                               ISPH3A_PC=
-R);
-+               DPRINTK_ISPH3A("    H3A disabled \n");
-+       }
-+       aewb_config_local.aewb_enable =3D enable;
-+}
-+
-+/**
-+ * isph3a_update_wb - Updates WB parameters.
-+ *
-+ * Needs to be called when no ISP Preview processing is taking place.
-+ **/
-+void isph3a_update_wb(void)
-+{
-+       if (wb_update) {
-+               isppreview_config_whitebalance(h3awb_update);
-+               wb_update =3D 0;
-+       }
-+       return;
-+}
-+EXPORT_SYMBOL(isph3a_update_wb);
-+
-+/**
-+ * isph3a_aewb_update_regs - Helper function to update h3a registers.
-+ **/
-+static void isph3a_aewb_update_regs(void)
-+{
-+       omap_writel(aewb_regs.reg_pcr, ISPH3A_PCR);
-+       omap_writel(aewb_regs.reg_win1, ISPH3A_AEWWIN1);
-+       omap_writel(aewb_regs.reg_start, ISPH3A_AEWINSTART);
-+       omap_writel(aewb_regs.reg_blk, ISPH3A_AEWINBLK);
-+       omap_writel(aewb_regs.reg_subwin, ISPH3A_AEWSUBWIN);
-+
-+       aewbstat.update =3D 0;
-+       aewbstat.frame_count =3D 0;
-+}
-+
-+/**
-+ * isph3a_aewb_update_req_buffer - Helper function to update buffer cach=
-e pages
-+ * @buffer: Pointer to structure
-+ **/
-+static void isph3a_aewb_update_req_buffer(struct isph3a_aewb_buffer *buf=
-fer)
-+{
-+       int size =3D aewbstat.stats_buf_size;
-+
-+       size =3D PAGE_ALIGN(size);
-+       dmac_inv_range((void *)buffer->addr_align,
-+                                       (void *)buffer->addr_align + size=
-);
-+}
-+
-+/**
-+ * isph3a_aewb_stats_available - Check for stats available of specified =
-frame.
-+ * @aewbdata: Pointer to return AE AWB statistics data
-+ *
-+ * Returns 0 if successful, or -1 if statistics are unavailable.
-+ **/
-+static int isph3a_aewb_stats_available(struct isph3a_aewb_data *aewbdata=
-)
-+{
-+       int i, ret;
-+       unsigned long irqflags;
-+
-+       spin_lock_irqsave(&aewbstat.buffer_lock, irqflags);
-+       for (i =3D 0; i < H3A_MAX_BUFF; i++) {
-+               if ((aewbdata->frame_number =3D=3D aewbstat.h3a_buff[i].f=
-rame_num)
-+                                       && (aewbstat.h3a_buff[i].frame_nu=
-m !=3D
-+                                       active_buff->frame_num)) {
-+                       aewbstat.h3a_buff[i].locked =3D 1;
-+                       spin_unlock_irqrestore(&aewbstat.buffer_lock, irq=
-flags);
-+                       isph3a_aewb_update_req_buffer(&aewbstat.h3a_buff[=
-i]);
-+                       aewbstat.h3a_buff[i].frame_num =3D 0;
-+                       ret =3D copy_to_user(
-+                               (void *)aewbdata->h3a_aewb_statistics_buf=
-,
-+                               (void *)aewbstat.h3a_buff[i].virt_addr,
-+                               aewbstat.curr_cfg_buf_size);
-+                       if (ret) {
-+                               printk(KERN_ERR "Failed copy_to_user for =
-"
-+                                               "H3A stats buff, %d\n", r=
-et);
-+                       }
-+                       aewbdata->ts =3D aewbstat.h3a_buff[i].ts;
-+                       aewbdata->field_count =3D h3a_xtrastats[i].field_=
-count;
-+                       return 0;
-+               }
-+       }
-+       spin_unlock_irqrestore(&aewbstat.buffer_lock, irqflags);
-+
-+       return -1;
-+}
-+
-+/**
-+ * isph3a_aewb_link_buffers - Helper function to link allocated buffers.
-+ **/
-+static void isph3a_aewb_link_buffers(void)
-+{
-+       int i;
-+
-+       for (i =3D 0; i < H3A_MAX_BUFF; i++) {
-+               if ((i + 1) < H3A_MAX_BUFF) {
-+                       aewbstat.h3a_buff[i].next =3D &aewbstat.h3a_buff[=
-i + 1];
-+                       h3a_xtrastats[i].next =3D &h3a_xtrastats[i + 1];
-+               } else {
-+                       aewbstat.h3a_buff[i].next =3D &aewbstat.h3a_buff[=
-0];
-+                       h3a_xtrastats[i].next =3D &h3a_xtrastats[0];
-+               }
-+       }
-+}
-+
-+/**
-+ * isph3a_aewb_unlock_buffers - Helper function to unlock all buffers.
-+ **/
-+static void isph3a_aewb_unlock_buffers(void)
-+{
-+       int i;
-+       unsigned long irqflags;
-+
-+       spin_lock_irqsave(&aewbstat.buffer_lock, irqflags);
-+       for (i =3D 0; i < H3A_MAX_BUFF; i++)
-+               aewbstat.h3a_buff[i].locked =3D 0;
-+
-+       spin_unlock_irqrestore(&aewbstat.buffer_lock, irqflags);
-+}
-+
-+/**
-+ * isph3a_aewb_isr - Callback from ISP driver for H3A AEWB interrupt.
-+ * @status: IRQ0STATUS in case of MMU error, 0 for H3A interrupt.
-+ * @arg1: Not used as of now.
-+ * @arg2: Not used as of now.
++ * @subsample_ver_inc: Subsample Vertical points increment Range 2 - 32,=
+ even
++ *                     values only.
++ * @subsample_hor_inc: Subsample Horizontal points increment Range 2 - 3=
+2, even
++ *                     values only.
++ * @alaw_enable: AEW ALAW EN flag.
++ * @aewb_enable: AE AWB stats generation EN flag.
 + */
-+static void isph3a_aewb_isr(unsigned long status, isp_vbq_callback_ptr a=
-rg1,
-+                                                               void *arg=
-2)
-+{
-+       u16 frame_align;
-+
-+       if ((H3A_AWB_DONE & status) !=3D H3A_AWB_DONE)
-+               return;
-+
-+       do_gettimeofday(&active_buff->ts);
-+       active_buff =3D active_buff->next;
-+       if (active_buff->locked =3D=3D 1)
-+               active_buff =3D active_buff->next;
-+       omap_writel(active_buff->ispmmu_addr, ISPH3A_AEWBUFST);
-+
-+       aewbstat.frame_count++;
-+       frame_align =3D aewbstat.frame_count;
-+       if (aewbstat.frame_count > MAX_FRAME_COUNT) {
-+               aewbstat.frame_count =3D 1;
-+               frame_align++;
-+       }
-+       active_buff->frame_num =3D aewbstat.frame_count;
-+
-+       if (aewbstat.stats_req) {
-+               DPRINTK_ISPH3A("waiting for frame %d\n", aewbstat.frame_r=
-eq);
-+               if (frame_align >=3D (aewbstat.frame_req + 1)) {
-+                       aewbstat.stats_req =3D 0;
-+                       aewbstat.stats_done =3D 1;
-+                       wake_up_interruptible(&aewbstat.stats_wait);
-+               }
-+       }
-+
-+       if (aewbstat.update)
-+               isph3a_aewb_update_regs();
-+}
++struct isph3a_aewb_config {
++       __u16 saturation_limit;
++       __u16 win_height;
++       __u16 win_width;
++       __u16 ver_win_count;
++       __u16 hor_win_count;
++       __u16 ver_win_start;
++       __u16 hor_win_start;
++       __u16 blk_ver_win_start;
++       __u16 blk_win_height;
++       __u16 subsample_ver_inc;
++       __u16 subsample_hor_inc;
++       __u8 alaw_enable;
++       __u8 aewb_enable;
++};
 +
 +/**
-+ * isph3a_aewb_set_params - Helper function to check & store user given =
-params.
-+ * @user_cfg: Pointer to AE and AWB parameters struct.
-+ *
-+ * As most of them are busy-lock registers, need to wait until AEW_BUSY =
-=3D 0 to
-+ * program them during ISR.
-+ *
-+ * Returns 0 if successful, or -EINVAL if any of the parameters are inva=
-lid.
-+ **/
-+static int isph3a_aewb_set_params(struct isph3a_aewb_config *user_cfg)
-+{
-+       if (unlikely(user_cfg->saturation_limit > MAX_SATURATION_LIM)) {
-+               printk(KERN_ERR "Invalid Saturation_limit: %d\n",
-+                       user_cfg->saturation_limit);
-+               return -EINVAL;
-+       } else if (aewb_config_local.saturation_limit !=3D
-+                                               user_cfg->saturation_limi=
-t) {
-+               WRITE_SAT_LIM(aewb_regs.reg_pcr, user_cfg->saturation_lim=
-it);
-+               aewb_config_local.saturation_limit =3D
-+                                               user_cfg->saturation_limi=
-t;
-+               aewbstat.update =3D 1;
-+       }
-+
-+       if (aewb_config_local.alaw_enable !=3D user_cfg->alaw_enable) {
-+               WRITE_ALAW(aewb_regs.reg_pcr, user_cfg->alaw_enable);
-+               aewb_config_local.alaw_enable =3D user_cfg->alaw_enable;
-+               aewbstat.update =3D 1;
-+       }
-+
-+       if (unlikely((user_cfg->win_height < MIN_WIN_H) ||
-+                                       (user_cfg->win_height > MAX_WIN_H=
-) ||
-+                                       (user_cfg->win_height & 0x01))) {
-+               printk(KERN_ERR "Invalid window height: %d\n",
-+                                                       user_cfg->win_hei=
-ght);
-+               return -EINVAL;
-+       } else if (aewb_config_local.win_height !=3D user_cfg->win_height=
-) {
-+               WRITE_WIN_H(aewb_regs.reg_win1, user_cfg->win_height);
-+               aewb_config_local.win_height =3D user_cfg->win_height;
-+               aewbstat.update =3D 1;
-+       }
-+
-+       if (unlikely((user_cfg->win_width < MIN_WIN_W) ||
-+                                       (user_cfg->win_width > MAX_WIN_W)=
- ||
-+                                       (user_cfg->win_width & 0x01))) {
-+               printk(KERN_ERR "Invalid window width: %d\n",
-+                                                       user_cfg->win_wid=
-th);
-+               return -EINVAL;
-+       } else if (aewb_config_local.win_width !=3D user_cfg->win_width) =
-{
-+               WRITE_WIN_W(aewb_regs.reg_win1, user_cfg->win_width);
-+               aewb_config_local.win_width =3D user_cfg->win_width;
-+               aewbstat.update =3D 1;
-+       }
-+
-+       if (unlikely((user_cfg->ver_win_count < 1) ||
-+                               (user_cfg->ver_win_count > MAX_WINVC))) {
-+               printk(KERN_ERR "Invalid vertical window count: %d\n",
-+                                               user_cfg->ver_win_count);
-+               return -EINVAL;
-+       } else if (aewb_config_local.ver_win_count !=3D user_cfg->ver_win=
-_count) {
-+               WRITE_VER_C(aewb_regs.reg_win1, user_cfg->ver_win_count);
-+               aewb_config_local.ver_win_count =3D user_cfg->ver_win_cou=
-nt;
-+               aewbstat.update =3D 1;
-+       }
-+
-+       if (unlikely((user_cfg->hor_win_count < 1) ||
-+                               (user_cfg->hor_win_count > MAX_WINHC))) {
-+               printk(KERN_ERR "Invalid horizontal window count: %d\n",
-+                                               user_cfg->hor_win_count);
-+               return -EINVAL;
-+       } else if (aewb_config_local.hor_win_count !=3D user_cfg->hor_win=
-_count) {
-+               WRITE_HOR_C(aewb_regs.reg_win1, user_cfg->hor_win_count);
-+               aewb_config_local.hor_win_count =3D user_cfg->hor_win_cou=
-nt;
-+               aewbstat.update =3D 1;
-+       }
-+
-+       if (unlikely(user_cfg->ver_win_start > MAX_WINSTART)) {
-+               printk(KERN_ERR "Invalid vertical window start: %d\n",
-+                                               user_cfg->ver_win_start);
-+               return -EINVAL;
-+       } else if (aewb_config_local.ver_win_start !=3D user_cfg->ver_win=
-_start) {
-+               WRITE_VER_WIN_ST(aewb_regs.reg_start, user_cfg->ver_win_s=
-tart);
-+               aewb_config_local.ver_win_start =3D user_cfg->ver_win_sta=
-rt;
-+               aewbstat.update =3D 1;
-+       }
-+
-+       if (unlikely(user_cfg->hor_win_start > MAX_WINSTART)) {
-+               printk(KERN_ERR "Invalid horizontal window start: %d\n",
-+                                               user_cfg->hor_win_start);
-+               return -EINVAL;
-+       } else if (aewb_config_local.hor_win_start !=3D user_cfg->hor_win=
-_start) {
-+               WRITE_HOR_WIN_ST(aewb_regs.reg_start, user_cfg->hor_win_s=
-tart);
-+               aewb_config_local.hor_win_start =3D user_cfg->hor_win_sta=
-rt;
-+               aewbstat.update =3D 1;
-+       }
-+
-+       if (unlikely(user_cfg->blk_ver_win_start > MAX_WINSTART)) {
-+               printk(KERN_ERR "Invalid black vertical window start: %d\=
-n",
-+                                               user_cfg->blk_ver_win_sta=
-rt);
-+               return -EINVAL;
-+       } else if (aewb_config_local.blk_ver_win_start !=3D
-+                                               user_cfg->blk_ver_win_sta=
-rt) {
-+               WRITE_BLK_VER_WIN_ST(aewb_regs.reg_blk,
-+                                               user_cfg->blk_ver_win_sta=
-rt);
-+               aewb_config_local.blk_ver_win_start =3D
-+                                               user_cfg->blk_ver_win_sta=
-rt;
-+               aewbstat.update =3D 1;
-+       }
-+
-+       if (unlikely((user_cfg->blk_win_height < MIN_WIN_H) ||
-+                               (user_cfg->blk_win_height > MAX_WIN_H) ||
-+                               (user_cfg->blk_win_height & 0x01))) {
-+               printk(KERN_ERR "Invalid black window height: %d\n",
-+                                               user_cfg->blk_win_height)=
-;
-+               return -EINVAL;
-+       } else if (aewb_config_local.blk_win_height !=3D
-+                                               user_cfg->blk_win_height)=
- {
-+               WRITE_BLK_WIN_H(aewb_regs.reg_blk, user_cfg->blk_win_heig=
-ht);
-+               aewb_config_local.blk_win_height =3D user_cfg->blk_win_he=
-ight;
-+               aewbstat.update =3D 1;
-+       }
-+
-+       if (unlikely((user_cfg->subsample_ver_inc < MIN_SUB_INC) ||
-+                               (user_cfg->subsample_ver_inc > MAX_SUB_IN=
-C) ||
-+                               (user_cfg->subsample_ver_inc & 0x01))) {
-+               printk(KERN_ERR "Invalid vertical subsample increment: %d=
-\n",
-+                                               user_cfg->subsample_ver_i=
-nc);
-+               return -EINVAL;
-+       } else if (aewb_config_local.subsample_ver_inc !=3D
-+                                               user_cfg->subsample_ver_i=
-nc) {
-+               WRITE_SUB_VER_INC(aewb_regs.reg_subwin,
-+                                               user_cfg->subsample_ver_i=
-nc);
-+               aewb_config_local.subsample_ver_inc =3D
-+                                               user_cfg->subsample_ver_i=
-nc;
-+               aewbstat.update =3D 1;
-+       }
-+
-+       if (unlikely((user_cfg->subsample_hor_inc < MIN_SUB_INC) ||
-+                               (user_cfg->subsample_hor_inc > MAX_SUB_IN=
-C) ||
-+                               (user_cfg->subsample_hor_inc & 0x01))) {
-+               printk(KERN_ERR "Invalid horizontal subsample increment: =
-%d\n",
-+                                               user_cfg->subsample_hor_i=
-nc);
-+               return -EINVAL;
-+       } else if (aewb_config_local.subsample_hor_inc !=3D
-+                                               user_cfg->subsample_hor_i=
-nc) {
-+               WRITE_SUB_HOR_INC(aewb_regs.reg_subwin,
-+                                               user_cfg->subsample_hor_i=
-nc);
-+               aewb_config_local.subsample_hor_inc =3D
-+                                               user_cfg->subsample_hor_i=
-nc;
-+               aewbstat.update =3D 1;
-+       }
-+
-+       if ((!aewbstat.initialized) || (0 =3D=3D aewb_config_local.aewb_e=
-nable)) {
-+               isph3a_aewb_update_regs();
-+               aewbstat.initialized =3D 1;
-+       }
-+       return 0;
-+}
-+
-+/**
-+ * isph3a_aewb_configure - Configure AEWB regs, enable/disable H3A engin=
-e.
-+ * @aewbcfg: Pointer to AEWB config structure.
-+ *
-+ * Returns 0 if successful, -EINVAL if aewbcfg pointer is NULL, -ENOMEM =
-if
-+ * was unable to allocate memory for the buffer, of other errors if H3A
-+ * callback is not set or the parameters for AEWB are invalid.
-+ **/
-+int isph3a_aewb_configure(struct isph3a_aewb_config *aewbcfg)
-+{
-+       int ret =3D 0;
-+       int i;
-+       int win_count =3D 0;
-+
-+       if (NULL =3D=3D aewbcfg) {
-+               printk(KERN_ERR "Null argument in configuration. \n");
-+               return -EINVAL;
-+       }
-+
-+       if (!aewbstat.initialized) {
-+               DPRINTK_ISPH3A("Setting callback for H3A\n");
-+               ret =3D isp_set_callback(CBK_H3A_AWB_DONE, isph3a_aewb_is=
-r,
-+                                               (void *)NULL, (void *)NUL=
-L);
-+               if (ret) {
-+                       printk(KERN_ERR "No callback for H3A\n");
-+                       return ret;
-+               }
-+       }
-+
-+       ret =3D isph3a_aewb_set_params(aewbcfg);
-+       if (ret) {
-+               printk(KERN_ERR "Invalid parameters! \n");
-+               return ret;
-+       }
-+
-+       win_count =3D (aewbcfg->ver_win_count * aewbcfg->hor_win_count);
-+       win_count +=3D aewbcfg->hor_win_count;
-+       ret =3D (win_count / 8);
-+       win_count +=3D (win_count % 8) ? 1 : 0;
-+       win_count +=3D ret;
-+
-+       aewbstat.win_count =3D win_count;
-+       aewbstat.curr_cfg_buf_size =3D win_count * AEWB_PACKET_SIZE;
-+
-+       if (aewbstat.stats_buf_size && ((win_count * AEWB_PACKET_SIZE) >
-+                                               aewbstat.stats_buf_size))=
- {
-+               DPRINTK_ISPH3A("There was a previous buffer... "
-+                       "Freeing/unmapping current stat busffs\n");
-+               isph3a_aewb_enable(0);
-+               for (i =3D 0; i < H3A_MAX_BUFF; i++) {
-+                       ispmmu_unmap(aewbstat.h3a_buff[i].ispmmu_addr);
-+                       dma_free_coherent(NULL,
-+                               aewbstat.min_buf_size,
-+                               (void *)aewbstat.h3a_buff[i].virt_addr,
-+                               (dma_addr_t)aewbstat.h3a_buff[i].phy_addr=
-);
-+                       aewbstat.h3a_buff[i].virt_addr =3D 0;
-+               }
-+               aewbstat.stats_buf_size =3D 0;
-+       }
-+
-+       if (!aewbstat.h3a_buff[0].virt_addr) {
-+               aewbstat.stats_buf_size =3D win_count * AEWB_PACKET_SIZE;
-+               aewbstat.min_buf_size =3D PAGE_ALIGN(aewbstat.stats_buf_s=
-ize);
-+
-+               DPRINTK_ISPH3A("Allocating/mapping new stat buffs\n");
-+               for (i =3D 0; i < H3A_MAX_BUFF; i++) {
-+                       aewbstat.h3a_buff[i].virt_addr =3D
-+                                       (unsigned long)dma_alloc_coherent=
-(NULL,
-+                                               aewbstat.min_buf_size,
-+                                               (dma_addr_t *)
-+                                               &aewbstat.h3a_buff[i].
-+                                               phy_addr, GFP_KERNEL |
-+                                               GFP_DMA);
-+                       if (aewbstat.h3a_buff[i].virt_addr =3D=3D 0) {
-+                               printk(KERN_ERR "Can't acquire memory for=
- "
-+                                       "buffer[%d]\n", i);
-+                               return -ENOMEM;
-+                       }
-+                       aewbstat.h3a_buff[i].addr_align =3D
-+                                               aewbstat.h3a_buff[i].virt=
-_addr;
-+                       while ((aewbstat.h3a_buff[i].addr_align &
-+                                                       0xFFFFFFC0) !=3D
-+                                                       aewbstat.h3a_buff=
-[i].
-+                                                       addr_align)
-+                               aewbstat.h3a_buff[i].addr_align++;
-+                       aewbstat.h3a_buff[i].ispmmu_addr =3D ispmmu_map(a=
-ewbstat.
-+                                                       h3a_buff[i].phy_a=
-ddr,
-+                                                       aewbstat.min_buf_=
-size);
-+               }
-+               isph3a_aewb_unlock_buffers();
-+               isph3a_aewb_link_buffers();
-+
-+               if (active_buff =3D=3D NULL)
-+                       active_buff =3D &aewbstat.h3a_buff[0];
-+               omap_writel(active_buff->ispmmu_addr, ISPH3A_AEWBUFST);
-+       }
-+       for (i =3D 0; i < H3A_MAX_BUFF; i++) {
-+               DPRINTK_ISPH3A("buff[%d] addr is:\n    virt    0x%lX\n"
-+                                       "    aligned 0x%lX\n"
-+                                       "    phys    0x%lX\n"
-+                                       "    ispmmu  0x%08lX\n"
-+                                       "    mmapped 0x%lX\n", i,
-+                                       aewbstat.h3a_buff[i].virt_addr,
-+                                       aewbstat.h3a_buff[i].addr_align,
-+                                       aewbstat.h3a_buff[i].phy_addr,
-+                                       aewbstat.h3a_buff[i].ispmmu_addr,
-+                                       aewbstat.h3a_buff[i].mmap_addr);
-+       }
-+       isph3a_aewb_enable(aewbcfg->aewb_enable);
-+       isph3a_print_status();
-+
-+       return 0;
-+}
-+EXPORT_SYMBOL(isph3a_aewb_configure);
-+
-+/**
-+ * isph3a_aewb_request_statistics - REquest statistics and update gains =
-in AEWB
-+ * @aewbdata: Pointer to return AE AWB statistics data.
-+ *
-+ * This API allows the user to update White Balance gains, as well as
-+ * exposure time and analog gain. It is also used to request frame
-+ * statistics.
-+ *
-+ * Returns 0 if successful, -EINVAL when H3A engine is not enabled, or o=
-ther
-+ * errors when setting gains.
-+ **/
-+int isph3a_aewb_request_statistics(struct isph3a_aewb_data *aewbdata)
-+{
-+       int ret =3D 0;
-+       u16 frame_diff =3D 0;
-+       u16 frame_cnt =3D aewbstat.frame_count;
-+       wait_queue_t wqt;
-+
-+       if (!aewb_config_local.aewb_enable) {
-+               printk(KERN_ERR "H3A engine not enabled\n");
-+               return -EINVAL;
-+       }
-+
-+       DPRINTK_ISPH3A("isph3a_aewb_request_statistics: Enter "
-+               "(frame req. =3D> %d, current frame =3D> %d, update =3D> =
-%d)\n",
-+               aewbdata->frame_number, frame_cnt, aewbdata->update);
-+       DPRINTK_ISPH3A("User data received: \n");
-+       DPRINTK_ISPH3A("Digital gain =3D 0x%04x\n", aewbdata->dgain);
-+       DPRINTK_ISPH3A("WB gain b *=3D   0x%04x\n", aewbdata->wb_gain_b);
-+       DPRINTK_ISPH3A("WB gain r *=3D   0x%04x\n", aewbdata->wb_gain_r);
-+       DPRINTK_ISPH3A("WB gain gb =3D   0x%04x\n", aewbdata->wb_gain_gb)=
-;
-+       DPRINTK_ISPH3A("WB gain gr =3D   0x%04x\n", aewbdata->wb_gain_gr)=
-;
-+       DPRINTK_ISPH3A("ISP AEWB request status wait for interrupt\n");
-+
-+       if (aewbdata->update !=3D 0) {
-+               if (aewbdata->update & SET_DIGITAL_GAIN)
-+                       h3awb_update.dgain =3D (u16)aewbdata->dgain;
-+               if (aewbdata->update & SET_COLOR_GAINS) {
-+                       h3awb_update.coef3 =3D (u8)aewbdata->wb_gain_b;
-+                       h3awb_update.coef2 =3D (u8)aewbdata->wb_gain_gr;
-+                       h3awb_update.coef1 =3D (u8)aewbdata->wb_gain_gb;
-+                       h3awb_update.coef0 =3D (u8)aewbdata->wb_gain_r;
-+               }
-+               if (aewbdata->update & (SET_COLOR_GAINS | SET_DIGITAL_GAI=
-N))
-+                       wb_update =3D 1;
-+
-+               if (aewbdata->update & REQUEST_STATISTICS) {
-+                       isph3a_aewb_unlock_buffers();
-+
-+                       DPRINTK_ISPH3A("Stats available?\n");
-+                       ret =3D isph3a_aewb_stats_available(aewbdata);
-+                       if (!ret)
-+                               goto out;
-+
-+                       DPRINTK_ISPH3A("Stats in near future?\n");
-+                       if (aewbdata->frame_number > frame_cnt)
-+                               frame_diff =3D aewbdata->frame_number - f=
-rame_cnt;
-+                       else if (aewbdata->frame_number < frame_cnt) {
-+                               if ((frame_cnt > (MAX_FRAME_COUNT -
-+                                                       MAX_FUTURE_FRAMES=
-))
-+                                                       && (aewbdata->
-+                                                       frame_number
-+                                                       < MAX_FRAME_COUNT=
-)) {
-+                                       frame_diff =3D aewbdata->frame_nu=
-mber
-+                                                       + MAX_FRAME_COUNT
-+                                                       - frame_cnt;
-+                               } else
-+                                       frame_diff =3D MAX_FUTURE_FRAMES =
-+ 1;
-+                       }
-+
-+                       if (frame_diff > MAX_FUTURE_FRAMES) {
-+                               printk(KERN_ERR "Invalid frame requested"
-+                                       ", returning current frame stats\=
-n");
-+                               aewbdata->frame_number =3D frame_cnt;
-+                       }
-+                       if (!camnotify) {
-+                               DPRINTK_ISPH3A("Waiting on stats IRQ "
-+                                                       "for frame %d\n",
-+                                                       aewbdata->frame_n=
-umber);
-+                               aewbstat.frame_req =3D aewbdata->frame_nu=
-mber;
-+                               aewbstat.stats_req =3D 1;
-+                               aewbstat.stats_done =3D 0;
-+                               init_waitqueue_entry(&wqt, current);
-+                               ret =3D wait_event_interruptible
-+                                               (aewbstat.stats_wait,
-+                                               aewbstat.stats_done =3D=3D=
- 1);
-+                               if (ret < 0) {
-+                                       printk(KERN_ERR
-+                                               "isph3a_aewb_request_stat=
-istics"
-+                                               " Error on wait event %d\=
-n",
-+                                               ret);
-+                                       aewbdata->h3a_aewb_statistics_buf=
- =3D
-+                                                                       N=
-ULL;
-+                                       return ret;
-+                               }
-+
-+                               DPRINTK_ISPH3A("ISP AEWB request status"
-+                                               " interrupt raised\n");
-+                               ret =3D isph3a_aewb_stats_available(aewbd=
-ata);
-+                               if (ret) {
-+                                       DPRINTK_ISPH3A
-+                                               ("After waiting for stats=
-,"
-+                                               " stats not available!!\n=
-");
-+                                       aewbdata->h3a_aewb_statistics_buf=
- =3D
-+                                                                       N=
-ULL;
-+                               }
-+                       } else {
-+                               DPRINTK_ISPH3A("NOT Waiting on stats IRQ =
-"
-+                                       "for frame %d "
-+                                       "because camnotify set\n",
-+                                       aewbdata->frame_number);
-+                               aewbdata->h3a_aewb_statistics_buf =3D NUL=
-L;
-+                       }
-+               } else {
-+                       aewbdata->h3a_aewb_statistics_buf =3D NULL;
-+               }
-+       } else {
-+               aewbdata->h3a_aewb_statistics_buf =3D NULL;
-+       }
-+out:
-+       DPRINTK_ISPH3A("isph3a_aewb_request_statistics: "
-+                               "aewbdata->h3a_aewb_statistics_buf =3D> %=
-p\n",
-+                               aewbdata->h3a_aewb_statistics_buf);
-+       aewbdata->curr_frame =3D aewbstat.frame_count;
-+
-+       return 0;
-+}
-+EXPORT_SYMBOL(isph3a_aewb_request_statistics);
-+
-+/**
-+ * isph3a_aewb_init - Module Initialisation.
-+ *
-+ * Always returns 0.
-+ **/
-+int __init isph3a_aewb_init(void)
-+{
-+       memset(&aewbstat, 0, sizeof(aewbstat));
-+       memset(&aewb_regs, 0, sizeof(aewb_regs));
-+
-+       init_waitqueue_head(&aewbstat.stats_wait);
-+       spin_lock_init(&aewbstat.buffer_lock);
-+       return 0;
-+}
-+
-+/**
-+ * isph3a_aewb_cleanup - Module exit.
-+ **/
-+void __exit isph3a_aewb_cleanup(void)
-+{
-+       int i;
-+       isph3a_aewb_enable(0);
-+       isp_unset_callback(CBK_H3A_AWB_DONE);
-+
-+       if (aewbstat.h3a_buff) {
-+               for (i =3D 0; i < H3A_MAX_BUFF; i++) {
-+                       ispmmu_unmap(aewbstat.h3a_buff[i].ispmmu_addr);
-+                       dma_free_coherent(NULL,
-+                               aewbstat.min_buf_size,
-+                               (void *)aewbstat.h3a_buff[i].virt_addr,
-+                               (dma_addr_t)aewbstat.h3a_buff[i].phy_addr=
-);
-+               }
-+       }
-+       memset(&aewbstat, 0, sizeof(aewbstat));
-+       memset(&aewb_regs, 0, sizeof(aewb_regs));
-+}
-+
-+/**
-+ * isph3a_print_status - Debug print. Values of H3A related registers.
-+ **/
-+static void isph3a_print_status(void)
-+{
-+       DPRINTK_ISPH3A("ISPH3A_PCR =3D 0x%08x\n", omap_readl(ISPH3A_PCR))=
-;
-+       DPRINTK_ISPH3A("ISPH3A_AEWWIN1 =3D 0x%08x\n",
-+                                               omap_readl(ISPH3A_AEWWIN1=
-));
-+       DPRINTK_ISPH3A("ISPH3A_AEWINSTART =3D 0x%08x\n",
-+                                               omap_readl(ISPH3A_AEWINST=
-ART));
-+       DPRINTK_ISPH3A("ISPH3A_AEWINBLK =3D 0x%08x\n",
-+                                               omap_readl(ISPH3A_AEWINBL=
-K));
-+       DPRINTK_ISPH3A("ISPH3A_AEWSUBWIN =3D 0x%08x\n",
-+                                               omap_readl(ISPH3A_AEWSUBW=
-IN));
-+       DPRINTK_ISPH3A("ISPH3A_AEWBUFST =3D 0x%08x\n",
-+                                               omap_readl(ISPH3A_AEWBUFS=
-T));
-+       DPRINTK_ISPH3A("stats windows =3D %d\n", aewbstat.win_count);
-+       DPRINTK_ISPH3A("stats buff size =3D %d\n", aewbstat.stats_buf_siz=
-e);
-+       DPRINTK_ISPH3A("currently configured stats buff size =3D %d\n",
-+                                               aewbstat.curr_cfg_buf_siz=
-e);
-+}
-+
-+/**
-+ * isph3a_notify - Unblocks user request for statistics when camera is o=
-ff
-+ * @notify: 1 - Camera is turned off
-+ *
-+ * Used when the user has requested statistics about a future frame, but=
- the
-+ * camera is turned off before it happens, and this function unblocks th=
-e
-+ * request so the user can continue in its program.
-+ **/
-+void isph3a_notify(int notify)
-+{
-+       camnotify =3D notify;
-+       if (camnotify && aewbstat.initialized) {
-+               printk(KERN_DEBUG "Warning Camera Off \n");
-+               aewbstat.stats_req =3D 0;
-+               aewbstat.stats_done =3D 1;
-+               wake_up_interruptible(&aewbstat.stats_wait);
-+       }
-+}
-+EXPORT_SYMBOL(isph3a_notify);
-+
-+/**
-+ * isph3a_save_context - Saves the values of the h3a module registers.
-+ **/
-+void isph3a_save_context(void)
-+{
-+       DPRINTK_ISPH3A(" Saving context\n");
-+       isp_save_context(isph3a_reg_list);
-+}
-+EXPORT_SYMBOL(isph3a_save_context);
-+
-+/**
-+ * isph3a_restore_context - Restores the values of the h3a module regist=
-ers.
-+ **/
-+void isph3a_restore_context(void)
-+{
-+       DPRINTK_ISPH3A(" Restoring context\n");
-+       isp_restore_context(isph3a_reg_list);
-+}
-+EXPORT_SYMBOL(isph3a_restore_context);
-diff --git a/drivers/media/video/isp/isph3a.h b/drivers/media/video/isp/i=
-sph3a.h
-new file mode 100644
-index 0000000..977a7b1
---- /dev/null
-+++ b/drivers/media/video/isp/isph3a.h
-@@ -0,0 +1,119 @@
-+/*
-+ * drivers/media/video/isp/isph3a.h
-+ *
-+ * Include file for H3A module in TI's OMAP3 Camera ISP
-+ *
-+ * Copyright (C) 2008 Texas Instruments, Inc.
-+ *
-+ * Contributors:
-+ *     Sergio Aguirre <saaguirre@ti.com>
-+ *     Troy Laramy
-+ *
-+ * This package is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ *
-+ * THIS PACKAGE IS PROVIDED ``AS IS'' AND WITHOUT ANY EXPRESS OR
-+ * IMPLIED WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED
-+ * WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
-+ */
-+
-+#ifndef OMAP_ISP_H3A_H
-+#define OMAP_ISP_H3A_H
-+
-+#include <mach/isp_user.h>
-+
-+#define AEWB_PACKET_SIZE       16
-+#define H3A_MAX_BUFF           5
-+
-+/* Flags for changed registers */
-+#define PCR_CHNG               (1 << 0)
-+#define AEWWIN1_CHNG           (1 << 1)
-+#define AEWINSTART_CHNG                (1 << 2)
-+#define AEWINBLK_CHNG          (1 << 3)
-+#define AEWSUBWIN_CHNG         (1 << 4)
-+#define PRV_WBDGAIN_CHNG       (1 << 5)
-+#define PRV_WBGAIN_CHNG                (1 << 6)
-+
-+/* ISPH3A REGISTERS bits */
-+#define ISPH3A_PCR_AF_EN       (1 << 0)
-+#define ISPH3A_PCR_AF_ALAW_EN  (1 << 1)
-+#define ISPH3A_PCR_AF_MED_EN   (1 << 2)
-+#define ISPH3A_PCR_AF_BUSY     (1 << 15)
-+#define ISPH3A_PCR_AEW_EN      (1 << 16)
-+#define ISPH3A_PCR_AEW_ALAW_EN (1 << 17)
-+#define ISPH3A_PCR_AEW_BUSY    (1 << 18)
-+
-+#define WRITE_SAT_LIM(reg, sat_limit)  \
-+               (reg =3D (reg & (~(ISPH3A_PCR_AEW_AVE2LMT_MASK))) \
-+                       | (sat_limit << ISPH3A_PCR_AEW_AVE2LMT_SHIFT))
-+
-+#define WRITE_ALAW(reg, alaw_en) \
-+               (reg =3D (reg & (~(ISPH3A_PCR_AEW_ALAW_EN))) \
-+                       | ((alaw_en & ISPH3A_PCR_AF_ALAW_EN) \
-+                       << ISPH3A_PCR_AEW_ALAW_EN_SHIFT))
-+
-+#define WRITE_WIN_H(reg, height) \
-+               (reg =3D (reg & (~(ISPH3A_AEWWIN1_WINH_MASK))) \
-+                       | (((height >> 1) - 1) << ISPH3A_AEWWIN1_WINH_SHI=
-FT))
-+
-+#define WRITE_WIN_W(reg, width) \
-+               (reg =3D (reg & (~(ISPH3A_AEWWIN1_WINW_MASK))) \
-+                       | (((width >> 1) - 1) << ISPH3A_AEWWIN1_WINW_SHIF=
-T))
-+
-+#define WRITE_VER_C(reg, ver_count) \
-+               (reg =3D (reg & ~(ISPH3A_AEWWIN1_WINVC_MASK)) \
-+                       | ((ver_count - 1) << ISPH3A_AEWWIN1_WINVC_SHIFT)=
-)
-+
-+#define WRITE_HOR_C(reg, hor_count) \
-+               (reg =3D (reg & ~(ISPH3A_AEWWIN1_WINHC_MASK)) \
-+                       | ((hor_count - 1) << ISPH3A_AEWWIN1_WINHC_SHIFT)=
-)
-+
-+#define WRITE_VER_WIN_ST(reg, ver_win_st) \
-+               (reg =3D (reg & ~(ISPH3A_AEWINSTART_WINSV_MASK)) \
-+                       | (ver_win_st << ISPH3A_AEWINSTART_WINSV_SHIFT))
-+
-+#define WRITE_HOR_WIN_ST(reg, hor_win_st) \
-+               (reg =3D (reg & ~(ISPH3A_AEWINSTART_WINSH_MASK)) \
-+                       | (hor_win_st << ISPH3A_AEWINSTART_WINSH_SHIFT))
-+
-+#define WRITE_BLK_VER_WIN_ST(reg, blk_win_st) \
-+               (reg =3D (reg & ~(ISPH3A_AEWINBLK_WINSV_MASK)) \
-+                       | (blk_win_st << ISPH3A_AEWINBLK_WINSV_SHIFT))
-+
-+#define WRITE_BLK_WIN_H(reg, height) \
-+               (reg =3D (reg & ~(ISPH3A_AEWINBLK_WINH_MASK)) \
-+                       | (((height >> 1) - 1) << ISPH3A_AEWINBLK_WINH_SH=
-IFT))
-+
-+#define WRITE_SUB_VER_INC(reg, sub_ver_inc) \
-+               (reg =3D (reg & ~(ISPH3A_AEWSUBWIN_AEWINCV_MASK)) \
-+               | (((sub_ver_inc >> 1) - 1) << ISPH3A_AEWSUBWIN_AEWINCV_S=
-HIFT))
-+
-+#define WRITE_SUB_HOR_INC(reg, sub_hor_inc) \
-+               (reg =3D (reg & ~(ISPH3A_AEWSUBWIN_AEWINCH_MASK)) \
-+               | (((sub_hor_inc >> 1) - 1) << ISPH3A_AEWSUBWIN_AEWINCH_S=
-HIFT))
-+
-+/**
-+ * struct isph3a_aewb_xtrastats - Structure with extra statistics sent b=
-y cam.
++ * struct isph3a_aewb_data - Structure of data sent to or received from =
+user
++ * @h3a_aewb_statistics_buf: Pointer to pass to user.
++ * @shutter: Shutter speed.
++ * @gain: Sensor analog Gain.
++ * @shutter_cap: Shutter speed for capture.
++ * @gain_cap: Sensor Gain for capture.
++ * @dgain: White balance digital gain.
++ * @wb_gain_b: White balance color gain blue.
++ * @wb_gain_r: White balance color gain red.
++ * @wb_gain_gb: White balance color gain green blue.
++ * @wb_gain_gr: White balance color gain green red.
++ * @frame_number: Frame number of requested stats.
++ * @curr_frame: Current frame number being processed.
++ * @update: Bitwise flags to update parameters.
++ * @ts: Timestamp of returned framestats.
 + * @field_count: Sequence number of returned framestats.
-+ * @isph3a_aewb_xtrastats: Pointer to next buffer with extra stats.
 + */
-+struct isph3a_aewb_xtrastats {
++struct isph3a_aewb_data {
++       void *h3a_aewb_statistics_buf;
++       __u32 shutter;
++       __u16 gain;
++       __u32 shutter_cap;
++       __u16 gain_cap;
++       __u16 dgain;
++       __u16 wb_gain_b;
++       __u16 wb_gain_r;
++       __u16 wb_gain_gb;
++       __u16 wb_gain_gr;
++       __u16 frame_number;
++       __u16 curr_frame;
++       __u8 update;
++       struct timeval ts;
 +       unsigned long field_count;
-+       struct isph3a_aewb_xtrastats *next;
 +};
 +
-+void isph3a_aewb_setxtrastats(struct isph3a_aewb_xtrastats *xtrastats);
 +
-+int isph3a_aewb_configure(struct isph3a_aewb_config *aewbcfg);
++/* Histogram related structs */
++/* Flags for number of bins */
++#define BINS_32                        0x0
++#define BINS_64                        0x1
++#define BINS_128               0x2
++#define BINS_256               0x3
 +
-+int isph3a_aewb_request_statistics(struct isph3a_aewb_data *aewbdata);
++struct isp_hist_config {
++       __u8 hist_source;               /* CCDC or Memory */
++       __u8 input_bit_width;   /* Needed o know the size per pixel */
++       __u8 hist_frames;               /* Num of frames to be processed =
+and
++                                * accumulated
++                                */
++       __u8 hist_h_v_info;     /* frame-input width and height if source=
+ is
++                                * memory
++                                */
++       __u16 hist_radd;                /* frame-input address in memory =
+*/
++       __u16 hist_radd_off;    /* line-offset for frame-input */
++       __u16 hist_bins;        /* number of bins: 32, 64, 128, or 256 */
++       __u16 wb_gain_R;        /* White Balance Field-to-Pattern Assignm=
+ents */
++       __u16 wb_gain_RG;       /* White Balance Field-to-Pattern Assignm=
+ents */
++       __u16 wb_gain_B;        /* White Balance Field-to-Pattern Assignm=
+ents */
++       __u16 wb_gain_BG;       /* White Balance Field-to-Pattern Assignm=
+ents */
++       __u8 num_regions;               /* number of regions to be config=
+ured */
++       __u16 reg0_hor;         /* Region 0 size and position */
++       __u16 reg0_ver;         /* Region 0 size and position */
++       __u16 reg1_hor;         /* Region 1 size and position */
++       __u16 reg1_ver;         /* Region 1 size and position */
++       __u16 reg2_hor;         /* Region 2 size and position */
++       __u16 reg2_ver;         /* Region 2 size and position */
++       __u16 reg3_hor;         /* Region 3 size and position */
++       __u16 reg3_ver;         /* Region 3 size and position */
++};
 +
-+void isph3a_save_context(void);
++struct isp_hist_data {
++       __u32 *hist_statistics_buf;     /* Pointer to pass to user */
++};
 +
-+void isph3a_restore_context(void);
++/* Auto Focus related structs */
 +
-+void isph3a_update_wb(void);
++#define AF_NUMBER_OF_COEF              11
 +
-+void isph3a_notify(int notify);
-+#endif         /* OMAP_ISP_H3A_H */
-diff --git a/drivers/media/video/isp/isphist.c b/drivers/media/video/isp/=
-isphist.c
-new file mode 100644
-index 0000000..071bd02
---- /dev/null
-+++ b/drivers/media/video/isp/isphist.c
-@@ -0,0 +1,577 @@
++/* Flags for update field */
++#define REQUEST_STATISTICS             (1 << 0)
++#define LENS_DESIRED_POSITION  (1 << 1)
++#define LENS_CURRENT_POSITION  (1 << 2)
++
++/**
++ * struct isp_af_xtrastats - Extra statistics related to AF generated st=
+ats.
++ * @ts: Timestamp when the frame gets delivered to the user.
++ * @field_count: Field count of the frame delivered to the user.
++ * @lens_position: Lens position when the stats are being generated.
++ */
++struct isp_af_xtrastats {
++       struct timeval ts;
++       unsigned long field_count;
++       __u16 lens_position;
++};
++
++/**
++ * struct isp_af_data - AF statistics data to transfer between driver an=
+d user.
++ * @af_statistics_buf: Pointer to pass to user.
++ * @lens_current_position: Read value of lens absolute position.
++ * @desired_lens_direction: Lens desired location.
++ * @update: Bitwise flags to update parameters.
++ * @frame_number: Data for which frame is desired/given.
++ * @curr_frame: Current frame number being processed by AF module.
++ * @xtrastats: Extra statistics structure.
++ */
++struct isp_af_data {
++       void *af_statistics_buf;
++       __u16 lens_current_position;
++       __u16 desired_lens_direction;
++       __u16 update;
++       __u16 frame_number;
++       __u16 curr_frame;
++       struct isp_af_xtrastats xtrastats;
++};
++
++/* enum used for status of specific feature */
++enum af_alaw_enable {
++       H3A_AF_ALAW_DISABLE =3D 0,
++       H3A_AF_ALAW_ENABLE =3D 1
++};
++
++enum af_hmf_enable {
++       H3A_AF_HMF_DISABLE =3D 0,
++       H3A_AF_HMF_ENABLE =3D 1
++};
++
++enum af_config_flag {
++       H3A_AF_CFG_DISABLE =3D 0,
++       H3A_AF_CFG_ENABLE =3D 1
++};
++
++enum af_mode {
++       ACCUMULATOR_SUMMED =3D 0,
++       ACCUMULATOR_PEAK =3D 1
++};
++
++/* Red, Green, and blue pixel location in the AF windows */
++enum rgbpos {
++       GR_GB_BAYER =3D 0,        /* GR and GB as Bayer pattern */
++       RG_GB_BAYER =3D 1,        /* RG and GB as Bayer pattern */
++       GR_BG_BAYER =3D 2,        /* GR and BG as Bayer pattern */
++       RG_BG_BAYER =3D 3,        /* RG and BG as Bayer pattern */
++       GG_RB_CUSTOM =3D 4,       /* GG and RB as custom pattern */
++       RB_GG_CUSTOM =3D 5        /* RB and GG as custom pattern */
++};
++
++/* Contains the information regarding the Horizontal Median Filter */
++struct af_hmf {
++       enum af_hmf_enable enable;      /* Status of Horizontal Median Fi=
+lter */
++       unsigned int threshold; /* Threshhold Value for Horizontal Median
++                                * Filter
++                                */
++};
++
++/* Contains the information regarding the IIR Filters */
++struct af_iir {
++       unsigned int hz_start_pos;      /* IIR Start Register Value */
++       int coeff_set0[AF_NUMBER_OF_COEF];      /*
++                                                * IIR Filter Coefficient=
+ for
++                                                * Set 0
++                                                */
++       int coeff_set1[AF_NUMBER_OF_COEF];      /*
++                                                * IIR Filter Coefficient=
+ for
++                                                * Set 1
++                                                */
++};
++
++/* Contains the information regarding the Paxels Structure in AF Engine =
+*/
++struct af_paxel {
++       unsigned int width;     /* Width of the Paxel */
++       unsigned int height;    /* Height of the Paxel */
++       unsigned int hz_start;  /* Horizontal Start Position */
++       unsigned int vt_start;  /* Vertical Start Position */
++       unsigned int hz_cnt;    /* Horizontal Count */
++       unsigned int vt_cnt;    /* vertical Count */
++       unsigned int line_incr; /* Line Increment */
++};
++/* Contains the parameters required for hardware set up of AF Engine */
++struct af_configuration {
++       enum af_alaw_enable alaw_enable;        /*ALWAW status */
++       struct af_hmf hmf_config;       /*HMF configurations */
++       enum rgbpos rgb_pos;            /*RGB Positions */
++       struct af_iir iir_config;       /*IIR filter configurations */
++       struct af_paxel paxel_config;   /*Paxel parameters */
++       enum af_mode mode;              /*Accumulator mode */
++       enum af_config_flag af_config; /*Flag indicates Engine is configu=
+red */
++};
++
++/* ISP CCDC structs */
++
++/* Abstraction layer CCDC configurations */
++#define ISP_ABS_CCDC_ALAW              (1 << 0)
++#define ISP_ABS_CCDC_LPF               (1 << 1)
++#define ISP_ABS_CCDC_BLCLAMP           (1 << 2)
++#define ISP_ABS_CCDC_BCOMP             (1 << 3)
++#define ISP_ABS_CCDC_FPC               (1 << 4)
++#define ISP_ABS_CCDC_CULL              (1 << 5)
++#define ISP_ABS_CCDC_COLPTN            (1 << 6)
++#define ISP_ABS_CCDC_CONFIG_LSC                (1 << 7)
++#define ISP_ABS_TBL_LSC                        (1 << 8)
++
++#define RGB_MAX                                3
++
++/* Enumeration constants for Alaw input width */
++enum alaw_ipwidth {
++       ALAW_BIT12_3 =3D 0x3,
++       ALAW_BIT11_2 =3D 0x4,
++       ALAW_BIT10_1 =3D 0x5,
++       ALAW_BIT9_0 =3D 0x6
++};
++
++/* Enumeration constants for Video Port */
++enum vpin {
++       BIT12_3 =3D 3,
++       BIT11_2 =3D 4,
++       BIT10_1 =3D 5,
++       BIT9_0 =3D 6
++};
++
++enum vpif_freq {
++       PIXCLKBY2,
++       PIXCLKBY3_5,
++       PIXCLKBY4_5,
++       PIXCLKBY5_5,
++       PIXCLKBY6_5
++};
++
++/**
++ * struct ispccdc_lsc_config - Structure for LSC configuration.
++ * @offset: Table Offset of the gain table.
++ * @gain_mode_n: Vertical dimension of a paxel in LSC configuration.
++ * @gain_mode_m: Horizontal dimension of a paxel in LSC configuration.
++ * @gain_format: Gain table format.
++ * @fmtsph: Start pixel horizontal from start of the HS sync pulse.
++ * @fmtlnh: Number of pixels in horizontal direction to use for the data
++ *          reformatter.
++ * @fmtslv: Start line from start of VS sync pulse for the data reformat=
+ter.
++ * @fmtlnv: Number of lines in vertical direction for the data reformatt=
+er.
++ * @initial_x: X position, in pixels, of the first active pixel in refer=
+ence
++ *             to the first active paxel. Must be an even number.
++ * @initial_y: Y position, in pixels, of the first active pixel in refer=
+ence
++ *             to the first active paxel. Must be an even number.
++ * @size: Size of LSC gain table. Filled when loaded from userspace.
++ */
++struct ispccdc_lsc_config {
++       __u16 offset;
++       __u8 gain_mode_n;
++       __u8 gain_mode_m;
++       __u8 gain_format;
++       __u16 fmtsph;
++       __u16 fmtlnh;
++       __u16 fmtslv;
++       __u16 fmtlnv;
++       __u8 initial_x;
++       __u8 initial_y;
++       __u32 size;
++};
++
++/**
++ * struct ispccdc_bclamp - Structure for Optical & Digital black clamp s=
+ubtract
++ * @obgain: Optical black average gain.
++ * @obstpixel: Start Pixel w.r.t. HS pulse in Optical black sample.
++ * @oblines: Optical Black Sample lines.
++ * @oblen: Optical Black Sample Length.
++ * @dcsubval: Digital Black Clamp subtract value.
++ */
++struct ispccdc_bclamp {
++       __u8 obgain;
++       __u8 obstpixel;
++       __u8 oblines;
++       __u8 oblen;
++       __u16 dcsubval;
++};
++
++/**
++ * ispccdc_fpc - Structure for FPC
++ * @fpnum: Number of faulty pixels to be corrected in the frame.
++ * @fpcaddr: Memory address of the FPC Table
++ */
++struct ispccdc_fpc {
++       __u16 fpnum;
++       __u32 fpcaddr;
++};
++
++/**
++ * ispccdc_blcomp - Structure for Black Level Compensation parameters.
++ * @b_mg: B/Mg pixels. 2's complement. -128 to +127.
++ * @gb_g: Gb/G pixels. 2's complement. -128 to +127.
++ * @gr_cy: Gr/Cy pixels. 2's complement. -128 to +127.
++ * @r_ye: R/Ye pixels. 2's complement. -128 to +127.
++ */
++struct ispccdc_blcomp {
++       __u8 b_mg;
++       __u8 gb_g;
++       __u8 gr_cy;
++       __u8 r_ye;
++};
++
++/**
++ * struct ispccdc_vp - Structure for Video Port parameters
++ * @bitshift_sel: Video port input select. 3 - bits 12-3, 4 - bits 11-2,
++ *                5 - bits 10-1, 6 - bits 9-0.
++ * @freq_sel: Video port data ready frequency. 1 - 1/3.5, 2 - 1/4.5,
++ *            3 - 1/5.5, 4 - 1/6.5.
++ */
++struct ispccdc_vp {
++       enum vpin bitshift_sel;
++       enum vpif_freq freq_sel;
++};
++
++/**
++ * ispccdc_culling - Structure for Culling parameters.
++ * @v_pattern: Vertical culling pattern.
++ * @h_odd: Horizontal Culling pattern for odd lines.
++ * @h_even: Horizontal Culling pattern for even lines.
++ */
++struct ispccdc_culling {
++       __u8 v_pattern;
++       __u16 h_odd;
++       __u16 h_even;
++};
++
++/**
++ * ispccdc_update_config - Structure for CCDC configuration.
++ * @update: Specifies which CCDC registers should be updated.
++ * @flag: Specifies which CCDC functions should be enabled.
++ * @alawip: Enable/Disable A-Law compression.
++ * @bclamp: Black clamp control register.
++ * @blcomp: Black level compensation value for RGrGbB Pixels. 2's comple=
+ment.
++ * @fpc: Number of faulty pixels corrected in the frame, address of FPC =
+table.
++ * @cull: Cull control register.
++ * @colptn: Color pattern of the sensor.
++ * @lsc: Pointer to LSC gain table.
++ */
++struct ispccdc_update_config {
++       __u16 update;
++       __u16 flag;
++       enum alaw_ipwidth alawip;
++       struct ispccdc_bclamp *bclamp;
++       struct ispccdc_blcomp *blcomp;
++       struct ispccdc_fpc *fpc;
++       struct ispccdc_lsc_config *lsc_cfg;
++       struct ispccdc_culling *cull;
++       __u32 colptn;
++       __u8 *lsc;
++};
++
++/* Preview configuration */
++
++/*Abstraction layer preview configurations*/
++#define ISP_ABS_PREV_LUMAENH           (1 << 0)
++#define ISP_ABS_PREV_INVALAW           (1 << 1)
++#define ISP_ABS_PREV_HRZ_MED           (1 << 2)
++#define ISP_ABS_PREV_CFA               (1 << 3)
++#define ISP_ABS_PREV_CHROMA_SUPP       (1 << 4)
++#define ISP_ABS_PREV_WB                        (1 << 5)
++#define ISP_ABS_PREV_BLKADJ            (1 << 6)
++#define ISP_ABS_PREV_RGB2RGB           (1 << 7)
++#define ISP_ABS_PREV_COLOR_CONV                (1 << 8)
++#define ISP_ABS_PREV_YC_LIMIT          (1 << 9)
++#define ISP_ABS_PREV_DEFECT_COR                (1 << 10)
++#define ISP_ABS_PREV_GAMMABYPASS       (1 << 11)
++#define ISP_ABS_TBL_NF                         (1 << 12)
++#define ISP_ABS_TBL_REDGAMMA           (1 << 13)
++#define ISP_ABS_TBL_GREENGAMMA         (1 << 14)
++#define ISP_ABS_TBL_BLUEGAMMA          (1 << 15)
++
++/**
++ * struct ispprev_hmed - Structure for Horizontal Median Filter.
++ * @odddist: Distance between consecutive pixels of same color in the od=
+d line.
++ * @evendist: Distance between consecutive pixels of same color in the e=
+ven
++ *            line.
++ * @thres: Horizontal median filter threshold.
++ */
++struct ispprev_hmed {
++       __u8 odddist;
++       __u8 evendist;
++       __u8 thres;
++};
++
 +/*
-+ * drivers/media/video/isp/isphist.c
++ * Enumeration for CFA Formats supported by preview
++ */
++enum cfa_fmt {
++       CFAFMT_BAYER, CFAFMT_SONYVGA, CFAFMT_RGBFOVEON,
++       CFAFMT_DNSPL, CFAFMT_HONEYCOMB, CFAFMT_RRGGBBFOVEON
++};
++
++/**
++ * struct ispprev_cfa - Structure for CFA Inpterpolation.
++ * @cfafmt: CFA Format Enum value supported by preview.
++ * @cfa_gradthrs_vert: CFA Gradient Threshold - Vertical.
++ * @cfa_gradthrs_horz: CFA Gradient Threshold - Horizontal.
++ * @cfa_table: Pointer to the CFA table.
++ */
++struct ispprev_cfa {
++       enum cfa_fmt cfafmt;
++       __u8 cfa_gradthrs_vert;
++       __u8 cfa_gradthrs_horz;
++       __u32 *cfa_table;
++};
++
++/**
++ * struct ispprev_csup - Structure for Chrominance Suppression.
++ * @gain: Gain.
++ * @thres: Threshold.
++ * @hypf_en: Flag to enable/disable the High Pass Filter.
++ */
++struct ispprev_csup {
++       __u8 gain;
++       __u8 thres;
++       __u8 hypf_en;
++};
++
++/**
++ * struct ispprev_wbal - Structure for White Balance.
++ * @dgain: Digital gain (U10Q8).
++ * @coef3: White balance gain - COEF 3 (U8Q5).
++ * @coef2: White balance gain - COEF 2 (U8Q5).
++ * @coef1: White balance gain - COEF 1 (U8Q5).
++ * @coef0: White balance gain - COEF 0 (U8Q5).
++ */
++struct ispprev_wbal {
++       __u16 dgain;
++       __u8 coef3;
++       __u8 coef2;
++       __u8 coef1;
++       __u8 coef0;
++};
++
++/**
++ * struct ispprev_blkadj - Structure for Black Adjustment.
++ * @red: Black level offset adjustment for Red in 2's complement format
++ * @green: Black level offset adjustment for Green in 2's complement for=
+mat
++ * @blue: Black level offset adjustment for Blue in 2's complement forma=
+t
++ */
++struct ispprev_blkadj {
++       /*Black level offset adjustment for Red in 2's complement format =
+*/
++       __u8 red;
++       /*Black level offset adjustment for Green in 2's complement forma=
+t */
++       __u8 green;
++       /* Black level offset adjustment for Blue in 2's complement forma=
+t */
++       __u8 blue;
++};
++
++/**
++ * struct ispprev_rgbtorgb - Structure for RGB to RGB Blending.
++ * @matrix: Blending values(S12Q8 format)
++ *              [RR] [GR] [BR]
++ *              [RG] [GG] [BG]
++ *              [RB] [GB] [BB]
++ * @offset: Blending offset value for R,G,B in 2's complement integer fo=
+rmat.
++ */
++struct ispprev_rgbtorgb {
++       __u16 matrix[3][3];
++       __u16 offset[3];
++};
++
++/**
++ * struct ispprev_csc - Structure for Color Space Conversion from RGB-YC=
+bYCr
++ * @matrix: Color space conversion coefficients(S10Q8)
++ *              [CSCRY]  [CSCGY]  [CSCBY]
++ *              [CSCRCB] [CSCGCB] [CSCBCB]
++ *              [CSCRCR] [CSCGCR] [CSCBCR]
++ * @offset: CSC offset values for Y offset, CB offset and CR offset resp=
+ectively
++ */
++struct ispprev_csc {
++       __u16 matrix[RGB_MAX][RGB_MAX];
++       __s16 offset[RGB_MAX];
++};
++
++/**
++ * struct ispprev_yclimit - Structure for Y, C Value Limit.
++ * @minC: Minimum C value
++ * @maxC: Maximum C value
++ * @minY: Minimum Y value
++ * @maxY: Maximum Y value
++ */
++struct ispprev_yclimit {
++       __u8 minC;
++       __u8 maxC;
++       __u8 minY;
++       __u8 maxY;
++};
++
++/**
++ * struct ispprev_dcor - Structure for Defect correction.
++ * @couplet_mode_en: Flag to enable or disable the couplet dc Correction=
+ in NF
++ * @detect_correct: Thresholds for correction bit 0:10 detect 16:25 corr=
+ect
++ */
++struct ispprev_dcor {
++       __u8 couplet_mode_en;
++       __u32 detect_correct[4];
++};
++
++/**
++ * struct ispprev_nf - Structure for Noise Filter
++ * @spread: Spread value to be used in Noise Filter
++ * @table: Pointer to the Noise Filter table
++ */
++struct ispprev_nf {
++       __u8 spread;
++       __u32 table[64];
++};
++
++/**
++ * struct ispprv_update_config - Structure for Preview Configuration (us=
+er).
++ * @update: Specifies which ISP Preview registers should be updated.
++ * @flag: Specifies which ISP Preview functions should be enabled.
++ * @yen: Pointer to luma enhancement table.
++ * @shading_shift: 3bit value of shift used in shading compensation.
++ * @prev_hmed: Pointer to structure containing the odd and even distance=
+.
++ *             between the pixels in the image along with the filter thr=
+eshold.
++ * @prev_cfa: Pointer to structure containing the CFA interpolation tabl=
+e, CFA.
++ *            format in the image, vertical and horizontal gradient thre=
+shold.
++ * @csup: Pointer to Structure for Chrominance Suppression coefficients.
++ * @prev_wbal: Pointer to structure for White Balance.
++ * @prev_blkadj: Pointer to structure for Black Adjustment.
++ * @rgb2rgb: Pointer to structure for RGB to RGB Blending.
++ * @prev_csc: Pointer to structure for Color Space Conversion from RGB-Y=
+CbYCr.
++ * @yclimit: Pointer to structure for Y, C Value Limit.
++ * @prev_dcor: Pointer to structure for defect correction.
++ * @prev_nf: Pointer to structure for Noise Filter
++ * @red_gamma: Pointer to red gamma correction table.
++ * @green_gamma: Pointer to green gamma correction table.
++ * @blue_gamma: Pointer to blue gamma correction table.
++ */
++struct ispprv_update_config {
++       __u16 update;
++       __u16 flag;
++       void *yen;
++       __u32 shading_shift;
++       struct ispprev_hmed *prev_hmed;
++       struct ispprev_cfa *prev_cfa;
++       struct ispprev_csup *csup;
++       struct ispprev_wbal *prev_wbal;
++       struct ispprev_blkadj *prev_blkadj;
++       struct ispprev_rgbtorgb *rgb2rgb;
++       struct ispprev_csc *prev_csc;
++       struct ispprev_yclimit *yclimit;
++       struct ispprev_dcor *prev_dcor;
++       struct ispprev_nf *prev_nf;
++       __u32 *red_gamma;
++       __u32 *green_gamma;
++       __u32 *blue_gamma;
++};
++
++#endif /* OMAP_ISP_USER_H */
+diff --git a/drivers/media/video/isp/ispreg.h b/drivers/media/video/isp/i=
+spreg.h
+new file mode 100644
+index 0000000..87f5bdb
+--- /dev/null
++++ b/drivers/media/video/isp/ispreg.h
+@@ -0,0 +1,1657 @@
++/*
++ * drivers/media/video/isp/ispreg.h
 + *
-+ * HISTOGRAM module for TI's OMAP3 Camera ISP
++ * Header file for all the ISP module in TI's OMAP3 Camera ISP.
++ * It has the OMAP HW register definitions.
 + *
 + * Copyright (C) 2008 Texas Instruments.
++ * Copyright (C) 2008 Nokia.
 + *
 + * Contributors:
-+ *     Sergio Aguirre <saaguirre@ti.com>
-+ *     Troy Laramy
++ *     Tuukka Toivonen <tuukka.o.toivonen@nokia.com>
++ *     Thara Gopinath <thara@ti.com>
 + *
 + * This package is free software; you can redistribute it and/or modify
 + * it under the terms of the GNU General Public License version 2 as
@@ -2198,731 +787,1738 @@ index 0000000..071bd02
 + * WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 + */
 +
-+#include <asm/cacheflush.h>
-+
-+#include <linux/mm.h>
-+#include <linux/mman.h>
-+#include <linux/syscalls.h>
-+#include <linux/module.h>
-+#include <linux/errno.h>
-+#include <linux/delay.h>
-+#include <linux/types.h>
-+#include <linux/dma-mapping.h>
-+#include <linux/io.h>
-+#include <linux/uaccess.h>
-+
-+#include "isp.h"
-+#include "ispreg.h"
-+#include "isphist.h"
-+#include "ispmmu.h"
-+#include "isppreview.h"
-+
-+/**
-+ * struct isp_hist_status - Histogram status.
-+ * @hist_enable: Enables the histogram module.
-+ * @initialized: Flag to indicate that the module is correctly initializ=
-ated.
-+ * @frame_cnt: Actual frame count.
-+ * @frame_req: Frame requested by user.
-+ * @completed: Flag to indicate if a frame request is completed.
-+ */
-+struct isp_hist_status {
-+       u8 hist_enable;
-+       u8 initialized;
-+       u8 frame_cnt;
-+       u8 frame_req;
-+       u8 completed;
-+} histstat;
-+
-+/**
-+ * struct isp_hist_buffer - Frame histogram buffer.
-+ * @virt_addr: Virtual address to mmap the buffer.
-+ * @phy_addr: Physical address of the buffer.
-+ * @addr_align: Virtual Address 32 bytes aligned.
-+ * @ispmmu_addr: Address of the buffer mapped by the ISPMMU.
-+ * @mmap_addr: Mapped memory area of buffer. For userspace access.
-+ */
-+struct isp_hist_buffer {
-+       unsigned long virt_addr;
-+       unsigned long phy_addr;
-+       unsigned long addr_align;
-+       unsigned long ispmmu_addr;
-+       unsigned long mmap_addr;
-+} hist_buff;
-+
-+/**
-+ * struct isp_hist_regs - Current value of Histogram configuration regis=
-ters.
-+ * @reg_pcr: Peripheral control register.
-+ * @reg_cnt: Histogram control register.
-+ * @reg_wb_gain: Histogram white balance gain register.
-+ * @reg_r0_h: Region 0 horizontal register.
-+ * @reg_r0_v: Region 0 vertical register.
-+ * @reg_r1_h: Region 1 horizontal register.
-+ * @reg_r1_v: Region 1 vertical register.
-+ * @reg_r2_h: Region 2 horizontal register.
-+ * @reg_r2_v: Region 2 vertical register.
-+ * @reg_r3_h: Region 3 horizontal register.
-+ * @reg_r3_v: Region 3 vertical register.
-+ * @reg_hist_addr: Histogram address register.
-+ * @reg_hist_data: Histogram data.
-+ * @reg_hist_radd: Address register. When input data comes from mem.
-+ * @reg_hist_radd_off: Address offset register. When input data comes fr=
-om mem.
-+ * @reg_h_v_info: Image size register. When input data comes from mem.
-+ */
-+static struct isp_hist_regs {
-+       u32 reg_pcr;
-+       u32 reg_cnt;
-+       u32 reg_wb_gain;
-+       u32 reg_r0_h;
-+       u32 reg_r0_v;
-+       u32 reg_r1_h;
-+       u32 reg_r1_v;
-+       u32 reg_r2_h;
-+       u32 reg_r2_v;
-+       u32 reg_r3_h;
-+       u32 reg_r3_v;
-+       u32 reg_hist_addr;
-+       u32 reg_hist_data;
-+       u32 reg_hist_radd;
-+       u32 reg_hist_radd_off;
-+       u32 reg_h_v_info;
-+} hist_regs;
-+
-+/* Structure for saving/restoring histogram module registers */
-+struct isp_reg isphist_reg_list[] =3D {
-+       {ISPHIST_CNT, 0},
-+       {ISPHIST_WB_GAIN, 0},
-+       {ISPHIST_R0_HORZ, 0},
-+       {ISPHIST_R0_VERT, 0},
-+       {ISPHIST_R1_HORZ, 0},
-+       {ISPHIST_R1_VERT, 0},
-+       {ISPHIST_R2_HORZ, 0},
-+       {ISPHIST_R2_VERT, 0},
-+       {ISPHIST_R3_HORZ, 0},
-+       {ISPHIST_R3_VERT, 0},
-+       {ISPHIST_ADDR, 0},
-+       {ISPHIST_RADD, 0},
-+       {ISPHIST_RADD_OFF, 0},
-+       {ISPHIST_H_V_INFO, 0},
-+       {ISP_TOK_TERM, 0}
-+};
-+
-+static void isp_hist_print_status(void);
-+
-+/**
-+ * isp_hist_enable - Enables ISP Histogram submodule operation.
-+ * @enable: 1 - Enables the histogram submodule.
-+ *
-+ * Client should configure all the Histogram registers before calling th=
-is
-+ * function.
-+ **/
-+static void isp_hist_enable(u8 enable)
-+{
-+       if (enable) {
-+               omap_writel(omap_readl(ISPHIST_PCR) | (ISPHIST_PCR_EN),
-+                                                               ISPHIST_P=
-CR);
-+               DPRINTK_ISPHIST("   histogram enabled \n");
-+       } else {
-+               omap_writel(omap_readl(ISPHIST_PCR) & ~ISPHIST_PCR_EN,
-+                                                               ISPHIST_P=
-CR);
-+               DPRINTK_ISPHIST("   histogram disabled \n");
-+       }
-+
-+       histstat.hist_enable =3D enable;
-+}
-+
-+/**
-+ * isp_hist_update_regs - Helper function to update Histogram registers.
-+ **/
-+static void isp_hist_update_regs(void)
-+{
-+       omap_writel(hist_regs.reg_pcr, ISPHIST_PCR);
-+       omap_writel(hist_regs.reg_cnt, ISPHIST_CNT);
-+       omap_writel(hist_regs.reg_wb_gain, ISPHIST_WB_GAIN);
-+       omap_writel(hist_regs.reg_r0_h, ISPHIST_R0_HORZ);
-+       omap_writel(hist_regs.reg_r0_v, ISPHIST_R0_VERT);
-+       omap_writel(hist_regs.reg_r1_h, ISPHIST_R1_HORZ);
-+       omap_writel(hist_regs.reg_r1_v, ISPHIST_R1_VERT);
-+       omap_writel(hist_regs.reg_r2_h, ISPHIST_R2_HORZ);
-+       omap_writel(hist_regs.reg_r2_v, ISPHIST_R2_VERT);
-+       omap_writel(hist_regs.reg_r3_h, ISPHIST_R3_HORZ);
-+       omap_writel(hist_regs.reg_r3_v, ISPHIST_R3_VERT);
-+       omap_writel(hist_regs.reg_hist_addr, ISPHIST_ADDR);
-+       omap_writel(hist_regs.reg_hist_data, ISPHIST_DATA);
-+       omap_writel(hist_regs.reg_hist_radd, ISPHIST_RADD);
-+       omap_writel(hist_regs.reg_hist_radd_off, ISPHIST_RADD_OFF);
-+       omap_writel(hist_regs.reg_h_v_info, ISPHIST_H_V_INFO);
-+}
-+
-+/**
-+ * isp_hist_isr - Callback from ISP driver for HIST interrupt.
-+ * @status: IRQ0STATUS in case of MMU error, 0 for hist interrupt.
-+ *          arg1 and arg2 Not used as of now.
-+ **/
-+static void isp_hist_isr(unsigned long status, isp_vbq_callback_ptr arg1=
-,
-+                                                               void *arg=
-2)
-+{
-+       isp_hist_enable(0);
-+
-+       if ((HIST_DONE & status) !=3D HIST_DONE)
-+               return;
-+
-+       if (!histstat.completed) {
-+               if (histstat.frame_req =3D=3D histstat.frame_cnt) {
-+                       histstat.frame_cnt =3D 0;
-+                       histstat.frame_req =3D 0;
-+                       histstat.completed =3D 1;
-+               } else {
-+                       isp_hist_enable(1);
-+                       histstat.frame_cnt++;
-+               }
-+       }
-+}
-+
-+/**
-+ * isp_hist_reset_mem - clear Histogram memory before start stats engine=
-.
-+ *
-+ * Returns 0 after histogram memory was cleared.
-+ **/
-+static int isp_hist_reset_mem(void)
-+{
-+       int i;
-+
-+       omap_writel((omap_readl(ISPHIST_CNT)) | ISPHIST_CNT_CLR_EN,
-+                                                               ISPHIST_C=
-NT);
-+
-+       for (i =3D 0; i < HIST_MEM_SIZE; i++)
-+               omap_readl(ISPHIST_DATA);
-+
-+       omap_writel((omap_readl(ISPHIST_CNT)) & ~ISPHIST_CNT_CLR_EN,
-+                                                               ISPHIST_C=
-NT);
-+
-+       return 0;
-+}
-+
-+/**
-+ * isp_hist_set_params - Helper function to check and store user given p=
-arams.
-+ * @user_cfg: Pointer to user configuration structure.
-+ *
-+ * Returns 0 on success configuration.
-+ **/
-+static int isp_hist_set_params(struct isp_hist_config *user_cfg)
-+{
-+
-+       int reg_num =3D 0;
-+       int bit_shift =3D 0;
-+
-+
-+       if (omap_readl(ISPHIST_PCR) & ISPHIST_PCR_BUSY_MASK)
-+               return -EINVAL;
-+
-+       if (user_cfg->input_bit_width > MIN_BIT_WIDTH)
-+               WRITE_DATA_SIZE(hist_regs.reg_cnt, 0);
-+       else
-+               WRITE_DATA_SIZE(hist_regs.reg_cnt, 1);
-+
-+       WRITE_SOURCE(hist_regs.reg_cnt, user_cfg->hist_source);
-+
-+       if (user_cfg->hist_source) {
-+               WRITE_HV_INFO(hist_regs.reg_h_v_info, user_cfg->hist_h_v_=
-info);
-+
-+               if ((user_cfg->hist_radd & ISP_32B_BOUNDARY_BUF) =3D=3D
-+                                                       user_cfg->hist_ra=
-dd) {
-+                       WRITE_RADD(hist_regs.reg_hist_radd,
-+                                                       user_cfg->hist_ra=
-dd);
-+               } else {
-+                       printk(KERN_ERR "Address should be in 32 byte bou=
-ndary"
-+                                                                       "=
-\n");
-+                       return -EINVAL;
-+               }
-+
-+               if ((user_cfg->hist_radd_off & ISP_32B_BOUNDARY_OFFSET) =3D=
-=3D
-+                                               user_cfg->hist_radd_off) =
-{
-+                       WRITE_RADD_OFF(hist_regs.reg_hist_radd_off,
-+                                               user_cfg->hist_radd_off);
-+               } else {
-+                       printk(KERN_ERR "Offset should be in 32 byte boun=
-dary"
-+                                                                       "=
-\n");
-+                       return -EINVAL;
-+               }
-+
-+       }
-+
-+       isp_hist_reset_mem();
-+       DPRINTK_ISPHIST("ISPHIST: Memory Cleared\n");
-+       histstat.frame_req =3D user_cfg->hist_frames;
-+
-+       if (unlikely((user_cfg->wb_gain_R > MAX_WB_GAIN) ||
-+                               (user_cfg->wb_gain_RG > MAX_WB_GAIN) ||
-+                               (user_cfg->wb_gain_B > MAX_WB_GAIN) ||
-+                               (user_cfg->wb_gain_BG > MAX_WB_GAIN))) {
-+               printk(KERN_ERR "Invalid WB gain\n");
-+               return -EINVAL;
-+       } else {
-+               WRITE_WB_R(hist_regs.reg_wb_gain, user_cfg->wb_gain_R);
-+               WRITE_WB_RG(hist_regs.reg_wb_gain, user_cfg->wb_gain_RG);
-+               WRITE_WB_B(hist_regs.reg_wb_gain, user_cfg->wb_gain_B);
-+               WRITE_WB_BG(hist_regs.reg_wb_gain, user_cfg->wb_gain_BG);
-+       }
-+
-+       /* Regions size and position */
-+
-+       if (user_cfg->num_regions > MAX_REGIONS)
-+               return -EINVAL;
-+
-+       if (likely((user_cfg->reg0_hor & ISPHIST_REGHORIZ_HEND_MASK) -
-+                                       ((user_cfg->reg0_hor &
-+                                       ISPHIST_REGHORIZ_HSTART_MASK) >>
-+                                       ISPHIST_REGHORIZ_HSTART_SHIFT))) =
-{
-+               WRITE_REG_HORIZ(hist_regs.reg_r0_h, user_cfg->reg0_hor);
-+               reg_num++;
-+       } else {
-+               printk(KERN_ERR "Invalid Region parameters\n");
-+               return -EINVAL;
-+       }
-+
-+       if (likely((user_cfg->reg0_ver & ISPHIST_REGVERT_VEND_MASK) -
-+                       ((user_cfg->reg0_ver & ISPHIST_REGVERT_VSTART_MAS=
-K) >>
-+                       ISPHIST_REGVERT_VSTART_SHIFT))) {
-+               WRITE_REG_VERT(hist_regs.reg_r0_v, user_cfg->reg0_ver);
-+       } else {
-+               printk(KERN_ERR "Invalid Region parameters\n");
-+               return -EINVAL;
-+       }
-+
-+       if (user_cfg->num_regions >=3D 1) {
-+               if (likely((user_cfg->reg1_hor & ISPHIST_REGHORIZ_HEND_MA=
-SK) -
-+                                       ((user_cfg->reg1_hor &
-+                                       ISPHIST_REGHORIZ_HSTART_MASK) >>
-+                                       ISPHIST_REGHORIZ_HSTART_SHIFT))) =
-{
-+                       WRITE_REG_HORIZ(hist_regs.reg_r1_h, user_cfg->reg=
-1_hor);
-+               } else {
-+                       printk(KERN_ERR "Invalid Region parameters\n");
-+                       return -EINVAL;
-+               }
-+
-+               if (likely((user_cfg->reg1_ver & ISPHIST_REGVERT_VEND_MAS=
-K) -
-+                                       ((user_cfg->reg1_ver &
-+                                       ISPHIST_REGVERT_VSTART_MASK) >>
-+                                       ISPHIST_REGVERT_VSTART_SHIFT))) {
-+                       WRITE_REG_VERT(hist_regs.reg_r1_v, user_cfg->reg1=
-_ver);
-+               } else {
-+                       printk(KERN_ERR "Invalid Region parameters\n");
-+                       return -EINVAL;
-+               }
-+       }
-+
-+       if (user_cfg->num_regions >=3D 2) {
-+               if (likely((user_cfg->reg2_hor & ISPHIST_REGHORIZ_HEND_MA=
-SK) -
-+                                       ((user_cfg->reg2_hor &
-+                                       ISPHIST_REGHORIZ_HSTART_MASK) >>
-+                                       ISPHIST_REGHORIZ_HSTART_SHIFT))) =
-{
-+                       WRITE_REG_HORIZ(hist_regs.reg_r2_h, user_cfg->reg=
-2_hor);
-+               } else {
-+                       printk(KERN_ERR "Invalid Region parameters\n");
-+                       return -EINVAL;
-+               }
-+
-+               if (likely((user_cfg->reg2_ver & ISPHIST_REGVERT_VEND_MAS=
-K) -
-+                                       ((user_cfg->reg2_ver &
-+                                       ISPHIST_REGVERT_VSTART_MASK) >>
-+                                       ISPHIST_REGVERT_VSTART_SHIFT))) {
-+                       WRITE_REG_VERT(hist_regs.reg_r2_v, user_cfg->reg2=
-_ver);
-+               } else {
-+                       printk(KERN_ERR "Invalid Region parameters\n");
-+                       return -EINVAL;
-+               }
-+       }
-+
-+       if (user_cfg->num_regions >=3D 3) {
-+               if (likely((user_cfg->reg3_hor & ISPHIST_REGHORIZ_HEND_MA=
-SK) -
-+                                       ((user_cfg->reg3_hor &
-+                                       ISPHIST_REGHORIZ_HSTART_MASK) >>
-+                                       ISPHIST_REGHORIZ_HSTART_SHIFT))) =
-{
-+                       WRITE_REG_HORIZ(hist_regs.reg_r3_h, user_cfg->reg=
-3_hor);
-+               } else {
-+                       printk(KERN_ERR "Invalid Region parameters\n");
-+                       return -EINVAL;
-+               }
-+
-+               if (likely((user_cfg->reg3_ver & ISPHIST_REGVERT_VEND_MAS=
-K) -
-+                                       ((user_cfg->reg3_ver &
-+                                       ISPHIST_REGVERT_VSTART_MASK) >>
-+                                       ISPHIST_REGVERT_VSTART_SHIFT))) {
-+                       WRITE_REG_VERT(hist_regs.reg_r3_v, user_cfg->reg3=
-_ver);
-+               } else {
-+                       printk(KERN_ERR "Invalid Region parameters\n");
-+                       return -EINVAL;
-+               }
-+       }
-+       reg_num =3D user_cfg->num_regions;
-+       if (unlikely(((user_cfg->hist_bins > BINS_256) &&
-+                               (user_cfg->hist_bins !=3D BINS_32)) ||
-+                               ((user_cfg->hist_bins =3D=3D BINS_256) &&
-+                               reg_num !=3D 0) || ((user_cfg->hist_bins =
-=3D=3D
-+                               BINS_128) && reg_num >=3D 2))) {
-+               printk(KERN_ERR "Invalid Bins Number: %d\n",
-+                                                       user_cfg->hist_bi=
-ns);
-+               return -EINVAL;
-+       } else {
-+               WRITE_NUM_BINS(hist_regs.reg_cnt, user_cfg->hist_bins);
-+       }
-+
-+       if ((user_cfg->input_bit_width > MAX_BIT_WIDTH) ||
-+                               (user_cfg->input_bit_width < MIN_BIT_WIDT=
-H)) {
-+               printk(KERN_ERR "Invalid Bit Width: %d\n",
-+                                               user_cfg->input_bit_width=
-);
-+               return -EINVAL;
-+       } else {
-+               switch (user_cfg->hist_bins) {
-+               case BINS_256:
-+                       bit_shift =3D user_cfg->input_bit_width - 8;
-+                       break;
-+               case BINS_128:
-+                       bit_shift =3D user_cfg->input_bit_width - 7;
-+                       break;
-+               case BINS_64:
-+                       bit_shift =3D user_cfg->input_bit_width - 6;
-+                       break;
-+               case BINS_32:
-+                       bit_shift =3D user_cfg->input_bit_width - 5;
-+                       break;
-+               default:
-+                       return -EINVAL;
-+               }
-+               WRITE_BIT_SHIFT(hist_regs.reg_cnt, bit_shift);
-+       }
-+
-+       isp_hist_update_regs();
-+       histstat.initialized =3D 1;
-+
-+       return 0;
-+}
-+
-+/**
-+ * isp_hist_configure - API to configure HIST registers.
-+ * @histcfg: Pointer to user configuration structure.
-+ *
-+ * Returns 0 on success configuration.
-+ **/
-+int isp_hist_configure(struct isp_hist_config *histcfg)
-+{
-+
-+       int ret =3D 0;
-+
-+       if (NULL =3D=3D histcfg) {
-+               printk(KERN_ERR "Null argument in configuration. \n");
-+               return -EINVAL;
-+       }
-+
-+       if (!histstat.initialized) {
-+               DPRINTK_ISPHIST("Setting callback for HISTOGRAM\n");
-+               ret =3D isp_set_callback(CBK_HIST_DONE, isp_hist_isr,
-+                                               (void *)NULL, (void *)NUL=
-L);
-+               if (ret) {
-+                       printk(KERN_ERR "No callback for HIST\n");
-+                       return ret;
-+               }
-+       }
-+
-+       ret =3D isp_hist_set_params(histcfg);
-+       if (ret) {
-+               printk(KERN_ERR "Invalid parameters! \n");
-+               return ret;
-+       }
-+
-+       histstat.frame_cnt =3D 0;
-+       histstat.completed =3D 0;
-+       isp_hist_enable(1);
-+       isp_hist_print_status();
-+
-+       return 0;
-+}
-+EXPORT_SYMBOL(isp_hist_configure);
-+
-+/**
-+ * isp_hist_request_statistics - Request statistics in Histogram.
-+ * @histdata: Pointer to data structure.
-+ *
-+ * This API allows the user to request for histogram statistics.
-+ *
-+ * Returns 0 on successful request.
-+ **/
-+int isp_hist_request_statistics(struct isp_hist_data *histdata)
-+{
-+       int i, ret;
-+       u32 curr;
-+
-+       if (omap_readl(ISPHIST_PCR) & ISPHIST_PCR_BUSY_MASK)
-+               return -EBUSY;
-+
-+       if (!histstat.completed && histstat.initialized)
-+               return -EINVAL;
-+
-+       omap_writel((omap_readl(ISPHIST_CNT)) | ISPHIST_CNT_CLR_EN,
-+                                                               ISPHIST_C=
-NT);
-+
-+       for (i =3D 0; i < HIST_MEM_SIZE; i++) {
-+               curr =3D omap_readl(ISPHIST_DATA);
-+               ret =3D put_user(curr, (histdata->hist_statistics_buf + i=
-));
-+               if (ret) {
-+                       printk(KERN_ERR "Failed copy_to_user for "
-+                                               "HIST stats buff, %d\n", =
-ret);
-+               }
-+       }
-+
-+       omap_writel((omap_readl(ISPHIST_CNT)) & ~ISPHIST_CNT_CLR_EN,
-+                                                               ISPHIST_C=
-NT);
-+       histstat.completed =3D 0;
-+       return 0;
-+}
-+EXPORT_SYMBOL(isp_hist_request_statistics);
-+
-+/**
-+ * isp_hist_init - Module Initialization.
-+ *
-+ * Returns 0 if successful.
-+ **/
-+int __init isp_hist_init(void)
-+{
-+       memset(&histstat, 0, sizeof(histstat));
-+       memset(&hist_regs, 0, sizeof(hist_regs));
-+
-+       return 0;
-+}
-+
-+/**
-+ * isp_hist_cleanup - Module cleanup.
-+ **/
-+void __exit isp_hist_cleanup(void)
-+{
-+       isp_hist_enable(0);
-+       mdelay(100);
-+       isp_unset_callback(CBK_HIST_DONE);
-+
-+       memset(&histstat, 0, sizeof(histstat));
-+       memset(&hist_regs, 0, sizeof(hist_regs));
-+}
-+
-+/**
-+ * isphist_save_context - Saves the values of the histogram module regis=
-ters.
-+ **/
-+void isphist_save_context(void)
-+{
-+       DPRINTK_ISPHIST(" Saving context\n");
-+       isp_save_context(isphist_reg_list);
-+}
-+EXPORT_SYMBOL(isphist_save_context);
-+
-+/**
-+ * isphist_restore_context - Restores the values of the histogram module=
- regs.
-+ **/
-+void isphist_restore_context(void)
-+{
-+       DPRINTK_ISPHIST(" Restoring context\n");
-+       isp_restore_context(isphist_reg_list);
-+}
-+EXPORT_SYMBOL(isphist_restore_context);
-+
-+/**
-+ * isp_hist_print_status - Debug print
-+ **/
-+static void isp_hist_print_status(void)
-+{
-+       DPRINTK_ISPHIST("ISPHIST_PCR =3D 0x%08x\n", omap_readl(ISPHIST_PC=
-R));
-+       DPRINTK_ISPHIST("ISPHIST_CNT =3D 0x%08x\n", omap_readl(ISPHIST_CN=
-T));
-+       DPRINTK_ISPHIST("ISPHIST_WB_GAIN =3D 0x%08x\n",
-+                                               omap_readl(ISPHIST_WB_GAI=
-N));
-+       DPRINTK_ISPHIST("ISPHIST_R0_HORZ =3D 0x%08x\n",
-+                                               omap_readl(ISPHIST_R0_HOR=
-Z));
-+       DPRINTK_ISPHIST("ISPHIST_R0_VERT =3D 0x%08x\n",
-+                                               omap_readl(ISPHIST_R0_VER=
-T));
-+       DPRINTK_ISPHIST("ISPHIST_R1_HORZ =3D 0x%08x\n",
-+                                               omap_readl(ISPHIST_R1_HOR=
-Z));
-+       DPRINTK_ISPHIST("ISPHIST_R1_VERT =3D 0x%08x\n",
-+                                               omap_readl(ISPHIST_R1_VER=
-T));
-+       DPRINTK_ISPHIST("ISPHIST_R2_HORZ =3D 0x%08x\n",
-+                                               omap_readl(ISPHIST_R2_HOR=
-Z));
-+       DPRINTK_ISPHIST("ISPHIST_R2_VERT =3D 0x%08x\n",
-+                                               omap_readl(ISPHIST_R2_VER=
-T));
-+       DPRINTK_ISPHIST("ISPHIST_R3_HORZ =3D 0x%08x\n",
-+                                               omap_readl(ISPHIST_R3_HOR=
-Z));
-+       DPRINTK_ISPHIST("ISPHIST_R3_VERT =3D 0x%08x\n",
-+                                               omap_readl(ISPHIST_R3_VER=
-T));
-+       DPRINTK_ISPHIST("ISPHIST_ADDR =3D 0x%08x\n", omap_readl(ISPHIST_A=
-DDR));
-+       DPRINTK_ISPHIST("ISPHIST_RADD =3D 0x%08x\n", omap_readl(ISPHIST_R=
-ADD));
-+       DPRINTK_ISPHIST("ISPHIST_RADD_OFF =3D 0x%08x\n",
-+                                               omap_readl(ISPHIST_RADD_O=
-FF));
-+       DPRINTK_ISPHIST("ISPHIST_H_V_INFO =3D 0x%08x\n",
-+                                               omap_readl(ISPHIST_H_V_IN=
-FO));
-+}
-diff --git a/drivers/media/video/isp/isphist.h b/drivers/media/video/isp/=
-isphist.h
-new file mode 100644
-index 0000000..b67558f
---- /dev/null
-+++ b/drivers/media/video/isp/isphist.h
-@@ -0,0 +1,97 @@
-+/*
-+ * drivers/media/video/isp/isphist.h
-+ *
-+ * Header file for HISTOGRAM module in TI's OMAP3 Camera ISP
-+ *
-+ * Copyright (C) 2008 Texas Instruments, Inc.
-+ *
-+ * Contributors:
-+ *     Sergio Aguirre <saaguirre@ti.com>
-+ *     Troy Laramy
-+ *
-+ * This package is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ *
-+ * THIS PACKAGE IS PROVIDED ``AS IS'' AND WITHOUT ANY EXPRESS OR
-+ * IMPLIED WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED
-+ * WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
-+ */
-+
-+#ifndef OMAP_ISP_HIST_H
-+#define OMAP_ISP_HIST_H
-+
-+#include <mach/isp_user.h>
-+
-+#define MAX_REGIONS            0x4
-+#define MAX_WB_GAIN            255
-+#define MIN_WB_GAIN            0x0
-+#define MAX_BIT_WIDTH          14
-+#define MIN_BIT_WIDTH          8
-+
-+#define ISPHIST_PCR_EN         (1 << 0)
-+#define HIST_MEM_SIZE          1024
-+#define ISPHIST_CNT_CLR_EN     (1 << 7)
-+
-+#define WRITE_SOURCE(reg, source)      \
-+               (reg =3D (reg & ~(ISPHIST_CNT_SOURCE_MASK)) \
-+               | (source << ISPHIST_CNT_SOURCE_SHIFT))
-+
-+#define WRITE_HV_INFO(reg, hv_info) \
-+               (reg =3D ((reg & ~(ISPHIST_HV_INFO_MASK)) \
-+               | (hv_info & ISPHIST_HV_INFO_MASK)))
-+
-+#define WRITE_RADD(reg, radd) \
-+               (reg =3D (reg & ~(ISPHIST_RADD_MASK)) \
-+               | (radd << ISPHIST_RADD_SHIFT))
-+
-+#define WRITE_RADD_OFF(reg, radd_off) \
-+               (reg =3D (reg & ~(ISPHIST_RADD_OFF_MASK)) \
-+               | (radd_off << ISPHIST_RADD_OFF_SHIFT))
-+
-+#define WRITE_BIT_SHIFT(reg, bit_shift) \
-+               (reg =3D (reg & ~(ISPHIST_CNT_SHIFT_MASK)) \
-+               | (bit_shift << ISPHIST_CNT_SHIFT_SHIFT))
-+
-+#define WRITE_DATA_SIZE(reg, data_size) \
-+               (reg =3D (reg & ~(ISPHIST_CNT_DATASIZE_MASK)) \
-+               | (data_size << ISPHIST_CNT_DATASIZE_SHIFT))
-+
-+#define WRITE_NUM_BINS(reg, num_bins) \
-+               (reg =3D (reg & ~(ISPHIST_CNT_BINS_MASK)) \
-+               | (num_bins << ISPHIST_CNT_BINS_SHIFT))
-+
-+#define WRITE_WB_R(reg, reg_wb_gain) \
-+               reg =3D ((reg & ~(ISPHIST_WB_GAIN_WG00_MASK)) \
-+               | (reg_wb_gain << ISPHIST_WB_GAIN_WG00_SHIFT))
-+
-+#define WRITE_WB_RG(reg, reg_wb_gain) \
-+               (reg =3D (reg & ~(ISPHIST_WB_GAIN_WG01_MASK)) \
-+               | (reg_wb_gain << ISPHIST_WB_GAIN_WG01_SHIFT))
-+
-+#define WRITE_WB_B(reg, reg_wb_gain) \
-+               (reg =3D (reg & ~(ISPHIST_WB_GAIN_WG02_MASK)) \
-+               | (reg_wb_gain << ISPHIST_WB_GAIN_WG02_SHIFT))
-+
-+#define WRITE_WB_BG(reg, reg_wb_gain) \
-+               (reg =3D (reg & ~(ISPHIST_WB_GAIN_WG03_MASK)) \
-+               | (reg_wb_gain << ISPHIST_WB_GAIN_WG03_SHIFT))
-+
-+#define WRITE_REG_HORIZ(reg, reg_n_hor) \
-+               (reg =3D ((reg & ~ISPHIST_REGHORIZ_MASK) \
-+               | (reg_n_hor & ISPHIST_REGHORIZ_MASK)))
-+
-+#define WRITE_REG_VERT(reg, reg_n_vert) \
-+               (reg =3D ((reg & ~ISPHIST_REGVERT_MASK) \
-+               | (reg_n_vert & ISPHIST_REGVERT_MASK)))
-+
-+
-+int isp_hist_configure(struct isp_hist_config *histcfg);
-+
-+int isp_hist_request_statistics(struct isp_hist_data *histdata);
-+
-+void isphist_save_context(void);
-+
-+void isphist_restore_context(void);
-+
-+#endif                         /* OMAP_ISP_HIST */
++#ifndef __ISPREG_H__
++#define __ISPREG_H__
++
++#if 0
++#define OMAP_ISPCTRL_DEBUG
++#define OMAP_ISPCCDC_DEBUG
++#define OMAP_ISPPREV_DEBUG
++#define OMAP_ISPRESZ_DEBUG
++#define OMAP_ISPMMU_DEBUG
++#define OMAP_ISPH3A_DEBUG
++#define OMAP_ISP_AF_DEBUG
++#define OMAP_ISPHIST_DEBUG
++#endif
++
++#ifdef OMAP_ISPCTRL_DEBUG
++#define DPRINTK_ISPCTRL(format, ...)\
++       printk(KERN_INFO "ISPCTRL: " format, ## __VA_ARGS__)
++#define is_ispctrl_debug_enabled()             1
++#else
++#define DPRINTK_ISPCTRL(format, ...)
++#define is_ispctrl_debug_enabled()             0
++#endif
++
++#ifdef OMAP_ISPCCDC_DEBUG
++#define DPRINTK_ISPCCDC(format, ...)\
++       printk(KERN_INFO "ISPCCDC: " format, ## __VA_ARGS__)
++#define is_ispccdc_debug_enabled()             1
++#else
++#define DPRINTK_ISPCCDC(format, ...)
++#define is_ispccdc_debug_enabled()             0
++#endif
++
++#ifdef OMAP_ISPPREV_DEBUG
++#define DPRINTK_ISPPREV(format, ...)\
++       printk(KERN_INFO "ISPPREV: " format, ## __VA_ARGS__)
++#define is_ispprev_debug_enabled()             1
++#else
++#define DPRINTK_ISPPREV(format, ...)
++#define is_ispprev_debug_enabled()             0
++#endif
++
++#ifdef OMAP_ISPRESZ_DEBUG
++#define DPRINTK_ISPRESZ(format, ...)\
++       printk(KERN_INFO "ISPRESZ: " format, ## __VA_ARGS__)
++#define is_ispresz_debug_enabled()             1
++#else
++#define DPRINTK_ISPRESZ(format, ...)
++#define is_ispresz_debug_enabled()             0
++#endif
++
++#ifdef OMAP_ISPMMU_DEBUG
++#define DPRINTK_ISPMMU(format, ...)\
++       printk(KERN_INFO "ISPMMU: " format, ## __VA_ARGS__)
++#define is_ispmmu_debug_enabled()              1
++#else
++#define DPRINTK_ISPMMU(format, ...)
++#define is_ispmmu_debug_enabled()              0
++#endif
++
++#ifdef OMAP_ISPH3A_DEBUG
++#define DPRINTK_ISPH3A(format, ...)\
++       printk(KERN_INFO "ISPH3A: " format, ## __VA_ARGS__)
++#define is_isph3a_debug_enabled()              1
++#else
++#define DPRINTK_ISPH3A(format, ...)
++#define is_isph3a_debug_enabled()              0
++#endif
++
++#ifdef OMAP_ISP_AF_DEBUG
++#define DPRINTK_ISP_AF(format, ...)\
++       printk(KERN_INFO "ISP_AF: " format, ## __VA_ARGS__)
++#define is_isp_af_debug_enabled()              1
++#else
++#define DPRINTK_ISP_AF(format, ...)
++#define is_isp_af_debug_enabled()              0
++#endif
++
++#ifdef OMAP_ISPHIST_DEBUG
++#define DPRINTK_ISPHIST(format, ...)\
++       printk(KERN_INFO "ISPHIST: " format, ## __VA_ARGS__)
++#define is_isphist_debug_enabled()             1
++#else
++#define DPRINTK_ISPHIST(format, ...)
++#define is_isphist_debug_enabled()             0
++#endif
++
++#define ISP_32B_BOUNDARY_BUF           0xFFFFFFE0
++#define ISP_32B_BOUNDARY_OFFSET                0x0000FFE0
++
++#define CONTROL_CSIRXFE                        0x480022DC
++#define CONTROL_CSI                    0x48002530
++
++#define CM_CAM_MCLK_HZ                 216000000
++
++/* ISP Submodules offset */
++
++#define ISP_REG_BASE                   0x480BC000
++#define ISP_REG_SIZE                   0x00001600
++
++#define ISPCBUFF_REG_BASE              0x480BC100
++#define ISPCBUFF_REG(offset)           (ISPCBUFF_REG_BASE + (offset))
++
++#define ISPCCP2A_REG_OFFSET            0x00000200
++#define ISPCCP2A_REG_BASE              0x480BC200
++
++#define ISPCCP2B_REG_OFFSET            0x00000400
++#define ISPCCP2B_REG_BASE              0x480BC400
++
++#define ISPCCDC_REG_OFFSET             0x00000600
++#define ISPCCDC_REG_BASE               0x480BC600
++
++#define ISPSCMP_REG_OFFSET             0x00000800
++#define ISPSCMP_REG_BASE               0x480BC800
++
++#define ISPHIST_REG_OFFSET             0x00000A00
++#define ISPHIST_REG_BASE               0x480BCA00
++#define ISPHIST_REG(offset)            (ISPHIST_REG_BASE + (offset))
++
++#define ISPH3A_REG_OFFSET              0x00000C00
++#define ISPH3A_REG_BASE                                0x480BCC00
++#define ISPH3A_REG(offset)             (ISPH3A_REG_BASE + (offset))
++
++#define ISPPREVIEW_REG_OFFSET          0x00000E00
++#define ISPPREVIEW_REG_BASE            0x480BCE00
++
++#define ISPRESIZER_REG_OFFSET          0x00001000
++#define ISPRESIZER_REG_BASE            0x480BD000
++
++#define ISPSBL_REG_OFFSET              0x00001200
++#define ISPSBL_REG_BASE                        0x480BD200
++
++#define ISPMMU_REG_OFFSET              0x00001400
++#define ISPMMU_REG_BASE                        0x480BD400
++
++/* ISP module register offset */
++
++#define ISP_REVISION                   0x480BC000
++#define ISP_SYSCONFIG                  0x480BC004
++#define ISP_SYSSTATUS                  0x480BC008
++#define ISP_IRQ0ENABLE                 0x480BC00C
++#define ISP_IRQ0STATUS                 0x480BC010
++#define ISP_IRQ1ENABLE                 0x480BC014
++#define ISP_IRQ1STATUS                 0x480BC018
++#define ISP_TCTRL_GRESET_LENGTH                0x480BC030
++#define ISP_TCTRL_PSTRB_REPLAY         0x480BC034
++#define ISP_CTRL                       0x480BC040
++#define ISP_SECURE                     0x480BC044
++#define ISP_TCTRL_CTRL                 0x480BC050
++#define ISP_TCTRL_FRAME                        0x480BC054
++#define ISP_TCTRL_PSTRB_DELAY          0x480BC058
++#define ISP_TCTRL_STRB_DELAY           0x480BC05C
++#define ISP_TCTRL_SHUT_DELAY           0x480BC060
++#define ISP_TCTRL_PSTRB_LENGTH         0x480BC064
++#define ISP_TCTRL_STRB_LENGTH          0x480BC068
++#define ISP_TCTRL_SHUT_LENGTH          0x480BC06C
++#define ISP_PING_PONG_ADDR             0x480BC070
++#define ISP_PING_PONG_MEM_RANGE                0x480BC074
++#define ISP_PING_PONG_BUF_SIZE         0x480BC078
++
++/* CSI1 receiver registers (ES2.0) */
++#define ISPCSI1_REVISION               0x480BC400
++#define ISPCSI1_SYSCONFIG              0x480BC404
++#define ISPCSI1_SYSSTATUS              0x480BC408
++#define ISPCSI1_LC01_IRQENABLE         0x480BC40C
++#define ISPCSI1_LC01_IRQSTATUS         0x480BC410
++#define ISPCSI1_LC23_IRQENABLE         0x480BC414
++#define ISPCSI1_LC23_IRQSTATUS         0x480BC418
++#define ISPCSI1_LCM_IRQENABLE          0x480BC42C
++#define ISPCSI1_LCM_IRQSTATUS          0x480BC430
++#define ISPCSI1_CTRL                   0x480BC440
++#define ISPCSI1_DBG                    0x480BC444
++#define ISPCSI1_GNQ                    0x480BC448
++#define ISPCSI1_LCx_CTRL(x)            (0x480BC450+0x30*(x))
++#define ISPCSI1_LCx_CODE(x)            (0x480BC454+0x30*(x))
++#define ISPCSI1_LCx_STAT_START(x)      (0x480BC458+0x30*(x))
++#define ISPCSI1_LCx_STAT_SIZE(x)       (0x480BC45C+0x30*(x))
++#define ISPCSI1_LCx_SOF_ADDR(x)                (0x480BC460+0x30*(x))
++#define ISPCSI1_LCx_EOF_ADDR(x)                (0x480BC464+0x30*(x))
++#define ISPCSI1_LCx_DAT_START(x)       (0x480BC468+0x30*(x))
++#define ISPCSI1_LCx_DAT_SIZE(x)                (0x480BC46C+0x30*(x))
++#define ISPCSI1_LCx_DAT_PING_ADDR(x)   (0x480BC470+0x30*(x))
++#define ISPCSI1_LCx_DAT_PONG_ADDR(x)   (0x480BC474+0x30*(x))
++#define ISPCSI1_LCx_DAT_OFST(x)                (0x480BC478+0x30*(x))
++#define ISPCSI1_LCM_CTRL               0x480BC5D0
++#define ISPCSI1_LCM_VSIZE              0x480BC5D4
++#define ISPCSI1_LCM_HSIZE              0x480BC5D8
++#define ISPCSI1_LCM_PREFETCH           0x480BC5DC
++#define ISPCSI1_LCM_SRC_ADDR           0x480BC5E0
++#define ISPCSI1_LCM_SRC_OFST           0x480BC5E4
++#define ISPCSI1_LCM_DST_ADDR           0x480BC5E8
++#define ISPCSI1_LCM_DST_OFST           0x480BC5EC
++
++/* CSI2 receiver registers (ES2.0) */
++#define ISPCSI2_REVISION               0x480BD800
++#define ISPCSI2_SYSCONFIG              0x480BD810
++#define ISPCSI2_SYSSTATUS              0x480BD814
++#define ISPCSI2_IRQSTATUS              0x480BD818
++#define ISPCSI2_IRQENABLE              0x480BD81C
++#define ISPCSI2_CTRL                   0x480BD840
++#define ISPCSI2_DBG_H                  0x480BD844
++#define ISPCSI2_GNQ                    0x480BD848
++#define ISPCSI2_COMPLEXIO_CFG1         0x480BD850
++#define ISPCSI2_COMPLEXIO1_IRQSTATUS   0x480BD854
++#define ISPCSI2_SHORT_PACKET           0x480BD85C
++#define ISPCSI2_COMPLEXIO1_IRQENABLE   0x480BD860
++#define ISPCSI2_DBG_P                  0x480BD868
++#define ISPCSI2_TIMING                 0x480BD86C
++#define ISP_CSIB_SYSCONFIG             ISPCSI1_SYSCONFIG
++#define ISP_CSIA_SYSCONFIG             ISPCSI2_SYSCONFIG
++
++/* ISP_CBUFF Registers */
++
++#define ISP_CBUFF_SYSCONFIG            ISPCBUFF_REG(0x010)
++#define ISP_CBUFF_IRQENABLE            ISPCBUFF_REG(0x01C)
++
++#define ISP_CBUFF0_CTRL                        ISPCBUFF_REG(0x020)
++#define ISP_CBUFF1_CTRL                        (ISP_CBUFF0_CTRL + (0x004=
+))
++
++#define ISP_CBUFF0_START               ISPCBUFF_REG(0x040)
++#define ISP_CBUFF1_START               (ISP_CBUFF0_START + (0x004))
++
++#define ISP_CBUFF0_END                 ISPCBUFF_REG(0x050)
++#define ISP_CBUFF1_END                 (ISP_CBUFF0_END + (0x04))
++
++#define ISP_CBUFF0_WINDOWSIZE          ISPCBUFF_REG(0x060)
++#define ISP_CBUFF1_WINDOWSIZE          (ISP_CBUFF0_WINDOWSIZE + (0x004))
++
++#define ISP_CBUFF0_THRESHOLD           ISPCBUFF_REG(0x070)
++#define ISP_CBUFF1_THRESHOLD           (ISP_CBUFF0_THRESHOLD + (0x004))
++
++/* CCDC module register offset */
++
++#define ISPCCDC_PID                    0x480BC600
++#define ISPCCDC_PCR                    0x480BC604
++#define ISPCCDC_SYN_MODE               0x480BC608
++#define ISPCCDC_HD_VD_WID              0x480BC60C
++#define ISPCCDC_PIX_LINES              0x480BC610
++#define ISPCCDC_HORZ_INFO              0x480BC614
++#define ISPCCDC_VERT_START             0x480BC618
++#define ISPCCDC_VERT_LINES             0x480BC61C
++#define ISPCCDC_CULLING                        0x480BC620
++#define ISPCCDC_HSIZE_OFF              0x480BC624
++#define ISPCCDC_SDOFST                 0x480BC628
++#define ISPCCDC_SDR_ADDR               0x480BC62C
++#define ISPCCDC_CLAMP                  0x480BC630
++#define ISPCCDC_DCSUB                  0x480BC634
++#define ISPCCDC_COLPTN                 0x480BC638
++#define ISPCCDC_BLKCMP                 0x480BC63C
++#define ISPCCDC_FPC                    0x480BC640
++#define ISPCCDC_FPC_ADDR               0x480BC644
++#define ISPCCDC_VDINT                  0x480BC648
++#define ISPCCDC_ALAW                   0x480BC64C
++#define ISPCCDC_REC656IF               0x480BC650
++#define ISPCCDC_CFG                    0x480BC654
++#define ISPCCDC_FMTCFG                 0x480BC658
++#define ISPCCDC_FMT_HORZ               0x480BC65C
++#define ISPCCDC_FMT_VERT               0x480BC660
++#define ISPCCDC_FMT_ADDR0              0x480BC664
++#define ISPCCDC_FMT_ADDR1              0x480BC668
++#define ISPCCDC_FMT_ADDR2              0x480BC66C
++#define ISPCCDC_FMT_ADDR3              0x480BC670
++#define ISPCCDC_FMT_ADDR4              0x480BC674
++#define ISPCCDC_FMT_ADDR5              0x480BC678
++#define ISPCCDC_FMT_ADDR6              0x480BC67C
++#define ISPCCDC_FMT_ADDR7              0x480BC680
++#define ISPCCDC_PRGEVEN0               0x480BC684
++#define ISPCCDC_PRGEVEN1               0x480BC688
++#define ISPCCDC_PRGODD0                        0x480BC68C
++#define ISPCCDC_PRGODD1                        0x480BC690
++#define ISPCCDC_VP_OUT                 0x480BC694
++
++#define ISPCCDC_LSC_CONFIG             0x480BC698
++#define ISPCCDC_LSC_INITIAL            0x480BC69C
++#define ISPCCDC_LSC_TABLE_BASE         0x480BC6A0
++#define ISPCCDC_LSC_TABLE_OFFSET       0x480BC6A4
++
++/* Histogram registers */
++#define ISPHIST_PID                    ISPHIST_REG(0x000)
++#define ISPHIST_PCR                    ISPHIST_REG(0x004)
++#define ISPHIST_CNT                    ISPHIST_REG(0x008)
++#define ISPHIST_WB_GAIN                        ISPHIST_REG(0x00C)
++#define ISPHIST_R0_HORZ                        ISPHIST_REG(0x010)
++#define ISPHIST_R0_VERT                        ISPHIST_REG(0x014)
++#define ISPHIST_R1_HORZ                        ISPHIST_REG(0x018)
++#define ISPHIST_R1_VERT                        ISPHIST_REG(0x01C)
++#define ISPHIST_R2_HORZ                        ISPHIST_REG(0x020)
++#define ISPHIST_R2_VERT                        ISPHIST_REG(0x024)
++#define ISPHIST_R3_HORZ                        ISPHIST_REG(0x028)
++#define ISPHIST_R3_VERT                        ISPHIST_REG(0x02C)
++#define ISPHIST_ADDR                   ISPHIST_REG(0x030)
++#define ISPHIST_DATA                   ISPHIST_REG(0x034)
++#define ISPHIST_RADD                   ISPHIST_REG(0x038)
++#define ISPHIST_RADD_OFF               ISPHIST_REG(0x03C)
++#define ISPHIST_H_V_INFO               ISPHIST_REG(0x040)
++
++/* H3A module registers */
++#define ISPH3A_PID                     ISPH3A_REG(0x000)
++#define ISPH3A_PCR                     ISPH3A_REG(0x004)
++#define ISPH3A_AEWWIN1                 ISPH3A_REG(0x04C)
++#define ISPH3A_AEWINSTART              ISPH3A_REG(0x050)
++#define ISPH3A_AEWINBLK                        ISPH3A_REG(0x054)
++#define ISPH3A_AEWSUBWIN               ISPH3A_REG(0x058)
++#define ISPH3A_AEWBUFST                        ISPH3A_REG(0x05C)
++#define ISPH3A_AFPAX1                  ISPH3A_REG(0x008)
++#define ISPH3A_AFPAX2                  ISPH3A_REG(0x00C)
++#define ISPH3A_AFPAXSTART              ISPH3A_REG(0x010)
++#define ISPH3A_AFIIRSH                 ISPH3A_REG(0x014)
++#define ISPH3A_AFBUFST                 ISPH3A_REG(0x018)
++#define ISPH3A_AFCOEF010               ISPH3A_REG(0x01C)
++#define ISPH3A_AFCOEF032               ISPH3A_REG(0x020)
++#define ISPH3A_AFCOEF054               ISPH3A_REG(0x024)
++#define ISPH3A_AFCOEF076               ISPH3A_REG(0x028)
++#define ISPH3A_AFCOEF098               ISPH3A_REG(0x02C)
++#define ISPH3A_AFCOEF0010              ISPH3A_REG(0x030)
++#define ISPH3A_AFCOEF110               ISPH3A_REG(0x034)
++#define ISPH3A_AFCOEF132               ISPH3A_REG(0x038)
++#define ISPH3A_AFCOEF154               ISPH3A_REG(0x03C)
++#define ISPH3A_AFCOEF176               ISPH3A_REG(0x040)
++#define ISPH3A_AFCOEF198               ISPH3A_REG(0x044)
++#define ISPH3A_AFCOEF1010              ISPH3A_REG(0x048)
++
++#define ISPPRV_PCR                     0x480BCE04
++#define ISPPRV_HORZ_INFO               0x480BCE08
++#define ISPPRV_VERT_INFO               0x480BCE0C
++#define ISPPRV_RSDR_ADDR               0x480BCE10
++#define ISPPRV_RADR_OFFSET             0x480BCE14
++#define ISPPRV_DSDR_ADDR               0x480BCE18
++#define ISPPRV_DRKF_OFFSET             0x480BCE1C
++#define ISPPRV_WSDR_ADDR               0x480BCE20
++#define ISPPRV_WADD_OFFSET             0x480BCE24
++#define ISPPRV_AVE                     0x480BCE28
++#define ISPPRV_HMED                    0x480BCE2C
++#define ISPPRV_NF                      0x480BCE30
++#define ISPPRV_WB_DGAIN                        0x480BCE34
++#define ISPPRV_WBGAIN                  0x480BCE38
++#define ISPPRV_WBSEL                   0x480BCE3C
++#define ISPPRV_CFA                     0x480BCE40
++#define ISPPRV_BLKADJOFF               0x480BCE44
++#define ISPPRV_RGB_MAT1                        0x480BCE48
++#define ISPPRV_RGB_MAT2                        0x480BCE4C
++#define ISPPRV_RGB_MAT3                        0x480BCE50
++#define ISPPRV_RGB_MAT4                        0x480BCE54
++#define ISPPRV_RGB_MAT5                        0x480BCE58
++#define ISPPRV_RGB_OFF1                        0x480BCE5C
++#define ISPPRV_RGB_OFF2                        0x480BCE60
++#define ISPPRV_CSC0                    0x480BCE64
++#define ISPPRV_CSC1                    0x480BCE68
++#define ISPPRV_CSC2                    0x480BCE6C
++#define ISPPRV_CSC_OFFSET              0x480BCE70
++#define ISPPRV_CNT_BRT                 0x480BCE74
++#define ISPPRV_CSUP                    0x480BCE78
++#define ISPPRV_SETUP_YC                        0x480BCE7C
++#define ISPPRV_SET_TBL_ADDR            0x480BCE80
++#define ISPPRV_SET_TBL_DATA            0x480BCE84
++#define ISPPRV_CDC_THR0                        0x480BCE90
++#define ISPPRV_CDC_THR1                        (ISPPRV_CDC_THR0 + (0x4))
++#define ISPPRV_CDC_THR2                        (ISPPRV_CDC_THR0 + (0x4) =
+* 2)
++#define ISPPRV_CDC_THR3                        (ISPPRV_CDC_THR0 + (0x4) =
+* 3)
++
++#define ISPPRV_REDGAMMA_TABLE_ADDR     0x0000
++#define ISPPRV_GREENGAMMA_TABLE_ADDR   0x0400
++#define ISPPRV_BLUEGAMMA_TABLE_ADDR    0x0800
++#define ISPPRV_NF_TABLE_ADDR           0x0C00
++#define ISPPRV_YENH_TABLE_ADDR         0x1000
++#define ISPPRV_CFA_TABLE_ADDR          0x1400
++
++#define ISPPRV_MAXOUTPUT_WIDTH         1280
++#define ISPPRV_MAXOUTPUT_WIDTH_ES2     3300
++#define ISPRSZ_MIN_OUTPUT              64
++#define ISPRSZ_MAX_OUTPUT              3312
++
++/* Resizer module register offset */
++#define ISPRSZ_PID                     0x480BD000
++#define ISPRSZ_PCR                     0x480BD004
++#define ISPRSZ_CNT                     0x480BD008
++#define ISPRSZ_OUT_SIZE                        0x480BD00C
++#define ISPRSZ_IN_START                        0x480BD010
++#define ISPRSZ_IN_SIZE                 0x480BD014
++#define ISPRSZ_SDR_INADD               0x480BD018
++#define ISPRSZ_SDR_INOFF               0x480BD01C
++#define ISPRSZ_SDR_OUTADD              0x480BD020
++#define ISPRSZ_SDR_OUTOFF              0x480BD024
++#define ISPRSZ_HFILT10                 0x480BD028
++#define ISPRSZ_HFILT32                 0x480BD02C
++#define ISPRSZ_HFILT54                 0x480BD030
++#define ISPRSZ_HFILT76                 0x480BD034
++#define ISPRSZ_HFILT98                 0x480BD038
++#define ISPRSZ_HFILT1110               0x480BD03C
++#define ISPRSZ_HFILT1312               0x480BD040
++#define ISPRSZ_HFILT1514               0x480BD044
++#define ISPRSZ_HFILT1716               0x480BD048
++#define ISPRSZ_HFILT1918               0x480BD04C
++#define ISPRSZ_HFILT2120               0x480BD050
++#define ISPRSZ_HFILT2322               0x480BD054
++#define ISPRSZ_HFILT2524               0x480BD058
++#define ISPRSZ_HFILT2726               0x480BD05C
++#define ISPRSZ_HFILT2928               0x480BD060
++#define ISPRSZ_HFILT3130               0x480BD064
++#define ISPRSZ_VFILT10                 0x480BD068
++#define ISPRSZ_VFILT32                 0x480BD06C
++#define ISPRSZ_VFILT54                 0x480BD070
++#define ISPRSZ_VFILT76                 0x480BD074
++#define ISPRSZ_VFILT98                 0x480BD078
++#define ISPRSZ_VFILT1110               0x480BD07C
++#define ISPRSZ_VFILT1312               0x480BD080
++#define ISPRSZ_VFILT1514               0x480BD084
++#define ISPRSZ_VFILT1716               0x480BD088
++#define ISPRSZ_VFILT1918               0x480BD08C
++#define ISPRSZ_VFILT2120               0x480BD090
++#define ISPRSZ_VFILT2322               0x480BD094
++#define ISPRSZ_VFILT2524               0x480BD098
++#define ISPRSZ_VFILT2726               0x480BD09C
++#define ISPRSZ_VFILT2928               0x480BD0A0
++#define ISPRSZ_VFILT3130               0x480BD0A4
++#define ISPRSZ_YENH                    0x480BD0A8
++
++/* MMU module registers */
++#define ISPMMU_REVISION                        0x480BD400
++#define ISPMMU_SYSCONFIG               0x480BD410
++#define ISPMMU_SYSSTATUS               0x480BD414
++#define ISPMMU_IRQSTATUS               0x480BD418
++#define ISPMMU_IRQENABLE               0x480BD41C
++#define ISPMMU_WALKING_ST              0x480BD440
++#define ISPMMU_CNTL                    0x480BD444
++#define ISPMMU_FAULT_AD                        0x480BD448
++#define ISPMMU_TTB                     0x480BD44C
++#define ISPMMU_LOCK                    0x480BD450
++#define ISPMMU_LD_TLB                  0x480BD454
++#define ISPMMU_CAM                     0x480BD458
++#define ISPMMU_RAM                     0x480BD45C
++#define ISPMMU_GFLUSH                  0x480BD460
++#define ISPMMU_FLUSH_ENTRY             0x480BD464
++#define ISPMMU_READ_CAM                        0x480BD468
++#define ISPMMU_READ_RAM                        0x480BD46c
++#define ISPMMU_EMU_FAULT_AD            0x480BD470
++
++#define ISP_INT_CLR                    0xFF113F11
++#define ISPPRV_PCR_EN                  1
++#define ISPPRV_PCR_BUSY                        (1 << 1)
++#define ISPPRV_PCR_SOURCE              (1 << 2)
++#define ISPPRV_PCR_ONESHOT             (1 << 3)
++#define ISPPRV_PCR_WIDTH               (1 << 4)
++#define ISPPRV_PCR_INVALAW             (1 << 5)
++#define ISPPRV_PCR_DRKFEN              (1 << 6)
++#define ISPPRV_PCR_DRKFCAP             (1 << 7)
++#define ISPPRV_PCR_HMEDEN              (1 << 8)
++#define ISPPRV_PCR_NFEN                        (1 << 9)
++#define ISPPRV_PCR_CFAEN               (1 << 10)
++#define ISPPRV_PCR_CFAFMT_SHIFT                11
++#define ISPPRV_PCR_CFAFMT_MASK         0x7800
++#define ISPPRV_PCR_CFAFMT_BAYER                (0 << 11)
++#define ISPPRV_PCR_CFAFMT_SONYVGA      (1 << 11)
++#define ISPPRV_PCR_CFAFMT_RGBFOVEON    (2 << 11)
++#define ISPPRV_PCR_CFAFMT_DNSPL                (3 << 11)
++#define ISPPRV_PCR_CFAFMT_HONEYCOMB    (4 << 11)
++#define ISPPRV_PCR_CFAFMT_RRGGBBFOVEON (5 << 11)
++#define ISPPRV_PCR_YNENHEN             (1 << 15)
++#define ISPPRV_PCR_SUPEN               (1 << 16)
++#define ISPPRV_PCR_YCPOS_SHIFT         17
++#define ISPPRV_PCR_YCPOS_YCrYCb                (0 << 17)
++#define ISPPRV_PCR_YCPOS_YCbYCr                (1 << 17)
++#define ISPPRV_PCR_YCPOS_CbYCrY                (2 << 17)
++#define ISPPRV_PCR_YCPOS_CrYCbY                (3 << 17)
++#define ISPPRV_PCR_RSZPORT             (1 << 19)
++#define ISPPRV_PCR_SDRPORT             (1 << 20)
++#define ISPPRV_PCR_SCOMP_EN            (1 << 21)
++#define ISPPRV_PCR_SCOMP_SFT_SHIFT     (22)
++#define ISPPRV_PCR_SCOMP_SFT_MASK      (~(7 << 22))
++#define ISPPRV_PCR_GAMMA_BYPASS                (1 << 26)
++#define ISPPRV_PCR_DCOREN              (1 << 27)
++#define ISPPRV_PCR_DCCOUP              (1 << 28)
++#define ISPPRV_PCR_DRK_FAIL            (1 << 31)
++
++#define ISPPRV_HORZ_INFO_EPH_SHIFT     0
++#define ISPPRV_HORZ_INFO_EPH_MASK      0x3fff
++#define ISPPRV_HORZ_INFO_SPH_SHIFT     16
++#define ISPPRV_HORZ_INFO_SPH_MASK      0x3fff0
++
++#define ISPPRV_VERT_INFO_ELV_SHIFT     0
++#define ISPPRV_VERT_INFO_ELV_MASK      0x3fff
++#define ISPPRV_VERT_INFO_SLV_SHIFT     16
++#define ISPPRV_VERT_INFO_SLV_MASK      0x3fff0
++
++#define ISPPRV_AVE_EVENDIST_SHIFT      2
++#define ISPPRV_AVE_EVENDIST_1          0x0
++#define ISPPRV_AVE_EVENDIST_2          0x1
++#define ISPPRV_AVE_EVENDIST_3          0x2
++#define ISPPRV_AVE_EVENDIST_4          0x3
++#define ISPPRV_AVE_ODDDIST_SHIFT       4
++#define ISPPRV_AVE_ODDDIST_1           0x0
++#define ISPPRV_AVE_ODDDIST_2           0x1
++#define ISPPRV_AVE_ODDDIST_3           0x2
++#define ISPPRV_AVE_ODDDIST_4           0x3
++
++#define ISPPRV_HMED_THRESHOLD_SHIFT    0
++#define ISPPRV_HMED_EVENDIST           (1 << 8)
++#define ISPPRV_HMED_ODDDIST            (1 << 9)
++
++#define ISPPRV_WBGAIN_COEF0_SHIFT      0
++#define ISPPRV_WBGAIN_COEF1_SHIFT      8
++#define ISPPRV_WBGAIN_COEF2_SHIFT      16
++#define ISPPRV_WBGAIN_COEF3_SHIFT      24
++
++#define ISPPRV_WBSEL_COEF0             0x0
++#define ISPPRV_WBSEL_COEF1             0x1
++#define ISPPRV_WBSEL_COEF2             0x2
++#define ISPPRV_WBSEL_COEF3             0x3
++
++#define ISPPRV_WBSEL_N0_0_SHIFT                0
++#define ISPPRV_WBSEL_N0_1_SHIFT                2
++#define ISPPRV_WBSEL_N0_2_SHIFT                4
++#define ISPPRV_WBSEL_N0_3_SHIFT                6
++#define ISPPRV_WBSEL_N1_0_SHIFT                8
++#define ISPPRV_WBSEL_N1_1_SHIFT                10
++#define ISPPRV_WBSEL_N1_2_SHIFT                12
++#define ISPPRV_WBSEL_N1_3_SHIFT                14
++#define ISPPRV_WBSEL_N2_0_SHIFT                16
++#define ISPPRV_WBSEL_N2_1_SHIFT                18
++#define ISPPRV_WBSEL_N2_2_SHIFT                20
++#define ISPPRV_WBSEL_N2_3_SHIFT                22
++#define ISPPRV_WBSEL_N3_0_SHIFT                24
++#define ISPPRV_WBSEL_N3_1_SHIFT                26
++#define ISPPRV_WBSEL_N3_2_SHIFT                28
++#define ISPPRV_WBSEL_N3_3_SHIFT                30
++
++#define ISPPRV_CFA_GRADTH_HOR_SHIFT    0
++#define ISPPRV_CFA_GRADTH_VER_SHIFT    8
++
++#define ISPPRV_BLKADJOFF_B_SHIFT       0
++#define ISPPRV_BLKADJOFF_G_SHIFT       8
++#define ISPPRV_BLKADJOFF_R_SHIFT       16
++
++#define ISPPRV_RGB_MAT1_MTX_RR_SHIFT   0
++#define ISPPRV_RGB_MAT1_MTX_GR_SHIFT   16
++
++#define ISPPRV_RGB_MAT2_MTX_BR_SHIFT   0
++#define ISPPRV_RGB_MAT2_MTX_RG_SHIFT   16
++
++#define ISPPRV_RGB_MAT3_MTX_GG_SHIFT   0
++#define ISPPRV_RGB_MAT3_MTX_BG_SHIFT   16
++
++#define ISPPRV_RGB_MAT4_MTX_RB_SHIFT   0
++#define ISPPRV_RGB_MAT4_MTX_GB_SHIFT   16
++
++#define ISPPRV_RGB_MAT5_MTX_BB_SHIFT   0
++
++#define ISPPRV_RGB_OFF1_MTX_OFFG_SHIFT 0
++#define ISPPRV_RGB_OFF1_MTX_OFFR_SHIFT 16
++
++#define ISPPRV_RGB_OFF2_MTX_OFFB_SHIFT 0
++
++#define ISPPRV_CSC0_RY_SHIFT           0
++#define ISPPRV_CSC0_GY_SHIFT           10
++#define ISPPRV_CSC0_BY_SHIFT           20
++
++#define ISPPRV_CSC1_RCB_SHIFT          0
++#define ISPPRV_CSC1_GCB_SHIFT          10
++#define ISPPRV_CSC1_BCB_SHIFT          20
++
++#define ISPPRV_CSC2_RCR_SHIFT          0
++#define ISPPRV_CSC2_GCR_SHIFT          10
++#define ISPPRV_CSC2_BCR_SHIFT          20
++
++#define ISPPRV_CSC_OFFSET_CR_SHIFT     0
++#define ISPPRV_CSC_OFFSET_CB_SHIFT     8
++#define ISPPRV_CSC_OFFSET_Y_SHIFT      16
++
++#define ISPPRV_CNT_BRT_BRT_SHIFT       0
++#define ISPPRV_CNT_BRT_CNT_SHIFT       8
++
++#define ISPPRV_CONTRAST_MAX            0x10
++#define ISPPRV_CONTRAST_MIN            0xFF
++#define ISPPRV_BRIGHT_MIN              0x00
++#define ISPPRV_BRIGHT_MAX              0xFF
++
++#define ISPPRV_CSUP_CSUPG_SHIFT                0
++#define ISPPRV_CSUP_THRES_SHIFT                8
++#define ISPPRV_CSUP_HPYF_SHIFT         16
++
++#define ISPPRV_SETUP_YC_MINC_SHIFT     0
++#define ISPPRV_SETUP_YC_MAXC_SHIFT     8
++#define ISPPRV_SETUP_YC_MINY_SHIFT     16
++#define ISPPRV_SETUP_YC_MAXY_SHIFT     24
++#define ISPPRV_YC_MAX                  0xFF
++#define ISPPRV_YC_MIN                  0x0
++
++/* Define bit fields within selected registers */
++#define ISP_REVISION_SHIFT                     0
++
++#define ISP_SYSCONFIG_AUTOIDLE                 0
++#define ISP_SYSCONFIG_SOFTRESET                        (1 << 1)
++#define ISP_SYSCONFIG_MIDLEMODE_SHIFT          12
++#define ISP_SYSCONFIG_MIDLEMODE_FORCESTANDBY   0x0
++#define ISP_SYSCONFIG_MIDLEMODE_NOSTANBY       0x1
++#define ISP_SYSCONFIG_MIDLEMODE_SMARTSTANDBY   0x2
++
++#define ISP_SYSSTATUS_RESETDONE                        0
++
++#define IRQ0ENABLE_CSIA_IRQ                    1
++#define IRQ0ENABLE_CSIA_LC1_IRQ                        (1 << 1)
++#define IRQ0ENABLE_CSIA_LC2_IRQ                        (1 << 2)
++#define IRQ0ENABLE_CSIA_LC3_IRQ                        (1 << 3)
++#define IRQ0ENABLE_CSIB_IRQ                    (1 << 4)
++#define IRQ0ENABLE_CSIB_LC1_IRQ                        (1 << 5)
++#define IRQ0ENABLE_CSIB_LC2_IRQ                        (1 << 6)
++#define IRQ0ENABLE_CSIB_LC3_IRQ                        (1 << 7)
++#define IRQ0ENABLE_CCDC_VD0_IRQ                        (1 << 8)
++#define IRQ0ENABLE_CCDC_VD1_IRQ                        (1 << 9)
++#define IRQ0ENABLE_CCDC_VD2_IRQ                        (1 << 10)
++#define IRQ0ENABLE_CCDC_ERR_IRQ                        (1 << 11)
++#define IRQ0ENABLE_H3A_AF_DONE_IRQ             (1 << 12)
++#define IRQ0ENABLE_H3A_AWB_DONE_IRQ            (1 << 13)
++#define IRQ0ENABLE_HIST_DONE_IRQ               (1 << 16)
++#define IRQ0ENABLE_CCDC_LSC_DONE_IRQ           (1 << 17)
++#define IRQ0ENABLE_CCDC_LSC_PREF_COMP_IRQ      (1 << 18)
++#define IRQ0ENABLE_CCDC_LSC_PREF_ERR_IRQ       (1 << 19)
++#define IRQ0ENABLE_PRV_DONE_IRQ                        (1 << 20)
++#define IRQ0ENABLE_RSZ_DONE_IRQ                        (1 << 24)
++#define IRQ0ENABLE_OVF_IRQ                     (1 << 25)
++#define IRQ0ENABLE_PING_IRQ                    (1 << 26)
++#define IRQ0ENABLE_PONG_IRQ                    (1 << 27)
++#define IRQ0ENABLE_MMU_ERR_IRQ                 (1 << 28)
++#define IRQ0ENABLE_OCP_ERR_IRQ                 (1 << 29)
++#define IRQ0ENABLE_SEC_ERR_IRQ                 (1 << 30)
++#define IRQ0ENABLE_HS_VS_IRQ                   (1 << 31)
++
++#define IRQ0STATUS_CSIA_IRQ                    1
++#define IRQ0STATUS_CSIA_LC1_IRQ                        (1 << 1)
++#define IRQ0STATUS_CSIA_LC2_IRQ                        (1 << 2)
++#define IRQ0STATUS_CSIA_LC3_IRQ                        (1 << 3)
++#define IRQ0STATUS_CSIB_IRQ                    (1 << 4)
++#define IRQ0STATUS_CSIB_LC1_IRQ                        (1 << 5)
++#define IRQ0STATUS_CSIB_LC2_IRQ                        (1 << 6)
++#define IRQ0STATUS_CSIB_LC3_IRQ                        (1 << 7)
++#define IRQ0STATUS_CCDC_VD0_IRQ                        (1 << 8)
++#define IRQ0STATUS_CCDC_VD1_IRQ                        (1 << 9)
++#define IRQ0STATUS_CCDC_VD2_IRQ                        (1 << 10)
++#define IRQ0STATUS_CCDC_ERR_IRQ                        (1 << 11)
++#define IRQ0STATUS_H3A_AF_DONE_IRQ             (1 << 12)
++#define IRQ0STATUS_H3A_AWB_DONE_IRQ            (1 << 13)
++#define IRQ0STATUS_HIST_DONE_IRQ               (1 << 16)
++#define IRQ0STATUS_PRV_DONE_IRQ                        (1 << 20)
++#define IRQ0STATUS_RSZ_DONE_IRQ                        (1 << 24)
++#define IRQ0STATUS_OVF_IRQ                     (1 << 25)
++#define IRQ0STATUS_PING_IRQ                    (1 << 26)
++#define IRQ0STATUS_PONG_IRQ                    (1 << 27)
++#define IRQ0STATUS_MMU_ERR_IRQ                 (1 << 28)
++#define IRQ0STATUS_OCP_ERR_IRQ                 (1 << 29)
++#define IRQ0STATUS_SEC_ERR_IRQ                 (1 << 30)
++#define IRQ0STATUS_HS_VS_IRQ                   (1 << 31)
++
++#define TCTRL_GRESET_LEN                       0
++
++#define TCTRL_PSTRB_REPLAY_DELAY               0
++#define TCTRL_PSTRB_REPLAY_COUNTER_SHIFT       25
++
++#define ISPCTRL_PAR_SER_CLK_SEL_PARALLEL       0x0
++#define ISPCTRL_PAR_SER_CLK_SEL_CSIA           0x1
++#define ISPCTRL_PAR_SER_CLK_SEL_CSIB           0x2
++#define ISPCTRL_PAR_SER_CLK_SEL_MASK           0xFFFFFFFC
++
++#define ISPCTRL_PAR_BRIDGE_SHIFT               2
++#define ISPCTRL_PAR_BRIDGE_DISABLE             (0x0 << 2)
++#define ISPCTRL_PAR_BRIDGE_LENDIAN             (0x2 << 2)
++#define ISPCTRL_PAR_BRIDGE_BENDIAN             (0x3 << 2)
++
++#define ISPCTRL_PAR_CLK_POL_SHIFT              4
++#define ISPCTRL_PAR_CLK_POL_INV                        (1 << 4)
++#define ISPCTRL_PING_PONG_EN                   (1 << 5)
++#define ISPCTRL_SHIFT_SHIFT                    6
++#define ISPCTRL_SHIFT_0                                (0x0 << 6)
++#define ISPCTRL_SHIFT_2                                (0x1 << 6)
++#define ISPCTRL_SHIFT_4                                (0x2 << 6)
++#define ISPCTRL_SHIFT_MASK                     (~(0x3 << 6))
++
++#define ISPCTRL_CCDC_CLK_EN                    (1 << 8)
++#define ISPCTRL_SCMP_CLK_EN                    (1 << 9)
++#define ISPCTRL_H3A_CLK_EN                     (1 << 10)
++#define ISPCTRL_HIST_CLK_EN                    (1 << 11)
++#define ISPCTRL_PREV_CLK_EN                    (1 << 12)
++#define ISPCTRL_RSZ_CLK_EN                     (1 << 13)
++#define ISPCTRL_SYNC_DETECT_SHIFT              14
++#define ISPCTRL_SYNC_DETECT_HSFALL     (0x0 << ISPCTRL_SYNC_DETECT_SHIFT=
+)
++#define ISPCTRL_SYNC_DETECT_HSRISE     (0x1 << ISPCTRL_SYNC_DETECT_SHIFT=
+)
++#define ISPCTRL_SYNC_DETECT_VSFALL     (0x2 << ISPCTRL_SYNC_DETECT_SHIFT=
+)
++#define ISPCTRL_SYNC_DETECT_VSRISE     (0x3 << ISPCTRL_SYNC_DETECT_SHIFT=
+)
++#define ISPCTRL_SYNC_DETECT_MASK       (0x3 << ISPCTRL_SYNC_DETECT_SHIFT=
+)
++
++#define ISPCTRL_CCDC_RAM_EN            (1 << 16)
++#define ISPCTRL_PREV_RAM_EN            (1 << 17)
++#define ISPCTRL_SBL_RD_RAM_EN          (1 << 18)
++#define ISPCTRL_SBL_WR1_RAM_EN         (1 << 19)
++#define ISPCTRL_SBL_WR0_RAM_EN         (1 << 20)
++#define ISPCTRL_SBL_AUTOIDLE           (1 << 21)
++#define ISPCTRL_SBL_SHARED_RPORTB      (1 << 28)
++#define ISPCTRL_JPEG_FLUSH             (1 << 30)
++#define ISPCTRL_CCDC_FLUSH             (1 << 31)
++
++#define ISPSECURE_SECUREMODE           0
++
++#define ISPTCTRL_CTRL_DIV_LOW          0x0
++#define ISPTCTRL_CTRL_DIV_HIGH         0x1
++#define ISPTCTRL_CTRL_DIV_BYPASS       0x1F
++
++#define ISPTCTRL_CTRL_DIVA_SHIFT       0
++#define ISPTCTRL_CTRL_DIVA_MASK                (0x1F << ISPTCTRL_CTRL_DI=
+VA_SHIFT)
++
++#define ISPTCTRL_CTRL_DIVB_SHIFT       5
++#define ISPTCTRL_CTRL_DIVB_MASK                (0x1F << ISPTCTRL_CTRL_DI=
+VB_SHIFT)
++
++#define ISPTCTRL_CTRL_DIVC_SHIFT       10
++#define ISPTCTRL_CTRL_DIVC_NOCLOCK     (0x0 << 10)
++
++#define ISPTCTRL_CTRL_SHUTEN           (1 << 21)
++#define ISPTCTRL_CTRL_PSTRBEN          (1 << 22)
++#define ISPTCTRL_CTRL_STRBEN           (1 << 23)
++#define ISPTCTRL_CTRL_SHUTPOL          (1 << 24)
++#define ISPTCTRL_CTRL_STRBPSTRBPOL     (1 << 26)
++
++#define ISPTCTRL_CTRL_INSEL_SHIFT      27
++#define ISPTCTRL_CTRL_INSEL_PARALLEL   (0x0 << 27)
++#define ISPTCTRL_CTRL_INSEL_CSIA       (0x1 << 27)
++#define ISPTCTRL_CTRL_INSEL_CSIB       (0x2 << 27)
++
++#define ISPTCTRL_CTRL_GRESETEn         (1 << 29)
++#define ISPTCTRL_CTRL_GRESETPOL                (1 << 30)
++#define ISPTCTRL_CTRL_GRESETDIR                (1 << 31)
++
++#define ISPTCTRL_FRAME_SHUT_SHIFT              0
++#define ISPTCTRL_FRAME_PSTRB_SHIFT             6
++#define ISPTCTRL_FRAME_STRB_SHIFT              12
++
++#define ISPCCDC_PID_PREV_SHIFT                 0
++#define ISPCCDC_PID_CID_SHIFT                  8
++#define ISPCCDC_PID_TID_SHIFT                  16
++
++#define ISPCCDC_PCR_EN                         1
++#define ISPCCDC_PCR_BUSY                       (1 << 1)
++
++#define ISPCCDC_SYN_MODE_VDHDOUT               0x1
++#define ISPCCDC_SYN_MODE_FLDOUT                        (1 << 1)
++#define ISPCCDC_SYN_MODE_VDPOL                 (1 << 2)
++#define ISPCCDC_SYN_MODE_HDPOL                 (1 << 3)
++#define ISPCCDC_SYN_MODE_FLDPOL                        (1 << 4)
++#define ISPCCDC_SYN_MODE_EXWEN                 (1 << 5)
++#define ISPCCDC_SYN_MODE_DATAPOL               (1 << 6)
++#define ISPCCDC_SYN_MODE_FLDMODE               (1 << 7)
++#define ISPCCDC_SYN_MODE_DATSIZ_MASK           0xFFFFF8FF
++#define ISPCCDC_SYN_MODE_DATSIZ_8_16           (0x0 << 8)
++#define ISPCCDC_SYN_MODE_DATSIZ_12             (0x4 << 8)
++#define ISPCCDC_SYN_MODE_DATSIZ_11             (0x5 << 8)
++#define ISPCCDC_SYN_MODE_DATSIZ_10             (0x6 << 8)
++#define ISPCCDC_SYN_MODE_DATSIZ_8              (0x7 << 8)
++#define ISPCCDC_SYN_MODE_PACK8                 (1 << 11)
++#define ISPCCDC_SYN_MODE_INPMOD_MASK           0xFFFFCFFF
++#define ISPCCDC_SYN_MODE_INPMOD_RAW            (0 << 12)
++#define ISPCCDC_SYN_MODE_INPMOD_YCBCR16                (1 << 12)
++#define ISPCCDC_SYN_MODE_INPMOD_YCBCR8         (2 << 12)
++#define ISPCCDC_SYN_MODE_LPF                   (1 << 14)
++#define ISPCCDC_SYN_MODE_FLDSTAT               (1 << 15)
++#define ISPCCDC_SYN_MODE_VDHDEN                        (1 << 16)
++#define ISPCCDC_SYN_MODE_WEN                   (1 << 17)
++#define ISPCCDC_SYN_MODE_VP2SDR                        (1 << 18)
++#define ISPCCDC_SYN_MODE_SDR2RSZ               (1 << 19)
++
++#define ISPCCDC_HD_VD_WID_VDW_SHIFT            0
++#define ISPCCDC_HD_VD_WID_HDW_SHIFT            16
++
++#define ISPCCDC_PIX_LINES_HLPRF_SHIFT          0
++#define ISPCCDC_PIX_LINES_PPLN_SHIFT           16
++
++#define ISPCCDC_HORZ_INFO_NPH_SHIFT            0
++#define ISPCCDC_HORZ_INFO_NPH_MASK             0xFFFF8000
++#define ISPCCDC_HORZ_INFO_SPH_MASK             0x1000FFFF
++#define ISPCCDC_HORZ_INFO_SPH_SHIFT            16
++
++#define ISPCCDC_VERT_START_SLV0_SHIFT          16
++#define ISPCCDC_VERT_START_SLV0_MASK           0x1000FFFF
++#define ISPCCDC_VERT_START_SLV1_SHIFT          0
++
++#define ISPCCDC_VERT_LINES_NLV_MASK            0xFFFF8000
++#define ISPCCDC_VERT_LINES_NLV_SHIFT           0
++
++#define ISPCCDC_CULLING_CULV_SHIFT             0
++#define ISPCCDC_CULLING_CULHODD_SHIFT          16
++#define ISPCCDC_CULLING_CULHEVN_SHIFT          24
++
++#define ISPCCDC_HSIZE_OFF_SHIFT                        0
++
++#define ISPCCDC_SDOFST_FINV                    (1 << 14)
++#define ISPCCDC_SDOFST_FOFST_1L                        (~(3 << 12))
++#define ISPCCDC_SDOFST_FOFST_4L                        (3 << 12)
++#define ISPCCDC_SDOFST_LOFST3_SHIFT            0
++#define ISPCCDC_SDOFST_LOFST2_SHIFT            3
++#define ISPCCDC_SDOFST_LOFST1_SHIFT            6
++#define ISPCCDC_SDOFST_LOFST0_SHIFT            9
++#define EVENEVEN                               1
++#define ODDEVEN                                        2
++#define EVENODD                                        3
++#define ODDODD                                 4
++
++#define ISPCCDC_CLAMP_OBGAIN_SHIFT             0
++#define ISPCCDC_CLAMP_OBST_SHIFT               10
++#define ISPCCDC_CLAMP_OBSLN_SHIFT              25
++#define ISPCCDC_CLAMP_OBSLEN_SHIFT             28
++#define ISPCCDC_CLAMP_CLAMPEN                  (1 << 31)
++
++#define ISPCCDC_COLPTN_R_Ye                    0x0
++#define ISPCCDC_COLPTN_Gr_Cy                   0x1
++#define ISPCCDC_COLPTN_Gb_G                    0x2
++#define ISPCCDC_COLPTN_B_Mg                    0x3
++#define ISPCCDC_COLPTN_CP0PLC0_SHIFT           0
++#define ISPCCDC_COLPTN_CP0PLC1_SHIFT           2
++#define ISPCCDC_COLPTN_CP0PLC2_SHIFT           4
++#define ISPCCDC_COLPTN_CP0PLC3_SHIFT           6
++#define ISPCCDC_COLPTN_CP1PLC0_SHIFT           8
++#define ISPCCDC_COLPTN_CP1PLC1_SHIFT           10
++#define ISPCCDC_COLPTN_CP1PLC2_SHIFT           12
++#define ISPCCDC_COLPTN_CP1PLC3_SHIFT           14
++#define ISPCCDC_COLPTN_CP2PLC0_SHIFT           16
++#define ISPCCDC_COLPTN_CP2PLC1_SHIFT           18
++#define ISPCCDC_COLPTN_CP2PLC2_SHIFT           20
++#define ISPCCDC_COLPTN_CP2PLC3_SHIFT           22
++#define ISPCCDC_COLPTN_CP3PLC0_SHIFT           24
++#define ISPCCDC_COLPTN_CP3PLC1_SHIFT           26
++#define ISPCCDC_COLPTN_CP3PLC2_SHIFT           28
++#define ISPCCDC_COLPTN_CP3PLC3_SHIFT           30
++
++#define ISPCCDC_BLKCMP_B_MG_SHIFT              0
++#define ISPCCDC_BLKCMP_GB_G_SHIFT              8
++#define ISPCCDC_BLKCMP_GR_CY_SHIFT             16
++#define ISPCCDC_BLKCMP_R_YE_SHIFT              24
++
++#define ISPCCDC_FPC_FPNUM_SHIFT                        0
++#define ISPCCDC_FPC_FPCEN                      (1 << 15)
++#define ISPCCDC_FPC_FPERR                      (1 << 16)
++
++#define ISPCCDC_VDINT_1_SHIFT                  0
++#define ISPCCDC_VDINT_0_SHIFT                  16
++#define ISPCCDC_VDINT_0_MASK                   0x7FFF
++#define ISPCCDC_VDINT_1_MASK                   0x7FFF
++
++#define ISPCCDC_ALAW_GWDI_SHIFT                        0
++#define ISPCCDC_ALAW_CCDTBL                    (1 << 3)
++
++#define ISPCCDC_REC656IF_R656ON                        1
++#define ISPCCDC_REC656IF_ECCFVH                        (1 << 1)
++
++#define ISPCCDC_CFG_BW656                      (1 << 5)
++#define ISPCCDC_CFG_FIDMD_SHIFT                        6
++#define ISPCCDC_CFG_WENLOG                     (1 << 8)
++#define ISPCCDC_CFG_WENLOG_AND                 (0 << 8)
++#define ISPCCDC_CFG_WENLOG_OR          (1 << 8)
++#define ISPCCDC_CFG_Y8POS                      (1 << 11)
++#define ISPCCDC_CFG_BSWD                       (1 << 12)
++#define ISPCCDC_CFG_MSBINVI                    (1 << 13)
++#define ISPCCDC_CFG_VDLC                       (1 << 15)
++
++#define ISPCCDC_FMTCFG_FMTEN                   0x1
++#define ISPCCDC_FMTCFG_LNALT                   (1 << 1)
++#define ISPCCDC_FMTCFG_LNUM_SHIFT              2
++#define ISPCCDC_FMTCFG_PLEN_ODD_SHIFT          4
++#define ISPCCDC_FMTCFG_PLEN_EVEN_SHIFT         8
++#define ISPCCDC_FMTCFG_VPIN_MASK               0xFFFF8000
++#define ISPCCDC_FMTCFG_VPIN_12_3               (0x3 << 12)
++#define ISPCCDC_FMTCFG_VPIN_11_2               (0x4 << 12)
++#define ISPCCDC_FMTCFG_VPIN_10_1               (0x5 << 12)
++#define ISPCCDC_FMTCFG_VPIN_9_0                        (0x6 << 12)
++#define ISPCCDC_FMTCFG_VPEN                    (1 << 15)
++
++#define ISPCCDC_FMTCF_VPIF_FRQ_MASK            0xFFF8FFFF
++#define ISPCCDC_FMTCF_VPIF_FRQ_BY2             (0x0 << 16)
++#define ISPCCDC_FMTCF_VPIF_FRQ_BY3             (0x1 << 16)
++#define ISPCCDC_FMTCF_VPIF_FRQ_BY4             (0x2 << 16)
++#define ISPCCDC_FMTCF_VPIF_FRQ_BY5             (0x3 << 16)
++#define ISPCCDC_FMTCF_VPIF_FRQ_BY6             (0x4 << 16)
++
++#define ISPCCDC_FMT_HORZ_FMTLNH_SHIFT          0
++#define ISPCCDC_FMT_HORZ_FMTSPH_SHIFT          16
++
++#define ISPCCDC_FMT_VERT_FMTLNV_SHIFT          0
++#define ISPCCDC_FMT_VERT_FMTSLV_SHIFT          16
++
++#define ISPCCDC_FMT_HORZ_FMTSPH_MASK           0x1FFF0000
++#define ISPCCDC_FMT_HORZ_FMTLNH_MASK           0x1FFF
++
++#define ISPCCDC_FMT_VERT_FMTSLV_MASK           0x1FFF0000
++#define ISPCCDC_FMT_VERT_FMTLNV_MASK           0x1FFF
++
++#define ISPCCDC_VP_OUT_HORZ_ST_SHIFT           0
++#define ISPCCDC_VP_OUT_HORZ_NUM_SHIFT          4
++#define ISPCCDC_VP_OUT_VERT_NUM_SHIFT          17
++
++#define ISPRSZ_PID_PREV_SHIFT                  0
++#define ISPRSZ_PID_CID_SHIFT                   8
++#define ISPRSZ_PID_TID_SHIFT                   16
++
++#define ISPRSZ_PCR_ENABLE                      0x5
++#define ISPRSZ_PCR_BUSY                                (1 << 1)
++
++#define ISPRSZ_CNT_HRSZ_SHIFT                  0
++#define ISPRSZ_CNT_HRSZ_MASK                   0x3FF
++#define ISPRSZ_CNT_VRSZ_SHIFT                  10
++#define ISPRSZ_CNT_VRSZ_MASK                   0xFFC00
++#define ISPRSZ_CNT_HSTPH_SHIFT                 20
++#define ISPRSZ_CNT_HSTPH_MASK                  0x700000
++#define ISPRSZ_CNT_VSTPH_SHIFT                 23
++#define        ISPRSZ_CNT_VSTPH_MASK                   0x3800000
++#define        ISPRSZ_CNT_CBILIN_MASK                  0x20000000
++#define        ISPRSZ_CNT_INPTYP_MASK                  0x08000000
++#define        ISPRSZ_CNT_PIXFMT_MASK                  0x04000000
++#define ISPRSZ_CNT_YCPOS                       (1 << 26)
++#define ISPRSZ_CNT_INPTYP                      (1 << 27)
++#define ISPRSZ_CNT_INPSRC                      (1 << 28)
++#define ISPRSZ_CNT_CBILIN                      (1 << 29)
++
++#define ISPRSZ_OUT_SIZE_HORZ_SHIFT             0
++#define ISPRSZ_OUT_SIZE_HORZ_MASK              0x7FF
++#define ISPRSZ_OUT_SIZE_VERT_SHIFT             16
++#define ISPRSZ_OUT_SIZE_VERT_MASK              0x7FF0000
++
++
++#define ISPRSZ_IN_START_HORZ_ST_SHIFT          0
++#define ISPRSZ_IN_START_HORZ_ST_MASK           0x1FFF
++#define ISPRSZ_IN_START_VERT_ST_SHIFT          16
++#define ISPRSZ_IN_START_VERT_ST_MASK           0x1FFF0000
++
++
++#define ISPRSZ_IN_SIZE_HORZ_SHIFT              0
++#define ISPRSZ_IN_SIZE_HORZ_MASK               0x1FFF
++#define ISPRSZ_IN_SIZE_VERT_SHIFT              16
++#define ISPRSZ_IN_SIZE_VERT_MASK               0x1FFF0000
++
++#define ISPRSZ_SDR_INADD_ADDR_SHIFT            0
++#define ISPRSZ_SDR_INADD_ADDR_MASK             0xFFFFFFFF
++
++#define ISPRSZ_SDR_INOFF_OFFSET_SHIFT          0
++#define ISPRSZ_SDR_INOFF_OFFSET_MASK           0xFFFF
++
++#define ISPRSZ_SDR_OUTADD_ADDR_SHIFT           0
++#define ISPRSZ_SDR_OUTADD_ADDR_MASK            0xFFFFFFFF
++
++
++#define ISPRSZ_SDR_OUTOFF_OFFSET_SHIFT         0
++#define ISPRSZ_SDR_OUTOFF_OFFSET_MASK          0xFFFF
++
++#define ISPRSZ_HFILT10_COEF0_SHIFT             0
++#define ISPRSZ_HFILT10_COEF0_MASK              0x3FF
++#define ISPRSZ_HFILT10_COEF1_SHIFT             16
++#define ISPRSZ_HFILT10_COEF1_MASK              0x3FF0000
++
++#define ISPRSZ_HFILT32_COEF2_SHIFT             0
++#define ISPRSZ_HFILT32_COEF2_MASK              0x3FF
++#define ISPRSZ_HFILT32_COEF3_SHIFT             16
++#define ISPRSZ_HFILT32_COEF3_MASK              0x3FF0000
++
++#define ISPRSZ_HFILT54_COEF4_SHIFT             0
++#define ISPRSZ_HFILT54_COEF4_MASK              0x3FF
++#define ISPRSZ_HFILT54_COEF5_SHIFT             16
++#define ISPRSZ_HFILT54_COEF5_MASK              0x3FF0000
++
++#define ISPRSZ_HFILT76_COEFF6_SHIFT            0
++#define ISPRSZ_HFILT76_COEFF6_MASK             0x3FF
++#define ISPRSZ_HFILT76_COEFF7_SHIFT            16
++#define ISPRSZ_HFILT76_COEFF7_MASK             0x3FF0000
++
++#define ISPRSZ_HFILT98_COEFF8_SHIFT            0
++#define ISPRSZ_HFILT98_COEFF8_MASK             0x3FF
++#define ISPRSZ_HFILT98_COEFF9_SHIFT            16
++#define ISPRSZ_HFILT98_COEFF9_MASK             0x3FF0000
++
++#define ISPRSZ_HFILT1110_COEF10_SHIFT          0
++#define ISPRSZ_HFILT1110_COEF10_MASK           0x3FF
++#define ISPRSZ_HFILT1110_COEF11_SHIFT          16
++#define ISPRSZ_HFILT1110_COEF11_MASK           0x3FF0000
++
++#define ISPRSZ_HFILT1312_COEFF12_SHIFT         0
++#define ISPRSZ_HFILT1312_COEFF12_MASK          0x3FF
++#define ISPRSZ_HFILT1312_COEFF13_SHIFT         16
++#define ISPRSZ_HFILT1312_COEFF13_MASK          0x3FF0000
++
++#define ISPRSZ_HFILT1514_COEFF14_SHIFT         0
++#define ISPRSZ_HFILT1514_COEFF14_MASK          0x3FF
++#define ISPRSZ_HFILT1514_COEFF15_SHIFT         16
++#define ISPRSZ_HFILT1514_COEFF15_MASK          0x3FF0000
++
++#define ISPRSZ_HFILT1716_COEF16_SHIFT          0
++#define ISPRSZ_HFILT1716_COEF16_MASK           0x3FF
++#define ISPRSZ_HFILT1716_COEF17_SHIFT          16
++#define ISPRSZ_HFILT1716_COEF17_MASK           0x3FF0000
++
++#define ISPRSZ_HFILT1918_COEF18_SHIFT          0
++#define ISPRSZ_HFILT1918_COEF18_MASK           0x3FF
++#define ISPRSZ_HFILT1918_COEF19_SHIFT          16
++#define ISPRSZ_HFILT1918_COEF19_MASK           0x3FF0000
++
++#define ISPRSZ_HFILT2120_COEF20_SHIFT          0
++#define ISPRSZ_HFILT2120_COEF20_MASK           0x3FF
++#define ISPRSZ_HFILT2120_COEF21_SHIFT          16
++#define ISPRSZ_HFILT2120_COEF21_MASK           0x3FF0000
++
++#define ISPRSZ_HFILT2322_COEF22_SHIFT          0
++#define ISPRSZ_HFILT2322_COEF22_MASK           0x3FF
++#define ISPRSZ_HFILT2322_COEF23_SHIFT          16
++#define ISPRSZ_HFILT2322_COEF23_MASK           0x3FF0000
++
++#define ISPRSZ_HFILT2524_COEF24_SHIFT          0
++#define ISPRSZ_HFILT2524_COEF24_MASK           0x3FF
++#define ISPRSZ_HFILT2524_COEF25_SHIFT          16
++#define ISPRSZ_HFILT2524_COEF25_MASK           0x3FF0000
++
++#define ISPRSZ_HFILT2726_COEF26_SHIFT          0
++#define ISPRSZ_HFILT2726_COEF26_MASK           0x3FF
++#define ISPRSZ_HFILT2726_COEF27_SHIFT          16
++#define ISPRSZ_HFILT2726_COEF27_MASK           0x3FF0000
++
++#define ISPRSZ_HFILT2928_COEF28_SHIFT          0
++#define ISPRSZ_HFILT2928_COEF28_MASK           0x3FF
++#define ISPRSZ_HFILT2928_COEF29_SHIFT          16
++#define ISPRSZ_HFILT2928_COEF29_MASK           0x3FF0000
++
++#define ISPRSZ_HFILT3130_COEF30_SHIFT          0
++#define ISPRSZ_HFILT3130_COEF30_MASK           0x3FF
++#define ISPRSZ_HFILT3130_COEF31_SHIFT          16
++#define ISPRSZ_HFILT3130_COEF31_MASK           0x3FF0000
++
++#define ISPRSZ_VFILT10_COEF0_SHIFT             0
++#define ISPRSZ_VFILT10_COEF0_MASK              0x3FF
++#define ISPRSZ_VFILT10_COEF1_SHIFT             16
++#define ISPRSZ_VFILT10_COEF1_MASK              0x3FF0000
++
++#define ISPRSZ_VFILT32_COEF2_SHIFT             0
++#define ISPRSZ_VFILT32_COEF2_MASK              0x3FF
++#define ISPRSZ_VFILT32_COEF3_SHIFT             16
++#define ISPRSZ_VFILT32_COEF3_MASK              0x3FF0000
++
++#define ISPRSZ_VFILT54_COEF4_SHIFT             0
++#define ISPRSZ_VFILT54_COEF4_MASK              0x3FF
++#define ISPRSZ_VFILT54_COEF5_SHIFT             16
++#define ISPRSZ_VFILT54_COEF5_MASK              0x3FF0000
++
++#define ISPRSZ_VFILT76_COEFF6_SHIFT            0
++#define ISPRSZ_VFILT76_COEFF6_MASK             0x3FF
++#define ISPRSZ_VFILT76_COEFF7_SHIFT            16
++#define ISPRSZ_VFILT76_COEFF7_MASK             0x3FF0000
++
++#define ISPRSZ_VFILT98_COEFF8_SHIFT            0
++#define ISPRSZ_VFILT98_COEFF8_MASK             0x3FF
++#define ISPRSZ_VFILT98_COEFF9_SHIFT            16
++#define ISPRSZ_VFILT98_COEFF9_MASK             0x3FF0000
++
++#define ISPRSZ_VFILT1110_COEF10_SHIFT          0
++#define ISPRSZ_VFILT1110_COEF10_MASK           0x3FF
++#define ISPRSZ_VFILT1110_COEF11_SHIFT          16
++#define ISPRSZ_VFILT1110_COEF11_MASK           0x3FF0000
++
++#define ISPRSZ_VFILT1312_COEFF12_SHIFT         0
++#define ISPRSZ_VFILT1312_COEFF12_MASK          0x3FF
++#define ISPRSZ_VFILT1312_COEFF13_SHIFT         16
++#define ISPRSZ_VFILT1312_COEFF13_MASK          0x3FF0000
++
++#define ISPRSZ_VFILT1514_COEFF14_SHIFT         0
++#define ISPRSZ_VFILT1514_COEFF14_MASK          0x3FF
++#define ISPRSZ_VFILT1514_COEFF15_SHIFT         16
++#define ISPRSZ_VFILT1514_COEFF15_MASK          0x3FF0000
++
++#define ISPRSZ_VFILT1716_COEF16_SHIFT          0
++#define ISPRSZ_VFILT1716_COEF16_MASK           0x3FF
++#define ISPRSZ_VFILT1716_COEF17_SHIFT          16
++#define ISPRSZ_VFILT1716_COEF17_MASK           0x3FF0000
++
++#define ISPRSZ_VFILT1918_COEF18_SHIFT          0
++#define ISPRSZ_VFILT1918_COEF18_MASK           0x3FF
++#define ISPRSZ_VFILT1918_COEF19_SHIFT          16
++#define ISPRSZ_VFILT1918_COEF19_MASK           0x3FF0000
++
++#define ISPRSZ_VFILT2120_COEF20_SHIFT          0
++#define ISPRSZ_VFILT2120_COEF20_MASK           0x3FF
++#define ISPRSZ_VFILT2120_COEF21_SHIFT          16
++#define ISPRSZ_VFILT2120_COEF21_MASK           0x3FF0000
++
++#define ISPRSZ_VFILT2322_COEF22_SHIFT          0
++#define ISPRSZ_VFILT2322_COEF22_MASK           0x3FF
++#define ISPRSZ_VFILT2322_COEF23_SHIFT          16
++#define ISPRSZ_VFILT2322_COEF23_MASK           0x3FF0000
++
++#define ISPRSZ_VFILT2524_COEF24_SHIFT          0
++#define ISPRSZ_VFILT2524_COEF24_MASK           0x3FF
++#define ISPRSZ_VFILT2524_COEF25_SHIFT          16
++#define ISPRSZ_VFILT2524_COEF25_MASK           0x3FF0000
++
++#define ISPRSZ_VFILT2726_COEF26_SHIFT          0
++#define ISPRSZ_VFILT2726_COEF26_MASK           0x3FF
++#define ISPRSZ_VFILT2726_COEF27_SHIFT          16
++#define ISPRSZ_VFILT2726_COEF27_MASK           0x3FF0000
++
++#define ISPRSZ_VFILT2928_COEF28_SHIFT          0
++#define ISPRSZ_VFILT2928_COEF28_MASK           0x3FF
++#define ISPRSZ_VFILT2928_COEF29_SHIFT          16
++#define ISPRSZ_VFILT2928_COEF29_MASK           0x3FF0000
++
++#define ISPRSZ_VFILT3130_COEF30_SHIFT          0
++#define ISPRSZ_VFILT3130_COEF30_MASK           0x3FF
++#define ISPRSZ_VFILT3130_COEF31_SHIFT          16
++#define ISPRSZ_VFILT3130_COEF31_MASK           0x3FF0000
++
++#define ISPRSZ_YENH_CORE_SHIFT                 0
++#define ISPRSZ_YENH_CORE_MASK                  0xFF
++#define ISPRSZ_YENH_SLOP_SHIFT                 8
++#define ISPRSZ_YENH_SLOP_MASK                  0xF00
++#define ISPRSZ_YENH_GAIN_SHIFT                 12
++#define ISPRSZ_YENH_GAIN_MASK                  0xF000
++#define ISPRSZ_YENH_ALGO_SHIFT                 16
++#define ISPRSZ_YENH_ALGO_MASK                  0x30000
++
++#define ISPH3A_PCR_AEW_ALAW_EN_SHIFT           1
++#define ISPH3A_PCR_AF_MED_TH_SHIFT             3
++#define ISPH3A_PCR_AF_RGBPOS_SHIFT             11
++#define ISPH3A_PCR_AEW_AVE2LMT_SHIFT           22
++#define ISPH3A_PCR_AEW_AVE2LMT_MASK            0xFFC00000
++
++#define ISPH3A_AEWWIN1_WINHC_SHIFT             0
++#define ISPH3A_AEWWIN1_WINHC_MASK              0x3F
++#define ISPH3A_AEWWIN1_WINVC_SHIFT             6
++#define ISPH3A_AEWWIN1_WINVC_MASK              0x1FC0
++#define ISPH3A_AEWWIN1_WINW_SHIFT              13
++#define ISPH3A_AEWWIN1_WINW_MASK               0xFE000
++#define ISPH3A_AEWWIN1_WINH_SHIFT              24
++#define ISPH3A_AEWWIN1_WINH_MASK               0x7F000000
++
++#define ISPH3A_AEWINSTART_WINSH_SHIFT          0
++#define ISPH3A_AEWINSTART_WINSH_MASK           0x0FFF
++#define ISPH3A_AEWINSTART_WINSV_SHIFT          16
++#define ISPH3A_AEWINSTART_WINSV_MASK           0x0FFF0000
++
++#define ISPH3A_AEWINBLK_WINH_SHIFT             0
++#define ISPH3A_AEWINBLK_WINH_MASK              0x7F
++#define ISPH3A_AEWINBLK_WINSV_SHIFT            16
++#define ISPH3A_AEWINBLK_WINSV_MASK             0x0FFF0000
++
++#define ISPH3A_AEWSUBWIN_AEWINCH_SHIFT         0
++#define ISPH3A_AEWSUBWIN_AEWINCH_MASK          0x0F
++#define ISPH3A_AEWSUBWIN_AEWINCV_SHIFT         8
++#define ISPH3A_AEWSUBWIN_AEWINCV_MASK          0x0F00
++
++#define ISPHIST_PCR_ENABLE_SHIFT       0
++#define ISPHIST_PCR_ENABLE_MASK                0x01
++#define ISPHIST_PCR_BUSY_SHIFT         1
++#define ISPHIST_PCR_BUSY_MASK          0x02
++
++#define ISPHIST_CNT_DATASIZE_SHIFT     8
++#define ISPHIST_CNT_DATASIZE_MASK      0x0100
++#define ISPHIST_CNT_CLEAR_SHIFT                7
++#define ISPHIST_CNT_CLEAR_MASK         0x080
++#define ISPHIST_CNT_CFA_SHIFT          6
++#define ISPHIST_CNT_CFA_MASK           0x040
++#define ISPHIST_CNT_BINS_SHIFT         4
++#define ISPHIST_CNT_BINS_MASK          0x030
++#define ISPHIST_CNT_SOURCE_SHIFT       3
++#define ISPHIST_CNT_SOURCE_MASK                0x08
++#define ISPHIST_CNT_SHIFT_SHIFT                0
++#define ISPHIST_CNT_SHIFT_MASK         0x07
++
++#define ISPHIST_WB_GAIN_WG00_SHIFT     24
++#define ISPHIST_WB_GAIN_WG00_MASK      0xFF000000
++#define ISPHIST_WB_GAIN_WG01_SHIFT     16
++#define ISPHIST_WB_GAIN_WG01_MASK      0xFF0000
++#define ISPHIST_WB_GAIN_WG02_SHIFT     8
++#define ISPHIST_WB_GAIN_WG02_MASK      0xFF00
++#define ISPHIST_WB_GAIN_WG03_SHIFT     0
++#define ISPHIST_WB_GAIN_WG03_MASK      0xFF
++
++#define ISPHIST_REGHORIZ_HSTART_SHIFT          16      /*
++                                                       * REGION 0 to 3 H=
+ORZ
++                                                       * and VERT
++                                                       */
++#define ISPHIST_REGHORIZ_HSTART_MASK           0x3FFF0000
++#define ISPHIST_REGHORIZ_HEND_SHIFT            0
++#define ISPHIST_REGHORIZ_HEND_MASK             0x3FFF
++#define ISPHIST_REGVERT_VSTART_SHIFT           16
++#define ISPHIST_REGVERT_VSTART_MASK            0x3FFF0000
++#define ISPHIST_REGVERT_VEND_SHIFT             0
++#define ISPHIST_REGVERT_VEND_MASK              0x3FFF
++
++#define ISPHIST_REGHORIZ_MASK                  0x3FFF3FFF
++#define ISPHIST_REGVERT_MASK                   0x3FFF3FFF
++
++#define ISPHIST_ADDR_SHIFT                     0
++#define ISPHIST_ADDR_MASK                      0x3FF
++
++#define ISPHIST_DATA_SHIFT                     0
++#define ISPHIST_DATA_MASK                      0xFFFFF
++
++#define ISPHIST_RADD_SHIFT                     0
++#define ISPHIST_RADD_MASK                      0xFFFFFFFF
++
++#define ISPHIST_RADD_OFF_SHIFT                 0
++#define ISPHIST_RADD_OFF_MASK                  0xFFFF
++
++#define ISPHIST_HV_INFO_HSIZE_SHIFT            16
++#define ISPHIST_HV_INFO_HSIZE_MASK             0x3FFF0000
++#define ISPHIST_HV_INFO_VSIZE_SHIFT            0
++#define ISPHIST_HV_INFO_VSIZE_MASK             0x3FFF
++
++#define ISPHIST_HV_INFO_MASK                   0x3FFF3FFF
++
++#define ISPCCDC_LSC_GAIN_MODE_N_MASK           0x700
++#define ISPCCDC_LSC_GAIN_MODE_N_SHIFT          8
++#define ISPCCDC_LSC_GAIN_MODE_M_MASK           0x3800
++#define ISPCCDC_LSC_GAIN_MODE_M_SHIFT          12
++#define ISPCCDC_LSC_GAIN_FORMAT_MASK           0xE
++#define ISPCCDC_LSC_GAIN_FORMAT_SHIFT          1
++#define ISPCCDC_LSC_AFTER_REFORMATTER_MASK     (1<<6)
++
++#define ISPCCDC_LSC_INITIAL_X_MASK             0x3F
++#define ISPCCDC_LSC_INITIAL_X_SHIFT            0
++#define ISPCCDC_LSC_INITIAL_Y_MASK             0x3F0000
++#define ISPCCDC_LSC_INITIAL_Y_SHIFT            16
++
++#define ISPMMU_REVISION_REV_MINOR_MASK         0xF
++#define ISPMMU_REVISION_REV_MAJOR_SHIFT                0x4
++
++#define IRQENABLE_MULTIHITFAULT                        (1<<4)
++#define IRQENABLE_TWFAULT                      (1<<3)
++#define IRQENABLE_EMUMISS                      (1<<2)
++#define IRQENABLE_TRANSLNFAULT                 (1<<1)
++#define IRQENABLE_TLBMISS                      (1)
++
++#define ISPMMU_MMUCNTL_MMU_EN                  (1<<1)
++#define ISPMMU_MMUCNTL_TWL_EN                  (1<<2)
++#define ISPMMU_MMUCNTL_EMUTLBUPDATE            (1<<3)
++#define ISPMMU_AUTOIDLE                                0x1
++#define ISPMMU_SIDLEMODE_FORCEIDLE             0
++#define ISPMMU_SIDLEMODE_NOIDLE                        1
++#define ISPMMU_SIDLEMODE_SMARTIDLE             2
++#define ISPMMU_SIDLEMODE_SHIFT                 3
++
++#define ISPCSI1_AUTOIDLE                       0x1
++#define ISPCSI1_MIDLEMODE_SHIFT                        12
++#define ISPCSI1_MIDLEMODE_FORCESTANDBY         0x0
++#define ISPCSI1_MIDLEMODE_NOSTANDBY            0x1
++#define ISPCSI1_MIDLEMODE_SMARTSTANDBY         0x2
++
++/* CSI2 receiver registers (ES2.0) */
++#define ISPCSI2_REVISION                       0x480BD800
++#define ISPCSI2_SYSCONFIG                      0x480BD810
++#define ISPCSI2_SYSCONFIG_MSTANDBY_MODE_SHIFT  12
++#define ISPCSI2_SYSCONFIG_MSTANDBY_MODE_MASK \
++                               (0x3 << ISPCSI2_SYSCONFIG_MSTANDBY_MODE_S=
+HIFT)
++#define ISPCSI2_SYSCONFIG_MSTANDBY_MODE_FORCE \
++                               (0x0 << ISPCSI2_SYSCONFIG_MSTANDBY_MODE_S=
+HIFT)
++#define ISPCSI2_SYSCONFIG_MSTANDBY_MODE_NO \
++                               (0x1 << ISPCSI2_SYSCONFIG_MSTANDBY_MODE_S=
+HIFT)
++#define ISPCSI2_SYSCONFIG_MSTANDBY_MODE_SMART \
++                               (0x2 << ISPCSI2_SYSCONFIG_MSTANDBY_MODE_S=
+HIFT)
++#define ISPCSI2_SYSCONFIG_SOFT_RESET_SHIFT     1
++#define ISPCSI2_SYSCONFIG_SOFT_RESET_MASK \
++                               (0x1 << ISPCSI2_SYSCONFIG_SOFT_RESET_SHIF=
+T)
++#define ISPCSI2_SYSCONFIG_SOFT_RESET_NORMAL \
++                               (0x0 << ISPCSI2_SYSCONFIG_SOFT_RESET_SHIF=
+T)
++#define ISPCSI2_SYSCONFIG_SOFT_RESET_RESET \
++                               (0x1 << ISPCSI2_SYSCONFIG_SOFT_RESET_SHIF=
+T)
++#define ISPCSI2_SYSCONFIG_AUTO_IDLE_SHIFT      0
++#define ISPCSI2_SYSCONFIG_AUTO_IDLE_MASK \
++                               (0x1 << ISPCSI2_SYSCONFIG_AUTO_IDLE_SHIFT=
+)
++#define ISPCSI2_SYSCONFIG_AUTO_IDLE_FREE \
++                               (0x0 << ISPCSI2_SYSCONFIG_AUTO_IDLE_SHIFT=
+)
++#define ISPCSI2_SYSCONFIG_AUTO_IDLE_AUTO \
++                               (0x1 << ISPCSI2_SYSCONFIG_AUTO_IDLE_SHIFT=
+)
++#define ISPCSI2_SYSSTATUS                      0x480BD814
++#define ISPCSI2_SYSSTATUS_RESET_DONE_SHIFT     0
++#define ISPCSI2_SYSSTATUS_RESET_DONE_MASK \
++                               (0x1 << ISPCSI2_SYSSTATUS_RESET_DONE_SHIF=
+T)
++#define ISPCSI2_SYSSTATUS_RESET_DONE_ONGOING \
++                               (0x0 << ISPCSI2_SYSSTATUS_RESET_DONE_SHIF=
+T)
++#define ISPCSI2_SYSSTATUS_RESET_DONE_DONE \
++                               (0x1 << ISPCSI2_SYSSTATUS_RESET_DONE_SHIF=
+T)
++#define ISPCSI2_IRQSTATUS                              0x480BD818
++#define ISPCSI2_IRQSTATUS_OCP_ERR_IRQ                  (1 << 14)
++#define ISPCSI2_IRQSTATUS_SHORT_PACKET_IRQ             (1 << 13)
++#define ISPCSI2_IRQSTATUS_ECC_CORRECTION_IRQ           (1 << 12)
++#define ISPCSI2_IRQSTATUS_ECC_NO_CORRECTION_IRQ                (1 << 11)
++#define ISPCSI2_IRQSTATUS_COMPLEXIO2_ERR_IRQ           (1 << 10)
++#define ISPCSI2_IRQSTATUS_COMPLEXIO1_ERR_IRQ           (1 << 9)
++#define ISPCSI2_IRQSTATUS_FIFO_OVF_IRQ                 (1 << 8)
++#define ISPCSI2_IRQSTATUS_CONTEXT(n)                   (1 << (n))
++
++#define ISPCSI2_IRQENABLE                      0x480BD81C
++#define ISPCSI2_CTRL                           0x480BD840
++#define ISPCSI2_CTRL_VP_CLK_EN_SHIFT   15
++#define ISPCSI2_CTRL_VP_CLK_EN_MASK    (0x1 << ISPCSI2_CTRL_VP_CLK_EN_SH=
+IFT)
++#define ISPCSI2_CTRL_VP_CLK_EN_DISABLE (0x0 << ISPCSI2_CTRL_VP_CLK_EN_SH=
+IFT)
++#define ISPCSI2_CTRL_VP_CLK_EN_ENABLE  (0x1 << ISPCSI2_CTRL_VP_CLK_EN_SH=
+IFT)
++
++#define ISPCSI2_CTRL_VP_ONLY_EN_SHIFT  11
++#define ISPCSI2_CTRL_VP_ONLY_EN_MASK   (0x1 << ISPCSI2_CTRL_VP_ONLY_EN_S=
+HIFT)
++#define ISPCSI2_CTRL_VP_ONLY_EN_DISABLE        (0x0 << ISPCSI2_CTRL_VP_O=
+NLY_EN_SHIFT)
++#define ISPCSI2_CTRL_VP_ONLY_EN_ENABLE (0x1 << ISPCSI2_CTRL_VP_ONLY_EN_S=
+HIFT)
++
++#define ISPCSI2_CTRL_VP_OUT_CTRL_SHIFT         8
++#define ISPCSI2_CTRL_VP_OUT_CTRL_MASK          (0x3 << \
++                                               ISPCSI2_CTRL_VP_OUT_CTRL_=
+SHIFT)
++#define ISPCSI2_CTRL_VP_OUT_CTRL_DISABLE       (0x0 << \
++                                               ISPCSI2_CTRL_VP_OUT_CTRL_=
+SHIFT)
++#define ISPCSI2_CTRL_VP_OUT_CTRL_DIV2          (0x1 << \
++                                               ISPCSI2_CTRL_VP_OUT_CTRL_=
+SHIFT)
++#define ISPCSI2_CTRL_VP_OUT_CTRL_DIV3          (0x2 << \
++                                               ISPCSI2_CTRL_VP_OUT_CTRL_=
+SHIFT)
++#define ISPCSI2_CTRL_VP_OUT_CTRL_DIV4          (0x3 << \
++                                               ISPCSI2_CTRL_VP_OUT_CTRL_=
+SHIFT)
++
++#define ISPCSI2_CTRL_DBG_EN_SHIFT      7
++#define ISPCSI2_CTRL_DBG_EN_MASK       (0x1 << ISPCSI2_CTRL_DBG_EN_SHIFT=
+)
++#define ISPCSI2_CTRL_DBG_EN_DISABLE    (0x0 << ISPCSI2_CTRL_DBG_EN_SHIFT=
+)
++#define ISPCSI2_CTRL_DBG_EN_ENABLE     (0x1 << ISPCSI2_CTRL_DBG_EN_SHIFT=
+)
++
++#define ISPCSI2_CTRL_BURST_SIZE_SHIFT          5
++#define ISPCSI2_CTRL_BURST_SIZE_MASK           (0x3 << \
++                                               ISPCSI2_CTRL_BURST_SIZE_S=
+HIFT)
++#define ISPCSI2_CTRL_BURST_SIZE_MYSTERY_VAL            (0x2 << \
++                                               ISPCSI2_CTRL_BURST_SIZE_S=
+HIFT)
++
++#define ISPCSI2_CTRL_FRAME_SHIFT       3
++#define ISPCSI2_CTRL_FRAME_MASK                (0x1 << ISPCSI2_CTRL_FRAM=
+E_SHIFT)
++#define ISPCSI2_CTRL_FRAME_DISABLE_IMM (0x0 << ISPCSI2_CTRL_FRAME_SHIFT)
++#define ISPCSI2_CTRL_FRAME_DISABLE_FEC (0x1 << ISPCSI2_CTRL_FRAME_SHIFT)
++
++#define ISPCSI2_CTRL_ECC_EN_SHIFT      2
++#define ISPCSI2_CTRL_ECC_EN_MASK       (0x1 << ISPCSI2_CTRL_ECC_EN_SHIFT=
+)
++#define ISPCSI2_CTRL_ECC_EN_DISABLE    (0x0 << ISPCSI2_CTRL_ECC_EN_SHIFT=
+)
++#define ISPCSI2_CTRL_ECC_EN_ENABLE     (0x1 << ISPCSI2_CTRL_ECC_EN_SHIFT=
+)
++
++#define ISPCSI2_CTRL_SECURE_SHIFT      1
++#define ISPCSI2_CTRL_SECURE_MASK       (0x1 << ISPCSI2_CTRL_SECURE_SHIFT=
+)
++#define ISPCSI2_CTRL_SECURE_DISABLE    (0x0 << ISPCSI2_CTRL_SECURE_SHIFT=
+)
++#define ISPCSI2_CTRL_SECURE_ENABLE     (0x1 << ISPCSI2_CTRL_SECURE_SHIFT=
+)
++
++#define ISPCSI2_CTRL_IF_EN_SHIFT       0
++#define ISPCSI2_CTRL_IF_EN_MASK                (0x1 << ISPCSI2_CTRL_IF_E=
+N_SHIFT)
++#define ISPCSI2_CTRL_IF_EN_DISABLE     (0x0 << ISPCSI2_CTRL_IF_EN_SHIFT)
++#define ISPCSI2_CTRL_IF_EN_ENABLE      (0x1 << ISPCSI2_CTRL_IF_EN_SHIFT)
++
++#define ISPCSI2_DBG_H                          0x480BD844
++#define ISPCSI2_GNQ                            0x480BD848
++#define ISPCSI2_COMPLEXIO_CFG1                 0x480BD850
++#define ISPCSI2_COMPLEXIO_CFG1_RESET_DONE_SHIFT                29
++#define ISPCSI2_COMPLEXIO_CFG1_RESET_DONE_MASK \
++                       (0x1 << ISPCSI2_COMPLEXIO_CFG1_RESET_DONE_SHIFT)
++#define ISPCSI2_COMPLEXIO_CFG1_RESET_DONE_ONGOING \
++                       (0x0 << ISPCSI2_COMPLEXIO_CFG1_RESET_DONE_SHIFT)
++#define ISPCSI2_COMPLEXIO_CFG1_RESET_DONE_DONE \
++                       (0x1 << ISPCSI2_COMPLEXIO_CFG1_RESET_DONE_SHIFT)
++#define ISPCSI2_COMPLEXIO_CFG1_PWR_CMD_SHIFT           27
++#define ISPCSI2_COMPLEXIO_CFG1_PWR_CMD_MASK \
++                       (0x3 << ISPCSI2_COMPLEXIO_CFG1_PWR_CMD_SHIFT)
++#define ISPCSI2_COMPLEXIO_CFG1_PWR_CMD_OFF \
++                       (0x0 << ISPCSI2_COMPLEXIO_CFG1_PWR_CMD_SHIFT)
++#define ISPCSI2_COMPLEXIO_CFG1_PWR_CMD_ON \
++                       (0x1 << ISPCSI2_COMPLEXIO_CFG1_PWR_CMD_SHIFT)
++#define ISPCSI2_COMPLEXIO_CFG1_PWR_CMD_ULPW \
++                       (0x2 << ISPCSI2_COMPLEXIO_CFG1_PWR_CMD_SHIFT)
++#define ISPCSI2_COMPLEXIO_CFG1_PWR_STATUS_SHIFT                25
++#define ISPCSI2_COMPLEXIO_CFG1_PWR_STATUS_MASK \
++                       (0x3 << ISPCSI2_COMPLEXIO_CFG1_PWR_STATUS_SHIFT)
++#define ISPCSI2_COMPLEXIO_CFG1_PWR_STATUS_OFF \
++                       (0x0 << ISPCSI2_COMPLEXIO_CFG1_PWR_STATUS_SHIFT)
++#define ISPCSI2_COMPLEXIO_CFG1_PWR_STATUS_ON \
++                       (0x1 << ISPCSI2_COMPLEXIO_CFG1_PWR_STATUS_SHIFT)
++#define ISPCSI2_COMPLEXIO_CFG1_PWR_STATUS_ULPW \
++                       (0x2 << ISPCSI2_COMPLEXIO_CFG1_PWR_STATUS_SHIFT)
++#define ISPCSI2_COMPLEXIO_CFG1_PWR_AUTO_SHIFT          24
++#define ISPCSI2_COMPLEXIO_CFG1_PWR_AUTO_MASK \
++                       (0x1 << ISPCSI2_COMPLEXIO_CFG1_PWR_AUTO_SHIFT)
++#define ISPCSI2_COMPLEXIO_CFG1_PWR_AUTO_DISABLE \
++                       (0x0 << ISPCSI2_COMPLEXIO_CFG1_PWR_AUTO_SHIFT)
++#define ISPCSI2_COMPLEXIO_CFG1_PWR_AUTO_ENABLE \
++                       (0x1 << ISPCSI2_COMPLEXIO_CFG1_PWR_AUTO_SHIFT)
++
++#define ISPCSI2_COMPLEXIO_CFG1_DATA_POL_SHIFT(n)       (3 + ((n) * 4))
++#define ISPCSI2_COMPLEXIO_CFG1_DATA_POL_MASK(n) (0x1 << \
++                               ISPCSI2_COMPLEXIO_CFG1_DATA_POL_SHIFT(n))
++#define ISPCSI2_COMPLEXIO_CFG1_DATA_POL_PN(n) (0x0 << \
++                               ISPCSI2_COMPLEXIO_CFG1_DATA_POL_SHIFT(n))
++#define ISPCSI2_COMPLEXIO_CFG1_DATA_POL_NP(n) (0x1 << \
++                               ISPCSI2_COMPLEXIO_CFG1_DATA_POL_SHIFT(n))
++
++#define ISPCSI2_COMPLEXIO_CFG1_DATA_POSITION_SHIFT(n)  ((n) * 4)
++#define ISPCSI2_COMPLEXIO_CFG1_DATA_POSITION_MASK(n)   (0x7 << \
++                               ISPCSI2_COMPLEXIO_CFG1_DATA_POSITION_SHIF=
+T(n))
++#define ISPCSI2_COMPLEXIO_CFG1_DATA_POSITION_NC(n)     (0x0 << \
++                               ISPCSI2_COMPLEXIO_CFG1_DATA_POSITION_SHIF=
+T(n))
++#define ISPCSI2_COMPLEXIO_CFG1_DATA_POSITION_1(n)      (0x1 << \
++                               ISPCSI2_COMPLEXIO_CFG1_DATA_POSITION_SHIF=
+T(n))
++#define ISPCSI2_COMPLEXIO_CFG1_DATA_POSITION_2(n)      (0x2 << \
++                               ISPCSI2_COMPLEXIO_CFG1_DATA_POSITION_SHIF=
+T(n))
++#define ISPCSI2_COMPLEXIO_CFG1_DATA_POSITION_3(n)      (0x3 << \
++                               ISPCSI2_COMPLEXIO_CFG1_DATA_POSITION_SHIF=
+T(n))
++#define ISPCSI2_COMPLEXIO_CFG1_DATA_POSITION_4(n)      (0x4 << \
++                               ISPCSI2_COMPLEXIO_CFG1_DATA_POSITION_SHIF=
+T(n))
++#define ISPCSI2_COMPLEXIO_CFG1_DATA_POSITION_5(n)      (0x5 << \
++                               ISPCSI2_COMPLEXIO_CFG1_DATA_POSITION_SHIF=
+T(n))
++
++#define ISPCSI2_COMPLEXIO_CFG1_CLOCK_POL_SHIFT         3
++#define ISPCSI2_COMPLEXIO_CFG1_CLOCK_POL_MASK \
++                       (0x1 << ISPCSI2_COMPLEXIO_CFG1_CLOCK_POL_SHIFT)
++#define ISPCSI2_COMPLEXIO_CFG1_CLOCK_POL_PN \
++                       (0x0 << ISPCSI2_COMPLEXIO_CFG1_CLOCK_POL_SHIFT)
++#define ISPCSI2_COMPLEXIO_CFG1_CLOCK_POL_NP \
++                       (0x1 << ISPCSI2_COMPLEXIO_CFG1_CLOCK_POL_SHIFT)
++
++#define ISPCSI2_COMPLEXIO_CFG1_CLOCK_POSITION_SHIFT            0
++#define ISPCSI2_COMPLEXIO_CFG1_CLOCK_POSITION_MASK \
++                       (0x7 << ISPCSI2_COMPLEXIO_CFG1_CLOCK_POSITION_SHI=
+FT)
++#define ISPCSI2_COMPLEXIO_CFG1_CLOCK_POSITION_1 \
++                       (0x1 << ISPCSI2_COMPLEXIO_CFG1_CLOCK_POSITION_SHI=
+FT)
++#define ISPCSI2_COMPLEXIO_CFG1_CLOCK_POSITION_2 \
++                       (0x2 << ISPCSI2_COMPLEXIO_CFG1_CLOCK_POSITION_SHI=
+FT)
++#define ISPCSI2_COMPLEXIO_CFG1_CLOCK_POSITION_3 \
++                       (0x3 << ISPCSI2_COMPLEXIO_CFG1_CLOCK_POSITION_SHI=
+FT)
++#define ISPCSI2_COMPLEXIO_CFG1_CLOCK_POSITION_4 \
++                       (0x4 << ISPCSI2_COMPLEXIO_CFG1_CLOCK_POSITION_SHI=
+FT)
++#define ISPCSI2_COMPLEXIO_CFG1_CLOCK_POSITION_5 \
++                       (0x5 << ISPCSI2_COMPLEXIO_CFG1_CLOCK_POSITION_SHI=
+FT)
++
++#define ISPCSI2_COMPLEXIO1_IRQSTATUS                   0x480BD854
++#define ISPCSI2_COMPLEXIO1_IRQSTATUS_STATEALLULPMEXIT  (1 << 26)
++#define ISPCSI2_COMPLEXIO1_IRQSTATUS_STATEALLULPMENTER (1 << 25)
++#define ISPCSI2_COMPLEXIO1_IRQSTATUS_STATEULPM5                (1 << 24)
++#define ISPCSI2_COMPLEXIO1_IRQSTATUS_STATEULPM4                (1 << 23)
++#define ISPCSI2_COMPLEXIO1_IRQSTATUS_STATEULPM3                (1 << 22)
++#define ISPCSI2_COMPLEXIO1_IRQSTATUS_STATEULPM2                (1 << 21)
++#define ISPCSI2_COMPLEXIO1_IRQSTATUS_STATEULPM1                (1 << 20)
++#define ISPCSI2_COMPLEXIO1_IRQSTATUS_ERRCONTROL5       (1 << 19)
++#define ISPCSI2_COMPLEXIO1_IRQSTATUS_ERRCONTROL4       (1 << 18)
++#define ISPCSI2_COMPLEXIO1_IRQSTATUS_ERRCONTROL3       (1 << 17)
++#define ISPCSI2_COMPLEXIO1_IRQSTATUS_ERRCONTROL2       (1 << 16)
++#define ISPCSI2_COMPLEXIO1_IRQSTATUS_ERRCONTROL1       (1 << 15)
++#define ISPCSI2_COMPLEXIO1_IRQSTATUS_ERRESC5           (1 << 14)
++#define ISPCSI2_COMPLEXIO1_IRQSTATUS_ERRESC4           (1 << 13)
++#define ISPCSI2_COMPLEXIO1_IRQSTATUS_ERRESC3           (1 << 12)
++#define ISPCSI2_COMPLEXIO1_IRQSTATUS_ERRESC2           (1 << 11)
++#define ISPCSI2_COMPLEXIO1_IRQSTATUS_ERRESC1           (1 << 10)
++#define ISPCSI2_COMPLEXIO1_IRQSTATUS_ERRSOTSYNCHS5     (1 << 9)
++#define ISPCSI2_COMPLEXIO1_IRQSTATUS_ERRSOTSYNCHS4     (1 << 8)
++#define ISPCSI2_COMPLEXIO1_IRQSTATUS_ERRSOTSYNCHS3     (1 << 7)
++#define ISPCSI2_COMPLEXIO1_IRQSTATUS_ERRSOTSYNCHS2     (1 << 6)
++#define ISPCSI2_COMPLEXIO1_IRQSTATUS_ERRSOTSYNCHS1     (1 << 5)
++#define ISPCSI2_COMPLEXIO1_IRQSTATUS_ERRSOTHS5         (1 << 4)
++#define ISPCSI2_COMPLEXIO1_IRQSTATUS_ERRSOTHS4         (1 << 3)
++#define ISPCSI2_COMPLEXIO1_IRQSTATUS_ERRSOTHS3         (1 << 2)
++#define ISPCSI2_COMPLEXIO1_IRQSTATUS_ERRSOTHS2         (1 << 1)
++#define ISPCSI2_COMPLEXIO1_IRQSTATUS_ERRSOTHS1         1
++
++#define ISPCSI2_SHORT_PACKET           0x480BD85C
++#define ISPCSI2_COMPLEXIO1_IRQENABLE                   0x480BD860
++#define ISPCSI2_COMPLEXIO1_IRQENABLE_STATEALLULPMEXIT  (1 << 26)
++#define ISPCSI2_COMPLEXIO1_IRQENABLE_STATEALLULPMENTER (1 << 25)
++#define ISPCSI2_COMPLEXIO1_IRQENABLE_STATEULPM5                (1 << 24)
++#define ISPCSI2_COMPLEXIO1_IRQENABLE_STATEULPM4                (1 << 23)
++#define ISPCSI2_COMPLEXIO1_IRQENABLE_STATEULPM3                (1 << 22)
++#define ISPCSI2_COMPLEXIO1_IRQENABLE_STATEULPM2                (1 << 21)
++#define ISPCSI2_COMPLEXIO1_IRQENABLE_STATEULPM1                (1 << 20)
++#define ISPCSI2_COMPLEXIO1_IRQENABLE_ERRCONTROL5       (1 << 19)
++#define ISPCSI2_COMPLEXIO1_IRQENABLE_ERRCONTROL4       (1 << 18)
++#define ISPCSI2_COMPLEXIO1_IRQENABLE_ERRCONTROL3       (1 << 17)
++#define ISPCSI2_COMPLEXIO1_IRQENABLE_ERRCONTROL2       (1 << 16)
++#define ISPCSI2_COMPLEXIO1_IRQENABLE_ERRCONTROL1       (1 << 15)
++#define ISPCSI2_COMPLEXIO1_IRQENABLE_ERRESC5           (1 << 14)
++#define ISPCSI2_COMPLEXIO1_IRQENABLE_ERRESC4           (1 << 13)
++#define ISPCSI2_COMPLEXIO1_IRQENABLE_ERRESC3           (1 << 12)
++#define ISPCSI2_COMPLEXIO1_IRQENABLE_ERRESC2           (1 << 11)
++#define ISPCSI2_COMPLEXIO1_IRQENABLE_ERRESC1           (1 << 10)
++#define ISPCSI2_COMPLEXIO1_IRQENABLE_ERRSOTSYNCHS5     (1 << 9)
++#define ISPCSI2_COMPLEXIO1_IRQENABLE_ERRSOTSYNCHS4     (1 << 8)
++#define ISPCSI2_COMPLEXIO1_IRQENABLE_ERRSOTSYNCHS3     (1 << 7)
++#define ISPCSI2_COMPLEXIO1_IRQENABLE_ERRSOTSYNCHS2     (1 << 6)
++#define ISPCSI2_COMPLEXIO1_IRQENABLE_ERRSOTSYNCHS1     (1 << 5)
++#define ISPCSI2_COMPLEXIO1_IRQENABLE_ERRSOTHS5         (1 << 4)
++#define ISPCSI2_COMPLEXIO1_IRQENABLE_ERRSOTHS4         (1 << 3)
++#define ISPCSI2_COMPLEXIO1_IRQENABLE_ERRSOTHS3         (1 << 2)
++#define ISPCSI2_COMPLEXIO1_IRQENABLE_ERRSOTHS2         (1 << 1)
++#define ISPCSI2_COMPLEXIO1_IRQENABLE_ERRSOTHS1         1
++#define ISPCSI2_DBG_P                  0x480BD868
++#define ISPCSI2_TIMING                 0x480BD86C
++
++
++#define ISPCSI2_TIMING_FORCE_RX_MODE_IO_SHIFT(n)       ((16 * ((n) - 1))=
+ + 15)
++#define ISPCSI2_TIMING_FORCE_RX_MODE_IO_MASK(n)        (0x1 << \
++                               ISPCSI2_TIMING_FORCE_RX_MODE_IO_SHIFT(n))
++#define ISPCSI2_TIMING_FORCE_RX_MODE_IO_DISABLE(n)     (0x0 << \
++                               ISPCSI2_TIMING_FORCE_RX_MODE_IO_SHIFT(n))
++#define ISPCSI2_TIMING_FORCE_RX_MODE_IO_ENABLE(n)      (0x1 << \
++                               ISPCSI2_TIMING_FORCE_RX_MODE_IO_SHIFT(n))
++#define ISPCSI2_TIMING_STOP_STATE_X16_IO_SHIFT(n)      ((16 * ((n) - 1))=
+ + 14)
++#define ISPCSI2_TIMING_STOP_STATE_X16_IO_MASK(n)       (0x1 << \
++                               ISPCSI2_TIMING_STOP_STATE_X16_IO_SHIFT(n)=
+)
++#define ISPCSI2_TIMING_STOP_STATE_X16_IO_DISABLE(n)    (0x0 << \
++                               ISPCSI2_TIMING_STOP_STATE_X16_IO_SHIFT(n)=
+)
++#define ISPCSI2_TIMING_STOP_STATE_X16_IO_ENABLE(n)     (0x1 << \
++                               ISPCSI2_TIMING_STOP_STATE_X16_IO_SHIFT(n)=
+)
++#define ISPCSI2_TIMING_STOP_STATE_X4_IO_SHIFT(n)       ((16 * ((n) - 1))=
+ + 13)
++#define ISPCSI2_TIMING_STOP_STATE_X4_IO_MASK(n)                (0x1 << \
++                               ISPCSI2_TIMING_STOP_STATE_X4_IO_SHIFT(n))
++#define ISPCSI2_TIMING_STOP_STATE_X4_IO_DISABLE(n)     (0x0 << \
++                               ISPCSI2_TIMING_STOP_STATE_X4_IO_SHIFT(n))
++#define ISPCSI2_TIMING_STOP_STATE_X4_IO_ENABLE(n)              (0x1 << \
++                               ISPCSI2_TIMING_STOP_STATE_X4_IO_SHIFT(n))
++#define ISPCSI2_TIMING_STOP_STATE_COUNTER_IO_SHIFT(n)  (16 * ((n) - 1))
++#define ISPCSI2_TIMING_STOP_STATE_COUNTER_IO_MASK(n)   (0x1FFF << \
++                               ISPCSI2_TIMING_STOP_STATE_COUNTER_IO_SHIF=
+T(n))
++
++#define ISPCSI2_CTX_CTRL1(n)           (0x480BD870 + 0x20 * (n))
++#define ISPCSI2_CTX_CTRL1_COUNT_SHIFT          8
++#define ISPCSI2_CTX_CTRL1_COUNT_MASK           (0xFF << \
++                                               ISPCSI2_CTX_CTRL1_COUNT_S=
+HIFT)
++#define ISPCSI2_CTX_CTRL1_EOF_EN_SHIFT         7
++#define ISPCSI2_CTX_CTRL1_EOF_EN_MASK          (0x1 << \
++                                               ISPCSI2_CTX_CTRL1_EOF_EN_=
+SHIFT)
++#define ISPCSI2_CTX_CTRL1_EOF_EN_DISABLE       (0x0 << \
++                                               ISPCSI2_CTX_CTRL1_EOF_EN_=
+SHIFT)
++#define ISPCSI2_CTX_CTRL1_EOF_EN_ENABLE                (0x1 << \
++                                               ISPCSI2_CTX_CTRL1_EOF_EN_=
+SHIFT)
++#define ISPCSI2_CTX_CTRL1_EOL_EN_SHIFT         6
++#define ISPCSI2_CTX_CTRL1_EOL_EN_MASK          (0x1 << \
++                                               ISPCSI2_CTX_CTRL1_EOL_EN_=
+SHIFT)
++#define ISPCSI2_CTX_CTRL1_EOL_EN_DISABLE       (0x0 << \
++                                               ISPCSI2_CTX_CTRL1_EOL_EN_=
+SHIFT)
++#define ISPCSI2_CTX_CTRL1_EOL_EN_ENABLE                (0x1 << \
++                                               ISPCSI2_CTX_CTRL1_EOL_EN_=
+SHIFT)
++#define ISPCSI2_CTX_CTRL1_CS_EN_SHIFT          5
++#define ISPCSI2_CTX_CTRL1_CS_EN_MASK           (0x1 << \
++                                               ISPCSI2_CTX_CTRL1_CS_EN_S=
+HIFT)
++#define ISPCSI2_CTX_CTRL1_CS_EN_DISABLE                (0x0 << \
++                                               ISPCSI2_CTX_CTRL1_CS_EN_S=
+HIFT)
++#define ISPCSI2_CTX_CTRL1_CS_EN_ENABLE         (0x1 << \
++                                               ISPCSI2_CTX_CTRL1_CS_EN_S=
+HIFT)
++#define ISPCSI2_CTX_CTRL1_COUNT_UNLOCK_EN_SHIFT                4
++#define ISPCSI2_CTX_CTRL1_COUNT_UNLOCK_EN_MASK         (0x1 << \
++                                       ISPCSI2_CTX_CTRL1_COUNT_UNLOCK_EN=
+_SHIFT)
++#define ISPCSI2_CTX_CTRL1_COUNT_UNLOCK_EN_DISABLE      (0x0 << \
++                                       ISPCSI2_CTX_CTRL1_COUNT_UNLOCK_EN=
+_SHIFT)
++#define ISPCSI2_CTX_CTRL1_COUNT_UNLOCK_EN_ENABLE       (0x1 << \
++                                       ISPCSI2_CTX_CTRL1_COUNT_UNLOCK_EN=
+_SHIFT)
++#define ISPCSI2_CTX_CTRL1_PING_PONG_SHIFT      3
++#define ISPCSI2_CTX_CTRL1_PING_PONG_MASK       (0x1 << \
++                                       ISPCSI2_CTX_CTRL1_PING_PONG_SHIFT=
+)
++#define ISPCSI2_CTX_CTRL1_CTX_EN_SHIFT         0
++#define ISPCSI2_CTX_CTRL1_CTX_EN_MASK          (0x1 << \
++                                               ISPCSI2_CTX_CTRL1_CTX_EN_=
+SHIFT)
++#define ISPCSI2_CTX_CTRL1_CTX_EN_DISABLE       (0x0 << \
++                                               ISPCSI2_CTX_CTRL1_CTX_EN_=
+SHIFT)
++#define ISPCSI2_CTX_CTRL1_CTX_EN_ENABLE                (0x1 << \
++                                               ISPCSI2_CTX_CTRL1_CTX_EN_=
+SHIFT)
++
++#define ISPCSI2_CTX_CTRL2(n)           (0x480BD874 + 0x20 * (n))
++#define ISPCSI2_CTX_CTRL2_VIRTUAL_ID_SHIFT     11
++#define ISPCSI2_CTX_CTRL2_VIRTUAL_ID_MASK      (0x3 << \
++                                       ISPCSI2_CTX_CTRL2_VIRTUAL_ID_SHIF=
+T)
++#define ISPCSI2_CTX_CTRL2_FORMAT_SHIFT 0
++#define ISPCSI2_CTX_CTRL2_FORMAT_MASK  (0x3FF << \
++                                       ISPCSI2_CTX_CTRL2_FORMAT_SHIFT)
++
++#define ISPCSI2_CTX_DAT_OFST(n)                (0x480BD878 + 0x20 * (n))
++#define ISPCSI2_CTX_DAT_OFST_OFST_SHIFT        5
++#define ISPCSI2_CTX_DAT_OFST_OFST_MASK (0x7FF << \
++                                               ISPCSI2_CTX_DAT_OFST_OFST=
+_SHIFT)
++
++#define ISPCSI2_CTX_DAT_PING_ADDR(n)   (0x480BD87C + 0x20 * (n))
++#define ISPCSI2_CTX_DAT_PONG_ADDR(n)   (0x480BD880 + 0x20 * (n))
++#define ISPCSI2_CTX_IRQENABLE(n)       (0x480BD884 + 0x20 * (n))
++#define ISPCSI2_CTX_IRQENABLE_ECC_CORRECTION_IRQ               (1 << 8)
++#define ISPCSI2_CTX_IRQENABLE_LINE_NUMBER_IRQ          (1 << 7)
++#define ISPCSI2_CTX_IRQENABLE_FRAME_NUMBER_IRQ         (1 << 6)
++#define ISPCSI2_CTX_IRQENABLE_CS_IRQ                   (1 << 5)
++#define ISPCSI2_CTX_IRQENABLE_LE_IRQ                   (1 << 3)
++#define ISPCSI2_CTX_IRQENABLE_LS_IRQ                   (1 << 2)
++#define ISPCSI2_CTX_IRQENABLE_FE_IRQ                   (1 << 1)
++#define ISPCSI2_CTX_IRQENABLE_FS_IRQ                   1
++#define ISPCSI2_CTX_IRQSTATUS(n)       (0x480BD888 + 0x20 * (n))
++#define ISPCSI2_CTX_IRQSTATUS_ECC_CORRECTION_IRQ               (1 << 8)
++#define ISPCSI2_CTX_IRQSTATUS_LINE_NUMBER_IRQ          (1 << 7)
++#define ISPCSI2_CTX_IRQSTATUS_FRAME_NUMBER_IRQ         (1 << 6)
++#define ISPCSI2_CTX_IRQSTATUS_CS_IRQ                   (1 << 5)
++#define ISPCSI2_CTX_IRQSTATUS_LE_IRQ                   (1 << 3)
++#define ISPCSI2_CTX_IRQSTATUS_LS_IRQ                   (1 << 2)
++#define ISPCSI2_CTX_IRQSTATUS_FE_IRQ                   (1 << 1)
++#define ISPCSI2_CTX_IRQSTATUS_FS_IRQ                   1
++
++#define ISPCSI2_CTX_CTRL3(n)           (0x480BD88C + 0x20 * (n))
++#define ISPCSI2_CTX_CTRL3_ALPHA_SHIFT  5
++#define ISPCSI2_CTX_CTRL3_ALPHA_MASK   (0x3FFF << \
++                                               ISPCSI2_CTX_CTRL3_ALPHA_S=
+HIFT)
++
++#define ISPCSI2PHY_CFG0                                0x480BD970
++#define ISPCSI2PHY_CFG0_THS_TERM_SHIFT         8
++#define ISPCSI2PHY_CFG0_THS_TERM_MASK \
++                               (0xFF << ISPCSI2PHY_CFG0_THS_TERM_SHIFT)
++#define ISPCSI2PHY_CFG0_THS_TERM_RESETVAL \
++                               (0x04 << ISPCSI2PHY_CFG0_THS_TERM_SHIFT)
++#define ISPCSI2PHY_CFG0_THS_SETTLE_SHIFT               0
++#define ISPCSI2PHY_CFG0_THS_SETTLE_MASK \
++                               (0xFF << ISPCSI2PHY_CFG0_THS_SETTLE_SHIFT=
+)
++#define ISPCSI2PHY_CFG0_THS_SETTLE_RESETVAL \
++                               (0x27 << ISPCSI2PHY_CFG0_THS_SETTLE_SHIFT=
+)
++#define ISPCSI2PHY_CFG1                                0x480BD974
++#define ISPCSI2PHY_CFG1_TCLK_TERM_SHIFT                18
++#define ISPCSI2PHY_CFG1_TCLK_TERM_MASK \
++                               (0x7F << ISPCSI2PHY_CFG1_TCLK_TERM_SHIFT)
++#define ISPCSI2PHY_CFG1_TCLK_TERM__RESETVAL \
++                               (0x00 << ISPCSI2PHY_CFG1_TCLK_TERM_SHIFT)
++#define ISPCSI2PHY_CFG1_RESERVED1_SHIFT                10
++#define ISPCSI2PHY_CFG1_RESERVED1_MASK \
++                               (0xFF << ISPCSI2PHY_CFG1_RESERVED1_SHIFT)
++#define ISPCSI2PHY_CFG1_RESERVED1__RESETVAL \
++                               (0xB8 << ISPCSI2PHY_CFG1_RESERVED1_SHIFT)
++#define ISPCSI2PHY_CFG1_TCLK_MISS_SHIFT                8
++#define ISPCSI2PHY_CFG1_TCLK_MISS_MASK \
++                               (0x3 << ISPCSI2PHY_CFG1_TCLK_MISS_SHIFT)
++#define ISPCSI2PHY_CFG1_TCLK_MISS__RESETVAL \
++                               (0x1 << ISPCSI2PHY_CFG1_TCLK_MISS_SHIFT)
++#define ISPCSI2PHY_CFG1_TCLK_SETTLE_SHIFT              0
++#define ISPCSI2PHY_CFG1_TCLK_SETTLE_MASK \
++                               (0xFF << ISPCSI2PHY_CFG1_TCLK_TERM_SHIFT)
++#define ISPCSI2PHY_CFG1_TCLK_SETTLE__RESETVAL \
++                               (0x0E << ISPCSI2PHY_CFG1_TCLK_TERM_SHIFT)
++#define ISPCSI2PHY_CFG1__RESETVAL      (ISPCSI2PHY_CFG1_TCLK_TERM__RESET=
+VAL | \
++                                       ISPCSI2PHY_CFG1_RESERVED1__RESETV=
+AL | \
++                                       ISPCSI2PHY_CFG1_TCLK_MISS__RESETV=
+AL | \
++                                       ISPCSI2PHY_CFG1_TCLK_SETTLE__RESE=
+TVAL)
++#define ISPCSI2PHY_CFG1__EDITABLE_MASK (ISPCSI2PHY_CFG1_TCLK_TERM_MASK |=
+ \
++                                       ISPCSI2PHY_CFG1_RESERVED1_MASK | =
+\
++                                       ISPCSI2PHY_CFG1_TCLK_MISS_MASK | =
+\
++                                       ISPCSI2PHY_CFG1_TCLK_SETTLE_MASK)
++
++#endif /* __ISPREG_H__ */
 --
 1.5.6.5
 
