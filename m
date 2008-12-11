@@ -1,7 +1,7 @@
 From: "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>
-Subject: [REVIEW PATCH 07/14] OMAP: CAM: Add ISP CSI2 API
-Date: Thu, 11 Dec 2008 14:38:04 -0600
-Message-ID: <A24693684029E5489D1D202277BE894415E6E19C@dlee02.ent.ti.com>
+Subject: [REVIEW PATCH 06/14] OMAP: CAM: Add ISP SCM
+Date: Thu, 11 Dec 2008 14:38:01 -0600
+Message-ID: <A24693684029E5489D1D202277BE894415E6E19B@dlee02.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="iso-8859-1"
 Content-Transfer-Encoding: quoted-printable
@@ -21,40 +21,46 @@ Cc: Sakari Ailus <sakari.ailus@nokia.com>, "Tuukka.O Toivonen" <tuukka.o.toivone
 	Hari" <hnagalla@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
->From c442f389de719b47f8ec63f0ae07b5e2c2ef7b9d Mon Sep 17 00:00:00 2001
+>From 8526bbc7e5fe3f5cb73931c5db25e39402389b5b Mon Sep 17 00:00:00 2001
 From: Sergio Aguirre <saaguirre@ti.com>
 Date: Thu, 11 Dec 2008 13:35:49 -0600
-Subject: [PATCH] OMAP: CAM: Add ISP CSI2 API
+Subject: [PATCH] OMAP: CAM: Add ISP SCM
 
-Add ISP CSI2 API for operating OMAP3430 CSI2 receiver registers
+This adds the OMAP ISP SCM modules to the kernel. Includes:
+* ISP Autofocus Driver
+* ISP H3A Driver
+* ISP Histogram Driver
 
 Signed-off-by: Sergio Aguirre <saaguirre@ti.com>
 ---
- drivers/media/video/isp/ispcsi2.c | 2106 +++++++++++++++++++++++++++++++=
+ drivers/media/video/isp/isp_af.c  |  755 +++++++++++++++++++++++++++++++
+ drivers/media/video/isp/isp_af.h  |  118 +++++
+ drivers/media/video/isp/isph3a.c  |  883 +++++++++++++++++++++++++++++++=
 ++++++
- drivers/media/video/isp/ispcsi2.h |  232 ++++
- 2 files changed, 2338 insertions(+), 0 deletions(-)
- create mode 100644 drivers/media/video/isp/ispcsi2.c
- create mode 100644 drivers/media/video/isp/ispcsi2.h
+ drivers/media/video/isp/isph3a.h  |  119 +++++
+ drivers/media/video/isp/isphist.c |  577 ++++++++++++++++++++++++
+ drivers/media/video/isp/isphist.h |   97 ++++
+ 6 files changed, 2549 insertions(+), 0 deletions(-)
+ create mode 100644 drivers/media/video/isp/isp_af.c
+ create mode 100644 drivers/media/video/isp/isp_af.h
+ create mode 100644 drivers/media/video/isp/isph3a.c
+ create mode 100644 drivers/media/video/isp/isph3a.h
+ create mode 100644 drivers/media/video/isp/isphist.c
+ create mode 100644 drivers/media/video/isp/isphist.h
 
-diff --git a/drivers/media/video/isp/ispcsi2.c b/drivers/media/video/isp/=
-ispcsi2.c
+diff --git a/drivers/media/video/isp/isp_af.c b/drivers/media/video/isp/i=
+sp_af.c
 new file mode 100644
-index 0000000..423ea3a
+index 0000000..bc4ae32
 --- /dev/null
-+++ b/drivers/media/video/isp/ispcsi2.c
-@@ -0,0 +1,2106 @@
++++ b/drivers/media/video/isp/isp_af.c
+@@ -0,0 +1,755 @@
 +/*
-+ * drivers/media/video/isp/ispcsi2.c
++ * drivers/media/video/isp/isp_af.c
 + *
-+ * Driver Library for ISP CSI Control module in TI's OMAP3 Camera ISP
-+ * ISP CSI interface and IRQ related APIs are defined here.
++ * AF module for TI's OMAP3 Camera ISP
 + *
 + * Copyright (C) 2008 Texas Instruments.
-+ *
-+ * Contributors:
-+ *     Sergio Aguirre <saaguirre@ti.com>
-+ *     Dominic Curran <dcurran@ti.com>
 + *
 + * This package is free software; you can redistribute it and/or modify
 + * it under the terms of the GNU General Public License version 2 as
@@ -65,2366 +71,831 @@ index 0000000..423ea3a
 + * WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 + */
 +
-+#include <linux/errno.h>
-+#include <linux/delay.h>
++/* Linux specific include files */
++#include <asm/cacheflush.h>
++
++#include <linux/cdev.h>
 +#include <linux/device.h>
-+#include <linux/types.h>
-+#include <asm/mach-types.h>
-+#include <media/v4l2-common.h>
-+#include <media/v4l2-int-device.h>
++#include <linux/delay.h>
++#include <linux/fs.h>
++#include <linux/mm.h>
++#include <linux/module.h>
++#include <linux/platform_device.h>
++#include <linux/uaccess.h>
 +#include <linux/io.h>
-+#include <mach/io.h>
++#include <linux/mman.h>
++#include <linux/syscalls.h>
++#include <linux/errno.h>
++#include <linux/types.h>
++#include <linux/dma-mapping.h>
++
++#include <media/v4l2-int-device.h>
 +
 +#include "isp.h"
 +#include "ispreg.h"
-+#include "ispcsi2.h"
-+
-+static struct isp_csi2_cfg current_csi2_cfg;
-+static struct isp_csi2_cfg_update current_csi2_cfg_update;
-+
-+static bool update_complexio_cfg1;
-+static bool update_phy_cfg0;
-+static bool update_phy_cfg1;
-+static bool update_ctx_ctrl1[8];
-+static bool update_ctx_ctrl2[8];
-+static bool update_ctx_ctrl3[8];
-+static bool update_timing;
-+static bool update_ctrl;
-+static bool uses_videoport;
++#include "isph3a.h"
++#include "isp_af.h"
++#include "ispmmu.h"
 +
 +/**
-+ * isp_csi2_complexio_lanes_config - Configuration of CSI2 ComplexIO lan=
-es.
-+ * @reqcfg: Pointer to structure containing desired lane configuration
-+ *
-+ * Validates and saves to internal driver memory the passed configuratio=
-n.
-+ * Returns 0 if successful, or -EINVAL if null pointer is passed, invali=
-d
-+ * lane position or polarity is set, and if 2 lanes try to occupy the sa=
-me
-+ * position. To apply this settings, use the isp_csi2_complexio_lanes_up=
-date()
-+ * function just after calling this function.
-+ **/
-+int isp_csi2_complexio_lanes_config(struct isp_csi2_lanes_cfg *reqcfg)
-+{
-+       int i;
-+       bool pos_occupied[5] =3D {false, false, false, false, false};
-+       struct isp_csi2_lanes_cfg *currlanes =3D &current_csi2_cfg.lanes;
-+       struct isp_csi2_lanes_cfg_update *currlanes_u =3D
-+                                       &current_csi2_cfg_update.lanes;
-+
-+       /* Validating parameters sent by driver */
-+       if (reqcfg =3D=3D NULL) {
-+               printk(KERN_ERR "Invalid Complex IO Configuration sent by=
-"
-+                                                               " sensor\=
-n");
-+               goto err_einval;
-+       }
-+
-+       /* Data lanes verification */
-+       for (i =3D 0; i < 4; i++) {
-+               if ((reqcfg->data[i].pol > 1) || (reqcfg->data[i].pos > 5=
-)) {
-+                       printk(KERN_ERR "Invalid CSI-2 Complex IO configu=
-ration"
-+                                       " parameters for data lane #%d\n"=
-, i);
-+                       goto err_einval;
-+               }
-+               if ((pos_occupied[reqcfg->data[i].pos - 1] =3D=3D true) &=
-&
-+                                               reqcfg->data[i].pos > 0) =
-{
-+                       printk(KERN_ERR "Lane #%d already occupied\n",
-+                                                       reqcfg->data[i].p=
-os);
-+                       goto err_einval;
-+               } else
-+                       pos_occupied[reqcfg->data[i].pos - 1] =3D true;
-+       }
-+
-+       /* Clock lane verification */
-+       if ((reqcfg->clk.pol > 1) || (reqcfg->clk.pos > 5) ||
-+                                               (reqcfg->clk.pos =3D=3D 0=
-)) {
-+               printk(KERN_ERR "Invalid CSI-2 Complex IO configuration"
-+                                               " parameters for clock la=
-ne\n");
-+               goto err_einval;
-+       }
-+       if (pos_occupied[reqcfg->clk.pos - 1] =3D=3D true) {
-+               printk(KERN_ERR "Lane #%d already occupied",
-+                                                       reqcfg->clk.pos);
-+               goto err_einval;
-+       } else
-+               pos_occupied[reqcfg->clk.pos - 1] =3D true;
-+
-+       for (i =3D 0; i < 4; i++) {
-+               if (currlanes->data[i].pos !=3D reqcfg->data[i].pos) {
-+                       currlanes->data[i].pos =3D reqcfg->data[i].pos;
-+                       currlanes_u->data[i] =3D true;
-+                       update_complexio_cfg1 =3D true;
-+               }
-+               if (currlanes->data[i].pol !=3D reqcfg->data[i].pol) {
-+                       currlanes->data[i].pol =3D reqcfg->data[i].pol;
-+                       currlanes_u->data[i] =3D true;
-+                       update_complexio_cfg1 =3D true;
-+               }
-+       }
-+
-+       if (currlanes->clk.pos !=3D reqcfg->clk.pos) {
-+               currlanes->clk.pos =3D reqcfg->clk.pos;
-+               currlanes_u->clk =3D true;
-+               update_complexio_cfg1 =3D true;
-+       }
-+       if (currlanes->clk.pol !=3D reqcfg->clk.pol) {
-+               currlanes->clk.pol =3D reqcfg->clk.pol;
-+               currlanes_u->clk =3D true;
-+               update_complexio_cfg1 =3D true;
-+       }
-+       return 0;
-+err_einval:
-+       return -EINVAL;
-+}
-+
-+/**
-+ * isp_csi2_complexio_lanes_update - Applies CSI2 ComplexIO lanes config=
-uration.
-+ * @force_update: Flag to force rewrite of registers, even if they haven=
-'t been
-+ *                updated with the isp_csi2_complexio_lanes_config() fun=
-ction.
-+ *
-+ * It only saves settings when they were previously updated using the
-+ * isp_csi2_complexio_lanes_config() function, unless the force_update f=
-lag is
-+ * set to true.
-+ * Always returns 0.
-+ **/
-+int isp_csi2_complexio_lanes_update(bool force_update)
-+{
-+       struct isp_csi2_lanes_cfg *currlanes =3D &current_csi2_cfg.lanes;
-+       struct isp_csi2_lanes_cfg_update *currlanes_u =3D
-+                                       &current_csi2_cfg_update.lanes;
-+       u32 reg;
-+       int i;
-+
-+       if ((update_complexio_cfg1 =3D=3D false) && (force_update =3D=3D =
-false))
-+               return 0;
-+
-+       reg =3D omap_readl(ISPCSI2_COMPLEXIO_CFG1);
-+       for (i =3D 0; i < 4; i++) {
-+               if ((currlanes_u->data[i] =3D=3D true) || (force_update =3D=
-=3D true)) {
-+                       reg &=3D ~(ISPCSI2_COMPLEXIO_CFG1_DATA_POL_MASK(i=
- + 1) |
-+                               ISPCSI2_COMPLEXIO_CFG1_DATA_POSITION_MASK=
-(i +
-+                                                                       1=
-));
-+                       reg |=3D (currlanes->data[i].pol <<
-+                               ISPCSI2_COMPLEXIO_CFG1_DATA_POL_SHIFT(i +=
- 1));
-+                       reg |=3D (currlanes->data[i].pos <<
-+                               ISPCSI2_COMPLEXIO_CFG1_DATA_POSITION_SHIF=
-T(i +
-+                                                                       1=
-));
-+                       currlanes_u->data[i] =3D false;
-+               }
-+       }
-+
-+       if ((currlanes_u->clk =3D=3D true) || (force_update =3D=3D true))=
- {
-+               reg &=3D ~(ISPCSI2_COMPLEXIO_CFG1_CLOCK_POL_MASK |
-+                               ISPCSI2_COMPLEXIO_CFG1_CLOCK_POSITION_MAS=
-K);
-+               reg |=3D (currlanes->clk.pol <<
-+                               ISPCSI2_COMPLEXIO_CFG1_CLOCK_POL_SHIFT);
-+               reg |=3D (currlanes->clk.pos <<
-+                               ISPCSI2_COMPLEXIO_CFG1_CLOCK_POSITION_SHI=
-FT);
-+               currlanes_u->clk =3D false;
-+       }
-+       omap_writel(reg, ISPCSI2_COMPLEXIO_CFG1);
-+
-+       update_complexio_cfg1 =3D false;
-+       return 0;
-+}
-+
-+/**
-+ * isp_csi2_complexio_lanes_get - Gets CSI2 ComplexIO lanes configuratio=
-n.
-+ *
-+ * Gets settings from HW registers and fills in the internal driver memo=
-ry
-+ * Always returns 0.
-+ **/
-+int isp_csi2_complexio_lanes_get(void)
-+{
-+       struct isp_csi2_lanes_cfg *currlanes =3D &current_csi2_cfg.lanes;
-+       struct isp_csi2_lanes_cfg_update *currlanes_u =3D
-+                                       &current_csi2_cfg_update.lanes;
-+       u32 reg;
-+       int i;
-+
-+       reg =3D omap_readl(ISPCSI2_COMPLEXIO_CFG1);
-+       for (i =3D 0; i < 4; i++) {
-+               currlanes->data[i].pol =3D (reg &
-+                               ISPCSI2_COMPLEXIO_CFG1_DATA_POL_MASK(i + =
-1)) >>
-+                               ISPCSI2_COMPLEXIO_CFG1_DATA_POL_SHIFT(i +=
- 1);
-+               currlanes->data[i].pos =3D (reg &
-+                       ISPCSI2_COMPLEXIO_CFG1_DATA_POSITION_MASK(i + 1))=
- >>
-+                       ISPCSI2_COMPLEXIO_CFG1_DATA_POSITION_SHIFT(i + 1)=
-;
-+               currlanes_u->data[i] =3D false;
-+       }
-+       currlanes->clk.pol =3D (reg & ISPCSI2_COMPLEXIO_CFG1_CLOCK_POL_MA=
-SK) >>
-+                                       ISPCSI2_COMPLEXIO_CFG1_CLOCK_POL_=
-SHIFT;
-+       currlanes->clk.pos =3D (reg &
-+                               ISPCSI2_COMPLEXIO_CFG1_CLOCK_POSITION_MAS=
-K) >>
-+                               ISPCSI2_COMPLEXIO_CFG1_CLOCK_POSITION_SHI=
-FT;
-+       currlanes_u->clk =3D false;
-+
-+       update_complexio_cfg1 =3D false;
-+       return 0;
-+}
-+
-+/**
-+ * isp_csi2_complexio_power_status - Gets CSI2 ComplexIO power status.
-+ *
-+ * Returns 3 possible valid states: ISP_CSI2_POWER_OFF, ISP_CSI2_POWER_O=
-N,
-+ * and ISP_CSI2_POWER_ULPW.
-+ **/
-+static enum isp_csi2_power_cmds isp_csi2_complexio_power_status(void)
-+{
-+       enum isp_csi2_power_cmds ret;
-+       u32 reg;
-+
-+       reg =3D omap_readl(ISPCSI2_COMPLEXIO_CFG1) &
-+                                       ISPCSI2_COMPLEXIO_CFG1_PWR_STATUS=
-_MASK;
-+       switch (reg) {
-+       case ISPCSI2_COMPLEXIO_CFG1_PWR_STATUS_OFF:
-+               ret =3D ISP_CSI2_POWER_OFF;
-+               break;
-+       case ISPCSI2_COMPLEXIO_CFG1_PWR_STATUS_ON:
-+               ret =3D ISP_CSI2_POWER_ON;
-+               break;
-+       case ISPCSI2_COMPLEXIO_CFG1_PWR_STATUS_ULPW:
-+               ret =3D ISP_CSI2_POWER_ULPW;
-+               break;
-+       default:
-+               return -EINVAL;
-+       }
-+       return ret;
-+}
-+
-+/**
-+ * isp_csi2_complexio_power_autoswitch - Sets CSI2 ComplexIO power autos=
-witch.
-+ * @enable: Sets or clears the autoswitch function enable flag.
-+ *
-+ * Always returns 0.
-+ **/
-+int isp_csi2_complexio_power_autoswitch(bool enable)
-+{
-+       u32 reg;
-+
-+       reg =3D omap_readl(ISPCSI2_COMPLEXIO_CFG1);
-+       reg &=3D ~ISPCSI2_COMPLEXIO_CFG1_PWR_AUTO_MASK;
-+
-+       if (enable =3D=3D true)
-+               reg |=3D ISPCSI2_COMPLEXIO_CFG1_PWR_AUTO_ENABLE;
-+       else
-+               reg |=3D ISPCSI2_COMPLEXIO_CFG1_PWR_AUTO_DISABLE;
-+
-+       omap_writel(reg, ISPCSI2_COMPLEXIO_CFG1);
-+       return 0;
-+}
-+
-+/**
-+ * isp_csi2_complexio_power - Sets the desired power command for CSI2 Co=
-mplexIO.
-+ * @power_cmd: Power command to be set.
-+ *
-+ * Returns 0 if successful, or -EBUSY if the retry count is exceeded.
-+ **/
-+int isp_csi2_complexio_power(enum isp_csi2_power_cmds power_cmd)
-+{
-+       enum isp_csi2_power_cmds current_state;
-+       u32 reg;
-+       u8 retry_count;
-+
-+       reg =3D omap_readl(ISPCSI2_COMPLEXIO_CFG1) &
-+                                       ~ISPCSI2_COMPLEXIO_CFG1_PWR_CMD_M=
-ASK;
-+       switch (power_cmd) {
-+       case ISP_CSI2_POWER_OFF:
-+               reg |=3D ISPCSI2_COMPLEXIO_CFG1_PWR_CMD_OFF;
-+               break;
-+       case ISP_CSI2_POWER_ON:
-+               reg |=3D ISPCSI2_COMPLEXIO_CFG1_PWR_CMD_ON;
-+               break;
-+       case ISP_CSI2_POWER_ULPW:
-+               reg |=3D ISPCSI2_COMPLEXIO_CFG1_PWR_CMD_ULPW;
-+               break;
-+       default:
-+               printk(KERN_ERR "CSI2: ERROR - Wrong Power command!\n");
-+               return -EINVAL;
-+       }
-+       omap_writel(reg, ISPCSI2_COMPLEXIO_CFG1);
-+
-+       retry_count =3D 0;
-+       do {
-+               udelay(50);
-+               current_state =3D isp_csi2_complexio_power_status();
-+
-+               if (current_state !=3D power_cmd) {
-+                       printk(KERN_DEBUG "CSI2: Complex IO power command=
- not"
-+                                                               " yet tak=
-en.");
-+                       if (++retry_count < 100) {
-+                               printk(KERN_DEBUG " Retrying...\n");
-+                               udelay(50);
-+                       } else {
-+                               printk(KERN_DEBUG " Retry count exceeded!=
-\n");
-+                       }
-+               }
-+       } while ((current_state !=3D power_cmd) && (retry_count < 100));
-+
-+       if (retry_count =3D=3D 100)
-+               return -EBUSY;
-+
-+       return 0;
-+}
-+
-+/**
-+ * isp_csi2_ctrl_config_frame_mode - Configure if_en behaviour for CSI2
-+ * @frame_mode: Desired action for IF_EN switch off. 0 - disable IF imme=
-diately
-+ *              1 - disable after all Frame end Code is received in all
-+ *              contexts.
-+ *
-+ * Validates and saves to internal driver memory the passed configuratio=
-n.
-+ * Always returns 0.
-+ **/
-+int isp_csi2_ctrl_config_frame_mode(enum isp_csi2_frame_mode frame_mode)
-+{
-+       struct isp_csi2_ctrl_cfg *currctrl =3D &current_csi2_cfg.ctrl;
-+       struct isp_csi2_ctrl_cfg_update *currctrl_u =3D
-+                                               &current_csi2_cfg_update.=
-ctrl;
-+
-+       if (currctrl->frame_mode !=3D frame_mode) {
-+               currctrl->frame_mode =3D frame_mode;
-+               currctrl_u->frame_mode =3D true;
-+               update_ctrl =3D true;
-+       }
-+       return 0;
-+}
-+
-+/**
-+ * isp_csi2_ctrl_config_vp_clk_enable - Enables/disables CSI2 Videoport =
-clock.
-+ * @vp_clk_enable: Boolean value to specify the Videoport clock state.
-+ *
-+ * Validates and saves to internal driver memory the passed configuratio=
-n.
-+ * Always returns 0.
-+ **/
-+int isp_csi2_ctrl_config_vp_clk_enable(bool vp_clk_enable)
-+{
-+       struct isp_csi2_ctrl_cfg *currctrl =3D &current_csi2_cfg.ctrl;
-+       struct isp_csi2_ctrl_cfg_update *currctrl_u =3D
-+                                               &current_csi2_cfg_update.=
-ctrl;
-+
-+       if (currctrl->vp_clk_enable !=3D vp_clk_enable) {
-+               currctrl->vp_clk_enable =3D vp_clk_enable;
-+               currctrl_u->vp_clk_enable =3D true;
-+               update_ctrl =3D true;
-+       }
-+       return 0;
-+}
-+
-+/**
-+ * isp_csi2_ctrl_config_vp_only_enable - Sets CSI2 Videoport clock as ex=
-clusive
-+ * @vp_only_enable: Boolean value to specify if the Videoport clock is
-+ *                  exclusive, setting the OCP port as disabled.
-+ *
-+ * Validates and saves to internal driver memory the passed configuratio=
-n.
-+ * Always returns 0.
-+ **/
-+int isp_csi2_ctrl_config_vp_only_enable(bool vp_only_enable)
-+{
-+       struct isp_csi2_ctrl_cfg *currctrl =3D &current_csi2_cfg.ctrl;
-+       struct isp_csi2_ctrl_cfg_update *currctrl_u =3D
-+                                               &current_csi2_cfg_update.=
-ctrl;
-+
-+       if (currctrl->vp_only_enable !=3D vp_only_enable) {
-+               currctrl->vp_only_enable =3D vp_only_enable;
-+               currctrl_u->vp_only_enable =3D true;
-+               update_ctrl =3D true;
-+       }
-+       return 0;
-+}
-+
-+/**
-+ * isp_csi2_ctrl_config_vp_out_ctrl - Sets CSI2 Videoport clock divider
-+ * @vp_out_ctrl: Divider value for setting videoport clock frequency bas=
-ed on
-+ *               OCP port frequency, valid dividers are between 1 and 4.
-+ *
-+ * Validates and saves to internal driver memory the passed configuratio=
-n.
-+ * Returns 0 if successful, or -EINVAL if wrong divider value is passed.
-+ **/
-+int isp_csi2_ctrl_config_vp_out_ctrl(u8 vp_out_ctrl)
-+{
-+       struct isp_csi2_ctrl_cfg *currctrl =3D &current_csi2_cfg.ctrl;
-+       struct isp_csi2_ctrl_cfg_update *currctrl_u =3D
-+                                               &current_csi2_cfg_update.=
-ctrl;
-+
-+       if ((vp_out_ctrl =3D=3D 0) || (vp_out_ctrl > 4)) {
-+               printk(KERN_ERR "CSI2: Wrong divisor value. Must be betwe=
-en"
-+                                                               " 1 and 4=
-");
-+               return -EINVAL;
-+       }
-+
-+       if (currctrl->vp_out_ctrl !=3D vp_out_ctrl) {
-+               currctrl->vp_out_ctrl =3D vp_out_ctrl;
-+               currctrl_u->vp_out_ctrl =3D true;
-+               update_ctrl =3D true;
-+       }
-+       return 0;
-+}
-+
-+/**
-+ * isp_csi2_ctrl_config_debug_enable - Sets CSI2 debug
-+ * @debug_enable: Boolean for setting debug configuration on CSI2.
-+ *
-+ * Always returns 0.
-+ **/
-+int isp_csi2_ctrl_config_debug_enable(bool debug_enable)
-+{
-+       struct isp_csi2_ctrl_cfg *currctrl =3D &current_csi2_cfg.ctrl;
-+       struct isp_csi2_ctrl_cfg_update *currctrl_u =3D
-+                                               &current_csi2_cfg_update.=
-ctrl;
-+
-+       if (currctrl->debug_enable !=3D debug_enable) {
-+               currctrl->debug_enable =3D debug_enable;
-+               currctrl_u->debug_enable =3D true;
-+               update_ctrl =3D true;
-+       }
-+       return 0;
-+}
-+
-+/**
-+ * isp_csi2_ctrl_config_burst_size - Sets CSI2 burst size.
-+ * @burst_size: Burst size of the memory saving capability of receiver.
-+ *
-+ * Returns 0 if successful, or -EINVAL if burst size is wrong.
-+ **/
-+int isp_csi2_ctrl_config_burst_size(u8 burst_size)
-+{
-+       struct isp_csi2_ctrl_cfg *currctrl =3D &current_csi2_cfg.ctrl;
-+       struct isp_csi2_ctrl_cfg_update *currctrl_u =3D
-+                                               &current_csi2_cfg_update.=
-ctrl;
-+       if (burst_size > 3) {
-+               printk(KERN_ERR "CSI2: Wrong burst size. Must be between"
-+                                                               " 0 and 3=
-");
-+               return -EINVAL;
-+       }
-+
-+       if (currctrl->burst_size !=3D burst_size) {
-+               currctrl->burst_size =3D burst_size;
-+               currctrl_u->burst_size =3D true;
-+               update_ctrl =3D true;
-+       }
-+       return 0;
-+}
-+
-+/**
-+ * isp_csi2_ctrl_config_ecc_enable - Enables ECC on CSI2 Receiver
-+ * @ecc_enable: Boolean to enable/disable the CSI2 receiver ECC handling=
-.
-+ *
-+ * Always returns 0.
-+ **/
-+int isp_csi2_ctrl_config_ecc_enable(bool ecc_enable)
-+{
-+       struct isp_csi2_ctrl_cfg *currctrl =3D &current_csi2_cfg.ctrl;
-+       struct isp_csi2_ctrl_cfg_update *currctrl_u =3D
-+                                               &current_csi2_cfg_update.=
-ctrl;
-+
-+       if (currctrl->ecc_enable !=3D ecc_enable) {
-+               currctrl->ecc_enable =3D ecc_enable;
-+               currctrl_u->ecc_enable =3D true;
-+               update_ctrl =3D true;
-+       }
-+       return 0;
-+}
-+
-+/**
-+ * isp_csi2_ctrl_config_ecc_enable - Enables ECC on CSI2 Receiver
-+ * @ecc_enable: Boolean to enable/disable the CSI2 receiver ECC handling=
-.
-+ *
-+ * Always returns 0.
-+ **/
-+int isp_csi2_ctrl_config_secure_mode(bool secure_mode)
-+{
-+       struct isp_csi2_ctrl_cfg *currctrl =3D &current_csi2_cfg.ctrl;
-+       struct isp_csi2_ctrl_cfg_update *currctrl_u =3D
-+                                               &current_csi2_cfg_update.=
-ctrl;
-+
-+       if (currctrl->secure_mode !=3D secure_mode) {
-+               currctrl->secure_mode =3D secure_mode;
-+               currctrl_u->secure_mode =3D true;
-+               update_ctrl =3D true;
-+       }
-+       return 0;
-+}
-+
-+/**
-+ * isp_csi2_ctrl_config_if_enable - Enables CSI2 Receiver interface.
-+ * @if_enable: Boolean to enable/disable the CSI2 receiver interface.
-+ *
-+ * Always returns 0.
-+ **/
-+int isp_csi2_ctrl_config_if_enable(bool if_enable)
-+{
-+       struct isp_csi2_ctrl_cfg *currctrl =3D &current_csi2_cfg.ctrl;
-+       struct isp_csi2_ctrl_cfg_update *currctrl_u =3D
-+                                               &current_csi2_cfg_update.=
-ctrl;
-+
-+       if (currctrl->if_enable !=3D if_enable) {
-+               currctrl->if_enable =3D if_enable;
-+               currctrl_u->if_enable =3D true;
-+               update_ctrl =3D true;
-+       }
-+       return 0;
-+}
-+
-+/**
-+ * isp_csi2_ctrl_update - Applies CSI2 control configuration.
-+ * @force_update: Flag to force rewrite of registers, even if they haven=
-'t been
-+ *                updated with the isp_csi2_ctrl_config_*() functions.
-+ *
-+ * It only saves settings when they were previously updated using the
-+ * isp_csi2_ctrl_config_*() functions, unless the force_update flag is
-+ * set to true.
-+ * Always returns 0.
-+ **/
-+int isp_csi2_ctrl_update(bool force_update)
-+{
-+       struct isp_csi2_ctrl_cfg *currctrl =3D &current_csi2_cfg.ctrl;
-+       struct isp_csi2_ctrl_cfg_update *currctrl_u =3D
-+                                               &current_csi2_cfg_update.=
-ctrl;
-+       u32 reg;
-+
-+       if ((update_ctrl =3D=3D true) || (force_update =3D=3D true)) {
-+               reg =3D omap_readl(ISPCSI2_CTRL);
-+               if ((currctrl_u->frame_mode =3D=3D true) ||
-+                                               (force_update =3D=3D true=
-)) {
-+                       reg &=3D ~ISPCSI2_CTRL_FRAME_MASK;
-+                       if (currctrl->frame_mode)
-+                               reg |=3D ISPCSI2_CTRL_FRAME_DISABLE_FEC;
-+                       else
-+                               reg |=3D ISPCSI2_CTRL_FRAME_DISABLE_IMM;
-+                       currctrl_u->frame_mode =3D false;
-+               }
-+               if ((currctrl_u->vp_clk_enable =3D=3D true) ||
-+                                               (force_update =3D=3D true=
-)) {
-+                       reg &=3D ~ISPCSI2_CTRL_VP_CLK_EN_MASK;
-+                       if (currctrl->vp_clk_enable)
-+                               reg |=3D ISPCSI2_CTRL_VP_CLK_EN_ENABLE;
-+                       else
-+                               reg |=3D ISPCSI2_CTRL_VP_CLK_EN_DISABLE;
-+                       currctrl_u->vp_clk_enable =3D false;
-+               }
-+               if ((currctrl_u->vp_only_enable =3D=3D true) ||
-+                                       (force_update =3D=3D true)) {
-+                       reg &=3D ~ISPCSI2_CTRL_VP_ONLY_EN_MASK;
-+                       uses_videoport =3D currctrl->vp_only_enable;
-+                       if (currctrl->vp_only_enable)
-+                               reg |=3D ISPCSI2_CTRL_VP_ONLY_EN_ENABLE;
-+                       else
-+                               reg |=3D ISPCSI2_CTRL_VP_ONLY_EN_DISABLE;
-+                       currctrl_u->vp_only_enable =3D false;
-+               }
-+               if ((currctrl_u->vp_out_ctrl =3D=3D true) ||
-+                                       (force_update =3D=3D true)) {
-+                       reg &=3D ~ISPCSI2_CTRL_VP_OUT_CTRL_MASK;
-+                       reg |=3D (currctrl->vp_out_ctrl - 1) <<
-+                                               ISPCSI2_CTRL_VP_OUT_CTRL_=
-SHIFT;
-+                       currctrl_u->vp_out_ctrl =3D false;
-+               }
-+               if ((currctrl_u->debug_enable =3D=3D true) ||
-+                                       (force_update =3D=3D true)) {
-+                       reg &=3D ~ISPCSI2_CTRL_DBG_EN_MASK;
-+                       if (currctrl->debug_enable)
-+                               reg |=3D ISPCSI2_CTRL_DBG_EN_ENABLE;
-+                       else
-+                               reg |=3D ISPCSI2_CTRL_DBG_EN_DISABLE;
-+                       currctrl_u->debug_enable =3D false;
-+               }
-+               if ((currctrl_u->burst_size =3D=3D true) ||
-+                                       (force_update =3D=3D true)) {
-+                       reg &=3D ~ISPCSI2_CTRL_BURST_SIZE_MASK;
-+                       reg |=3D currctrl->burst_size <<
-+                                               ISPCSI2_CTRL_BURST_SIZE_S=
-HIFT;
-+                       currctrl_u->burst_size =3D false;
-+               }
-+               if ((currctrl_u->ecc_enable =3D=3D true) ||
-+                                       (force_update =3D=3D true)) {
-+                       reg &=3D ~ISPCSI2_CTRL_ECC_EN_MASK;
-+                       if (currctrl->ecc_enable)
-+                               reg |=3D ISPCSI2_CTRL_ECC_EN_ENABLE;
-+                       else
-+                               reg |=3D ISPCSI2_CTRL_ECC_EN_DISABLE;
-+                       currctrl_u->ecc_enable =3D false;
-+               }
-+               if ((currctrl_u->secure_mode =3D=3D true) ||
-+                                       (force_update =3D=3D true)) {
-+                       reg &=3D ~ISPCSI2_CTRL_SECURE_MASK;
-+                       if (currctrl->secure_mode)
-+                               reg |=3D ISPCSI2_CTRL_SECURE_ENABLE;
-+                       else
-+                               reg |=3D ISPCSI2_CTRL_SECURE_DISABLE;
-+                       currctrl_u->secure_mode =3D false;
-+               }
-+               if ((currctrl_u->if_enable =3D=3D true) ||
-+                                               (force_update =3D=3D true=
-)) {
-+                       reg &=3D ~ISPCSI2_CTRL_IF_EN_MASK;
-+                       if (currctrl->if_enable)
-+                               reg |=3D ISPCSI2_CTRL_IF_EN_ENABLE;
-+                       else
-+                               reg |=3D ISPCSI2_CTRL_IF_EN_DISABLE;
-+                       currctrl_u->if_enable =3D false;
-+               }
-+               omap_writel(reg, ISPCSI2_CTRL);
-+               update_ctrl =3D false;
-+       }
-+       return 0;
-+}
-+
-+/**
-+ * isp_csi2_ctrl_get - Gets CSI2 control configuration
-+ *
-+ * Always returns 0.
-+ **/
-+int isp_csi2_ctrl_get(void)
-+{
-+       struct isp_csi2_ctrl_cfg *currctrl =3D &current_csi2_cfg.ctrl;
-+       struct isp_csi2_ctrl_cfg_update *currctrl_u =3D
-+                                               &current_csi2_cfg_update.=
-ctrl;
-+       u32 reg;
-+
-+       reg =3D omap_readl(ISPCSI2_CTRL);
-+       currctrl->frame_mode =3D (reg & ISPCSI2_CTRL_FRAME_MASK) >>
-+                                               ISPCSI2_CTRL_FRAME_SHIFT;
-+       currctrl_u->frame_mode =3D false;
-+
-+       if ((reg & ISPCSI2_CTRL_VP_CLK_EN_MASK) =3D=3D
-+                                               ISPCSI2_CTRL_VP_CLK_EN_EN=
-ABLE)
-+               currctrl->vp_clk_enable =3D true;
-+       else
-+               currctrl->vp_clk_enable =3D false;
-+       currctrl_u->vp_clk_enable =3D false;
-+
-+       if ((reg & ISPCSI2_CTRL_VP_ONLY_EN_MASK) =3D=3D
-+                                               ISPCSI2_CTRL_VP_ONLY_EN_E=
-NABLE)
-+               currctrl->vp_only_enable =3D true;
-+       else
-+               currctrl->vp_only_enable =3D false;
-+       uses_videoport =3D currctrl->vp_only_enable;
-+       currctrl_u->vp_only_enable =3D false;
-+
-+       currctrl->vp_out_ctrl =3D ((reg & ISPCSI2_CTRL_VP_OUT_CTRL_MASK) =
->>
-+                                       ISPCSI2_CTRL_VP_OUT_CTRL_SHIFT) +=
- 1;
-+       currctrl_u->vp_out_ctrl =3D false;
-+
-+       if ((reg & ISPCSI2_CTRL_DBG_EN_MASK) =3D=3D ISPCSI2_CTRL_DBG_EN_E=
-NABLE)
-+               currctrl->debug_enable =3D true;
-+       else
-+               currctrl->debug_enable =3D false;
-+       currctrl_u->debug_enable =3D false;
-+
-+       currctrl->burst_size =3D (reg & ISPCSI2_CTRL_BURST_SIZE_MASK) >>
-+                                       ISPCSI2_CTRL_BURST_SIZE_SHIFT;
-+       currctrl_u->burst_size =3D false;
-+
-+       if ((reg & ISPCSI2_CTRL_ECC_EN_MASK) =3D=3D ISPCSI2_CTRL_ECC_EN_E=
-NABLE)
-+               currctrl->ecc_enable =3D true;
-+       else
-+               currctrl->ecc_enable =3D false;
-+       currctrl_u->ecc_enable =3D false;
-+
-+       if ((reg & ISPCSI2_CTRL_SECURE_MASK) =3D=3D ISPCSI2_CTRL_SECURE_E=
-NABLE)
-+               currctrl->secure_mode =3D true;
-+       else
-+               currctrl->secure_mode =3D false;
-+       currctrl_u->secure_mode =3D false;
-+
-+       if ((reg & ISPCSI2_CTRL_IF_EN_MASK) =3D=3D ISPCSI2_CTRL_IF_EN_ENA=
-BLE)
-+               currctrl->if_enable =3D true;
-+       else
-+               currctrl->if_enable =3D false;
-+       currctrl_u->if_enable =3D false;
-+
-+       update_ctrl =3D false;
-+       return 0;
-+}
-+
-+/**
-+ * isp_csi2_ctx_validate - Validates the context number value
-+ * @ctxnum: Pointer to variable containing context number.
-+ *
-+ * If the value is not in range (3 bits), it is being ANDed with 0x7 to =
-force
-+ * it to be on range.
-+ **/
-+static void isp_csi2_ctx_validate(u8 *ctxnum)
-+{
-+       if (*ctxnum > 7) {
-+               printk(KERN_ERR "Invalid context number. Forcing valid"
-+                                                               " value..=
-.\n");
-+               *ctxnum &=3D ~(0x7);
-+       }
-+}
-+
-+/**
-+ * isp_csi2_ctx_config_virtual_id - Maps a virtual ID with a CSI2 Rx con=
-text
-+ * @ctxnum: Context number, valid between 0 and 7 values.
-+ * @virtual_id: CSI2 Virtual ID to associate with specified context numb=
-er.
-+ *
-+ * Returns 0 if successful, or -EINVAL if Virtual ID is not in range (0-=
-3).
-+ **/
-+int isp_csi2_ctx_config_virtual_id(u8 ctxnum, u8 virtual_id)
-+{
-+       struct isp_csi2_ctx_cfg *selected_ctx;
-+       struct isp_csi2_ctx_cfg_update *selected_ctx_u;
-+
-+       isp_csi2_ctx_validate(&ctxnum);
-+
-+       if (virtual_id > 3) {
-+               printk(KERN_ERR "Wrong requested virtual_id\n");
-+               return -EINVAL;
-+       }
-+
-+       selected_ctx =3D &current_csi2_cfg.contexts[ctxnum];
-+       selected_ctx_u =3D &current_csi2_cfg_update.contexts[ctxnum];
-+
-+       if (selected_ctx->virtual_id !=3D virtual_id) {
-+               selected_ctx->virtual_id =3D virtual_id;
-+               selected_ctx_u->virtual_id =3D true;
-+               update_ctx_ctrl2[ctxnum] =3D true;
-+       }
-+
-+       return 0;
-+}
-+
-+/**
-+ * isp_csi2_ctx_config_frame_count - Sets frame count to be received in =
-CSI2 Rx.
-+ * @ctxnum: Context number, valid between 0 and 7 values.
-+ * @frame_count: Number of frames to acquire.
-+ *
-+ * Always returns 0.
-+ **/
-+int isp_csi2_ctx_config_frame_count(u8 ctxnum, u8 frame_count)
-+{
-+       struct isp_csi2_ctx_cfg *selected_ctx;
-+       struct isp_csi2_ctx_cfg_update *selected_ctx_u;
-+
-+       isp_csi2_ctx_validate(&ctxnum);
-+
-+       selected_ctx =3D &current_csi2_cfg.contexts[ctxnum];
-+       selected_ctx_u =3D &current_csi2_cfg_update.contexts[ctxnum];
-+
-+       if (selected_ctx->frame_count !=3D frame_count) {
-+               selected_ctx->frame_count =3D frame_count;
-+               selected_ctx_u->frame_count =3D true;
-+               update_ctx_ctrl1[ctxnum] =3D true;
-+       }
-+
-+       return 0;
-+}
-+
-+/**
-+ * isp_csi2_ctx_config_format - Maps a pixel format to a specified conte=
-xt.
-+ * @ctxnum: Context number, valid between 0 and 7 values.
-+ * @pixformat: V4L2 structure for pixel format.
-+ *
-+ * Returns 0 if successful, or -EINVAL if the format is not supported by=
- the
-+ * receiver.
-+ **/
-+int isp_csi2_ctx_config_format(u8 ctxnum, u32 pixformat)
-+{
-+       struct isp_csi2_ctx_cfg *selected_ctx;
-+       struct isp_csi2_ctx_cfg_update *selected_ctx_u;
-+       struct v4l2_pix_format pix;
-+
-+       isp_csi2_ctx_validate(&ctxnum);
-+
-+       pix.pixelformat =3D pixformat;
-+       switch (pix.pixelformat) {
-+       case V4L2_PIX_FMT_RGB565:
-+       case V4L2_PIX_FMT_RGB565X:
-+       case V4L2_PIX_FMT_YUYV:
-+       case V4L2_PIX_FMT_UYVY:
-+       case V4L2_PIX_FMT_RGB555:
-+       case V4L2_PIX_FMT_RGB555X:
-+       case V4L2_PIX_FMT_SGRBG10:
-+       break;
-+       default:
-+               printk(KERN_ERR "Context config pixel format unsupported\=
-n");
-+               return -EINVAL;
-+       }
-+
-+       selected_ctx =3D &current_csi2_cfg.contexts[ctxnum];
-+       selected_ctx_u =3D &current_csi2_cfg_update.contexts[ctxnum];
-+
-+       selected_ctx->format =3D pix;
-+       selected_ctx_u->format =3D true;
-+       update_ctx_ctrl2[ctxnum] =3D true;
-+
-+       return 0;
-+}
-+
-+/**
-+ * isp_csi2_ctx_config_alpha - Sets the alpha value for pixel format
-+ * @ctxnum: Context number, valid between 0 and 7 values.
-+ * @alpha: Alpha value.
-+ *
-+ * Returns 0 if successful, or -EINVAL if the alpha value is bigger than=
- 16383.
-+ **/
-+int isp_csi2_ctx_config_alpha(u8 ctxnum, u16 alpha)
-+{
-+       struct isp_csi2_ctx_cfg *selected_ctx;
-+       struct isp_csi2_ctx_cfg_update *selected_ctx_u;
-+
-+       isp_csi2_ctx_validate(&ctxnum);
-+
-+       if (alpha > 0x3FFF) {
-+               printk(KERN_ERR "Wrong alpha value\n");
-+               return -EINVAL;
-+       }
-+
-+       selected_ctx =3D &current_csi2_cfg.contexts[ctxnum];
-+       selected_ctx_u =3D &current_csi2_cfg_update.contexts[ctxnum];
-+
-+       if (selected_ctx->alpha !=3D alpha) {
-+               selected_ctx->alpha =3D alpha;
-+               selected_ctx_u->alpha =3D true;
-+               update_ctx_ctrl3[ctxnum] =3D true;
-+       }
-+       return 0;
-+}
-+
-+/**
-+ * isp_csi2_ctx_config_data_offset - Sets the offset between received li=
-nes
-+ * @ctxnum: Context number, valid between 0 and 7 values.
-+ * @data_offset: Offset between first pixel of each 2 contiguous lines.
-+ *
-+ * Returns 0 if successful, or -EINVAL if the line offset is bigger than=
- 1023.
-+ **/
-+int isp_csi2_ctx_config_data_offset(u8 ctxnum, u16 data_offset)
-+{
-+       struct isp_csi2_ctx_cfg *selected_ctx;
-+       struct isp_csi2_ctx_cfg_update *selected_ctx_u;
-+
-+       isp_csi2_ctx_validate(&ctxnum);
-+
-+       if (data_offset > 0x3FF) {
-+               printk(KERN_ERR "Wrong line offset\n");
-+               return -EINVAL;
-+       }
-+
-+       selected_ctx =3D &current_csi2_cfg.contexts[ctxnum];
-+       selected_ctx_u =3D &current_csi2_cfg_update.contexts[ctxnum];
-+
-+       if (selected_ctx->data_offset !=3D data_offset) {
-+               selected_ctx->data_offset =3D data_offset;
-+               selected_ctx_u->data_offset =3D true;
-+       }
-+       return 0;
-+}
-+
-+/**
-+ * isp_csi2_ctx_config_ping_addr - Sets Ping address for CSI2 Rx. buffer=
- saving
-+ * @ctxnum: Context number, valid between 0 and 7 values.
-+ * @ping_addr: 32 bit ISP MMU mapped address.
-+ *
-+ * Always returns 0.
-+ **/
-+int isp_csi2_ctx_config_ping_addr(u8 ctxnum, u32 ping_addr)
-+{
-+       struct isp_csi2_ctx_cfg *selected_ctx;
-+       struct isp_csi2_ctx_cfg_update *selected_ctx_u;
-+
-+       isp_csi2_ctx_validate(&ctxnum);
-+
-+       ping_addr &=3D ~(0x1F);
-+
-+       selected_ctx =3D &current_csi2_cfg.contexts[ctxnum];
-+       selected_ctx_u =3D &current_csi2_cfg_update.contexts[ctxnum];
-+
-+       if (selected_ctx->ping_addr !=3D ping_addr) {
-+               selected_ctx->ping_addr =3D ping_addr;
-+               selected_ctx_u->ping_addr =3D true;
-+       }
-+       return 0;
-+}
-+
-+/**
-+ * isp_csi2_ctx_config_pong_addr - Sets Pong address for CSI2 Rx. buffer=
- saving
-+ * @ctxnum: Context number, valid between 0 and 7 values.
-+ * @pong_addr: 32 bit ISP MMU mapped address.
-+ *
-+ * Always returns 0.
-+ **/
-+int isp_csi2_ctx_config_pong_addr(u8 ctxnum, u32 pong_addr)
-+{
-+       struct isp_csi2_ctx_cfg *selected_ctx;
-+       struct isp_csi2_ctx_cfg_update *selected_ctx_u;
-+
-+       isp_csi2_ctx_validate(&ctxnum);
-+
-+       pong_addr &=3D ~(0x1F);
-+
-+       selected_ctx =3D &current_csi2_cfg.contexts[ctxnum];
-+       selected_ctx_u =3D &current_csi2_cfg_update.contexts[ctxnum];
-+
-+       if (selected_ctx->pong_addr !=3D pong_addr) {
-+               selected_ctx->pong_addr =3D pong_addr;
-+               selected_ctx_u->pong_addr =3D true;
-+       }
-+       return 0;
-+}
-+
-+/**
-+ * isp_csi2_ctx_config_eof_enabled - Enables EOF signal assertion
-+ * @ctxnum: Context number, valid between 0 and 7 values.
-+ * @eof_enabled: Boolean to enable/disable EOF signal assertion on recei=
-ved
-+ *               packets.
-+ *
-+ * Always returns 0.
-+ **/
-+int isp_csi2_ctx_config_eof_enabled(u8 ctxnum, bool eof_enabled)
-+{
-+       struct isp_csi2_ctx_cfg *selected_ctx;
-+       struct isp_csi2_ctx_cfg_update *selected_ctx_u;
-+
-+       isp_csi2_ctx_validate(&ctxnum);
-+
-+       selected_ctx =3D &current_csi2_cfg.contexts[ctxnum];
-+       selected_ctx_u =3D &current_csi2_cfg_update.contexts[ctxnum];
-+
-+       if (selected_ctx->eof_enabled !=3D eof_enabled) {
-+               selected_ctx->eof_enabled =3D eof_enabled;
-+               selected_ctx_u->eof_enabled =3D true;
-+               update_ctx_ctrl1[ctxnum] =3D true;
-+       }
-+       return 0;
-+}
-+
-+/**
-+ * isp_csi2_ctx_config_eol_enabled - Enables EOL signal assertion
-+ * @ctxnum: Context number, valid between 0 and 7 values.
-+ * @eol_enabled: Boolean to enable/disable EOL signal assertion on recei=
-ved
-+ *               packets.
-+ *
-+ * Always returns 0.
-+ **/
-+int isp_csi2_ctx_config_eol_enabled(u8 ctxnum, bool eol_enabled)
-+{
-+       struct isp_csi2_ctx_cfg *selected_ctx;
-+       struct isp_csi2_ctx_cfg_update *selected_ctx_u;
-+
-+       isp_csi2_ctx_validate(&ctxnum);
-+
-+       selected_ctx =3D &current_csi2_cfg.contexts[ctxnum];
-+       selected_ctx_u =3D &current_csi2_cfg_update.contexts[ctxnum];
-+
-+       if (selected_ctx->eol_enabled !=3D eol_enabled) {
-+               selected_ctx->eol_enabled =3D eol_enabled;
-+               selected_ctx_u->eol_enabled =3D true;
-+               update_ctx_ctrl1[ctxnum] =3D true;
-+       }
-+       return 0;
-+}
-+
-+/**
-+ * isp_csi2_ctx_config_checksum_enabled - Enables Checksum check in rcvd=
- packets
-+ * @ctxnum: Context number, valid between 0 and 7 values.
-+ * @checksum_enabled: Boolean to enable/disable Checksum check on receiv=
-ed
-+ *                    packets
-+ *
-+ * Always returns 0.
-+ **/
-+int isp_csi2_ctx_config_checksum_enabled(u8 ctxnum, bool checksum_enable=
-d)
-+{
-+       struct isp_csi2_ctx_cfg *selected_ctx;
-+       struct isp_csi2_ctx_cfg_update *selected_ctx_u;
-+
-+       isp_csi2_ctx_validate(&ctxnum);
-+
-+       selected_ctx =3D &current_csi2_cfg.contexts[ctxnum];
-+       selected_ctx_u =3D &current_csi2_cfg_update.contexts[ctxnum];
-+
-+       if (selected_ctx->checksum_enabled !=3D checksum_enabled) {
-+               selected_ctx->checksum_enabled =3D checksum_enabled;
-+               selected_ctx_u->checksum_enabled =3D true;
-+               update_ctx_ctrl1[ctxnum] =3D true;
-+       }
-+       return 0;
-+}
-+
-+/**
-+ * isp_csi2_ctx_config_enabled - Enables specified CSI2 context
-+ * @ctxnum: Context number, valid between 0 and 7 values.
-+ * @enabled: Boolean to enable/disable specified context.
-+ *
-+ * Always returns 0.
-+ **/
-+int isp_csi2_ctx_config_enabled(u8 ctxnum, bool enabled)
-+{
-+       struct isp_csi2_ctx_cfg *selected_ctx;
-+       struct isp_csi2_ctx_cfg_update *selected_ctx_u;
-+
-+       isp_csi2_ctx_validate(&ctxnum);
-+
-+       selected_ctx =3D &current_csi2_cfg.contexts[ctxnum];
-+       selected_ctx_u =3D &current_csi2_cfg_update.contexts[ctxnum];
-+
-+       if (selected_ctx->enabled !=3D enabled) {
-+               selected_ctx->enabled =3D enabled;
-+               selected_ctx_u->enabled =3D true;
-+               update_ctx_ctrl1[ctxnum] =3D true;
-+       }
-+       return 0;
-+}
-+
-+/**
-+ * isp_csi2_ctx_update - Applies CSI2 context configuration.
-+ * @ctxnum: Context number, valid between 0 and 7 values.
-+ * @force_update: Flag to force rewrite of registers, even if they haven=
-'t been
-+ *                updated with the isp_csi2_ctx_config_*() functions.
-+ *
-+ * It only saves settings when they were previously updated using the
-+ * isp_csi2_ctx_config_*() functions, unless the force_update flag is
-+ * set to true.
-+ * Always returns 0.
-+ **/
-+int isp_csi2_ctx_update(u8 ctxnum, bool force_update)
-+{
-+       struct isp_csi2_ctx_cfg *selected_ctx;
-+       struct isp_csi2_ctx_cfg_update *selected_ctx_u;
-+       u32 reg;
-+
-+       isp_csi2_ctx_validate(&ctxnum);
-+
-+       selected_ctx =3D &current_csi2_cfg.contexts[ctxnum];
-+       selected_ctx_u =3D &current_csi2_cfg_update.contexts[ctxnum];
-+
-+       if ((update_ctx_ctrl1[ctxnum] =3D=3D true) || (force_update =3D=3D=
- true)) {
-+               reg =3D omap_readl(ISPCSI2_CTX_CTRL1(ctxnum));
-+               if ((selected_ctx_u->frame_count =3D=3D true) ||
-+                                               (force_update =3D=3D true=
-)) {
-+                       reg &=3D ~(ISPCSI2_CTX_CTRL1_COUNT_MASK);
-+                       reg |=3D selected_ctx->frame_count <<
-+                                               ISPCSI2_CTX_CTRL1_COUNT_S=
-HIFT;
-+                       selected_ctx_u->frame_count =3D false;
-+               }
-+               if ((selected_ctx_u->eof_enabled =3D=3D true) ||
-+                                       (force_update =3D=3D true)) {
-+                       reg &=3D ~(ISPCSI2_CTX_CTRL1_EOF_EN_MASK);
-+                       if (selected_ctx->eof_enabled =3D=3D true)
-+                               reg |=3D ISPCSI2_CTX_CTRL1_EOF_EN_ENABLE;
-+                       else
-+                               reg |=3D ISPCSI2_CTX_CTRL1_EOF_EN_DISABLE=
-;
-+                       selected_ctx_u->eof_enabled =3D false;
-+               }
-+               if ((selected_ctx_u->eol_enabled =3D=3D true) ||
-+                                       (force_update =3D=3D true)) {
-+                       reg &=3D ~(ISPCSI2_CTX_CTRL1_EOL_EN_MASK);
-+                       if (selected_ctx->eol_enabled =3D=3D true)
-+                               reg |=3D ISPCSI2_CTX_CTRL1_EOL_EN_ENABLE;
-+                       else
-+                               reg |=3D ISPCSI2_CTX_CTRL1_EOL_EN_DISABLE=
-;
-+                       selected_ctx_u->eol_enabled =3D false;
-+               }
-+               if ((selected_ctx_u->checksum_enabled =3D=3D true) ||
-+                                       (force_update =3D=3D true)) {
-+                       reg &=3D ~(ISPCSI2_CTX_CTRL1_CS_EN_MASK);
-+                       if (selected_ctx->checksum_enabled =3D=3D true)
-+                               reg |=3D ISPCSI2_CTX_CTRL1_CS_EN_ENABLE;
-+                       else
-+                               reg |=3D ISPCSI2_CTX_CTRL1_CS_EN_DISABLE;
-+                       selected_ctx_u->checksum_enabled =3D false;
-+               }
-+               if ((selected_ctx_u->enabled =3D=3D true) ||
-+                                       (force_update =3D=3D true)) {
-+                       reg &=3D ~(ISPCSI2_CTX_CTRL1_CTX_EN_MASK);
-+                       if (selected_ctx->enabled =3D=3D true)
-+                               reg |=3D ISPCSI2_CTX_CTRL1_CTX_EN_ENABLE;
-+                       else
-+                               reg |=3D ISPCSI2_CTX_CTRL1_CTX_EN_DISABLE=
-;
-+                       selected_ctx_u->enabled =3D false;
-+               }
-+               omap_writel(reg, ISPCSI2_CTX_CTRL1(ctxnum));
-+               update_ctx_ctrl1[ctxnum] =3D false;
-+       }
-+
-+       if ((update_ctx_ctrl2[ctxnum] =3D=3D true) || (force_update =3D=3D=
- true)) {
-+               reg =3D omap_readl(ISPCSI2_CTX_CTRL2(ctxnum));
-+               if ((selected_ctx_u->virtual_id =3D=3D true) ||
-+                                               (force_update =3D=3D true=
-)) {
-+                       reg &=3D ~(ISPCSI2_CTX_CTRL2_VIRTUAL_ID_MASK);
-+                       reg |=3D selected_ctx->virtual_id <<
-+                                       ISPCSI2_CTX_CTRL2_VIRTUAL_ID_SHIF=
-T;
-+                       selected_ctx_u->virtual_id =3D false;
-+               }
-+
-+               if ((selected_ctx_u->format =3D=3D true) ||
-+                                               (force_update =3D=3D true=
-)) {
-+                       struct v4l2_pix_format *pix;
-+                       u16 new_format =3D 0;
-+
-+                       reg &=3D ~(ISPCSI2_CTX_CTRL2_FORMAT_MASK);
-+                       pix =3D &selected_ctx->format;
-+                       switch (pix->pixelformat) {
-+                       case V4L2_PIX_FMT_RGB565:
-+                       case V4L2_PIX_FMT_RGB565X:
-+                               new_format =3D 0x22;
-+                               break;
-+                       case V4L2_PIX_FMT_YUYV:
-+                       case V4L2_PIX_FMT_UYVY:
-+                               if (uses_videoport)
-+                                       new_format =3D 0x9E;
-+                               else
-+                                       new_format =3D 0x1E;
-+                               break;
-+                       case V4L2_PIX_FMT_RGB555:
-+                       case V4L2_PIX_FMT_RGB555X:
-+                               new_format =3D 0xA1;
-+                               break;
-+                       case V4L2_PIX_FMT_SGRBG10:
-+                               if (uses_videoport)
-+                                       new_format =3D 0x12F;
-+                               else
-+                                       new_format =3D 0xAB;
-+                               break;
-+                       }
-+                       reg |=3D (new_format << ISPCSI2_CTX_CTRL2_FORMAT_=
-SHIFT);
-+                       selected_ctx_u->format =3D false;
-+               }
-+               omap_writel(reg, ISPCSI2_CTX_CTRL2(ctxnum));
-+               update_ctx_ctrl2[ctxnum] =3D false;
-+       }
-+
-+       if ((update_ctx_ctrl3[ctxnum] =3D=3D true) || (force_update =3D=3D=
- true)) {
-+               reg =3D omap_readl(ISPCSI2_CTX_CTRL3(ctxnum));
-+               if ((selected_ctx_u->alpha =3D=3D true) ||
-+                                               (force_update =3D=3D true=
-)) {
-+                       reg &=3D ~(ISPCSI2_CTX_CTRL3_ALPHA_MASK);
-+                       reg |=3D (selected_ctx->alpha <<
-+                                               ISPCSI2_CTX_CTRL3_ALPHA_S=
-HIFT);
-+                       selected_ctx_u->alpha =3D false;
-+               }
-+               omap_writel(reg, ISPCSI2_CTX_CTRL3(ctxnum));
-+               update_ctx_ctrl3[ctxnum] =3D false;
-+       }
-+
-+       if (selected_ctx_u->data_offset =3D=3D true) {
-+               reg =3D omap_readl(ISPCSI2_CTX_DAT_OFST(ctxnum));
-+               reg &=3D ~ISPCSI2_CTX_DAT_OFST_OFST_MASK;
-+               reg |=3D selected_ctx->data_offset <<
-+                                               ISPCSI2_CTX_DAT_OFST_OFST=
-_SHIFT;
-+               omap_writel(reg, ISPCSI2_CTX_DAT_OFST(ctxnum));
-+               selected_ctx_u->data_offset =3D false;
-+       }
-+
-+       if (selected_ctx_u->ping_addr =3D=3D true) {
-+               reg =3D selected_ctx->ping_addr;
-+               omap_writel(reg, ISPCSI2_CTX_DAT_PING_ADDR(ctxnum));
-+               selected_ctx_u->ping_addr =3D false;
-+       }
-+
-+       if (selected_ctx_u->pong_addr =3D=3D true) {
-+               reg =3D selected_ctx->pong_addr;
-+               omap_writel(reg, ISPCSI2_CTX_DAT_PONG_ADDR(ctxnum));
-+               selected_ctx_u->pong_addr =3D false;
-+       }
-+       return 0;
-+}
-+
-+/**
-+ * isp_csi2_ctx_get - Gets specific CSI2 Context configuration
-+ * @ctxnum: Context number, valid between 0 and 7 values.
-+ *
-+ * Always returns 0.
-+ **/
-+int isp_csi2_ctx_get(u8 ctxnum)
-+{
-+       struct isp_csi2_ctx_cfg *selected_ctx;
-+       struct isp_csi2_ctx_cfg_update *selected_ctx_u;
-+       u32 reg;
-+
-+       isp_csi2_ctx_validate(&ctxnum);
-+
-+       selected_ctx =3D &current_csi2_cfg.contexts[ctxnum];
-+       selected_ctx_u =3D &current_csi2_cfg_update.contexts[ctxnum];
-+
-+       reg =3D omap_readl(ISPCSI2_CTX_CTRL1(ctxnum));
-+       selected_ctx->frame_count =3D (reg & ISPCSI2_CTX_CTRL1_COUNT_MASK=
-) >>
-+                                               ISPCSI2_CTX_CTRL1_COUNT_S=
-HIFT;
-+       selected_ctx_u->frame_count =3D false;
-+
-+       if ((reg & ISPCSI2_CTX_CTRL1_EOF_EN_MASK) =3D=3D
-+                                               ISPCSI2_CTX_CTRL1_EOF_EN_=
-ENABLE)
-+               selected_ctx->eof_enabled =3D true;
-+       else
-+               selected_ctx->eof_enabled =3D false;
-+       selected_ctx_u->eof_enabled =3D false;
-+
-+       if ((reg & ISPCSI2_CTX_CTRL1_EOL_EN_MASK) =3D=3D
-+                                               ISPCSI2_CTX_CTRL1_EOL_EN_=
-ENABLE)
-+               selected_ctx->eol_enabled =3D true;
-+       else
-+               selected_ctx->eol_enabled =3D false;
-+       selected_ctx_u->eol_enabled =3D false;
-+
-+       if ((reg & ISPCSI2_CTX_CTRL1_CS_EN_MASK) =3D=3D
-+                                               ISPCSI2_CTX_CTRL1_CS_EN_E=
-NABLE)
-+               selected_ctx->checksum_enabled =3D true;
-+       else
-+               selected_ctx->checksum_enabled =3D false;
-+       selected_ctx_u->checksum_enabled =3D false;
-+
-+       if ((reg & ISPCSI2_CTX_CTRL1_CTX_EN_MASK) =3D=3D
-+                                               ISPCSI2_CTX_CTRL1_CTX_EN_=
-ENABLE)
-+               selected_ctx->enabled =3D true;
-+       else
-+               selected_ctx->enabled =3D false;
-+       selected_ctx_u->enabled =3D false;
-+       update_ctx_ctrl1[ctxnum] =3D false;
-+
-+       reg =3D omap_readl(ISPCSI2_CTX_CTRL2(ctxnum));
-+
-+       selected_ctx->virtual_id =3D (reg & ISPCSI2_CTX_CTRL2_VIRTUAL_ID_=
-MASK) >>
-+                                       ISPCSI2_CTX_CTRL2_VIRTUAL_ID_SHIF=
-T;
-+       selected_ctx_u->virtual_id =3D false;
-+
-+       switch ((reg & ISPCSI2_CTX_CTRL2_FORMAT_MASK) >>
-+                               ISPCSI2_CTX_CTRL2_FORMAT_SHIFT) {
-+       case 0x22:
-+               selected_ctx->format.pixelformat =3D V4L2_PIX_FMT_RGB565;
-+               break;
-+       case 0x9E:
-+       case 0x1E:
-+               selected_ctx->format.pixelformat =3D V4L2_PIX_FMT_YUYV;
-+               break;
-+       case 0xA1:
-+               selected_ctx->format.pixelformat =3D V4L2_PIX_FMT_RGB555;
-+               break;
-+       case 0xAB:
-+       case 0x12F:
-+               selected_ctx->format.pixelformat =3D V4L2_PIX_FMT_SGRBG10=
-;
-+               break;
-+       }
-+       selected_ctx_u->format =3D false;
-+       update_ctx_ctrl2[ctxnum] =3D false;
-+
-+       selected_ctx->alpha =3D (omap_readl(ISPCSI2_CTX_CTRL3(ctxnum)) &
-+                                       ISPCSI2_CTX_CTRL3_ALPHA_MASK) >>
-+                                       ISPCSI2_CTX_CTRL3_ALPHA_SHIFT;
-+       selected_ctx_u->alpha =3D false;
-+       update_ctx_ctrl3[ctxnum] =3D false;
-+
-+       selected_ctx->data_offset =3D (omap_readl(ISPCSI2_CTX_DAT_OFST(ct=
-xnum)) &
-+                               ISPCSI2_CTX_DAT_OFST_OFST_MASK) >>
-+                               ISPCSI2_CTX_DAT_OFST_OFST_SHIFT;
-+       selected_ctx_u->data_offset =3D false;
-+
-+       selected_ctx->ping_addr =3D omap_readl(ISPCSI2_CTX_DAT_PING_ADDR(=
-ctxnum));
-+       selected_ctx_u->ping_addr =3D false;
-+
-+       selected_ctx->pong_addr =3D omap_readl(ISPCSI2_CTX_DAT_PONG_ADDR(=
-ctxnum));
-+       selected_ctx_u->pong_addr =3D false;
-+       return 0;
-+}
-+
-+/**
-+ * isp_csi2_ctx_update_all - Applies all CSI2 context configuration.
-+ * @force_update: Flag to force rewrite of registers, even if they haven=
-'t been
-+ *                updated with the isp_csi2_ctx_config_*() functions.
-+ *
-+ * It only saves settings when they were previously updated using the
-+ * isp_csi2_ctx_config_*() functions, unless the force_update flag is
-+ * set to true.
-+ * Always returns 0.
-+ **/
-+int isp_csi2_ctx_update_all(bool force_update)
-+{
-+       u8 ctxnum;
-+
-+       for (ctxnum =3D 0; ctxnum < 8; ctxnum++)
-+               isp_csi2_ctx_update(ctxnum, force_update);
-+
-+       return 0;
-+}
-+
-+/**
-+ * isp_csi2_ctx_get_all - Gets all CSI2 Context configurations
-+ *
-+ * Always returns 0.
-+ **/
-+int isp_csi2_ctx_get_all(void)
-+{
-+       u8 ctxnum;
-+
-+       for (ctxnum =3D 0; ctxnum < 8; ctxnum++)
-+               isp_csi2_ctx_get(ctxnum);
-+
-+       return 0;
-+}
-+
-+int isp_csi2_phy_config(struct isp_csi2_phy_cfg *desiredphyconfig)
-+{
-+       struct isp_csi2_phy_cfg *currphy =3D &current_csi2_cfg.phy;
-+       struct isp_csi2_phy_cfg_update *currphy_u =3D
-+                                               &current_csi2_cfg_update.=
-phy;
-+
-+       if ((desiredphyconfig->tclk_term > 0x7f) ||
-+                               (desiredphyconfig->tclk_miss > 0x3)) {
-+               printk(KERN_ERR "Invalid PHY configuration sent by the"
-+                                                               " driver\=
-n");
-+               return -EINVAL;
-+       }
-+
-+       if (currphy->ths_term !=3D desiredphyconfig->ths_term) {
-+               currphy->ths_term =3D desiredphyconfig->ths_term;
-+               currphy_u->ths_term =3D true;
-+               update_phy_cfg0 =3D true;
-+       }
-+       if (currphy->ths_settle !=3D desiredphyconfig->ths_settle) {
-+               currphy->ths_settle =3D desiredphyconfig->ths_settle;
-+               currphy_u->ths_settle =3D true;
-+               update_phy_cfg0 =3D true;
-+       }
-+       if (currphy->tclk_term !=3D desiredphyconfig->tclk_term) {
-+               currphy->tclk_term =3D desiredphyconfig->tclk_term;
-+               currphy_u->tclk_term =3D true;
-+               update_phy_cfg1 =3D true;
-+       }
-+       if (currphy->tclk_miss !=3D desiredphyconfig->tclk_miss) {
-+               currphy->tclk_miss =3D desiredphyconfig->tclk_miss;
-+               currphy_u->tclk_miss =3D true;
-+               update_phy_cfg1 =3D true;
-+       }
-+       if (currphy->tclk_settle !=3D desiredphyconfig->tclk_settle) {
-+               currphy->tclk_settle =3D desiredphyconfig->tclk_settle;
-+               currphy_u->tclk_settle =3D true;
-+               update_phy_cfg1 =3D true;
-+       }
-+       return 0;
-+}
-+
-+/**
-+ * isp_csi2_calc_phy_cfg0 - Calculates D-PHY config based on the MIPIClk=
- speed.
-+ * @mipiclk: MIPI clock frequency being used with CSI2 sensor.
-+ * @lbound_hs_settle: Lower bound for CSI2 High Speed Settle transition.
-+ * @ubound_hs_settle: Upper bound for CSI2 High Speed Settle transition.
-+ *
-+ * From TRM, we have the same calculation for HS Termination signal.
-+ *  THS_TERM  =3D ceil( 12.5ns / DDRCLK period ) - 1
-+ * But for Settle, we use the mid value between the two passed boundarie=
-s from
-+ * sensor:
-+ *  THS_SETTLE =3D (Upper bound + Lower bound) / 2
-+ *
-+ * Always returns 0.
++ * struct isp_af_buffer - AF frame stats buffer.
++ * @virt_addr: Virtual address to mmap the buffer.
++ * @phy_addr: Physical address of the buffer.
++ * @addr_align: Virtual Address 32 bytes aligned.
++ * @ispmmu_addr: Address of the buffer mapped by the ISPMMU.
++ * @mmap_addr: Mapped memory area of buffer. For userspace access.
++ * @locked: 1 - Buffer locked from write. 0 - Buffer can be overwritten.
++ * @frame_num: Frame number from which the statistics are taken.
++ * @lens_position: Lens position currently set in the DW9710 Coil motor =
+driver.
++ * @next: Pointer to link next buffer.
 + */
-+int isp_csi2_calc_phy_cfg0(u32 mipiclk, u32 lbound_hs_settle,
-+                                                       u32 ubound_hs_set=
-tle)
-+{
-+       struct isp_csi2_phy_cfg *currphy =3D &current_csi2_cfg.phy;
-+       struct isp_csi2_phy_cfg_update *currphy_u =3D
-+                                               &current_csi2_cfg_update.=
-phy;
-+       u32 tmp, ddrclk =3D mipiclk >> 1;
++struct isp_af_buffer {
++       unsigned long virt_addr;
++       unsigned long phy_addr;
++       unsigned long addr_align;
++       unsigned long ispmmu_addr;
++       unsigned long mmap_addr;
 +
-+       /* Calculate THS_TERM */
-+       tmp =3D ddrclk / 80000000;
-+       if ((ddrclk % 80000000) > 0)
-+               tmp++;
-+       currphy->ths_term =3D tmp - 1;
-+       currphy_u->ths_term =3D true;
-+
-+       /* Calculate THS_SETTLE */
-+       currphy->ths_settle =3D (ubound_hs_settle + lbound_hs_settle) / 2=
-;
-+
-+       currphy_u->ths_settle =3D true;
-+       isp_csi2_phy_update(true);
-+       return 0;
-+}
-+EXPORT_SYMBOL(isp_csi2_calc_phy_cfg0);
++       u8 locked;
++       u16 frame_num;
++       struct isp_af_xtrastats xtrastats;
++       struct isp_af_buffer *next;
++};
 +
 +/**
-+ * isp_csi2_phy_update - Applies CSI2 D-PHY configuration.
-+ * @force_update: Flag to force rewrite of registers, even if they haven=
-'t been
-+ *                updated with the isp_csi2_phy_config_*() functions.
++ * struct isp_af_status - AF status.
++ * @initialized: 1 - Buffers initialized.
++ * @update: 1 - Update registers.
++ * @stats_req: 1 - Future stats requested.
++ * @stats_done: 1 - Stats ready for user.
++ * @frame_req: Number of frame requested for statistics.
++ * @af_buff: Array of statistics buffers to access.
++ * @stats_buf_size: Statistics buffer size.
++ * @curr_cfg_buf_size: Current user configured stats buff size.
++ * @min_buf_size: Minimum statisitics buffer size.
++ * @frame_count: Frame Count.
++ * @stats_wait: Wait primitive for locking/unlocking the stats request.
++ * @buffer_lock: Spinlock for statistics buffers access.
++ */
++static struct isp_af_status {
++       u8 initialized;
++       u8 update;
++       u8 stats_req;
++       u8 stats_done;
++       u16 frame_req;
++
++       struct isp_af_buffer af_buff[H3A_MAX_BUFF];
++       unsigned int stats_buf_size;
++       unsigned int min_buf_size;
++       unsigned int curr_cfg_buf_size;
++
++       u32 frame_count;
++       wait_queue_head_t stats_wait;
++       spinlock_t buffer_lock;         /* For stats buffers read/write s=
+ync */
++} afstat;
++
++struct af_device *af_dev_configptr;
++static struct isp_af_buffer *active_buff;
++static int af_major =3D -1;
++static int camnotify;
++
++/**
++ * isp_af_setxtrastats - Receives extra statistics from prior frames.
++ * @xtrastats: Pointer to structure containing extra statistics fields l=
+ike
++ *             field count and timestamp of frame.
 + *
-+ * It only saves settings when they were previously updated using the
-+ * isp_csi2_phy_config_*() functions, unless the force_update flag is
-+ * set to true.
-+ * Always returns 0.
++ * Called from update_vbq in camera driver
 + **/
-+int isp_csi2_phy_update(bool force_update)
++void isp_af_setxtrastats(struct isp_af_xtrastats *xtrastats, u8 updatefl=
+ag)
 +{
-+       struct isp_csi2_phy_cfg *currphy =3D &current_csi2_cfg.phy;
-+       struct isp_csi2_phy_cfg_update *currphy_u =3D
-+                                               &current_csi2_cfg_update.=
-phy;
-+       u32 reg;
++       int i, past_i;
 +
-+       if ((update_phy_cfg0 =3D=3D true) || (force_update =3D=3D true)) =
-{
-+               reg =3D omap_readl(ISPCSI2PHY_CFG0);
-+               if ((currphy_u->ths_term =3D=3D true) || (force_update =3D=
-=3D true)) {
-+                       reg &=3D ~ISPCSI2PHY_CFG0_THS_TERM_MASK;
-+                       reg |=3D (currphy->ths_term <<
-+                                       ISPCSI2PHY_CFG0_THS_TERM_SHIFT);
-+                       currphy_u->ths_term =3D false;
-+               }
-+               if ((currphy_u->ths_settle =3D=3D true) || (force_update =
-=3D=3D true)) {
-+                       reg &=3D ~ISPCSI2PHY_CFG0_THS_SETTLE_MASK;
-+                       reg |=3D (currphy->ths_settle <<
-+                                       ISPCSI2PHY_CFG0_THS_SETTLE_SHIFT)=
-;
-+                       currphy_u->ths_settle =3D false;
-+               }
-+               omap_writel(reg, ISPCSI2PHY_CFG0);
-+               update_phy_cfg0 =3D false;
-+       }
++       if (active_buff =3D=3D NULL)
++               return;
 +
-+       if ((update_phy_cfg1 =3D=3D true) || (force_update =3D=3D true)) =
-{
-+               reg =3D omap_readl(ISPCSI2PHY_CFG1);
-+               if ((currphy_u->tclk_term =3D=3D true) || (force_update =3D=
-=3D true)) {
-+                       reg &=3D ~ISPCSI2PHY_CFG1_TCLK_TERM_MASK;
-+                       reg |=3D (currphy->tclk_term <<
-+                                       ISPCSI2PHY_CFG1_TCLK_TERM_SHIFT);
-+                       currphy_u->tclk_term =3D false;
-+               }
-+               if ((currphy_u->tclk_miss =3D=3D true) || (force_update =3D=
-=3D true)) {
-+                       reg &=3D ~ISPCSI2PHY_CFG1_TCLK_MISS_MASK;
-+                       reg |=3D (currphy->tclk_miss <<
-+                                       ISPCSI2PHY_CFG1_TCLK_MISS_SHIFT);
-+                       currphy_u->tclk_miss =3D false;
-+               }
-+               if ((currphy_u->tclk_settle =3D=3D true) ||
-+                                               (force_update =3D=3D true=
-)) {
-+                       reg &=3D ~ISPCSI2PHY_CFG1_TCLK_SETTLE_MASK;
-+                       reg |=3D (currphy->tclk_settle <<
-+                                       ISPCSI2PHY_CFG1_TCLK_SETTLE_SHIFT=
-);
-+                       currphy_u->tclk_settle =3D false;
-+               }
-+               omap_writel(reg, ISPCSI2PHY_CFG1);
-+               update_phy_cfg1 =3D false;
-+       }
-+       return 0;
-+}
-+
-+/**
-+ * isp_csi2_phy_get - Gets CSI2 D-PHY configuration
-+ *
-+ * Gets settings from HW registers and fills in the internal driver memo=
-ry
-+ * Always returns 0.
-+ **/
-+int isp_csi2_phy_get(void)
-+{
-+       struct isp_csi2_phy_cfg *currphy =3D &current_csi2_cfg.phy;
-+       struct isp_csi2_phy_cfg_update *currphy_u =3D
-+                                               &current_csi2_cfg_update.=
-phy;
-+       u32 reg;
-+
-+       reg =3D omap_readl(ISPCSI2PHY_CFG0);
-+       currphy->ths_term =3D (reg & ISPCSI2PHY_CFG0_THS_TERM_MASK) >>
-+                                               ISPCSI2PHY_CFG0_THS_TERM_=
-SHIFT;
-+       currphy_u->ths_term =3D false;
-+
-+       currphy->ths_settle =3D (reg & ISPCSI2PHY_CFG0_THS_SETTLE_MASK) >=
->
-+                                       ISPCSI2PHY_CFG0_THS_SETTLE_SHIFT;
-+       currphy_u->ths_settle =3D false;
-+       update_phy_cfg0 =3D false;
-+
-+       reg =3D omap_readl(ISPCSI2PHY_CFG1);
-+
-+       currphy->tclk_term =3D (reg & ISPCSI2PHY_CFG1_TCLK_TERM_MASK) >>
-+                                               ISPCSI2PHY_CFG1_TCLK_TERM=
-_SHIFT;
-+       currphy_u->tclk_term =3D false;
-+
-+       currphy->tclk_miss =3D (reg & ISPCSI2PHY_CFG1_TCLK_MISS_MASK) >>
-+                                               ISPCSI2PHY_CFG1_TCLK_MISS=
-_SHIFT;
-+       currphy_u->tclk_miss =3D false;
-+
-+       currphy->tclk_settle =3D (reg & ISPCSI2PHY_CFG1_TCLK_SETTLE_MASK)=
- >>
-+                                       ISPCSI2PHY_CFG1_TCLK_SETTLE_SHIFT=
-;
-+       currphy_u->tclk_settle =3D false;
-+
-+       update_phy_cfg1 =3D false;
-+       return 0;
-+}
-+
-+/**
-+ * isp_csi2_timings_config_forcerxmode - Sets Force Rx mode on stop stat=
-e count
-+ * @force_rx_mode: Boolean to enable/disable forcing Rx mode in CSI2 rec=
-eiver
-+ *
-+ * Returns 0 if successful, or -EINVAL if wrong ComplexIO number is sele=
-cted.
-+ **/
-+int isp_csi2_timings_config_forcerxmode(u8 io, bool force_rx_mode)
-+{
-+       struct isp_csi2_timings_cfg *currtimings;
-+       struct isp_csi2_timings_cfg_update *currtimings_u;
-+
-+       if (io > 2) {
-+               printk(KERN_ERR "CSI2 - Timings config: Invalid IO number=
-\n");
-+               return -EINVAL;
-+       }
-+
-+       currtimings =3D &current_csi2_cfg.timings[io - 1];
-+       currtimings_u =3D &current_csi2_cfg_update.timings[io - 1];
-+       if (currtimings->force_rx_mode !=3D force_rx_mode) {
-+               currtimings->force_rx_mode =3D force_rx_mode;
-+               currtimings_u->force_rx_mode =3D true;
-+               update_timing =3D true;
-+       }
-+       return 0;
-+}
-+
-+/**
-+ * isp_csi2_timings_config_stopstate_16x - Sets 16x factor for L3 cycles
-+ * @stop_state_16x: Boolean to use or not use the 16x multiplier for sto=
-p count
-+ *
-+ * Returns 0 if successful, or -EINVAL if wrong ComplexIO number is sele=
-cted.
-+ **/
-+int isp_csi2_timings_config_stopstate_16x(u8 io, bool stop_state_16x)
-+{
-+       struct isp_csi2_timings_cfg *currtimings;
-+       struct isp_csi2_timings_cfg_update *currtimings_u;
-+
-+       if (io > 2) {
-+               printk(KERN_ERR "CSI2 - Timings config: Invalid IO number=
-\n");
-+               return -EINVAL;
-+       }
-+
-+       currtimings =3D &current_csi2_cfg.timings[io - 1];
-+       currtimings_u =3D &current_csi2_cfg_update.timings[io - 1];
-+       if (currtimings->stop_state_16x !=3D stop_state_16x) {
-+               currtimings->stop_state_16x =3D stop_state_16x;
-+               currtimings_u->stop_state_16x =3D true;
-+               update_timing =3D true;
-+       }
-+       return 0;
-+}
-+
-+/**
-+ * isp_csi2_timings_config_stopstate_4x - Sets 4x factor for L3 cycles
-+ * @stop_state_4x: Boolean to use or not use the 4x multiplier for stop =
-count
-+ *
-+ * Returns 0 if successful, or -EINVAL if wrong ComplexIO number is sele=
-cted.
-+ **/
-+int isp_csi2_timings_config_stopstate_4x(u8 io, bool stop_state_4x)
-+{
-+       struct isp_csi2_timings_cfg *currtimings;
-+       struct isp_csi2_timings_cfg_update *currtimings_u;
-+
-+       if (io > 2) {
-+               printk(KERN_ERR "CSI2 - Timings config: Invalid IO number=
-\n");
-+               return -EINVAL;
-+       }
-+
-+       currtimings =3D &current_csi2_cfg.timings[io - 1];
-+       currtimings_u =3D &current_csi2_cfg_update.timings[io - 1];
-+       if (currtimings->stop_state_4x !=3D stop_state_4x) {
-+               currtimings->stop_state_4x =3D stop_state_4x;
-+               currtimings_u->stop_state_4x =3D true;
-+               update_timing =3D true;
-+       }
-+       return 0;
-+}
-+
-+/**
-+ * isp_csi2_timings_config_stopstate_cnt - Sets L3 cycles
-+ * @stop_state_counter: Stop state counter value for L3 cycles
-+ *
-+ * Returns 0 if successful, or -EINVAL if wrong ComplexIO number is sele=
-cted.
-+ **/
-+int isp_csi2_timings_config_stopstate_cnt(u8 io, u16 stop_state_counter)
-+{
-+       struct isp_csi2_timings_cfg *currtimings;
-+       struct isp_csi2_timings_cfg_update *currtimings_u;
-+
-+       if (io > 2) {
-+               printk(KERN_ERR "CSI2 - Timings config: Invalid IO number=
-\n");
-+               return -EINVAL;
-+       }
-+
-+       currtimings =3D &current_csi2_cfg.timings[io - 1];
-+       currtimings_u =3D &current_csi2_cfg_update.timings[io - 1];
-+       if (currtimings->stop_state_counter !=3D stop_state_counter) {
-+               currtimings->stop_state_counter =3D (stop_state_counter &=
- 0x1FFF);
-+               currtimings_u->stop_state_counter =3D true;
-+               update_timing =3D true;
-+       }
-+       return 0;
-+}
-+
-+/**
-+ * isp_csi2_timings_update - Applies specified CSI2 timing configuration=
-.
-+ * @io: IO number (1 or 2) which specifies which ComplexIO are we updati=
-ng
-+ * @force_update: Flag to force rewrite of registers, even if they haven=
-'t been
-+ *                updated with the isp_csi2_timings_config_*() functions=
-.
-+ *
-+ * It only saves settings when they were previously updated using the
-+ * isp_csi2_timings_config_*() functions, unless the force_update flag i=
-s
-+ * set to true.
-+ * Returns 0 if successful, or -EINVAL if invalid IO number is passed.
-+ **/
-+int isp_csi2_timings_update(u8 io, bool force_update)
-+{
-+       struct isp_csi2_timings_cfg *currtimings;
-+       struct isp_csi2_timings_cfg_update *currtimings_u;
-+       u32 reg;
-+
-+       if (io > 2) {
-+               printk(KERN_ERR "CSI2 - Timings config: Invalid IO number=
-\n");
-+               return -EINVAL;
-+       }
-+
-+       currtimings =3D &current_csi2_cfg.timings[io - 1];
-+       currtimings_u =3D &current_csi2_cfg_update.timings[io - 1];
-+
-+       if ((update_timing =3D=3D true) || (force_update =3D=3D true)) {
-+               reg =3D omap_readl(ISPCSI2_TIMING);
-+               if ((currtimings_u->force_rx_mode =3D=3D true) ||
-+                                               (force_update =3D=3D true=
-)) {
-+                       reg &=3D ~ISPCSI2_TIMING_FORCE_RX_MODE_IO_MASK(io=
-);
-+                       if (currtimings->force_rx_mode =3D=3D true)
-+                               reg |=3D ISPCSI2_TIMING_FORCE_RX_MODE_IO_=
-ENABLE
-+                                                                       (=
-io);
-+                       else
-+                               reg |=3D ISPCSI2_TIMING_FORCE_RX_MODE_IO_=
-DISABLE
-+                                                                       (=
-io);
-+                       currtimings_u->force_rx_mode =3D false;
-+               }
-+               if ((currtimings_u->stop_state_16x =3D=3D true) ||
-+                                               (force_update =3D=3D true=
-)) {
-+                       reg &=3D ~ISPCSI2_TIMING_STOP_STATE_X16_IO_MASK(i=
-o);
-+                       if (currtimings->stop_state_16x =3D=3D true)
-+                               reg |=3D ISPCSI2_TIMING_STOP_STATE_X16_IO=
-_ENABLE
-+                                                                       (=
-io);
-+                       else
-+                               reg |=3D ISPCSI2_TIMING_STOP_STATE_X16_IO=
-_DISABLE
-+                                                                       (=
-io);
-+                       currtimings_u->stop_state_16x =3D false;
-+               }
-+               if ((currtimings_u->stop_state_4x =3D=3D true) ||
-+                                               (force_update =3D=3D true=
-)) {
-+                       reg &=3D ~ISPCSI2_TIMING_STOP_STATE_X4_IO_MASK(io=
-);
-+                       if (currtimings->stop_state_4x =3D=3D true) {
-+                               reg |=3D ISPCSI2_TIMING_STOP_STATE_X4_IO_=
-ENABLE
-+                                                                       (=
-io);
-+                       } else {
-+                               reg |=3D ISPCSI2_TIMING_STOP_STATE_X4_IO_=
-DISABLE
-+                                                                       (=
-io);
-+                       }
-+                       currtimings_u->stop_state_4x =3D false;
-+               }
-+               if ((currtimings_u->stop_state_counter =3D=3D true) ||
-+                                               (force_update =3D=3D true=
-)) {
-+                       reg &=3D ~ISPCSI2_TIMING_STOP_STATE_COUNTER_IO_MA=
-SK(io);
-+                       reg |=3D currtimings->stop_state_counter <<
-+                               ISPCSI2_TIMING_STOP_STATE_COUNTER_IO_SHIF=
-T(io);
-+                       currtimings_u->stop_state_counter =3D false;
-+               }
-+               omap_writel(reg, ISPCSI2_TIMING);
-+               update_timing =3D false;
-+       }
-+       return 0;
-+}
-+
-+/**
-+ * isp_csi2_timings_get - Gets specific CSI2 ComplexIO timing configurat=
-ion
-+ * @io: IO number (1 or 2) which specifies which ComplexIO are we gettin=
-g
-+ *
-+ * Gets settings from HW registers and fills in the internal driver memo=
-ry
-+ * Returns 0 if successful, or -EINVAL if invalid IO number is passed.
-+ **/
-+int isp_csi2_timings_get(u8 io)
-+{
-+       struct isp_csi2_timings_cfg *currtimings;
-+       struct isp_csi2_timings_cfg_update *currtimings_u;
-+       u32 reg;
-+
-+       if (io > 2) {
-+               printk(KERN_ERR "CSI2 - Timings config: Invalid IO number=
-\n");
-+               return -EINVAL;
-+       }
-+
-+       currtimings =3D &current_csi2_cfg.timings[io - 1];
-+       currtimings_u =3D &current_csi2_cfg_update.timings[io - 1];
-+
-+       reg =3D omap_readl(ISPCSI2_TIMING);
-+       if ((reg & ISPCSI2_TIMING_FORCE_RX_MODE_IO_MASK(io)) =3D=3D
-+                               ISPCSI2_TIMING_FORCE_RX_MODE_IO_ENABLE(io=
-))
-+               currtimings->force_rx_mode =3D true;
-+       else
-+               currtimings->force_rx_mode =3D false;
-+       currtimings_u->force_rx_mode =3D false;
-+
-+       if ((reg & ISPCSI2_TIMING_STOP_STATE_X16_IO_MASK(io)) =3D=3D
-+                               ISPCSI2_TIMING_STOP_STATE_X16_IO_ENABLE(i=
-o))
-+               currtimings->stop_state_16x =3D true;
-+       else
-+               currtimings->stop_state_16x =3D false;
-+       currtimings_u->stop_state_16x =3D false;
-+
-+       if ((reg & ISPCSI2_TIMING_STOP_STATE_X4_IO_MASK(io)) =3D=3D
-+                               ISPCSI2_TIMING_STOP_STATE_X4_IO_ENABLE(io=
-))
-+               currtimings->stop_state_4x =3D true;
-+       else
-+               currtimings->stop_state_4x =3D false;
-+       currtimings_u->stop_state_4x =3D false;
-+
-+       currtimings->stop_state_counter =3D (reg &
-+                       ISPCSI2_TIMING_STOP_STATE_COUNTER_IO_MASK(io)) >>
-+                       ISPCSI2_TIMING_STOP_STATE_COUNTER_IO_SHIFT(io);
-+       currtimings_u->stop_state_counter =3D false;
-+       update_timing =3D false;
-+       return 0;
-+}
-+
-+/**
-+ * isp_csi2_timings_update_all - Applies specified CSI2 timing configura=
-tion.
-+ * @force_update: Flag to force rewrite of registers, even if they haven=
-'t been
-+ *                updated with the isp_csi2_timings_config_*() functions=
-.
-+ *
-+ * It only saves settings when they were previously updated using the
-+ * isp_csi2_timings_config_*() functions, unless the force_update flag i=
-s
-+ * set to true.
-+ * Always returns 0.
-+ **/
-+int isp_csi2_timings_update_all(bool force_update)
-+{
-+       int i;
-+
-+       for (i =3D 0; i < 2; i++)
-+               isp_csi2_timings_update(i, force_update);
-+       return 0;
-+}
-+
-+/**
-+ * isp_csi2_timings_get_all - Gets all CSI2 ComplexIO timing configurati=
-ons
-+ *
-+ * Always returns 0.
-+ **/
-+int isp_csi2_timings_get_all(void)
-+{
-+       int i;
-+
-+       for (i =3D 0; i < 2; i++)
-+               isp_csi2_timings_get(i);
-+       return 0;
-+}
-+
-+/**
-+ * isp_csi2_isr - CSI2 interrupt handling.
-+ **/
-+void isp_csi2_isr(void)
-+{
-+       u32 csi2_irqstatus, cpxio1_irqstatus, ctxirqstatus;
-+
-+       csi2_irqstatus =3D omap_readl(ISPCSI2_IRQSTATUS);
-+       omap_writel(csi2_irqstatus, ISPCSI2_IRQSTATUS);
-+
-+       if (csi2_irqstatus & ISPCSI2_IRQSTATUS_COMPLEXIO1_ERR_IRQ) {
-+               cpxio1_irqstatus =3D omap_readl(ISPCSI2_COMPLEXIO1_IRQSTA=
-TUS);
-+               omap_writel(cpxio1_irqstatus, ISPCSI2_COMPLEXIO1_IRQSTATU=
-S);
-+               printk(KERN_ERR "CSI2: ComplexIO Error IRQ %x\n",
-+                                                       cpxio1_irqstatus)=
-;
-+       }
-+
-+       if (csi2_irqstatus & ISPCSI2_IRQSTATUS_CONTEXT(0)) {
-+               ctxirqstatus =3D omap_readl(ISPCSI2_CTX_IRQSTATUS(0));
-+               omap_writel(ctxirqstatus, ISPCSI2_CTX_IRQSTATUS(0));
-+       }
-+
-+       if (csi2_irqstatus & ISPCSI2_IRQSTATUS_OCP_ERR_IRQ)
-+               printk(KERN_ERR "CSI2: OCP Transmission Error\n");
-+
-+       if (csi2_irqstatus & ISPCSI2_IRQSTATUS_SHORT_PACKET_IRQ)
-+               printk(KERN_ERR "CSI2: Short packet receive error\n");
-+
-+       if (csi2_irqstatus & ISPCSI2_IRQSTATUS_ECC_CORRECTION_IRQ)
-+               printk(KERN_DEBUG "CSI2: ECC correction done\n");
-+
-+       if (csi2_irqstatus & ISPCSI2_IRQSTATUS_ECC_NO_CORRECTION_IRQ)
-+               printk(KERN_ERR "CSI2: ECC correction failed\n");
-+
-+       if (csi2_irqstatus & ISPCSI2_IRQSTATUS_COMPLEXIO2_ERR_IRQ)
-+               printk(KERN_ERR "CSI2: ComplexIO #2 failed\n");
-+
-+       if (csi2_irqstatus & ISPCSI2_IRQSTATUS_FIFO_OVF_IRQ)
-+               printk(KERN_ERR "CSI2: FIFO overflow error\n");
-+
-+       return;
-+}
-+EXPORT_SYMBOL(isp_csi2_isr);
-+
-+/**
-+ * isp_csi2_irq_complexio1_set - Enables CSI2 ComplexIO IRQs.
-+ * @enable: Enable/disable CSI2 ComplexIO #1 interrupts
-+ **/
-+void isp_csi2_irq_complexio1_set(int enable)
-+{
-+       u32 reg;
-+       reg =3D ISPCSI2_COMPLEXIO1_IRQENABLE_STATEALLULPMEXIT |
-+                               ISPCSI2_COMPLEXIO1_IRQENABLE_STATEALLULPM=
-ENTER |
-+                               ISPCSI2_COMPLEXIO1_IRQENABLE_STATEULPM5 |
-+                               ISPCSI2_COMPLEXIO1_IRQENABLE_ERRCONTROL5 =
-|
-+                               ISPCSI2_COMPLEXIO1_IRQENABLE_ERRESC5 |
-+                               ISPCSI2_COMPLEXIO1_IRQENABLE_ERRSOTSYNCHS=
-5 |
-+                               ISPCSI2_COMPLEXIO1_IRQENABLE_ERRSOTHS5 |
-+                               ISPCSI2_COMPLEXIO1_IRQENABLE_STATEULPM4 |
-+                               ISPCSI2_COMPLEXIO1_IRQENABLE_ERRCONTROL4 =
-|
-+                               ISPCSI2_COMPLEXIO1_IRQENABLE_ERRESC4 |
-+                               ISPCSI2_COMPLEXIO1_IRQENABLE_ERRSOTSYNCHS=
-4 |
-+                               ISPCSI2_COMPLEXIO1_IRQENABLE_ERRSOTHS4 |
-+                               ISPCSI2_COMPLEXIO1_IRQENABLE_STATEULPM3 |
-+                               ISPCSI2_COMPLEXIO1_IRQENABLE_ERRCONTROL3 =
-|
-+                               ISPCSI2_COMPLEXIO1_IRQENABLE_ERRESC3 |
-+                               ISPCSI2_COMPLEXIO1_IRQENABLE_ERRSOTSYNCHS=
-3 |
-+                               ISPCSI2_COMPLEXIO1_IRQENABLE_ERRSOTHS3 |
-+                               ISPCSI2_COMPLEXIO1_IRQENABLE_STATEULPM2 |
-+                               ISPCSI2_COMPLEXIO1_IRQENABLE_ERRCONTROL2 =
-|
-+                               ISPCSI2_COMPLEXIO1_IRQENABLE_ERRESC2 |
-+                               ISPCSI2_COMPLEXIO1_IRQENABLE_ERRSOTSYNCHS=
-2 |
-+                               ISPCSI2_COMPLEXIO1_IRQENABLE_ERRSOTHS2 |
-+                               ISPCSI2_COMPLEXIO1_IRQENABLE_STATEULPM1 |
-+                               ISPCSI2_COMPLEXIO1_IRQENABLE_ERRCONTROL1 =
-|
-+                               ISPCSI2_COMPLEXIO1_IRQENABLE_ERRESC1 |
-+                               ISPCSI2_COMPLEXIO1_IRQENABLE_ERRSOTSYNCHS=
-1 |
-+                               ISPCSI2_COMPLEXIO1_IRQENABLE_ERRSOTHS1;
-+       omap_writel(reg, ISPCSI2_COMPLEXIO1_IRQSTATUS);
-+       if (enable)
-+               reg |=3D omap_readl(ISPCSI2_COMPLEXIO1_IRQENABLE);
-+       else
-+               reg =3D 0;
-+       omap_writel(reg, ISPCSI2_COMPLEXIO1_IRQENABLE);
-+}
-+EXPORT_SYMBOL(isp_csi2_irq_complexio1_set);
-+
-+/**
-+ * isp_csi2_irq_ctx_set - Enables CSI2 Context IRQs.
-+ * @enable: Enable/disable CSI2 Context interrupts
-+ **/
-+void isp_csi2_irq_ctx_set(int enable)
-+{
-+       u32 reg;
-+       int i;
-+
-+       reg =3D ISPCSI2_CTX_IRQSTATUS_FS_IRQ | ISPCSI2_CTX_IRQSTATUS_FE_I=
-RQ;
-+       for (i =3D 0; i < 8; i++) {
-+               omap_writel(reg, ISPCSI2_CTX_IRQSTATUS(i));
-+               if (enable) {
-+                       omap_writel(omap_readl(ISPCSI2_CTX_IRQENABLE(i)) =
-| reg,
-+                                               ISPCSI2_CTX_IRQENABLE(i))=
-;
-+               } else
-+                       omap_writel(0, ISPCSI2_CTX_IRQENABLE(i));
-+       }
-+
-+}
-+EXPORT_SYMBOL(isp_csi2_irq_ctx_set);
-+
-+/**
-+ * isp_csi2_irq_status_set - Enables CSI2 Status IRQs.
-+ * @enable: Enable/disable CSI2 Status interrupts
-+ **/
-+void isp_csi2_irq_status_set(int enable)
-+{
-+       u32 reg;
-+       reg =3D ISPCSI2_IRQSTATUS_OCP_ERR_IRQ |
-+                               ISPCSI2_IRQSTATUS_SHORT_PACKET_IRQ |
-+                               ISPCSI2_IRQSTATUS_ECC_CORRECTION_IRQ |
-+                               ISPCSI2_IRQSTATUS_ECC_NO_CORRECTION_IRQ |
-+                               ISPCSI2_IRQSTATUS_COMPLEXIO2_ERR_IRQ |
-+                               ISPCSI2_IRQSTATUS_COMPLEXIO1_ERR_IRQ |
-+                               ISPCSI2_IRQSTATUS_FIFO_OVF_IRQ |
-+                               ISPCSI2_IRQSTATUS_CONTEXT(0);
-+       omap_writel(reg, ISPCSI2_IRQSTATUS);
-+       if (enable)
-+               reg |=3D omap_readl(ISPCSI2_IRQENABLE);
-+       else
-+               reg =3D 0;
-+
-+       omap_writel(reg, ISPCSI2_IRQENABLE);
-+}
-+EXPORT_SYMBOL(isp_csi2_irq_status_set);
-+
-+/**
-+ * isp_csi2_irq_status_set - Enables main CSI2 IRQ.
-+ * @enable: Enable/disable main CSI2 interrupt
-+ **/
-+void isp_csi2_irq_set(int enable)
-+{
-+       if (enable) {
-+               omap_writel(IRQ0STATUS_CSIA_IRQ, ISP_IRQ0STATUS);
-+               omap_writel(omap_readl(ISP_IRQ0ENABLE) | IRQ0ENABLE_CSIA_=
-IRQ,
-+                                                               ISP_IRQ0E=
-NABLE);
-+       } else {
-+               omap_writel(IRQ0STATUS_CSIA_IRQ, ISP_IRQ0STATUS);
-+               omap_writel(omap_readl(ISP_IRQ0ENABLE) & ~IRQ0ENABLE_CSIA=
-_IRQ,
-+                                                               ISP_IRQ0E=
-NABLE);
-+       }
-+}
-+EXPORT_SYMBOL(isp_csi2_irq_set);
-+
-+/**
-+ * isp_csi2_irq_all_set - Enable/disable CSI2 interrupts.
-+ * @enable: 0-Disable, 1-Enable.
-+ **/
-+void isp_csi2_irq_all_set(int enable)
-+{
-+       if (enable) {
-+               isp_csi2_irq_complexio1_set(enable);
-+               isp_csi2_irq_ctx_set(enable);
-+               isp_csi2_irq_status_set(enable);
-+               isp_csi2_irq_set(enable);
-+       } else {
-+               isp_csi2_irq_set(enable);
-+               isp_csi2_irq_status_set(enable);
-+               isp_csi2_irq_ctx_set(enable);
-+               isp_csi2_irq_complexio1_set(enable);
-+       }
-+       return;
-+}
-+EXPORT_SYMBOL(isp_csi2_irq_all_set);
-+
-+/**
-+ * isp_csi2_reset - Resets the CSI2 module.
-+ *
-+ * Returns 0 if successful, or -EBUSY if power command didn't respond.
-+ **/
-+int isp_csi2_reset(void)
-+{
-+       u32 reg;
-+       u8 soft_reset_retries =3D 0;
-+       int i;
-+
-+       reg =3D omap_readl(ISPCSI2_SYSCONFIG);
-+       reg |=3D ISPCSI2_SYSCONFIG_SOFT_RESET_RESET;
-+       omap_writel(reg, ISPCSI2_SYSCONFIG);
-+
-+       do {
-+               reg =3D omap_readl(ISPCSI2_SYSSTATUS) &
-+                               ISPCSI2_SYSSTATUS_RESET_DONE_MASK;
-+               if (reg =3D=3D ISPCSI2_SYSSTATUS_RESET_DONE_DONE)
++       for (i =3D 0; i < H3A_MAX_BUFF; i++) {
++               if (afstat.af_buff[i].frame_num =3D=3D active_buff->frame=
+_num)
 +                       break;
-+               soft_reset_retries++;
-+               if (soft_reset_retries < 5)
-+                       udelay(100);
-+       } while (soft_reset_retries < 5);
-+
-+       if (soft_reset_retries =3D=3D 5) {
-+               printk(KERN_ERR "CSI2: Soft reset try count exceeded!\n")=
-;
-+               return -EBUSY;
 +       }
 +
-+       reg =3D omap_readl(ISPCSI2_SYSCONFIG);
-+       reg &=3D ~ISPCSI2_SYSCONFIG_MSTANDBY_MODE_MASK;
-+       reg |=3D ISPCSI2_SYSCONFIG_MSTANDBY_MODE_NO;
-+       reg &=3D ~ISPCSI2_SYSCONFIG_AUTO_IDLE_MASK;
-+       omap_writel(reg, ISPCSI2_SYSCONFIG);
++       if (i =3D=3D H3A_MAX_BUFF)
++               return;
 +
-+       uses_videoport =3D false;
-+       update_complexio_cfg1 =3D false;
-+       update_phy_cfg0 =3D false;
-+       update_phy_cfg1 =3D false;
-+       for (i =3D 0; i < 8; i++) {
-+               update_ctx_ctrl1[i] =3D false;
-+               update_ctx_ctrl2[i] =3D false;
-+               update_ctx_ctrl3[i] =3D false;
++       if (i =3D=3D 0) {
++               if (afstat.af_buff[H3A_MAX_BUFF - 1].locked =3D=3D 0)
++                       past_i =3D H3A_MAX_BUFF - 1;
++               else
++                       past_i =3D H3A_MAX_BUFF - 2;
++       } else if (i =3D=3D 1) {
++               if (afstat.af_buff[0].locked =3D=3D 0)
++                       past_i =3D 0;
++               else
++                       past_i =3D H3A_MAX_BUFF - 1;
++       } else {
++               if (afstat.af_buff[i - 1].locked =3D=3D 0)
++                       past_i =3D i - 1;
++               else
++                       past_i =3D i - 2;
 +       }
-+       update_timing =3D false;
-+       update_ctrl =3D false;
 +
-+       isp_csi2_complexio_lanes_get();
-+       isp_csi2_ctrl_get();
-+       isp_csi2_ctx_get_all();
-+       isp_csi2_phy_get();
-+       isp_csi2_timings_get_all();
++       if (updateflag & AF_UPDATEXS_TS)
++               afstat.af_buff[past_i].xtrastats.ts =3D xtrastats->ts;
 +
-+       isp_csi2_complexio_power_autoswitch(true);
-+       isp_csi2_complexio_power(ISP_CSI2_POWER_ON);
++       if (updateflag & AF_UPDATEXS_FIELDCOUNT)
++               afstat.af_buff[past_i].xtrastats.field_count =3D
++                                                       xtrastats->field_=
+count;
++}
++EXPORT_SYMBOL(isp_af_setxtrastats);
 +
-+       isp_csi2_timings_config_forcerxmode(1, true);
-+       isp_csi2_timings_config_stopstate_cnt(1, 0x1FF);
-+       isp_csi2_timings_update_all(true);
++/*
++ * Helper function to update buffer cache pages
++ */
++static void isp_af_update_req_buffer(struct isp_af_buffer *buffer)
++{
++       int size =3D afstat.stats_buf_size;
 +
++       size =3D PAGE_ALIGN(size);
++       /* Update the kernel pages of the requested buffer */
++       dmac_inv_range((void *)buffer->addr_align, (void *)buffer->addr_a=
+lign +
++                                                                       s=
+ize);
++}
++
++#define IS_OUT_OF_BOUNDS(value, min, max) \
++       (((value) < (min)) || ((value) > (max)))
++
++/* Function to check paxel parameters */
++int isp_af_check_paxel(void)
++{
++       struct af_paxel *paxel_cfg =3D &af_dev_configptr->config->paxel_c=
+onfig;
++       struct af_iir *iir_cfg =3D &af_dev_configptr->config->iir_config;
++
++       /* Check horizontal Count */
++       if (IS_OUT_OF_BOUNDS(paxel_cfg->hz_cnt, AF_PAXEL_HORIZONTAL_COUNT=
+_MIN,
++                                       AF_PAXEL_HORIZONTAL_COUNT_MAX)) {
++               DPRINTK_ISP_AF("Error : Horizontal Count is incorrect");
++               return -AF_ERR_HZ_COUNT;
++       }
++
++       /*Check Vertical Count */
++       if (IS_OUT_OF_BOUNDS(paxel_cfg->vt_cnt, AF_PAXEL_VERTICAL_COUNT_M=
+IN,
++                                       AF_PAXEL_VERTICAL_COUNT_MAX)) {
++               DPRINTK_ISP_AF("Error : Vertical Count is incorrect");
++               return -AF_ERR_VT_COUNT;
++       }
++
++       /*Check Height */
++       if (IS_OUT_OF_BOUNDS(paxel_cfg->height, AF_PAXEL_HEIGHT_MIN,
++                                       AF_PAXEL_HEIGHT_MAX)) {
++               DPRINTK_ISP_AF("Error : Height is incorrect");
++               return -AF_ERR_HEIGHT;
++       }
++
++       /*Check width */
++       if (IS_OUT_OF_BOUNDS(paxel_cfg->width, AF_PAXEL_WIDTH_MIN,
++                                       AF_PAXEL_WIDTH_MAX)) {
++               DPRINTK_ISP_AF("Error : Width is incorrect");
++               return -AF_ERR_WIDTH;
++       }
++
++       /*Check Line Increment */
++       if (IS_OUT_OF_BOUNDS(paxel_cfg->line_incr, AF_PAXEL_INCREMENT_MIN=
+,
++                                       AF_PAXEL_INCREMENT_MAX)) {
++               DPRINTK_ISP_AF("Error : Line Increment is incorrect");
++               return -AF_ERR_INCR;
++       }
++
++       /*Check Horizontal Start */
++       if ((paxel_cfg->hz_start % 2 !=3D 0) ||
++                       (paxel_cfg->hz_start < (iir_cfg->hz_start_pos + 2=
+)) ||
++                       IS_OUT_OF_BOUNDS(paxel_cfg->hz_start,
++                       AF_PAXEL_HZSTART_MIN, AF_PAXEL_HZSTART_MAX)) {
++               DPRINTK_ISP_AF("Error : Horizontal Start is incorrect");
++               return -AF_ERR_HZ_START;
++       }
++
++       /*Check Vertical Start */
++       if (IS_OUT_OF_BOUNDS(paxel_cfg->vt_start, AF_PAXEL_VTSTART_MIN,
++                                       AF_PAXEL_VTSTART_MAX)) {
++               DPRINTK_ISP_AF("Error : Vertical Start is incorrect");
++               return -AF_ERR_VT_START;
++       }
 +       return 0;
 +}
 +
 +/**
-+ * isp_csi2_enable - Enables the CSI2 module.
-+ * @enable: Enables/disables the CSI2 module.
++ * isp_af_check_iir - Function to check IIR Coefficient.
 + **/
-+void isp_csi2_enable(int enable)
++int isp_af_check_iir(void)
 +{
-+       if (enable) {
-+               isp_csi2_ctx_config_enabled(0, true);
-+               isp_csi2_ctx_config_eof_enabled(0, true);
-+               isp_csi2_ctx_config_checksum_enabled(0, true);
-+               isp_csi2_ctx_update(0, false);
++       struct af_iir *iir_cfg =3D &af_dev_configptr->config->iir_config;
++       int index;
 +
-+               isp_csi2_ctrl_config_ecc_enable(true);
-+               isp_csi2_ctrl_config_if_enable(true);
-+               isp_csi2_ctrl_update(false);
-+       } else {
-+               isp_csi2_ctx_config_enabled(0, false);
-+               isp_csi2_ctx_config_eof_enabled(0, false);
-+               isp_csi2_ctx_config_checksum_enabled(0, false);
-+               isp_csi2_ctx_update(0, false);
++       for (index =3D 0; index < AF_NUMBER_OF_COEF; index++) {
++               if ((iir_cfg->coeff_set0[index]) > AF_COEF_MAX) {
++                       DPRINTK_ISP_AF("Error : Coefficient for set 0 is =
+"
++                                                               "incorrec=
+t");
++                       return -AF_ERR_IIR_COEF;
++               }
 +
-+               isp_csi2_ctrl_config_ecc_enable(false);
-+               isp_csi2_ctrl_config_if_enable(false);
-+               isp_csi2_ctrl_update(false);
++               if ((iir_cfg->coeff_set1[index]) > AF_COEF_MAX) {
++                       DPRINTK_ISP_AF("Error : Coefficient for set 1 is =
+"
++                                                               "incorrec=
+t");
++                       return -AF_ERR_IIR_COEF;
++               }
 +       }
-+}
-+EXPORT_SYMBOL(isp_csi2_enable);
 +
++       if (IS_OUT_OF_BOUNDS(iir_cfg->hz_start_pos, AF_IIRSH_MIN,
++                                                               AF_IIRSH_=
+MAX)) {
++               DPRINTK_ISP_AF("Error : IIRSH is incorrect");
++               return -AF_ERR_IIRSH;
++       }
++
++       return 0;
++}
 +/**
-+ * isp_csi2_regdump - Prints CSI2 debug information.
++ * isp_af_unlock_buffers - Helper function to unlock all buffers.
 + **/
-+void isp_csi2_regdump(void)
++static void isp_af_unlock_buffers(void)
 +{
-+       printk(KERN_DEBUG "-------------Register dump-------------\n");
++       int i;
++       unsigned long irqflags;
 +
-+       printk(KERN_DEBUG "ISP_CTRL: %x\n", omap_readl(ISP_CTRL));
-+       printk(KERN_DEBUG "ISP_TCTRL_CTRL: %x\n", omap_readl(ISP_TCTRL_CT=
-RL));
++       spin_lock_irqsave(&afstat.buffer_lock, irqflags);
++       for (i =3D 0; i < H3A_MAX_BUFF; i++)
++               afstat.af_buff[i].locked =3D 0;
 +
-+       printk(KERN_DEBUG "ISPCCDC_SDR_ADDR: %x\n",
-+                                               omap_readl(ISPCCDC_SDR_AD=
-DR));
-+       printk(KERN_DEBUG "ISPCCDC_SYN_MODE: %x\n",
-+                                               omap_readl(ISPCCDC_SYN_MO=
-DE));
-+       printk(KERN_DEBUG "ISPCCDC_CFG: %x\n", omap_readl(ISPCCDC_CFG));
-+       printk(KERN_DEBUG "ISPCCDC_FMTCFG: %x\n", omap_readl(ISPCCDC_FMTC=
-FG));
-+       printk(KERN_DEBUG "ISPCCDC_HSIZE_OFF: %x\n",
-+                                               omap_readl(ISPCCDC_HSIZE_=
-OFF));
-+       printk(KERN_DEBUG "ISPCCDC_HORZ_INFO: %x\n",
-+                                               omap_readl(ISPCCDC_HORZ_I=
-NFO));
-+       printk(KERN_DEBUG "ISPCCDC_VERT_START: %x\n",
-+                                               omap_readl(ISPCCDC_VERT_S=
-TART));
-+       printk(KERN_DEBUG "ISPCCDC_VERT_LINES: %x\n",
-+                                               omap_readl(ISPCCDC_VERT_L=
-INES));
-+
-+       printk(KERN_DEBUG "ISPCSI2_COMPLEXIO_CFG1: %x\n",
-+                                       omap_readl(ISPCSI2_COMPLEXIO_CFG1=
-));
-+       printk(KERN_DEBUG "ISPCSI2_SYSSTATUS: %x\n",
-+                                               omap_readl(ISPCSI2_SYSSTA=
-TUS));
-+       printk(KERN_DEBUG "ISPCSI2_SYSCONFIG: %x\n",
-+                                               omap_readl(ISPCSI2_SYSCON=
-FIG));
-+       printk(KERN_DEBUG "ISPCSI2_IRQENABLE: %x\n",
-+                                               omap_readl(ISPCSI2_IRQENA=
-BLE));
-+       printk(KERN_DEBUG "ISPCSI2_IRQSTATUS: %x\n",
-+                                               omap_readl(ISPCSI2_IRQSTA=
-TUS));
-+
-+       printk(KERN_DEBUG "ISPCSI2_CTX_IRQENABLE(0): %x\n",
-+                                       omap_readl(ISPCSI2_CTX_IRQENABLE(=
-0)));
-+       printk(KERN_DEBUG "ISPCSI2_CTX_IRQSTATUS(0): %x\n",
-+                                       omap_readl(ISPCSI2_CTX_IRQSTATUS(=
-0)));
-+       printk(KERN_DEBUG "ISPCSI2_TIMING: %x\n", omap_readl(ISPCSI2_TIMI=
-NG));
-+       printk(KERN_DEBUG "ISPCSI2PHY_CFG0: %x\n", omap_readl(ISPCSI2PHY_=
-CFG0));
-+       printk(KERN_DEBUG "ISPCSI2PHY_CFG1: %x\n", omap_readl(ISPCSI2PHY_=
-CFG1));
-+       printk(KERN_DEBUG "ISPCSI2_CTX_CTRL1(0): %x\n",
-+                                       omap_readl(ISPCSI2_CTX_CTRL1(0)))=
-;
-+       printk(KERN_DEBUG "ISPCSI2_CTX_CTRL2(0): %x\n",
-+                                       omap_readl(ISPCSI2_CTX_CTRL2(0)))=
-;
-+       printk(KERN_DEBUG "ISPCSI2_CTX_CTRL3(0): %x\n",
-+                                       omap_readl(ISPCSI2_CTX_CTRL3(0)))=
-;
-+       printk(KERN_DEBUG "ISPCSI2_CTX_DAT_OFST(0): %x\n",
-+                                       omap_readl(ISPCSI2_CTX_DAT_OFST(0=
-)));
-+       printk(KERN_DEBUG "ISPCSI2_CTX_DAT_PING_ADDR(0): %x\n",
-+                               omap_readl(ISPCSI2_CTX_DAT_PING_ADDR(0)))=
-;
-+       printk(KERN_DEBUG "ISPCSI2_CTX_DAT_PONG_ADDR(0): %x\n",
-+                               omap_readl(ISPCSI2_CTX_DAT_PONG_ADDR(0)))=
-;
-+       printk(KERN_DEBUG "ISPCSI2_CTRL: %x\n", omap_readl(ISPCSI2_CTRL))=
-;
-+       printk(KERN_DEBUG "---------------------------------------\n");
++       spin_unlock_irqrestore(&afstat.buffer_lock, irqflags);
 +}
 +
-+/**
-+ * isp_csi2_cleanup - Routine for module driver cleanup
-+ **/
-+void __exit isp_csi2_cleanup(void)
-+{
-+       return;
-+}
-+
-+/**
-+ * isp_csi2_init - Routine for module driver init
-+ **/
-+int __init isp_csi2_init(void)
++/*
++ * Helper function to link allocated buffers
++ */
++static void isp_af_link_buffers(void)
 +{
 +       int i;
 +
-+       update_complexio_cfg1 =3D false;
-+       update_phy_cfg0 =3D false;
-+       update_phy_cfg1 =3D false;
-+       for (i =3D 0; i < 8; i++) {
-+               update_ctx_ctrl1[i] =3D false;
-+               update_ctx_ctrl2[i] =3D false;
-+               update_ctx_ctrl3[i] =3D false;
++       for (i =3D 0; i < H3A_MAX_BUFF; i++) {
++               if ((i + 1) < H3A_MAX_BUFF)
++                       afstat.af_buff[i].next =3D &afstat.af_buff[i + 1]=
+;
++               else
++                       afstat.af_buff[i].next =3D &afstat.af_buff[0];
 +       }
-+       update_timing =3D false;
-+       update_ctrl =3D false;
++}
 +
-+       memset(&current_csi2_cfg, 0, sizeof(current_csi2_cfg));
-+       memset(&current_csi2_cfg_update, 0, sizeof(current_csi2_cfg_updat=
-e));
++/* Function to perform hardware set up */
++int isp_af_configure(struct af_configuration *afconfig)
++{
++       int result;
++       int buff_size, i;
++       unsigned int busyaf;
++       struct af_configuration *af_curr_cfg =3D af_dev_configptr->config=
+;
++
++       if (NULL =3D=3D afconfig) {
++               printk(KERN_ERR "Null argument in configuration. \n");
++               return -EINVAL;
++       }
++
++       memcpy(af_curr_cfg, afconfig, sizeof(struct af_configuration));
++       /* Get the value of PCR register */
++       busyaf =3D omap_readl(ISPH3A_PCR);
++
++       if ((busyaf & AF_BUSYAF) =3D=3D AF_BUSYAF) {
++               DPRINTK_ISP_AF("AF_register_setup_ERROR : Engine Busy");
++               DPRINTK_ISP_AF("\n Configuration cannot be done ");
++               return -AF_ERR_ENGINE_BUSY;
++       }
++
++       /* Check IIR Coefficient and start Values */
++       result =3D isp_af_check_iir();
++       if (result < 0)
++               return result;
++
++       /* Check Paxel Values */
++       result =3D isp_af_check_paxel();
++       if (result < 0)
++               return result;
++
++       /* Check HMF Threshold Values */
++       if (af_curr_cfg->hmf_config.threshold > AF_THRESHOLD_MAX) {
++               DPRINTK_ISP_AF("Error : HMF Threshold is incorrect");
++               return -AF_ERR_THRESHOLD;
++       }
++
++       /* Compute buffer size */
++       buff_size =3D (af_curr_cfg->paxel_config.hz_cnt + 1) *
++                       (af_curr_cfg->paxel_config.vt_cnt + 1) * AF_PAXEL=
+_SIZE;
++
++       afstat.curr_cfg_buf_size =3D buff_size;
++       /* Deallocate the previous buffers */
++       if (afstat.stats_buf_size && (buff_size > afstat.stats_buf_size))=
+ {
++               isp_af_enable(0);
++               for (i =3D 0; i < H3A_MAX_BUFF; i++) {
++                       ispmmu_unmap(afstat.af_buff[i].ispmmu_addr);
++                       dma_free_coherent(NULL, afstat.min_buf_size,
++                                       (void *)afstat.af_buff[i].virt_ad=
+dr,
++                                       (dma_addr_t)afstat.af_buff[i].phy=
+_addr);
++                       afstat.af_buff[i].virt_addr =3D 0;
++               }
++               afstat.stats_buf_size =3D 0;
++       }
++
++       if (!afstat.af_buff[0].virt_addr) {
++               afstat.stats_buf_size =3D buff_size;
++               afstat.min_buf_size =3D PAGE_ALIGN(afstat.stats_buf_size)=
+;
++
++               for (i =3D 0; i < H3A_MAX_BUFF; i++) {
++                       afstat.af_buff[i].virt_addr =3D
++                                       (unsigned long)dma_alloc_coherent=
+(NULL,
++                                       afstat.min_buf_size,
++                                       (dma_addr_t *)
++                                       &afstat.af_buff[i].phy_addr,
++                                       GFP_KERNEL | GFP_DMA);
++                       if (afstat.af_buff[i].virt_addr =3D=3D 0) {
++                               printk(KERN_ERR "Can't acquire memory for=
+ "
++                                                       "buffer[%d]\n", i=
+);
++                               return -ENOMEM;
++                       }
++                       afstat.af_buff[i].addr_align =3D
++                                               afstat.af_buff[i].virt_ad=
+dr;
++                       while ((afstat.af_buff[i].addr_align & 0xFFFFFFC0=
+) !=3D
++                                               afstat.af_buff[i].addr_al=
+ign)
++                               afstat.af_buff[i].addr_align++;
++                       afstat.af_buff[i].ispmmu_addr =3D
++                               ispmmu_map(afstat.af_buff[i].phy_addr,
++                                                       afstat.min_buf_si=
+ze);
++               }
++               isp_af_unlock_buffers();
++               isp_af_link_buffers();
++
++               /* First active buffer */
++               if (active_buff =3D=3D NULL)
++                       active_buff =3D &afstat.af_buff[0];
++               isp_af_set_address(active_buff->ispmmu_addr);
++       }
++
++       result =3D isp_af_register_setup(af_dev_configptr);
++       if (result < 0)
++               return result;
++       af_dev_configptr->size_paxel =3D buff_size;
++       afstat.initialized =3D 1;
++       /* Set configuration flag to indicate HW setup done */
++       if (af_curr_cfg->af_config)
++               isp_af_enable(1);
++       else
++               isp_af_enable(0);
++
++       /* Success */
++       return 0;
++}
++EXPORT_SYMBOL(isp_af_configure);
++
++int isp_af_register_setup(struct af_device *af_dev)
++{
++       unsigned int pcr =3D 0, pax1 =3D 0, pax2 =3D 0, paxstart =3D 0;
++       unsigned int coef =3D 0;
++       unsigned int base_coef_set0 =3D 0;
++       unsigned int base_coef_set1 =3D 0;
++       int index;
++
++       /* Configure Hardware Registers */
++       /* Set PCR Register */
++       pcr =3D omap_readl(ISPH3A_PCR);   /* Read PCR Register */
++
++       /* Set Accumulator Mode */
++       if (af_dev->config->mode =3D=3D ACCUMULATOR_PEAK)
++               pcr |=3D FVMODE;
++       else
++               pcr &=3D ~FVMODE;
++
++       /* Set A-law */
++       if (af_dev->config->alaw_enable =3D=3D H3A_AF_ALAW_ENABLE)
++               pcr |=3D AF_ALAW_EN;
++       else
++               pcr &=3D ~AF_ALAW_EN;
++
++       /* Set RGB Position */
++       pcr &=3D ~RGBPOS;
++       pcr |=3D (af_dev->config->rgb_pos) << AF_RGBPOS_SHIFT;
++
++       /* HMF Configurations */
++       if (af_dev->config->hmf_config.enable =3D=3D H3A_AF_HMF_ENABLE) {
++               pcr &=3D ~AF_MED_EN;
++               /* Enable HMF */
++               pcr |=3D AF_MED_EN;
++
++               /* Set Median Threshold */
++               pcr &=3D ~MED_TH;
++               pcr |=3D (af_dev->config->hmf_config.threshold) <<
++                                                       AF_MED_TH_SHIFT;
++       } else
++               pcr &=3D ~AF_MED_EN;
++
++       omap_writel(pcr, ISPH3A_PCR);
++
++       pax1 &=3D ~PAXW;
++       pax1 |=3D (af_dev->config->paxel_config.width) << AF_PAXW_SHIFT;
++
++       /* Set height in AFPAX1 */
++       pax1 &=3D ~PAXH;
++       pax1 |=3D af_dev->config->paxel_config.height;
++
++       omap_writel(pax1, ISPH3A_AFPAX1);
++
++       /* Configure AFPAX2 Register */
++       /* Set Line Increment in AFPAX2 Register */
++       pax2 &=3D ~AFINCV;
++       pax2 |=3D (af_dev->config->paxel_config.line_incr) << AF_LINE_INC=
+R_SHIFT;
++       /* Set Vertical Count */
++       pax2 &=3D ~PAXVC;
++       pax2 |=3D (af_dev->config->paxel_config.vt_cnt) << AF_VT_COUNT_SH=
+IFT;
++       /* Set Horizontal Count */
++       pax2 &=3D ~PAXHC;
++       pax2 |=3D af_dev->config->paxel_config.hz_cnt;
++       omap_writel(pax2, ISPH3A_AFPAX2);
++
++       /* Configure PAXSTART Register */
++       /*Configure Horizontal Start */
++       paxstart &=3D ~PAXSH;
++       paxstart |=3D (af_dev->config->paxel_config.hz_start) <<
++                                                       AF_HZ_START_SHIFT=
+;
++       /* Configure Vertical Start */
++       paxstart &=3D ~PAXSV;
++       paxstart |=3D af_dev->config->paxel_config.vt_start;
++       omap_writel(paxstart, ISPH3A_AFPAXSTART);
++
++       /*SetIIRSH Register */
++       omap_writel(af_dev->config->iir_config.hz_start_pos, ISPH3A_AFIIR=
+SH);
++
++       /*Set IIR Filter0 Coefficients */
++       base_coef_set0 =3D ISPH3A_AFCOEF010;
++       for (index =3D 0; index <=3D 8; index +=3D 2) {
++               coef &=3D ~COEF_MASK0;
++               coef |=3D af_dev->config->iir_config.coeff_set0[index];
++               coef &=3D ~COEF_MASK1;
++               coef |=3D (af_dev->config->iir_config.coeff_set0[index + =
+1]) <<
++                                                               AF_COEF_S=
+HIFT;
++               omap_writel(coef, base_coef_set0);
++               base_coef_set0 =3D base_coef_set0 + AFCOEF_OFFSET;
++       }
++
++       /* set AFCOEF0010 Register */
++       omap_writel(af_dev->config->iir_config.coeff_set0[10],
++                                                       ISPH3A_AFCOEF010)=
+;
++
++       /*Set IIR Filter1 Coefficients */
++
++       base_coef_set1 =3D ISPH3A_AFCOEF110;
++       for (index =3D 0; index <=3D 8; index +=3D 2) {
++               coef &=3D ~COEF_MASK0;
++               coef |=3D af_dev->config->iir_config.coeff_set1[index];
++               coef &=3D ~COEF_MASK1;
++               coef |=3D (af_dev->config->iir_config.coeff_set1[index + =
+1]) <<
++                                                               AF_COEF_S=
+HIFT;
++               omap_writel(coef, base_coef_set1);
++
++               base_coef_set1 =3D base_coef_set1 + AFCOEF_OFFSET;
++       }
++       omap_writel(af_dev->config->iir_config.coeff_set1[10],
++                                                       ISPH3A_AFCOEF1010=
+);
++
 +       return 0;
 +}
 +
-+MODULE_AUTHOR("Texas Instruments");
-+MODULE_DESCRIPTION("ISP CSI2 Receiver Module");
-+MODULE_LICENSE("GPL");
-diff --git a/drivers/media/video/isp/ispcsi2.h b/drivers/media/video/isp/=
-ispcsi2.h
-new file mode 100644
-index 0000000..1419bda
---- /dev/null
-+++ b/drivers/media/video/isp/ispcsi2.h
-@@ -0,0 +1,232 @@
++/* Function to set address */
++void isp_af_set_address(unsigned long address)
++{
++       omap_writel(address, ISPH3A_AFBUFST);
++}
++
++static int isp_af_stats_available(struct isp_af_data *afdata)
++{
++       int i, ret;
++       unsigned long irqflags;
++
++       spin_lock_irqsave(&afstat.buffer_lock, irqflags);
++       for (i =3D 0; i < H3A_MAX_BUFF; i++) {
++               if ((afdata->frame_number =3D=3D afstat.af_buff[i].frame_=
+num) &&
++                                               (afstat.af_buff[i].frame_=
+num !=3D
++                                               active_buff->frame_num)) =
+{
++                       afstat.af_buff[i].locked =3D 1;
++                       spin_unlock_irqrestore(&afstat.buffer_lock, irqfl=
+ags);
++                       isp_af_update_req_buffer(&afstat.af_buff[i]);
++                       afstat.af_buff[i].frame_num =3D 0;
++                       ret =3D copy_to_user((void *)afdata->af_statistic=
+s_buf,
++                                       (void *)afstat.af_buff[i].virt_ad=
+dr,
++                                       afstat.curr_cfg_buf_size);
++                       if (ret) {
++                               printk(KERN_ERR "Failed copy_to_user for =
+"
++                                       "H3A stats buff, %d\n", ret);
++                       }
++                       afdata->xtrastats.ts =3D afstat.af_buff[i].xtrast=
+ats.ts;
++                       afdata->xtrastats.field_count =3D
++                                       afstat.af_buff[i].xtrastats.field=
+_count;
++                       return 0;
++               }
++       }
++       spin_unlock_irqrestore(&afstat.buffer_lock, irqflags);
++       /* Stats unavailable */
++
++       return -1;
++}
++
++void isp_af_notify(int notify)
++{
++       camnotify =3D notify;
++       if (camnotify && afstat.initialized) {
++               printk(KERN_DEBUG "Warning Camera Off \n");
++               afstat.stats_req =3D 0;
++               afstat.stats_done =3D 1;
++               wake_up_interruptible(&afstat.stats_wait);
++       }
++}
++EXPORT_SYMBOL(isp_af_notify);
 +/*
-+ * drivers/media/video/isp/ispcsi2.h
++ * This API allows the user to update White Balance gains, as well as
++ * exposure time and analog gain. It is also used to request frame
++ * statistics.
++ */
++int isp_af_request_statistics(struct isp_af_data *afdata)
++{
++       int ret =3D 0;
++       u16 frame_diff =3D 0;
++       u16 frame_cnt =3D afstat.frame_count;
++       wait_queue_t wqt;
++
++       if (!af_dev_configptr->config->af_config) {
++               printk(KERN_ERR "AF engine not enabled\n");
++               return -EINVAL;
++       }
++
++       if (afdata->update !=3D 0) {
++               if (afdata->update & REQUEST_STATISTICS) {
++                       isp_af_unlock_buffers();
++                               /* Stats available? */
++                       DPRINTK_ISP_AF("Stats available?\n");
++                       ret =3D isp_af_stats_available(afdata);
++                       if (!ret)
++                               goto out;
++
++                       /* Stats in near future? */
++                       DPRINTK_ISP_AF("Stats in near future?\n");
++                       if (afdata->frame_number > frame_cnt)
++                               frame_diff =3D afdata->frame_number - fra=
+me_cnt;
++                       else if (afdata->frame_number < frame_cnt) {
++                               if ((frame_cnt > (MAX_FRAME_COUNT -
++                                                       MAX_FUTURE_FRAMES=
+)) &&
++                                                       (afdata->frame_nu=
+mber <
++                                                       MAX_FRAME_COUNT))=
+ {
++                                       frame_diff =3D afdata->frame_numb=
+er +
++                                                       MAX_FRAME_COUNT -
++                                                       frame_cnt;
++                               } else {
++                                       /* Frame unavailable */
++                                       frame_diff =3D MAX_FUTURE_FRAMES =
++ 1;
++                               }
++                       }
++
++                       if (frame_diff > MAX_FUTURE_FRAMES) {
++                               printk(KERN_ERR "Invalid frame requested"
++                                       ", returning current frame stats\=
+n");
++                               afdata->frame_number =3D frame_cnt;
++                       }
++                       if (!camnotify) {
++                               /* Block until frame in near future compl=
+etes */
++                               afstat.frame_req =3D afdata->frame_number=
+;
++                               afstat.stats_req =3D 1;
++                               afstat.stats_done =3D 0;
++                               init_waitqueue_entry(&wqt, current);
++                               ret =3D wait_event_interruptible(afstat.
++                                                       stats_wait,
++                                                       afstat.stats_done=
+ =3D=3D 1);
++                               if (ret < 0) {
++                                       afdata->af_statistics_buf =3D NUL=
+L;
++                                       return ret;
++                               }
++                               DPRINTK_ISP_AF("ISP AF request status"
++                                                       " interrupt raise=
+d\n");
++
++                               /* Stats now available */
++                               ret =3D isp_af_stats_available(afdata);
++                               if (ret) {
++                                       printk(KERN_ERR "After waiting fo=
+r"
++                                               " stats, stats not availa=
+ble!!"
++                                               "\n");
++                                       afdata->af_statistics_buf =3D NUL=
+L;
++                               }
++                       }
++               } else
++                       afdata->af_statistics_buf =3D NULL;
++       } else
++               afdata->af_statistics_buf =3D NULL;
++
++out:
++       afdata->curr_frame =3D afstat.frame_count;
++
++       return 0;
++}
++EXPORT_SYMBOL(isp_af_request_statistics);
++
++/* This function will handle the H3A interrupt. */
++static void isp_af_isr(unsigned long status, isp_vbq_callback_ptr arg1,
++                                                               void *arg=
+2)
++{
++       u16 frame_align;
++
++       if ((H3A_AF_DONE & status) !=3D H3A_AF_DONE)
++               return;
++
++       /* timestamp stats buffer */
++       do_gettimeofday(&active_buff->xtrastats.ts);
++
++       /* Exchange buffers */
++       active_buff =3D active_buff->next;
++       if (active_buff->locked =3D=3D 1)
++               active_buff =3D active_buff->next;
++       isp_af_set_address(active_buff->ispmmu_addr);
++
++       /* Update frame counter */
++       afstat.frame_count++;
++       frame_align =3D afstat.frame_count;
++       if (afstat.frame_count > MAX_FRAME_COUNT) {
++               afstat.frame_count =3D 1;
++               frame_align++;
++       }
++       active_buff->frame_num =3D afstat.frame_count;
++
++       /* Future Stats requested? */
++       if (afstat.stats_req) {
++               /* Is the frame we want already done? */
++               if (frame_align >=3D (afstat.frame_req + 1)) {
++                       afstat.stats_req =3D 0;
++                       afstat.stats_done =3D 1;
++                       wake_up_interruptible(&afstat.stats_wait);
++               }
++       }
++}
++
++/* Function to Enable/Disable AF Engine */
++int isp_af_enable(int enable)
++{
++       unsigned int pcr;
++
++       pcr =3D omap_readl(ISPH3A_PCR);
++
++       /* Set AF_EN bit in PCR Register */
++       if (enable) {
++               if (isp_set_callback(CBK_H3A_AF_DONE, isp_af_isr,
++                                               (void *)NULL, (void *)NUL=
+L)) {
++                       printk(KERN_ERR "No callback for AF\n");
++                       return -EINVAL;
++               }
++
++               pcr |=3D AF_EN;
++       } else {
++               isp_unset_callback(CBK_H3A_AF_DONE);
++               pcr &=3D ~AF_EN;
++       }
++       omap_writel(pcr, ISPH3A_PCR);
++       return 0;
++}
++
++/* Function to register the AF character device driver. */
++int __init isp_af_init(void)
++{
++       /*allocate memory for device structure and initialize it with 0 *=
+/
++       af_dev_configptr =3D kzalloc(sizeof(struct af_device), GFP_KERNEL=
+);
++       if (!af_dev_configptr)
++               goto err_nomem1;
++
++       active_buff =3D NULL;
++
++       af_dev_configptr->config =3D (struct af_configuration *)
++                       kzalloc(sizeof(struct af_configuration), GFP_KERN=
+EL);
++
++       if (af_dev_configptr->config =3D=3D NULL)
++               goto err_nomem2;
++
++       memset(&afstat, 0, sizeof(afstat));
++
++       init_waitqueue_head(&afstat.stats_wait);
++       spin_lock_init(&afstat.buffer_lock);
++
++       return 0;
++
++err_nomem2:
++       kfree(af_dev_configptr);
++err_nomem1:
++       printk(KERN_ERR "Error: kmalloc fail");
++       return -ENOMEM;
++}
++
++void __exit isp_af_exit(void)
++{
++       int i;
++
++       if (afstat.af_buff) {
++               /* Free buffers */
++               for (i =3D 0; i < H3A_MAX_BUFF; i++) {
++                       ispmmu_unmap(afstat.af_buff[i].ispmmu_addr);
++                       dma_free_coherent(NULL, afstat.min_buf_size,
++                                       (void *)afstat.af_buff[i].virt_ad=
+dr,
++                                       (dma_addr_t)afstat.af_buff[i].phy=
+_addr);
++               }
++       }
++       kfree(af_dev_configptr->config);
++       kfree(af_dev_configptr);
++
++       memset(&afstat, 0, sizeof(afstat));
++
++       af_major =3D -1;
++       isp_af_enable(0);
++}
+diff --git a/drivers/media/video/isp/isp_af.h b/drivers/media/video/isp/i=
+sp_af.h
+new file mode 100644
+index 0000000..83f127d
+--- /dev/null
++++ b/drivers/media/video/isp/isp_af.h
+@@ -0,0 +1,118 @@
++/*
++ * drivers/media/video/isp/isp_af.h
 + *
-+ * Copyright (C) 2008 Texas Instruments.
++ * Include file for AF module in TI's OMAP3 Camera ISP
 + *
-+ * Contributors:
-+ *     Sergio Aguirre <saaguirre@ti.com>
-+ *     Dominic Curran <dcurran@ti.com>
++ * Copyright (C) 2008 Texas Instruments, Inc.
 + *
 + * This package is free software; you can redistribute it and/or modify
 + * it under the terms of the GNU General Public License version 2 as
@@ -2435,224 +906,2023 @@ index 0000000..1419bda
 + * WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 + */
 +
-+#ifndef OMAP_ISP_CSI2_API_H
-+#define OMAP_ISP_CSI2_API_H
-+#include <linux/videodev2.h>
++/* Device Constants */
++#ifndef OMAP_ISP_AF_H
++#define OMAP_ISP_AF_H
 +
-+enum isp_csi2_irqevents {
-+       OCP_ERR_IRQ =3D 0x4000,
-+       SHORT_PACKET_IRQ =3D 0x2000,
-+       ECC_CORRECTION_IRQ =3D 0x1000,
-+       ECC_NO_CORRECTION_IRQ =3D 0x800,
-+       COMPLEXIO2_ERR_IRQ =3D 0x400,
-+       COMPLEXIO1_ERR_IRQ =3D 0x200,
-+       FIFO_OVF_IRQ =3D 0x100,
-+       CONTEXT7 =3D 0x80,
-+       CONTEXT6 =3D 0x40,
-+       CONTEXT5 =3D 0x20,
-+       CONTEXT4 =3D 0x10,
-+       CONTEXT3 =3D 0x8,
-+       CONTEXT2 =3D 0x4,
-+       CONTEXT1 =3D 0x2,
-+       CONTEXT0 =3D 0x1,
++#include <mach/isp_user.h>
++
++#define AF_MAJOR_NUMBER                        0
++#define ISPAF_NAME                     "OMAPISP_AF"
++#define AF_NR_DEVS                     1
++#define AF_TIMEOUT                     ((300 * HZ) / 1000)
++
++
++
++/* Print Macros */
++/*list of error code */
++#define AF_ERR_HZ_COUNT                        800     /* Invalid Horizo=
+ntal Count */
++#define AF_ERR_VT_COUNT                        801     /* Invalid Vertic=
+al Count */
++#define AF_ERR_HEIGHT                  802     /* Invalid Height */
++#define AF_ERR_WIDTH                   803     /* Invalid width */
++#define AF_ERR_INCR                    804     /* Invalid Increment */
++#define AF_ERR_HZ_START                        805     /* Invalid horizo=
+ntal Start */
++#define AF_ERR_VT_START                        806     /* Invalud vertic=
+al Start */
++#define AF_ERR_IIRSH                   807     /* Invalid IIRSH value */
++#define AF_ERR_IIR_COEF                        808     /* Invalid Coeffi=
+cient */
++#define AF_ERR_SETUP                   809     /* Setup not done */
++#define AF_ERR_THRESHOLD               810     /* Invalid Threshold */
++#define AF_ERR_ENGINE_BUSY             811     /* Engine is busy */
++
++#define AFPID                          0x0     /* Peripheral Revision
++                                                * and Class Information
++                                                */
++
++#define AFCOEF_OFFSET                  0x00000004      /* COEFFICIENT BA=
+SE
++                                                        * ADDRESS
++                                                        */
++
++/*
++ * PCR fields
++ */
++#define AF_BUSYAF                      (1 << 15)
++#define FVMODE                         (1 << 14)
++#define RGBPOS                         (0x7 << 11)
++#define MED_TH                         (0xFF << 3)
++#define AF_MED_EN                      (1 << 2)
++#define AF_ALAW_EN                     (1 << 1)
++#define AF_EN                          (1 << 0)
++
++/*
++ * AFPAX1 fields
++ */
++#define PAXW                           (0x7F << 16)
++#define PAXH                           0x7F
++
++/*
++ * AFPAX2 fields
++ */
++#define AFINCV                         (0xF << 13)
++#define PAXVC                          (0x7F << 6)
++#define PAXHC                          0x3F
++
++/*
++ * AFPAXSTART fields
++ */
++#define PAXSH                          (0xFFF<<16)
++#define PAXSV                          0xFFF
++
++/*
++ * COEFFICIENT MASK
++ */
++
++#define COEF_MASK0                     0xFFF
++#define COEF_MASK1                     (0xFFF<<16)
++
++/* BIT SHIFTS */
++#define AF_RGBPOS_SHIFT                        11
++#define AF_MED_TH_SHIFT                        3
++#define AF_PAXW_SHIFT                  16
++#define AF_LINE_INCR_SHIFT             13
++#define AF_VT_COUNT_SHIFT              6
++#define AF_HZ_START_SHIFT              16
++#define AF_COEF_SHIFT                  16
++
++#define AF_UPDATEXS_TS                 (1 << 0)
++#define AF_UPDATEXS_FIELDCOUNT (1 << 1)
++#define AF_UPDATEXS_LENSPOS            (1 << 2)
++
++/* Structure for device of AF Engine */
++struct af_device {
++       struct af_configuration *config; /*Device configuration structure=
+ */
++       int size_paxel;         /*Paxel size in bytes */
 +};
 +
-+enum isp_csi2_ctx_irqevents {
-+       CTX_ECC_CORRECTION =3D 0x100,
-+       CTX_LINE_NUMBER =3D 0x80,
-+       CTX_FRAME_NUMBER =3D 0x40,
-+       CTX_CS =3D 0x20,
-+       CTX_LE =3D 0x8,
-+       CTX_LS =3D 0x4,
-+       CTX_FE =3D 0x2,
-+       CTX_FS =3D 0x1,
++int isp_af_check_paxel(void);
++int isp_af_check_iir(void);
++int isp_af_register_setup(struct af_device *af_dev);
++int isp_af_enable(int);
++void isp_af_notify(int notify);
++int isp_af_request_statistics(struct isp_af_data *afdata);
++int isp_af_configure(struct af_configuration *afconfig);
++void isp_af_set_address(unsigned long);
++void isp_af_setxtrastats(struct isp_af_xtrastats *xtrastats, u8 updatefl=
+ag);
++#endif /* OMAP_ISP_AF_H */
+diff --git a/drivers/media/video/isp/isph3a.c b/drivers/media/video/isp/i=
+sph3a.c
+new file mode 100644
+index 0000000..25fceb4
+--- /dev/null
++++ b/drivers/media/video/isp/isph3a.c
+@@ -0,0 +1,883 @@
++/*
++ * drivers/media/video/isp/isph3a.c
++ *
++ * H3A module for TI's OMAP3 Camera ISP
++ *
++ * Copyright (C) 2008 Texas Instruments.
++ *
++ * Contributors:
++ *     Sergio Aguirre <saaguirre@ti.com>
++ *     Troy Laramy
++ *
++ * This package is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ *
++ * THIS PACKAGE IS PROVIDED ``AS IS'' AND WITHOUT ANY EXPRESS OR
++ * IMPLIED WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED
++ * WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
++ */
++
++#include <asm/cacheflush.h>
++
++#include <linux/mm.h>
++#include <linux/mman.h>
++#include <linux/syscalls.h>
++#include <linux/module.h>
++#include <linux/errno.h>
++#include <linux/types.h>
++#include <linux/dma-mapping.h>
++#include <linux/io.h>
++#include <linux/uaccess.h>
++
++#include "isp.h"
++#include "ispreg.h"
++#include "isph3a.h"
++#include "ispmmu.h"
++#include "isppreview.h"
++
++/**
++ * struct isph3a_aewb_buffer - AE, AWB frame stats buffer.
++ * @virt_addr: Virtual address to mmap the buffer.
++ * @phy_addr: Physical address of the buffer.
++ * @addr_align: Virtual Address 32 bytes aligned.
++ * @ispmmu_addr: Address of the buffer mapped by the ISPMMU.
++ * @mmap_addr: Mapped memory area of buffer. For userspace access.
++ * @locked: 1 - Buffer locked from write. 0 - Buffer can be overwritten.
++ * @frame_num: Frame number from which the statistics are taken.
++ * @next: Pointer to link next buffer.
++ */
++struct isph3a_aewb_buffer {
++       unsigned long virt_addr;
++       unsigned long phy_addr;
++       unsigned long addr_align;
++       unsigned long ispmmu_addr;
++       unsigned long mmap_addr;        /* For userspace */
++       struct timeval ts;
++
++       u8 locked;
++       u16 frame_num;
++       struct isph3a_aewb_buffer *next;
 +};
 +
-+enum isp_csi2_power_cmds {
-+       ISP_CSI2_POWER_OFF,
-+       ISP_CSI2_POWER_ON,
-+       ISP_CSI2_POWER_ULPW,
++/**
++ * struct isph3a_aewb_status - AE, AWB status.
++ * @initialized: 1 - Buffers initialized.
++ * @update: 1 - Update registers.
++ * @stats_req: 1 - Future stats requested.
++ * @stats_done: 1 - Stats ready for user.
++ * @frame_req: Number of frame requested for statistics.
++ * @h3a_buff: Array of statistics buffers to access.
++ * @stats_buf_size: Statistics buffer size.
++ * @min_buf_size: Minimum statisitics buffer size.
++ * @win_count: Window Count.
++ * @frame_count: Frame Count.
++ * @stats_wait: Wait primitive for locking/unlocking the stats request.
++ * @buffer_lock: Spinlock for statistics buffers access.
++ */
++static struct isph3a_aewb_status {
++       u8 initialized;
++       u8 update;
++       u8 stats_req;
++       u8 stats_done;
++       u16 frame_req;
++
++       struct isph3a_aewb_buffer h3a_buff[H3A_MAX_BUFF];
++       unsigned int stats_buf_size;
++       unsigned int min_buf_size;
++       unsigned int curr_cfg_buf_size;
++
++       u16 win_count;
++       u32 frame_count;
++       wait_queue_head_t stats_wait;
++       spinlock_t buffer_lock;         /* For stats buffers read/write s=
+ync */
++} aewbstat;
++
++/**
++ * struct isph3a_aewb_regs - Current value of AE, AWB configuration regi=
+sters.
++ * reg_pcr: Peripheral control register.
++ * reg_win1: Control register.
++ * reg_start: Start position register.
++ * reg_blk: Black line register.
++ * reg_subwin: Configuration register.
++ */
++static struct isph3a_aewb_regs {
++       u32 reg_pcr;
++       u32 reg_win1;
++       u32 reg_start;
++       u32 reg_blk;
++       u32 reg_subwin;
++} aewb_regs;
++
++static struct isph3a_aewb_config aewb_config_local =3D {
++       .saturation_limit =3D 0x3FF,
++       .win_height =3D 0,
++       .win_width =3D 0,
++       .ver_win_count =3D 0,
++       .hor_win_count =3D 0,
++       .ver_win_start =3D 0,
++       .hor_win_start =3D 0,
++       .blk_ver_win_start =3D 0,
++       .blk_win_height =3D 0,
++       .subsample_ver_inc =3D 0,
++       .subsample_hor_inc =3D 0,
++       .alaw_enable =3D 0,
++       .aewb_enable =3D 0,
 +};
 +
-+enum isp_csi2_frame_mode {
-+       ISP_CSI2_FRAME_IMMEDIATE,
-+       ISP_CSI2_FRAME_AFTERFEC,
++/* Structure for saving/restoring h3a module registers */
++static struct isp_reg isph3a_reg_list[] =3D {
++       {ISPH3A_AEWWIN1, 0},
++       {ISPH3A_AEWINSTART, 0},
++       {ISPH3A_AEWINBLK, 0},
++       {ISPH3A_AEWSUBWIN, 0},
++       {ISPH3A_AEWBUFST, 0},
++       {ISPH3A_AFPAX1, 0},
++       {ISPH3A_AFPAX2, 0},
++       {ISPH3A_AFPAXSTART, 0},
++       {ISPH3A_AFIIRSH, 0},
++       {ISPH3A_AFBUFST, 0},
++       {ISPH3A_AFCOEF010, 0},
++       {ISPH3A_AFCOEF032, 0},
++       {ISPH3A_AFCOEF054, 0},
++       {ISPH3A_AFCOEF076, 0},
++       {ISPH3A_AFCOEF098, 0},
++       {ISPH3A_AFCOEF0010, 0},
++       {ISPH3A_AFCOEF110, 0},
++       {ISPH3A_AFCOEF132, 0},
++       {ISPH3A_AFCOEF154, 0},
++       {ISPH3A_AFCOEF176, 0},
++       {ISPH3A_AFCOEF198, 0},
++       {ISPH3A_AFCOEF1010, 0},
++       {ISP_TOK_TERM, 0}
 +};
 +
-+struct csi2_lanecfg {
-+       u8 pos;
-+       u8 pol;
-+};
++static struct ispprev_wbal h3awb_update;
++static struct isph3a_aewb_buffer *active_buff;
++static struct isph3a_aewb_xtrastats h3a_xtrastats[H3A_MAX_BUFF];
++static int camnotify;
++static int wb_update;
++static void isph3a_print_status(void);
 +
-+struct isp_csi2_lanes_cfg {
-+       struct csi2_lanecfg data[4];
-+       struct csi2_lanecfg clk;
-+};
++/**
++ * isph3a_aewb_setxtrastats - Receives extra statistics from prior frame=
+s.
++ * @xtrastats: Pointer to structure containing extra statistics fields l=
+ike
++ *             field count and timestamp of frame.
++ *
++ * Called from update_vbq in camera driver
++ **/
++void isph3a_aewb_setxtrastats(struct isph3a_aewb_xtrastats *xtrastats)
++{
++       int i;
++       if (active_buff =3D=3D NULL)
++               return;
 +
-+struct isp_csi2_lanes_cfg_update {
-+       bool data[4];
-+       bool clk;
-+};
++       for (i =3D 0; i < H3A_MAX_BUFF; i++) {
++               if (aewbstat.h3a_buff[i].frame_num =3D=3D active_buff->fr=
+ame_num) {
++                       if (i =3D=3D 0) {
++                               if (aewbstat.h3a_buff[H3A_MAX_BUFF - 1].
++                                                               locked =3D=
+=3D 0) {
++                                       h3a_xtrastats[H3A_MAX_BUFF - 1] =3D
++                                                               *xtrastat=
+s;
++                               } else {
++                                       h3a_xtrastats[H3A_MAX_BUFF - 2] =3D
++                                                               *xtrastat=
+s;
++                               }
++                       } else if (i =3D=3D 1) {
++                               if (aewbstat.h3a_buff[0].locked =3D=3D 0)
++                                       h3a_xtrastats[0] =3D *xtrastats;
++                               else {
++                                       h3a_xtrastats[H3A_MAX_BUFF - 1] =3D
++                                                               *xtrastat=
+s;
++                               }
++                       } else {
++                               if (aewbstat.h3a_buff[i - 1].locked =3D=3D=
+ 0)
++                                       h3a_xtrastats[i - 1] =3D *xtrasta=
+ts;
++                               else
++                                       h3a_xtrastats[i - 2] =3D *xtrasta=
+ts;
++                       }
++                       return;
++               }
++       }
++}
++EXPORT_SYMBOL(isph3a_aewb_setxtrastats);
 +
-+struct isp_csi2_phy_cfg {
-+       u8 ths_term;
-+       u8 ths_settle;
-+       u8 tclk_term;
-+       unsigned tclk_miss:1;
-+       u8 tclk_settle;
-+};
++/**
++ * isph3a_aewb_enable - Enables AE, AWB engine in the H3A module.
++ * @enable: 1 - Enables the AE & AWB engine.
++ *
++ * Client should configure all the AE & AWB registers in H3A before this=
+.
++ **/
++static void isph3a_aewb_enable(u8 enable)
++{
++       omap_writel(IRQ0STATUS_H3A_AWB_DONE_IRQ, ISP_IRQ0STATUS);
 +
-+struct isp_csi2_phy_cfg_update {
-+       bool ths_term;
-+       bool ths_settle;
-+       bool tclk_term;
-+       bool tclk_miss;
-+       bool tclk_settle;
-+};
++       if (enable) {
++               aewb_regs.reg_pcr |=3D ISPH3A_PCR_AEW_EN;
++               omap_writel(omap_readl(ISPH3A_PCR) | ISPH3A_PCR_AEW_EN,
++                                                               ISPH3A_PC=
+R);
++               DPRINTK_ISPH3A("    H3A enabled \n");
++       } else {
++               aewb_regs.reg_pcr &=3D ~ISPH3A_PCR_AEW_EN;
++               omap_writel(omap_readl(ISPH3A_PCR) & ~ISPH3A_PCR_AEW_EN,
++                                                               ISPH3A_PC=
+R);
++               DPRINTK_ISPH3A("    H3A disabled \n");
++       }
++       aewb_config_local.aewb_enable =3D enable;
++}
 +
-+struct isp_csi2_ctx_cfg {
-+       u8 virtual_id;
-+       u8 frame_count;
-+       struct v4l2_pix_format format;
-+       u16 alpha;
-+       u16 data_offset;
-+       u32 ping_addr;
-+       u32 pong_addr;
-+       bool eof_enabled;
-+       bool eol_enabled;
-+       bool checksum_enabled;
-+       bool enabled;
-+};
++/**
++ * isph3a_update_wb - Updates WB parameters.
++ *
++ * Needs to be called when no ISP Preview processing is taking place.
++ **/
++void isph3a_update_wb(void)
++{
++       if (wb_update) {
++               isppreview_config_whitebalance(h3awb_update);
++               wb_update =3D 0;
++       }
++       return;
++}
++EXPORT_SYMBOL(isph3a_update_wb);
 +
-+struct isp_csi2_ctx_cfg_update {
-+       bool virtual_id;
-+       bool frame_count;
-+       bool format;
-+       bool alpha;
-+       bool data_offset;
-+       bool ping_addr;
-+       bool pong_addr;
-+       bool eof_enabled;
-+       bool eol_enabled;
-+       bool checksum_enabled;
-+       bool enabled;
-+};
++/**
++ * isph3a_aewb_update_regs - Helper function to update h3a registers.
++ **/
++static void isph3a_aewb_update_regs(void)
++{
++       omap_writel(aewb_regs.reg_pcr, ISPH3A_PCR);
++       omap_writel(aewb_regs.reg_win1, ISPH3A_AEWWIN1);
++       omap_writel(aewb_regs.reg_start, ISPH3A_AEWINSTART);
++       omap_writel(aewb_regs.reg_blk, ISPH3A_AEWINBLK);
++       omap_writel(aewb_regs.reg_subwin, ISPH3A_AEWSUBWIN);
 +
-+struct isp_csi2_timings_cfg {
-+       bool force_rx_mode;
-+       bool stop_state_16x;
-+       bool stop_state_4x;
-+       u16 stop_state_counter;
-+};
++       aewbstat.update =3D 0;
++       aewbstat.frame_count =3D 0;
++}
 +
-+struct isp_csi2_timings_cfg_update {
-+       bool force_rx_mode;
-+       bool stop_state_16x;
-+       bool stop_state_4x;
-+       bool stop_state_counter;
-+};
++/**
++ * isph3a_aewb_update_req_buffer - Helper function to update buffer cach=
+e pages
++ * @buffer: Pointer to structure
++ **/
++static void isph3a_aewb_update_req_buffer(struct isph3a_aewb_buffer *buf=
+fer)
++{
++       int size =3D aewbstat.stats_buf_size;
 +
-+struct isp_csi2_ctrl_cfg {
-+       bool vp_clk_enable;
-+       bool vp_only_enable;
-+       u8 vp_out_ctrl;
-+       bool debug_enable;
-+       u8 burst_size;
-+       enum isp_csi2_frame_mode frame_mode;
-+       bool ecc_enable;
-+       bool secure_mode;
-+       bool if_enable;
-+};
++       size =3D PAGE_ALIGN(size);
++       dmac_inv_range((void *)buffer->addr_align,
++                                       (void *)buffer->addr_align + size=
+);
++}
 +
-+struct isp_csi2_ctrl_cfg_update {
-+       bool vp_clk_enable;
-+       bool vp_only_enable;
-+       bool vp_out_ctrl;
-+       bool debug_enable;
-+       bool burst_size;
-+       bool frame_mode;
-+       bool ecc_enable;
-+       bool secure_mode;
-+       bool if_enable;
-+};
++/**
++ * isph3a_aewb_stats_available - Check for stats available of specified =
+frame.
++ * @aewbdata: Pointer to return AE AWB statistics data
++ *
++ * Returns 0 if successful, or -1 if statistics are unavailable.
++ **/
++static int isph3a_aewb_stats_available(struct isph3a_aewb_data *aewbdata=
+)
++{
++       int i, ret;
++       unsigned long irqflags;
 +
-+struct isp_csi2_cfg {
-+       struct isp_csi2_lanes_cfg lanes;
-+       struct isp_csi2_phy_cfg phy;
-+       struct isp_csi2_ctx_cfg contexts[8];
-+       struct isp_csi2_timings_cfg timings[2];
-+       struct isp_csi2_ctrl_cfg ctrl;
-+};
++       spin_lock_irqsave(&aewbstat.buffer_lock, irqflags);
++       for (i =3D 0; i < H3A_MAX_BUFF; i++) {
++               if ((aewbdata->frame_number =3D=3D aewbstat.h3a_buff[i].f=
+rame_num)
++                                       && (aewbstat.h3a_buff[i].frame_nu=
+m !=3D
++                                       active_buff->frame_num)) {
++                       aewbstat.h3a_buff[i].locked =3D 1;
++                       spin_unlock_irqrestore(&aewbstat.buffer_lock, irq=
+flags);
++                       isph3a_aewb_update_req_buffer(&aewbstat.h3a_buff[=
+i]);
++                       aewbstat.h3a_buff[i].frame_num =3D 0;
++                       ret =3D copy_to_user(
++                               (void *)aewbdata->h3a_aewb_statistics_buf=
+,
++                               (void *)aewbstat.h3a_buff[i].virt_addr,
++                               aewbstat.curr_cfg_buf_size);
++                       if (ret) {
++                               printk(KERN_ERR "Failed copy_to_user for =
+"
++                                               "H3A stats buff, %d\n", r=
+et);
++                       }
++                       aewbdata->ts =3D aewbstat.h3a_buff[i].ts;
++                       aewbdata->field_count =3D h3a_xtrastats[i].field_=
+count;
++                       return 0;
++               }
++       }
++       spin_unlock_irqrestore(&aewbstat.buffer_lock, irqflags);
 +
-+struct isp_csi2_cfg_update {
-+       struct isp_csi2_lanes_cfg_update lanes;
-+       struct isp_csi2_phy_cfg_update phy;
-+       struct isp_csi2_ctx_cfg_update contexts[8];
-+       struct isp_csi2_timings_cfg_update timings[2];
-+       struct isp_csi2_ctrl_cfg_update ctrl;
-+};
++       return -1;
++}
 +
-+int isp_csi2_complexio_lanes_config(struct isp_csi2_lanes_cfg *reqcfg);
-+int isp_csi2_complexio_lanes_update(bool force_update);
-+int isp_csi2_complexio_lanes_get(void);
-+int isp_csi2_complexio_power_autoswitch(bool enable);
-+int isp_csi2_complexio_power(enum isp_csi2_power_cmds power_cmd);
-+int isp_csi2_ctrl_config_frame_mode(enum isp_csi2_frame_mode frame_mode)=
++/**
++ * isph3a_aewb_link_buffers - Helper function to link allocated buffers.
++ **/
++static void isph3a_aewb_link_buffers(void)
++{
++       int i;
++
++       for (i =3D 0; i < H3A_MAX_BUFF; i++) {
++               if ((i + 1) < H3A_MAX_BUFF) {
++                       aewbstat.h3a_buff[i].next =3D &aewbstat.h3a_buff[=
+i + 1];
++                       h3a_xtrastats[i].next =3D &h3a_xtrastats[i + 1];
++               } else {
++                       aewbstat.h3a_buff[i].next =3D &aewbstat.h3a_buff[=
+0];
++                       h3a_xtrastats[i].next =3D &h3a_xtrastats[0];
++               }
++       }
++}
++
++/**
++ * isph3a_aewb_unlock_buffers - Helper function to unlock all buffers.
++ **/
++static void isph3a_aewb_unlock_buffers(void)
++{
++       int i;
++       unsigned long irqflags;
++
++       spin_lock_irqsave(&aewbstat.buffer_lock, irqflags);
++       for (i =3D 0; i < H3A_MAX_BUFF; i++)
++               aewbstat.h3a_buff[i].locked =3D 0;
++
++       spin_unlock_irqrestore(&aewbstat.buffer_lock, irqflags);
++}
++
++/**
++ * isph3a_aewb_isr - Callback from ISP driver for H3A AEWB interrupt.
++ * @status: IRQ0STATUS in case of MMU error, 0 for H3A interrupt.
++ * @arg1: Not used as of now.
++ * @arg2: Not used as of now.
++ */
++static void isph3a_aewb_isr(unsigned long status, isp_vbq_callback_ptr a=
+rg1,
++                                                               void *arg=
+2)
++{
++       u16 frame_align;
++
++       if ((H3A_AWB_DONE & status) !=3D H3A_AWB_DONE)
++               return;
++
++       do_gettimeofday(&active_buff->ts);
++       active_buff =3D active_buff->next;
++       if (active_buff->locked =3D=3D 1)
++               active_buff =3D active_buff->next;
++       omap_writel(active_buff->ispmmu_addr, ISPH3A_AEWBUFST);
++
++       aewbstat.frame_count++;
++       frame_align =3D aewbstat.frame_count;
++       if (aewbstat.frame_count > MAX_FRAME_COUNT) {
++               aewbstat.frame_count =3D 1;
++               frame_align++;
++       }
++       active_buff->frame_num =3D aewbstat.frame_count;
++
++       if (aewbstat.stats_req) {
++               DPRINTK_ISPH3A("waiting for frame %d\n", aewbstat.frame_r=
+eq);
++               if (frame_align >=3D (aewbstat.frame_req + 1)) {
++                       aewbstat.stats_req =3D 0;
++                       aewbstat.stats_done =3D 1;
++                       wake_up_interruptible(&aewbstat.stats_wait);
++               }
++       }
++
++       if (aewbstat.update)
++               isph3a_aewb_update_regs();
++}
++
++/**
++ * isph3a_aewb_set_params - Helper function to check & store user given =
+params.
++ * @user_cfg: Pointer to AE and AWB parameters struct.
++ *
++ * As most of them are busy-lock registers, need to wait until AEW_BUSY =
+=3D 0 to
++ * program them during ISR.
++ *
++ * Returns 0 if successful, or -EINVAL if any of the parameters are inva=
+lid.
++ **/
++static int isph3a_aewb_set_params(struct isph3a_aewb_config *user_cfg)
++{
++       if (unlikely(user_cfg->saturation_limit > MAX_SATURATION_LIM)) {
++               printk(KERN_ERR "Invalid Saturation_limit: %d\n",
++                       user_cfg->saturation_limit);
++               return -EINVAL;
++       } else if (aewb_config_local.saturation_limit !=3D
++                                               user_cfg->saturation_limi=
+t) {
++               WRITE_SAT_LIM(aewb_regs.reg_pcr, user_cfg->saturation_lim=
+it);
++               aewb_config_local.saturation_limit =3D
++                                               user_cfg->saturation_limi=
+t;
++               aewbstat.update =3D 1;
++       }
++
++       if (aewb_config_local.alaw_enable !=3D user_cfg->alaw_enable) {
++               WRITE_ALAW(aewb_regs.reg_pcr, user_cfg->alaw_enable);
++               aewb_config_local.alaw_enable =3D user_cfg->alaw_enable;
++               aewbstat.update =3D 1;
++       }
++
++       if (unlikely((user_cfg->win_height < MIN_WIN_H) ||
++                                       (user_cfg->win_height > MAX_WIN_H=
+) ||
++                                       (user_cfg->win_height & 0x01))) {
++               printk(KERN_ERR "Invalid window height: %d\n",
++                                                       user_cfg->win_hei=
+ght);
++               return -EINVAL;
++       } else if (aewb_config_local.win_height !=3D user_cfg->win_height=
+) {
++               WRITE_WIN_H(aewb_regs.reg_win1, user_cfg->win_height);
++               aewb_config_local.win_height =3D user_cfg->win_height;
++               aewbstat.update =3D 1;
++       }
++
++       if (unlikely((user_cfg->win_width < MIN_WIN_W) ||
++                                       (user_cfg->win_width > MAX_WIN_W)=
+ ||
++                                       (user_cfg->win_width & 0x01))) {
++               printk(KERN_ERR "Invalid window width: %d\n",
++                                                       user_cfg->win_wid=
+th);
++               return -EINVAL;
++       } else if (aewb_config_local.win_width !=3D user_cfg->win_width) =
+{
++               WRITE_WIN_W(aewb_regs.reg_win1, user_cfg->win_width);
++               aewb_config_local.win_width =3D user_cfg->win_width;
++               aewbstat.update =3D 1;
++       }
++
++       if (unlikely((user_cfg->ver_win_count < 1) ||
++                               (user_cfg->ver_win_count > MAX_WINVC))) {
++               printk(KERN_ERR "Invalid vertical window count: %d\n",
++                                               user_cfg->ver_win_count);
++               return -EINVAL;
++       } else if (aewb_config_local.ver_win_count !=3D user_cfg->ver_win=
+_count) {
++               WRITE_VER_C(aewb_regs.reg_win1, user_cfg->ver_win_count);
++               aewb_config_local.ver_win_count =3D user_cfg->ver_win_cou=
+nt;
++               aewbstat.update =3D 1;
++       }
++
++       if (unlikely((user_cfg->hor_win_count < 1) ||
++                               (user_cfg->hor_win_count > MAX_WINHC))) {
++               printk(KERN_ERR "Invalid horizontal window count: %d\n",
++                                               user_cfg->hor_win_count);
++               return -EINVAL;
++       } else if (aewb_config_local.hor_win_count !=3D user_cfg->hor_win=
+_count) {
++               WRITE_HOR_C(aewb_regs.reg_win1, user_cfg->hor_win_count);
++               aewb_config_local.hor_win_count =3D user_cfg->hor_win_cou=
+nt;
++               aewbstat.update =3D 1;
++       }
++
++       if (unlikely(user_cfg->ver_win_start > MAX_WINSTART)) {
++               printk(KERN_ERR "Invalid vertical window start: %d\n",
++                                               user_cfg->ver_win_start);
++               return -EINVAL;
++       } else if (aewb_config_local.ver_win_start !=3D user_cfg->ver_win=
+_start) {
++               WRITE_VER_WIN_ST(aewb_regs.reg_start, user_cfg->ver_win_s=
+tart);
++               aewb_config_local.ver_win_start =3D user_cfg->ver_win_sta=
+rt;
++               aewbstat.update =3D 1;
++       }
++
++       if (unlikely(user_cfg->hor_win_start > MAX_WINSTART)) {
++               printk(KERN_ERR "Invalid horizontal window start: %d\n",
++                                               user_cfg->hor_win_start);
++               return -EINVAL;
++       } else if (aewb_config_local.hor_win_start !=3D user_cfg->hor_win=
+_start) {
++               WRITE_HOR_WIN_ST(aewb_regs.reg_start, user_cfg->hor_win_s=
+tart);
++               aewb_config_local.hor_win_start =3D user_cfg->hor_win_sta=
+rt;
++               aewbstat.update =3D 1;
++       }
++
++       if (unlikely(user_cfg->blk_ver_win_start > MAX_WINSTART)) {
++               printk(KERN_ERR "Invalid black vertical window start: %d\=
+n",
++                                               user_cfg->blk_ver_win_sta=
+rt);
++               return -EINVAL;
++       } else if (aewb_config_local.blk_ver_win_start !=3D
++                                               user_cfg->blk_ver_win_sta=
+rt) {
++               WRITE_BLK_VER_WIN_ST(aewb_regs.reg_blk,
++                                               user_cfg->blk_ver_win_sta=
+rt);
++               aewb_config_local.blk_ver_win_start =3D
++                                               user_cfg->blk_ver_win_sta=
+rt;
++               aewbstat.update =3D 1;
++       }
++
++       if (unlikely((user_cfg->blk_win_height < MIN_WIN_H) ||
++                               (user_cfg->blk_win_height > MAX_WIN_H) ||
++                               (user_cfg->blk_win_height & 0x01))) {
++               printk(KERN_ERR "Invalid black window height: %d\n",
++                                               user_cfg->blk_win_height)=
 ;
-+int isp_csi2_ctrl_config_vp_clk_enable(bool vp_clk_enable);
-+int isp_csi2_ctrl_config_vp_only_enable(bool vp_only_enable);
-+int isp_csi2_ctrl_config_debug_enable(bool debug_enable);
-+int isp_csi2_ctrl_config_burst_size(u8 burst_size);
-+int isp_csi2_ctrl_config_ecc_enable(bool ecc_enable);
-+int isp_csi2_ctrl_config_secure_mode(bool secure_mode);
-+int isp_csi2_ctrl_config_if_enable(bool if_enable);
-+int isp_csi2_ctrl_config_vp_out_ctrl(u8 vp_out_ctrl);
-+int isp_csi2_ctrl_update(bool force_update);
-+int isp_csi2_ctrl_get(void);
-+int isp_csi2_ctx_config_virtual_id(u8 ctxnum, u8 virtual_id);
-+int isp_csi2_ctx_config_frame_count(u8 ctxnum, u8 frame_count);
-+int isp_csi2_ctx_config_format(u8 ctxnum, u32 pixformat);
-+int isp_csi2_ctx_config_alpha(u8 ctxnum, u16 alpha);
-+int isp_csi2_ctx_config_data_offset(u8 ctxnum, u16 data_offset);
-+int isp_csi2_ctx_config_ping_addr(u8 ctxnum, u32 ping_addr);
-+int isp_csi2_ctx_config_pong_addr(u8 ctxnum, u32 pong_addr);
-+int isp_csi2_ctx_config_eof_enabled(u8 ctxnum, bool eof_enabled);
-+int isp_csi2_ctx_config_eol_enabled(u8 ctxnum, bool eol_enabled);
-+int isp_csi2_ctx_config_checksum_enabled(u8 ctxnum, bool checksum_enable=
-d);
-+int isp_csi2_ctx_config_enabled(u8 ctxnum, bool enabled);
-+int isp_csi2_ctx_update(u8 ctxnum, bool force_update);
-+int isp_csi2_ctx_get(u8 ctxnum);
-+int isp_csi2_ctx_update_all(bool force_update);
-+int isp_csi2_ctx_get_all(void);
-+int isp_csi2_phy_config(struct isp_csi2_phy_cfg *desiredphyconfig);
-+int isp_csi2_calc_phy_cfg0(u32 mipiclk, u32 lbound_hs_settle,
-+                                                       u32 ubound_hs_set=
-tle);
-+int isp_csi2_phy_update(bool force_update);
-+int isp_csi2_phy_get(void);
-+int isp_csi2_timings_config_forcerxmode(u8 io, bool force_rx_mode);
-+int isp_csi2_timings_config_stopstate_16x(u8 io, bool stop_state_16x);
-+int isp_csi2_timings_config_stopstate_4x(u8 io, bool stop_state_4x);
-+int isp_csi2_timings_config_stopstate_cnt(u8 io, u16 stop_state_counter)=
++               return -EINVAL;
++       } else if (aewb_config_local.blk_win_height !=3D
++                                               user_cfg->blk_win_height)=
+ {
++               WRITE_BLK_WIN_H(aewb_regs.reg_blk, user_cfg->blk_win_heig=
+ht);
++               aewb_config_local.blk_win_height =3D user_cfg->blk_win_he=
+ight;
++               aewbstat.update =3D 1;
++       }
++
++       if (unlikely((user_cfg->subsample_ver_inc < MIN_SUB_INC) ||
++                               (user_cfg->subsample_ver_inc > MAX_SUB_IN=
+C) ||
++                               (user_cfg->subsample_ver_inc & 0x01))) {
++               printk(KERN_ERR "Invalid vertical subsample increment: %d=
+\n",
++                                               user_cfg->subsample_ver_i=
+nc);
++               return -EINVAL;
++       } else if (aewb_config_local.subsample_ver_inc !=3D
++                                               user_cfg->subsample_ver_i=
+nc) {
++               WRITE_SUB_VER_INC(aewb_regs.reg_subwin,
++                                               user_cfg->subsample_ver_i=
+nc);
++               aewb_config_local.subsample_ver_inc =3D
++                                               user_cfg->subsample_ver_i=
+nc;
++               aewbstat.update =3D 1;
++       }
++
++       if (unlikely((user_cfg->subsample_hor_inc < MIN_SUB_INC) ||
++                               (user_cfg->subsample_hor_inc > MAX_SUB_IN=
+C) ||
++                               (user_cfg->subsample_hor_inc & 0x01))) {
++               printk(KERN_ERR "Invalid horizontal subsample increment: =
+%d\n",
++                                               user_cfg->subsample_hor_i=
+nc);
++               return -EINVAL;
++       } else if (aewb_config_local.subsample_hor_inc !=3D
++                                               user_cfg->subsample_hor_i=
+nc) {
++               WRITE_SUB_HOR_INC(aewb_regs.reg_subwin,
++                                               user_cfg->subsample_hor_i=
+nc);
++               aewb_config_local.subsample_hor_inc =3D
++                                               user_cfg->subsample_hor_i=
+nc;
++               aewbstat.update =3D 1;
++       }
++
++       if ((!aewbstat.initialized) || (0 =3D=3D aewb_config_local.aewb_e=
+nable)) {
++               isph3a_aewb_update_regs();
++               aewbstat.initialized =3D 1;
++       }
++       return 0;
++}
++
++/**
++ * isph3a_aewb_configure - Configure AEWB regs, enable/disable H3A engin=
+e.
++ * @aewbcfg: Pointer to AEWB config structure.
++ *
++ * Returns 0 if successful, -EINVAL if aewbcfg pointer is NULL, -ENOMEM =
+if
++ * was unable to allocate memory for the buffer, of other errors if H3A
++ * callback is not set or the parameters for AEWB are invalid.
++ **/
++int isph3a_aewb_configure(struct isph3a_aewb_config *aewbcfg)
++{
++       int ret =3D 0;
++       int i;
++       int win_count =3D 0;
++
++       if (NULL =3D=3D aewbcfg) {
++               printk(KERN_ERR "Null argument in configuration. \n");
++               return -EINVAL;
++       }
++
++       if (!aewbstat.initialized) {
++               DPRINTK_ISPH3A("Setting callback for H3A\n");
++               ret =3D isp_set_callback(CBK_H3A_AWB_DONE, isph3a_aewb_is=
+r,
++                                               (void *)NULL, (void *)NUL=
+L);
++               if (ret) {
++                       printk(KERN_ERR "No callback for H3A\n");
++                       return ret;
++               }
++       }
++
++       ret =3D isph3a_aewb_set_params(aewbcfg);
++       if (ret) {
++               printk(KERN_ERR "Invalid parameters! \n");
++               return ret;
++       }
++
++       win_count =3D (aewbcfg->ver_win_count * aewbcfg->hor_win_count);
++       win_count +=3D aewbcfg->hor_win_count;
++       ret =3D (win_count / 8);
++       win_count +=3D (win_count % 8) ? 1 : 0;
++       win_count +=3D ret;
++
++       aewbstat.win_count =3D win_count;
++       aewbstat.curr_cfg_buf_size =3D win_count * AEWB_PACKET_SIZE;
++
++       if (aewbstat.stats_buf_size && ((win_count * AEWB_PACKET_SIZE) >
++                                               aewbstat.stats_buf_size))=
+ {
++               DPRINTK_ISPH3A("There was a previous buffer... "
++                       "Freeing/unmapping current stat busffs\n");
++               isph3a_aewb_enable(0);
++               for (i =3D 0; i < H3A_MAX_BUFF; i++) {
++                       ispmmu_unmap(aewbstat.h3a_buff[i].ispmmu_addr);
++                       dma_free_coherent(NULL,
++                               aewbstat.min_buf_size,
++                               (void *)aewbstat.h3a_buff[i].virt_addr,
++                               (dma_addr_t)aewbstat.h3a_buff[i].phy_addr=
+);
++                       aewbstat.h3a_buff[i].virt_addr =3D 0;
++               }
++               aewbstat.stats_buf_size =3D 0;
++       }
++
++       if (!aewbstat.h3a_buff[0].virt_addr) {
++               aewbstat.stats_buf_size =3D win_count * AEWB_PACKET_SIZE;
++               aewbstat.min_buf_size =3D PAGE_ALIGN(aewbstat.stats_buf_s=
+ize);
++
++               DPRINTK_ISPH3A("Allocating/mapping new stat buffs\n");
++               for (i =3D 0; i < H3A_MAX_BUFF; i++) {
++                       aewbstat.h3a_buff[i].virt_addr =3D
++                                       (unsigned long)dma_alloc_coherent=
+(NULL,
++                                               aewbstat.min_buf_size,
++                                               (dma_addr_t *)
++                                               &aewbstat.h3a_buff[i].
++                                               phy_addr, GFP_KERNEL |
++                                               GFP_DMA);
++                       if (aewbstat.h3a_buff[i].virt_addr =3D=3D 0) {
++                               printk(KERN_ERR "Can't acquire memory for=
+ "
++                                       "buffer[%d]\n", i);
++                               return -ENOMEM;
++                       }
++                       aewbstat.h3a_buff[i].addr_align =3D
++                                               aewbstat.h3a_buff[i].virt=
+_addr;
++                       while ((aewbstat.h3a_buff[i].addr_align &
++                                                       0xFFFFFFC0) !=3D
++                                                       aewbstat.h3a_buff=
+[i].
++                                                       addr_align)
++                               aewbstat.h3a_buff[i].addr_align++;
++                       aewbstat.h3a_buff[i].ispmmu_addr =3D ispmmu_map(a=
+ewbstat.
++                                                       h3a_buff[i].phy_a=
+ddr,
++                                                       aewbstat.min_buf_=
+size);
++               }
++               isph3a_aewb_unlock_buffers();
++               isph3a_aewb_link_buffers();
++
++               if (active_buff =3D=3D NULL)
++                       active_buff =3D &aewbstat.h3a_buff[0];
++               omap_writel(active_buff->ispmmu_addr, ISPH3A_AEWBUFST);
++       }
++       for (i =3D 0; i < H3A_MAX_BUFF; i++) {
++               DPRINTK_ISPH3A("buff[%d] addr is:\n    virt    0x%lX\n"
++                                       "    aligned 0x%lX\n"
++                                       "    phys    0x%lX\n"
++                                       "    ispmmu  0x%08lX\n"
++                                       "    mmapped 0x%lX\n", i,
++                                       aewbstat.h3a_buff[i].virt_addr,
++                                       aewbstat.h3a_buff[i].addr_align,
++                                       aewbstat.h3a_buff[i].phy_addr,
++                                       aewbstat.h3a_buff[i].ispmmu_addr,
++                                       aewbstat.h3a_buff[i].mmap_addr);
++       }
++       isph3a_aewb_enable(aewbcfg->aewb_enable);
++       isph3a_print_status();
++
++       return 0;
++}
++EXPORT_SYMBOL(isph3a_aewb_configure);
++
++/**
++ * isph3a_aewb_request_statistics - REquest statistics and update gains =
+in AEWB
++ * @aewbdata: Pointer to return AE AWB statistics data.
++ *
++ * This API allows the user to update White Balance gains, as well as
++ * exposure time and analog gain. It is also used to request frame
++ * statistics.
++ *
++ * Returns 0 if successful, -EINVAL when H3A engine is not enabled, or o=
+ther
++ * errors when setting gains.
++ **/
++int isph3a_aewb_request_statistics(struct isph3a_aewb_data *aewbdata)
++{
++       int ret =3D 0;
++       u16 frame_diff =3D 0;
++       u16 frame_cnt =3D aewbstat.frame_count;
++       wait_queue_t wqt;
++
++       if (!aewb_config_local.aewb_enable) {
++               printk(KERN_ERR "H3A engine not enabled\n");
++               return -EINVAL;
++       }
++
++       DPRINTK_ISPH3A("isph3a_aewb_request_statistics: Enter "
++               "(frame req. =3D> %d, current frame =3D> %d, update =3D> =
+%d)\n",
++               aewbdata->frame_number, frame_cnt, aewbdata->update);
++       DPRINTK_ISPH3A("User data received: \n");
++       DPRINTK_ISPH3A("Digital gain =3D 0x%04x\n", aewbdata->dgain);
++       DPRINTK_ISPH3A("WB gain b *=3D   0x%04x\n", aewbdata->wb_gain_b);
++       DPRINTK_ISPH3A("WB gain r *=3D   0x%04x\n", aewbdata->wb_gain_r);
++       DPRINTK_ISPH3A("WB gain gb =3D   0x%04x\n", aewbdata->wb_gain_gb)=
 ;
-+int isp_csi2_timings_update(u8 io, bool force_update);
-+int isp_csi2_timings_get(u8 io);
-+int isp_csi2_timings_update_all(bool force_update);
-+int isp_csi2_timings_get_all(void);
-+void isp_csi2_irq_complexio1_set(int enable);
-+void isp_csi2_irq_ctx_set(int enable);
-+void isp_csi2_irq_status_set(int enable);
-+void isp_csi2_irq_set(int enable);
-+void isp_csi2_irq_all_set(int enable);
++       DPRINTK_ISPH3A("WB gain gr =3D   0x%04x\n", aewbdata->wb_gain_gr)=
+;
++       DPRINTK_ISPH3A("ISP AEWB request status wait for interrupt\n");
 +
-+void isp_csi2_isr(void);
-+int isp_csi2_reset(void);
-+void isp_csi2_enable(int enable);
-+void isp_csi2_regdump(void);
++       if (aewbdata->update !=3D 0) {
++               if (aewbdata->update & SET_DIGITAL_GAIN)
++                       h3awb_update.dgain =3D (u16)aewbdata->dgain;
++               if (aewbdata->update & SET_COLOR_GAINS) {
++                       h3awb_update.coef3 =3D (u8)aewbdata->wb_gain_b;
++                       h3awb_update.coef2 =3D (u8)aewbdata->wb_gain_gr;
++                       h3awb_update.coef1 =3D (u8)aewbdata->wb_gain_gb;
++                       h3awb_update.coef0 =3D (u8)aewbdata->wb_gain_r;
++               }
++               if (aewbdata->update & (SET_COLOR_GAINS | SET_DIGITAL_GAI=
+N))
++                       wb_update =3D 1;
 +
-+#endif /* OMAP_ISP_CSI2_H */
++               if (aewbdata->update & REQUEST_STATISTICS) {
++                       isph3a_aewb_unlock_buffers();
 +
++                       DPRINTK_ISPH3A("Stats available?\n");
++                       ret =3D isph3a_aewb_stats_available(aewbdata);
++                       if (!ret)
++                               goto out;
++
++                       DPRINTK_ISPH3A("Stats in near future?\n");
++                       if (aewbdata->frame_number > frame_cnt)
++                               frame_diff =3D aewbdata->frame_number - f=
+rame_cnt;
++                       else if (aewbdata->frame_number < frame_cnt) {
++                               if ((frame_cnt > (MAX_FRAME_COUNT -
++                                                       MAX_FUTURE_FRAMES=
+))
++                                                       && (aewbdata->
++                                                       frame_number
++                                                       < MAX_FRAME_COUNT=
+)) {
++                                       frame_diff =3D aewbdata->frame_nu=
+mber
++                                                       + MAX_FRAME_COUNT
++                                                       - frame_cnt;
++                               } else
++                                       frame_diff =3D MAX_FUTURE_FRAMES =
++ 1;
++                       }
++
++                       if (frame_diff > MAX_FUTURE_FRAMES) {
++                               printk(KERN_ERR "Invalid frame requested"
++                                       ", returning current frame stats\=
+n");
++                               aewbdata->frame_number =3D frame_cnt;
++                       }
++                       if (!camnotify) {
++                               DPRINTK_ISPH3A("Waiting on stats IRQ "
++                                                       "for frame %d\n",
++                                                       aewbdata->frame_n=
+umber);
++                               aewbstat.frame_req =3D aewbdata->frame_nu=
+mber;
++                               aewbstat.stats_req =3D 1;
++                               aewbstat.stats_done =3D 0;
++                               init_waitqueue_entry(&wqt, current);
++                               ret =3D wait_event_interruptible
++                                               (aewbstat.stats_wait,
++                                               aewbstat.stats_done =3D=3D=
+ 1);
++                               if (ret < 0) {
++                                       printk(KERN_ERR
++                                               "isph3a_aewb_request_stat=
+istics"
++                                               " Error on wait event %d\=
+n",
++                                               ret);
++                                       aewbdata->h3a_aewb_statistics_buf=
+ =3D
++                                                                       N=
+ULL;
++                                       return ret;
++                               }
++
++                               DPRINTK_ISPH3A("ISP AEWB request status"
++                                               " interrupt raised\n");
++                               ret =3D isph3a_aewb_stats_available(aewbd=
+ata);
++                               if (ret) {
++                                       DPRINTK_ISPH3A
++                                               ("After waiting for stats=
+,"
++                                               " stats not available!!\n=
+");
++                                       aewbdata->h3a_aewb_statistics_buf=
+ =3D
++                                                                       N=
+ULL;
++                               }
++                       } else {
++                               DPRINTK_ISPH3A("NOT Waiting on stats IRQ =
+"
++                                       "for frame %d "
++                                       "because camnotify set\n",
++                                       aewbdata->frame_number);
++                               aewbdata->h3a_aewb_statistics_buf =3D NUL=
+L;
++                       }
++               } else {
++                       aewbdata->h3a_aewb_statistics_buf =3D NULL;
++               }
++       } else {
++               aewbdata->h3a_aewb_statistics_buf =3D NULL;
++       }
++out:
++       DPRINTK_ISPH3A("isph3a_aewb_request_statistics: "
++                               "aewbdata->h3a_aewb_statistics_buf =3D> %=
+p\n",
++                               aewbdata->h3a_aewb_statistics_buf);
++       aewbdata->curr_frame =3D aewbstat.frame_count;
++
++       return 0;
++}
++EXPORT_SYMBOL(isph3a_aewb_request_statistics);
++
++/**
++ * isph3a_aewb_init - Module Initialisation.
++ *
++ * Always returns 0.
++ **/
++int __init isph3a_aewb_init(void)
++{
++       memset(&aewbstat, 0, sizeof(aewbstat));
++       memset(&aewb_regs, 0, sizeof(aewb_regs));
++
++       init_waitqueue_head(&aewbstat.stats_wait);
++       spin_lock_init(&aewbstat.buffer_lock);
++       return 0;
++}
++
++/**
++ * isph3a_aewb_cleanup - Module exit.
++ **/
++void __exit isph3a_aewb_cleanup(void)
++{
++       int i;
++       isph3a_aewb_enable(0);
++       isp_unset_callback(CBK_H3A_AWB_DONE);
++
++       if (aewbstat.h3a_buff) {
++               for (i =3D 0; i < H3A_MAX_BUFF; i++) {
++                       ispmmu_unmap(aewbstat.h3a_buff[i].ispmmu_addr);
++                       dma_free_coherent(NULL,
++                               aewbstat.min_buf_size,
++                               (void *)aewbstat.h3a_buff[i].virt_addr,
++                               (dma_addr_t)aewbstat.h3a_buff[i].phy_addr=
+);
++               }
++       }
++       memset(&aewbstat, 0, sizeof(aewbstat));
++       memset(&aewb_regs, 0, sizeof(aewb_regs));
++}
++
++/**
++ * isph3a_print_status - Debug print. Values of H3A related registers.
++ **/
++static void isph3a_print_status(void)
++{
++       DPRINTK_ISPH3A("ISPH3A_PCR =3D 0x%08x\n", omap_readl(ISPH3A_PCR))=
+;
++       DPRINTK_ISPH3A("ISPH3A_AEWWIN1 =3D 0x%08x\n",
++                                               omap_readl(ISPH3A_AEWWIN1=
+));
++       DPRINTK_ISPH3A("ISPH3A_AEWINSTART =3D 0x%08x\n",
++                                               omap_readl(ISPH3A_AEWINST=
+ART));
++       DPRINTK_ISPH3A("ISPH3A_AEWINBLK =3D 0x%08x\n",
++                                               omap_readl(ISPH3A_AEWINBL=
+K));
++       DPRINTK_ISPH3A("ISPH3A_AEWSUBWIN =3D 0x%08x\n",
++                                               omap_readl(ISPH3A_AEWSUBW=
+IN));
++       DPRINTK_ISPH3A("ISPH3A_AEWBUFST =3D 0x%08x\n",
++                                               omap_readl(ISPH3A_AEWBUFS=
+T));
++       DPRINTK_ISPH3A("stats windows =3D %d\n", aewbstat.win_count);
++       DPRINTK_ISPH3A("stats buff size =3D %d\n", aewbstat.stats_buf_siz=
+e);
++       DPRINTK_ISPH3A("currently configured stats buff size =3D %d\n",
++                                               aewbstat.curr_cfg_buf_siz=
+e);
++}
++
++/**
++ * isph3a_notify - Unblocks user request for statistics when camera is o=
+ff
++ * @notify: 1 - Camera is turned off
++ *
++ * Used when the user has requested statistics about a future frame, but=
+ the
++ * camera is turned off before it happens, and this function unblocks th=
+e
++ * request so the user can continue in its program.
++ **/
++void isph3a_notify(int notify)
++{
++       camnotify =3D notify;
++       if (camnotify && aewbstat.initialized) {
++               printk(KERN_DEBUG "Warning Camera Off \n");
++               aewbstat.stats_req =3D 0;
++               aewbstat.stats_done =3D 1;
++               wake_up_interruptible(&aewbstat.stats_wait);
++       }
++}
++EXPORT_SYMBOL(isph3a_notify);
++
++/**
++ * isph3a_save_context - Saves the values of the h3a module registers.
++ **/
++void isph3a_save_context(void)
++{
++       DPRINTK_ISPH3A(" Saving context\n");
++       isp_save_context(isph3a_reg_list);
++}
++EXPORT_SYMBOL(isph3a_save_context);
++
++/**
++ * isph3a_restore_context - Restores the values of the h3a module regist=
+ers.
++ **/
++void isph3a_restore_context(void)
++{
++       DPRINTK_ISPH3A(" Restoring context\n");
++       isp_restore_context(isph3a_reg_list);
++}
++EXPORT_SYMBOL(isph3a_restore_context);
+diff --git a/drivers/media/video/isp/isph3a.h b/drivers/media/video/isp/i=
+sph3a.h
+new file mode 100644
+index 0000000..977a7b1
+--- /dev/null
++++ b/drivers/media/video/isp/isph3a.h
+@@ -0,0 +1,119 @@
++/*
++ * drivers/media/video/isp/isph3a.h
++ *
++ * Include file for H3A module in TI's OMAP3 Camera ISP
++ *
++ * Copyright (C) 2008 Texas Instruments, Inc.
++ *
++ * Contributors:
++ *     Sergio Aguirre <saaguirre@ti.com>
++ *     Troy Laramy
++ *
++ * This package is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ *
++ * THIS PACKAGE IS PROVIDED ``AS IS'' AND WITHOUT ANY EXPRESS OR
++ * IMPLIED WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED
++ * WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
++ */
++
++#ifndef OMAP_ISP_H3A_H
++#define OMAP_ISP_H3A_H
++
++#include <mach/isp_user.h>
++
++#define AEWB_PACKET_SIZE       16
++#define H3A_MAX_BUFF           5
++
++/* Flags for changed registers */
++#define PCR_CHNG               (1 << 0)
++#define AEWWIN1_CHNG           (1 << 1)
++#define AEWINSTART_CHNG                (1 << 2)
++#define AEWINBLK_CHNG          (1 << 3)
++#define AEWSUBWIN_CHNG         (1 << 4)
++#define PRV_WBDGAIN_CHNG       (1 << 5)
++#define PRV_WBGAIN_CHNG                (1 << 6)
++
++/* ISPH3A REGISTERS bits */
++#define ISPH3A_PCR_AF_EN       (1 << 0)
++#define ISPH3A_PCR_AF_ALAW_EN  (1 << 1)
++#define ISPH3A_PCR_AF_MED_EN   (1 << 2)
++#define ISPH3A_PCR_AF_BUSY     (1 << 15)
++#define ISPH3A_PCR_AEW_EN      (1 << 16)
++#define ISPH3A_PCR_AEW_ALAW_EN (1 << 17)
++#define ISPH3A_PCR_AEW_BUSY    (1 << 18)
++
++#define WRITE_SAT_LIM(reg, sat_limit)  \
++               (reg =3D (reg & (~(ISPH3A_PCR_AEW_AVE2LMT_MASK))) \
++                       | (sat_limit << ISPH3A_PCR_AEW_AVE2LMT_SHIFT))
++
++#define WRITE_ALAW(reg, alaw_en) \
++               (reg =3D (reg & (~(ISPH3A_PCR_AEW_ALAW_EN))) \
++                       | ((alaw_en & ISPH3A_PCR_AF_ALAW_EN) \
++                       << ISPH3A_PCR_AEW_ALAW_EN_SHIFT))
++
++#define WRITE_WIN_H(reg, height) \
++               (reg =3D (reg & (~(ISPH3A_AEWWIN1_WINH_MASK))) \
++                       | (((height >> 1) - 1) << ISPH3A_AEWWIN1_WINH_SHI=
+FT))
++
++#define WRITE_WIN_W(reg, width) \
++               (reg =3D (reg & (~(ISPH3A_AEWWIN1_WINW_MASK))) \
++                       | (((width >> 1) - 1) << ISPH3A_AEWWIN1_WINW_SHIF=
+T))
++
++#define WRITE_VER_C(reg, ver_count) \
++               (reg =3D (reg & ~(ISPH3A_AEWWIN1_WINVC_MASK)) \
++                       | ((ver_count - 1) << ISPH3A_AEWWIN1_WINVC_SHIFT)=
+)
++
++#define WRITE_HOR_C(reg, hor_count) \
++               (reg =3D (reg & ~(ISPH3A_AEWWIN1_WINHC_MASK)) \
++                       | ((hor_count - 1) << ISPH3A_AEWWIN1_WINHC_SHIFT)=
+)
++
++#define WRITE_VER_WIN_ST(reg, ver_win_st) \
++               (reg =3D (reg & ~(ISPH3A_AEWINSTART_WINSV_MASK)) \
++                       | (ver_win_st << ISPH3A_AEWINSTART_WINSV_SHIFT))
++
++#define WRITE_HOR_WIN_ST(reg, hor_win_st) \
++               (reg =3D (reg & ~(ISPH3A_AEWINSTART_WINSH_MASK)) \
++                       | (hor_win_st << ISPH3A_AEWINSTART_WINSH_SHIFT))
++
++#define WRITE_BLK_VER_WIN_ST(reg, blk_win_st) \
++               (reg =3D (reg & ~(ISPH3A_AEWINBLK_WINSV_MASK)) \
++                       | (blk_win_st << ISPH3A_AEWINBLK_WINSV_SHIFT))
++
++#define WRITE_BLK_WIN_H(reg, height) \
++               (reg =3D (reg & ~(ISPH3A_AEWINBLK_WINH_MASK)) \
++                       | (((height >> 1) - 1) << ISPH3A_AEWINBLK_WINH_SH=
+IFT))
++
++#define WRITE_SUB_VER_INC(reg, sub_ver_inc) \
++               (reg =3D (reg & ~(ISPH3A_AEWSUBWIN_AEWINCV_MASK)) \
++               | (((sub_ver_inc >> 1) - 1) << ISPH3A_AEWSUBWIN_AEWINCV_S=
+HIFT))
++
++#define WRITE_SUB_HOR_INC(reg, sub_hor_inc) \
++               (reg =3D (reg & ~(ISPH3A_AEWSUBWIN_AEWINCH_MASK)) \
++               | (((sub_hor_inc >> 1) - 1) << ISPH3A_AEWSUBWIN_AEWINCH_S=
+HIFT))
++
++/**
++ * struct isph3a_aewb_xtrastats - Structure with extra statistics sent b=
+y cam.
++ * @field_count: Sequence number of returned framestats.
++ * @isph3a_aewb_xtrastats: Pointer to next buffer with extra stats.
++ */
++struct isph3a_aewb_xtrastats {
++       unsigned long field_count;
++       struct isph3a_aewb_xtrastats *next;
++};
++
++void isph3a_aewb_setxtrastats(struct isph3a_aewb_xtrastats *xtrastats);
++
++int isph3a_aewb_configure(struct isph3a_aewb_config *aewbcfg);
++
++int isph3a_aewb_request_statistics(struct isph3a_aewb_data *aewbdata);
++
++void isph3a_save_context(void);
++
++void isph3a_restore_context(void);
++
++void isph3a_update_wb(void);
++
++void isph3a_notify(int notify);
++#endif         /* OMAP_ISP_H3A_H */
+diff --git a/drivers/media/video/isp/isphist.c b/drivers/media/video/isp/=
+isphist.c
+new file mode 100644
+index 0000000..071bd02
+--- /dev/null
++++ b/drivers/media/video/isp/isphist.c
+@@ -0,0 +1,577 @@
++/*
++ * drivers/media/video/isp/isphist.c
++ *
++ * HISTOGRAM module for TI's OMAP3 Camera ISP
++ *
++ * Copyright (C) 2008 Texas Instruments.
++ *
++ * Contributors:
++ *     Sergio Aguirre <saaguirre@ti.com>
++ *     Troy Laramy
++ *
++ * This package is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ *
++ * THIS PACKAGE IS PROVIDED ``AS IS'' AND WITHOUT ANY EXPRESS OR
++ * IMPLIED WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED
++ * WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
++ */
++
++#include <asm/cacheflush.h>
++
++#include <linux/mm.h>
++#include <linux/mman.h>
++#include <linux/syscalls.h>
++#include <linux/module.h>
++#include <linux/errno.h>
++#include <linux/delay.h>
++#include <linux/types.h>
++#include <linux/dma-mapping.h>
++#include <linux/io.h>
++#include <linux/uaccess.h>
++
++#include "isp.h"
++#include "ispreg.h"
++#include "isphist.h"
++#include "ispmmu.h"
++#include "isppreview.h"
++
++/**
++ * struct isp_hist_status - Histogram status.
++ * @hist_enable: Enables the histogram module.
++ * @initialized: Flag to indicate that the module is correctly initializ=
+ated.
++ * @frame_cnt: Actual frame count.
++ * @frame_req: Frame requested by user.
++ * @completed: Flag to indicate if a frame request is completed.
++ */
++struct isp_hist_status {
++       u8 hist_enable;
++       u8 initialized;
++       u8 frame_cnt;
++       u8 frame_req;
++       u8 completed;
++} histstat;
++
++/**
++ * struct isp_hist_buffer - Frame histogram buffer.
++ * @virt_addr: Virtual address to mmap the buffer.
++ * @phy_addr: Physical address of the buffer.
++ * @addr_align: Virtual Address 32 bytes aligned.
++ * @ispmmu_addr: Address of the buffer mapped by the ISPMMU.
++ * @mmap_addr: Mapped memory area of buffer. For userspace access.
++ */
++struct isp_hist_buffer {
++       unsigned long virt_addr;
++       unsigned long phy_addr;
++       unsigned long addr_align;
++       unsigned long ispmmu_addr;
++       unsigned long mmap_addr;
++} hist_buff;
++
++/**
++ * struct isp_hist_regs - Current value of Histogram configuration regis=
+ters.
++ * @reg_pcr: Peripheral control register.
++ * @reg_cnt: Histogram control register.
++ * @reg_wb_gain: Histogram white balance gain register.
++ * @reg_r0_h: Region 0 horizontal register.
++ * @reg_r0_v: Region 0 vertical register.
++ * @reg_r1_h: Region 1 horizontal register.
++ * @reg_r1_v: Region 1 vertical register.
++ * @reg_r2_h: Region 2 horizontal register.
++ * @reg_r2_v: Region 2 vertical register.
++ * @reg_r3_h: Region 3 horizontal register.
++ * @reg_r3_v: Region 3 vertical register.
++ * @reg_hist_addr: Histogram address register.
++ * @reg_hist_data: Histogram data.
++ * @reg_hist_radd: Address register. When input data comes from mem.
++ * @reg_hist_radd_off: Address offset register. When input data comes fr=
+om mem.
++ * @reg_h_v_info: Image size register. When input data comes from mem.
++ */
++static struct isp_hist_regs {
++       u32 reg_pcr;
++       u32 reg_cnt;
++       u32 reg_wb_gain;
++       u32 reg_r0_h;
++       u32 reg_r0_v;
++       u32 reg_r1_h;
++       u32 reg_r1_v;
++       u32 reg_r2_h;
++       u32 reg_r2_v;
++       u32 reg_r3_h;
++       u32 reg_r3_v;
++       u32 reg_hist_addr;
++       u32 reg_hist_data;
++       u32 reg_hist_radd;
++       u32 reg_hist_radd_off;
++       u32 reg_h_v_info;
++} hist_regs;
++
++/* Structure for saving/restoring histogram module registers */
++struct isp_reg isphist_reg_list[] =3D {
++       {ISPHIST_CNT, 0},
++       {ISPHIST_WB_GAIN, 0},
++       {ISPHIST_R0_HORZ, 0},
++       {ISPHIST_R0_VERT, 0},
++       {ISPHIST_R1_HORZ, 0},
++       {ISPHIST_R1_VERT, 0},
++       {ISPHIST_R2_HORZ, 0},
++       {ISPHIST_R2_VERT, 0},
++       {ISPHIST_R3_HORZ, 0},
++       {ISPHIST_R3_VERT, 0},
++       {ISPHIST_ADDR, 0},
++       {ISPHIST_RADD, 0},
++       {ISPHIST_RADD_OFF, 0},
++       {ISPHIST_H_V_INFO, 0},
++       {ISP_TOK_TERM, 0}
++};
++
++static void isp_hist_print_status(void);
++
++/**
++ * isp_hist_enable - Enables ISP Histogram submodule operation.
++ * @enable: 1 - Enables the histogram submodule.
++ *
++ * Client should configure all the Histogram registers before calling th=
+is
++ * function.
++ **/
++static void isp_hist_enable(u8 enable)
++{
++       if (enable) {
++               omap_writel(omap_readl(ISPHIST_PCR) | (ISPHIST_PCR_EN),
++                                                               ISPHIST_P=
+CR);
++               DPRINTK_ISPHIST("   histogram enabled \n");
++       } else {
++               omap_writel(omap_readl(ISPHIST_PCR) & ~ISPHIST_PCR_EN,
++                                                               ISPHIST_P=
+CR);
++               DPRINTK_ISPHIST("   histogram disabled \n");
++       }
++
++       histstat.hist_enable =3D enable;
++}
++
++/**
++ * isp_hist_update_regs - Helper function to update Histogram registers.
++ **/
++static void isp_hist_update_regs(void)
++{
++       omap_writel(hist_regs.reg_pcr, ISPHIST_PCR);
++       omap_writel(hist_regs.reg_cnt, ISPHIST_CNT);
++       omap_writel(hist_regs.reg_wb_gain, ISPHIST_WB_GAIN);
++       omap_writel(hist_regs.reg_r0_h, ISPHIST_R0_HORZ);
++       omap_writel(hist_regs.reg_r0_v, ISPHIST_R0_VERT);
++       omap_writel(hist_regs.reg_r1_h, ISPHIST_R1_HORZ);
++       omap_writel(hist_regs.reg_r1_v, ISPHIST_R1_VERT);
++       omap_writel(hist_regs.reg_r2_h, ISPHIST_R2_HORZ);
++       omap_writel(hist_regs.reg_r2_v, ISPHIST_R2_VERT);
++       omap_writel(hist_regs.reg_r3_h, ISPHIST_R3_HORZ);
++       omap_writel(hist_regs.reg_r3_v, ISPHIST_R3_VERT);
++       omap_writel(hist_regs.reg_hist_addr, ISPHIST_ADDR);
++       omap_writel(hist_regs.reg_hist_data, ISPHIST_DATA);
++       omap_writel(hist_regs.reg_hist_radd, ISPHIST_RADD);
++       omap_writel(hist_regs.reg_hist_radd_off, ISPHIST_RADD_OFF);
++       omap_writel(hist_regs.reg_h_v_info, ISPHIST_H_V_INFO);
++}
++
++/**
++ * isp_hist_isr - Callback from ISP driver for HIST interrupt.
++ * @status: IRQ0STATUS in case of MMU error, 0 for hist interrupt.
++ *          arg1 and arg2 Not used as of now.
++ **/
++static void isp_hist_isr(unsigned long status, isp_vbq_callback_ptr arg1=
+,
++                                                               void *arg=
+2)
++{
++       isp_hist_enable(0);
++
++       if ((HIST_DONE & status) !=3D HIST_DONE)
++               return;
++
++       if (!histstat.completed) {
++               if (histstat.frame_req =3D=3D histstat.frame_cnt) {
++                       histstat.frame_cnt =3D 0;
++                       histstat.frame_req =3D 0;
++                       histstat.completed =3D 1;
++               } else {
++                       isp_hist_enable(1);
++                       histstat.frame_cnt++;
++               }
++       }
++}
++
++/**
++ * isp_hist_reset_mem - clear Histogram memory before start stats engine=
+.
++ *
++ * Returns 0 after histogram memory was cleared.
++ **/
++static int isp_hist_reset_mem(void)
++{
++       int i;
++
++       omap_writel((omap_readl(ISPHIST_CNT)) | ISPHIST_CNT_CLR_EN,
++                                                               ISPHIST_C=
+NT);
++
++       for (i =3D 0; i < HIST_MEM_SIZE; i++)
++               omap_readl(ISPHIST_DATA);
++
++       omap_writel((omap_readl(ISPHIST_CNT)) & ~ISPHIST_CNT_CLR_EN,
++                                                               ISPHIST_C=
+NT);
++
++       return 0;
++}
++
++/**
++ * isp_hist_set_params - Helper function to check and store user given p=
+arams.
++ * @user_cfg: Pointer to user configuration structure.
++ *
++ * Returns 0 on success configuration.
++ **/
++static int isp_hist_set_params(struct isp_hist_config *user_cfg)
++{
++
++       int reg_num =3D 0;
++       int bit_shift =3D 0;
++
++
++       if (omap_readl(ISPHIST_PCR) & ISPHIST_PCR_BUSY_MASK)
++               return -EINVAL;
++
++       if (user_cfg->input_bit_width > MIN_BIT_WIDTH)
++               WRITE_DATA_SIZE(hist_regs.reg_cnt, 0);
++       else
++               WRITE_DATA_SIZE(hist_regs.reg_cnt, 1);
++
++       WRITE_SOURCE(hist_regs.reg_cnt, user_cfg->hist_source);
++
++       if (user_cfg->hist_source) {
++               WRITE_HV_INFO(hist_regs.reg_h_v_info, user_cfg->hist_h_v_=
+info);
++
++               if ((user_cfg->hist_radd & ISP_32B_BOUNDARY_BUF) =3D=3D
++                                                       user_cfg->hist_ra=
+dd) {
++                       WRITE_RADD(hist_regs.reg_hist_radd,
++                                                       user_cfg->hist_ra=
+dd);
++               } else {
++                       printk(KERN_ERR "Address should be in 32 byte bou=
+ndary"
++                                                                       "=
+\n");
++                       return -EINVAL;
++               }
++
++               if ((user_cfg->hist_radd_off & ISP_32B_BOUNDARY_OFFSET) =3D=
+=3D
++                                               user_cfg->hist_radd_off) =
+{
++                       WRITE_RADD_OFF(hist_regs.reg_hist_radd_off,
++                                               user_cfg->hist_radd_off);
++               } else {
++                       printk(KERN_ERR "Offset should be in 32 byte boun=
+dary"
++                                                                       "=
+\n");
++                       return -EINVAL;
++               }
++
++       }
++
++       isp_hist_reset_mem();
++       DPRINTK_ISPHIST("ISPHIST: Memory Cleared\n");
++       histstat.frame_req =3D user_cfg->hist_frames;
++
++       if (unlikely((user_cfg->wb_gain_R > MAX_WB_GAIN) ||
++                               (user_cfg->wb_gain_RG > MAX_WB_GAIN) ||
++                               (user_cfg->wb_gain_B > MAX_WB_GAIN) ||
++                               (user_cfg->wb_gain_BG > MAX_WB_GAIN))) {
++               printk(KERN_ERR "Invalid WB gain\n");
++               return -EINVAL;
++       } else {
++               WRITE_WB_R(hist_regs.reg_wb_gain, user_cfg->wb_gain_R);
++               WRITE_WB_RG(hist_regs.reg_wb_gain, user_cfg->wb_gain_RG);
++               WRITE_WB_B(hist_regs.reg_wb_gain, user_cfg->wb_gain_B);
++               WRITE_WB_BG(hist_regs.reg_wb_gain, user_cfg->wb_gain_BG);
++       }
++
++       /* Regions size and position */
++
++       if (user_cfg->num_regions > MAX_REGIONS)
++               return -EINVAL;
++
++       if (likely((user_cfg->reg0_hor & ISPHIST_REGHORIZ_HEND_MASK) -
++                                       ((user_cfg->reg0_hor &
++                                       ISPHIST_REGHORIZ_HSTART_MASK) >>
++                                       ISPHIST_REGHORIZ_HSTART_SHIFT))) =
+{
++               WRITE_REG_HORIZ(hist_regs.reg_r0_h, user_cfg->reg0_hor);
++               reg_num++;
++       } else {
++               printk(KERN_ERR "Invalid Region parameters\n");
++               return -EINVAL;
++       }
++
++       if (likely((user_cfg->reg0_ver & ISPHIST_REGVERT_VEND_MASK) -
++                       ((user_cfg->reg0_ver & ISPHIST_REGVERT_VSTART_MAS=
+K) >>
++                       ISPHIST_REGVERT_VSTART_SHIFT))) {
++               WRITE_REG_VERT(hist_regs.reg_r0_v, user_cfg->reg0_ver);
++       } else {
++               printk(KERN_ERR "Invalid Region parameters\n");
++               return -EINVAL;
++       }
++
++       if (user_cfg->num_regions >=3D 1) {
++               if (likely((user_cfg->reg1_hor & ISPHIST_REGHORIZ_HEND_MA=
+SK) -
++                                       ((user_cfg->reg1_hor &
++                                       ISPHIST_REGHORIZ_HSTART_MASK) >>
++                                       ISPHIST_REGHORIZ_HSTART_SHIFT))) =
+{
++                       WRITE_REG_HORIZ(hist_regs.reg_r1_h, user_cfg->reg=
+1_hor);
++               } else {
++                       printk(KERN_ERR "Invalid Region parameters\n");
++                       return -EINVAL;
++               }
++
++               if (likely((user_cfg->reg1_ver & ISPHIST_REGVERT_VEND_MAS=
+K) -
++                                       ((user_cfg->reg1_ver &
++                                       ISPHIST_REGVERT_VSTART_MASK) >>
++                                       ISPHIST_REGVERT_VSTART_SHIFT))) {
++                       WRITE_REG_VERT(hist_regs.reg_r1_v, user_cfg->reg1=
+_ver);
++               } else {
++                       printk(KERN_ERR "Invalid Region parameters\n");
++                       return -EINVAL;
++               }
++       }
++
++       if (user_cfg->num_regions >=3D 2) {
++               if (likely((user_cfg->reg2_hor & ISPHIST_REGHORIZ_HEND_MA=
+SK) -
++                                       ((user_cfg->reg2_hor &
++                                       ISPHIST_REGHORIZ_HSTART_MASK) >>
++                                       ISPHIST_REGHORIZ_HSTART_SHIFT))) =
+{
++                       WRITE_REG_HORIZ(hist_regs.reg_r2_h, user_cfg->reg=
+2_hor);
++               } else {
++                       printk(KERN_ERR "Invalid Region parameters\n");
++                       return -EINVAL;
++               }
++
++               if (likely((user_cfg->reg2_ver & ISPHIST_REGVERT_VEND_MAS=
+K) -
++                                       ((user_cfg->reg2_ver &
++                                       ISPHIST_REGVERT_VSTART_MASK) >>
++                                       ISPHIST_REGVERT_VSTART_SHIFT))) {
++                       WRITE_REG_VERT(hist_regs.reg_r2_v, user_cfg->reg2=
+_ver);
++               } else {
++                       printk(KERN_ERR "Invalid Region parameters\n");
++                       return -EINVAL;
++               }
++       }
++
++       if (user_cfg->num_regions >=3D 3) {
++               if (likely((user_cfg->reg3_hor & ISPHIST_REGHORIZ_HEND_MA=
+SK) -
++                                       ((user_cfg->reg3_hor &
++                                       ISPHIST_REGHORIZ_HSTART_MASK) >>
++                                       ISPHIST_REGHORIZ_HSTART_SHIFT))) =
+{
++                       WRITE_REG_HORIZ(hist_regs.reg_r3_h, user_cfg->reg=
+3_hor);
++               } else {
++                       printk(KERN_ERR "Invalid Region parameters\n");
++                       return -EINVAL;
++               }
++
++               if (likely((user_cfg->reg3_ver & ISPHIST_REGVERT_VEND_MAS=
+K) -
++                                       ((user_cfg->reg3_ver &
++                                       ISPHIST_REGVERT_VSTART_MASK) >>
++                                       ISPHIST_REGVERT_VSTART_SHIFT))) {
++                       WRITE_REG_VERT(hist_regs.reg_r3_v, user_cfg->reg3=
+_ver);
++               } else {
++                       printk(KERN_ERR "Invalid Region parameters\n");
++                       return -EINVAL;
++               }
++       }
++       reg_num =3D user_cfg->num_regions;
++       if (unlikely(((user_cfg->hist_bins > BINS_256) &&
++                               (user_cfg->hist_bins !=3D BINS_32)) ||
++                               ((user_cfg->hist_bins =3D=3D BINS_256) &&
++                               reg_num !=3D 0) || ((user_cfg->hist_bins =
+=3D=3D
++                               BINS_128) && reg_num >=3D 2))) {
++               printk(KERN_ERR "Invalid Bins Number: %d\n",
++                                                       user_cfg->hist_bi=
+ns);
++               return -EINVAL;
++       } else {
++               WRITE_NUM_BINS(hist_regs.reg_cnt, user_cfg->hist_bins);
++       }
++
++       if ((user_cfg->input_bit_width > MAX_BIT_WIDTH) ||
++                               (user_cfg->input_bit_width < MIN_BIT_WIDT=
+H)) {
++               printk(KERN_ERR "Invalid Bit Width: %d\n",
++                                               user_cfg->input_bit_width=
+);
++               return -EINVAL;
++       } else {
++               switch (user_cfg->hist_bins) {
++               case BINS_256:
++                       bit_shift =3D user_cfg->input_bit_width - 8;
++                       break;
++               case BINS_128:
++                       bit_shift =3D user_cfg->input_bit_width - 7;
++                       break;
++               case BINS_64:
++                       bit_shift =3D user_cfg->input_bit_width - 6;
++                       break;
++               case BINS_32:
++                       bit_shift =3D user_cfg->input_bit_width - 5;
++                       break;
++               default:
++                       return -EINVAL;
++               }
++               WRITE_BIT_SHIFT(hist_regs.reg_cnt, bit_shift);
++       }
++
++       isp_hist_update_regs();
++       histstat.initialized =3D 1;
++
++       return 0;
++}
++
++/**
++ * isp_hist_configure - API to configure HIST registers.
++ * @histcfg: Pointer to user configuration structure.
++ *
++ * Returns 0 on success configuration.
++ **/
++int isp_hist_configure(struct isp_hist_config *histcfg)
++{
++
++       int ret =3D 0;
++
++       if (NULL =3D=3D histcfg) {
++               printk(KERN_ERR "Null argument in configuration. \n");
++               return -EINVAL;
++       }
++
++       if (!histstat.initialized) {
++               DPRINTK_ISPHIST("Setting callback for HISTOGRAM\n");
++               ret =3D isp_set_callback(CBK_HIST_DONE, isp_hist_isr,
++                                               (void *)NULL, (void *)NUL=
+L);
++               if (ret) {
++                       printk(KERN_ERR "No callback for HIST\n");
++                       return ret;
++               }
++       }
++
++       ret =3D isp_hist_set_params(histcfg);
++       if (ret) {
++               printk(KERN_ERR "Invalid parameters! \n");
++               return ret;
++       }
++
++       histstat.frame_cnt =3D 0;
++       histstat.completed =3D 0;
++       isp_hist_enable(1);
++       isp_hist_print_status();
++
++       return 0;
++}
++EXPORT_SYMBOL(isp_hist_configure);
++
++/**
++ * isp_hist_request_statistics - Request statistics in Histogram.
++ * @histdata: Pointer to data structure.
++ *
++ * This API allows the user to request for histogram statistics.
++ *
++ * Returns 0 on successful request.
++ **/
++int isp_hist_request_statistics(struct isp_hist_data *histdata)
++{
++       int i, ret;
++       u32 curr;
++
++       if (omap_readl(ISPHIST_PCR) & ISPHIST_PCR_BUSY_MASK)
++               return -EBUSY;
++
++       if (!histstat.completed && histstat.initialized)
++               return -EINVAL;
++
++       omap_writel((omap_readl(ISPHIST_CNT)) | ISPHIST_CNT_CLR_EN,
++                                                               ISPHIST_C=
+NT);
++
++       for (i =3D 0; i < HIST_MEM_SIZE; i++) {
++               curr =3D omap_readl(ISPHIST_DATA);
++               ret =3D put_user(curr, (histdata->hist_statistics_buf + i=
+));
++               if (ret) {
++                       printk(KERN_ERR "Failed copy_to_user for "
++                                               "HIST stats buff, %d\n", =
+ret);
++               }
++       }
++
++       omap_writel((omap_readl(ISPHIST_CNT)) & ~ISPHIST_CNT_CLR_EN,
++                                                               ISPHIST_C=
+NT);
++       histstat.completed =3D 0;
++       return 0;
++}
++EXPORT_SYMBOL(isp_hist_request_statistics);
++
++/**
++ * isp_hist_init - Module Initialization.
++ *
++ * Returns 0 if successful.
++ **/
++int __init isp_hist_init(void)
++{
++       memset(&histstat, 0, sizeof(histstat));
++       memset(&hist_regs, 0, sizeof(hist_regs));
++
++       return 0;
++}
++
++/**
++ * isp_hist_cleanup - Module cleanup.
++ **/
++void __exit isp_hist_cleanup(void)
++{
++       isp_hist_enable(0);
++       mdelay(100);
++       isp_unset_callback(CBK_HIST_DONE);
++
++       memset(&histstat, 0, sizeof(histstat));
++       memset(&hist_regs, 0, sizeof(hist_regs));
++}
++
++/**
++ * isphist_save_context - Saves the values of the histogram module regis=
+ters.
++ **/
++void isphist_save_context(void)
++{
++       DPRINTK_ISPHIST(" Saving context\n");
++       isp_save_context(isphist_reg_list);
++}
++EXPORT_SYMBOL(isphist_save_context);
++
++/**
++ * isphist_restore_context - Restores the values of the histogram module=
+ regs.
++ **/
++void isphist_restore_context(void)
++{
++       DPRINTK_ISPHIST(" Restoring context\n");
++       isp_restore_context(isphist_reg_list);
++}
++EXPORT_SYMBOL(isphist_restore_context);
++
++/**
++ * isp_hist_print_status - Debug print
++ **/
++static void isp_hist_print_status(void)
++{
++       DPRINTK_ISPHIST("ISPHIST_PCR =3D 0x%08x\n", omap_readl(ISPHIST_PC=
+R));
++       DPRINTK_ISPHIST("ISPHIST_CNT =3D 0x%08x\n", omap_readl(ISPHIST_CN=
+T));
++       DPRINTK_ISPHIST("ISPHIST_WB_GAIN =3D 0x%08x\n",
++                                               omap_readl(ISPHIST_WB_GAI=
+N));
++       DPRINTK_ISPHIST("ISPHIST_R0_HORZ =3D 0x%08x\n",
++                                               omap_readl(ISPHIST_R0_HOR=
+Z));
++       DPRINTK_ISPHIST("ISPHIST_R0_VERT =3D 0x%08x\n",
++                                               omap_readl(ISPHIST_R0_VER=
+T));
++       DPRINTK_ISPHIST("ISPHIST_R1_HORZ =3D 0x%08x\n",
++                                               omap_readl(ISPHIST_R1_HOR=
+Z));
++       DPRINTK_ISPHIST("ISPHIST_R1_VERT =3D 0x%08x\n",
++                                               omap_readl(ISPHIST_R1_VER=
+T));
++       DPRINTK_ISPHIST("ISPHIST_R2_HORZ =3D 0x%08x\n",
++                                               omap_readl(ISPHIST_R2_HOR=
+Z));
++       DPRINTK_ISPHIST("ISPHIST_R2_VERT =3D 0x%08x\n",
++                                               omap_readl(ISPHIST_R2_VER=
+T));
++       DPRINTK_ISPHIST("ISPHIST_R3_HORZ =3D 0x%08x\n",
++                                               omap_readl(ISPHIST_R3_HOR=
+Z));
++       DPRINTK_ISPHIST("ISPHIST_R3_VERT =3D 0x%08x\n",
++                                               omap_readl(ISPHIST_R3_VER=
+T));
++       DPRINTK_ISPHIST("ISPHIST_ADDR =3D 0x%08x\n", omap_readl(ISPHIST_A=
+DDR));
++       DPRINTK_ISPHIST("ISPHIST_RADD =3D 0x%08x\n", omap_readl(ISPHIST_R=
+ADD));
++       DPRINTK_ISPHIST("ISPHIST_RADD_OFF =3D 0x%08x\n",
++                                               omap_readl(ISPHIST_RADD_O=
+FF));
++       DPRINTK_ISPHIST("ISPHIST_H_V_INFO =3D 0x%08x\n",
++                                               omap_readl(ISPHIST_H_V_IN=
+FO));
++}
+diff --git a/drivers/media/video/isp/isphist.h b/drivers/media/video/isp/=
+isphist.h
+new file mode 100644
+index 0000000..b67558f
+--- /dev/null
++++ b/drivers/media/video/isp/isphist.h
+@@ -0,0 +1,97 @@
++/*
++ * drivers/media/video/isp/isphist.h
++ *
++ * Header file for HISTOGRAM module in TI's OMAP3 Camera ISP
++ *
++ * Copyright (C) 2008 Texas Instruments, Inc.
++ *
++ * Contributors:
++ *     Sergio Aguirre <saaguirre@ti.com>
++ *     Troy Laramy
++ *
++ * This package is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ *
++ * THIS PACKAGE IS PROVIDED ``AS IS'' AND WITHOUT ANY EXPRESS OR
++ * IMPLIED WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED
++ * WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
++ */
++
++#ifndef OMAP_ISP_HIST_H
++#define OMAP_ISP_HIST_H
++
++#include <mach/isp_user.h>
++
++#define MAX_REGIONS            0x4
++#define MAX_WB_GAIN            255
++#define MIN_WB_GAIN            0x0
++#define MAX_BIT_WIDTH          14
++#define MIN_BIT_WIDTH          8
++
++#define ISPHIST_PCR_EN         (1 << 0)
++#define HIST_MEM_SIZE          1024
++#define ISPHIST_CNT_CLR_EN     (1 << 7)
++
++#define WRITE_SOURCE(reg, source)      \
++               (reg =3D (reg & ~(ISPHIST_CNT_SOURCE_MASK)) \
++               | (source << ISPHIST_CNT_SOURCE_SHIFT))
++
++#define WRITE_HV_INFO(reg, hv_info) \
++               (reg =3D ((reg & ~(ISPHIST_HV_INFO_MASK)) \
++               | (hv_info & ISPHIST_HV_INFO_MASK)))
++
++#define WRITE_RADD(reg, radd) \
++               (reg =3D (reg & ~(ISPHIST_RADD_MASK)) \
++               | (radd << ISPHIST_RADD_SHIFT))
++
++#define WRITE_RADD_OFF(reg, radd_off) \
++               (reg =3D (reg & ~(ISPHIST_RADD_OFF_MASK)) \
++               | (radd_off << ISPHIST_RADD_OFF_SHIFT))
++
++#define WRITE_BIT_SHIFT(reg, bit_shift) \
++               (reg =3D (reg & ~(ISPHIST_CNT_SHIFT_MASK)) \
++               | (bit_shift << ISPHIST_CNT_SHIFT_SHIFT))
++
++#define WRITE_DATA_SIZE(reg, data_size) \
++               (reg =3D (reg & ~(ISPHIST_CNT_DATASIZE_MASK)) \
++               | (data_size << ISPHIST_CNT_DATASIZE_SHIFT))
++
++#define WRITE_NUM_BINS(reg, num_bins) \
++               (reg =3D (reg & ~(ISPHIST_CNT_BINS_MASK)) \
++               | (num_bins << ISPHIST_CNT_BINS_SHIFT))
++
++#define WRITE_WB_R(reg, reg_wb_gain) \
++               reg =3D ((reg & ~(ISPHIST_WB_GAIN_WG00_MASK)) \
++               | (reg_wb_gain << ISPHIST_WB_GAIN_WG00_SHIFT))
++
++#define WRITE_WB_RG(reg, reg_wb_gain) \
++               (reg =3D (reg & ~(ISPHIST_WB_GAIN_WG01_MASK)) \
++               | (reg_wb_gain << ISPHIST_WB_GAIN_WG01_SHIFT))
++
++#define WRITE_WB_B(reg, reg_wb_gain) \
++               (reg =3D (reg & ~(ISPHIST_WB_GAIN_WG02_MASK)) \
++               | (reg_wb_gain << ISPHIST_WB_GAIN_WG02_SHIFT))
++
++#define WRITE_WB_BG(reg, reg_wb_gain) \
++               (reg =3D (reg & ~(ISPHIST_WB_GAIN_WG03_MASK)) \
++               | (reg_wb_gain << ISPHIST_WB_GAIN_WG03_SHIFT))
++
++#define WRITE_REG_HORIZ(reg, reg_n_hor) \
++               (reg =3D ((reg & ~ISPHIST_REGHORIZ_MASK) \
++               | (reg_n_hor & ISPHIST_REGHORIZ_MASK)))
++
++#define WRITE_REG_VERT(reg, reg_n_vert) \
++               (reg =3D ((reg & ~ISPHIST_REGVERT_MASK) \
++               | (reg_n_vert & ISPHIST_REGVERT_MASK)))
++
++
++int isp_hist_configure(struct isp_hist_config *histcfg);
++
++int isp_hist_request_statistics(struct isp_hist_data *histdata);
++
++void isphist_save_context(void);
++
++void isphist_restore_context(void);
++
++#endif                         /* OMAP_ISP_HIST */
 --
 1.5.6.5
 
