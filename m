@@ -1,7 +1,7 @@
 From: Tero Kristo <tero.kristo@nokia.com>
-Subject: [PATCH 18/23] OMAP3: PM: Added DVFS OPP locking interface for VDD1 and VDD2
-Date: Thu, 11 Dec 2008 17:52:37 +0200
-Message-ID: <1229010762-3150-19-git-send-email-tero.kristo@nokia.com>
+Subject: [PATCH 16/23] OMAP3 SRAM: convert SRAM code to use macros rather than magic numbers
+Date: Thu, 11 Dec 2008 17:52:35 +0200
+Message-ID: <1229010762-3150-17-git-send-email-tero.kristo@nokia.com>
 References: <>
  <1229010762-3150-1-git-send-email-tero.kristo@nokia.com>
  <1229010762-3150-2-git-send-email-tero.kristo@nokia.com>
@@ -19,232 +19,160 @@ References: <>
  <1229010762-3150-14-git-send-email-tero.kristo@nokia.com>
  <1229010762-3150-15-git-send-email-tero.kristo@nokia.com>
  <1229010762-3150-16-git-send-email-tero.kristo@nokia.com>
- <1229010762-3150-17-git-send-email-tero.kristo@nokia.com>
- <1229010762-3150-18-git-send-email-tero.kristo@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:34966 "EHLO
+Received: from smtp.nokia.com ([192.100.122.233]:34963 "EHLO
 	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756205AbYLKP7P (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 11 Dec 2008 10:59:15 -0500
-Received: from esebh105.NOE.Nokia.com (esebh105.ntc.nokia.com [172.21.138.211])
-	by mgw-mx06.nokia.com (Switch-3.2.6/Switch-3.2.6) with ESMTP id mBBFwj2q020861
-	for <linux-omap@vger.kernel.org>; Thu, 11 Dec 2008 17:59:07 +0200
-Received: from localhost.localdomain (sokoban.ntc.nokia.com [172.22.144.95])
-	by mgw-int01.ntc.nokia.com (Switch-3.2.5/Switch-3.2.5) with ESMTP id mBBFwchx011022
-	for <linux-omap@vger.kernel.org>; Thu, 11 Dec 2008 17:59:04 +0200
-In-Reply-To: <1229010762-3150-18-git-send-email-tero.kristo@nokia.com>
+	with ESMTP id S1756197AbYLKP7N (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 11 Dec 2008 10:59:13 -0500
+In-Reply-To: <1229010762-3150-16-git-send-email-tero.kristo@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
+Cc: Paul Walmsley <paul@pwsan.com>
 
-Added two new files under /sys/power for controlling OPP locks. vdd1_lock and
-vdd2_lock. You can write to these to select desired OPP level and it will be
-locked at that level. Lock can be cleared by writing 0 to the same file.
+From: Paul Walmsley <paul@pwsan.com>
 
-Signed-off-by: Tero Kristo <tero.kristo@nokia.com>
+Convert omap3_sram_configure_core_dpll() to use macros rather than
+magic numbers.
+
+Signed-off-by: Paul Walmsley <paul@pwsan.com>
 ---
- arch/arm/mach-omap2/pm.c           |   55 ++++++++++++++++++++++++++++++++++-
- arch/arm/mach-omap2/pm.h           |    8 ++++-
- arch/arm/mach-omap2/resource34xx.c |   24 +++++++++++++--
- 3 files changed, 81 insertions(+), 6 deletions(-)
+ arch/arm/mach-omap2/sram34xx.S |   53 ++++++++++++++++++++++++++++-----------
+ 1 files changed, 38 insertions(+), 15 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/pm.c b/arch/arm/mach-omap2/pm.c
-index 2dd1341..155bd8d 100644
---- a/arch/arm/mach-omap2/pm.c
-+++ b/arch/arm/mach-omap2/pm.c
-@@ -43,6 +43,8 @@ unsigned short clocks_off_while_idle;
- unsigned short enable_off_mode;
- unsigned short voltage_off_while_idle;
- atomic_t sleep_block = ATOMIC_INIT(0);
-+static int vdd1_locked;
-+static int vdd2_locked;
+diff --git a/arch/arm/mach-omap2/sram34xx.S b/arch/arm/mach-omap2/sram34xx.S
+index 37a1e1f..16eb4ef 100644
+--- a/arch/arm/mach-omap2/sram34xx.S
++++ b/arch/arm/mach-omap2/sram34xx.S
+@@ -36,6 +36,29 @@
  
- static ssize_t idle_show(struct kobject *, struct kobj_attribute *, char *);
- static ssize_t idle_store(struct kobject *k, struct kobj_attribute *,
-@@ -69,6 +71,11 @@ static struct kobj_attribute vdd1_opp_attr =
+ 	.text
  
- static struct kobj_attribute vdd2_opp_attr =
- 	__ATTR(vdd2_opp, 0644, vdd_opp_show, vdd_opp_store);
-+static struct kobj_attribute vdd1_lock_attr =
-+	__ATTR(vdd1_lock, 0644, vdd_opp_show, vdd_opp_store);
-+static struct kobj_attribute vdd2_lock_attr =
-+	__ATTR(vdd2_lock, 0644, vdd_opp_show, vdd_opp_store);
++/* r4 parameters */
++#define SDRC_NO_UNLOCK_DLL		0x0
++#define SDRC_UNLOCK_DLL			0x1
 +
- #endif
- 
- static ssize_t idle_show(struct kobject *kobj, struct kobj_attribute *attr,
-@@ -127,6 +134,10 @@ static ssize_t vdd_opp_show(struct kobject *kobj, struct kobj_attribute *attr,
- 		return sprintf(buf, "%hu\n", resource_get_level("vdd1_opp"));
- 	else if (attr == &vdd2_opp_attr)
- 		return sprintf(buf, "%hu\n", resource_get_level("vdd2_opp"));
-+	else if (attr == &vdd1_lock_attr)
-+		return sprintf(buf, "%hu\n", resource_get_opp_lock(VDD1_OPP));
-+	else if (attr == &vdd2_lock_attr)
-+		return sprintf(buf, "%hu\n", resource_get_opp_lock(VDD2_OPP));
- 	else
- 		return -EINVAL;
- }
-@@ -135,22 +146,50 @@ static ssize_t vdd_opp_store(struct kobject *kobj, struct kobj_attribute *attr,
- 			  const char *buf, size_t n)
- {
- 	unsigned short value;
-+	int flags = 0;
- 
- 	if (sscanf(buf, "%hu", &value) != 1)
- 		return -EINVAL;
- 
-+	/* Check locks */
-+	if (attr == &vdd1_lock_attr) {
-+		flags = OPP_IGNORE_LOCK;
-+		attr = &vdd1_opp_attr;
-+		if (vdd1_locked && value == 0) {
-+			resource_unlock_opp(VDD1_OPP);
-+			vdd1_locked = 0;
-+			return n;
-+		}
-+		if (vdd1_locked == 0 && value != 0) {
-+			resource_lock_opp(VDD1_OPP);
-+			vdd1_locked = 1;
-+		}
-+	} else if (attr == &vdd2_lock_attr) {
-+		flags = OPP_IGNORE_LOCK;
-+		attr = &vdd2_opp_attr;
-+		if (vdd2_locked && value == 0) {
-+			resource_unlock_opp(VDD2_OPP);
-+			vdd2_locked = 0;
-+			return n;
-+		}
-+		if (vdd2_locked == 0 && value != 0) {
-+			resource_lock_opp(VDD2_OPP);
-+			vdd2_locked = 1;
-+		}
-+	}
++/* SDRC_DLLA_CTRL bit settings */
++#define DLLIDLE_MASK			0x4
 +
- 	if (attr == &vdd1_opp_attr) {
- 		if (value < 1 || value > 5) {
- 			printk(KERN_ERR "vdd_opp_store: Invalid value\n");
- 			return -EINVAL;
- 		}
--		set_opp_level(VDD1_OPP, value);
-+		resource_set_opp_level(VDD1_OPP, value, flags);
- 	} else if (attr == &vdd2_opp_attr) {
- 		if (value < 2 || value > 3) {
- 			printk(KERN_ERR "vdd_opp_store: Invalid value\n");
- 			return -EINVAL;
- 		}
--		set_opp_level(VDD2_OPP, value);
-+		resource_set_opp_level(VDD2_OPP, value, flags);
- 	} else {
- 		return -EINVAL;
- 	}
-@@ -227,6 +266,18 @@ static int __init omap_pm_init(void)
- 		printk(KERN_ERR "sysfs_create_file failed: %d\n", error);
- 		return error;
- 	}
++/* SDRC_DLLA_STATUS bit settings */
++#define LOCKSTATUS_MASK			0x4
 +
-+	error = sysfs_create_file(power_kobj, &vdd1_lock_attr.attr);
-+	if (error) {
-+		printk(KERN_ERR "sysfs_create_file failed: %d\n", error);
-+		return error;
-+	}
++/* SDRC_POWER bit settings */
++#define SRFRONIDLEREQ_MASK		0x40
++#define PWDENA_MASK			0x4
 +
-+	error = sysfs_create_file(power_kobj, &vdd2_lock_attr.attr);
-+	if (error) {
-+		printk(KERN_ERR "sysfs_create_file failed: %d\n", error);
-+		return error;
-+	}
- #endif
- 	voltage_off_while_idle = 0;
- 	/* Going to 0V on anything under ES2.1 will eventually cause a crash */
-diff --git a/arch/arm/mach-omap2/pm.h b/arch/arm/mach-omap2/pm.h
-index 4c0052f..4f98c86 100644
---- a/arch/arm/mach-omap2/pm.h
-+++ b/arch/arm/mach-omap2/pm.h
-@@ -42,7 +42,13 @@ extern int omap3_pm_set_suspend_state(struct powerdomain *pwrdm, int state);
- #define omap3_pm_set_suspend_state(pwrdm,state) do {} while (0);
- #endif
- extern int set_pwrdm_state(struct powerdomain *pwrdm, u32 state);
--extern int set_opp_level(int res, u32 target_level);
-+extern int resource_set_opp_level(int res, u32 target_level, int flags);
-+extern int resource_access_opp_lock(int res, int delta);
-+#define resource_lock_opp(res) resource_access_opp_lock(res, 1)
-+#define resource_unlock_opp(res) resource_access_opp_lock(res, -1)
-+#define resource_get_opp_lock(res) resource_access_opp_lock(res, 0)
++/* CM_IDLEST1_CORE bit settings */
++#define ST_SDRC_MASK			0x2
 +
-+#define OPP_IGNORE_LOCK 0x1
- 
- #ifdef CONFIG_PM_DEBUG
- extern void omap2_pm_dump(int mode, int resume, unsigned int us);
-diff --git a/arch/arm/mach-omap2/resource34xx.c b/arch/arm/mach-omap2/resource34xx.c
-index d2c4e1f..e52260d 100644
---- a/arch/arm/mach-omap2/resource34xx.c
-+++ b/arch/arm/mach-omap2/resource34xx.c
-@@ -139,6 +139,8 @@ static struct shared_resource *vdd1_resp;
- static struct shared_resource *vdd2_resp;
- static struct device dummy_mpu_dev;
- static struct device dummy_dsp_dev;
-+static int vdd1_lock;
-+static int vdd2_lock;
- 
- /**
-  * init_opp - Initialize the OPP resource
-@@ -165,7 +167,19 @@ void init_opp(struct shared_resource *resp)
- 	return;
- }
- 
--int set_opp_level(int res, u32 target_level)
-+int resource_access_opp_lock(int res, int delta)
-+{
-+	if (res == VDD1_OPP) {
-+		vdd1_lock += delta;
-+		return vdd1_lock;
-+	} else if (res == VDD2_OPP) {
-+		vdd2_lock += delta;
-+		return vdd2_lock;
-+	}
-+	return -EINVAL;
-+}
++/* CM_ICLKEN1_CORE bit settings */
++#define EN_SDRC_MASK			0x2
 +
-+int resource_set_opp_level(int res, u32 target_level, int flags)
- {
- 	unsigned long mpu_freq, mpu_old_freq, l3_freq, t_opp;
- 	struct cpufreq_freqs freqs_notify;
-@@ -185,6 +199,8 @@ int set_opp_level(int res, u32 target_level)
- 		return 0;
- 
- 	if (res == VDD1_OPP) {
-+		if (flags != OPP_IGNORE_LOCK && vdd1_lock)
-+			return 0;
- 		mpu_old_freq = get_freq(mpu_opps + MAX_VDD1_OPP,
- 					curr_vdd1_prcm_set->opp_id);
- 		mpu_freq = get_freq(mpu_opps + MAX_VDD1_OPP,
-@@ -219,6 +235,8 @@ int set_opp_level(int res, u32 target_level)
- 		cpufreq_notify_transition(&freqs_notify, CPUFREQ_POSTCHANGE);
- #endif
- 	} else {
-+		if (flags != OPP_IGNORE_LOCK && vdd2_lock)
-+			return 0;
- 		l3_freq = get_freq(l3_opps + MAX_VDD2_OPP,
- 					target_level);
- 		t_opp = ID_VDD(PRCM_VDD2) |
-@@ -250,7 +268,7 @@ int set_opp(struct shared_resource *resp, u32 target_level)
- 	struct bus_throughput_db *tput_db;
- 
- 	if (resp == vdd1_resp) {
--		set_opp_level(VDD1_OPP, target_level);
-+		resource_set_opp_level(VDD1_OPP, target_level, 0);
- 	} else if (resp == vdd2_resp) {
- 		tput_db = resp->resource_data;
- 		tput = target_level;
-@@ -262,7 +280,7 @@ int set_opp(struct shared_resource *resp, u32 target_level)
- 		/* Set the highest OPP possible */
- 		if (ind == MAX_VDD2_OPP)
- 			target_level = ind-1;
--		set_opp_level(VDD2_OPP, target_level);
-+		resource_set_opp_level(VDD2_OPP, target_level, 0);
- 	}
- 	return 0;
- }
++/* CM_CLKSEL1_PLL bit settings */
++#define CORE_DPLL_CLKOUT_DIV_SHIFT	0x1b
++
+ /*
+  * omap3_sram_configure_core_dpll - change DPLL3 M2 divider
+  * r0 = new SDRC_RFR_CTRL register contents
+@@ -57,13 +80,13 @@ ENTRY(omap3_sram_configure_core_dpll)
+ 	dsb				@ flush buffered writes to interconnect
+ 	cmp	r3, #0x2		@ if increasing SDRC clk rate,
+ 	blne	configure_sdrc		@ program the SDRC regs early (for RFR)
+-	cmp	r4, #0x1		@ set the intended DLL state
++	cmp	r4, #SDRC_UNLOCK_DLL	@ set the intended DLL state
+ 	bleq	unlock_dll
+ 	blne	lock_dll
+ 	bl	sdram_in_selfrefresh	@ put SDRAM in self refresh, idle SDRC
+ 	bl 	configure_core_dpll	@ change the DPLL3 M2 divider
+ 	bl	enable_sdrc		@ take SDRC out of idle
+-	cmp	r4, #0x1		@ wait for DLL status to change
++	cmp	r4, #SDRC_UNLOCK_DLL	@ wait for DLL status to change
+ 	bleq	wait_dll_unlock
+ 	blne	wait_dll_lock
+ 	cmp	r3, #0x1		@ if increasing SDRC clk rate,
+@@ -78,33 +101,33 @@ return_to_sdram:
+ unlock_dll:
+ 	ldr	r11, omap3_sdrc_dlla_ctrl
+ 	ldr	r12, [r11]
+-	orr	r12, r12, #0x4
++	orr	r12, r12, #DLLIDLE_MASK
+ 	str	r12, [r11]		@ (no OCP barrier needed)
+ 	bx	lr
+ lock_dll:
+ 	ldr	r11, omap3_sdrc_dlla_ctrl
+ 	ldr	r12, [r11]
+-	bic	r12, r12, #0x4
++	bic	r12, r12, #DLLIDLE_MASK
+ 	str	r12, [r11]		@ (no OCP barrier needed)
+ 	bx	lr
+ sdram_in_selfrefresh:
+ 	ldr	r11, omap3_sdrc_power	@ read the SDRC_POWER register
+ 	ldr	r12, [r11]		@ read the contents of SDRC_POWER
+ 	mov	r9, r12			@ keep a copy of SDRC_POWER bits
+-	orr 	r12, r12, #0x40		@ enable self refresh on idle req
+-	bic 	r12, r12, #0x4		@ clear PWDENA
++	orr 	r12, r12, #SRFRONIDLEREQ_MASK	@ enable self refresh on idle
++	bic 	r12, r12, #PWDENA_MASK	@ clear PWDENA
+ 	str 	r12, [r11]		@ write back to SDRC_POWER register
+ 	ldr	r12, [r11]		@ posted-write barrier for SDRC
+ idle_sdrc:
+ 	ldr	r11, omap3_cm_iclken1_core	@ read the CM_ICLKEN1_CORE reg
+ 	ldr	r12, [r11]
+-	bic	r12, r12, #0x2		@ disable iclk bit for SDRC
++	bic	r12, r12, #EN_SDRC_MASK		@ disable iclk bit for SDRC
+ 	str 	r12, [r11]
+ wait_sdrc_idle:
+ 	ldr 	r11, omap3_cm_idlest1_core
+ 	ldr 	r12, [r11]
+-	and 	r12, r12, #0x2		@ check for SDRC idle
+-	cmp 	r12, #2
++	and 	r12, r12, #ST_SDRC_MASK		@ check for SDRC idle
++	cmp 	r12, #ST_SDRC_MASK
+ 	bne 	wait_sdrc_idle
+ 	bx 	lr
+ configure_core_dpll:
+@@ -112,7 +135,7 @@ configure_core_dpll:
+ 	ldr	r12, [r11]
+ 	ldr	r10, core_m2_mask_val	@ modify m2 for core dpll
+ 	and	r12, r12, r10
+-	orr	r12, r12, r3, lsl #0x1B	@ r3 contains the M2 val
++	orr	r12, r12, r3, lsl #CORE_DPLL_CLKOUT_DIV_SHIFT
+ 	str	r12, [r11]
+ 	ldr	r12, [r11]		@ posted-write barrier for CM
+ 	bx	lr
+@@ -123,12 +146,12 @@ wait_clk_stable:
+ enable_sdrc:
+ 	ldr 	r11, omap3_cm_iclken1_core
+ 	ldr	r12, [r11]
+-	orr 	r12, r12, #0x2		@ enable iclk bit for SDRC
++	orr 	r12, r12, #EN_SDRC_MASK		@ enable iclk bit for SDRC
+ 	str 	r12, [r11]
+ wait_sdrc_idle1:
+ 	ldr 	r11, omap3_cm_idlest1_core
+ 	ldr	r12, [r11]
+-	and 	r12, r12, #0x2
++	and 	r12, r12, #ST_SDRC_MASK
+ 	cmp	r12, #0
+ 	bne	wait_sdrc_idle1
+ restore_sdrc_power_val:
+@@ -138,14 +161,14 @@ restore_sdrc_power_val:
+ wait_dll_lock:
+ 	ldr	r11, omap3_sdrc_dlla_status
+ 	ldr	r12, [r11]
+-	and 	r12, r12, #0x4
+-	cmp	r12, #0x4
++	and 	r12, r12, #LOCKSTATUS_MASK
++	cmp	r12, #LOCKSTATUS_MASK
+ 	bne	wait_dll_lock
+ 	bx	lr
+ wait_dll_unlock:
+ 	ldr	r11, omap3_sdrc_dlla_status
+ 	ldr	r12, [r11]
+-	and	r12, r12, #0x4
++	and	r12, r12, #LOCKSTATUS_MASK
+ 	cmp	r12, #0x0
+ 	bne	wait_dll_unlock
+ 	bx	lr
 -- 
 1.5.4.3
 
