@@ -1,15 +1,26 @@
 From: Tero Kristo <tero.kristo@nokia.com>
-Subject: [PATCH 01/23] ARM: MMU: add a Non-cacheable Normal executable memory type
-Date: Thu, 11 Dec 2008 17:52:20 +0200
-Message-ID: <1229010762-3150-2-git-send-email-tero.kristo@nokia.com>
+Subject: [PATCH 12/23] OMAP3 clock: initialize SDRC timings at kernel start
+Date: Thu, 11 Dec 2008 17:52:31 +0200
+Message-ID: <1229010762-3150-13-git-send-email-tero.kristo@nokia.com>
 References: <>
  <1229010762-3150-1-git-send-email-tero.kristo@nokia.com>
+ <1229010762-3150-2-git-send-email-tero.kristo@nokia.com>
+ <1229010762-3150-3-git-send-email-tero.kristo@nokia.com>
+ <1229010762-3150-4-git-send-email-tero.kristo@nokia.com>
+ <1229010762-3150-5-git-send-email-tero.kristo@nokia.com>
+ <1229010762-3150-6-git-send-email-tero.kristo@nokia.com>
+ <1229010762-3150-7-git-send-email-tero.kristo@nokia.com>
+ <1229010762-3150-8-git-send-email-tero.kristo@nokia.com>
+ <1229010762-3150-9-git-send-email-tero.kristo@nokia.com>
+ <1229010762-3150-10-git-send-email-tero.kristo@nokia.com>
+ <1229010762-3150-11-git-send-email-tero.kristo@nokia.com>
+ <1229010762-3150-12-git-send-email-tero.kristo@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:53912 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756114AbYLKP6x (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 11 Dec 2008 10:58:53 -0500
-In-Reply-To: <1229010762-3150-1-git-send-email-tero.kristo@nokia.com>
+Received: from smtp.nokia.com ([192.100.122.230]:55862 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756222AbYLKP7Y (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 11 Dec 2008 10:59:24 -0500
+In-Reply-To: <1229010762-3150-12-git-send-email-tero.kristo@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
@@ -17,74 +28,90 @@ Cc: Paul Walmsley <paul@pwsan.com>
 
 From: Paul Walmsley <paul@pwsan.com>
 
-Add a Non-cacheable Normal ARM executable memory type,
-MT_MEMORY_NONCACHED.  This is needed for the OMAP3 SDRAM clock change
-code, which must run from SRAM.  The SRAM must be marked as
-non-cacheable memory to avoid dirty cache line writebacks to SDRAM
-while the SDRAM controller is paused.
+On the OMAP3, initialize SDRC timings when the kernel boots.  This ensures
+that the kernel is running with known, optimized SDRC timings, rather than
+whatever was configured by the bootloader.
 
 Signed-off-by: Paul Walmsley <paul@pwsan.com>
 ---
- arch/arm/include/asm/mach/map.h |    1 +
- arch/arm/mm/mmu.c               |   23 +++++++++++++++++++++++
- 2 files changed, 24 insertions(+), 0 deletions(-)
+ arch/arm/mach-omap2/clock34xx.c |    3 ---
+ arch/arm/mach-omap2/io.c        |   36 ++++++++++++++++++++++++++++++++++++
+ 2 files changed, 36 insertions(+), 3 deletions(-)
 
-diff --git a/arch/arm/include/asm/mach/map.h b/arch/arm/include/asm/mach/map.h
-index 39d949b..58cf91f 100644
---- a/arch/arm/include/asm/mach/map.h
-+++ b/arch/arm/include/asm/mach/map.h
-@@ -26,6 +26,7 @@ struct map_desc {
- #define MT_HIGH_VECTORS		8
- #define MT_MEMORY		9
- #define MT_ROM			10
-+#define MT_MEMORY_NONCACHED	11
+diff --git a/arch/arm/mach-omap2/clock34xx.c b/arch/arm/mach-omap2/clock34xx.c
+index adf0be3..cea3840 100644
+--- a/arch/arm/mach-omap2/clock34xx.c
++++ b/arch/arm/mach-omap2/clock34xx.c
+@@ -495,9 +495,6 @@ static int omap3_core_dpll_m2_set_rate(struct clk *clk, unsigned long rate)
+ 	if (clk != &dpll3_m2_ck)
+ 		return -EINVAL;
  
- #ifdef CONFIG_MMU
- extern void iotable_init(struct map_desc *, int);
-diff --git a/arch/arm/mm/mmu.c b/arch/arm/mm/mmu.c
-index 7f36c82..9ad6413 100644
---- a/arch/arm/mm/mmu.c
-+++ b/arch/arm/mm/mmu.c
-@@ -242,6 +242,10 @@ static struct mem_type mem_types[] = {
- 		.prot_sect = PMD_TYPE_SECT,
- 		.domain    = DOMAIN_KERNEL,
- 	},
-+	[MT_MEMORY_NONCACHED] = {
-+		.prot_sect = PMD_TYPE_SECT | PMD_SECT_AP_WRITE,
-+		.domain    = DOMAIN_KERNEL,
-+	},
- };
+-	if (rate == clk->rate)
+-		return 0;
+-
+ 	validrate = omap2_clksel_round_rate_div(clk, rate, &new_div);
+ 	if (validrate != rate)
+ 		return -EINVAL;
+diff --git a/arch/arm/mach-omap2/io.c b/arch/arm/mach-omap2/io.c
+index 5b529ae..6fb6c29 100644
+--- a/arch/arm/mach-omap2/io.c
++++ b/arch/arm/mach-omap2/io.c
+@@ -19,6 +19,7 @@
+ #include <linux/kernel.h>
+ #include <linux/init.h>
+ #include <linux/io.h>
++#include <linux/clk.h>
  
- const struct mem_type *get_mem_type(unsigned int type)
-@@ -405,9 +409,28 @@ static void __init build_mem_type_table(void)
- 		kern_pgprot |= L_PTE_SHARED;
- 		vecs_pgprot |= L_PTE_SHARED;
- 		mem_types[MT_MEMORY].prot_sect |= PMD_SECT_S;
-+		mem_types[MT_MEMORY_NONCACHED].prot_sect |= PMD_SECT_S;
- #endif
- 	}
+ #include <asm/tlb.h>
  
-+	/*
-+	 * Non-cacheable Normal - intended for memory areas that must
-+	 * not cause cache line evictions when used
-+	 */
-+	if (cpu_arch >= CPU_ARCH_ARMv6) {
-+		if (cpu_arch >= CPU_ARCH_ARMv7 && (cr & CR_TRE)) {
-+			/* Non-cacheable Normal is XCB = 001 */
-+			mem_types[MT_MEMORY_NONCACHED].prot_sect |=
-+				PMD_SECT_BUFFERED;
-+		} else {
-+			/* For both ARMv6 and non-TEX-remapping ARMv7 */
-+			mem_types[MT_MEMORY_NONCACHED].prot_sect |=
-+				PMD_SECT_TEX(1);
-+		}
-+	} else {
-+		mem_types[MT_MEMORY_NONCACHED].prot_sect |= PMD_SECT_BUFFERABLE;
-+	}
+@@ -198,6 +199,38 @@ void __init omap2_map_common_io(void)
+ 	omapfb_reserve_sdram();
+ }
+ 
++/*
++ * omap2_init_reprogram_sdrc - reprogram SDRC timing parameters
++ *
++ * Sets the CORE DPLL3 M2 divider to the same value that it's at
++ * currently.  This has the effect of setting the SDRC SDRAM AC timing
++ * registers to the values currently defined by the kernel.  Currently
++ * only defined for OMAP3; will return 0 if called on OMAP2.  Returns
++ * -EINVAL if the dpll3_m2_ck cannot be found, 0 if called on OMAP2,
++ * or passes along the return value of clk_set_rate().
++ */
++static int __init _omap2_init_reprogram_sdrc(void)
++{
++	struct clk *dpll3_m2_ck;
++	int v = -EINVAL;
 +
- 	for (i = 0; i < 16; i++) {
- 		unsigned long v = pgprot_val(protection_map[i]);
- 		protection_map[i] = __pgprot(v | user_pgprot);
++	if (!cpu_is_omap34xx())
++		return 0;
++
++	dpll3_m2_ck = clk_get(NULL, "dpll3_m2_ck");
++	if (!dpll3_m2_ck)
++		return -EINVAL;
++
++	pr_info("Reprogramming SDRC\n");
++	v = clk_set_rate(dpll3_m2_ck, clk_get_rate(dpll3_m2_ck));
++	if (v)
++		pr_err("dpll3_m2_clk rate change failed: %d\n", v);
++
++	clk_put(dpll3_m2_ck);
++
++	return v;
++}
++
+ void __init omap2_init_common_hw(struct omap_sdrc_params *sp,
+ 				 struct omap_opp *mpu_opps,
+ 				 struct omap_opp *dsp_opps,
+@@ -212,5 +245,8 @@ void __init omap2_init_common_hw(struct omap_sdrc_params *sp,
+ 	omap2_clk_init();
+ 	omap_pm_if_init();
+ 	omap2_sdrc_init(sp);
++
++	_omap2_init_reprogram_sdrc();
++
+ 	gpmc_init();
+ }
 -- 
 1.5.4.3
 
