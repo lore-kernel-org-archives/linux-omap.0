@@ -1,47 +1,59 @@
 From: "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>
-Subject: [REVIEW PATCH 04/14] OMAP: CAM: Add ISP Front end
-Date: Thu, 11 Dec 2008 14:37:55 -0600
-Message-ID: <A24693684029E5489D1D202277BE894415E6E198@dlee02.ent.ti.com>
+Subject: [REVIEW PATCH 05/14] OMAP: CAM: Add ISP Back end
+Date: Thu, 11 Dec 2008 14:37:58 -0600
+Message-ID: <A24693684029E5489D1D202277BE894415E6E199@dlee02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:52885 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756760AbYLKUjY convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 11 Dec 2008 15:39:24 -0500
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <video4linux-list-bounces@redhat.com>
 Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
+List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
+	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
+List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
+List-Post: <mailto:video4linux-list@redhat.com>
+List-Help: <mailto:video4linux-list-request@redhat.com?subject=help>
+List-Subscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
+	<mailto:video4linux-list-request@redhat.com?subject=subscribe>
+Sender: video4linux-list-bounces@redhat.com
+Errors-To: video4linux-list-bounces@redhat.com
 To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "video4linux-list@redhat.com" <video4linux-list@redhat.com>
-Cc: Sakari Ailus <sakari.ailus@nokia.com>, "Tuukka.O Toivonen" <tuukka.o.toivonen@nokia.com>, "Hiremath, Vaibhav" <hvaibhav@ti.com>, "Nagalla, Hari" <hnagalla@ti.com>
+Cc: Sakari Ailus <sakari.ailus@nokia.com>, "Tuukka.O Toivonen" <tuukka.o.toivonen@nokia.com>, "Nagalla,
+	Hari" <hnagalla@ti.com>
+List-Id: linux-omap@vger.kernel.org
 
->From 52128867152f13415f01b8d00f078350454cbb1f Mon Sep 17 00:00:00 2001
+>From bb9b326cfb06b79f6e919e9d43ddbf041e493178 Mon Sep 17 00:00:00 2001
 From: Sergio Aguirre <saaguirre@ti.com>
 Date: Thu, 11 Dec 2008 13:35:50 -0600
-Subject: [PATCH] OMAP: CAM: Add ISP Front end
+Subject: [PATCH] OMAP: CAM: Add ISP Back end
 
-This adds the OMAP ISP Front end modules to the kernel. Includes:
-* ISP CCDC Driver
+This adds the OMAP ISP Back end modules to the kernel. Includes:
+* ISP Preview Driver
+* ISP Resizer Driver
 
 Signed-off-by: Sergio Aguirre <saaguirre@ti.com>
 ---
- drivers/media/video/isp/ispccdc.c | 1515 +++++++++++++++++++++++++++++++++++++
- drivers/media/video/isp/ispccdc.h |  206 +++++
- 2 files changed, 1721 insertions(+), 0 deletions(-)
- create mode 100644 drivers/media/video/isp/ispccdc.c
- create mode 100644 drivers/media/video/isp/ispccdc.h
+ drivers/media/video/isp/isppreview.c | 1971 ++++++++++++++++++++++++++++=
+++++++
+ drivers/media/video/isp/isppreview.h |  356 ++++++
+ drivers/media/video/isp/ispresizer.c |  895 +++++++++++++++
+ drivers/media/video/isp/ispresizer.h |  153 +++
+ 4 files changed, 3375 insertions(+), 0 deletions(-)
+ create mode 100644 drivers/media/video/isp/isppreview.c
+ create mode 100644 drivers/media/video/isp/isppreview.h
+ create mode 100644 drivers/media/video/isp/ispresizer.c
+ create mode 100644 drivers/media/video/isp/ispresizer.h
 
-diff --git a/drivers/media/video/isp/ispccdc.c b/drivers/media/video/isp/ispccdc.c
+diff --git a/drivers/media/video/isp/isppreview.c b/drivers/media/video/i=
+sp/isppreview.c
 new file mode 100644
-index 0000000..e6452aa
+index 0000000..ae69784
 --- /dev/null
-+++ b/drivers/media/video/isp/ispccdc.c
-@@ -0,0 +1,1515 @@
++++ b/drivers/media/video/isp/isppreview.c
+@@ -0,0 +1,1971 @@
 +/*
-+ * drivers/media/video/isp/ispccdc.c
++ * drivers/media/video/isp/isppreview.c
 + *
-+ * Driver Library for CCDC module in TI's OMAP3 Camera ISP
++ * Driver Library for Preview module in TI's OMAP3 Camera ISP
 + *
 + * Copyright (C) 2008 Texas Instruments, Inc.
 + *
@@ -58,1511 +70,2239 @@ index 0000000..e6452aa
 + * WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 + */
 +
++#include <linux/io.h>
++#include <linux/errno.h>
 +#include <linux/mutex.h>
 +#include <linux/module.h>
-+#include <linux/errno.h>
-+#include <linux/sched.h>
-+#include <linux/delay.h>
 +#include <linux/types.h>
-+#include <asm/mach-types.h>
-+#include <linux/io.h>
-+#include <linux/scatterlist.h>
 +#include <linux/uaccess.h>
 +
 +#include "isp.h"
 +#include "ispreg.h"
-+#include "ispccdc.h"
-+#include "ispmmu.h"
++#include "isppreview.h"
 +
-+#define LSC_TABLE_INIT_SIZE    50052
++static struct ispprev_nf prev_nf_t;
++static struct ispprev_csc prev_csc_t;
++static struct prev_params *params;
++static int RG_update, GG_update, BG_update, NF_enable, NF_update;
++static int CSC_update;
 +
-+static u32 *fpc_table_add;
-+static unsigned long fpc_table_add_m;
++/* Structure for saving/restoring preview module registers */
++static struct isp_reg ispprev_reg_list[] =3D {
++       {ISPPRV_HORZ_INFO, 0x0000},
++       {ISPPRV_VERT_INFO, 0x0000},
++       {ISPPRV_RSDR_ADDR, 0x0000},
++       {ISPPRV_RADR_OFFSET, 0x0000},
++       {ISPPRV_DSDR_ADDR, 0x0000},
++       {ISPPRV_DRKF_OFFSET, 0x0000},
++       {ISPPRV_WSDR_ADDR, 0x0000},
++       {ISPPRV_WADD_OFFSET, 0x0000},
++       {ISPPRV_AVE, 0x0000},
++       {ISPPRV_HMED, 0x0000},
++       {ISPPRV_NF, 0x0000},
++       {ISPPRV_WB_DGAIN, 0x0000},
++       {ISPPRV_WBGAIN, 0x0000},
++       {ISPPRV_WBSEL, 0x0000},
++       {ISPPRV_CFA, 0x0000},
++       {ISPPRV_BLKADJOFF, 0x0000},
++       {ISPPRV_RGB_MAT1, 0x0000},
++       {ISPPRV_RGB_MAT2, 0x0000},
++       {ISPPRV_RGB_MAT3, 0x0000},
++       {ISPPRV_RGB_MAT4, 0x0000},
++       {ISPPRV_RGB_MAT5, 0x0000},
++       {ISPPRV_RGB_OFF1, 0x0000},
++       {ISPPRV_RGB_OFF2, 0x0000},
++       {ISPPRV_CSC0, 0x0000},
++       {ISPPRV_CSC1, 0x0000},
++       {ISPPRV_CSC2, 0x0000},
++       {ISPPRV_CSC_OFFSET, 0x0000},
++       {ISPPRV_CNT_BRT, 0x0000},
++       {ISPPRV_CSUP, 0x0000},
++       {ISPPRV_SETUP_YC, 0x0000},
++       {ISPPRV_CDC_THR0, 0x0000},
++       {ISPPRV_CDC_THR1, 0x0000},
++       {ISPPRV_CDC_THR2, 0x0000},
++       {ISPPRV_CDC_THR3, 0x0000},
++       {ISPPRV_PCR, 0x0000},
++       {ISP_TOK_TERM, 0x0000}
++};
++
++
++/* Default values in Office Flourescent Light for RGBtoRGB Blending */
++static struct ispprev_rgbtorgb flr_rgb2rgb =3D {
++       {       /* RGB-RGB Matrix */
++               {0x01E2, 0x0F30, 0x0FEE},
++               {0x0F9B, 0x01AC, 0x0FB9},
++               {0x0FE0, 0x0EC0, 0x0260}
++       },      /* RGB Offset */
++       {0x0000, 0x0000, 0x0000}
++};
++
++/* Default values in Office Flourescent Light for RGB to YUV Conversion*=
+/
++static struct ispprev_csc flr_prev_csc[] =3D {
++       {
++               {       /* CSC Coef Matrix */
++                       {66, 129, 25},
++                       {-38, -75, 112},
++                       {112, -94 , -18}
++               },      /* CSC Offset */
++               {0x0, 0x0, 0x0}
++       },
++       {
++               {       /* CSC Coef Matrix Sepia */
++                       {19, 38, 7},
++                       {0, 0, 0},
++                       {0, 0, 0}
++               },      /* CSC Offset */
++               {0x0, 0xE7, 0x14}
++       },
++       {
++               {       /* CSC Coef Matrix BW */
++                       {66, 129, 25},
++                       {0, 0, 0},
++                       {0, 0, 0}
++               },      /* CSC Offset */
++               {0x0, 0x0, 0x0}
++       }
++};
++
++
++/* Default values in Office Flourescent Light for CFA Gradient*/
++#define FLR_CFA_GRADTHRS_HORZ  0x28
++#define FLR_CFA_GRADTHRS_VERT  0x28
++
++/* Default values in Office Flourescent Light for Chroma Suppression*/
++#define FLR_CSUP_GAIN          0x0D
++#define FLR_CSUP_THRES         0xEB
++
++/* Default values in Office Flourescent Light for Noise Filter*/
++#define FLR_NF_STRGTH          0x03
++
++/* Default values in Office Flourescent Light for White Balance*/
++#define FLR_WBAL_DGAIN         0x100
++#define FLR_WBAL_COEF0         0x68
++#define FLR_WBAL_COEF1         0x5c
++#define FLR_WBAL_COEF2         0x5c
++#define FLR_WBAL_COEF3         0x94
++
++#define FLR_WBAL_COEF0_ES1     0x23
++#define FLR_WBAL_COEF1_ES1     0x20
++#define FLR_WBAL_COEF2_ES1     0x20
++#define FLR_WBAL_COEF3_ES1     0x39
++
++/* Default values in Office Flourescent Light for Black Adjustment*/
++#define FLR_BLKADJ_BLUE                0x0
++#define FLR_BLKADJ_GREEN       0x0
++#define FLR_BLKADJ_RED         0x0
++
++static int update_color_matrix;
 +
 +/**
-+ * struct isp_ccdc - Structure for the CCDC module to store its own information
-+ * @ccdc_inuse: Flag to determine if CCDC has been reserved or not (0 or 1).
-+ * @ccdcout_w: CCDC output width.
-+ * @ccdcout_h: CCDC output height.
-+ * @ccdcin_w: CCDC input width.
-+ * @ccdcin_h: CCDC input height.
-+ * @ccdcin_woffset: CCDC input horizontal offset.
-+ * @ccdcin_hoffset: CCDC input vertical offset.
-+ * @crop_w: Crop width.
-+ * @crop_h: Crop weight.
-+ * @ccdc_inpfmt: CCDC input format.
-+ * @ccdc_outfmt: CCDC output format.
-+ * @vpout_en: Video port output enable.
-+ * @wen: Data write enable.
-+ * @exwen: External data write enable.
-+ * @refmt_en: Reformatter enable.
-+ * @ccdcslave: CCDC slave mode enable.
-+ * @syncif_ipmod: Image
-+ * @obclamp_en: Data input format.
-+ * @mutexlock: Mutex used to get access to the CCDC.
++ * struct isp_prev - Structure for storing ISP Preview module informatio=
+n
++ * @prev_inuse: Flag to determine if CCDC has been reserved or not (0 or=
+ 1).
++ * @prevout_w: Preview output width.
++ * @prevout_h: Preview output height.
++ * @previn_w: Preview input width.
++ * @previn_h: Preview input height.
++ * @prev_inpfmt: Preview input format.
++ * @prev_outfmt: Preview output format.
++ * @hmed_en: Horizontal median filter enable.
++ * @nf_en: Noise filter enable.
++ * @dcor_en: Defect correction enable.
++ * @cfa_en: Color Filter Array (CFA) interpolation enable.
++ * @csup_en: Chrominance suppression enable.
++ * @yenh_en: Luma enhancement enable.
++ * @fmtavg: Number of horizontal pixels to average in input formatter. T=
+he
++ *          input width should be a multiple of this number.
++ * @brightness: Brightness in preview module.
++ * @contrast: Contrast in preview module.
++ * @color: Color effect in preview module.
++ * @cfafmt: Color Filter Array (CFA) Format.
++ * @ispprev_mutex: Mutex for isp preview.
++ *
++ * This structure is used to store the OMAP ISP Preview module Informati=
+on.
 + */
-+static struct isp_ccdc {
-+       u8 ccdc_inuse;
-+       u32 ccdcout_w;
-+       u32 ccdcout_h;
-+       u32 ccdcin_w;
-+       u32 ccdcin_h;
-+       u32 ccdcin_woffset;
-+       u32 ccdcin_hoffset;
-+       u32 crop_w;
-+       u32 crop_h;
-+       u8 ccdc_inpfmt;
-+       u8 ccdc_outfmt;
-+       u8 vpout_en;
-+       u8 wen;
-+       u8 exwen;
-+       u8 refmt_en;
-+       u8 ccdcslave;
-+       u8 syncif_ipmod;
-+       u8 obclamp_en;
-+       u8 lsc_en;
-+       struct mutex mutexlock; /* For checking/modifying ccdc_inuse */
-+       u32 wenlog;
-+} ispccdc_obj;
++static struct isp_prev {
++       u8 prev_inuse;
++       u32 prevout_w;
++       u32 prevout_h;
++       u32 previn_w;
++       u32 previn_h;
++       enum preview_input prev_inpfmt;
++       enum preview_output prev_outfmt;
++       u8 hmed_en;
++       u8 nf_en;
++       u8 dcor_en;
++       u8 cfa_en;
++       u8 csup_en;
++       u8 yenh_en;
++       u8 fmtavg;
++       u8 brightness;
++       u8 contrast;
++       int stream_on;
++       enum preview_color_effect color;
++       enum cfa_fmt cfafmt;
++       struct mutex ispprev_mutex; /* For checking/modifying prev_inuse =
+*/
++       spinlock_t ispprev_lock;
++       u32 sph;
++       u32 slv;
++} ispprev_obj;
 +
-+static struct ispccdc_lsc_config lsc_config;
-+static u8 *lsc_gain_table;
-+static unsigned long lsc_ispmmu_addr;
-+static int lsc_initialized;
-+static int size_mismatch;
-+static u8 ccdc_use_lsc;
-+static u8 ispccdc_lsc_tbl[LSC_TABLE_INIT_SIZE];
++/* Saved parameters */
++struct prev_params *prev_config_params;
 +
-+/* Structure for saving/restoring CCDC module registers*/
-+static struct isp_reg ispccdc_reg_list[] = {
-+       {ISPCCDC_SYN_MODE, 0},
-+       {ISPCCDC_HD_VD_WID, 0},
-+       {ISPCCDC_PIX_LINES, 0},
-+       {ISPCCDC_HORZ_INFO, 0},
-+       {ISPCCDC_VERT_START, 0},
-+       {ISPCCDC_VERT_LINES, 0},
-+       {ISPCCDC_CULLING, 0},
-+       {ISPCCDC_HSIZE_OFF, 0},
-+       {ISPCCDC_SDOFST, 0},
-+       {ISPCCDC_SDR_ADDR, 0},
-+       {ISPCCDC_CLAMP, 0},
-+       {ISPCCDC_DCSUB, 0},
-+       {ISPCCDC_COLPTN, 0},
-+       {ISPCCDC_BLKCMP, 0},
-+       {ISPCCDC_FPC, 0},
-+       {ISPCCDC_FPC_ADDR, 0},
-+       {ISPCCDC_VDINT, 0},
-+       {ISPCCDC_ALAW, 0},
-+       {ISPCCDC_REC656IF, 0},
-+       {ISPCCDC_CFG, 0},
-+       {ISPCCDC_FMTCFG, 0},
-+       {ISPCCDC_FMT_HORZ, 0},
-+       {ISPCCDC_FMT_VERT, 0},
-+       {ISPCCDC_FMT_ADDR0, 0},
-+       {ISPCCDC_FMT_ADDR1, 0},
-+       {ISPCCDC_FMT_ADDR2, 0},
-+       {ISPCCDC_FMT_ADDR3, 0},
-+       {ISPCCDC_FMT_ADDR4, 0},
-+       {ISPCCDC_FMT_ADDR5, 0},
-+       {ISPCCDC_FMT_ADDR6, 0},
-+       {ISPCCDC_FMT_ADDR7, 0},
-+       {ISPCCDC_PRGEVEN0, 0},
-+       {ISPCCDC_PRGEVEN1, 0},
-+       {ISPCCDC_PRGODD0, 0},
-+       {ISPCCDC_PRGODD1, 0},
-+       {ISPCCDC_VP_OUT, 0},
-+       {ISPCCDC_LSC_CONFIG, 0},
-+       {ISPCCDC_LSC_INITIAL, 0},
-+       {ISPCCDC_LSC_TABLE_BASE, 0},
-+       {ISPCCDC_LSC_TABLE_OFFSET, 0},
-+       {ISP_TOK_TERM, 0}
++/*
++ * Coeficient Tables for the submodules in Preview.
++ * Array is initialised with the values from.the tables text file.
++ */
++
++/*
++ * CFA Filter Coefficient Table
++ *
++ */
++static u32 cfa_coef_table[] =3D {
++#include "cfa_coef_table.h"
++};
++
++/*
++ * Gamma Correction Table - Red
++ */
++static u32 redgamma_table[] =3D {
++#include "redgamma_table.h"
++};
++
++/*
++ * Gamma Correction Table - Green
++ */
++static u32 greengamma_table[] =3D {
++#include "greengamma_table.h"
++};
++
++/*
++ * Gamma Correction Table - Blue
++ */
++static u32 bluegamma_table[] =3D {
++#include "bluegamma_table.h"
++};
++
++/*
++ * Noise Filter Threshold table
++ */
++static u32 noise_filter_table[] =3D {
++#include "noise_filter_table.h"
++};
++
++/*
++ * Luminance Enhancement Table
++ */
++static u32 luma_enhance_table[] =3D {
++#include "luma_enhance_table.h"
 +};
 +
 +/**
-+ * omap34xx_isp_ccdc_config - Sets CCDC configuration from userspace
-+ * @userspace_add: Structure containing CCDC configuration sent from userspace.
-+ *
-+ * Returns 0 if successful, -EINVAL if the pointer to the configuration
-+ * structure is null, or the copy_from_user function fails to copy user space
-+ * memory to kernel space memory.
++ * omap34xx_isp_preview_config - Abstraction layer Preview configuration=
+.
++ * @userspace_add: Pointer from Userspace to structure with flags and da=
+ta to
++ *                 update.
 + **/
-+int omap34xx_isp_ccdc_config(void *userspace_add)
++int omap34xx_isp_preview_config(void *userspace_add)
 +{
-+       struct ispccdc_bclamp bclamp_t;
-+       struct ispccdc_blcomp blcomp_t;
-+       struct ispccdc_fpc fpc_t;
-+       struct ispccdc_culling cull_t;
-+       struct ispccdc_update_config *ccdc_struct;
-+       u32 old_size;
++       struct ispprev_hmed prev_hmed_t;
++       struct ispprev_cfa prev_cfa_t;
++       struct ispprev_csup csup_t;
++       struct ispprev_wbal prev_wbal_t;
++       struct ispprev_blkadj prev_blkadj_t;
++       struct ispprev_rgbtorgb rgb2rgb_t;
++       struct ispprev_yclimit yclimit_t;
++       struct ispprev_dcor prev_dcor_t;
++       struct ispprv_update_config *preview_struct;
++       struct isptables_update isp_table_update;
++       int yen_t[128];
 +
-+       if (userspace_add == NULL)
++       if (userspace_add =3D=3D NULL)
 +               return -EINVAL;
 +
-+       ccdc_struct = (struct ispccdc_update_config *) userspace_add;
++       preview_struct =3D (struct ispprv_update_config *)userspace_add;
 +
-+       if ((ISP_ABS_CCDC_ALAW & ccdc_struct->flag) == ISP_ABS_CCDC_ALAW) {
-+               if ((ISP_ABS_CCDC_ALAW & ccdc_struct->update) ==
-+                                                       ISP_ABS_CCDC_ALAW)
-+                       ispccdc_config_alaw(ccdc_struct->alawip);
-+               ispccdc_enable_alaw(1);
-+       } else if ((ISP_ABS_CCDC_ALAW & ccdc_struct->update) ==
-+                                                       ISP_ABS_CCDC_ALAW)
-+               ispccdc_enable_alaw(0);
++       if ((ISP_ABS_PREV_LUMAENH & preview_struct->flag) =3D=3D
++                                                       ISP_ABS_PREV_LUMA=
+ENH) {
++               if ((ISP_ABS_PREV_LUMAENH & preview_struct->update) =3D=3D
++                                                       ISP_ABS_PREV_LUMA=
+ENH) {
++                       if (copy_from_user(yen_t, preview_struct->yen,
++                                                               sizeof(ye=
+n_t)))
++                               goto err_copy_from_user;
++                       isppreview_config_luma_enhancement(yen_t);
++               }
++               params->features |=3D PREV_LUMA_ENHANCE;
++       } else if ((ISP_ABS_PREV_LUMAENH & preview_struct->update) =3D=3D
++                                                       ISP_ABS_PREV_LUMA=
+ENH)
++                       params->features &=3D ~PREV_LUMA_ENHANCE;
 +
-+       if ((ISP_ABS_CCDC_LPF & ccdc_struct->flag) == ISP_ABS_CCDC_LPF)
-+               ispccdc_enable_lpf(1);
-+       else
-+               ispccdc_enable_lpf(0);
-+
-+       if ((ISP_ABS_CCDC_BLCLAMP & ccdc_struct->flag) ==
-+               ISP_ABS_CCDC_BLCLAMP) {
-+               if ((ISP_ABS_CCDC_BLCLAMP & ccdc_struct->update) ==
-+                       ISP_ABS_CCDC_BLCLAMP) {
-+                       if (copy_from_user(&bclamp_t, (struct ispccdc_bclamp *)
-+                                               (ccdc_struct->bclamp),
-+                                               sizeof(struct ispccdc_bclamp)))
-+                               goto copy_from_user_err;
-+
-+                       ispccdc_enable_black_clamp(1);
-+                       ispccdc_config_black_clamp(bclamp_t);
-+               } else
-+                       ispccdc_enable_black_clamp(1);
++       if ((ISP_ABS_PREV_INVALAW & preview_struct->flag) =3D=3D
++                                                       ISP_ABS_PREV_INVA=
+LAW) {
++               isppreview_enable_invalaw(1);
++               params->features |=3D PREV_INVERSE_ALAW;
 +       } else {
-+               if ((ISP_ABS_CCDC_BLCLAMP & ccdc_struct->update) ==
-+                                       ISP_ABS_CCDC_BLCLAMP) {
-+                       ispccdc_enable_black_clamp(0);
-+                       ispccdc_config_black_clamp(bclamp_t);
-+               }
++               isppreview_enable_invalaw(0);
++               params->features &=3D ~PREV_INVERSE_ALAW;
 +       }
 +
-+       if ((ISP_ABS_CCDC_BCOMP & ccdc_struct->update) == ISP_ABS_CCDC_BCOMP) {
-+               if (copy_from_user(&blcomp_t, (struct ispccdc_blcomp *)
-+                                                       (ccdc_struct->blcomp),
-+                                                       sizeof(blcomp_t)))
-+                       goto copy_from_user_err;
-+
-+               ispccdc_config_black_comp(blcomp_t);
++       if ((ISP_ABS_PREV_HRZ_MED & preview_struct->flag) =3D=3D
++                                                       ISP_ABS_PREV_HRZ_=
+MED) {
++               if ((ISP_ABS_PREV_HRZ_MED & preview_struct->update) =3D=3D
++                                                       ISP_ABS_PREV_HRZ_=
+MED) {
++                       if (copy_from_user(&prev_hmed_t,
++                                               (struct ispprev_hmed *)
++                                               (preview_struct->prev_hme=
+d),
++                                               sizeof(struct ispprev_hme=
+d)))
++                               goto err_copy_from_user;
++                       isppreview_config_hmed(prev_hmed_t);
++               }
++               isppreview_enable_hmed(1);
++               params->features |=3D PREV_HORZ_MEDIAN_FILTER;
++       } else if ((ISP_ABS_PREV_HRZ_MED & preview_struct->update) =3D=3D
++                                                       ISP_ABS_PREV_HRZ_=
+MED) {
++               isppreview_enable_hmed(0);
++               params->features &=3D ~PREV_HORZ_MEDIAN_FILTER;
 +       }
 +
-+       if ((ISP_ABS_CCDC_FPC & ccdc_struct->flag) == ISP_ABS_CCDC_FPC) {
-+               if ((ISP_ABS_CCDC_FPC & ccdc_struct->update) ==
-+                                                       ISP_ABS_CCDC_FPC) {
-+                       if (copy_from_user(&fpc_t, (struct ispccdc_fpc *)
-+                                                       (ccdc_struct->fpc),
-+                                                       sizeof(fpc_t)))
-+                               goto copy_from_user_err;
-+                       fpc_table_add = kmalloc((64 + (fpc_t.fpnum * 4)),
-+                                                       GFP_KERNEL | GFP_DMA);
-+                       if (!fpc_table_add) {
-+                               printk(KERN_ERR "Cannot allocate memory for"
-+                                                               " FPC table");
-+                               return -ENOMEM;
-+                       }
-+                       while (((int)fpc_table_add & 0xFFFFFFC0) !=
-+                                                       (int)fpc_table_add)
-+                               fpc_table_add++;
++       if ((ISP_ABS_PREV_CFA & preview_struct->flag) =3D=3D ISP_ABS_PREV=
+_CFA) {
++               if ((ISP_ABS_PREV_CFA & preview_struct->update) =3D=3D
++                                                       ISP_ABS_PREV_CFA)=
+ {
++                       if (copy_from_user(&prev_cfa_t,
++                                               (struct ispprev_cfa *)
++                                               (preview_struct->prev_cfa=
+),
++                                               sizeof(struct ispprev_cfa=
+)))
++                               goto err_copy_from_user;
 +
-+                       fpc_table_add_m = ispmmu_map(virt_to_phys
-+                                                       (fpc_table_add),
-+                                                       (fpc_t.fpnum) * 4);
-+
-+                       if (copy_from_user(fpc_table_add, (u32 *)fpc_t.fpcaddr,
-+                                                       fpc_t.fpnum * 4))
-+                               goto copy_from_user_err;
-+
-+                       fpc_t.fpcaddr = fpc_table_add_m;
-+                       ispccdc_config_fpc(fpc_t);
++                       isppreview_config_cfa(prev_cfa_t);
 +               }
-+               ispccdc_enable_fpc(1);
-+       } else if ((ISP_ABS_CCDC_FPC & ccdc_struct->update) ==
-+                                                       ISP_ABS_CCDC_FPC)
-+                       ispccdc_enable_fpc(0);
-+
-+       if ((ISP_ABS_CCDC_CULL & ccdc_struct->update) == ISP_ABS_CCDC_CULL) {
-+               if (copy_from_user(&cull_t, (struct ispccdc_culling *)
-+                                                       (ccdc_struct->cull),
-+                                                       sizeof(cull_t)))
-+                       goto copy_from_user_err;
-+               ispccdc_config_culling(cull_t);
++               isppreview_enable_cfa(1);
++               params->features |=3D PREV_CFA;
++       } else if ((ISP_ABS_PREV_CFA & preview_struct->update) =3D=3D
++                                                       ISP_ABS_PREV_CFA)=
+ {
++               isppreview_enable_cfa(0);
++               params->features &=3D ~PREV_CFA;
 +       }
 +
-+       if (is_isplsc_activated()) {
-+               if ((ISP_ABS_CCDC_CONFIG_LSC & ccdc_struct->flag) ==
-+                                               ISP_ABS_CCDC_CONFIG_LSC) {
-+                       if ((ISP_ABS_CCDC_CONFIG_LSC & ccdc_struct->update) ==
-+                                               ISP_ABS_CCDC_CONFIG_LSC) {
-+                               old_size = lsc_config.size;
-+                               if (copy_from_user(&lsc_config,
-+                                               (struct ispccdc_lsc_config *)
-+                                               (ccdc_struct->lsc_cfg),
-+                                               sizeof(struct
-+                                               ispccdc_lsc_config)))
-+                                       goto copy_from_user_err;
-+                               lsc_initialized = 0;
-+                               if (lsc_config.size <= old_size)
-+                                       size_mismatch = 0;
-+                               else
-+                                       size_mismatch = 1;
-+                               ispccdc_config_lsc(&lsc_config);
-+                       }
-+                       ccdc_use_lsc = 1;
-+               } else if ((ISP_ABS_CCDC_CONFIG_LSC & ccdc_struct->update) ==
-+                                               ISP_ABS_CCDC_CONFIG_LSC) {
-+                               ispccdc_enable_lsc(0);
-+                               ccdc_use_lsc = 0;
++       if ((ISP_ABS_PREV_CHROMA_SUPP & preview_struct->flag) =3D=3D
++                                               ISP_ABS_PREV_CHROMA_SUPP)=
+ {
++               if ((ISP_ABS_PREV_CHROMA_SUPP & preview_struct->update) =3D=
+=3D
++                                               ISP_ABS_PREV_CHROMA_SUPP)=
+ {
++                       if (copy_from_user(&csup_t,
++                                               (struct ispprev_csup *)
++                                               (preview_struct->csup),
++                                               sizeof(struct ispprev_csu=
+p)))
++                               goto err_copy_from_user;
++                       isppreview_config_chroma_suppression(csup_t);
 +               }
-+               if ((ISP_ABS_TBL_LSC & ccdc_struct->update)
-+                       == ISP_ABS_TBL_LSC) {
-+                       if (size_mismatch) {
-+                               ispmmu_unmap(lsc_ispmmu_addr);
-+                               kfree(lsc_gain_table);
-+                               lsc_gain_table = kmalloc(
-+                                       lsc_config.size,
-+                                       GFP_KERNEL | GFP_DMA);
-+                               if (!lsc_gain_table) {
-+                                       printk(KERN_ERR
-+                                               "Cannot allocate\
-+                                               memory for \
-+                                               gain tables \n");
-+                                       return -ENOMEM;
-+                               }
-+                               lsc_ispmmu_addr = ispmmu_map(
-+                                       virt_to_phys(lsc_gain_table),
-+                                       lsc_config.size);
-+                               omap_writel(lsc_ispmmu_addr,
-+                                       ISPCCDC_LSC_TABLE_BASE);
-+                               lsc_initialized = 1;
-+                               size_mismatch = 0;
-+                       }
-+                       if (copy_from_user(lsc_gain_table,
-+                               (ccdc_struct->lsc), lsc_config.size))
-+                               goto copy_from_user_err;
-+               }
++               isppreview_enable_chroma_suppression(1);
++               params->features |=3D PREV_CHROMA_SUPPRESS;
++       } else if ((ISP_ABS_PREV_CHROMA_SUPP & preview_struct->update) =3D=
+=3D
++                                               ISP_ABS_PREV_CHROMA_SUPP)=
+ {
++               isppreview_enable_chroma_suppression(0);
++               params->features &=3D ~PREV_CHROMA_SUPPRESS;
 +       }
 +
-+       if ((ISP_ABS_CCDC_COLPTN & ccdc_struct->update) == ISP_ABS_CCDC_COLPTN)
-+               ispccdc_config_imgattr(ccdc_struct->colptn);
++       if ((ISP_ABS_PREV_WB & preview_struct->update) =3D=3D ISP_ABS_PRE=
+V_WB) {
++               if (copy_from_user(&prev_wbal_t, (struct ispprev_wbal *)
++                                               (preview_struct->prev_wba=
+l),
++                                               sizeof(struct ispprev_wba=
+l)))
++                       goto err_copy_from_user;
++               isppreview_config_whitebalance(prev_wbal_t);
++       }
++
++       if ((ISP_ABS_PREV_BLKADJ & preview_struct->update) =3D=3D
++                                                       ISP_ABS_PREV_BLKA=
+DJ) {
++               if (copy_from_user(&prev_blkadj_t, (struct ispprev_blkadj=
+l *)
++                                       (preview_struct->prev_blkadj),
++                                       sizeof(struct ispprev_blkadj)))
++                       goto err_copy_from_user;
++               isppreview_config_blkadj(prev_blkadj_t);
++       }
++
++       if ((ISP_ABS_PREV_RGB2RGB & preview_struct->update) =3D=3D
++                                                       ISP_ABS_PREV_RGB2=
+RGB) {
++               if (copy_from_user(&rgb2rgb_t, (struct ispprev_rgbtorgb *=
+)
++                                       (preview_struct->rgb2rgb),
++                                       sizeof(struct ispprev_rgbtorgb)))
++                       goto err_copy_from_user;
++               isppreview_config_rgb_blending(rgb2rgb_t);
++       }
++
++       if ((ISP_ABS_PREV_COLOR_CONV & preview_struct->update) =3D=3D
++                                               ISP_ABS_PREV_COLOR_CONV) =
+{
++               if (copy_from_user(&prev_csc_t, (struct ispprev_csc *)
++                                               (preview_struct->prev_csc=
+),
++                                               sizeof(struct ispprev_csc=
+)))
++                       goto err_copy_from_user;
++               spin_lock(&ispprev_obj.ispprev_lock);
++               if (ispprev_obj.stream_on =3D=3D 0) {
++                       isppreview_config_rgb_to_ycbcr(prev_csc_t);
++                       CSC_update =3D 0;
++               } else
++                       CSC_update =3D 1;
++
++               spin_unlock(&ispprev_obj.ispprev_lock);
++       } else
++               CSC_update =3D 0;
++
++       if ((ISP_ABS_PREV_YC_LIMIT & preview_struct->update) =3D=3D
++               ISP_ABS_PREV_YC_LIMIT) {
++               if (copy_from_user(&yclimit_t, (struct ispprev_yclimit *)
++                                       (preview_struct->yclimit),
++                                       sizeof(struct ispprev_yclimit)))
++                       goto err_copy_from_user;
++               isppreview_config_yc_range(yclimit_t);
++       }
++
++       if ((ISP_ABS_PREV_DEFECT_COR & preview_struct->flag) =3D=3D
++                                               ISP_ABS_PREV_DEFECT_COR) =
+{
++               if ((ISP_ABS_PREV_DEFECT_COR & preview_struct->update) =3D=
+=3D
++                                               ISP_ABS_PREV_DEFECT_COR) =
+{
++                       if (copy_from_user(&prev_dcor_t,
++                                               (struct ispprev_dcor *)
++                                               (preview_struct->prev_dco=
+r),
++                                               sizeof(struct ispprev_dco=
+r)))
++                               goto err_copy_from_user;
++                       isppreview_config_dcor(prev_dcor_t);
++               }
++               isppreview_enable_dcor(1);
++               params->features |=3D PREV_DEFECT_COR;
++       } else if ((ISP_ABS_PREV_DEFECT_COR & preview_struct->update) =3D=
+=3D
++                                               ISP_ABS_PREV_DEFECT_COR) =
+{
++               isppreview_enable_dcor(0);
++               params->features &=3D ~PREV_DEFECT_COR;
++       }
++
++       if ((ISP_ABS_PREV_GAMMABYPASS & preview_struct->flag) =3D=3D
++                                               ISP_ABS_PREV_GAMMABYPASS)=
+ {
++               isppreview_enable_gammabypass(1);
++               params->features |=3D PREV_GAMMA_BYPASS;
++       } else {
++               isppreview_enable_gammabypass(0);
++               params->features &=3D ~PREV_GAMMA_BYPASS;
++       }
++
++       isp_table_update.update =3D preview_struct->update;
++       isp_table_update.flag =3D preview_struct->flag;
++       isp_table_update.prev_nf =3D preview_struct->prev_nf;
++       isp_table_update.red_gamma =3D preview_struct->red_gamma;
++       isp_table_update.green_gamma =3D preview_struct->green_gamma;
++       isp_table_update.blue_gamma =3D preview_struct->blue_gamma;
++
++       if (omap34xx_isp_tables_update(&isp_table_update))
++               goto err_copy_from_user;
 +
 +       return 0;
 +
-+copy_from_user_err:
-+       printk(KERN_ERR "CCDC Config:Copy From User Error");
-+       return -EINVAL ;
++err_copy_from_user:
++       printk(KERN_ERR "Preview Config: Copy From User Error");
++       return -EINVAL;
 +}
-+EXPORT_SYMBOL(omap34xx_isp_ccdc_config);
++EXPORT_SYMBOL(omap34xx_isp_preview_config);
 +
 +/**
-+ * Set the value to be used for CCDC_CFG.WENLOG.
-+ *  w - Value of wenlog.
-+ */
-+void ispccdc_set_wenlog(u32 wenlog)
-+{
-+       ispccdc_obj.wenlog = wenlog;
-+}
-+EXPORT_SYMBOL(ispccdc_set_wenlog);
-+
-+/**
-+ * ispccdc_request - Reserves the CCDC module.
-+ *
-+ * Reserves the CCDC module and assures that is used only once at a time.
-+ *
-+ * Returns 0 if successful, or -EBUSY if CCDC module is busy.
++ * omap34xx_isp_tables_update - Abstraction layer Tables update.
++ * @isptables_struct: Pointer from Userspace to structure with flags and=
+ table
++ *                 data to update.
 + **/
-+int ispccdc_request(void)
++int omap34xx_isp_tables_update(struct isptables_update *isptables_struct=
+)
 +{
-+       mutex_lock(&ispccdc_obj.mutexlock);
-+       if (ispccdc_obj.ccdc_inuse) {
-+               mutex_unlock(&ispccdc_obj.mutexlock);
-+               DPRINTK_ISPCCDC("ISP_ERR : CCDC Module Busy");
++       int ctr;
++
++       if ((ISP_ABS_TBL_NF & isptables_struct->flag) =3D=3D ISP_ABS_TBL_=
+NF) {
++               NF_enable =3D 1;
++               params->features |=3D (PREV_NOISE_FILTER);
++               if ((ISP_ABS_TBL_NF & isptables_struct->update) =3D=3D
++                                                       ISP_ABS_TBL_NF) {
++                       if (copy_from_user(&prev_nf_t, (struct ispprev_nf=
+ *)
++                                               (isptables_struct->prev_n=
+f),
++                                               sizeof(struct ispprev_nf)=
+))
++                               goto err_copy_from_user;
++
++                       spin_lock(&ispprev_obj.ispprev_lock);
++                       if (ispprev_obj.stream_on =3D=3D 0) {
++                               NF_update =3D 0;
++                               isppreview_config_noisefilter(prev_nf_t);
++                               isppreview_enable_noisefilter(NF_enable);
++                       } else
++                               NF_update =3D 1;
++
++                       spin_unlock(&ispprev_obj.ispprev_lock);
++               } else
++                       NF_update =3D 0;
++       } else {
++               NF_enable =3D 0;
++               params->features &=3D ~(PREV_NOISE_FILTER);
++               if ((ISP_ABS_TBL_NF & isptables_struct->update) =3D=3D
++                                                               ISP_ABS_T=
+BL_NF)
++                       NF_update =3D 1;
++               else
++                       NF_update =3D 0;
++       }
++
++       if ((ISP_ABS_TBL_REDGAMMA & isptables_struct->update) =3D=3D
++                                                       ISP_ABS_TBL_REDGA=
+MMA) {
++               if (copy_from_user(redgamma_table, isptables_struct->red_=
+gamma,
++                                               sizeof(redgamma_table))) =
+{
++                       goto err_copy_from_user;
++               }
++               spin_lock(&ispprev_obj.ispprev_lock);
++               if (ispprev_obj.stream_on =3D=3D 0) {
++                       RG_update =3D 0;
++                       omap_writel(ISPPRV_TBL_ADDR_RED_G_START,
++                                                       ISPPRV_SET_TBL_AD=
+DR);
++                       for (ctr =3D 0; ctr < ISP_GAMMA_TABLE_SIZE; ctr++=
+)
++                               omap_writel(redgamma_table[ctr],
++                                                       ISPPRV_SET_TBL_DA=
+TA);
++               } else
++                       RG_update =3D 1;
++
++               spin_unlock(&ispprev_obj.ispprev_lock);
++       } else
++               RG_update =3D 0;
++
++       if ((ISP_ABS_TBL_GREENGAMMA & isptables_struct->update) =3D=3D
++                                               ISP_ABS_TBL_GREENGAMMA) {
++               if (copy_from_user(greengamma_table,
++                                               isptables_struct->green_g=
+amma,
++                                               sizeof(greengamma_table))=
+)
++                       goto err_copy_from_user;
++               spin_lock(&ispprev_obj.ispprev_lock);
++               if (ispprev_obj.stream_on =3D=3D 0) {
++                       GG_update =3D 0;
++                       omap_writel(ISPPRV_TBL_ADDR_GREEN_G_START,
++                                                       ISPPRV_SET_TBL_AD=
+DR);
++                       for (ctr =3D 0; ctr < ISP_GAMMA_TABLE_SIZE; ctr++=
+)
++                               omap_writel(greengamma_table[ctr],
++                                               ISPPRV_SET_TBL_DATA);
++               } else
++                       GG_update =3D 1;
++
++               spin_unlock(&ispprev_obj.ispprev_lock);
++       } else
++               GG_update =3D 0;
++
++       if ((ISP_ABS_TBL_BLUEGAMMA & isptables_struct->update) =3D=3D
++                                       ISP_ABS_TBL_BLUEGAMMA) {
++               if (copy_from_user(bluegamma_table, (isptables_struct->
++                                               blue_gamma),
++                                               sizeof(bluegamma_table)))=
+ {
++                       goto err_copy_from_user;
++               }
++               spin_lock(&ispprev_obj.ispprev_lock);
++               if (ispprev_obj.stream_on =3D=3D 0) {
++                       BG_update =3D 0;
++                       omap_writel(ISPPRV_TBL_ADDR_BLUE_G_START,
++                                                       ISPPRV_SET_TBL_AD=
+DR);
++                       for (ctr =3D 0; ctr < ISP_GAMMA_TABLE_SIZE; ctr++=
+)
++                               omap_writel(bluegamma_table[ctr],
++                                               ISPPRV_SET_TBL_DATA);
++               } else
++                       BG_update =3D 1;
++
++               spin_unlock(&ispprev_obj.ispprev_lock);
++       } else
++               BG_update =3D 0;
++
++       return 0;
++
++err_copy_from_user:
++       printk(KERN_ERR "Preview Tables:Copy From User Error");
++       return -EINVAL;
++}
++
++/**
++ * isppreview_config_shadow_registers - Program shadow registers for pre=
+view.
++ *
++ * Allows user to program shadow registers associated with preview modul=
+e.
++ **/
++void isppreview_config_shadow_registers()
++{
++       u8 current_brightness_contrast;
++       int ctr, prv_disabled;
++
++       isppreview_query_brightness(&current_brightness_contrast);
++       if (current_brightness_contrast !=3D ((ispprev_obj.brightness) *
++                                                       ISPPRV_BRIGHT_UNI=
+TS)) {
++               DPRINTK_ISPPREV(" Changing Brightness level to %d\n",
++                                               ispprev_obj.brightness);
++               isppreview_config_brightness((ispprev_obj.brightness) *
++                                                       ISPPRV_BRIGHT_UNI=
+TS);
++       }
++
++       isppreview_query_contrast(&current_brightness_contrast);
++       if (current_brightness_contrast !=3D ((ispprev_obj.contrast) *
++                                               ISPPRV_CONTRAST_UNITS)) {
++               DPRINTK_ISPPREV(" Changing Contrast level to %d\n",
++                                                       ispprev_obj.contr=
+ast);
++               isppreview_config_contrast((ispprev_obj.contrast) *
++                                                       ISPPRV_CONTRAST_U=
+NITS);
++       }
++       if (update_color_matrix) {
++               isppreview_config_rgb_to_ycbcr(flr_prev_csc[ispprev_obj.
++                                                               color]);
++               update_color_matrix =3D 0;
++       }
++       if (GG_update || RG_update || BG_update || NF_update || CSC_updat=
+e) {
++               isppreview_enable(0);
++               prv_disabled =3D 1;
++       }
++
++       if (CSC_update) {
++               isppreview_config_rgb_to_ycbcr(prev_csc_t);
++               CSC_update =3D 0;
++       }
++
++       if (GG_update) {
++               omap_writel(ISPPRV_TBL_ADDR_GREEN_G_START, ISPPRV_SET_TBL=
+_ADDR);
++
++               for (ctr =3D 0; ctr < ISP_GAMMA_TABLE_SIZE; ctr++) {
++                       omap_writel(greengamma_table[ctr],
++                                                       ISPPRV_SET_TBL_DA=
+TA);
++               }
++               GG_update =3D 0;
++       }
++
++       if (RG_update) {
++               omap_writel(ISPPRV_TBL_ADDR_RED_G_START, ISPPRV_SET_TBL_A=
+DDR);
++
++               for (ctr =3D 0; ctr < ISP_GAMMA_TABLE_SIZE; ctr++)
++                       omap_writel(redgamma_table[ctr], ISPPRV_SET_TBL_D=
+ATA);
++               RG_update =3D 0;
++       }
++
++       if (BG_update) {
++               omap_writel(ISPPRV_TBL_ADDR_BLUE_G_START, ISPPRV_SET_TBL_=
+ADDR);
++
++               for (ctr =3D 0; ctr < ISP_GAMMA_TABLE_SIZE; ctr++)
++                       omap_writel(bluegamma_table[ctr], ISPPRV_SET_TBL_=
+DATA);
++               BG_update =3D 0;
++       }
++
++       if (NF_update && NF_enable) {
++               omap_writel(0xC00, ISPPRV_SET_TBL_ADDR);
++               omap_writel(prev_nf_t.spread, ISPPRV_NF);
++               for (ctr =3D 0; ctr < 64; ctr++)
++                       omap_writel(prev_nf_t.table[ctr],
++                                                       ISPPRV_SET_TBL_DA=
+TA);
++               isppreview_enable_noisefilter(1);
++               NF_update =3D 0;
++       }
++
++       if (~NF_update && NF_enable)
++               isppreview_enable_noisefilter(1);
++
++       if (NF_update && ~NF_enable)
++               isppreview_enable_noisefilter(0);
++
++       if (prv_disabled) {
++               isppreview_enable(1);
++               prv_disabled =3D 0;
++       }
++}
++EXPORT_SYMBOL(isppreview_config_shadow_registers);
++
++/**
++ * isppreview_request - Reserves the preview module.
++ *
++ * Returns 0 if successful, or -EBUSY if the module was already reserved=
+.
++ **/
++int isppreview_request()
++{
++       mutex_lock(&ispprev_obj.ispprev_mutex);
++       if (!(ispprev_obj.prev_inuse)) {
++               ispprev_obj.prev_inuse =3D 1;
++               mutex_unlock(&ispprev_obj.ispprev_mutex);
++               omap_writel((omap_readl(ISP_CTRL)) | ISPCTRL_PREV_RAM_EN =
+|
++                                                       ISPCTRL_PREV_CLK_=
+EN |
++                                                       ISPCTRL_SBL_WR1_R=
+AM_EN,
++                                                       ISP_CTRL);
++               return 0;
++       } else {
++               mutex_unlock(&ispprev_obj.ispprev_mutex);
++               printk(KERN_ERR "ISP_ERR : Preview Module Busy\n");
 +               return -EBUSY;
 +       }
-+
-+       ispccdc_obj.ccdc_inuse = 1;
-+       mutex_unlock(&ispccdc_obj.mutexlock);
-+       omap_writel((omap_readl(ISP_CTRL)) | ISPCTRL_CCDC_RAM_EN |
-+                                                       ISPCTRL_CCDC_CLK_EN |
-+                                                       ISPCTRL_SBL_WR1_RAM_EN,
-+                                                       ISP_CTRL);
-+       omap_writel((omap_readl(ISPCCDC_CFG)) | ISPCCDC_CFG_VDLC, ISPCCDC_CFG);
-+       return 0;
 +}
-+EXPORT_SYMBOL(ispccdc_request);
++EXPORT_SYMBOL(isppreview_request);
 +
 +/**
-+ * ispccdc_free - Frees the CCDC module.
++ * isppreview_free - Frees the preview module.
 + *
-+ * Frees the CCDC module so it can be used by another process.
-+ *
-+ * Returns 0 if successful, or -EINVAL if module has been already freed.
++ * Returns 0 if successful, or -EINVAL if the module was already freed.
 + **/
-+int ispccdc_free(void)
++int isppreview_free()
 +{
-+       mutex_lock(&ispccdc_obj.mutexlock);
-+       if (!ispccdc_obj.ccdc_inuse) {
-+               mutex_unlock(&ispccdc_obj.mutexlock);
-+               DPRINTK_ISPCCDC("ISP_ERR: CCDC Module already freed\n");
-+               return -EINVAL;
-+       }
-+
-+       ispccdc_obj.ccdc_inuse = 0;
-+       mutex_unlock(&ispccdc_obj.mutexlock);
-+       omap_writel((omap_readl(ISP_CTRL)) & ~(ISPCTRL_CCDC_CLK_EN |
-+                                               ISPCTRL_CCDC_RAM_EN |
-+                                               ISPCTRL_SBL_WR1_RAM_EN),
-+                                               ISP_CTRL);
-+       return 0;
-+}
-+EXPORT_SYMBOL(ispccdc_free);
-+
-+/**
-+ * ispccdc_load_lsc - Load Lens Shading Compensation table.
-+ * @table_size: LSC gain table size.
-+ *
-+ * Returns 0 if successful, or -ENOMEM of its no memory available.
-+ **/
-+int ispccdc_load_lsc(u32 table_size)
-+{
-+       if (!is_isplsc_activated())
++       mutex_lock(&ispprev_obj.ispprev_mutex);
++       if (ispprev_obj.prev_inuse) {
++               ispprev_obj.prev_inuse =3D 0;
++               mutex_unlock(&ispprev_obj.ispprev_mutex);
++               omap_writel(omap_readl(ISP_CTRL) & ~(ISPCTRL_PREV_CLK_EN =
+|
++                                       ISPCTRL_PREV_RAM_EN |
++                                       ISPCTRL_SBL_WR1_RAM_EN), ISP_CTRL=
+);
 +               return 0;
-+
-+       if (table_size == 0)
-+               return -EINVAL;
-+
-+       if (lsc_initialized)
-+               return 0;
-+
-+       ispccdc_enable_lsc(0);
-+       lsc_gain_table = kmalloc(table_size, GFP_KERNEL | GFP_DMA);
-+
-+       if (!lsc_gain_table) {
-+               printk(KERN_ERR "Cannot allocate memory for gain tables \n");
-+               return -ENOMEM;
-+       }
-+
-+       memcpy(lsc_gain_table, ispccdc_lsc_tbl, table_size);
-+       lsc_ispmmu_addr = ispmmu_map(virt_to_phys(lsc_gain_table), table_size);
-+       omap_writel(lsc_ispmmu_addr, ISPCCDC_LSC_TABLE_BASE);
-+       lsc_initialized = 1;
-+       return 0;
-+}
-+EXPORT_SYMBOL(ispccdc_load_lsc);
-+
-+/**
-+ * ispccdc_config_lsc - Configures the lens shading compensation module
-+ * @lsc_cfg: LSC configuration structure
-+ **/
-+void ispccdc_config_lsc(struct ispccdc_lsc_config *lsc_cfg)
-+{
-+       int reg;
-+
-+       if (!is_isplsc_activated())
-+               return;
-+
-+       ispccdc_enable_lsc(0);
-+       omap_writel(lsc_cfg->offset, ISPCCDC_LSC_TABLE_OFFSET);
-+
-+       reg = 0;
-+       reg |= (lsc_cfg->gain_mode_n << ISPCCDC_LSC_GAIN_MODE_N_SHIFT);
-+       reg |= (lsc_cfg->gain_mode_m << ISPCCDC_LSC_GAIN_MODE_M_SHIFT);
-+       reg |= (lsc_cfg->gain_format << ISPCCDC_LSC_GAIN_FORMAT_SHIFT);
-+       omap_writel(reg, ISPCCDC_LSC_CONFIG);
-+
-+       reg = 0;
-+       reg &= ~ISPCCDC_LSC_INITIAL_X_MASK;
-+       reg |= (lsc_cfg->initial_x << ISPCCDC_LSC_INITIAL_X_SHIFT);
-+       reg &= ~ISPCCDC_LSC_INITIAL_Y_MASK;
-+       reg |= (lsc_cfg->initial_y << ISPCCDC_LSC_INITIAL_Y_SHIFT);
-+       omap_writel(reg, ISPCCDC_LSC_INITIAL);
-+}
-+EXPORT_SYMBOL(ispccdc_config_lsc);
-+
-+/**
-+ * ispccdc_enable_lsc - Enables/Disables the Lens Shading Compensation module.
-+ * @enable: 0 Disables LSC, 1 Enables LSC.
-+ **/
-+void ispccdc_enable_lsc(u8 enable)
-+{
-+       if (!is_isplsc_activated())
-+               return;
-+
-+       if (enable) {
-+               omap_writel(omap_readl(ISP_CTRL) | ISPCTRL_SBL_SHARED_RPORTB |
-+                                       ISPCTRL_SBL_RD_RAM_EN, ISP_CTRL);
-+               omap_writel(omap_readl(ISPCCDC_LSC_CONFIG) | 0x1,
-+                                                       ISPCCDC_LSC_CONFIG);
-+               ispccdc_obj.lsc_en = 1;
 +       } else {
-+               omap_writel(omap_readl(ISPCCDC_LSC_CONFIG) & 0xFFFE,
-+                                                       ISPCCDC_LSC_CONFIG);
-+               ispccdc_obj.lsc_en = 0;
++               mutex_unlock(&ispprev_obj.ispprev_mutex);
++               DPRINTK_ISPPREV("ISP_ERR : Preview Module already freed\n=
+");
++               return -EINVAL;
 +       }
++
 +}
-+EXPORT_SYMBOL(ispccdc_enable_lsc);
++EXPORT_SYMBOL(isppreview_free);
 +
-+
-+/**
-+ * ispccdc_config_crop - Configures crop parameters for the ISP CCDC.
-+ * @left: Left offset of the crop area.
-+ * @top: Top offset of the crop area.
-+ * @height: Height of the crop area.
-+ * @width: Width of the crop area.
-+ *
-+ * The following restrictions are applied for the crop settings. If incoming
-+ * values do not follow these restrictions then we map the settings to the
-+ * closest acceptable crop value.
-+ * 1) Left offset is always odd. This can be avoided if we enable byte swap
-+ *    option for incoming data into CCDC.
-+ * 2) Top offset is always even.
-+ * 3) Crop height is always even.
-+ * 4) Crop width is always a multiple of 16 pixels
-+ **/
-+void ispccdc_config_crop(u32 left, u32 top, u32 height, u32 width)
-+{
-+       ispccdc_obj.ccdcin_woffset = left + ((left + 1) % 2);
-+       ispccdc_obj.ccdcin_hoffset = top + (top % 2);
-+
-+       ispccdc_obj.crop_w = width - (width % 16);
-+       ispccdc_obj.crop_h = height + (height % 2);
-+
-+       DPRINTK_ISPCCDC("\n\tOffsets L %d T %d W %d H %d\n",
-+                                               ispccdc_obj.ccdcin_woffset,
-+                                               ispccdc_obj.ccdcin_hoffset,
-+                                               ispccdc_obj.crop_w,
-+                                               ispccdc_obj.crop_h);
-+}
-+
-+/**
-+ * ispccdc_config_datapath - Specifies the input and output modules for CCDC.
-+ * @input: Indicates the module that inputs the image to the CCDC.
-+ * @output: Indicates the module to which the CCDC outputs the image.
++/** isppreview_config_datapath - Specifies input and output modules for =
+Preview
++ * @input: Indicates the module that gives the image to preview.
++ * @output: Indicates the module to which the preview outputs to.
 + *
 + * Configures the default configuration for the CCDC to work with.
 + *
-+ * The valid values for the input are CCDC_RAW (0), CCDC_YUV_SYNC (1),
-+ * CCDC_YUV_BT (2), and CCDC_OTHERS (3).
++ * The valid values for the input are PRV_RAW_CCDC (0), PRV_RAW_MEM (1),
++ * PRV_RGBBAYERCFA (2), PRV_COMPCFA (3), PRV_CCDC_DRKF (4), PRV_OTHERS (=
+5).
 + *
-+ * The valid values for the output are CCDC_YUV_RSZ (0), CCDC_YUV_MEM_RSZ (1),
-+ * CCDC_OTHERS_VP (2), CCDC_OTHERS_MEM (3), CCDC_OTHERS_VP_MEM (4).
++ * The valid values for the output are PREVIEW_RSZ (0), PREVIEW_MEM (1).
 + *
-+ * Returns 0 if successful, or -EINVAL if wrong I/O combination or wrong input
-+ * or output values.
++ * Returns 0 if successful, or -EINVAL if wrong input or output values a=
+re
++ * specified.
 + **/
-+int ispccdc_config_datapath(enum ccdc_input input, enum ccdc_output output)
++int isppreview_config_datapath(enum preview_input input,
++                                               enum preview_output outpu=
+t)
 +{
-+       u32 syn_mode = 0;
-+       struct ispccdc_vp vpcfg;
-+       struct ispccdc_syncif syncif;
-+       struct ispccdc_bclamp blkcfg;
++       u32 pcr =3D 0;
++       u8 enable =3D 0;
++       struct prev_params *params =3D prev_config_params;
++       struct ispprev_yclimit yclimit;
 +
-+       u32 colptn = (ISPCCDC_COLPTN_Gr_Cy << ISPCCDC_COLPTN_CP0PLC0_SHIFT) |
-+               (ISPCCDC_COLPTN_R_Ye << ISPCCDC_COLPTN_CP0PLC1_SHIFT) |
-+               (ISPCCDC_COLPTN_Gr_Cy << ISPCCDC_COLPTN_CP0PLC2_SHIFT) |
-+               (ISPCCDC_COLPTN_R_Ye << ISPCCDC_COLPTN_CP0PLC3_SHIFT) |
-+               (ISPCCDC_COLPTN_B_Mg << ISPCCDC_COLPTN_CP1PLC0_SHIFT) |
-+               (ISPCCDC_COLPTN_Gb_G << ISPCCDC_COLPTN_CP1PLC1_SHIFT) |
-+               (ISPCCDC_COLPTN_B_Mg << ISPCCDC_COLPTN_CP1PLC2_SHIFT) |
-+               (ISPCCDC_COLPTN_Gb_G << ISPCCDC_COLPTN_CP1PLC3_SHIFT) |
-+               (ISPCCDC_COLPTN_Gr_Cy << ISPCCDC_COLPTN_CP2PLC0_SHIFT) |
-+               (ISPCCDC_COLPTN_R_Ye << ISPCCDC_COLPTN_CP2PLC1_SHIFT) |
-+               (ISPCCDC_COLPTN_Gr_Cy << ISPCCDC_COLPTN_CP2PLC2_SHIFT) |
-+               (ISPCCDC_COLPTN_R_Ye << ISPCCDC_COLPTN_CP2PLC3_SHIFT) |
-+               (ISPCCDC_COLPTN_B_Mg << ISPCCDC_COLPTN_CP3PLC0_SHIFT) |
-+               (ISPCCDC_COLPTN_Gb_G << ISPCCDC_COLPTN_CP3PLC1_SHIFT) |
-+               (ISPCCDC_COLPTN_B_Mg << ISPCCDC_COLPTN_CP3PLC2_SHIFT) |
-+               (ISPCCDC_COLPTN_Gb_G << ISPCCDC_COLPTN_CP3PLC3_SHIFT);
-+
-+       /* CCDC does not convert the image format */
-+       if (((input == CCDC_RAW) || (input == CCDC_OTHERS)) &&
-+                                               (output == CCDC_YUV_RSZ)) {
-+               DPRINTK_ISPCCDC("ISP_ERR: Wrong CCDC I/O Combination\n");
-+               return -EINVAL;
-+       }
-+
-+       syn_mode = omap_readl(ISPCCDC_SYN_MODE);
-+
-+       switch (output) {
-+       case CCDC_YUV_RSZ:
-+               syn_mode |= ISPCCDC_SYN_MODE_SDR2RSZ;
-+               syn_mode &= ~ISPCCDC_SYN_MODE_WEN;
-+               break;
-+
-+       case CCDC_YUV_MEM_RSZ:
-+               syn_mode |= ISPCCDC_SYN_MODE_SDR2RSZ;
-+               ispccdc_obj.wen = 1;
-+               syn_mode |= ISPCCDC_SYN_MODE_WEN;
-+               break;
-+
-+       case CCDC_OTHERS_VP:
-+               syn_mode &= ~ISPCCDC_SYN_MODE_VP2SDR;
-+               syn_mode &= ~ISPCCDC_SYN_MODE_SDR2RSZ;
-+               syn_mode &= ~ISPCCDC_SYN_MODE_WEN;
-+               vpcfg.bitshift_sel = BIT9_0;
-+               vpcfg.freq_sel = PIXCLKBY2;
-+               ispccdc_config_vp(vpcfg);
-+               ispccdc_enable_vp(1);
-+               break;
-+
-+       case CCDC_OTHERS_MEM:
-+               syn_mode &= ~ISPCCDC_SYN_MODE_VP2SDR;
-+               syn_mode &= ~ISPCCDC_SYN_MODE_SDR2RSZ;
-+               syn_mode |= ISPCCDC_SYN_MODE_WEN;
-+               syn_mode &= ~ISPCCDC_SYN_MODE_EXWEN;
-+               omap_writel((omap_readl(ISPCCDC_CFG)) & ~ISPCCDC_CFG_WENLOG,
-+                                                               ISPCCDC_CFG);
-+               vpcfg.bitshift_sel = BIT11_2;
-+               vpcfg.freq_sel = PIXCLKBY2;
-+               ispccdc_config_vp(vpcfg);
-+               ispccdc_enable_vp(0);
-+               break;
-+
-+       case CCDC_OTHERS_VP_MEM:
-+               syn_mode &= ~ISPCCDC_SYN_MODE_VP2SDR;
-+               syn_mode &= ~ISPCCDC_SYN_MODE_SDR2RSZ;
-+               syn_mode |= ISPCCDC_SYN_MODE_WEN;
-+               syn_mode |= ISPCCDC_SYN_MODE_EXWEN;
-+               omap_writel((omap_readl(ISPCCDC_CFG) & ~ISPCCDC_CFG_WENLOG) |
-+                                       ispccdc_obj.wenlog, ISPCCDC_CFG);
-+               vpcfg.bitshift_sel = BIT9_0;
-+               vpcfg.freq_sel = PIXCLKBY2;
-+               ispccdc_config_vp(vpcfg);
-+               ispccdc_enable_vp(1);
-+               break;
-+       default:
-+               DPRINTK_ISPCCDC("ISP_ERR: Wrong CCDC Output");
-+               return -EINVAL;
-+       };
-+
-+       omap_writel(syn_mode, ISPCCDC_SYN_MODE);
++       pcr =3D omap_readl(ISPPRV_PCR);
 +
 +       switch (input) {
-+       case CCDC_RAW:
-+               syncif.ccdc_mastermode = 0;
-+               syncif.datapol = 0;
-+               syncif.datsz = DAT10;
-+               syncif.fldmode = 0;
-+               syncif.fldout = 0;
-+               syncif.fldpol = 0;
-+               syncif.fldstat = 0;
-+               syncif.hdpol = 0;
-+               syncif.ipmod = RAW;
-+               syncif.vdpol = 0;
-+               ispccdc_config_sync_if(syncif);
-+               ispccdc_config_imgattr(colptn);
-+               blkcfg.dcsubval = 42;
-+               ispccdc_config_black_clamp(blkcfg);
-+               if (is_isplsc_activated()) {
-+                       ispccdc_config_lsc(&lsc_config);
-+                       ispccdc_load_lsc((u32)sizeof(ispccdc_lsc_tbl));
-+               }
-+
++       case PRV_RAW_CCDC:
++               pcr &=3D ~(ISPPRV_PCR_SOURCE);
++               pcr &=3D ~(ISPPRV_PCR_ONESHOT);
++               ispprev_obj.prev_inpfmt =3D PRV_RAW_CCDC;
 +               break;
-+       case CCDC_YUV_SYNC:
-+               syncif.ccdc_mastermode = 0;
-+               syncif.datapol = 0;
-+               syncif.datsz = DAT8;
-+               syncif.fldmode = 0;
-+               syncif.fldout = 0;
-+               syncif.fldpol = 0;
-+               syncif.fldstat = 0;
-+               syncif.hdpol = 0;
-+               syncif.ipmod = YUV16;
-+               syncif.vdpol = 0;
-+               ispccdc_config_imgattr(0);
-+               ispccdc_config_sync_if(syncif);
-+               blkcfg.dcsubval = 0;
-+               ispccdc_config_black_clamp(blkcfg);
++       case PRV_RAW_MEM:
++               pcr |=3D ISPPRV_PCR_SOURCE;
++               pcr |=3D ISPPRV_PCR_ONESHOT;
++               ispprev_obj.prev_inpfmt =3D PRV_RAW_MEM;
 +               break;
-+       case CCDC_YUV_BT:
++       case PRV_CCDC_DRKF:
++               pcr |=3D ISPPRV_PCR_DRKFCAP;
++               pcr |=3D ISPPRV_PCR_ONESHOT;
++               ispprev_obj.prev_inpfmt =3D PRV_CCDC_DRKF;
 +               break;
-+       case CCDC_OTHERS:
++       case PRV_COMPCFA:
++               ispprev_obj.prev_inpfmt =3D PRV_COMPCFA;
++               break;
++       case PRV_OTHERS:
++               ispprev_obj.prev_inpfmt =3D PRV_OTHERS;
++               break;
++       case PRV_RGBBAYERCFA:
++               ispprev_obj.prev_inpfmt =3D PRV_RGBBAYERCFA;
 +               break;
 +       default:
-+               DPRINTK_ISPCCDC("ISP_ERR: Wrong CCDC Input");
++               printk(KERN_ERR "ISP_ERR : Wrong Input\n");
++               return -EINVAL;
++       };
++
++       if (output =3D=3D PREVIEW_RSZ) {
++               pcr |=3D ISPPRV_PCR_RSZPORT;
++               pcr &=3D ~ISPPRV_PCR_SDRPORT;
++               ispprev_obj.prev_outfmt =3D PREVIEW_RSZ;
++       } else if (output =3D=3D PREVIEW_MEM) {
++               pcr &=3D ~ISPPRV_PCR_RSZPORT;
++               pcr |=3D ISPPRV_PCR_SDRPORT;
++               ispprev_obj.prev_outfmt =3D PREVIEW_MEM;
++       } else {
++               printk(KERN_ERR "ISP_ERR : Wrong Output\n");
 +               return -EINVAL;
 +       }
++       omap_writel(pcr, ISPPRV_PCR);
 +
-+       ispccdc_obj.ccdc_inpfmt = input;
-+       ispccdc_obj.ccdc_outfmt = output;
-+               ispccdc_print_status();
-+               isp_print_status();
++       isppreview_config_ycpos(params->pix_fmt);
++
++       if (params->cfa.cfa_table !=3D NULL)
++               isppreview_config_cfa(params->cfa);
++       if (params->csup.hypf_en =3D=3D 1)
++               isppreview_config_chroma_suppression(params->csup);
++       if (params->ytable !=3D NULL)
++               isppreview_config_luma_enhancement(params->ytable);
++
++       if (params->gtable.redtable !=3D NULL)
++               isppreview_config_gammacorrn(params->gtable);
++
++       enable =3D ((params->features & PREV_CFA) =3D=3D PREV_CFA) ? 1 : =
+0;
++       isppreview_enable_cfa(enable);
++
++       enable =3D ((params->features & PREV_CHROMA_SUPPRESS) =3D=3D
++                                               PREV_CHROMA_SUPPRESS) ? 1=
+ : 0;
++       isppreview_enable_chroma_suppression(enable);
++
++       enable =3D ((params->features & PREV_LUMA_ENHANCE) =3D=3D
++                                               PREV_LUMA_ENHANCE) ? 1 : =
+0;
++       isppreview_enable_luma_enhancement(enable);
++
++       enable =3D ((params->features & PREV_NOISE_FILTER) =3D=3D
++                                               PREV_NOISE_FILTER) ? 1 : =
+0;
++       if (enable)
++               isppreview_config_noisefilter(params->nf);
++       isppreview_enable_noisefilter(enable);
++
++       enable =3D ((params->features & PREV_DEFECT_COR) =3D=3D
++                                               PREV_DEFECT_COR) ? 1 : 0;
++       if (enable)
++               isppreview_config_dcor(params->dcor);
++       isppreview_enable_dcor(enable);
++
++       enable =3D ((params->features & PREV_GAMMA_BYPASS) =3D=3D
++                                               PREV_GAMMA_BYPASS) ? 1 : =
+0;
++       isppreview_enable_gammabypass(enable);
++
++       isppreview_config_whitebalance(params->wbal);
++       isppreview_config_blkadj(params->blk_adj);
++       isppreview_config_rgb_blending(params->rgb2rgb);
++       isppreview_config_rgb_to_ycbcr(params->rgb2ycbcr);
++
++       isppreview_config_contrast(params->contrast * ISPPRV_CONTRAST_UNI=
+TS);
++       isppreview_config_brightness(params->brightness * ISPPRV_BRIGHT_U=
+NITS);
++
++       yclimit.minC =3D ISPPRV_YC_MIN;
++       yclimit.maxC =3D ISPPRV_YC_MAX;
++       yclimit.minY =3D ISPPRV_YC_MIN;
++       yclimit.maxY =3D ISPPRV_YC_MAX;
++       isppreview_config_yc_range(yclimit);
++
 +       return 0;
 +}
-+EXPORT_SYMBOL(ispccdc_config_datapath);
++EXPORT_SYMBOL(isppreview_config_datapath);
 +
 +/**
-+ * ispccdc_config_sync_if - Sets the sync i/f params between sensor and CCDC.
-+ * @syncif: Structure containing the sync parameters like field state, CCDC in
-+ *          master/slave mode, raw/yuv data, polarity of data, field, hs, vs
-+ *          signals.
++ * isppreview_set_skip - Set the number of rows/columns that should be s=
+kipped.
++ *  h - Start Pixel Horizontal.
++ *  v - Start Line Vertical.
 + **/
-+void ispccdc_config_sync_if(struct ispccdc_syncif syncif)
++void isppreview_set_skip(u32 h, u32 v)
 +{
-+       u32 syn_mode = omap_readl(ISPCCDC_SYN_MODE);
-+
-+       syn_mode |= ISPCCDC_SYN_MODE_VDHDEN;
-+
-+       if (syncif.fldstat)
-+               syn_mode |= ISPCCDC_SYN_MODE_FLDSTAT;
-+       else
-+               syn_mode &= ~ISPCCDC_SYN_MODE_FLDSTAT;
-+
-+       syn_mode &= ISPCCDC_SYN_MODE_INPMOD_MASK;
-+       ispccdc_obj.syncif_ipmod = syncif.ipmod;
-+
-+       switch (syncif.ipmod) {
-+       case RAW:
-+               break;
-+       case YUV16:
-+               syn_mode |= ISPCCDC_SYN_MODE_INPMOD_YCBCR16;
-+               break;
-+       case YUV8:
-+               syn_mode |= ISPCCDC_SYN_MODE_INPMOD_YCBCR8;
-+               break;
-+       };
-+
-+       syn_mode &= ISPCCDC_SYN_MODE_DATSIZ_MASK;
-+       switch (syncif.datsz) {
-+       case DAT8:
-+               syn_mode |= ISPCCDC_SYN_MODE_DATSIZ_8;
-+               break;
-+       case DAT10:
-+               syn_mode |= ISPCCDC_SYN_MODE_DATSIZ_10;
-+               break;
-+       case DAT11:
-+               syn_mode |= ISPCCDC_SYN_MODE_DATSIZ_11;
-+               break;
-+       case DAT12:
-+               syn_mode |= ISPCCDC_SYN_MODE_DATSIZ_12;
-+               break;
-+       };
-+
-+       if (syncif.fldmode)
-+               syn_mode |= ISPCCDC_SYN_MODE_FLDMODE;
-+       else
-+               syn_mode &= ~ISPCCDC_SYN_MODE_FLDMODE;
-+
-+       if (syncif.datapol)
-+               syn_mode |= ISPCCDC_SYN_MODE_DATAPOL;
-+       else
-+               syn_mode &= ~ISPCCDC_SYN_MODE_DATAPOL;
-+
-+       if (syncif.fldpol)
-+               syn_mode |= ISPCCDC_SYN_MODE_FLDPOL;
-+       else
-+               syn_mode &= ~ISPCCDC_SYN_MODE_FLDPOL;
-+
-+       if (syncif.hdpol)
-+               syn_mode |= ISPCCDC_SYN_MODE_HDPOL;
-+       else
-+               syn_mode &= ~ISPCCDC_SYN_MODE_HDPOL;
-+
-+       if (syncif.vdpol)
-+               syn_mode |= ISPCCDC_SYN_MODE_VDPOL;
-+       else
-+               syn_mode &= ~ISPCCDC_SYN_MODE_VDPOL;
-+
-+       if (syncif.ccdc_mastermode) {
-+               syn_mode |= ISPCCDC_SYN_MODE_FLDOUT | ISPCCDC_SYN_MODE_VDHDOUT;
-+               omap_writel((syncif.hs_width << ISPCCDC_HD_VD_WID_HDW_SHIFT)
-+                                               | (syncif.vs_width <<
-+                                               ISPCCDC_HD_VD_WID_VDW_SHIFT),
-+                                               ISPCCDC_HD_VD_WID);
-+
-+               omap_writel(syncif.ppln << ISPCCDC_PIX_LINES_PPLN_SHIFT
-+                       | syncif.hlprf << ISPCCDC_PIX_LINES_HLPRF_SHIFT,
-+                       ISPCCDC_PIX_LINES);
-+       } else
-+               syn_mode &= ~(ISPCCDC_SYN_MODE_FLDOUT |
-+                                               ISPCCDC_SYN_MODE_VDHDOUT);
-+
-+       omap_writel(syn_mode, ISPCCDC_SYN_MODE);
-+
-+       if (!(syncif.bt_r656_en)) {
-+               omap_writel((omap_readl(ISPCCDC_REC656IF)) &
-+                                               ~ISPCCDC_REC656IF_R656ON,
-+                                               ISPCCDC_REC656IF);
-+       }
++       ispprev_obj.sph =3D h;
++       ispprev_obj.slv =3D v;
 +}
-+EXPORT_SYMBOL(ispccdc_config_sync_if);
++EXPORT_SYMBOL(isppreview_set_skip);
 +
 +/**
-+ * ispccdc_config_black_clamp - Configures the clamp parameters in CCDC.
-+ * @bclamp: Structure containing the optical black average gain, optical black
-+ *          sample length, sample lines, and the start pixel position of the
-+ *          samples w.r.t the HS pulse.
-+ * Configures the clamp parameters in CCDC. Either if its being used the
-+ * optical black clamp, or the digital clamp. If its a digital clamp, then
-+ * assures to put a valid DC substraction level.
-+ *
-+ * Returns always 0 when completed.
++ * isppreview_config_ycpos - Configure byte layout of YUV image.
++ * @mode: Indicates the required byte layout.
 + **/
-+int ispccdc_config_black_clamp(struct ispccdc_bclamp bclamp)
++void isppreview_config_ycpos(enum preview_ycpos_mode mode)
 +{
-+       u32 bclamp_val = 0;
++       u32 pcr =3D omap_readl(ISPPRV_PCR);
++       pcr &=3D ~ISPPRV_PCR_YCPOS_CrYCbY;
++       pcr |=3D (mode << ISPPRV_PCR_YCPOS_SHIFT);
++       omap_writel(pcr, ISPPRV_PCR);
++}
++EXPORT_SYMBOL(isppreview_config_ycpos);
 +
-+       if (ispccdc_obj.obclamp_en) {
-+               bclamp_val |= bclamp.obgain << ISPCCDC_CLAMP_OBGAIN_SHIFT;
-+               bclamp_val |= bclamp.oblen << ISPCCDC_CLAMP_OBSLEN_SHIFT;
-+               bclamp_val |= bclamp.oblines << ISPCCDC_CLAMP_OBSLN_SHIFT;
-+               bclamp_val |= bclamp.obstpixel << ISPCCDC_CLAMP_OBST_SHIFT;
-+               omap_writel(bclamp_val, ISPCCDC_CLAMP);
++/**
++ * isppreview_config_averager - Enable / disable / configure averager
++ * @average: Average value to be configured.
++ **/
++void isppreview_config_averager(u8 average)
++{
++       int reg =3D 0;
++
++       reg =3D AVE_ODD_PIXEL_DIST | AVE_EVEN_PIXEL_DIST | average;
++       omap_writel(reg, ISPPRV_AVE);
++}
++EXPORT_SYMBOL(isppreview_config_averager);
++
++/**
++ * isppreview_enable_invalaw - Enable/Disable Inverse A-Law module in Pr=
+eview.
++ * @enable: 1 - Reverse the A-Law done in CCDC.
++ **/
++void isppreview_enable_invalaw(u8 enable)
++{
++       u32 pcr_val =3D 0;
++       pcr_val =3D omap_readl(ISPPRV_PCR);
++
++       if (enable) {
++               omap_writel(pcr_val | ISPPRV_PCR_WIDTH | ISPPRV_PCR_INVAL=
+AW,
++                                                               ISPPRV_PC=
+R);
 +       } else {
-+               if (omap_rev() < OMAP3430_REV_ES2_0)
-+                       if ((ispccdc_obj.syncif_ipmod == YUV16) ||
-+                                       (ispccdc_obj.syncif_ipmod == YUV8) ||
-+                                       ((omap_readl(ISPCCDC_REC656IF) &
-+                                       ISPCCDC_REC656IF_R656ON) ==
-+                                       ISPCCDC_REC656IF_R656ON))
-+                               bclamp.dcsubval = 0;
-+               omap_writel(bclamp.dcsubval, ISPCCDC_DCSUB);
++               omap_writel(pcr_val & ~(ISPPRV_PCR_WIDTH | ISPPRV_PCR_INV=
+ALAW),
++                                                               ISPPRV_PC=
+R);
 +       }
-+       return 0;
 +}
-+EXPORT_SYMBOL(ispccdc_config_black_clamp);
++EXPORT_SYMBOL(isppreview_enable_invalaw);
 +
 +/**
-+ * ispccdc_enable_black_clamp - Enables/Disables the optical black clamp.
-+ * @enable: 0 Disables optical black clamp, 1 Enables optical black clamp.
++ * isppreview_enable_drkframe - Enable/Disable of the darkframe subtract=
+.
++ * @enable: 1 - Acquires memory bandwidth since the pixels in each frame=
+ is
++ *          subtracted with the pixels in the current frame.
 + *
-+ * Enables or disables the optical black clamp. When disabled, the digital
-+ * clamp operates.
++ * The proccess is applied for each captured frame.
 + **/
-+void ispccdc_enable_black_clamp(u8 enable)
++void isppreview_enable_drkframe(u8 enable)
 +{
 +       if (enable) {
-+               omap_writel((omap_readl(ISPCCDC_CLAMP))|ISPCCDC_CLAMP_CLAMPEN,
-+                                                               ISPCCDC_CLAMP);
-+               ispccdc_obj.obclamp_en = 1;
++               omap_writel(omap_readl(ISPPRV_PCR) | ISPPRV_PCR_DRKFEN,
++                                                               ISPPRV_PC=
+R);
 +       } else {
-+               omap_writel((omap_readl(ISPCCDC_CLAMP)) &
-+                                       ~ISPCCDC_CLAMP_CLAMPEN, ISPCCDC_CLAMP);
-+               ispccdc_obj.obclamp_en = 0;
++               omap_writel((omap_readl(ISPPRV_PCR)) & ~ISPPRV_PCR_DRKFEN=
+,
++                                                               ISPPRV_PC=
+R);
 +       }
 +}
-+EXPORT_SYMBOL(ispccdc_enable_black_clamp);
++EXPORT_SYMBOL(isppreview_enable_drkframe);
 +
 +/**
-+ * ispccdc_config_fpc - Configures the Faulty Pixel Correction parameters.
-+ * @fpc: Structure containing the number of faulty pixels corrected in the
-+ *       frame, address of the FPC table.
++ * isppreview_enable_shadcomp - Enables/Disables the shading compensatio=
+n.
++ * @enable: 1 - Enables the shading compensation.
 + *
-+ * Returns 0 if successful, or -EINVAL if FPC Address is not on the 64 byte
-+ * boundary.
++ * If dark frame subtract won't be used, then enable this shading
++ * compensation.
 + **/
-+int ispccdc_config_fpc(struct ispccdc_fpc fpc)
++void isppreview_enable_shadcomp(u8 enable)
 +{
-+       u32 fpc_val = 0;
 +
-+       fpc_val = omap_readl(ISPCCDC_FPC);
-+
-+       if ((fpc.fpcaddr & 0xFFFFFFC0) == fpc.fpcaddr) {
-+               omap_writel(fpc_val&(~ISPCCDC_FPC_FPCEN), ISPCCDC_FPC);
-+               omap_writel(fpc.fpcaddr, ISPCCDC_FPC_ADDR);
++       if (enable) {
++               omap_writel((omap_readl(ISPPRV_PCR)) | ISPPRV_PCR_SCOMP_E=
+N,
++                                                               ISPPRV_PC=
+R);
++               isppreview_enable_drkframe(1);
 +       } else {
-+               DPRINTK_ISPCCDC("FPC Address should be on 64byte boundary\n");
-+               return -EINVAL;
++               omap_writel((omap_readl(ISPPRV_PCR)) & ~ISPPRV_PCR_SCOMP_=
+EN,
++                                                               ISPPRV_PC=
+R);
 +       }
-+       omap_writel(fpc_val | (fpc.fpnum << ISPCCDC_FPC_FPNUM_SHIFT),
-+                                                               ISPCCDC_FPC);
-+       return 0;
 +}
-+EXPORT_SYMBOL(ispccdc_config_fpc);
++EXPORT_SYMBOL(isppreview_enable_shadcomp);
 +
 +/**
-+ * ispccdc_enable_fpc - Enables the Faulty Pixel Correction.
-+ * @enable: 0 Disables FPC, 1 Enables FPC.
++ * isppreview_config_drkf_shadcomp - Configures shift value in shading c=
+omp.
++ * @scomp_shtval: 3bit value of shift used in shading compensation.
 + **/
-+void ispccdc_enable_fpc(u8 enable)
++void isppreview_config_drkf_shadcomp(u8 scomp_shtval)
++{
++       u32 pcr_val =3D omap_readl(ISPPRV_PCR);
++
++       pcr_val &=3D ISPPRV_PCR_SCOMP_SFT_MASK;
++       omap_writel(pcr_val | (scomp_shtval << ISPPRV_PCR_SCOMP_SFT_SHIFT=
+),
++                                                               ISPPRV_PC=
+R);
++}
++EXPORT_SYMBOL(isppreview_config_drkf_shadcomp);
++
++/**
++ * isppreview_enable_hmed - Enables/Disables of the Horizontal Median Fi=
+lter.
++ * @enable: 1 - Enables Horizontal Median Filter.
++ **/
++void isppreview_enable_hmed(u8 enable)
 +{
 +       if (enable) {
-+               omap_writel(omap_readl(ISPCCDC_FPC) | ISPCCDC_FPC_FPCEN,
-+                                                               ISPCCDC_FPC);
++               omap_writel((omap_readl(ISPPRV_PCR)) | ISPPRV_PCR_HMEDEN,
++                       ISPPRV_PCR);
++               ispprev_obj.hmed_en =3D 1;
 +       } else {
-+               omap_writel(omap_readl(ISPCCDC_FPC) & ~ISPCCDC_FPC_FPCEN,
-+                                                               ISPCCDC_FPC);
++               omap_writel((omap_readl(ISPPRV_PCR)) & ~ISPPRV_PCR_HMEDEN=
+,
++                       ISPPRV_PCR);
++               ispprev_obj.hmed_en =3D 0;
 +       }
 +}
-+EXPORT_SYMBOL(ispccdc_enable_fpc);
++EXPORT_SYMBOL(isppreview_enable_hmed);
 +
 +/**
-+ * ispccdc_config_black_comp - Configures Black Level Compensation parameters.
-+ * @blcomp: Structure containing the black level compensation value for RGrGbB
-+ *          pixels. in 2's complement.
++ * isppreview_config_hmed - Configures the Horizontal Median Filter.
++ * @prev_hmed: Structure containing the odd and even distance between th=
+e
++ *             pixels in the image along with the filter threshold.
 + **/
-+void ispccdc_config_black_comp(struct ispccdc_blcomp blcomp)
++void isppreview_config_hmed(struct ispprev_hmed prev_hmed)
 +{
-+       u32 blcomp_val = 0;
 +
-+       blcomp_val |= blcomp.b_mg << ISPCCDC_BLKCMP_B_MG_SHIFT;
-+       blcomp_val |= blcomp.gb_g << ISPCCDC_BLKCMP_GB_G_SHIFT;
-+       blcomp_val |= blcomp.gr_cy << ISPCCDC_BLKCMP_GR_CY_SHIFT;
-+       blcomp_val |= blcomp.r_ye << ISPCCDC_BLKCMP_R_YE_SHIFT;
++       u32 odddist =3D 0;
++       u32 evendist =3D 0;
 +
-+       omap_writel(blcomp_val, ISPCCDC_BLKCMP);
++       if (prev_hmed.odddist =3D=3D 1)
++               odddist =3D ~ISPPRV_HMED_ODDDIST;
++       else
++               odddist =3D ISPPRV_HMED_ODDDIST;
++
++       if (prev_hmed.evendist =3D=3D 1)
++               evendist =3D ~ISPPRV_HMED_EVENDIST;
++       else
++               evendist =3D ISPPRV_HMED_EVENDIST;
++
++       omap_writel(odddist | evendist | (prev_hmed.thres <<
++                                               ISPPRV_HMED_THRESHOLD_SHI=
+FT),
++                                               ISPPRV_HMED);
++
 +}
-+EXPORT_SYMBOL(ispccdc_config_black_comp);
++EXPORT_SYMBOL(isppreview_config_hmed);
 +
 +/**
-+ * ispccdc_config_vp - Configures the Video Port Configuration parameters.
-+ * @vpcfg: Structure containing the Video Port input frequency, and the 10 bit
-+ *         format.
++ * isppreview_config_noisefilter - Configures the Noise Filter.
++ * @prev_nf: Structure containing the noisefilter table, strength to be =
+used
++ *           for the noise filter and the defect correction enable flag.
 + **/
-+void ispccdc_config_vp(struct ispccdc_vp vpcfg)
++void isppreview_config_noisefilter(struct ispprev_nf prev_nf)
 +{
-+       u32 fmtcfg_vp = omap_readl(ISPCCDC_FMTCFG);
++       int i =3D 0;
 +
-+       fmtcfg_vp &= ISPCCDC_FMTCFG_VPIN_MASK & ISPCCDC_FMTCF_VPIF_FRQ_MASK;
-+
-+       switch (vpcfg.bitshift_sel) {
-+       case BIT9_0:
-+               fmtcfg_vp |= ISPCCDC_FMTCFG_VPIN_9_0;
-+               break;
-+       case BIT10_1:
-+               fmtcfg_vp |= ISPCCDC_FMTCFG_VPIN_10_1;
-+               break;
-+       case BIT11_2:
-+               fmtcfg_vp |= ISPCCDC_FMTCFG_VPIN_11_2;
-+               break;
-+       case BIT12_3:
-+               fmtcfg_vp |= ISPCCDC_FMTCFG_VPIN_12_3;
-+               break;
-+       };
-+       switch (vpcfg.freq_sel) {
-+       case PIXCLKBY2:
-+               fmtcfg_vp |= ISPCCDC_FMTCF_VPIF_FRQ_BY2;
-+               break;
-+       case PIXCLKBY3_5:
-+               fmtcfg_vp |= ISPCCDC_FMTCF_VPIF_FRQ_BY3;
-+               break;
-+       case PIXCLKBY4_5:
-+               fmtcfg_vp |= ISPCCDC_FMTCF_VPIF_FRQ_BY4;
-+               break;
-+       case PIXCLKBY5_5:
-+               fmtcfg_vp |= ISPCCDC_FMTCF_VPIF_FRQ_BY5;
-+               break;
-+       case PIXCLKBY6_5:
-+               fmtcfg_vp |= ISPCCDC_FMTCF_VPIF_FRQ_BY6;
-+               break;
-+       };
-+       omap_writel(fmtcfg_vp, ISPCCDC_FMTCFG);
++       omap_writel(prev_nf.spread, ISPPRV_NF);
++       omap_writel(ISPPRV_NF_TABLE_ADDR, ISPPRV_SET_TBL_ADDR);
++       for (i =3D 0; i < 64; i++)
++               omap_writel(prev_nf.table[i], ISPPRV_SET_TBL_DATA);
 +}
-+EXPORT_SYMBOL(ispccdc_config_vp);
++EXPORT_SYMBOL(isppreview_config_noisefilter);
 +
 +/**
-+ * ispccdc_enable_vp - Enables the Video Port.
-+ * @enable: 0 Disables VP, 1 Enables VP
++ * isppreview_config_dcor - Configures the defect correction
++ * @prev_nf: Structure containing the defect correction structure
 + **/
-+void ispccdc_enable_vp(u8 enable)
++void isppreview_config_dcor(struct ispprev_dcor prev_dcor)
++{
++       if (prev_dcor.couplet_mode_en) {
++               omap_writel(prev_dcor.detect_correct[0], ISPPRV_CDC_THR0)=
+;
++               omap_writel(prev_dcor.detect_correct[1], ISPPRV_CDC_THR1)=
+;
++               omap_writel(prev_dcor.detect_correct[2], ISPPRV_CDC_THR2)=
+;
++               omap_writel(prev_dcor.detect_correct[3], ISPPRV_CDC_THR3)=
+;
++               omap_writel((omap_readl(ISPPRV_PCR)) | ISPPRV_PCR_DCCOUP,
++                                                               ISPPRV_PC=
+R);
++       } else {
++               omap_writel((omap_readl(ISPPRV_PCR)) & ~ISPPRV_PCR_DCCOUP=
+,
++                                                               ISPPRV_PC=
+R);
++       }
++}
++EXPORT_SYMBOL(isppreview_config_dcor);
++
++/**
++ * isppreview_config_cfa - Configures the CFA Interpolation parameters.
++ * @prev_cfa: Structure containing the CFA interpolation table, CFA form=
+at
++ *            in the image, vertical and horizontal gradient threshold.
++ **/
++void isppreview_config_cfa(struct ispprev_cfa prev_cfa)
++{
++       int i =3D 0;
++
++       ispprev_obj.cfafmt =3D prev_cfa.cfafmt;
++
++       omap_writel((omap_readl(ISPPRV_PCR)) | (prev_cfa.cfafmt <<
++                                       ISPPRV_PCR_CFAFMT_SHIFT), ISPPRV_=
+PCR);
++
++       omap_writel((prev_cfa.cfa_gradthrs_vert <<
++                                               ISPPRV_CFA_GRADTH_VER_SHI=
+FT) |
++                                               (prev_cfa.cfa_gradthrs_ho=
+rz <<
++                                               ISPPRV_CFA_GRADTH_HOR_SHI=
+FT),
++                                               ISPPRV_CFA);
++
++       omap_writel(ISPPRV_CFA_TABLE_ADDR, ISPPRV_SET_TBL_ADDR);
++
++       for (i =3D 0; i < 576; i++)
++               omap_writel(prev_cfa.cfa_table[i], ISPPRV_SET_TBL_DATA);
++}
++EXPORT_SYMBOL(isppreview_config_cfa);
++
++/**
++ * isppreview_config_gammacorrn - Configures the Gamma Correction table =
+values
++ * @gtable: Structure containing the table for red, blue, green gamma ta=
+ble.
++ **/
++void isppreview_config_gammacorrn(struct ispprev_gtable gtable)
++{
++       int i =3D 0;
++
++       omap_writel(ISPPRV_REDGAMMA_TABLE_ADDR, ISPPRV_SET_TBL_ADDR);
++       for (i =3D 0; i < 1024; i++)
++               omap_writel(gtable.redtable[i], ISPPRV_SET_TBL_DATA);
++
++       omap_writel(ISPPRV_GREENGAMMA_TABLE_ADDR, ISPPRV_SET_TBL_ADDR);
++       for (i =3D 0; i < 1024; i++)
++               omap_writel(gtable.greentable[i], ISPPRV_SET_TBL_DATA);
++
++       omap_writel(ISPPRV_BLUEGAMMA_TABLE_ADDR, ISPPRV_SET_TBL_ADDR);
++       for (i =3D 0; i < 1024; i++)
++               omap_writel(gtable.bluetable[i], ISPPRV_SET_TBL_DATA);
++}
++EXPORT_SYMBOL(isppreview_config_gammacorrn);
++
++/**
++ * isppreview_config_luma_enhancement - Sets the Luminance Enhancement t=
+able.
++ * @ytable: Structure containing the table for Luminance Enhancement tab=
+le.
++ **/
++void isppreview_config_luma_enhancement(u32 *ytable)
++{
++       int i =3D 0;
++
++       omap_writel(ISPPRV_YENH_TABLE_ADDR, ISPPRV_SET_TBL_ADDR);
++       for (i =3D 0; i < 128; i++)
++               omap_writel(ytable[i], ISPPRV_SET_TBL_DATA);
++}
++EXPORT_SYMBOL(isppreview_config_luma_enhancement);
++
++/**
++ * isppreview_config_chroma_suppression - Configures the Chroma Suppress=
+ion.
++ * @csup: Structure containing the threshold value for suppression
++ *        and the hypass filter enable flag.
++ **/
++void isppreview_config_chroma_suppression(struct ispprev_csup csup)
++{
++       omap_writel(csup.gain | (csup.thres << ISPPRV_CSUP_THRES_SHIFT) |
++                               (csup.hypf_en << ISPPRV_CSUP_HPYF_SHIFT),
++                               ISPPRV_CSUP);
++}
++EXPORT_SYMBOL(isppreview_config_chroma_suppression);
++
++/**
++ * isppreview_enable_noisefilter - Enables/Disables the Noise Filter.
++ * @enable: 1 - Enables the Noise Filter.
++ **/
++void isppreview_enable_noisefilter(u8 enable)
 +{
 +       if (enable) {
-+               omap_writel((omap_readl(ISPCCDC_FMTCFG)) |
-+                                       ISPCCDC_FMTCFG_VPEN, ISPCCDC_FMTCFG);
++               omap_writel((omap_readl(ISPPRV_PCR)) | ISPPRV_PCR_NFEN,
++                                                               ISPPRV_PC=
+R);
++               ispprev_obj.nf_en =3D 1;
 +       } else {
-+               omap_writel(omap_readl(ISPCCDC_FMTCFG) &
-+                                       ~ISPCCDC_FMTCFG_VPEN, ISPCCDC_FMTCFG);
++               omap_writel((omap_readl(ISPPRV_PCR)) & ~ISPPRV_PCR_NFEN,
++                                                               ISPPRV_PC=
+R);
++               ispprev_obj.nf_en =3D 0;
 +       }
 +}
-+EXPORT_SYMBOL(ispccdc_enable_vp);
++EXPORT_SYMBOL(isppreview_enable_noisefilter);
 +
 +/**
-+ * ispccdc_config_reformatter - Configures the Reformatter.
-+ * @refmt: Structure containing the memory address to format and the bit fields
-+ *         for the reformatter registers.
++ * isppreview_enable_dcor - Enables/Disables the defect correction.
++ * @enable: 1 - Enables the defect correction.
++ **/
++void isppreview_enable_dcor(u8 enable)
++{
++       if (enable) {
++               omap_writel((omap_readl(ISPPRV_PCR)) | ISPPRV_PCR_DCOREN,
++                                                               ISPPRV_PC=
+R);
++               ispprev_obj.dcor_en =3D 1;
++       } else {
++               omap_writel((omap_readl(ISPPRV_PCR)) & ~ISPPRV_PCR_DCOREN=
+,
++                                                               ISPPRV_PC=
+R);
++               ispprev_obj.dcor_en =3D 0;
++       }
++}
++EXPORT_SYMBOL(isppreview_enable_dcor);
++
++/**
++ * isppreview_enable_cfa - Enable/Disable the CFA Interpolation.
++ * @enable: 1 - Enables the CFA.
++ **/
++void isppreview_enable_cfa(u8 enable)
++{
++       if (enable) {
++               omap_writel((omap_readl(ISPPRV_PCR)) | ISPPRV_PCR_CFAEN,
++                                                               ISPPRV_PC=
+R);
++               ispprev_obj.cfa_en =3D 1;
++       } else {
++               omap_writel((omap_readl(ISPPRV_PCR)) & ~ISPPRV_PCR_CFAEN,
++                                                               ISPPRV_PC=
+R);
++               ispprev_obj.cfa_en =3D 0;
++       }
++
++}
++EXPORT_SYMBOL(isppreview_enable_cfa);
++
++/**
++ * isppreview_enable_gammabypass - Enables/Disables the GammaByPass
++ * @enable: 1 - Bypasses Gamma - 10bit input is cropped to 8MSB.
++ *          0 - Goes through Gamma Correction. input and output is 10bit=
+.
++ **/
++void isppreview_enable_gammabypass(u8 enable)
++{
++       if (enable) {
++               omap_writel((omap_readl(ISPPRV_PCR)) | ISPPRV_PCR_GAMMA_B=
+YPASS,
++                                                               ISPPRV_PC=
+R);
++       } else {
++               omap_writel((omap_readl(ISPPRV_PCR)) &
++                                               ~ISPPRV_PCR_GAMMA_BYPASS,
++                                               ISPPRV_PCR);
++       }
++}
++EXPORT_SYMBOL(isppreview_enable_gammabypass);
++
++/**
++ * isppreview_enable_luma_enhancement - Enables/Disables Luminance Enhan=
+cement
++ * @enable: 1 - Enable the Luminance Enhancement.
++ **/
++void isppreview_enable_luma_enhancement(u8 enable)
++{
++       if (enable) {
++               omap_writel((omap_readl(ISPPRV_PCR)) | ISPPRV_PCR_YNENHEN=
+,
++                                                               ISPPRV_PC=
+R);
++               ispprev_obj.yenh_en =3D 1;
++       } else {
++               omap_writel((omap_readl(ISPPRV_PCR)) & ~ISPPRV_PCR_YNENHE=
+N,
++                                                               ISPPRV_PC=
+R);
++               ispprev_obj.yenh_en =3D 0;
++       }
++}
++EXPORT_SYMBOL(isppreview_enable_luma_enhancement);
++
++/**
++ * isppreview_enable_chroma_suppression - Enables/Disables Chrominance S=
+uppr.
++ * @enable: 1 - Enable the Chrominance Suppression.
++ **/
++void isppreview_enable_chroma_suppression(u8 enable)
++{
++       if (enable) {
++               omap_writel((omap_readl(ISPPRV_PCR)) | ISPPRV_PCR_SUPEN,
++                                                               ISPPRV_PC=
+R);
++               ispprev_obj.csup_en =3D 1;
++       } else {
++               omap_writel((omap_readl(ISPPRV_PCR)) & ~ISPPRV_PCR_SUPEN,
++                                                               ISPPRV_PC=
+R);
++               ispprev_obj.csup_en =3D 0;
++       }
++}
++EXPORT_SYMBOL(isppreview_enable_chroma_suppression);
++
++/**
++ * isppreview_config_whitebalance - Configures the White Balance paramet=
+ers.
++ * @prev_wbal: Structure containing the digital gain and white balance
++ *             coefficient.
 + *
-+ * Configures the Reformatter register values if line alternating is disabled.
-+ * Else, just enabling line alternating is enough.
++ * Coefficient matrix always with default values.
 + **/
-+void ispccdc_config_reformatter(struct ispccdc_refmt refmt)
++void isppreview_config_whitebalance(struct ispprev_wbal prev_wbal)
 +{
-+       u32 fmtcfg_val = 0;
 +
-+       fmtcfg_val = omap_readl(ISPCCDC_FMTCFG);
++       omap_writel(prev_wbal.dgain, ISPPRV_WB_DGAIN);
++       omap_writel(prev_wbal.coef0 |
++                               prev_wbal.coef1 << ISPPRV_WBGAIN_COEF1_SH=
+IFT |
++                               prev_wbal.coef2 << ISPPRV_WBGAIN_COEF2_SH=
+IFT |
++                               prev_wbal.coef3 << ISPPRV_WBGAIN_COEF3_SH=
+IFT,
++                               ISPPRV_WBGAIN);
 +
-+       if (refmt.lnalt)
-+               fmtcfg_val |= ISPCCDC_FMTCFG_LNALT;
-+       else {
-+               fmtcfg_val &= ~ISPCCDC_FMTCFG_LNALT;
-+               fmtcfg_val &= 0xFFFFF003;
-+               fmtcfg_val |= refmt.lnum << ISPCCDC_FMTCFG_LNUM_SHIFT;
-+               fmtcfg_val |= refmt.plen_even <<
-+                                               ISPCCDC_FMTCFG_PLEN_EVEN_SHIFT;
-+               fmtcfg_val |= refmt.plen_odd << ISPCCDC_FMTCFG_PLEN_ODD_SHIFT;
++       omap_writel((ISPPRV_WBSEL_COEF0 << ISPPRV_WBSEL_N0_0_SHIFT) |
++                       (ISPPRV_WBSEL_COEF1 << ISPPRV_WBSEL_N0_1_SHIFT) |
++                       (ISPPRV_WBSEL_COEF0 << ISPPRV_WBSEL_N0_2_SHIFT) |
++                       (ISPPRV_WBSEL_COEF1 << ISPPRV_WBSEL_N0_3_SHIFT) |
++                       (ISPPRV_WBSEL_COEF2 << ISPPRV_WBSEL_N1_0_SHIFT) |
++                       (ISPPRV_WBSEL_COEF3 << ISPPRV_WBSEL_N1_1_SHIFT) |
++                       (ISPPRV_WBSEL_COEF2 << ISPPRV_WBSEL_N1_2_SHIFT) |
++                       (ISPPRV_WBSEL_COEF3 << ISPPRV_WBSEL_N1_3_SHIFT) |
++                       (ISPPRV_WBSEL_COEF0 << ISPPRV_WBSEL_N2_0_SHIFT) |
++                       (ISPPRV_WBSEL_COEF1 << ISPPRV_WBSEL_N2_1_SHIFT) |
++                       (ISPPRV_WBSEL_COEF0 << ISPPRV_WBSEL_N2_2_SHIFT) |
++                       (ISPPRV_WBSEL_COEF1 << ISPPRV_WBSEL_N2_3_SHIFT) |
++                       (ISPPRV_WBSEL_COEF2 << ISPPRV_WBSEL_N3_0_SHIFT) |
++                       (ISPPRV_WBSEL_COEF3 << ISPPRV_WBSEL_N3_1_SHIFT) |
++                       (ISPPRV_WBSEL_COEF2 << ISPPRV_WBSEL_N3_2_SHIFT) |
++                       (ISPPRV_WBSEL_COEF3 << ISPPRV_WBSEL_N3_3_SHIFT),
++                       ISPPRV_WBSEL);
 +
-+               omap_writel(refmt.prgeven0, ISPCCDC_PRGEVEN0);
-+               omap_writel(refmt.prgeven1, ISPCCDC_PRGEVEN1);
-+               omap_writel(refmt.prgodd0, ISPCCDC_PRGODD0);
-+               omap_writel(refmt.prgodd1, ISPCCDC_PRGODD1);
-+               omap_writel(refmt.fmtaddr0, ISPCCDC_FMT_ADDR0);
-+               omap_writel(refmt.fmtaddr1, ISPCCDC_FMT_ADDR1);
-+               omap_writel(refmt.fmtaddr2, ISPCCDC_FMT_ADDR2);
-+               omap_writel(refmt.fmtaddr3, ISPCCDC_FMT_ADDR3);
-+               omap_writel(refmt.fmtaddr4, ISPCCDC_FMT_ADDR4);
-+               omap_writel(refmt.fmtaddr5, ISPCCDC_FMT_ADDR5);
-+               omap_writel(refmt.fmtaddr6, ISPCCDC_FMT_ADDR6);
-+               omap_writel(refmt.fmtaddr7, ISPCCDC_FMT_ADDR7);
-+       }
-+       omap_writel(fmtcfg_val, ISPCCDC_FMTCFG);
 +}
-+EXPORT_SYMBOL(ispccdc_config_reformatter);
++EXPORT_SYMBOL(isppreview_config_whitebalance);
 +
 +/**
-+ * ispccdc_enable_reformatter - Enables the Reformatter.
-+ * @enable: 0 Disables Reformatter, 1- Enables Data Reformatter
-+ **/
-+void ispccdc_enable_reformatter(u8 enable)
-+{
-+       if (enable) {
-+               omap_writel((omap_readl(ISPCCDC_FMTCFG)) |
-+                                                       ISPCCDC_FMTCFG_FMTEN,
-+                                                       ISPCCDC_FMTCFG);
-+               ispccdc_obj.refmt_en = 1;
-+       } else {
-+               omap_writel((omap_readl(ISPCCDC_FMTCFG)) &
-+                                                       ~ISPCCDC_FMTCFG_FMTEN,
-+                                                       ISPCCDC_FMTCFG);
-+               ispccdc_obj.refmt_en = 0;
-+       }
-+}
-+EXPORT_SYMBOL(ispccdc_enable_reformatter);
-+
-+/**
-+ * ispccdc_config_culling - Configures the culling parameters.
-+ * @cull: Structure containing the vertical culling pattern, and horizontal
-+ *        culling pattern for odd and even lines.
-+ **/
-+void ispccdc_config_culling(struct ispccdc_culling cull)
-+{
-+       u32 culling_val = 0;
-+
-+       culling_val |= cull.v_pattern << ISPCCDC_CULLING_CULV_SHIFT;
-+       culling_val |= cull.h_even << ISPCCDC_CULLING_CULHEVN_SHIFT;
-+       culling_val |= cull.h_odd << ISPCCDC_CULLING_CULHODD_SHIFT;
-+
-+       omap_writel(culling_val, ISPCCDC_CULLING);
-+}
-+EXPORT_SYMBOL(ispccdc_config_culling);
-+
-+/**
-+ * ispccdc_enable_lpf - Enables the Low-Pass Filter (LPF).
-+ * @enable: 0 Disables LPF, 1 Enables LPF
-+ **/
-+void ispccdc_enable_lpf(u8 enable)
-+{
-+       if (enable) {
-+               omap_writel(omap_readl(ISPCCDC_SYN_MODE) |
-+                                                       ISPCCDC_SYN_MODE_LPF,
-+                                                       ISPCCDC_SYN_MODE);
-+       } else {
-+               omap_writel(omap_readl(ISPCCDC_SYN_MODE) &
-+                                                       ~ISPCCDC_SYN_MODE_LPF,
-+                                                       ISPCCDC_SYN_MODE);
-+       }
-+}
-+EXPORT_SYMBOL(ispccdc_enable_lpf);
-+
-+/**
-+ * ispccdc_config_alaw - Configures the input width for A-law.
-+ * @ipwidth: Input width for A-law
-+ **/
-+void ispccdc_config_alaw(enum alaw_ipwidth ipwidth)
-+{
-+       omap_writel(ipwidth << ISPCCDC_ALAW_GWDI_SHIFT, ISPCCDC_ALAW);
-+}
-+EXPORT_SYMBOL(ispccdc_config_alaw);
-+
-+/**
-+ * ispccdc_enable_alaw - Enables the A-law compression.
-+ * @enable: 0 - Disables A-law, 1 - Enables A-law
-+ **/
-+void ispccdc_enable_alaw(u8 enable)
-+{
-+       if (enable) {
-+               omap_writel((omap_readl(ISPCCDC_ALAW)) | ISPCCDC_ALAW_CCDTBL,
-+                                                               ISPCCDC_ALAW);
-+       } else {
-+               omap_writel((omap_readl(ISPCCDC_ALAW)) & ~ISPCCDC_ALAW_CCDTBL,
-+                                                               ISPCCDC_ALAW);
-+       }
-+}
-+EXPORT_SYMBOL(ispccdc_enable_alaw);
-+
-+/**
-+ * ispccdc_config_imgattr - Configures the sensor image specific attributes.
-+ * @colptn: Color pattern of the sensor.
-+ **/
-+void ispccdc_config_imgattr(u32 colptn)
-+{
-+       omap_writel(colptn, ISPCCDC_COLPTN);
-+}
-+EXPORT_SYMBOL(ispccdc_config_imgattr);
-+
-+/**
-+ * ispccdc_config_shadow_registers - Programs the shadow registers for CCDC.
-+ * Currently nothing to program in shadow, but kept for future use.
-+ **/
-+void ispccdc_config_shadow_registers(void)
-+{
-+       return;
-+}
-+EXPORT_SYMBOL(ispccdc_config_shadow_registers);
-+
-+/**
-+ * ispccdc_try_size - Checks if requested Input/output dimensions are valid
-+ * @input_w: input width for the CCDC in number of pixels per line
-+ * @input_h: input height for the CCDC in number of lines
-+ * @output_w: output width from the CCDC in number of pixels per line
-+ * @output_h: output height for the CCDC in number of lines
++ * isppreview_config_whitebalance2 - Configures the White Balance parame=
+ters.
++ * @prev_wbal: Structure containing the digital gain and white balance
++ *             coefficient.
 + *
-+ * Calculates the number of pixels cropped if the reformater is disabled,
-+ * Fills up the output width and height variables in the isp_ccdc structure.
-+ *
-+ * Returns 0 if successful, or -EINVAL if the input width is less than 2 pixels
++ * Coefficient matrix can be changed.
 + **/
-+int ispccdc_try_size(u32 input_w, u32 input_h, u32 *output_w, u32 *output_h)
++void isppreview_config_whitebalance2(struct prev_white_balance prev_wbal=
+)
 +{
++       omap_writel(prev_wbal.wb_dgain, ISPPRV_WB_DGAIN);
++       omap_writel(prev_wbal.wb_gain[0] |
++                       (prev_wbal.wb_gain[1] << ISPPRV_WBGAIN_COEF1_SHIF=
+T) |
++                       (prev_wbal.wb_gain[2] << ISPPRV_WBGAIN_COEF2_SHIF=
+T) |
++                       (prev_wbal.wb_gain[3] << ISPPRV_WBGAIN_COEF3_SHIF=
+T),
++                       ISPPRV_WBGAIN);
++
++       omap_writel(prev_wbal.wb_coefmatrix[0][0] << ISPPRV_WBSEL_N0_0_SH=
+IFT |
++               prev_wbal.wb_coefmatrix[0][1] << ISPPRV_WBSEL_N0_1_SHIFT =
+|
++               prev_wbal.wb_coefmatrix[0][2] << ISPPRV_WBSEL_N0_2_SHIFT =
+|
++               prev_wbal.wb_coefmatrix[0][3] << ISPPRV_WBSEL_N0_3_SHIFT =
+|
++               prev_wbal.wb_coefmatrix[1][0] << ISPPRV_WBSEL_N1_0_SHIFT =
+|
++               prev_wbal.wb_coefmatrix[1][1] << ISPPRV_WBSEL_N1_1_SHIFT =
+|
++               prev_wbal.wb_coefmatrix[1][2] << ISPPRV_WBSEL_N1_2_SHIFT =
+|
++               prev_wbal.wb_coefmatrix[1][3] << ISPPRV_WBSEL_N1_3_SHIFT =
+|
++               prev_wbal.wb_coefmatrix[2][0] << ISPPRV_WBSEL_N2_0_SHIFT =
+|
++               prev_wbal.wb_coefmatrix[2][1] << ISPPRV_WBSEL_N2_1_SHIFT =
+|
++               prev_wbal.wb_coefmatrix[2][2] << ISPPRV_WBSEL_N2_2_SHIFT =
+|
++               prev_wbal.wb_coefmatrix[2][3] << ISPPRV_WBSEL_N2_3_SHIFT =
+|
++               prev_wbal.wb_coefmatrix[3][0] << ISPPRV_WBSEL_N3_0_SHIFT =
+|
++               prev_wbal.wb_coefmatrix[3][1] << ISPPRV_WBSEL_N3_1_SHIFT =
+|
++               prev_wbal.wb_coefmatrix[3][2] << ISPPRV_WBSEL_N3_2_SHIFT =
+|
++               prev_wbal.wb_coefmatrix[3][3] << ISPPRV_WBSEL_N3_3_SHIFT,
++               ISPPRV_WBSEL);
++}
++EXPORT_SYMBOL(isppreview_config_whitebalance2);
++
++/**
++ * isppreview_config_blkadj - Configures the Black Adjustment parameters=
+.
++ * @prev_blkadj: Structure containing the black adjustment towards red, =
+green,
++ *               blue.
++ **/
++void isppreview_config_blkadj(struct ispprev_blkadj prev_blkadj)
++{
++       omap_writel(prev_blkadj.blue | (prev_blkadj.green <<
++                                       ISPPRV_BLKADJOFF_G_SHIFT) |
++                                       (prev_blkadj.red <<
++                                       ISPPRV_BLKADJOFF_R_SHIFT),
++                                       ISPPRV_BLKADJOFF);
++}
++EXPORT_SYMBOL(isppreview_config_blkadj);
++
++/**
++ * isppreview_config_rgb_blending - Configures the RGB-RGB Blending matr=
+ix.
++ * @rgb2rgb: Structure containing the rgb to rgb blending matrix and the=
+ rgb
++ *           offset.
++ **/
++void isppreview_config_rgb_blending(struct ispprev_rgbtorgb rgb2rgb)
++{
++       omap_writel((rgb2rgb.matrix[0][0] << ISPPRV_RGB_MAT1_MTX_RR_SHIFT=
+) |
++                                               (rgb2rgb.matrix[0][1] <<
++                                               ISPPRV_RGB_MAT1_MTX_GR_SH=
+IFT),
++                                               ISPPRV_RGB_MAT1);
++       omap_writel((rgb2rgb.matrix[0][2] << ISPPRV_RGB_MAT2_MTX_BR_SHIFT=
+) |
++                                               (rgb2rgb.matrix[1][0] <<
++                                               ISPPRV_RGB_MAT2_MTX_RG_SH=
+IFT),
++                                               ISPPRV_RGB_MAT2);
++
++       omap_writel((rgb2rgb.matrix[1][1] << ISPPRV_RGB_MAT3_MTX_GG_SHIFT=
+) |
++                                               (rgb2rgb.matrix[1][2] <<
++                                               ISPPRV_RGB_MAT3_MTX_BG_SH=
+IFT),
++                                               ISPPRV_RGB_MAT3);
++
++       omap_writel((rgb2rgb.matrix[2][0] << ISPPRV_RGB_MAT4_MTX_RB_SHIFT=
+) |
++                                               (rgb2rgb.matrix[2][1] <<
++                                               ISPPRV_RGB_MAT4_MTX_GB_SH=
+IFT),
++                                               ISPPRV_RGB_MAT4);
++
++       omap_writel((rgb2rgb.matrix[2][2] << ISPPRV_RGB_MAT5_MTX_BB_SHIFT=
+),
++                                               ISPPRV_RGB_MAT5);
++
++       omap_writel((rgb2rgb.offset[0] << ISPPRV_RGB_OFF1_MTX_OFFG_SHIFT)=
+ |
++                                       (rgb2rgb.offset[1] <<
++                                       ISPPRV_RGB_OFF1_MTX_OFFR_SHIFT),
++                                       ISPPRV_RGB_OFF1);
++
++       omap_writel(rgb2rgb.offset[2] << ISPPRV_RGB_OFF2_MTX_OFFB_SHIFT,
++                                               ISPPRV_RGB_OFF2);
++
++}
++EXPORT_SYMBOL(isppreview_config_rgb_blending);
++
++/**
++ * Configures the RGB-YCbYCr conversion matrix
++ * @prev_csc: Structure containing the RGB to YCbYCr matrix and the
++ *            YCbCr offset.
++ **/
++void isppreview_config_rgb_to_ycbcr(struct ispprev_csc prev_csc)
++{
++       omap_writel(prev_csc.matrix[0][0] << ISPPRV_CSC0_RY_SHIFT |
++                               prev_csc.matrix[0][1] << ISPPRV_CSC0_GY_S=
+HIFT |
++                               prev_csc.matrix[0][2] << ISPPRV_CSC0_BY_S=
+HIFT,
++                               ISPPRV_CSC0);
++
++       omap_writel(prev_csc.matrix[1][0] << ISPPRV_CSC1_RCB_SHIFT |
++                       prev_csc.matrix[1][1] << ISPPRV_CSC1_GCB_SHIFT |
++                       prev_csc.matrix[1][2] << ISPPRV_CSC1_BCB_SHIFT,
++                       ISPPRV_CSC1);
++
++       omap_writel(prev_csc.matrix[2][0] << ISPPRV_CSC2_RCR_SHIFT |
++                       prev_csc.matrix[2][1] << ISPPRV_CSC2_GCR_SHIFT |
++                       prev_csc.matrix[2][2] << ISPPRV_CSC2_BCR_SHIFT,
++                       ISPPRV_CSC2);
++
++       omap_writel(prev_csc.offset[0] << ISPPRV_CSC_OFFSET_CR_SHIFT |
++                       prev_csc.offset[1] << ISPPRV_CSC_OFFSET_CB_SHIFT =
+|
++                       prev_csc.offset[2] << ISPPRV_CSC_OFFSET_Y_SHIFT,
++                       ISPPRV_CSC_OFFSET);
++}
++EXPORT_SYMBOL(isppreview_config_rgb_to_ycbcr);
++
++/**
++ * isppreview_query_contrast - Query the contrast.
++ * @contrast: Pointer to hold the current programmed contrast value.
++ **/
++void isppreview_query_contrast(u8 *contrast)
++{
++       u32 brt_cnt_val =3D 0;
++
++       brt_cnt_val =3D omap_readl(ISPPRV_CNT_BRT);
++       *contrast =3D (brt_cnt_val >> ISPPRV_CNT_BRT_CNT_SHIFT) & 0xFF;
++       DPRINTK_ISPPREV(" Current brt cnt value in hw is %x\n", brt_cnt_v=
+al);
++}
++EXPORT_SYMBOL(isppreview_query_contrast);
++
++/**
++ * isppreview_update_contrast - Updates the contrast.
++ * @contrast: Pointer to hold the current programmed contrast value.
++ *
++ * Value should be programmed before enabling the module.
++ **/
++void isppreview_update_contrast(u8 *contrast)
++{
++       ispprev_obj.contrast =3D *contrast;
++}
++EXPORT_SYMBOL(isppreview_update_contrast);
++
++/**
++ * isppreview_config_contrast - Configures the Contrast.
++ * @contrast: 8 bit value in U8Q4 format.
++ *
++ * Value should be programmed before enabling the module.
++ **/
++void isppreview_config_contrast(u8 contrast)
++{
++       u32 brt_cnt_val =3D 0;
++
++       brt_cnt_val =3D omap_readl(ISPPRV_CNT_BRT);
++       brt_cnt_val &=3D ~(0xFF << ISPPRV_CNT_BRT_CNT_SHIFT);
++       contrast &=3D 0xFF;
++       omap_writel(brt_cnt_val | (contrast << ISPPRV_CNT_BRT_CNT_SHIFT),
++                                                       ISPPRV_CNT_BRT);
++}
++EXPORT_SYMBOL(isppreview_config_contrast);
++
++/**
++ * isppreview_get_contrast_range - Gets the range contrast value.
++ * @min_contrast: Pointer to hold the minimum Contrast value.
++ * @max_contrast: Pointer to hold the maximum Contrast value.
++ **/
++void isppreview_get_contrast_range(u8 *min_contrast, u8 *max_contrast)
++{
++       *min_contrast =3D ISPPRV_CONTRAST_MIN;
++       *max_contrast =3D ISPPRV_CONTRAST_MAX;
++}
++EXPORT_SYMBOL(isppreview_get_contrast_range);
++
++/**
++ * isppreview_update_brightness - Updates the brightness in preview modu=
+le.
++ * @brightness: Pointer to hold the current programmed brightness value.
++ *
++ **/
++void isppreview_update_brightness(u8 *brightness)
++{
++       ispprev_obj.brightness =3D *brightness;
++}
++EXPORT_SYMBOL(isppreview_update_brightness);
++
++/**
++ * isppreview_config_brightness - Configures the brightness.
++ * @contrast: 8bitvalue in U8Q0 format.
++ **/
++void isppreview_config_brightness(u8 brightness)
++{
++       u32 brt_cnt_val =3D 0;
++
++       DPRINTK_ISPPREV("\tConfiguring brightness in ISP: %d\n", brightne=
+ss);
++       brt_cnt_val =3D omap_readl(ISPPRV_CNT_BRT);
++       brt_cnt_val &=3D ~(0xFF << ISPPRV_CNT_BRT_BRT_SHIFT);
++       brightness &=3D 0xFF;
++       omap_writel(brt_cnt_val | (brightness << ISPPRV_CNT_BRT_BRT_SHIFT=
+),
++                                                       ISPPRV_CNT_BRT);
++}
++EXPORT_SYMBOL(isppreview_config_brightness);
++
++/**
++ * isppreview_query_brightness - Query the brightness.
++ * @brightness: Pointer to hold the current programmed brightness value.
++ **/
++void isppreview_query_brightness(u8 *brightness)
++{
++       *brightness =3D omap_readl(ISPPRV_CNT_BRT);
++}
++EXPORT_SYMBOL(isppreview_query_brightness);
++
++/**
++ * isppreview_get_brightness_range - Gets the range brightness value
++ * @min_brightness: Pointer to hold the minimum brightness value
++ * @max_brightness: Pointer to hold the maximum brightness value
++ **/
++void isppreview_get_brightness_range(u8 *min_brightness, u8 *max_brightn=
+ess)
++{
++       *min_brightness =3D ISPPRV_BRIGHT_MIN;
++       *max_brightness =3D ISPPRV_BRIGHT_MAX;
++}
++EXPORT_SYMBOL(isppreview_get_brightness_range);
++
++/**
++ * isppreview_set_color - Sets the color effect.
++ * @mode: Indicates the required color effect.
++ **/
++void isppreview_set_color(u8 *mode)
++{
++       ispprev_obj.color =3D *mode;
++       update_color_matrix =3D 1;
++}
++EXPORT_SYMBOL(isppreview_set_color);
++
++/**
++ * isppreview_get_color - Gets the current color effect.
++ * @mode: Indicates the current color effect.
++ **/
++void isppreview_get_color(u8 *mode)
++{
++       *mode =3D ispprev_obj.color;
++}
++EXPORT_SYMBOL(isppreview_get_color);
++
++/**
++ * isppreview_config_yc_range - Configures the max and min Y and C value=
+s.
++ * @yclimit: Structure containing the range of Y and C values.
++ **/
++void isppreview_config_yc_range(struct ispprev_yclimit yclimit)
++{
++       omap_writel(((yclimit.maxC << ISPPRV_SETUP_YC_MAXC_SHIFT) |
++                               (yclimit.maxY << ISPPRV_SETUP_YC_MAXY_SHI=
+FT) |
++                               (yclimit.minC << ISPPRV_SETUP_YC_MINC_SHI=
+FT) |
++                               (yclimit.minY << ISPPRV_SETUP_YC_MINY_SHI=
+FT)),
++                               ISPPRV_SETUP_YC);
++}
++EXPORT_SYMBOL(isppreview_config_yc_range);
++
++/**
++ * isppreview_try_size - Calculates output dimensions with the modules e=
+nabled.
++ * @input_w: input width for the preview in number of pixels per line
++ * @input_h: input height for the preview in number of lines
++ * @output_w: output width from the preview in number of pixels per line
++ * @output_h: output height for the preview in number of lines
++ *
++ * Calculates the number of pixels cropped in the submodules that are en=
+abled,
++ * Fills up the output width height variables in the isp_prev structure.
++ **/
++int isppreview_try_size(u32 input_w, u32 input_h, u32 *output_w, u32 *ou=
+tput_h)
++{
++       u32 prevout_w =3D input_w;
++       u32 prevout_h =3D input_h;
++       u32 div =3D 0;
++       int max_out;
++
++       ispprev_obj.previn_w =3D input_w;
++       ispprev_obj.previn_h =3D input_h;
++
 +       if (input_w < 32 || input_h < 32) {
-+               DPRINTK_ISPCCDC("ISP_ERR: CCDC cannot handle input width less"
-+                               " than 32 pixels or height less than 32\n");
++               printk(KERN_ERR "ISP_ERR : preview does not support "
++                               "width < 16 or height < 32 \n");
++               return -EINVAL;
++       }
++       if (omap_rev() =3D=3D OMAP3430_REV_ES1_0)
++               max_out =3D ISPPRV_MAXOUTPUT_WIDTH;
++       else
++               max_out =3D ISPPRV_MAXOUTPUT_WIDTH_ES2;
++
++       ispprev_obj.fmtavg =3D 0;
++
++       if (input_w > max_out) {
++               div =3D (input_w/max_out);
++               if (div >=3D 2 && div < 4) {
++                       ispprev_obj.fmtavg =3D 1;
++                       prevout_w /=3D 2;
++               } else if (div >=3D 4 && div < 8) {
++                       ispprev_obj.fmtavg =3D 2;
++                       prevout_w /=3D 4;
++               } else if (div >=3D 8) {
++                       ispprev_obj.fmtavg =3D 3;
++                       prevout_w /=3D 8;
++               }
++       }
++
++       if (ispprev_obj.hmed_en)
++               prevout_w -=3D 4;
++       if (ispprev_obj.nf_en) {
++               prevout_w -=3D 4;
++               prevout_h -=3D 4;
++       }
++       if (ispprev_obj.cfa_en) {
++               switch (ispprev_obj.cfafmt) {
++               case CFAFMT_BAYER:
++               case CFAFMT_SONYVGA:
++                       prevout_w -=3D 4;
++                       prevout_h -=3D 4;
++                       break;
++               case CFAFMT_RGBFOVEON:
++               case CFAFMT_RRGGBBFOVEON:
++               case CFAFMT_DNSPL:
++               case CFAFMT_HONEYCOMB:
++                       prevout_h -=3D 2;
++                       break;
++               };
++       }
++       if ((ispprev_obj.yenh_en) || (ispprev_obj.csup_en))
++               prevout_w -=3D 2;
++
++       /* Start at the correct row/column by skipping
++        * a Sensor specific amount.
++        */
++       prevout_w -=3D ispprev_obj.sph;
++       prevout_h -=3D ispprev_obj.slv;
++
++
++       if (prevout_w % 2)
++               prevout_w -=3D 1;
++
++       if (ispprev_obj.prev_outfmt =3D=3D PREVIEW_MEM) {
++               if (((prevout_w * 2) & ISP_32B_BOUNDARY_OFFSET) !=3D (pre=
+vout_w *
++                                                                       2=
+)) {
++                       prevout_w =3D ((prevout_w * 2) &
++                                               ISP_32B_BOUNDARY_OFFSET) =
+/ 2;
++               }
++       }
++       *output_w =3D prevout_w;
++       ispprev_obj.prevout_w =3D prevout_w;
++       *output_h =3D prevout_h;
++       ispprev_obj.prevout_h =3D prevout_h;
++       return 0;
++}
++EXPORT_SYMBOL(isppreview_try_size);
++
++/**
++ * isppreview_config_size - Sets the size of ISP preview output.
++ * @input_w: input width for the preview in number of pixels per line
++ * @input_h: input height for the preview in number of lines
++ * @output_w: output width from the preview in number of pixels per line
++ * @output_h: output height for the preview in number of lines
++ *
++ * Configures the appropriate values stored in the isp_prev structure to
++ * HORZ/VERT_INFO. Configures PRV_AVE if needed for downsampling as calc=
+ulated
++ * in trysize.
++ **/
++int isppreview_config_size(u32 input_w, u32 input_h, u32 output_w,
++                                                               u32 outpu=
+t_h)
++{
++       u32 prevsdroff;
++
++       if ((output_w !=3D ispprev_obj.prevout_w) ||
++                                       (output_h !=3D ispprev_obj.prevou=
+t_h)) {
++               printk(KERN_ERR "ISP_ERR : isppreview_try_size should "
++                                       "be called before config size\n")=
+;
 +               return -EINVAL;
 +       }
 +
-+       if (ispccdc_obj.crop_w)
-+               *output_w = ispccdc_obj.crop_w;
-+       else
-+               *output_w = input_w;
++       omap_writel((ispprev_obj.sph << ISPPRV_HORZ_INFO_SPH_SHIFT) |
++                                               (ispprev_obj.previn_w - 1=
+),
++                                               ISPPRV_HORZ_INFO);
++       omap_writel((ispprev_obj.slv << ISPPRV_VERT_INFO_SLV_SHIFT) |
++                                               (ispprev_obj.previn_h - 1=
+),
++                                               ISPPRV_VERT_INFO);
 +
-+       if (ispccdc_obj.crop_h)
-+               *output_h = ispccdc_obj.crop_h;
-+       else
-+               *output_h = input_h;
++       if (ispprev_obj.cfafmt =3D=3D CFAFMT_BAYER)
++               omap_writel(ISPPRV_AVE_EVENDIST_2 <<
++                                       ISPPRV_AVE_EVENDIST_SHIFT |
++                                       ISPPRV_AVE_ODDDIST_2 <<
++                                       ISPPRV_AVE_ODDDIST_SHIFT |
++                                       ispprev_obj.fmtavg,
++                                       ISPPRV_AVE);
 +
-+       if ((!ispccdc_obj.refmt_en) && ((ispccdc_obj.ccdc_outfmt !=
-+               CCDC_OTHERS_MEM) && ispccdc_obj.ccdc_outfmt !=
-+                                       CCDC_OTHERS_VP_MEM))
-+               *output_h -= 1;
-+
-+       if ((ispccdc_obj.ccdc_outfmt == CCDC_OTHERS_MEM) ||
-+                                               (ispccdc_obj.ccdc_outfmt ==
-+                                               CCDC_OTHERS_VP_MEM)) {
-+               if (*output_w % 16) {
-+                       *output_w -= (*output_w % 16);
-+                       *output_w += 16;
++       if (ispprev_obj.prev_outfmt =3D=3D PREVIEW_MEM) {
++               prevsdroff =3D ispprev_obj.prevout_w * 2;
++               if ((prevsdroff & ISP_32B_BOUNDARY_OFFSET) !=3D prevsdrof=
+f) {
++                       DPRINTK_ISPPREV("ISP_WARN: Preview output buffer =
+line"
++                                               " size is truncated"
++                                               " to 32byte boundary\n");
++                       prevsdroff &=3D ISP_32B_BOUNDARY_BUF ;
 +               }
++               isppreview_config_outlineoffset(prevsdroff);
 +       }
-+
-+       ispccdc_obj.ccdcout_w = *output_w;
-+       ispccdc_obj.ccdcout_h = *output_h;
-+       ispccdc_obj.ccdcin_w = input_w;
-+       ispccdc_obj.ccdcin_h = input_h;
-+
-+       DPRINTK_ISPCCDC("try size: ccdcin_w=%u,ccdcin_h=%u,ccdcout_w=%u,"
-+                                                       " ccdcout_h=%u\n",
-+                                                       ispccdc_obj.ccdcin_w,
-+                                                       ispccdc_obj.ccdcin_h,
-+                                                       ispccdc_obj.ccdcout_w,
-+                                                       ispccdc_obj.ccdcout_h);
-+
 +       return 0;
 +}
-+EXPORT_SYMBOL(ispccdc_try_size);
++EXPORT_SYMBOL(isppreview_config_size);
 +
 +/**
-+ * ispccdc_config_size - Configure the dimensions of the CCDC input/output
-+ * @input_w: input width for the CCDC in number of pixels per line
-+ * @input_h: input height for the CCDC in number of lines
-+ * @output_w: output width from the CCDC in number of pixels per line
-+ * @output_h: output height for the CCDC in number of lines
-+ *
-+ * Configures the appropriate values stored in the isp_ccdc structure to
-+ * HORZ/VERT_INFO registers and the VP_OUT depending on whether the image
-+ * is stored in memory or given to the another module in the ISP pipeline.
-+ *
-+ * Returns 0 if successful, or -EINVAL if try_size was not called before to
-+ * validate the requested dimensions.
++ * isppreview_config_inlineoffset - Configures the Read address line off=
+set.
++ * @offset: Line Offset for the input image.
 + **/
-+int ispccdc_config_size(u32 input_w, u32 input_h, u32 output_w, u32 output_h)
++int isppreview_config_inlineoffset(u32 offset)
 +{
-+       DPRINTK_ISPCCDC("config size: input_w=%u, input_h=%u, output_w=%u,"
-+                                                       " output_h=%u\n",
-+                                                       input_w, input_h,
-+                                                       output_w, output_h);
-+       if ((output_w != ispccdc_obj.ccdcout_w) || (output_h !=
-+                                               ispccdc_obj.ccdcout_h)) {
-+               DPRINTK_ISPCCDC("ISP_ERR : ispccdc_try_size should"
-+                                       " be called before config size\n");
-+               return -EINVAL;
-+       }
-+
-+       if (ispccdc_obj.ccdc_outfmt == CCDC_OTHERS_VP) {
-+               omap_writel((ispccdc_obj.ccdcin_woffset <<
-+                                       ISPCCDC_FMT_HORZ_FMTSPH_SHIFT) |
-+                                       (ispccdc_obj.ccdcin_w <<
-+                                       ISPCCDC_FMT_HORZ_FMTLNH_SHIFT),
-+                                       ISPCCDC_FMT_HORZ);
-+               omap_writel((ispccdc_obj.ccdcin_hoffset <<
-+                                       ISPCCDC_FMT_VERT_FMTSLV_SHIFT) |
-+                                       (ispccdc_obj.ccdcin_h <<
-+                                       ISPCCDC_FMT_VERT_FMTLNV_SHIFT),
-+                                       ISPCCDC_FMT_VERT);
-+               omap_writel((ispccdc_obj.ccdcout_w <<
-+                                       ISPCCDC_VP_OUT_HORZ_NUM_SHIFT) |
-+                                       (ispccdc_obj.ccdcout_h <<
-+                                       ISPCCDC_VP_OUT_VERT_NUM_SHIFT),
-+                                       ISPCCDC_VP_OUT);
-+               omap_writel((((ispccdc_obj.ccdcout_h - 25) &
-+                                       ISPCCDC_VDINT_0_MASK) <<
-+                                       ISPCCDC_VDINT_0_SHIFT) |
-+                                       ((50 & ISPCCDC_VDINT_1_MASK) <<
-+                                       ISPCCDC_VDINT_1_SHIFT), ISPCCDC_VDINT);
-+
-+       } else if (ispccdc_obj.ccdc_outfmt == CCDC_OTHERS_MEM) {
-+               omap_writel(0, ISPCCDC_VP_OUT);
-+               if (cpu_is_omap3410()) {
-+                       omap_writel(0 << ISPCCDC_HORZ_INFO_SPH_SHIFT |
-+                                               ((ispccdc_obj.ccdcout_w - 1) <<
-+                                               ISPCCDC_HORZ_INFO_NPH_SHIFT),
-+                                               ISPCCDC_HORZ_INFO);
-+               } else {
-+                       if (ispccdc_obj.ccdc_inpfmt == CCDC_RAW) {
-+                               omap_writel(1 << ISPCCDC_HORZ_INFO_SPH_SHIFT
-+                                               | ((ispccdc_obj.ccdcout_w - 1)
-+                                               << ISPCCDC_HORZ_INFO_NPH_SHIFT),
-+                                               ISPCCDC_HORZ_INFO);
-+                       } else {
-+                               omap_writel(0 << ISPCCDC_HORZ_INFO_SPH_SHIFT
-+                                               | ((ispccdc_obj.ccdcout_w - 1)
-+                                               << ISPCCDC_HORZ_INFO_NPH_SHIFT),
-+                                               ISPCCDC_HORZ_INFO);
-+                       }
-+               }
-+               omap_writel(0 << ISPCCDC_VERT_START_SLV0_SHIFT,
-+                                                       ISPCCDC_VERT_START);
-+               omap_writel((ispccdc_obj.ccdcout_h - 1) <<
-+                                               ISPCCDC_VERT_LINES_NLV_SHIFT,
-+                                               ISPCCDC_VERT_LINES);
-+
-+               ispccdc_config_outlineoffset(ispccdc_obj.ccdcout_w * 2, 0, 0);
-+               omap_writel((((ispccdc_obj.ccdcout_h - 2) &
-+                                       ISPCCDC_VDINT_0_MASK) <<
-+                                       ISPCCDC_VDINT_0_SHIFT) |
-+                                       ((50 & ISPCCDC_VDINT_1_MASK) <<
-+                                       ISPCCDC_VDINT_1_SHIFT), ISPCCDC_VDINT);
-+       } else if (ispccdc_obj.ccdc_outfmt == CCDC_OTHERS_VP_MEM) {
-+               omap_writel((1 << ISPCCDC_FMT_HORZ_FMTSPH_SHIFT) |
-+                                       (ispccdc_obj.ccdcin_w <<
-+                                       ISPCCDC_FMT_HORZ_FMTLNH_SHIFT),
-+                                       ISPCCDC_FMT_HORZ);
-+               omap_writel((0 << ISPCCDC_FMT_VERT_FMTSLV_SHIFT) |
-+                                       ((ispccdc_obj.ccdcin_h) <<
-+                                       ISPCCDC_FMT_VERT_FMTLNV_SHIFT),
-+                                       ISPCCDC_FMT_VERT);
-+               omap_writel((ispccdc_obj.ccdcout_w
-+                                       << ISPCCDC_VP_OUT_HORZ_NUM_SHIFT) |
-+                                       (ispccdc_obj.ccdcout_h <<
-+                                       ISPCCDC_VP_OUT_VERT_NUM_SHIFT),
-+                                       ISPCCDC_VP_OUT);
-+               omap_writel(0 << ISPCCDC_HORZ_INFO_SPH_SHIFT |
-+                                       ((ispccdc_obj.ccdcout_w - 1) <<
-+                                       ISPCCDC_HORZ_INFO_NPH_SHIFT),
-+                                       ISPCCDC_HORZ_INFO);
-+               omap_writel(0 << ISPCCDC_VERT_START_SLV0_SHIFT,
-+                                       ISPCCDC_VERT_START);
-+               omap_writel((ispccdc_obj.ccdcout_h - 1) <<
-+                                       ISPCCDC_VERT_LINES_NLV_SHIFT,
-+                                       ISPCCDC_VERT_LINES);
-+               ispccdc_config_outlineoffset(ispccdc_obj.ccdcout_w * 2, 0, 0);
-+               omap_writel((((ispccdc_obj.ccdcout_h - 25) &
-+                                       ISPCCDC_VDINT_0_MASK) <<
-+                                       ISPCCDC_VDINT_0_SHIFT) |
-+                                       ((50 & ISPCCDC_VDINT_1_MASK) <<
-+                                       ISPCCDC_VDINT_1_SHIFT), ISPCCDC_VDINT);
-+       }
-+
-+       if (is_isplsc_activated()) {
-+               if (ispccdc_obj.ccdc_inpfmt == CCDC_RAW) {
-+                       ispccdc_config_lsc(&lsc_config);
-+                       ispccdc_load_lsc(lsc_config.size);
-+               }
-+       }
-+
-+       return 0;
-+}
-+EXPORT_SYMBOL(ispccdc_config_size);
-+
-+/**
-+ * ispccdc_config_outlineoffset - Configures the output line offset
-+ * @offset: Must be twice the Output width and aligned on 32 byte boundary
-+ * @oddeven: Specifies the odd/even line pattern to be chosen to store the
-+ *           output.
-+ * @numlines: Set the value 0-3 for +1-4lines, 4-7 for -1-4lines.
-+ *
-+ * - Configures the output line offset when stored in memory
-+ * - Sets the odd/even line pattern to store the output
-+ *    (EVENEVEN (1), ODDEVEN (2), EVENODD (3), ODDODD (4))
-+ * - Configures the number of even and odd line fields in case of rearranging
-+ * the lines.
-+ *
-+ * Returns 0 if successful, or -EINVAL if the offset is not in 32 byte
-+ * boundary.
-+ **/
-+int ispccdc_config_outlineoffset(u32 offset, u8 oddeven, u8 numlines)
-+{
-+       if ((offset & ISP_32B_BOUNDARY_OFFSET) == offset)
-+               omap_writel((offset & 0xFFFF), ISPCCDC_HSIZE_OFF);
++       if ((offset & ISP_32B_BOUNDARY_OFFSET) =3D=3D offset)
++               omap_writel(offset & 0xFFFF, ISPPRV_RADR_OFFSET);
 +       else {
-+               DPRINTK_ISPCCDC("ISP_ERR : Offset should be in 32 byte"
-+                                                               " boundary");
++               printk(KERN_ERR "ISP_ERR : Offset should be in 32 byte "
++                                                               "boundary=
+\n");
 +               return -EINVAL;
-+       }
-+
-+       omap_writel((omap_readl(ISPCCDC_SDOFST) & (~ISPCCDC_SDOFST_FINV)),
-+                                                       ISPCCDC_SDOFST);
-+
-+       omap_writel(omap_readl(ISPCCDC_SDOFST) & ISPCCDC_SDOFST_FOFST_1L,
-+                                                       ISPCCDC_SDOFST);
-+
-+       switch (oddeven) {
-+       case EVENEVEN:
-+               omap_writel((omap_readl(ISPCCDC_SDOFST)) | ((numlines & 0x7) <<
-+                                               ISPCCDC_SDOFST_LOFST0_SHIFT),
-+                                               ISPCCDC_SDOFST);
-+               break;
-+       case ODDEVEN:
-+               omap_writel((omap_readl(ISPCCDC_SDOFST)) | ((numlines & 0x7) <<
-+                                               ISPCCDC_SDOFST_LOFST1_SHIFT),
-+                                               ISPCCDC_SDOFST);
-+               break;
-+       case EVENODD:
-+               omap_writel((omap_readl(ISPCCDC_SDOFST)) | ((numlines & 0x7) <<
-+                                               ISPCCDC_SDOFST_LOFST2_SHIFT),
-+                                               ISPCCDC_SDOFST);
-+               break;
-+       case ODDODD:
-+               omap_writel((omap_readl(ISPCCDC_SDOFST)) | ((numlines & 0x7) <<
-+                                               ISPCCDC_SDOFST_LOFST3_SHIFT),
-+                                               ISPCCDC_SDOFST);
-+               break;
-+       default:
-+               break;
 +       }
 +       return 0;
 +}
-+EXPORT_SYMBOL(ispccdc_config_outlineoffset);
++EXPORT_SYMBOL(isppreview_config_inlineoffset);
 +
 +/**
-+ * ispccdc_set_outaddr - Sets the memory address where the output will be saved
-+ * @addr: 32-bit memory address aligned on 32 byte boundary.
++ * isppreview_set_inaddr - Sets memory address of input frame.
++ * @addr: 32bit memory address aligned on 32byte boundary.
 + *
-+ * Sets the memory address where the output will be saved.
-+ *
-+ * Returns 0 if successful, or -EINVAL if the address is not in the 32 byte
-+ * boundary.
++ * Configures the memory address from which the input frame is to be rea=
+d.
 + **/
-+int ispccdc_set_outaddr(u32 addr)
++int isppreview_set_inaddr(u32 addr)
 +{
-+       if ((addr & ISP_32B_BOUNDARY_BUF) == addr) {
-+               omap_writel(addr, ISPCCDC_SDR_ADDR);
-+               return 0;
-+       } else {
-+               DPRINTK_ISPCCDC("ISP_ERR : Address should be in 32 byte"
-+                                                               " boundary");
++       if ((addr & ISP_32B_BOUNDARY_BUF) =3D=3D addr)
++               omap_writel(addr, ISPPRV_RSDR_ADDR);
++       else {
++               printk(KERN_ERR "ISP_ERR: Address should be in 32 byte "
++                                                               "boundary=
+\n");
 +               return -EINVAL;
 +       }
-+
++       return 0;
 +}
-+EXPORT_SYMBOL(ispccdc_set_outaddr);
++EXPORT_SYMBOL(isppreview_set_inaddr);
 +
 +/**
-+ * ispccdc_enable - Enables the CCDC module.
-+ * @enable: 0 Disables CCDC, 1 Enables CCDC
-+ *
-+ * Client should configure all the sub modules in CCDC before this.
++ * isppreview_config_outlineoffset - Configures the Write address line o=
+ffset.
++ * @offset: Line Offset for the preview output.
 + **/
-+void ispccdc_enable(u8 enable)
++int isppreview_config_outlineoffset(u32 offset)
 +{
++       if ((offset & ISP_32B_BOUNDARY_OFFSET) =3D=3D offset) {
++               omap_writel(offset & 0xFFFF, ISPPRV_WADD_OFFSET);
++       } else {
++               printk(KERN_ERR "ISP_ERR : Offset should be in 32 byte "
++                                                               "boundary=
+\n");
++               return -EINVAL;
++       }
++       return 0;
++}
++EXPORT_SYMBOL(isppreview_config_outlineoffset);
++
++/**
++ * isppreview_set_outaddr - Sets the memory address to store output fram=
+e
++ * @addr: 32bit memory address aligned on 32byte boundary.
++ *
++ * Configures the memory address to which the output frame is written.
++ **/
++int isppreview_set_outaddr(u32 addr)
++{
++       if ((addr & ISP_32B_BOUNDARY_BUF) =3D=3D addr) {
++               omap_writel(addr, ISPPRV_WSDR_ADDR);
++       } else {
++               printk(KERN_ERR "ISP_ERR: Address should be in 32 byte "
++                                                               "boundary=
+\n");
++               return -EINVAL;
++       }
++       return 0;
++}
++EXPORT_SYMBOL(isppreview_set_outaddr);
++
++/**
++ * isppreview_config_darklineoffset - Sets the Dark frame address line o=
+ffset.
++ * @offset: Line Offset for the Darkframe.
++ **/
++int isppreview_config_darklineoffset(u32 offset)
++{
++       if ((offset & ISP_32B_BOUNDARY_OFFSET) =3D=3D offset)
++               omap_writel(offset & 0xFFFF, ISPPRV_DRKF_OFFSET);
++       else {
++               printk(KERN_ERR "ISP_ERR : Offset should be in 32 byte "
++                                                               "boundary=
+\n");
++               return -EINVAL;
++       }
++       return 0;
++}
++EXPORT_SYMBOL(isppreview_config_darklineoffset);
++
++/**
++ * isppreview_set_darkaddr - Sets the memory address to store Dark frame=
+.
++ * @addr: 32bit memory address aligned on 32 bit boundary.
++ **/
++int isppreview_set_darkaddr(u32 addr)
++{
++       if ((addr & ISP_32B_BOUNDARY_BUF) =3D=3D addr)
++               omap_writel(addr, ISPPRV_DSDR_ADDR);
++       else {
++               printk(KERN_ERR "ISP_ERR : Address should be in 32 byte "
++                                                               "boundary=
+\n");
++               return -EINVAL;
++       }
++       return 0;
++}
++EXPORT_SYMBOL(isppreview_set_darkaddr);
++
++/**
++ * isppreview_enable - Enables the Preview module.
++ * @enable: 1 - Enables the preview module.
++ *
++ * Client should configure all the sub modules in Preview before this.
++ **/
++void isppreview_enable(u8 enable)
++{
++
 +       if (enable) {
-+               if (ccdc_use_lsc && !ispccdc_obj.lsc_en &&
-+                       (ispccdc_obj.ccdc_inpfmt ==     CCDC_RAW))
-+                       ispccdc_enable_lsc(1);
-+
-+                       omap_writel(omap_readl(ISPCCDC_PCR) | (ISPCCDC_PCR_EN),
-+                                                               ISPCCDC_PCR);
++               spin_lock(&ispprev_obj.ispprev_lock);
++               ispprev_obj.stream_on =3D 1;
++               spin_unlock(&ispprev_obj.ispprev_lock);
++               omap_writel((omap_readl(ISPPRV_PCR)) | ISPPRV_PCR_EN,
++                                                               ISPPRV_PC=
+R);
 +       } else {
-+               omap_writel(omap_readl(ISPCCDC_PCR) & ~(ISPCCDC_PCR_EN),
-+                                                               ISPCCDC_PCR);
++               spin_lock(&ispprev_obj.ispprev_lock);
++               ispprev_obj.stream_on =3D 0;
++               spin_unlock(&ispprev_obj.ispprev_lock);
++               omap_writel((omap_readl(ISPPRV_PCR)) & ~ISPPRV_PCR_EN,
++                                                               ISPPRV_PC=
+R);
 +       }
-+
 +}
-+EXPORT_SYMBOL(ispccdc_enable);
++EXPORT_SYMBOL(isppreview_enable);
 +
 +/**
-+ * ispccdc_busy - Gets busy state of the CCDC.
++ * isppreview_busy - Gets busy state of preview module.
 + **/
-+int ispccdc_busy(void)
++int isppreview_busy(void)
 +{
-+       return omap_readl(ISPCCDC_PCR) & ISPCCDC_PCR_BUSY;
++       return omap_readl(ISPPRV_PCR) & ISPPRV_PCR_BUSY;
 +}
-+EXPORT_SYMBOL(ispccdc_busy);
++EXPORT_SYMBOL(isppreview_busy);
 +
 +/**
-+ * ispccdc_save_context - Saves the values of the CCDC module registers
++ * isppreview_get_config - Gets parameters of preview module.
 + **/
-+void ispccdc_save_context(void)
++struct prev_params *isppreview_get_config(void)
 +{
-+       DPRINTK_ISPCCDC("Saving context\n");
-+       isp_save_context(ispccdc_reg_list);
-+
++       return prev_config_params;
 +}
-+EXPORT_SYMBOL(ispccdc_save_context);
++EXPORT_SYMBOL(isppreview_get_config);
 +
 +/**
-+ * ispccdc_restore_context - Restores the values of the CCDC module registers
++ * isppreview_save_context - Saves the values of the preview module regi=
+sters.
 + **/
-+void ispccdc_restore_context(void)
++void isppreview_save_context(void)
 +{
-+       DPRINTK_ISPCCDC("Restoring context\n");
-+       isp_restore_context(ispccdc_reg_list);
++       DPRINTK_ISPPREV("Saving context\n");
++       isp_save_context(ispprev_reg_list);
 +}
-+EXPORT_SYMBOL(ispccdc_restore_context);
++EXPORT_SYMBOL(isppreview_save_context);
 +
 +/**
-+ * ispccdc_print_status - Prints the values of the CCDC Module registers
++ * isppreview_restore_context - Restores the values of preview module re=
+gisters
++ **/
++void isppreview_restore_context(void)
++{
++       DPRINTK_ISPPREV("Restoring context\n");
++       isp_restore_context(ispprev_reg_list);
++}
++EXPORT_SYMBOL(isppreview_restore_context);
++
++/**
++ * isppreview_print_status - Prints the values of the Preview Module reg=
+isters.
 + *
-+ * Also prints other debug information stored in the CCDC module.
++ * Also prints other debug information stored in the preview moduel.
 + **/
-+void ispccdc_print_status(void)
++void isppreview_print_status(void)
 +{
-+       if (!is_ispccdc_debug_enabled())
-+               return;
-+
-+       DPRINTK_ISPCCDC("Module in use =%d\n", ispccdc_obj.ccdc_inuse);
-+       DPRINTK_ISPCCDC("Accepted CCDC Input (width = %d,Height = %d)\n",
-+                                                       ispccdc_obj.ccdcin_w,
-+                                                       ispccdc_obj.ccdcin_h);
-+       DPRINTK_ISPCCDC("Accepted CCDC Output (width = %d,Height = %d)\n",
-+                                                       ispccdc_obj.ccdcout_w,
-+                                                       ispccdc_obj.ccdcout_h);
-+       DPRINTK_ISPCCDC("###CCDC PCR=0x%x\n", omap_readl(ISPCCDC_PCR));
-+       DPRINTK_ISPCCDC("ISP_CTRL =0x%x\n", omap_readl(ISP_CTRL));
-+       switch (ispccdc_obj.ccdc_inpfmt) {
-+       case CCDC_RAW:
-+               DPRINTK_ISPCCDC("ccdc input format is CCDC_RAW\n");
-+               break;
-+       case CCDC_YUV_SYNC:
-+               DPRINTK_ISPCCDC("ccdc input format is CCDC_YUV_SYNC\n");
-+               break;
-+       case CCDC_YUV_BT:
-+               DPRINTK_ISPCCDC("ccdc input format is CCDC_YUV_BT\n");
-+               break;
-+       }
-+
-+       switch (ispccdc_obj.ccdc_outfmt) {
-+       case CCDC_OTHERS_VP:
-+               DPRINTK_ISPCCDC("ccdc output format is CCDC_OTHERS_VP\n");
-+               break;
-+       case CCDC_OTHERS_MEM:
-+               DPRINTK_ISPCCDC("ccdc output format is CCDC_OTHERS_MEM\n");
-+               break;
-+       case CCDC_YUV_RSZ:
-+               DPRINTK_ISPCCDC("ccdc output format is CCDC_YUV_RSZ\n");
-+               break;
-+       }
-+
-+       DPRINTK_ISPCCDC("###ISP_CTRL in ccdc =0x%x\n", omap_readl(ISP_CTRL));
-+       DPRINTK_ISPCCDC("###ISP_IRQ0ENABLE in ccdc =0x%x\n",
-+                                               omap_readl(ISP_IRQ0ENABLE));
-+       DPRINTK_ISPCCDC("###ISP_IRQ0STATUS in ccdc =0x%x\n",
-+                                               omap_readl(ISP_IRQ0STATUS));
-+       DPRINTK_ISPCCDC("###CCDC SYN_MODE=0x%x\n",
-+                                               omap_readl(ISPCCDC_SYN_MODE));
-+       DPRINTK_ISPCCDC("###CCDC HORZ_INFO=0x%x\n",
-+                                               omap_readl(ISPCCDC_HORZ_INFO));
-+       DPRINTK_ISPCCDC("###CCDC VERT_START=0x%x\n",
-+                                       omap_readl(ISPCCDC_VERT_START));
-+       DPRINTK_ISPCCDC("###CCDC VERT_LINES=0x%x\n",
-+                                       omap_readl(ISPCCDC_VERT_LINES));
-+       DPRINTK_ISPCCDC("###CCDC CULLING=0x%x\n", omap_readl(ISPCCDC_CULLING));
-+       DPRINTK_ISPCCDC("###CCDC HSIZE_OFF=0x%x\n",
-+                                               omap_readl(ISPCCDC_HSIZE_OFF));
-+       DPRINTK_ISPCCDC("###CCDC SDOFST=0x%x\n", omap_readl(ISPCCDC_SDOFST));
-+       DPRINTK_ISPCCDC("###CCDC SDR_ADDR=0x%x\n",
-+                                               omap_readl(ISPCCDC_SDR_ADDR));
-+       DPRINTK_ISPCCDC("###CCDC CLAMP=0x%x\n", omap_readl(ISPCCDC_CLAMP));
-+       DPRINTK_ISPCCDC("###CCDC COLPTN=0x%x\n", omap_readl(ISPCCDC_COLPTN));
-+       DPRINTK_ISPCCDC("###CCDC CFG=0x%x\n", omap_readl(ISPCCDC_CFG));
-+       DPRINTK_ISPCCDC("###CCDC VP_OUT=0x%x\n", omap_readl(ISPCCDC_VP_OUT));
-+       DPRINTK_ISPCCDC("###CCDC_SDR_ADDR= 0x%x\n",
-+                                               omap_readl(ISPCCDC_SDR_ADDR));
-+       DPRINTK_ISPCCDC("###CCDC FMTCFG=0x%x\n", omap_readl(ISPCCDC_FMTCFG));
-+       DPRINTK_ISPCCDC("###CCDC FMT_HORZ=0x%x\n",
-+                                               omap_readl(ISPCCDC_FMT_HORZ));
-+       DPRINTK_ISPCCDC("###CCDC FMT_VERT=0x%x\n",
-+                                               omap_readl(ISPCCDC_FMT_VERT));
-+       DPRINTK_ISPCCDC("###CCDC LSC_CONFIG=0x%x\n",
-+                                       omap_readl(ISPCCDC_LSC_CONFIG));
-+       DPRINTK_ISPCCDC("###CCDC LSC_INIT=0x%x\n",
-+                                       omap_readl(ISPCCDC_LSC_INITIAL));
-+       DPRINTK_ISPCCDC("###CCDC LSC_TABLE BASE=0x%x\n",
-+                                       omap_readl(ISPCCDC_LSC_TABLE_BASE));
-+       DPRINTK_ISPCCDC("###CCDC LSC TABLE OFFSET=0x%x\n",
-+                                       omap_readl(ISPCCDC_LSC_TABLE_OFFSET));
++#ifdef OMAP_ISPPREV_DEBUG
++       printk("Module in use =3D%d\n", ispprev_obj.prev_inuse);
++       DPRINTK_ISPPREV("Preview Input format =3D%d, Output Format =3D%d\=
+n",
++                                               ispprev_obj.prev_inpfmt,
++                                               ispprev_obj.prev_outfmt);
++       DPRINTK_ISPPREV("Accepted Preview Input (width =3D %d,Height =3D =
+%d)\n",
++                                               ispprev_obj.previn_w,
++                                               ispprev_obj.previn_h);
++       DPRINTK_ISPPREV("Accepted Preview Output (width =3D %d,Height =3D=
+ %d)\n",
++                                               ispprev_obj.prevout_w,
++                                               ispprev_obj.prevout_h);
++       DPRINTK_ISPPREV("###ISP_CTRL in preview =3D0x%x\n",
++                                               omap_readl(ISP_CTRL));
++       DPRINTK_ISPPREV("###ISP_IRQ0ENABLE in preview =3D0x%x\n",
++                                               omap_readl(ISP_IRQ0ENABLE=
+));
++       DPRINTK_ISPPREV("###ISP_IRQ0STATUS in preview =3D0x%x\n",
++                                               omap_readl(ISP_IRQ0STATUS=
+));
++       DPRINTK_ISPPREV("###PRV PCR =3D0x%x\n", omap_readl(ISPPRV_PCR));
++       DPRINTK_ISPPREV("###PRV HORZ_INFO =3D0x%x\n",
++                                               omap_readl(ISPPRV_HORZ_IN=
+FO));
++       DPRINTK_ISPPREV("###PRV VERT_INFO =3D0x%x\n",
++                                               omap_readl(ISPPRV_VERT_IN=
+FO));
++       DPRINTK_ISPPREV("###PRV WSDR_ADDR =3D0x%x\n",
++                                               omap_readl(ISPPRV_WSDR_AD=
+DR));
++       DPRINTK_ISPPREV("###PRV WADD_OFFSET =3D0x%x\n",
++                                       omap_readl(ISPPRV_WADD_OFFSET));
++       DPRINTK_ISPPREV("###PRV AVE =3D0x%x\n", omap_readl(ISPPRV_AVE));
++       DPRINTK_ISPPREV("###PRV HMED =3D0x%x\n", omap_readl(ISPPRV_HMED))=
+;
++       DPRINTK_ISPPREV("###PRV NF =3D0x%x\n", omap_readl(ISPPRV_NF));
++       DPRINTK_ISPPREV("###PRV WB_DGAIN =3D0x%x\n",
++                                               omap_readl(ISPPRV_WB_DGAI=
+N));
++       DPRINTK_ISPPREV("###PRV WBGAIN =3D0x%x\n", omap_readl(ISPPRV_WBGA=
+IN));
++       DPRINTK_ISPPREV("###PRV WBSEL =3D0x%x\n", omap_readl(ISPPRV_WBSEL=
+));
++       DPRINTK_ISPPREV("###PRV CFA =3D0x%x\n", omap_readl(ISPPRV_CFA));
++       DPRINTK_ISPPREV("###PRV BLKADJOFF =3D0x%x\n",
++                                               omap_readl(ISPPRV_BLKADJO=
+FF));
++       DPRINTK_ISPPREV("###PRV RGB_MAT1 =3D0x%x\n",
++                                               omap_readl(ISPPRV_RGB_MAT=
+1));
++       DPRINTK_ISPPREV("###PRV RGB_MAT2 =3D0x%x\n",
++                                               omap_readl(ISPPRV_RGB_MAT=
+2));
++       DPRINTK_ISPPREV("###PRV RGB_MAT3 =3D0x%x\n",
++                                               omap_readl(ISPPRV_RGB_MAT=
+3));
++       DPRINTK_ISPPREV("###PRV RGB_MAT4 =3D0x%x\n",
++                                               omap_readl(ISPPRV_RGB_MAT=
+4));
++       DPRINTK_ISPPREV("###PRV RGB_MAT5 =3D0x%x\n",
++                                               omap_readl(ISPPRV_RGB_MAT=
+5));
++       DPRINTK_ISPPREV("###PRV RGB_OFF1 =3D0x%x\n",
++                                               omap_readl(ISPPRV_RGB_OFF=
+1));
++       DPRINTK_ISPPREV("###PRV RGB_OFF2 =3D0x%x\n",
++                                               omap_readl(ISPPRV_RGB_OFF=
+2));
++       DPRINTK_ISPPREV("###PRV CSC0 =3D0x%x\n", omap_readl(ISPPRV_CSC0))=
+;
++       DPRINTK_ISPPREV("###PRV CSC1 =3D0x%x\n", omap_readl(ISPPRV_CSC1))=
+;
++       DPRINTK_ISPPREV("###PRV CSC2 =3D0x%x\n", omap_readl(ISPPRV_CSC2))=
+;
++       DPRINTK_ISPPREV("###PRV CSC_OFFSET =3D0x%x\n",
++                                               omap_readl(ISPPRV_CSC_OFF=
+SET));
++       DPRINTK_ISPPREV("###PRV CNT_BRT =3D0x%x\n", omap_readl(ISPPRV_CNT=
+_BRT));
++       DPRINTK_ISPPREV("###PRV CSUP =3D0x%x\n", omap_readl(ISPPRV_CSUP))=
+;
++       DPRINTK_ISPPREV("###PRV SETUP_YC =3D0x%x\n",
++                                               omap_readl(ISPPRV_SETUP_Y=
+C));
++#endif
 +}
-+EXPORT_SYMBOL(ispccdc_print_status);
++EXPORT_SYMBOL(isppreview_print_status);
 +
 +/**
-+ * isp_ccdc_init - CCDC module initialization.
-+ *
-+ * Always returns 0
++ * isp_preview_init - Module Initialization.
 + **/
-+int __init isp_ccdc_init(void)
++int __init isp_preview_init(void)
 +{
-+       ispccdc_obj.ccdc_inuse = 0;
-+       ispccdc_config_crop(0, 0, 0, 0);
-+       mutex_init(&ispccdc_obj.mutexlock);
++       int i =3D 0;
 +
-+       if (is_isplsc_activated()) {
-+               memset(ispccdc_lsc_tbl, 0x40, LSC_TABLE_INIT_SIZE);
-+               lsc_config.initial_x = 0;
-+               lsc_config.initial_y = 0;
-+               lsc_config.gain_mode_n = 0x6;
-+               lsc_config.gain_mode_m = 0x6;
-+               lsc_config.gain_format = 0x4;
-+               lsc_config.offset = 0x60;
-+               lsc_config.size = LSC_TABLE_INIT_SIZE;
-+               ccdc_use_lsc = 1;
++       prev_config_params =3D kmalloc(sizeof(*prev_config_params), GFP_K=
+ERNEL);
++       if (prev_config_params =3D=3D NULL) {
++               printk(KERN_ERR "Can't get memory for isp_preview params!=
+\n");
++               return -ENOMEM;
 +       }
++       params =3D prev_config_params;
 +
++       ispprev_obj.prev_inuse =3D 0;
++       mutex_init(&ispprev_obj.ispprev_mutex);
++       spin_lock_init(&ispprev_obj.ispprev_lock);
++
++       /* Init values */
++       ispprev_obj.sph =3D 2;
++       ispprev_obj.slv =3D 0;
++       ispprev_obj.color =3D PREV_DEFAULT_COLOR;
++       ispprev_obj.contrast =3D ISPPRV_CONTRAST_DEF;
++       params->contrast =3D ISPPRV_CONTRAST_DEF;
++       ispprev_obj.brightness =3D ISPPRV_BRIGHT_DEF;
++       params->brightness =3D ISPPRV_BRIGHT_DEF;
++       params->average =3D NO_AVE;
++       params->lens_shading_shift =3D 0;
++       params->pix_fmt =3D YCPOS_YCrYCb;
++       params->cfa.cfafmt =3D CFAFMT_BAYER;
++       params->cfa.cfa_table =3D cfa_coef_table;
++       params->cfa.cfa_gradthrs_horz =3D FLR_CFA_GRADTHRS_HORZ;
++       params->cfa.cfa_gradthrs_vert =3D FLR_CFA_GRADTHRS_VERT;
++       params->csup.gain =3D FLR_CSUP_GAIN;
++       params->csup.thres =3D FLR_CSUP_THRES;
++       params->csup.hypf_en =3D 0;
++       params->ytable =3D luma_enhance_table;
++       params->nf.spread =3D FLR_NF_STRGTH;
++       memcpy(params->nf.table, noise_filter_table, sizeof(params->nf.ta=
+ble));
++       params->dcor.couplet_mode_en =3D 1;
++       for (i =3D 0; i < 4; i++)
++               params->dcor.detect_correct[i] =3D 0xE;
++       params->gtable.bluetable =3D bluegamma_table;
++       params->gtable.greentable =3D greengamma_table;
++       params->gtable.redtable =3D redgamma_table;
++       params->wbal.dgain =3D FLR_WBAL_DGAIN;
++       if (omap_rev() > OMAP3430_REV_ES1_0) {
++               params->wbal.coef0 =3D FLR_WBAL_COEF0_ES1;
++               params->wbal.coef1 =3D FLR_WBAL_COEF1_ES1;
++               params->wbal.coef2 =3D FLR_WBAL_COEF2_ES1;
++               params->wbal.coef3 =3D FLR_WBAL_COEF3_ES1;
++       } else {
++               params->wbal.coef0 =3D FLR_WBAL_COEF0;
++               params->wbal.coef1 =3D FLR_WBAL_COEF1;
++               params->wbal.coef2 =3D FLR_WBAL_COEF2;
++               params->wbal.coef3 =3D FLR_WBAL_COEF3;
++       }
++       params->blk_adj.red =3D FLR_BLKADJ_RED;
++       params->blk_adj.green =3D FLR_BLKADJ_GREEN;
++       params->blk_adj.blue =3D FLR_BLKADJ_BLUE;
++       params->rgb2rgb =3D flr_rgb2rgb;
++       params->rgb2ycbcr =3D flr_prev_csc[ispprev_obj.color];
++
++       params->features =3D PREV_CFA | PREV_CHROMA_SUPPRESS | PREV_LUMA_=
+ENHANCE
++                               | PREV_DEFECT_COR | PREV_NOISE_FILTER;
++       params->features &=3D ~(PREV_AVERAGER | PREV_INVERSE_ALAW |
++                                               PREV_HORZ_MEDIAN_FILTER |
++                                               PREV_GAMMA_BYPASS |
++                                               PREV_DARK_FRAME_SUBTRACT =
+|
++                                               PREV_LENS_SHADING |
++                                               PREV_DARK_FRAME_CAPTURE);
 +       return 0;
 +}
 +
 +/**
-+ * isp_ccdc_cleanup - CCDC module cleanup.
++ * isp_preview_cleanup - Module Cleanup.
 + **/
-+void isp_ccdc_cleanup(void)
++void __exit isp_preview_cleanup(void)
 +{
-+       if (is_isplsc_activated()) {
-+               if (lsc_initialized) {
-+                       ispmmu_unmap(lsc_ispmmu_addr);
-+                       kfree(lsc_gain_table);
-+                       lsc_initialized = 0;
-+               }
-+       }
-+
-+       if (fpc_table_add_m != 0) {
-+               ispmmu_unmap(fpc_table_add_m);
-+               kfree(fpc_table_add);
-+       }
++       kfree(prev_config_params);
++       prev_config_params =3D NULL;
 +}
-diff --git a/drivers/media/video/isp/ispccdc.h b/drivers/media/video/isp/ispccdc.h
+diff --git a/drivers/media/video/isp/isppreview.h b/drivers/media/video/i=
+sp/isppreview.h
 new file mode 100644
-index 0000000..eb6868d
+index 0000000..630295c
 --- /dev/null
-+++ b/drivers/media/video/isp/ispccdc.h
-@@ -0,0 +1,206 @@
++++ b/drivers/media/video/isp/isppreview.h
+@@ -0,0 +1,356 @@
 +/*
-+ * drivers/media/video/isp/ispccdc.h
++ * drivers/media/video/isp/isppreview.h
 + *
-+ * Driver header file for CCDC module in TI's OMAP3 Camera ISP
++ * Driver header file for Preview module in TI's OMAP3 Camera ISP
 + *
 + * Copyright (C) 2008 Texas Instruments, Inc.
 + *
@@ -1579,192 +2319,1539 @@ index 0000000..eb6868d
 + * WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 + */
 +
-+#ifndef OMAP_ISP_CCDC_H
-+#define OMAP_ISP_CCDC_H
++#ifndef OMAP_ISP_PREVIEW_H
++#define OMAP_ISP_PREVIEW_H
 +
 +#include <mach/isp_user.h>
++/* Isp query control structure */
++
++#define ISPPRV_BRIGHT_STEP             0x1
++#define ISPPRV_BRIGHT_DEF              0x1
++#define ISPPRV_BRIGHT_LOW              0x0
++#define ISPPRV_BRIGHT_HIGH             0xF
++#define ISPPRV_BRIGHT_UNITS            0x7
++
++#define ISPPRV_CONTRAST_STEP           0x1
++#define ISPPRV_CONTRAST_DEF            0x2
++#define ISPPRV_CONTRAST_LOW            0x0
++#define ISPPRV_CONTRAST_HIGH           0xF
++#define ISPPRV_CONTRAST_UNITS          0x5
++
++#define NO_AVE                         0x0
++#define AVE_2_PIX                      0x1
++#define AVE_4_PIX                      0x2
++#define AVE_8_PIX                      0x3
++#define AVE_ODD_PIXEL_DIST             (1 << 4) /* For Bayer Sensors */
++#define AVE_EVEN_PIXEL_DIST            (1 << 2)
++
++#define WB_GAIN_MAX                    4
++
++/* Features list */
++#define PREV_AVERAGER                  (1 << 0)
++#define PREV_INVERSE_ALAW              (1 << 1)
++#define PREV_HORZ_MEDIAN_FILTER                (1 << 2)
++#define PREV_NOISE_FILTER              (1 << 3)
++#define PREV_CFA                       (1 << 4)
++#define PREV_GAMMA_BYPASS              (1 << 5)
++#define PREV_LUMA_ENHANCE              (1 << 6)
++#define PREV_CHROMA_SUPPRESS           (1 << 7)
++#define PREV_DARK_FRAME_SUBTRACT       (1 << 8)
++#define PREV_LENS_SHADING              (1 << 9)
++#define PREV_DARK_FRAME_CAPTURE                (1 << 10)
++#define PREV_DEFECT_COR                        (1 << 11)
++
++
++#define ISP_NF_TABLE_SIZE              (1 << 10)
++
++#define ISP_GAMMA_TABLE_SIZE           (1 << 10)
++
++/* Table addresses */
++#define ISPPRV_TBL_ADDR_RED_G_START  0x00
++#define ISPPRV_TBL_ADDR_BLUE_G_START  0x800
++#define ISPPRV_TBL_ADDR_GREEN_G_START  0x400
++
++/*
++ *Enumeration Constants for input and output format
++ */
++enum preview_input {
++       PRV_RAW_CCDC,
++       PRV_RAW_MEM,
++       PRV_RGBBAYERCFA,
++       PRV_COMPCFA,
++       PRV_CCDC_DRKF,
++       PRV_OTHERS
++};
++enum preview_output {
++       PREVIEW_RSZ,
++       PREVIEW_MEM
++};
++/*
++ * Configure byte layout of YUV image
++ */
++enum preview_ycpos_mode {
++       YCPOS_YCrYCb =3D 0,
++       YCPOS_YCbYCr =3D 1,
++       YCPOS_CbYCrY =3D 2,
++       YCPOS_CrYCbY =3D 3
++};
++
++enum preview_color_effect {
++       PREV_DEFAULT_COLOR =3D 0,
++       PREV_SEPIA_COLOR =3D 1,
++       PREV_BW_COLOR =3D 2
++};
++
++
++/**
++ * struct ispprev_gtable - Structure for Gamma Correction.
++ * @redtable: Pointer to the red gamma table.
++ * @greentable: Pointer to the green gamma table.
++ * @bluetable: Pointer to the blue gamma table.
++ */
++struct ispprev_gtable {
++       u32 *redtable;
++       u32 *greentable;
++       u32 *bluetable;
++};
++
++/**
++ * struct prev_white_balance - Structure for White Balance 2.
++ * @wb_dgain: White balance common gain.
++ * @wb_gain: Individual color gains.
++ * @wb_coefmatrix: Coefficient matrix
++ */
++struct prev_white_balance {
++       u16 wb_dgain; /* white balance common gain */
++       u8 wb_gain[WB_GAIN_MAX]; /* individual color gains */
++       u8 wb_coefmatrix[WB_GAIN_MAX][WB_GAIN_MAX];
++};
++
++/**
++ * struct prev_size_params - Structure for size parameters.
++ * @hstart: Starting pixel.
++ * @vstart: Starting line.
++ * @hsize: Width of input image.
++ * @vsize: Height of input image.
++ * @pixsize: Pixel size of the image in terms of bits.
++ * @in_pitch: Line offset of input image.
++ * @out_pitch: Line offset of output image.
++ */
++struct prev_size_params {
++       unsigned int hstart;
++       unsigned int vstart;
++       unsigned int hsize;
++       unsigned int vsize;
++       unsigned char pixsize;
++       unsigned short in_pitch;
++       unsigned short out_pitch;
++};
++
++/**
++ * struct prev_rgb2ycbcr_coeffs - Structure RGB2YCbCr parameters.
++ * @coeff: Color conversion gains in 3x3 matrix.
++ * @offset: Color conversion offsets.
++ */
++struct prev_rgb2ycbcr_coeffs {
++       short coeff[RGB_MAX][RGB_MAX];
++       short offset[RGB_MAX];
++};
++
++/**
++ * struct prev_darkfrm_params - Structure for Dark frame suppression.
++ * @addr: Memory start address.
++ * @offset: Line offset.
++ */
++struct prev_darkfrm_params {
++       u32 addr;
++       u32 offset;
++};
++
++/**
++ * struct prev_params - Structure for all configuration
++ * @features: Set of features enabled.
++ * @pix_fmt: Output pixel format.
++ * @cfa: CFA coefficients.
++ * @csup: Chroma suppression coefficients.
++ * @ytable: Pointer to Luma enhancement coefficients.
++ * @nf: Noise filter coefficients.
++ * @dcor: Noise filter coefficients.
++ * @gtable: Gamma coefficients.
++ * @wbal: White Balance parameters.
++ * @blk_adj: Black adjustment parameters.
++ * @rgb2rgb: RGB blending parameters.
++ * @rgb2ycbcr: RGB to ycbcr parameters.
++ * @hmf_params: Horizontal median filter.
++ * @size_params: Size parameters.
++ * @drkf_params: Darkframe parameters.
++ * @lens_shading_shift:
++ * @average: Downsampling rate for averager.
++ * @contrast: Contrast.
++ * @brightness: Brightness.
++ */
++struct prev_params {
++       u16 features;
++       enum preview_ycpos_mode pix_fmt;
++       struct ispprev_cfa cfa;
++       struct ispprev_csup csup;
++       u32 *ytable;
++       struct ispprev_nf nf;
++       struct ispprev_dcor dcor;
++       struct ispprev_gtable gtable;
++       struct ispprev_wbal wbal;
++       struct ispprev_blkadj blk_adj;
++       struct ispprev_rgbtorgb rgb2rgb;
++       struct ispprev_csc rgb2ycbcr;
++       struct ispprev_hmed hmf_params;
++       struct prev_size_params size_params;
++       struct prev_darkfrm_params drkf_params;
++       u8 lens_shading_shift;
++       u8 average;
++       u8 contrast;
++       u8 brightness;
++};
++
++/**
++ * struct isptables_update - Structure for Table Configuration.
++ * @update: Specifies which tables should be updated.
++ * @flag: Specifies which tables should be enabled.
++ * @prev_nf: Pointer to structure for Noise Filter
++ * @lsc: Pointer to LSC gain table. (currently not used)
++ * @red_gamma: Pointer to red gamma correction table.
++ * @green_gamma: Pointer to green gamma correction table.
++ * @blue_gamma: Pointer to blue gamma correction table.
++ */
++struct isptables_update {
++       u16 update;
++       u16 flag;
++       struct ispprev_nf *prev_nf;
++       u32 *lsc;
++       u32 *red_gamma;
++       u32 *green_gamma;
++       u32 *blue_gamma;
++};
++
++void isppreview_config_shadow_registers(void);
++
++int isppreview_request(void);
++
++int isppreview_free(void);
++
++int isppreview_config_datapath(enum preview_input input,
++                                       enum preview_output output);
++
++void isppreview_config_ycpos(enum preview_ycpos_mode mode);
++
++void isppreview_config_averager(u8 average);
++
++void isppreview_enable_invalaw(u8 enable);
++
++void isppreview_enable_drkframe(u8 enable);
++
++void isppreview_enable_shadcomp(u8 enable);
++
++void isppreview_config_drkf_shadcomp(u8 scomp_shtval);
++
++void isppreview_enable_gammabypass(u8 enable);
++
++void isppreview_enable_hmed(u8 enable);
++
++void isppreview_config_hmed(struct ispprev_hmed);
++
++void isppreview_enable_noisefilter(u8 enable);
++
++void isppreview_config_noisefilter(struct ispprev_nf prev_nf);
++
++void isppreview_enable_dcor(u8 enable);
++
++void isppreview_config_dcor(struct ispprev_dcor prev_dcor);
++
++
++void isppreview_config_cfa(struct ispprev_cfa);
++
++void isppreview_config_gammacorrn(struct ispprev_gtable);
++
++void isppreview_config_chroma_suppression(struct ispprev_csup csup);
++
++void isppreview_enable_cfa(u8 enable);
++
++void isppreview_config_luma_enhancement(u32 *ytable);
++
++void isppreview_enable_luma_enhancement(u8 enable);
++
++void isppreview_enable_chroma_suppression(u8 enable);
++
++void isppreview_config_whitebalance(struct ispprev_wbal);
++
++void isppreview_config_blkadj(struct ispprev_blkadj);
++
++void isppreview_config_rgb_blending(struct ispprev_rgbtorgb);
++
++void isppreview_config_rgb_to_ycbcr(struct ispprev_csc);
++
++void isppreview_update_contrast(u8 *contrast);
++
++void isppreview_query_contrast(u8 *contrast);
++
++void isppreview_config_contrast(u8 contrast);
++
++void isppreview_get_contrast_range(u8 *min_contrast, u8 *max_contrast);
++
++void isppreview_update_brightness(u8 *brightness);
++
++void isppreview_config_brightness(u8 brightness);
++
++void isppreview_get_brightness_range(u8 *min_brightness, u8 *max_brightn=
+ess);
++
++void isppreview_set_color(u8 *mode);
++
++void isppreview_get_color(u8 *mode);
++
++void isppreview_query_brightness(u8 *brightness);
++
++void isppreview_config_yc_range(struct ispprev_yclimit yclimit);
++
++int isppreview_try_size(u32 input_w, u32 input_h, u32 *output_w,
++                               u32 *output_h);
++
++int isppreview_config_size(u32 input_w, u32 input_h, u32 output_w,
++                       u32 output_h);
++
++int isppreview_config_inlineoffset(u32 offset);
++
++int isppreview_set_inaddr(u32 addr);
++
++int isppreview_config_outlineoffset(u32 offset);
++
++int isppreview_set_outaddr(u32 addr);
++
++int isppreview_config_darklineoffset(u32 offset);
++
++int isppreview_set_darkaddr(u32 addr);
++
++void isppreview_enable(u8 enable);
++
++int isppreview_busy(void);
++
++struct prev_params *isppreview_get_config(void);
++
++void isppreview_print_status(void);
 +
 +#ifndef CONFIG_ARCH_OMAP3410
-+# define cpu_is_omap3410()             0
-+# define is_isplsc_activated()         1
++void isppreview_save_context(void);
 +#else
-+# define cpu_is_omap3410()             1
-+# define is_isplsc_activated()         0
++static inline void isppreview_save_context(void) {}
 +#endif
 +
-+/* Enumeration constants for CCDC input output format */
-+enum ccdc_input {
-+       CCDC_RAW,
-+       CCDC_YUV_SYNC,
-+       CCDC_YUV_BT,
-+       CCDC_OTHERS
-+};
++#ifndef CONFIG_ARCH_OMAP3410
++void isppreview_restore_context(void);
++#else
++static inline void isppreview_restore_context(void) {}
++#endif
 +
-+enum ccdc_output {
-+       CCDC_YUV_RSZ,
-+       CCDC_YUV_MEM_RSZ,
-+       CCDC_OTHERS_VP,
-+       CCDC_OTHERS_MEM,
-+       CCDC_OTHERS_VP_MEM
-+};
++int omap34xx_isp_preview_config(void *userspace_add);
 +
-+/* Enumeration constants for the sync interface parameters */
-+enum inpmode {
-+       RAW,
-+       YUV16,
-+       YUV8
-+};
-+enum datasize {
-+       DAT8,
-+       DAT10,
-+       DAT11,
-+       DAT12
-+};
++int omap34xx_isp_tables_update(struct isptables_update *isptables_struct=
+);
 +
++void isppreview_set_skip(u32 h, u32 v);
++
++#endif/* OMAP_ISP_PREVIEW_H */
+diff --git a/drivers/media/video/isp/ispresizer.c b/drivers/media/video/i=
+sp/ispresizer.c
+new file mode 100644
+index 0000000..3dfef88
+--- /dev/null
++++ b/drivers/media/video/isp/ispresizer.c
+@@ -0,0 +1,895 @@
++/*
++ * drivers/media/video/isp/ispresizer.c
++ *
++ * Driver Library for Resizer module in TI's OMAP3 Camera ISP
++ *
++ * Copyright (C)2008 Texas Instruments, Inc.
++ *
++ * Contributors:
++ *     Sameer Venkatraman <sameerv@ti.com>
++ *     Mohit Jalori
++ *
++ * This package is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ *
++ * THIS PACKAGE IS PROVIDED ``AS IS'' AND WITHOUT ANY EXPRESS OR
++ * IMPLIED WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED
++ * WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
++ */
++
++#include <linux/io.h>
++#include <linux/errno.h>
++#include <linux/types.h>
++#include <linux/delay.h>
++#include <linux/module.h>
++#include <linux/semaphore.h>
++
++#include "isp.h"
++#include "ispreg.h"
++#include "ispresizer.h"
++
++#if ISP_WORKAROUND
++dma_addr_t buff_addr_lsc_wa;
++#endif
++
++/* Default configuration of resizer,filter coefficients,yenh for camera =
+isp */
++static struct isprsz_yenh ispreszdefaultyenh =3D {0, 0, 0, 0};
++static struct isprsz_coef ispreszdefcoef =3D {
++       {
++               0x0027, 0x00B2, 0x00B2, 0x0027,
++               0x0027, 0x00B2, 0x0027, 0x00B2,
++               0x0027, 0x00B2, 0x0027, 0x00B2,
++               0x0027, 0x00B2, 0x0027, 0x00B2,
++               0x0027, 0x00B2, 0x0027, 0x00B2,
++               0x0027, 0x00B2, 0x0027, 0x00B2,
++               0x0027, 0x00B2, 0x0027, 0x00B2,
++               0x0027, 0x00B2, 0x0027, 0x00B2,
++       },
++       {
++               0x0000, 0x0100, 0x0000, 0x0000,
++               0x03FA, 0x00F6, 0x0010, 0x0000,
++               0x03F9, 0x00DB, 0x002C, 0x0000,
++               0x03FB, 0x00B3, 0x0053, 0x03FF,
++               0x03FD, 0x0082, 0x0084, 0x03FD,
++               0x03FF, 0x0053, 0x00B3, 0x03FB,
++               0x0000, 0x002C, 0x00DB, 0x03F9,
++               0x0000, 0x0010, 0x00F6, 0x03FA
++       },
++       {
++               0x0004, 0x0023, 0x0023, 0x005A,
++               0x005A, 0x0058, 0x0058, 0x0004,
++               0x0023, 0x0023, 0x005A, 0x005A,
++               0x0058, 0x0058, 0x0004, 0x0023,
++               0x0023, 0x005A, 0x005A, 0x0058,
++               0x0058, 0x0004, 0x0023, 0x0023,
++               0x005A, 0x005A, 0x0058, 0x0058
++       },
++       {
++               0x0004, 0x0023, 0x005A, 0x0058,
++               0x0023, 0x0004, 0x0000, 0x0002,
++               0x0018, 0x004d, 0x0060, 0x0031,
++               0x0008, 0x0000, 0x0001, 0x000f,
++               0x003f, 0x0062, 0x003f, 0x000f,
++               0x0001, 0x0000, 0x0008, 0x0031,
++               0x0060, 0x004d, 0x0018, 0x0002
++       }
++};
 +
 +/**
-+ * struct ispccdc_syncif - Structure for Sync Interface between sensor and CCDC
-+ * @ccdc_mastermode: Master mode. 1 - Master, 0 - Slave.
-+ * @fldstat: Field state. 0 - Odd Field, 1 - Even Field.
-+ * @ipmod: Input mode.
-+ * @datsz: Data size.
-+ * @fldmode: 0 - Progressive, 1 - Interlaced.
-+ * @datapol: 0 - Positive, 1 - Negative.
-+ * @fldpol: 0 - Positive, 1 - Negative.
-+ * @hdpol: 0 - Positive, 1 - Negative.
-+ * @vdpol: 0 - Positive, 1 - Negative.
-+ * @fldout: 0 - Input, 1 - Output.
-+ * @hs_width: Width of the Horizontal Sync pulse, used for HS/VS Output.
-+ * @vs_width: Width of the Vertical Sync pulse, used for HS/VS Output.
-+ * @ppln: Number of pixels per line, used for HS/VS Output.
-+ * @hlprf: Number of half lines per frame, used for HS/VS Output.
-+ * @bt_r656_en: 1 - Enable ITU-R BT656 mode, 0 - Sync mode.
++ * struct isp_res - Structure for the resizer module to store its inform=
+ation.
++ * @res_inuse: Indicates if resizer module has been reserved. 1 - Reserv=
+ed,
++ *             0 - Freed.
++ * @h_startphase: Horizontal starting phase.
++ * @v_startphase: Vertical starting phase.
++ * @h_resz: Horizontal resizing value.
++ * @v_resz: Vertical resizing value.
++ * @outputwidth: Output Image Width in pixels.
++ * @outputheight: Output Image Height in pixels.
++ * @inputwidth: Input Image Width in pixels.
++ * @inputheight: Input Image Height in pixels.
++ * @algo: Algorithm select. 0 - Disable, 1 - [-1 2 -1]/2 high-pass filte=
+r,
++ *        2 - [-1 -2 6 -2 -1]/4 high-pass filter.
++ * @ipht_crop: Vertical start line for cropping.
++ * @ipwd_crop: Horizontal start pixel for cropping.
++ * @cropwidth: Crop Width.
++ * @cropheight: Crop Height.
++ * @resinput: Resizer input.
++ * @coeflist: Register configuration for Resizer.
++ * @ispres_mutex: Mutex for isp resizer.
 + */
-+struct ispccdc_syncif {
-+       u8 ccdc_mastermode;
-+       u8 fldstat;
-+       enum inpmode ipmod;
-+       enum datasize datsz;
-+       u8 fldmode;
-+       u8 datapol;
-+       u8 fldpol;
-+       u8 hdpol;
-+       u8 vdpol;
-+       u8 fldout;
-+       u8 hs_width;
-+       u8 vs_width;
-+       u8 ppln;
-+       u8 hlprf;
-+       u8 bt_r656_en;
++static struct isp_res {
++       u8 res_inuse;
++       u8 h_startphase;
++       u8 v_startphase;
++       u16 h_resz;
++       u16 v_resz;
++       u32 outputwidth;
++       u32 outputheight;
++       u32 inputwidth;
++       u32 inputheight;
++       u8 algo;
++       u32 ipht_crop;
++       u32 ipwd_crop;
++       u32 cropwidth;
++       u32 cropheight;
++       enum ispresizer_input resinput;
++       struct isprsz_coef coeflist;
++       struct mutex ispres_mutex; /* For checking/modifying res_inuse */
++} ispres_obj;
++
++/* Structure for saving/restoring resizer module registers */
++static struct isp_reg isprsz_reg_list[] =3D {
++       {ISPRSZ_CNT, 0x0000},
++       {ISPRSZ_OUT_SIZE, 0x0000},
++       {ISPRSZ_IN_START, 0x0000},
++       {ISPRSZ_IN_SIZE, 0x0000},
++       {ISPRSZ_SDR_INADD, 0x0000},
++       {ISPRSZ_SDR_INOFF, 0x0000},
++       {ISPRSZ_SDR_OUTADD, 0x0000},
++       {ISPRSZ_SDR_OUTOFF, 0x0000},
++       {ISPRSZ_HFILT10, 0x0000},
++       {ISPRSZ_HFILT32, 0x0000},
++       {ISPRSZ_HFILT54, 0x0000},
++       {ISPRSZ_HFILT76, 0x0000},
++       {ISPRSZ_HFILT98, 0x0000},
++       {ISPRSZ_HFILT1110, 0x0000},
++       {ISPRSZ_HFILT1312, 0x0000},
++       {ISPRSZ_HFILT1514, 0x0000},
++       {ISPRSZ_HFILT1716, 0x0000},
++       {ISPRSZ_HFILT1918, 0x0000},
++       {ISPRSZ_HFILT2120, 0x0000},
++       {ISPRSZ_HFILT2322, 0x0000},
++       {ISPRSZ_HFILT2524, 0x0000},
++       {ISPRSZ_HFILT2726, 0x0000},
++       {ISPRSZ_HFILT2928, 0x0000},
++       {ISPRSZ_HFILT3130, 0x0000},
++       {ISPRSZ_VFILT10, 0x0000},
++       {ISPRSZ_VFILT32, 0x0000},
++       {ISPRSZ_VFILT54, 0x0000},
++       {ISPRSZ_VFILT76, 0x0000},
++       {ISPRSZ_VFILT98, 0x0000},
++       {ISPRSZ_VFILT1110, 0x0000},
++       {ISPRSZ_VFILT1312, 0x0000},
++       {ISPRSZ_VFILT1514, 0x0000},
++       {ISPRSZ_VFILT1716, 0x0000},
++       {ISPRSZ_VFILT1918, 0x0000},
++       {ISPRSZ_VFILT2120, 0x0000},
++       {ISPRSZ_VFILT2322, 0x0000},
++       {ISPRSZ_VFILT2524, 0x0000},
++       {ISPRSZ_VFILT2726, 0x0000},
++       {ISPRSZ_VFILT2928, 0x0000},
++       {ISPRSZ_VFILT3130, 0x0000},
++       {ISPRSZ_YENH, 0x0000},
++       {ISP_TOK_TERM, 0x0000}
 +};
 +
 +/**
-+ * ispccdc_refmt - Structure for Reformatter parameters
-+ * @lnalt: Line alternating mode enable. 0 - Enable, 1 - Disable.
-+ * @lnum: Number of output lines from 1 input line. 1 to 4 lines.
-+ * @plen_even: Number of program entries in even line minus 1.
-+ * @plen_odd: Number of program entries in odd line minus 1.
-+ * @prgeven0: Program entries 0-7 for even lines register
-+ * @prgeven1: Program entries 8-15 for even lines register
-+ * @prgodd0: Program entries 0-7 for odd lines register
-+ * @prgodd1: Program entries 8-15 for odd lines register
-+ * @fmtaddr0: Output line in which the original pixel is to be placed
-+ * @fmtaddr1: Output line in which the original pixel is to be placed
-+ * @fmtaddr2: Output line in which the original pixel is to be placed
-+ * @fmtaddr3: Output line in which the original pixel is to be placed
-+ * @fmtaddr4: Output line in which the original pixel is to be placed
-+ * @fmtaddr5: Output line in which the original pixel is to be placed
-+ * @fmtaddr6: Output line in which the original pixel is to be placed
-+ * @fmtaddr7: Output line in which the original pixel is to be placed
++ * ispresizer_config_shadow_registers - Configure shadow registers.
++ **/
++void ispresizer_config_shadow_registers()
++{
++       return;
++}
++EXPORT_SYMBOL(ispresizer_config_shadow_registers);
++
++/**
++ * ispresizer_trycrop - Validate crop dimensions.
++ * @left: Left distance to start position of crop.
++ * @top: Top distance to start position of crop.
++ * @width: Width of input image.
++ * @height: Height of input image.
++ * @ow: Width of output image.
++ * @oh: Height of output image.
++ **/
++void ispresizer_trycrop(u32 left, u32 top, u32 width, u32 height, u32 ow=
+,
++                                                                       u=
+32 oh)
++{
++       ispres_obj.cropwidth =3D width + 6;
++       ispres_obj.cropheight =3D height + 6;
++       ispresizer_try_size(&ispres_obj.cropwidth, &ispres_obj.cropheight=
+, &ow,
++                                                                       &=
+oh);
++       ispres_obj.ipht_crop =3D top;
++       ispres_obj.ipwd_crop =3D left;
++}
++EXPORT_SYMBOL(ispresizer_trycrop);
++
++/**
++ * ispresizer_applycrop - Apply crop to input image.
++ **/
++void ispresizer_applycrop()
++{
++       ispresizer_config_size(ispres_obj.cropwidth, ispres_obj.cropheigh=
+t,
++                                               ispres_obj.outputwidth,
++                                               ispres_obj.outputheight);
++       return;
++}
++EXPORT_SYMBOL(ispresizer_applycrop);
++
++/**
++ * ispresizer_request - Reserves the Resizer module.
++ *
++ * Allows only one user at a time.
++ *
++ * Returns 0 if successful, or -EBUSY if resizer module was already requ=
+ested.
++ **/
++int ispresizer_request()
++{
++       mutex_lock(&ispres_obj.ispres_mutex);
++       if (!ispres_obj.res_inuse) {
++               ispres_obj.res_inuse =3D 1;
++               mutex_unlock(&ispres_obj.ispres_mutex);
++               omap_writel(omap_readl(ISP_CTRL) | ISPCTRL_SBL_WR0_RAM_EN=
+ |
++                                               ISPCTRL_RSZ_CLK_EN, ISP_C=
+TRL);
++               return 0;
++       } else {
++               mutex_unlock(&ispres_obj.ispres_mutex);
++               printk(KERN_ERR "ISP_ERR : Resizer Module Busy\n");
++               return -EBUSY;
++       }
++}
++EXPORT_SYMBOL(ispresizer_request);
++
++/**
++ * ispresizer_free - Makes Resizer module free.
++ *
++ * Returns 0 if successful, or -EINVAL if resizer module was already fre=
+ed.
++ **/
++int ispresizer_free()
++{
++       mutex_lock(&ispres_obj.ispres_mutex);
++       if (ispres_obj.res_inuse) {
++               ispres_obj.res_inuse =3D 0;
++               mutex_unlock(&ispres_obj.ispres_mutex);
++               omap_writel(omap_readl(ISP_CTRL) & ~(ISPCTRL_RSZ_CLK_EN |
++                                       ISPCTRL_SBL_WR0_RAM_EN), ISP_CTRL=
+);
++               return 0;
++       } else {
++               mutex_unlock(&ispres_obj.ispres_mutex);
++               DPRINTK_ISPRESZ("ISP_ERR : Resizer Module already freed\n=
+");
++               return -EINVAL;
++       }
++}
++EXPORT_SYMBOL(ispresizer_free);
++
++/**
++ * ispresizer_config_datapath - Specifies which input to use in resizer =
+module
++ * @input: Indicates the module that gives the image to resizer.
++ *
++ * Sets up the default resizer configuration according to the arguments.
++ *
++ * Returns 0 if successful, or -EINVAL if an unsupported input was reque=
+sted.
++ **/
++int ispresizer_config_datapath(enum ispresizer_input input)
++{
++       u32 cnt =3D 0;
++       DPRINTK_ISPRESZ("ispresizer_config_datapath()+\n");
++       ispres_obj.resinput =3D input;
++       switch (input) {
++       case RSZ_OTFLY_YUV:
++               cnt &=3D ~ISPRSZ_CNT_INPTYP;
++               cnt &=3D ~ISPRSZ_CNT_INPSRC;
++               ispresizer_set_inaddr(0);
++               ispresizer_config_inlineoffset(0);
++               break;
++       case RSZ_MEM_YUV:
++               cnt |=3D ISPRSZ_CNT_INPSRC;
++               cnt &=3D ~ISPRSZ_CNT_INPTYP;
++               break;
++       case RSZ_MEM_COL8:
++               cnt |=3D ISPRSZ_CNT_INPSRC;
++               cnt |=3D ISPRSZ_CNT_INPTYP;
++               break;
++       default:
++               printk(KERN_ERR "ISP_ERR : Wrong Input\n");
++               return -EINVAL;
++       }
++       omap_writel(omap_readl(ISPRSZ_CNT) | cnt, ISPRSZ_CNT);
++       ispresizer_config_ycpos(0);
++       ispresizer_config_filter_coef(&ispreszdefcoef);
++       ispresizer_enable_cbilin(0);
++       ispresizer_config_luma_enhance(&ispreszdefaultyenh);
++       DPRINTK_ISPRESZ("ispresizer_config_datapath()-\n");
++       return 0;
++}
++EXPORT_SYMBOL(ispresizer_config_datapath);
++
++/**
++ * ispresizer_try_size - Validates input and output images size.
++ * @input_w: input width for the resizer in number of pixels per line
++ * @input_h: input height for the resizer in number of lines
++ * @output_w: output width from the resizer in number of pixels per line
++ *            resizer when writing to memory needs this to be multiple o=
+f 16.
++ * @output_h: output height for the resizer in number of lines, must be =
+even.
++ *
++ * Calculates the horizontal and vertical resize ratio, number of pixels=
+ to
++ * be cropped in the resizer module and checks the validity of various
++ * parameters. Formula used for calculation is:-
++ *
++ * 8-phase 4-tap mode :-
++ * inputwidth =3D (32 * sph + (ow - 1) * hrsz + 16) >> 8 + 7
++ * inputheight =3D (32 * spv + (oh - 1) * vrsz + 16) >> 8 + 4
++ * endpahse for width =3D ((32 * sph + (ow - 1) * hrsz + 16) >> 5) % 8
++ * endphase for height =3D ((32 * sph + (oh - 1) * hrsz + 16) >> 5) % 8
++ *
++ * 4-phase 7-tap mode :-
++ * inputwidth =3D (64 * sph + (ow - 1) * hrsz + 32) >> 8 + 7
++ * inputheight =3D (64 * spv + (oh - 1) * vrsz + 32) >> 8 + 7
++ * endpahse for width =3D ((64 * sph + (ow - 1) * hrsz + 32) >> 6) % 4
++ * endphase for height =3D ((64 * sph + (oh - 1) * hrsz + 32) >> 6) % 4
++ *
++ * Where:
++ * sph =3D Start phase horizontal
++ * spv =3D Start phase vertical
++ * ow =3D Output width
++ * oh =3D Output height
++ * hrsz =3D Horizontal resize value
++ * vrsz =3D Vertical resize value
++ *
++ * Fills up the output/input widht/height, horizontal/vertical resize ra=
+tio,
++ * horizontal/vertical crop variables in the isp_res structure.
++ **/
++int ispresizer_try_size(u32 *input_width, u32 *input_height, u32 *output=
+_w,
++                                                               u32 *outp=
+ut_h)
++{
++       u32 rsz, rsz_7, rsz_4;
++       u32 sph;
++       u32 input_w, input_h;
++       int max_in_otf, max_out_7tap;
++       input_w =3D *input_width;
++       input_h =3D *input_height;
++
++       if (input_w < 32 || input_h < 32) {
++               DPRINTK_ISPCCDC("ISP_ERR: RESIZER cannot handle input wid=
+th"
++                               " less than 32 pixels or height less than=
+"
++                               " 32\n");
++               return -EINVAL;
++       }
++       input_w -=3D 6;
++       input_h -=3D 6;
++
++       if (input_h > MAX_IN_HEIGHT)
++               return -EINVAL;
++
++       if (*output_w < 16)
++               *output_w =3D 16;
++
++       if (*output_h < 2)
++               *output_h =3D 2;
++
++       if (omap_rev() =3D=3D OMAP3430_REV_ES1_0) {
++               max_in_otf =3D MAX_IN_WIDTH_ONTHEFLY_MODE;
++               max_out_7tap =3D MAX_7TAP_VRSZ_OUTWIDTH;
++       } else {
++               max_in_otf =3D MAX_IN_WIDTH_ONTHEFLY_MODE_ES2;
++               max_out_7tap =3D MAX_7TAP_VRSZ_OUTWIDTH_ES2;
++       }
++
++       if (ispres_obj.resinput =3D=3D RSZ_OTFLY_YUV) {
++               if (input_w > max_in_otf)
++                       return -EINVAL;
++       } else {
++               if (input_w > MAX_IN_WIDTH_MEMORY_MODE)
++                       return -EINVAL;
++       }
++
++       *output_h &=3D 0xfffffffe;
++       sph =3D DEFAULTSTPHASE;
++
++       rsz_7 =3D ((input_h - 7) * 256) / (*output_h - 1);
++       rsz_4 =3D ((input_h - 4) * 256) / (*output_h - 1);
++
++       rsz =3D (input_h * 256) / *output_h;
++
++       if (rsz <=3D MID_RESIZE_VALUE) {
++               rsz =3D rsz_4;
++               if (rsz < MINIMUM_RESIZE_VALUE) {
++                       rsz =3D MINIMUM_RESIZE_VALUE;
++                       *output_h =3D (((input_h - 4) * 256) / rsz) + 1;
++                       printk(KERN_INFO "%s: using output_h %d instead\n=
+",
++                                                       __func__, *output=
+_h);
++               }
++       } else {
++               rsz =3D rsz_7;
++               if (*output_w > max_out_7tap)
++                       *output_w =3D max_out_7tap;
++               if (rsz > MAXIMUM_RESIZE_VALUE) {
++                       rsz =3D MAXIMUM_RESIZE_VALUE;
++                       *output_h =3D (((input_h - 7) * 256) / rsz) + 1;
++                       printk(KERN_INFO "%s: using output_h %d instead\n=
+",
++                                                       __func__, *output=
+_h);
++               }
++       }
++
++       if (rsz > MID_RESIZE_VALUE) {
++               input_h =3D
++                       (((64 * sph) + ((*output_h - 1) * rsz) + 32) / 25=
+6) + 7;
++       } else {
++               input_h =3D
++                       (((32 * sph) + ((*output_h - 1) * rsz) + 16) / 25=
+6) + 4;
++       }
++
++       ispres_obj.outputheight =3D *output_h;
++       ispres_obj.v_resz =3D rsz;
++       ispres_obj.inputheight =3D input_h;
++       ispres_obj.ipht_crop =3D DEFAULTSTPIXEL;
++       ispres_obj.v_startphase =3D sph;
++
++       *output_w &=3D 0xfffffff0;
++       sph =3D DEFAULTSTPHASE;
++
++       rsz_7 =3D ((input_w - 7) * 256) / (*output_w - 1);
++       rsz_4 =3D ((input_w - 4) * 256) / (*output_w - 1);
++
++       rsz =3D (input_w * 256) / *output_w;
++       if (rsz > MID_RESIZE_VALUE) {
++               rsz =3D rsz_7;
++               if (rsz > MAXIMUM_RESIZE_VALUE) {
++                       rsz =3D MAXIMUM_RESIZE_VALUE;
++                       *output_w =3D (((input_w - 7) * 256) / rsz) + 1;
++                       *output_w =3D (*output_w + 0xf) & 0xfffffff0;
++                       printk(KERN_INFO "%s: using output_w %d instead\n=
+",
++                                                       __func__, *output=
+_w);
++               }
++       } else {
++               rsz =3D rsz_4;
++               if (rsz < MINIMUM_RESIZE_VALUE) {
++                       rsz =3D MINIMUM_RESIZE_VALUE;
++                       *output_w =3D (((input_w - 4) * 256) / rsz) + 1;
++                       *output_w =3D (*output_w + 0xf) & 0xfffffff0;
++                       printk(KERN_INFO "%s: using output_w %d instead\n=
+",
++                                                       __func__, *output=
+_w);
++               }
++       }
++
++       /* Recalculate input based on TRM equations */
++       if (rsz > MID_RESIZE_VALUE) {
++               input_w =3D
++                       (((64 * sph) + ((*output_w - 1) * rsz) + 32) / 25=
+6) + 7;
++       } else {
++               input_w =3D
++                       (((32 * sph) + ((*output_w - 1) * rsz) + 16) / 25=
+6) + 7;
++       }
++
++       ispres_obj.outputwidth =3D *output_w;
++       ispres_obj.h_resz =3D rsz;
++       ispres_obj.inputwidth =3D input_w;
++       ispres_obj.ipwd_crop =3D DEFAULTSTPIXEL;
++       ispres_obj.h_startphase =3D sph;
++
++       *input_height =3D input_h;
++       *input_width =3D input_w;
++       return 0;
++}
++EXPORT_SYMBOL(ispresizer_try_size);
++
++/**
++ * ispresizer_config_size - Configures input and output image size.
++ * @input_w: input width for the resizer in number of pixels per line.
++ * @input_h: input height for the resizer in number of lines.
++ * @output_w: output width from the resizer in number of pixels per line=
+.
++ * @output_h: output height for the resizer in number of lines.
++ *
++ * Configures the appropriate values stored in the isp_res structure in =
+the
++ * resizer registers.
++ *
++ * Returns 0 if successful, or -EINVAL if passed values haven't been ver=
+ified
++ * with ispresizer_try_size() previously.
++ **/
++int ispresizer_config_size(u32 input_w, u32 input_h, u32 output_w,
++                                                               u32 outpu=
+t_h)
++{
++       int i, j;
++       u32 res;
++       DPRINTK_ISPRESZ("ispresizer_config_size()+, input_w =3D %d,input_=
+h =3D"
++                                               " %d, output_w =3D %d, ou=
+tput_h"
++                                               " =3D %d,hresz =3D %d,vre=
+sz =3D %d,"
++                                               " hcrop =3D %d, vcrop =3D=
+ %d,"
++                                               " hstph =3D %d, vstph =3D=
+ %d\n",
++                                               ispres_obj.inputwidth,
++                                               ispres_obj.inputheight,
++                                               ispres_obj.outputwidth,
++                                               ispres_obj.outputheight,
++                                               ispres_obj.h_resz,
++                                               ispres_obj.v_resz,
++                                               ispres_obj.ipwd_crop,
++                                               ispres_obj.ipht_crop,
++                                               ispres_obj.h_startphase,
++                                               ispres_obj.v_startphase);
++       if ((output_w !=3D ispres_obj.outputwidth)
++                               || (output_h !=3D ispres_obj.outputheight=
+)) {
++               printk(KERN_ERR "Output parameters passed do not match th=
+e"
++                                               " values calculated by th=
+e"
++                                               " trysize passed w %d, h =
+%d"
++                                               " \n", output_w , output_=
+h);
++               return -EINVAL;
++       }
++
++#if ISP_WORKAROUND
++       buff_addr_lsc_wa =3D isp_buf_get();
++       if (buff_addr_lsc_wa) {
++               /* Set Resizer input address and offset adderss */
++               ispresizer_set_inaddr(buff_addr_lsc_wa);
++               ispresizer_config_inlineoffset(omap_readl(ISPPRV_WADD_OFF=
+SET));
++       }
++#endif
++
++       res =3D omap_readl(ISPRSZ_CNT) & (~(ISPRSZ_CNT_HSTPH_MASK |
++                                                       ISPRSZ_CNT_VSTPH_=
+MASK));
++       omap_writel(res | (ispres_obj.h_startphase << ISPRSZ_CNT_HSTPH_SH=
+IFT) |
++                                               (ispres_obj.v_startphase =
+<<
++                                               ISPRSZ_CNT_VSTPH_SHIFT),
++                                               ISPRSZ_CNT);
++#if ISP_WORKAROUND
++       omap_writel((0x00 << ISPRSZ_IN_START_HORZ_ST_SHIFT) |
++                                       (0x00 << ISPRSZ_IN_START_VERT_ST_=
+SHIFT),
++                                       ISPRSZ_IN_START);
++
++#else
++       omap_writel(((ispres_obj.ipwd_crop * 2) <<
++                                               ISPRSZ_IN_START_HORZ_ST_S=
+HIFT) |
++                                               (ispres_obj.ipht_crop <<
++                                               ISPRSZ_IN_START_VERT_ST_S=
+HIFT),
++                                               ISPRSZ_IN_START);
++#endif
++
++       omap_writel((ispres_obj.inputwidth << ISPRSZ_IN_SIZE_HORZ_SHIFT) =
+|
++                                               (ispres_obj.inputheight <=
+<
++                                               ISPRSZ_IN_SIZE_VERT_SHIFT=
+),
++                                               ISPRSZ_IN_SIZE);
++       if (!ispres_obj.algo) {
++               omap_writel((output_w << ISPRSZ_OUT_SIZE_HORZ_SHIFT) |
++                                               (output_h <<
++                                               ISPRSZ_OUT_SIZE_VERT_SHIF=
+T),
++                                               ISPRSZ_OUT_SIZE);
++       } else {
++               omap_writel(((output_w - 4) << ISPRSZ_OUT_SIZE_HORZ_SHIFT=
+) |
++                                               (output_h <<
++                                               ISPRSZ_OUT_SIZE_VERT_SHIF=
+T),
++                                               ISPRSZ_OUT_SIZE);
++       }
++
++       res =3D omap_readl(ISPRSZ_CNT) & (~(ISPRSZ_CNT_HRSZ_MASK |
++                                               ISPRSZ_CNT_VRSZ_MASK));
++       omap_writel(res | ((ispres_obj.h_resz - 1) << ISPRSZ_CNT_HRSZ_SHI=
+FT) |
++                                               ((ispres_obj.v_resz - 1) =
+<<
++                                               ISPRSZ_CNT_VRSZ_SHIFT),
++                                               ISPRSZ_CNT);
++       if (ispres_obj.h_resz <=3D MID_RESIZE_VALUE) {
++               j =3D 0;
++               for (i =3D 0; i < 16; i++) {
++                       omap_writel((ispres_obj.coeflist.
++                                               h_filter_coef_4tap[j] <<
++                                               ISPRSZ_HFILT10_COEF0_SHIF=
+T) |
++                                               (ispres_obj.coeflist.
++                                               h_filter_coef_4tap[j + 1]=
+ <<
++                                               ISPRSZ_HFILT10_COEF1_SHIF=
+T),
++                                               ISPRSZ_HFILT10 + (i * 0x0=
+4));
++                       j +=3D 2;
++               }
++       } else {
++               j =3D 0;
++               for (i =3D 0; i < 16; i++) {
++                       if ((i + 1) % 4 =3D=3D 0) {
++                               omap_writel((ispres_obj.coeflist.
++                                               h_filter_coef_7tap[j] <<
++                                               ISPRSZ_HFILT10_COEF0_SHIF=
+T),
++                                               ISPRSZ_HFILT10 + (i * 0x0=
+4));
++                               j +=3D 1;
++                       } else {
++                               omap_writel((ispres_obj.coeflist.
++                                               h_filter_coef_7tap[j] <<
++                                               ISPRSZ_HFILT10_COEF0_SHIF=
+T) |
++                                               (ispres_obj.coeflist.
++                                               h_filter_coef_7tap[j+1] <=
+<
++                                               ISPRSZ_HFILT10_COEF1_SHIF=
+T),
++                                               ISPRSZ_HFILT10 + (i * 0x0=
+4));
++                               j +=3D 2;
++                       }
++               }
++       }
++       if (ispres_obj.v_resz <=3D MID_RESIZE_VALUE) {
++               j =3D 0;
++               for (i =3D 0; i < 16; i++) {
++                       omap_writel((ispres_obj.coeflist.
++                                               v_filter_coef_4tap[j] <<
++                                               ISPRSZ_VFILT10_COEF0_SHIF=
+T) |
++                                               (ispres_obj.coeflist.
++                                               v_filter_coef_4tap[j + 1]=
+ <<
++                                               ISPRSZ_VFILT10_COEF1_SHIF=
+T),
++                                               ISPRSZ_VFILT10 + (i * 0x0=
+4));
++                       j +=3D 2;
++               }
++       } else {
++               j =3D 0;
++               for (i =3D 0; i < 16; i++) {
++                       if ((i + 1) % 4 =3D=3D 0) {
++                               omap_writel((ispres_obj.coeflist.
++                                               v_filter_coef_7tap[j] <<
++                                               ISPRSZ_VFILT10_COEF0_SHIF=
+T),
++                                               ISPRSZ_VFILT10 + (i * 0x0=
+4));
++                               j +=3D 1;
++                       } else {
++                               omap_writel((ispres_obj.coeflist.
++                                               v_filter_coef_7tap[j] <<
++                                               ISPRSZ_VFILT10_COEF0_SHIF=
+T) |
++                                               (ispres_obj.coeflist.
++                                               v_filter_coef_7tap[j+1] <=
+<
++                                               ISPRSZ_VFILT10_COEF1_SHIF=
+T),
++                                               ISPRSZ_VFILT10 + (i * 0x0=
+4));
++                               j +=3D 2;
++                       }
++               }
++       }
++
++       ispresizer_config_outlineoffset(output_w*2);
++       DPRINTK_ISPRESZ("ispresizer_config_size()-\n");
++       return 0;
++}
++EXPORT_SYMBOL(ispresizer_config_size);
++
++/**
++ * ispresizer_enable - Enables the resizer module.
++ * @enable: 1 - Enable, 0 - Disable
++ *
++ * Client should configure all the sub modules in resizer before this.
++ **/
++void ispresizer_enable(u8 enable)
++{
++       int val;
++       DPRINTK_ISPRESZ("+ispresizer_enable()+\n");
++       if (enable)
++               val =3D (((omap_readl(ISPRSZ_PCR)) & 0x2) | ISPRSZ_PCR_EN=
+ABLE);
++       else
++               val =3D (omap_readl(ISPRSZ_PCR) & ~ISPRSZ_PCR_ENABLE);
++       omap_writel(val, ISPRSZ_PCR);
++       DPRINTK_ISPRESZ("+ispresizer_enable()-\n");
++}
++EXPORT_SYMBOL(ispresizer_enable);
++
++/**
++ * ispresizer_busy - Checks if ISP resizer is busy.
++ *
++ * Returns busy field from ISPRSZ_PCR register.
++ **/
++int ispresizer_busy(void)
++{
++       return omap_readl(ISPRSZ_PCR) & ISPPRV_PCR_BUSY;
++}
++EXPORT_SYMBOL(ispresizer_busy);
++
++/**
++ * ispresizer_config_startphase - Sets the horizontal and vertical start=
+ phase.
++ * @hstartphase: horizontal start phase (0 - 7).
++ * @vstartphase: vertical startphase (0 - 7).
++ *
++ * This API just updates the isp_res struct. Actual register write happe=
+ns in
++ * ispresizer_config_size.
++ **/
++void ispresizer_config_startphase(u8 hstartphase, u8 vstartphase)
++{
++       DPRINTK_ISPRESZ("ispresizer_config_startphase()+\n");
++       ispres_obj.h_startphase =3D hstartphase;
++       ispres_obj.v_startphase =3D vstartphase;
++       DPRINTK_ISPRESZ("ispresizer_config_startphase()-\n");
++}
++EXPORT_SYMBOL(ispresizer_config_startphase);
++
++/**
++ * ispresizer_config_ycpos - Specifies if output should be in YC or CY f=
+ormat.
++ * @yc: 0 - YC format, 1 - CY format
++ **/
++void ispresizer_config_ycpos(u8 yc)
++{
++       DPRINTK_ISPRESZ("ispresizer_config_ycpos()+\n");
++       if (yc) {
++               omap_writel((omap_readl(ISPRSZ_CNT)) |
++                                       (ISPRSZ_CNT_YCPOS), ISPRSZ_CNT);
++       } else {
++               omap_writel((omap_readl(ISPRSZ_CNT)) &
++                                       (~ISPRSZ_CNT_YCPOS), ISPRSZ_CNT);
++       }
++       DPRINTK_ISPRESZ("ispresizer_config_ycpos()-\n");
++}
++EXPORT_SYMBOL(ispresizer_config_ycpos);
++
++/**
++ * Sets the chrominance algorithm
++ * @cbilin: 0 - chrominance uses same processing as luminance,
++ *          1 - bilinear interpolation processing
++ **/
++void ispresizer_enable_cbilin(u8 enable)
++{
++       DPRINTK_ISPRESZ("ispresizer_enable_cbilin()+\n");
++       if (enable) {
++               omap_writel(omap_readl(ISPRSZ_CNT) | ISPRSZ_CNT_CBILIN,
++                                                               ISPRSZ_CN=
+T);
++       } else {
++               omap_writel(omap_readl(ISPRSZ_CNT) & ~ISPRSZ_CNT_CBILIN,
++                                                               ISPRSZ_CN=
+T);
++       }
++       DPRINTK_ISPRESZ("ispresizer_enable_cbilin()-\n");
++}
++EXPORT_SYMBOL(ispresizer_enable_cbilin);
++
++/**
++ * ispresizer_config_luma_enhance - Configures luminance enhancer parame=
+ters.
++ * @yenh: Pointer to structure containing desired values for core, slope=
+, gain
++ *        and algo parameters.
++ **/
++void ispresizer_config_luma_enhance(struct isprsz_yenh *yenh)
++{
++       DPRINTK_ISPRESZ("ispresizer_config_luma_enhance()+\n");
++       ispres_obj.algo =3D yenh->algo;
++       omap_writel((yenh->algo << ISPRSZ_YENH_ALGO_SHIFT) |
++                               (yenh->gain << ISPRSZ_YENH_GAIN_SHIFT) |
++                               (yenh->slope << ISPRSZ_YENH_SLOP_SHIFT) |
++                               (yenh->coreoffset << ISPRSZ_YENH_CORE_SHI=
+FT),
++                               ISPRSZ_YENH);
++       DPRINTK_ISPRESZ("ispresizer_config_luma_enhance()-\n");
++}
++EXPORT_SYMBOL(ispresizer_config_luma_enhance);
++
++/**
++ * ispresizer_config_filter_coef - Sets filter coefficients for 4 & 7-ta=
+p mode.
++ * This API just updates the isp_res struct.Actual register write happen=
+s in
++ * ispresizer_config_size.
++ * @coef: Structure containing horizontal and vertical filter coefficien=
+ts for
++ *        both 4-tap and 7-tap mode.
++ **/
++void ispresizer_config_filter_coef(struct isprsz_coef *coef)
++{
++       int i;
++       DPRINTK_ISPRESZ("ispresizer_config_filter_coef()+\n");
++       for (i =3D 0; i < 32; i++) {
++               ispres_obj.coeflist.h_filter_coef_4tap[i] =3D
++                                               coef->h_filter_coef_4tap[=
+i];
++               ispres_obj.coeflist.v_filter_coef_4tap[i] =3D
++                                               coef->v_filter_coef_4tap[=
+i];
++       }
++       for (i =3D 0; i < 28; i++) {
++               ispres_obj.coeflist.h_filter_coef_7tap[i] =3D
++                                               coef->h_filter_coef_7tap[=
+i];
++               ispres_obj.coeflist.v_filter_coef_7tap[i] =3D
++                                               coef->v_filter_coef_7tap[=
+i];
++       }
++       DPRINTK_ISPRESZ("ispresizer_config_filter_coef()-\n");
++}
++EXPORT_SYMBOL(ispresizer_config_filter_coef);
++
++/**
++ * ispresizer_config_inlineoffset - Configures the read address line off=
+set.
++ * @offset: Line Offset for the input image.
++ *
++ * Returns 0 if successful, or -EINVAL if offset is not 32 bits aligned.
++ **/
++int ispresizer_config_inlineoffset(u32 offset)
++{
++       DPRINTK_ISPRESZ("ispresizer_config_inlineoffset()+\n");
++       if (offset % 32)
++               return -EINVAL;
++       omap_writel(offset << ISPRSZ_SDR_INOFF_OFFSET_SHIFT, ISPRSZ_SDR_I=
+NOFF);
++       DPRINTK_ISPRESZ("ispresizer_config_inlineoffset()-\n");
++       return 0;
++}
++EXPORT_SYMBOL(ispresizer_config_inlineoffset);
++
++/**
++ * ispresizer_set_inaddr - Sets the memory address of the input frame.
++ * @addr: 32bit memory address aligned on 32byte boundary.
++ *
++ * Returns 0 if successful, or -EINVAL if address is not 32 bits aligned=
+.
++ **/
++int ispresizer_set_inaddr(u32 addr)
++{
++       DPRINTK_ISPRESZ("ispresizer_set_inaddr()+\n");
++       if (addr % 32)
++               return -EINVAL;
++       omap_writel(addr << ISPRSZ_SDR_INADD_ADDR_SHIFT, ISPRSZ_SDR_INADD=
+);
++       DPRINTK_ISPRESZ("ispresizer_set_inaddr()-\n");
++       return 0;
++}
++EXPORT_SYMBOL(ispresizer_set_inaddr);
++
++/**
++ * ispresizer_config_outlineoffset - Configures the write address line o=
+ffset.
++ * @offset: Line offset for the preview output.
++ *
++ * Returns 0 if successful, or -EINVAL if address is not 32 bits aligned=
+.
++ **/
++int ispresizer_config_outlineoffset(u32 offset)
++{
++       DPRINTK_ISPRESZ("ispresizer_config_outlineoffset()+\n");
++       if (offset % 32)
++               return -EINVAL;
++       omap_writel(offset << ISPRSZ_SDR_OUTOFF_OFFSET_SHIFT,
++                                                       ISPRSZ_SDR_OUTOFF=
+);
++       DPRINTK_ISPRESZ("ispresizer_config_outlineoffset()-\n");
++       return 0;
++}
++EXPORT_SYMBOL(ispresizer_config_outlineoffset);
++
++/**
++ * Configures the memory address to which the output frame is written.
++ * @addr: 32bit memory address aligned on 32byte boundary.
++ **/
++int ispresizer_set_outaddr(u32 addr)
++{
++       DPRINTK_ISPRESZ("ispresizer_set_outaddr()+\n");
++       if (addr % 32)
++               return -EINVAL;
++       omap_writel(addr << ISPRSZ_SDR_OUTADD_ADDR_SHIFT, ISPRSZ_SDR_OUTA=
+DD);
++       DPRINTK_ISPRESZ("ispresizer_set_outaddr()-\n");
++       return 0;
++}
++EXPORT_SYMBOL(ispresizer_set_outaddr);
++
++/**
++ * ispresizer_save_context - Saves the values of the resizer module regi=
+sters.
++ **/
++void ispresizer_save_context(void)
++{
++       DPRINTK_ISPRESZ("Saving context\n");
++       isp_save_context(isprsz_reg_list);
++}
++EXPORT_SYMBOL(ispresizer_save_context);
++
++/**
++ * ispresizer_restore_context - Restores resizer module register values.
++ **/
++void ispresizer_restore_context(void)
++{
++       DPRINTK_ISPRESZ("Restoring context\n");
++       isp_restore_context(isprsz_reg_list);
++}
++EXPORT_SYMBOL(ispresizer_restore_context);
++
++/**
++ * ispresizer_print_status - Prints the values of the resizer module reg=
+isters.
++ **/
++void ispresizer_print_status()
++{
++       if (!is_ispresz_debug_enabled())
++               return;
++       DPRINTK_ISPRESZ("###ISP_CTRL inresizer =3D0x%x\n", omap_readl(ISP=
+_CTRL));
++
++       DPRINTK_ISPRESZ("###ISP_IRQ0ENABLE in resizer =3D0x%x\n",
++                                               omap_readl(ISP_IRQ0ENABLE=
+));
++       DPRINTK_ISPRESZ("###ISP_IRQ0STATUS in resizer =3D0x%x\n",
++                                               omap_readl(ISP_IRQ0STATUS=
+));
++       DPRINTK_ISPRESZ("###RSZ PCR =3D0x%x\n", omap_readl(ISPRSZ_PCR));
++       DPRINTK_ISPRESZ("###RSZ CNT =3D0x%x\n", omap_readl(ISPRSZ_CNT));
++       DPRINTK_ISPRESZ("###RSZ OUT SIZE =3D0x%x\n",
++                                               omap_readl(ISPRSZ_OUT_SIZ=
+E));
++       DPRINTK_ISPRESZ("###RSZ IN START =3D0x%x\n",
++                                               omap_readl(ISPRSZ_IN_STAR=
+T));
++       DPRINTK_ISPRESZ("###RSZ IN SIZE =3D0x%x\n", omap_readl(ISPRSZ_IN_=
+SIZE));
++       DPRINTK_ISPRESZ("###RSZ SDR INADD =3D0x%x\n",
++                                               omap_readl(ISPRSZ_SDR_INA=
+DD));
++       DPRINTK_ISPRESZ("###RSZ SDR INOFF =3D0x%x\n",
++                                               omap_readl(ISPRSZ_SDR_INO=
+FF));
++       DPRINTK_ISPRESZ("###RSZ SDR OUTADD =3D0x%x\n",
++                                               omap_readl(ISPRSZ_SDR_OUT=
+ADD));
++       DPRINTK_ISPRESZ("###RSZ SDR OTOFF =3D0x%x\n",
++                                               omap_readl(ISPRSZ_SDR_OUT=
+OFF));
++       DPRINTK_ISPRESZ("###RSZ YENH =3D0x%x\n", omap_readl(ISPRSZ_YENH))=
+;
++}
++EXPORT_SYMBOL(ispresizer_print_status);
++
++/**
++ * isp_resizer_init - Module Initialisation.
++ *
++ * Always returns 0.
++ **/
++int __init isp_resizer_init(void)
++{
++       mutex_init(&ispres_obj.ispres_mutex);
++       return 0;
++}
++
++/**
++ * isp_resizer_cleanup - Module Cleanup.
++ **/
++void __exit isp_resizer_cleanup(void)
++{
++}
+diff --git a/drivers/media/video/isp/ispresizer.h b/drivers/media/video/i=
+sp/ispresizer.h
+new file mode 100644
+index 0000000..cd447ea
+--- /dev/null
++++ b/drivers/media/video/isp/ispresizer.h
+@@ -0,0 +1,153 @@
++/*
++ * drivers/media/video/isp/ispresizer.h
++ *
++ * Driver header file for Resizer module in TI's OMAP3 Camera ISP
++ *
++ * Copyright (C) 2008 Texas Instruments, Inc.
++ *
++ * Contributors:
++ *     Sameer Venkatraman <sameerv@ti.com>
++ *     Mohit Jalori
++ *
++ * This package is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ *
++ * THIS PACKAGE IS PROVIDED ``AS IS'' AND WITHOUT ANY EXPRESS OR
++ * IMPLIED WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED
++ * WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 + */
-+struct ispccdc_refmt {
-+       u8 lnalt;
-+       u8 lnum;
-+       u8 plen_even;
-+       u8 plen_odd;
-+       u32 prgeven0;
-+       u32 prgeven1;
-+       u32 prgodd0;
-+       u32 prgodd1;
-+       u32 fmtaddr0;
-+       u32 fmtaddr1;
-+       u32 fmtaddr2;
-+       u32 fmtaddr3;
-+       u32 fmtaddr4;
-+       u32 fmtaddr5;
-+       u32 fmtaddr6;
-+       u32 fmtaddr7;
++
++#ifndef OMAP_ISP_RESIZER_H
++#define OMAP_ISP_RESIZER_H
++
++/*
++ * Resizer Constants
++ */
++#define MAX_IN_WIDTH_MEMORY_MODE       4095
++
++#define MAX_IN_WIDTH_ONTHEFLY_MODE     1280
++#define MAX_IN_WIDTH_ONTHEFLY_MODE_ES2 4095
++#define MAX_IN_HEIGHT                  4095
++#define MINIMUM_RESIZE_VALUE           64
++#define MAXIMUM_RESIZE_VALUE           1024
++#define MID_RESIZE_VALUE               512
++
++#define MAX_7TAP_HRSZ_OUTWIDTH         1280
++#define MAX_7TAP_VRSZ_OUTWIDTH         640
++
++#define MAX_7TAP_HRSZ_OUTWIDTH_ES2     3300
++#define MAX_7TAP_VRSZ_OUTWIDTH_ES2     1650
++
++#define DEFAULTSTPIXEL                 0
++#define DEFAULTSTPHASE                 1
++#define DEFAULTHSTPIXEL4TAPMODE                3
++#define FOURPHASE                      4
++#define EIGHTPHASE                     8
++#define RESIZECONSTANT                 256
++#define SHIFTER4TAPMODE                        0
++#define SHIFTER7TAPMODE                        1
++#define DEFAULTOFFSET                  7
++#define OFFSETVERT4TAPMODE             4
++#define OPWDALIGNCONSTANT              0xFFFFFFF0
++
++/*
++ * The client is supposed to call resizer API in the following sequence:
++ *     - request()
++ *     - config_datatpath()
++ *     - optionally config/enable sub modules
++ *     - try/config size
++ *     - setup callback
++ *     - setup in/out memory offsets and ptrs
++ *     - enable()
++ *     ...
++ *     - disable()
++ *     - free()
++ */
++
++enum ispresizer_input {
++       RSZ_OTFLY_YUV,
++       RSZ_MEM_YUV,
++       RSZ_MEM_COL8
 +};
 +
-+int ispccdc_request(void);
++/**
++ * struct isprsz_coef - Structure for resizer filter coeffcients.
++ * @h_filter_coef_4tap: Horizontal filter coefficients for 8-phase/4-tap
++ *                     mode (.5x-4x)
++ * @v_filter_coef_4tap: Vertical filter coefficients for 8-phase/4-tap
++ *                     mode (.5x-4x)
++ * @h_filter_coef_7tap: Horizontal filter coefficients for 4-phase/7-tap
++ *                     mode (.25x-.5x)
++ * @v_filter_coef_7tap: Vertical filter coefficients for 4-phase/7-tap
++ *                     mode (.25x-.5x)
++ */
++struct isprsz_coef {
++       u16 h_filter_coef_4tap[32];
++       u16 v_filter_coef_4tap[32];
++       u16 h_filter_coef_7tap[28];
++       u16 v_filter_coef_7tap[28];
++};
 +
-+int ispccdc_free(void);
++/**
++ * struct isprsz_yenh - Structure for resizer luminance enhancer paramet=
+ers.
++ * @algo: Algorithm select.
++ * @gain: Maximum gain.
++ * @slope: Slope.
++ * @coreoffset: Coring offset.
++ */
++struct isprsz_yenh {
++       u8 algo;
++       u8 gain;
++       u8 slope;
++       u8 coreoffset;
++};
 +
-+int ispccdc_config_datapath(enum ccdc_input input, enum ccdc_output output);
++void ispresizer_config_shadow_registers(void);
 +
-+void ispccdc_config_crop(u32 left, u32 top, u32 height, u32 width);
++int ispresizer_request(void);
 +
-+void ispccdc_config_sync_if(struct ispccdc_syncif syncif);
++int ispresizer_free(void);
 +
-+int ispccdc_config_black_clamp(struct ispccdc_bclamp bclamp);
++int ispresizer_config_datapath(enum ispresizer_input input);
 +
-+void ispccdc_enable_black_clamp(u8 enable);
++void ispresizer_enable_cbilin(u8 enable);
 +
-+int ispccdc_config_fpc(struct ispccdc_fpc fpc);
++void ispresizer_config_ycpos(u8 yc);
 +
-+void ispccdc_enable_fpc(u8 enable);
++void ispresizer_config_startphase(u8 hstartphase, u8 vstartphase);
 +
-+void ispccdc_config_black_comp(struct ispccdc_blcomp blcomp);
++void ispresizer_config_filter_coef(struct isprsz_coef *coef);
 +
-+void ispccdc_config_vp(struct ispccdc_vp vp);
++void ispresizer_config_luma_enhance(struct isprsz_yenh *yenh);
 +
-+void ispccdc_enable_vp(u8 enable);
++int ispresizer_try_size(u32 *input_w, u32 *input_h, u32 *output_w,
++                                                               u32 *outp=
+ut_h);
 +
-+void ispccdc_config_reformatter(struct ispccdc_refmt refmt);
++void ispresizer_applycrop(void);
 +
-+void ispccdc_enable_reformatter(u8 enable);
++void ispresizer_trycrop(u32 left, u32 top, u32 width, u32 height, u32 ow=
+,
++                                                               u32 oh);
 +
-+void ispccdc_config_culling(struct ispccdc_culling culling);
++int ispresizer_config_size(u32 input_w, u32 input_h, u32 output_w,
++                                                               u32 outpu=
+t_h);
 +
-+void ispccdc_enable_lpf(u8 enable);
++int ispresizer_config_inlineoffset(u32 offset);
 +
-+void ispccdc_config_alaw(enum alaw_ipwidth ipwidth);
++int ispresizer_set_inaddr(u32 addr);
 +
-+void ispccdc_enable_alaw(u8 enable);
++int ispresizer_config_outlineoffset(u32 offset);
 +
-+int ispccdc_load_lsc(u32 table_size);
++int ispresizer_set_outaddr(u32 addr);
 +
-+void ispccdc_config_lsc(struct ispccdc_lsc_config *lsc_cfg);
++void ispresizer_enable(u8 enable);
 +
-+void ispccdc_enable_lsc(u8 enable);
++int ispresizer_busy(void);
 +
-+void ispccdc_config_imgattr(u32 colptn);
++void ispresizer_save_context(void);
 +
-+void ispccdc_config_shadow_registers(void);
++void ispresizer_restore_context(void);
 +
-+int ispccdc_try_size(u32 input_w, u32 input_h, u32 *output_w, u32 *output_h);
++void ispresizer_print_status(void);
 +
-+int ispccdc_config_size(u32 input_w, u32 input_h, u32 output_w, u32 output_h);
-+
-+int ispccdc_config_outlineoffset(u32 offset, u8 oddeven, u8 numlines);
-+
-+int ispccdc_set_outaddr(u32 addr);
-+
-+void ispccdc_enable(u8 enable);
-+
-+int ispccdc_busy(void);
-+
-+void ispccdc_save_context(void);
-+
-+void ispccdc_restore_context(void);
-+
-+void ispccdc_print_status(void);
-+
-+int omap34xx_isp_ccdc_config(void *userspace_add);
-+
-+void ispccdc_set_wenlog(u32 wenlog);
-+
-+#endif         /* OMAP_ISP_CCDC_H */
++#endif         /* OMAP_ISP_RESIZER_H */
 --
 1.5.6.5
 
+
+--
+video4linux-list mailing list
+Unsubscribe mailto:video4linux-list-request@redhat.com?subject=3Dunsubscr=
+ibe
+https://www.redhat.com/mailman/listinfo/video4linux-list
