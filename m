@@ -1,74 +1,192 @@
 From: Tero Kristo <tero.kristo@nokia.com>
-Subject: [PATCH] OMAP3: PM: MPU and CORE should stay awake if there is CAM domain ACTIVE
-Date: Thu, 11 Dec 2008 16:46:57 +0200
-Message-ID: <1229006817-3096-1-git-send-email-tero.kristo@nokia.com>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:29984 "EHLO
-	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755164AbYLKOxf (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 11 Dec 2008 09:53:35 -0500
-Received: from esebh105.NOE.Nokia.com (esebh105.ntc.nokia.com [172.21.138.211])
-	by mgw-mx06.nokia.com (Switch-3.2.6/Switch-3.2.6) with ESMTP id mBBErMaL022942
-	for <linux-omap@vger.kernel.org>; Thu, 11 Dec 2008 16:53:32 +0200
-Received: from localhost.localdomain (sokoban.ntc.nokia.com [172.22.144.95])
-	by mgw-int01.ntc.nokia.com (Switch-3.2.5/Switch-3.2.5) with ESMTP id mBBEqrVU020013
-	for <linux-omap@vger.kernel.org>; Thu, 11 Dec 2008 16:52:53 +0200
-In-Reply-To: <>
+Subject: [PATCH 08/23] OMAP3 SRAM: renumber registers to make space for argument passing
+Date: Thu, 11 Dec 2008 17:52:27 +0200
+Message-ID: <1229010762-3150-9-git-send-email-tero.kristo@nokia.com>
 References: <>
+ <1229010762-3150-1-git-send-email-tero.kristo@nokia.com>
+ <1229010762-3150-2-git-send-email-tero.kristo@nokia.com>
+ <1229010762-3150-3-git-send-email-tero.kristo@nokia.com>
+ <1229010762-3150-4-git-send-email-tero.kristo@nokia.com>
+ <1229010762-3150-5-git-send-email-tero.kristo@nokia.com>
+ <1229010762-3150-6-git-send-email-tero.kristo@nokia.com>
+ <1229010762-3150-7-git-send-email-tero.kristo@nokia.com>
+ <1229010762-3150-8-git-send-email-tero.kristo@nokia.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from smtp.nokia.com ([192.100.122.233]:34961 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756194AbYLKP7N (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 11 Dec 2008 10:59:13 -0500
+In-Reply-To: <1229010762-3150-8-git-send-email-tero.kristo@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
+Cc: Paul Walmsley <paul@pwsan.com>
 
-MPU and CORE should stay awake if there is CAM domain ACTIVE. This is
-because that module doesn't have wake-up capability.
+From: Paul Walmsley <paul@pwsan.com>
 
-This should replace the patch that is currently in the PM branch.
+Renumber registers in omap3_sram_configure_core_dpll() assembly code to
+make space for additional parameters.
 
-Signed-off-by: Jouni Hogander <jouni.hogander@nokia.com>
-Signed-off-by: Tero Kristo <tero.kristo@nokia.com>
+Signed-off-by: Paul Walmsley <paul@pwsan.com>
 ---
- arch/arm/mach-omap2/pm34xx.c |    7 +++++++
- 1 files changed, 7 insertions(+), 0 deletions(-)
+ arch/arm/mach-omap2/sram34xx.S |  114 ++++++++++++++++++++--------------------
+ 1 files changed, 57 insertions(+), 57 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
-index bc2d4bc..2eafb55 100644
---- a/arch/arm/mach-omap2/pm34xx.c
-+++ b/arch/arm/mach-omap2/pm34xx.c
-@@ -83,6 +83,7 @@ static void (*saved_idle)(void);
+diff --git a/arch/arm/mach-omap2/sram34xx.S b/arch/arm/mach-omap2/sram34xx.S
+index 9a45415..35131e5 100644
+--- a/arch/arm/mach-omap2/sram34xx.S
++++ b/arch/arm/mach-omap2/sram34xx.S
+@@ -63,50 +63,50 @@ ENTRY(omap3_sram_configure_core_dpll)
+ 	mov 	r0, #0 			@ return value
+ 	ldmfd	sp!, {r1-r12, pc}	@ restore regs and return
+ unlock_dll:
+-	ldr	r4, omap3_sdrc_dlla_ctrl
+-	ldr	r5, [r4]
+-	orr	r5, r5, #0x4
+-	str	r5, [r4]		@ (no OCP barrier needed)
++	ldr	r11, omap3_sdrc_dlla_ctrl
++	ldr	r12, [r11]
++	orr	r12, r12, #0x4
++	str	r12, [r11]		@ (no OCP barrier needed)
+ 	bx	lr
+ lock_dll:
+-	ldr	r4, omap3_sdrc_dlla_ctrl
+-	ldr	r5, [r4]
+-	bic	r5, r5, #0x4
+-	str	r5, [r4]		@ (no OCP barrier needed)
++	ldr	r11, omap3_sdrc_dlla_ctrl
++	ldr	r12, [r11]
++	bic	r12, r12, #0x4
++	str	r12, [r11]		@ (no OCP barrier needed)
+ 	bx	lr
+ sdram_in_selfrefresh:
+-	ldr	r4, omap3_sdrc_power	@ read the SDRC_POWER register
+-	ldr	r5, [r4]		@ read the contents of SDRC_POWER
+-	mov	r9, r5			@ keep a copy of SDRC_POWER bits
+-	orr 	r5, r5, #0x40		@ enable self refresh on idle req
+-	bic 	r5, r5, #0x4		@ clear PWDENA
+-	str 	r5, [r4]		@ write back to SDRC_POWER register
+-	ldr	r5, [r4]		@ posted-write barrier for SDRC
+-	ldr	r4, omap3_cm_iclken1_core	@ read the CM_ICLKEN1_CORE reg
+-	ldr	r5, [r4]
+-	bic	r5, r5, #0x2		@ disable iclk bit for SDRC
+-	str 	r5, [r4]
++	ldr	r11, omap3_sdrc_power	@ read the SDRC_POWER register
++	ldr	r12, [r11]		@ read the contents of SDRC_POWER
++	mov	r9, r12			@ keep a copy of SDRC_POWER bits
++	orr 	r12, r12, #0x40		@ enable self refresh on idle req
++	bic 	r12, r12, #0x4		@ clear PWDENA
++	str 	r12, [r11]		@ write back to SDRC_POWER register
++	ldr	r12, [r11]		@ posted-write barrier for SDRC
++	ldr	r11, omap3_cm_iclken1_core	@ read the CM_ICLKEN1_CORE reg
++	ldr	r12, [r11]
++	bic	r12, r12, #0x2		@ disable iclk bit for SDRC
++	str 	r12, [r11]
+ wait_sdrc_idle:
+-	ldr 	r4, omap3_cm_idlest1_core
+-	ldr 	r5, [r4]
+-	and 	r5, r5, #0x2		@ check for SDRC idle
+-	cmp 	r5, #2
++	ldr 	r11, omap3_cm_idlest1_core
++	ldr 	r12, [r11]
++	and 	r12, r12, #0x2		@ check for SDRC idle
++	cmp 	r12, #2
+ 	bne 	wait_sdrc_idle
+ 	bx 	lr
+ configure_core_dpll:
+-	ldr 	r4, omap3_cm_clksel1_pll
+-	ldr	r5, [r4]
+-	ldr	r6, core_m2_mask_val	@ modify m2 for core dpll
+-	and	r5, r5, r6
+-	orr	r5, r5, r3, lsl #0x1B	@ r3 contains the M2 val
+-	str	r5, [r4]
+-	ldr	r5, [r4]		@ posted-write barrier for CM
+-	mov 	r5, #0x800		@ wait for the clock to stabilise
++	ldr 	r11, omap3_cm_clksel1_pll
++	ldr	r12, [r11]
++	ldr	r10, core_m2_mask_val	@ modify m2 for core dpll
++	and	r12, r12, r10
++	orr	r12, r12, r3, lsl #0x1B	@ r3 contains the M2 val
++	str	r12, [r11]
++	ldr	r12, [r11]		@ posted-write barrier for CM
++	mov 	r12, #0x800		@ wait for the clock to stabilise
+ 	cmp	r3, #2
+ 	bne	wait_clk_stable
+ 	bx	lr
+ wait_clk_stable:
+-	subs 	r5, r5, #1
++	subs 	r12, r12, #1
+ 	bne	wait_clk_stable
+ 	nop
+ 	nop
+@@ -120,42 +120,42 @@ wait_clk_stable:
+ 	nop
+ 	bx	lr
+ enable_sdrc:
+-	ldr 	r4, omap3_cm_iclken1_core
+-	ldr	r5, [r4]
+-	orr 	r5, r5, #0x2		@ enable iclk bit for SDRC
+-	str 	r5, [r4]
++	ldr 	r11, omap3_cm_iclken1_core
++	ldr	r12, [r11]
++	orr 	r12, r12, #0x2		@ enable iclk bit for SDRC
++	str 	r12, [r11]
+ wait_sdrc_idle1:
+-	ldr 	r4, omap3_cm_idlest1_core
+-	ldr	r5, [r4]
+-	and 	r5, r5, #0x2
+-	cmp	r5, #0
++	ldr 	r11, omap3_cm_idlest1_core
++	ldr	r12, [r11]
++	and 	r12, r12, #0x2
++	cmp	r12, #0
+ 	bne	wait_sdrc_idle1
+ restore_sdrc_power_val:
+-	ldr	r4, omap3_sdrc_power
+-	str	r9, [r4]		@ restore SDRC_POWER, no barrier needed
++	ldr	r11, omap3_sdrc_power
++	str	r9, [r11]		@ restore SDRC_POWER, no barrier needed
+ 	bx	lr
+ wait_dll_lock:
+-	ldr	r4, omap3_sdrc_dlla_status
+-	ldr	r5, [r4]
+-	and 	r5, r5, #0x4
+-	cmp	r5, #0x4
++	ldr	r11, omap3_sdrc_dlla_status
++	ldr	r12, [r11]
++	and 	r12, r12, #0x4
++	cmp	r12, #0x4
+ 	bne	wait_dll_lock
+ 	bx	lr
+ wait_dll_unlock:
+-	ldr	r4, omap3_sdrc_dlla_status
+-	ldr	r5, [r4]
+-	and	r5, r5, #0x4
+-	cmp	r5, #0x0
++	ldr	r11, omap3_sdrc_dlla_status
++	ldr	r12, [r11]
++	and	r12, r12, #0x4
++	cmp	r12, #0x0
+ 	bne	wait_dll_unlock
+ 	bx	lr
+ configure_sdrc:
+-	ldr	r4, omap3_sdrc_rfr_ctrl
+-	str	r0, [r4]
+-	ldr	r4, omap3_sdrc_actim_ctrla
+-	str	r1, [r4]
+-	ldr	r4, omap3_sdrc_actim_ctrlb
+-	str	r2, [r4]
+-	ldr	r2, [r4]		@ posted-write barrier for SDRC
++	ldr	r11, omap3_sdrc_rfr_ctrl
++	str	r0, [r11]
++	ldr	r11, omap3_sdrc_actim_ctrla
++	str	r1, [r11]
++	ldr	r11, omap3_sdrc_actim_ctrlb
++	str	r2, [r11]
++	ldr	r2, [r11]		@ posted-write barrier for SDRC
+ 	bx	lr
  
- static struct powerdomain *mpu_pwrdm, *neon_pwrdm;
- static struct powerdomain *core_pwrdm, *per_pwrdm;
-+static struct powerdomain *cam_pwrdm;
- 
- static inline void omap3_per_save_context(void)
- {
-@@ -335,6 +336,9 @@ void omap_sram_idle(void)
- 		}
- 	}
- 
-+	if (pwrdm_read_pwrst(cam_pwrdm) == PWRDM_POWER_ON)
-+		omap2_clkdm_deny_idle(mpu_pwrdm->pwrdm_clkdms[0]);
-+
- 	/* CORE */
- 	if (core_next_state < PWRDM_POWER_ON) {
- 		omap_uart_prepare_idle(0);
-@@ -402,6 +406,8 @@ void omap_sram_idle(void)
- 		omap_uart_resume_idle(1);
- 	}
- 
-+	omap2_clkdm_allow_idle(mpu_pwrdm->pwrdm_clkdms[0]);
-+
- 	/* PER */
- 	if (per_next_state < PWRDM_POWER_ON) {
- 		per_prev_state = pwrdm_read_prev_pwrst(per_pwrdm);
-@@ -953,6 +959,7 @@ int __init omap3_pm_init(void)
- 	neon_pwrdm = pwrdm_lookup("neon_pwrdm");
- 	per_pwrdm = pwrdm_lookup("per_pwrdm");
- 	core_pwrdm = pwrdm_lookup("core_pwrdm");
-+	cam_pwrdm = pwrdm_lookup("cam_pwrdm");
- 
- 	omap_push_sram_idle();
- 
+ omap3_sdrc_power:
 -- 
 1.5.4.3
 
