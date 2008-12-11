@@ -1,7 +1,7 @@
 From: Tero Kristo <tero.kristo@nokia.com>
-Subject: [PATCH 15/23] OMAP3 SRAM: add more comments on the SRAM code
-Date: Thu, 11 Dec 2008 17:52:34 +0200
-Message-ID: <1229010762-3150-16-git-send-email-tero.kristo@nokia.com>
+Subject: [PATCH 23/23] OMAP3: PM: Fix linker error without CONFIG_PM option
+Date: Thu, 11 Dec 2008 17:52:42 +0200
+Message-ID: <1229010762-3150-24-git-send-email-tero.kristo@nokia.com>
 References: <>
  <1229010762-3150-1-git-send-email-tero.kristo@nokia.com>
  <1229010762-3150-2-git-send-email-tero.kristo@nokia.com>
@@ -18,112 +18,51 @@ References: <>
  <1229010762-3150-13-git-send-email-tero.kristo@nokia.com>
  <1229010762-3150-14-git-send-email-tero.kristo@nokia.com>
  <1229010762-3150-15-git-send-email-tero.kristo@nokia.com>
+ <1229010762-3150-16-git-send-email-tero.kristo@nokia.com>
+ <1229010762-3150-17-git-send-email-tero.kristo@nokia.com>
+ <1229010762-3150-18-git-send-email-tero.kristo@nokia.com>
+ <1229010762-3150-19-git-send-email-tero.kristo@nokia.com>
+ <1229010762-3150-20-git-send-email-tero.kristo@nokia.com>
+ <1229010762-3150-21-git-send-email-tero.kristo@nokia.com>
+ <1229010762-3150-22-git-send-email-tero.kristo@nokia.com>
+ <1229010762-3150-23-git-send-email-tero.kristo@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:53940 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756190AbYLKP7E (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 11 Dec 2008 10:59:04 -0500
-In-Reply-To: <1229010762-3150-15-git-send-email-tero.kristo@nokia.com>
+Received: from smtp.nokia.com ([192.100.122.233]:34972 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756221AbYLKP7T (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 11 Dec 2008 10:59:19 -0500
+Received: from esebh105.NOE.Nokia.com (esebh105.ntc.nokia.com [172.21.138.211])
+	by mgw-mx06.nokia.com (Switch-3.2.6/Switch-3.2.6) with ESMTP id mBBFx9rP021015
+	for <linux-omap@vger.kernel.org>; Thu, 11 Dec 2008 17:59:13 +0200
+Received: from localhost.localdomain (sokoban.ntc.nokia.com [172.22.144.95])
+	by mgw-int01.ntc.nokia.com (Switch-3.2.5/Switch-3.2.5) with ESMTP id mBBFwci4011022
+	for <linux-omap@vger.kernel.org>; Thu, 11 Dec 2008 17:59:10 +0200
+In-Reply-To: <1229010762-3150-23-git-send-email-tero.kristo@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
-Cc: Paul Walmsley <paul@pwsan.com>
 
-From: Paul Walmsley <paul@pwsan.com>
+omap3_save_scratchpad_contents() is not available without CONFIG_PM.
 
-Clean up comments and copyrights on the CORE DPLL3 M2 divider change code.
-
-Signed-off-by: Paul Walmsley <paul@pwsan.com>
+Signed-off-by: Tero Kristo <tero.kristo@nokia.com>
 ---
- arch/arm/mach-omap2/sram34xx.S |   45 +++++++++++++++++++++------------------
- 1 files changed, 24 insertions(+), 21 deletions(-)
+ arch/arm/mach-omap2/clock34xx.c |    2 ++
+ 1 files changed, 2 insertions(+), 0 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/sram34xx.S b/arch/arm/mach-omap2/sram34xx.S
-index d13f1cc..37a1e1f 100644
---- a/arch/arm/mach-omap2/sram34xx.S
-+++ b/arch/arm/mach-omap2/sram34xx.S
-@@ -3,13 +3,12 @@
-  *
-  * Omap3 specific functions that need to be run in internal SRAM
-  *
-- * (C) Copyright 2007
-- * Texas Instruments Inc.
-- * Rajendra Nayak <rnayak@ti.com>
-+ * Copyright (C) 2004, 2007, 2008 Texas Instruments, Inc.
-+ * Copyright (C) 2008 Nokia Corporation
-  *
-- * (C) Copyright 2004
-- * Texas Instruments, <www.ti.com>
-+ * Rajendra Nayak <rnayak@ti.com>
-  * Richard Woodruff <r-woodruff2@ti.com>
-+ * Paul Walmsley
-  *
-  * This program is free software; you can redistribute it and/or
-  * modify it under the terms of the GNU General Public License as
-@@ -38,13 +37,16 @@
- 	.text
+diff --git a/arch/arm/mach-omap2/clock34xx.c b/arch/arm/mach-omap2/clock34xx.c
+index 55b1425..b38cb30 100644
+--- a/arch/arm/mach-omap2/clock34xx.c
++++ b/arch/arm/mach-omap2/clock34xx.c
+@@ -990,7 +990,9 @@ static int omap3_select_table_rate(struct clk *clk, unsigned long rate)
+ 		propagate_rate(&core_ck);
+ 	}
  
- /*
-- * Change frequency of core dpll
-- * r0 = sdrc_rfr_ctrl r1 = sdrc_actim_ctrla r2 = sdrc_actim_ctrlb r3 = M2
-- * r4 = Unlock SDRC DLL? (1 = yes, 0 = no) -- only unlock DLL for
-+ * omap3_sram_configure_core_dpll - change DPLL3 M2 divider
-+ * r0 = new SDRC_RFR_CTRL register contents
-+ * r1 = new SDRC_ACTIM_CTRLA register contents
-+ * r2 = new SDRC_ACTIM_CTRLB register contents
-+ * r3 = new M2 divider setting (only 1 and 2 supported right now)
-+ * r4 = unlock SDRC DLL? (1 = yes, 0 = no).  Only unlock DLL for
-  *      SDRC rates < 83MHz
-  * r5 = number of MPU cycles to wait for SDRC to stabilize after
-  *      reprogramming the SDRC when switching to a slower MPU speed
-- * r6 = SDRC_MR_0 register value
-+ * r6 = new SDRC_MR_0 register value
-  *
-  */
- ENTRY(omap3_sram_configure_core_dpll)
-@@ -53,22 +55,22 @@ ENTRY(omap3_sram_configure_core_dpll)
- 	ldr	r5, [sp, #56]		@ load extra args from the stack
- 	ldr	r6, [sp, #60]		@ load extra args from the stack
- 	dsb				@ flush buffered writes to interconnect
--	cmp	r3, #0x2
--	blne	configure_sdrc
--	cmp	r4, #0x1
-+	cmp	r3, #0x2		@ if increasing SDRC clk rate,
-+	blne	configure_sdrc		@ program the SDRC regs early (for RFR)
-+	cmp	r4, #0x1		@ set the intended DLL state
- 	bleq	unlock_dll
- 	blne	lock_dll
--	bl	sdram_in_selfrefresh	@ put the SDRAM in self refresh
--	bl 	configure_core_dpll
--	bl	enable_sdrc
--	cmp	r4, #0x1
-+	bl	sdram_in_selfrefresh	@ put SDRAM in self refresh, idle SDRC
-+	bl 	configure_core_dpll	@ change the DPLL3 M2 divider
-+	bl	enable_sdrc		@ take SDRC out of idle
-+	cmp	r4, #0x1		@ wait for DLL status to change
- 	bleq	wait_dll_unlock
- 	blne	wait_dll_lock
--	cmp	r3, #0x1
--	beq	return_to_sdram
--	bl	configure_sdrc
--	mov	r12, r5			@ if slowing, wait for SDRC to stabilize
--	bl	wait_clk_stable
-+	cmp	r3, #0x1		@ if increasing SDRC clk rate,
-+	beq	return_to_sdram		@ return to SDRAM code, otherwise,
-+	bl	configure_sdrc		@ reprogram SDRC regs now
-+	mov	r12, r5
-+	bl	wait_clk_stable		@ wait for SDRC to stabilize
- return_to_sdram:
- 	isb				@ prevent speculative exec past here
- 	mov 	r0, #0 			@ return value
-@@ -93,6 +95,7 @@ sdram_in_selfrefresh:
- 	bic 	r12, r12, #0x4		@ clear PWDENA
- 	str 	r12, [r11]		@ write back to SDRC_POWER register
- 	ldr	r12, [r11]		@ posted-write barrier for SDRC
-+idle_sdrc:
- 	ldr	r11, omap3_cm_iclken1_core	@ read the CM_ICLKEN1_CORE reg
- 	ldr	r12, [r11]
- 	bic	r12, r12, #0x2		@ disable iclk bit for SDRC
++#ifdef CONFIG_PM
+ 	omap3_save_scratchpad_contents();
++#endif
+ 
+ 	return 0;
+ }
 -- 
 1.5.4.3
 
