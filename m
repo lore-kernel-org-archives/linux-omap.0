@@ -1,52 +1,54 @@
 From: "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>
-Subject: [REVIEW PATCH 02/14] v4l2-int-device: add support for
- VIDIOC_QUERYMENU
-Date: Thu, 11 Dec 2008 14:37:49 -0600
-Message-ID: <A24693684029E5489D1D202277BE894415E6E196@dlee02.ent.ti.com>
+Subject: [REVIEW PATCH 00/14] OMAP3 camera + ISP + MT9P012 sensor driver
+Date: Thu, 11 Dec 2008 14:37:43 -0600
+Message-ID: <A24693684029E5489D1D202277BE894415E6E194@dlee02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:46241 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757296AbYLKUiP convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 11 Dec 2008 15:38:15 -0500
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <video4linux-list-bounces@redhat.com>
 Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
+List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
+	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
+List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
+List-Post: <mailto:video4linux-list@redhat.com>
+List-Help: <mailto:video4linux-list-request@redhat.com?subject=help>
+List-Subscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
+	<mailto:video4linux-list-request@redhat.com?subject=subscribe>
+Sender: video4linux-list-bounces@redhat.com
+Errors-To: video4linux-list-bounces@redhat.com
 To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "video4linux-list@redhat.com" <video4linux-list@redhat.com>
-Cc: Sakari Ailus <sakari.ailus@nokia.com>, "Tuukka.O Toivonen" <tuukka.o.toivonen@nokia.com>, "Hiremath, Vaibhav" <hvaibhav@ti.com>, "Nagalla, Hari" <hnagalla@ti.com>
+Cc: Sakari Ailus <sakari.ailus@nokia.com>, "Tuukka.O Toivonen" <tuukka.o.toivonen@nokia.com>, "Nagalla,
+	Hari" <hnagalla@ti.com>
+List-Id: linux-omap@vger.kernel.org
 
->From c955d61fe2481f0884f8f3406374cd70deef3b70 Mon Sep 17 00:00:00 2001
-From: Sergio Aguirre <saaguirre@ti.com>
-Date: Thu, 11 Dec 2008 13:35:51 -0600
-Subject: [PATCH] v4l2-int-device: add support for VIDIOC_QUERYMENU
+Hi,
 
-Signed-off-by: Tuukka Toivonen <tuukka.o.toivonen@nokia.com>
----
- include/media/v4l2-int-device.h |    2 ++
- 1 files changed, 2 insertions(+), 0 deletions(-)
+I'm sending the following patchset for review to the relevant lists (linu=
+x-omap and v4l).
 
-diff --git a/include/media/v4l2-int-device.h b/include/media/v4l2-int-device.h
-index 85a1834..052ffe0 100644
---- a/include/media/v4l2-int-device.h
-+++ b/include/media/v4l2-int-device.h
-@@ -178,6 +178,7 @@ enum v4l2_int_ioctl_num {
- 	vidioc_int_s_fmt_cap_num,
- 	vidioc_int_try_fmt_cap_num,
- 	vidioc_int_queryctrl_num,
-+	vidioc_int_querymenu_num,
- 	vidioc_int_g_ctrl_num,
- 	vidioc_int_s_ctrl_num,
- 	vidioc_int_cropcap_num,
-@@ -279,6 +280,7 @@ V4L2_INT_WRAPPER_1(g_fmt_cap, struct v4l2_format, *);
- V4L2_INT_WRAPPER_1(s_fmt_cap, struct v4l2_format, *);
- V4L2_INT_WRAPPER_1(try_fmt_cap, struct v4l2_format, *);
- V4L2_INT_WRAPPER_1(queryctrl, struct v4l2_queryctrl, *);
-+V4L2_INT_WRAPPER_1(querymenu, struct v4l2_querymenu, *);
- V4L2_INT_WRAPPER_1(g_ctrl, struct v4l2_control, *);
- V4L2_INT_WRAPPER_1(s_ctrl, struct v4l2_control, *);
- V4L2_INT_WRAPPER_1(cropcap, struct v4l2_cropcap, *);
--- 
-1.5.6.5
+Includes:
+ - Omap3 camera core + ISP drivers.
+ - Preview and Resizer Wrappers for Memory to Memory operation of the ISP=
+.
+ - MT9P012 sensor driver (adapted to 3430SDP)
+ - DW9710 lens driver ()
+ - Necessary v4l2-int-device changes to make above drivers work
 
+Some notes:
+ - Uses v4l2-int-device solution.
+ - Tested with 3430SDP ES3.0 VG5.0.1 with Camkit v3.0.1
+ - Applies cleanly on top of commit 249d6164958e1c8de46fbb30396de9ae6e9a3=
+a50 by David Brownell (ARM: OMAP: use gpio_to_irq)
+ - Needed "ARM: OMAP: use GPIO standard in OneNAND driver" patch to be ab=
+le to compile resulting kernel image using omap_3430sdp_defconfig.
+
+I appreciate in advance your time.
+
+Regards,
+Sergio
+
+--
+video4linux-list mailing list
+Unsubscribe mailto:video4linux-list-request@redhat.com?subject=3Dunsubscr=
+ibe
+https://www.redhat.com/mailman/listinfo/video4linux-list
