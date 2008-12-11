@@ -1,37 +1,65 @@
-From: "Grazvydas Ignotas" <notasas@gmail.com>
-Subject: Re: status of USB on omap35xx ?
-Date: Thu, 11 Dec 2008 12:38:10 +0200
-Message-ID: <6ed0b2680812110238w130d708j615c3d7e0a381f24@mail.gmail.com>
-References: <1228870250.32014.148.camel@localhost.localdomain>
-	 <1228926833.32014.162.camel@localhost.localdomain>
-	 <20081210174030.GD9799@frodo> <200812101028.25235.david-b@pacbell.net>
-	 <5e088bd90812101502r1d01880co3d54e99982db3589@mail.gmail.com>
-	 <20081211005733.GZ18138@atomide.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+From: Tomi Valkeinen <tomi.valkeinen@nokia.com>
+Subject: [PATCH] OMAP: wait for pwrdm transition after clk_enable/disable()
+Date: Thu, 11 Dec 2008 14:34:21 +0200
+Message-ID: <1228998861-12086-1-git-send-email-tomi.valkeinen@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from rv-out-0506.google.com ([209.85.198.224]:64578 "EHLO
-	rv-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755205AbYLKKiK (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 11 Dec 2008 05:38:10 -0500
-Received: by rv-out-0506.google.com with SMTP id k40so826021rvb.1
-        for <linux-omap@vger.kernel.org>; Thu, 11 Dec 2008 02:38:10 -0800 (PST)
-In-Reply-To: <20081211005733.GZ18138@atomide.com>
-Content-Disposition: inline
+Received: from smtp.nokia.com ([192.100.122.230]:19338 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751838AbYLKMe1 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 11 Dec 2008 07:34:27 -0500
+Received: from esebh106.NOE.Nokia.com (esebh106.ntc.nokia.com [172.21.138.213])
+	by mgw-mx03.nokia.com (Switch-3.2.6/Switch-3.2.6) with ESMTP id mBBCYJAk014455
+	for <linux-omap@vger.kernel.org>; Thu, 11 Dec 2008 14:34:24 +0200
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Steve Sakoman <sakoman@gmail.com>, David Brownell <david-b@pacbell.net>, me@felipebalbi.com, Jeff Steele <jsteele@coloradocollege.edu>, linux-omap <linux-omap@vger.kernel.org>
+To: linux-omap@vger.kernel.org
+Cc: jouni.hogander@nokia.com, Tomi Valkeinen <tomi.valkeinen@nokia.com>
 
-> Can you please post whatever patches you need to apply to make it work
-> occasionally so others can also look at the issue?
+Enabling clock in a disabled power domain causes the power domain to be
+turned on. However, the power transition is not always finished when
+clk_enable() returns and this randomly crashes the kernel when an
+interrupt happens right after the clk_enable, and the kernel tries to
+read the irq status register for that domain.
 
-For pandora, making infinite while loops finite doesn't help much,
-kernel crashes later on. Steve had this too:
-http://marc.info/?l=linux-omap&m=122378604027303&w=2
+Why the irq status register is inaccessible, I don't know. Also it
+doesn't seem to be related to the module being not powered up, but to
+the transition itself.
 
-I did bisect and found that commit
-8b1f0bd44fe490ec631230c8c040753a2bda8caa is causing the hang for me.
-Reverting this makes EHCI work again on pandora.
-http://marc.info/?l=linux-omap&m=122453174024860&w=2
+The same could perhaps happen after clk_disable also, even if I have not
+witnessed that.
+
+The problem affects at least dss, cam and sgx clocks.
+
+This change waits for the transition to be finished before returning
+from omap2_clkdm_clk_enable/disable().
+
+Signed-off-by: Tomi Valkeinen <tomi.valkeinen@nokia.com>
+---
+ arch/arm/mach-omap2/clockdomain.c |    4 ++++
+ 1 files changed, 4 insertions(+), 0 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/clockdomain.c b/arch/arm/mach-omap2/clockdomain.c
+index fa62f14..3ae9beb 100644
+--- a/arch/arm/mach-omap2/clockdomain.c
++++ b/arch/arm/mach-omap2/clockdomain.c
+@@ -567,6 +567,8 @@ int omap2_clkdm_clk_enable(struct clockdomain *clkdm, struct clk *clk)
+ 	else
+ 		omap2_clkdm_wakeup(clkdm);
+ 
++	pwrdm_wait_transition(clkdm->pwrdm.ptr);
++
+ 	return 0;
+ }
+ 
+@@ -618,6 +620,8 @@ int omap2_clkdm_clk_disable(struct clockdomain *clkdm, struct clk *clk)
+ 	else
+ 		omap2_clkdm_sleep(clkdm);
+ 
++	pwrdm_wait_transition(clkdm->pwrdm.ptr);
++
+ 	return 0;
+ }
+ 
+-- 
+1.6.0.3
+
