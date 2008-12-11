@@ -1,69 +1,209 @@
-From: Paul Walmsley <paul@booyaka.com>
-Subject: Re: status of USB on omap35xx ?
-Date: Thu, 11 Dec 2008 09:49:40 -0700 (MST)
-Message-ID: <alpine.DEB.2.00.0812110947000.26754@utopia.booyaka.com>
-References: <1228870250.32014.148.camel@localhost.localdomain>  <1228926833.32014.162.camel@localhost.localdomain>  <20081210174030.GD9799@frodo> <200812101028.25235.david-b@pacbell.net>  <5e088bd90812101502r1d01880co3d54e99982db3589@mail.gmail.com>
- <20081211005733.GZ18138@atomide.com> <6ed0b2680812110238w130d708j615c3d7e0a381f24@mail.gmail.com>
+From: Jean Pihet <jpihet@mvista.com>
+Subject: [PATCH] OMAP2 OneNAND GPIO fix
+Date: Thu, 11 Dec 2008 17:59:14 +0100
+Message-ID: <200812111759.15180.jpihet@mvista.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: Multipart/Mixed;
+  boundary="Boundary-00=_jbUQJp8IwwnNJkd"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:49512 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757342AbYLKQtl (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 11 Dec 2008 11:49:41 -0500
-In-Reply-To: <6ed0b2680812110238w130d708j615c3d7e0a381f24@mail.gmail.com>
+Received: from gateway-1237.mvista.com ([63.81.120.158]:1408 "EHLO
+	gateway-1237.mvista.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756033AbYLKQ7U (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 11 Dec 2008 11:59:20 -0500
+Received: from ip6-localhost (asshur.mvista.com [10.0.0.11])
+	by hermes.mvista.com (Postfix) with ESMTP id BE4D118741
+	for <linux-omap@vger.kernel.org>; Thu, 11 Dec 2008 08:59:19 -0800 (PST)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Grazvydas Ignotas <notasas@gmail.com>
-Cc: Tony Lindgren <tony@atomide.com>, Steve Sakoman <sakoman@gmail.com>, David Brownell <david-b@pacbell.net>, me@felipebalbi.com, Jeff Steele <jsteele@coloradocollege.edu>, linux-omap <linux-omap@vger.kernel.org>
+To: linux-omap@vger.kernel.org
 
-Hi Grazvydas, Steve,
+--Boundary-00=_jbUQJp8IwwnNJkd
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
+Content-Disposition: inline
 
-On Thu, 11 Dec 2008, Grazvydas Ignotas wrote:
+Hi,
 
-> > Can you please post whatever patches you need to apply to make it work
-> > occasionally so others can also look at the issue?
-> 
-> For pandora, making infinite while loops finite doesn't help much,
-> kernel crashes later on. Steve had this too:
-> http://marc.info/?l=linux-omap&m=122378604027303&w=2
-> 
-> I did bisect and found that commit
-> 8b1f0bd44fe490ec631230c8c040753a2bda8caa is causing the hang for me.
-> Reverting this makes EHCI work again on pandora.
-> http://marc.info/?l=linux-omap&m=122453174024860&w=2
+Here is a patch to have the OMAP2 OneNAND driver compile on the latest tree.
+I do not know if this has been addressed already, here is a patch.
 
-Would one of you be willing to run with this patch and send back any debug 
-output relating to dpll5_ck ?  (Unfortunately, I don't have access to any 
-boards with EHCI hardware, so cannot try it myself)
-
-This will help determine what fix should be applied
-
-
-- Paul
+Regards,
+Jean
 
 
 
-Add debugging in omap3_noncore_dpll_enable() - for testing only.
+=46rom f95826f916cde9c0d0da79e006f090bc69112a1e Mon Sep 17 00:00:00 2001
+=46rom: Jean Pihet <jpihet@mvista.com>
+Date: Thu, 11 Dec 2008 17:48:31 +0100
+Subject: [PATCH] ARM: OMAP: use GPIO standard in OneNAND driver
 
----
- arch/arm/mach-omap2/clock34xx.c |    4 ++++
- 1 files changed, 4 insertions(+), 0 deletions(-)
+This patch replaces some legacy OMAP GPIO calls with the standard
+calls that work on most platforms.
 
-diff --git a/arch/arm/mach-omap2/clock34xx.c b/arch/arm/mach-omap2/clock34xx.c
-index 2c655be..3b80667 100644
---- a/arch/arm/mach-omap2/clock34xx.c
-+++ b/arch/arm/mach-omap2/clock34xx.c
-@@ -275,6 +275,10 @@ static int omap3_noncore_dpll_enable(struct clk *clk)
- 	if (!dd)
- 		return -EINVAL;
- 
-+	pr_info("clock: %s: clk->rate = %ld, hdwr rate = %d, parent "
-+		"rate = %ld\n", clk->name, clk->rate, 
-+		omap2_get_dpll_rate(clk), dd->bypass_clk->rate);
-+
- 	if (clk->rate == dd->bypass_clk->rate)
- 		r = _omap3_noncore_dpll_bypass(clk);
- 	else
+Tested on OMAP3 EVM board.
+
+Signed-off-by: Jean Pihet <jpihet@mvista.com>
+=2D--
+ drivers/mtd/onenand/omap2.c |   13 +++++++------
+ 1 files changed, 7 insertions(+), 6 deletions(-)
+
+diff --git a/drivers/mtd/onenand/omap2.c b/drivers/mtd/onenand/omap2.c
+index 762623f..f223303 100644
+=2D-- a/drivers/mtd/onenand/omap2.c
++++ b/drivers/mtd/onenand/omap2.c
+@@ -34,11 +34,11 @@
+ #include <linux/delay.h>
+ #include <linux/dma-mapping.h>
+ #include <linux/io.h>
++#include <linux/gpio.h>
+
+ #include <asm/mach/flash.h>
+ #include <mach/gpmc.h>
+ #include <mach/onenand.h>
+=2D#include <mach/gpio.h>
+ #include <mach/pm.h>
+
+ #include <mach/dma.h>
+@@ -149,7 +149,7 @@ static int omap2_onenand_wait(struct mtd_info *mtd, int=
+=20
+state)
+
+                INIT_COMPLETION(c->irq_done);
+                if (c->gpio_irq) {
+=2D                       result =3D omap_get_gpio_datain(c->gpio_irq);
++                       result =3D gpio_get_value(c->gpio_irq);
+                        if (result =3D=3D -1) {
+                                ctrl =3D read_reg(c, ONENAND_REG_CTRL_STATU=
+S);
+                                intr =3D read_reg(c, ONENAND_REG_INTERRUPT);
+@@ -629,12 +629,13 @@ static int __devinit omap2_onenand_probe(struct=20
+platform_device *pdev)
+        }
+
+        if (c->gpio_irq) {
+=2D               if ((r =3D omap_request_gpio(c->gpio_irq)) < 0) {
++               r =3D gpio_request(c->gpio_irq, "OneNAND Irq");
++               if (r < 0) {
+                        dev_err(&pdev->dev,  "Failed to request GPIO%d for "
+                                "OneNAND\n", c->gpio_irq);
+                        goto err_iounmap;
+        }
+=2D       omap_set_gpio_direction(c->gpio_irq, 1);
++       gpio_direction_input(c->gpio_irq);
+
+        if ((r =3D request_irq(gpio_to_irq(c->gpio_irq),
+                             omap2_onenand_interrupt, IRQF_TRIGGER_RISING,
+@@ -726,7 +727,7 @@ err_release_dma:
+                free_irq(gpio_to_irq(c->gpio_irq), c);
+ err_release_gpio:
+        if (c->gpio_irq)
+=2D               omap_free_gpio(c->gpio_irq);
++               gpio_free(c->gpio_irq);
+ err_iounmap:
+        iounmap(c->onenand.base);
+ err_release_mem_region:
+@@ -761,7 +762,7 @@ static int __devexit omap2_onenand_remove(struct=20
+platform_device *pdev)
+        platform_set_drvdata(pdev, NULL);
+        if (c->gpio_irq) {
+                free_irq(gpio_to_irq(c->gpio_irq), c);
+=2D               omap_free_gpio(c->gpio_irq);
++               gpio_free(c->gpio_irq);
+        }
+        iounmap(c->onenand.base);
+        release_mem_region(c->phys_base, ONENAND_IO_SIZE);
+=2D-
+1.5.4.4.21.gc4a6c
+
+--Boundary-00=_jbUQJp8IwwnNJkd
+Content-Type: text/x-diff;
+  charset="iso 8859-15";
+  name="ARM-OMAP-use-GPIO-standard-in-OneNAND-driver.patch"
+Content-Transfer-Encoding: quoted-printable
+Content-Disposition: attachment;
+	filename="ARM-OMAP-use-GPIO-standard-in-OneNAND-driver.patch"
+
+=46rom f95826f916cde9c0d0da79e006f090bc69112a1e Mon Sep 17 00:00:00 2001
+=46rom: Jean Pihet <jpihet@mvista.com>
+Date: Thu, 11 Dec 2008 17:48:31 +0100
+Subject: [PATCH] ARM: OMAP: use GPIO standard in OneNAND driver
+
+This patch replaces some legacy OMAP GPIO calls with the standard
+calls that work on most platforms.
+
+Tested on OMAP3 EVM board.
+
+Signed-off-by: Jean Pihet <jpihet@mvista.com>
+=2D--
+ drivers/mtd/onenand/omap2.c |   13 +++++++------
+ 1 files changed, 7 insertions(+), 6 deletions(-)
+
+diff --git a/drivers/mtd/onenand/omap2.c b/drivers/mtd/onenand/omap2.c
+index 762623f..f223303 100644
+=2D-- a/drivers/mtd/onenand/omap2.c
++++ b/drivers/mtd/onenand/omap2.c
+@@ -34,11 +34,11 @@
+ #include <linux/delay.h>
+ #include <linux/dma-mapping.h>
+ #include <linux/io.h>
++#include <linux/gpio.h>
+=20
+ #include <asm/mach/flash.h>
+ #include <mach/gpmc.h>
+ #include <mach/onenand.h>
+=2D#include <mach/gpio.h>
+ #include <mach/pm.h>
+=20
+ #include <mach/dma.h>
+@@ -149,7 +149,7 @@ static int omap2_onenand_wait(struct mtd_info *mtd, int=
+ state)
+=20
+ 		INIT_COMPLETION(c->irq_done);
+ 		if (c->gpio_irq) {
+=2D			result =3D omap_get_gpio_datain(c->gpio_irq);
++			result =3D gpio_get_value(c->gpio_irq);
+ 			if (result =3D=3D -1) {
+ 				ctrl =3D read_reg(c, ONENAND_REG_CTRL_STATUS);
+ 				intr =3D read_reg(c, ONENAND_REG_INTERRUPT);
+@@ -629,12 +629,13 @@ static int __devinit omap2_onenand_probe(struct platf=
+orm_device *pdev)
+ 	}
+=20
+ 	if (c->gpio_irq) {
+=2D		if ((r =3D omap_request_gpio(c->gpio_irq)) < 0) {
++		r =3D gpio_request(c->gpio_irq, "OneNAND Irq");
++		if (r < 0) {
+ 			dev_err(&pdev->dev,  "Failed to request GPIO%d for "
+ 				"OneNAND\n", c->gpio_irq);
+ 			goto err_iounmap;
+ 	}
+=2D	omap_set_gpio_direction(c->gpio_irq, 1);
++	gpio_direction_input(c->gpio_irq);
+=20
+ 	if ((r =3D request_irq(gpio_to_irq(c->gpio_irq),
+ 			     omap2_onenand_interrupt, IRQF_TRIGGER_RISING,
+@@ -726,7 +727,7 @@ err_release_dma:
+ 		free_irq(gpio_to_irq(c->gpio_irq), c);
+ err_release_gpio:
+ 	if (c->gpio_irq)
+=2D		omap_free_gpio(c->gpio_irq);
++		gpio_free(c->gpio_irq);
+ err_iounmap:
+ 	iounmap(c->onenand.base);
+ err_release_mem_region:
+@@ -761,7 +762,7 @@ static int __devexit omap2_onenand_remove(struct platfo=
+rm_device *pdev)
+ 	platform_set_drvdata(pdev, NULL);
+ 	if (c->gpio_irq) {
+ 		free_irq(gpio_to_irq(c->gpio_irq), c);
+=2D		omap_free_gpio(c->gpio_irq);
++		gpio_free(c->gpio_irq);
+ 	}
+ 	iounmap(c->onenand.base);
+ 	release_mem_region(c->phys_base, ONENAND_IO_SIZE);
+=2D-=20
+1.5.4.4.21.gc4a6c
 
 
+--Boundary-00=_jbUQJp8IwwnNJkd--
