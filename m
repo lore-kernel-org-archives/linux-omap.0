@@ -1,41 +1,111 @@
-From: Paul Walmsley <paul@booyaka.com>
-Subject: Re: status of USB on omap35xx ?
-Date: Thu, 11 Dec 2008 14:07:26 -0700 (MST)
-Message-ID: <alpine.DEB.2.00.0812111401100.26754@utopia.booyaka.com>
-References: <1228870250.32014.148.camel@localhost.localdomain>  <1228926833.32014.162.camel@localhost.localdomain>  <20081210174030.GD9799@frodo> <200812101028.25235.david-b@pacbell.net>  <5e088bd90812101502r1d01880co3d54e99982db3589@mail.gmail.com>
- <20081211005733.GZ18138@atomide.com>  <6ed0b2680812110238w130d708j615c3d7e0a381f24@mail.gmail.com>  <alpine.DEB.2.00.0812110947000.26754@utopia.booyaka.com>  <5e088bd90812110938i10526ad3x94b47bb8adeb91b4@mail.gmail.com>
- <6ed0b2680812111241u5da7abd5r10094bf79ea9c299@mail.gmail.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: [PATCH 2/3] OMAP3 EHCI: use clock framework to program DPLL5,
+	DPLL5_M2_CLK
+Date: Thu, 11 Dec 2008 14:22:40 -0700
+Message-ID: <20081211212239.22860.56824.stgit@localhost.localdomain>
+References: <20081211212030.22860.49518.stgit@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:59617 "EHLO
+Received: from utopia.booyaka.com ([72.9.107.138]:51042 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756205AbYLKVH1 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 11 Dec 2008 16:07:27 -0500
-In-Reply-To: <6ed0b2680812111241u5da7abd5r10094bf79ea9c299@mail.gmail.com>
+	with ESMTP id S1757130AbYLKVZM (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 11 Dec 2008 16:25:12 -0500
+In-Reply-To: <20081211212030.22860.49518.stgit@localhost.localdomain>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Grazvydas Ignotas <notasas@gmail.com>
-Cc: Steve Sakoman <sakoman@gmail.com>, Tony Lindgren <tony@atomide.com>, David Brownell <david-b@pacbell.net>, me@felipebalbi.com, Jeff Steele <jsteele@coloradocollege.edu>, linux-omap <linux-omap@vger.kernel.org>
+To: linux-omap@vger.kernel.org
 
-On Thu, 11 Dec 2008, Grazvydas Ignotas wrote:
+For testing only, not for merging.
 
-> On Thu, Dec 11, 2008 at 7:38 PM, Steve Sakoman <sakoman@gmail.com> wrote:
-> > Here you go.  Note that no infinite loop!
-> 
-> Ah, so it no longer needs that revert, probably recent clock changes
-> fixed that issue.
+Use the clock framework to program DPLL5, DPLL5_M2_CLK.
+---
+ drivers/usb/host/ehci-omap.c |   57 +++++++++++++++++++++++++++---------------
+ 1 files changed, 36 insertions(+), 21 deletions(-)
 
-What is baffling is that it appears to be the presence of the 
-omap2_get_dpll_rate() call before the conditional that seems to be the 
-primary factor in whether the loop is infinite or not.  The expression in 
-the conditional will evaluate to 0 in both cases (13000000 != 120000000 
-and 0 != 13000000).
+diff --git a/drivers/usb/host/ehci-omap.c b/drivers/usb/host/ehci-omap.c
+index 5252e75..2057f58 100644
+--- a/drivers/usb/host/ehci-omap.c
++++ b/drivers/usb/host/ehci-omap.c
+@@ -70,6 +70,8 @@ struct ehci_omap_clock_defs {
+ 	struct clk	*usbhost1_48m_fck_clk;
+ 	struct clk	*usbtll_fck_clk;
+ 	struct clk	*usbtll_ick_clk;
++	struct clk	*dpll5_clk;
++	struct clk	*dpll5_m2_clk;
+ };
+ 
+ /* Clock names as per clock framework: May change so keep as #defs */
+@@ -163,28 +165,29 @@ static int omap_start_ehc(struct platform_device *dev, struct usb_hcd *hcd)
+ 				((char *)hcd_to_ehci(hcd)) +
+ 					sizeof(struct ehci_hcd));
+ 
+-	/* Start DPLL5 Programming:
+-	 * Clock Framework is not doing this now:
+-	 * This will be done in clock framework later
++	/*
++	 * Make sure DPLL5 is programmed for 120MHz
++	 * XXX should be done at DPLL init time
++	 * XXX dpll rates should be assigned to clk->rate at init time
++	 * XXX enable DPLL autoidle
+ 	 */
+-	/* Enable DPLL 5 : Based on Input of 13Mhz*/
+-	cm_write_mod_reg((12 << OMAP3430ES2_PERIPH2_DPLL_DIV_SHIFT)|
+-			(120 << OMAP3430ES2_PERIPH2_DPLL_MULT_SHIFT),
+-			PLL_MOD, OMAP3430ES2_CM_CLKSEL4);
+-
+-	cm_write_mod_reg(1 << OMAP3430ES2_DIV_120M_SHIFT,
+-			PLL_MOD, OMAP3430ES2_CM_CLKSEL5);
+-
+-	cm_write_mod_reg((7 << OMAP3430ES2_PERIPH2_DPLL_FREQSEL_SHIFT) |
+-			(7 << OMAP3430ES2_EN_PERIPH2_DPLL_SHIFT),
+-			PLL_MOD, OMAP3430ES2_CM_CLKEN2);
+-
+-	while (!(cm_read_mod_reg(PLL_MOD, CM_IDLEST2) &
+-				OMAP3430ES2_ST_PERIPH2_CLK_MASK))
+-		dev_dbg(hcd->self.controller,
+-			"idlest2 = 0x%x\n",
+-			cm_read_mod_reg(PLL_MOD, CM_IDLEST2));
+-	/* End DPLL5 programming */
++	ehci_clocks->dpll5_clk = clk_get(&dev->dev, "dpll5_ck");
++	if (IS_ERR(ehci_clocks->dpll5_clk)) {
++		WARN_ON(1);
++		return PTR_ERR(ehci_clocks->dpll5_clk);
++	};
++	if (clk_get_rate(ehci_clocks->dpll5_clk) != 120000000)
++		clk_set_rate(ehci_clocks->dpll5_clk, 120000000);
++	clk_enable(ehci_clocks->dpll5_clk);
++
++	/* Program dpll5_m2_clk divider for no division */
++	ehci_clocks->dpll5_m2_clk = clk_get(&dev->dev, "dpll5_m2_ck");
++	if (IS_ERR(ehci_clocks->dpll5_m2_clk)) {
++		WARN_ON(1);
++		return PTR_ERR(ehci_clocks->dpll5_m2_clk);
++	};
++	clk_enable(ehci_clocks->dpll5_m2_clk);
++	clk_set_rate(ehci_clocks->dpll5_m2_clk, 120000000);
+ 
+ 	/* Enable Clocks for USBHOST */
+ 	ehci_clocks->usbhost_ick_clk = clk_get(&dev->dev,
+@@ -375,6 +378,18 @@ static void omap_stop_ehc(struct platform_device *dev, struct usb_hcd *hcd)
+ 		ehci_clocks->usbtll_ick_clk = NULL;
+ 	}
+ 
++	if (ehci_clocks->dpll5_m2_clk != NULL) {
++		clk_disable(ehci_clocks->dpll5_m2_clk);
++		clk_put(ehci_clocks->dpll5_m2_clk);
++		ehci_clocks->dpll5_m2_clk = NULL;
++	}
++
++	if (ehci_clocks->dpll5_clk != NULL) {
++		clk_disable(ehci_clocks->dpll5_clk);
++		clk_put(ehci_clocks->dpll5_clk);
++		ehci_clocks->dpll5_clk = NULL;
++	}
++
+ 
+ #ifdef EXTERNAL_PHY_RESET
+ 	gpio_free(EXT_PHY_RESET_GPIO_PORT1);
 
-Gravyzdas, can you send us a commit ID that results in successful device 
-enumeration (after reverting 
-http://marc.info/?l=linux-omap&m=122453174024860&w=2 ?)  Sounds like it 
-was working for you in late October with that revert.
 
-
-- Paul
