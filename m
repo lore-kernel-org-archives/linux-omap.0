@@ -1,69 +1,92 @@
-From: "Pandita, Vikram" <vikram.pandita@ti.com>
-Subject: RE: status of USB on omap35xx ?
-Date: Thu, 11 Dec 2008 23:50:22 +0530
-Message-ID: <FCCFB4CDC6E5564B9182F639FC3560870251066D3A@dbde02.ent.ti.com>
-References: <1228870250.32014.148.camel@localhost.localdomain>
-  <1228926833.32014.162.camel@localhost.localdomain>
-  <20081210174030.GD9799@frodo> <200812101028.25235.david-b@pacbell.net>
-  <5e088bd90812101502r1d01880co3d54e99982db3589@mail.gmail.com>
-  <20081211005733.GZ18138@atomide.com>
-  <6ed0b2680812110238w130d708j615c3d7e0a381f24@mail.gmail.com>
- <5e088bd90812110940k158b14dbq6ea9ff4138e52dfb@mail.gmail.com>
- <alpine.DEB.2.00.0812111110250.26754@utopia.booyaka.com>
+From: "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>
+Subject: [REVIEW PATCH 01/14] V4L: Int if: Dummy slave
+Date: Thu, 11 Dec 2008 14:37:46 -0600
+Message-ID: <A24693684029E5489D1D202277BE894415E6E195@dlee02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:43100 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751138AbYLKSVP convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 11 Dec 2008 13:21:15 -0500
-In-Reply-To: <alpine.DEB.2.00.0812111110250.26754@utopia.booyaka.com>
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <video4linux-list-bounces@redhat.com>
 Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
+	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
+List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
+List-Post: <mailto:video4linux-list@redhat.com>
+List-Help: <mailto:video4linux-list-request@redhat.com?subject=help>
+List-Subscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
+	<mailto:video4linux-list-request@redhat.com?subject=subscribe>
+Sender: video4linux-list-bounces@redhat.com
+Errors-To: video4linux-list-bounces@redhat.com
+To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "video4linux-list@redhat.com" <video4linux-list@redhat.com>
+Cc: Sakari Ailus <sakari.ailus@nokia.com>, "Tuukka.O Toivonen" <tuukka.o.toivonen@nokia.com>, "Nagalla,
+	Hari" <hnagalla@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: Steve Sakoman <sakoman@gmail.com>, Tony Lindgren <tony@atomide.com>, linux-omap <linux-omap@vger.kernel.org>, David Brownell <david-b@pacbell.net>, "me@felipebalbi.com" <me@felipebalbi.com>, Jeff Steele <jsteele@coloradocollege.edu>
 
-Paul
+>From d6e52dcc4ec93dcca3218763ccf21fd1bea08d55 Mon Sep 17 00:00:00 2001
+From: Sergio Aguirre <saaguirre@ti.com>
+Date: Thu, 11 Dec 2008 13:35:52 -0600
+Subject: [PATCH] V4L: Int if: Dummy slave
 
->-----Original Message-----
->From: Paul Walmsley [mailto:paul@pwsan.com]
->Sent: Thursday, December 11, 2008 12:15 PM
->To: Pandita, Vikram
->Cc: Steve Sakoman; Tony Lindgren; linux-omap; David Brownell; me@felipebalbi.com; Jeff Steele
->Subject: Re: status of USB on omap35xx ?
->
->Hi Vikram,
->
->looking at ehci-omap.c lines 190-204.  Is there some reason why the
->USBHOST clockdomain needs to be in software-supervised mode?  Also, is
->there some reason why the interface clock must be prevented from
->auto-idling?  This will cause problems with power management.
+This patch implements a dummy slave that has no functionality. Helps
+managing slaves in the OMAP 3 camera driver; no need to check for NULL
+pointers.
 
-All these checks were in place for initial debugging. 
-There is no need to keep these check now.
+Signed-off-by: Sakari Ailus <sakari.ailus@nokia.com>
+---
+ drivers/media/video/v4l2-int-device.c |   19 +++++++++++++++++++
+ include/media/v4l2-int-device.h       |    2 ++
+ 2 files changed, 21 insertions(+), 0 deletions(-)
 
->
->
->- Paul
->
->	/* PRCM settings for USBHOST:
->	 * Interface clk un-related to domain transition
->	 */
->	cm_write_mod_reg(0 << OMAP3430ES2_AUTO_USBHOST_SHIFT,
->				OMAP3430ES2_USBHOST_MOD, CM_AUTOIDLE);
->
->	/* Disable sleep dependency with MPU and IVA */
->	cm_write_mod_reg((0 << OMAP3430ES2_EN_MPU_SHIFT) |
->				(0 << OMAP3430ES2_EN_IVA2_SHIFT),
->				OMAP3430ES2_USBHOST_MOD, OMAP3430_CM_SLEEPDEP);
->
->	/* Disable Automatic transition of clock */
->	cm_write_mod_reg(0 << OMAP3430ES2_CLKTRCTRL_USBHOST_SHIFT,
->				OMAP3430ES2_USBHOST_MOD, CM_CLKSTCTRL);
->
->
->
->
+diff --git a/drivers/media/video/v4l2-int-device.c b/drivers/media/video/=
+v4l2-int-device.c
+index a935bae..cba1c9c 100644
+--- a/drivers/media/video/v4l2-int-device.c
++++ b/drivers/media/video/v4l2-int-device.c
+@@ -32,6 +32,25 @@
+ static DEFINE_MUTEX(mutex);
+ static LIST_HEAD(int_list);
+=20
++static struct v4l2_int_slave dummy_slave =3D {
++	/* Dummy pointer to avoid underflow in find_ioctl. */
++	.ioctls =3D (void *)0x80000000,
++	.num_ioctls =3D 0,
++};
++
++static struct v4l2_int_device dummy =3D {
++	.type =3D v4l2_int_type_slave,
++	.u =3D {
++		.slave =3D &dummy_slave,
++	},
++};
++
++struct v4l2_int_device *v4l2_int_device_dummy()
++{
++	return &dummy;
++}
++EXPORT_SYMBOL_GPL(v4l2_int_device_dummy);
++
+ void v4l2_int_device_try_attach_all(void)
+ {
+ 	struct v4l2_int_device *m, *s;
+diff --git a/include/media/v4l2-int-device.h b/include/media/v4l2-int-dev=
+ice.h
+index 9c2df41..85a1834 100644
+--- a/include/media/v4l2-int-device.h
++++ b/include/media/v4l2-int-device.h
+@@ -84,6 +84,8 @@ struct v4l2_int_device {
+ 	void *priv;
+ };
+=20
++struct v4l2_int_device *v4l2_int_device_dummy(void);
++
+ void v4l2_int_device_try_attach_all(void);
+=20
+ int v4l2_int_device_register(struct v4l2_int_device *d);
+--=20
+1.5.6.5
 
+
+--
+video4linux-list mailing list
+Unsubscribe mailto:video4linux-list-request@redhat.com?subject=3Dunsubscr=
+ibe
+https://www.redhat.com/mailman/listinfo/video4linux-list
