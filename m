@@ -1,30 +1,19 @@
 From: Tero Kristo <tero.kristo@nokia.com>
-Subject: [PATCH 16/23] OMAP3 SRAM: convert SRAM code to use macros rather than magic numbers
-Date: Thu, 11 Dec 2008 17:52:35 +0200
-Message-ID: <1229010762-3150-17-git-send-email-tero.kristo@nokia.com>
+Subject: [PATCH 05/23] OMAP3 SRAM: clear the SDRC PWRENA bit during SDRC frequency change
+Date: Thu, 11 Dec 2008 17:52:24 +0200
+Message-ID: <1229010762-3150-6-git-send-email-tero.kristo@nokia.com>
 References: <>
  <1229010762-3150-1-git-send-email-tero.kristo@nokia.com>
  <1229010762-3150-2-git-send-email-tero.kristo@nokia.com>
  <1229010762-3150-3-git-send-email-tero.kristo@nokia.com>
  <1229010762-3150-4-git-send-email-tero.kristo@nokia.com>
  <1229010762-3150-5-git-send-email-tero.kristo@nokia.com>
- <1229010762-3150-6-git-send-email-tero.kristo@nokia.com>
- <1229010762-3150-7-git-send-email-tero.kristo@nokia.com>
- <1229010762-3150-8-git-send-email-tero.kristo@nokia.com>
- <1229010762-3150-9-git-send-email-tero.kristo@nokia.com>
- <1229010762-3150-10-git-send-email-tero.kristo@nokia.com>
- <1229010762-3150-11-git-send-email-tero.kristo@nokia.com>
- <1229010762-3150-12-git-send-email-tero.kristo@nokia.com>
- <1229010762-3150-13-git-send-email-tero.kristo@nokia.com>
- <1229010762-3150-14-git-send-email-tero.kristo@nokia.com>
- <1229010762-3150-15-git-send-email-tero.kristo@nokia.com>
- <1229010762-3150-16-git-send-email-tero.kristo@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:34963 "EHLO
-	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756197AbYLKP7N (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 11 Dec 2008 10:59:13 -0500
-In-Reply-To: <1229010762-3150-16-git-send-email-tero.kristo@nokia.com>
+Received: from smtp.nokia.com ([192.100.122.230]:55851 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756219AbYLKP7T (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 11 Dec 2008 10:59:19 -0500
+In-Reply-To: <1229010762-3150-5-git-send-email-tero.kristo@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
@@ -32,147 +21,42 @@ Cc: Paul Walmsley <paul@pwsan.com>
 
 From: Paul Walmsley <paul@pwsan.com>
 
-Convert omap3_sram_configure_core_dpll() to use macros rather than
-magic numbers.
+Clear the SDRC_POWER.PWRENA bit before putting the SDRAM into self-refresh
+mode.  This prevents the SDRC from attempting to power off the SDRAM,
+which can cause the system to hang.
 
 Signed-off-by: Paul Walmsley <paul@pwsan.com>
 ---
- arch/arm/mach-omap2/sram34xx.S |   53 ++++++++++++++++++++++++++++-----------
- 1 files changed, 38 insertions(+), 15 deletions(-)
+ arch/arm/mach-omap2/sram34xx.S |    7 ++++---
+ 1 files changed, 4 insertions(+), 3 deletions(-)
 
 diff --git a/arch/arm/mach-omap2/sram34xx.S b/arch/arm/mach-omap2/sram34xx.S
-index 37a1e1f..16eb4ef 100644
+index 8d524f3..9a45415 100644
 --- a/arch/arm/mach-omap2/sram34xx.S
 +++ b/arch/arm/mach-omap2/sram34xx.S
-@@ -36,6 +36,29 @@
- 
- 	.text
- 
-+/* r4 parameters */
-+#define SDRC_NO_UNLOCK_DLL		0x0
-+#define SDRC_UNLOCK_DLL			0x1
-+
-+/* SDRC_DLLA_CTRL bit settings */
-+#define DLLIDLE_MASK			0x4
-+
-+/* SDRC_DLLA_STATUS bit settings */
-+#define LOCKSTATUS_MASK			0x4
-+
-+/* SDRC_POWER bit settings */
-+#define SRFRONIDLEREQ_MASK		0x40
-+#define PWDENA_MASK			0x4
-+
-+/* CM_IDLEST1_CORE bit settings */
-+#define ST_SDRC_MASK			0x2
-+
-+/* CM_ICLKEN1_CORE bit settings */
-+#define EN_SDRC_MASK			0x2
-+
-+/* CM_CLKSEL1_PLL bit settings */
-+#define CORE_DPLL_CLKOUT_DIV_SHIFT	0x1b
-+
- /*
-  * omap3_sram_configure_core_dpll - change DPLL3 M2 divider
-  * r0 = new SDRC_RFR_CTRL register contents
-@@ -57,13 +80,13 @@ ENTRY(omap3_sram_configure_core_dpll)
- 	dsb				@ flush buffered writes to interconnect
- 	cmp	r3, #0x2		@ if increasing SDRC clk rate,
- 	blne	configure_sdrc		@ program the SDRC regs early (for RFR)
--	cmp	r4, #0x1		@ set the intended DLL state
-+	cmp	r4, #SDRC_UNLOCK_DLL	@ set the intended DLL state
- 	bleq	unlock_dll
- 	blne	lock_dll
- 	bl	sdram_in_selfrefresh	@ put SDRAM in self refresh, idle SDRC
- 	bl 	configure_core_dpll	@ change the DPLL3 M2 divider
- 	bl	enable_sdrc		@ take SDRC out of idle
--	cmp	r4, #0x1		@ wait for DLL status to change
-+	cmp	r4, #SDRC_UNLOCK_DLL	@ wait for DLL status to change
- 	bleq	wait_dll_unlock
- 	blne	wait_dll_lock
- 	cmp	r3, #0x1		@ if increasing SDRC clk rate,
-@@ -78,33 +101,33 @@ return_to_sdram:
- unlock_dll:
- 	ldr	r11, omap3_sdrc_dlla_ctrl
- 	ldr	r12, [r11]
--	orr	r12, r12, #0x4
-+	orr	r12, r12, #DLLIDLE_MASK
- 	str	r12, [r11]		@ (no OCP barrier needed)
- 	bx	lr
- lock_dll:
- 	ldr	r11, omap3_sdrc_dlla_ctrl
- 	ldr	r12, [r11]
--	bic	r12, r12, #0x4
-+	bic	r12, r12, #DLLIDLE_MASK
- 	str	r12, [r11]		@ (no OCP barrier needed)
- 	bx	lr
+@@ -77,7 +77,9 @@ lock_dll:
  sdram_in_selfrefresh:
- 	ldr	r11, omap3_sdrc_power	@ read the SDRC_POWER register
- 	ldr	r12, [r11]		@ read the contents of SDRC_POWER
- 	mov	r9, r12			@ keep a copy of SDRC_POWER bits
--	orr 	r12, r12, #0x40		@ enable self refresh on idle req
--	bic 	r12, r12, #0x4		@ clear PWDENA
-+	orr 	r12, r12, #SRFRONIDLEREQ_MASK	@ enable self refresh on idle
-+	bic 	r12, r12, #PWDENA_MASK	@ clear PWDENA
- 	str 	r12, [r11]		@ write back to SDRC_POWER register
- 	ldr	r12, [r11]		@ posted-write barrier for SDRC
- idle_sdrc:
- 	ldr	r11, omap3_cm_iclken1_core	@ read the CM_ICLKEN1_CORE reg
- 	ldr	r12, [r11]
--	bic	r12, r12, #0x2		@ disable iclk bit for SDRC
-+	bic	r12, r12, #EN_SDRC_MASK		@ disable iclk bit for SDRC
- 	str 	r12, [r11]
- wait_sdrc_idle:
- 	ldr 	r11, omap3_cm_idlest1_core
- 	ldr 	r12, [r11]
--	and 	r12, r12, #0x2		@ check for SDRC idle
--	cmp 	r12, #2
-+	and 	r12, r12, #ST_SDRC_MASK		@ check for SDRC idle
-+	cmp 	r12, #ST_SDRC_MASK
- 	bne 	wait_sdrc_idle
- 	bx 	lr
- configure_core_dpll:
-@@ -112,7 +135,7 @@ configure_core_dpll:
- 	ldr	r12, [r11]
- 	ldr	r10, core_m2_mask_val	@ modify m2 for core dpll
- 	and	r12, r12, r10
--	orr	r12, r12, r3, lsl #0x1B	@ r3 contains the M2 val
-+	orr	r12, r12, r3, lsl #CORE_DPLL_CLKOUT_DIV_SHIFT
- 	str	r12, [r11]
- 	ldr	r12, [r11]		@ posted-write barrier for CM
- 	bx	lr
-@@ -123,12 +146,12 @@ wait_clk_stable:
- enable_sdrc:
- 	ldr 	r11, omap3_cm_iclken1_core
- 	ldr	r12, [r11]
--	orr 	r12, r12, #0x2		@ enable iclk bit for SDRC
-+	orr 	r12, r12, #EN_SDRC_MASK		@ enable iclk bit for SDRC
- 	str 	r12, [r11]
- wait_sdrc_idle1:
- 	ldr 	r11, omap3_cm_idlest1_core
- 	ldr	r12, [r11]
--	and 	r12, r12, #0x2
-+	and 	r12, r12, #ST_SDRC_MASK
- 	cmp	r12, #0
+ 	ldr	r4, omap3_sdrc_power	@ read the SDRC_POWER register
+ 	ldr	r5, [r4]		@ read the contents of SDRC_POWER
++	mov	r9, r5			@ keep a copy of SDRC_POWER bits
+ 	orr 	r5, r5, #0x40		@ enable self refresh on idle req
++	bic 	r5, r5, #0x4		@ clear PWDENA
+ 	str 	r5, [r4]		@ write back to SDRC_POWER register
+ 	ldr	r5, [r4]		@ posted-write barrier for SDRC
+ 	ldr	r4, omap3_cm_iclken1_core	@ read the CM_ICLKEN1_CORE reg
+@@ -128,10 +130,9 @@ wait_sdrc_idle1:
+ 	and 	r5, r5, #0x2
+ 	cmp	r5, #0
  	bne	wait_sdrc_idle1
- restore_sdrc_power_val:
-@@ -138,14 +161,14 @@ restore_sdrc_power_val:
++restore_sdrc_power_val:
+ 	ldr	r4, omap3_sdrc_power
+-	ldr	r5, [r4]
+-	bic 	r5, r5, #0x40
+-	str 	r5, [r4]
++	str	r9, [r4]		@ restore SDRC_POWER, no barrier needed
+ 	bx	lr
  wait_dll_lock:
- 	ldr	r11, omap3_sdrc_dlla_status
- 	ldr	r12, [r11]
--	and 	r12, r12, #0x4
--	cmp	r12, #0x4
-+	and 	r12, r12, #LOCKSTATUS_MASK
-+	cmp	r12, #LOCKSTATUS_MASK
- 	bne	wait_dll_lock
- 	bx	lr
- wait_dll_unlock:
- 	ldr	r11, omap3_sdrc_dlla_status
- 	ldr	r12, [r11]
--	and	r12, r12, #0x4
-+	and	r12, r12, #LOCKSTATUS_MASK
- 	cmp	r12, #0x0
- 	bne	wait_dll_unlock
- 	bx	lr
+ 	ldr	r4, omap3_sdrc_dlla_status
 -- 
 1.5.4.3
 
