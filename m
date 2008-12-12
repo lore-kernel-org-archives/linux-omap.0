@@ -1,50 +1,38 @@
-From: "vimal singh" <vimalsingh@ti.com>
-Subject: [PATCH - Omapzoom] [NAND] [OMAP2]: Change __raw_readsl() to
-     __raw_readsw()
-Date: Fri, 12 Dec 2008 17:47:39 +0530 (IST)
-Message-ID: <33411.192.168.10.89.1229084259.squirrel@dbdmail.itg.ti.com>
+From: Nishanth Menon <menon.nishanth@gmail.com>
+Subject: Re: ANyone have success using a BDI-200 to debug an OMAP3xx board?
+Date: Fri, 12 Dec 2008 06:38:47 -0600
+Message-ID: <49425B57.3090903@gmail.com>
+References: <1229016783.27896.446.camel@blackhole>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:33693 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754101AbYLLMRq (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 12 Dec 2008 07:17:46 -0500
-Received: from dlep34.itg.ti.com ([157.170.170.115])
-	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id mBCCHeUX009549
-	for <linux-omap@vger.kernel.org>; Fri, 12 Dec 2008 06:17:45 -0600
-Received: from webmail.ti.com (localhost [127.0.0.1])
-	by dlep34.itg.ti.com (8.13.7/8.13.7) with ESMTP id mBCCHbZJ022897
-	for <linux-omap@vger.kernel.org>; Fri, 12 Dec 2008 06:17:38 -0600 (CST)
+Received: from rn-out-0910.google.com ([64.233.170.191]:43120 "EHLO
+	rn-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755601AbYLLMiv (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 12 Dec 2008 07:38:51 -0500
+Received: by rn-out-0910.google.com with SMTP id k40so1283937rnd.17
+        for <linux-omap@vger.kernel.org>; Fri, 12 Dec 2008 04:38:49 -0800 (PST)
+In-Reply-To: <1229016783.27896.446.camel@blackhole>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
+To: Peter Barada <peterb@logicpd.com>
+Cc: linux-omap <linux-omap@vger.kernel.org>
 
-OMAP2 NAND: Change __raw_readsl() to __raw_readsw()
+Peter Barada said the following on 12/11/2008 11:33 AM:
+> Subject says it all.
+>
+> I've been able to use a BDI-2000 to debug u-boot and initial kernel
+> startup, but somewhere into the startup, the BDI times out and I can't
+> connect to the process to debug the kernel.
+>
+> Any ideas?
+>   
+See [1]. Further, you might want to look at the beagleboard discussion
+archives in [2] - you may want to ask on that mailing list also though..
 
-This patch is taken from linux-omap tree submitted by Juha Kuikka (commit id:
-352eeeabb67c2cb2cc613a02a62623790f360224).
+Regards,
+Nishanth Menon
 
-Singed-off-by: Vimal Singh <vimalsingh@ti.com>
-Signed-off-by: Juha Kuikka <juha.kuikka@gmail.com>
-Signed-off-by: Tony Lindgren <tony@atomide.com>
----
-Patch is reworked to make it apply on omapzoom tree.
-
-diff --git a/drivers/mtd/nand/omap2.c b/drivers/mtd/nand/omap2.c
-index a542272..cf26958 100644
---- a/drivers/mtd/nand/omap2.c
-+++ b/drivers/mtd/nand/omap2.c
-@@ -338,7 +338,7 @@ static void omap_read_buf16(struct mtd_info *mtd, u_char
-*buf, int len)
- {
- 	struct nand_chip *nand = mtd->priv;
-
--	__raw_readsl(nand->IO_ADDR_R, buf, len / 2);
-+	__raw_readsw(nand->IO_ADDR_R, buf, len / 2);
- }
-
- /*
-
-
+[1] http://elinux.org/BeagleBoardJTAG
+[2] http://groups.google.com/group/beagleboard
