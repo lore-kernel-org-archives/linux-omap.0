@@ -1,28 +1,42 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Revert "OMAP: HSMMC: Implement scatter-gather emulation"
-Date: Thu, 11 Dec 2008 18:00:23 -0800
-Message-ID: <20081212020021.GH10664@atomide.com>
+From: David Brownell <david-b@pacbell.net>
+Subject: Re: status of USB on omap35xx ?
+Date: Thu, 11 Dec 2008 18:16:17 -0800
+Message-ID: <200812111816.17860.david-b@pacbell.net>
+References: <1228870250.32014.148.camel@localhost.localdomain> <alpine.DEB.2.00.0812111401100.26754@utopia.booyaka.com> <6ed0b2680812111452t75b175bdr304e9b1d22ea93de@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-bos.mailhop.org ([63.208.196.178]:59768 "EHLO
-	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757000AbYLLCAX (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 11 Dec 2008 21:00:23 -0500
+Received: from smtp123.sbc.mail.sp1.yahoo.com ([69.147.64.96]:41040 "HELO
+	smtp123.sbc.mail.sp1.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1756429AbYLLCQU (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Thu, 11 Dec 2008 21:16:20 -0500
+In-Reply-To: <6ed0b2680812111452t75b175bdr304e9b1d22ea93de@mail.gmail.com>
 Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Juha Yrjola <juha.yrjola@solidboot.com>, Adrian Hunter <ext-adrian.hunter@nokia.com>, "Jarkko Lavinen (NMP/Helsinki)" <jarkko.lavinen@nokia.com>
-Cc: linux-omap@vger.kernel.org
+To: Grazvydas Ignotas <notasas@gmail.com>
+Cc: Paul Walmsley <paul@booyaka.com>, Steve Sakoman <sakoman@gmail.com>, Tony Lindgren <tony@atomide.com>, me@felipebalbi.com, Jeff Steele <jsteele@coloradocollege.edu>, linux-omap <linux-omap@vger.kernel.org>
 
-Hi all,
+On Thursday 11 December 2008, Grazvydas Ignotas wrote:
+> Curiously at this point I can plug/unplug to my ext hub any additional
+> devices as much as I want, as long as I keep the first device plugged.
+> If I unplug all devices from ext hub, I get suspend and kernel no
+> longer reacts to any replugs.
 
-Looks like Juha's MMC scatter-gather patch breaks at least overo when
-using 4 data lines. It seems to work when using only 1 data line.
-So I've reverted patch 038d0d2f64cc1f03bfaf1d5f22d9eacf33926a51 for now.
+Sounds like one issue might be that EHCI isn't waking up the
+way it should, when it gets "remote wakeup" signaling from USB.
 
-Any ideas? Maybe some timings issue?
+The USB host drivers go to some effort to put themselves in as
+low a runtime power state as practical, and rely on the hardware
+to wake up given events like insertion/removal of an external
+device, or the downstream device issuing wakeup signaling (e.g.
+press a key on a keyboard that went to sleep).
 
-Regards,
+OMAP has been known to need special attention to kick in such
+wakeup mechanisms.  Maybe this is another such case.
 
-Tony
+- Dave
+
