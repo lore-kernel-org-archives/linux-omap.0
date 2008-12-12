@@ -1,78 +1,50 @@
-From: Tero Kristo <tero.kristo@nokia.com>
-Subject: [PATCH] PM OMAP3: Change omap3_save_secure_ram to be called only during init
-Date: Fri, 12 Dec 2008 11:20:05 +0200
-Message-ID: <1229073605-24235-1-git-send-email-tero.kristo@nokia.com>
+From: "vimal singh" <vimalsingh@ti.com>
+Subject: [PATCH - Omapzoom] [NAND] [OMAP2]: Change __raw_readsl() to
+     __raw_readsw()
+Date: Fri, 12 Dec 2008 17:47:39 +0530 (IST)
+Message-ID: <33411.192.168.10.89.1229084259.squirrel@dbdmail.itg.ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:42174 "EHLO
-	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751411AbYLLJ0Q (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 12 Dec 2008 04:26:16 -0500
-Received: from vaebh105.NOE.Nokia.com (vaebh105.europe.nokia.com [10.160.244.31])
-	by mgw-mx06.nokia.com (Switch-3.2.6/Switch-3.2.6) with ESMTP id mBC9PrDH024578
-	for <linux-omap@vger.kernel.org>; Fri, 12 Dec 2008 11:26:13 +0200
-Received: from localhost.localdomain (sokoban.ntc.nokia.com [172.22.144.95])
-	by mgw-int01.ntc.nokia.com (Switch-3.2.5/Switch-3.2.5) with ESMTP id mBC9Q7eF025871
-	for <linux-omap@vger.kernel.org>; Fri, 12 Dec 2008 11:26:07 +0200
-In-Reply-To: <>
-References: <>
+Received: from devils.ext.ti.com ([198.47.26.153]:33693 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754101AbYLLMRq (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 12 Dec 2008 07:17:46 -0500
+Received: from dlep34.itg.ti.com ([157.170.170.115])
+	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id mBCCHeUX009549
+	for <linux-omap@vger.kernel.org>; Fri, 12 Dec 2008 06:17:45 -0600
+Received: from webmail.ti.com (localhost [127.0.0.1])
+	by dlep34.itg.ti.com (8.13.7/8.13.7) with ESMTP id mBCCHbZJ022897
+	for <linux-omap@vger.kernel.org>; Fri, 12 Dec 2008 06:17:38 -0600 (CST)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 
-This function is now called only once during the initialization of the device
-and consequent sleep cycles will re-use the same saved contents for secure
-RAM. Users who need secure services should do secure RAM saving before
-entering off-mode, if a secure service has been accessed after last save.
+OMAP2 NAND: Change __raw_readsl() to __raw_readsw()
 
-Signed-off-by: Tero Kristo <tero.kristo@nokia.com>
+This patch is taken from linux-omap tree submitted by Juha Kuikka (commit id:
+352eeeabb67c2cb2cc613a02a62623790f360224).
+
+Singed-off-by: Vimal Singh <vimalsingh@ti.com>
+Signed-off-by: Juha Kuikka <juha.kuikka@gmail.com>
+Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
- arch/arm/mach-omap2/pm34xx.c |   19 ++++++++++++++++++-
- 1 files changed, 18 insertions(+), 1 deletions(-)
+Patch is reworked to make it apply on omapzoom tree.
 
-diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
-index 4223622..b8cf5f2 100644
---- a/arch/arm/mach-omap2/pm34xx.c
-+++ b/arch/arm/mach-omap2/pm34xx.c
-@@ -127,6 +127,12 @@ static void omap3_core_restore_context(void)
- 	omap_dma_global_context_restore();
- }
- 
-+/*
-+ * FIXME: This function should be called before entering off-mode after
-+ * OMAP3 secure services have been accessed. Currently it is only called
-+ * once during boot sequence, but this works as we are not using secure
-+ * services.
-+ */
- static void omap3_save_secure_ram_context(u32 target_mpu_state)
+diff --git a/drivers/mtd/nand/omap2.c b/drivers/mtd/nand/omap2.c
+index a542272..cf26958 100644
+--- a/drivers/mtd/nand/omap2.c
++++ b/drivers/mtd/nand/omap2.c
+@@ -338,7 +338,7 @@ static void omap_read_buf16(struct mtd_info *mtd, u_char
+*buf, int len)
  {
- 	u32 ret;
-@@ -349,7 +355,6 @@ void omap_sram_idle(void)
- 					     OMAP3_PRM_VOLTCTRL_OFFSET);
- 			omap3_core_save_context();
- 			omap3_prcm_save_context();
--			omap3_save_secure_ram_context(mpu_next_state);
- 		}
- 		/* Enable IO-PAD wakeup */
- 		prm_set_mod_reg_bits(OMAP3430_EN_IO, WKUP_MOD, PM_WKEN);
-@@ -923,6 +928,18 @@ int __init omap3_pm_init(void)
- 	}
- 	omap3_save_scratchpad_contents();
- 
-+	if (omap_type() != OMAP2_DEVICE_TYPE_GP) {
-+		local_irq_disable();
-+		local_fiq_disable();
-+
-+		omap_dma_global_context_save();
-+		omap3_save_secure_ram_context(PWRDM_POWER_ON);
-+		omap_dma_global_context_restore();
-+
-+		local_irq_enable();
-+		local_fiq_enable();
-+	}
-+
- err1:
- 	return ret;
- err2:
--- 
-1.5.4.3
+ 	struct nand_chip *nand = mtd->priv;
+
+-	__raw_readsl(nand->IO_ADDR_R, buf, len / 2);
++	__raw_readsw(nand->IO_ADDR_R, buf, len / 2);
+ }
+
+ /*
+
 
