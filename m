@@ -1,237 +1,43 @@
-From: hvaibhav@ti.com
-Subject: [REVIEW PATCH 1/1] OMAP3EVM support-Refreshed against latest Tomis code-base
-Date: Mon, 15 Dec 2008 13:31:59 +0530
-Message-ID: <1229328119-23248-1-git-send-email-hvaibhav@ti.com>
-References: <hvaibhav@ti.com>
+From: "Trilok Soni" <soni.trilok@gmail.com>
+Subject: Re: Instructions and design notes for using TI TSC2007 touch screen controller chip
+Date: Mon, 15 Dec 2008 14:49:22 +0530
+Message-ID: <5d5443650812150119y72a210c4lf1680973d6abfa78@mail.gmail.com>
+References: <14202A61-8626-4F51-A510-AEF44881BC35@mac.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:34874 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751668AbYLOICU (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 15 Dec 2008 03:02:20 -0500
-In-Reply-To: <hvaibhav@ti.com>
+Received: from wf-out-1314.google.com ([209.85.200.175]:34716 "EHLO
+	wf-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752125AbYLOJTY (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 15 Dec 2008 04:19:24 -0500
+Received: by wf-out-1314.google.com with SMTP id 27so2541980wfd.4
+        for <linux-omap@vger.kernel.org>; Mon, 15 Dec 2008 01:19:22 -0800 (PST)
+In-Reply-To: <14202A61-8626-4F51-A510-AEF44881BC35@mac.com>
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: linux-fbdev-devel@lists.sourceforge.net, tomi.valkeinen@nokia.com, Vaibhav Hiremath <hvaibhav@ti.com>, Brijesh Jadav <brijesh.j@ti.com>, Hardik Shah <hardik.shah@ti.com>, Manjunath Hadli <mrh@ti.com>, R Sivaraj <sivaraj@ti.com>
+To: Elvis Dowson <elvis.dowson@mac.com>
+Cc: Linux OMAP Users <linux-omap@vger.kernel.org>
 
-From: Vaibhav Hiremath <hvaibhav@ti.com>
+Hi Elvis
 
-Refreshed and Cleaned up as per the latest Tomi's DSS2
-code-base -
+On Mon, Dec 15, 2008 at 2:27 PM, Elvis Dowson <elvis.dowson@mac.com> wrote:
+> Hi,
+>         I am considering using the TI TSC2007 touch screen controller with a
+> TI OMAP3503 processor based motherboard. This motherboard has the TI
+> TPS65950 power management IC onboard.
+>
+> I want to interface the TI TSC2007 to a 4-wire analog resistive touch screen
+> panel available on a Sharp LQ043T1DG01 4.3" 480x272 resolution LCD touch
+> screen display.
+>
 
-http://www.bat.org/~tomba/git/linux-omap-dss.git
+Recently TSC2007 driver was submitted to LKML and linux-omap ML, please google:
 
-Tomi,
+"kwangwoo lee TSC2007"
 
-Can you please merge this patch to your repository, so
-that it will be available as part of your HEAD?
-
-Signed-off-by: Brijesh Jadav <brijesh.j@ti.com>
-Signed-off-by: Hardik Shah <hardik.shah@ti.com>
-Signed-off-by: Manjunath Hadli <mrh@ti.com>
-Signed-off-by: R Sivaraj <sivaraj@ti.com>
-Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
----
- arch/arm/mach-omap2/board-omap3evm.c |   69 +++++++++++++---------------------
- 1 files changed, 26 insertions(+), 43 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/board-omap3evm.c b/arch/arm/mach-omap2/board-omap3evm.c
-index 0a722d7..cf0a6b3 100644
---- a/arch/arm/mach-omap2/board-omap3evm.c
-+++ b/arch/arm/mach-omap2/board-omap3evm.c
-@@ -36,7 +36,6 @@
- #include <mach/usb-ehci.h>
- #include <mach/common.h>
- #include <mach/mcspi.h>
--#include <mach/omapfb.h>
- #include <mach/display.h>
-
- #include "sdram-micron-mt46h32m32lf-6.h"
-@@ -161,20 +160,7 @@ static int __init omap3_evm_i2c_init(void)
- 	omap_register_i2c_bus(3, 400, NULL, 0);
- 	return 0;
- }
--static struct omap_fbmem_config evm_fbmem0_config = {
--		.size = 480*720*4,
--		.start = OMAPFB_MEMTYPE_SDRAM,
--};
--
--static struct omap_fbmem_config evm_fbmem1_config = {
--		.size = 480*720*4,
--		.start = OMAPFB_MEMTYPE_SDRAM,
--};
-
--static struct omap_fbmem_config evm_fbmem2_config = {
--		.size = 480*720*4,
--		.start = OMAPFB_MEMTYPE_SDRAM,
--};
- #define LCD_PANEL_LR		2
- #define LCD_PANEL_UD		3
- #define LCD_PANEL_INI		152
-@@ -195,7 +181,7 @@ static struct omap_fbmem_config evm_fbmem2_config = {
- static int lcd_enabled;
- static int dvi_enabled;
-
--static void __init evm_display_init(void)
-+static void __init omap3_evm_display_init(void)
- {
- 	int r;
- 	r = gpio_request(LCD_PANEL_LR, "lcd_panel_lr");
-@@ -258,7 +244,7 @@ err_1:
-
- }
-
--static int evm_panel_enable_lcd(struct omap_display *display)
-+static int omap3_evm_panel_enable_lcd(struct omap_display *display)
- {
- 	if (dvi_enabled) {
- 		printk(KERN_ERR "cannot enable LCD, DVI is enabled\n");
-@@ -275,7 +261,7 @@ static int evm_panel_enable_lcd(struct omap_display *display)
- 	return 0;
- }
-
--static void evm_panel_disable_lcd(struct omap_display *display)
-+static void omap3_evm_panel_disable_lcd(struct omap_display *display)
- {
- 	if (omap_rev() > OMAP3430_REV_ES1_0) {
- 		twl4030_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER, 0x0,
-@@ -287,16 +273,16 @@ static void evm_panel_disable_lcd(struct omap_display *display)
- 	lcd_enabled = 0;
- }
-
--static struct omap_display_data evm_display_data = {
-+static struct omap_display_data omap3_evm_display_data = {
- 	.type = OMAP_DISPLAY_TYPE_DPI,
- 	.name = "lcd",
- 	.panel_name = "sharp-ls037v7dw01",
- 	.u.dpi.data_lines = 18,
--	.panel_enable = evm_panel_enable_lcd,
--	.panel_disable = evm_panel_disable_lcd,
-+	.panel_enable = omap3_evm_panel_enable_lcd,
-+	.panel_disable = omap3_evm_panel_disable_lcd,
- };
-
--static int evm_panel_enable_tv(struct omap_display *display)
-+static int omap3_evm_panel_enable_tv(struct omap_display *display)
- {
- 	twl4030_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER,
- 			ENABLE_VDAC_DEDICATED, TWL4030_VDAC_DEDICATED);
-@@ -305,7 +291,7 @@ static int evm_panel_enable_tv(struct omap_display *display)
- 	return 0;
- }
-
--static void evm_panel_disable_tv(struct omap_display *display)
-+static void omap3_evm_panel_disable_tv(struct omap_display *display)
- {
- 	twl4030_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER, 0x00,
- 			TWL4030_VDAC_DEDICATED);
-@@ -313,16 +299,16 @@ static void evm_panel_disable_tv(struct omap_display *display)
- 			TWL4030_VDAC_DEV_GRP);
- }
-
--static struct omap_display_data evm_display_data_tv = {
-+static struct omap_display_data omap3_evm_display_data_tv = {
- 	.type = OMAP_DISPLAY_TYPE_VENC,
- 	.name = "tv",
- 	.u.venc.type = OMAP_DSS_VENC_TYPE_SVIDEO,
--	.panel_enable = evm_panel_enable_tv,
--	.panel_disable = evm_panel_disable_tv,
-+	.panel_enable = omap3_evm_panel_enable_tv,
-+	.panel_disable = omap3_evm_panel_disable_tv,
- };
-
-
--static int evm_panel_enable_dvi(struct omap_display *display)
-+static int omap3_evm_panel_enable_dvi(struct omap_display *display)
- {
- 	if (lcd_enabled) {
- 		printk(KERN_ERR "cannot enable DVI, LCD is enabled\n");
-@@ -337,7 +323,7 @@ static int evm_panel_enable_dvi(struct omap_display *display)
- 	return 0;
- }
-
--static void evm_panel_disable_dvi(struct omap_display *display)
-+static void omap3_evm_panel_disable_dvi(struct omap_display *display)
- {
- 	twl4030_i2c_write_u8(TWL4030_MODULE_GPIO, 0x00,
- 			TWL4030_GPIODATA_IN3);
-@@ -347,28 +333,28 @@ static void evm_panel_disable_dvi(struct omap_display *display)
- }
-
-
--static struct omap_display_data evm_display_data_dvi = {
-+static struct omap_display_data omap3_evm_display_data_dvi = {
- 	.type = OMAP_DISPLAY_TYPE_DPI,
- 	.name = "dvi",
- 	.panel_name = "panel-dvi",
- 	.u.dpi.data_lines = 24,
--	.panel_enable = evm_panel_enable_dvi,
--	.panel_disable = evm_panel_disable_dvi,
-+	.panel_enable = omap3_evm_panel_enable_dvi,
-+	.panel_disable = omap3_evm_panel_disable_dvi,
- };
-
--static struct omap_dss_platform_data evm_dss_data = {
-+static struct omap_dss_platform_data omap3_evm_dss_data = {
- 	.num_displays = 3,
- 	.displays = {
--		&evm_display_data,
--		&evm_display_data_dvi,
--		&evm_display_data_tv,
-+		&omap3_evm_display_data,
-+		&omap3_evm_display_data_dvi,
-+		&omap3_evm_display_data_tv,
- 	}
- };
--static struct platform_device evm_dss_device = {
-+static struct platform_device omap3_evm_dss_device = {
- 	.name		= "omap-dss",
- 	.id		= -1,
- 	.dev            = {
--		.platform_data = &evm_dss_data,
-+		.platform_data = &omap3_evm_dss_data,
- 	},
- };
-
-@@ -428,13 +414,10 @@ static void __init omap3_evm_init_irq(void)
-
- static struct omap_board_config_kernel omap3_evm_config[] __initdata = {
- 	{ OMAP_TAG_UART,	&omap3_evm_uart_config },
--	{ OMAP_TAG_FBMEM,       &evm_fbmem0_config },
--	{ OMAP_TAG_FBMEM,       &evm_fbmem1_config },
--	{ OMAP_TAG_FBMEM,       &evm_fbmem2_config },
- };
-
- static struct platform_device *omap3_evm_devices[] __initdata = {
--	&evm_dss_device,
-+	&omap3_evm_dss_device,
- 	&omap3evm_smc911x_device,
- };
-
-@@ -453,6 +436,8 @@ static void __init omap3_evm_init(void)
- 	omap3_evm_i2c_init();
-
- 	platform_add_devices(omap3_evm_devices, ARRAY_SIZE(omap3_evm_devices));
-+	omap_board_config = omap3_evm_config;
-+	omap_board_config_size = ARRAY_SIZE(omap3_evm_config);
-
- 	spi_register_board_info(omap3evm_spi_board_info,
- 				ARRAY_SIZE(omap3evm_spi_board_info));
-@@ -463,13 +448,11 @@ static void __init omap3_evm_init(void)
- 	usb_ehci_init();
- 	omap3evm_flash_init();
- 	ads7846_dev_init();
--	evm_display_init();
-+	omap3_evm_display_init();
- }
-
- static void __init omap3_evm_map_io(void)
- {
--	omap_board_config = omap3_evm_config;
--	omap_board_config_size = ARRAY_SIZE(omap3_evm_config);
- 	omap2_set_globals_343x();
- 	omap2_map_common_io();
- }
---
-1.5.6
-
+-- 
+---Trilok Soni
+http://triloksoni.wordpress.com
+http://www.linkedin.com/in/triloksoni
