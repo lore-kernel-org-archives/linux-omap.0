@@ -1,86 +1,37 @@
-From: "Pandita, Vikram" <vikram.pandita-l0cyMroinI0@public.gmane.org>
-Subject: RE: [PATCH v2] MUSB: fix wrongly created sysfs entry
-Date: Tue, 16 Dec 2008 01:25:58 +0530
-Message-ID: <FCCFB4CDC6E5564B9182F639FC356087025127B962@dbde02.ent.ti.com>
-References: <1229356837.22285.239.camel@violet>
- <1229357553.12163.55.camel@localhost.localdomain>
- <20081215162505.4b11c9be@lxorguk.ukuu.org.uk>
- <1229359592.12163.80.camel@localhost.localdomain>
- <20081215171611.0b3877d5@lxorguk.ukuu.org.uk>
- <1229362427.12163.94.camel@localhost.localdomain>
- <1229363671.12163.109.camel@localhost.localdomain>
- <20081215180740.02ef1667@lxorguk.ukuu.org.uk>
- <FCCFB4CDC6E5564B9182F639FC356087025127B95B@dbde02.ent.ti.com>
- <FCCFB4CDC6E5564B9182F639FC356087025127B95C@dbde02.ent.ti.com>
- <20081215195136.GM23324@frodo>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH 01/23] ARM: MMU: add a Non-cacheable Normal executable
+ memory type
+Date: Mon, 15 Dec 2008 12:58:01 -0700 (MST)
+Message-ID: <alpine.DEB.2.00.0812151257280.26754@utopia.booyaka.com>
+References: <1229010762-3150-1-git-send-email-tero.kristo@nokia.com> <1229010762-3150-2-git-send-email-tero.kristo@nokia.com> <20081215190620.GA10664@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20081215195136.GM23324@frodo>
-Content-Language: en-US
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "me-uiRdBs8odbtmTBlB0Cgj/Q@public.gmane.org" <me-uiRdBs8odbtmTBlB0Cgj/Q@public.gmane.org>
-Cc: "linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-omap <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from utopia.booyaka.com ([72.9.107.138]:45420 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752439AbYLOT6D (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 15 Dec 2008 14:58:03 -0500
+In-Reply-To: <20081215190620.GA10664@atomide.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Tero Kristo <tero.kristo@nokia.com>, linux-omap@vger.kernel.org
+
+On Mon, 15 Dec 2008, Tony Lindgren wrote:
+
+> * Tero Kristo <tero.kristo@nokia.com> [081211 07:59]:
+> > From: Paul Walmsley <paul@pwsan.com>
+> > 
+> > Add a Non-cacheable Normal ARM executable memory type,
+> > MT_MEMORY_NONCACHED.  This is needed for the OMAP3 SDRAM clock change
+> > code, which must run from SRAM.  The SRAM must be marked as
+> > non-cacheable memory to avoid dirty cache line writebacks to SDRAM
+> > while the SDRAM controller is paused.
+> 
+> This should be discussed on LAKML.
+
+Yeah, it's my understanding that these patches are targeted for the PM 
+branch.
 
 
->-----Original Message-----
->From: Felipe Balbi [mailto:me-uiRdBs8odbtmTBlB0Cgj/Q@public.gmane.org]
->
->On Tue, Dec 16, 2008 at 12:53:47AM +0530, Pandita, Vikram wrote:
->> From: Vikram Pandita <vikram.pandita-l0cyMroinI0@public.gmane.org>
->>
->> attr_srp is created wrongly for GADGET only mode of MUSB
->> The attribute is related to OTG mode only
->>
->> For Gadget mode, this attribute gets created on insmod but does
->> not get deleted. Fixing the bug.
->>
->> Signed-off-by: Vikram Pandita <vikram.pandita-l0cyMroinI0@public.gmane.org>
->
->NAK, any gadget is allowed to initiate SRP.
->See otg rev1.3 page 20:
->
->"Any B-device, including a standard USB peripheral, is allowed to
->initiate SRP"
-
-Agreed. In that case, we still need the following patch:
-Otherwise the srp entry does not get deleted on rmmod.
-
-Signed-off-by: Vikram Pandita <vikram.pandita-l0cyMroinI0@public.gmane.org>
-diff --git a/drivers/usb/musb/musb_core.c b/drivers/usb/musb/musb_core.c
-index 5280dba..824ea57 100644
---- a/drivers/usb/musb/musb_core.c
-+++ b/drivers/usb/musb/musb_core.c
-@@ -1829,7 +1829,7 @@ static void musb_free(struct musb *musb)
- #ifdef CONFIG_SYSFS
- 	device_remove_file(musb->controller, &dev_attr_mode);
- 	device_remove_file(musb->controller, &dev_attr_vbus);
--#ifdef CONFIG_USB_MUSB_OTG
-+#ifdef CONFIG_USB_GADGET_MUSB_HDRC
- 	device_remove_file(musb->controller, &dev_attr_srp);
- #endif
- #endif
-@@ -2060,7 +2060,7 @@ bad_config:
- 	status = device_create_file(dev, &dev_attr_vbus);
- #ifdef CONFIG_USB_GADGET_MUSB_HDRC
- 	status = device_create_file(dev, &dev_attr_srp);
--#endif /* CONFIG_USB_GADGET_MUSB_HDRC */
-+#endif
- 	status = 0;
- #endif
- 	if (status)
-@@ -2072,7 +2072,7 @@ fail2:
- #ifdef CONFIG_SYSFS
- 	device_remove_file(musb->controller, &dev_attr_mode);
- 	device_remove_file(musb->controller, &dev_attr_vbus);
--#ifdef CONFIG_USB_MUSB_OTG
-+#ifdef CONFIG_USB_GADGET_MUSB_HDRC
- 	device_remove_file(musb->controller, &dev_attr_srp);
- #endif
- #endif
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+- Paul
