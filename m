@@ -1,110 +1,43 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: git pull request for omap mmc init changes (Re: [PATCH 0/5] Omap
-	MMC init updates and new controller for 2.6.29 merge window)
-Date: Mon, 15 Dec 2008 14:26:13 -0800
-Message-ID: <20081215222612.GA19551@atomide.com>
-References: <20081207213617.10456.43951.stgit@localhost>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH] OMAP: wait for pwrdm transition after clk_enable()
+Date: Mon, 15 Dec 2008 15:37:08 -0700 (MST)
+Message-ID: <alpine.DEB.2.00.0812151536470.26754@utopia.booyaka.com>
+References: <1229068133-13933-1-git-send-email-tomi.valkeinen@nokia.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="YZ5djTAD1cGYuMQK"
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-bos.mailhop.org ([63.208.196.178]:55878 "EHLO
-	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751810AbYLOW0Q (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 15 Dec 2008 17:26:16 -0500
-Content-Disposition: inline
-In-Reply-To: <20081207213617.10456.43951.stgit@localhost>
+Received: from utopia.booyaka.com ([72.9.107.138]:34665 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751547AbYLOWhJ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 15 Dec 2008 17:37:09 -0500
+In-Reply-To: <1229068133-13933-1-git-send-email-tomi.valkeinen@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: drzeus-mmc@drzeus.cx, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.arm.linux.org.uk
+To: Tomi Valkeinen <tomi.valkeinen@nokia.com>
 Cc: linux-omap@vger.kernel.org
 
+On Fri, 12 Dec 2008, Tomi Valkeinen wrote:
 
---YZ5djTAD1cGYuMQK
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-
-* Tony Lindgren <tony@atomide.com> [081207 13:45]:
-> Hi Pierre & Russell,
+> Enabling clock in a disabled power domain causes the power domain to be
+> turned on. However, the power transition is not always finished when
+> clk_enable() returns and this randomly crashes the kernel when an
+> interrupt happens right after the clk_enable, and the kernel tries to
+> read the irq status register for that domain.
 > 
-> This series contains a better platform init for omap MMC as discussed earlier
-> on the linux-omap mailing list. The last patch in the series adds support for
-> a newer omap MMC controller available on 2430 and 34xx omaps.
+> Why the irq status register is inaccessible, I don't know. Also it
+> doesn't seem to be related to the module being not powered up, but to
+> the transition itself.
 > 
-> The first four patches should get merged via Russell. The last one adding
-> the new controller depends on comments from Pierre, so I can separate
-> that out if desired.
+> The same could perhaps happen after clk_disable also, but I have not
+> witnessed that.
 > 
-> The third patch in the series depends on the "Omap3 updates for 2.6.29
-> merge window" series for the changes to Pandora board support.
+> The problem affects at least dss, cam and sgx clocks.
 > 
-> Comments welcome as always!
+> This change waits for the transition to be finished before returning
+> from omap2_clkdm_clk_enable().
+> 
+> Signed-off-by: Tomi Valkeinen <tomi.valkeinen@nokia.com>
 
-Russell, here's a pull request for the first four patches in this
-series for the mmc init changes. This depends on the omap3-upstream
-pull request posted earlier today.
+Acked-by: Paul Walmsley <paul@pwsan.com>
 
-I'm not including the actual driver in this series, that should go via
-Pierre. Or at least we should have an ack from Pierre first.
-
-Regards,
-
-Tony
-
---YZ5djTAD1cGYuMQK
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline; filename="pull-mmc-init.txt"
-
-The following changes since commit 2619bc327417f549f1c89d5ef9b4a4aa768f41a2:
-  Arun KS (1):
-        ARM: OMAP3: Pin multiplexing updates for 24xx and 34xx
-
-are available in the git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap-2.6.git hsmmc-init
-
-Kevin Hilman (1):
-      omap mmc: force MMC module reset on boot
-
-Tony Lindgren (3):
-      omap mmc: Remove broken MMC init code
-      omap mmc: Add better MMC low-level init
-      omap mmc: Add low-level initialization for hsmmc controller
-
- arch/arm/mach-omap1/board-h2-mmc.c         |   89 +++----
- arch/arm/mach-omap1/board-h2.c             |   25 +-
- arch/arm/mach-omap1/board-h3-mmc.c         |  100 ++-----
- arch/arm/mach-omap1/board-h3.c             |   10 -
- arch/arm/mach-omap1/board-innovator.c      |   50 +++-
- arch/arm/mach-omap1/board-nokia770.c       |   74 ++++-
- arch/arm/mach-omap1/board-palmte.c         |    1 -
- arch/arm/mach-omap1/board-palmz71.c        |   11 -
- arch/arm/mach-omap1/board-sx1-mmc.c        |   80 +-----
- arch/arm/mach-omap1/board-sx1.c            |   10 -
- arch/arm/mach-omap1/board-voiceblue.c      |   10 +-
- arch/arm/mach-omap1/clock.h                |    3 +-
- arch/arm/mach-omap1/devices.c              |   90 ++++++
- arch/arm/mach-omap2/Makefile               |   15 +-
- arch/arm/mach-omap2/board-2430sdp.c        |   48 ++++
- arch/arm/mach-omap2/board-apollon.c        |   11 -
- arch/arm/mach-omap2/board-generic.c        |   11 -
- arch/arm/mach-omap2/board-h4.c             |   11 -
- arch/arm/mach-omap2/board-ldp.c            |   40 +++-
- arch/arm/mach-omap2/board-omap3beagle.c    |   90 ++++++
- arch/arm/mach-omap2/board-omap3pandora.c   |   32 +++
- arch/arm/mach-omap2/board-overo.c          |   43 +++
- arch/arm/mach-omap2/clock24xx.h            |    9 +-
- arch/arm/mach-omap2/clock34xx.h            |   10 +-
- arch/arm/mach-omap2/devices.c              |  169 ++++++++++++
- arch/arm/mach-omap2/mmc-twl4030.c          |  408 ++++++++++++++++++++++++++++
- arch/arm/mach-omap2/mmc-twl4030.h          |   29 ++
- arch/arm/plat-omap/devices.c               |  225 +++-------------
- arch/arm/plat-omap/include/mach/board-h2.h |    6 +-
- arch/arm/plat-omap/include/mach/board.h    |   22 --
- arch/arm/plat-omap/include/mach/control.h  |   17 ++
- arch/arm/plat-omap/include/mach/mmc.h      |   74 +++++-
- drivers/mmc/host/omap.c                    |    7 +-
- 33 files changed, 1282 insertions(+), 548 deletions(-)
- create mode 100644 arch/arm/mach-omap2/mmc-twl4030.c
- create mode 100644 arch/arm/mach-omap2/mmc-twl4030.h
-
---YZ5djTAD1cGYuMQK--
+- Paul
