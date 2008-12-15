@@ -1,35 +1,37 @@
-From: "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>
-Subject: RE: [REVIEW PATCH 14/14] OMAP34XX: CAM: Add Sensors Support
-Date: Mon, 15 Dec 2008 11:02:35 -0600
-Message-ID: <A24693684029E5489D1D202277BE894415F3DAEB@dlee02.ent.ti.com>
-References: <20081215162338.GS10664@atomide.com>
+From: Felipe Balbi <me@felipebalbi.com>
+Subject: Re: [REVIEW PATCH 04/14] OMAP: CAM: Add ISP Front end
+Date: Mon, 15 Dec 2008 19:24:32 +0200
+Message-ID: <20081215172432.GG23324@frodo>
+References: <A24693684029E5489D1D202277BE894415E6E198@dlee02.ent.ti.com> <20081215161240.GQ10664@atomide.com>
+Reply-To: me@felipebalbi.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:45262 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753828AbYLORDC convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 15 Dec 2008 12:03:02 -0500
-In-Reply-To: <20081215162338.GS10664@atomide.com>
-Content-Language: en-US
+Received: from ns1.siteground211.com ([209.62.36.12]:46187 "EHLO
+	serv01.siteground211.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754848AbYLORYk (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 15 Dec 2008 12:24:40 -0500
+Content-Disposition: inline
+In-Reply-To: <20081215161240.GQ10664@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "video4linux-list@redhat.com" <video4linux-list@redhat.com>, Sakari Ailus <sakari.ailus@nokia.com>, "Tuukka.O Toivonen" <tuukka.o.toivonen@nokia.com>, "Hiremath, Vaibhav" <hvaibhav@ti.com>, "Nagalla, Hari" <hnagalla@ti.com>
+Cc: "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "video4linux-list@redhat.com" <video4linux-list@redhat.com>, Sakari Ailus <sakari.ailus@nokia.com>, "Tuukka.O Toivonen" <tuukka.o.toivonen@nokia.com>, "Hiremath, Vaibhav" <hvaibhav@ti.com>, "Nagalla, Hari" <hnagalla@ti.com>
 
-> From: Tony Lindgren [mailto:tony@atomide.com]
-> * Aguirre Rodriguez, Sergio Alberto <saaguirre@ti.com> [081211 12:44]:
-> > +	case V4L2_POWER_OFF:
-> > +		/* Power Down Sequence */
-> > +#ifdef CONFIG_TWL4030_CORE
-> > +		twl4030_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER,
-> > +				VAUX_DEV_GRP_NONE, TWL4030_VAUX2_DEV_GRP);
-> > +#else
-> > +#error "no power companion board defined!"
-> > +#endif
+On Mon, Dec 15, 2008 at 08:12:41AM -0800, Tony Lindgren wrote:
+> You should not need cpu_is_omapXXXX() macros in the drivers. Please
+> set up the configuration in platform_data.
 > 
-> These checks look unecessary. How about just handle it with Kconfig?
-> 
-[Aguirre, Sergio] But how? Don't you think that if I do that, I'll tighten the sensor driver to this board only?
+> Also, please pass the IORESOURCE from platform_data, and then ioremap
+> it in the driver. That way you can use __raw_read/write instead of
+> __omap_read/write.
 
+just one reminder. IORESOURCE_* goes via struct resource. Then you use
+res = platform_get_resource(pdev, IORESOURCE_MEM, 0); and ioremap()
+afterwards.
+
+Similar should be done for the IRQ, but using IORESOURCE_IRQ and
+platform_get_irq(pdev, 0);
+
+-- 
+balbi
