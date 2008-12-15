@@ -1,51 +1,52 @@
-From: Felipe Balbi <felipe.balbi@nokia.com>
+From: Juha =?iso-8859-1?B?WXJq9mzk?= <juha.yrjola@solidboot.com>
 Subject: Re: [PATCH] ARM: OMAP: Add support for dynamic GPIO switch update
-Date: Mon, 15 Dec 2008 15:56:03 +0200
-Message-ID: <20081215135603.GE16316@gandalf.research.nokia.com>
-References: <1229342896-7363-1-git-send-email-ext-jani.1.nikula@nokia.com> <20081215132210.GC16316@gandalf.research.nokia.com> <1229348645.5895.279.camel@jani-desktop>
-Reply-To: felipe.balbi@nokia.com
+Date: Mon, 15 Dec 2008 15:40:10 +0200
+Message-ID: <20081215134010.GA10709@mail.solidboot.com>
+References: <1229342896-7363-1-git-send-email-ext-jani.1.nikula@nokia.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:51941 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752548AbYLOOBM (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 15 Dec 2008 09:01:12 -0500
+Received: from solidboot.com ([92.48.122.80]:44714 "EHLO rei.solidboot.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751604AbYLOOL2 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 15 Dec 2008 09:11:28 -0500
 Content-Disposition: inline
-In-Reply-To: <1229348645.5895.279.camel@jani-desktop>
+In-Reply-To: <1229342896-7363-1-git-send-email-ext-jani.1.nikula@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Jani Nikula <ext-jani.1.nikula@nokia.com>
-Cc: felipe.balbi@nokia.com, linux-omap@vger.kernel.org, juha.yrjola@solidboot.com
+Cc: linux-omap@vger.kernel.org
 
-On Mon, Dec 15, 2008 at 03:44:05PM +0200, Jani Nikula wrote:
-> That's a nice idea, but gpio_sw_irq_handler() actually supports having 0
-> debounce timeouts, i.e. no settling time. Of course, I could use -1 for
-> "don't update". However, the semantics above is exactly the same as in
-> add_board_switches() for the update case. I'm not sure if it would be a
-> good idea to deviate from this - what do you think? 
+On Mon, Dec 15, 2008 at 02:08:16PM +0200, Jani Nikula wrote:
 
-makes sense to me. But then again, if the uses does something like:
+> Add new function omap_update_gpio_switch() to support dynamically
+> changing the GPIO switch notify callback functions and debounce
+> timeouts.
 
-static struct omap_gpio_switch *cfg;
+Why do they need to be changed? GPIO switches related to the board schematics,
+which do not hopefully change dynamically.
 
-static int __init blabla_probe(struct platform_device *dev)
-{
-	cfg = kmalloc(sizeof(cfg), GFP_KERNEL));
+> +	spin_lock_irqsave(&sw->lock, flags);
+>  	if (state)
+>  		timeout = sw->debounce_rising;
+>  	else
+>  		timeout = sw->debounce_falling;
+> +	spin_unlock_irqrestore(&sw->lock, flags);
 
-	cfg->notify = my_notify;
+What's the point of this? The above read can be consider an atomic operation.
 
-	omap_update_gpio_swtich(cfg);
+> +	spin_lock_irqsave(&sw->lock, flags);
+> +	notify = sw->notify;
+> +	notify_data = sw->notify_data;
+> +	spin_unlock_irqrestore(&sw->lock, flags);
+> +
+> +	if (notify != NULL)
+> +		notify(notify_data, state);
 
-	return 0;
-};
+What if omap_update_gpio_switch() is called just before the check for
+notify != NULL from another (hypothetical =)) CPU? Then you end up with the
+function completing, but still having the old notify callback called with
+old notify_data.
 
-that means that if cfg->debounce_rising was different than 0, it'll get
-overwritten to 0, right ? So, at least, you should put a big note for
-users to initialize all necessary fields. Or, again, you only change if
-cfg-><whatever> is different than 0 (or NULL), but that could a problem
-when you really wanna change cfg->debounce_rising from, say, 100 to 0.
-That wouldn't happen :-p
-
--- 
-balbi
+Cheers,
+Juha
