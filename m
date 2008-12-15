@@ -1,267 +1,49 @@
-From: Tomi Valkeinen <tomi.valkeinen@nokia.com>
-Subject: Re: [REVIEW PATCH 1/1] OMAP3EVM support-Refreshed against latest
- Tomis code-base
-Date: Mon, 15 Dec 2008 14:55:18 +0200
-Message-ID: <1229345718.6888.44.camel@tubuntu>
-References: <hvaibhav@ti.com>
-	 <1229328119-23248-1-git-send-email-hvaibhav@ti.com>
-Reply-To: tomi.valkeinen@nokia.com
+From: Felipe Balbi <felipe.balbi@nokia.com>
+Subject: Re: [PATCH] ARM: OMAP: Add support for dynamic GPIO switch update
+Date: Mon, 15 Dec 2008 15:22:10 +0200
+Message-ID: <20081215132210.GC16316@gandalf.research.nokia.com>
+References: <1229342896-7363-1-git-send-email-ext-jani.1.nikula@nokia.com>
+Reply-To: felipe.balbi@nokia.com
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:37909 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751315AbYLOMzt (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 15 Dec 2008 07:55:49 -0500
-In-Reply-To: <1229328119-23248-1-git-send-email-hvaibhav@ti.com>
+Received: from smtp.nokia.com ([192.100.122.233]:22738 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751406AbYLONWu (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 15 Dec 2008 08:22:50 -0500
+Content-Disposition: inline
+In-Reply-To: <1229342896-7363-1-git-send-email-ext-jani.1.nikula@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: hvaibhav@ti.com
-Cc: linux-omap@vger.kernel.org, linux-fbdev-devel@lists.sourceforge.net, Brijesh Jadav <brijesh.j@ti.com>, Hardik Shah <hardik.shah@ti.com>, Manjunath Hadli <mrh@ti.com>, R Sivaraj <sivaraj@ti.com>
+To: ext Jani Nikula <ext-jani.1.nikula@nokia.com>
+Cc: linux-omap@vger.kernel.org, juha.yrjola@solidboot.com
 
 Hi,
 
-Thanks, applied.
+one comment below
 
- Tomi
+On Mon, Dec 15, 2008 at 02:08:16PM +0200, ext Jani Nikula wrote:
+> +int omap_update_gpio_switch(const struct omap_gpio_switch *cfg)
+> +{
+> +	unsigned long flags;
+> +	struct gpio_switch *sw = find_switch(cfg->gpio, cfg->name);
+> +
+> +	if (!sw)
+> +		return -EINVAL;
+> +
+> +	spin_lock_irqsave(&sw->lock, flags);
+> +	sw->debounce_rising = cfg->debounce_rising;
+> +	sw->debounce_falling = cfg->debounce_falling;
+> +	sw->notify = cfg->notify;
+> +	sw->notify_data = cfg->notify_data;
+> +	spin_unlock_irqrestore(&sw->lock, flags);
+> +
+> +	return 0;
+> +}
+> +EXPORT_SYMBOL(omap_update_gpio_switch);
 
-On Mon, 2008-12-15 at 10:01 +0200, hvaibhav@ti.com wrote:
-> From: Vaibhav Hiremath <hvaibhav@ti.com>
-> 
-> Refreshed and Cleaned up as per the latest Tomi's DSS2
-> code-base -
-> 
-> http://www.bat.org/~tomba/git/linux-omap-dss.git
-> 
-> Tomi,
-> 
-> Can you please merge this patch to your repository, so
-> that it will be available as part of your HEAD?
-> 
-> Signed-off-by: Brijesh Jadav <brijesh.j@ti.com>
-> Signed-off-by: Hardik Shah <hardik.shah@ti.com>
-> Signed-off-by: Manjunath Hadli <mrh@ti.com>
-> Signed-off-by: R Sivaraj <sivaraj@ti.com>
-> Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
-> ---
->  arch/arm/mach-omap2/board-omap3evm.c |   69
-> +++++++++++++---------------------
->  1 files changed, 26 insertions(+), 43 deletions(-)
-> 
-> diff --git a/arch/arm/mach-omap2/board-omap3evm.c
-> b/arch/arm/mach-omap2/board-omap3evm.c
-> index 0a722d7..cf0a6b3 100644
-> --- a/arch/arm/mach-omap2/board-omap3evm.c
-> +++ b/arch/arm/mach-omap2/board-omap3evm.c
-> @@ -36,7 +36,6 @@
->  #include <mach/usb-ehci.h>
->  #include <mach/common.h>
->  #include <mach/mcspi.h>
-> -#include <mach/omapfb.h>
->  #include <mach/display.h>
-> 
->  #include "sdram-micron-mt46h32m32lf-6.h"
-> @@ -161,20 +160,7 @@ static int __init omap3_evm_i2c_init(void)
->         omap_register_i2c_bus(3, 400, NULL, 0);
->         return 0;
->  }
-> -static struct omap_fbmem_config evm_fbmem0_config = {
-> -               .size = 480*720*4,
-> -               .start = OMAPFB_MEMTYPE_SDRAM,
-> -};
-> -
-> -static struct omap_fbmem_config evm_fbmem1_config = {
-> -               .size = 480*720*4,
-> -               .start = OMAPFB_MEMTYPE_SDRAM,
-> -};
-> 
-> -static struct omap_fbmem_config evm_fbmem2_config = {
-> -               .size = 480*720*4,
-> -               .start = OMAPFB_MEMTYPE_SDRAM,
-> -};
->  #define LCD_PANEL_LR           2
->  #define LCD_PANEL_UD           3
->  #define LCD_PANEL_INI          152
-> @@ -195,7 +181,7 @@ static struct omap_fbmem_config evm_fbmem2_config
-> = {
->  static int lcd_enabled;
->  static int dvi_enabled;
-> 
-> -static void __init evm_display_init(void)
-> +static void __init omap3_evm_display_init(void)
->  {
->         int r;
->         r = gpio_request(LCD_PANEL_LR, "lcd_panel_lr");
-> @@ -258,7 +244,7 @@ err_1:
-> 
->  }
-> 
-> -static int evm_panel_enable_lcd(struct omap_display *display)
-> +static int omap3_evm_panel_enable_lcd(struct omap_display *display)
->  {
->         if (dvi_enabled) {
->                 printk(KERN_ERR "cannot enable LCD, DVI is enabled
-> \n");
-> @@ -275,7 +261,7 @@ static int evm_panel_enable_lcd(struct
-> omap_display *display)
->         return 0;
->  }
-> 
-> -static void evm_panel_disable_lcd(struct omap_display *display)
-> +static void omap3_evm_panel_disable_lcd(struct omap_display *display)
->  {
->         if (omap_rev() > OMAP3430_REV_ES1_0) {
->                 twl4030_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER, 0x0,
-> @@ -287,16 +273,16 @@ static void evm_panel_disable_lcd(struct
-> omap_display *display)
->         lcd_enabled = 0;
->  }
-> 
-> -static struct omap_display_data evm_display_data = {
-> +static struct omap_display_data omap3_evm_display_data = {
->         .type = OMAP_DISPLAY_TYPE_DPI,
->         .name = "lcd",
->         .panel_name = "sharp-ls037v7dw01",
->         .u.dpi.data_lines = 18,
-> -       .panel_enable = evm_panel_enable_lcd,
-> -       .panel_disable = evm_panel_disable_lcd,
-> +       .panel_enable = omap3_evm_panel_enable_lcd,
-> +       .panel_disable = omap3_evm_panel_disable_lcd,
->  };
-> 
-> -static int evm_panel_enable_tv(struct omap_display *display)
-> +static int omap3_evm_panel_enable_tv(struct omap_display *display)
->  {
->         twl4030_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER,
->                         ENABLE_VDAC_DEDICATED,
-> TWL4030_VDAC_DEDICATED);
-> @@ -305,7 +291,7 @@ static int evm_panel_enable_tv(struct omap_display
-> *display)
->         return 0;
->  }
-> 
-> -static void evm_panel_disable_tv(struct omap_display *display)
-> +static void omap3_evm_panel_disable_tv(struct omap_display *display)
->  {
->         twl4030_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER, 0x00,
->                         TWL4030_VDAC_DEDICATED);
-> @@ -313,16 +299,16 @@ static void evm_panel_disable_tv(struct
-> omap_display *display)
->                         TWL4030_VDAC_DEV_GRP);
->  }
-> 
-> -static struct omap_display_data evm_display_data_tv = {
-> +static struct omap_display_data omap3_evm_display_data_tv = {
->         .type = OMAP_DISPLAY_TYPE_VENC,
->         .name = "tv",
->         .u.venc.type = OMAP_DSS_VENC_TYPE_SVIDEO,
-> -       .panel_enable = evm_panel_enable_tv,
-> -       .panel_disable = evm_panel_disable_tv,
-> +       .panel_enable = omap3_evm_panel_enable_tv,
-> +       .panel_disable = omap3_evm_panel_disable_tv,
->  };
-> 
-> 
-> -static int evm_panel_enable_dvi(struct omap_display *display)
-> +static int omap3_evm_panel_enable_dvi(struct omap_display *display)
->  {
->         if (lcd_enabled) {
->                 printk(KERN_ERR "cannot enable DVI, LCD is enabled
-> \n");
-> @@ -337,7 +323,7 @@ static int evm_panel_enable_dvi(struct
-> omap_display *display)
->         return 0;
->  }
-> 
-> -static void evm_panel_disable_dvi(struct omap_display *display)
-> +static void omap3_evm_panel_disable_dvi(struct omap_display *display)
->  {
->         twl4030_i2c_write_u8(TWL4030_MODULE_GPIO, 0x00,
->                         TWL4030_GPIODATA_IN3);
-> @@ -347,28 +333,28 @@ static void evm_panel_disable_dvi(struct
-> omap_display *display)
->  }
-> 
-> 
-> -static struct omap_display_data evm_display_data_dvi = {
-> +static struct omap_display_data omap3_evm_display_data_dvi = {
->         .type = OMAP_DISPLAY_TYPE_DPI,
->         .name = "dvi",
->         .panel_name = "panel-dvi",
->         .u.dpi.data_lines = 24,
-> -       .panel_enable = evm_panel_enable_dvi,
-> -       .panel_disable = evm_panel_disable_dvi,
-> +       .panel_enable = omap3_evm_panel_enable_dvi,
-> +       .panel_disable = omap3_evm_panel_disable_dvi,
->  };
-> 
-> -static struct omap_dss_platform_data evm_dss_data = {
-> +static struct omap_dss_platform_data omap3_evm_dss_data = {
->         .num_displays = 3,
->         .displays = {
-> -               &evm_display_data,
-> -               &evm_display_data_dvi,
-> -               &evm_display_data_tv,
-> +               &omap3_evm_display_data,
-> +               &omap3_evm_display_data_dvi,
-> +               &omap3_evm_display_data_tv,
->         }
->  };
-> -static struct platform_device evm_dss_device = {
-> +static struct platform_device omap3_evm_dss_device = {
->         .name           = "omap-dss",
->         .id             = -1,
->         .dev            = {
-> -               .platform_data = &evm_dss_data,
-> +               .platform_data = &omap3_evm_dss_data,
->         },
->  };
-> 
-> @@ -428,13 +414,10 @@ static void __init omap3_evm_init_irq(void)
-> 
->  static struct omap_board_config_kernel omap3_evm_config[] __initdata
-> = {
->         { OMAP_TAG_UART,        &omap3_evm_uart_config },
-> -       { OMAP_TAG_FBMEM,       &evm_fbmem0_config },
-> -       { OMAP_TAG_FBMEM,       &evm_fbmem1_config },
-> -       { OMAP_TAG_FBMEM,       &evm_fbmem2_config },
->  };
-> 
->  static struct platform_device *omap3_evm_devices[] __initdata = {
-> -       &evm_dss_device,
-> +       &omap3_evm_dss_device,
->         &omap3evm_smc911x_device,
->  };
-> 
-> @@ -453,6 +436,8 @@ static void __init omap3_evm_init(void)
->         omap3_evm_i2c_init();
-> 
->         platform_add_devices(omap3_evm_devices,
-> ARRAY_SIZE(omap3_evm_devices));
-> +       omap_board_config = omap3_evm_config;
-> +       omap_board_config_size = ARRAY_SIZE(omap3_evm_config);
-> 
->         spi_register_board_info(omap3evm_spi_board_info,
->                                 ARRAY_SIZE(omap3evm_spi_board_info));
-> @@ -463,13 +448,11 @@ static void __init omap3_evm_init(void)
->         usb_ehci_init();
->         omap3evm_flash_init();
->         ads7846_dev_init();
-> -       evm_display_init();
-> +       omap3_evm_display_init();
->  }
-> 
->  static void __init omap3_evm_map_io(void)
->  {
-> -       omap_board_config = omap3_evm_config;
-> -       omap_board_config_size = ARRAY_SIZE(omap3_evm_config);
->         omap2_set_globals_343x();
->         omap2_map_common_io();
->  }
-> --
-> 1.5.6
-> 
-> 
-> 
+how about you only change what's not null ?? then you could only change
+the notify callback and keep the same debounce_rising/falling ??
 
+-- 
+balbi
