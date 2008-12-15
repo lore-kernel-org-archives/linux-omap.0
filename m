@@ -1,190 +1,197 @@
 From: "Pillai, Manikandan" <mani.pillai@ti.com>
 Subject: RE: [PATCH 1/2] TPS6235x driver added into the power regulator
  framework
-Date: Mon, 15 Dec 2008 10:13:27 +0530
-Message-ID: <19F8576C6E063C45BE387C64729E739403ECC737F8@dbde02.ent.ti.com>
+Date: Mon, 15 Dec 2008 10:17:08 +0530
+Message-ID: <19F8576C6E063C45BE387C64729E739403ECC73815@dbde02.ent.ti.com>
 References: <1228730882-22328-1-git-send-email-mani.pillai@ti.com>
- <20081208122240.GG5159@sirena.org.uk>
+ <200812080533.46042.david-b@pacbell.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:34420 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751979AbYLOEnt convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 14 Dec 2008 23:43:49 -0500
-In-Reply-To: <20081208122240.GG5159@sirena.org.uk>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:38165 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751984AbYLOErb convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 14 Dec 2008 23:47:31 -0500
+In-Reply-To: <200812080533.46042.david-b@pacbell.net>
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Mark Brown <broonie@sirena.org.uk>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: David Brownell <david-b@pacbell.net>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Mark Brown <broonie@sirena.org.uk>
 
 Hi,
 
-Thanks for your comments.Pls find my responses inlined.
+Pls find my comments inlined.
+
+Regards
+
 
 -----Original Message-----
-From: Mark Brown [mailto:broonie@sirena.org.uk] 
-Sent: Monday, December 08, 2008 5:53 PM
+=46rom: David Brownell [mailto:david-b@pacbell.net]=20
+Sent: Monday, December 08, 2008 7:04 PM
 To: Pillai, Manikandan
-Cc: linux-omap@vger.kernel.org
-Subject: Re: [PATCH 1/2] TPS6235x driver added into the power regulator framework
+Cc: linux-omap@vger.kernel.org; Mark Brown
+Subject: Re: [PATCH 1/2] TPS6235x driver added into the power regulator=
+ framework
 
-On Mon, Dec 08, 2008 at 03:38:02PM +0530, Manikandan Pillai wrote:
-> Resending this patch after fixing comments received.
-> CONFIG_OMAP3EVM_PR785 has been moved to arch/arm/mach-omap2/Kconfig
-> MUX patch has been separated and sent out separately
-> regulator/core.c changes have been separated and send out earlier
-> Platform driver has been removed
-> Renamed supplies to vdd1 and vdd2
-> regulator_get_drvdata() is being used to get driver data
-
-This really needs to be split up further into a patch series still.  The
-new regulator driver should be added separately to the board stuff at
-least, and any MFD patch should go in separately.
-[Pillai, Manikandan] OK
-
->  static int __init omap3_evm_i2c_init(void)
->  {
-> +#if defined(CONFIG_OMAP3EVM_PR785)
-> +	omap_register_i2c_bus(1, 2600, tps_6235x_i2c_board_info,
-> +		ARRAY_SIZE(tps_6235x_i2c_board_info));
-> +#endif
-> +#if defined(CONFIG_TWL4030_CORE)
->  	omap_register_i2c_bus(1, 2600, omap3evm_i2c_boardinfo,
->  			ARRAY_SIZE(omap3evm_i2c_boardinfo));
-> +#endif
-
-Hrm.  If the relevant chips have ID registers it's probably possible to
-detect which is present at run time in which case there should be one
-set of board info.  If they don't and the code needs to be exclusive it
-might be better to express that here.
-
-[Pillai, Manikandan] It's not possible to have a runtime check for this board
-I can put in a comment here to make it clearer.
-
-> diff --git a/drivers/mfd/Kconfig b/drivers/mfd/Kconfig
-> index 650b51c..ff5fbd5 100644
-> --- a/drivers/mfd/Kconfig
-> +++ b/drivers/mfd/Kconfig
-> @@ -61,20 +61,6 @@ config UCB1400_CORE
->  	  To compile this driver as a module, choose M here: the
->  	  module will be called ucb1400_core.
->  
-> -config TWL4030_CORE
-> -	bool "Texas Instruments TWL4030/TPS659x0 Support"
-> -	depends on I2C=y && GENERIC_HARDIRQS
-> -	help
-> -	  Say yes here if you have TWL4030 family chip on your board.
-> -	  This core driver provides register access and IRQ handling
-> -	  facilities, and registers devices for the various functions
-> -	  so that function-specific drivers can bind to them.
-> -
-> -	  These multi-function chips are found on many OMAP2 and OMAP3
-> -	  boards, providing power management, RTC, GPIO, keypad, a
-> -	  high speed USB OTG transceiver, an audio codec (on most
-> -	  versions) and many other features.
-> -
-
-This should be left here - there's nothing specific to the board about
-this configuration at all.
-[Pillai, Manikandan] This was one of the comments from Dave to move it
-To arch/arm/mach-omap2. The intention was that two power boards options
- can be provided for the OMAP3 board. Pls let me know if I have to have
-the PR785 option for power where should I adding it in the Kconfig hierarchy
-
-> +config REGULATOR_TPS6235X
-> +	bool "TPS6235X Power regulator for OMAP3EVM"
-> +	depends on I2C=y
-> +	help
-> +	  This driver supports the voltage regulators provided by TPS6235x chips.
-> +	  The TPS62352 and TPS62353 are mounted on PR785 Power module card for
-> +	  providing voltage regulator functions.
-> +
-
-The description should probably mention the manufacturer of the PR785
-card to help people find it if they need to.
-[Pillai, Manikandan] The board has Texas Instruments marked on it. I will put
-This information out.
-
-> --- /dev/null
+On Monday 08 December 2008, Manikandan Pillai wrote:
 > +++ b/drivers/regulator/tps6235x-regulator.c
+> @@ -0,0 +1,557 @@
+> +/*
+> + * tps6235x-regulator.c -- support regulators in tps6235x family chi=
+ps
+> + *
+> + * Copyright (C) 2008 David Brownell
+> + * Author : Manikandan Pillai<mani.pillai@ti.com>
+> + *
 
-> +/* Maximum number of bytes to be read in a single read */
-> +#define PR785_RETRY_COUNT       0x3
-
-As mentioned last time the name and comment don't seem to correspond to
-each other.
-[Pillai, Manikandan] OK
-
-> +#ifndef REGULATOR_MODE_OFF
-> +#define REGULATOR_MODE_OFF 0
-> +#endif
-
-Remove this; you're not using it anyway.
-[Pillai, Manikandan] OK
-
-> +/* Device addresses for PR785 card */
-> +#define	PR785_62352_CORE_ADDR	0x4A
-> +#define	PR785_62353_MPU_ADDR	0x48
-
-This and all the other PR785 support shouldn't be in this driver, it
-should be in a separate PR785 driver or the board driver.
-[Pillai, Manikandan] OK I will put the PR785 driver as a board driver in
-The arch/arm/mach-omap2/board-omap3evm.c or should I put it as a separate 
-File. I would prefer a separate file.
-
-> +EXPORT_SYMBOL(pr785_enbl_dcdc);
-
-I'm not sure why this (and the other functions) are being exported?
-[Pillai, Manikandan] OK
-
-> +static int tps6235x_dcdc_is_enabled(struct regulator_dev *dev)
-> +{
-> +	struct  tps_6235x_info *tps_info =
-> +		(struct tps_6235x_info *)rdev_get_drvdata(dev);
-> +	return tps_info->state;
-> +}
-
-Uneeded cast (and similarly for all the other functions).
+No, not copyright by me.  I didn't write this.  Take my
+name off of your code.
 
 [Pillai, Manikandan] OK
 
+Note that your patch [2/2] should have been merged with the
+relevant parts of this patch ... which, as Mark noted,
+is all over the map and needs to partitioned according
+to structure.
+[Pillai, Manikandan] OK will merge it
 
-> +/* CORE voltage regulator */
-> +static struct regulator_consumer_supply tps62352_core_consumers = {
-> +	.supply = "vdd2",
+A patch supporting *JUST* the regulator will seemingly
+touch drivers/regulator/{Kconfig,Makefile} and create
+a new drivers/regulator/tps6235x-regulator.c file; that
+would be a good first patch for your set.
+[Pillai, Manikandan]  OK=20
+
+
+I suggest your Kconfig not mention the PR785 card; there
+are surely plenty of other products using these chips and
+there's no way you can (or should!) mention them all.  If
+you're tempted to have pr785-specific logic in the
+generic regulator code, think again:  that's a sign you
+are not actually writing generic, reusable code.  And
+for something as *SIMPLE* as the $SUBJECT family of
+regulators, there's no reason to write anything except
+fully reusable code which implements the regulator API.
+
+[Pillai, Manikandan] I can removed the PR785 mention from
+Drivers/regulator dirs. I believe the PR785 option should=20
+Be selected in arch/arm/mach-omap2/Kconfig along with TWL-4030
+Core. Pls let me know your suggestions on this one.
+
+(With one key exception.  Floor/ceiling support for
+dynamic voltage switching is not part of that API.
+I suggest you treat the regulator calls as applying
+to the ceiling, with "floor" support as an extension.)
+
+[Pillai, Manikandan] Not clear on this comment
+
+> +struct tps_6235x_info {
+> +=A0=A0=A0=A0=A0=A0=A0unsigned int=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=
+state;
+> +=A0=A0=A0=A0=A0=A0=A0unsigned int=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=
+tps_i2c_addr;
+> +=A0=A0=A0=A0=A0=A0=A0struct i2c_client=A0=A0=A0=A0=A0=A0=A0*client;
+> +=A0=A0=A0=A0=A0=A0=A0struct device=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0*=
+i2c_dev;
+> +=A0=A0=A0=A0=A0=A0=A0/* platform data holder */
+> +=A0=A0=A0=A0=A0=A0=A0void=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=
+=A0=A0=A0=A0=A0*pdata;
 > +};
+> +
+> +static struct tps_6235x_info =A0 =A0tps_6235x_infodata[2];
 
-> +/* MPU voltage regulator */
-> +static struct regulator_consumer_supply tps62352_mpu_consumers = {
-> +	.supply = "vdd1",
-> +};
+I'm not following this. =20
 
-This is a machine driver and should be split out from the driver for teh
-chips - normally I'd expect this stuff under arch/arm.
+ - The tps_info should be accessed by i2c_get_clientdata(),
+   and initialized by i2c_set_clientdata().  It's instance
+   specific data, and that's how to manage such data.
+
+ - tps_i2c_addr is completely un-needed; client->addr is
+   the same thing.
+
+ - ditto i2c_dev; &client->dev is the same thing.
+
+ - and pdata is client->dev.platform_data.
+
+Plus there's no reason to limit the system to two of
+these regulators ... get rid of that global.
+
+
+And you should remove all the pr785-specific code
+from the regulator driver.  That includes the vdd1
+and vdd2 consumers -- none of that belongs as part
+of a generic regulator driver.  Needing to have those
+board-specific constraints should have been a Sign...
 
 [Pillai, Manikandan] OK
 
 
-> @@ -97,12 +99,14 @@ static unsigned long omap3evm_panel_get_caps(struct lcd_panel *panel)
->  static int omap3evm_bklight_setlevel(struct lcd_panel *panel,
->  						unsigned int level)
->  {
-> +#if defined(CONFIG_TWL4030_CORE)
->  	u8 c;
->  	if ((level >= 0) && (level <= 100)) {
->  		c = (125 * (100 - level)) / 100 + 2;
->  		twl4030_i2c_write_u8(TWL4030_MODULE_PWMA, c, TWL_PWMA_PWMAOFF);
->  		bklight_level = level;
->  	}
-> +#endif
->  	return 0;
->  }
+> +
+> +static
+> +int tps_6235x_probe(struct i2c_client *client, const struct i2c_devi=
+ce_id
+> *id) +{
+> +=A0=A0=A0=A0=A0=A0=A0struct =A0tps_6235x_info =A0 =A0 =A0 =A0 =A0*in=
+fo;
+> +=A0=A0=A0=A0=A0=A0=A0struct =A0regulator_dev =A0 =A0 =A0 =A0 =A0 *rd=
+ev =3D NULL;
+> +=A0=A0=A0=A0=A0=A0=A0unsigned char reg_val;
+> +
+> +=A0=A0=A0=A0=A0=A0=A0printk(KERN_INFO "tps_6235x_probe:i2c_addr =3D =
+%x\n", (int)client->addr);
 
-This isn't ideal - it reports that it's succesfully updated the
-backlight even if it can't.
+That's a debug message.  Use dev_dbg(); and plan to remove that
+one before this merges.
 
-[Pillai, Manikandan] This will be fixed with the BKLIGHT patch for OMAP3 EVM
-which is controlled by a GPIO and is among a series of planned patches for EVM
+[Pillai, Manikandan] OK
+
+
+> +=20
+> +=A0=A0=A0=A0=A0=A0=A0info =3D &tps_6235x_infodata[id->driver_data];
+> +=A0=A0=A0=A0=A0=A0=A0/* Device probed is TPS62352 CORE pwr chip if d=
+river_data =A0=3D 0
+> +=A0=A0=A0=A0=A0=A0=A0Device probed is TPS62353 MPU pwr chip if drive=
+r_data =3D 1 =A0 */
+
+It would be a lot easier to just have initted driver_data to
+point to the "info" you wanted.
+[Pillai, Manikandan] OK
+
+But you're also mis-understanding some things here.
+
+The id->driver_data should be *generic* data ... as in,
+if you had three '52 chips (maybe on different busses),
+they'd all have the same driver_data, stuff holding true
+for every instance of one of those chips.  Regulator
+ops vectors; maybe some tables they use, which help
+interpret register bitfields.  Read-only goodies.
+
+If you want instance-specific data, there are two
+flavors of that.  One is from client->dev.platform_data,
+full of board-specific state you treat as read-only.
+
+The other is stuff that you collect over time; an
+example might be statistics.  Call this "mutable state".
+The convention is that probe() will kzalloc() a
+struct holding "mutable state", then stuff that
+with goodies.  Like maybe the i2c_client, so it's
+always available; stuff from id->driver_data, so
+chip parameters don't get forgotten; and whatever
+else you need.
+
+You're turning the generic/"type description"
+data into per-instance mutable state, and then
+limiting this to two instances total!
+
+[Pillai, Manikandan] OK
+
+- Dave
+
+
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
