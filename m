@@ -1,113 +1,39 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [patch 2.6.28-rc6-omap-git] twl4030 usb regulator support
-	tweaks
-Date: Mon, 15 Dec 2008 11:31:48 -0800
-Message-ID: <20081215193148.GH10664@atomide.com>
-References: <200812011324.21516.david-b@pacbell.net>
+From: Felipe Balbi <me@felipebalbi.com>
+Subject: Re: [PATCH v2] MUSB: fix wrongly created sysfs entry
+Date: Mon, 15 Dec 2008 21:51:36 +0200
+Message-ID: <20081215195136.GM23324@frodo>
+References: <1229356837.22285.239.camel@violet> <1229357553.12163.55.camel@localhost.localdomain> <20081215162505.4b11c9be@lxorguk.ukuu.org.uk> <1229359592.12163.80.camel@localhost.localdomain> <20081215171611.0b3877d5@lxorguk.ukuu.org.uk> <1229362427.12163.94.camel@localhost.localdomain> <1229363671.12163.109.camel@localhost.localdomain> <20081215180740.02ef1667@lxorguk.ukuu.org.uk> <FCCFB4CDC6E5564B9182F639FC356087025127B95B@dbde02.ent.ti.com> <FCCFB4CDC6E5564B9182F639FC356087025127B95C@dbde02.ent.ti.com>
+Reply-To: me@felipebalbi.com
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-bos.mailhop.org ([63.208.196.178]:64556 "EHLO
-	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751442AbYLOTbw (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 15 Dec 2008 14:31:52 -0500
+Received: from ns1.siteground211.com ([209.62.36.12]:38220 "EHLO
+	serv01.siteground211.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752440AbYLOTvn (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 15 Dec 2008 14:51:43 -0500
 Content-Disposition: inline
-In-Reply-To: <200812011324.21516.david-b@pacbell.net>
+In-Reply-To: <FCCFB4CDC6E5564B9182F639FC356087025127B95C@dbde02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: David Brownell <david-b@pacbell.net>
-Cc: linux-omap@vger.kernel.org
+To: "Pandita, Vikram" <vikram.pandita@ti.com>
+Cc: "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>
 
-* David Brownell <david-b@pacbell.net> [081201 13:55]:
-> From: David Brownell <dbrownell@users.sourceforge.net>
+On Tue, Dec 16, 2008 at 12:53:47AM +0530, Pandita, Vikram wrote:
+> From: Vikram Pandita <vikram.pandita@ti.com>
 > 
-> This contains two bugfixes to the initial twl4030 regulator
-> support patch related to USB:
+> attr_srp is created wrongly for GADGET only mode of MUSB
+> The attribute is related to OTG mode only
 > 
->  (a) always overwrite the old list of consumers ... else
->      the regulators all share the same "usb1v5" name;
->  (b) don't set up the "usbcp" regulator, which turns out
->      to be managed through separate controls, usually ULPI
->      directly from the OTG controller.
+> For Gadget mode, this attribute gets created on insmod but does
+> not get deleted. Fixing the bug.
 > 
-> Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
-> ---
-> NOTE:  the version of this patch going to mainline doesn't
-> include the twl4030-regulator.c fragment, since that driver
-> has not yet gone to mainline.
+> Signed-off-by: Vikram Pandita <vikram.pandita@ti.com>
 
-Pushing this to l-o tree today.
+NAK, any gadget is allowed to initiate SRP.
+See otg rev1.3 page 20:
 
-Tony
+"Any B-device, including a standard USB peripheral, is allowed to
+initiate SRP"
 
-> 
->  drivers/mfd/twl4030-core.c            |   11 +----------
->  drivers/regulator/twl4030-regulator.c |    2 +-
->  include/linux/i2c/twl4030.h           |    1 -
->  3 files changed, 2 insertions(+), 12 deletions(-)
-> 
-> --- a/drivers/mfd/twl4030-core.c
-> +++ b/drivers/mfd/twl4030-core.c
-> @@ -441,7 +441,7 @@ add_regulator_linked(int num, struct reg
->  	if (!pdata)
->  		return NULL;
->  
-> -	if (consumers && !pdata->consumer_supplies) {
-> +	if (consumers) {
->  		pdata->consumer_supplies = consumers;
->  		pdata->num_consumer_supplies = num_consumers;
->  	}
-> @@ -564,9 +564,6 @@ add_children(struct twl4030_platform_dat
->  		static struct regulator_consumer_supply usb3v1 = {
->  			.supply =	"usb3v1",
->  		};
-> -		static struct regulator_consumer_supply usbcp = {
-> -			.supply =	"usbcp",
-> -		};
->  
->  		/* this is a template that gets copied */
->  		struct regulator_init_data usb_fixed = {
-> @@ -581,7 +578,6 @@ add_children(struct twl4030_platform_dat
->  		usb1v5.dev = usb_transceiver;
->  		usb1v8.dev = usb_transceiver;
->  		usb3v1.dev = usb_transceiver;
-> -		usbcp.dev = usb_transceiver;
->  
->  		child = add_regulator_linked(TWL4030_REG_VUSB1V5, &usb_fixed,
->  				&usb1v5, 1);
-> @@ -597,11 +593,6 @@ add_children(struct twl4030_platform_dat
->  				&usb3v1, 1);
->  		if (IS_ERR(child))
->  			return PTR_ERR(child);
-> -
-> -		child = add_regulator_linked(TWL4030_REG_VUSBCP, &usb_fixed,
-> -				&usbcp, 1);
-> -		if (IS_ERR(child))
-> -			return PTR_ERR(child);
->  	}
->  
->  	/* maybe add LDOs that are omitted on cost-reduced parts */
-> --- a/drivers/regulator/twl4030-regulator.c
-> +++ b/drivers/regulator/twl4030-regulator.c
-> @@ -391,7 +391,7 @@ static struct twlreg_info twl4030_regs[]
->  	TWL_FIXED_LDO(VUSB1V5, 0x71, 1500, 17),
->  	TWL_FIXED_LDO(VUSB1V8, 0x74, 1800, 18),
->  	TWL_FIXED_LDO(VUSB3V1, 0x77, 3100, 19),
-> -	TWL_FIXED_LDO(VUSBCP, 0x7a, 4800, 21),
-> +	/* VUSBCP is managed *only* by the USB subchip */
->  };
->  
->  static int twl4030reg_probe(struct platform_device *pdev)
-> --- a/include/linux/i2c/twl4030.h
-> +++ b/include/linux/i2c/twl4030.h
-> @@ -417,6 +417,5 @@ int twl4030_sih_setup(int module);
->  #define TWL4030_REG_VUSB1V5	17
->  #define TWL4030_REG_VUSB1V8	18
->  #define TWL4030_REG_VUSB3V1	19
-> -#define TWL4030_REG_VUSBCP	20
->  
->  #endif /* End of __TWL4030_H */
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-- 
+balbi
