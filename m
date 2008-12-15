@@ -1,66 +1,51 @@
-From: Juha =?iso-8859-1?B?WXJq9mzk?= <juha.yrjola@solidboot.com>
-Subject: Re: [PATCH] ARM: OMAP: Add support for dynamic GPIO switch update
-Date: Mon, 15 Dec 2008 17:29:20 +0200
-Message-ID: <20081215152920.GA11007@mail.solidboot.com>
-References: <1229342896-7363-1-git-send-email-ext-jani.1.nikula@nokia.com> <20081215134010.GA10709@mail.solidboot.com> <1229352752.5895.325.camel@jani-desktop>
+From: "Jason Marini" <jason.marini@gmail.com>
+Subject: Re: McBSP register question
+Date: Mon, 15 Dec 2008 10:38:00 -0500
+Message-ID: <423644ca0812150738j6f506cf7gf687eb50a7b6e33c@mail.gmail.com>
+References: <423644ca0812121021k63a81930nb805b8ab7b5a6d84@mail.gmail.com>
+	 <057c01c95e5e$33f76d80$LocalHost@wipultra806>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from solidboot.com ([92.48.122.80]:50089 "EHLO rei.solidboot.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751280AbYLOP3V (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 15 Dec 2008 10:29:21 -0500
+Received: from rv-out-0506.google.com ([209.85.198.229]:55048 "EHLO
+	rv-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752269AbYLOPiB (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 15 Dec 2008 10:38:01 -0500
+Received: by rv-out-0506.google.com with SMTP id k40so2545525rvb.1
+        for <linux-omap@vger.kernel.org>; Mon, 15 Dec 2008 07:38:00 -0800 (PST)
+In-Reply-To: <057c01c95e5e$33f76d80$LocalHost@wipultra806>
 Content-Disposition: inline
-In-Reply-To: <1229352752.5895.325.camel@jani-desktop>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Jani Nikula <ext-jani.1.nikula@nokia.com>
-Cc: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
 
-On Mon, Dec 15, 2008 at 04:52:32PM +0200, Jani Nikula wrote:
-
-> > Why do they need to be changed? GPIO switches related to the board schematics,
-> > which do not hopefully change dynamically.
-> 
-> The switches themselves don't change (nor does this patch support
-> changing them), but different kinds of external devices may be connected
-> to the GPIO swiches. It would be useful to be able to change the
-> notification callbacks and debounce timeouts according to the device.
-
-Could you give an example use-case? If the gpio-switch framework starts
-getting extended and used more, it might be sensible to convert it to
-the general GPIO API, as Trilok suggested.
-
-> Umm, I suppose I was more worried that the write might not be an atomic
-> operation, messing up the read as well. But I'll take your word for it
-> if you say the write is okay. :)
-
-Integer reads/writes are atomic, unless the system has some serious cache
-coherency issues. And in that case, spinlocks won't save you either -- only
-the HW engineers can. =)
-
-> > What if omap_update_gpio_switch() is called just before the check for
-> > notify != NULL from another (hypothetical =)) CPU? Then you end up with the
-> > function completing, but still having the old notify callback called with
-> > old notify_data.
+On Sun, Dec 14, 2008 at 9:38 PM, shekhar, chandra <x0044955@ti.com> wrote:
+> ----- Original Message ----- From: "Jason Marini" <jason.marini@gmail.com>
+> To: <linux-omap@vger.kernel.org>
+> Sent: Friday, December 12, 2008 11:51 PM
+> Subject: McBSP register question
 >
-> I was, of course, making sure a NULL pointer is not called and there's
-> no mismatch between old/new notify/notify_data. Your scenario might
-> theoretically actually occur on a single processor system as well, don't
-> you think? 
+>
+>> Looking at the latest git head, I see that omap_mcbsp_pollwrite() and
+>> omap_mcbsp_pollread() improperly use readw() and writew() instead of
+>> OMAP_MCBSP_READ() and OMAP_MCBSP_WRITE() in the file
+>> arch/arm/plat-omap/mcbsp.c.
+>>
+>> But while I was editing this file, I also saw writes to
+>> OMAP_MCBSP_REG_DXR1, which is #define'd for ARCH_OMAP_34XX and
+>> ARCH_OMAP_24XX to be at an offset of 0x0C.  The McBSP section of the
+>> TRM for the OMAP34xx has no mention of any registers existing at this
+>> offset.
+>>
+>> Why is this DXR1 and not just DXR?
+>
+> It so happens that McBSP on 2420 has DXR1 and DXR2 registers, but not on
+> omap2430/34xx.
+> To provide multi-omap suport and avoid ifdefs dxr1/2 and drr1/2 has been
+> retained along with dxr and drr  (same code mach-omap2/mcbsp.c supports
+> 2420.) .
 
-Ah, yes. I was under the impression that gpio_sw_handler() was called from
-IRQ context, but since it's a work handler, the function certainly can be
-preempted.
+I suspected as much - thank you for the response.
 
-> But is it actually a problem or not? And if yes, do you have any
-> suggestions as to handling the case? If there's no need to lock for
-> reading the debounce timeouts in gpio_sw_irq_handler() as you say above,
-> do you think I could switch to a mutex and call notify callback holding
-> that?
-
-Especially in the case of frameworks, it's good to make things as correct
-as possible. A mutex is safe.
-
-Cheers,
-Juha
+-Jason
