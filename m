@@ -1,35 +1,64 @@
-From: Kevin Hilman <khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org>
-Subject: [PATCH] USB: OTG: twl4030 build fix
-Date: Mon, 15 Dec 2008 16:00:03 -0800
-Message-ID: <1229385603-27035-1-git-send-email-khilman@deeprootsystems.com>
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Kevin Hilman <khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org>
+From: green <greenfreedom10@gmail.com>
+Subject: Re: N810 suspend
+Date: Mon, 15 Dec 2008 16:51:16 -0700
+Message-ID: <20081215235116.GC25056@swansys>
+References: <20081215210823.GD5334@swansys> <20081215211430.GJ10664@atomide.com> <87prjt9jwy.fsf@deeprootsystems.com>
+Mime-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="YToU2i3Vx8H2dn7O"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-qy0-f11.google.com ([209.85.221.11]:37046 "EHLO
+	mail-qy0-f11.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753775AbYLPAGF (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 15 Dec 2008 19:06:05 -0500
+Received: by qyk4 with SMTP id 4so2920449qyk.13
+        for <linux-omap@vger.kernel.org>; Mon, 15 Dec 2008 16:06:02 -0800 (PST)
+Content-Disposition: inline
+In-Reply-To: <87prjt9jwy.fsf@deeprootsystems.com>
+Content-Language: en
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Linux-OMAP List <linux-omap@vger.kernel.org>
 
-Signed-off-by: Kevin Hilman <khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org>
----
- drivers/usb/otg/twl4030-usb.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
 
-diff --git a/drivers/usb/otg/twl4030-usb.c b/drivers/usb/otg/twl4030-usb.c
-index a000fb3..416e441 100644
---- a/drivers/usb/otg/twl4030-usb.c
-+++ b/drivers/usb/otg/twl4030-usb.c
-@@ -696,7 +696,7 @@ static int __exit twl4030_usb_remove(struct platform_device *pdev)
- 
- static struct platform_driver twl4030_usb_driver = {
- 	.probe		= twl4030_usb_probe,
--	.remove		= __exit_p(twl4030_remove),
-+	.remove		= __exit_p(twl4030_usb_remove),
- 	.driver		= {
- 		.name	= "twl4030_usb",
- 		.owner	= THIS_MODULE,
--- 
-1.6.0.3
+--YToU2i3Vx8H2dn7O
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+On Mon, 2008.12.15, 350, Kevin Hilman wrote:
+> Tony Lindgren <tony@atomide.com> writes:
+> > * green <greenfreedom10@gmail.com> [081215 13:08]:
+> >> What are the chances of getting suspend (resume from) working on the N=
+810?  Are=20
+> >> there any patches or branches around that I can test (I'm slowly learn=
+ing how=20
+> >> to use git)?
+> >
+> > Well you need to make sure the serial clocks are not enabled. Kevin
+> > has some patches for that in his pm branch. So you'll most likely want
+> > to use his whole pm branch.
+>=20
+> Suspend/resume on n810 is currently broken in linux-omap.  I submitted
+> a patch a week or so ago to fix an assembly bug which was crashing the
+> suspend, but it is still not resuming.
+>=20
+> Most likely a simple fix needed to init the proper wakeup sources, but
+> I haven't tested further.
+
+I'll be looking for any progress ;) and will test it when I can.
+
+--YToU2i3Vx8H2dn7O
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.9 (GNU/Linux)
+
+iEYEARECAAYFAklG7XQACgkQ682C+dBP+oQesQCghzdw4mk6CKfiUtk1ZL6Wc7iC
+C0oAoOk/NUhgEodAvqJr0YolucsxQNEw
+=PswR
+-----END PGP SIGNATURE-----
+
+--YToU2i3Vx8H2dn7O--
