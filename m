@@ -1,18 +1,18 @@
 From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH] PM OMAP3: Change omap3_save_secure_ram to be called only during init
-Date: Mon, 15 Dec 2008 14:19:41 -0800
-Message-ID: <87k5a19j42.fsf@deeprootsystems.com>
-References: <1229073605-24235-1-git-send-email-tero.kristo@nokia.com>
+Subject: Re: [PATCH] OMAP3: PM: MPU and CORE should stay awake if there is CAM domain ACTIVE
+Date: Mon, 15 Dec 2008 14:22:36 -0800
+Message-ID: <87fxkp9iz7.fsf@deeprootsystems.com>
+References: <1229006817-3096-1-git-send-email-tero.kristo@nokia.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-gx0-f12.google.com ([209.85.217.12]:64612 "EHLO
-	mail-gx0-f12.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750802AbYLOWTy (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 15 Dec 2008 17:19:54 -0500
-Received: by gxk5 with SMTP id 5so2144209gxk.13
-        for <linux-omap@vger.kernel.org>; Mon, 15 Dec 2008 14:19:52 -0800 (PST)
-In-Reply-To: <1229073605-24235-1-git-send-email-tero.kristo@nokia.com> (Tero Kristo's message of "Fri\, 12 Dec 2008 11\:20\:05 +0200")
+Received: from rn-out-0910.google.com ([64.233.170.188]:33082 "EHLO
+	rn-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751499AbYLOWWl (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 15 Dec 2008 17:22:41 -0500
+Received: by rn-out-0910.google.com with SMTP id k40so2347559rnd.17
+        for <linux-omap@vger.kernel.org>; Mon, 15 Dec 2008 14:22:40 -0800 (PST)
+In-Reply-To: <1229006817-3096-1-git-send-email-tero.kristo@nokia.com> (Tero Kristo's message of "Thu\, 11 Dec 2008 16\:46\:57 +0200")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Tero Kristo <tero.kristo@nokia.com>
@@ -20,65 +20,61 @@ Cc: linux-omap@vger.kernel.org
 
 Tero Kristo <tero.kristo@nokia.com> writes:
 
-> This function is now called only once during the initialization of the device
-> and consequent sleep cycles will re-use the same saved contents for secure
-> RAM. Users who need secure services should do secure RAM saving before
-> entering off-mode, if a secure service has been accessed after last save.
+> MPU and CORE should stay awake if there is CAM domain ACTIVE. This is
+> because that module doesn't have wake-up capability.
 >
+> This should replace the patch that is currently in the PM branch.
+>
+> Signed-off-by: Jouni Hogander <jouni.hogander@nokia.com>
 > Signed-off-by: Tero Kristo <tero.kristo@nokia.com>
 
-Thanks, applied to PM branch.
+Thanks, applied to PM branch after reverting previous buggy version.
 
 Kevin
 
 > ---
->  arch/arm/mach-omap2/pm34xx.c |   19 ++++++++++++++++++-
->  1 files changed, 18 insertions(+), 1 deletions(-)
+>  arch/arm/mach-omap2/pm34xx.c |    7 +++++++
+>  1 files changed, 7 insertions(+), 0 deletions(-)
 >
 > diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
-> index 4223622..b8cf5f2 100644
+> index bc2d4bc..2eafb55 100644
 > --- a/arch/arm/mach-omap2/pm34xx.c
 > +++ b/arch/arm/mach-omap2/pm34xx.c
-> @@ -127,6 +127,12 @@ static void omap3_core_restore_context(void)
->  	omap_dma_global_context_restore();
->  }
+> @@ -83,6 +83,7 @@ static void (*saved_idle)(void);
 >  
-> +/*
-> + * FIXME: This function should be called before entering off-mode after
-> + * OMAP3 secure services have been accessed. Currently it is only called
-> + * once during boot sequence, but this works as we are not using secure
-> + * services.
-> + */
->  static void omap3_save_secure_ram_context(u32 target_mpu_state)
+>  static struct powerdomain *mpu_pwrdm, *neon_pwrdm;
+>  static struct powerdomain *core_pwrdm, *per_pwrdm;
+> +static struct powerdomain *cam_pwrdm;
+>  
+>  static inline void omap3_per_save_context(void)
 >  {
->  	u32 ret;
-> @@ -349,7 +355,6 @@ void omap_sram_idle(void)
->  					     OMAP3_PRM_VOLTCTRL_OFFSET);
->  			omap3_core_save_context();
->  			omap3_prcm_save_context();
-> -			omap3_save_secure_ram_context(mpu_next_state);
+> @@ -335,6 +336,9 @@ void omap_sram_idle(void)
 >  		}
->  		/* Enable IO-PAD wakeup */
->  		prm_set_mod_reg_bits(OMAP3430_EN_IO, WKUP_MOD, PM_WKEN);
-> @@ -923,6 +928,18 @@ int __init omap3_pm_init(void)
 >  	}
->  	omap3_save_scratchpad_contents();
 >  
-> +	if (omap_type() != OMAP2_DEVICE_TYPE_GP) {
-> +		local_irq_disable();
-> +		local_fiq_disable();
+> +	if (pwrdm_read_pwrst(cam_pwrdm) == PWRDM_POWER_ON)
+> +		omap2_clkdm_deny_idle(mpu_pwrdm->pwrdm_clkdms[0]);
 > +
-> +		omap_dma_global_context_save();
-> +		omap3_save_secure_ram_context(PWRDM_POWER_ON);
-> +		omap_dma_global_context_restore();
+>  	/* CORE */
+>  	if (core_next_state < PWRDM_POWER_ON) {
+>  		omap_uart_prepare_idle(0);
+> @@ -402,6 +406,8 @@ void omap_sram_idle(void)
+>  		omap_uart_resume_idle(1);
+>  	}
+>  
+> +	omap2_clkdm_allow_idle(mpu_pwrdm->pwrdm_clkdms[0]);
 > +
-> +		local_irq_enable();
-> +		local_fiq_enable();
-> +	}
-> +
->  err1:
->  	return ret;
->  err2:
+>  	/* PER */
+>  	if (per_next_state < PWRDM_POWER_ON) {
+>  		per_prev_state = pwrdm_read_prev_pwrst(per_pwrdm);
+> @@ -953,6 +959,7 @@ int __init omap3_pm_init(void)
+>  	neon_pwrdm = pwrdm_lookup("neon_pwrdm");
+>  	per_pwrdm = pwrdm_lookup("per_pwrdm");
+>  	core_pwrdm = pwrdm_lookup("core_pwrdm");
+> +	cam_pwrdm = pwrdm_lookup("cam_pwrdm");
+>  
+>  	omap_push_sram_idle();
+>  
 > -- 
 > 1.5.4.3
 >
