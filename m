@@ -1,197 +1,237 @@
-From: "Pillai, Manikandan" <mani.pillai@ti.com>
-Subject: RE: [PATCH 1/2] TPS6235x driver added into the power regulator
- framework
-Date: Mon, 15 Dec 2008 10:17:08 +0530
-Message-ID: <19F8576C6E063C45BE387C64729E739403ECC73815@dbde02.ent.ti.com>
-References: <1228730882-22328-1-git-send-email-mani.pillai@ti.com>
- <200812080533.46042.david-b@pacbell.net>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+From: hvaibhav@ti.com
+Subject: [REVIEW PATCH 1/1] OMAP3EVM support-Refreshed against latest Tomis code-base
+Date: Mon, 15 Dec 2008 13:31:59 +0530
+Message-ID: <1229328119-23248-1-git-send-email-hvaibhav@ti.com>
+References: <hvaibhav@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:38165 "EHLO arroyo.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:34874 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751984AbYLOErb convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 14 Dec 2008 23:47:31 -0500
-In-Reply-To: <200812080533.46042.david-b@pacbell.net>
-Content-Language: en-US
+	id S1751668AbYLOICU (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 15 Dec 2008 03:02:20 -0500
+In-Reply-To: <hvaibhav@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: David Brownell <david-b@pacbell.net>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Mark Brown <broonie@sirena.org.uk>
+To: linux-omap@vger.kernel.org
+Cc: linux-fbdev-devel@lists.sourceforge.net, tomi.valkeinen@nokia.com, Vaibhav Hiremath <hvaibhav@ti.com>, Brijesh Jadav <brijesh.j@ti.com>, Hardik Shah <hardik.shah@ti.com>, Manjunath Hadli <mrh@ti.com>, R Sivaraj <sivaraj@ti.com>
 
-Hi,
+From: Vaibhav Hiremath <hvaibhav@ti.com>
 
-Pls find my comments inlined.
+Refreshed and Cleaned up as per the latest Tomi's DSS2
+code-base -
 
-Regards
+http://www.bat.org/~tomba/git/linux-omap-dss.git
 
+Tomi,
 
------Original Message-----
-=46rom: David Brownell [mailto:david-b@pacbell.net]=20
-Sent: Monday, December 08, 2008 7:04 PM
-To: Pillai, Manikandan
-Cc: linux-omap@vger.kernel.org; Mark Brown
-Subject: Re: [PATCH 1/2] TPS6235x driver added into the power regulator=
- framework
+Can you please merge this patch to your repository, so
+that it will be available as part of your HEAD?
 
-On Monday 08 December 2008, Manikandan Pillai wrote:
-> +++ b/drivers/regulator/tps6235x-regulator.c
-> @@ -0,0 +1,557 @@
-> +/*
-> + * tps6235x-regulator.c -- support regulators in tps6235x family chi=
-ps
-> + *
-> + * Copyright (C) 2008 David Brownell
-> + * Author : Manikandan Pillai<mani.pillai@ti.com>
-> + *
+Signed-off-by: Brijesh Jadav <brijesh.j@ti.com>
+Signed-off-by: Hardik Shah <hardik.shah@ti.com>
+Signed-off-by: Manjunath Hadli <mrh@ti.com>
+Signed-off-by: R Sivaraj <sivaraj@ti.com>
+Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
+---
+ arch/arm/mach-omap2/board-omap3evm.c |   69 +++++++++++++---------------------
+ 1 files changed, 26 insertions(+), 43 deletions(-)
 
-No, not copyright by me.  I didn't write this.  Take my
-name off of your code.
+diff --git a/arch/arm/mach-omap2/board-omap3evm.c b/arch/arm/mach-omap2/board-omap3evm.c
+index 0a722d7..cf0a6b3 100644
+--- a/arch/arm/mach-omap2/board-omap3evm.c
++++ b/arch/arm/mach-omap2/board-omap3evm.c
+@@ -36,7 +36,6 @@
+ #include <mach/usb-ehci.h>
+ #include <mach/common.h>
+ #include <mach/mcspi.h>
+-#include <mach/omapfb.h>
+ #include <mach/display.h>
 
-[Pillai, Manikandan] OK
+ #include "sdram-micron-mt46h32m32lf-6.h"
+@@ -161,20 +160,7 @@ static int __init omap3_evm_i2c_init(void)
+ 	omap_register_i2c_bus(3, 400, NULL, 0);
+ 	return 0;
+ }
+-static struct omap_fbmem_config evm_fbmem0_config = {
+-		.size = 480*720*4,
+-		.start = OMAPFB_MEMTYPE_SDRAM,
+-};
+-
+-static struct omap_fbmem_config evm_fbmem1_config = {
+-		.size = 480*720*4,
+-		.start = OMAPFB_MEMTYPE_SDRAM,
+-};
 
-Note that your patch [2/2] should have been merged with the
-relevant parts of this patch ... which, as Mark noted,
-is all over the map and needs to partitioned according
-to structure.
-[Pillai, Manikandan] OK will merge it
+-static struct omap_fbmem_config evm_fbmem2_config = {
+-		.size = 480*720*4,
+-		.start = OMAPFB_MEMTYPE_SDRAM,
+-};
+ #define LCD_PANEL_LR		2
+ #define LCD_PANEL_UD		3
+ #define LCD_PANEL_INI		152
+@@ -195,7 +181,7 @@ static struct omap_fbmem_config evm_fbmem2_config = {
+ static int lcd_enabled;
+ static int dvi_enabled;
 
-A patch supporting *JUST* the regulator will seemingly
-touch drivers/regulator/{Kconfig,Makefile} and create
-a new drivers/regulator/tps6235x-regulator.c file; that
-would be a good first patch for your set.
-[Pillai, Manikandan]  OK=20
+-static void __init evm_display_init(void)
++static void __init omap3_evm_display_init(void)
+ {
+ 	int r;
+ 	r = gpio_request(LCD_PANEL_LR, "lcd_panel_lr");
+@@ -258,7 +244,7 @@ err_1:
 
+ }
 
-I suggest your Kconfig not mention the PR785 card; there
-are surely plenty of other products using these chips and
-there's no way you can (or should!) mention them all.  If
-you're tempted to have pr785-specific logic in the
-generic regulator code, think again:  that's a sign you
-are not actually writing generic, reusable code.  And
-for something as *SIMPLE* as the $SUBJECT family of
-regulators, there's no reason to write anything except
-fully reusable code which implements the regulator API.
+-static int evm_panel_enable_lcd(struct omap_display *display)
++static int omap3_evm_panel_enable_lcd(struct omap_display *display)
+ {
+ 	if (dvi_enabled) {
+ 		printk(KERN_ERR "cannot enable LCD, DVI is enabled\n");
+@@ -275,7 +261,7 @@ static int evm_panel_enable_lcd(struct omap_display *display)
+ 	return 0;
+ }
 
-[Pillai, Manikandan] I can removed the PR785 mention from
-Drivers/regulator dirs. I believe the PR785 option should=20
-Be selected in arch/arm/mach-omap2/Kconfig along with TWL-4030
-Core. Pls let me know your suggestions on this one.
+-static void evm_panel_disable_lcd(struct omap_display *display)
++static void omap3_evm_panel_disable_lcd(struct omap_display *display)
+ {
+ 	if (omap_rev() > OMAP3430_REV_ES1_0) {
+ 		twl4030_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER, 0x0,
+@@ -287,16 +273,16 @@ static void evm_panel_disable_lcd(struct omap_display *display)
+ 	lcd_enabled = 0;
+ }
 
-(With one key exception.  Floor/ceiling support for
-dynamic voltage switching is not part of that API.
-I suggest you treat the regulator calls as applying
-to the ceiling, with "floor" support as an extension.)
+-static struct omap_display_data evm_display_data = {
++static struct omap_display_data omap3_evm_display_data = {
+ 	.type = OMAP_DISPLAY_TYPE_DPI,
+ 	.name = "lcd",
+ 	.panel_name = "sharp-ls037v7dw01",
+ 	.u.dpi.data_lines = 18,
+-	.panel_enable = evm_panel_enable_lcd,
+-	.panel_disable = evm_panel_disable_lcd,
++	.panel_enable = omap3_evm_panel_enable_lcd,
++	.panel_disable = omap3_evm_panel_disable_lcd,
+ };
 
-[Pillai, Manikandan] Not clear on this comment
+-static int evm_panel_enable_tv(struct omap_display *display)
++static int omap3_evm_panel_enable_tv(struct omap_display *display)
+ {
+ 	twl4030_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER,
+ 			ENABLE_VDAC_DEDICATED, TWL4030_VDAC_DEDICATED);
+@@ -305,7 +291,7 @@ static int evm_panel_enable_tv(struct omap_display *display)
+ 	return 0;
+ }
 
-> +struct tps_6235x_info {
-> +=A0=A0=A0=A0=A0=A0=A0unsigned int=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=
-state;
-> +=A0=A0=A0=A0=A0=A0=A0unsigned int=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=
-tps_i2c_addr;
-> +=A0=A0=A0=A0=A0=A0=A0struct i2c_client=A0=A0=A0=A0=A0=A0=A0*client;
-> +=A0=A0=A0=A0=A0=A0=A0struct device=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0*=
-i2c_dev;
-> +=A0=A0=A0=A0=A0=A0=A0/* platform data holder */
-> +=A0=A0=A0=A0=A0=A0=A0void=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=
-=A0=A0=A0=A0=A0*pdata;
-> +};
-> +
-> +static struct tps_6235x_info =A0 =A0tps_6235x_infodata[2];
+-static void evm_panel_disable_tv(struct omap_display *display)
++static void omap3_evm_panel_disable_tv(struct omap_display *display)
+ {
+ 	twl4030_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER, 0x00,
+ 			TWL4030_VDAC_DEDICATED);
+@@ -313,16 +299,16 @@ static void evm_panel_disable_tv(struct omap_display *display)
+ 			TWL4030_VDAC_DEV_GRP);
+ }
 
-I'm not following this. =20
-
- - The tps_info should be accessed by i2c_get_clientdata(),
-   and initialized by i2c_set_clientdata().  It's instance
-   specific data, and that's how to manage such data.
-
- - tps_i2c_addr is completely un-needed; client->addr is
-   the same thing.
-
- - ditto i2c_dev; &client->dev is the same thing.
-
- - and pdata is client->dev.platform_data.
-
-Plus there's no reason to limit the system to two of
-these regulators ... get rid of that global.
-
-
-And you should remove all the pr785-specific code
-from the regulator driver.  That includes the vdd1
-and vdd2 consumers -- none of that belongs as part
-of a generic regulator driver.  Needing to have those
-board-specific constraints should have been a Sign...
-
-[Pillai, Manikandan] OK
-
-
-> +
-> +static
-> +int tps_6235x_probe(struct i2c_client *client, const struct i2c_devi=
-ce_id
-> *id) +{
-> +=A0=A0=A0=A0=A0=A0=A0struct =A0tps_6235x_info =A0 =A0 =A0 =A0 =A0*in=
-fo;
-> +=A0=A0=A0=A0=A0=A0=A0struct =A0regulator_dev =A0 =A0 =A0 =A0 =A0 *rd=
-ev =3D NULL;
-> +=A0=A0=A0=A0=A0=A0=A0unsigned char reg_val;
-> +
-> +=A0=A0=A0=A0=A0=A0=A0printk(KERN_INFO "tps_6235x_probe:i2c_addr =3D =
-%x\n", (int)client->addr);
-
-That's a debug message.  Use dev_dbg(); and plan to remove that
-one before this merges.
-
-[Pillai, Manikandan] OK
-
-
-> +=20
-> +=A0=A0=A0=A0=A0=A0=A0info =3D &tps_6235x_infodata[id->driver_data];
-> +=A0=A0=A0=A0=A0=A0=A0/* Device probed is TPS62352 CORE pwr chip if d=
-river_data =A0=3D 0
-> +=A0=A0=A0=A0=A0=A0=A0Device probed is TPS62353 MPU pwr chip if drive=
-r_data =3D 1 =A0 */
-
-It would be a lot easier to just have initted driver_data to
-point to the "info" you wanted.
-[Pillai, Manikandan] OK
-
-But you're also mis-understanding some things here.
-
-The id->driver_data should be *generic* data ... as in,
-if you had three '52 chips (maybe on different busses),
-they'd all have the same driver_data, stuff holding true
-for every instance of one of those chips.  Regulator
-ops vectors; maybe some tables they use, which help
-interpret register bitfields.  Read-only goodies.
-
-If you want instance-specific data, there are two
-flavors of that.  One is from client->dev.platform_data,
-full of board-specific state you treat as read-only.
-
-The other is stuff that you collect over time; an
-example might be statistics.  Call this "mutable state".
-The convention is that probe() will kzalloc() a
-struct holding "mutable state", then stuff that
-with goodies.  Like maybe the i2c_client, so it's
-always available; stuff from id->driver_data, so
-chip parameters don't get forgotten; and whatever
-else you need.
-
-You're turning the generic/"type description"
-data into per-instance mutable state, and then
-limiting this to two instances total!
-
-[Pillai, Manikandan] OK
-
-- Dave
+-static struct omap_display_data evm_display_data_tv = {
++static struct omap_display_data omap3_evm_display_data_tv = {
+ 	.type = OMAP_DISPLAY_TYPE_VENC,
+ 	.name = "tv",
+ 	.u.venc.type = OMAP_DSS_VENC_TYPE_SVIDEO,
+-	.panel_enable = evm_panel_enable_tv,
+-	.panel_disable = evm_panel_disable_tv,
++	.panel_enable = omap3_evm_panel_enable_tv,
++	.panel_disable = omap3_evm_panel_disable_tv,
+ };
 
 
+-static int evm_panel_enable_dvi(struct omap_display *display)
++static int omap3_evm_panel_enable_dvi(struct omap_display *display)
+ {
+ 	if (lcd_enabled) {
+ 		printk(KERN_ERR "cannot enable DVI, LCD is enabled\n");
+@@ -337,7 +323,7 @@ static int evm_panel_enable_dvi(struct omap_display *display)
+ 	return 0;
+ }
 
+-static void evm_panel_disable_dvi(struct omap_display *display)
++static void omap3_evm_panel_disable_dvi(struct omap_display *display)
+ {
+ 	twl4030_i2c_write_u8(TWL4030_MODULE_GPIO, 0x00,
+ 			TWL4030_GPIODATA_IN3);
+@@ -347,28 +333,28 @@ static void evm_panel_disable_dvi(struct omap_display *display)
+ }
+
+
+-static struct omap_display_data evm_display_data_dvi = {
++static struct omap_display_data omap3_evm_display_data_dvi = {
+ 	.type = OMAP_DISPLAY_TYPE_DPI,
+ 	.name = "dvi",
+ 	.panel_name = "panel-dvi",
+ 	.u.dpi.data_lines = 24,
+-	.panel_enable = evm_panel_enable_dvi,
+-	.panel_disable = evm_panel_disable_dvi,
++	.panel_enable = omap3_evm_panel_enable_dvi,
++	.panel_disable = omap3_evm_panel_disable_dvi,
+ };
+
+-static struct omap_dss_platform_data evm_dss_data = {
++static struct omap_dss_platform_data omap3_evm_dss_data = {
+ 	.num_displays = 3,
+ 	.displays = {
+-		&evm_display_data,
+-		&evm_display_data_dvi,
+-		&evm_display_data_tv,
++		&omap3_evm_display_data,
++		&omap3_evm_display_data_dvi,
++		&omap3_evm_display_data_tv,
+ 	}
+ };
+-static struct platform_device evm_dss_device = {
++static struct platform_device omap3_evm_dss_device = {
+ 	.name		= "omap-dss",
+ 	.id		= -1,
+ 	.dev            = {
+-		.platform_data = &evm_dss_data,
++		.platform_data = &omap3_evm_dss_data,
+ 	},
+ };
+
+@@ -428,13 +414,10 @@ static void __init omap3_evm_init_irq(void)
+
+ static struct omap_board_config_kernel omap3_evm_config[] __initdata = {
+ 	{ OMAP_TAG_UART,	&omap3_evm_uart_config },
+-	{ OMAP_TAG_FBMEM,       &evm_fbmem0_config },
+-	{ OMAP_TAG_FBMEM,       &evm_fbmem1_config },
+-	{ OMAP_TAG_FBMEM,       &evm_fbmem2_config },
+ };
+
+ static struct platform_device *omap3_evm_devices[] __initdata = {
+-	&evm_dss_device,
++	&omap3_evm_dss_device,
+ 	&omap3evm_smc911x_device,
+ };
+
+@@ -453,6 +436,8 @@ static void __init omap3_evm_init(void)
+ 	omap3_evm_i2c_init();
+
+ 	platform_add_devices(omap3_evm_devices, ARRAY_SIZE(omap3_evm_devices));
++	omap_board_config = omap3_evm_config;
++	omap_board_config_size = ARRAY_SIZE(omap3_evm_config);
+
+ 	spi_register_board_info(omap3evm_spi_board_info,
+ 				ARRAY_SIZE(omap3evm_spi_board_info));
+@@ -463,13 +448,11 @@ static void __init omap3_evm_init(void)
+ 	usb_ehci_init();
+ 	omap3evm_flash_init();
+ 	ads7846_dev_init();
+-	evm_display_init();
++	omap3_evm_display_init();
+ }
+
+ static void __init omap3_evm_map_io(void)
+ {
+-	omap_board_config = omap3_evm_config;
+-	omap_board_config_size = ARRAY_SIZE(omap3_evm_config);
+ 	omap2_set_globals_343x();
+ 	omap2_map_common_io();
+ }
 --
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+1.5.6
+
