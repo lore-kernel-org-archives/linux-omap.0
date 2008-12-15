@@ -1,43 +1,76 @@
-From: "Trilok Soni" <soni.trilok@gmail.com>
-Subject: Re: Instructions and design notes for using TI TSC2007 touch screen controller chip
-Date: Mon, 15 Dec 2008 14:49:22 +0530
-Message-ID: <5d5443650812150119y72a210c4lf1680973d6abfa78@mail.gmail.com>
-References: <14202A61-8626-4F51-A510-AEF44881BC35@mac.com>
+From: Mark Brown <broonie@sirena.org.uk>
+Subject: Re: [PATCH 1/2] TPS6235x driver added into the power regulator framework
+Date: Mon, 15 Dec 2008 10:59:13 +0000
+Message-ID: <20081215105912.GB31145@sirena.org.uk>
+References: <1228730882-22328-1-git-send-email-mani.pillai@ti.com> <20081208122240.GG5159@sirena.org.uk> <19F8576C6E063C45BE387C64729E739403ECC737F8@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from wf-out-1314.google.com ([209.85.200.175]:34716 "EHLO
-	wf-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752125AbYLOJTY (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 15 Dec 2008 04:19:24 -0500
-Received: by wf-out-1314.google.com with SMTP id 27so2541980wfd.4
-        for <linux-omap@vger.kernel.org>; Mon, 15 Dec 2008 01:19:22 -0800 (PST)
-In-Reply-To: <14202A61-8626-4F51-A510-AEF44881BC35@mac.com>
+Received: from cassiel.sirena.org.uk ([80.68.93.111]:3596 "EHLO
+	cassiel.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752662AbYLOK7P (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 15 Dec 2008 05:59:15 -0500
 Content-Disposition: inline
+In-Reply-To: <19F8576C6E063C45BE387C64729E739403ECC737F8@dbde02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Elvis Dowson <elvis.dowson@mac.com>
-Cc: Linux OMAP Users <linux-omap@vger.kernel.org>
+To: "Pillai, Manikandan" <mani.pillai@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Hi Elvis
+On Mon, Dec 15, 2008 at 10:13:27AM +0530, Pillai, Manikandan wrote:
 
-On Mon, Dec 15, 2008 at 2:27 PM, Elvis Dowson <elvis.dowson@mac.com> wrote:
-> Hi,
->         I am considering using the TI TSC2007 touch screen controller with a
-> TI OMAP3503 processor based motherboard. This motherboard has the TI
-> TPS65950 power management IC onboard.
->
-> I want to interface the TI TSC2007 to a 4-wire analog resistive touch screen
-> panel available on a Sharp LQ043T1DG01 4.3" 480x272 resolution LCD touch
-> screen display.
->
+> Thanks for your comments.Pls find my responses inlined.
 
-Recently TSC2007 driver was submitted to LKML and linux-omap ML, please google:
+For posting on kernel lists you probably want to fix your mail client to
+insert quote characters before the mail you're replying to - it makes
+your mail much easier to read.  This may mean that you need separate
+mail configuration for corporate e-mail.
 
-"kwangwoo lee TSC2007"
+> > +#if defined(CONFIG_OMAP3EVM_PR785)
+> > +	omap_register_i2c_bus(1, 2600, tps_6235x_i2c_board_info,
+> > +		ARRAY_SIZE(tps_6235x_i2c_board_info));
+> > +#endif
+> > +#if defined(CONFIG_TWL4030_CORE)
+> >  	omap_register_i2c_bus(1, 2600, omap3evm_i2c_boardinfo,
+> >  			ARRAY_SIZE(omap3evm_i2c_boardinfo));
+> > +#endif
 
--- 
----Trilok Soni
-http://triloksoni.wordpress.com
-http://www.linkedin.com/in/triloksoni
+> Hrm.  If the relevant chips have ID registers it's probably possible to
+> detect which is present at run time in which case there should be one
+> set of board info.  If they don't and the code needs to be exclusive it
+> might be better to express that here.
+
+> [Pillai, Manikandan] It's not possible to have a runtime check for this board
+> I can put in a comment here to make it clearer.
+
+You probably want a series of if/elses here or to have a check which
+does #error if both are defined.
+
+> > -config TWL4030_CORE
+> > -	bool "Texas Instruments TWL4030/TPS659x0 Support"
+> > -	depends on I2C=y && GENERIC_HARDIRQS
+
+> This should be left here - there's nothing specific to the board about
+> this configuration at all.
+
+> [Pillai, Manikandan] This was one of the comments from Dave to move it
+> To arch/arm/mach-omap2. The intention was that two power boards options
+>  can be provided for the OMAP3 board. Pls let me know if I have to have
+> the PR785 option for power where should I adding it in the Kconfig hierarchy
+
+You've substantially misunderstood Dave's comment here.  You should move
+the selection of power boards to the architecture file, not the user
+visible configuration options for the chips.
+
+> > +/* Device addresses for PR785 card */
+> > +#define	PR785_62352_CORE_ADDR	0x4A
+> > +#define	PR785_62353_MPU_ADDR	0x48
+
+> This and all the other PR785 support shouldn't be in this driver, it
+> should be in a separate PR785 driver or the board driver.
+
+> [Pillai, Manikandan] OK I will put the PR785 driver as a board driver in
+> The arch/arm/mach-omap2/board-omap3evm.c or should I put it as a separate 
+> File. I would prefer a separate file.
+
+I'd tend to go with a separate file too, it's probably big enough.
