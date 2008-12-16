@@ -1,68 +1,30 @@
-From: "Pandita, Vikram" <vikram.pandita@ti.com>
-Subject: RE: Issue: TWL4030-USB
-Date: Wed, 17 Dec 2008 02:25:29 +0530
-Message-ID: <FCCFB4CDC6E5564B9182F639FC356087025127BDFE@dbde02.ent.ti.com>
-References: <A24693684029E5489D1D202277BE894415E6E3C1@dlee02.ent.ti.com>
- <200812111524.57050.david-b@pacbell.net>
- <FCCFB4CDC6E5564B9182F639FC356087025127BDF7@dbde02.ent.ti.com>
- <200812161236.17658.david-b@pacbell.net>
+From: Felipe Balbi <me@felipebalbi.com>
+Subject: Re: Issue: TWL4030-USB
+Date: Tue, 16 Dec 2008 23:09:51 +0200
+Message-ID: <20081216210951.GB28981@frodo>
+References: <A24693684029E5489D1D202277BE894415E6E3C1@dlee02.ent.ti.com> <200812111524.57050.david-b@pacbell.net> <FCCFB4CDC6E5564B9182F639FC356087025127BDF7@dbde02.ent.ti.com> <200812161236.17658.david-b@pacbell.net> <FCCFB4CDC6E5564B9182F639FC356087025127BDFE@dbde02.ent.ti.com>
+Reply-To: me@felipebalbi.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:33928 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757937AbYLPUzg convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 16 Dec 2008 15:55:36 -0500
-In-Reply-To: <200812161236.17658.david-b@pacbell.net>
-Content-Language: en-US
+Received: from ns1.siteground211.com ([209.62.36.12]:59098 "EHLO
+	serv01.siteground211.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752881AbYLPVJ7 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 16 Dec 2008 16:09:59 -0500
+Content-Disposition: inline
+In-Reply-To: <FCCFB4CDC6E5564B9182F639FC356087025127BDFE@dbde02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: David Brownell <david-b@pacbell.net>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: "Pandita, Vikram" <vikram.pandita@ti.com>
+Cc: David Brownell <david-b@pacbell.net>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
+On Wed, Dec 17, 2008 at 02:25:29AM +0530, Pandita, Vikram wrote:
+> I looked into: drivers/i2c/chips/twl4030-usb.c
+> Is this supposed to be removed then? 
 
->-----Original Message-----
->From: David Brownell [mailto:david-b@pacbell.net]
->Sent: Tuesday, December 16, 2008 2:36 PM
->To: Pandita, Vikram
->Cc: linux-omap@vger.kernel.org
->Subject: Re: Issue: TWL4030-USB
->
->On Tuesday 16 December 2008, Pandita, Vikram wrote:
->>
->> I have not been following much of the TWL4030 USB development.
->> I came across this code:
->>
->> <snip-start>
->> static int twl4030_set_peripheral(struct otg_transceiver *x,
->>                 struct usb_gadget *gadget)
->> {
->> ...
->> if (!gadget) {
->> >>>>>       omap_writew(0, OTG_IRQ_EN);
->> ...
->> <snip-end>
->>
->> This code will not work for OMAP3. There is no OHCI OTG block on OMAP3.
->
->Exactly why that code is removed in the latest code ... I don't
->see it in drivers/usb/otg/twl4030-usb.c do you?
+you should probably git pull :-)
 
-I looked into: drivers/i2c/chips/twl4030-usb.c
-Is this supposed to be removed then? 
+This code doesn't exist in current linux-omap.
 
->
->- Dave
->
->
->
->>
->>
->> Regards,
->> Vikram
->>
->>
->
->
-
+-- 
+balbi
