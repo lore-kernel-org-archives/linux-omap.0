@@ -1,192 +1,54 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH] OMAP3: PM: Scale VDD2 OPP for VDD1 OPP3 and higher
-Date: Tue, 16 Dec 2008 11:15:55 -0800
-Message-ID: <87y6yg53tg.fsf@deeprootsystems.com>
-References: <01c901c95f7e$4d854f30$LocalHost@wipultra1382>
+From: "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>
+Subject: RE: [REVIEW PATCH 14/14] OMAP34XX: CAM: Add Sensors Support
+Date: Tue, 16 Dec 2008 13:44:44 -0600
+Message-ID: <A24693684029E5489D1D202277BE894415F3E741@dlee02.ent.ti.com>
+References: <20081215175644.GW10664@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ik-out-1112.google.com ([66.249.90.178]:4667 "EHLO
-	ik-out-1112.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753148AbYLPTQE (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 16 Dec 2008 14:16:04 -0500
-Received: by ik-out-1112.google.com with SMTP id c29so793489ika.5
-        for <linux-omap@vger.kernel.org>; Tue, 16 Dec 2008 11:16:02 -0800 (PST)
-In-Reply-To: <01c901c95f7e$4d854f30$LocalHost@wipultra1382> (Rajendra Nayak's message of "Tue\, 16 Dec 2008 18\:30\:41 +0530")
+Received: from devils.ext.ti.com ([198.47.26.153]:51762 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754993AbYLPTpJ convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 16 Dec 2008 14:45:09 -0500
+In-Reply-To: <20081215175644.GW10664@atomide.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Rajendra Nayak <rnayak@ti.com>
-Cc: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "video4linux-list@redhat.com" <video4linux-list@redhat.com>, Sakari Ailus <sakari.ailus@nokia.com>, "Tuukka.O Toivonen" <tuukka.o.toivonen@nokia.com>, "Hiremath, Vaibhav" <hvaibhav@ti.com>, "Nagalla, Hari" <hnagalla@ti.com>
 
-"Rajendra Nayak" <rnayak@ti.com> writes:
+> From: Tony Lindgren [mailto:tony@atomide.com]
+> * Aguirre Rodriguez, Sergio Alberto <saaguirre@ti.com> [081215 09:02]:
+> > > From: Tony Lindgren [mailto:tony@atomide.com]
+> > > * Aguirre Rodriguez, Sergio Alberto <saaguirre@ti.com> [081211 12:44]:
+> > > > +	case V4L2_POWER_OFF:
+> > > > +		/* Power Down Sequence */
+> > > > +#ifdef CONFIG_TWL4030_CORE
+> > > > +		twl4030_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER,
+> > > > +				VAUX_DEV_GRP_NONE, TWL4030_VAUX2_DEV_GRP);
+> > > > +#else
+> > > > +#error "no power companion board defined!"
+> > > > +#endif
+> > >
+> > > These checks look unecessary. How about just handle it with Kconfig?
+> > >
+> > [Aguirre, Sergio] But how? Don't you think that if I do that, I'll
+> tighten the sensor driver to this board only?
+> >
+> 
+> See what we've done with arch/arm/mach-omap2/mmc-twl4030.c for example
+> in linux-omap tree.
+[Aguirre, Sergio] Hmm, I'm a bit confused here. Can you help me clarify?
 
-> This patch implements an implicit/internal constraint
-> of 100Mhz for L3 bus while the VDD1 OPP is OPP3 or higher.
-> The patch also removes the usage of bus_throughput_db
-> from SRF.
-> Applies on the latest pm branch.
->
-> Signed-off-by: Rajendra Nayak <rnayak@ti.com>
+I see that you're adding mmc-twl4030 compilation in Makefile for every board that supports it and adding twl4030_mmc_init() call to the corresponding board init function. I see that you're also conditioning almost all code inside mmc-twl4030.c with "if defined(CONFIG_TWL4030_CORE)" compiler check.
 
-Thanks, applied to PM branch.
+Can you help me see how is this different to what I'm doing?
 
-Kevin
+> The twl and mmc patches are on their way to the mainline
+> kernel too hopfully this merge window.
+> 
+> Regards,
+> 
+> Tony
 
-> ---
->  arch/arm/mach-omap2/pm.c           |    6 +++++-
->  arch/arm/mach-omap2/resource34xx.c |   37 ++++++++++++++++++++++++++++---------
->  arch/arm/mach-omap2/resource34xx.h |   13 -------------
->  3 files changed, 33 insertions(+), 23 deletions(-)
->
-> Index: linux-omap-2.6/arch/arm/mach-omap2/resource34xx.c
-> ===================================================================
-> --- linux-omap-2.6.orig/arch/arm/mach-omap2/resource34xx.c	2008-12-16 11:11:28.000000000 +0530
-> +++ linux-omap-2.6/arch/arm/mach-omap2/resource34xx.c	2008-12-16 16:04:43.017689014 +0530
-> @@ -146,7 +146,7 @@ void init_opp(struct shared_resource *re
->  	resp->no_of_users = 0;
->  
->  	if (!mpu_opps || !dsp_opps || !l3_opps)
-> -		return 0;
-> +		return;
->  
->  	/* Initialize the current level of the OPP resource
->  	* to the  opp set by u-boot.
-> @@ -161,11 +161,12 @@ void init_opp(struct shared_resource *re
->  	return;
->  }
->  
-> +static struct device vdd2_dev;
-> +
->  int set_opp(struct shared_resource *resp, u32 target_level)
->  {
-> -	unsigned long mpu_freq, mpu_old_freq, l3_freq, tput, t_opp;
-> +	unsigned long mpu_freq, mpu_old_freq, l3_freq, req_l3_freq, tput, t_opp;
->  	int ind;
-> -	struct bus_throughput_db *tput_db;
->  	struct cpufreq_freqs freqs_notify;
->  
->  	if (resp->curr_level == target_level)
-> @@ -188,6 +189,14 @@ int set_opp(struct shared_resource *resp
->  #endif
->  		t_opp = ID_VDD(PRCM_VDD1) |
->  			ID_OPP_NO(mpu_opps[target_level].opp_id);
-> +
-> +		/* For VDD1 OPP3 and above, make sure the interconnect
-> +		 * is at 100Mhz or above.
-> +		 * throughput in KiB/s for 100 Mhz = 100 * 1000 * 4.
-> +		 */
-> +		if (mpu_opps[target_level].opp_id >= 3)
-> +			resource_request("vdd2_opp", &vdd2_dev, 400000);
-> +
->  		if (resp->curr_level > target_level) {
->  			/* Scale Frequency and then voltage */
->  			clk_set_rate(vdd1_clk, mpu_freq);
-> @@ -203,22 +212,32 @@ int set_opp(struct shared_resource *resp
->  #endif
->  			clk_set_rate(vdd1_clk, mpu_freq);
->  		}
-> +
-> +		/* Release the VDD2/interconnect constraint */
-> +		if (mpu_opps[target_level].opp_id < 3)
-> +			resource_release("vdd2_opp", &vdd2_dev);
-> +
->  		resp->curr_level = curr_vdd1_prcm_set->opp_id;
->  #ifdef CONFIG_CPU_FREQ
->  		/* Send a post notification to CPUFreq */
->  		cpufreq_notify_transition(&freqs_notify, CPUFREQ_POSTCHANGE);
->  #endif
->  	} else if (strcmp(resp->name, "vdd2_opp") == 0) {
-> -		tput_db = resp->resource_data;
->  		tput = target_level;
-> -		/* using the throughput db map to the appropriate L3 Freq */
-> -		for (ind = 1; ind < MAX_VDD2_OPP; ind++)
-> -			if (tput_db->throughput[ind] > tput)
-> +
-> +		/* Convert the tput in KiB/s to Bus frequency in Mhz*/
-> +		req_l3_freq = (tput * 1000)/4;
-> +
-> +		for (ind = 2; ind <= MAX_VDD2_OPP; ind++) {
-> +			if ((l3_opps + ind)->rate >= req_l3_freq) {
->  				target_level = ind;
-> +				break;
-> +			}
-> +		}
->  
->  		/* Set the highest OPP possible */
-> -		if (ind == MAX_VDD2_OPP)
-> -			target_level = ind-1;
-> +		if (ind > MAX_VDD2_OPP)
-> +			target_level = MAX_VDD2_OPP;
->  
->  		if (resp->curr_level == target_level)
->  			return 0;
-> Index: linux-omap-2.6/arch/arm/mach-omap2/pm.c
-> ===================================================================
-> --- linux-omap-2.6.orig/arch/arm/mach-omap2/pm.c	2008-12-16 10:35:55.000000000 +0530
-> +++ linux-omap-2.6/arch/arm/mach-omap2/pm.c	2008-12-16 16:01:48.580075608 +0530
-> @@ -34,6 +34,7 @@
->  #include <mach/powerdomain.h>
->  #include <mach/omapdev.h>
->  #include <mach/resource.h>
-> +#include <mach/omap-pm.h>
->  
->  #include "prm-regbits-34xx.h"
->  #include "pm.h"
-> @@ -136,6 +137,7 @@ static ssize_t vdd_opp_store(struct kobj
->  			  const char *buf, size_t n)
->  {
->  	unsigned short value;
-> +	unsigned long bus_tput;
->  
->  	if (sscanf(buf, "%hu", &value) != 1)
->  		return -EINVAL;
-> @@ -151,7 +153,9 @@ static ssize_t vdd_opp_store(struct kobj
->  			printk(KERN_ERR "vdd_opp_store: Invalid value\n");
->  			return -EINVAL;
->  		}
-> -		resource_request("vdd2_opp", &dummy_sysfs_dev, value);
-> +		/* Convert OPP's requested to appr. bus throughtput in KiB/s */
-> +		bus_tput = ((l3_opps + value)->rate/1000) * 4;
-> +		resource_request("vdd2_opp", &dummy_sysfs_dev, bus_tput);
->  	} else {
->  		return -EINVAL;
->  	}
-> Index: linux-omap-2.6/arch/arm/mach-omap2/resource34xx.h
-> ===================================================================
-> --- linux-omap-2.6.orig/arch/arm/mach-omap2/resource34xx.h	2008-12-16 10:35:55.000000000 +0530
-> +++ linux-omap-2.6/arch/arm/mach-omap2/resource34xx.h	2008-12-16 15:28:22.341172791 +0530
-> @@ -238,11 +238,6 @@ void init_freq(struct shared_resource *r
->  int set_freq(struct shared_resource *resp, u32 target_level);
->  int validate_freq(struct shared_resource *resp, u32 target_level);
->  
-> -struct bus_throughput_db {
-> -	/* Throughput for each OPP/Freq of the bus */
-> -	unsigned long throughput[3];
-> -};
-> -
->  static struct shared_resource_ops opp_res_ops = {
->  	.init           = init_opp,
->  	.change_level   = set_opp,
-> @@ -255,17 +250,9 @@ static struct shared_resource vdd1_opp =
->  	.ops            = &opp_res_ops,
->  };
->  
-> -/* Throughput in KiB/s */
-> -static struct bus_throughput_db l3_throughput_db = {
-> -	.throughput[0] = 0,
-> -	.throughput[1] = 2656000,
-> -	.throughput[2] = 5312000,
-> -};
-> -
->  static struct shared_resource vdd2_opp = {
->  	.name           = "vdd2_opp",
->  	.omap_chip      = OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
-> -	.resource_data  = &l3_throughput_db,
->  	.ops            = &opp_res_ops,
->  };
->  
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
