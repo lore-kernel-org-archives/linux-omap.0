@@ -1,43 +1,183 @@
-From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Subject: [PATCH][OMAP3][sDMA] : Fixing the DMA chain transfer callback.
-Date: Tue, 16 Dec 2008 17:35:09 +0530
-Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB0297DA1826@dbde02.ent.ti.com>
+From: "Rajendra Nayak" <rnayak@ti.com>
+Subject: [PATCH] OMAP3: PM: Scale VDD2 OPP for VDD1 OPP3 and higher
+Date: Tue, 16 Dec 2008 18:30:41 +0530
+Message-ID: <01c901c95f7e$4d854f30$LocalHost@wipultra1382>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:39203 "EHLO bear.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:41173 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752710AbYLPMF0 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 16 Dec 2008 07:05:26 -0500
-Content-Language: en-US
+	id S1753937AbYLPNAu convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 16 Dec 2008 08:00:50 -0500
+Received: from dbdp31.itg.ti.com ([172.24.170.98])
+	by bear.ext.ti.com (8.13.7/8.13.7) with ESMTP id mBGD0hTW023897
+	for <linux-omap@vger.kernel.org>; Tue, 16 Dec 2008 07:00:49 -0600
+Received: from wipultra1382 (localhost [127.0.0.1])
+	by dbdp31.itg.ti.com (8.13.8/8.13.8) with ESMTP id mBGD0g9Z029836
+	for <linux-omap@vger.kernel.org>; Tue, 16 Dec 2008 18:30:42 +0530 (IST)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: 'Tony Lindgren' <tony@atomide.com>
-Cc: "'linux-omap@vger.kernel.org'" <linux-omap@vger.kernel.org>
+To: linux-omap@vger.kernel.org
 
-Tony,
-Here is the patch for DMA to ease the chaining usage. OMAP mcbsp drivers makes use of this chaining feature but it's not pushed on mainline yet. It's available on zoom tree. Link for the same driver. http://git.omapzoom.org/?p=omapkernel.git;a=blob;f=arch/arm/mach-omap2/mcbsp.c;h=ce726c5d27eedb678ad3f981e2f5e08134e44e27;hb=2af15d1d7931a7c928d84057ed4494b77769de12
+This patch implements an implicit/internal constraint
+of 100Mhz for L3 bus while the VDD1 OPP is OPP3 or higher.
+The patch also removes the usage of bus_throughput_db
+from SRF.
+Applies on the latest pm branch.
 
-
-From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-
-This patch reverts back the change done on OMAP dma library. It corrects the chaining callback and reduces the complexity for the DMA users in chaining. So with this patch, drivers making use of OMAP DMA chaining feature need not built any intelligence for chain related transfers in their callback using private data. 
-
-Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Acked By : Nishant kamat <nskamat@ti.com>
+Signed-off-by: Rajendra Nayak <rnayak@ti.com>
 ---
---- omapkernel.orig/arch/arm/plat-omap/dma.c	2008-12-04 11:11:07.000000000 +0530
-+++ omapkernel/arch/arm/plat-omap/dma.c	2008-12-16 16:59:42.066118383 +0530
-@@ -1936,7 +1936,11 @@ static int omap2_dma_handle_ch(int ch)
+ arch/arm/mach-omap2/pm.c           |    6 +++++-
+ arch/arm/mach-omap2/resource34xx.c |   37 ++++++++++++++++++++++++++++---------
+ arch/arm/mach-omap2/resource34xx.h |   13 -------------
+ 3 files changed, 33 insertions(+), 23 deletions(-)
+
+Index: linux-omap-2.6/arch/arm/mach-omap2/resource34xx.c
+===================================================================
+--- linux-omap-2.6.orig/arch/arm/mach-omap2/resource34xx.c	2008-12-16 11:11:28.000000000 +0530
++++ linux-omap-2.6/arch/arm/mach-omap2/resource34xx.c	2008-12-16 16:04:43.017689014 +0530
+@@ -146,7 +146,7 @@ void init_opp(struct shared_resource *re
+ 	resp->no_of_users = 0;
+ 
+ 	if (!mpu_opps || !dsp_opps || !l3_opps)
+-		return 0;
++		return;
+ 
+ 	/* Initialize the current level of the OPP resource
+ 	* to the  opp set by u-boot.
+@@ -161,11 +161,12 @@ void init_opp(struct shared_resource *re
+ 	return;
+ }
+ 
++static struct device vdd2_dev;
++
+ int set_opp(struct shared_resource *resp, u32 target_level)
+ {
+-	unsigned long mpu_freq, mpu_old_freq, l3_freq, tput, t_opp;
++	unsigned long mpu_freq, mpu_old_freq, l3_freq, req_l3_freq, tput, t_opp;
+ 	int ind;
+-	struct bus_throughput_db *tput_db;
+ 	struct cpufreq_freqs freqs_notify;
+ 
+ 	if (resp->curr_level == target_level)
+@@ -188,6 +189,14 @@ int set_opp(struct shared_resource *resp
+ #endif
+ 		t_opp = ID_VDD(PRCM_VDD1) |
+ 			ID_OPP_NO(mpu_opps[target_level].opp_id);
++
++		/* For VDD1 OPP3 and above, make sure the interconnect
++		 * is at 100Mhz or above.
++		 * throughput in KiB/s for 100 Mhz = 100 * 1000 * 4.
++		 */
++		if (mpu_opps[target_level].opp_id >= 3)
++			resource_request("vdd2_opp", &vdd2_dev, 400000);
++
+ 		if (resp->curr_level > target_level) {
+ 			/* Scale Frequency and then voltage */
+ 			clk_set_rate(vdd1_clk, mpu_freq);
+@@ -203,22 +212,32 @@ int set_opp(struct shared_resource *resp
+ #endif
+ 			clk_set_rate(vdd1_clk, mpu_freq);
+ 		}
++
++		/* Release the VDD2/interconnect constraint */
++		if (mpu_opps[target_level].opp_id < 3)
++			resource_release("vdd2_opp", &vdd2_dev);
++
+ 		resp->curr_level = curr_vdd1_prcm_set->opp_id;
+ #ifdef CONFIG_CPU_FREQ
+ 		/* Send a post notification to CPUFreq */
+ 		cpufreq_notify_transition(&freqs_notify, CPUFREQ_POSTCHANGE);
+ #endif
+ 	} else if (strcmp(resp->name, "vdd2_opp") == 0) {
+-		tput_db = resp->resource_data;
+ 		tput = target_level;
+-		/* using the throughput db map to the appropriate L3 Freq */
+-		for (ind = 1; ind < MAX_VDD2_OPP; ind++)
+-			if (tput_db->throughput[ind] > tput)
++
++		/* Convert the tput in KiB/s to Bus frequency in Mhz*/
++		req_l3_freq = (tput * 1000)/4;
++
++		for (ind = 2; ind <= MAX_VDD2_OPP; ind++) {
++			if ((l3_opps + ind)->rate >= req_l3_freq) {
+ 				target_level = ind;
++				break;
++			}
++		}
+ 
+ 		/* Set the highest OPP possible */
+-		if (ind == MAX_VDD2_OPP)
+-			target_level = ind-1;
++		if (ind > MAX_VDD2_OPP)
++			target_level = MAX_VDD2_OPP;
+ 
+ 		if (resp->curr_level == target_level)
+ 			return 0;
+Index: linux-omap-2.6/arch/arm/mach-omap2/pm.c
+===================================================================
+--- linux-omap-2.6.orig/arch/arm/mach-omap2/pm.c	2008-12-16 10:35:55.000000000 +0530
++++ linux-omap-2.6/arch/arm/mach-omap2/pm.c	2008-12-16 16:01:48.580075608 +0530
+@@ -34,6 +34,7 @@
+ #include <mach/powerdomain.h>
+ #include <mach/omapdev.h>
+ #include <mach/resource.h>
++#include <mach/omap-pm.h>
+ 
+ #include "prm-regbits-34xx.h"
+ #include "pm.h"
+@@ -136,6 +137,7 @@ static ssize_t vdd_opp_store(struct kobj
+ 			  const char *buf, size_t n)
+ {
+ 	unsigned short value;
++	unsigned long bus_tput;
+ 
+ 	if (sscanf(buf, "%hu", &value) != 1)
+ 		return -EINVAL;
+@@ -151,7 +153,9 @@ static ssize_t vdd_opp_store(struct kobj
+ 			printk(KERN_ERR "vdd_opp_store: Invalid value\n");
+ 			return -EINVAL;
+ 		}
+-		resource_request("vdd2_opp", &dummy_sysfs_dev, value);
++		/* Convert OPP's requested to appr. bus throughtput in KiB/s */
++		bus_tput = ((l3_opps + value)->rate/1000) * 4;
++		resource_request("vdd2_opp", &dummy_sysfs_dev, bus_tput);
+ 	} else {
+ 		return -EINVAL;
  	}
+Index: linux-omap-2.6/arch/arm/mach-omap2/resource34xx.h
+===================================================================
+--- linux-omap-2.6.orig/arch/arm/mach-omap2/resource34xx.h	2008-12-16 10:35:55.000000000 +0530
++++ linux-omap-2.6/arch/arm/mach-omap2/resource34xx.h	2008-12-16 15:28:22.341172791 +0530
+@@ -238,11 +238,6 @@ void init_freq(struct shared_resource *r
+ int set_freq(struct shared_resource *resp, u32 target_level);
+ int validate_freq(struct shared_resource *resp, u32 target_level);
  
- 	if (likely(dma_chan[ch].callback != NULL))
--		dma_chan[ch].callback(ch, status, dma_chan[ch].data);
-+		if (dma_chan[ch].chain_id != -1)
-+			dma_chan[ch].callback(dma_chan[ch].chain_id, status,
-+					      dma_chan[ch].data);
-+		else
-+			dma_chan[ch].callback(ch, status, dma_chan[ch].data);
+-struct bus_throughput_db {
+-	/* Throughput for each OPP/Freq of the bus */
+-	unsigned long throughput[3];
+-};
+-
+ static struct shared_resource_ops opp_res_ops = {
+ 	.init           = init_opp,
+ 	.change_level   = set_opp,
+@@ -255,17 +250,9 @@ static struct shared_resource vdd1_opp =
+ 	.ops            = &opp_res_ops,
+ };
  
- 	dma_write(status, CSR(ch));
+-/* Throughput in KiB/s */
+-static struct bus_throughput_db l3_throughput_db = {
+-	.throughput[0] = 0,
+-	.throughput[1] = 2656000,
+-	.throughput[2] = 5312000,
+-};
+-
+ static struct shared_resource vdd2_opp = {
+ 	.name           = "vdd2_opp",
+ 	.omap_chip      = OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
+-	.resource_data  = &l3_throughput_db,
+ 	.ops            = &opp_res_ops,
+ };
+ 
+
