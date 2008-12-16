@@ -1,14 +1,14 @@
 From: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: Re: [REVIEW PATCH 08/14] OMAP: CAM: Add ISP Core
-Date: Tue, 16 Dec 2008 18:07:36 +0100
-Message-ID: <200812161807.37601.hverkuil@xs4all.nl>
-References: <A24693684029E5489D1D202277BE894415E6E19E@dlee02.ent.ti.com>
+Subject: Re: [REVIEW PATCH 10/14] OMAP: CAM: Add Preview and Resizer Wrappers
+Date: Tue, 16 Dec 2008 18:20:05 +0100
+Message-ID: <200812161820.06482.hverkuil@xs4all.nl>
+References: <A24693684029E5489D1D202277BE894415E6E1A0@dlee02.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
   charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <video4linux-list-bounces@redhat.com>
-In-Reply-To: <A24693684029E5489D1D202277BE894415E6E19E@dlee02.ent.ti.com>
+In-Reply-To: <A24693684029E5489D1D202277BE894415E6E1A0@dlee02.ent.ti.com>
 Content-Disposition: inline
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
@@ -24,69 +24,92 @@ Cc: Sakari Ailus <sakari.ailus@nokia.com>, "linux-omap@vger.kernel.org" <linux-o
 	Hari" <hnagalla@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Thursday 11 December 2008 21:38:12 Aguirre Rodriguez, Sergio Alberto wrote:
-> >From e10dc23eb3774da4da86a3be4f96cfbe16dde4bc Mon Sep 17 00:00:00 2001
+On Thursday 11 December 2008 21:38:18 Aguirre Rodriguez, Sergio Alberto wrote:
+> >From 286e60575f345dd8306d20e5d3e80809e3359e86 Mon Sep 17 00:00:00 2001
 > From: Sergio Aguirre <saaguirre@ti.com>
 > Date: Thu, 11 Dec 2008 13:35:48 -0600
-> Subject: [PATCH] OMAP: CAM: Add ISP Core
+> Subject: [PATCH] OMAP: CAM: Add Preview and Resizer Wrappers
 > 
-> This adds the OMAP ISP Core modules to the kernel. Includes:
-> * ISP Core Driver
-> * ISP MMU Driver
+> This adds the OMAP Preview and Resizer Wrappers to the kernel.
 > 
 > Signed-off-by: Sergio Aguirre <saaguirre@ti.com>
 > ---
->  drivers/media/video/isp/Makefile |   12 +
->  drivers/media/video/isp/isp.c    | 2476 ++++++++++++++++++++++++++++++++++++++
->  drivers/media/video/isp/isp.h    |  341 ++++++
->  drivers/media/video/isp/ispmmu.c |  746 ++++++++++++
->  drivers/media/video/isp/ispmmu.h |  119 ++
->  5 files changed, 3694 insertions(+), 0 deletions(-)
->  create mode 100644 drivers/media/video/isp/Makefile
->  create mode 100644 drivers/media/video/isp/isp.c
->  create mode 100644 drivers/media/video/isp/isp.h
->  create mode 100644 drivers/media/video/isp/ispmmu.c
->  create mode 100644 drivers/media/video/isp/ispmmu.h
+>  drivers/media/video/Kconfig              |    2 +
+>  drivers/media/video/isp/Kconfig          |    9 +
+>  drivers/media/video/isp/Makefile         |    7 +
+>  drivers/media/video/isp/omap_previewer.c |  825 +++++++++++++++
+>  drivers/media/video/isp/omap_previewer.h |  162 +++
+>  drivers/media/video/isp/omap_resizer.c   | 1631 ++++++++++++++++++++++++++++++
+>  include/linux/omap_resizer.h             |  136 +++
+>  7 files changed, 2772 insertions(+), 0 deletions(-)
+>  create mode 100644 drivers/media/video/isp/Kconfig
+>  create mode 100644 drivers/media/video/isp/omap_previewer.c
+>  create mode 100644 drivers/media/video/isp/omap_previewer.h
+>  create mode 100644 drivers/media/video/isp/omap_resizer.c
+>  create mode 100644 include/linux/omap_resizer.h
 > 
+> diff --git a/drivers/media/video/Kconfig b/drivers/media/video/Kconfig
+> index 47102c2..6150d6f 100644
+> --- a/drivers/media/video/Kconfig
+> +++ b/drivers/media/video/Kconfig
+> @@ -700,6 +700,8 @@ config VIDEO_CAFE_CCIC
+>           CMOS camera controller.  This is the controller found on first-
+>           generation OLPC systems.
+> 
+> +source "drivers/media/video/isp/Kconfig"
+> +
+>  config SOC_CAMERA
+>         tristate "SoC camera support"
+>         depends on VIDEO_V4L2 && HAS_DMA
+> diff --git a/drivers/media/video/isp/Kconfig b/drivers/media/video/isp/Kconfig
+> new file mode 100644
+> index 0000000..eeabc8f
+> --- /dev/null
+> +++ b/drivers/media/video/isp/Kconfig
+> @@ -0,0 +1,9 @@
+> +# Kconfig for OMAP3 ISP driver
+> +
+> +config VIDEO_OMAP34XX_ISP_PREVIEWER
+> +       tristate "OMAP ISP Previewer"
+> +       depends on !ARCH_OMAP3410
+> +
+> +config VIDEO_OMAP34XX_ISP_RESIZER
+> +       tristate "OMAP ISP Resizer"
+> +       depends on !ARCH_OMAP3410
 > diff --git a/drivers/media/video/isp/Makefile b/drivers/media/video/isp/Makefile
-> new file mode 100644
-> index 0000000..f2f831c
-> --- /dev/null
+> index f2f831c..ac046a1 100644
+> --- a/drivers/media/video/isp/Makefile
 > +++ b/drivers/media/video/isp/Makefile
-> @@ -0,0 +1,12 @@
-> +# Makefile for OMAP3 ISP driver
+> @@ -7,6 +7,13 @@ else
+>  isp-mod-objs += \
+>         isp.o ispccdc.o ispmmu.o \
+>         isppreview.o ispresizer.o isph3a.o isphist.o isp_af.o ispcsi2.o
 > +
-> +ifdef CONFIG_ARCH_OMAP3410
-> +isp-mod-objs += \
-> +       isp.o ispccdc.o ispmmu.o
-> +else
-> +isp-mod-objs += \
-> +       isp.o ispccdc.o ispmmu.o \
-> +       isppreview.o ispresizer.o isph3a.o isphist.o isp_af.o ispcsi2.o
-> +endif
+> +obj-$(CONFIG_VIDEO_OMAP34XX_ISP_PREVIEWER) += \
+> +       omap_previewer.o
 > +
-> +obj-$(CONFIG_VIDEO_OMAP3) += isp-mod.o
-> diff --git a/drivers/media/video/isp/isp.c b/drivers/media/video/isp/isp.c
+> +obj-$(CONFIG_VIDEO_OMAP34XX_ISP_RESIZER) += \
+> +       omap_resizer.o
+> +
+>  endif
+> 
+>  obj-$(CONFIG_VIDEO_OMAP3) += isp-mod.o
+> diff --git a/drivers/media/video/isp/omap_previewer.c b/drivers/media/video/isp/omap_previewer.c
 > new file mode 100644
-> index 0000000..92a415c
+> index 0000000..634a056
 > --- /dev/null
-> +++ b/drivers/media/video/isp/isp.c
-> @@ -0,0 +1,2476 @@
+> +++ b/drivers/media/video/isp/omap_previewer.c
+> @@ -0,0 +1,825 @@
 > +/*
-> + * drivers/media/video/isp/isp.c
+> + * drivers/media/video/isp/omap_previewer.c
 > + *
-> + * Driver Library for ISP Control module in TI's OMAP3 Camera ISP
-> + * ISP interface and IRQ related APIs are defined here.
+> + * Wrapper for Preview module in TI's OMAP3430 ISP
 > + *
-> + * Copyright (C) 2008 Texas Instruments.
-> + * Copyright (C) 2008 Nokia.
+> + * Copyright (C) 2008 Texas Instruments, Inc.
 > + *
 > + * Contributors:
-> + *     Sameer Venkatraman <sameerv@ti.com>
-> + *     Mohit Jalori <mjalori@ti.com>
-> + *     Sakari Ailus <sakari.ailus@nokia.com>
-> + *     Tuukka Toivonen <tuukka.o.toivonen@nokia.com>
-> + *     Toni Leinonen <toni.leinonen@nokia.com>
+> + *     Leonides Martinez <leonides.martinez@ti.com>
+> + *     Sergio Aguirre <saaguirre@ti.com>
 > + *
 > + * This package is free software; you can redistribute it and/or modify
 > + * it under the terms of the GNU General Public License version 2 as
@@ -97,2842 +120,1014 @@ On Thursday 11 December 2008 21:38:12 Aguirre Rodriguez, Sergio Alberto wrote:
 > + * WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 > + */
 > +
-> +#include <linux/module.h>
-> +#include <linux/errno.h>
-> +#include <linux/sched.h>
-> +#include <linux/delay.h>
-> +#include <linux/err.h>
-> +#include <linux/interrupt.h>
-> +#include <linux/clk.h>
-> +#include <linux/dma-mapping.h>
-> +#include <asm/irq.h>
-> +#include <linux/bitops.h>
-> +#include <linux/scatterlist.h>
-> +#include <asm/mach-types.h>
+> +#include <linux/mutex.h>
+> +#include <linux/cdev.h>
 > +#include <linux/device.h>
-> +#include <linux/videodev2.h>
-> +#include <linux/vmalloc.h>
+> +#include <linux/delay.h>
+> +#include <linux/fs.h>
+> +#include <linux/mm.h>
+> +#include <linux/module.h>
+> +#include <linux/platform_device.h>
+> +#include <linux/uaccess.h>
+> +#include <linux/io.h>
+> +#include <media/v4l2-dev.h>
+> +#include <asm/cacheflush.h>
 > +
 > +#include "isp.h"
 > +#include "ispmmu.h"
 > +#include "ispreg.h"
-> +#include "ispccdc.h"
-> +#include "isph3a.h"
-> +#include "isphist.h"
-> +#include "isp_af.h"
-> +#include "isppreview.h"
-> +#include "ispresizer.h"
-> +#include "ispcsi2.h"
+> +#include "omap_previewer.h"
 > +
-> +#if ISP_WORKAROUND
-> +void *buff_addr;
-> +dma_addr_t buff_addr_mapped;
-> +struct scatterlist *sglist_alloc;
-> +static int alloc_done, num_sc;
-> +unsigned long offset_value;
-> +#endif
+> +#define OMAP_PREV_NAME         "omap-previewer"
 > +
-> +/* List of image formats supported via OMAP ISP */
-> +const static struct v4l2_fmtdesc isp_formats[] = {
-> +       {
-> +               .description = "UYVY, packed",
-> +               .pixelformat = V4L2_PIX_FMT_UYVY,
-> +       },
-> +       {
-> +               .description = "YUYV (YUV 4:2:2), packed",
-> +               .pixelformat = V4L2_PIX_FMT_YUYV,
-> +       },
-> +       {
-> +               .description = "Bayer10 (GrR/BGb)",
-> +               .pixelformat = V4L2_PIX_FMT_SGRBG10,
-> +       },
-> +};
+> +static int prev_major = -1;
+> +static struct device *prev_dev;
+> +static struct class *prev_class;
+> +static struct prev_device *prevdevice;
+> +static struct platform_driver omap_previewer_driver;
 > +
-> +/* ISP Crop capabilities */
-> +static struct v4l2_rect ispcroprect;
-> +static struct v4l2_rect cur_rect;
+> +static u32 prev_bufsize;
 > +
 > +/**
-> + * struct vcontrol - Video control structure.
-> + * @qc: V4L2 Query control structure.
-> + * @current_value: Current value of the control.
-> + */
-> +static struct vcontrol {
-> +       struct v4l2_queryctrl qc;
-> +       int current_value;
-> +} video_control[] = {
-> +       {
-> +               {
-> +                       .id = V4L2_CID_BRIGHTNESS,
-> +                       .type = V4L2_CTRL_TYPE_INTEGER,
-> +                       .name = "Brightness",
-> +                       .minimum = ISPPRV_BRIGHT_LOW,
-> +                       .maximum = ISPPRV_BRIGHT_HIGH,
-> +                       .step = ISPPRV_BRIGHT_STEP,
-> +                       .default_value = ISPPRV_BRIGHT_DEF,
-> +               },
-> +               .current_value = ISPPRV_BRIGHT_DEF,
-> +       },
-> +       {
-> +               {
-> +                       .id = V4L2_CID_CONTRAST,
-> +                       .type = V4L2_CTRL_TYPE_INTEGER,
-> +                       .name = "Contrast",
-> +                       .minimum = ISPPRV_CONTRAST_LOW,
-> +                       .maximum = ISPPRV_CONTRAST_HIGH,
-> +                       .step = ISPPRV_CONTRAST_STEP,
-> +                       .default_value = ISPPRV_CONTRAST_DEF,
-> +               },
-> +               .current_value = ISPPRV_CONTRAST_DEF,
-> +       },
-> +       {
-> +               {
-> +                       .id = V4L2_CID_PRIVATE_ISP_COLOR_FX,
-> +                       .type = V4L2_CTRL_TYPE_INTEGER,
-> +                       .name = "Color Effects",
-
-What does this do? It definitely looks like this should be a menu, not
-an integer control. Forcing color to B&W is something that other hardware
-can do as well, so I think this is a very good candidate for a generic
-user control, rather than driver specific.
-
-> +                       .minimum = PREV_DEFAULT_COLOR,
-> +                       .maximum = PREV_BW_COLOR,
-> +                       .step = 1,
-> +                       .default_value = PREV_DEFAULT_COLOR,
-> +               },
-> +               .current_value = PREV_DEFAULT_COLOR,
-> +       }
-> +};
-> +
-> +
-> +/**
-> + * struct ispirq - Structure for containing callbacks to be called in ISP ISR.
-> + * @isp_callbk: Array which stores callback functions, indexed by the type of
-> + *              callback (8 possible types).
-> + * @isp_callbk_arg1: Pointer to array containing pointers to the first argument
-> + *                   to be passed to the requested callback function.
-> + * @isp_callbk_arg2: Pointer to array containing pointers to the second
-> + *                   argument to be passed to the requested callback function.
+> + * prev_calculate_crop - Calculate crop size according to device parameters
+> + * @device: Structure containing ISP preview wrapper global information
+> + * @crop: Structure containing crop size
 > + *
-> + * This structure is used to contain all the callback functions related for
-> + * each callback type (CBK_CCDC_VD0, CBK_CCDC_VD1, CBK_PREV_DONE,
-> + * CBK_RESZ_DONE, CBK_MMU_ERR, CBK_H3A_AWB_DONE, CBK_HIST_DONE, CBK_HS_VS,
-> + * CBK_LSC_ISR).
-> + */
-> +static struct ispirq {
-> +       isp_callback_t isp_callbk[CBK_END];
-> +       isp_vbq_callback_ptr isp_callbk_arg1[CBK_END];
-> +       void *isp_callbk_arg2[CBK_END];
-> +} ispirq_obj;
-> +
-> +/**
-> + * struct isp - Structure for storing ISP Control module information
-> + * @lock: Spinlock to sync between isr and processes.
-> + * @isp_temp_buf_lock: Temporary spinlock for buffer control.
-> + * @isp_mutex: Semaphore used to get access to the ISP.
-> + * @if_status: Type of interface used in ISP.
-> + * @interfacetype: (Not used).
-> + * @ref_count: Reference counter.
-> + * @cam_ick: Pointer to ISP Interface clock.
-> + * @cam_fck: Pointer to ISP Functional clock.
-> + *
-> + * This structure is used to store the OMAP ISP Control Information.
-> + */
-> +static struct isp {
-> +       spinlock_t lock;        /* For handling registered ISP callbacks */
-> +       spinlock_t isp_temp_buf_lock;   /* For handling isp buffers state */
-> +       struct mutex isp_mutex; /* For handling ref_count field */
-> +       u8 if_status;
-> +       u8 interfacetype;
-> +       int ref_count;
-> +       struct clk *cam_ick;
-> +       struct clk *cam_mclk;
-> +       struct clk *csi2_fck;
-> +} isp_obj;
-> +
-> +struct isp_sgdma ispsg;
-> +
-> +/**
-> + * struct ispmodule - Structure for storing ISP sub-module information.
-> + * @isp_pipeline: Bit mask for submodules enabled within the ISP.
-> + * @isp_temp_state: State of current buffers.
-> + * @applyCrop: Flag to do a crop operation when video buffer queue ISR is done
-> + * @pix: Structure containing the format and layout of the output image.
-> + * @ccdc_input_width: ISP CCDC module input image width.
-> + * @ccdc_input_height: ISP CCDC module input image height.
-> + * @ccdc_output_width: ISP CCDC module output image width.
-> + * @ccdc_output_height: ISP CCDC module output image height.
-> + * @preview_input_width: ISP Preview module input image width.
-> + * @preview_input_height: ISP Preview module input image height.
-> + * @preview_output_width: ISP Preview module output image width.
-> + * @preview_output_height: ISP Preview module output image height.
-> + * @resizer_input_width: ISP Resizer module input image width.
-> + * @resizer_input_height: ISP Resizer module input image height.
-> + * @resizer_output_width: ISP Resizer module output image width.
-> + * @resizer_output_height: ISP Resizer module output image height.
-> + */
-> +struct ispmodule {
-> +       unsigned int isp_pipeline;
-> +       int isp_temp_state;
-> +       int applyCrop;
-> +       struct v4l2_pix_format pix;
-> +       unsigned int ccdc_input_width;
-> +       unsigned int ccdc_input_height;
-> +       unsigned int ccdc_output_width;
-> +       unsigned int ccdc_output_height;
-> +       unsigned int preview_input_width;
-> +       unsigned int preview_input_height;
-> +       unsigned int preview_output_width;
-> +       unsigned int preview_output_height;
-> +       unsigned int resizer_input_width;
-> +       unsigned int resizer_input_height;
-> +       unsigned int resizer_output_width;
-> +       unsigned int resizer_output_height;
-> +};
-> +
-> +static struct ispmodule ispmodule_obj = {
-> +       .isp_pipeline = OMAP_ISP_CCDC,
-> +       .isp_temp_state = ISP_BUF_INIT,
-> +       .applyCrop = 0,
-> +       .pix = {
-> +               .width = ISP_OUTPUT_WIDTH_DEFAULT,
-> +               .height = ISP_OUTPUT_HEIGHT_DEFAULT,
-> +               .pixelformat = V4L2_PIX_FMT_UYVY,
-> +               .field = V4L2_FIELD_NONE,
-> +               .bytesperline = ISP_OUTPUT_WIDTH_DEFAULT * ISP_BYTES_PER_PIXEL,
-> +               .colorspace = V4L2_COLORSPACE_JPEG,
-> +               .priv = 0,
-> +       },
-> +};
-> +
-> +/* Structure for saving/restoring ISP module registers */
-> +static struct isp_reg isp_reg_list[] = {
-> +       {ISP_SYSCONFIG, 0},
-> +       {ISP_TCTRL_GRESET_LENGTH, 0},
-> +       {ISP_TCTRL_PSTRB_REPLAY, 0},
-> +       {ISP_CTRL, 0},
-> +       {ISP_TCTRL_CTRL, 0},
-> +       {ISP_TCTRL_FRAME, 0},
-> +       {ISP_TCTRL_PSTRB_DELAY, 0},
-> +       {ISP_TCTRL_STRB_DELAY, 0},
-> +       {ISP_TCTRL_SHUT_DELAY, 0},
-> +       {ISP_TCTRL_PSTRB_LENGTH, 0},
-> +       {ISP_TCTRL_STRB_LENGTH, 0},
-> +       {ISP_TCTRL_SHUT_LENGTH, 0},
-> +       {ISP_CBUFF_SYSCONFIG, 0},
-> +       {ISP_CBUFF_IRQENABLE, 0},
-> +       {ISP_CBUFF0_CTRL, 0},
-> +       {ISP_CBUFF1_CTRL, 0},
-> +       {ISP_CBUFF0_START, 0},
-> +       {ISP_CBUFF1_START, 0},
-> +       {ISP_CBUFF0_END, 0},
-> +       {ISP_CBUFF1_END, 0},
-> +       {ISP_CBUFF0_WINDOWSIZE, 0},
-> +       {ISP_CBUFF1_WINDOWSIZE, 0},
-> +       {ISP_CBUFF0_THRESHOLD, 0},
-> +       {ISP_CBUFF1_THRESHOLD, 0},
-> +       {ISP_TOK_TERM, 0}
-> +};
-> +
-> +/*
-> + *
-> + * V4L2 Handling
-> + *
-> + */
-> +
-> +/**
-> + * find_vctrl - Returns the index of the ctrl array of the requested ctrl ID.
-> + * @id: Requested control ID.
-> + *
-> + * Returns 0 if successful, -EINVAL if not found, or -EDOM if its out of
-> + * domain.
+> + * This function is used to calculate frame size reduction depending on
+> + * the features enabled by the application.
 > + **/
-> +static int find_vctrl(int id)
+> +static void prev_calculate_crop(struct prev_device *device,
+> +                                               struct prev_cropsize *crop)
 > +{
-> +       int i;
+> +       dev_dbg(prev_dev, "prev_calculate_crop E\n");
 > +
-> +       if (id < V4L2_CID_BASE)
-> +               return -EDOM;
+> +       if (!device || !crop) {
+> +               dev_err(prev_dev, "\nErron in argument");
+> +               return;
+> +       }
 > +
-> +       for (i = (ARRAY_SIZE(video_control) - 1); i >= 0; i--)
-> +               if (video_control[i].qc.id == id)
-> +                       break;
-> +
-> +       if (i < 0)
-> +               i = -EINVAL;
-> +
-> +       return i;
+> +       isppreview_try_size(device->params->size_params.hsize,
+> +                                       device->params->size_params.vsize,
+> +                                       &crop->hcrop, &crop->vcrop);
+> +       crop->hcrop &= PREV_16PIX_ALIGN_MASK;
+> +       dev_dbg(prev_dev, "prev_calculate_crop L\n");
 > +}
 > +
-> +static int find_next_vctrl(int id)
+> +/**
+> + * prev_get_status - Get status of ISP preview module
+> + * @status: Structure containing the busy state.
+> + *
+> + * Checks if the ISP preview module is busy.
+> + *
+> + * Returns 0 if successful, or -EINVAL if the status parameter is invalid.
+> + **/
+> +static int prev_get_status(struct prev_status *status)
 > +{
-> +       int i;
-> +       u32 best = (u32)-1;
+> +       if (!status) {
+> +               dev_err(prev_dev, "get_status: invalid parameter\n");
+> +               return -EINVAL;
+> +       }
+> +       status->hw_busy = (char)isppreview_busy();
+> +       return 0;
+> +}
 > +
-> +       for (i = 0; i < ARRAY_SIZE(video_control); i++) {
-> +               if (video_control[i].qc.id > id &&
-> +                                               (best == (u32)-1 ||
-> +                                               video_control[i].qc.id <
-> +                                               video_control[best].qc.id)) {
-> +                       best = i;
+> +/**
+> + * prev_hw_setup - Stores the desired configuration in the proper HW registers
+> + * @config: Structure containing the desired configuration for ISP preview
+> + *          module.
+> + *
+> + * Reads the structure sent, and modifies the desired registers.
+> + *
+> + * Always returns 0.
+> + **/
+> +static int prev_hw_setup(struct prev_params *config)
+> +{
+> +       dev_dbg(prev_dev, "prev_hw_setup E\n");
+> +
+> +       if (config->features & PREV_AVERAGER)
+> +               isppreview_config_averager(config->average);
+> +       else
+> +               isppreview_config_averager(0);
+> +
+> +       if (config->features & PREV_INVERSE_ALAW)
+> +               isppreview_enable_invalaw(1);
+> +       else
+> +               isppreview_enable_invalaw(0);
+> +
+> +       if (config->features & PREV_HORZ_MEDIAN_FILTER) {
+> +               isppreview_config_hmed(config->hmf_params);
+> +               isppreview_enable_hmed(1);
+> +       } else
+> +               isppreview_enable_hmed(0);
+> +
+> +       if (config->features & PREV_DARK_FRAME_SUBTRACT) {
+> +               isppreview_set_darkaddr(config->drkf_params.addr);
+> +               isppreview_config_darklineoffset(config->drkf_params.offset);
+> +               isppreview_enable_drkframe(1);
+> +       } else
+> +               isppreview_enable_drkframe(0);
+> +
+> +       if (config->features & PREV_LENS_SHADING) {
+> +               isppreview_config_drkf_shadcomp(config->lens_shading_shift);
+> +               isppreview_enable_shadcomp(1);
+> +       } else
+> +               isppreview_enable_shadcomp(0);
+> +
+> +       dev_dbg(prev_dev, "prev_hw_setup L\n");
+> +       return 0;
+> +}
+> +
+> +/**
+> + * prev_validate_params - Validate configuration parameters for Preview Wrapper
+> + * @params: Structure containing configuration parameters
+> + *
+> + * Validate configuration parameters for Preview Wrapper
+> + *
+> + * Returns 0 if successful, or -EINVAL if a parameter value is invalid.
+> + **/
+> +static int prev_validate_params(struct prev_params *params)
+> +{
+> +       if (!params) {
+> +               dev_err(prev_dev, "validate_params: error in argument");
+> +               goto err_einval;
+> +       }
+> +
+> +       if ((params->features & PREV_AVERAGER) == PREV_AVERAGER) {
+> +               if ((params->average != NO_AVE)
+> +                                       && (params->average != AVE_2_PIX)
+> +                                       && (params->average != AVE_4_PIX)
+> +                                       && (params->average != AVE_8_PIX)) {
+> +                       dev_err(prev_dev, "validate_params: wrong pix "
+> +                                                               "average\n");
+> +                       goto err_einval;
+> +               } else if (((params->average == AVE_2_PIX)
+> +                                       && (params->size_params.hsize % 2))
+> +                                       || ((params->average == AVE_4_PIX)
+> +                                       && (params->size_params.hsize % 4))
+> +                                       || ((params->average == AVE_8_PIX)
+> +                                       && (params->size_params.hsize % 8))) {
+> +                       dev_err(prev_dev, "validate_params: "
+> +                                       "wrong pix average for input size\n");
+> +                       goto err_einval;
 > +               }
 > +       }
 > +
-> +       if (best == (u32)-1)
-> +               return -EINVAL;
+> +       if ((params->size_params.pixsize != PREV_INWIDTH_8BIT)
+> +                                       && (params->size_params.pixsize
+> +                                       != PREV_INWIDTH_10BIT)) {
+> +               dev_err(prev_dev, "validate_params: wrong pixsize\n");
+> +               goto err_einval;
+> +       }
 > +
-> +       return best;
+> +       if (params->size_params.hsize > MAX_IMAGE_WIDTH
+> +                                       || params->size_params.hsize < 0) {
+> +               dev_err(prev_dev, "validate_params: wrong hsize\n");
+> +               goto err_einval;
+> +       }
+> +
+> +       if ((params->pix_fmt != YCPOS_YCrYCb)
+> +                                       && (YCPOS_YCbYCr != params->pix_fmt)
+> +                                       && (YCPOS_CbYCrY != params->pix_fmt)
+> +                                       && (YCPOS_CrYCbY != params->pix_fmt)) {
+> +               dev_err(prev_dev, "validate_params: wrong pix_fmt");
+> +               goto err_einval;
+> +       }
+> +
+> +       if ((params->features & PREV_DARK_FRAME_SUBTRACT)
+> +                                               && (params->features
+> +                                               & PREV_DARK_FRAME_CAPTURE)) {
+> +               dev_err(prev_dev, "validate_params: DARK FRAME CAPTURE and "
+> +                                               "SUBSTRACT cannot be enabled "
+> +                                               "at same time\n");
+> +               goto err_einval;
+> +       }
+> +
+> +       if (params->features & PREV_DARK_FRAME_SUBTRACT)
+> +               if (!params->drkf_params.addr
+> +                                       || (params->drkf_params.offset % 32)) {
+> +                       dev_err(prev_dev, "validate_params: dark frame "
+> +                                                               "address\n");
+> +                       goto err_einval;
+> +               }
+> +
+> +       if (params->features & PREV_LENS_SHADING)
+> +               if ((params->lens_shading_shift > 7)
+> +                                       || !params->drkf_params.addr
+> +                                       || (params->drkf_params.offset % 32)) {
+> +                       dev_err(prev_dev, "validate_params: lens shading "
+> +                                                               "shift\n");
+> +                       goto err_einval;
+> +               }
+> +
+> +       if ((params->size_params.in_pitch <= 0)
+> +                               || (params->size_params.in_pitch % 32)) {
+> +               params->size_params.in_pitch =
+> +                               (params->size_params.hsize * 2) & 0xFFE0;
+> +               dev_err(prev_dev, "\nError in in_pitch; new value = %d",
+> +                                               params->size_params.in_pitch);
+> +       }
+> +
+> +       return 0;
+> +err_einval:
+> +       return -EINVAL;
 > +}
 > +
 > +/**
-> + * isp_release_resources - Free ISP submodules
+> + * preview_isr - Callback from ISP driver for ISP Preview Interrupt
+> + * @status: ISP IRQ0STATUS register value
+> + * @arg1: Structure containing ISP preview wrapper global information
+> + * @arg2: Currently not used
 > + **/
-> +void isp_release_resources(void)
+> +static void preview_isr(unsigned long status, isp_vbq_callback_ptr arg1,
+> +                                                               void *arg2)
 > +{
-> +       if (ispmodule_obj.isp_pipeline & OMAP_ISP_CCDC)
-> +               ispccdc_free();
+> +       struct prev_device *device = (struct prev_device *)arg1;
 > +
-> +       if (ispmodule_obj.isp_pipeline & OMAP_ISP_PREVIEW)
-> +               isppreview_free();
+> +       if ((status & PREV_DONE) != PREV_DONE)
+> +               return;
 > +
-> +       if (ispmodule_obj.isp_pipeline & OMAP_ISP_RESIZER)
-> +               ispresizer_free();
+> +       if (device)
+> +               complete(&device->wfc);
+> +}
+> +
+> +/**
+> + * prev_do_preview - Performs the Preview process
+> + * @device: Structure containing ISP preview wrapper global information
+> + * @arg: Currently not used
+> + *
+> + * Returns 0 if successful, or -EINVAL if the sent parameters are invalid.
+> + **/
+> +static int prev_do_preview(struct prev_device *device, int *arg)
+> +{
+> +       int bpp, size;
+> +       int ret = 0;
+> +       u32 out_hsize, out_vsize, out_line_offset;
+> +
+> +       dev_dbg(prev_dev, "prev_do_preview E\n");
+> +
+> +       if (!device) {
+> +               dev_err(prev_dev, "preview: invalid parameters\n");
+> +               return -EINVAL;
+> +       }
+> +
+> +       if (device->params->size_params.pixsize == PREV_INWIDTH_8BIT)
+> +               bpp = 1;
+> +       else
+> +               bpp = 2;
+> +
+> +       size = device->params->size_params.hsize *
+> +               device->params->size_params.vsize * bpp;
+> +
+> +       ret = isppreview_set_inaddr(device->isp_addr_read);
+> +       if (ret)
+> +               goto out;
+> +
+> +       ret = isppreview_set_outaddr(device->isp_addr_read);
+> +       if (ret)
+> +               goto out;
+> +
+> +       isppreview_try_size(device->params->size_params.hsize,
+> +                                       device->params->size_params.vsize,
+> +                                       &out_hsize, &out_vsize);
+> +
+> +       ret = isppreview_config_inlineoffset(device->params->size_params.hsize
+> +                                               * bpp);
+> +       if (ret)
+> +               goto out;
+> +
+> +       out_line_offset = (out_hsize * bpp) & PREV_32BYTES_ALIGN_MASK;
+> +
+> +       ret = isppreview_config_outlineoffset(out_line_offset);
+> +       if (ret)
+> +               goto out;
+> +
+> +       ret = isppreview_config_size(device->params->size_params.hsize,
+> +                                       device->params->size_params.vsize,
+> +                                       out_hsize, out_vsize);
+> +       if (ret)
+> +               goto out;
+> +
+> +       isppreview_config_datapath(PRV_RAW_MEM, PREVIEW_MEM);
+> +
+> +       ret = isp_set_callback(CBK_PREV_DONE, preview_isr, (void *)device,
+> +                                                               (void *)NULL);
+> +       if (ret) {
+> +               dev_err(prev_dev, "ERROR while setting Previewer callback!\n");
+> +               goto out;
+> +       }
+> +       isppreview_enable(1);
+> +
+> +       wait_for_completion_interruptible(&device->wfc);
+> +
+> +       if (device->isp_addr_read) {
+> +               ispmmu_unmap(device->isp_addr_read);
+> +               device->isp_addr_read = 0;
+> +       }
+> +
+> +       ret = isp_unset_callback(CBK_PREV_DONE);
+> +
+> +       dev_dbg(prev_dev, "prev_do_preview L\n");
+> +out:
+> +       return ret;
+> +}
+> +
+> +/**
+> + * previewer_vbq_release - Videobuffer queue release
+> + * @q: Structure containing the videobuffer queue.
+> + * @vb: Structure containing the videobuffer used for previewer processing.
+> + **/
+> +static void previewer_vbq_release(struct videobuf_queue *q,
+> +                                               struct videobuf_buffer *vb)
+> +{
+> +       struct prev_fh *fh = q->priv_data;
+> +       struct prev_device *device = fh->device;
+> +
+> +       ispmmu_unmap(device->isp_addr_read);
+> +       device->isp_addr_read = 0;
+> +       spin_lock(&device->vbq_lock);
+> +       vb->state = VIDEOBUF_NEEDS_INIT;
+> +       spin_unlock(&device->vbq_lock);
+> +       dev_dbg(prev_dev, "previewer_vbq_release\n");
+> +}
+> +
+> +/**
+> + * previewer_vbq_setup - Sets up the videobuffer size and validates count.
+> + * @q: Structure containing the videobuffer queue.
+> + * @cnt: Number of buffers requested
+> + * @size: Size in bytes of the buffer used for previewing
+> + *
+> + * Always returns 0.
+> + **/
+> +static int previewer_vbq_setup(struct videobuf_queue *q,
+> +                                                       unsigned int *cnt,
+> +                                                       unsigned int *size)
+> +{
+> +       struct prev_fh *fh = q->priv_data;
+> +       struct prev_device *device = fh->device;
+> +       u32 bpp = 1;
+> +
+> +       spin_lock(&device->vbq_lock);
+> +       if (*cnt <= 0)
+> +               *cnt = VIDEO_MAX_FRAME;
+> +
+> +       if (*cnt > VIDEO_MAX_FRAME)
+> +               *cnt = VIDEO_MAX_FRAME;
+> +
+> +       if (!device->params->size_params.hsize ||
+> +               !device->params->size_params.vsize) {
+> +               dev_err(prev_dev, "Can't setup buffer size\n");
+> +               spin_unlock(&device->vbq_lock);
+> +               return -EINVAL;
+> +       }
+> +
+> +       if (device->params->size_params.pixsize == PREV_INWIDTH_10BIT)
+> +               bpp = 2;
+> +       *size = prev_bufsize = bpp * device->params->size_params.hsize
+> +                                       * device->params->size_params.vsize;
+> +       spin_unlock(&device->vbq_lock);
+> +       dev_dbg(prev_dev, "previewer_vbq_setup\n");
+> +       return 0;
+> +}
+> +
+> +/**
+> + * previewer_vbq_prepare - Videobuffer is prepared and mmapped.
+> + * @q: Structure containing the videobuffer queue.
+> + * @vb: Structure containing the videobuffer used for previewer processing.
+> + * @field: Type of field to set in videobuffer device.
+> + *
+> + * Returns 0 if successful, or -EINVAL if buffer couldn't get allocated, or
+> + * -EIO if the ISP MMU mapping fails
+> + **/
+> +static int previewer_vbq_prepare(struct videobuf_queue *q,
+> +                                               struct videobuf_buffer *vb,
+> +                                               enum v4l2_field field)
+> +{
+> +       struct prev_fh *fh = q->priv_data;
+> +       struct prev_device *device = fh->device;
+> +       int err = -EINVAL;
+> +       unsigned int isp_addr;
+> +       struct videobuf_dmabuf *dma = videobuf_to_dma(vb);
+> +
+> +       dev_dbg(prev_dev, "previewer_vbq_prepare E\n");
+> +       spin_lock(&device->vbq_lock);
+> +       if (vb->baddr) {
+> +               vb->size = prev_bufsize;
+> +               vb->bsize = prev_bufsize;
+> +       } else {
+> +               spin_unlock(&device->vbq_lock);
+> +               dev_err(prev_dev, "No user buffer allocated\n");
+> +               goto out;
+> +       }
+> +
+> +       vb->width = device->params->size_params.hsize;
+> +       vb->height = device->params->size_params.vsize;
+> +       vb->field = field;
+> +       spin_unlock(&device->vbq_lock);
+> +
+> +       if (vb->state == VIDEOBUF_NEEDS_INIT) {
+> +               err = videobuf_iolock(q, vb, NULL);
+> +               if (!err) {
+> +                       isp_addr = ispmmu_map_sg(dma->sglist, dma->sglen);
+> +                       if (!isp_addr)
+> +                               err = -EIO;
+> +                       else
+> +                               device->isp_addr_read = isp_addr;
+> +               }
+> +       }
+> +
+> +       if (!err) {
+> +               vb->state = VIDEOBUF_PREPARED;
+> +               flush_cache_user_range(NULL, vb->baddr,
+> +                                       (vb->baddr + vb->bsize));
+> +       } else
+> +               previewer_vbq_release(q, vb);
+> +
+> +       dev_dbg(prev_dev, "previewer_vbq_prepare L\n");
+> +out:
+> +       return err;
+> +}
+> +
+> +static void previewer_vbq_queue(struct videobuf_queue *q,
+> +                                               struct videobuf_buffer *vb)
+> +{
 > +       return;
 > +}
-> +EXPORT_SYMBOL(omapisp_unset_callback);
-> +
-> +/* Flag to check first time of isp_get */
-> +static int off_mode;
 > +
 > +/**
-> + * isp_set_sgdma_callback - Set Scatter-Gather DMA Callback.
-> + * @sgdma_state: Pointer to structure with the SGDMA state for each videobuffer
-> + * @func_ptr: Callback function pointer for SG-DMA management
-> + **/
-> +static int isp_set_sgdma_callback(struct isp_sgdma_state *sgdma_state,
-> +                                               isp_vbq_callback_ptr func_ptr)
-> +{
-> +       if ((ispmodule_obj.isp_pipeline & OMAP_ISP_RESIZER) &&
-> +                                               is_ispresizer_enabled()) {
-> +               isp_set_callback(CBK_RESZ_DONE, sgdma_state->callback,
-> +                                               func_ptr, sgdma_state->arg);
-> +       }
-> +
-> +       if ((ispmodule_obj.isp_pipeline & OMAP_ISP_PREVIEW) &&
-> +                                               is_isppreview_enabled()) {
-> +               isp_set_callback(CBK_PREV_DONE, sgdma_state->callback,
-> +                                               func_ptr, sgdma_state->arg);
-> +       }
-> +
-> +       if (ispmodule_obj.isp_pipeline & OMAP_ISP_CCDC) {
-> +               isp_set_callback(CBK_CCDC_VD0, sgdma_state->callback, func_ptr,
-> +                                                       sgdma_state->arg);
-> +               isp_set_callback(CBK_CCDC_VD1, sgdma_state->callback, func_ptr,
-> +                                                       sgdma_state->arg);
-> +               isp_set_callback(CBK_LSC_ISR, NULL, NULL, NULL);
-> +       }
-> +
-> +       isp_set_callback(CBK_HS_VS, sgdma_state->callback, func_ptr,
-> +                                                       sgdma_state->arg);
-> +       return 0;
-> +}
-> +
-> +/**
-> + * isp_set_callback - Sets the callback for the ISP module done events.
-> + * @type: Type of the event for which callback is requested.
-> + * @callback: Method to be called as callback in the ISR context.
-> + * @arg1: First argument to be passed when callback is called in ISR.
-> + * @arg2: Second argument to be passed when callback is called in ISR.
+> + * previewer_open - Initializes and opens the Preview Wrapper
+> + * @inode: Inode structure associated with the Preview Wrapper
+> + * @filp: File structure associated with the Preview Wrapper
 > + *
-> + * This function sets a callback function for a done event in the ISP
-> + * module, and enables the corresponding interrupt.
+> + * Returns 0 if successful, -EACCES if its unable to initialize default config,
+> + * -EBUSY if its already opened or the ISP module is not available, or -ENOMEM
+> + * if its unable to allocate the device in kernel space memory.
 > + **/
-> +int isp_set_callback(enum isp_callback_type type, isp_callback_t callback,
-> +                                               isp_vbq_callback_ptr arg1,
-> +                                               void *arg2)
+> +static int previewer_open(struct inode *inode, struct file *filp)
 > +{
-> +       unsigned long irqflags = 0;
+> +       int ret = 0;
+> +       struct prev_device *device = prevdevice;
+> +       struct prev_params *config = isppreview_get_config();
+> +       struct prev_fh *fh;
 > +
-> +       if (callback == NULL) {
-> +               DPRINTK_ISPCTRL("ISP_ERR : Null Callback\n");
-> +               return -EINVAL;
+> +       if (config == NULL) {
+> +               dev_err(prev_dev, "Unable to initialize default config "
+> +                       "from isppreviewer\n\n");
+> +               return -EACCES;
 > +       }
 > +
-> +       spin_lock_irqsave(&isp_obj.lock, irqflags);
-> +       ispirq_obj.isp_callbk[type] = callback;
-> +       ispirq_obj.isp_callbk_arg1[type] = arg1;
-> +       ispirq_obj.isp_callbk_arg2[type] = arg2;
-> +       spin_unlock_irqrestore(&isp_obj.lock, irqflags);
-> +
-> +       switch (type) {
-> +       case CBK_HS_VS:
-> +               omap_writel(IRQ0ENABLE_HS_VS_IRQ, ISP_IRQ0STATUS);
-> +               omap_writel(omap_readl(ISP_IRQ0ENABLE) | IRQ0ENABLE_HS_VS_IRQ,
-> +                                                       ISP_IRQ0ENABLE);
-> +               break;
-> +       case CBK_PREV_DONE:
-> +               omap_writel(IRQ0ENABLE_PRV_DONE_IRQ, ISP_IRQ0STATUS);
-> +               omap_writel(omap_readl(ISP_IRQ0ENABLE) |
-> +                                       IRQ0ENABLE_PRV_DONE_IRQ,
-> +                                       ISP_IRQ0ENABLE);
-> +               break;
-> +       case CBK_RESZ_DONE:
-> +               omap_writel(IRQ0ENABLE_RSZ_DONE_IRQ, ISP_IRQ0STATUS);
-> +               omap_writel(omap_readl(ISP_IRQ0ENABLE) |
-> +                                       IRQ0ENABLE_RSZ_DONE_IRQ,
-> +                                       ISP_IRQ0ENABLE);
-> +               break;
-> +       case CBK_MMU_ERR:
-> +               omap_writel(omap_readl(ISP_IRQ0ENABLE) |
-> +                                       IRQ0ENABLE_MMU_ERR_IRQ,
-> +                                       ISP_IRQ0ENABLE);
-> +
-> +               omap_writel(omap_readl(ISPMMU_IRQENABLE) |
-> +                                       IRQENABLE_MULTIHITFAULT |
-> +                                       IRQENABLE_TWFAULT |
-> +                                       IRQENABLE_EMUMISS |
-> +                                       IRQENABLE_TRANSLNFAULT |
-> +                                       IRQENABLE_TLBMISS,
-> +                                       ISPMMU_IRQENABLE);
-> +               break;
-> +       case CBK_H3A_AWB_DONE:
-> +               omap_writel(IRQ0ENABLE_H3A_AWB_DONE_IRQ, ISP_IRQ0STATUS);
-> +               omap_writel(omap_readl(ISP_IRQ0ENABLE) |
-> +                                       IRQ0ENABLE_H3A_AWB_DONE_IRQ,
-> +                                       ISP_IRQ0ENABLE);
-> +               break;
-> +       case CBK_H3A_AF_DONE:
-> +               omap_writel(IRQ0ENABLE_H3A_AF_DONE_IRQ, ISP_IRQ0STATUS);
-> +               omap_writel(omap_readl(ISP_IRQ0ENABLE)|
-> +                               IRQ0ENABLE_H3A_AF_DONE_IRQ,
-> +                               ISP_IRQ0ENABLE);
-> +               break;
-> +       case CBK_HIST_DONE:
-> +               omap_writel(IRQ0ENABLE_HIST_DONE_IRQ, ISP_IRQ0STATUS);
-> +               omap_writel(omap_readl(ISP_IRQ0ENABLE) |
-> +                                       IRQ0ENABLE_HIST_DONE_IRQ,
-> +                                       ISP_IRQ0ENABLE);
-> +               break;
-> +       case CBK_LSC_ISR:
-> +               omap_writel(IRQ0ENABLE_CCDC_LSC_DONE_IRQ |
-> +                                       IRQ0ENABLE_CCDC_LSC_PREF_COMP_IRQ |
-> +                                       IRQ0ENABLE_CCDC_LSC_PREF_ERR_IRQ,
-> +                                       ISP_IRQ0STATUS);
-> +               omap_writel(omap_readl(ISP_IRQ0ENABLE) |
-> +                                       IRQ0ENABLE_CCDC_LSC_DONE_IRQ |
-> +                                       IRQ0ENABLE_CCDC_LSC_PREF_COMP_IRQ |
-> +                                       IRQ0ENABLE_CCDC_LSC_PREF_ERR_IRQ,
-> +                                       ISP_IRQ0ENABLE);
-> +               break;
-> +       default:
-> +               break;
-> +       }
-> +
-> +       return 0;
-> +}
-> +EXPORT_SYMBOL(isp_set_callback);
-> +
-> +/**
-> + * isp_unset_callback - Clears the callback for the ISP module done events.
-> + * @type: Type of the event for which callback to be cleared.
-> + *
-> + * This function clears a callback function for a done event in the ISP
-> + * module, and disables the corresponding interrupt.
-> + **/
-> +int isp_unset_callback(enum isp_callback_type type)
-> +{
-> +       unsigned long irqflags = 0;
-> +
-> +       spin_lock_irqsave(&isp_obj.lock, irqflags);
-> +       ispirq_obj.isp_callbk[type] = NULL;
-> +       ispirq_obj.isp_callbk_arg1[type] = NULL;
-> +       ispirq_obj.isp_callbk_arg2[type] = NULL;
-> +       spin_unlock_irqrestore(&isp_obj.lock, irqflags);
-> +
-> +       switch (type) {
-> +       case CBK_CCDC_VD0:
-> +               omap_writel((omap_readl(ISP_IRQ0ENABLE)) &
-> +                                               ~IRQ0ENABLE_CCDC_VD0_IRQ,
-> +                                               ISP_IRQ0ENABLE);
-> +               break;
-> +       case CBK_CCDC_VD1:
-> +               omap_writel((omap_readl(ISP_IRQ0ENABLE)) &
-> +                                               ~IRQ0ENABLE_CCDC_VD1_IRQ,
-> +                                               ISP_IRQ0ENABLE);
-> +               break;
-> +       case CBK_PREV_DONE:
-> +               omap_writel((omap_readl(ISP_IRQ0ENABLE)) &
-> +                                               ~IRQ0ENABLE_PRV_DONE_IRQ,
-> +                                               ISP_IRQ0ENABLE);
-> +               break;
-> +       case CBK_RESZ_DONE:
-> +               omap_writel((omap_readl(ISP_IRQ0ENABLE)) &
-> +                                               ~IRQ0ENABLE_RSZ_DONE_IRQ,
-> +                                               ISP_IRQ0ENABLE);
-> +               break;
-> +       case CBK_MMU_ERR:
-> +               omap_writel(omap_readl(ISPMMU_IRQENABLE) &
-> +                                               ~(IRQENABLE_MULTIHITFAULT |
-> +                                               IRQENABLE_TWFAULT |
-> +                                               IRQENABLE_EMUMISS |
-> +                                               IRQENABLE_TRANSLNFAULT |
-> +                                               IRQENABLE_TLBMISS),
-> +                                               ISPMMU_IRQENABLE);
-> +               break;
-> +       case CBK_H3A_AWB_DONE:
-> +               omap_writel((omap_readl(ISP_IRQ0ENABLE)) &
-> +                                               ~IRQ0ENABLE_H3A_AWB_DONE_IRQ,
-> +                                               ISP_IRQ0ENABLE);
-> +               break;
-> +       case CBK_H3A_AF_DONE:
-> +               omap_writel((omap_readl(ISP_IRQ0ENABLE))&
-> +                               (~IRQ0ENABLE_H3A_AF_DONE_IRQ), ISP_IRQ0ENABLE);
-> +               break;
-> +       case CBK_HIST_DONE:
-> +               omap_writel((omap_readl(ISP_IRQ0ENABLE)) &
-> +                                               ~IRQ0ENABLE_HIST_DONE_IRQ,
-> +                                               ISP_IRQ0ENABLE);
-> +               break;
-> +       case CBK_HS_VS:
-> +               omap_writel((omap_readl(ISP_IRQ0ENABLE)) &
-> +                                               ~IRQ0ENABLE_HS_VS_IRQ,
-> +                                               ISP_IRQ0ENABLE);
-> +               break;
-> +       case CBK_LSC_ISR:
-> +               omap_writel(omap_readl(ISP_IRQ0ENABLE) &
-> +                                       ~(IRQ0ENABLE_CCDC_LSC_DONE_IRQ |
-> +                                       IRQ0ENABLE_CCDC_LSC_PREF_COMP_IRQ |
-> +                                       IRQ0ENABLE_CCDC_LSC_PREF_ERR_IRQ),
-> +                                       ISP_IRQ0ENABLE);
-> +               break;
-> +       case CBK_CSIA:
-> +               isp_csi2_irq_set(0);
-> +               break;
-> +       case CBK_CSIB:
-> +               omap_writel(IRQ0ENABLE_CSIB_IRQ, ISP_IRQ0STATUS);
-> +               omap_writel(omap_readl(ISP_IRQ0ENABLE)|IRQ0ENABLE_CSIB_IRQ,
-> +                                       ISP_IRQ0ENABLE);
-> +               break;
-> +       default:
-> +               break;
-> +       }
-> +
-> +       return 0;
-> +}
-> +EXPORT_SYMBOL(isp_unset_callback);
-> +
-> +/**
-> + * isp_request_interface - Requests an ISP interface type (parallel or serial).
-> + * @if_t: Type of requested ISP interface (parallel or serial).
-> + *
-> + * This function requests for allocation of an ISP interface type.
-> + **/
-> +int isp_request_interface(enum isp_interface_type if_t)
-> +{
-> +       if (isp_obj.if_status & if_t) {
-> +               DPRINTK_ISPCTRL("ISP_ERR : Requested Interface already \
-> +                       allocated\n");
-> +               return -EBUSY;
-> +       }
-> +       if ((isp_obj.if_status == (ISP_PARLL | ISP_CSIA))
-> +                       || isp_obj.if_status == (ISP_CSIA | ISP_CSIB)) {
-> +               DPRINTK_ISPCTRL("ISP_ERR : No Free interface now\n");
+> +       if (device->opened || (filp->f_flags & O_NONBLOCK)) {
+> +               dev_err(prev_dev, "previewer_open: device is already "
+> +                                                               "opened\n");
 > +               return -EBUSY;
 > +       }
 > +
-> +       if (((isp_obj.if_status == ISP_PARLL) && (if_t == ISP_CSIA)) ||
-> +                               ((isp_obj.if_status == ISP_CSIA) &&
-> +                               (if_t == ISP_PARLL)) ||
-> +                               ((isp_obj.if_status == ISP_CSIA) &&
-> +                               (if_t == ISP_CSIB)) ||
-> +                               ((isp_obj.if_status == ISP_CSIB) &&
-> +                               (if_t == ISP_CSIA)) ||
-> +                               (isp_obj.if_status == 0)) {
-
-Hard to understand. Why not:
-
-       if ((isp_obj.if_status == ISP_PARLL && if_t == ISP_CSIA) ||
-           (isp_obj.if_status == ISP_CSIA && if_t == ISP_PARLL) ||
-           (isp_obj.if_status == ISP_CSIA && if_t == ISP_CSIB) ||
-           (isp_obj.if_status == ISP_CSIB && if_t == ISP_CSIA) ||
-           isp_obj.if_status == 0) {
-
-> +               isp_obj.if_status |= if_t;
-> +               return 0;
-> +       } else {
-> +               DPRINTK_ISPCTRL("ISP_ERR : Invalid Combination Serial- \
-> +                       Parallel interface\n");
-> +               return -EINVAL;
-> +       }
-> +}
-> +EXPORT_SYMBOL(isp_request_interface);
+> +       fh = kzalloc(sizeof(struct prev_fh), GFP_KERNEL);
+> +       if (NULL == fh)
+> +               return -ENOMEM;
 > +
-> +/**
-> + * isp_free_interface - Frees an ISP interface type (parallel or serial).
-> + * @if_t: Type of ISP interface to be freed (parallel or serial).
-> + *
-> + * This function frees the allocation of an ISP interface type.
-> + **/
-> +int isp_free_interface(enum isp_interface_type if_t)
-> +{
-> +       isp_obj.if_status &= ~if_t;
+> +       isp_get();
+> +       ret = isppreview_request();
+> +       if (ret) {
+> +               isp_put();
+> +               dev_err(prev_dev, "Can't acquire isppreview\n");
+> +               return ret;
+> +       }
+> +
+> +       device->params = config;
+> +       device->opened = 1;
+> +
+> +       filp->private_data = fh;
+> +       fh->type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+> +       fh->device = device;
+> +
+> +       videobuf_queue_sg_init(&fh->vbq, &device->vbq_ops, NULL,
+> +                                       &device->vbq_lock, fh->type,
+> +                                       V4L2_FIELD_NONE,
+> +                                       sizeof(struct videobuf_buffer), fh);
+> +
+> +       init_completion(&device->wfc);
+> +       device->wfc.done = 0;
+> +       mutex_init(&device->prevwrap_mutex);
+> +
 > +       return 0;
 > +}
-> +EXPORT_SYMBOL(isp_free_interface);
 > +
 > +/**
-> + * isp_set_xclk - Configures the specified cam_xclk to the desired frequency.
-> + * @xclk: Desired frequency of the clock in Hz.
-> + * @xclksel: XCLK to configure (0 = A, 1 = B).
+> + * previewer_release - Releases Preview Wrapper and frees up allocated memory
+> + * @inode: Inode structure associated with the Preview Wrapper
+> + * @filp: File structure associated with the Preview Wrapper
 > + *
-> + * Configures the specified MCLK divisor in the ISP timing control register
-> + * (TCTRL_CTRL) to generate the desired xclk clock value.
-> + *
-> + * Divisor = CM_CAM_MCLK_HZ / xclk
-> + *
-> + * Returns the final frequency that is actually being generated
+> + * Always returns 0.
 > + **/
-> +u32 isp_set_xclk(u32 xclk, u8 xclksel)
+> +static int previewer_release(struct inode *inode, struct file *filp)
 > +{
-> +       u32 divisor;
-> +       u32 currentxclk;
+> +       struct prev_fh *fh = filp->private_data;
+> +       struct prev_device *device = fh->device;
+> +       struct videobuf_queue *q = &fh->vbq;
 > +
-> +       if (xclk >= CM_CAM_MCLK_HZ) {
-> +               divisor = ISPTCTRL_CTRL_DIV_BYPASS;
-> +               currentxclk = CM_CAM_MCLK_HZ;
-> +       } else if (xclk >= 2) {
-> +               divisor = CM_CAM_MCLK_HZ / xclk;
-> +               if (divisor >= ISPTCTRL_CTRL_DIV_BYPASS)
-> +                       divisor = ISPTCTRL_CTRL_DIV_BYPASS - 1;
-> +               currentxclk = CM_CAM_MCLK_HZ / divisor;
-> +       } else {
-> +               divisor = xclk;
-> +               currentxclk = 0;
-> +       }
+> +       device->opened = 0;
+> +       device->params = NULL;
+> +       isppreview_free();
+> +       videobuf_mmap_free(q);
+> +       isp_put();
+> +       prev_bufsize = 0;
+> +       filp->private_data = NULL;
+> +       kfree(fh);
 > +
-> +       switch (xclksel) {
-> +       case 0:
-> +               omap_writel((omap_readl(ISP_TCTRL_CTRL) &
-> +                               ~ISPTCTRL_CTRL_DIVA_MASK) |
-> +                               (divisor << ISPTCTRL_CTRL_DIVA_SHIFT),
-> +                               ISP_TCTRL_CTRL);
-> +               DPRINTK_ISPCTRL("isp_set_xclk(): cam_xclka set to %d Hz\n",
-> +                                                               currentxclk);
-> +               break;
-> +       case 1:
-> +               omap_writel((omap_readl(ISP_TCTRL_CTRL) &
-> +                               ~ISPTCTRL_CTRL_DIVB_MASK) |
-> +                               (divisor << ISPTCTRL_CTRL_DIVB_SHIFT),
-> +                               ISP_TCTRL_CTRL);
-> +               DPRINTK_ISPCTRL("isp_set_xclk(): cam_xclkb set to %d Hz\n",
-> +                                                               currentxclk);
-> +               break;
-> +       default:
-> +               DPRINTK_ISPCTRL("ISP_ERR: isp_set_xclk(): Invalid requested "
-> +                                               "xclk. Must be 0 (A) or 1 (B)."
-> +                                               "\n");
-> +               return -EINVAL;
-> +       }
-> +
-> +       return currentxclk;
+> +       dev_dbg(prev_dev, "previewer_release\n");
+> +       return 0;
 > +}
-> +EXPORT_SYMBOL(isp_set_xclk);
 > +
 > +/**
-> + * isp_get_xclk - Returns the frequency in Hz of the desired cam_xclk.
-> + * @xclksel: XCLK to retrieve (0 = A, 1 = B).
+> + * previewer_mmap - Memory maps the Preview Wrapper module.
+> + * @file: File structure associated with the Preview Wrapper
+> + * @vma: Virtual memory area structure.
 > + *
-> + * This function returns the External Clock (XCLKA or XCLKB) value generated
-> + * by the ISP.
+> + * Returns 0 if successful, or returned value by the videobuf_mmap_mapper()
+> + * function.
 > + **/
-> +u32 isp_get_xclk(u8 xclksel)
+> +static int previewer_mmap(struct file *file, struct vm_area_struct *vma)
 > +{
-> +       u32 xclkdiv;
-> +       u32 xclk;
+> +       struct prev_fh *fh = file->private_data;
+> +       dev_dbg(prev_dev, "previewer_mmap\n");
 > +
-> +       switch (xclksel) {
-> +       case 0:
-> +               xclkdiv = omap_readl(ISP_TCTRL_CTRL) & ISPTCTRL_CTRL_DIVA_MASK;
-> +               xclkdiv = xclkdiv >> ISPTCTRL_CTRL_DIVA_SHIFT;
-> +               break;
-> +       case 1:
-> +               xclkdiv = omap_readl(ISP_TCTRL_CTRL) & ISPTCTRL_CTRL_DIVB_MASK;
-> +               xclkdiv = xclkdiv >> ISPTCTRL_CTRL_DIVB_SHIFT;
-> +               break;
-> +       default:
-> +               DPRINTK_ISPCTRL("ISP_ERR: isp_get_xclk(): Invalid requested "
-> +                                               "xclk. Must be 0 (A) or 1 (B)."
-> +                                               "\n");
-> +               return -EINVAL;
-> +       }
-> +
-> +       switch (xclkdiv) {
-> +       case 0:
-> +       case 1:
-> +               xclk = 0;
-> +               break;
-> +       case 0x1f:
-> +               xclk = CM_CAM_MCLK_HZ;
-> +               break;
-> +       default:
-> +               xclk = CM_CAM_MCLK_HZ / xclkdiv;
-> +               break;
-> +       }
-> +
-> +       return xclk;
+> +       return videobuf_mmap_mapper(&fh->vbq, vma);
 > +}
-> +EXPORT_SYMBOL(isp_get_xclk);
 > +
 > +/**
-> + * isp_power_settings - Sysconfig settings, for Power Management.
-> + * @isp_sysconfig: Structure containing the power settings for ISP to configure
+> + * previewer_ioctl - I/O control function for Preview Wrapper
+> + * @inode: Inode structure associated with the Preview Wrapper.
+> + * @file: File structure associated with the Preview Wrapper.
+> + * @cmd: Type of command to execute.
+> + * @arg: Argument to send to requested command.
 > + *
-> + * Sets the power settings for the ISP, and SBL bus.
+> + * Returns 0 if successful, -1 if bad command passed or access is denied,
+> + * -EFAULT if copy_from_user() or copy_to_user() fails, -EINVAL if parameter
+> + * validation fails or parameter structure is not present
 > + **/
-> +void isp_power_settings(struct isp_sysc isp_sysconfig)
+> +static int previewer_ioctl(struct inode *inode, struct file *file,
+> +                                       unsigned int cmd, unsigned long arg)
 > +{
-> +       if (isp_sysconfig.idle_mode) {
-> +               omap_writel(ISP_SYSCONFIG_AUTOIDLE |
-> +                               (ISP_SYSCONFIG_MIDLEMODE_SMARTSTANDBY <<
-> +                               ISP_SYSCONFIG_MIDLEMODE_SHIFT),
-> +                               ISP_SYSCONFIG);
+> +       int ret = 0;
+> +       struct prev_params params;
+> +       struct prev_fh *fh = file->private_data;
+> +       struct prev_device *device = fh->device;
 > +
-> +               omap_writel(ISPMMU_AUTOIDLE | (ISPMMU_SIDLEMODE_SMARTIDLE <<
-> +                                               ISPMMU_SIDLEMODE_SHIFT),
-> +                                               ISPMMU_SYSCONFIG);
-> +               if (omap_rev() == OMAP3430_REV_ES1_0) {
-> +                       omap_writel(ISPCSI1_AUTOIDLE |
-> +                                       (ISPCSI1_MIDLEMODE_SMARTSTANDBY <<
-> +                                       ISPCSI1_MIDLEMODE_SHIFT),
-> +                                       ISP_CSIA_SYSCONFIG);
-> +                       omap_writel(ISPCSI1_AUTOIDLE |
-> +                                       (ISPCSI1_MIDLEMODE_SMARTSTANDBY <<
-> +                                       ISPCSI1_MIDLEMODE_SHIFT),
-> +                                       ISP_CSIB_SYSCONFIG);
+> +       dev_dbg(prev_dev, "Entering previewer_ioctl()\n");
+> +
+> +       if ((_IOC_TYPE(cmd) != PREV_IOC_BASE)
+> +                                       || (_IOC_NR(cmd) > PREV_IOC_MAXNR)) {
+> +               dev_err(prev_dev, "Bad command Value \n");
+> +               goto err_minusone;
+> +       }
+> +
+> +       if (_IOC_DIR(cmd) & _IOC_READ)
+> +               ret = !access_ok(VERIFY_WRITE, (void *)arg, _IOC_SIZE(cmd));
+> +       else if (_IOC_DIR(cmd) & _IOC_WRITE)
+> +               ret = !access_ok(VERIFY_READ, (void *)arg, _IOC_SIZE(cmd));
+> +       if (ret) {
+> +               dev_err(prev_dev, "access denied\n");
+> +               goto err_minusone;
+> +       }
+> +
+> +       switch (cmd) {
+> +       case PREV_REQBUF:
+> +               if (mutex_lock_interruptible(&device->prevwrap_mutex))
+> +                       goto err_eintr;
+> +               ret = videobuf_reqbufs(&fh->vbq, (void *)arg);
+> +               mutex_unlock(&device->prevwrap_mutex);
+> +               break;
+> +
+> +       case PREV_QUERYBUF:
+> +               if (mutex_lock_interruptible(&device->prevwrap_mutex))
+> +                       goto err_eintr;
+> +               ret = videobuf_querybuf(&fh->vbq, (void *)arg);
+> +               mutex_unlock(&device->prevwrap_mutex);
+> +               break;
+> +
+> +       case PREV_QUEUEBUF:
+> +               if (mutex_lock_interruptible(&device->prevwrap_mutex))
+> +                       goto err_eintr;
+> +               ret = videobuf_qbuf(&fh->vbq, (void *)arg);
+> +               mutex_unlock(&device->prevwrap_mutex);
+> +               break;
+> +
+> +       case PREV_SET_PARAM:
+> +               if (mutex_lock_interruptible(&device->prevwrap_mutex))
+> +                       goto err_eintr;
+> +               if (copy_from_user(&params, (struct prev_params *)arg,
+> +                                               sizeof(struct prev_params))) {
+> +                       mutex_unlock(&device->prevwrap_mutex);
+> +                       return -EFAULT;
 > +               }
-> +               omap_writel(ISPCTRL_SBL_AUTOIDLE, ISP_CTRL);
-> +
-> +       } else {
-> +               omap_writel(ISP_SYSCONFIG_AUTOIDLE |
-> +                               (ISP_SYSCONFIG_MIDLEMODE_FORCESTANDBY <<
-> +                               ISP_SYSCONFIG_MIDLEMODE_SHIFT),
-> +                               ISP_SYSCONFIG);
-> +
-> +               omap_writel(ISPMMU_AUTOIDLE | (ISPMMU_SIDLEMODE_NOIDLE <<
-> +                                                       ISPMMU_SIDLEMODE_SHIFT),
-> +                                                       ISPMMU_SYSCONFIG);
-> +               if (omap_rev() == OMAP3430_REV_ES1_0) {
-> +                       omap_writel(ISPCSI1_AUTOIDLE |
-> +                                       (ISPCSI1_MIDLEMODE_FORCESTANDBY <<
-> +                                       ISPCSI1_MIDLEMODE_SHIFT),
-> +                                       ISP_CSIA_SYSCONFIG);
-> +
-> +                       omap_writel(ISPCSI1_AUTOIDLE |
-> +                                       (ISPCSI1_MIDLEMODE_FORCESTANDBY <<
-> +                                       ISPCSI1_MIDLEMODE_SHIFT),
-> +                                       ISP_CSIB_SYSCONFIG);
+> +               ret = prev_validate_params(&params);
+> +               if (ret < 0) {
+> +                       dev_err(prev_dev, "Error validating parameters!\n");
+> +                       mutex_unlock(&device->prevwrap_mutex);
+> +                       goto out;
+> +               }
+> +               if (device->params)
+> +                       memcpy(device->params, &params,
+> +                                               sizeof(struct prev_params));
+> +               else {
+> +                       mutex_unlock(&device->prevwrap_mutex);
+> +                       return -EINVAL;
 > +               }
 > +
-> +               omap_writel(ISPCTRL_SBL_AUTOIDLE, ISP_CTRL);
-> +       }
-> +}
-> +EXPORT_SYMBOL(isp_power_settings);
-> +
-> +#define BIT_SET(var, shift, mask, val)         \
-> +       do {                                    \
-> +               var = (var & ~(mask << shift))  \
-> +                       | (val << shift);       \
-> +       } while (0)
-> +
-> +static int isp_init_csi(struct isp_interface_config *config)
-> +{
-> +       u32 i = 0, val, reg;
-> +       int format;
-> +
-> +       switch (config->u.csi.format) {
-> +       case V4L2_PIX_FMT_SGRBG10:
-> +               format = 0x16;          /* RAW10+VP */
+> +               ret = prev_hw_setup(device->params);
+> +               mutex_unlock(&device->prevwrap_mutex);
 > +               break;
-> +       case V4L2_PIX_FMT_SGRBG10DPCM8:
-> +               format = 0x12;          /* RAW8+DPCM10+VP */
+> +
+> +       case PREV_GET_PARAM:
+> +               if (copy_to_user((struct prev_params *)arg, device->params,
+> +                                               sizeof(struct prev_params)))
+> +                       ret = -EFAULT;
 > +               break;
+> +
+> +       case PREV_GET_STATUS:
+> +               ret = prev_get_status((struct prev_status *)arg);
+> +               break;
+> +
+> +       case PREV_PREVIEW:
+> +               if (mutex_lock_interruptible(&device->prevwrap_mutex))
+> +                       goto err_eintr;
+> +               ret = prev_do_preview(device, (int *)arg);
+> +               mutex_unlock(&device->prevwrap_mutex);
+> +               break;
+> +
+> +       case PREV_GET_CROPSIZE:
+> +               {
+> +               struct prev_cropsize outputsize;
+> +               prev_calculate_crop(device, &outputsize);
+> +               if (copy_to_user((struct prev_cropsize *)arg, &outputsize,
+> +                                               sizeof(struct prev_cropsize)))
+> +                       ret = -EFAULT;
+> +               }
+> +               break;
+> +
 > +       default:
-> +               printk(KERN_ERR "isp_init_csi: bad csi format\n");
-> +               return -EINVAL;
+> +               dev_err(prev_dev, "previewer_ioctl: Invalid Command Value\n");
+> +               ret = -EINVAL;
+> +       }
+> +out:
+> +       return ret;
+> +err_minusone:
+> +       return -1;
+> +err_eintr:
+> +       return -EINTR;
+> +}
+> +
+> +/**
+> + * previewer_platform_release - Acts when Reference count is zero
+> + * @device: Structure containing ISP preview wrapper global information
+> + *
+> + * This is called when the reference count goes to zero
+> + **/
+> +static void previewer_platform_release(struct device *device)
+> +{
+> +       dev_dbg(prev_dev, "previewer_platform_release()\n");
+> +}
+> +
+> +static struct file_operations prev_fops = {
+> +       .owner = THIS_MODULE,
+> +       .open = previewer_open,
+> +       .release = previewer_release,
+> +       .mmap = previewer_mmap,
+> +       .ioctl = previewer_ioctl,
+> +};
+> +
+> +static struct platform_device omap_previewer_device = {
+> +       .name = OMAP_PREV_NAME,
+> +       .id = -1,
+> +       .dev = {
+> +               .release = previewer_platform_release,
+> +       }
+> +};
+> +
+> +/**
+> + * previewer_probe - Checks for device presence
+> + * @pdev: Structure containing details of the current device.
+> + *
+> + * Always returns 0
+> + **/
+> +static int __init previewer_probe(struct platform_device *pdev)
+> +{
+> +       return 0;
+> +}
+> +
+> +/**
+> + * previewer_remove - Handles the removal of the driver
+> + * @pdev: Structure containing details of the current device.
+> + *
+> + * Always returns 0.
+> + **/
+> +static int previewer_remove(struct platform_device *pdev)
+> +{
+> +       dev_dbg(prev_dev, "previewer_remove()\n");
+> +
+> +       platform_device_unregister(&omap_previewer_device);
+> +       platform_driver_unregister(&omap_previewer_driver);
+> +       unregister_chrdev(prev_major, OMAP_PREV_NAME);
+> +       return 0;
+> +}
+> +
+> +static struct platform_driver omap_previewer_driver = {
+> +       .probe = previewer_probe,
+> +       .remove = previewer_remove,
+> +       .driver = {
+> +               .owner = THIS_MODULE,
+> +               .name = OMAP_PREV_NAME,
+> +       },
+> +};
+> +
+> +/**
+> + * omap_previewer_init - Initialization of Preview Wrapper
+> + *
+> + * Returns 0 if successful, -ENOMEM if could not allocate memory, -ENODEV if
+> + * could not register the wrapper as a character device, or other errors if the
+> + * device or driver can't register.
+> + **/
+> +static int __init omap_previewer_init(void)
+> +{
+> +       int ret;
+> +       struct prev_device *device;
+> +
+> +       device = kzalloc(sizeof(struct prev_device), GFP_KERNEL);
+> +       if (!device) {
+> +               dev_err(prev_dev, OMAP_PREV_NAME ": could not allocate"
+> +                                                               " memory\n");
+> +               return -ENOMEM;
+> +       }
+> +       prev_major = register_chrdev(0, OMAP_PREV_NAME, &prev_fops);
+> +
+> +       if (prev_major < 0) {
+> +               dev_err(prev_dev, OMAP_PREV_NAME ": initialization "
+> +                               "failed. could not register character "
+> +                               "device\n");
+> +               return -ENODEV;
 > +       }
 > +
-> +       /* Reset the CSI and wait for reset to complete */
-> +       omap_writel(omap_readl(ISPCSI1_SYSCONFIG) | BIT(1), ISPCSI1_SYSCONFIG);
-> +       while (!(omap_readl(ISPCSI1_SYSSTATUS) & BIT(0))) {
-> +               udelay(10);
-> +               if (i++ > 10)
-> +                       break;
+> +       ret = platform_driver_register(&omap_previewer_driver);
+> +       if (ret) {
+> +               dev_err(prev_dev, OMAP_PREV_NAME
+> +                       ": failed to register platform driver!\n");
+> +               goto fail2;
 > +       }
-> +       if (!(omap_readl(ISPCSI1_SYSSTATUS) & BIT(0))) {
-> +               printk(KERN_WARNING
-> +                       "omap3_isp: timeout waiting for csi reset\n");
+> +       ret = platform_device_register(&omap_previewer_device);
+> +       if (ret) {
+> +               dev_err(prev_dev, OMAP_PREV_NAME
+> +                       ": failed to register platform device!\n");
+> +               goto fail3;
 > +       }
 > +
-> +       /* CONTROL_CSIRXFE */
-> +       omap_writel(
-> +               /* CSIb receiver data/clock or data/strobe mode */
-> +               (config->u.csi.signalling << 10)
-> +               | BIT(12)       /* Enable differential transceiver */
-> +               | BIT(13)       /* Disable reset */
-> +#ifdef TERM_RESISTOR
+> +       prev_class = class_create(THIS_MODULE, OMAP_PREV_NAME);
+> +       if (!prev_class)
+> +               goto fail4;
+> +
+> +       prev_dev = device_create(prev_class, prev_dev,
+> +                                               (MKDEV(prev_major, 0)), NULL,
+> +                                               OMAP_PREV_NAME);
+> +       dev_dbg(prev_dev, OMAP_PREV_NAME ": Registered Previewer Wrapper\n");
+> +       device->opened = 0;
+> +
+> +       device->vbq_ops.buf_setup = previewer_vbq_setup;
+> +       device->vbq_ops.buf_prepare = previewer_vbq_prepare;
+> +       device->vbq_ops.buf_release = previewer_vbq_release;
+> +       device->vbq_ops.buf_queue = previewer_vbq_queue;
+> +       spin_lock_init(&device->vbq_lock);
+> +
+> +       prevdevice = device;
+> +       return 0;
+> +
+> +fail4:
+> +       platform_device_unregister(&omap_previewer_device);
+> +fail3:
+> +       platform_driver_unregister(&omap_previewer_driver);
+> +fail2:
+> +       unregister_chrdev(prev_major, OMAP_PREV_NAME);
+> +
+> +       return ret;
+> +}
+> +
+> +/**
+> + * omap_previewer_exit - Close of Preview Wrapper
+> + **/
+> +static void __exit omap_previewer_exit(void)
+> +{
+> +       previewer_remove(&omap_previewer_device);
+> +       kfree(prevdevice);
+> +       prev_major = -1;
+> +}
+> +
+> +module_init(omap_previewer_init);
+> +module_exit(omap_previewer_exit);
+> +
+> +MODULE_AUTHOR("Texas Instruments");
+> +MODULE_DESCRIPTION("OMAP ISP Previewer");
+> +MODULE_LICENSE("GPL");
+> diff --git a/drivers/media/video/isp/omap_previewer.h b/drivers/media/video/isp/omap_previewer.h
+> new file mode 100644
+> index 0000000..0bb31cd
+> --- /dev/null
+> +++ b/drivers/media/video/isp/omap_previewer.h
+> @@ -0,0 +1,162 @@
+> +/*
+> + * drivers/media/video/isp/omap_previewer.h
+> + *
+> + * Header file for Preview module wrapper in TI's OMAP3430 ISP
+> + *
+> + * Copyright (C) 2008 Texas Instruments, Inc.
+> + *
+> + * Contributors:
+> + *     Leonides Martinez <leonides.martinez@ti.com>
+> + *     Sergio Aguirre <saaguirre@ti.com>
+> + *
+> + * This package is free software; you can redistribute it and/or modify
+> + * it under the terms of the GNU General Public License version 2 as
+> + * published by the Free Software Foundation.
+> + *
+> + * THIS PACKAGE IS PROVIDED ``AS IS'' AND WITHOUT ANY EXPRESS OR
+> + * IMPLIED WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED
+> + * WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
+> + */
+> +
+> +#include "isppreview.h"
+> +
+> +#ifndef OMAP_ISP_PREVIEW_WRAP_H
+> +#define OMAP_ISP_PREVIEW_WRAP_H
+> +
+> +#define PREV_IOC_BASE                  'P'
+> +#define PREV_REQBUF                    _IOWR(PREV_IOC_BASE, 1,\
+> +                                               struct v4l2_requestbuffers)
+> +#define PREV_QUERYBUF                  _IOWR(PREV_IOC_BASE, 2,\
+> +                                                       struct v4l2_buffer)
+> +#define PREV_SET_PARAM                 _IOW(PREV_IOC_BASE, 3,\
+> +                                                       struct prev_params)
+> +#define PREV_GET_PARAM                 _IOWR(PREV_IOC_BASE, 4,\
+> +                                                       struct prev_params)
+> +#define PREV_PREVIEW                   _IOR(PREV_IOC_BASE, 5, int)
+> +#define PREV_GET_STATUS                        _IOR(PREV_IOC_BASE, 6, char)
+> +#define PREV_GET_CROPSIZE              _IOR(PREV_IOC_BASE, 7,\
+> +                                                       struct prev_cropsize)
+> +#define PREV_QUEUEBUF                  _IOWR(PREV_IOC_BASE, 8,\
+> +                                                       struct v4l2_buffer)
 
-What is this define? It doesn't seem to be documented.
+Isn't this supposed to be used by applications? If so, then all the
+public API part should go to a header in the include/linux directory.
+
+Also inconsistent naming: either pick _G_ or _GET_ (resizer uses mostly
+_G_, as does v4l2, so I recommend to stick with that).
+
+I'm also missing documentation for these new ioctls. Something should be
+added under the Documentation/video4linux directory. I know, it's not
+stricly v4l2, but it seems to be the logical place for it.
 
 Regards,
 
 	Hans
 
-> +               | BIT(8)        /* Enable internal CSIb resistor (no effect) */
-> +#endif
-> +/*             | BIT(7) */     /* Strobe/clock inversion (no effect) */
-> +       , CONTROL_CSIRXFE);
+> +#define PREV_IOC_MAXNR                 8
 > +
-> +#ifdef TERM_RESISTOR
-> +       /* Set CONTROL_CSI */
-> +       val = omap_readl(CONTROL_CSI);
-> +       val &= ~(0x1F<<16);
-> +       val |= BIT(31) | (TERM_RESISTOR<<16);
-> +       omap_writel(val, CONTROL_CSI);
-> +#endif
+> +#define LUMA_TABLE_SIZE                        128
+> +#define GAMMA_TABLE_SIZE               1024
+> +#define CFA_COEFF_TABLE_SIZE           576
+> +#define NOISE_FILTER_TABLE_SIZE                256
 > +
-> +       /* ISPCSI1_CTRL */
-> +       val = omap_readl(ISPCSI1_CTRL);
-> +       val &= ~BIT(11);        /* Enable VP only off ->
-> +                               extract embedded data to interconnect */
-> +       BIT_SET(val, 8, 0x3, config->u.csi.vpclk);      /* Video port clock */
-> +/*     val |= BIT(3);  */      /* Wait for FEC before disabling interface */
-> +       val |= BIT(2);          /* I/O cell output is parallel
-> +                               (no effect, but errata says should be enabled
-> +                               for class 1/2) */
-> +       val |= BIT(12);         /* VP clock polarity to falling edge
-> +                               (needed or bad picture!) */
+> +#define MAX_IMAGE_WIDTH                        3300
 > +
-> +       /* Data/strobe physical layer */
-> +       BIT_SET(val, 1, 1, config->u.csi.signalling);
-> +       BIT_SET(val, 10, 1, config->u.csi.strobe_clock_inv);
-> +       val |= BIT(4);          /* Magic bit to enable CSI1 and strobe mode */
-> +       omap_writel(val, ISPCSI1_CTRL);
+> +#define PREV_INWIDTH_8BIT              0       /* pixel width of 8 bits */
+> +#define PREV_INWIDTH_10BIT             1       /* pixel width of 10 bits */
 > +
-> +       /* ISPCSI1_LCx_CTRL logical channel #0 */
-> +       reg = ISPCSI1_LCx_CTRL(0);      /* reg = ISPCSI1_CTRL1; */
-> +       val = omap_readl(reg);
-> +       /* Format = RAW10+VP or RAW8+DPCM10+VP*/
-> +       BIT_SET(val, 3, 0x1f, format);
-> +       /* Enable setting of frame regions of interest */
-> +       BIT_SET(val, 1, 1, 1);
-> +       BIT_SET(val, 2, 1, config->u.csi.crc);
-> +       omap_writel(val, reg);
-> +
-> +       /* ISPCSI1_DAT_START for logical channel #0 */
-> +       reg = ISPCSI1_LCx_DAT_START(0);         /* reg = ISPCSI1_DAT_START; */
-> +       val = omap_readl(reg);
-> +       BIT_SET(val, 16, 0xfff, config->u.csi.data_start);
-> +       omap_writel(val, reg);
-> +
-> +       /* ISPCSI1_DAT_SIZE for logical channel #0 */
-> +       reg = ISPCSI1_LCx_DAT_SIZE(0);          /* reg = ISPCSI1_DAT_SIZE; */
-> +       val = omap_readl(reg);
-> +       BIT_SET(val, 16, 0xfff, config->u.csi.data_size);
-> +       omap_writel(val, reg);
-> +
-> +       /* Clear status bits for logical channel #0 */
-> +       omap_writel(0xFFF & ~BIT(6), ISPCSI1_LC01_IRQSTATUS);
-> +
-> +       /* Enable CSI1 */
-> +       val = omap_readl(ISPCSI1_CTRL);
-> +       val |=  BIT(0) | BIT(4);
-> +       omap_writel(val, ISPCSI1_CTRL);
-> +
-> +       if (!(omap_readl(ISPCSI1_CTRL) & BIT(4))) {
-> +               printk(KERN_WARNING "OMAP3 CSI1 bus not available\n");
-> +               if (config->u.csi.signalling)   /* Strobe mode requires CSI1 */
-> +                       return -EIO;
-> +       }
-> +
-> +       return 0;
-> +}
+> +#define PREV_32BYTES_ALIGN_MASK                0xFFFFFFE0
+> +#define PREV_16PIX_ALIGN_MASK          0xFFFFFFF0
 > +
 > +/**
-> + * isp_configure_interface - Configures ISP Control I/F related parameters.
-> + * @config: Pointer to structure containing the desired configuration for the
-> + *     ISP.
-> + *
-> + * Configures ISP control register (ISP_CTRL) with the values specified inside
-> + * the config structure. Controls:
-> + * - Selection of parallel or serial input to the preview hardware.
-> + * - Data lane shifter.
-> + * - Pixel clock polarity.
-> + * - 8 to 16-bit bridge at the input of CCDC module.
-> + * - HS or VS synchronization signal detection
-> + **/
-> +int isp_configure_interface(struct isp_interface_config *config)
-> +{
-> +       u32 ispctrl_val = omap_readl(ISP_CTRL);
-> +       u32 ispccdc_vdint_val;
-> +       int r;
-> +
-> +       ispctrl_val &= ISPCTRL_SHIFT_MASK;
-> +       ispctrl_val |= (config->dataline_shift << ISPCTRL_SHIFT_SHIFT);
-> +       ispctrl_val &= ~ISPCTRL_PAR_CLK_POL_INV;
-> +
-> +       ispctrl_val &= (ISPCTRL_PAR_SER_CLK_SEL_MASK);
-> +       switch (config->ccdc_par_ser) {
-> +       case ISP_PARLL:
-> +               ispctrl_val |= ISPCTRL_PAR_SER_CLK_SEL_PARALLEL;
-> +               ispctrl_val |= (config->u.par.par_clk_pol
-> +                                               << ISPCTRL_PAR_CLK_POL_SHIFT);
-> +               ispctrl_val &= ~ISPCTRL_PAR_BRIDGE_BENDIAN;
-> +               ispctrl_val |= (config->u.par.par_bridge
-> +                                               << ISPCTRL_PAR_BRIDGE_SHIFT);
-> +               break;
-> +       case ISP_CSIA:
-> +               ispctrl_val |= ISPCTRL_PAR_SER_CLK_SEL_CSIA;
-> +               ispctrl_val &= ~ISPCTRL_PAR_BRIDGE_BENDIAN;
-> +               ispctrl_val |= (0x03 << ISPCTRL_PAR_BRIDGE_SHIFT);
-> +
-> +               isp_csi2_ctx_config_format(0, config->u.csi.format);
-> +               isp_csi2_ctx_update(0, false);
-> +
-> +               if (config->u.csi.crc)
-> +                       isp_csi2_ctrl_config_ecc_enable(true);
-> +
-> +               isp_csi2_ctrl_config_vp_out_ctrl(config->u.csi.vpclk);
-> +               isp_csi2_ctrl_config_vp_only_enable(true);
-> +               isp_csi2_ctrl_config_vp_clk_enable(true);
-> +               isp_csi2_ctrl_update(false);
-> +
-> +               isp_csi2_irq_complexio1_set(1);
-> +               isp_csi2_irq_status_set(1);
-> +               isp_csi2_irq_set(1);
-> +
-> +               isp_csi2_enable(1);
-> +               mdelay(3);
-> +               break;
-> +       case ISP_CSIB:
-> +               ispctrl_val |= ISPCTRL_PAR_SER_CLK_SEL_CSIB;
-> +               r = isp_init_csi(config);
-> +               if (r)
-> +                       return r;
-> +               break;
-> +       default:
-> +               return -EINVAL;
-> +       }
-> +
-> +       ispctrl_val &= ~(ISPCTRL_SYNC_DETECT_VSRISE);
-> +       ispctrl_val |= (config->hsvs_syncdetect);
-> +
-> +       omap_writel(ispctrl_val, ISP_CTRL);
-> +
-> +       ispccdc_vdint_val = omap_readl(ISPCCDC_VDINT);
-> +       ispccdc_vdint_val &= ~(ISPCCDC_VDINT_0_MASK << ISPCCDC_VDINT_0_SHIFT);
-> +       ispccdc_vdint_val &= ~(ISPCCDC_VDINT_1_MASK << ISPCCDC_VDINT_1_SHIFT);
-> +       omap_writel((config->vdint0_timing << ISPCCDC_VDINT_0_SHIFT) |
-> +                                               (config->vdint1_timing <<
-> +                                               ISPCCDC_VDINT_1_SHIFT),
-> +                                               ISPCCDC_VDINT);
-> +
-> +       /* Set sensor specific fields in CCDC and Previewer module.*/
-> +       isppreview_set_skip(config->prev_sph, config->prev_slv);
-> +       ispccdc_set_wenlog(config->wenlog);
-> +
-> +       return 0;
-> +}
-> +EXPORT_SYMBOL(isp_configure_interface);
-> +
-> +/**
-> + * isp_configure_interface_bridge - Configure CCDC i/f bridge.
-> + *
-> + * Sets the bit field that controls the 8 to 16-bit bridge at
-> + * the input to CCDC.
-> + **/
-> +int isp_configure_interface_bridge(u32 par_bridge)
-> +{
-> +       u32 ispctrl_val = omap_readl(ISP_CTRL);
-> +
-> +       ispctrl_val &= ~ISPCTRL_PAR_BRIDGE_BENDIAN;
-> +       ispctrl_val |= (par_bridge << ISPCTRL_PAR_BRIDGE_SHIFT);
-> +       omap_writel(ispctrl_val, ISP_CTRL);
-> +       return 0;
-> +}
-> +EXPORT_SYMBOL(isp_configure_interface_bridge);
-> +
-> +/**
-> + * isp_CCDC_VD01_enable - Enables VD0 and VD1 IRQs.
-> + *
-> + * Sets VD0 and VD1 bits in IRQ0STATUS to reset the flag, and sets them in
-> + * IRQ0ENABLE to enable the corresponding IRQs.
-> + **/
-> +void isp_CCDC_VD01_enable(void)
-> +{
-> +       omap_writel(IRQ0STATUS_CCDC_VD0_IRQ | IRQ0STATUS_CCDC_VD1_IRQ,
-> +                                                       ISP_IRQ0STATUS);
-> +       omap_writel(omap_readl(ISP_IRQ0ENABLE) | IRQ0ENABLE_CCDC_VD0_IRQ |
-> +                                               IRQ0ENABLE_CCDC_VD1_IRQ,
-> +                                               ISP_IRQ0ENABLE);
-> +}
-> +
-> +/**
-> + * isp_CCDC_VD01_disable - Disables VD0 and VD1 IRQs.
-> + *
-> + * Clears VD0 and VD1 bits in IRQ0ENABLE register.
-> + **/
-> +void isp_CCDC_VD01_disable(void)
-> +{
-> +       omap_writel(omap_readl(ISP_IRQ0ENABLE) & ~(IRQ0ENABLE_CCDC_VD0_IRQ |
-> +                                               IRQ0ENABLE_CCDC_VD1_IRQ),
-> +                                               ISP_IRQ0ENABLE);
-> +}
-> +
-> +/**
-> + * omap34xx_isp_isr - Interrupt Service Routine for Camera ISP module.
-> + * @irq: Not used currently.
-> + * @ispirq_disp: Pointer to the object that is passed while request_irq is
-> + *               called. This is the ispirq_obj object containing info on the
-> + *               callback.
-> + *
-> + * Handles the corresponding callback if plugged in.
-> + *
-> + * Returns IRQ_HANDLED when IRQ was correctly handled, or IRQ_NONE when the
-> + * IRQ wasn't handled.
-> + **/
-> +static irqreturn_t omap34xx_isp_isr(int irq, void *ispirq_disp)
-> +{
-> +       struct ispirq *irqdis = (struct ispirq *)ispirq_disp;
-> +       u32 irqstatus = 0;
-> +       unsigned long irqflags = 0;
-> +       u8 is_irqhandled = 0;
-> +
-> +       irqstatus = omap_readl(ISP_IRQ0STATUS);
-> +
-> +       spin_lock_irqsave(&isp_obj.lock, irqflags);
-> +
-> +       if (irqdis->isp_callbk[CBK_CATCHALL]) {
-> +               irqdis->isp_callbk[CBK_CATCHALL](irqstatus,
-> +                               irqdis->isp_callbk_arg1[CBK_CATCHALL],
-> +                               irqdis->isp_callbk_arg2[CBK_CATCHALL]);
-> +               is_irqhandled = 1;
-> +       }
-> +
-> +       if ((irqstatus & MMU_ERR) == MMU_ERR) {
-> +               if (irqdis->isp_callbk[CBK_MMU_ERR])
-> +                       irqdis->isp_callbk[CBK_MMU_ERR](irqstatus,
-> +                               irqdis->isp_callbk_arg1[CBK_MMU_ERR],
-> +                               irqdis->isp_callbk_arg2[CBK_MMU_ERR]);
-> +               is_irqhandled = 1;
-> +               printk(KERN_ALERT "%s: MMU error!!! Ouch!\n", __func__);
-> +               goto out;
-> +       }
-> +
-> +       if ((irqstatus & CCDC_VD1) == CCDC_VD1) {
-> +               if (irqdis->isp_callbk[CBK_CCDC_VD1])
-> +                               irqdis->isp_callbk[CBK_CCDC_VD1](CCDC_VD1,
-> +                               irqdis->isp_callbk_arg1[CBK_CCDC_VD1],
-> +                               irqdis->isp_callbk_arg2[CBK_CCDC_VD1]);
-> +               is_irqhandled = 1;
-> +       }
-> +
-> +       if ((irqstatus & CCDC_VD0) == CCDC_VD0) {
-> +               if (irqdis->isp_callbk[CBK_CCDC_VD0])
-> +                       irqdis->isp_callbk[CBK_CCDC_VD0](CCDC_VD0,
-> +                               irqdis->isp_callbk_arg1[CBK_CCDC_VD0],
-> +                               irqdis->isp_callbk_arg2[CBK_CCDC_VD0]);
-> +               is_irqhandled = 1;
-> +       }
-> +
-> +       if ((irqstatus & PREV_DONE) == PREV_DONE) {
-> +               if (irqdis->isp_callbk[CBK_PREV_DONE])
-> +                       irqdis->isp_callbk[CBK_PREV_DONE](PREV_DONE,
-> +                               irqdis->isp_callbk_arg1[CBK_PREV_DONE],
-> +                               irqdis->isp_callbk_arg2[CBK_PREV_DONE]);
-> +               is_irqhandled = 1;
-> +       }
-> +
-> +       if ((irqstatus & RESZ_DONE) == RESZ_DONE) {
-> +               if (irqdis->isp_callbk[CBK_RESZ_DONE])
-> +                       irqdis->isp_callbk[CBK_RESZ_DONE](RESZ_DONE,
-> +                               irqdis->isp_callbk_arg1[CBK_RESZ_DONE],
-> +                               irqdis->isp_callbk_arg2[CBK_RESZ_DONE]);
-> +               is_irqhandled = 1;
-> +       }
-> +
-> +       if ((irqstatus & H3A_AWB_DONE) == H3A_AWB_DONE) {
-> +               if (irqdis->isp_callbk[CBK_H3A_AWB_DONE])
-> +                       irqdis->isp_callbk[CBK_H3A_AWB_DONE](H3A_AWB_DONE,
-> +                               irqdis->isp_callbk_arg1[CBK_H3A_AWB_DONE],
-> +                               irqdis->isp_callbk_arg2[CBK_H3A_AWB_DONE]);
-> +               is_irqhandled = 1;
-> +       }
-> +
-> +       if ((irqstatus & HIST_DONE) == HIST_DONE) {
-> +               if (irqdis->isp_callbk[CBK_HIST_DONE])
-> +                       irqdis->isp_callbk[CBK_HIST_DONE](HIST_DONE,
-> +                               irqdis->isp_callbk_arg1[CBK_HIST_DONE],
-> +                               irqdis->isp_callbk_arg2[CBK_HIST_DONE]);
-> +               is_irqhandled = 1;
-> +       }
-> +
-> +       if ((irqstatus & HS_VS) == HS_VS) {
-> +               if (irqdis->isp_callbk[CBK_HS_VS])
-> +                       irqdis->isp_callbk[CBK_HS_VS](HS_VS,
-> +                               irqdis->isp_callbk_arg1[CBK_HS_VS],
-> +                               irqdis->isp_callbk_arg2[CBK_HS_VS]);
-> +               is_irqhandled = 1;
-> +       }
-> +
-> +       if ((irqstatus & H3A_AF_DONE) == H3A_AF_DONE) {
-> +               if (irqdis->isp_callbk[CBK_H3A_AF_DONE])
-> +                       irqdis->isp_callbk[CBK_H3A_AF_DONE](H3A_AF_DONE,
-> +                               irqdis->isp_callbk_arg1[CBK_H3A_AF_DONE],
-> +                               irqdis->isp_callbk_arg2[CBK_H3A_AF_DONE]);
-> +               is_irqhandled = 1;
-> +       }
-> +
-> +       if ((irqstatus & CSIA) == CSIA) {
-> +               isp_csi2_isr();
-> +               is_irqhandled = 1;
-> +       }
-> +
-> +       if (irqstatus & LSC_PRE_ERR) {
-> +               printk(KERN_ERR "isp_sr: LSC_PRE_ERR \n");
-> +               omap_writel(irqstatus, ISP_IRQ0STATUS);
-> +               ispccdc_enable_lsc(0);
-> +               ispccdc_enable_lsc(1);
-> +               spin_unlock_irqrestore(&isp_obj.lock, irqflags);
-> +               return IRQ_HANDLED;
-> +       }
-> +
-> +       if (irqstatus & IRQ0STATUS_CSIB_IRQ) {
-> +               u32 ispcsi1_irqstatus;
-> +
-> +               ispcsi1_irqstatus = omap_readl(ISPCSI1_LC01_IRQSTATUS);
-> +               DPRINTK_ISPCTRL("%x\n", ispcsi1_irqstatus);
-> +       }
-> +
-> +out:
-> +       omap_writel(irqstatus, ISP_IRQ0STATUS);
-> +       spin_unlock_irqrestore(&isp_obj.lock, irqflags);
-> +
-> +       if (is_irqhandled)
-> +               return IRQ_HANDLED;
-> +       else
-> +               return IRQ_NONE;
-> +}
-> +
-> +/* Device name, needed for resource tracking layer */
-> +struct device_driver camera_drv = {
-> +       .name = "camera"
-> +};
-> +
-> +struct device camera_dev = {
-> +       .driver = &camera_drv,
-> +};
-> +
-> +/**
-> + * omapisp_unset_callback - Unsets all the callbacks associated with ISP module
-> + **/
-> +void omapisp_unset_callback()
-> +{
-> +       isp_unset_callback(CBK_HS_VS);
-> +
-> +       if ((ispmodule_obj.isp_pipeline & OMAP_ISP_RESIZER) &&
-> +                                               is_ispresizer_enabled())
-> +               isp_unset_callback(CBK_RESZ_DONE);
-> +
-> +       if ((ispmodule_obj.isp_pipeline & OMAP_ISP_PREVIEW) &&
-> +                                               is_isppreview_enabled())
-> +               isp_unset_callback(CBK_PREV_DONE);
-> +
-> +       if (ispmodule_obj.isp_pipeline & OMAP_ISP_CCDC) {
-> +               isp_unset_callback(CBK_CCDC_VD0);
-> +               isp_unset_callback(CBK_CCDC_VD1);
-> +               isp_unset_callback(CBK_LSC_ISR);
-> +       }
-> +       omap_writel(omap_readl(ISP_IRQ0STATUS) | ISP_INT_CLR, ISP_IRQ0STATUS);
-> +}
-> +
-> +#if ISP_WORKAROUND
-> +/**
-> + *  isp_buf_allocation - To allocate a 10MB memory
-> + *
-> + **/
-> +u32 isp_buf_allocation(void)
-> +{
-> +       buff_addr = (void *)vmalloc(buffer_size);
-> +
-> +       if (!buff_addr) {
-> +               printk(KERN_ERR "Cannot allocate memory ");
-> +               return -ENOMEM;
-> +       }
-> +
-> +       sglist_alloc = videobuf_vmalloc_to_sg(buff_addr, no_of_pages);
-> +       if (!sglist_alloc) {
-> +               printk(KERN_ERR "videobuf_vmalloc_to_sg error");
-> +               return -ENOMEM;
-> +       }
-> +       num_sc = dma_map_sg(NULL, sglist_alloc, no_of_pages, 1);
-> +       buff_addr_mapped = ispmmu_map_sg(sglist_alloc, no_of_pages);
-> +       if (!buff_addr_mapped) {
-> +               printk(KERN_ERR "ispmmu_map_sg mapping failed ");
-> +               return -ENOMEM;
-> +       }
-> +       isppreview_set_outaddr(buff_addr_mapped);
-> +       alloc_done = 1;
-> +       return 0;
-> +}
-> +
-> +/**
-> + *  isp_buf_get - Get the buffer pointer address
-> + **/
-> +dma_addr_t isp_buf_get(void)
-> +{
-> +       dma_addr_t retaddr;
-> +
-> +       if (alloc_done == 1)
-> +               retaddr = buff_addr_mapped + offset_value;
-> +       else
-> +               retaddr = 0;
-> +       return retaddr;
-> +}
-> +
-> +/**
-> + *  isp_buf_free - To free allocated 10MB memory
-> + *
-> + **/
-> +void isp_buf_free(void)
-> +{
-> +       if (alloc_done == 1) {
-> +               ispmmu_unmap(buff_addr_mapped);
-> +               dma_unmap_sg(NULL, sglist_alloc, no_of_pages, 1);
-> +               kfree(sglist_alloc);
-> +               vfree(buff_addr);
-> +               alloc_done = 0;
-> +       }
-> +}
-> +#endif
-> +
-> +/**
-> + * isp_start - Starts ISP submodule
-> + *
-> + * Start the needed isp components assuming these components
-> + * are configured correctly.
-> + **/
-> +void isp_start(void)
-> +{
-> +       if ((ispmodule_obj.isp_pipeline & OMAP_ISP_PREVIEW) &&
-> +                                               is_isppreview_enabled())
-> +               isppreview_enable(1);
-> +
-> +       return;
-> +}
-> +EXPORT_SYMBOL(isp_start);
-> +
-> +#define ISP_STOP_TIMEOUT       1000
-> +/**
-> + * isp_stop - Stops isp submodules
-> + **/
-> +void isp_stop()
-> +{
-> +       unsigned long timeout = jiffies + ISP_STOP_TIMEOUT;
-> +
-> +       spin_lock(&isp_obj.isp_temp_buf_lock);
-> +       ispmodule_obj.isp_temp_state = ISP_FREE_RUNNING;
-> +       spin_unlock(&isp_obj.isp_temp_buf_lock);
-> +
-> +       omapisp_unset_callback();
-> +
-> +       ispccdc_enable_lsc(0);
-> +       ispccdc_enable(0);
-> +       while (ispccdc_busy() && !time_after(jiffies, timeout))
-> +               msleep(1);
-> +
-> +       if (ispccdc_busy())
-> +               printk(KERN_ERR "%s: ccdc doesn't stop\n", __func__);
-> +
-> +       timeout = jiffies + ISP_STOP_TIMEOUT;
-> +       isppreview_enable(0);
-> +       while (isppreview_busy() && !time_after(jiffies, timeout))
-> +               msleep(1);
-> +
-> +       if (isppreview_busy())
-> +               printk(KERN_ERR "%s: preview doesn't stop\n", __func__);
-> +
-> +       timeout = jiffies + ISP_STOP_TIMEOUT;
-> +       ispresizer_enable(0);
-> +       while (ispresizer_busy() && !time_after(jiffies, timeout))
-> +               msleep(1);
-> +
-> +       if (ispresizer_busy())
-> +               printk(KERN_ERR "%s: resizer doesn't stop\n", __func__);
-> +
-> +       timeout = jiffies + ISP_STOP_TIMEOUT;
-> +       isp_save_ctx();
-> +       omap_writel(omap_readl(ISP_SYSCONFIG) | ISP_SYSCONFIG_SOFTRESET,
-> +                                                               ISP_SYSCONFIG);
-> +       while (!(omap_readl(ISP_SYSSTATUS) & 0x1)) {
-> +               if (time_after(jiffies, timeout)) {
-> +                       printk(KERN_ALERT "isp.c: cannot reset ISP\n");
-> +                       return;
-> +               }
-> +               msleep(1);
-> +       }
-> +       isp_restore_ctx();
-> +}
-> +
-> +/**
-> + * isp_set_buf - Sets output address for submodules.
-> + * @sgdma_state: Pointer to structure with the SGDMA state for each videobuffer
-> + **/
-> +void isp_set_buf(struct isp_sgdma_state *sgdma_state)
-> +{
-> +       if ((ispmodule_obj.isp_pipeline & OMAP_ISP_RESIZER) &&
-> +                                               is_ispresizer_enabled())
-> +               ispresizer_set_outaddr(sgdma_state->isp_addr);
-> +#if (ISP_WORKAROUND == 0)
-> +       else if ((ispmodule_obj.isp_pipeline & OMAP_ISP_PREVIEW) &&
-> +                                               is_isppreview_enabled())
-> +               isppreview_set_outaddr(sgdma_state->isp_addr);
-> +#endif
-> +       else if (ispmodule_obj.isp_pipeline & OMAP_ISP_CCDC)
-> +               ispccdc_set_outaddr(sgdma_state->isp_addr);
-> +
-> +}
-> +
-> +/**
-> + * isp_calc_pipeline - Sets pipeline depending of input and output pixel format
-> + * @pix_input: Pointer to V4L2 pixel format structure for input image.
-> + * @pix_output: Pointer to V4L2 pixel format structure for output image.
-> + **/
-> +u32 isp_calc_pipeline(struct v4l2_pix_format *pix_input,
-> +                                       struct v4l2_pix_format *pix_output)
-> +{
-> +#if ISP_WORKAROUND
-> +       int rval;
-> +#endif
-> +
-> +       isp_release_resources();
-> +       if ((pix_input->pixelformat == V4L2_PIX_FMT_SGRBG10) &&
-> +                       (pix_output->pixelformat != V4L2_PIX_FMT_SGRBG10)) {
-> +               ispmodule_obj.isp_pipeline = OMAP_ISP_CCDC | OMAP_ISP_PREVIEW |
-> +                                                       OMAP_ISP_RESIZER;
-> +               ispccdc_request();
-> +               isppreview_request();
-> +               ispresizer_request();
-> +               ispccdc_config_datapath(CCDC_RAW, CCDC_OTHERS_VP);
-> +#if ISP_WORKAROUND
-> +               isppreview_config_datapath(PRV_RAW_CCDC, PREVIEW_MEM);
-> +               ispresizer_config_datapath(RSZ_MEM_YUV);
-> +               if (alloc_done == 0) {
-> +                       rval = isp_buf_allocation();
-> +                       if (rval)
-> +                               return -EINVAL;
-> +               }
-> +#else
-> +               isppreview_config_datapath(PRV_RAW_CCDC, PREVIEW_RSZ);
-> +               ispresizer_config_datapath(RSZ_OTFLY_YUV);
-> +#endif
-> +       } else {
-> +               ispmodule_obj.isp_pipeline = OMAP_ISP_CCDC;
-> +               ispccdc_request();
-> +               if (pix_input->pixelformat == V4L2_PIX_FMT_SGRBG10)
-> +                       ispccdc_config_datapath(CCDC_RAW, CCDC_OTHERS_VP_MEM);
-> +               else
-> +                       ispccdc_config_datapath(CCDC_YUV_SYNC,
-> +                                                       CCDC_OTHERS_MEM);
-> +       }
-> +       return 0;
-> +}
-> +
-> +/**
-> + * isp_config_pipeline - Configures the image size and ycpos for ISP submodules
-> + * @pix_input: Pointer to V4L2 pixel format structure for input image.
-> + * @pix_output: Pointer to V4L2 pixel format structure for output image.
-> + *
-> + * The configuration of ycpos depends on the output pixel format for both the
-> + * Preview and Resizer submodules.
-> + **/
-> +void isp_config_pipeline(struct v4l2_pix_format *pix_input,
-> +                                       struct v4l2_pix_format *pix_output)
-> +{
-> +       ispccdc_config_size(ispmodule_obj.ccdc_input_width,
-> +                       ispmodule_obj.ccdc_input_height,
-> +                       ispmodule_obj.ccdc_output_width,
-> +                       ispmodule_obj.ccdc_output_height);
-> +
-> +       if (ispmodule_obj.isp_pipeline & OMAP_ISP_PREVIEW) {
-> +               isppreview_config_size(ispmodule_obj.preview_input_width,
-> +                       ispmodule_obj.preview_input_height,
-> +                       ispmodule_obj.preview_output_width,
-> +                       ispmodule_obj.preview_output_height);
-> +       }
-> +
-> +       if (ispmodule_obj.isp_pipeline & OMAP_ISP_RESIZER) {
-> +               ispresizer_config_size(ispmodule_obj.resizer_input_width,
-> +                       ispmodule_obj.resizer_input_height,
-> +                       ispmodule_obj.resizer_output_width,
-> +                       ispmodule_obj.resizer_output_height);
-> +       }
-> +
-> +       if (pix_output->pixelformat == V4L2_PIX_FMT_UYVY) {
-> +               isppreview_config_ycpos(YCPOS_YCrYCb);
-> +               if (is_ispresizer_enabled())
-> +                       ispresizer_config_ycpos(0);
-> +       } else {
-> +               isppreview_config_ycpos(YCPOS_CrYCbY);
-> +               if (is_ispresizer_enabled())
-> +                       ispresizer_config_ycpos(1);
-> +       }
-> +
-> +       return;
-> +}
-> +
-> +/**
-> + * isp_vbq_done - Callback for interrupt completion
-> + * @status: IRQ0STATUS register value. Passed by the ISR, or the caller.
-> + * @arg1: Pointer to callback function for SG-DMA management.
-> + * @arg2: Pointer to videobuffer structure managed by ISP.
-> + **/
-> +void isp_vbq_done(unsigned long status, isp_vbq_callback_ptr arg1, void *arg2)
-> +{
-> +       struct videobuf_buffer *vb = (struct videobuf_buffer *) arg2;
-> +       int notify = 0;
-> +       int rval = 0;
-> +       unsigned long flags;
-> +
-> +       switch (status) {
-> +       case CCDC_VD0:
-> +               ispccdc_config_shadow_registers();
-> +               if ((ispmodule_obj.isp_pipeline & OMAP_ISP_RESIZER) ||
-> +                       (ispmodule_obj.isp_pipeline & OMAP_ISP_PREVIEW))
-> +                       return;
-> +               else {
-> +                       spin_lock(&isp_obj.isp_temp_buf_lock);
-> +                       if (ispmodule_obj.isp_temp_state != ISP_BUF_INIT) {
-> +                               spin_unlock(&isp_obj.isp_temp_buf_lock);
-> +                               return;
-> +
-> +                       } else {
-> +                               spin_unlock(&isp_obj.isp_temp_buf_lock);
-> +                               break;
-> +                       }
-> +               }
-> +               break;
-> +       case CCDC_VD1:
-> +               if ((ispmodule_obj.isp_pipeline & OMAP_ISP_RESIZER) ||
-> +                               (ispmodule_obj.isp_pipeline & OMAP_ISP_PREVIEW))
-> +                       return;
-> +               spin_lock(&isp_obj.isp_temp_buf_lock);
-> +               if (ispmodule_obj.isp_temp_state == ISP_BUF_INIT) {
-> +                       spin_unlock(&isp_obj.isp_temp_buf_lock);
-> +                       ispccdc_enable(0);
-> +                       return;
-> +               }
-> +               spin_unlock(&isp_obj.isp_temp_buf_lock);
-> +               return;
-> +       case PREV_DONE:
-> +               if (is_isppreview_enabled()) {
-> +                       if (ispmodule_obj.isp_pipeline & OMAP_ISP_RESIZER) {
-> +                               spin_lock(&isp_obj.isp_temp_buf_lock);
-> +                               if (!ispmodule_obj.applyCrop &&
-> +                                               (ispmodule_obj.isp_temp_state ==
-> +                                               ISP_BUF_INIT))
-> +                                       ispresizer_enable(1);
-> +                               spin_unlock(&isp_obj.isp_temp_buf_lock);
-> +                               if (ispmodule_obj.applyCrop &&
-> +                                                       !ispresizer_busy()) {
-> +                                       ispresizer_enable(0);
-> +                                       ispresizer_applycrop();
-> +                                       ispmodule_obj.applyCrop = 0;
-> +                               }
-> +                               isppreview_config_shadow_registers();
-> +                               isph3a_update_wb();
-> +                       }
-> +                       if (ispmodule_obj.isp_pipeline & OMAP_ISP_RESIZER)
-> +                               return;
-> +               }
-> +               break;
-> +       case RESZ_DONE:
-> +               if (is_ispresizer_enabled()) {
-> +                       ispresizer_config_shadow_registers();
-> +                       spin_lock(&isp_obj.isp_temp_buf_lock);
-> +                       if (ispmodule_obj.isp_temp_state != ISP_BUF_INIT) {
-> +                               spin_unlock(&isp_obj.isp_temp_buf_lock);
-> +                               return;
-> +                       }
-> +                       spin_unlock(&isp_obj.isp_temp_buf_lock);
-> +               }
-> +               break;
-> +       case HS_VS:
-> +               spin_lock(&isp_obj.isp_temp_buf_lock);
-> +               if (ispmodule_obj.isp_temp_state == ISP_BUF_TRAN) {
-> +                       isp_CCDC_VD01_enable();
-> +                       ispmodule_obj.isp_temp_state = ISP_BUF_INIT;
-> +               }
-> +               spin_unlock(&isp_obj.isp_temp_buf_lock);
-> +               return;
-> +       default:
-> +               return;
-> +       }
-> +
-> +       spin_lock_irqsave(&ispsg.lock, flags);
-> +       ispsg.free_sgdma++;
-> +       if (ispsg.free_sgdma > NUM_SG_DMA)
-> +               ispsg.free_sgdma = NUM_SG_DMA;
-> +       spin_unlock_irqrestore(&ispsg.lock, flags);
-> +
-> +       rval = arg1(vb);
-> +
-> +       if (rval)
-> +               isp_sgdma_process(&ispsg, 1, &notify, arg1);
-> +
-> +       return;
-> +}
-> +
-> +/**
-> + * isp_sgdma_init - Initializes Scatter Gather DMA status and operations.
-> + **/
-> +void isp_sgdma_init()
-> +{
-> +       int sg;
-> +
-> +       ispsg.free_sgdma = NUM_SG_DMA;
-> +       ispsg.next_sgdma = 0;
-> +       for (sg = 0; sg < NUM_SG_DMA; sg++) {
-> +               ispsg.sg_state[sg].status = 0;
-> +               ispsg.sg_state[sg].callback = NULL;
-> +               ispsg.sg_state[sg].arg = NULL;
-> +       }
-> +}
-> +EXPORT_SYMBOL(isp_stop);
-> +
-> +/**
-> + * isp_vbq_sync - Walks the pages table and flushes the cache for
-> + *                each page.
-> + **/
-> +int isp_vbq_sync(struct videobuf_buffer *vb)
-> +{
-> +       struct videobuf_dmabuf *vdma;
-> +       u32 sg_element_addr;
-> +       int i;
-> +
-> +       vdma = videobuf_to_dma(vb);
-> +
-> +       for (i = 0; i < vdma->sglen; i++) {
-> +               sg_element_addr = sg_dma_address(vdma->sglist + i);
-> +               /* Page align address */
-> +               sg_element_addr &= ~(PAGE_SIZE - 1);
-> +
-> +               dma_sync_single_for_cpu(NULL, sg_element_addr, PAGE_SIZE,
-> +                                                       DMA_FROM_DEVICE);
-> +       }
-> +       return 0;
-> +}
-> +
-> +/**
-> + * isp_sgdma_process - Sets operations and config for specified SG DMA
-> + * @sgdma: SG-DMA function to work on.
-> + * @irq: Flag to specify if an IRQ is associated with the DMA completion.
-> + * @dma_notify: Pointer to flag that says when the ISP has to be started.
-> + * @func_ptr: Callback function pointer for SG-DMA setup.
-> + **/
-> +void isp_sgdma_process(struct isp_sgdma *sgdma, int irq, int *dma_notify,
-> +                                               isp_vbq_callback_ptr func_ptr)
-> +{
-> +       struct isp_sgdma_state *sgdma_state;
-> +       unsigned long flags;
-> +       spin_lock_irqsave(&sgdma->lock, flags);
-> +
-> +       if (NUM_SG_DMA > sgdma->free_sgdma) {
-> +               sgdma_state = sgdma->sg_state + (sgdma->next_sgdma +
-> +                                               sgdma->free_sgdma) % NUM_SG_DMA;
-> +               if (!irq) {
-> +                       if (*dma_notify) {
-> +                               isp_set_sgdma_callback(sgdma_state, func_ptr);
-> +                               isp_set_buf(sgdma_state);
-> +                               ispccdc_enable(1);
-> +                               isp_start();
-> +                               *dma_notify = 0;
-> +                               spin_lock(&isp_obj.isp_temp_buf_lock);
-> +                               if (ispmodule_obj.isp_pipeline
-> +                                                       & OMAP_ISP_RESIZER) {
-> +                                       ispmodule_obj.isp_temp_state =
-> +                                                               ISP_BUF_INIT;
-> +                               } else {
-> +                                       ispmodule_obj.isp_temp_state =
-> +                                                               ISP_BUF_TRAN;
-> +                               }
-> +                               spin_unlock(&isp_obj.isp_temp_buf_lock);
-> +                       } else {
-> +                               spin_lock(&isp_obj.isp_temp_buf_lock);
-> +                               if (ispmodule_obj.isp_temp_state ==
-> +                                                       ISP_FREE_RUNNING) {
-> +                                       isp_set_sgdma_callback(sgdma_state,
-> +                                                               func_ptr);
-> +                                       isp_set_buf(sgdma_state);
-> +                                       /* Non startup case */
-> +                                       if (ispmodule_obj.isp_pipeline
-> +                                                       & OMAP_ISP_RESIZER) {
-> +                                               ispmodule_obj.isp_temp_state =
-> +                                                               ISP_BUF_INIT;
-> +                                       } else {
-> +                                               ispmodule_obj.isp_temp_state =
-> +                                                               ISP_BUF_TRAN;
-> +                                               ispccdc_enable(1);
-> +                                       }
-> +                               }
-> +                               spin_unlock(&isp_obj.isp_temp_buf_lock);
-> +                       }
-> +               } else {
-> +                       isp_set_sgdma_callback(sgdma_state, func_ptr);
-> +                       isp_set_buf(sgdma_state);
-> +                       /* Non startup case */
-> +                       if (!(ispmodule_obj.isp_pipeline & OMAP_ISP_RESIZER))
-> +                               ispccdc_enable(1);
-> +
-> +                       if (*dma_notify) {
-> +                               isp_start();
-> +                               *dma_notify = 0;
-> +                       }
-> +               }
-> +       } else {
-> +               spin_lock(&isp_obj.isp_temp_buf_lock);
-> +               isp_CCDC_VD01_disable();
-> +               ispresizer_enable(0);
-> +               ispmodule_obj.isp_temp_state = ISP_FREE_RUNNING;
-> +               spin_unlock(&isp_obj.isp_temp_buf_lock);
-> +       }
-> +       spin_unlock_irqrestore(&sgdma->lock, flags);
-> +       return;
-> +}
-> +
-> +/**
-> + * isp_sgdma_queue - Queues a Scatter-Gather DMA videobuffer.
-> + * @vdma: Pointer to structure containing the desired DMA video buffer
-> + *        transfer parameters.
-> + * @vb: Pointer to structure containing the target videobuffer.
-> + * @irq: Flag to specify if an IRQ is associated with the DMA completion.
-> + * @dma_notify: Pointer to flag that says when the ISP has to be started.
-> + * @func_ptr: Callback function pointer for SG-DMA setup.
-> + *
-> + * Returns 0 if successful, -EINVAL if invalid SG linked list setup, or -EBUSY
-> + * if the ISP SG-DMA is not free.
-> + **/
-> +int isp_sgdma_queue(struct videobuf_dmabuf *vdma, struct videobuf_buffer *vb,
-> +                                               int irq, int *dma_notify,
-> +                                               isp_vbq_callback_ptr func_ptr)
-> +{
-> +       unsigned long flags;
-> +       struct isp_sgdma_state *sg_state;
-> +       const struct scatterlist *sglist = vdma->sglist;
-> +       int sglen = vdma->sglen;
-> +
-> +       if ((sglen < 0) || ((sglen > 0) & !sglist))
-> +               return -EINVAL;
-> +       isp_vbq_sync(vb);
-> +
-> +       spin_lock_irqsave(&ispsg.lock, flags);
-> +
-> +       if (!ispsg.free_sgdma) {
-> +               spin_unlock_irqrestore(&ispsg.lock, flags);
-> +               return -EBUSY;
-> +       }
-> +
-> +       sg_state = ispsg.sg_state + ispsg.next_sgdma;
-> +       sg_state->isp_addr = ispsg.isp_addr_capture[vb->i];
-> +       sg_state->status = 0;
-> +       sg_state->callback = isp_vbq_done;
-> +       sg_state->arg = vb;
-> +
-> +       ispsg.next_sgdma = (ispsg.next_sgdma + 1) % NUM_SG_DMA;
-> +       ispsg.free_sgdma--;
-> +
-> +       spin_unlock_irqrestore(&ispsg.lock, flags);
-> +
-> +       isp_sgdma_process(&ispsg, irq, dma_notify, func_ptr);
-> +
-> +       return 0;
-> +}
-> +EXPORT_SYMBOL(isp_sgdma_queue);
-> +
-> +/**
-> + * isp_vbq_prepare - Videobuffer queue prepare.
-> + * @vbq: Pointer to videobuf_queue structure.
-> + * @vb: Pointer to videobuf_buffer structure.
-> + * @field: Requested Field order for the videobuffer.
-> + *
-> + * Returns 0 if successful, or -EIO if the ispmmu was unable to map a
-> + * scatter-gather linked list data space.
-> + **/
-> +int isp_vbq_prepare(struct videobuf_queue *vbq, struct videobuf_buffer *vb,
-> +                                                       enum v4l2_field field)
-> +{
-> +       unsigned int isp_addr;
-> +       struct videobuf_dmabuf *vdma;
-> +
-> +       int err = 0;
-> +
-> +       vdma = videobuf_to_dma(vb);
-> +
-> +       isp_addr = ispmmu_map_sg(vdma->sglist, vdma->sglen);
-> +
-> +       if (!isp_addr)
-> +               err = -EIO;
-> +       else
-> +               ispsg.isp_addr_capture[vb->i] = isp_addr;
-> +
-> +       return err;
-> +}
-> +EXPORT_SYMBOL(isp_vbq_prepare);
-> +
-> +/**
-> + * isp_vbq_release - Videobuffer queue release.
-> + * @vbq: Pointer to videobuf_queue structure.
-> + * @vb: Pointer to videobuf_buffer structure.
-> + **/
-> +void isp_vbq_release(struct videobuf_queue *vbq, struct videobuf_buffer *vb)
-> +{
-> +       ispmmu_unmap(ispsg.isp_addr_capture[vb->i]);
-> +       ispsg.isp_addr_capture[vb->i] = (dma_addr_t)NULL;
-> +       return;
-> +}
-> +EXPORT_SYMBOL(isp_vbq_release);
-> +
-> +/**
-> + * isp_queryctrl - Query V4L2 control from existing controls in ISP.
-> + * @a: Pointer to v4l2_queryctrl structure. It only needs the id field filled.
-> + *
-> + * Returns 0 if successful, or -EINVAL if not found in ISP.
-> + **/
-> +int isp_queryctrl(struct v4l2_queryctrl *a)
-> +{
-> +       int i;
-> +
-> +       if (a->id & V4L2_CTRL_FLAG_NEXT_CTRL) {
-> +               a->id &= ~V4L2_CTRL_FLAG_NEXT_CTRL;
-> +               i = find_next_vctrl(a->id);
-> +       } else {
-> +               i = find_vctrl(a->id);
-> +       }
-> +
-> +       if (i < 0)
-> +               return -EINVAL;
-> +
-> +       *a = video_control[i].qc;
-> +       return 0;
-> +}
-> +EXPORT_SYMBOL(isp_queryctrl);
-> +
-> +/**
-> + * isp_g_ctrl - Gets value of the desired V4L2 control.
-> + * @a: V4L2 control to read actual value from.
-> + *
-> + * Return 0 if successful, or -EINVAL if chosen control is not found.
-> + **/
-> +int isp_g_ctrl(struct v4l2_control *a)
-> +{
-> +       u8 current_value;
-> +       int rval = 0;
-> +
-> +       switch (a->id) {
-> +       case V4L2_CID_BRIGHTNESS:
-> +               isppreview_query_brightness(&current_value);
-> +               a->value = current_value / ISPPRV_BRIGHT_UNITS;
-> +               break;
-> +       case V4L2_CID_CONTRAST:
-> +               isppreview_query_contrast(&current_value);
-> +               a->value = current_value / ISPPRV_CONTRAST_UNITS;
-> +               break;
-> +       case V4L2_CID_PRIVATE_ISP_COLOR_FX:
-> +               isppreview_get_color(&current_value);
-> +               a->value = current_value;
-> +               break;
-> +       default:
-> +               rval = -EINVAL;
-> +               break;
-> +       }
-> +
-> +       return rval;
-> +}
-> +EXPORT_SYMBOL(isp_g_ctrl);
-> +
-> +/**
-> + * isp_s_ctrl - Sets value of the desired V4L2 control.
-> + * @a: V4L2 control to read actual value from.
-> + *
-> + * Return 0 if successful, -EINVAL if chosen control is not found or value
-> + * is out of bounds, -EFAULT if copy_from_user or copy_to_user operation fails
-> + * from camera abstraction layer related controls or the transfered user space
-> + * pointer via the value field is not set properly.
-> + **/
-> +int isp_s_ctrl(struct v4l2_control *a)
-> +{
-> +       int rval = 0;
-> +       u8 new_value = a->value;
-> +
-> +       switch (a->id) {
-> +       case V4L2_CID_BRIGHTNESS:
-> +               if (new_value > ISPPRV_BRIGHT_HIGH)
-> +                       rval = -EINVAL;
-> +               else
-> +                       isppreview_update_brightness(&new_value);
-> +               break;
-> +       case V4L2_CID_CONTRAST:
-> +               if (new_value > ISPPRV_CONTRAST_HIGH)
-> +                       rval = -EINVAL;
-> +               else
-> +                       isppreview_update_contrast(&new_value);
-> +               break;
-> +       case V4L2_CID_PRIVATE_ISP_COLOR_FX:
-> +               if (new_value > PREV_BW_COLOR)
-> +                       rval = -EINVAL;
-> +               else
-> +                       isppreview_set_color(&new_value);
-> +               break;
-> +       default:
-> +               rval = -EINVAL;
-> +               break;
-> +       }
-> +
-> +       return rval;
-> +}
-> +EXPORT_SYMBOL(isp_s_ctrl);
-> +
-> +/**
-> + * isp_handle_private - Handle all private ioctls for isp module.
-> + * @cmd: ioctl cmd value
-> + * @arg: ioctl arg value
-> + *
-> + * Return 0 if successful, -EINVAL if chosen cmd value is not handled or value
-> + * is out of bounds, -EFAULT if ioctl arg value is not valid.
-> + * Function simply routes the input ioctl cmd id to the appropriate handler in
-> + * the isp module.
-> + **/
-> +int isp_handle_private(int cmd, void *arg)
-> +{
-> +       int rval = 0;
-> +
-> +       switch (cmd) {
-> +       case VIDIOC_PRIVATE_ISP_CCDC_CFG:
-> +               rval = omap34xx_isp_ccdc_config(arg);
-> +               break;
-> +       case VIDIOC_PRIVATE_ISP_PRV_CFG:
-> +               rval = omap34xx_isp_preview_config(arg);
-> +               break;
-> +       case VIDIOC_PRIVATE_ISP_AEWB_CFG: {
-> +               struct isph3a_aewb_config *params;
-> +               params = (struct isph3a_aewb_config *)arg;
-> +               rval = isph3a_aewb_configure(params);
-> +               }
-> +               break;
-> +       case VIDIOC_PRIVATE_ISP_AEWB_REQ: {
-> +               struct isph3a_aewb_data *data;
-> +               data = (struct isph3a_aewb_data *)arg;
-> +               rval = isph3a_aewb_request_statistics(data);
-> +               }
-> +               break;
-> +       case VIDIOC_PRIVATE_ISP_HIST_CFG: {
-> +               struct isp_hist_config *params;
-> +               params = (struct isp_hist_config *)arg;
-> +               rval = isp_hist_configure(params);
-> +               }
-> +               break;
-> +       case VIDIOC_PRIVATE_ISP_HIST_REQ: {
-> +               struct isp_hist_data *data;
-> +               data = (struct isp_hist_data *)arg;
-> +               rval = isp_hist_request_statistics(data);
-> +               }
-> +               break;
-> +       case VIDIOC_PRIVATE_ISP_AF_CFG: {
-> +               struct af_configuration *params;
-> +               params = (struct af_configuration *)arg;
-> +               rval = isp_af_configure(params);
-> +               }
-> +               break;
-> +       case VIDIOC_PRIVATE_ISP_AF_REQ: {
-> +               struct isp_af_data *data;
-> +               data = (struct isp_af_data *)arg;
-> +               rval = isp_af_request_statistics(data);
-> +               }
-> +               break;
-> +       default:
-> +               rval = -EINVAL;
-> +               break;
-> +       }
-> +       return rval;
-> +}
-> +EXPORT_SYMBOL(isp_handle_private);
-> +
-> +/**
-> + * isp_enum_fmt_cap - Gets more information of chosen format index and type
-> + * @f: Pointer to structure containing index and type of format to read from.
-> + *
-> + * Returns 0 if successful, or -EINVAL if format index or format type is
-> + * invalid.
-> + **/
-> +int isp_enum_fmt_cap(struct v4l2_fmtdesc *f)
-> +{
-> +       int index = f->index;
-> +       enum v4l2_buf_type type = f->type;
-> +       int rval = -EINVAL;
-> +
-> +       if (index >= NUM_ISP_CAPTURE_FORMATS)
-> +               goto err;
-> +
-> +       memset(f, 0, sizeof(*f));
-> +       f->index = index;
-> +       f->type = type;
-> +
-> +       switch (f->type) {
-> +       case V4L2_BUF_TYPE_VIDEO_CAPTURE:
-> +               rval = 0;
-> +               break;
-> +       default:
-> +               goto err;
-> +       }
-> +
-> +       f->flags = isp_formats[index].flags;
-> +       strncpy(f->description, isp_formats[index].description,
-> +                                               sizeof(f->description));
-> +       f->pixelformat = isp_formats[index].pixelformat;
-> +err:
-> +       return rval;
-> +}
-> +EXPORT_SYMBOL(isp_enum_fmt_cap);
-> +
-> +/**
-> + * isp_g_fmt_cap - Gets current output image format.
-> + * @f: Pointer to V4L2 format structure to be filled with current output format
-> + **/
-> +void isp_g_fmt_cap(struct v4l2_pix_format *pix)
-> +{
-> +       *pix = ispmodule_obj.pix;
-> +       return;
-> +}
-> +EXPORT_SYMBOL(isp_g_fmt_cap);
-> +
-> +/**
-> + * isp_s_fmt_cap - Sets I/O formats and crop and configures pipeline in ISP
-> + * @f: Pointer to V4L2 format structure to be filled with current output format
-> + *
-> + * Returns 0 if successful, or return value of either isp_try_size or
-> + * isp_try_fmt if there is an error.
-> + **/
-> +int isp_s_fmt_cap(struct v4l2_pix_format *pix_input,
-> +                                       struct v4l2_pix_format *pix_output)
-> +{
-> +       int crop_scaling_w, crop_scaling_h = 0;
-> +       int rval = 0;
-> +
-> +       rval = isp_calc_pipeline(pix_input, pix_output);
-> +       if (rval)
-> +               goto out;
-> +
-> +       rval = isp_try_size(pix_input, pix_output);
-> +       if (rval)
-> +               goto out;
-> +
-> +       rval = isp_try_fmt(pix_input, pix_output);
-> +       if (rval)
-> +               goto out;
-> +
-> +       if (ispcroprect.width != pix_output->width) {
-> +               crop_scaling_w = 1;
-> +               ispcroprect.left = 0;
-> +               ispcroprect.width = pix_output->width;
-> +       }
-> +
-> +       if (ispcroprect.height != pix_output->height) {
-> +               crop_scaling_h = 1;
-> +               ispcroprect.top = 0;
-> +               ispcroprect.height = pix_output->height;
-> +       }
-> +
-> +       isp_config_pipeline(pix_input, pix_output);
-> +
-> +       if (crop_scaling_h || crop_scaling_w)
-> +               isp_config_crop(pix_output);
-> +
-> +out:
-> +       return rval;
-> +}
-> +EXPORT_SYMBOL(isp_s_fmt_cap);
-> +
-> +/**
-> + * isp_config_crop - Configures crop parameters in isp resizer.
-> + * @croppix: Pointer to V4L2 pixel format structure containing crop parameters
-> + **/
-> +void isp_config_crop(struct v4l2_pix_format *croppix)
-> +{
-> +       u8 crop_scaling_w;
-> +       u8 crop_scaling_h;
-> +#if ISP_WORKAROUND
-> +       unsigned long org_left, num_pix, new_top;
-> +#endif
-> +
-> +       struct v4l2_pix_format *pix = croppix;
-> +
-> +       crop_scaling_w = (ispmodule_obj.preview_output_width * 10) /
-> +                                                               pix->width;
-> +       crop_scaling_h = (ispmodule_obj.preview_output_height * 10) /
-> +                                                               pix->height;
-> +
-> +       cur_rect.left = (ispcroprect.left * crop_scaling_w) / 10;
-> +       cur_rect.top = (ispcroprect.top * crop_scaling_h) / 10;
-> +       cur_rect.width = (ispcroprect.width * crop_scaling_w) / 10;
-> +       cur_rect.height = (ispcroprect.height * crop_scaling_h) / 10;
-> +
-> +#if ISP_WORKAROUND
-> +       org_left = cur_rect.left;
-> +       while (((int)cur_rect.left & 0xFFFFFFF0) != (int)cur_rect.left)
-> +               (int)cur_rect.left--;
-> +
-> +       num_pix = org_left - cur_rect.left;
-> +       new_top = (int)(num_pix * 3) / 4;
-> +       cur_rect.top = cur_rect.top - new_top;
-> +       cur_rect.height = (2 * new_top) + cur_rect.height;
-> +
-> +       cur_rect.width = cur_rect.width + (2 * num_pix);
-> +       while (((int)cur_rect.width & 0xFFFFFFF0) != (int)cur_rect.width)
-> +               (int)cur_rect.width--;
-> +
-> +       offset_value = ((cur_rect.left * 2) +
-> +               ((ispmodule_obj.preview_output_width) * 2 * cur_rect.top));
-> +#endif
-> +
-> +       ispresizer_trycrop(cur_rect.left, cur_rect.top, cur_rect.width,
-> +                                       cur_rect.height,
-> +                                       ispmodule_obj.resizer_output_width,
-> +                                       ispmodule_obj.resizer_output_height);
-> +
-> +       return;
-> +}
-> +EXPORT_SYMBOL(isp_config_crop);
-> +
-> +/**
-> + * isp_g_crop - Gets crop rectangle size and position.
-> + * @a: Pointer to V4L2 crop structure to be filled.
-> + *
-> + * Always returns 0.
-> + **/
-> +int isp_g_crop(struct v4l2_crop *a)
-> +{
-> +       struct v4l2_crop *crop = a;
-> +
-> +       crop->c = ispcroprect;
-> +       return 0;
-> +}
-> +EXPORT_SYMBOL(isp_g_crop);
-> +
-> +/**
-> + * isp_s_crop - Sets crop rectangle size and position and queues crop operation
-> + * @a: Pointer to V4L2 crop structure with desired parameters.
-> + * @pix: Pointer to V4L2 pixel format structure with desired parameters.
-> + *
-> + * Returns 0 if successful, or -EINVAL if crop parameters are out of bounds.
-> + **/
-> +int isp_s_crop(struct v4l2_crop *a, struct v4l2_pix_format *pix)
-> +{
-> +       struct v4l2_crop *crop = a;
-> +       int rval = 0;
-> +
-> +       if ((crop->c.left + crop->c.width) > pix->width) {
-> +               rval = -EINVAL;
-> +               goto out;
-> +       }
-> +
-> +       if ((crop->c.top + crop->c.height) > pix->height) {
-> +               rval = -EINVAL;
-> +               goto out;
-> +       }
-> +
-> +       ispcroprect.left = crop->c.left;
-> +       ispcroprect.top = crop->c.top;
-> +       ispcroprect.width = crop->c.width;
-> +       ispcroprect.height = crop->c.height;
-> +
-> +       isp_config_crop(pix);
-> +
-> +       ispmodule_obj.applyCrop = 1;
-> +out:
-> +       return rval;
-> +}
-> +EXPORT_SYMBOL(isp_s_crop);
-> +
-> +/**
-> + * isp_try_fmt_cap - Tries desired input/output image formats
-> + * @pix_input: Pointer to V4L2 pixel format structure for input image.
-> + * @pix_output: Pointer to V4L2 pixel format structure for output image.
-> + *
-> + * Returns 0 if successful, or return value of either isp_try_size or
-> + * isp_try_fmt if there is an error.
-> + **/
-> +int isp_try_fmt_cap(struct v4l2_pix_format *pix_input,
-> +                                       struct v4l2_pix_format *pix_output)
-> +{
-> +       int rval = 0;
-> +
-> +       rval = isp_calc_pipeline(pix_input, pix_output);
-> +       if (rval)
-> +               goto out;
-> +
-> +       rval = isp_try_size(pix_input, pix_output);
-> +       if (rval)
-> +               goto out;
-> +
-> +       rval = isp_try_fmt(pix_input, pix_output);
-> +       if (rval)
-> +               goto out;
-> +
-> +out:
-> +       return rval;
-> +}
-> +EXPORT_SYMBOL(isp_try_fmt_cap);
-> +
-> +/**
-> + * isp_try_size - Tries size configuration for I/O images of each ISP submodule
-> + * @pix_input: Pointer to V4L2 pixel format structure for input image.
-> + * @pix_output: Pointer to V4L2 pixel format structure for output image.
-> + *
-> + * Returns 0 if successful, or return value of ispccdc_try_size,
-> + * isppreview_try_size, or ispresizer_try_size (depending on the pipeline
-> + * configuration) if there is an error.
-> + **/
-> +int isp_try_size(struct v4l2_pix_format *pix_input,
-> +                                       struct v4l2_pix_format *pix_output)
-> +{
-> +       int rval = 0;
-> +
-> +       if ((pix_output->width <= ISPRSZ_MIN_OUTPUT) ||
-> +                               (pix_output->height <= ISPRSZ_MIN_OUTPUT))
-> +               return -EINVAL;
-> +
-> +       if ((pix_output->width >= ISPRSZ_MAX_OUTPUT) ||
-> +                               (pix_output->height > ISPRSZ_MAX_OUTPUT))
-> +               return -EINVAL;
-> +
-> +       ispmodule_obj.ccdc_input_width = pix_input->width;
-> +       ispmodule_obj.ccdc_input_height = pix_input->height;
-> +       ispmodule_obj.resizer_output_width = pix_output->width;
-> +       ispmodule_obj.resizer_output_height = pix_output->height;
-> +
-> +       if (ispmodule_obj.isp_pipeline & OMAP_ISP_CCDC) {
-> +               rval = ispccdc_try_size(ispmodule_obj.ccdc_input_width,
-> +                                       ispmodule_obj.ccdc_input_height,
-> +                                       &ispmodule_obj.ccdc_output_width,
-> +                                       &ispmodule_obj.ccdc_output_height);
-> +               if (rval) {
-> +                       printk(KERN_ERR "ISP_ERR: The dimensions %dx%d are not"
-> +                                       " supported\n", pix_input->width,
-> +                                       pix_input->height);
-> +                       return rval;
-> +               }
-> +               pix_output->width = ispmodule_obj.ccdc_output_width;
-> +               pix_output->height = ispmodule_obj.ccdc_output_height;
-> +       }
-> +
-> +       if (ispmodule_obj.isp_pipeline & OMAP_ISP_PREVIEW) {
-> +               ispmodule_obj.preview_input_width =
-> +                                       ispmodule_obj.ccdc_output_width;
-> +               ispmodule_obj.preview_input_height =
-> +                                       ispmodule_obj.ccdc_output_height;
-> +               rval = isppreview_try_size(ispmodule_obj.preview_input_width,
-> +                                       ispmodule_obj.preview_input_height,
-> +                                       &ispmodule_obj.preview_output_width,
-> +                                       &ispmodule_obj.preview_output_height);
-> +               if (rval) {
-> +                       printk(KERN_ERR "ISP_ERR: The dimensions %dx%d are not"
-> +                                       " supported\n", pix_input->width,
-> +                                       pix_input->height);
-> +                       return rval;
-> +               }
-> +               pix_output->width = ispmodule_obj.preview_output_width;
-> +               pix_output->height = ispmodule_obj.preview_output_height;
-> +       }
-> +
-> +       if (ispmodule_obj.isp_pipeline & OMAP_ISP_RESIZER) {
-> +               ispmodule_obj.resizer_input_width =
-> +                                       ispmodule_obj.preview_output_width;
-> +               ispmodule_obj.resizer_input_height =
-> +                                       ispmodule_obj.preview_output_height;
-> +               rval = ispresizer_try_size(&ispmodule_obj.resizer_input_width,
-> +                                       &ispmodule_obj.resizer_input_height,
-> +                                       &ispmodule_obj.resizer_output_width,
-> +                                       &ispmodule_obj.resizer_output_height);
-> +               if (rval) {
-> +                       printk(KERN_ERR "ISP_ERR: The dimensions %dx%d are not"
-> +                                       " supported\n", pix_input->width,
-> +                                       pix_input->height);
-> +                       return rval;
-> +               }
-> +               pix_output->width = ispmodule_obj.resizer_output_width;
-> +               pix_output->height = ispmodule_obj.resizer_output_height;
-> +       }
-> +
-> +       return rval;
-> +}
-> +EXPORT_SYMBOL(isp_try_size);
-> +
-> +/**
-> + * isp_try_fmt - Validates input/output format parameters.
-> + * @pix_input: Pointer to V4L2 pixel format structure for input image.
-> + * @pix_output: Pointer to V4L2 pixel format structure for output image.
-> + *
-> + * Always returns 0.
-> + **/
-> +int isp_try_fmt(struct v4l2_pix_format *pix_input,
-> +                                       struct v4l2_pix_format *pix_output)
-> +{
-> +       int ifmt;
-> +
-> +       for (ifmt = 0; ifmt < NUM_ISP_CAPTURE_FORMATS; ifmt++) {
-> +               if (pix_output->pixelformat == isp_formats[ifmt].pixelformat)
-> +                       break;
-> +       }
-> +       if (ifmt == NUM_ISP_CAPTURE_FORMATS)
-> +               ifmt = 1;
-> +       pix_output->pixelformat = isp_formats[ifmt].pixelformat;
-> +       pix_output->field = V4L2_FIELD_NONE;
-> +       pix_output->bytesperline = pix_output->width * ISP_BYTES_PER_PIXEL;
-> +       pix_output->sizeimage =
-> +               PAGE_ALIGN(pix_output->bytesperline * pix_output->height);
-> +       pix_output->priv = 0;
-> +       switch (pix_output->pixelformat) {
-> +       case V4L2_PIX_FMT_YUYV:
-> +       case V4L2_PIX_FMT_UYVY:
-> +               pix_output->colorspace = V4L2_COLORSPACE_JPEG;
-> +               break;
-> +       default:
-> +               pix_output->colorspace = V4L2_COLORSPACE_SRGB;
-> +       }
-> +
-> +       ispmodule_obj.pix.pixelformat = pix_output->pixelformat;
-> +       ispmodule_obj.pix.width = pix_output->width;
-> +       ispmodule_obj.pix.height = pix_output->height;
-> +       ispmodule_obj.pix.field = pix_output->field;
-> +       ispmodule_obj.pix.bytesperline = pix_output->bytesperline;
-> +       ispmodule_obj.pix.sizeimage = pix_output->sizeimage;
-> +       ispmodule_obj.pix.priv = pix_output->priv;
-> +       ispmodule_obj.pix.colorspace = pix_output->colorspace;
-> +
-> +       return 0;
-> +}
-> +EXPORT_SYMBOL(isp_try_fmt);
-> +
-> +/**
-> + * isp_save_ctx - Saves ISP, CCDC, HIST, H3A, PREV, RESZ & MMU context.
-> + *
-> + * Routine for saving the context of each module in the ISP.
-> + * CCDC, HIST, H3A, PREV, RESZ and MMU.
-> + **/
-> +void isp_save_ctx(void)
-> +{
-> +       isp_save_context(isp_reg_list);
-> +       ispccdc_save_context();
-> +       ispmmu_save_context();
-> +       isphist_save_context();
-> +       isph3a_save_context();
-> +       isppreview_save_context();
-> +       ispresizer_save_context();
-> +}
-> +EXPORT_SYMBOL(isp_save_ctx);
-> +
-> +/**
-> + * isp_restore_ctx - Restores ISP, CCDC, HIST, H3A, PREV, RESZ & MMU context.
-> + *
-> + * Routine for restoring the context of each module in the ISP.
-> + * CCDC, HIST, H3A, PREV, RESZ and MMU.
-> + **/
-> +void isp_restore_ctx(void)
-> +{
-> +       isp_restore_context(isp_reg_list);
-> +       ispccdc_restore_context();
-> +       ispmmu_restore_context();
-> +       isphist_restore_context();
-> +       isph3a_restore_context();
-> +       isppreview_restore_context();
-> +       ispresizer_restore_context();
-> +}
-> +EXPORT_SYMBOL(isp_restore_ctx);
-> +
-> +/**
-> + * isp_get - Adquires the ISP resource.
-> + *
-> + * Initializes the clocks for the first acquire.
-> + **/
-> +int isp_get(void)
-> +{
-> +       int ret_err = 0;
-> +       DPRINTK_ISPCTRL("isp_get: old %d\n", isp_obj.ref_count);
-> +       mutex_lock(&(isp_obj.isp_mutex));
-> +       if (isp_obj.ref_count == 0) {
-> +               isp_obj.cam_ick = clk_get(&camera_dev, "cam_ick");
-> +               if (IS_ERR(isp_obj.cam_ick)) {
-> +                       DPRINTK_ISPCTRL("ISP_ERR: clk_get for "
-> +                                                       "cam_ick failed\n");
-> +                       ret_err = PTR_ERR(isp_obj.cam_ick);
-> +                       goto out_clk_get_ick;
-> +               }
-> +               isp_obj.cam_mclk = clk_get(&camera_dev, "cam_mclk");
-> +               if (IS_ERR(isp_obj.cam_mclk)) {
-> +                       DPRINTK_ISPCTRL("ISP_ERR: clk_get for "
-> +                                                       "cam_mclk failed\n");
-> +                       ret_err = PTR_ERR(isp_obj.cam_mclk);
-> +                       goto out_clk_get_mclk;
-> +               }
-> +               isp_obj.csi2_fck = clk_get(&camera_dev, "csi2_96m_fck");
-> +               if (IS_ERR(isp_obj.csi2_fck)) {
-> +                       DPRINTK_ISPCTRL("ISP_ERR: clk_get for csi2_fclk"
-> +                                                               " failed\n");
-> +                       ret_err = PTR_ERR(isp_obj.csi2_fck);
-> +                       goto out_clk_get_csi2_fclk;
-> +               }
-> +               ret_err = clk_enable(isp_obj.cam_ick);
-> +               if (ret_err) {
-> +                       DPRINTK_ISPCTRL("ISP_ERR: clk_en for ick failed\n");
-> +                       goto out_clk_enable_ick;
-> +               }
-> +               ret_err = clk_enable(isp_obj.cam_mclk);
-> +               if (ret_err) {
-> +                       DPRINTK_ISPCTRL("ISP_ERR: clk_en for mclk failed\n");
-> +                       goto out_clk_enable_mclk;
-> +               }
-> +               ret_err = clk_enable(isp_obj.csi2_fck);
-> +               if (ret_err) {
-> +                       DPRINTK_ISPCTRL("ISP_ERR: clk_en for csi2_fclk"
-> +                                                               " failed\n");
-> +                       goto out_clk_enable_csi2_fclk;
-> +               }
-> +               if (off_mode == 1)
-> +                       isp_restore_ctx();
-> +       }
-> +       isp_obj.ref_count++;
-> +       mutex_unlock(&(isp_obj.isp_mutex));
-> +
-> +
-> +       DPRINTK_ISPCTRL("isp_get: new %d\n", isp_obj.ref_count);
-> +       return isp_obj.ref_count;
-> +
-> +out_clk_enable_csi2_fclk:
-> +       clk_disable(isp_obj.cam_mclk);
-> +out_clk_enable_mclk:
-> +       clk_disable(isp_obj.cam_ick);
-> +out_clk_enable_ick:
-> +       clk_put(isp_obj.csi2_fck);
-> +out_clk_get_csi2_fclk:
-> +       clk_put(isp_obj.cam_mclk);
-> +out_clk_get_mclk:
-> +       clk_put(isp_obj.cam_ick);
-> +out_clk_get_ick:
-> +
-> +       mutex_unlock(&(isp_obj.isp_mutex));
-> +
-> +       return ret_err;
-> +}
-> +EXPORT_SYMBOL(isp_get);
-> +
-> +/**
-> + * isp_put - Releases the ISP resource.
-> + *
-> + * Releases the clocks also for the last release.
-> + **/
-> +int isp_put(void)
-> +{
-> +       DPRINTK_ISPCTRL("isp_put: old %d\n", isp_obj.ref_count);
-> +       mutex_lock(&(isp_obj.isp_mutex));
-> +       if (isp_obj.ref_count) {
-> +               if (--isp_obj.ref_count == 0) {
-> +                       isp_save_ctx();
-> +                       off_mode = 1;
-> +#if ISP_WORKAROUND
-> +                       isp_buf_free();
-> +#endif
-> +                       isp_release_resources();
-> +                       ispmodule_obj.isp_pipeline = 0;
-> +                       clk_disable(isp_obj.cam_ick);
-> +                       clk_disable(isp_obj.cam_mclk);
-> +                       clk_disable(isp_obj.csi2_fck);
-> +                       clk_put(isp_obj.cam_ick);
-> +                       clk_put(isp_obj.cam_mclk);
-> +                       clk_put(isp_obj.csi2_fck);
-> +                       memset(&ispcroprect, 0, sizeof(ispcroprect));
-> +                       memset(&cur_rect, 0, sizeof(cur_rect));
-> +               }
-> +       }
-> +       mutex_unlock(&(isp_obj.isp_mutex));
-> +       DPRINTK_ISPCTRL("isp_put: new %d\n", isp_obj.ref_count);
-> +       return isp_obj.ref_count;
-> +}
-> +EXPORT_SYMBOL(isp_put);
-> +
-> +/**
-> + * isp_save_context - Saves the values of the ISP module registers.
-> + * @reg_list: Structure containing pairs of register address and value to
-> + *            modify on OMAP.
-> + **/
-> +void isp_save_context(struct isp_reg *reg_list)
-> +{
-> +       struct isp_reg *next = reg_list;
-> +
-> +       for (; next->reg != ISP_TOK_TERM; next++)
-> +               next->val = omap_readl(next->reg);
-> +}
-> +EXPORT_SYMBOL(isp_save_context);
-> +
-> +/**
-> + * isp_restore_context - Restores the values of the ISP module registers.
-> + * @reg_list: Structure containing pairs of register address and value to
-> + *            modify on OMAP.
-> + **/
-> +void isp_restore_context(struct isp_reg *reg_list)
-> +{
-> +       struct isp_reg *next = reg_list;
-> +
-> +       for (; next->reg != ISP_TOK_TERM; next++)
-> +               omap_writel(next->val, next->reg);
-> +}
-> +EXPORT_SYMBOL(isp_restore_context);
-> +
-> +/**
-> + * isp_init - ISP module initialization.
-> + **/
-> +static int __init isp_init(void)
-> +{
-> +       DPRINTK_ISPCTRL("+isp_init for Omap 3 Camera ISP\n");
-> +       isp_obj.ref_count = 0;
-> +
-> +       mutex_init(&(isp_obj.isp_mutex));
-> +       spin_lock_init(&isp_obj.isp_temp_buf_lock);
-> +       spin_lock_init(&isp_obj.lock);
-> +
-> +       if (request_irq(INT_34XX_CAM_IRQ, omap34xx_isp_isr, IRQF_SHARED,
-> +                               "Omap 34xx Camera ISP", &ispirq_obj)) {
-> +               DPRINTK_ISPCTRL("Could not install ISR\n");
-> +               return -EINVAL;
-> +       }
-> +
-> +       isp_ccdc_init();
-> +       isp_hist_init();
-> +       isph3a_aewb_init();
-> +       ispmmu_init();
-> +       isp_preview_init();
-> +       isp_resizer_init();
-> +       isp_af_init();
-> +       isp_csi2_init();
-> +
-> +       DPRINTK_ISPCTRL("-isp_init for Omap 3 Camera ISP\n");
-> +       return 0;
-> +}
-> +EXPORT_SYMBOL(isp_sgdma_init);
-> +
-> +/**
-> + * isp_cleanup - ISP module cleanup.
-> + **/
-> +static void __exit isp_cleanup(void)
-> +{
-> +       isp_csi2_cleanup();
-> +       isp_af_exit();
-> +       isp_resizer_cleanup();
-> +       isp_preview_cleanup();
-> +       ispmmu_cleanup();
-> +       isph3a_aewb_cleanup();
-> +       isp_hist_cleanup();
-> +       isp_ccdc_cleanup();
-> +       free_irq(INT_34XX_CAM_IRQ, &ispirq_obj);
-> +}
-> +
-> +/**
-> + * isp_print_status - Prints the values of the ISP Control Module registers
-> + *
-> + * Also prints other debug information stored in the ISP module structure.
-> + **/
-> +void isp_print_status(void)
-> +{
-> +       if (!is_ispctrl_debug_enabled())
-> +               return;
-> +
-> +       DPRINTK_ISPCTRL("###ISP_CTRL=0x%x\n", omap_readl(ISP_CTRL));
-> +       DPRINTK_ISPCTRL("###ISP_TCTRL_CTRL=0x%x\n", omap_readl(ISP_TCTRL_CTRL));
-> +       DPRINTK_ISPCTRL("###ISP_SYSCONFIG=0x%x\n", omap_readl(ISP_SYSCONFIG));
-> +       DPRINTK_ISPCTRL("###ISP_SYSSTATUS=0x%x\n", omap_readl(ISP_SYSSTATUS));
-> +       DPRINTK_ISPCTRL("###ISP_IRQ0ENABLE=0x%x\n", omap_readl(ISP_IRQ0ENABLE));
-> +       DPRINTK_ISPCTRL("###ISP_IRQ0STATUS=0x%x\n", omap_readl(ISP_IRQ0STATUS));
-> +}
-> +EXPORT_SYMBOL(isp_print_status);
-> +
-> +module_init(isp_init);
-> +module_exit(isp_cleanup);
-> +
-> +MODULE_AUTHOR("Texas Instruments");
-> +MODULE_DESCRIPTION("ISP Control Module Library");
-> +MODULE_LICENSE("GPL");
-> diff --git a/drivers/media/video/isp/isp.h b/drivers/media/video/isp/isp.h
-> new file mode 100644
-> index 0000000..7101311
-> --- /dev/null
-> +++ b/drivers/media/video/isp/isp.h
-> @@ -0,0 +1,341 @@
-> +/*
-> + * drivers/media/video/isp/isp.h
-> + *
-> + * Top level public header file for ISP Control module in
-> + * TI's OMAP3 Camera ISP
-> + *
-> + * Copyright (C) 2008 Texas Instruments.
-> + * Copyright (C) 2008 Nokia.
-> + *
-> + * Contributors:
-> + *     Sameer Venkatraman <sameerv@ti.com>
-> + *     Mohit Jalori <mjalori@ti.com>
-> + *     Sakari Ailus <sakari.ailus@nokia.com>
-> + *     Tuukka Toivonen <tuukka.o.toivonen@nokia.com>
-> + *
-> + * This package is free software; you can redistribute it and/or modify
-> + * it under the terms of the GNU General Public License version 2 as
-> + * published by the Free Software Foundation.
-> + *
-> + * THIS PACKAGE IS PROVIDED ``AS IS'' AND WITHOUT ANY EXPRESS OR
-> + * IMPLIED WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED
-> + * WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
+> + * struct prev_rgbblending - Structure for RGB2RGB blending parameters
+> + * @blending: Color correlation 3x3 matrix.
+> + * @offset: Color correlation offsets.
 > + */
-> +
-> +#ifndef OMAP_ISP_TOP_H
-> +#define OMAP_ISP_TOP_H
-> +#include <media/videobuf-dma-sg.h>
-> +#include <linux/videodev2.h>
-> +#define OMAP_ISP_CCDC          (1 << 0)
-> +#define OMAP_ISP_PREVIEW       (1 << 1)
-> +#define OMAP_ISP_RESIZER       (1 << 2)
-> +#define OMAP_ISP_AEWB          (1 << 3)
-> +#define OMAP_ISP_AF            (1 << 4)
-> +#define OMAP_ISP_HIST          (1 << 5)
-> +
-> +/* Our ISP specific controls */
-> +#define V4L2_CID_PRIVATE_ISP_COLOR_FX          (V4L2_CID_PRIVATE_BASE + 0)
-> +
-> +#define ISP_TOK_TERM           0xFFFFFFFF      /*
-> +                                                * terminating token for ISP
-> +                                                * modules reg list
+> +struct prev_rgbblending {
+> +       short blending[RGB_MAX][RGB_MAX];       /* color correlation 3x3
+> +                                                * matrix.
 > +                                                */
-> +#define NUM_SG_DMA             (VIDEO_MAX_FRAME + 2)
+> +       short offset[RGB_MAX];                  /* color correlation offsets */
+> +};
 > +
-> +#define ISP_BUF_INIT           0
-> +#define ISP_FREE_RUNNING       1
-> +#define ISP_BUF_TRAN           2
+> +/**
+> + * struct prev_cfa_coeffs - Structure for CFA coefficients
+> + * @hthreshold: Horizontal threshold.
+> + * @vthreshold: Vertical threshold.
+> + * @coeffs: CFA coefficients
+> + */
+> +struct prev_cfa_coeffs {
+> +       char hthreshold, vthreshold;
+> +       int coeffs[CFA_COEFF_TABLE_SIZE];
+> +};
 > +
-> +#ifndef CONFIG_ARCH_OMAP3410
-> +#define USE_ISP_PREVIEW
-> +#define USE_ISP_RESZ
-> +#define is_isppreview_enabled()                1
-> +#define is_ispresizer_enabled()                1
-> +#else
-> +#define is_isppreview_enabled()                0
-> +#define is_ispresizer_enabled()                0
+> +/**
+> + * struct prev_gamma_coeffs - Structure for Gamma Coefficients
+> + * @red: Table of gamma correction values for red color.
+> + * @green: Table of gamma correction values for green color.
+> + * @blue: Table of gamma correction values for blue color.
+> + */
+> +struct prev_gamma_coeffs {
+> +       unsigned char red[GAMMA_TABLE_SIZE];
+> +       unsigned char green[GAMMA_TABLE_SIZE];
+> +       unsigned char blue[GAMMA_TABLE_SIZE];
+> +};
+> +
+> +/**
+> + * struct prev_noiseflt_coeffs - Structure for Noise Filter Coefficients.
+> + * @noise: Noise filter table.
+> + * @strength: Used to find out weighted average.
+> + */
+> +struct prev_noiseflt_coeffs {
+> +       unsigned char noise[NOISE_FILTER_TABLE_SIZE];
+> +       unsigned char strength;
+> +};
+> +
+> +/**
+> + * struct prev_chroma_spr - Structure for Chroma Suppression.
+> + * @hpfy: High passed version of Y or normal Y.
+> + * @threshold: Threshold for chroma suppress.
+> + * @gain: Chroma suppression gain
+> + */
+> +struct prev_chroma_spr {
+> +       unsigned char hpfy;
+> +       char threshold;
+> +       unsigned char gain;
+> +};
+> +
+> +/**
+> + * struct prev_status - Structure to know status of the hardware
+> + * @hw_busy: Flag to indicate if Hardware is Busy.
+> + */
+> +struct prev_status {
+> +       char hw_busy;
+> +};
+> +
+> +/**
+> + * struct prev_cropsize - Structure to know crop size.
+> + * @hcrop: Horizontal size of crop window.
+> + * @vcrop: Vertical size of crop window.
+> + */
+> +struct prev_cropsize {
+> +       int hcrop;
+> +       int vcrop;
+> +};
+
+Don't use int, char, short, etc. Instead use __u8, __u16, etc. in public
+headers.
+
+> +
+> +/**
+> + * struct prev_device - Global device information structure.
+> + * @params: Pointer to structure containing preview parameters.
+> + * @opened: State of the device.
+> + * @wfc: Wait for completion. Used for locking operations.
+> + * @prevwrap_mutex: Mutex for preview wrapper use.
+> + * @vbq_lock: Spinlock for videobuf queues.
+> + * @vbq_ops: Videobuf queue operations
+> + * @isp_addr_read: Input/Output address
+> + */
+> +struct prev_device {
+> +       struct prev_params *params;
+> +       unsigned char opened;
+> +       struct completion wfc;
+> +       struct mutex prevwrap_mutex; /* For generic internal use */
+> +       spinlock_t vbq_lock;    /* For videobuffer queue handling */
+> +       struct videobuf_queue_ops vbq_ops;
+> +       dma_addr_t isp_addr_read;
+> +};
+> +
+> +/**
+> + * struct prev_fh - Per-filehandle data structure
+> + * @type: Used buffer type.
+> + * @vbq: Videobuffer queue.
+> + * @device: Pointer to device information structure.
+> + */
+> +struct prev_fh {
+> +       enum v4l2_buf_type type;
+> +       struct videobuf_queue vbq;
+> +       struct prev_device *device;
+> +};
 > +#endif
-> +
-> +#define ISP_XCLKA_DEFAULT              0x12
-> +#define ISP_OUTPUT_WIDTH_DEFAULT       176
-> +#define ISP_OUTPUT_HEIGHT_DEFAULT      144
-> +#define ISP_BYTES_PER_PIXEL            2
-> +#define NUM_ISP_CAPTURE_FORMATS        (sizeof(isp_formats) /\
-> +                                                       sizeof(isp_formats[0]))
-> +#define ISP_WORKAROUND 1
-> +#define buffer_size (1024 * 1024 * 10)
-> +#define no_of_pages (buffer_size / (4 * 1024))
-> +
-> +typedef int (*isp_vbq_callback_ptr) (struct videobuf_buffer *vb);
-> +typedef void (*isp_callback_t) (unsigned long status,
-> +                                       isp_vbq_callback_ptr arg1, void *arg2);
-> +
-> +enum isp_interface_type {
-> +       ISP_PARLL = 1,
-> +       ISP_CSIA = 2,
-> +       ISP_CSIB = 4
-> +};
-> +
-> +enum isp_irqevents {
-> +       CSIA = 0x01,
-> +       CSIB = 0x10,
-> +       CCDC_VD0 = 0x100,
-> +       CCDC_VD1 = 0x200,
-> +       CCDC_VD2 = 0x400,
-> +       CCDC_ERR = 0x800,
-> +       H3A_AWB_DONE = 0x2000,
-> +       H3A_AF_DONE = 0x1000,
-> +       HIST_DONE = 0x10000,
-> +       PREV_DONE = 0x100000,
-> +       LSC_DONE = 0x20000,
-> +       LSC_PRE_COMP = 0x40000,
-> +       LSC_PRE_ERR = 0x80000,
-> +       RESZ_DONE = 0x1000000,
-> +       SBL_OVF = 0x2000000,
-> +       MMU_ERR = 0x10000000,
-> +       OCP_ERR = 0x20000000,
-> +       HS_VS = 0x80000000
-> +};
-> +
-> +enum isp_callback_type {
-> +       CBK_CCDC_VD0,
-> +       CBK_CCDC_VD1,
-> +       CBK_PREV_DONE,
-> +       CBK_RESZ_DONE,
-> +       CBK_MMU_ERR,
-> +       CBK_H3A_AWB_DONE,
-> +       CBK_HIST_DONE,
-> +       CBK_HS_VS,
-> +       CBK_LSC_ISR,
-> +       CBK_H3A_AF_DONE,
-> +       CBK_CATCHALL,
-> +       CBK_CSIA,
-> +       CBK_CSIB,
-> +       CBK_END,
-> +};
-> +
-> +/**
-> + * struct isp_reg - Structure for ISP register values.
-> + * @reg: 32-bit Register address.
-> + * @val: 32-bit Register value.
-> + */
-> +struct isp_reg {
-> +       u32 reg;
-> +       u32 val;
-> +};
-> +
-> +/**
-> + * struct isp_sgdma_state - SG-DMA state for each videobuffer + 2 overlays
-> + * @isp_addr: ISP space address mapped by ISP MMU.
-> + * @status: DMA return code mapped by ISP MMU.
-> + * @callback: Pointer to ISP callback function.
-> + * @arg: Pointer to argument passed to the specified callback function.
-> + */
-> +struct isp_sgdma_state {
-> +       dma_addr_t isp_addr;
-> +       u32 status;
-> +       isp_callback_t callback;
-> +       void *arg;
-> +};
-> +
-> +/**
-> + * struct isp_sgdma - ISP Scatter Gather DMA status.
-> + * @isp_addr_capture: Array of ISP space addresses mapped by the ISP MMU.
-> + * @lock: Spinlock used to check free_sgdma field.
-> + * @free_sgdma: Number of free SG-DMA slots.
-> + * @next_sgdma: Index of next SG-DMA slot to use.
-> + */
-> +struct isp_sgdma {
-> +       dma_addr_t isp_addr_capture[VIDEO_MAX_FRAME];
-> +       spinlock_t lock;        /* For handling current buffer */
-> +       int free_sgdma;
-> +       int next_sgdma;
-> +       struct isp_sgdma_state sg_state[NUM_SG_DMA];
-> +};
-> +
-> +/**
-> + * struct isp_interface_config - ISP interface configuration.
-> + * @ccdc_par_ser: ISP interface type. 0 - Parallel, 1 - CSIA, 2 - CSIB to CCDC.
-> + * @par_bridge: CCDC Bridge input control. Parallel interface.
-> + *                  0 - Disable, 1 - Enable, first byte->cam_d(bits 7 to 0)
-> + *                  2 - Enable, first byte -> cam_d(bits 15 to 8)
-> + * @par_clk_pol: Pixel clock polarity on the parallel interface.
-> + *                    0 - Non Inverted, 1 - Inverted
-> + * @dataline_shift: Data lane shifter.
-> + *                      0 - No Shift, 1 - CAMEXT[13 to 2]->CAM[11 to 0]
-> + *                      2 - CAMEXT[13 to 4]->CAM[9 to 0]
-> + *                      3 - CAMEXT[13 to 6]->CAM[7 to 0]
-> + * @hsvs_syncdetect: HS or VS synchronization signal detection.
-> + *                       0 - HS Falling, 1 - HS rising
-> + *                       2 - VS falling, 3 - VS rising
-> + * @vdint0_timing: VD0 Interrupt timing.
-> + * @vdint1_timing: VD1 Interrupt timing.
-> + * @strobe: Strobe related parameter.
-> + * @prestrobe: PreStrobe related parameter.
-> + * @shutter: Shutter related parameter.
-> + * @hskip: Horizontal Start Pixel performed in Preview module.
-> + * @vskip: Vertical Start Line performed in Preview module.
-> + * @wenlog: Store the value for the sensor specific wenlog field.
-> + */
-> +struct isp_interface_config {
-> +       enum isp_interface_type ccdc_par_ser;
-> +       u8 dataline_shift;
-> +       u32 hsvs_syncdetect;
-> +       u16 vdint0_timing;
-> +       u16 vdint1_timing;
-> +       int strobe;
-> +       int prestrobe;
-> +       int shutter;
-> +       u32 prev_sph;
-> +       u32 prev_slv;
-> +       u32 wenlog;
-> +       union {
-> +               struct par {
-> +                       unsigned par_bridge:2;
-> +                       unsigned par_clk_pol:1;
-> +               } par;
-> +               struct csi {
-> +                       unsigned crc:1;
-> +                       unsigned mode:1;
-> +                       unsigned edge:1;
-> +                       unsigned signalling:1;
-> +                       unsigned strobe_clock_inv:1;
-> +                       unsigned vs_edge:1;
-> +                       unsigned channel:3;
-> +                       unsigned vpclk:2;       /* Video port output clock */
-> +                       unsigned int data_start;
-> +                       unsigned int data_size;
-> +                       u32 format;             /* V4L2_PIX_FMT_* */
-> +               } csi;
-> +       } u;
-> +};
-> +
-> +/**
-> + * struct isp_sysc - ISP Power switches to set.
-> + * @reset: Flag for setting ISP reset.
-> + * @idle_mode: Flag for setting ISP idle mode.
-> + */
-> +struct isp_sysc {
-> +       char reset;
-> +       char idle_mode;
-> +};
-> +
-> +void isp_release_resources(void);
-> +
-> +void isp_start(void);
-> +
-> +void isp_stop(void);
-> +
-> +void isp_sgdma_init(void);
-> +
-> +void isp_vbq_done(unsigned long status, isp_vbq_callback_ptr arg1, void *arg2);
-> +
-> +void isp_sgdma_process(struct isp_sgdma *sgdma, int irq, int *dma_notify,
-> +                                               isp_vbq_callback_ptr func_ptr);
-> +
-> +int isp_sgdma_queue(struct videobuf_dmabuf *vdma, struct videobuf_buffer *vb,
-> +                                               int irq, int *dma_notify,
-> +                                               isp_vbq_callback_ptr func_ptr);
-> +
-> +int isp_vbq_prepare(struct videobuf_queue *vbq, struct videobuf_buffer *vb,
-> +                                                       enum v4l2_field field);
-> +
-> +void isp_vbq_release(struct videobuf_queue *vbq, struct videobuf_buffer *vb);
-> +
-> +int isp_set_callback(enum isp_callback_type type, isp_callback_t callback,
-> +                                       isp_vbq_callback_ptr arg1, void *arg2);
-> +
-> +void omapisp_unset_callback(void);
-> +
-> +int isp_unset_callback(enum isp_callback_type type);
-> +
-> +u32 isp_set_xclk(u32 xclk, u8 xclksel);
-> +
-> +u32 isp_get_xclk(u8 xclksel);
-> +
-> +int isp_request_interface(enum isp_interface_type if_t);
-> +
-> +int isp_free_interface(enum isp_interface_type if_t);
-> +
-> +void isp_power_settings(struct isp_sysc);
-> +
-> +int isp_configure_interface(struct isp_interface_config *config);
-> +
-> +void isp_CCDC_VD01_disable(void);
-> +
-> +void isp_CCDC_VD01_enable(void);
-> +
-> +int isp_get(void);
-> +
-> +int isp_put(void);
-> +
-> +void isp_set_pipeline(int soc_type);
-> +
-> +void isp_config_pipeline(struct v4l2_pix_format *pix_input,
-> +                                       struct v4l2_pix_format *pix_output);
-> +
-> +int isp_queryctrl(struct v4l2_queryctrl *a);
-> +
-> +int isp_g_ctrl(struct v4l2_control *a);
-> +
-> +int isp_s_ctrl(struct v4l2_control *a);
-> +
-> +int isp_enum_fmt_cap(struct v4l2_fmtdesc *f);
-> +
-> +int isp_try_fmt_cap(struct v4l2_pix_format *pix_input,
-> +                                       struct v4l2_pix_format *pix_output);
-> +
-> +void isp_g_fmt_cap(struct v4l2_pix_format *pix);
-> +
-> +int isp_s_fmt_cap(struct v4l2_pix_format *pix_input,
-> +                                       struct v4l2_pix_format *pix_output);
-> +
-> +int isp_g_crop(struct v4l2_crop *a);
-> +
-> +int isp_s_crop(struct v4l2_crop *a, struct v4l2_pix_format *pix);
-> +
-> +void isp_config_crop(struct v4l2_pix_format *pix);
-> +
-> +int isp_try_size(struct v4l2_pix_format *pix_input,
-> +                                       struct v4l2_pix_format *pix_output);
-> +
-> +int isp_try_fmt(struct v4l2_pix_format *pix_input,
-> +                                       struct v4l2_pix_format *pix_output);
-> +
-> +int isp_handle_private(int cmd, void *arg);
-> +
-> +void isp_save_context(struct isp_reg *);
-> +
-> +void isp_restore_context(struct isp_reg *);
-> +
-> +void isp_save_ctx(void);
-> +
-> +void isp_restore_ctx(void);
-> +
-> +/* Configure CCDC interface bridge*/
-> +int isp_configure_interface_bridge(u32 par_bridge);
-> +
-> +void isp_print_status(void);
-> +
-> +dma_addr_t isp_buf_get(void);
-> +
-> +int __init isp_ccdc_init(void);
-> +int __init isp_hist_init(void);
-> +int __init isph3a_aewb_init(void);
-> +int __init ispmmu_init(void);
-> +int __init isp_preview_init(void);
-> +int __init isp_resizer_init(void);
-> +int __init isp_af_init(void);
-> +int __init isp_csi2_init(void);
-> +
-> +void __exit isp_ccdc_cleanup(void);
-> +void __exit isp_hist_cleanup(void);
-> +void __exit isph3a_aewb_cleanup(void);
-> +void __exit ispmmu_cleanup(void);
-> +void __exit isp_preview_cleanup(void);
-> +void __exit isp_hist_cleanup(void);
-> +void __exit isp_resizer_cleanup(void);
-> +void __exit isp_af_exit(void);
-> +void __exit isp_csi2_cleanup(void);
-> +
-> +#endif /* OMAP_ISP_TOP_H */
-> diff --git a/drivers/media/video/isp/ispmmu.c b/drivers/media/video/isp/ispmmu.c
+> diff --git a/drivers/media/video/isp/omap_resizer.c b/drivers/media/video/isp/omap_resizer.c
 > new file mode 100644
-> index 0000000..b0aaf54
+> index 0000000..93109e7
 > --- /dev/null
-> +++ b/drivers/media/video/isp/ispmmu.c
-> @@ -0,0 +1,746 @@
+> +++ b/drivers/media/video/isp/omap_resizer.c
+> @@ -0,0 +1,1631 @@
 > +/*
-> + * drivers/media/video/isp/ispmmu.c
+> + * drivers/media/video/isp/omap_resizer.c
 > + *
-> + * Driver Library for ISP MMU module in TI's OMAP3 Camera ISP
+> + * Wrapper for Resizer module in TI's OMAP3430 ISP
 > + *
-> + * Copyright (C) 2008 Texas Instruments.
+> + * Copyright (C) 2008 Texas Instruments, Inc.
 > + *
 > + * Contributors:
-> + *     Senthilvadivu Guruswamy <svadivu@ti.com>
-> + *     Thara Gopinath <thara@ti.com>
+> + *     Sergio Aguirre <saaguirre@ti.com>
+> + *     Troy Laramy <t-laramy@ti.com>
 > + *
 > + * This package is free software; you can redistribute it and/or modify
 > + * it under the terms of the GNU General Public License version 2 as
@@ -2941,750 +1136,1631 @@ Regards,
 > + * THIS PACKAGE IS PROVIDED ``AS IS'' AND WITHOUT ANY EXPRESS OR
 > + * IMPLIED WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED
 > + * WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
-> + *
 > + */
 > +
-> +#include <linux/init.h>
-> +#include <linux/module.h>
-> +#include <linux/moduleparam.h>
+> +#include <linux/mutex.h>
+> +#include <linux/cdev.h>
 > +#include <linux/delay.h>
-> +#include <linux/errno.h>
-> +#include <linux/kernel.h>
-> +#include <linux/sched.h>
-> +#include <linux/interrupt.h>
-> +#include <linux/types.h>
-> +#include <linux/dma-mapping.h>
+> +#include <linux/device.h>
+> +#include <linux/fs.h>
 > +#include <linux/mm.h>
-> +
+> +#include <linux/module.h>
+> +#include <linux/platform_device.h>
 > +#include <linux/io.h>
-> +#include <linux/scatterlist.h>
-> +#include <linux/semaphore.h>
-> +#include <asm/byteorder.h>
-> +#include <asm/irq.h>
+> +#include <linux/uaccess.h>
+> +#include <media/v4l2-dev.h>
+> +#include <asm/cacheflush.h>
 > +
 > +#include "isp.h"
-> +#include "ispreg.h"
 > +#include "ispmmu.h"
+> +#include "ispreg.h"
+> +#include "ispresizer.h"
+> +#include <linux/omap_resizer.h>
 > +
-> +/**
-> + * struct ispmmu_mapattr - Struct for Mapping Attributes in L1, L2 descriptor
-> + * endianism: Endianism.
-> + * element_size: Bit size of the element.
-> + * mixed_size: Mixed region type.
-> + * map_size: Mapping size.
-> + */
-> +struct ispmmu_mapattr {
-> +       enum ISPMMU_MAP_ENDIAN endianism;
-> +       enum ISPMMU_MAP_ELEMENTSIZE element_size;
-> +       enum ISPMMU_MAP_MIXEDREGION mixed_size;
-> +       enum ISPMMU_MAP_SIZE map_size;
+> +#define OMAP_REZR_NAME         "omap-resizer"
+> +
+> +/* Defines and Constants*/
+> +#define MAX_CHANNELS           16
+> +#define MAX_IMAGE_WIDTH                2047
+> +#define MAX_IMAGE_WIDTH_HIGH   2047
+> +#define ALIGNMENT              16
+> +#define CHANNEL_BUSY           1
+> +#define CHANNEL_FREE           0
+> +#define PIXEL_EVEN             2
+> +#define RATIO_MULTIPLIER       256
+> +/* Bit position Macro */
+> +/* macro for bit set and clear */
+> +#define BITSET(variable, bit)  ((variable) | (1 << bit))
+> +#define BITRESET(variable, bit)        ((variable) & ~(0x00000001 << (bit)))
+> +#define SET_BIT_INPUTRAM       28
+> +#define SET_BIT_CBLIN          29
+> +#define SET_BIT_INPTYP         27
+> +#define SET_BIT_YCPOS          26
+> +#define INPUT_RAM              1
+> +#define UP_RSZ_RATIO           64
+> +#define DOWN_RSZ_RATIO         512
+> +#define UP_RSZ_RATIO1          513
+> +#define DOWN_RSZ_RATIO1                1024
+> +#define RSZ_IN_SIZE_VERT_SHIFT 16
+> +#define MAX_HORZ_PIXEL_8BIT    31
+> +#define MAX_HORZ_PIXEL_16BIT   15
+> +#define NUM_PHASES             8
+> +#define NUM_TAPS               4
+> +#define NUM_D2PH               4       /* for downsampling * 2+x ~ 4x,
+> +                                        * number of phases
+> +                                        */
+> +#define NUM_D2TAPS             7       /* for downsampling * 2+x ~ 4x,
+> +                                        * number of taps
+> +                                        */
+> +#define ALIGN32                        32
+> +#define MAX_COEF_COUNTER       16
+> +#define COEFF_ADDRESS_OFFSET   0x04
+> +
+> +/* Global structure which contains information about number of channels
+> +   and protection variables */
+> +struct device_params {
+> +
+> +       unsigned char opened;                   /* state of the device */
+> +       struct completion compl_isr;            /* Completion for interrupt */
+> +       struct mutex reszwrap_mutex;            /* Semaphore for array */
+> +
+> +       struct videobuf_queue_ops vbq_ops;      /* videobuf queue operations */
 > +};
 > +
-> +/* Structure for saving/restoring mmu module registers */
-> +static struct isp_reg ispmmu_reg_list[] = {
-> +       {ISPMMU_SYSCONFIG, 0x0000},
-> +       {ISPMMU_IRQENABLE, 0x0000},
-> +       {ISPMMU_CNTL, 0x0000},
-> +       {ISPMMU_TTB, 0x0000},
-> +       {ISPMMU_LOCK, 0x0000},
-> +       {ISPMMU_LD_TLB, 0x0000},
-> +       {ISPMMU_CAM, 0x0000},
-> +       {ISPMMU_RAM, 0x0000},
-> +       {ISP_TOK_TERM, 0x0000}
+> +/* Register mapped structure which contains the every register
+> +   information */
+> +struct resizer_config {
+> +       u32 rsz_pcr;                            /* pcr register mapping
+> +                                                * variable.
+> +                                                */
+> +       u32 rsz_in_start;                       /* in_start register mapping
+> +                                                * variable.
+> +                                                */
+> +       u32 rsz_in_size;                        /* in_size register mapping
+> +                                                * variable.
+> +                                                */
+> +       u32 rsz_out_size;                       /* out_size register mapping
+> +                                                * variable.
+> +                                                */
+> +       u32 rsz_cnt;                            /* rsz_cnt register mapping
+> +                                                * variable.
+> +                                                */
+> +       u32 rsz_sdr_inadd;                      /* sdr_inadd register mapping
+> +                                                * variable.
+> +                                                */
+> +       u32 rsz_sdr_inoff;                      /* sdr_inoff register mapping
+> +                                                * variable.
+> +                                                */
+> +       u32 rsz_sdr_outadd;                     /* sdr_outadd register mapping
+> +                                                * variable.
+> +                                                */
+> +       u32 rsz_sdr_outoff;                     /* sdr_outbuff register
+> +                                                * mapping variable.
+> +                                                */
+> +       u32 rsz_coeff_horz[16];                 /* horizontal coefficients
+> +                                                * mapping array.
+> +                                                */
+> +       u32 rsz_coeff_vert[16];                 /* vertical coefficients
+> +                                                * mapping array.
+> +                                                */
+> +       u32 rsz_yehn;                           /* yehn(luma)register mapping
+> +                                                * variable.
+> +                                                */
 > +};
 > +
-> +/* Page structure for statically allocated l1 and l2 page tables */
-> +static struct page *ttb_page;
-> +static struct page *l2p_page;
+> +struct rsz_mult {
+> +       int in_hsize;                           /* input frame horizontal
+> +                                                * size.
+> +                                                */
+> +       int in_vsize;                           /* input frame vertical size.
+> +                                                */
+> +       int out_hsize;                          /* output frame horizontal
+> +                                                * size.
+> +                                                */
+> +       int out_vsize;                          /* output frame vertical
+> +                                                * size.
+> +                                                */
+> +       int in_pitch;                           /* offset between two rows of
+> +                                                * input frame.
+> +                                                */
+> +       int out_pitch;                          /* offset between two rows of
+> +                                                * output frame.
+> +                                                */
+> +       int end_hsize;
+> +       int end_vsize;
+> +       int num_htap;                           /* 0 = 7tap; 1 = 4tap */
+> +       int num_vtap;                           /* 0 = 7tap; 1 = 4tap */
+> +       int active;
+> +       int inptyp;
+> +       int vrsz;
+> +       int hrsz;
+> +       int hstph;                              /* for specifying horizontal
+> +                                                * starting phase.
+> +                                                */
+> +       int vstph;
+> +       int pix_fmt;                            /* # defined, UYVY or YUYV. */
+> +       int cbilin;                             /* # defined, filter with luma
+> +                                                * or bi-linear.
+> +                                                */
+> +       u16 tap4filt_coeffs[32];                /* horizontal filter
+> +                                                * coefficients.
+> +                                                */
+> +       u16 tap7filt_coeffs[32];                /* vertical filter
+> +                                                * coefficients.
+> +                                                */
+> +};
+> +/* Channel specific structure contains information regarding
+> +   the every channel */
+> +struct channel_config {
+> +       struct resizer_config register_config;  /* Instance of register set
+> +                                                * mapping structure
+> +                                                */
+> +       int status;                             /* Specifies whether the
+> +                                                * channel is busy or not
+> +                                                */
+> +       struct mutex chanprotection_mutex;
+> +       enum config_done config_state;
+> +       u8 input_buf_index;
+> +       u8 output_buf_index;
 > +
-> +/*
-> +* Allocate the same number as of TTB entries for easy tracking
-> +* even though L2P tables are limited to 16 or so
-> +*/
-> +static u32 l2p_table_addr[4096];
+> +};
 > +
-> +/* An array of flags to keep the L2P table allotted */
-> +static int l2p_table_allotted[L2P_TABLE_NR];
+> +/* per-filehandle data structure */
+> +struct rsz_fh {
+> +       struct rsz_params *params;
+> +       struct channel_config *config;
+> +       struct rsz_mult *multipass;             /* Multipass to support
+> +                                                * resizing ration outside
+> +                                                * of 0.25x to 4x
+> +                                                */
+> +       spinlock_t vbq_lock;                    /* spinlock for videobuf
+> +                                                * queues.
+> +                                                */
+> +       enum v4l2_buf_type type;
+> +       struct videobuf_queue vbq;
+> +       struct device_params *device;
 > +
-> +/* Current count of l2 pages mapped */
-> +static int no_of_l2p_alloted;
+> +       dma_addr_t isp_addr_read;               /* Input/Output address */
+> +       dma_addr_t isp_addr_write;              /* Input/Output address */
+> +       u32 rsz_bufsize;                        /* channel specific buffersize
+> +                                                */
+> +};
 > +
-> +/* TTB virtual and physical address */
-> +static u32 *ttb, ttb_p;
-> +
-> +/* Worst case allocation for TTB for 16KB alignment */
-> +static u32 ttb_aligned_size;
-> +
-> +/* L2 page table base virtural and physical address */
-> +static u32 l2_page_cache, l2_page_cache_p;
-> +
-> +static struct ispmmu_mapattr l1_mapattr_obj, l2_mapattr_obj;
+> +static struct device_params *device_config;
+> +static struct device *rsz_device;
+> +static int rsz_major = -1;
+> +/* functions declaration */
+> +static void rsz_hardware_setup(struct channel_config *rsz_conf_chan);
+> +static int rsz_set_params(struct rsz_mult *multipass, struct rsz_params *,
+> +                                               struct channel_config *);
+> +static int rsz_get_params(struct rsz_params *, struct channel_config *);
+> +static void rsz_copy_data(struct rsz_mult *multipass,
+> +                                               struct rsz_params *params);
+> +static void rsz_isr(unsigned long status, isp_vbq_callback_ptr arg1,
+> +                                               void *arg2);
+> +static void rsz_calculate_crop(struct channel_config *rsz_conf_chan,
+> +                                       struct rsz_cropsize *cropsize);
+> +static int rsz_set_multipass(struct rsz_mult *multipass,
+> +                                       struct channel_config *rsz_conf_chan);
+> +static int rsz_set_ratio(struct rsz_mult *multipass,
+> +                                       struct channel_config *rsz_conf_chan);
+> +static void rsz_config_ratio(struct rsz_mult *multipass,
+> +                                       struct channel_config *rsz_conf_chan);
 > +
 > +/**
-> + * ispmmu_set_pte - Sets the L1, L2 descriptor.
-> + * @pte_addr: Pointer to the Indexed address in the L1 Page table ie TTB.
-> + * @phy_addr: Section/Supersection/L2page table physical address.
-> + * @mapattr: Mapping attributes applicable for Section/Supersections.
+> + * rsz_hardware_setup - Sets hardware configuration registers
+> + * @rsz_conf_chan: Structure containing channel configuration
 > + *
-> + * Set with section/supersection/Largepage/Smallpage base address or with L2
-> + * Page table address depending on the size parameter.
-> + *
-> + * Returns the written L1/L2 descriptor.
+> + * Set hardware configuration registers
 > + **/
-> +static u32 ispmmu_set_pte(u32 *pte_addr, u32 phy_addr,
-> +                                               struct ispmmu_mapattr mapattr)
+> +static void rsz_hardware_setup(struct channel_config *rsz_conf_chan)
 > +{
-> +       u32 pte = 0;
+> +       int coeffcounter;
+> +       int coeffoffset = 0;
 > +
-> +       switch (mapattr.map_size) {
-> +       case PAGE:
-> +               pte = ISPMMU_L1D_TYPE_PAGE << ISPMMU_L1D_TYPE_SHIFT;
-> +               pte |= (phy_addr >> ISPMMU_L1D_PAGE_ADDR_SHIFT)
-> +                                               << ISPMMU_L1D_PAGE_ADDR_SHIFT;
-> +               break;
-> +       case SMALLPAGE:
-> +               pte = ISPMMU_L2D_TYPE_SMALL_PAGE << ISPMMU_L2D_TYPE_SHIFT;
-> +               pte &= ~ISPMMU_L2D_M_ACCESSBASED;
-> +               if (mapattr.endianism)
-> +                       pte |= ISPMMU_L2D_E_BIGENDIAN;
-> +               else
-> +                       pte &= ~ISPMMU_L2D_E_BIGENDIAN;
-> +               pte &= ISPMMU_L2D_ES_MASK;
-> +               pte |= mapattr.element_size << ISPMMU_L2D_ES_SHIFT;
-> +               pte |= (phy_addr >> ISPMMU_L2D_SMALL_ADDR_SHIFT)
-> +                                               << ISPMMU_L2D_SMALL_ADDR_SHIFT;
-> +               break;
-> +       case L1DFAULT:
-> +               pte = ISPMMU_L1D_TYPE_FAULT << ISPMMU_L1D_TYPE_SHIFT;
-> +               break;
-> +       case L2DFAULT:
-> +               pte = ISPMMU_L2D_TYPE_FAULT << ISPMMU_L2D_TYPE_SHIFT;
-> +               break;
-> +       default:
-> +               break;
-> +       };
+> +       omap_writel(rsz_conf_chan->register_config.rsz_cnt, ISPRSZ_CNT);
 > +
-> +       *pte_addr = pte;
-> +       return pte;
-> +}
+> +       omap_writel(rsz_conf_chan->register_config.rsz_in_start,
+> +                                                       ISPRSZ_IN_START);
+> +       omap_writel(rsz_conf_chan->register_config.rsz_in_size,
+> +                                                       ISPRSZ_IN_SIZE);
 > +
-> +/**
-> + * find_free_region_index - Returns the index in the ttb for a free 32MB region
-> + *
-> + * Returns 0 as an error code, if run out of regions.
-> + **/
-> +static u32 find_free_region_index(void)
-> +{
-> +       int idx = 0;
-> +       for (idx = ISPMMU_REGION_ENTRIES_NR; idx < ISPMMU_TTB_ENTRIES_NR;
-> +                                       idx += ISPMMU_REGION_ENTRIES_NR) {
-> +               if (((*(ttb + idx)) & ISPMMU_L1D_TYPE_MASK) ==
-> +                                               (ISPMMU_L1D_TYPE_FAULT <<
-> +                                               ISPMMU_L1D_TYPE_SHIFT))
-> +                       break;
+> +       omap_writel(rsz_conf_chan->register_config.rsz_out_size,
+> +                                                       ISPRSZ_OUT_SIZE);
+> +       omap_writel(rsz_conf_chan->register_config.rsz_sdr_inadd,
+> +                                                       ISPRSZ_SDR_INADD);
+> +       omap_writel(rsz_conf_chan->register_config.rsz_sdr_inoff,
+> +                                                       ISPRSZ_SDR_INOFF);
+> +       omap_writel(rsz_conf_chan->register_config.rsz_sdr_outadd,
+> +                                                       ISPRSZ_SDR_OUTADD);
+> +       omap_writel(rsz_conf_chan->register_config.rsz_sdr_outoff,
+> +                                                       ISPRSZ_SDR_OUTOFF);
+> +       omap_writel(rsz_conf_chan->register_config.rsz_yehn, ISPRSZ_YENH);
+> +
+> +       for (coeffcounter = 0; coeffcounter < MAX_COEF_COUNTER;
+> +                                                       coeffcounter++) {
+> +               omap_writel(rsz_conf_chan->register_config.
+> +                                               rsz_coeff_horz[coeffcounter],
+> +                                               ISPRSZ_HFILT10 + coeffoffset);
+> +
+> +               omap_writel(rsz_conf_chan->register_config.
+> +                                               rsz_coeff_vert[coeffcounter],
+> +                                               ISPRSZ_VFILT10 + coeffoffset);
+> +               coeffoffset = coeffoffset + COEFF_ADDRESS_OFFSET;
 > +       }
-> +       if (idx == ISPMMU_TTB_ENTRIES_NR) {
-> +               DPRINTK_ISPMMU("run out of virtual space\n");
-> +               return 0;
-> +       }
-> +       return idx;
 > +}
 > +
 > +/**
-> + * page_aligned_addr - Returns the Page aligned address.
-> + * @addr: Address to be page aligned.
-> + **/
-> +static inline u32 page_aligned_addr(u32 addr)
-> +{
-> +       u32 paddress;
-> +       paddress = addr & ~(PAGE_SIZE-1);
-> +       return paddress;
-> +}
-> +
-> +
-> +/**
-> + * l2_page_paddr - Returns the physical address of the allocated L2 page Table.
-> + * @l2_table: Virtual address of the allocated l2 table.
-> + **/
-> +static inline u32 l2_page_paddr(u32 l2_table)
-> +{
-> +       return l2_page_cache_p + (l2_table - l2_page_cache);
-> +}
-> +
-> +/**
-> + * init_l2_page_cache - Allocates contigous memory for L2 page tables.
+> + * rsz_start - Enables Resizer Wrapper
+> + * @arg: Currently not used.
+> + * @device: Structure containing ISP resizer wrapper global information
 > + *
-> + * Returns 0 if successful, or -ENOMEM if no memory for L2 page tables.
+> + * Submits a resizing task specified by the rsz_resize structure. The call can
+> + * either be blocked until the task is completed or returned immediately based
+> + * on the value of the blocking argument in the rsz_resize structure. If it is
+> + * blocking, the status of the task can be checked by calling ioctl
+> + * RSZ_G_STATUS. Only one task can be outstanding for each logical channel.
+> + *
+> + * Returns 0 if successful, or -EINVAL if could not set callback for RSZR IRQ
+> + * event or the state of the channel is not configured.
 > + **/
-> +static int init_l2_page_cache(void)
+> +int rsz_start(int *arg, struct rsz_fh *fh)
 > +{
-> +       int i;
-> +       u32 *l2p;
+> +       struct channel_config *rsz_conf_chan = fh->config;
+> +       struct rsz_mult *multipass = fh->multipass;
+> +       struct videobuf_queue *q = &fh->vbq;
+> +       int ret;
 > +
-> +       l2p_page = alloc_pages(GFP_KERNEL, get_order(L2P_TABLES_SIZE));
-> +       if (!l2p_page) {
-> +               DPRINTK_ISPMMU("ISP_ERR : No Memory for L2 page tables\n");
-> +               return -ENOMEM;
+> +       if (rsz_conf_chan->config_state) {
+> +               dev_err(rsz_device, "State not configured \n");
+> +               goto err_einval;
 > +       }
-> +       l2p = page_address(l2p_page);
-> +       l2_page_cache = (u32)l2p;
-> +       l2_page_cache_p = __pa(l2p);
-> +       l2_page_cache = (u32)ioremap_nocache(l2_page_cache_p, L2P_TABLES_SIZE);
 > +
-> +       for (i = 0; i < L2P_TABLE_NR; i++)
-> +               l2p_table_allotted[i] = 0;
-> +       no_of_l2p_alloted = 0;
+> +       rsz_conf_chan->status = CHANNEL_BUSY;
 > +
-> +       DPRINTK_ISPMMU("Mem for L2 page tables at l2_paddr = %x,"
-> +                                       " l2_vaddr = 0x%x, of bytes = 0x%x\n",
-> +                                       l2_page_cache_p, l2_page_cache,
-> +                                       L2P_TABLES_SIZE);
+> +       rsz_hardware_setup(rsz_conf_chan);
 > +
-> +       if (omap_rev() < OMAP3430_REV_ES2_0)
-> +               l2_mapattr_obj.endianism = B_ENDIAN;
-> +       else
-> +               l2_mapattr_obj.endianism = L_ENDIAN;
-> +       l2_mapattr_obj.element_size = ES_8BIT;
-> +       l2_mapattr_obj.mixed_size = ACCESS_BASED;
-> +       l2_mapattr_obj.map_size = L2DFAULT;
+> +       if (isp_set_callback(CBK_RESZ_DONE, rsz_isr, (void *) NULL,
+> +                                                       (void *)NULL)) {
+> +               dev_err(rsz_device, "No callback for RSZR\n");
+> +               goto err_einval;
+> +       }
+> +mult:
+> +       device_config->compl_isr.done = 0;
+> +
+> +       ispresizer_enable(1);
+> +
+> +       ret = wait_for_completion_interruptible(&device_config->compl_isr);
+> +       if (ret != 0) {
+> +               dev_dbg(rsz_device, "Unexpected exit from "
+> +                               "wait_for_completion_interruptible\n");
+> +               wait_for_completion(&device_config->compl_isr);
+> +       }
+> +
+> +       if (multipass->active) {
+> +               rsz_set_multipass(multipass, rsz_conf_chan);
+> +               goto mult;
+> +       }
+> +
+> +       if (fh->isp_addr_read) {
+> +               ispmmu_unmap(fh->isp_addr_read);
+> +               fh->isp_addr_read = 0;
+> +       }
+> +       if (fh->isp_addr_write) {
+> +               ispmmu_unmap(fh->isp_addr_write);
+> +               fh->isp_addr_write = 0;
+> +       }
+> +
+> +       rsz_conf_chan->status = CHANNEL_FREE;
+> +       q->bufs[rsz_conf_chan->input_buf_index]->state = VIDEOBUF_NEEDS_INIT;
+> +       q->bufs[rsz_conf_chan->output_buf_index]->state = VIDEOBUF_NEEDS_INIT;
+> +       rsz_conf_chan->register_config.rsz_sdr_outadd = 0;
+> +       rsz_conf_chan->register_config.rsz_sdr_inadd = 0;
+> +
+> +       /* Unmap and free the DMA memory allocated for buffers */
+> +       videobuf_dma_unmap(q, videobuf_to_dma(
+> +                               q->bufs[rsz_conf_chan->input_buf_index]));
+> +       videobuf_dma_unmap(q, videobuf_to_dma(
+> +                               q->bufs[rsz_conf_chan->output_buf_index]));
+> +       videobuf_dma_free(videobuf_to_dma(
+> +                               q->bufs[rsz_conf_chan->input_buf_index]));
+> +       videobuf_dma_free(videobuf_to_dma(
+> +                               q->bufs[rsz_conf_chan->output_buf_index]));
+> +
+> +       isp_unset_callback(CBK_RESZ_DONE);
+> +
 > +       return 0;
-> +}
-> +
-> +/**
-> + * cleanup_l2_page_cache - Frees the memory of L2 page tables.
-> + **/
-> +static void cleanup_l2_page_cache(void)
-> +{
-> +       if (l2p_page) {
-> +               ioremap_cached(l2_page_cache_p, L2P_TABLES_SIZE);
-> +               __free_pages(l2p_page, get_order(L2P_TABLES_SIZE));
-> +       }
-> +}
-> +
-> +/**
-> + * request_l2_page_table - Requests L2 Page table slot.
-> + *
-> + * Finds a free L2 Page table slot.
-> + * Fills the allotted L2 Page table with default entries.
-> + * Returns the virtual address of the allocatted L2 Pagetable, or 0 if cannot
-> + * allocate the requested L2 pagetables
-> + **/
-> +static u32 request_l2_page_table(void)
-> +{
-> +       int i, j;
-> +       u32 l2_table;
-> +
-> +       for (i = 0; i < L2P_TABLE_NR; i++) {
-> +               if (!l2p_table_allotted[i])
-> +                       break;
-> +       }
-> +       if (i < L2P_TABLE_NR) {
-> +               l2p_table_allotted[i] = 1;
-> +               l2_table = l2_page_cache + (i * L2P_TABLE_SIZE);
-> +               l2_mapattr_obj.map_size = L2DFAULT;
-> +               for (j = 0; j < ISPMMU_L2D_ENTRIES_NR; j++)
-> +                       ispmmu_set_pte((u32 *)l2_table + j, 0, l2_mapattr_obj);
-> +               DPRINTK_ISPMMU("Allotted l2 page table at 0x%x\n",
-> +                                       (u32)l2_table);
-> +               no_of_l2p_alloted++;
-> +               return l2_table;
-> +       } else {
-> +               DPRINTK_ISPMMU("ISP_ERR : Cannot allocate more than 16 L2\
-> +                               Page Tables");
-> +               return 0;
-> +       }
-> +}
-> +
-> +/**
-> + * free_l2_page_table - Frees the allocatted L2 Page table slot.
-> + * @l2_table: 32 bit address for L2 Table to be freed.
-> + *
-> + * Returns 0 if successful, or -EINVAL if table is not found.
-> + **/
-> +static int free_l2_page_table(u32 l2_table)
-> +{
-> +       int i;
-> +
-> +       DPRINTK_ISPMMU("Free l2 page table at 0x%x\n", l2_table);
-> +       for (i = 0; i < L2P_TABLE_NR; i++) {
-> +               if (l2_table == (l2_page_cache + (i * L2P_TABLE_SIZE))) {
-> +                       if (!l2p_table_allotted[i])
-> +                               DPRINTK_ISPMMU("L2 page not in use\n");
-> +
-> +                       l2p_table_allotted[i] = 0;
-> +                       no_of_l2p_alloted--;
-> +                       return 0;
-> +               }
-> +       }
-> +       DPRINTK_ISPMMU("L2 table not found\n");
+> +err_einval:
 > +       return -EINVAL;
 > +}
 > +
 > +/**
-> + * ispmmu_get_available_page_tables - Returns current available pages size
+> + * rsz_set_multipass - Set resizer multipass
+> + * @rsz_conf_chan: Structure containing channel configuration
+> + *
+> + * Returns always 0
 > + **/
-> +int ispmmu_get_mapeable_space(void)
+> +static int rsz_set_multipass(struct rsz_mult *multipass,
+> +                       struct channel_config *rsz_conf_chan)
 > +{
-> +       return (L2P_TABLE_NR - no_of_l2p_alloted) * ISPMMU_TTB_ENTRIES_NR *
-> +                                                       ISPMMU_L2D_ENTRIES_NR;
+> +       multipass->in_hsize = multipass->out_hsize;
+> +       multipass->in_vsize = multipass->out_vsize;
+> +       multipass->out_hsize = multipass->end_hsize;
+> +       multipass->out_vsize = multipass->end_vsize;
+> +
+> +       multipass->out_pitch = (multipass->inptyp ? multipass->out_hsize
+> +                                               : (multipass->out_hsize * 2));
+> +       multipass->in_pitch = (multipass->inptyp ? multipass->in_hsize
+> +                                               : (multipass->in_hsize * 2));
+> +
+> +       rsz_set_ratio(multipass, rsz_conf_chan);
+> +       rsz_config_ratio(multipass, rsz_conf_chan);
+> +       rsz_hardware_setup(rsz_conf_chan);
+> +       return 0;
 > +}
 > +
 > +/**
-> + * ispmmu_map - Map a physically contiguous buffer to ISP space.
-> + * @p_addr: Physical address of the contigous mem to be mapped.
-> + * @size: Size of the contigous mem to be mapped.
+> + * rsz_copy_data - Copy data
+> + * @params: Structure containing the Resizer Wrapper parameters
 > + *
-> + * This call is used to map a frame buffer.
-> + *
-> + * Returns a valid address when successful, 0 if no memory could be mapped,
-> + * or -EINVAL if runned out of virtual space.
+> + * Copy data
 > + **/
-> +dma_addr_t ispmmu_map(u32 p_addr, int size)
+> +static void rsz_copy_data(struct rsz_mult *multipass, struct rsz_params *params)
 > +{
-> +       int i, j, idx, num;
-> +       u32 sz, first_padding;
-> +       u32 p_addr_align, p_addr_align_end;
-> +       u32 pd;
-> +       u32 *l2_table;
-> +       dma_addr_t ret_addr;
+> +       int i;
+> +       multipass->in_hsize = params->in_hsize;
+> +       multipass->in_vsize = params->in_vsize;
+> +       multipass->out_hsize = params->out_hsize;
+> +       multipass->out_vsize = params->out_vsize;
+> +       multipass->end_hsize = params->out_hsize;
+> +       multipass->end_vsize = params->out_vsize;
+> +       multipass->in_pitch = params->in_pitch;
+> +       multipass->out_pitch = params->out_pitch;
+> +       multipass->hstph = params->hstph;
+> +       multipass->vstph = params->vstph;
+> +       multipass->inptyp = params->inptyp;
+> +       multipass->pix_fmt = params->pix_fmt;
+> +       multipass->cbilin = params->cbilin;
 > +
-> +       DPRINTK_ISPMMU("map: p_addr = 0x%x, size = 0x%x\n", p_addr, size);
+> +       for (i = 0; i < 32; i++) {
+> +               multipass->tap4filt_coeffs[i] = params->tap4filt_coeffs[i];
+> +               multipass->tap7filt_coeffs[i] = params->tap7filt_coeffs[i];
+> +       }
+> +}
 > +
-> +       p_addr_align = page_aligned_addr(p_addr);
-> +
-> +       first_padding = p_addr - p_addr_align;
-> +       if (first_padding > size)
-> +               sz = 0;
+> +/**
+> + * rsz_set_params - Set parameters for resizer wrapper
+> + * @params: Structure containing the Resizer Wrapper parameters
+> + * @rsz_conf_chan: Structure containing channel configuration
+> + *
+> + * Used to set the parameters of the Resizer hardware, including input and
+> + * output image size, horizontal and vertical poly-phase filter coefficients,
+> + * luma enchancement filter coefficients, etc.
+> + **/
+> +static int rsz_set_params(struct rsz_mult *multipass, struct rsz_params *params,
+> +                                       struct channel_config *rsz_conf_chan)
+> +{
+> +       int mul = 1;
+> +       if ((params->yenh_params.type < 0) || (params->yenh_params.type > 2)) {
+> +               dev_err(rsz_device, "rsz_set_params: Wrong yenh type\n");
+> +               return -EINVAL;
+> +       }
+> +       if ((params->in_vsize <= 0) || (params->in_hsize <= 0) ||
+> +                       (params->out_vsize <= 0) || (params->out_hsize <= 0) ||
+> +                       (params->in_pitch <= 0) || (params->out_pitch <= 0)) {
+> +               dev_err(rsz_device, "rsz_set_params: Invalid size params\n");
+> +               return -EINVAL;
+> +       }
+> +       if ((params->inptyp != RSZ_INTYPE_YCBCR422_16BIT) &&
+> +                       (params->inptyp != RSZ_INTYPE_PLANAR_8BIT)) {
+> +               dev_err(rsz_device, "rsz_set_params: Invalid input type\n");
+> +               return -EINVAL;
+> +       }
+> +       if ((params->pix_fmt != RSZ_PIX_FMT_UYVY) &&
+> +                       (params->pix_fmt != RSZ_PIX_FMT_YUYV)) {
+> +               dev_err(rsz_device, "rsz_set_params: Invalid pixel format\n");
+> +               return -EINVAL;
+> +       }
+> +       if (params->inptyp == RSZ_INTYPE_YCBCR422_16BIT)
+> +               mul = 2;
 > +       else
-> +               sz = size - first_padding;
-> +
-> +       num = (sz / PAGE_SIZE) + ((sz % PAGE_SIZE) ? 1 : 0) +
-> +                                               (first_padding ? 1 : 0);
-> +       p_addr_align_end = p_addr_align + num * PAGE_SIZE;
-> +
-> +       DPRINTK_ISPMMU("buffer at 0x%x of size 0x%x spans to %d pages\n",
-> +                                                       p_addr, size, num);
-> +
-> +       idx = find_free_region_index();
-> +       if (!idx) {
-> +               DPRINTK_ISPMMU("Runs out of virtual space");
+> +               mul = 1;
+> +       if (params->in_pitch < (params->in_hsize * mul)) {
+> +               dev_err(rsz_device, "rsz_set_params: Pitch is incorrect\n");
 > +               return -EINVAL;
 > +       }
-> +       DPRINTK_ISPMMU("allocating region %d\n", idx/ISPMMU_REGION_ENTRIES_NR);
-> +
-> +       num = num / ISPMMU_L2D_ENTRIES_NR +
-> +                               ((num % ISPMMU_L2D_ENTRIES_NR) ? 1 : 0);
-> +       DPRINTK_ISPMMU("need %d second-level page tables (1KB each)\n", num);
-> +
-> +       for (i = 0; i < num; i++) {
-> +               l2_table = (u32 *)request_l2_page_table();
-> +               if (!l2_table) {
-> +                       DPRINTK_ISPMMU("no memory\n");
-> +                       i--;
-> +                       goto release_mem;
-> +               }
-> +
-> +               l1_mapattr_obj.map_size = PAGE;
-> +               pd = ispmmu_set_pte(ttb+idx+i, l2_page_paddr((u32)l2_table),
-> +                                                       l1_mapattr_obj);
-> +               DPRINTK_ISPMMU("L1 pte[%d] = 0x%x\n", idx+i, pd);
-> +
-> +               l2_mapattr_obj.map_size = SMALLPAGE;
-> +               for (j = 0; j < ISPMMU_L2D_ENTRIES_NR; j++) {
-> +                       pd = ispmmu_set_pte(l2_table + j, p_addr_align,
-> +                                                               l2_mapattr_obj);
-> +                       p_addr_align += PAGE_SIZE;
-> +                       if (p_addr_align == p_addr_align_end)
-> +                               break;
-> +               }
-> +               l2p_table_addr[idx + i] = (u32)l2_table;
+> +       if (params->out_pitch < (params->out_hsize * mul)) {
+> +               dev_err(rsz_device, "rsz_set_params: Out pitch cannot be less"
+> +                                       " than out hsize\n");
+> +               return -EINVAL;
+> +       }
+> +       /* Output H size should be even */
+> +       if ((params->out_hsize % PIXEL_EVEN) != 0) {
+> +               dev_err(rsz_device, "rsz_set_params: Output H size should"
+> +                                       " be even\n");
+> +               return -EINVAL;
+> +       }
+> +       if (params->horz_starting_pixel < 0) {
+> +               dev_err(rsz_device, "rsz_set_params: Horz start pixel cannot"
+> +                                       " be less than zero\n");
+> +               return -EINVAL;
 > +       }
 > +
-> +       DPRINTK_ISPMMU("mapped to ISP virtual address 0x%x\n",
-> +                       (u32)((idx << 20) + (p_addr & (PAGE_SIZE - 1))));
+> +       rsz_copy_data(multipass, params);
+> +       if (0 != rsz_set_ratio(multipass, rsz_conf_chan))
+> +               goto err_einval;
 > +
-> +       omap_writel(1, ISPMMU_GFLUSH);
-> +       ret_addr = (dma_addr_t)((idx << 20) + (p_addr & (PAGE_SIZE - 1)));
-> +       return ret_addr;
-> +
-> +release_mem:
-> +       for (; i >= 0; i--) {
-> +               free_l2_page_table(l2p_table_addr[idx + i]);
-> +               l2p_table_addr[idx + i] = 0;
+> +       if (params->yenh_params.type) {
+> +               if ((multipass->num_htap && multipass->out_hsize >
+> +                               1280) ||
+> +                               (!multipass->num_htap && multipass->out_hsize >
+> +                               640))
+> +                       goto err_einval;
 > +       }
+> +
+> +       if (INPUT_RAM)
+> +               params->vert_starting_pixel = 0;
+> +
+> +       rsz_conf_chan->register_config.rsz_in_start =
+> +                                               (params->vert_starting_pixel
+> +                                               << ISPRSZ_IN_SIZE_VERT_SHIFT)
+> +                                               & ISPRSZ_IN_SIZE_VERT_MASK;
+> +
+> +       if (params->inptyp == RSZ_INTYPE_PLANAR_8BIT) {
+> +               if (params->horz_starting_pixel > MAX_HORZ_PIXEL_8BIT)
+> +                       goto err_einval;
+> +       }
+> +       if (params->inptyp == RSZ_INTYPE_YCBCR422_16BIT) {
+> +               if (params->horz_starting_pixel > MAX_HORZ_PIXEL_16BIT)
+> +                       goto err_einval;
+> +       }
+> +
+> +       rsz_conf_chan->register_config.rsz_in_start |=
+> +                                               params->horz_starting_pixel
+> +                                               & ISPRSZ_IN_START_HORZ_ST_MASK;
+> +
+> +       rsz_conf_chan->register_config.rsz_yehn =
+> +                                               (params->yenh_params.type
+> +                                               << ISPRSZ_YENH_ALGO_SHIFT)
+> +                                               & ISPRSZ_YENH_ALGO_MASK;
+> +
+> +       if (params->yenh_params.type) {
+> +               rsz_conf_chan->register_config.rsz_yehn |=
+> +                                               params->yenh_params.core
+> +                                               & ISPRSZ_YENH_CORE_MASK;
+> +
+> +               rsz_conf_chan->register_config.rsz_yehn |=
+> +                                               (params->yenh_params.gain
+> +                                               << ISPRSZ_YENH_GAIN_SHIFT)
+> +                                               & ISPRSZ_YENH_GAIN_MASK;
+> +
+> +               rsz_conf_chan->register_config.rsz_yehn |=
+> +                                               (params->yenh_params.slop
+> +                                               << ISPRSZ_YENH_SLOP_SHIFT)
+> +                                               & ISPRSZ_YENH_SLOP_MASK;
+> +       }
+> +
+> +       rsz_config_ratio(multipass, rsz_conf_chan);
+> +
+> +       rsz_conf_chan->config_state = STATE_CONFIGURED;
+> +
 > +       return 0;
+> +err_einval:
+> +       return -EINVAL;
 > +}
-> +EXPORT_SYMBOL_GPL(ispmmu_map);
 > +
 > +/**
-> + * ispmmu_map_sg - Map a physically discontiguous buffer to ISP space.
-> + * @sg_list: Address of the Scatter gather linked list.
-> + * @sglen: Number of elements in the sg list.
+> + * rsz_set_ratio - Set ratio
+> + * @rsz_conf_chan: Structure containing channel configuration
 > + *
-> + * This call is used to map a user buffer or a vmalloc buffer. The sg list is
-> + * a set of pages.
-> + *
-> + * Returns a valid address when successful, 0 if no memory could be mapped,
-> + * or -EINVAL if runned out of virtual space.
+> + * Returns 0 if successful, -EINVAL if invalid output size, upscaling ratio is
+> + * being requested, or other ratio configuration value is out of bounds
 > + **/
-> +dma_addr_t ispmmu_map_sg(const struct scatterlist *sglist, int sglen)
+> +static int rsz_set_ratio(struct rsz_mult *multipass,
+> +                               struct channel_config *rsz_conf_chan)
 > +{
-> +       int i, j, idx, num, sg_num = 0;
-> +       u32 pd, sg_element_addr;
-> +       u32 *l2_table;
-> +       dma_addr_t ret_addr;
+> +       int alignment = 0;
 > +
-> +       DPRINTK_ISPMMU("Map_sg: sglen (num of pages) = %d\n", sglen);
+> +       rsz_conf_chan->register_config.rsz_cnt = 0;
 > +
-> +       idx = find_free_region_index();
-> +       if (!idx) {
-> +               DPRINTK_ISPMMU("Runs out of virtual space");
-> +               return -EINVAL;
+> +       if ((multipass->out_hsize > MAX_IMAGE_WIDTH) ||
+> +                       (multipass->out_vsize > MAX_IMAGE_WIDTH)) {
+> +               dev_err(rsz_device, "Invalid output size!");
+> +               goto err_einval;
 > +       }
+> +       if (multipass->cbilin) {
+> +               rsz_conf_chan->register_config.rsz_cnt =
+> +                               BITSET(rsz_conf_chan->register_config.rsz_cnt,
+> +                               SET_BIT_CBLIN);
+> +       }
+> +       if (INPUT_RAM) {
+> +               rsz_conf_chan->register_config.rsz_cnt =
+> +                               BITSET(rsz_conf_chan->register_config.rsz_cnt,
+> +                               SET_BIT_INPUTRAM);
+> +       }
+> +       if (multipass->inptyp == RSZ_INTYPE_PLANAR_8BIT) {
+> +               rsz_conf_chan->register_config.rsz_cnt =
+> +                               BITSET(rsz_conf_chan->register_config.rsz_cnt,
+> +                               SET_BIT_INPTYP);
+> +       } else {
+> +               rsz_conf_chan->register_config.rsz_cnt =
+> +                               BITRESET(rsz_conf_chan->register_config.
+> +                               rsz_cnt, SET_BIT_INPTYP);
 > +
-> +       DPRINTK_ISPMMU("allocating region %d\n", idx/ISPMMU_REGION_ENTRIES_NR);
-> +
-> +       num = sglen / ISPMMU_L2D_ENTRIES_NR +
-> +                       ((sglen % ISPMMU_L2D_ENTRIES_NR) ? 1 : 0);
-> +       DPRINTK_ISPMMU("Need %d second-level page tables (1KB each)\n", num);
-> +
-> +       for (i = 0; i < num; i++) {
-> +               l2_table = (u32 *)request_l2_page_table();
-> +               if (!l2_table) {
-> +                       DPRINTK_ISPMMU("No memory\n");
-> +                       i--;
-> +                       goto release_mem;
+> +               if (multipass->pix_fmt == RSZ_PIX_FMT_UYVY) {
+> +                       rsz_conf_chan->register_config.rsz_cnt =
+> +                               BITRESET(rsz_conf_chan->register_config.
+> +                               rsz_cnt, SET_BIT_YCPOS);
+> +               } else if (multipass->pix_fmt == RSZ_PIX_FMT_YUYV) {
+> +                       rsz_conf_chan->register_config.rsz_cnt =
+> +                                       BITSET(rsz_conf_chan->register_config.
+> +                                       rsz_cnt, SET_BIT_YCPOS);
 > +               }
-> +               l1_mapattr_obj.map_size = PAGE;
-> +               pd = ispmmu_set_pte(ttb + idx + i, l2_page_paddr((u32)l2_table),
-> +                                               l1_mapattr_obj);
-> +               DPRINTK_ISPMMU("L1 pte[%d] = 0x%x\n", idx + i, pd);
 > +
-> +               l2_mapattr_obj.map_size = SMALLPAGE;
-> +               for (j = 0; j < ISPMMU_L2D_ENTRIES_NR; j++) {
-> +                       sg_element_addr = sg_dma_address(sglist + sg_num);
-> +                       if ((sg_num > 0) && page_aligned_addr(sg_element_addr)
-> +                                                       != sg_element_addr)
-> +                               DPRINTK_ISPMMU("ISP_ERR : Intermediate SG"
-> +                                               " elements are not"
-> +                                               " page aligned = 0x%x\n",
-> +                                               sg_element_addr);
-> +                       pd = ispmmu_set_pte(l2_table + j, sg_element_addr,
-> +                                                       l2_mapattr_obj);
+> +       }
+> +       multipass->vrsz =
+> +               (multipass->in_vsize * RATIO_MULTIPLIER) / multipass->out_vsize;
+> +       multipass->hrsz =
+> +               (multipass->in_hsize * RATIO_MULTIPLIER) / multipass->out_hsize;
+> +       if (UP_RSZ_RATIO > multipass->vrsz || UP_RSZ_RATIO > multipass->hrsz) {
+> +               dev_err(rsz_device, "Upscaling ratio not supported!");
+> +               goto err_einval;
+> +       }
+> +       multipass->vrsz = (multipass->in_vsize - NUM_D2TAPS) * RATIO_MULTIPLIER
+> +                                               / (multipass->out_vsize - 1);
+> +       multipass->hrsz = ((multipass->in_hsize - NUM_D2TAPS)
+> +                                               * RATIO_MULTIPLIER) /
+> +                                               (multipass->out_hsize - 1);
 > +
-> +                       /* DPRINTK_ISPMMU("L2 pte[%d] = 0x%x\n", j, pd); */
+> +       if (multipass->hrsz <= 512) {
+> +               multipass->hrsz = (multipass->in_hsize - NUM_TAPS)
+> +                                               * RATIO_MULTIPLIER
+> +                                               / (multipass->out_hsize - 1);
+> +               if (multipass->hrsz < 64)
+> +                       multipass->hrsz = 64;
+> +               if (multipass->hrsz > 512)
+> +                       multipass->hrsz = 512;
+> +               if (multipass->hstph > NUM_PHASES)
+> +                       goto err_einval;
+> +               multipass->num_htap = 1;
+> +       } else if (multipass->hrsz >= 513 && multipass->hrsz <= 1024) {
+> +               if (multipass->hstph > NUM_D2PH)
+> +                       goto err_einval;
+> +               multipass->num_htap = 0;
+> +       }
 > +
-> +                       sg_num++;
-> +                       if (sg_num == sglen)
-> +                               break;
+> +       if (multipass->vrsz <= 512) {
+> +               multipass->vrsz = (multipass->in_vsize - NUM_TAPS)
+> +                                               * RATIO_MULTIPLIER
+> +                                               / (multipass->out_vsize - 1);
+> +               if (multipass->vrsz < 64)
+> +                       multipass->vrsz = 64;
+> +               if (multipass->vrsz > 512)
+> +                       multipass->vrsz = 512;
+> +               if (multipass->vstph > NUM_PHASES)
+> +                       goto err_einval;
+> +               multipass->num_vtap = 1;
+> +       } else if (multipass->vrsz >= 513 && multipass->vrsz <= 1024) {
+> +               if (multipass->vstph > NUM_D2PH)
+> +                       goto err_einval;
+> +               multipass->num_vtap = 0;
+> +       }
+> +
+> +       if ((multipass->in_pitch) % ALIGN32) {
+> +               dev_err(rsz_device, "Invalid input pitch: %d \n",
+> +                                                       multipass->in_pitch);
+> +               goto err_einval;
+> +       }
+> +       if ((multipass->out_pitch) % ALIGN32) {
+> +               dev_err(rsz_device, "Invalid output pitch %d \n",
+> +                                                       multipass->out_pitch);
+> +               goto err_einval;
+> +       }
+> +
+> +       if (multipass->vrsz < 256 &&
+> +                       (multipass->in_vsize < multipass->out_vsize)) {
+> +               if (multipass->inptyp == RSZ_INTYPE_PLANAR_8BIT)
+> +                       alignment = ALIGNMENT;
+> +               else if (multipass->inptyp == RSZ_INTYPE_YCBCR422_16BIT)
+> +                       alignment = (ALIGNMENT / 2);
+> +               else
+> +                       dev_err(rsz_device, "Invalid input type\n");
+> +
+> +               if (!(((multipass->out_hsize % PIXEL_EVEN) == 0)
+> +                               && (multipass->out_hsize % alignment) == 0)) {
+> +                       dev_err(rsz_device, "wrong hsize\n");
+> +                       goto err_einval;
 > +               }
-> +               /* save it so we can free this l2 table later */
-> +               l2p_table_addr[idx + i] = (u32)l2_table;
+> +       }
+> +       if (multipass->hrsz >= 64 && multipass->hrsz <= 1024) {
+> +               if (multipass->out_hsize > MAX_IMAGE_WIDTH) {
+> +                       dev_err(rsz_device, "wrong width\n");
+> +                       goto err_einval;
+> +               }
+> +               multipass->active = 0;
+> +
+> +       } else if (multipass->hrsz > 1024) {
+> +               if (multipass->out_hsize > MAX_IMAGE_WIDTH) {
+> +                       dev_err(rsz_device, "wrong width\n");
+> +                       goto err_einval;
+> +               }
+> +               if (multipass->hstph > NUM_D2PH)
+> +                       goto err_einval;
+> +               multipass->num_htap = 0;
+> +               multipass->out_hsize = multipass->in_hsize * 256 / 1024;
+> +               if (multipass->out_hsize % ALIGN32) {
+> +                       multipass->out_hsize +=
+> +                               abs((multipass->out_hsize % ALIGN32) - ALIGN32);
+> +               }
+> +               multipass->out_pitch = ((multipass->inptyp) ?
+> +                                               multipass->out_hsize :
+> +                                               (multipass->out_hsize * 2));
+> +               multipass->hrsz = ((multipass->in_hsize - NUM_D2TAPS)
+> +                                               * RATIO_MULTIPLIER)
+> +                                               / (multipass->out_hsize - 1);
+> +               multipass->active = 1;
+> +
 > +       }
 > +
-> +       DPRINTK_ISPMMU("mapped sg list to ISP virtual address 0x%x, idx=%d\n",
-> +                       (u32)((idx << 20) + (sg_dma_address(sglist + 0) &
-> +                                               (PAGE_SIZE - 1))), idx);
+> +       if (multipass->vrsz > 1024) {
+> +               if (multipass->out_vsize > MAX_IMAGE_WIDTH_HIGH) {
+> +                       dev_err(rsz_device, "wrong width\n");
+> +                       goto err_einval;
+> +               }
 > +
-> +       omap_writel(1, ISPMMU_GFLUSH);
-> +       ret_addr = (dma_addr_t)((idx << 20) + (sg_dma_address(sglist + 0) &
-> +                                                       (PAGE_SIZE - 1)));
-> +       return ret_addr;
+> +               multipass->out_vsize = multipass->in_vsize * 256 / 1024;
+> +               multipass->vrsz = ((multipass->in_vsize - NUM_D2TAPS)
+> +                                               * RATIO_MULTIPLIER)
+> +                                               / (multipass->out_vsize - 1);
+> +               multipass->active = 1;
+> +               multipass->num_vtap = 0;
 > +
-> +release_mem:
-> +       for (; i >= 0; i--) {
-> +               free_l2_page_table(l2p_table_addr[idx + i]);
-> +               l2p_table_addr[idx + i] = 0;
 > +       }
+> +       rsz_conf_chan->register_config.rsz_out_size =
+> +                                               multipass->out_hsize
+> +                                               & ISPRSZ_OUT_SIZE_HORZ_MASK;
+> +
+> +       rsz_conf_chan->register_config.rsz_out_size |=
+> +                                               (multipass->out_vsize
+> +                                               << ISPRSZ_OUT_SIZE_VERT_SHIFT)
+> +                                               & ISPRSZ_OUT_SIZE_VERT_MASK;
+> +
+> +       rsz_conf_chan->register_config.rsz_sdr_inoff =
+> +                                               multipass->in_pitch
+> +                                               & ISPRSZ_SDR_INOFF_OFFSET_MASK;
+> +
+> +       rsz_conf_chan->register_config.rsz_sdr_outoff =
+> +                                       multipass->out_pitch
+> +                                       & ISPRSZ_SDR_OUTOFF_OFFSET_MASK;
+> +
+> +       if (multipass->hrsz >= 64 && multipass->hrsz <= 512) {
+> +               if (multipass->hstph > NUM_PHASES)
+> +                       goto err_einval;
+> +       } else if (multipass->hrsz >= 64 && multipass->hrsz <= 512) {
+> +               if (multipass->hstph > NUM_D2PH)
+> +                       goto err_einval;
+> +       }
+> +
+> +       rsz_conf_chan->register_config.rsz_cnt |=
+> +                                               (multipass->hstph
+> +                                               << ISPRSZ_CNT_HSTPH_SHIFT)
+> +                                               & ISPRSZ_CNT_HSTPH_MASK;
+> +
+> +       if (multipass->vrsz >= 64 && multipass->hrsz <= 512) {
+> +               if (multipass->vstph > NUM_PHASES)
+> +                       goto err_einval;
+> +       } else if (multipass->vrsz >= 64 && multipass->vrsz <= 512) {
+> +               if (multipass->vstph > NUM_D2PH)
+> +                       goto err_einval;
+> +       }
+> +
+> +       rsz_conf_chan->register_config.rsz_cnt |=
+> +                                               (multipass->vstph
+> +                                               << ISPRSZ_CNT_VSTPH_SHIFT)
+> +                                               & ISPRSZ_CNT_VSTPH_MASK;
+> +
+> +       rsz_conf_chan->register_config.rsz_cnt |=
+> +                                               (multipass->hrsz - 1)
+> +                                               & ISPRSZ_CNT_HRSZ_MASK;
+> +
+> +       rsz_conf_chan->register_config.rsz_cnt |=
+> +                                               ((multipass->vrsz - 1)
+> +                                               << ISPRSZ_CNT_VRSZ_SHIFT)
+> +                                               & ISPRSZ_CNT_VRSZ_MASK;
+> +
 > +       return 0;
+> +err_einval:
+> +       return -EINVAL;
 > +}
-> +EXPORT_SYMBOL_GPL(ispmmu_map_sg);
 > +
 > +/**
-> + * ispmmu_unmap - Unmap a ISP space that was mmapped before.
-> + * @v_addr: Virtural address to be unmapped
+> + * rsz_config_ratio - Configure ratio
+> + * @rsz_conf_chan: Structure containing channel configuration
 > + *
-> + * Works with mmapped spaces either with ispmmu_map or ispmmu_map_sg.
-> + *
-> + * Returns 0 if successful, or -EINVAL if wrong region, or non region-aligned
+> + * Configure ratio
 > + **/
-> +int ispmmu_unmap(dma_addr_t v_addr)
+> +static void rsz_config_ratio(struct rsz_mult *multipass,
+> +                               struct channel_config *rsz_conf_chan)
 > +{
-> +       u32 v_addr_align;
-> +       int idx;
+> +       int hsize;
+> +       int vsize;
+> +       int coeffcounter;
 > +
-> +       DPRINTK_ISPMMU("+ispmmu_unmap: 0x%x\n", v_addr);
+> +       if (multipass->hrsz <= 512) {
+> +               hsize = ((32 * multipass->hstph + (multipass->out_hsize - 1)
+> +                                       * multipass->hrsz + 16) >> 8) + 7;
+> +       } else {
+> +               hsize = ((64 * multipass->hstph + (multipass->out_hsize - 1)
+> +                                       * multipass->hrsz + 32) >> 8) + 7;
+> +       }
+> +       if (multipass->vrsz <= 512) {
+> +               vsize = ((32 * multipass->vstph + (multipass->out_vsize - 1)
+> +                                       * multipass->vrsz + 16) >> 8) + 4;
+> +       } else {
+> +               vsize = ((64 * multipass->vstph + (multipass->out_vsize - 1)
+> +                                       * multipass->vrsz + 32) >> 8) + 7;
+> +       }
+> +       rsz_conf_chan->register_config.rsz_in_size = hsize;
 > +
-> +       v_addr_align = page_aligned_addr(v_addr);
-> +       idx = v_addr_align >> 20;
-> +       if ((idx < ISPMMU_REGION_ENTRIES_NR) || (idx >
-> +                                       (ISPMMU_REGION_ENTRIES_NR *
-> +                                       (ISPMMU_REGION_NR - 1))) ||
-> +                                       ((idx << 20) != v_addr_align) ||
-> +                                       (idx % ISPMMU_REGION_ENTRIES_NR)) {
-> +               DPRINTK_ISPMMU("Cannot unmap a non region-aligned space"
-> +                                                       " 0x%x\n", v_addr);
+> +       rsz_conf_chan->register_config.rsz_in_size |=
+> +                                       ((vsize << ISPRSZ_IN_SIZE_VERT_SHIFT)
+> +                                       & ISPRSZ_IN_SIZE_VERT_MASK);
+> +
+> +       for (coeffcounter = 0; coeffcounter < MAX_COEF_COUNTER;
+> +                                                       coeffcounter++) {
+> +               if (multipass->num_htap) {
+> +                       rsz_conf_chan->register_config.
+> +                                       rsz_coeff_horz[coeffcounter] =
+> +                                       (multipass->tap4filt_coeffs[2
+> +                                       * coeffcounter]
+> +                                       & ISPRSZ_HFILT10_COEF0_MASK);
+> +                       rsz_conf_chan->register_config.
+> +                                       rsz_coeff_horz[coeffcounter] |=
+> +                                       ((multipass->tap4filt_coeffs[2
+> +                                       * coeffcounter + 1]
+> +                                       << ISPRSZ_HFILT10_COEF1_SHIFT)
+> +                                       & ISPRSZ_HFILT10_COEF1_MASK);
+> +               } else {
+> +                       rsz_conf_chan->register_config.
+> +                                       rsz_coeff_horz[coeffcounter] =
+> +                                       (multipass->tap7filt_coeffs[2
+> +                                       * coeffcounter]
+> +                                       & ISPRSZ_HFILT10_COEF0_MASK);
+> +
+> +                       rsz_conf_chan->register_config.
+> +                                       rsz_coeff_horz[coeffcounter] |=
+> +                                       ((multipass->tap7filt_coeffs[2
+> +                                       * coeffcounter + 1]
+> +                                       << ISPRSZ_HFILT10_COEF1_SHIFT)
+> +                                       & ISPRSZ_HFILT10_COEF1_MASK);
+> +               }
+> +
+> +               if (multipass->num_vtap) {
+> +                       rsz_conf_chan->register_config.
+> +                                       rsz_coeff_vert[coeffcounter] =
+> +                                       (multipass->tap4filt_coeffs[2
+> +                                       * coeffcounter]
+> +                                       & ISPRSZ_VFILT10_COEF0_MASK);
+> +
+> +                       rsz_conf_chan->register_config.
+> +                                       rsz_coeff_vert[coeffcounter] |=
+> +                                       ((multipass->tap4filt_coeffs[2
+> +                                       * coeffcounter + 1]
+> +                                       << ISPRSZ_VFILT10_COEF1_SHIFT) &
+> +                                       ISPRSZ_VFILT10_COEF1_MASK);
+> +               } else {
+> +                       rsz_conf_chan->register_config.
+> +                                       rsz_coeff_vert[coeffcounter] =
+> +                                       (multipass->tap7filt_coeffs[2
+> +                                       * coeffcounter]
+> +                                       & ISPRSZ_VFILT10_COEF0_MASK);
+> +                       rsz_conf_chan->register_config.
+> +                                       rsz_coeff_vert[coeffcounter] |=
+> +                                       ((multipass->tap7filt_coeffs[2
+> +                                       * coeffcounter + 1]
+> +                                       << ISPRSZ_VFILT10_COEF1_SHIFT)
+> +                                       & ISPRSZ_VFILT10_COEF1_MASK);
+> +               }
+> +       }
+> +}
+> +
+> +/**
+> + * rsz_get_params - Gets the parameter values
+> + * @params: Structure containing the Resizer Wrapper parameters
+> + * @rsz_conf_chan: Structure containing channel configuration
+> + *
+> + * Used to get the Resizer hardware settings associated with the
+> + * current logical channel represented by fd.
+> + **/
+> +static int rsz_get_params(struct rsz_params *params,
+> +                                       struct channel_config *rsz_conf_chan)
+> +{
+> +       int coeffcounter;
+> +
+> +       if (rsz_conf_chan->config_state) {
+> +               dev_err(rsz_device, "state not configured\n");
 > +               return -EINVAL;
 > +       }
 > +
-> +       if (((*(ttb + idx)) & (ISPMMU_L1D_TYPE_MASK <<
-> +                                               ISPMMU_L1D_TYPE_SHIFT)) !=
-> +                                               (ISPMMU_L1D_TYPE_PAGE <<
-> +                                               ISPMMU_L1D_TYPE_SHIFT)) {
-> +               DPRINTK_ISPMMU("unmap a wrong region\n");
-> +               return -EINVAL;
+> +       params->in_hsize = rsz_conf_chan->register_config.rsz_in_size
+> +                                       & ISPRSZ_IN_SIZE_HORZ_MASK;
+> +       params->in_vsize = (rsz_conf_chan->register_config.rsz_in_size
+> +                                       & ISPRSZ_IN_SIZE_VERT_MASK)
+> +                                       >> ISPRSZ_IN_SIZE_VERT_SHIFT;
+> +
+> +       params->in_pitch = rsz_conf_chan->register_config.rsz_sdr_inoff
+> +                                       & ISPRSZ_SDR_INOFF_OFFSET_MASK;
+> +
+> +       params->out_hsize = rsz_conf_chan->register_config.rsz_out_size
+> +                                       & ISPRSZ_OUT_SIZE_HORZ_MASK;
+> +
+> +       params->out_vsize = (rsz_conf_chan->register_config.rsz_out_size
+> +                                       & ISPRSZ_OUT_SIZE_VERT_MASK)
+> +                                       >> ISPRSZ_OUT_SIZE_VERT_SHIFT;
+> +
+> +       params->out_pitch = rsz_conf_chan->register_config.rsz_sdr_outoff
+> +                                       & ISPRSZ_SDR_OUTOFF_OFFSET_MASK;
+> +
+> +       params->cbilin = (rsz_conf_chan->register_config.rsz_cnt
+> +                                       & SET_BIT_CBLIN) >> SET_BIT_CBLIN;
+> +
+> +       params->inptyp = (rsz_conf_chan->register_config.rsz_cnt
+> +                                       & ISPRSZ_CNT_INPTYP_MASK)
+> +                                       >> SET_BIT_INPTYP;
+> +       params->horz_starting_pixel = ((rsz_conf_chan->register_config.
+> +                                       rsz_in_start
+> +                                       & ISPRSZ_IN_START_HORZ_ST_MASK));
+> +       params->vert_starting_pixel = ((rsz_conf_chan->register_config.
+> +                                       rsz_in_start
+> +                                       & ISPRSZ_IN_START_VERT_ST_MASK)
+> +                                       >> ISPRSZ_IN_START_VERT_ST_SHIFT);
+> +
+> +       params->hstph = ((rsz_conf_chan->register_config.rsz_cnt
+> +                                       & ISPRSZ_CNT_HSTPH_MASK
+> +                                       >> ISPRSZ_CNT_HSTPH_SHIFT));
+> +       params->vstph = ((rsz_conf_chan->register_config.rsz_cnt
+> +                                       & ISPRSZ_CNT_VSTPH_MASK
+> +                                       >> ISPRSZ_CNT_VSTPH_SHIFT));
+> +
+> +       for (coeffcounter = 0; coeffcounter < MAX_COEF_COUNTER;
+> +                                                       coeffcounter++) {
+> +               params->tap4filt_coeffs[2 * coeffcounter] =
+> +                                       rsz_conf_chan->register_config.
+> +                                       rsz_coeff_horz[coeffcounter]
+> +                                       & ISPRSZ_HFILT10_COEF0_MASK;
+> +
+> +               params->tap4filt_coeffs[2 * coeffcounter + 1] =
+> +                                       (rsz_conf_chan->register_config.
+> +                                       rsz_coeff_horz[coeffcounter]
+> +                                       & ISPRSZ_HFILT10_COEF1_MASK)
+> +                                       >> ISPRSZ_HFILT10_COEF1_SHIFT;
+> +
+> +               params->tap7filt_coeffs[2 * coeffcounter] =
+> +                                       rsz_conf_chan->register_config.
+> +                                       rsz_coeff_vert[coeffcounter]
+> +                                       & ISPRSZ_VFILT10_COEF0_MASK;
+> +
+> +               params->tap7filt_coeffs[2 * coeffcounter + 1] =
+> +                                       (rsz_conf_chan->register_config.
+> +                                       rsz_coeff_vert[coeffcounter]
+> +                                       & ISPRSZ_VFILT10_COEF1_MASK)
+> +                                       >> ISPRSZ_VFILT10_COEF1_SHIFT;
+> +
 > +       }
 > +
-> +       while (((*(ttb + idx)) & (ISPMMU_L1D_TYPE_MASK <<
-> +                                               ISPMMU_L1D_TYPE_SHIFT)) ==
-> +                                               (ISPMMU_L1D_TYPE_PAGE <<
-> +                                               ISPMMU_L1D_TYPE_SHIFT)) {
-> +               *(ttb + idx) = (ISPMMU_L1D_TYPE_FAULT <<
-> +                                               ISPMMU_L1D_TYPE_SHIFT);
-> +               free_l2_page_table(l2p_table_addr[idx]);
-> +               l2p_table_addr[idx++] = 0;
-> +               if (!(idx % ISPMMU_REGION_ENTRIES_NR)) {
-> +                       DPRINTK_ISPMMU("Do not exceed this 32M region\n");
-> +                       break;
-> +               }
-> +       }
-> +       omap_writel(1, ISPMMU_GFLUSH);
+> +       params->yenh_params.type = (rsz_conf_chan->register_config.rsz_yehn
+> +                                       & ISPRSZ_YENH_ALGO_MASK)
+> +                                       >> ISPRSZ_YENH_ALGO_SHIFT;
 > +
-> +       DPRINTK_ISPMMU("-ispmmu_unmap()\n");
-> +       return 0;
-> +}
-> +EXPORT_SYMBOL_GPL(ispmmu_unmap);
+> +       params->yenh_params.core = rsz_conf_chan->register_config.rsz_yehn
+> +                                       & ISPRSZ_YENH_CORE_MASK;
 > +
-> +/**
-> + * ispmmu_isr - Callback from ISP driver for MMU interrupt.
-> + * @status: IRQ status of ISPMMU
-> + * @arg1: Not used as of now.
-> + * @arg2: Not used as of now.
-> + **/
-> +static void ispmmu_isr(unsigned long status, isp_vbq_callback_ptr arg1,
-> +                                                               void *arg2)
-> +{
-> +       u32 irqstatus = 0;
+> +       params->yenh_params.gain = (rsz_conf_chan->register_config.rsz_yehn
+> +                                       & ISPRSZ_YENH_GAIN_MASK)
+> +                                       >> ISPRSZ_YENH_GAIN_SHIFT;
 > +
-> +       irqstatus = omap_readl(ISPMMU_IRQSTATUS);
-> +       DPRINTK_ISPMMU("mmu error 0x%lx, 0x%x\n", status, irqstatus);
-> +       if (irqstatus & IRQENABLE_TLBMISS)
-> +               DPRINTK_ISPMMU("ISP_ERR: TLB Miss\n");
-> +       if (irqstatus & IRQENABLE_TRANSLNFAULT)
-> +               DPRINTK_ISPMMU("ISP_ERR: Invalide descriptor in the"
-> +                                               " translation table -"
-> +                                               " Translation Fault\n");
-> +       if (irqstatus & IRQENABLE_EMUMISS) {
-> +               DPRINTK_ISPMMU("ISP_ERR: TLB Miss during debug -"
-> +                                                       " Emulation mode\n");
-> +       }
-> +       if (irqstatus & IRQENABLE_TWFAULT)
-> +               DPRINTK_ISPMMU("ISP_ERR: Table Walk Fault\n");
-> +       if (irqstatus & IRQENABLE_MULTIHITFAULT)
-> +               DPRINTK_ISPMMU("ISP_ERR: Multiple Matches in the TLB\n");
-> +       DPRINTK_ISPMMU("Fault address for the ISPMMU is 0x%x",
-> +                                               omap_readl(ISPMMU_FAULT_AD));
-> +       omap_writel(irqstatus, ISPMMU_IRQSTATUS);
-> +}
+> +       params->yenh_params.slop = (rsz_conf_chan->register_config.rsz_yehn
+> +                                       & ISPRSZ_YENH_SLOP_MASK)
+> +                                       >> ISPRSZ_YENH_SLOP_SHIFT;
 > +
-> +/**
-> + * ispmmu_init - ISP MMU Initialization.
-> + *
-> + * - Reserves memory for L1 and L2 Page tables.
-> + * - Initializes the ISPMMU with TTB address, fault entries as default in the
-> + * - TTB table.
-> + * - Enables MMU and TWL.
-> + * - Sets the callback for the MMU error events.
-> + *
-> + * Returns 0 if successful, -ENODEV if can't take ISP MMU out of reset, -ENOMEM
-> + * when no memory for TTB, or init_l2_page_cache return value if L2 page cache
-> + * init fails.
-> + **/
-> +int __init ispmmu_init(void)
-> +{
-> +       int i, val = 0;
-> +       struct isp_sysc isp_sysconfig;
+> +       params->pix_fmt = ((rsz_conf_chan->register_config.rsz_cnt
+> +                                       & ISPRSZ_CNT_PIXFMT_MASK)
+> +                                       >> SET_BIT_YCPOS);
 > +
-> +       isp_get();
-> +
-> +       omap_writel(2, ISPMMU_SYSCONFIG);
-> +       while (((omap_readl(ISPMMU_SYSSTATUS) & 0x1) != 0x1) && val--)
-> +               udelay(10);
-> +
-> +       if ((omap_readl(ISPMMU_SYSSTATUS) & 0x1) != 0x1) {
-> +               DPRINTK_ISPMMU("can't take ISP MMU out of reset\n");
-> +               isp_put();
-> +               return -ENODEV;
-> +       }
-> +       isp_sysconfig.reset = 0;
-> +       isp_sysconfig.idle_mode = 1;
-> +       isp_power_settings(isp_sysconfig);
-> +
-> +       ttb_page = alloc_pages(GFP_KERNEL, get_order(ISPMMU_TTB_ENTRIES_NR *
-> +                                                                       4));
-> +       if (!ttb_page) {
-> +               DPRINTK_ISPMMU("No Memory for TTB\n");
-> +               isp_put();
-> +               return -ENOMEM;
-> +       }
-> +
-> +       ttb = page_address(ttb_page);
-> +       ttb_p = __pa(ttb);
-> +       ttb_aligned_size = ISPMMU_TTB_ENTRIES_NR * 4;
-> +       ttb = ioremap_nocache(ttb_p, ttb_aligned_size);
-> +       if ((ttb_p & 0xFFFFC000) != ttb_p) {
-> +               DPRINTK_ISPMMU("ISP_ERR : TTB address not aligned at 16KB\n");
-> +               __free_pages(ttb_page, get_order(ISPMMU_TTB_ENTRIES_NR * 4));
-> +               ttb_aligned_size = (ISPMMU_TTB_ENTRIES_NR * 4) +
-> +                                               (ISPMMU_TTB_MISALIGN_SIZE);
-> +               ttb_page = alloc_pages(GFP_KERNEL, get_order(ttb_aligned_size));
-> +               if (!ttb_page) {
-> +                       DPRINTK_ISPMMU("No Memory for TTB\n");
-> +                       isp_put();
-> +                       return -ENOMEM;
-> +               }
-> +               ttb = page_address(ttb_page);
-> +               ttb_p = __pa(ttb);
-> +               ttb = ioremap_nocache(ttb_p, ttb_aligned_size);
-> +               if ((ttb_p & 0xFFFFC000) != ttb_p) {
-> +                       ttb = (u32 *)(((u32)ttb & 0xFFFFC000) + 0x4000);
-> +                       ttb_p = __pa(ttb);
-> +               }
-> +       }
-> +
-> +       DPRINTK_ISPMMU("TTB allocated at p = 0x%x, v = 0x%x, size = 0x%x\n",
-> +                                       ttb_p, (u32)ttb, ttb_aligned_size);
-> +
-> +       if (omap_rev() < OMAP3430_REV_ES2_0)
-> +               l1_mapattr_obj.endianism = B_ENDIAN;
+> +       if (params->pix_fmt)
+> +               params->pix_fmt = RSZ_PIX_FMT_UYVY;
 > +       else
-> +               l1_mapattr_obj.endianism = L_ENDIAN;
-> +       l1_mapattr_obj.element_size = ES_8BIT;
-> +       l1_mapattr_obj.mixed_size = ACCESS_BASED;
-> +       l1_mapattr_obj.map_size = L1DFAULT;
+> +               params->pix_fmt = RSZ_PIX_FMT_YUYV;
 > +
-> +       val = init_l2_page_cache();
-> +       if (val) {
-> +               DPRINTK_ISPMMU("ISP_ERR: init l2 page cache\n");
-> +               ttb = page_address(ttb_page);
-> +               ttb_p = __pa(ttb);
-> +               ioremap_cached(ttb_p, ttb_aligned_size);
-> +               __free_pages(ttb_page, get_order(ttb_aligned_size));
-> +               isp_put();
-> +               return val;
+> +       return 0;
+> +}
+> +
+> +/**
+> + * rsz_calculate_crop - Calculate Crop values
+> + * @rsz_conf_chan: Structure containing channel configuration
+> + * @cropsize: Structure containing crop parameters
+> + *
+> + * Calculate Crop values
+> + **/
+> +static void rsz_calculate_crop(struct channel_config *rsz_conf_chan,
+> +                                               struct rsz_cropsize *cropsize)
+> +{
+> +       int luma_enable;
+> +
+> +       cropsize->hcrop = 0;
+> +       cropsize->vcrop = 0;
+> +
+> +       luma_enable = (rsz_conf_chan->register_config.rsz_yehn
+> +                                               & ISPRSZ_YENH_ALGO_MASK)
+> +                                               >> ISPRSZ_YENH_ALGO_SHIFT;
+> +
+> +       if (luma_enable)
+> +               cropsize->hcrop += 2;
+> +}
+> +
+> +/**
+> + * rsz_vbq_release - Videobuffer queue release
+> + * @q: Structure containing the videobuffer queue file handle, and device
+> + *     structure which contains the actual configuration.
+> + * @vb: Structure containing the videobuffer used for resizer processing.
+> + **/
+> +static void rsz_vbq_release(struct videobuf_queue *q,
+> +                                               struct videobuf_buffer *vb)
+> +{
+> +       int i;
+> +       struct rsz_fh *fh = q->priv_data;
+> +
+> +       for (i = 0; i < VIDEO_MAX_FRAME; i++) {
+> +               struct videobuf_dmabuf *dma = NULL;
+> +               if (!q->bufs[i])
+> +                       continue;
+> +               if (q->bufs[i]->memory != V4L2_MEMORY_MMAP)
+> +                       continue;
+> +               dma = videobuf_to_dma(q->bufs[i]);
+> +               videobuf_dma_unmap(q, dma);
+> +               videobuf_dma_free(dma);
 > +       }
 > +
-> +       for (i = 0; i < ISPMMU_TTB_ENTRIES_NR; i++)
-> +               ispmmu_set_pte(ttb + i, 0, l1_mapattr_obj);
-> +
-> +       omap_writel(ttb_p, ISPMMU_TTB);
-> +
-> +       omap_writel((ISPMMU_MMUCNTL_MMU_EN|ISPMMU_MMUCNTL_TWL_EN), ISPMMU_CNTL);
-> +       omap_writel(omap_readl(ISPMMU_IRQSTATUS), ISPMMU_IRQSTATUS);
-> +       omap_writel(0xf, ISPMMU_IRQENABLE);
-> +
-> +       isp_set_callback(CBK_MMU_ERR, ispmmu_isr, (void *)NULL, (void *)NULL);
-> +
-> +       val = omap_readl(ISPMMU_REVISION);
-> +       DPRINTK_ISPMMU("ISP MMU Rev %c.%c initialized\n",
-> +                               (val >> ISPMMU_REVISION_REV_MAJOR_SHIFT) + '0',
-> +                               (val & ISPMMU_REVISION_REV_MINOR_MASK) + '0');
-> +       isp_put();
-> +       return 0;
+> +       ispmmu_unmap(fh->isp_addr_read);
+> +       ispmmu_unmap(fh->isp_addr_write);
+> +       fh->isp_addr_read = 0;
+> +       fh->isp_addr_write = 0;
+> +       spin_lock(&fh->vbq_lock);
+> +       vb->state = VIDEOBUF_NEEDS_INIT;
+> +       spin_unlock(&fh->vbq_lock);
 > +
 > +}
 > +
 > +/**
-> + * ispmmu_cleanup - Frees the L1, L2 Page tables. Unsets the callback for MMU.
+> + * rsz_vbq_setup - Sets up the videobuffer size and validates count.
+> + * @q: Structure containing the videobuffer queue file handle, and device
+> + *     structure which contains the actual configuration.
+> + * @cnt: Number of buffers requested
+> + * @size: Size in bytes of the buffer used for previewing
+> + *
+> + * Always returns 0.
 > + **/
-> +void __exit ispmmu_cleanup(void)
+> +static int rsz_vbq_setup(struct videobuf_queue *q, unsigned int *cnt,
+> +                                                       unsigned int *size)
 > +{
-> +       ttb = page_address(ttb_page);
-> +       ttb_p = __pa(ttb);
-> +       ioremap_cached(ttb_p, ttb_aligned_size);
-> +       __free_pages(ttb_page, get_order(ttb_aligned_size));
-> +       isp_unset_callback(CBK_MMU_ERR);
-> +       cleanup_l2_page_cache();
+> +       struct rsz_fh *fh = q->priv_data;
+> +       struct rsz_mult *multipass = fh->multipass;
+> +       u32 insize, outsize;
 > +
+> +       spin_lock(&fh->vbq_lock);
+> +       if (*cnt <= 0)
+> +               *cnt = VIDEO_MAX_FRAME;
+> +
+> +       if (*cnt > VIDEO_MAX_FRAME)
+> +               *cnt = VIDEO_MAX_FRAME;
+> +
+> +       outsize = multipass->out_pitch * multipass->out_vsize;
+> +       insize = multipass->in_pitch * multipass->in_vsize;
+> +       if (*cnt == 1 && (outsize > insize)) {
+> +               dev_err(rsz_device, "2 buffers are required for Upscaling "
+> +                                                               "mode\n");
+> +               goto err_einval;
+> +       }
+> +       if (!fh->params->in_hsize || !fh->params->in_vsize) {
+> +               dev_err(rsz_device, "Can't setup buffer size\n");
+> +               goto err_einval;
+> +       } else {
+> +               if (outsize > insize)
+> +                       *size = outsize;
+> +               else
+> +                       *size = insize;
+> +
+> +               fh->rsz_bufsize = *size;
+> +       }
+> +       spin_unlock(&fh->vbq_lock);
+> +
+> +       return 0;
+> +err_einval:
+> +       spin_unlock(&fh->vbq_lock);
+> +       return -EINVAL;
+> +}
+> +
+> +/**
+> + * rsz_vbq_prepare - Videobuffer is prepared and mmapped.
+> + * @q: Structure containing the videobuffer queue file handle, and device
+> + *     structure which contains the actual configuration.
+> + * @vb: Structure containing the videobuffer used for resizer processing.
+> + * @field: Type of field to set in videobuffer device.
+> + *
+> + * Returns 0 if successful, or -EINVAL if buffer couldn't get allocated, or
+> + * -EIO if the ISP MMU mapping fails
+> + **/
+> +static int rsz_vbq_prepare(struct videobuf_queue *q,
+> +                                               struct videobuf_buffer *vb,
+> +                                               enum v4l2_field field)
+> +{
+> +       struct rsz_fh *fh = q->priv_data;
+> +       struct channel_config *rsz_conf_chan = fh->config;
+> +       struct rsz_mult *multipass = fh->multipass;
+> +       int err = 0;
+> +       unsigned int isp_addr, insize, outsize;
+> +       struct videobuf_dmabuf *dma = videobuf_to_dma(vb);
+> +
+> +       spin_lock(&fh->vbq_lock);
+> +       if (vb->baddr) {
+> +               vb->size = fh->rsz_bufsize;
+> +               vb->bsize = fh->rsz_bufsize;
+> +       } else {
+> +               spin_unlock(&fh->vbq_lock);
+> +               dev_err(rsz_device, "No user buffer allocated\n");
+> +               goto out;
+> +       }
+> +       if (vb->i) {
+> +               vb->width = fh->params->out_hsize;
+> +               vb->height = fh->params->out_vsize;
+> +       } else {
+> +               vb->width = fh->params->in_hsize;
+> +               vb->height = fh->params->in_vsize;
+> +       }
+> +
+> +       vb->field = field;
+> +       spin_unlock(&fh->vbq_lock);
+> +
+> +       if (vb->state == VIDEOBUF_NEEDS_INIT) {
+> +               err = videobuf_iolock(q, vb, NULL);
+> +               if (!err) {
+> +                       isp_addr = ispmmu_map_sg(dma->sglist, dma->sglen);
+> +                       if (!isp_addr)
+> +                               err = -EIO;
+> +                       else {
+> +                               if (vb->i) {
+> +                                       rsz_conf_chan->register_config.
+> +                                                       rsz_sdr_outadd
+> +                                                       = isp_addr;
+> +                                       fh->isp_addr_write = isp_addr;
+> +                                       rsz_conf_chan->output_buf_index = vb->i;
+> +                               } else {
+> +                                       rsz_conf_chan->register_config.
+> +                                                       rsz_sdr_inadd
+> +                                                       = isp_addr;
+> +                                       rsz_conf_chan->input_buf_index = vb->i;
+> +                                       outsize = multipass->out_pitch *
+> +                                                       multipass->out_vsize;
+> +                                       insize = multipass->in_pitch *
+> +                                                       multipass->in_vsize;
+> +                                       if (outsize < insize) {
+> +                                               rsz_conf_chan->register_config.
+> +                                                               rsz_sdr_outadd
+> +                                                               = isp_addr;
+> +                                               rsz_conf_chan->
+> +                                                       output_buf_index =
+> +                                                       vb->i;
+> +                                       }
+> +
+> +                                       fh->isp_addr_read = isp_addr;
+> +                               }
+> +                       }
+> +               }
+> +
+> +       }
+> +
+> +       if (!err) {
+> +               spin_lock(&fh->vbq_lock);
+> +               vb->state = VIDEOBUF_PREPARED;
+> +               spin_unlock(&fh->vbq_lock);
+> +               flush_cache_user_range(NULL, vb->baddr, (vb->baddr
+> +                                                               + vb->bsize));
+> +       } else
+> +               rsz_vbq_release(q, vb);
+> +
+> +out:
+> +       return err;
+> +}
+> +
+> +static void rsz_vbq_queue(struct videobuf_queue *q, struct videobuf_buffer *vb)
+> +{
 > +       return;
 > +}
 > +
 > +/**
-> + * ispmmu_save_context - Saves the values of the mmu module registers.
+> + * rsz_open - Initializes and opens the Resizer Wrapper
+> + * @inode: Inode structure associated with the Resizer Wrapper
+> + * @filp: File structure associated with the Resizer Wrapper
+> + *
+> + * Returns 0 if successful, -EBUSY if its already opened or the ISP module is
+> + * not available, or -ENOMEM if its unable to allocate the device in kernel
+> + * space memory.
 > + **/
-> +void ispmmu_save_context(void)
+> +static int rsz_open(struct inode *inode, struct file *filp)
 > +{
-> +       DPRINTK_ISPMMU(" Saving context\n");
-> +       isp_save_context(ispmmu_reg_list);
+> +       int ret = 0;
+> +       struct channel_config *rsz_conf_chan;
+> +       struct rsz_fh *fh;
+> +       struct device_params *device = device_config;
+> +       struct rsz_params *params;
+> +       struct rsz_mult *multipass;
+> +
+> +       if ((filp->f_flags & O_NONBLOCK) == O_NONBLOCK) {
+> +               printk(KERN_DEBUG "omap-resizer: Device is opened in "
+> +                                       "non blocking mode\n");
+> +       } else {
+> +               printk(KERN_DEBUG "omap-resizer: Device is opened in blocking "
+> +                                       "mode\n");
+> +       }
+> +       fh = kzalloc(sizeof(struct rsz_fh), GFP_KERNEL);
+> +       if (NULL == fh)
+> +               return -ENOMEM;
+> +
+> +       isp_get();
+> +
+> +       rsz_conf_chan = kzalloc(sizeof(struct channel_config), GFP_KERNEL);
+> +       if (rsz_conf_chan == NULL) {
+> +               dev_err(rsz_device, "\n cannot allocate memory to config");
+> +               ret = -ENOMEM;
+> +               goto err_enomem0;
+> +       }
+> +       params = kzalloc(sizeof(struct rsz_params), GFP_KERNEL);
+> +       if (params == NULL) {
+> +               dev_err(rsz_device, "\n cannot allocate memory to params");
+> +               ret = -ENOMEM;
+> +               goto err_enomem1;
+> +       }
+> +       multipass = kzalloc(sizeof(struct rsz_mult), GFP_KERNEL);
+> +       if (multipass == NULL) {
+> +               dev_err(rsz_device, "\n cannot allocate memory to multipass");
+> +               ret = -ENOMEM;
+> +               goto err_enomem2;
+> +       }
+> +
+> +       fh->multipass = multipass;
+> +       fh->params = params;
+> +       fh->config = rsz_conf_chan;
+> +
+> +       if (mutex_lock_interruptible(&device->reszwrap_mutex)) {
+> +               ret = -EINTR;
+> +               goto err_enomem2;
+> +       }
+> +       device->opened++;
+> +       mutex_unlock(&device->reszwrap_mutex);
+> +
+> +       rsz_conf_chan->config_state = STATE_NOT_CONFIGURED;
+> +       rsz_conf_chan->status = CHANNEL_FREE;
+> +
+> +       filp->private_data = fh;
+> +       fh->type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+> +       fh->device = device;
+> +
+> +       videobuf_queue_sg_init(&fh->vbq, &device->vbq_ops, NULL,
+> +                                       &fh->vbq_lock, fh->type,
+> +                                       V4L2_FIELD_NONE,
+> +                                       sizeof(struct videobuf_buffer), fh);
+> +
+> +       spin_lock_init(&fh->vbq_lock);
+> +       mutex_init(&rsz_conf_chan->chanprotection_mutex);
+> +
+> +       return 0;
+> +err_enomem2:
+> +       kfree(params);
+> +err_enomem1:
+> +       kfree(rsz_conf_chan);
+> +err_enomem0:
+> +       kfree(fh);
+> +       return ret;
 > +}
-> +EXPORT_SYMBOL_GPL(ispmmu_save_context);
 > +
 > +/**
-> + * ispmmu_restore_context - Restores the values of the mmu module registers.
+> + * rsz_release - Releases Resizer Wrapper and frees up allocated memory
+> + * @inode: Inode structure associated with the Resizer Wrapper
+> + * @filp: File structure associated with the Resizer Wrapper
+> + *
+> + * Returns 0 if successful, or -EBUSY if channel is being used.
 > + **/
-> +void ispmmu_restore_context(void)
+> +static int rsz_release(struct inode *inode, struct file *filp)
 > +{
-> +       DPRINTK_ISPMMU(" Restoring context\n");
-> +       isp_restore_context(ispmmu_reg_list);
+> +       u32 timeout = 0;
+> +       struct rsz_fh *fh = filp->private_data;
+> +       struct channel_config *rsz_conf_chan = fh->config;
+> +       struct rsz_params *params = fh->params;
+> +       struct rsz_mult *multipass = fh->multipass;
+> +       struct videobuf_queue *q = &fh->vbq;
+> +
+> +       while ((rsz_conf_chan->status != CHANNEL_FREE) && (timeout < 20)) {
+> +               timeout++;
+> +               schedule();
+> +       }
+> +       if (mutex_lock_interruptible(&device_config->reszwrap_mutex))
+> +               return -EINTR;
+> +       device_config->opened--;
+> +       mutex_unlock(&device_config->reszwrap_mutex);
+> +       /* This will Free memory allocated to the buffers,
+> +        * and flushes the queue
+> +        */
+> +       videobuf_queue_cancel(q);
+> +       fh->params = NULL;
+> +       fh->config = NULL;
+> +
+> +       fh->rsz_bufsize = 0;
+> +       filp->private_data = NULL;
+> +
+> +       kfree(rsz_conf_chan);
+> +       kfree(params);
+> +       kfree(multipass);
+> +       kfree(fh);
+> +
+> +       isp_put();
+> +
+> +       return 0;
 > +}
-> +EXPORT_SYMBOL_GPL(ispmmu_restore_context);
 > +
 > +/**
-> + * ispmmu_print_status - Prints the values of the ISPMMU registers
-> + * Also prints other debug information stored
+> + * rsz_mmap - Memory maps the Resizer Wrapper module.
+> + * @file: File structure associated with the Resizer Wrapper
+> + * @vma: Virtual memory area structure.
+> + *
+> + * Returns 0 if successful, or returned value by the videobuf_mmap_mapper()
+> + * function.
 > + **/
-> +void ispmmu_print_status(void)
+> +static int rsz_mmap(struct file *file, struct vm_area_struct *vma)
 > +{
-> +       if (!is_ispmmu_debug_enabled())
+> +       struct rsz_fh *fh = file->private_data;
+> +
+> +       return videobuf_mmap_mapper(&fh->vbq, vma);
+> +}
+> +
+> +/**
+> + * rsz_ioctl - I/O control function for Resizer Wrapper
+> + * @inode: Inode structure associated with the Resizer Wrapper.
+> + * @file: File structure associated with the Resizer Wrapper.
+> + * @cmd: Type of command to execute.
+> + * @arg: Argument to send to requested command.
+> + *
+> + * Returns 0 if successful, -EBUSY if channel is being used, -1 if bad command
+> + * passed or access is denied, -EFAULT if copy_from_user() or copy_to_user()
+> + * fails, -EINVAL if parameter validation fails or parameter structure is not
+> + * present.
+> + **/
+> +static long rsz_unlocked_ioctl(struct file *file, unsigned int cmd,
+> +                                                       unsigned long arg)
+> +{
+> +       int ret = 0;
+> +       struct rsz_fh *fh = file->private_data;
+> +       struct device_params *device = fh->device;
+> +       struct channel_config *rsz_conf_chan = fh->config;
+> +
+> +       if ((_IOC_TYPE(cmd) != RSZ_IOC_BASE)
+> +                                       || (_IOC_NR(cmd) > RSZ_IOC_MAXNR)) {
+> +               dev_err(rsz_device, "Bad command value \n");
+> +               return -1;
+> +       }
+> +
+> +       if (_IOC_DIR(cmd) & _IOC_READ)
+> +               ret = !access_ok(VERIFY_WRITE, (void *)arg, _IOC_SIZE(cmd));
+> +       else if (_IOC_DIR(cmd) & _IOC_WRITE)
+> +               ret = !access_ok(VERIFY_READ, (void *)arg, _IOC_SIZE(cmd));
+> +
+> +       if (ret) {
+> +               dev_err(rsz_device, "Access denied\n");
+> +               return -1;
+> +       }
+> +
+> +       switch (cmd) {
+> +       case RSZ_REQBUF:
+> +       {
+> +               struct v4l2_requestbuffers req_buf;
+> +               if (copy_from_user(&req_buf, (struct v4l2_requestbuffers *)arg,
+> +                                       sizeof(struct v4l2_requestbuffers))) {
+> +                       return -EFAULT;
+> +               }
+> +               if (mutex_lock_interruptible(&rsz_conf_chan->
+> +                                                       chanprotection_mutex))
+> +                       return -EINTR;
+> +               ret = videobuf_reqbufs(&fh->vbq, (void *)&req_buf);
+> +               mutex_unlock(&rsz_conf_chan->chanprotection_mutex);
+> +               break;
+> +       }
+> +       case RSZ_QUERYBUF:
+> +       {
+> +               struct v4l2_buffer buf;
+> +               if (copy_from_user(&buf, (struct v4l2_buffer *)arg,
+> +                                               sizeof(struct v4l2_buffer))) {
+> +                       return -EFAULT;
+> +               }
+> +               if (mutex_lock_interruptible(&rsz_conf_chan->
+> +                                                       chanprotection_mutex))
+> +                       return -EINTR;
+> +               ret = videobuf_querybuf(&fh->vbq, (void *)&buf);
+> +               mutex_unlock(&rsz_conf_chan->chanprotection_mutex);
+> +               if (copy_to_user((struct v4l2_buffer *)arg, &buf,
+> +                                               sizeof(struct v4l2_buffer)))
+> +                       return -EFAULT;
+> +               break;
+> +       }
+> +       case RSZ_QUEUEBUF:
+> +       {
+> +               struct v4l2_buffer buf;
+> +               if (copy_from_user(&buf, (struct v4l2_buffer *)arg,
+> +                                               sizeof(struct v4l2_buffer))) {
+> +                       return -EFAULT;
+> +               }
+> +               if (mutex_lock_interruptible(&rsz_conf_chan->
+> +                                                       chanprotection_mutex))
+> +                       return -EINTR;
+> +               ret = videobuf_qbuf(&fh->vbq, (void *)&buf);
+> +               mutex_unlock(&rsz_conf_chan->chanprotection_mutex);
+> +               break;
+> +       }
+> +       case RSZ_S_PARAM:
+> +       {
+> +               struct rsz_params *params = fh->params;
+> +               if (copy_from_user(params, (struct rsz_params *)arg,
+> +                                               sizeof(struct rsz_params))) {
+> +                       return -EFAULT;
+> +               }
+> +               if (mutex_lock_interruptible(&rsz_conf_chan->
+> +                                                       chanprotection_mutex))
+> +                       return -EINTR;
+> +               ret = rsz_set_params(fh->multipass, params, rsz_conf_chan);
+> +               mutex_unlock(&rsz_conf_chan->chanprotection_mutex);
+> +               break;
+> +       }
+> +       case RSZ_G_PARAM:
+> +               ret = rsz_get_params((struct rsz_params *)arg, rsz_conf_chan);
+> +               break;
+> +
+> +       case RSZ_G_STATUS:
+> +       {
+> +               struct rsz_status *status;
+> +               status = (struct rsz_status *)arg;
+> +               status->chan_busy = rsz_conf_chan->status;
+> +               status->hw_busy = ispresizer_busy();
+> +               status->src = INPUT_RAM;
+> +               break;
+> +       }
+> +       case RSZ_RESIZE:
+> +               if (file->f_flags & O_NONBLOCK) {
+> +                       if (ispresizer_busy())
+> +                               return -EBUSY;
+> +                       else {
+> +                               if (!mutex_trylock(&device->reszwrap_mutex))
+> +                                       return -EBUSY;
+> +                       }
+> +               } else {
+> +                       if (mutex_lock_interruptible(&device->reszwrap_mutex))
+> +                               return -EINTR;
+> +               }
+> +               ret = rsz_start((int *)arg, fh);
+> +               mutex_unlock(&device->reszwrap_mutex);
+> +               break;
+> +       case RSZ_GET_CROPSIZE:
+> +               rsz_calculate_crop(rsz_conf_chan, (struct rsz_cropsize *)arg);
+> +               break;
+> +
+> +       default:
+> +               dev_err(rsz_device, "resizer_ioctl: Invalid Command Value");
+> +               return -EINVAL;
+> +       }
+> +
+> +       return (long)ret;
+> +}
+> +
+> +static struct file_operations rsz_fops = {
+> +       .owner = THIS_MODULE,
+> +       .open = rsz_open,
+> +       .release = rsz_release,
+> +       .mmap = rsz_mmap,
+> +       .unlocked_ioctl = rsz_unlocked_ioctl,
+> +};
+> +
+> +/**
+> + * rsz_isr - Interrupt Service Routine for Resizer wrapper
+> + * @status: ISP IRQ0STATUS register value
+> + * @arg1: Currently not used
+> + * @arg2: Currently not used
+> + *
+> + * Interrupt Service Routine for Resizer wrapper
+> + **/
+> +static void rsz_isr(unsigned long status, isp_vbq_callback_ptr arg1, void *arg2)
+> +{
+> +
+> +       if ((status & RESZ_DONE) != RESZ_DONE)
 > +               return;
-> +       DPRINTK_ISPMMU("TTB v_addr = 0x%x, p_addr = 0x%x\n", (u32)ttb, ttb_p);
-> +       DPRINTK_ISPMMU("L2P base v_addr = 0x%x, p_addr = 0x%x\n",
-> +                                               l2_page_cache, l2_page_cache_p);
-> +       DPRINTK_ISPMMU("ISPMMU_REVISION = 0x%x\n",
-> +                                               omap_readl(ISPMMU_REVISION));
-> +       DPRINTK_ISPMMU("ISPMMU_SYSCONFIG = 0x%x\n",
-> +                                               omap_readl(ISPMMU_SYSCONFIG));
-> +       DPRINTK_ISPMMU("ISPMMU_SYSSTATUS = 0x%x\n",
-> +                                               omap_readl(ISPMMU_SYSSTATUS));
-> +       DPRINTK_ISPMMU("ISPMMU_IRQSTATUS = 0x%x\n",
-> +                                               omap_readl(ISPMMU_IRQSTATUS));
-> +       DPRINTK_ISPMMU("ISPMMU_IRQENABLE = 0x%x\n",
-> +                                               omap_readl(ISPMMU_IRQENABLE));
-> +       DPRINTK_ISPMMU("ISPMMU_WALKING_ST = 0x%x\n",
-> +                                               omap_readl(ISPMMU_WALKING_ST));
-> +       DPRINTK_ISPMMU("ISPMMU_CNTL = 0x%x\n", omap_readl(ISPMMU_CNTL));
-> +       DPRINTK_ISPMMU("ISPMMU_FAULT_AD = 0x%x\n",
-> +                                               omap_readl(ISPMMU_FAULT_AD));
-> +       DPRINTK_ISPMMU("ISPMMU_TTB = 0x%x\n", omap_readl(ISPMMU_TTB));
-> +       DPRINTK_ISPMMU("ISPMMU_LOCK = 0x%x\n", omap_readl(ISPMMU_LOCK));
-> +       DPRINTK_ISPMMU("ISPMMU_LD_TLB= 0x%x\n", omap_readl(ISPMMU_LD_TLB));
-> +       DPRINTK_ISPMMU("ISPMMU_CAM = 0x%x\n", omap_readl(ISPMMU_CAM));
-> +       DPRINTK_ISPMMU("ISPMMU_RAM = 0x%x\n", omap_readl(ISPMMU_RAM));
-> +       DPRINTK_ISPMMU("ISPMMU_GFLUSH = 0x%x\n", omap_readl(ISPMMU_GFLUSH));
-> +       DPRINTK_ISPMMU("ISPMMU_FLUSH_ENTRY = 0x%x\n",
-> +                                       omap_readl(ISPMMU_FLUSH_ENTRY));
-> +       DPRINTK_ISPMMU("ISPMMU_READ_CAM = 0x%x\n",
-> +                                               omap_readl(ISPMMU_READ_CAM));
-> +       DPRINTK_ISPMMU("ISPMMU_READ_RAM = 0x%x\n",
-> +                                               omap_readl(ISPMMU_READ_RAM));
+> +
+> +       complete(&(device_config->compl_isr));
+> +
 > +}
-> +EXPORT_SYMBOL_GPL(ispmmu_print_status);
-> diff --git a/drivers/media/video/isp/ispmmu.h b/drivers/media/video/isp/ispmmu.h
+> +
+> +/**
+> + * resizer_platform_release - Acts when Reference count is zero
+> + * @device: Structure containing ISP resizer wrapper global information
+> + *
+> + * This is called when the reference count goes to zero.
+> + **/
+> +static void resizer_platform_release(struct device *device)
+> +{
+> +}
+> +
+> +/**
+> + * resizer_probe - Checks for device presence
+> + * @device: Structure containing details of the current device.
+> + *
+> + * Always returns 0.
+> + **/
+> +static int __init resizer_probe(struct platform_device *device)
+> +{
+> +       return 0;
+> +}
+> +
+> +/**
+> + * resizer_remove - Handles the removal of the driver
+> + * @omap_resizer_device: Structure containing details of the current device.
+> + *
+> + * Always returns 0.
+> + **/
+> +static int resizer_remove(struct platform_device *omap_resizer_device)
+> +{
+> +       return 0;
+> +}
+> +
+> +static struct class *rsz_class;
+> +static struct cdev c_dev;
+> +static dev_t dev;
+> +static struct platform_device omap_resizer_device = {
+> +       .name = OMAP_REZR_NAME,
+> +       .id = 2,
+> +       .dev = {
+> +               .release = resizer_platform_release,}
+> +};
+> +
+> +static struct platform_driver omap_resizer_driver = {
+> +       .probe = resizer_probe,
+> +       .remove = resizer_remove,
+> +       .driver = {
+> +                       .bus = &platform_bus_type,
+> +                       .name = OMAP_REZR_NAME,
+> +       },
+> +};
+> +
+> +/**
+> + * omap_rsz_init - Initialization of Resizer Wrapper
+> + *
+> + * Returns 0 if successful, -ENOMEM if could not allocate memory, -ENODEV if
+> + * could not register the wrapper as a character device, or other errors if the
+> + * device or driver can't register.
+> + **/
+> +static int __init omap_rsz_init(void)
+> +{
+> +       int ret = 0;
+> +       struct device_params *device;
+> +       device = kzalloc(sizeof(struct device_params), GFP_KERNEL);
+> +       if (!device) {
+> +               dev_err(rsz_device, OMAP_REZR_NAME ": could not allocate "
+> +                                                               "memory\n");
+> +               return -ENOMEM;
+> +       }
+> +
+> +       ret = alloc_chrdev_region(&dev, 0, 1, OMAP_REZR_NAME);
+> +       if (ret < 0) {
+> +               dev_err(rsz_device, OMAP_REZR_NAME ": intialization failed. "
+> +                       "Could not allocate region "
+> +                       "for character device\n");
+> +               kfree(device);
+> +               return -ENODEV;
+> +       }
+> +
+> +       /* Register the driver in the kernel */
+> +       /* Initialize of character device */
+> +       cdev_init(&c_dev, &rsz_fops);
+> +       c_dev.owner = THIS_MODULE;
+> +       c_dev.ops = &rsz_fops;
+> +
+> +       /* Addding character device */
+> +       ret = cdev_add(&c_dev, dev, 1);
+> +       if (ret) {
+> +               dev_err(rsz_device, OMAP_REZR_NAME ": Error adding "
+> +                       "device - %d\n", ret);
+> +               goto fail2;
+> +       }
+> +       rsz_major = MAJOR(dev);
+> +
+> +       /* register driver as a platform driver */
+> +       ret = platform_driver_register(&omap_resizer_driver);
+> +       if (ret) {
+> +               dev_err(rsz_device, OMAP_REZR_NAME
+> +                               ": Failed to register platform driver!\n");
+> +               goto fail3;
+> +       }
+> +
+> +       /* Register the drive as a platform device */
+> +       ret = platform_device_register(&omap_resizer_device);
+> +       if (ret) {
+> +               dev_err(rsz_device, OMAP_REZR_NAME
+> +                               ": Failed to register platform device!\n");
+> +               goto fail4;
+> +       }
+> +
+> +       rsz_class = class_create(THIS_MODULE, OMAP_REZR_NAME);
+> +       if (!rsz_class) {
+> +               dev_err(rsz_device, OMAP_REZR_NAME
+> +                       ": Failed to create class!\n");
+> +               goto fail5;
+> +       }
+> +
+> +       /* make entry in the devfs */
+> +       rsz_device = device_create(rsz_class, rsz_device,
+> +                                               MKDEV(rsz_major, 0), NULL,
+> +                                               OMAP_REZR_NAME);
+> +       dev_dbg(rsz_device, OMAP_REZR_NAME ": Registered Resizer Wrapper\n");
+> +       device->opened = 0;
+> +
+> +       device->vbq_ops.buf_setup = rsz_vbq_setup;
+> +       device->vbq_ops.buf_prepare = rsz_vbq_prepare;
+> +       device->vbq_ops.buf_release = rsz_vbq_release;
+> +       device->vbq_ops.buf_queue = rsz_vbq_queue;
+> +       init_completion(&device->compl_isr);
+> +       mutex_init(&device->reszwrap_mutex);
+> +
+> +       device_config = device;
+> +       return 0;
+> +
+> +fail5:
+> +       platform_device_unregister(&omap_resizer_device);
+> +fail4:
+> +       platform_driver_unregister(&omap_resizer_driver);
+> +fail3:
+> +       cdev_del(&c_dev);
+> +fail2:
+> +       unregister_chrdev_region(dev, 1);
+> +       kfree(device);
+> +       return ret;
+> +}
+> +
+> +/**
+> + * omap_rsz_exit - Close of Resizer Wrapper
+> + **/
+> +void __exit omap_rsz_exit(void)
+> +{
+> +       device_destroy(rsz_class, dev);
+> +       class_destroy(rsz_class);
+> +       platform_device_unregister(&omap_resizer_device);
+> +       platform_driver_unregister(&omap_resizer_driver);
+> +       cdev_del(&c_dev);
+> +       unregister_chrdev_region(dev, 1);
+> +       kfree(device_config);
+> +}
+> +
+> +module_init(omap_rsz_init)
+> +module_exit(omap_rsz_exit)
+> +
+> +MODULE_AUTHOR("Texas Instruments");
+> +MODULE_DESCRIPTION("OMAP ISP Resizer");
+> +MODULE_LICENSE("GPL");
+> diff --git a/include/linux/omap_resizer.h b/include/linux/omap_resizer.h
 > new file mode 100644
-> index 0000000..a20b3b0
+> index 0000000..5ac0c88
 > --- /dev/null
-> +++ b/drivers/media/video/isp/ispmmu.h
-> @@ -0,0 +1,119 @@
+> +++ b/include/linux/omap_resizer.h
+> @@ -0,0 +1,136 @@
 > +/*
-> + * drivers/media/video/isp/ispmmu.h
+> + * drivers/media/video/isp/omap_resizer.h
 > + *
-> + * OMAP3 Camera ISP MMU API
+> + * Include file for Resizer module wrapper in TI's OMAP3430 ISP
 > + *
-> + * Copyright (C) 2008 Texas Instruments.
-> + *
-> + * Contributors:
-> + *     Senthilvadivu Guruswamy <svadivu@ti.com>
-> + *     Thara Gopinath <thara@ti.com>
+> + * Copyright (C) 2008 Texas Instruments, Inc.
 > + *
 > + * This package is free software; you can redistribute it and/or modify
 > + * it under the terms of the GNU General Public License version 2 as
@@ -3695,105 +2771,126 @@ Regards,
 > + * WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 > + */
 > +
-> +#ifndef OMAP_ISP_MMU_H
-> +#define OMAP_ISP_MMU_H
+> +#ifndef OMAP_RESIZER_H
+> +#define OMAP_RESIZER_H
 > +
-> +#define ISPMMU_L1D_TYPE_SHIFT          0
-> +#define ISPMMU_L1D_TYPE_MASK           0x3
-> +#define ISPMMU_L1D_TYPE_FAULT          0
-> +#define ISPMMU_L1D_TYPE_FAULT1         3
-> +#define ISPMMU_L1D_TYPE_PAGE           1
-> +#define ISPMMU_L1D_TYPE_SECTION                2
-> +#define ISPMMU_L1D_PAGE_ADDR_SHIFT     10
+> +#include <linux/types.h>
 > +
-> +#define ISPMMU_L2D_TYPE_SHIFT          0
-> +#define ISPMMU_L2D_TYPE_MASK           0x3
-> +#define ISPMMU_L2D_TYPE_FAULT          0
-> +#define ISPMMU_L2D_TYPE_LARGE_PAGE     1
-> +#define ISPMMU_L2D_TYPE_SMALL_PAGE     2
-> +#define ISPMMU_L2D_SMALL_ADDR_SHIFT    12
-> +#define ISPMMU_L2D_SMALL_ADDR_MASK     0xFFFFF000
-> +#define ISPMMU_L2D_M_ACCESSBASED       (1 << 11)
-> +#define ISPMMU_L2D_E_BIGENDIAN         (1 << 9)
-> +#define ISPMMU_L2D_ES_SHIFT            4
-> +#define ISPMMU_L2D_ES_MASK             (~(3 << 4))
-> +#define ISPMMU_L2D_ES_8BIT             0
-> +#define ISPMMU_L2D_ES_16BIT            1
-> +#define ISPMMU_L2D_ES_32BIT            2
-> +#define ISPMMU_L2D_ES_NOENCONV         3
+> +/* ioctls definition */
+> +#define RSZ_IOC_BASE           'R'
+> +#define RSZ_IOC_MAXNR          8
 > +
-> +#define ISPMMU_TTB_ENTRIES_NR          4096
+> +/*Ioctl options which are to be passed while calling the ioctl*/
+> +#define RSZ_REQBUF             _IOWR(RSZ_IOC_BASE, 1,\
+> +                                       struct v4l2_requestbuffers)
+> +#define RSZ_QUERYBUF           _IOWR(RSZ_IOC_BASE, 2, struct v4l2_buffer)
+> +#define RSZ_S_PARAM            _IOWR(RSZ_IOC_BASE, 3, struct rsz_params)
+> +#define RSZ_G_PARAM            _IOWR(RSZ_IOC_BASE, 4, struct rsz_params)
+> +#define RSZ_RESIZE             _IOWR(RSZ_IOC_BASE, 5, __s32)
+> +#define RSZ_G_STATUS           _IOWR(RSZ_IOC_BASE, 6, struct rsz_status)
+> +#define RSZ_QUEUEBUF           _IOWR(RSZ_IOC_BASE, 7, struct v4l2_buffer)
+> +#define RSZ_GET_CROPSIZE       _IOWR(RSZ_IOC_BASE, 8, struct rsz_cropsize)
 > +
-> +/* Number 1MB entries in TTB in one 32MB region */
-> +#define ISPMMU_REGION_ENTRIES_NR       32
+> +#define RSZ_INTYPE_YCBCR422_16BIT      0
+> +#define RSZ_INTYPE_PLANAR_8BIT         1
+> +#define RSZ_PIX_FMT_UYVY               1       /* cb:y:cr:y */
+> +#define RSZ_PIX_FMT_YUYV               0       /* y:cb:y:cr */
 > +
-> +/* 128 region entries */
-> +#define ISPMMU_REGION_NR (ISPMMU_TTB_ENTRIES_NR / ISPMMU_REGION_ENTRIES_NR)
+> +enum config_done {
+> +       STATE_CONFIGURED,                       /* Resizer driver configured
+> +                                                * by application.
+> +                                                */
+> +       STATE_NOT_CONFIGURED                    /* Resizer driver not
+> +                                                * configured by application.
+> +                                                */
+> +};
 > +
-> +/* Each region is 32MB */
-> +#define ISPMMU_REGION_SIZE             (ISPMMU_REGION_ENTRIES_NR * (1 << 20))
+> +/* Structure Definitions */
 > +
-> +/* Number of entries per L2 Page table */
-> +#define ISPMMU_L2D_ENTRIES_NR          256
+> +/* used to luma enhancement options */
 > +
-> +/*
-> + * Statically allocate 16KB for L2 page tables. 16KB can be used for
-> + * up to 16 L2 page tables which cover up to 16MB space. We use an array of 16
-> + * to keep track of these 16 L2 page table's status.
+> +struct rsz_yenh {
+> +       __s32 type;                             /* represents luma enable or
+> +                                                * disable.
+> +                                                */
+> +       __u8 gain;                      /* represents gain. */
+> +       __u8 slop;                      /* represents slop. */
+> +       __u8 core;                      /* Represents core value. */
+> +};
+> +
+> +/* Conatins all the parameters for resizing. This structure
+> + * is used to configure resiser parameters
 > + */
-> +#define L2P_TABLE_SIZE                 1024
-> +#define L2P_TABLE_NR                   41 /* Currently supports 4*5MP shots */
-> +#define L2P_TABLES_SIZE                (L2P_TABLE_SIZE * L2P_TABLE_NR)
+> +struct rsz_params {
+> +       __s32 in_hsize;                         /* input frame horizontal
+> +                                                * size.
+> +                                                */
+> +       __s32 in_vsize;                         /* input frame vertical size */
+> +       __s32 in_pitch;                         /* offset between two rows of
+> +                                                * input frame.
+> +                                                */
+> +       __s32 inptyp;                           /* for determining 16 bit or
+> +                                                * 8 bit data.
+> +                                                */
+> +       __s32 vert_starting_pixel;              /* for specifying vertical
+> +                                                * starting pixel in input.
+> +                                                */
+> +       __s32 horz_starting_pixel;              /* for specyfing horizontal
+> +                                                * starting pixel in input.
+> +                                                */
+> +       __s32 cbilin;                           /* # defined, filter with luma
+> +                                                * or bi-linear interpolation.
+> +                                                */
+> +       __s32 pix_fmt;                          /* # defined, UYVY or YUYV */
+> +       __s32 out_hsize;                        /* output frame horizontal
+> +                                                * size.
+> +                                                */
+> +       __s32 out_vsize;                                /* output frame vertical
+> +                                                * size.
+> +                                                */
+> +       __s32 out_pitch;                        /* offset between two rows of
+> +                                                * output frame.
+> +                                                */
+> +       __s32 hstph;                            /* for specifying horizontal
+> +                                                * starting phase.
+> +                                                */
+> +       __s32 vstph;                            /* for specifying vertical
+> +                                                * starting phase.
+> +                                                */
+> +       __u16 tap4filt_coeffs[32];              /* horizontal filter
+> +                                                * coefficients.
+> +                                                */
+> +       __u16 tap7filt_coeffs[32];              /* vertical filter
+> +                                                * coefficients.
+> +                                                */
+> +       struct rsz_yenh yenh_params;
+> +};
 > +
-> +/* Extra memory allocated to get ttb aligned on 16KB */
-> +#define ISPMMU_TTB_MISALIGN_SIZE       0x3000
+> +/* Contains the status of hardware and channel */
+> +struct rsz_status {
+> +       __s32 chan_busy;                                /* 1: channel is busy,
+> +                                                * 0: channel is not busy
+> +                                                */
+> +       __s32 hw_busy;                          /* 1: hardware is busy,
+> +                                                * 0: hardware is not busy
+> +                                                */
+> +       __s32 src;                              /* # defined, can be either
+> +                                                * SD-RAM or CCDC/PREVIEWER
+> +                                                */
+> +};
 > +
-> +#ifdef CONFIG_ARCH_OMAP3410
-> +#include <linux/scatterlist.h>
+> +/* Passed by application for getting crop size */
+> +struct rsz_cropsize {
+> +       __u32 hcrop;                    /* Number of pixels per line
+> +                                                * cropped in output image.
+> +                                                */
+> +
+> +       __u32 vcrop;                    /* Number of lines cropped
+> +                                                * in output image.
+> +                                                */
+> +};
+> +
 > +#endif
-> +
-> +enum ISPMMU_MAP_ENDIAN {
-> +       L_ENDIAN,
-> +       B_ENDIAN
-> +};
-> +
-> +enum ISPMMU_MAP_ELEMENTSIZE {
-> +       ES_8BIT,
-> +       ES_16BIT,
-> +       ES_32BIT,
-> +       ES_NOENCONV
-> +};
-> +
-> +enum ISPMMU_MAP_MIXEDREGION {
-> +       ACCESS_BASED,
-> +       PAGE_BASED
-> +};
-> +
-> +enum ISPMMU_MAP_SIZE {
-> +       L1DFAULT,
-> +       PAGE,
-> +       SECTION,
-> +       SUPERSECTION,
-> +       L2DFAULT,
-> +       LARGEPAGE,
-> +       SMALLPAGE
-> +};
-> +
-> +int ispmmu_get_mapeable_space(void);
-> +
-> +dma_addr_t ispmmu_map(unsigned int p_addr, int size);
-> +
-> +dma_addr_t ispmmu_map_sg(const struct scatterlist *sglist, int sglen);
-> +
-> +int ispmmu_unmap(dma_addr_t isp_addr);
-> +
-> +void ispmmu_print_status(void);
-> +
-> +void ispmmu_save_context(void);
-> +
-> +void ispmmu_restore_context(void);
-> +
-> +#endif /* OMAP_ISP_MMU_H */
 > --
 > 1.5.6.5
 > 
