@@ -1,95 +1,225 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 1/1] OMAP3: DMA: Enable idlemodes for DMA OCP
-Date: Mon, 15 Dec 2008 16:07:42 -0800
-Message-ID: <20081216000741.GD19551@atomide.com>
-References: <1228121725-14062-1-git-send-email-ext-kalle.jokiniemi@nokia.com> <1228121725-14062-2-git-send-email-ext-kalle.jokiniemi@nokia.com> <87zljgclj5.fsf@trdhcp146196.ntc.nokia.com> <1228128612.9951.555.camel@kj-ubuntu> <1228151015.9951.624.camel@kj-ubuntu>
+Subject: Re: [PATCH][OMAPZOOM] padconfig for NEC WVGA lcd
+Date: Mon, 15 Dec 2008 16:15:03 -0800
+Message-ID: <20081216001502.GF19551@atomide.com>
+References: <1227114266-30993-1-git-send-email-leed.aguilar@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-bos.mailhop.org ([63.208.196.178]:57409 "EHLO
+Received: from mho-01-bos.mailhop.org ([63.208.196.178]:64866 "EHLO
 	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753922AbYLPAHo (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 15 Dec 2008 19:07:44 -0500
+	with ESMTP id S1754170AbYLPAPL (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 15 Dec 2008 19:15:11 -0500
 Content-Disposition: inline
-In-Reply-To: <1228151015.9951.624.camel@kj-ubuntu>
+In-Reply-To: <1227114266-30993-1-git-send-email-leed.aguilar@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kalle Jokiniemi <ext-kalle.jokiniemi@nokia.com>
-Cc: =?iso-8859-1?Q?H=F6gander?= Jouni <jouni.hogander@nokia.com>, linux-omap@vger.kernel.org, khilman@deeprootsystems.com
+To: leed.aguilar@ti.com
+Cc: linux-omap@vger.kernel.org, vikram.pandita@ti.com
 
-* Kalle Jokiniemi <ext-kalle.jokiniemi@nokia.com> [081201 09:00]:
-> On ma, 2008-12-01 at 12:50 +0200, Kalle Jokiniemi wrote:
-> > On ma, 2008-12-01 at 11:06 +0200, H=F6gander Jouni wrote:
-> > > "ext Kalle Jokiniemi" <ext-kalle.jokiniemi@nokia.com> writes:
-> > >=20
-> > > > This patch enables MStandby smart-idle mode, autoidle smartidle=
- mode,
-> > > > and the autoidle bit for DMA4_OCP_SYSCONFIG.
-> > > >
-> > > > Signed-off-by: Kalle Jokiniemi <ext-kalle.jokiniemi@nokia.com>
-> > > > ---
-> > > >  arch/arm/plat-omap/dma.c              |   13 +++++++++++++
-> > > >  arch/arm/plat-omap/include/mach/dma.h |   15 +++++++++++++++
-> > > >  2 files changed, 28 insertions(+), 0 deletions(-)
-> > > >
-> > > > diff --git a/arch/arm/plat-omap/dma.c b/arch/arm/plat-omap/dma.=
-c
-> > > > index c4e5ba3..9d8d28c 100644
-> > > > --- a/arch/arm/plat-omap/dma.c
-> > > > +++ b/arch/arm/plat-omap/dma.c
-> > > > @@ -2420,6 +2420,19 @@ static int __init omap_init_dma(void)
-> > > >  	if (cpu_class_is_omap2())
-> > > >  		setup_irq(INT_24XX_SDMA_IRQ0, &omap24xx_dma_irq);
-> > > > =20
-> > > > +	/* Enable smartidle idlemodes and autoidle */
-> > > > +	if (cpu_is_omap34xx()) {
-> > >=20
-> > > I think this can be done for omap2 also.
-> >=20
-> > Probably true. If no other comments come today, I'll post a new pat=
-ch
-> > with this change.
->=20
-> Now that I re-checked, there is no SIDLEMODE for omap2. Also in omap2=
-,
-> setting MIDLEMODE to smartidle cannot be done if cam DMA is used.
->=20
-> So, I think the patch should be as it is, omap3 only.
+* leed.aguilar@ti.com <leed.aguilar@ti.com> [081119 09:04]:
+> From: Leed Aguilar <leed.aguilar@ti.com>
+> 
+> This patch sets the proper padconfig value for wvga spi chip select.
+> 
+> Also ensures that dvi output is disable.
+> 
+> LCD data lines has been changed to 24 for Zoom2
+> 
 
-OK. Pushing to l-o tree and queuing for upstream.
+Can you please separate out the mux changes and send them against the
+mainline kernel (or omap3-upstream branch) so I can pick them up
+for mainline.
 
 Regards,
 
 Tony
 
 
->=20
-> - Kalle
->=20
-> >=20
-> > - Kalle
-> >=20
-> > >=20
-> > > > +		u32 v =3D dma_read(OCP_SYSCONFIG);
-> > > > +		v &=3D ~(DMA_SYSCONFIG_MIDLEMODE_MASK |
-> > > > +				DMA_SYSCONFIG_SIDLEMODE_MASK |
-> > > > +				DMA_SYSCONFIG_AUTOIDLE);
-> > > > +		v |=3D (DMA_SYSCONFIG_MIDLEMODE(DMA_IDLEMODE_SMARTIDLE) |
-> > > > +			DMA_SYSCONFIG_SIDLEMODE(DMA_IDLEMODE_SMARTIDLE) |
-> > > > +			DMA_SYSCONFIG_AUTOIDLE);
-> > > > +		dma_write(v , OCP_SYSCONFIG);
-> > > > +	}
-> > > > +
-> > > > +
-> > > >  	/* FIXME: Update LCD DMA to work on 24xx */
-> > > >  	if (cpu_class_is_omap1()) {
-> > > >  		r =3D request_irq(INT_DMA_LCD, lcd_dma_irq_handler, 0,
-> > > > diff --git a/arch/arm/plat-omap/include/mach/dma.h
-> > > >  	b/arch/arm/plat-omap/include/mach/dma.h
-> > >=20
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Signed-off-by: Leed Aguilar <leed.aguilar@ti.com>
+> ---
+>  arch/arm/mach-omap2/mux.c             |   15 ++++++++++++---
+>  arch/arm/plat-omap/display.c          |    4 ++--
+>  arch/arm/plat-omap/include/mach/mux.h |    8 ++++++++
+>  drivers/video/omap/omap_disp_out.c    |   25 +++++++++++++++++--------
+>  4 files changed, 39 insertions(+), 13 deletions(-)
+> 
+> diff --git a/arch/arm/mach-omap2/mux.c b/arch/arm/mach-omap2/mux.c
+> index 0e650a4..cd6de1d 100644
+> --- a/arch/arm/mach-omap2/mux.c
+> +++ b/arch/arm/mach-omap2/mux.c
+> @@ -25,10 +25,11 @@
+>   */
+>  #include <linux/module.h>
+>  #include <linux/init.h>
+> -#include <asm/system.h>
+>  #include <linux/io.h>
+>  #include <linux/spinlock.h>
+>  
+> +#include <asm/system.h>
+> +
+>  #include <mach/control.h>
+>  #include <mach/mux.h>
+>  
+> @@ -450,7 +451,7 @@ MUX_CFG_34XX("AD2_3430_USB3FS_PHY_MM3_TXDAT", 0x188,
+>  MUX_CFG_34XX("AC1_3430_USB3FS_PHY_MM3_TXEN_N", 0x18a,
+>  		OMAP34XX_MUX_MODE6 | OMAP34XX_PIN_OUTPUT)
+>  
+> - /* UART3 */
+> +/* UART3 */
+>  MUX_CFG_34XX("R21_3430_UART3_CTS_RCTX",	0x19a,
+>  		OMAP34XX_MUX_MODE0 | OMAP34XX_PIN_INPUT_PULLDOWN)
+>  MUX_CFG_34XX("T21_3430_UART3_RTS_SD", 0x19c,
+> @@ -460,11 +461,15 @@ MUX_CFG_34XX("U21_3430_UART3_RX_IRRX", 0x19e,
+>  MUX_CFG_34XX("V21_3430_UART3_TX_IRTX", 0x1a0,
+>  		OMAP34XX_MUX_MODE0 | OMAP34XX_PIN_INPUT_PULLDOWN)
+>  
+> - /* GPIO */
+> +/* GPIO */
+>  MUX_CFG_34XX("T21_3430_GPIO164", 0x19c,
+>  		OMAP34XX_MUX_MODE4 | OMAP34XX_PIN_INPUT_PULLDOWN)
+>  MUX_CFG_34XX("V21_3430_GPIO166", 0x1a0,
+>  		OMAP34XX_MUX_MODE4 | OMAP34XX_PIN_INPUT_PULLDOWN)
+> +MUX_CFG_34XX("AF21_3430_GPIO8", 0xa16,
+> +		OMAP34XX_MUX_MODE4 | OMAP34XX_PIN_OUTPUT)
+> +MUX_CFG_34XX("B23_3430_GPIO167", 0x130,
+> +		OMAP34XX_MUX_MODE4 | OMAP34XX_PIN_OUTPUT)
+>  
+>  /* 34XX GPIO - bidirectional, unless the name has an "_OUT" suffix.
+>   * No internal pullup/pulldown without "_UP" or "_DOWN" suffix.
+> @@ -473,6 +478,10 @@ MUX_CFG_34XX("AH8_34XX_GPIO29", 0x5fa,
+>  		OMAP34XX_MUX_MODE4 | OMAP34XX_PIN_INPUT)
+>  MUX_CFG_34XX("J25_34XX_GPIO170", 0x1c6,
+>  		OMAP34XX_MUX_MODE4 | OMAP34XX_PIN_INPUT)
+> +
+> +/* McSPI */
+> +MUX_CFG_34XX("AB1_3430_McSPI1_CS2", 0x1d2,
+> +		OMAP34XX_MUX_MODE0 | OMAP34XX_PIN_INPUT_PULLDOWN)
+>  };
+>  
+>  #define OMAP34XX_PINS_SZ	ARRAY_SIZE(omap34xx_pins)
+> diff --git a/arch/arm/plat-omap/display.c b/arch/arm/plat-omap/display.c
+> index 9ec7ff2..2fca7a9 100644
+> --- a/arch/arm/plat-omap/display.c
+> +++ b/arch/arm/plat-omap/display.c
+> @@ -1975,10 +1975,10 @@ omap2_disp_config_lcd(u32 clkdiv, u32 hbp, u32 hfp, u32 hsw,
+>  #endif
+>  	dispc_reg_out(DISPC_DIVISOR, divisor);
+>  	control = dispc_reg_in(DISPC_CONTROL);
+> -#ifdef CONFIG_FB_OMAP_720P_STREAMING
+> +#if defined(CONFIG_FB_OMAP_720P_STREAMING) || defined(CONFIG_MACH_OMAP_ZOOM2)
+>  	control |= DISPC_CONTROL_TFTDATALINES_OALSB24B;
+>  #else
+> -#if defined(CONFIG_MACH_OMAP_LDP) || defined(CONFIG_MACH_OMAP_ZOOM2)
+> +#ifdef CONFIG_MACH_OMAP_LDP
+>  	control |= DISPC_CONTROL_TFTDATALINES_OALSB18B;
+>  #else
+>  	control |= DISPC_CONTROL_TFTDATALINES_OALSB16B;
+> diff --git a/arch/arm/plat-omap/include/mach/mux.h b/arch/arm/plat-omap/include/mach/mux.h
+> index 0447a78..4055763 100644
+> --- a/arch/arm/plat-omap/include/mach/mux.h
+> +++ b/arch/arm/plat-omap/include/mach/mux.h
+> @@ -785,8 +785,13 @@ enum omap34xx_index {
+>  	T21_3430_UART3_RTS_SD,
+>  	U21_3430_UART3_RX_IRRX,
+>  	V21_3430_UART3_TX_IRTX,
+> +
+> +	/* GPIO */
+>  	T21_3430_GPIO164,
+>  	V21_3430_GPIO166,
+> +	AF21_3430_GPIO8,
+> +	B23_3430_GPIO167,
+> +
+>  	/* 34xx GPIO
+>  	 *  - normally these are bidirectional, no internal pullup/pulldown
+>  	 *  - "_UP" suffix (GPIO3_UP) if internal pullup is configured
+> @@ -795,6 +800,9 @@ enum omap34xx_index {
+>  	 */
+>  	AH8_34XX_GPIO29,
+>  	J25_34XX_GPIO170,
+> +
+> +	/* McSPI */
+> +	AB1_3430_McSPI1_CS2,
+>  };
+>  
+>  struct omap_mux_cfg {
+> diff --git a/drivers/video/omap/omap_disp_out.c b/drivers/video/omap/omap_disp_out.c
+> index 62bf126..4dc818e 100755
+> --- a/drivers/video/omap/omap_disp_out.c
+> +++ b/drivers/video/omap/omap_disp_out.c
+> @@ -30,25 +30,29 @@
+>  #include <linux/fb.h>
+>  #include <linux/delay.h>
+>  #include <linux/device.h>
+> -#include <mach/hardware.h>
+> +#include <linux/delay.h>
+> +#include <linux/workqueue.h>
+> +#include <linux/platform_device.h>
+> +
+>  #include <asm/uaccess.h>
+>  #include <asm/delay.h>
+> -#include <linux/delay.h>
+> -#include <mach/display.h>
+> +
+>  #include <mach/gpio.h>
+>  #include <mach/clock.h>
+> +#include <mach/hardware.h>
+> +#include <mach/mux.h>
+> +#include <mach/power_companion.h>
+> +#include <mach/resource.h>
+> +#include <mach/display.h>
+> +
+>  #if defined(CONFIG_MACH_OMAP_2430SDP) || defined (CONFIG_MACH_OMAP_3430SDP) ||\
+>      defined(CONFIG_MACH_OMAP_LDP) || defined(CONFIG_MACH_OMAP_ZOOM2)
+>  #include <linux/i2c/twl4030.h>
+>  #endif
+> -#include <linux/workqueue.h>
+> -#include <mach/power_companion.h>
+> -#include <mach/resource.h>
+>  #ifdef CONFIG_PM
+>  #include <linux/notifier.h>
+>  #include <linux/pm.h>
+>  #endif
+> -#include <linux/platform_device.h>
+>  #ifdef CONFIG_FB_OMAP_LCD_WVGA
+>  #include <linux/spi/spi.h>
+>  #endif
+> @@ -129,7 +133,7 @@
+>  #define LCD_PANEL_RESET_GPIO		55
+>  #define LCD_PANEL_QVGA_GPIO		56
+>  #define LCD_PANEL_BACKLIGHT_GPIO 	(7 + OMAP_MAX_GPIO_LINES)
+> -#define DVI_OUTPUT_GPIO		8
+> +#define DVI_OUTPUT_GPIO			8
+>  #define DVI_POWER_ON_GPIO		167
+>  #elif defined(CONFIG_OMAP3430_ES2)
+>  #define LCD_PANEL_ENABLE_GPIO 		5
+> @@ -666,6 +670,7 @@ int initialize_nec_wvgalcd(void)
+>  	spi_wvgalcd_send(157, 0x00);  /* R157 = 00h */
+>  	udelay(20);
+>  	spi_wvgalcd_send(2, 0x00);    /* R2 = 00h */
+> +
+>  	return 0;
+>  }
+>  #endif
+> @@ -922,10 +927,14 @@ lcd_probe(struct platform_device *odev)
+>  #ifdef CONFIG_FB_OMAP_LCD_WVGA
+>  static int wvgalcd_probe(struct spi_device *spi)
+>  {
+> +	omap_cfg_reg(AF21_3430_GPIO8);
+> +	omap_cfg_reg(B23_3430_GPIO167);
+> +	omap_cfg_reg(AB1_3430_McSPI1_CS2);
+>  	wvgalcd_spi = spi;
+>  	wvgalcd_spi->mode = SPI_MODE_0;
+>  	wvgalcd_spi->bits_per_word = 32;
+>  	spi_setup(wvgalcd_spi);
+> +
+>  	return omap_lcd_init(0);
+>  }
+>  #endif
+> -- 
+> 1.6.0
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
