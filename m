@@ -1,359 +1,287 @@
 From: Manikandan Pillai <mani.pillai@ti.com>
-Subject: [PATCH 1/2] TPS6235x based Power regulator support added
-Date: Tue, 16 Dec 2008 15:36:06 +0530
-Message-ID: <1229421966-11414-1-git-send-email-mani.pillai@ti.com>
+Subject: [PATCH 2/2] Changes for adding TPS6235x based PR785 board support
+Date: Tue, 16 Dec 2008 15:36:21 +0530
+Message-ID: <1229421981-11448-1-git-send-email-mani.pillai@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:46398 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753095AbYLPKGb (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 16 Dec 2008 05:06:31 -0500
+Received: from devils.ext.ti.com ([198.47.26.153]:49102 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752402AbYLPKG4 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 16 Dec 2008 05:06:56 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, broonie@sirena.org.uk
 Cc: Manikandan Pillai <mani.pillai@ti.com>
 
-This patch provides the changes required for TPS6235x power
-regulator support. The driver is put in
-drivers/regulator/tps6235x-regulator.c.
+TPS6235x chip based PR785 power modules are from Texas Instruments
+for OMAP3 EVM boards. This patch supports the PR785 card
+and provides the driver support for the TPS devices.
 
-The Kconfig and Makefile are modified for build.
-This patch should be used alongwith Patch[2/2].
+For compilation, the LCD and MMC drivers are modified and will not
+work. Further patches will be provided for support of LCD and MMC
+with PR785 boards.
 
 Signed-off-by: Manikandan Pillai <mani.pillai@ti.com>
 ---
- drivers/regulator/Kconfig              |   10 +
- drivers/regulator/Makefile             |    1 +
- drivers/regulator/tps6235x-regulator.c |  291 ++++++++++++++++++++++++++++++++
- 3 files changed, 302 insertions(+), 0 deletions(-)
- create mode 100644 drivers/regulator/tps6235x-regulator.c
+ arch/arm/mach-omap2/Kconfig          |   11 +++
+ arch/arm/mach-omap2/board-omap3evm.c |  118 ++++++++++++++++++++++++++++++++++
+ arch/arm/mach-omap2/mmc-twl4030.c    |    5 +-
+ drivers/mmc/host/Kconfig             |    1 -
+ drivers/video/omap/lcd_omap3evm.c    |    6 ++
+ 5 files changed, 138 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/regulator/Kconfig b/drivers/regulator/Kconfig
-index 0765389..2eee878 100644
---- a/drivers/regulator/Kconfig
-+++ b/drivers/regulator/Kconfig
-@@ -80,4 +80,14 @@ config REGULATOR_DA903X
- 	  Say y here to support the BUCKs and LDOs regulators found on
- 	  Dialog Semiconductor DA9030/DA9034 PMIC.
+diff --git a/arch/arm/mach-omap2/Kconfig b/arch/arm/mach-omap2/Kconfig
+index ca24a7a..7aaba79 100644
+--- a/arch/arm/mach-omap2/Kconfig
++++ b/arch/arm/mach-omap2/Kconfig
+@@ -121,6 +121,17 @@ config MACH_OMAP3EVM
+ 	bool "OMAP 3530 EVM board"
+ 	depends on ARCH_OMAP3 && ARCH_OMAP34XX
  
-+config REGULATOR_TPS6235X
-+	bool "TPS6235X Power regulator for OMAP3EVM"
-+	depends on I2C=y
++menu 	"Power board selection for OMAP3 EVM"
++config OMAP3EVM_PR785
++	bool "Power board for OMAP3 EVM"
++	depends on I2C=y && ARCH_OMAP34XX
 +	help
-+	  This driver supports the voltage regulators provided by TPS6235x chips.
-+	  The TPS62352 and TPS62353 are mounted on PR785 Power module card for
-+	  providing voltage regulator functions. The PR785 Power board from
-+	  Texas Instruments Inc is a TPS6235X based power card used with OMAP3
-+	  EVM boards.
++	Say yes here if you are using the TPS6235x based PR785 Power Module
++	for the EVM boards. This core driver provides register access and IRQ
++	handling facilities, and registers devices for the various functions
++	so that function-specific drivers can bind to them.
++endmenu
 +
- endif
-diff --git a/drivers/regulator/Makefile b/drivers/regulator/Makefile
-index 0dacb18..fdc5f5b 100644
---- a/drivers/regulator/Makefile
-+++ b/drivers/regulator/Makefile
-@@ -12,5 +12,6 @@ obj-$(CONFIG_REGULATOR_TWL4030) += twl4030-regulator.o
- obj-$(CONFIG_REGULATOR_WM8350) += wm8350-regulator.o
- obj-$(CONFIG_REGULATOR_WM8400) += wm8400-regulator.o
- obj-$(CONFIG_REGULATOR_DA903X)	+= da903x.o
-+obj-$(CONFIG_REGULATOR_TPS6235X)+= tps6235x-regulator.o
- 
- ccflags-$(CONFIG_REGULATOR_DEBUG) += -DDEBUG
-diff --git a/drivers/regulator/tps6235x-regulator.c b/drivers/regulator/tps6235x-regulator.c
-new file mode 100644
-index 0000000..6e81529
---- /dev/null
-+++ b/drivers/regulator/tps6235x-regulator.c
-@@ -0,0 +1,291 @@
-+/*
-+ * tps6235x-regulator.c -- support regulators in tps6235x family chips
-+ *
-+ * Author : Manikandan Pillai<mani.pillai@ti.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation; either version 2 of the License, or
-+ * (at your option) any later version.
-+ */
-+
-+#include <linux/kernel.h>
-+#include <linux/module.h>
-+#include <linux/init.h>
-+#include <linux/err.h>
-+#include <linux/platform_device.h>
-+#include <linux/regulator/driver.h>
+ config MACH_OMAP3_BEAGLE
+ 	bool "OMAP3 BEAGLE board"
+ 	depends on ARCH_OMAP3 && ARCH_OMAP34XX
+diff --git a/arch/arm/mach-omap2/board-omap3evm.c b/arch/arm/mach-omap2/board-omap3evm.c
+index e4e60e2..1aababc 100644
+--- a/arch/arm/mach-omap2/board-omap3evm.c
++++ b/arch/arm/mach-omap2/board-omap3evm.c
+@@ -40,8 +40,14 @@
+ #include "sdram-micron-mt46h32m32lf-6.h"
+ #include "twl4030-generic-scripts.h"
+ #include "mmc-twl4030.h"
 +#include <linux/regulator/machine.h>
-+#include <linux/i2c.h>
-+#include <linux/delay.h>
++#include <linux/regulator/driver.h>
+ 
++#define TPS6235X_REG_MAX	3
+ 
++#if defined(CONFIG_OMAP3EVM_PR785) && defined(CONFIG_TWL4030_CORE)
++#error config err : only one of OMAP3EVM_PR785 or TWL4030_CORE can be defined
++#endif
+ static struct resource omap3evm_smc911x_resources[] = {
+ 	[0] =	{
+ 		.start  = OMAP3EVM_ETHR_START,
+@@ -89,6 +95,7 @@ static struct omap_uart_config omap3_evm_uart_config __initdata = {
+ 	.enabled_uarts	= ((1 << 0) | (1 << 1) | (1 << 2)),
+ };
+ 
++#if defined(CONFIG_TWL4030_CORE)
+ static struct twl4030_gpio_platform_data omap3evm_gpio_data = {
+ 	.gpio_base	= OMAP_MAX_GPIO_LINES,
+ 	.irq_base	= TWL4030_GPIO_IRQ_BASE,
+@@ -150,16 +157,127 @@ static struct i2c_board_info __initdata omap3evm_i2c_boardinfo[] = {
+ 		.platform_data = &omap3evm_twldata,
+ 	},
+ };
++#endif
 +
-+extern int tps_6235x_read_reg(struct i2c_client *client, u8 reg, u8 *val);
-+extern int tps_6235x_write_reg(struct i2c_client *client, u8 reg, u8 val);
-+extern struct regulator_consumer_supply tps62352_core_consumers;
-+extern struct regulator_consumer_supply tps62352_mpu_consumers;
++#if defined(CONFIG_OMAP3EVM_PR785)
++struct regulator_init_data tps_regulator_data[];
++/* CORE voltage regulator */
++struct regulator_consumer_supply tps62352_core_consumers = {
++	.supply = "vdd2",
++};
 +
-+/* Minimum and Maximum dc-dc voltage supported by the TPS6235x devices
-+All voltages given in millivolts */
-+#define	TPS62352_MIN_CORE_VOLT	750
-+#define	TPS62352_MAX_CORE_VOLT	1537
-+#define	TPS62353_MIN_MPU_VOLT	750
-+#define	TPS62353_MAX_MPU_VOLT	1537
++/* MPU voltage regulator */
++struct regulator_consumer_supply tps62352_mpu_consumers = {
++	.supply = "vdd1",
++};
 +
-+/* Register bit settings */
-+#define	TPS6235X_EN_DCDC	(0x1 << 0x7)
-+#define	TPS6235X_VSM_MSK	(0x3F)
-+#define	TPS6235X_EN_SYN_MSK	(0x1 << 0x5)
-+#define	TPS6235X_SW_VOLT_MSK	(0x1 << 0x4)
-+#define	TPS6235X_PWR_OK_MSK	(0x1 << 0x5)
-+#define	TPS6235X_OUT_DIS_MSK	(0x1 << 0x6)
-+#define	TPS6235X_GO_MSK		(0x1 << 0x7)
++struct regulator_init_data tps_regulator_data[] = {
++	{
++		.constraints = {
++			.min_uV = 750000,
++			.max_uV = 1537000,
++			.valid_ops_mask = (REGULATOR_CHANGE_VOLTAGE |
++				REGULATOR_CHANGE_STATUS),
++	},
++		.num_consumer_supplies  = 1,
++		.consumer_supplies      = &tps62352_core_consumers,
++	},
++	{
++		.constraints = {
++			.min_uV = 750000,
++			.max_uV = 1537000,
++			.valid_ops_mask = (REGULATOR_CHANGE_VOLTAGE |
++				REGULATOR_CHANGE_STATUS),
++	},
++		.num_consumer_supplies  = 1,
++		.consumer_supplies      = &tps62352_mpu_consumers,
++	},
++};
 +
-+#define	MODULE_NAME		"tps_6235x_pwr"
++static struct i2c_board_info __initdata tps_6235x_i2c_board_info[] = {
++	{
++		I2C_BOARD_INFO("tps62352", 0x4A),
++		.flags = I2C_CLIENT_WAKE,
++		.platform_data = &tps_regulator_data[0],
++	},
++	{
++		I2C_BOARD_INFO("tps62353", 0x48),
++		.flags = I2C_CLIENT_WAKE,
++		.platform_data = &tps_regulator_data[1],
++	},
++};
++#endif
+ 
+ static int __init omap3_evm_i2c_init(void)
+ {
++#if defined(CONFIG_OMAP3EVM_PR785)
++	omap_register_i2c_bus(1, 2600, tps_6235x_i2c_board_info,
++		ARRAY_SIZE(tps_6235x_i2c_board_info));
++#endif
++#if defined(CONFIG_TWL4030_CORE)
+ 	omap_register_i2c_bus(1, 2600, omap3evm_i2c_boardinfo,
+ 			ARRAY_SIZE(omap3evm_i2c_boardinfo));
++#endif
+ 	omap_register_i2c_bus(2, 400, NULL, 0);
+ 	omap_register_i2c_bus(3, 400, NULL, 0);
+ 	return 0;
+ }
+ 
 +/*
-+ * These chips are often used in OMAP-based systems.
-+ *
-+ * This driver implements software-based resource control for various
-+ * voltage regulators.  This is usually augmented with state machine
-+ * based control.
++ * Read a value from a register in an tps_6235x device.
++ * The value is returned in 'val'.
++ * Returns zero if successful, or non-zero otherwise.
 + */
-+
-+/* LDO control registers ... offset is from the base of its register bank.
-+ * The first three registers of all power resource banks help hardware to
-+ * manage the various resource groups.
-+ */
-+
-+#define	TPS6235X_REG_VSEL0	0
-+#define	TPS6235X_REG_VSEL1	1
-+#define	TPS6235X_REG_CTRL1	2
-+#define	TPS6235X_REG_CTRL2	3
-+
-+/* Device addresses for TPS devices */
-+#define	TPS_62352_CORE_ADDR	0x4A
-+#define	TPS_62353_MPU_ADDR	0x48
-+
-+static int tps6235x_dcdc_is_enabled(struct regulator_dev *dev)
++int tps_6235x_read_reg(struct i2c_client *client, u8 reg, u8 *val)
 +{
-+	unsigned char vsel1;
-+	int ret;
-+	struct i2c_client *tps_info	=
-+			rdev_get_drvdata(dev);
-+	ret = tps_6235x_read_reg(tps_info, TPS6235X_REG_VSEL1, &vsel1);
-+	ret &= TPS6235X_EN_DCDC;
-+	if (ret)
-+		return 1;
-+	else
-+		return 0;
-+}
-+
-+static int tps6235x_dcdc_enable(struct regulator_dev *dev)
-+{
-+	unsigned char vsel1;
-+	int ret = -1;
-+	struct i2c_client *client = rdev_get_drvdata(dev);
-+
-+	ret = tps_6235x_read_reg(client, TPS6235X_REG_VSEL1, &vsel1);
-+	if (ret == 0) {
-+		vsel1 |= TPS6235X_EN_DCDC;
-+		ret = tps_6235x_write_reg(client, TPS6235X_REG_VSEL1, vsel1);
-+	}
-+	return ret;
-+}
-+
-+static int tps6235x_dcdc_disable(struct regulator_dev *dev)
-+{
-+	unsigned char vsel1;
-+	int ret = -1;
-+	struct	i2c_client *client = rdev_get_drvdata(dev);
-+
-+	ret = tps_6235x_read_reg(client, TPS6235X_REG_VSEL1, &vsel1);
-+	if (ret == 0) {
-+		vsel1 &= ~(TPS6235X_EN_DCDC);
-+		ret = tps_6235x_write_reg(client, TPS6235X_REG_VSEL1, vsel1);
-+	}
-+	return ret;
-+}
-+
-+static int tps6235x_dcdc_get_voltage(struct regulator_dev *dev)
-+{
-+	struct	i2c_client *tps_info = rdev_get_drvdata(dev);
-+	unsigned char vsel1;
-+	unsigned int volt;
-+
-+	/* Read the VSEL1 register to get VSM */
-+	tps_6235x_read_reg(tps_info, TPS6235X_REG_VSEL1, &vsel1);
-+	/* Output voltage set is = min_op_volt + ( VSM * 12.5mv) */
-+	/* To cut out floating point operation we will multiply by 25
-+	divide by 2 */
-+	volt = (((vsel1 & TPS6235X_VSM_MSK) * 25) / 2) + TPS62352_MIN_CORE_VOLT;
-+
-+	return volt * 1000;
-+}
-+
-+static int tps6235x_dcdc_set_voltage(struct regulator_dev *dev,
-+				int min_uV, int max_uV)
-+{
-+	unsigned char vsel1;
-+	unsigned int volt;
-+	struct	i2c_client *tps_info = rdev_get_drvdata(dev);
-+	unsigned int millivolts = min_uV / 1000;
-+
-+	/* check if the millivolts is within range */
-+	if ((millivolts < TPS62352_MIN_CORE_VOLT) ||
-+		(millivolts > TPS62352_MAX_CORE_VOLT))
-+		return -1;
-+
-+	/* Output voltage set is = min_op_volt + ( VSM * 12.5mv) */
-+	volt = millivolts - TPS62352_MIN_CORE_VOLT;
-+	volt /= 25;
-+	volt *= 2;
-+	vsel1 = ((TPS6235X_EN_DCDC) | (volt & TPS6235X_VSM_MSK));
-+	tps_6235x_write_reg(tps_info, TPS6235X_REG_VSEL1, vsel1);
-+	return 0;
-+}
-+
-+static struct regulator_ops tps62352_dcdc_ops = {
-+	.is_enabled = tps6235x_dcdc_is_enabled,
-+	.get_voltage = tps6235x_dcdc_get_voltage,
-+	.set_voltage = tps6235x_dcdc_set_voltage,
-+};
-+
-+static struct regulator_ops tps62353_dcdc_ops = {
-+	.is_enabled = tps6235x_dcdc_is_enabled,
-+	.enable = tps6235x_dcdc_enable,
-+	.disable = tps6235x_dcdc_disable,
-+	.get_voltage = tps6235x_dcdc_get_voltage,
-+	.set_voltage = tps6235x_dcdc_set_voltage,
-+};
-+
-+static struct regulator_desc regulators[] = {
-+	{
-+		.name = "tps62352",
-+		.id = 2,
-+		.ops = &tps62352_dcdc_ops,
-+		.type = REGULATOR_VOLTAGE,
-+		.owner = THIS_MODULE,
-+	},
-+	{
-+		.name = "tps62353",
-+		.id = 3,
-+		.ops = &tps62353_dcdc_ops,
-+		.type = REGULATOR_VOLTAGE,
-+		.owner = THIS_MODULE,
-+	},
-+};
-+
-+static
-+int tps_6235x_probe(struct i2c_client *client, const struct i2c_device_id *id)
-+{
-+	struct  regulator_dev           *rdev = NULL;
-+	unsigned char reg_val;
-+
-+	tps_6235x_read_reg(client, TPS6235X_REG_CTRL2, &reg_val);
-+	reg_val |= (TPS6235X_OUT_DIS_MSK | TPS6235X_GO_MSK);
-+	tps_6235x_write_reg(client, TPS6235X_REG_CTRL2, reg_val);
-+	tps_6235x_read_reg(client, TPS6235X_REG_CTRL2, &reg_val);
-+
-+	if (reg_val & TPS6235X_PWR_OK_MSK)
-+		dev_dbg(&client->dev, "Power is OK  %x\n", reg_val);
-+	else {
-+		printk(KERN_ERR "Power not within range = %x\n", reg_val);
-+		return -2;
-+	}
-+
-+	/* Register the regulators */
-+	if (client->addr == TPS_62352_CORE_ADDR) {
-+		/* dev needs to be inited since this is required to for get() */
-+		tps62352_core_consumers.dev = &client->dev;
-+		rdev = regulator_register(&regulators[0], &client->dev,
-+					client);
-+	} else if (client->addr == TPS_62353_MPU_ADDR) {
-+		/* dev needs to be inited since this is required to for get() */
-+		tps62352_mpu_consumers.dev = &client->dev;
-+		rdev = regulator_register(&regulators[1], &client->dev,
-+					client);
-+	}
-+
-+	if (rdev == NULL) {
-+		printk(KERN_ERR "ERR in regulator registration\n");
-+		return -1;
-+	}
-+
-+	/* Set the regulator platform data for unregistration later on */
-+	i2c_set_clientdata(client, rdev);
-+
-+	return 0;
-+}
-+
-+/**
-+ * tps_6235x_remove - TPS6235x driver i2c remove handler
-+ * @client: i2c driver client device structure
-+ *
-+ * Unregister  TPS driver as an i2c client device driver
-+ */
-+static int __exit tps_6235x_remove(struct i2c_client *client)
-+{
-+	struct  regulator_dev   *rdev = NULL;
++	u8 data;
 +
 +	if (!client->adapter)
-+		return -ENODEV; /* our client isn't attached */
++		return -ENODEV;
 +
-+	rdev = (struct  regulator_dev *)i2c_get_clientdata(client);
-+	regulator_unregister(rdev);
-+	/* clear the client data in i2c */
-+	i2c_set_clientdata(client, NULL);
++	if (reg > TPS6235X_REG_MAX)
++		return -1;
 +
++	data = i2c_smbus_read_byte_data(client, reg);
++	*val = data;
 +	return 0;
 +}
 +
-+static const struct i2c_device_id tps_6235x_id[] = {
-+	{ "tps62352", 0},
-+	{ "tps62353", 1},
-+	{},
-+};
-+
-+MODULE_DEVICE_TABLE(i2c, tps_6235x_id);
-+
-+static struct i2c_driver tps_6235x_i2c_driver = {
-+	.driver = {
-+		.name	=	MODULE_NAME,
-+		.owner	=	THIS_MODULE,
-+	},
-+	.probe		= tps_6235x_probe,
-+	.remove		= __exit_p(tps_6235x_remove),
-+	.id_table	= tps_6235x_id,
-+};
-+
-+/**
-+ * tps_6235x_init
-+ *
-+ * Module init function
++/*
++ * Write a value to a register in an tps_6235x device.
++ * Returns zero if successful, or non-zero otherwise.
 + */
-+static int __init tps_6235x_init(void)
++int tps_6235x_write_reg(struct i2c_client *client, u8 reg, u8 val)
 +{
 +	int err;
++	int retry = 0;
 +
-+	err = i2c_add_driver(&tps_6235x_i2c_driver);
-+	if (err) {
-+		printk(KERN_ERR "Failed to register " MODULE_NAME ".\n");
-+		return err;
++	if (!client->adapter)
++		return -ENODEV;
++
++	if (reg > TPS6235X_REG_MAX)
++		return -1;
++
++again:
++	err = i2c_smbus_write_byte_data(client, reg, val);
++	if (err >= 0)
++		return 0;
++
++	dev_err(&client->dev,
++		"wrote 0x%.2x to offset 0x%.2x error %d\n", val, reg, err);
++
++	/* Try 3 times */
++	if (retry <= 3) {
++		dev_info(&client->dev, "retry ... %d\n", retry);
++		retry++;
++		schedule_timeout(msecs_to_jiffies(20));
++		goto again;
 +	}
-+	return 0;
++	return err;
 +}
 +
++/*-------------------------------------------------------------------*/
 +
-+/**
-+ * tps_6235x_cleanup
-+ *
-+ * Module exit function
-+ */
-+static void __exit tps_6235x_cleanup(void)
-+{
-+	i2c_del_driver(&tps_6235x_i2c_driver);
-+}
-+
-+late_initcall(tps_6235x_init);
-+module_exit(tps_6235x_cleanup);
-+
-+MODULE_AUTHOR("Texas Instruments");
-+MODULE_DESCRIPTION("TPS6235x based linux driver");
-+MODULE_LICENSE("GPL");
+ static struct platform_device omap3_evm_lcd_device = {
+ 	.name		= "omap3evm_lcd",
+ 	.id		= -1,
+diff --git a/arch/arm/mach-omap2/mmc-twl4030.c b/arch/arm/mach-omap2/mmc-twl4030.c
+index 437f520..ed96cff 100644
+--- a/arch/arm/mach-omap2/mmc-twl4030.c
++++ b/arch/arm/mach-omap2/mmc-twl4030.c
+@@ -168,7 +168,7 @@ static int twl_mmc_resume(struct device *dev, int slot)
+  */
+ static int twl_mmc_set_voltage(struct twl_mmc_controller *c, int vdd)
+ {
+-	int ret;
++	int ret = 0;
+ 	u8 vmmc, dev_grp_val;
+ 
+ 	switch (1 << vdd) {
+@@ -223,6 +223,7 @@ static int twl_mmc_set_voltage(struct twl_mmc_controller *c, int vdd)
+ 	else
+ 		dev_grp_val = LDO_CLR;		/* Power down */
+ 
++#if defined(CONFIG_TWL4030_CORE)
+ 	ret = twl4030_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER,
+ 					dev_grp_val, c->twl_vmmc_dev_grp);
+ 	if (ret)
+@@ -230,7 +231,7 @@ static int twl_mmc_set_voltage(struct twl_mmc_controller *c, int vdd)
+ 
+ 	ret = twl4030_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER,
+ 					vmmc, c->twl_mmc_dedicated);
+-
++#endif
+ 	return ret;
+ }
+ 
+diff --git a/drivers/mmc/host/Kconfig b/drivers/mmc/host/Kconfig
+index 6fef94f..b697c96 100644
+--- a/drivers/mmc/host/Kconfig
++++ b/drivers/mmc/host/Kconfig
+@@ -80,7 +80,6 @@ config MMC_OMAP
+ config MMC_OMAP_HS
+ 	tristate "TI OMAP High Speed Multimedia Card Interface support"
+ 	depends on (ARCH_OMAP2 && ARCH_OMAP2430) || ARCH_OMAP3
+-	select TWL4030_CORE
+ 	help
+ 	  This selects the TI OMAP High Speed Multimedia card Interface.
+ 	  If you have an OMAP2(2430) or OMAP3 board with a Multimedia Card slot,
+diff --git a/drivers/video/omap/lcd_omap3evm.c b/drivers/video/omap/lcd_omap3evm.c
+index 1c3d814..4f373b2 100644
+--- a/drivers/video/omap/lcd_omap3evm.c
++++ b/drivers/video/omap/lcd_omap3evm.c
+@@ -66,9 +66,11 @@ static int omap3evm_panel_init(struct lcd_panel *panel,
+ 	gpio_direction_output(LCD_PANEL_LR, 1);
+ 	gpio_direction_output(LCD_PANEL_UD, 1);
+ 
++#if defined(CONFIG_TWL4030_CORE)
+ 	twl4030_i2c_write_u8(TWL4030_MODULE_LED, 0x11, TWL_LED_LEDEN);
+ 	twl4030_i2c_write_u8(TWL4030_MODULE_PWMA, 0x01, TWL_PWMA_PWMAON);
+ 	twl4030_i2c_write_u8(TWL4030_MODULE_PWMA, 0x02, TWL_PWMA_PWMAOFF);
++#endif
+ 	bklight_level = 100;
+ 
+ 	return 0;
+@@ -97,6 +99,7 @@ static unsigned long omap3evm_panel_get_caps(struct lcd_panel *panel)
+ static int omap3evm_bklight_setlevel(struct lcd_panel *panel,
+ 						unsigned int level)
+ {
++#if defined(CONFIG_TWL4030_CORE)
+ 	u8 c;
+ 	if ((level >= 0) && (level <= 100)) {
+ 		c = (125 * (100 - level)) / 100 + 2;
+@@ -104,6 +107,9 @@ static int omap3evm_bklight_setlevel(struct lcd_panel *panel,
+ 		bklight_level = level;
+ 	}
+ 	return 0;
++#endif
++	/* Fix this once patch fix is sent out for TPS-boards */
++	return -1;
+ }
+ 
+ static unsigned int omap3evm_bklight_getlevel(struct lcd_panel *panel)
 -- 
 1.5.6
 
