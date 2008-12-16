@@ -1,105 +1,86 @@
-From: "Pandita, Vikram" <vikram.pandita@ti.com>
-Subject: RE: [PATCH 1/1] Default MUX configuration added - GPIO140-143,
- GPIO0 and GPIO9
-Date: Tue, 16 Dec 2008 11:07:36 +0530
-Message-ID: <FCCFB4CDC6E5564B9182F639FC356087025127BA53@dbde02.ent.ti.com>
-References: <1229405483-32438-1-git-send-email-mani.pillai@ti.com>
+From: "Trilok Soni" <soni.trilok@gmail.com>
+Subject: Re: [PATCH] ARM: OMAP: Add support for dynamic GPIO switch update
+Date: Tue, 16 Dec 2008 11:35:07 +0530
+Message-ID: <5d5443650812152205k4d6c7back8bae8aa61487eb6c@mail.gmail.com>
+References: <1229342896-7363-1-git-send-email-ext-jani.1.nikula@nokia.com>
+	 <20081215134010.GA10709@mail.solidboot.com>
+	 <1229352752.5895.325.camel@jani-desktop>
+	 <20081215152920.GA11007@mail.solidboot.com>
+	 <1229356723.5895.348.camel@jani-desktop>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:36788 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750721AbYLPFht convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 16 Dec 2008 00:37:49 -0500
-Received: from dbdp20.itg.ti.com ([172.24.170.38])
-	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id mBG5bfuW020663
-	for <linux-omap@vger.kernel.org>; Mon, 15 Dec 2008 23:37:47 -0600
-Received: from dbde70.ent.ti.com (localhost [127.0.0.1])
-	by dbdp20.itg.ti.com (8.13.8/8.13.8) with ESMTP id mBG5bfMr026470
-	for <linux-omap@vger.kernel.org>; Tue, 16 Dec 2008 11:07:41 +0530 (IST)
-In-Reply-To: <1229405483-32438-1-git-send-email-mani.pillai@ti.com>
-Content-Language: en-US
+Received: from wf-out-1314.google.com ([209.85.200.171]:53922 "EHLO
+	wf-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750787AbYLPGFI convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 16 Dec 2008 01:05:08 -0500
+Received: by wf-out-1314.google.com with SMTP id 27so3048744wfd.4
+        for <linux-omap@vger.kernel.org>; Mon, 15 Dec 2008 22:05:07 -0800 (PST)
+In-Reply-To: <1229356723.5895.348.camel@jani-desktop>
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Pillai, Manikandan" <mani.pillai@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Jani Nikula <ext-jani.1.nikula@nokia.com>
+Cc: =?ISO-8859-1?Q?ext_Juha_Yrj=F6l=E4?= <juha.yrjola@solidboot.com>, linux-omap@vger.kernel.org
 
+Hi Jani,
 
->-----Original Message-----
->From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Pillai,
->Manikandan
->Sent: Monday, December 15, 2008 11:31 PM
->To: linux-omap@vger.kernel.org
->Cc: Pillai, Manikandan
->Subject: [PATCH 1/1] Default MUX configuration added - GPIO140-143, GPIO0 and GPIO9
+On Mon, Dec 15, 2008 at 9:28 PM, Jani Nikula
+<ext-jani.1.nikula@nokia.com> wrote:
+> On Mon, 2008-12-15 at 17:29 +0200, ext Juha Yrj=F6l=E4 wrote:
+>> On Mon, Dec 15, 2008 at 04:52:32PM +0200, Jani Nikula wrote:
+>>
+>> > The switches themselves don't change (nor does this patch support
+>> > changing them), but different kinds of external devices may be con=
+nected
+>> > to the GPIO swiches. It would be useful to be able to change the
+>> > notification callbacks and debounce timeouts according to the devi=
+ce.
+>>
+>> Could you give an example use-case?
 >
->Default MUX configurations for GPIO on OMAP3 EVM boards are added.
->Fixed for "_UP" naming convention for GPIOs comment.
-
-Patch is fine but looks like 
-Mux framework seems to be not efficient.
-
-"There is one GLOBAL table for all omap devices." 
-How maintainable is that? 
-Also care has to be taken to match the enum position with mux.c array location. This is error prone.
-
-Mux tables should be per device basis.
-Any thoughts.
-
-
+> For example a jack that supports headsets with a button. The button
+> could function by simply grounding one of the lines (connected to a
+> GPIO, of course) or by generating some sort of an interrupt pulse. Th=
+e
+> jack might support other kinds of accessories as well. And the requir=
+ed
+> actions and settling times might differ vastly.
 >
->Signed-off-by: Manikandan Pillai <mani.pillai@ti.com>
->---
-> arch/arm/mach-omap2/mux.c             |   13 +++++++++++++
-> arch/arm/plat-omap/include/mach/mux.h |    6 ++++++
-> 2 files changed, 19 insertions(+), 0 deletions(-)
+>> If the gpio-switch framework starts
+>> getting extended and used more, it might be sensible to convert it t=
+o
+>> the general GPIO API, as Trilok suggested.
 >
->diff --git a/arch/arm/mach-omap2/mux.c b/arch/arm/mach-omap2/mux.c
->index dacb41f..1556688 100644
->--- a/arch/arm/mach-omap2/mux.c
->+++ b/arch/arm/mach-omap2/mux.c
->@@ -459,6 +459,19 @@ MUX_CFG_34XX("AH8_34XX_GPIO29", 0x5fa,
-> 		OMAP34XX_MUX_MODE4 | OMAP34XX_PIN_INPUT)
-> MUX_CFG_34XX("J25_34XX_GPIO170", 0x1c6,
-> 		OMAP34XX_MUX_MODE4 | OMAP34XX_PIN_INPUT)
->+MUX_CFG_34XX("AF26_34XX_GPIO0", 0x1e0,
->+		OMAP34XX_MUX_MODE4 | OMAP34XX_PIN_OUTPUT)
->+MUX_CFG_34XX("AF22_34XX_GPIO9", 0xa18,
->+		OMAP34XX_MUX_MODE4 | OMAP34XX_PIN_OUTPUT)
->+MUX_CFG_34XX("AF6_34XX_GPIO140_UP", 0x16c,
->+		OMAP34XX_MUX_MODE4 | OMAP34XX_PIN_INPUT_PULLUP)
->+MUX_CFG_34XX("AE6_34XX_GPIO141", 0x16e,
->+		OMAP34XX_MUX_MODE4 | OMAP34XX_PIN_OUTPUT)
->+MUX_CFG_34XX("AF5_34XX_GPIO142", 0x170,
->+		OMAP34XX_MUX_MODE4 | OMAP34XX_PIN_OUTPUT)
->+MUX_CFG_34XX("AE5_34XX_GPIO143", 0x172,
->+		OMAP34XX_MUX_MODE4 | OMAP34XX_PIN_OUTPUT)
->+
-> };
+> I agree with this, but I'm afraid I don't have the time to extend the
+> scope of my work that much right now.
 >
-> #define OMAP34XX_PINS_SZ	ARRAY_SIZE(omap34xx_pins)
->diff --git a/arch/arm/plat-omap/include/mach/mux.h b/arch/arm/plat-omap/include/mach/mux.h
->index f4362b8..67fddec 100644
->--- a/arch/arm/plat-omap/include/mach/mux.h
->+++ b/arch/arm/plat-omap/include/mach/mux.h
->@@ -790,6 +790,12 @@ enum omap34xx_index {
-> 	 */
-> 	AH8_34XX_GPIO29,
-> 	J25_34XX_GPIO170,
->+	AF26_34XX_GPIO0,
->+	AF22_34XX_GPIO9,
->+	AF6_34XX_GPIO140_UP,
->+	AE6_34XX_GPIO141,
->+	AF5_34XX_GPIO142,
->+	AE5_34XX_GPIO143
-> };
->
-> struct omap_mux_cfg {
->--
->1.5.6
->
->--
->To unsubscribe from this list: send the line "unsubscribe linux-omap" in
->the body of a message to majordomo@vger.kernel.org
->More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
+OK, I found other guys (android ??) using such home brew frameworks.
+Time to write a switch framework.
+
+android-msm git tree: drivers/switch
+
+Link:
+http://android.git.kernel.org/?p=3Dkernel/msm.git;a=3Dtree;f=3Ddrivers/=
+switch;h=3Db064ed6374257163439f861f105a651126f11f08;hb=3DHEAD
+
+As you have explained above headset and headset switch/button
+detection usecase, similar one is in case of android using their
+switch framework:
+
+Link:
+http://android.git.kernel.org/?p=3Dkernel/msm.git;a=3Dblob;f=3Darch/arm=
+/mach-msm/board-trout-h2w.c;h=3Dc6dfd726adb6decf5b5e1a9d18606b2154b8f22=
+9;hb=3Drefs/heads/android-msm-htc-2.6.25
+
+--=20
+---Trilok Soni
+http://triloksoni.wordpress.com
+http://www.linkedin.com/in/triloksoni
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
