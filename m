@@ -1,194 +1,192 @@
-From: Jean Pihet <jpihet@mvista.com>
-Subject: [RFC/PATCH] OMAP: MMC: recover from transfer failures
-Date: Tue, 16 Dec 2008 19:57:37 +0100
-Message-ID: <200812161957.37854.jpihet@mvista.com>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: [PATCH] OMAP3: PM: Scale VDD2 OPP for VDD1 OPP3 and higher
+Date: Tue, 16 Dec 2008 11:15:55 -0800
+Message-ID: <87y6yg53tg.fsf@deeprootsystems.com>
+References: <01c901c95f7e$4d854f30$LocalHost@wipultra1382>
 Mime-Version: 1.0
-Content-Type: Multipart/Mixed;
-  boundary="Boundary-00=_ho/RJoRbX6hc/88"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from gateway-1237.mvista.com ([63.81.120.158]:46920 "EHLO
-	gateway-1237.mvista.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750967AbYLPS5j (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 16 Dec 2008 13:57:39 -0500
-Received: from ip6-localhost (asshur.mvista.com [10.0.0.11])
-	by hermes.mvista.com (Postfix) with ESMTP id D819618741
-	for <linux-omap@vger.kernel.org>; Tue, 16 Dec 2008 10:57:38 -0800 (PST)
+Received: from ik-out-1112.google.com ([66.249.90.178]:4667 "EHLO
+	ik-out-1112.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753148AbYLPTQE (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 16 Dec 2008 14:16:04 -0500
+Received: by ik-out-1112.google.com with SMTP id c29so793489ika.5
+        for <linux-omap@vger.kernel.org>; Tue, 16 Dec 2008 11:16:02 -0800 (PST)
+In-Reply-To: <01c901c95f7e$4d854f30$LocalHost@wipultra1382> (Rajendra Nayak's message of "Tue\, 16 Dec 2008 18\:30\:41 +0530")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
+To: Rajendra Nayak <rnayak@ti.com>
+Cc: linux-omap@vger.kernel.org
 
---Boundary-00=_ho/RJoRbX6hc/88
-Content-Type: text/plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
-Content-Disposition: inline
+"Rajendra Nayak" <rnayak@ti.com> writes:
 
-Hi,
+> This patch implements an implicit/internal constraint
+> of 100Mhz for L3 bus while the VDD1 OPP is OPP3 or higher.
+> The patch also removes the usage of bus_throughput_db
+> from SRF.
+> Applies on the latest pm branch.
+>
+> Signed-off-by: Rajendra Nayak <rnayak@ti.com>
 
-Here is a patch that fixes a MMC host controller deadlock. The problem happ=
-ens=20
-when removing the MMC/SD device when a transfer is on-going.
+Thanks, applied to PM branch.
 
-It has been tested on OMAP3430 but this fix should apply to OMAP2 chips as=
-=20
-well, as seen from the TRMs.
+Kevin
 
-    OMAP: MMC: recover from transfer failures
-
-    Timeouts during a command that has a data phase can result in the
-    next command issued after the command that failed not being processed,
-    i.e. no interrupt ever occurs to indicate the command has completed.
-    This failure can result in a deadlock.
-
-    The indication that the mmc host controller is in this error state is
-    that the DATI bit is set in the PSTATE register.  This patch checks
-    to see if the DATI bit is set before starting a new command, and if it
-    is set it resets the data state machine to clear the error.
-
-    Tested on OMAP3430 chip and intensive MMC/SD device removal while
-    transferring data.
-
-Regards,
-Jean
-
-
-=46rom 48a40925a4d57f6e7e45809a4b5c09b20f9314d7 Mon Sep 17 00:00:00 2001
-=46rom: Jean Pihet <jpihet@mvista.com>
-Date: Tue, 16 Dec 2008 19:44:12 +0100
-Subject: [PATCH] OMAP: MMC: recover from transfer failures
-
-Timeouts during a command that has a data phase can result in the
-next command issued after the command that failed not being processed,
-i.e. no interrupt ever occurs to indicate the command has completed.
-This failure can result in a deadlock.
-
-The indication that the mmc host controller is in this error state is
-that the DATI bit is set in the PSTATE register.  This patch checks
-to see if the DATI bit is set before starting a new command, and if it
-is set it resets the data state machine to clear the error.
-
-Tested on OMAP3430 chip and intensive MMC/SD device removal while
-transferring data.
-
-Signed-off-by: Andy Lowe <alowe@mvista.com>
-Signed-off-by: Jean Pihet <jpihet@mvista.com>
-=2D--
- drivers/mmc/host/omap_hsmmc.c |   11 +++++++++++
- 1 files changed, 11 insertions(+), 0 deletions(-)
-
-diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
-index 1fcc544..b7d111e 100644
-=2D-- a/drivers/mmc/host/omap_hsmmc.c
-+++ b/drivers/mmc/host/omap_hsmmc.c
-@@ -44,6 +44,7 @@
- #define OMAP_HSMMC_RSP54	0x0118
- #define OMAP_HSMMC_RSP76	0x011C
- #define OMAP_HSMMC_DATA		0x0120
-+#define OMAP_HSMMC_PSTATE	0x0124
- #define OMAP_HSMMC_HCTL		0x0128
- #define OMAP_HSMMC_SYSCTL	0x012C
- #define OMAP_HSMMC_STAT		0x0130
-@@ -89,6 +90,7 @@
- #define DUAL_VOLT_OCR_BIT	7
- #define SRC			(1 << 25)
- #define SRD			(1 << 26)
-+#define DATI			(1 << 1)
-=20
- /*
-  * FIXME: Most likely all the data using these _DEVID defines should come
-@@ -273,6 +275,15 @@ mmc_omap_start_command(struct mmc_omap_host *host, str=
-uct=20
-mmc_command *cmd,
- 		mmc_hostname(host->mmc), cmd->opcode, cmd->arg);
- 	host->cmd =3D cmd;
-=20
-+	if (OMAP_HSMMC_READ(host->base, PSTATE) & DATI) {
-+		dev_dbg(mmc_dev(host->mmc), "mmc_omap_start_command: "
-+			" resetting data state machine\n");
-+		OMAP_HSMMC_WRITE(host->base, SYSCTL,
-+			OMAP_HSMMC_READ(host->base, SYSCTL) | SRD);
-+		while (OMAP_HSMMC_READ(host->base, SYSCTL) & SRD)
-+			;
-+	}
-+
- 	/*
- 	 * Clear status bits and enable interrupts
- 	 */
-=2D-=20
-1.5.4.4.21.gc4a6c
-
-
---Boundary-00=_ho/RJoRbX6hc/88
-Content-Type: text/x-diff;
-  charset="iso 8859-15";
-  name="OMAP-MMC-recover-from-transfer-failures.patch"
-Content-Transfer-Encoding: quoted-printable
-Content-Disposition: attachment;
-	filename="OMAP-MMC-recover-from-transfer-failures.patch"
-
-=46rom 48a40925a4d57f6e7e45809a4b5c09b20f9314d7 Mon Sep 17 00:00:00 2001
-=46rom: Jean Pihet <jpihet@mvista.com>
-Date: Tue, 16 Dec 2008 19:44:12 +0100
-Subject: [PATCH] OMAP: MMC: recover from transfer failures
-
-Timeouts during a command that has a data phase can result in the
-next command issued after the command that failed not being processed,
-i.e. no interrupt ever occurs to indicate the command has completed.
-This failure can result in a deadlock.
-
-The indication that the mmc host controller is in this error state is
-that the DATI bit is set in the PSTATE register.  This patch checks
-to see if the DATI bit is set before starting a new command, and if it
-is set it resets the data state machine to clear the error.
-
-Tested on OMAP3430 chip and intensive MMC/SD device removal while
-transferring data.
-
-Signed-off-by: Andy Lowe <alowe@mvista.com>
-Signed-off-by: Jean Pihet <jpihet@mvista.com>
-=2D--
- drivers/mmc/host/omap_hsmmc.c |   11 +++++++++++
- 1 files changed, 11 insertions(+), 0 deletions(-)
-
-diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
-index 1fcc544..b7d111e 100644
-=2D-- a/drivers/mmc/host/omap_hsmmc.c
-+++ b/drivers/mmc/host/omap_hsmmc.c
-@@ -44,6 +44,7 @@
- #define OMAP_HSMMC_RSP54	0x0118
- #define OMAP_HSMMC_RSP76	0x011C
- #define OMAP_HSMMC_DATA		0x0120
-+#define OMAP_HSMMC_PSTATE	0x0124
- #define OMAP_HSMMC_HCTL		0x0128
- #define OMAP_HSMMC_SYSCTL	0x012C
- #define OMAP_HSMMC_STAT		0x0130
-@@ -89,6 +90,7 @@
- #define DUAL_VOLT_OCR_BIT	7
- #define SRC			(1 << 25)
- #define SRD			(1 << 26)
-+#define DATI			(1 << 1)
-=20
- /*
-  * FIXME: Most likely all the data using these _DEVID defines should come
-@@ -273,6 +275,15 @@ mmc_omap_start_command(struct mmc_omap_host *host, str=
-uct mmc_command *cmd,
- 		mmc_hostname(host->mmc), cmd->opcode, cmd->arg);
- 	host->cmd =3D cmd;
-=20
-+	if (OMAP_HSMMC_READ(host->base, PSTATE) & DATI) {
-+		dev_dbg(mmc_dev(host->mmc), "mmc_omap_start_command: "
-+			" resetting data state machine\n");
-+		OMAP_HSMMC_WRITE(host->base, SYSCTL,
-+			OMAP_HSMMC_READ(host->base, SYSCTL) | SRD);
-+		while (OMAP_HSMMC_READ(host->base, SYSCTL) & SRD)
-+			;
-+	}
-+
- 	/*
- 	 * Clear status bits and enable interrupts
- 	 */
-=2D-=20
-1.5.4.4.21.gc4a6c
-
-
---Boundary-00=_ho/RJoRbX6hc/88--
+> ---
+>  arch/arm/mach-omap2/pm.c           |    6 +++++-
+>  arch/arm/mach-omap2/resource34xx.c |   37 ++++++++++++++++++++++++++++---------
+>  arch/arm/mach-omap2/resource34xx.h |   13 -------------
+>  3 files changed, 33 insertions(+), 23 deletions(-)
+>
+> Index: linux-omap-2.6/arch/arm/mach-omap2/resource34xx.c
+> ===================================================================
+> --- linux-omap-2.6.orig/arch/arm/mach-omap2/resource34xx.c	2008-12-16 11:11:28.000000000 +0530
+> +++ linux-omap-2.6/arch/arm/mach-omap2/resource34xx.c	2008-12-16 16:04:43.017689014 +0530
+> @@ -146,7 +146,7 @@ void init_opp(struct shared_resource *re
+>  	resp->no_of_users = 0;
+>  
+>  	if (!mpu_opps || !dsp_opps || !l3_opps)
+> -		return 0;
+> +		return;
+>  
+>  	/* Initialize the current level of the OPP resource
+>  	* to the  opp set by u-boot.
+> @@ -161,11 +161,12 @@ void init_opp(struct shared_resource *re
+>  	return;
+>  }
+>  
+> +static struct device vdd2_dev;
+> +
+>  int set_opp(struct shared_resource *resp, u32 target_level)
+>  {
+> -	unsigned long mpu_freq, mpu_old_freq, l3_freq, tput, t_opp;
+> +	unsigned long mpu_freq, mpu_old_freq, l3_freq, req_l3_freq, tput, t_opp;
+>  	int ind;
+> -	struct bus_throughput_db *tput_db;
+>  	struct cpufreq_freqs freqs_notify;
+>  
+>  	if (resp->curr_level == target_level)
+> @@ -188,6 +189,14 @@ int set_opp(struct shared_resource *resp
+>  #endif
+>  		t_opp = ID_VDD(PRCM_VDD1) |
+>  			ID_OPP_NO(mpu_opps[target_level].opp_id);
+> +
+> +		/* For VDD1 OPP3 and above, make sure the interconnect
+> +		 * is at 100Mhz or above.
+> +		 * throughput in KiB/s for 100 Mhz = 100 * 1000 * 4.
+> +		 */
+> +		if (mpu_opps[target_level].opp_id >= 3)
+> +			resource_request("vdd2_opp", &vdd2_dev, 400000);
+> +
+>  		if (resp->curr_level > target_level) {
+>  			/* Scale Frequency and then voltage */
+>  			clk_set_rate(vdd1_clk, mpu_freq);
+> @@ -203,22 +212,32 @@ int set_opp(struct shared_resource *resp
+>  #endif
+>  			clk_set_rate(vdd1_clk, mpu_freq);
+>  		}
+> +
+> +		/* Release the VDD2/interconnect constraint */
+> +		if (mpu_opps[target_level].opp_id < 3)
+> +			resource_release("vdd2_opp", &vdd2_dev);
+> +
+>  		resp->curr_level = curr_vdd1_prcm_set->opp_id;
+>  #ifdef CONFIG_CPU_FREQ
+>  		/* Send a post notification to CPUFreq */
+>  		cpufreq_notify_transition(&freqs_notify, CPUFREQ_POSTCHANGE);
+>  #endif
+>  	} else if (strcmp(resp->name, "vdd2_opp") == 0) {
+> -		tput_db = resp->resource_data;
+>  		tput = target_level;
+> -		/* using the throughput db map to the appropriate L3 Freq */
+> -		for (ind = 1; ind < MAX_VDD2_OPP; ind++)
+> -			if (tput_db->throughput[ind] > tput)
+> +
+> +		/* Convert the tput in KiB/s to Bus frequency in Mhz*/
+> +		req_l3_freq = (tput * 1000)/4;
+> +
+> +		for (ind = 2; ind <= MAX_VDD2_OPP; ind++) {
+> +			if ((l3_opps + ind)->rate >= req_l3_freq) {
+>  				target_level = ind;
+> +				break;
+> +			}
+> +		}
+>  
+>  		/* Set the highest OPP possible */
+> -		if (ind == MAX_VDD2_OPP)
+> -			target_level = ind-1;
+> +		if (ind > MAX_VDD2_OPP)
+> +			target_level = MAX_VDD2_OPP;
+>  
+>  		if (resp->curr_level == target_level)
+>  			return 0;
+> Index: linux-omap-2.6/arch/arm/mach-omap2/pm.c
+> ===================================================================
+> --- linux-omap-2.6.orig/arch/arm/mach-omap2/pm.c	2008-12-16 10:35:55.000000000 +0530
+> +++ linux-omap-2.6/arch/arm/mach-omap2/pm.c	2008-12-16 16:01:48.580075608 +0530
+> @@ -34,6 +34,7 @@
+>  #include <mach/powerdomain.h>
+>  #include <mach/omapdev.h>
+>  #include <mach/resource.h>
+> +#include <mach/omap-pm.h>
+>  
+>  #include "prm-regbits-34xx.h"
+>  #include "pm.h"
+> @@ -136,6 +137,7 @@ static ssize_t vdd_opp_store(struct kobj
+>  			  const char *buf, size_t n)
+>  {
+>  	unsigned short value;
+> +	unsigned long bus_tput;
+>  
+>  	if (sscanf(buf, "%hu", &value) != 1)
+>  		return -EINVAL;
+> @@ -151,7 +153,9 @@ static ssize_t vdd_opp_store(struct kobj
+>  			printk(KERN_ERR "vdd_opp_store: Invalid value\n");
+>  			return -EINVAL;
+>  		}
+> -		resource_request("vdd2_opp", &dummy_sysfs_dev, value);
+> +		/* Convert OPP's requested to appr. bus throughtput in KiB/s */
+> +		bus_tput = ((l3_opps + value)->rate/1000) * 4;
+> +		resource_request("vdd2_opp", &dummy_sysfs_dev, bus_tput);
+>  	} else {
+>  		return -EINVAL;
+>  	}
+> Index: linux-omap-2.6/arch/arm/mach-omap2/resource34xx.h
+> ===================================================================
+> --- linux-omap-2.6.orig/arch/arm/mach-omap2/resource34xx.h	2008-12-16 10:35:55.000000000 +0530
+> +++ linux-omap-2.6/arch/arm/mach-omap2/resource34xx.h	2008-12-16 15:28:22.341172791 +0530
+> @@ -238,11 +238,6 @@ void init_freq(struct shared_resource *r
+>  int set_freq(struct shared_resource *resp, u32 target_level);
+>  int validate_freq(struct shared_resource *resp, u32 target_level);
+>  
+> -struct bus_throughput_db {
+> -	/* Throughput for each OPP/Freq of the bus */
+> -	unsigned long throughput[3];
+> -};
+> -
+>  static struct shared_resource_ops opp_res_ops = {
+>  	.init           = init_opp,
+>  	.change_level   = set_opp,
+> @@ -255,17 +250,9 @@ static struct shared_resource vdd1_opp =
+>  	.ops            = &opp_res_ops,
+>  };
+>  
+> -/* Throughput in KiB/s */
+> -static struct bus_throughput_db l3_throughput_db = {
+> -	.throughput[0] = 0,
+> -	.throughput[1] = 2656000,
+> -	.throughput[2] = 5312000,
+> -};
+> -
+>  static struct shared_resource vdd2_opp = {
+>  	.name           = "vdd2_opp",
+>  	.omap_chip      = OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
+> -	.resource_data  = &l3_throughput_db,
+>  	.ops            = &opp_res_ops,
+>  };
+>  
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
