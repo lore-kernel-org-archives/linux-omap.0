@@ -1,54 +1,34 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
+From: David Brownell <david-b-yBeKhBN/0LDR7s880joybQ@public.gmane.org>
 Subject: Re: [PATCH] USB: OTG: twl4030 build fix
-Date: Tue, 16 Dec 2008 14:33:39 -0800
-Message-ID: <873agn698c.fsf@deeprootsystems.com>
-References: <1229385603-27035-1-git-send-email-khilman@deeprootsystems.com>
-	<20081216220155.GB3291@kroah.com>
+Date: Tue, 16 Dec 2008 20:25:44 -0800
+Message-ID: <200812162025.44503.david-b@pacbell.net>
+References: <1229385603-27035-1-git-send-email-khilman@deeprootsystems.com> <20081216220155.GB3291@kroah.com> <873agn698c.fsf@deeprootsystems.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from yx-out-2324.google.com ([74.125.44.28]:34126 "EHLO
-	yx-out-2324.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752394AbYLPWdp (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 16 Dec 2008 17:33:45 -0500
-Received: by yx-out-2324.google.com with SMTP id 8so1447474yxm.1
-        for <linux-omap@vger.kernel.org>; Tue, 16 Dec 2008 14:33:43 -0800 (PST)
-In-Reply-To: <20081216220155.GB3291@kroah.com> (Greg KH's message of "Tue\, 16 Dec 2008 14\:01\:55 -0800")
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <873agn698c.fsf-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org>
+Content-Disposition: inline
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Kevin Hilman <khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org>, Greg KH <greg-U8xfFu+wG4EAvxtiuMwx3w@public.gmane.org>
+Cc: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: Greg KH <greg@kroah.com>
-Cc: linux-usb@vger.kernel.org, linux-omap@vger.kernel.org
 
-Greg KH <greg@kroah.com> writes:
+On Tuesday 16 December 2008, Kevin Hilman wrote:
+> >
+> > This driver is not in the mainline, or my USB tree. =A0Where is it =
+at?
+> >
+>=20
+> Sorry for the confusion,
+>=20
+> This driver is in the linux-omap tree, but I thought David Brownell
+> had it queued up for your tree already.
 
-> On Mon, Dec 15, 2008 at 04:00:03PM -0800, Kevin Hilman wrote:
->> Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
->> ---
->>  drivers/usb/otg/twl4030-usb.c |    2 +-
->>  1 files changed, 1 insertions(+), 1 deletions(-)
->> 
->> diff --git a/drivers/usb/otg/twl4030-usb.c b/drivers/usb/otg/twl4030-usb.c
->> index a000fb3..416e441 100644
->> --- a/drivers/usb/otg/twl4030-usb.c
->> +++ b/drivers/usb/otg/twl4030-usb.c
->> @@ -696,7 +696,7 @@ static int __exit twl4030_usb_remove(struct platform_device *pdev)
->>  
->>  static struct platform_driver twl4030_usb_driver = {
->>  	.probe		= twl4030_usb_probe,
->> -	.remove		= __exit_p(twl4030_remove),
->> +	.remove		= __exit_p(twl4030_usb_remove),
->>  	.driver		= {
->>  		.name	= "twl4030_usb",
->>  		.owner	= THIS_MODULE,
->
-> This driver is not in the mainline, or my USB tree.  Where is it at?
->
+Hadn't quite done that yet.  :)
 
-Sorry for the confusion,
-
-This driver is in the linux-omap tree, but I thought David Brownell
-had it queued up for your tree already.
-
-Kevin
-
-
+Tony, this has my ack
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
