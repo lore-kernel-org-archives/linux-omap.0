@@ -1,73 +1,65 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [ANNOUNCE] updated PM branch
-Date: Wed, 17 Dec 2008 15:53:00 -0800
-Message-ID: <494990DC.5080407@deeprootsystems.com>
-References: <87k5a098zd.fsf@deeprootsystems.com> <87myeu1whz.fsf@deeprootsystems.com> <764864D8-4A22-44B9-ABF2-42664AC6583D@student.utwente.nl>
+From: "Pillai, Manikandan" <mani.pillai@ti.com>
+Subject: RE: [PATCH 1/2] TPS6235x based Power regulator support added
+Date: Thu, 18 Dec 2008 09:03:22 +0530
+Message-ID: <19F8576C6E063C45BE387C64729E739403ECE3AFEA@dbde02.ent.ti.com>
+References: <1229421966-11414-1-git-send-email-mani.pillai@ti.com>
+ <20081217173503.GF22204@sirena.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from yx-out-2324.google.com ([74.125.44.29]:6388 "EHLO
-	yx-out-2324.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752672AbYLQXxE (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 17 Dec 2008 18:53:04 -0500
-Received: by yx-out-2324.google.com with SMTP id 8so73174yxm.1
-        for <linux-omap@vger.kernel.org>; Wed, 17 Dec 2008 15:53:03 -0800 (PST)
-In-Reply-To: <764864D8-4A22-44B9-ABF2-42664AC6583D@student.utwente.nl>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:54171 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752035AbYLRDdo convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 17 Dec 2008 22:33:44 -0500
+In-Reply-To: <20081217173503.GF22204@sirena.org.uk>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Koen Kooi <k.kooi@student.utwente.nl>
-Cc: "linux-omap@vger.kernel.org List" <linux-omap@vger.kernel.org>
+To: Mark Brown <broonie@sirena.org.uk>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Koen Kooi wrote:
-> 
-> Op 17 dec 2008, om 19:34 heeft Kevin Hilman het volgende geschreven:
-> 
->> Kevin Hilman <khilman@deeprootsystems.com> writes:
->>
->>> The PM branch has been consolidated and rebased against today's
->>> linux-omap HEAD.  I've also included a few patches that were posted to
->>> the list that had fallen through the cracks.
->>
->> I did a couple minor updates to to the pm branch, and rebased it to
->> current HEAD.  The updates include
->>
->> - more patch consolidation
->> - VDD2 patch from Rajendra
->> - updated IVA2 reset patch which actually works :)
->> - included the GPTIMER12 fixes for Beagle
->>
->> I also tested on Beagle.  Here are some results when using a minimal
->> defconfig (attached) and using an initramfs.  I had to disable MMC and
->> USB as they are currently preventing the low-level chip retention:
->>
->> I tested this on the latest PM branch of linux-omap:
->>
->> - boot idle: 342 mA
->>
->> - screen blank: 238 mA
->>  # echo 3 > /sys/class/graphics/fb0/blank
->>
->> - suspend: 85 mA
->>  # echo 1 > /sys/power/clocks_off_while_idle
->>  # echo mem > /sys/power/state
->>
->> - sleep-while-idle: 85 mA
->>  - this same state as suspend, but happens in idle
->>  # echo 1 > /sys/power/sleep_while_idle
->>
->> This is with current PM branch of linux-omap.  I understand that
->> Tomi's new DSS tree has support to turn off the DVI framer which
->> should save even more power, but I have not tested that.
-> 
-> Try toggling GPIO 170 manually, current consumption should drop with 
-> 60-80mA.
-> 
+Hi,
 
-That didn't seem to change anything for me.
+I have separated out the consumers to the board files. And most of the
+Init_data is provided there. But the dev pointer was not available at
+that point of time. The dev pointer needs to be initialized for
+regulator_get() functions. Hence, I need to init it in the xxx_probe()
+function. Pls let me know if you have any other ways to fix this ?
 
-Looking closer, drivers/video/omap/lcd_omap3beagle.c is already toggling
-GPIO 170 in current linux-omap.  So the ~80mA drop above between 'boot 
-idle' and 'screen blank' is probably already counting the DVI framer.
+Regards
+Mani
 
-Kevin
+-----Original Message-----
+From: Mark Brown [mailto:broonie@sirena.org.uk] 
+Sent: Wednesday, December 17, 2008 11:05 PM
+To: Pillai, Manikandan
+Cc: linux-omap@vger.kernel.org
+Subject: Re: [PATCH 1/2] TPS6235x based Power regulator support added
+
+On Tue, Dec 16, 2008 at 03:36:06PM +0530, Manikandan Pillai wrote:
+
+> +extern struct regulator_consumer_supply tps62352_core_consumers;
+> +extern struct regulator_consumer_supply tps62352_mpu_consumers;
+
+...
+
+> +	/* Register the regulators */
+> +	if (client->addr == TPS_62352_CORE_ADDR) {
+> +		/* dev needs to be inited since this is required to for get() */
+> +		tps62352_core_consumers.dev = &client->dev;
+> +		rdev = regulator_register(&regulators[0], &client->dev,
+> +					client);
+> +	} else if (client->addr == TPS_62353_MPU_ADDR) {
+> +		/* dev needs to be inited since this is required to for get() */
+> +		tps62352_mpu_consumers.dev = &client->dev;
+> +		rdev = regulator_register(&regulators[1], &client->dev,
+> +					client);
+> +	}
+
+This should be done in the style of other regulators with the list of
+consumers passed in as part of the regulator init data supplied by the
+board.  This would then allow you to remove all the conditionals (since
+the regulator array index is provided for you in the i2c_device_id value
+you get passed in).
+
