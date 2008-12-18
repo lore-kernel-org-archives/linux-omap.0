@@ -1,26 +1,44 @@
-From: Koen Kooi <k.kooi@student.utwente.nl>
-Subject: Re: [PATCH 1/1] LCD backlight support for OMAP3 EVM using TPS6235x based power module
-Date: Thu, 18 Dec 2008 10:17:14 +0100
-Message-ID: <CAAB461B-E7BF-4743-B254-271E22BE3015@student.utwente.nl>
+From: "Pillai, Manikandan" <mani.pillai@ti.com>
+Subject: RE: [PATCH 1/1] LCD backlight support for OMAP3 EVM using TPS6235x
+ based power module
+Date: Thu, 18 Dec 2008 15:04:43 +0530
+Message-ID: <19F8576C6E063C45BE387C64729E739403ECE3B1C1@dbde02.ent.ti.com>
 References: <1229573163-24006-1-git-send-email-mani.pillai@ti.com>
-Mime-Version: 1.0 (Apple Message framework v930.3)
-Content-Type: multipart/signed; protocol="application/pgp-signature"; micalg=pgp-sha1; boundary="Apple-Mail-13-29048006"
-Content-Transfer-Encoding: 7bit
+ <CAAB461B-E7BF-4743-B254-271E22BE3015@student.utwente.nl>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp2.utsp.utwente.nl ([130.89.2.9]:57625 "EHLO smtp.utwente.nl"
+Received: from comal.ext.ti.com ([198.47.26.152]:54593 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751391AbYLRJSC (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 18 Dec 2008 04:18:02 -0500
-In-Reply-To: <1229573163-24006-1-git-send-email-mani.pillai@ti.com>
+	id S1751750AbYLRJfJ convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 18 Dec 2008 04:35:09 -0500
+In-Reply-To: <CAAB461B-E7BF-4743-B254-271E22BE3015@student.utwente.nl>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Manikandan Pillai <mani.pillai@ti.com>
-Cc: linux-omap@vger.kernel.org, broonie@sirena.org.uk
+To: Koen Kooi <k.kooi@student.utwente.nl>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "broonie@sirena.org.uk" <broonie@sirena.org.uk>
 
-This is an OpenPGP/MIME signed message (RFC 2440 and 3156)
---Apple-Mail-13-29048006
-Content-Type: text/plain; charset=US-ASCII; format=flowed; delsp=yes
-Content-Transfer-Encoding: 7bit
+Hi,
+
+For OMAP we do not have the backlight class support. 
+That's the reason I am hooking the LCD control to the existing framework
+which is available in lcd_omap3evm.c.
+
+The sys fs interface is also provided and can be controlled by writing to
+
+/sys/devices/platform/omapfb/panel/backlight_level.
+
+Regards
+Mani
+
+-----Original Message-----
+From: Koen Kooi [mailto:k.kooi@student.utwente.nl] 
+Sent: Thursday, December 18, 2008 2:47 PM
+To: Pillai, Manikandan
+Cc: linux-omap@vger.kernel.org; broonie@sirena.org.uk
+Subject: Re: [PATCH 1/1] LCD backlight support for OMAP3 EVM using TPS6235x based power module
 
 
 Op 18 dec 2008, om 05:06 heeft Manikandan Pillai het volgende  
@@ -104,20 +122,3 @@ Koen
 > More majordomo info at  http://vger.kernel.org/majordomo-info.html
 >
 
-
---Apple-Mail-13-29048006
-content-type: application/pgp-signature; x-mac-type=70674453;
-	name=PGP.sig
-content-description: Dit deel van het bericht is digitaal ondertekend
-content-disposition: inline; filename=PGP.sig
-content-transfer-encoding: 7bit
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.5 (Darwin)
-
-iD8DBQFJShUcMkyGM64RGpERAirxAJ9RY2N77Q2xvnho6jf4z65yyvQX6wCggmNN
-JDzEGjmO0/rwaqnMSZpGr6I=
-=f6M3
------END PGP SIGNATURE-----
-
---Apple-Mail-13-29048006--
