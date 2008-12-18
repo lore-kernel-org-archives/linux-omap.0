@@ -1,103 +1,40 @@
-From: "Kanigeri, Hari" <h-kanigeri2@ti.com>
-Subject: RE: DSP/IOMMU needs 128-byte alignment from user-space buffers?
-Date: Thu, 18 Dec 2008 07:31:19 -0600
-Message-ID: <8F7AF80515AF0D4D93307E594F3CB40E1A136121@dlee03.ent.ti.com>
-References: <94a0d4530812170526x51aa7959r52c7583661c5a9da@mail.gmail.com>
-	 <8F7AF80515AF0D4D93307E594F3CB40E1A0CFAAB@dlee03.ent.ti.com>
- <94a0d4530812171320i5d081bedn3c4b6b75875a51c0@mail.gmail.com>
+From: Jani Nikula <ext-jani.1.nikula@nokia.com>
+Subject: Re: GPIO switch framework (was: Re: [PATCH] ARM: OMAP: Add support
+	for dynamic GPIO switch update)
+Date: Thu, 18 Dec 2008 15:40:49 +0200
+Message-ID: <1229607649.5895.438.camel@jani-desktop>
+References: <1229342896-7363-1-git-send-email-ext-jani.1.nikula@nokia.com>
+	 <20081215134010.GA10709@mail.solidboot.com>
+	 <1229352752.5895.325.camel@jani-desktop>
+	 <20081215152920.GA11007@mail.solidboot.com>
+	 <1229356723.5895.348.camel@jani-desktop>
+	 <5d5443650812152205k4d6c7back8bae8aa61487eb6c@mail.gmail.com>
+	 <1229600573.5895.432.camel@jani-desktop>
+	 <5d5443650812180500j67647a34mf8eb99c1f4b24c0a@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:40862 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751630AbYLRNb3 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 18 Dec 2008 08:31:29 -0500
-In-Reply-To: <94a0d4530812171320i5d081bedn3c4b6b75875a51c0@mail.gmail.com>
-Content-Language: en-US
+Received: from smtp.nokia.com ([192.100.105.134]:54305 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751853AbYLRNk7 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 18 Dec 2008 08:40:59 -0500
+In-Reply-To: <5d5443650812180500j67647a34mf8eb99c1f4b24c0a@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Contreras <felipe.contreras@gmail.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+To: ext Trilok Soni <soni.trilok@gmail.com>
+Cc: ext Juha =?ISO-8859-1?Q?Yrj=F6l=E4?= <juha.yrjola@solidboot.com>, linux-omap@vger.kernel.org, dbrownell@users.sourceforge.net
 
-Hi Felipe,
+On Thu, 2008-12-18 at 18:30 +0530, ext Trilok Soni wrote:
 
-> So if I'm understanding correctly there's no problem with 
-> unaligned DMM buffers if the DSP software is just reading; 
-> the problem is when writing data back to ARM.
+> Why limit to GPIO based switches only? GPIOs should be client of
+> switch framework I think, and how h/w implements that switch should be
+> hidden by client specific driver.
 
---- That is my understanding too. For read only buffer there shouldn't be an issue with data corruption.
+You're quite right, it's better not to make such unnecessary
+limitations. All the more reason to discuss before anyone submits a
+truckload of patches for review. :)
 
-I heard that some folks at TI are working on documenting this cache alignement issues to share with you. Please hold on.
+Jani.
 
-Thank you,
-Best regards,
-Hari
- 
 
-> -----Original Message-----
-> From: Felipe Contreras [mailto:felipe.contreras@gmail.com] 
-> Sent: Wednesday, December 17, 2008 3:21 PM
-> To: Kanigeri, Hari
-> Cc: linux-omap@vger.kernel.org; Hiroshi DOYU
-> Subject: Re: DSP/IOMMU needs 128-byte alignment from 
-> user-space buffers?
-> 
-> On Wed, Dec 17, 2008 at 10:37 PM, Kanigeri, Hari 
-> <h-kanigeri2@ti.com> wrote:
-> > Hi Felipe,
-> >
-> >> I received information from TI saying that user-space 
-> buffers need to 
-> >> be 128-byte aligned for the DSP to work properly.
-> >>
-> >> Is this true or is it some kind of limitation on their MMU 
-> code that 
-> >> might be solved by Hiroshi's iommu?
-> >>
-> >> This impacts quite drastically user-space applications 
-> like GStreamer 
-> >> since a memory copy would be required to achieve that 128-byte 
-> >> alignment.
-> >>
-> >> They also claim that adding 128-byte padding at the 
-> beginning and at 
-> >> the end achieves the same purpose.
-> >
-> > This is to address the memory corruption that might arise 
-> when using DMM (Dynamic memory mapping) feature.
-> > When the DSP processes data, the DSP cache controller loads 
-> 128-Byte chunks (lines) from SDRAM and writes the data back 
-> in 128-Byte chunks. If a DMM buffer does not start and end on 
-> a 128-Byte boundary, the data preceding the start address 
-> from the 128-Byte boundary to the Start Address and the data 
-> at addresses trailing the end address from the End Address to 
-> the next 128-Byte boundary will be loaded and written back as 
-> well. If the DMM buffer was allocated on the heap of a 
-> process running on the ARM, the preceding and trailing data, 
-> if modified by the ARM (or other non-DSP entity) during DSP 
-> processing, will be overwritten by the DSP cache controller, 
-> when the 128-Byte chunks are written back to SDRAM. This can 
-> lead to heap corruption.
-> 
-> Thanks for the explanation. So it doesn't have anything to do 
-> with IOMMU; it's the software running on the DSP that has 
-> this limitation.
-> 
-> > I think if you request the buffer from OMX component, this 
-> issue will be taken as there is an additional 256 bytes padding.
-> 
-> Yes, but in that case a memcpy would be unavoidable in many 
-> cases, like trying to render the result of video decoding on 
-> Xv. If the Xv buffer is unaligned; a dedicated DMM would need 
-> to be allocated, and then the data coming from DSP would need 
-> to be copied to the Xv buffer. That has a huge performance penalty.
-> 
-> So if I'm understanding correctly there's no problem with 
-> unaligned DMM buffers if the DSP software is just reading; 
-> the problem is when writing data back to ARM.
-> 
-> --
-> Felipe Contreras
-> 
-> 
