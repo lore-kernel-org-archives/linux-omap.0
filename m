@@ -1,98 +1,187 @@
-From: "Lopez Cruz, Misael" <x0052729@ti.com>
-Subject: [PATCH] ARM: OMAP3: Initialize XCCR and RCCR McBSP registers for
- McBSP DAI driver
-Date: Thu, 18 Dec 2008 04:15:09 -0600
-Message-ID: <2C7D3DF36ADFFC479B44490D912B616705A484A4C7@dlee07.ent.ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+From: Koen Kooi <k.kooi@student.utwente.nl>
+Subject: Re: [PATCH 1/1] LCD backlight support for OMAP3 EVM using TPS6235x based power module
+Date: Thu, 18 Dec 2008 11:17:00 +0100
+Message-ID: <168A8CC3-20F6-4BF7-8DF5-13D325F91577@student.utwente.nl>
+References: <1229573163-24006-1-git-send-email-mani.pillai@ti.com> <CAAB461B-E7BF-4743-B254-271E22BE3015@student.utwente.nl> <19F8576C6E063C45BE387C64729E739403ECE3B1C1@dbde02.ent.ti.com> <75533BB5-301E-43E1-B2CC-D2C5A870308D@student.utwente.nl>
+Mime-Version: 1.0 (Apple Message framework v930.3)
+Content-Type: multipart/signed; protocol="application/pgp-signature"; micalg=pgp-sha1; boundary="Apple-Mail-20-32633483"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:51629 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752848AbYLRKPR convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 18 Dec 2008 05:15:17 -0500
-Received: from dlep95.itg.ti.com ([157.170.170.107])
-	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id mBIAFBmT009969
-	for <linux-omap@vger.kernel.org>; Thu, 18 Dec 2008 04:15:16 -0600
-Received: from dlee74.ent.ti.com (localhost [127.0.0.1])
-	by dlep95.itg.ti.com (8.13.8/8.13.8) with ESMTP id mBIAFBkO020743
-	for <linux-omap@vger.kernel.org>; Thu, 18 Dec 2008 04:15:11 -0600 (CST)
-Content-Language: en-US
+Received: from smtp2.utsp.utwente.nl ([130.89.2.9]:60340 "EHLO smtp.utwente.nl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751782AbYLRKR1 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 18 Dec 2008 05:17:27 -0500
+In-Reply-To: <75533BB5-301E-43E1-B2CC-D2C5A870308D@student.utwente.nl>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
-Cc: "Pandita, Vikram" <vikram.pandita@ti.com>
+To: "linux-omap@vger.kernel.org List" <linux-omap@vger.kernel.org>
+Cc: Manikandan Pillai <mani.pillai@ti.com>, "broonie@sirena.org.uk Brown" <broonie@sirena.org.uk>
 
-This patch enables XCCR and RCCR McBSP register writing in OMAP 24xx/34xx
-platforms. It also explicitly initializes those registers to their default
-values in ASoC McBSP DAI driver.
+This is an OpenPGP/MIME signed message (RFC 2440 and 3156)
+--Apple-Mail-20-32633483
+Content-Type: text/plain; charset=US-ASCII; format=flowed; delsp=yes
+Content-Transfer-Encoding: 7bit
 
-Signed-off-by: Misael Lopez Cruz <x0052729@ti.com>
----
- arch/arm/plat-omap/include/mach/mcbsp.h |    6 ++++++
- arch/arm/plat-omap/mcbsp.c              |    4 ++++
- sound/soc/omap/omap-mcbsp.c             |    4 ++++
- 3 files changed, 14 insertions(+), 0 deletions(-)
 
-diff --git a/arch/arm/plat-omap/include/mach/mcbsp.h b/arch/arm/plat-omap/include/mach/mcbsp.h
-index 6a0d1a0..5885f3a 100644
---- a/arch/arm/plat-omap/include/mach/mcbsp.h
-+++ b/arch/arm/plat-omap/include/mach/mcbsp.h
-@@ -231,11 +231,16 @@
- #define XPBBLK(value)		((value)<<7)	/* Bits 7:8 */
- 
- /*********************** McBSP XCCR bit definitions *************************/
-+#define EXTCLKGATE		0x8000
-+#define PPCONNECT		0x4000
-+#define DXENDLY(value)		((value)<<12)	/* Bits 12:13 */
-+#define XFULL_CYCLE		0x0800
- #define DILB			0x0020
- #define XDMAEN			0x0008
- #define XDISABLE		0x0001
+Op 18 dec 2008, om 10:41 heeft Koen Kooi het volgende geschreven:
 
- /********************** McBSP RCCR bit definitions *************************/
-+#define RFULL_CYCLE		0x0800
- #define RDMAEN			0x0008
- #define RDISABLE		0x0001
+>
+> Op 18 dec 2008, om 10:34 heeft Pillai, Manikandan het volgende  
+> geschreven:
+>
+>> Hi,
+>>
+>> For OMAP we do not have the backlight class support.
+>
+> I know that and it's *very* annoying that TI insist on using some  
+> non-standard control instead of using something like the backlight  
+> class
 
-@@ -267,6 +271,8 @@ struct omap_mcbsp_reg_cfg {
- 	u16 rcerh;
- 	u16 xcerg;
- 	u16 xcerh;
-+	u16 xccr;
-+	u16 rccr;
- };
- 
- typedef enum {
-diff --git a/arch/arm/plat-omap/mcbsp.c b/arch/arm/plat-omap/mcbsp.c
-index af33fc7..d71b30b 100644
---- a/arch/arm/plat-omap/mcbsp.c
-+++ b/arch/arm/plat-omap/mcbsp.c
-@@ -173,6 +173,10 @@ void omap_mcbsp_config(unsigned int id, const struct omap_mcbsp_reg_cfg *config)
- 	OMAP_MCBSP_WRITE(io_base, MCR2, config->mcr2);
- 	OMAP_MCBSP_WRITE(io_base, MCR1, config->mcr1);
- 	OMAP_MCBSP_WRITE(io_base, PCR0, config->pcr0);
-+	if (cpu_is_omap24xx() || cpu_is_omap34xx()) {
-+		OMAP_MCBSP_WRITE(io_base, XCCR, config->xccr);
-+		OMAP_MCBSP_WRITE(io_base, RCCR, config->rccr);
-+	}
- }
- EXPORT_SYMBOL(omap_mcbsp_config);
- 
-diff --git a/sound/soc/omap/omap-mcbsp.c b/sound/soc/omap/omap-mcbsp.c
-index 8485a8a..2e7000d 100644
---- a/sound/soc/omap/omap-mcbsp.c
-+++ b/sound/soc/omap/omap-mcbsp.c
-@@ -295,6 +295,10 @@ static int omap_mcbsp_dai_set_dai_fmt(struct snd_soc_dai *cpu_dai,
- 	regs->spcr1	|= RINTM(3);
- 	regs->rcr2	|= RFIG;
- 	regs->xcr2	|= XFIG;
-+	if (cpu_is_omap24xx() || cpu_is_omap34xx()) {
-+		regs->xccr = DXENDLY(1) | XDMAEN;
-+		regs->rccr = RFULL_CYCLE | RDMAEN;
-+	}
- 
- 	switch (fmt & SND_SOC_DAIFMT_FORMAT_MASK) {
- 	case SND_SOC_DAIFMT_I2S:
--- 
-1.5.4.3
+I must nuance that statement a bit: for omap3evm there is no backlight  
+class support yet, other omap platforms are using it without problems.
+
+A quick way to use the backlight class would be to add  
+set_bl_intensity and get_bl_intensity hooks in the machine file and  
+reuse corgi_bl.c.
+
+regards,
+
+Koen
+
+
+>
+>
+>> That's the reason I am hooking the LCD control to the existing  
+>> framework
+>> which is available in lcd_omap3evm.c.
+>
+> I'm aware of that, it annoys me to no end that I have to patch all  
+> userspace (and HAL) to teach it about the TI way of doing backlight  
+> instead of having it Just Work(TM) with the backlight class. So,  
+> could you please hook it up to the backlight class?
+>
+> regards,
+>
+> Koen
+>
+>>
+>>
+>> The sys fs interface is also provided and can be controlled by  
+>> writing to
+>>
+>> /sys/devices/platform/omapfb/panel/backlight_level.
+>>
+>> Regards
+>> Mani
+>>
+>> -----Original Message-----
+>> From: Koen Kooi [mailto:k.kooi@student.utwente.nl]
+>> Sent: Thursday, December 18, 2008 2:47 PM
+>> To: Pillai, Manikandan
+>> Cc: linux-omap@vger.kernel.org; broonie@sirena.org.uk
+>> Subject: Re: [PATCH 1/1] LCD backlight support for OMAP3 EVM using  
+>> TPS6235x based power module
+>>
+>>
+>> Op 18 dec 2008, om 05:06 heeft Manikandan Pillai het volgende
+>> geschreven:
+>>
+>>> This patch provides support for LCD backlight enable and disable
+>>> for OMAP3 EVM using TPS6235x based PR785 boards.
+>>
+>>
+>> Could you hook into the backlight class for this please?
+>>
+>> regards,
+>>
+>> Koen
+>>
+>>
+>>>
+>>>
+>>> Signed-off-by: Manikandan Pillai <mani.pillai@ti.com>
+>>> ---
+>>> drivers/video/omap/lcd_omap3evm.c |   22 +++++++++++++++++++++-
+>>> 1 files changed, 21 insertions(+), 1 deletions(-)
+>>>
+>>> diff --git a/drivers/video/omap/lcd_omap3evm.c b/drivers/video/omap/
+>>> lcd_omap3evm.c
+>>> index 4f373b2..0ea35ba 100644
+>>> --- a/drivers/video/omap/lcd_omap3evm.c
+>>> +++ b/drivers/video/omap/lcd_omap3evm.c
+>>> @@ -49,6 +49,9 @@
+>>> #define TWL_PWMA_PWMAON		0x00
+>>> #define TWL_PWMA_PWMAOFF	0x01
+>>>
+>>> +/* GPIO on which Backlight can be switched ON/OFF */
+>>> +#define	LCD_OMAP3_BKLIGHT_GPIO	141
+>>> +
+>>> static unsigned int bklight_level;
+>>>
+>>> static int omap3evm_panel_init(struct lcd_panel *panel,
+>>> @@ -71,6 +74,10 @@ static int omap3evm_panel_init(struct lcd_panel
+>>> *panel,
+>>> 	twl4030_i2c_write_u8(TWL4030_MODULE_PWMA, 0x01, TWL_PWMA_PWMAON);
+>>> 	twl4030_i2c_write_u8(TWL4030_MODULE_PWMA, 0x02, TWL_PWMA_PWMAOFF);
+>>> #endif
+>>> +#if defined(CONFIG_PR785)
+>>> +	gpio_request(LCD_OMAP3_BKLIGHT_GPIO, "AE6_34XX_GPIO141");
+>>> +#endif
+>>> +
+>>> 	bklight_level = 100;
+>>>
+>>> 	return 0;
+>>> @@ -108,7 +115,20 @@ static int omap3evm_bklight_setlevel(struct
+>>> lcd_panel *panel,
+>>> 	}
+>>> 	return 0;
+>>> #endif
+>>> -	/* Fix this once patch fix is sent out for TPS-boards */
+>>> +
+>>> +#if defined(CONFIG_OMAP3EVM_PR785)
+>>> +	bklight_level = level;
+>>> +	/* if it is PR785 card the backlight can only be enabled or  
+>>> disable
+>>> +	we will use values <=15 for disable and rest as enabled */
+>>> +	if (level <= 15)
+>>> +		/* Switch of the backlight for level values <=10 */
+>>> +		gpio_direction_output(LCD_OMAP3_BKLIGHT_GPIO, 0);
+>>> +	else
+>>> +		gpio_direction_output(LCD_OMAP3_BKLIGHT_GPIO, 1);
+>>> +
+>>> +	return 0;
+>>> +#endif
+>>> +	/* if neither of them is defined, it's an error */
+>>> 	return -1;
+>>> }
+>>>
+>>> -- 
+>>> 1.5.6
+>>>
+>>> --
+>>> To unsubscribe from this list: send the line "unsubscribe linux-
+>>> omap" in
+>>> the body of a message to majordomo@vger.kernel.org
+>>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>>>
+>>
+>>
+>
+
+
+--Apple-Mail-20-32633483
+content-type: application/pgp-signature; x-mac-type=70674453;
+	name=PGP.sig
+content-description: Dit deel van het bericht is digitaal ondertekend
+content-disposition: inline; filename=PGP.sig
+content-transfer-encoding: 7bit
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.5 (Darwin)
+
+iD8DBQFJSiMdMkyGM64RGpERAtpmAJ4lVou9E1wSwDPsQ85Mx8ag3rWRpwCfWFdZ
+V7sew4yk7BZKhWCgeCpiACI=
+=6LdO
+-----END PGP SIGNATURE-----
+
+--Apple-Mail-20-32633483--
