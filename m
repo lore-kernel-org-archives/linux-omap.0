@@ -1,92 +1,137 @@
-From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Subject: RE: [PATCH][OMAP3][sDMA] : Fixing the DMA chain transfer callback.
-Date: Thu, 18 Dec 2008 20:01:25 +0530
-Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB0297E9B5F9@dbde02.ent.ti.com>
-References: <EAF47CD23C76F840A9E7FCE10091EFAB0297DA1826@dbde02.ent.ti.com>
- <20081218140748.GE30366@atomide.com>
+From: "shekhar, chandra" <x0044955@ti.com>
+Subject: Re: [PATCH] ARM: OMAP3: Initialize XCCR and RCCR McBSP registersfor McBSP DAI driver
+Date: Thu, 18 Dec 2008 20:47:05 +0530
+Message-ID: <0a0b01c96123$b1d0ca90$LocalHost@wipultra806>
+References: <2C7D3DF36ADFFC479B44490D912B616705A484A4C7@dlee07.ent.ti.com> <20081218134137.GD30366@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain;
+	format=flowed;
+	charset="iso-8859-1";
+	reply-type=original
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:35991 "EHLO
+Received: from devils.ext.ti.com ([198.47.26.153]:39164 "EHLO
 	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751047AbYLRObh convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 18 Dec 2008 09:31:37 -0500
-In-Reply-To: <20081218140748.GE30366@atomide.com>
-Content-Language: en-US
+	with ESMTP id S1750762AbYLRPRT (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 18 Dec 2008 10:17:19 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: "'linux-omap@vger.kernel.org'" <linux-omap@vger.kernel.org>
+To: Tony Lindgren <tony@atomide.com>, "Lopez Cruz, Misael" <x0052729@ti.com>
+Cc: linux-omap@vger.kernel.org, "Pandita, Vikram" <vikram.pandita@ti.com>
 
-> -----Original Message-----
-> From: Tony Lindgren [mailto:tony@atomide.com] 
-> Sent: Thursday, December 18, 2008 7:38 PM
-> To: Shilimkar, Santosh
-> Cc: 'linux-omap@vger.kernel.org'
-> Subject: Re: [PATCH][OMAP3][sDMA] : Fixing the DMA chain 
-> transfer callback.
-> 
+
+----- Original Message ----- 
+From: "Tony Lindgren" <tony@atomide.com>
+To: "Lopez Cruz, Misael" <x0052729@ti.com>
+Cc: <linux-omap@vger.kernel.org>; "Pandita, Vikram" <vikram.pandita@ti.com>
+Sent: Thursday, December 18, 2008 7:11 PM
+Subject: Re: [PATCH] ARM: OMAP3: Initialize XCCR and RCCR McBSP registersfor 
+McBSP DAI driver
+
+
 > Hi,
-> 
-> * Shilimkar, Santosh <santosh.shilimkar@ti.com> [081216 14:05]:
-> > Tony,
-> > Here is the patch for DMA to ease the chaining usage. OMAP 
-> mcbsp drivers makes use of this chaining feature but it's not 
-> pushed on mainline yet. It's available on zoom tree. Link for 
-> the same driver. 
-> http://git.omapzoom.org/?p=omapkernel.git;a=blob;f=arch/arm/ma
-> ch-omap2/mcbsp.c;h=ce726c5d27eedb678ad3f981e2f5e08134e44e27;hb
-> =2af15d1d7931a7c928d84057ed4494b77769de12
-> 
-> Hmm, the omap2_mcbsp_rx_dma_callback() and 
-> omap2_mcbsp_tx_dma_callback()
-> don't even use the lch parameter passed to them in the example above.
-I gave this driver link just to say that we do have one driver on open source which is using chaining. The implementation is like that because this driver is also pushed on ZOOM tree and their the chain_id is no more passed as part of the callback. Also mcBSP, chains only two channels for tx and rx each with separate callbacks. So not makes much impact.
+>
+> * Lopez Cruz, Misael <x0052729@ti.com> [081218 12:16]:
+>> This patch enables XCCR and RCCR McBSP register writing in OMAP 24xx/34xx
+>> platforms. It also explicitly initializes those registers to their default
+>> values in ASoC McBSP DAI driver.
+>
+> Can you please describe a bit what these registers do? It's impossible
+> for anybody to decipher without looking at the TRM right now.
+>
+>> Signed-off-by: Misael Lopez Cruz <x0052729@ti.com>
+>> ---
+>>  arch/arm/plat-omap/include/mach/mcbsp.h |    6 ++++++
+>>  arch/arm/plat-omap/mcbsp.c              |    4 ++++
+>>  sound/soc/omap/omap-mcbsp.c             |    4 ++++
+>>  3 files changed, 14 insertions(+), 0 deletions(-)
+>>
+>> diff --git a/arch/arm/plat-omap/include/mach/mcbsp.h 
+>> b/arch/arm/plat-omap/include/mach/mcbsp.h
+>> index 6a0d1a0..5885f3a 100644
+>> --- a/arch/arm/plat-omap/include/mach/mcbsp.h
+>> +++ b/arch/arm/plat-omap/include/mach/mcbsp.h
+>> @@ -231,11 +231,16 @@
+>>  #define XPBBLK(value) ((value)<<7) /* Bits 7:8 */
+>>
+>>  /*********************** McBSP XCCR bit definitions 
+>> *************************/
+>> +#define EXTCLKGATE 0x8000
+>> +#define PPCONNECT 0x4000
+>> +#define DXENDLY(value) ((value)<<12) /* Bits 12:13 */
+>> +#define XFULL_CYCLE 0x0800
+>>  #define DILB 0x0020
+>>  #define XDMAEN 0x0008
+>>  #define XDISABLE 0x0001
+>>
+>>  /********************** McBSP RCCR bit definitions 
+>> *************************/
+>> +#define RFULL_CYCLE 0x0800
+>>  #define RDMAEN 0x0008
+>>  #define RDISABLE 0x0001
+>>
+>> @@ -267,6 +271,8 @@ struct omap_mcbsp_reg_cfg {
+>>  u16 rcerh;
+>>  u16 xcerg;
+>>  u16 xcerh;
+>> + u16 xccr;
+>> + u16 rccr;
+>>  };
+>>
 
-I agree that we don't have driver which shows this issue, but in the test code which chains 4-5 channels and run similar 3 modules together, you can see it's cumbersome to handle in callbacks.
- 
-> And can't you just use the data->chain_id to get the chain in the
-> callback function?
-Yes you can do that but then user have to store the chain_id in the 'data' when doing 'requset_dma_chain'. And if we want to do that, then their no pint of having a redundant "ch" info in the chained callbacks.Because channel number is useful only for normal dma transfers. More over in the kernel, we don't need any extra variable to store the chain_id since its already part of the dma channel structure. 
+i believe these  register width should be defined as 32 bits instead of 16, 
+while read/write function will take care 16 or 32 bit write
+depending on cpu.
+
+>>  typedef enum {
+>> diff --git a/arch/arm/plat-omap/mcbsp.c b/arch/arm/plat-omap/mcbsp.c
+>> index af33fc7..d71b30b 100644
+>> --- a/arch/arm/plat-omap/mcbsp.c
+>> +++ b/arch/arm/plat-omap/mcbsp.c
+>> @@ -173,6 +173,10 @@ void omap_mcbsp_config(unsigned int id, const struct 
+>> omap_mcbsp_reg_cfg *config)
+>>  OMAP_MCBSP_WRITE(io_base, MCR2, config->mcr2);
+>>  OMAP_MCBSP_WRITE(io_base, MCR1, config->mcr1);
+>>  OMAP_MCBSP_WRITE(io_base, PCR0, config->pcr0);
+>> + if (cpu_is_omap24xx() || cpu_is_omap34xx()) {
+>> + OMAP_MCBSP_WRITE(io_base, XCCR, config->xccr);
+>> + OMAP_MCBSP_WRITE(io_base, RCCR, config->rccr);
+>> + }
+>>  }
+>>  EXPORT_SYMBOL(omap_mcbsp_config);
+>>
+>
+> You can do the above with cpu_class_is_omap2() instead. Might be worth
+> checking that these registers are available on 2420 too.
+>
+>> diff --git a/sound/soc/omap/omap-mcbsp.c b/sound/soc/omap/omap-mcbsp.c
+>> index 8485a8a..2e7000d 100644
+>> --- a/sound/soc/omap/omap-mcbsp.c
+>> +++ b/sound/soc/omap/omap-mcbsp.c
+>> @@ -295,6 +295,10 @@ static int omap_mcbsp_dai_set_dai_fmt(struct snd_soc_dai 
+>> *cpu_dai,
+>>  regs->spcr1 |= RINTM(3);
+>>  regs->rcr2 |= RFIG;
+>>  regs->xcr2 |= XFIG;
+>> + if (cpu_is_omap24xx() || cpu_is_omap34xx()) {
+>> + regs->xccr = DXENDLY(1) | XDMAEN;
+>> + regs->rccr = RFULL_CYCLE | RDMAEN;
+>> + }
+>>
+>>  switch (fmt & SND_SOC_DAIFMT_FORMAT_MASK) {
+>>  case SND_SOC_DAIFMT_I2S:
+>> -- 
+>
+> I agree with Jarkko's comment, the ASoC change should go via alsa list
+> as a separate patch.
+>
+> Regards,
+>
 > Tony
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 > 
 
-Regards
-Santosh
-
-> 
-> > 
-> > 
-> > From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-> > 
-> > This patch reverts back the change done on OMAP dma 
-> library. It corrects the chaining callback and reduces the 
-> complexity for the DMA users in chaining. So with this patch, 
-> drivers making use of OMAP DMA chaining feature need not 
-> built any intelligence for chain related transfers in their 
-> callback using private data. 
-> > 
-> > Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
-> > Acked By : Nishant kamat <nskamat@ti.com>
-> > ---
-> > --- omapkernel.orig/arch/arm/plat-omap/dma.c	
-> 2008-12-04 11:11:07.000000000 +0530
-> > +++ omapkernel/arch/arm/plat-omap/dma.c	2008-12-16 
-> 16:59:42.066118383 +0530
-> > @@ -1936,7 +1936,11 @@ static int omap2_dma_handle_ch(int ch)
-> >  	}
-> >  
-> >  	if (likely(dma_chan[ch].callback != NULL))
-> > -		dma_chan[ch].callback(ch, status, dma_chan[ch].data);
-> > +		if (dma_chan[ch].chain_id != -1)
-> > +			
-> dma_chan[ch].callback(dma_chan[ch].chain_id, status,
-> > +					      dma_chan[ch].data);
-> > +		else
-> > +			dma_chan[ch].callback(ch, status, 
-> dma_chan[ch].data);
-> >  
-> >  	dma_write(status, CSR(ch));
-> 
-> 
