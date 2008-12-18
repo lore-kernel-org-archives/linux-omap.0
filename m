@@ -1,99 +1,111 @@
 From: Koen Kooi <k.kooi@student.utwente.nl>
-Subject: Re: [ANNOUNCE] updated PM branch
-Date: Thu, 18 Dec 2008 10:15:50 +0100
-Message-ID: <A6D1DEDA-DBA9-44A6-A879-F26A5C44D3B1@student.utwente.nl>
-References: <87k5a098zd.fsf@deeprootsystems.com> <87myeu1whz.fsf@deeprootsystems.com> <764864D8-4A22-44B9-ABF2-42664AC6583D@student.utwente.nl> <494990DC.5080407@deeprootsystems.com>
+Subject: Re: [PATCH 1/1] LCD backlight support for OMAP3 EVM using TPS6235x based power module
+Date: Thu, 18 Dec 2008 10:17:14 +0100
+Message-ID: <CAAB461B-E7BF-4743-B254-271E22BE3015@student.utwente.nl>
+References: <1229573163-24006-1-git-send-email-mani.pillai@ti.com>
 Mime-Version: 1.0 (Apple Message framework v930.3)
-Content-Type: multipart/signed; protocol="application/pgp-signature"; micalg=pgp-sha1; boundary="Apple-Mail-12-28963393"
+Content-Type: multipart/signed; protocol="application/pgp-signature"; micalg=pgp-sha1; boundary="Apple-Mail-13-29048006"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp2.utsp.utwente.nl ([130.89.2.9]:57568 "EHLO smtp.utwente.nl"
+Received: from smtp2.utsp.utwente.nl ([130.89.2.9]:57625 "EHLO smtp.utwente.nl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751364AbYLRJQF (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 18 Dec 2008 04:16:05 -0500
-In-Reply-To: <494990DC.5080407@deeprootsystems.com>
+	id S1751391AbYLRJSC (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 18 Dec 2008 04:18:02 -0500
+In-Reply-To: <1229573163-24006-1-git-send-email-mani.pillai@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@deeprootsystems.com>
-Cc: "linux-omap@vger.kernel.org List" <linux-omap@vger.kernel.org>
+To: Manikandan Pillai <mani.pillai@ti.com>
+Cc: linux-omap@vger.kernel.org, broonie@sirena.org.uk
 
 This is an OpenPGP/MIME signed message (RFC 2440 and 3156)
---Apple-Mail-12-28963393
+--Apple-Mail-13-29048006
 Content-Type: text/plain; charset=US-ASCII; format=flowed; delsp=yes
 Content-Transfer-Encoding: 7bit
 
 
-Op 18 dec 2008, om 00:53 heeft Kevin Hilman het volgende geschreven:
+Op 18 dec 2008, om 05:06 heeft Manikandan Pillai het volgende  
+geschreven:
 
-> Koen Kooi wrote:
->> Op 17 dec 2008, om 19:34 heeft Kevin Hilman het volgende geschreven:
->>> Kevin Hilman <khilman@deeprootsystems.com> writes:
->>>
->>>> The PM branch has been consolidated and rebased against today's
->>>> linux-omap HEAD.  I've also included a few patches that were  
->>>> posted to
->>>> the list that had fallen through the cracks.
->>>
->>> I did a couple minor updates to to the pm branch, and rebased it to
->>> current HEAD.  The updates include
->>>
->>> - more patch consolidation
->>> - VDD2 patch from Rajendra
->>> - updated IVA2 reset patch which actually works :)
->>> - included the GPTIMER12 fixes for Beagle
->>>
->>> I also tested on Beagle.  Here are some results when using a minimal
->>> defconfig (attached) and using an initramfs.  I had to disable MMC  
->>> and
->>> USB as they are currently preventing the low-level chip retention:
->>>
->>> I tested this on the latest PM branch of linux-omap:
->>>
->>> - boot idle: 342 mA
->>>
->>> - screen blank: 238 mA
->>> # echo 3 > /sys/class/graphics/fb0/blank
->>>
->>> - suspend: 85 mA
->>> # echo 1 > /sys/power/clocks_off_while_idle
->>> # echo mem > /sys/power/state
->>>
->>> - sleep-while-idle: 85 mA
->>> - this same state as suspend, but happens in idle
->>> # echo 1 > /sys/power/sleep_while_idle
->>>
->>> This is with current PM branch of linux-omap.  I understand that
->>> Tomi's new DSS tree has support to turn off the DVI framer which
->>> should save even more power, but I have not tested that.
->> Try toggling GPIO 170 manually, current consumption should drop  
->> with 60-80mA.
->
-> That didn't seem to change anything for me.
->
-> Looking closer, drivers/video/omap/lcd_omap3beagle.c is already  
-> toggling
-> GPIO 170 in current linux-omap.
+> This patch provides support for LCD backlight enable and disable
+> for OMAP3 EVM using TPS6235x based PR785 boards.
 
-Ah, so I did a better job with copy/pasting together the lcd driver  
-than I thought :)
 
->  So the ~80mA drop above between 'boot idle' and 'screen blank' is  
-> probably already counting the DVI framer.
-
-I suspected  the 80mA drop was a bit much for just putting the DSS  
-system into sleep, hence my gpio suggestion :) Thanks for confirming it.
+Could you hook into the backlight class for this please?
 
 regards,
 
 Koen
 
+
 >
 >
-> Kevin
+> Signed-off-by: Manikandan Pillai <mani.pillai@ti.com>
+> ---
+> drivers/video/omap/lcd_omap3evm.c |   22 +++++++++++++++++++++-
+> 1 files changed, 21 insertions(+), 1 deletions(-)
+>
+> diff --git a/drivers/video/omap/lcd_omap3evm.c b/drivers/video/omap/ 
+> lcd_omap3evm.c
+> index 4f373b2..0ea35ba 100644
+> --- a/drivers/video/omap/lcd_omap3evm.c
+> +++ b/drivers/video/omap/lcd_omap3evm.c
+> @@ -49,6 +49,9 @@
+> #define TWL_PWMA_PWMAON		0x00
+> #define TWL_PWMA_PWMAOFF	0x01
+>
+> +/* GPIO on which Backlight can be switched ON/OFF */
+> +#define	LCD_OMAP3_BKLIGHT_GPIO	141
+> +
+> static unsigned int bklight_level;
+>
+> static int omap3evm_panel_init(struct lcd_panel *panel,
+> @@ -71,6 +74,10 @@ static int omap3evm_panel_init(struct lcd_panel  
+> *panel,
+> 	twl4030_i2c_write_u8(TWL4030_MODULE_PWMA, 0x01, TWL_PWMA_PWMAON);
+> 	twl4030_i2c_write_u8(TWL4030_MODULE_PWMA, 0x02, TWL_PWMA_PWMAOFF);
+> #endif
+> +#if defined(CONFIG_PR785)
+> +	gpio_request(LCD_OMAP3_BKLIGHT_GPIO, "AE6_34XX_GPIO141");
+> +#endif
+> +
+> 	bklight_level = 100;
+>
+> 	return 0;
+> @@ -108,7 +115,20 @@ static int omap3evm_bklight_setlevel(struct  
+> lcd_panel *panel,
+> 	}
+> 	return 0;
+> #endif
+> -	/* Fix this once patch fix is sent out for TPS-boards */
+> +
+> +#if defined(CONFIG_OMAP3EVM_PR785)
+> +	bklight_level = level;
+> +	/* if it is PR785 card the backlight can only be enabled or disable
+> +	we will use values <=15 for disable and rest as enabled */
+> +	if (level <= 15)
+> +		/* Switch of the backlight for level values <=10 */
+> +		gpio_direction_output(LCD_OMAP3_BKLIGHT_GPIO, 0);
+> +	else
+> +		gpio_direction_output(LCD_OMAP3_BKLIGHT_GPIO, 1);
+> +
+> +	return 0;
+> +#endif
+> +	/* if neither of them is defined, it's an error */
+> 	return -1;
+> }
+>
+> -- 
+> 1.5.6
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux- 
+> omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 >
 
 
---Apple-Mail-12-28963393
+--Apple-Mail-13-29048006
 content-type: application/pgp-signature; x-mac-type=70674453;
 	name=PGP.sig
 content-description: Dit deel van het bericht is digitaal ondertekend
@@ -103,9 +115,9 @@ content-transfer-encoding: 7bit
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.5 (Darwin)
 
-iD8DBQFJShTIMkyGM64RGpERApLsAJ9Xs3RSKO114dCocfxsLIS2n2ipDACffmYo
-rBsBUdXO8S+vNHxacTP0ULQ=
-=0Rma
+iD8DBQFJShUcMkyGM64RGpERAirxAJ9RY2N77Q2xvnho6jf4z65yyvQX6wCggmNN
+JDzEGjmO0/rwaqnMSZpGr6I=
+=f6M3
 -----END PGP SIGNATURE-----
 
---Apple-Mail-12-28963393--
+--Apple-Mail-13-29048006--
