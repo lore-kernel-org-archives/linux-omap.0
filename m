@@ -1,72 +1,66 @@
-From: Manikandan Pillai <mani.pillai@ti.com>
-Subject: [PATCH 1/1] LCD backlight support for OMAP3 EVM using TPS6235x based power module
-Date: Thu, 18 Dec 2008 09:36:03 +0530
-Message-ID: <1229573163-24006-1-git-send-email-mani.pillai@ti.com>
+From: Jarkko Nikula <jarkko.nikula@nokia.com>
+Subject: Re: N810 suspend
+Date: Thu, 18 Dec 2008 09:01:47 +0200
+Message-ID: <20081218090147.c6e5c4a0.jarkko.nikula@nokia.com>
+References: <20081215210823.GD5334@swansys>
+	<20081215211430.GJ10664@atomide.com>
+	<20081216092531.c440dc26.jarkko.nikula@nokia.com>
+	<20081216162951.GP19551@atomide.com>
+	<20081216165632.GF25056@swansys>
+	<20081216172237.GR19551@atomide.com>
+	<20081217140911.b30d7194.jarkko.nikula@nokia.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:43809 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750927AbYLREGW (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 17 Dec 2008 23:06:22 -0500
+Received: from smtp.nokia.com ([192.100.122.233]:38948 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751040AbYLRHCD (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 18 Dec 2008 02:02:03 -0500
+In-Reply-To: <20081217140911.b30d7194.jarkko.nikula@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org, broonie@sirena.org.uk
-Cc: Manikandan Pillai <mani.pillai@ti.com>
+To: ext Jarkko Nikula <jarkko.nikula@nokia.com>
+Cc: ext Tony Lindgren <tony@atomide.com>, Linux-OMAP List <linux-omap@vger.kernel.org>
 
-This patch provides support for LCD backlight enable and disable
-for OMAP3 EVM using TPS6235x based PR785 boards.
+On Wed, 17 Dec 2008 14:09:11 +0200
+"ext Jarkko Nikula" <jarkko.nikula@nokia.com> wrote:
 
-Signed-off-by: Manikandan Pillai <mani.pillai@ti.com>
----
- drivers/video/omap/lcd_omap3evm.c |   22 +++++++++++++++++++++-
- 1 files changed, 21 insertions(+), 1 deletions(-)
+> On Tue, 16 Dec 2008 09:22:38 -0800
+> "ext Tony Lindgren" <tony@atomide.com> wrote:
+> 
+> > > > Oh, I just tested that sleep-while-idle worked when fb was blanked. I
+> > > > had a script that forced the LCD off via /sys, sorry don't remember
+> > > > the path now. Will be also heading to catch a plane in few hours, may
+> > > > not be able to check it right now.
+> > > 
+> > > 'echo 3 > /sys/class/graphics/fb0/blank' turns off the LCD, if that is what you 
+> > > mean.
+> > 
+> > Thanks, that's what I did.
+> > 
+> And it worked with N800. Battery current dropped below 10 mA after
+> unplugging the USB cable so OMAP was going into retention.
+> 
+FYI:
 
-diff --git a/drivers/video/omap/lcd_omap3evm.c b/drivers/video/omap/lcd_omap3evm.c
-index 4f373b2..0ea35ba 100644
---- a/drivers/video/omap/lcd_omap3evm.c
-+++ b/drivers/video/omap/lcd_omap3evm.c
-@@ -49,6 +49,9 @@
- #define TWL_PWMA_PWMAON		0x00
- #define TWL_PWMA_PWMAOFF	0x01
- 
-+/* GPIO on which Backlight can be switched ON/OFF */
-+#define	LCD_OMAP3_BKLIGHT_GPIO	141
-+
- static unsigned int bklight_level;
- 
- static int omap3evm_panel_init(struct lcd_panel *panel,
-@@ -71,6 +74,10 @@ static int omap3evm_panel_init(struct lcd_panel *panel,
- 	twl4030_i2c_write_u8(TWL4030_MODULE_PWMA, 0x01, TWL_PWMA_PWMAON);
- 	twl4030_i2c_write_u8(TWL4030_MODULE_PWMA, 0x02, TWL_PWMA_PWMAOFF);
- #endif
-+#if defined(CONFIG_PR785)
-+	gpio_request(LCD_OMAP3_BKLIGHT_GPIO, "AE6_34XX_GPIO141");
-+#endif
-+
- 	bklight_level = 100;
- 
- 	return 0;
-@@ -108,7 +115,20 @@ static int omap3evm_bklight_setlevel(struct lcd_panel *panel,
- 	}
- 	return 0;
- #endif
--	/* Fix this once patch fix is sent out for TPS-boards */
-+
-+#if defined(CONFIG_OMAP3EVM_PR785)
-+	bklight_level = level;
-+	/* if it is PR785 card the backlight can only be enabled or disable
-+	we will use values <=15 for disable and rest as enabled */
-+	if (level <= 15)
-+		/* Switch of the backlight for level values <=10 */
-+		gpio_direction_output(LCD_OMAP3_BKLIGHT_GPIO, 0);
-+	else
-+		gpio_direction_output(LCD_OMAP3_BKLIGHT_GPIO, 1);
-+
-+	return 0;
-+#endif
-+	/* if neither of them is defined, it's an error */
- 	return -1;
- }
- 
--- 
-1.5.6
+xorg.conf's Option "SuspendTime" seems to equal to blanking command 3
+(VESA_POWERDOWN). Look drivers/video/omap/omapfb_main.c: omapfb_blank.
 
+Section "ServerFlags"
+        Option  "BlankTime"     "0"
+        Option  "StandbyTime"   "0"
+        Option  "SuspendTime"   "1"
+        Option  "OffTime"       "0"
+EndSection
+
+I just tried this with xserver-xorg-video-fbdev from Debian/testing on
+N800 and it went perfectly into retention. N810 didn't went and think
+reason is that bootloader enables UART3 for the GPS chip.
+
+Oh my, I always tought there is some magic between Xomap and omapfb how
+the fb clocks are shutdown but lazy me newer bothered to check it from
+kernel sources :-)
+
+
+Jarkko
