@@ -1,111 +1,111 @@
-From: Krishna Kishore <krishna.kishore@sasken.com>
-Subject: RE: DSP/IOMMU needs 128-byte alignment from user-space buffers?
-Date: Thu, 18 Dec 2008 14:14:56 +0530
-Message-ID: <F9F1042FDECC134ABFBF4EC5EBEC88DAA945B8@EXGZ02.sasken.com>
-References: <94a0d4530812170526x51aa7959r52c7583661c5a9da@mail.gmail.com> <8F7AF80515AF0D4D93307E594F3CB40E1A0CFAAB@dlee03.ent.ti.com> <94a0d4530812171320i5d081bedn3c4b6b75875a51c0@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+From: Koen Kooi <k.kooi@student.utwente.nl>
+Subject: Re: [ANNOUNCE] updated PM branch
+Date: Thu, 18 Dec 2008 10:15:50 +0100
+Message-ID: <A6D1DEDA-DBA9-44A6-A879-F26A5C44D3B1@student.utwente.nl>
+References: <87k5a098zd.fsf@deeprootsystems.com> <87myeu1whz.fsf@deeprootsystems.com> <764864D8-4A22-44B9-ABF2-42664AC6583D@student.utwente.nl> <494990DC.5080407@deeprootsystems.com>
+Mime-Version: 1.0 (Apple Message framework v930.3)
+Content-Type: multipart/signed; protocol="application/pgp-signature"; micalg=pgp-sha1; boundary="Apple-Mail-12-28963393"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mta-blr2.sasken.com ([164.164.56.19]:37609 "EHLO
-	mta-blr2.sasken.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751328AbYLRIpA convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 18 Dec 2008 03:45:00 -0500
-Content-Class: urn:content-classes:message
+Received: from smtp2.utsp.utwente.nl ([130.89.2.9]:57568 "EHLO smtp.utwente.nl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751364AbYLRJQF (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 18 Dec 2008 04:16:05 -0500
+In-Reply-To: <494990DC.5080407@deeprootsystems.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Contreras <felipe.contreras@gmail.com>, "Kanigeri, Hari" <h-kanigeri2@ti.com>
-Cc: linux-omap@vger.kernel.org, Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+To: Kevin Hilman <khilman@deeprootsystems.com>
+Cc: "linux-omap@vger.kernel.org List" <linux-omap@vger.kernel.org>
+
+This is an OpenPGP/MIME signed message (RFC 2440 and 3156)
+--Apple-Mail-12-28963393
+Content-Type: text/plain; charset=US-ASCII; format=flowed; delsp=yes
+Content-Transfer-Encoding: 7bit
 
 
-Hi Felipe,
+Op 18 dec 2008, om 00:53 heeft Kevin Hilman het volgende geschreven:
 
->So if I'm understanding correctly there's no problem with unaligned DMM
-buffers if the DSP software is just reading; the >problem is when
-writing data back to ARM.
-
-    If DSP software is just reading, you may have to do cache
-invalidate. This is to 
-enable subsequent read operations get latest data (if ARM has written
-into the buffer).
-So, even in this case, 128 byte alignment is required.
-
-Regards,
-Kishore. 
-
------Original Message-----
-From: linux-omap-owner@vger.kernel.org
-[mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Felipe Contreras
-Sent: Thursday, December 18, 2008 2:51 AM
-To: Kanigeri, Hari
-Cc: linux-omap@vger.kernel.org; Hiroshi DOYU
-Subject: Re: DSP/IOMMU needs 128-byte alignment from user-space buffers?
-
-On Wed, Dec 17, 2008 at 10:37 PM, Kanigeri, Hari <h-kanigeri2@ti.com>
-wrote:
-> Hi Felipe,
+> Koen Kooi wrote:
+>> Op 17 dec 2008, om 19:34 heeft Kevin Hilman het volgende geschreven:
+>>> Kevin Hilman <khilman@deeprootsystems.com> writes:
+>>>
+>>>> The PM branch has been consolidated and rebased against today's
+>>>> linux-omap HEAD.  I've also included a few patches that were  
+>>>> posted to
+>>>> the list that had fallen through the cracks.
+>>>
+>>> I did a couple minor updates to to the pm branch, and rebased it to
+>>> current HEAD.  The updates include
+>>>
+>>> - more patch consolidation
+>>> - VDD2 patch from Rajendra
+>>> - updated IVA2 reset patch which actually works :)
+>>> - included the GPTIMER12 fixes for Beagle
+>>>
+>>> I also tested on Beagle.  Here are some results when using a minimal
+>>> defconfig (attached) and using an initramfs.  I had to disable MMC  
+>>> and
+>>> USB as they are currently preventing the low-level chip retention:
+>>>
+>>> I tested this on the latest PM branch of linux-omap:
+>>>
+>>> - boot idle: 342 mA
+>>>
+>>> - screen blank: 238 mA
+>>> # echo 3 > /sys/class/graphics/fb0/blank
+>>>
+>>> - suspend: 85 mA
+>>> # echo 1 > /sys/power/clocks_off_while_idle
+>>> # echo mem > /sys/power/state
+>>>
+>>> - sleep-while-idle: 85 mA
+>>> - this same state as suspend, but happens in idle
+>>> # echo 1 > /sys/power/sleep_while_idle
+>>>
+>>> This is with current PM branch of linux-omap.  I understand that
+>>> Tomi's new DSS tree has support to turn off the DVI framer which
+>>> should save even more power, but I have not tested that.
+>> Try toggling GPIO 170 manually, current consumption should drop  
+>> with 60-80mA.
 >
->> I received information from TI saying that user-space buffers need to
-
->> be 128-byte aligned for the DSP to work properly.
->>
->> Is this true or is it some kind of limitation on their MMU code that 
->> might be solved by Hiroshi's iommu?
->>
->> This impacts quite drastically user-space applications like GStreamer
-
->> since a memory copy would be required to achieve that 128-byte 
->> alignment.
->>
->> They also claim that adding 128-byte padding at the beginning and at 
->> the end achieves the same purpose.
+> That didn't seem to change anything for me.
 >
-> This is to address the memory corruption that might arise when using
-DMM (Dynamic memory mapping) feature.
-> When the DSP processes data, the DSP cache controller loads 128-Byte
-chunks (lines) from SDRAM and writes the data back in 128-Byte chunks.
-If a DMM buffer does not start and end on a 128-Byte boundary, the data
-preceding the start address from the 128-Byte boundary to the Start
-Address and the data at addresses trailing the end address from the End
-Address to the next 128-Byte boundary will be loaded and written back as
-well. If the DMM buffer was allocated on the heap of a process running
-on the ARM, the preceding and trailing data, if modified by the ARM (or
-other non-DSP entity) during DSP processing, will be overwritten by the
-DSP cache controller, when the 128-Byte chunks are written back to
-SDRAM. This can lead to heap corruption.
+> Looking closer, drivers/video/omap/lcd_omap3beagle.c is already  
+> toggling
+> GPIO 170 in current linux-omap.
 
-Thanks for the explanation. So it doesn't have anything to do with
-IOMMU; it's the software running on the DSP that has this limitation.
+Ah, so I did a better job with copy/pasting together the lcd driver  
+than I thought :)
 
-> I think if you request the buffer from OMX component, this issue will
-be taken as there is an additional 256 bytes padding.
+>  So the ~80mA drop above between 'boot idle' and 'screen blank' is  
+> probably already counting the DVI framer.
 
-Yes, but in that case a memcpy would be unavoidable in many cases, like
-trying to render the result of video decoding on Xv. If the Xv buffer is
-unaligned; a dedicated DMM would need to be allocated, and then the data
-coming from DSP would need to be copied to the Xv buffer. That has a
-huge performance penalty.
+I suspected  the 80mA drop was a bit much for just putting the DSS  
+system into sleep, hence my gpio suggestion :) Thanks for confirming it.
 
-So if I'm understanding correctly there's no problem with unaligned DMM
-buffers if the DSP software is just reading; the problem is when writing
-data back to ARM.
+regards,
 
---
-Felipe Contreras
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-the body of a message to majordomo@vger.kernel.org More majordomo info
-at  http://vger.kernel.org/majordomo-info.html
-SASKEN BUSINESS DISCLAIMER
--------------------------
-This message may contain confidential, proprietary or legally privileged information. In 
-case you are not the original intended Recipient of the message, you must not, directly or 
-indirectly, use, Disclose, distribute, print, or copy any part of this message and you are 
-requested to delete it and inform the sender. Any views expressed in this message are 
-those of the individual sender unless otherwise stated. Nothing contained in this message 
-shall be construed as an offer or acceptance of any offer by Sasken Communication 
-Technologies Limited ("Sasken") unless sent with that express intent and with due 
-authority of Sasken. Sasken has taken enough precautions to prevent the spread of 
-viruses. However the company accepts no liability for any damage caused by any virus 
-transmitted by this email
+Koen
 
+>
+>
+> Kevin
+>
+
+
+--Apple-Mail-12-28963393
+content-type: application/pgp-signature; x-mac-type=70674453;
+	name=PGP.sig
+content-description: Dit deel van het bericht is digitaal ondertekend
+content-disposition: inline; filename=PGP.sig
+content-transfer-encoding: 7bit
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.5 (Darwin)
+
+iD8DBQFJShTIMkyGM64RGpERApLsAJ9Xs3RSKO114dCocfxsLIS2n2ipDACffmYo
+rBsBUdXO8S+vNHxacTP0ULQ=
+=0Rma
+-----END PGP SIGNATURE-----
+
+--Apple-Mail-12-28963393--
