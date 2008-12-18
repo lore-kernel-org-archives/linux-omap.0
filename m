@@ -1,39 +1,111 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: OMAP3: DVFS core patch set
-Date: Thu, 18 Dec 2008 01:22:27 -0700 (MST)
-Message-ID: <alpine.DEB.2.00.0812180115130.24916@utopia.booyaka.com>
-References: <> <1229010762-3150-1-git-send-email-tero.kristo@nokia.com> <alpine.DEB.2.00.0812111831360.26754@utopia.booyaka.com>
+From: Krishna Kishore <krishna.kishore@sasken.com>
+Subject: RE: DSP/IOMMU needs 128-byte alignment from user-space buffers?
+Date: Thu, 18 Dec 2008 14:14:56 +0530
+Message-ID: <F9F1042FDECC134ABFBF4EC5EBEC88DAA945B8@EXGZ02.sasken.com>
+References: <94a0d4530812170526x51aa7959r52c7583661c5a9da@mail.gmail.com> <8F7AF80515AF0D4D93307E594F3CB40E1A0CFAAB@dlee03.ent.ti.com> <94a0d4530812171320i5d081bedn3c4b6b75875a51c0@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:54549 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750940AbYLRIW3 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 18 Dec 2008 03:22:29 -0500
-In-Reply-To: <alpine.DEB.2.00.0812111831360.26754@utopia.booyaka.com>
+Received: from mta-blr2.sasken.com ([164.164.56.19]:37609 "EHLO
+	mta-blr2.sasken.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751328AbYLRIpA convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 18 Dec 2008 03:45:00 -0500
+Content-Class: urn:content-classes:message
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Tero Kristo <tero.kristo@nokia.com>, peter.de-schrijver@nokia.com
+To: Felipe Contreras <felipe.contreras@gmail.com>, "Kanigeri, Hari" <h-kanigeri2@ti.com>
+Cc: linux-omap@vger.kernel.org, Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
 
 
-a quick followup on this:
+Hi Felipe,
 
-On Thu, 11 Dec 2008, Paul Walmsley wrote:
+>So if I'm understanding correctly there's no problem with unaligned DMM
+buffers if the DSP software is just reading; the >problem is when
+writing data back to ARM.
 
-> With voltage change:
-> MPU @  83MHz: 130 ticks (3.97 ms) worst-case
+    If DSP software is just reading, you may have to do cache
+invalidate. This is to 
+enable subsequent read operations get latest data (if ARM has written
+into the buffer).
+So, even in this case, 128 byte alignment is required.
 
-It recently occurred to me that part of this 130 tick time is due to the 
-udelay()s in the SmartReflex code.  My test code did not update 
-loops_per_jiffy when it did the MPU rate, so the udelay()s there would 
-loop for longer than they should.  So that needs to be fixed and 
-re-measured.
+Regards,
+Kishore. 
 
-Presumably further improvements would be gained by converting 
-sr_voltagescale_vcbypass() to be interrupt-driven, rather than polling for 
-the voltage change to complete.  That should reduce the CORE DVFS 
-time further.
+-----Original Message-----
+From: linux-omap-owner@vger.kernel.org
+[mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Felipe Contreras
+Sent: Thursday, December 18, 2008 2:51 AM
+To: Kanigeri, Hari
+Cc: linux-omap@vger.kernel.org; Hiroshi DOYU
+Subject: Re: DSP/IOMMU needs 128-byte alignment from user-space buffers?
 
+On Wed, Dec 17, 2008 at 10:37 PM, Kanigeri, Hari <h-kanigeri2@ti.com>
+wrote:
+> Hi Felipe,
+>
+>> I received information from TI saying that user-space buffers need to
 
-- Paul
+>> be 128-byte aligned for the DSP to work properly.
+>>
+>> Is this true or is it some kind of limitation on their MMU code that 
+>> might be solved by Hiroshi's iommu?
+>>
+>> This impacts quite drastically user-space applications like GStreamer
+
+>> since a memory copy would be required to achieve that 128-byte 
+>> alignment.
+>>
+>> They also claim that adding 128-byte padding at the beginning and at 
+>> the end achieves the same purpose.
+>
+> This is to address the memory corruption that might arise when using
+DMM (Dynamic memory mapping) feature.
+> When the DSP processes data, the DSP cache controller loads 128-Byte
+chunks (lines) from SDRAM and writes the data back in 128-Byte chunks.
+If a DMM buffer does not start and end on a 128-Byte boundary, the data
+preceding the start address from the 128-Byte boundary to the Start
+Address and the data at addresses trailing the end address from the End
+Address to the next 128-Byte boundary will be loaded and written back as
+well. If the DMM buffer was allocated on the heap of a process running
+on the ARM, the preceding and trailing data, if modified by the ARM (or
+other non-DSP entity) during DSP processing, will be overwritten by the
+DSP cache controller, when the 128-Byte chunks are written back to
+SDRAM. This can lead to heap corruption.
+
+Thanks for the explanation. So it doesn't have anything to do with
+IOMMU; it's the software running on the DSP that has this limitation.
+
+> I think if you request the buffer from OMX component, this issue will
+be taken as there is an additional 256 bytes padding.
+
+Yes, but in that case a memcpy would be unavoidable in many cases, like
+trying to render the result of video decoding on Xv. If the Xv buffer is
+unaligned; a dedicated DMM would need to be allocated, and then the data
+coming from DSP would need to be copied to the Xv buffer. That has a
+huge performance penalty.
+
+So if I'm understanding correctly there's no problem with unaligned DMM
+buffers if the DSP software is just reading; the problem is when writing
+data back to ARM.
+
+--
+Felipe Contreras
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+the body of a message to majordomo@vger.kernel.org More majordomo info
+at  http://vger.kernel.org/majordomo-info.html
+SASKEN BUSINESS DISCLAIMER
+-------------------------
+This message may contain confidential, proprietary or legally privileged information. In 
+case you are not the original intended Recipient of the message, you must not, directly or 
+indirectly, use, Disclose, distribute, print, or copy any part of this message and you are 
+requested to delete it and inform the sender. Any views expressed in this message are 
+those of the individual sender unless otherwise stated. Nothing contained in this message 
+shall be construed as an offer or acceptance of any offer by Sasken Communication 
+Technologies Limited ("Sasken") unless sent with that express intent and with due 
+authority of Sasken. Sasken has taken enough precautions to prevent the spread of 
+viruses. However the company accepts no liability for any damage caused by any virus 
+transmitted by this email
+
