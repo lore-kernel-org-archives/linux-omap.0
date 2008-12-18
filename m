@@ -1,28 +1,200 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [ANNOUNCE] updated PM branch
-Date: Thu, 18 Dec 2008 02:52:04 -0700 (MST)
-Message-ID: <alpine.DEB.2.00.0812180251160.24916@utopia.booyaka.com>
-References: <87k5a098zd.fsf@deeprootsystems.com> <87myeu1whz.fsf@deeprootsystems.com> <764864D8-4A22-44B9-ABF2-42664AC6583D@student.utwente.nl> <494990DC.5080407@deeprootsystems.com> <A6D1DEDA-DBA9-44A6-A879-F26A5C44D3B1@student.utwente.nl>
+From: <Tero.Kristo@nokia.com>
+Subject: RE: [PATCH] OMAP3: Add support for DPLL3 divisor values higher than 2
+Date: Thu, 18 Dec 2008 12:11:51 +0200
+Message-ID: <B71CE868F2BC2847B3F23C5A8EE39430F129ED@vaebe110.NOE.Nokia.com>
+References: <1229013366-23320-1-git-send-email-tero.kristo@nokia.com> <874p15b61j.fsf@deeprootsystems.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:34464 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752003AbYLRJwG (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 18 Dec 2008 04:52:06 -0500
-In-Reply-To: <A6D1DEDA-DBA9-44A6-A879-F26A5C44D3B1@student.utwente.nl>
+Received: from smtp.nokia.com ([192.100.105.134]:32248 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751380AbYLRKMV convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 18 Dec 2008 05:12:21 -0500
+Content-class: urn:content-classes:message
+In-Reply-To: <874p15b61j.fsf@deeprootsystems.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Koen Kooi <k.kooi@student.utwente.nl>
-Cc: Kevin Hilman <khilman@deeprootsystems.com>, "linux-omap@vger.kernel.org List" <linux-omap@vger.kernel.org>
+To: khilman@deeprootsystems.com
+Cc: linux-omap@vger.kernel.org
 
-On Thu, 18 Dec 2008, Koen Kooi wrote:
+Hi Kevin,
 
-> I suspected  the 80mA drop was a bit much for just putting the DSS system into
-> sleep, hence my gpio suggestion :) Thanks for confirming it.
-
-The next interesting question for Beagle is: what else could be consuming 
-the 80mA, if not the DVI framer?
+Sorry I was on a sick leave so could not reply to this.
 
 
-- Paul
+>Tero Kristo <tero.kristo@nokia.com> writes:
+>
+>> Previously only 1 and 2 was supported. This is needed for 
+>DVFS VDD2 control.
+>>
+>
+>Tero,
+>
+>What is this patch against?  It doesn't apply to current PM 
+>branch, current l-o HEAD or on top of you DVFS patchset.
+
+This patch was intended to replace:
+
+[PATCH 20/23] OMAP3: Add support for DPLL3 divisor values higher than 2
+
+...from the core dvfs patch set.
+
+-Tero
+
+>
+>Kevin
+>
+>> Signed-off-by: Tero Kristo <tero.kristo@nokia.com>
+>> ---
+>>  arch/arm/mach-omap2/clock34xx.c        |    9 +++------
+>>  arch/arm/mach-omap2/sram34xx.S         |    8 +++++---
+>>  arch/arm/plat-omap/include/mach/sram.h |    7 +++++--
+>>  arch/arm/plat-omap/sram.c              |    6 +++---
+>>  4 files changed, 16 insertions(+), 14 deletions(-)
+>>
+>> diff --git a/arch/arm/mach-omap2/clock34xx.c 
+>> b/arch/arm/mach-omap2/clock34xx.c index d6d4b46..b38cb30 100644
+>> --- a/arch/arm/mach-omap2/clock34xx.c
+>> +++ b/arch/arm/mach-omap2/clock34xx.c
+>> @@ -516,9 +516,9 @@ static int 
+>omap3_core_dpll_m2_set_rate(struct clk 
+>> *clk, unsigned long rate)
+>>  
+>>  	sdrcrate = sdrc_ick.rate;
+>>  	if (rate > clk->rate)
+>> -		sdrcrate <<= ((rate / clk->rate) - 1);
+>> +		sdrcrate <<= ((rate / clk->rate) >> 1);
+>>  	else
+>> -		sdrcrate >>= ((clk->rate / rate) - 1);
+>> +		sdrcrate >>= ((clk->rate / rate) >> 1);
+>>  
+>>  	sp = omap2_sdrc_get_params(sdrcrate);
+>>  	if (!sp)
+>> @@ -545,13 +545,10 @@ static int 
+>omap3_core_dpll_m2_set_rate(struct clk *clk, unsigned long rate)
+>>  	pr_debug("clock: SDRC timing params used: %08x %08x %08x\n",
+>>  		 sp->rfr_ctrl, sp->actim_ctrla, sp->actim_ctrlb);
+>>  
+>> -	/* REVISIT: SRAM code doesn't support other M2 divisors yet */
+>> -	WARN_ON(new_div != 1 && new_div != 2);
+>> -
+>>  	local_irq_disable();
+>>  	omap3_configure_core_dpll(sp->rfr_ctrl, sp->actim_ctrla,
+>>  				  sp->actim_ctrlb, new_div, 
+>unlock_dll, c,
+>> -				  sp->mr);
+>> +				  sp->mr, rate > clk->rate);
+>>  	local_irq_enable();
+>>  
+>>  	omap2_clksel_recalc(clk);
+>> diff --git a/arch/arm/mach-omap2/sram34xx.S 
+>> b/arch/arm/mach-omap2/sram34xx.S index 16eb4ef..487fa86 100644
+>> --- a/arch/arm/mach-omap2/sram34xx.S
+>> +++ b/arch/arm/mach-omap2/sram34xx.S
+>> @@ -70,6 +70,7 @@
+>>   * r5 = number of MPU cycles to wait for SDRC to stabilize after
+>>   *      reprogramming the SDRC when switching to a slower MPU speed
+>>   * r6 = new SDRC_MR_0 register value
+>> + * r7 = increasing SDRC rate? (1 = yes, 0 = no)
+>>   *
+>>   */
+>>  ENTRY(omap3_sram_configure_core_dpll)
+>> @@ -77,9 +78,10 @@ ENTRY(omap3_sram_configure_core_dpll)
+>>  	ldr	r4, [sp, #52]		@ pull extra args off the stack
+>>  	ldr	r5, [sp, #56]		@ load extra args from the stack
+>>  	ldr	r6, [sp, #60]		@ load extra args from the stack
+>> +	ldr	r7, [sp, #64]		@ load extra args from the stack
+>>  	dsb				@ flush buffered writes 
+>to interconnect
+>> -	cmp	r3, #0x2		@ if increasing SDRC clk rate,
+>> -	blne	configure_sdrc		@ program the SDRC regs 
+>early (for RFR)
+>> +	cmp	r7, #1			@ if increasing SDRC clk rate,
+>> +	bleq	configure_sdrc		@ program the SDRC regs 
+>early (for RFR)
+>>  	cmp	r4, #SDRC_UNLOCK_DLL	@ set the intended DLL state
+>>  	bleq	unlock_dll
+>>  	blne	lock_dll
+>> @@ -89,7 +91,7 @@ ENTRY(omap3_sram_configure_core_dpll)
+>>  	cmp	r4, #SDRC_UNLOCK_DLL	@ wait for DLL status to change
+>>  	bleq	wait_dll_unlock
+>>  	blne	wait_dll_lock
+>> -	cmp	r3, #0x1		@ if increasing SDRC clk rate,
+>> +	cmp	r7, #1			@ if increasing SDRC clk rate,
+>>  	beq	return_to_sdram		@ return to SDRAM code, 
+>otherwise,
+>>  	bl	configure_sdrc		@ reprogram SDRC regs now
+>>  	mov	r12, r5
+>> diff --git a/arch/arm/plat-omap/include/mach/sram.h 
+>> b/arch/arm/plat-omap/include/mach/sram.h
+>> index d07da3b..ad0a600 100644
+>> --- a/arch/arm/plat-omap/include/mach/sram.h
+>> +++ b/arch/arm/plat-omap/include/mach/sram.h
+>> @@ -24,7 +24,8 @@ extern u32 omap2_set_prcm(u32 dpll_ctrl_val, u32 
+>> sdrc_rfr_val, int bypass);  extern u32 
+>omap3_configure_core_dpll(u32 sdrc_rfr_ctrl,
+>>  				     u32 sdrc_actim_ctrla,
+>>  				     u32 sdrc_actim_ctrlb, u32 m2,
+>> -				     u32 unlock_dll, u32 f, u32 
+>sdrc_mr);
+>> +				     u32 unlock_dll, u32 f, u32 sdrc_mr,
+>> +				     u32 inc);
+>>  extern void omap3_sram_restore_context(void);
+>>  
+>>  /* Do not use these */
+>> @@ -62,7 +63,9 @@ extern unsigned long 
+>> omap243x_sram_reprogram_sdrc_sz;
+>>  
+>>  extern u32 omap3_sram_configure_core_dpll(u32 sdrc_rfr_ctrl,
+>>  					  u32 sdrc_actim_ctrla,
+>> -					  u32 sdrc_actim_ctrlb, u32 m2);
+>> +					  u32 sdrc_actim_ctrlb, u32 m2,
+>> +					  u32 unlock_dll, u32 
+>f, u32 sdrc_mr,
+>> +					  u32 inc);
+>>  extern unsigned long omap3_sram_configure_core_dpll_sz;
+>>  
+>>  #ifdef CONFIG_PM
+>> diff --git a/arch/arm/plat-omap/sram.c b/arch/arm/plat-omap/sram.c 
+>> index 68a1f69..9f6232f 100644
+>> --- a/arch/arm/plat-omap/sram.c
+>> +++ b/arch/arm/plat-omap/sram.c
+>> @@ -372,10 +372,10 @@ static u32 
+>(*_omap3_sram_configure_core_dpll)(u32 sdrc_rfr_ctrl,
+>>  					      u32 sdrc_actim_ctrla,
+>>  					      u32 sdrc_actim_ctrlb,
+>>  					      u32 m2, u32 unlock_dll,
+>> -					      u32 f, u32 sdrc_mr);
+>> +					      u32 f, u32 
+>sdrc_mr, u32 inc);
+>>  u32 omap3_configure_core_dpll(u32 sdrc_rfr_ctrl, u32 
+>sdrc_actim_ctrla,
+>>  			      u32 sdrc_actim_ctrlb, u32 m2, u32 
+>unlock_dll,
+>> -			      u32 f, u32 sdrc_mr)
+>> +			      u32 f, u32 sdrc_mr, u32 inc)
+>>   {
+>>  	if (!_omap3_sram_configure_core_dpll)
+>>  		omap_sram_error();
+>> @@ -383,7 +383,7 @@ u32 omap3_configure_core_dpll(u32 
+>sdrc_rfr_ctrl, u32 sdrc_actim_ctrla,
+>>  	return _omap3_sram_configure_core_dpll(sdrc_rfr_ctrl,
+>>  					       sdrc_actim_ctrla,
+>>  					       sdrc_actim_ctrlb, m2,
+>> -					       unlock_dll, f, sdrc_mr);
+>> +					       unlock_dll, f, 
+>sdrc_mr, inc);
+>>   }
+>>  
+>>  #ifdef CONFIG_PM
+>> --
+>> 1.5.4.3
+>>
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe 
+>linux-omap" 
+>> in the body of a message to majordomo@vger.kernel.org More majordomo 
+>> info at  http://vger.kernel.org/majordomo-info.html
+>
