@@ -1,169 +1,411 @@
-From: Jean Pihet <jpihet@mvista.com>
-Subject: [PATCH] OMAP: MMC: recover from transfer failures
-Date: Fri, 19 Dec 2008 10:06:49 +0100
-Message-ID: <200812191006.49370.jpihet@mvista.com>
-References: <200812161957.37854.jpihet@mvista.com>
+From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+Subject: RE: [REVIEW PATCH 14/14] OMAP34XX: CAM: Add Sensors Support
+Date: Fri, 19 Dec 2008 15:45:43 +0530
+Message-ID: <19F8576C6E063C45BE387C64729E739403ECE3B4C6@dbde02.ent.ti.com>
+References: <A24693684029E5489D1D202277BE894415E6E1A5@dlee02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: Multipart/Mixed;
-  boundary="Boundary-00=_pQ2SJ20jo0V0lpd"
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from gateway-1237.mvista.com ([63.81.120.158]:23722 "EHLO
-	gateway-1237.mvista.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752162AbYLSJGx (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 19 Dec 2008 04:06:53 -0500
-Received: from ip6-localhost (asshur.mvista.com [10.0.0.11])
-	by hermes.mvista.com (Postfix) with ESMTP id BD58818850
-	for <linux-omap@vger.kernel.org>; Fri, 19 Dec 2008 01:06:52 -0800 (PST)
-In-Reply-To: <200812161957.37854.jpihet@mvista.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:39068 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751421AbYLSKRX convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 19 Dec 2008 05:17:23 -0500
+In-Reply-To: <A24693684029E5489D1D202277BE894415E6E1A5@dlee02.ent.ti.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-
---Boundary-00=_pQ2SJ20jo0V0lpd
-Content-Type: text/plain;
-  charset="utf-8"
-Content-Transfer-Encoding: base64
-Content-Disposition: inline
-
-SGksCgpIZXJlIGlzIGEgcGF0Y2ggdGhhdCBmaXhlcyBhIE1NQyBob3N0IGNvbnRyb2xsZXIgZGVh
-ZGxvY2suIFRoZSBwcm9ibGVtIGhhcHBlbnMgCndoZW4gcmVtb3ZpbmcgdGhlIE1NQy9TRCBkZXZp
-Y2Ugd2hlbiBhIHRyYW5zZmVyIGlzIG9uLWdvaW5nLgoKSXQgaGFzIGJlZW4gdGVzdGVkIG9uIE9N
-QVAzNDMwIGJ1dCB0aGlzIGZpeCBzaG91bGQgYXBwbHkgdG8gT01BUDIgY2hpcHMgYXMgCndlbGws
-IGFzIHNlZW4gZnJvbSB0aGUgVFJNcy4KCsKgIMKgIE9NQVA6IE1NQzogcmVjb3ZlciBmcm9tIHRy
-YW5zZmVyIGZhaWx1cmVzCgrCoCDCoCBUaW1lb3V0cyBkdXJpbmcgYSBjb21tYW5kIHRoYXQgaGFz
-IGEgZGF0YSBwaGFzZSBjYW4gcmVzdWx0IGluIHRoZQrCoCDCoCBuZXh0IGNvbW1hbmQgaXNzdWVk
-IGFmdGVyIHRoZSBjb21tYW5kIHRoYXQgZmFpbGVkIG5vdCBiZWluZyBwcm9jZXNzZWQsCsKgIMKg
-IGkuZS4gbm8gaW50ZXJydXB0IGV2ZXIgb2NjdXJzIHRvIGluZGljYXRlIHRoZSBjb21tYW5kIGhh
-cyBjb21wbGV0ZWQuCsKgIMKgIFRoaXMgZmFpbHVyZSBjYW4gcmVzdWx0IGluIGEgZGVhZGxvY2su
-CgrCoCDCoCBUaGUgaW5kaWNhdGlvbiB0aGF0IHRoZSBtbWMgaG9zdCBjb250cm9sbGVyIGlzIGlu
-IHRoaXMgZXJyb3Igc3RhdGUgaXMKwqAgwqAgdGhhdCB0aGUgREFUSSBiaXQgaXMgc2V0IGluIHRo
-ZSBQU1RBVEUgcmVnaXN0ZXIuIMKgVGhpcyBwYXRjaCBjaGVja3MKwqAgwqAgdG8gc2VlIGlmIHRo
-ZSBEQVRJIGJpdCBpcyBzZXQgYmVmb3JlIHN0YXJ0aW5nIGEgbmV3IGNvbW1hbmQsIGFuZCBpZiBp
-dArCoCDCoCBpcyBzZXQgaXQgcmVzZXRzIHRoZSBkYXRhIHN0YXRlIG1hY2hpbmUgdG8gY2xlYXIg
-dGhlIGVycm9yLgoKwqAgwqAgVGVzdGVkIG9uIE9NQVAzNDMwIGNoaXAgYW5kIGludGVuc2l2ZSBN
-TUMvU0QgZGV2aWNlIHJlbW92YWwgd2hpbGUKwqAgwqAgdHJhbnNmZXJyaW5nIGRhdGEuCgpSZWdh
-cmRzLApKZWFuCgoKRnJvbSA0OGE0MDkyNWE0ZDU3ZjZlN2U0NTgwOWE0YjVjMDliMjBmOTMxNGQ3
-IE1vbiBTZXAgMTcgMDA6MDA6MDAgMjAwMQpGcm9tOiBKZWFuIFBpaGV0IDxqcGloZXRAbXZpc3Rh
-LmNvbT4KRGF0ZTogVHVlLCAxNiBEZWMgMjAwOCAxOTo0NDoxMiArMDEwMApTdWJqZWN0OiBbUEFU
-Q0hdIE9NQVA6IE1NQzogcmVjb3ZlciBmcm9tIHRyYW5zZmVyIGZhaWx1cmVzCgpUaW1lb3V0cyBk
-dXJpbmcgYSBjb21tYW5kIHRoYXQgaGFzIGEgZGF0YSBwaGFzZSBjYW4gcmVzdWx0IGluIHRoZQpu
-ZXh0IGNvbW1hbmQgaXNzdWVkIGFmdGVyIHRoZSBjb21tYW5kIHRoYXQgZmFpbGVkIG5vdCBiZWlu
-ZyBwcm9jZXNzZWQsCmkuZS4gbm8gaW50ZXJydXB0IGV2ZXIgb2NjdXJzIHRvIGluZGljYXRlIHRo
-ZSBjb21tYW5kIGhhcyBjb21wbGV0ZWQuClRoaXMgZmFpbHVyZSBjYW4gcmVzdWx0IGluIGEgZGVh
-ZGxvY2suCgpUaGUgaW5kaWNhdGlvbiB0aGF0IHRoZSBtbWMgaG9zdCBjb250cm9sbGVyIGlzIGlu
-IHRoaXMgZXJyb3Igc3RhdGUgaXMKdGhhdCB0aGUgREFUSSBiaXQgaXMgc2V0IGluIHRoZSBQU1RB
-VEUgcmVnaXN0ZXIuIMKgVGhpcyBwYXRjaCBjaGVja3MKdG8gc2VlIGlmIHRoZSBEQVRJIGJpdCBp
-cyBzZXQgYmVmb3JlIHN0YXJ0aW5nIGEgbmV3IGNvbW1hbmQsIGFuZCBpZiBpdAppcyBzZXQgaXQg
-cmVzZXRzIHRoZSBkYXRhIHN0YXRlIG1hY2hpbmUgdG8gY2xlYXIgdGhlIGVycm9yLgoKVGVzdGVk
-IG9uIE9NQVAzNDMwIGNoaXAgYW5kIGludGVuc2l2ZSBNTUMvU0QgZGV2aWNlIHJlbW92YWwgd2hp
-bGUKdHJhbnNmZXJyaW5nIGRhdGEuCgpTaWduZWQtb2ZmLWJ5OiBBbmR5IExvd2UgPGFsb3dlQG12
-aXN0YS5jb20+ClNpZ25lZC1vZmYtYnk6IEplYW4gUGloZXQgPGpwaWhldEBtdmlzdGEuY29tPgot
-LS0KwqBkcml2ZXJzL21tYy9ob3N0L29tYXBfaHNtbWMuYyB8IMKgIDExICsrKysrKysrKysrCsKg
-MSBmaWxlcyBjaGFuZ2VkLCAxMSBpbnNlcnRpb25zKCspLCAwIGRlbGV0aW9ucygtKQoKZGlmZiAt
-LWdpdCBhL2RyaXZlcnMvbW1jL2hvc3Qvb21hcF9oc21tYy5jIGIvZHJpdmVycy9tbWMvaG9zdC9v
-bWFwX2hzbW1jLmMKaW5kZXggMWZjYzU0NC4uYjdkMTExZSAxMDA2NDQKLS0tIGEvZHJpdmVycy9t
-bWMvaG9zdC9vbWFwX2hzbW1jLmMKKysrIGIvZHJpdmVycy9tbWMvaG9zdC9vbWFwX2hzbW1jLmMK
-QEAgLTQ0LDYgKzQ0LDcgQEAKwqAjZGVmaW5lIE9NQVBfSFNNTUNfUlNQNTTCoMKgwqDCoMKgwqDC
-oDB4MDExOArCoCNkZWZpbmUgT01BUF9IU01NQ19SU1A3NsKgwqDCoMKgwqDCoMKgMHgwMTFDCsKg
-I2RlZmluZSBPTUFQX0hTTU1DX0RBVEHCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoDB4
-MDEyMAorI2RlZmluZSBPTUFQX0hTTU1DX1BTVEFURcKgwqDCoMKgwqDCoDB4MDEyNArCoCNkZWZp
-bmUgT01BUF9IU01NQ19IQ1RMwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqAweDAxMjgK
-wqAjZGVmaW5lIE9NQVBfSFNNTUNfU1lTQ1RMwqDCoMKgwqDCoMKgMHgwMTJDCsKgI2RlZmluZSBP
-TUFQX0hTTU1DX1NUQVTCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoDB4MDEzMApAQCAt
-ODksNiArOTAsNyBAQArCoCNkZWZpbmUgRFVBTF9WT0xUX09DUl9CSVTCoMKgwqDCoMKgwqA3CsKg
-I2RlZmluZSBTUkPCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgKDEgPDwg
-MjUpCsKgI2RlZmluZSBTUkTCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKg
-KDEgPDwgMjYpCisjZGVmaW5lIERBVEnCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKg
-wqDCoCgxIDw8IDEpCsKgCsKgLyoKwqAgKiBGSVhNRTogTW9zdCBsaWtlbHkgYWxsIHRoZSBkYXRh
-IHVzaW5nIHRoZXNlIF9ERVZJRCBkZWZpbmVzIHNob3VsZCBjb21lCkBAIC0yNzMsNiArMjc1LDE1
-IEBAIG1tY19vbWFwX3N0YXJ0X2NvbW1hbmQoc3RydWN0IG1tY19vbWFwX2hvc3QgKmhvc3QsIHN0
-cnVjdCAKbW1jX2NvbW1hbmQgKmNtZCwKwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqBt
-bWNfaG9zdG5hbWUoaG9zdC0+bW1jKSwgY21kLT5vcGNvZGUsIGNtZC0+YXJnKTsKwqDCoMKgwqDC
-oMKgwqDCoGhvc3QtPmNtZCA9IGNtZDsKwqAKK8KgwqDCoMKgwqDCoMKgaWYgKE9NQVBfSFNNTUNf
-UkVBRChob3N0LT5iYXNlLCBQU1RBVEUpICYgREFUSSkgeworwqDCoMKgwqDCoMKgwqDCoMKgwqDC
-oMKgwqDCoMKgZGV2X2RiZyhtbWNfZGV2KGhvc3QtPm1tYyksICJtbWNfb21hcF9zdGFydF9jb21t
-YW5kOiAiCivCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgIiBy
-ZXNldHRpbmcgZGF0YSBzdGF0ZSBtYWNoaW5lXG4iKTsKK8KgwqDCoMKgwqDCoMKgwqDCoMKgwqDC
-oMKgwqDCoE9NQVBfSFNNTUNfV1JJVEUoaG9zdC0+YmFzZSwgU1lTQ1RMLAorwqDCoMKgwqDCoMKg
-wqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoE9NQVBfSFNNTUNfUkVBRChob3N0LT5i
-YXNlLCBTWVNDVEwpIHwgU1JEKTsKK8KgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoHdoaWxl
-IChPTUFQX0hTTU1DX1JFQUQoaG9zdC0+YmFzZSwgU1lTQ1RMKSAmIFNSRCkKK8KgwqDCoMKgwqDC
-oMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqA7CivCoMKgwqDCoMKgwqDCoH0KKwrC
-oMKgwqDCoMKgwqDCoMKgLyoKwqDCoMKgwqDCoMKgwqDCoCAqIENsZWFyIHN0YXR1cyBiaXRzIGFu
-ZCBlbmFibGUgaW50ZXJydXB0cwrCoMKgwqDCoMKgwqDCoMKgICovCi0tIAoxLjUuNC40LjIxLmdj
-NGE2YwoKCg==
-
---Boundary-00=_pQ2SJ20jo0V0lpd
-Content-Type: text/x-diff;
-  charset="iso 8859-15";
-  name="OMAP-MMC-recover-from-transfer-failures.patch"
-Content-Transfer-Encoding: quoted-printable
-Content-Disposition: attachment;
-	filename="OMAP-MMC-recover-from-transfer-failures.patch"
-
-=46rom 48a40925a4d57f6e7e45809a4b5c09b20f9314d7 Mon Sep 17 00:00:00 2001
-=46rom: Jean Pihet <jpihet@mvista.com>
-Date: Tue, 16 Dec 2008 19:44:12 +0100
-Subject: [PATCH] OMAP: MMC: recover from transfer failures
-
-Timeouts during a command that has a data phase can result in the
-next command issued after the command that failed not being processed,
-i.e. no interrupt ever occurs to indicate the command has completed.
-This failure can result in a deadlock.
-
-The indication that the mmc host controller is in this error state is
-that the DATI bit is set in the PSTATE register.  This patch checks
-to see if the DATI bit is set before starting a new command, and if it
-is set it resets the data state machine to clear the error.
-
-Tested on OMAP3430 chip and intensive MMC/SD device removal while
-transferring data.
-
-Signed-off-by: Andy Lowe <alowe@mvista.com>
-Signed-off-by: Jean Pihet <jpihet@mvista.com>
-=2D--
- drivers/mmc/host/omap_hsmmc.c |   11 +++++++++++
- 1 files changed, 11 insertions(+), 0 deletions(-)
-
-diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
-index 1fcc544..b7d111e 100644
-=2D-- a/drivers/mmc/host/omap_hsmmc.c
-+++ b/drivers/mmc/host/omap_hsmmc.c
-@@ -44,6 +44,7 @@
- #define OMAP_HSMMC_RSP54	0x0118
- #define OMAP_HSMMC_RSP76	0x011C
- #define OMAP_HSMMC_DATA		0x0120
-+#define OMAP_HSMMC_PSTATE	0x0124
- #define OMAP_HSMMC_HCTL		0x0128
- #define OMAP_HSMMC_SYSCTL	0x012C
- #define OMAP_HSMMC_STAT		0x0130
-@@ -89,6 +90,7 @@
- #define DUAL_VOLT_OCR_BIT	7
- #define SRC			(1 << 25)
- #define SRD			(1 << 26)
-+#define DATI			(1 << 1)
-=20
- /*
-  * FIXME: Most likely all the data using these _DEVID defines should come
-@@ -273,6 +275,15 @@ mmc_omap_start_command(struct mmc_omap_host *host, str=
-uct mmc_command *cmd,
- 		mmc_hostname(host->mmc), cmd->opcode, cmd->arg);
- 	host->cmd =3D cmd;
-=20
-+	if (OMAP_HSMMC_READ(host->base, PSTATE) & DATI) {
-+		dev_dbg(mmc_dev(host->mmc), "mmc_omap_start_command: "
-+			" resetting data state machine\n");
-+		OMAP_HSMMC_WRITE(host->base, SYSCTL,
-+			OMAP_HSMMC_READ(host->base, SYSCTL) | SRD);
-+		while (OMAP_HSMMC_READ(host->base, SYSCTL) & SRD)
-+			;
-+	}
-+
- 	/*
- 	 * Clear status bits and enable interrupts
- 	 */
-=2D-=20
-1.5.4.4.21.gc4a6c
+To: "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "video4linux-list@redhat.com" <video4linux-list@redhat.com>
+Cc: Sakari Ailus <sakari.ailus@nokia.com>, "Tuukka.O Toivonen" <tuukka.o.toivonen@nokia.com>, "Nagalla, Hari" <hnagalla@ti.com>
 
 
---Boundary-00=_pQ2SJ20jo0V0lpd--
+
+Thanks,
+Vaibhav Hiremath
+
+> -----Original Message-----
+> From: Aguirre Rodriguez, Sergio Alberto
+> Sent: Friday, December 12, 2008 2:09 AM
+> To: linux-omap@vger.kernel.org; video4linux-list@redhat.com
+> Cc: Sakari Ailus; Tuukka.O Toivonen; Hiremath, Vaibhav; Nagalla,
+> Hari
+> Subject: [REVIEW PATCH 14/14] OMAP34XX: CAM: Add Sensors Support
+> 
+> From 4fa46d05b1ecb83ccf2dd1c158ecba70dafc5888 Mon Sep 17 00:00:00
+> 2001
+> From: Sergio Aguirre <saaguirre@ti.com>
+> Date: Thu, 11 Dec 2008 13:42:51 -0600
+> Subject: [PATCH] OMAP34XX: CAM: Add Sensors Support
+> 
+> This adds support in OMAP34xx SDP board file for Sensor and Lens
+> driver.
+> 
+> Signed-off-by: Sergio Aguirre <saaguirre@ti.com>
+> ---
+>  arch/arm/mach-omap2/board-3430sdp.c |  300
+> ++++++++++++++++++++++++++++++++++-
+>  1 files changed, 299 insertions(+), 1 deletions(-)
+> 
+> diff --git a/arch/arm/mach-omap2/board-3430sdp.c b/arch/arm/mach-
+> omap2/board-3430sdp.c
+> index ade186b..59a2765 100644
+> --- a/arch/arm/mach-omap2/board-3430sdp.c
+> +++ b/arch/arm/mach-omap2/board-3430sdp.c
+> @@ -23,6 +23,7 @@
+>  #include <linux/spi/spi.h>
+>  #include <linux/spi/ads7846.h>
+>  #include <linux/i2c/twl4030.h>
+> +#include <linux/mm.h>
+> 
+>  #include <mach/hardware.h>
+>  #include <asm/mach-types.h>
+> @@ -40,6 +41,20 @@
+>  #include <mach/dma.h>
+>  #include <mach/gpmc.h>
+> 
+> +#ifdef CONFIG_VIDEO_OMAP3
+> +#include <media/v4l2-int-device.h>
+> +#include <../drivers/media/video/omap34xxcam.h>
+> +#include <../drivers/media/video/isp/ispreg.h>
+
+[Hiremath, Vaibhav] Is it acceptable to include the private header files of drivers here? 
+
+> +#if defined(CONFIG_VIDEO_MT9P012) ||
+> defined(CONFIG_VIDEO_MT9P012_MODULE)
+> +#include <media/mt9p012.h>
+> +static enum v4l2_power mt9p012_previous_power = V4L2_POWER_OFF;
+> +#endif
+> +#endif
+> +
+> +#ifdef CONFIG_VIDEO_DW9710
+> +#include <../drivers/media/video/dw9710.h>
+> +#endif
+> +
+>  #include <asm/io.h>
+>  #include <asm/delay.h>
+>  #include <mach/control.h>
+> @@ -238,6 +253,273 @@ static struct spi_board_info
+> sdp3430_spi_board_info[] __initdata = {
+>  	},
+>  };
+> 
+> +#ifdef CONFIG_VIDEO_OMAP3
+> +static void __iomem *fpga_map_addr;
+> +
+> +static void enable_fpga_vio_1v8(u8 enable)
+> +{
+> +	u16 reg_val;
+> +
+> +	fpga_map_addr = ioremap(DEBUG_BASE, 4096);
+> +	reg_val = readw(fpga_map_addr + REG_SDP3430_FPGA_GPIO_2);
+> +
+> +	/* Ensure that the SPR_GPIO1_3v3 is 0 - powered off.. 1 is on
+> */
+> +	if (reg_val & FPGA_SPR_GPIO1_3v3) {
+> +		reg_val |= FPGA_SPR_GPIO1_3v3;
+> +		reg_val |= FPGA_GPIO6_DIR_CTRL; /* output mode */
+> +		writew(reg_val, fpga_map_addr +
+> REG_SDP3430_FPGA_GPIO_2);
+> +		/* give a few milli sec to settle down
+> +		 * Let the sensor also settle down.. if required..
+> +		 */
+> +		if (enable)
+> +			mdelay(10);
+> +	}
+> +
+> +	if (enable) {
+> +		reg_val |= FPGA_SPR_GPIO1_3v3 | FPGA_GPIO6_DIR_CTRL;
+> +		writew(reg_val, fpga_map_addr +
+> REG_SDP3430_FPGA_GPIO_2);
+> +	}
+> +	/* Vrise time for the voltage - should be less than 1 ms */
+> +	mdelay(1);
+> +}
+> +#endif
+> +
+> +#ifdef CONFIG_VIDEO_DW9710
+> +static int dw9710_lens_power_set(enum v4l2_power power)
+> +{
+> +
+> +	/* The power change depends on MT9P012 powerup, so if we
+> request a
+> +	 * power state different from sensor, we should return error
+> +	 */
+> +	if ((mt9p012_previous_power != V4L2_POWER_OFF) &&
+> +					(power != mt9p012_previous_power))
+> +		return -EIO;
+> +
+> +	switch (power) {
+> +	case V4L2_POWER_OFF:
+> +		/* Power Down Sequence */
+> +#ifdef CONFIG_TWL4030_CORE
+> +		twl4030_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER,
+> +				VAUX_DEV_GRP_NONE, TWL4030_VAUX2_DEV_GRP);
+> +#else
+> +#error "no power companion board defined!"
+> +#endif
+> +		enable_fpga_vio_1v8(0);
+> +		omap_free_gpio(MT9P012_RESET_GPIO);
+> +		iounmap(fpga_map_addr);
+> +		omap_free_gpio(MT9P012_STANDBY_GPIO);
+> +		break;
+> +	case V4L2_POWER_ON:
+> +		/* Request and configure gpio pins */
+> +		if (omap_request_gpio(MT9P012_STANDBY_GPIO) != 0) {
+> +			printk(KERN_WARNING "Could not request GPIO %d"
+> +						" for MT9P012\n",
+> +						MT9P012_STANDBY_GPIO);
+> +			return -EIO;
+> +		}
+> +
+> +		/* Request and configure gpio pins */
+> +		if (omap_request_gpio(MT9P012_RESET_GPIO) != 0)
+> +			return -EIO;
+> +
+> +		/* set to output mode */
+> +		gpio_direction_output(MT9P012_STANDBY_GPIO, true);
+> +		/* set to output mode */
+> +		gpio_direction_output(MT9P012_RESET_GPIO, true);
+> +
+> +		/* STANDBY_GPIO is active HIGH for set LOW to release */
+> +		gpio_set_value(MT9P012_STANDBY_GPIO, 1);
+> +
+> +		/* nRESET is active LOW. set HIGH to release reset */
+> +		gpio_set_value(MT9P012_RESET_GPIO, 1);
+> +
+> +		/* turn on digital power */
+> +		enable_fpga_vio_1v8(1);
+> +#ifdef CONFIG_TWL4030_CORE
+> +		/* turn on analog power */
+> +		twl4030_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER,
+> +				VAUX_2_8_V, TWL4030_VAUX2_DEDICATED);
+> +		twl4030_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER,
+> +				VAUX_DEV_GRP_P1, TWL4030_VAUX2_DEV_GRP);
+> +#else
+> +#error "no power companion board defined!"
+> +#endif
+> +		/* out of standby */
+> +		gpio_set_value(MT9P012_STANDBY_GPIO, 0);
+> +		udelay(1000);
+> +
+> +		/* have to put sensor to reset to guarantee detection */
+> +		gpio_set_value(MT9P012_RESET_GPIO, 0);
+> +
+> +		udelay(1500);
+> +
+> +		/* nRESET is active LOW. set HIGH to release reset */
+> +		gpio_set_value(MT9P012_RESET_GPIO, 1);
+> +		/* give sensor sometime to get out of the reset.
+> +		 * Datasheet says 2400 xclks. At 6 MHz, 400 usec is
+> +		 * enough
+> +		 */
+> +		udelay(300);
+> +		break;
+> +	case V4L2_POWER_STANDBY:
+> +		break;
+> +	}
+> +	return 0;
+> +}
+> +
+> +static int dw9710_lens_set_prv_data(void *priv)
+> +{
+> +	struct omap34xxcam_hw_config *hwc = priv;
+> +
+> +	hwc->dev_index = 0;
+> +	hwc->dev_minor = 0;
+> +	hwc->dev_type = OMAP34XXCAM_SLAVE_LENS;
+> +
+> +	return 0;
+> +}
+> +
+> +static struct dw9710_platform_data sdp3430_dw9710_platform_data = {
+> +	.power_set      = dw9710_lens_power_set,
+> +	.priv_data_set  = dw9710_lens_set_prv_data,
+> +};
+> +#endif
+> +
+> +#if defined(CONFIG_VIDEO_MT9P012) ||
+> defined(CONFIG_VIDEO_MT9P012_MODULE)
+> +static struct omap34xxcam_sensor_config cam_hwc = {
+> +	.sensor_isp = 0,
+> +	.xclk = OMAP34XXCAM_XCLK_A,
+> +	.capture_mem = PAGE_ALIGN(2592 * 1944 * 2) * 4,
+> +};
+> +
+> +static int mt9p012_sensor_set_prv_data(void *priv)
+> +{
+> +	struct omap34xxcam_hw_config *hwc = priv;
+> +
+> +	hwc->u.sensor.xclk = cam_hwc.xclk;
+> +	hwc->u.sensor.sensor_isp = cam_hwc.sensor_isp;
+> +	hwc->u.sensor.capture_mem = cam_hwc.capture_mem;
+> +	hwc->dev_index = 0;
+> +	hwc->dev_minor = 0;
+> +	hwc->dev_type = OMAP34XXCAM_SLAVE_SENSOR;
+> +	return 0;
+> +}
+> +
+> +static struct isp_interface_config mt9p012_if_config = {
+> +	.ccdc_par_ser = ISP_PARLL,
+> +	.dataline_shift = 0x1,
+> +	.hsvs_syncdetect = ISPCTRL_SYNC_DETECT_VSRISE,
+> +	.vdint0_timing = 0x0,
+> +	.vdint1_timing = 0x0,
+> +	.strobe = 0x0,
+> +	.prestrobe = 0x0,
+> +	.shutter = 0x0,
+> +	.prev_sph = 2,
+> +	.prev_slv = 0,
+> +	.wenlog = ISPCCDC_CFG_WENLOG_OR,
+> +	.u.par.par_bridge = 0x0,
+> +	.u.par.par_clk_pol = 0x0,
+> +};
+> +
+> +static int mt9p012_sensor_power_set(enum v4l2_power power)
+> +{
+> +	switch (power) {
+> +	case V4L2_POWER_OFF:
+> +		/* Power Down Sequence */
+> +#ifdef CONFIG_TWL4030_CORE
+> +		twl4030_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER,
+> +				VAUX_DEV_GRP_NONE, TWL4030_VAUX2_DEV_GRP);
+> +#else
+> +#error "no power companion board defined!"
+> +#endif
+> +		enable_fpga_vio_1v8(0);
+> +		omap_free_gpio(MT9P012_RESET_GPIO);
+> +		iounmap(fpga_map_addr);
+> +		omap_free_gpio(MT9P012_STANDBY_GPIO);
+> +		break;
+> +	case V4L2_POWER_ON:
+> +		if (mt9p012_previous_power == V4L2_POWER_OFF) {
+> +			/* Power Up Sequence */
+> +			isp_configure_interface(&mt9p012_if_config);
+> +
+> +			/* Request and configure gpio pins */
+> +			if (omap_request_gpio(MT9P012_STANDBY_GPIO) != 0)
+> {
+> +				printk(KERN_WARNING "Could not request GPIO
+> %d"
+> +							" for MT9P012\n",
+> +							MT9P012_STANDBY_GPIO);
+> +				return -EIO;
+> +			}
+> +
+> +			/* Request and configure gpio pins */
+> +			if (omap_request_gpio(MT9P012_RESET_GPIO) != 0)
+> +				return -EIO;
+> +
+> +			/* set to output mode */
+> +			gpio_direction_output(MT9P012_STANDBY_GPIO, true);
+> +			/* set to output mode */
+> +			gpio_direction_output(MT9P012_RESET_GPIO, true);
+> +
+> +			/* STANDBY_GPIO is active HIGH for set LOW to
+> release */
+> +			gpio_set_value(MT9P012_STANDBY_GPIO, 1);
+> +
+> +			/* nRESET is active LOW. set HIGH to release reset
+> */
+> +			gpio_set_value(MT9P012_RESET_GPIO, 1);
+> +
+> +			/* turn on digital power */
+> +			enable_fpga_vio_1v8(1);
+> +#ifdef CONFIG_TWL4030_CORE
+> +			/* turn on analog power */
+> +			twl4030_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER,
+> +					VAUX_2_8_V, TWL4030_VAUX2_DEDICATED);
+> +			twl4030_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER,
+> +					VAUX_DEV_GRP_P1,
+> TWL4030_VAUX2_DEV_GRP);
+> +#else
+> +#error "no power companion board defined!"
+> +#endif
+> +		}
+> +
+> +		/* out of standby */
+> +		gpio_set_value(MT9P012_STANDBY_GPIO, 0);
+> +		udelay(1000);
+> +
+> +		if (mt9p012_previous_power == V4L2_POWER_OFF) {
+> +			/* have to put sensor to reset to guarantee
+> detection */
+> +			gpio_set_value(MT9P012_RESET_GPIO, 0);
+> +
+> +			udelay(1500);
+> +
+> +			/* nRESET is active LOW. set HIGH to release reset
+> */
+> +			gpio_set_value(MT9P012_RESET_GPIO, 1);
+> +			/* give sensor sometime to get out of the reset.
+> +			 * Datasheet says 2400 xclks. At 6 MHz, 400 usec
+> is
+> +			 * enough
+> +			 */
+> +			udelay(300);
+> +		}
+> +		break;
+> +	case V4L2_POWER_STANDBY:
+> +		/* stand by */
+> +		gpio_set_value(MT9P012_STANDBY_GPIO, 1);
+> +		break;
+> +	}
+> +	/* Save powerstate to know what was before calling POWER_ON.
+> */
+> +	mt9p012_previous_power = power;
+> +	return 0;
+> +}
+> +
+> +static u32 mt9p012_sensor_set_xclk(u32 xclkfreq)
+> +{
+> +	return isp_set_xclk(xclkfreq, MT9P012_USE_XCLKA);
+> +}
+> +
+> +static struct mt9p012_platform_data sdp3430_mt9p012_platform_data =
+> {
+> +	.power_set      = mt9p012_sensor_power_set,
+> +	.priv_data_set  = mt9p012_sensor_set_prv_data,
+> +	.set_xclk       = mt9p012_sensor_set_xclk,
+> +};
+> +
+> +#endif
+> +
+> +
+>  static struct platform_device sdp3430_lcd_device = {
+>  	.name		= "sdp2430_lcd",
+>  	.id		= -1,
+> @@ -434,11 +716,27 @@ static struct i2c_board_info __initdata
+> sdp3430_i2c_boardinfo[] = {
+>  	},
+>  };
+> 
+> +static struct i2c_board_info __initdata sdp3430_i2c_boardinfo_2[] =
+> {
+> +#if defined(CONFIG_VIDEO_MT9P012) ||
+> defined(CONFIG_VIDEO_MT9P012_MODULE)
+> +	{
+> +		I2C_BOARD_INFO("mt9p012", MT9P012_I2C_ADDR),
+> +		.platform_data = &sdp3430_mt9p012_platform_data,
+> +	},
+> +#ifdef CONFIG_VIDEO_DW9710
+> +	{
+> +		I2C_BOARD_INFO(DW9710_NAME,  DW9710_AF_I2C_ADDR),
+> +		.platform_data = &sdp3430_dw9710_platform_data,
+> +	},
+> +#endif
+> +#endif
+> +};
+> +
+>  static int __init omap3430_i2c_init(void)
+>  {
+>  	omap_register_i2c_bus(1, 2600, sdp3430_i2c_boardinfo,
+>  			ARRAY_SIZE(sdp3430_i2c_boardinfo));
+> -	omap_register_i2c_bus(2, 400, NULL, 0);
+> +	omap_register_i2c_bus(2, 400, sdp3430_i2c_boardinfo_2,
+> +			ARRAY_SIZE(sdp3430_i2c_boardinfo_2));
+>  	omap_register_i2c_bus(3, 400, NULL, 0);
+>  	return 0;
+>  }
+> --
+> 1.5.6.5
+
