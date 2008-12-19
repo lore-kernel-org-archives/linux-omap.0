@@ -1,31 +1,51 @@
-From: "Lopez Cruz, Misael" <x0052729@ti.com>
-Subject: RE: OMAP: Initialize XCCR and RCCR registers in McBSP DAI driver
-Date: Thu, 18 Dec 2008 21:01:39 -0600
-Message-ID: <2C7D3DF36ADFFC479B44490D912B616705A484AADE@dlee07.ent.ti.com>
-References: <2C7D3DF36ADFFC479B44490D912B616705A484AAD7@dlee07.ent.ti.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: N810 suspend
+Date: Thu, 18 Dec 2008 22:27:35 -0700 (MST)
+Message-ID: <alpine.DEB.2.00.0812182226510.24916@utopia.booyaka.com>
+References: <20081215210823.GD5334@swansys> <20081215211430.GJ10664@atomide.com> <20081216092531.c440dc26.jarkko.nikula@nokia.com> <20081216162951.GP19551@atomide.com> <20081216165632.GF25056@swansys> <20081216172237.GR19551@atomide.com>
+ <20081217140911.b30d7194.jarkko.nikula@nokia.com> <20081218090147.c6e5c4a0.jarkko.nikula@nokia.com> <87ljud88n7.fsf@nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:58456 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752598AbYLSDBu convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 18 Dec 2008 22:01:50 -0500
-In-Reply-To: <2C7D3DF36ADFFC479B44490D912B616705A484AAD7@dlee07.ent.ti.com>
-Content-Language: en-US
+Received: from utopia.booyaka.com ([72.9.107.138]:46934 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751555AbYLSF1g (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 19 Dec 2008 00:27:36 -0500
+In-Reply-To: <87ljud88n7.fsf@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
-Cc: "Pandita, Vikram" <vikram.pandita@ti.com>, Jarkko Nikula <jarkko.nikula@nokia.com>
+To: khilman@deeprootsystems.com
+Cc: Kalle Valo <kalle.valo@nokia.com>, Jarkko Nikula <jarkko.nikula@nokia.com>, ext Tony Lindgren <tony@atomide.com>, Linux-OMAP List <linux-omap@vger.kernel.org>
 
-> This patch explicitly initializes McBSP Transmit 
-> Configuration Control Register (XCCR) and Receive 
-> Configuration Control Register (RCCR) to their reset values. 
-> Reset values are 26 ns of DX delay and Transmit DMA disabled 
-> for XCCR register; receive full cycle mode enabled and 
-> Receive DMA disabled for RCCR register.
+On Thu, 18 Dec 2008, Kalle Valo wrote:
 
-ASoC change is now in a separate patch. I'll resend this patch to
-alsa-devel mailing list when McBSP change gets accepted.
+> Jarkko Nikula <jarkko.nikula@nokia.com> writes:
+> 
+> > xorg.conf's Option "SuspendTime" seems to equal to blanking command 3
+> > (VESA_POWERDOWN). Look drivers/video/omap/omapfb_main.c: omapfb_blank.
+> >
+> > Section "ServerFlags"
+> >         Option  "BlankTime"     "0"
+> >         Option  "StandbyTime"   "0"
+> >         Option  "SuspendTime"   "1"
+> >         Option  "OffTime"       "0"
+> > EndSection
+> >
+> > I just tried this with xserver-xorg-video-fbdev from Debian/testing on
+> > N800 and it went perfectly into retention.
+> 
+> Cool.
+> 
+> > N810 didn't went and think reason is that bootloader enables UART3
+> > for the GPS chip.
+> 
+> I noticed this as well. Any hacks to workaround this? Or do I really
+> need to start searching for N800? :)
 
--Misa
+hey Kevin,
+
+did your serial port idle code ever work out?  I wonder if that would work 
+for the N810s...
+
+
+- Paul
