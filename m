@@ -1,46 +1,43 @@
-From: Tomi Valkeinen <tomi.valkeinen@nokia.com>
-Subject: USB slightly broken
-Date: Fri, 19 Dec 2008 12:25:16 +0200
-Message-ID: <1229682316.18039.12.camel@tubuntu>
-Reply-To: tomi.valkeinen@nokia.com
+From: Kalle Valo <kalle.valo@nokia.com>
+Subject: Re: N810 suspend
+Date: Fri, 19 Dec 2008 12:36:20 +0200
+Message-ID: <87ljucv4d7.fsf@nokia.com>
+References: <20081215210823.GD5334@swansys>
+	<20081215211430.GJ10664@atomide.com>
+	<20081216092531.c440dc26.jarkko.nikula@nokia.com>
+	<20081216162951.GP19551@atomide.com> <20081216165632.GF25056@swansys>
+	<20081216172237.GR19551@atomide.com>
+	<20081217140911.b30d7194.jarkko.nikula@nokia.com>
+	<20081218090147.c6e5c4a0.jarkko.nikula@nokia.com>
+	<87ljud88n7.fsf@nokia.com>
+	<alpine.DEB.2.00.0812182226510.24916@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:45935 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752413AbYLSKZY (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 19 Dec 2008 05:25:24 -0500
-Received: from esebh105.NOE.Nokia.com (esebh105.ntc.nokia.com [172.21.138.211])
-	by mgw-mx09.nokia.com (Switch-3.2.6/Switch-3.2.6) with ESMTP id mBJAPCOH005546
-	for <linux-omap@vger.kernel.org>; Fri, 19 Dec 2008 04:25:22 -0600
-Received: from [172.21.116.224] (v21b-dhcp-116224.ntc.nokia.com [172.21.116.224])
-	by mgw-int02.ntc.nokia.com (Switch-3.2.5/Switch-3.2.5) with ESMTP id mBJAPGR2005619
-	for <linux-omap@vger.kernel.org>; Fri, 19 Dec 2008 12:25:17 +0200
+Received: from smtp.nokia.com ([192.100.122.233]:52206 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752925AbYLSKgp (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 19 Dec 2008 05:36:45 -0500
+In-Reply-To: <alpine.DEB.2.00.0812182226510.24916@utopia.booyaka.com> (ext Paul Walmsley's message of "Thu\, 18 Dec 2008 22\:27\:35 -0700 \(MST\)")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap <linux-omap@vger.kernel.org>
+To: ext Paul Walmsley <paul@pwsan.com>
+Cc: khilman@deeprootsystems.com, Jarkko Nikula <jarkko.nikula@nokia.com>, ext Tony Lindgren <tony@atomide.com>, Linux-OMAP List <linux-omap@vger.kernel.org>
 
-Hi,
+"ext Paul Walmsley" <paul@pwsan.com> writes:
 
-Yesterday's "Merge branch 'musb'" broke the USB slightly on our board. I
-use NFS root via USB gadget ethernet and if I have the usb cable
-connected when the device boots up, the network does not go up
-correctly. If I disconnect and connect the cable the USB starts working.
+>> > N810 didn't went and think reason is that bootloader enables UART3
+>> > for the GPS chip.
+>> 
+>> I noticed this as well. Any hacks to workaround this? Or do I really
+>> need to start searching for N800? :)
+>
+> hey Kevin,
+>
+> did your serial port idle code ever work out?  I wonder if that would work 
+> for the N810s...
 
-I can't currently test this on other boards, but I will test it on
-beagle later. 
+Any patches anywhere? I would gladly test something.
 
-g_ether gadget: high speed config #1: CDC Ethernet (ECM)
-IP-Config: Guessing netmask 255.255.255.0
-IP-Config: Complete:
-     device=usb0, addr=192.168.2.15, mask=255.255.255.0, gw=255.255.255.255,
-     host=192.168.2.15, domain=, nis-domain=(none),
-     bootserver=255.255.255.255, rootserver=192.168.2.14, rootpath=
-Looking up port of RPC 100003/2 on 192.168.2.14
-
-(at this point the interface is up on PC side, but pings don't go through)
-
- Tomi
-
-
+-- 
+Kalle Valo
