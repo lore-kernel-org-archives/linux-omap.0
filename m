@@ -1,25 +1,29 @@
-From: Carlos Chinea <carlos.chinea@nokia.com>
-Subject: Re: [alsa-devel][PATCHv2 1/1] Fix a Oops bug in omap soc driver.
-Date: Fri, 19 Dec 2008 16:22:54 +0200
-Message-ID: <1229696574.26377.346.camel@groo.research.nokia.com>
+From: Jarkko Nikula <jarkko.nikula@nokia.com>
+Subject: Re: [PATCHv2 1/1] Fix a Oops bug in omap soc driver.
+Date: Fri, 19 Dec 2008 16:35:01 +0200
+Message-ID: <20081219163501.0e235884.jarkko.nikula@nokia.com>
 References: <4edcd8463d981e4babef82167aa58131539c367f.1229601269.git.stanley.miao@windriver.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:25445 "EHLO
-	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753010AbYLSOZS (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 19 Dec 2008 09:25:18 -0500
+Return-path: <alsa-devel-bounces@alsa-project.org>
 In-Reply-To: <4edcd8463d981e4babef82167aa58131539c367f.1229601269.git.stanley.miao@windriver.com>
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Sender: alsa-devel-bounces@alsa-project.org
+Errors-To: alsa-devel-bounces@alsa-project.org
 To: "ext Stanley.Miao" <stanley.miao@windriver.com>
 Cc: alsa-devel@alsa-project.org, linux-omap@vger.kernel.org
+List-Id: linux-omap@vger.kernel.org
 
-Hi,
+On Fri, 19 Dec 2008 22:08:22 +0800
+"ext Stanley.Miao" <stanley.miao@windriver.com> wrote:
 
-On Fri, 2008-12-19 at 22:08 +0800, ext Stanley.Miao wrote:
 > There will be a Oops or frequent underrun messages when playing music with
 > omap soc driver, this is because a data region is incorretly sized, other data
 > region will be overwriten when writing to this data region.
@@ -40,12 +44,10 @@ On Fri, 2008-12-19 at 22:08 +0800, ext Stanley.Miao wrote:
 > -	prtd = kzalloc(sizeof(prtd), GFP_KERNEL);
 > +	prtd = kzalloc(sizeof(struct omap_runtime_data), GFP_KERNEL);
 
-maybe better:
+Oh my... Can you change this as
 
-prtd = kzalloc(sizeof(*prtd), GFP_KERNEL);
+	prtd = kzalloc(sizeof(*prtd), GFP_KERNEL);
 
-[snip]
+like suggested by the CodingStyle and then you can have my ack.
 
-Br,
-Carlos
-
+Acked-by: Jarkko Nikula <jarkko.nikula@nokia.com>
