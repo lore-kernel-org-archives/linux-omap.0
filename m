@@ -1,108 +1,77 @@
-From: David Brownell <david-b@pacbell.net>
-Subject: Re: GPIO switch framework (was: Re: [PATCH] ARM: OMAP: Add support for dynamic GPIO switch update)
-Date: Sun, 21 Dec 2008 12:26:14 -0800
-Message-ID: <200812211226.14555.david-b@pacbell.net>
-References: <1229342896-7363-1-git-send-email-ext-jani.1.nikula@nokia.com> <5d5443650812152205k4d6c7back8bae8aa61487eb6c@mail.gmail.com> <1229600573.5895.432.camel@jani-desktop>
+From: "Gadiyar, Anand" <gadiyar@ti.com>
+Subject: RE: status of USB on omap35xx ?
+Date: Mon, 22 Dec 2008 03:55:26 +0530
+Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB02E65453BA@dbde02.ent.ti.com>
+References: <1228870250.32014.148.camel@localhost.localdomain>
+  <5e088bd90812101502r1d01880co3d54e99982db3589@mail.gmail.com>
+  <20081211005733.GZ18138@atomide.com>
+  <6ed0b2680812110238w130d708j615c3d7e0a381f24@mail.gmail.com>
+  <alpine.DEB.2.00.0812110947000.26754@utopia.booyaka.com>
+  <5e088bd90812110938i10526ad3x94b47bb8adeb91b4@mail.gmail.com>
+  <6ed0b2680812111241u5da7abd5r10094bf79ea9c299@mail.gmail.com>
+  <alpine.DEB.2.00.0812111401100.26754@utopia.booyaka.com>
+  <6ed0b2680812111452t75b175bdr304e9b1d22ea93de@mail.gmail.com>
+  <alpine.DEB.2.00.0812111603520.26754@utopia.booyaka.com>
+ <6ed0b2680812121215m15ff0e59t8ede0e5dca5b6270@mail.gmail.com>
+ <alpine.DEB.2.00.0812121331180.26754@utopia.booyaka.com>
+ <FCCFB4CDC6E5564B9182F639FC356087025106711C@dbde02.ent.ti.com>
+ <alpine.DEB.2.00.0812121410220.26754@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp117.sbc.mail.sp1.yahoo.com ([69.147.64.90]:34134 "HELO
-	smtp117.sbc.mail.sp1.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1751142AbYLUU0R (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Sun, 21 Dec 2008 15:26:17 -0500
-In-Reply-To: <1229600573.5895.432.camel@jani-desktop>
-Content-Disposition: inline
+Received: from comal.ext.ti.com ([198.47.26.152]:38565 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750963AbYLUW0s convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 21 Dec 2008 17:26:48 -0500
+In-Reply-To: <alpine.DEB.2.00.0812121410220.26754@utopia.booyaka.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Jani Nikula <ext-jani.1.nikula@nokia.com>
-Cc: Trilok Soni <soni.trilok@gmail.com>, Juha =?iso-8859-1?q?Yrj=F6l=E4?= <juha.yrjola@solidboot.com>, linux-omap@vger.kernel.org, Brian Swetland <swetland@google.com>, lockwood@android.com
+To: Paul Walmsley <paul@pwsan.com>, "Pandita, Vikram" <vikram.pandita@ti.com>
+Cc: Grazvydas Ignotas <notasas@gmail.com>, Steve Sakoman <sakoman@gmail.com>, Tony Lindgren <tony@atomide.com>, David Brownell <david-b@pacbell.net>, "me@felipebalbi.com" <me@felipebalbi.com>, "Kridner, Jason" <jdk@ti.com>, "sakari.poussa@nokia.com" <sakari.poussa@nokia.com>, Jeff Steele <jsteele@coloradocollege.edu>, linux-omap <linux-omap@vger.kernel.org>
 
-On Thursday 18 December 2008, Jani Nikula wrote:
-> On Tue, 2008-12-16 at 11:35 +0530, ext Trilok Soni wrote:
+> Hello Vikram,
 > 
-> > OK, I found other guys (android ??) using such home brew frameworks.
-> > Time to write a switch framework.
+> On Sat, 13 Dec 2008, Pandita, Vikram wrote:
 > 
-> To start a discussion on what such a GPIO switch framework should be
-> like if someone were to write it, here's a list of the kind of things
-> I'd like to see in it (mostly from gpio-switch.c):
+> > >From: Paul Walmsley [mailto:paul@pwsan.com]
+> > >
+> > >Were you able to get USB remote wakeup or auto-suspend working on
+> > >ehci-omap.c with the 3430SDP?
+> > 
+> > For remote-wakeup: 
+> > There was a long discussion with USBHOST IP vendor. We were observing a device disconnect on a remote-wakeup as well as host initiated wakeup.
+> > 
+> > It turned out to be an issue with the IP block and will be fixed in 3430 ES3.1 finally.
+> > And a software workaround for waiting for USB micro frame boundary. 
+> > Now the workaround has been done in USB EHCI stack code which is not the best way ... 
+> > 
+> > Take a look at Zoom GIT tree for the reference implementation: 
+> > 
+> http://git.omapzoom.com/?p=omapkernel.git;a=commitdiff;h=baa196583f4af08d15da0389fed8f9005b0f812d
 > 
-> * Based on or integrated in the gpiolib.
-
-As noted earlier:  such a thing should be a "switch" framework,
-with "gpio" just on implementation.  Not every switch will be
-implemented as a GPIO.
-
-
-> * Dynamically changeable notification callbacks in kernel.
-
-Not clear what this means.  Reconfigure the switch type
-on the fly?  I'm not a big fan of the event namespace
-which <linux/notifier.h> defines, I hope that's not what
-is meant here ... though maybe its callback model is OK,
-adding and removing callbacks is easy enough.
-
-Current OMAP gpio-switch has a single callback, and
-that might be part of the problem.  Linux has a single
-callback for things like timers and request completions;
-but these switches have different lifecycle model.
-
-Decoupling caller/switch and callee(s)/callbacks() may
-provide a better model.
-
-
-> * Sysfs notifications to userspace.
-
-Why sysfs in particular, rather than some /dev/input/*
-event channel?  Note that input devices already decouple
-the event reporters and event receivers fairly well.
-
-
-> * Debouncing for the notifications to filter spurious events.
-> 
-> * Dynamically adjustable debounce timeouts.
-
-Debouncing might not be a framework issue; at first
-thought, it seems like something the GPIO glue into
-that framework might need to handle.
-
-
-> * Arbitrary names for the GPIOs in sysfs instead of (or in addition to)
-> the gpiolib style "gpioN".
-
-This mostly sounds to me like an input device...
-
-Except maybe for the notion that in-kernel software
-needs to be responsive to the events too.  I seem to
-recall "push those policies to userspace" arguments
-cropping up in similar cases.  (My two cents:  kernel
-is full of policy, sometimes reconfigurable; easy to
-believe system integrity can require a few more.)
-
-
-> Anything else? I didn't see anything in the Android source that couldn't
-> be covered with this.
-
-The Android stuff seems already split into a class
-and GPIO glue.  (Hence my CC to Mike Lockwood, the
-author of that drivers/switch code.)
-
-Any reason you couldn't use that as-is, maybe after
-updating it a bit?  Add some GPIO debouncing, use
-input framework not miscdev in the core, different
-headset issues, etc.
-
-- Dave
-
-
+> Thanks for the info; that's quite helpful.  Do you happen to know if there 
+> are any projects ongoing inside TI to send patches for the existing 
+> ehci-omap.c driver in linux-omap?
 > 
 > 
-> Jani.
-> 
-> 
-> 
+> - Paul
 
+Yes, but only if Tony will accept them. And he won't - it
+will only increase the diff between linux-omap and mainline.
+
+The EHCI driver should actually go to linux-usb. If you look
+at the list archives, you will find that I had said I would
+do that - ages ago. Unfortunately I have not been able to do
+that so far. It's high on the priority list however.
+
+Also, that reference patch is not complete either. It uses
+ehci_get_frame() which returns the current frame number,
+instead of the EHCI FrameIndex register value (which is all
+we need - so we end up waiting longer). Also, it's a while
+loop without a timeout, which is bad.
+
+This patch does get EHCI suspend-resume working however, so
+feel free to take it if you need it. It's a hack for now.
 
