@@ -1,87 +1,108 @@
-From: Pierre Ossman <drzeus-mmc@drzeus.cx>
-Subject: Re: [PATCH 5/5] omap mmc: Add new omap hsmmc controller for 2430
- and 34xx
-Date: Sun, 21 Dec 2008 17:17:00 +0100
-Message-ID: <20081221171700.3efc0c3a@mjolnir.drzeus.cx>
-References: <20081207213617.10456.43951.stgit@localhost>
-	<20081207215139.10456.46405.stgit@localhost>
+From: David Brownell <david-b@pacbell.net>
+Subject: Re: GPIO switch framework (was: Re: [PATCH] ARM: OMAP: Add support for dynamic GPIO switch update)
+Date: Sun, 21 Dec 2008 12:26:14 -0800
+Message-ID: <200812211226.14555.david-b@pacbell.net>
+References: <1229342896-7363-1-git-send-email-ext-jani.1.nikula@nokia.com> <5d5443650812152205k4d6c7back8bae8aa61487eb6c@mail.gmail.com> <1229600573.5895.432.camel@jani-desktop>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain;
+  charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from server.drzeus.cx ([85.8.24.28]:59487 "EHLO smtp.drzeus.cx"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1752594AbYLUQRM (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Sun, 21 Dec 2008 11:17:12 -0500
-In-Reply-To: <20081207215139.10456.46405.stgit@localhost>
+Received: from smtp117.sbc.mail.sp1.yahoo.com ([69.147.64.90]:34134 "HELO
+	smtp117.sbc.mail.sp1.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1751142AbYLUU0R (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Sun, 21 Dec 2008 15:26:17 -0500
+In-Reply-To: <1229600573.5895.432.camel@jani-desktop>
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.arm.linux.org.uk, linux-omap@vger.kernel.org, Madhusudhan Chikkature <madhu.cr@ti.com>
+To: Jani Nikula <ext-jani.1.nikula@nokia.com>
+Cc: Trilok Soni <soni.trilok@gmail.com>, Juha =?iso-8859-1?q?Yrj=F6l=E4?= <juha.yrjola@solidboot.com>, linux-omap@vger.kernel.org, Brian Swetland <swetland@google.com>, lockwood@android.com
 
-On Sun, 07 Dec 2008 13:51:39 -0800
-Tony Lindgren <tony@atomide.com> wrote:
+On Thursday 18 December 2008, Jani Nikula wrote:
+> On Tue, 2008-12-16 at 11:35 +0530, ext Trilok Soni wrote:
+> 
+> > OK, I found other guys (android ??) using such home brew frameworks.
+> > Time to write a switch framework.
+> 
+> To start a discussion on what such a GPIO switch framework should be
+> like if someone were to write it, here's a list of the kind of things
+> I'd like to see in it (mostly from gpio-switch.c):
+> 
+> * Based on or integrated in the gpiolib.
 
-> +	/*
-> +	 * Unlike OMAP1 controller, the cmdtype does not seem to be based on
-> +	 * ac, bc, adtc, bcr. Only CMD12 needs a val of 0x3, rest 0x0.
-> +	 */
-> +	if (cmd->opcode == 12)
-> +		cmdtype = 0x3;
-
-Isn't it more likely that it needs 0x3 for any commands that ends an
-open ended transfer? I.e. every time cmd == mrq.stop.
-
-> +	host->dbclk = clk_get(&pdev->dev, "mmchsdb_fck");
-> +	/*
-> +	 * MMC can still work without debounce clock.
-> +	 */
-> +	if (IS_ERR(host->dbclk))
-> +		dev_dbg(mmc_dev(host->mmc), "Failed to get debounce clock\n");
-
-Perhaps a warning should be printed though, as there could be some
-problems caused by trying to init a card that is still bouncing.
-
-> +static int omap_mmc_remove(struct platform_device *pdev)
-> +{
-> +	struct mmc_omap_host *host = platform_get_drvdata(pdev);
-> +	struct resource *res;
-> +	u16 vdd = 0;
-> +
-> +	if (!(OMAP_HSMMC_READ(host->base, HCTL) & SDVSDET)) {
-> +	/*
-> +	 * Set the vdd back to 3V,
-> +	 * applicable for dual volt support.
-> +	 */
-> +		vdd = fls(host->mmc->ocr_avail) - 1;
-> +		if (omap_mmc_switch_opcond(host, vdd) != 0)
-> +			host->mmc->ios.vdd = vdd;
-> +	}
-> +
-> +	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-> +	if (res)
-> +		release_mem_region(res->start, res->end - res->start + 1);
-> +
-> +	platform_set_drvdata(pdev, NULL);
-> +	if (host) {
-> +		mmc_remove_host(host->mmc);
-
-You can't go fiddling with the voltage and removing the MMIO until
-you've made sure that there is no more activity on the slot.
+As noted earlier:  such a thing should be a "switch" framework,
+with "gpio" just on implementation.  Not every switch will be
+implemented as a GPIO.
 
 
-Fix the above issues and you can let it go via Russell with a:
+> * Dynamically changeable notification callbacks in kernel.
 
-Acked-by: Pierre Ossman <drzeus@drzeus.cx>
+Not clear what this means.  Reconfigure the switch type
+on the fly?  I'm not a big fan of the event namespace
+which <linux/notifier.h> defines, I hope that's not what
+is meant here ... though maybe its callback model is OK,
+adding and removing callbacks is easy enough.
 
-Rgds
--- 
-     -- Pierre Ossman
+Current OMAP gpio-switch has a single callback, and
+that might be part of the problem.  Linux has a single
+callback for things like timers and request completions;
+but these switches have different lifecycle model.
 
-  Linux kernel, MMC maintainer        http://www.kernel.org
-  rdesktop, core developer          http://www.rdesktop.org
+Decoupling caller/switch and callee(s)/callbacks() may
+provide a better model.
 
-  WARNING: This correspondence is being monitored by the
-  Swedish government. Make sure your server uses encryption
-  for SMTP traffic and consider using PGP for end-to-end
-  encryption.
+
+> * Sysfs notifications to userspace.
+
+Why sysfs in particular, rather than some /dev/input/*
+event channel?  Note that input devices already decouple
+the event reporters and event receivers fairly well.
+
+
+> * Debouncing for the notifications to filter spurious events.
+> 
+> * Dynamically adjustable debounce timeouts.
+
+Debouncing might not be a framework issue; at first
+thought, it seems like something the GPIO glue into
+that framework might need to handle.
+
+
+> * Arbitrary names for the GPIOs in sysfs instead of (or in addition to)
+> the gpiolib style "gpioN".
+
+This mostly sounds to me like an input device...
+
+Except maybe for the notion that in-kernel software
+needs to be responsive to the events too.  I seem to
+recall "push those policies to userspace" arguments
+cropping up in similar cases.  (My two cents:  kernel
+is full of policy, sometimes reconfigurable; easy to
+believe system integrity can require a few more.)
+
+
+> Anything else? I didn't see anything in the Android source that couldn't
+> be covered with this.
+
+The Android stuff seems already split into a class
+and GPIO glue.  (Hence my CC to Mike Lockwood, the
+author of that drivers/switch code.)
+
+Any reason you couldn't use that as-is, maybe after
+updating it a bit?  Add some GPIO debouncing, use
+input framework not miscdev in the core, different
+headset issues, etc.
+
+- Dave
+
+
+> 
+> 
+> Jani.
+> 
+> 
+> 
+
+
