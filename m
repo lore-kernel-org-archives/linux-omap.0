@@ -1,61 +1,63 @@
-From: "Kainan Cha" <thezha-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: I2C1 controller timed out issue
-Date: Mon, 22 Dec 2008 10:07:50 -0600
-Message-ID: <c236f0530812220807h4f0d92a4v51001e0283dd279a@mail.gmail.com>
-References: <f502236f0812200204h1ef1df01sf79243e6e276074d@mail.gmail.com>
-	 <20081220131321.GB10866@frodo>
-	 <c236f0530812200935y1397d03bm54fe7f3714776b0@mail.gmail.com>
-	 <20081222160302.GC17843@frodo>
+From: green <greenfreedom10@gmail.com>
+Subject: Re: Nokia Internet Tablets
+Date: Mon, 22 Dec 2008 08:01:37 -0600
+Message-ID: <20081222140137.GD12324@swansys>
+References: <20081222103422.GL29448@guug.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20081222160302.GC17843@frodo>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="gneEPciiIl/aKvOT"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from qw-out-2122.google.com ([74.125.92.26]:60622 "EHLO
+	qw-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751816AbYLVR3P (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 22 Dec 2008 12:29:15 -0500
+Received: by qw-out-2122.google.com with SMTP id 3so1187842qwe.37
+        for <linux-omap@vger.kernel.org>; Mon, 22 Dec 2008 09:29:14 -0800 (PST)
 Content-Disposition: inline
-Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: me-uiRdBs8odbtmTBlB0Cgj/Q@public.gmane.org
-Cc: pramod gurav <pramodforum-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+In-Reply-To: <20081222103422.GL29448@guug.org>
+Content-Language: en
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
 
-Thanks.
 
-Kainan
+--gneEPciiIl/aKvOT
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-On Mon, Dec 22, 2008 at 10:03 AM, Felipe Balbi <me-uiRdBs8odbtmTBlB0Cgj/Q@public.gmane.org> wrote:
-> On Sat, Dec 20, 2008 at 11:35:51AM -0600, Kainan Cha wrote:
->> Balbi,
->>
->> I have also seen this issue once in a while but I am using 2.6.24 kernel. Do
->> you know which commits in the linux-omap git fixes this issue so I can
->> backport?
->
-> Hmm, I suppose it's this one:
->
-> commit 663715fc55ea5d292171c6934a2b91d8f4874171
-> Author: Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>
-> Date:   Fri Oct 10 10:58:30 2008 -0600
->
->    i2c-omap: fix I2C timeouts due to recursive omap_i2c_{un,}idle()
->
->    omap_i2c_unidle() and omap_i2c_idle() are called recursively during
->    omap_i2c_probe().  This is evidently unexpected and will wipe
->    out the I2C interrupt enable register the second time that
->    omap_i2c_idle() is called consecutively.  Any I2C transactions
->    following a probe of a bus with at least one device on it will then
->    time out.
->
->    Fix by moving omap_i2c_idle() further up in omap_i2c_probe().  Ensure
->    the I2C controller is marked as idle before the probe starts.  Also
->    attempt to catch future reappearances of this bug early in development
->    by warning in omap_i2c_{un,}idle() when they are called recursively.
->
->    Problem reported by David Brownell <david-b-yBeKhBN/0LDR7s880joybQ@public.gmane.org>.
->
->    Tested on 3430SDP and 2430SDP.
->
-> But I'd say the changes to twl4030-core.c also helped and those will be
-> nasty to backport :-p
->
-> --
-> balbi
->
+On Mon, 2008.12.22, 357, Otto Solares wrote:
+> I want to resurrect missing support for the Nokia Internet Tablets
+> starting with the N8x0s for my NITdroid project, which uses just
+> standard Linux kernel APIs.
+
+> If it is lack of time of the original developers, I would like to step
+> in, willing to try to complete this work as long as you are willing to
+> support me with answers to my newbie questions as this devices are in
+> plenty operation today but the Nokia kernel is getting really old and
+> it's a good thing if we can port all the drivers to standard Linux API.
+
+This is great; I hope you have success.  I (who am new to kernel developmen=
+t=20
+and git) have an N810 and have been trying to get Debian running on it usab=
+ly;=20
+I do have Debian running, but: no X, no RTC, no audio, and a very short idl=
+e=20
+time (on a charge).  Unfortunately I have little free time in which to work=
+ on=20
+it.
+
+--gneEPciiIl/aKvOT
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.9 (GNU/Linux)
+
+iEYEARECAAYFAklPncEACgkQ682C+dBP+oQO7ACg6pBPjwwC6B8GHh02rZI8GiyD
+ryYAoJpk9V15dkh0ZrOgc9Gicf1CMAu8
+=n1hM
+-----END PGP SIGNATURE-----
+
+--gneEPciiIl/aKvOT--
