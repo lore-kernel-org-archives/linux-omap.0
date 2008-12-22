@@ -1,147 +1,102 @@
-From: "Trilok Soni" <soni.trilok@gmail.com>
-Subject: Re: [irda-users] [PATCH] OMAP IrDA driver
-Date: Mon, 22 Dec 2008 16:54:19 +0530
-Message-ID: <5d5443650812220324m476614bfu3936e1c2cd682660@mail.gmail.com>
-References: <5d5443650812042234y6301148at6658f4855500b105@mail.gmail.com>
-	 <ea9ea93a42eaf41cd9ee3ff11ad1a026@localhost>
-	 <5d5443650812050148n2b3fca72m272a1af33629c478@mail.gmail.com>
-	 <20081205215344.GJ18379@frodo>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Subject: Re: [PATCH] Add Omnivision OV9640 sensor support.
+Date: Mon, 22 Dec 2008 13:07:15 +0100
+Message-ID: <200812221307.15351.hverkuil@xs4all.nl>
+References: <5d5443650811280216r450c6f02v3fb0db2e1580594a@mail.gmail.com> <200812071139.47936.hverkuil@xs4all.nl> <5d5443650812212349s793de6abk4eb83dee1bf4db30@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from wf-out-1314.google.com ([209.85.200.171]:49761 "EHLO
-	wf-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753355AbYLVLYU (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 22 Dec 2008 06:24:20 -0500
-In-Reply-To: <20081205215344.GJ18379@frodo>
+Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:3343 "EHLO
+	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753697AbYLVMHl (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 22 Dec 2008 07:07:41 -0500
+In-Reply-To: <5d5443650812212349s793de6abk4eb83dee1bf4db30@mail.gmail.com>
 Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: me@felipebalbi.com
-Cc: samuel@sortiz.org, linux-kernel@vger.kernel.org, irda-users@lists.sourceforge.net, Andrew Morton <akpm@linux-foundation.org>, linux-omap@vger.kernel.org
+To: Trilok Soni <soni.trilok@gmail.com>
+Cc: v4l <video4linux-list@redhat.com>, "linux-omap@vger.kernel.org Mailing List" <linux-omap@vger.kernel.org>, Sakari Ailus <sakari.ailus@nokia.com>
 
-Hi Felipe,
-
-Sorry for delayed reply.
-
->> +
->> +     void *rx_buf_dma_virt;          /* Virtual address of RX DMA buffer */
->> +     void *tx_buf_dma_virt;          /* Virtual address of TX DMA buffer */
+On Monday 22 December 2008 08:49:34 Trilok Soni wrote:
+> Hi Hans,
 >
-> should these two be void __iomem * ?
-
-Agreed.
-
+> Sorry for the delay in reply.
 >
->> +
->> +     struct device *dev;
->> +     struct omap_irda_config *pdata;
->> +};
->> +
->> +static inline void uart_reg_out(int idx, u8 val)
->> +{
->> +     omap_writeb(val, idx);
+> >> Attached the updated ov9640 sensor patch.
+> >
+> > Thanks. Here is my review:
+> >
+> > 1) Don't use this: static struct ov9640_sensor ov9640;
+> >
+> > This allows only one sensor instance. This should be dynamic. Remember
+> > that it should be possible (once the new v4l2_device/v4l2_subdev
+> > framework is merged) to reuse this driver in other products as well. So
+> > it should be possible to use two webcams with this sensor at the same
+> > time. It's only a small amount of work to make this struct dynamic.
+> > Ditto for the 'current_value' field of the static struct vcontrol: this
+> > too is per-instance.
 >
-> __raw_writeb(), pass a reference to struct omap_irda here so you'd have
-> access to a void __iomem *base (read below).
+> Hopefully kzallocing in the probe ?
 
-Agreed.
-
->> + */
->> +static void omap_irda_rx_dma_callback(int lch, u16 ch_status, void *data)
->> +{
->> +     struct net_device *dev = data;
->> +     struct omap_irda *omap_ir = netdev_priv(dev);
->> +
->> +     printk(KERN_ERR "RX Transfer error or very big frame\n");
->
-> you have a device pointer in omap_ir, use it and convert these to
-> dev_dbg() calls.
-
-Agree.
-
+Yes. Typically all state information is pulled into one struct which is 
+kzalloc'ed in the probe and freed at the end.
 
 >
->> +     if (omap_ir->pdata->transceiver_mode && machine_is_omap_h2()) {
->> +             /* Is it select_irda on H2 ? */
->> +             omap_writel(omap_readl(FUNC_MUX_CTRL_A) | 7,
->> +                                     FUNC_MUX_CTRL_A);
+> > 2) Looking at all the YUV and RGB register settings I notice that they
+> > seem to fall into two parts: all MTX regs and some COM regs are
+> > identical for either RGB or YUV. It's a good idea to have only two
+> > arrays for these registers rather than duplicating them for each
+> > format. You might want to consider setting the remaining COM regs
+> > directly in a switch (fmt) statement. Try it and see what is more
+> > readable.
 >
-> __raw_writel/__raw_readl.
+> I will try this.
+>
+> > 3) There already exists a standard autoexposure control:
+> > V4L2_CID_EXPOSURE_AUTO.
+>
+> Ok.
+>
+> > 4) What does V4L2_CID_FREEZE_AGCAEC do?
+>
+> I need to pull out some docs on this, but not looked at them from long
+> time.
 
-Agree.
+I recommend that you read my posting "Re: Extended driver private controls?" 
+on the linux-omap list as well (for some reason it was refused on the v4l 
+list, weird).
+
+> > 5) We have standardized the camera control names. A patch for this is
+> > still pending, but I recommend that in the meantime you use these
+> > names:
+> >
+> > AUTOGAIN: "Gain, Automatic"
+> > AUTO_WHITE_BALANCE: "White Balance, Automatic"
+> > HFLIP: "Horizontal Flip"
+> > VFLIP: "Vertical Flip"
+> >
+> > AUTO_EXPOSURE will probably change to "Exposure, Automatic", but this
+> > is still under discussion.
+>
+> Ok.
+
+It's been decided that it will be called "Auto Exposure" instead.
 
 >
->> +static int omap_irda_probe(struct platform_device *pdev)
->> +{
->> +     struct net_device *dev;
->> +     struct omap_irda *omap_ir;
->> +     struct omap_irda_config *pdata = pdev->dev.platform_data;
->> +     unsigned int baudrate_mask;
->> +     int err = 0;
->> +     int irq = NO_IRQ;
+> > 6) include/media/ov9640.h: what part of this header needs to be visible
+> > to other parts of the kernel? A lot seems to be internal to the driver
+> > and so should be moved to the driver source (or a ov9640_regs.h headers
+> > next to the driver source).
 >
-> you should probably have a struct resource *res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
->
-> and use it to ioremap() the base address. Then you can stop using the
-> omap_read[bsl]/omap_write[bsl] calls and switch over to standard
-> __raw_read[bsl]/__raw_write[bsl] ones.
->
+> I will bring regs inside the source file and remove ov9640.h from
+> include/media if there is no need of platform data dependency from
+> board-xxx.c files.
 
-Right.
+Thanks,
 
->> +
->> +     dev = alloc_irdadev(sizeof(struct omap_irda));
->> +     if (!dev)
->> +             goto err_mem_1;
->> +
->> +
->
-> one blank line only.
->
-
-Ok.
-
->> +
->> +     /* Any better way to avoid this? No. */
->> +     if (machine_is_omap_h3() || machine_is_omap_h4())
->> +             INIT_DELAYED_WORK(&omap_ir->pdata->gpio_expa, NULL);
->
-> what does this mean ? what's that gpio_expa??
-
-gpio_expa name here is misleading now. It is work name being scheduled
-of sleeping gpio/i2c operations over pcf857x expander chip. No harm
-otherwise.
-
->> +
->> +static int omap_irda_remove(struct platform_device *pdev)
->> +{
->> +     struct net_device *dev = platform_get_drvdata(pdev);
->> +
->> +     if (pdev) {
->> +             unregister_netdev(dev);
->> +             free_netdev(dev);
->> +     }
->
-> pdev is always true here, remove this if().
-
-Ok.
-
->> +
->> +static char __initdata banner[] = KERN_INFO "OMAP IrDA driver initializing\n";
->> +
->> +static int __init omap_irda_init(void)
->> +{
->> +     printk(banner);
->
-> you can remove this banner. No need for it.
-
-Ok.
-
-
+	Hans
 
 -- 
----Trilok Soni
-http://triloksoni.wordpress.com
-http://www.linkedin.com/in/triloksoni
+Hans Verkuil - video4linux developer - sponsored by TANDBERG
