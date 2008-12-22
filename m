@@ -1,48 +1,59 @@
-From: David Brownell <david-b@pacbell.net>
-Subject: Re: DSP/IOMMU needs 128-byte alignment from user-space buffers?
-Date: Sun, 21 Dec 2008 19:48:11 -0800
-Message-ID: <200812211948.11460.david-b@pacbell.net>
-References: <94a0d4530812170526x51aa7959r52c7583661c5a9da@mail.gmail.com> <200812211819.47692.david-b@pacbell.net> <94a0d4530812211915g78f1e74ei11af4b9c1202befb@mail.gmail.com>
+From: "pramod gurav" <pramodforum-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: I2C1 controller timed out issue
+Date: Mon, 22 Dec 2008 10:44:22 +0530
+Message-ID: <f502236f0812212114p4b20e81br52d9031c4673f886@mail.gmail.com>
+References: <f502236f0812200204h1ef1df01sf79243e6e276074d@mail.gmail.com>
+	 <20081220131321.GB10866@frodo>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp123.sbc.mail.sp1.yahoo.com ([69.147.64.96]:37234 "HELO
-	smtp123.sbc.mail.sp1.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1752122AbYLVDsN (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Sun, 21 Dec 2008 22:48:13 -0500
-In-Reply-To: <94a0d4530812211915g78f1e74ei11af4b9c1202befb@mail.gmail.com>
+Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20081220131321.GB10866@frodo>
 Content-Disposition: inline
-Sender: linux-omap-owner@vger.kernel.org
+Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: me-uiRdBs8odbtmTBlB0Cgj/Q@public.gmane.org
+Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Contreras <felipe.contreras@gmail.com>
-Cc: "Kanigeri, Hari" <h-kanigeri2@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
 
-On Sunday 21 December 2008, Felipe Contreras wrote:
-> On Mon, Dec 22, 2008 at 4:19 AM, David Brownell wrote:
-> > In short:  it's the same kind of cache line sharing issue
-> > that any other DMA-using software needs to be aware of,
-> > ...
-> 
-> Do you know of any software doing some kind of processing that sends
-> the data back? My guess is that there isn't a lot of software doing
-> that.
+Hi,
+I am using current linux-omap git sources. Can you please post the patch to fix
+this timeout issue.
 
-I wouldn't know about such hardware, but I'd be shocked to
-learn that TI's products are the first to offload image
-processing tasks to hardware.  Workstations have done such
-stuff for at least 25 years now, which is enough time to
-have tried a LOT of hardware variations.  Surely at least
-one non-TI variation wrote data back, in those years...
-
-I'm just saying this is really a bog-standard issue.
-
-Maybe it's a surprise in this context for some reason;
-current Open Source tools might easily have made unwise
-x86-oriented assumptions, like caches being DMA-coherent.
-Tools moving for the first time to new platforms tend to
-uncover a lot of portability glitches.  They get fixed.
-
-- Dave
+On Sat, Dec 20, 2008 at 7:39 PM, Felipe Balbi <me-uiRdBs8odbtmTBlB0Cgj/Q@public.gmane.org> wrote:
+> On Sat, Dec 20, 2008 at 03:34:00PM +0530, pramod gurav wrote:
+>> Hi,
+>> I am working on OMAP3430 board. The kernel is linux-omap-2.6.
+>> The twl5030 module is sitting on i2c1.
+>> I often come across a error saying
+>>
+>> i2c_omap i2c_omap.1: controller timed out
+>> i2c_omap i2c_omap.1: controller timed out
+>>
+>> This is all what appears in logs when i2c1 times out and all the
+>> other slave devices on i2c1 stop responding. Other i2c busses(2)
+>> work properly. if try to reboot the I2C fails to respnd in u-boot also
+>> saying
+>>
+>> timed out in wait_for_pin: I2C_STAT=0
+>> I2C read failed
+>> timed out in wait_for_pin: I2C_STAT=0
+>> I2C read failed
+>> timed out in wait_for_pin: I2C_STAT=0
+>> I2C read failed
+>>
+>> I have to to do hard reset to progress with the boot.
+>>
+>> I gone through the changes happened to i2-omap driver in between
+>> and tried applying the patches manually.
+>> The problem still persists.
+>> May be I am missing some more changes.
+>>
+>> The i2-omap.c source is attached herewith this mail.
+>> Somebody please suggest me on this issue if this has been seen as
+>> a issue and if fixed.
+>
+> Are you using current linux-omap from git ? This problem is long gone.
+>
+> --
+> balbi
+>
