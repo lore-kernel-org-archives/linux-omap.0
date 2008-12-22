@@ -1,67 +1,104 @@
-From: Otto Solares <solca@guug.org>
-Subject: Nokia Internet Tablets
-Date: Mon, 22 Dec 2008 04:34:22 -0600
-Message-ID: <20081222103422.GL29448@guug.org>
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: [REVIEW] v4l2 debugging: match drivers by name instead of the
+ deprecated ID
+Date: Mon, 22 Dec 2008 09:11:33 -0200
+Message-ID: <20081222091133.417c1273@pedra.chehab.org>
+References: <200812201345.56672.hverkuil@xs4all.nl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from guug.org ([200.9.255.30]:2471 "EHLO guug.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752013AbYLVKjX (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 22 Dec 2008 05:39:23 -0500
-Content-Disposition: inline
+Received: from bombadil.infradead.org ([18.85.46.34]:43327 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752761AbYLVLLs (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 22 Dec 2008 06:11:48 -0500
+In-Reply-To: <200812201345.56672.hverkuil@xs4all.nl>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: v4l <video4linux-list@redhat.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Jean Delvare <khali@linux-fr.org>
 
-Hi all!
+On Sat, 20 Dec 2008 13:45:56 +0100
+Hans Verkuil <hverkuil@xs4all.nl> wrote:
 
-I want to resurrect missing support for the Nokia Internet Tablets
-starting with the N8x0s for my NITdroid project, which uses just
-standard Linux kernel APIs.
+> Hi all,
+> 
+> Jean Delvare has stated repeatedly that the I2C driver IDs will have to go. 
+> However, one major user inside V4L2 are the VIDIOC_G_CHIP_IDENT and 
+> VIDIOC_DBG_G/S_REGISTER ioctls.
+> 
+> These ioctls are meant as debugging and testing ioctls and (in the case of 
+> G_CHIP_IDENT) for internal use in the kernel (e.g. a bridge driver that 
+> needs to know which I2C chip variant is present).
+> 
+> These ioctls should not be used in applications and luckily this is indeed 
+> the case. I scanned the major applications and did a google search and 
+> everything came up clean.
+> 
+> I made the following changes:
+> 
+> #define V4L2_CHIP_MATCH_HOST       0  /* Match against chip ID on host (0 
+> for the host) */
+> #define V4L2_CHIP_MATCH_I2C_DRIVER 1  /* Match against I2C driver name */
+> #define V4L2_CHIP_MATCH_I2C_ADDR   2  /* Match against I2C 7-bit address */
+> 
+> struct v4l2_match_info {
+>         __u32 type; /* Match type */
+>         union {
+>                 __u32 addr;
+>                 char name[32];
+>         };
+> } __attribute__ ((packed));
+> 
+> struct v4l2_register {
+>         struct v4l2_match_info match;
+>         __u64 reg;
+>         __u64 val;
+> } __attribute__ ((packed));
+> 
+> /* VIDIOC_DBG_G_CHIP_IDENT */
+> struct v4l2_chip_ident {
+>         struct v4l2_match_info match;
+>         __u32 ident;
+>         __u32 revision;
+> } __attribute__ ((packed));
+> 
+> So the match will now be done against either a chip address or a driver 
+> name.
+> 
+> I also added additional comments in videodev2.h, warning against ever using 
+> it in applications:
+> 
+> #if 1 /*KEEP*/
+> /* Experimental, meant for debugging, testing and internal use.
+>    Only implemented if CONFIG_VIDEO_ADV_DEBUG is defined.
+>    You must be root to use these ioctls. Never use these in applications! */
+> #define VIDIOC_DBG_S_REGISTER    _IOW('V', 79, struct v4l2_register)
+> #define VIDIOC_DBG_G_REGISTER   _IOWR('V', 80, struct v4l2_register)
+> 
+> /* Experimental, meant for debugging, testing and internal use.
+>    Never use this ioctl in applications! */
+> #define VIDIOC_DBG_G_CHIP_IDENT _IOWR('V', 81, struct v4l2_chip_ident)
+> #endif
+> 
+> And VIDIOC_G_CHIP_IDENT was renamed to VIDIOC_DBG_G_CHIP_IDENT, again to 
+> clearly mark this as a debugging API.
+> 
+> All this is available in this tree:
+> http://www.linuxtv.org/hg/~hverkuil/v4l-dvb-drvid
 
-So first I would like to ask some very newbie questions:
+Seems ok to me, but, while you're there, you should add another field to
+get/set register routines, in order to provide the size of the register. This
+will allow removing some hacks at the debug application needed by some usb
+devices.
 
--Is there any ongoing effort to support these devices in latest kernels
- at the same level as the latest Nokia production kernel (2.6.21-omap)?
+> Now, the main question I have is whether I should keep the old 
+> VIDIOC_G_CHIP_IDENT around for 2.6.29 with a big warning if someone tries 
+> to use it, or do we just change it since 1) it is marked experimental and 
+> for debugging purposes only, and 2) I cannot find a single application that 
+> uses it and even Google throws up only a handful of pages.
 
--I don't plan to suspend but just sleep while idling, is this a good
- approach to power management (pm)?
+IMO, return -EINVAL and print an error at dmesg.
 
--I read about the pm branch, where can I pull it?
-
--What it does mean retention state for OMAP2 processors? As far as I
- can figure is some deep sleep state?
-
--If it is a sleep state, what are the conditions to get in? any way to
- check or how to know if it get in?
-
--Does CONFIG_NO_HZ works for this devices?
-
--Disabling serial support in linux-omap can I get rid of the serial
- clocks so it more easily get in deep sleep states?
-
--2.6.21-omap had DVFS for OMAP2, why it was removed and what is needed
- to port it back to latest linux-omap kernel so cpufreq scaling works?
-
--Same for the camera drivers, why it was removed and what is required
- to port it back?
-
--AFAIK the recent removals of the N800 sound driver was because it was
- not written for ALSA OMAP SoC API, right?
-
--Can the retu RTC be ported to the CONFIG_RTC_CLASS API?
-
--Are the CONFIG_REGULATOR and CONFIG_POWER_SUPPLY APIs of any use for
- the Internet Tablets?
-
-If it is lack of time of the original developers, I would like to step
-in, willing to try to complete this work as long as you are willing to
-support me with answers to my newbie questions as this devices are in
-plenty operation today but the Nokia kernel is getting really old and
-it's a good thing if we can port all the drivers to standard Linux API.
-
-Thx in advance!
-
--otto
+Cheers,
+Mauro
