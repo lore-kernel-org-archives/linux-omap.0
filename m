@@ -1,77 +1,50 @@
-From: "Gadiyar, Anand" <gadiyar@ti.com>
-Subject: RE: status of USB on omap35xx ?
-Date: Mon, 22 Dec 2008 03:55:26 +0530
-Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB02E65453BA@dbde02.ent.ti.com>
-References: <1228870250.32014.148.camel@localhost.localdomain>
-  <5e088bd90812101502r1d01880co3d54e99982db3589@mail.gmail.com>
-  <20081211005733.GZ18138@atomide.com>
-  <6ed0b2680812110238w130d708j615c3d7e0a381f24@mail.gmail.com>
-  <alpine.DEB.2.00.0812110947000.26754@utopia.booyaka.com>
-  <5e088bd90812110938i10526ad3x94b47bb8adeb91b4@mail.gmail.com>
-  <6ed0b2680812111241u5da7abd5r10094bf79ea9c299@mail.gmail.com>
-  <alpine.DEB.2.00.0812111401100.26754@utopia.booyaka.com>
-  <6ed0b2680812111452t75b175bdr304e9b1d22ea93de@mail.gmail.com>
-  <alpine.DEB.2.00.0812111603520.26754@utopia.booyaka.com>
- <6ed0b2680812121215m15ff0e59t8ede0e5dca5b6270@mail.gmail.com>
- <alpine.DEB.2.00.0812121331180.26754@utopia.booyaka.com>
- <FCCFB4CDC6E5564B9182F639FC356087025106711C@dbde02.ent.ti.com>
- <alpine.DEB.2.00.0812121410220.26754@utopia.booyaka.com>
+From: David Brownell <david-b@pacbell.net>
+Subject: Re: DSP/IOMMU needs 128-byte alignment from user-space buffers?
+Date: Sun, 21 Dec 2008 18:19:47 -0800
+Message-ID: <200812211819.47692.david-b@pacbell.net>
+References: <94a0d4530812170526x51aa7959r52c7583661c5a9da@mail.gmail.com> <8F7AF80515AF0D4D93307E594F3CB40E1A0CFAAB@dlee03.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:38565 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750963AbYLUW0s convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 21 Dec 2008 17:26:48 -0500
-In-Reply-To: <alpine.DEB.2.00.0812121410220.26754@utopia.booyaka.com>
-Content-Language: en-US
+Received: from smtp117.sbc.mail.sp1.yahoo.com ([69.147.64.90]:20273 "HELO
+	smtp117.sbc.mail.sp1.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1751874AbYLVCTt (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Sun, 21 Dec 2008 21:19:49 -0500
+In-Reply-To: <8F7AF80515AF0D4D93307E594F3CB40E1A0CFAAB@dlee03.ent.ti.com>
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>, "Pandita, Vikram" <vikram.pandita@ti.com>
-Cc: Grazvydas Ignotas <notasas@gmail.com>, Steve Sakoman <sakoman@gmail.com>, Tony Lindgren <tony@atomide.com>, David Brownell <david-b@pacbell.net>, "me@felipebalbi.com" <me@felipebalbi.com>, "Kridner, Jason" <jdk@ti.com>, "sakari.poussa@nokia.com" <sakari.poussa@nokia.com>, Jeff Steele <jsteele@coloradocollege.edu>, linux-omap <linux-omap@vger.kernel.org>
+To: Felipe Contreras <felipe.contreras@gmail.com>
+Cc: "Kanigeri, Hari" <h-kanigeri2@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
 
-> Hello Vikram,
-> 
-> On Sat, 13 Dec 2008, Pandita, Vikram wrote:
-> 
-> > >From: Paul Walmsley [mailto:paul@pwsan.com]
-> > >
-> > >Were you able to get USB remote wakeup or auto-suspend working on
-> > >ehci-omap.c with the 3430SDP?
-> > 
-> > For remote-wakeup: 
-> > There was a long discussion with USBHOST IP vendor. We were observing a device disconnect on a remote-wakeup as well as host initiated wakeup.
-> > 
-> > It turned out to be an issue with the IP block and will be fixed in 3430 ES3.1 finally.
-> > And a software workaround for waiting for USB micro frame boundary. 
-> > Now the workaround has been done in USB EHCI stack code which is not the best way ... 
-> > 
-> > Take a look at Zoom GIT tree for the reference implementation: 
-> > 
-> http://git.omapzoom.com/?p=omapkernel.git;a=commitdiff;h=baa196583f4af08d15da0389fed8f9005b0f812d
-> 
-> Thanks for the info; that's quite helpful.  Do you happen to know if there 
-> are any projects ongoing inside TI to send patches for the existing 
-> ehci-omap.c driver in linux-omap?
-> 
-> 
-> - Paul
+On Wednesday 17 December 2008, Kanigeri, Hari wrote:
+> When the DSP processes data, the DSP cache controller
+> loads 128-Byte chunks (lines) from SDRAM and writes the
+> data back in 128-Byte chunks.
 
-Yes, but only if Tony will accept them. And he won't - it
-will only increase the diff between linux-omap and mainline.
+In short:  it's the same kind of cache line sharing issue
+that any other DMA-using software needs to be aware of,
+except that (a) the lines are 128 bytes vs whatever ARM
+uses, and (b) the other bus master is a CPU instead of
+something relatively dumb.
 
-The EHCI driver should actually go to linux-usb. If you look
-at the list archives, you will find that I had said I would
-do that - ages ago. Unfortunately I have not been able to do
-that so far. It's high on the priority list however.
+Any software that runs on non-x86 hardware will likely
+have had to deal with such issues already, since most
+hardware other than x86 relies on software to prevent
+cache coherency goofs:  no bus snooping, MOESI, etc.
 
-Also, that reference patch is not complete either. It uses
-ehci_get_frame() which returns the current frame number,
-instead of the EHCI FrameIndex register value (which is all
-we need - so we end up waiting longer). Also, it's a while
-loop without a timeout, which is bad.
+- Dave
 
-This patch does get EHCI suspend-resume working however, so
-feel free to take it if you need it. It's a hack for now.
+
+
+> If a DMM buffer does not start and end on a 128-Byte
+> boundary, the data preceding the start address from
+> the 128-Byte boundary to the Start Address and the
+> data at addresses trailing the end address from the
+> End Address to the next 128-Byte boundary will be
+> loaded and written back as well.         
+
 
