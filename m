@@ -1,97 +1,67 @@
-From: "Trilok Soni" <soni.trilok@gmail.com>
-Subject: Re: [PATCH] Add Omnivision OV9640 sensor support.
-Date: Mon, 22 Dec 2008 13:19:34 +0530
-Message-ID: <5d5443650812212349s793de6abk4eb83dee1bf4db30@mail.gmail.com>
-References: <5d5443650811280216r450c6f02v3fb0db2e1580594a@mail.gmail.com>
-	 <5d5443650812010451o321e76e6s2681b3486e7c3c24@mail.gmail.com>
-	 <5d5443650812070140w423d6fe9ua2f0ff9d2974bbd7@mail.gmail.com>
-	 <200812071139.47936.hverkuil@xs4all.nl>
+From: Otto Solares <solca@guug.org>
+Subject: Nokia Internet Tablets
+Date: Mon, 22 Dec 2008 04:34:22 -0600
+Message-ID: <20081222103422.GL29448@guug.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from wf-out-1314.google.com ([209.85.200.168]:23300 "EHLO
-	wf-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752416AbYLVHtf (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 22 Dec 2008 02:49:35 -0500
-Received: by wf-out-1314.google.com with SMTP id 27so2024826wfd.4
-        for <linux-omap@vger.kernel.org>; Sun, 21 Dec 2008 23:49:34 -0800 (PST)
-In-Reply-To: <200812071139.47936.hverkuil@xs4all.nl>
+Received: from guug.org ([200.9.255.30]:2471 "EHLO guug.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752013AbYLVKjX (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 22 Dec 2008 05:39:23 -0500
 Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: v4l <video4linux-list@redhat.com>, "linux-omap@vger.kernel.org Mailing List" <linux-omap@vger.kernel.org>, Sakari Ailus <sakari.ailus@nokia.com>
+To: linux-omap@vger.kernel.org
 
-Hi Hans,
+Hi all!
 
-Sorry for the delay in reply.
+I want to resurrect missing support for the Nokia Internet Tablets
+starting with the N8x0s for my NITdroid project, which uses just
+standard Linux kernel APIs.
 
->>
->> Attached the updated ov9640 sensor patch.
->
-> Thanks. Here is my review:
->
-> 1) Don't use this: static struct ov9640_sensor ov9640;
->
-> This allows only one sensor instance. This should be dynamic. Remember
-> that it should be possible (once the new v4l2_device/v4l2_subdev
-> framework is merged) to reuse this driver in other products as well. So
-> it should be possible to use two webcams with this sensor at the same
-> time. It's only a small amount of work to make this struct dynamic.
-> Ditto for the 'current_value' field of the static struct vcontrol: this
-> too is per-instance.
+So first I would like to ask some very newbie questions:
 
-Hopefully kzallocing in the probe ?
+-Is there any ongoing effort to support these devices in latest kernels
+ at the same level as the latest Nokia production kernel (2.6.21-omap)?
 
->
-> 2) Looking at all the YUV and RGB register settings I notice that they
-> seem to fall into two parts: all MTX regs and some COM regs are
-> identical for either RGB or YUV. It's a good idea to have only two
-> arrays for these registers rather than duplicating them for each
-> format. You might want to consider setting the remaining COM regs
-> directly in a switch (fmt) statement. Try it and see what is more
-> readable.
+-I don't plan to suspend but just sleep while idling, is this a good
+ approach to power management (pm)?
 
-I will try this.
+-I read about the pm branch, where can I pull it?
 
->
-> 3) There already exists a standard autoexposure control:
-> V4L2_CID_EXPOSURE_AUTO.
+-What it does mean retention state for OMAP2 processors? As far as I
+ can figure is some deep sleep state?
 
-Ok.
+-If it is a sleep state, what are the conditions to get in? any way to
+ check or how to know if it get in?
 
->
-> 4) What does V4L2_CID_FREEZE_AGCAEC do?
->
+-Does CONFIG_NO_HZ works for this devices?
 
-I need to pull out some docs on this, but not looked at them from long time.
+-Disabling serial support in linux-omap can I get rid of the serial
+ clocks so it more easily get in deep sleep states?
 
-> 5) We have standardized the camera control names. A patch for this is
-> still pending, but I recommend that in the meantime you use these
-> names:
->
-> AUTOGAIN: "Gain, Automatic"
-> AUTO_WHITE_BALANCE: "White Balance, Automatic"
-> HFLIP: "Horizontal Flip"
-> VFLIP: "Vertical Flip"
->
-> AUTO_EXPOSURE will probably change to "Exposure, Automatic", but this is
-> still under discussion.
+-2.6.21-omap had DVFS for OMAP2, why it was removed and what is needed
+ to port it back to latest linux-omap kernel so cpufreq scaling works?
 
-Ok.
+-Same for the camera drivers, why it was removed and what is required
+ to port it back?
 
->
-> 6) include/media/ov9640.h: what part of this header needs to be visible
-> to other parts of the kernel? A lot seems to be internal to the driver
-> and so should be moved to the driver source (or a ov9640_regs.h headers
-> next to the driver source).
+-AFAIK the recent removals of the N800 sound driver was because it was
+ not written for ALSA OMAP SoC API, right?
 
-I will bring regs inside the source file and remove ov9640.h from
-include/media if there is no need of platform data dependency from
-board-xxx.c files.
+-Can the retu RTC be ported to the CONFIG_RTC_CLASS API?
 
--- 
----Trilok Soni
-http://triloksoni.wordpress.com
-http://www.linkedin.com/in/triloksoni
+-Are the CONFIG_REGULATOR and CONFIG_POWER_SUPPLY APIs of any use for
+ the Internet Tablets?
+
+If it is lack of time of the original developers, I would like to step
+in, willing to try to complete this work as long as you are willing to
+support me with answers to my newbie questions as this devices are in
+plenty operation today but the Nokia kernel is getting really old and
+it's a good thing if we can port all the drivers to standard Linux API.
+
+Thx in advance!
+
+-otto
