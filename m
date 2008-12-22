@@ -1,91 +1,128 @@
-From: "Kanigeri, Hari" <h-kanigeri2@ti.com>
-Subject: RE: DSP/IOMMU needs 128-byte alignment from user-space buffers?
-Date: Mon, 22 Dec 2008 07:12:47 -0600
-Message-ID: <8F7AF80515AF0D4D93307E594F3CB40E1A1B2220@dlee03.ent.ti.com>
-References: <94a0d4530812170526x51aa7959r52c7583661c5a9da@mail.gmail.com>
-	<8F7AF80515AF0D4D93307E594F3CB40E1A0CFAAB@dlee03.ent.ti.com>
- <20081220.082659.257429163.Hiroshi.DOYU@nokia.com>
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: [REVIEW] v4l2 debugging: match drivers by name instead of the
+ deprecated ID
+Date: Mon, 22 Dec 2008 12:51:17 -0200
+Message-ID: <20081222125117.3aa9974d@pedra.chehab.org>
+References: <200812201345.56672.hverkuil@xs4all.nl>
+	<20081222091133.417c1273@pedra.chehab.org>
+	<200812221328.37402.hverkuil@xs4all.nl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:58257 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753987AbYLVNNA convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 22 Dec 2008 08:13:00 -0500
-In-Reply-To: <20081220.082659.257429163.Hiroshi.DOYU@nokia.com>
-Content-Language: en-US
+Received: from bombadil.infradead.org ([18.85.46.34]:57150 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754620AbYLVOv3 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 22 Dec 2008 09:51:29 -0500
+In-Reply-To: <200812221328.37402.hverkuil@xs4all.nl>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
-Cc: "felipe.contreras@gmail.com" <felipe.contreras@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: v4l <video4linux-list@redhat.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Jean Delvare <khali@linux-fr.org>
 
-Hi Doyu-san,
+On Mon, 22 Dec 2008 13:28:37 +0100
+Hans Verkuil <hverkuil@xs4all.nl> wrote:
 
-> Hi Hari,
-> 
-> Would it be possible for the bridge to check this alignment and if
-> it's not, it returns some error to userland and upper layers in a
-> chain?
-
--- We can do this in Bridge. I think the userland layers (LCML, OMX, GStreamer,...) should be then aware on how to handle this error. This will require some discussion with these components owners.
-
-Thank you,
-Best regards,
-Hari
-
-> -----Original Message-----
-> From: Hiroshi DOYU [mailto:Hiroshi.DOYU@nokia.com]
-> Sent: Saturday, December 20, 2008 12:27 AM
-> To: Kanigeri, Hari
-> Cc: felipe.contreras@gmail.com; linux-omap@vger.kernel.org
-> Subject: Re: DSP/IOMMU needs 128-byte alignment from user-space buffers?
-> 
-> Hi Hari,
-> 
-> Would it be possible for the bridge to check this alignment and if
-> it's not, it returns some error to userland and upper layers in a
-> chain?
-> 
->       Hiroshi DOYU
-> 
-> From: "ext Kanigeri, Hari" <h-kanigeri2@ti.com>
-> Subject: RE: DSP/IOMMU needs 128-byte alignment from user-space buffers?
-> Date: Wed, 17 Dec 2008 14:37:01 -0600
-> 
-> > Hi Felipe,
+> On Monday 22 December 2008 12:11:33 Mauro Carvalho Chehab wrote:
+> > On Sat, 20 Dec 2008 13:45:56 +0100
 > >
-> > > I received information from TI saying that user-space buffers
-> > > need to be 128-byte aligned for the DSP to work properly.
+> > Hans Verkuil <hverkuil@xs4all.nl> wrote:
+> > > Hi all,
 > > >
-> > > Is this true or is it some kind of limitation on their MMU
-> > > code that might be solved by Hiroshi's iommu?
+> > > Jean Delvare has stated repeatedly that the I2C driver IDs will have to
+> > > go. However, one major user inside V4L2 are the VIDIOC_G_CHIP_IDENT and
+> > > VIDIOC_DBG_G/S_REGISTER ioctls.
 > > >
-> > > This impacts quite drastically user-space applications like
-> > > GStreamer since a memory copy would be required to achieve
-> > > that 128-byte alignment.
+> > > These ioctls are meant as debugging and testing ioctls and (in the case
+> > > of G_CHIP_IDENT) for internal use in the kernel (e.g. a bridge driver
+> > > that needs to know which I2C chip variant is present).
 > > >
-> > > They also claim that adding 128-byte padding at the beginning
-> > > and at the end achieves the same purpose.
+> > > These ioctls should not be used in applications and luckily this is
+> > > indeed the case. I scanned the major applications and did a google
+> > > search and everything came up clean.
+> > >
+> > > I made the following changes:
+> > >
+> > > #define V4L2_CHIP_MATCH_HOST       0  /* Match against chip ID on host
+> > > (0 for the host) */
+> > > #define V4L2_CHIP_MATCH_I2C_DRIVER 1  /* Match against I2C driver name
+> > > */ #define V4L2_CHIP_MATCH_I2C_ADDR   2  /* Match against I2C 7-bit
+> > > address */
+> > >
+> > > struct v4l2_match_info {
+> > >         __u32 type; /* Match type */
+> > >         union {
+> > >                 __u32 addr;
+> > >                 char name[32];
+> > >         };
+> > > } __attribute__ ((packed));
+> > >
+> > > struct v4l2_register {
+> > >         struct v4l2_match_info match;
+> > >         __u64 reg;
+> > >         __u64 val;
+> > > } __attribute__ ((packed));
+> > >
+> > > /* VIDIOC_DBG_G_CHIP_IDENT */
+> > > struct v4l2_chip_ident {
+> > >         struct v4l2_match_info match;
+> > >         __u32 ident;
+> > >         __u32 revision;
+> > > } __attribute__ ((packed));
+> > >
+> > > So the match will now be done against either a chip address or a driver
+> > > name.
+> > >
+> > > I also added additional comments in videodev2.h, warning against ever
+> > > using it in applications:
+> > >
+> > > #if 1 /*KEEP*/
+> > > /* Experimental, meant for debugging, testing and internal use.
+> > >    Only implemented if CONFIG_VIDEO_ADV_DEBUG is defined.
+> > >    You must be root to use these ioctls. Never use these in
+> > > applications! */ #define VIDIOC_DBG_S_REGISTER    _IOW('V', 79, struct
+> > > v4l2_register) #define VIDIOC_DBG_G_REGISTER   _IOWR('V', 80, struct
+> > > v4l2_register)
+> > >
+> > > /* Experimental, meant for debugging, testing and internal use.
+> > >    Never use this ioctl in applications! */
+> > > #define VIDIOC_DBG_G_CHIP_IDENT _IOWR('V', 81, struct v4l2_chip_ident)
+> > > #endif
+> > >
+> > > And VIDIOC_G_CHIP_IDENT was renamed to VIDIOC_DBG_G_CHIP_IDENT, again
+> > > to clearly mark this as a debugging API.
+> > >
+> > > All this is available in this tree:
+> > > http://www.linuxtv.org/hg/~hverkuil/v4l-dvb-drvid
 > >
-> > This is to address the memory corruption that might arise when using DMM
-> (Dynamic memory mapping) feature.
-> > When the DSP processes data, the DSP cache controller loads 128-Byte
-> chunks (lines) from SDRAM and writes the data back in 128-Byte chunks. If
-> a DMM buffer does not start and end on a 128-Byte boundary, the data
-> preceding the start address from the 128-Byte boundary to the Start
-> Address and the data at addresses trailing the end address from the End
-> Address to the next 128-Byte boundary will be loaded and written back as
-> well. If the DMM buffer was allocated on the heap of a process running on
-> the ARM, the preceding and trailing data, if modified by the ARM (or other
-> non-DSP entity) during DSP processing, will be overwritten by the DSP
-> cache controller, when the 128-Byte chunks are written back to SDRAM. This
-> can lead to heap corruption.
-> > I think if you request the buffer from OMX component, this issue will be
-> taken as there is an additional 256 bytes padding.
-> >
-> > Thank you,
-> > Best regards,
-> > Hari
-> >
+> > Seems ok to me, but, while you're there, you should add another field to
+> > get/set register routines, in order to provide the size of the register.
+> > This will allow removing some hacks at the debug application needed by
+> > some usb devices.
+> 
+> Good idea. I'll do that.
 
+Btw, I'm fixing some troubles with v4l2-dbg, and I'll add a handler for AC97
+registers on em28xx. I'll probably add another type of debug - something like:
+
+#define V4L2_CHIP_MATCH_AC97   3
+
+For accessing the AC97 chip connected into em28xx AC97 port.
+
+> > > Now, the main question I have is whether I should keep the old
+> > > VIDIOC_G_CHIP_IDENT around for 2.6.29 with a big warning if someone
+> > > tries to use it, or do we just change it since 1) it is marked
+> > > experimental and for debugging purposes only, and 2) I cannot find a
+> > > single application that uses it and even Google throws up only a
+> > > handful of pages.
+> >
+> > IMO, return -EINVAL and print an error at dmesg.
+> 
+> OK. Should I mark it in the feature-removal document as well for removal in 
+> 2.6.30? I think that would be a good idea otherwise we'll be stuck with it 
+> forever.
+
+Sure.
+
+Cheers,
+Mauro
