@@ -1,99 +1,76 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: [PATCH 08/22] OMAP clock: remove VIRTUAL_CLOCK
-Date: Mon, 22 Dec 2008 23:38:34 -0700
-Message-ID: <20081223063833.8542.26633.stgit@localhost.localdomain>
+Subject: [PATCH 14/22] OMAP2/3 clock: convert remaining MPU barriers into OCP
+	barriers
+Date: Mon, 22 Dec 2008 23:38:39 -0700
+Message-ID: <20081223063838.8542.16140.stgit@localhost.localdomain>
 References: <20081223063709.8542.82882.stgit@localhost.localdomain>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:52869 "EHLO
+Received: from utopia.booyaka.com ([72.9.107.138]:52887 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752278AbYLWGjj (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 23 Dec 2008 01:39:39 -0500
+	with ESMTP id S1752177AbYLWGjo (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 23 Dec 2008 01:39:44 -0500
 In-Reply-To: <20081223063709.8542.82882.stgit@localhost.localdomain>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
-Cc: Russell King <rmk+kernel@arm.linux.org.uk>, Paul Walmsley <paul@pwsan.com>
+Cc: Paul Walmsley <paul@pwsan.com>
 
-From: Russell King <rmk@dyn-67.arm.linux.org.uk>
+Several parts of the OMAP2/3 clock code use wmb() to try to ensure
+that the hardware write completes before continuing.  This approach is
+problematic: wmb() only ensures that the write leaves the ARM.  It
+does not ensure that the write actually reaches the endpoint device.
+The endpoint device in this case - either the PRM, CM, or SCM - is
+three interconnects away from the ARM - and the final interconnect is
+low-speed.  And the OCP interconnects will post the write, and who
+knows how long that will take to complete.  So the wmb() is not what
+we want.  Worse, the wmb() is indiscriminate; it causes the ARM to
+flush any other unrelated buffered writes and wait for the local
+interconnect to acknowledge them - potentially very expensive.
 
-Nothing tests the clock flags for this bit, so it serves no purpose.
-Remove it.
+Fix this by converting the wmb()s into readbacks of the same PRM/CM/SCM
+register.  Since the PRM/CM/SCM devices use a single OCP thread, this
+will cause the MPU to block while waiting for posted writes to that device
+to complete.
 
-Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
 Signed-off-by: Paul Walmsley <paul@pwsan.com>
 ---
- arch/arm/mach-omap1/clock.h             |    8 +++-----
- arch/arm/mach-omap2/clock24xx.h         |    2 +-
- arch/arm/plat-omap/include/mach/clock.h |    6 ++----
- 3 files changed, 6 insertions(+), 10 deletions(-)
+ arch/arm/mach-omap2/clock.c |    7 +++----
+ 1 files changed, 3 insertions(+), 4 deletions(-)
 
-diff --git a/arch/arm/mach-omap1/clock.h b/arch/arm/mach-omap1/clock.h
-index 564f4bc..5ba55a0 100644
---- a/arch/arm/mach-omap1/clock.h
-+++ b/arch/arm/mach-omap1/clock.h
-@@ -736,7 +736,7 @@ static struct clk mmc2_ck = {
- static struct clk virtual_ck_mpu = {
- 	.name		= "mpu",
- 	.flags		= CLOCK_IN_OMAP1510 | CLOCK_IN_OMAP16XX |
--			  CLOCK_IN_OMAP310 | VIRTUAL_CLOCK | ALWAYS_ENABLED,
-+			  CLOCK_IN_OMAP310 | ALWAYS_ENABLED,
- 	.parent		= &arm_ck, /* Is smarter alias for */
- 	.recalc		= &followparent_recalc,
- 	.set_rate	= &omap1_select_table_rate,
-@@ -751,8 +751,7 @@ static struct clk i2c_fck = {
- 	.name		= "i2c_fck",
- 	.id		= 1,
- 	.flags		= CLOCK_IN_OMAP310 | CLOCK_IN_OMAP1510 | CLOCK_IN_OMAP16XX |
--			  VIRTUAL_CLOCK | CLOCK_NO_IDLE_PARENT |
--			  ALWAYS_ENABLED,
-+			  CLOCK_NO_IDLE_PARENT | ALWAYS_ENABLED,
- 	.parent		= &armxor_ck.clk,
- 	.recalc		= &followparent_recalc,
- 	.enable		= &omap1_clk_enable_generic,
-@@ -762,8 +761,7 @@ static struct clk i2c_fck = {
- static struct clk i2c_ick = {
- 	.name		= "i2c_ick",
- 	.id		= 1,
--	.flags		= CLOCK_IN_OMAP16XX |
--			  VIRTUAL_CLOCK | CLOCK_NO_IDLE_PARENT |
-+	.flags		= CLOCK_IN_OMAP16XX | CLOCK_NO_IDLE_PARENT |
- 			  ALWAYS_ENABLED,
- 	.parent		= &armper_ck.clk,
- 	.recalc		= &followparent_recalc,
-diff --git a/arch/arm/mach-omap2/clock24xx.h b/arch/arm/mach-omap2/clock24xx.h
-index 824413d..8e0b3f7 100644
---- a/arch/arm/mach-omap2/clock24xx.h
-+++ b/arch/arm/mach-omap2/clock24xx.h
-@@ -2845,7 +2845,7 @@ static struct clk mmchsdb2_fck = {
- static struct clk virt_prcm_set = {
- 	.name		= "virt_prcm_set",
- 	.flags		= CLOCK_IN_OMAP242X | CLOCK_IN_OMAP243X |
--				VIRTUAL_CLOCK | ALWAYS_ENABLED | DELAYED_APP,
-+				ALWAYS_ENABLED | DELAYED_APP,
- 	.clkdm		= { .name = "virt_opp_clkdm" },
- 	.parent		= &mpu_ck,	/* Indexed by mpu speed, no parent */
- 	.recalc		= &omap2_table_mpu_recalc,	/* sets are keyed on mpu rate */
-diff --git a/arch/arm/plat-omap/include/mach/clock.h b/arch/arm/plat-omap/include/mach/clock.h
-index f4fab45..57b33c3 100644
---- a/arch/arm/plat-omap/include/mach/clock.h
-+++ b/arch/arm/plat-omap/include/mach/clock.h
-@@ -149,12 +149,10 @@ void omap_clk_del_child(struct clk *clk, struct clk *clk2);
+diff --git a/arch/arm/mach-omap2/clock.c b/arch/arm/mach-omap2/clock.c
+index 78e14bf..0946a5a 100644
+--- a/arch/arm/mach-omap2/clock.c
++++ b/arch/arm/mach-omap2/clock.c
+@@ -446,7 +446,7 @@ static int _omap2_clk_enable(struct clk *clk)
+ 	else
+ 		v |= (1 << clk->enable_bit);
+ 	_omap2_clk_write_reg(v, clk->enable_reg, clk);
+-	wmb();
++	v = _omap2_clk_read_reg(clk->enable_reg, clk); /* OCP barrier */
  
- /* Clock flags */
- #define RATE_CKCTL		(1 << 0)	/* Main fixed ratio clocks */
+ 	omap2_clk_wait_ready(clk);
+ 
+@@ -774,8 +774,7 @@ int omap2_clksel_set_rate(struct clk *clk, unsigned long rate)
+ 	v &= ~clk->clksel_mask;
+ 	v |= field_val << __ffs(clk->clksel_mask);
+ 	_omap2_clk_write_reg(v, clk->clksel_reg, clk);
 -
--
--#define VIRTUAL_CLOCK		(1 << 3)	/* Composite clock from table */
-+/* bits 1-3 are currently free */
- #define ALWAYS_ENABLED		(1 << 4)	/* Clock cannot be disabled */
- #define ENABLE_REG_32BIT	(1 << 5)	/* Use 32-bit access */
--
-+/* bit 6 is currently free */
- #define CLOCK_IDLE_CONTROL	(1 << 7)
- #define CLOCK_NO_IDLE_PARENT	(1 << 8)
- #define DELAYED_APP		(1 << 9)	/* Delay application of clock */
+-	wmb();
++	v = _omap2_clk_read_reg(clk->clksel_reg, clk); /* OCP barrier */
+ 
+ 	clk->rate = clk->parent->rate / new_div;
+ 
+@@ -851,7 +850,7 @@ int omap2_clk_set_parent(struct clk *clk, struct clk *new_parent)
+ 	v &= ~clk->clksel_mask;
+ 	v |= field_val << __ffs(clk->clksel_mask);
+ 	_omap2_clk_write_reg(v, clk->clksel_reg, clk);
+-	wmb();
++	v = _omap2_clk_read_reg(clk->clksel_reg, clk);    /* OCP barrier */
+ 
+ 	_omap2xxx_clk_commit(clk);
+ 
 
 
