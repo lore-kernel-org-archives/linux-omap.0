@@ -1,60 +1,77 @@
-From: Koen Kooi <k.kooi@student.utwente.nl>
-Subject: Re: Nokia Internet Tablets
-Date: Tue, 23 Dec 2008 10:58:26 +0100
-Message-ID: <755A14F3-D549-46A2-A1C0-9F827F518543@student.utwente.nl>
-References: <20081222103422.GL29448@guug.org> <20081222140137.GD12324@swansys> <20081223093445.69d761e5.jarkko.nikula@nokia.com> <9093790D-6A94-435F-9A7F-275BA33A9AB0@student.utwente.nl> <20081223113431.fd2fed0c.jarkko.nikula@nokia.com>
-Mime-Version: 1.0 (Apple Message framework v930.3)
-Content-Type: multipart/signed; protocol="application/pgp-signature"; micalg=pgp-sha1; boundary="Apple-Mail-6-463520172"
+From: Paul Walmsley <paul@pwsan.com>
+Subject: [PATCH 6/7] OMAP2/3 clock: add clock prepare-rate-change notifications
+Date: Tue, 23 Dec 2008 03:13:55 -0700
+Message-ID: <20081223101355.22979.28301.stgit@localhost.localdomain>
+References: <20081223101116.22979.53805.stgit@localhost.localdomain>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mx1.utsp.utwente.nl ([130.89.2.12]:32782 "EHLO mx.utwente.nl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752043AbYLWJ6r (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 23 Dec 2008 04:58:47 -0500
-In-Reply-To: <20081223113431.fd2fed0c.jarkko.nikula@nokia.com>
+Received: from utopia.booyaka.com ([72.9.107.138]:58118 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752943AbYLWKOm (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 23 Dec 2008 05:14:42 -0500
+In-Reply-To: <20081223101116.22979.53805.stgit@localhost.localdomain>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Jarkko Nikula <jarkko.nikula@nokia.com>, zuh@iki.fi
-Cc: "linux-omap@vger.kernel.org List" <linux-omap@vger.kernel.org>
+To: linux-omap@vger.kernel.org
+Cc: Paul Walmsley <paul@pwsan.com>
 
-This is an OpenPGP/MIME signed message (RFC 2440 and 3156)
---Apple-Mail-6-463520172
-Content-Type: text/plain; charset=US-ASCII; format=flowed; delsp=yes
-Content-Transfer-Encoding: 7bit
+Call the clock notifiers before rate or parent changes.  If a callback
+refuses the change, it should return NOTIFY_BAD; otherwise, NOTIFY_DONE.
+
+Signed-off-by: Paul Walmsley <paul@pwsan.com>
+---
+ arch/arm/mach-omap2/clock.c |   16 ++++++++++++++++
+ 1 files changed, 16 insertions(+), 0 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/clock.c b/arch/arm/mach-omap2/clock.c
+index 2a024bf..50d8e06 100644
+--- a/arch/arm/mach-omap2/clock.c
++++ b/arch/arm/mach-omap2/clock.c
+@@ -790,6 +790,7 @@ int omap2_clk_set_rate(struct clk *clk, unsigned long rate)
+ {
+ 	int ret = -EINVAL;
+ 	unsigned long temp_rate;
++	int r;
+ 
+ 	if (!clk->set_rate)
+ 		return -EINVAL;
+@@ -799,6 +800,13 @@ int omap2_clk_set_rate(struct clk *clk, unsigned long rate)
+ 		propagate_rate(clk, TEMP_RATE);
+ 	}
+ 
++	r = omap_clk_notify_downstream(clk, CLK_PREPARE_RATE_CHANGE);
++	if (r == NOTIFY_BAD) {
++		pr_debug("clock: %s: clk_set_rate() aborted by notifier\n",
++			 clk->name);
++		return -EAGAIN;
++	}
++
+ 	pr_debug("clock: %s: set_rate from %ld Hz to %ld Hz\n", clk->name,
+ 		 clk->rate, rate);
+ 
+@@ -851,6 +859,7 @@ static u32 _omap2_clksel_get_src_field(struct clk *src_clk, struct clk *clk,
+ int omap2_clk_set_parent(struct clk *clk, struct clk *new_parent)
+ {
+ 	u32 field_val, v, parent_div;
++	int r;
+ 	unsigned long orig_rate, new_rate;
+ 
+ 	if (!clk->clksel)
+@@ -870,6 +879,13 @@ int omap2_clk_set_parent(struct clk *clk, struct clk *new_parent)
+ 		propagate_rate(clk, TEMP_RATE);
+ 	}
+ 
++	r = omap_clk_notify_downstream(clk, CLK_PREPARE_RATE_CHANGE);
++	if (r == NOTIFY_BAD) {
++		pr_debug("clock: %s: clk_set_parent() aborted by notifier\n",
++			 clk->name);
++		return -EAGAIN;
++	}
++
+ 	omap_clk_notify_downstream(clk, CLK_PRE_RATE_CHANGE);
+ 
+ 	if (clk->usecount > 0)
 
 
-Op 23 dec 2008, om 10:34 heeft Jarkko Nikula het volgende geschreven:
-
-> On Tue, 23 Dec 2008 10:04:24 +0100
-> "ext Koen Kooi" <k.kooi@student.utwente.nl> wrote:
->
->> have you tried http://cgit.pingu.fi/xf86-video-omapfb/ yet? That
->> should give you XV and it shouldn't need an xorg.conf.
->>
-> Thanks for info! Do you know does it support standard xset commands,
-> i.e. setting the different blanking modes?
-
-It shares a lot of code with xf86-video-fbdev, but I don't know if the  
-blanking code made it into the driver. Kalle, do you know if blanking  
-works?
-
-regards,
-
-Koen
-
---Apple-Mail-6-463520172
-content-type: application/pgp-signature; x-mac-type=70674453;
-	name=PGP.sig
-content-description: Dit deel van het bericht is digitaal ondertekend
-content-disposition: inline; filename=PGP.sig
-content-transfer-encoding: 7bit
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.5 (Darwin)
-
-iD8DBQFJULZEMkyGM64RGpERAt9FAKC5LQ9vNJl0cSHl9V+E62QUcUnqngCgkeWN
-ievD10VYewiYffHDM17LN5w=
-=McjP
------END PGP SIGNATURE-----
-
---Apple-Mail-6-463520172--
