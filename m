@@ -1,55 +1,61 @@
-From: green <greenfreedom10@gmail.com>
-Subject: Re: Nokia Internet Tablets
-Date: Mon, 22 Dec 2008 16:04:11 -0600
-Message-ID: <20081222220411.GC4080@swansys>
-References: <20081222103422.GL29448@guug.org> <20081222122757.GI7125@gandalf.research.nokia.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: [PATCH] OMAP2: fix recent build breakage
+Date: Mon, 22 Dec 2008 23:28:10 -0700 (MST)
+Message-ID: <alpine.DEB.2.00.0812222326580.3233@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="h56sxpGKRmy85csR"
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from qw-out-2122.google.com ([74.125.92.26]:9724 "EHLO
-	qw-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759640AbYLVWHz (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 22 Dec 2008 17:07:55 -0500
-Received: by qw-out-2122.google.com with SMTP id 3so1309401qwe.37
-        for <linux-omap@vger.kernel.org>; Mon, 22 Dec 2008 14:07:53 -0800 (PST)
-Content-Disposition: inline
-In-Reply-To: <20081222122757.GI7125@gandalf.research.nokia.com>
-Content-Language: en
+Received: from utopia.booyaka.com ([72.9.107.138]:33947 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751986AbYLWG2M (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 23 Dec 2008 01:28:12 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 
 
---h56sxpGKRmy85csR
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Fix recent build breakage.  Boot-tested on N800.
+    
+  CC      arch/arm/mach-omap2/devices.o
+arch/arm/mach-omap2/devices.c:110: error: 'OMAP34XX_MAILBOX_BASE' undeclared here (not in a function)
+arch/arm/mach-omap2/devices.c:115: error: 'INT_34XX_MAIL_U0_MPU' undeclared here (not in a function)
+make[1]: *** [arch/arm/mach-omap2/devices.o] Error 1
+    
+Signed-off-by: Paul Walmsley <paul@pwsan.com>
 
-On Mon, 2008.12.22, 357, Felipe Balbi wrote:
-> On Mon, Dec 22, 2008 at 04:34:22AM -0600, ext Otto Solares wrote:
-> > -Is there any ongoing effort to support these devices in latest kernels
-> >  at the same level as the latest Nokia production kernel (2.6.21-omap)?
->=20
-> n8x0 devices should boot fine with current linux-omap and I'd say we
-> have all the drivers here as well, besides audio, camera and wifi (me thi=
-nks)
-
-And GPS?
-
-RTC & bme don't really work properly either...?
-
---h56sxpGKRmy85csR
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.9 (GNU/Linux)
-
-iEYEARECAAYFAklQDtsACgkQ682C+dBP+oQl4wCfSesLJeTa3PXq4ZtCxKGAaCs+
-pwoAnR7Aj+P58LVQAu52aG58uCPvVqA6
-=mrvy
------END PGP SIGNATURE-----
-
---h56sxpGKRmy85csR--
+diff --git a/arch/arm/mach-omap2/devices.c b/arch/arm/mach-omap2/devices.c
+index 937fb18..d7e848e 100644
+--- a/arch/arm/mach-omap2/devices.c
++++ b/arch/arm/mach-omap2/devices.c
+@@ -112,7 +112,7 @@ static struct resource omap3_mbox_resources[] = {
+ 		.flags		= IORESOURCE_MEM,
+ 	},
+ 	{
+-		.start		= INT_34XX_MAIL_U0_MPU,
++		.start		= INT_24XX_MAIL_U0_MPU,
+ 		.flags		= IORESOURCE_IRQ,
+ 	},
+ };
+diff --git a/arch/arm/plat-omap/include/mach/omap34xx.h b/arch/arm/plat-omap/include/mach/omap34xx.h
+index 2f82e28..27a1e45 100644
+--- a/arch/arm/plat-omap/include/mach/omap34xx.h
++++ b/arch/arm/plat-omap/include/mach/omap34xx.h
+@@ -56,6 +56,9 @@
+ #define OMAP34XX_SR1_BASE	0x480C9000
+ #define OMAP34XX_SR2_BASE	0x480CB000
+ 
++#define OMAP34XX_CAMERA_BASE		(L4_34XX_BASE + 0xBC000)
++#define OMAP34XX_MAILBOX_BASE		(L4_34XX_BASE + 0x94000)
++
+ 
+ #if defined(CONFIG_ARCH_OMAP3430)
+ 
+@@ -63,8 +66,6 @@
+ #define OMAP2_CM_BASE			OMAP3430_CM_BASE
+ #define OMAP2_PRM_BASE			OMAP3430_PRM_BASE
+ #define OMAP2_VA_IC_BASE		IO_ADDRESS(OMAP34XX_IC_BASE)
+-#define OMAP34XX_CAMERA_BASE		(L4_34XX_BASE + 0xBC000)
+-#define OMAP34XX_MAILBOX_BASE		(L4_34XX_BASE + 0x94000)
+ 
+ #endif
+ 
