@@ -1,77 +1,75 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: [PATCH 6/7] OMAP2/3 clock: add clock prepare-rate-change notifications
-Date: Tue, 23 Dec 2008 03:13:55 -0700
-Message-ID: <20081223101355.22979.28301.stgit@localhost.localdomain>
+Subject: [PATCH 4/7] OMAP2/3 clock: add clk post-rate-change notifiers
+Date: Tue, 23 Dec 2008 03:13:54 -0700
+Message-ID: <20081223101353.22979.44354.stgit@localhost.localdomain>
 References: <20081223101116.22979.53805.stgit@localhost.localdomain>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:58118 "EHLO
+Received: from utopia.booyaka.com ([72.9.107.138]:58110 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752943AbYLWKOm (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 23 Dec 2008 05:14:42 -0500
+	with ESMTP id S1752892AbYLWKOk (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 23 Dec 2008 05:14:40 -0500
 In-Reply-To: <20081223101116.22979.53805.stgit@localhost.localdomain>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: Paul Walmsley <paul@pwsan.com>
 
-Call the clock notifiers before rate or parent changes.  If a callback
-refuses the change, it should return NOTIFY_BAD; otherwise, NOTIFY_DONE.
+Calls the  clock post-rate-change notifier whenever clock rates are changed
+in the OMAP clock framework.  This is primarily in *_recalc() functions.
+
+One item to note is that the post-rate-change notifier is called even
+if the new clock rate is identical to the old rate.  This is because
+the process of changing the rate may have temporarily disabled or
+glitched the clock or one of its parents, and some devices may be
+sensitive to such changes.
 
 Signed-off-by: Paul Walmsley <paul@pwsan.com>
 ---
- arch/arm/mach-omap2/clock.c |   16 ++++++++++++++++
- 1 files changed, 16 insertions(+), 0 deletions(-)
+ arch/arm/mach-omap2/clock.c |   11 ++++++++++-
+ 1 files changed, 10 insertions(+), 1 deletions(-)
 
 diff --git a/arch/arm/mach-omap2/clock.c b/arch/arm/mach-omap2/clock.c
-index 2a024bf..50d8e06 100644
+index c990a17..843d1b5 100644
 --- a/arch/arm/mach-omap2/clock.c
 +++ b/arch/arm/mach-omap2/clock.c
-@@ -790,6 +790,7 @@ int omap2_clk_set_rate(struct clk *clk, unsigned long rate)
+@@ -789,6 +789,7 @@ int omap2_clksel_set_rate(struct clk *clk, unsigned long rate)
+ int omap2_clk_set_rate(struct clk *clk, unsigned long rate)
  {
  	int ret = -EINVAL;
- 	unsigned long temp_rate;
-+	int r;
++	unsigned long temp_rate;
  
  	if (!clk->set_rate)
  		return -EINVAL;
-@@ -799,6 +800,13 @@ int omap2_clk_set_rate(struct clk *clk, unsigned long rate)
- 		propagate_rate(clk, TEMP_RATE);
- 	}
+@@ -803,6 +804,11 @@ int omap2_clk_set_rate(struct clk *clk, unsigned long rate)
  
-+	r = omap_clk_notify_downstream(clk, CLK_PREPARE_RATE_CHANGE);
-+	if (r == NOTIFY_BAD) {
-+		pr_debug("clock: %s: clk_set_rate() aborted by notifier\n",
-+			 clk->name);
-+		return -EAGAIN;
-+	}
+ 	ret = clk->set_rate(clk, rate);
+ 
++	temp_rate = clk->rate;
++	clk->rate = clk->temp_rate;
++	omap_clk_notify_downstream(clk, CLK_POST_RATE_CHANGE);
++	clk->rate = temp_rate;
 +
- 	pr_debug("clock: %s: set_rate from %ld Hz to %ld Hz\n", clk->name,
- 		 clk->rate, rate);
+ 	return ret;
+ }
  
-@@ -851,6 +859,7 @@ static u32 _omap2_clksel_get_src_field(struct clk *src_clk, struct clk *clk,
- int omap2_clk_set_parent(struct clk *clk, struct clk *new_parent)
- {
- 	u32 field_val, v, parent_div;
-+	int r;
- 	unsigned long orig_rate, new_rate;
+@@ -878,11 +884,14 @@ int omap2_clk_set_parent(struct clk *clk, struct clk *new_parent)
+ 		_omap2_clk_enable(clk);
  
- 	if (!clk->clksel)
-@@ -870,6 +879,13 @@ int omap2_clk_set_parent(struct clk *clk, struct clk *new_parent)
- 		propagate_rate(clk, TEMP_RATE);
- 	}
+ 	clk->parent = new_parent;
+-	clk->rate = new_rate;
  
-+	r = omap_clk_notify_downstream(clk, CLK_PREPARE_RATE_CHANGE);
-+	if (r == NOTIFY_BAD) {
-+		pr_debug("clock: %s: clk_set_parent() aborted by notifier\n",
-+			 clk->name);
-+		return -EAGAIN;
-+	}
+ 	pr_debug("clock: %s: set parent to %s (orig rate %ld, new rate %ld)\n",
+ 		 clk->name, clk->parent->name, orig_rate, new_rate);
+ 
++	omap_clk_notify_downstream(clk, CLK_POST_RATE_CHANGE);
 +
- 	omap_clk_notify_downstream(clk, CLK_PRE_RATE_CHANGE);
++	clk->rate = new_rate;
++
+ 	return 0;
+ }
  
- 	if (clk->usecount > 0)
 
 
