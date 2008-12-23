@@ -1,76 +1,64 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: [PATCH 14/22] OMAP2/3 clock: convert remaining MPU barriers into OCP
-	barriers
-Date: Mon, 22 Dec 2008 23:38:39 -0700
-Message-ID: <20081223063838.8542.16140.stgit@localhost.localdomain>
+Subject: [PATCH 20/22] OMAP2/3 clock: omap2_clk_enable(): fix logic
+Date: Mon, 22 Dec 2008 23:38:45 -0700
+Message-ID: <20081223063844.8542.63041.stgit@localhost.localdomain>
 References: <20081223063709.8542.82882.stgit@localhost.localdomain>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:52887 "EHLO
+Received: from utopia.booyaka.com ([72.9.107.138]:52913 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752177AbYLWGjo (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 23 Dec 2008 01:39:44 -0500
+	with ESMTP id S1753028AbYLWGjx (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 23 Dec 2008 01:39:53 -0500
 In-Reply-To: <20081223063709.8542.82882.stgit@localhost.localdomain>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: Paul Walmsley <paul@pwsan.com>
 
-Several parts of the OMAP2/3 clock code use wmb() to try to ensure
-that the hardware write completes before continuing.  This approach is
-problematic: wmb() only ensures that the write leaves the ARM.  It
-does not ensure that the write actually reaches the endpoint device.
-The endpoint device in this case - either the PRM, CM, or SCM - is
-three interconnects away from the ARM - and the final interconnect is
-low-speed.  And the OCP interconnects will post the write, and who
-knows how long that will take to complete.  So the wmb() is not what
-we want.  Worse, the wmb() is indiscriminate; it causes the ARM to
-flush any other unrelated buffered writes and wait for the local
-interconnect to acknowledge them - potentially very expensive.
-
-Fix this by converting the wmb()s into readbacks of the same PRM/CM/SCM
-register.  Since the PRM/CM/SCM devices use a single OCP thread, this
-will cause the MPU to block while waiting for posted writes to that device
-to complete.
+Rearrange the parent clock enable status check code so it actually makes
+sense.  No functional change.
 
 Signed-off-by: Paul Walmsley <paul@pwsan.com>
 ---
- arch/arm/mach-omap2/clock.c |    7 +++----
- 1 files changed, 3 insertions(+), 4 deletions(-)
+ arch/arm/mach-omap2/clock.c |   17 ++++++++++-------
+ 1 files changed, 10 insertions(+), 7 deletions(-)
 
 diff --git a/arch/arm/mach-omap2/clock.c b/arch/arm/mach-omap2/clock.c
-index 78e14bf..0946a5a 100644
+index fc2219d..c21767a 100644
 --- a/arch/arm/mach-omap2/clock.c
 +++ b/arch/arm/mach-omap2/clock.c
-@@ -446,7 +446,7 @@ static int _omap2_clk_enable(struct clk *clk)
- 	else
- 		v |= (1 << clk->enable_bit);
- 	_omap2_clk_write_reg(v, clk->enable_reg, clk);
--	wmb();
-+	v = _omap2_clk_read_reg(clk->enable_reg, clk); /* OCP barrier */
+@@ -489,20 +489,23 @@ void omap2_clk_disable(struct clk *clk)
  
- 	omap2_clk_wait_ready(clk);
+ int omap2_clk_enable(struct clk *clk)
+ {
+-	int ret = 0;
++	int ret;
  
-@@ -774,8 +774,7 @@ int omap2_clksel_set_rate(struct clk *clk, unsigned long rate)
- 	v &= ~clk->clksel_mask;
- 	v |= field_val << __ffs(clk->clksel_mask);
- 	_omap2_clk_write_reg(v, clk->clksel_reg, clk);
--
--	wmb();
-+	v = _omap2_clk_read_reg(clk->clksel_reg, clk); /* OCP barrier */
+ 	if (++clk->usecount > 1)
+ 		return 0;
  
- 	clk->rate = clk->parent->rate / new_div;
+ 	omap2_clkdm_clk_enable(clk->clkdm.ptr, clk);
  
-@@ -851,7 +850,7 @@ int omap2_clk_set_parent(struct clk *clk, struct clk *new_parent)
- 	v &= ~clk->clksel_mask;
- 	v |= field_val << __ffs(clk->clksel_mask);
- 	_omap2_clk_write_reg(v, clk->clksel_reg, clk);
--	wmb();
-+	v = _omap2_clk_read_reg(clk->clksel_reg, clk);    /* OCP barrier */
+-	if (clk->parent)
+-		ret = omap2_clk_enable(clk->parent);
++	if (clk->parent) {
++		int parent_ret;
  
- 	_omap2xxx_clk_commit(clk);
+-	if (ret != 0) {
+-		clk->usecount--;
+-		omap2_clkdm_clk_disable(clk->clkdm.ptr, clk);
+-		return ret;
++		parent_ret = omap2_clk_enable(clk->parent);
++
++		if (parent_ret != 0) {
++			clk->usecount--;
++			omap2_clkdm_clk_disable(clk->clkdm.ptr, clk);
++			return parent_ret;
++		}
+ 	}
  
+ 	ret = _omap2_clk_enable(clk);
 
 
