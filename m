@@ -1,150 +1,110 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: [PATCH 2/7] OMAP clock: add notifier infrastructure
-Date: Tue, 23 Dec 2008 03:13:52 -0700
-Message-ID: <20081223101351.22979.88564.stgit@localhost.localdomain>
-References: <20081223101116.22979.53805.stgit@localhost.localdomain>
+Subject: [PATCH 0/7] OMAP2/3 clock: implement clock rate change notifiers
+Date: Tue, 23 Dec 2008 03:13:49 -0700
+Message-ID: <20081223101116.22979.53805.stgit@localhost.localdomain>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:58098 "EHLO
+Received: from utopia.booyaka.com ([72.9.107.138]:58096 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752689AbYLWKOg (ORCPT
+	with ESMTP id S1752624AbYLWKOg (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>); Tue, 23 Dec 2008 05:14:36 -0500
-In-Reply-To: <20081223101116.22979.53805.stgit@localhost.localdomain>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
-Cc: Paul Walmsley <paul@pwsan.com>
 
-Add the clock notifier infrastructure.  The external function exposed here
-is omap_clk_notify_downstream().  This is intended to be used by
-architecture-specific clk_set_rate() and clk_set_parent() functions, e.g.,
-omap2_clk_set_rate().
+Hello,
 
-Signed-off-by: Paul Walmsley <paul@pwsan.com>
----
- arch/arm/plat-omap/clock.c              |   81 +++++++++++++++++++++++++++++++
- arch/arm/plat-omap/include/mach/clock.h |    1 
- 2 files changed, 82 insertions(+), 0 deletions(-)
+This series implements a clock rate change notifier for OMAP2/3 [1].
+It applies on top of the "OMAP clock: bug fixes, cleanup,
+optimization" series posted to linux-omap on Mon, 22 Dec 2008.
 
-diff --git a/arch/arm/plat-omap/clock.c b/arch/arm/plat-omap/clock.c
-index 4c2ed56..73bef03 100644
---- a/arch/arm/plat-omap/clock.c
-+++ b/arch/arm/plat-omap/clock.c
-@@ -173,6 +173,64 @@ void omap_clk_del_child(struct clk *clk, struct clk *clk2)
- 	}
- }
- 
-+/**
-+ * omap_clk_notify - call clk notifier chain
-+ * @clk: struct clk * that is changing rate
-+ * @msg: clk notifier type (i.e., CLK_POST_RATE_CHANGE; see mach/clock.h)
-+ * @old_rate: old rate
-+ * @new_rate: new rate
-+ *
-+ * Triggers a notifier call chain on the post-clk-rate-change notifier
-+ * for clock 'clk'.  Passes a pointer to the struct clk and the
-+ * previous and current rates to the notifier callback.  Intended to be
-+ * called by internal clock code only.  No return value.
-+ */
-+static int omap_clk_notify(struct clk *clk, unsigned long msg,
-+			   unsigned long old_rate, unsigned long new_rate)
-+{
-+	struct clk_notifier *cn;
-+	struct clk_notifier_data cnd;
-+	int ret = NOTIFY_DONE;
-+
-+	cnd.clk = clk;
-+	cnd.old_rate = old_rate;
-+	cnd.new_rate = new_rate;
-+
-+	list_for_each_entry(cn, &clk_notifier_list, node) {
-+		if (cn->clk == clk) {
-+			ret = atomic_notifier_call_chain(&cn->notifier_head,
-+							 msg, &cnd);
-+			break;
-+		}
-+	}
-+
-+	return ret;
-+}
-+
-+/**
-+ * _do_clk_notifier - callback function for clock change notification
-+ * @clk: struct clk * to start the notifications with
-+ * @msg: notifier msg - see "Clk notifier callback types"
-+ * @param2: unused
-+ *
-+ * Notify callbacks associated with @clk that a clock change will or has
-+ * occurred.  If @msg is CLK_PREPARE_RATE_CHANGE, then actually pay attention
-+ * to the notifier return value.
-+ */
-+static int _do_clk_notifier(struct clk *clk, unsigned long msg, u8 param2)
-+{
-+	int ret;
-+
-+	ret = omap_clk_notify(clk, msg, clk->rate, clk->temp_rate);
-+	if (ret && msg == CLK_PREPARE_RATE_CHANGE)
-+		return ret;
-+
-+	if (omap_clk_has_children(clk))
-+		return omap_clk_notify_downstream(clk, msg);
-+	else
-+		return 0;
-+}
-+
- /*-------------------------------------------------------------------------
-  * Standard clock functions defined in include/linux/clk.h
-  *-------------------------------------------------------------------------*/
-@@ -440,6 +498,27 @@ void recalculate_root_clocks(void)
- 			_do_propagate_rate(clkp, 0, CURRENT_RATE);
- }
- 
-+/**
-+ * omap_clk_notify_downstream - trigger clock change notifications
-+ * @clk: struct clk * to start the notifications with
-+ * @msg: notifier msg - see "Clk notifier callback types"
-+ *
-+ * Call clock change notifiers on clocks starting with @clk and including
-+ * all of @clk's downstream children clocks.  Returns NOTIFY_DONE if
-+ * the notifiers ran successfully, or when msg is CLK_PREPARE_RATE_CHANGE,
-+ * NOTIFY_BAD if one of the notifiers denied the change.
-+ */
-+int omap_clk_notify_downstream(struct clk *clk, unsigned long msg)
-+{
-+	if (clk == NULL || IS_ERR(clk))
-+		return -EINVAL;
-+
-+	if (!clk->notifier_count)
-+		return 0;
-+
-+	return omap_clk_for_each_child(clk, msg, 0, _do_clk_notifier);
-+}
-+
- int clk_register(struct clk *clk)
- {
- 	if (clk == NULL || IS_ERR(clk))
-@@ -529,6 +608,8 @@ void clk_init_cpufreq_table(struct cpufreq_frequency_table **table)
- EXPORT_SYMBOL(clk_init_cpufreq_table);
- #endif
- 
-+/* Clk notifier implementations */
-+
- /**
-  * clk_notifier_register - add a clock parameter change notifier
-  * @clk: struct clk * to watch
-diff --git a/arch/arm/plat-omap/include/mach/clock.h b/arch/arm/plat-omap/include/mach/clock.h
-index d08f16c..2faf4c4 100644
---- a/arch/arm/plat-omap/include/mach/clock.h
-+++ b/arch/arm/plat-omap/include/mach/clock.h
-@@ -183,6 +183,7 @@ extern void clk_init_cpufreq_table(struct cpufreq_frequency_table **table);
- #endif
- void omap_clk_add_child(struct clk *clk, struct clk *clk2);
- void omap_clk_del_child(struct clk *clk, struct clk *clk2);
-+extern int omap_clk_notify_downstream(struct clk *clk, unsigned long msg);
- 
- /* Clock flags */
- #define RATE_CKCTL		(1 << 0)	/* Main fixed ratio clocks */
+(The notes below assume that the notifiers are used by device drivers;
+however, they are also usable by core code.)
+
+The clock notifier is called for both rate and parent changes, and
+is called even when the current rate is the same as the future rate,
+in the event that the reprogramming causes a glitch.
+
+A single notifier is defined, with four types of messages:
+
+CLK_PREPARE_RATE_CHANGE: Used to ask the driver whether a rate
+   change is OK to complete.  When drivers receive this message,
+   they should start any actions that must complete before a
+   rate change can succeed.
+
+CLK_ABORT_RATE_CHANGE: Indicates that a notifier callback
+   has aborted the rate change, or that the clock rate/parent
+   change function has failed.  Upon receipt of this message,
+   drivers can 
+
+CLK_PRE_RATE_CHANGE: Indicates that the rate/parent change is about
+   to take place. The callback must not return until the driver
+   is ready for the change.
+
+CLK_POST_RATE_CHANGE: Indicates that the rate/parent change has
+   successfully completed.
+
+...
+
+There are three possible sequences of notifier messages that a driver
+can receive:
+
+PREPARE -> PRE -> POST: 
+   Successful rate/parent change.
+
+PREPARE -> ABORT: 
+   Rate/parent change aborted by one of the callbacks.
+
+PREPARE -> PRE -> ABORT
+   Rate/parent change aborted by the clock's set_rate()/set_parent()
+   functions.
+
+...
+
+If clock notifier callbacks are expected to abort clock changes, they
+probably should not be used as the only method for aborting changes.
+The clk_set_rate() or clk_set_parent() functions will return -EAGAIN
+if a driver aborts the change.  Higher-level code such as CPUFreq may
+attempt to call the function repeatedly, pointlessly burning CPU
+cycles.  In these situations, application code or system daemons
+must also be used to prevent the frequency change from reaching the
+clock code when it is expected to fail for long durations.
+
+Callbacks are called with the clock framework spinlock held.  Callback
+code should be extremely fast and lightweight and must not call back
+into the clock framework.
+
+Since support for clock notifiers currently does not exist in
+include/linux/clk.h, drivers that wish to use them should pass
+function pointers for clk_notifier_register() and
+clk_notifier_unregister() via their platform_data structs.
+
+Please note that these patches have only been lightly tested.  Further
+testing is ongoing; help always appreciated.
+
+Compile-tested on OMAP1.  Boot-tested on N800.  Notifier callback
+tested on 3430SDP GP ES2.1.
+
+- Paul
+
+--
+
+1, There's no technical reason why these can't also be implemented for
+OMAP1.  I just don't have a convenient way to test OMAP1 builds at the
+moment.
+
+
+size:
+   text    data     bss     dec     hex filename
+3582501  190928  108824 3882253  3b3d0d vmlinux.3430sdp.orig
+3583605  191824  108824 3884253  3b44dd vmlinux.3430sdp.patched
+
+diffstat:
+ arch/arm/mach-omap2/clock.c             |   69 +++++++++--
+ arch/arm/plat-omap/clock.c              |  203 +++++++++++++++++++++++++++++++
+ arch/arm/plat-omap/include/mach/clock.h |   83 +++++++++++++
+ 3 files changed, 346 insertions(+), 9 deletions(-)
 
 
