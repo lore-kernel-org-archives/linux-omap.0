@@ -1,25 +1,27 @@
 From: Otto Solares <solca@guug.org>
 Subject: Re: Nokia Internet Tablets
-Date: Tue, 23 Dec 2008 20:05:02 -0600
-Message-ID: <20081224020502.GB9524@guug.org>
-References: <20081222103422.GL29448@guug.org> <20081222122757.GI7125@gandalf.research.nokia.com>
+Date: Tue, 23 Dec 2008 20:45:49 -0600
+Message-ID: <20081224024549.GC9524@guug.org>
+References: <20081222103422.GL29448@guug.org> <20081222145045.2dc800c4.jarkko.nikula@nokia.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from guug.org ([200.9.255.30]:3314 "EHLO guug.org"
+Received: from guug.org ([200.9.255.30]:31768 "EHLO guug.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751600AbYLXCFD (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 23 Dec 2008 21:05:03 -0500
+	id S1751753AbYLXCpu (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 23 Dec 2008 21:45:50 -0500
 Content-Disposition: inline
-In-Reply-To: <20081222122757.GI7125@gandalf.research.nokia.com>
+In-Reply-To: <20081222145045.2dc800c4.jarkko.nikula@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Balbi <felipe.balbi@nokia.com>
+To: Jarkko Nikula <jarkko.nikula@nokia.com>
 Cc: linux-omap@vger.kernel.org
 
-On Mon, Dec 22, 2008 at 02:27:57PM +0200, Felipe Balbi wrote:
-> On Mon, Dec 22, 2008 at 04:34:22AM -0600, ext Otto Solares wrote:
+On Mon, Dec 22, 2008 at 02:50:45PM +0200, Jarkko Nikula wrote:
+> On Mon, 22 Dec 2008 04:34:22 -0600
+> "ext Otto Solares" <solca@guug.org> wrote:
+> 
 > > Hi all!
 > > 
 > > I want to resurrect missing support for the Nokia Internet Tablets
@@ -30,71 +32,55 @@ On Mon, Dec 22, 2008 at 02:27:57PM +0200, Felipe Balbi wrote:
 > > 
 > > -Is there any ongoing effort to support these devices in latest kernels
 > >  at the same level as the latest Nokia production kernel (2.6.21-omap)?
+> > 
+> "make n800_defconfig" in linux-omap tree is a very good start.
 > 
-> n8x0 devices should boot fine with current linux-omap and I'd say we
-> have all the drivers here as well, besides audio, camera and wifi (me thinks)
-
-Yea it boots fine minus power management.
-
 > > -I don't plan to suspend but just sleep while idling, is this a good
 > >  approach to power management (pm)?
-> 
-> That's broken afaict.
-> 
+> > 
 > > -I read about the pm branch, where can I pull it?
+> > 
+> Probably you read already this "N810 suspend" thread?
 > 
-> from linux-omap git.
+> http://marc.info/?t=122937538800002&r=1&w=2
 > 
-> git pull \
-> git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap-2.6.git pm
-> 
-> should do it
-> 
-> > -Same for the camera drivers, why it was removed and what is required
-> >  to port it back?
-> 
-> get the patch out of linux-omap and send it through v4l2 maintainer.
+> Short: N800 can do sleep_while_idle but GPS uart clock prevents it
+> currently in N810 and PM branch may have solution to idle it.
+
+Will try it.
+
+> > -Does CONFIG_NO_HZ works for this devices?
+> > 
+> Was working at least some months ago with N800.
 > 
 > > -AFAIK the recent removals of the N800 sound driver was because it was
 > >  not written for ALSA OMAP SoC API, right?
-> 
-> yes.
-> 
-> > -Can the retu RTC be ported to the CONFIG_RTC_CLASS API?
 > > 
-> > -Are the CONFIG_REGULATOR and CONFIG_POWER_SUPPLY APIs of any use for
-> >  the Internet Tablets?
+> That's correct. N810 audio is already supported with SND_OMAP_SOC_N810
+> but N800 would require to have ASoC codec driver for TSC2301 and DAI
+> link driver for EAC, at least for exact sample rates.
 > 
-> hmm... it could be used for charging but it won't work unless you get
-> documentation of the charging chips used on n8x0. Also, you'd need to
-> change BME I suppose, which you can't :-s
+> This is due TSC2301 which can be only slave so in order to get stardard
+> sample rates, EAC or McBSP would require to use external master clock
+> to them and EAC_AC_MCLK and McBSP2.CLKS are not routed into same pads
+> like other four EAC and McBSP2 signals.
+> 
+> Most probably McBSP DAI & TSC2301 would work also if using internal 96
+> MHz as a source clock to McBSP. Then sample rate would be e.g.
+> 96 MHz / 32 / 32 = 46.875 kHz.
 
-It would be nice that the driver expose the current interface for BME
-plus the standard Linux API so battery metering works out of the box
-for distributions other than Maemo.
-
-I put a new project to kickstart all the required Nokia proprietary
-software so the NITs works with other distros without booting trhu
-initfs:
-
-http://guug.org/nit/nitboot
-
-Eventually I would like that NIT drivers expose just standard kernel
-APIs so no need for nitboot.  The only hard part as I see it is BME
-which I'm pretty sure it is not a trivial task to supplant.
+Excellent summary, that was what I need to know, I'll take a look.
 
 > > If it is lack of time of the original developers, I would like to step
 > > in, willing to try to complete this work as long as you are willing to
 > > support me with answers to my newbie questions as this devices are in
 > > plenty operation today but the Nokia kernel is getting really old and
 > > it's a good thing if we can port all the drivers to standard Linux API.
-> 
-> Sure, I totally agree with you. If I had more time I'd help cleaning up
-> some of the old drivers and send them upstream myself, but unfortunately
-> I don't.
-> 
-> If you wanna hack, go for it.
+> > 
+> I welcome you to step in this porting effort! I help what I can :-)
 
-Cool thx for the support!
+What about my other questions? cpufreq and dvfs?
+
+Thx for your support!
 
 -otto
