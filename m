@@ -1,86 +1,64 @@
-From: Otto Solares <solca@guug.org>
-Subject: Re: Nokia Internet Tablets
-Date: Tue, 23 Dec 2008 20:45:49 -0600
-Message-ID: <20081224024549.GC9524@guug.org>
-References: <20081222103422.GL29448@guug.org> <20081222145045.2dc800c4.jarkko.nikula@nokia.com>
+From: green <greenfreedom10@gmail.com>
+Subject: using git with linux-omap
+Date: Tue, 23 Dec 2008 21:24:19 -0600
+Message-ID: <20081224032419.GG4080@swansys>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="RwxaKO075aXzzOz0"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from guug.org ([200.9.255.30]:31768 "EHLO guug.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751753AbYLXCpu (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 23 Dec 2008 21:45:50 -0500
+Received: from qw-out-2122.google.com ([74.125.92.27]:56555 "EHLO
+	qw-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750997AbYLXDYj (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 23 Dec 2008 22:24:39 -0500
+Received: by qw-out-2122.google.com with SMTP id 3so1887171qwe.37
+        for <linux-omap@vger.kernel.org>; Tue, 23 Dec 2008 19:24:37 -0800 (PST)
 Content-Disposition: inline
-In-Reply-To: <20081222145045.2dc800c4.jarkko.nikula@nokia.com>
+Content-Language: en
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Jarkko Nikula <jarkko.nikula@nokia.com>
-Cc: linux-omap@vger.kernel.org
+To: Linux-OMAP List <linux-omap@vger.kernel.org>
 
-On Mon, Dec 22, 2008 at 02:50:45PM +0200, Jarkko Nikula wrote:
-> On Mon, 22 Dec 2008 04:34:22 -0600
-> "ext Otto Solares" <solca@guug.org> wrote:
-> 
-> > Hi all!
-> > 
-> > I want to resurrect missing support for the Nokia Internet Tablets
-> > starting with the N8x0s for my NITdroid project, which uses just
-> > standard Linux kernel APIs.
-> > 
-> > So first I would like to ask some very newbie questions:
-> > 
-> > -Is there any ongoing effort to support these devices in latest kernels
-> >  at the same level as the latest Nokia production kernel (2.6.21-omap)?
-> > 
-> "make n800_defconfig" in linux-omap tree is a very good start.
-> 
-> > -I don't plan to suspend but just sleep while idling, is this a good
-> >  approach to power management (pm)?
-> > 
-> > -I read about the pm branch, where can I pull it?
-> > 
-> Probably you read already this "N810 suspend" thread?
-> 
-> http://marc.info/?t=122937538800002&r=1&w=2
-> 
-> Short: N800 can do sleep_while_idle but GPS uart clock prevents it
-> currently in N810 and PM branch may have solution to idle it.
 
-Will try it.
+--RwxaKO075aXzzOz0
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-> > -Does CONFIG_NO_HZ works for this devices?
-> > 
-> Was working at least some months ago with N800.
-> 
-> > -AFAIK the recent removals of the N800 sound driver was because it was
-> >  not written for ALSA OMAP SoC API, right?
-> > 
-> That's correct. N810 audio is already supported with SND_OMAP_SOC_N810
-> but N800 would require to have ASoC codec driver for TSC2301 and DAI
-> link driver for EAC, at least for exact sample rates.
-> 
-> This is due TSC2301 which can be only slave so in order to get stardard
-> sample rates, EAC or McBSP would require to use external master clock
-> to them and EAC_AC_MCLK and McBSP2.CLKS are not routed into same pads
-> like other four EAC and McBSP2 signals.
-> 
-> Most probably McBSP DAI & TSC2301 would work also if using internal 96
-> MHz as a source clock to McBSP. Then sample rate would be e.g.
-> 96 MHz / 32 / 32 = 46.875 kHz.
+Hey, I am trying to figure out git and am having trouble with something tha=
+t=20
+ought to be simple.
 
-Excellent summary, that was what I need to know, I'll take a look.
+I have cloned linux-omap-2.6 and created a local branch.  In the local bran=
+ch I=20
+have made one very simple commit with a single line change to Makefile for =
+use=20
+when cross-compiling (arm-linux-gnueabi-).  I would like to be able to reba=
+se=20
+that branch (just the 1 commit) onto any commit in the master branch so tha=
+t I=20
+can test N810 builds using git-bisect without modifying the Makefile every=
+=20
+time.  I can easily move the branch forward to the latest commit with 'git=
+=20
+rebase master' (with the local branch active) but something like 'git rebas=
+e=20
+v2.6.27-omap1' returns merge errors.  Of course that 1 commit will apply ea=
+sily=20
+to that specific tree.
 
-> > If it is lack of time of the original developers, I would like to step
-> > in, willing to try to complete this work as long as you are willing to
-> > support me with answers to my newbie questions as this devices are in
-> > plenty operation today but the Nokia kernel is getting really old and
-> > it's a good thing if we can port all the drivers to standard Linux API.
-> > 
-> I welcome you to step in this porting effort! I help what I can :-)
+Is this possible?  What am I missing?  Thanks lots!
 
-What about my other questions? cpufreq and dvfs?
+--RwxaKO075aXzzOz0
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+Content-Disposition: inline
 
-Thx for your support!
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.9 (GNU/Linux)
 
--otto
+iEYEARECAAYFAklRq2MACgkQ682C+dBP+oTEigCgwVGmPJy3WsLvsoBVIthSh8bJ
+Jn0AoLHFldRK1szctWU/A+7W453uAPaS
+=TIS0
+-----END PGP SIGNATURE-----
+
+--RwxaKO075aXzzOz0--
