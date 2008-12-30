@@ -1,49 +1,42 @@
-From: Jarkko Lavinen <jarkko.lavinen@nokia.com>
-Subject: Re: Revert "OMAP: HSMMC: Implement scatter-gather emulation"
-Date: Tue, 30 Dec 2008 11:47:31 +0200
-Message-ID: <20081230094731.GA15520@angel.research.nokia.com>
-References: <20081212020021.GH10664@atomide.com>
-Reply-To: Jarkko Lavinen <jarkko.lavinen@nokia.com>
+From: Aaro Koskinen <aaro.koskinen@nokia.com>
+Subject: Re: [PATCH] OMAP2: gptimer min_delta_ns should be rounded up
+Date: Tue, 30 Dec 2008 18:50:45 +0200
+Message-ID: <495A5165.1040105@nokia.com>
+References: <> <1230570868-25078-1-git-send-email-Aaro.Koskinen@nokia.com> <13B9B4C6EF24D648824FF11BE8967162036D3BCB12@dlee02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=iso-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:31799 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751156AbYL3Jru (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 30 Dec 2008 04:47:50 -0500
-Content-Disposition: inline
-In-Reply-To: <20081212020021.GH10664@atomide.com>
+Received: from smtp.nokia.com ([192.100.122.230]:51915 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751551AbYL3Quy (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 30 Dec 2008 11:50:54 -0500
+In-Reply-To: <13B9B4C6EF24D648824FF11BE8967162036D3BCB12@dlee02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Juha Yrjola <juha.yrjola@solidboot.com>, Adrian Hunter <ext-adrian.hunter@nokia.com>, linux-omap@vger.kernel.org
+To: "ext Woodruff, Richard" <r-woodruff2@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Thu, Dec 11, 2008 at 06:00:23PM -0800, ext Tony Lindgren wrote:
-> Looks like Juha's MMC scatter-gather patch breaks at least overo when
-> using 4 data lines. It seems to work when using only 1 data line.
+Hello,
 
-> Any ideas? Maybe some timings issue?
+Woodruff, Richard wrote:
+>> +             clockevent_delta2ns(1, &clockevent_gpt) + 1;
+> 
+> That value is still not correct.
 
-TI errata says there is a HW bug is multi-block reads causing
-data CRC errors when the MMC clock is stopped and restarted.
-This is now fixed in Omap 3430 es3.0.
+[...]
 
-Juha's patch increases the CRC errors when the FIFOs are more
-likely filled during channel callback interrupt.  But the FIFOs
-can be and are stopped also without SG emulation when bus is
-busy.
+>         clockevent_delta2ns(3, &clockevent_gpt);
+> 
+> min_delta_ns stops the frame work from trying to program an expiry time which may not be achievable due to timer costs.
+> 
+> A write to the timer when it has a 32KHz F-Clock can take ~3 32Khz clock cycles to complete.  Hence the cost of '3' not '1'.
 
-On a test board with buggy HSMMC, the CRC error does not appear
-at all if I have no load on the bus.  When I have full Linux
-system running with bells and whistles, the CRC error occurs with
-frequency of 0.4%. 
+I'm not sure if I see any problem. If the timer programming cost is 
+bigger than min_delta_ns, the framework should adapt to it.
 
-Retrying multi-block read in case of data CRC seems effective and
-has never failed on the test board.  The performance penalty of the 
-retry is obviously minimal.
+I guess you would want to make min_delta_ns bigger to avoid excessive 
+scheduling/wakeups, but I think there is no any single "correct" value 
+for every system/board.
 
-Juha's patch would need to be modified to be conditionally
-enabled only on es3.0 and used bounce buffer otherwise and teach
-mmc_blk_issue_rq() to do retry.
-
-Jarkko Lavinen
+A.
