@@ -1,56 +1,71 @@
-From: "Woodruff, Richard" <r-woodruff2@ti.com>
-Subject: RE: [PATCH] OMAP2: gptimer min_delta_ns should be rounded up
-Date: Tue, 30 Dec 2008 11:01:21 -0600
-Message-ID: <13B9B4C6EF24D648824FF11BE8967162036D3BCD0B@dlee02.ent.ti.com>
-References: <> <1230570868-25078-1-git-send-email-Aaro.Koskinen@nokia.com>
- <13B9B4C6EF24D648824FF11BE8967162036D3BCB12@dlee02.ent.ti.com>
- <495A5165.1040105@nokia.com>
+From: Frank Agius <ftagius@yahoo.com>
+Subject: ADC timeout on Overo
+Date: Tue, 30 Dec 2008 16:29:02 -0500
+Message-ID: <gje3o3$gmr$1@ger.gmane.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:36687 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751807AbYL3RBb convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 30 Dec 2008 12:01:31 -0500
-In-Reply-To: <495A5165.1040105@nokia.com>
-Content-Language: en-US
+Received: from main.gmane.org ([80.91.229.2]:51216 "EHLO ciao.gmane.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752505AbYL3VzG (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 30 Dec 2008 16:55:06 -0500
+Received: from root by ciao.gmane.org with local (Exim 4.43)
+	id 1LHmYJ-00044l-1B
+	for linux-omap@vger.kernel.org; Tue, 30 Dec 2008 21:55:03 +0000
+Received: from static-71-111-254-119.rlghnc.dsl-w.verizon.net ([71.111.254.119])
+        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-omap@vger.kernel.org>; Tue, 30 Dec 2008 21:55:03 +0000
+Received: from ftagius by static-71-111-254-119.rlghnc.dsl-w.verizon.net with local (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-omap@vger.kernel.org>; Tue, 30 Dec 2008 21:55:03 +0000
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Aaro Koskinen <aaro.koskinen@nokia.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: linux-omap@vger.kernel.org
 
-Hi,
+I'm trying to enable ADC measurements on an Overo/Summit system running 
+Linux 2.6.28.  I started with a fresh git pull of 2.6.28.  I added what 
+I thought was the appropriate code to the Overo specific initialization:
 
-> >         clockevent_delta2ns(3, &clockevent_gpt);
-> >
-> > min_delta_ns stops the frame work from trying to program an expiry time
-> which may not be achievable due to timer costs.
-> >
-> > A write to the timer when it has a 32KHz F-Clock can take ~3 32Khz clock
-> cycles to complete.  Hence the cost of '3' not '1'.
->
-> I'm not sure if I see any problem. If the timer programming cost is
-> bigger than min_delta_ns, the framework should adapt to it.
+--- a/arch/arm/mach-omap2/board-overo.c
++++ b/arch/arm/mach-omap2/board-overo.c
+@@ -152,6 +152,10 @@ static struct twl4030_gpio_platform_data 
+overo_gpio_data =
+         .irq_end        = TWL4030_GPIO_IRQ_END,
+  };
 
-By setting this value to the cost of the timer operation you allow the frame work to adapt.
++static struct twl4030_madc_platform_data overo_madc_data = {
++       .irq_line       = 1,
++};
++
+  static struct twl4030_usb_data overo_usb_data = {
+         .usb_mode       = T2_USB_MODE_ULPI,
+  };
+@@ -162,6 +166,7 @@ static struct twl4030_platform_data overo_twldata = {
+         .gpio           = &overo_gpio_data,
+         .usb            = &overo_usb_data,
+         .power          = GENERIC3430_T2SCRIPTS_DATA,
++        .madc           = &overo_madc_data,
+  };
 
-If 5 users call into this api and try and set wake ups at an rate the hardware can't support, you end up wasting time writing wake ups which can't be met.
+I built the kernel and the MADC driver module (twl4030-madc.ko).  After 
+inserting the module, the file twl4030-madc showed up in /dev.  So far, 
+so good.  I coded a small user space application that issued a raw read 
+ioctl for adc channel 3.  The read timed out, as did reads for all other 
+channels I tried.  I did some preliminary debug of the driver and found 
+that the reason for the failure is that once the ADC conversion starts, 
+the EOC_SW1 bit in the CTRL_SW1 register (the indicator of completion) 
+never goes to 1.  Further debug shows that in the module initialization 
+routine twl4030_madc_set_power, as soon as the MADC is powered on by 
+setting CTRL1[0] MADCON bit to 1, the BUSY bit of CTRL_SW1 turns on and 
+never turns off.  I'm guessing this constant state of busy is why the 
+conversion never completes. This leads me to believe that the MADC is 
+not set up properly. Steve Sakoman confirmed that the HFCLKIN signal is 
+26 MHz for the Overo, so it does not look like a clock setup problem. 
+Any ideas as to why the BUSY bit comes on and never turns off? Any other 
+ideas?
 
-Worse to stall the processor.  If you look at the ETM trace output of programming the timer you will see the whole call path to writing to the timer takes some few uS.  By you can be stuck at the writing of the timer registers up to 90uS (if f-clk is set to 32khz).
-
-By allowing frequent accesses you:
-        - don't meet the deadline anyway
-                - program a wake for 20uS it won't signal till 90uS anyway.
-                - you can at least query and round to get what the hardware supports if the interface is set properly.
-        - you stall the processor and waste cycles.
-
-> I guess you would want to make min_delta_ns bigger to avoid excessive
-> scheduling/wakeups, but I think there is no any single "correct" value
-> for every system/board.
-
-The correct value for the chip timer IP is 3 if the functional clock is at 32MHz.  If you use a faster time base like 12Mhz use 1.   Next, If you want to try and factor in the software cost you can try.  This software cost (what DPLL rate am I at, how much code is executed on path, ...) will be very board and port specific.
-
-Regards,
-Richard W.
+regards,
+frank
 
