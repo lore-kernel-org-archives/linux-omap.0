@@ -1,40 +1,30 @@
-From: "Woodruff, Richard" <r-woodruff2@ti.com>
-Subject: RE: [PATCH] OMAP2: gptimer min_delta_ns should be rounded up
-Date: Mon, 29 Dec 2008 11:38:02 -0600
-Message-ID: <13B9B4C6EF24D648824FF11BE8967162036D3BCB12@dlee02.ent.ti.com>
-References: <> <1230570868-25078-1-git-send-email-Aaro.Koskinen@nokia.com>
+From: Peter Barada <peterb@logicpd.com>
+Subject: Power Management question...
+Date: Mon, 29 Dec 2008 21:31:47 -0500
+Message-ID: <1230604308.7951.4.camel@blackhole>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:41862 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750980AbYL2RiP convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 29 Dec 2008 12:38:15 -0500
-In-Reply-To: <1230570868-25078-1-git-send-email-Aaro.Koskinen@nokia.com>
-Content-Language: en-US
+Received: from mail.logicpd.com ([66.162.60.3]:54103 "EHLO smtp.logicpd.com"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1752066AbYL3Cbt (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 29 Dec 2008 21:31:49 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Aaro Koskinen <Aaro.Koskinen@nokia.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: linux-omap <linux-omap@vger.kernel.org>
 
-Hi,
+I'm trying to put together a 2.6.27 (from the 2.6.27 tag) kernel with
+power management, and what I'm seeing is a bit weird...
 
-> clockevent_delta2ns() used to initialize min_delta_ns rounds the value
-> down, so the result can be too small. When clockevents_program_event()
-> is using too small value it will try to program the timer with zero
-> ticks stalling the timer queue.
+When I put it into "mem" state (i.e. save to DRAM and sleep the world,
+leaving DRAM alive), I see current consumption actually *increase*.
+Also, any interrupt (touch, serial, mmc insert/removal) automagicaly
+wakes it up.
 
-> +             clockevent_delta2ns(1, &clockevent_gpt) + 1;
+Any pointers on how to make sense of this?  I would have thought that
+drivers have to specify which interrupts are capable of waking the
+core...
 
-That value is still not correct.  The base perhaps should be '3'.  The additional +1 is needed if you use a base value of 1 which can cause the error your patch addresses.
-
-        clockevent_delta2ns(3, &clockevent_gpt);
-
-min_delta_ns stops the frame work from trying to program an expiry time which may not be achievable due to timer costs.
-
-A write to the timer when it has a 32KHz F-Clock can take ~3 32Khz clock cycles to complete.  Hence the cost of '3' not '1'.
-
-If your lucky the write will be posted and not stall the CPU.  But just because the IP block has captured the change doesn't mean it will take effect immediately.  The write will still have to resynchronization internally with f-clk.
-
-Regards,
-Richard W.
+-- 
+Peter Barada <peterb@logicpd.com>
