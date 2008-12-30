@@ -1,45 +1,49 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] USB: OTG: twl4030 build fix
-Date: Tue, 30 Dec 2008 10:54:35 +0200
-Message-ID: <20081230085431.GE7850@atomide.com>
-References: <1229385603-27035-1-git-send-email-khilman@deeprootsystems.com> <20081216220155.GB3291@kroah.com> <873agn698c.fsf@deeprootsystems.com> <200812162025.44503.david-b@pacbell.net>
+From: Jarkko Lavinen <jarkko.lavinen@nokia.com>
+Subject: Re: Revert "OMAP: HSMMC: Implement scatter-gather emulation"
+Date: Tue, 30 Dec 2008 11:47:31 +0200
+Message-ID: <20081230094731.GA15520@angel.research.nokia.com>
+References: <20081212020021.GH10664@atomide.com>
+Reply-To: Jarkko Lavinen <jarkko.lavinen@nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-bos.mailhop.org ([63.208.196.178]:63284 "EHLO
-	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750964AbYL3Iyl (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 30 Dec 2008 03:54:41 -0500
+Received: from smtp.nokia.com ([192.100.105.134]:31799 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751156AbYL3Jru (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 30 Dec 2008 04:47:50 -0500
 Content-Disposition: inline
-In-Reply-To: <200812162025.44503.david-b@pacbell.net>
+In-Reply-To: <20081212020021.GH10664@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: David Brownell <david-b@pacbell.net>
-Cc: Kevin Hilman <khilman@deeprootsystems.com>, Greg KH <greg@kroah.com>, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Juha Yrjola <juha.yrjola@solidboot.com>, Adrian Hunter <ext-adrian.hunter@nokia.com>, linux-omap@vger.kernel.org
 
-* David Brownell <david-b@pacbell.net> [081217 06:26]:
-> On Tuesday 16 December 2008, Kevin Hilman wrote:
-> > >
-> > > This driver is not in the mainline, or my USB tree. =A0Where is i=
-t at?
-> > >
-> >=20
-> > Sorry for the confusion,
-> >=20
-> > This driver is in the linux-omap tree, but I thought David Brownell
-> > had it queued up for your tree already.
->=20
-> Hadn't quite done that yet.  :)
->=20
-> Tony, this has my ack
+On Thu, Dec 11, 2008 at 06:00:23PM -0800, ext Tony Lindgren wrote:
+> Looks like Juha's MMC scatter-gather patch breaks at least overo when
+> using 4 data lines. It seems to work when using only 1 data line.
 
-Thanks, pushing to l-o tree while waiting for it to fall down from
-mainline tree.
+> Any ideas? Maybe some timings issue?
 
-Tony
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+TI errata says there is a HW bug is multi-block reads causing
+data CRC errors when the MMC clock is stopped and restarted.
+This is now fixed in Omap 3430 es3.0.
+
+Juha's patch increases the CRC errors when the FIFOs are more
+likely filled during channel callback interrupt.  But the FIFOs
+can be and are stopped also without SG emulation when bus is
+busy.
+
+On a test board with buggy HSMMC, the CRC error does not appear
+at all if I have no load on the bus.  When I have full Linux
+system running with bells and whistles, the CRC error occurs with
+frequency of 0.4%. 
+
+Retrying multi-block read in case of data CRC seems effective and
+has never failed on the test board.  The performance penalty of the 
+retry is obviously minimal.
+
+Juha's patch would need to be modified to be conditionally
+enabled only on es3.0 and used bounce buffer otherwise and teach
+mmc_blk_issue_rq() to do retry.
+
+Jarkko Lavinen
