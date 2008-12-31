@@ -1,53 +1,46 @@
-From: "Woodruff, Richard" <r-woodruff2@ti.com>
-Subject: RE: [PATCH] OMAP2: gptimer min_delta_ns should be rounded up
-Date: Wed, 31 Dec 2008 09:47:59 -0600
-Message-ID: <13B9B4C6EF24D648824FF11BE8967162036D3BCF0A@dlee02.ent.ti.com>
-References: <> <1230570868-25078-1-git-send-email-Aaro.Koskinen@nokia.com>
- <13B9B4C6EF24D648824FF11BE8967162036D3BCB12@dlee02.ent.ti.com>
- <495A5165.1040105@nokia.com>
- <13B9B4C6EF24D648824FF11BE8967162036D3BCD0B@dlee02.ent.ti.com>
- <495B8E1B.9050302@nokia.com>
+From: Pierre Ossman <drzeus-mmc@drzeus.cx>
+Subject: Re: [PATCH 5/5] omap mmc: Add new omap hsmmc controller for 2430
+ and 34xx
+Date: Wed, 31 Dec 2008 18:59:28 +0100
+Message-ID: <20081231185928.2ba325e6@mjolnir.drzeus.cx>
+References: <20081207213617.10456.43951.stgit@localhost>
+	<20081207215139.10456.46405.stgit@localhost>
+	<20081221171700.3efc0c3a@mjolnir.drzeus.cx>
+	<20081229165531.GG22065@atomide.com>
+	<20081230083624.GD7850@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:42668 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755422AbYLaPsK convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 31 Dec 2008 10:48:10 -0500
-In-Reply-To: <495B8E1B.9050302@nokia.com>
-Content-Language: en-US
+Received: from server.drzeus.cx ([85.8.24.28]:47762 "EHLO smtp.drzeus.cx"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1752598AbYLaR7c (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 31 Dec 2008 12:59:32 -0500
+In-Reply-To: <20081230083624.GD7850@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Aaro Koskinen <aaro.koskinen@nokia.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.arm.linux.org.uk, linux-omap@vger.kernel.org, Madhusudhan Chikkature <madhu.cr@ti.com>, David Brownell <david-b@pacbell.net>
 
-Hi,
+On Tue, 30 Dec 2008 10:36:26 +0200
+Tony Lindgren <tony@atomide.com> wrote:
 
-> > If 5 users call into this api and try and set wake ups at an rate the
-> hardware can't support,  you end up wasting time writing wake ups which can't
-> be met.
->
-> Yes, I actually made a test case with hrtimers too see the difference
-> (though I think I'm also seeing hrtimer/oneshot code still doing some
-> unnecessary programming...)
+> 
+> Here's one more version that leaves out the unnecessary TWL4030
+> dependency in the Kconfig as pointed out by David Brownell.
+> 
 
-Cool. A quantitative test.
+Looks ok.
 
-Actually, the functional spec for timer says max re-sync time is:
-        3 OCP clock + 2.5 TIMER clock
-        3(1/83MHz) + 76uS = ~76uS
+Acked-by: Pierre Ossman <drzeus@drzeus.cx>
 
-When I've measured the stall portion I usually don't see more then ~65uS stall.  There is still a bit of time once the block has taken in the command before its issued.
+-- 
+     -- Pierre Ossman
 
-* There is posting at the timer-ip-block which means the first write doesn't stall the MPU but it will take time to see the external effect (ie your interrupt/signal while internal resync happens).  The 2nd write (to same register) starts to be really costly as the MPU stalls till the 1st one completes.  This write is caused by the frame work trying to reprogram for timer events it can't meet. So if you don't set the delta_ns correctly it allows programming at a rate which the hardware can't support and you end up stalling mpu and missing deadline which wasn't realistic to start off with.
+  Linux kernel, MMC maintainer        http://www.kernel.org
+  rdesktop, core developer          http://www.rdesktop.org
 
-** Your original patch WAS good.  It fixed a real bug.  My comment was mainly that the patch could go one further, fix the bug, and setup the time interface so it didn't suck mpu time and break user expectations about timer delivery.
-
-When the code is set to MHz time base a (1,)+1 is the right value.  When it uses 32KHz the right value is (2.5,).  I don't think interface can take 2.5 so I rounded to 3.  An optimization would be to use 2.5's effective value.
-
-Thanks for taking the time to understand.
-
-Regards,
-Richard W.
-
+  WARNING: This correspondence is being monitored by the
+  Swedish government. Make sure your server uses encryption
+  for SMTP traffic and consider using PGP for end-to-end
+  encryption.
