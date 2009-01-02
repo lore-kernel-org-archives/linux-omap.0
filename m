@@ -1,46 +1,59 @@
-From: Pierre Ossman <drzeus-mmc@drzeus.cx>
-Subject: Re: [PATCH 5/5] omap mmc: Add new omap hsmmc controller for 2430
- and 34xx
-Date: Wed, 31 Dec 2008 18:59:28 +0100
-Message-ID: <20081231185928.2ba325e6@mjolnir.drzeus.cx>
-References: <20081207213617.10456.43951.stgit@localhost>
-	<20081207215139.10456.46405.stgit@localhost>
-	<20081221171700.3efc0c3a@mjolnir.drzeus.cx>
-	<20081229165531.GG22065@atomide.com>
-	<20081230083624.GD7850@atomide.com>
+From: "Woodruff, Richard" <r-woodruff2@ti.com>
+Subject: RE: LPDDR memory for TI OMAP 3503 processor
+Date: Thu, 1 Jan 2009 18:30:32 -0600
+Message-ID: <13B9B4C6EF24D648824FF11BE8967162036CEED176@dlee02.ent.ti.com>
+References: <AB5ACC34-3CDD-4FB9-9A8B-F948D9FA7952@mac.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from server.drzeus.cx ([85.8.24.28]:47762 "EHLO smtp.drzeus.cx"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1752598AbYLaR7c (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 31 Dec 2008 12:59:32 -0500
-In-Reply-To: <20081230083624.GD7850@atomide.com>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:43656 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751081AbZABAal convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 1 Jan 2009 19:30:41 -0500
+In-Reply-To: <AB5ACC34-3CDD-4FB9-9A8B-F948D9FA7952@mac.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.arm.linux.org.uk, linux-omap@vger.kernel.org, Madhusudhan Chikkature <madhu.cr@ti.com>, David Brownell <david-b@pacbell.net>
+To: Elvis Dowson <elvis.dowson@mac.com>, Linux OMAP Users <linux-omap@vger.kernel.org>
 
-On Tue, 30 Dec 2008 10:36:26 +0200
-Tony Lindgren <tony@atomide.com> wrote:
+ 34xx max supported ddr frequently is 166mhz.
 
-> 
-> Here's one more version that leaves out the unnecessary TWL4030
-> dependency in the Kconfig as pointed out by David Brownell.
-> 
+there should be no issue running a 200mhz rated ddr at 166.
 
-Looks ok.
+the real issues are with pin level interfacing.
+________________________________________
+From: linux-omap-owner@vger.kernel.org [linux-omap-owner@vger.kernel.org] On Behalf Of Elvis Dowson [elvis.dowson@mac.com]
+Sent: Thursday, January 01, 2009 3:31 PM
+To: Linux OMAP Users
+Subject: LPDDR memory for TI OMAP 3503 processor
 
-Acked-by: Pierre Ossman <drzeus@drzeus.cx>
+Hi,
+         Is the micron 2GB POP LPDDR memory compatible with the TI
+OMAP3503 processor?  http://www.micron.com/products/partdetail?part=MT46H64M32L2JG-5%20IT
 
--- 
-     -- Pierre Ossman
+Quote from the technical reference manual:
+"The SDRC module only supports low-power double-data-rate (LPDDR)
+SDRAM devices. Memory devices can be interfaced to the SDRC using a
+stacked-memory approach or through the printed circuit board (PCB).
+The stacked-memory approach uses the package on package interface pins
+(available on CBB & CBC package). The LPDDR interface on the top of
+the POP package has been designed for compatibility any POP LPDDR
+device with a matching footprint and compliance with the JEDEC
+LPDDR-266 specification."
 
-  Linux kernel, MMC maintainer        http://www.kernel.org
-  rdesktop, core developer          http://www.rdesktop.org
+My point of confusion is
+a. the Micron 2GB memory is stated to have a 200MHz clock rate and the
+data rate is LPDDR400.
+b. in the term JDEC LPDDR-266, does the 266 correspond to the data
+rate? If so, can I use the LPDDR400 memory with the OMAP3503
+processor, which requires an LPDDR-266 memory?
 
-  WARNING: This correspondence is being monitored by the
-  Swedish government. Make sure your server uses encryption
-  for SMTP traffic and consider using PGP for end-to-end
-  encryption.
+Best regards,
+
+Elvis Dowson
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
