@@ -1,45 +1,57 @@
-From: Kalle Valo <kalle.valo@nokia.com>
-Subject: Re: Nokia Internet Tablets
-Date: Fri, 02 Jan 2009 16:35:45 +0200
-Message-ID: <87k59d6aim.fsf@nokia.com>
-References: <20081222103422.GL29448@guug.org>
-	<20081222122757.GI7125@gandalf.research.nokia.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Aaro Koskinen <Aaro.Koskinen@nokia.com>
+Subject: [PATCH] OMAP2: gptimer min_delta_ns corrected
+Date: Fri,  2 Jan 2009 17:07:16 +0200
+Message-ID: <1230908836-24231-1-git-send-email-Aaro.Koskinen@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:48820 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751895AbZABOgI (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 2 Jan 2009 09:36:08 -0500
-In-Reply-To: <20081222122757.GI7125@gandalf.research.nokia.com> (ext Felipe Balbi's message of "Mon\, 22 Dec 2008 14\:27\:57 +0200")
+Received: from smtp.nokia.com ([192.100.105.134]:55504 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751550AbZABPHZ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 2 Jan 2009 10:07:25 -0500
+Received: from esebh106.NOE.Nokia.com (esebh106.ntc.nokia.com [172.21.138.213])
+	by mgw-mx09.nokia.com (Switch-3.2.6/Switch-3.2.6) with ESMTP id n02F7Ctg008908
+	for <linux-omap@vger.kernel.org>; Fri, 2 Jan 2009 09:07:22 -0600
+Received: from localhost.localdomain (esdhcp042201.research.nokia.com [172.21.42.201])
+	by mgw-int02.ntc.nokia.com (Switch-3.2.5/Switch-3.2.5) with ESMTP id n02F7HPs031933
+	for <linux-omap@vger.kernel.org>; Fri, 2 Jan 2009 17:07:17 +0200
+In-Reply-To: <>
+References: <>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: felipe.balbi@nokia.com
-Cc: ext Otto Solares <solca@guug.org>, linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
 
-"ext Felipe Balbi" <felipe.balbi@nokia.com> writes:
+When 32 kHz timer is used the min_delta_ns should be initialized so
+that it reflects the timer programming cost. A write to the timer
+device will be usually posted, but it takes roughly 3 cycles before
+it is effective. If the timer is reprogrammed before that, the CPU
+will stall until the previous write completes. This was pointed out by
+Richard Woodruff.
 
-> On Mon, Dec 22, 2008 at 04:34:22AM -0600, ext Otto Solares wrote:
->> Hi all!
->> 
->> I want to resurrect missing support for the Nokia Internet Tablets
->> starting with the N8x0s for my NITdroid project, which uses just
->> standard Linux kernel APIs.
->> 
->> So first I would like to ask some very newbie questions:
->> 
->> -Is there any ongoing effort to support these devices in latest kernels
->>  at the same level as the latest Nokia production kernel (2.6.21-omap)?
->
-> n8x0 devices should boot fine with current linux-omap and I'd say we
-> have all the drivers here as well, besides audio, camera and wifi (me thinks)
+Since the lower bound for min_delta_ns is 1000, the change is visible
+only with tick rates less than 3 MHz.
 
-For wifi there is stlc45xx:
+Also note that the old value is incorrect for 32 kHz also due to
+a rounding error, and it can cause the timer queue to hang (due to
+clockevent code trying to program the timer with zero ticks).
 
-http://stlc45xx.garage.maemo.org/
+Signed-off-by: Aaro Koskinen <Aaro.Koskinen@nokia.com>
+---
+ arch/arm/mach-omap2/timer-gp.c |    3 ++-
+ 1 files changed, 2 insertions(+), 1 deletions(-)
 
-Also Christian Lamparter is adding stlc4550 support to p54, check
-linux-wireless list archives for more (search for p54spi).
-
+diff --git a/arch/arm/mach-omap2/timer-gp.c b/arch/arm/mach-omap2/timer-gp.c
+index 787cfef..3e66a9a 100644
+--- a/arch/arm/mach-omap2/timer-gp.c
++++ b/arch/arm/mach-omap2/timer-gp.c
+@@ -121,7 +121,8 @@ static void __init omap2_gp_clockevent_init(void)
+ 	clockevent_gpt.max_delta_ns =
+ 		clockevent_delta2ns(0xffffffff, &clockevent_gpt);
+ 	clockevent_gpt.min_delta_ns =
+-		clockevent_delta2ns(1, &clockevent_gpt);
++		clockevent_delta2ns(3, &clockevent_gpt);
++		/* Timer internal resynch latency. */
+ 
+ 	clockevent_gpt.cpumask = cpumask_of_cpu(0);
+ 	clockevents_register_device(&clockevent_gpt);
 -- 
-Kalle Valo
+1.5.4.3
+
