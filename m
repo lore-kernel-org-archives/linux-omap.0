@@ -1,59 +1,45 @@
-From: "Woodruff, Richard" <r-woodruff2@ti.com>
-Subject: RE: LPDDR memory for TI OMAP 3503 processor
-Date: Thu, 1 Jan 2009 18:30:32 -0600
-Message-ID: <13B9B4C6EF24D648824FF11BE8967162036CEED176@dlee02.ent.ti.com>
-References: <AB5ACC34-3CDD-4FB9-9A8B-F948D9FA7952@mac.com>
+From: Kalle Valo <kalle.valo@nokia.com>
+Subject: Re: Nokia Internet Tablets
+Date: Fri, 02 Jan 2009 16:35:45 +0200
+Message-ID: <87k59d6aim.fsf@nokia.com>
+References: <20081222103422.GL29448@guug.org>
+	<20081222122757.GI7125@gandalf.research.nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:43656 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751081AbZABAal convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 1 Jan 2009 19:30:41 -0500
-In-Reply-To: <AB5ACC34-3CDD-4FB9-9A8B-F948D9FA7952@mac.com>
-Content-Language: en-US
+Received: from smtp.nokia.com ([192.100.122.230]:48820 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751895AbZABOgI (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 2 Jan 2009 09:36:08 -0500
+In-Reply-To: <20081222122757.GI7125@gandalf.research.nokia.com> (ext Felipe Balbi's message of "Mon\, 22 Dec 2008 14\:27\:57 +0200")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Elvis Dowson <elvis.dowson@mac.com>, Linux OMAP Users <linux-omap@vger.kernel.org>
+To: felipe.balbi@nokia.com
+Cc: ext Otto Solares <solca@guug.org>, linux-omap@vger.kernel.org
 
- 34xx max supported ddr frequently is 166mhz.
+"ext Felipe Balbi" <felipe.balbi@nokia.com> writes:
 
-there should be no issue running a 200mhz rated ddr at 166.
+> On Mon, Dec 22, 2008 at 04:34:22AM -0600, ext Otto Solares wrote:
+>> Hi all!
+>> 
+>> I want to resurrect missing support for the Nokia Internet Tablets
+>> starting with the N8x0s for my NITdroid project, which uses just
+>> standard Linux kernel APIs.
+>> 
+>> So first I would like to ask some very newbie questions:
+>> 
+>> -Is there any ongoing effort to support these devices in latest kernels
+>>  at the same level as the latest Nokia production kernel (2.6.21-omap)?
+>
+> n8x0 devices should boot fine with current linux-omap and I'd say we
+> have all the drivers here as well, besides audio, camera and wifi (me thinks)
 
-the real issues are with pin level interfacing.
-________________________________________
-From: linux-omap-owner@vger.kernel.org [linux-omap-owner@vger.kernel.org] On Behalf Of Elvis Dowson [elvis.dowson@mac.com]
-Sent: Thursday, January 01, 2009 3:31 PM
-To: Linux OMAP Users
-Subject: LPDDR memory for TI OMAP 3503 processor
+For wifi there is stlc45xx:
 
-Hi,
-         Is the micron 2GB POP LPDDR memory compatible with the TI
-OMAP3503 processor?  http://www.micron.com/products/partdetail?part=MT46H64M32L2JG-5%20IT
+http://stlc45xx.garage.maemo.org/
 
-Quote from the technical reference manual:
-"The SDRC module only supports low-power double-data-rate (LPDDR)
-SDRAM devices. Memory devices can be interfaced to the SDRC using a
-stacked-memory approach or through the printed circuit board (PCB).
-The stacked-memory approach uses the package on package interface pins
-(available on CBB & CBC package). The LPDDR interface on the top of
-the POP package has been designed for compatibility any POP LPDDR
-device with a matching footprint and compliance with the JEDEC
-LPDDR-266 specification."
+Also Christian Lamparter is adding stlc4550 support to p54, check
+linux-wireless list archives for more (search for p54spi).
 
-My point of confusion is
-a. the Micron 2GB memory is stated to have a 200MHz clock rate and the
-data rate is LPDDR400.
-b. in the term JDEC LPDDR-266, does the 266 correspond to the data
-rate? If so, can I use the LPDDR400 memory with the OMAP3503
-processor, which requires an LPDDR-266 memory?
-
-Best regards,
-
-Elvis Dowson
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
+-- 
+Kalle Valo
