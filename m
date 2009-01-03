@@ -1,46 +1,43 @@
-From: "Trilok Soni" <soni.trilok@gmail.com>
-Subject: Re: [PATCH] Add TI TSC2005 Touchscreen driver
-Date: Sat, 3 Jan 2009 10:08:03 +0530
-Message-ID: <5d5443650901022038p310f77e3ifee241080126d9b1@mail.gmail.com>
-References: <5d5443650812080949h5aff6010mb7341f581841f126@mail.gmail.com>
-	 <20081208182812.GD13076@frodo>
+From: "arun c" <arun.edarath@gmail.com>
+Subject: Communication protocol through PCI between host and target
+Date: Sat, 3 Jan 2009 15:16:48 +0530
+Message-ID: <c656a4d20901030146t4d894931v91dff04c3eabeb9d@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from rv-out-0506.google.com ([209.85.198.231]:9758 "EHLO
-	rv-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750850AbZACEiF (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 2 Jan 2009 23:38:05 -0500
-In-Reply-To: <20081208182812.GD13076@frodo>
+Received: from mail-bw0-f21.google.com ([209.85.218.21]:35053 "EHLO
+	mail-bw0-f21.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752439AbZACJqv (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 3 Jan 2009 04:46:51 -0500
+Received: by bwz14 with SMTP id 14so20783451bwz.13
+        for <linux-omap@vger.kernel.org>; Sat, 03 Jan 2009 01:46:48 -0800 (PST)
 Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: me@felipebalbi.com
-Cc: David Brownell <david-b@pacbell.net>, dmitry.torokhov@gmail.com, "linux-omap@vger.kernel.org Mailing List" <linux-omap@vger.kernel.org>, linux-kernel@vger.kernel.org, spi-devel-general@lists.sourceforge.net, linux-input@vger.kernel.org, lauri.leukkunen@nokia.com
+To: "linux-pci@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Hi Felip,
+Hi all,
 
-Sorry for the delayed reply.
+I am a newbie here please bear with me.
 
-On Mon, Dec 8, 2008 at 11:58 PM, Felipe Balbi <me@felipebalbi.com> wrote:
-> On Mon, Dec 08, 2008 at 11:19:53PM +0530, Trilok Soni wrote:
->> +static ssize_t tsc2005_disable_store(struct device *dev,
->> +                                  struct device_attribute *attr,
->> +                                  const char *buf, size_t count)
->> +{
->> +     struct tsc2005          *tsc = dev_get_drvdata(dev);
->> +     unsigned long res;
->> +     int i;
->> +
->> +     i = strict_strtoul(buf, 10, &res);
->> +     i = i ? 1 : 0;
->
-> shouldn't this be i = res ? 1 : 0; ??
+In my custom board the communication between host and target
+should happen through PCI interface.
 
-You are right, I will change this.
+The target processor runs u-boot, and host processor is running linux.
 
--- 
----Trilok Soni
-http://triloksoni.wordpress.com
-http://www.linkedin.com/in/triloksoni
+The target devices will be accessed from the host by /dev nodes.
+
+To reduce the workload on host all the target calls like
+open, read ,write ,ioctl are passed directly to the target.
+
+There will be a common PCI buffer between host
+and target and target will take commands from this buffer
+and execute. The result of executed API also will be put to a shared buffer
+between host and target. [This is what I am planning to implement]
+
+Anybody has come across similar sort of scenario?
+Any ideas or any pointers will be highly appreciated.
+
+Regards,
+Arun C
