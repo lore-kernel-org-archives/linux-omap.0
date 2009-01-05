@@ -1,160 +1,64 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: [PATCH v2 16/23] OMAP clock: add OMAP chip family-specific
-	clk_register() option
-Date: Sun, 04 Jan 2009 19:34:57 -0700
-Message-ID: <20090105023457.12661.33383.stgit@localhost.localdomain>
+Subject: [PATCH v2 21/23] OMAP2/3 clock: omap2_clk_enable(): fix logic
+Date: Sun, 04 Jan 2009 19:35:01 -0700
+Message-ID: <20090105023500.12661.37451.stgit@localhost.localdomain>
 References: <20090105022953.12661.57701.stgit@localhost.localdomain>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:36221 "EHLO
+Received: from utopia.booyaka.com ([72.9.107.138]:36223 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752409AbZAEDW7 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 4 Jan 2009 22:22:59 -0500
+	with ESMTP id S1753092AbZAEDXB (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 4 Jan 2009 22:23:01 -0500
 In-Reply-To: <20090105022953.12661.57701.stgit@localhost.localdomain>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: Paul Walmsley <paul@pwsan.com>
 
-Provide a mechanism for OMAP chip family (e.g., OMAP1, 2, 3) clock
-code to define a clk_register function via struct clk_functions.  This
-is currently only used for OMAP2/3, to handle clock->clockdomain
-registration.
+Rearrange the parent clock enable status check code so it actually makes
+sense.  No functional change.
 
 Signed-off-by: Paul Walmsley <paul@pwsan.com>
 ---
- arch/arm/mach-omap2/clock.c             |    6 ++++++
- arch/arm/mach-omap2/clock.h             |    1 +
- arch/arm/mach-omap2/clock24xx.c         |    3 +--
- arch/arm/mach-omap2/clock34xx.c         |    5 ++---
- arch/arm/plat-omap/clock.c              |   11 ++++++++++-
- arch/arm/plat-omap/include/mach/clock.h |    1 +
- 6 files changed, 21 insertions(+), 6 deletions(-)
+ arch/arm/mach-omap2/clock.c |   17 ++++++++++-------
+ 1 files changed, 10 insertions(+), 7 deletions(-)
 
 diff --git a/arch/arm/mach-omap2/clock.c b/arch/arm/mach-omap2/clock.c
-index 0946a5a..5f54e7e 100644
+index a9a2bbf..413fb68 100644
 --- a/arch/arm/mach-omap2/clock.c
 +++ b/arch/arm/mach-omap2/clock.c
-@@ -1085,3 +1085,9 @@ void omap2_clk_disable_unused(struct clk *clk)
- 	_omap2_clk_disable(clk);
- }
- #endif
-+
-+int omap2_clk_register(struct clk *clk)
-+{
-+	omap2_init_clk_clkdm(clk);
-+	return 0;
-+}
-diff --git a/arch/arm/mach-omap2/clock.h b/arch/arm/mach-omap2/clock.h
-index a026ec9..f4d489f 100644
---- a/arch/arm/mach-omap2/clock.h
-+++ b/arch/arm/mach-omap2/clock.h
-@@ -37,6 +37,7 @@
- #define OMAP3XXX_EN_DPLL_LOCKED			0x7
+@@ -483,20 +483,23 @@ void omap2_clk_disable(struct clk *clk)
  
- int omap2_clk_init(void);
-+int omap2_clk_register(struct clk *clk);
- int omap2_clk_enable(struct clk *clk);
- void omap2_clk_disable(struct clk *clk);
- long omap2_clk_round_rate(struct clk *clk, unsigned long rate);
-diff --git a/arch/arm/mach-omap2/clock24xx.c b/arch/arm/mach-omap2/clock24xx.c
-index 67974d6..9e311aa 100644
---- a/arch/arm/mach-omap2/clock24xx.c
-+++ b/arch/arm/mach-omap2/clock24xx.c
-@@ -450,6 +450,7 @@ void omap2_clk_init_cpufreq_table(struct cpufreq_frequency_table **table)
- #endif
- 
- static struct clk_functions omap2_clk_functions = {
-+	.clk_register		= omap2_clk_register,
- 	.clk_enable		= omap2_clk_enable,
- 	.clk_disable		= omap2_clk_disable,
- 	.clk_round_rate		= omap2_clk_round_rate,
-@@ -578,13 +579,11 @@ int __init omap2_clk_init(void)
- 
- 		if ((*clkp)->flags & CLOCK_IN_OMAP242X && cpu_is_omap2420()) {
- 			clk_register(*clkp);
--			omap2_init_clk_clkdm(*clkp);
- 			continue;
- 		}
- 
- 		if ((*clkp)->flags & CLOCK_IN_OMAP243X && cpu_is_omap2430()) {
- 			clk_register(*clkp);
--			omap2_init_clk_clkdm(*clkp);
- 			continue;
- 		}
- 	}
-diff --git a/arch/arm/mach-omap2/clock34xx.c b/arch/arm/mach-omap2/clock34xx.c
-index 917664d..824144e 100644
---- a/arch/arm/mach-omap2/clock34xx.c
-+++ b/arch/arm/mach-omap2/clock34xx.c
-@@ -633,6 +633,7 @@ static void omap3_clkoutx2_recalc(struct clk *clk, unsigned long parent_rate,
- #if defined(CONFIG_ARCH_OMAP3)
- 
- static struct clk_functions omap2_clk_functions = {
-+	.clk_register		= omap2_clk_register,
- 	.clk_enable		= omap2_clk_enable,
- 	.clk_disable		= omap2_clk_disable,
- 	.clk_round_rate		= omap2_clk_round_rate,
-@@ -729,10 +730,8 @@ int __init omap2_clk_init(void)
- 	for (clkp = onchip_34xx_clks;
- 	     clkp < onchip_34xx_clks + ARRAY_SIZE(onchip_34xx_clks);
- 	     clkp++) {
--		if ((*clkp)->flags & cpu_clkflg) {
-+		if ((*clkp)->flags & cpu_clkflg)
- 			clk_register(*clkp);
--			omap2_init_clk_clkdm(*clkp);
--		}
- 	}
- 
- 	/* REVISIT: Not yet ready for OMAP3 */
-diff --git a/arch/arm/plat-omap/clock.c b/arch/arm/plat-omap/clock.c
-index 8d43d78..bdf2cd4 100644
---- a/arch/arm/plat-omap/clock.c
-+++ b/arch/arm/plat-omap/clock.c
-@@ -439,10 +439,17 @@ void recalculate_root_clocks(void)
- 
- int clk_register(struct clk *clk)
+ int omap2_clk_enable(struct clk *clk)
  {
+-	int ret = 0;
 +	int ret;
+ 
+ 	if (++clk->usecount > 1)
+ 		return 0;
+ 
+ 	omap2_clkdm_clk_enable(clk->clkdm.ptr, clk);
+ 
+-	if (clk->parent)
+-		ret = omap2_clk_enable(clk->parent);
++	if (clk->parent) {
++		int parent_ret;
+ 
+-	if (ret != 0) {
+-		clk->usecount--;
+-		omap2_clkdm_clk_disable(clk->clkdm.ptr, clk);
+-		return ret;
++		parent_ret = omap2_clk_enable(clk->parent);
 +
- 	if (clk == NULL || IS_ERR(clk))
- 		return -EINVAL;
++		if (parent_ret != 0) {
++			clk->usecount--;
++			omap2_clkdm_clk_disable(clk->clkdm.ptr, clk);
++			return parent_ret;
++		}
+ 	}
  
- 	mutex_lock(&clocks_mutex);
-+	if (arch_clock->clk_register) {
-+		ret = arch_clock->clk_register(clk);
-+		if (ret)
-+			goto cr_out;
-+	}
- 	list_add(&clk->node, &clocks);
- 	if (!clk->children.next)
- 		INIT_LIST_HEAD(&clk->children);
-@@ -450,9 +457,11 @@ int clk_register(struct clk *clk)
- 		omap_clk_add_child(clk->parent, clk);
- 	if (clk->init)
- 		clk->init(clk);
-+	ret = 0;
-+cr_out:
- 	mutex_unlock(&clocks_mutex);
- 
--	return 0;
-+	return ret;
- }
- EXPORT_SYMBOL(clk_register);
- 
-diff --git a/arch/arm/plat-omap/include/mach/clock.h b/arch/arm/plat-omap/include/mach/clock.h
-index 2a30268..db57b71 100644
---- a/arch/arm/plat-omap/include/mach/clock.h
-+++ b/arch/arm/plat-omap/include/mach/clock.h
-@@ -117,6 +117,7 @@ struct clk {
- struct cpufreq_frequency_table;
- 
- struct clk_functions {
-+	int		(*clk_register)(struct clk *clk);
- 	int		(*clk_enable)(struct clk *clk);
- 	void		(*clk_disable)(struct clk *clk);
- 	long		(*clk_round_rate)(struct clk *clk, unsigned long rate);
+ 	ret = _omap2_clk_enable(clk);
 
 
