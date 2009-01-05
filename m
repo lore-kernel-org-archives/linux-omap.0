@@ -1,91 +1,56 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: [PATCH v2 13/23] OMAP2xxx clock: consolidate DELAYED_APP clock commits;
-	fix barrier
-Date: Sun, 04 Jan 2009 19:34:55 -0700
-Message-ID: <20090105023454.12661.7181.stgit@localhost.localdomain>
+Subject: [PATCH v2 19/23] OMAP2/3 clock: omap2_clk_enable(): fix bugs in
+	clockdomain handling
+Date: Sun, 04 Jan 2009 19:34:59 -0700
+Message-ID: <20090105023459.12661.19476.stgit@localhost.localdomain>
 References: <20090105022953.12661.57701.stgit@localhost.localdomain>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:42903 "EHLO
+Received: from utopia.booyaka.com ([72.9.107.138]:42910 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752304AbZAEDWw (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 4 Jan 2009 22:22:52 -0500
+	with ESMTP id S1752222AbZAEDW5 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 4 Jan 2009 22:22:57 -0500
 In-Reply-To: <20090105022953.12661.57701.stgit@localhost.localdomain>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: Paul Walmsley <paul@pwsan.com>
 
-Consolidate the commit code for DELAYED_APP clocks into a subroutine,
-_omap2xxx_clk_commit().  Also convert the MPU barrier wmb() into an
-OCP barrier, since with an MPU barrier, we have no guarantee that the
-write actually reached the endpoint device.
+omap2_clk_enable() should enable a clock's clockdomain before
+attempting to enable its parent clock's clockdomain.  Similarly, in
+the unlikely event that the parent clock enable fails, the clockdomain
+should be disabled.
 
 Signed-off-by: Paul Walmsley <paul@pwsan.com>
 ---
- arch/arm/mach-omap2/clock.c |   34 ++++++++++++++++++++++++----------
- 1 files changed, 24 insertions(+), 10 deletions(-)
+ arch/arm/mach-omap2/clock.c |    5 +++--
+ 1 files changed, 3 insertions(+), 2 deletions(-)
 
 diff --git a/arch/arm/mach-omap2/clock.c b/arch/arm/mach-omap2/clock.c
-index d0caeef..78e14bf 100644
+index 3f8354d..55f43d0 100644
 --- a/arch/arm/mach-omap2/clock.c
 +++ b/arch/arm/mach-omap2/clock.c
-@@ -120,6 +120,28 @@ static void _omap2_clk_write_reg(u32 v, u16 reg_offset, struct clk *clk)
- 		cm_write_mod_reg(v, clk->prcm_mod, reg_offset);
- }
+@@ -488,16 +488,17 @@ int omap2_clk_enable(struct clk *clk)
+ 	if (++clk->usecount > 1)
+ 		return 0;
  
-+/**
-+ * _omap2xxx_clk_commit - commit clock parent/rate changes in hardware
-+ * @clk: struct clk *
-+ *
-+ * If @clk has the DELAYED_APP flag set, meaning that parent/rate changes
-+ * don't take effect until the VALID_CONFIG bit is written, write the
-+ * VALID_CONFIG bit and wait for the write to complete.  No return value.
-+ */
-+static void _omap2xxx_clk_commit(struct clk *clk)
-+{
-+	if (!cpu_is_omap24xx())
-+		return;
++	omap2_clkdm_clk_enable(clk->clkdm.ptr, clk);
 +
-+	if (!(clk->flags & DELAYED_APP))
-+		return;
-+
-+	prm_write_mod_reg(OMAP24XX_VALID_CONFIG, OMAP24XX_GR_MOD,
-+			  OMAP24XX_PRCM_CLKCFG_CTRL_OFFSET);
-+	/* OCP barrier */
-+	prm_read_mod_reg(OMAP24XX_GR_MOD, OMAP24XX_PRCM_CLKCFG_CTRL_OFFSET);
-+}
-+
- /*
-  * _dpll_test_fint - test whether an Fint value is valid for the DPLL
-  * @clk: DPLL struct clk to test
-@@ -757,11 +779,7 @@ int omap2_clksel_set_rate(struct clk *clk, unsigned long rate)
+ 	if (clk->parent)
+ 		ret = omap2_clk_enable(clk->parent);
  
- 	clk->rate = clk->parent->rate / new_div;
+ 	if (ret != 0) {
+ 		clk->usecount--;
++		omap2_clkdm_clk_disable(clk->clkdm.ptr, clk);
+ 		return ret;
+ 	}
  
--	if (clk->flags & DELAYED_APP && cpu_is_omap24xx()) {
--		prm_write_mod_reg(OMAP24XX_VALID_CONFIG,
--			OMAP24XX_GR_MOD, OMAP24XX_PRCM_CLKCFG_CTRL_OFFSET);
--		wmb();
--	}
-+	_omap2xxx_clk_commit(clk);
+-	omap2_clkdm_clk_enable(clk->clkdm.ptr, clk);
+-
+ 	ret = _omap2_clk_enable(clk);
  
- 	return 0;
- }
-@@ -835,11 +853,7 @@ int omap2_clk_set_parent(struct clk *clk, struct clk *new_parent)
- 	_omap2_clk_write_reg(v, clk->clksel_reg, clk);
- 	wmb();
- 
--	if (clk->flags & DELAYED_APP && cpu_is_omap24xx()) {
--		prm_write_mod_reg(OMAP24XX_VALID_CONFIG,
--			OMAP24XX_GR_MOD, OMAP24XX_PRCM_CLKCFG_CTRL_OFFSET);
--		wmb();
--	}
-+	_omap2xxx_clk_commit(clk);
- 
- 	if (clk->usecount > 0)
- 		_omap2_clk_enable(clk);
+ 	if (ret != 0) {
 
 
