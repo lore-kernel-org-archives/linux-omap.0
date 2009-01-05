@@ -1,204 +1,99 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: [PATCH v2 03/23] OMAP2/3 clock: drop recalc function pointers from fixed
-	rate clocks
-Date: Sun, 04 Jan 2009 19:34:48 -0700
-Message-ID: <20090105023447.12661.66534.stgit@localhost.localdomain>
+Subject: [PATCH v2 08/23] OMAP clock: remove VIRTUAL_CLOCK
+Date: Sun, 04 Jan 2009 19:34:52 -0700
+Message-ID: <20090105023451.12661.18427.stgit@localhost.localdomain>
 References: <20090105022953.12661.57701.stgit@localhost.localdomain>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:42866 "EHLO
+Received: from utopia.booyaka.com ([72.9.107.138]:42879 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752180AbZAEDWk (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 4 Jan 2009 22:22:40 -0500
+	with ESMTP id S1752117AbZAEDWo (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 4 Jan 2009 22:22:44 -0500
 In-Reply-To: <20090105022953.12661.57701.stgit@localhost.localdomain>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
-Cc: Paul Walmsley <paul@pwsan.com>
+Cc: Russell King <rmk+kernel@arm.linux.org.uk>, Paul Walmsley <paul@pwsan.com>
 
-Now that rate recalculation and rate propagation are two separate
-operations, drop recalc function pointers from all fixed rate clocks.
-Their rates are fixed, so there's no need to recalculate.
+From: Russell King <rmk@dyn-67.arm.linux.org.uk>
 
+Nothing tests the clock flags for this bit, so it serves no purpose.
+Remove it.
+
+Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
 Signed-off-by: Paul Walmsley <paul@pwsan.com>
 ---
- arch/arm/mach-omap2/clock24xx.h |    4 ----
- arch/arm/mach-omap2/clock34xx.h |   10 ----------
- arch/arm/plat-omap/clock.c      |   18 ++++++++++--------
- 3 files changed, 10 insertions(+), 22 deletions(-)
+ arch/arm/mach-omap1/clock.h             |    8 +++-----
+ arch/arm/mach-omap2/clock24xx.h         |    2 +-
+ arch/arm/plat-omap/include/mach/clock.h |    6 ++----
+ 3 files changed, 6 insertions(+), 10 deletions(-)
 
+diff --git a/arch/arm/mach-omap1/clock.h b/arch/arm/mach-omap1/clock.h
+index 564f4bc..5ba55a0 100644
+--- a/arch/arm/mach-omap1/clock.h
++++ b/arch/arm/mach-omap1/clock.h
+@@ -736,7 +736,7 @@ static struct clk mmc2_ck = {
+ static struct clk virtual_ck_mpu = {
+ 	.name		= "mpu",
+ 	.flags		= CLOCK_IN_OMAP1510 | CLOCK_IN_OMAP16XX |
+-			  CLOCK_IN_OMAP310 | VIRTUAL_CLOCK | ALWAYS_ENABLED,
++			  CLOCK_IN_OMAP310 | ALWAYS_ENABLED,
+ 	.parent		= &arm_ck, /* Is smarter alias for */
+ 	.recalc		= &followparent_recalc,
+ 	.set_rate	= &omap1_select_table_rate,
+@@ -751,8 +751,7 @@ static struct clk i2c_fck = {
+ 	.name		= "i2c_fck",
+ 	.id		= 1,
+ 	.flags		= CLOCK_IN_OMAP310 | CLOCK_IN_OMAP1510 | CLOCK_IN_OMAP16XX |
+-			  VIRTUAL_CLOCK | CLOCK_NO_IDLE_PARENT |
+-			  ALWAYS_ENABLED,
++			  CLOCK_NO_IDLE_PARENT | ALWAYS_ENABLED,
+ 	.parent		= &armxor_ck.clk,
+ 	.recalc		= &followparent_recalc,
+ 	.enable		= &omap1_clk_enable_generic,
+@@ -762,8 +761,7 @@ static struct clk i2c_fck = {
+ static struct clk i2c_ick = {
+ 	.name		= "i2c_ick",
+ 	.id		= 1,
+-	.flags		= CLOCK_IN_OMAP16XX |
+-			  VIRTUAL_CLOCK | CLOCK_NO_IDLE_PARENT |
++	.flags		= CLOCK_IN_OMAP16XX | CLOCK_NO_IDLE_PARENT |
+ 			  ALWAYS_ENABLED,
+ 	.parent		= &armper_ck.clk,
+ 	.recalc		= &followparent_recalc,
 diff --git a/arch/arm/mach-omap2/clock24xx.h b/arch/arm/mach-omap2/clock24xx.h
-index 929a257..30f3c57 100644
+index 824413d..8e0b3f7 100644
 --- a/arch/arm/mach-omap2/clock24xx.h
 +++ b/arch/arm/mach-omap2/clock24xx.h
-@@ -627,7 +627,6 @@ static struct clk func_32k_ck = {
+@@ -2845,7 +2845,7 @@ static struct clk mmchsdb2_fck = {
+ static struct clk virt_prcm_set = {
+ 	.name		= "virt_prcm_set",
  	.flags		= CLOCK_IN_OMAP242X | CLOCK_IN_OMAP243X |
- 				RATE_FIXED | ALWAYS_ENABLED | RATE_PROPAGATES,
- 	.clkdm		= { .name = "prm_clkdm" },
--	.recalc		= &propagate_rate,
- };
+-				VIRTUAL_CLOCK | ALWAYS_ENABLED | DELAYED_APP,
++				ALWAYS_ENABLED | DELAYED_APP,
+ 	.clkdm		= { .name = "virt_opp_clkdm" },
+ 	.parent		= &mpu_ck,	/* Indexed by mpu speed, no parent */
+ 	.recalc		= &omap2_table_mpu_recalc,	/* sets are keyed on mpu rate */
+diff --git a/arch/arm/plat-omap/include/mach/clock.h b/arch/arm/plat-omap/include/mach/clock.h
+index 4b90531..b88e077 100644
+--- a/arch/arm/plat-omap/include/mach/clock.h
++++ b/arch/arm/plat-omap/include/mach/clock.h
+@@ -153,12 +153,10 @@ void omap_clk_del_child(struct clk *clk, struct clk *clk2);
  
- /* Typical 12/13MHz in standalone mode, will be 26Mhz in chassis mode */
-@@ -657,7 +656,6 @@ static struct clk alt_ck = {		/* Typical 54M or 48M, may not exist */
- 	.flags		= CLOCK_IN_OMAP242X | CLOCK_IN_OMAP243X |
- 				RATE_FIXED | ALWAYS_ENABLED | RATE_PROPAGATES,
- 	.clkdm		= { .name = "prm_clkdm" },
--	.recalc		= &propagate_rate,
- };
- 
- /*
-@@ -709,7 +707,6 @@ static struct clk apll96_ck = {
- 	.enable_bit	= OMAP24XX_EN_96M_PLL_SHIFT,
- 	.enable		= &omap2_clk_fixed_enable,
- 	.disable	= &omap2_clk_fixed_disable,
--	.recalc		= &propagate_rate,
- };
- 
- static struct clk apll54_ck = {
-@@ -724,7 +721,6 @@ static struct clk apll54_ck = {
- 	.enable_bit	= OMAP24XX_EN_54M_PLL_SHIFT,
- 	.enable		= &omap2_clk_fixed_enable,
- 	.disable	= &omap2_clk_fixed_disable,
--	.recalc		= &propagate_rate,
- };
- 
- /*
-diff --git a/arch/arm/mach-omap2/clock34xx.h b/arch/arm/mach-omap2/clock34xx.h
-index 5357507..66cbe0c 100644
---- a/arch/arm/mach-omap2/clock34xx.h
-+++ b/arch/arm/mach-omap2/clock34xx.h
-@@ -67,7 +67,6 @@ static struct clk omap_32k_fck = {
- 	.flags		= CLOCK_IN_OMAP343X | RATE_FIXED | RATE_PROPAGATES |
- 				ALWAYS_ENABLED,
- 	.clkdm		= { .name = "prm_clkdm" },
--	.recalc		= &propagate_rate,
- };
- 
- static struct clk secure_32k_fck = {
-@@ -76,7 +75,6 @@ static struct clk secure_32k_fck = {
- 	.flags		= CLOCK_IN_OMAP343X | RATE_FIXED | RATE_PROPAGATES |
- 				ALWAYS_ENABLED,
- 	.clkdm		= { .name = "prm_clkdm" },
--	.recalc		= &propagate_rate,
- };
- 
- /* Virtual source clocks for osc_sys_ck */
-@@ -86,7 +84,6 @@ static struct clk virt_12m_ck = {
- 	.flags		= CLOCK_IN_OMAP343X | RATE_FIXED | RATE_PROPAGATES |
- 				ALWAYS_ENABLED,
- 	.clkdm		= { .name = "prm_clkdm" },
--	.recalc		= &propagate_rate,
- };
- 
- static struct clk virt_13m_ck = {
-@@ -95,7 +92,6 @@ static struct clk virt_13m_ck = {
- 	.flags		= CLOCK_IN_OMAP343X | RATE_FIXED | RATE_PROPAGATES |
- 				ALWAYS_ENABLED,
- 	.clkdm		= { .name = "prm_clkdm" },
--	.recalc		= &propagate_rate,
- };
- 
- static struct clk virt_16_8m_ck = {
-@@ -104,7 +100,6 @@ static struct clk virt_16_8m_ck = {
- 	.flags		= CLOCK_IN_OMAP3430ES2 | RATE_FIXED | RATE_PROPAGATES |
- 				ALWAYS_ENABLED,
- 	.clkdm		= { .name = "prm_clkdm" },
--	.recalc		= &propagate_rate,
- };
- 
- static struct clk virt_19_2m_ck = {
-@@ -113,7 +108,6 @@ static struct clk virt_19_2m_ck = {
- 	.flags		= CLOCK_IN_OMAP343X | RATE_FIXED | RATE_PROPAGATES |
- 				ALWAYS_ENABLED,
- 	.clkdm		= { .name = "prm_clkdm" },
--	.recalc		= &propagate_rate,
- };
- 
- static struct clk virt_26m_ck = {
-@@ -122,7 +116,6 @@ static struct clk virt_26m_ck = {
- 	.flags		= CLOCK_IN_OMAP343X | RATE_FIXED | RATE_PROPAGATES |
- 				ALWAYS_ENABLED,
- 	.clkdm		= { .name = "prm_clkdm" },
--	.recalc		= &propagate_rate,
- };
- 
- static struct clk virt_38_4m_ck = {
-@@ -131,7 +124,6 @@ static struct clk virt_38_4m_ck = {
- 	.flags		= CLOCK_IN_OMAP343X | RATE_FIXED | RATE_PROPAGATES |
- 				ALWAYS_ENABLED,
- 	.clkdm		= { .name = "prm_clkdm" },
--	.recalc		= &propagate_rate,
- };
- 
- static const struct clksel_rate osc_sys_12m_rates[] = {
-@@ -220,7 +212,6 @@ static struct clk sys_altclk = {
- 	.name		= "sys_altclk",
- 	.flags		= CLOCK_IN_OMAP343X | RATE_PROPAGATES | ALWAYS_ENABLED,
- 	.clkdm		= { .name = "cm_clkdm" },
--	.recalc		= &propagate_rate,
- };
- 
- /*
-@@ -232,7 +223,6 @@ static struct clk mcbsp_clks = {
- 	.name		= "mcbsp_clks",
- 	.flags		= CLOCK_IN_OMAP343X | RATE_PROPAGATES | ALWAYS_ENABLED,
- 	.clkdm		= { .name = "prm_clkdm" },
--	.recalc		= &propagate_rate,
- };
- 
- /* PRM EXTERNAL CLOCK OUTPUT */
-diff --git a/arch/arm/plat-omap/clock.c b/arch/arm/plat-omap/clock.c
-index 9f458cb..35064cd 100644
---- a/arch/arm/plat-omap/clock.c
-+++ b/arch/arm/plat-omap/clock.c
-@@ -187,7 +187,8 @@ int clk_set_rate(struct clk *clk, unsigned long rate)
- 	if (arch_clock->clk_set_rate) {
- 		ret = arch_clock->clk_set_rate(clk, rate);
- 		if (ret == 0) {
--			(*clk->recalc)(clk);
-+			if (clk->recalc)
-+				(*clk->recalc)(clk);
- 			if (clk->flags & RATE_PROPAGATES)
- 				propagate_rate(clk);
- 		}
-@@ -212,7 +213,8 @@ int clk_set_parent(struct clk *clk, struct clk *parent)
- 	if (arch_clock->clk_set_parent) {
- 		ret = arch_clock->clk_set_parent(clk, parent);
- 		if (ret == 0) {
--			(*clk->recalc)(clk);
-+			if (clk->recalc)
-+				(*clk->recalc)(clk);
- 			if (clk->flags & RATE_PROPAGATES)
- 				propagate_rate(clk);
- 		}
-@@ -285,11 +287,10 @@ void propagate_rate(struct clk * tclk)
- 	list_for_each_entry(clkp, &clocks, node) {
- 		if (likely(clkp->parent != tclk))
- 			continue;
--		if (likely((u32)clkp->recalc)) {
-+		if (clkp->recalc)
- 			clkp->recalc(clkp);
--			if (clkp->flags & RATE_PROPAGATES)
--				propagate_rate(clkp);
--		}
-+		if (clkp->flags & RATE_PROPAGATES)
-+			propagate_rate(clkp);
- 	}
- }
- 
-@@ -305,8 +306,9 @@ void recalculate_root_clocks(void)
- 	struct clk *clkp;
- 
- 	list_for_each_entry(clkp, &clocks, node) {
--		if (unlikely(!clkp->parent) && likely((u32)clkp->recalc)) {
--			clkp->recalc(clkp);
-+		if (unlikely(!clkp->parent)) {
-+			if (clkp->recalc)
-+				clkp->recalc(clkp);
- 			if (clkp->flags & RATE_PROPAGATES)
- 				propagate_rate(clkp);
- 		}
+ /* Clock flags */
+ #define RATE_CKCTL		(1 << 0)	/* Main fixed ratio clocks */
+-
+-
+-#define VIRTUAL_CLOCK		(1 << 3)	/* Composite clock from table */
++/* bits 1-3 are currently free */
+ #define ALWAYS_ENABLED		(1 << 4)	/* Clock cannot be disabled */
+ #define ENABLE_REG_32BIT	(1 << 5)	/* Use 32-bit access */
+-
++/* bit 6 is currently free */
+ #define CLOCK_IDLE_CONTROL	(1 << 7)
+ #define CLOCK_NO_IDLE_PARENT	(1 << 8)
+ #define DELAYED_APP		(1 << 9)	/* Delay application of clock */
 
 
