@@ -1,121 +1,99 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: [PATCH v2 11/23] OMAP clock: rearrange clock.h structure order
-Date: Sun, 04 Jan 2009 19:34:54 -0700
-Message-ID: <20090105023453.12661.55775.stgit@localhost.localdomain>
+Subject: [PATCH v2 15/23] OMAP clock: drop clk_get_usecount()
+Date: Sun, 04 Jan 2009 19:34:57 -0700
+Message-ID: <20090105023456.12661.87847.stgit@localhost.localdomain>
 References: <20090105022953.12661.57701.stgit@localhost.localdomain>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:42897 "EHLO
+Received: from utopia.booyaka.com ([72.9.107.138]:42904 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752180AbZAEDWt (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 4 Jan 2009 22:22:49 -0500
+	with ESMTP id S1752310AbZAEDWx (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 4 Jan 2009 22:22:53 -0500
 In-Reply-To: <20090105022953.12661.57701.stgit@localhost.localdomain>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
-Cc: Russell King <rmk+kernel@arm.linux.org.uk>, Paul Walmsley <paul@pwsan.com>
+Cc: Paul Walmsley <paul@pwsan.com>
 
-From: Russell King <rmk@dyn-67.arm.linux.org.uk>
+This function is race-prone and mistakenly conveys the impression to
+drivers that it is part of the clock interface.  Get rid of it: core
+code that absolutely needs this can just check clk->usecount.  Drivers
+should not use it at all.
 
-... to eliminate unnecessary padding.  We have rather a lot of these
-structures, so eliminating unnecessary padding results in a saving of
-1488 bytes.
-
-[paul@pwsan.com: updated against current linux-omap clock tree, now saves
-1512 bytes on OMAP3 builds]
-
-Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
 Signed-off-by: Paul Walmsley <paul@pwsan.com>
 ---
- arch/arm/plat-omap/include/mach/clock.h |   30 +++++++++++++++---------------
- 1 files changed, 15 insertions(+), 15 deletions(-)
+ arch/arm/mach-omap2/pm-debug.c          |    2 +-
+ arch/arm/mach-omap2/pm24xx.c            |    2 +-
+ arch/arm/plat-omap/clock.c              |   16 ----------------
+ arch/arm/plat-omap/include/mach/clock.h |    1 -
+ 4 files changed, 2 insertions(+), 19 deletions(-)
 
+diff --git a/arch/arm/mach-omap2/pm-debug.c b/arch/arm/mach-omap2/pm-debug.c
+index 0b5c044..0832e05 100644
+--- a/arch/arm/mach-omap2/pm-debug.c
++++ b/arch/arm/mach-omap2/pm-debug.c
+@@ -93,7 +93,7 @@ void serial_console_sleep(int enable)
+ 
+ 	if (enable) {
+ 		BUG_ON(serial_console_clock_disabled);
+-		if (clk_get_usecount(console_fclk) == 0)
++		if (console_fclk->usecount == 0)
+ 			return;
+ 		if ((int) serial_console_next_disable - (int) omap2_read_32k_sync_counter() >= 0)
+ 			return;
+diff --git a/arch/arm/mach-omap2/pm24xx.c b/arch/arm/mach-omap2/pm24xx.c
+index 60ff04f..2798e87 100644
+--- a/arch/arm/mach-omap2/pm24xx.c
++++ b/arch/arm/mach-omap2/pm24xx.c
+@@ -249,7 +249,7 @@ static int omap2_can_sleep(void)
+ 		return 0;
+ 	if (atomic_read(&sleep_block) > 0)
+ 		return 0;
+-	if (clk_get_usecount(osc_ck) > 1)
++	if (osc_ck->usecount > 1)
+ 		return 0;
+ 	if (omap_dma_running())
+ 		return 0;
+diff --git a/arch/arm/plat-omap/clock.c b/arch/arm/plat-omap/clock.c
+index ab3d879..8d43d78 100644
+--- a/arch/arm/plat-omap/clock.c
++++ b/arch/arm/plat-omap/clock.c
+@@ -260,22 +260,6 @@ out:
+ }
+ EXPORT_SYMBOL(clk_disable);
+ 
+-int clk_get_usecount(struct clk *clk)
+-{
+-	unsigned long flags;
+-	int ret = 0;
+-
+-	if (clk == NULL || IS_ERR(clk))
+-		return 0;
+-
+-	spin_lock_irqsave(&clockfw_lock, flags);
+-	ret = clk->usecount;
+-	spin_unlock_irqrestore(&clockfw_lock, flags);
+-
+-	return ret;
+-}
+-EXPORT_SYMBOL(clk_get_usecount);
+-
+ unsigned long clk_get_rate(struct clk *clk)
+ {
+ 	unsigned long flags;
 diff --git a/arch/arm/plat-omap/include/mach/clock.h b/arch/arm/plat-omap/include/mach/clock.h
-index 58450a1..9d38a25 100644
+index 9d38a25..2a30268 100644
 --- a/arch/arm/plat-omap/include/mach/clock.h
 +++ b/arch/arm/plat-omap/include/mach/clock.h
-@@ -20,8 +20,8 @@ struct clockdomain;
- #if defined(CONFIG_ARCH_OMAP2) || defined(CONFIG_ARCH_OMAP3)
- 
- struct clksel_rate {
--	u8			div;
- 	u32			val;
-+	u8			div;
- 	u8			flags;
- };
- 
-@@ -31,30 +31,30 @@ struct clksel {
- };
- 
- struct dpll_data {
--	u16			mult_div1_reg;
- 	u32			mult_mask;
- 	u32			div1_mask;
--	u16			last_rounded_m;
--	u8			last_rounded_n;
- 	unsigned long		last_rounded_rate;
- 	unsigned int		rate_tolerance;
--	u16			max_multiplier;
--	u8			min_divider;
--	u8			max_divider;
- 	u32			max_tolerance;
- 	struct clk		*bypass_clk;
--	u16			control_reg;
- 	u32			enable_mask;
-+	u16			mult_div1_reg;
-+	u16			control_reg;
-+	u16			max_multiplier;
-+	u16			last_rounded_m;
-+	u8			last_rounded_n;
-+	u8			min_divider;
-+	u8			max_divider;
- #  if defined(CONFIG_ARCH_OMAP3)
--	u16			idlest_reg;
--	u32			idlest_mask;
--	u32			freqsel_mask;
- 	u8			modes;
- 	u8			auto_recal_bit;
- 	u8			recal_en_bit;
- 	u8			recal_st_bit;
- 	u16			autoidle_reg;
-+	u16			idlest_reg;
- 	u32			autoidle_mask;
-+	u32			idlest_mask;
-+	u32			freqsel_mask;
- #  endif
- };
- 
-@@ -85,18 +85,17 @@ struct clk {
- 	struct list_head	children;
- 	__u32			flags;
- 	u32			enable_reg;
--	__u8			enable_bit;
--	__s8			usecount;
--	u8			idlest_bit;
- 	void			(*recalc)(struct clk *, unsigned long, u8);
- 	int			(*set_rate)(struct clk *, unsigned long);
- 	long			(*round_rate)(struct clk *, unsigned long);
- 	void			(*init)(struct clk *);
- 	int			(*enable)(struct clk *);
- 	void			(*disable)(struct clk *);
-+	__u8			enable_bit;
-+	__s8			usecount;
-+	u8			idlest_bit;
- #if defined(CONFIG_ARCH_OMAP2) || defined(CONFIG_ARCH_OMAP3)
- 	u8			fixed_div;
--	u16			clksel_reg;
- 	u32			clksel_mask;
- 	const struct clksel	*clksel;
- 	struct dpll_data	*dpll_data;
-@@ -104,6 +103,7 @@ struct clk {
- 		const char		*name;
- 		struct clockdomain	*ptr;
- 	} clkdm;
-+	u16			clksel_reg;
- 	s16			prcm_mod;
- #else
- 	__u8			rate_offset;
+@@ -142,7 +142,6 @@ extern void followparent_recalc(struct clk *clk, unsigned long parent_rate,
+ 				u8 rate_storage);
+ extern void clk_allow_idle(struct clk *clk);
+ extern void clk_deny_idle(struct clk *clk);
+-extern int clk_get_usecount(struct clk *clk);
+ extern void clk_enable_init_clocks(void);
+ #ifdef CONFIG_CPU_FREQ
+ extern void clk_init_cpufreq_table(struct cpufreq_frequency_table **table);
 
 
