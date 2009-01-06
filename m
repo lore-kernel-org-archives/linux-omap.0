@@ -1,25 +1,37 @@
 From: "Pillai, Manikandan" <mani.pillai@ti.com>
 Subject: RE: [PATCH 1/2] TPS6235x based Power regulator support added
-Date: Tue, 6 Jan 2009 15:43:13 +0530
-Message-ID: <19F8576C6E063C45BE387C64729E739403ECEDD448@dbde02.ent.ti.com>
+Date: Tue, 6 Jan 2009 15:49:11 +0530
+Message-ID: <19F8576C6E063C45BE387C64729E739403ECEDD44A@dbde02.ent.ti.com>
 References: <1229421966-11414-1-git-send-email-mani.pillai@ti.com>
  <20081217173503.GF22204@sirena.org.uk>
  <19F8576C6E063C45BE387C64729E739403ECEDD319@dbde02.ent.ti.com>
  <20090106100003.GA6783@sirena.org.uk>
+ <19F8576C6E063C45BE387C64729E739403ECEDD448@dbde02.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:34938 "EHLO
+Received: from devils.ext.ti.com ([198.47.26.153]:35141 "EHLO
 	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750814AbZAFKN2 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 6 Jan 2009 05:13:28 -0500
-In-Reply-To: <20090106100003.GA6783@sirena.org.uk>
+	with ESMTP id S1750928AbZAFKT3 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 6 Jan 2009 05:19:29 -0500
+In-Reply-To: <19F8576C6E063C45BE387C64729E739403ECEDD448@dbde02.ent.ti.com>
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Mark Brown <broonie@sirena.org.uk>
+To: "Pillai, Manikandan" <mani.pillai@ti.com>, Mark Brown <broonie@sirena.org.uk>
 Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+
+
+Some more information
+
+
+-----Original Message-----
+From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Pillai, Manikandan
+Sent: Tuesday, January 06, 2009 3:43 PM
+To: Mark Brown
+Cc: linux-omap@vger.kernel.org
+Subject: RE: [PATCH 1/2] TPS6235x based Power regulator support added
 
 
 -----Original Message-----
@@ -44,9 +56,17 @@ what the appropriate device to use is.
 But for struct regulator_consumer_supply tps62352_core_consumers the
 Member dev needs to be inited. .dev is not available at this point of time.
 If dev is not initialized, the regulator_register() is failing.
+[Pillai, Manikandan] The regulator_get() function fails the reason is it
+compares (dev == map->dev) and since map->dev is not initited the regulator
+is not gettable.
 
 Both tps62352_core_consumers and tps62352_mpu_consumers and their I2C
 addresses are board specific - if references to them are included in
 your driver then other boards will not be able to use your driver. 
 [Pillai, Manikandan] Agreed - this makes the driver unusable for other boards.
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
