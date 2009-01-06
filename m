@@ -1,84 +1,82 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH v2 08/23] OMAP clock: remove VIRTUAL_CLOCK
-Date: Mon, 5 Jan 2009 19:34:35 -0700 (MST)
-Message-ID: <alpine.DEB.2.00.0901051918440.16829@utopia.booyaka.com>
-References: <20090105022953.12661.57701.stgit@localhost.localdomain> <20090105023451.12661.18427.stgit@localhost.localdomain> <87hc4dp4w0.fsf@deeprootsystems.com>
+From: "=?EUC-KR?B?seix1L/4?=" <chammoru@gmail.com>
+Subject: Questions about masking interrupts when disabling interrupts
+Date: Tue, 6 Jan 2009 11:59:42 +0900
+Message-ID: <4d34a0a70901051859i792725b3t4563971070f886fc@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:36898 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751532AbZAFCeh (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 5 Jan 2009 21:34:37 -0500
-In-Reply-To: <87hc4dp4w0.fsf@deeprootsystems.com>
+Received: from wf-out-1314.google.com ([209.85.200.169]:27780 "EHLO
+	wf-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751816AbZAFC7o (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 5 Jan 2009 21:59:44 -0500
+Received: by wf-out-1314.google.com with SMTP id 27so7923128wfd.4
+        for <linux-omap@vger.kernel.org>; Mon, 05 Jan 2009 18:59:42 -0800 (PST)
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@deeprootsystems.com>
-Cc: linux-omap@vger.kernel.org, Russell King <rmk+kernel@arm.linux.org.uk>
+To: linux-omap@vger.kernel.org
+Cc: =?EUC-KR?B?udqw5rnO?= <kyungmin.park@samsung.com>, =?EUC-KR?B?x+O8urD8?= <sk.heo@samsung.com>
 
-On Mon, 5 Jan 2009, Kevin Hilman wrote:
+Greetings,
 
-> Paul Walmsley <paul@pwsan.com> writes:
-> 
-> > From: Russell King <rmk@dyn-67.arm.linux.org.uk>
-> >
-> > Nothing tests the clock flags for this bit, so it serves no purpose.
-> > Remove it.
-> 
-> Actually, the CPUfreq support patches (from TI) in the PM branch are
-> currently using VIRTUAL_CLOCK.
-> 
-> I'm working on rebasing the PM branch onto this series but had to
-> revert this one for now.
+I'm enabling the Suspend-to-RAM state in our new OMAP3 Board.
+But I had some problems because of USB Interrupt.
 
-Better to just fix that code in the PM branch to conform with the practice 
-that clock24xx.h uses for its OPP clock.  Here is an example patch that 
-will probably fix it.  More needs to be done here obviously: fixing the 
-code style to conform to the rest of clock{2,3}4xx.h would be a good 
-start.  Guess that work will probably fall to you, unless the original 
-author can be persuaded to clean it up.
+Although I disabled USB interrupt by disable_irq() function while
+entering the Suspend,
+M_IRQ_92 irq continuously wake up the OMAP3430 Processor.
 
+So, I fixed this problem as following patch.
 
-- Paul
+My Questions are:
+1. Could anyone suggest the better solution for this problem?
+2. If there is no better solution, can I be applied this patch to omap-tree?
 
+Thank you!
 
-diff --git a/arch/arm/mach-omap2/clock34xx.c b/arch/arm/mach-omap2/clock34xx.c
-index a106e1a..08eb2de 100644
---- a/arch/arm/mach-omap2/clock34xx.c
-+++ b/arch/arm/mach-omap2/clock34xx.c
-@@ -786,8 +786,7 @@ int __init omap2_clk_init(void)
- 	     clkp++) {
- 		if ((*clkp)->flags & cpu_clkflg) {
- 			clk_register(*clkp);
--			if (!((*clkp)->flags & VIRTUAL_CLOCK))
--				omap2_init_clk_clkdm(*clkp);
-+			omap2_init_clk_clkdm(*clkp);
- 		}
- 	}
- 
-diff --git a/arch/arm/mach-omap2/clock34xx.h b/arch/arm/mach-omap2/clock34xx.h
-index a8a5814..3c6a2c8 100644
---- a/arch/arm/mach-omap2/clock34xx.h
-+++ b/arch/arm/mach-omap2/clock34xx.h
-@@ -3432,8 +3432,9 @@ static struct clk wdt1_fck = {
- 
- static struct clk virt_vdd1_prcm_set = {
- 	.name = "virt_vdd1_prcm_set",
--	.flags = CLOCK_IN_OMAP343X | VIRTUAL_CLOCK | ALWAYS_ENABLED,
-+	.flags = CLOCK_IN_OMAP343X | ALWAYS_ENABLED,
- 	.parent = &mpu_ck, /* Indexed by mpu speed, no parent */
-+	.clkdm		= { .name = "virt_opp_clkdm" ,}
- 	.recalc = &omap3_table_recalc, /*sets are keyed on mpu rate */
- 	.set_rate = &omap3_select_table_rate,
- 	.round_rate = &omap3_round_to_table_rate,
-@@ -3441,8 +3442,9 @@ static struct clk virt_vdd1_prcm_set = {
- 
- static struct clk virt_vdd2_prcm_set = {
- 	.name = "virt_vdd2_prcm_set",
--	.flags = CLOCK_IN_OMAP343X | VIRTUAL_CLOCK | ALWAYS_ENABLED,
-+	.flags = CLOCK_IN_OMAP343X | ALWAYS_ENABLED,
- 	.parent = &core_ck,
-+	.clkdm		= { .name = "virt_opp_clkdm" },
- 	.recalc = &omap3_table_recalc,
- 	.set_rate = &omap3_select_table_rate,
- 	.round_rate = &omap3_round_to_table_rate,
+commit bbb49321b161e6a9ff2b73326d4012d8eb8bbf23
+Author: Kim Kyuwon <chammoru@gmail.com>
+Date:   Tue Jan 6 10:11:46 2009 +0900
+
+    ARM: OMAP3: Mask interrupts when disabling interrupts
+
+    By Ingo Molnar, interrupts are not masked by default.
+    (refer to 76d2160147f43f982dfe881404cfde9fd0a9da21)
+
+    But if interrupts are not masked, the processor can wake up while in
+    Suspend-to-RAM state by an external interrupt. For example, if an
+OMAP3 board
+    is connected to Host PC by USB and entered to Suspend-to-RAM
+state, it wake up
+    automatically by M_IRQ_92. The disable_irq() function can't disable the
+    interrupt in H/W level, So I modified arch/arm/mach-omap2/irq.c
+
+    Signed-off-by: Kim Kyuwon <chammoru@gmail.com>
+
+diff --git a/arch/arm/mach-omap2/irq.c b/arch/arm/mach-omap2/irq.c
+index 110acb9..b44dcae 100644
+--- a/arch/arm/mach-omap2/irq.c
++++ b/arch/arm/mach-omap2/irq.c
+@@ -123,6 +123,11 @@ static void omap_unmask_irq(unsigned int irq)
+ 	intc_bank_write_reg(1 << irq, &irq_banks[0], INTC_MIR_CLEAR0 + offset);
+ }
+
++static void omap_disable_irq(unsigned int irq)
++{
++	omap_mask_irq(irq);
++}
++
+ static void omap_mask_ack_irq(unsigned int irq)
+ {
+ 	omap_mask_irq(irq);
+@@ -134,6 +139,7 @@ static struct irq_chip omap_irq_chip = {
+ 	.ack	= omap_mask_ack_irq,
+ 	.mask	= omap_mask_irq,
+ 	.unmask	= omap_unmask_irq,
++	.disable = omap_disable_irq,
+ };
+
+ static void __init omap_irq_bank_init_one(struct omap_irq_bank *bank)
+-- 
+Kim Kyuwon
