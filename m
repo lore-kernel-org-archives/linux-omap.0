@@ -1,75 +1,50 @@
-From: "Anuj Aggarwal" <anuj.aggarwal@gmail.com>
-Subject: Fwd: [PATCH v2 20/23] OMAP2/3 clock: omap2_clk_enable(): fix usecount decrement bug
-Date: Tue, 6 Jan 2009 17:13:15 +0530
-Message-ID: <2ee9e08d0901060343y65a4f582i24cfb75203cf20eb@mail.gmail.com>
-References: <20090105022953.12661.57701.stgit@localhost.localdomain>
-	 <20090105023459.12661.1871.stgit@localhost.localdomain>
-	 <2ee9e08d0901060342q36a5ebd2i448d87ba55bb034d@mail.gmail.com>
+From: "Woodruff, Richard" <r-woodruff2@ti.com>
+Subject: RE: Spurious interrupt warning
+Date: Tue, 6 Jan 2009 08:05:46 -0600
+Message-ID: <13B9B4C6EF24D648824FF11BE8967162036D480BD0@dlee02.ent.ti.com>
+References: <20090106110837.GG9752@atomide.com>
+ <19F8576C6E063C45BE387C64729E739403ECEDD480@dbde02.ent.ti.com>
+ <20090106111928.GA10260@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from an-out-0708.google.com ([209.85.132.244]:51906 "EHLO
-	an-out-0708.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751006AbZAFLnQ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 6 Jan 2009 06:43:16 -0500
-Received: by an-out-0708.google.com with SMTP id d40so2504689and.1
-        for <linux-omap@vger.kernel.org>; Tue, 06 Jan 2009 03:43:15 -0800 (PST)
-In-Reply-To: <2ee9e08d0901060342q36a5ebd2i448d87ba55bb034d@mail.gmail.com>
-Content-Disposition: inline
+Received: from devils.ext.ti.com ([198.47.26.153]:45265 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751265AbZAFOFx convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 6 Jan 2009 09:05:53 -0500
+In-Reply-To: <20090106111928.GA10260@atomide.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Linux OMAP List <linux-omap@vger.kernel.org>
+To: Tony Lindgren <tony@atomide.com>, "Hiremath, Vaibhav" <hvaibhav@ti.com>
+Cc: "Shah, Hardik" <hardik.shah@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-I also found the same issue while reviewing the code. Thanks for the patch.
+Hi,
+
+> * Hiremath, Vaibhav <hvaibhav@ti.com> [090106 13:13]:
+> > For capture driver I am also getting similar messages
+> >
+> > <4>Spurious irq 95: 0xffffffdf, please flush posted write for irq 24
+> > Spurious irq 95: 0xffffffdf, please flush posted write for irq 24
+> > <4>Spurious irq 95: 0xffffffdf, please flush posted write for irq 24
+> > Spurious irq 95: 0xffffffdf, please flush posted write for irq 24
+>
+> The same solution should work in the irq 24 handler as well. Just do
+> a read-back of the last written register in the irq 24 handler.
+>
+> Or a read back of some safe register in the same device in case
+> you cannot read back the interrupt status register without clearing
+> the device interrupts :)
+
+I'll re-raise the opinion that SO should be used for device mappings on OMAP.
+
+This is not just an IRQ issue.  It's a generic one to programming a device and knowing when what you have written has taken.
+
+It just happens to be the IRQ path has a very slow dissertation path when you take into account timing domains that it shows up.
+
+Shrinking the race window with SO then using a read back to get the last one or two is most conservative and safe.  Probably 97% for IO accesses are ok on OMAP as device, but that is probably 99.9% with SO.  In our testing we may be able to make that 97 a 99.  Still I'd rather not risk the 1% for production.
 
 Regards,
-Anuj Aggarwal
+Richard W.
 
-On Mon, Jan 5, 2009 at 8:05 AM, Paul Walmsley <paul@pwsan.com> wrote:
->
-> If _omap2_clk_enable() fails, the clock's usecount must be decremented by
-> one no matter whether the clock has a parent or not.
->
-> Signed-off-by: Paul Walmsley <paul@pwsan.com>
-> ---
->  arch/arm/mach-omap2/clock.c |    6 ++----
->  1 files changed, 2 insertions(+), 4 deletions(-)
->
-> diff --git a/arch/arm/mach-omap2/clock.c b/arch/arm/mach-omap2/clock.c
-> index 55f43d0..a9a2bbf 100644
-> --- a/arch/arm/mach-omap2/clock.c
-> +++ b/arch/arm/mach-omap2/clock.c
-> @@ -502,12 +502,10 @@ int omap2_clk_enable(struct clk *clk)
->        ret = _omap2_clk_enable(clk);
->
->        if (ret != 0) {
-> +               clk->usecount--;
->                omap2_clkdm_clk_disable(clk->clkdm.ptr, clk);
-> -
-> -               if (clk->parent) {
-> +               if (clk->parent)
->                        omap2_clk_disable(clk->parent);
-> -                       clk->usecount--;
-> -               }
->        }
->
->        return ret;
->
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
-
-
---
-Best Regards,
-Anuj Aggarwal
-
-
-
---
-Best Regards,
-Anuj Aggarwal
