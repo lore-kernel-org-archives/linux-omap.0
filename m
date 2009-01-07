@@ -1,69 +1,37 @@
-From: "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>
-Subject: RE: [OMAPZOOM][PATCH 0/2] Some more camera syncup patches
-Date: Wed, 7 Jan 2009 15:40:27 -0600
-Message-ID: <A24693684029E5489D1D202277BE894416328B10@dlee02.ent.ti.com>
-References: <FCCFB4CDC6E5564B9182F639FC35608702513F7974@dbde02.ent.ti.com>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: [PATCH 2/2] ARM: OMAP: Fix gpio by switching to generic gpio calls, v2
+Date: Wed, 7 Jan 2009 22:00:53 +0000
+Message-ID: <20090107220053.GD11471@n2100.arm.linux.org.uk>
+References: <20090107111415.GF27566@atomide.com> <20090107111615.GG27566@atomide.com> <20090107111744.GH27566@atomide.com> <20090107161843.GA11471@n2100.arm.linux.org.uk> <20090107175020.GU27566@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:33500 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752573AbZAGVke convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 7 Jan 2009 16:40:34 -0500
-Received: from dlep95.itg.ti.com ([157.170.170.107])
-	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id n07LeS2g006286
-	for <linux-omap@vger.kernel.org>; Wed, 7 Jan 2009 15:40:33 -0600
-Received: from dlee75.ent.ti.com (localhost [127.0.0.1])
-	by dlep95.itg.ti.com (8.13.8/8.13.8) with ESMTP id n07LeSu6028799
-	for <linux-omap@vger.kernel.org>; Wed, 7 Jan 2009 15:40:28 -0600 (CST)
-In-Reply-To: <FCCFB4CDC6E5564B9182F639FC35608702513F7974@dbde02.ent.ti.com>
-Content-Language: en-US
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:59123 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756748AbZAGWBG (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 7 Jan 2009 17:01:06 -0500
+Content-Disposition: inline
+In-Reply-To: <20090107175020.GU27566@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Pandita, Vikram" <vikram.pandita@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-arm-kernel@lists.arm.linux.org.uk, linux-omap@vger.kernel.org, "Nikula Jarkko (NRC/Helsinki)" <jarkko.nikula@nokia.com>
 
-Hi,
-
-Oops, my bad. I'll fix that patch and resend. I'll use the omap_rev() inline for that. (I've just reworked some merge requests from the internal trees)
-
-I'll get back to you in some more minutes.
-
-Thanks,
-Sergio
-
-P.S. I'm currently performing some basic sanity tests on my 3430SDP VG5.0.1
-
-> -----Original Message-----
-> From: Pandita, Vikram
-> Sent: Wednesday, January 07, 2009 3:35 PM
-> To: Aguirre Rodriguez, Sergio Alberto; linux-omap@vger.kernel.org
-> Subject: RE: [OMAPZOOM][PATCH 0/2] Some more camera syncup patches
+On Wed, Jan 07, 2009 at 07:50:21PM +0200, Tony Lindgren wrote:
+> * Russell King - ARM Linux <linux@arm.linux.org.uk> [090107 18:18]:
+> > On Wed, Jan 07, 2009 at 01:17:45PM +0200, Tony Lindgren wrote:
+> > > -	set_irq_type(OMAP_GPIO_IRQ(SW_ENTER_GPIO16), IRQ_TYPE_EDGE_RISING);
+> > > -	if (request_irq(OMAP_GPIO_IRQ(SW_ENTER_GPIO16), &apollon_sw_interrupt,
+> > > +	set_irq_type(gpio_to_irq(SW_ENTER_GPIO16), IRQ_TYPE_EDGE_RISING);
+> > > +	if (request_irq(gpio_to_irq(SW_ENTER_GPIO16), &apollon_sw_interrupt,
+> > 
+> > NAK.  I wonder how the f*** this got anywhere near the mainline kernel.
+> > No no no no no.  set_irq_type + request_irq is utter crap and should be
+> > rejected whenever its seen.  There's absolutely no need for it -
+> > request_irq is sufficient.  Get rid of this set_irq_type usage from
+> > everywhere please.
 > 
-> Hi Alberto
->  Do you want to check your code, there is no CONFIG_OMAP3430_ES2 defined
-> on zoom git.
-> How are you testing your code?
-> 
-> 
-> >-----Original Message-----
-> >From: Aguirre Rodriguez, Sergio Alberto
-> >Sent: Tuesday, January 06, 2009 7:06 PM
-> >To: linux-omap@vger.kernel.org
-> >Cc: Pandita, Vikram
-> >Subject: [OMAPZOOM][PATCH 0/2] Some more camera syncup patches
-> >
-> >Hi,
-> >
-> >This 2 patches also syncs up some other features added previously on TI
-> internal tree:
-> >
-> >- Preview settings fix: this fixes some gains in order to obtain a much
-> better image in OV sensor.
-> >
-> >- Set VPP constraints: This is needes when TI PM is enabled, as this
-> ensures
-> >Proper operation maintaining voltage frequency levels.
-> >
-> >Regards,
-> >Sergio
+> Blind search and replace? :) I've removed the GPIO key code as there's
+> already a patch to do that cleaner with gpio_keys.
+
+Revised patch is fine.
