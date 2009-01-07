@@ -1,38 +1,72 @@
-From: Ajay Kumar Gupta <ajay.gupta@ti.com>
-Subject: [PATCH 3/3] usb: musb: fix null pointer check in musb_platform_init()
-Date: Wed,  7 Jan 2009 16:44:20 +0530
-Message-ID: <1231326860-22727-1-git-send-email-ajay.gupta@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 1/2] ARM: OMAP: Fix missing includes
+Date: Wed, 7 Jan 2009 13:16:15 +0200
+Message-ID: <20090107111615.GG27566@atomide.com>
+References: <20090107111415.GF27566@atomide.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:40373 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751562AbZAGLOe (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 7 Jan 2009 06:14:34 -0500
+Received: from mho-01-bos.mailhop.org ([63.208.196.178]:49940 "EHLO
+	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751265AbZAGLQQ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 7 Jan 2009 06:16:16 -0500
+Content-Disposition: inline
+In-Reply-To: <20090107111415.GF27566@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-usb@vger.kernel.org
-Cc: linux-omap@vger.kernel.org, david-b@pacbell.net, felipe.balbi@nokia.com, Ajay Kumar Gupta <ajay.gupta@ti.com>
+To: linux-arm-kernel@lists.arm.linux.org.uk
+Cc: linux-omap@vger.kernel.org
 
-Fixes kernel panic when musb is selected for OMAP35x EVM but twl4030 is not
-selected as in this case otg_get_transceiver() returns null.
+Include irqs.h or cpu.h directly as needed to fix
+omap builds.
 
-Signed-off-by: Ajay Kumar Gupta <ajay.gupta@ti.com>
----
- drivers/usb/musb/omap2430.c |    2 ++
- 1 files changed, 2 insertions(+), 0 deletions(-)
+Signed-off-by: Tony Lindgren <tony@atomide.com>
 
-diff --git a/drivers/usb/musb/omap2430.c b/drivers/usb/musb/omap2430.c
-index 3f99536..6ddc986 100644
---- a/drivers/usb/musb/omap2430.c
-+++ b/drivers/usb/musb/omap2430.c
-@@ -232,6 +232,8 @@ int __init musb_platform_init(struct musb *musb)
- #if defined(CONFIG_ARCH_OMAP2430)
- 	omap_cfg_reg(AE5_2430_USB0HS_STP);
- #endif
-+	if (!x)
-+		return -ENODEV;
+diff --git a/arch/arm/mach-omap1/mcbsp.c b/arch/arm/mach-omap1/mcbsp.c
+index 7de7c69..2fcdad1 100644
+--- a/arch/arm/mach-omap1/mcbsp.c
++++ b/arch/arm/mach-omap1/mcbsp.c
+@@ -17,6 +17,7 @@
+ #include <linux/io.h>
+ #include <linux/platform_device.h>
  
- 	musb->xceiv = *x;
- 	musb_platform_resume(musb);
--- 
-1.5.6
-
++#include <mach/irqs.h>
+ #include <mach/dma.h>
+ #include <mach/mux.h>
+ #include <mach/cpu.h>
+diff --git a/arch/arm/mach-omap2/mcbsp.c b/arch/arm/mach-omap2/mcbsp.c
+index cae3ebe..6549656 100644
+--- a/arch/arm/mach-omap2/mcbsp.c
++++ b/arch/arm/mach-omap2/mcbsp.c
+@@ -17,6 +17,7 @@
+ #include <linux/io.h>
+ #include <linux/platform_device.h>
+ 
++#include <mach/irqs.h>
+ #include <mach/dma.h>
+ #include <mach/mux.h>
+ #include <mach/cpu.h>
+diff --git a/arch/arm/plat-omap/i2c.c b/arch/arm/plat-omap/i2c.c
+index 89a6ab0..467531e 100644
+--- a/arch/arm/plat-omap/i2c.c
++++ b/arch/arm/plat-omap/i2c.c
+@@ -26,6 +26,7 @@
+ #include <linux/kernel.h>
+ #include <linux/platform_device.h>
+ #include <linux/i2c.h>
++#include <mach/irqs.h>
+ #include <mach/mux.h>
+ 
+ #define OMAP_I2C_SIZE		0x3f
+diff --git a/drivers/mfd/twl4030-core.c b/drivers/mfd/twl4030-core.c
+index b59c385..18179ac 100644
+--- a/drivers/mfd/twl4030-core.c
++++ b/drivers/mfd/twl4030-core.c
+@@ -38,6 +38,7 @@
+ #include <linux/i2c.h>
+ #include <linux/i2c/twl4030.h>
+ 
++#include <mach/cpu.h>
+ 
+ /*
+  * The TWL4030 "Triton 2" is one of a family of a multi-function "Power
