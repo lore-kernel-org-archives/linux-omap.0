@@ -1,58 +1,57 @@
 From: Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: [REVIEW PATCH 1/2] OMAP3 ISP-Camera: Added BT656 support
-Date: Wed, 7 Jan 2009 07:39:59 -0200
-Message-ID: <20090107073959.140cfcfd@pedra.chehab.org>
+Subject: Re: [REVIEW PATCH 2/2] Added OMAP3EVM Multi-Media Daughter Card
+ Support
+Date: Wed, 7 Jan 2009 07:58:32 -0200
+Message-ID: <20090107075832.4889c816@pedra.chehab.org>
 References: <hvaibhav@ti.com>
-	<1231308440-31122-1-git-send-email-hvaibhav@ti.com>
+	<1231308470-31159-1-git-send-email-hvaibhav@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-media-owner@vger.kernel.org>
-In-Reply-To: <1231308440-31122-1-git-send-email-hvaibhav@ti.com>
-Sender: linux-media-owner@vger.kernel.org
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bombadil.infradead.org ([18.85.46.34]:38778 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751431AbZAGJ7B (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 7 Jan 2009 04:59:01 -0500
+In-Reply-To: <1231308470-31159-1-git-send-email-hvaibhav@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
+List-Id: linux-omap@vger.kernel.org
 To: hvaibhav@ti.com
 Cc: linux-omap@vger.kernel.org, video4linux-list@redhat.com, linux-media@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
 
-On Wed,  7 Jan 2009 11:37:20 +0530
+On Wed,  7 Jan 2009 11:37:50 +0530
 hvaibhav@ti.com wrote:
 
-> From: Vaibhav Hiremath <hvaibhav@ti.com>
-> 
-> Support for BT656 through TVP5146 decoder, works on top of
-> ISP-Camera patches posted by Sergio on 12th Dec 2008.
-> 
-> The TVP514x driver patch has been accepted under V4L, will
-> be part of O-L in the next merge window. As of now you can
-> access the patches from -
-> 
-> http://markmail.org/search/?q=TVP514x#query:TVP514x%20from%3A%22Hiremath%2C%20Vaibhav%22%20extension%3Apatch+page:1+mid:b5pcj3sriwknm2cv+state:results
-> 
-> ToDO List:
->     - Add support for scaling and cropping
-> 
-> Signed-off-by: Brijesh Jadav <brijesh.j@ti.com>
-> Signed-off-by: Hardik Shah <hardik.shah@ti.com>
-> Signed-off-by: Manjunath Hadli <mrh@ti.com>
-> Signed-off-by: R Sivaraj <sivaraj@ti.com>
-> Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
-> ---
->  drivers/media/video/isp/isp.c     |  118 ++++++++++++++++++++---
->  drivers/media/video/isp/isp.h     |    7 +-
->  drivers/media/video/isp/ispccdc.c |  146 +++++++++++++++++++++++----
->  drivers/media/video/isp/ispccdc.h |    9 ++
->  drivers/media/video/omap34xxcam.c |  197 +++++++++++++++++++++++++++++++++----
->  drivers/media/video/omap34xxcam.h |    5 +
->  6 files changed, 428 insertions(+), 54 deletions(-)
->  mode change 100644 => 100755 drivers/media/video/isp/isp.c
->  mode change 100644 => 100755 drivers/media/video/omap34xxcam.c
-> 
-Your patch looks OK, but it touched drivers/media/video/omap34xxcam.c, that
-doesn't exist yet on my tree, so I can't apply it.
+>  arch/arm/mach-omap2/Kconfig             |    4 +
+>  arch/arm/mach-omap2/Makefile            |    1 +
+>  arch/arm/mach-omap2/. |  417 +++++++++++++++++++++++++++++++
+>  arch/arm/mach-omap2/board-omap3evm-dc.h |   43 ++++
+>  arch/arm/mach-omap2/mux.c               |    7 +
+>  arch/arm/plat-omap/include/mach/mux.h   |    4 +
 
-Could you please submit first the opam34 patch on linux-media@vger.kernel.org,
-in order to allow patchwork.kernel.org to track it also, and allow me to merge
-the files?
+
+> +#if defined(CONFIG_VIDEO_TVP514X) || defined(CONFIG_VIDEO_TVP514X_MODULE)
+> +#include <linux/videodev2.h>
+> +#include <media/v4l2-int-device.h>
+> +#include <media/tvp514x.h>
+
+This smells like a V4L driver, not an arch driver. 
+We shoud take some care here, to avoid having the drivers on wrong place.
+The proper place on kernel tree for V4L driver is under drivers/media/video,
+not under arch/arm. All other architecture-specific V4L drivers are there.
+
+> +/* include V4L2 camera driver related header file */
+> +#if defined(CONFIG_VIDEO_OMAP3) || defined(CONFIG_VIDEO_OMAP3_MODULE)
+> +#include <../drivers/media/video/omap34xxcam.h>
+> +#include <../drivers/media/video/isp/ispreg.h>
+> +#endif				/* #ifdef CONFIG_VIDEO_OMAP3 */
+> +#endif				/* #ifdef CONFIG_VIDEO_TVP514X*/
+
+Please, don't use ../* at your includes. IMO, the better is to create a
+drivers/media/video/omap dir, and put omap2/omap3 files there, including board-omap3evm-dc.c.
+This will avoid those ugly includes.
+
+Btw, drivers/media/video/isp/ currently doesn't exist. Please submit the patch for it first.
 
 Cheers,
 Mauro
