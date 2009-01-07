@@ -1,52 +1,48 @@
-From: "Simon Braunschmidt" <Simon.Braunschmidt@teleca.com>
-Subject: differences between LDP and ZOOM2
-Date: Wed, 7 Jan 2009 17:34:59 +0100
-Message-ID: <62AABDA97E1D4B49B228F1AEC8E3C95402F63D8B@denuas002.global.ad.teleca.com>
-References: <62AABDA97E1D4B49B228F1AEC8E3C95402F6E9E5@denuas002.global.ad.teleca.com> <62AABDA97E1D4B49B228F1AEC8E3C95402F6E9E6@denuas002.global.ad.teleca.com>
+From: "Pandita, Vikram" <vikram.pandita@ti.com>
+Subject: RE: differences between LDP and ZOOM2
+Date: Wed, 7 Jan 2009 22:23:17 +0530
+Message-ID: <FCCFB4CDC6E5564B9182F639FC35608702513F7933@dbde02.ent.ti.com>
+References: <62AABDA97E1D4B49B228F1AEC8E3C95402F6E9E5@denuas002.global.ad.teleca.com>
+ <62AABDA97E1D4B49B228F1AEC8E3C95402F6E9E6@denuas002.global.ad.teleca.com>
+ <62AABDA97E1D4B49B228F1AEC8E3C95402F63D8B@denuas002.global.ad.teleca.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="utf-8"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail.telecasystems.de ([212.114.200.71]:51462 "EHLO
-	mail.telecasystems.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751631AbZAGQs1 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 7 Jan 2009 11:48:27 -0500
-Received: from denuas028.global.ad.teleca.com (denuas028.global.ad.teleca.com [10.20.2.28])
-	by mail.telecasystems.de (Postfix) with ESMTP id 2679AA1
-	for <linux-omap@vger.kernel.org>; Wed,  7 Jan 2009 17:35:00 +0100 (CET)
-Content-class: urn:content-classes:message
-In-Reply-To: <62AABDA97E1D4B49B228F1AEC8E3C95402F6E9E6@denuas002.global.ad.teleca.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:38204 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751743AbZAGQxh (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 7 Jan 2009 11:53:37 -0500
+In-Reply-To: <62AABDA97E1D4B49B228F1AEC8E3C95402F63D8B@denuas002.global.ad.teleca.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
+To: Simon Braunschmidt <Simon.Braunschmidt@teleca.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Hi
-
-I try to find out what are the differences between the platforms
-
--LDP resp. ZOOM resp. LABRADOR etc. on the one hand and 
-
--ZOOM2 on the other hand.
-
-Zoom2 presence is mainly indicated by git logs, while LDP 
-seems to be the original board, which I am having here on my desk.
-
-As an example, 
-
-https://omapzoom.org/gf/project/bootloader/wiki/?pagename=U-boot
-
-seems to indicate that the two platforms or boards are somehow 
-different.
-
-BR, Gruessle
-Simon
-
- 
-_________________________________________
- 
-What is Your Idea of Tomorrow? Let Teleca help you realize it. Visit us at Mobile World Congress 2009.
-http://www.teleca.com/mwc2009
- 
- 
- 
+DQoNCj4tLS0tLU9yaWdpbmFsIE1lc3NhZ2UtLS0tLQ0KPkZyb206IGxpbnV4LW9tYXAtb3duZXJA
+dmdlci5rZXJuZWwub3JnIFttYWlsdG86bGludXgtb21hcC1vd25lckB2Z2VyLmtlcm5lbC5vcmdd
+IE9uIEJlaGFsZiBPZiBTaW1vbg0KPkJyYXVuc2NobWlkdA0KPlNlbnQ6IFdlZG5lc2RheSwgSmFu
+dWFyeSAwNywgMjAwOSAxMDozNSBBTQ0KPlRvOiBsaW51eC1vbWFwQHZnZXIua2VybmVsLm9yZw0K
+PlN1YmplY3Q6IGRpZmZlcmVuY2VzIGJldHdlZW4gTERQIGFuZCBaT09NMg0KPg0KPkhpDQo+DQo+
+SSB0cnkgdG8gZmluZCBvdXQgd2hhdCBhcmUgdGhlIGRpZmZlcmVuY2VzIGJldHdlZW4gdGhlIHBs
+YXRmb3Jtcw0KPg0KPi1MRFAgcmVzcC4gWk9PTSByZXNwLiBMQUJSQURPUiBldGMuIG9uIHRoZSBv
+bmUgaGFuZCBhbmQNCj4NCj4tWk9PTTIgb24gdGhlIG90aGVyIGhhbmQuDQo+DQo+Wm9vbTIgcHJl
+c2VuY2UgaXMgbWFpbmx5IGluZGljYXRlZCBieSBnaXQgbG9ncywgd2hpbGUgTERQDQo+c2VlbXMg
+dG8gYmUgdGhlIG9yaWdpbmFsIGJvYXJkLCB3aGljaCBJIGFtIGhhdmluZyBoZXJlIG9uIG15IGRl
+c2suDQo+DQo+QXMgYW4gZXhhbXBsZSwNCj4NCj5odHRwczovL29tYXB6b29tLm9yZy9nZi9wcm9q
+ZWN0L2Jvb3Rsb2FkZXIvd2lraS8/cGFnZW5hbWU9VS1ib290DQo+DQo+c2VlbXMgdG8gaW5kaWNh
+dGUgdGhhdCB0aGUgdHdvIHBsYXRmb3JtcyBvciBib2FyZHMgYXJlIHNvbWVob3cNCj5kaWZmZXJl
+bnQuDQoNClRoZSBab29tMiBwbGF0Zm9ybSBpcyBzdGlsbCB1bmRlciBkZXZlbG9wbWVudCBhbmQg
+bm90IG91dCBpbiB0aGUgY29tbXVuaXR5IHlldC4NClNpbmNlIFRJIHdhbnRzIHRvIGRvIHNob3dj
+YXNlIGFsbCBzL3cgZGV2ZWxvcG1lbnQgdGhhdCBpcyBoYXBwZW5pbmcgaW50ZXJuYWxseSwgdGhh
+dOKAmXMgdGhlIHJlYXNvbiB5b3UgYXJlIHNlZWluZyB0aGUgem9vbTIgc3VwcG9ydCBvbiB0aGUg
+b21hcHpvb20gZ2l0IHRyZWUuDQoNClRoZSB6b29tMiBwbGF0Zm9ybSBpcyBtdWNoIGRpZmZlcmVu
+dCBmcm9tIExEUC96b29tMSBhbmQgaGFzIG1hbnkgbW9yZSBmZWF0dXJlcy4NCg0KPg0KPkJSLCBH
+cnVlc3NsZQ0KPlNpbW9uDQo+DQo+DQo+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX18NCj4NCj5XaGF0IGlzIFlvdXIgSWRlYSBvZiBUb21vcnJvdz8gTGV0IFRlbGVjYSBo
+ZWxwIHlvdSByZWFsaXplIGl0LiBWaXNpdCB1cyBhdCBNb2JpbGUgV29ybGQgQ29uZ3Jlc3MNCj4y
+MDA5Lg0KPmh0dHA6Ly93d3cudGVsZWNhLmNvbS9td2MyMDA5DQo+DQo+DQo+DQo+LS0NCj5UbyB1
+bnN1YnNjcmliZSBmcm9tIHRoaXMgbGlzdDogc2VuZCB0aGUgbGluZSAidW5zdWJzY3JpYmUgbGlu
+dXgtb21hcCIgaW4NCj50aGUgYm9keSBvZiBhIG1lc3NhZ2UgdG8gbWFqb3Jkb21vQHZnZXIua2Vy
+bmVsLm9yZw0KPk1vcmUgbWFqb3Jkb21vIGluZm8gYXQgIGh0dHA6Ly92Z2VyLmtlcm5lbC5vcmcv
+bWFqb3Jkb21vLWluZm8uaHRtbA0KDQo=
