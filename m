@@ -1,48 +1,62 @@
-From: "Pandita, Vikram" <vikram.pandita@ti.com>
-Subject: RE: differences between LDP and ZOOM2
-Date: Wed, 7 Jan 2009 22:23:17 +0530
-Message-ID: <FCCFB4CDC6E5564B9182F639FC35608702513F7933@dbde02.ent.ti.com>
-References: <62AABDA97E1D4B49B228F1AEC8E3C95402F6E9E5@denuas002.global.ad.teleca.com>
- <62AABDA97E1D4B49B228F1AEC8E3C95402F6E9E6@denuas002.global.ad.teleca.com>
- <62AABDA97E1D4B49B228F1AEC8E3C95402F63D8B@denuas002.global.ad.teleca.com>
+From: Russell King <rmk@arm.linux.org.uk>
+Subject: Re: Spurious interrupt warning
+Date: Wed, 7 Jan 2009 17:13:13 +0000
+Message-ID: <20090107171313.GA17855@flint.arm.linux.org.uk>
+References: <20090106110837.GG9752@atomide.com> <19F8576C6E063C45BE387C64729E739403ECEDD480@dbde02.ent.ti.com> <20090106111928.GA10260@atomide.com> <13B9B4C6EF24D648824FF11BE8967162036D480BD0@dlee02.ent.ti.com> <20090107082618.GC27566@atomide.com> <13B9B4C6EF24D648824FF11BE8967162036D4815E2@dlee02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:38204 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751743AbZAGQxh (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 7 Jan 2009 11:53:37 -0500
-In-Reply-To: <62AABDA97E1D4B49B228F1AEC8E3C95402F63D8B@denuas002.global.ad.teleca.com>
-Content-Language: en-US
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:39156 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752132AbZAGRNd (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 7 Jan 2009 12:13:33 -0500
+Content-Disposition: inline
+In-Reply-To: <13B9B4C6EF24D648824FF11BE8967162036D4815E2@dlee02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Simon Braunschmidt <Simon.Braunschmidt@teleca.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: "Woodruff, Richard" <r-woodruff2@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, "Hiremath, Vaibhav" <hvaibhav@ti.com>, "Shah, Hardik" <hardik.shah@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-DQoNCj4tLS0tLU9yaWdpbmFsIE1lc3NhZ2UtLS0tLQ0KPkZyb206IGxpbnV4LW9tYXAtb3duZXJA
-dmdlci5rZXJuZWwub3JnIFttYWlsdG86bGludXgtb21hcC1vd25lckB2Z2VyLmtlcm5lbC5vcmdd
-IE9uIEJlaGFsZiBPZiBTaW1vbg0KPkJyYXVuc2NobWlkdA0KPlNlbnQ6IFdlZG5lc2RheSwgSmFu
-dWFyeSAwNywgMjAwOSAxMDozNSBBTQ0KPlRvOiBsaW51eC1vbWFwQHZnZXIua2VybmVsLm9yZw0K
-PlN1YmplY3Q6IGRpZmZlcmVuY2VzIGJldHdlZW4gTERQIGFuZCBaT09NMg0KPg0KPkhpDQo+DQo+
-SSB0cnkgdG8gZmluZCBvdXQgd2hhdCBhcmUgdGhlIGRpZmZlcmVuY2VzIGJldHdlZW4gdGhlIHBs
-YXRmb3Jtcw0KPg0KPi1MRFAgcmVzcC4gWk9PTSByZXNwLiBMQUJSQURPUiBldGMuIG9uIHRoZSBv
-bmUgaGFuZCBhbmQNCj4NCj4tWk9PTTIgb24gdGhlIG90aGVyIGhhbmQuDQo+DQo+Wm9vbTIgcHJl
-c2VuY2UgaXMgbWFpbmx5IGluZGljYXRlZCBieSBnaXQgbG9ncywgd2hpbGUgTERQDQo+c2VlbXMg
-dG8gYmUgdGhlIG9yaWdpbmFsIGJvYXJkLCB3aGljaCBJIGFtIGhhdmluZyBoZXJlIG9uIG15IGRl
-c2suDQo+DQo+QXMgYW4gZXhhbXBsZSwNCj4NCj5odHRwczovL29tYXB6b29tLm9yZy9nZi9wcm9q
-ZWN0L2Jvb3Rsb2FkZXIvd2lraS8/cGFnZW5hbWU9VS1ib290DQo+DQo+c2VlbXMgdG8gaW5kaWNh
-dGUgdGhhdCB0aGUgdHdvIHBsYXRmb3JtcyBvciBib2FyZHMgYXJlIHNvbWVob3cNCj5kaWZmZXJl
-bnQuDQoNClRoZSBab29tMiBwbGF0Zm9ybSBpcyBzdGlsbCB1bmRlciBkZXZlbG9wbWVudCBhbmQg
-bm90IG91dCBpbiB0aGUgY29tbXVuaXR5IHlldC4NClNpbmNlIFRJIHdhbnRzIHRvIGRvIHNob3dj
-YXNlIGFsbCBzL3cgZGV2ZWxvcG1lbnQgdGhhdCBpcyBoYXBwZW5pbmcgaW50ZXJuYWxseSwgdGhh
-dOKAmXMgdGhlIHJlYXNvbiB5b3UgYXJlIHNlZWluZyB0aGUgem9vbTIgc3VwcG9ydCBvbiB0aGUg
-b21hcHpvb20gZ2l0IHRyZWUuDQoNClRoZSB6b29tMiBwbGF0Zm9ybSBpcyBtdWNoIGRpZmZlcmVu
-dCBmcm9tIExEUC96b29tMSBhbmQgaGFzIG1hbnkgbW9yZSBmZWF0dXJlcy4NCg0KPg0KPkJSLCBH
-cnVlc3NsZQ0KPlNpbW9uDQo+DQo+DQo+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX18NCj4NCj5XaGF0IGlzIFlvdXIgSWRlYSBvZiBUb21vcnJvdz8gTGV0IFRlbGVjYSBo
-ZWxwIHlvdSByZWFsaXplIGl0LiBWaXNpdCB1cyBhdCBNb2JpbGUgV29ybGQgQ29uZ3Jlc3MNCj4y
-MDA5Lg0KPmh0dHA6Ly93d3cudGVsZWNhLmNvbS9td2MyMDA5DQo+DQo+DQo+DQo+LS0NCj5UbyB1
-bnN1YnNjcmliZSBmcm9tIHRoaXMgbGlzdDogc2VuZCB0aGUgbGluZSAidW5zdWJzY3JpYmUgbGlu
-dXgtb21hcCIgaW4NCj50aGUgYm9keSBvZiBhIG1lc3NhZ2UgdG8gbWFqb3Jkb21vQHZnZXIua2Vy
-bmVsLm9yZw0KPk1vcmUgbWFqb3Jkb21vIGluZm8gYXQgIGh0dHA6Ly92Z2VyLmtlcm5lbC5vcmcv
-bWFqb3Jkb21vLWluZm8uaHRtbA0KDQo=
+On Wed, Jan 07, 2009 at 10:13:30AM -0600, Woodruff, Richard wrote:
+> > From: Tony Lindgren [mailto:tony@atomide.com]
+> > Sent: Wednesday, January 07, 2009 2:26 AM
+> > > It just happens to be the IRQ path has a very slow dissertation path when
+> > you take into account timing domains that it shows up.
+> > >
+> > > Shrinking the race window with SO then using a read back to get the last one
+> > or two is most conservative and safe.  Probably 97% for IO accesses are ok on
+> > OMAP as device, but that is probably 99.9% with SO.  In our testing we may be
+> > able to make that 97 a 99.  Still I'd rather not risk the 1% for production.
+> >
+> > Sure you can patch the SO back if you want to. However, it's a more
+> > generic problem, and Russell has stated that he does not want to
+> > merge it.
+> 
+> Yes Russell doesn't like it.  However, I didn't see any viable alternate
+> solution offered.  If ARM or any hardware vendor does something badly in
+> hardware punishing the current generation in hopes of changing the next
+> is not so good. Especially if some work around exists.
+
+I do hope you realise that precisely the same argument can be made for
+the posting of writes to the timers.
+
+And this is what's soo hard to grasp about your position - at one moment
+you're talking about needing maximal performance (which involves the use
+of device mappings.)  The next moment you're talking about wanting 100%
+predictability by using strongly ordered mappings.
+
+The fact of the matter is that from point of view of the ARM CPU, a
+readback of the same address which was written to with a device mapping
+can not bypass the write.  So a write to register X followed by an
+immediate read of X and an execution dependency on that result _will_
+cause the write to appear on the bus before execution can continue.
+If anything else happens, the CPU is buggy because its allowing writes
+to pass reads which is unpredictable from the system point of view.
+
+If you can't get it to work with a readback and dependency, that suggests
+that something else external to the CPU is misbehaving or broken.
+
+-- 
+Russell King
+ Linux kernel    2.6 ARM Linux   - http://www.arm.linux.org.uk/
+ maintainer of:
