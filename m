@@ -1,28 +1,41 @@
 From: hvaibhav@ti.com
-Subject: [REVIEW PATCH 1/2] OMAP3 ISP-Camera: Added BT656 support
-Date: Wed,  7 Jan 2009 11:37:20 +0530
-Message-ID: <1231308440-31122-1-git-send-email-hvaibhav@ti.com>
+Subject: [REVIEW PATCH 2/2] Added OMAP3EVM Multi-Media Daughter Card Support
+Date: Wed,  7 Jan 2009 11:37:50 +0530
+Message-ID: <1231308470-31159-1-git-send-email-hvaibhav@ti.com>
 References: <hvaibhav@ti.com>
-Return-path: <linux-media-owner@vger.kernel.org>
+Return-path: <video4linux-list-bounces@redhat.com>
 In-Reply-To: <hvaibhav@ti.com>
-Sender: linux-media-owner@vger.kernel.org
+List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
+	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
+List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
+List-Post: <mailto:video4linux-list@redhat.com>
+List-Help: <mailto:video4linux-list-request@redhat.com?subject=help>
+List-Subscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
+	<mailto:video4linux-list-request@redhat.com?subject=subscribe>
+Sender: video4linux-list-bounces@redhat.com
+Errors-To: video4linux-list-bounces@redhat.com
 To: linux-omap@vger.kernel.org
-Cc: linux-media@vger.kernel.org, video4linux-list@redhat.com, Vaibhav Hiremath <hvaibhav@ti.com>, Brijesh Jadav <brijesh.j@ti.com>, Hardik Shah <hardik.shah@ti.com>, Manjunath Hadli <mrh@ti.com>, R Sivaraj <sivaraj@ti.com>
+Cc: video4linux-list@redhat.com, linux-media@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
 From: Vaibhav Hiremath <hvaibhav@ti.com>
 
-Support for BT656 through TVP5146 decoder, works on top of
-ISP-Camera patches posted by Sergio on 12th Dec 2008.
+This is first version of OMAP3EVM Mulit-Media Daughter
+Card support.
 
-The TVP514x driver patch has been accepted under V4L, will
-be part of O-L in the next merge window. As of now you can
-access the patches from -
+Tested:
+    - TVP5146 (BT656) decoder interface on top of
+      Sergio's ISP-Camera patches.
+    - Loopback application, capturing image through TVP5146
+      and displaying it onto the TV/LCD on top of Hardik's
+      V4L2 driver.
+    - Basic functionality of HSUSB Transceiver USB-83320
+    -
 
-http://markmail.org/search/?q=TVP514x#query:TVP514x%20from%3A%22Hiremath%2C%20Vaibhav%22%20extension%3Apatch+page:1+mid:b5pcj3sriwknm2cv+state:results
-
-ToDO List:
-    - Add support for scaling and cropping
+TODO:
+    - Camera sensor support
+    - Driver header file inclusion (dependency on ISP-Camera patches)
+    - Some more clean-up may required.
 
 Signed-off-by: Brijesh Jadav <brijesh.j@ti.com>
 Signed-off-by: Hardik Shah <hardik.shah@ti.com>
@@ -30,838 +43,564 @@ Signed-off-by: Manjunath Hadli <mrh@ti.com>
 Signed-off-by: R Sivaraj <sivaraj@ti.com>
 Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
 ---
- drivers/media/video/isp/isp.c     |  118 ++++++++++++++++++++---
- drivers/media/video/isp/isp.h     |    7 +-
- drivers/media/video/isp/ispccdc.c |  146 +++++++++++++++++++++++----
- drivers/media/video/isp/ispccdc.h |    9 ++
- drivers/media/video/omap34xxcam.c |  197 +++++++++++++++++++++++++++++++++----
- drivers/media/video/omap34xxcam.h |    5 +
- 6 files changed, 428 insertions(+), 54 deletions(-)
- mode change 100644 => 100755 drivers/media/video/isp/isp.c
- mode change 100644 => 100755 drivers/media/video/omap34xxcam.c
+ arch/arm/mach-omap2/Kconfig             |    4 +
+ arch/arm/mach-omap2/Makefile            |    1 +
+ arch/arm/mach-omap2/board-omap3evm-dc.c |  417 +++++++++++++++++++++++++++++++
+ arch/arm/mach-omap2/board-omap3evm-dc.h |   43 ++++
+ arch/arm/mach-omap2/mux.c               |    7 +
+ arch/arm/plat-omap/include/mach/mux.h   |    4 +
+ 6 files changed, 476 insertions(+), 0 deletions(-)
+ mode change 100644 => 100755 arch/arm/mach-omap2/Kconfig
+ mode change 100644 => 100755 arch/arm/mach-omap2/Makefile
+ create mode 100755 arch/arm/mach-omap2/board-omap3evm-dc.c
+ create mode 100755 arch/arm/mach-omap2/board-omap3evm-dc.h
+ mode change 100644 => 100755 arch/arm/mach-omap2/mux.c
+ mode change 100644 => 100755 arch/arm/plat-omap/include/mach/mux.h
 
-diff --git a/drivers/media/video/isp/isp.c b/drivers/media/video/isp/isp.c
+diff --git a/arch/arm/mach-omap2/Kconfig b/arch/arm/mach-omap2/Kconfig
 old mode 100644
 new mode 100755
-index 92a415c..87d85dd
---- a/drivers/media/video/isp/isp.c
-+++ b/drivers/media/video/isp/isp.c
-@@ -191,6 +191,7 @@ struct isp_sgdma ispsg;
-  * @resizer_input_height: ISP Resizer module input image height.
-  * @resizer_output_width: ISP Resizer module output image width.
-  * @resizer_output_height: ISP Resizer module output image height.
-+ * @current_field: Current field for interlaced capture.
-  */
- struct ispmodule {
- 	unsigned int isp_pipeline;
-@@ -209,6 +210,7 @@ struct ispmodule {
- 	unsigned int resizer_input_height;
- 	unsigned int resizer_output_width;
- 	unsigned int resizer_output_height;
-+	int current_field;
- };
+index ca24a7a..094c97f
+--- a/arch/arm/mach-omap2/Kconfig
++++ b/arch/arm/mach-omap2/Kconfig
+@@ -121,6 +121,10 @@ config MACH_OMAP3EVM
+ 	bool "OMAP 3530 EVM board"
+ 	depends on ARCH_OMAP3 && ARCH_OMAP34XX
 
- static struct ispmodule ispmodule_obj = {
-@@ -224,11 +226,14 @@ static struct ispmodule ispmodule_obj = {
- 		.colorspace = V4L2_COLORSPACE_JPEG,
- 		.priv = 0,
- 	},
-+	.current_field = 0,
- };
-
- /* Structure for saving/restoring ISP module registers */
- static struct isp_reg isp_reg_list[] = {
- 	{ISP_SYSCONFIG, 0},
-+	{ISP_IRQ0ENABLE, 0},
-+	{ISP_IRQ1ENABLE, 0},
- 	{ISP_TCTRL_GRESET_LENGTH, 0},
- 	{ISP_TCTRL_PSTRB_REPLAY, 0},
- 	{ISP_CTRL, 0},
-@@ -550,6 +555,11 @@ EXPORT_SYMBOL(isp_unset_callback);
-  **/
- int isp_request_interface(enum isp_interface_type if_t)
- {
-+	enum isp_interface_type temp_if_t = if_t;
++config MACH_OMAP3EVM_DC
++	bool "OMAP 3530 EVM daughter card board"
++	depends on ARCH_OMAP3 && ARCH_OMAP34XX && MACH_OMAP3EVM
 +
-+	if (if_t == ISP_PARLL_YUV_BT)
-+		if_t = ISP_PARLL;
+ config MACH_OMAP3_BEAGLE
+ 	bool "OMAP3 BEAGLE board"
+ 	depends on ARCH_OMAP3 && ARCH_OMAP34XX
+diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
+old mode 100644
+new mode 100755
+index 3897347..16fa35a
+--- a/arch/arm/mach-omap2/Makefile
++++ b/arch/arm/mach-omap2/Makefile
+@@ -60,6 +60,7 @@ obj-$(CONFIG_MACH_OMAP3EVM)		+= board-omap3evm.o \
+ 					   usb-musb.o usb-ehci.o \
+ 					   board-omap3evm-flash.o \
+ 					   twl4030-generic-scripts.o
++obj-$(CONFIG_MACH_OMAP3EVM_DC)		+= board-omap3evm-dc.o
+ obj-$(CONFIG_MACH_OMAP3_BEAGLE)		+= board-omap3beagle.o \
+ 					   usb-musb.o usb-ehci.o \
+ 					   mmc-twl4030.o \
+diff --git a/arch/arm/mach-omap2/board-omap3evm-dc.c b/arch/arm/mach-omap2/board-omap3evm-dc.c
+new file mode 100755
+index 0000000..233c219
+--- /dev/null
++++ b/arch/arm/mach-omap2/board-omap3evm-dc.c
+@@ -0,0 +1,417 @@
++/*
++ * arch/arm/mach-omap2/board-omap3evm-dc.c
++ *
++ * Driver for OMAP3 EVM Daughter Card
++ *
++ * Copyright (C) 2008 Texas Instruments Inc
++ * Author: Vaibhav Hiremath <hvaibhav@ti.com>
++ *
++ * Contributors:
++ *     Anuj Aggarwal <anuj.aggarwal@ti.com>
++ *     Sivaraj R <sivaraj@ti.com>
++ *
++ * This package is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
++ *
++ */
 +
- 	if (isp_obj.if_status & if_t) {
- 		DPRINTK_ISPCTRL("ISP_ERR : Requested Interface already \
- 			allocated\n");
-@@ -569,7 +579,7 @@ int isp_request_interface(enum isp_interface_type if_t)
- 				((isp_obj.if_status == ISP_CSIB) &&
- 				(if_t == ISP_CSIA)) ||
- 				(isp_obj.if_status == 0)) {
--		isp_obj.if_status |= if_t;
-+		isp_obj.if_status |= (if_t | temp_if_t);
- 		return 0;
- 	} else {
- 		DPRINTK_ISPCTRL("ISP_ERR : Invalid Combination Serial- \
-@@ -587,6 +597,9 @@ EXPORT_SYMBOL(isp_request_interface);
-  **/
- int isp_free_interface(enum isp_interface_type if_t)
- {
-+	if ((if_t == ISP_PARLL) || (if_t == ISP_PARLL_YUV_BT))
-+		if_t |= (ISP_PARLL | ISP_PARLL_YUV_BT);
++#include <linux/module.h>
++#include <linux/kernel_stat.h>
++#include <linux/init.h>
++#include <linux/i2c.h>
++#include <linux/delay.h>
++#include <linux/spinlock.h>
++#include <linux/clk.h>
++#include <linux/device.h>
++#include <linux/io.h>
++#include <linux/gpio.h>
 +
- 	isp_obj.if_status &= ~if_t;
- 	return 0;
- }
-@@ -888,6 +901,7 @@ int isp_configure_interface(struct isp_interface_config *config)
- 	ispctrl_val &= (ISPCTRL_PAR_SER_CLK_SEL_MASK);
- 	switch (config->ccdc_par_ser) {
- 	case ISP_PARLL:
-+	case ISP_PARLL_YUV_BT:
- 		ispctrl_val |= ISPCTRL_PAR_SER_CLK_SEL_PARALLEL;
- 		ispctrl_val |= (config->u.par.par_clk_pol
- 						<< ISPCTRL_PAR_CLK_POL_SHIFT);
-@@ -1122,6 +1136,11 @@ out:
- 	omap_writel(irqstatus, ISP_IRQ0STATUS);
- 	spin_unlock_irqrestore(&isp_obj.lock, irqflags);
-
-+	/* TODO: Workaround suggested by Tony for spurious
-+	 * interrupt issue
-+	*/
-+	irqstatus = omap_readl(ISP_IRQ0STATUS);
++#include <mach/io.h>
++#include <mach/mux.h>
 +
- 	if (is_irqhandled)
- 		return IRQ_HANDLED;
- 	else
-@@ -1345,9 +1364,14 @@ u32 isp_calc_pipeline(struct v4l2_pix_format *pix_input,
- 		ispccdc_request();
- 		if (pix_input->pixelformat == V4L2_PIX_FMT_SGRBG10)
- 			ispccdc_config_datapath(CCDC_RAW, CCDC_OTHERS_VP_MEM);
--		else
--			ispccdc_config_datapath(CCDC_YUV_SYNC,
--							CCDC_OTHERS_MEM);
-+		else {
-+			if (isp_obj.if_status & ISP_PARLL_YUV_BT)
-+				ispccdc_config_datapath(CCDC_YUV_BT,
-+						CCDC_OTHERS_MEM);
-+			else
-+				ispccdc_config_datapath(CCDC_YUV_SYNC,
-+						CCDC_OTHERS_MEM);
-+		}
- 	}
- 	return 0;
- }
-@@ -1381,6 +1405,31 @@ void isp_config_pipeline(struct v4l2_pix_format *pix_input,
- 			ispmodule_obj.resizer_output_width,
- 			ispmodule_obj.resizer_output_height);
- 	}
-+	if (pix_input->pixelformat == V4L2_PIX_FMT_UYVY)
-+		ispccdc_config_y8pos(Y8POS_ODD);
-+	else if (pix_input->pixelformat == V4L2_PIX_FMT_YUYV)
-+		ispccdc_config_y8pos(Y8POS_EVEN);
++#if defined(CONFIG_VIDEO_TVP514X) || defined(CONFIG_VIDEO_TVP514X_MODULE)
++#include <linux/videodev2.h>
++#include <media/v4l2-int-device.h>
++#include <media/tvp514x.h>
++/* include V4L2 camera driver related header file */
++#if defined(CONFIG_VIDEO_OMAP3) || defined(CONFIG_VIDEO_OMAP3_MODULE)
++#include <../drivers/media/video/omap34xxcam.h>
++#include <../drivers/media/video/isp/ispreg.h>
++#endif				/* #ifdef CONFIG_VIDEO_OMAP3 */
++#endif				/* #ifdef CONFIG_VIDEO_TVP514X*/
 +
-+	if (((pix_input->pixelformat == V4L2_PIX_FMT_UYVY) &&
-+			(pix_output->pixelformat == V4L2_PIX_FMT_UYVY)) ||
-+			((pix_input->pixelformat == V4L2_PIX_FMT_YUYV) &&
-+			(pix_output->pixelformat == V4L2_PIX_FMT_YUYV)))
-+		/* input and output formats are in same order */
-+		ispccdc_config_byteswap(0);
-+	else if (((pix_input->pixelformat == V4L2_PIX_FMT_YUYV) &&
-+			(pix_output->pixelformat == V4L2_PIX_FMT_UYVY)) ||
-+			((pix_input->pixelformat == V4L2_PIX_FMT_UYVY) &&
-+			(pix_output->pixelformat == V4L2_PIX_FMT_YUYV)))
-+		/* input and output formats are in reverse order */
-+		ispccdc_config_byteswap(1);
++#include "board-omap3evm-dc.h"
++
++#define MODULE_NAME			"omap3evmdc"
++
++#ifdef DEBUG
++#define dprintk(fmt, args...) printk(KERN_ERR MODULE_NAME ": " fmt, ## args)
++#else
++#define dprintk(fmt, args...)
++#endif				/* #ifdef DEBUG */
++
++/* Macro Definitions */
++
++/* System control module register offsets */
++#define REG_CONTROL_PADCONF_I2C2_SDA	(0x480021C0u)
++#define REG_CONTROL_PADCONF_I2C3_SDA	(0x480021C4u)
++
++#define PADCONF_I2C3_SCL_MASK		(0xFFFF0000u)
++#define PADCONF_I2C3_SDA_MASK		(0x0000FFFFu)
++
++/* mux mode 0 (enable I2C3 SCL), pull-up enable, input enable */
++#define PADCONF_I2C3_SCL_DEF		(0x01180000u)
++/* mux mode 0 (enable I2C3 SDA), pull-up enable, input enable */
++#define PADCONF_I2C3_SDA_DEF		(0x00000118u)
++
++/* GPIO pins */
++#define GPIO134_SEL_Y                   (134)
++#define GPIO54_SEL_EXP_CAM              (54)
++#define GPIO136_SEL_CAM                 (136)
++
++/* board internal information (BEGIN) */
++
++/* I2C bus to which all I2C slave devices are attached */
++#define BOARD_I2C_BUSNUM		(3)
++
++/* I2C address of chips present in board */
++#define TVP5146_I2C_ADDR		(0x5D)
++
++/* Register offsets */
++#define REG_BUS_CTRL1			(0x00000180u)
++#define REG_BUS_CTRL2			(0x000001C0u)
++
++/* Bit defines for Bus Control 1 register */
++#define TVP5146_EN_SHIFT		(0x0000u)
++#define TVP5146_EN_MASK			(1u << TVP5146_EN_SHIFT)
++
++#define CAMERA_SENSOR_EN_SHIFT		(0x0008u)
++#define CAMERA_SENSOR_EN_MASK		(1u << CAMERA_SENSOR_EN_SHIFT)
++
++/* default value for bus control registers */
++#define BUS_CONTROL1_DEF		(0x0141u)	/* Disable all mux */
++#define BUS_CONTROL2_DEF		(0x010Au)	/* Disable all mux */
++
++#if defined(CONFIG_VIDEO_TVP514X) || defined(CONFIG_VIDEO_TVP514X_MODULE)
++#if defined(CONFIG_VIDEO_OMAP3) || defined(CONFIG_VIDEO_OMAP3_MODULE)
++static struct omap34xxcam_hw_config decoder_hwc = {
++	.dev_index = 0,
++	.dev_minor = 0,
++	.dev_type = OMAP34XXCAM_SLAVE_SENSOR,
++	.u.sensor.xclk = OMAP34XXCAM_XCLK_NONE,
++	.u.sensor.sensor_isp = 1,
++};
++
++static struct isp_interface_config tvp5146_if_config = {
++	.ccdc_par_ser = ISP_PARLL_YUV_BT,
++	.dataline_shift = 0x1,
++	.hsvs_syncdetect = ISPCTRL_SYNC_DETECT_VSRISE,
++	.vdint0_timing = 0x0,
++	.vdint1_timing = 0x0,
++	.strobe = 0x0,
++	.prestrobe = 0x0,
++	.shutter = 0x0,
++	.u.par.par_bridge = 0x0,
++	.u.par.par_clk_pol = 0x0,
++};
++#endif
++
++static struct v4l2_ifparm ifparm = {
++	.if_type = V4L2_IF_TYPE_BT656,
++	.u = {
++	      .bt656 = {
++			.frame_start_on_rising_vs = 1,
++			.bt_sync_correct = 0,
++			.swap = 0,
++			.latch_clk_inv = 0,
++			.nobt_hs_inv = 0,	/* active high */
++			.nobt_vs_inv = 0,	/* active high */
++			.mode = V4L2_IF_TYPE_BT656_MODE_BT_8BIT,
++			.clock_min = TVP514X_XCLK_BT656,
++			.clock_max = TVP514X_XCLK_BT656,
++			},
++	      },
++};
++
++/**
++ * @brief tvp5146_ifparm - Returns the TVP5146 decoder interface parameters
++ *
++ * @param p - pointer to v4l2_ifparm structure
++ *
++ * @return result of operation - 0 is success
++ */
++static int tvp5146_ifparm(struct v4l2_ifparm *p)
++{
++	if (p == NULL)
++		return -EINVAL;
++
++	*p = ifparm;
++	return 0;
++}
++
++/**
++ * @brief tvp5146_set_prv_data - Returns tvp5146 omap34xx driver private data
++ *
++ * @param priv - pointer to omap34xxcam_hw_config structure
++ *
++ * @return result of operation - 0 is success
++ */
++static int tvp5146_set_prv_data(void *priv)
++{
++#if defined(CONFIG_VIDEO_OMAP3) || defined(CONFIG_VIDEO_OMAP3_MODULE)
++	struct omap34xxcam_hw_config *hwc = priv;
++
++	if (priv == NULL)
++		return -EINVAL;
++
++	hwc->u.sensor.sensor_isp = decoder_hwc.u.sensor.sensor_isp;
++	hwc->u.sensor.xclk = decoder_hwc.u.sensor.xclk;
++	hwc->dev_index = decoder_hwc.dev_index;
++	hwc->dev_minor = decoder_hwc.dev_minor;
++	hwc->dev_type = decoder_hwc.dev_type;
++	return 0;
++#else
++	return -EINVAL;
++#endif
++}
++
++/**
++ * @brief omap3evmdc_set_mux - Sets mux to enable/disable signal routing to
++ *                             different peripherals present in board
++ * IMPORTANT - This function will take care of writing appropriate values for
++ * active low signals as well
++ *
++ * @param mux_id - enum, mux id to enable/disable
++ * @param value - enum, ENABLE_MUX for enabling and DISABLE_MUX for disabling
++ *
++ * @return result of operation - 0 is success
++ */
++static int omap3evmdc_set_mux(enum omap3evmdc_mux mux_id, enum config_mux value)
++{
++	int err = 0;
++
++	if (unlikely(mux_id >= NUM_MUX)) {
++		dprintk("Invalid mux id\n");
++		return -EPERM;
++	}
++
++
++	switch (mux_id) {
++	case MUX_TVP5146:
++		/* active low signal. set 0 to enable, 1 to disable */
++		if (ENABLE_MUX == value) {
++			/* pull down the GPIO GPIO134 = 0 */
++			gpio_set_value(GPIO134_SEL_Y, 0);
++			/* pull up the GPIO GPIO54 = 1 */
++			gpio_set_value(GPIO54_SEL_EXP_CAM, 1);
++			/* pull up the GPIO GPIO136 = 1 */
++			gpio_set_value(GPIO136_SEL_CAM, 1);
++		} else
++			/* pull up the GPIO GPIO134 = 0 */
++			gpio_set_value(GPIO134_SEL_Y, 1);
++
++		break;
++
++	case MUX_CAMERA_SENSOR:
++		/* active low signal. set 0 to enable, 1 to disable */
++		if (ENABLE_MUX == value) {
++			/* pull up the GPIO GPIO134 = 0 */
++			gpio_set_value(GPIO134_SEL_Y, 1);
++			/* pull up the GPIO GPIO54 = 1 */
++			gpio_set_value(GPIO54_SEL_EXP_CAM, 1);
++			/* pull down the GPIO GPIO136 = 1 */
++			gpio_set_value(GPIO136_SEL_CAM, 0);
++		} else
++			/* pull up the GPIO GPIO136 = 1 */
++			gpio_set_value(GPIO136_SEL_CAM, 1);
++
++		break;
++
++	case MUX_EXP_CAMERA_SENSOR:
++		/* active low signal. set 0 to enable, 1 to disable */
++		if (ENABLE_MUX == value) {
++			/* pull up the GPIO GPIO134 = 1 */
++			gpio_set_value(GPIO134_SEL_Y, 1);
++			/* pull down the GPIO GPIO54 = 1 */
++			gpio_set_value(GPIO54_SEL_EXP_CAM, 0);
++			/* pull up the GPIO GPIO136 = 1 */
++			gpio_set_value(GPIO136_SEL_CAM, 1);
++		} else
++			/* pull up the GPIO GPIO54 = 1 */
++			gpio_set_value(GPIO54_SEL_EXP_CAM, 1);
++
++		break;
++
++	case NUM_MUX:
++	default:
++		dprintk("Invalid mux id\n");
++		err = -EPERM;
++	}
++
++	return err;
++}
++/**
++ * @brief tvp5146_power_set - Power-on or power-off TVP5146 device
++ *
++ * @param power - enum, Power on/off, resume/standby
++ *
++ * @return result of operation - 0 is success
++ */
++static int tvp5146_power_set(enum v4l2_power power)
++{
++	switch (power) {
++	case V4L2_POWER_OFF:
++#if defined(CONFIG_VIDEO_OMAP3) || defined(CONFIG_VIDEO_OMAP3_MODULE)
++		if (isp_free_interface(ISP_PARLL_YUV_BT))
++			return -ENODEV;
++#endif
++		/* Disable mux for TVP5146 decoder data path */
++		if (omap3evmdc_set_mux(MUX_TVP5146, DISABLE_MUX))
++			return -ENODEV;
++		break;
++
++	case V4L2_POWER_STANDBY:
++		break;
++
++	case V4L2_POWER_ON:
++		/* Enable mux for TVP5146 decoder data path */
++		if (omap3evmdc_set_mux(MUX_TVP5146, ENABLE_MUX))
++			return -ENODEV;
++
++#if defined(CONFIG_VIDEO_OMAP3) || defined(CONFIG_VIDEO_OMAP3_MODULE)
++		if (isp_request_interface(ISP_PARLL_YUV_BT))
++			return -ENODEV;
++
++		isp_configure_interface(&tvp5146_if_config);
++#endif
++		break;
++
++	default:
++		return -ENODEV;
++		break;
++	}
++	return 0;
++}
++
++static struct tvp514x_platform_data tvp5146_pdata = {
++	.master = "omap34xxcam",
++	.power_set = tvp5146_power_set,
++	.priv_data_set = tvp5146_set_prv_data,
++	.ifparm = tvp5146_ifparm,
++
++	/* Some interface dependent params */
++	.clk_polarity = 0, /* data clocked out on falling edge */
++	.hs_polarity = 1, /* 0 - Active low, 1- Active high */
++	.vs_polarity = 1, /* 0 - Active low, 1- Active high */
++};
++
++static struct i2c_board_info __initdata tvp5146_i2c_board_info = {
++	I2C_BOARD_INFO("tvp5146m2", TVP5146_I2C_ADDR),
++	.platform_data = &tvp5146_pdata,
++};
++
++#endif				/* #ifdef CONFIG_VIDEO_TVP514X */
++
++/**
++ * @brief omap3evmdc_mdc_config - GPIO configuration for
++ *                          GPIO 134, 54 and 136
++ *
++ * @return result of operation - 0 is success
++ */
++static int omap3evmdc_mdc_config(void)
++{
++	/* Setting the MUX configuration */
++	omap_cfg_reg(GPIO134_VDIN_SEL_Y);
++	omap_cfg_reg(GPIO54_VDIN_SEL_EXP_CAM);
++	omap_cfg_reg(GPIO136_VDIN_SEL_CAM);
++
++	if (gpio_request(GPIO134_SEL_Y, "GPIO134_SEL_Y") < 0) {
++		dprintk("can't get GPIO 134\n");
++		return -EINVAL;
++	}
++
++	if (gpio_request(GPIO54_SEL_EXP_CAM, "GPIO54_SEL_EXP_CAM") < 0) {
++		dprintk("can't get GPIO 54\n");
++		return -EINVAL;
++	}
++
++	if (gpio_request(GPIO136_SEL_CAM, "GPIO136_SEL_CAM") < 0) {
++		dprintk("can't get GPIO 136\n");
++		return -EINVAL;
++	}
++
++	/* Make GPIO as output */
++	gpio_direction_output(GPIO134_SEL_Y, 0);
++	/* Make GPIO as output */
++	gpio_direction_output(GPIO54_SEL_EXP_CAM, 0);
++	/* Make GPIO as output */
++	gpio_direction_output(GPIO136_SEL_CAM, 0);
++
++	return 0;
++}
++
++/**
++ * @brief omap3evmdc_init - module init function. Should be called before any
++ *                          client driver init call
++ *
++ * @return result of operation - 0 is success
++ */
++static int __init omap3evmdc_init(void)
++{
++	int err;
 +
 +	/*
-+	 * Configure Pitch - This enables application to use a different pitch
-+	 * other than active pixels per line.
++	 * I2C3 SCL pin mux settings - mux mode 0, pull-up enable, input enable
++	 * Uses the MSB 16-bit of this register, retain the LSB 16-bit.
++	 * This pin is shared with gpio_184 (mux mode 4)
 +	 */
-+	if (isp_obj.if_status & ISP_PARLL_YUV_BT)
-+		ispccdc_config_outlineoffset(ispmodule_obj.pix.bytesperline,
-+						0, 0);
-
- 	if (pix_output->pixelformat == V4L2_PIX_FMT_UYVY) {
- 		isppreview_config_ycpos(YCPOS_YCrYCb);
-@@ -1407,9 +1456,20 @@ void isp_vbq_done(unsigned long status, isp_vbq_callback_ptr arg1, void *arg2)
- 	int notify = 0;
- 	int rval = 0;
- 	unsigned long flags;
-+	unsigned long fld_stat = (omap_readl(ISPCCDC_SYN_MODE) >> 15) & 0x1;
-
- 	switch (status) {
- 	case CCDC_VD0:
-+		if (ispmodule_obj.pix.field == V4L2_FIELD_INTERLACED) {
-+			spin_lock(&isp_obj.isp_temp_buf_lock);
-+			/* Skip even fields */
-+			if (ispmodule_obj.current_field == 0) {
-+				spin_unlock(&isp_obj.isp_temp_buf_lock);
-+				return;
-+			}
-+			spin_unlock(&isp_obj.isp_temp_buf_lock);
-+		}
++	omap_writel(((omap_readl(REG_CONTROL_PADCONF_I2C2_SDA) &
++		      ~PADCONF_I2C3_SCL_MASK) | PADCONF_I2C3_SCL_DEF),
++		    REG_CONTROL_PADCONF_I2C2_SDA);
 +
- 		ispccdc_config_shadow_registers();
- 		if ((ispmodule_obj.isp_pipeline & OMAP_ISP_RESIZER) ||
- 			(ispmodule_obj.isp_pipeline & OMAP_ISP_PREVIEW))
-@@ -1427,6 +1487,15 @@ void isp_vbq_done(unsigned long status, isp_vbq_callback_ptr arg1, void *arg2)
- 		}
- 		break;
- 	case CCDC_VD1:
-+		if (ispmodule_obj.pix.field == V4L2_FIELD_INTERLACED) {
-+			spin_lock(&isp_obj.isp_temp_buf_lock);
-+			if (ispmodule_obj.current_field == 0) {
-+				spin_unlock(&isp_obj.isp_temp_buf_lock);
-+				return;
-+			}
-+			spin_unlock(&isp_obj.isp_temp_buf_lock);
-+		}
++	/*
++	 * I2C3 SDA pin mux settings - mux mode 0, pull-up enable, input enable
++	 * Uses the LSB 16-bit of this register, retain the MSB 16-bit.
++	 * This pin is shared with gpio_185 (mux mode 4)
++	 */
++	omap_writel(((omap_readl(REG_CONTROL_PADCONF_I2C3_SDA) &
++		      ~PADCONF_I2C3_SDA_MASK) | PADCONF_I2C3_SDA_DEF),
++		    REG_CONTROL_PADCONF_I2C3_SDA);
 +
- 		if ((ispmodule_obj.isp_pipeline & OMAP_ISP_RESIZER) ||
- 				(ispmodule_obj.isp_pipeline & OMAP_ISP_PREVIEW))
- 			return;
-@@ -1472,13 +1541,26 @@ void isp_vbq_done(unsigned long status, isp_vbq_callback_ptr arg1, void *arg2)
- 		}
- 		break;
- 	case HS_VS:
--		spin_lock(&isp_obj.isp_temp_buf_lock);
--		if (ispmodule_obj.isp_temp_state == ISP_BUF_TRAN) {
--			isp_CCDC_VD01_enable();
--			ispmodule_obj.isp_temp_state = ISP_BUF_INIT;
-+		if (ispmodule_obj.pix.field == V4L2_FIELD_INTERLACED) {
-+			ispmodule_obj.current_field ^= 1;
-+			spin_lock(&isp_obj.isp_temp_buf_lock);
-+			if ((ispmodule_obj.isp_temp_state == ISP_BUF_TRAN) &&
-+					(fld_stat == 1)) {
-+				isp_CCDC_VD01_enable();
-+				ispmodule_obj.current_field = fld_stat;
-+				ispmodule_obj.isp_temp_state = ISP_BUF_INIT;
-+			}
-+			spin_unlock(&isp_obj.isp_temp_buf_lock);
-+			return;
-+		} else {
-+			spin_lock(&isp_obj.isp_temp_buf_lock);
-+			if (ispmodule_obj.isp_temp_state == ISP_BUF_TRAN) {
-+				isp_CCDC_VD01_enable();
-+				ispmodule_obj.isp_temp_state = ISP_BUF_INIT;
-+			}
-+			spin_unlock(&isp_obj.isp_temp_buf_lock);
-+			return;
- 		}
--		spin_unlock(&isp_obj.isp_temp_buf_lock);
--		return;
- 	default:
- 		return;
- 	}
-@@ -2200,15 +2282,25 @@ int isp_try_fmt(struct v4l2_pix_format *pix_input,
- 	if (ifmt == NUM_ISP_CAPTURE_FORMATS)
- 		ifmt = 1;
- 	pix_output->pixelformat = isp_formats[ifmt].pixelformat;
--	pix_output->field = V4L2_FIELD_NONE;
--	pix_output->bytesperline = pix_output->width * ISP_BYTES_PER_PIXEL;
-+
-+	if (isp_obj.if_status & ISP_PARLL_YUV_BT)
-+		pix_output->field = pix_input->field;
-+	else {
-+		pix_output->field = V4L2_FIELD_NONE;
-+		pix_output->bytesperline =
-+			pix_output->width * ISP_BYTES_PER_PIXEL;
++	err = omap3evmdc_mdc_config();
++	if (err) {
++		dprintk("MDC configuration failed \n");
++		return err;
 +	}
 +
- 	pix_output->sizeimage =
- 		PAGE_ALIGN(pix_output->bytesperline * pix_output->height);
- 	pix_output->priv = 0;
- 	switch (pix_output->pixelformat) {
- 	case V4L2_PIX_FMT_YUYV:
- 	case V4L2_PIX_FMT_UYVY:
--		pix_output->colorspace = V4L2_COLORSPACE_JPEG;
-+		if (isp_obj.if_status & ISP_PARLL_YUV_BT)
-+			pix_output->colorspace = pix_input->colorspace;
-+		else
-+			pix_output->colorspace = V4L2_COLORSPACE_JPEG;
- 		break;
- 	default:
- 		pix_output->colorspace = V4L2_COLORSPACE_SRGB;
-diff --git a/drivers/media/video/isp/isp.h b/drivers/media/video/isp/isp.h
-index 7101311..ad4a8b1 100644
---- a/drivers/media/video/isp/isp.h
-+++ b/drivers/media/video/isp/isp.h
-@@ -73,7 +73,8 @@ typedef void (*isp_callback_t) (unsigned long status,
- enum isp_interface_type {
- 	ISP_PARLL = 1,
- 	ISP_CSIA = 2,
--	ISP_CSIB = 4
-+	ISP_CSIB = 4,
-+	ISP_PARLL_YUV_BT = 8
- };
-
- enum isp_irqevents {
-@@ -302,6 +303,10 @@ int isp_try_size(struct v4l2_pix_format *pix_input,
- int isp_try_fmt(struct v4l2_pix_format *pix_input,
- 					struct v4l2_pix_format *pix_output);
-
-+int isp_configure_std(struct v4l2_pix_format *fmt);
++	/*
++	 * Register each of the I2C devices present in the board to the I2C
++	 * framework.
++	 * If more I2C devices are added, then each device information should
++	 * be registered with I2C using i2c_register_board_info().
++	 */
++#if defined(CONFIG_VIDEO_TVP514X) || defined(CONFIG_VIDEO_TVP514X_MODULE)
++	err = i2c_register_board_info(BOARD_I2C_BUSNUM,
++					&tvp5146_i2c_board_info, 1);
++	if (err) {
++		dprintk("TVP5146 I2C Board Registration failed \n");
++		return err;
++	}
++#endif
 +
-+int isp_check_format(struct v4l2_pix_format *pixfmt);
++	printk(KERN_INFO MODULE_NAME ": Driver registration complete \n");
 +
- int isp_handle_private(int cmd, void *arg);
-
- void isp_save_context(struct isp_reg *);
-diff --git a/drivers/media/video/isp/ispccdc.c b/drivers/media/video/isp/ispccdc.c
-index e6452aa..b7da30d 100644
---- a/drivers/media/video/isp/ispccdc.c
-+++ b/drivers/media/video/isp/ispccdc.c
-@@ -566,9 +566,17 @@ int ispccdc_config_datapath(enum ccdc_input input, enum ccdc_output output)
- 		syn_mode &= ~ISPCCDC_SYN_MODE_VP2SDR;
- 		syn_mode &= ~ISPCCDC_SYN_MODE_SDR2RSZ;
- 		syn_mode |= ISPCCDC_SYN_MODE_WEN;
--		syn_mode &= ~ISPCCDC_SYN_MODE_EXWEN;
--		omap_writel((omap_readl(ISPCCDC_CFG)) & ~ISPCCDC_CFG_WENLOG,
--								ISPCCDC_CFG);
-+		if (input != CCDC_YUV_BT) {
-+			syn_mode |= ISPCCDC_SYN_MODE_EXWEN;
-+			omap_writel((omap_readl(ISPCCDC_CFG)) |
-+					ISPCCDC_CFG_WENLOG,
-+					ISPCCDC_CFG);
-+		} else {
-+			syn_mode &= ~ISPCCDC_SYN_MODE_EXWEN;
-+			omap_writel((omap_readl(ISPCCDC_CFG)) &
-+					~ISPCCDC_CFG_WENLOG,
-+					ISPCCDC_CFG);
-+		}
- 		vpcfg.bitshift_sel = BIT11_2;
- 		vpcfg.freq_sel = PIXCLKBY2;
- 		ispccdc_config_vp(vpcfg);
-@@ -627,12 +635,28 @@ int ispccdc_config_datapath(enum ccdc_input input, enum ccdc_output output)
- 		syncif.hdpol = 0;
- 		syncif.ipmod = YUV16;
- 		syncif.vdpol = 0;
-+		syncif.bt_r656_en = 0;
- 		ispccdc_config_imgattr(0);
- 		ispccdc_config_sync_if(syncif);
- 		blkcfg.dcsubval = 0;
- 		ispccdc_config_black_clamp(blkcfg);
- 		break;
- 	case CCDC_YUV_BT:
-+		syncif.ccdc_mastermode = 0;
-+		syncif.datapol = 0;
-+		syncif.datsz = DAT8;
-+		syncif.fldmode = 1;
-+		syncif.fldout = 0;
-+		syncif.fldpol = 0;
-+		syncif.fldstat = 0;
-+		syncif.hdpol = 0;
-+		syncif.ipmod = YUV8;
-+		syncif.vdpol = 1;
-+		syncif.bt_r656_en = 1;
-+		ispccdc_config_imgattr(0);
-+		ispccdc_config_sync_if(syncif);
-+		blkcfg.dcsubval = 0;
-+		ispccdc_config_black_clamp(blkcfg);
- 		break;
- 	case CCDC_OTHERS:
- 		break;
-@@ -677,6 +701,8 @@ void ispccdc_config_sync_if(struct ispccdc_syncif syncif)
- 		break;
- 	case YUV8:
- 		syn_mode |= ISPCCDC_SYN_MODE_INPMOD_YCBCR8;
-+		if (syncif.bt_r656_en)
-+			syn_mode |= ISPCCDC_SYN_MODE_PACK8;
- 		break;
- 	};
-
-@@ -741,6 +767,11 @@ void ispccdc_config_sync_if(struct ispccdc_syncif syncif)
- 		omap_writel((omap_readl(ISPCCDC_REC656IF)) &
- 						~ISPCCDC_REC656IF_R656ON,
- 						ISPCCDC_REC656IF);
-+	} else {
-+		omap_writel((omap_readl(ISPCCDC_REC656IF)) |
-+				(ISPCCDC_REC656IF_R656ON |
-+				 ISPCCDC_REC656IF_ECCFVH),
-+				ISPCCDC_REC656IF);
- 	}
- }
- EXPORT_SYMBOL(ispccdc_config_sync_if);
-@@ -1178,35 +1209,72 @@ int ispccdc_config_size(u32 input_w, u32 input_h, u32 output_w, u32 output_h)
- 	} else if (ispccdc_obj.ccdc_outfmt == CCDC_OTHERS_MEM) {
- 		omap_writel(0, ISPCCDC_VP_OUT);
- 		if (cpu_is_omap3410()) {
--			omap_writel(0 << ISPCCDC_HORZ_INFO_SPH_SHIFT |
-+			if (ispccdc_obj.ccdc_inpfmt != CCDC_YUV_BT)
-+				omap_writel(0 << ISPCCDC_HORZ_INFO_SPH_SHIFT |
- 						((ispccdc_obj.ccdcout_w - 1) <<
--						ISPCCDC_HORZ_INFO_NPH_SHIFT),
-+						 ISPCCDC_HORZ_INFO_NPH_SHIFT),
- 						ISPCCDC_HORZ_INFO);
-+			else
-+				omap_writel(0 << ISPCCDC_HORZ_INFO_SPH_SHIFT |
-+					(((ispccdc_obj.ccdcout_w << 1) - 1) <<
-+					 ISPCCDC_HORZ_INFO_NPH_SHIFT),
-+					ISPCCDC_HORZ_INFO);
- 		} else {
--			if (ispccdc_obj.ccdc_inpfmt == CCDC_RAW) {
--				omap_writel(1 << ISPCCDC_HORZ_INFO_SPH_SHIFT
--						| ((ispccdc_obj.ccdcout_w - 1)
--						<< ISPCCDC_HORZ_INFO_NPH_SHIFT),
--						ISPCCDC_HORZ_INFO);
--			} else {
--				omap_writel(0 << ISPCCDC_HORZ_INFO_SPH_SHIFT
--						| ((ispccdc_obj.ccdcout_w - 1)
--						<< ISPCCDC_HORZ_INFO_NPH_SHIFT),
--						ISPCCDC_HORZ_INFO);
--			}
-+			if (ispccdc_obj.ccdc_inpfmt != CCDC_YUV_BT)
-+				omap_writel(1 << ISPCCDC_HORZ_INFO_SPH_SHIFT |
-+					((ispccdc_obj.ccdcout_w - 1) <<
-+					 ISPCCDC_HORZ_INFO_NPH_SHIFT),
-+					ISPCCDC_HORZ_INFO);
-+			else
-+				omap_writel(0 << ISPCCDC_HORZ_INFO_SPH_SHIFT |
-+					(((ispccdc_obj.ccdcout_w << 1) - 1) <<
-+					 ISPCCDC_HORZ_INFO_NPH_SHIFT),
-+					ISPCCDC_HORZ_INFO);
-+		}
-+
-+		if (ispccdc_obj.ccdc_inpfmt != CCDC_YUV_BT) {
-+			omap_writel(0 << ISPCCDC_VERT_START_SLV0_SHIFT,
-+					ISPCCDC_VERT_START);
-+			omap_writel((ispccdc_obj.ccdcout_h - 1) <<
-+					ISPCCDC_VERT_LINES_NLV_SHIFT,
-+					ISPCCDC_VERT_LINES);
-+		} else {
-+			omap_writel(2 << ISPCCDC_VERT_START_SLV0_SHIFT |
-+					2 << ISPCCDC_VERT_START_SLV1_SHIFT,
-+					ISPCCDC_VERT_START);
-+			omap_writel(((ispccdc_obj.ccdcout_h >> 1) - 1) <<
-+					ISPCCDC_VERT_LINES_NLV_SHIFT,
-+					ISPCCDC_VERT_LINES);
- 		}
--		omap_writel(0 << ISPCCDC_VERT_START_SLV0_SHIFT,
--							ISPCCDC_VERT_START);
--		omap_writel((ispccdc_obj.ccdcout_h - 1) <<
--						ISPCCDC_VERT_LINES_NLV_SHIFT,
--						ISPCCDC_VERT_LINES);
-
- 		ispccdc_config_outlineoffset(ispccdc_obj.ccdcout_w * 2, 0, 0);
--		omap_writel((((ispccdc_obj.ccdcout_h - 2) &
-+
-+		if (ispccdc_obj.ccdc_inpfmt != CCDC_YUV_BT) {
-+			omap_writel((((ispccdc_obj.ccdcout_h - 1) &
- 					ISPCCDC_VDINT_0_MASK) <<
- 					ISPCCDC_VDINT_0_SHIFT) |
- 					((50 & ISPCCDC_VDINT_1_MASK) <<
- 					ISPCCDC_VDINT_1_SHIFT), ISPCCDC_VDINT);
-+		} else {
-+			ispccdc_config_outlineoffset(ispccdc_obj.ccdcout_w * 2,
-+					EVENEVEN,
-+					1);
-+			ispccdc_config_outlineoffset(ispccdc_obj.ccdcout_w * 2,
-+					ODDEVEN,
-+					1);
-+			ispccdc_config_outlineoffset(ispccdc_obj.ccdcout_w * 2,
-+					EVENODD,
-+					1);
-+			ispccdc_config_outlineoffset(ispccdc_obj.ccdcout_w * 2,
-+					ODDODD,
-+					1);
-+
-+			omap_writel(((((ispccdc_obj.ccdcout_h >> 1) - 1) &
-+					ISPCCDC_VDINT_0_MASK) <<
-+					ISPCCDC_VDINT_0_SHIFT) |
-+					((50 & ISPCCDC_VDINT_1_MASK) <<
-+					 ISPCCDC_VDINT_1_SHIFT), ISPCCDC_VDINT);
-+		}
- 	} else if (ispccdc_obj.ccdc_outfmt == CCDC_OTHERS_VP_MEM) {
- 		omap_writel((1 << ISPCCDC_FMT_HORZ_FMTSPH_SHIFT) |
- 					(ispccdc_obj.ccdcin_w <<
-@@ -1356,6 +1424,40 @@ void ispccdc_enable(u8 enable)
- EXPORT_SYMBOL(ispccdc_enable);
-
- /**
-+ * ispccdc_config_y8pos - Configures the location of Y color component
-+ * @mode: Y8POS_EVEN Y pixel in even position, otherwise Y pixel in odd
-+ *
-+ * Configures the location of Y color componenent for YCbCr 8-bit data
-+ */
-+void ispccdc_config_y8pos(enum y8pos_mode mode)
-+{
-+	if (mode == Y8POS_EVEN)
-+		omap_writel(omap_readl(ISPCCDC_CFG) & ~(ISPCCDC_CFG_Y8POS),
-+				ISPCCDC_CFG);
-+	else
-+		omap_writel(omap_readl(ISPCCDC_CFG) | (ISPCCDC_CFG_Y8POS),
-+				ISPCCDC_CFG);
++	return 0;
 +}
-+EXPORT_SYMBOL(ispccdc_config_y8pos);
 +
-+/**
-+ * ispccdc_config_byteswap - Configures byte swap data stored in memory
-+ * @swap: 1 - swap bytes, 0 - normal
++arch_initcall(omap3evmdc_init);
+diff --git a/arch/arm/mach-omap2/board-omap3evm-dc.h b/arch/arm/mach-omap2/board-omap3evm-dc.h
+new file mode 100755
+index 0000000..5eaffc5
+--- /dev/null
++++ b/arch/arm/mach-omap2/board-omap3evm-dc.h
+@@ -0,0 +1,43 @@
++/*
++ * arch/arm/mach-omap2/board-omap3evm-dc.h
 + *
-+ * Controls the order in which the Y and C pixels are stored in memory
++ * Copyright (C) 2008 Texas Instruments Inc
++ * Author: Vaibhav Hiremath <hvaibhav@ti.com>
++ *
++ * Contributors:
++ *    Anuj Aggarwal <anuj.aggarwal@ti.com>
++ *    Sivaraj R <sivaraj@ti.com>
++ *
++ * This package is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
++ *
 + */
-+void ispccdc_config_byteswap(int swap)
-+{
-+	if (swap)
-+		omap_writel(omap_readl(ISPCCDC_CFG) | (ISPCCDC_CFG_BSWD),
-+				ISPCCDC_CFG);
-+	else
-+		omap_writel(omap_readl(ISPCCDC_CFG) & ~(ISPCCDC_CFG_BSWD),
-+				ISPCCDC_CFG);
-+}
-+EXPORT_SYMBOL(ispccdc_config_byteswap);
 +
-+/**
-  * ispccdc_busy - Gets busy state of the CCDC.
-  **/
- int ispccdc_busy(void)
-diff --git a/drivers/media/video/isp/ispccdc.h b/drivers/media/video/isp/ispccdc.h
-index eb6868d..618ca54 100644
---- a/drivers/media/video/isp/ispccdc.h
-+++ b/drivers/media/video/isp/ispccdc.h
-@@ -60,6 +60,11 @@ enum datasize {
- 	DAT12
- };
-
-+/* Enumeration constants for location of Y component in 8-bit YUV data */
-+enum y8pos_mode {
-+	Y8POS_EVEN = 0,
-+	Y8POS_ODD = 1
++#ifndef __BOARD_OMAP3EVM_DC_H_
++#define __BOARD_OMAP3EVM_DC_H_
++
++/* mux id to enable/disable signal routing to different peripherals */
++enum omap3evmdc_mux {
++	MUX_TVP5146 = 0,
++	MUX_CAMERA_SENSOR,
++	MUX_EXP_CAMERA_SENSOR,
++	NUM_MUX
 +};
-
- /**
-  * struct ispccdc_syncif - Structure for Sync Interface between sensor and CCDC
-@@ -191,6 +196,10 @@ int ispccdc_set_outaddr(u32 addr);
-
- void ispccdc_enable(u8 enable);
-
-+void ispccdc_config_y8pos(enum y8pos_mode mode);
 +
-+void ispccdc_config_byteswap(int swap);
++/* enum to enable or disable mux */
++enum config_mux {
++	DISABLE_MUX,
++	ENABLE_MUX
++};
 +
- int ispccdc_busy(void);
-
- void ispccdc_save_context(void);
-diff --git a/drivers/media/video/omap34xxcam.c b/drivers/media/video/omap34xxcam.c
++#endif		/* __BOARD_OMAP3EVM_DC_H_ */
+diff --git a/arch/arm/mach-omap2/mux.c b/arch/arm/mach-omap2/mux.c
 old mode 100644
 new mode 100755
-index 31b6b60..c351424
---- a/drivers/media/video/omap34xxcam.c
-+++ b/drivers/media/video/omap34xxcam.c
-@@ -56,6 +56,8 @@
- #include "isp/isppreview.h"
- #include "isp/ispresizer.h"
-
-+#include <media/tvp514x.h>
+index dacb41f..5b878b6
+--- a/arch/arm/mach-omap2/mux.c
++++ b/arch/arm/mach-omap2/mux.c
+@@ -459,6 +459,13 @@ MUX_CFG_34XX("AH8_34XX_GPIO29", 0x5fa,
+ 		OMAP34XX_MUX_MODE4 | OMAP34XX_PIN_INPUT)
+ MUX_CFG_34XX("J25_34XX_GPIO170", 0x1c6,
+ 		OMAP34XX_MUX_MODE4 | OMAP34XX_PIN_INPUT)
 +
- #define OMAP34XXCAM_VERSION KERNEL_VERSION(0, 0, 0)
++MUX_CFG_34XX("GPIO134_VDIN_SEL_Y", 0x160,
++		OMAP34XX_MUX_MODE4 | OMAP34XX_PIN_INPUT)
++MUX_CFG_34XX("GPIO_54_VDIN_SEL_EXP_CAM", 0x0b4,
++		OMAP34XX_MUX_MODE4 | OMAP34XX_PIN_INPUT)
++MUX_CFG_34XX("GPIO136_VDIN_SEL_CAM", 0x164,
++		OMAP34XX_MUX_MODE4 | OMAP34XX_PIN_INPUT)
+ };
 
- /* global variables */
-@@ -262,7 +264,8 @@ static int omap34xxcam_vbq_prepare(struct videobuf_queue *vbq,
+ #define OMAP34XX_PINS_SZ	ARRAY_SIZE(omap34xx_pins)
+diff --git a/arch/arm/plat-omap/include/mach/mux.h b/arch/arm/plat-omap/include/mach/mux.h
+old mode 100644
+new mode 100755
+index f4362b8..2cd5cde
+--- a/arch/arm/plat-omap/include/mach/mux.h
++++ b/arch/arm/plat-omap/include/mach/mux.h
+@@ -790,6 +790,10 @@ enum omap34xx_index {
  	 */
- 	if (vb->baddr) {
- 		/* This is a userspace buffer. */
--		if (fh->pix.sizeimage > vb->bsize)
-+		if ((fh->pix.sizeimage > vb->bsize) ||
-+				vb->baddr != (vb->baddr & ~0x1F))
- 			/* The buffer isn't big enough. */
- 			return -EINVAL;
- 	} else {
-@@ -379,7 +382,9 @@ static int vidioc_enum_fmt_vid_cap(struct file *file, void *fh,
- 	struct omap34xxcam_videodev *vdev = ofh->vdev;
- 	int rval;
-
--	if (vdev->vdev_sensor_config.sensor_isp)
-+	if (vdev->vdev_sensor_mode)
-+		rval = isp_enum_fmt_cap(f);
-+	else if (vdev->vdev_sensor_config.sensor_isp)
- 		rval = vidioc_int_enum_fmt_cap(vdev->vdev_sensor, f);
- 	else
- 		rval = isp_enum_fmt_cap(f);
-@@ -403,7 +408,10 @@ static int vidioc_g_fmt_vid_cap(struct file *file, void *fh,
- 	struct omap34xxcam_videodev *vdev = ofh->vdev;
-
- 	mutex_lock(&vdev->mutex);
--	f->fmt.pix = ofh->pix;
-+	if (vdev->vdev_sensor_mode)
-+		isp_g_fmt_cap(&f->fmt.pix);
-+	else
-+		f->fmt.pix = ofh->pix;
- 	mutex_unlock(&vdev->mutex);
-
- 	return 0;
-@@ -607,20 +615,44 @@ static int vidioc_s_fmt_vid_cap(struct file *file, void *fh,
- 	struct v4l2_pix_format pix_tmp;
- 	struct v4l2_fract timeperframe;
- 	int rval;
-+	struct v4l2_format input_fmt = *f;
-
- 	mutex_lock(&vdev->mutex);
- 	if (vdev->streaming) {
- 		rval = -EBUSY;
- 		goto out;
- 	}
-+	if (vdev->vdev_sensor_mode) {
-+		struct v4l2_pix_format *pix = &f->fmt.pix;
-+		rval = isp_try_fmt_cap(pix, pix);
-+		if (rval)
-+			goto out;
-
--	vdev->want_pix = f->fmt.pix;
-+		/* Always negotiate with the sensor first */
-+		rval = vidioc_int_s_fmt_cap(vdev->vdev_sensor, &input_fmt);
-+		if (rval)
-+			goto out;
-
--	timeperframe = vdev->want_timeperframe;
-+		pix->width = input_fmt.fmt.pix.width;
-+		pix->height = input_fmt.fmt.pix.height;
-+		pix->pixelformat = input_fmt.fmt.pix.pixelformat;
-+		pix->field = input_fmt.fmt.pix.field;
-+		pix->bytesperline = input_fmt.fmt.pix.bytesperline;
-+		pix->colorspace = input_fmt.fmt.pix.colorspace;
-+		pix->sizeimage = input_fmt.fmt.pix.sizeimage;
-
--	rval = s_pix_parm(vdev, &pix_tmp, &f->fmt.pix, &timeperframe);
--	pix_tmp = f->fmt.pix;
-+		/* Negotiate with OMAP3 ISP */
-+		rval = isp_s_fmt_cap(pix, pix);
-+		if (!rval)
-+			pix_tmp = f->fmt.pix;
-+	} else {
-+		vdev->want_pix = f->fmt.pix;
-
-+		timeperframe = vdev->want_timeperframe;
+ 	AH8_34XX_GPIO29,
+ 	J25_34XX_GPIO170,
 +
-+		rval = s_pix_parm(vdev, &pix_tmp, &f->fmt.pix, &timeperframe);
-+		pix_tmp = f->fmt.pix;
-+	}
- out:
- 	mutex_unlock(&vdev->mutex);
-
-@@ -859,15 +891,28 @@ static int vidioc_streamoff(struct file *file, void *fh, enum v4l2_buf_type i)
- static int vidioc_enum_input(struct file *file, void *fh,
- 			     struct v4l2_input *inp)
- {
--	if (inp->index > 0)
--		return -EINVAL;
--
--	strlcpy(inp->name, "camera", sizeof(inp->name));
--	inp->type = V4L2_INPUT_TYPE_CAMERA;
--
-+	struct omap34xxcam_videodev *vdev = ((struct omap34xxcam_fh *)fh)->vdev;
-+
-+	if (vdev->vdev_sensor_mode) {
-+		if (vdev->slave_config[OMAP34XXCAM_SLAVE_SENSOR].cur_input
-+				== INPUT_CVBS_VI4A) {
-+			strlcpy(inp->name, "COMPOSITE", sizeof(inp->name));
-+			inp->type = V4L2_INPUT_TYPE_CAMERA;
-+		} else if (vdev->slave_config[OMAP34XXCAM_SLAVE_SENSOR]
-+				.cur_input == INPUT_SVIDEO_VI2C_VI1C) {
-+			strlcpy(inp->name, "S-VIDEO", sizeof(inp->name));
-+			inp->type = V4L2_INPUT_TYPE_CAMERA;
-+		}
-+	} else {
-+		if (inp->index > 0)
-+			return -EINVAL;
-+		strlcpy(inp->name, "camera", sizeof(inp->name));
-+		inp->type = V4L2_INPUT_TYPE_CAMERA;
-+	}
- 	return 0;
- }
-
-+
- /**
-  * vidioc_g_input - V4L2 get input IOCTL handler
-  * @file: ptr. to system file structure
-@@ -878,9 +923,35 @@ static int vidioc_enum_input(struct file *file, void *fh,
-  */
- static int vidioc_g_input(struct file *file, void *fh, unsigned int *i)
- {
--	*i = 0;
-+	struct omap34xxcam_videodev *vdev = ((struct omap34xxcam_fh *)fh)->vdev;
-+	int rval = 0;
-+
-+	mutex_lock(&vdev->mutex);
-+	if (vdev->vdev_sensor_mode) {
-+		if (vdev->slave_config[OMAP34XXCAM_SLAVE_SENSOR].cur_input
-+				== 0) {
-+			struct v4l2_routing route;
-+			route.input = INPUT_CVBS_VI4A;
-+			route.output = 0;
-+			rval = vidioc_int_s_video_routing(vdev->vdev_sensor,
-+					&route);
-+			if (!rval)
-+				vdev->slave_config[OMAP34XXCAM_SLAVE_SENSOR]
-+					.cur_input = route.input;
-+		}
-+		if (vdev->slave_config[OMAP34XXCAM_SLAVE_SENSOR].cur_input
-+				== INPUT_CVBS_VI4A)
-+			*i = 0;
-+		else if (vdev->slave_config[OMAP34XXCAM_SLAVE_SENSOR].cur_input
-+				== INPUT_SVIDEO_VI2C_VI1C)
-+			*i = 1;
-+	} else
-+		*i = 0;
-+
-+	mutex_unlock(&vdev->mutex);
-+
-+	return rval;
-
--	return 0;
- }
-
- /**
-@@ -893,10 +964,30 @@ static int vidioc_g_input(struct file *file, void *fh, unsigned int *i)
-  */
- static int vidioc_s_input(struct file *file, void *fh, unsigned int i)
- {
--	if (i > 0)
--		return -EINVAL;
-+	struct omap34xxcam_fh *ofh = fh;
-+	struct omap34xxcam_videodev *vdev = ofh->vdev;
-+	int rval = 0;
-+	struct v4l2_routing route;
-
--	return 0;
-+	mutex_lock(&vdev->mutex);
-+	if (vdev->vdev_sensor_mode) {
-+		if (i == 0)
-+			route.input = INPUT_CVBS_VI4A;
-+		else
-+			route.input = INPUT_SVIDEO_VI2C_VI1C;
-+
-+		route.output = 0;
-+		rval = vidioc_int_s_video_routing(vdev->vdev_sensor, &route);
-+		if (!rval)
-+			vdev->slave_config[OMAP34XXCAM_SLAVE_SENSOR].cur_input
-+				= route.input;
-+	} else {
-+		if (i > 0)
-+			rval = -EINVAL;
-+	}
-+	mutex_unlock(&vdev->mutex);
-+
-+	return rval;
- }
-
- /**
-@@ -1381,6 +1472,61 @@ out:
- 	return rval;
- }
-
-+
-+/**
-+ * vidioc_querystd - V4L2 query current standard IOCTL handler
-+ * @file: ptr. to system file structure
-+ * @fh: ptr to hold address of omap34xxcam_fh struct (per-filehandle data)
-+ * @std: standard V4L2 v4l2_std_id enum
-+ *
-+ * If using a "smart" sensor, just forwards request to the sensor driver,
-+ * otherwise returns error
-+ */
-+static int vidioc_querystd(struct file *file, void *fh, v4l2_std_id *std)
-+{
-+	struct omap34xxcam_fh *ofh = fh;
-+	struct omap34xxcam_videodev *vdev = ofh->vdev;
-+	int rval = 0;
-+
-+	mutex_lock(&vdev->mutex);
-+	if (vdev->vdev_sensor_mode) {
-+		rval = vidioc_int_querystd(vdev->vdev_sensor, std);
-+		if (rval == 0)
-+			vdev->vfd->current_norm = *std;
-+	} else
-+		rval = -EINVAL;
-+	mutex_unlock(&vdev->mutex);
-+
-+	return rval;
-+}
-+
-+/**
-+ * vidioc_s_std - V4L2 set standard IOCTL handler
-+ * @file: ptr. to system file structure
-+ * @fh: ptr to hold address of omap34xxcam_fh struct (per-filehandle data)
-+ * @std: standard V4L2 v4l2_std_id enum
-+ *
-+ * If using a "smart" sensor, just forwards request to the sensor driver,
-+ * otherwise returns error
-+ */
-+static int vidioc_s_std(struct file *file, void *fh, v4l2_std_id *std)
-+{
-+	struct omap34xxcam_fh *ofh = fh;
-+	struct omap34xxcam_videodev *vdev = ofh->vdev;
-+	int rval = 0;
-+
-+	mutex_lock(&vdev->mutex);
-+	if (vdev->vdev_sensor_mode) {
-+		rval = vidioc_int_s_std(vdev->vdev_sensor, std);
-+		if (rval == 0)
-+			vdev->vfd->current_norm = *std;
-+	} else
-+		rval = -EINVAL;
-+	mutex_unlock(&vdev->mutex);
-+
-+	return rval;
-+}
-+
- /*
-  *
-  * File operations.
-@@ -1683,6 +1829,8 @@ static const struct v4l2_ioctl_ops omap34xxcam_ioctl_ops = {
- 	.vidioc_g_crop		 = vidioc_g_crop,
- 	.vidioc_s_crop		 = vidioc_s_crop,
- 	.vidioc_default		 = vidioc_default,
-+	.vidioc_s_std	 	= vidioc_s_std,
-+	.vidioc_querystd	= vidioc_querystd,
++	GPIO134_VDIN_SEL_Y,
++	GPIO54_VDIN_SEL_EXP_CAM,
++	GPIO136_VDIN_SEL_CAM,
  };
 
- /**
-@@ -1704,6 +1852,7 @@ static int omap34xxcam_device_register(struct v4l2_int_device *s)
- 	struct omap34xxcam_hw_config hwc;
- 	struct video_device *vfd;
- 	int rval;
-+	struct v4l2_ifparm ifparm;
-
- 	/* We need to check rval just once. The place is here. */
- 	if (vidioc_int_g_priv(s, &hwc))
-@@ -1783,6 +1932,18 @@ static int omap34xxcam_device_register(struct v4l2_int_device *s)
- 	} else {
- 		vfd = vdev->vfd;
- 	}
-+	/*Determine whether the slave connected is BT656 decoder or a sensor*/
-+	if (!vidioc_int_g_ifparm(s, &ifparm)) {
-+		if (ifparm.if_type == V4L2_IF_TYPE_BT656) {
-+			vfd->current_norm	 = V4L2_STD_NTSC;
-+			vfd->tvnorms		 = V4L2_STD_NTSC | V4L2_STD_PAL;
-+			if ((ifparm.u.bt656.mode ==
-+					V4L2_IF_TYPE_BT656_MODE_BT_8BIT) ||
-+					(ifparm.u.bt656.mode ==
-+					 V4L2_IF_TYPE_BT656_MODE_BT_10BIT))
-+				vdev->slave_mode[hwc.dev_type] = 1;
-+		}
-+	}
-
- 	omap34xxcam_vfd_name_update(vdev);
-
-diff --git a/drivers/media/video/omap34xxcam.h b/drivers/media/video/omap34xxcam.h
-index 36f7fd5..39e581c 100644
---- a/drivers/media/video/omap34xxcam.h
-+++ b/drivers/media/video/omap34xxcam.h
-@@ -92,6 +92,7 @@ struct omap34xxcam_hw_config {
- 		struct omap34xxcam_lens_config lens;
- 		struct omap34xxcam_flash_config flash;
- 	} u;
-+	int cur_input;
- };
-
- /**
-@@ -155,6 +156,10 @@ struct omap34xxcam_videodev {
- #define vdev_lens_config slave_config[OMAP34XXCAM_SLAVE_LENS].u.lens
- #define vdev_flash_config slave_config[OMAP34XXCAM_SLAVE_FLASH].u.flash
- 	struct omap34xxcam_hw_config slave_config[OMAP34XXCAM_SLAVE_FLASH + 1];
-+#define vdev_sensor_mode slave_mode[OMAP34XXCAM_SLAVE_SENSOR]
-+#define vdev_lens_mode slave_mode[OMAP34XXCAM_SLAVE_LENS]
-+#define vdev_flash_mode slave_mode[OMAP34XXCAM_SLAVE_FLASH]
-+	int slave_mode[OMAP34XXCAM_SLAVE_FLASH + 1];
-
- 	/*** capture data ***/
- 	struct v4l2_fract want_timeperframe;
+ struct omap_mux_cfg {
 --
 1.5.6
 
+--
+video4linux-list mailing list
+Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
+https://www.redhat.com/mailman/listinfo/video4linux-list
