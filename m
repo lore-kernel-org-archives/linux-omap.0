@@ -1,234 +1,140 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] OMAP: MMC: recover from transfer failures (was: Re:
-	[PATCH 5/5] omap mmc: Add new omap hsmmc controller for 2430 and
-	34xx)
-Date: Wed, 7 Jan 2009 17:40:14 +0200
-Message-ID: <20090107154013.GR27566@atomide.com>
-References: <20081207213617.10456.43951.stgit@localhost> <20081231185928.2ba325e6@mjolnir.drzeus.cx> <20090107101812.GD27566@atomide.com> <200901071128.43937.jpihet@mvista.com>
+Subject: Re: [PATCH v2 00/23] OMAP clock: bug fixes, cleanup, optimization
+Date: Wed, 7 Jan 2009 17:46:29 +0200
+Message-ID: <20090107154628.GS27566@atomide.com>
+References: <20090105022953.12661.57701.stgit@localhost.localdomain>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-bos.mailhop.org ([63.208.196.178]:56259 "EHLO
+Received: from mho-01-bos.mailhop.org ([63.208.196.178]:63039 "EHLO
 	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751845AbZAGPkg (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 7 Jan 2009 10:40:36 -0500
+	with ESMTP id S1751521AbZAGPqn (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 7 Jan 2009 10:46:43 -0500
 Content-Disposition: inline
-In-Reply-To: <200901071128.43937.jpihet@mvista.com>
+In-Reply-To: <20090105022953.12661.57701.stgit@localhost.localdomain>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Jean Pihet <jpihet@mvista.com>
-Cc: linux-arm-kernel@lists.arm.linux.org.uk, Pierre Ossman <drzeus-mmc@drzeus.cx>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Madhusudhan Chikkature <madhu.cr@ti.com>, David Brownell <david-b@pacbell.net>, "Jarkko Lavinen (NMP/Helsinki)" <jarkko.lavinen@nokia.com>
+To: Paul Walmsley <paul@pwsan.com>
+Cc: linux-omap@vger.kernel.org
 
-Hi,
+* Paul Walmsley <paul@pwsan.com> [090105 05:23]:
+> Hello,
+> 
+> This is version 2 of the clock updates series sent earlier.  Changes
+> in v2:
+> 
+> 1. Missing structure documentation for struct clk_child added
+> 
+> 2. .clk_register function pointer added to struct clk_functions;
+>    OMAP2/3 clock code now does clock->clockdomain association there
+> 
+> 
+> Revised summary below.  Happy new year, everyone.
 
-* Jean Pihet <jpihet@mvista.com> [090107 12:28]:
-> Tony, Pierre,
-> 
-> Here is a patch that fixes a MMC host controller deadlock. The problem happens 
-> when removing the MMC/SD device when a transfer is on-going.
-> 
-> It has been tested on OMAP3430 but this fix should apply to OMAP2 chips as 
-> well, as seen from the TRMs.
-> 
-> What do you think?
-
-Looks OK to me, adding Jarkko to Cc.
+Pushing this set today.
 
 Tony
 
-> Regards,
-> Jean.
 > 
->     OMAP: MMC: recover from transfer failures
+> - Paul
 > 
->     Timeouts during a command that has a data phase can result in the
->     next command issued after the command that failed not being processed,
->     i.e. no interrupt ever occurs to indicate the command has completed.
->     This failure can result in a deadlock.
+> ------------------
 > 
->     The indication that the mmc host controller is in this error state is
->     that the DATI bit is set in the PSTATE register.  This patch checks
->     to see if the DATI bit is set before starting a new command, and if it
->     is set it resets the data state machine to clear the error.
+> Hello,
 > 
->     Tested on OMAP3430 chip and intensive MMC/SD device removal while
->     transferring data.
+> this 23-patch series updates the OMAP1/2/3 clock code.  Highlights:
 > 
-> Regards,
-> Jean
+> - Rate recalculation functions are now no longer responsible for
+>   rate propagation - now handled by plat-omap/clock.c (patches 2, 3,
+>   4)
+> 
+> - Parent-to-child traversals of the clock tree are now much faster -
+>   these occur during rate propagation and clock notifiers (patch 5)
+> 
+> - Many superfluous clock flags have been dropped (patches 6, 7, 8, 9)
+> 
+> - struct clk has been streamlined by removing unused members and
+>   rearranging the structure to reduce padding (patches 10, 11)
+> 
+> - MPU barriers have been either removed or converted to OCP barriers
+>   (patches 12, 13, 14)
+> 
+> - clk_get_usecount() has been dropped (patch 15)
+> 
+> - OMAP clock code can now specify an OMAP chip family-specific 
+>   clk_enable() function - used on OMAP2/3 (patch 16)
+> 
+> - omap2_clk_enable() has been overhauled: two bugs were fixed and
+>   the function body itself is now understandable (patches 17, 18, 19,
+>   20, 21)
+> 
+> - Unnecessary custom clocks in smartreflex.c have been removed
+>   (patch 23)
+> 
+> - Miscellaneous bug fixes (patches 1, 22)
 > 
 > 
-> From 48a40925a4d57f6e7e45809a4b5c09b20f9314d7 Mon Sep 17 00:00:00 2001
-> From: Jean Pihet <jpihet@mvista.com>
-> Date: Tue, 16 Dec 2008 19:44:12 +0100
-> Subject: [PATCH] OMAP: MMC: recover from transfer failures
+> Compile-tested on OMAP1.  Boot-tested on N800 and 3430SDP GP ES2.1.
 > 
-> Timeouts during a command that has a data phase can result in the
-> next command issued after the command that failed not being processed,
-> i.e. no interrupt ever occurs to indicate the command has completed.
-> This failure can result in a deadlock.
-> 
-> The indication that the mmc host controller is in this error state is
-> that the DATI bit is set in the PSTATE register.  This patch checks
-> to see if the DATI bit is set before starting a new command, and if it
-> is set it resets the data state machine to clear the error.
-> 
-> Tested on OMAP3430 chip and intensive MMC/SD device removal while
-> transferring data.
-> 
-> Signed-off-by: Andy Lowe <alowe@mvista.com>
-> Signed-off-by: Jean Pihet <jpihet@mvista.com>
 > ---
->  drivers/mmc/host/omap_hsmmc.c |   11 +++++++++++
->  1 files changed, 11 insertions(+), 0 deletions(-)
 > 
-> diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
-> index 1fcc544..b7d111e 100644
-> --- a/drivers/mmc/host/omap_hsmmc.c
-> +++ b/drivers/mmc/host/omap_hsmmc.c
-> @@ -44,6 +44,7 @@
->  #define OMAP_HSMMC_RSP54       0x0118
->  #define OMAP_HSMMC_RSP76       0x011C
->  #define OMAP_HSMMC_DATA                0x0120
-> +#define OMAP_HSMMC_PSTATE      0x0124
->  #define OMAP_HSMMC_HCTL                0x0128
->  #define OMAP_HSMMC_SYSCTL      0x012C
->  #define OMAP_HSMMC_STAT                0x0130
-> @@ -89,6 +90,7 @@
->  #define DUAL_VOLT_OCR_BIT      7
->  #define SRC                    (1 << 25)
->  #define SRD                    (1 << 26)
-> +#define DATI                   (1 << 1)
->  
->  /*
->   * FIXME: Most likely all the data using these _DEVID defines should come
-> @@ -273,6 +275,15 @@ mmc_omap_start_command(struct mmc_omap_host *host, struct 
-> mmc_command *cmd,
->                 mmc_hostname(host->mmc), cmd->opcode, cmd->arg);
->         host->cmd = cmd;
->  
-> +       if (OMAP_HSMMC_READ(host->base, PSTATE) & DATI) {
-> +               dev_dbg(mmc_dev(host->mmc), "mmc_omap_start_command: "
-> +                       " resetting data state machine\n");
-> +               OMAP_HSMMC_WRITE(host->base, SYSCTL,
-> +                       OMAP_HSMMC_READ(host->base, SYSCTL) | SRD);
-> +               while (OMAP_HSMMC_READ(host->base, SYSCTL) & SRD)
-> +                       ;
-> +       }
-> +
->         /*
->          * Clear status bits and enable interrupts
->          */
-> -- 
-> 1.5.4.4.21.gc4a6c
+> size:
+>    text    data     bss     dec     hex filename
+> 3596322  192368  109912 3898602  3b7cea vmlinux.3430sdp.orig
+> 3595941  193016  109912 3898869  3b7df5 vmlinux.3430sdp.patched
 > 
+> 3167222  152232   86176 3405630  33f73e vmlinux.n800.orig
+> 3167501  152792   86176 3406469  33fa85 vmlinux.n800.patched
 > 
-> On Wednesday 07 January 2009 11:18:13 Tony Lindgren wrote:
-> > * Pierre Ossman <drzeus-mmc@drzeus.cx> [081231 19:59]:
-> > > On Tue, 30 Dec 2008 10:36:26 +0200
-> > >
-> > > Tony Lindgren <tony@atomide.com> wrote:
-> > > > Here's one more version that leaves out the unnecessary TWL4030
-> > > > dependency in the Kconfig as pointed out by David Brownell.
-> > >
-> > > Looks ok.
-> > >
-> > > Acked-by: Pierre Ossman <drzeus@drzeus.cx>
-> >
-> > Thanks, I'll queue it up with Russell with one change
-> > to include <mach/dma.h> instead of <asm/dma.h>.
-> >
-> > All further patches to this driver will come to you via
-> > LKML.
-> >
-> > Regards,
-> >
-> > Tony
-> >
-> > > --
-> > >      -- Pierre Ossman
-> > >
-> > >   Linux kernel, MMC maintainer        http://www.kernel.org
-> > >   rdesktop, core developer          http://www.rdesktop.org
-> > >
-> > >   WARNING: This correspondence is being monitored by the
-> > >   Swedish government. Make sure your server uses encryption
-> > >   for SMTP traffic and consider using PGP for end-to-end
-> > >   encryption.
-> > > --
-> > > To unsubscribe from this list: send the line "unsubscribe linux-kernel"
-> > > in the body of a message to majordomo@vger.kernel.org
-> > > More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> > > Please read the FAQ at  http://www.tux.org/lkml/
-> >
-> > -------------------------------------------------------------------
-> > List admin: http://lists.arm.linux.org.uk/mailman/listinfo/linux-arm-kernel
-> > FAQ:        http://www.arm.linux.org.uk/mailinglists/faq.php
-> > Etiquette:  http://www.arm.linux.org.uk/mailinglists/etiquette.php
+> 2682806  120120   96940 2899866  2c3f9a vmlinux.osk5912.orig
+> 2683397  120528   96940 2900865  2c4381 vmlinux.osk5912.patched
+> 
+> diffstat:
+>  arch/arm/mach-omap1/clock.c             |   87 +++++++----
+>  arch/arm/mach-omap1/clock.h             |   64 ++++----
+>  arch/arm/mach-omap2/clock.c             |  167 +++++++++++---------
+>  arch/arm/mach-omap2/clock.h             |    9 +
+>  arch/arm/mach-omap2/clock24xx.c         |  128 ++++++++++------
+>  arch/arm/mach-omap2/clock24xx.h         |   89 ++++-------
+>  arch/arm/mach-omap2/clock34xx.c         |   52 +++---
+>  arch/arm/mach-omap2/clock34xx.h         |  228 ++++++++++------------------
+>  arch/arm/mach-omap2/pm-debug.c          |    2 
+>  arch/arm/mach-omap2/pm24xx.c            |    2 
+>  arch/arm/mach-omap2/smartreflex.c       |   89 ++---------
+>  arch/arm/plat-omap/clock.c              |  256 +++++++++++++++++++++++++------
+>  arch/arm/plat-omap/include/mach/clock.h |   78 ++++++---
+>  13 files changed, 693 insertions(+), 558 deletions(-)
+> 
+> manifest:
+> Paul Walmsley (20):
+>       OMAP3 SmartReflex: get rid of custom clocks
+>       OMAP2/3 clock: don't tinker with hardirqs when they are supposed to be disabled
+>       OMAP2/3 clock: omap2_clk_enable(): fix logic
+>       OMAP2/3 clock: omap2_clk_enable(): fix usecount decrement bug
+>       OMAP2/3 clock: omap2_clk_enable(): fix bugs in clockdomain handling
+>       OMAP2/3 clock: omap2_clk_enable(): refactor usecount check
+>       OMAP2/3 clock: every clock must have a clkdm
+>       OMAP clock: add OMAP chip family-specific clk_register() option
+>       OMAP clock: drop clk_get_usecount()
+>       OMAP2/3 clock: convert remaining MPU barriers into OCP barriers
+>       OMAP2xxx clock: consolidate DELAYED_APP clock commits; fix barrier
+>       OMAP2/3 clock: don't use a barrier after clk_disable()
+>       OMAP2 clock: drop CONFIG_PARTICIPANT clock flag
+>       OMAP clock: drop RATE_FIXED
+>       OMAP clock: drop the RATE_PROPAGATES flag
+>       OMAP clock: track child clocks
+>       OMAP clock: support "dry run" rate and parent changes
+>       OMAP2/3 clock: drop recalc function pointers from fixed rate clocks
+>       OMAP clock: move rate recalc, propagation code up to plat-omap/clock.c
+>       OMAP2/3 clock: use standard set_rate fn in omap2_clk_arch_init()
+> 
+> Russell King (3):
+>       OMAP clock: rearrange clock.h structure order
+>       OMAP2/3 clock: remove clk->owner
+>       OMAP clock: remove VIRTUAL_CLOCK
 > 
 > 
-
-> From 48a40925a4d57f6e7e45809a4b5c09b20f9314d7 Mon Sep 17 00:00:00 2001
-> From: Jean Pihet <jpihet@mvista.com>
-> Date: Tue, 16 Dec 2008 19:44:12 +0100
-> Subject: [PATCH] OMAP: MMC: recover from transfer failures
-> 
-> Timeouts during a command that has a data phase can result in the
-> next command issued after the command that failed not being processed,
-> i.e. no interrupt ever occurs to indicate the command has completed.
-> This failure can result in a deadlock.
-> 
-> The indication that the mmc host controller is in this error state is
-> that the DATI bit is set in the PSTATE register.  This patch checks
-> to see if the DATI bit is set before starting a new command, and if it
-> is set it resets the data state machine to clear the error.
-> 
-> Tested on OMAP3430 chip and intensive MMC/SD device removal while
-> transferring data.
-> 
-> Signed-off-by: Andy Lowe <alowe@mvista.com>
-> Signed-off-by: Jean Pihet <jpihet@mvista.com>
-> ---
->  drivers/mmc/host/omap_hsmmc.c |   11 +++++++++++
->  1 files changed, 11 insertions(+), 0 deletions(-)
-> 
-> diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
-> index 1fcc544..b7d111e 100644
-> --- a/drivers/mmc/host/omap_hsmmc.c
-> +++ b/drivers/mmc/host/omap_hsmmc.c
-> @@ -44,6 +44,7 @@
->  #define OMAP_HSMMC_RSP54	0x0118
->  #define OMAP_HSMMC_RSP76	0x011C
->  #define OMAP_HSMMC_DATA		0x0120
-> +#define OMAP_HSMMC_PSTATE	0x0124
->  #define OMAP_HSMMC_HCTL		0x0128
->  #define OMAP_HSMMC_SYSCTL	0x012C
->  #define OMAP_HSMMC_STAT		0x0130
-> @@ -89,6 +90,7 @@
->  #define DUAL_VOLT_OCR_BIT	7
->  #define SRC			(1 << 25)
->  #define SRD			(1 << 26)
-> +#define DATI			(1 << 1)
->  
->  /*
->   * FIXME: Most likely all the data using these _DEVID defines should come
-> @@ -273,6 +275,15 @@ mmc_omap_start_command(struct mmc_omap_host *host, struct mmc_command *cmd,
->  		mmc_hostname(host->mmc), cmd->opcode, cmd->arg);
->  	host->cmd = cmd;
->  
-> +	if (OMAP_HSMMC_READ(host->base, PSTATE) & DATI) {
-> +		dev_dbg(mmc_dev(host->mmc), "mmc_omap_start_command: "
-> +			" resetting data state machine\n");
-> +		OMAP_HSMMC_WRITE(host->base, SYSCTL,
-> +			OMAP_HSMMC_READ(host->base, SYSCTL) | SRD);
-> +		while (OMAP_HSMMC_READ(host->base, SYSCTL) & SRD)
-> +			;
-> +	}
-> +
->  	/*
->  	 * Clear status bits and enable interrupts
->  	 */
-> -- 
-> 1.5.4.4.21.gc4a6c
-> 
-
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
