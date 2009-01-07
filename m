@@ -1,51 +1,58 @@
-From: "matti.halme@nokia.com" <matti.halme@nokia.com>
-Subject: [PATCH] Don't mask rtc-twl4030 alarm interrupts on shutdown
-Date: Wed, 7 Jan 2009 09:10:07 +0200
-Message-ID: <043E6D9F43E2D14682729D3AE18163F30293E71E@vaebe107.NOE.Nokia.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: Spurious interrupt warning
+Date: Wed, 7 Jan 2009 10:26:19 +0200
+Message-ID: <20090107082618.GC27566@atomide.com>
+References: <20090106110837.GG9752@atomide.com> <19F8576C6E063C45BE387C64729E739403ECEDD480@dbde02.ent.ti.com> <20090106111928.GA10260@atomide.com> <13B9B4C6EF24D648824FF11BE8967162036D480BD0@dlee02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:56272 "EHLO
-	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751034AbZAGHKp convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 7 Jan 2009 02:10:45 -0500
-Content-class: urn:content-classes:message
+Received: from mho-01-bos.mailhop.org ([63.208.196.178]:59946 "EHLO
+	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752147AbZAGI0V (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 7 Jan 2009 03:26:21 -0500
+Content-Disposition: inline
+In-Reply-To: <13B9B4C6EF24D648824FF11BE8967162036D480BD0@dlee02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: a.zummo@towertech.it, rtc-linux@googlegroups.com
-Cc: linux-omap@vger.kernel.org
+To: "Woodruff, Richard" <r-woodruff2@ti.com>
+Cc: "Hiremath, Vaibhav" <hvaibhav@ti.com>, "Shah, Hardik" <hardik.shah@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-A triggering RTC alarm should be able to power on a device that has been
-powered off. This patch enables that on twl4030 by not masking the alarm
-interrupt at shutdown.
+* Woodruff, Richard <r-woodruff2@ti.com> [090106 16:06]:
+> Hi,
+> 
+> > * Hiremath, Vaibhav <hvaibhav@ti.com> [090106 13:13]:
+> > > For capture driver I am also getting similar messages
+> > >
+> > > <4>Spurious irq 95: 0xffffffdf, please flush posted write for irq 24
+> > > Spurious irq 95: 0xffffffdf, please flush posted write for irq 24
+> > > <4>Spurious irq 95: 0xffffffdf, please flush posted write for irq 24
+> > > Spurious irq 95: 0xffffffdf, please flush posted write for irq 24
+> >
+> > The same solution should work in the irq 24 handler as well. Just do
+> > a read-back of the last written register in the irq 24 handler.
+> >
+> > Or a read back of some safe register in the same device in case
+> > you cannot read back the interrupt status register without clearing
+> > the device interrupts :)
+> 
+> I'll re-raise the opinion that SO should be used for device mappings on OMAP.
+> 
+> This is not just an IRQ issue.  It's a generic one to programming a device and knowing when what you have written has taken.
+> 
+> It just happens to be the IRQ path has a very slow dissertation path when you take into account timing domains that it shows up.
+> 
+> Shrinking the race window with SO then using a read back to get the last one or two is most conservative and safe.  Probably 97% for IO accesses are ok on OMAP as device, but that is probably 99.9% with SO.  In our testing we may be able to make that 97 a 99.  Still I'd rather not risk the 1% for production.
 
-Signed-off-by: Matti Halme <matti.halme@nokia.com>
----
- drivers/rtc/rtc-twl4030.c |    5 +++--
- 1 files changed, 3 insertions(+), 2 deletions(-)
+Sure you can patch the SO back if you want to. However, it's a more
+generic problem, and Russell has stated that he does not want to
+merge it.
 
-diff --git a/drivers/rtc/rtc-twl4030.c b/drivers/rtc/rtc-twl4030.c
-index abe87a4..f5f6a97 100644
---- a/drivers/rtc/rtc-twl4030.c
-+++ b/drivers/rtc/rtc-twl4030.c
-@@ -505,8 +505,9 @@ static int __devexit twl4030_rtc_remove(struct
-platform_device *pdev)
- 
- static void twl4030_rtc_shutdown(struct platform_device *pdev)
- {
--	mask_rtc_irq_bit(BIT_RTC_INTERRUPTS_REG_IT_TIMER_M |
--			 BIT_RTC_INTERRUPTS_REG_IT_ALARM_M);
-+	/* mask timer interrupts, but leave alarm interrupts on to
-enable
-+	   power-on when alarm is triggered */
-+	mask_rtc_irq_bit(BIT_RTC_INTERRUPTS_REG_IT_TIMER_M);
- }
- 
- #ifdef CONFIG_PM
--- 
-1.4.4.4
+At least the interrupt problems are easy to debug now, so I'd say
+those are easy one liners to fix. The other places where we need
+to flush posted writes may be harder to track down, but should be
+possible to spot by reading the code of the problem driver.
 
 Regards,
-Matti Halme
+
+Tony
+
