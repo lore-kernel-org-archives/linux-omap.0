@@ -1,108 +1,50 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: Questions about masking interrupts when disabling interrupts
-Date: Wed, 7 Jan 2009 15:05:06 +0200
-Message-ID: <20090107130504.GM27566@atomide.com>
-References: <4d34a0a70901051859i792725b3t4563971070f886fc@mail.gmail.com>
+From: Adrian Hunter <ext-adrian.hunter@nokia.com>
+Subject: Re: [PATCH 2/2] ARM: OMAP: Fix gpio by switching to generic gpio
+ calls
+Date: Wed, 07 Jan 2009 15:26:41 +0200
+Message-ID: <4964AD91.3000200@nokia.com>
+References: <20090107111415.GF27566@atomide.com> <20090107111615.GG27566@atomide.com> <20090107111744.GH27566@atomide.com> <20090107133747.d448222e.jarkko.nikula@nokia.com> <20090107120344.GK27566@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-bos.mailhop.org ([63.208.196.178]:51383 "EHLO
-	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757627AbZAGNFK (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 7 Jan 2009 08:05:10 -0500
-Content-Disposition: inline
-In-Reply-To: <4d34a0a70901051859i792725b3t4563971070f886fc@mail.gmail.com>
+Received: from smtp.nokia.com ([192.100.122.230]:38313 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751006AbZAGNPa (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 7 Jan 2009 08:15:30 -0500
+In-Reply-To: <20090107120344.GK27566@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: =?utf-8?B?6rmA6rec7JuQ?= <chammoru@gmail.com>
-Cc: linux-omap@vger.kernel.org, =?utf-8?B?67CV6rK966+8?= <kyungmin.park@samsung.com>, =?utf-8?B?7ZeI7ISx6rSA?= <sk.heo@samsung.com>
+To: Tony Lindgren <tony@atomide.com>
+Cc: Jarkko Nikula <jarkko.nikula@nokia.com>, linux-arm-kernel@lists.arm.linux.org.uk, linux-omap@vger.kernel.org
 
-* =EA=B9=80=EA=B7=9C=EC=9B=90 <chammoru@gmail.com> [090106 04:59]:
-> Greetings,
->=20
-> I'm enabling the Suspend-to-RAM state in our new OMAP3 Board.
-> But I had some problems because of USB Interrupt.
->=20
-> Although I disabled USB interrupt by disable_irq() function while
-> entering the Suspend,
-> M_IRQ_92 irq continuously wake up the OMAP3430 Processor.
->=20
-> So, I fixed this problem as following patch.
->=20
-> My Questions are:
-> 1. Could anyone suggest the better solution for this problem?
+Tony Lindgren wrote:
+> * Jarkko Nikula <jarkko.nikula@nokia.com> [090107 13:38]:
+>> On Wed, 7 Jan 2009 13:17:45 +0200
+>> "ext Tony Lindgren" <tony@atomide.com> wrote:
+>>
+>>> From: Jarkko Nikula <jarkko.nikula@nokia.com>
+>>> Date: Wed, 7 Jan 2009 12:54:34 +0200
+>>> Subject: [PATCH] ARM: OMAP: Fix gpio by switching to generic gpio calls
+>>>
+>>> Fix compile by removing remaining omap specific gpio
+>>> calls. Based on earlier patches by Jarkko Nikula.
+>>>
+>> Thanks Tony!
+>>
+>>> diff --git a/drivers/mtd/onenand/omap2.c b/drivers/mtd/onenand/omap2.c
+>>> index 96ecc17..77a4f14 100644
+>>> --- a/drivers/mtd/onenand/omap2.c
+>>> +++ b/drivers/mtd/onenand/omap2.c
+>>>
+>> I think this was already handed over to mtd list by Adrian?
+> 
+> Oops, sorry. Adrian, do you want me to drop the compile fix for onenand?
+> 
+> Regards,
+> 
+> Tony
+> 
 
-Maybe suspend the US=CE=92 too? :)
-
-> 2. If there is no better solution, can I be applied this patch to oma=
-p-tree?
-
-The patch looks OK to me, assuming the default enable calls unmask?
-
-Regards,
-
-Tony
-
->=20
-> Thank you!
->=20
-> commit bbb49321b161e6a9ff2b73326d4012d8eb8bbf23
-> Author: Kim Kyuwon <chammoru@gmail.com>
-> Date:   Tue Jan 6 10:11:46 2009 +0900
->=20
->     ARM: OMAP3: Mask interrupts when disabling interrupts
->=20
->     By Ingo Molnar, interrupts are not masked by default.
->     (refer to 76d2160147f43f982dfe881404cfde9fd0a9da21)
->=20
->     But if interrupts are not masked, the processor can wake up while=
- in
->     Suspend-to-RAM state by an external interrupt. For example, if an
-> OMAP3 board
->     is connected to Host PC by USB and entered to Suspend-to-RAM
-> state, it wake up
->     automatically by M_IRQ_92. The disable_irq() function can't disab=
-le the
->     interrupt in H/W level, So I modified arch/arm/mach-omap2/irq.c
->=20
->     Signed-off-by: Kim Kyuwon <chammoru@gmail.com>
->=20
-> diff --git a/arch/arm/mach-omap2/irq.c b/arch/arm/mach-omap2/irq.c
-> index 110acb9..b44dcae 100644
-> --- a/arch/arm/mach-omap2/irq.c
-> +++ b/arch/arm/mach-omap2/irq.c
-> @@ -123,6 +123,11 @@ static void omap_unmask_irq(unsigned int irq)
->  	intc_bank_write_reg(1 << irq, &irq_banks[0], INTC_MIR_CLEAR0 + offs=
-et);
->  }
->=20
-> +static void omap_disable_irq(unsigned int irq)
-> +{
-> +	omap_mask_irq(irq);
-> +}
-> +
->  static void omap_mask_ack_irq(unsigned int irq)
->  {
->  	omap_mask_irq(irq);
-> @@ -134,6 +139,7 @@ static struct irq_chip omap_irq_chip =3D {
->  	.ack	=3D omap_mask_ack_irq,
->  	.mask	=3D omap_mask_irq,
->  	.unmask	=3D omap_unmask_irq,
-> +	.disable =3D omap_disable_irq,
->  };
->=20
->  static void __init omap_irq_bank_init_one(struct omap_irq_bank *bank=
-)
-> --=20
-> Kim Kyuwon
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap"=
- in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+No, those changes have not been sent to mainline before.
+Please go ahead.
