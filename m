@@ -1,77 +1,41 @@
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: [REVIEW PATCH 2/2] Added OMAP3EVM Multi-Media Daughter Card
- Support
-Date: Wed, 7 Jan 2009 08:39:31 -0200
-Message-ID: <20090107083931.226e1898@pedra.chehab.org>
-References: <20090107075832.4889c816@pedra.chehab.org>
-	<19F8576C6E063C45BE387C64729E739403ECEDD702@dbde02.ent.ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Return-path: <video4linux-list-bounces@redhat.com>
-In-Reply-To: <19F8576C6E063C45BE387C64729E739403ECEDD702@dbde02.ent.ti.com>
-List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
-	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
-List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
-List-Post: <mailto:video4linux-list@redhat.com>
-List-Help: <mailto:video4linux-list-request@redhat.com?subject=help>
-List-Subscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
-	<mailto:video4linux-list-request@redhat.com?subject=subscribe>
-Sender: video4linux-list-bounces@redhat.com
-Errors-To: video4linux-list-bounces@redhat.com
-To: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Cc: "video4linux-list@redhat.com" <video4linux-list@redhat.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+From: Ajay Kumar Gupta <ajay.gupta@ti.com>
+Subject: [PATCH 1/3] usb: musb: fix bug in musb_free() w.r.t free_irq()
+Date: Wed,  7 Jan 2009 16:43:49 +0530
+Message-ID: <1231326829-22638-1-git-send-email-ajay.gupta@ti.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:35914 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751019AbZAGLOG (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 7 Jan 2009 06:14:06 -0500
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-usb@vger.kernel.org
+Cc: linux-omap@vger.kernel.org, david-b@pacbell.net, felipe.balbi@nokia.com, Ajay Kumar Gupta <ajay.gupta@ti.com>
 
-On Wed, 7 Jan 2009 15:51:53 +0530
-"Hiremath, Vaibhav" <hvaibhav@ti.com> wrote:
+Fixes insert module failure as free_irq() was not
+done in previous rmmod.
 
+Signed-off-by: Ajay Kumar Gupta <ajay.gupta@ti.com>
+---
+ drivers/usb/musb/musb_core.c |    5 +++--
+ 1 files changed, 3 insertions(+), 2 deletions(-)
 
-> [Hiremath, Vaibhav] Mauro, the Daughter card not only supports TVP1546/sensor but also supports USB EHCI. So this driver may not be fit into V4L driver. Daughter card driver (board-omap3evm-dc.c) only does basic initialization which happens during arch_init. The underneath V4L drivers are omap34xxcam.c (drivers/media/video) and TVP514x.c (drivers/media/video).
+diff --git a/drivers/usb/musb/musb_core.c b/drivers/usb/musb/musb_core.c
+index f71fab6..2447e3a 100644
+--- a/drivers/usb/musb/musb_core.c
++++ b/drivers/usb/musb/musb_core.c
+@@ -1824,8 +1824,9 @@ static void musb_free(struct musb *musb)
+ 	musb_gadget_cleanup(musb);
+ #endif
+ 
+-	if (musb->nIrq >= 0 && musb->irq_wake) {
+-		disable_irq_wake(musb->nIrq);
++	if (musb->nIrq >= 0) {
++		if (musb->irq_wake)
++			disable_irq_wake(musb->nIrq);
+ 		free_irq(musb->nIrq, musb);
+ 	}
+ 	if (is_dma_capable() && musb->dma_controller) {
+-- 
+1.5.6
 
-Understood. This makes things a little more complicated. I suggest then to
-split the V4L specific part into a separate file, in order to allow a better
-maintenance (something like board-omap3evm-dc-v4l.c), since I'd like to review
-the changes there.
-> 
-> > > +/* include V4L2 camera driver related header file */
-> > > +#if defined(CONFIG_VIDEO_OMAP3) ||
-> > defined(CONFIG_VIDEO_OMAP3_MODULE)
-> > > +#include <../drivers/media/video/omap34xxcam.h>
-> > > +#include <../drivers/media/video/isp/ispreg.h>
-> > > +#endif				/* #ifdef CONFIG_VIDEO_OMAP3 */
-> > > +#endif				/* #ifdef CONFIG_VIDEO_TVP514X*/
-> > 
-> > Please, don't use ../* at your includes. IMO, the better is to
-> > create a
-> > drivers/media/video/omap dir, and put omap2/omap3 files there,
-> > including board-omap3evm-dc.c.
-> > This will avoid those ugly includes.
-> > 
-> [Hiremath, Vaibhav] I do agree with this. I have mentioned this in my TODO list.
-
-A cleaner solution is to add something like this at the Makefile:
-
-EXTRA_CFLAGS += -Idrivers/media/video
-EXTRA_CFLAGS += -Idrivers/media/video/isp
-
-Then, all you need to do is to use:
-
-#include <omap34xxcam.h>
-#include <ispreg.h>
-
-> 
-> > Btw, drivers/media/video/isp/ currently doesn't exist. Please submit
-> > the patch for it first.
-> > 
-> [Hiremath, Vaibhav] Following up with Sergio on this, and soon will be available.
-
-Ok, thanks.
-
-Cheers,
-Mauro
-
---
-video4linux-list mailing list
-Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
-https://www.redhat.com/mailman/listinfo/video4linux-list
