@@ -1,62 +1,234 @@
-From: "Premi, Sanjeev" <premi@ti.com>
-Subject: RE: [PATCH] Backlight driver for omap3evm
-Date: Wed, 7 Jan 2009 20:52:00 +0530
-Message-ID: <B85A65D85D7EB246BE421B3FB0FBB59301BB7E0701@dbde02.ent.ti.com>
-References: <1231340151-16790-1-git-send-email-premi@ti.com>
- <1231340830.5331.22.camel@dax.rpnet.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] OMAP: MMC: recover from transfer failures (was: Re:
+	[PATCH 5/5] omap mmc: Add new omap hsmmc controller for 2430 and
+	34xx)
+Date: Wed, 7 Jan 2009 17:40:14 +0200
+Message-ID: <20090107154013.GR27566@atomide.com>
+References: <20081207213617.10456.43951.stgit@localhost> <20081231185928.2ba325e6@mjolnir.drzeus.cx> <20090107101812.GD27566@atomide.com> <200901071128.43937.jpihet@mvista.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:60076 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751477AbZAGPWO convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 7 Jan 2009 10:22:14 -0500
-In-Reply-To: <1231340830.5331.22.camel@dax.rpnet.com>
-Content-Language: en-US
+Received: from mho-01-bos.mailhop.org ([63.208.196.178]:56259 "EHLO
+	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751845AbZAGPkg (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 7 Jan 2009 10:40:36 -0500
+Content-Disposition: inline
+In-Reply-To: <200901071128.43937.jpihet@mvista.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Richard Purdie <rpurdie@rpsys.net>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Jean Pihet <jpihet@mvista.com>
+Cc: linux-arm-kernel@lists.arm.linux.org.uk, Pierre Ossman <drzeus-mmc@drzeus.cx>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Madhusudhan Chikkature <madhu.cr@ti.com>, David Brownell <david-b@pacbell.net>, "Jarkko Lavinen (NMP/Helsinki)" <jarkko.lavinen@nokia.com>
 
+Hi,
 
-> -----Original Message-----
-> From: Richard Purdie [mailto:rpurdie@rpsys.net] 
-> Sent: Wednesday, January 07, 2009 8:37 PM
-> To: Premi, Sanjeev
-> Cc: linux-omap@vger.kernel.org
-> Subject: Re: [PATCH] Backlight driver for omap3evm
+* Jean Pihet <jpihet@mvista.com> [090107 12:28]:
+> Tony, Pierre,
 > 
-> On Wed, 2009-01-07 at 20:25 +0530, Sanjeev Premi wrote:
-> > This patch implements the backlight driver for OMAP3EVM.
-> > The mechanism for backlight control is reused from the existing 
-> > controls in lcd_omap3evm.c.
+> Here is a patch that fixes a MMC host controller deadlock. The problem happens 
+> when removing the MMC/SD device when a transfer is on-going.
 > 
-> Please see the reply to the email you sent me offlist. What 
-> happens when you run this driver on something that isn't an omap3evm?
-
-The driver implementation depends upon CONFIG_MACH_OMAP3EVM.
-
+> It has been tested on OMAP3430 but this fix should apply to OMAP2 chips as 
+> well, as seen from the TRMs.
 > 
-> The problem is that this bit:
+> What do you think?
+
+Looks OK to me, adding Jarkko to Cc.
+
+Tony
+
+> Regards,
+> Jean.
 > 
-> omap_backlight_dev = platform_device_alloc(OMAPBL_DEVNAME, -1);
+>     OMAP: MMC: recover from transfer failures
 > 
-
-Ah, this bit can be moved to board specific file in "mach-omap2" directory.
-
-> should be done in the platform code for the board, not in the 
-> general driver. If you do that, you should be able to reuse 
-> most of the generic-bl device code.
-
-I tried so, but wasn't able to get the Kconfig dependencies right to get 'generic-bl' into my build. Hence, removed the code that I believed to be generic (since yesterday's mail) and created the patch.
-
-Will give another try.
-
+>     Timeouts during a command that has a data phase can result in the
+>     next command issued after the command that failed not being processed,
+>     i.e. no interrupt ever occurs to indicate the command has completed.
+>     This failure can result in a deadlock.
+> 
+>     The indication that the mmc host controller is in this error state is
+>     that the DATI bit is set in the PSTATE register.  This patch checks
+>     to see if the DATI bit is set before starting a new command, and if it
+>     is set it resets the data state machine to clear the error.
+> 
+>     Tested on OMAP3430 chip and intensive MMC/SD device removal while
+>     transferring data.
 > 
 > Regards,
-> 
-> Richard
-> 
+> Jean
 > 
 > 
+> From 48a40925a4d57f6e7e45809a4b5c09b20f9314d7 Mon Sep 17 00:00:00 2001
+> From: Jean Pihet <jpihet@mvista.com>
+> Date: Tue, 16 Dec 2008 19:44:12 +0100
+> Subject: [PATCH] OMAP: MMC: recover from transfer failures
+> 
+> Timeouts during a command that has a data phase can result in the
+> next command issued after the command that failed not being processed,
+> i.e. no interrupt ever occurs to indicate the command has completed.
+> This failure can result in a deadlock.
+> 
+> The indication that the mmc host controller is in this error state is
+> that the DATI bit is set in the PSTATE register.  This patch checks
+> to see if the DATI bit is set before starting a new command, and if it
+> is set it resets the data state machine to clear the error.
+> 
+> Tested on OMAP3430 chip and intensive MMC/SD device removal while
+> transferring data.
+> 
+> Signed-off-by: Andy Lowe <alowe@mvista.com>
+> Signed-off-by: Jean Pihet <jpihet@mvista.com>
+> ---
+>  drivers/mmc/host/omap_hsmmc.c |   11 +++++++++++
+>  1 files changed, 11 insertions(+), 0 deletions(-)
+> 
+> diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
+> index 1fcc544..b7d111e 100644
+> --- a/drivers/mmc/host/omap_hsmmc.c
+> +++ b/drivers/mmc/host/omap_hsmmc.c
+> @@ -44,6 +44,7 @@
+>  #define OMAP_HSMMC_RSP54       0x0118
+>  #define OMAP_HSMMC_RSP76       0x011C
+>  #define OMAP_HSMMC_DATA                0x0120
+> +#define OMAP_HSMMC_PSTATE      0x0124
+>  #define OMAP_HSMMC_HCTL                0x0128
+>  #define OMAP_HSMMC_SYSCTL      0x012C
+>  #define OMAP_HSMMC_STAT                0x0130
+> @@ -89,6 +90,7 @@
+>  #define DUAL_VOLT_OCR_BIT      7
+>  #define SRC                    (1 << 25)
+>  #define SRD                    (1 << 26)
+> +#define DATI                   (1 << 1)
+>  
+>  /*
+>   * FIXME: Most likely all the data using these _DEVID defines should come
+> @@ -273,6 +275,15 @@ mmc_omap_start_command(struct mmc_omap_host *host, struct 
+> mmc_command *cmd,
+>                 mmc_hostname(host->mmc), cmd->opcode, cmd->arg);
+>         host->cmd = cmd;
+>  
+> +       if (OMAP_HSMMC_READ(host->base, PSTATE) & DATI) {
+> +               dev_dbg(mmc_dev(host->mmc), "mmc_omap_start_command: "
+> +                       " resetting data state machine\n");
+> +               OMAP_HSMMC_WRITE(host->base, SYSCTL,
+> +                       OMAP_HSMMC_READ(host->base, SYSCTL) | SRD);
+> +               while (OMAP_HSMMC_READ(host->base, SYSCTL) & SRD)
+> +                       ;
+> +       }
+> +
+>         /*
+>          * Clear status bits and enable interrupts
+>          */
+> -- 
+> 1.5.4.4.21.gc4a6c
+> 
+> 
+> On Wednesday 07 January 2009 11:18:13 Tony Lindgren wrote:
+> > * Pierre Ossman <drzeus-mmc@drzeus.cx> [081231 19:59]:
+> > > On Tue, 30 Dec 2008 10:36:26 +0200
+> > >
+> > > Tony Lindgren <tony@atomide.com> wrote:
+> > > > Here's one more version that leaves out the unnecessary TWL4030
+> > > > dependency in the Kconfig as pointed out by David Brownell.
+> > >
+> > > Looks ok.
+> > >
+> > > Acked-by: Pierre Ossman <drzeus@drzeus.cx>
+> >
+> > Thanks, I'll queue it up with Russell with one change
+> > to include <mach/dma.h> instead of <asm/dma.h>.
+> >
+> > All further patches to this driver will come to you via
+> > LKML.
+> >
+> > Regards,
+> >
+> > Tony
+> >
+> > > --
+> > >      -- Pierre Ossman
+> > >
+> > >   Linux kernel, MMC maintainer        http://www.kernel.org
+> > >   rdesktop, core developer          http://www.rdesktop.org
+> > >
+> > >   WARNING: This correspondence is being monitored by the
+> > >   Swedish government. Make sure your server uses encryption
+> > >   for SMTP traffic and consider using PGP for end-to-end
+> > >   encryption.
+> > > --
+> > > To unsubscribe from this list: send the line "unsubscribe linux-kernel"
+> > > in the body of a message to majordomo@vger.kernel.org
+> > > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> > > Please read the FAQ at  http://www.tux.org/lkml/
+> >
+> > -------------------------------------------------------------------
+> > List admin: http://lists.arm.linux.org.uk/mailman/listinfo/linux-arm-kernel
+> > FAQ:        http://www.arm.linux.org.uk/mailinglists/faq.php
+> > Etiquette:  http://www.arm.linux.org.uk/mailinglists/etiquette.php
+> 
+> 
+
+> From 48a40925a4d57f6e7e45809a4b5c09b20f9314d7 Mon Sep 17 00:00:00 2001
+> From: Jean Pihet <jpihet@mvista.com>
+> Date: Tue, 16 Dec 2008 19:44:12 +0100
+> Subject: [PATCH] OMAP: MMC: recover from transfer failures
+> 
+> Timeouts during a command that has a data phase can result in the
+> next command issued after the command that failed not being processed,
+> i.e. no interrupt ever occurs to indicate the command has completed.
+> This failure can result in a deadlock.
+> 
+> The indication that the mmc host controller is in this error state is
+> that the DATI bit is set in the PSTATE register.  This patch checks
+> to see if the DATI bit is set before starting a new command, and if it
+> is set it resets the data state machine to clear the error.
+> 
+> Tested on OMAP3430 chip and intensive MMC/SD device removal while
+> transferring data.
+> 
+> Signed-off-by: Andy Lowe <alowe@mvista.com>
+> Signed-off-by: Jean Pihet <jpihet@mvista.com>
+> ---
+>  drivers/mmc/host/omap_hsmmc.c |   11 +++++++++++
+>  1 files changed, 11 insertions(+), 0 deletions(-)
+> 
+> diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
+> index 1fcc544..b7d111e 100644
+> --- a/drivers/mmc/host/omap_hsmmc.c
+> +++ b/drivers/mmc/host/omap_hsmmc.c
+> @@ -44,6 +44,7 @@
+>  #define OMAP_HSMMC_RSP54	0x0118
+>  #define OMAP_HSMMC_RSP76	0x011C
+>  #define OMAP_HSMMC_DATA		0x0120
+> +#define OMAP_HSMMC_PSTATE	0x0124
+>  #define OMAP_HSMMC_HCTL		0x0128
+>  #define OMAP_HSMMC_SYSCTL	0x012C
+>  #define OMAP_HSMMC_STAT		0x0130
+> @@ -89,6 +90,7 @@
+>  #define DUAL_VOLT_OCR_BIT	7
+>  #define SRC			(1 << 25)
+>  #define SRD			(1 << 26)
+> +#define DATI			(1 << 1)
+>  
+>  /*
+>   * FIXME: Most likely all the data using these _DEVID defines should come
+> @@ -273,6 +275,15 @@ mmc_omap_start_command(struct mmc_omap_host *host, struct mmc_command *cmd,
+>  		mmc_hostname(host->mmc), cmd->opcode, cmd->arg);
+>  	host->cmd = cmd;
+>  
+> +	if (OMAP_HSMMC_READ(host->base, PSTATE) & DATI) {
+> +		dev_dbg(mmc_dev(host->mmc), "mmc_omap_start_command: "
+> +			" resetting data state machine\n");
+> +		OMAP_HSMMC_WRITE(host->base, SYSCTL,
+> +			OMAP_HSMMC_READ(host->base, SYSCTL) | SRD);
+> +		while (OMAP_HSMMC_READ(host->base, SYSCTL) & SRD)
+> +			;
+> +	}
+> +
+>  	/*
+>  	 * Clear status bits and enable interrupts
+>  	 */
+> -- 
+> 1.5.4.4.21.gc4a6c
+> 
+
