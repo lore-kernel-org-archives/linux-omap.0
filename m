@@ -1,58 +1,58 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: Spurious interrupt warning
-Date: Wed, 7 Jan 2009 10:26:19 +0200
-Message-ID: <20090107082618.GC27566@atomide.com>
-References: <20090106110837.GG9752@atomide.com> <19F8576C6E063C45BE387C64729E739403ECEDD480@dbde02.ent.ti.com> <20090106111928.GA10260@atomide.com> <13B9B4C6EF24D648824FF11BE8967162036D480BD0@dlee02.ent.ti.com>
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: [REVIEW PATCH 1/2] OMAP3 ISP-Camera: Added BT656 support
+Date: Wed, 7 Jan 2009 07:39:59 -0200
+Message-ID: <20090107073959.140cfcfd@pedra.chehab.org>
+References: <hvaibhav@ti.com>
+	<1231308440-31122-1-git-send-email-hvaibhav@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-bos.mailhop.org ([63.208.196.178]:59946 "EHLO
-	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752147AbZAGI0V (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 7 Jan 2009 03:26:21 -0500
-Content-Disposition: inline
-In-Reply-To: <13B9B4C6EF24D648824FF11BE8967162036D480BD0@dlee02.ent.ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-media-owner@vger.kernel.org>
+In-Reply-To: <1231308440-31122-1-git-send-email-hvaibhav@ti.com>
+Sender: linux-media-owner@vger.kernel.org
+To: hvaibhav@ti.com
+Cc: linux-omap@vger.kernel.org, video4linux-list@redhat.com, linux-media@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Woodruff, Richard" <r-woodruff2@ti.com>
-Cc: "Hiremath, Vaibhav" <hvaibhav@ti.com>, "Shah, Hardik" <hardik.shah@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-* Woodruff, Richard <r-woodruff2@ti.com> [090106 16:06]:
-> Hi,
+On Wed,  7 Jan 2009 11:37:20 +0530
+hvaibhav@ti.com wrote:
+
+> From: Vaibhav Hiremath <hvaibhav@ti.com>
 > 
-> > * Hiremath, Vaibhav <hvaibhav@ti.com> [090106 13:13]:
-> > > For capture driver I am also getting similar messages
-> > >
-> > > <4>Spurious irq 95: 0xffffffdf, please flush posted write for irq 24
-> > > Spurious irq 95: 0xffffffdf, please flush posted write for irq 24
-> > > <4>Spurious irq 95: 0xffffffdf, please flush posted write for irq 24
-> > > Spurious irq 95: 0xffffffdf, please flush posted write for irq 24
-> >
-> > The same solution should work in the irq 24 handler as well. Just do
-> > a read-back of the last written register in the irq 24 handler.
-> >
-> > Or a read back of some safe register in the same device in case
-> > you cannot read back the interrupt status register without clearing
-> > the device interrupts :)
+> Support for BT656 through TVP5146 decoder, works on top of
+> ISP-Camera patches posted by Sergio on 12th Dec 2008.
 > 
-> I'll re-raise the opinion that SO should be used for device mappings on OMAP.
+> The TVP514x driver patch has been accepted under V4L, will
+> be part of O-L in the next merge window. As of now you can
+> access the patches from -
 > 
-> This is not just an IRQ issue.  It's a generic one to programming a device and knowing when what you have written has taken.
+> http://markmail.org/search/?q=TVP514x#query:TVP514x%20from%3A%22Hiremath%2C%20Vaibhav%22%20extension%3Apatch+page:1+mid:b5pcj3sriwknm2cv+state:results
 > 
-> It just happens to be the IRQ path has a very slow dissertation path when you take into account timing domains that it shows up.
+> ToDO List:
+>     - Add support for scaling and cropping
 > 
-> Shrinking the race window with SO then using a read back to get the last one or two is most conservative and safe.  Probably 97% for IO accesses are ok on OMAP as device, but that is probably 99.9% with SO.  In our testing we may be able to make that 97 a 99.  Still I'd rather not risk the 1% for production.
+> Signed-off-by: Brijesh Jadav <brijesh.j@ti.com>
+> Signed-off-by: Hardik Shah <hardik.shah@ti.com>
+> Signed-off-by: Manjunath Hadli <mrh@ti.com>
+> Signed-off-by: R Sivaraj <sivaraj@ti.com>
+> Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
+> ---
+>  drivers/media/video/isp/isp.c     |  118 ++++++++++++++++++++---
+>  drivers/media/video/isp/isp.h     |    7 +-
+>  drivers/media/video/isp/ispccdc.c |  146 +++++++++++++++++++++++----
+>  drivers/media/video/isp/ispccdc.h |    9 ++
+>  drivers/media/video/omap34xxcam.c |  197 +++++++++++++++++++++++++++++++++----
+>  drivers/media/video/omap34xxcam.h |    5 +
+>  6 files changed, 428 insertions(+), 54 deletions(-)
+>  mode change 100644 => 100755 drivers/media/video/isp/isp.c
+>  mode change 100644 => 100755 drivers/media/video/omap34xxcam.c
+> 
+Your patch looks OK, but it touched drivers/media/video/omap34xxcam.c, that
+doesn't exist yet on my tree, so I can't apply it.
 
-Sure you can patch the SO back if you want to. However, it's a more
-generic problem, and Russell has stated that he does not want to
-merge it.
+Could you please submit first the opam34 patch on linux-media@vger.kernel.org,
+in order to allow patchwork.kernel.org to track it also, and allow me to merge
+the files?
 
-At least the interrupt problems are easy to debug now, so I'd say
-those are easy one liners to fix. The other places where we need
-to flush posted writes may be harder to track down, but should be
-possible to spot by reading the code of the problem driver.
-
-Regards,
-
-Tony
-
+Cheers,
+Mauro
