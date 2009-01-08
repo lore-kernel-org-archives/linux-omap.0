@@ -1,63 +1,45 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] Don't mask rtc-twl4030 alarm interrupts on shutdown
-Date: Thu, 8 Jan 2009 14:24:08 +0200
-Message-ID: <20090108122407.GD27566@atomide.com>
-References: <043E6D9F43E2D14682729D3AE18163F30293E71E@vaebe107.NOE.Nokia.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Ajay Kumar Gupta <ajay.gupta@ti.com>
+Subject: [PATCH] usb: musb: fix bug in musbhsdma programming
+Date: Thu,  8 Jan 2009 18:01:36 +0530
+Message-ID: <1231417896-32363-1-git-send-email-ajay.gupta@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-bos.mailhop.org ([63.208.196.178]:58451 "EHLO
-	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751423AbZAHMYP (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 8 Jan 2009 07:24:15 -0500
-Content-Disposition: inline
-In-Reply-To: <043E6D9F43E2D14682729D3AE18163F30293E71E@vaebe107.NOE.Nokia.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:52384 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753607AbZAHMcI (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 8 Jan 2009 07:32:08 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "matti.halme@nokia.com" <matti.halme@nokia.com>
-Cc: a.zummo@towertech.it, rtc-linux@googlegroups.com, linux-omap@vger.kernel.org
+To: linux-usb@vger.kernel.org
+Cc: linux-omap@vger.kernel.org, david-b@pacbell.net, felipe.balbi@nokia.com, Ajay Kumar Gupta <ajay.gupta@ti.com>
 
-* matti.halme@nokia.com <matti.halme@nokia.com> [090107 09:10]:
-> A triggering RTC alarm should be able to power on a device that has been
-> powered off. This patch enables that on twl4030 by not masking the alarm
-> interrupt at shutdown.
+Mode bit should be set based on function parameter "mode" of
+configure_channel() function.
 
-Looks like this is already queued up for mainline by Alessandro,
-so pushing to linux-omap tree while waiting for it to fall down
-from mainline.
+Signed-off-by: Ajay Kumar Gupta <ajay.gupta@ti.com>
+---
+ drivers/usb/musb/musbhsdma.c |    3 ++-
+ 1 files changed, 2 insertions(+), 1 deletions(-)
 
-Tony
+diff --git a/drivers/usb/musb/musbhsdma.c b/drivers/usb/musb/musbhsdma.c
+index a23d005..d87c6c7 100644
+--- a/drivers/usb/musb/musbhsdma.c
++++ b/drivers/usb/musb/musbhsdma.c
+@@ -225,13 +225,14 @@ static void configure_channel(struct dma_channel *channel,
+ 			csr |= MUSB_HSDMA_BURSTMODE_INCR4;
+ 
+ 		csr |= (musb_channel->epnum << MUSB_HSDMA_ENDPOINT_SHIFT)
+-			| MUSB_HSDMA_MODE1
+ 			| MUSB_HSDMA_ENABLE
+ 			| MUSB_HSDMA_IRQENABLE
+ 			| (musb_channel->transmit
+ 					? MUSB_HSDMA_TRANSMIT
+ 					: 0);
+ 
++		if (mode)
++			csr |= MUSB_HSDMA_MODE1;
+ 		/* address/count */
+ 		musb_write_hsdma_addr(mbase, bchannel, dma_addr);
+ 		musb_write_hsdma_count(mbase, bchannel, len);
+-- 
+1.5.6
 
-
-> Signed-off-by: Matti Halme <matti.halme@nokia.com>
-> ---
->  drivers/rtc/rtc-twl4030.c |    5 +++--
->  1 files changed, 3 insertions(+), 2 deletions(-)
-> 
-> diff --git a/drivers/rtc/rtc-twl4030.c b/drivers/rtc/rtc-twl4030.c
-> index abe87a4..f5f6a97 100644
-> --- a/drivers/rtc/rtc-twl4030.c
-> +++ b/drivers/rtc/rtc-twl4030.c
-> @@ -505,8 +505,9 @@ static int __devexit twl4030_rtc_remove(struct
-> platform_device *pdev)
->  
->  static void twl4030_rtc_shutdown(struct platform_device *pdev)
->  {
-> -	mask_rtc_irq_bit(BIT_RTC_INTERRUPTS_REG_IT_TIMER_M |
-> -			 BIT_RTC_INTERRUPTS_REG_IT_ALARM_M);
-> +	/* mask timer interrupts, but leave alarm interrupts on to
-> enable
-> +	   power-on when alarm is triggered */
-> +	mask_rtc_irq_bit(BIT_RTC_INTERRUPTS_REG_IT_TIMER_M);
->  }
->  
->  #ifdef CONFIG_PM
-> -- 
-> 1.4.4.4
-> 
-> Regards,
-> Matti Halme
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
