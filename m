@@ -1,60 +1,49 @@
-From: Ajay Kumar Gupta <ajay.gupta@ti.com>
-Subject: [PATCH] usb: musb: adding support for registering nop xceiv
-Date: Thu,  8 Jan 2009 16:23:56 +0530
-Message-ID: <1231412036-7371-1-git-send-email-ajay.gupta@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: About to tag v2.6.28-omap1 on Friday
+Date: Thu, 8 Jan 2009 13:12:02 +0200
+Message-ID: <20090108111201.GZ27566@atomide.com>
+References: <1231410153.13843.46.camel@eenurkka-desktop>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:41472 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752038AbZAHKyK (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 8 Jan 2009 05:54:10 -0500
+Received: from mho-01-bos.mailhop.org ([63.208.196.178]:56938 "EHLO
+	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752739AbZAHLME (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 8 Jan 2009 06:12:04 -0500
+Content-Disposition: inline
+In-Reply-To: <1231410153.13843.46.camel@eenurkka-desktop>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: david-b@pacbell.net, felipe.balbi@nokia.com, Ajay Kumar Gupta <ajay.gupta@ti.com>
+To: Eero Nurkkala <ext-eero.nurkkala@nokia.com>
+Cc: linux-omap@vger.kernel.org
 
-Adding support for registering nop usb transceiver for musb
-platforms. Tested with OMAP35xx EVM having OTG phy ISP1504
-which is autonomous and doesn't require any phy programming.
+* Eero Nurkkala <ext-eero.nurkkala@nokia.com> [090108 12:25]:
+> > Looks like we now have some McBSP clock issue probably related
+> > to the custom clock:
+> 
+> Could you please try:
+> http://marc.info/?l=linux-omap&m=122597514326263&w=2
+> 
+> And possibly ack the patch?
 
-Signed-off-by: Ajay Kumar Gupta <ajay.gupta@ti.com>
----
- arch/arm/mach-omap2/usb-musb.c |   19 +++++++++++++++++++
- 1 files changed, 19 insertions(+), 0 deletions(-)
+Well this has been on hold as we don't know yet if we should
+use or not use custom clocks.
 
-diff --git a/arch/arm/mach-omap2/usb-musb.c b/arch/arm/mach-omap2/usb-musb.c
-index 61c5709..c202256 100644
---- a/arch/arm/mach-omap2/usb-musb.c
-+++ b/arch/arm/mach-omap2/usb-musb.c
-@@ -155,10 +155,29 @@ static struct platform_device musb_device = {
- };
- #endif
- 
-+#ifdef CONFIG_NOP_USB_XCEIV
-+static u64 nop_xceiv_dmamask = DMA_32BIT_MASK;
-+
-+static struct platform_device nop_xceiv_device = {
-+	.name		= "nop_usb_xceiv",
-+	.id		= -1,
-+	.dev = {
-+		.dma_mask		= &nop_xceiv_dmamask,
-+		.coherent_dma_mask	= DMA_32BIT_MASK,
-+		.platform_data		= NULL,
-+	},
-+};
-+#endif
- 
- void __init usb_musb_init(void)
- {
- #ifdef CONFIG_USB_MUSB_SOC
-+#ifdef CONFIG_NOP_USB_XCEIV
-+	if (platform_device_register(&nop_xceiv_device) < 0) {
-+		printk(KERN_ERR "Unable to register NOP-XCEIV device\n");
-+		return;
-+	}
-+#endif
- 	if (platform_device_register(&musb_device) < 0) {
- 		printk(KERN_ERR "Unable to register HS-USB (MUSB) device\n");
- 		return;
--- 
-1.5.6
+Custom clocks allow combining multiple clocks into a single clock,
+which makes it easy to use in the drivers. However, custom clocks
+have some problems that Paul has pointed out, like not knowing
+the parent.
 
+At this point I'd say that if Paul does not like custom clocks,
+we should stop using them. Up to Paul to decide me thinks unless
+somebody has better ideas.
+
+> McBSP has a known spin-lock deadlock, why carry it around?
+
+Would be nice to get rid of the spin-lock issue.. But this patch
+still does not help with the McBSP clocks failing because the
+parent is not known.
+
+Regards,
+
+Tony
