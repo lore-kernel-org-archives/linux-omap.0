@@ -1,92 +1,120 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] ARM: OMAP3: Enable writing to XCCR and RCCR McBSP
-	registers for OMAP 2430/34xx
-Date: Thu, 8 Jan 2009 17:57:19 +0200
-Message-ID: <20090108155718.GX27566@atomide.com>
-References: <2C7D3DF36ADFFC479B44490D912B616705A484AAD4@dlee07.ent.ti.com>
+From: "Grazvydas Ignotas" <notasas@gmail.com>
+Subject: Re: [PATCH 1/2] Add support for GPIO LEDs on pandora
+Date: Thu, 8 Jan 2009 18:29:38 +0200
+Message-ID: <6ed0b2680901080829p740cf017y2f5dd0d59f025743@mail.gmail.com>
+References: <1227780163-5879-1-git-send-email-notasas@gmail.com>
+	 <20090108143232.GO27566@atomide.com>
+	 <03538FC0-A9B7-4770-B799-6730E9F09899@student.utwente.nl>
+	 <20090108152818.GE25876@sirena.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/mixed;
+	boundary="----=_Part_54273_17545191.1231432178385"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-bos.mailhop.org ([63.208.196.178]:57791 "EHLO
-	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752921AbZAHP5U (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 8 Jan 2009 10:57:20 -0500
-Content-Disposition: inline
-In-Reply-To: <2C7D3DF36ADFFC479B44490D912B616705A484AAD4@dlee07.ent.ti.com>
+Received: from mu-out-0910.google.com ([209.85.134.187]:10057 "EHLO
+	mu-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753430AbZAHQ3l (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 8 Jan 2009 11:29:41 -0500
+Received: by mu-out-0910.google.com with SMTP id g7so3536864muf.1
+        for <linux-omap@vger.kernel.org>; Thu, 08 Jan 2009 08:29:38 -0800 (PST)
+In-Reply-To: <20090108152818.GE25876@sirena.org.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Lopez Cruz, Misael" <x0052729@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Pandita, Vikram" <vikram.pandita@ti.com>, Jarkko Nikula <jarkko.nikula@nokia.com>
+To: Mark Brown <broonie@sirena.org.uk>
+Cc: Koen Kooi <k.kooi@student.utwente.nl>, Tony Lindgren <tony@atomide.com>, "linux-omap@vger.kernel.org List" <linux-omap@vger.kernel.org>, Richard Purdie <rpurdie@rpsys.net>
 
-* Lopez Cruz, Misael <x0052729@ti.com> [081219 04:53]:
-> This patch enables writing to McBSP Transmit Configuration Control
-> Register (XCCR) and Receive Configuration Control Register (RCCR)
-> for 2430/34xx platforms. It also adds XCCR, RCCR entries in McBSP
-> register configuration structure and bit definitions for both
-> registers.
+------=_Part_54273_17545191.1231432178385
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
-Pushing to l-o. Can you briefly describe what happens with ASoC
-if these registers are not used? We may be able to send this
-as a fix to mainline during the -rc cycle.
+On Thu, Jan 8, 2009 at 5:28 PM, Mark Brown <broonie@sirena.org.uk> wrote:
+> On Thu, Jan 08, 2009 at 03:56:07PM +0100, Koen Kooi wrote:
+>
+>> That's a wrong usage of the 'backlight' trigger, which shouldn't get
+>> into mainline since it sets a bad example. The backlight trigger is
+>
+> Too late, it's already there.
+>
+>> meant to sync leds with the backlight (e.g. dim keypad leds), not to
+>> make leds a backlight.
+>
+> Indeed, though it does get the job done (modulo setting the brightness
+> via the backlight interface).  I'm not sure if it's better to make the
+> existing trigger to do what we want or to come up with some other way of
+> using LEDs as a backlight.
 
-Regards,
+Well this was only temporary solution until we have proper code to
+control BL using TWL4030's PWM capability. Attached is a patch which
+uses "always on" trigger instead, if that is still of any use.
 
-Tony
+------=_Part_54273_17545191.1231432178385
+Content-Type: text/x-diff;
+ name=0001-Add-support-for-GPIO-LEDs-on-pandora.patch
+Content-Transfer-Encoding: base64
+X-Attachment-Id: f_fppmu16q0
+Content-Disposition: attachment;
+ filename=0001-Add-support-for-GPIO-LEDs-on-pandora.patch
 
-> Signed-off-by: Misael Lopez Cruz <x0052729@ti.com>
-> ---
->  arch/arm/plat-omap/include/mach/mcbsp.h |    7 +++++++
->  arch/arm/plat-omap/mcbsp.c              |    4 ++++
->  2 files changed, 11 insertions(+), 0 deletions(-)
-> 
-> diff --git a/arch/arm/plat-omap/include/mach/mcbsp.h b/arch/arm/plat-omap/include/mach/mcbsp.h
-> index 6a0d1a0..cc48f2f 100644
-> --- a/arch/arm/plat-omap/include/mach/mcbsp.h
-> +++ b/arch/arm/plat-omap/include/mach/mcbsp.h
-> @@ -231,11 +231,16 @@
->  #define XPBBLK(value)		((value)<<7)	/* Bits 7:8 */
->  
->  /*********************** McBSP XCCR bit definitions *************************/
-> +#define EXTCLKGATE		0x8000
-> +#define PPCONNECT		0x4000
-> +#define DXENDLY(value)		((value)<<12)	/* Bits 12:13 */
-> +#define XFULL_CYCLE		0x0800
->  #define DILB			0x0020
->  #define XDMAEN			0x0008
->  #define XDISABLE		0x0001
->  
->  /********************** McBSP RCCR bit definitions *************************/
-> +#define RFULL_CYCLE		0x0800
->  #define RDMAEN			0x0008
->  #define RDISABLE		0x0001
->  
-> @@ -267,6 +272,8 @@ struct omap_mcbsp_reg_cfg {
->  	u16 rcerh;
->  	u16 xcerg;
->  	u16 xcerh;
-> +	u16 xccr;
-> +	u16 rccr;
->  };
->  
->  typedef enum {
-> diff --git a/arch/arm/plat-omap/mcbsp.c b/arch/arm/plat-omap/mcbsp.c
-> index af33fc7..f2401a8 100644
-> --- a/arch/arm/plat-omap/mcbsp.c
-> +++ b/arch/arm/plat-omap/mcbsp.c
-> @@ -173,6 +173,10 @@ void omap_mcbsp_config(unsigned int id, const struct omap_mcbsp_reg_cfg *config)
->  	OMAP_MCBSP_WRITE(io_base, MCR2, config->mcr2);
->  	OMAP_MCBSP_WRITE(io_base, MCR1, config->mcr1);
->  	OMAP_MCBSP_WRITE(io_base, PCR0, config->pcr0);
-> +	if (cpu_is_omap2430() || cpu_is_omap34xx()) {
-> +		OMAP_MCBSP_WRITE(io_base, XCCR, config->xccr);
-> +		OMAP_MCBSP_WRITE(io_base, RCCR, config->rccr);
-> +	}
->  }
->  EXPORT_SYMBOL(omap_mcbsp_config);
->  
-> -- 
-> 1.5.4.3
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+RnJvbSBhZGEwZGVmZTA4ZWI4ZjNkY2RkYmNiMGI4ODU3OTFlZGZjZTgyNzQ0IE1vbiBTZXAgMTcg
+MDA6MDA6MDAgMjAwMQpGcm9tOiBHcmF6dnlkYXMgSWdub3RhcyA8bm90YXNhc0BnbWFpbC5jb20+
+CkRhdGU6IFRodSwgMjcgTm92IDIwMDggMDA6MTA6MzUgKzAyMDAKU3ViamVjdDogW1BBVENIXSBB
+ZGQgc3VwcG9ydCBmb3IgR1BJTyBMRURzIG9uIHBhbmRvcmEKClBhbmRvcmEgaGFzIHNvbWUgTEVE
+cyBhbmQgYmFja2xpZ2h0cyBjb25uZWN0ZWQgdG8gT01BUApHUElPcyBhbmQgVFdMNDAzMC9UUFM2
+NTk1MCBMRUQvUFdNIHNpZ25hbHMuIFRoaXMgcGF0Y2gKcmVnaXN0ZXJzIHRoZW0gYWxsIHdpdGgg
+bGVkcy1ncGlvIGRyaXZlci4gVFdMNDAzMC9UUFM2NTk1MApjb250cm9sbGVkIG9uZXMgd2lsbCBi
+ZSBzd2l0Y2hlZCB0byBQV00gZHJpdmVyIHdoZW4gaXQncyByZWFkeS4KClNpZ25lZC1vZmYtYnk6
+IEdyYXp2eWRhcyBJZ25vdGFzIDxub3Rhc2FzQGdtYWlsLmNvbT4KLS0tCiBhcmNoL2FybS9tYWNo
+LW9tYXAyL2JvYXJkLW9tYXAzcGFuZG9yYS5jIHwgICA2MCArKysrKysrKysrKysrKysrKysrKysr
+KysrKysrKysKIDEgZmlsZXMgY2hhbmdlZCwgNjAgaW5zZXJ0aW9ucygrKSwgMCBkZWxldGlvbnMo
+LSkKCmRpZmYgLS1naXQgYS9hcmNoL2FybS9tYWNoLW9tYXAyL2JvYXJkLW9tYXAzcGFuZG9yYS5j
+IGIvYXJjaC9hcm0vbWFjaC1vbWFwMi9ib2FyZC1vbWFwM3BhbmRvcmEuYwppbmRleCBiMzE5NjEw
+Li42NDQ3N2FhIDEwMDY0NAotLS0gYS9hcmNoL2FybS9tYWNoLW9tYXAyL2JvYXJkLW9tYXAzcGFu
+ZG9yYS5jCisrKyBiL2FyY2gvYXJtL21hY2gtb21hcDIvYm9hcmQtb21hcDNwYW5kb3JhLmMKQEAg
+LTI0LDYgKzI0LDcgQEAKICNpbmNsdWRlIDxsaW51eC9zcGkvc3BpLmg+CiAjaW5jbHVkZSA8bGlu
+dXgvc3BpL2Fkczc4NDYuaD4KICNpbmNsdWRlIDxsaW51eC9pMmMvdHdsNDAzMC5oPgorI2luY2x1
+ZGUgPGxpbnV4L2xlZHMuaD4KIAogI2luY2x1ZGUgPGFzbS9tYWNoLXR5cGVzLmg+CiAjaW5jbHVk
+ZSA8YXNtL21hY2gvYXJjaC5oPgpAQCAtNjEsNiArNjIsNTMgQEAgc3RhdGljIHN0cnVjdCBvbWFw
+X3VhcnRfY29uZmlnIG9tYXAzcGFuZG9yYV91YXJ0X2NvbmZpZyBfX2luaXRkYXRhID0gewogCS5l
+bmFibGVkX3VhcnRzCT0gKDEgPDwgMiksIC8qIFVBUlQzICovCiB9OwogCitzdGF0aWMgc3RydWN0
+IGdwaW9fbGVkIG9tYXAzcGFuZG9yYV9ncGlvX2xlZHNbXSA9IHsKKwl7CisJCS5uYW1lCQkJPSAi
+cGFuZG9yYTo6a2V5cGFkX2JsIiwKKwkJLmdwaW8JCQk9IC1FSU5WQUwsCS8qIGdldHMgcmVwbGFj
+ZWQgKi8KKwkJLmFjdGl2ZV9sb3cJCT0gdHJ1ZSwKKwl9LCB7CisJCS5uYW1lCQkJPSAicGFuZG9y
+YTo6cG93ZXIiLAorCQkuZGVmYXVsdF90cmlnZ2VyCT0gImRlZmF1bHQtb24iLAorCQkuZ3BpbwkJ
+CT0gLUVJTlZBTCwKKwkJLmFjdGl2ZV9sb3cJCT0gdHJ1ZSwKKwl9LCB7CisJCS5uYW1lCQkJPSAi
+cGFuZG9yYTo6bGNkX2JsIiwKKwkJLmRlZmF1bHRfdHJpZ2dlcgk9ICJkZWZhdWx0LW9uIiwKKwkJ
+LmdwaW8JCQk9IC1FSU5WQUwsCisJfSwgeworCQkubmFtZQkJCT0gInBhbmRvcmE6OmNoYXJnZXIi
+LAorCQkuZ3BpbwkJCT0gLUVJTlZBTCwKKwl9LCB7CisJCS5uYW1lCQkJPSAicGFuZG9yYTo6c2Qx
+IiwKKwkJLmRlZmF1bHRfdHJpZ2dlcgk9ICJtbWMwIiwKKwkJLmdwaW8JCQk9IDEyOCwKKwl9LCB7
+CisJCS5uYW1lCQkJPSAicGFuZG9yYTo6c2QyIiwKKwkJLmRlZmF1bHRfdHJpZ2dlcgk9ICJtbWMx
+IiwKKwkJLmdwaW8JCQk9IDEyOSwKKwl9LCB7CisJCS5uYW1lCQkJPSAicGFuZG9yYTo6Ymx1ZXRv
+b3RoIiwKKwkJLmdwaW8JCQk9IDE1OCwKKwl9LCB7CisJCS5uYW1lCQkJPSAicGFuZG9yYTo6d2lm
+aSIsCisJCS5ncGlvCQkJPSAxNTksCisJfSwKK307CisKK3N0YXRpYyBzdHJ1Y3QgZ3Bpb19sZWRf
+cGxhdGZvcm1fZGF0YSBvbWFwM3BhbmRvcmFfZ3Bpb19sZWRfZGF0YSA9IHsKKwkubGVkcwkJPSBv
+bWFwM3BhbmRvcmFfZ3Bpb19sZWRzLAorCS5udW1fbGVkcwk9IEFSUkFZX1NJWkUob21hcDNwYW5k
+b3JhX2dwaW9fbGVkcyksCit9OworCitzdGF0aWMgc3RydWN0IHBsYXRmb3JtX2RldmljZSBvbWFw
+M3BhbmRvcmFfbGVkc19ncGlvID0geworCS5uYW1lCT0gImxlZHMtZ3BpbyIsCisJLmlkCT0gLTEs
+CisJLmRldgk9IHsKKwkJLnBsYXRmb3JtX2RhdGEJPSAmb21hcDNwYW5kb3JhX2dwaW9fbGVkX2Rh
+dGEsCisJfSwKK307CisKIHN0YXRpYyBpbnQgb21hcDNwYW5kb3JhX3R3bF9ncGlvX3NldHVwKHN0
+cnVjdCBkZXZpY2UgKmRldiwKIAkJdW5zaWduZWQgZ3BpbywgdW5zaWduZWQgbmdwaW8pCiB7CkBA
+IC02OSw2ICsxMTcsMTYgQEAgc3RhdGljIGludCBvbWFwM3BhbmRvcmFfdHdsX2dwaW9fc2V0dXAo
+c3RydWN0IGRldmljZSAqZGV2LAogCW9tYXAzcGFuZG9yYV9tbWNbMV0uZ3Bpb19jZCA9IGdwaW8g
+KyAxOwogCXR3bDQwMzBfbW1jX2luaXQob21hcDNwYW5kb3JhX21tYyk7CiAKKwkvKiBUV0w0MDMw
+X0dQSU9fTUFYICsgMCA9PSBsZWRBLCBLRVlQQURfQkFDS0xJR0hUIChvdXQsIGFjdGl2ZSBsb3cp
+ICovCisJb21hcDNwYW5kb3JhX2dwaW9fbGVkc1swXS5ncGlvID0gZ3BpbyArIFRXTDQwMzBfR1BJ
+T19NQVggKyAwOworCisJLyogVFdMNDAzMF9HUElPX01BWCArIDEgPT0gbGVkQiwgUE9XRVJfTEVE
+IChvdXQsIGFjdGl2ZSBsb3cpICovCisJb21hcDNwYW5kb3JhX2dwaW9fbGVkc1sxXS5ncGlvID0g
+Z3BpbyArIFRXTDQwMzBfR1BJT19NQVggKyAxOworCisJLyogZ3BpbyArIHs2LDd9IGlzIFBXTXsw
+LDF9LCBMQ0RfQkFDS0xJR0hUIGFuZCBDSEFSR0VSX0xFRCAqLworCW9tYXAzcGFuZG9yYV9ncGlv
+X2xlZHNbMl0uZ3BpbyA9IGdwaW8gKyA2OworCW9tYXAzcGFuZG9yYV9ncGlvX2xlZHNbM10uZ3Bp
+byA9IGdwaW8gKyA3OworCiAJcmV0dXJuIDA7CiB9CiAKQEAgLTc2LDYgKzEzNCw3IEBAIHN0YXRp
+YyBzdHJ1Y3QgdHdsNDAzMF9ncGlvX3BsYXRmb3JtX2RhdGEgb21hcDNwYW5kb3JhX2dwaW9fZGF0
+YSA9IHsKIAkuZ3Bpb19iYXNlCT0gT01BUF9NQVhfR1BJT19MSU5FUywKIAkuaXJxX2Jhc2UJPSBU
+V0w0MDMwX0dQSU9fSVJRX0JBU0UsCiAJLmlycV9lbmQJPSBUV0w0MDMwX0dQSU9fSVJRX0VORCwK
+KwkudXNlX2xlZHMJPSB0cnVlLAogCS5zZXR1cAkJPSBvbWFwM3BhbmRvcmFfdHdsX2dwaW9fc2V0
+dXAsCiB9OwogCkBAIC0xODAsNiArMjM5LDcgQEAgc3RhdGljIHN0cnVjdCBvbWFwX2JvYXJkX2Nv
+bmZpZ19rZXJuZWwgb21hcDNwYW5kb3JhX2NvbmZpZ1tdIF9faW5pdGRhdGEgPSB7CiAKIHN0YXRp
+YyBzdHJ1Y3QgcGxhdGZvcm1fZGV2aWNlICpvbWFwM3BhbmRvcmFfZGV2aWNlc1tdIF9faW5pdGRh
+dGEgPSB7CiAJJm9tYXAzcGFuZG9yYV9sY2RfZGV2aWNlLAorCSZvbWFwM3BhbmRvcmFfbGVkc19n
+cGlvLAogfTsKIAogc3RhdGljIHZvaWQgX19pbml0IG9tYXAzcGFuZG9yYV9pbml0KHZvaWQpCi0t
+IAoxLjUuNC4zCgo=
+------=_Part_54273_17545191.1231432178385--
