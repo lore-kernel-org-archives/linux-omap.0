@@ -1,185 +1,68 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] OMAP2 OneNAND GPIO fix
-Date: Thu, 8 Jan 2009 15:12:01 +0200
-Message-ID: <20090108131201.GF27566@atomide.com>
-References: <200812111759.15180.jpihet@mvista.com> <200812161928.49147.jpihet@mvista.com> <20090108121037.GB27566@atomide.com> <200901081356.54429.jpihet@mvista.com>
+Subject: Re: [PATCH OMAPZOOM] OMAP: DMA: Fix CCR programming for request
+	line > 63
+Date: Thu, 8 Jan 2009 15:31:20 +0200
+Message-ID: <20090108133119.GH27566@atomide.com>
+References: <5A47E75E594F054BAF48C5E4FC4B92AB02DF30302E@dbde02.ent.ti.com> <FCCFB4CDC6E5564B9182F639FC356087024A0ADF11@dbde02.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-bos.mailhop.org ([63.208.196.178]:56367 "EHLO
+Received: from mho-01-bos.mailhop.org ([63.208.196.178]:53430 "EHLO
 	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754181AbZAHNMC (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 8 Jan 2009 08:12:02 -0500
+	with ESMTP id S1751003AbZAHNbV (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 8 Jan 2009 08:31:21 -0500
 Content-Disposition: inline
-In-Reply-To: <200901081356.54429.jpihet@mvista.com>
+In-Reply-To: <FCCFB4CDC6E5564B9182F639FC356087024A0ADF11@dbde02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Jean Pihet <jpihet@mvista.com>
-Cc: linux-omap@vger.kernel.org
+To: "Pandita, Vikram" <vikram.pandita@ti.com>
+Cc: "Gadiyar, Anand" <gadiyar@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-* Jean Pihet <jpihet@mvista.com> [090108 14:57]:
-> On Thursday 08 January 2009 13:10:37 Tony Lindgren wrote:
-> > * Jean Pihet <jpihet@mvista.com> [081216 20:29]:
-> > > Tony,
-> > >
-> > > > Yeah, should be about to get pulled into Russell's queue, also
-> > > > available here:
-> > > >
-> > > > http://git.kernel.org/?p=linux/kernel/git/tmlind/linux-omap-2.6.git;a=s
-> > > >hort log;h=hsmmc-init
-> > > >
-> > > > So Jean, if you can check what still needs to be patched there, and
-> > > > we can queue it via omap-fixes.
-> > >
-> > > Here is the patch against the hsmmc-init branch.
-> > > The patch changes the include path and the request/free free omap calls
-> > > to the standard version.
-> >
-> > Oops, I should have used this patch instead yesterday.. We could add
-> > your changes as a clean-up patch later on though once the currently
-> > pending stuff gets into mainline. Maybe refresh and resubmit then?
-> Ok! When will it hit the mainline?
+* Pandita, Vikram <vikram.pandita@ti.com> [081111 15:34]:
+> Pushed to zoom tree.
 
-Hopefully within few days.
+Sorry for the long delay with this. Pushing to l-o tree and
+added to omap-fixes queue.
 
 Tony
 
 
-> 
+> >-----Original Message-----
+> >From: Gadiyar, Anand
+> >Sent: Monday, November 10, 2008 5:08 AM
+> >To: linux-omap@vger.kernel.org
+> >Cc: Pandita, Vikram; tony@atomide.com
+> >Subject: [PATCH OMAPZOOM] OMAP: DMA: Fix CCR programming for request line > 63
 > >
-> > Thanks,
+> >From: Anand Gadiyar <gadiyar@ti.com>
 > >
-> > Tony
+> >Bug in existing code causes synchro control to be set +32 if request
+> >line greater than 63 is used.
 > >
-> > > Regards,
-> > > Jean.
-> > >
-> > > From a4f548c3f51c9a349decc761dd539499902873f5 Mon Sep 17 00:00:00 2001
-> > > From: Jean Pihet <jpihet@mvista.com>
-> > > Date: Tue, 16 Dec 2008 19:22:45 +0100
-> > > Subject: [PATCH] ARM: OMAP: use GPIO standard in OneNAND driver
-> > >
-> > > This patch replaces some legacy OMAP GPIO calls with the standard
-> > > calls.
-> > >
-> > > Tested on OMAP3 EVM board.
-> > >
-> > > Signed-off-by: Jean Pihet <jpihet@mvista.com>
-> > > ---
-> > >  drivers/mtd/onenand/omap2.c |    9 +++++----
-> > >  1 files changed, 5 insertions(+), 4 deletions(-)
-> > >
-> > > diff --git a/drivers/mtd/onenand/omap2.c b/drivers/mtd/onenand/omap2.c
-> > > index d1e0b8e..f223303 100644
-> > > --- a/drivers/mtd/onenand/omap2.c
-> > > +++ b/drivers/mtd/onenand/omap2.c
-> > > @@ -34,11 +34,11 @@
-> > >  #include <linux/delay.h>
-> > >  #include <linux/dma-mapping.h>
-> > >  #include <linux/io.h>
-> > > +#include <linux/gpio.h>
-> > >
-> > >  #include <asm/mach/flash.h>
-> > >  #include <mach/gpmc.h>
-> > >  #include <mach/onenand.h>
-> > > -#include <mach/gpio.h>
-> > >  #include <mach/pm.h>
-> > >
-> > >  #include <mach/dma.h>
-> > > @@ -629,7 +629,8 @@ static int __devinit omap2_onenand_probe(struct
-> > > platform_device *pdev)
-> > >  	}
-> > >
-> > >  	if (c->gpio_irq) {
-> > > -		if ((r = omap_request_gpio(c->gpio_irq)) < 0) {
-> > > +		r = gpio_request(c->gpio_irq, "OneNAND Irq");
-> > > +		if (r < 0) {
-> > >  			dev_err(&pdev->dev,  "Failed to request GPIO%d for "
-> > >  				"OneNAND\n", c->gpio_irq);
-> > >  			goto err_iounmap;
-> > > @@ -726,7 +727,7 @@ err_release_dma:
-> > >  		free_irq(gpio_to_irq(c->gpio_irq), c);
-> > >  err_release_gpio:
-> > >  	if (c->gpio_irq)
-> > > -		omap_free_gpio(c->gpio_irq);
-> > > +		gpio_free(c->gpio_irq);
-> > >  err_iounmap:
-> > >  	iounmap(c->onenand.base);
-> > >  err_release_mem_region:
-> > > @@ -761,7 +762,7 @@ static int __devexit omap2_onenand_remove(struct
-> > > platform_device *pdev)
-> > >  	platform_set_drvdata(pdev, NULL);
-> > >  	if (c->gpio_irq) {
-> > >  		free_irq(gpio_to_irq(c->gpio_irq), c);
-> > > -		omap_free_gpio(c->gpio_irq);
-> > > +		gpio_free(c->gpio_irq);
-> > >  	}
-> > >  	iounmap(c->onenand.base);
-> > >  	release_mem_region(c->phys_base, ONENAND_IO_SIZE);
-> > > --
-> > > 1.5.4.4.21.gc4a6c
-> > >
-> > > From a4f548c3f51c9a349decc761dd539499902873f5 Mon Sep 17 00:00:00 2001
-> > > From: Jean Pihet <jpihet@mvista.com>
-> > > Date: Tue, 16 Dec 2008 19:22:45 +0100
-> > > Subject: [PATCH] ARM: OMAP: use GPIO standard in OneNAND driver
-> > >
-> > > This patch replaces some legacy OMAP GPIO calls with the standard
-> > > calls.
-> > >
-> > > Tested on OMAP3 EVM board.
-> > >
-> > > Signed-off-by: Jean Pihet <jpihet@mvista.com>
-> > > ---
-> > >  drivers/mtd/onenand/omap2.c |    9 +++++----
-> > >  1 files changed, 5 insertions(+), 4 deletions(-)
-> > >
-> > > diff --git a/drivers/mtd/onenand/omap2.c b/drivers/mtd/onenand/omap2.c
-> > > index d1e0b8e..f223303 100644
-> > > --- a/drivers/mtd/onenand/omap2.c
-> > > +++ b/drivers/mtd/onenand/omap2.c
-> > > @@ -34,11 +34,11 @@
-> > >  #include <linux/delay.h>
-> > >  #include <linux/dma-mapping.h>
-> > >  #include <linux/io.h>
-> > > +#include <linux/gpio.h>
-> > >
-> > >  #include <asm/mach/flash.h>
-> > >  #include <mach/gpmc.h>
-> > >  #include <mach/onenand.h>
-> > > -#include <mach/gpio.h>
-> > >  #include <mach/pm.h>
-> > >
-> > >  #include <mach/dma.h>
-> > > @@ -629,7 +629,8 @@ static int __devinit omap2_onenand_probe(struct
-> > > platform_device *pdev) }
-> > >
-> > >  	if (c->gpio_irq) {
-> > > -		if ((r = omap_request_gpio(c->gpio_irq)) < 0) {
-> > > +		r = gpio_request(c->gpio_irq, "OneNAND Irq");
-> > > +		if (r < 0) {
-> > >  			dev_err(&pdev->dev,  "Failed to request GPIO%d for "
-> > >  				"OneNAND\n", c->gpio_irq);
-> > >  			goto err_iounmap;
-> > > @@ -726,7 +727,7 @@ err_release_dma:
-> > >  		free_irq(gpio_to_irq(c->gpio_irq), c);
-> > >  err_release_gpio:
-> > >  	if (c->gpio_irq)
-> > > -		omap_free_gpio(c->gpio_irq);
-> > > +		gpio_free(c->gpio_irq);
-> > >  err_iounmap:
-> > >  	iounmap(c->onenand.base);
-> > >  err_release_mem_region:
-> > > @@ -761,7 +762,7 @@ static int __devexit omap2_onenand_remove(struct
-> > > platform_device *pdev) platform_set_drvdata(pdev, NULL);
-> > >  	if (c->gpio_irq) {
-> > >  		free_irq(gpio_to_irq(c->gpio_irq), c);
-> > > -		omap_free_gpio(c->gpio_irq);
-> > > +		gpio_free(c->gpio_irq);
-> > >  	}
-> > >  	iounmap(c->onenand.base);
-> > >  	release_mem_region(c->phys_base, ONENAND_IO_SIZE);
-> > > --
-> > > 1.5.4.4.21.gc4a6c
-> 
-> 
+> >Reported by Wenbiao Wang
+> >
+> >Signed-off-by: Anand Gadiyar <gadiyar@ti.com>
+> >---
+> >Patch generated against OMAPZOOM tree. Will apply against
+> >linux-omap as well with an offset of 8 lines.
+> >
+> >diff --git a/arch/arm/plat-omap/dma.c b/arch/arm/plat-omap/dma.c
+> >index 562089e..b38a362 100644
+> >--- a/arch/arm/plat-omap/dma.c
+> >+++ b/arch/arm/plat-omap/dma.c
+> >@@ -287,10 +287,7 @@ void omap_set_dma_transfer_params(int lch, int data_type, int elem_count,
+> >
+> > 		val = dma_read(CCR(lch));
+> > 		val &= ~(3 << 19);
+> >-		if (dma_trigger > 63)
+> >-			val |= 1 << 20;
+> >-		if (dma_trigger > 31)
+> >-			val |= 1 << 19;
+> >+		val |= ((dma_trigger & ~(0x1f)) << 14);
+> >
+> > 		val &= ~(0x1f);
+> > 		val |= (dma_trigger & 0x1f);
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
