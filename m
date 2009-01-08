@@ -1,48 +1,35 @@
-From: Sakari Ailus <sakari.ailus@nokia.com>
-Subject: Re: Extended driver private controls?
-Date: Thu, 08 Jan 2009 17:46:50 +0200
-Message-ID: <49661FEA.5020409@nokia.com>
-References: <494B59B5.2030800@nokia.com> <200812191548.34238.hverkuil@xs4all.nl>
+From: Josh Karabin <gkarabin@vocollect.com>
+Subject: Re: [PATCH] NAND support for OMAP3 EVM
+Date: Thu, 08 Jan 2009 10:49:32 -0500
+Message-ID: <4966208C.4060505@vocollect.com>
+References: <4963E698.9070108@vocollect.com> <49661D2C.1050203@vocollect.com> <20090108153829.GV27566@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1; format=flowed
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:37238 "EHLO
-	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752457AbZAHPsr (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 8 Jan 2009 10:48:47 -0500
-In-Reply-To: <200812191548.34238.hverkuil@xs4all.nl>
+Received: from mx4.vocollect.com ([64.212.175.114]:4238 "EHLO
+	mx4.vocollect.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751375AbZAHPtd (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 8 Jan 2009 10:49:33 -0500
+In-Reply-To: <20090108153829.GV27566@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: ext Hans Verkuil <hverkuil@xs4all.nl>
-Cc: v4l <video4linux-list@redhat.com>, "Tuukka.O Toivonen" <tuukka.o.toivonen@nokia.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Tony Lindgren <tony@atomide.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-ext Hans Verkuil wrote:
-> Hi Sakari,
 
-Hello,
-
-...
-> What I did to support private controls is to allow drivers to add their own 
-> controls to the various classes, as long as the low 16 bits are >= 0x1000.
+Tony Lindgren wrote:
+> * Josh Karabin <gkarabin@vocollect.com> [090108 17:35]:
+>> Josh Karabin wrote:
+>>> This patch adds support for detecting NAND flash on OMAP3 EVM boards.
+>>> It clones similar code from the 3430 SDP board files.
+>> I hadn't seen the patch from Manikandan Pillai.  This patch can (obviously) be ignored.
 > 
-> You add them to videodev2.h (see the CX2341X private controls), and you just 
-> pick a starting base such as 'V4L2_CTRL_CLASS_MPEG | 0x1100'.
+> Looks like yours is more complete, so I'll use yours instead.
 > 
-> This way the controls are together in one header, they have unique IDs, and 
-> you can assign them to a specific class.
-...
-> So, to summarize: for new drivers I recommend using V4L2_CTRL_FLAG_NEXT_CTRL 
-> and adding the private controls to videodev2.h and to prepare documentation 
-> for inclusion with the v4l2 spec. If you really must support old apps, then 
-> you might have to make duplicate PRIVATE_BASE controls (yuck!), but I hope 
-> that won't be necessary.
+> Tony
 
-Thanks, Hans, for the definitive answer. This is what we'll do then.
+Thanks.
 
-Cheers,
-
--- 
-Sakari Ailus
-sakari.ailus@nokia.com
+- Josh
 
