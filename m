@@ -1,142 +1,67 @@
-From: Tony Lindgren <tony@atomide.com>
+From: Koen Kooi <k.kooi@student.utwente.nl>
 Subject: Re: [PATCH 1/2] Add support for GPIO LEDs on pandora
-Date: Thu, 8 Jan 2009 16:32:33 +0200
-Message-ID: <20090108143232.GO27566@atomide.com>
-References: <1227780163-5879-1-git-send-email-notasas@gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Date: Thu, 8 Jan 2009 15:56:07 +0100
+Message-ID: <03538FC0-A9B7-4770-B799-6730E9F09899@student.utwente.nl>
+References: <1227780163-5879-1-git-send-email-notasas@gmail.com> <20090108143232.GO27566@atomide.com>
+Mime-Version: 1.0 (Apple Message framework v930.3)
+Content-Type: multipart/signed; protocol="application/pgp-signature"; micalg=pgp-sha1; boundary="Apple-Mail-4--283703209"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-bos.mailhop.org ([63.208.196.178]:59848 "EHLO
-	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752093AbZAHOcg (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 8 Jan 2009 09:32:36 -0500
-Content-Disposition: inline
-In-Reply-To: <1227780163-5879-1-git-send-email-notasas@gmail.com>
+Received: from mx2.utsp.utwente.nl ([130.89.2.13]:57569 "EHLO mx.utwente.nl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751932AbZAHO40 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 8 Jan 2009 09:56:26 -0500
+In-Reply-To: <20090108143232.GO27566@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Grazvydas Ignotas <notasas@gmail.com>
-Cc: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Grazvydas Ignotas <notasas@gmail.com>, "linux-omap@vger.kernel.org List" <linux-omap@vger.kernel.org>, Richard Purdie <rpurdie@rpsys.net>
 
-* Grazvydas Ignotas <notasas@gmail.com> [081127 12:04]:
-> Pandora has some LEDs and backlights connected to OMAP
-> GPIOs and TWL4030/TPS65950 LED/PWM signals. This patch
-> registers them all with leds-gpio driver. TWL4030/TPS65950
-> controlled ones will be switched to PWM driver when it's ready.
+This is an OpenPGP/MIME signed message (RFC 2440 and 3156)
+--Apple-Mail-4--283703209
+Content-Type: text/plain; charset=US-ASCII; format=flowed; delsp=yes
+Content-Transfer-Encoding: 7bit
 
-Pushing to l-o tree and adding to omap3-upstream queue for next
-merge window. Not adding the defconfig changes to upstream queue
-right now as the patch does not apply.
 
-Tony
+Op 8 jan 2009, om 15:32 heeft Tony Lindgren het volgende geschreven:
 
-> Signed-off-by: Grazvydas Ignotas <notasas@gmail.com>
-> ---
->  arch/arm/mach-omap2/board-omap3pandora.c |   60 ++++++++++++++++++++++++++++++
->  1 files changed, 60 insertions(+), 0 deletions(-)
-> 
-> diff --git a/arch/arm/mach-omap2/board-omap3pandora.c b/arch/arm/mach-omap2/board-omap3pandora.c
-> index 69517a5..2dfa988 100644
-> --- a/arch/arm/mach-omap2/board-omap3pandora.c
-> +++ b/arch/arm/mach-omap2/board-omap3pandora.c
-> @@ -28,6 +28,7 @@
->  #include <linux/spi/spi.h>
->  #include <linux/spi/ads7846.h>
->  #include <linux/i2c/twl4030.h>
-> +#include <linux/leds.h>
->  
->  #include <linux/mtd/mtd.h>
->  #include <linux/mtd/nand.h>
-> @@ -166,6 +167,53 @@ static struct omap_uart_config omap3pandora_uart_config __initdata = {
->  	.enabled_uarts	= (1 << 2), /* UART3 */
->  };
->  
-> +static struct gpio_led omap3pandora_gpio_leds[] = {
-> +	{
-> +		.name			= "pandora::keypad_bl",
-> +		.gpio			= -EINVAL,	/* gets replaced */
-> +		.active_low		= true,
-> +	}, {
-> +		.name			= "pandora::power",
-> +		.default_trigger	= "default-on",
-> +		.gpio			= -EINVAL,
-> +		.active_low		= true,
-> +	}, {
-> +		.name			= "pandora::lcd_bl",
-> +		.default_trigger	= "backlight",
-> +		.gpio			= -EINVAL,
-> +	}, {
-> +		.name			= "pandora::charger",
-> +		.gpio			= -EINVAL,
-> +	}, {
-> +		.name			= "pandora::sd1",
-> +		.default_trigger	= "mmc0",
-> +		.gpio			= 128,
-> +	}, {
-> +		.name			= "pandora::sd2",
-> +		.default_trigger	= "mmc1",
-> +		.gpio			= 129,
-> +	}, {
-> +		.name			= "pandora::bluetooth",
-> +		.gpio			= 158,
-> +	}, {
-> +		.name			= "pandora::wifi",
-> +		.gpio			= 159,
-> +	},
-> +};
-> +
-> +static struct gpio_led_platform_data omap3pandora_gpio_led_data = {
-> +	.leds		= omap3pandora_gpio_leds,
-> +	.num_leds	= ARRAY_SIZE(omap3pandora_gpio_leds),
-> +};
-> +
-> +static struct platform_device omap3pandora_leds_gpio = {
-> +	.name	= "leds-gpio",
-> +	.id	= -1,
-> +	.dev	= {
-> +		.platform_data	= &omap3pandora_gpio_led_data,
-> +	},
-> +};
-> +
->  static int omap3pandora_twl_gpio_setup(struct device *dev,
->  		unsigned gpio, unsigned ngpio)
->  {
-> @@ -174,6 +222,16 @@ static int omap3pandora_twl_gpio_setup(struct device *dev,
->  	omap3pandora_mmc[1].gpio_cd = gpio + 1;
->  	hsmmc_init(omap3pandora_mmc);
->  
-> +	/* TWL4030_GPIO_MAX + 0 == ledA, KEYPAD_BACKLIGHT (out, active low) */
-> +	omap3pandora_gpio_leds[0].gpio = gpio + TWL4030_GPIO_MAX + 0;
-> +
-> +	/* TWL4030_GPIO_MAX + 1 == ledB, POWER_LED (out, active low) */
-> +	omap3pandora_gpio_leds[1].gpio = gpio + TWL4030_GPIO_MAX + 1;
-> +
-> +	/* gpio + {6,7} is PWM{0,1}, LCD_BACKLIGHT and CHARGER_LED */
-> +	omap3pandora_gpio_leds[2].gpio = gpio + 6;
-> +	omap3pandora_gpio_leds[3].gpio = gpio + 7;
-> +
->  	return 0;
->  }
->  
-> @@ -181,6 +239,7 @@ static struct twl4030_gpio_platform_data omap3pandora_gpio_data = {
->  	.gpio_base	= OMAP_MAX_GPIO_LINES,
->  	.irq_base	= TWL4030_GPIO_IRQ_BASE,
->  	.irq_end	= TWL4030_GPIO_IRQ_END,
-> +	.use_leds	= true,
->  	.setup		= omap3pandora_twl_gpio_setup,
->  };
->  
-> @@ -285,6 +344,7 @@ static struct omap_board_config_kernel omap3pandora_config[] __initdata = {
->  
->  static struct platform_device *omap3pandora_devices[] __initdata = {
->  	&omap3pandora_lcd_device,
-> +	&omap3pandora_leds_gpio,
->  };
->  
->  static void __init omap3pandora_init(void)
-> -- 
-> 1.5.4.3
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> * Grazvydas Ignotas <notasas@gmail.com> [081127 12:04]:
+>> Pandora has some LEDs and backlights connected to OMAP
+>> GPIOs and TWL4030/TPS65950 LED/PWM signals. This patch
+>> registers them all with leds-gpio driver. TWL4030/TPS65950
+>> controlled ones will be switched to PWM driver when it's ready.
+>
+> Pushing to l-o tree and adding to omap3-upstream queue for next
+> merge window. Not adding the defconfig changes to upstream queue
+> right now as the patch does not apply.
+>>
+>> +		.name			= "pandora::lcd_bl",
+>> +		.default_trigger	= "backlight",
+>> +		.gpio			= -EINVAL,
+>>
+
+That's a wrong usage of the 'backlight' trigger, which shouldn't get  
+into mainline since it sets a bad example. The backlight trigger is  
+meant to sync leds with the backlight (e.g. dim keypad leds), not to  
+make leds a backlight.
+
+regards,
+
+Koen
+
+--Apple-Mail-4--283703209
+content-type: application/pgp-signature; x-mac-type=70674453;
+	name=PGP.sig
+content-description: Dit deel van het bericht is digitaal ondertekend
+content-disposition: inline; filename=PGP.sig
+content-transfer-encoding: 7bit
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.5 (Darwin)
+
+iD8DBQFJZhQIMkyGM64RGpERAuQXAJ0XnvQbuA0dcvZTDu60gNw/QYKpzACgmG+a
+8lrmD1rNx4atENuhQFpPT9g=
+=xfUy
+-----END PGP SIGNATURE-----
+
+--Apple-Mail-4--283703209--
