@@ -1,33 +1,84 @@
-From: Mark Brown <broonie@sirena.org.uk>
-Subject: Re: [PATCH 1/2] Add support for GPIO LEDs on pandora
-Date: Thu, 8 Jan 2009 15:28:19 +0000
-Message-ID: <20090108152818.GE25876@sirena.org.uk>
-References: <1227780163-5879-1-git-send-email-notasas@gmail.com> <20090108143232.GO27566@atomide.com> <03538FC0-A9B7-4770-B799-6730E9F09899@student.utwente.nl>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: [PATCH] OMAP2/3 McBSP: add temporary clockdomain fix for McBSP
+	virtual clocks
+Date: Thu, 08 Jan 2009 08:28:59 -0700
+Message-ID: <20090108152856.20939.71314.stgit@localhost.localdomain>
+References: <20090108152853.20939.39831.stgit@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from cassiel.sirena.org.uk ([80.68.93.111]:2127 "EHLO
-	cassiel.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1760629AbZAHP2Y (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 8 Jan 2009 10:28:24 -0500
-Content-Disposition: inline
-In-Reply-To: <03538FC0-A9B7-4770-B799-6730E9F09899@student.utwente.nl>
+Received: from utopia.booyaka.com ([72.9.107.138]:37743 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752274AbZAHPaM (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 8 Jan 2009 10:30:12 -0500
+In-Reply-To: <20090108152853.20939.39831.stgit@localhost.localdomain>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Koen Kooi <k.kooi@student.utwente.nl>
-Cc: Tony Lindgren <tony@atomide.com>, Grazvydas Ignotas <notasas@gmail.com>, "linux-omap@vger.kernel.org List" <linux-omap@vger.kernel.org>, Richard Purdie <rpurdie@rpsys.net>
+To: linux-omap@vger.kernel.org
+Cc: Paul Walmsley <paul@pwsan.com>, Tony Lindgren <tony@atomide.com>, Eero Nurkkala <ext-eero.nurkkala@nokia.com>
 
-On Thu, Jan 08, 2009 at 03:56:07PM +0100, Koen Kooi wrote:
+The McBSP driver uses virtual clocks to handle enabling and disabling
+its hardware clocks.  These virtual clocks have no associated
+clockdomain. After commit 60b8b431e47d8c5b8c02a2e4fa9af388aae20790,
+this prevents the McBSP clocks from registering correctly.
+Resolve this for the short term by using virt_opp_clkdm for these clocks.
+These McBSP virtual clocks should be removed, but such a fix would require
+significant changes to the McBSP drivers that would require testing on
+OMAP1, 2, and 3 platforms.
 
-> That's a wrong usage of the 'backlight' trigger, which shouldn't get  
-> into mainline since it sets a bad example. The backlight trigger is  
+Tested on 2430SDP and 3430SDP GP ES2.1.
 
-Too late, it's already there.
+Signed-off-by: Paul Walmsley <paul@pwsan.com>
+Cc: Tony Lindgren <tony@atomide.com>
+Cc: Eero Nurkkala <ext-eero.nurkkala@nokia.com>
+---
+ arch/arm/mach-omap2/mcbsp.c |    5 +++++
+ 1 files changed, 5 insertions(+), 0 deletions(-)
 
-> meant to sync leds with the backlight (e.g. dim keypad leds), not to  
-> make leds a backlight.
+diff --git a/arch/arm/mach-omap2/mcbsp.c b/arch/arm/mach-omap2/mcbsp.c
+index cae3ebe..b40b29a 100644
+--- a/arch/arm/mach-omap2/mcbsp.c
++++ b/arch/arm/mach-omap2/mcbsp.c
+@@ -77,6 +77,7 @@ static struct mcbsp_internal_clk omap_mcbsp_clks[] = {
+ 		.clk = {
+ 			.name 		= "mcbsp_clk",
+ 			.id		= 1,
++			.clkdm		= { .name = "virt_opp_clkdm" },
+ 			.enable		= omap_mcbsp_clk_enable,
+ 			.disable	= omap_mcbsp_clk_disable,
+ 		},
+@@ -85,6 +86,7 @@ static struct mcbsp_internal_clk omap_mcbsp_clks[] = {
+ 		.clk = {
+ 			.name 		= "mcbsp_clk",
+ 			.id		= 2,
++			.clkdm		= { .name = "virt_opp_clkdm" },
+ 			.enable		= omap_mcbsp_clk_enable,
+ 			.disable	= omap_mcbsp_clk_disable,
+ 		},
+@@ -93,6 +95,7 @@ static struct mcbsp_internal_clk omap_mcbsp_clks[] = {
+ 		.clk = {
+ 			.name		= "mcbsp_clk",
+ 			.id		= 3,
++			.clkdm		= { .name = "virt_opp_clkdm" },
+ 			.enable		= omap_mcbsp_clk_enable,
+ 			.disable	= omap_mcbsp_clk_disable,
+ 		},
+@@ -101,6 +104,7 @@ static struct mcbsp_internal_clk omap_mcbsp_clks[] = {
+ 		.clk = {
+ 			.name		= "mcbsp_clk",
+ 			.id		= 4,
++			.clkdm		= { .name = "virt_opp_clkdm" },
+ 			.enable		= omap_mcbsp_clk_enable,
+ 			.disable	= omap_mcbsp_clk_disable,
+ 		},
+@@ -109,6 +113,7 @@ static struct mcbsp_internal_clk omap_mcbsp_clks[] = {
+ 		.clk = {
+ 			.name		= "mcbsp_clk",
+ 			.id		= 5,
++			.clkdm		= { .name = "virt_opp_clkdm" },
+ 			.enable		= omap_mcbsp_clk_enable,
+ 			.disable	= omap_mcbsp_clk_disable,
+ 		},
 
-Indeed, though it does get the job done (modulo setting the brightness
-via the backlight interface).  I'm not sure if it's better to make the
-existing trigger to do what we want or to come up with some other way of
-using LEDs as a backlight.
+
