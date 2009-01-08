@@ -1,87 +1,94 @@
-From: "Kim Kyuwon" <chammoru@gmail.com>
-Subject: Fwd: Questions about masking interrupts when disabling interrupts
-Date: Thu, 8 Jan 2009 12:57:42 +0900
-Message-ID: <4d34a0a70901071957j287d0f99ked2aaa2999912899@mail.gmail.com>
-References: <4d34a0a70901051859i792725b3t4563971070f886fc@mail.gmail.com>
-	 <20090107130504.GM27566@atomide.com>
-	 <4d34a0a70901071727m5fcc1ffvba81d28c970aaace@mail.gmail.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: updated git pull request for omap compile fixes, mailbox and hsmmc
+Date: Thu, 8 Jan 2009 09:36:12 +0200
+Message-ID: <20090108073611.GW27566@atomide.com>
+References: <20090107111415.GF27566@atomide.com> <20090107111615.GG27566@atomide.com> <20090107111744.GH27566@atomide.com> <20090107161843.GA11471@n2100.arm.linux.org.uk> <20090107175020.GU27566@atomide.com> <20090107220053.GD11471@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=EUC-KR
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from wf-out-1314.google.com ([209.85.200.175]:56435 "EHLO
-	wf-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751072AbZAHD5n (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 7 Jan 2009 22:57:43 -0500
-Received: by wf-out-1314.google.com with SMTP id 27so9057946wfd.4
-        for <linux-omap@vger.kernel.org>; Wed, 07 Jan 2009 19:57:42 -0800 (PST)
-In-Reply-To: <4d34a0a70901071727m5fcc1ffvba81d28c970aaace@mail.gmail.com>
+Received: from mho-01-bos.mailhop.org ([63.208.196.178]:55408 "EHLO
+	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753213AbZAHHgS (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 8 Jan 2009 02:36:18 -0500
 Content-Disposition: inline
+In-Reply-To: <20090107220053.GD11471@n2100.arm.linux.org.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: linux-arm-kernel@lists.arm.linux.org.uk, linux-omap@vger.kernel.org, "Nikula Jarkko (NRC/Helsinki)" <jarkko.nikula@nokia.com>
 
-TXkgR21haWwgYWNjb3VudCBoYXMgc29tZSBwcm9ibGVtcwpJIHNlbmQgYWdhaW4uCgoKLS0tLS0t
-LS0tLSBGb3J3YXJkZWQgbWVzc2FnZSAtLS0tLS0tLS0tCkZyb206IEtpbSBLeXV3b24gPGNoYW1t
-b3J1QGdtYWlsLmNvbT4KRGF0ZTogMjAwOS8xLzgKU3ViamVjdDogUmU6IFF1ZXN0aW9ucyBhYm91
-dCBtYXNraW5nIGludGVycnVwdHMgd2hlbiBkaXNhYmxpbmcgaW50ZXJydXB0cwpUbzogVG9ueSBM
-aW5kZ3JlbiA8dG9ueUBhdG9taWRlLmNvbT4KQ2M6IGxpbnV4LW9tYXBAdmdlci5rZXJuZWwub3Jn
-LCC52rDmuc4gPGt5dW5nbWluLnBhcmtAc2Ftc3VuZy5jb20+LCDH47y6sPwKPHNrLmhlb0BzYW1z
-dW5nLmNvbT4KCgpUaGFua3MgVG9ueSB2ZXJ5IG11Y2ggZm9yIHlvdXIgcmVwbHkhCgpPbiBXZWQs
-IEphbiA3LCAyMDA5IGF0IDEwOjA1IFBNLCBUb255IExpbmRncmVuIDx0b255QGF0b21pZGUuY29t
-PiB3cm90ZToKPiAqILHosdS/+CA8Y2hhbW1vcnVAZ21haWwuY29tPiBbMDkwMTA2IDA0OjU5XToK
-Pj4gR3JlZXRpbmdzLAo+Pgo+PiBJJ20gZW5hYmxpbmcgdGhlIFN1c3BlbmQtdG8tUkFNIHN0YXRl
-IGluIG91ciBuZXcgT01BUDMgQm9hcmQuCj4+IEJ1dCBJIGhhZCBzb21lIHByb2JsZW1zIGJlY2F1
-c2Ugb2YgVVNCIEludGVycnVwdC4KPj4KPj4gQWx0aG91Z2ggSSBkaXNhYmxlZCBVU0IgaW50ZXJy
-dXB0IGJ5IGRpc2FibGVfaXJxKCkgZnVuY3Rpb24gd2hpbGUKPj4gZW50ZXJpbmcgdGhlIFN1c3Bl
-bmQsCj4+IE1fSVJRXzkyIGlycSBjb250aW51b3VzbHkgd2FrZSB1cCB0aGUgT01BUDM0MzAgUHJv
-Y2Vzc29yLgo+Pgo+PiBTbywgSSBmaXhlZCB0aGlzIHByb2JsZW0gYXMgZm9sbG93aW5nIHBhdGNo
-Lgo+Pgo+PiBNeSBRdWVzdGlvbnMgYXJlOgo+PiAxLiBDb3VsZCBhbnlvbmUgc3VnZ2VzdCB0aGUg
-YmV0dGVyIHNvbHV0aW9uIGZvciB0aGlzIHByb2JsZW0/Cj4KPiBNYXliZSBzdXNwZW5kIHRoZSBV
-U6XCIHRvbz8gOikKCkkgY29uZmlybWVkIG11c2Jfc3VzcGVuZCgpIGZ1bmN0aW9uIHdhcyBpbnZv
-a2VkIHdoaWxlIGVudGVyaW5nIFN1c3BlbmQtdG8tUkFNCnN0YXRlLiBtdXNiX3N1c3BlbmQoKSBk
-aWRuJ3QgZGlzYWJsZSBVU0IgaW50ZXJydXB0LCBidXQgb25seSBVU0IgY2xvY2suIERldmljZXMK
-c2hvdWxkIGJlIHN1c3BlbmRlZCB3aXRoIGludGVycnVwdHMgZGlzYWJsZWQKKC9Eb2N1bWVudHRh
-dGlvbi9wb3dlci9kZXZpY2VzLnR4dCAtIDQxMmxpbmUpCgpTbyBJIG1vZGlmaWVkIG11c2Jfc3Vz
-cGVuZCgpIHRvIGRpc2FibGUgVVNCIGludGVycnVwdAooSSdtIHBsYW5uaW5nIHRvIHNlbmQgdGhp
-cyBwYXRjaCB2ZXJ5IHNvb24pCkkgZXZlbiB3cm90ZSAwIHRvIFBNX1dLRU5fVVNCSE9TVFtFTl9V
-U0JIT1NUXSBiaXQuIEJ1dCBvdXIgT01BUDM0MzAgYm9hcmQKc3RpbGwgaGF2ZSB3b2tlbiB1cCBi
-eSBVU0IgaW50ZXJydXB0LCBiZWNhdXNlIGRpc2FibGVfaXJxKCkgZGlkbid0IG1hc2sgdGhlCmlu
-dGVycnVwdC4KCj4KPj4gMi4gSWYgdGhlcmUgaXMgbm8gYmV0dGVyIHNvbHV0aW9uLCBjYW4gSSBi
-ZSBhcHBsaWVkIHRoaXMgcGF0Y2ggdG8gb21hcC10cmVlPwo+Cj4gVGhlIHBhdGNoIGxvb2tzIE9L
-IHRvIG1lLCBhc3N1bWluZyB0aGUgZGVmYXVsdCBlbmFibGUgY2FsbHMgdW5tYXNrPwo+CgpSaWdo
-dCwgZGVmYXVsdF9lbmFibGUoKSBmdW5jdGlvbihrZXJuZWwvaXJxL2NoaXAuYyAyMjJsaW5lKSBj
-YWxscyB1bm1hc2sKCj4gUmVnYXJkcywKPgo+IFRvbnkKPgo+Pgo+PiBUaGFuayB5b3UhCj4+Cj4+
-IGNvbW1pdCBiYmI0OTMyMWIxNjFlNmE5ZmYyYjczMzI2ZDQwMTJkOGViOGJiZjIzCj4+IEF1dGhv
-cjogS2ltIEt5dXdvbiA8Y2hhbW1vcnVAZ21haWwuY29tPgo+PiBEYXRlOiAgIFR1ZSBKYW4gNiAx
-MDoxMTo0NiAyMDA5ICswOTAwCj4+Cj4+ICAgICBBUk06IE9NQVAzOiBNYXNrIGludGVycnVwdHMg
-d2hlbiBkaXNhYmxpbmcgaW50ZXJydXB0cwo+Pgo+PiAgICAgQnkgSW5nbyBNb2xuYXIsIGludGVy
-cnVwdHMgYXJlIG5vdCBtYXNrZWQgYnkgZGVmYXVsdC4KPj4gICAgIChyZWZlciB0byA3NmQyMTYw
-MTQ3ZjQzZjk4MmRmZTg4MTQwNGNmZGU5ZmQwYTlkYTIxKQo+Pgo+PiAgICAgQnV0IGlmIGludGVy
-cnVwdHMgYXJlIG5vdCBtYXNrZWQsIHRoZSBwcm9jZXNzb3IgY2FuIHdha2UgdXAgd2hpbGUgaW4K
-Pj4gICAgIFN1c3BlbmQtdG8tUkFNIHN0YXRlIGJ5IGFuIGV4dGVybmFsIGludGVycnVwdC4gRm9y
-IGV4YW1wbGUsIGlmIGFuCj4+IE9NQVAzIGJvYXJkCj4+ICAgICBpcyBjb25uZWN0ZWQgdG8gSG9z
-dCBQQyBieSBVU0IgYW5kIGVudGVyZWQgdG8gU3VzcGVuZC10by1SQU0KPj4gc3RhdGUsIGl0IHdh
-a2UgdXAKPj4gICAgIGF1dG9tYXRpY2FsbHkgYnkgTV9JUlFfOTIuIFRoZSBkaXNhYmxlX2lycSgp
-IGZ1bmN0aW9uIGNhbid0IGRpc2FibGUgdGhlCj4+ICAgICBpbnRlcnJ1cHQgaW4gSC9XIGxldmVs
-LCBTbyBJIG1vZGlmaWVkIGFyY2gvYXJtL21hY2gtb21hcDIvaXJxLmMKPj4KPj4gICAgIFNpZ25l
-ZC1vZmYtYnk6IEtpbSBLeXV3b24gPGNoYW1tb3J1QGdtYWlsLmNvbT4KPj4KPj4gZGlmZiAtLWdp
-dCBhL2FyY2gvYXJtL21hY2gtb21hcDIvaXJxLmMgYi9hcmNoL2FybS9tYWNoLW9tYXAyL2lycS5j
-Cj4+IGluZGV4IDExMGFjYjkuLmI0NGRjYWUgMTAwNjQ0Cj4+IC0tLSBhL2FyY2gvYXJtL21hY2gt
-b21hcDIvaXJxLmMKPj4gKysrIGIvYXJjaC9hcm0vbWFjaC1vbWFwMi9pcnEuYwo+PiBAQCAtMTIz
-LDYgKzEyMywxMSBAQCBzdGF0aWMgdm9pZCBvbWFwX3VubWFza19pcnEodW5zaWduZWQgaW50IGly
-cSkKPj4gICAgICAgaW50Y19iYW5rX3dyaXRlX3JlZygxIDw8IGlycSwgJmlycV9iYW5rc1swXSwg
-SU5UQ19NSVJfQ0xFQVIwICsgb2Zmc2V0KTsKPj4gIH0KPj4KPj4gK3N0YXRpYyB2b2lkIG9tYXBf
-ZGlzYWJsZV9pcnEodW5zaWduZWQgaW50IGlycSkKPj4gK3sKPj4gKyAgICAgb21hcF9tYXNrX2ly
-cShpcnEpOwo+PiArfQo+PiArCj4+ICBzdGF0aWMgdm9pZCBvbWFwX21hc2tfYWNrX2lycSh1bnNp
-Z25lZCBpbnQgaXJxKQo+PiAgewo+PiAgICAgICBvbWFwX21hc2tfaXJxKGlycSk7Cj4+IEBAIC0x
-MzQsNiArMTM5LDcgQEAgc3RhdGljIHN0cnVjdCBpcnFfY2hpcCBvbWFwX2lycV9jaGlwID0gewo+
-PiAgICAgICAuYWNrICAgID0gb21hcF9tYXNrX2Fja19pcnEsCj4+ICAgICAgIC5tYXNrICAgPSBv
-bWFwX21hc2tfaXJxLAo+PiAgICAgICAudW5tYXNrID0gb21hcF91bm1hc2tfaXJxLAo+PiArICAg
-ICAuZGlzYWJsZSA9IG9tYXBfZGlzYWJsZV9pcnEsCj4+ICB9Owo+Pgo+PiAgc3RhdGljIHZvaWQg
-X19pbml0IG9tYXBfaXJxX2JhbmtfaW5pdF9vbmUoc3RydWN0IG9tYXBfaXJxX2JhbmsgKmJhbmsp
-Cj4+IC0tCj4+IEtpbSBLeXV3b24KPj4gLS0KPj4gVG8gdW5zdWJzY3JpYmUgZnJvbSB0aGlzIGxp
-c3Q6IHNlbmQgdGhlIGxpbmUgInVuc3Vic2NyaWJlIGxpbnV4LW9tYXAiIGluCj4+IHRoZSBib2R5
-IG9mIGEgbWVzc2FnZSB0byBtYWpvcmRvbW9Admdlci5rZXJuZWwub3JnCj4+IE1vcmUgbWFqb3Jk
-b21vIGluZm8gYXQgIGh0dHA6Ly92Z2VyLmtlcm5lbC5vcmcvbWFqb3Jkb21vLWluZm8uaHRtbAo+
-CgpSZWdhcmRzLAotLQpLaW0gS3l1d29uCgoKCi0tIApLaW0gS3l1d29uCg==
+* Russell King - ARM Linux <linux@arm.linux.org.uk> [090108 00:01]:
+> On Wed, Jan 07, 2009 at 07:50:21PM +0200, Tony Lindgren wrote:
+> > * Russell King - ARM Linux <linux@arm.linux.org.uk> [090107 18:18]:
+> > > On Wed, Jan 07, 2009 at 01:17:45PM +0200, Tony Lindgren wrote:
+> > > > -	set_irq_type(OMAP_GPIO_IRQ(SW_ENTER_GPIO16), IRQ_TYPE_EDGE_RISING);
+> > > > -	if (request_irq(OMAP_GPIO_IRQ(SW_ENTER_GPIO16), &apollon_sw_interrupt,
+> > > > +	set_irq_type(gpio_to_irq(SW_ENTER_GPIO16), IRQ_TYPE_EDGE_RISING);
+> > > > +	if (request_irq(gpio_to_irq(SW_ENTER_GPIO16), &apollon_sw_interrupt,
+> > > 
+> > > NAK.  I wonder how the f*** this got anywhere near the mainline kernel.
+> > > No no no no no.  set_irq_type + request_irq is utter crap and should be
+> > > rejected whenever its seen.  There's absolutely no need for it -
+> > > request_irq is sufficient.  Get rid of this set_irq_type usage from
+> > > everywhere please.
+> > 
+> > Blind search and replace? :) I've removed the GPIO key code as there's
+> > already a patch to do that cleaner with gpio_keys.
+> 
+> Revised patch is fine.
+
+OK, here's the pull request again:
+
+The following changes since commit ede6f5aea054d3fb67c78857f7abdee602302043:
+  Linus Torvalds (1):
+        Fix up 64-bit byte swaps for most 32-bit architectures
+
+are available in the git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap-2.6.git omap-misc-for-rmk
+
+Hiroshi DOYU (10):
+      omap mailbox: cleanup omap2 register definition with macro
+      omap mailbox: add initial omap3 support
+      omap mailbox: print hardware revision at startup
+      omap mailbox: fix empty struct device for omap_mbox
+      omap mailbox: fix empty struct device for omap1
+      omap mailbox: fix empty struct device for omap2
+      omap mailbox: add save_/restore_ctx() for PM
+      omap mailbox: move mailbox.h into mailbox.c
+      omap mailbox: convert sequence bit checking to module paramter
+      omap mailbox: remove unnecessary header file inclusion
+
+Jarkko Nikula (1):
+      ARM: OMAP: Fix gpio by switching to generic gpio calls, v2
+
+Madhusudhan Chikkature (1):
+      omap mmc: Add new omap hsmmc controller for 2430 and 34xx, v3
+
+Tony Lindgren (1):
+      ARM: OMAP: Fix missing includes
+
+ arch/arm/mach-omap1/board-sx1.c            |    6 +-
+ arch/arm/mach-omap1/devices.c              |    2 +-
+ arch/arm/mach-omap1/mailbox.c              |   31 +-
+ arch/arm/mach-omap1/mcbsp.c                |    1 +
+ arch/arm/mach-omap2/board-apollon.c        |   64 +--
+ arch/arm/mach-omap2/board-ldp.c            |    2 +-
+ arch/arm/mach-omap2/devices.c              |   38 +-
+ arch/arm/mach-omap2/mailbox.c              |  195 +++--
+ arch/arm/mach-omap2/mcbsp.c                |    1 +
+ arch/arm/plat-omap/Kconfig                 |    8 +
+ arch/arm/plat-omap/i2c.c                   |    1 +
+ arch/arm/plat-omap/include/mach/gpio.h     |   10 -
+ arch/arm/plat-omap/include/mach/mailbox.h  |   27 +-
+ arch/arm/plat-omap/include/mach/omap34xx.h |    1 +
+ arch/arm/plat-omap/mailbox.c               |  152 +++-
+ arch/arm/plat-omap/mailbox.h               |  100 ---
+ drivers/mfd/twl4030-core.c                 |    1 +
+ drivers/mmc/host/Kconfig                   |   10 +
+ drivers/mmc/host/Makefile                  |    1 +
+ drivers/mmc/host/omap_hsmmc.c              | 1242 ++++++++++++++++++++++++++++
+ drivers/mtd/onenand/omap2.c                |    6 +-
+ 21 files changed, 1581 insertions(+), 318 deletions(-)
+ delete mode 100644 arch/arm/plat-omap/mailbox.h
+ create mode 100644 drivers/mmc/host/omap_hsmmc.c
