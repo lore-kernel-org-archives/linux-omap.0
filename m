@@ -1,31 +1,39 @@
-From: David Brownell <david-b@pacbell.net>
-Subject: Re: [PATCH 1/2] Add support for GPIO LEDs on pandora
-Date: Thu, 8 Jan 2009 12:04:09 -0800
-Message-ID: <200901081204.10441.david-b@pacbell.net>
-References: <1227780163-5879-1-git-send-email-notasas@gmail.com> <20090108152818.GE25876@sirena.org.uk> <6ed0b2680901080829p740cf017y2f5dd0d59f025743@mail.gmail.com>
+From: "Woodruff, Richard" <r-woodruff2@ti.com>
+Subject: RE: [PATCH 0/1] OMAP gptimer based event monitor driver for oprofile
+Date: Thu, 8 Jan 2009 14:19:02 -0600
+Message-ID: <13B9B4C6EF24D648824FF11BE8967162036D4E62EE@dlee02.ent.ti.com>
+References: <ESEBH1026QcqnWwAeRa000037d8@esebh102.NOE.Nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp125.sbc.mail.sp1.yahoo.com ([69.147.65.184]:42573 "HELO
-	smtp125.sbc.mail.sp1.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1755878AbZAHUEM (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 8 Jan 2009 15:04:12 -0500
-In-Reply-To: <6ed0b2680901080829p740cf017y2f5dd0d59f025743@mail.gmail.com>
-Content-Disposition: inline
+Received: from comal.ext.ti.com ([198.47.26.152]:44244 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1762456AbZAHUTU convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 8 Jan 2009 15:19:20 -0500
+In-Reply-To: <ESEBH1026QcqnWwAeRa000037d8@esebh102.NOE.Nokia.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Grazvydas Ignotas <notasas@gmail.com>
-Cc: Mark Brown <broonie@sirena.org.uk>, Koen Kooi <k.kooi@student.utwente.nl>, Tony Lindgren <tony@atomide.com>, "linux-omap@vger.kernel.org List" <linux-omap@vger.kernel.org>, Richard Purdie <rpurdie@rpsys.net>
+To: Siarhei Siamashka <siarhei.siamashka@nokia.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Cc: oprofile-list <oprofile-list@lists.sourceforge.net>
 
-On Thursday 08 January 2009, Grazvydas Ignotas wrote:
-> Well this was only temporary solution until we have proper code to
-> control BL using TWL4030's PWM capability.
+Hi,
 
-I have code to support the PWM0/PWM1 signals that needs testing,
-so that's not far away.  The LEDA/LEDB PWMs can control brightness
-of those two signals, as part of that same patch.
+> Current revisions of Cortex-A8 core have a hardware bug in performance
+> monitoring unit, which makes it very unreliable in Oprofile.
+>
+> We discussed this problem offlist with Richard Woodruff some time ago and he
+> suggested to use GPTIMER to get better event samples collection frequency,
+> comparable to the one typically used with the hardware performance counters.
+> The use of GPTIMER instead of a standard oprofile timer based backend makes
+> the process of profiling applications less painful and more precise.
 
-- Dave
+Cool.  This will help a lot.
 
+I did get some more information from ARM on core bug which is now in their official errata.  As a future enhancement it should be possible to use PMNC event counters as long as they do not overflow.  This might allow a GPT - PMNC hybrid.  The 32bit counters can run for a good amount before rolling.
+
+Additionally, the bug is greatly minimized in future stepping of CortexA8. It will be a while before that core goes into a production device.
+
+Thanks,
+Richard W.
