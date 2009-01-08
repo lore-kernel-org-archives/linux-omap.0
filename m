@@ -1,48 +1,92 @@
-From: Siarhei Siamashka <siarhei.siamashka@nokia.com>
-Subject: [PATCH 0/1] OMAP gptimer based event monitor driver for oprofile
-Date: Thu, 8 Jan 2009 20:21:09 +0200
-Message-ID: <ESEBH1026QcqnWwAeRa000037d8@esebh102.NOE.Nokia.com>
+From: green <greenfreedom10@gmail.com>
+Subject: Re: using git with linux-omap
+Date: Thu, 8 Jan 2009 11:02:04 -0600
+Message-ID: <20090108170204.GK1916@swansys>
+References: <20081224032419.GG4080@swansys> <20081224041903.GD10240@frodo> <20081225004631.GH4080@swansys> <20081225195450.GF10240@frodo>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <oprofile-list-bounces@lists.sourceforge.net>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="Z9t8O/5YJLB6LEUl"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-ew0-f17.google.com ([209.85.219.17]:55682 "EHLO
+	mail-ew0-f17.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750717AbZAHTnP (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 8 Jan 2009 14:43:15 -0500
+Received: by ewy10 with SMTP id 10so9819819ewy.13
+        for <linux-omap@vger.kernel.org>; Thu, 08 Jan 2009 11:43:13 -0800 (PST)
 Content-Disposition: inline
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/oprofile-list>,
-	<mailto:oprofile-list-request@lists.sourceforge.net?subject=unsubscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum_name=oprofile-list>
-List-Post: <mailto:oprofile-list@lists.sourceforge.net>
-List-Help: <mailto:oprofile-list-request@lists.sourceforge.net?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/oprofile-list>,
-	<mailto:oprofile-list-request@lists.sourceforge.net?subject=subscribe>
-Errors-To: oprofile-list-bounces@lists.sourceforge.net
-To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
-Cc: oprofile-list <oprofile-list@lists.sourceforge.net>
+In-Reply-To: <20081225195450.GF10240@frodo>
+Content-Language: en
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-
-Hi,
-
-Current revisions of Cortex-A8 core have a hardware bug in performance
-monitoring unit, which makes it very unreliable in Oprofile.
-
-We discussed this problem offlist with Richard Woodruff some time ago and he
-suggested to use GPTIMER to get better event samples collection frequency,
-comparable to the one typically used with the hardware performance counters.
-The use of GPTIMER instead of a standard oprofile timer based backend makes
-the process of profiling applications less painful and more precise.
-
-Here is my attempt to implement this event monitoring driver. I'm not quite
-familiar with linux patch submission policy, so might have violated something
-unintentionally.
-
-The code is very simple for now. But tweaking it to work better with power
-management and frequency scaling may be desired.
+To: Linux-OMAP List <linux-omap@vger.kernel.org>
 
 
-Best regards,
-Siarhei Siamashka
+--Z9t8O/5YJLB6LEUl
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-------------------------------------------------------------------------------
-Check out the new SourceForge.net Marketplace.
-It is the best place to buy or sell services for
-just about anything Open Source.
-http://p.sf.net/sfu/Xq1LFB
+On Thu, 2008-12-25, 360, Felipe Balbi wrote:
+> On Wed, Dec 24, 2008 at 06:46:31PM -0600, green wrote:
+> > On Wed, 2008.12.24, 359, Felipe Balbi wrote:
+> > > On Tue, Dec 23, 2008 at 09:24:19PM -0600, green wrote:
+> > > > I have cloned linux-omap-2.6 and created a local branch.  In the lo=
+cal branch I=20
+> > > > have made one very simple commit with a single line change to Makef=
+ile for use=20
+> > > > when cross-compiling (arm-linux-gnueabi-).  I would like to be able=
+ to rebase=20
+> > > > that branch (just the 1 commit) onto any commit in the master branc=
+h so that I=20
+> > > > can test N810 builds using git-bisect without modifying the Makefil=
+e every=20
+> > > > time.  I can easily move the branch forward to the latest commit wi=
+th 'git=20
+> > > > rebase master' (with the local branch active) but something like 'g=
+it rebase=20
+> > > > v2.6.27-omap1' returns merge errors.  Of course that 1 commit will =
+apply easily=20
+> > > > to that specific tree.
+> > >=20
+> > > hmmm, something like git rebase --onto HEAD v2.6.27-omap1 <your_branc=
+h>
+> > > should work.
+> >=20
+> > I got a bunch of merge conflicts this way.
+>=20
+> maybe I got the parameters wrong. git help rebase will have the correct
+> answer. But there are two other easier ways to do it:
+>=20
+> a. with git cherry-pick:
+> $ git checkout -b newbranch v2.6.27-omap1
+> $ git cherry-pick <commit id for your Makefile change>
+
+This works.
+
+> b. symlink: just create a symbolic link from arm-none-linux-gnueabi-* to
+> arm-linux-*, something like:
+>=20
+> $ cd /path/to/compiler
+> $ for i in `ls`; do ln -s $i ${i/none-linux-gnueabi/linux}; done
+>=20
+> this might help. To be sure the command is right before really executing
+> it, change ln -s to echo and see if the paths are ok.
+
+And yes, this would work too.
+
+Thanks!
+
+--Z9t8O/5YJLB6LEUl
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.9 (GNU/Linux)
+
+iEYEARECAAYFAklmMYwACgkQ682C+dBP+oSK5QCg8bp1QOdj1isA5UTqBn7ySK0+
+U7gAniP8cOrGntlsm+lsB3HzJSHRRdjE
+=9Ek2
+-----END PGP SIGNATURE-----
+
+--Z9t8O/5YJLB6LEUl--
