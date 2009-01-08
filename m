@@ -1,182 +1,76 @@
-From: Adrian Hunter <ext-adrian.hunter@nokia.com>
-Subject: Re: [PATCH] OMAP: MMC: recover from transfer failures
-Date: Thu, 08 Jan 2009 11:02:24 +0200
-Message-ID: <4965C120.3010705@nokia.com>
-References: <20081207213617.10456.43951.stgit@localhost> <20081231185928.2ba325e6@mjolnir.drzeus.cx> <20090107101812.GD27566@atomide.com> <200901071128.43937.jpihet@mvista.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: About to tag v2.6.28-omap1 on Friday
+Date: Thu, 8 Jan 2009 12:06:01 +0200
+Message-ID: <20090108100600.GX27566@atomide.com>
+References: <20090107190427.GV27566@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:62818 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752200AbZAHIvn (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 8 Jan 2009 03:51:43 -0500
-In-Reply-To: <200901071128.43937.jpihet@mvista.com>
+Received: from mho-01-bos.mailhop.org ([63.208.196.178]:59206 "EHLO
+	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751189AbZAHKGG (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 8 Jan 2009 05:06:06 -0500
+Received: from muru.com ([72.249.23.125] helo=localhost.localdomain)
+	by mho-01-bos.mailhop.org with esmtpa (Exim 4.68)
+	(envelope-from <tony@atomide.com>)
+	id 1LKrm7-0006nv-3a
+	for linux-omap@vger.kernel.org; Thu, 08 Jan 2009 10:06:03 +0000
+Content-Disposition: inline
+In-Reply-To: <20090107190427.GV27566@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Jean Pihet <jpihet@mvista.com>
-Cc: linux-arm-kernel@lists.arm.linux.org.uk, Tony Lindgren <tony@atomide.com>, Pierre Ossman <drzeus-mmc@drzeus.cx>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Madhusudhan Chikkature <madhu.cr@ti.com>, David Brownell <david-b@pacbell.net>
+To: linux-omap@vger.kernel.org
 
-Jean Pihet wrote:
-> Tony, Pierre,
+* Tony Lindgren <tony@atomide.com> [090107 21:04]:
+> Hi all,
 > 
-> Here is a patch that fixes a MMC host controller deadlock. The problem happens 
-> when removing the MMC/SD device when a transfer is on-going.
-> 
-> It has been tested on OMAP3430 but this fix should apply to OMAP2 chips as 
-> well, as seen from the TRMs.
-> 
-> What do you think?
-> 
-> Regards,
-> Jean.
-> 
->     OMAP: MMC: recover from transfer failures
-> 
->     Timeouts during a command that has a data phase can result in the
->     next command issued after the command that failed not being processed,
->     i.e. no interrupt ever occurs to indicate the command has completed.
->     This failure can result in a deadlock.
-> 
->     The indication that the mmc host controller is in this error state is
->     that the DATI bit is set in the PSTATE register.  This patch checks
->     to see if the DATI bit is set before starting a new command, and if it
->     is set it resets the data state machine to clear the error.
-> 
->     Tested on OMAP3430 chip and intensive MMC/SD device removal while
->     transferring data.
-> 
-> Regards,
-> Jean
-> 
-> 
-> From 48a40925a4d57f6e7e45809a4b5c09b20f9314d7 Mon Sep 17 00:00:00 2001
-> From: Jean Pihet <jpihet@mvista.com>
-> Date: Tue, 16 Dec 2008 19:44:12 +0100
-> Subject: [PATCH] OMAP: MMC: recover from transfer failures
-> 
-> Timeouts during a command that has a data phase can result in the
-> next command issued after the command that failed not being processed,
-> i.e. no interrupt ever occurs to indicate the command has completed.
-> This failure can result in a deadlock.
-> 
-> The indication that the mmc host controller is in this error state is
-> that the DATI bit is set in the PSTATE register.  This patch checks
-> to see if the DATI bit is set before starting a new command, and if it
-> is set it resets the data state machine to clear the error.
-> 
-> Tested on OMAP3430 chip and intensive MMC/SD device removal while
-> transferring data.
-> 
-> Signed-off-by: Andy Lowe <alowe@mvista.com>
-> Signed-off-by: Jean Pihet <jpihet@mvista.com>
-> ---
->  drivers/mmc/host/omap_hsmmc.c |   11 +++++++++++
->  1 files changed, 11 insertions(+), 0 deletions(-)
-> 
-> diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
-> index 1fcc544..b7d111e 100644
-> --- a/drivers/mmc/host/omap_hsmmc.c
-> +++ b/drivers/mmc/host/omap_hsmmc.c
-> @@ -44,6 +44,7 @@
->  #define OMAP_HSMMC_RSP54       0x0118
->  #define OMAP_HSMMC_RSP76       0x011C
->  #define OMAP_HSMMC_DATA                0x0120
-> +#define OMAP_HSMMC_PSTATE      0x0124
->  #define OMAP_HSMMC_HCTL                0x0128
->  #define OMAP_HSMMC_SYSCTL      0x012C
->  #define OMAP_HSMMC_STAT                0x0130
-> @@ -89,6 +90,7 @@
->  #define DUAL_VOLT_OCR_BIT      7
->  #define SRC                    (1 << 25)
->  #define SRD                    (1 << 26)
-> +#define DATI                   (1 << 1)
->  
->  /*
->   * FIXME: Most likely all the data using these _DEVID defines should come
-> @@ -273,6 +275,15 @@ mmc_omap_start_command(struct mmc_omap_host *host, struct 
-> mmc_command *cmd,
->                 mmc_hostname(host->mmc), cmd->opcode, cmd->arg);
->         host->cmd = cmd;
->  
-> +       if (OMAP_HSMMC_READ(host->base, PSTATE) & DATI) {
-> +               dev_dbg(mmc_dev(host->mmc), "mmc_omap_start_command: "
-> +                       " resetting data state machine\n");
-> +               OMAP_HSMMC_WRITE(host->base, SYSCTL,
-> +                       OMAP_HSMMC_READ(host->base, SYSCTL) | SRD);
-> +               while (OMAP_HSMMC_READ(host->base, SYSCTL) & SRD)
-> +                       ;
-> +       }
-> +
->         /*
->          * Clear status bits and enable interrupts
->          */
-> 
+> I'm planning to tag v2.6.28-omap1 on Friday. I'll be going through
+> my omap inbox and applying some obvious fixes, but if anybody has
+> new fixes that should go in, please post them ASAP.
 
-Why not do the reset in mmc_omap_irq() like the other resets?
-e.g.
+I've also pushed the recent 23 patch clock series from Paul,
+and merged in Kevin's omap-pm-upstream branch. So please give
+the current l-o head some testing on your favorite boards.
 
-static irqreturn_t mmc_omap_irq(int irq, void *dev_id)
-{
-	struct mmc_omap_host *host = dev_id;
-	struct mmc_data *data;
-	int end_cmd = 0, end_trans = 0, status;
+Looks like we now have some McBSP clock issue probably related
+to the custom clock:
 
-	if (host->cmd == NULL && host->data == NULL) {
-		OMAP_HSMMC_WRITE(host->base, STAT,
-			OMAP_HSMMC_READ(host->base, STAT));
-		return IRQ_HANDLED;
-	}
+WARNING: at arch/arm/mach-omap2/clock.c:1092 omap2_clk_register+0x24/0x3c()     
+Modules linked in:       
+[<c00317f4>] (dump_stack+0x0/0x14) from [<c004c96c>]
+ (warn_on_slowpath+0x4c/0x68
+[<c004c920>] (warn_on_slowpath+0x0/0x68) from [<c0036450>]
+ (omap2_clk_register+0
+ r6:c0427bd0 r5:c0421e94 r4:c0421e30       
+ [<c003642c>] (omap2_clk_register+0x0/0x3c) from [<c0039ce4>]
+(clk_register+0x44/
+[<c0039ca0>] (clk_register+0x0/0xc8) from [<c0011208>]
+(omap2_mcbsp_init+0xc4/0x
+ r7:c03bcc31 r6:00000008 r5:c0421e94 r4:c0421e30       
+ [<c0011144>] (omap2_mcbsp_init+0x0/0x12c) from [<c002d2d4>]
+(do_one_initcall+0x6
+[<c002d270>] (do_one_initcall+0x0/0x198) from [<c0008718>]
+(kernel_init+0x70/0xd
+[<c00086a8>] (kernel_init+0x0/0xdc) from [<c004f324>]
+(do_exit+0x0/0x6b4)       
+ r5:00000000 r4:00000000 
+...
 
-	data = host->data;
-	status = OMAP_HSMMC_READ(host->base, STAT);
-	dev_dbg(mmc_dev(host->mmc), "IRQ Status is %x\n", status);
+Similar warnings for other McBSP clocks
 
-	if (status & ERR) {
-#ifdef CONFIG_MMC_DEBUG
-		mmc_omap_report_irq(host, status);
-#endif
-		if ((status & CMD_TIMEOUT) ||
-			(status & CMD_CRC)) {
-			if (host->cmd) {
-				if (status & CMD_TIMEOUT) {
-					OMAP_HSMMC_WRITE(host->base, SYSCTL,
-						OMAP_HSMMC_READ(host->base,
-								SYSCTL) | SRC);
-					while (OMAP_HSMMC_READ(host->base,
-							SYSCTL) & SRC)
-						;
+...
 
-					host->cmd->error = -ETIMEDOUT;
-				} else {
-					host->cmd->error = -EILSEQ;
-				}
-				end_cmd = 1;
-			}
--			if (host->data)
-+			if (host->data) {
-				mmc_dma_cleanup(host);
-+				OMAP_HSMMC_WRITE(host->base, SYSCTL,
-+					OMAP_HSMMC_READ(host->base,
-+							SYSCTL) | SRD);
-+				while (OMAP_HSMMC_READ(host->base,
-+						SYSCTL) & SRD)
-+					;
-+			}
-		}
-		if ((status & DATA_TIMEOUT) ||
-			(status & DATA_CRC)) {
-			if (host->data) {
-				if (status & DATA_TIMEOUT)
-					mmc_dma_cleanup(host);
-				else
-					host->data->error = -EILSEQ;
-				OMAP_HSMMC_WRITE(host->base, SYSCTL,
-					OMAP_HSMMC_READ(host->base,
-							SYSCTL) | SRD);
-				while (OMAP_HSMMC_READ(host->base,
-						SYSCTL) & SRD)
-					;
-				end_trans = 1;
-			}
-		}
+omap-mcbsp omap-mcbsp.1: Invalid clock configuration for McBSP1.       
+omap-mcbsp: probe of omap-mcbsp.1 failed with error -2       
+omap-mcbsp omap-mcbsp.2: Invalid clock configuration for McBSP2.       
+omap-mcbsp: probe of omap-mcbsp.2 failed with error -2       
+omap-mcbsp omap-mcbsp.3: Invalid clock configuration for McBSP3.       
+omap-mcbsp: probe of omap-mcbsp.3 failed with error -2       
+omap-mcbsp omap-mcbsp.4: Invalid clock configuration for McBSP4.       
+omap-mcbsp: probe of omap-mcbsp.4 failed with error -2       
+omap-mcbsp omap-mcbsp.5: Invalid clock configuration for McBSP5.       
+omap-mcbsp: probe of omap-mcbsp.5 failed with error -2         
+
+Regards,
+
+Tony
