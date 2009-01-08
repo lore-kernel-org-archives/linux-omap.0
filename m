@@ -1,53 +1,63 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH OMAPZOOM] OMAP: DMA: Fix CCR programming for request
-	line > 63
-Date: Thu, 8 Jan 2009 15:52:33 +0200
-Message-ID: <20090108135233.GL27566@atomide.com>
-References: <5A47E75E594F054BAF48C5E4FC4B92AB02DF30302E@dbde02.ent.ti.com> <FCCFB4CDC6E5564B9182F639FC356087024A0ADF11@dbde02.ent.ti.com> <20090108133119.GH27566@atomide.com> <dbdb2ea60901080540k740b7a9dscd940bcd0c9f6c01@mail.gmail.com>
+From: Adrian Hunter <ext-adrian.hunter@nokia.com>
+Subject: Waiting while MMC busy
+Date: Thu, 08 Jan 2009 16:11:43 +0200
+Message-ID: <4966099F.2040203@nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-bos.mailhop.org ([63.208.196.178]:52883 "EHLO
-	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756192AbZAHNwf (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 8 Jan 2009 08:52:35 -0500
-Content-Disposition: inline
-In-Reply-To: <dbdb2ea60901080540k740b7a9dscd940bcd0c9f6c01@mail.gmail.com>
+Received: from smtp.nokia.com ([192.100.105.134]:34215 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750814AbZAHOAM (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 8 Jan 2009 09:00:12 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: twebb <taliaferro62@gmail.com>
-Cc: "linux-omap@vger.kernel.org Mailing List" <linux-omap@vger.kernel.org>
+To: Madhusudhan Chikkature <madhu.cr@ti.com>, Syed Mohammed Khasim <x0khasim@ti.com>, Mohit Jalori <mjalori@ti.com>
+Cc: "Lavinen Jarkko (Nokia-M/Helsinki)" <jarkko.lavinen@nokia.com>, linux-omap Mailing List <linux-omap@vger.kernel.org>
 
-* twebb <taliaferro62@gmail.com> [090108 15:40]:
-> >
-> > Sorry for the long delay with this. Pushing to l-o tree and
-> > added to omap-fixes queue.
-> >
-> 
-> Probably understood by most of you, but what is the difference between
-> "pushing to l-o tree" and "adding to omap-fixes queue"?  What are the
-> omap-fixes queued for if not the l-o tree?  I'm trying to understand
-> the flow of fixes/changes in the l-o tree, but it's obviously not
-> clear to me yet.
+Hi
 
-Well l-o tree is short for the linux-omap tree. Then I have various
-queues of stuff going into the mainline kernel:
+At present, the omap_hsmmc driver completes a write request while
+the card is still busy.  The mmc_block driver caters for this by
+waiting while the card is busy, but it does so by repeated requesting
+the card status until the state is not "programming" and the
+READ_FOR_DATA bit is set. e.g. the code from the block driver
+driver/mmc/card/block.c:
 
-omap-fixes
-omap-upstream
-omap1-upstream
-omap2-upstream
-omap3-upstream
+static int mmc_blk_issue_rq(struct mmc_queue *mq, struct request *req)
+{
 ...
+		if (!mmc_host_is_spi(card->host) && rq_data_dir(req) != READ) {
+			do {
+				int err;
 
-Out of these queues omap-fixes will be sent out as needed during the
--rc cycle, while omap*-upstream queues are stuff for the next merge
-window.
+				cmd.opcode = MMC_SEND_STATUS;
+				cmd.arg = card->rca << 16;
+				cmd.flags = MMC_RSP_R1 | MMC_CMD_AC;
+				err = mmc_wait_for_cmd(card->host, &cmd, 5);
+				if (err) {
+					printk(KERN_ERR "%s: error %d requesting status\n",
+					       req->rq_disk->disk_name, err);
+					goto cmd_err;
+				}
+				/*
+				 * Some cards mishandle the status bits,
+				 * so make sure to check both the busy
+				 * indication and the card state.
+				 */
+			} while (!(cmd.resp[0] & R1_READY_FOR_DATA) ||
+				(R1_CURRENT_STATE(cmd.resp[0]) == 7));
 
-These branches show up at the git web interface at the bottom:
+We would much prefer to use an interrupt but we cannot see any suitable
+interrupt bit in the OMAP HSMMC.  When we look at MMCHS_PSTATE we see
+that DLA, DATI and CMDI are zero even while dat0 is low (as seen from
+DLEV bit 20).
 
-http://git.kernel.org/?p=linux/kernel/git/tmlind/linux-omap-2.6.git;a=summary
+We are considering using pad configuration to switch dat0 to gpio while
+waiting because dat0 is held low when the card is busy and returns high
+when it is ready.  Then we can use a gpio interrupt.
 
-Not that many patches in these queues right now, btw.
+Does anyone have any other ideas?
 
-Tony
+Regards
+Adrian Hunter
