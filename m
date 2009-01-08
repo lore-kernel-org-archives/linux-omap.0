@@ -1,94 +1,182 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: updated git pull request for omap compile fixes, mailbox and hsmmc
-Date: Thu, 8 Jan 2009 09:36:12 +0200
-Message-ID: <20090108073611.GW27566@atomide.com>
-References: <20090107111415.GF27566@atomide.com> <20090107111615.GG27566@atomide.com> <20090107111744.GH27566@atomide.com> <20090107161843.GA11471@n2100.arm.linux.org.uk> <20090107175020.GU27566@atomide.com> <20090107220053.GD11471@n2100.arm.linux.org.uk>
+From: Adrian Hunter <ext-adrian.hunter@nokia.com>
+Subject: Re: [PATCH] OMAP: MMC: recover from transfer failures
+Date: Thu, 08 Jan 2009 11:02:24 +0200
+Message-ID: <4965C120.3010705@nokia.com>
+References: <20081207213617.10456.43951.stgit@localhost> <20081231185928.2ba325e6@mjolnir.drzeus.cx> <20090107101812.GD27566@atomide.com> <200901071128.43937.jpihet@mvista.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-bos.mailhop.org ([63.208.196.178]:55408 "EHLO
-	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753213AbZAHHgS (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 8 Jan 2009 02:36:18 -0500
-Content-Disposition: inline
-In-Reply-To: <20090107220053.GD11471@n2100.arm.linux.org.uk>
+Received: from smtp.nokia.com ([192.100.122.230]:62818 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752200AbZAHIvn (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 8 Jan 2009 03:51:43 -0500
+In-Reply-To: <200901071128.43937.jpihet@mvista.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: linux-arm-kernel@lists.arm.linux.org.uk, linux-omap@vger.kernel.org, "Nikula Jarkko (NRC/Helsinki)" <jarkko.nikula@nokia.com>
+To: Jean Pihet <jpihet@mvista.com>
+Cc: linux-arm-kernel@lists.arm.linux.org.uk, Tony Lindgren <tony@atomide.com>, Pierre Ossman <drzeus-mmc@drzeus.cx>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Madhusudhan Chikkature <madhu.cr@ti.com>, David Brownell <david-b@pacbell.net>
 
-* Russell King - ARM Linux <linux@arm.linux.org.uk> [090108 00:01]:
-> On Wed, Jan 07, 2009 at 07:50:21PM +0200, Tony Lindgren wrote:
-> > * Russell King - ARM Linux <linux@arm.linux.org.uk> [090107 18:18]:
-> > > On Wed, Jan 07, 2009 at 01:17:45PM +0200, Tony Lindgren wrote:
-> > > > -	set_irq_type(OMAP_GPIO_IRQ(SW_ENTER_GPIO16), IRQ_TYPE_EDGE_RISING);
-> > > > -	if (request_irq(OMAP_GPIO_IRQ(SW_ENTER_GPIO16), &apollon_sw_interrupt,
-> > > > +	set_irq_type(gpio_to_irq(SW_ENTER_GPIO16), IRQ_TYPE_EDGE_RISING);
-> > > > +	if (request_irq(gpio_to_irq(SW_ENTER_GPIO16), &apollon_sw_interrupt,
-> > > 
-> > > NAK.  I wonder how the f*** this got anywhere near the mainline kernel.
-> > > No no no no no.  set_irq_type + request_irq is utter crap and should be
-> > > rejected whenever its seen.  There's absolutely no need for it -
-> > > request_irq is sufficient.  Get rid of this set_irq_type usage from
-> > > everywhere please.
-> > 
-> > Blind search and replace? :) I've removed the GPIO key code as there's
-> > already a patch to do that cleaner with gpio_keys.
+Jean Pihet wrote:
+> Tony, Pierre,
 > 
-> Revised patch is fine.
+> Here is a patch that fixes a MMC host controller deadlock. The problem happens 
+> when removing the MMC/SD device when a transfer is on-going.
+> 
+> It has been tested on OMAP3430 but this fix should apply to OMAP2 chips as 
+> well, as seen from the TRMs.
+> 
+> What do you think?
+> 
+> Regards,
+> Jean.
+> 
+>     OMAP: MMC: recover from transfer failures
+> 
+>     Timeouts during a command that has a data phase can result in the
+>     next command issued after the command that failed not being processed,
+>     i.e. no interrupt ever occurs to indicate the command has completed.
+>     This failure can result in a deadlock.
+> 
+>     The indication that the mmc host controller is in this error state is
+>     that the DATI bit is set in the PSTATE register.  This patch checks
+>     to see if the DATI bit is set before starting a new command, and if it
+>     is set it resets the data state machine to clear the error.
+> 
+>     Tested on OMAP3430 chip and intensive MMC/SD device removal while
+>     transferring data.
+> 
+> Regards,
+> Jean
+> 
+> 
+> From 48a40925a4d57f6e7e45809a4b5c09b20f9314d7 Mon Sep 17 00:00:00 2001
+> From: Jean Pihet <jpihet@mvista.com>
+> Date: Tue, 16 Dec 2008 19:44:12 +0100
+> Subject: [PATCH] OMAP: MMC: recover from transfer failures
+> 
+> Timeouts during a command that has a data phase can result in the
+> next command issued after the command that failed not being processed,
+> i.e. no interrupt ever occurs to indicate the command has completed.
+> This failure can result in a deadlock.
+> 
+> The indication that the mmc host controller is in this error state is
+> that the DATI bit is set in the PSTATE register.  This patch checks
+> to see if the DATI bit is set before starting a new command, and if it
+> is set it resets the data state machine to clear the error.
+> 
+> Tested on OMAP3430 chip and intensive MMC/SD device removal while
+> transferring data.
+> 
+> Signed-off-by: Andy Lowe <alowe@mvista.com>
+> Signed-off-by: Jean Pihet <jpihet@mvista.com>
+> ---
+>  drivers/mmc/host/omap_hsmmc.c |   11 +++++++++++
+>  1 files changed, 11 insertions(+), 0 deletions(-)
+> 
+> diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
+> index 1fcc544..b7d111e 100644
+> --- a/drivers/mmc/host/omap_hsmmc.c
+> +++ b/drivers/mmc/host/omap_hsmmc.c
+> @@ -44,6 +44,7 @@
+>  #define OMAP_HSMMC_RSP54       0x0118
+>  #define OMAP_HSMMC_RSP76       0x011C
+>  #define OMAP_HSMMC_DATA                0x0120
+> +#define OMAP_HSMMC_PSTATE      0x0124
+>  #define OMAP_HSMMC_HCTL                0x0128
+>  #define OMAP_HSMMC_SYSCTL      0x012C
+>  #define OMAP_HSMMC_STAT                0x0130
+> @@ -89,6 +90,7 @@
+>  #define DUAL_VOLT_OCR_BIT      7
+>  #define SRC                    (1 << 25)
+>  #define SRD                    (1 << 26)
+> +#define DATI                   (1 << 1)
+>  
+>  /*
+>   * FIXME: Most likely all the data using these _DEVID defines should come
+> @@ -273,6 +275,15 @@ mmc_omap_start_command(struct mmc_omap_host *host, struct 
+> mmc_command *cmd,
+>                 mmc_hostname(host->mmc), cmd->opcode, cmd->arg);
+>         host->cmd = cmd;
+>  
+> +       if (OMAP_HSMMC_READ(host->base, PSTATE) & DATI) {
+> +               dev_dbg(mmc_dev(host->mmc), "mmc_omap_start_command: "
+> +                       " resetting data state machine\n");
+> +               OMAP_HSMMC_WRITE(host->base, SYSCTL,
+> +                       OMAP_HSMMC_READ(host->base, SYSCTL) | SRD);
+> +               while (OMAP_HSMMC_READ(host->base, SYSCTL) & SRD)
+> +                       ;
+> +       }
+> +
+>         /*
+>          * Clear status bits and enable interrupts
+>          */
+> 
 
-OK, here's the pull request again:
+Why not do the reset in mmc_omap_irq() like the other resets?
+e.g.
 
-The following changes since commit ede6f5aea054d3fb67c78857f7abdee602302043:
-  Linus Torvalds (1):
-        Fix up 64-bit byte swaps for most 32-bit architectures
+static irqreturn_t mmc_omap_irq(int irq, void *dev_id)
+{
+	struct mmc_omap_host *host = dev_id;
+	struct mmc_data *data;
+	int end_cmd = 0, end_trans = 0, status;
 
-are available in the git repository at:
+	if (host->cmd == NULL && host->data == NULL) {
+		OMAP_HSMMC_WRITE(host->base, STAT,
+			OMAP_HSMMC_READ(host->base, STAT));
+		return IRQ_HANDLED;
+	}
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap-2.6.git omap-misc-for-rmk
+	data = host->data;
+	status = OMAP_HSMMC_READ(host->base, STAT);
+	dev_dbg(mmc_dev(host->mmc), "IRQ Status is %x\n", status);
 
-Hiroshi DOYU (10):
-      omap mailbox: cleanup omap2 register definition with macro
-      omap mailbox: add initial omap3 support
-      omap mailbox: print hardware revision at startup
-      omap mailbox: fix empty struct device for omap_mbox
-      omap mailbox: fix empty struct device for omap1
-      omap mailbox: fix empty struct device for omap2
-      omap mailbox: add save_/restore_ctx() for PM
-      omap mailbox: move mailbox.h into mailbox.c
-      omap mailbox: convert sequence bit checking to module paramter
-      omap mailbox: remove unnecessary header file inclusion
+	if (status & ERR) {
+#ifdef CONFIG_MMC_DEBUG
+		mmc_omap_report_irq(host, status);
+#endif
+		if ((status & CMD_TIMEOUT) ||
+			(status & CMD_CRC)) {
+			if (host->cmd) {
+				if (status & CMD_TIMEOUT) {
+					OMAP_HSMMC_WRITE(host->base, SYSCTL,
+						OMAP_HSMMC_READ(host->base,
+								SYSCTL) | SRC);
+					while (OMAP_HSMMC_READ(host->base,
+							SYSCTL) & SRC)
+						;
 
-Jarkko Nikula (1):
-      ARM: OMAP: Fix gpio by switching to generic gpio calls, v2
-
-Madhusudhan Chikkature (1):
-      omap mmc: Add new omap hsmmc controller for 2430 and 34xx, v3
-
-Tony Lindgren (1):
-      ARM: OMAP: Fix missing includes
-
- arch/arm/mach-omap1/board-sx1.c            |    6 +-
- arch/arm/mach-omap1/devices.c              |    2 +-
- arch/arm/mach-omap1/mailbox.c              |   31 +-
- arch/arm/mach-omap1/mcbsp.c                |    1 +
- arch/arm/mach-omap2/board-apollon.c        |   64 +--
- arch/arm/mach-omap2/board-ldp.c            |    2 +-
- arch/arm/mach-omap2/devices.c              |   38 +-
- arch/arm/mach-omap2/mailbox.c              |  195 +++--
- arch/arm/mach-omap2/mcbsp.c                |    1 +
- arch/arm/plat-omap/Kconfig                 |    8 +
- arch/arm/plat-omap/i2c.c                   |    1 +
- arch/arm/plat-omap/include/mach/gpio.h     |   10 -
- arch/arm/plat-omap/include/mach/mailbox.h  |   27 +-
- arch/arm/plat-omap/include/mach/omap34xx.h |    1 +
- arch/arm/plat-omap/mailbox.c               |  152 +++-
- arch/arm/plat-omap/mailbox.h               |  100 ---
- drivers/mfd/twl4030-core.c                 |    1 +
- drivers/mmc/host/Kconfig                   |   10 +
- drivers/mmc/host/Makefile                  |    1 +
- drivers/mmc/host/omap_hsmmc.c              | 1242 ++++++++++++++++++++++++++++
- drivers/mtd/onenand/omap2.c                |    6 +-
- 21 files changed, 1581 insertions(+), 318 deletions(-)
- delete mode 100644 arch/arm/plat-omap/mailbox.h
- create mode 100644 drivers/mmc/host/omap_hsmmc.c
+					host->cmd->error = -ETIMEDOUT;
+				} else {
+					host->cmd->error = -EILSEQ;
+				}
+				end_cmd = 1;
+			}
+-			if (host->data)
++			if (host->data) {
+				mmc_dma_cleanup(host);
++				OMAP_HSMMC_WRITE(host->base, SYSCTL,
++					OMAP_HSMMC_READ(host->base,
++							SYSCTL) | SRD);
++				while (OMAP_HSMMC_READ(host->base,
++						SYSCTL) & SRD)
++					;
++			}
+		}
+		if ((status & DATA_TIMEOUT) ||
+			(status & DATA_CRC)) {
+			if (host->data) {
+				if (status & DATA_TIMEOUT)
+					mmc_dma_cleanup(host);
+				else
+					host->data->error = -EILSEQ;
+				OMAP_HSMMC_WRITE(host->base, SYSCTL,
+					OMAP_HSMMC_READ(host->base,
+							SYSCTL) | SRD);
+				while (OMAP_HSMMC_READ(host->base,
+						SYSCTL) & SRD)
+					;
+				end_trans = 1;
+			}
+		}
