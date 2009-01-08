@@ -1,201 +1,81 @@
-From: "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>
-Subject: [OMAPZOOM][PATCH v2 2/2] OMAP3: CAM: PM: Set VPP constraints
-Date: Wed, 7 Jan 2009 18:13:07 -0600
-Message-ID: <A24693684029E5489D1D202277BE894416328C90@dlee02.ent.ti.com>
+From: "Kim Kyuwon" <chammoru@gmail.com>
+Subject: Re: Questions about masking interrupts when disabling interrupts
+Date: Thu, 8 Jan 2009 10:27:15 +0900
+Message-ID: <4d34a0a70901071727m5fcc1ffvba81d28c970aaace@mail.gmail.com>
+References: <4d34a0a70901051859i792725b3t4563971070f886fc@mail.gmail.com>
+	 <20090107130504.GM27566@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain; charset=EUC-KR
+Content-Transfer-Encoding: base64
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:44166 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751738AbZAHANO convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 7 Jan 2009 19:13:14 -0500
-Received: from dlep95.itg.ti.com ([157.170.170.107])
-	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id n080D8GW027484
-	for <linux-omap@vger.kernel.org>; Wed, 7 Jan 2009 18:13:13 -0600
-Received: from dlee73.ent.ti.com (localhost [127.0.0.1])
-	by dlep95.itg.ti.com (8.13.8/8.13.8) with ESMTP id n080D8JT007455
-	for <linux-omap@vger.kernel.org>; Wed, 7 Jan 2009 18:13:08 -0600 (CST)
-Content-Language: en-US
+Received: from wf-out-1314.google.com ([209.85.200.172]:32081 "EHLO
+	wf-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755827AbZAHB1Q (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 7 Jan 2009 20:27:16 -0500
+Received: by wf-out-1314.google.com with SMTP id 27so8996527wfd.4
+        for <linux-omap@vger.kernel.org>; Wed, 07 Jan 2009 17:27:15 -0800 (PST)
+In-Reply-To: <20090107130504.GM27566@atomide.com>
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
-Cc: "Pandita, Vikram" <vikram.pandita@ti.com>
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org, =?EUC-KR?B?udqw5rnO?= <kyungmin.park@samsung.com>, =?EUC-KR?B?x+O8urD8?= <sk.heo@samsung.com>
 
->From 4b5990f22778c428b17b3b3675676d22eb0b857b Mon Sep 17 00:00:00 2001
-From: Sergio Aguirre <saaguirre@ti.com>
-Date: Wed, 7 Jan 2009 17:08:53 -0600
-Subject: [PATCH] OMAP3: CAM: PM: Set VPP constraints
-
-This patch is for making camera work as expected when TI PM is enabled.
-
-Signed-off-by: Sergio Aguirre <saaguirre@ti.com>
----
- drivers/media/video/omap34xxcam.c |   86 +++++++++++++++++++++++++++++++++++++
- 1 files changed, 86 insertions(+), 0 deletions(-)
- mode change 100644 => 100755 drivers/media/video/omap34xxcam.c
-
-diff --git a/drivers/media/video/omap34xxcam.c b/drivers/media/video/omap34xxcam.c
-old mode 100644
-new mode 100755
-index 7fe3981..818ec6e
---- a/drivers/media/video/omap34xxcam.c
-+++ b/drivers/media/video/omap34xxcam.c
-@@ -34,6 +34,10 @@
- #include <media/v4l2-common.h>
- #include <media/v4l2-ioctl.h>
- 
-+#ifdef CONFIG_PM
-+#include <mach/resource.h>
-+#endif
-+
- #include "omap34xxcam.h"
- #include "isp/isph3a.h"
- #include "isp/isp_af.h"
-@@ -44,12 +48,35 @@
- /* global variables */
- static struct omap34xxcam_device *omap34xxcam;
- 
-+#ifdef CONFIG_PM
-+	struct constraint_handle *co_opp_camera_vdd1;
-+	struct constraint_handle *co_opp_camera_vdd2;
-+	struct constraint_handle *co_opp_camera_latency;
-+#endif
-+
- /* module parameters */
- static int omap34xxcam_device_register(struct v4l2_int_device *s);
- static void omap34xxcam_device_unregister(struct v4l2_int_device *s);
- static int omap34xxcam_remove(struct platform_device *pdev);
- struct omap34xxcam_fh *camfh_saved;
- 
-+/* constraint */
-+#ifdef CONFIG_PM
-+	static struct constraint_id cnstr_id_vdd1 = {
-+		.type = RES_OPP_CO,
-+		.data = (void *)"vdd1_opp",
-+	};
-+
-+	static struct constraint_id cnstr_id_vdd2 = {
-+		.type = RES_OPP_CO,
-+		.data = (void *)"vdd2_opp",
-+	};
-+
-+	static struct constraint_id cnstr_id_latency = {
-+		.type = RES_LATENCY_CO,
-+		.data = (void *)"latency",
-+	};
-+#endif
- /*
-  *
-  * Sensor handling.
-@@ -697,6 +724,19 @@ static int vidioc_streamon(struct file *file, void *fh, enum v4l2_buf_type i)
- 	isph3a_notify(0);
- 	isp_af_notify(0);
- 	isp_sgdma_init();
-+
-+#ifdef CONFIG_PM
-+	if (system_rev >= OMAP3430_REV_ES2_0) {
-+		if (ofh->pix.width >= 640 && ofh->pix.height >= 480) {
-+			/* Setting constraint for VDD1 */
-+			constraint_set(co_opp_camera_vdd1, CO_VDD1_OPP3);
-+		}
-+		/* Setting constraint for VDD2 */
-+		constraint_set(co_opp_camera_vdd2, CO_VDD2_OPP3);
-+		constraint_set(co_opp_camera_latency, CO_LATENCY_WFI);
-+	}
-+#endif
-+
- 	rval = videobuf_streamon(&ofh->vbq);
- 	if (rval) {
- 		dev_dbg(vdev->cam->dev, "omap34xxcam_slave_power_set failed\n");
-@@ -746,6 +786,18 @@ static int vidioc_streamoff(struct file *file, void *fh, enum v4l2_buf_type i)
- 
- 	omap34xxcam_slave_power_set(vdev, V4L2_POWER_STANDBY);
- 
-+#ifdef CONFIG_PM
-+	if (system_rev >= OMAP3430_REV_ES2_0) {
-+		if (ofh->pix.width >= 640 && ofh->pix.height >= 480) {
-+			/* Removing constraint for VDD1 */
-+			constraint_remove(co_opp_camera_vdd1);
-+		}
-+		/* Removing constraint for VDD2 */
-+		constraint_remove(co_opp_camera_vdd2);
-+		constraint_remove(co_opp_camera_latency);
-+	}
-+#endif
-+
- 	mutex_unlock(&vdev->mutex);
- 
- 	return rval;
-@@ -1384,6 +1436,7 @@ static int omap34xxcam_release(struct inode *inode, struct file *file)
- {
- 	struct omap34xxcam_fh *fh = file->private_data;
- 	struct omap34xxcam_videodev *vdev = fh->vdev;
-+	int remove_constraints = 0;
- 	int i;
- 
- 	mutex_lock(&vdev->mutex);
-@@ -1394,6 +1447,7 @@ static int omap34xxcam_release(struct inode *inode, struct file *file)
- 		videobuf_streamoff(&fh->vbq);
- 		omap34xxcam_slave_power_set(vdev, V4L2_POWER_STANDBY);
- 		vdev->streaming = NULL;
-+		remove_constraints = 1;
- 	}
- 
- 	if (atomic_dec_return(&vdev->users) == 0) {
-@@ -1402,6 +1456,20 @@ static int omap34xxcam_release(struct inode *inode, struct file *file)
- 	}
- 	mutex_unlock(&vdev->mutex);
- 
-+#ifdef CONFIG_PM
-+	if (system_rev >= OMAP3430_REV_ES2_0) {
-+		if (remove_constraints) {
-+			if (fh->pix.width >= 640 && fh->pix.height >= 480) {
-+				/* Removing constraint for VDD1 */
-+				constraint_remove(co_opp_camera_vdd1);
-+			}
-+			/* Removing constraint for VDD2 */
-+			constraint_remove(co_opp_camera_vdd2);
-+			constraint_remove(co_opp_camera_latency);
-+		}
-+	}
-+#endif
-+
- 	file->private_data = NULL;
- 
- 	for (i = 0; i <= OMAP34XXCAM_SLAVE_FLASH; i++)
-@@ -1760,6 +1828,16 @@ static int omap34xxcam_probe(struct platform_device *pdev)
- 
- 	omap34xxcam = cam;
- 
-+#ifdef CONFIG_PM
-+	if (system_rev >= OMAP3430_REV_ES2_0) {
-+		/* Getting constraint for VDD1 and VDD2 */
-+		co_opp_camera_latency = constraint_get("omap34xxcam",
-+								&cnstr_id_latency);
-+		co_opp_camera_vdd1 = constraint_get("omap34xxcam", &cnstr_id_vdd1);
-+		co_opp_camera_vdd2 = constraint_get("omap34xxcam", &cnstr_id_vdd2);
-+	}
-+#endif
-+
- 	return 0;
- 
- err:
-@@ -1804,6 +1882,14 @@ static int omap34xxcam_remove(struct platform_device *pdev)
- 		cam->mmio_base_phys = 0;
- 	}
- 
-+#ifdef CONFIG_PM
-+	if (system_rev >= OMAP3430_REV_ES2_0) {
-+		constraint_put(co_opp_camera_vdd1);
-+		constraint_put(co_opp_camera_vdd2);
-+		constraint_put(co_opp_camera_latency);
-+	}
-+#endif
-+
- 	kfree(cam);
- 
- 	return 0;
--- 
-1.5.6.5
-
+VGhhbmtzIFRvbnkgdmVyeSBtdWNoIGZvciB5b3VyIHJlcGx5IQoKT24gV2VkLCBKYW4gNywgMjAw
+OSBhdCAxMDowNSBQTSwgVG9ueSBMaW5kZ3JlbiA8dG9ueUBhdG9taWRlLmNvbT4gd3JvdGU6Cj4g
+KiCx6LHUv/ggPGNoYW1tb3J1QGdtYWlsLmNvbT4gWzA5MDEwNiAwNDo1OV06Cj4+IEdyZWV0aW5n
+cywKPj4KPj4gSSdtIGVuYWJsaW5nIHRoZSBTdXNwZW5kLXRvLVJBTSBzdGF0ZSBpbiBvdXIgbmV3
+IE9NQVAzIEJvYXJkLgo+PiBCdXQgSSBoYWQgc29tZSBwcm9ibGVtcyBiZWNhdXNlIG9mIFVTQiBJ
+bnRlcnJ1cHQuCj4+Cj4+IEFsdGhvdWdoIEkgZGlzYWJsZWQgVVNCIGludGVycnVwdCBieSBkaXNh
+YmxlX2lycSgpIGZ1bmN0aW9uIHdoaWxlCj4+IGVudGVyaW5nIHRoZSBTdXNwZW5kLAo+PiBNX0lS
+UV85MiBpcnEgY29udGludW91c2x5IHdha2UgdXAgdGhlIE9NQVAzNDMwIFByb2Nlc3Nvci4KPj4K
+Pj4gU28sIEkgZml4ZWQgdGhpcyBwcm9ibGVtIGFzIGZvbGxvd2luZyBwYXRjaC4KPj4KPj4gTXkg
+UXVlc3Rpb25zIGFyZToKPj4gMS4gQ291bGQgYW55b25lIHN1Z2dlc3QgdGhlIGJldHRlciBzb2x1
+dGlvbiBmb3IgdGhpcyBwcm9ibGVtPwo+Cj4gTWF5YmUgc3VzcGVuZCB0aGUgVVOlwiB0b28/IDop
+CgpJIGNvbmZpcm1lZCBtdXNiX3N1c3BlbmQoKSBmdW5jdGlvbiB3YXMgaW52b2tlZCB3aGlsZSBl
+bnRlcmluZyBTdXNwZW5kLXRvLVJBTQpzdGF0ZS4gbXVzYl9zdXNwZW5kKCkgZGlkbid0IGRpc2Fi
+bGUgVVNCIGludGVycnVwdCwgYnV0IG9ubHkgVVNCIGNsb2NrLiBEZXZpY2VzCnNob3VsZCBiZSBz
+dXNwZW5kZWQgd2l0aCBpbnRlcnJ1cHRzIGRpc2FibGVkCigvRG9jdW1lbnR0YXRpb24vcG93ZXIv
+ZGV2aWNlcy50eHQgLSA0MTJsaW5lKQoKU28gSSBtb2RpZmllZCBtdXNiX3N1c3BlbmQoKSB0byBk
+aXNhYmxlIFVTQiBpbnRlcnJ1cHQKKEknbSBwbGFubmluZyB0byBzZW5kIHRoaXMgcGF0Y2ggdmVy
+eSBzb29uKQpJIGV2ZW4gd3JvdGUgMCB0byBQTV9XS0VOX1VTQkhPU1RbRU5fVVNCSE9TVF0gYml0
+LiBCdXQgb3VyIE9NQVAzNDMwIGJvYXJkCnN0aWxsIGhhdmUgd29rZW4gdXAgYnkgVVNCIGludGVy
+cnVwdCwgYmVjYXVzZSBkaXNhYmxlX2lycSgpIGRpZG4ndCBtYXNrIHRoZQppbnRlcnJ1cHQuCgo+
+Cj4+IDIuIElmIHRoZXJlIGlzIG5vIGJldHRlciBzb2x1dGlvbiwgY2FuIEkgYmUgYXBwbGllZCB0
+aGlzIHBhdGNoIHRvIG9tYXAtdHJlZT8KPgo+IFRoZSBwYXRjaCBsb29rcyBPSyB0byBtZSwgYXNz
+dW1pbmcgdGhlIGRlZmF1bHQgZW5hYmxlIGNhbGxzIHVubWFzaz8KPgoKUmlnaHQsIGRlZmF1bHRf
+ZW5hYmxlKCkgZnVuY3Rpb24oa2VybmVsL2lycS9jaGlwLmMgMjIybGluZSkgY2FsbHMgdW5tYXNr
+Cgo+IFJlZ2FyZHMsCj4KPiBUb255Cj4KPj4KPj4gVGhhbmsgeW91IQo+Pgo+PiBjb21taXQgYmJi
+NDkzMjFiMTYxZTZhOWZmMmI3MzMyNmQ0MDEyZDhlYjhiYmYyMwo+PiBBdXRob3I6IEtpbSBLeXV3
+b24gPGNoYW1tb3J1QGdtYWlsLmNvbT4KPj4gRGF0ZTogICBUdWUgSmFuIDYgMTA6MTE6NDYgMjAw
+OSArMDkwMAo+Pgo+PiAgICAgQVJNOiBPTUFQMzogTWFzayBpbnRlcnJ1cHRzIHdoZW4gZGlzYWJs
+aW5nIGludGVycnVwdHMKPj4KPj4gICAgIEJ5IEluZ28gTW9sbmFyLCBpbnRlcnJ1cHRzIGFyZSBu
+b3QgbWFza2VkIGJ5IGRlZmF1bHQuCj4+ICAgICAocmVmZXIgdG8gNzZkMjE2MDE0N2Y0M2Y5ODJk
+ZmU4ODE0MDRjZmRlOWZkMGE5ZGEyMSkKPj4KPj4gICAgIEJ1dCBpZiBpbnRlcnJ1cHRzIGFyZSBu
+b3QgbWFza2VkLCB0aGUgcHJvY2Vzc29yIGNhbiB3YWtlIHVwIHdoaWxlIGluCj4+ICAgICBTdXNw
+ZW5kLXRvLVJBTSBzdGF0ZSBieSBhbiBleHRlcm5hbCBpbnRlcnJ1cHQuIEZvciBleGFtcGxlLCBp
+ZiBhbgo+PiBPTUFQMyBib2FyZAo+PiAgICAgaXMgY29ubmVjdGVkIHRvIEhvc3QgUEMgYnkgVVNC
+IGFuZCBlbnRlcmVkIHRvIFN1c3BlbmQtdG8tUkFNCj4+IHN0YXRlLCBpdCB3YWtlIHVwCj4+ICAg
+ICBhdXRvbWF0aWNhbGx5IGJ5IE1fSVJRXzkyLiBUaGUgZGlzYWJsZV9pcnEoKSBmdW5jdGlvbiBj
+YW4ndCBkaXNhYmxlIHRoZQo+PiAgICAgaW50ZXJydXB0IGluIEgvVyBsZXZlbCwgU28gSSBtb2Rp
+ZmllZCBhcmNoL2FybS9tYWNoLW9tYXAyL2lycS5jCj4+Cj4+ICAgICBTaWduZWQtb2ZmLWJ5OiBL
+aW0gS3l1d29uIDxjaGFtbW9ydUBnbWFpbC5jb20+Cj4+Cj4+IGRpZmYgLS1naXQgYS9hcmNoL2Fy
+bS9tYWNoLW9tYXAyL2lycS5jIGIvYXJjaC9hcm0vbWFjaC1vbWFwMi9pcnEuYwo+PiBpbmRleCAx
+MTBhY2I5Li5iNDRkY2FlIDEwMDY0NAo+PiAtLS0gYS9hcmNoL2FybS9tYWNoLW9tYXAyL2lycS5j
+Cj4+ICsrKyBiL2FyY2gvYXJtL21hY2gtb21hcDIvaXJxLmMKPj4gQEAgLTEyMyw2ICsxMjMsMTEg
+QEAgc3RhdGljIHZvaWQgb21hcF91bm1hc2tfaXJxKHVuc2lnbmVkIGludCBpcnEpCj4+ICAgICAg
+IGludGNfYmFua193cml0ZV9yZWcoMSA8PCBpcnEsICZpcnFfYmFua3NbMF0sIElOVENfTUlSX0NM
+RUFSMCArIG9mZnNldCk7Cj4+ICB9Cj4+Cj4+ICtzdGF0aWMgdm9pZCBvbWFwX2Rpc2FibGVfaXJx
+KHVuc2lnbmVkIGludCBpcnEpCj4+ICt7Cj4+ICsgICAgIG9tYXBfbWFza19pcnEoaXJxKTsKPj4g
+K30KPj4gKwo+PiAgc3RhdGljIHZvaWQgb21hcF9tYXNrX2Fja19pcnEodW5zaWduZWQgaW50IGly
+cSkKPj4gIHsKPj4gICAgICAgb21hcF9tYXNrX2lycShpcnEpOwo+PiBAQCAtMTM0LDYgKzEzOSw3
+IEBAIHN0YXRpYyBzdHJ1Y3QgaXJxX2NoaXAgb21hcF9pcnFfY2hpcCA9IHsKPj4gICAgICAgLmFj
+ayAgICA9IG9tYXBfbWFza19hY2tfaXJxLAo+PiAgICAgICAubWFzayAgID0gb21hcF9tYXNrX2ly
+cSwKPj4gICAgICAgLnVubWFzayA9IG9tYXBfdW5tYXNrX2lycSwKPj4gKyAgICAgLmRpc2FibGUg
+PSBvbWFwX2Rpc2FibGVfaXJxLAo+PiAgfTsKPj4KPj4gIHN0YXRpYyB2b2lkIF9faW5pdCBvbWFw
+X2lycV9iYW5rX2luaXRfb25lKHN0cnVjdCBvbWFwX2lycV9iYW5rICpiYW5rKQo+PiAtLQo+PiBL
+aW0gS3l1d29uCj4+IC0tCj4+IFRvIHVuc3Vic2NyaWJlIGZyb20gdGhpcyBsaXN0OiBzZW5kIHRo
+ZSBsaW5lICJ1bnN1YnNjcmliZSBsaW51eC1vbWFwIiBpbgo+PiB0aGUgYm9keSBvZiBhIG1lc3Nh
+Z2UgdG8gbWFqb3Jkb21vQHZnZXIua2VybmVsLm9yZwo+PiBNb3JlIG1ham9yZG9tbyBpbmZvIGF0
+ICBodHRwOi8vdmdlci5rZXJuZWwub3JnL21ham9yZG9tby1pbmZvLmh0bWwKPgoKUmVnYXJkcywK
+LS0gCktpbSBLeXV3b24K
