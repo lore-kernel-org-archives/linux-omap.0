@@ -1,82 +1,114 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 1/1] Default MUX configuration added - GPIO140-143,
-	GPIO0 and GPIO9
-Date: Thu, 8 Jan 2009 14:06:07 +0200
-Message-ID: <20090108120605.GA27566@atomide.com>
-References: <1229405483-32438-1-git-send-email-mani.pillai@ti.com>
+From: Adrian Hunter <ext-adrian.hunter@nokia.com>
+Subject: Re: [PATCH] OMAP: MMC: recover from transfer failures
+Date: Thu, 08 Jan 2009 14:17:59 +0200
+Message-ID: <4965EEF7.2010400@nokia.com>
+References: <20081207213617.10456.43951.stgit@localhost> <200901071128.43937.jpihet@mvista.com> <4965C120.3010705@nokia.com> <200901081249.20152.jpihet@mvista.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-bos.mailhop.org ([63.208.196.178]:62365 "EHLO
-	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750928AbZAHMGI (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 8 Jan 2009 07:06:08 -0500
-Content-Disposition: inline
-In-Reply-To: <1229405483-32438-1-git-send-email-mani.pillai@ti.com>
+Received: from smtp.nokia.com ([192.100.122.233]:59364 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751557AbZAHMHW (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 8 Jan 2009 07:07:22 -0500
+In-Reply-To: <200901081249.20152.jpihet@mvista.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Manikandan Pillai <mani.pillai@ti.com>
-Cc: linux-omap@vger.kernel.org
+To: Jean Pihet <jpihet@mvista.com>
+Cc: linux-arm-kernel@lists.arm.linux.org.uk, Tony Lindgren <tony@atomide.com>, Pierre Ossman <drzeus-mmc@drzeus.cx>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Madhusudhan Chikkature <madhu.cr@ti.com>, David Brownell <david-b@pacbell.net>, "Jarkko Lavinen (NMP/Helsinki)" <jarkko.lavinen@nokia.com>
 
-* Manikandan Pillai <mani.pillai@ti.com> [081216 07:31]:
-> Default MUX configurations for GPIO on OMAP3 EVM boards are added.
-> Fixed for "_UP" naming convention for GPIOs comment.
+Jean Pihet wrote:
+> Thanks for the suggestion, it works great (stress tested) and is a cleaner 
+> fix.
+> Here is a patch the latest linux-omap-2.6 tree. Is this OK?
 
-Pushing to l-o tree, and adding to omap-upstream queue.
+OK by me.
 
-Tony
-
-> Signed-off-by: Manikandan Pillai <mani.pillai@ti.com>
+> Regards,
+> Jean
+> 
+> From d143f6b2e705aa4e9d2b032097fd1c82f8163262 Mon Sep 17 00:00:00 2001
+> From: Jean Pihet <jpihet@mvista.com>
+> Date: Thu, 8 Jan 2009 12:35:21 +0100
+> Subject: [PATCH] OMAP: MMC: recover from transfer failures
+> 
+> Timeouts during a command that has a data phase can result in the
+> next command issued after the command that failed not being processed,
+> i.e. no interrupt ever occurs to indicate the command has completed.
+> This failure can result in a deadlock.
+> 
+> This patch resets the data state machine to clear the error in
+> case of a command timeout.
+> 
+> Tested on OMAP3430 chip and intensive MMC/SD device removal while
+> transferring data.
+> 
+> Signed-off-by: Andy Lowe <alowe@mvista.com>
+> Signed-off-by: Jean Pihet <jpihet@mvista.com>
+> Signed-off-by: Adrian Hunter <ext-adrian.hunter@nokia.com>
 > ---
->  arch/arm/mach-omap2/mux.c             |   13 +++++++++++++
->  arch/arm/plat-omap/include/mach/mux.h |    6 ++++++
->  2 files changed, 19 insertions(+), 0 deletions(-)
+>  drivers/mmc/host/omap_hsmmc.c |    9 ++++++++-
+>  1 files changed, 8 insertions(+), 1 deletions(-)
 > 
-> diff --git a/arch/arm/mach-omap2/mux.c b/arch/arm/mach-omap2/mux.c
-> index dacb41f..1556688 100644
-> --- a/arch/arm/mach-omap2/mux.c
-> +++ b/arch/arm/mach-omap2/mux.c
-> @@ -459,6 +459,19 @@ MUX_CFG_34XX("AH8_34XX_GPIO29", 0x5fa,
->  		OMAP34XX_MUX_MODE4 | OMAP34XX_PIN_INPUT)
->  MUX_CFG_34XX("J25_34XX_GPIO170", 0x1c6,
->  		OMAP34XX_MUX_MODE4 | OMAP34XX_PIN_INPUT)
-> +MUX_CFG_34XX("AF26_34XX_GPIO0", 0x1e0,
-> +		OMAP34XX_MUX_MODE4 | OMAP34XX_PIN_OUTPUT)
-> +MUX_CFG_34XX("AF22_34XX_GPIO9", 0xa18,
-> +		OMAP34XX_MUX_MODE4 | OMAP34XX_PIN_OUTPUT)
-> +MUX_CFG_34XX("AF6_34XX_GPIO140_UP", 0x16c,
-> +		OMAP34XX_MUX_MODE4 | OMAP34XX_PIN_INPUT_PULLUP)
-> +MUX_CFG_34XX("AE6_34XX_GPIO141", 0x16e,
-> +		OMAP34XX_MUX_MODE4 | OMAP34XX_PIN_OUTPUT)
-> +MUX_CFG_34XX("AF5_34XX_GPIO142", 0x170,
-> +		OMAP34XX_MUX_MODE4 | OMAP34XX_PIN_OUTPUT)
-> +MUX_CFG_34XX("AE5_34XX_GPIO143", 0x172,
-> +		OMAP34XX_MUX_MODE4 | OMAP34XX_PIN_OUTPUT)
-> +
->  };
->  
->  #define OMAP34XX_PINS_SZ	ARRAY_SIZE(omap34xx_pins)
-> diff --git a/arch/arm/plat-omap/include/mach/mux.h b/arch/arm/plat-omap/include/mach/mux.h
-> index f4362b8..67fddec 100644
-> --- a/arch/arm/plat-omap/include/mach/mux.h
-> +++ b/arch/arm/plat-omap/include/mach/mux.h
-> @@ -790,6 +790,12 @@ enum omap34xx_index {
->  	 */
->  	AH8_34XX_GPIO29,
->  	J25_34XX_GPIO170,
-> +	AF26_34XX_GPIO0,
-> +	AF22_34XX_GPIO9,
-> +	AF6_34XX_GPIO140_UP,
-> +	AE6_34XX_GPIO141,
-> +	AF5_34XX_GPIO142,
-> +	AE5_34XX_GPIO143
->  };
->  
->  struct omap_mux_cfg {
-> -- 
-> 1.5.6
-> 
+> diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
+> index d5c1e9d..97150c0 100644
+> --- a/drivers/mmc/host/omap_hsmmc.c
+> +++ b/drivers/mmc/host/omap_hsmmc.c
+> @@ -464,8 +464,15 @@ static irqreturn_t mmc_omap_irq(int irq, void *dev_id)
+>                                 }
+>                                 end_cmd = 1;
+>                         }
+> -                       if (host->data)
+> +                       if (host->data) {
+>                                 mmc_dma_cleanup(host);
+> +                               OMAP_HSMMC_WRITE(host->base, SYSCTL,
+> +                                       OMAP_HSMMC_READ(host->base,
+> +                                                       SYSCTL) | SRD);
+> +                               while (OMAP_HSMMC_READ(host->base,
+> +                                               SYSCTL) & SRD)
+> +                                       ;
+> +                       }
+>                 }
+>                 if ((status & DATA_TIMEOUT) ||
+>                         (status & DATA_CRC)) {
 > --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 1.5.4.4.21.gc4a6c
+> 
+> 
+> 
+> On Thursday 08 January 2009 10:02:24 Adrian Hunter wrote:
+>> Why not do the reset in mmc_omap_irq() like the other resets?
+>> e.g.
+>>
+>> static irqreturn_t mmc_omap_irq(int irq, void *dev_id)
+>> ...
+>>                 if ((status & CMD_TIMEOUT) ||
+>>                         (status & CMD_CRC)) {
+>>                         if (host->cmd) {
+>>                                 if (status & CMD_TIMEOUT) {
+>>                                         OMAP_HSMMC_WRITE(host->base,
+>> SYSCTL, OMAP_HSMMC_READ(host->base, SYSCTL) | SRC); while
+>> (OMAP_HSMMC_READ(host->base, SYSCTL) & SRC) ;
+>>
+>>                                         host->cmd->error = -ETIMEDOUT;
+>>                                 } else {
+>>                                         host->cmd->error = -EILSEQ;
+>>                                 }
+>>                                 end_cmd = 1;
+>>                         }
+>> -                       if (host->data)
+>> +                       if (host->data) {
+>>                                 mmc_dma_cleanup(host);
+>> +                               OMAP_HSMMC_WRITE(host->base, SYSCTL,
+>> +                                       OMAP_HSMMC_READ(host->base,
+>> +                                                       SYSCTL) | SRD);
+>> +                               while (OMAP_HSMMC_READ(host->base,
+>> +                                               SYSCTL) & SRD)
+>> +                                       ;
+>> +                       }
+>>                 }
+>>                 if ((status & DATA_TIMEOUT) ||
+>>                         (status & DATA_CRC)) {
+> 
+> 
+
