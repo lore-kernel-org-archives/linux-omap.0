@@ -1,98 +1,152 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH] OMAP3: GPIO fixes for off-mode
-Date: Wed, 07 Jan 2009 15:35:51 -0800
-Message-ID: <8763kqofjc.fsf@deeprootsystems.com>
-References: <1229948832-26695-1-git-send-email-tero.kristo@nokia.com>
+From: "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>
+Subject: [OMAPZOOM][PATCH v2 1/2] OMAP3ISP: Preview fix
+Date: Wed, 7 Jan 2009 18:13:04 -0600
+Message-ID: <A24693684029E5489D1D202277BE894416328C8F@dlee02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from qw-out-2122.google.com ([74.125.92.27]:28115 "EHLO
-	qw-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755509AbZAGXf4 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 7 Jan 2009 18:35:56 -0500
-Received: by qw-out-2122.google.com with SMTP id 3so7630429qwe.37
-        for <linux-omap@vger.kernel.org>; Wed, 07 Jan 2009 15:35:55 -0800 (PST)
-In-Reply-To: <1229948832-26695-1-git-send-email-tero.kristo@nokia.com> (Tero Kristo's message of "Mon\, 22 Dec 2008 14\:27\:12 +0200")
+Received: from arroyo.ext.ti.com ([192.94.94.40]:44165 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751284AbZAHANL convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 7 Jan 2009 19:13:11 -0500
+Received: from dlep95.itg.ti.com ([157.170.170.107])
+	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id n080D64U027483
+	for <linux-omap@vger.kernel.org>; Wed, 7 Jan 2009 18:13:11 -0600
+Received: from dlee75.ent.ti.com (localhost [127.0.0.1])
+	by dlep95.itg.ti.com (8.13.8/8.13.8) with ESMTP id n080D5Cc007381
+	for <linux-omap@vger.kernel.org>; Wed, 7 Jan 2009 18:13:05 -0600 (CST)
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tero Kristo <tero.kristo@nokia.com>
-Cc: linux-omap@vger.kernel.org
+To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Cc: "Pandita, Vikram" <vikram.pandita@ti.com>
 
-Tero Kristo <tero.kristo@nokia.com> writes:
+>From 28d4ab715a8448dcd75a6e7a2924c1a24a5563b9 Mon Sep 17 00:00:00 2001
+From: Sergio Aguirre <saaguirre@ti.com>
+Date: Wed, 7 Jan 2009 16:39:11 -0600
+Subject: [PATCH] OMAP3ISP: Preview fix
 
-> From:	Tero Kristo <tero.kristo@nokia.com>
-> Subject: [PATCH] OMAP3: GPIO fixes for off-mode
-> To:	linux-omap@vger.kernel.org
-> Date:	Mon, 22 Dec 2008 14:27:12 +0200
->
-> Off mode is now using the omap2 retention fix code for scanning GPIOs
-> during off-mode transitions. All the *non_wakeup_gpios variables
-> are now used for off-mode transition tracking on OMAP3. This patch fixes
-> cases where GPIO state changes are missed during off-mode.
->
-> Signed-off-by: Tero Kristo <tero.kristo@nokia.com>
+This is for Syncup from TI internal tree, as this seems
+to look better on SDP for both MT9P012 and OV3640 sensors.
 
-Looks good now, thanks.  Pulling into PM branch.
+Signed-off-by: Sergio Aguirre <saaguirre@ti.com>
+---
+ drivers/media/video/isp/isppreview.c |   16 ++++++++++------
+ drivers/media/video/isp/isppreview.h |   11 +++++------
+ 2 files changed, 15 insertions(+), 12 deletions(-)
+ mode change 100644 => 100755 drivers/media/video/isp/isppreview.c
+ mode change 100644 => 100755 drivers/media/video/isp/isppreview.h
 
-Kevin
+diff --git a/drivers/media/video/isp/isppreview.c b/drivers/media/video/isp/isppreview.c
+old mode 100644
+new mode 100755
+index abee2d5..1d877af
+--- a/drivers/media/video/isp/isppreview.c
++++ b/drivers/media/video/isp/isppreview.c
+@@ -100,7 +100,7 @@ static struct ispprev_csc flr_prev_csc[] = {
+ 			{0x0, 0x0, 0x0}
+ 	},
+ 	{
+-		{	/* CSC Coef Matrix Sepia */
++		{	/* CSC Coef Matrix Sepia*/
+ 			{19, 38, 7},
+ 			{0, 0, 0},
+ 			{0, 0, 0}
+@@ -500,6 +500,7 @@ int omap34xx_isp_tables_update(struct isptables_update *isptables_struct)
+ 		down(&isppreview_mutex);
+ 		if (copy_from_user(redgamma_table, isptables_struct->red_gamma,
+ 						sizeof(redgamma_table))) {
++			RG_update = 0;
+ 			up(&isppreview_mutex);
+ 			goto err_copy_from_user;
+ 		}
+@@ -527,6 +528,7 @@ int omap34xx_isp_tables_update(struct isptables_update *isptables_struct)
+ 		if (copy_from_user(greengamma_table,
+ 						isptables_struct->green_gamma,
+ 						sizeof(greengamma_table))) {
++			GG_update = 0;
+ 			up(&isppreview_mutex);
+ 			goto err_copy_from_user;
+ 		}
+@@ -554,6 +556,7 @@ int omap34xx_isp_tables_update(struct isptables_update *isptables_struct)
+ 		if (copy_from_user(bluegamma_table, (isptables_struct->
+ 						blue_gamma),
+ 						sizeof(bluegamma_table))) {
++			BG_update = 0;
+ 			up(&isppreview_mutex);
+ 			goto err_copy_from_user;
+ 		}
+@@ -1977,7 +1980,7 @@ int __init isp_preview_init(void)
+ 		flr_wbal_coef0 = 0x23;
+ 		flr_wbal_coef1 = 0x20;
+ 		flr_wbal_coef2 = 0x20;
+-		flr_wbal_coef3 = 0x39;
++		flr_wbal_coef3 = 0x30;
+ 	}
+ 
+ 	/* Init values */
+@@ -2003,7 +2006,7 @@ int __init isp_preview_init(void)
+ 	memcpy(params->nf.table, noise_filter_table, sizeof(params->nf.table));
+ 	params->dcor.couplet_mode_en = 1;
+ 	for (i = 0; i < 4; i++)
+-		params->dcor.detect_correct[i] = 0xE;
++		params->dcor.detect_correct[i] = 0x32 | (0x19 << 16);/*0xE*/
+ 	params->gtable.bluetable = bluegamma_table;
+ 	params->gtable.greentable = greengamma_table;
+ 	params->gtable.redtable = redgamma_table;
+@@ -2018,14 +2021,15 @@ int __init isp_preview_init(void)
+ 	params->rgb2rgb = flr_rgb2rgb;
+ 	params->rgb2ycbcr = flr_prev_csc[ispprev_obj.color];
+ 
+-	params->features = PREV_CFA | PREV_CHROMA_SUPPRESS | PREV_LUMA_ENHANCE
+-				| PREV_DEFECT_COR | PREV_NOISE_FILTER;
++	params->features = PREV_CFA | PREV_DEFECT_COR | PREV_NOISE_FILTER;
+ 	params->features &= ~(PREV_AVERAGER | PREV_INVERSE_ALAW |
+ 						PREV_HORZ_MEDIAN_FILTER |
+ 						PREV_GAMMA_BYPASS |
+ 						PREV_DARK_FRAME_SUBTRACT |
+ 						PREV_LENS_SHADING |
+-						PREV_DARK_FRAME_CAPTURE);
++						PREV_DARK_FRAME_CAPTURE |
++						PREV_CHROMA_SUPPRESS |
++						PREV_LUMA_ENHANCE);
+ 	return 0;
+ }
+ 
+diff --git a/drivers/media/video/isp/isppreview.h b/drivers/media/video/isp/isppreview.h
+old mode 100644
+new mode 100755
+index 11596b3..0a0a9e2
+--- a/drivers/media/video/isp/isppreview.h
++++ b/drivers/media/video/isp/isppreview.h
+@@ -28,21 +28,20 @@
+ #define ISPPRV_BRIGHT_DEF		0x1
+ #define ISPPRV_BRIGHT_LOW		0x0
+ #define ISPPRV_BRIGHT_HIGH		0xF
+-#define ISPPRV_BRIGHT_UNITS		0x1
++#define ISPPRV_BRIGHT_UNITS		0x7
+ 
+-/*
+ #define ISPPRV_CONTRAST_STEP		0x1
+ #define ISPPRV_CONTRAST_DEF		0x2
+ #define ISPPRV_CONTRAST_LOW		0x0
+ #define ISPPRV_CONTRAST_HIGH		0xF
+ #define ISPPRV_CONTRAST_UNITS		0x5
+-*/
++/* MMS
+ #define ISPPRV_CONTRAST_STEP		0x1
+-#define ISPPRV_CONTRAST_DEF		0x1 /* MMS */
++#define ISPPRV_CONTRAST_DEF		0x1
+ #define ISPPRV_CONTRAST_LOW		0x0
+ #define ISPPRV_CONTRAST_HIGH		0xF
+-#define ISPPRV_CONTRAST_UNITS		0x16 /* MMS */
+-
++#define ISPPRV_CONTRAST_UNITS		0x16
++*/
+ #define NO_AVE				0x0
+ #define AVE_2_PIX			0x1
+ #define AVE_4_PIX			0x2
+-- 
+1.5.6.5
 
-> ---
->  arch/arm/mach-omap2/pm34xx.c |   10 ++++++----
->  arch/arm/plat-omap/gpio.c    |   29 ++++++++++++++++++++---------
->  2 files changed, 26 insertions(+), 13 deletions(-)
->
-> diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
-> index c67d770..66f2b22 100644
-> --- a/arch/arm/mach-omap2/pm34xx.c
-> +++ b/arch/arm/mach-omap2/pm34xx.c
-> @@ -330,14 +330,15 @@ void omap_sram_idle(void)
->  	core_next_state = pwrdm_read_next_pwrst(core_pwrdm);
->  	if (per_next_state < PWRDM_POWER_ON) {
->  		omap_uart_prepare_idle(2);
-> -		omap2_gpio_prepare_for_retention();
->  		if (per_next_state == PWRDM_POWER_OFF) {
->  			if (core_next_state == PWRDM_POWER_ON) {
->  				per_next_state = PWRDM_POWER_RET;
->  				pwrdm_set_next_pwrst(per_pwrdm, per_next_state);
->  				per_state_modified = 1;
-> -			} else
-> +			} else {
-> +				omap2_gpio_prepare_for_retention();
->  				omap3_per_save_context();
-> +			}
->  		}
->  	}
->  
-> @@ -411,9 +412,10 @@ void omap_sram_idle(void)
->  	/* PER */
->  	if (per_next_state < PWRDM_POWER_ON) {
->  		per_prev_state = pwrdm_read_prev_pwrst(per_pwrdm);
-> -		if (per_prev_state == PWRDM_POWER_OFF)
-> +		if (per_prev_state == PWRDM_POWER_OFF) {
->  			omap3_per_restore_context();
-> -		omap2_gpio_resume_after_retention();
-> +			omap2_gpio_resume_after_retention();
-> +		}
->  		omap_uart_resume_idle(2);
->  		if (per_state_modified)
->  			pwrdm_set_next_pwrst(per_pwrdm, PWRDM_POWER_OFF);
-> diff --git a/arch/arm/plat-omap/gpio.c b/arch/arm/plat-omap/gpio.c
-> index 83a5953..db40037 100644
-> --- a/arch/arm/plat-omap/gpio.c
-> +++ b/arch/arm/plat-omap/gpio.c
-> @@ -540,7 +540,9 @@ static inline void set_24xx_gpio_triggering(struct gpio_bank *bank, int gpio,
->  		else
->  			__raw_writel(1 << gpio, bank->base
->  					+ OMAP24XX_GPIO_CLEARWKUENA);
-> -	} else {
-> +	}
-> +	/* This part needs to be executed always for OMAP34xx */
-> +	if (cpu_is_omap34xx() || (bank->non_wakeup_gpios & gpio_bit)) {
->  		if (trigger != 0)
->  			bank->enabled_non_wakeup_gpios |= gpio_bit;
->  		else
-> @@ -1456,7 +1458,8 @@ static int __init _omap_gpio_init(void)
->  
->  			/* Initialize interface clock ungated, module enabled */
->  			__raw_writel(0, bank->base + OMAP24XX_GPIO_CTRL);
-> -			if (i < ARRAY_SIZE(non_wakeup_gpios))
