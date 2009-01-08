@@ -1,179 +1,127 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 1/1] Adding support for NAND partitions in OMAP3 EVM.
-Date: Thu, 8 Jan 2009 16:56:58 +0200
-Message-ID: <20090108145656.GP27566@atomide.com>
-References: <1227850600-19842-1-git-send-email-mani.pillai@ti.com>
+Subject: Re: [PATCH] [OMAPZOOM]  OMAP : DMA: Spurious interrupt fix
+Date: Thu, 8 Jan 2009 17:11:21 +0200
+Message-ID: <20090108151120.GQ27566@atomide.com>
+References: <EAF47CD23C76F840A9E7FCE10091EFAB029392DE99@dbde02.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-bos.mailhop.org ([63.208.196.178]:52943 "EHLO
+Received: from mho-01-bos.mailhop.org ([63.208.196.178]:53254 "EHLO
 	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756627AbZAHO5A (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 8 Jan 2009 09:57:00 -0500
+	with ESMTP id S1752129AbZAHPLX (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 8 Jan 2009 10:11:23 -0500
 Content-Disposition: inline
-In-Reply-To: <1227850600-19842-1-git-send-email-mani.pillai@ti.com>
+In-Reply-To: <EAF47CD23C76F840A9E7FCE10091EFAB029392DE99@dbde02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Manikandan Pillai <mani.pillai@ti.com>
-Cc: linux-omap@vger.kernel.org
+To: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
+Cc: "Pandita, Vikram" <vikram.pandita@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-* Manikandan Pillai <mani.pillai@ti.com> [081128 07:36]:
-> Flash initialization has been modified to take care on NAND initialization
-> and creation of NAND partitions.
+Hi,
 
-Pushing to l-o tree. Do you also want to prepare patches against
-the mainline tree for minimal omap3evm support for the next merge
-window?
+* Shilimkar, Santosh <santosh.shilimkar@ti.com> [081204 08:21]:
+> From: Santosh Shilimkar <santosh.shilimkar@ti.com>
+> 
+> This fixes the spurious interrupt issue on a DMA channel. 
+
+Sounds like we need to do this. But let's rather do it during runtime
+in dma init with cpu_is_omapXXXX() and omap_type() macros.
 
 Regards,
 
 Tony
 
 
-> Signed-off-by: Manikandan Pillai <mani.pillai@ti.com>
-> ---
->  arch/arm/mach-omap2/board-omap3evm-flash.c       |   85 ++++++++++++++++++++--
->  arch/arm/plat-omap/include/mach/board-omap3evm.h |    2 +
->  2 files changed, 82 insertions(+), 5 deletions(-)
+
 > 
-> diff --git a/arch/arm/mach-omap2/board-omap3evm-flash.c b/arch/arm/mach-omap2/board-omap3evm-flash.c
-> index 5f3663d..72c7f5b 100644
-> --- a/arch/arm/mach-omap2/board-omap3evm-flash.c
-> +++ b/arch/arm/mach-omap2/board-omap3evm-flash.c
-> @@ -23,6 +23,9 @@
->  #include <mach/gpmc.h>
->  #include <mach/nand.h>
+> Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+> Acked By: Nishant Kamat <nskamat@ti.com>
+> Acked By: Gopinath Thara <thara@ti.com>
+> ---
+> --- omapkernel.orig/arch/arm/plat-omap/include/mach/dma.h	2008-12-04 10:29:08.949018434 +0530
+> +++ omapkernel/arch/arm/plat-omap/include/mach/dma.h	2008-12-04 11:14:25.359087775 +0530
+> @@ -67,7 +67,11 @@
+>  #define OMAP_DMA4_CAPS_4		0x74
 >  
-> +#define GPMC_CS0_BASE  0x60
-> +#define GPMC_CS_SIZE   0x30
-> +
->  static int omap3evm_onenand_setup(void __iomem *, int freq);
+>  #define OMAP1_LOGICAL_DMA_CH_COUNT	17
+> +#ifdef CONFIG_OMAP_DMA_LIBRARY_CHANNELS
+> +#define OMAP_DMA4_LOGICAL_DMA_CH_COUNT	CONFIG_OMAP_DMA_LIBRARY_CHANNELS
+> +#else
+>  #define OMAP_DMA4_LOGICAL_DMA_CH_COUNT	32	/* REVISIT: Is this 32 + 2? */
+> +#endif
 >  
->  static struct mtd_partition omap3evm_onenand_partitions[] = {
-> @@ -70,6 +73,63 @@ static struct platform_device omap3evm_onenand_device = {
->  	},
->  };
+>  /* Common channel specific registers for omap1 */
+>  #define OMAP1_DMA_CH_BASE(n)		(0x40 * (n) + 0x00)
+> Index: omapkernel/arch/arm/plat-omap/Kconfig
+> ===================================================================
+> --- omapkernel.orig/arch/arm/plat-omap/Kconfig	2008-12-04 10:29:08.949018434 +0530
+> +++ omapkernel/arch/arm/plat-omap/Kconfig	2008-12-04 10:38:21.883850512 +0530
+> @@ -256,6 +256,18 @@ config OMAP_SERIAL_WAKE
+>  	  to data on the serial RX line. This allows you to wake the
+>  	  system from serial console.
 >  
-> +static struct mtd_partition omap3evm_nand_partitions[] = {
-> +	/* All the partition sizes are listed in terms of NAND block size */
-> +	{
-> +		.name           = "X-Loader-NAND",
-> +		.offset         = 0,
-> +		.size           = 4*(128 * 1024),
-> +		.mask_flags     = MTD_WRITEABLE,        /* force read-only */
-> +	},
-> +	{
-> +		.name           = "U-Boot-NAND",
-> +		.offset         = MTDPART_OFS_APPEND,   /* Offset = 0x80000 */
-> +		.size           = 14*(128 * 1024),
-> +		.mask_flags     = MTD_WRITEABLE,        /* force read-only */
-> +	},
-> +	{
-> +		.name           = "Boot Env-NAND",
 > +
-> +		.offset         = MTDPART_OFS_APPEND,   /* Offset = 0x100000 */
-> +		.size           = 2*(128 * 1024),
-> +	},
-> +	{
-> +		.name           = "Kernel-NAND",
-> +		.offset         = MTDPART_OFS_APPEND,   /* Offset = 0x140000 */
-> +		.size           = 40*(128 * 1024),
-> +	},
-> +	{
-> +		.name           = "File System - NAND",
-> +		.size           = MTDPART_SIZ_FULL,
-> +		.offset         = MTDPART_OFS_APPEND,   /* Offset = 0x540000 */
-> +	},
-> +};
+> +config OMAP_DMA_LIBRARY_CHANNELS
+> +        int "DMA channels controlled by the kernel DMA library"
+> +        range 24 32
+> +        depends on ARCH_OMAP3
+> +        default "32"
+> +        help
+> +          Some of the OMAP System DMA channels may need to be
+> +          reserved for software that don't use the DMA library, such as
+> +          security drivers. Use this option to limit the number of channels
+> +          controlled by the kernel DMA library.
 > +
-> +/* dip switches control NAND chip access:  8 bit, 16 bit, or neither */
-> +static struct omap_nand_platform_data omap3evm_nand_data = {
-> +	.parts          = omap3evm_nand_partitions,
-> +	.nr_parts       = ARRAY_SIZE(omap3evm_nand_partitions),
-> +	.nand_setup     = NULL,
-> +	.dma_channel    = -1,           /* disable DMA in OMAP NAND driver */
-> +	.dev_ready      = NULL,
-> +	.options        = NAND_SAMSUNG_LP_OPTIONS,
-> +};
-> +
-> +static struct resource omap3evm_nand_resource = {
-> +	.flags          = IORESOURCE_MEM,
-> +};
-> +
-> +static struct platform_device omap3evm_nand_device = {
-> +	.name           = "omap2-nand",
-> +	.id             = 0,
-> +	.dev            = {
-> +		.platform_data  = &omap3evm_nand_data,
-> +	},
-> +	.num_resources  = 1,
-> +	.resource       = &omap3evm_nand_resource,
-> +};
-> +
-> +
->  /*
->   *      omap3evm_onenand_setup - Set the onenand sync mode
->   *      @onenand_base:  The onenand base address in GPMC memory map
-> @@ -86,6 +146,8 @@ void __init omap3evm_flash_init(void)
->  {
->  	u8		cs = 0;
->  	u8		onenandcs = GPMC_CS_NUM + 1;
-> +	u8 		nandcs = GPMC_CS_NUM + 1;
-> +	u32 		gpmc_base_add = OMAP34XX_GPMC_VIRT;
+>  endmenu
 >  
->  	while (cs < GPMC_CS_NUM) {
->  		u32 ret = 0;
-> @@ -100,18 +162,31 @@ void __init omap3evm_flash_init(void)
->  		*/
->  		if ((ret & 0x3F) == (ONENAND_MAP >> 24))
->  			onenandcs = cs;
-> +		else if ((ret & 0x3F) == (NAND_MAP >> 24))
-> +			nandcs = cs;
->  		cs++;
->  	}
->  	if (onenandcs > GPMC_CS_NUM) {
->  		printk(KERN_INFO "OneNAND: Unable to find configuration "
->  				" in GPMC\n ");
-> -		return;
-> -	}
+>  endif
+> Index: omapkernel/arch/arm/configs/omap_3430sdp_defconfig
+> ===================================================================
+> --- omapkernel.orig/arch/arm/configs/omap_3430sdp_defconfig	2008-12-04 10:29:08.949018434 +0530
+> +++ omapkernel/arch/arm/configs/omap_3430sdp_defconfig	2008-12-04 10:38:21.884850481 +0530
+> @@ -177,7 +177,7 @@ CONFIG_ARCH_OMAP_OTG=y
+>  # CONFIG_ARCH_OMAP1 is not set
+>  # CONFIG_ARCH_OMAP2 is not set
+>  CONFIG_ARCH_OMAP3=y
 > -
-> -	if (onenandcs < GPMC_CS_NUM) {
-> +	} else if (onenandcs < GPMC_CS_NUM) {
-> +		printk(KERN_INFO "OneNAND: on CS%d\n", onenandcs);
->  		omap3evm_onenand_data.cs = onenandcs;
->  		if (platform_device_register(&omap3evm_onenand_device) < 0)
->  			printk(KERN_ERR "Unable to register OneNAND device\n");
+> +CONFIG_OMAP_DMA_LIBRARY_CHANNELS=24
+>  #
+>  # OMAP Feature Selections
+>  #
+> Index: omapkernel/arch/arm/plat-omap/dma.c
+> ===================================================================
+> --- omapkernel.orig/arch/arm/plat-omap/dma.c	2008-12-04 10:38:16.732010840 +0530
+> +++ omapkernel/arch/arm/plat-omap/dma.c	2008-12-04 11:11:07.671274902 +0530
+> @@ -1946,7 +1946,7 @@ static int omap2_dma_handle_ch(int ch)
+>  /* STATUS register count is from 1-32 while our is 0-31 */
+>  static irqreturn_t omap2_dma_irq_handler(int irq, void *dev_id)
+>  {
+> -	u32 val;
+> +	u32 val, enable_reg;
+>  	int i;
+>  
+>  	val = dma_read(IRQSTATUS_L0);
+> @@ -1955,6 +1955,8 @@ static irqreturn_t omap2_dma_irq_handler
+>  			printk(KERN_WARNING "Spurious DMA IRQ\n");
+>  		return IRQ_HANDLED;
 >  	}
-> -}
->  
-> +	if (nandcs > GPMC_CS_NUM) {
-> +		printk(KERN_INFO "NAND: Unable to find configuration "
-> +				"in GPMC\n ");
-> +	} else if (nandcs < GPMC_CS_NUM) {
-> +		printk(KERN_INFO "NAND: on CS%d\n", nandcs);
-> +		omap3evm_nand_data.cs = nandcs;
-> +		omap3evm_nand_data.gpmc_cs_baseaddr = (void *)
-> +			(gpmc_base_add + GPMC_CS0_BASE + nandcs * GPMC_CS_SIZE);
-> +		omap3evm_nand_data.gpmc_baseaddr = (void *) (gpmc_base_add);
-> +		printk(KERN_INFO "Registering NAND on CS%d\n", nandcs);
-> +		if (platform_device_register(&omap3evm_nand_device) < 0)
-> +			printk(KERN_ERR "Unable to register NAND device\n");
-> +	}
-> +}
-> diff --git a/arch/arm/plat-omap/include/mach/board-omap3evm.h b/arch/arm/plat-omap/include/mach/board-omap3evm.h
-> index 7a540e9..0c7c05c 100644
-> --- a/arch/arm/plat-omap/include/mach/board-omap3evm.h
-> +++ b/arch/arm/plat-omap/include/mach/board-omap3evm.h
-> @@ -40,5 +40,7 @@ extern void omap3evm_flash_init(void);
->  #define OMAP3EVM_ETHR_GPIO_IRQ	176
->  #define OMAP3EVM_SMC911X_CS	5
->  
-> +#define NAND_MAP		0x30000000
-> +
->  #endif /* __ASM_ARCH_OMAP3_EVM_H */
->  
-> -- 
-> 1.5.6
+> +	enable_reg = dma_read(IRQENABLE_L0);
+> +	val &= enable_reg; /* Dispatch only relevant interrupts */
+>  	for (i = 0; i < dma_lch_count && val != 0; i++) {
+>  		if (val & 1)
+>  			omap2_dma_handle_ch(i);
+> Index: omapkernel/arch/arm/configs/omap_ldp_defconfig
+> ===================================================================
+> --- omapkernel.orig/arch/arm/configs/omap_ldp_defconfig	2008-12-04 11:18:54.000000000 +0530
+> +++ omapkernel/arch/arm/configs/omap_ldp_defconfig	2008-12-04 11:19:33.507466484 +0530
+> @@ -177,6 +177,7 @@ CONFIG_ARCH_OMAP_OTG=y
+>  # CONFIG_ARCH_OMAP1 is not set
+>  # CONFIG_ARCH_OMAP2 is not set
+>  CONFIG_ARCH_OMAP3=y
+> +CONFIG_OMAP_DMA_LIBRARY_CHANNELS=32
+>  #
+>  # OMAP Feature Selections
+>  #
 > 
 > --
 > To unsubscribe from this list: send the line "unsubscribe linux-omap" in
