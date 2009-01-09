@@ -1,27 +1,90 @@
 From: Tero Kristo <tero.kristo@nokia.com>
-Subject: [PATCH 00/17] OMAP3: Base support for VDD2 DVFS
-Date: Fri,  9 Jan 2009 17:45:28 +0200
-Message-ID: <1231515945-10234-1-git-send-email-tero.kristo@nokia.com>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:49099 "EHLO
-	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751858AbZAIP41 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 9 Jan 2009 10:56:27 -0500
-Received: from vaebh106.NOE.Nokia.com (vaebh106.europe.nokia.com [10.160.244.32])
-	by mgw-mx06.nokia.com (Switch-3.2.6/Switch-3.2.6) with ESMTP id n09Ftwsg014214
-	for <linux-omap@vger.kernel.org>; Fri, 9 Jan 2009 17:56:24 +0200
-Received: from localhost.localdomain (sokoban.ntc.nokia.com [172.22.144.95])
-	by mgw-int01.ntc.nokia.com (Switch-3.2.5/Switch-3.2.5) with ESMTP id n09FtXjH003289
-	for <linux-omap@vger.kernel.org>; Fri, 9 Jan 2009 17:55:33 +0200
-In-Reply-To: <>
+Subject: [PATCH 01/17] ARM: MMU: add a Non-cacheable Normal executable memory type
+Date: Fri,  9 Jan 2009 17:45:29 +0200
+Message-ID: <1231515945-10234-2-git-send-email-tero.kristo@nokia.com>
 References: <>
+ <1231515945-10234-1-git-send-email-tero.kristo@nokia.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from smtp.nokia.com ([192.100.122.233]:49037 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751900AbZAIPzv (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 9 Jan 2009 10:55:51 -0500
+In-Reply-To: <1231515945-10234-1-git-send-email-tero.kristo@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
+Cc: Paul Walmsley <paul@pwsan.com>
 
-Resending this set against the latest PM branch. This set provides base
-SDRC + SRAM + clock framework support for VDD2 DVFS control. Main reasoning
-for this set is that when VDD2 clock is changed, memory clocking changes also
-and you need to be rather careful when you are doing this.
+From: Paul Walmsley <paul@pwsan.com>
 
+Add a Non-cacheable Normal ARM executable memory type,
+MT_MEMORY_NONCACHED.  This is needed for the OMAP3 SDRAM clock change
+code, which must run from SRAM.  The SRAM must be marked as
+non-cacheable memory to avoid dirty cache line writebacks to SDRAM
+while the SDRAM controller is paused.
+
+Signed-off-by: Paul Walmsley <paul@pwsan.com>
+---
+ arch/arm/include/asm/mach/map.h |    1 +
+ arch/arm/mm/mmu.c               |   23 +++++++++++++++++++++++
+ 2 files changed, 24 insertions(+), 0 deletions(-)
+
+diff --git a/arch/arm/include/asm/mach/map.h b/arch/arm/include/asm/mach/map.h
+index 39d949b..58cf91f 100644
+--- a/arch/arm/include/asm/mach/map.h
++++ b/arch/arm/include/asm/mach/map.h
+@@ -26,6 +26,7 @@ struct map_desc {
+ #define MT_HIGH_VECTORS		8
+ #define MT_MEMORY		9
+ #define MT_ROM			10
++#define MT_MEMORY_NONCACHED	11
+ 
+ #ifdef CONFIG_MMU
+ extern void iotable_init(struct map_desc *, int);
+diff --git a/arch/arm/mm/mmu.c b/arch/arm/mm/mmu.c
+index 7f36c82..9ad6413 100644
+--- a/arch/arm/mm/mmu.c
++++ b/arch/arm/mm/mmu.c
+@@ -242,6 +242,10 @@ static struct mem_type mem_types[] = {
+ 		.prot_sect = PMD_TYPE_SECT,
+ 		.domain    = DOMAIN_KERNEL,
+ 	},
++	[MT_MEMORY_NONCACHED] = {
++		.prot_sect = PMD_TYPE_SECT | PMD_SECT_AP_WRITE,
++		.domain    = DOMAIN_KERNEL,
++	},
+ };
+ 
+ const struct mem_type *get_mem_type(unsigned int type)
+@@ -405,9 +409,28 @@ static void __init build_mem_type_table(void)
+ 		kern_pgprot |= L_PTE_SHARED;
+ 		vecs_pgprot |= L_PTE_SHARED;
+ 		mem_types[MT_MEMORY].prot_sect |= PMD_SECT_S;
++		mem_types[MT_MEMORY_NONCACHED].prot_sect |= PMD_SECT_S;
+ #endif
+ 	}
+ 
++	/*
++	 * Non-cacheable Normal - intended for memory areas that must
++	 * not cause cache line evictions when used
++	 */
++	if (cpu_arch >= CPU_ARCH_ARMv6) {
++		if (cpu_arch >= CPU_ARCH_ARMv7 && (cr & CR_TRE)) {
++			/* Non-cacheable Normal is XCB = 001 */
++			mem_types[MT_MEMORY_NONCACHED].prot_sect |=
++				PMD_SECT_BUFFERED;
++		} else {
++			/* For both ARMv6 and non-TEX-remapping ARMv7 */
++			mem_types[MT_MEMORY_NONCACHED].prot_sect |=
++				PMD_SECT_TEX(1);
++		}
++	} else {
++		mem_types[MT_MEMORY_NONCACHED].prot_sect |= PMD_SECT_BUFFERABLE;
++	}
++
+ 	for (i = 0; i < 16; i++) {
+ 		unsigned long v = pgprot_val(protection_map[i]);
+ 		protection_map[i] = __pgprot(v | user_pgprot);
+-- 
+1.5.4.3
 
