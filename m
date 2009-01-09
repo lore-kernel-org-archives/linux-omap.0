@@ -1,81 +1,201 @@
-From: Jouni Hogander <jouni.hogander@nokia.com>
-Subject: [PATCH 2/2] OMAP3: PM: Emu_pwrdm is switched off by hardware even when sdti is in use
-Date: Fri,  9 Jan 2009 09:52:33 +0200
-Message-ID: <1231487553-17892-3-git-send-email-jouni.hogander@nokia.com>
-References: <1231487553-17892-1-git-send-email-jouni.hogander@nokia.com>
+From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
+Subject: RE: [PATCH] [OMAPZOOM]  OMAP : DMA: Spurious interrupt fix
+Date: Fri, 9 Jan 2009 16:21:29 +0530
+Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB029830F705@dbde02.ent.ti.com>
+References: <EAF47CD23C76F840A9E7FCE10091EFAB029392DE99@dbde02.ent.ti.com>
+ <20090108151120.GQ27566@atomide.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:25128 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752768AbZAIHws (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 9 Jan 2009 02:52:48 -0500
-Received: from esebh105.NOE.Nokia.com (esebh105.ntc.nokia.com [172.21.138.211])
-	by mgw-mx09.nokia.com (Switch-3.2.6/Switch-3.2.6) with ESMTP id n097q00a031774
-	for <linux-omap@vger.kernel.org>; Fri, 9 Jan 2009 01:52:26 -0600
-Received: from localhost.localdomain (trdhcp147193.ntc.nokia.com [172.22.147.193])
-	by mgw-int02.ntc.nokia.com (Switch-3.2.5/Switch-3.2.5) with ESMTP id n097pfA9025740
-	for <linux-omap@vger.kernel.org>; Fri, 9 Jan 2009 09:51:44 +0200
-In-Reply-To: <1231487553-17892-1-git-send-email-jouni.hogander@nokia.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:46842 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752844AbZAIKvj convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 9 Jan 2009 05:51:39 -0500
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: "Pandita, Vikram" <vikram.pandita@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Using sdti doesn't keep emu_pwrdm on if hardware supervised pwrdm
-transitions are used. This causes sdti stop to work when power
-management is initialized and hardware supervised pwrdm control is
-enabled. This patch disables hardware supervised pwrdm control for
-emu_pwrdm. Now emu_pwrdm is switched off on boot by software when it
-is not used.
 
-Signed-off-by: Jouni Hogander <jouni.hogander@nokia.com>
----
- arch/arm/mach-omap2/clockdomains.h |    6 +++++-
- arch/arm/mach-omap2/pm34xx.c       |   11 ++++++++++-
- 2 files changed, 15 insertions(+), 2 deletions(-)
+Tony,
+Regarding your proposal of doing the no. of channel reservation during runtime has one problem. 
 
-diff --git a/arch/arm/mach-omap2/clockdomains.h b/arch/arm/mach-omap2/clockdomains.h
-index bafa650..3d4eaca 100644
---- a/arch/arm/mach-omap2/clockdomains.h
-+++ b/arch/arm/mach-omap2/clockdomains.h
-@@ -251,10 +251,14 @@ static struct clockdomain per_clkdm = {
- 	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
- };
- 
-+/*
-+ * Disable hw supervised mode for emu_clkdm, because emu_pwrdm is
-+ * switched of even if sdti is in use
-+ */
- static struct clockdomain emu_clkdm = {
- 	.name		= "emu_clkdm",
- 	.pwrdm		= { .name = "emu_pwrdm" },
--	.flags		= CLKDM_CAN_ENABLE_AUTO | CLKDM_CAN_SWSUP,
-+	.flags		= /* CLKDM_CAN_ENABLE_AUTO |  */CLKDM_CAN_SWSUP,
- 	.clktrctrl_mask = OMAP3430_CLKTRCTRL_EMU_MASK,
- 	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
- };
-diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
-index 1d54e96..43aac5f 100644
---- a/arch/arm/mach-omap2/pm34xx.c
-+++ b/arch/arm/mach-omap2/pm34xx.c
-@@ -605,9 +605,18 @@ static int __init pwrdms_setup(struct powerdomain *pwrdm)
- 	return set_pwrdm_state(pwrst->pwrdm, pwrst->next_state);
- }
- 
-+/*
-+ * Enable hw supervised mode for all clockdomains if it's
-+ * supported. Initiate sleep transition for other clockdomains, if
-+ * they are not used
-+ */
- static int __init clkdms_setup(struct clockdomain *clkdm)
- {
--	omap2_clkdm_allow_idle(clkdm);
-+	if (clkdm->flags & CLKDM_CAN_ENABLE_AUTO)
-+		omap2_clkdm_allow_idle(clkdm);
-+	else if (clkdm->flags & CLKDM_CAN_FORCE_SLEEP &&
-+		 atomic_read(&clkdm->usecount) == 0)
-+		omap2_clkdm_sleep(clkdm);
- 	return 0;
- }
- 
--- 
-1.6.0.1
+The whole idea was not to restrict users from using all 32 channels and hence the config option. For OMAP secure chips, few security drivers which will execute in secure contex needs dedicated DMA channels and kernel dma library can't be used in that case. So in such cases, required DMA channels can be reserved using this config option. For GP devices all 32 channels can be used currently. 
 
+If it can done in better way, please suggest.
+
+Time being if needed what best I can do is, to split this patch into two parts as mentioned earlier. This will avoid confusion of spurious interrupt issue and dma channel reservation
+
+> -----Original Message-----
+> From: Shilimkar, Santosh 
+> Sent: Friday, January 09, 2009 10:22 AM
+> To: 'Tony Lindgren'
+> Cc: Pandita, Vikram; linux-omap@vger.kernel.org
+> Subject: RE: [PATCH] [OMAPZOOM] OMAP : DMA: Spurious interrupt fix
+> 
+> 
+> > -----Original Message-----
+> > From: Tony Lindgren [mailto:tony@atomide.com] 
+> > Sent: Thursday, January 08, 2009 8:41 PM
+> > To: Shilimkar, Santosh
+> > Cc: Pandita, Vikram; linux-omap@vger.kernel.org
+> > Subject: Re: [PATCH] [OMAPZOOM] OMAP : DMA: Spurious interrupt fix
+> > 
+> > Hi,
+> > 
+> > * Shilimkar, Santosh <santosh.shilimkar@ti.com> [081204 08:21]:
+> > > From: Santosh Shilimkar <santosh.shilimkar@ti.com>
+> > > 
+> > > This fixes the spurious interrupt issue on a DMA channel. 
+> > 
+> > Sounds like we need to do this. But let's rather do it 
+> during runtime
+> > in dma init with cpu_is_omapXXXX() and omap_type() macros.
+> 
+> Yes we need this. Actually this patch has two parts. One is 
+> the config option and another one is correcting ISR. I could 
+> have done two separate patches.
+>  --- omapkernel.orig/arch/arm/plat-omap/dma.c	
+>  2008-12-04 10:38:16.732010840 +0530
+>  +++ omapkernel/arch/arm/plat-omap/dma.c	2008-12-04 
+>  11:11:07.671274902 +0530
+>  @@ -1946,7 +1946,7 @@ static int omap2_dma_handle_ch(int ch)
+>   /* STATUS register count is from 1-32 while our is 0-31 */
+>   static irqreturn_t omap2_dma_irq_handler(int irq, void *dev_id)
+>   {
+>  -	u32 val;
+>  +	u32 val, enable_reg;
+>   	int i;
+>   
+>   	val = dma_read(IRQSTATUS_L0);
+>  @@ -1955,6 +1955,8 @@ static irqreturn_t omap2_dma_irq_handler
+>   			printk(KERN_WARNING "Spurious DMA IRQ\n");
+>   		return IRQ_HANDLED;
+>   	}
+>  +	enable_reg = dma_read(IRQENABLE_L0);
+>  +	val &= enable_reg; /* Dispatch only relevant interrupts */
+>   	for (i = 0; i < dma_lch_count && val != 0; i++) {
+>   		if (val & 1)
+>   			omap2_dma_handle_ch(i);
+> 
+> We should at least update this on mainline because this was a 
+> real issue. Reserving channel was more of a request from 
+> security drivers which also helps in this case. 
+>  
+> > > 
+> > > Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+> > > Acked By: Nishant Kamat <nskamat@ti.com>
+> > > Acked By: Gopinath Thara <thara@ti.com>
+> > > ---
+> > > --- omapkernel.orig/arch/arm/plat-omap/include/mach/dma.h	
+> > 2008-12-04 10:29:08.949018434 +0530
+> > > +++ omapkernel/arch/arm/plat-omap/include/mach/dma.h	
+> > 2008-12-04 11:14:25.359087775 +0530
+> > > @@ -67,7 +67,11 @@
+> > >  #define OMAP_DMA4_CAPS_4		0x74
+> > >  
+> > >  #define OMAP1_LOGICAL_DMA_CH_COUNT	17
+> > > +#ifdef CONFIG_OMAP_DMA_LIBRARY_CHANNELS
+> > > +#define OMAP_DMA4_LOGICAL_DMA_CH_COUNT	
+> > CONFIG_OMAP_DMA_LIBRARY_CHANNELS
+> > > +#else
+> > >  #define OMAP_DMA4_LOGICAL_DMA_CH_COUNT	32	/* 
+> > REVISIT: Is this 32 + 2? */
+> > > +#endif
+> > >  
+> > >  /* Common channel specific registers for omap1 */
+> > >  #define OMAP1_DMA_CH_BASE(n)		(0x40 * (n) + 0x00)
+> > > Index: omapkernel/arch/arm/plat-omap/Kconfig
+> > > 
+> ===================================================================
+> > > --- omapkernel.orig/arch/arm/plat-omap/Kconfig	
+> > 2008-12-04 10:29:08.949018434 +0530
+> > > +++ omapkernel/arch/arm/plat-omap/Kconfig	2008-12-04 
+> > 10:38:21.883850512 +0530
+> > > @@ -256,6 +256,18 @@ config OMAP_SERIAL_WAKE
+> > >  	  to data on the serial RX line. This allows you to wake the
+> > >  	  system from serial console.
+> > >  
+> > > +
+> > > +config OMAP_DMA_LIBRARY_CHANNELS
+> > > +        int "DMA channels controlled by the kernel DMA library"
+> > > +        range 24 32
+> > > +        depends on ARCH_OMAP3
+> > > +        default "32"
+> > > +        help
+> > > +          Some of the OMAP System DMA channels may need to be
+> > > +          reserved for software that don't use the DMA 
+> > library, such as
+> > > +          security drivers. Use this option to limit the 
+> > number of channels
+> > > +          controlled by the kernel DMA library.
+> > > +
+> > >  endmenu
+> > >  
+> > >  endif
+> > > Index: omapkernel/arch/arm/configs/omap_3430sdp_defconfig
+> > > 
+> ===================================================================
+> > > --- omapkernel.orig/arch/arm/configs/omap_3430sdp_defconfig	
+> > 2008-12-04 10:29:08.949018434 +0530
+> > > +++ omapkernel/arch/arm/configs/omap_3430sdp_defconfig	
+> > 2008-12-04 10:38:21.884850481 +0530
+> > > @@ -177,7 +177,7 @@ CONFIG_ARCH_OMAP_OTG=y
+> > >  # CONFIG_ARCH_OMAP1 is not set
+> > >  # CONFIG_ARCH_OMAP2 is not set
+> > >  CONFIG_ARCH_OMAP3=y
+> > > -
+> > > +CONFIG_OMAP_DMA_LIBRARY_CHANNELS=24
+> > >  #
+> > >  # OMAP Feature Selections
+> > >  #
+> > > Index: omapkernel/arch/arm/plat-omap/dma.c
+> > > 
+> ===================================================================
+> > > --- omapkernel.orig/arch/arm/plat-omap/dma.c	
+> > 2008-12-04 10:38:16.732010840 +0530
+> > > +++ omapkernel/arch/arm/plat-omap/dma.c	2008-12-04 
+> > 11:11:07.671274902 +0530
+> > > @@ -1946,7 +1946,7 @@ static int omap2_dma_handle_ch(int ch)
+> > >  /* STATUS register count is from 1-32 while our is 0-31 */
+> > >  static irqreturn_t omap2_dma_irq_handler(int irq, void *dev_id)
+> > >  {
+> > > -	u32 val;
+> > > +	u32 val, enable_reg;
+> > >  	int i;
+> > >  
+> > >  	val = dma_read(IRQSTATUS_L0);
+> > > @@ -1955,6 +1955,8 @@ static irqreturn_t omap2_dma_irq_handler
+> > >  			printk(KERN_WARNING "Spurious DMA IRQ\n");
+> > >  		return IRQ_HANDLED;
+> > >  	}
+> > > +	enable_reg = dma_read(IRQENABLE_L0);
+> > > +	val &= enable_reg; /* Dispatch only relevant interrupts */
+> > >  	for (i = 0; i < dma_lch_count && val != 0; i++) {
+> > >  		if (val & 1)
+> > >  			omap2_dma_handle_ch(i);
+> > > Index: omapkernel/arch/arm/configs/omap_ldp_defconfig
+> > > 
+> ===================================================================
+> > > --- omapkernel.orig/arch/arm/configs/omap_ldp_defconfig	
+> > 2008-12-04 11:18:54.000000000 +0530
+> > > +++ omapkernel/arch/arm/configs/omap_ldp_defconfig	
+> > 2008-12-04 11:19:33.507466484 +0530
+> > > @@ -177,6 +177,7 @@ CONFIG_ARCH_OMAP_OTG=y
+> > >  # CONFIG_ARCH_OMAP1 is not set
+> > >  # CONFIG_ARCH_OMAP2 is not set
+> > >  CONFIG_ARCH_OMAP3=y
+> > > +CONFIG_OMAP_DMA_LIBRARY_CHANNELS=32
+> > >  #
+> > >  # OMAP Feature Selections
+> > >  #
+> > > 
+> > > --
+> > > To unsubscribe from this list: send the line "unsubscribe 
+> > linux-omap" in
+> > > the body of a message to majordomo@vger.kernel.org
+> > > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> > 
+> > 
