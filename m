@@ -1,7 +1,7 @@
 From: Tero Kristo <tero.kristo@nokia.com>
-Subject: [PATCH 06/17] OMAP3 SDRC: Add 166MHz, 83MHz SDRC settings for the BeagleBoard
-Date: Fri,  9 Jan 2009 17:45:34 +0200
-Message-ID: <1231515945-10234-7-git-send-email-tero.kristo@nokia.com>
+Subject: [PATCH 12/17] OMAP3 clock: initialize SDRC timings at kernel start
+Date: Fri,  9 Jan 2009 17:45:40 +0200
+Message-ID: <1231515945-10234-13-git-send-email-tero.kristo@nokia.com>
 References: <>
  <1231515945-10234-1-git-send-email-tero.kristo@nokia.com>
  <1231515945-10234-2-git-send-email-tero.kristo@nokia.com>
@@ -9,12 +9,18 @@ References: <>
  <1231515945-10234-4-git-send-email-tero.kristo@nokia.com>
  <1231515945-10234-5-git-send-email-tero.kristo@nokia.com>
  <1231515945-10234-6-git-send-email-tero.kristo@nokia.com>
+ <1231515945-10234-7-git-send-email-tero.kristo@nokia.com>
+ <1231515945-10234-8-git-send-email-tero.kristo@nokia.com>
+ <1231515945-10234-9-git-send-email-tero.kristo@nokia.com>
+ <1231515945-10234-10-git-send-email-tero.kristo@nokia.com>
+ <1231515945-10234-11-git-send-email-tero.kristo@nokia.com>
+ <1231515945-10234-12-git-send-email-tero.kristo@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:57830 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751907AbZAIPzt (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 9 Jan 2009 10:55:49 -0500
-In-Reply-To: <1231515945-10234-6-git-send-email-tero.kristo@nokia.com>
+Received: from smtp.nokia.com ([192.100.105.134]:35526 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751988AbZAIP4M (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 9 Jan 2009 10:56:12 -0500
+In-Reply-To: <1231515945-10234-12-git-send-email-tero.kristo@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
@@ -22,72 +28,90 @@ Cc: Paul Walmsley <paul@pwsan.com>
 
 From: Paul Walmsley <paul@pwsan.com>
 
-The BeagleBoard u-boot uses DPLL3 settings that result in 83000000 /
-166000000 Hz clock rates for the SDRC, rather than the derated DPLL3
-settings used by earlier bootloaders.
+On the OMAP3, initialize SDRC timings when the kernel boots.  This ensures
+that the kernel is running with known, optimized SDRC timings, rather than
+whatever was configured by the bootloader.
 
 Signed-off-by: Paul Walmsley <paul@pwsan.com>
 ---
- arch/arm/mach-omap2/sdram-micron-mt46h32m32lf-6.h |   22 +++++++++++++++++---
- 1 files changed, 18 insertions(+), 4 deletions(-)
+ arch/arm/mach-omap2/clock34xx.c |    3 ---
+ arch/arm/mach-omap2/io.c        |   36 ++++++++++++++++++++++++++++++++++++
+ 2 files changed, 36 insertions(+), 3 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/sdram-micron-mt46h32m32lf-6.h b/arch/arm/mach-omap2/sdram-micron-mt46h32m32lf-6.h
-index ef35415..b6c1db3 100644
---- a/arch/arm/mach-omap2/sdram-micron-mt46h32m32lf-6.h
-+++ b/arch/arm/mach-omap2/sdram-micron-mt46h32m32lf-6.h
-@@ -20,34 +20,48 @@
- /* XXX Using ARE = 0x1 (no autorefresh burst) -- can this be changed? */
- static struct omap_sdrc_params mt46h32m32lf6_sdrc_params[] = {
- 	[0] = {
--		.rate	     = 165941176,
-+		.rate	     = 166000000,
- 		.actim_ctrla = 0x9a9db4c6,
- 		.actim_ctrlb = 0x00011217,
- 		.rfr_ctrl    = 0x0004dc01,
- 		.mr	     = 0x00000032,
- 	},
- 	[1] = {
-+		.rate	     = 165941176,
-+		.actim_ctrla = 0x9a9db4c6,
-+		.actim_ctrlb = 0x00011217,
-+		.rfr_ctrl    = 0x0004dc01,
-+		.mr	     = 0x00000032,
-+	},
-+	[2] = {
- 		.rate	     = 133333333,
- 		.actim_ctrla = 0x7a19b485,
- 		.actim_ctrlb = 0x00011213,
- 		.rfr_ctrl    = 0x0003de01,
- 		.mr	     = 0x00000032,
- 	},
--	[2] = {
-+	[3] = {
-+		.rate	     = 83000000,
-+		.actim_ctrla = 0x51512283,
-+		.actim_ctrlb = 0x0001120c,
-+		.rfr_ctrl    = 0x00025501,
-+		.mr	     = 0x00000032,
-+	},
-+	[4] = {
- 		.rate	     = 82970588,
- 		.actim_ctrla = 0x51512283,
- 		.actim_ctrlb = 0x0001120c,
- 		.rfr_ctrl    = 0x00025501,
- 		.mr	     = 0x00000032,
- 	},
--	[3] = {
-+	[5] = {
- 		.rate	     = 66666666,
- 		.actim_ctrla = 0x410d2243,
- 		.actim_ctrlb = 0x0001120a,
- 		.rfr_ctrl    = 0x0001d601,
- 		.mr	     = 0x00000032,
- 	},
--	[4] = {
-+	[6] = {
- 		.rate	     = 0
- 	},
- };
+diff --git a/arch/arm/mach-omap2/clock34xx.c b/arch/arm/mach-omap2/clock34xx.c
+index febbf0a..7770553 100644
+--- a/arch/arm/mach-omap2/clock34xx.c
++++ b/arch/arm/mach-omap2/clock34xx.c
+@@ -497,9 +497,6 @@ static int omap3_core_dpll_m2_set_rate(struct clk *clk, unsigned long rate)
+ 	if (clk != &dpll3_m2_ck)
+ 		return -EINVAL;
+ 
+-	if (rate == clk->rate)
+-		return 0;
+-
+ 	validrate = omap2_clksel_round_rate_div(clk, rate, &new_div);
+ 	if (validrate != rate)
+ 		return -EINVAL;
+diff --git a/arch/arm/mach-omap2/io.c b/arch/arm/mach-omap2/io.c
+index 5b529ae..6fb6c29 100644
+--- a/arch/arm/mach-omap2/io.c
++++ b/arch/arm/mach-omap2/io.c
+@@ -19,6 +19,7 @@
+ #include <linux/kernel.h>
+ #include <linux/init.h>
+ #include <linux/io.h>
++#include <linux/clk.h>
+ 
+ #include <asm/tlb.h>
+ 
+@@ -198,6 +199,38 @@ void __init omap2_map_common_io(void)
+ 	omapfb_reserve_sdram();
+ }
+ 
++/*
++ * omap2_init_reprogram_sdrc - reprogram SDRC timing parameters
++ *
++ * Sets the CORE DPLL3 M2 divider to the same value that it's at
++ * currently.  This has the effect of setting the SDRC SDRAM AC timing
++ * registers to the values currently defined by the kernel.  Currently
++ * only defined for OMAP3; will return 0 if called on OMAP2.  Returns
++ * -EINVAL if the dpll3_m2_ck cannot be found, 0 if called on OMAP2,
++ * or passes along the return value of clk_set_rate().
++ */
++static int __init _omap2_init_reprogram_sdrc(void)
++{
++	struct clk *dpll3_m2_ck;
++	int v = -EINVAL;
++
++	if (!cpu_is_omap34xx())
++		return 0;
++
++	dpll3_m2_ck = clk_get(NULL, "dpll3_m2_ck");
++	if (!dpll3_m2_ck)
++		return -EINVAL;
++
++	pr_info("Reprogramming SDRC\n");
++	v = clk_set_rate(dpll3_m2_ck, clk_get_rate(dpll3_m2_ck));
++	if (v)
++		pr_err("dpll3_m2_clk rate change failed: %d\n", v);
++
++	clk_put(dpll3_m2_ck);
++
++	return v;
++}
++
+ void __init omap2_init_common_hw(struct omap_sdrc_params *sp,
+ 				 struct omap_opp *mpu_opps,
+ 				 struct omap_opp *dsp_opps,
+@@ -212,5 +245,8 @@ void __init omap2_init_common_hw(struct omap_sdrc_params *sp,
+ 	omap2_clk_init();
+ 	omap_pm_if_init();
+ 	omap2_sdrc_init(sp);
++
++	_omap2_init_reprogram_sdrc();
++
+ 	gpmc_init();
+ }
 -- 
 1.5.4.3
 
