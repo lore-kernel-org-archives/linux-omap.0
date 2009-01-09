@@ -1,24 +1,16 @@
 From: Tero Kristo <tero.kristo@nokia.com>
-Subject: [PATCH 10/17] OMAP3 clock: use pr_debug() rather than pr_info() in some clock change code
-Date: Fri,  9 Jan 2009 17:45:38 +0200
-Message-ID: <1231515945-10234-11-git-send-email-tero.kristo@nokia.com>
+Subject: [PATCH 02/17] OMAP3 SRAM: mark OCM RAM as Non-cacheable Normal memory
+Date: Fri,  9 Jan 2009 17:45:30 +0200
+Message-ID: <1231515945-10234-3-git-send-email-tero.kristo@nokia.com>
 References: <>
  <1231515945-10234-1-git-send-email-tero.kristo@nokia.com>
  <1231515945-10234-2-git-send-email-tero.kristo@nokia.com>
- <1231515945-10234-3-git-send-email-tero.kristo@nokia.com>
- <1231515945-10234-4-git-send-email-tero.kristo@nokia.com>
- <1231515945-10234-5-git-send-email-tero.kristo@nokia.com>
- <1231515945-10234-6-git-send-email-tero.kristo@nokia.com>
- <1231515945-10234-7-git-send-email-tero.kristo@nokia.com>
- <1231515945-10234-8-git-send-email-tero.kristo@nokia.com>
- <1231515945-10234-9-git-send-email-tero.kristo@nokia.com>
- <1231515945-10234-10-git-send-email-tero.kristo@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:57841 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751840AbZAIPzy (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 9 Jan 2009 10:55:54 -0500
-In-Reply-To: <1231515945-10234-10-git-send-email-tero.kristo@nokia.com>
+Received: from smtp.nokia.com ([192.100.105.134]:35507 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751845AbZAIPzx (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 9 Jan 2009 10:55:53 -0500
+In-Reply-To: <1231515945-10234-2-git-send-email-tero.kristo@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
@@ -26,80 +18,56 @@ Cc: Paul Walmsley <paul@pwsan.com>
 
 From: Paul Walmsley <paul@pwsan.com>
 
-The CORE DPLL M2 frequency change code should use pr_debug(), not
-pr_info(), for its debug messages.  Same with
-omap2_clksel_round_rate_div().  While here, convert a few printk(KERN_ERR ..
-into pr_err().
+Mark the SRAM (aka OCM RAM) as Non-cacheable Normal memory[1].  This
+is to prevent the ARM from evicting existing cache lines to SDRAM
+while code is executing from the SRAM.  Necessary since one of the
+primary uses for the SRAM is to hold the code and data for the CORE
+DPLL M2 divider reprogramming code, which must execute while the SDRC
+is idled.  If the ARM attempts to write cache lines back to the while
+the SRAM code is running, the ARM will stall[2].
+
+TI deals with this problem in the CDP kernel by marking the SRAM as
+Strongly-ordered memory.
+
+Tero Kristo <tero.kristo@nokia.com> caught a bug in an earlier version of
+this patch - thanks Tero.
+
+...
+
+1. ARMv7 ARM (DDI 0406A) pp. A3-30, A3-31, B3-32.
+
+2. Private communication with Richard Woodruff <r-woodruff2@ti.com>
 
 Signed-off-by: Paul Walmsley <paul@pwsan.com>
+Cc: Tero Kristo <tero.kristo@nokia.com>
+Cc: Richard Woodruff <r-woodruff2@ti.com>
 ---
- arch/arm/mach-omap2/clock.c     |   12 ++++++------
- arch/arm/mach-omap2/clock34xx.c |    8 ++++----
- 2 files changed, 10 insertions(+), 10 deletions(-)
+ arch/arm/plat-omap/sram.c |    9 +++++++++
+ 1 files changed, 9 insertions(+), 0 deletions(-)
+ mode change 100755 => 100644 arch/arm/plat-omap/sram.c
 
-diff --git a/arch/arm/mach-omap2/clock.c b/arch/arm/mach-omap2/clock.c
-index 224535f..612db25 100644
---- a/arch/arm/mach-omap2/clock.c
-+++ b/arch/arm/mach-omap2/clock.c
-@@ -591,8 +591,8 @@ u32 omap2_clksel_round_rate_div(struct clk *clk, unsigned long target_rate,
- 	const struct clksel_rate *clkr;
- 	u32 last_div = 0;
- 
--	printk(KERN_INFO "clock: clksel_round_rate_div: %s target_rate %ld\n",
--	       clk->name, target_rate);
-+	pr_debug("clock: clksel_round_rate_div: %s target_rate %ld\n",
-+		 clk->name, target_rate);
- 
- 	*new_div = 1;
- 
-@@ -606,7 +606,7 @@ u32 omap2_clksel_round_rate_div(struct clk *clk, unsigned long target_rate,
- 
- 		/* Sanity check */
- 		if (clkr->div <= last_div)
--			printk(KERN_ERR "clock: clksel_rate table not sorted "
-+			pr_err("clock: clksel_rate table not sorted "
- 			       "for clock %s", clk->name);
- 
- 		last_div = clkr->div;
-@@ -618,7 +618,7 @@ u32 omap2_clksel_round_rate_div(struct clk *clk, unsigned long target_rate,
+diff --git a/arch/arm/plat-omap/sram.c b/arch/arm/plat-omap/sram.c
+old mode 100755
+new mode 100644
+index 9946f82..5c0d463
+--- a/arch/arm/plat-omap/sram.c
++++ b/arch/arm/plat-omap/sram.c
+@@ -207,6 +207,15 @@ void __init omap_map_sram(void)
+ 		base = OMAP3_SRAM_PA;
+ 		base = ROUND_DOWN(base, PAGE_SIZE);
+ 		omap_sram_io_desc[0].pfn = __phys_to_pfn(base);
++
++		/*
++		 * SRAM must be marked as non-cached on OMAP3 since the
++		 * CORE DPLL M2 divider change code (in SRAM) runs with the
++		 * SDRAM controller disabled, and if it is marked cached,
++		 * the ARM may attempt to write cache lines back to SDRAM
++		 * which will cause the system to hang.
++		 */
++		omap_sram_io_desc[0].type = MT_MEMORY_NONCACHED;
  	}
  
- 	if (!clkr->div) {
--		printk(KERN_ERR "clock: Could not find divisor for target "
-+		pr_err("clock: Could not find divisor for target "
- 		       "rate %ld for clock %s parent %s\n", target_rate,
- 		       clk->name, clk->parent->name);
- 		return ~0;
-@@ -626,8 +626,8 @@ u32 omap2_clksel_round_rate_div(struct clk *clk, unsigned long target_rate,
- 
- 	*new_div = clkr->div;
- 
--	printk(KERN_INFO "clock: new_div = %d, new_rate = %ld\n", *new_div,
--	       (clk->parent->rate / clkr->div));
-+	pr_debug("clock: new_div = %d, new_rate = %ld\n", *new_div,
-+		 (clk->parent->rate / clkr->div));
- 
- 	return (clk->parent->rate / clkr->div);
- }
-diff --git a/arch/arm/mach-omap2/clock34xx.c b/arch/arm/mach-omap2/clock34xx.c
-index 2e9ed66..febbf0a 100644
---- a/arch/arm/mach-omap2/clock34xx.c
-+++ b/arch/arm/mach-omap2/clock34xx.c
-@@ -519,10 +519,10 @@ static int omap3_core_dpll_m2_set_rate(struct clk *clk, unsigned long rate)
- 		unlock_dll = 1;
- 	}
- 
--	pr_info("clock: changing CORE DPLL rate from %lu to %lu\n", clk->rate,
--		validrate);
--	pr_info("clock: SDRC timing params used: %08x %08x %08x\n",
--		sp->rfr_ctrl, sp->actim_ctrla, sp->actim_ctrlb);
-+	pr_debug("clock: changing CORE DPLL rate from %lu to %lu\n", clk->rate,
-+		 validrate);
-+	pr_debug("clock: SDRC timing params used: %08x %08x %08x\n",
-+		 sp->rfr_ctrl, sp->actim_ctrla, sp->actim_ctrlb);
- 
- 	/* REVISIT: SRAM code doesn't support other M2 divisors yet */
- 	WARN_ON(new_div != 1 && new_div != 2);
+ 	omap_sram_io_desc[0].length = 1024 * 1024;	/* Use section desc */
 -- 
 1.5.4.3
 
