@@ -1,19 +1,17 @@
 From: Tero Kristo <tero.kristo@nokia.com>
-Subject: [PATCH 05/17] OMAP3 SRAM: clear the SDRC PWRENA bit during SDRC frequency change
-Date: Fri,  9 Jan 2009 17:45:33 +0200
-Message-ID: <1231515945-10234-6-git-send-email-tero.kristo@nokia.com>
+Subject: [PATCH 03/17] OMAP3 SRAM: add ARM barriers to omap3_sram_configure_core_dpll
+Date: Fri,  9 Jan 2009 17:45:31 +0200
+Message-ID: <1231515945-10234-4-git-send-email-tero.kristo@nokia.com>
 References: <>
  <1231515945-10234-1-git-send-email-tero.kristo@nokia.com>
  <1231515945-10234-2-git-send-email-tero.kristo@nokia.com>
  <1231515945-10234-3-git-send-email-tero.kristo@nokia.com>
- <1231515945-10234-4-git-send-email-tero.kristo@nokia.com>
- <1231515945-10234-5-git-send-email-tero.kristo@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:49030 "EHLO
-	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751521AbZAIPzs (ORCPT
+Received: from smtp.nokia.com ([192.100.122.230]:57827 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751995AbZAIPzs (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>); Fri, 9 Jan 2009 10:55:48 -0500
-In-Reply-To: <1231515945-10234-5-git-send-email-tero.kristo@nokia.com>
+In-Reply-To: <1231515945-10234-3-git-send-email-tero.kristo@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
@@ -21,42 +19,75 @@ Cc: Paul Walmsley <paul@pwsan.com>
 
 From: Paul Walmsley <paul@pwsan.com>
 
-Clear the SDRC_POWER.PWRENA bit before putting the SDRAM into self-refresh
-mode.  This prevents the SDRC from attempting to power off the SDRAM,
-which can cause the system to hang.
+Add more barriers in the SRAM CORE DPLL M2 divider change code.
+
+- Add a DSB SY after the function's entry point to flush all cached
+  and buffered writes and wait for the interconnect to claim that they
+  have completed[1].  The idea here is to force all delayed write
+  traffic going to the SDRAM to at least post to the L3 interconnect
+  before continuing.  If these writes are allowed to occur after the
+  SDRC is idled, the writes will not be acknowledged and the ARM will
+  stall.
+
+  Note that in this case, it does not matter if the writes actually
+  complete to the SDRAM - it is only necessary for the writes to leave
+  the ARM itself.  If the writes are posted by the interconnect when
+  the SDRC goes into idle, the writes will be delayed until the SDRC
+  returns from idle[2].  If the SDRC is in the middle of a write when
+  it is requested to enter idle, the SDRC will not acknowledge the
+  idle request until the writes complete to the SDRAM.[3]
+
+  The old-style DMB in sdram_in_selfrefresh is now superfluous, so,
+  remove it.
+
+- Add an ISB before the function's exit point to prevent the ARM from
+  speculatively executing into SDRAM before the SDRAM is enabled[4].
+
+...
+
+1. ARMv7 ARM (DDI 0406A) A3-47, A3-48.
+
+2. Private communication with Richard Woodruff <r-woodruff2@ti.com>.
+
+3. Private communication with Richard Woodruff <r-woodruff2@ti.com>.
+
+4. ARMv7 ARM (DDI 0406A) A3-48.
 
 Signed-off-by: Paul Walmsley <paul@pwsan.com>
+Cc: Richard Woodruff <r-woodruff2@ti.com>
 ---
- arch/arm/mach-omap2/sram34xx.S |    7 ++++---
- 1 files changed, 4 insertions(+), 3 deletions(-)
+ arch/arm/mach-omap2/sram34xx.S |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
 
 diff --git a/arch/arm/mach-omap2/sram34xx.S b/arch/arm/mach-omap2/sram34xx.S
-index 8d524f3..9a45415 100644
+index 2c71461..f4a356d 100644
 --- a/arch/arm/mach-omap2/sram34xx.S
 +++ b/arch/arm/mach-omap2/sram34xx.S
-@@ -77,7 +77,9 @@ lock_dll:
+@@ -43,6 +43,7 @@
+  */
+ ENTRY(omap3_sram_configure_core_dpll)
+ 	stmfd	sp!, {r1-r12, lr}	@ store regs to stack
++	dsb				@ flush buffered writes to interconnect
+ 	cmp	r3, #0x2
+ 	blne	configure_sdrc
+ 	cmp	r3, #0x2
+@@ -58,6 +59,7 @@ ENTRY(omap3_sram_configure_core_dpll)
+ 	blne	wait_dll_lock
+ 	cmp	r3, #0x1
+ 	blne	configure_sdrc
++	isb				@ prevent speculative exec past here
+ 	mov 	r0, #0 			@ return value
+ 	ldmfd	sp!, {r1-r12, pc}	@ restore regs and return
+ unlock_dll:
+@@ -73,8 +75,6 @@ lock_dll:
+ 	str	r5, [r4]
+ 	bx	lr
  sdram_in_selfrefresh:
+-	mov	r5, #0x0		@ Move 0 to R5
+-	mcr	p15, 0, r5, c7, c10, 5	@ memory barrier
  	ldr	r4, omap3_sdrc_power	@ read the SDRC_POWER register
  	ldr	r5, [r4]		@ read the contents of SDRC_POWER
-+	mov	r9, r5			@ keep a copy of SDRC_POWER bits
  	orr 	r5, r5, #0x40		@ enable self refresh on idle req
-+	bic 	r5, r5, #0x4		@ clear PWDENA
- 	str 	r5, [r4]		@ write back to SDRC_POWER register
- 	ldr	r5, [r4]		@ posted-write barrier for SDRC
- 	ldr	r4, omap3_cm_iclken1_core	@ read the CM_ICLKEN1_CORE reg
-@@ -128,10 +130,9 @@ wait_sdrc_idle1:
- 	and 	r5, r5, #0x2
- 	cmp	r5, #0
- 	bne	wait_sdrc_idle1
-+restore_sdrc_power_val:
- 	ldr	r4, omap3_sdrc_power
--	ldr	r5, [r4]
--	bic 	r5, r5, #0x40
--	str 	r5, [r4]
-+	str	r9, [r4]		@ restore SDRC_POWER, no barrier needed
- 	bx	lr
- wait_dll_lock:
- 	ldr	r4, omap3_sdrc_dlla_status
 -- 
 1.5.4.3
 
