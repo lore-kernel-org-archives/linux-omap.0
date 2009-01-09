@@ -1,94 +1,99 @@
-From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Subject: RE: [PATCH] [OMAPZOOM]  OMAP : DMA: Spurious interrupt fix
-Date: Fri, 9 Jan 2009 18:51:59 +0530
-Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB029830F859@dbde02.ent.ti.com>
-References: <EAF47CD23C76F840A9E7FCE10091EFAB029392DE99@dbde02.ent.ti.com>
- <20090108151120.GQ27566@atomide.com>
- <EAF47CD23C76F840A9E7FCE10091EFAB029830F705@dbde02.ent.ti.com>
- <20090109112817.GG2536@atomide.com>
- <EAF47CD23C76F840A9E7FCE10091EFAB029830F81F@dbde02.ent.ti.com>
- <20090109125709.GP2536@atomide.com>
+From: Philip Balister <philip@balister.org>
+Subject: Powertop on Beagle
+Date: Fri, 09 Jan 2009 08:34:58 -0500
+Message-ID: <49675282.1040100@balister.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: multipart/signed; protocol="application/x-pkcs7-signature"; micalg=sha1; boundary="------------ms090006010807070407020801"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:58195 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752559AbZAINWJ convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 9 Jan 2009 08:22:09 -0500
-In-Reply-To: <20090109125709.GP2536@atomide.com>
-Content-Language: en-US
+Received: from mail.geekisp.com ([216.168.135.169]:47468 "EHLO
+	starfish.geekisp.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1752863AbZAINlj (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 9 Jan 2009 08:41:39 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: "Pandita, Vikram" <vikram.pandita@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-> -----Original Message-----
-> From: Tony Lindgren [mailto:tony@atomide.com] 
-> Sent: Friday, January 09, 2009 6:27 PM
-> To: Shilimkar, Santosh
-> Cc: Pandita, Vikram; linux-omap@vger.kernel.org
-> Subject: Re: [PATCH] [OMAPZOOM] OMAP : DMA: Spurious interrupt fix
-> 
-> * Shilimkar, Santosh <santosh.shilimkar@ti.com> [090109 14:52]:
-> > > -----Original Message-----
-> > > From: Tony Lindgren [mailto:tony@atomide.com] 
-> > > Sent: Friday, January 09, 2009 4:58 PM
-> > > To: Shilimkar, Santosh
-> > > Cc: Pandita, Vikram; linux-omap@vger.kernel.org
-> > > Subject: Re: [PATCH] [OMAPZOOM] OMAP : DMA: Spurious interrupt fix
-> > > 
-> > > * Shilimkar, Santosh <santosh.shilimkar@ti.com> [090109 12:51]:
-> > > > 
-> > > > Tony,
-> > > > Regarding your proposal of doing the no. of channel 
-> > > reservation during runtime has one problem. 
-> > > > 
-> > > > The whole idea was not to restrict users from using all 32 
-> > > channels and hence the config option. For OMAP secure chips, 
-> > > few security drivers which will execute in secure contex 
-> > > needs dedicated DMA channels and kernel dma library can't be 
-> > > used in that case. So in such cases, required DMA channels 
-> > > can be reserved using this config option. For GP devices all 
-> > > 32 channels can be used currently. 
-> > > > 
-> > > > If it can done in better way, please suggest.
-> > > 
-> > > Well how about passing the configuration for the DMA channels
-> > > from board-*.c file then?
-> > This is certainly a good option if the setting is fixed for 
-> a particular board type. With this how do we ensure user 
-> configurability. Lets say on a particular board, two 
-> users/customers wants to use separate configurations for DMA 
-> channels because of the needs what mentioned earlier. Then 
-> again we need some kind of comfit option.
-> >    Another clean way to achieve this is through 'bootargs'. 
-> But this might be too much of a design for this requirement.
-> 
-> Hmm, well how about starting with all of them, and allow
-> limiting the active DMA number via /sys? I guess we could
-> just set some of the DMA channels inactive that way.
-> 
-> Or maybe allow setting indvidual DMA channels inactive
-> via /sys?
+This is a cryptographically signed message in MIME format.
 
-This won't be a good option because of few limitations.
-- dma library init will configure the entire register set for all the channels. So through /sys disable , you have to mask all of this registers with appropriate mask depending on the no of channels deactivated. This is almost like doing another DMA init.
-- Secondly the security driver is active even before the dma library is initialed and hence it won't get the required reservation of channels which is bottleneck.
-- If both, dma library and security driver configure the DMA channels then, you end up in a problem because the way OMAP DMA hardware is.  Just a brief - "In
-contrast to the SDMA.DMA4_CSRi registers, the SDMA.DMA4_IRQSTATUS_Lj registers are updated regardless of the corresponding bits in the SDMA.DMA4_IRQENABLE_Lj registers". For more details, you can refer the DMA section in TRM. 
-Because of above, this is not seems to be an option. 
+--------------ms090006010807070407020801
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 
-> > > > Time being if needed what best I can do is, to split this 
-> > > patch into two parts as mentioned earlier. This will avoid 
-> > > confusion of spurious interrupt issue and dam channel reservation
-> > > OK
-> > I will do this once I get some time for sure.
-> 
-> Great!
-> 
-> Tony
+I'm trying to get powertop running on the latest git. It basically 
+works, but I do not get displays for the C and P states. This has worked 
+in the past, but the OE kernel I'm using had a lot of patches then :)
 
-Regards,
-Santosh
+Does anyone have a list of things to check, before I start working 
+through my kernel patch history?
 
+Philip
+
+--------------ms090006010807070407020801
+Content-Type: application/x-pkcs7-signature; name="smime.p7s"
+Content-Transfer-Encoding: base64
+Content-Disposition: attachment; filename="smime.p7s"
+Content-Description: S/MIME Cryptographic Signature
+
+MIAGCSqGSIb3DQEHAqCAMIACAQExCzAJBgUrDgMCGgUAMIAGCSqGSIb3DQEHAQAAoIIJRTCC
+Av0wggJmoAMCAQICEHW4VJIUQV0u11NnfLpF2IUwDQYJKoZIhvcNAQEFBQAwYjELMAkGA1UE
+BhMCWkExJTAjBgNVBAoTHFRoYXd0ZSBDb25zdWx0aW5nIChQdHkpIEx0ZC4xLDAqBgNVBAMT
+I1RoYXd0ZSBQZXJzb25hbCBGcmVlbWFpbCBJc3N1aW5nIENBMB4XDTA4MDQxNDE5MTkzMVoX
+DTA5MDQxNDE5MTkzMVowYjERMA8GA1UEBBMIQmFsaXN0ZXIxDzANBgNVBCoTBlBoaWxpcDEY
+MBYGA1UEAxMPUGhpbGlwIEJhbGlzdGVyMSIwIAYJKoZIhvcNAQkBFhNwaGlsaXBAYmFsaXN0
+ZXIub3JnMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAxyNViPlSmMq2Kl4m7iDB
+I3gB7Pwhg+4vnXCKEF3qIoLwNDVl27CP8RY0umjENzykOR6ZhzYx4fH8arNV5+nlXsH8KNnb
+Dpd5ICTZvbUJdt1gPETmLczGy4hh8woCu7qodyy7YZcGMiUY5LxoL7vIQHysir4rbMRV/JId
+mhKfFrHb+glDe8XbfTJ3xKO+BsMgLDaSiRMelH6uFLAVv9oRoIJxHQhwKLvlrOSQj+ek2fL6
+83BzOUsM4BN/fiwvtJ/y3doVEoKUp8ippOXrwLAXFPprPAAdIydqufTxHotooFqbQzqSJv4c
+TNDTxf2fg9YfH2RAs8vTdc/wgIVlL8fJnQIDAQABozAwLjAeBgNVHREEFzAVgRNwaGlsaXBA
+YmFsaXN0ZXIub3JnMAwGA1UdEwEB/wQCMAAwDQYJKoZIhvcNAQEFBQADgYEASFC7i4DqutUT
+ifbyNtEe+e9bqgqWUScDFl0BTV5fFVBX/mFpM3RBZJfq+iM5q0L7qont3sGaXG0cdVvRk2dk
+uV2i0HwkmTLJ4HTLMyJ57BjMJWY9ydDiY+Ai1pINmjIgq/qI0aireByqNee68q+PaWE7bfW1
+XvfqZD56QunCijswggL9MIICZqADAgECAhB1uFSSFEFdLtdTZ3y6RdiFMA0GCSqGSIb3DQEB
+BQUAMGIxCzAJBgNVBAYTAlpBMSUwIwYDVQQKExxUaGF3dGUgQ29uc3VsdGluZyAoUHR5KSBM
+dGQuMSwwKgYDVQQDEyNUaGF3dGUgUGVyc29uYWwgRnJlZW1haWwgSXNzdWluZyBDQTAeFw0w
+ODA0MTQxOTE5MzFaFw0wOTA0MTQxOTE5MzFaMGIxETAPBgNVBAQTCEJhbGlzdGVyMQ8wDQYD
+VQQqEwZQaGlsaXAxGDAWBgNVBAMTD1BoaWxpcCBCYWxpc3RlcjEiMCAGCSqGSIb3DQEJARYT
+cGhpbGlwQGJhbGlzdGVyLm9yZzCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEBAMcj
+VYj5UpjKtipeJu4gwSN4Aez8IYPuL51wihBd6iKC8DQ1Zduwj/EWNLpoxDc8pDkemYc2MeHx
+/GqzVefp5V7B/CjZ2w6XeSAk2b21CXbdYDxE5i3MxsuIYfMKAru6qHcsu2GXBjIlGOS8aC+7
+yEB8rIq+K2zEVfySHZoSnxax2/oJQ3vF230yd8SjvgbDICw2kokTHpR+rhSwFb/aEaCCcR0I
+cCi75azkkI/npNny+vNwczlLDOATf34sL7Sf8t3aFRKClKfIqaTl68CwFxT6azwAHSMnarn0
+8R6LaKBam0M6kib+HEzQ08X9n4PWHx9kQLPL03XP8ICFZS/HyZ0CAwEAAaMwMC4wHgYDVR0R
+BBcwFYETcGhpbGlwQGJhbGlzdGVyLm9yZzAMBgNVHRMBAf8EAjAAMA0GCSqGSIb3DQEBBQUA
+A4GBAEhQu4uA6rrVE4n28jbRHvnvW6oKllEnAxZdAU1eXxVQV/5haTN0QWSX6vojOatC+6qJ
+7d7BmlxtHHVb0ZNnZLldotB8JJkyyeB0yzMieewYzCVmPcnQ4mPgItaSDZoyIKv6iNGoq3gc
+qjXnuvKvj2lhO231tV736mQ+ekLpwoo7MIIDPzCCAqigAwIBAgIBDTANBgkqhkiG9w0BAQUF
+ADCB0TELMAkGA1UEBhMCWkExFTATBgNVBAgTDFdlc3Rlcm4gQ2FwZTESMBAGA1UEBxMJQ2Fw
+ZSBUb3duMRowGAYDVQQKExFUaGF3dGUgQ29uc3VsdGluZzEoMCYGA1UECxMfQ2VydGlmaWNh
+dGlvbiBTZXJ2aWNlcyBEaXZpc2lvbjEkMCIGA1UEAxMbVGhhd3RlIFBlcnNvbmFsIEZyZWVt
+YWlsIENBMSswKQYJKoZIhvcNAQkBFhxwZXJzb25hbC1mcmVlbWFpbEB0aGF3dGUuY29tMB4X
+DTAzMDcxNzAwMDAwMFoXDTEzMDcxNjIzNTk1OVowYjELMAkGA1UEBhMCWkExJTAjBgNVBAoT
+HFRoYXd0ZSBDb25zdWx0aW5nIChQdHkpIEx0ZC4xLDAqBgNVBAMTI1RoYXd0ZSBQZXJzb25h
+bCBGcmVlbWFpbCBJc3N1aW5nIENBMIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDEpjxV
+c1X7TrnKmVoeaMB1BHCd3+n/ox7svc31W/Iadr1/DDph8r9RzgHU5VAKMNcCY1osiRVwjt3J
+8CuFWqo/cVbLrzwLB+fxH5E2JCoTzyvV84J3PQO+K/67GD4Hv0CAAmTXp6a7n2XRxSpUhQ9I
+BH+nttE8YQRAHmQZcmC3+wIDAQABo4GUMIGRMBIGA1UdEwEB/wQIMAYBAf8CAQAwQwYDVR0f
+BDwwOjA4oDagNIYyaHR0cDovL2NybC50aGF3dGUuY29tL1RoYXd0ZVBlcnNvbmFsRnJlZW1h
+aWxDQS5jcmwwCwYDVR0PBAQDAgEGMCkGA1UdEQQiMCCkHjAcMRowGAYDVQQDExFQcml2YXRl
+TGFiZWwyLTEzODANBgkqhkiG9w0BAQUFAAOBgQBIjNFQg+oLLswNo2asZw9/r6y+whehQ5aU
+nX9MIbj4Nh+qLZ82L8D0HFAgk3A8/a3hYWLD2ToZfoSxmRsAxRoLgnSeJVCUYsfbJ3FXJY3d
+qZw5jowgT2Vfldr394fWxghOrvbqNOUQGls1TXfjViF4gtwhGTXeJLHTHUb/XV9lTzGCA2Qw
+ggNgAgEBMHYwYjELMAkGA1UEBhMCWkExJTAjBgNVBAoTHFRoYXd0ZSBDb25zdWx0aW5nIChQ
+dHkpIEx0ZC4xLDAqBgNVBAMTI1RoYXd0ZSBQZXJzb25hbCBGcmVlbWFpbCBJc3N1aW5nIENB
+AhB1uFSSFEFdLtdTZ3y6RdiFMAkGBSsOAwIaBQCgggHDMBgGCSqGSIb3DQEJAzELBgkqhkiG
+9w0BBwEwHAYJKoZIhvcNAQkFMQ8XDTA5MDEwOTEzMzQ1OFowIwYJKoZIhvcNAQkEMRYEFClB
+OtvucV1Oxp/DDTP0hV0/CxbyMFIGCSqGSIb3DQEJDzFFMEMwCgYIKoZIhvcNAwcwDgYIKoZI
+hvcNAwICAgCAMA0GCCqGSIb3DQMCAgFAMAcGBSsOAwIHMA0GCCqGSIb3DQMCAgEoMIGFBgkr
+BgEEAYI3EAQxeDB2MGIxCzAJBgNVBAYTAlpBMSUwIwYDVQQKExxUaGF3dGUgQ29uc3VsdGlu
+ZyAoUHR5KSBMdGQuMSwwKgYDVQQDEyNUaGF3dGUgUGVyc29uYWwgRnJlZW1haWwgSXNzdWlu
+ZyBDQQIQdbhUkhRBXS7XU2d8ukXYhTCBhwYLKoZIhvcNAQkQAgsxeKB2MGIxCzAJBgNVBAYT
+AlpBMSUwIwYDVQQKExxUaGF3dGUgQ29uc3VsdGluZyAoUHR5KSBMdGQuMSwwKgYDVQQDEyNU
+aGF3dGUgUGVyc29uYWwgRnJlZW1haWwgSXNzdWluZyBDQQIQdbhUkhRBXS7XU2d8ukXYhTAN
+BgkqhkiG9w0BAQEFAASCAQAH0rhOAjeZVjRb1nS23gnbixfAzsAzvhoWVWYL8URLAqk0PcUF
+BXBERY0kg97L5tr0/2CMhONs6GYbJB4Gf9QoFMAzjiRrCD/i+9Y0nAkXLq4WpC4Dh1sVn1ee
+6teOOVsfYDWL6ms5aKbZOE/xOdKIRNpoo1XrUECuWB5z+mNopkKV5DSu29Dw2gkX1t7gqciF
+tqA9np7i9w3Lmzhe4t+JYMgAqyY0EZAsNia+Bk+RfEOuYpl8rrsLM8Cu9WNAP/mLmkgGODDW
+BegPL7DcXRzVHsiIfPNpnlLaNIU4zGTlDjbg1n7UMc+5CrdRjtVrOVB4Mz/1tKg6nV4CK3pg
+1pwNAAAAAAAA
+--------------ms090006010807070407020801--
