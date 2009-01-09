@@ -1,16 +1,21 @@
 From: Tero Kristo <tero.kristo@nokia.com>
-Subject: [PATCH 02/17] OMAP3 SRAM: mark OCM RAM as Non-cacheable Normal memory
-Date: Fri,  9 Jan 2009 17:45:30 +0200
-Message-ID: <1231515945-10234-3-git-send-email-tero.kristo@nokia.com>
+Subject: [PATCH 07/17] OMAP3 SDRC: initialize SDRC_POWER at boot
+Date: Fri,  9 Jan 2009 17:45:35 +0200
+Message-ID: <1231515945-10234-8-git-send-email-tero.kristo@nokia.com>
 References: <>
  <1231515945-10234-1-git-send-email-tero.kristo@nokia.com>
  <1231515945-10234-2-git-send-email-tero.kristo@nokia.com>
+ <1231515945-10234-3-git-send-email-tero.kristo@nokia.com>
+ <1231515945-10234-4-git-send-email-tero.kristo@nokia.com>
+ <1231515945-10234-5-git-send-email-tero.kristo@nokia.com>
+ <1231515945-10234-6-git-send-email-tero.kristo@nokia.com>
+ <1231515945-10234-7-git-send-email-tero.kristo@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:35507 "EHLO
+Received: from smtp.nokia.com ([192.100.105.134]:35511 "EHLO
 	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751845AbZAIPzx (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 9 Jan 2009 10:55:53 -0500
-In-Reply-To: <1231515945-10234-2-git-send-email-tero.kristo@nokia.com>
+	with ESMTP id S1751726AbZAIP4A (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 9 Jan 2009 10:56:00 -0500
+In-Reply-To: <1231515945-10234-7-git-send-email-tero.kristo@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
@@ -18,56 +23,56 @@ Cc: Paul Walmsley <paul@pwsan.com>
 
 From: Paul Walmsley <paul@pwsan.com>
 
-Mark the SRAM (aka OCM RAM) as Non-cacheable Normal memory[1].  This
-is to prevent the ARM from evicting existing cache lines to SDRAM
-while code is executing from the SRAM.  Necessary since one of the
-primary uses for the SRAM is to hold the code and data for the CORE
-DPLL M2 divider reprogramming code, which must execute while the SDRC
-is idled.  If the ARM attempts to write cache lines back to the while
-the SRAM code is running, the ARM will stall[2].
-
-TI deals with this problem in the CDP kernel by marking the SRAM as
-Strongly-ordered memory.
-
-Tero Kristo <tero.kristo@nokia.com> caught a bug in an earlier version of
-this patch - thanks Tero.
-
-...
-
-1. ARMv7 ARM (DDI 0406A) pp. A3-30, A3-31, B3-32.
-
-2. Private communication with Richard Woodruff <r-woodruff2@ti.com>
+Initialize SDRC_POWER to a known-good setting when the kernel boots.
+Necessary since some bootloaders don't initialize SDRC_POWER properly.
 
 Signed-off-by: Paul Walmsley <paul@pwsan.com>
-Cc: Tero Kristo <tero.kristo@nokia.com>
-Cc: Richard Woodruff <r-woodruff2@ti.com>
 ---
- arch/arm/plat-omap/sram.c |    9 +++++++++
- 1 files changed, 9 insertions(+), 0 deletions(-)
- mode change 100755 => 100644 arch/arm/plat-omap/sram.c
+ arch/arm/mach-omap2/sdrc.c |   19 ++++++++++++++++++-
+ 1 files changed, 18 insertions(+), 1 deletions(-)
 
-diff --git a/arch/arm/plat-omap/sram.c b/arch/arm/plat-omap/sram.c
-old mode 100755
-new mode 100644
-index 9946f82..5c0d463
---- a/arch/arm/plat-omap/sram.c
-+++ b/arch/arm/plat-omap/sram.c
-@@ -207,6 +207,15 @@ void __init omap_map_sram(void)
- 		base = OMAP3_SRAM_PA;
- 		base = ROUND_DOWN(base, PAGE_SIZE);
- 		omap_sram_io_desc[0].pfn = __phys_to_pfn(base);
-+
-+		/*
-+		 * SRAM must be marked as non-cached on OMAP3 since the
-+		 * CORE DPLL M2 divider change code (in SRAM) runs with the
-+		 * SDRAM controller disabled, and if it is marked cached,
-+		 * the ARM may attempt to write cache lines back to SDRAM
-+		 * which will cause the system to hang.
-+		 */
-+		omap_sram_io_desc[0].type = MT_MEMORY_NONCACHED;
- 	}
+diff --git a/arch/arm/mach-omap2/sdrc.c b/arch/arm/mach-omap2/sdrc.c
+index 7da6587..28d9e38 100644
+--- a/arch/arm/mach-omap2/sdrc.c
++++ b/arch/arm/mach-omap2/sdrc.c
+@@ -37,6 +37,10 @@ static struct omap_sdrc_params *sdrc_init_params;
+ void __iomem *omap2_sdrc_base;
+ void __iomem *omap2_sms_base;
  
- 	omap_sram_io_desc[0].length = 1024 * 1024;	/* Use section desc */
++/* SDRC_POWER register bits */
++#define SDRC_POWER_EXTCLKDIS_SHIFT		3
++#define SDRC_POWER_PWDENA_SHIFT			2
++#define SDRC_POWER_PAGEPOLICY_SHIFT		0
+ 
+ /**
+  * omap2_sdrc_get_params - return SDRC register values for a given clock rate
+@@ -74,7 +78,14 @@ void __init omap2_set_globals_sdrc(struct omap_globals *omap2_globals)
+ 	omap2_sms_base = omap2_globals->sms;
+ }
+ 
+-/* turn on smart idle modes for SDRAM scheduler and controller */
++/**
++ * omap2_sdrc_init - initialize SMS, SDRC devices on boot
++ * @sp: pointer to a null-terminated list of struct omap_sdrc_params
++ *
++ * Turn on smart idle modes for SDRAM scheduler and controller.
++ * Program a known-good configuration for the SDRC to deal with buggy
++ * bootloaders.
++ */
+ void __init omap2_sdrc_init(struct omap_sdrc_params *sp)
+ {
+ 	u32 l;
+@@ -90,4 +101,10 @@ void __init omap2_sdrc_init(struct omap_sdrc_params *sp)
+ 	sdrc_write_reg(l, SDRC_SYSCONFIG);
+ 
+ 	sdrc_init_params = sp;
++
++	/* XXX Enable SRFRONIDLEREQ here also? */
++	l = (1 << SDRC_POWER_EXTCLKDIS_SHIFT) |
++		(1 << SDRC_POWER_PWDENA_SHIFT) |
++		(1 << SDRC_POWER_PAGEPOLICY_SHIFT);
++	sdrc_write_reg(l, SDRC_POWER);
+ }
 -- 
 1.5.4.3
 
