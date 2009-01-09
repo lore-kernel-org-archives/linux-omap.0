@@ -1,38 +1,35 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] ARM: OMAP3: Enable writing to XCCR and RCCR McBSP
-	registers for OMAP 2430/34xx
-Date: Fri, 9 Jan 2009 13:46:01 +0200
-Message-ID: <20090109114557.GH2536@atomide.com>
-References: <2C7D3DF36ADFFC479B44490D912B616705A484AAD4@dlee07.ent.ti.com> <20090108155718.GX27566@atomide.com> <2C7D3DF36ADFFC479B44490D912B616705A496D1E0@dlee07.ent.ti.com>
+Subject: Re: [PATCH 1/2] Add support for GPIO LEDs on pandora
+Date: Fri, 9 Jan 2009 13:53:04 +0200
+Message-ID: <20090109115302.GI2536@atomide.com>
+References: <1227780163-5879-1-git-send-email-notasas@gmail.com> <20090108152818.GE25876@sirena.org.uk> <6ed0b2680901080829p740cf017y2f5dd0d59f025743@mail.gmail.com> <200901081204.10441.david-b@pacbell.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-bos.mailhop.org ([63.208.196.178]:56847 "EHLO
+Received: from mho-01-bos.mailhop.org ([63.208.196.178]:60788 "EHLO
 	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752543AbZAILqE (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 9 Jan 2009 06:46:04 -0500
+	with ESMTP id S1752751AbZAILxM (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 9 Jan 2009 06:53:12 -0500
 Content-Disposition: inline
-In-Reply-To: <2C7D3DF36ADFFC479B44490D912B616705A496D1E0@dlee07.ent.ti.com>
+In-Reply-To: <200901081204.10441.david-b@pacbell.net>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Lopez Cruz, Misael" <x0052729@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Pandita, Vikram" <vikram.pandita@ti.com>, Jarkko Nikula <jarkko.nikula@nokia.com>
+To: David Brownell <david-b@pacbell.net>
+Cc: Grazvydas Ignotas <notasas@gmail.com>, Mark Brown <broonie@sirena.org.uk>, Koen Kooi <k.kooi@student.utwente.nl>, "linux-omap@vger.kernel.org List" <linux-omap@vger.kernel.org>, Richard Purdie <rpurdie@rpsys.net>
 
-* Lopez Cruz, Misael <x0052729@ti.com> [090108 19:43]:
-> > * Lopez Cruz, Misael <x0052729@ti.com> [081219 04:53]:
-> > > This patch enables writing to McBSP Transmit Configuration Control 
-> > > Register (XCCR) and Receive Configuration Control Register 
-> > (RCCR) for 
-> > > 2430/34xx platforms. It also adds XCCR, RCCR entries in 
-> > McBSP register 
-> > > configuration structure and bit definitions for both registers.
-> >
-> > Pushing to l-o. Can you briefly describe what happens with 
-> > ASoC if these registers are not used? We may be able to send 
-> > this as a fix to mainline during the -rc cycle.
+* David Brownell <david-b@pacbell.net> [090108 22:04]:
+> On Thursday 08 January 2009, Grazvydas Ignotas wrote:
+> > Well this was only temporary solution until we have proper code to
+> > control BL using TWL4030's PWM capability.
 > 
-> If we enable the writing to those registers for 2430/34xx and don't set the default values (setting 0 as a consequence) in ASoC driver, the Transmit/Receive DMA mode gets disabled and the the transmission/reception doesn't happen, ending with a "write error: Input/Output error" when playing with 'aplay'.
+> I have code to support the PWM0/PWM1 signals that needs testing,
+> so that's not far away.  The LEDA/LEDB PWMs can control brightness
+> of those two signals, as part of that same patch.
 
-Thanks, I'll add that to the commit in the omap-fixes queue.
+OK, let's wait a bit then so these patches can be done directly
+against the mainline tree. So not pushing Grazvydas' patch to
+l-o at this point.
+
+Regards,
 
 Tony
