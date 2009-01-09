@@ -1,17 +1,23 @@
 From: Tero Kristo <tero.kristo@nokia.com>
-Subject: [PATCH 03/17] OMAP3 SRAM: add ARM barriers to omap3_sram_configure_core_dpll
-Date: Fri,  9 Jan 2009 17:45:31 +0200
-Message-ID: <1231515945-10234-4-git-send-email-tero.kristo@nokia.com>
+Subject: [PATCH 09/17] OMAP3 clock: only unlock SDRC DLL if SDRC clk < 83MHz
+Date: Fri,  9 Jan 2009 17:45:37 +0200
+Message-ID: <1231515945-10234-10-git-send-email-tero.kristo@nokia.com>
 References: <>
  <1231515945-10234-1-git-send-email-tero.kristo@nokia.com>
  <1231515945-10234-2-git-send-email-tero.kristo@nokia.com>
  <1231515945-10234-3-git-send-email-tero.kristo@nokia.com>
+ <1231515945-10234-4-git-send-email-tero.kristo@nokia.com>
+ <1231515945-10234-5-git-send-email-tero.kristo@nokia.com>
+ <1231515945-10234-6-git-send-email-tero.kristo@nokia.com>
+ <1231515945-10234-7-git-send-email-tero.kristo@nokia.com>
+ <1231515945-10234-8-git-send-email-tero.kristo@nokia.com>
+ <1231515945-10234-9-git-send-email-tero.kristo@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:57827 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751995AbZAIPzs (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 9 Jan 2009 10:55:48 -0500
-In-Reply-To: <1231515945-10234-3-git-send-email-tero.kristo@nokia.com>
+Received: from smtp.nokia.com ([192.100.105.134]:35514 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751979AbZAIP4D (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 9 Jan 2009 10:56:03 -0500
+In-Reply-To: <1231515945-10234-9-git-send-email-tero.kristo@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
@@ -19,75 +25,151 @@ Cc: Paul Walmsley <paul@pwsan.com>
 
 From: Paul Walmsley <paul@pwsan.com>
 
-Add more barriers in the SRAM CORE DPLL M2 divider change code.
+According to the 34xx TRM Rev. K section 11.2.4.4.11.1 "Purpose of the
+DLL/CDL Module," the SDRC delay-locked-loop can be locked at any SDRC
+clock frequency from 83MHz to 166MHz.  CDP code unconditionally
+unlocked the DLL whenever shifting to a lower SDRC speed, but this
+seems unnecessary and error-prone, as the DLL is no longer able to
+compensate for process, voltage, and temperature variations.  Instead,
+only unlock the DLL when the SDRC clock rate would be less than 83MHz.
 
-- Add a DSB SY after the function's entry point to flush all cached
-  and buffered writes and wait for the interconnect to claim that they
-  have completed[1].  The idea here is to force all delayed write
-  traffic going to the SDRAM to at least post to the L3 interconnect
-  before continuing.  If these writes are allowed to occur after the
-  SDRC is idled, the writes will not be acknowledged and the ARM will
-  stall.
-
-  Note that in this case, it does not matter if the writes actually
-  complete to the SDRAM - it is only necessary for the writes to leave
-  the ARM itself.  If the writes are posted by the interconnect when
-  the SDRC goes into idle, the writes will be delayed until the SDRC
-  returns from idle[2].  If the SDRC is in the middle of a write when
-  it is requested to enter idle, the SDRC will not acknowledge the
-  idle request until the writes complete to the SDRAM.[3]
-
-  The old-style DMB in sdram_in_selfrefresh is now superfluous, so,
-  remove it.
-
-- Add an ISB before the function's exit point to prevent the ARM from
-  speculatively executing into SDRAM before the SDRAM is enabled[4].
-
-...
-
-1. ARMv7 ARM (DDI 0406A) A3-47, A3-48.
-
-2. Private communication with Richard Woodruff <r-woodruff2@ti.com>.
-
-3. Private communication with Richard Woodruff <r-woodruff2@ti.com>.
-
-4. ARMv7 ARM (DDI 0406A) A3-48.
+In situations where the DLL is unlocked, we should probably be
+changing the FIXEDDELAY field, but currently we have no information on
+how to calculate it.
 
 Signed-off-by: Paul Walmsley <paul@pwsan.com>
-Cc: Richard Woodruff <r-woodruff2@ti.com>
 ---
- arch/arm/mach-omap2/sram34xx.S |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
+ arch/arm/mach-omap2/clock34xx.c        |   10 +++++++++-
+ arch/arm/mach-omap2/sram34xx.S         |   13 +++++++------
+ arch/arm/plat-omap/include/mach/sram.h |    6 ++++--
+ arch/arm/plat-omap/sram.c              |    7 ++++---
+ 4 files changed, 24 insertions(+), 12 deletions(-)
 
+diff --git a/arch/arm/mach-omap2/clock34xx.c b/arch/arm/mach-omap2/clock34xx.c
+index 55981dd..2e9ed66 100644
+--- a/arch/arm/mach-omap2/clock34xx.c
++++ b/arch/arm/mach-omap2/clock34xx.c
+@@ -74,6 +74,8 @@ static unsigned long compute_lpj(unsigned long ref, u_int div, u_int mult)
+ }
+ #endif
+ 
++#define MIN_SDRC_DLL_LOCK_FREQ		83000000
++
+ /**
+  * omap3_dpll_recalc - recalculate DPLL rate
+  * @clk: DPLL struct clk
+@@ -485,6 +487,7 @@ static int omap3_noncore_dpll_set_rate(struct clk *clk, unsigned long rate)
+ static int omap3_core_dpll_m2_set_rate(struct clk *clk, unsigned long rate)
+ {
+ 	u32 new_div = 0;
++	u32 unlock_dll = 0;
+ 	unsigned long validrate, sdrcrate;
+ 	struct omap_sdrc_params *sp;
+ 
+@@ -511,6 +514,11 @@ static int omap3_core_dpll_m2_set_rate(struct clk *clk, unsigned long rate)
+ 	if (!sp)
+ 		return -EINVAL;
+ 
++	if (sdrcrate < MIN_SDRC_DLL_LOCK_FREQ) {
++		pr_debug("clock: will unlock SDRC DLL\n");
++		unlock_dll = 1;
++	}
++
+ 	pr_info("clock: changing CORE DPLL rate from %lu to %lu\n", clk->rate,
+ 		validrate);
+ 	pr_info("clock: SDRC timing params used: %08x %08x %08x\n",
+@@ -521,7 +529,7 @@ static int omap3_core_dpll_m2_set_rate(struct clk *clk, unsigned long rate)
+ 
+ 	/* REVISIT: Add SDRC_MR changing to this code also */
+ 	omap3_configure_core_dpll(sp->rfr_ctrl, sp->actim_ctrla,
+-				  sp->actim_ctrlb, new_div);
++				  sp->actim_ctrlb, new_div, unlock_dll);
+ 
+ 	return 0;
+ }
 diff --git a/arch/arm/mach-omap2/sram34xx.S b/arch/arm/mach-omap2/sram34xx.S
-index 2c71461..f4a356d 100644
+index 35131e5..c080c82 100644
 --- a/arch/arm/mach-omap2/sram34xx.S
 +++ b/arch/arm/mach-omap2/sram34xx.S
-@@ -43,6 +43,7 @@
+@@ -40,22 +40,23 @@
+ /*
+  * Change frequency of core dpll
+  * r0 = sdrc_rfr_ctrl r1 = sdrc_actim_ctrla r2 = sdrc_actim_ctrlb r3 = M2
++ * r4 = Unlock SDRC DLL? (1 = yes, 0 = no) -- only unlock DLL for
++ *      SDRC rates < 83MHz
   */
  ENTRY(omap3_sram_configure_core_dpll)
  	stmfd	sp!, {r1-r12, lr}	@ store regs to stack
-+	dsb				@ flush buffered writes to interconnect
++	ldr	r4, [sp, #52]		@ pull extra args off the stack
+ 	dsb				@ flush buffered writes to interconnect
  	cmp	r3, #0x2
  	blne	configure_sdrc
- 	cmp	r3, #0x2
-@@ -58,6 +59,7 @@ ENTRY(omap3_sram_configure_core_dpll)
+-	cmp	r3, #0x2
++	cmp	r4, #0x1
++	bleq	unlock_dll
+ 	blne	lock_dll
+-	cmp	r3, #0x1
+-	blne	unlock_dll
+ 	bl	sdram_in_selfrefresh	@ put the SDRAM in self refresh
+ 	bl 	configure_core_dpll
+ 	bl	enable_sdrc
+-	cmp	r3, #0x1
+-	blne	wait_dll_unlock
+-	cmp	r3, #0x2
++	cmp	r4, #0x1
++	bleq	wait_dll_unlock
  	blne	wait_dll_lock
  	cmp	r3, #0x1
  	blne	configure_sdrc
-+	isb				@ prevent speculative exec past here
- 	mov 	r0, #0 			@ return value
- 	ldmfd	sp!, {r1-r12, pc}	@ restore regs and return
- unlock_dll:
-@@ -73,8 +75,6 @@ lock_dll:
- 	str	r5, [r4]
- 	bx	lr
- sdram_in_selfrefresh:
--	mov	r5, #0x0		@ Move 0 to R5
--	mcr	p15, 0, r5, c7, c10, 5	@ memory barrier
- 	ldr	r4, omap3_sdrc_power	@ read the SDRC_POWER register
- 	ldr	r5, [r4]		@ read the contents of SDRC_POWER
- 	orr 	r5, r5, #0x40		@ enable self refresh on idle req
+diff --git a/arch/arm/plat-omap/include/mach/sram.h b/arch/arm/plat-omap/include/mach/sram.h
+index 0c0b45f..3f0711f 100644
+--- a/arch/arm/plat-omap/include/mach/sram.h
++++ b/arch/arm/plat-omap/include/mach/sram.h
+@@ -23,7 +23,8 @@ extern u32 omap2_set_prcm(u32 dpll_ctrl_val, u32 sdrc_rfr_val, int bypass);
+ 
+ extern u32 omap3_configure_core_dpll(u32 sdrc_rfr_ctrl,
+ 				     u32 sdrc_actim_ctrla,
+-				     u32 sdrc_actim_ctrlb, u32 m2);
++				     u32 sdrc_actim_ctrlb, u32 m2,
++				     u32 unlock_dll);
+ extern void omap3_sram_restore_context(void);
+ 
+ /* Do not use these */
+@@ -61,7 +62,8 @@ extern unsigned long omap243x_sram_reprogram_sdrc_sz;
+ 
+ extern u32 omap3_sram_configure_core_dpll(u32 sdrc_rfr_ctrl,
+ 					  u32 sdrc_actim_ctrla,
+-					  u32 sdrc_actim_ctrlb, u32 m2);
++					  u32 sdrc_actim_ctrlb, u32 m2,
++					  u32 unlock_dll);
+ extern unsigned long omap3_sram_configure_core_dpll_sz;
+ 
+ #ifdef CONFIG_PM
+diff --git a/arch/arm/plat-omap/sram.c b/arch/arm/plat-omap/sram.c
+index 5c0d463..6ecda40 100644
+--- a/arch/arm/plat-omap/sram.c
++++ b/arch/arm/plat-omap/sram.c
+@@ -371,16 +371,17 @@ static inline int omap243x_sram_init(void)
+ static u32 (*_omap3_sram_configure_core_dpll)(u32 sdrc_rfr_ctrl,
+ 					      u32 sdrc_actim_ctrla,
+ 					      u32 sdrc_actim_ctrlb,
+-					      u32 m2);
++					      u32 m2, u32 unlock_dll);
+ u32 omap3_configure_core_dpll(u32 sdrc_rfr_ctrl, u32 sdrc_actim_ctrla,
+-			      u32 sdrc_actim_ctrlb, u32 m2)
++			      u32 sdrc_actim_ctrlb, u32 m2, u32 unlock_dll)
+  {
+ 	if (!_omap3_sram_configure_core_dpll)
+ 		omap_sram_error();
+ 
+ 	return _omap3_sram_configure_core_dpll(sdrc_rfr_ctrl,
+ 					       sdrc_actim_ctrla,
+-					       sdrc_actim_ctrlb, m2);
++					       sdrc_actim_ctrlb, m2,
++					       unlock_dll);
+  }
+ 
+ #ifdef CONFIG_PM
 -- 
 1.5.4.3
 
