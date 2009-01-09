@@ -1,129 +1,24 @@
 From: Tero Kristo <tero.kristo@nokia.com>
-Subject: [PATCH 15/17] OMAP3 SRAM: add more comments on the SRAM code
-Date: Fri,  9 Jan 2009 17:45:43 +0200
-Message-ID: <1231515945-10234-16-git-send-email-tero.kristo@nokia.com>
-References: <>
- <1231515945-10234-1-git-send-email-tero.kristo@nokia.com>
- <1231515945-10234-2-git-send-email-tero.kristo@nokia.com>
- <1231515945-10234-3-git-send-email-tero.kristo@nokia.com>
- <1231515945-10234-4-git-send-email-tero.kristo@nokia.com>
- <1231515945-10234-5-git-send-email-tero.kristo@nokia.com>
- <1231515945-10234-6-git-send-email-tero.kristo@nokia.com>
- <1231515945-10234-7-git-send-email-tero.kristo@nokia.com>
- <1231515945-10234-8-git-send-email-tero.kristo@nokia.com>
- <1231515945-10234-9-git-send-email-tero.kristo@nokia.com>
- <1231515945-10234-10-git-send-email-tero.kristo@nokia.com>
- <1231515945-10234-11-git-send-email-tero.kristo@nokia.com>
- <1231515945-10234-12-git-send-email-tero.kristo@nokia.com>
- <1231515945-10234-13-git-send-email-tero.kristo@nokia.com>
- <1231515945-10234-14-git-send-email-tero.kristo@nokia.com>
- <1231515945-10234-15-git-send-email-tero.kristo@nokia.com>
+Subject: [PATCH 0/8] OMAP3: Misc VDD2 DVFS fixes
+Date: Fri,  9 Jan 2009 17:49:00 +0200
+Message-ID: <1231516148-10260-1-git-send-email-tero.kristo@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:35569 "EHLO
+Received: from smtp.nokia.com ([192.100.105.134]:35668 "EHLO
 	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751111AbZAIP45 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 9 Jan 2009 10:56:57 -0500
-In-Reply-To: <1231515945-10234-15-git-send-email-tero.kristo@nokia.com>
+	with ESMTP id S1750870AbZAIP7C (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 9 Jan 2009 10:59:02 -0500
+Received: from esebh106.NOE.Nokia.com (esebh106.ntc.nokia.com [172.21.138.213])
+	by mgw-mx09.nokia.com (Switch-3.2.6/Switch-3.2.6) with ESMTP id n09Fwj5R017874
+	for <linux-omap@vger.kernel.org>; Fri, 9 Jan 2009 09:59:00 -0600
+Received: from localhost.localdomain (sokoban.ntc.nokia.com [172.22.144.95])
+	by mgw-int02.ntc.nokia.com (Switch-3.2.5/Switch-3.2.5) with ESMTP id n09FwtlJ031435
+	for <linux-omap@vger.kernel.org>; Fri, 9 Jan 2009 17:58:55 +0200
+In-Reply-To: <>
+References: <>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
-Cc: Paul Walmsley <paul@pwsan.com>
 
-From: Paul Walmsley <paul@pwsan.com>
+Applies on top of PM branch + base VDD2 DVFS support patches.
 
-Clean up comments and copyrights on the CORE DPLL3 M2 divider change code.
-
-Signed-off-by: Paul Walmsley <paul@pwsan.com>
----
- arch/arm/mach-omap2/sram34xx.S |   45 +++++++++++++++++++++------------------
- 1 files changed, 24 insertions(+), 21 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/sram34xx.S b/arch/arm/mach-omap2/sram34xx.S
-index d13f1cc..37a1e1f 100644
---- a/arch/arm/mach-omap2/sram34xx.S
-+++ b/arch/arm/mach-omap2/sram34xx.S
-@@ -3,13 +3,12 @@
-  *
-  * Omap3 specific functions that need to be run in internal SRAM
-  *
-- * (C) Copyright 2007
-- * Texas Instruments Inc.
-- * Rajendra Nayak <rnayak@ti.com>
-+ * Copyright (C) 2004, 2007, 2008 Texas Instruments, Inc.
-+ * Copyright (C) 2008 Nokia Corporation
-  *
-- * (C) Copyright 2004
-- * Texas Instruments, <www.ti.com>
-+ * Rajendra Nayak <rnayak@ti.com>
-  * Richard Woodruff <r-woodruff2@ti.com>
-+ * Paul Walmsley
-  *
-  * This program is free software; you can redistribute it and/or
-  * modify it under the terms of the GNU General Public License as
-@@ -38,13 +37,16 @@
- 	.text
- 
- /*
-- * Change frequency of core dpll
-- * r0 = sdrc_rfr_ctrl r1 = sdrc_actim_ctrla r2 = sdrc_actim_ctrlb r3 = M2
-- * r4 = Unlock SDRC DLL? (1 = yes, 0 = no) -- only unlock DLL for
-+ * omap3_sram_configure_core_dpll - change DPLL3 M2 divider
-+ * r0 = new SDRC_RFR_CTRL register contents
-+ * r1 = new SDRC_ACTIM_CTRLA register contents
-+ * r2 = new SDRC_ACTIM_CTRLB register contents
-+ * r3 = new M2 divider setting (only 1 and 2 supported right now)
-+ * r4 = unlock SDRC DLL? (1 = yes, 0 = no).  Only unlock DLL for
-  *      SDRC rates < 83MHz
-  * r5 = number of MPU cycles to wait for SDRC to stabilize after
-  *      reprogramming the SDRC when switching to a slower MPU speed
-- * r6 = SDRC_MR_0 register value
-+ * r6 = new SDRC_MR_0 register value
-  *
-  */
- ENTRY(omap3_sram_configure_core_dpll)
-@@ -53,22 +55,22 @@ ENTRY(omap3_sram_configure_core_dpll)
- 	ldr	r5, [sp, #56]		@ load extra args from the stack
- 	ldr	r6, [sp, #60]		@ load extra args from the stack
- 	dsb				@ flush buffered writes to interconnect
--	cmp	r3, #0x2
--	blne	configure_sdrc
--	cmp	r4, #0x1
-+	cmp	r3, #0x2		@ if increasing SDRC clk rate,
-+	blne	configure_sdrc		@ program the SDRC regs early (for RFR)
-+	cmp	r4, #0x1		@ set the intended DLL state
- 	bleq	unlock_dll
- 	blne	lock_dll
--	bl	sdram_in_selfrefresh	@ put the SDRAM in self refresh
--	bl 	configure_core_dpll
--	bl	enable_sdrc
--	cmp	r4, #0x1
-+	bl	sdram_in_selfrefresh	@ put SDRAM in self refresh, idle SDRC
-+	bl 	configure_core_dpll	@ change the DPLL3 M2 divider
-+	bl	enable_sdrc		@ take SDRC out of idle
-+	cmp	r4, #0x1		@ wait for DLL status to change
- 	bleq	wait_dll_unlock
- 	blne	wait_dll_lock
--	cmp	r3, #0x1
--	beq	return_to_sdram
--	bl	configure_sdrc
--	mov	r12, r5			@ if slowing, wait for SDRC to stabilize
--	bl	wait_clk_stable
-+	cmp	r3, #0x1		@ if increasing SDRC clk rate,
-+	beq	return_to_sdram		@ return to SDRAM code, otherwise,
-+	bl	configure_sdrc		@ reprogram SDRC regs now
-+	mov	r12, r5
-+	bl	wait_clk_stable		@ wait for SDRC to stabilize
- return_to_sdram:
- 	isb				@ prevent speculative exec past here
- 	mov 	r0, #0 			@ return value
-@@ -93,6 +95,7 @@ sdram_in_selfrefresh:
- 	bic 	r12, r12, #0x4		@ clear PWDENA
- 	str 	r12, [r11]		@ write back to SDRC_POWER register
- 	ldr	r12, [r11]		@ posted-write barrier for SDRC
-+idle_sdrc:
- 	ldr	r11, omap3_cm_iclken1_core	@ read the CM_ICLKEN1_CORE reg
- 	ldr	r12, [r11]
- 	bic	r12, r12, #0x2		@ disable iclk bit for SDRC
--- 
-1.5.4.3
 
