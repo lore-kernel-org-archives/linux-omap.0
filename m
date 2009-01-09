@@ -1,80 +1,27 @@
 From: Tero Kristo <tero.kristo@nokia.com>
-Subject: [PATCH 04/17] OMAP3 clock: add interconnect barriers to CORE DPLL M2 change
-Date: Fri,  9 Jan 2009 17:45:32 +0200
-Message-ID: <1231515945-10234-5-git-send-email-tero.kristo@nokia.com>
-References: <>
- <1231515945-10234-1-git-send-email-tero.kristo@nokia.com>
- <1231515945-10234-2-git-send-email-tero.kristo@nokia.com>
- <1231515945-10234-3-git-send-email-tero.kristo@nokia.com>
- <1231515945-10234-4-git-send-email-tero.kristo@nokia.com>
+Subject: [PATCH 00/17] OMAP3: Base support for VDD2 DVFS
+Date: Fri,  9 Jan 2009 17:45:28 +0200
+Message-ID: <1231515945-10234-1-git-send-email-tero.kristo@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:57825 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751907AbZAIPzr (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 9 Jan 2009 10:55:47 -0500
-In-Reply-To: <1231515945-10234-4-git-send-email-tero.kristo@nokia.com>
+Received: from smtp.nokia.com ([192.100.122.233]:49099 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751858AbZAIP41 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 9 Jan 2009 10:56:27 -0500
+Received: from vaebh106.NOE.Nokia.com (vaebh106.europe.nokia.com [10.160.244.32])
+	by mgw-mx06.nokia.com (Switch-3.2.6/Switch-3.2.6) with ESMTP id n09Ftwsg014214
+	for <linux-omap@vger.kernel.org>; Fri, 9 Jan 2009 17:56:24 +0200
+Received: from localhost.localdomain (sokoban.ntc.nokia.com [172.22.144.95])
+	by mgw-int01.ntc.nokia.com (Switch-3.2.5/Switch-3.2.5) with ESMTP id n09FtXjH003289
+	for <linux-omap@vger.kernel.org>; Fri, 9 Jan 2009 17:55:33 +0200
+In-Reply-To: <>
+References: <>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
-Cc: Paul Walmsley <paul@pwsan.com>
 
-From: Paul Walmsley <paul@pwsan.com>
+Resending this set against the latest PM branch. This set provides base
+SDRC + SRAM + clock framework support for VDD2 DVFS control. Main reasoning
+for this set is that when VDD2 clock is changed, memory clocking changes also
+and you need to be rather careful when you are doing this.
 
-Where necessary, add interconnect barriers to force posted writes to
-complete before continuing.
-
-Signed-off-by: Paul Walmsley <paul@pwsan.com>
----
- arch/arm/mach-omap2/sram34xx.S |    9 ++++++---
- 1 files changed, 6 insertions(+), 3 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/sram34xx.S b/arch/arm/mach-omap2/sram34xx.S
-index f4a356d..8d524f3 100644
---- a/arch/arm/mach-omap2/sram34xx.S
-+++ b/arch/arm/mach-omap2/sram34xx.S
-@@ -66,22 +66,23 @@ unlock_dll:
- 	ldr	r4, omap3_sdrc_dlla_ctrl
- 	ldr	r5, [r4]
- 	orr	r5, r5, #0x4
--	str	r5, [r4]
-+	str	r5, [r4]		@ (no OCP barrier needed)
- 	bx	lr
- lock_dll:
- 	ldr	r4, omap3_sdrc_dlla_ctrl
- 	ldr	r5, [r4]
- 	bic	r5, r5, #0x4
--	str	r5, [r4]
-+	str	r5, [r4]		@ (no OCP barrier needed)
- 	bx	lr
- sdram_in_selfrefresh:
- 	ldr	r4, omap3_sdrc_power	@ read the SDRC_POWER register
- 	ldr	r5, [r4]		@ read the contents of SDRC_POWER
- 	orr 	r5, r5, #0x40		@ enable self refresh on idle req
- 	str 	r5, [r4]		@ write back to SDRC_POWER register
-+	ldr	r5, [r4]		@ posted-write barrier for SDRC
- 	ldr	r4, omap3_cm_iclken1_core	@ read the CM_ICLKEN1_CORE reg
- 	ldr	r5, [r4]
--	bic	r5, r5, #0x2		@ disable iclk bit for SRDC
-+	bic	r5, r5, #0x2		@ disable iclk bit for SDRC
- 	str 	r5, [r4]
- wait_sdrc_idle:
- 	ldr 	r4, omap3_cm_idlest1_core
-@@ -97,6 +98,7 @@ configure_core_dpll:
- 	and	r5, r5, r6
- 	orr	r5, r5, r3, lsl #0x1B	@ r3 contains the M2 val
- 	str	r5, [r4]
-+	ldr	r5, [r4]		@ posted-write barrier for CM
- 	mov 	r5, #0x800		@ wait for the clock to stabilise
- 	cmp	r3, #2
- 	bne	wait_clk_stable
-@@ -152,6 +154,7 @@ configure_sdrc:
- 	str	r1, [r4]
- 	ldr	r4, omap3_sdrc_actim_ctrlb
- 	str	r2, [r4]
-+	ldr	r2, [r4]		@ posted-write barrier for SDRC
- 	bx	lr
- 
- omap3_sdrc_power:
--- 
-1.5.4.3
 
