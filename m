@@ -1,35 +1,38 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 1/2] Add support for GPIO LEDs on pandora
-Date: Fri, 9 Jan 2009 13:53:04 +0200
-Message-ID: <20090109115302.GI2536@atomide.com>
-References: <1227780163-5879-1-git-send-email-notasas@gmail.com> <20090108152818.GE25876@sirena.org.uk> <6ed0b2680901080829p740cf017y2f5dd0d59f025743@mail.gmail.com> <200901081204.10441.david-b@pacbell.net>
+Subject: Re: [PATCH] OMAP2: gptimer min_delta_ns corrected
+Date: Fri, 9 Jan 2009 13:59:36 +0200
+Message-ID: <20090109115933.GJ2536@atomide.com>
+References: <1230908836-24231-1-git-send-email-Aaro.Koskinen@nokia.com> <13B9B4C6EF24D648824FF11BE8967162036D3BD13D@dlee02.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-bos.mailhop.org ([63.208.196.178]:60788 "EHLO
+Received: from mho-01-bos.mailhop.org ([63.208.196.178]:64147 "EHLO
 	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752751AbZAILxM (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 9 Jan 2009 06:53:12 -0500
+	with ESMTP id S1751170AbZAIL7i (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 9 Jan 2009 06:59:38 -0500
 Content-Disposition: inline
-In-Reply-To: <200901081204.10441.david-b@pacbell.net>
+In-Reply-To: <13B9B4C6EF24D648824FF11BE8967162036D3BD13D@dlee02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: David Brownell <david-b@pacbell.net>
-Cc: Grazvydas Ignotas <notasas@gmail.com>, Mark Brown <broonie@sirena.org.uk>, Koen Kooi <k.kooi@student.utwente.nl>, "linux-omap@vger.kernel.org List" <linux-omap@vger.kernel.org>, Richard Purdie <rpurdie@rpsys.net>
+To: "Woodruff, Richard" <r-woodruff2@ti.com>
+Cc: Aaro Koskinen <Aaro.Koskinen@nokia.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-* David Brownell <david-b@pacbell.net> [090108 22:04]:
-> On Thursday 08 January 2009, Grazvydas Ignotas wrote:
-> > Well this was only temporary solution until we have proper code to
-> > control BL using TWL4030's PWM capability.
+* Woodruff, Richard <r-woodruff2@ti.com> [090102 19:29]:
+> Hi,
 > 
-> I have code to support the PWM0/PWM1 signals that needs testing,
-> so that's not far away.  The LEDA/LEDB PWMs can control brightness
-> of those two signals, as part of that same patch.
+> > From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
+> > owner@vger.kernel.org] On Behalf Of Aaro Koskinen
+> > Sent: Friday, January 02, 2009 9:07 AM
+> > To: linux-omap@vger.kernel.org
+> > Subject: [PATCH] OMAP2: gptimer min_delta_ns corrected
+> 
+> > Signed-off-by: Aaro Koskinen <Aaro.Koskinen@nokia.com>
+> 
+> Looks good.
+> 
+> Reviewed-by: Richard Woodruff <r-woodruff2@ti.com>
 
-OK, let's wait a bit then so these patches can be done directly
-against the mainline tree. So not pushing Grazvydas' patch to
-l-o at this point.
-
-Regards,
+Pushing to l-o tree and adding to omap-fixes queue for mainline
+kernel.
 
 Tony
