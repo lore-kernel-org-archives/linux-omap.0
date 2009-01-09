@@ -1,7 +1,7 @@
 From: Tero Kristo <tero.kristo@nokia.com>
-Subject: [PATCH 17/17] OMAP3: Add support for DPLL3 divisor values higher than 2
-Date: Fri,  9 Jan 2009 17:45:45 +0200
-Message-ID: <1231515945-10234-18-git-send-email-tero.kristo@nokia.com>
+Subject: [PATCH 13/17] OMAP3 clock: add a short delay when lowering CORE clk rate
+Date: Fri,  9 Jan 2009 17:45:41 +0200
+Message-ID: <1231515945-10234-14-git-send-email-tero.kristo@nokia.com>
 References: <>
  <1231515945-10234-1-git-send-email-tero.kristo@nokia.com>
  <1231515945-10234-2-git-send-email-tero.kristo@nokia.com>
@@ -16,147 +16,193 @@ References: <>
  <1231515945-10234-11-git-send-email-tero.kristo@nokia.com>
  <1231515945-10234-12-git-send-email-tero.kristo@nokia.com>
  <1231515945-10234-13-git-send-email-tero.kristo@nokia.com>
- <1231515945-10234-14-git-send-email-tero.kristo@nokia.com>
- <1231515945-10234-15-git-send-email-tero.kristo@nokia.com>
- <1231515945-10234-16-git-send-email-tero.kristo@nokia.com>
- <1231515945-10234-17-git-send-email-tero.kristo@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:49059 "EHLO
+Received: from smtp.nokia.com ([192.100.122.233]:49064 "EHLO
 	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751939AbZAIP4B (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 9 Jan 2009 10:56:01 -0500
-Received: from esebh105.NOE.Nokia.com (esebh105.ntc.nokia.com [172.21.138.211])
-	by mgw-mx06.nokia.com (Switch-3.2.6/Switch-3.2.6) with ESMTP id n09Ftaxu013813
-	for <linux-omap@vger.kernel.org>; Fri, 9 Jan 2009 17:55:58 +0200
-Received: from localhost.localdomain (sokoban.ntc.nokia.com [172.22.144.95])
-	by mgw-int01.ntc.nokia.com (Switch-3.2.5/Switch-3.2.5) with ESMTP id n09FtXjY003289
-	for <linux-omap@vger.kernel.org>; Fri, 9 Jan 2009 17:55:57 +0200
-In-Reply-To: <1231515945-10234-17-git-send-email-tero.kristo@nokia.com>
+	with ESMTP id S1751726AbZAIP4E (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 9 Jan 2009 10:56:04 -0500
+In-Reply-To: <1231515945-10234-13-git-send-email-tero.kristo@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
+Cc: Paul Walmsley <paul@pwsan.com>
 
-Previously only 1 and 2 was supported. This is needed for DVFS VDD2 control.
+From: Paul Walmsley <paul@pwsan.com>
 
-Signed-off-by: Tero Kristo <tero.kristo@nokia.com>
+When changing the SDRAM clock from 166MHz to 83MHz via the CORE DPLL M2
+divider, add a short delay before returning to SDRAM to allow the SDRC
+time to stabilize.  Without this delay, the system is prone to random
+panics upon re-entering SDRAM.
+
+This time delay varies based on MPU frequency.  At 500MHz MPU frequency at
+room temperature, 64 loops seems to work okay; so add another 32 loops for
+environmental and process variation.
+
+Signed-off-by: Paul Walmsley <paul@pwsan.com>
 ---
- arch/arm/mach-omap2/clock34xx.c        |    9 +++------
- arch/arm/mach-omap2/sram34xx.S         |    8 +++++---
- arch/arm/plat-omap/include/mach/sram.h |    6 ++++--
- arch/arm/plat-omap/sram.c              |    6 +++---
- 4 files changed, 15 insertions(+), 14 deletions(-)
+ arch/arm/mach-omap2/clock34xx.c        |   30 ++++++++++++++++++++++++++++--
+ arch/arm/mach-omap2/sram34xx.S         |   20 +++++++++-----------
+ arch/arm/plat-omap/include/mach/sram.h |    4 ++--
+ arch/arm/plat-omap/sram.c              |    8 +++++---
+ 4 files changed, 44 insertions(+), 18 deletions(-)
 
 diff --git a/arch/arm/mach-omap2/clock34xx.c b/arch/arm/mach-omap2/clock34xx.c
-index 4d86ea6..b565ee6 100644
+index 7770553..48148de 100644
 --- a/arch/arm/mach-omap2/clock34xx.c
 +++ b/arch/arm/mach-omap2/clock34xx.c
-@@ -518,9 +518,9 @@ static int omap3_core_dpll_m2_set_rate(struct clk *clk, unsigned long rate)
+@@ -76,6 +76,20 @@ static unsigned long compute_lpj(unsigned long ref, u_int div, u_int mult)
  
- 	sdrcrate = sdrc_ick.rate;
- 	if (rate > clk->rate)
--		sdrcrate <<= ((rate / clk->rate) - 1);
-+		sdrcrate <<= ((rate / clk->rate) >> 1);
- 	else
--		sdrcrate >>= ((clk->rate / rate) - 1);
-+		sdrcrate >>= ((clk->rate / rate) >> 1);
+ #define MIN_SDRC_DLL_LOCK_FREQ		83000000
  
- 	sp = omap2_sdrc_get_params(sdrcrate);
- 	if (!sp)
-@@ -547,12 +547,9 @@ static int omap3_core_dpll_m2_set_rate(struct clk *clk, unsigned long rate)
++#define CYCLES_PER_MHZ			1000000
++
++/* Scale factor for fixed-point arith in omap3_core_dpll_m2_set_rate() */
++#define SDRC_MPURATE_SCALE		8
++
++/* 2^SDRC_MPURATE_BASE_SHIFT: MPU MHz that SDRC_MPURATE_LOOPS is defined for */
++#define SDRC_MPURATE_BASE_SHIFT		9
++
++/*
++ * SDRC_MPURATE_LOOPS: Number of MPU loops to execute at
++ * 2^MPURATE_BASE_SHIFT MHz for SDRC to stabilize
++ */
++#define SDRC_MPURATE_LOOPS		96
++
+ /**
+  * omap3_dpll_recalc - recalculate DPLL rate
+  * @clk: DPLL struct clk
+@@ -488,7 +502,8 @@ static int omap3_core_dpll_m2_set_rate(struct clk *clk, unsigned long rate)
+ {
+ 	u32 new_div = 0;
+ 	u32 unlock_dll = 0;
+-	unsigned long validrate, sdrcrate;
++	u32 c;
++	unsigned long validrate, sdrcrate, mpurate;
+ 	struct omap_sdrc_params *sp;
+ 
+ 	if (!clk || !rate)
+@@ -516,6 +531,17 @@ static int omap3_core_dpll_m2_set_rate(struct clk *clk, unsigned long rate)
+ 		unlock_dll = 1;
+ 	}
+ 
++	/*
++	 * XXX This only needs to be done when the CPU frequency changes
++	 */
++	mpurate = arm_fck.rate / CYCLES_PER_MHZ;
++	c = (mpurate << SDRC_MPURATE_SCALE) >> SDRC_MPURATE_BASE_SHIFT;
++	c += 1;  /* for safety */
++	c *= SDRC_MPURATE_LOOPS;
++	c >>= SDRC_MPURATE_SCALE;
++	if (c == 0)
++		c = 1;
++
+ 	pr_debug("clock: changing CORE DPLL rate from %lu to %lu\n", clk->rate,
+ 		 validrate);
  	pr_debug("clock: SDRC timing params used: %08x %08x %08x\n",
- 		 sp->rfr_ctrl, sp->actim_ctrla, sp->actim_ctrlb);
+@@ -526,7 +552,7 @@ static int omap3_core_dpll_m2_set_rate(struct clk *clk, unsigned long rate)
  
--	/* REVISIT: SRAM code doesn't support other M2 divisors yet */
--	WARN_ON(new_div != 1 && new_div != 2);
--
+ 	/* REVISIT: Add SDRC_MR changing to this code also */
  	omap3_configure_core_dpll(sp->rfr_ctrl, sp->actim_ctrla,
- 				  sp->actim_ctrlb, new_div, unlock_dll, c,
--				  sp->mr);
-+				  sp->mr, rate > clk->rate);
+-				  sp->actim_ctrlb, new_div, unlock_dll);
++				  sp->actim_ctrlb, new_div, unlock_dll, c);
  
  	return 0;
  }
 diff --git a/arch/arm/mach-omap2/sram34xx.S b/arch/arm/mach-omap2/sram34xx.S
-index 16eb4ef..487fa86 100644
+index 84781a6..8d4a88c 100644
 --- a/arch/arm/mach-omap2/sram34xx.S
 +++ b/arch/arm/mach-omap2/sram34xx.S
-@@ -70,6 +70,7 @@
-  * r5 = number of MPU cycles to wait for SDRC to stabilize after
-  *      reprogramming the SDRC when switching to a slower MPU speed
-  * r6 = new SDRC_MR_0 register value
-+ * r7 = increasing SDRC rate? (1 = yes, 0 = no)
-  *
+@@ -42,10 +42,14 @@
+  * r0 = sdrc_rfr_ctrl r1 = sdrc_actim_ctrla r2 = sdrc_actim_ctrlb r3 = M2
+  * r4 = Unlock SDRC DLL? (1 = yes, 0 = no) -- only unlock DLL for
+  *      SDRC rates < 83MHz
++ * r5 = number of MPU cycles to wait for SDRC to stabilize after
++ *      reprogramming the SDRC when switching to a slower MPU speed
++ *
   */
  ENTRY(omap3_sram_configure_core_dpll)
-@@ -77,9 +78,10 @@ ENTRY(omap3_sram_configure_core_dpll)
+ 	stmfd	sp!, {r1-r12, lr}	@ store regs to stack
  	ldr	r4, [sp, #52]		@ pull extra args off the stack
- 	ldr	r5, [sp, #56]		@ load extra args from the stack
- 	ldr	r6, [sp, #60]		@ load extra args from the stack
-+	ldr	r7, [sp, #64]		@ load extra args from the stack
++	ldr	r5, [sp, #56]		@ load extra args from the stack
  	dsb				@ flush buffered writes to interconnect
--	cmp	r3, #0x2		@ if increasing SDRC clk rate,
--	blne	configure_sdrc		@ program the SDRC regs early (for RFR)
-+	cmp	r7, #1			@ if increasing SDRC clk rate,
-+	bleq	configure_sdrc		@ program the SDRC regs early (for RFR)
- 	cmp	r4, #SDRC_UNLOCK_DLL	@ set the intended DLL state
- 	bleq	unlock_dll
- 	blne	lock_dll
-@@ -89,7 +91,7 @@ ENTRY(omap3_sram_configure_core_dpll)
- 	cmp	r4, #SDRC_UNLOCK_DLL	@ wait for DLL status to change
+ 	cmp	r3, #0x2
+ 	blne	configure_sdrc
+@@ -59,7 +63,11 @@ ENTRY(omap3_sram_configure_core_dpll)
  	bleq	wait_dll_unlock
  	blne	wait_dll_lock
--	cmp	r3, #0x1		@ if increasing SDRC clk rate,
-+	cmp	r7, #1			@ if increasing SDRC clk rate,
- 	beq	return_to_sdram		@ return to SDRAM code, otherwise,
- 	bl	configure_sdrc		@ reprogram SDRC regs now
- 	mov	r12, r5
+ 	cmp	r3, #0x1
+-	blne	configure_sdrc
++	beq	return_to_sdram
++	bl	configure_sdrc
++	mov	r12, r5			@ if slowing, wait for SDRC to stabilize
++	bl	wait_clk_stable
++return_to_sdram:
+ 	isb				@ prevent speculative exec past here
+ 	mov 	r0, #0 			@ return value
+ 	ldmfd	sp!, {r1-r12, pc}	@ restore regs and return
+@@ -106,16 +114,6 @@ configure_core_dpll:
+ wait_clk_stable:
+ 	subs 	r12, r12, #1
+ 	bne	wait_clk_stable
+-	nop
+-	nop
+-	nop
+-	nop
+-	nop
+-	nop
+-	nop
+-	nop
+-	nop
+-	nop
+ 	bx	lr
+ enable_sdrc:
+ 	ldr 	r11, omap3_cm_iclken1_core
 diff --git a/arch/arm/plat-omap/include/mach/sram.h b/arch/arm/plat-omap/include/mach/sram.h
-index 6800975..ad0a600 100644
+index 3f0711f..37c13a0 100644
 --- a/arch/arm/plat-omap/include/mach/sram.h
 +++ b/arch/arm/plat-omap/include/mach/sram.h
-@@ -24,7 +24,8 @@ extern u32 omap2_set_prcm(u32 dpll_ctrl_val, u32 sdrc_rfr_val, int bypass);
+@@ -24,7 +24,7 @@ extern u32 omap2_set_prcm(u32 dpll_ctrl_val, u32 sdrc_rfr_val, int bypass);
  extern u32 omap3_configure_core_dpll(u32 sdrc_rfr_ctrl,
  				     u32 sdrc_actim_ctrla,
  				     u32 sdrc_actim_ctrlb, u32 m2,
--				     u32 unlock_dll, u32 f, u32 sdrc_mr);
-+				     u32 unlock_dll, u32 f, u32 sdrc_mr,
-+				     u32 inc);
+-				     u32 unlock_dll);
++				     u32 unlock_dll, u32 f);
  extern void omap3_sram_restore_context(void);
  
  /* Do not use these */
-@@ -63,7 +64,8 @@ extern unsigned long omap243x_sram_reprogram_sdrc_sz;
+@@ -63,7 +63,7 @@ extern unsigned long omap243x_sram_reprogram_sdrc_sz;
  extern u32 omap3_sram_configure_core_dpll(u32 sdrc_rfr_ctrl,
  					  u32 sdrc_actim_ctrla,
  					  u32 sdrc_actim_ctrlb, u32 m2,
--					  u32 unlock_dll, u32 f, u32 sdrc_mr);
-+					  u32 unlock_dll, u32 f, u32 sdrc_mr,
-+					  u32 inc);
+-					  u32 unlock_dll);
++					  u32 unlock_dll, u32 f);
  extern unsigned long omap3_sram_configure_core_dpll_sz;
  
  #ifdef CONFIG_PM
 diff --git a/arch/arm/plat-omap/sram.c b/arch/arm/plat-omap/sram.c
-index d7aeff8..a2e60e7 100644
+index 6ecda40..dc762d4 100644
 --- a/arch/arm/plat-omap/sram.c
 +++ b/arch/arm/plat-omap/sram.c
-@@ -372,10 +372,10 @@ static u32 (*_omap3_sram_configure_core_dpll)(u32 sdrc_rfr_ctrl,
+@@ -371,9 +371,11 @@ static inline int omap243x_sram_init(void)
+ static u32 (*_omap3_sram_configure_core_dpll)(u32 sdrc_rfr_ctrl,
  					      u32 sdrc_actim_ctrla,
  					      u32 sdrc_actim_ctrlb,
- 					      u32 m2, u32 unlock_dll,
--					      u32 f, u32 sdrc_mr);
-+					      u32 f, u32 sdrc_mr, u32 inc);
+-					      u32 m2, u32 unlock_dll);
++					      u32 m2, u32 unlock_dll,
++					      u32 f);
  u32 omap3_configure_core_dpll(u32 sdrc_rfr_ctrl, u32 sdrc_actim_ctrla,
- 			      u32 sdrc_actim_ctrlb, u32 m2, u32 unlock_dll,
--			      u32 f, u32 sdrc_mr)
-+			      u32 f, u32 sdrc_mr, u32 inc)
+-			      u32 sdrc_actim_ctrlb, u32 m2, u32 unlock_dll)
++			      u32 sdrc_actim_ctrlb, u32 m2, u32 unlock_dll,
++			      u32 f)
   {
  	if (!_omap3_sram_configure_core_dpll)
  		omap_sram_error();
-@@ -383,7 +383,7 @@ u32 omap3_configure_core_dpll(u32 sdrc_rfr_ctrl, u32 sdrc_actim_ctrla,
+@@ -381,7 +383,7 @@ u32 omap3_configure_core_dpll(u32 sdrc_rfr_ctrl, u32 sdrc_actim_ctrla,
  	return _omap3_sram_configure_core_dpll(sdrc_rfr_ctrl,
  					       sdrc_actim_ctrla,
  					       sdrc_actim_ctrlb, m2,
--					       unlock_dll, f, sdrc_mr);
-+					       unlock_dll, f, sdrc_mr, inc);
+-					       unlock_dll);
++					       unlock_dll, f);
   }
  
  #ifdef CONFIG_PM
