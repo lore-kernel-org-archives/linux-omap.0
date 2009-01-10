@@ -1,127 +1,88 @@
-From: Felipe Balbi <me@felipebalbi.com>
-Subject: Re: [PATCH 2/3] Runitme check for OMAP35x
-Date: Sun, 11 Jan 2009 00:20:53 +0200
-Message-ID: <20090110222050.GJ25493@frodo>
-References: <1231617654-18729-1-git-send-email-premi@ti.com>
-Reply-To: me@felipebalbi.com
+From: Ladislav Michl <ladis@linux-mips.org>
+Subject: Re: [PATCH 2/5] omap mmc: Add better MMC low-level init
+Date: Sat, 10 Jan 2009 23:49:42 +0100
+Message-ID: <20090110224942.GA10556@michl.2n.cz>
+References: <20081207213617.10456.43951.stgit@localhost> <20081207214747.10456.34844.stgit@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ns1.siteground211.com ([209.62.36.12]:54064 "EHLO
-	serv01.siteground211.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751068AbZAJWVA (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 10 Jan 2009 17:21:00 -0500
+Received: from ex.2n.cz ([213.29.92.11]:52522 "EHLO ex.2n.cz"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751778AbZAJW4b (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Sat, 10 Jan 2009 17:56:31 -0500
 Content-Disposition: inline
-In-Reply-To: <1231617654-18729-1-git-send-email-premi@ti.com>
+In-Reply-To: <20081207214747.10456.34844.stgit@localhost>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Sanjeev Premi <premi@ti.com>
+To: Tony Lindgren <tony@atomide.com>
 Cc: linux-omap@vger.kernel.org
 
-On Sun, Jan 11, 2009 at 01:30:54AM +0530, Sanjeev Premi wrote:
-> Added runtime check via omap2_set_globals_35xx()
-> 
-> Signed-off-by: Sanjeev Premi <premi@ti.com>
-> ---
->  arch/arm/plat-omap/common.c              |   68 +++++++++++++++++++++++
->  arch/arm/plat-omap/include/mach/common.h |    1 +
->  arch/arm/plat-omap/include/mach/cpu.h    |   88 +++++++++++++++++++++++++++++-
->  3 files changed, 155 insertions(+), 2 deletions(-)
-> 
-> diff --git a/arch/arm/plat-omap/common.c b/arch/arm/plat-omap/common.c
-> index 8c53125..7861a25 100644
-> --- a/arch/arm/plat-omap/common.c
-> +++ b/arch/arm/plat-omap/common.c
-> @@ -333,3 +333,71 @@ void __init omap2_set_globals_343x(void)
->  }
->  #endif
->  
-> +#if defined(CONFIG_ARCH_OMAP35XX)
-> +
-> +#if defined(CONFIG_ARCH_OMAP3503)
-
-use ifdef here
-
-> +static struct omap_globals omap3503_globals = {
-> +	.class	= OMAP35XX_CLASS,
-> +	.tap	= OMAP2_IO_ADDRESS(0x4830A000),
-> +	.sdrc	= OMAP2_IO_ADDRESS(OMAP343X_SDRC_BASE),
-> +	.sms	= OMAP2_IO_ADDRESS(OMAP343X_SMS_BASE),
-> +	.ctrl	= OMAP2_IO_ADDRESS(OMAP343X_CTRL_BASE),
-> +	.prm	= OMAP2_IO_ADDRESS(OMAP3430_PRM_BASE),
-> +	.cm	= OMAP2_IO_ADDRESS(OMAP3430_CM_BASE),
-> +};
-> +#endif	/* if defined(CONFIG_ARCH_OMAP3503) */
-
-traditionaly this would be:
-
-#endif	/* CONFIG_ARCH_OMAP3503 */
-
-but that's a matter of taste...
-
-> +
-> +#if defined(CONFIG_ARCH_OMAP3515)
-
-and here
-
-> +static struct omap_globals omap3515_globals = {
-> +	.class	= OMAP35XX_CLASS,
-> +	.tap	= OMAP2_IO_ADDRESS(0x4830A000),
-> +	.sdrc	= OMAP2_IO_ADDRESS(OMAP343X_SDRC_BASE),
-> +	.sms	= OMAP2_IO_ADDRESS(OMAP343X_SMS_BASE),
-> +	.ctrl	= OMAP2_IO_ADDRESS(OMAP343X_CTRL_BASE),
-> +	.prm	= OMAP2_IO_ADDRESS(OMAP3430_PRM_BASE),
-> +	.cm	= OMAP2_IO_ADDRESS(OMAP3430_CM_BASE),
-> +};
-> +#endif	/* if defined(CONFIG_ARCH_OMAP3515) */
-> +
-> +#if defined(CONFIG_ARCH_OMAP3525)
-> +static struct omap_globals omap3525_globals = {
-> +	.class	= OMAP35XX_CLASS,
-> +	.tap	= OMAP2_IO_ADDRESS(0x4830A000),
-> +	.sdrc	= OMAP2_IO_ADDRESS(OMAP343X_SDRC_BASE),
-> +	.sms	= OMAP2_IO_ADDRESS(OMAP343X_SMS_BASE),
-> +	.ctrl	= OMAP2_IO_ADDRESS(OMAP343X_CTRL_BASE),
-> +	.prm	= OMAP2_IO_ADDRESS(OMAP3430_PRM_BASE),
-> +	.cm	= OMAP2_IO_ADDRESS(OMAP3430_CM_BASE),
-> +};
-> +#endif	/* if defined(CONFIG_ARCH_OMAP3525) */
-> +
-> +#if defined(CONFIG_ARCH_OMAP3530)
-> +static struct omap_globals omap3530_globals = {
-> +	.class	= OMAP35XX_CLASS,
-> +	.tap	= OMAP2_IO_ADDRESS(0x4830A000),
-> +	.sdrc	= OMAP2_IO_ADDRESS(OMAP343X_SDRC_BASE),
-> +	.sms	= OMAP2_IO_ADDRESS(OMAP343X_SMS_BASE),
-> +	.ctrl	= OMAP2_IO_ADDRESS(OMAP343X_CTRL_BASE),
-> +	.prm	= OMAP2_IO_ADDRESS(OMAP3430_PRM_BASE),
-> +	.cm	= OMAP2_IO_ADDRESS(OMAP3430_CM_BASE),
-> +};
-> +#endif	/* if defined(CONFIG_ARCH_OMAP3530) */
-> +
-> +void __init omap2_set_globals_35xx(void)
+On Sun, Dec 07, 2008 at 01:47:47PM -0800, Tony Lindgren wrote:
+> diff --git a/arch/arm/mach-omap1/board-h2-mmc.c b/arch/arm/mach-omap1/board-h2-mmc.c
+> index 504ae88..409fa56 100644
+> --- a/arch/arm/mach-omap1/board-h2-mmc.c
+> +++ b/arch/arm/mach-omap1/board-h2-mmc.c
+[snip]
+> +static void mmc_shutdown(struct device *dev)
 > +{
-> +#if defined(CONFIG_ARCH_OMAP3503)
-> +	omap2_globals = &omap3503_globals;
-> +#endif
-> +#if defined(CONFIG_ARCH_OMAP3515)
-> +	omap2_globals = &omap3515_globals;
-> +#endif
-> +#if defined(CONFIG_ARCH_OMAP3525)
-> +	omap2_globals = &omap3525_globals;
-> +#endif
-> +#if defined(CONFIG_ARCH_OMAP3530)
-> +	omap2_globals = &omap3530_globals;
-> +#endif
+> +	gpio_free(H2_TPS_GPIO_MMC_PWR_EN);
+> +}
+> +
+> +/*
+> + * H2 could use the following functions tested:
+> + * - mmc_get_cover_state that uses OMAP_MPUIO(1)
+> + * - mmc_get_wp that uses OMAP_MPUIO(3)
+> + */
+> +static struct omap_mmc_platform_data mmc1_data = {
+> +	.nr_slots                       = 1,
+> +	.init				= mmc_late_init,
+> +	.shutdown			= mmc_shutdown,
+It seems that shutdown is no-op, so what about patch below?
 
-hmmm... so it's impossible to have multi-omap with 35xx ??
-too bad...
+Signed-off-by: Ladislav Michl <ladis@linux-mips.org>
 
-You should probably provide omap2_set_globals_350x(),
-omap2_set_globals_351x(), omap2_set_globals_352x() and
-omap2_set_globals_353x().
+diff --git a/arch/arm/mach-omap1/board-h2-mmc.c b/arch/arm/mach-omap1/board-h2-mmc.c
+index 409fa56..613adfc 100644
+--- a/arch/arm/mach-omap1/board-h2-mmc.c
++++ b/arch/arm/mach-omap1/board-h2-mmc.c
+@@ -24,19 +24,13 @@
+ static int mmc_set_power(struct device *dev, int slot, int power_on,
+ 				int vdd)
+ {
+-	if (power_on)
+-		gpio_direction_output(H2_TPS_GPIO_MMC_PWR_EN, 1);
+-	else
+-		gpio_direction_output(H2_TPS_GPIO_MMC_PWR_EN, 0);
+-
++	gpio_set_value(H2_TPS_GPIO_MMC_PWR_EN, power_on);
+ 	return 0;
+ }
+ 
+ static int mmc_late_init(struct device *dev)
+ {
+-	int ret;
+-
+-	ret = gpio_request(H2_TPS_GPIO_MMC_PWR_EN, "MMC power");
++	int ret = gpio_request(H2_TPS_GPIO_MMC_PWR_EN, "MMC power");
+ 	if (ret < 0)
+ 		return ret;
+ 
+@@ -45,7 +39,7 @@ static int mmc_late_init(struct device *dev)
+ 	return ret;
+ }
+ 
+-static void mmc_shutdown(struct device *dev)
++static void mmc_cleanup(struct device *dev)
+ {
+ 	gpio_free(H2_TPS_GPIO_MMC_PWR_EN);
+ }
+@@ -58,7 +52,7 @@ static void mmc_shutdown(struct device *dev)
+ static struct omap_mmc_platform_data mmc1_data = {
+ 	.nr_slots                       = 1,
+ 	.init				= mmc_late_init,
+-	.shutdown			= mmc_shutdown,
++	.cleanup			= mmc_cleanup,
+ 	.dma_mask			= 0xffffffff,
+ 	.slots[0]       = {
+ 		.set_power              = mmc_set_power,
 
-Tony, what do you think ??
-
--- 
-balbi
