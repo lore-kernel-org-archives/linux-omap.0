@@ -1,59 +1,40 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: updated git pull request for omap compile fixes, mailbox and hsmmc
-Date: Sat, 10 Jan 2009 11:05:24 +0000
-Message-ID: <20090110110524.GC28945@n2100.arm.linux.org.uk>
-References: <20090107111415.GF27566@atomide.com> <20090107111615.GG27566@atomide.com> <20090107111744.GH27566@atomide.com> <20090107161843.GA11471@n2100.arm.linux.org.uk> <20090107175020.GU27566@atomide.com> <20090107220053.GD11471@n2100.arm.linux.org.uk> <20090108073611.GW27566@atomide.com>
+From: Samuel Ortiz <sameo@openedhand.com>
+Subject: Re: [PATCH 1/2] ARM: OMAP: Fix missing includes
+Date: Sat, 10 Jan 2009 16:56:12 +0100
+Message-ID: <20090110155612.GA2601@sortiz.org>
+References: <20090107111415.GF27566@atomide.com> <20090107111615.GG27566@atomide.com>
+Reply-To: Samuel Ortiz <sameo@openedhand.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:48222 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750773AbZAJLFd (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 10 Jan 2009 06:05:33 -0500
+Received: from 3a.49.1343.static.theplanet.com ([67.19.73.58]:58707 "EHLO
+	pug.o-hand.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751733AbZAJPxj (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Sat, 10 Jan 2009 10:53:39 -0500
 Content-Disposition: inline
-In-Reply-To: <20090108073611.GW27566@atomide.com>
+In-Reply-To: <20090107111615.GG27566@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>
-Cc: linux-arm-kernel@lists.arm.linux.org.uk, linux-omap@vger.kernel.org, "Nikula Jarkko (NRC/Helsinki)" <jarkko.nikula@nokia.com>
+Cc: linux-arm-kernel@lists.arm.linux.org.uk, linux-omap@vger.kernel.org, David Brownell <dbrownell@users.sourceforge.net>
 
-On Thu, Jan 08, 2009 at 09:36:12AM +0200, Tony Lindgren wrote:
-> OK, here's the pull request again:
-> 
-> The following changes since commit ede6f5aea054d3fb67c78857f7abdee602302043:
->   Linus Torvalds (1):
->         Fix up 64-bit byte swaps for most 32-bit architectures
-> 
-> are available in the git repository at:
-> 
->   git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap-2.6.git omap-misc-for-rmk
-> 
-> Hiroshi DOYU (10):
->       omap mailbox: cleanup omap2 register definition with macro
->       omap mailbox: add initial omap3 support
->       omap mailbox: print hardware revision at startup
->       omap mailbox: fix empty struct device for omap_mbox
->       omap mailbox: fix empty struct device for omap1
->       omap mailbox: fix empty struct device for omap2
->       omap mailbox: add save_/restore_ctx() for PM
->       omap mailbox: move mailbox.h into mailbox.c
->       omap mailbox: convert sequence bit checking to module paramter
->       omap mailbox: remove unnecessary header file inclusion
+Hi Tony,
 
-I'd rather avoid adding new stuff this late in the merge window - it's
-had no exposure in linux-next, etc.
+On Wed, Jan 07, 2009 at 01:16:15PM +0200, Tony Lindgren wrote:
+> diff --git a/drivers/mfd/twl4030-core.c b/drivers/mfd/twl4030-core.c
+> index b59c385..18179ac 100644
+> --- a/drivers/mfd/twl4030-core.c
+> +++ b/drivers/mfd/twl4030-core.c
+> @@ -38,6 +38,7 @@
+>  #include <linux/i2c.h>
+>  #include <linux/i2c/twl4030.h>
+>  
+> +#include <mach/cpu.h>
+That will break the build on !ARM for this driver.
 
-> Jarkko Nikula (1):
->       ARM: OMAP: Fix gpio by switching to generic gpio calls, v2
-> 
-> Madhusudhan Chikkature (1):
->       omap mmc: Add new omap hsmmc controller for 2430 and 34xx, v3
+Cheers,
+Samuel.
 
-This I'd argue falls into the same category, but since its well known
-between us and Pierre who's acked it, I think it has sufficiently low
-impact that it can be accepted.
-
-> Tony Lindgren (1):
->       ARM: OMAP: Fix missing includes
-
-The vast majority of this one is already in via a wider ranging change.
+-- 
+Intel Open Source Technology Centre
+http://oss.intel.com/
