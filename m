@@ -1,101 +1,356 @@
-From: "Grazvydas Ignotas" <notasas@gmail.com>
-Subject: Re: Fix for dispc's error "omapfb omapfb: irq error status 4020"
-Date: Fri, 9 Jan 2009 23:57:54 +0200
-Message-ID: <6ed0b2680901091357s435ea0cbke06f6bfccc15ee1@mail.gmail.com>
-References: <E1KyYMw-0003Ob-5e@amazonia.comcast.net>
-	 <1226585192.32348.3.camel@tubuntu>
+From: Alexey Klimov <klimov.linux@gmail.com>
+Subject: Re: [REVIEW PATCH 2/2] Added OMAP3EVM Multi-Media Daughter Card
+ Support
+Date: Sat, 10 Jan 2009 04:41:21 +0300
+Message-ID: <1231551681.4474.238.camel@tux.localhost>
+References: <hvaibhav@ti.com>
+	 <1231308470-31159-1-git-send-email-hvaibhav@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
-	boundary="----=_Part_22629_3793246.1231538274193"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from fg-out-1718.google.com ([72.14.220.159]:39538 "EHLO
-	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757291AbZAIV54 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 9 Jan 2009 16:57:56 -0500
-Received: by fg-out-1718.google.com with SMTP id 19so3532488fgg.17
-        for <linux-omap@vger.kernel.org>; Fri, 09 Jan 2009 13:57:54 -0800 (PST)
-In-Reply-To: <1226585192.32348.3.camel@tubuntu>
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@nokia.com>
-Cc: rick@efn.org, linux-omap@vger.kernel.org
-
-------=_Part_22629_3793246.1231538274193
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+Return-path: <linux-media-owner@vger.kernel.org>
+In-Reply-To: <1231308470-31159-1-git-send-email-hvaibhav@ti.com>
+Sender: linux-media-owner@vger.kernel.org
+To: hvaibhav@ti.com
+Cc: linux-omap@vger.kernel.org, linux-media@vger.kernel.org, video4linux-list@redhat.com, Brijesh Jadav <brijesh.j@ti.com>, Hardik Shah <hardik.shah@ti.com>, Manjunath Hadli <mrh@ti.com>, R Sivaraj <sivaraj@ti.com>
+List-Id: linux-omap@vger.kernel.org
 
-On Thu, Nov 13, 2008 at 4:06 PM, Tomi Valkeinen
-<tomi.valkeinen@nokia.com> wrote:
-> Hi,
->
-> On Fri, 2008-11-07 at 12:55 -0800, ext Rick Bronson wrote:
->> Folks,
->>
->>   Please take a look at this change to drivers/video/omap/dispc.c.  It
->> addresses a problem seen on some boots of OMAP's.  On about 1 in 30
->> boots one gets an endless stream of interrupts from the
->> DISPC_IRQ_SYNC_LOST bit in the DISPC_IRQSTATUS register.  The
->> following messages are printed.
->>
->>  omapfb omapfb: irq error status 4020
->
-> Can you try the patch below if it fixes this problem for you? On my new
-> display subsystem adding a sleep between enabling clocks and doing the
-> soft reset removed the problem.
->
-> I tried a bit with different sleep times. With 1ms sleep I still got
-> sync losts. With 10ms I didn't, but I went safe and put 40ms.
+Hello, just two small comments if you don't mind.
 
-Unfortunately sleeping there doesn't help for pandora. I've tried
-10ms, 40ms, 400ms (this seems to be used by DSS2 now).
+On Wed, 2009-01-07 at 11:37 +0530, hvaibhav@ti.com wrote:
+> From: Vaibhav Hiremath <hvaibhav@ti.com>
+> 
+> This is first version of OMAP3EVM Mulit-Media Daughter
+> Card support.
+> 
+> Tested:
+>     - TVP5146 (BT656) decoder interface on top of
+>       Sergio's ISP-Camera patches.
+>     - Loopback application, capturing image through TVP5146
+>       and displaying it onto the TV/LCD on top of Hardik's
+>       V4L2 driver.
+>     - Basic functionality of HSUSB Transceiver USB-83320
+>     -
+> 
+> TODO:
+>     - Camera sensor support
+>     - Driver header file inclusion (dependency on ISP-Camera patches)
+>     - Some more clean-up may required.
+> 
+> Signed-off-by: Brijesh Jadav <brijesh.j@ti.com>
+> Signed-off-by: Hardik Shah <hardik.shah@ti.com>
+> Signed-off-by: Manjunath Hadli <mrh@ti.com>
+> Signed-off-by: R Sivaraj <sivaraj@ti.com>
+> Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
+> ---
+>  arch/arm/mach-omap2/Kconfig             |    4 +
+>  arch/arm/mach-omap2/Makefile            |    1 +
+>  arch/arm/mach-omap2/board-omap3evm-dc.c |  417 +++++++++++++++++++++++++++++++
+>  arch/arm/mach-omap2/board-omap3evm-dc.h |   43 ++++
+>  arch/arm/mach-omap2/mux.c               |    7 +
+>  arch/arm/plat-omap/include/mach/mux.h   |    4 +
+>  6 files changed, 476 insertions(+), 0 deletions(-)
+>  mode change 100644 => 100755 arch/arm/mach-omap2/Kconfig
+>  mode change 100644 => 100755 arch/arm/mach-omap2/Makefile
+>  create mode 100755 arch/arm/mach-omap2/board-omap3evm-dc.c
+>  create mode 100755 arch/arm/mach-omap2/board-omap3evm-dc.h
+>  mode change 100644 => 100755 arch/arm/mach-omap2/mux.c
+>  mode change 100644 => 100755 arch/arm/plat-omap/include/mach/mux.h
+> 
+> diff --git a/arch/arm/mach-omap2/Kconfig b/arch/arm/mach-omap2/Kconfig
+> old mode 100644
+> new mode 100755
+> index ca24a7a..094c97f
+> --- a/arch/arm/mach-omap2/Kconfig
+> +++ b/arch/arm/mach-omap2/Kconfig
+> @@ -121,6 +121,10 @@ config MACH_OMAP3EVM
+>  	bool "OMAP 3530 EVM board"
+>  	depends on ARCH_OMAP3 && ARCH_OMAP34XX
+> 
+> +config MACH_OMAP3EVM_DC
+> +	bool "OMAP 3530 EVM daughter card board"
+> +	depends on ARCH_OMAP3 && ARCH_OMAP34XX && MACH_OMAP3EVM
+> +
+>  config MACH_OMAP3_BEAGLE
+>  	bool "OMAP3 BEAGLE board"
+>  	depends on ARCH_OMAP3 && ARCH_OMAP34XX
+> diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
+> old mode 100644
+> new mode 100755
+> index 3897347..16fa35a
+> --- a/arch/arm/mach-omap2/Makefile
+> +++ b/arch/arm/mach-omap2/Makefile
+> @@ -60,6 +60,7 @@ obj-$(CONFIG_MACH_OMAP3EVM)		+= board-omap3evm.o \
+>  					   usb-musb.o usb-ehci.o \
+>  					   board-omap3evm-flash.o \
+>  					   twl4030-generic-scripts.o
+> +obj-$(CONFIG_MACH_OMAP3EVM_DC)		+= board-omap3evm-dc.o
+>  obj-$(CONFIG_MACH_OMAP3_BEAGLE)		+= board-omap3beagle.o \
+>  					   usb-musb.o usb-ehci.o \
+>  					   mmc-twl4030.o \
+> diff --git a/arch/arm/mach-omap2/board-omap3evm-dc.c b/arch/arm/mach-omap2/board-omap3evm-dc.c
+> new file mode 100755
+> index 0000000..233c219
+> --- /dev/null
+> +++ b/arch/arm/mach-omap2/board-omap3evm-dc.c
+> @@ -0,0 +1,417 @@
+> +/*
+> + * arch/arm/mach-omap2/board-omap3evm-dc.c
+> + *
+> + * Driver for OMAP3 EVM Daughter Card
+> + *
+> + * Copyright (C) 2008 Texas Instruments Inc
+> + * Author: Vaibhav Hiremath <hvaibhav@ti.com>
+> + *
+> + * Contributors:
+> + *     Anuj Aggarwal <anuj.aggarwal@ti.com>
+> + *     Sivaraj R <sivaraj@ti.com>
+> + *
+> + * This package is free software; you can redistribute it and/or modify
+> + * it under the terms of the GNU General Public License version 2 as
+> + * published by the Free Software Foundation.
+> + *
+> + * This program is distributed in the hope that it will be useful,
+> + * but WITHOUT ANY WARRANTY; without even the implied warranty of
+> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+> + * GNU General Public License for more details.
+> + *
+> + * You should have received a copy of the GNU General Public License
+> + * along with this program; if not, write to the Free Software
+> + * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+> + *
+> + */
+> +
+> +#include <linux/module.h>
+> +#include <linux/kernel_stat.h>
+> +#include <linux/init.h>
+> +#include <linux/i2c.h>
+> +#include <linux/delay.h>
+> +#include <linux/spinlock.h>
+> +#include <linux/clk.h>
+> +#include <linux/device.h>
+> +#include <linux/io.h>
+> +#include <linux/gpio.h>
+> +
+> +#include <mach/io.h>
+> +#include <mach/mux.h>
+> +
+> +#if defined(CONFIG_VIDEO_TVP514X) || defined(CONFIG_VIDEO_TVP514X_MODULE)
+> +#include <linux/videodev2.h>
+> +#include <media/v4l2-int-device.h>
+> +#include <media/tvp514x.h>
+> +/* include V4L2 camera driver related header file */
+> +#if defined(CONFIG_VIDEO_OMAP3) || defined(CONFIG_VIDEO_OMAP3_MODULE)
+> +#include <../drivers/media/video/omap34xxcam.h>
+> +#include <../drivers/media/video/isp/ispreg.h>
+> +#endif				/* #ifdef CONFIG_VIDEO_OMAP3 */
+> +#endif				/* #ifdef CONFIG_VIDEO_TVP514X*/
+> +
+> +#include "board-omap3evm-dc.h"
+> +
+> +#define MODULE_NAME			"omap3evmdc"
+> +
+> +#ifdef DEBUG
+> +#define dprintk(fmt, args...) printk(KERN_ERR MODULE_NAME ": " fmt, ## args)
+> +#else
+> +#define dprintk(fmt, args...)
+> +#endif				/* #ifdef DEBUG */
+> +
+> +/* Macro Definitions */
+> +
+> +/* System control module register offsets */
+> +#define REG_CONTROL_PADCONF_I2C2_SDA	(0x480021C0u)
+> +#define REG_CONTROL_PADCONF_I2C3_SDA	(0x480021C4u)
+> +
+> +#define PADCONF_I2C3_SCL_MASK		(0xFFFF0000u)
+> +#define PADCONF_I2C3_SDA_MASK		(0x0000FFFFu)
+> +
+> +/* mux mode 0 (enable I2C3 SCL), pull-up enable, input enable */
+> +#define PADCONF_I2C3_SCL_DEF		(0x01180000u)
+> +/* mux mode 0 (enable I2C3 SDA), pull-up enable, input enable */
+> +#define PADCONF_I2C3_SDA_DEF		(0x00000118u)
+> +
+> +/* GPIO pins */
+> +#define GPIO134_SEL_Y                   (134)
+> +#define GPIO54_SEL_EXP_CAM              (54)
+> +#define GPIO136_SEL_CAM                 (136)
+> +
+> +/* board internal information (BEGIN) */
+> +
+> +/* I2C bus to which all I2C slave devices are attached */
+> +#define BOARD_I2C_BUSNUM		(3)
+> +
+> +/* I2C address of chips present in board */
+> +#define TVP5146_I2C_ADDR		(0x5D)
+> +
+> +/* Register offsets */
+> +#define REG_BUS_CTRL1			(0x00000180u)
+> +#define REG_BUS_CTRL2			(0x000001C0u)
+> +
+> +/* Bit defines for Bus Control 1 register */
+> +#define TVP5146_EN_SHIFT		(0x0000u)
+> +#define TVP5146_EN_MASK			(1u << TVP5146_EN_SHIFT)
+> +
+> +#define CAMERA_SENSOR_EN_SHIFT		(0x0008u)
+> +#define CAMERA_SENSOR_EN_MASK		(1u << CAMERA_SENSOR_EN_SHIFT)
+> +
+> +/* default value for bus control registers */
+> +#define BUS_CONTROL1_DEF		(0x0141u)	/* Disable all mux */
+> +#define BUS_CONTROL2_DEF		(0x010Au)	/* Disable all mux */
+> +
+> +#if defined(CONFIG_VIDEO_TVP514X) || defined(CONFIG_VIDEO_TVP514X_MODULE)
+> +#if defined(CONFIG_VIDEO_OMAP3) || defined(CONFIG_VIDEO_OMAP3_MODULE)
+> +static struct omap34xxcam_hw_config decoder_hwc = {
+> +	.dev_index = 0,
+> +	.dev_minor = 0,
+> +	.dev_type = OMAP34XXCAM_SLAVE_SENSOR,
+> +	.u.sensor.xclk = OMAP34XXCAM_XCLK_NONE,
+> +	.u.sensor.sensor_isp = 1,
+> +};
+> +
+> +static struct isp_interface_config tvp5146_if_config = {
+> +	.ccdc_par_ser = ISP_PARLL_YUV_BT,
+> +	.dataline_shift = 0x1,
+> +	.hsvs_syncdetect = ISPCTRL_SYNC_DETECT_VSRISE,
+> +	.vdint0_timing = 0x0,
+> +	.vdint1_timing = 0x0,
+> +	.strobe = 0x0,
+> +	.prestrobe = 0x0,
+> +	.shutter = 0x0,
+> +	.u.par.par_bridge = 0x0,
+> +	.u.par.par_clk_pol = 0x0,
+> +};
+> +#endif
+> +
+> +static struct v4l2_ifparm ifparm = {
+> +	.if_type = V4L2_IF_TYPE_BT656,
+> +	.u = {
+> +	      .bt656 = {
+> +			.frame_start_on_rising_vs = 1,
+> +			.bt_sync_correct = 0,
+> +			.swap = 0,
+> +			.latch_clk_inv = 0,
+> +			.nobt_hs_inv = 0,	/* active high */
+> +			.nobt_vs_inv = 0,	/* active high */
+> +			.mode = V4L2_IF_TYPE_BT656_MODE_BT_8BIT,
+> +			.clock_min = TVP514X_XCLK_BT656,
+> +			.clock_max = TVP514X_XCLK_BT656,
+> +			},
+> +	      },
+> +};
+> +
+> +/**
+> + * @brief tvp5146_ifparm - Returns the TVP5146 decoder interface parameters
+> + *
+> + * @param p - pointer to v4l2_ifparm structure
+> + *
+> + * @return result of operation - 0 is success
+> + */
+> +static int tvp5146_ifparm(struct v4l2_ifparm *p)
+> +{
+> +	if (p == NULL)
+> +		return -EINVAL;
+> +
+> +	*p = ifparm;
+> +	return 0;
+> +}
+> +
+> +/**
+> + * @brief tvp5146_set_prv_data - Returns tvp5146 omap34xx driver private data
+> + *
+> + * @param priv - pointer to omap34xxcam_hw_config structure
+> + *
+> + * @return result of operation - 0 is success
+> + */
+> +static int tvp5146_set_prv_data(void *priv)
+> +{
+> +#if defined(CONFIG_VIDEO_OMAP3) || defined(CONFIG_VIDEO_OMAP3_MODULE)
+> +	struct omap34xxcam_hw_config *hwc = priv;
+> +
+> +	if (priv == NULL)
+> +		return -EINVAL;
+> +
+> +	hwc->u.sensor.sensor_isp = decoder_hwc.u.sensor.sensor_isp;
+> +	hwc->u.sensor.xclk = decoder_hwc.u.sensor.xclk;
+> +	hwc->dev_index = decoder_hwc.dev_index;
+> +	hwc->dev_minor = decoder_hwc.dev_minor;
+> +	hwc->dev_type = decoder_hwc.dev_type;
+> +	return 0;
+> +#else
+> +	return -EINVAL;
+> +#endif
+> +}
+> +
+> +/**
+> + * @brief omap3evmdc_set_mux - Sets mux to enable/disable signal routing to
+> + *                             different peripherals present in board
+> + * IMPORTANT - This function will take care of writing appropriate values for
+> + * active low signals as well
+> + *
+> + * @param mux_id - enum, mux id to enable/disable
+> + * @param value - enum, ENABLE_MUX for enabling and DISABLE_MUX for disabling
+> + *
+> + * @return result of operation - 0 is success
+> + */
+> +static int omap3evmdc_set_mux(enum omap3evmdc_mux mux_id, enum config_mux value)
+> +{
+> +	int err = 0;
+> +
+> +	if (unlikely(mux_id >= NUM_MUX)) {
+> +		dprintk("Invalid mux id\n");
 
-However because we are also setting up the display in u-boot for
-pandora, I can hook up irq handler early and wait for frame done irq
-before resetting DSS (patch attached). With this I've done ~50 reboots
-now and hadn't got any sync lost interrupts yet.
+You have a lot of dprintk messages. May be it's better to move "\n" to
+dprintk definition? And use dprintk without \n.
+Probably, makes your life easier :)
 
-In case display is not enabled in bootloader waiting for interrupt
-just times out there, so no harm made. This probably could substitute
-that sleep, so maybe this solution could be considered for DSS2.
+> +		return -EPERM;
+> +	}
+> +
+> +
+> +	switch (mux_id) {
+> +	case MUX_TVP5146:
+> +		/* active low signal. set 0 to enable, 1 to disable */
+> +		if (ENABLE_MUX == value) {
+> +			/* pull down the GPIO GPIO134 = 0 */
+> +			gpio_set_value(GPIO134_SEL_Y, 0);
+> +			/* pull up the GPIO GPIO54 = 1 */
+> +			gpio_set_value(GPIO54_SEL_EXP_CAM, 1);
+> +			/* pull up the GPIO GPIO136 = 1 */
+> +			gpio_set_value(GPIO136_SEL_CAM, 1);
+> +		} else
+> +			/* pull up the GPIO GPIO134 = 0 */
+> +			gpio_set_value(GPIO134_SEL_Y, 1);
 
-------=_Part_22629_3793246.1231538274193
-Content-Type: text/x-diff; name=dispc.patch
-Content-Transfer-Encoding: base64
-X-Attachment-Id: f_fprdoue20
-Content-Disposition: attachment; filename=dispc.patch
+Well, please chech the Documentation/CodingStyle file.
+Comments there say that you should use bracers with else expression
+(statement?) also. Care to reformat the patch that it will look like:
 
-ZGlmZiAtLWdpdCBhL2RyaXZlcnMvdmlkZW8vb21hcC9kaXNwYy5jIGIvZHJpdmVycy92aWRlby9v
-bWFwL2Rpc3BjLmMKaW5kZXggYzE0MGMyMS4uZTczZDA0YSAxMDA2NDQKLS0tIGEvZHJpdmVycy92
-aWRlby9vbWFwL2Rpc3BjLmMKKysrIGIvZHJpdmVycy92aWRlby9vbWFwL2Rpc3BjLmMKQEAgLTEz
-OTgsMTAgKzEzOTgsMzEgQEAgc3RhdGljIGludCBvbWFwX2Rpc3BjX2luaXQoc3RydWN0IG9tYXBm
-Yl9kZXZpY2UgKmZiZGV2LCBpbnQgZXh0X21vZGUsCiAJfQogI2VuZGlmCiAKKwlsID0gZGlzcGNf
-cmVhZF9yZWcoRElTUENfSVJRU1RBVFVTKTsKKwlkaXNwY193cml0ZV9yZWcoRElTUENfSVJRU1RB
-VFVTLCBsKTsKKworCXJlY2FsY19pcnFfbWFzaygpOworCisJaWYgKChyID0gcmVxdWVzdF9pcnEo
-SU5UXzI0WFhfRFNTX0lSUSwgb21hcF9kaXNwY19pcnFfaGFuZGxlciwKKwkJCSAgIDAsIE1PRFVM
-RV9OQU1FLCBmYmRldikpIDwgMCkgeworCQlkZXZfZXJyKGRpc3BjLmZiZGV2LT5kZXYsICJjYW4n
-dCBnZXQgRFNTIElSUVxuIik7CisJCWdvdG8gZmFpbDE7CisJfQorCiAJaWYgKCFza2lwX2luaXQp
-IHsKIAkJLyogUmVzZXQgbW9uaXRvcmluZyB3b3JrcyBvbmx5IHcvIHRoZSA1NE0gY2xrICovCiAJ
-CWVuYWJsZV9kaWdpdF9jbG9ja3MoMSk7CiAKKwkJLyogV2UgaGF2ZSB0byB3YWl0IGhlcmUgdG8g
-YXZvaWQgb2NjYXNpb25hbCBTWU5DIExPU1QgZXJyb3JzICovCisJCU1PRF9SRUdfRkxEKERJU1BD
-X0lSUUVOQUJMRSwgMSwgMSk7CisJCW9tYXBfZGlzcGNfZW5hYmxlX2xjZF9vdXQoMCk7CS8qIGlm
-IGJvb3Rsb2FkZXIgZW5hYmxlZCBpdCAqLworCQlpZiAoIXdhaXRfZm9yX2NvbXBsZXRpb25fdGlt
-ZW91dCgmZGlzcGMuZnJhbWVfZG9uZSwKKwkJCQltc2Vjc190b19qaWZmaWVzKDQwMCkpKSB7CisJ
-CQlkZXZfZXJyKGRpc3BjLmZiZGV2LT5kZXYsCisJCQkJInRpbWVvdXQgd2FpdGluZyBmb3IgRlJB
-TUUgRE9ORVxuIik7CisJCX0KKwkJTU9EX1JFR19GTEQoRElTUENfSVJRRU5BQkxFLCAxLCAwKTsK
-KwogCQkvKiBTb2Z0IHJlc2V0ICovCiAJCU1PRF9SRUdfRkxEKERJU1BDX1NZU0NPTkZJRywgMSA8
-PCAxLCAxIDw8IDEpOwogCkBAIC0xNDEwLDcgKzE0MzEsNyBAQCBzdGF0aWMgaW50IG9tYXBfZGlz
-cGNfaW5pdChzdHJ1Y3Qgb21hcGZiX2RldmljZSAqZmJkZXYsIGludCBleHRfbW9kZSwKIAkJCQlk
-ZXZfZXJyKGRpc3BjLmZiZGV2LT5kZXYsICJzb2Z0IHJlc2V0IGZhaWxlZFxuIik7CiAJCQkJciA9
-IC1FTk9ERVY7CiAJCQkJZW5hYmxlX2RpZ2l0X2Nsb2NrcygwKTsKLQkJCQlnb3RvIGZhaWwxOwor
-CQkJCWdvdG8gZmFpbDI7CiAJCQl9CiAJCX0KIApAQCAtMTQyOSwxNiArMTQ1MCw2IEBAIHN0YXRp
-YyBpbnQgb21hcF9kaXNwY19pbml0KHN0cnVjdCBvbWFwZmJfZGV2aWNlICpmYmRldiwgaW50IGV4
-dF9tb2RlLAogCWwgfD0gMSA8PCA5OwogCWRpc3BjX3dyaXRlX3JlZyhESVNQQ19DT05GSUcsIGwp
-OwogCi0JbCA9IGRpc3BjX3JlYWRfcmVnKERJU1BDX0lSUVNUQVRVUyk7Ci0JZGlzcGNfd3JpdGVf
-cmVnKERJU1BDX0lSUVNUQVRVUywgbCk7Ci0KLQlyZWNhbGNfaXJxX21hc2soKTsKLQotCWlmICgo
-ciA9IHJlcXVlc3RfaXJxKElOVF8yNFhYX0RTU19JUlEsIG9tYXBfZGlzcGNfaXJxX2hhbmRsZXIs
-Ci0JCQkgICAwLCBNT0RVTEVfTkFNRSwgZmJkZXYpKSA8IDApIHsKLQkJZGV2X2VycihkaXNwYy5m
-YmRldi0+ZGV2LCAiY2FuJ3QgZ2V0IERTUyBJUlFcbiIpOwotCQlnb3RvIGZhaWwxOwotCX0KIAog
-CS8qIEwzIGZpcmV3YWxsIHNldHRpbmc6IGVuYWJsZSBhY2Nlc3MgdG8gT0NNIFJBTSAqLwogCV9f
-cmF3X3dyaXRlbCgweDQwMjAwMGIwLCBJT19BRERSRVNTKDB4NjgwMDUwYTApKTsK
-------=_Part_22629_3793246.1231538274193--
+if (ENABLE_MUX == value) {
+	/* pull down the GPIO GPIO134 = 0 */
+	gpio_set_value(GPIO134_SEL_Y, 0);
+	/* pull up the GPIO GPIO54 = 1 */
+	gpio_set_value(GPIO54_SEL_EXP_CAM, 1);
+	/* pull up the GPIO GPIO136 = 1 */
+	gpio_set_value(GPIO136_SEL_CAM, 1);
+} else {
+	/* pull up the GPIO GPIO134 = 0 */
+	gpio_set_value(GPIO134_SEL_Y, 1);
+}
+
+?
+You can check Chapter 2 of CodingStyle (lines number 170-180) about
+that. 
+
+<snip>
+
+No more suggestions.
+
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media"
+> in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+-- 
+Best regards, Klimov Alexey
+
