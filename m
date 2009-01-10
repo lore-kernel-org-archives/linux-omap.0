@@ -1,83 +1,63 @@
 From: Ladislav Michl <ladis@linux-mips.org>
 Subject: Re: [PATCH 2/5] omap mmc: Add better MMC low-level init
-Date: Sun, 11 Jan 2009 00:00:59 +0100
-Message-ID: <20090110230059.GA10758@michl.2n.cz>
-References: <20081207213617.10456.43951.stgit@localhost> <20081207214747.10456.34844.stgit@localhost> <20090110224942.GA10556@michl.2n.cz>
+Date: Sun, 11 Jan 2009 00:03:40 +0100
+Message-ID: <20090110230340.GB10758@michl.2n.cz>
+References: <20081207213617.10456.43951.stgit@localhost> <20081207214747.10456.34844.stgit@localhost>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ex.2n.cz ([213.29.92.11]:52899 "EHLO ex.2n.cz"
+Received: from ex.2n.cz ([213.29.92.11]:52982 "EHLO ex.2n.cz"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752031AbZAJXDU (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Sat, 10 Jan 2009 18:03:20 -0500
+	id S1754372AbZAJXFE (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Sat, 10 Jan 2009 18:05:04 -0500
 Content-Disposition: inline
-In-Reply-To: <20090110224942.GA10556@michl.2n.cz>
+In-Reply-To: <20081207214747.10456.34844.stgit@localhost>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>
 Cc: linux-omap@vger.kernel.org
 
-On Sat, Jan 10, 2009 at 11:49:42PM +0100, Ladislav Michl wrote:
-> On Sun, Dec 07, 2008 at 01:47:47PM -0800, Tony Lindgren wrote:
-> > diff --git a/arch/arm/mach-omap1/board-h2-mmc.c b/arch/arm/mach-omap1/board-h2-mmc.c
-> > index 504ae88..409fa56 100644
-> > --- a/arch/arm/mach-omap1/board-h2-mmc.c
-> > +++ b/arch/arm/mach-omap1/board-h2-mmc.c
-> [snip]
-> > +static void mmc_shutdown(struct device *dev)
-> > +{
-> > +	gpio_free(H2_TPS_GPIO_MMC_PWR_EN);
-> > +}
-> > +
-> > +/*
-> > + * H2 could use the following functions tested:
-> > + * - mmc_get_cover_state that uses OMAP_MPUIO(1)
-> > + * - mmc_get_wp that uses OMAP_MPUIO(3)
-> > + */
-> > +static struct omap_mmc_platform_data mmc1_data = {
-> > +	.nr_slots                       = 1,
-> > +	.init				= mmc_late_init,
-> > +	.shutdown			= mmc_shutdown,
-> It seems that shutdown is no-op, so what about patch below?
+On Sun, Dec 07, 2008 at 01:47:47PM -0800, Tony Lindgren wrote:
+> This will simplify the MMC low-level init, and make it more
+> flexible to add support for a newer MMC controller in the
+> following patches.
 
-After all, lets remove some unused fields.
+Simple simplification...
 
 Signed-off-by: Ladislav Michl <ladis@linux-mips.org>
 
-diff --git a/arch/arm/plat-omap/include/mach/mmc.h b/arch/arm/plat-omap/include/mach/mmc.h
-index 031250f..1129e97 100644
---- a/arch/arm/plat-omap/include/mach/mmc.h
-+++ b/arch/arm/plat-omap/include/mach/mmc.h
-@@ -51,7 +51,6 @@ struct omap_mmc_platform_data {
- 	 * not supported */
- 	int (* init)(struct device *dev);
- 	void (* cleanup)(struct device *dev);
--	void (* shutdown)(struct device *dev);
- 
- 	/* To handle board related suspend/resume functionality for MMC */
- 	int (*suspend)(struct device *dev, int slot);
-@@ -77,10 +76,6 @@ struct omap_mmc_platform_data {
- 
- 		/* use the internal clock */
- 		unsigned internal_clock:1;
--		s16 power_pin;
+diff --git a/arch/arm/mach-omap1/board-h3-mmc.c b/arch/arm/mach-omap1/board-h3-mmc.c
+index fdfe793..d7f40f9 100644
+--- a/arch/arm/mach-omap1/board-h3-mmc.c
++++ b/arch/arm/mach-omap1/board-h3-mmc.c
+@@ -24,11 +24,7 @@
+ static int mmc_set_power(struct device *dev, int slot, int power_on,
+ 				int vdd)
+ {
+-	if (power_on)
+-		gpio_direction_output(H3_TPS_GPIO_MMC_PWR_EN, 1);
+-	else
+-		gpio_direction_output(H3_TPS_GPIO_MMC_PWR_EN, 0);
 -
--		int switch_pin;			/* gpio (card detect) */
--		int gpio_wp;			/* gpio (write protect) */
++	gpio_set_value(H3_TPS_GPIO_MMC_PWR_EN, power_on);
+ 	return 0;
+ }
  
- 		int (* set_bus_mode)(struct device *dev, int slot, int bus_mode);
- 		int (* set_power)(struct device *dev, int slot, int power_on, int vdd);
-diff --git a/drivers/mmc/host/omap.c b/drivers/mmc/host/omap.c
-index 67d7b7f..84de289 100644
---- a/drivers/mmc/host/omap.c
-+++ b/drivers/mmc/host/omap.c
-@@ -157,8 +157,6 @@ struct mmc_omap_host {
- 	struct timer_list	dma_timer;
- 	unsigned		dma_len;
- 
--	short			power_pin;
+diff --git a/arch/arm/mach-omap1/board-nokia770.c b/arch/arm/mach-omap1/board-nokia770.c
+index 7fdb725..4de55c7 100644
+--- a/arch/arm/mach-omap1/board-nokia770.c
++++ b/arch/arm/mach-omap1/board-nokia770.c
+@@ -223,11 +223,7 @@ static struct omap_usb_config nokia770_usb_config __initdata = {
+ static int nokia770_mmc_set_power(struct device *dev, int slot, int power_on,
+ 				int vdd)
+ {
+-	if (power_on)
+-		gpio_set_value(NOKIA770_GPIO_MMC_POWER, 1);
+-	else
+-		gpio_set_value(NOKIA770_GPIO_MMC_POWER, 0);
 -
- 	struct mmc_omap_slot    *slots[OMAP_MMC_MAX_SLOTS];
- 	struct mmc_omap_slot    *current_slot;
- 	spinlock_t              slot_lock;
++	gpio_set_value(NOKIA770_GPIO_MMC_POWER, power_on);
+ 	return 0;
+ }
+ 
 
