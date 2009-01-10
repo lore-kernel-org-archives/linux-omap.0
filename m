@@ -1,99 +1,68 @@
-From: Philip Balister <philip@balister.org>
-Subject: cpufreq for beagle board
-Date: Sat, 10 Jan 2009 11:23:15 -0500
-Message-ID: <4968CB73.5010804@balister.org>
+From: Samuel Ortiz <sameo@openedhand.com>
+Subject: Re: [PATCH 1/2] ARM: OMAP: Fix missing includes
+Date: Sat, 10 Jan 2009 18:40:34 +0100
+Message-ID: <20090110174033.GB2601@sortiz.org>
+References: <20090107111415.GF27566@atomide.com> <20090107111615.GG27566@atomide.com> <20090110155612.GA2601@sortiz.org> <20090110162048.GA1327@n2100.arm.linux.org.uk>
+Reply-To: Samuel Ortiz <sameo@openedhand.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; protocol="application/x-pkcs7-signature"; micalg=sha1; boundary="------------ms060608050104080801060609"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail.geekisp.com ([216.168.135.169]:7032 "EHLO
-	starfish.geekisp.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751534AbZAJQXR (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 10 Jan 2009 11:23:17 -0500
+Received: from 3a.49.1343.static.theplanet.com ([67.19.73.58]:35392 "EHLO
+	pug.o-hand.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752235AbZAJRiC (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Sat, 10 Jan 2009 12:38:02 -0500
+Content-Disposition: inline
+In-Reply-To: <20090110162048.GA1327@n2100.arm.linux.org.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: Tony Lindgren <tony@atomide.com>, linux-arm-kernel@lists.arm.linux.org.uk, linux-omap@vger.kernel.org, David Brownell <dbrownell@users.sourceforge.net>
 
-This is a cryptographically signed message in MIME format.
+On Sat, Jan 10, 2009 at 04:20:48PM +0000, Russell King - ARM Linux wrote:
+> On Sat, Jan 10, 2009 at 04:56:12PM +0100, Samuel Ortiz wrote:
+> > Hi Tony,
+> > 
+> > On Wed, Jan 07, 2009 at 01:16:15PM +0200, Tony Lindgren wrote:
+> > > diff --git a/drivers/mfd/twl4030-core.c b/drivers/mfd/twl4030-core.c
+> > > index b59c385..18179ac 100644
+> > > --- a/drivers/mfd/twl4030-core.c
+> > > +++ b/drivers/mfd/twl4030-core.c
+> > > @@ -38,6 +38,7 @@
+> > >  #include <linux/i2c.h>
+> > >  #include <linux/i2c/twl4030.h>
+> > >  
+> > > +#include <mach/cpu.h>
+> > That will break the build on !ARM for this driver.
+> 
+> ... which in itself is an argument for making it use the clk API
+> properly so that these kinds of CPU specific dependencies are kept
+> out of the driver.
+I agree.
+Until that gets done, if we really need to include a header file to fix this
+build, I would rather go for a generic one, <linux/io.h> for example.
 
---------------ms060608050104080801060609
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Cheers,
+Samuel. 
 
-I'm trying to get the cpufreq driver running on the beagle board so I 
-can look at the effect of clock speed on power consumption. So far, I'm 
-not having any luck getting it loaded (as in I can't find the 
-appropriate entries in /sys/....)
+> In other words:
+> 
+>         if (cpu_is_omap2430())
+>                 osc = clk_get(NULL, "osc_ck");
+>         else
+>                 osc = clk_get(NULL, "osc_sys_ck");
+> 
+> becomes:
+> 
+>         osc = clk_get(dev, "hfclk");
+> 
+> since "hfclk" is the name of the input on the device, or it should be
+> NULL if it is the only input on the device (iow, you don't want to
+> distinguish it from the 32kHz clock.)
+> 
+> And that eliminates the need for any platform specific includes (which
+> is the whole point of the clk API - giving drivers a _generic_ way to
+> get at clock information without resorting to platform specific crap.)
 
-Does anyone have any suggestions?
-
-Philip
-
---------------ms060608050104080801060609
-Content-Type: application/x-pkcs7-signature; name="smime.p7s"
-Content-Transfer-Encoding: base64
-Content-Disposition: attachment; filename="smime.p7s"
-Content-Description: S/MIME Cryptographic Signature
-
-MIAGCSqGSIb3DQEHAqCAMIACAQExCzAJBgUrDgMCGgUAMIAGCSqGSIb3DQEHAQAAoIIJRTCC
-Av0wggJmoAMCAQICEHW4VJIUQV0u11NnfLpF2IUwDQYJKoZIhvcNAQEFBQAwYjELMAkGA1UE
-BhMCWkExJTAjBgNVBAoTHFRoYXd0ZSBDb25zdWx0aW5nIChQdHkpIEx0ZC4xLDAqBgNVBAMT
-I1RoYXd0ZSBQZXJzb25hbCBGcmVlbWFpbCBJc3N1aW5nIENBMB4XDTA4MDQxNDE5MTkzMVoX
-DTA5MDQxNDE5MTkzMVowYjERMA8GA1UEBBMIQmFsaXN0ZXIxDzANBgNVBCoTBlBoaWxpcDEY
-MBYGA1UEAxMPUGhpbGlwIEJhbGlzdGVyMSIwIAYJKoZIhvcNAQkBFhNwaGlsaXBAYmFsaXN0
-ZXIub3JnMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAxyNViPlSmMq2Kl4m7iDB
-I3gB7Pwhg+4vnXCKEF3qIoLwNDVl27CP8RY0umjENzykOR6ZhzYx4fH8arNV5+nlXsH8KNnb
-Dpd5ICTZvbUJdt1gPETmLczGy4hh8woCu7qodyy7YZcGMiUY5LxoL7vIQHysir4rbMRV/JId
-mhKfFrHb+glDe8XbfTJ3xKO+BsMgLDaSiRMelH6uFLAVv9oRoIJxHQhwKLvlrOSQj+ek2fL6
-83BzOUsM4BN/fiwvtJ/y3doVEoKUp8ippOXrwLAXFPprPAAdIydqufTxHotooFqbQzqSJv4c
-TNDTxf2fg9YfH2RAs8vTdc/wgIVlL8fJnQIDAQABozAwLjAeBgNVHREEFzAVgRNwaGlsaXBA
-YmFsaXN0ZXIub3JnMAwGA1UdEwEB/wQCMAAwDQYJKoZIhvcNAQEFBQADgYEASFC7i4DqutUT
-ifbyNtEe+e9bqgqWUScDFl0BTV5fFVBX/mFpM3RBZJfq+iM5q0L7qont3sGaXG0cdVvRk2dk
-uV2i0HwkmTLJ4HTLMyJ57BjMJWY9ydDiY+Ai1pINmjIgq/qI0aireByqNee68q+PaWE7bfW1
-XvfqZD56QunCijswggL9MIICZqADAgECAhB1uFSSFEFdLtdTZ3y6RdiFMA0GCSqGSIb3DQEB
-BQUAMGIxCzAJBgNVBAYTAlpBMSUwIwYDVQQKExxUaGF3dGUgQ29uc3VsdGluZyAoUHR5KSBM
-dGQuMSwwKgYDVQQDEyNUaGF3dGUgUGVyc29uYWwgRnJlZW1haWwgSXNzdWluZyBDQTAeFw0w
-ODA0MTQxOTE5MzFaFw0wOTA0MTQxOTE5MzFaMGIxETAPBgNVBAQTCEJhbGlzdGVyMQ8wDQYD
-VQQqEwZQaGlsaXAxGDAWBgNVBAMTD1BoaWxpcCBCYWxpc3RlcjEiMCAGCSqGSIb3DQEJARYT
-cGhpbGlwQGJhbGlzdGVyLm9yZzCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEBAMcj
-VYj5UpjKtipeJu4gwSN4Aez8IYPuL51wihBd6iKC8DQ1Zduwj/EWNLpoxDc8pDkemYc2MeHx
-/GqzVefp5V7B/CjZ2w6XeSAk2b21CXbdYDxE5i3MxsuIYfMKAru6qHcsu2GXBjIlGOS8aC+7
-yEB8rIq+K2zEVfySHZoSnxax2/oJQ3vF230yd8SjvgbDICw2kokTHpR+rhSwFb/aEaCCcR0I
-cCi75azkkI/npNny+vNwczlLDOATf34sL7Sf8t3aFRKClKfIqaTl68CwFxT6azwAHSMnarn0
-8R6LaKBam0M6kib+HEzQ08X9n4PWHx9kQLPL03XP8ICFZS/HyZ0CAwEAAaMwMC4wHgYDVR0R
-BBcwFYETcGhpbGlwQGJhbGlzdGVyLm9yZzAMBgNVHRMBAf8EAjAAMA0GCSqGSIb3DQEBBQUA
-A4GBAEhQu4uA6rrVE4n28jbRHvnvW6oKllEnAxZdAU1eXxVQV/5haTN0QWSX6vojOatC+6qJ
-7d7BmlxtHHVb0ZNnZLldotB8JJkyyeB0yzMieewYzCVmPcnQ4mPgItaSDZoyIKv6iNGoq3gc
-qjXnuvKvj2lhO231tV736mQ+ekLpwoo7MIIDPzCCAqigAwIBAgIBDTANBgkqhkiG9w0BAQUF
-ADCB0TELMAkGA1UEBhMCWkExFTATBgNVBAgTDFdlc3Rlcm4gQ2FwZTESMBAGA1UEBxMJQ2Fw
-ZSBUb3duMRowGAYDVQQKExFUaGF3dGUgQ29uc3VsdGluZzEoMCYGA1UECxMfQ2VydGlmaWNh
-dGlvbiBTZXJ2aWNlcyBEaXZpc2lvbjEkMCIGA1UEAxMbVGhhd3RlIFBlcnNvbmFsIEZyZWVt
-YWlsIENBMSswKQYJKoZIhvcNAQkBFhxwZXJzb25hbC1mcmVlbWFpbEB0aGF3dGUuY29tMB4X
-DTAzMDcxNzAwMDAwMFoXDTEzMDcxNjIzNTk1OVowYjELMAkGA1UEBhMCWkExJTAjBgNVBAoT
-HFRoYXd0ZSBDb25zdWx0aW5nIChQdHkpIEx0ZC4xLDAqBgNVBAMTI1RoYXd0ZSBQZXJzb25h
-bCBGcmVlbWFpbCBJc3N1aW5nIENBMIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDEpjxV
-c1X7TrnKmVoeaMB1BHCd3+n/ox7svc31W/Iadr1/DDph8r9RzgHU5VAKMNcCY1osiRVwjt3J
-8CuFWqo/cVbLrzwLB+fxH5E2JCoTzyvV84J3PQO+K/67GD4Hv0CAAmTXp6a7n2XRxSpUhQ9I
-BH+nttE8YQRAHmQZcmC3+wIDAQABo4GUMIGRMBIGA1UdEwEB/wQIMAYBAf8CAQAwQwYDVR0f
-BDwwOjA4oDagNIYyaHR0cDovL2NybC50aGF3dGUuY29tL1RoYXd0ZVBlcnNvbmFsRnJlZW1h
-aWxDQS5jcmwwCwYDVR0PBAQDAgEGMCkGA1UdEQQiMCCkHjAcMRowGAYDVQQDExFQcml2YXRl
-TGFiZWwyLTEzODANBgkqhkiG9w0BAQUFAAOBgQBIjNFQg+oLLswNo2asZw9/r6y+whehQ5aU
-nX9MIbj4Nh+qLZ82L8D0HFAgk3A8/a3hYWLD2ToZfoSxmRsAxRoLgnSeJVCUYsfbJ3FXJY3d
-qZw5jowgT2Vfldr394fWxghOrvbqNOUQGls1TXfjViF4gtwhGTXeJLHTHUb/XV9lTzGCA2Qw
-ggNgAgEBMHYwYjELMAkGA1UEBhMCWkExJTAjBgNVBAoTHFRoYXd0ZSBDb25zdWx0aW5nIChQ
-dHkpIEx0ZC4xLDAqBgNVBAMTI1RoYXd0ZSBQZXJzb25hbCBGcmVlbWFpbCBJc3N1aW5nIENB
-AhB1uFSSFEFdLtdTZ3y6RdiFMAkGBSsOAwIaBQCgggHDMBgGCSqGSIb3DQEJAzELBgkqhkiG
-9w0BBwEwHAYJKoZIhvcNAQkFMQ8XDTA5MDExMDE2MjMxNVowIwYJKoZIhvcNAQkEMRYEFLoA
-gplPzxh7lvy7vJAThxdsKkGNMFIGCSqGSIb3DQEJDzFFMEMwCgYIKoZIhvcNAwcwDgYIKoZI
-hvcNAwICAgCAMA0GCCqGSIb3DQMCAgFAMAcGBSsOAwIHMA0GCCqGSIb3DQMCAgEoMIGFBgkr
-BgEEAYI3EAQxeDB2MGIxCzAJBgNVBAYTAlpBMSUwIwYDVQQKExxUaGF3dGUgQ29uc3VsdGlu
-ZyAoUHR5KSBMdGQuMSwwKgYDVQQDEyNUaGF3dGUgUGVyc29uYWwgRnJlZW1haWwgSXNzdWlu
-ZyBDQQIQdbhUkhRBXS7XU2d8ukXYhTCBhwYLKoZIhvcNAQkQAgsxeKB2MGIxCzAJBgNVBAYT
-AlpBMSUwIwYDVQQKExxUaGF3dGUgQ29uc3VsdGluZyAoUHR5KSBMdGQuMSwwKgYDVQQDEyNU
-aGF3dGUgUGVyc29uYWwgRnJlZW1haWwgSXNzdWluZyBDQQIQdbhUkhRBXS7XU2d8ukXYhTAN
-BgkqhkiG9w0BAQEFAASCAQCfzvrltcZ9LWRIDLyvL097zYZfVfXc3ckvDODit1mTdvtGyXHp
-uZ4VQzQWgpp7jFYA0oLEyoEFlQCEsuy5yCpCLtro9GfnhruAeuM81NDTdfggMwjKf+zUOea7
-y22aI//SMY/gaws43CIqgaL1V4sLrilg8dsKqjwdCDD4WnbG1TqqX+dU6TBWOwv5F/vynvBB
-jfYjl2TLo6UcDzGkuZ2ZEq7tf6cwh7aMzTXyvuuveWHVuoOElcnzXIMP31CNEmseXZPp5v2T
-cyYC9N7QZvEP7GfLpmMKnnwApkSOhjkbfnQDdgp77mGyxM4GIRhPdOpyRtybV5ogycpfm4Uz
-3ma2AAAAAAAA
---------------ms060608050104080801060609--
+-- 
+Intel Open Source Technology Centre
+http://oss.intel.com/
