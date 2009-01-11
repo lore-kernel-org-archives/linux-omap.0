@@ -1,109 +1,67 @@
-From: "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>
-Subject: RE: [PATCH 0/3] Add support for OMAP35x processors
-Date: Sun, 11 Jan 2009 12:34:55 -0600
-Message-ID: <A24693684029E5489D1D202277BE8944153C47FA@dlee02.ent.ti.com>
-References: <A24693684029E5489D1D202277BE8944163AB5F7@dlee02.ent.ti.com>,<200901102254.42829.david-b@pacbell.net>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+From: Koen Kooi <k.kooi@student.utwente.nl>
+Subject: PM branch and cpufreq
+Date: Sun, 11 Jan 2009 19:53:25 +0100
+Message-ID: <F8E71D7D-92CC-4E6D-92F0-21BD8E9C432D@student.utwente.nl>
+Mime-Version: 1.0 (Apple Message framework v930.3)
+Content-Type: multipart/signed; protocol="application/pgp-signature"; micalg=pgp-sha1; boundary="Apple-Mail-21--10264973"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:52484 "EHLO bear.ext.ti.com"
+Received: from mx1.utsp.utwente.nl ([130.89.2.12]:38173 "EHLO mx.utwente.nl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751023AbZAKSfD convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 11 Jan 2009 13:35:03 -0500
-In-Reply-To: <200901102254.42829.david-b@pacbell.net>
-Content-Language: en-US
+	id S1750825AbZAKSxe (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Sun, 11 Jan 2009 13:53:34 -0500
+Received: from [172.20.1.5] (vpn006015.vpn.utwente.nl [130.89.6.15])
+          by mx.utwente.nl (8.12.10/SuSE Linux 0.7) with ESMTP id n0BIrSIb024739
+          for <linux-omap@vger.kernel.org>; Sun, 11 Jan 2009 19:53:28 +0100
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: David Brownell <david-b@pacbell.net>, "Premi, Sanjeev" <premi@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: "linux-omap@vger.kernel.org List" <linux-omap@vger.kernel.org>
 
-> From: David Brownell [david-b@pacbell.net]
-> Sent: Sunday, January 11, 2009 12:54 AM
-> To: Aguirre Rodriguez, Sergio Alberto; Premi, Sanjeev
-> Cc: linux-omap@vger.kernel.org
-> Subject: Re: [PATCH 0/3] Add support for OMAP35x processors
+This is an OpenPGP/MIME signed message (RFC 2440 and 3156)
+--Apple-Mail-21--10264973
+Content-Type: text/plain; charset=US-ASCII; format=flowed; delsp=yes
+Content-Transfer-Encoding: 7bit
 
-> On Friday 09 January 2009, Aguirre Rodriguez, Sergio Alberto wrote:
-> > >  comment "OMAP Board Type"
-> > >       depends on ARCH_OMAP2 || ARCH_OMAP3
-> > >
-> > > @@ -107,7 +155,7 @@ config MACH_OMAP_2430SDP
-> > >
-> > >  config MACH_OMAP_LDP
-> > >       bool "OMAP3 LDP board"
-> > > -     depends on ARCH_OMAP3 && ARCH_OMAP34XX
-> > > +     depends on ARCH_OMAP3 && ARCH_OMAP34XX && !ARCH_OMAP35XX
-> > >
-> > >  config MACH_OMAP2EVM
-> > >       bool "OMAP 2530 EVM board"
-> > > @@ -115,11 +163,11 @@ config MACH_OMAP2EVM
-> > >
-> > >  config MACH_OMAP_3430SDP
-> > >       bool "OMAP 3430 SDP board"
-> > > -     depends on ARCH_OMAP3 && ARCH_OMAP34XX
-> > > +     depends on ARCH_OMAP3 && ARCH_OMAP34XX && !ARCH_OMAP35XX
-> > >
-> > >  config MACH_OMAP3EVM
-> > >       bool "OMAP 3530 EVM board"
-> > > -     depends on ARCH_OMAP3 && ARCH_OMAP34XX
-> > > +     depends on ARCH_OMAP35XX
-> > >
-> > >  config MACH_OMAP3_BEAGLE
-> > >       bool "OMAP3 BEAGLE board"
-> >
-> > Question to all,
-> >
-> > Why don't making above options as choice.. endchoice.
-> 
-> Because that completely breaks "multi-OMAP" builds.
-> Having kernels build (and work!) with multiple boards
-> has been a goal for some time now.
-> 
-> Switching that stuff to choice...endchoice would be
-> a major regression.  I wouldn't merge such a patch.
+Hi,
 
-Ok, I understand what you're saying.. But I still have some questions:
+I was trying to get cpufreq going on beagleboard (http://cgit.openembedded.net/cgit.cgi?url=openembedded/blob/&id=f56b27781d810dcca0a9946cfd2524c36b7a49c0&path=packages/linux/linux-omap-pm/beagle-cpufreq.diff 
+) and I ran into a few issues;
 
-- Is the above change for being able to select (for example) 3430SDP when !ARCH_OMAP35XX wrong? That won't allow a kernel with both 3430SDP and 3530EVM boards support to build, right?
-- Do you think the above kind of check is redundant?:
-depends on ARCH_OMAP3 && ARCH_OMAP34XX
+* pm-prev branch: SD card doesn't initialize, and my rootfs is in SD
+* pm branch: ditto
+* pm-next branch: SD works, but cpufreq is #if 0'd by the "temp: hack  
+DVFS to build after clockfw changes" commit
 
-Bc i don't think ARCH_OMAP34XX can be when !ARCH_OMAP3...
+So I have a few questions:
 
-Thanks for your time,
-Sergio
-> 
-> 
-> > Or is there any case that multiple boards are compiled at once?
-> 
-> Yes, it's routine to build kernels that work with
-> multiple boards.  Example, mine work on Beagle,
-> Overo, and SDP.
-> 
-> Why do this?  Several reasons, all of which boil
-> down to better quality code.  The most obvious
-> ones are being able to build-test more systems
-> in the same amount of time ... and then being
-> able to run-test them without needing to waste
-> any time worrying if the behavioral change was
-> due to some odd Kconfig glitch, or is just a bug
-> to fix in the code.
-> 
-> The more subtle issues have to do with the
-> various changes that happen to make that
-> work well.  Example, board specific #ifdefs
-> in code start to vanish ... which is good,
-> since they hide lits of problems, and are
-> nasty coding style regardless.  Sometimes
-> getting rid of such #ifdeffery highlights
-> a much better code structure.
-> 
-> Ditto CPU-specific #ifdeffery, of the type
-> which these patches add.  Fix them so they
-> don't add #ifdeffery like that, and they
-> will be a lot better accepted...
-> 
-> - Dave
-> 
-> 
+1) is the beagleboard cpufreq patch looking OK?
+2) any quick fix for the SD issue
+3) any timeframe on getting the pm branch working with cpufreq again?
+
+I suspect 3) will take a few weeks to do properly, unless Kevin is  
+willing to revert the patchset from Paul removing the custom clocks  
+till Rajendra has updated the cpufreq patches.
+
+I know rootfs-on-sd with a serial console isn't going to give me great  
+PM, but it's what I have to work with atm.
+
+regards,
+
+Koen
+
+--Apple-Mail-21--10264973
+content-type: application/pgp-signature; x-mac-type=70674453;
+	name=PGP.sig
+content-description: Dit deel van het bericht is digitaal ondertekend
+content-disposition: inline; filename=PGP.sig
+content-transfer-encoding: 7bit
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.5 (Darwin)
+
+iD8DBQFJakAnMkyGM64RGpERAvn8AKCjVRGcRN99EO3A36jfgoCVisLxogCeLRFE
+o7ELtG4Mdr+VoSSkvO6q5Dw=
+=zrIC
+-----END PGP SIGNATURE-----
+
+--Apple-Mail-21--10264973--
