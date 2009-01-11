@@ -1,63 +1,54 @@
-From: Ladislav Michl <ladis@linux-mips.org>
-Subject: Re: [PATCH 2/5] omap mmc: Add better MMC low-level init
-Date: Sun, 11 Jan 2009 00:03:40 +0100
-Message-ID: <20090110230340.GB10758@michl.2n.cz>
-References: <20081207213617.10456.43951.stgit@localhost> <20081207214747.10456.34844.stgit@localhost>
+From: Samuel Ortiz <sameo@openedhand.com>
+Subject: Re: [PATCH 1/2] ARM: OMAP: Fix missing includes
+Date: Sun, 11 Jan 2009 01:01:48 +0100
+Message-ID: <20090111000147.GB2683@sortiz.org>
+References: <20090107111415.GF27566@atomide.com> <20090107111615.GG27566@atomide.com> <20090110155612.GA2601@sortiz.org> <200901101249.27129.david-b@pacbell.net>
+Reply-To: Samuel Ortiz <sameo@openedhand.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ex.2n.cz ([213.29.92.11]:52982 "EHLO ex.2n.cz"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754372AbZAJXFE (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Sat, 10 Jan 2009 18:05:04 -0500
+Received: from 3a.49.1343.static.theplanet.com ([67.19.73.58]:50978 "EHLO
+	pug.o-hand.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753694AbZAJX7P (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Sat, 10 Jan 2009 18:59:15 -0500
 Content-Disposition: inline
-In-Reply-To: <20081207214747.10456.34844.stgit@localhost>
+In-Reply-To: <200901101249.27129.david-b@pacbell.net>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org
+To: David Brownell <david-b@pacbell.net>
+Cc: Tony Lindgren <tony@atomide.com>, linux-arm-kernel@lists.arm.linux.org.uk, linux-omap@vger.kernel.org, Russell King - ARM Linux <linux@arm.linux.org.uk>
 
-On Sun, Dec 07, 2008 at 01:47:47PM -0800, Tony Lindgren wrote:
-> This will simplify the MMC low-level init, and make it more
-> flexible to add support for a newer MMC controller in the
-> following patches.
+On Sat, Jan 10, 2009 at 12:49:26PM -0800, David Brownell wrote:
+> On Saturday 10 January 2009, Samuel Ortiz wrote:
+> > > --- a/drivers/mfd/twl4030-core.c
+> > > +++ b/drivers/mfd/twl4030-core.c
+> > > @@ -38,6 +38,7 @@
+> > > =A0#include <linux/i2c.h>
+> > > =A0#include <linux/i2c/twl4030.h>
+> > > =A0
+> > > +#include <mach/cpu.h>
+> > That will break the build on !ARM for this driver.
+>=20
+> What needs to happen with twl4030-core.c is IMO this:
+>=20
+>  - Near term:
+>      * revert 6354ab5c63bc986bf539026a1b289cc142f6e87c
+>        and just make the driver depend on HAVE_CLK
+Yep, I'll do that afer the merge window.
 
-Simple simplification...
+>      * #ifdef CONFIG_ARM do the #include <mach/cpu.h>
+Not too pretty, but a good enough compromise for me.
+I'll push that.
 
-Signed-off-by: Ladislav Michl <ladis@linux-mips.org>
+Cheers,
+Samuel.
 
-diff --git a/arch/arm/mach-omap1/board-h3-mmc.c b/arch/arm/mach-omap1/board-h3-mmc.c
-index fdfe793..d7f40f9 100644
---- a/arch/arm/mach-omap1/board-h3-mmc.c
-+++ b/arch/arm/mach-omap1/board-h3-mmc.c
-@@ -24,11 +24,7 @@
- static int mmc_set_power(struct device *dev, int slot, int power_on,
- 				int vdd)
- {
--	if (power_on)
--		gpio_direction_output(H3_TPS_GPIO_MMC_PWR_EN, 1);
--	else
--		gpio_direction_output(H3_TPS_GPIO_MMC_PWR_EN, 0);
--
-+	gpio_set_value(H3_TPS_GPIO_MMC_PWR_EN, power_on);
- 	return 0;
- }
- 
-diff --git a/arch/arm/mach-omap1/board-nokia770.c b/arch/arm/mach-omap1/board-nokia770.c
-index 7fdb725..4de55c7 100644
---- a/arch/arm/mach-omap1/board-nokia770.c
-+++ b/arch/arm/mach-omap1/board-nokia770.c
-@@ -223,11 +223,7 @@ static struct omap_usb_config nokia770_usb_config __initdata = {
- static int nokia770_mmc_set_power(struct device *dev, int slot, int power_on,
- 				int vdd)
- {
--	if (power_on)
--		gpio_set_value(NOKIA770_GPIO_MMC_POWER, 1);
--	else
--		gpio_set_value(NOKIA770_GPIO_MMC_POWER, 0);
--
-+	gpio_set_value(NOKIA770_GPIO_MMC_POWER, power_on);
- 	return 0;
- }
- 
-
+--=20
+Intel Open Source Technology Centre
+http://oss.intel.com/
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
