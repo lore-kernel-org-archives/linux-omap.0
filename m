@@ -1,54 +1,51 @@
 From: David Brownell <david-b@pacbell.net>
-Subject: Re: [PATCH 0/3] Add support for OMAP35x processors
-Date: Sat, 10 Jan 2009 22:59:42 -0800
-Message-ID: <200901102259.43047.david-b@pacbell.net>
-References: <1231513323-27379-1-git-send-email-premi@ti.com> <5e088bd90901102230r11962ee8u54675b109f60dd0e@mail.gmail.com>
-Reply-To: dbrownell@users.sourceforge.net
+Subject: Re: Spurious interrupt warning
+Date: Sun, 11 Jan 2009 01:04:25 -0800
+Message-ID: <200901110104.25312.david-b@pacbell.net>
+References: <20090106110837.GG9752@atomide.com> <20090107171313.GA17855@flint.arm.linux.org.uk> <13B9B4C6EF24D648824FF11BE8967162036D48171F@dlee02.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=iso-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp120.sbc.mail.sp1.yahoo.com ([69.147.64.93]:36680 "HELO
-	smtp120.sbc.mail.sp1.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1750840AbZAKG7p (ORCPT
+Received: from smtp123.sbc.mail.sp1.yahoo.com ([69.147.64.96]:33518 "HELO
+	smtp123.sbc.mail.sp1.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1750998AbZAKJE1 (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Sun, 11 Jan 2009 01:59:45 -0500
-In-Reply-To: <5e088bd90901102230r11962ee8u54675b109f60dd0e@mail.gmail.com>
+	Sun, 11 Jan 2009 04:04:27 -0500
+In-Reply-To: <13B9B4C6EF24D648824FF11BE8967162036D48171F@dlee02.ent.ti.com>
 Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Steve Sakoman <sakoman@gmail.com>
-Cc: linux-omap@vger.kernel.org
+To: "Woodruff, Richard" <r-woodruff2@ti.com>
+Cc: Russell King <rmk@arm.linux.org.uk>, Tony Lindgren <tony@atomide.com>, "Hiremath, Vaibhav" <hvaibhav@ti.com>, "Shah, Hardik" <hardik.shah@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Saturday 10 January 2009, Steve Sakoman wrote:
-> Perhaps I'm being a bit clueless, but I'm not sure I see the benefit
-> of specifying in the kernel config whether the OMAP SOC is a 3503,
-> 3515, 3525, or 3530.
+On Wednesday 07 January 2009, Woodruff, Richard wrote:
+> I don't mind using a read back dependency. =A0I don't like it but
+> that may be necessary in some cases for a given device.=20
 >=20
-> The processor is the same ARM Cortex-A8 in all cases. =A0Code that ma=
-y
-> want to use the graphics accelerator or DSP can easily check for the
-> presence of each at run time (Control OMAP Status Register @
-> 0x4800244C)
->=20
-> Is there something I am missing?
+> What I don't like is constantly hitting them and getting a broken
+> system. How many of these are out there? =A0If we can remove most
+> of them in current software with SO then that isn't a bad tradeoff. =20
 
-I suspect the advantage would be the ability to remove some
-code at compile/link time rather having it linger in the
-executable image.  If it's not got the C64x+ DSP then don't
-register the DSP bridge ... when done right, that ensures
-the bridge code won't even be in the target image.
+The same issue comes up with PCI drivers though ... and there,
+it's routinely accepted that critical paths in (some) drivers
+need to issue readbacks to flush the relevant posted writes.
+That's *especially* true in IRQ paths, and when DMA engines
+update state in shared memory.
 
-It's sort of like the flip side of being able to enable
-just a few boards out of a dozen possible.  Code for the
-other boards isn't included, but the kernel is still
-powerful enough to run on more than a single board.
-(Which is great for testing, version management, and
-all that kind of stuff.)
+Which says to me that grumbling about strongly ordered regions
+is more of a developer discipline/training problem than any
+kind of real technical issue.  Not unlike how to do locking
+right; or satisfy coding style guidelines; or follow correct
+procedures to merge patches; or synchronize between several
+execution contexts; or ... lots of other things that waste
+time when folk don't bother doing them right at first.
+
+Good drivers are not easy to do, and this is just one of the
+many ways that shows up.  Fortunately *this* class of problem
+tends to be easy to address by a careful code audit.
 
 - Dave
-
-
 --
 To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
 n
