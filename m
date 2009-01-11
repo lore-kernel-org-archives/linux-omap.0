@@ -1,63 +1,35 @@
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: [REVIEW PATCH 2/2] Added OMAP3EVM Multi-Media Daughter Card
- Support
-Date: Sun, 11 Jan 2009 21:15:56 -0200
-Message-ID: <20090111211556.25d9d3c4@pedra.chehab.org>
-References: <hvaibhav@ti.com>
-	<1231308470-31159-1-git-send-email-hvaibhav@ti.com>
-	<1231551681.4474.238.camel@tux.localhost>
+From: David Brownell <david-b@pacbell.net>
+Subject: Re: [REVIEW PATCH 2/2] Added OMAP3EVM Multi-Media Daughter Card Support
+Date: Sun, 11 Jan 2009 15:54:10 -0800
+Message-ID: <200901111554.10469.david-b@pacbell.net>
+References: <hvaibhav@ti.com> <1231308470-31159-1-git-send-email-hvaibhav@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-media-owner@vger.kernel.org>
-In-Reply-To: <1231551681.4474.238.camel@tux.localhost>
+In-Reply-To: <1231308470-31159-1-git-send-email-hvaibhav@ti.com>
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
-To: Alexey Klimov <klimov.linux@gmail.com>
-Cc: hvaibhav@ti.com, video4linux-list@redhat.com, linux-omap@vger.kernel.org, linux-media@vger.kernel.org
+To: hvaibhav@ti.com
+Cc: linux-omap@vger.kernel.org, linux-media@vger.kernel.org, video4linux-list@redhat.com, Brijesh Jadav <brijesh.j@ti.com>, Hardik Shah <hardik.shah@ti.com>, Manjunath Hadli <mrh@ti.com>, R Sivaraj <sivaraj@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Sat, 10 Jan 2009 04:41:21 +0300
-Alexey Klimov <klimov.linux@gmail.com> wrote:
+On Tuesday 06 January 2009, hvaibhav@ti.com wrote:
+> +config MACH_OMAP3EVM_DC
+> +=A0=A0=A0=A0=A0=A0=A0bool "OMAP 3530 EVM daughter card board"
+> +=A0=A0=A0=A0=A0=A0=A0depends on ARCH_OMAP3 && ARCH_OMAP34XX && MACH_=
+OMAP3EVM
 
-> On Wed, 2009-01-07 at 11:37 +0530, hvaibhav@ti.com wrote:
->  [...]  
-> 
-> You have a lot of dprintk messages. May be it's better to move "\n" to
-> dprintk definition? And use dprintk without \n.
-> Probably, makes your life easier :)
+There can be other daughtercards, so the Kconfig text should
+say which specific card is being configured.  And it should
+probably use the "zero or one of these choices" syntax, so
+it's easier to include other options..
 
-Please, don't. On almost all places where *print* is used, \n is required.
-Moving the end of line character into dprintk will just be something non-standard.
+- Dave
 
-> > +		return -EPERM;
-> > +	}
-> > +
-> > +
-> > +	switch (mux_id) {
-> > +	case MUX_TVP5146:
-> > +		/* active low signal. set 0 to enable, 1 to disable */
-> > +		if (ENABLE_MUX == value) {
-> > +			/* pull down the GPIO GPIO134 = 0 */
-> > +			gpio_set_value(GPIO134_SEL_Y, 0);
-> > +			/* pull up the GPIO GPIO54 = 1 */
-> > +			gpio_set_value(GPIO54_SEL_EXP_CAM, 1);
-> > +			/* pull up the GPIO GPIO136 = 1 */
-> > +			gpio_set_value(GPIO136_SEL_CAM, 1);
-> > +		} else
-> > +			/* pull up the GPIO GPIO134 = 0 */
-> > +			gpio_set_value(GPIO134_SEL_Y, 1);  
-> 
-> Well, please chech the Documentation/CodingStyle file.
-> Comments there say that you should use bracers with else expression
-> (statement?) also. Care to reformat the patch that it will look like:
 
-Agreed, but, in this specific case, just remove above the comments, or replace
-to something more useful. 
-Currently, they are just repeating what the code is saying. The comments should
-document why you need to change the gpio. Something like:
-
-		/* Enable device foo */
-		gpio_set_value(GPIO136_bar, 1);
-
-Cheers,
-Mauro
+--
+To unsubscribe from this list: send the line "unsubscribe linux-media" =
+in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
