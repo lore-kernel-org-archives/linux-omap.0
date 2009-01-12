@@ -1,105 +1,81 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] [OMAPZOOM]  OMAP : DMA: Spurious interrupt fix
-Date: Mon, 12 Jan 2009 15:05:43 +0200
-Message-ID: <20090112130542.GH9373@atomide.com>
-References: <EAF47CD23C76F840A9E7FCE10091EFAB029392DE99@dbde02.ent.ti.com> <20090108151120.GQ27566@atomide.com> <EAF47CD23C76F840A9E7FCE10091EFAB029830F705@dbde02.ent.ti.com> <20090109112817.GG2536@atomide.com> <EAF47CD23C76F840A9E7FCE10091EFAB029830F81F@dbde02.ent.ti.com> <20090109125709.GP2536@atomide.com> <EAF47CD23C76F840A9E7FCE10091EFAB029830F859@dbde02.ent.ti.com> <20090112124048.GD9373@atomide.com> <EAF47CD23C76F840A9E7FCE10091EFAB02983E1FC5@dbde02.ent.ti.com>
+From: "Shah, Hardik" <hardik.shah@ti.com>
+Subject: RE: [Linux-fbdev-devel] [PATCH 02/12] DSS: Display subsystem for
+	OMAP2/3
+Date: Mon, 12 Jan 2009 18:36:32 +0530
+Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB02E67825AE@dbde02.ent.ti.com>
+References: <20090112130158.GF9373@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-bos.mailhop.org ([63.208.196.178]:51164 "EHLO
-	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751211AbZALNFr (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 12 Jan 2009 08:05:47 -0500
-Content-Disposition: inline
-In-Reply-To: <EAF47CD23C76F840A9E7FCE10091EFAB02983E1FC5@dbde02.ent.ti.com>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:55400 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751264AbZALNG4 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 12 Jan 2009 08:06:56 -0500
+In-Reply-To: <20090112130158.GF9373@atomide.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Cc: "Pandita, Vikram" <vikram.pandita@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Tony Lindgren <tony@atomide.com>, Tomi Valkeinen <tomi.valkeinen@nokia.com>
+Cc: "linux-fbdev-devel@lists.sourceforge.net" <linux-fbdev-devel@lists.sourceforge.net>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-* Shilimkar, Santosh <santosh.shilimkar@ti.com> [090112 15:00]:
-> > -----Original Message-----
-> > From: Tony Lindgren [mailto:tony@atomide.com] 
-> > Sent: Monday, January 12, 2009 6:11 PM
-> > To: Shilimkar, Santosh
-> > Cc: Pandita, Vikram; linux-omap@vger.kernel.org
-> > Subject: Re: [PATCH] [OMAPZOOM] OMAP : DMA: Spurious interrupt fix
-> > 
-> > * Shilimkar, Santosh <santosh.shilimkar@ti.com> [090109 15:22]:
-> > > > -----Original Message-----
-> > > > From: Tony Lindgren [mailto:tony@atomide.com] 
-> > > > Sent: Friday, January 09, 2009 6:27 PM
-> > > > To: Shilimkar, Santosh
-> > > > Cc: Pandita, Vikram; linux-omap@vger.kernel.org
-> > > > Subject: Re: [PATCH] [OMAPZOOM] OMAP : DMA: Spurious interrupt fix
-> > > > 
-> > > > * Shilimkar, Santosh <santosh.shilimkar@ti.com> [090109 14:52]:
-> > > > > > -----Original Message-----
-> > > > > > From: Tony Lindgren [mailto:tony@atomide.com] 
-> > > > > > Sent: Friday, January 09, 2009 4:58 PM
-> > > > > > To: Shilimkar, Santosh
-> > > > > > Cc: Pandita, Vikram; linux-omap@vger.kernel.org
-> > > > > > Subject: Re: [PATCH] [OMAPZOOM] OMAP : DMA: Spurious 
-> > interrupt fix
-> > > > > > 
-> > > > > > * Shilimkar, Santosh <santosh.shilimkar@ti.com> 
-> > [090109 12:51]:
-> > > > > > > 
-> > > > > > > Tony,
-> > > > > > > Regarding your proposal of doing the no. of channel 
-> > > > > > reservation during runtime has one problem. 
-> > > > > > > 
-> > > > > > > The whole idea was not to restrict users from using all 32 
-> > > > > > channels and hence the config option. For OMAP secure chips, 
-> > > > > > few security drivers which will execute in secure contex 
-> > > > > > needs dedicated DMA channels and kernel dma library can't be 
-> > > > > > used in that case. So in such cases, required DMA channels 
-> > > > > > can be reserved using this config option. For GP devices all 
-> > > > > > 32 channels can be used currently. 
-> > > > > > > 
-> > > > > > > If it can done in better way, please suggest.
-> > > > > > 
-> > > > > > Well how about passing the configuration for the DMA channels
-> > > > > > from board-*.c file then?
-> > > > > This is certainly a good option if the setting is fixed for 
-> > > > a particular board type. With this how do we ensure user 
-> > > > configurability. Lets say on a particular board, two 
-> > > > users/customers wants to use separate configurations for DMA 
-> > > > channels because of the needs what mentioned earlier. Then 
-> > > > again we need some kind of comfit option.
-> > > > >    Another clean way to achieve this is through 'bootargs'. 
-> > > > But this might be too much of a design for this requirement.
-> > > > 
-> > > > Hmm, well how about starting with all of them, and allow
-> > > > limiting the active DMA number via /sys? I guess we could
-> > > > just set some of the DMA channels inactive that way.
-> > > > 
-> > > > Or maybe allow setting indvidual DMA channels inactive
-> > > > via /sys?
-> > > 
-> > > This won't be a good option because of few limitations.
-> > > - dma library init will configure the entire register set 
-> > for all the channels. So through /sys disable , you have to 
-> > mask all of this registers with appropriate mask depending on 
-> > the no of channels deactivated. This is almost like doing 
-> > another DMA init.
-> > > - Secondly the security driver is active even before the 
-> > dma library is initialed and hence it won't get the required 
-> > reservation of channels which is bottleneck.
-> > > - If both, dma library and security driver configure the 
-> > DMA channels then, you end up in a problem because the way 
-> > OMAP DMA hardware is.  Just a brief - "In
-> > > contrast to the SDMA.DMA4_CSRi registers, the 
-> > SDMA.DMA4_IRQSTATUS_Lj registers are updated regardless of 
-> > the corresponding bits in the SDMA.DMA4_IRQENABLE_Lj 
-> > registers". For more details, you can refer the DMA section in TRM. 
-> > > Because of above, this is not seems to be an option. 
-> > 
-> > How about set up a cmdline option for omap dma for masking the
-> > available channels?
-> Do you mean through bootargs ? 
-> If yes then I already wrote about it.Indeed it is nice method to do this. So if your answer is yes, I will make a patch along with spurious interrupt patch.
 
-Yes, sorry if I missed that earlier.
 
-Tony
+> -----Original Message-----
+> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
+> owner@vger.kernel.org] On Behalf Of Tony Lindgren
+> Sent: Monday, January 12, 2009 6:32 PM
+> To: Tomi Valkeinen
+> Cc: linux-fbdev-devel@lists.sourceforge.net; linux-omap@vger.kernel.org
+> Subject: Re: [Linux-fbdev-devel] [PATCH 02/12] DSS: Display subsystem for
+> OMAP2/3
+> 
+> * Tomi Valkeinen <tomi.valkeinen@nokia.com> [090112 14:37]:
+> > Signed-off-by: Tomi Valkeinen <tomi.valkeinen@nokia.com>
+> > ---
+> >
+> >  arch/arm/plat-omap/Kconfig                |    2
+> >  arch/arm/plat-omap/Makefile               |    2
+> >  arch/arm/plat-omap/dss/Kconfig            |   71 +
+> >  arch/arm/plat-omap/dss/Makefile           |    6
+> >  arch/arm/plat-omap/dss/dispc.c            | 2113
+> +++++++++++++++++++++++++++++
+> >  arch/arm/plat-omap/dss/display.c          |  787 +++++++++++
+> >  arch/arm/plat-omap/dss/dpi.c              |  344 +++++
+> >  arch/arm/plat-omap/dss/dss.c              |  774 +++++++++++
+> >  arch/arm/plat-omap/dss/dss.h              |  274 ++++
+> >  arch/arm/plat-omap/dss/sdi.c              |  174 ++
+> >  arch/arm/plat-omap/include/mach/display.h |  462 ++++++
+> >  11 files changed, 5009 insertions(+), 0 deletions(-)
+> >  create mode 100644 arch/arm/plat-omap/dss/Kconfig
+> >  create mode 100644 arch/arm/plat-omap/dss/Makefile
+> >  create mode 100644 arch/arm/plat-omap/dss/dispc.c
+> >  create mode 100644 arch/arm/plat-omap/dss/display.c
+> >  create mode 100644 arch/arm/plat-omap/dss/dpi.c
+> >  create mode 100644 arch/arm/plat-omap/dss/dss.c
+> >  create mode 100644 arch/arm/plat-omap/dss/dss.h
+> >  create mode 100644 arch/arm/plat-omap/dss/sdi.c
+> >  create mode 100644 arch/arm/plat-omap/include/mach/display.h
+> 
+> Sorry, no subdirectories allowed under arch/arm/*omap*. Please move
+> these to live under drivers/video somewhere.
+> 
+> Also, you should not need to use cpu_is_omapxxxx() macros under
+> drivers, please separate out the low-level init to happen under
+> arch/arm/*omap* and pass the necessary things to the driver in
+> the platform_data. See how usb and mmc are doing it for example.
+> 
+[Shah, Hardik] Hi Tony,
+DSS library will be used by both V4L2 driver and the FBDEV driver.  So will you please suggest the ideal directory for the DSS library?  Moving the DSS library files under /drivers/video will break V4L2 will moving it under /drivers/media/video/ will break fbdev.
+
+Thanks and Regards,
+Hardik Shah
+
+> Regards,
+> 
+> Tony
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
