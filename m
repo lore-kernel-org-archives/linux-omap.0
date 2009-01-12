@@ -1,62 +1,47 @@
-From: Ladislav Michl <ladis@linux-mips.org>
-Subject: mmci-omap regressions
-Date: Mon, 12 Jan 2009 10:17:21 +0100
-Message-ID: <20090112091721.GA11921@michl.2n.cz>
+From: "stanley.miao" <stanley.miao@windriver.com>
+Subject: Re: [PATCH v2] OMAP: Fix McBSP spin_lock deadlock.
+Date: Mon, 12 Jan 2009 18:42:38 +0800
+Message-ID: <1231756958.24932.4.camel@localhost>
+References: <1225975475-9300-1-git-send-email-stanley.miao@windriver.com>
+	 <1226065961.24669.8.camel@localhost>  <20090108133356.GI27566@atomide.com>
+Reply-To: stanley.miao@windriver.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ex.2n.cz ([213.29.92.11]:22152 "EHLO ex.2n.cz"
+Received: from mail.windriver.com ([147.11.1.11]:42145 "EHLO mail.wrs.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751627AbZALJSv (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 12 Jan 2009 04:18:51 -0500
-Content-Disposition: inline
+	id S1753271AbZALKeI (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 12 Jan 2009 05:34:08 -0500
+In-Reply-To: <20090108133356.GI27566@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org
 
-Last time I used MMC card with linux-2.6.15-omap2 and it worked pretty well on
-my custom 5910 based board. Current git nor linux-2.6.22-omap1 (currently used
-for production) doesn't work at all. Inspecting diff between 2.6.15-omap2 and
-2.6.22-omap1 showed that
---- a/drivers/mmc/host/omap.c	2009-01-12 09:32:23.000000000 +0100
-+++ b/drivers/mmc/host/omap.c	2009-01-12 09:46:26.000000000 +0100
-@@ -974,7 +974,7 @@
- 	 * Writing to the CON register twice seems to do the trick. */
- 	for (i = 0; i < 2; i++)
- 		OMAP_MMC_WRITE(host, CON, dsor);
--	if (ios->power_mode == MMC_POWER_ON) {
-+	if (ios->power_mode == MMC_POWER_UP) {
- 		/* Send clock cycles, poll completion */
- 		OMAP_MMC_WRITE(host, IE, 0);
- 		OMAP_MMC_WRITE(host, STAT, 0xffff);
-did the trick.
+On Thu, 2009-01-08 at 15:33 +0200, Tony Lindgren wrote:
+> * stanley.miao <stanley.miao@windriver.com> [081107 15:47]:
+> > This solution keeps the virtual clock in place and enable the child
+> > clocks before enable the virtual clock. So, any comments ?
+> 
+> What if we just removed the custom clock and had a struct **clk
+> in struct omap_mcbsp that contains the clocks for each instance?
 
-With above patch applied to 2.6.22-omap1 I got
-# modprobe omap
-mmci-omap mmci-omap.1: command timeout, CMD 8
- mmcblk0: mmc0:0001        127104KiB
- mmcblk0: p1
-while there is no command timeout with 2.6.15-omap2, but at least it works.
+It works. This is what I did in my first patch. 
 
-Doing the same modification in current git doesn't help. Moreover removing
-omap.ko and inserting again behaves differently than inserting for first
-time:
-# modprobe omap
-mmci-omap mmci-omap.0: command timeout (CMD8)
-mmci-omap mmci-omap.0: command timeout (CMD5)
-mmci-omap mmci-omap.0: command timeout (CMD5)
-mmci-omap mmci-omap.0: command timeout (CMD5)
-mmci-omap mmci-omap.0: command timeout (CMD5)
-mmci-omap mmci-omap.0: command timeout (CMD55)
-mmci-omap mmci-omap.0: command timeout (CMD55)
-mmci-omap mmci-omap.0: command timeout (CMD55)
-mmci-omap mmci-omap.0: command timeout (CMD55)
-mmc0: error -22 whilst initialising MMC card
-# rmmod omap
-# modprobe omap
-mmci-omap: probe of mmci-omap.0 failed with error -16
+The difference is I add two struct *clk in struct omap_mcbsp.
 
-I'll happily send any requested debug informations and test any patches
+struct omap_mcbsp {
+@@ -365,7 +366,8 @@ struct omap_mcbsp {
+        /* Protect the field .free, while checking if the mcbsp is in
+use */
+        spinlock_t lock;
+        struct omap_mcbsp_platform_data *pdata;
+-       struct clk *clk;
++       struct clk *ick;
++       struct clk *fck;
 
-Thank you,
-	ladis
+
+If one struct **clk is better, I will resend the patch later.
+
+Stanley
