@@ -1,55 +1,51 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: updated git pull request for omap compile fixes, mailbox and
-	hsmmc
-Date: Mon, 12 Jan 2009 08:28:37 +0200
-Message-ID: <20090112062834.GB4968@atomide.com>
-References: <20090107111415.GF27566@atomide.com> <20090107111615.GG27566@atomide.com> <20090107111744.GH27566@atomide.com> <20090107161843.GA11471@n2100.arm.linux.org.uk> <20090107175020.GU27566@atomide.com> <20090107220053.GD11471@n2100.arm.linux.org.uk> <20090108073611.GW27566@atomide.com> <20090110110524.GC28945@n2100.arm.linux.org.uk>
+Subject: Re: [PATCH 1/2] ARM: OMAP: Fix missing includes
+Date: Mon, 12 Jan 2009 08:31:26 +0200
+Message-ID: <20090112063125.GC4968@atomide.com>
+References: <20090107111415.GF27566@atomide.com> <20090107111615.GG27566@atomide.com> <20090110155612.GA2601@sortiz.org> <200901101249.27129.david-b@pacbell.net> <20090111000147.GB2683@sortiz.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-bos.mailhop.org ([63.208.196.178]:50399 "EHLO
+Received: from mho-01-bos.mailhop.org ([63.208.196.178]:51460 "EHLO
 	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750799AbZALG2n (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 12 Jan 2009 01:28:43 -0500
+	with ESMTP id S1750903AbZALGbc (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 12 Jan 2009 01:31:32 -0500
 Content-Disposition: inline
-In-Reply-To: <20090110110524.GC28945@n2100.arm.linux.org.uk>
+In-Reply-To: <20090111000147.GB2683@sortiz.org>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: linux-arm-kernel@lists.arm.linux.org.uk, linux-omap@vger.kernel.org, "Nikula Jarkko (NRC/Helsinki)" <jarkko.nikula@nokia.com>
+To: Samuel Ortiz <sameo@openedhand.com>
+Cc: David Brownell <david-b@pacbell.net>, linux-arm-kernel@lists.arm.linux.org.uk, linux-omap@vger.kernel.org, Russell King - ARM Linux <linux@arm.linux.org.uk>
 
-* Russell King - ARM Linux <linux@arm.linux.org.uk> [090110 13:05]:
-> On Thu, Jan 08, 2009 at 09:36:12AM +0200, Tony Lindgren wrote:
-> > OK, here's the pull request again:
-> > 
-> > The following changes since commit ede6f5aea054d3fb67c78857f7abdee602302043:
-> >   Linus Torvalds (1):
-> >         Fix up 64-bit byte swaps for most 32-bit architectures
-> > 
-> > are available in the git repository at:
-> > 
-> >   git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap-2.6.git omap-misc-for-rmk
-> > 
-> > Hiroshi DOYU (10):
-> >       omap mailbox: cleanup omap2 register definition with macro
-> >       omap mailbox: add initial omap3 support
-> >       omap mailbox: print hardware revision at startup
-> >       omap mailbox: fix empty struct device for omap_mbox
-> >       omap mailbox: fix empty struct device for omap1
-> >       omap mailbox: fix empty struct device for omap2
-> >       omap mailbox: add save_/restore_ctx() for PM
-> >       omap mailbox: move mailbox.h into mailbox.c
-> >       omap mailbox: convert sequence bit checking to module paramter
-> >       omap mailbox: remove unnecessary header file inclusion
-> 
-> I'd rather avoid adding new stuff this late in the merge window - it's
-> had no exposure in linux-next, etc.
+* Samuel Ortiz <sameo@openedhand.com> [090111 01:59]:
+> On Sat, Jan 10, 2009 at 12:49:26PM -0800, David Brownell wrote:
+> > On Saturday 10 January 2009, Samuel Ortiz wrote:
+> > > > --- a/drivers/mfd/twl4030-core.c
+> > > > +++ b/drivers/mfd/twl4030-core.c
+> > > > @@ -38,6 +38,7 @@
+> > > > =A0#include <linux/i2c.h>
+> > > > =A0#include <linux/i2c/twl4030.h>
+> > > > =A0
+> > > > +#include <mach/cpu.h>
+> > > That will break the build on !ARM for this driver.
+> >=20
+> > What needs to happen with twl4030-core.c is IMO this:
+> >=20
+> >  - Near term:
+> >      * revert 6354ab5c63bc986bf539026a1b289cc142f6e87c
+> >        and just make the driver depend on HAVE_CLK
+> Yep, I'll do that afer the merge window.
+>=20
+> >      * #ifdef CONFIG_ARM do the #include <mach/cpu.h>
+> Not too pretty, but a good enough compromise for me.
+> I'll push that.
 
-OK, will drop it from omap-fixes queue and into omap3-upstream for
-next merge window.
-
-<snip>
-
-Regards,
+Thanks! I'll rework the other omap build fixes today.
 
 Tony
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
