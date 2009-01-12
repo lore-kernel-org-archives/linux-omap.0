@@ -1,37 +1,71 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: updated git pull request for omap compile fixes, mailbox and hsmmc
-Date: Mon, 12 Jan 2009 16:43:29 +0000
-Message-ID: <20090112164329.GE6152@n2100.arm.linux.org.uk>
-References: <20090107111415.GF27566@atomide.com> <20090107111615.GG27566@atomide.com> <20090107111744.GH27566@atomide.com> <20090107161843.GA11471@n2100.arm.linux.org.uk> <20090107175020.GU27566@atomide.com> <20090107220053.GD11471@n2100.arm.linux.org.uk> <20090108073611.GW27566@atomide.com> <20090110110524.GC28945@n2100.arm.linux.org.uk> <20090111101449.GA7684@n2100.arm.linux.org.uk> <20090112062441.GA4968@atomide.com>
+From: Peter Barada <peterb@logicpd.com>
+Subject: Suspend/Resume questions
+Date: Mon, 12 Jan 2009 12:11:22 -0500
+Message-ID: <1231780282.21812.194.camel@blackhole>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:60879 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752606AbZALQnl (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 12 Jan 2009 11:43:41 -0500
-Content-Disposition: inline
-In-Reply-To: <20090112062441.GA4968@atomide.com>
+Received: from mail.logicpd.com ([66.162.60.3]:33481 "EHLO smtp.logicpd.com"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1753009AbZALRLY (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 12 Jan 2009 12:11:24 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-arm-kernel@lists.arm.linux.org.uk, linux-omap@vger.kernel.org, "Nikula Jarkko (NRC/Helsinki)" <jarkko.nikula@nokia.com>, Pierre Ossman <drzeus-list@drzeus.cx>, "Jarkko Lavinen (NMP/Helsinki)" <jarkko.lavinen@nokia.com>
+To: linux-omap <linux-omap@vger.kernel.org>
 
-On Mon, Jan 12, 2009 at 08:24:42AM +0200, Tony Lindgren wrote:
-> * Russell King - ARM Linux <linux@arm.linux.org.uk> [090111 12:15]:
-> > On Sat, Jan 10, 2009 at 11:05:24AM +0000, Russell King - ARM Linux wrote:
-> > > On Thu, Jan 08, 2009 at 09:36:12AM +0200, Tony Lindgren wrote:
-> > > > Madhusudhan Chikkature (1):
-> > > >       omap mmc: Add new omap hsmmc controller for 2430 and 34xx, v3
-> > > 
-> > > This I'd argue falls into the same category, but since its well known
-> > > between us and Pierre who's acked it, I think it has sufficiently low
-> > > impact that it can be accepted.
-> > 
-> > ... and now -rc1 is out, it's now too late for this.
-> 
-> Oh well. Will resubmit it later on LKML for Pierre, at least
-> the MMC init code is mostly dealt with now.
 
-Actually, as Pierre is okay with it coming via my tree, I'd prefer that
-so I can sanely run my devel branch on the LDP.
+I'm using the current PM branch (2.6.28-rc8, revision 2beb9b4b) to
+investigate power consumption on an OMAP35x board (Logic's LV SOM).
+
+When I:
+
+# mount -t vfat /dev/mmc0blkp1 /mnt/sdcard
+# echo mem > /sys/power/state
+PM: Syncing filesystems ... done.
+Freezing user space processes ... (elapsed 0.00 seconds) done.
+Freezing remaining freezable tasks ... (elapsed 0.00 seconds) done.
+omapfb omapfb: timeout waiting for FRAME DONE
+mmc0: card 133b removed
+MMC: killing requests for dead queue
+cpufreq: suspend failed to assert current frequency is what timing core
+thinks it is.
+Powerdomain (iva2_pwrdm) didn't enter target state 1
+Powerdomain (core_pwrdm) didn't enter target state 1
+Powerdomain (per_pwrdm) didn't enter target state 1
+Could not enter target state in pm_suspend
+cpufreq: resume failed to assert current frequency is what timing core
+thinks it is.
+
+eth0: link down
+soc-audio soc-audio: scheduling resume work
+Restarting tasks ...
+soc-audio soc-audio: starting resume work
+soc-audio soc-audio: resume work completed
+done.
+omap3530# mmc0: new high speed SD card at address 133b
+mmcblk1: mmc0:133b SD02G 1.91 GiB 
+ mmcblk1: p1
+eth0: link up, 100Mbps, full-duplex, lpa 0x45E1
+
+omap3530# ls -l /dev/mmcblk0*
+ls: /dev/mmcblk0*: No such file or directory
+omap3530# 
+
+1) Is "echo mem > /sys/power/state" the proper method to put the board
+into suspend?
+
+2) Why does the MMC "move" from /dev/mmcblk0 before the suspend
+to /dev/mmcblk1 after the suspend? (If the card is not mounted, it
+doesn't "move").
+
+3) Any ideas why the iva2, core, per power domains not change states to
+PWRDM_POWER_RET?  Any way to find out?
+
+4) Any suggestions on how to code the power button (attached to TWL4030
+PWRON pin) to wake it back up again?
+
+Thanks in advance!
+
+-- 
+Peter Barada <peterb@logicpd.com>
