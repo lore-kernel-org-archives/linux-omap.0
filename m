@@ -1,51 +1,71 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 1/2] ARM: OMAP: Fix missing includes
-Date: Mon, 12 Jan 2009 08:31:26 +0200
-Message-ID: <20090112063125.GC4968@atomide.com>
-References: <20090107111415.GF27566@atomide.com> <20090107111615.GG27566@atomide.com> <20090110155612.GA2601@sortiz.org> <200901101249.27129.david-b@pacbell.net> <20090111000147.GB2683@sortiz.org>
+From: Eero Nurkkala <ext-eero.nurkkala@nokia.com>
+Subject: Re: [PATCH] i2c: i2c-omap: Fix standard and fast mode prescalers
+Date: Mon, 12 Jan 2009 08:29:40 +0200
+Message-ID: <1231741780.13843.89.camel@eenurkka-desktop>
+References: <12277070551136-git-send-email-ext-eero.nurkkala@nokia.com>
+	 <c236f0530901091227n7361e2aeh9c5f52e250e79b4b@mail.gmail.com>
+Reply-To: ext-eero.nurkkala@nokia.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-bos.mailhop.org ([63.208.196.178]:51460 "EHLO
-	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750903AbZALGbc (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 12 Jan 2009 01:31:32 -0500
-Content-Disposition: inline
-In-Reply-To: <20090111000147.GB2683@sortiz.org>
+Received: from smtp.nokia.com ([192.100.105.134]:63626 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751439AbZALGbw (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 12 Jan 2009 01:31:52 -0500
+In-Reply-To: <c236f0530901091227n7361e2aeh9c5f52e250e79b4b@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Samuel Ortiz <sameo@openedhand.com>
-Cc: David Brownell <david-b@pacbell.net>, linux-arm-kernel@lists.arm.linux.org.uk, linux-omap@vger.kernel.org, Russell King - ARM Linux <linux@arm.linux.org.uk>
+To: ext Kainan Cha <kainan.zha@gmail.com>
+Cc: linux-omap@vger.kernel.org
 
-* Samuel Ortiz <sameo@openedhand.com> [090111 01:59]:
-> On Sat, Jan 10, 2009 at 12:49:26PM -0800, David Brownell wrote:
-> > On Saturday 10 January 2009, Samuel Ortiz wrote:
-> > > > --- a/drivers/mfd/twl4030-core.c
-> > > > +++ b/drivers/mfd/twl4030-core.c
-> > > > @@ -38,6 +38,7 @@
-> > > > =A0#include <linux/i2c.h>
-> > > > =A0#include <linux/i2c/twl4030.h>
-> > > > =A0
-> > > > +#include <mach/cpu.h>
-> > > That will break the build on !ARM for this driver.
-> >=20
-> > What needs to happen with twl4030-core.c is IMO this:
-> >=20
-> >  - Near term:
-> >      * revert 6354ab5c63bc986bf539026a1b289cc142f6e87c
-> >        and just make the driver depend on HAVE_CLK
-> Yep, I'll do that afer the merge window.
->=20
-> >      * #ifdef CONFIG_ARM do the #include <mach/cpu.h>
-> Not too pretty, but a good enough compromise for me.
-> I'll push that.
+On Fri, 2009-01-09 at 14:27 -0600, ext Kainan Cha wrote:
+> 
+> This patch looks fine for omap3430. But when referring to omap2430
+> manual, the internal_clk does not seem to depend on the i2c modes. Can
+> you verify? My brief testing shows that i2c clock is broken for
+> omap2430 with this patch.
+> 
+> Also, in my manual for both omap2430 and omap3430, scll and sclh
+> values should be set like so:
+> 
+>                        fsscll = internal_clk / (dev->speed * 2) - 7;
+>                        fssclh = internal_clk / (dev->speed * 2) - 5;
+> 
+> Could you explain where you got your values from?
+> 
+> Regards,
+> Kainan Cha
 
-Thanks! I'll rework the other omap build fixes today.
 
-Tony
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Hello!
+
+I'm very sorry for breaking the 2430 i2c bus. I have had definitely no
+access to 2430 TRM or boards, so all help is much appreciated. That
+needs to be fixed.
+
+Our values for fsscll and fssclh (-3, -9) come from the i2c standard. We
+scoped out the activity of 100khz and 400khz signals, and by having the
+(-6, -6) or TRM's (-7, -5) we found out that the i2c clock signal does
+not get into the i2c standard. If I recall correctly, the clock down
+time, referred to as "LOW period of the SCL clock, tLOW" in the i2c
+standard, was well below the minimum. Taken from the standard, the
+400khz mode tLOW is min 1.3uS, and tHIGH is min 0.6uS. You see that
+the tLOW needs to be a lot greater than tHIGH, so that would suggest
+we're in the right track with the (-3, -9) values ;)
+
+Indeed, with values (-3, -9) we got everything within the i2c standard
+for 100 and 400 khz busses, and still having the correct frequency.
+
+If TRM was to be obeyed, and the minimum values were really the (-7,
+-5), then it becomes impossible to get the clock frequency to 400 or
+100. (I think it went closer to 300 khz, as the tLOW value needed to be
+adjusted quite a bit).
+
+However, I would suggest you and everybody who uses the i2c bus, to 
+scope the bus, and measure everything (rise/fall times, setup times,
+tLOW, tHIGH and everything mentioned in the i2c standard). Just to check
+that you actually have a reliable i2c driver.
+
+
+
