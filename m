@@ -1,73 +1,81 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 06/10] ARM: OMAP: Fix DMA CCR programming for request
-	line > 63
-Date: Mon, 12 Jan 2009 17:35:28 +0200
-Message-ID: <20090112153526.GN9373@atomide.com>
-References: <20090112144453.24205.18451.stgit@localhost> <5A47E75E594F054BAF48C5E4FC4B92AB02E678260F@dbde02.ent.ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Koen Kooi <k.kooi@student.utwente.nl>
+Subject: Re: v2.6.28-omap1 tagged, some bugs remain
+Date: Mon, 12 Jan 2009 16:39:39 +0100
+Message-ID: <B5CEECBB-9939-46B9-BEDB-D8D9879DB63E@student.utwente.nl>
+References: <20090112145051.GL9373@atomide.com>
+Mime-Version: 1.0 (Apple Message framework v930.3)
+Content-Type: multipart/signed; protocol="application/pgp-signature"; micalg=pgp-sha1; boundary="Apple-Mail-6-64508957"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-bos.mailhop.org ([63.208.196.178]:56890 "EHLO
-	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752433AbZALPfd (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 12 Jan 2009 10:35:33 -0500
-Content-Disposition: inline
-In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB02E678260F@dbde02.ent.ti.com>
+Received: from mx3.utsp.utwente.nl ([130.89.2.14]:60616 "EHLO mx.utwente.nl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752294AbZALPjt (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 12 Jan 2009 10:39:49 -0500
+Received: from [172.20.1.5] (vpn006129.vpn.utwente.nl [130.89.6.129])
+          by mx.utwente.nl (8.12.10/SuSE Linux 0.7) with ESMTP id n0CFdKKL018644
+          for <linux-omap@vger.kernel.org>; Mon, 12 Jan 2009 16:39:40 +0100
+In-Reply-To: <20090112145051.GL9373@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Gadiyar, Anand" <gadiyar@ti.com>
-Cc: "linux-arm-kernel@lists.arm.linux.org.uk" <linux-arm-kernel@lists.arm.linux.org.uk>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: "linux-omap@vger.kernel.org List" <linux-omap@vger.kernel.org>
 
-* Gadiyar, Anand <gadiyar@ti.com> [090112 17:02]:
-> > -----Original Message-----
-> > From: Tony Lindgren [mailto:tony@atomide.com] 
-> > Sent: Monday, January 12, 2009 8:15 PM
-> > To: linux-arm-kernel@lists.arm.linux.org.uk
-> > Cc: linux-omap@vger.kernel.org; Gadiyar, Anand
-> > Subject: [PATCH 06/10] ARM: OMAP: Fix DMA CCR programming for request line > 63
-> > 
-> > From: Anand Gadiyar <gadiyar@ti.com>
-> > 
-> > Bug in existing code causes synchro control to be set +32 if request
-> > line greater than 63 is used.
-> > 
-> > Reported by Wenbiao Wang
-> > 
-> > Signed-off-by: Anand Gadiyar <gadiyar@ti.com>
-> > Signed-off-by: Tony Lindgren <tony@atomide.com>
-> > ---
-> >  arch/arm/plat-omap/dma.c |    5 +----
-> >  1 files changed, 1 insertions(+), 4 deletions(-)
-> > 
-> > diff --git a/arch/arm/plat-omap/dma.c b/arch/arm/plat-omap/dma.c
-> > index 692d2b4..6152586 100644
-> > --- a/arch/arm/plat-omap/dma.c
-> > +++ b/arch/arm/plat-omap/dma.c
-> > @@ -279,10 +279,7 @@ void omap_set_dma_transfer_params(int 
-> > lch, int data_type, int elem_count,
-> >  
-> >  		val = dma_read(CCR(lch));
-> >  		val &= ~(3 << 19);
-> > -		if (dma_trigger > 63)
-> > -			val |= 1 << 20;
-> > -		if (dma_trigger > 31)
-> > -			val |= 1 << 19;
-> > +		val |= ((dma_trigger & ~(0x1f)) << 14);
-> >  
-> >  		val &= ~(0x1f);
-> >  		val |= (dma_trigger & 0x1f);
-> > 
-> > 
-> > 
-> 
-> Reviewing my own patch. Is it better to use
-> 		val |= ((dma_trigger & 0x60) << 14) instead?
-> 
-> Or is this fine, as is?
+This is an OpenPGP/MIME signed message (RFC 2440 and 3156)
+--Apple-Mail-6-64508957
+Content-Type: text/plain; charset=US-ASCII; format=flowed; delsp=yes
+Content-Transfer-Encoding: 7bit
 
-Well at least you could remove some parens.
-How about (dma_trigger / 32) << 19 instead?
 
-Regards,
+Op 12 jan 2009, om 15:50 heeft Tony Lindgren het volgende geschreven:
 
-Tony
+> Hi all,
+>
+> I've just tagged v2.6.28-omap1, and looks like we might want to also
+> do v2.6.28-omap2 as there are few annoying bugs remaining:
+>
+> - According to Jarkko Nikula, ASoC does not currently work because of
+>  some recent clock changes.
+
+Confirmed on omap3evm.
+
+regards,
+
+Koen
+
+>
+>
+> - MMC seems to be broken for omap1, Ladislav Michl  might have a patch
+>  coming up for that.
+>
+> - I2C is broken for 2430 according to Kainan Cha.
+>
+> Also looks like source.mvista.com is down, so please use the  
+> kernel.org
+> tree.
+>
+> Regards,
+>
+> Tony
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux- 
+> omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
+
+
+--Apple-Mail-6-64508957
+content-type: application/pgp-signature; x-mac-type=70674453;
+	name=PGP.sig
+content-description: Dit deel van het bericht is digitaal ondertekend
+content-disposition: inline; filename=PGP.sig
+content-transfer-encoding: 7bit
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.5 (Darwin)
+
+iD8DBQFJa2Q7MkyGM64RGpERAhRKAJ9Mfa1CftvNb38iNPg8QUKENPFF2wCfRecf
+9soQrJhBFVN+AYIYqX3ft8c=
+=HJP7
+-----END PGP SIGNATURE-----
+
+--Apple-Mail-6-64508957--
