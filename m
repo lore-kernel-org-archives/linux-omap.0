@@ -1,16 +1,16 @@
 From: Tomi Valkeinen <tomi.valkeinen@nokia.com>
-Subject: [PATCH 06/12] DSS: OMAPFB: fb driver for new display subsystem
-Date: Mon, 12 Jan 2009 13:47:58 +0200
-Message-ID: <20090112114758.1003.54003.stgit@tubuntu>
+Subject: [PATCH 08/12] DSS: support for Beagle Board
+Date: Mon, 12 Jan 2009 13:48:11 +0200
+Message-ID: <20090112114811.1003.38871.stgit@tubuntu>
 References: <20090112114718.1003.23643.stgit@tubuntu>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:18028 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753311AbZALLsT (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 12 Jan 2009 06:48:19 -0500
+Received: from smtp.nokia.com ([192.100.122.233]:35797 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752212AbZALLsu (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 12 Jan 2009 06:48:50 -0500
 In-Reply-To: <20090112114718.1003.23643.stgit@tubuntu>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
@@ -20,3800 +20,1599 @@ Cc: linux-omap@vger.kernel.org
 Signed-off-by: Tomi Valkeinen <tomi.valkeinen@nokia.com>
 ---
 
- arch/arm/plat-omap/Makefile              |    2 
- arch/arm/plat-omap/fb-vram.c             |  646 +++++++++++++
- arch/arm/plat-omap/fb.c                  |   22 
- arch/arm/plat-omap/include/mach/omapfb.h |   14 
- drivers/video/Kconfig                    |    1 
- drivers/video/Makefile                   |    1 
- drivers/video/omap/Kconfig               |    5 
- drivers/video/omap2/Kconfig              |   42 +
- drivers/video/omap2/Makefile             |    2 
- drivers/video/omap2/omapfb-ioctl.c       |  460 ++++++++++
- drivers/video/omap2/omapfb-main.c        | 1442 ++++++++++++++++++++++++++++++
- drivers/video/omap2/omapfb-sysfs.c       |  901 +++++++++++++++++++
- drivers/video/omap2/omapfb.h             |  115 ++
- 13 files changed, 3650 insertions(+), 3 deletions(-)
- create mode 100644 arch/arm/plat-omap/fb-vram.c
- create mode 100644 drivers/video/omap2/Kconfig
- create mode 100644 drivers/video/omap2/Makefile
- create mode 100644 drivers/video/omap2/omapfb-ioctl.c
- create mode 100644 drivers/video/omap2/omapfb-main.c
- create mode 100644 drivers/video/omap2/omapfb-sysfs.c
- create mode 100644 drivers/video/omap2/omapfb.h
+ arch/arm/configs/dss_omap3_beagle_defconfig | 1437 +++++++++++++++++++++++++++
+ arch/arm/mach-omap2/board-omap3beagle.c     |  101 ++
+ 2 files changed, 1524 insertions(+), 14 deletions(-)
+ create mode 100644 arch/arm/configs/dss_omap3_beagle_defconfig
 
-diff --git a/arch/arm/plat-omap/Makefile b/arch/arm/plat-omap/Makefile
-index 2740497..7d602a6 100644
---- a/arch/arm/plat-omap/Makefile
-+++ b/arch/arm/plat-omap/Makefile
-@@ -4,7 +4,7 @@
- 
- # Common support
- obj-y := common.o sram.o clock.o devices.o dma.o mux.o gpio.o \
--	 usb.o fb.o io.o
-+	 usb.o fb.o fb-vram.o io.o
- obj-m :=
- obj-n :=
- obj-  :=
-diff --git a/arch/arm/plat-omap/fb-vram.c b/arch/arm/plat-omap/fb-vram.c
+diff --git a/arch/arm/configs/dss_omap3_beagle_defconfig b/arch/arm/configs/dss_omap3_beagle_defconfig
 new file mode 100644
-index 0000000..2994f8f
+index 0000000..f39167f
 --- /dev/null
-+++ b/arch/arm/plat-omap/fb-vram.c
-@@ -0,0 +1,646 @@
-+/*
-+ * linux/arch/arm/plat-omap/fb-vram.c
-+ *
-+ * Copyright (C) 2008 Nokia Corporation
-+ * Author: Tomi Valkeinen <tomi.valkeinen@nokia.com>
-+ *
-+ * Some code and ideas taken from drivers/video/omap/ driver
-+ * by Imre Deak.
-+ *
-+ * This program is free software; you can redistribute it and/or modify it
-+ * under the terms of the GNU General Public License version 2 as published by
-+ * the Free Software Foundation.
-+ *
-+ * This program is distributed in the hope that it will be useful, but WITHOUT
-+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
-+ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
-+ * more details.
-+ *
-+ * You should have received a copy of the GNU General Public License along with
-+ * this program.  If not, see <http://www.gnu.org/licenses/>.
-+ */
++++ b/arch/arm/configs/dss_omap3_beagle_defconfig
+@@ -0,0 +1,1437 @@
++#
++# Automatically generated make config: don't edit
++# Linux kernel version: 2.6.28-omap1
++# Wed Jan  7 15:22:00 2009
++#
++CONFIG_ARM=y
++CONFIG_SYS_SUPPORTS_APM_EMULATION=y
++CONFIG_GENERIC_GPIO=y
++CONFIG_GENERIC_TIME=y
++CONFIG_GENERIC_CLOCKEVENTS=y
++CONFIG_MMU=y
++# CONFIG_NO_IOPORT is not set
++CONFIG_GENERIC_HARDIRQS=y
++CONFIG_STACKTRACE_SUPPORT=y
++CONFIG_HAVE_LATENCYTOP_SUPPORT=y
++CONFIG_LOCKDEP_SUPPORT=y
++CONFIG_TRACE_IRQFLAGS_SUPPORT=y
++CONFIG_HARDIRQS_SW_RESEND=y
++CONFIG_GENERIC_IRQ_PROBE=y
++CONFIG_RWSEM_GENERIC_SPINLOCK=y
++# CONFIG_ARCH_HAS_ILOG2_U32 is not set
++# CONFIG_ARCH_HAS_ILOG2_U64 is not set
++CONFIG_GENERIC_HWEIGHT=y
++CONFIG_GENERIC_CALIBRATE_DELAY=y
++CONFIG_GENERIC_HARDIRQS_NO__DO_IRQ=y
++CONFIG_VECTORS_BASE=0xffff0000
++CONFIG_DEFCONFIG_LIST="/lib/modules/$UNAME_RELEASE/.config"
 +
-+//#define DEBUG
++#
++# General setup
++#
++CONFIG_EXPERIMENTAL=y
++CONFIG_BROKEN_ON_SMP=y
++CONFIG_INIT_ENV_ARG_LIMIT=32
++CONFIG_LOCALVERSION=""
++CONFIG_LOCALVERSION_AUTO=y
++CONFIG_SWAP=y
++CONFIG_SYSVIPC=y
++CONFIG_SYSVIPC_SYSCTL=y
++# CONFIG_POSIX_MQUEUE is not set
++CONFIG_BSD_PROCESS_ACCT=y
++# CONFIG_BSD_PROCESS_ACCT_V3 is not set
++# CONFIG_TASKSTATS is not set
++# CONFIG_AUDIT is not set
++# CONFIG_IKCONFIG is not set
++CONFIG_LOG_BUF_SHIFT=14
++# CONFIG_CGROUPS is not set
++CONFIG_GROUP_SCHED=y
++CONFIG_FAIR_GROUP_SCHED=y
++# CONFIG_RT_GROUP_SCHED is not set
++CONFIG_USER_SCHED=y
++# CONFIG_CGROUP_SCHED is not set
++CONFIG_SYSFS_DEPRECATED=y
++CONFIG_SYSFS_DEPRECATED_V2=y
++# CONFIG_RELAY is not set
++# CONFIG_NAMESPACES is not set
++CONFIG_BLK_DEV_INITRD=y
++CONFIG_INITRAMFS_SOURCE=""
++CONFIG_CC_OPTIMIZE_FOR_SIZE=y
++CONFIG_SYSCTL=y
++CONFIG_EMBEDDED=y
++CONFIG_UID16=y
++# CONFIG_SYSCTL_SYSCALL is not set
++CONFIG_KALLSYMS=y
++# CONFIG_KALLSYMS_ALL is not set
++CONFIG_KALLSYMS_EXTRA_PASS=y
++CONFIG_HOTPLUG=y
++CONFIG_PRINTK=y
++CONFIG_BUG=y
++CONFIG_ELF_CORE=y
++CONFIG_COMPAT_BRK=y
++CONFIG_BASE_FULL=y
++CONFIG_FUTEX=y
++CONFIG_ANON_INODES=y
++CONFIG_EPOLL=y
++CONFIG_SIGNALFD=y
++CONFIG_TIMERFD=y
++CONFIG_EVENTFD=y
++CONFIG_SHMEM=y
++CONFIG_AIO=y
++CONFIG_VM_EVENT_COUNTERS=y
++CONFIG_SLAB=y
++# CONFIG_SLUB is not set
++# CONFIG_SLOB is not set
++# CONFIG_PROFILING is not set
++# CONFIG_MARKERS is not set
++CONFIG_HAVE_OPROFILE=y
++# CONFIG_KPROBES is not set
++CONFIG_HAVE_KPROBES=y
++CONFIG_HAVE_KRETPROBES=y
++CONFIG_HAVE_CLK=y
++CONFIG_HAVE_GENERIC_DMA_COHERENT=y
++CONFIG_SLABINFO=y
++CONFIG_RT_MUTEXES=y
++# CONFIG_TINY_SHMEM is not set
++CONFIG_BASE_SMALL=0
++CONFIG_MODULES=y
++# CONFIG_MODULE_FORCE_LOAD is not set
++CONFIG_MODULE_UNLOAD=y
++# CONFIG_MODULE_FORCE_UNLOAD is not set
++CONFIG_MODVERSIONS=y
++CONFIG_MODULE_SRCVERSION_ALL=y
++CONFIG_KMOD=y
++CONFIG_BLOCK=y
++# CONFIG_LBD is not set
++# CONFIG_BLK_DEV_IO_TRACE is not set
++# CONFIG_LSF is not set
++# CONFIG_BLK_DEV_BSG is not set
++# CONFIG_BLK_DEV_INTEGRITY is not set
 +
-+#include <linux/vmalloc.h>
-+#include <linux/kernel.h>
-+#include <linux/mm.h>
-+#include <linux/list.h>
-+#include <linux/dma-mapping.h>
-+#include <linux/proc_fs.h>
-+#include <linux/seq_file.h>
-+#include <linux/bootmem.h>
++#
++# IO Schedulers
++#
++CONFIG_IOSCHED_NOOP=y
++CONFIG_IOSCHED_AS=y
++CONFIG_IOSCHED_DEADLINE=y
++CONFIG_IOSCHED_CFQ=y
++CONFIG_DEFAULT_AS=y
++# CONFIG_DEFAULT_DEADLINE is not set
++# CONFIG_DEFAULT_CFQ is not set
++# CONFIG_DEFAULT_NOOP is not set
++CONFIG_DEFAULT_IOSCHED="anticipatory"
++CONFIG_CLASSIC_RCU=y
++# CONFIG_FREEZER is not set
 +
-+#include <asm/setup.h>
++#
++# System Type
++#
++# CONFIG_ARCH_AAEC2000 is not set
++# CONFIG_ARCH_INTEGRATOR is not set
++# CONFIG_ARCH_REALVIEW is not set
++# CONFIG_ARCH_VERSATILE is not set
++# CONFIG_ARCH_AT91 is not set
++# CONFIG_ARCH_CLPS7500 is not set
++# CONFIG_ARCH_CLPS711X is not set
++# CONFIG_ARCH_EBSA110 is not set
++# CONFIG_ARCH_EP93XX is not set
++# CONFIG_ARCH_FOOTBRIDGE is not set
++# CONFIG_ARCH_NETX is not set
++# CONFIG_ARCH_H720X is not set
++# CONFIG_ARCH_IMX is not set
++# CONFIG_ARCH_IOP13XX is not set
++# CONFIG_ARCH_IOP32X is not set
++# CONFIG_ARCH_IOP33X is not set
++# CONFIG_ARCH_IXP23XX is not set
++# CONFIG_ARCH_IXP2000 is not set
++# CONFIG_ARCH_IXP4XX is not set
++# CONFIG_ARCH_L7200 is not set
++# CONFIG_ARCH_KIRKWOOD is not set
++# CONFIG_ARCH_KS8695 is not set
++# CONFIG_ARCH_NS9XXX is not set
++# CONFIG_ARCH_LOKI is not set
++# CONFIG_ARCH_MV78XX0 is not set
++# CONFIG_ARCH_MXC is not set
++# CONFIG_ARCH_ORION5X is not set
++# CONFIG_ARCH_PNX4008 is not set
++# CONFIG_ARCH_PXA is not set
++# CONFIG_ARCH_RPC is not set
++# CONFIG_ARCH_SA1100 is not set
++# CONFIG_ARCH_S3C2410 is not set
++# CONFIG_ARCH_SHARK is not set
++# CONFIG_ARCH_LH7A40X is not set
++# CONFIG_ARCH_DAVINCI is not set
++CONFIG_ARCH_OMAP=y
++# CONFIG_ARCH_MSM is not set
 +
-+#include <mach/sram.h>
++#
++# TI OMAP Implementations
++#
++CONFIG_ARCH_OMAP_OTG=y
++# CONFIG_ARCH_OMAP1 is not set
++# CONFIG_ARCH_OMAP2 is not set
++CONFIG_ARCH_OMAP3=y
++
++#
++# OMAP Feature Selections
++#
++# CONFIG_OMAP_DEBUG_POWERDOMAIN is not set
++# CONFIG_OMAP_DEBUG_CLOCKDOMAIN is not set
++# CONFIG_OMAP_SMARTREFLEX is not set
++# CONFIG_OMAP_RESET_CLOCKS is not set
++CONFIG_OMAP_BOOT_TAG=y
++CONFIG_OMAP_BOOT_REASON=y
++# CONFIG_OMAP_COMPONENT_VERSION is not set
++# CONFIG_OMAP_GPIO_SWITCH is not set
++# CONFIG_OMAP_MUX is not set
++# CONFIG_OMAP_MCBSP is not set
++# CONFIG_OMAP_MMU_FWK is not set
++# CONFIG_OMAP_MBOX_FWK is not set
++# CONFIG_OMAP_MPU_TIMER is not set
++CONFIG_OMAP_32K_TIMER=y
++CONFIG_OMAP_32K_TIMER_HZ=128
++CONFIG_OMAP_DM_TIMER=y
++# CONFIG_OMAP_LL_DEBUG_UART1 is not set
++# CONFIG_OMAP_LL_DEBUG_UART2 is not set
++CONFIG_OMAP_LL_DEBUG_UART3=y
++CONFIG_OMAP2_DSS=m
++CONFIG_OMAP2_DSS_DEBUG_SUPPORT=y
++# CONFIG_OMAP2_DSS_RFBI is not set
++CONFIG_OMAP2_DSS_VENC=y
++# CONFIG_OMAP2_DSS_SDI is not set
++# CONFIG_OMAP2_DSS_DSI is not set
++# CONFIG_OMAP2_DSS_FAKE_VSYNC is not set
++CONFIG_OMAP2_DSS_MIN_FCK_PER_PCK=0
++CONFIG_ARCH_OMAP34XX=y
++CONFIG_ARCH_OMAP3430=y
++
++#
++# OMAP Board Type
++#
++# CONFIG_MACH_OMAP_LDP is not set
++# CONFIG_MACH_OMAP_3430SDP is not set
++# CONFIG_MACH_OMAP3EVM is not set
++CONFIG_MACH_OMAP3_BEAGLE=y
++# CONFIG_MACH_OVERO is not set
++# CONFIG_MACH_OMAP3_PANDORA is not set
++CONFIG_OMAP_TICK_GPTIMER=12
++
++#
++# Boot options
++#
++
++#
++# Power management
++#
++
++#
++# Processor Type
++#
++CONFIG_CPU_32=y
++CONFIG_CPU_32v6K=y
++CONFIG_CPU_V7=y
++CONFIG_CPU_32v7=y
++CONFIG_CPU_ABRT_EV7=y
++CONFIG_CPU_PABRT_IFAR=y
++CONFIG_CPU_CACHE_V7=y
++CONFIG_CPU_CACHE_VIPT=y
++CONFIG_CPU_COPY_V6=y
++CONFIG_CPU_TLB_V7=y
++CONFIG_CPU_HAS_ASID=y
++CONFIG_CPU_CP15=y
++CONFIG_CPU_CP15_MMU=y
++
++#
++# Processor Features
++#
++CONFIG_ARM_THUMB=y
++# CONFIG_ARM_THUMBEE is not set
++# CONFIG_CPU_ICACHE_DISABLE is not set
++# CONFIG_CPU_DCACHE_DISABLE is not set
++# CONFIG_CPU_BPREDICT_DISABLE is not set
++CONFIG_HAS_TLS_REG=y
++# CONFIG_OUTER_CACHE is not set
++
++#
++# Bus support
++#
++# CONFIG_PCI_SYSCALL is not set
++# CONFIG_ARCH_SUPPORTS_MSI is not set
++# CONFIG_PCCARD is not set
++
++#
++# Kernel Features
++#
++CONFIG_TICK_ONESHOT=y
++CONFIG_NO_HZ=y
++CONFIG_HIGH_RES_TIMERS=y
++CONFIG_GENERIC_CLOCKEVENTS_BUILD=y
++CONFIG_VMSPLIT_3G=y
++# CONFIG_VMSPLIT_2G is not set
++# CONFIG_VMSPLIT_1G is not set
++CONFIG_PAGE_OFFSET=0xC0000000
++# CONFIG_PREEMPT is not set
++CONFIG_HZ=128
++CONFIG_AEABI=y
++CONFIG_OABI_COMPAT=y
++CONFIG_ARCH_FLATMEM_HAS_HOLES=y
++# CONFIG_ARCH_SPARSEMEM_DEFAULT is not set
++# CONFIG_ARCH_SELECT_MEMORY_MODEL is not set
++CONFIG_SELECT_MEMORY_MODEL=y
++CONFIG_FLATMEM_MANUAL=y
++# CONFIG_DISCONTIGMEM_MANUAL is not set
++# CONFIG_SPARSEMEM_MANUAL is not set
++CONFIG_FLATMEM=y
++CONFIG_FLAT_NODE_MEM_MAP=y
++CONFIG_PAGEFLAGS_EXTENDED=y
++CONFIG_SPLIT_PTLOCK_CPUS=4
++# CONFIG_RESOURCES_64BIT is not set
++# CONFIG_PHYS_ADDR_T_64BIT is not set
++CONFIG_ZONE_DMA_FLAG=0
++CONFIG_VIRT_TO_BUS=y
++CONFIG_UNEVICTABLE_LRU=y
++# CONFIG_LEDS is not set
++CONFIG_ALIGNMENT_TRAP=y
++
++#
++# Boot options
++#
++CONFIG_ZBOOT_ROM_TEXT=0x0
++CONFIG_ZBOOT_ROM_BSS=0x0
++CONFIG_CMDLINE="root=/dev/nfs nfsroot=192.168.0.1:/home/user/buildroot ip=192.168.0.2:192.168.0.1:192.168.0.1:255.255.255.0:tgt:eth0:off rw console=ttyS2,115200n8"
++# CONFIG_XIP_KERNEL is not set
++# CONFIG_KEXEC is not set
++
++#
++# CPU Power Management
++#
++# CONFIG_CPU_FREQ is not set
++# CONFIG_CPU_IDLE is not set
++
++#
++# Floating point emulation
++#
++
++#
++# At least one emulation must be selected
++#
++CONFIG_FPE_NWFPE=y
++# CONFIG_FPE_NWFPE_XP is not set
++# CONFIG_FPE_FASTFPE is not set
++CONFIG_VFP=y
++CONFIG_VFPv3=y
++# CONFIG_NEON is not set
++
++#
++# Userspace binary formats
++#
++CONFIG_BINFMT_ELF=y
++# CONFIG_CORE_DUMP_DEFAULT_ELF_HEADERS is not set
++CONFIG_HAVE_AOUT=y
++# CONFIG_BINFMT_AOUT is not set
++CONFIG_BINFMT_MISC=y
++
++#
++# Power management options
++#
++CONFIG_PM=y
++# CONFIG_PM_DEBUG is not set
++# CONFIG_SUSPEND is not set
++# CONFIG_APM_EMULATION is not set
++CONFIG_ARCH_SUSPEND_POSSIBLE=y
++CONFIG_NET=y
++
++#
++# Networking options
++#
++CONFIG_PACKET=y
++# CONFIG_PACKET_MMAP is not set
++CONFIG_UNIX=y
++CONFIG_XFRM=y
++# CONFIG_XFRM_USER is not set
++# CONFIG_XFRM_SUB_POLICY is not set
++# CONFIG_XFRM_MIGRATE is not set
++# CONFIG_XFRM_STATISTICS is not set
++CONFIG_NET_KEY=y
++# CONFIG_NET_KEY_MIGRATE is not set
++CONFIG_INET=y
++# CONFIG_IP_MULTICAST is not set
++# CONFIG_IP_ADVANCED_ROUTER is not set
++CONFIG_IP_FIB_HASH=y
++CONFIG_IP_PNP=y
++CONFIG_IP_PNP_DHCP=y
++CONFIG_IP_PNP_BOOTP=y
++CONFIG_IP_PNP_RARP=y
++# CONFIG_NET_IPIP is not set
++# CONFIG_NET_IPGRE is not set
++# CONFIG_ARPD is not set
++# CONFIG_SYN_COOKIES is not set
++# CONFIG_INET_AH is not set
++# CONFIG_INET_ESP is not set
++# CONFIG_INET_IPCOMP is not set
++# CONFIG_INET_XFRM_TUNNEL is not set
++# CONFIG_INET_TUNNEL is not set
++CONFIG_INET_XFRM_MODE_TRANSPORT=y
++CONFIG_INET_XFRM_MODE_TUNNEL=y
++CONFIG_INET_XFRM_MODE_BEET=y
++# CONFIG_INET_LRO is not set
++CONFIG_INET_DIAG=y
++CONFIG_INET_TCP_DIAG=y
++# CONFIG_TCP_CONG_ADVANCED is not set
++CONFIG_TCP_CONG_CUBIC=y
++CONFIG_DEFAULT_TCP_CONG="cubic"
++# CONFIG_TCP_MD5SIG is not set
++# CONFIG_IPV6 is not set
++# CONFIG_NETWORK_SECMARK is not set
++# CONFIG_NETFILTER is not set
++# CONFIG_IP_DCCP is not set
++# CONFIG_IP_SCTP is not set
++# CONFIG_TIPC is not set
++# CONFIG_ATM is not set
++# CONFIG_BRIDGE is not set
++# CONFIG_NET_DSA is not set
++# CONFIG_VLAN_8021Q is not set
++# CONFIG_DECNET is not set
++# CONFIG_LLC2 is not set
++# CONFIG_IPX is not set
++# CONFIG_ATALK is not set
++# CONFIG_X25 is not set
++# CONFIG_LAPB is not set
++# CONFIG_ECONET is not set
++# CONFIG_WAN_ROUTER is not set
++# CONFIG_NET_SCHED is not set
++
++#
++# Network testing
++#
++# CONFIG_NET_PKTGEN is not set
++# CONFIG_HAMRADIO is not set
++# CONFIG_CAN is not set
++# CONFIG_IRDA is not set
++# CONFIG_BT is not set
++# CONFIG_AF_RXRPC is not set
++# CONFIG_PHONET is not set
++CONFIG_WIRELESS=y
++# CONFIG_CFG80211 is not set
++CONFIG_WIRELESS_OLD_REGULATORY=y
++# CONFIG_WIRELESS_EXT is not set
++# CONFIG_MAC80211 is not set
++# CONFIG_IEEE80211 is not set
++# CONFIG_RFKILL is not set
++# CONFIG_NET_9P is not set
++
++#
++# Device Drivers
++#
++
++#
++# Generic Driver Options
++#
++CONFIG_UEVENT_HELPER_PATH="/sbin/hotplug"
++CONFIG_STANDALONE=y
++CONFIG_PREVENT_FIRMWARE_BUILD=y
++# CONFIG_FW_LOADER is not set
++# CONFIG_DEBUG_DRIVER is not set
++# CONFIG_DEBUG_DEVRES is not set
++# CONFIG_SYS_HYPERVISOR is not set
++# CONFIG_CONNECTOR is not set
++CONFIG_MTD=y
++# CONFIG_MTD_DEBUG is not set
++# CONFIG_MTD_CONCAT is not set
++CONFIG_MTD_PARTITIONS=y
++# CONFIG_MTD_REDBOOT_PARTS is not set
++# CONFIG_MTD_CMDLINE_PARTS is not set
++# CONFIG_MTD_AFS_PARTS is not set
++# CONFIG_MTD_AR7_PARTS is not set
++
++#
++# User Modules And Translation Layers
++#
++CONFIG_MTD_CHAR=y
++CONFIG_MTD_BLKDEVS=y
++CONFIG_MTD_BLOCK=y
++# CONFIG_FTL is not set
++# CONFIG_NFTL is not set
++# CONFIG_INFTL is not set
++# CONFIG_RFD_FTL is not set
++# CONFIG_SSFDC is not set
++# CONFIG_MTD_OOPS is not set
++
++#
++# RAM/ROM/Flash chip drivers
++#
++# CONFIG_MTD_CFI is not set
++# CONFIG_MTD_JEDECPROBE is not set
++CONFIG_MTD_MAP_BANK_WIDTH_1=y
++CONFIG_MTD_MAP_BANK_WIDTH_2=y
++CONFIG_MTD_MAP_BANK_WIDTH_4=y
++# CONFIG_MTD_MAP_BANK_WIDTH_8 is not set
++# CONFIG_MTD_MAP_BANK_WIDTH_16 is not set
++# CONFIG_MTD_MAP_BANK_WIDTH_32 is not set
++CONFIG_MTD_CFI_I1=y
++CONFIG_MTD_CFI_I2=y
++# CONFIG_MTD_CFI_I4 is not set
++# CONFIG_MTD_CFI_I8 is not set
++# CONFIG_MTD_RAM is not set
++# CONFIG_MTD_ROM is not set
++# CONFIG_MTD_ABSENT is not set
++
++#
++# Mapping drivers for chip access
++#
++# CONFIG_MTD_COMPLEX_MAPPINGS is not set
++# CONFIG_MTD_PLATRAM is not set
++
++#
++# Self-contained MTD device drivers
++#
++# CONFIG_MTD_SLRAM is not set
++# CONFIG_MTD_PHRAM is not set
++# CONFIG_MTD_MTDRAM is not set
++# CONFIG_MTD_BLOCK2MTD is not set
++
++#
++# Disk-On-Chip Device Drivers
++#
++# CONFIG_MTD_DOC2000 is not set
++# CONFIG_MTD_DOC2001 is not set
++# CONFIG_MTD_DOC2001PLUS is not set
++CONFIG_MTD_NAND=y
++# CONFIG_MTD_NAND_VERIFY_WRITE is not set
++# CONFIG_MTD_NAND_ECC_SMC is not set
++# CONFIG_MTD_NAND_MUSEUM_IDS is not set
++# CONFIG_MTD_NAND_GPIO is not set
++CONFIG_MTD_NAND_OMAP2=y
++CONFIG_MTD_NAND_IDS=y
++# CONFIG_MTD_NAND_DISKONCHIP is not set
++# CONFIG_MTD_NAND_NANDSIM is not set
++# CONFIG_MTD_NAND_PLATFORM is not set
++# CONFIG_MTD_ALAUDA is not set
++# CONFIG_MTD_ONENAND is not set
++
++#
++# UBI - Unsorted block images
++#
++# CONFIG_MTD_UBI is not set
++# CONFIG_PARPORT is not set
++CONFIG_BLK_DEV=y
++# CONFIG_BLK_DEV_COW_COMMON is not set
++CONFIG_BLK_DEV_LOOP=y
++# CONFIG_BLK_DEV_CRYPTOLOOP is not set
++# CONFIG_BLK_DEV_NBD is not set
++# CONFIG_BLK_DEV_UB is not set
++CONFIG_BLK_DEV_RAM=y
++CONFIG_BLK_DEV_RAM_COUNT=16
++CONFIG_BLK_DEV_RAM_SIZE=16384
++# CONFIG_BLK_DEV_XIP is not set
++# CONFIG_CDROM_PKTCDVD is not set
++# CONFIG_ATA_OVER_ETH is not set
++# CONFIG_MISC_DEVICES is not set
++CONFIG_HAVE_IDE=y
++# CONFIG_IDE is not set
++
++#
++# SCSI device support
++#
++# CONFIG_RAID_ATTRS is not set
++CONFIG_SCSI=y
++CONFIG_SCSI_DMA=y
++# CONFIG_SCSI_TGT is not set
++# CONFIG_SCSI_NETLINK is not set
++CONFIG_SCSI_PROC_FS=y
++
++#
++# SCSI support type (disk, tape, CD-ROM)
++#
++CONFIG_BLK_DEV_SD=y
++# CONFIG_CHR_DEV_ST is not set
++# CONFIG_CHR_DEV_OSST is not set
++# CONFIG_BLK_DEV_SR is not set
++# CONFIG_CHR_DEV_SG is not set
++# CONFIG_CHR_DEV_SCH is not set
++
++#
++# Some SCSI devices (e.g. CD jukebox) support multiple LUNs
++#
++# CONFIG_SCSI_MULTI_LUN is not set
++# CONFIG_SCSI_CONSTANTS is not set
++# CONFIG_SCSI_LOGGING is not set
++# CONFIG_SCSI_SCAN_ASYNC is not set
++CONFIG_SCSI_WAIT_SCAN=m
++
++#
++# SCSI Transports
++#
++# CONFIG_SCSI_SPI_ATTRS is not set
++# CONFIG_SCSI_FC_ATTRS is not set
++# CONFIG_SCSI_ISCSI_ATTRS is not set
++# CONFIG_SCSI_SAS_LIBSAS is not set
++# CONFIG_SCSI_SRP_ATTRS is not set
++CONFIG_SCSI_LOWLEVEL=y
++# CONFIG_ISCSI_TCP is not set
++# CONFIG_SCSI_DEBUG is not set
++# CONFIG_SCSI_DH is not set
++# CONFIG_ATA is not set
++# CONFIG_MD is not set
++CONFIG_NETDEVICES=y
++# CONFIG_DUMMY is not set
++# CONFIG_BONDING is not set
++# CONFIG_MACVLAN is not set
++# CONFIG_EQUALIZER is not set
++# CONFIG_TUN is not set
++# CONFIG_VETH is not set
++# CONFIG_NET_ETHERNET is not set
++# CONFIG_NETDEV_1000 is not set
++# CONFIG_NETDEV_10000 is not set
++
++#
++# Wireless LAN
++#
++# CONFIG_WLAN_PRE80211 is not set
++# CONFIG_WLAN_80211 is not set
++# CONFIG_IWLWIFI_LEDS is not set
++
++#
++# USB Network Adapters
++#
++# CONFIG_USB_CATC is not set
++# CONFIG_USB_KAWETH is not set
++# CONFIG_USB_PEGASUS is not set
++# CONFIG_USB_RTL8150 is not set
++# CONFIG_USB_USBNET is not set
++# CONFIG_WAN is not set
++# CONFIG_PPP is not set
++# CONFIG_SLIP is not set
++# CONFIG_NETCONSOLE is not set
++# CONFIG_NETPOLL is not set
++# CONFIG_NET_POLL_CONTROLLER is not set
++# CONFIG_ISDN is not set
++
++#
++# Input device support
++#
++CONFIG_INPUT=y
++# CONFIG_INPUT_FF_MEMLESS is not set
++# CONFIG_INPUT_POLLDEV is not set
++
++#
++# Userland interfaces
++#
++# CONFIG_INPUT_MOUSEDEV is not set
++# CONFIG_INPUT_JOYDEV is not set
++# CONFIG_INPUT_EVDEV is not set
++# CONFIG_INPUT_EVBUG is not set
++
++#
++# Input Device Drivers
++#
++# CONFIG_INPUT_KEYBOARD is not set
++# CONFIG_INPUT_MOUSE is not set
++# CONFIG_INPUT_JOYSTICK is not set
++# CONFIG_INPUT_TABLET is not set
++# CONFIG_INPUT_TOUCHSCREEN is not set
++# CONFIG_INPUT_MISC is not set
++
++#
++# Hardware I/O ports
++#
++# CONFIG_SERIO is not set
++# CONFIG_GAMEPORT is not set
++
++#
++# Character devices
++#
++CONFIG_VT=y
++CONFIG_CONSOLE_TRANSLATIONS=y
++CONFIG_VT_CONSOLE=y
++CONFIG_HW_CONSOLE=y
++# CONFIG_VT_HW_CONSOLE_BINDING is not set
++CONFIG_DEVKMEM=y
++# CONFIG_SERIAL_NONSTANDARD is not set
++
++#
++# Serial drivers
++#
++CONFIG_SERIAL_8250=y
++CONFIG_SERIAL_8250_CONSOLE=y
++CONFIG_SERIAL_8250_NR_UARTS=32
++CONFIG_SERIAL_8250_RUNTIME_UARTS=4
++CONFIG_SERIAL_8250_EXTENDED=y
++CONFIG_SERIAL_8250_MANY_PORTS=y
++CONFIG_SERIAL_8250_SHARE_IRQ=y
++CONFIG_SERIAL_8250_DETECT_IRQ=y
++CONFIG_SERIAL_8250_RSA=y
++
++#
++# Non-8250 serial port support
++#
++CONFIG_SERIAL_CORE=y
++CONFIG_SERIAL_CORE_CONSOLE=y
++CONFIG_UNIX98_PTYS=y
++# CONFIG_LEGACY_PTYS is not set
++# CONFIG_IPMI_HANDLER is not set
++CONFIG_HW_RANDOM=y
++# CONFIG_NVRAM is not set
++# CONFIG_R3964 is not set
++# CONFIG_RAW_DRIVER is not set
++# CONFIG_TCG_TPM is not set
++CONFIG_I2C=y
++CONFIG_I2C_BOARDINFO=y
++CONFIG_I2C_CHARDEV=y
++CONFIG_I2C_HELPER_AUTO=y
++
++#
++# I2C Hardware Bus support
++#
++
++#
++# I2C system bus drivers (mostly embedded / system-on-chip)
++#
++# CONFIG_I2C_GPIO is not set
++# CONFIG_I2C_OCORES is not set
++CONFIG_I2C_OMAP=y
++# CONFIG_I2C2_OMAP_BEAGLE is not set
++# CONFIG_I2C_SIMTEC is not set
++
++#
++# External I2C/SMBus adapter drivers
++#
++# CONFIG_I2C_PARPORT_LIGHT is not set
++# CONFIG_I2C_TAOS_EVM is not set
++# CONFIG_I2C_TINY_USB is not set
++
++#
++# Other I2C/SMBus bus drivers
++#
++# CONFIG_I2C_PCA_PLATFORM is not set
++# CONFIG_I2C_STUB is not set
++
++#
++# Miscellaneous I2C Chip support
++#
++# CONFIG_DS1682 is not set
++# CONFIG_AT24 is not set
++# CONFIG_SENSORS_EEPROM is not set
++# CONFIG_SENSORS_PCF8574 is not set
++# CONFIG_PCF8575 is not set
++# CONFIG_SENSORS_PCA9539 is not set
++# CONFIG_SENSORS_PCF8591 is not set
++# CONFIG_TPS65010 is not set
++# CONFIG_TWL4030_MADC is not set
++# CONFIG_TWL4030_PWRBUTTON is not set
++# CONFIG_TWL4030_POWEROFF is not set
++# CONFIG_SENSORS_MAX6875 is not set
++# CONFIG_SENSORS_TSL2550 is not set
++# CONFIG_LP5521 is not set
++# CONFIG_I2C_DEBUG_CORE is not set
++# CONFIG_I2C_DEBUG_ALGO is not set
++# CONFIG_I2C_DEBUG_BUS is not set
++# CONFIG_I2C_DEBUG_CHIP is not set
++# CONFIG_SPI is not set
++CONFIG_ARCH_REQUIRE_GPIOLIB=y
++CONFIG_GPIOLIB=y
++# CONFIG_DEBUG_GPIO is not set
++# CONFIG_GPIO_SYSFS is not set
++
++#
++# Memory mapped GPIO expanders:
++#
++
++#
++# I2C GPIO expanders:
++#
++# CONFIG_GPIO_MAX732X is not set
++# CONFIG_GPIO_PCA953X is not set
++# CONFIG_GPIO_PCF857X is not set
++CONFIG_GPIO_TWL4030=y
++
++#
++# PCI GPIO expanders:
++#
++
++#
++# SPI GPIO expanders:
++#
++# CONFIG_W1 is not set
++# CONFIG_POWER_SUPPLY is not set
++# CONFIG_HWMON is not set
++# CONFIG_THERMAL is not set
++# CONFIG_THERMAL_HWMON is not set
++# CONFIG_WATCHDOG is not set
++CONFIG_SSB_POSSIBLE=y
++
++#
++# Sonics Silicon Backplane
++#
++# CONFIG_SSB is not set
++
++#
++# Multifunction device drivers
++#
++# CONFIG_MFD_CORE is not set
++# CONFIG_MFD_SM501 is not set
++# CONFIG_MFD_ASIC3 is not set
++# CONFIG_HTC_EGPIO is not set
++# CONFIG_HTC_PASIC3 is not set
++CONFIG_TWL4030_CORE=y
++# CONFIG_TWL4030_POWER is not set
++# CONFIG_MFD_TMIO is not set
++# CONFIG_MFD_T7L66XB is not set
++# CONFIG_MFD_TC6387XB is not set
++# CONFIG_MFD_TC6393XB is not set
++# CONFIG_PMIC_DA903X is not set
++# CONFIG_MFD_WM8400 is not set
++# CONFIG_MFD_WM8350_I2C is not set
++
++#
++# Multimedia devices
++#
++
++#
++# Multimedia core support
++#
++# CONFIG_VIDEO_DEV is not set
++# CONFIG_DVB_CORE is not set
++# CONFIG_VIDEO_MEDIA is not set
++
++#
++# Multimedia drivers
++#
++CONFIG_DAB=y
++# CONFIG_USB_DABUSB is not set
++
++#
++# Graphics support
++#
++# CONFIG_VGASTATE is not set
++# CONFIG_VIDEO_OUTPUT_CONTROL is not set
++CONFIG_FB=y
++# CONFIG_FIRMWARE_EDID is not set
++# CONFIG_FB_DDC is not set
++# CONFIG_FB_BOOT_VESA_SUPPORT is not set
++CONFIG_FB_CFB_FILLRECT=m
++CONFIG_FB_CFB_COPYAREA=m
++CONFIG_FB_CFB_IMAGEBLIT=m
++# CONFIG_FB_CFB_REV_PIXELS_IN_BYTE is not set
++# CONFIG_FB_SYS_FILLRECT is not set
++# CONFIG_FB_SYS_COPYAREA is not set
++# CONFIG_FB_SYS_IMAGEBLIT is not set
++# CONFIG_FB_FOREIGN_ENDIAN is not set
++# CONFIG_FB_SYS_FOPS is not set
++# CONFIG_FB_SVGALIB is not set
++# CONFIG_FB_MACMODES is not set
++# CONFIG_FB_BACKLIGHT is not set
++# CONFIG_FB_MODE_HELPERS is not set
++# CONFIG_FB_TILEBLITTING is not set
++
++#
++# Frame buffer hardware drivers
++#
++# CONFIG_FB_S1D13XXX is not set
++# CONFIG_FB_VIRTUAL is not set
++# CONFIG_FB_METRONOME is not set
++# CONFIG_FB_MB862XX is not set
++CONFIG_FB_OMAP_CONSISTENT_DMA_SIZE=4
++CONFIG_FB_OMAP2=m
++# CONFIG_FB_OMAP2_DEBUG is not set
++# CONFIG_FB_OMAP2_FORCE_AUTO_UPDATE is not set
++CONFIG_FB_OMAP2_NUM_FBS=3
++
++#
++# OMAP2/3 Display Device Drivers
++#
++CONFIG_PANEL_GENERIC=m
++# CONFIG_BACKLIGHT_LCD_SUPPORT is not set
++
++#
++# Display device support
++#
++# CONFIG_DISPLAY_SUPPORT is not set
++
++#
++# Console display driver support
++#
++# CONFIG_VGA_CONSOLE is not set
++CONFIG_DUMMY_CONSOLE=y
++# CONFIG_FRAMEBUFFER_CONSOLE is not set
++# CONFIG_LOGO is not set
++# CONFIG_SOUND is not set
++# CONFIG_HID_SUPPORT is not set
++CONFIG_USB_SUPPORT=y
++CONFIG_USB_ARCH_HAS_HCD=y
++CONFIG_USB_ARCH_HAS_OHCI=y
++CONFIG_USB_ARCH_HAS_EHCI=y
++CONFIG_USB=y
++# CONFIG_USB_DEBUG is not set
++# CONFIG_USB_ANNOUNCE_NEW_DEVICES is not set
++
++#
++# Miscellaneous USB options
++#
++CONFIG_USB_DEVICEFS=y
++CONFIG_USB_DEVICE_CLASS=y
++# CONFIG_USB_DYNAMIC_MINORS is not set
++CONFIG_USB_SUSPEND=y
++CONFIG_USB_OTG=y
++# CONFIG_USB_OTG_WHITELIST is not set
++# CONFIG_USB_OTG_BLACKLIST_HUB is not set
++CONFIG_USB_MON=y
++# CONFIG_USB_WUSB is not set
++# CONFIG_USB_WUSB_CBAF is not set
++
++#
++# USB Host Controller Drivers
++#
++# CONFIG_USB_C67X00_HCD is not set
++# CONFIG_USB_EHCI_HCD is not set
++# CONFIG_USB_ISP116X_HCD is not set
++# CONFIG_USB_OHCI_HCD is not set
++# CONFIG_USB_SL811_HCD is not set
++# CONFIG_USB_R8A66597_HCD is not set
++# CONFIG_USB_HWA_HCD is not set
++CONFIG_USB_MUSB_HDRC=y
++CONFIG_USB_MUSB_SOC=y
++
++#
++# OMAP 343x high speed USB support
++#
++# CONFIG_USB_MUSB_HOST is not set
++# CONFIG_USB_MUSB_PERIPHERAL is not set
++CONFIG_USB_MUSB_OTG=y
++CONFIG_USB_GADGET_MUSB_HDRC=y
++CONFIG_USB_MUSB_HDRC_HCD=y
++# CONFIG_MUSB_PIO_ONLY is not set
++CONFIG_USB_INVENTRA_DMA=y
++# CONFIG_USB_TI_CPPI_DMA is not set
++# CONFIG_USB_MUSB_DEBUG is not set
++
++#
++# USB Device Class drivers
++#
++# CONFIG_USB_ACM is not set
++# CONFIG_USB_PRINTER is not set
++# CONFIG_USB_WDM is not set
++# CONFIG_USB_TMC is not set
++
++#
++# NOTE: USB_STORAGE depends on SCSI but BLK_DEV_SD may also be needed;
++#
++
++#
++# see USB_STORAGE Help for more information
++#
++# CONFIG_USB_STORAGE is not set
++# CONFIG_USB_LIBUSUAL is not set
++
++#
++# USB Imaging devices
++#
++# CONFIG_USB_MDC800 is not set
++# CONFIG_USB_MICROTEK is not set
++
++#
++# USB port drivers
++#
++# CONFIG_USB_SERIAL is not set
++
++#
++# USB Miscellaneous drivers
++#
++# CONFIG_USB_EMI62 is not set
++# CONFIG_USB_EMI26 is not set
++# CONFIG_USB_ADUTUX is not set
++# CONFIG_USB_SEVSEG is not set
++# CONFIG_USB_RIO500 is not set
++# CONFIG_USB_LEGOTOWER is not set
++# CONFIG_USB_LCD is not set
++# CONFIG_USB_BERRY_CHARGE is not set
++# CONFIG_USB_LED is not set
++# CONFIG_USB_CYPRESS_CY7C63 is not set
++# CONFIG_USB_CYTHERM is not set
++# CONFIG_USB_PHIDGET is not set
++# CONFIG_USB_IDMOUSE is not set
++# CONFIG_USB_FTDI_ELAN is not set
++# CONFIG_USB_APPLEDISPLAY is not set
++# CONFIG_USB_LD is not set
++# CONFIG_USB_TRANCEVIBRATOR is not set
++# CONFIG_USB_IOWARRIOR is not set
++# CONFIG_USB_TEST is not set
++# CONFIG_USB_ISIGHTFW is not set
++# CONFIG_USB_VST is not set
++CONFIG_USB_GADGET=y
++# CONFIG_USB_GADGET_DEBUG is not set
++# CONFIG_USB_GADGET_DEBUG_FILES is not set
++# CONFIG_USB_GADGET_DEBUG_FS is not set
++CONFIG_USB_GADGET_VBUS_DRAW=2
++CONFIG_USB_GADGET_SELECTED=y
++# CONFIG_USB_GADGET_AT91 is not set
++# CONFIG_USB_GADGET_ATMEL_USBA is not set
++# CONFIG_USB_GADGET_FSL_USB2 is not set
++# CONFIG_USB_GADGET_LH7A40X is not set
++# CONFIG_USB_GADGET_OMAP is not set
++# CONFIG_USB_GADGET_PXA25X is not set
++# CONFIG_USB_GADGET_PXA27X is not set
++# CONFIG_USB_GADGET_S3C2410 is not set
++# CONFIG_USB_GADGET_M66592 is not set
++# CONFIG_USB_GADGET_AMD5536UDC is not set
++# CONFIG_USB_GADGET_FSL_QE is not set
++# CONFIG_USB_GADGET_NET2280 is not set
++# CONFIG_USB_GADGET_GOKU is not set
++# CONFIG_USB_GADGET_DUMMY_HCD is not set
++CONFIG_USB_GADGET_DUALSPEED=y
++# CONFIG_USB_ZERO is not set
++CONFIG_USB_ETH=y
++CONFIG_USB_ETH_RNDIS=y
++# CONFIG_USB_GADGETFS is not set
++# CONFIG_USB_FILE_STORAGE is not set
++# CONFIG_USB_G_SERIAL is not set
++# CONFIG_USB_MIDI_GADGET is not set
++# CONFIG_USB_G_PRINTER is not set
++# CONFIG_USB_CDC_COMPOSITE is not set
++
++#
++# OTG and related infrastructure
++#
++CONFIG_USB_OTG_UTILS=y
++# CONFIG_USB_GPIO_VBUS is not set
++# CONFIG_ISP1301_OMAP is not set
++CONFIG_TWL4030_USB=y
++CONFIG_MMC=y
++# CONFIG_MMC_DEBUG is not set
++# CONFIG_MMC_UNSAFE_RESUME is not set
++
++#
++# MMC/SD/SDIO Card Drivers
++#
++CONFIG_MMC_BLOCK=y
++CONFIG_MMC_BLOCK_BOUNCE=y
++# CONFIG_SDIO_UART is not set
++# CONFIG_MMC_TEST is not set
++
++#
++# MMC/SD/SDIO Host Controller Drivers
++#
++# CONFIG_MMC_SDHCI is not set
++CONFIG_MMC_OMAP_HS=y
++# CONFIG_MEMSTICK is not set
++# CONFIG_ACCESSIBILITY is not set
++# CONFIG_NEW_LEDS is not set
++CONFIG_RTC_LIB=y
++CONFIG_RTC_CLASS=y
++CONFIG_RTC_HCTOSYS=y
++CONFIG_RTC_HCTOSYS_DEVICE="rtc0"
++# CONFIG_RTC_DEBUG is not set
++
++#
++# RTC interfaces
++#
++CONFIG_RTC_INTF_SYSFS=y
++CONFIG_RTC_INTF_PROC=y
++CONFIG_RTC_INTF_DEV=y
++# CONFIG_RTC_INTF_DEV_UIE_EMUL is not set
++# CONFIG_RTC_DRV_TEST is not set
++
++#
++# I2C RTC drivers
++#
++# CONFIG_RTC_DRV_DS1307 is not set
++# CONFIG_RTC_DRV_DS1374 is not set
++# CONFIG_RTC_DRV_DS1672 is not set
++# CONFIG_RTC_DRV_MAX6900 is not set
++# CONFIG_RTC_DRV_RS5C372 is not set
++# CONFIG_RTC_DRV_ISL1208 is not set
++# CONFIG_RTC_DRV_X1205 is not set
++# CONFIG_RTC_DRV_PCF8563 is not set
++# CONFIG_RTC_DRV_PCF8583 is not set
++# CONFIG_RTC_DRV_M41T80 is not set
++CONFIG_RTC_DRV_TWL4030=y
++# CONFIG_RTC_DRV_S35390A is not set
++# CONFIG_RTC_DRV_FM3130 is not set
++# CONFIG_RTC_DRV_RX8581 is not set
++
++#
++# SPI RTC drivers
++#
++
++#
++# Platform RTC drivers
++#
++# CONFIG_RTC_DRV_CMOS is not set
++# CONFIG_RTC_DRV_DS1286 is not set
++# CONFIG_RTC_DRV_DS1511 is not set
++# CONFIG_RTC_DRV_DS1553 is not set
++# CONFIG_RTC_DRV_DS1742 is not set
++# CONFIG_RTC_DRV_STK17TA8 is not set
++# CONFIG_RTC_DRV_M48T86 is not set
++# CONFIG_RTC_DRV_M48T35 is not set
++# CONFIG_RTC_DRV_M48T59 is not set
++# CONFIG_RTC_DRV_BQ4802 is not set
++# CONFIG_RTC_DRV_V3020 is not set
++
++#
++# on-CPU RTC drivers
++#
++# CONFIG_DMADEVICES is not set
++# CONFIG_REGULATOR is not set
++# CONFIG_UIO is not set
++
++#
++# CBUS support
++#
++# CONFIG_CBUS is not set
++
++#
++# File systems
++#
++CONFIG_EXT2_FS=y
++# CONFIG_EXT2_FS_XATTR is not set
++# CONFIG_EXT2_FS_XIP is not set
++CONFIG_EXT3_FS=y
++# CONFIG_EXT3_FS_XATTR is not set
++# CONFIG_EXT4_FS is not set
++CONFIG_JBD=y
++# CONFIG_JBD_DEBUG is not set
++# CONFIG_REISERFS_FS is not set
++# CONFIG_JFS_FS is not set
++# CONFIG_FS_POSIX_ACL is not set
++CONFIG_FILE_LOCKING=y
++# CONFIG_XFS_FS is not set
++# CONFIG_OCFS2_FS is not set
++CONFIG_DNOTIFY=y
++CONFIG_INOTIFY=y
++CONFIG_INOTIFY_USER=y
++CONFIG_QUOTA=y
++# CONFIG_QUOTA_NETLINK_INTERFACE is not set
++CONFIG_PRINT_QUOTA_WARNING=y
++# CONFIG_QFMT_V1 is not set
++CONFIG_QFMT_V2=y
++CONFIG_QUOTACTL=y
++# CONFIG_AUTOFS_FS is not set
++# CONFIG_AUTOFS4_FS is not set
++# CONFIG_FUSE_FS is not set
++
++#
++# CD-ROM/DVD Filesystems
++#
++# CONFIG_ISO9660_FS is not set
++# CONFIG_UDF_FS is not set
++
++#
++# DOS/FAT/NT Filesystems
++#
++CONFIG_FAT_FS=y
++CONFIG_MSDOS_FS=y
++CONFIG_VFAT_FS=y
++CONFIG_FAT_DEFAULT_CODEPAGE=437
++CONFIG_FAT_DEFAULT_IOCHARSET="iso8859-1"
++# CONFIG_NTFS_FS is not set
++
++#
++# Pseudo filesystems
++#
++CONFIG_PROC_FS=y
++CONFIG_PROC_SYSCTL=y
++CONFIG_PROC_PAGE_MONITOR=y
++CONFIG_SYSFS=y
++CONFIG_TMPFS=y
++# CONFIG_TMPFS_POSIX_ACL is not set
++# CONFIG_HUGETLB_PAGE is not set
++# CONFIG_CONFIGFS_FS is not set
++
++#
++# Miscellaneous filesystems
++#
++# CONFIG_ADFS_FS is not set
++# CONFIG_AFFS_FS is not set
++# CONFIG_HFS_FS is not set
++# CONFIG_HFSPLUS_FS is not set
++# CONFIG_BEFS_FS is not set
++# CONFIG_BFS_FS is not set
++# CONFIG_EFS_FS is not set
++CONFIG_JFFS2_FS=y
++CONFIG_JFFS2_FS_DEBUG=0
++CONFIG_JFFS2_FS_WRITEBUFFER=y
++# CONFIG_JFFS2_FS_WBUF_VERIFY is not set
++# CONFIG_JFFS2_SUMMARY is not set
++# CONFIG_JFFS2_FS_XATTR is not set
++# CONFIG_JFFS2_COMPRESSION_OPTIONS is not set
++CONFIG_JFFS2_ZLIB=y
++# CONFIG_JFFS2_LZO is not set
++CONFIG_JFFS2_RTIME=y
++# CONFIG_JFFS2_RUBIN is not set
++# CONFIG_CRAMFS is not set
++# CONFIG_VXFS_FS is not set
++# CONFIG_MINIX_FS is not set
++# CONFIG_OMFS_FS is not set
++# CONFIG_HPFS_FS is not set
++# CONFIG_QNX4FS_FS is not set
++# CONFIG_ROMFS_FS is not set
++# CONFIG_SYSV_FS is not set
++# CONFIG_UFS_FS is not set
++CONFIG_NETWORK_FILESYSTEMS=y
++CONFIG_NFS_FS=y
++CONFIG_NFS_V3=y
++# CONFIG_NFS_V3_ACL is not set
++CONFIG_NFS_V4=y
++CONFIG_ROOT_NFS=y
++# CONFIG_NFSD is not set
++CONFIG_LOCKD=y
++CONFIG_LOCKD_V4=y
++CONFIG_NFS_COMMON=y
++CONFIG_SUNRPC=y
++CONFIG_SUNRPC_GSS=y
++# CONFIG_SUNRPC_REGISTER_V4 is not set
++CONFIG_RPCSEC_GSS_KRB5=y
++# CONFIG_RPCSEC_GSS_SPKM3 is not set
++# CONFIG_SMB_FS is not set
++# CONFIG_CIFS is not set
++# CONFIG_NCP_FS is not set
++# CONFIG_CODA_FS is not set
++# CONFIG_AFS_FS is not set
++
++#
++# Partition Types
++#
++CONFIG_PARTITION_ADVANCED=y
++# CONFIG_ACORN_PARTITION is not set
++# CONFIG_OSF_PARTITION is not set
++# CONFIG_AMIGA_PARTITION is not set
++# CONFIG_ATARI_PARTITION is not set
++# CONFIG_MAC_PARTITION is not set
++CONFIG_MSDOS_PARTITION=y
++# CONFIG_BSD_DISKLABEL is not set
++# CONFIG_MINIX_SUBPARTITION is not set
++# CONFIG_SOLARIS_X86_PARTITION is not set
++# CONFIG_UNIXWARE_DISKLABEL is not set
++# CONFIG_LDM_PARTITION is not set
++# CONFIG_SGI_PARTITION is not set
++# CONFIG_ULTRIX_PARTITION is not set
++# CONFIG_SUN_PARTITION is not set
++# CONFIG_KARMA_PARTITION is not set
++# CONFIG_EFI_PARTITION is not set
++# CONFIG_SYSV68_PARTITION is not set
++CONFIG_NLS=y
++CONFIG_NLS_DEFAULT="iso8859-1"
++CONFIG_NLS_CODEPAGE_437=y
++# CONFIG_NLS_CODEPAGE_737 is not set
++# CONFIG_NLS_CODEPAGE_775 is not set
++# CONFIG_NLS_CODEPAGE_850 is not set
++# CONFIG_NLS_CODEPAGE_852 is not set
++# CONFIG_NLS_CODEPAGE_855 is not set
++# CONFIG_NLS_CODEPAGE_857 is not set
++# CONFIG_NLS_CODEPAGE_860 is not set
++# CONFIG_NLS_CODEPAGE_861 is not set
++# CONFIG_NLS_CODEPAGE_862 is not set
++# CONFIG_NLS_CODEPAGE_863 is not set
++# CONFIG_NLS_CODEPAGE_864 is not set
++# CONFIG_NLS_CODEPAGE_865 is not set
++# CONFIG_NLS_CODEPAGE_866 is not set
++# CONFIG_NLS_CODEPAGE_869 is not set
++# CONFIG_NLS_CODEPAGE_936 is not set
++# CONFIG_NLS_CODEPAGE_950 is not set
++# CONFIG_NLS_CODEPAGE_932 is not set
++# CONFIG_NLS_CODEPAGE_949 is not set
++# CONFIG_NLS_CODEPAGE_874 is not set
++# CONFIG_NLS_ISO8859_8 is not set
++# CONFIG_NLS_CODEPAGE_1250 is not set
++# CONFIG_NLS_CODEPAGE_1251 is not set
++# CONFIG_NLS_ASCII is not set
++CONFIG_NLS_ISO8859_1=y
++# CONFIG_NLS_ISO8859_2 is not set
++# CONFIG_NLS_ISO8859_3 is not set
++# CONFIG_NLS_ISO8859_4 is not set
++# CONFIG_NLS_ISO8859_5 is not set
++# CONFIG_NLS_ISO8859_6 is not set
++# CONFIG_NLS_ISO8859_7 is not set
++# CONFIG_NLS_ISO8859_9 is not set
++# CONFIG_NLS_ISO8859_13 is not set
++# CONFIG_NLS_ISO8859_14 is not set
++# CONFIG_NLS_ISO8859_15 is not set
++# CONFIG_NLS_KOI8_R is not set
++# CONFIG_NLS_KOI8_U is not set
++# CONFIG_NLS_UTF8 is not set
++# CONFIG_DLM is not set
++
++#
++# Kernel hacking
++#
++# CONFIG_PRINTK_TIME is not set
++CONFIG_ENABLE_WARN_DEPRECATED=y
++CONFIG_ENABLE_MUST_CHECK=y
++CONFIG_FRAME_WARN=1024
++CONFIG_MAGIC_SYSRQ=y
++# CONFIG_UNUSED_SYMBOLS is not set
++CONFIG_DEBUG_FS=y
++# CONFIG_HEADERS_CHECK is not set
++CONFIG_DEBUG_KERNEL=y
++# CONFIG_DEBUG_SHIRQ is not set
++CONFIG_DETECT_SOFTLOCKUP=y
++# CONFIG_BOOTPARAM_SOFTLOCKUP_PANIC is not set
++CONFIG_BOOTPARAM_SOFTLOCKUP_PANIC_VALUE=0
++CONFIG_SCHED_DEBUG=y
++# CONFIG_SCHEDSTATS is not set
++# CONFIG_TIMER_STATS is not set
++# CONFIG_DEBUG_OBJECTS is not set
++# CONFIG_DEBUG_SLAB is not set
++# CONFIG_DEBUG_RT_MUTEXES is not set
++# CONFIG_RT_MUTEX_TESTER is not set
++# CONFIG_DEBUG_SPINLOCK is not set
++CONFIG_DEBUG_MUTEXES=y
++# CONFIG_DEBUG_LOCK_ALLOC is not set
++# CONFIG_PROVE_LOCKING is not set
++# CONFIG_LOCK_STAT is not set
++# CONFIG_DEBUG_SPINLOCK_SLEEP is not set
++# CONFIG_DEBUG_LOCKING_API_SELFTESTS is not set
++# CONFIG_DEBUG_KOBJECT is not set
++CONFIG_DEBUG_BUGVERBOSE=y
++CONFIG_DEBUG_INFO=y
++# CONFIG_DEBUG_VM is not set
++# CONFIG_DEBUG_WRITECOUNT is not set
++# CONFIG_DEBUG_MEMORY_INIT is not set
++# CONFIG_DEBUG_LIST is not set
++# CONFIG_DEBUG_SG is not set
++CONFIG_FRAME_POINTER=y
++# CONFIG_BOOT_PRINTK_DELAY is not set
++# CONFIG_RCU_TORTURE_TEST is not set
++# CONFIG_RCU_CPU_STALL_DETECTOR is not set
++# CONFIG_BACKTRACE_SELF_TEST is not set
++# CONFIG_DEBUG_BLOCK_EXT_DEVT is not set
++# CONFIG_FAULT_INJECTION is not set
++# CONFIG_LATENCYTOP is not set
++CONFIG_HAVE_FUNCTION_TRACER=y
++
++#
++# Tracers
++#
++# CONFIG_FUNCTION_TRACER is not set
++# CONFIG_IRQSOFF_TRACER is not set
++# CONFIG_SCHED_TRACER is not set
++# CONFIG_CONTEXT_SWITCH_TRACER is not set
++# CONFIG_BOOT_TRACER is not set
++# CONFIG_STACK_TRACER is not set
++# CONFIG_DYNAMIC_PRINTK_DEBUG is not set
++# CONFIG_SAMPLES is not set
++CONFIG_HAVE_ARCH_KGDB=y
++# CONFIG_KGDB is not set
++CONFIG_DEBUG_USER=y
++CONFIG_DEBUG_ERRORS=y
++# CONFIG_DEBUG_STACK_USAGE is not set
++# CONFIG_DEBUG_LL is not set
++
++#
++# Security options
++#
++# CONFIG_KEYS is not set
++# CONFIG_SECURITY is not set
++# CONFIG_SECURITYFS is not set
++# CONFIG_SECURITY_FILE_CAPABILITIES is not set
++CONFIG_CRYPTO=y
++
++#
++# Crypto core or helper
++#
++# CONFIG_CRYPTO_FIPS is not set
++CONFIG_CRYPTO_ALGAPI=y
++CONFIG_CRYPTO_ALGAPI2=y
++CONFIG_CRYPTO_AEAD2=y
++CONFIG_CRYPTO_BLKCIPHER=y
++CONFIG_CRYPTO_BLKCIPHER2=y
++CONFIG_CRYPTO_HASH2=y
++CONFIG_CRYPTO_RNG2=y
++CONFIG_CRYPTO_MANAGER=y
++CONFIG_CRYPTO_MANAGER2=y
++# CONFIG_CRYPTO_GF128MUL is not set
++# CONFIG_CRYPTO_NULL is not set
++# CONFIG_CRYPTO_CRYPTD is not set
++# CONFIG_CRYPTO_AUTHENC is not set
++# CONFIG_CRYPTO_TEST is not set
++
++#
++# Authenticated Encryption with Associated Data
++#
++# CONFIG_CRYPTO_CCM is not set
++# CONFIG_CRYPTO_GCM is not set
++# CONFIG_CRYPTO_SEQIV is not set
++
++#
++# Block modes
++#
++CONFIG_CRYPTO_CBC=y
++# CONFIG_CRYPTO_CTR is not set
++# CONFIG_CRYPTO_CTS is not set
++CONFIG_CRYPTO_ECB=m
++# CONFIG_CRYPTO_LRW is not set
++CONFIG_CRYPTO_PCBC=m
++# CONFIG_CRYPTO_XTS is not set
++
++#
++# Hash modes
++#
++# CONFIG_CRYPTO_HMAC is not set
++# CONFIG_CRYPTO_XCBC is not set
++
++#
++# Digest
++#
++# CONFIG_CRYPTO_CRC32C is not set
++# CONFIG_CRYPTO_MD4 is not set
++CONFIG_CRYPTO_MD5=y
++# CONFIG_CRYPTO_MICHAEL_MIC is not set
++# CONFIG_CRYPTO_RMD128 is not set
++# CONFIG_CRYPTO_RMD160 is not set
++# CONFIG_CRYPTO_RMD256 is not set
++# CONFIG_CRYPTO_RMD320 is not set
++# CONFIG_CRYPTO_SHA1 is not set
++# CONFIG_CRYPTO_SHA256 is not set
++# CONFIG_CRYPTO_SHA512 is not set
++# CONFIG_CRYPTO_TGR192 is not set
++# CONFIG_CRYPTO_WP512 is not set
++
++#
++# Ciphers
++#
++# CONFIG_CRYPTO_AES is not set
++# CONFIG_CRYPTO_ANUBIS is not set
++# CONFIG_CRYPTO_ARC4 is not set
++# CONFIG_CRYPTO_BLOWFISH is not set
++# CONFIG_CRYPTO_CAMELLIA is not set
++# CONFIG_CRYPTO_CAST5 is not set
++# CONFIG_CRYPTO_CAST6 is not set
++CONFIG_CRYPTO_DES=y
++# CONFIG_CRYPTO_FCRYPT is not set
++# CONFIG_CRYPTO_KHAZAD is not set
++# CONFIG_CRYPTO_SALSA20 is not set
++# CONFIG_CRYPTO_SEED is not set
++# CONFIG_CRYPTO_SERPENT is not set
++# CONFIG_CRYPTO_TEA is not set
++# CONFIG_CRYPTO_TWOFISH is not set
++
++#
++# Compression
++#
++# CONFIG_CRYPTO_DEFLATE is not set
++# CONFIG_CRYPTO_LZO is not set
++
++#
++# Random Number Generation
++#
++# CONFIG_CRYPTO_ANSI_CPRNG is not set
++CONFIG_CRYPTO_HW=y
++
++#
++# Library routines
++#
++CONFIG_BITREVERSE=y
++CONFIG_CRC_CCITT=y
++# CONFIG_CRC16 is not set
++# CONFIG_CRC_T10DIF is not set
++# CONFIG_CRC_ITU_T is not set
++CONFIG_CRC32=y
++# CONFIG_CRC7 is not set
++CONFIG_LIBCRC32C=y
++CONFIG_ZLIB_INFLATE=y
++CONFIG_ZLIB_DEFLATE=y
++CONFIG_PLIST=y
++CONFIG_HAS_IOMEM=y
++CONFIG_HAS_IOPORT=y
++CONFIG_HAS_DMA=y
+diff --git a/arch/arm/mach-omap2/board-omap3beagle.c b/arch/arm/mach-omap2/board-omap3beagle.c
+index fe97bab..61f0fc9 100644
+--- a/arch/arm/mach-omap2/board-omap3beagle.c
++++ b/arch/arm/mach-omap2/board-omap3beagle.c
+@@ -43,6 +43,8 @@
+ #include <mach/gpmc.h>
+ #include <mach/nand.h>
+ #include <mach/mux.h>
 +#include <mach/omapfb.h>
-+
-+#ifdef DEBUG
-+#define DBG(format, ...) printk(KERN_DEBUG "VRAM: " format, ## __VA_ARGS__)
-+#else
-+#define DBG(format, ...)
-+#endif
-+
-+#define OMAP2_SRAM_START		0x40200000
-+/* Maximum size, in reality this is smaller if SRAM is partially locked. */
-+#define OMAP2_SRAM_SIZE			0xa0000		/* 640k */
-+
-+#define REG_MAP_SIZE(_page_cnt)						\
-+	((_page_cnt + (sizeof(unsigned long) * 8) - 1) / 8)
-+#define REG_MAP_PTR(_rg, _page_nr)					\
-+	(((_rg)->map) + (_page_nr) / (sizeof(unsigned long) * 8))
-+#define REG_MAP_MASK(_page_nr)						\
-+	(1 << ((_page_nr) & (sizeof(unsigned long) * 8 - 1)))
-+
-+#if defined(CONFIG_FB_OMAP2) || defined(CONFIG_FB_OMAP2_MODULE)
-+
-+/* postponed regions are used to temporarily store region information at boot
-+ * time when we cannot yet allocate the region list */
-+#define MAX_POSTPONED_REGIONS 10
-+
-+static int postponed_cnt __initdata;
-+static struct {
-+	unsigned long paddr;
-+	size_t size;
-+} postponed_regions[MAX_POSTPONED_REGIONS] __initdata;
-+
-+struct vram_alloc {
-+	struct list_head list;
-+	unsigned long paddr;
-+	unsigned pages;
-+};
-+
-+struct vram_region {
-+	struct list_head list;
-+	struct list_head alloc_list;
-+	unsigned long	paddr;
-+	void		*vaddr;
-+	unsigned	pages;
-+	unsigned	dma_alloced:1;
-+};
-+
-+static DEFINE_MUTEX(region_mutex);
-+static LIST_HEAD(region_list);
-+
-+static inline int region_mem_type(unsigned long paddr)
-+{
-+	if (paddr >= OMAP2_SRAM_START &&
-+	    paddr < OMAP2_SRAM_START + OMAP2_SRAM_SIZE)
-+		return OMAPFB_MEMTYPE_SRAM;
-+	else
-+		return OMAPFB_MEMTYPE_SDRAM;
-+}
-+
-+static struct vram_region *omap_vram_create_region(unsigned long paddr,
-+		void *vaddr, unsigned pages)
-+{
-+	struct vram_region *rm;
-+
-+	rm = kzalloc(sizeof(*rm), GFP_KERNEL);
-+
-+	if (rm) {
-+		INIT_LIST_HEAD(&rm->alloc_list);
-+		rm->paddr = paddr;
-+		rm->vaddr = vaddr;
-+		rm->pages = pages;
-+	}
-+
-+	return rm;
-+}
-+
-+static void omap_vram_free_region(struct vram_region *vr)
-+{
-+	list_del(&vr->list);
-+	kfree(vr);
-+}
-+
-+static struct vram_alloc *omap_vram_create_allocation(struct vram_region *vr,
-+		unsigned long paddr, unsigned pages)
-+{
-+	struct vram_alloc *va;
-+	struct vram_alloc *new;
-+
-+	new = kzalloc(sizeof(*va), GFP_KERNEL);
-+
-+	if (!new)
-+		return NULL;
-+
-+	new->paddr = paddr;
-+	new->pages = pages;
-+
-+	list_for_each_entry(va, &vr->alloc_list, list) {
-+		if (va->paddr > new->paddr)
-+			break;
-+	}
-+
-+	list_add_tail(&new->list, &va->list);
-+
-+	return new;
-+}
-+
-+static void omap_vram_free_allocation(struct vram_alloc *va)
-+{
-+	list_del(&va->list);
-+	kfree(va);
-+}
-+
-+static __init int omap_vram_add_region_postponed(unsigned long paddr, size_t size)
-+{
-+	if (postponed_cnt == MAX_POSTPONED_REGIONS)
-+		return -ENOMEM;
-+
-+	postponed_regions[postponed_cnt].paddr = paddr;
-+	postponed_regions[postponed_cnt].size = size;
-+
-+	++postponed_cnt;
-+
-+	return 0;
-+}
-+
-+/* add/remove_region can be exported if there's need to add/remove regions
-+ * runtime */
-+static int omap_vram_add_region(unsigned long paddr, size_t size)
-+{
-+	struct vram_region *rm;
-+	void *vaddr;
-+	unsigned pages;
-+
-+	DBG("adding region paddr %08lx size %d\n",
-+			paddr, size);
-+
-+	size &= PAGE_MASK;
-+	pages = size >> PAGE_SHIFT;
-+
-+	vaddr = ioremap_wc(paddr, size);
-+	if (vaddr == NULL)
-+		return -ENOMEM;
-+
-+	rm = omap_vram_create_region(paddr, vaddr, pages);
-+	if (rm == NULL) {
-+		iounmap(vaddr);
-+		return -ENOMEM;
-+	}
-+
-+	list_add(&rm->list, &region_list);
-+
-+	return 0;
-+}
-+
-+#if 0
-+int omap_vram_remove_region(unsigned long paddr)
-+{
-+	struct region *rm;
-+	unsigned i;
-+
-+	DBG("remove region paddr %08lx\n", paddr);
-+	list_for_each_entry(rm, &region_list, list)
-+		if (rm->paddr != paddr)
-+			continue;
-+
-+	if (rm->paddr != paddr)
-+		return -EINVAL;
-+
-+	for (i = 0; i < rm->page_cnt; i++)
-+		if (region_page_reserved(rm, i))
-+			return -EBUSY;
-+
-+	iounmap(rm->vaddr);
-+
-+	list_del(&rm->list);
-+
-+	kfree(rm);
-+
-+	return 0;
-+}
-+#endif
-+
-+int omap_vram_free(unsigned long paddr, void *vaddr, size_t size)
-+{
-+	struct vram_region *rm;
-+	struct vram_alloc *alloc;
-+	unsigned start, end;
-+
-+	DBG("free mem paddr %08lx vaddr %p size %d\n",
-+			paddr, vaddr, size);
-+
-+	size = PAGE_ALIGN(size);
-+
-+	mutex_lock(&region_mutex);
-+
-+	list_for_each_entry(rm, &region_list, list) {
-+		list_for_each_entry(alloc, &rm->alloc_list, list) {
-+			start = alloc->paddr;
-+			end = alloc->paddr + (alloc->pages >> PAGE_SHIFT);
-+
-+			if (start >= paddr && end < paddr + size)
-+				goto found;
-+		}
-+	}
-+
-+	mutex_unlock(&region_mutex);
-+	return -EINVAL;
-+
-+found:
-+	if (rm->dma_alloced) {
-+		DBG("freeing dma-alloced\n");
-+		dma_free_writecombine(NULL, size, vaddr, paddr);
-+		omap_vram_free_allocation(alloc);
-+		omap_vram_free_region(rm);
-+	} else {
-+		omap_vram_free_allocation(alloc);
-+	}
-+
-+	mutex_unlock(&region_mutex);
-+	return 0;
-+}
-+EXPORT_SYMBOL(omap_vram_free);
-+
-+#if 0
-+void *omap_vram_reserve(unsigned long paddr, size_t size)
-+{
-+
-+	struct region *rm;
-+	unsigned start_page;
-+	unsigned end_page;
-+	unsigned i;
-+	void *vaddr;
-+
-+	size = PAGE_ALIGN(size);
-+
-+	rm = region_find_region(paddr, size);
-+
-+	DBG("reserve mem paddr %08lx size %d\n",
-+			paddr, size);
-+
-+	BUG_ON(rm == NULL);
-+
-+	start_page = (paddr - rm->paddr) >> PAGE_SHIFT;
-+	end_page = start_page + (size >> PAGE_SHIFT);
-+	for (i = start_page; i < end_page; i++)
-+		region_reserve_page(rm, i);
-+
-+	vaddr = rm->vaddr + (start_page << PAGE_SHIFT);
-+
-+	return vaddr;
-+}
-+EXPORT_SYMBOL(omap_vram_reserve);
-+#endif
-+static void *_omap_vram_alloc(int mtype, unsigned pages, unsigned long *paddr)
-+{
-+	struct vram_region *rm;
-+	struct vram_alloc *alloc;
-+	void *vaddr;
-+
-+	list_for_each_entry(rm, &region_list, list) {
-+		unsigned long start, end;
-+
-+		DBG("checking region %lx %d\n", rm->paddr, rm->pages);
-+
-+		if (region_mem_type(rm->paddr) != mtype)
-+			continue;
-+
-+		start = rm->paddr;
-+
-+		list_for_each_entry(alloc, &rm->alloc_list, list) {
-+			end = alloc->paddr;
-+
-+			if (end - start >= pages << PAGE_SHIFT)
-+				goto found;
-+
-+			start = alloc->paddr + (alloc->pages << PAGE_SHIFT);
-+		}
-+
-+		end = rm->paddr + (rm->pages << PAGE_SHIFT);
-+found:
-+		if (end - start < pages << PAGE_SHIFT)
-+			continue;
-+
-+		DBG("FOUND %lx, end %lx\n", start, end);
-+
-+		if (omap_vram_create_allocation(rm, start, pages) == NULL)
-+			return NULL;
-+
-+		*paddr = start;
-+		vaddr = rm->vaddr + (start - rm->paddr);
-+
-+		return vaddr;
-+	}
-+
-+	return NULL;
-+}
-+
-+static void *_omap_vram_alloc_dma(unsigned pages, unsigned long *paddr)
-+{
-+	struct vram_region *rm;
-+	void *vaddr;
-+
-+	vaddr = dma_alloc_writecombine(NULL, pages << PAGE_SHIFT,
-+			(dma_addr_t *)paddr, GFP_KERNEL);
-+
-+	if (vaddr == NULL)
-+		return NULL;
-+
-+	rm = omap_vram_create_region(*paddr, vaddr, pages);
-+	if (rm == NULL) {
-+		dma_free_writecombine(NULL, pages << PAGE_SHIFT, vaddr,
-+				(dma_addr_t)*paddr);
-+		return NULL;
-+	}
-+
-+	rm->dma_alloced = 1;
-+
-+	if (omap_vram_create_allocation(rm, *paddr, pages) == NULL) {
-+		dma_free_writecombine(NULL, pages << PAGE_SHIFT, vaddr,
-+				(dma_addr_t)*paddr);
-+		kfree(rm);
-+		return NULL;
-+	}
-+
-+	list_add(&rm->list, &region_list);
-+
-+	return vaddr;
-+}
-+
-+void *omap_vram_alloc(int mtype, size_t size, unsigned long *paddr)
-+{
-+	void *vaddr;
-+	unsigned pages;
-+
-+	BUG_ON(mtype > OMAPFB_MEMTYPE_MAX || !size);
-+
-+	DBG("alloc mem type %d size %d\n", mtype, size);
-+
-+	size = PAGE_ALIGN(size);
-+	pages = size >> PAGE_SHIFT;
-+
-+	mutex_lock(&region_mutex);
-+
-+	vaddr = _omap_vram_alloc(mtype, pages, paddr);
-+
-+	if (vaddr == NULL && mtype == OMAPFB_MEMTYPE_SDRAM) {
-+		DBG("fallback to dma_alloc\n");
-+
-+		vaddr = _omap_vram_alloc_dma(pages, paddr);
-+	}
-+
-+	mutex_unlock(&region_mutex);
-+
-+	return vaddr;
-+}
-+EXPORT_SYMBOL(omap_vram_alloc);
-+
-+#ifdef CONFIG_PROC_FS
-+static void *r_next(struct seq_file *m, void *v, loff_t *pos)
-+{
-+	struct list_head *l = v;
-+
-+	(*pos)++;
-+
-+	if (list_is_last(l, &region_list))
-+		return 0;
-+
-+	return l->next;
-+}
-+
-+static void *r_start(struct seq_file *m, loff_t *pos)
-+{
-+	loff_t p = *pos;
-+	struct list_head *l = &region_list;
-+
-+	mutex_lock(&region_mutex);
-+
-+	do {
-+		l = l->next;
-+		if (l == &region_list)
-+			return NULL;
-+	} while (p--);
-+
-+	return l;
-+}
-+
-+static void r_stop(struct seq_file *m, void *v)
-+{
-+	mutex_unlock(&region_mutex);
-+}
-+
-+static int r_show(struct seq_file *m, void *v)
-+{
-+	struct vram_region *vr;
-+	struct vram_alloc *va;
-+	unsigned size;
-+
-+	vr = list_entry(v, struct vram_region, list);
-+
-+	size = vr->pages << PAGE_SHIFT;
-+	seq_printf(m, "%08lx-%08lx v:%p-%p (%d bytes) %s\n",
-+			vr->paddr, vr->paddr + size,
-+			vr->vaddr, vr->vaddr + size,
-+			size,
-+			vr->dma_alloced ? "dma_alloc" : "");
-+
-+	list_for_each_entry(va, &vr->alloc_list, list) {
-+		size = va->pages << PAGE_SHIFT;
-+		seq_printf(m, "    %08lx-%08lx (%d bytes)\n",
-+				va->paddr, va->paddr + size,
-+				size);
-+	}
-+
-+
-+
-+	return 0;
-+}
-+
-+static const struct seq_operations resource_op = {
-+	.start	= r_start,
-+	.next	= r_next,
-+	.stop	= r_stop,
-+	.show	= r_show,
-+};
-+
-+static int vram_open(struct inode *inode, struct file *file)
-+{
-+	return seq_open(file, &resource_op);
-+}
-+
-+static const struct file_operations proc_vram_operations = {
-+	.open		= vram_open,
-+	.read		= seq_read,
-+	.llseek		= seq_lseek,
-+	.release	= seq_release,
-+};
-+
-+static int __init omap_vram_create_proc(void)
-+{
-+	proc_create("omap-vram", 0, NULL, &proc_vram_operations);
-+
-+	return 0;
-+}
-+#endif
-+
-+static __init int omap_vram_init(void)
-+{
-+	int i, r;
-+
-+	for (i = 0; i < postponed_cnt; i++)
-+		omap_vram_add_region(postponed_regions[i].paddr,
-+				postponed_regions[i].size);
-+
-+#ifdef CONFIG_PROC_FS
-+	r = omap_vram_create_proc();
-+	if (r)
-+		return -ENOMEM;
-+#endif
-+
-+	return 0;
-+}
-+
-+arch_initcall(omap_vram_init);
-+
-+/* boottime vram alloc stuff */
-+static u32 omapfb_sram_vram_start __initdata;
-+static u32 omapfb_sram_vram_size __initdata;
-+
-+static u32 omapfb_sdram_vram_start __initdata;
-+static u32 omapfb_sdram_vram_size __initdata;
-+
-+static u32 omapfb_def_sdram_vram_size __initdata;
-+
-+static void __init omapfb_early_vram(char **p)
-+{
-+	unsigned long size;
-+	size  = memparse(*p, p);
-+	omapfb_def_sdram_vram_size = size;
-+}
-+__early_param("vram=", omapfb_early_vram);
-+
-+/*
-+ * Called from map_io. We need to call to this early enough so that we
-+ * can reserve the fixed SDRAM regions before VM could get hold of them.
-+ */
-+void __init omapfb_reserve_sdram(void)
-+{
-+	struct bootmem_data	*bdata;
-+	unsigned long		sdram_start, sdram_size;
-+	unsigned long		reserved;
-+	u32 paddr;
-+	u32 size;
-+
-+	bdata = NODE_DATA(0)->bdata;
-+	sdram_start = bdata->node_min_pfn << PAGE_SHIFT;
-+	sdram_size = (bdata->node_low_pfn << PAGE_SHIFT) - sdram_start;
-+	reserved = 0;
-+
-+	/* cmdline arg overrides the board file definition */
-+	if (omapfb_def_sdram_vram_size) {
-+		size = omapfb_def_sdram_vram_size;
-+		paddr = 0;
-+	} else {
-+		size = omapfb_sdram_vram_size;
-+		paddr = omapfb_sdram_vram_start;
-+	}
-+
-+	if (size) {
-+		if (paddr) {
-+			if (paddr < sdram_start ||
-+					paddr + size > sdram_start + sdram_size) {
-+				printk(KERN_ERR "Illegal SDRAM region for VRAM\n");
-+				return;
-+			}
-+
-+			reserve_bootmem(paddr, size, BOOTMEM_DEFAULT);
-+		} else {
-+			if (size > sdram_size) {
-+				printk(KERN_ERR "Illegal SDRAM size for VRAM\n");
-+				return;
-+			}
-+
-+			paddr = virt_to_phys(alloc_bootmem(size));
-+		}
-+
-+		reserved += size;
-+		omap_vram_add_region_postponed(paddr, size);
-+	}
-+
-+	if (reserved)
-+		pr_info("Reserving %lu bytes SDRAM for VRAM\n", reserved);
-+}
-+
-+/*
-+ * Called at sram init time, before anything is pushed to the SRAM stack.
-+ * Because of the stack scheme, we will allocate everything from the
-+ * start of the lowest address region to the end of SRAM. This will also
-+ * include padding for page alignment and possible holes between regions.
-+ *
-+ * As opposed to the SDRAM case, we'll also do any dynamic allocations at
-+ * this point, since the driver built as a module would have problem with
-+ * freeing / reallocating the regions.
-+ */
-+unsigned long __init omapfb_reserve_sram(unsigned long sram_pstart,
-+				  unsigned long sram_vstart,
-+				  unsigned long sram_size,
-+				  unsigned long pstart_avail,
-+				  unsigned long size_avail)
-+{
-+	unsigned long			pend_avail;
-+	unsigned long			reserved;
-+	u32 paddr;
-+	u32 size;
-+
-+	paddr = omapfb_sram_vram_start;
-+	size = omapfb_sram_vram_size;
-+
-+	reserved = 0;
-+	pend_avail = pstart_avail + size_avail;
-+
-+
-+	if (!paddr) {
-+		/* Dynamic allocation */
-+		if ((size_avail & PAGE_MASK) < size) {
-+			printk(KERN_ERR "Not enough SRAM for VRAM\n");
-+			return 0;
-+		}
-+		size_avail = (size_avail - size) & PAGE_MASK;
-+		paddr = pstart_avail + size_avail;
-+	}
-+
-+	if (paddr < sram_pstart ||
-+			paddr + size > sram_pstart + sram_size) {
-+		printk(KERN_ERR "Illegal SRAM region for VRAM\n");
-+		return 0;
-+	}
-+
-+	/* Reserve everything above the start of the region. */
-+	if (pend_avail - paddr > reserved)
-+		reserved = pend_avail - paddr;
-+	size_avail = pend_avail - reserved - pstart_avail;
-+
-+	/*
-+	 * We have a kernel mapping for this already, so the
-+	 * driver won't have to make one.
-+	 */
-+	/* XXX do we need the vaddr? */
-+	/* rg.vaddr = (void *)(sram_vstart + paddr - sram_pstart); */
-+
-+	omap_vram_add_region_postponed(paddr, size);
-+
-+	if (reserved)
-+		pr_info("Reserving %lu bytes SRAM for VRAM\n", reserved);
-+
-+	return reserved;
-+}
-+
-+void __init omap2_set_sdram_vram(u32 size, u32 start)
-+{
-+	omapfb_sdram_vram_start = start;
-+	omapfb_sdram_vram_size = size;
-+}
-+
-+void __init omap2_set_sram_vram(u32 size, u32 start)
-+{
-+	omapfb_sram_vram_start = start;
-+	omapfb_sram_vram_size = size;
-+}
-+
-+#endif
-+
-diff --git a/arch/arm/plat-omap/fb.c b/arch/arm/plat-omap/fb.c
-index 3746222..ee2cc6f 100644
---- a/arch/arm/plat-omap/fb.c
-+++ b/arch/arm/plat-omap/fb.c
-@@ -327,6 +327,28 @@ static inline int omap_init_fb(void)
++#include <mach/display.h>
  
- arch_initcall(omap_init_fb);
+ #include "twl4030-generic-scripts.h"
+ #include "mmc-twl4030.h"
+@@ -238,15 +240,6 @@ static void __init omap3_beagle_init_irq(void)
+ 	omap_gpio_init();
+ }
  
-+#elif defined(CONFIG_FB_OMAP2) || defined(CONFIG_FB_OMAP2_MODULE)
-+
-+static u64 omap_fb_dma_mask = ~(u32)0;
-+
-+static struct platform_device omap_fb_device = {
-+	.name		= "omapfb",
-+	.id		= -1,
-+	.dev = {
-+		.dma_mask		= &omap_fb_dma_mask,
-+		.coherent_dma_mask	= ~(u32)0,
-+		.platform_data		= NULL,
-+	},
-+	.num_resources = 0,
-+};
-+
-+static inline int omap_init_fb(void)
-+{
-+	return platform_device_register(&omap_fb_device);
-+}
-+
-+arch_initcall(omap_init_fb);
-+
- #else
- 
- void omapfb_reserve_sdram(void) {}
-diff --git a/arch/arm/plat-omap/include/mach/omapfb.h b/arch/arm/plat-omap/include/mach/omapfb.h
-index b226bdf..0800f92 100644
---- a/arch/arm/plat-omap/include/mach/omapfb.h
-+++ b/arch/arm/plat-omap/include/mach/omapfb.h
-@@ -90,6 +90,13 @@ enum omapfb_color_format {
- 	OMAPFB_COLOR_CLUT_1BPP,
- 	OMAPFB_COLOR_RGB444,
- 	OMAPFB_COLOR_YUY422,
-+
-+	OMAPFB_COLOR_ARGB16,
-+	OMAPFB_COLOR_RGB24U,	/* RGB24, 32-bit container */
-+	OMAPFB_COLOR_RGB24P,	/* RGB24, 24-bit container */
-+	OMAPFB_COLOR_ARGB32,
-+	OMAPFB_COLOR_RGBA32,
-+	OMAPFB_COLOR_RGBX32,
+-static struct platform_device omap3_beagle_lcd_device = {
+-	.name		= "omap3beagle_lcd",
+-	.id		= -1,
+-};
+-
+-static struct omap_lcd_config omap3_beagle_lcd_config __initdata = {
+-	.ctrl_name	= "internal",
+-};
+-
+ static struct gpio_led gpio_leds[] = {
+ 	{
+ 		.name			= "beagleboard::usr0",
+@@ -300,13 +293,94 @@ static struct platform_device keys_gpio = {
+ 	},
  };
  
- struct omapfb_update_window {
-@@ -393,6 +400,13 @@ extern int  omapfb_update_window_async(struct fb_info *fbi,
- /* in arch/arm/plat-omap/fb.c */
- extern void omapfb_set_ctrl_platform_data(void *pdata);
- 
-+/* in arch/arm/plat-omap/fb-vram */
-+int omap_vram_free(unsigned long paddr, void *vaddr, size_t size);
-+void *omap_vram_reserve(unsigned long paddr, size_t size);
-+void *omap_vram_alloc(int mtype, size_t size, unsigned long *paddr);
-+extern void omap2_set_sdram_vram(u32 size, u32 start);
-+extern void omap2_set_sram_vram(u32 size, u32 start);
++/* DSS */
 +
- #endif /* __KERNEL__ */
- 
- #endif /* __OMAPFB_H */
-diff --git a/drivers/video/Kconfig b/drivers/video/Kconfig
-index 3f3ce13..689a3b1 100644
---- a/drivers/video/Kconfig
-+++ b/drivers/video/Kconfig
-@@ -2116,6 +2116,7 @@ config FB_PRE_INIT_FB
- 	  the bootloader.
- 
- source "drivers/video/omap/Kconfig"
-+source "drivers/video/omap2/Kconfig"
- 
- source "drivers/video/backlight/Kconfig"
- source "drivers/video/display/Kconfig"
-diff --git a/drivers/video/Makefile b/drivers/video/Makefile
-index e39e33e..3d9d50e 100644
---- a/drivers/video/Makefile
-+++ b/drivers/video/Makefile
-@@ -120,6 +120,7 @@ obj-$(CONFIG_FB_SM501)            += sm501fb.o
- obj-$(CONFIG_FB_XILINX)           += xilinxfb.o
- obj-$(CONFIG_FB_SH_MOBILE_LCDC)	  += sh_mobile_lcdcfb.o
- obj-$(CONFIG_FB_OMAP)             += omap/
-+obj-$(CONFIG_OMAP2_DSS)           += omap2/
- obj-$(CONFIG_XEN_FBDEV_FRONTEND)  += xen-fbfront.o
- obj-$(CONFIG_FB_CARMINE)          += carminefb.o
- obj-$(CONFIG_FB_MB862XX)	  += mb862xx/
-diff --git a/drivers/video/omap/Kconfig b/drivers/video/omap/Kconfig
-index c355b59..541fab3 100644
---- a/drivers/video/omap/Kconfig
-+++ b/drivers/video/omap/Kconfig
-@@ -1,6 +1,7 @@
- config FB_OMAP
- 	tristate "OMAP frame buffer support (EXPERIMENTAL)"
--	depends on FB && ARCH_OMAP
-+	depends on FB && ARCH_OMAP && (OMAP2_DSS = "n")
-+
- 	select FB_CFB_FILLRECT
- 	select FB_CFB_COPYAREA
- 	select FB_CFB_IMAGEBLIT
-@@ -80,7 +81,7 @@ config FB_OMAP_BOOTLOADER_INIT
- 
- config FB_OMAP_CONSISTENT_DMA_SIZE
- 	int "Consistent DMA memory size (MB)"
--	depends on FB_OMAP
-+	depends on FB && ARCH_OMAP
- 	range 1 14
- 	default 2
- 	help
-diff --git a/drivers/video/omap2/Kconfig b/drivers/video/omap2/Kconfig
-new file mode 100644
-index 0000000..8be51a3
---- /dev/null
-+++ b/drivers/video/omap2/Kconfig
-@@ -0,0 +1,42 @@
-+config FB_OMAP2
-+        tristate "OMAP2/3 frame buffer support (EXPERIMENTAL)"
-+        depends on FB && OMAP2_DSS
-+
-+        select FB_CFB_FILLRECT
-+        select FB_CFB_COPYAREA
-+        select FB_CFB_IMAGEBLIT
-+        help
-+          Frame buffer driver for OMAP2/3 based boards.
-+
-+config FB_OMAP2_DEBUG
-+	bool "Debug support for OMAP2/3 FB"
-+	default y
-+	depends on FB_OMAP2
-+	help
-+	  Support for debug output. You have to enable the actual printing
-+	  with debug module parameter.
-+
-+config FB_OMAP2_FORCE_AUTO_UPDATE
-+	bool "Force main display to automatic update mode"
-+	depends on FB_OMAP2
-+	help
-+	  Forces main display to automatic update mode (if possible),
-+	  and also enables tearsync (if possible). By default
-+	  displays that support manual update are started in manual
-+	  update mode.
-+
-+config FB_OMAP2_NUM_FBS
-+	int "Number of framebuffers"
-+	range 1 10
-+	default 3
-+	depends on FB_OMAP2
-+	help
-+	  Select the number of framebuffers created. OMAP2/3 has 3 overlays
-+	  so normally this would be 3.
-+
-+menu "OMAP2/3 Display Device Drivers"
-+        depends on OMAP2_DSS
-+
-+
-+endmenu
-+
-diff --git a/drivers/video/omap2/Makefile b/drivers/video/omap2/Makefile
-new file mode 100644
-index 0000000..51c2e00
---- /dev/null
-+++ b/drivers/video/omap2/Makefile
-@@ -0,0 +1,2 @@
-+obj-$(CONFIG_FB_OMAP2) += omapfb.o
-+omapfb-y := omapfb-main.o omapfb-sysfs.o omapfb-ioctl.o
-diff --git a/drivers/video/omap2/omapfb-ioctl.c b/drivers/video/omap2/omapfb-ioctl.c
-new file mode 100644
-index 0000000..0cb0370
---- /dev/null
-+++ b/drivers/video/omap2/omapfb-ioctl.c
-@@ -0,0 +1,460 @@
-+/*
-+ * linux/drivers/video/omap2/omapfb-ioctl.c
-+ *
-+ * Copyright (C) 2008 Nokia Corporation
-+ * Author: Tomi Valkeinen <tomi.valkeinen@nokia.com>
-+ *
-+ * Some code and ideas taken from drivers/video/omap/ driver
-+ * by Imre Deak.
-+ *
-+ * This program is free software; you can redistribute it and/or modify it
-+ * under the terms of the GNU General Public License version 2 as published by
-+ * the Free Software Foundation.
-+ *
-+ * This program is distributed in the hope that it will be useful, but WITHOUT
-+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
-+ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
-+ * more details.
-+ *
-+ * You should have received a copy of the GNU General Public License along with
-+ * this program.  If not, see <http://www.gnu.org/licenses/>.
-+ */
-+
-+#include <linux/fb.h>
-+#include <linux/device.h>
-+#include <linux/uaccess.h>
-+#include <linux/platform_device.h>
-+#include <linux/mm.h>
-+
-+#include <mach/display.h>
-+#include <mach/omapfb.h>
-+
-+#include "omapfb.h"
-+
-+static int omapfb_setup_plane(struct fb_info *fbi, struct omapfb_plane_info *pi)
++static int beagle_enable_dvi(struct omap_display *display)
 +{
-+	struct omapfb_info *ofbi = FB2OFB(fbi);
-+	struct omapfb2_device *fbdev = ofbi->fbdev;
-+	struct omap_display *display = fb2display(fbi);
-+	struct omap_overlay *ovl;
-+	int r = 0;
-+
-+	DBG("omapfb_setup_plane\n");
-+
-+	omapfb_lock(fbdev);
-+
-+	if (ofbi->num_overlays != 1) {
-+		r = -EINVAL;
-+		goto out;
-+	}
-+
-+	/* XXX uses only the first overlay */
-+	ovl = ofbi->overlays[0];
-+
-+	if (pi->enabled && !ofbi->region.size) {
-+		/*
-+		 * This plane's memory was freed, can't enable it
-+		 * until it's reallocated.
-+		 */
-+		r = -EINVAL;
-+		goto out;
-+	}
-+
-+	if (pi->enabled) {
-+		r = omapfb_setup_overlay(fbi, ovl, pi->pos_x, pi->pos_y,
-+				pi->out_width, pi->out_height);
-+		if (r)
-+			goto out;
-+	}
-+
-+	ovl->enable(ovl, pi->enabled);
-+
-+	if (ovl->manager)
-+		ovl->manager->apply(ovl->manager);
-+
-+	if (display) {
-+		if (display->sync)
-+			display->sync(display);
-+
-+		if (display->update)
-+			display->update(display, 0, 0,
-+					display->panel->timings.x_res,
-+					display->panel->timings.y_res);
-+	}
-+
-+out:
-+	omapfb_unlock(fbdev);
-+	if (r)
-+		dev_err(fbdev->dev, "setup_plane failed\n");
-+	return r;
-+}
-+
-+static int omapfb_query_plane(struct fb_info *fbi, struct omapfb_plane_info *pi)
-+{
-+	struct omapfb_info *ofbi = FB2OFB(fbi);
-+	struct omapfb2_device *fbdev = ofbi->fbdev;
-+
-+	omapfb_lock(fbdev);
-+
-+	if (ofbi->num_overlays != 1) {
-+		memset(pi, 0, sizeof(*pi));
-+	} else {
-+		struct omap_overlay_info *ovli;
-+		struct omap_overlay *ovl;
-+
-+		ovl = ofbi->overlays[0];
-+		ovli = &ovl->info;
-+
-+		pi->pos_x = ovli->pos_x;
-+		pi->pos_y = ovli->pos_y;
-+		pi->enabled = ovli->enabled;
-+		pi->channel_out = 0; /* xxx */
-+		pi->mirror = 0;
-+		pi->out_width = ovli->out_width;
-+		pi->out_height = ovli->out_height;
-+	}
-+
-+	omapfb_unlock(fbdev);
++	if (display->hw_config.panel_reset_gpio != -1)
++		gpio_direction_output(display->hw_config.panel_reset_gpio, 1);
 +
 +	return 0;
 +}
 +
-+static int omapfb_setup_mem(struct fb_info *fbi, struct omapfb_mem_info *mi)
++static void beagle_disable_dvi(struct omap_display *display)
 +{
-+	struct omapfb_info *ofbi = FB2OFB(fbi);
-+	struct omapfb2_device *fbdev = ofbi->fbdev;
-+	struct omapfb_mem_region *rg;
-+	struct omap_display *display = fb2display(fbi);
-+	int r, i;
-+	size_t size;
-+
-+	if (mi->type > OMAPFB_MEMTYPE_MAX)
-+		return -EINVAL;
-+
-+	size = PAGE_ALIGN(mi->size);
-+
-+	rg = &ofbi->region;
-+
-+	omapfb_lock(fbdev);
-+
-+	for (i = 0; i < ofbi->num_overlays; i++) {
-+		if (ofbi->overlays[i]->info.enabled) {
-+			r = -EBUSY;
-+			goto out;
-+		}
-+	}
-+
-+	if (rg->size != size || rg->type != mi->type) {
-+		struct fb_var_screeninfo new_var;
-+		unsigned long old_size = rg->size;
-+
-+		if (display->sync)
-+			display->sync(display);
-+
-+		r = omapfb_realloc_fbmem(fbdev, ofbi->id, size);
-+		if (r)
-+			goto out;
-+
-+		if (old_size != size) {
-+			if (size) {
-+				memcpy(&new_var, &fbi->var, sizeof(new_var));
-+				r = check_fb_var(fbi, &new_var);
-+				if (r < 0)
-+					goto out;
-+				memcpy(&fbi->var, &new_var, sizeof(fbi->var));
-+				set_fb_fix(fbi);
-+			} else {
-+				/*
-+				 * Set these explicitly to indicate that the
-+				 * plane memory is dealloce'd, the other
-+				 * screen parameters in var / fix are invalid.
-+				 */
-+				fbi->fix.smem_start = 0;
-+				fbi->fix.smem_len = 0;
-+			}
-+		}
-+	}
-+
-+	r = 0;
-+out:
-+	omapfb_unlock(fbdev);
-+
-+	return r;
++	if (display->hw_config.panel_reset_gpio != -1)
++		gpio_direction_output(display->hw_config.panel_reset_gpio, 0);
 +}
 +
-+static int omapfb_query_mem(struct fb_info *fbi, struct omapfb_mem_info *mi)
-+{
-+	struct omapfb_info *ofbi = FB2OFB(fbi);
-+	struct omapfb2_device *fbdev = ofbi->fbdev;
-+	struct omapfb_mem_region *rg;
-+
-+	rg = &ofbi->region;
-+	memset(mi, 0, sizeof(*mi));
-+
-+	omapfb_lock(fbdev);
-+	mi->size = rg->size;
-+	mi->type = rg->type;
-+	omapfb_unlock(fbdev);
-+
-+	return 0;
-+}
-+
-+static int omapfb_update_window(struct fb_info *fbi,
-+		u32 x, u32 y, u32 w, u32 h)
-+{
-+	struct omapfb_info *ofbi = FB2OFB(fbi);
-+	struct omapfb2_device *fbdev = ofbi->fbdev;
-+	struct omap_display *display = fb2display(fbi);
-+
-+	if (!display)
-+		return 0;
-+
-+	if (w == 0 || h == 0)
-+		return 0;
-+
-+	if (x + w > display->panel->timings.x_res ||
-+			y + h > display->panel->timings.y_res)
-+		return -EINVAL;
-+
-+	omapfb_lock(fbdev);
-+	display->update(display, x, y, w, h);
-+	omapfb_unlock(fbdev);
-+
-+	return 0;
-+}
-+
-+static int omapfb_set_update_mode(struct fb_info *fbi,
-+				   enum omapfb_update_mode mode)
-+{
-+	struct omapfb_info *ofbi = FB2OFB(fbi);
-+	struct omapfb2_device *fbdev = ofbi->fbdev;
-+	struct omap_display *display = fb2display(fbi);
-+	enum omap_dss_update_mode um;
-+	int r;
-+
-+	if (!display || !display->set_update_mode)
-+		return -EINVAL;
-+
-+	switch (mode) {
-+	case OMAPFB_UPDATE_DISABLED:
-+		um = OMAP_DSS_UPDATE_DISABLED;
-+		break;
-+
-+	case OMAPFB_AUTO_UPDATE:
-+		um = OMAP_DSS_UPDATE_AUTO;
-+		break;
-+
-+	case OMAPFB_MANUAL_UPDATE:
-+		um = OMAP_DSS_UPDATE_MANUAL;
-+		break;
-+
-+	default:
-+		return -EINVAL;
-+	}
-+
-+	omapfb_lock(fbdev);
-+	r = display->set_update_mode(display, um);
-+	omapfb_unlock(fbdev);
-+
-+	return r;
-+}
-+
-+static int omapfb_get_update_mode(struct fb_info *fbi,
-+		enum omapfb_update_mode *mode)
-+{
-+	struct omapfb_info *ofbi = FB2OFB(fbi);
-+	struct omapfb2_device *fbdev = ofbi->fbdev;
-+	struct omap_display *display = fb2display(fbi);
-+	enum omap_dss_update_mode m;
-+
-+	if (!display || !display->get_update_mode)
-+		return -EINVAL;
-+
-+	omapfb_lock(fbdev);
-+	m = display->get_update_mode(display);
-+	omapfb_unlock(fbdev);
-+
-+	switch (m) {
-+	case OMAP_DSS_UPDATE_DISABLED:
-+		*mode = OMAPFB_UPDATE_DISABLED;
-+		break;
-+	case OMAP_DSS_UPDATE_AUTO:
-+		*mode = OMAPFB_AUTO_UPDATE;
-+		break;
-+	case OMAP_DSS_UPDATE_MANUAL:
-+		*mode = OMAPFB_MANUAL_UPDATE;
-+		break;
-+	default:
-+		BUG();
-+	}
-+
-+	return 0;
-+}
-+
-+int omapfb_ioctl(struct fb_info *fbi, unsigned int cmd, unsigned long arg)
-+{
-+	struct omapfb_info *ofbi = FB2OFB(fbi);
-+	struct omapfb2_device *fbdev = ofbi->fbdev;
-+	struct omap_display *display = fb2display(fbi);
-+
-+	union {
-+		struct omapfb_update_window_old	uwnd_o;
-+		struct omapfb_update_window	uwnd;
-+		struct omapfb_plane_info	plane_info;
-+		struct omapfb_caps		caps;
-+		struct omapfb_mem_info          mem_info;
-+		enum omapfb_update_mode		update_mode;
-+		int test_num;
-+	} p;
-+
-+	int r = 0;
-+
-+	DBG("ioctl %x (%d)\n", cmd, cmd & 0xff);
-+
-+	switch (cmd) {
-+	case OMAPFB_SYNC_GFX:
-+		if (!display || !display->sync) {
-+			/* DSS1 never returns an error here, so we neither */
-+			/*r = -EINVAL;*/
-+			break;
-+		}
-+
-+		omapfb_lock(fbdev);
-+		r = display->sync(display);
-+		omapfb_unlock(fbdev);
-+		break;
-+
-+	case OMAPFB_UPDATE_WINDOW_OLD:
-+		if (!display || !display->update) {
-+			r = -EINVAL;
-+			break;
-+		}
-+
-+		if (copy_from_user(&p.uwnd_o,
-+					(void __user *)arg,
-+					sizeof(p.uwnd_o))) {
-+			r = -EFAULT;
-+			break;
-+		}
-+
-+		r = omapfb_update_window(fbi, p.uwnd_o.x, p.uwnd_o.y,
-+				p.uwnd_o.width, p.uwnd_o.height);
-+		break;
-+
-+	case OMAPFB_UPDATE_WINDOW:
-+		if (!display || !display->update) {
-+			r = -EINVAL;
-+			break;
-+		}
-+
-+		if (copy_from_user(&p.uwnd, (void __user *)arg,
-+					sizeof(p.uwnd))) {
-+			r = -EFAULT;
-+			break;
-+		}
-+
-+		r = omapfb_update_window(fbi, p.uwnd.x, p.uwnd.y,
-+				p.uwnd.width, p.uwnd.height);
-+		break;
-+
-+	case OMAPFB_SETUP_PLANE:
-+		if (copy_from_user(&p.plane_info, (void __user *)arg,
-+					sizeof(p.plane_info)))
-+			r = -EFAULT;
-+		else
-+			r = omapfb_setup_plane(fbi, &p.plane_info);
-+		break;
-+
-+	case OMAPFB_QUERY_PLANE:
-+		r = omapfb_query_plane(fbi, &p.plane_info);
-+		if (r < 0)
-+			break;
-+		if (copy_to_user((void __user *)arg, &p.plane_info,
-+					sizeof(p.plane_info)))
-+			r = -EFAULT;
-+		break;
-+
-+	case OMAPFB_SETUP_MEM:
-+		if (copy_from_user(&p.mem_info, (void __user *)arg,
-+					sizeof(p.mem_info)))
-+			r = -EFAULT;
-+		else
-+			r = omapfb_setup_mem(fbi, &p.mem_info);
-+		break;
-+
-+	case OMAPFB_QUERY_MEM:
-+		r = omapfb_query_mem(fbi, &p.mem_info);
-+		if (r < 0)
-+			break;
-+		if (copy_to_user((void __user *)arg, &p.mem_info,
-+					sizeof(p.mem_info)))
-+			r = -EFAULT;
-+		break;
-+
-+	case OMAPFB_GET_CAPS:
-+		if (!display) {
-+			r = -EINVAL;
-+			break;
-+		}
-+
-+		p.caps.ctrl = display->caps;
-+
-+		if (copy_to_user((void __user *)arg, &p.caps, sizeof(p.caps)))
-+			r = -EFAULT;
-+		break;
-+
-+	case OMAPFB_SET_UPDATE_MODE:
-+		if (get_user(p.update_mode, (int __user *)arg))
-+			r = -EFAULT;
-+		else
-+			r = omapfb_set_update_mode(fbi, p.update_mode);
-+		break;
-+
-+	case OMAPFB_GET_UPDATE_MODE:
-+		r = omapfb_get_update_mode(fbi, &p.update_mode);
-+		if (r)
-+			break;
-+		if (put_user(p.update_mode,
-+					(enum omapfb_update_mode __user *)arg))
-+			r = -EFAULT;
-+		break;
-+
-+	/* LCD and CTRL tests do the same thing for backward
-+	 * compatibility */
-+	case OMAPFB_LCD_TEST:
-+		if (get_user(p.test_num, (int __user *)arg)) {
-+			r = -EFAULT;
-+			break;
-+		}
-+		if (!display || !display->run_test) {
-+			r = -EINVAL;
-+			break;
-+		}
-+
-+		r = display->run_test(display, p.test_num);
-+
-+		break;
-+
-+	case OMAPFB_CTRL_TEST:
-+		if (get_user(p.test_num, (int __user *)arg)) {
-+			r = -EFAULT;
-+			break;
-+		}
-+		if (!display || !display->run_test) {
-+			r = -EINVAL;
-+			break;
-+		}
-+
-+		r = display->run_test(display, p.test_num);
-+
-+		break;
-+
-+	default:
-+		DBG("ioctl unhandled\n");
-+		r = -EINVAL;
-+	}
-+
-+	return r;
-+}
-+
-+
-diff --git a/drivers/video/omap2/omapfb-main.c b/drivers/video/omap2/omapfb-main.c
-new file mode 100644
-index 0000000..d043c43
---- /dev/null
-+++ b/drivers/video/omap2/omapfb-main.c
-@@ -0,0 +1,1442 @@
-+/*
-+ * linux/drivers/video/omap2/omapfb-main.c
-+ *
-+ * Copyright (C) 2008 Nokia Corporation
-+ * Author: Tomi Valkeinen <tomi.valkeinen@nokia.com>
-+ *
-+ * Some code and ideas taken from drivers/video/omap/ driver
-+ * by Imre Deak.
-+ *
-+ * This program is free software; you can redistribute it and/or modify it
-+ * under the terms of the GNU General Public License version 2 as published by
-+ * the Free Software Foundation.
-+ *
-+ * This program is distributed in the hope that it will be useful, but WITHOUT
-+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
-+ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
-+ * more details.
-+ *
-+ * You should have received a copy of the GNU General Public License along with
-+ * this program.  If not, see <http://www.gnu.org/licenses/>.
-+ */
-+
-+#include <linux/module.h>
-+#include <linux/delay.h>
-+#include <linux/fb.h>
-+#include <linux/dma-mapping.h>
-+#include <linux/vmalloc.h>
-+#include <linux/device.h>
-+#include <linux/platform_device.h>
-+
-+#include <mach/display.h>
-+#include <mach/omapfb.h>
-+
-+#include "omapfb.h"
-+
-+#define MODULE_NAME     "omapfb"
-+
-+static char *def_mode;
-+static char *def_vram;
-+
-+#ifdef DEBUG
-+unsigned int omapfb_debug;
-+module_param_named(debug, omapfb_debug, bool, 0644);
-+#endif
-+
-+#ifdef DEBUG
-+static void fill_fb(void *addr, struct fb_info *fbi)
-+{
-+	struct fb_var_screeninfo *var = &fbi->var;
-+
-+	const short w = var->xres_virtual;
-+	const short h = var->yres_virtual;
-+
-+	int y, x;
-+	u8 *p = addr;
-+
-+	for (y = 0; y < h; y++) {
-+		for (x = 0; x < w; x++) {
-+			if (var->bits_per_pixel == 16) {
-+				u16 *pw = (u16 *)p;
-+
-+				if (x < 20 && y < 20)
-+					*pw = 0xffff;
-+				else if (x == 20 || x == w - 20 ||
-+						y == 20 || y == h - 20)
-+					*pw = 0xffff;
-+				else if (x == y || w - x == h - y)
-+					*pw = ((1<<5)-1)<<11;
-+				else if (w - x == y || x == h - y)
-+					*pw = ((1<<6)-1)<<5;
-+				else {
-+					int t = x / (w/3);
-+					if (t == 0)
-+						*pw = y % 32;
-+					else if (t == 1)
-+						*pw = (y % 64) << 5;
-+					else if (t == 2)
-+						*pw = (y % 32) << 11;
-+				}
-+			} else if (var->bits_per_pixel == 24) {
-+				u8 *pb = (u8 *)p;
-+
-+				int r = 0, g = 0, b = 0;
-+
-+				if (x < 20 && y < 20)
-+					r = g = b = 0xff;
-+				else if (x == 20 || x == w - 20 ||
-+						y == 20 || y == h - 20)
-+					r = g = b = 0xff;
-+				else if (x == y || w - x == h - y)
-+					r = 0xff;
-+				else if (w - x == y || x == h - y)
-+					g = 0xff;
-+				else {
-+					int q = x / (w / 3);
-+					u8 base = 255 - (y % 256);
-+					if (q == 0)
-+						r = base;
-+					else if (q == 1)
-+						g = base;
-+					else if (q == 2)
-+						b = base;
-+				}
-+
-+				pb[0] = b;
-+				pb[1] = g;
-+				pb[2] = r;
-+
-+			} else if (var->bits_per_pixel == 32) {
-+				u32 *pd = (u32 *)p;
-+
-+				if (x < 20 && y < 20)
-+					*pd = 0xffffff;
-+				else if (x == 20 || x == w - 20 ||
-+						y == 20 || y == h - 20)
-+					*pd = 0xffffff;
-+				else if (x == y || w - x == h - y)
-+					*pd = 0xff0000;
-+				else if (w - x == y || x == h - y)
-+					*pd = 0x00ff00;
-+				else {
-+					u8 base = 255 - (y % 256);
-+					*pd = base << ((x / (w/3)) << 3);
-+				}
-+			}
-+
-+			p += var->bits_per_pixel >> 3;
-+		}
-+	}
-+}
-+#endif
-+
-+static enum omap_color_mode fb_mode_to_dss_mode(struct fb_var_screeninfo *var)
-+{
-+	switch (var->nonstd) {
-+	case 0:
-+		break;
-+	case OMAPFB_COLOR_YUV422:
-+		return OMAP_DSS_COLOR_UYVY;
-+
-+	case OMAPFB_COLOR_YUY422:
-+		return OMAP_DSS_COLOR_YUV2;
-+
-+	case OMAPFB_COLOR_ARGB16:
-+		return OMAP_DSS_COLOR_ARGB16;
-+
-+	case OMAPFB_COLOR_ARGB32:
-+		return OMAP_DSS_COLOR_ARGB32;
-+
-+	case OMAPFB_COLOR_RGBA32:
-+		return OMAP_DSS_COLOR_RGBA32;
-+
-+	case OMAPFB_COLOR_RGBX32:
-+		return OMAP_DSS_COLOR_RGBX32;
-+
-+	default:
-+		return -EINVAL;
-+	}
-+
-+	switch (var->bits_per_pixel) {
-+	case 1:
-+		return OMAP_DSS_COLOR_CLUT1;
-+	case 2:
-+		return OMAP_DSS_COLOR_CLUT2;
-+	case 4:
-+		return OMAP_DSS_COLOR_CLUT4;
-+	case 8:
-+		return OMAP_DSS_COLOR_CLUT8;
-+	case 12:
-+		return OMAP_DSS_COLOR_RGB12U;
-+	case 16:
-+		return OMAP_DSS_COLOR_RGB16;
-+	case 24:
-+		return OMAP_DSS_COLOR_RGB24P;
-+	case 32:
-+		return OMAP_DSS_COLOR_RGB24U;
-+	default:
-+		return -EINVAL;
-+	}
-+
-+	return -EINVAL;
-+}
-+
-+void set_fb_fix(struct fb_info *fbi)
-+{
-+	struct fb_fix_screeninfo *fix = &fbi->fix;
-+	struct fb_var_screeninfo *var = &fbi->var;
-+	struct omapfb_mem_region *rg = &FB2OFB(fbi)->region;
-+
-+	DBG("set_fb_fix\n");
-+
-+	/* used by open/write in fbmem.c */
-+	fbi->screen_base        = (char __iomem *)rg->vaddr;
-+
-+	/* used by mmap in fbmem.c */
-+	fix->smem_start         = rg->paddr;
-+	fix->smem_len           = rg->size;
-+
-+	fix->type = FB_TYPE_PACKED_PIXELS;
-+
-+	if (var->nonstd)
-+		fix->visual = FB_VISUAL_PSEUDOCOLOR;
-+	else {
-+		switch (var->bits_per_pixel) {
-+		case 32:
-+		case 24:
-+		case 16:
-+		case 12:
-+			fix->visual = FB_VISUAL_TRUECOLOR;
-+			/* 12bpp is stored in 16 bits */
-+			break;
-+		case 1:
-+		case 2:
-+		case 4:
-+		case 8:
-+			fix->visual = FB_VISUAL_PSEUDOCOLOR;
-+			break;
-+		}
-+	}
-+
-+	fix->accel = FB_ACCEL_NONE;
-+	fix->line_length = (var->xres_virtual * var->bits_per_pixel) >> 3;
-+
-+	fix->xpanstep = 1;
-+	fix->ypanstep = 1;
-+}
-+
-+/* check new var and possibly modify it to be ok */
-+int check_fb_var(struct fb_info *fbi, struct fb_var_screeninfo *var)
-+{
-+	struct omapfb_info *ofbi = FB2OFB(fbi);
-+	struct omap_display *display = fb2display(fbi);
-+	unsigned long max_frame_size;
-+	unsigned long line_size;
-+	int xres_min, xres_max;
-+	int yres_min, yres_max;
-+	enum omap_color_mode mode = 0;
-+	struct omap_overlay *ovl;
-+
-+	DBG("check_fb_var %d\n", ofbi->id);
-+
-+	if (ofbi->region.size == 0) {
-+		memset(var, 0, sizeof(*var));
-+		return 0;
-+	}
-+
-+	if (ofbi->num_overlays == 0) {
-+		dev_err(ofbi->fbdev->dev, "no overlays, aborting\n");
-+		return -EINVAL;
-+	}
-+
-+	/* XXX: uses the first overlay */
-+	ovl = ofbi->overlays[0];
-+
-+	/* if we are using non standard mode, fix the bpp first */
-+	switch (var->nonstd) {
-+	case 0:
-+		break;
-+	case OMAPFB_COLOR_YUV422:
-+	case OMAPFB_COLOR_YUY422:
-+	case OMAPFB_COLOR_ARGB16:
-+		var->bits_per_pixel = 16;
-+		break;
-+	case OMAPFB_COLOR_ARGB32:
-+	case OMAPFB_COLOR_RGBA32:
-+	case OMAPFB_COLOR_RGBX32:
-+		var->bits_per_pixel = 32;
-+		break;
-+	default:
-+		DBG("invalid nonstd mode\n");
-+		return -EINVAL;
-+	}
-+
-+	mode = fb_mode_to_dss_mode(var);
-+	if (mode < 0) {
-+		DBG("cannot convert var to omap dss mode\n");
-+		return -EINVAL;
-+	}
-+
-+	if ((ovl->supported_modes & mode) == 0) {
-+		DBG("invalid mode\n");
-+		return -EINVAL;
-+	}
-+
-+	xres_min = OMAPFB_PLANE_XRES_MIN;
-+	xres_max = (display ? display->panel->timings.x_res : 2048) - ovl->info.pos_x;
-+	yres_min = OMAPFB_PLANE_YRES_MIN;
-+	yres_max = (display ? display->panel->timings.y_res : 2048) - ovl->info.pos_y;
-+
-+	if (var->xres < xres_min)
-+		var->xres = xres_min;
-+	if (var->yres < yres_min)
-+		var->yres = yres_min;
-+	if (var->xres_virtual < var->xres)
-+		var->xres_virtual = var->xres;
-+	if (var->yres_virtual < var->yres)
-+		var->yres_virtual = var->yres;
-+	max_frame_size = ofbi->region.size;
-+	line_size = (var->xres_virtual * var->bits_per_pixel) >> 3;
-+
-+	if (line_size * var->yres_virtual > max_frame_size) {
-+		/* Try to keep yres_virtual first */
-+		line_size = max_frame_size / var->yres_virtual;
-+		var->xres_virtual = line_size * 8 / var->bits_per_pixel;
-+		if (var->xres_virtual < var->xres) {
-+			/* Still doesn't fit. Shrink yres_virtual too */
-+			var->xres_virtual = var->xres;
-+			line_size = var->xres * var->bits_per_pixel / 8;
-+			var->yres_virtual = max_frame_size / line_size;
-+		}
-+		/* Recheck this, as the virtual size changed. */
-+		if (var->xres_virtual < var->xres)
-+			var->xres = var->xres_virtual;
-+		if (var->yres_virtual < var->yres)
-+			var->yres = var->yres_virtual;
-+		if (var->xres < xres_min || var->yres < yres_min) {
-+			DBG("Cannot fit FB to memory\n");
-+			return -EINVAL;
-+		}
-+	}
-+	if (var->xres + var->xoffset > var->xres_virtual)
-+		var->xoffset = var->xres_virtual - var->xres;
-+	if (var->yres + var->yoffset > var->yres_virtual)
-+		var->yoffset = var->yres_virtual - var->yres;
-+
-+	if (var->bits_per_pixel == 16) {
-+		var->red.offset  = 11; var->red.length   = 5;
-+		var->red.msb_right   = 0;
-+		var->green.offset = 5;  var->green.length = 6;
-+		var->green.msb_right = 0;
-+		var->blue.offset = 0;  var->blue.length  = 5;
-+		var->blue.msb_right  = 0;
-+	} else if (var->bits_per_pixel == 24) {
-+		var->red.offset  = 16; var->red.length   = 8;
-+		var->red.msb_right   = 0;
-+		var->green.offset = 8;  var->green.length = 8;
-+		var->green.msb_right = 0;
-+		var->blue.offset = 0;  var->blue.length  = 8;
-+		var->blue.msb_right  = 0;
-+		var->transp.offset = 0; var->transp.length = 0;
-+	} else if (var->bits_per_pixel == 32) {
-+		var->red.offset  = 16; var->red.length   = 8;
-+		var->red.msb_right   = 0;
-+		var->green.offset = 8;  var->green.length = 8;
-+		var->green.msb_right = 0;
-+		var->blue.offset = 0;  var->blue.length  = 8;
-+		var->blue.msb_right  = 0;
-+		var->transp.offset = 0; var->transp.length = 0;
-+	} else {
-+		DBG("failed to setup fb color mask\n");
-+		return -EINVAL;
-+	}
-+
-+	DBG("xres = %d, yres = %d, vxres = %d, vyres = %d\n",
-+			var->xres, var->yres,
-+			var->xres_virtual, var->yres_virtual);
-+
-+	var->height             = -1;
-+	var->width              = -1;
-+	var->grayscale          = 0;
-+
-+	if (display && display->get_timings) {
-+		struct omap_video_timings timings;
-+		display->get_timings(display, &timings);
-+
-+		/* pixclock in ps, the rest in pixclock */
-+		var->pixclock = timings.pixel_clock != 0 ?
-+			KHZ2PICOS(timings.pixel_clock) :
-+			0;
-+		var->left_margin = timings.hfp;
-+		var->right_margin = timings.hbp;
-+		var->upper_margin = timings.vfp;
-+		var->lower_margin = timings.vbp;
-+		var->hsync_len = timings.hsw;
-+		var->vsync_len = timings.vsw;
-+	} else {
-+		var->pixclock = 0;
-+		var->left_margin = 0;
-+		var->right_margin = 0;
-+		var->upper_margin = 0;
-+		var->lower_margin = 0;
-+		var->hsync_len = 0;
-+		var->vsync_len = 0;
-+	}
-+
-+	/* TODO: get these from panel->config */
-+	var->vmode              = FB_VMODE_NONINTERLACED;
-+	var->sync               = 0;
-+
-+	return 0;
-+}
-+
-+/*
-+ * ---------------------------------------------------------------------------
-+ * fbdev framework callbacks
-+ * ---------------------------------------------------------------------------
-+ */
-+static int omapfb_open(struct fb_info *fbi, int user)
-+{
-+	return 0;
-+}
-+
-+static int omapfb_release(struct fb_info *fbi, int user)
-+{
-+	struct omapfb_info *ofbi = FB2OFB(fbi);
-+	struct omapfb2_device *fbdev = ofbi->fbdev;
-+	struct omap_display *display = fb2display(fbi);
-+
-+	DBG("Closing fb with plane index %d\n", ofbi->id);
-+
-+	omapfb_lock(fbdev);
-+#if 1
-+	if (display) {
-+		/* XXX Is this really needed ? */
-+		if (display->sync)
-+			display->sync(display);
-+
-+		if (display->update)
-+			display->update(display,
-+					0, 0,
-+					display->panel->timings.x_res,
-+					display->panel->timings.y_res);
-+	}
-+#endif
-+
-+	if (display && display->sync)
-+		display->sync(display);
-+
-+	omapfb_unlock(fbdev);
-+
-+	return 0;
-+}
-+
-+/* setup overlay according to the fb */
-+int omapfb_setup_overlay(struct fb_info *fbi, struct omap_overlay *ovl,
-+		int posx, int posy, int outw, int outh)
-+{
-+	int r = 0;
-+	struct omapfb_info *ofbi = FB2OFB(fbi);
-+	struct fb_var_screeninfo *var = &fbi->var;
-+	enum omap_color_mode mode = 0;
-+	int offset;
-+	u32 data_start_p;
-+	void *data_start_v;
-+
-+	DBG("setup_overlay %d\n", ofbi->id);
-+
-+	if ((ovl->caps & OMAP_DSS_OVL_CAP_SCALE) == 0 &&
-+			(outw != var->xres || outh != var->yres)) {
-+		r = -EINVAL;
-+		goto err;
-+	}
-+
-+	offset = ((var->yoffset * var->xres_virtual +
-+				var->xoffset) * var->bits_per_pixel) >> 3;
-+
-+	data_start_p = ofbi->region.paddr + offset;
-+	data_start_v = ofbi->region.vaddr + offset;
-+
-+	mode = fb_mode_to_dss_mode(var);
-+
-+	if (mode == -EINVAL) {
-+		r = -EINVAL;
-+		goto err;
-+	}
-+
-+	r = ovl->setup_input(ovl,
-+			data_start_p, data_start_v,
-+			var->xres_virtual,
-+			var->xres, var->yres,
-+			mode);
-+
-+	if (r)
-+		goto err;
-+
-+	r = ovl->setup_output(ovl,
-+			posx, posy,
-+			outw, outh);
-+
-+	if (r)
-+		goto err;
-+
-+	return 0;
-+
-+err:
-+	DBG("setup_overlay failed\n");
-+	return r;
-+}
-+
-+/* apply var to the overlay */
-+int omapfb_apply_changes(struct fb_info *fbi, int init)
-+{
-+	int r = 0;
-+	struct omapfb_info *ofbi = FB2OFB(fbi);
-+	struct fb_var_screeninfo *var = &fbi->var;
-+	struct omap_overlay *ovl;
-+	int posx, posy;
-+	int outw, outh;
-+	int i;
-+
-+	for (i = 0; i < ofbi->num_overlays; i++) {
-+		ovl = ofbi->overlays[i];
-+
-+		DBG("apply_changes, fb %d, ovl %d\n", ofbi->id, ovl->id);
-+
-+		if (ofbi->region.size == 0) {
-+			/* the fb is not available. disable the overlay */
-+			ovl->enable(ovl, 0);
-+			if (!init && ovl->manager)
-+				ovl->manager->apply(ovl->manager);
-+			continue;
-+		}
-+
-+		if (init || (ovl->caps & OMAP_DSS_OVL_CAP_SCALE) == 0) {
-+			outw = var->xres;
-+			outh = var->yres;
-+		} else {
-+			outw = ovl->info.out_width;
-+			outh = ovl->info.out_height;
-+		}
-+
-+		if (init) {
-+			posx = 0;
-+			posy = 0;
-+		} else {
-+			posx = ovl->info.pos_x;
-+			posy = ovl->info.pos_y;
-+		}
-+
-+		r = omapfb_setup_overlay(fbi, ovl, posx, posy, outw, outh);
-+		if (r)
-+			goto err;
-+
-+		if (!init && ovl->manager)
-+			ovl->manager->apply(ovl->manager);
-+	}
-+	return 0;
-+err:
-+	DBG("apply_changes failed\n");
-+	return r;
-+}
-+
-+/* checks var and eventually tweaks it to something supported,
-+ * DO NOT MODIFY PAR */
-+static int omapfb_check_var(struct fb_var_screeninfo *var, struct fb_info *fbi)
-+{
-+	int r;
-+
-+	DBG("check_var(%d)\n", FB2OFB(fbi)->id);
-+
-+	r = check_fb_var(fbi, var);
-+
-+	return r;
-+}
-+
-+/* set the video mode according to info->var */
-+static int omapfb_set_par(struct fb_info *fbi)
-+{
-+	int r;
-+
-+	DBG("set_par(%d)\n", FB2OFB(fbi)->id);
-+
-+	set_fb_fix(fbi);
-+	r = omapfb_apply_changes(fbi, 0);
-+
-+	return r;
-+}
-+
-+static void omapfb_rotate(struct fb_info *fbi, int rotate)
-+{
-+	DBG("rotate(%d)\n", FB2OFB(fbi)->id);
-+	return;
-+}
-+
-+static int omapfb_pan_display(struct fb_var_screeninfo *var,
-+		struct fb_info *fbi)
-+{
-+	struct omapfb_info *ofbi = FB2OFB(fbi);
-+	struct omapfb2_device *fbdev = ofbi->fbdev;
-+	int r = 0;
-+
-+	DBG("pan_display(%d)\n", ofbi->id);
-+
-+	omapfb_lock(fbdev);
-+
-+	if (var->xoffset != fbi->var.xoffset ||
-+	    var->yoffset != fbi->var.yoffset) {
-+		struct fb_var_screeninfo new_var;
-+
-+		new_var = fbi->var;
-+		new_var.xoffset = var->xoffset;
-+		new_var.yoffset = var->yoffset;
-+
-+		r = check_fb_var(fbi, &new_var);
-+
-+		if (r == 0) {
-+			fbi->var = new_var;
-+			set_fb_fix(fbi);
-+			r = omapfb_apply_changes(fbi, 0);
-+		}
-+	}
-+
-+	omapfb_unlock(fbdev);
-+
-+	return r;
-+}
-+
-+static void mmap_user_open(struct vm_area_struct *vma)
-+{
-+	struct omapfb_info *ofbi = (struct omapfb_info *)vma->vm_private_data;
-+
-+	atomic_inc(&ofbi->map_count);
-+}
-+
-+static void mmap_user_close(struct vm_area_struct *vma)
-+{
-+	struct omapfb_info *ofbi = (struct omapfb_info *)vma->vm_private_data;
-+
-+	atomic_dec(&ofbi->map_count);
-+}
-+
-+static struct vm_operations_struct mmap_user_ops = {
-+	.open = mmap_user_open,
-+	.close = mmap_user_close,
++static struct omap_display_data beagle_display_data_dvi = {
++	.type = OMAP_DISPLAY_TYPE_DPI,
++	.name = "dvi",
++	.panel_name = "panel-generic",
++	.u.dpi.data_lines = 24,
++	.panel_reset_gpio = 170,
++	.panel_enable = beagle_enable_dvi,
++	.panel_disable = beagle_disable_dvi,
 +};
 +
-+static int omapfb_mmap(struct fb_info *fbi, struct vm_area_struct *vma)
++
++static int beagle_panel_enable_tv(struct omap_display *display)
 +{
-+	struct omapfb_info *ofbi = FB2OFB(fbi);
-+	struct omapfb_mem_region *rg = &ofbi->region;
-+	unsigned long off;
-+	unsigned long start;
-+	u32 len;
++#define ENABLE_VDAC_DEDICATED           0x03
++#define ENABLE_VDAC_DEV_GRP             0x20
 +
-+	if (vma->vm_end - vma->vm_start == 0)
-+		return 0;
-+	if (vma->vm_pgoff > (~0UL >> PAGE_SHIFT))
-+		return -EINVAL;
-+	off = vma->vm_pgoff << PAGE_SHIFT;
-+
-+	start = rg->paddr;
-+	len = rg->size;
-+	if (off >= len)
-+		return -EINVAL;
-+	if ((vma->vm_end - vma->vm_start + off) > len)
-+		return -EINVAL;
-+	off += start;
-+	vma->vm_pgoff = off >> PAGE_SHIFT;
-+	vma->vm_flags |= VM_IO | VM_RESERVED;
-+	vma->vm_page_prot = pgprot_writecombine(vma->vm_page_prot);
-+	vma->vm_ops = &mmap_user_ops;
-+	vma->vm_private_data = ofbi;
-+	if (io_remap_pfn_range(vma, vma->vm_start, off >> PAGE_SHIFT,
-+			     vma->vm_end - vma->vm_start, vma->vm_page_prot))
-+		return -EAGAIN;
-+	/* vm_ops.open won't be called for mmap itself. */
-+	atomic_inc(&ofbi->map_count);
-+	return 0;
-+}
-+
-+/* Store a single color palette entry into a pseudo palette or the hardware
-+ * palette if one is available. For now we support only 16bpp and thus store
-+ * the entry only to the pseudo palette.
-+ */
-+static int _setcolreg(struct fb_info *fbi, u_int regno, u_int red, u_int green,
-+		u_int blue, u_int transp, int update_hw_pal)
-+{
-+	/*struct omapfb_info *ofbi = FB2OFB(fbi);*/
-+	/*struct omapfb2_device *fbdev = ofbi->fbdev;*/
-+	struct fb_var_screeninfo *var = &fbi->var;
-+	int r = 0;
-+
-+	enum omapfb_color_format mode = OMAPFB_COLOR_RGB24U; /* XXX */
-+
-+	/*switch (plane->color_mode) {*/
-+	switch (mode) {
-+	case OMAPFB_COLOR_YUV422:
-+	case OMAPFB_COLOR_YUV420:
-+	case OMAPFB_COLOR_YUY422:
-+		r = -EINVAL;
-+		break;
-+	case OMAPFB_COLOR_CLUT_8BPP:
-+	case OMAPFB_COLOR_CLUT_4BPP:
-+	case OMAPFB_COLOR_CLUT_2BPP:
-+	case OMAPFB_COLOR_CLUT_1BPP:
-+		/*
-+		   if (fbdev->ctrl->setcolreg)
-+		   r = fbdev->ctrl->setcolreg(regno, red, green, blue,
-+		   transp, update_hw_pal);
-+		   */
-+		/* Fallthrough */
-+		r = -EINVAL;
-+		break;
-+	case OMAPFB_COLOR_RGB565:
-+	case OMAPFB_COLOR_RGB444:
-+	case OMAPFB_COLOR_RGB24P:
-+	case OMAPFB_COLOR_RGB24U:
-+		if (r != 0)
-+			break;
-+
-+		if (regno < 0) {
-+			r = -EINVAL;
-+			break;
-+		}
-+
-+		if (regno < 16) {
-+			u16 pal;
-+			pal = ((red >> (16 - var->red.length)) <<
-+					var->red.offset) |
-+				((green >> (16 - var->green.length)) <<
-+				 var->green.offset) |
-+				(blue >> (16 - var->blue.length));
-+			((u32 *)(fbi->pseudo_palette))[regno] = pal;
-+		}
-+		break;
-+	default:
-+		BUG();
-+	}
-+	return r;
-+}
-+
-+static int omapfb_setcolreg(u_int regno, u_int red, u_int green, u_int blue,
-+		u_int transp, struct fb_info *info)
-+{
-+	DBG("setcolreg\n");
-+
-+	return _setcolreg(info, regno, red, green, blue, transp, 1);
-+}
-+
-+static int omapfb_setcmap(struct fb_cmap *cmap, struct fb_info *info)
-+{
-+	int count, index, r;
-+	u16 *red, *green, *blue, *transp;
-+	u16 trans = 0xffff;
-+
-+	DBG("setcmap\n");
-+
-+	red     = cmap->red;
-+	green   = cmap->green;
-+	blue    = cmap->blue;
-+	transp  = cmap->transp;
-+	index   = cmap->start;
-+
-+	for (count = 0; count < cmap->len; count++) {
-+		if (transp)
-+			trans = *transp++;
-+		r = _setcolreg(info, index++, *red++, *green++, *blue++, trans,
-+				count == cmap->len - 1);
-+		if (r != 0)
-+			return r;
-+	}
++	twl4030_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER,
++			ENABLE_VDAC_DEDICATED,
++			TWL4030_VDAC_DEDICATED);
++	twl4030_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER,
++			ENABLE_VDAC_DEV_GRP, TWL4030_VDAC_DEV_GRP);
 +
 +	return 0;
 +}
 +
-+static int omapfb_blank(int blank, struct fb_info *fbi)
++static void beagle_panel_disable_tv(struct omap_display *display)
 +{
-+	struct omapfb_info *ofbi = FB2OFB(fbi);
-+	struct omapfb2_device *fbdev = ofbi->fbdev;
-+	struct omap_display *display = fb2display(fbi);
-+	int do_update = 0;
-+	int r = 0;
-+
-+	omapfb_lock(fbdev);
-+
-+	switch (blank) {
-+	case FB_BLANK_UNBLANK:
-+		if (display->state != OMAP_DSS_DISPLAY_SUSPENDED) {
-+			r = -EINVAL;
-+			goto exit;
-+		}
-+
-+		if (display->resume)
-+			r = display->resume(display);
-+
-+		if (r == 0 && display->get_update_mode &&
-+				display->get_update_mode(display) ==
-+				OMAP_DSS_UPDATE_MANUAL)
-+			do_update = 1;
-+
-+		break;
-+
-+	case FB_BLANK_POWERDOWN:
-+		if (display->state != OMAP_DSS_DISPLAY_ACTIVE) {
-+			r = -EINVAL;
-+			goto exit;
-+		}
-+
-+		if (display->suspend)
-+			r = display->suspend(display);
-+
-+		break;
-+
-+	default:
-+		r = -EINVAL;
-+	}
-+
-+exit:
-+	omapfb_unlock(fbdev);
-+
-+	if (r == 0 && do_update && display->update)
-+		r = display->update(display,
-+				0, 0,
-+				display->panel->timings.x_res,
-+				display->panel->timings.y_res);
-+
-+	return r;
++	twl4030_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER, 0x00,
++			TWL4030_VDAC_DEDICATED);
++	twl4030_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER, 0x00,
++			TWL4030_VDAC_DEV_GRP);
 +}
 +
-+static struct fb_ops omapfb_ops = {
-+	.owner          = THIS_MODULE,
-+	.fb_open        = omapfb_open,
-+	.fb_release     = omapfb_release,
-+	.fb_fillrect    = cfb_fillrect,
-+	.fb_copyarea    = cfb_copyarea,
-+	.fb_imageblit   = cfb_imageblit,
-+	.fb_blank       = omapfb_blank,
-+	.fb_ioctl       = omapfb_ioctl,
-+	.fb_check_var   = omapfb_check_var,
-+	.fb_set_par     = omapfb_set_par,
-+	.fb_rotate      = omapfb_rotate,
-+	.fb_pan_display = omapfb_pan_display,
-+	.fb_mmap	= omapfb_mmap,
-+	.fb_setcolreg	= omapfb_setcolreg,
-+	.fb_setcmap	= omapfb_setcmap,
++static struct omap_display_data beagle_display_data_tv = {
++	.type = OMAP_DISPLAY_TYPE_VENC,
++	.name = "tv",
++	.u.venc.type = OMAP_DSS_VENC_TYPE_SVIDEO,
++	.panel_enable = beagle_panel_enable_tv,
++	.panel_disable = beagle_panel_disable_tv,
 +};
 +
-+static void omapfb_free_fbmem(struct omapfb2_device *fbdev, int fbnum)
-+{
-+	struct omapfb_info *ofbi = FB2OFB(fbdev->fbs[fbnum]);
-+	struct omapfb_mem_region *rg;
-+
-+	rg = &ofbi->region;
-+
-+	if (rg->paddr)
-+		if (omap_vram_free(rg->paddr, rg->vaddr, rg->size))
-+			dev_err(fbdev->dev, "VRAM FREE failed\n");
-+
-+	rg->vaddr = NULL;
-+	rg->paddr = 0;
-+	rg->alloc = 0;
-+	rg->size = 0;
-+}
-+
-+static int omapfb_free_all_fbmem(struct omapfb2_device *fbdev)
-+{
-+	int i;
-+
-+	DBG("free all fbmem\n");
-+
-+	for (i = 0; i < fbdev->num_fbs; i++)
-+		omapfb_free_fbmem(fbdev, i);
-+
-+	return 0;
-+}
-+
-+static int omapfb_alloc_fbmem(struct omapfb2_device *fbdev, int fbnum,
-+		unsigned long size)
-+{
-+	struct omapfb_info *ofbi;
-+	struct omapfb_mem_region *rg;
-+	unsigned long paddr;
-+	void *vaddr;
-+
-+	size = PAGE_ALIGN(size);
-+
-+	ofbi = FB2OFB(fbdev->fbs[fbnum]);
-+	rg = &ofbi->region;
-+	memset(rg, 0, sizeof(*rg));
-+
-+	DBG("allocating %lu bytes for fb %d\n",
-+			size, ofbi->id);
-+
-+	vaddr = omap_vram_alloc(OMAPFB_MEMTYPE_SDRAM, size, &paddr);
-+	DBG("allocated VRAM paddr %lx, vaddr %p\n", paddr, vaddr);
-+
-+	if (vaddr == NULL) {
-+		dev_err(fbdev->dev,
-+				"failed to allocate framebuffer\n");
-+		return -ENOMEM;
++static struct omap_dss_platform_data beagle_dss_data = {
++	.num_displays = 2,
++	.displays = {
++		&beagle_display_data_dvi,
++		&beagle_display_data_tv,
 +	}
-+
-+	rg->paddr = paddr;
-+	rg->vaddr = vaddr;
-+	rg->size = size;
-+	rg->alloc = 1;
-+
-+	return 0;
-+}
-+
-+int omapfb_realloc_fbmem(struct omapfb2_device *fbdev, int fbnum,
-+		unsigned long size)
-+{
-+	struct omapfb_info *ofbi = FB2OFB(fbdev->fbs[fbnum]);
-+	struct omapfb_mem_region *rg = &ofbi->region;
-+	unsigned old_size = rg->size;
-+	int r;
-+
-+	size = PAGE_ALIGN(size);
-+
-+	omapfb_free_fbmem(fbdev, fbnum);
-+
-+	if (size == 0)
-+		return 0;
-+
-+	r = omapfb_alloc_fbmem(fbdev, fbnum, size);
-+
-+	if (r)
-+		omapfb_alloc_fbmem(fbdev, fbnum, old_size);
-+
-+	return r;
-+}
-+
-+/* allocate fbmem using display resolution as reference */
-+static int omapfb_alloc_fbmem_display(struct omapfb2_device *fbdev, int fbnum,
-+		unsigned long def_vram)
-+{
-+	struct omapfb_info *ofbi;
-+	struct omap_display *display;
-+	int bytespp;
-+	unsigned long size;
-+
-+	ofbi = FB2OFB(fbdev->fbs[fbnum]);
-+	display =  fb2display(fbdev->fbs[fbnum]);
-+
-+	if (!display)
-+		return 0;
-+
-+	switch (display->panel->bpp) {
-+	case 16:
-+		bytespp = 2;
-+		break;
-+	case 24:
-+	case 32:
-+		bytespp = 4;
-+		break;
-+	default:
-+		bytespp = 4;
-+		break;
-+	}
-+
-+	if (def_vram)
-+		size = def_vram;
-+	else
-+		size = display->panel->timings.x_res *
-+			display->panel->timings.y_res *
-+			bytespp;
-+
-+	return omapfb_alloc_fbmem(fbdev, fbnum, size);
-+}
-+
-+static int omapfb_allocate_all_fbs(struct omapfb2_device *fbdev)
-+{
-+	int i, r;
-+	unsigned long vrams[10];
-+
-+	memset(vrams, 0, sizeof(vrams));
-+
-+	if (def_vram) {
-+		char str[64];
-+		char *tok, *s;
-+
-+		if (strlen(def_vram) > sizeof(str) - 1) {
-+			dev_err(fbdev->dev, "Illegal vram parameters\n");
-+			return -EINVAL;
-+		}
-+
-+		strcpy(str, def_vram);
-+
-+		s = str;
-+		i = 0;
-+
-+		while ((tok = strsep(&s, ","))) {
-+			unsigned long size;
-+
-+			size = memparse(tok, NULL);
-+
-+			if (size == 0) {
-+				dev_err(fbdev->dev, "illegal vram size\n");
-+				break;
-+			}
-+
-+			vrams[i++] = size;
-+		}
-+	}
-+
-+	for (i = 0; i < fbdev->num_fbs; i++) {
-+		/* allocate memory automatically only for fb0, or if
-+		 * excplicitly defined with vram option */
-+		if (i == 0 || vrams[i] != 0) {
-+			r = omapfb_alloc_fbmem_display(fbdev, i, vrams[i]);
-+
-+			if (r)
-+				return r;
-+		}
-+	}
-+
-+	for (i = 0; i < fbdev->num_fbs; i++) {
-+		struct omapfb_info *ofbi = FB2OFB(fbdev->fbs[i]);
-+		struct omapfb_mem_region *rg;
-+		rg = &ofbi->region;
-+
-+		DBG("region%d phys %08x virt %p size=%lu\n",
-+				i,
-+				rg->paddr,
-+				rg->vaddr,
-+				rg->size);
-+	}
-+
-+	return 0;
-+}
-+
-+/* initialize fb_info, var, fix to something sane based on the display */
-+static int fbinfo_init(struct omapfb2_device *fbdev, struct fb_info *fbi)
-+{
-+	struct fb_var_screeninfo *var = &fbi->var;
-+	struct fb_fix_screeninfo *fix = &fbi->fix;
-+	struct omap_display *display = fb2display(fbi);
-+	int r = 0;
-+
-+	fbi->fbops = &omapfb_ops;
-+	fbi->flags = FBINFO_FLAG_DEFAULT;
-+	fbi->pseudo_palette = fbdev->pseudo_palette;
-+
-+	strncpy(fix->id, MODULE_NAME, sizeof(fix->id));
-+
-+	var->nonstd = 0;
-+
-+	if (display) {
-+		var->xres = display->panel->timings.x_res;
-+		var->yres = display->panel->timings.y_res;
-+		var->xres_virtual = var->xres;
-+		var->yres_virtual = var->yres;
-+		/*        var->rotate       = def_rotate; */
-+
-+		switch (display->panel->bpp) {
-+		case 16:
-+			var->bits_per_pixel = 16;
-+			break;
-+		case 18:
-+			var->bits_per_pixel = 16;
-+			break;
-+		case 24:
-+			var->bits_per_pixel = 32;
-+			break;
-+		default:
-+			dev_err(fbdev->dev, "illegal display bpp\n");
-+			return -EINVAL;
-+		}
-+	}
-+
-+	r = check_fb_var(fbi, var);
-+	if (r)
-+		goto err;
-+
-+	set_fb_fix(fbi);
-+
-+#ifdef DEBUG
-+	if (omapfb_debug)
-+		fill_fb(FB2OFB(fbi)->region.vaddr, fbi);
-+#endif
-+err:
-+	return r;
-+}
-+
-+static void fbinfo_cleanup(struct omapfb2_device *fbdev, struct fb_info *fbi)
-+{
-+	fb_dealloc_cmap(&fbi->cmap);
-+}
-+
-+
-+static void omapfb_free_resources(struct omapfb2_device *fbdev)
-+{
-+	int i;
-+
-+	DBG("free_resources\n");
-+
-+	if (fbdev == NULL)
-+		return;
-+
-+	for (i = 0; i < fbdev->num_fbs; i++)
-+		unregister_framebuffer(fbdev->fbs[i]);
-+
-+	/* free the reserved fbmem */
-+	omapfb_free_all_fbmem(fbdev);
-+
-+	for (i = 0; i < fbdev->num_fbs; i++) {
-+		fbinfo_cleanup(fbdev, fbdev->fbs[i]);
-+		framebuffer_release(fbdev->fbs[i]);
-+	}
-+
-+	for (i = 0; i < fbdev->num_displays; i++) {
-+		if (fbdev->displays[i]->state != OMAP_DSS_DISPLAY_DISABLED)
-+			fbdev->displays[i]->disable(fbdev->displays[i]);
-+
-+		omap_dss_put_display(fbdev->displays[i]);
-+	}
-+
-+	dev_set_drvdata(fbdev->dev, NULL);
-+	kfree(fbdev);
-+}
-+
-+static int omapfb_create_framebuffers(struct omapfb2_device *fbdev)
-+{
-+	int r, i;
-+
-+	fbdev->num_fbs = 0;
-+
-+	DBG("create %d framebuffers\n",	CONFIG_FB_OMAP2_NUM_FBS);
-+
-+	/* allocate fb_infos */
-+	for (i = 0; i < CONFIG_FB_OMAP2_NUM_FBS; i++) {
-+		struct fb_info *fbi;
-+		struct omapfb_info *ofbi;
-+
-+		fbi = framebuffer_alloc(sizeof(struct omapfb_info),
-+				fbdev->dev);
-+
-+		if (fbi == NULL) {
-+			dev_err(fbdev->dev,
-+				"unable to allocate memory for plane info\n");
-+			return -ENOMEM;
-+		}
-+
-+		fbdev->fbs[i] = fbi;
-+
-+		ofbi = FB2OFB(fbi);
-+		ofbi->fbdev = fbdev;
-+		ofbi->id = i;
-+		fbdev->num_fbs++;
-+	}
-+
-+	DBG("fb_infos allocated\n");
-+
-+	/* assign overlays for the fbs */
-+	for (i = 0; i < min(fbdev->num_fbs, fbdev->num_overlays); i++) {
-+		struct omapfb_info *ofbi = FB2OFB(fbdev->fbs[i]);
-+
-+		ofbi->overlays[0] = fbdev->overlays[i];
-+		ofbi->num_overlays = 1;
-+	}
-+
-+	/* allocate fb memories */
-+	r = omapfb_allocate_all_fbs(fbdev);
-+	if (r) {
-+		dev_err(fbdev->dev, "failed to allocate fbmem\n");
-+		return r;
-+	}
-+
-+	DBG("fbmems allocated\n");
-+
-+	/* setup fb_infos */
-+	for (i = 0; i < fbdev->num_fbs; i++) {
-+		r = fbinfo_init(fbdev, fbdev->fbs[i]);
-+		if (r) {
-+			dev_err(fbdev->dev, "failed to setup fb_info\n");
-+			return r;
-+		}
-+	}
-+
-+	DBG("fb_infos initialized\n");
-+
-+	for (i = 0; i < fbdev->num_fbs; i++) {
-+		r = register_framebuffer(fbdev->fbs[i]);
-+		if (r != 0) {
-+			dev_err(fbdev->dev,
-+				"registering framebuffer %d failed\n", i);
-+			return r;
-+		}
-+	}
-+
-+	DBG("framebuffers registered\n");
-+
-+	for (i = 0; i < fbdev->num_fbs; i++) {
-+		r = omapfb_apply_changes(fbdev->fbs[i], 1);
-+		if (r)
-+			dev_err(fbdev->dev, "failed to change mode\n");
-+	}
-+
-+	/* Enable fb0 */
-+	if (fbdev->num_fbs > 0) {
-+		struct omapfb_info *ofbi = FB2OFB(fbdev->fbs[0]);
-+
-+		if (ofbi->num_overlays > 0 ) {
-+			struct omap_overlay *ovl = ofbi->overlays[0];
-+
-+			ovl->enable(ovl, 1);
-+		}
-+	}
-+
-+	DBG("create_framebuffers done\n");
-+
-+	return 0;
-+}
-+
-+int omapfb_mode_to_timings(const char *mode_str,
-+		struct omap_video_timings *timings, unsigned *bpp)
-+{
-+	struct fb_info fbi;
-+	struct fb_var_screeninfo var;
-+	struct fb_ops fbops;
-+	int r;
-+
-+	/* this is quite a hack, but I wanted to use the modedb and for
-+	 * that we need fb_info and var, so we create dummy ones */
-+
-+	memset(&fbi, 0, sizeof(fbi));
-+	memset(&var, 0, sizeof(var));
-+	memset(&fbops, 0, sizeof(fbops));
-+	fbi.fbops = &fbops;
-+
-+	r = fb_find_mode(&var, &fbi, mode_str, NULL, 0, NULL, 24);
-+
-+	if (r != 0) {
-+		timings->pixel_clock = PICOS2KHZ(var.pixclock);
-+		timings->hfp = var.left_margin;
-+		timings->hbp = var.right_margin;
-+		timings->vfp = var.upper_margin;
-+		timings->vbp = var.lower_margin;
-+		timings->hsw = var.hsync_len;
-+		timings->vsw = var.vsync_len;
-+		timings->x_res = var.xres;
-+		timings->y_res = var.yres;
-+
-+		switch (var.bits_per_pixel) {
-+		case 16:
-+			*bpp = 16;
-+			break;
-+		case 24:
-+		case 32:
-+		default:
-+			*bpp = 24;
-+			break;
-+		}
-+
-+		return 0;
-+	} else {
-+		return -EINVAL;
-+	}
-+}
-+
-+static int omapfb_probe(struct platform_device *pdev)
-+{
-+	struct omapfb2_device *fbdev = NULL;
-+	int r = 0;
-+	int i, t;
-+	struct omap_overlay *ovl;
-+	struct omap_display *def_display;
-+
-+	DBG("omapfb_probe\n");
-+
-+	if (pdev->num_resources != 0) {
-+		dev_err(&pdev->dev, "probed for an unknown device\n");
-+		r = -ENODEV;
-+		goto err0;
-+	}
-+
-+	fbdev = kzalloc(sizeof(struct omapfb2_device), GFP_KERNEL);
-+	if (fbdev == NULL) {
-+		r = -ENOMEM;
-+		goto err0;
-+	}
-+
-+	mutex_init(&fbdev->mtx);
-+
-+	fbdev->dev = &pdev->dev;
-+	platform_set_drvdata(pdev, fbdev);
-+
-+	fbdev->num_displays = 0;
-+	t = omap_dss_get_num_displays();
-+	for (i = 0; i < t; i++) {
-+		struct omap_display *display;
-+		display = omap_dss_get_display(i);
-+		if (!display) {
-+			dev_err(&pdev->dev, "can't get display %d\n", i);
-+			r = -EINVAL;
-+			goto cleanup;
-+		}
-+
-+		fbdev->displays[fbdev->num_displays++] = display;
-+	}
-+
-+	if (fbdev->num_displays == 0) {
-+		dev_err(&pdev->dev, "no displays\n");
-+		r = -EINVAL;
-+		goto cleanup;
-+	}
-+
-+	fbdev->num_overlays = omap_dss_get_num_overlays();
-+	for (i = 0; i < fbdev->num_overlays; i++)
-+		fbdev->overlays[i] = omap_dss_get_overlay(i);
-+
-+	fbdev->num_managers = omap_dss_get_num_overlay_managers();
-+	for (i = 0; i < fbdev->num_managers; i++)
-+		fbdev->managers[i] = omap_dss_get_overlay_manager(i);
-+
-+
-+	/* gfx overlay should be the default one. find a display
-+	 * connected to that, and use it as default display */
-+	ovl = omap_dss_get_overlay(0);
-+	if (ovl->manager && ovl->manager->display) {
-+		def_display = ovl->manager->display;
-+	} else {
-+		dev_err(&pdev->dev, "cannot find default display\n");
-+		r = -EINVAL;
-+		goto cleanup;
-+	}
-+
-+	if (def_mode && strlen(def_mode) > 0)
-+	{
-+		struct omap_video_timings timings;
-+		unsigned bpp;
-+
-+		if (omapfb_mode_to_timings(def_mode, &timings, &bpp) == 0) {
-+			if (def_display->set_timings)
-+				def_display->set_timings(def_display, &timings);
-+
-+			def_display->panel->bpp = bpp;
-+		}
-+	}
-+
-+	r = omapfb_create_framebuffers(fbdev);
-+	if (r)
-+		goto cleanup;
-+
-+	for (i = 0; i < fbdev->num_managers; i++) {
-+		struct omap_overlay_manager *mgr;
-+		mgr = fbdev->managers[i];
-+		r = mgr->apply(mgr);
-+		if (r) {
-+			dev_err(fbdev->dev, "failed to apply dispc config\n");
-+			goto cleanup;
-+		}
-+	}
-+
-+	DBG("mgr->apply'ed\n");
-+
-+	r = def_display->enable(def_display);
-+	if (r) {
-+		dev_err(fbdev->dev, "Failed to enable display '%s'\n",
-+				def_display->name);
-+		goto cleanup;
-+	}
-+
-+	/* set the update mode */
-+	if (def_display->caps & OMAP_DSS_DISPLAY_CAP_MANUAL_UPDATE) {
-+#ifdef CONFIG_FB_OMAP2_FORCE_AUTO_UPDATE
-+		if (def_display->set_update_mode)
-+			def_display->set_update_mode(def_display,
-+					OMAP_DSS_UPDATE_AUTO);
-+		if (def_display->enable_te)
-+			def_display->enable_te(def_display, 1);
-+#else
-+		if (def_display->set_update_mode)
-+			def_display->set_update_mode(def_display,
-+					OMAP_DSS_UPDATE_MANUAL);
-+		if (def_display->enable_te)
-+			def_display->enable_te(def_display, 0);
-+#endif
-+	} else {
-+		if (def_display->set_update_mode)
-+			def_display->set_update_mode(def_display,
-+					OMAP_DSS_UPDATE_AUTO);
-+	}
-+
-+	for (i = 0; i < fbdev->num_displays; i++) {
-+		struct omap_display *display = fbdev->displays[i];
-+
-+		if (display->update)
-+			display->update(display,
-+					0, 0,
-+					display->panel->timings.x_res,
-+					display->panel->timings.y_res);
-+	}
-+
-+	DBG("display->updated\n");
-+
-+	omapfb_create_sysfs(fbdev);
-+	DBG("sysfs created\n");
-+
-+	return 0;
-+
-+cleanup:
-+	omapfb_free_resources(fbdev);
-+err0:
-+	dev_err(&pdev->dev, "failed to setup omapfb\n");
-+	return r;
-+}
-+
-+static int omapfb_remove(struct platform_device *pdev)
-+{
-+	struct omapfb2_device *fbdev = platform_get_drvdata(pdev);
-+
-+	/* FIXME: wait till completion of pending events */
-+
-+	omapfb_remove_sysfs(fbdev);
-+
-+	omapfb_free_resources(fbdev);
-+
-+	return 0;
-+}
-+
-+static struct platform_driver omapfb_driver = {
-+	.probe          = omapfb_probe,
-+	.remove         = omapfb_remove,
-+	.driver         = {
-+		.name   = "omapfb",
-+		.owner  = THIS_MODULE,
++};
++
++static struct platform_device beagle_dss_device = {
++	.name          = "omap-dss",
++	.id            = -1,
++	.dev            = {
++		.platform_data = &beagle_dss_data,
 +	},
 +};
 +
-+static int __init omapfb_init(void)
-+{
-+	DBG("omapfb_init\n");
-+
-+	if (platform_driver_register(&omapfb_driver)) {
-+		printk(KERN_ERR "failed to register omapfb driver\n");
-+		return -ENODEV;
-+	}
-+
-+	return 0;
-+}
-+
-+static void __exit omapfb_exit(void)
-+{
-+	DBG("omapfb_exit\n");
-+	platform_driver_unregister(&omapfb_driver);
-+}
-+
-+module_param_named(video_mode, def_mode, charp, 0);
-+module_param_named(vram, def_vram, charp, 0);
-+
-+/* late_initcall to let panel/ctrl drivers loaded first.
-+ * I guess better option would be a more dynamic approach,
-+ * so that omapfb reacts to new panels when they are loaded */
-+late_initcall(omapfb_init);
-+/*module_init(omapfb_init);*/
-+module_exit(omapfb_exit);
-+
-+MODULE_AUTHOR("Tomi Valkeinen <tomi.valkeinen@nokia.com>");
-+MODULE_DESCRIPTION("OMAP2/3 Framebuffer");
-+MODULE_LICENSE("GPL v2");
-diff --git a/drivers/video/omap2/omapfb-sysfs.c b/drivers/video/omap2/omapfb-sysfs.c
-new file mode 100644
-index 0000000..0e153b9
---- /dev/null
-+++ b/drivers/video/omap2/omapfb-sysfs.c
-@@ -0,0 +1,901 @@
-+/*
-+ * linux/drivers/video/omap2/omapfb-sysfs.c
-+ *
-+ * Copyright (C) 2008 Nokia Corporation
-+ * Author: Tomi Valkeinen <tomi.valkeinen@nokia.com>
-+ *
-+ * Some code and ideas taken from drivers/video/omap/ driver
-+ * by Imre Deak.
-+ *
-+ * This program is free software; you can redistribute it and/or modify it
-+ * under the terms of the GNU General Public License version 2 as published by
-+ * the Free Software Foundation.
-+ *
-+ * This program is distributed in the hope that it will be useful, but WITHOUT
-+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
-+ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
-+ * more details.
-+ *
-+ * You should have received a copy of the GNU General Public License along with
-+ * this program.  If not, see <http://www.gnu.org/licenses/>.
-+ */
-+
-+#include <linux/fb.h>
-+#include <linux/sysfs.h>
-+#include <linux/device.h>
-+#include <linux/uaccess.h>
-+#include <linux/platform_device.h>
-+#include <linux/kernel.h>
-+
-+#include <mach/display.h>
-+#include <mach/omapfb.h>
-+
-+#include "omapfb.h"
-+
-+static int omapfb_attach_framebuffer(struct fb_info *fbi,
-+		struct omap_overlay *ovl)
-+{
-+	struct omapfb_info *ofbi = FB2OFB(fbi);
-+	struct omapfb2_device *fbdev = ofbi->fbdev;
-+	int i, t;
-+	int r;
-+
-+	if (ofbi->num_overlays >= OMAPFB_MAX_OVL_PER_FB) {
-+		dev_err(fbdev->dev, "fb has max number of overlays already\n");
-+		return -EINVAL;
-+	}
-+
-+	for (i = 0; i < ofbi->num_overlays; i++) {
-+		if (ofbi->overlays[i] == ovl) {
-+			dev_err(fbdev->dev, "fb already attached to overlay\n");
-+			return -EINVAL;
-+		}
-+	}
-+
-+	for (i = 0; i < fbdev->num_fbs; i++) {
-+		struct omapfb_info *ofbi2 = FB2OFB(fbdev->fbs[i]);
-+		for (t = 0; t < ofbi2->num_overlays; t++) {
-+			if (ofbi2->overlays[t] == ovl) {
-+				dev_err(fbdev->dev, "overlay already in use\n");
-+				return -EINVAL;
-+			}
-+		}
-+	}
-+
-+	ofbi->overlays[ofbi->num_overlays++] = ovl;
-+
-+/*
-+	if (ovl->manager && ovl->manager->display)
-+		omapfb_adjust_fb(fbi, ovl, 0, 0);
-+*/
-+	r = omapfb_apply_changes(fbi, 1);
-+	if (r)
-+		return r;
-+
-+	if (ovl->manager)
-+		ovl->manager->apply(ovl->manager);
-+
-+	return 0;
-+}
-+
-+static int omapfb_detach_framebuffer(struct fb_info *fbi,
-+		struct omap_overlay *ovl)
-+{
-+	int i;
-+	struct omapfb_info *ofbi = FB2OFB(fbi);
-+	struct omapfb2_device *fbdev = ofbi->fbdev;
-+
-+	for (i = 0; i < ofbi->num_overlays; i++) {
-+		if (ofbi->overlays[i] == ovl)
-+			break;
-+	}
-+
-+	if (i == ofbi->num_overlays) {
-+		dev_err(fbdev->dev, "cannot detach fb, overlay not attached\n");
-+		return -EINVAL;
-+	}
-+
-+	ovl->enable(ovl, 0);
-+
-+	if (ovl->manager)
-+		ovl->manager->apply(ovl->manager);
-+
-+	for (i = i + 1; i < ofbi->num_overlays; i++)
-+		ofbi->overlays[i-1] = ofbi->overlays[i];
-+
-+	ofbi->num_overlays--;
-+
-+	return 0;
-+}
-+
-+
-+static ssize_t show_framebuffers(struct device *dev,
-+		struct device_attribute *attr,
-+		char *buf)
-+{
-+	struct platform_device *pdev = to_platform_device(dev);
-+	struct omapfb2_device *fbdev = platform_get_drvdata(pdev);
-+	ssize_t l = 0, size = PAGE_SIZE;
-+	int i, t;
-+
-+	omapfb_lock(fbdev);
-+
-+	for (i = 0; i < fbdev->num_fbs; i++) {
-+		struct omapfb_info *ofbi = FB2OFB(fbdev->fbs[i]);
-+		struct omapfb_mem_region *rg;
-+
-+		rg = &ofbi->region;
-+
-+		l += snprintf(buf + l, size - l, "%d p:%08x v:%p size:%lu t:",
-+				ofbi->id,
-+				rg->paddr, rg->vaddr, rg->size);
-+
-+		if (ofbi->num_overlays == 0)
-+			l += snprintf(buf + l, size - l, "none");
-+
-+		for (t = 0; t < ofbi->num_overlays; t++) {
-+			struct omap_overlay *ovl;
-+			ovl = ofbi->overlays[t];
-+
-+			l += snprintf(buf + l, size - l, "%s%s",
-+					t == 0 ? "" : ",",
-+					ovl->name);
-+		}
-+
-+		l += snprintf(buf + l, size - l, "\n");
-+	}
-+
-+	omapfb_unlock(fbdev);
-+
-+	return l;
-+}
-+
-+static struct omap_overlay *find_overlay_by_name(struct omapfb2_device *fbdev,
-+		char *name)
-+{
-+	int i;
-+
-+	for (i = 0; i < fbdev->num_overlays; i++)
-+		if (strcmp(name, fbdev->overlays[i]->name) == 0)
-+			return fbdev->overlays[i];
-+
-+	return NULL;
-+}
-+
-+static struct omap_display *find_display_by_name(struct omapfb2_device *fbdev,
-+		char *name)
-+{
-+	int i;
-+
-+	for (i = 0; i < fbdev->num_displays; i++)
-+		if (strcmp(name, fbdev->displays[i]->name) == 0)
-+			return fbdev->displays[i];
-+
-+	return NULL;
-+}
-+
-+static struct omap_overlay_manager *find_manager_by_name(
-+		struct omapfb2_device *fbdev,
-+		char *name)
-+{
-+	int i;
-+
-+	for (i = 0; i < fbdev->num_managers; i++)
-+		if (strcmp(name, fbdev->managers[i]->name) == 0)
-+			return fbdev->managers[i];
-+
-+	return NULL;
-+}
-+
-+static int parse_overlays(struct omapfb2_device *fbdev, char *str,
-+		struct omap_overlay *ovls[])
-+{
-+	int num_ovls = 0;
-+	int s, e = 0;
-+	char ovlname[10];
-+
-+	while (1) {
-+		struct omap_overlay *ovl;
-+
-+		s = e;
-+
-+		while (e < strlen(str) && str[e] != ',')
-+			e++;
-+
-+		strncpy(ovlname, str + s, e - s);
-+		ovlname[e-s] = 0;
-+
-+		DBG("searching for '%s'\n", ovlname);
-+		ovl = find_overlay_by_name(fbdev, ovlname);
-+
-+		if (ovl) {
-+			DBG("found an overlay\n");
-+			ovls[num_ovls] = ovl;
-+			num_ovls++;
-+		} else {
-+			DBG("unknown overlay %s\n", str);
-+			return 0;
-+		}
-+
-+		if (e == strlen(str))
-+			break;
-+
-+		e++;
-+	}
-+
-+	return num_ovls;
-+}
-+
-+static ssize_t store_framebuffers(struct device *dev,
-+		struct device_attribute *attr,
-+		const char *buf, size_t count)
-+{
-+	struct platform_device *pdev = to_platform_device(dev);
-+	struct omapfb2_device *fbdev = platform_get_drvdata(pdev);
-+	int idx;
-+	char fbname[3];
-+	unsigned long fbnum;
-+	char ovlnames[40];
-+	int num_ovls = 0;
-+	struct omap_overlay *ovls[OMAPFB_MAX_OVL_PER_FB];
-+	struct fb_info *fbi;
-+	struct omapfb_info *ofbi;
-+	int r, i;
-+
-+	idx = 0;
-+	while (idx < count && buf[idx] != ' ')
-+		++idx;
-+
-+	if (idx == count)
-+		return -EINVAL;
-+
-+	if (idx >= sizeof(fbname))
-+		return -EINVAL;
-+
-+	strncpy(fbname, buf, idx);
-+	fbname[idx] = 0;
-+	idx++;
-+
-+	if (strict_strtoul(fbname, 10, &fbnum))
-+		return -EINVAL;
-+
-+	r = sscanf(buf + idx, "t:%39s", ovlnames);
-+
-+	if (r != 1) {
-+		r = -EINVAL;
-+		goto err;
-+	}
-+
-+	omapfb_lock(fbdev);
-+
-+	if (fbnum >= fbdev->num_fbs) {
-+		dev_err(dev, "fb not found\n");
-+		r = -EINVAL;
-+		goto err;
-+	}
-+
-+	fbi = fbdev->fbs[fbnum];
-+	ofbi = FB2OFB(fbi);
-+
-+	if (strcmp(ovlnames, "none") == 0) {
-+		num_ovls = 0;
-+	} else {
-+		num_ovls = parse_overlays(fbdev, ovlnames, ovls);
-+
-+		if (num_ovls == 0) {
-+			dev_err(dev, "overlays not found\n");
-+			r = -EINVAL;
-+			goto err;
-+		}
-+	}
-+
-+	for (i = 0; i < ofbi->num_overlays; i++) {
-+		r = omapfb_detach_framebuffer(fbi, ofbi->overlays[i]);
-+		if (r) {
-+			dev_err(dev, "detach failed\n");
-+			goto err;
-+		}
-+	}
-+
-+	if (num_ovls > 0) {
-+		for (i = 0; i < num_ovls; i++) {
-+			r = omapfb_attach_framebuffer(fbi, ovls[i]);
-+			if (r) {
-+				dev_err(dev, "attach failed\n");
-+				goto err;
-+			}
-+		}
-+	}
-+
-+	omapfb_unlock(fbdev);
-+	return count;
-+
-+err:
-+	omapfb_unlock(fbdev);
-+	return r;
-+}
-+
-+static ssize_t show_overlays(struct device *dev, struct device_attribute *attr,
-+		char *buf)
-+{
-+	struct platform_device *pdev = to_platform_device(dev);
-+	struct omapfb2_device *fbdev = platform_get_drvdata(pdev);
-+	ssize_t l = 0, size = PAGE_SIZE;
-+	int i, mgr_num;
-+
-+	omapfb_lock(fbdev);
-+
-+	for (i = 0; i < fbdev->num_overlays; i++) {
-+		struct omap_overlay *ovl;
-+		struct omap_overlay_manager *mgr;
-+
-+		ovl = fbdev->overlays[i];
-+		mgr = ovl->manager;
-+
-+		for (mgr_num = 0; mgr_num < fbdev->num_managers; mgr_num++)
-+			if (fbdev->managers[mgr_num] == mgr)
-+				break;
-+
-+		l += snprintf(buf + l, size - l,
-+			"%s t:%s x:%d y:%d iw:%d ih:%d w:%d h:%d e:%d\n",
-+			ovl->name,
-+			mgr ? mgr->name : "none",
-+			ovl->info.pos_x,
-+			ovl->info.pos_y,
-+			ovl->info.width,
-+			ovl->info.height,
-+			ovl->info.out_width,
-+			ovl->info.out_height,
-+			ovl->info.enabled);
-+	}
-+
-+	omapfb_unlock(fbdev);
-+
-+	return l;
-+}
-+
-+static ssize_t store_overlays(struct device *dev,
-+		struct device_attribute *attr,
-+		const char *buf, size_t count)
-+{
-+	struct platform_device *pdev = to_platform_device(dev);
-+	struct omapfb2_device *fbdev = platform_get_drvdata(pdev);
-+	int idx;
-+	struct omap_overlay *ovl = NULL;
-+	struct omap_overlay_manager *mgr;
-+	int r;
-+	char ovlname[10];
-+	int posx, posy, outw, outh;
-+	int enabled;
-+
-+	idx = 0;
-+	while (idx < count && buf[idx] != ' ')
-+		++idx;
-+
-+	if (idx == count)
-+		return -EINVAL;
-+
-+	if (idx >= sizeof(ovlname))
-+		return -EINVAL;
-+
-+	strncpy(ovlname, buf, idx);
-+	ovlname[idx] = 0;
-+	idx++;
-+
-+	omapfb_lock(fbdev);
-+
-+	ovl = find_overlay_by_name(fbdev, ovlname);
-+
-+	if (!ovl) {
-+		dev_err(dev, "ovl not found\n");
-+		r = -EINVAL;
-+		goto err;
-+	}
-+
-+	DBG("ovl %s found\n", ovl->name);
-+
-+	mgr = ovl->manager;
-+
-+	posx = ovl->info.pos_x;
-+	posy = ovl->info.pos_y;
-+	outw = ovl->info.out_width;
-+	outh = ovl->info.out_height;
-+	enabled = ovl->info.enabled;
-+
-+	while (idx < count) {
-+		char c;
-+		int val;
-+		int len;
-+		char sval[10];
-+
-+		r = sscanf(buf + idx, "%c:%d%n", &c, &val, &len);
-+
-+		if (r != 2) {
-+			val = 0;
-+
-+			r = sscanf(buf + idx, "%c:%9s%n", &c, sval, &len);
-+
-+			if (r != 2) {
-+				dev_err(dev, "sscanf failed, aborting\n");
-+				r = -EINVAL;
-+				goto err;
-+			}
-+		} else {
-+			sval[0] = 0;
-+		}
-+
-+		switch (c) {
-+		case 't':
-+			if (strcmp(sval, "none") == 0) {
-+				mgr = NULL;
-+			} else {
-+				mgr = find_manager_by_name(fbdev, sval);
-+
-+				if (mgr == NULL) {
-+					dev_err(dev, "no such manager\n");
-+					r = -EINVAL;
-+					goto err;
-+				}
-+
-+				DBG("manager %s found\n", mgr->name);
-+			}
-+
-+			break;
-+
-+		case 'x':
-+			posx = val;
-+			break;
-+
-+		case 'y':
-+			posy = val;
-+			break;
-+
-+		case 'w':
-+			if (ovl->caps & OMAP_DSS_OVL_CAP_SCALE)
-+				outw = val;
-+			break;
-+
-+		case 'h':
-+			if (ovl->caps & OMAP_DSS_OVL_CAP_SCALE)
-+				outh = val;
-+			break;
-+
-+		case 'e':
-+			enabled = val;
-+			break;
-+
-+		default:
-+			dev_err(dev, "unknown option %c\n", c);
-+			r = -EINVAL;
-+			goto err;
-+		}
-+
-+		idx += len + 1;
-+	}
-+
-+	r = ovl->setup_output(ovl, posx, posy, outw, outh);
-+
-+	if (r) {
-+		dev_err(dev, "setup overlay failed\n");
-+		goto err;
-+	}
-+
-+	if (mgr != ovl->manager) {
-+		/* detach old manager */
-+		if (ovl->manager) {
-+			r = ovl->unset_manager(ovl);
-+			if (r) {
-+				dev_err(dev, "detach failed\n");
-+				goto err;
-+			}
-+		}
-+
-+		if (mgr) {
-+			r = ovl->set_manager(ovl, mgr);
-+			if (r) {
-+				dev_err(dev, "Failed to attach overlay\n");
-+				goto err;
-+			}
-+		}
-+	}
-+
-+	r = ovl->enable(ovl, enabled);
-+
-+	if (r) {
-+		dev_err(dev, "enable overlay failed\n");
-+		goto err;
-+	}
-+
-+	if (mgr) {
-+		r = mgr->apply(mgr);
-+		if (r) {
-+			dev_err(dev, "failed to apply dispc config\n");
-+			goto err;
-+		}
-+	} else {
-+		ovl->enable(ovl, 0);
-+	}
-+
-+	if (mgr && mgr->display && mgr->display->update)
-+		mgr->display->update(mgr->display,
-+				0, 0,
-+				mgr->display->panel->timings.x_res,
-+				mgr->display->panel->timings.y_res);
-+
-+	omapfb_unlock(fbdev);
-+	return count;
-+
-+err:
-+	omapfb_unlock(fbdev);
-+	return r;
-+}
-+
-+static ssize_t show_managers(struct device *dev, struct device_attribute *attr,
-+		char *buf)
-+{
-+	struct platform_device *pdev = to_platform_device(dev);
-+	struct omapfb2_device *fbdev = platform_get_drvdata(pdev);
-+	ssize_t l = 0, size = PAGE_SIZE;
-+	int i;
-+
-+	omapfb_lock(fbdev);
-+
-+	for (i = 0; i < fbdev->num_managers; i++) {
-+		struct omap_display *display;
-+		struct omap_overlay_manager *mgr;
-+
-+		mgr = fbdev->managers[i];
-+		display = mgr->display;
-+
-+		l += snprintf(buf + l, size - l, "%s t:%s\n",
-+				mgr->name, display ? display->name : "none");
-+	}
-+
-+	omapfb_unlock(fbdev);
-+
-+	return l;
-+}
-+
-+static ssize_t store_managers(struct device *dev,
-+		struct device_attribute *attr,
-+		const char *buf, size_t count)
-+{
-+	struct platform_device *pdev = to_platform_device(dev);
-+	struct omapfb2_device *fbdev = platform_get_drvdata(pdev);
-+	int idx;
-+	struct omap_overlay_manager *mgr;
-+	struct omap_display *display;
-+	char mgrname[10];
-+	char displayname[10];
-+	int r;
-+
-+	idx = 0;
-+	while (idx < count && buf[idx] != ' ')
-+		++idx;
-+
-+	if (idx == count)
-+		return -EINVAL;
-+
-+	if (idx >= sizeof(mgrname))
-+		return -EINVAL;
-+
-+	strncpy(mgrname, buf, idx);
-+	mgrname[idx] = 0;
-+	idx++;
-+
-+	omapfb_lock(fbdev);
-+
-+	mgr = find_manager_by_name(fbdev, mgrname);
-+
-+	if (!mgr) {
-+		dev_err(dev, "manager not found\n");
-+		r = -EINVAL;
-+		goto err;
-+	}
-+
-+	r = sscanf(buf + idx, "t:%9s", displayname);
-+
-+	if (r != 1) {
-+		r = -EINVAL;
-+		goto err;
-+	}
-+
-+	if (strcmp(displayname, "none") == 0) {
-+		display = NULL;
-+	} else {
-+		display = find_display_by_name(fbdev, displayname);
-+
-+		if (!display) {
-+			dev_err(dev, "display not found\n");
-+			r = -EINVAL;
-+			goto err;
-+		}
-+	}
-+
-+	if (mgr->display) {
-+		r = mgr->unset_display(mgr);
-+		if (r) {
-+			dev_err(dev, "failed to unset display\n");
-+			goto err;
-+		}
-+	}
-+
-+	if (display) {
-+		r = mgr->set_display(mgr, display);
-+		if (r) {
-+			dev_err(dev, "failed to set manager\n");
-+			goto err;
-+		}
-+
-+		r = mgr->apply(mgr);
-+		if (r) {
-+			dev_err(dev, "failed to apply dispc config\n");
-+			goto err;
-+		}
-+	}
-+
-+	omapfb_unlock(fbdev);
-+	return count;
-+
-+err:
-+	omapfb_unlock(fbdev);
-+	return r;
-+}
-+
-+static ssize_t show_displays(struct device *dev, struct device_attribute *attr,
-+		char *buf)
-+{
-+	struct platform_device *pdev = to_platform_device(dev);
-+	struct omapfb2_device *fbdev = platform_get_drvdata(pdev);
-+	ssize_t l = 0, size = PAGE_SIZE;
-+	int i;
-+	struct omap_video_timings timings;
-+
-+	omapfb_lock(fbdev);
-+
-+	for (i = 0; i < fbdev->num_displays; i++) {
-+		struct omap_display *display;
-+		enum omap_dss_update_mode mode = -1;
-+		int te = 0;
-+
-+		display = fbdev->displays[i];
-+
-+		if (display->get_update_mode)
-+			mode = display->get_update_mode(display);
-+
-+		if (display->get_te)
-+			te = display->get_te(display);
-+
-+		if (display->get_timings)
-+			display->get_timings(display, &timings);
-+		else
-+			memset(&timings, 0, sizeof(timings));
-+
-+		l += snprintf(buf + l, size - l,
-+				"%s e:%d u:%d t:%d h:%u/%u/%u/%u "
-+				"v:%u/%u/%u/%u p:%u\n",
-+				display->name,
-+				display->state != OMAP_DSS_DISPLAY_DISABLED,
-+				mode, te,
-+				timings.x_res,
-+				timings.hfp, timings.hbp, timings.hsw,
-+				timings.y_res,
-+				timings.vfp, timings.vbp, timings.vsw,
-+				timings.pixel_clock);
-+	}
-+
-+	omapfb_unlock(fbdev);
-+
-+	return l;
-+}
-+
-+static ssize_t store_displays(struct device *dev,
-+		struct device_attribute *attr,
-+		const char *buf, size_t count)
-+{
-+	struct platform_device *pdev = to_platform_device(dev);
-+	struct omapfb2_device *fbdev = platform_get_drvdata(pdev);
-+	int enable;
-+	struct omap_video_timings old_timings;
-+	struct omap_video_timings new_timings;
-+	enum omap_dss_update_mode mode;
-+	struct omap_display *display = NULL;
-+	int r;
-+	int te;
-+	char str[128];
-+	char *s, *tok;
-+
-+	if (strlen(buf) > sizeof(str) - 1)
-+		return -EINVAL;
-+
-+	strcpy(str, buf);
-+
-+	/* remove trailing linefeeds */
-+	s = str + strlen(str) - 1;
-+	while (s >= str	&& *s == '\n') {
-+		*s = 0;
-+		s--;
-+	}
-+
-+	s = str;
-+
-+	if ((tok = strsep(&s, " ")) == 0)
-+		return -EINVAL;
-+
-+	omapfb_lock(fbdev);
-+
-+	display = find_display_by_name(fbdev, tok);
-+
-+	if (!display) {
-+		dev_err(dev, "display not found\n");
-+		r = -EINVAL;
-+		goto err;
-+	}
-+
-+	enable = display->state != OMAP_DSS_DISPLAY_DISABLED;
-+	if (display->get_update_mode)
-+		mode = display->get_update_mode(display);
-+	else
-+		mode = 0;
-+
-+	if (display->get_te)
-+		te = display->get_te(display);
-+	else
-+		te = 0;
-+
-+	if (display->get_timings)
-+		display->get_timings(display, &old_timings);
-+	else
-+		memset(&old_timings, 0, sizeof(old_timings));
-+
-+	memcpy(&new_timings, &old_timings, sizeof(new_timings));
-+
-+	while ((tok = strsep(&s, " "))) {
-+		char c, *o;
-+
-+		if (strlen(tok) < 3 || tok[1] != ':') {
-+			dev_err(dev, "illegal option\n");
-+			r = -EINVAL;
-+			goto err;
-+		}
-+
-+		c = tok[0];
-+		o = tok + 2;
-+
-+		switch (c) {
-+		case 'e':
-+			enable = simple_strtoul(o, NULL, 0);
-+			break;
-+
-+		case 'u':
-+			mode = simple_strtoul(o, NULL, 0);
-+			break;
-+
-+		case 't':
-+			te = simple_strtoul(o, NULL, 0);
-+			break;
-+
-+		case 'm': {
-+			unsigned bpp;
-+			if (omapfb_mode_to_timings(o, &new_timings, &bpp) != 0)
-+				memset(&new_timings, 0, sizeof(new_timings));
-+
-+			break;
-+		}
-+
-+		case 'h': {
-+			unsigned xres, hfp, hbp, hsw;
-+
-+			if (sscanf(o, "%u/%u/%u/%u",
-+						&xres, &hfp, &hbp, &hsw) != 4) {
-+				dev_err(dev, "illegal horizontal timings\n");
-+				r = -EINVAL;
-+				goto err;
-+			}
-+
-+			new_timings.x_res = xres;
-+			new_timings.hfp = hfp;
-+			new_timings.hbp = hbp;
-+			new_timings.hsw = hsw;
-+			break;
-+		}
-+
-+		case 'v': {
-+			unsigned yres, vfp, vbp, vsw;
-+
-+			if (sscanf(o, "%u/%u/%u/%u",
-+						&yres, &vfp, &vbp, &vsw) != 4) {
-+				dev_err(dev, "illegal vertical timings\n");
-+				r = -EINVAL;
-+				goto err;
-+			}
-+
-+			new_timings.y_res = yres;
-+			new_timings.vfp = vfp;
-+			new_timings.vbp = vbp;
-+			new_timings.vsw = vsw;
-+			break;
-+		}
-+
-+		case 'p':
-+			new_timings.pixel_clock = simple_strtoul(o, NULL, 0);
-+			break;
-+
-+		default:
-+			dev_err(dev, "unknown option %c\n", c);
-+			r = -EINVAL;
-+			goto err;
-+		}
-+	}
-+
-+	if (memcmp(&new_timings, &old_timings, sizeof(new_timings)) != 0) {
-+		if (display->set_timings)
-+			display->set_timings(display, &new_timings);
-+
-+		/* sigh, bpp is not a setting of the display, but
-+		 * the overlay. */
-+		//def_display->panel->bpp = bpp;
-+	}
-+
-+	if (enable != (display->state != OMAP_DSS_DISPLAY_DISABLED)) {
-+		if (enable) {
-+			r = display->enable(display);
-+			if (r)
-+				dev_err(dev, "failed to enable display\n");
-+		} else {
-+			display->disable(display);
-+		}
-+	}
-+
-+	if (display->set_update_mode && display->get_update_mode) {
-+		if (mode != display->get_update_mode(display))
-+			display->set_update_mode(display, mode);
-+	}
-+
-+	if (display->enable_te && display->get_te) {
-+		if (te != display->get_te(display))
-+			display->enable_te(display, te);
-+	}
-+
-+	r = count;
-+err:
-+	omapfb_unlock(fbdev);
-+	return r;
-+}
-+
-+
-+static DEVICE_ATTR(framebuffers, S_IRUGO | S_IWUSR,
-+		show_framebuffers, store_framebuffers);
-+static DEVICE_ATTR(overlays, S_IRUGO | S_IWUSR,
-+		show_overlays, store_overlays);
-+static DEVICE_ATTR(managers, S_IRUGO | S_IWUSR,
-+		show_managers, store_managers);
-+static DEVICE_ATTR(displays, S_IRUGO | S_IWUSR,
-+		show_displays, store_displays);
-+
-+static struct attribute *omapfb_attrs[] = {
-+	&dev_attr_framebuffers.attr,
-+	&dev_attr_overlays.attr,
-+	&dev_attr_managers.attr,
-+	&dev_attr_displays.attr,
-+	NULL,
-+};
-+
-+static struct attribute_group omapfb_attr_group = {
-+	.attrs = omapfb_attrs,
-+};
-+
-+void omapfb_create_sysfs(struct omapfb2_device *fbdev)
++static void __init beagle_display_init(void)
 +{
 +	int r;
 +
-+	r = sysfs_create_group(&fbdev->dev->kobj, &omapfb_attr_group);
-+	if (r)
-+		dev_err(fbdev->dev, "failed to create sysfs clk file\n");
++	r = gpio_request(beagle_display_data_dvi.panel_reset_gpio, "DVI reset");
++	if (r < 0)
++		printk(KERN_ERR "Unable to get DVI reset GPIO\n");
 +}
 +
-+void omapfb_remove_sysfs(struct omapfb2_device *fbdev)
-+{
-+	sysfs_remove_group(&fbdev->dev->kobj, &omapfb_attr_group);
-+}
-+
-diff --git a/drivers/video/omap2/omapfb.h b/drivers/video/omap2/omapfb.h
-new file mode 100644
-index 0000000..9ba4f1b
---- /dev/null
-+++ b/drivers/video/omap2/omapfb.h
-@@ -0,0 +1,115 @@
-+/*
-+ * linux/drivers/video/omap2/omapfb.h
-+ *
-+ * Copyright (C) 2008 Nokia Corporation
-+ * Author: Tomi Valkeinen <tomi.valkeinen@nokia.com>
-+ *
-+ * Some code and ideas taken from drivers/video/omap/ driver
-+ * by Imre Deak.
-+ *
-+ * This program is free software; you can redistribute it and/or modify it
-+ * under the terms of the GNU General Public License version 2 as published by
-+ * the Free Software Foundation.
-+ *
-+ * This program is distributed in the hope that it will be useful, but WITHOUT
-+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
-+ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
-+ * more details.
-+ *
-+ * You should have received a copy of the GNU General Public License along with
-+ * this program.  If not, see <http://www.gnu.org/licenses/>.
-+ */
-+
-+#ifndef __DRIVERS_VIDEO_OMAP2_OMAPFB_H__
-+#define __DRIVERS_VIDEO_OMAP2_OMAPFB_H__
-+
-+#ifdef CONFIG_FB_OMAP2_DEBUG
-+#define DEBUG
-+#endif
-+
-+#ifdef DEBUG
-+extern unsigned int omapfb_debug;
-+#define DBG(format, ...) \
-+	if (omapfb_debug) \
-+		printk(KERN_DEBUG "OMAPFB: " format, ## __VA_ARGS__)
-+#else
-+#define DBG(format, ...)
-+#endif
-+
-+#define FB2OFB(fb_info) ((struct omapfb_info *)(fb_info->par))
-+
-+/* max number of overlays to which a framebuffer data can be direct */
-+#define OMAPFB_MAX_OVL_PER_FB 3
-+
-+/* appended to fb_info */
-+struct omapfb_info {
-+	int id;
-+	struct omapfb_mem_region region;
-+	atomic_t map_count;
-+	int num_overlays;
-+	struct omap_overlay *overlays[OMAPFB_MAX_OVL_PER_FB];
-+	struct omapfb2_device *fbdev;
-+};
-+
-+struct omapfb2_device {
-+	struct device *dev;
-+	struct mutex  mtx;
-+
-+	u32 pseudo_palette[17];
-+
-+	int state;
-+
-+	int num_fbs;
-+	struct fb_info *fbs[10];
-+
-+	int num_displays;
-+	struct omap_display *displays[10];
-+	int num_overlays;
-+	struct omap_overlay *overlays[10];
-+	int num_managers;
-+	struct omap_overlay_manager *managers[10];
-+};
-+
-+void set_fb_fix(struct fb_info *fbi);
-+int check_fb_var(struct fb_info *fbi, struct fb_var_screeninfo *var);
-+int omapfb_realloc_fbmem(struct omapfb2_device *fbdev, int fbnum,
-+		unsigned long size);
-+int omapfb_apply_changes(struct fb_info *fbi, int init);
-+int omapfb_setup_overlay(struct fb_info *fbi, struct omap_overlay *ovl,
-+		int posx, int posy, int outw, int outh);
-+
-+void omapfb_create_sysfs(struct omapfb2_device *fbdev);
-+void omapfb_remove_sysfs(struct omapfb2_device *fbdev);
-+
-+int omapfb_ioctl(struct fb_info *fbi, unsigned int cmd, unsigned long arg);
-+
-+int omapfb_mode_to_timings(const char *mode_str,
-+		struct omap_video_timings *timings, unsigned *bpp);
-+
-+/* find the display connected to this fb, if any */
-+static inline struct omap_display *fb2display(struct fb_info *fbi)
-+{
-+	struct omapfb_info *ofbi = FB2OFB(fbi);
-+	int i;
-+
-+	/* XXX: returns the display connected to first attached overlay */
-+	for (i = 0; i < ofbi->num_overlays; i++) {
-+		if (ofbi->overlays[i]->manager)
-+			return ofbi->overlays[i]->manager->display;
-+	}
-+
-+	return NULL;
-+}
-+
-+static inline void omapfb_lock(struct omapfb2_device *fbdev)
-+{
-+	mutex_lock(&fbdev->mtx);
-+}
-+
-+static inline void omapfb_unlock(struct omapfb2_device *fbdev)
-+{
-+	mutex_unlock(&fbdev->mtx);
-+}
-+
-+
-+#endif
+ static struct omap_board_config_kernel omap3_beagle_config[] __initdata = {
+ 	{ OMAP_TAG_UART,	&omap3_beagle_uart_config },
+-	{ OMAP_TAG_LCD,		&omap3_beagle_lcd_config },
+ };
+ 
+ static struct platform_device *omap3_beagle_devices[] __initdata = {
+-	&omap3_beagle_lcd_device,
++	&beagle_dss_device,
+ 	&leds_gpio,
+ 	&keys_gpio,
+ };
+@@ -359,18 +433,17 @@ static void __init omap3_beagle_init(void)
+ 	omap_serial_init();
+ 
+ 	omap_cfg_reg(J25_34XX_GPIO170);
+-	gpio_request(170, "DVI_nPD");
+-	/* REVISIT leave DVI powered down until it's needed ... */
+-	gpio_direction_output(170, true);
+ 
+ 	usb_musb_init();
+ 	usb_ehci_init();
+ 	omap3beagle_flash_init();
++	beagle_display_init();
+ }
+ 
+ static void __init omap3_beagle_map_io(void)
+ {
+ 	omap2_set_globals_343x();
++	omap2_set_sdram_vram(1280 * 1024 * 4 * 3, 0);
+ 	omap2_map_common_io();
+ }
+ 
 
