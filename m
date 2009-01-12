@@ -1,57 +1,49 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 05/10] ARM: OMAP: Fix gpio.c compile on 15xx with
-	CONFIG_DEBUGFS
-Date: Mon, 12 Jan 2009 16:43:35 +0200
-Message-ID: <20090112144335.24205.46418.stgit@localhost>
+Subject: [PATCH 06/10] ARM: OMAP: Fix DMA CCR programming for request line > 63
+Date: Mon, 12 Jan 2009 16:44:53 +0200
+Message-ID: <20090112144453.24205.18451.stgit@localhost>
 References: <20090112143405.24205.52151.stgit@localhost>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-bos.mailhop.org ([63.208.196.178]:62484 "EHLO
+Received: from mho-01-bos.mailhop.org ([63.208.196.178]:63877 "EHLO
 	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754883AbZALOnk (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 12 Jan 2009 09:43:40 -0500
+	with ESMTP id S1752160AbZALOo5 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 12 Jan 2009 09:44:57 -0500
 In-Reply-To: <20090112143405.24205.52151.stgit@localhost>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-arm-kernel@lists.arm.linux.org.uk
-Cc: linux-omap@vger.kernel.org
+Cc: linux-omap@vger.kernel.org, Anand Gadiyar <gadiyar@ti.com>
 
-There are no wakeup registers on 15xx, and suspend_wakeup
-does not exist in the struct gpio_bank.
+From: Anand Gadiyar <gadiyar@ti.com>
 
-Without this fix we'll get "arch/arm/plat-omap/gpio.c:1792:
-error: 'struct gpio_bank' has no member named 'suspend_wakeup'"
-as noted by Russell King.
+Bug in existing code causes synchro control to be set +32 if request
+line greater than 63 is used.
 
-Note that the ifdefs will be cleaned up once the omap gpio
-code gets split into omap1 and omap2 specific parts.
+Reported by Wenbiao Wang
 
+Signed-off-by: Anand Gadiyar <gadiyar@ti.com>
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
- arch/arm/plat-omap/gpio.c |    3 +++
- 1 files changed, 3 insertions(+), 0 deletions(-)
+ arch/arm/plat-omap/dma.c |    5 +----
+ 1 files changed, 1 insertions(+), 4 deletions(-)
 
-diff --git a/arch/arm/plat-omap/gpio.c b/arch/arm/plat-omap/gpio.c
-index 07b6968..f856a90 100644
---- a/arch/arm/plat-omap/gpio.c
-+++ b/arch/arm/plat-omap/gpio.c
-@@ -1789,6 +1789,8 @@ static int dbg_gpio_show(struct seq_file *s, void *unused)
- /* FIXME for at least omap2, show pullup/pulldown state */
+diff --git a/arch/arm/plat-omap/dma.c b/arch/arm/plat-omap/dma.c
+index 692d2b4..6152586 100644
+--- a/arch/arm/plat-omap/dma.c
++++ b/arch/arm/plat-omap/dma.c
+@@ -279,10 +279,7 @@ void omap_set_dma_transfer_params(int lch, int data_type, int elem_count,
  
- 			irqstat = irq_desc[irq].status;
-+#if defined(CONFIG_ARCH_OMAP16XX) || defined(CONFIG_ARCH_OMAP24XX) ||	\
-+		defined(CONFIG_ARCH_OMAP34XX)
- 			if (is_in && ((bank->suspend_wakeup & mask)
- 					|| irqstat & IRQ_TYPE_SENSE_MASK)) {
- 				char	*trigger = NULL;
-@@ -1818,6 +1820,7 @@ static int dbg_gpio_show(struct seq_file *s, void *unused)
- 						(bank->suspend_wakeup & mask)
- 							? " wakeup" : "");
- 			}
-+#endif
- 			seq_printf(s, "\n");
- 		}
+ 		val = dma_read(CCR(lch));
+ 		val &= ~(3 << 19);
+-		if (dma_trigger > 63)
+-			val |= 1 << 20;
+-		if (dma_trigger > 31)
+-			val |= 1 << 19;
++		val |= ((dma_trigger & ~(0x1f)) << 14);
  
+ 		val &= ~(0x1f);
+ 		val |= (dma_trigger & 0x1f);
 
