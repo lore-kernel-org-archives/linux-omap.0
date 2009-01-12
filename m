@@ -1,16 +1,16 @@
 From: Tomi Valkeinen <tomi.valkeinen@nokia.com>
-Subject: [PATCH 10/12] DSS: Support for OMAP3 SDP board
-Date: Mon, 12 Jan 2009 13:48:24 +0200
-Message-ID: <20090112114824.1003.10690.stgit@tubuntu>
+Subject: [PATCH 12/12] DSS: Hacked N810 support
+Date: Mon, 12 Jan 2009 13:48:38 +0200
+Message-ID: <20090112114838.1003.90392.stgit@tubuntu>
 References: <20090112114718.1003.23643.stgit@tubuntu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:47255 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751525AbZALLsm (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 12 Jan 2009 06:48:42 -0500
+Received: from smtp.nokia.com ([192.100.122.233]:35822 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752169AbZALLtH (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 12 Jan 2009 06:49:07 -0500
 In-Reply-To: <20090112114718.1003.23643.stgit@tubuntu>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
@@ -20,1871 +20,1095 @@ Cc: linux-omap@vger.kernel.org
 Signed-off-by: Tomi Valkeinen <tomi.valkeinen@nokia.com>
 ---
 
- arch/arm/configs/dss_omap_3430sdp_defconfig | 1603 +++++++++++++++++++++++++++
- arch/arm/mach-omap2/board-3430sdp.c         |  215 +++-
- 2 files changed, 1809 insertions(+), 9 deletions(-)
- create mode 100644 arch/arm/configs/dss_omap_3430sdp_defconfig
+ arch/arm/mach-omap2/board-n800.c    |  214 ++++++++++++++---
+ drivers/video/omap2/Kconfig         |   10 +
+ drivers/video/omap2/Makefile        |    3=20
+ drivers/video/omap2/ctrl-blizzard.c |  279 ++++++++++++++++++++++
+ drivers/video/omap2/panel-n800.c    |  437 +++++++++++++++++++++++++++=
+++++++++
+ 5 files changed, 905 insertions(+), 38 deletions(-)
+ create mode 100644 drivers/video/omap2/ctrl-blizzard.c
+ create mode 100644 drivers/video/omap2/panel-n800.c
 
-diff --git a/arch/arm/configs/dss_omap_3430sdp_defconfig b/arch/arm/configs/dss_omap_3430sdp_defconfig
-new file mode 100644
-index 0000000..42d7f5e
---- /dev/null
-+++ b/arch/arm/configs/dss_omap_3430sdp_defconfig
-@@ -0,0 +1,1603 @@
-+#
-+# Automatically generated make config: don't edit
-+# Linux kernel version: 2.6.28-omap1
-+# Wed Jan  7 15:22:34 2009
-+#
-+CONFIG_ARM=y
-+CONFIG_SYS_SUPPORTS_APM_EMULATION=y
-+CONFIG_GENERIC_GPIO=y
-+CONFIG_GENERIC_TIME=y
-+CONFIG_GENERIC_CLOCKEVENTS=y
-+CONFIG_MMU=y
-+# CONFIG_NO_IOPORT is not set
-+CONFIG_GENERIC_HARDIRQS=y
-+CONFIG_STACKTRACE_SUPPORT=y
-+CONFIG_HAVE_LATENCYTOP_SUPPORT=y
-+CONFIG_LOCKDEP_SUPPORT=y
-+CONFIG_TRACE_IRQFLAGS_SUPPORT=y
-+CONFIG_HARDIRQS_SW_RESEND=y
-+CONFIG_GENERIC_IRQ_PROBE=y
-+CONFIG_RWSEM_GENERIC_SPINLOCK=y
-+# CONFIG_ARCH_HAS_ILOG2_U32 is not set
-+# CONFIG_ARCH_HAS_ILOG2_U64 is not set
-+CONFIG_GENERIC_HWEIGHT=y
-+CONFIG_GENERIC_CALIBRATE_DELAY=y
-+CONFIG_GENERIC_HARDIRQS_NO__DO_IRQ=y
-+CONFIG_VECTORS_BASE=0xffff0000
-+CONFIG_DEFCONFIG_LIST="/lib/modules/$UNAME_RELEASE/.config"
-+
-+#
-+# General setup
-+#
-+CONFIG_EXPERIMENTAL=y
-+CONFIG_BROKEN_ON_SMP=y
-+CONFIG_INIT_ENV_ARG_LIMIT=32
-+CONFIG_LOCALVERSION=""
-+# CONFIG_LOCALVERSION_AUTO is not set
-+CONFIG_SWAP=y
-+CONFIG_SYSVIPC=y
-+CONFIG_SYSVIPC_SYSCTL=y
-+# CONFIG_POSIX_MQUEUE is not set
-+CONFIG_BSD_PROCESS_ACCT=y
-+# CONFIG_BSD_PROCESS_ACCT_V3 is not set
-+# CONFIG_TASKSTATS is not set
-+# CONFIG_AUDIT is not set
-+# CONFIG_IKCONFIG is not set
-+CONFIG_LOG_BUF_SHIFT=14
-+# CONFIG_CGROUPS is not set
-+CONFIG_GROUP_SCHED=y
-+CONFIG_FAIR_GROUP_SCHED=y
-+# CONFIG_RT_GROUP_SCHED is not set
-+CONFIG_USER_SCHED=y
-+# CONFIG_CGROUP_SCHED is not set
-+CONFIG_SYSFS_DEPRECATED=y
-+CONFIG_SYSFS_DEPRECATED_V2=y
-+# CONFIG_RELAY is not set
-+# CONFIG_NAMESPACES is not set
-+CONFIG_BLK_DEV_INITRD=y
-+CONFIG_INITRAMFS_SOURCE=""
-+CONFIG_CC_OPTIMIZE_FOR_SIZE=y
-+CONFIG_SYSCTL=y
-+CONFIG_EMBEDDED=y
-+CONFIG_UID16=y
-+# CONFIG_SYSCTL_SYSCALL is not set
-+CONFIG_KALLSYMS=y
-+# CONFIG_KALLSYMS_ALL is not set
-+CONFIG_KALLSYMS_EXTRA_PASS=y
-+CONFIG_HOTPLUG=y
-+CONFIG_PRINTK=y
-+CONFIG_BUG=y
-+CONFIG_ELF_CORE=y
-+CONFIG_COMPAT_BRK=y
-+CONFIG_BASE_FULL=y
-+CONFIG_FUTEX=y
-+CONFIG_ANON_INODES=y
-+CONFIG_EPOLL=y
-+CONFIG_SIGNALFD=y
-+CONFIG_TIMERFD=y
-+CONFIG_EVENTFD=y
-+CONFIG_SHMEM=y
-+CONFIG_AIO=y
-+CONFIG_VM_EVENT_COUNTERS=y
-+CONFIG_SLAB=y
-+# CONFIG_SLUB is not set
-+# CONFIG_SLOB is not set
-+# CONFIG_PROFILING is not set
-+# CONFIG_MARKERS is not set
-+CONFIG_HAVE_OPROFILE=y
-+# CONFIG_KPROBES is not set
-+CONFIG_HAVE_KPROBES=y
-+CONFIG_HAVE_KRETPROBES=y
-+CONFIG_HAVE_CLK=y
-+CONFIG_HAVE_GENERIC_DMA_COHERENT=y
-+CONFIG_SLABINFO=y
-+CONFIG_RT_MUTEXES=y
-+# CONFIG_TINY_SHMEM is not set
-+CONFIG_BASE_SMALL=0
-+CONFIG_MODULES=y
-+# CONFIG_MODULE_FORCE_LOAD is not set
-+CONFIG_MODULE_UNLOAD=y
-+# CONFIG_MODULE_FORCE_UNLOAD is not set
-+CONFIG_MODVERSIONS=y
-+CONFIG_MODULE_SRCVERSION_ALL=y
-+CONFIG_KMOD=y
-+CONFIG_BLOCK=y
-+# CONFIG_LBD is not set
-+# CONFIG_BLK_DEV_IO_TRACE is not set
-+# CONFIG_LSF is not set
-+# CONFIG_BLK_DEV_BSG is not set
-+# CONFIG_BLK_DEV_INTEGRITY is not set
-+
-+#
-+# IO Schedulers
-+#
-+CONFIG_IOSCHED_NOOP=y
-+CONFIG_IOSCHED_AS=y
-+CONFIG_IOSCHED_DEADLINE=y
-+CONFIG_IOSCHED_CFQ=y
-+CONFIG_DEFAULT_AS=y
-+# CONFIG_DEFAULT_DEADLINE is not set
-+# CONFIG_DEFAULT_CFQ is not set
-+# CONFIG_DEFAULT_NOOP is not set
-+CONFIG_DEFAULT_IOSCHED="anticipatory"
-+CONFIG_CLASSIC_RCU=y
-+CONFIG_FREEZER=y
-+
-+#
-+# System Type
-+#
-+# CONFIG_ARCH_AAEC2000 is not set
-+# CONFIG_ARCH_INTEGRATOR is not set
-+# CONFIG_ARCH_REALVIEW is not set
-+# CONFIG_ARCH_VERSATILE is not set
-+# CONFIG_ARCH_AT91 is not set
-+# CONFIG_ARCH_CLPS7500 is not set
-+# CONFIG_ARCH_CLPS711X is not set
-+# CONFIG_ARCH_EBSA110 is not set
-+# CONFIG_ARCH_EP93XX is not set
-+# CONFIG_ARCH_FOOTBRIDGE is not set
-+# CONFIG_ARCH_NETX is not set
-+# CONFIG_ARCH_H720X is not set
-+# CONFIG_ARCH_IMX is not set
-+# CONFIG_ARCH_IOP13XX is not set
-+# CONFIG_ARCH_IOP32X is not set
-+# CONFIG_ARCH_IOP33X is not set
-+# CONFIG_ARCH_IXP23XX is not set
-+# CONFIG_ARCH_IXP2000 is not set
-+# CONFIG_ARCH_IXP4XX is not set
-+# CONFIG_ARCH_L7200 is not set
-+# CONFIG_ARCH_KIRKWOOD is not set
-+# CONFIG_ARCH_KS8695 is not set
-+# CONFIG_ARCH_NS9XXX is not set
-+# CONFIG_ARCH_LOKI is not set
-+# CONFIG_ARCH_MV78XX0 is not set
-+# CONFIG_ARCH_MXC is not set
-+# CONFIG_ARCH_ORION5X is not set
-+# CONFIG_ARCH_PNX4008 is not set
-+# CONFIG_ARCH_PXA is not set
-+# CONFIG_ARCH_RPC is not set
-+# CONFIG_ARCH_SA1100 is not set
-+# CONFIG_ARCH_S3C2410 is not set
-+# CONFIG_ARCH_SHARK is not set
-+# CONFIG_ARCH_LH7A40X is not set
-+# CONFIG_ARCH_DAVINCI is not set
-+CONFIG_ARCH_OMAP=y
-+# CONFIG_ARCH_MSM is not set
-+
-+#
-+# TI OMAP Implementations
-+#
-+CONFIG_ARCH_OMAP_OTG=y
-+# CONFIG_ARCH_OMAP1 is not set
-+# CONFIG_ARCH_OMAP2 is not set
-+CONFIG_ARCH_OMAP3=y
-+
-+#
-+# OMAP Feature Selections
-+#
-+# CONFIG_OMAP_DEBUG_POWERDOMAIN is not set
-+# CONFIG_OMAP_DEBUG_CLOCKDOMAIN is not set
-+CONFIG_OMAP_SMARTREFLEX=y
-+# CONFIG_OMAP_SMARTREFLEX_TESTING is not set
-+CONFIG_OMAP_RESET_CLOCKS=y
-+CONFIG_OMAP_BOOT_TAG=y
-+CONFIG_OMAP_BOOT_REASON=y
-+# CONFIG_OMAP_COMPONENT_VERSION is not set
-+# CONFIG_OMAP_GPIO_SWITCH is not set
-+CONFIG_OMAP_MUX=y
-+CONFIG_OMAP_MUX_DEBUG=y
-+CONFIG_OMAP_MUX_WARNINGS=y
-+# CONFIG_OMAP_MCBSP is not set
-+# CONFIG_OMAP_MMU_FWK is not set
-+# CONFIG_OMAP_MBOX_FWK is not set
-+# CONFIG_OMAP_MPU_TIMER is not set
-+CONFIG_OMAP_32K_TIMER=y
-+CONFIG_OMAP_32K_TIMER_HZ=128
-+CONFIG_OMAP_DM_TIMER=y
-+CONFIG_OMAP_LL_DEBUG_UART1=y
-+# CONFIG_OMAP_LL_DEBUG_UART2 is not set
-+# CONFIG_OMAP_LL_DEBUG_UART3 is not set
-+CONFIG_OMAP_SERIAL_WAKE=y
-+CONFIG_OMAP2_DSS=m
-+CONFIG_OMAP2_DSS_DEBUG_SUPPORT=y
-+# CONFIG_OMAP2_DSS_RFBI is not set
-+CONFIG_OMAP2_DSS_VENC=y
-+# CONFIG_OMAP2_DSS_SDI is not set
-+# CONFIG_OMAP2_DSS_DSI is not set
-+# CONFIG_OMAP2_DSS_FAKE_VSYNC is not set
-+CONFIG_OMAP2_DSS_MIN_FCK_PER_PCK=0
-+CONFIG_ARCH_OMAP34XX=y
-+CONFIG_ARCH_OMAP3430=y
-+
-+#
-+# OMAP Board Type
-+#
-+# CONFIG_MACH_OMAP_LDP is not set
-+CONFIG_MACH_OMAP_3430SDP=y
-+# CONFIG_MACH_OMAP3EVM is not set
-+# CONFIG_MACH_OMAP3_BEAGLE is not set
-+# CONFIG_MACH_OVERO is not set
-+# CONFIG_MACH_OMAP3_PANDORA is not set
-+CONFIG_OMAP_TICK_GPTIMER=1
-+
-+#
-+# Boot options
-+#
-+
-+#
-+# Power management
-+#
-+
-+#
-+# Processor Type
-+#
-+CONFIG_CPU_32=y
-+CONFIG_CPU_32v6K=y
-+CONFIG_CPU_V7=y
-+CONFIG_CPU_32v7=y
-+CONFIG_CPU_ABRT_EV7=y
-+CONFIG_CPU_PABRT_IFAR=y
-+CONFIG_CPU_CACHE_V7=y
-+CONFIG_CPU_CACHE_VIPT=y
-+CONFIG_CPU_COPY_V6=y
-+CONFIG_CPU_TLB_V7=y
-+CONFIG_CPU_HAS_ASID=y
-+CONFIG_CPU_CP15=y
-+CONFIG_CPU_CP15_MMU=y
-+
-+#
-+# Processor Features
-+#
-+CONFIG_ARM_THUMB=y
-+# CONFIG_ARM_THUMBEE is not set
-+# CONFIG_CPU_ICACHE_DISABLE is not set
-+# CONFIG_CPU_DCACHE_DISABLE is not set
-+# CONFIG_CPU_BPREDICT_DISABLE is not set
-+CONFIG_HAS_TLS_REG=y
-+# CONFIG_OUTER_CACHE is not set
-+
-+#
-+# Bus support
-+#
-+# CONFIG_PCI_SYSCALL is not set
-+# CONFIG_ARCH_SUPPORTS_MSI is not set
-+# CONFIG_PCCARD is not set
-+
-+#
-+# Kernel Features
-+#
-+CONFIG_TICK_ONESHOT=y
-+CONFIG_NO_HZ=y
-+CONFIG_HIGH_RES_TIMERS=y
-+CONFIG_GENERIC_CLOCKEVENTS_BUILD=y
-+CONFIG_VMSPLIT_3G=y
-+# CONFIG_VMSPLIT_2G is not set
-+# CONFIG_VMSPLIT_1G is not set
-+CONFIG_PAGE_OFFSET=0xC0000000
-+# CONFIG_PREEMPT is not set
-+CONFIG_HZ=128
-+CONFIG_AEABI=y
-+CONFIG_OABI_COMPAT=y
-+CONFIG_ARCH_FLATMEM_HAS_HOLES=y
-+# CONFIG_ARCH_SPARSEMEM_DEFAULT is not set
-+# CONFIG_ARCH_SELECT_MEMORY_MODEL is not set
-+CONFIG_SELECT_MEMORY_MODEL=y
-+CONFIG_FLATMEM_MANUAL=y
-+# CONFIG_DISCONTIGMEM_MANUAL is not set
-+# CONFIG_SPARSEMEM_MANUAL is not set
-+CONFIG_FLATMEM=y
-+CONFIG_FLAT_NODE_MEM_MAP=y
-+CONFIG_PAGEFLAGS_EXTENDED=y
-+CONFIG_SPLIT_PTLOCK_CPUS=4
-+# CONFIG_RESOURCES_64BIT is not set
-+# CONFIG_PHYS_ADDR_T_64BIT is not set
-+CONFIG_ZONE_DMA_FLAG=0
-+CONFIG_VIRT_TO_BUS=y
-+CONFIG_UNEVICTABLE_LRU=y
-+# CONFIG_LEDS is not set
-+CONFIG_ALIGNMENT_TRAP=y
-+
-+#
-+# Boot options
-+#
-+CONFIG_ZBOOT_ROM_TEXT=0x0
-+CONFIG_ZBOOT_ROM_BSS=0x0
-+CONFIG_CMDLINE="root=/dev/nfs nfsroot=192.168.0.1:/home/user/buildroot ip=192.168.0.2:192.168.0.1:192.168.0.1:255.255.255.0:tgt:eth0:off rw console=ttyS2,115200n8"
-+# CONFIG_XIP_KERNEL is not set
-+# CONFIG_KEXEC is not set
-+
-+#
-+# CPU Power Management
-+#
-+# CONFIG_CPU_FREQ is not set
-+# CONFIG_CPU_IDLE is not set
-+
-+#
-+# Floating point emulation
-+#
-+
-+#
-+# At least one emulation must be selected
-+#
-+CONFIG_FPE_NWFPE=y
-+# CONFIG_FPE_NWFPE_XP is not set
-+# CONFIG_FPE_FASTFPE is not set
-+CONFIG_VFP=y
-+CONFIG_VFPv3=y
-+# CONFIG_NEON is not set
-+
-+#
-+# Userspace binary formats
-+#
-+CONFIG_BINFMT_ELF=y
-+# CONFIG_CORE_DUMP_DEFAULT_ELF_HEADERS is not set
-+CONFIG_HAVE_AOUT=y
-+# CONFIG_BINFMT_AOUT is not set
-+CONFIG_BINFMT_MISC=y
-+
-+#
-+# Power management options
-+#
-+CONFIG_PM=y
-+# CONFIG_PM_DEBUG is not set
-+CONFIG_PM_SLEEP=y
-+CONFIG_SUSPEND=y
-+CONFIG_SUSPEND_FREEZER=y
-+# CONFIG_APM_EMULATION is not set
-+CONFIG_ARCH_SUSPEND_POSSIBLE=y
-+CONFIG_NET=y
-+
-+#
-+# Networking options
-+#
-+CONFIG_PACKET=y
-+# CONFIG_PACKET_MMAP is not set
-+CONFIG_UNIX=y
-+CONFIG_XFRM=y
-+# CONFIG_XFRM_USER is not set
-+# CONFIG_XFRM_SUB_POLICY is not set
-+# CONFIG_XFRM_MIGRATE is not set
-+# CONFIG_XFRM_STATISTICS is not set
-+CONFIG_NET_KEY=y
-+# CONFIG_NET_KEY_MIGRATE is not set
-+CONFIG_INET=y
-+# CONFIG_IP_MULTICAST is not set
-+# CONFIG_IP_ADVANCED_ROUTER is not set
-+CONFIG_IP_FIB_HASH=y
-+CONFIG_IP_PNP=y
-+CONFIG_IP_PNP_DHCP=y
-+CONFIG_IP_PNP_BOOTP=y
-+CONFIG_IP_PNP_RARP=y
-+# CONFIG_NET_IPIP is not set
-+# CONFIG_NET_IPGRE is not set
-+# CONFIG_ARPD is not set
-+# CONFIG_SYN_COOKIES is not set
-+# CONFIG_INET_AH is not set
-+# CONFIG_INET_ESP is not set
-+# CONFIG_INET_IPCOMP is not set
-+# CONFIG_INET_XFRM_TUNNEL is not set
-+# CONFIG_INET_TUNNEL is not set
-+CONFIG_INET_XFRM_MODE_TRANSPORT=y
-+CONFIG_INET_XFRM_MODE_TUNNEL=y
-+CONFIG_INET_XFRM_MODE_BEET=y
-+# CONFIG_INET_LRO is not set
-+CONFIG_INET_DIAG=y
-+CONFIG_INET_TCP_DIAG=y
-+# CONFIG_TCP_CONG_ADVANCED is not set
-+CONFIG_TCP_CONG_CUBIC=y
-+CONFIG_DEFAULT_TCP_CONG="cubic"
-+# CONFIG_TCP_MD5SIG is not set
-+# CONFIG_IPV6 is not set
-+# CONFIG_NETWORK_SECMARK is not set
-+# CONFIG_NETFILTER is not set
-+# CONFIG_IP_DCCP is not set
-+# CONFIG_IP_SCTP is not set
-+# CONFIG_TIPC is not set
-+# CONFIG_ATM is not set
-+# CONFIG_BRIDGE is not set
-+# CONFIG_NET_DSA is not set
-+# CONFIG_VLAN_8021Q is not set
-+# CONFIG_DECNET is not set
-+# CONFIG_LLC2 is not set
-+# CONFIG_IPX is not set
-+# CONFIG_ATALK is not set
-+# CONFIG_X25 is not set
-+# CONFIG_LAPB is not set
-+# CONFIG_ECONET is not set
-+# CONFIG_WAN_ROUTER is not set
-+# CONFIG_NET_SCHED is not set
-+
-+#
-+# Network testing
-+#
-+# CONFIG_NET_PKTGEN is not set
-+# CONFIG_HAMRADIO is not set
-+# CONFIG_CAN is not set
-+# CONFIG_IRDA is not set
-+# CONFIG_BT is not set
-+# CONFIG_AF_RXRPC is not set
-+# CONFIG_PHONET is not set
-+CONFIG_WIRELESS=y
-+# CONFIG_CFG80211 is not set
-+CONFIG_WIRELESS_OLD_REGULATORY=y
-+# CONFIG_WIRELESS_EXT is not set
-+# CONFIG_MAC80211 is not set
-+# CONFIG_IEEE80211 is not set
-+# CONFIG_RFKILL is not set
-+# CONFIG_NET_9P is not set
-+
-+#
-+# Device Drivers
-+#
-+
-+#
-+# Generic Driver Options
-+#
-+CONFIG_UEVENT_HELPER_PATH="/sbin/hotplug"
-+CONFIG_STANDALONE=y
-+CONFIG_PREVENT_FIRMWARE_BUILD=y
-+# CONFIG_FW_LOADER is not set
-+# CONFIG_DEBUG_DRIVER is not set
-+# CONFIG_DEBUG_DEVRES is not set
-+# CONFIG_SYS_HYPERVISOR is not set
-+# CONFIG_CONNECTOR is not set
-+CONFIG_MTD=y
-+# CONFIG_MTD_DEBUG is not set
-+CONFIG_MTD_CONCAT=y
-+CONFIG_MTD_PARTITIONS=y
-+# CONFIG_MTD_REDBOOT_PARTS is not set
-+CONFIG_MTD_CMDLINE_PARTS=y
-+# CONFIG_MTD_AFS_PARTS is not set
-+# CONFIG_MTD_AR7_PARTS is not set
-+
-+#
-+# User Modules And Translation Layers
-+#
-+CONFIG_MTD_CHAR=y
-+CONFIG_MTD_BLKDEVS=y
-+CONFIG_MTD_BLOCK=y
-+# CONFIG_FTL is not set
-+# CONFIG_NFTL is not set
-+# CONFIG_INFTL is not set
-+# CONFIG_RFD_FTL is not set
-+# CONFIG_SSFDC is not set
-+# CONFIG_MTD_OOPS is not set
-+
-+#
-+# RAM/ROM/Flash chip drivers
-+#
-+CONFIG_MTD_CFI=y
-+# CONFIG_MTD_JEDECPROBE is not set
-+CONFIG_MTD_GEN_PROBE=y
-+# CONFIG_MTD_CFI_ADV_OPTIONS is not set
-+CONFIG_MTD_MAP_BANK_WIDTH_1=y
-+CONFIG_MTD_MAP_BANK_WIDTH_2=y
-+CONFIG_MTD_MAP_BANK_WIDTH_4=y
-+# CONFIG_MTD_MAP_BANK_WIDTH_8 is not set
-+# CONFIG_MTD_MAP_BANK_WIDTH_16 is not set
-+# CONFIG_MTD_MAP_BANK_WIDTH_32 is not set
-+CONFIG_MTD_CFI_I1=y
-+CONFIG_MTD_CFI_I2=y
-+# CONFIG_MTD_CFI_I4 is not set
-+# CONFIG_MTD_CFI_I8 is not set
-+CONFIG_MTD_CFI_INTELEXT=y
-+# CONFIG_MTD_CFI_AMDSTD is not set
-+# CONFIG_MTD_CFI_STAA is not set
-+CONFIG_MTD_CFI_UTIL=y
-+# CONFIG_MTD_RAM is not set
-+# CONFIG_MTD_ROM is not set
-+# CONFIG_MTD_ABSENT is not set
-+
-+#
-+# Mapping drivers for chip access
-+#
-+# CONFIG_MTD_COMPLEX_MAPPINGS is not set
-+# CONFIG_MTD_PHYSMAP is not set
-+# CONFIG_MTD_ARM_INTEGRATOR is not set
-+CONFIG_MTD_OMAP_NOR=y
-+# CONFIG_MTD_PLATRAM is not set
-+
-+#
-+# Self-contained MTD device drivers
-+#
-+# CONFIG_MTD_DATAFLASH is not set
-+# CONFIG_MTD_M25P80 is not set
-+# CONFIG_MTD_SLRAM is not set
-+# CONFIG_MTD_PHRAM is not set
-+# CONFIG_MTD_MTDRAM is not set
-+# CONFIG_MTD_BLOCK2MTD is not set
-+
-+#
-+# Disk-On-Chip Device Drivers
-+#
-+# CONFIG_MTD_DOC2000 is not set
-+# CONFIG_MTD_DOC2001 is not set
-+# CONFIG_MTD_DOC2001PLUS is not set
-+CONFIG_MTD_NAND=y
-+# CONFIG_MTD_NAND_VERIFY_WRITE is not set
-+CONFIG_MTD_NAND_ECC_SMC=y
-+# CONFIG_MTD_NAND_MUSEUM_IDS is not set
-+# CONFIG_MTD_NAND_GPIO is not set
-+CONFIG_MTD_NAND_OMAP2=y
-+CONFIG_MTD_NAND_IDS=y
-+# CONFIG_MTD_NAND_DISKONCHIP is not set
-+# CONFIG_MTD_NAND_NANDSIM is not set
-+# CONFIG_MTD_NAND_PLATFORM is not set
-+# CONFIG_MTD_ALAUDA is not set
-+CONFIG_MTD_ONENAND=y
-+CONFIG_MTD_ONENAND_VERIFY_WRITE=y
-+# CONFIG_MTD_ONENAND_GENERIC is not set
-+CONFIG_MTD_ONENAND_OMAP2=y
-+# CONFIG_MTD_ONENAND_OTP is not set
-+# CONFIG_MTD_ONENAND_2X_PROGRAM is not set
-+# CONFIG_MTD_ONENAND_SIM is not set
-+
-+#
-+# UBI - Unsorted block images
-+#
-+# CONFIG_MTD_UBI is not set
-+# CONFIG_PARPORT is not set
-+CONFIG_BLK_DEV=y
-+# CONFIG_BLK_DEV_COW_COMMON is not set
-+CONFIG_BLK_DEV_LOOP=y
-+# CONFIG_BLK_DEV_CRYPTOLOOP is not set
-+# CONFIG_BLK_DEV_NBD is not set
-+# CONFIG_BLK_DEV_UB is not set
-+CONFIG_BLK_DEV_RAM=y
-+CONFIG_BLK_DEV_RAM_COUNT=16
-+CONFIG_BLK_DEV_RAM_SIZE=16384
-+# CONFIG_BLK_DEV_XIP is not set
-+# CONFIG_CDROM_PKTCDVD is not set
-+# CONFIG_ATA_OVER_ETH is not set
-+CONFIG_MISC_DEVICES=y
-+# CONFIG_EEPROM_93CX6 is not set
-+# CONFIG_ICS932S401 is not set
-+# CONFIG_OMAP_STI is not set
-+# CONFIG_ENCLOSURE_SERVICES is not set
-+# CONFIG_C2PORT is not set
-+CONFIG_HAVE_IDE=y
-+# CONFIG_IDE is not set
-+
-+#
-+# SCSI device support
-+#
-+# CONFIG_RAID_ATTRS is not set
-+CONFIG_SCSI=y
-+CONFIG_SCSI_DMA=y
-+# CONFIG_SCSI_TGT is not set
-+# CONFIG_SCSI_NETLINK is not set
-+CONFIG_SCSI_PROC_FS=y
-+
-+#
-+# SCSI support type (disk, tape, CD-ROM)
-+#
-+CONFIG_BLK_DEV_SD=y
-+# CONFIG_CHR_DEV_ST is not set
-+# CONFIG_CHR_DEV_OSST is not set
-+# CONFIG_BLK_DEV_SR is not set
-+# CONFIG_CHR_DEV_SG is not set
-+# CONFIG_CHR_DEV_SCH is not set
-+
-+#
-+# Some SCSI devices (e.g. CD jukebox) support multiple LUNs
-+#
-+# CONFIG_SCSI_MULTI_LUN is not set
-+# CONFIG_SCSI_CONSTANTS is not set
-+# CONFIG_SCSI_LOGGING is not set
-+# CONFIG_SCSI_SCAN_ASYNC is not set
-+CONFIG_SCSI_WAIT_SCAN=m
-+
-+#
-+# SCSI Transports
-+#
-+# CONFIG_SCSI_SPI_ATTRS is not set
-+# CONFIG_SCSI_FC_ATTRS is not set
-+# CONFIG_SCSI_ISCSI_ATTRS is not set
-+# CONFIG_SCSI_SAS_LIBSAS is not set
-+# CONFIG_SCSI_SRP_ATTRS is not set
-+CONFIG_SCSI_LOWLEVEL=y
-+# CONFIG_ISCSI_TCP is not set
-+# CONFIG_SCSI_DEBUG is not set
-+# CONFIG_SCSI_DH is not set
-+# CONFIG_ATA is not set
-+# CONFIG_MD is not set
-+CONFIG_NETDEVICES=y
-+# CONFIG_DUMMY is not set
-+# CONFIG_BONDING is not set
-+# CONFIG_MACVLAN is not set
-+# CONFIG_EQUALIZER is not set
-+# CONFIG_TUN is not set
-+# CONFIG_VETH is not set
-+# CONFIG_PHYLIB is not set
-+CONFIG_NET_ETHERNET=y
-+CONFIG_MII=y
-+# CONFIG_AX88796 is not set
-+CONFIG_SMC91X=y
-+# CONFIG_DM9000 is not set
-+# CONFIG_ENC28J60 is not set
-+# CONFIG_SMC911X is not set
-+# CONFIG_IBM_NEW_EMAC_ZMII is not set
-+# CONFIG_IBM_NEW_EMAC_RGMII is not set
-+# CONFIG_IBM_NEW_EMAC_TAH is not set
-+# CONFIG_IBM_NEW_EMAC_EMAC4 is not set
-+# CONFIG_IBM_NEW_EMAC_NO_FLOW_CTRL is not set
-+# CONFIG_IBM_NEW_EMAC_MAL_CLR_ICINTSTAT is not set
-+# CONFIG_IBM_NEW_EMAC_MAL_COMMON_ERR is not set
-+# CONFIG_B44 is not set
-+CONFIG_NETDEV_1000=y
-+CONFIG_NETDEV_10000=y
-+
-+#
-+# Wireless LAN
-+#
-+# CONFIG_WLAN_PRE80211 is not set
-+# CONFIG_WLAN_80211 is not set
-+# CONFIG_IWLWIFI_LEDS is not set
-+
-+#
-+# USB Network Adapters
-+#
-+# CONFIG_USB_CATC is not set
-+# CONFIG_USB_KAWETH is not set
-+# CONFIG_USB_PEGASUS is not set
-+# CONFIG_USB_RTL8150 is not set
-+# CONFIG_USB_USBNET is not set
-+# CONFIG_WAN is not set
-+# CONFIG_PPP is not set
-+# CONFIG_SLIP is not set
-+# CONFIG_NETCONSOLE is not set
-+# CONFIG_NETPOLL is not set
-+# CONFIG_NET_POLL_CONTROLLER is not set
-+# CONFIG_ISDN is not set
-+
-+#
-+# Input device support
-+#
-+CONFIG_INPUT=y
-+# CONFIG_INPUT_FF_MEMLESS is not set
-+# CONFIG_INPUT_POLLDEV is not set
-+
-+#
-+# Userland interfaces
-+#
-+# CONFIG_INPUT_MOUSEDEV is not set
-+# CONFIG_INPUT_JOYDEV is not set
-+CONFIG_INPUT_EVDEV=y
-+# CONFIG_INPUT_EVBUG is not set
-+
-+#
-+# Input Device Drivers
-+#
-+CONFIG_INPUT_KEYBOARD=y
-+# CONFIG_KEYBOARD_ATKBD is not set
-+# CONFIG_KEYBOARD_SUNKBD is not set
-+# CONFIG_KEYBOARD_LKKBD is not set
-+# CONFIG_KEYBOARD_XTKBD is not set
-+# CONFIG_KEYBOARD_NEWTON is not set
-+# CONFIG_KEYBOARD_STOWAWAY is not set
-+CONFIG_KEYBOARD_TWL4030=y
-+# CONFIG_KEYBOARD_LM8323 is not set
-+# CONFIG_KEYBOARD_GPIO is not set
-+# CONFIG_INPUT_MOUSE is not set
-+# CONFIG_INPUT_JOYSTICK is not set
-+# CONFIG_INPUT_TABLET is not set
-+CONFIG_INPUT_TOUCHSCREEN=y
-+CONFIG_TOUCHSCREEN_ADS7846=y
-+# CONFIG_TOUCHSCREEN_FUJITSU is not set
-+# CONFIG_TOUCHSCREEN_GUNZE is not set
-+# CONFIG_TOUCHSCREEN_ELO is not set
-+# CONFIG_TOUCHSCREEN_MTOUCH is not set
-+# CONFIG_TOUCHSCREEN_INEXIO is not set
-+# CONFIG_TOUCHSCREEN_MK712 is not set
-+# CONFIG_TOUCHSCREEN_PENMOUNT is not set
-+# CONFIG_TOUCHSCREEN_TOUCHRIGHT is not set
-+# CONFIG_TOUCHSCREEN_TOUCHWIN is not set
-+# CONFIG_TOUCHSCREEN_TSC2005 is not set
-+# CONFIG_TOUCHSCREEN_TSC210X is not set
-+# CONFIG_TOUCHSCREEN_USB_COMPOSITE is not set
-+# CONFIG_TOUCHSCREEN_TOUCHIT213 is not set
-+# CONFIG_INPUT_MISC is not set
-+
-+#
-+# Hardware I/O ports
-+#
-+# CONFIG_SERIO is not set
-+# CONFIG_GAMEPORT is not set
-+
-+#
-+# Character devices
-+#
-+CONFIG_VT=y
-+CONFIG_CONSOLE_TRANSLATIONS=y
-+CONFIG_VT_CONSOLE=y
-+CONFIG_HW_CONSOLE=y
-+# CONFIG_VT_HW_CONSOLE_BINDING is not set
-+CONFIG_DEVKMEM=y
-+# CONFIG_SERIAL_NONSTANDARD is not set
-+
-+#
-+# Serial drivers
-+#
-+CONFIG_SERIAL_8250=y
-+CONFIG_SERIAL_8250_CONSOLE=y
-+CONFIG_SERIAL_8250_NR_UARTS=32
-+CONFIG_SERIAL_8250_RUNTIME_UARTS=4
-+CONFIG_SERIAL_8250_EXTENDED=y
-+CONFIG_SERIAL_8250_MANY_PORTS=y
-+CONFIG_SERIAL_8250_SHARE_IRQ=y
-+CONFIG_SERIAL_8250_DETECT_IRQ=y
-+CONFIG_SERIAL_8250_RSA=y
-+
-+#
-+# Non-8250 serial port support
-+#
-+CONFIG_SERIAL_CORE=y
-+CONFIG_SERIAL_CORE_CONSOLE=y
-+CONFIG_UNIX98_PTYS=y
-+# CONFIG_LEGACY_PTYS is not set
-+# CONFIG_IPMI_HANDLER is not set
-+CONFIG_HW_RANDOM=y
-+# CONFIG_NVRAM is not set
-+# CONFIG_R3964 is not set
-+# CONFIG_RAW_DRIVER is not set
-+# CONFIG_TCG_TPM is not set
-+CONFIG_I2C=y
-+CONFIG_I2C_BOARDINFO=y
-+CONFIG_I2C_CHARDEV=y
-+CONFIG_I2C_HELPER_AUTO=y
-+
-+#
-+# I2C Hardware Bus support
-+#
-+
-+#
-+# I2C system bus drivers (mostly embedded / system-on-chip)
-+#
-+# CONFIG_I2C_GPIO is not set
-+# CONFIG_I2C_OCORES is not set
-+CONFIG_I2C_OMAP=y
-+# CONFIG_I2C_SIMTEC is not set
-+
-+#
-+# External I2C/SMBus adapter drivers
-+#
-+# CONFIG_I2C_PARPORT_LIGHT is not set
-+# CONFIG_I2C_TAOS_EVM is not set
-+# CONFIG_I2C_TINY_USB is not set
-+
-+#
-+# Other I2C/SMBus bus drivers
-+#
-+# CONFIG_I2C_PCA_PLATFORM is not set
-+# CONFIG_I2C_STUB is not set
-+
-+#
-+# Miscellaneous I2C Chip support
-+#
-+# CONFIG_DS1682 is not set
-+# CONFIG_AT24 is not set
-+# CONFIG_SENSORS_EEPROM is not set
-+# CONFIG_SENSORS_PCF8574 is not set
-+# CONFIG_PCF8575 is not set
-+# CONFIG_SENSORS_PCA9539 is not set
-+# CONFIG_SENSORS_PCF8591 is not set
-+# CONFIG_TPS65010 is not set
-+# CONFIG_TWL4030_MADC is not set
-+# CONFIG_TWL4030_PWRBUTTON is not set
-+# CONFIG_TWL4030_POWEROFF is not set
-+# CONFIG_SENSORS_MAX6875 is not set
-+# CONFIG_SENSORS_TSL2550 is not set
-+# CONFIG_LP5521 is not set
-+# CONFIG_I2C_DEBUG_CORE is not set
-+# CONFIG_I2C_DEBUG_ALGO is not set
-+# CONFIG_I2C_DEBUG_BUS is not set
-+# CONFIG_I2C_DEBUG_CHIP is not set
-+CONFIG_SPI=y
-+# CONFIG_SPI_DEBUG is not set
-+CONFIG_SPI_MASTER=y
-+
-+#
-+# SPI Master Controller Drivers
-+#
-+# CONFIG_SPI_BITBANG is not set
-+CONFIG_SPI_OMAP24XX=y
-+
-+#
-+# SPI Protocol Masters
-+#
-+# CONFIG_SPI_AT25 is not set
-+# CONFIG_SPI_TSC210X is not set
-+# CONFIG_SPI_TSC2301 is not set
-+# CONFIG_SPI_SPIDEV is not set
-+# CONFIG_SPI_TLE62X0 is not set
-+CONFIG_ARCH_REQUIRE_GPIOLIB=y
-+CONFIG_GPIOLIB=y
-+# CONFIG_DEBUG_GPIO is not set
-+# CONFIG_GPIO_SYSFS is not set
-+
-+#
-+# Memory mapped GPIO expanders:
-+#
-+
-+#
-+# I2C GPIO expanders:
-+#
-+# CONFIG_GPIO_MAX732X is not set
-+# CONFIG_GPIO_PCA953X is not set
-+# CONFIG_GPIO_PCF857X is not set
-+CONFIG_GPIO_TWL4030=y
-+
-+#
-+# PCI GPIO expanders:
-+#
-+
-+#
-+# SPI GPIO expanders:
-+#
-+# CONFIG_GPIO_MAX7301 is not set
-+# CONFIG_GPIO_MCP23S08 is not set
-+# CONFIG_W1 is not set
-+# CONFIG_POWER_SUPPLY is not set
-+# CONFIG_HWMON is not set
-+# CONFIG_THERMAL is not set
-+# CONFIG_THERMAL_HWMON is not set
-+CONFIG_WATCHDOG=y
-+CONFIG_WATCHDOG_NOWAYOUT=y
-+
-+#
-+# Watchdog Device Drivers
-+#
-+# CONFIG_SOFT_WATCHDOG is not set
-+CONFIG_OMAP_WATCHDOG=y
-+
-+#
-+# USB-based Watchdog Cards
-+#
-+# CONFIG_USBPCWATCHDOG is not set
-+CONFIG_SSB_POSSIBLE=y
-+
-+#
-+# Sonics Silicon Backplane
-+#
-+# CONFIG_SSB is not set
-+
-+#
-+# Multifunction device drivers
-+#
-+# CONFIG_MFD_CORE is not set
-+# CONFIG_MFD_SM501 is not set
-+# CONFIG_MFD_ASIC3 is not set
-+# CONFIG_HTC_EGPIO is not set
-+# CONFIG_HTC_PASIC3 is not set
-+CONFIG_TWL4030_CORE=y
-+# CONFIG_TWL4030_POWER is not set
-+# CONFIG_MFD_TMIO is not set
-+# CONFIG_MFD_T7L66XB is not set
-+# CONFIG_MFD_TC6387XB is not set
-+# CONFIG_MFD_TC6393XB is not set
-+# CONFIG_PMIC_DA903X is not set
-+# CONFIG_MFD_WM8400 is not set
-+# CONFIG_MFD_WM8350_I2C is not set
-+
-+#
-+# Multimedia devices
-+#
-+
-+#
-+# Multimedia core support
-+#
-+# CONFIG_VIDEO_DEV is not set
-+# CONFIG_DVB_CORE is not set
-+# CONFIG_VIDEO_MEDIA is not set
-+
-+#
-+# Multimedia drivers
-+#
-+CONFIG_DAB=y
-+# CONFIG_USB_DABUSB is not set
-+
-+#
-+# Graphics support
-+#
-+# CONFIG_VGASTATE is not set
-+CONFIG_VIDEO_OUTPUT_CONTROL=m
-+CONFIG_FB=y
-+# CONFIG_FIRMWARE_EDID is not set
-+# CONFIG_FB_DDC is not set
-+# CONFIG_FB_BOOT_VESA_SUPPORT is not set
-+CONFIG_FB_CFB_FILLRECT=m
-+CONFIG_FB_CFB_COPYAREA=m
-+CONFIG_FB_CFB_IMAGEBLIT=m
-+# CONFIG_FB_CFB_REV_PIXELS_IN_BYTE is not set
-+# CONFIG_FB_SYS_FILLRECT is not set
-+# CONFIG_FB_SYS_COPYAREA is not set
-+# CONFIG_FB_SYS_IMAGEBLIT is not set
-+# CONFIG_FB_FOREIGN_ENDIAN is not set
-+# CONFIG_FB_SYS_FOPS is not set
-+# CONFIG_FB_SVGALIB is not set
-+# CONFIG_FB_MACMODES is not set
-+# CONFIG_FB_BACKLIGHT is not set
-+# CONFIG_FB_MODE_HELPERS is not set
-+# CONFIG_FB_TILEBLITTING is not set
-+
-+#
-+# Frame buffer hardware drivers
-+#
-+# CONFIG_FB_S1D13XXX is not set
-+# CONFIG_FB_VIRTUAL is not set
-+# CONFIG_FB_METRONOME is not set
-+# CONFIG_FB_MB862XX is not set
-+# CONFIG_FB_OMAP_LCD_VGA is not set
-+CONFIG_FB_OMAP_CONSISTENT_DMA_SIZE=2
-+CONFIG_FB_OMAP2=m
-+CONFIG_FB_OMAP2_DEBUG=y
-+# CONFIG_FB_OMAP2_FORCE_AUTO_UPDATE is not set
-+CONFIG_FB_OMAP2_NUM_FBS=3
-+
-+#
-+# OMAP2/3 Display Device Drivers
-+#
-+CONFIG_PANEL_GENERIC=m
-+CONFIG_PANEL_SHARP_LS037V7DW01=m
-+# CONFIG_BACKLIGHT_LCD_SUPPORT is not set
-+
-+#
-+# Display device support
-+#
-+# CONFIG_DISPLAY_SUPPORT is not set
-+
-+#
-+# Console display driver support
-+#
-+# CONFIG_VGA_CONSOLE is not set
-+CONFIG_DUMMY_CONSOLE=y
-+# CONFIG_FRAMEBUFFER_CONSOLE is not set
-+# CONFIG_LOGO is not set
-+# CONFIG_SOUND is not set
-+CONFIG_HID_SUPPORT=y
-+CONFIG_HID=y
-+# CONFIG_HID_DEBUG is not set
-+# CONFIG_HIDRAW is not set
-+
-+#
-+# USB Input Devices
-+#
-+CONFIG_USB_HID=y
-+# CONFIG_HID_PID is not set
-+# CONFIG_USB_HIDDEV is not set
-+
-+#
-+# Special HID drivers
-+#
-+CONFIG_HID_COMPAT=y
-+CONFIG_HID_A4TECH=y
-+CONFIG_HID_APPLE=y
-+CONFIG_HID_BELKIN=y
-+CONFIG_HID_BRIGHT=y
-+CONFIG_HID_CHERRY=y
-+CONFIG_HID_CHICONY=y
-+CONFIG_HID_CYPRESS=y
-+CONFIG_HID_DELL=y
-+CONFIG_HID_EZKEY=y
-+CONFIG_HID_GYRATION=y
-+CONFIG_HID_LOGITECH=y
-+# CONFIG_LOGITECH_FF is not set
-+# CONFIG_LOGIRUMBLEPAD2_FF is not set
-+CONFIG_HID_MICROSOFT=y
-+CONFIG_HID_MONTEREY=y
-+CONFIG_HID_PANTHERLORD=y
-+# CONFIG_PANTHERLORD_FF is not set
-+CONFIG_HID_PETALYNX=y
-+CONFIG_HID_SAMSUNG=y
-+CONFIG_HID_SONY=y
-+CONFIG_HID_SUNPLUS=y
-+# CONFIG_THRUSTMASTER_FF is not set
-+# CONFIG_ZEROPLUS_FF is not set
-+CONFIG_USB_SUPPORT=y
-+CONFIG_USB_ARCH_HAS_HCD=y
-+CONFIG_USB_ARCH_HAS_OHCI=y
-+CONFIG_USB_ARCH_HAS_EHCI=y
-+CONFIG_USB=y
-+CONFIG_USB_DEBUG=y
-+CONFIG_USB_ANNOUNCE_NEW_DEVICES=y
-+
-+#
-+# Miscellaneous USB options
-+#
-+CONFIG_USB_DEVICEFS=y
-+# CONFIG_USB_DEVICE_CLASS is not set
-+# CONFIG_USB_DYNAMIC_MINORS is not set
-+CONFIG_USB_SUSPEND=y
-+CONFIG_USB_OTG=y
-+# CONFIG_USB_OTG_WHITELIST is not set
-+# CONFIG_USB_OTG_BLACKLIST_HUB is not set
-+CONFIG_USB_MON=y
-+# CONFIG_USB_WUSB is not set
-+# CONFIG_USB_WUSB_CBAF is not set
-+
-+#
-+# USB Host Controller Drivers
-+#
-+# CONFIG_USB_C67X00_HCD is not set
-+CONFIG_USB_EHCI_HCD=m
-+CONFIG_OMAP_EHCI_PHY_MODE=y
-+# CONFIG_OMAP_EHCI_TLL_MODE is not set
-+# CONFIG_USB_EHCI_ROOT_HUB_TT is not set
-+# CONFIG_USB_EHCI_TT_NEWSCHED is not set
-+# CONFIG_USB_ISP116X_HCD is not set
-+# CONFIG_USB_OHCI_HCD is not set
-+# CONFIG_USB_SL811_HCD is not set
-+# CONFIG_USB_R8A66597_HCD is not set
-+# CONFIG_USB_HWA_HCD is not set
-+CONFIG_USB_MUSB_HDRC=y
-+CONFIG_USB_MUSB_SOC=y
-+
-+#
-+# OMAP 343x high speed USB support
-+#
-+# CONFIG_USB_MUSB_HOST is not set
-+# CONFIG_USB_MUSB_PERIPHERAL is not set
-+CONFIG_USB_MUSB_OTG=y
-+CONFIG_USB_GADGET_MUSB_HDRC=y
-+CONFIG_USB_MUSB_HDRC_HCD=y
-+# CONFIG_MUSB_PIO_ONLY is not set
-+CONFIG_USB_INVENTRA_DMA=y
-+# CONFIG_USB_TI_CPPI_DMA is not set
-+# CONFIG_USB_MUSB_DEBUG is not set
-+
-+#
-+# USB Device Class drivers
-+#
-+# CONFIG_USB_ACM is not set
-+# CONFIG_USB_PRINTER is not set
-+# CONFIG_USB_WDM is not set
-+# CONFIG_USB_TMC is not set
-+
-+#
-+# NOTE: USB_STORAGE depends on SCSI but BLK_DEV_SD may also be needed;
-+#
-+
-+#
-+# see USB_STORAGE Help for more information
-+#
-+CONFIG_USB_STORAGE=y
-+CONFIG_USB_STORAGE_DEBUG=y
-+# CONFIG_USB_STORAGE_DATAFAB is not set
-+# CONFIG_USB_STORAGE_FREECOM is not set
-+# CONFIG_USB_STORAGE_ISD200 is not set
-+# CONFIG_USB_STORAGE_DPCM is not set
-+# CONFIG_USB_STORAGE_USBAT is not set
-+# CONFIG_USB_STORAGE_SDDR09 is not set
-+# CONFIG_USB_STORAGE_SDDR55 is not set
-+# CONFIG_USB_STORAGE_JUMPSHOT is not set
-+# CONFIG_USB_STORAGE_ALAUDA is not set
-+# CONFIG_USB_STORAGE_ONETOUCH is not set
-+# CONFIG_USB_STORAGE_KARMA is not set
-+# CONFIG_USB_STORAGE_CYPRESS_ATACB is not set
-+# CONFIG_USB_LIBUSUAL is not set
-+
-+#
-+# USB Imaging devices
-+#
-+# CONFIG_USB_MDC800 is not set
-+# CONFIG_USB_MICROTEK is not set
-+
-+#
-+# USB port drivers
-+#
-+# CONFIG_USB_SERIAL is not set
-+
-+#
-+# USB Miscellaneous drivers
-+#
-+# CONFIG_USB_EMI62 is not set
-+# CONFIG_USB_EMI26 is not set
-+# CONFIG_USB_ADUTUX is not set
-+# CONFIG_USB_SEVSEG is not set
-+# CONFIG_USB_RIO500 is not set
-+# CONFIG_USB_LEGOTOWER is not set
-+# CONFIG_USB_LCD is not set
-+# CONFIG_USB_BERRY_CHARGE is not set
-+# CONFIG_USB_LED is not set
-+# CONFIG_USB_CYPRESS_CY7C63 is not set
-+# CONFIG_USB_CYTHERM is not set
-+# CONFIG_USB_PHIDGET is not set
-+# CONFIG_USB_IDMOUSE is not set
-+# CONFIG_USB_FTDI_ELAN is not set
-+# CONFIG_USB_APPLEDISPLAY is not set
-+# CONFIG_USB_SISUSBVGA is not set
-+# CONFIG_USB_LD is not set
-+# CONFIG_USB_TRANCEVIBRATOR is not set
-+# CONFIG_USB_IOWARRIOR is not set
-+CONFIG_USB_TEST=y
-+# CONFIG_USB_ISIGHTFW is not set
-+# CONFIG_USB_VST is not set
-+CONFIG_USB_GADGET=y
-+CONFIG_USB_GADGET_DEBUG=y
-+CONFIG_USB_GADGET_DEBUG_FILES=y
-+# CONFIG_USB_GADGET_DEBUG_FS is not set
-+CONFIG_USB_GADGET_VBUS_DRAW=2
-+CONFIG_USB_GADGET_SELECTED=y
-+# CONFIG_USB_GADGET_AT91 is not set
-+# CONFIG_USB_GADGET_ATMEL_USBA is not set
-+# CONFIG_USB_GADGET_FSL_USB2 is not set
-+# CONFIG_USB_GADGET_LH7A40X is not set
-+# CONFIG_USB_GADGET_OMAP is not set
-+# CONFIG_USB_GADGET_PXA25X is not set
-+# CONFIG_USB_GADGET_PXA27X is not set
-+# CONFIG_USB_GADGET_S3C2410 is not set
-+# CONFIG_USB_GADGET_M66592 is not set
-+# CONFIG_USB_GADGET_AMD5536UDC is not set
-+# CONFIG_USB_GADGET_FSL_QE is not set
-+# CONFIG_USB_GADGET_NET2280 is not set
-+# CONFIG_USB_GADGET_GOKU is not set
-+# CONFIG_USB_GADGET_DUMMY_HCD is not set
-+CONFIG_USB_GADGET_DUALSPEED=y
-+CONFIG_USB_ZERO=m
-+# CONFIG_USB_ZERO_HNPTEST is not set
-+# CONFIG_USB_ETH is not set
-+# CONFIG_USB_GADGETFS is not set
-+# CONFIG_USB_FILE_STORAGE is not set
-+# CONFIG_USB_G_SERIAL is not set
-+# CONFIG_USB_MIDI_GADGET is not set
-+# CONFIG_USB_G_PRINTER is not set
-+# CONFIG_USB_CDC_COMPOSITE is not set
-+
-+#
-+# OTG and related infrastructure
-+#
-+CONFIG_USB_OTG_UTILS=y
-+# CONFIG_USB_GPIO_VBUS is not set
-+# CONFIG_ISP1301_OMAP is not set
-+CONFIG_TWL4030_USB=y
-+CONFIG_MMC=y
-+# CONFIG_MMC_DEBUG is not set
-+# CONFIG_MMC_UNSAFE_RESUME is not set
-+
-+#
-+# MMC/SD/SDIO Card Drivers
-+#
-+CONFIG_MMC_BLOCK=y
-+CONFIG_MMC_BLOCK_BOUNCE=y
-+# CONFIG_SDIO_UART is not set
-+# CONFIG_MMC_TEST is not set
-+
-+#
-+# MMC/SD/SDIO Host Controller Drivers
-+#
-+# CONFIG_MMC_SDHCI is not set
-+CONFIG_MMC_OMAP_HS=m
-+# CONFIG_MMC_SPI is not set
-+# CONFIG_MEMSTICK is not set
-+# CONFIG_ACCESSIBILITY is not set
-+# CONFIG_NEW_LEDS is not set
-+CONFIG_RTC_LIB=y
-+CONFIG_RTC_CLASS=y
-+CONFIG_RTC_HCTOSYS=y
-+CONFIG_RTC_HCTOSYS_DEVICE="rtc0"
-+# CONFIG_RTC_DEBUG is not set
-+
-+#
-+# RTC interfaces
-+#
-+CONFIG_RTC_INTF_SYSFS=y
-+CONFIG_RTC_INTF_PROC=y
-+CONFIG_RTC_INTF_DEV=y
-+# CONFIG_RTC_INTF_DEV_UIE_EMUL is not set
-+# CONFIG_RTC_DRV_TEST is not set
-+
-+#
-+# I2C RTC drivers
-+#
-+# CONFIG_RTC_DRV_DS1307 is not set
-+# CONFIG_RTC_DRV_DS1374 is not set
-+# CONFIG_RTC_DRV_DS1672 is not set
-+# CONFIG_RTC_DRV_MAX6900 is not set
-+# CONFIG_RTC_DRV_RS5C372 is not set
-+# CONFIG_RTC_DRV_ISL1208 is not set
-+# CONFIG_RTC_DRV_X1205 is not set
-+# CONFIG_RTC_DRV_PCF8563 is not set
-+# CONFIG_RTC_DRV_PCF8583 is not set
-+# CONFIG_RTC_DRV_M41T80 is not set
-+CONFIG_RTC_DRV_TWL4030=y
-+# CONFIG_RTC_DRV_S35390A is not set
-+# CONFIG_RTC_DRV_FM3130 is not set
-+# CONFIG_RTC_DRV_RX8581 is not set
-+
-+#
-+# SPI RTC drivers
-+#
-+# CONFIG_RTC_DRV_M41T94 is not set
-+# CONFIG_RTC_DRV_DS1305 is not set
-+# CONFIG_RTC_DRV_DS1390 is not set
-+# CONFIG_RTC_DRV_MAX6902 is not set
-+# CONFIG_RTC_DRV_R9701 is not set
-+# CONFIG_RTC_DRV_RS5C348 is not set
-+# CONFIG_RTC_DRV_DS3234 is not set
-+
-+#
-+# Platform RTC drivers
-+#
-+# CONFIG_RTC_DRV_CMOS is not set
-+# CONFIG_RTC_DRV_DS1286 is not set
-+# CONFIG_RTC_DRV_DS1511 is not set
-+# CONFIG_RTC_DRV_DS1553 is not set
-+# CONFIG_RTC_DRV_DS1742 is not set
-+# CONFIG_RTC_DRV_STK17TA8 is not set
-+# CONFIG_RTC_DRV_M48T86 is not set
-+# CONFIG_RTC_DRV_M48T35 is not set
-+# CONFIG_RTC_DRV_M48T59 is not set
-+# CONFIG_RTC_DRV_BQ4802 is not set
-+# CONFIG_RTC_DRV_V3020 is not set
-+
-+#
-+# on-CPU RTC drivers
-+#
-+# CONFIG_DMADEVICES is not set
-+# CONFIG_REGULATOR is not set
-+# CONFIG_UIO is not set
-+
-+#
-+# CBUS support
-+#
-+# CONFIG_CBUS is not set
-+
-+#
-+# File systems
-+#
-+CONFIG_EXT2_FS=y
-+# CONFIG_EXT2_FS_XATTR is not set
-+# CONFIG_EXT2_FS_XIP is not set
-+CONFIG_EXT3_FS=y
-+# CONFIG_EXT3_FS_XATTR is not set
-+# CONFIG_EXT4_FS is not set
-+CONFIG_JBD=y
-+# CONFIG_JBD_DEBUG is not set
-+# CONFIG_REISERFS_FS is not set
-+# CONFIG_JFS_FS is not set
-+# CONFIG_FS_POSIX_ACL is not set
-+CONFIG_FILE_LOCKING=y
-+# CONFIG_XFS_FS is not set
-+# CONFIG_OCFS2_FS is not set
-+CONFIG_DNOTIFY=y
-+CONFIG_INOTIFY=y
-+CONFIG_INOTIFY_USER=y
-+CONFIG_QUOTA=y
-+# CONFIG_QUOTA_NETLINK_INTERFACE is not set
-+CONFIG_PRINT_QUOTA_WARNING=y
-+# CONFIG_QFMT_V1 is not set
-+CONFIG_QFMT_V2=y
-+CONFIG_QUOTACTL=y
-+# CONFIG_AUTOFS_FS is not set
-+# CONFIG_AUTOFS4_FS is not set
-+# CONFIG_FUSE_FS is not set
-+
-+#
-+# CD-ROM/DVD Filesystems
-+#
-+# CONFIG_ISO9660_FS is not set
-+# CONFIG_UDF_FS is not set
-+
-+#
-+# DOS/FAT/NT Filesystems
-+#
-+CONFIG_FAT_FS=y
-+CONFIG_MSDOS_FS=y
-+CONFIG_VFAT_FS=y
-+CONFIG_FAT_DEFAULT_CODEPAGE=437
-+CONFIG_FAT_DEFAULT_IOCHARSET="iso8859-1"
-+# CONFIG_NTFS_FS is not set
-+
-+#
-+# Pseudo filesystems
-+#
-+CONFIG_PROC_FS=y
-+CONFIG_PROC_SYSCTL=y
-+CONFIG_PROC_PAGE_MONITOR=y
-+CONFIG_SYSFS=y
-+CONFIG_TMPFS=y
-+# CONFIG_TMPFS_POSIX_ACL is not set
-+# CONFIG_HUGETLB_PAGE is not set
-+# CONFIG_CONFIGFS_FS is not set
-+
-+#
-+# Miscellaneous filesystems
-+#
-+# CONFIG_ADFS_FS is not set
-+# CONFIG_AFFS_FS is not set
-+# CONFIG_HFS_FS is not set
-+# CONFIG_HFSPLUS_FS is not set
-+# CONFIG_BEFS_FS is not set
-+# CONFIG_BFS_FS is not set
-+# CONFIG_EFS_FS is not set
-+CONFIG_JFFS2_FS=y
-+CONFIG_JFFS2_FS_DEBUG=0
-+CONFIG_JFFS2_FS_WRITEBUFFER=y
-+# CONFIG_JFFS2_FS_WBUF_VERIFY is not set
-+# CONFIG_JFFS2_SUMMARY is not set
-+# CONFIG_JFFS2_FS_XATTR is not set
-+CONFIG_JFFS2_COMPRESSION_OPTIONS=y
-+CONFIG_JFFS2_ZLIB=y
-+# CONFIG_JFFS2_LZO is not set
-+CONFIG_JFFS2_RTIME=y
-+# CONFIG_JFFS2_RUBIN is not set
-+# CONFIG_JFFS2_CMODE_NONE is not set
-+CONFIG_JFFS2_CMODE_PRIORITY=y
-+# CONFIG_JFFS2_CMODE_SIZE is not set
-+# CONFIG_JFFS2_CMODE_FAVOURLZO is not set
-+# CONFIG_CRAMFS is not set
-+# CONFIG_VXFS_FS is not set
-+# CONFIG_MINIX_FS is not set
-+# CONFIG_OMFS_FS is not set
-+# CONFIG_HPFS_FS is not set
-+# CONFIG_QNX4FS_FS is not set
-+# CONFIG_ROMFS_FS is not set
-+# CONFIG_SYSV_FS is not set
-+# CONFIG_UFS_FS is not set
-+CONFIG_NETWORK_FILESYSTEMS=y
-+CONFIG_NFS_FS=y
-+CONFIG_NFS_V3=y
-+# CONFIG_NFS_V3_ACL is not set
-+CONFIG_NFS_V4=y
-+CONFIG_ROOT_NFS=y
-+# CONFIG_NFSD is not set
-+CONFIG_LOCKD=y
-+CONFIG_LOCKD_V4=y
-+CONFIG_NFS_COMMON=y
-+CONFIG_SUNRPC=y
-+CONFIG_SUNRPC_GSS=y
-+# CONFIG_SUNRPC_REGISTER_V4 is not set
-+CONFIG_RPCSEC_GSS_KRB5=y
-+# CONFIG_RPCSEC_GSS_SPKM3 is not set
-+# CONFIG_SMB_FS is not set
-+# CONFIG_CIFS is not set
-+# CONFIG_NCP_FS is not set
-+# CONFIG_CODA_FS is not set
-+# CONFIG_AFS_FS is not set
-+
-+#
-+# Partition Types
-+#
-+CONFIG_PARTITION_ADVANCED=y
-+# CONFIG_ACORN_PARTITION is not set
-+# CONFIG_OSF_PARTITION is not set
-+# CONFIG_AMIGA_PARTITION is not set
-+# CONFIG_ATARI_PARTITION is not set
-+# CONFIG_MAC_PARTITION is not set
-+CONFIG_MSDOS_PARTITION=y
-+# CONFIG_BSD_DISKLABEL is not set
-+# CONFIG_MINIX_SUBPARTITION is not set
-+# CONFIG_SOLARIS_X86_PARTITION is not set
-+# CONFIG_UNIXWARE_DISKLABEL is not set
-+# CONFIG_LDM_PARTITION is not set
-+# CONFIG_SGI_PARTITION is not set
-+# CONFIG_ULTRIX_PARTITION is not set
-+# CONFIG_SUN_PARTITION is not set
-+# CONFIG_KARMA_PARTITION is not set
-+# CONFIG_EFI_PARTITION is not set
-+# CONFIG_SYSV68_PARTITION is not set
-+CONFIG_NLS=y
-+CONFIG_NLS_DEFAULT="iso8859-1"
-+CONFIG_NLS_CODEPAGE_437=y
-+# CONFIG_NLS_CODEPAGE_737 is not set
-+# CONFIG_NLS_CODEPAGE_775 is not set
-+# CONFIG_NLS_CODEPAGE_850 is not set
-+# CONFIG_NLS_CODEPAGE_852 is not set
-+# CONFIG_NLS_CODEPAGE_855 is not set
-+# CONFIG_NLS_CODEPAGE_857 is not set
-+# CONFIG_NLS_CODEPAGE_860 is not set
-+# CONFIG_NLS_CODEPAGE_861 is not set
-+# CONFIG_NLS_CODEPAGE_862 is not set
-+# CONFIG_NLS_CODEPAGE_863 is not set
-+# CONFIG_NLS_CODEPAGE_864 is not set
-+# CONFIG_NLS_CODEPAGE_865 is not set
-+# CONFIG_NLS_CODEPAGE_866 is not set
-+# CONFIG_NLS_CODEPAGE_869 is not set
-+# CONFIG_NLS_CODEPAGE_936 is not set
-+# CONFIG_NLS_CODEPAGE_950 is not set
-+# CONFIG_NLS_CODEPAGE_932 is not set
-+# CONFIG_NLS_CODEPAGE_949 is not set
-+# CONFIG_NLS_CODEPAGE_874 is not set
-+# CONFIG_NLS_ISO8859_8 is not set
-+# CONFIG_NLS_CODEPAGE_1250 is not set
-+# CONFIG_NLS_CODEPAGE_1251 is not set
-+# CONFIG_NLS_ASCII is not set
-+CONFIG_NLS_ISO8859_1=y
-+# CONFIG_NLS_ISO8859_2 is not set
-+# CONFIG_NLS_ISO8859_3 is not set
-+# CONFIG_NLS_ISO8859_4 is not set
-+# CONFIG_NLS_ISO8859_5 is not set
-+# CONFIG_NLS_ISO8859_6 is not set
-+# CONFIG_NLS_ISO8859_7 is not set
-+# CONFIG_NLS_ISO8859_9 is not set
-+# CONFIG_NLS_ISO8859_13 is not set
-+# CONFIG_NLS_ISO8859_14 is not set
-+# CONFIG_NLS_ISO8859_15 is not set
-+# CONFIG_NLS_KOI8_R is not set
-+# CONFIG_NLS_KOI8_U is not set
-+# CONFIG_NLS_UTF8 is not set
-+# CONFIG_DLM is not set
-+
-+#
-+# Kernel hacking
-+#
-+# CONFIG_PRINTK_TIME is not set
-+CONFIG_ENABLE_WARN_DEPRECATED=y
-+CONFIG_ENABLE_MUST_CHECK=y
-+CONFIG_FRAME_WARN=1024
-+CONFIG_MAGIC_SYSRQ=y
-+# CONFIG_UNUSED_SYMBOLS is not set
-+CONFIG_DEBUG_FS=y
-+# CONFIG_HEADERS_CHECK is not set
-+CONFIG_DEBUG_KERNEL=y
-+# CONFIG_DEBUG_SHIRQ is not set
-+CONFIG_DETECT_SOFTLOCKUP=y
-+# CONFIG_BOOTPARAM_SOFTLOCKUP_PANIC is not set
-+CONFIG_BOOTPARAM_SOFTLOCKUP_PANIC_VALUE=0
-+CONFIG_SCHED_DEBUG=y
-+# CONFIG_SCHEDSTATS is not set
-+# CONFIG_TIMER_STATS is not set
-+# CONFIG_DEBUG_OBJECTS is not set
-+# CONFIG_DEBUG_SLAB is not set
-+# CONFIG_DEBUG_RT_MUTEXES is not set
-+# CONFIG_RT_MUTEX_TESTER is not set
-+# CONFIG_DEBUG_SPINLOCK is not set
-+CONFIG_DEBUG_MUTEXES=y
-+# CONFIG_DEBUG_LOCK_ALLOC is not set
-+# CONFIG_PROVE_LOCKING is not set
-+# CONFIG_LOCK_STAT is not set
-+# CONFIG_DEBUG_SPINLOCK_SLEEP is not set
-+# CONFIG_DEBUG_LOCKING_API_SELFTESTS is not set
-+# CONFIG_DEBUG_KOBJECT is not set
-+CONFIG_DEBUG_BUGVERBOSE=y
-+CONFIG_DEBUG_INFO=y
-+# CONFIG_DEBUG_VM is not set
-+# CONFIG_DEBUG_WRITECOUNT is not set
-+# CONFIG_DEBUG_MEMORY_INIT is not set
-+# CONFIG_DEBUG_LIST is not set
-+# CONFIG_DEBUG_SG is not set
-+CONFIG_FRAME_POINTER=y
-+# CONFIG_BOOT_PRINTK_DELAY is not set
-+# CONFIG_RCU_TORTURE_TEST is not set
-+# CONFIG_RCU_CPU_STALL_DETECTOR is not set
-+# CONFIG_BACKTRACE_SELF_TEST is not set
-+# CONFIG_DEBUG_BLOCK_EXT_DEVT is not set
-+# CONFIG_FAULT_INJECTION is not set
-+# CONFIG_LATENCYTOP is not set
-+CONFIG_HAVE_FUNCTION_TRACER=y
-+
-+#
-+# Tracers
-+#
-+# CONFIG_FUNCTION_TRACER is not set
-+# CONFIG_IRQSOFF_TRACER is not set
-+# CONFIG_SCHED_TRACER is not set
-+# CONFIG_CONTEXT_SWITCH_TRACER is not set
-+# CONFIG_BOOT_TRACER is not set
-+# CONFIG_STACK_TRACER is not set
-+# CONFIG_DYNAMIC_PRINTK_DEBUG is not set
-+# CONFIG_SAMPLES is not set
-+CONFIG_HAVE_ARCH_KGDB=y
-+# CONFIG_KGDB is not set
-+CONFIG_DEBUG_USER=y
-+CONFIG_DEBUG_ERRORS=y
-+# CONFIG_DEBUG_STACK_USAGE is not set
-+# CONFIG_DEBUG_LL is not set
-+
-+#
-+# Security options
-+#
-+# CONFIG_KEYS is not set
-+# CONFIG_SECURITY is not set
-+# CONFIG_SECURITYFS is not set
-+# CONFIG_SECURITY_FILE_CAPABILITIES is not set
-+CONFIG_CRYPTO=y
-+
-+#
-+# Crypto core or helper
-+#
-+# CONFIG_CRYPTO_FIPS is not set
-+CONFIG_CRYPTO_ALGAPI=y
-+CONFIG_CRYPTO_ALGAPI2=y
-+CONFIG_CRYPTO_AEAD2=y
-+CONFIG_CRYPTO_BLKCIPHER=y
-+CONFIG_CRYPTO_BLKCIPHER2=y
-+CONFIG_CRYPTO_HASH2=y
-+CONFIG_CRYPTO_RNG2=y
-+CONFIG_CRYPTO_MANAGER=y
-+CONFIG_CRYPTO_MANAGER2=y
-+# CONFIG_CRYPTO_GF128MUL is not set
-+# CONFIG_CRYPTO_NULL is not set
-+# CONFIG_CRYPTO_CRYPTD is not set
-+# CONFIG_CRYPTO_AUTHENC is not set
-+# CONFIG_CRYPTO_TEST is not set
-+
-+#
-+# Authenticated Encryption with Associated Data
-+#
-+# CONFIG_CRYPTO_CCM is not set
-+# CONFIG_CRYPTO_GCM is not set
-+# CONFIG_CRYPTO_SEQIV is not set
-+
-+#
-+# Block modes
-+#
-+CONFIG_CRYPTO_CBC=y
-+# CONFIG_CRYPTO_CTR is not set
-+# CONFIG_CRYPTO_CTS is not set
-+CONFIG_CRYPTO_ECB=m
-+# CONFIG_CRYPTO_LRW is not set
-+CONFIG_CRYPTO_PCBC=m
-+# CONFIG_CRYPTO_XTS is not set
-+
-+#
-+# Hash modes
-+#
-+# CONFIG_CRYPTO_HMAC is not set
-+# CONFIG_CRYPTO_XCBC is not set
-+
-+#
-+# Digest
-+#
-+# CONFIG_CRYPTO_CRC32C is not set
-+# CONFIG_CRYPTO_MD4 is not set
-+CONFIG_CRYPTO_MD5=y
-+# CONFIG_CRYPTO_MICHAEL_MIC is not set
-+# CONFIG_CRYPTO_RMD128 is not set
-+# CONFIG_CRYPTO_RMD160 is not set
-+# CONFIG_CRYPTO_RMD256 is not set
-+# CONFIG_CRYPTO_RMD320 is not set
-+# CONFIG_CRYPTO_SHA1 is not set
-+# CONFIG_CRYPTO_SHA256 is not set
-+# CONFIG_CRYPTO_SHA512 is not set
-+# CONFIG_CRYPTO_TGR192 is not set
-+# CONFIG_CRYPTO_WP512 is not set
-+
-+#
-+# Ciphers
-+#
-+# CONFIG_CRYPTO_AES is not set
-+# CONFIG_CRYPTO_ANUBIS is not set
-+# CONFIG_CRYPTO_ARC4 is not set
-+# CONFIG_CRYPTO_BLOWFISH is not set
-+# CONFIG_CRYPTO_CAMELLIA is not set
-+# CONFIG_CRYPTO_CAST5 is not set
-+# CONFIG_CRYPTO_CAST6 is not set
-+CONFIG_CRYPTO_DES=y
-+# CONFIG_CRYPTO_FCRYPT is not set
-+# CONFIG_CRYPTO_KHAZAD is not set
-+# CONFIG_CRYPTO_SALSA20 is not set
-+# CONFIG_CRYPTO_SEED is not set
-+# CONFIG_CRYPTO_SERPENT is not set
-+# CONFIG_CRYPTO_TEA is not set
-+# CONFIG_CRYPTO_TWOFISH is not set
-+
-+#
-+# Compression
-+#
-+# CONFIG_CRYPTO_DEFLATE is not set
-+# CONFIG_CRYPTO_LZO is not set
-+
-+#
-+# Random Number Generation
-+#
-+# CONFIG_CRYPTO_ANSI_CPRNG is not set
-+CONFIG_CRYPTO_HW=y
-+
-+#
-+# Library routines
-+#
-+CONFIG_BITREVERSE=y
-+CONFIG_CRC_CCITT=y
-+# CONFIG_CRC16 is not set
-+# CONFIG_CRC_T10DIF is not set
-+# CONFIG_CRC_ITU_T is not set
-+CONFIG_CRC32=y
-+# CONFIG_CRC7 is not set
-+CONFIG_LIBCRC32C=y
-+CONFIG_ZLIB_INFLATE=y
-+CONFIG_ZLIB_DEFLATE=y
-+CONFIG_PLIST=y
-+CONFIG_HAS_IOMEM=y
-+CONFIG_HAS_IOPORT=y
-+CONFIG_HAS_DMA=y
-diff --git a/arch/arm/mach-omap2/board-3430sdp.c b/arch/arm/mach-omap2/board-3430sdp.c
-index ade186b..529322f 100644
---- a/arch/arm/mach-omap2/board-3430sdp.c
-+++ b/arch/arm/mach-omap2/board-3430sdp.c
-@@ -39,6 +39,7 @@
- #include <mach/keypad.h>
- #include <mach/dma.h>
- #include <mach/gpmc.h>
+diff --git a/arch/arm/mach-omap2/board-n800.c b/arch/arm/mach-omap2/boa=
+rd-n800.c
+index b38b295..ffa5aad 100644
+--- a/arch/arm/mach-omap2/board-n800.c
++++ b/arch/arm/mach-omap2/board-n800.c
+@@ -40,6 +40,7 @@
+ #include <mach/gpio-switch.h>
+ #include <mach/omapfb.h>
+ #include <mach/blizzard.h>
 +#include <mach/display.h>
- 
- #include <asm/io.h>
- #include <asm/delay.h>
-@@ -238,14 +239,214 @@ static struct spi_board_info sdp3430_spi_board_info[] __initdata = {
- 	},
+=20
+ #include <../drivers/cbus/tahvo.h>
+ #include <../drivers/media/video/tcm825x.h>
+@@ -156,23 +157,175 @@ static struct omap_uart_config n800_uart_config =
+__initdata =3D {
+=20
+ #include "../../../drivers/cbus/retu.h"
+=20
+-static struct omap_fbmem_config n800_fbmem0_config __initdata =3D {
+-	.size =3D 752 * 1024,
++static struct omap_tmp105_config n800_tmp105_config __initdata =3D {
++	.tmp105_irq_pin =3D 125,
++	.set_power =3D n800_tmp105_set_power,
  };
- 
--static struct platform_device sdp3430_lcd_device = {
--	.name		= "sdp2430_lcd",
--	.id		= -1,
+=20
+-static struct omap_fbmem_config n800_fbmem1_config __initdata =3D {
+-	.size =3D 752 * 1024,
+-};
+=20
+-static struct omap_fbmem_config n800_fbmem2_config __initdata =3D {
+-	.size =3D 752 * 1024,
 +
-+#define SDP2430_LCD_PANEL_BACKLIGHT_GPIO	91
-+#define SDP2430_LCD_PANEL_ENABLE_GPIO		154
-+#if 0
-+#define SDP3430_LCD_PANEL_BACKLIGHT_GPIO	24
-+#define SDP3430_LCD_PANEL_ENABLE_GPIO		28
-+#else
-+#define SDP3430_LCD_PANEL_BACKLIGHT_GPIO	8
-+#define SDP3430_LCD_PANEL_ENABLE_GPIO		5
-+#endif
 +
-+#define PM_RECEIVER             TWL4030_MODULE_PM_RECEIVER
-+#define ENABLE_VAUX2_DEDICATED  0x09
-+#define ENABLE_VAUX2_DEV_GRP    0x20
-+#define ENABLE_VAUX3_DEDICATED	0x03
-+#define ENABLE_VAUX3_DEV_GRP	0x20
++/* DISPLAY */
++static struct {
++	struct clk *sys_ck;
++} blizzard;
 +
-+#define ENABLE_VPLL2_DEDICATED	0x05
-+#define ENABLE_VPLL2_DEV_GRP	0xE0
-+#define TWL4030_VPLL2_DEV_GRP	0x33
-+#define TWL4030_VPLL2_DEDICATED	0x36
++static int blizzard_get_clocks(void)
++{
++	blizzard.sys_ck =3D clk_get(0, "osc_ck");
++	if (IS_ERR(blizzard.sys_ck)) {
++		printk(KERN_ERR "can't get Blizzard clock\n");
++		return PTR_ERR(blizzard.sys_ck);
++	}
++	return 0;
++}
 +
-+#define t2_out(c, r, v) twl4030_i2c_write_u8(c, r, v)
++static unsigned long blizzard_get_clock_rate(void)
++{
++	return clk_get_rate(blizzard.sys_ck);
++}
 +
-+static unsigned backlight_gpio;
-+static unsigned enable_gpio;
-+static int lcd_enabled;
-+static int dvi_enabled;
++static int n800_pn800_enable(struct omap_display *display)
++{
++	if (display->hw_config.panel_reset_gpio !=3D -1) {
++		printk("enabling panel gpio\n");
++		gpio_direction_output(display->hw_config.panel_reset_gpio, 1);
++	}
 +
-+static void __init sdp3430_display_init(void)
++	return 0;
++}
++
++static void n800_pn800_disable(struct omap_display *display)
++{
++	if (display->hw_config.panel_reset_gpio !=3D -1) {
++		printk("disabling panel gpio\n");
++		gpio_direction_output(display->hw_config.panel_reset_gpio, 0);
++		msleep(120);
++	}
++}
++
++static int n800_blizzard_enable(struct omap_display *display)
++{
++	printk("enabling bliz powers\n");
++
++	/* Vcore to 1.475V */
++	tahvo_set_clear_reg_bits(0x07, 0, 0xf);
++	msleep(10);
++
++	clk_enable(blizzard.sys_ck);
++
++	if (display->hw_config.ctrl_reset_gpio !=3D -1)
++		gpio_direction_output(display->hw_config.ctrl_reset_gpio, 1);
++
++	printk("osc_ck %lu\n", blizzard_get_clock_rate());
++
++	return 0;
++}
++
++static void n800_blizzard_disable(struct omap_display *display)
++{
++	printk("disabling bliz powers\n");
++
++	if (display->hw_config.ctrl_reset_gpio !=3D -1)
++		gpio_direction_output(display->hw_config.ctrl_reset_gpio, 0);
++
++	clk_disable(blizzard.sys_ck);
++
++	/* Vcore to 1.005V */
++	tahvo_set_clear_reg_bits(0x07, 0xf, 0);
++}
++
++static int n800_set_backlight_level(struct omap_display *display, int =
+level)
++{
++	return 0;
++}
++
++static struct omap_display_data n800_dsi_display_data =3D {
++	.type =3D OMAP_DISPLAY_TYPE_DBI,
++	.name =3D "lcd",
++	.ctrl_name =3D "ctrl-blizzard",
++	.panel_name =3D "panel-pn800",
++	.panel_reset_gpio =3D -1,
++	.ctrl_reset_gpio =3D N800_BLIZZARD_POWERDOWN_GPIO,
++	.panel_enable =3D n800_pn800_enable,
++	.panel_disable =3D n800_pn800_disable,
++	.ctrl_enable =3D n800_blizzard_enable,
++	.ctrl_disable =3D n800_blizzard_disable,
++	.set_backlight =3D n800_set_backlight_level,
++	.u.rfbi =3D {
++		.channel =3D 0,
++		/* 8 for cmd mode, 16 for pixel data. ctrl-blizzard handles switchin=
+g */
++		.data_lines =3D 8,
++	},
++	.priv =3D 0, // XXX used for panel datalines
++};
++static struct omap_dss_platform_data n800_dss_data =3D {
++	.num_displays =3D 1,
++	.displays =3D {
++		&n800_dsi_display_data,
++	},
+ };
+=20
+-static struct omap_tmp105_config n800_tmp105_config __initdata =3D {
+-	.tmp105_irq_pin =3D 125,
+-	.set_power =3D n800_tmp105_set_power,
++static struct platform_device n800_dss_device =3D {
++	.name          =3D "omap-dss",
++	.id            =3D -1,
++	.dev            =3D {
++		.platform_data =3D &n800_dss_data,
++	},
+ };
+=20
++static void __init n800_display_init(void)
 +{
 +	int r;
++	const struct omap_lcd_config *conf;
 +
-+	enable_gpio    = SDP3430_LCD_PANEL_ENABLE_GPIO;
-+	backlight_gpio = SDP3430_LCD_PANEL_BACKLIGHT_GPIO;
-+
-+	r = gpio_request(enable_gpio, "LCD reset");
-+	if (r) {
-+		printk(KERN_ERR "failed to get LCD reset GPIO\n");
-+		goto err0;
++	conf =3D omap_get_config(OMAP_TAG_LCD, struct omap_lcd_config);
++	if (conf !=3D NULL) {
++		n800_dsi_display_data.panel_reset_gpio =3D conf->nreset_gpio;
++		n800_dsi_display_data.priv =3D (void*)(u32)conf->data_lines; // XXX
++		//printk("\n\nTULI %d\n\n", conf->data_lines);
++	} else {
++		printk("\n\nEI TULLU MIOT=C3=84=C3=84=C3=84\n\n");
 +	}
 +
-+	r = gpio_request(backlight_gpio, "LCD Backlight");
-+	if (r) {
-+		printk(KERN_ERR "failed to get LCD backlight GPIO\n");
-+		goto err1;
++	blizzard_get_clocks();
++	clk_enable(blizzard.sys_ck); // XXX always enable
++
++	//omapfb_set_ctrl_platform_data(&n800_blizzard_data);
++	//
++	if (n800_dsi_display_data.ctrl_reset_gpio !=3D -1) {
++		r =3D gpio_request(n800_dsi_display_data.ctrl_reset_gpio,
++				"Blizzard pd");
++		if (r < 0) {
++			n800_dsi_display_data.ctrl_reset_gpio =3D -1;
++			printk(KERN_ERR "Unable to get Blizzard GPIO\n");
++		} else {
++			gpio_direction_output(n800_dsi_display_data.ctrl_reset_gpio,
++					1);
++			// XXX always enable
++		}
 +	}
 +
-+	gpio_direction_output(enable_gpio, 0);
-+	gpio_direction_output(backlight_gpio, 0);
-+
-+	return;
-+err1:
-+	gpio_free(enable_gpio);
-+err0:
-+	return;
-+}
-+
-+
-+static int sdp3430_panel_enable_lcd(struct omap_display *display)
-+{
-+	u8 ded_val, ded_reg;
-+	u8 grp_val, grp_reg;
-+
-+	if (dvi_enabled) {
-+		printk(KERN_ERR "cannot enable LCD, DVI is enabled\n");
-+		return -EINVAL;
-+	}
-+
-+	if (omap_rev() > OMAP3430_REV_ES1_0) {
-+		t2_out(PM_RECEIVER, ENABLE_VPLL2_DEDICATED,
-+				TWL4030_VPLL2_DEDICATED);
-+		t2_out(PM_RECEIVER, ENABLE_VPLL2_DEV_GRP,
-+				TWL4030_VPLL2_DEV_GRP);
-+	}
-+
-+	ded_reg = TWL4030_VAUX3_DEDICATED;
-+	ded_val = ENABLE_VAUX3_DEDICATED;
-+	grp_reg = TWL4030_VAUX3_DEV_GRP;
-+	grp_val = ENABLE_VAUX3_DEV_GRP;
-+
-+	gpio_direction_output(enable_gpio, 1);
-+	gpio_direction_output(backlight_gpio, 1);
-+
-+	if (0 != t2_out(PM_RECEIVER, ded_val, ded_reg))
-+		return -EIO;
-+	if (0 != t2_out(PM_RECEIVER, grp_val, grp_reg))
-+		return -EIO;
-+
-+	lcd_enabled = 1;
-+
-+	return 0;
-+}
-+
-+static void sdp3430_panel_disable_lcd(struct omap_display *display)
-+{
-+	lcd_enabled = 0;
-+
-+	gpio_direction_output(enable_gpio, 0);
-+	gpio_direction_output(backlight_gpio, 0);
-+
-+	if (omap_rev() > OMAP3430_REV_ES1_0) {
-+		t2_out(PM_RECEIVER, 0x0, TWL4030_VPLL2_DEDICATED);
-+		t2_out(PM_RECEIVER, 0x0, TWL4030_VPLL2_DEV_GRP);
-+		mdelay(4);
++	if (n800_dsi_display_data.panel_reset_gpio !=3D -1) {
++		r =3D gpio_request(n800_dsi_display_data.panel_reset_gpio,
++				"panel reset");
++		if (r < 0) {
++			n800_dsi_display_data.panel_reset_gpio =3D -1;
++			printk(KERN_ERR "Unable to get pn800 GPIO\n");
++		} else {
++			gpio_direction_output(n800_dsi_display_data.panel_reset_gpio,
++					1);
++			// XXX always enable
++		}
 +	}
 +}
 +
-+static struct omap_display_data sdp3430_display_data = {
-+	.type = OMAP_DISPLAY_TYPE_DPI,
-+	.name = "lcd",
-+	.panel_name = "sharp-ls037v7dw01",
-+	.u.dpi.data_lines = 16,
-+	.panel_enable = sdp3430_panel_enable_lcd,
-+	.panel_disable = sdp3430_panel_disable_lcd,
-+};
-+
-+static int sdp3430_panel_enable_dvi(struct omap_display *display)
-+{
-+	if (lcd_enabled) {
-+		printk(KERN_ERR "cannot enable DVI, LCD is enabled\n");
-+		return -EINVAL;
-+	}
-+
-+	if (omap_rev() > OMAP3430_REV_ES1_0) {
-+		t2_out(PM_RECEIVER, ENABLE_VPLL2_DEDICATED,
-+				TWL4030_VPLL2_DEDICATED);
-+		t2_out(PM_RECEIVER, ENABLE_VPLL2_DEV_GRP,
-+				TWL4030_VPLL2_DEV_GRP);
-+	}
-+
-+	dvi_enabled = 1;
-+
-+	return 0;
-+}
-+
-+static void sdp3430_panel_disable_dvi(struct omap_display *display)
-+{
-+	dvi_enabled = 0;
-+
-+	if (omap_rev() > OMAP3430_REV_ES1_0) {
-+		t2_out(PM_RECEIVER, 0x0, TWL4030_VPLL2_DEDICATED);
-+		t2_out(PM_RECEIVER, 0x0, TWL4030_VPLL2_DEV_GRP);
-+		mdelay(4);
-+	}
-+}
++/* DISPLAY END */
 +
 +
-+static struct omap_display_data sdp3430_display_data_dvi = {
-+	.type = OMAP_DISPLAY_TYPE_DPI,
-+	.name = "dvi",
-+	.panel_name = "panel-generic",
-+	.u.dpi.data_lines = 24,
-+	.panel_enable = sdp3430_panel_enable_dvi,
-+	.panel_disable = sdp3430_panel_disable_dvi,
++
++
++
+ static void mipid_shutdown(struct mipid_platform_data *pdata)
+ {
+ 	if (pdata->nreset_gpio !=3D -1) {
+@@ -186,6 +339,7 @@ static struct mipid_platform_data n800_mipid_platfo=
+rm_data =3D {
+ 	.shutdown =3D mipid_shutdown,
  };
- 
-+static int sdp3430_panel_enable_tv(struct omap_display *display)
-+{
-+#define ENABLE_VDAC_DEDICATED           0x03
-+#define ENABLE_VDAC_DEV_GRP             0x20
-+
-+	twl4030_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER,
-+			ENABLE_VDAC_DEDICATED,
-+			TWL4030_VDAC_DEDICATED);
-+	twl4030_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER,
-+			ENABLE_VDAC_DEV_GRP, TWL4030_VDAC_DEV_GRP);
-+
-+	return 0;
-+}
-+
-+static void sdp3430_panel_disable_tv(struct omap_display *display)
-+{
-+	twl4030_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER, 0x00,
-+			TWL4030_VDAC_DEDICATED);
-+	twl4030_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER, 0x00,
-+			TWL4030_VDAC_DEV_GRP);
-+}
-+
-+static struct omap_display_data sdp3430_display_data_tv = {
-+	.type = OMAP_DISPLAY_TYPE_VENC,
-+	.name = "tv",
-+	.u.venc.type = OMAP_DSS_VENC_TYPE_SVIDEO,
-+	.panel_enable = sdp3430_panel_enable_tv,
-+	.panel_disable = sdp3430_panel_disable_tv,
-+};
-+
-+static struct omap_dss_platform_data sdp3430_dss_data = {
-+	.num_displays = 3,
-+	.displays = {
-+		&sdp3430_display_data,
-+		&sdp3430_display_data_dvi,
-+		&sdp3430_display_data_tv,
-+	}
-+};
-+
-+static struct platform_device sdp3430_dss_device = {
-+	.name          = "omap-dss",
-+	.id            = -1,
-+	.dev            = {
-+		.platform_data = &sdp3430_dss_data,
-+	},
-+};
-+
-+
- static struct platform_device *sdp3430_devices[] __initdata = {
- 	&sdp3430_smc91x_device,
--	&sdp3430_lcd_device,
-+	&sdp3430_dss_device,
- };
- 
- static inline void __init sdp3430_init_smc91x(void)
-@@ -292,13 +493,8 @@ static struct omap_uart_config sdp3430_uart_config __initdata = {
- 	.enabled_uarts	= ((1 << 0) | (1 << 1) | (1 << 2)),
- };
- 
--static struct omap_lcd_config sdp3430_lcd_config __initdata = {
--	.ctrl_name	= "internal",
--};
--
- static struct omap_board_config_kernel sdp3430_config[] __initdata = {
- 	{ OMAP_TAG_UART,	&sdp3430_uart_config },
--	{ OMAP_TAG_LCD,		&sdp3430_lcd_config },
- };
- 
- static int sdp3430_batt_table[] = {
-@@ -481,6 +677,7 @@ static void __init omap_3430sdp_init(void)
- 	usb_musb_init();
- 	usb_ehci_init();
- 	twl4030_mmc_init(mmc);
-+	sdp3430_display_init();
+=20
++#if 0
+ static void __init mipid_dev_init(void)
+ {
+ 	const struct omap_lcd_config *conf;
+@@ -196,26 +350,9 @@ static void __init mipid_dev_init(void)
+ 		n800_mipid_platform_data.data_lines =3D conf->data_lines;
+ 	}
  }
- 
- static void __init omap_3430sdp_map_io(void)
++#endif
+=20
+-static struct {
+-	struct clk *sys_ck;
+-} blizzard;
+-
+-static int blizzard_get_clocks(void)
+-{
+-	blizzard.sys_ck =3D clk_get(0, "osc_ck");
+-	if (IS_ERR(blizzard.sys_ck)) {
+-		printk(KERN_ERR "can't get Blizzard clock\n");
+-		return PTR_ERR(blizzard.sys_ck);
+-	}
+-	return 0;
+-}
+-
+-static unsigned long blizzard_get_clock_rate(struct device *dev)
+-{
+-	return clk_get_rate(blizzard.sys_ck);
+-}
+-
++#if 0
+ static void blizzard_enable_clocks(int enable)
+ {
+ 	if (enable)
+@@ -260,14 +397,12 @@ static void __init blizzard_dev_init(void)
+ 	gpio_direction_output(N800_BLIZZARD_POWERDOWN_GPIO, 1);
+=20
+ 	blizzard_get_clocks();
+-	omapfb_set_ctrl_platform_data(&n800_blizzard_data);
++	//omapfb_set_ctrl_platform_data(&n800_blizzard_data);
+ }
++#endif
+=20
+ static struct omap_board_config_kernel n800_config[] __initdata =3D {
+ 	{ OMAP_TAG_UART,	                &n800_uart_config },
+-	{ OMAP_TAG_FBMEM,			&n800_fbmem0_config },
+-	{ OMAP_TAG_FBMEM,			&n800_fbmem1_config },
+-	{ OMAP_TAG_FBMEM,			&n800_fbmem2_config },
+ 	{ OMAP_TAG_TMP105,			&n800_tmp105_config },
+ };
+=20
+@@ -374,7 +509,7 @@ static struct omap2_mcspi_device_config tsc2005_mcs=
+pi_config =3D {
+=20
+ static struct spi_board_info n800_spi_board_info[] __initdata =3D {
+ 	{
+-		.modalias	=3D "lcd_mipid",
++		.modalias	=3D "panel-n800",
+ 		.bus_num	=3D 1,
+ 		.chip_select	=3D 1,
+ 		.max_speed_hz	=3D 4000000,
+@@ -399,7 +534,7 @@ static struct spi_board_info n800_spi_board_info[] =
+__initdata =3D {
+=20
+ static struct spi_board_info n810_spi_board_info[] __initdata =3D {
+ 	{
+-		.modalias	 =3D "lcd_mipid",
++		.modalias	 =3D "panel-n800",
+ 		.bus_num	 =3D 1,
+ 		.chip_select	 =3D 1,
+ 		.max_speed_hz	 =3D 4000000,
+@@ -567,6 +702,7 @@ static struct platform_device *n800_devices[] __ini=
+tdata =3D {
+ #if defined(CONFIG_CBUS_RETU) && defined(CONFIG_LEDS_OMAP_PWM)
+ 	&n800_keypad_led_device,
+ #endif
++	&n800_dss_device,
+ };
+=20
+ #ifdef CONFIG_MENELAUS
+@@ -689,9 +825,10 @@ void __init nokia_n800_common_init(void)
+ 	if (machine_is_nokia_n810())
+ 		i2c_register_board_info(2, n810_i2c_board_info_2,
+ 			ARRAY_SIZE(n810_i2c_board_info_2));
+-	=09
+-	mipid_dev_init();
+-	blizzard_dev_init();
++
++	//mipid_dev_init();
++	//blizzard_dev_init();
++	n800_display_init();
+ }
+=20
+ static void __init nokia_n800_init(void)
+@@ -712,6 +849,7 @@ void __init nokia_n800_map_io(void)
+ 	omap_board_config_size =3D ARRAY_SIZE(n800_config);
+=20
+ 	omap2_set_globals_242x();
++	omap2_set_sdram_vram(800 * 480 * 2 * 3, 0);
+ 	omap2_map_common_io();
+ }
+=20
+diff --git a/drivers/video/omap2/Kconfig b/drivers/video/omap2/Kconfig
+index b54c955..4e9211e 100644
+--- a/drivers/video/omap2/Kconfig
++++ b/drivers/video/omap2/Kconfig
+@@ -49,4 +49,14 @@ config PANEL_SHARP_LS037V7DW01
+         help
+           LCD Panel used in TI's SDP3430 and EVM boards
+=20
++config PANEL_N800
++        tristate "panel n800"
++        help
++          N800 LCD
++
++config CTRL_BLIZZARD
++        tristate "blizzard ctrl"
++        help
++          Blizzard Ctrl
++
+ endmenu
+diff --git a/drivers/video/omap2/Makefile b/drivers/video/omap2/Makefil=
+e
+index fe6858e..7727f9c 100644
+--- a/drivers/video/omap2/Makefile
++++ b/drivers/video/omap2/Makefile
+@@ -3,3 +3,6 @@ omapfb-y :=3D omapfb-main.o omapfb-sysfs.o omapfb-ioctl=
+=2Eo
+=20
+ obj-$(CONFIG_PANEL_GENERIC) +=3D panel-generic.o
+ obj-$(CONFIG_PANEL_SHARP_LS037V7DW01) +=3D panel-sharp-ls037v7dw01.o
++
++obj-$(CONFIG_CTRL_BLIZZARD) +=3D ctrl-blizzard.o
++obj-$(CONFIG_PANEL_N800) +=3D panel-n800.o
+diff --git a/drivers/video/omap2/ctrl-blizzard.c b/drivers/video/omap2/=
+ctrl-blizzard.c
+new file mode 100644
+index 0000000..e1e5569
+--- /dev/null
++++ b/drivers/video/omap2/ctrl-blizzard.c
+@@ -0,0 +1,279 @@
++
++//#define DEBUG
++
++#include <linux/kernel.h>
++#include <linux/module.h>
++#include <linux/clk.h>
++#include <linux/delay.h>
++#include <linux/err.h>
++
++#include <mach/display.h>
++#include <mach/dma.h>
++
++#ifdef DEBUG
++#define DBG(format, ...) printk(KERN_DEBUG "Blizzard: " format, ## __V=
+A_ARGS__)
++#else
++#define DBG(format, ...)
++#endif
++
++#define BLIZZARD_REV_CODE			0x00
++#define BLIZZARD_CONFIG				0x02
++#define BLIZZARD_PLL_DIV			0x04
++#define BLIZZARD_PLL_LOCK_RANGE			0x06
++#define BLIZZARD_PLL_CLOCK_SYNTH_0		0x08
++#define BLIZZARD_PLL_CLOCK_SYNTH_1		0x0a
++#define BLIZZARD_PLL_MODE			0x0c
++#define BLIZZARD_CLK_SRC			0x0e
++#define BLIZZARD_MEM_BANK0_ACTIVATE		0x10
++#define BLIZZARD_MEM_BANK0_STATUS		0x14
++#define BLIZZARD_PANEL_CONFIGURATION		0x28
++#define BLIZZARD_HDISP				0x2a
++#define BLIZZARD_HNDP				0x2c
++#define BLIZZARD_VDISP0				0x2e
++#define BLIZZARD_VDISP1				0x30
++#define BLIZZARD_VNDP				0x32
++#define BLIZZARD_HSW				0x34
++#define BLIZZARD_VSW				0x38
++#define BLIZZARD_DISPLAY_MODE			0x68
++#define BLIZZARD_INPUT_WIN_X_START_0		0x6c
++#define BLIZZARD_DATA_SOURCE_SELECT		0x8e
++#define BLIZZARD_DISP_MEM_DATA_PORT		0x90
++#define BLIZZARD_DISP_MEM_READ_ADDR0		0x92
++#define BLIZZARD_POWER_SAVE			0xE6
++#define BLIZZARD_NDISP_CTRL_STATUS		0xE8
++
++/* Data source select */
++/* For S1D13745 */
++#define BLIZZARD_SRC_WRITE_LCD_BACKGROUND	0x00
++#define BLIZZARD_SRC_WRITE_LCD_DESTRUCTIVE	0x01
++#define BLIZZARD_SRC_WRITE_OVERLAY_ENABLE	0x04
++#define BLIZZARD_SRC_DISABLE_OVERLAY		0x05
++/* For S1D13744 */
++#define BLIZZARD_SRC_WRITE_LCD			0x00
++#define BLIZZARD_SRC_BLT_LCD			0x06
++
++#define BLIZZARD_COLOR_RGB565			0x01
++#define BLIZZARD_COLOR_YUV420			0x09
++
++#define BLIZZARD_VERSION_S1D13745		0x01	/* Hailstorm */
++#define BLIZZARD_VERSION_S1D13744		0x02	/* Blizzard */
++
++#define BLIZZARD_AUTO_UPDATE_TIME		(HZ / 20)
++
++
++
++static struct {
++	int			version;
++} blizzard;
++
++
++static inline void blizzard_cmd(u8 cmd)
++{
++        omap_rfbi_write_command(&cmd, 1);
++}
++
++static inline void blizzard_write(u8 cmd, const u8 *buf, int len)
++{
++        omap_rfbi_write_command(&cmd, 1);
++        omap_rfbi_write_data(buf, len);
++}
++
++static inline void blizzard_read(u8 cmd, u8 *buf, int len)
++{
++        omap_rfbi_write_command(&cmd, 1);
++        omap_rfbi_read_data(buf, len);
++}
++
++static u8 blizzard_read_reg(u8 cmd)
++{
++	u8 data;
++	blizzard_read(cmd, &data, 1);
++	return data;
++}
++
++static int blizzard_ctrl_init(struct omap_display *display)
++{
++	DBG("blizzard_ctrl_init\n");
++
++	return 0;
++}
++
++
++static int blizzard_ctrl_enable(struct omap_display *display)
++{
++	int r =3D 0;
++	u8 rev, conf;
++
++	DBG("blizzard_ctrl_enable\n");
++
++	if (display->hw_config.ctrl_enable) {
++		r =3D display->hw_config.ctrl_enable(display);
++		if (r)
++			return r;
++	}
++
++	msleep(100);
++
++	rev =3D blizzard_read_reg(BLIZZARD_CLK_SRC);
++	printk("CLK_SRC %x\n", rev);
++
++	rev =3D blizzard_read_reg(BLIZZARD_PLL_DIV);
++	printk("PLLDIV %x\n", rev);
++
++	rev =3D blizzard_read_reg(BLIZZARD_REV_CODE);
++	conf =3D blizzard_read_reg(BLIZZARD_CONFIG);
++
++	printk("rev %x, conf %x\n", rev, conf);
++
++	switch (rev & 0xfc) {
++	case 0x9c:
++		blizzard.version =3D BLIZZARD_VERSION_S1D13744;
++		pr_info("omapfb: s1d13744 LCD controller rev %d "
++			"initialized (CNF pins %x)\n", rev & 0x03, conf & 0x07);
++		break;
++	case 0xa4:
++		blizzard.version =3D BLIZZARD_VERSION_S1D13745;
++		pr_info("omapfb: s1d13745 LCD controller rev %d "
++			"initialized (CNF pins %x)\n", rev & 0x03, conf & 0x07);
++		break;
++	default:
++		printk("invalid s1d1374x revision %02x\n",
++			rev);
++		r =3D -ENODEV;
++	}
++
++	return r;
++}
++
++static void blizzard_ctrl_disable(struct omap_display *display)
++{
++	DBG("blizzard_ctrl_disable\n");
++
++	if (display->hw_config.ctrl_disable)
++		display->hw_config.ctrl_disable(display);
++}
++
++int rfbi_configure(int rfbi_module, int bpp, int lines);
++
++static void blizzard_ctrl_setup_update(struct omap_display *display,
++				    int x, int y, int w, int h)
++{
++	u8 tmp[18];
++	int x_end, y_end;
++
++	DBG("blizzard_ctrl_setup_update\n");
++
++	x_end =3D x + w - 1;
++	y_end =3D y + h - 1;
++
++	tmp[0] =3D x;
++	tmp[1] =3D x >> 8;
++	tmp[2] =3D y;
++	tmp[3] =3D y >> 8;
++	tmp[4] =3D x_end;
++	tmp[5] =3D x_end >> 8;
++	tmp[6] =3D y_end;
++	tmp[7] =3D y_end >> 8;
++
++	/* scaling? */
++	tmp[8] =3D x;
++	tmp[9] =3D x >> 8;
++	tmp[10] =3D y;
++	tmp[11] =3D y >> 8;
++	tmp[12] =3D x_end;
++	tmp[13] =3D x_end >> 8;
++	tmp[14] =3D y_end;
++	tmp[15] =3D y_end >> 8;
++
++	tmp[16] =3D BLIZZARD_COLOR_RGB565; //color_mode;
++
++	if (blizzard.version =3D=3D BLIZZARD_VERSION_S1D13745)
++		tmp[17] =3D BLIZZARD_SRC_WRITE_LCD_BACKGROUND;
++	else
++		tmp[17] =3D blizzard.version =3D=3D BLIZZARD_VERSION_S1D13744 ?
++				BLIZZARD_SRC_WRITE_LCD :
++				BLIZZARD_SRC_WRITE_LCD_DESTRUCTIVE;
++
++	rfbi_configure(display->hw_config.u.rfbi.channel,
++		       16,
++		       8);
++
++	blizzard_write(BLIZZARD_INPUT_WIN_X_START_0, tmp, 18);
++
++	rfbi_configure(display->hw_config.u.rfbi.channel,
++		       16,
++		       16);
++}
++
++static int blizzard_ctrl_enable_te(struct omap_display *display, int e=
+nable)
++{
++	return 0;
++}
++
++static int blizzard_ctrl_rotate(struct omap_display *display, int rota=
+te)
++{
++	return 0;
++}
++
++static int blizzard_ctrl_mirror(struct omap_display *display, int enab=
+le)
++{
++	return 0;
++}
++
++static int blizzard_run_test(struct omap_display *display, int test_nu=
+m)
++{
++	return 0;
++}
++
++static struct omap_ctrl blizzard_ctrl =3D {
++	.owner =3D THIS_MODULE,
++	.name =3D "ctrl-blizzard",
++	.init =3D blizzard_ctrl_init,
++	.enable =3D blizzard_ctrl_enable,
++	.disable =3D blizzard_ctrl_disable,
++	.setup_update =3D blizzard_ctrl_setup_update,
++	.enable_te =3D blizzard_ctrl_enable_te,
++	.rotate =3D blizzard_ctrl_rotate,
++	.mirror =3D blizzard_ctrl_mirror,
++	.run_test =3D blizzard_run_test,
++	.pixel_size =3D 16,
++
++	.timings =3D {
++                .cs_on_time     =3D 0,
++
++                .we_on_time     =3D 9000,
++                .we_off_time    =3D 18000,
++                .we_cycle_time  =3D 36000,
++
++                .re_on_time     =3D 9000,
++                .re_off_time    =3D 27000,
++                .re_cycle_time  =3D 36000,
++
++                .access_time    =3D 27000,
++                .cs_off_time    =3D 36000,
++
++                .cs_pulse_width =3D 0,
++        },
++};
++
++
++static int __init blizzard_init(void)
++{
++	DBG("blizzard_init\n");
++	omap_dss_register_ctrl(&blizzard_ctrl);
++	return 0;
++}
++
++static void __exit blizzard_exit(void)
++{
++	DBG("blizzard_exit\n");
++
++	omap_dss_unregister_ctrl(&blizzard_ctrl);
++}
++
++module_init(blizzard_init);
++module_exit(blizzard_exit);
++
++MODULE_AUTHOR("Tomi Valkeinen <tomi.valkeinen@nokia.com>");
++MODULE_DESCRIPTION("Blizzard Driver");
++MODULE_LICENSE("GPL");
+diff --git a/drivers/video/omap2/panel-n800.c b/drivers/video/omap2/pan=
+el-n800.c
+new file mode 100644
+index 0000000..3ae0a16
+--- /dev/null
++++ b/drivers/video/omap2/panel-n800.c
+@@ -0,0 +1,437 @@
++
++/*#define DEBUG*/
++
++#include <linux/kernel.h>
++#include <linux/module.h>
++#include <linux/clk.h>
++#include <linux/platform_device.h>
++#include <linux/delay.h>
++#include <linux/spi/spi.h>
++#include <linux/jiffies.h>
++#include <linux/sched.h>
++#include <linux/backlight.h>
++#include <linux/fb.h>
++
++#include <mach/display.h>
++#include <mach/dma.h>
++
++#define MIPID_CMD_READ_DISP_ID		0x04
++#define MIPID_CMD_READ_RED		0x06
++#define MIPID_CMD_READ_GREEN		0x07
++#define MIPID_CMD_READ_BLUE		0x08
++#define MIPID_CMD_READ_DISP_STATUS	0x09
++#define MIPID_CMD_RDDSDR		0x0F
++#define MIPID_CMD_SLEEP_IN		0x10
++#define MIPID_CMD_SLEEP_OUT		0x11
++#define MIPID_CMD_DISP_OFF		0x28
++#define MIPID_CMD_DISP_ON		0x29
++
++#define MIPID_VER_LPH8923		3
++#define MIPID_VER_LS041Y3		4
++
++#define MIPID_ESD_CHECK_PERIOD		msecs_to_jiffies(5000)
++
++#ifdef DEBUG
++#define DBG(format, ...) printk(KERN_DEBUG "PN800: " format, ## __VA_A=
+RGS__)
++#else
++#define DBG(format, ...)
++#endif
++
++struct pn800_device {
++	struct backlight_device *bl_dev;
++	int		enabled;
++	int		model;
++	int		revision;
++	u8		display_id[3];
++	unsigned int	saved_bklight_level;
++	unsigned long	hw_guard_end;		/* next value of jiffies
++						   when we can issue the
++						   next sleep in/out command */
++	unsigned long	hw_guard_wait;		/* max guard time in jiffies */
++
++	struct spi_device	*spi;
++	struct mutex		mutex;
++	struct omap_panel	panel;
++	struct omap_display	*display;
++};
++
++
++static void pn800_transfer(struct pn800_device *md, int cmd,
++			      const u8 *wbuf, int wlen, u8 *rbuf, int rlen)
++{
++	struct spi_message	m;
++	struct spi_transfer	*x, xfer[4];
++	u16			w;
++	int			r;
++
++	BUG_ON(md->spi =3D=3D NULL);
++
++	spi_message_init(&m);
++
++	memset(xfer, 0, sizeof(xfer));
++	x =3D &xfer[0];
++
++	cmd &=3D  0xff;
++	x->tx_buf =3D &cmd;
++	x->bits_per_word =3D 9;
++	x->len =3D 2;
++	spi_message_add_tail(x, &m);
++
++	if (wlen) {
++		x++;
++		x->tx_buf =3D wbuf;
++		x->len =3D wlen;
++		x->bits_per_word =3D 9;
++		spi_message_add_tail(x, &m);
++	}
++
++	if (rlen) {
++		x++;
++		x->rx_buf =3D &w;
++		x->len =3D 1;
++		spi_message_add_tail(x, &m);
++
++		if (rlen > 1) {
++			/* Arrange for the extra clock before the first
++			 * data bit.
++			 */
++			x->bits_per_word =3D 9;
++			x->len		 =3D 2;
++
++			x++;
++			x->rx_buf	 =3D &rbuf[1];
++			x->len		 =3D rlen - 1;
++			spi_message_add_tail(x, &m);
++		}
++	}
++
++	r =3D spi_sync(md->spi, &m);
++	if (r < 0)
++		dev_dbg(&md->spi->dev, "spi_sync %d\n", r);
++
++	if (rlen)
++		rbuf[0] =3D w & 0xff;
++}
++
++static inline void pn800_cmd(struct pn800_device *md, int cmd)
++{
++	pn800_transfer(md, cmd, NULL, 0, NULL, 0);
++}
++
++static inline void pn800_write(struct pn800_device *md,
++			       int reg, const u8 *buf, int len)
++{
++	pn800_transfer(md, reg, buf, len, NULL, 0);
++}
++
++static inline void pn800_read(struct pn800_device *md,
++			      int reg, u8 *buf, int len)
++{
++	pn800_transfer(md, reg, NULL, 0, buf, len);
++}
++
++static void set_data_lines(struct pn800_device *md, int data_lines)
++{
++	u16 par;
++
++	switch (data_lines) {
++	case 16:
++		par =3D 0x150;
++		break;
++	case 18:
++		par =3D 0x160;
++		break;
++	case 24:
++		par =3D 0x170;
++		break;
++	}
++	pn800_write(md, 0x3a, (u8 *)&par, 2);
++}
++
++static void send_init_string(struct pn800_device *md)
++{
++	u16 initpar[] =3D { 0x0102, 0x0100, 0x0100 };
++	int data_lines;
++
++	pn800_write(md, 0xc2, (u8 *)initpar, sizeof(initpar));
++
++	data_lines =3D (int)md->display->hw_config.priv; // XXX
++
++	set_data_lines(md, data_lines);
++}
++
++static void hw_guard_start(struct pn800_device *md, int guard_msec)
++{
++	md->hw_guard_wait =3D msecs_to_jiffies(guard_msec);
++	md->hw_guard_end =3D jiffies + md->hw_guard_wait;
++}
++
++static void hw_guard_wait(struct pn800_device *md)
++{
++	unsigned long wait =3D md->hw_guard_end - jiffies;
++
++	if ((long)wait > 0 && wait <=3D md->hw_guard_wait) {
++		set_current_state(TASK_UNINTERRUPTIBLE);
++		schedule_timeout(wait);
++	}
++}
++
++static void set_sleep_mode(struct pn800_device *md, int on)
++{
++	int cmd, sleep_time =3D 50;
++
++	if (on)
++		cmd =3D MIPID_CMD_SLEEP_IN;
++	else
++		cmd =3D MIPID_CMD_SLEEP_OUT;
++	hw_guard_wait(md);
++	pn800_cmd(md, cmd);
++	hw_guard_start(md, 120);
++	/*
++	 * When we enable the panel, it seems we _have_ to sleep
++	 * 120 ms before sending the init string. When disabling the
++	 * panel we'll sleep for the duration of 2 frames, so that the
++	 * controller can still provide the PCLK,HS,VS signals. */
++	if (!on)
++		sleep_time =3D 120;
++	msleep(sleep_time);
++}
++
++static void set_display_state(struct pn800_device *md, int enabled)
++{
++	int cmd =3D enabled ? MIPID_CMD_DISP_ON : MIPID_CMD_DISP_OFF;
++
++	pn800_cmd(md, cmd);
++}
++
++static int panel_enabled(struct pn800_device *md)
++{
++	u32 disp_status;
++	int enabled;
++
++	pn800_read(md, MIPID_CMD_READ_DISP_STATUS, (u8 *)&disp_status, 4);
++	disp_status =3D __be32_to_cpu(disp_status);
++	enabled =3D (disp_status & (1 << 17)) && (disp_status & (1 << 10));
++	dev_dbg(&md->spi->dev,
++		"LCD panel %s enabled by bootloader (status 0x%04x)\n",
++		enabled ? "" : "not ", disp_status);
++	DBG("status %#08x\n", disp_status);
++	return enabled;
++}
++
++static int panel_detect(struct pn800_device *md)
++{
++	pn800_read(md, MIPID_CMD_READ_DISP_ID, md->display_id, 3);
++	dev_dbg(&md->spi->dev, "MIPI display ID: %02x%02x%02x\n",
++		md->display_id[0], md->display_id[1], md->display_id[2]);
++
++	switch (md->display_id[0]) {
++	case 0x45:
++		md->model =3D MIPID_VER_LPH8923;
++		md->panel.name =3D "lph8923";
++		break;
++	case 0x83:
++		md->model =3D MIPID_VER_LS041Y3;
++		md->panel.name =3D "ls041y3";
++		//md->esd_check =3D ls041y3_esd_check;
++		break;
++	default:
++		md->panel.name =3D "unknown";
++		dev_err(&md->spi->dev, "invalid display ID\n");
++		return -ENODEV;
++	}
++
++	md->revision =3D md->display_id[1];
++	pr_info("omapfb: %s rev %02x LCD detected\n",
++			md->panel.name, md->revision);
++
++	return 0;
++}
++
++
++
++static int pn800_panel_enable(struct omap_display *display)
++{
++	int r;
++	struct pn800_device *md =3D
++		(struct pn800_device *)display->panel->priv;
++
++	DBG("pn800_panel_enable\n");
++
++	mutex_lock(&md->mutex);
++
++	if (display->hw_config.panel_enable)
++		display->hw_config.panel_enable(display);
++
++	msleep(50); // wait for power up
++
++	r =3D panel_detect(md);
++	if (r) {
++		mutex_unlock(&md->mutex);
++		return r;
++	}
++
++	md->enabled =3D panel_enabled(md);
++
++	if (md->enabled) {
++		DBG("panel already enabled\n");
++		; /*pn800_esd_start_check(md);*/
++	} else {
++		; /*md->saved_bklight_level =3D pn800_get_bklight_level(panel);*/
++	}
++
++
++	if (md->enabled) {
++		mutex_unlock(&md->mutex);
++		return 0;
++	}
++
++	set_sleep_mode(md, 0);
++	md->enabled =3D 1;
++	send_init_string(md);
++	set_display_state(md, 1);
++	//mipid_set_bklight_level(panel, md->saved_bklight_level);
++	//mipid_esd_start_check(md);
++
++	mutex_unlock(&md->mutex);
++	return 0;
++}
++
++static void pn800_panel_disable(struct omap_display *display)
++{
++	struct pn800_device *md =3D
++		(struct pn800_device *)display->panel->priv;
++
++	DBG("pn800_panel_disable\n");
++
++	mutex_lock(&md->mutex);
++
++	if (!md->enabled) {
++		mutex_unlock(&md->mutex);
++		return;
++	}
++	/*md->saved_bklight_level =3D pn800_get_bklight_level(panel);*/
++	/*pn800_set_bklight_level(panel, 0);*/
++
++	set_display_state(md, 0);
++	set_sleep_mode(md, 1);
++	md->enabled =3D 0;
++
++
++	if (display->hw_config.panel_disable)
++		display->hw_config.panel_disable(display);
++
++	mutex_unlock(&md->mutex);
++}
++
++static int pn800_panel_init(struct omap_display *display)
++{
++	struct pn800_device *md =3D
++		(struct pn800_device *)display->panel->priv;
++
++	DBG("pn800_panel_init\n");
++
++	mutex_init(&md->mutex);
++	md->display =3D display;
++
++	return 0;
++}
++
++static int pn800_run_test(struct omap_display *display, int test_num)
++{
++	return 0;
++}
++
++static struct omap_panel pn800_panel =3D {
++	.owner		=3D THIS_MODULE,
++	.name		=3D "panel-pn800",
++	.init		=3D pn800_panel_init,
++	/*.remove	=3D pn800_cleanup,*/
++	.enable		=3D pn800_panel_enable,
++	.disable	=3D pn800_panel_disable,
++	//.set_mode	=3D pn800_set_mode,
++	.run_test	=3D pn800_run_test,
++
++	.timings =3D {
++		.x_res =3D 800,
++		.y_res =3D 480,
++
++		.pixel_clock	=3D 21940,
++		.hsw		=3D 50,
++		.hfp		=3D 20,
++		.hbp		=3D 15,
++
++		.vsw		=3D 2,
++		.vfp		=3D 1,
++		.vbp		=3D 3,
++	},
++	.config		=3D OMAP_DSS_LCD_TFT,
++
++	.bpp =3D 16,
++};
++
++static int pn800_spi_probe(struct spi_device *spi)
++{
++	struct pn800_device *md;
++
++	DBG("pn800_spi_probe\n");
++
++	md =3D kzalloc(sizeof(*md), GFP_KERNEL);
++	if (md =3D=3D NULL) {
++		dev_err(&spi->dev, "out of memory\n");
++		return -ENOMEM;
++	}
++
++	spi->mode =3D SPI_MODE_0;
++	md->spi =3D spi;
++	dev_set_drvdata(&spi->dev, md);
++	md->panel =3D pn800_panel;
++	pn800_panel.priv =3D md;
++
++	omap_dss_register_panel(&pn800_panel);
++
++	return 0;
++}
++
++static int pn800_spi_remove(struct spi_device *spi)
++{
++	struct pn800_device *md =3D dev_get_drvdata(&spi->dev);
++
++	DBG("pn800_spi_remove\n");
++
++	omap_dss_unregister_panel(&pn800_panel);
++
++	/*pn800_disable(&md->panel);*/
++	kfree(md);
++
++	return 0;
++}
++
++static struct spi_driver pn800_spi_driver =3D {
++	.driver =3D {
++		.name	=3D "panel-n800",
++		.bus	=3D &spi_bus_type,
++		.owner	=3D THIS_MODULE,
++	},
++	.probe	=3D pn800_spi_probe,
++	.remove	=3D __devexit_p(pn800_spi_remove),
++};
++
++static int __init pn800_init(void)
++{
++	DBG("pn800_init\n");
++	return spi_register_driver(&pn800_spi_driver);
++}
++
++static void __exit pn800_exit(void)
++{
++	DBG("pn800_exit\n");
++	spi_unregister_driver(&pn800_spi_driver);
++}
++
++module_init(pn800_init);
++module_exit(pn800_exit);
++
++MODULE_AUTHOR("Tomi Valkeinen <tomi.valkeinen@nokia.com>");
++MODULE_DESCRIPTION("N800 LCD Driver");
++MODULE_LICENSE("GPL");
 
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
