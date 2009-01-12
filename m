@@ -1,159 +1,268 @@
 From: Tomi Valkeinen <tomi.valkeinen@nokia.com>
-Subject: [PATCH 07/12] DSS: Add generic DVI panel
-Date: Mon, 12 Jan 2009 13:48:05 +0200
-Message-ID: <20090112114805.1003.51171.stgit@tubuntu>
+Subject: [PATCH 11/12] DSS: Support for OMAP3 EVM board
+Date: Mon, 12 Jan 2009 13:48:31 +0200
+Message-ID: <20090112114831.1003.71495.stgit@tubuntu>
 References: <20090112114718.1003.23643.stgit@tubuntu>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:35736 "EHLO
-	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753233AbZALLsM (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 12 Jan 2009 06:48:12 -0500
+Received: from smtp.nokia.com ([192.100.105.134]:47268 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751525AbZALLsq (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 12 Jan 2009 06:48:46 -0500
 In-Reply-To: <20090112114718.1003.23643.stgit@tubuntu>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-fbdev-devel@lists.sourceforge.net
 Cc: linux-omap@vger.kernel.org
 
-You also need DSI PLL to generate pix clock for 1280x1024.
+Coded by Vaibhav Hiremath <hvaibhav@ti.com>
 
 Signed-off-by: Tomi Valkeinen <tomi.valkeinen@nokia.com>
 ---
 
- drivers/video/omap2/Kconfig         |    5 ++
- drivers/video/omap2/Makefile        |    2 +
- drivers/video/omap2/panel-generic.c |   97 +++++++++++++++++++++++++++++++++++
- 3 files changed, 104 insertions(+), 0 deletions(-)
- create mode 100644 drivers/video/omap2/panel-generic.c
+ arch/arm/mach-omap2/board-omap3evm.c |  203 +++++++++++++++++++++++++++++++++-
+ 1 files changed, 196 insertions(+), 7 deletions(-)
 
-diff --git a/drivers/video/omap2/Kconfig b/drivers/video/omap2/Kconfig
-index 8be51a3..be00882 100644
---- a/drivers/video/omap2/Kconfig
-+++ b/drivers/video/omap2/Kconfig
-@@ -37,6 +37,11 @@ config FB_OMAP2_NUM_FBS
- menu "OMAP2/3 Display Device Drivers"
-         depends on OMAP2_DSS
- 
-+config PANEL_GENERIC
-+        tristate "Generic Panel"
-+        help
-+	  Generic panel driver.
-+	  Used for DVI output for Beagle and OMAP3 SDP.
- 
- endmenu
- 
-diff --git a/drivers/video/omap2/Makefile b/drivers/video/omap2/Makefile
-index 51c2e00..f471a2b 100644
---- a/drivers/video/omap2/Makefile
-+++ b/drivers/video/omap2/Makefile
-@@ -1,2 +1,4 @@
- obj-$(CONFIG_FB_OMAP2) += omapfb.o
- omapfb-y := omapfb-main.o omapfb-sysfs.o omapfb-ioctl.o
-+
-+obj-$(CONFIG_PANEL_GENERIC) += panel-generic.o
-diff --git a/drivers/video/omap2/panel-generic.c b/drivers/video/omap2/panel-generic.c
-new file mode 100644
-index 0000000..5c8fecd
---- /dev/null
-+++ b/drivers/video/omap2/panel-generic.c
-@@ -0,0 +1,97 @@
-+/*
-+ * Generic panel support
-+ *
-+ * Copyright (C) 2008 Nokia Corporation
-+ * Author: Tomi Valkeinen <tomi.valkeinen@nokia.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify it
-+ * under the terms of the GNU General Public License version 2 as published by
-+ * the Free Software Foundation.
-+ *
-+ * This program is distributed in the hope that it will be useful, but WITHOUT
-+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
-+ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
-+ * more details.
-+ *
-+ * You should have received a copy of the GNU General Public License along with
-+ * this program.  If not, see <http://www.gnu.org/licenses/>.
-+ */
-+
-+#include <linux/module.h>
-+#include <linux/delay.h>
-+
+diff --git a/arch/arm/mach-omap2/board-omap3evm.c b/arch/arm/mach-omap2/board-omap3evm.c
+index e4e60e2..e7ec9e6 100644
+--- a/arch/arm/mach-omap2/board-omap3evm.c
++++ b/arch/arm/mach-omap2/board-omap3evm.c
+@@ -36,6 +36,7 @@
+ #include <mach/usb-ehci.h>
+ #include <mach/common.h>
+ #include <mach/mcspi.h>
 +#include <mach/display.h>
+ 
+ #include "sdram-micron-mt46h32m32lf-6.h"
+ #include "twl4030-generic-scripts.h"
+@@ -160,13 +161,201 @@ static int __init omap3_evm_i2c_init(void)
+ 	return 0;
+ }
+ 
+-static struct platform_device omap3_evm_lcd_device = {
+-	.name		= "omap3evm_lcd",
+-	.id		= -1,
++#define LCD_PANEL_LR		2
++#define LCD_PANEL_UD		3
++#define LCD_PANEL_INI		152
++#define LCD_PANEL_ENABLE_GPIO	153
++#define LCD_PANEL_QVGA		154
++#define LCD_PANEL_RESB		155
 +
-+static int generic_panel_init(struct omap_display *display)
++#define ENABLE_VDAC_DEDICATED	0x03
++#define ENABLE_VDAC_DEV_GRP	0x20
++#define ENABLE_VPLL2_DEDICATED	0x05
++#define ENABLE_VPLL2_DEV_GRP	0xE0
++
++#define TWL4030_GPIODATA_IN3	0x03
++#define TWL4030_GPIODATA_DIR3	0x06
++#define TWL4030_VPLL2_DEV_GRP	0x33
++#define TWL4030_VPLL2_DEDICATED	0x36
++
++static int lcd_enabled;
++static int dvi_enabled;
++
++static void __init omap3_evm_display_init(void)
 +{
++	int r;
++	r = gpio_request(LCD_PANEL_LR, "lcd_panel_lr");
++	if (r) {
++		printk(KERN_ERR "failed to get LCD_PANEL_LR\n");
++		return;
++	}
++	r = gpio_request(LCD_PANEL_UD, "lcd_panel_ud");
++	if (r) {
++		printk(KERN_ERR "failed to get LCD_PANEL_UD\n");
++		goto err_1;
++	}
++
++	r = gpio_request(LCD_PANEL_INI, "lcd_panel_ini");
++	if (r) {
++		printk(KERN_ERR "failed to get LCD_PANEL_INI\n");
++		goto err_2;
++	}
++	r = gpio_request(LCD_PANEL_RESB, "lcd_panel_resb");
++	if (r) {
++		printk(KERN_ERR "failed to get LCD_PANEL_RESB\n");
++		goto err_3;
++	}
++	r = gpio_request(LCD_PANEL_QVGA, "lcd_panel_qvga");
++	if (r) {
++		printk(KERN_ERR "failed to get LCD_PANEL_QVGA\n");
++		goto err_4;
++	}
++
++	gpio_direction_output(LCD_PANEL_LR, 0);
++	gpio_direction_output(LCD_PANEL_UD, 0);
++	gpio_direction_output(LCD_PANEL_INI, 0);
++	gpio_direction_output(LCD_PANEL_RESB, 0);
++	gpio_direction_output(LCD_PANEL_QVGA, 0);
++
++#define TWL_LED_LEDEN           0x00
++#define TWL_PWMA_PWMAON         0x00
++#define TWL_PWMA_PWMAOFF        0x01
++
++	twl4030_i2c_write_u8(TWL4030_MODULE_LED, 0x11, TWL_LED_LEDEN);
++	twl4030_i2c_write_u8(TWL4030_MODULE_PWMA, 0x01, TWL_PWMA_PWMAON);
++	twl4030_i2c_write_u8(TWL4030_MODULE_PWMA, 0x02, TWL_PWMA_PWMAOFF);
++
++	gpio_direction_output(LCD_PANEL_RESB, 1);
++	gpio_direction_output(LCD_PANEL_INI, 1);
++	gpio_direction_output(LCD_PANEL_QVGA, 0);
++	gpio_direction_output(LCD_PANEL_LR, 1);
++	gpio_direction_output(LCD_PANEL_UD, 1);
++
++	return;
++
++err_4:
++	gpio_free(LCD_PANEL_RESB);
++err_3:
++	gpio_free(LCD_PANEL_INI);
++err_2:
++	gpio_free(LCD_PANEL_UD);
++err_1:
++	gpio_free(LCD_PANEL_LR);
++
++}
++
++static int omap3_evm_panel_enable_lcd(struct omap_display *display)
++{
++	if (dvi_enabled) {
++		printk(KERN_ERR "cannot enable LCD, DVI is enabled\n");
++		return -EINVAL;
++	}
++	if (omap_rev() > OMAP3430_REV_ES1_0) {
++		twl4030_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER,
++			ENABLE_VPLL2_DEDICATED, TWL4030_VPLL2_DEDICATED);
++		twl4030_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER,
++			ENABLE_VPLL2_DEV_GRP, TWL4030_VPLL2_DEV_GRP);
++	}
++	gpio_direction_output(LCD_PANEL_ENABLE_GPIO, 0);
++	lcd_enabled = 1;
 +	return 0;
 +}
 +
-+static int generic_panel_enable(struct omap_display *display)
++static void omap3_evm_panel_disable_lcd(struct omap_display *display)
 +{
-+	int r = 0;
-+
-+	if (display->hw_config.panel_enable)
-+		r = display->hw_config.panel_enable(display);
-+
-+	return r;
++	if (omap_rev() > OMAP3430_REV_ES1_0) {
++		twl4030_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER, 0x0,
++				TWL4030_VPLL2_DEDICATED);
++		twl4030_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER, 0x0,
++				TWL4030_VPLL2_DEV_GRP);
++	}
++	gpio_direction_output(LCD_PANEL_ENABLE_GPIO, 1);
++	lcd_enabled = 0;
 +}
 +
-+static void generic_panel_disable(struct omap_display *display)
++static struct omap_display_data omap3_evm_display_data = {
++	.type = OMAP_DISPLAY_TYPE_DPI,
++	.name = "lcd",
++	.panel_name = "sharp-ls037v7dw01",
++	.u.dpi.data_lines = 18,
++	.panel_enable = omap3_evm_panel_enable_lcd,
++	.panel_disable = omap3_evm_panel_disable_lcd,
+ };
+ 
+-static struct omap_lcd_config omap3_evm_lcd_config __initdata = {
+-	.ctrl_name	= "internal",
++static int omap3_evm_panel_enable_tv(struct omap_display *display)
 +{
-+	if (display->hw_config.panel_disable)
-+		display->hw_config.panel_disable(display);
-+}
-+
-+static int generic_panel_suspend(struct omap_display *display)
-+{
-+	generic_panel_disable(display);
++	twl4030_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER,
++			ENABLE_VDAC_DEDICATED, TWL4030_VDAC_DEDICATED);
++	twl4030_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER,
++			ENABLE_VDAC_DEV_GRP, TWL4030_VDAC_DEV_GRP);
 +	return 0;
 +}
 +
-+static int generic_panel_resume(struct omap_display *display)
++static void omap3_evm_panel_disable_tv(struct omap_display *display)
 +{
-+	return generic_panel_enable(display);
++	twl4030_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER, 0x00,
++			TWL4030_VDAC_DEDICATED);
++	twl4030_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER, 0x00,
++			TWL4030_VDAC_DEV_GRP);
 +}
 +
-+static struct omap_panel generic_panel = {
-+	.owner		= THIS_MODULE,
-+	.name		= "panel-generic",
-+	.init		= generic_panel_init,
-+	.enable		= generic_panel_enable,
-+	.disable	= generic_panel_disable,
-+	.suspend	= generic_panel_suspend,
-+	.resume		= generic_panel_resume,
-+
-+	.timings = {
-+		/* 640 x 480 @ 60 Hz  Reduced blanking VESA CVT 0.31M3-R */
-+		.x_res		= 640,
-+		.y_res		= 480,
-+		.pixel_clock	= 23500,
-+		.hfp		= 48,
-+		.hsw		= 32,
-+		.hbp		= 80,
-+		.vfp		= 3,
-+		.vsw		= 4,
-+		.vbp		= 7,
-+	},
-+
-+	.bpp		= 24,
-+	.config		= OMAP_DSS_LCD_TFT,
++static struct omap_display_data omap3_evm_display_data_tv = {
++	.type = OMAP_DISPLAY_TYPE_VENC,
++	.name = "tv",
++	.u.venc.type = OMAP_DSS_VENC_TYPE_SVIDEO,
++	.panel_enable = omap3_evm_panel_enable_tv,
++	.panel_disable = omap3_evm_panel_disable_tv,
 +};
 +
 +
-+static int __init generic_panel_drv_init(void)
++static int omap3_evm_panel_enable_dvi(struct omap_display *display)
 +{
-+	omap_dss_register_panel(&generic_panel);
++	if (lcd_enabled) {
++		printk(KERN_ERR "cannot enable DVI, LCD is enabled\n");
++		return -EINVAL;
++	}
++	twl4030_i2c_write_u8(TWL4030_MODULE_GPIO, 0x80,
++			TWL4030_GPIODATA_IN3);
++	twl4030_i2c_write_u8(TWL4030_MODULE_GPIO, 0x80,
++			TWL4030_GPIODATA_DIR3);
++	dvi_enabled = 1;
++
 +	return 0;
 +}
 +
-+static void __exit generic_panel_drv_exit(void)
++static void omap3_evm_panel_disable_dvi(struct omap_display *display)
 +{
-+	omap_dss_unregister_panel(&generic_panel);
++	twl4030_i2c_write_u8(TWL4030_MODULE_GPIO, 0x00,
++			TWL4030_GPIODATA_IN3);
++	twl4030_i2c_write_u8(TWL4030_MODULE_GPIO, 0x00,
++			TWL4030_GPIODATA_DIR3);
++	dvi_enabled = 0;
 +}
 +
-+module_init(generic_panel_drv_init);
-+module_exit(generic_panel_drv_exit);
-+MODULE_LICENSE("GPL");
++
++static struct omap_display_data omap3_evm_display_data_dvi = {
++	.type = OMAP_DISPLAY_TYPE_DPI,
++	.name = "dvi",
++	.panel_name = "panel-generic",
++	.u.dpi.data_lines = 24,
++	.panel_enable = omap3_evm_panel_enable_dvi,
++	.panel_disable = omap3_evm_panel_disable_dvi,
++};
++
++static struct omap_dss_platform_data omap3_evm_dss_data = {
++	.num_displays = 3,
++	.displays = {
++		&omap3_evm_display_data,
++		&omap3_evm_display_data_dvi,
++		&omap3_evm_display_data_tv,
++	}
++};
++static struct platform_device omap3_evm_dss_device = {
++	.name		= "omap-dss",
++	.id		= -1,
++	.dev            = {
++		.platform_data = &omap3_evm_dss_data,
++	},
+ };
+ 
+ static void ads7846_dev_init(void)
+@@ -225,11 +414,10 @@ static void __init omap3_evm_init_irq(void)
+ 
+ static struct omap_board_config_kernel omap3_evm_config[] __initdata = {
+ 	{ OMAP_TAG_UART,	&omap3_evm_uart_config },
+-	{ OMAP_TAG_LCD,		&omap3_evm_lcd_config },
+ };
+ 
+ static struct platform_device *omap3_evm_devices[] __initdata = {
+-	&omap3_evm_lcd_device,
++	&omap3_evm_dss_device,
+ 	&omap3evm_smc911x_device,
+ };
+ 
+@@ -260,6 +448,7 @@ static void __init omap3_evm_init(void)
+ 	usb_ehci_init();
+ 	omap3evm_flash_init();
+ 	ads7846_dev_init();
++	omap3_evm_display_init();
+ }
+ 
+ static void __init omap3_evm_map_io(void)
 
