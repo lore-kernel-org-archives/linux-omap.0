@@ -1,71 +1,79 @@
-From: Eero Nurkkala <ext-eero.nurkkala@nokia.com>
-Subject: Re: [PATCH] i2c: i2c-omap: Fix standard and fast mode prescalers
-Date: Mon, 12 Jan 2009 08:29:40 +0200
-Message-ID: <1231741780.13843.89.camel@eenurkka-desktop>
-References: <12277070551136-git-send-email-ext-eero.nurkkala@nokia.com>
-	 <c236f0530901091227n7361e2aeh9c5f52e250e79b4b@mail.gmail.com>
-Reply-To: ext-eero.nurkkala@nokia.com
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 1/2] ARM: OMAP: Fix missing includes
+Date: Mon, 12 Jan 2009 08:45:30 +0200
+Message-ID: <20090112064528.GD4968@atomide.com>
+References: <20090107111415.GF27566@atomide.com> <20090107111615.GG27566@atomide.com> <20090110155612.GA2601@sortiz.org> <20090110162048.GA1327@n2100.arm.linux.org.uk> <20090110174033.GB2601@sortiz.org> <20090110175607.GC1327@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:63626 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751439AbZALGbw (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 12 Jan 2009 01:31:52 -0500
-In-Reply-To: <c236f0530901091227n7361e2aeh9c5f52e250e79b4b@mail.gmail.com>
+Received: from mho-01-bos.mailhop.org ([63.208.196.178]:56520 "EHLO
+	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751253AbZALGpi (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 12 Jan 2009 01:45:38 -0500
+Content-Disposition: inline
+In-Reply-To: <20090110175607.GC1327@n2100.arm.linux.org.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: ext Kainan Cha <kainan.zha@gmail.com>
-Cc: linux-omap@vger.kernel.org
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: Samuel Ortiz <sameo@openedhand.com>, linux-arm-kernel@lists.arm.linux.org.uk, linux-omap@vger.kernel.org, David Brownell <dbrownell@users.sourceforge.net>, Paul Walmsley <paul@pwsan.com>
 
-On Fri, 2009-01-09 at 14:27 -0600, ext Kainan Cha wrote:
+* Russell King - ARM Linux <linux@arm.linux.org.uk> [090110 19:57]:
+> On Sat, Jan 10, 2009 at 06:40:34PM +0100, Samuel Ortiz wrote:
+> > On Sat, Jan 10, 2009 at 04:20:48PM +0000, Russell King - ARM Linux wrote:
+> > > On Sat, Jan 10, 2009 at 04:56:12PM +0100, Samuel Ortiz wrote:
+> > > > Hi Tony,
+> > > > 
+> > > > On Wed, Jan 07, 2009 at 01:16:15PM +0200, Tony Lindgren wrote:
+> > > > > diff --git a/drivers/mfd/twl4030-core.c b/drivers/mfd/twl4030-core.c
+> > > > > index b59c385..18179ac 100644
+> > > > > --- a/drivers/mfd/twl4030-core.c
+> > > > > +++ b/drivers/mfd/twl4030-core.c
+> > > > > @@ -38,6 +38,7 @@
+> > > > >  #include <linux/i2c.h>
+> > > > >  #include <linux/i2c/twl4030.h>
+> > > > >  
+> > > > > +#include <mach/cpu.h>
+> > > > That will break the build on !ARM for this driver.
+> > > 
+> > > ... which in itself is an argument for making it use the clk API
+> > > properly so that these kinds of CPU specific dependencies are kept
+> > > out of the driver.
+> >
+> > I agree.
+> > Until that gets done, if we really need to include a header file to fix this
+> > build, I would rather go for a generic one, <linux/io.h> for example.
 > 
-> This patch looks fine for omap3430. But when referring to omap2430
-> manual, the internal_clk does not seem to depend on the i2c modes. Can
-> you verify? My brief testing shows that i2c clock is broken for
-> omap2430 with this patch.
+> I fear that such an approach will result in the current situation
+> persisting.
 > 
-> Also, in my manual for both omap2430 and omap3430, scll and sclh
-> values should be set like so:
-> 
->                        fsscll = internal_clk / (dev->speed * 2) - 7;
->                        fssclh = internal_clk / (dev->speed * 2) - 5;
-> 
-> Could you explain where you got your values from?
-> 
-> Regards,
-> Kainan Cha
+> I've tried to tackle the OMAP clock implementation, and ended up giving
+> up because other people are busy fiddling with it as well.  I was rather
+> hoping that these other changes were going to make it into the mainline
+> kernel so I could resume my work on it, but alas that's not happened.
 
+Those are good fixes, thanks. And things are happening, we just need
+a bit of time to get all the clock patches queued up.
 
-Hello!
+> And note that I _only_ work with the mainline kernel, so having work
+> sitting in other peoples trees derived from Tony's tree is completely
+> useless.
 
-I'm very sorry for breaking the 2430 i2c bus. I have had definitely no
-access to 2430 TRM or boards, so all help is much appreciated. That
-needs to be fixed.
+Sure, we'd like to work only against the mainline kernel too and have
+linux-omap tree only contain patches queued up for the next merge
+window. And that should help with issues regarding other linux-omap
+based trees too.
 
-Our values for fsscll and fssclh (-3, -9) come from the i2c standard. We
-scoped out the activity of 100khz and 400khz signals, and by having the
-(-6, -6) or TRM's (-7, -5) we found out that the i2c clock signal does
-not get into the i2c standard. If I recall correctly, the clock down
-time, referred to as "LOW period of the SCL clock, tLOW" in the i2c
-standard, was well below the minimum. Taken from the standard, the
-400khz mode tLOW is min 1.3uS, and tHIGH is min 0.6uS. You see that
-the tLOW needs to be a lot greater than tHIGH, so that would suggest
-we're in the right track with the (-3, -9) values ;)
+> Of course, I could say "sod it, waited long enough, I'm merging my
+> omap-clks1 branch" for the next merge window.
 
-Indeed, with values (-3, -9) we got everything within the i2c standard
-for 100 and 400 khz busses, and still having the correct frequency.
+I don't see a problem with merging your omapm-clks1. Paul, do you see
+any issues with that?
 
-If TRM was to be obeyed, and the minimum values were really the (-7,
--5), then it becomes impossible to get the clock frequency to 400 or
-100. (I think it went closer to 300 khz, as the tLOW value needed to be
-adjusted quite a bit).
+AFAIK, Paul is in process of rebasing his clock changes on top of your
+clock patches. And we already have your clock patches now in linux-omap
+tree. So we'll start posting clock changes early on for the next merge
+window as there are quite a bit of clock patches.
 
-However, I would suggest you and everybody who uses the i2c bus, to 
-scope the bus, and measure everything (rise/fall times, setup times,
-tLOW, tHIGH and everything mentioned in the i2c standard). Just to check
-that you actually have a reliable i2c driver.
+Regards,
 
-
-
+Tony
