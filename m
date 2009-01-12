@@ -1,82 +1,164 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] [OMAPZOOM]  OMAP : DMA: Spurious interrupt fix
-Date: Mon, 12 Jan 2009 14:40:49 +0200
-Message-ID: <20090112124048.GD9373@atomide.com>
-References: <EAF47CD23C76F840A9E7FCE10091EFAB029392DE99@dbde02.ent.ti.com> <20090108151120.GQ27566@atomide.com> <EAF47CD23C76F840A9E7FCE10091EFAB029830F705@dbde02.ent.ti.com> <20090109112817.GG2536@atomide.com> <EAF47CD23C76F840A9E7FCE10091EFAB029830F81F@dbde02.ent.ti.com> <20090109125709.GP2536@atomide.com> <EAF47CD23C76F840A9E7FCE10091EFAB029830F859@dbde02.ent.ti.com>
+From: "Premi, Sanjeev" <premi@ti.com>
+Subject: RE: [PATCH 2/3] Runitme check for OMAP35x
+Date: Mon, 12 Jan 2009 18:16:55 +0530
+Message-ID: <B85A65D85D7EB246BE421B3FB0FBB59301BB859397@dbde02.ent.ti.com>
+References: <1231617654-18729-1-git-send-email-premi@ti.com>
+ <20090110222050.GJ25493@frodo> <20090112122724.GC9373@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-bos.mailhop.org ([63.208.196.178]:51200 "EHLO
-	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750825AbZALMkw (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 12 Jan 2009 07:40:52 -0500
-Content-Disposition: inline
-In-Reply-To: <EAF47CD23C76F840A9E7FCE10091EFAB029830F859@dbde02.ent.ti.com>
+Received: from comal.ext.ti.com ([198.47.26.152]:34311 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755568AbZALMr7 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 12 Jan 2009 07:47:59 -0500
+In-Reply-To: <20090112122724.GC9373@atomide.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Cc: "Pandita, Vikram" <vikram.pandita@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Tony Lindgren <tony@atomide.com>, Felipe Balbi <me@felipebalbi.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-* Shilimkar, Santosh <santosh.shilimkar@ti.com> [090109 15:22]:
-> > -----Original Message-----
-> > From: Tony Lindgren [mailto:tony@atomide.com] 
-> > Sent: Friday, January 09, 2009 6:27 PM
-> > To: Shilimkar, Santosh
-> > Cc: Pandita, Vikram; linux-omap@vger.kernel.org
-> > Subject: Re: [PATCH] [OMAPZOOM] OMAP : DMA: Spurious interrupt fix
-> > 
-> > * Shilimkar, Santosh <santosh.shilimkar@ti.com> [090109 14:52]:
-> > > > -----Original Message-----
-> > > > From: Tony Lindgren [mailto:tony@atomide.com] 
-> > > > Sent: Friday, January 09, 2009 4:58 PM
-> > > > To: Shilimkar, Santosh
-> > > > Cc: Pandita, Vikram; linux-omap@vger.kernel.org
-> > > > Subject: Re: [PATCH] [OMAPZOOM] OMAP : DMA: Spurious interrupt fix
-> > > > 
-> > > > * Shilimkar, Santosh <santosh.shilimkar@ti.com> [090109 12:51]:
-> > > > > 
-> > > > > Tony,
-> > > > > Regarding your proposal of doing the no. of channel 
-> > > > reservation during runtime has one problem. 
-> > > > > 
-> > > > > The whole idea was not to restrict users from using all 32 
-> > > > channels and hence the config option. For OMAP secure chips, 
-> > > > few security drivers which will execute in secure contex 
-> > > > needs dedicated DMA channels and kernel dma library can't be 
-> > > > used in that case. So in such cases, required DMA channels 
-> > > > can be reserved using this config option. For GP devices all 
-> > > > 32 channels can be used currently. 
-> > > > > 
-> > > > > If it can done in better way, please suggest.
-> > > > 
-> > > > Well how about passing the configuration for the DMA channels
-> > > > from board-*.c file then?
-> > > This is certainly a good option if the setting is fixed for 
-> > a particular board type. With this how do we ensure user 
-> > configurability. Lets say on a particular board, two 
-> > users/customers wants to use separate configurations for DMA 
-> > channels because of the needs what mentioned earlier. Then 
-> > again we need some kind of comfit option.
-> > >    Another clean way to achieve this is through 'bootargs'. 
-> > But this might be too much of a design for this requirement.
-> > 
-> > Hmm, well how about starting with all of them, and allow
-> > limiting the active DMA number via /sys? I guess we could
-> > just set some of the DMA channels inactive that way.
-> > 
-> > Or maybe allow setting indvidual DMA channels inactive
-> > via /sys?
+> -----Original Message-----
+> From: Tony Lindgren [mailto:tony@atomide.com] 
+> Sent: Monday, January 12, 2009 5:57 PM
+> To: Felipe Balbi
+> Cc: Premi, Sanjeev; linux-omap@vger.kernel.org
+> Subject: Re: [PATCH 2/3] Runitme check for OMAP35x
 > 
-> This won't be a good option because of few limitations.
-> - dma library init will configure the entire register set for all the channels. So through /sys disable , you have to mask all of this registers with appropriate mask depending on the no of channels deactivated. This is almost like doing another DMA init.
-> - Secondly the security driver is active even before the dma library is initialed and hence it won't get the required reservation of channels which is bottleneck.
-> - If both, dma library and security driver configure the DMA channels then, you end up in a problem because the way OMAP DMA hardware is.  Just a brief - "In
-> contrast to the SDMA.DMA4_CSRi registers, the SDMA.DMA4_IRQSTATUS_Lj registers are updated regardless of the corresponding bits in the SDMA.DMA4_IRQENABLE_Lj registers". For more details, you can refer the DMA section in TRM. 
-> Because of above, this is not seems to be an option. 
+> * Felipe Balbi <me@felipebalbi.com> [090111 00:21]:
+> > On Sun, Jan 11, 2009 at 01:30:54AM +0530, Sanjeev Premi wrote:
+> > > Added runtime check via omap2_set_globals_35xx()
+> > > 
+> > > Signed-off-by: Sanjeev Premi <premi@ti.com>
+> > > ---
+> > >  arch/arm/plat-omap/common.c              |   68 
+> +++++++++++++++++++++++
+> > >  arch/arm/plat-omap/include/mach/common.h |    1 +
+> > >  arch/arm/plat-omap/include/mach/cpu.h    |   88 
+> +++++++++++++++++++++++++++++-
+> > >  3 files changed, 155 insertions(+), 2 deletions(-)
+> > > 
+> > > diff --git a/arch/arm/plat-omap/common.c 
+> > > b/arch/arm/plat-omap/common.c index 8c53125..7861a25 100644
+> > > --- a/arch/arm/plat-omap/common.c
+> > > +++ b/arch/arm/plat-omap/common.c
+> > > @@ -333,3 +333,71 @@ void __init omap2_set_globals_343x(void)  }  
+> > > #endif
+> > >  
+> > > +#if defined(CONFIG_ARCH_OMAP35XX)
+> > > +
+> > > +#if defined(CONFIG_ARCH_OMAP3503)
+> > 
+> > use ifdef here
+> > 
+> > > +static struct omap_globals omap3503_globals = {
+> > > +	.class	= OMAP35XX_CLASS,
+> > > +	.tap	= OMAP2_IO_ADDRESS(0x4830A000),
+> > > +	.sdrc	= OMAP2_IO_ADDRESS(OMAP343X_SDRC_BASE),
+> > > +	.sms	= OMAP2_IO_ADDRESS(OMAP343X_SMS_BASE),
+> > > +	.ctrl	= OMAP2_IO_ADDRESS(OMAP343X_CTRL_BASE),
+> > > +	.prm	= OMAP2_IO_ADDRESS(OMAP3430_PRM_BASE),
+> > > +	.cm	= OMAP2_IO_ADDRESS(OMAP3430_CM_BASE),
+> > > +};
+> > > +#endif	/* if defined(CONFIG_ARCH_OMAP3503) */
+> > 
+> > traditionaly this would be:
+> > 
+> > #endif	/* CONFIG_ARCH_OMAP3503 */
+> > 
+> > but that's a matter of taste...
+> > 
+> > > +
+> > > +#if defined(CONFIG_ARCH_OMAP3515)
+> > 
+> > and here
+> > 
+> > > +static struct omap_globals omap3515_globals = {
+> > > +	.class	= OMAP35XX_CLASS,
+> > > +	.tap	= OMAP2_IO_ADDRESS(0x4830A000),
+> > > +	.sdrc	= OMAP2_IO_ADDRESS(OMAP343X_SDRC_BASE),
+> > > +	.sms	= OMAP2_IO_ADDRESS(OMAP343X_SMS_BASE),
+> > > +	.ctrl	= OMAP2_IO_ADDRESS(OMAP343X_CTRL_BASE),
+> > > +	.prm	= OMAP2_IO_ADDRESS(OMAP3430_PRM_BASE),
+> > > +	.cm	= OMAP2_IO_ADDRESS(OMAP3430_CM_BASE),
+> > > +};
+> > > +#endif	/* if defined(CONFIG_ARCH_OMAP3515) */
+> > > +
+> > > +#if defined(CONFIG_ARCH_OMAP3525)
+> > > +static struct omap_globals omap3525_globals = {
+> > > +	.class	= OMAP35XX_CLASS,
+> > > +	.tap	= OMAP2_IO_ADDRESS(0x4830A000),
+> > > +	.sdrc	= OMAP2_IO_ADDRESS(OMAP343X_SDRC_BASE),
+> > > +	.sms	= OMAP2_IO_ADDRESS(OMAP343X_SMS_BASE),
+> > > +	.ctrl	= OMAP2_IO_ADDRESS(OMAP343X_CTRL_BASE),
+> > > +	.prm	= OMAP2_IO_ADDRESS(OMAP3430_PRM_BASE),
+> > > +	.cm	= OMAP2_IO_ADDRESS(OMAP3430_CM_BASE),
+> > > +};
+> > > +#endif	/* if defined(CONFIG_ARCH_OMAP3525) */
+> > > +
+> > > +#if defined(CONFIG_ARCH_OMAP3530)
+> > > +static struct omap_globals omap3530_globals = {
+> > > +	.class	= OMAP35XX_CLASS,
+> > > +	.tap	= OMAP2_IO_ADDRESS(0x4830A000),
+> > > +	.sdrc	= OMAP2_IO_ADDRESS(OMAP343X_SDRC_BASE),
+> > > +	.sms	= OMAP2_IO_ADDRESS(OMAP343X_SMS_BASE),
+> > > +	.ctrl	= OMAP2_IO_ADDRESS(OMAP343X_CTRL_BASE),
+> > > +	.prm	= OMAP2_IO_ADDRESS(OMAP3430_PRM_BASE),
+> > > +	.cm	= OMAP2_IO_ADDRESS(OMAP3430_CM_BASE),
+> > > +};
+> > > +#endif	/* if defined(CONFIG_ARCH_OMAP3530) */
+> 
+> What are the differences between these various omap35xx 
+> processors? Maybe add a comment to each struct.
 
-How about set up a cmdline option for omap dma for masking the
-available channels?
+[sp] Sure will do. Thought that link in PATCH0 was sufficient.
+> 
+> Also do we really need a separate struct for each 35xx?
 
-Regards,
+[sp] There was a comment to my initial patchset (AUG '08) that there should be a separate struct. Hence, I had made this change.
+> 
+> > > +
+> > > +void __init omap2_set_globals_35xx(void) { #if 
+> > > +defined(CONFIG_ARCH_OMAP3503)
+> > > +	omap2_globals = &omap3503_globals; #endif #if 
+> > > +defined(CONFIG_ARCH_OMAP3515)
+> > > +	omap2_globals = &omap3515_globals; #endif #if 
+> > > +defined(CONFIG_ARCH_OMAP3525)
+> > > +	omap2_globals = &omap3525_globals; #endif #if 
+> > > +defined(CONFIG_ARCH_OMAP3530)
+> > > +	omap2_globals = &omap3530_globals; #endif
+> > 
+> > hmmm... so it's impossible to have multi-omap with 35xx ??
+> > too bad...
+> 
+> This does not sounds right, the multi-omap should always work.
+> 
 
-Tony
+[sp] If there is only one struct this multi-omap will still be a problem. Right?
+     Each of the OMAPs will need its own struct. (I haven't worked with multi-omap;
+     do correct me if my understanding is not right).
+
+> > You should probably provide omap2_set_globals_350x(), 
+> > omap2_set_globals_351x(), omap2_set_globals_352x() and 
+> > omap2_set_globals_353x().
+> > 
+> > Tony, what do you think ??
+> 
+> Is there no way to detect them during runtime from the hardware?
+
+[sp] The initial version of the TRM did not mention any specific means to do runtime detection. Had followed the same for this patchset. The new TRM does mention mechanism (also mentioned by Steve Sakoman in same mail thread). I am working to create a new patch set. I am trying to confirm if this will work on early versions of OMAP35x as well.
+
+> If the answer is no, then yes we need a separate set_globals 
+> for each omap35xx flavor.
+
+[sp] If check works for initial Si versions as well; I will submit patch with only one function omap2_set_globals_35xx (); Else, will go with multiple functions for each of 35x processors as suggest above.
+
+> 
+> Regards,
+> 
+> Tony
+> 
+> 
+
+~sanjeev
