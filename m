@@ -1,35 +1,38 @@
-From: David Brownell <david-b@pacbell.net>
-Subject: Re: [REVIEW PATCH 2/2] Added OMAP3EVM Multi-Media Daughter Card Support
-Date: Sun, 11 Jan 2009 15:54:10 -0800
-Message-ID: <200901111554.10469.david-b@pacbell.net>
-References: <hvaibhav@ti.com> <1231308470-31159-1-git-send-email-hvaibhav@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: updated git pull request for omap compile fixes, mailbox and
+	hsmmc
+Date: Mon, 12 Jan 2009 08:24:42 +0200
+Message-ID: <20090112062441.GA4968@atomide.com>
+References: <20090107111415.GF27566@atomide.com> <20090107111615.GG27566@atomide.com> <20090107111744.GH27566@atomide.com> <20090107161843.GA11471@n2100.arm.linux.org.uk> <20090107175020.GU27566@atomide.com> <20090107220053.GD11471@n2100.arm.linux.org.uk> <20090108073611.GW27566@atomide.com> <20090110110524.GC28945@n2100.arm.linux.org.uk> <20090111101449.GA7684@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-media-owner@vger.kernel.org>
-In-Reply-To: <1231308470-31159-1-git-send-email-hvaibhav@ti.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-01-bos.mailhop.org ([63.208.196.178]:49312 "EHLO
+	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751129AbZALGZD (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 12 Jan 2009 01:25:03 -0500
 Content-Disposition: inline
-Sender: linux-media-owner@vger.kernel.org
-To: hvaibhav@ti.com
-Cc: linux-omap@vger.kernel.org, linux-media@vger.kernel.org, video4linux-list@redhat.com, Brijesh Jadav <brijesh.j@ti.com>, Hardik Shah <hardik.shah@ti.com>, Manjunath Hadli <mrh@ti.com>, R Sivaraj <sivaraj@ti.com>
+In-Reply-To: <20090111101449.GA7684@n2100.arm.linux.org.uk>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: linux-arm-kernel@lists.arm.linux.org.uk, linux-omap@vger.kernel.org, "Nikula Jarkko (NRC/Helsinki)" <jarkko.nikula@nokia.com>, Pierre Ossman <drzeus-list@drzeus.cx>, "Jarkko Lavinen (NMP/Helsinki)" <jarkko.lavinen@nokia.com>
 
-On Tuesday 06 January 2009, hvaibhav@ti.com wrote:
-> +config MACH_OMAP3EVM_DC
-> +=A0=A0=A0=A0=A0=A0=A0bool "OMAP 3530 EVM daughter card board"
-> +=A0=A0=A0=A0=A0=A0=A0depends on ARCH_OMAP3 && ARCH_OMAP34XX && MACH_=
-OMAP3EVM
+* Russell King - ARM Linux <linux@arm.linux.org.uk> [090111 12:15]:
+> On Sat, Jan 10, 2009 at 11:05:24AM +0000, Russell King - ARM Linux wrote:
+> > On Thu, Jan 08, 2009 at 09:36:12AM +0200, Tony Lindgren wrote:
+> > > Madhusudhan Chikkature (1):
+> > >       omap mmc: Add new omap hsmmc controller for 2430 and 34xx, v3
+> > 
+> > This I'd argue falls into the same category, but since its well known
+> > between us and Pierre who's acked it, I think it has sufficiently low
+> > impact that it can be accepted.
+> 
+> ... and now -rc1 is out, it's now too late for this.
 
-There can be other daughtercards, so the Kconfig text should
-say which specific card is being configured.  And it should
-probably use the "zero or one of these choices" syntax, so
-it's easier to include other options..
+Oh well. Will resubmit it later on LKML for Pierre, at least
+the MMC init code is mostly dealt with now.
 
-- Dave
+Regards,
 
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-media" =
-in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Tony
