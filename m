@@ -1,16 +1,16 @@
 From: Tomi Valkeinen <tomi.valkeinen@nokia.com>
-Subject: [PATCH 03/12] DSS: RFBI support
-Date: Mon, 12 Jan 2009 13:47:39 +0200
-Message-ID: <20090112114738.1003.36240.stgit@tubuntu>
+Subject: [PATCH 10/12] DSS: Support for OMAP3 SDP board
+Date: Mon, 12 Jan 2009 13:48:24 +0200
+Message-ID: <20090112114824.1003.10690.stgit@tubuntu>
 References: <20090112114718.1003.23643.stgit@tubuntu>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:18054 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752240AbZALLs3 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 12 Jan 2009 06:48:29 -0500
+Received: from smtp.nokia.com ([192.100.105.134]:47255 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751525AbZALLsm (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 12 Jan 2009 06:48:42 -0500
 In-Reply-To: <20090112114718.1003.23643.stgit@tubuntu>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
@@ -20,1276 +20,1871 @@ Cc: linux-omap@vger.kernel.org
 Signed-off-by: Tomi Valkeinen <tomi.valkeinen@nokia.com>
 ---
 
- arch/arm/plat-omap/dss/rfbi.c | 1262 +++++++++++++++++++++++++++++++++++++++++
- 1 files changed, 1262 insertions(+), 0 deletions(-)
- create mode 100644 arch/arm/plat-omap/dss/rfbi.c
+ arch/arm/configs/dss_omap_3430sdp_defconfig | 1603 +++++++++++++++++++++++++++
+ arch/arm/mach-omap2/board-3430sdp.c         |  215 +++-
+ 2 files changed, 1809 insertions(+), 9 deletions(-)
+ create mode 100644 arch/arm/configs/dss_omap_3430sdp_defconfig
 
-diff --git a/arch/arm/plat-omap/dss/rfbi.c b/arch/arm/plat-omap/dss/rfbi.c
+diff --git a/arch/arm/configs/dss_omap_3430sdp_defconfig b/arch/arm/configs/dss_omap_3430sdp_defconfig
 new file mode 100644
-index 0000000..b4b65e6
+index 0000000..42d7f5e
 --- /dev/null
-+++ b/arch/arm/plat-omap/dss/rfbi.c
-@@ -0,0 +1,1262 @@
-+/*
-+ * linux/arch/arm/plat-omap/dss/rfbi.c
-+ *
-+ * Copyright (C) 2008 Nokia Corporation
-+ * Author: Tomi Valkeinen <tomi.valkeinen@nokia.com>
-+ *
-+ * Some code and ideas taken from drivers/video/omap/ driver
-+ * by Imre Deak.
-+ *
-+ * This program is free software; you can redistribute it and/or modify it
-+ * under the terms of the GNU General Public License version 2 as published by
-+ * the Free Software Foundation.
-+ *
-+ * This program is distributed in the hope that it will be useful, but WITHOUT
-+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
-+ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
-+ * more details.
-+ *
-+ * You should have received a copy of the GNU General Public License along with
-+ * this program.  If not, see <http://www.gnu.org/licenses/>.
-+ */
++++ b/arch/arm/configs/dss_omap_3430sdp_defconfig
+@@ -0,0 +1,1603 @@
++#
++# Automatically generated make config: don't edit
++# Linux kernel version: 2.6.28-omap1
++# Wed Jan  7 15:22:34 2009
++#
++CONFIG_ARM=y
++CONFIG_SYS_SUPPORTS_APM_EMULATION=y
++CONFIG_GENERIC_GPIO=y
++CONFIG_GENERIC_TIME=y
++CONFIG_GENERIC_CLOCKEVENTS=y
++CONFIG_MMU=y
++# CONFIG_NO_IOPORT is not set
++CONFIG_GENERIC_HARDIRQS=y
++CONFIG_STACKTRACE_SUPPORT=y
++CONFIG_HAVE_LATENCYTOP_SUPPORT=y
++CONFIG_LOCKDEP_SUPPORT=y
++CONFIG_TRACE_IRQFLAGS_SUPPORT=y
++CONFIG_HARDIRQS_SW_RESEND=y
++CONFIG_GENERIC_IRQ_PROBE=y
++CONFIG_RWSEM_GENERIC_SPINLOCK=y
++# CONFIG_ARCH_HAS_ILOG2_U32 is not set
++# CONFIG_ARCH_HAS_ILOG2_U64 is not set
++CONFIG_GENERIC_HWEIGHT=y
++CONFIG_GENERIC_CALIBRATE_DELAY=y
++CONFIG_GENERIC_HARDIRQS_NO__DO_IRQ=y
++CONFIG_VECTORS_BASE=0xffff0000
++CONFIG_DEFCONFIG_LIST="/lib/modules/$UNAME_RELEASE/.config"
 +
-+#define DSS_SUBSYS_NAME "RFBI"
++#
++# General setup
++#
++CONFIG_EXPERIMENTAL=y
++CONFIG_BROKEN_ON_SMP=y
++CONFIG_INIT_ENV_ARG_LIMIT=32
++CONFIG_LOCALVERSION=""
++# CONFIG_LOCALVERSION_AUTO is not set
++CONFIG_SWAP=y
++CONFIG_SYSVIPC=y
++CONFIG_SYSVIPC_SYSCTL=y
++# CONFIG_POSIX_MQUEUE is not set
++CONFIG_BSD_PROCESS_ACCT=y
++# CONFIG_BSD_PROCESS_ACCT_V3 is not set
++# CONFIG_TASKSTATS is not set
++# CONFIG_AUDIT is not set
++# CONFIG_IKCONFIG is not set
++CONFIG_LOG_BUF_SHIFT=14
++# CONFIG_CGROUPS is not set
++CONFIG_GROUP_SCHED=y
++CONFIG_FAIR_GROUP_SCHED=y
++# CONFIG_RT_GROUP_SCHED is not set
++CONFIG_USER_SCHED=y
++# CONFIG_CGROUP_SCHED is not set
++CONFIG_SYSFS_DEPRECATED=y
++CONFIG_SYSFS_DEPRECATED_V2=y
++# CONFIG_RELAY is not set
++# CONFIG_NAMESPACES is not set
++CONFIG_BLK_DEV_INITRD=y
++CONFIG_INITRAMFS_SOURCE=""
++CONFIG_CC_OPTIMIZE_FOR_SIZE=y
++CONFIG_SYSCTL=y
++CONFIG_EMBEDDED=y
++CONFIG_UID16=y
++# CONFIG_SYSCTL_SYSCALL is not set
++CONFIG_KALLSYMS=y
++# CONFIG_KALLSYMS_ALL is not set
++CONFIG_KALLSYMS_EXTRA_PASS=y
++CONFIG_HOTPLUG=y
++CONFIG_PRINTK=y
++CONFIG_BUG=y
++CONFIG_ELF_CORE=y
++CONFIG_COMPAT_BRK=y
++CONFIG_BASE_FULL=y
++CONFIG_FUTEX=y
++CONFIG_ANON_INODES=y
++CONFIG_EPOLL=y
++CONFIG_SIGNALFD=y
++CONFIG_TIMERFD=y
++CONFIG_EVENTFD=y
++CONFIG_SHMEM=y
++CONFIG_AIO=y
++CONFIG_VM_EVENT_COUNTERS=y
++CONFIG_SLAB=y
++# CONFIG_SLUB is not set
++# CONFIG_SLOB is not set
++# CONFIG_PROFILING is not set
++# CONFIG_MARKERS is not set
++CONFIG_HAVE_OPROFILE=y
++# CONFIG_KPROBES is not set
++CONFIG_HAVE_KPROBES=y
++CONFIG_HAVE_KRETPROBES=y
++CONFIG_HAVE_CLK=y
++CONFIG_HAVE_GENERIC_DMA_COHERENT=y
++CONFIG_SLABINFO=y
++CONFIG_RT_MUTEXES=y
++# CONFIG_TINY_SHMEM is not set
++CONFIG_BASE_SMALL=0
++CONFIG_MODULES=y
++# CONFIG_MODULE_FORCE_LOAD is not set
++CONFIG_MODULE_UNLOAD=y
++# CONFIG_MODULE_FORCE_UNLOAD is not set
++CONFIG_MODVERSIONS=y
++CONFIG_MODULE_SRCVERSION_ALL=y
++CONFIG_KMOD=y
++CONFIG_BLOCK=y
++# CONFIG_LBD is not set
++# CONFIG_BLK_DEV_IO_TRACE is not set
++# CONFIG_LSF is not set
++# CONFIG_BLK_DEV_BSG is not set
++# CONFIG_BLK_DEV_INTEGRITY is not set
 +
-+#include <linux/kernel.h>
-+#include <linux/dma-mapping.h>
-+#include <linux/vmalloc.h>
-+#include <linux/clk.h>
-+#include <linux/io.h>
-+#include <linux/delay.h>
-+#include <linux/kfifo.h>
-+#include <linux/ktime.h>
-+#include <linux/hrtimer.h>
++#
++# IO Schedulers
++#
++CONFIG_IOSCHED_NOOP=y
++CONFIG_IOSCHED_AS=y
++CONFIG_IOSCHED_DEADLINE=y
++CONFIG_IOSCHED_CFQ=y
++CONFIG_DEFAULT_AS=y
++# CONFIG_DEFAULT_DEADLINE is not set
++# CONFIG_DEFAULT_CFQ is not set
++# CONFIG_DEFAULT_NOOP is not set
++CONFIG_DEFAULT_IOSCHED="anticipatory"
++CONFIG_CLASSIC_RCU=y
++CONFIG_FREEZER=y
 +
-+#include <mach/board.h>
++#
++# System Type
++#
++# CONFIG_ARCH_AAEC2000 is not set
++# CONFIG_ARCH_INTEGRATOR is not set
++# CONFIG_ARCH_REALVIEW is not set
++# CONFIG_ARCH_VERSATILE is not set
++# CONFIG_ARCH_AT91 is not set
++# CONFIG_ARCH_CLPS7500 is not set
++# CONFIG_ARCH_CLPS711X is not set
++# CONFIG_ARCH_EBSA110 is not set
++# CONFIG_ARCH_EP93XX is not set
++# CONFIG_ARCH_FOOTBRIDGE is not set
++# CONFIG_ARCH_NETX is not set
++# CONFIG_ARCH_H720X is not set
++# CONFIG_ARCH_IMX is not set
++# CONFIG_ARCH_IOP13XX is not set
++# CONFIG_ARCH_IOP32X is not set
++# CONFIG_ARCH_IOP33X is not set
++# CONFIG_ARCH_IXP23XX is not set
++# CONFIG_ARCH_IXP2000 is not set
++# CONFIG_ARCH_IXP4XX is not set
++# CONFIG_ARCH_L7200 is not set
++# CONFIG_ARCH_KIRKWOOD is not set
++# CONFIG_ARCH_KS8695 is not set
++# CONFIG_ARCH_NS9XXX is not set
++# CONFIG_ARCH_LOKI is not set
++# CONFIG_ARCH_MV78XX0 is not set
++# CONFIG_ARCH_MXC is not set
++# CONFIG_ARCH_ORION5X is not set
++# CONFIG_ARCH_PNX4008 is not set
++# CONFIG_ARCH_PXA is not set
++# CONFIG_ARCH_RPC is not set
++# CONFIG_ARCH_SA1100 is not set
++# CONFIG_ARCH_S3C2410 is not set
++# CONFIG_ARCH_SHARK is not set
++# CONFIG_ARCH_LH7A40X is not set
++# CONFIG_ARCH_DAVINCI is not set
++CONFIG_ARCH_OMAP=y
++# CONFIG_ARCH_MSM is not set
++
++#
++# TI OMAP Implementations
++#
++CONFIG_ARCH_OMAP_OTG=y
++# CONFIG_ARCH_OMAP1 is not set
++# CONFIG_ARCH_OMAP2 is not set
++CONFIG_ARCH_OMAP3=y
++
++#
++# OMAP Feature Selections
++#
++# CONFIG_OMAP_DEBUG_POWERDOMAIN is not set
++# CONFIG_OMAP_DEBUG_CLOCKDOMAIN is not set
++CONFIG_OMAP_SMARTREFLEX=y
++# CONFIG_OMAP_SMARTREFLEX_TESTING is not set
++CONFIG_OMAP_RESET_CLOCKS=y
++CONFIG_OMAP_BOOT_TAG=y
++CONFIG_OMAP_BOOT_REASON=y
++# CONFIG_OMAP_COMPONENT_VERSION is not set
++# CONFIG_OMAP_GPIO_SWITCH is not set
++CONFIG_OMAP_MUX=y
++CONFIG_OMAP_MUX_DEBUG=y
++CONFIG_OMAP_MUX_WARNINGS=y
++# CONFIG_OMAP_MCBSP is not set
++# CONFIG_OMAP_MMU_FWK is not set
++# CONFIG_OMAP_MBOX_FWK is not set
++# CONFIG_OMAP_MPU_TIMER is not set
++CONFIG_OMAP_32K_TIMER=y
++CONFIG_OMAP_32K_TIMER_HZ=128
++CONFIG_OMAP_DM_TIMER=y
++CONFIG_OMAP_LL_DEBUG_UART1=y
++# CONFIG_OMAP_LL_DEBUG_UART2 is not set
++# CONFIG_OMAP_LL_DEBUG_UART3 is not set
++CONFIG_OMAP_SERIAL_WAKE=y
++CONFIG_OMAP2_DSS=m
++CONFIG_OMAP2_DSS_DEBUG_SUPPORT=y
++# CONFIG_OMAP2_DSS_RFBI is not set
++CONFIG_OMAP2_DSS_VENC=y
++# CONFIG_OMAP2_DSS_SDI is not set
++# CONFIG_OMAP2_DSS_DSI is not set
++# CONFIG_OMAP2_DSS_FAKE_VSYNC is not set
++CONFIG_OMAP2_DSS_MIN_FCK_PER_PCK=0
++CONFIG_ARCH_OMAP34XX=y
++CONFIG_ARCH_OMAP3430=y
++
++#
++# OMAP Board Type
++#
++# CONFIG_MACH_OMAP_LDP is not set
++CONFIG_MACH_OMAP_3430SDP=y
++# CONFIG_MACH_OMAP3EVM is not set
++# CONFIG_MACH_OMAP3_BEAGLE is not set
++# CONFIG_MACH_OVERO is not set
++# CONFIG_MACH_OMAP3_PANDORA is not set
++CONFIG_OMAP_TICK_GPTIMER=1
++
++#
++# Boot options
++#
++
++#
++# Power management
++#
++
++#
++# Processor Type
++#
++CONFIG_CPU_32=y
++CONFIG_CPU_32v6K=y
++CONFIG_CPU_V7=y
++CONFIG_CPU_32v7=y
++CONFIG_CPU_ABRT_EV7=y
++CONFIG_CPU_PABRT_IFAR=y
++CONFIG_CPU_CACHE_V7=y
++CONFIG_CPU_CACHE_VIPT=y
++CONFIG_CPU_COPY_V6=y
++CONFIG_CPU_TLB_V7=y
++CONFIG_CPU_HAS_ASID=y
++CONFIG_CPU_CP15=y
++CONFIG_CPU_CP15_MMU=y
++
++#
++# Processor Features
++#
++CONFIG_ARM_THUMB=y
++# CONFIG_ARM_THUMBEE is not set
++# CONFIG_CPU_ICACHE_DISABLE is not set
++# CONFIG_CPU_DCACHE_DISABLE is not set
++# CONFIG_CPU_BPREDICT_DISABLE is not set
++CONFIG_HAS_TLS_REG=y
++# CONFIG_OUTER_CACHE is not set
++
++#
++# Bus support
++#
++# CONFIG_PCI_SYSCALL is not set
++# CONFIG_ARCH_SUPPORTS_MSI is not set
++# CONFIG_PCCARD is not set
++
++#
++# Kernel Features
++#
++CONFIG_TICK_ONESHOT=y
++CONFIG_NO_HZ=y
++CONFIG_HIGH_RES_TIMERS=y
++CONFIG_GENERIC_CLOCKEVENTS_BUILD=y
++CONFIG_VMSPLIT_3G=y
++# CONFIG_VMSPLIT_2G is not set
++# CONFIG_VMSPLIT_1G is not set
++CONFIG_PAGE_OFFSET=0xC0000000
++# CONFIG_PREEMPT is not set
++CONFIG_HZ=128
++CONFIG_AEABI=y
++CONFIG_OABI_COMPAT=y
++CONFIG_ARCH_FLATMEM_HAS_HOLES=y
++# CONFIG_ARCH_SPARSEMEM_DEFAULT is not set
++# CONFIG_ARCH_SELECT_MEMORY_MODEL is not set
++CONFIG_SELECT_MEMORY_MODEL=y
++CONFIG_FLATMEM_MANUAL=y
++# CONFIG_DISCONTIGMEM_MANUAL is not set
++# CONFIG_SPARSEMEM_MANUAL is not set
++CONFIG_FLATMEM=y
++CONFIG_FLAT_NODE_MEM_MAP=y
++CONFIG_PAGEFLAGS_EXTENDED=y
++CONFIG_SPLIT_PTLOCK_CPUS=4
++# CONFIG_RESOURCES_64BIT is not set
++# CONFIG_PHYS_ADDR_T_64BIT is not set
++CONFIG_ZONE_DMA_FLAG=0
++CONFIG_VIRT_TO_BUS=y
++CONFIG_UNEVICTABLE_LRU=y
++# CONFIG_LEDS is not set
++CONFIG_ALIGNMENT_TRAP=y
++
++#
++# Boot options
++#
++CONFIG_ZBOOT_ROM_TEXT=0x0
++CONFIG_ZBOOT_ROM_BSS=0x0
++CONFIG_CMDLINE="root=/dev/nfs nfsroot=192.168.0.1:/home/user/buildroot ip=192.168.0.2:192.168.0.1:192.168.0.1:255.255.255.0:tgt:eth0:off rw console=ttyS2,115200n8"
++# CONFIG_XIP_KERNEL is not set
++# CONFIG_KEXEC is not set
++
++#
++# CPU Power Management
++#
++# CONFIG_CPU_FREQ is not set
++# CONFIG_CPU_IDLE is not set
++
++#
++# Floating point emulation
++#
++
++#
++# At least one emulation must be selected
++#
++CONFIG_FPE_NWFPE=y
++# CONFIG_FPE_NWFPE_XP is not set
++# CONFIG_FPE_FASTFPE is not set
++CONFIG_VFP=y
++CONFIG_VFPv3=y
++# CONFIG_NEON is not set
++
++#
++# Userspace binary formats
++#
++CONFIG_BINFMT_ELF=y
++# CONFIG_CORE_DUMP_DEFAULT_ELF_HEADERS is not set
++CONFIG_HAVE_AOUT=y
++# CONFIG_BINFMT_AOUT is not set
++CONFIG_BINFMT_MISC=y
++
++#
++# Power management options
++#
++CONFIG_PM=y
++# CONFIG_PM_DEBUG is not set
++CONFIG_PM_SLEEP=y
++CONFIG_SUSPEND=y
++CONFIG_SUSPEND_FREEZER=y
++# CONFIG_APM_EMULATION is not set
++CONFIG_ARCH_SUSPEND_POSSIBLE=y
++CONFIG_NET=y
++
++#
++# Networking options
++#
++CONFIG_PACKET=y
++# CONFIG_PACKET_MMAP is not set
++CONFIG_UNIX=y
++CONFIG_XFRM=y
++# CONFIG_XFRM_USER is not set
++# CONFIG_XFRM_SUB_POLICY is not set
++# CONFIG_XFRM_MIGRATE is not set
++# CONFIG_XFRM_STATISTICS is not set
++CONFIG_NET_KEY=y
++# CONFIG_NET_KEY_MIGRATE is not set
++CONFIG_INET=y
++# CONFIG_IP_MULTICAST is not set
++# CONFIG_IP_ADVANCED_ROUTER is not set
++CONFIG_IP_FIB_HASH=y
++CONFIG_IP_PNP=y
++CONFIG_IP_PNP_DHCP=y
++CONFIG_IP_PNP_BOOTP=y
++CONFIG_IP_PNP_RARP=y
++# CONFIG_NET_IPIP is not set
++# CONFIG_NET_IPGRE is not set
++# CONFIG_ARPD is not set
++# CONFIG_SYN_COOKIES is not set
++# CONFIG_INET_AH is not set
++# CONFIG_INET_ESP is not set
++# CONFIG_INET_IPCOMP is not set
++# CONFIG_INET_XFRM_TUNNEL is not set
++# CONFIG_INET_TUNNEL is not set
++CONFIG_INET_XFRM_MODE_TRANSPORT=y
++CONFIG_INET_XFRM_MODE_TUNNEL=y
++CONFIG_INET_XFRM_MODE_BEET=y
++# CONFIG_INET_LRO is not set
++CONFIG_INET_DIAG=y
++CONFIG_INET_TCP_DIAG=y
++# CONFIG_TCP_CONG_ADVANCED is not set
++CONFIG_TCP_CONG_CUBIC=y
++CONFIG_DEFAULT_TCP_CONG="cubic"
++# CONFIG_TCP_MD5SIG is not set
++# CONFIG_IPV6 is not set
++# CONFIG_NETWORK_SECMARK is not set
++# CONFIG_NETFILTER is not set
++# CONFIG_IP_DCCP is not set
++# CONFIG_IP_SCTP is not set
++# CONFIG_TIPC is not set
++# CONFIG_ATM is not set
++# CONFIG_BRIDGE is not set
++# CONFIG_NET_DSA is not set
++# CONFIG_VLAN_8021Q is not set
++# CONFIG_DECNET is not set
++# CONFIG_LLC2 is not set
++# CONFIG_IPX is not set
++# CONFIG_ATALK is not set
++# CONFIG_X25 is not set
++# CONFIG_LAPB is not set
++# CONFIG_ECONET is not set
++# CONFIG_WAN_ROUTER is not set
++# CONFIG_NET_SCHED is not set
++
++#
++# Network testing
++#
++# CONFIG_NET_PKTGEN is not set
++# CONFIG_HAMRADIO is not set
++# CONFIG_CAN is not set
++# CONFIG_IRDA is not set
++# CONFIG_BT is not set
++# CONFIG_AF_RXRPC is not set
++# CONFIG_PHONET is not set
++CONFIG_WIRELESS=y
++# CONFIG_CFG80211 is not set
++CONFIG_WIRELESS_OLD_REGULATORY=y
++# CONFIG_WIRELESS_EXT is not set
++# CONFIG_MAC80211 is not set
++# CONFIG_IEEE80211 is not set
++# CONFIG_RFKILL is not set
++# CONFIG_NET_9P is not set
++
++#
++# Device Drivers
++#
++
++#
++# Generic Driver Options
++#
++CONFIG_UEVENT_HELPER_PATH="/sbin/hotplug"
++CONFIG_STANDALONE=y
++CONFIG_PREVENT_FIRMWARE_BUILD=y
++# CONFIG_FW_LOADER is not set
++# CONFIG_DEBUG_DRIVER is not set
++# CONFIG_DEBUG_DEVRES is not set
++# CONFIG_SYS_HYPERVISOR is not set
++# CONFIG_CONNECTOR is not set
++CONFIG_MTD=y
++# CONFIG_MTD_DEBUG is not set
++CONFIG_MTD_CONCAT=y
++CONFIG_MTD_PARTITIONS=y
++# CONFIG_MTD_REDBOOT_PARTS is not set
++CONFIG_MTD_CMDLINE_PARTS=y
++# CONFIG_MTD_AFS_PARTS is not set
++# CONFIG_MTD_AR7_PARTS is not set
++
++#
++# User Modules And Translation Layers
++#
++CONFIG_MTD_CHAR=y
++CONFIG_MTD_BLKDEVS=y
++CONFIG_MTD_BLOCK=y
++# CONFIG_FTL is not set
++# CONFIG_NFTL is not set
++# CONFIG_INFTL is not set
++# CONFIG_RFD_FTL is not set
++# CONFIG_SSFDC is not set
++# CONFIG_MTD_OOPS is not set
++
++#
++# RAM/ROM/Flash chip drivers
++#
++CONFIG_MTD_CFI=y
++# CONFIG_MTD_JEDECPROBE is not set
++CONFIG_MTD_GEN_PROBE=y
++# CONFIG_MTD_CFI_ADV_OPTIONS is not set
++CONFIG_MTD_MAP_BANK_WIDTH_1=y
++CONFIG_MTD_MAP_BANK_WIDTH_2=y
++CONFIG_MTD_MAP_BANK_WIDTH_4=y
++# CONFIG_MTD_MAP_BANK_WIDTH_8 is not set
++# CONFIG_MTD_MAP_BANK_WIDTH_16 is not set
++# CONFIG_MTD_MAP_BANK_WIDTH_32 is not set
++CONFIG_MTD_CFI_I1=y
++CONFIG_MTD_CFI_I2=y
++# CONFIG_MTD_CFI_I4 is not set
++# CONFIG_MTD_CFI_I8 is not set
++CONFIG_MTD_CFI_INTELEXT=y
++# CONFIG_MTD_CFI_AMDSTD is not set
++# CONFIG_MTD_CFI_STAA is not set
++CONFIG_MTD_CFI_UTIL=y
++# CONFIG_MTD_RAM is not set
++# CONFIG_MTD_ROM is not set
++# CONFIG_MTD_ABSENT is not set
++
++#
++# Mapping drivers for chip access
++#
++# CONFIG_MTD_COMPLEX_MAPPINGS is not set
++# CONFIG_MTD_PHYSMAP is not set
++# CONFIG_MTD_ARM_INTEGRATOR is not set
++CONFIG_MTD_OMAP_NOR=y
++# CONFIG_MTD_PLATRAM is not set
++
++#
++# Self-contained MTD device drivers
++#
++# CONFIG_MTD_DATAFLASH is not set
++# CONFIG_MTD_M25P80 is not set
++# CONFIG_MTD_SLRAM is not set
++# CONFIG_MTD_PHRAM is not set
++# CONFIG_MTD_MTDRAM is not set
++# CONFIG_MTD_BLOCK2MTD is not set
++
++#
++# Disk-On-Chip Device Drivers
++#
++# CONFIG_MTD_DOC2000 is not set
++# CONFIG_MTD_DOC2001 is not set
++# CONFIG_MTD_DOC2001PLUS is not set
++CONFIG_MTD_NAND=y
++# CONFIG_MTD_NAND_VERIFY_WRITE is not set
++CONFIG_MTD_NAND_ECC_SMC=y
++# CONFIG_MTD_NAND_MUSEUM_IDS is not set
++# CONFIG_MTD_NAND_GPIO is not set
++CONFIG_MTD_NAND_OMAP2=y
++CONFIG_MTD_NAND_IDS=y
++# CONFIG_MTD_NAND_DISKONCHIP is not set
++# CONFIG_MTD_NAND_NANDSIM is not set
++# CONFIG_MTD_NAND_PLATFORM is not set
++# CONFIG_MTD_ALAUDA is not set
++CONFIG_MTD_ONENAND=y
++CONFIG_MTD_ONENAND_VERIFY_WRITE=y
++# CONFIG_MTD_ONENAND_GENERIC is not set
++CONFIG_MTD_ONENAND_OMAP2=y
++# CONFIG_MTD_ONENAND_OTP is not set
++# CONFIG_MTD_ONENAND_2X_PROGRAM is not set
++# CONFIG_MTD_ONENAND_SIM is not set
++
++#
++# UBI - Unsorted block images
++#
++# CONFIG_MTD_UBI is not set
++# CONFIG_PARPORT is not set
++CONFIG_BLK_DEV=y
++# CONFIG_BLK_DEV_COW_COMMON is not set
++CONFIG_BLK_DEV_LOOP=y
++# CONFIG_BLK_DEV_CRYPTOLOOP is not set
++# CONFIG_BLK_DEV_NBD is not set
++# CONFIG_BLK_DEV_UB is not set
++CONFIG_BLK_DEV_RAM=y
++CONFIG_BLK_DEV_RAM_COUNT=16
++CONFIG_BLK_DEV_RAM_SIZE=16384
++# CONFIG_BLK_DEV_XIP is not set
++# CONFIG_CDROM_PKTCDVD is not set
++# CONFIG_ATA_OVER_ETH is not set
++CONFIG_MISC_DEVICES=y
++# CONFIG_EEPROM_93CX6 is not set
++# CONFIG_ICS932S401 is not set
++# CONFIG_OMAP_STI is not set
++# CONFIG_ENCLOSURE_SERVICES is not set
++# CONFIG_C2PORT is not set
++CONFIG_HAVE_IDE=y
++# CONFIG_IDE is not set
++
++#
++# SCSI device support
++#
++# CONFIG_RAID_ATTRS is not set
++CONFIG_SCSI=y
++CONFIG_SCSI_DMA=y
++# CONFIG_SCSI_TGT is not set
++# CONFIG_SCSI_NETLINK is not set
++CONFIG_SCSI_PROC_FS=y
++
++#
++# SCSI support type (disk, tape, CD-ROM)
++#
++CONFIG_BLK_DEV_SD=y
++# CONFIG_CHR_DEV_ST is not set
++# CONFIG_CHR_DEV_OSST is not set
++# CONFIG_BLK_DEV_SR is not set
++# CONFIG_CHR_DEV_SG is not set
++# CONFIG_CHR_DEV_SCH is not set
++
++#
++# Some SCSI devices (e.g. CD jukebox) support multiple LUNs
++#
++# CONFIG_SCSI_MULTI_LUN is not set
++# CONFIG_SCSI_CONSTANTS is not set
++# CONFIG_SCSI_LOGGING is not set
++# CONFIG_SCSI_SCAN_ASYNC is not set
++CONFIG_SCSI_WAIT_SCAN=m
++
++#
++# SCSI Transports
++#
++# CONFIG_SCSI_SPI_ATTRS is not set
++# CONFIG_SCSI_FC_ATTRS is not set
++# CONFIG_SCSI_ISCSI_ATTRS is not set
++# CONFIG_SCSI_SAS_LIBSAS is not set
++# CONFIG_SCSI_SRP_ATTRS is not set
++CONFIG_SCSI_LOWLEVEL=y
++# CONFIG_ISCSI_TCP is not set
++# CONFIG_SCSI_DEBUG is not set
++# CONFIG_SCSI_DH is not set
++# CONFIG_ATA is not set
++# CONFIG_MD is not set
++CONFIG_NETDEVICES=y
++# CONFIG_DUMMY is not set
++# CONFIG_BONDING is not set
++# CONFIG_MACVLAN is not set
++# CONFIG_EQUALIZER is not set
++# CONFIG_TUN is not set
++# CONFIG_VETH is not set
++# CONFIG_PHYLIB is not set
++CONFIG_NET_ETHERNET=y
++CONFIG_MII=y
++# CONFIG_AX88796 is not set
++CONFIG_SMC91X=y
++# CONFIG_DM9000 is not set
++# CONFIG_ENC28J60 is not set
++# CONFIG_SMC911X is not set
++# CONFIG_IBM_NEW_EMAC_ZMII is not set
++# CONFIG_IBM_NEW_EMAC_RGMII is not set
++# CONFIG_IBM_NEW_EMAC_TAH is not set
++# CONFIG_IBM_NEW_EMAC_EMAC4 is not set
++# CONFIG_IBM_NEW_EMAC_NO_FLOW_CTRL is not set
++# CONFIG_IBM_NEW_EMAC_MAL_CLR_ICINTSTAT is not set
++# CONFIG_IBM_NEW_EMAC_MAL_COMMON_ERR is not set
++# CONFIG_B44 is not set
++CONFIG_NETDEV_1000=y
++CONFIG_NETDEV_10000=y
++
++#
++# Wireless LAN
++#
++# CONFIG_WLAN_PRE80211 is not set
++# CONFIG_WLAN_80211 is not set
++# CONFIG_IWLWIFI_LEDS is not set
++
++#
++# USB Network Adapters
++#
++# CONFIG_USB_CATC is not set
++# CONFIG_USB_KAWETH is not set
++# CONFIG_USB_PEGASUS is not set
++# CONFIG_USB_RTL8150 is not set
++# CONFIG_USB_USBNET is not set
++# CONFIG_WAN is not set
++# CONFIG_PPP is not set
++# CONFIG_SLIP is not set
++# CONFIG_NETCONSOLE is not set
++# CONFIG_NETPOLL is not set
++# CONFIG_NET_POLL_CONTROLLER is not set
++# CONFIG_ISDN is not set
++
++#
++# Input device support
++#
++CONFIG_INPUT=y
++# CONFIG_INPUT_FF_MEMLESS is not set
++# CONFIG_INPUT_POLLDEV is not set
++
++#
++# Userland interfaces
++#
++# CONFIG_INPUT_MOUSEDEV is not set
++# CONFIG_INPUT_JOYDEV is not set
++CONFIG_INPUT_EVDEV=y
++# CONFIG_INPUT_EVBUG is not set
++
++#
++# Input Device Drivers
++#
++CONFIG_INPUT_KEYBOARD=y
++# CONFIG_KEYBOARD_ATKBD is not set
++# CONFIG_KEYBOARD_SUNKBD is not set
++# CONFIG_KEYBOARD_LKKBD is not set
++# CONFIG_KEYBOARD_XTKBD is not set
++# CONFIG_KEYBOARD_NEWTON is not set
++# CONFIG_KEYBOARD_STOWAWAY is not set
++CONFIG_KEYBOARD_TWL4030=y
++# CONFIG_KEYBOARD_LM8323 is not set
++# CONFIG_KEYBOARD_GPIO is not set
++# CONFIG_INPUT_MOUSE is not set
++# CONFIG_INPUT_JOYSTICK is not set
++# CONFIG_INPUT_TABLET is not set
++CONFIG_INPUT_TOUCHSCREEN=y
++CONFIG_TOUCHSCREEN_ADS7846=y
++# CONFIG_TOUCHSCREEN_FUJITSU is not set
++# CONFIG_TOUCHSCREEN_GUNZE is not set
++# CONFIG_TOUCHSCREEN_ELO is not set
++# CONFIG_TOUCHSCREEN_MTOUCH is not set
++# CONFIG_TOUCHSCREEN_INEXIO is not set
++# CONFIG_TOUCHSCREEN_MK712 is not set
++# CONFIG_TOUCHSCREEN_PENMOUNT is not set
++# CONFIG_TOUCHSCREEN_TOUCHRIGHT is not set
++# CONFIG_TOUCHSCREEN_TOUCHWIN is not set
++# CONFIG_TOUCHSCREEN_TSC2005 is not set
++# CONFIG_TOUCHSCREEN_TSC210X is not set
++# CONFIG_TOUCHSCREEN_USB_COMPOSITE is not set
++# CONFIG_TOUCHSCREEN_TOUCHIT213 is not set
++# CONFIG_INPUT_MISC is not set
++
++#
++# Hardware I/O ports
++#
++# CONFIG_SERIO is not set
++# CONFIG_GAMEPORT is not set
++
++#
++# Character devices
++#
++CONFIG_VT=y
++CONFIG_CONSOLE_TRANSLATIONS=y
++CONFIG_VT_CONSOLE=y
++CONFIG_HW_CONSOLE=y
++# CONFIG_VT_HW_CONSOLE_BINDING is not set
++CONFIG_DEVKMEM=y
++# CONFIG_SERIAL_NONSTANDARD is not set
++
++#
++# Serial drivers
++#
++CONFIG_SERIAL_8250=y
++CONFIG_SERIAL_8250_CONSOLE=y
++CONFIG_SERIAL_8250_NR_UARTS=32
++CONFIG_SERIAL_8250_RUNTIME_UARTS=4
++CONFIG_SERIAL_8250_EXTENDED=y
++CONFIG_SERIAL_8250_MANY_PORTS=y
++CONFIG_SERIAL_8250_SHARE_IRQ=y
++CONFIG_SERIAL_8250_DETECT_IRQ=y
++CONFIG_SERIAL_8250_RSA=y
++
++#
++# Non-8250 serial port support
++#
++CONFIG_SERIAL_CORE=y
++CONFIG_SERIAL_CORE_CONSOLE=y
++CONFIG_UNIX98_PTYS=y
++# CONFIG_LEGACY_PTYS is not set
++# CONFIG_IPMI_HANDLER is not set
++CONFIG_HW_RANDOM=y
++# CONFIG_NVRAM is not set
++# CONFIG_R3964 is not set
++# CONFIG_RAW_DRIVER is not set
++# CONFIG_TCG_TPM is not set
++CONFIG_I2C=y
++CONFIG_I2C_BOARDINFO=y
++CONFIG_I2C_CHARDEV=y
++CONFIG_I2C_HELPER_AUTO=y
++
++#
++# I2C Hardware Bus support
++#
++
++#
++# I2C system bus drivers (mostly embedded / system-on-chip)
++#
++# CONFIG_I2C_GPIO is not set
++# CONFIG_I2C_OCORES is not set
++CONFIG_I2C_OMAP=y
++# CONFIG_I2C_SIMTEC is not set
++
++#
++# External I2C/SMBus adapter drivers
++#
++# CONFIG_I2C_PARPORT_LIGHT is not set
++# CONFIG_I2C_TAOS_EVM is not set
++# CONFIG_I2C_TINY_USB is not set
++
++#
++# Other I2C/SMBus bus drivers
++#
++# CONFIG_I2C_PCA_PLATFORM is not set
++# CONFIG_I2C_STUB is not set
++
++#
++# Miscellaneous I2C Chip support
++#
++# CONFIG_DS1682 is not set
++# CONFIG_AT24 is not set
++# CONFIG_SENSORS_EEPROM is not set
++# CONFIG_SENSORS_PCF8574 is not set
++# CONFIG_PCF8575 is not set
++# CONFIG_SENSORS_PCA9539 is not set
++# CONFIG_SENSORS_PCF8591 is not set
++# CONFIG_TPS65010 is not set
++# CONFIG_TWL4030_MADC is not set
++# CONFIG_TWL4030_PWRBUTTON is not set
++# CONFIG_TWL4030_POWEROFF is not set
++# CONFIG_SENSORS_MAX6875 is not set
++# CONFIG_SENSORS_TSL2550 is not set
++# CONFIG_LP5521 is not set
++# CONFIG_I2C_DEBUG_CORE is not set
++# CONFIG_I2C_DEBUG_ALGO is not set
++# CONFIG_I2C_DEBUG_BUS is not set
++# CONFIG_I2C_DEBUG_CHIP is not set
++CONFIG_SPI=y
++# CONFIG_SPI_DEBUG is not set
++CONFIG_SPI_MASTER=y
++
++#
++# SPI Master Controller Drivers
++#
++# CONFIG_SPI_BITBANG is not set
++CONFIG_SPI_OMAP24XX=y
++
++#
++# SPI Protocol Masters
++#
++# CONFIG_SPI_AT25 is not set
++# CONFIG_SPI_TSC210X is not set
++# CONFIG_SPI_TSC2301 is not set
++# CONFIG_SPI_SPIDEV is not set
++# CONFIG_SPI_TLE62X0 is not set
++CONFIG_ARCH_REQUIRE_GPIOLIB=y
++CONFIG_GPIOLIB=y
++# CONFIG_DEBUG_GPIO is not set
++# CONFIG_GPIO_SYSFS is not set
++
++#
++# Memory mapped GPIO expanders:
++#
++
++#
++# I2C GPIO expanders:
++#
++# CONFIG_GPIO_MAX732X is not set
++# CONFIG_GPIO_PCA953X is not set
++# CONFIG_GPIO_PCF857X is not set
++CONFIG_GPIO_TWL4030=y
++
++#
++# PCI GPIO expanders:
++#
++
++#
++# SPI GPIO expanders:
++#
++# CONFIG_GPIO_MAX7301 is not set
++# CONFIG_GPIO_MCP23S08 is not set
++# CONFIG_W1 is not set
++# CONFIG_POWER_SUPPLY is not set
++# CONFIG_HWMON is not set
++# CONFIG_THERMAL is not set
++# CONFIG_THERMAL_HWMON is not set
++CONFIG_WATCHDOG=y
++CONFIG_WATCHDOG_NOWAYOUT=y
++
++#
++# Watchdog Device Drivers
++#
++# CONFIG_SOFT_WATCHDOG is not set
++CONFIG_OMAP_WATCHDOG=y
++
++#
++# USB-based Watchdog Cards
++#
++# CONFIG_USBPCWATCHDOG is not set
++CONFIG_SSB_POSSIBLE=y
++
++#
++# Sonics Silicon Backplane
++#
++# CONFIG_SSB is not set
++
++#
++# Multifunction device drivers
++#
++# CONFIG_MFD_CORE is not set
++# CONFIG_MFD_SM501 is not set
++# CONFIG_MFD_ASIC3 is not set
++# CONFIG_HTC_EGPIO is not set
++# CONFIG_HTC_PASIC3 is not set
++CONFIG_TWL4030_CORE=y
++# CONFIG_TWL4030_POWER is not set
++# CONFIG_MFD_TMIO is not set
++# CONFIG_MFD_T7L66XB is not set
++# CONFIG_MFD_TC6387XB is not set
++# CONFIG_MFD_TC6393XB is not set
++# CONFIG_PMIC_DA903X is not set
++# CONFIG_MFD_WM8400 is not set
++# CONFIG_MFD_WM8350_I2C is not set
++
++#
++# Multimedia devices
++#
++
++#
++# Multimedia core support
++#
++# CONFIG_VIDEO_DEV is not set
++# CONFIG_DVB_CORE is not set
++# CONFIG_VIDEO_MEDIA is not set
++
++#
++# Multimedia drivers
++#
++CONFIG_DAB=y
++# CONFIG_USB_DABUSB is not set
++
++#
++# Graphics support
++#
++# CONFIG_VGASTATE is not set
++CONFIG_VIDEO_OUTPUT_CONTROL=m
++CONFIG_FB=y
++# CONFIG_FIRMWARE_EDID is not set
++# CONFIG_FB_DDC is not set
++# CONFIG_FB_BOOT_VESA_SUPPORT is not set
++CONFIG_FB_CFB_FILLRECT=m
++CONFIG_FB_CFB_COPYAREA=m
++CONFIG_FB_CFB_IMAGEBLIT=m
++# CONFIG_FB_CFB_REV_PIXELS_IN_BYTE is not set
++# CONFIG_FB_SYS_FILLRECT is not set
++# CONFIG_FB_SYS_COPYAREA is not set
++# CONFIG_FB_SYS_IMAGEBLIT is not set
++# CONFIG_FB_FOREIGN_ENDIAN is not set
++# CONFIG_FB_SYS_FOPS is not set
++# CONFIG_FB_SVGALIB is not set
++# CONFIG_FB_MACMODES is not set
++# CONFIG_FB_BACKLIGHT is not set
++# CONFIG_FB_MODE_HELPERS is not set
++# CONFIG_FB_TILEBLITTING is not set
++
++#
++# Frame buffer hardware drivers
++#
++# CONFIG_FB_S1D13XXX is not set
++# CONFIG_FB_VIRTUAL is not set
++# CONFIG_FB_METRONOME is not set
++# CONFIG_FB_MB862XX is not set
++# CONFIG_FB_OMAP_LCD_VGA is not set
++CONFIG_FB_OMAP_CONSISTENT_DMA_SIZE=2
++CONFIG_FB_OMAP2=m
++CONFIG_FB_OMAP2_DEBUG=y
++# CONFIG_FB_OMAP2_FORCE_AUTO_UPDATE is not set
++CONFIG_FB_OMAP2_NUM_FBS=3
++
++#
++# OMAP2/3 Display Device Drivers
++#
++CONFIG_PANEL_GENERIC=m
++CONFIG_PANEL_SHARP_LS037V7DW01=m
++# CONFIG_BACKLIGHT_LCD_SUPPORT is not set
++
++#
++# Display device support
++#
++# CONFIG_DISPLAY_SUPPORT is not set
++
++#
++# Console display driver support
++#
++# CONFIG_VGA_CONSOLE is not set
++CONFIG_DUMMY_CONSOLE=y
++# CONFIG_FRAMEBUFFER_CONSOLE is not set
++# CONFIG_LOGO is not set
++# CONFIG_SOUND is not set
++CONFIG_HID_SUPPORT=y
++CONFIG_HID=y
++# CONFIG_HID_DEBUG is not set
++# CONFIG_HIDRAW is not set
++
++#
++# USB Input Devices
++#
++CONFIG_USB_HID=y
++# CONFIG_HID_PID is not set
++# CONFIG_USB_HIDDEV is not set
++
++#
++# Special HID drivers
++#
++CONFIG_HID_COMPAT=y
++CONFIG_HID_A4TECH=y
++CONFIG_HID_APPLE=y
++CONFIG_HID_BELKIN=y
++CONFIG_HID_BRIGHT=y
++CONFIG_HID_CHERRY=y
++CONFIG_HID_CHICONY=y
++CONFIG_HID_CYPRESS=y
++CONFIG_HID_DELL=y
++CONFIG_HID_EZKEY=y
++CONFIG_HID_GYRATION=y
++CONFIG_HID_LOGITECH=y
++# CONFIG_LOGITECH_FF is not set
++# CONFIG_LOGIRUMBLEPAD2_FF is not set
++CONFIG_HID_MICROSOFT=y
++CONFIG_HID_MONTEREY=y
++CONFIG_HID_PANTHERLORD=y
++# CONFIG_PANTHERLORD_FF is not set
++CONFIG_HID_PETALYNX=y
++CONFIG_HID_SAMSUNG=y
++CONFIG_HID_SONY=y
++CONFIG_HID_SUNPLUS=y
++# CONFIG_THRUSTMASTER_FF is not set
++# CONFIG_ZEROPLUS_FF is not set
++CONFIG_USB_SUPPORT=y
++CONFIG_USB_ARCH_HAS_HCD=y
++CONFIG_USB_ARCH_HAS_OHCI=y
++CONFIG_USB_ARCH_HAS_EHCI=y
++CONFIG_USB=y
++CONFIG_USB_DEBUG=y
++CONFIG_USB_ANNOUNCE_NEW_DEVICES=y
++
++#
++# Miscellaneous USB options
++#
++CONFIG_USB_DEVICEFS=y
++# CONFIG_USB_DEVICE_CLASS is not set
++# CONFIG_USB_DYNAMIC_MINORS is not set
++CONFIG_USB_SUSPEND=y
++CONFIG_USB_OTG=y
++# CONFIG_USB_OTG_WHITELIST is not set
++# CONFIG_USB_OTG_BLACKLIST_HUB is not set
++CONFIG_USB_MON=y
++# CONFIG_USB_WUSB is not set
++# CONFIG_USB_WUSB_CBAF is not set
++
++#
++# USB Host Controller Drivers
++#
++# CONFIG_USB_C67X00_HCD is not set
++CONFIG_USB_EHCI_HCD=m
++CONFIG_OMAP_EHCI_PHY_MODE=y
++# CONFIG_OMAP_EHCI_TLL_MODE is not set
++# CONFIG_USB_EHCI_ROOT_HUB_TT is not set
++# CONFIG_USB_EHCI_TT_NEWSCHED is not set
++# CONFIG_USB_ISP116X_HCD is not set
++# CONFIG_USB_OHCI_HCD is not set
++# CONFIG_USB_SL811_HCD is not set
++# CONFIG_USB_R8A66597_HCD is not set
++# CONFIG_USB_HWA_HCD is not set
++CONFIG_USB_MUSB_HDRC=y
++CONFIG_USB_MUSB_SOC=y
++
++#
++# OMAP 343x high speed USB support
++#
++# CONFIG_USB_MUSB_HOST is not set
++# CONFIG_USB_MUSB_PERIPHERAL is not set
++CONFIG_USB_MUSB_OTG=y
++CONFIG_USB_GADGET_MUSB_HDRC=y
++CONFIG_USB_MUSB_HDRC_HCD=y
++# CONFIG_MUSB_PIO_ONLY is not set
++CONFIG_USB_INVENTRA_DMA=y
++# CONFIG_USB_TI_CPPI_DMA is not set
++# CONFIG_USB_MUSB_DEBUG is not set
++
++#
++# USB Device Class drivers
++#
++# CONFIG_USB_ACM is not set
++# CONFIG_USB_PRINTER is not set
++# CONFIG_USB_WDM is not set
++# CONFIG_USB_TMC is not set
++
++#
++# NOTE: USB_STORAGE depends on SCSI but BLK_DEV_SD may also be needed;
++#
++
++#
++# see USB_STORAGE Help for more information
++#
++CONFIG_USB_STORAGE=y
++CONFIG_USB_STORAGE_DEBUG=y
++# CONFIG_USB_STORAGE_DATAFAB is not set
++# CONFIG_USB_STORAGE_FREECOM is not set
++# CONFIG_USB_STORAGE_ISD200 is not set
++# CONFIG_USB_STORAGE_DPCM is not set
++# CONFIG_USB_STORAGE_USBAT is not set
++# CONFIG_USB_STORAGE_SDDR09 is not set
++# CONFIG_USB_STORAGE_SDDR55 is not set
++# CONFIG_USB_STORAGE_JUMPSHOT is not set
++# CONFIG_USB_STORAGE_ALAUDA is not set
++# CONFIG_USB_STORAGE_ONETOUCH is not set
++# CONFIG_USB_STORAGE_KARMA is not set
++# CONFIG_USB_STORAGE_CYPRESS_ATACB is not set
++# CONFIG_USB_LIBUSUAL is not set
++
++#
++# USB Imaging devices
++#
++# CONFIG_USB_MDC800 is not set
++# CONFIG_USB_MICROTEK is not set
++
++#
++# USB port drivers
++#
++# CONFIG_USB_SERIAL is not set
++
++#
++# USB Miscellaneous drivers
++#
++# CONFIG_USB_EMI62 is not set
++# CONFIG_USB_EMI26 is not set
++# CONFIG_USB_ADUTUX is not set
++# CONFIG_USB_SEVSEG is not set
++# CONFIG_USB_RIO500 is not set
++# CONFIG_USB_LEGOTOWER is not set
++# CONFIG_USB_LCD is not set
++# CONFIG_USB_BERRY_CHARGE is not set
++# CONFIG_USB_LED is not set
++# CONFIG_USB_CYPRESS_CY7C63 is not set
++# CONFIG_USB_CYTHERM is not set
++# CONFIG_USB_PHIDGET is not set
++# CONFIG_USB_IDMOUSE is not set
++# CONFIG_USB_FTDI_ELAN is not set
++# CONFIG_USB_APPLEDISPLAY is not set
++# CONFIG_USB_SISUSBVGA is not set
++# CONFIG_USB_LD is not set
++# CONFIG_USB_TRANCEVIBRATOR is not set
++# CONFIG_USB_IOWARRIOR is not set
++CONFIG_USB_TEST=y
++# CONFIG_USB_ISIGHTFW is not set
++# CONFIG_USB_VST is not set
++CONFIG_USB_GADGET=y
++CONFIG_USB_GADGET_DEBUG=y
++CONFIG_USB_GADGET_DEBUG_FILES=y
++# CONFIG_USB_GADGET_DEBUG_FS is not set
++CONFIG_USB_GADGET_VBUS_DRAW=2
++CONFIG_USB_GADGET_SELECTED=y
++# CONFIG_USB_GADGET_AT91 is not set
++# CONFIG_USB_GADGET_ATMEL_USBA is not set
++# CONFIG_USB_GADGET_FSL_USB2 is not set
++# CONFIG_USB_GADGET_LH7A40X is not set
++# CONFIG_USB_GADGET_OMAP is not set
++# CONFIG_USB_GADGET_PXA25X is not set
++# CONFIG_USB_GADGET_PXA27X is not set
++# CONFIG_USB_GADGET_S3C2410 is not set
++# CONFIG_USB_GADGET_M66592 is not set
++# CONFIG_USB_GADGET_AMD5536UDC is not set
++# CONFIG_USB_GADGET_FSL_QE is not set
++# CONFIG_USB_GADGET_NET2280 is not set
++# CONFIG_USB_GADGET_GOKU is not set
++# CONFIG_USB_GADGET_DUMMY_HCD is not set
++CONFIG_USB_GADGET_DUALSPEED=y
++CONFIG_USB_ZERO=m
++# CONFIG_USB_ZERO_HNPTEST is not set
++# CONFIG_USB_ETH is not set
++# CONFIG_USB_GADGETFS is not set
++# CONFIG_USB_FILE_STORAGE is not set
++# CONFIG_USB_G_SERIAL is not set
++# CONFIG_USB_MIDI_GADGET is not set
++# CONFIG_USB_G_PRINTER is not set
++# CONFIG_USB_CDC_COMPOSITE is not set
++
++#
++# OTG and related infrastructure
++#
++CONFIG_USB_OTG_UTILS=y
++# CONFIG_USB_GPIO_VBUS is not set
++# CONFIG_ISP1301_OMAP is not set
++CONFIG_TWL4030_USB=y
++CONFIG_MMC=y
++# CONFIG_MMC_DEBUG is not set
++# CONFIG_MMC_UNSAFE_RESUME is not set
++
++#
++# MMC/SD/SDIO Card Drivers
++#
++CONFIG_MMC_BLOCK=y
++CONFIG_MMC_BLOCK_BOUNCE=y
++# CONFIG_SDIO_UART is not set
++# CONFIG_MMC_TEST is not set
++
++#
++# MMC/SD/SDIO Host Controller Drivers
++#
++# CONFIG_MMC_SDHCI is not set
++CONFIG_MMC_OMAP_HS=m
++# CONFIG_MMC_SPI is not set
++# CONFIG_MEMSTICK is not set
++# CONFIG_ACCESSIBILITY is not set
++# CONFIG_NEW_LEDS is not set
++CONFIG_RTC_LIB=y
++CONFIG_RTC_CLASS=y
++CONFIG_RTC_HCTOSYS=y
++CONFIG_RTC_HCTOSYS_DEVICE="rtc0"
++# CONFIG_RTC_DEBUG is not set
++
++#
++# RTC interfaces
++#
++CONFIG_RTC_INTF_SYSFS=y
++CONFIG_RTC_INTF_PROC=y
++CONFIG_RTC_INTF_DEV=y
++# CONFIG_RTC_INTF_DEV_UIE_EMUL is not set
++# CONFIG_RTC_DRV_TEST is not set
++
++#
++# I2C RTC drivers
++#
++# CONFIG_RTC_DRV_DS1307 is not set
++# CONFIG_RTC_DRV_DS1374 is not set
++# CONFIG_RTC_DRV_DS1672 is not set
++# CONFIG_RTC_DRV_MAX6900 is not set
++# CONFIG_RTC_DRV_RS5C372 is not set
++# CONFIG_RTC_DRV_ISL1208 is not set
++# CONFIG_RTC_DRV_X1205 is not set
++# CONFIG_RTC_DRV_PCF8563 is not set
++# CONFIG_RTC_DRV_PCF8583 is not set
++# CONFIG_RTC_DRV_M41T80 is not set
++CONFIG_RTC_DRV_TWL4030=y
++# CONFIG_RTC_DRV_S35390A is not set
++# CONFIG_RTC_DRV_FM3130 is not set
++# CONFIG_RTC_DRV_RX8581 is not set
++
++#
++# SPI RTC drivers
++#
++# CONFIG_RTC_DRV_M41T94 is not set
++# CONFIG_RTC_DRV_DS1305 is not set
++# CONFIG_RTC_DRV_DS1390 is not set
++# CONFIG_RTC_DRV_MAX6902 is not set
++# CONFIG_RTC_DRV_R9701 is not set
++# CONFIG_RTC_DRV_RS5C348 is not set
++# CONFIG_RTC_DRV_DS3234 is not set
++
++#
++# Platform RTC drivers
++#
++# CONFIG_RTC_DRV_CMOS is not set
++# CONFIG_RTC_DRV_DS1286 is not set
++# CONFIG_RTC_DRV_DS1511 is not set
++# CONFIG_RTC_DRV_DS1553 is not set
++# CONFIG_RTC_DRV_DS1742 is not set
++# CONFIG_RTC_DRV_STK17TA8 is not set
++# CONFIG_RTC_DRV_M48T86 is not set
++# CONFIG_RTC_DRV_M48T35 is not set
++# CONFIG_RTC_DRV_M48T59 is not set
++# CONFIG_RTC_DRV_BQ4802 is not set
++# CONFIG_RTC_DRV_V3020 is not set
++
++#
++# on-CPU RTC drivers
++#
++# CONFIG_DMADEVICES is not set
++# CONFIG_REGULATOR is not set
++# CONFIG_UIO is not set
++
++#
++# CBUS support
++#
++# CONFIG_CBUS is not set
++
++#
++# File systems
++#
++CONFIG_EXT2_FS=y
++# CONFIG_EXT2_FS_XATTR is not set
++# CONFIG_EXT2_FS_XIP is not set
++CONFIG_EXT3_FS=y
++# CONFIG_EXT3_FS_XATTR is not set
++# CONFIG_EXT4_FS is not set
++CONFIG_JBD=y
++# CONFIG_JBD_DEBUG is not set
++# CONFIG_REISERFS_FS is not set
++# CONFIG_JFS_FS is not set
++# CONFIG_FS_POSIX_ACL is not set
++CONFIG_FILE_LOCKING=y
++# CONFIG_XFS_FS is not set
++# CONFIG_OCFS2_FS is not set
++CONFIG_DNOTIFY=y
++CONFIG_INOTIFY=y
++CONFIG_INOTIFY_USER=y
++CONFIG_QUOTA=y
++# CONFIG_QUOTA_NETLINK_INTERFACE is not set
++CONFIG_PRINT_QUOTA_WARNING=y
++# CONFIG_QFMT_V1 is not set
++CONFIG_QFMT_V2=y
++CONFIG_QUOTACTL=y
++# CONFIG_AUTOFS_FS is not set
++# CONFIG_AUTOFS4_FS is not set
++# CONFIG_FUSE_FS is not set
++
++#
++# CD-ROM/DVD Filesystems
++#
++# CONFIG_ISO9660_FS is not set
++# CONFIG_UDF_FS is not set
++
++#
++# DOS/FAT/NT Filesystems
++#
++CONFIG_FAT_FS=y
++CONFIG_MSDOS_FS=y
++CONFIG_VFAT_FS=y
++CONFIG_FAT_DEFAULT_CODEPAGE=437
++CONFIG_FAT_DEFAULT_IOCHARSET="iso8859-1"
++# CONFIG_NTFS_FS is not set
++
++#
++# Pseudo filesystems
++#
++CONFIG_PROC_FS=y
++CONFIG_PROC_SYSCTL=y
++CONFIG_PROC_PAGE_MONITOR=y
++CONFIG_SYSFS=y
++CONFIG_TMPFS=y
++# CONFIG_TMPFS_POSIX_ACL is not set
++# CONFIG_HUGETLB_PAGE is not set
++# CONFIG_CONFIGFS_FS is not set
++
++#
++# Miscellaneous filesystems
++#
++# CONFIG_ADFS_FS is not set
++# CONFIG_AFFS_FS is not set
++# CONFIG_HFS_FS is not set
++# CONFIG_HFSPLUS_FS is not set
++# CONFIG_BEFS_FS is not set
++# CONFIG_BFS_FS is not set
++# CONFIG_EFS_FS is not set
++CONFIG_JFFS2_FS=y
++CONFIG_JFFS2_FS_DEBUG=0
++CONFIG_JFFS2_FS_WRITEBUFFER=y
++# CONFIG_JFFS2_FS_WBUF_VERIFY is not set
++# CONFIG_JFFS2_SUMMARY is not set
++# CONFIG_JFFS2_FS_XATTR is not set
++CONFIG_JFFS2_COMPRESSION_OPTIONS=y
++CONFIG_JFFS2_ZLIB=y
++# CONFIG_JFFS2_LZO is not set
++CONFIG_JFFS2_RTIME=y
++# CONFIG_JFFS2_RUBIN is not set
++# CONFIG_JFFS2_CMODE_NONE is not set
++CONFIG_JFFS2_CMODE_PRIORITY=y
++# CONFIG_JFFS2_CMODE_SIZE is not set
++# CONFIG_JFFS2_CMODE_FAVOURLZO is not set
++# CONFIG_CRAMFS is not set
++# CONFIG_VXFS_FS is not set
++# CONFIG_MINIX_FS is not set
++# CONFIG_OMFS_FS is not set
++# CONFIG_HPFS_FS is not set
++# CONFIG_QNX4FS_FS is not set
++# CONFIG_ROMFS_FS is not set
++# CONFIG_SYSV_FS is not set
++# CONFIG_UFS_FS is not set
++CONFIG_NETWORK_FILESYSTEMS=y
++CONFIG_NFS_FS=y
++CONFIG_NFS_V3=y
++# CONFIG_NFS_V3_ACL is not set
++CONFIG_NFS_V4=y
++CONFIG_ROOT_NFS=y
++# CONFIG_NFSD is not set
++CONFIG_LOCKD=y
++CONFIG_LOCKD_V4=y
++CONFIG_NFS_COMMON=y
++CONFIG_SUNRPC=y
++CONFIG_SUNRPC_GSS=y
++# CONFIG_SUNRPC_REGISTER_V4 is not set
++CONFIG_RPCSEC_GSS_KRB5=y
++# CONFIG_RPCSEC_GSS_SPKM3 is not set
++# CONFIG_SMB_FS is not set
++# CONFIG_CIFS is not set
++# CONFIG_NCP_FS is not set
++# CONFIG_CODA_FS is not set
++# CONFIG_AFS_FS is not set
++
++#
++# Partition Types
++#
++CONFIG_PARTITION_ADVANCED=y
++# CONFIG_ACORN_PARTITION is not set
++# CONFIG_OSF_PARTITION is not set
++# CONFIG_AMIGA_PARTITION is not set
++# CONFIG_ATARI_PARTITION is not set
++# CONFIG_MAC_PARTITION is not set
++CONFIG_MSDOS_PARTITION=y
++# CONFIG_BSD_DISKLABEL is not set
++# CONFIG_MINIX_SUBPARTITION is not set
++# CONFIG_SOLARIS_X86_PARTITION is not set
++# CONFIG_UNIXWARE_DISKLABEL is not set
++# CONFIG_LDM_PARTITION is not set
++# CONFIG_SGI_PARTITION is not set
++# CONFIG_ULTRIX_PARTITION is not set
++# CONFIG_SUN_PARTITION is not set
++# CONFIG_KARMA_PARTITION is not set
++# CONFIG_EFI_PARTITION is not set
++# CONFIG_SYSV68_PARTITION is not set
++CONFIG_NLS=y
++CONFIG_NLS_DEFAULT="iso8859-1"
++CONFIG_NLS_CODEPAGE_437=y
++# CONFIG_NLS_CODEPAGE_737 is not set
++# CONFIG_NLS_CODEPAGE_775 is not set
++# CONFIG_NLS_CODEPAGE_850 is not set
++# CONFIG_NLS_CODEPAGE_852 is not set
++# CONFIG_NLS_CODEPAGE_855 is not set
++# CONFIG_NLS_CODEPAGE_857 is not set
++# CONFIG_NLS_CODEPAGE_860 is not set
++# CONFIG_NLS_CODEPAGE_861 is not set
++# CONFIG_NLS_CODEPAGE_862 is not set
++# CONFIG_NLS_CODEPAGE_863 is not set
++# CONFIG_NLS_CODEPAGE_864 is not set
++# CONFIG_NLS_CODEPAGE_865 is not set
++# CONFIG_NLS_CODEPAGE_866 is not set
++# CONFIG_NLS_CODEPAGE_869 is not set
++# CONFIG_NLS_CODEPAGE_936 is not set
++# CONFIG_NLS_CODEPAGE_950 is not set
++# CONFIG_NLS_CODEPAGE_932 is not set
++# CONFIG_NLS_CODEPAGE_949 is not set
++# CONFIG_NLS_CODEPAGE_874 is not set
++# CONFIG_NLS_ISO8859_8 is not set
++# CONFIG_NLS_CODEPAGE_1250 is not set
++# CONFIG_NLS_CODEPAGE_1251 is not set
++# CONFIG_NLS_ASCII is not set
++CONFIG_NLS_ISO8859_1=y
++# CONFIG_NLS_ISO8859_2 is not set
++# CONFIG_NLS_ISO8859_3 is not set
++# CONFIG_NLS_ISO8859_4 is not set
++# CONFIG_NLS_ISO8859_5 is not set
++# CONFIG_NLS_ISO8859_6 is not set
++# CONFIG_NLS_ISO8859_7 is not set
++# CONFIG_NLS_ISO8859_9 is not set
++# CONFIG_NLS_ISO8859_13 is not set
++# CONFIG_NLS_ISO8859_14 is not set
++# CONFIG_NLS_ISO8859_15 is not set
++# CONFIG_NLS_KOI8_R is not set
++# CONFIG_NLS_KOI8_U is not set
++# CONFIG_NLS_UTF8 is not set
++# CONFIG_DLM is not set
++
++#
++# Kernel hacking
++#
++# CONFIG_PRINTK_TIME is not set
++CONFIG_ENABLE_WARN_DEPRECATED=y
++CONFIG_ENABLE_MUST_CHECK=y
++CONFIG_FRAME_WARN=1024
++CONFIG_MAGIC_SYSRQ=y
++# CONFIG_UNUSED_SYMBOLS is not set
++CONFIG_DEBUG_FS=y
++# CONFIG_HEADERS_CHECK is not set
++CONFIG_DEBUG_KERNEL=y
++# CONFIG_DEBUG_SHIRQ is not set
++CONFIG_DETECT_SOFTLOCKUP=y
++# CONFIG_BOOTPARAM_SOFTLOCKUP_PANIC is not set
++CONFIG_BOOTPARAM_SOFTLOCKUP_PANIC_VALUE=0
++CONFIG_SCHED_DEBUG=y
++# CONFIG_SCHEDSTATS is not set
++# CONFIG_TIMER_STATS is not set
++# CONFIG_DEBUG_OBJECTS is not set
++# CONFIG_DEBUG_SLAB is not set
++# CONFIG_DEBUG_RT_MUTEXES is not set
++# CONFIG_RT_MUTEX_TESTER is not set
++# CONFIG_DEBUG_SPINLOCK is not set
++CONFIG_DEBUG_MUTEXES=y
++# CONFIG_DEBUG_LOCK_ALLOC is not set
++# CONFIG_PROVE_LOCKING is not set
++# CONFIG_LOCK_STAT is not set
++# CONFIG_DEBUG_SPINLOCK_SLEEP is not set
++# CONFIG_DEBUG_LOCKING_API_SELFTESTS is not set
++# CONFIG_DEBUG_KOBJECT is not set
++CONFIG_DEBUG_BUGVERBOSE=y
++CONFIG_DEBUG_INFO=y
++# CONFIG_DEBUG_VM is not set
++# CONFIG_DEBUG_WRITECOUNT is not set
++# CONFIG_DEBUG_MEMORY_INIT is not set
++# CONFIG_DEBUG_LIST is not set
++# CONFIG_DEBUG_SG is not set
++CONFIG_FRAME_POINTER=y
++# CONFIG_BOOT_PRINTK_DELAY is not set
++# CONFIG_RCU_TORTURE_TEST is not set
++# CONFIG_RCU_CPU_STALL_DETECTOR is not set
++# CONFIG_BACKTRACE_SELF_TEST is not set
++# CONFIG_DEBUG_BLOCK_EXT_DEVT is not set
++# CONFIG_FAULT_INJECTION is not set
++# CONFIG_LATENCYTOP is not set
++CONFIG_HAVE_FUNCTION_TRACER=y
++
++#
++# Tracers
++#
++# CONFIG_FUNCTION_TRACER is not set
++# CONFIG_IRQSOFF_TRACER is not set
++# CONFIG_SCHED_TRACER is not set
++# CONFIG_CONTEXT_SWITCH_TRACER is not set
++# CONFIG_BOOT_TRACER is not set
++# CONFIG_STACK_TRACER is not set
++# CONFIG_DYNAMIC_PRINTK_DEBUG is not set
++# CONFIG_SAMPLES is not set
++CONFIG_HAVE_ARCH_KGDB=y
++# CONFIG_KGDB is not set
++CONFIG_DEBUG_USER=y
++CONFIG_DEBUG_ERRORS=y
++# CONFIG_DEBUG_STACK_USAGE is not set
++# CONFIG_DEBUG_LL is not set
++
++#
++# Security options
++#
++# CONFIG_KEYS is not set
++# CONFIG_SECURITY is not set
++# CONFIG_SECURITYFS is not set
++# CONFIG_SECURITY_FILE_CAPABILITIES is not set
++CONFIG_CRYPTO=y
++
++#
++# Crypto core or helper
++#
++# CONFIG_CRYPTO_FIPS is not set
++CONFIG_CRYPTO_ALGAPI=y
++CONFIG_CRYPTO_ALGAPI2=y
++CONFIG_CRYPTO_AEAD2=y
++CONFIG_CRYPTO_BLKCIPHER=y
++CONFIG_CRYPTO_BLKCIPHER2=y
++CONFIG_CRYPTO_HASH2=y
++CONFIG_CRYPTO_RNG2=y
++CONFIG_CRYPTO_MANAGER=y
++CONFIG_CRYPTO_MANAGER2=y
++# CONFIG_CRYPTO_GF128MUL is not set
++# CONFIG_CRYPTO_NULL is not set
++# CONFIG_CRYPTO_CRYPTD is not set
++# CONFIG_CRYPTO_AUTHENC is not set
++# CONFIG_CRYPTO_TEST is not set
++
++#
++# Authenticated Encryption with Associated Data
++#
++# CONFIG_CRYPTO_CCM is not set
++# CONFIG_CRYPTO_GCM is not set
++# CONFIG_CRYPTO_SEQIV is not set
++
++#
++# Block modes
++#
++CONFIG_CRYPTO_CBC=y
++# CONFIG_CRYPTO_CTR is not set
++# CONFIG_CRYPTO_CTS is not set
++CONFIG_CRYPTO_ECB=m
++# CONFIG_CRYPTO_LRW is not set
++CONFIG_CRYPTO_PCBC=m
++# CONFIG_CRYPTO_XTS is not set
++
++#
++# Hash modes
++#
++# CONFIG_CRYPTO_HMAC is not set
++# CONFIG_CRYPTO_XCBC is not set
++
++#
++# Digest
++#
++# CONFIG_CRYPTO_CRC32C is not set
++# CONFIG_CRYPTO_MD4 is not set
++CONFIG_CRYPTO_MD5=y
++# CONFIG_CRYPTO_MICHAEL_MIC is not set
++# CONFIG_CRYPTO_RMD128 is not set
++# CONFIG_CRYPTO_RMD160 is not set
++# CONFIG_CRYPTO_RMD256 is not set
++# CONFIG_CRYPTO_RMD320 is not set
++# CONFIG_CRYPTO_SHA1 is not set
++# CONFIG_CRYPTO_SHA256 is not set
++# CONFIG_CRYPTO_SHA512 is not set
++# CONFIG_CRYPTO_TGR192 is not set
++# CONFIG_CRYPTO_WP512 is not set
++
++#
++# Ciphers
++#
++# CONFIG_CRYPTO_AES is not set
++# CONFIG_CRYPTO_ANUBIS is not set
++# CONFIG_CRYPTO_ARC4 is not set
++# CONFIG_CRYPTO_BLOWFISH is not set
++# CONFIG_CRYPTO_CAMELLIA is not set
++# CONFIG_CRYPTO_CAST5 is not set
++# CONFIG_CRYPTO_CAST6 is not set
++CONFIG_CRYPTO_DES=y
++# CONFIG_CRYPTO_FCRYPT is not set
++# CONFIG_CRYPTO_KHAZAD is not set
++# CONFIG_CRYPTO_SALSA20 is not set
++# CONFIG_CRYPTO_SEED is not set
++# CONFIG_CRYPTO_SERPENT is not set
++# CONFIG_CRYPTO_TEA is not set
++# CONFIG_CRYPTO_TWOFISH is not set
++
++#
++# Compression
++#
++# CONFIG_CRYPTO_DEFLATE is not set
++# CONFIG_CRYPTO_LZO is not set
++
++#
++# Random Number Generation
++#
++# CONFIG_CRYPTO_ANSI_CPRNG is not set
++CONFIG_CRYPTO_HW=y
++
++#
++# Library routines
++#
++CONFIG_BITREVERSE=y
++CONFIG_CRC_CCITT=y
++# CONFIG_CRC16 is not set
++# CONFIG_CRC_T10DIF is not set
++# CONFIG_CRC_ITU_T is not set
++CONFIG_CRC32=y
++# CONFIG_CRC7 is not set
++CONFIG_LIBCRC32C=y
++CONFIG_ZLIB_INFLATE=y
++CONFIG_ZLIB_DEFLATE=y
++CONFIG_PLIST=y
++CONFIG_HAS_IOMEM=y
++CONFIG_HAS_IOPORT=y
++CONFIG_HAS_DMA=y
+diff --git a/arch/arm/mach-omap2/board-3430sdp.c b/arch/arm/mach-omap2/board-3430sdp.c
+index ade186b..529322f 100644
+--- a/arch/arm/mach-omap2/board-3430sdp.c
++++ b/arch/arm/mach-omap2/board-3430sdp.c
+@@ -39,6 +39,7 @@
+ #include <mach/keypad.h>
+ #include <mach/dma.h>
+ #include <mach/gpmc.h>
 +#include <mach/display.h>
-+#include "dss.h"
-+
-+/*#define MEASURE_PERF*/
-+
-+#define RFBI_BASE               0x48050800
-+
-+struct rfbi_reg { u16 idx; };
-+
-+#define RFBI_REG(idx)		((const struct rfbi_reg) { idx })
-+
-+#define RFBI_REVISION		RFBI_REG(0x0000)
-+#define RFBI_SYSCONFIG		RFBI_REG(0x0010)
-+#define RFBI_SYSSTATUS		RFBI_REG(0x0014)
-+#define RFBI_CONTROL		RFBI_REG(0x0040)
-+#define RFBI_PIXEL_CNT		RFBI_REG(0x0044)
-+#define RFBI_LINE_NUMBER	RFBI_REG(0x0048)
-+#define RFBI_CMD		RFBI_REG(0x004c)
-+#define RFBI_PARAM		RFBI_REG(0x0050)
-+#define RFBI_DATA		RFBI_REG(0x0054)
-+#define RFBI_READ		RFBI_REG(0x0058)
-+#define RFBI_STATUS		RFBI_REG(0x005c)
-+
-+#define RFBI_CONFIG(n)		RFBI_REG(0x0060 + (n)*0x18)
-+#define RFBI_ONOFF_TIME(n)	RFBI_REG(0x0064 + (n)*0x18)
-+#define RFBI_CYCLE_TIME(n)	RFBI_REG(0x0068 + (n)*0x18)
-+#define RFBI_DATA_CYCLE1(n)	RFBI_REG(0x006c + (n)*0x18)
-+#define RFBI_DATA_CYCLE2(n)	RFBI_REG(0x0070 + (n)*0x18)
-+#define RFBI_DATA_CYCLE3(n)	RFBI_REG(0x0074 + (n)*0x18)
-+
-+#define RFBI_VSYNC_WIDTH	RFBI_REG(0x0090)
-+#define RFBI_HSYNC_WIDTH	RFBI_REG(0x0094)
-+
-+#define RFBI_CMD_FIFO_LEN_BYTES (16 * sizeof(struct update_param))
-+
-+#define REG_FLD_MOD(idx, val, start, end) \
-+	rfbi_write_reg(idx, FLD_MOD(rfbi_read_reg(idx), val, start, end))
-+
-+/* To work around an RFBI transfer rate limitation */
-+#define OMAP_RFBI_RATE_LIMIT    1
-+
-+enum omap_rfbi_cycleformat {
-+	OMAP_DSS_RFBI_CYCLEFORMAT_1_1 = 0,
-+	OMAP_DSS_RFBI_CYCLEFORMAT_2_1 = 1,
-+	OMAP_DSS_RFBI_CYCLEFORMAT_3_1 = 2,
-+	OMAP_DSS_RFBI_CYCLEFORMAT_3_2 = 3,
-+};
-+
-+enum omap_rfbi_datatype {
-+	OMAP_DSS_RFBI_DATATYPE_12 = 0,
-+	OMAP_DSS_RFBI_DATATYPE_16 = 1,
-+	OMAP_DSS_RFBI_DATATYPE_18 = 2,
-+	OMAP_DSS_RFBI_DATATYPE_24 = 3,
-+};
-+
-+enum omap_rfbi_parallelmode {
-+	OMAP_DSS_RFBI_PARALLELMODE_8 = 0,
-+	OMAP_DSS_RFBI_PARALLELMODE_9 = 1,
-+	OMAP_DSS_RFBI_PARALLELMODE_12 = 2,
-+	OMAP_DSS_RFBI_PARALLELMODE_16 = 3,
-+};
-+
-+enum update_cmd {
-+	RFBI_CMD_UPDATE = 0,
-+	RFBI_CMD_SYNC   = 1,
-+};
-+
-+static int rfbi_convert_timings(struct rfbi_timings *t);
-+static void rfbi_get_clk_info(u32 *clk_period, u32 *max_clk_div);
-+static void process_cmd_fifo(void);
-+
-+static struct {
-+	void __iomem	*base;
-+
-+	unsigned long	l4_khz;
-+
-+	enum omap_rfbi_datatype datatype;
-+	enum omap_rfbi_parallelmode parallelmode;
-+
-+	enum omap_rfbi_te_mode te_mode;
-+	int te_enabled;
-+
-+	void (*framedone_callback)(void *data);
-+	void *framedone_callback_data;
-+
-+	struct omap_display *display[2];
-+
-+	struct kfifo      *cmd_fifo;
-+	spinlock_t        cmd_lock;
-+	struct completion cmd_done;
-+	atomic_t          cmd_fifo_full;
-+	atomic_t          cmd_pending;
-+#ifdef MEASURE_PERF
-+	unsigned perf_bytes;
-+	ktime_t perf_setup_time;
-+	ktime_t perf_start_time;
-+#endif
-+} rfbi;
-+
-+struct update_region {
-+	u16	x;
-+	u16     y;
-+	u16     w;
-+	u16     h;
-+};
-+
-+struct update_param {
-+	u8 rfbi_module;
-+	u8 cmd;
-+
-+	union {
-+		struct update_region r;
-+		struct completion *sync;
-+	} par;
-+};
-+
-+static inline void rfbi_write_reg(const struct rfbi_reg idx, u32 val)
-+{
-+	__raw_writel(val, rfbi.base + idx.idx);
-+}
-+
-+static inline u32 rfbi_read_reg(const struct rfbi_reg idx)
-+{
-+	return __raw_readl(rfbi.base + idx.idx);
-+}
-+
-+static void rfbi_enable_clocks(int enable)
-+{
-+	if (enable)
-+		dss_clk_enable(DSS_CLK_ICK | DSS_CLK_FCK1);
-+	else
-+		dss_clk_disable(DSS_CLK_ICK | DSS_CLK_FCK1);
-+}
-+
-+void omap_rfbi_write_command(const void *buf, u32 len)
-+{
-+	rfbi_enable_clocks(1);
-+	switch (rfbi.parallelmode) {
-+	case OMAP_DSS_RFBI_PARALLELMODE_8:
-+	{
-+		const u8 *b = buf;
-+		for (; len; len--)
-+			rfbi_write_reg(RFBI_CMD, *b++);
-+		break;
-+	}
-+
-+	case OMAP_DSS_RFBI_PARALLELMODE_16:
-+	{
-+		const u16 *w = buf;
-+		BUG_ON(len & 1);
-+		for (; len; len -= 2)
-+			rfbi_write_reg(RFBI_CMD, *w++);
-+		break;
-+	}
-+
-+	case OMAP_DSS_RFBI_PARALLELMODE_9:
-+	case OMAP_DSS_RFBI_PARALLELMODE_12:
-+	default:
-+		BUG();
-+	}
-+	rfbi_enable_clocks(0);
-+}
-+EXPORT_SYMBOL(omap_rfbi_write_command);
-+
-+void omap_rfbi_read_data(void *buf, u32 len)
-+{
-+	rfbi_enable_clocks(1);
-+	switch (rfbi.parallelmode) {
-+	case OMAP_DSS_RFBI_PARALLELMODE_8:
-+	{
-+		u8 *b = buf;
-+		for (; len; len--) {
-+			rfbi_write_reg(RFBI_READ, 0);
-+			*b++ = rfbi_read_reg(RFBI_READ);
-+		}
-+		break;
-+	}
-+
-+	case OMAP_DSS_RFBI_PARALLELMODE_16:
-+	{
-+		u16 *w = buf;
-+		BUG_ON(len & ~1);
-+		for (; len; len -= 2) {
-+			rfbi_write_reg(RFBI_READ, 0);
-+			*w++ = rfbi_read_reg(RFBI_READ);
-+		}
-+		break;
-+	}
-+
-+	case OMAP_DSS_RFBI_PARALLELMODE_9:
-+	case OMAP_DSS_RFBI_PARALLELMODE_12:
-+	default:
-+		BUG();
-+	}
-+	rfbi_enable_clocks(0);
-+}
-+EXPORT_SYMBOL(omap_rfbi_read_data);
-+
-+void omap_rfbi_write_data(const void *buf, u32 len)
-+{
-+	rfbi_enable_clocks(1);
-+	switch (rfbi.parallelmode) {
-+	case OMAP_DSS_RFBI_PARALLELMODE_8:
-+	{
-+		const u8 *b = buf;
-+		for (; len; len--)
-+			rfbi_write_reg(RFBI_PARAM, *b++);
-+		break;
-+	}
-+
-+	case OMAP_DSS_RFBI_PARALLELMODE_16:
-+	{
-+		const u16 *w = buf;
-+		BUG_ON(len & 1);
-+		for (; len; len -= 2)
-+			rfbi_write_reg(RFBI_PARAM, *w++);
-+		break;
-+	}
-+
-+	case OMAP_DSS_RFBI_PARALLELMODE_9:
-+	case OMAP_DSS_RFBI_PARALLELMODE_12:
-+	default:
-+		BUG();
-+
-+	}
-+	rfbi_enable_clocks(0);
-+}
-+EXPORT_SYMBOL(omap_rfbi_write_data);
-+
-+void omap_rfbi_write_pixels(const void *buf, int scr_width, int x, int y,
-+			    int w, int h)
-+{
-+	int start_offset = scr_width * y + x;
-+	int horiz_offset = scr_width - w;
-+	int i;
-+
-+	rfbi_enable_clocks(1);
-+
-+	if (rfbi.datatype == OMAP_DSS_RFBI_DATATYPE_16 &&
-+	   rfbi.parallelmode == OMAP_DSS_RFBI_PARALLELMODE_8) {
-+		const u16 *pd = buf;
-+		pd += start_offset;
-+
-+		for (; h; --h) {
-+			for (i = 0; i < w; ++i) {
-+				const u8 *b = (const u8 *)pd;
-+				rfbi_write_reg(RFBI_PARAM, *(b+1));
-+				rfbi_write_reg(RFBI_PARAM, *(b+0));
-+				++pd;
-+			}
-+			pd += horiz_offset;
-+		}
-+	} else if (rfbi.datatype == OMAP_DSS_RFBI_DATATYPE_24 &&
-+	   rfbi.parallelmode == OMAP_DSS_RFBI_PARALLELMODE_8) {
-+		const u32 *pd = buf;
-+		pd += start_offset;
-+
-+		for (; h; --h) {
-+			for (i = 0; i < w; ++i) {
-+				const u8 *b = (const u8 *)pd;
-+				rfbi_write_reg(RFBI_PARAM, *(b+2));
-+				rfbi_write_reg(RFBI_PARAM, *(b+1));
-+				rfbi_write_reg(RFBI_PARAM, *(b+0));
-+				++pd;
-+			}
-+			pd += horiz_offset;
-+		}
-+	} else if (rfbi.datatype == OMAP_DSS_RFBI_DATATYPE_16 &&
-+	   rfbi.parallelmode == OMAP_DSS_RFBI_PARALLELMODE_16) {
-+		const u16 *pd = buf;
-+		pd += start_offset;
-+
-+		for (; h; --h) {
-+			for (i = 0; i < w; ++i) {
-+				rfbi_write_reg(RFBI_PARAM, *pd);
-+				++pd;
-+			}
-+			pd += horiz_offset;
-+		}
-+	} else {
-+		BUG();
-+	}
-+
-+	rfbi_enable_clocks(0);
-+}
-+EXPORT_SYMBOL(omap_rfbi_write_pixels);
-+
-+#ifdef MEASURE_PERF
-+static void perf_mark_setup(void)
-+{
-+	rfbi.perf_setup_time = ktime_get();
-+}
-+
-+static void perf_mark_start(void)
-+{
-+	rfbi.perf_start_time = ktime_get();
-+}
-+
-+static void perf_show(const char *name)
-+{
-+	ktime_t t, setup_time, trans_time;
-+	u32 total_bytes;
-+	u32 setup_us, trans_us, total_us;
-+
-+	t = ktime_get();
-+
-+	setup_time = ktime_sub(rfbi.perf_start_time, rfbi.perf_setup_time);
-+	setup_us = (u32)ktime_to_us(setup_time);
-+	if (setup_us == 0)
-+		setup_us = 1;
-+
-+	trans_time = ktime_sub(t, rfbi.perf_start_time);
-+	trans_us = (u32)ktime_to_us(trans_time);
-+	if (trans_us == 0)
-+		trans_us = 1;
-+
-+	total_us = setup_us + trans_us;
-+
-+	total_bytes = rfbi.perf_bytes;
-+
-+	DSSINFO("%s update %u us + %u us = %u us (%uHz), %u bytes, "
-+			"%u kbytes/sec\n",
-+			name,
-+			setup_us,
-+			trans_us,
-+			total_us,
-+			1000*1000 / total_us,
-+			total_bytes,
-+			total_bytes * 1000 / total_us);
-+}
-+#else
-+#define perf_mark_setup()
-+#define perf_mark_start()
-+#define perf_show(x)
-+#endif
-+
-+void rfbi_transfer_area(int width, int height,
-+			     void (callback)(void *data), void *data)
-+{
-+	u32 l;
-+
-+	/*BUG_ON(callback == 0);*/
-+	BUG_ON(rfbi.framedone_callback != NULL);
-+
-+	DSSDBG("rfbi_transfer_area %dx%d\n", width, height);
-+
-+	dispc_set_lcd_size(width, height);
-+
-+	dispc_enable_lcd_out(1);
-+
-+	rfbi.framedone_callback = callback;
-+	rfbi.framedone_callback_data = data;
-+
-+	rfbi_enable_clocks(1);
-+
-+	rfbi_write_reg(RFBI_PIXEL_CNT, width * height);
-+
-+	l = rfbi_read_reg(RFBI_CONTROL);
-+	l = FLD_MOD(l, 1, 0, 0); /* enable */
-+	if (!rfbi.te_enabled)
-+		l = FLD_MOD(l, 1, 4, 4); /* ITE */
-+
-+	perf_mark_start();
-+
-+	rfbi_write_reg(RFBI_CONTROL, l);
-+}
-+
-+static void framedone_callback(void *data, u32 mask)
-+{
-+	void (*callback)(void *data);
-+
-+	DSSDBG("FRAMEDONE\n");
-+
-+	perf_show("DISPC");
-+
-+	REG_FLD_MOD(RFBI_CONTROL, 0, 0, 0);
-+
-+	rfbi_enable_clocks(0);
-+
-+	callback = rfbi.framedone_callback;
-+	rfbi.framedone_callback = NULL;
-+
-+	/*callback(rfbi.framedone_callback_data);*/
-+
-+	atomic_set(&rfbi.cmd_pending, 0);
-+
-+	process_cmd_fifo();
-+}
-+
-+#if 1 /* VERBOSE */
-+static void rfbi_print_timings(void)
-+{
-+	u32 l;
-+	u32 time;
-+
-+	l = rfbi_read_reg(RFBI_CONFIG(0));
-+	time = 1000000000 / rfbi.l4_khz;
-+	if (l & (1 << 4))
-+		time *= 2;
-+
-+	DSSDBG("Tick time %u ps\n", time);
-+	l = rfbi_read_reg(RFBI_ONOFF_TIME(0));
-+	DSSDBG("CSONTIME %d, CSOFFTIME %d, WEONTIME %d, WEOFFTIME %d, "
-+		"REONTIME %d, REOFFTIME %d\n",
-+		l & 0x0f, (l >> 4) & 0x3f, (l >> 10) & 0x0f, (l >> 14) & 0x3f,
-+		(l >> 20) & 0x0f, (l >> 24) & 0x3f);
-+
-+	l = rfbi_read_reg(RFBI_CYCLE_TIME(0));
-+	DSSDBG("WECYCLETIME %d, RECYCLETIME %d, CSPULSEWIDTH %d, "
-+		"ACCESSTIME %d\n",
-+		(l & 0x3f), (l >> 6) & 0x3f, (l >> 12) & 0x3f,
-+		(l >> 22) & 0x3f);
-+}
-+#else
-+static void rfbi_print_timings(void) {}
-+#endif
-+
-+
-+
-+
-+static u32 extif_clk_period;
-+
-+static inline unsigned long round_to_extif_ticks(unsigned long ps, int div)
-+{
-+	int bus_tick = extif_clk_period * div;
-+	return (ps + bus_tick - 1) / bus_tick * bus_tick;
-+}
-+
-+static int calc_reg_timing(struct rfbi_timings *t, int div)
-+{
-+	t->clk_div = div;
-+
-+	t->cs_on_time = round_to_extif_ticks(t->cs_on_time, div);
-+
-+	t->we_on_time = round_to_extif_ticks(t->we_on_time, div);
-+	t->we_off_time = round_to_extif_ticks(t->we_off_time, div);
-+	t->we_cycle_time = round_to_extif_ticks(t->we_cycle_time, div);
-+
-+	t->re_on_time = round_to_extif_ticks(t->re_on_time, div);
-+	t->re_off_time = round_to_extif_ticks(t->re_off_time, div);
-+	t->re_cycle_time = round_to_extif_ticks(t->re_cycle_time, div);
-+
-+	t->access_time = round_to_extif_ticks(t->access_time, div);
-+	t->cs_off_time = round_to_extif_ticks(t->cs_off_time, div);
-+	t->cs_pulse_width = round_to_extif_ticks(t->cs_pulse_width, div);
-+
-+	DSSDBG("[reg]cson %d csoff %d reon %d reoff %d\n",
-+	       t->cs_on_time, t->cs_off_time, t->re_on_time, t->re_off_time);
-+	DSSDBG("[reg]weon %d weoff %d recyc %d wecyc %d\n",
-+	       t->we_on_time, t->we_off_time, t->re_cycle_time,
-+	       t->we_cycle_time);
-+	DSSDBG("[reg]rdaccess %d cspulse %d\n",
-+	       t->access_time, t->cs_pulse_width);
-+
-+	return rfbi_convert_timings(t);
-+}
-+
-+static int calc_extif_timings(struct rfbi_timings *t)
-+{
-+	u32 max_clk_div;
-+	int div;
-+
-+	rfbi_get_clk_info(&extif_clk_period, &max_clk_div);
-+	for (div = 1; div <= max_clk_div; div++) {
-+		if (calc_reg_timing(t, div) == 0)
-+			break;
-+	}
-+
-+	if (div <= max_clk_div)
-+		return 0;
-+
-+	DSSERR("can't setup timings\n");
-+	return -1;
-+}
-+
-+
-+void rfbi_set_timings(int rfbi_module, struct rfbi_timings *t)
-+{
-+	int r;
-+
-+	if (!t->converted) {
-+		r = calc_extif_timings(t);
-+		if (r < 0)
-+			DSSERR("Failed to calc timings\n");
-+	}
-+
-+	BUG_ON(!t->converted);
-+
-+	rfbi_enable_clocks(1);
-+	rfbi_write_reg(RFBI_ONOFF_TIME(rfbi_module), t->tim[0]);
-+	rfbi_write_reg(RFBI_CYCLE_TIME(rfbi_module), t->tim[1]);
-+
-+	/* TIMEGRANULARITY */
-+	REG_FLD_MOD(RFBI_CONFIG(rfbi_module),
-+		    (t->tim[2] ? 1 : 0), 4, 4);
-+
-+	rfbi_print_timings();
-+	rfbi_enable_clocks(0);
-+}
-+
-+static int ps_to_rfbi_ticks(int time, int div)
-+{
-+	unsigned long tick_ps;
-+	int ret;
-+
-+	/* Calculate in picosecs to yield more exact results */
-+	tick_ps = 1000000000 / (rfbi.l4_khz) * div;
-+
-+	ret = (time + tick_ps - 1) / tick_ps;
-+
-+	return ret;
-+}
-+
-+#ifdef OMAP_RFBI_RATE_LIMIT
-+unsigned long rfbi_get_max_tx_rate(void)
-+{
-+	unsigned long   l4_rate, dss1_rate;
-+	int             min_l4_ticks = 0;
-+	int             i;
-+
-+	/* According to TI this can't be calculated so make the
-+	 * adjustments for a couple of known frequencies and warn for
-+	 * others.
-+	 */
-+	static const struct {
-+		unsigned long l4_clk;           /* HZ */
-+		unsigned long dss1_clk;         /* HZ */
-+		unsigned long min_l4_ticks;
-+	} ftab[] = {
-+		{ 55,   132,    7, },           /* 7.86 MPix/s */
-+		{ 110,  110,    12, },          /* 9.16 MPix/s */
-+		{ 110,  132,    10, },          /* 11   Mpix/s */
-+		{ 120,  120,    10, },          /* 12   Mpix/s */
-+		{ 133,  133,    10, },          /* 13.3 Mpix/s */
-+	};
-+
-+	l4_rate = rfbi.l4_khz / 1000;
-+	dss1_rate = dss_clk_get_rate(DSS_CLK_FCK1) / 1000000;
-+
-+	for (i = 0; i < ARRAY_SIZE(ftab); i++) {
-+		/* Use a window instead of an exact match, to account
-+		 * for different DPLL multiplier / divider pairs.
-+		 */
-+		if (abs(ftab[i].l4_clk - l4_rate) < 3 &&
-+		    abs(ftab[i].dss1_clk - dss1_rate) < 3) {
-+			min_l4_ticks = ftab[i].min_l4_ticks;
-+			break;
-+		}
-+	}
-+	if (i == ARRAY_SIZE(ftab)) {
-+		/* Can't be sure, return anyway the maximum not
-+		 * rate-limited. This might cause a problem only for the
-+		 * tearing synchronisation.
-+		 */
-+		DSSERR("can't determine maximum RFBI transfer rate\n");
-+		return rfbi.l4_khz * 1000;
-+	}
-+	return rfbi.l4_khz * 1000 / min_l4_ticks;
-+}
-+#else
-+int rfbi_get_max_tx_rate(void)
-+{
-+	return rfbi.l4_khz * 1000;
-+}
-+#endif
-+
-+static void rfbi_get_clk_info(u32 *clk_period, u32 *max_clk_div)
-+{
-+	*clk_period = 1000000000 / rfbi.l4_khz;
-+	*max_clk_div = 2;
-+}
-+
-+static int rfbi_convert_timings(struct rfbi_timings *t)
-+{
-+	u32 l;
-+	int reon, reoff, weon, weoff, cson, csoff, cs_pulse;
-+	int actim, recyc, wecyc;
-+	int div = t->clk_div;
-+
-+	if (div <= 0 || div > 2)
-+		return -1;
-+
-+	/* Make sure that after conversion it still holds that:
-+	 * weoff > weon, reoff > reon, recyc >= reoff, wecyc >= weoff,
-+	 * csoff > cson, csoff >= max(weoff, reoff), actim > reon
-+	 */
-+	weon = ps_to_rfbi_ticks(t->we_on_time, div);
-+	weoff = ps_to_rfbi_ticks(t->we_off_time, div);
-+	if (weoff <= weon)
-+		weoff = weon + 1;
-+	if (weon > 0x0f)
-+		return -1;
-+	if (weoff > 0x3f)
-+		return -1;
-+
-+	reon = ps_to_rfbi_ticks(t->re_on_time, div);
-+	reoff = ps_to_rfbi_ticks(t->re_off_time, div);
-+	if (reoff <= reon)
-+		reoff = reon + 1;
-+	if (reon > 0x0f)
-+		return -1;
-+	if (reoff > 0x3f)
-+		return -1;
-+
-+	cson = ps_to_rfbi_ticks(t->cs_on_time, div);
-+	csoff = ps_to_rfbi_ticks(t->cs_off_time, div);
-+	if (csoff <= cson)
-+		csoff = cson + 1;
-+	if (csoff < max(weoff, reoff))
-+		csoff = max(weoff, reoff);
-+	if (cson > 0x0f)
-+		return -1;
-+	if (csoff > 0x3f)
-+		return -1;
-+
-+	l =  cson;
-+	l |= csoff << 4;
-+	l |= weon  << 10;
-+	l |= weoff << 14;
-+	l |= reon  << 20;
-+	l |= reoff << 24;
-+
-+	t->tim[0] = l;
-+
-+	actim = ps_to_rfbi_ticks(t->access_time, div);
-+	if (actim <= reon)
-+		actim = reon + 1;
-+	if (actim > 0x3f)
-+		return -1;
-+
-+	wecyc = ps_to_rfbi_ticks(t->we_cycle_time, div);
-+	if (wecyc < weoff)
-+		wecyc = weoff;
-+	if (wecyc > 0x3f)
-+		return -1;
-+
-+	recyc = ps_to_rfbi_ticks(t->re_cycle_time, div);
-+	if (recyc < reoff)
-+		recyc = reoff;
-+	if (recyc > 0x3f)
-+		return -1;
-+
-+	cs_pulse = ps_to_rfbi_ticks(t->cs_pulse_width, div);
-+	if (cs_pulse > 0x3f)
-+		return -1;
-+
-+	l =  wecyc;
-+	l |= recyc    << 6;
-+	l |= cs_pulse << 12;
-+	l |= actim    << 22;
-+
-+	t->tim[1] = l;
-+
-+	t->tim[2] = div - 1;
-+
-+	t->converted = 1;
-+
-+	return 0;
-+}
-+
-+/* xxx FIX module selection missing */
-+int omap_rfbi_setup_te(enum omap_rfbi_te_mode mode,
-+			     unsigned hs_pulse_time, unsigned vs_pulse_time,
-+			     int hs_pol_inv, int vs_pol_inv, int extif_div)
-+{
-+	int hs, vs;
-+	int min;
-+	u32 l;
-+
-+	hs = ps_to_rfbi_ticks(hs_pulse_time, 1);
-+	vs = ps_to_rfbi_ticks(vs_pulse_time, 1);
-+	if (hs < 2)
-+		return -EDOM;
-+	if (mode == OMAP_DSS_RFBI_TE_MODE_2)
-+		min = 2;
-+	else /* OMAP_DSS_RFBI_TE_MODE_1 */
-+		min = 4;
-+	if (vs < min)
-+		return -EDOM;
-+	if (vs == hs)
-+		return -EINVAL;
-+	rfbi.te_mode = mode;
-+	DSSDBG("setup_te: mode %d hs %d vs %d hs_inv %d vs_inv %d\n",
-+		mode, hs, vs, hs_pol_inv, vs_pol_inv);
-+
-+	rfbi_enable_clocks(1);
-+	rfbi_write_reg(RFBI_HSYNC_WIDTH, hs);
-+	rfbi_write_reg(RFBI_VSYNC_WIDTH, vs);
-+
-+	l = rfbi_read_reg(RFBI_CONFIG(0));
-+	if (hs_pol_inv)
-+		l &= ~(1 << 21);
-+	else
-+		l |= 1 << 21;
-+	if (vs_pol_inv)
-+		l &= ~(1 << 20);
-+	else
-+		l |= 1 << 20;
-+	rfbi_enable_clocks(0);
-+
-+	return 0;
-+}
-+EXPORT_SYMBOL(omap_rfbi_setup_te);
-+
-+/* xxx FIX module selection missing */
-+int omap_rfbi_enable_te(int enable, unsigned line)
-+{
-+	u32 l;
-+
-+	DSSDBG("te %d line %d mode %d\n", enable, line, rfbi.te_mode);
-+	if (line > (1 << 11) - 1)
-+		return -EINVAL;
-+
-+	rfbi_enable_clocks(1);
-+	l = rfbi_read_reg(RFBI_CONFIG(0));
-+	l &= ~(0x3 << 2);
-+	if (enable) {
-+		rfbi.te_enabled = 1;
-+		l |= rfbi.te_mode << 2;
-+	} else
-+		rfbi.te_enabled = 0;
-+	rfbi_write_reg(RFBI_CONFIG(0), l);
-+	rfbi_write_reg(RFBI_LINE_NUMBER, line);
-+	rfbi_enable_clocks(0);
-+
-+	return 0;
-+}
-+EXPORT_SYMBOL(omap_rfbi_enable_te);
-+
+ 
+ #include <asm/io.h>
+ #include <asm/delay.h>
+@@ -238,14 +239,214 @@ static struct spi_board_info sdp3430_spi_board_info[] __initdata = {
+ 	},
+ };
+ 
+-static struct platform_device sdp3430_lcd_device = {
+-	.name		= "sdp2430_lcd",
+-	.id		= -1,
++
++#define SDP2430_LCD_PANEL_BACKLIGHT_GPIO	91
++#define SDP2430_LCD_PANEL_ENABLE_GPIO		154
 +#if 0
-+static void rfbi_enable_config(int enable1, int enable2)
-+{
-+	u32 l;
-+	int cs = 0;
-+
-+	if (enable1)
-+		cs |= 1<<0;
-+	if (enable2)
-+		cs |= 1<<1;
-+
-+	rfbi_enable_clocks(1);
-+
-+	l = rfbi_read_reg(RFBI_CONTROL);
-+
-+	l = FLD_MOD(l, cs, 3, 2);
-+	l = FLD_MOD(l, 0, 1, 1);
-+
-+	rfbi_write_reg(RFBI_CONTROL, l);
-+
-+
-+	l = rfbi_read_reg(RFBI_CONFIG(0));
-+	l = FLD_MOD(l, 0, 3, 2); /* TRIGGERMODE: ITE */
-+	/*l |= FLD_VAL(2, 8, 7); */ /* L4FORMAT, 2pix/L4 */
-+	/*l |= FLD_VAL(0, 8, 7); */ /* L4FORMAT, 1pix/L4 */
-+
-+	l = FLD_MOD(l, 0, 16, 16); /* A0POLARITY */
-+	l = FLD_MOD(l, 1, 20, 20); /* TE_VSYNC_POLARITY */
-+	l = FLD_MOD(l, 1, 21, 21); /* HSYNCPOLARITY */
-+
-+	l = FLD_MOD(l, OMAP_DSS_RFBI_PARALLELMODE_8, 1, 0);
-+	rfbi_write_reg(RFBI_CONFIG(0), l);
-+
-+	rfbi_enable_clocks(0);
-+}
++#define SDP3430_LCD_PANEL_BACKLIGHT_GPIO	24
++#define SDP3430_LCD_PANEL_ENABLE_GPIO		28
++#else
++#define SDP3430_LCD_PANEL_BACKLIGHT_GPIO	8
++#define SDP3430_LCD_PANEL_ENABLE_GPIO		5
 +#endif
 +
-+int rfbi_configure(int rfbi_module, int bpp, int lines)
-+{
-+	u32 l;
-+	int cycle1 = 0, cycle2 = 0, cycle3 = 0;
-+	enum omap_rfbi_cycleformat cycleformat;
-+	enum omap_rfbi_datatype datatype;
-+	enum omap_rfbi_parallelmode parallelmode;
-+
-+	switch (bpp) {
-+	case 12:
-+		datatype = OMAP_DSS_RFBI_DATATYPE_12;
-+		break;
-+	case 16:
-+		datatype = OMAP_DSS_RFBI_DATATYPE_16;
-+		break;
-+	case 18:
-+		datatype = OMAP_DSS_RFBI_DATATYPE_18;
-+		break;
-+	case 24:
-+		datatype = OMAP_DSS_RFBI_DATATYPE_24;
-+		break;
-+	default:
-+		BUG();
-+		return 1;
-+	}
-+	rfbi.datatype = datatype;
-+
-+	switch (lines) {
-+	case 8:
-+		parallelmode = OMAP_DSS_RFBI_PARALLELMODE_8;
-+		break;
-+	case 9:
-+		parallelmode = OMAP_DSS_RFBI_PARALLELMODE_9;
-+		break;
-+	case 12:
-+		parallelmode = OMAP_DSS_RFBI_PARALLELMODE_12;
-+		break;
-+	case 16:
-+		parallelmode = OMAP_DSS_RFBI_PARALLELMODE_16;
-+		break;
-+	default:
-+		BUG();
-+		return 1;
-+	}
-+	rfbi.parallelmode = parallelmode;
-+
-+	if ((bpp % lines) == 0) {
-+		switch (bpp / lines) {
-+		case 1:
-+			cycleformat = OMAP_DSS_RFBI_CYCLEFORMAT_1_1;
-+			break;
-+		case 2:
-+			cycleformat = OMAP_DSS_RFBI_CYCLEFORMAT_2_1;
-+			break;
-+		case 3:
-+			cycleformat = OMAP_DSS_RFBI_CYCLEFORMAT_3_1;
-+			break;
-+		default:
-+			BUG();
-+			return 1;
-+		}
-+	} else if ((2 * bpp % lines) == 0) {
-+		if ((2 * bpp / lines) == 3)
-+			cycleformat = OMAP_DSS_RFBI_CYCLEFORMAT_3_2;
-+		else {
-+			BUG();
-+			return 1;
-+		}
-+	} else {
-+		BUG();
-+		return 1;
-+	}
-+
-+	switch (cycleformat) {
-+	case OMAP_DSS_RFBI_CYCLEFORMAT_1_1:
-+		cycle1 = lines;
-+		break;
-+
-+	case OMAP_DSS_RFBI_CYCLEFORMAT_2_1:
-+		cycle1 = lines;
-+		cycle2 = lines;
-+		break;
-+
-+	case OMAP_DSS_RFBI_CYCLEFORMAT_3_1:
-+		cycle1 = lines;
-+		cycle2 = lines;
-+		cycle3 = lines;
-+		break;
-+
-+	case OMAP_DSS_RFBI_CYCLEFORMAT_3_2:
-+		cycle1 = lines;
-+		cycle2 = (lines / 2) | ((lines / 2) << 16);
-+		cycle3 = (lines << 16);
-+		break;
-+	}
-+
-+	rfbi_enable_clocks(1);
-+
-+	REG_FLD_MOD(RFBI_CONTROL, 0, 3, 2); /* clear CS */
-+
-+	l = 0;
-+	l |= FLD_VAL(parallelmode, 1, 0);
-+	l |= FLD_VAL(0, 3, 2);		/* TRIGGERMODE: ITE */
-+	l |= FLD_VAL(0, 4, 4);		/* TIMEGRANULARITY */
-+	l |= FLD_VAL(datatype, 6, 5);
-+	/* l |= FLD_VAL(2, 8, 7); */	/* L4FORMAT, 2pix/L4 */
-+	l |= FLD_VAL(0, 8, 7);	/* L4FORMAT, 1pix/L4 */
-+	l |= FLD_VAL(cycleformat, 10, 9);
-+	l |= FLD_VAL(0, 12, 11);	/* UNUSEDBITS */
-+	l |= FLD_VAL(0, 16, 16);	/* A0POLARITY */
-+	l |= FLD_VAL(0, 17, 17);	/* REPOLARITY */
-+	l |= FLD_VAL(0, 18, 18);	/* WEPOLARITY */
-+	l |= FLD_VAL(0, 19, 19);	/* CSPOLARITY */
-+	l |= FLD_VAL(1, 20, 20);	/* TE_VSYNC_POLARITY */
-+	l |= FLD_VAL(1, 21, 21);	/* HSYNCPOLARITY */
-+	rfbi_write_reg(RFBI_CONFIG(rfbi_module), l);
-+
-+	rfbi_write_reg(RFBI_DATA_CYCLE1(rfbi_module), cycle1);
-+	rfbi_write_reg(RFBI_DATA_CYCLE2(rfbi_module), cycle2);
-+	rfbi_write_reg(RFBI_DATA_CYCLE3(rfbi_module), cycle3);
-+
-+
-+	l = rfbi_read_reg(RFBI_CONTROL);
-+	l = FLD_MOD(l, rfbi_module+1, 3, 2); /* Select CSx */
-+	l = FLD_MOD(l, 0, 1, 1); /* clear bypass */
-+	rfbi_write_reg(RFBI_CONTROL, l);
-+
-+
-+	DSSDBG("RFBI config: bpp %d, lines %d, cycles: 0x%x 0x%x 0x%x\n",
-+	       bpp, lines, cycle1, cycle2, cycle3);
-+
-+	rfbi_enable_clocks(0);
-+
-+	return 0;
-+}
-+EXPORT_SYMBOL(rfbi_configure);
-+
-+static int rfbi_find_display(struct omap_display *disp)
-+{
-+	if (disp == rfbi.display[0])
-+		return 0;
-+
-+	if (disp == rfbi.display[1])
-+		return 1;
-+
-+	BUG();
-+	return -1;
-+}
-+
-+
-+static void signal_fifo_waiters(void)
-+{
-+	if (atomic_read(&rfbi.cmd_fifo_full) > 0) {
-+		/* DSSDBG("SIGNALING: Fifo not full for waiter!\n"); */
-+		complete(&rfbi.cmd_done);
-+		atomic_dec(&rfbi.cmd_fifo_full);
-+	}
-+}
-+
-+/* returns 1 for async op, and 0 for sync op */
-+static int do_update(struct omap_display *display, struct update_region *upd)
-+{
-+	int x = upd->x;
-+	int y = upd->y;
-+	int w = upd->w;
-+	int h = upd->h;
-+
-+	perf_mark_setup();
-+
-+	if (display->manager->caps & OMAP_DSS_OVL_MGR_CAP_DISPC) {
-+		/*display->ctrl->enable_te(display, 1); */
-+		dispc_setup_partial_planes(display, &x, &y, &w, &h);
-+	}
-+
-+#ifdef MEASURE_PERF
-+	rfbi.perf_bytes = w * h * 2; /* XXX always 16bit */
-+#endif
-+
-+	display->ctrl->setup_update(display, x, y, w, h);
-+
-+	if (display->manager->caps & OMAP_DSS_OVL_MGR_CAP_DISPC) {
-+		rfbi_transfer_area(w, h, NULL, NULL);
-+		return 1;
-+	} else {
-+		struct omap_overlay *ovl;
-+		void *addr;
-+		int scr_width;
-+
-+		ovl = &display->manager->overlays[0];
-+		scr_width = ovl->info.screen_width;
-+		addr = ovl->info.vaddr;
-+
-+		omap_rfbi_write_pixels(addr, scr_width, x, y, w, h);
-+
-+		perf_show("L4");
-+
-+		return 0;
-+	}
-+}
-+
-+static void process_cmd_fifo(void)
-+{
-+	int len;
-+	struct update_param p;
-+	struct omap_display *display;
-+	unsigned long flags;
-+
-+	if (atomic_inc_return(&rfbi.cmd_pending) != 1)
-+		return;
-+
-+	while (true) {
-+		spin_lock_irqsave(rfbi.cmd_fifo->lock, flags);
-+
-+		len = __kfifo_get(rfbi.cmd_fifo, (unsigned char *)&p,
-+				  sizeof(struct update_param));
-+		if (len == 0) {
-+			DSSDBG("nothing more in fifo\n");
-+			atomic_set(&rfbi.cmd_pending, 0);
-+			spin_unlock_irqrestore(rfbi.cmd_fifo->lock, flags);
-+			break;
-+		}
-+
-+		/* DSSDBG("fifo full %d\n", rfbi.cmd_fifo_full.counter);*/
-+
-+		spin_unlock_irqrestore(rfbi.cmd_fifo->lock, flags);
-+
-+		BUG_ON(len != sizeof(struct update_param));
-+		BUG_ON(p.rfbi_module > 1);
-+
-+		display = rfbi.display[p.rfbi_module];
-+
-+		if (p.cmd == RFBI_CMD_UPDATE) {
-+			if (do_update(display, &p.par.r))
-+				break; /* async op */
-+		} else if (p.cmd == RFBI_CMD_SYNC) {
-+			DSSDBG("Signaling SYNC done!\n");
-+			complete(p.par.sync);
-+		} else
-+			BUG();
-+	}
-+
-+	signal_fifo_waiters();
-+}
-+
-+static void rfbi_push_cmd(struct update_param *p)
-+{
-+	int ret;
-+
-+	while (1) {
-+		unsigned long flags;
-+		int available;
-+
-+		spin_lock_irqsave(rfbi.cmd_fifo->lock, flags);
-+		available = RFBI_CMD_FIFO_LEN_BYTES -
-+			__kfifo_len(rfbi.cmd_fifo);
-+
-+/*		DSSDBG("%d bytes left in fifo\n", available); */
-+		if (available < sizeof(struct update_param)) {
-+			DSSDBG("Going to wait because FIFO FULL..\n");
-+			spin_unlock_irqrestore(rfbi.cmd_fifo->lock, flags);
-+			atomic_inc(&rfbi.cmd_fifo_full);
-+			wait_for_completion(&rfbi.cmd_done);
-+			/*DSSDBG("Woke up because fifo not full anymore\n");*/
-+			continue;
-+		}
-+
-+		ret = __kfifo_put(rfbi.cmd_fifo, (unsigned char *)p,
-+				  sizeof(struct update_param));
-+/*		DSSDBG("pushed %d bytes\n", ret);*/
-+
-+		spin_unlock_irqrestore(rfbi.cmd_fifo->lock, flags);
-+
-+		BUG_ON(ret != sizeof(struct update_param));
-+
-+		break;
-+	}
-+}
-+
-+static void rfbi_push_update(int rfbi_module, int x, int y, int w, int h)
-+{
-+	struct update_param p;
-+
-+	p.rfbi_module = rfbi_module;
-+	p.cmd = RFBI_CMD_UPDATE;
-+
-+	p.par.r.x = x;
-+	p.par.r.y = y;
-+	p.par.r.w = w;
-+	p.par.r.h = h;
-+
-+	DSSDBG("RFBI pushed %d,%d %dx%d\n", x, y, w, h);
-+
-+	rfbi_push_cmd(&p);
-+
-+	process_cmd_fifo();
-+}
-+
-+static void rfbi_push_sync(int rfbi_module, struct completion *sync_comp)
-+{
-+	struct update_param p;
-+
-+	p.rfbi_module = rfbi_module;
-+	p.cmd = RFBI_CMD_SYNC;
-+	p.par.sync = sync_comp;
-+
-+	rfbi_push_cmd(&p);
-+
-+	DSSDBG("RFBI sync pushed to cmd fifo\n");
-+
-+	process_cmd_fifo();
-+}
-+
-+int rfbi_init(void)
-+{
-+	u32 rev;
-+	u32 l;
-+
-+	spin_lock_init(&rfbi.cmd_lock);
-+	rfbi.cmd_fifo = kfifo_alloc(RFBI_CMD_FIFO_LEN_BYTES, GFP_KERNEL,
-+				    &rfbi.cmd_lock);
-+	if (IS_ERR(rfbi.cmd_fifo))
-+		return -ENOMEM;
-+
-+	init_completion(&rfbi.cmd_done);
-+	atomic_set(&rfbi.cmd_fifo_full, 0);
-+	atomic_set(&rfbi.cmd_pending, 0);
-+
-+	rfbi.base = ioremap(RFBI_BASE, SZ_256);
-+	if (!rfbi.base) {
-+		DSSERR("can't ioremap RFBI\n");
-+		return -ENOMEM;
-+	}
-+
-+	rfbi_enable_clocks(1);
-+
-+	msleep(10);
-+
-+	rfbi.l4_khz = dss_clk_get_rate(DSS_CLK_ICK) / 1000;
-+
-+	/* Enable autoidle and smart-idle */
-+	l = rfbi_read_reg(RFBI_SYSCONFIG);
-+	l |= (1 << 0) | (2 << 3);
-+	rfbi_write_reg(RFBI_SYSCONFIG, l);
-+
-+	rev = rfbi_read_reg(RFBI_REVISION);
-+	printk(KERN_INFO "OMAP RFBI rev %d.%d\n",
-+	       FLD_GET(rev, 7, 4), FLD_GET(rev, 3, 0));
-+
-+	rfbi_enable_clocks(0);
-+
-+	return 0;
-+}
-+
-+void rfbi_exit(void)
-+{
-+	DSSDBG("rfbi_exit\n");
-+
-+	kfifo_free(rfbi.cmd_fifo);
-+
-+	iounmap(rfbi.base);
-+}
-+
-+/* struct omap_display support */
-+static int rfbi_display_update(struct omap_display *display,
-+			int x, int y, int w, int h)
-+{
-+	int rfbi_module;
-+
-+	if (w == 0 || h == 0)
-+		return 0;
-+
-+	rfbi_module = rfbi_find_display(display);
-+
-+	rfbi_push_update(rfbi_module, x, y, w, h);
-+
-+	return 0;
-+}
-+
-+static int rfbi_display_sync(struct omap_display *display)
-+{
-+	struct completion sync_comp;
-+	int rfbi_module;
-+
-+	rfbi_module = rfbi_find_display(display);
-+
-+	init_completion(&sync_comp);
-+	rfbi_push_sync(rfbi_module, &sync_comp);
-+	DSSDBG("Waiting for SYNC to happen...\n");
-+	wait_for_completion(&sync_comp);
-+	DSSDBG("Released from SYNC\n");
-+	return 0;
-+}
-+
-+static int rfbi_display_enable_te(struct omap_display *display, int enable)
-+{
-+	display->ctrl->enable_te(display, enable);
-+	return 0;
-+}
-+
-+static int rfbi_display_enable(struct omap_display *display)
++#define PM_RECEIVER             TWL4030_MODULE_PM_RECEIVER
++#define ENABLE_VAUX2_DEDICATED  0x09
++#define ENABLE_VAUX2_DEV_GRP    0x20
++#define ENABLE_VAUX3_DEDICATED	0x03
++#define ENABLE_VAUX3_DEV_GRP	0x20
++
++#define ENABLE_VPLL2_DEDICATED	0x05
++#define ENABLE_VPLL2_DEV_GRP	0xE0
++#define TWL4030_VPLL2_DEV_GRP	0x33
++#define TWL4030_VPLL2_DEDICATED	0x36
++
++#define t2_out(c, r, v) twl4030_i2c_write_u8(c, r, v)
++
++static unsigned backlight_gpio;
++static unsigned enable_gpio;
++static int lcd_enabled;
++static int dvi_enabled;
++
++static void __init sdp3430_display_init(void)
 +{
 +	int r;
 +
-+	BUG_ON(display->panel == NULL || display->ctrl == NULL);
++	enable_gpio    = SDP3430_LCD_PANEL_ENABLE_GPIO;
++	backlight_gpio = SDP3430_LCD_PANEL_BACKLIGHT_GPIO;
 +
-+	r = omap_dispc_register_isr(framedone_callback, NULL,
-+			DISPC_IRQ_FRAMEDONE);
++	r = gpio_request(enable_gpio, "LCD reset");
 +	if (r) {
-+		DSSERR("can't get FRAMEDONE irq\n");
-+		return r;
++		printk(KERN_ERR "failed to get LCD reset GPIO\n");
++		goto err0;
 +	}
 +
-+	dispc_set_lcd_display_type(OMAP_DSS_LCD_DISPLAY_TFT);
-+
-+	dispc_set_parallel_interface_mode(OMAP_DSS_PARALLELMODE_RFBI);
-+
-+	dispc_set_tft_data_lines(display->ctrl->pixel_size);
-+
-+	rfbi_configure(display->hw_config.u.rfbi.channel,
-+			       display->ctrl->pixel_size,
-+			       display->hw_config.u.rfbi.data_lines);
-+
-+	rfbi_set_timings(display->hw_config.u.rfbi.channel,
-+			 &display->ctrl->timings);
-+
-+
-+	if (display->ctrl && display->ctrl->enable) {
-+		r = display->ctrl->enable(display);
-+		if (r)
-+			goto err;
++	r = gpio_request(backlight_gpio, "LCD Backlight");
++	if (r) {
++		printk(KERN_ERR "failed to get LCD backlight GPIO\n");
++		goto err1;
 +	}
 +
-+	if (display->panel && display->panel->enable) {
-+		r = display->panel->enable(display);
-+		if (r)
-+			goto err;
++	gpio_direction_output(enable_gpio, 0);
++	gpio_direction_output(backlight_gpio, 0);
++
++	return;
++err1:
++	gpio_free(enable_gpio);
++err0:
++	return;
++}
++
++
++static int sdp3430_panel_enable_lcd(struct omap_display *display)
++{
++	u8 ded_val, ded_reg;
++	u8 grp_val, grp_reg;
++
++	if (dvi_enabled) {
++		printk(KERN_ERR "cannot enable LCD, DVI is enabled\n");
++		return -EINVAL;
 +	}
++
++	if (omap_rev() > OMAP3430_REV_ES1_0) {
++		t2_out(PM_RECEIVER, ENABLE_VPLL2_DEDICATED,
++				TWL4030_VPLL2_DEDICATED);
++		t2_out(PM_RECEIVER, ENABLE_VPLL2_DEV_GRP,
++				TWL4030_VPLL2_DEV_GRP);
++	}
++
++	ded_reg = TWL4030_VAUX3_DEDICATED;
++	ded_val = ENABLE_VAUX3_DEDICATED;
++	grp_reg = TWL4030_VAUX3_DEV_GRP;
++	grp_val = ENABLE_VAUX3_DEV_GRP;
++
++	gpio_direction_output(enable_gpio, 1);
++	gpio_direction_output(backlight_gpio, 1);
++
++	if (0 != t2_out(PM_RECEIVER, ded_val, ded_reg))
++		return -EIO;
++	if (0 != t2_out(PM_RECEIVER, grp_val, grp_reg))
++		return -EIO;
++
++	lcd_enabled = 1;
 +
 +	return 0;
-+err:
-+	return -ENODEV;
 +}
 +
-+static void rfbi_display_disable(struct omap_display *display)
++static void sdp3430_panel_disable_lcd(struct omap_display *display)
 +{
-+	display->ctrl->disable(display);
-+	omap_dispc_unregister_isr(framedone_callback);
++	lcd_enabled = 0;
++
++	gpio_direction_output(enable_gpio, 0);
++	gpio_direction_output(backlight_gpio, 0);
++
++	if (omap_rev() > OMAP3430_REV_ES1_0) {
++		t2_out(PM_RECEIVER, 0x0, TWL4030_VPLL2_DEDICATED);
++		t2_out(PM_RECEIVER, 0x0, TWL4030_VPLL2_DEV_GRP);
++		mdelay(4);
++	}
 +}
 +
-+void rfbi_init_display(struct omap_display *display)
++static struct omap_display_data sdp3430_display_data = {
++	.type = OMAP_DISPLAY_TYPE_DPI,
++	.name = "lcd",
++	.panel_name = "sharp-ls037v7dw01",
++	.u.dpi.data_lines = 16,
++	.panel_enable = sdp3430_panel_enable_lcd,
++	.panel_disable = sdp3430_panel_disable_lcd,
++};
++
++static int sdp3430_panel_enable_dvi(struct omap_display *display)
 +{
-+	display->enable = rfbi_display_enable;
-+	display->disable = rfbi_display_disable;
-+	display->update = rfbi_display_update;
-+	display->sync = rfbi_display_sync;
-+	display->enable_te = rfbi_display_enable_te;
++	if (lcd_enabled) {
++		printk(KERN_ERR "cannot enable DVI, LCD is enabled\n");
++		return -EINVAL;
++	}
 +
-+	rfbi.display[display->hw_config.u.rfbi.channel] = display;
++	if (omap_rev() > OMAP3430_REV_ES1_0) {
++		t2_out(PM_RECEIVER, ENABLE_VPLL2_DEDICATED,
++				TWL4030_VPLL2_DEDICATED);
++		t2_out(PM_RECEIVER, ENABLE_VPLL2_DEV_GRP,
++				TWL4030_VPLL2_DEV_GRP);
++	}
 +
-+	display->caps = OMAP_DSS_DISPLAY_CAP_MANUAL_UPDATE;
++	dvi_enabled = 1;
++
++	return 0;
 +}
++
++static void sdp3430_panel_disable_dvi(struct omap_display *display)
++{
++	dvi_enabled = 0;
++
++	if (omap_rev() > OMAP3430_REV_ES1_0) {
++		t2_out(PM_RECEIVER, 0x0, TWL4030_VPLL2_DEDICATED);
++		t2_out(PM_RECEIVER, 0x0, TWL4030_VPLL2_DEV_GRP);
++		mdelay(4);
++	}
++}
++
++
++static struct omap_display_data sdp3430_display_data_dvi = {
++	.type = OMAP_DISPLAY_TYPE_DPI,
++	.name = "dvi",
++	.panel_name = "panel-generic",
++	.u.dpi.data_lines = 24,
++	.panel_enable = sdp3430_panel_enable_dvi,
++	.panel_disable = sdp3430_panel_disable_dvi,
+ };
+ 
++static int sdp3430_panel_enable_tv(struct omap_display *display)
++{
++#define ENABLE_VDAC_DEDICATED           0x03
++#define ENABLE_VDAC_DEV_GRP             0x20
++
++	twl4030_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER,
++			ENABLE_VDAC_DEDICATED,
++			TWL4030_VDAC_DEDICATED);
++	twl4030_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER,
++			ENABLE_VDAC_DEV_GRP, TWL4030_VDAC_DEV_GRP);
++
++	return 0;
++}
++
++static void sdp3430_panel_disable_tv(struct omap_display *display)
++{
++	twl4030_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER, 0x00,
++			TWL4030_VDAC_DEDICATED);
++	twl4030_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER, 0x00,
++			TWL4030_VDAC_DEV_GRP);
++}
++
++static struct omap_display_data sdp3430_display_data_tv = {
++	.type = OMAP_DISPLAY_TYPE_VENC,
++	.name = "tv",
++	.u.venc.type = OMAP_DSS_VENC_TYPE_SVIDEO,
++	.panel_enable = sdp3430_panel_enable_tv,
++	.panel_disable = sdp3430_panel_disable_tv,
++};
++
++static struct omap_dss_platform_data sdp3430_dss_data = {
++	.num_displays = 3,
++	.displays = {
++		&sdp3430_display_data,
++		&sdp3430_display_data_dvi,
++		&sdp3430_display_data_tv,
++	}
++};
++
++static struct platform_device sdp3430_dss_device = {
++	.name          = "omap-dss",
++	.id            = -1,
++	.dev            = {
++		.platform_data = &sdp3430_dss_data,
++	},
++};
++
++
+ static struct platform_device *sdp3430_devices[] __initdata = {
+ 	&sdp3430_smc91x_device,
+-	&sdp3430_lcd_device,
++	&sdp3430_dss_device,
+ };
+ 
+ static inline void __init sdp3430_init_smc91x(void)
+@@ -292,13 +493,8 @@ static struct omap_uart_config sdp3430_uart_config __initdata = {
+ 	.enabled_uarts	= ((1 << 0) | (1 << 1) | (1 << 2)),
+ };
+ 
+-static struct omap_lcd_config sdp3430_lcd_config __initdata = {
+-	.ctrl_name	= "internal",
+-};
+-
+ static struct omap_board_config_kernel sdp3430_config[] __initdata = {
+ 	{ OMAP_TAG_UART,	&sdp3430_uart_config },
+-	{ OMAP_TAG_LCD,		&sdp3430_lcd_config },
+ };
+ 
+ static int sdp3430_batt_table[] = {
+@@ -481,6 +677,7 @@ static void __init omap_3430sdp_init(void)
+ 	usb_musb_init();
+ 	usb_ehci_init();
+ 	twl4030_mmc_init(mmc);
++	sdp3430_display_init();
+ }
+ 
+ static void __init omap_3430sdp_map_io(void)
 
