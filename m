@@ -1,137 +1,61 @@
-From: "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>
-Subject: RE: [REVIEW PATCH 08/14] OMAP: CAM: Add ISP Core
-Date: Mon, 12 Jan 2009 14:16:28 -0600
-Message-ID: <A24693684029E5489D1D202277BE894416429BCC@dlee02.ent.ti.com>
-References: <200812161807.37601.hverkuil@xs4all.nl>
+From: Felipe Balbi <me@felipebalbi.com>
+Subject: Re: [PATCH v2] usb: musb: fix bug in musbhsdma programming
+Date: Tue, 13 Jan 2009 00:26:49 +0200
+Message-ID: <20090112222649.GL25493@frodo>
+References: <1231475946-6810-1-git-send-email-ajay.gupta@ti.com>
+Reply-To: me@felipebalbi.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <video4linux-list-bounces@redhat.com>
-In-Reply-To: <200812161807.37601.hverkuil@xs4all.nl>
-Content-Language: en-US
-List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
-	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
-List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
-List-Post: <mailto:video4linux-list@redhat.com>
-List-Help: <mailto:video4linux-list-request@redhat.com?subject=help>
-List-Subscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
-	<mailto:video4linux-list-request@redhat.com?subject=subscribe>
-Sender: video4linux-list-bounces@redhat.com
-Errors-To: video4linux-list-bounces@redhat.com
-To: Hans Verkuil <hverkuil@xs4all.nl>, "video4linux-list@redhat.com" <video4linux-list@redhat.com>
-Cc: Sakari Ailus <sakari.ailus@nokia.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Tuukka.O Toivonen" <tuukka.o.toivonen@nokia.com>, "Nagalla,
-	Hari" <hnagalla@ti.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from ns1.siteground211.com ([209.62.36.12]:56601 "EHLO
+	serv01.siteground211.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758853AbZALW04 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 12 Jan 2009 17:26:56 -0500
+Content-Disposition: inline
+In-Reply-To: <1231475946-6810-1-git-send-email-ajay.gupta@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Ajay Kumar Gupta <ajay.gupta@ti.com>
+Cc: linux-omap@vger.kernel.org, david-b@pacbell.net, felipe.balbi@nokia.com
 
-Hi,
+On Fri, Jan 09, 2009 at 10:09:06AM +0530, Ajay Kumar Gupta wrote:
+> Mode bit should be set based on function parameter "mode" of
+> configure_channel() function.
+> 
+> Signed-off-by: Ajay Kumar Gupta <ajay.gupta@ti.com>
 
-> From: Hans Verkuil [mailto:hverkuil@xs4all.nl]
+Acked-by: Felipe Balbi <felipe.balbi@nokia.com>
 
-<snip>
+> ---
+> Original version of this patch is at,
+> http://marc.info/?l=linux-usb&m=123141793611158&w=2
 
-> > +               {
-> > +                       .id =3D V4L2_CID_PRIVATE_ISP_COLOR_FX,
-> > +                       .type =3D V4L2_CTRL_TYPE_INTEGER,
-> > +                       .name =3D "Color Effects",
->=20
-> What does this do? It definitely looks like this should be a menu, not
-> an integer control. Forcing color to B&W is something that other hardwa=
-re
-> can do as well, so I think this is a very good candidate for a generic
-> user control, rather than driver specific.
+tony, this should go to l-o
 
-This basically enables some common color effects on image processing:
-- Default colors (i.e. original captured colors)
-- Sepia colored images
-- B&W colored images.
+> 
+>  drivers/usb/musb/musbhsdma.c |    2 +-
+>  1 files changed, 1 insertions(+), 1 deletions(-)
+> 
+> diff --git a/drivers/usb/musb/musbhsdma.c b/drivers/usb/musb/musbhsdma.c
+> index 75b15ce..8e44355 100644
+> --- a/drivers/usb/musb/musbhsdma.c
+> +++ b/drivers/usb/musb/musbhsdma.c
+> @@ -136,7 +136,7 @@ static void configure_channel(struct dma_channel *channel,
+>  		csr |= MUSB_HSDMA_BURSTMODE_INCR4;
+>  
+>  	csr |= (musb_channel->epnum << MUSB_HSDMA_ENDPOINT_SHIFT)
+> -		| MUSB_HSDMA_MODE1
+> +		| mode ? MUSB_HSDMA_MODE1 : 0
+>  		| MUSB_HSDMA_ENABLE
+>  		| MUSB_HSDMA_IRQENABLE
+>  		| (musb_channel->transmit
+> -- 
+> 1.5.6
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
-I think its generic enough to propose for a new generic user CID.
-
-Ok, so, should I keep the Private CID as a menu type ctrl by now?
-
->=20
-> > +                       .minimum =3D PREV_DEFAULT_COLOR,
-> > +                       .maximum =3D PREV_BW_COLOR,
-> > +                       .step =3D 1,
-> > +                       .default_value =3D PREV_DEFAULT_COLOR,
-> > +               },
-> > +               .current_value =3D PREV_DEFAULT_COLOR,
-> > +       }
-> > +};
-> > +
-
-<snip>
-
-> > +
-> > +       if (((isp_obj.if_status =3D=3D ISP_PARLL) && (if_t =3D=3D ISP=
-_CSIA)) ||
-> > +                               ((isp_obj.if_status =3D=3D ISP_CSIA) =
-&&
-> > +                               (if_t =3D=3D ISP_PARLL)) ||
-> > +                               ((isp_obj.if_status =3D=3D ISP_CSIA) =
-&&
-> > +                               (if_t =3D=3D ISP_CSIB)) ||
-> > +                               ((isp_obj.if_status =3D=3D ISP_CSIB) =
-&&
-> > +                               (if_t =3D=3D ISP_CSIA)) ||
-> > +                               (isp_obj.if_status =3D=3D 0)) {
->=20
-> Hard to understand. Why not:
->=20
->        if ((isp_obj.if_status =3D=3D ISP_PARLL && if_t =3D=3D ISP_CSIA)=
- ||
->            (isp_obj.if_status =3D=3D ISP_CSIA && if_t =3D=3D ISP_PARLL)=
- ||
->            (isp_obj.if_status =3D=3D ISP_CSIA && if_t =3D=3D ISP_CSIB) =
-||
->            (isp_obj.if_status =3D=3D ISP_CSIB && if_t =3D=3D ISP_CSIA) =
-||
->            isp_obj.if_status =3D=3D 0) {
->=20
-
-Done
-
-> > +               isp_obj.if_status |=3D if_t;
-> > +               return 0;
-> > +       } else {
-> > +               DPRINTK_ISPCTRL("ISP_ERR : Invalid Combination Serial=
-- \
-> > +                       Parallel interface\n");
-> > +               return -EINVAL;
-> > +       }
-> > +}
-> > +EXPORT_SYMBOL(isp_request_interface);
-
-<snip>
-
-> > +       /* CONTROL_ */
-> > +       omap_writel(
-> > +               /* CSIb receiver data/clock or data/strobe mode */
-> > +               (config->u.csi.signalling << 10)
-> > +               | BIT(12)       /* Enable differential transceiver */
-> > +               | BIT(13)       /* Disable reset */
-> > +#ifdef TERM_RESISTOR
->=20
-> What is this define? It doesn't seem to be documented.
-
-This define is to enable/disable an OMAP34xx internal resistor for CSIb (=
-CCP2) camera port.
-
-A comment along its declaration should be enough?
-
-Thanks for your time.
-
-Regards,
-Sergio
-
->=20
-> Regards,
->=20
-> 	Hans
->=20
-
---
-video4linux-list mailing list
-Unsubscribe mailto:video4linux-list-request@redhat.com?subject=3Dunsubscr=
-ibe
-https://www.redhat.com/mailman/listinfo/video4linux-list
+-- 
+balbi
