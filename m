@@ -1,16 +1,16 @@
 From: Tomi Valkeinen <tomi.valkeinen@nokia.com>
-Subject: [PATCH 01/12] DSS: Documentation for DSS2
-Date: Mon, 12 Jan 2009 13:47:25 +0200
-Message-ID: <20090112114725.1003.72269.stgit@tubuntu>
+Subject: [PATCH 04/12] DSS: VENC support
+Date: Mon, 12 Jan 2009 13:47:45 +0200
+Message-ID: <20090112114745.1003.74654.stgit@tubuntu>
 References: <20090112114718.1003.23643.stgit@tubuntu>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:17943 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751315AbZALLro (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 12 Jan 2009 06:47:44 -0500
+Received: from smtp.nokia.com ([192.100.122.233]:35712 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752233AbZALLrz (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 12 Jan 2009 06:47:55 -0500
 In-Reply-To: <20090112114718.1003.23643.stgit@tubuntu>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
@@ -20,284 +20,520 @@ Cc: linux-omap@vger.kernel.org
 Signed-off-by: Tomi Valkeinen <tomi.valkeinen@nokia.com>
 ---
 
- Documentation/arm/OMAP/DSS |  270 ++++++++++++++++++++++++++++++++++++++++++++
- 1 files changed, 270 insertions(+), 0 deletions(-)
- create mode 100644 Documentation/arm/OMAP/DSS
+ arch/arm/plat-omap/dss/venc.c |  506 +++++++++++++++++++++++++++++++++++++++++
+ 1 files changed, 506 insertions(+), 0 deletions(-)
+ create mode 100644 arch/arm/plat-omap/dss/venc.c
 
-diff --git a/Documentation/arm/OMAP/DSS b/Documentation/arm/OMAP/DSS
+diff --git a/arch/arm/plat-omap/dss/venc.c b/arch/arm/plat-omap/dss/venc.c
 new file mode 100644
-index 0000000..011fee1
+index 0000000..81319e4
 --- /dev/null
-+++ b/Documentation/arm/OMAP/DSS
-@@ -0,0 +1,270 @@
-+OMAP2/3 Display Subsystem
-+-------------------------
-+
-+This is an almost total rewrite of the OMAP FB driver in drivers/video/omap
-+(let's call it DSS1). The main differences between DSS1 and DSS2 are DSI,
-+TV-out and multiple display support, but there are lots of small improvements
-+also.
-+
-+The DSS2 driver (omap-dss module) is in arch/arm/plat-omap/dss/, and the FB,
-+panel and controller drivers are in drivers/video/omap2/. DSS1 and DSS2 live
-+currently side by side, you can choose which one to use.
-+
-+Features
-+--------
-+
-+Working and tested features include:
-+
-+- MIPI DPI (parallel) output
-+- MIPI DSI output in command mode
-+- MIPI DBI (RFBI) output
-+- SDI output
-+- TV output
-+- All pieces can be compiled as a module or inside kernel
-+- Use DISPC to update any of the outputs
-+- Use CPU to update RFBI or DSI output
-+- OMAP DISPC planes
-+- RGB16, RGB24 packed, RGB24 unpacked
-+- YUV2, UYVY
-+- Scaling
-+- Adjusting DSS FCK to find a good pixel clock
-+- Use DSI DPLL to create DSS FCK
-+
-+Tested boards include:
-+- OMAP3 SDP board
-+- Beagle board
-+- N810
-+
-+omap-dss driver
-+------------
-+
-+The DSS driver does not itself have any support for Linux framebuffer, V4L or
-+such like the current ones, but it has an internal kernel API that upper level
-+drivers can use.
-+
-+The DSS driver models OMAP's overlays, overlay managers and displays in a
-+flexible way to enable non-common multi-display configuration. In addition to
-+modelling the hardware overlays, omap-dss supports virtual overlays and overlay
-+managers. These can be used when updating a display with CPU or system DMA.
-+
-+Panel and controller drivers
-+----------------------------
-+
-+The drivers implement panel or controller specific functionality and are not
-+usually visible to users except through omapfb driver.  They register
-+themselves to the DSS driver.
-+
-+omapfb driver
-+-------------
-+
-+The omapfb driver implements arbitrary number of standard linux framebuffers.
-+These framebuffers can be routed flexibly to any overlays, thus allowing very
-+dynamic display architecture.
-+
-+The driver exports some omapfb specific ioctls, which are compatible with the
-+ioctls in the old driver.
-+
-+The rest of the non standard features are exported via sysfs. Whether the final
-+implementation will use sysfs, or ioctls, is still open.
-+
-+V4L2 drivers
-+------------
-+
-+V4L2 is being implemented in TI.
-+
-+From omap-dss point of view the V4L2 drivers should be similar to framebuffer
-+driver.
-+
-+Architecture
-+--------------------
-+
-+Some clarification what the different components do:
-+
-+    - Framebuffer is a memory area inside OMAP's SRAM/SDRAM that contains the
-+      pixel data for the image. Framebuffer has width and height and color
-+      depth.
-+    - Overlay defines where the pixels are read from and where they go on the
-+      screen. The overlay may be smaller than framebuffer, thus displaying only
-+      part of the framebuffer. The position of the overlay may be changed if
-+      the overlay is smaller than the display.
-+    - Overlay manager combines the overlays in to one image and feeds them to
-+      display.
-+    - Display is the actual physical display device.
-+
-+A framebuffer can be connected to multiple overlays to show the same pixel data
-+on all of the overlays. Note that in this case the overlay input sizes must be
-+the same, but, in case of video overlays, the output size can be different. Any
-+framebuffer can be connected to any overlay.
-+
-+An overlay can be connected to one overlay manager. Also DISPC overlays can be
-+connected only to DISPC overlay managers, and virtual overlays can be only
-+connected to virtual overlays.
-+
-+An overlay manager can be connected to one display. There are certain
-+restrictions which kinds of displays an overlay manager can be connected:
-+
-+    - DISPC TV overlay manager can be only connected to TV display.
-+    - Virtual overlay managers can only be connected to DBI or DSI displays.
-+    - DISPC LCD overlay manager can be connected to all displays, except TV
-+      display.
-+
-+Sysfs
-+-----
-+The sysfs interface is a hack, but works for testing. I don't think sysfs
-+interface is the best for this in the final version, but I don't quite know
-+what would be the best interfaces for these things.
-+
-+In /sys/devices/platform/omapfb we have four files: framebuffers,
-+overlays, managers and displays. You can read them so see the current
-+setup, and change them by writing to it in the form of
-+"<item-id> <opt1>:<val1> <opt2>:<val2>..."
-+
-+"framebuffers" lists all framebuffers. Its format is:
-+	<fb number>
-+	p:<physical address, read only>
-+	v:<virtual address, read only>
-+	s:<size, read only>
-+	t:<target overlay>
-+
-+"overlays" lists all overlays. Its format is:
-+	<overlay name>
-+	t:<target manager>
-+	x:<xpos>
-+	y:<ypos>
-+	iw:<input width, read only>
-+	ih:<input height, read only>
-+	w:<output width>
-+	h:<output height>
-+	e:<enabled>
-+
-+"managers" lists all overlay managers. Its format is:
-+	<manager name>
-+	t:<target display>
-+
-+"displays" lists all displays. Its format is:
-+	<display name>
-+	e:<enabled>
-+	u:<update mode>
-+	t:<tear sync on/off>
-+	h:<xres/hfp/hbp/hsw>
-+	v:<yres/vfp/vbp/vsw>
-+	p:<pix clock, in kHz>
-+	m:<mode str, as in drivers/video/modedb.c:fb_find_mode>
-+
-+There is also a debug sysfs file at /sys/devices/platform/omap-dss/clk which
-+shows how DSS has configured the clocks.
-+
-+Examples
-+--------
-+
-+In the example scripts "omapfb" is a symlink to /sys/devices/platform/omapfb/.
-+
-+Default setup on OMAP3 SDP
-+--------------------------
-+
-+Here's the default setup on OMAP3 SDP board. All planes go to LCD. DVI
-+and TV-out are not in use. The columns from left to right are:
-+framebuffers, overlays, overlay managers, displays. Framebuffers are
-+handled by omapfb, and the rest by the DSS.
-+
-+FB0 --- GFX  -\            DVI
-+FB1 --- VID1 --+- LCD ---- LCD
-+FB2 --- VID2 -/   TV ----- TV
-+
-+Switch from LCD to DVI
-+----------------------
-+
-+dviline=`cat omapfb/displays |grep dvi`
-+w=`echo $dviline | cut -d " " -f 5 | cut -d ":" -f 2 | cut -d "/" -f 1`
-+h=`echo $dviline | cut -d " " -f 6 | cut -d ":" -f 2 | cut -d "/" -f 1`
-+
-+echo "lcd e:0" > omapfb/displays
-+echo "lcd t:none" > omapfb/managers
-+fbset -fb /dev/fb0 -xres $w -yres $h -vxres $w -vyres $h
-+# at this point you have to switch the dvi/lcd dip-switch from the omap board
-+echo "lcd t:dvi" > omapfb/managers
-+echo "dvi e:1" > omapfb/displays
-+
-+After this the configuration looks like:
-+
-+FB0 --- GFX  -\         -- DVI
-+FB1 --- VID1 --+- LCD -/   LCD
-+FB2 --- VID2 -/   TV ----- TV
-+
-+Clone GFX overlay to LCD and TV
-+-------------------------------
-+
-+tvline=`cat /sys/devices/platform/omapfb/displays |grep tv`
-+w=`echo $tvline | cut -d " " -f 5 | cut -d ":" -f 2 | cut -d "/" -f 1`
-+h=`echo $tvline | cut -d " " -f 6 | cut -d ":" -f 2 | cut -d "/" -f 1`
-+
-+echo "1 t:none" > omapfb/framebuffers
-+echo "0 t:gfx,vid1" > omapfb/framebuffers
-+echo "gfx e:1" > omapfb/overlays
-+echo "vid1 t:tv w:$w h:$h e:1" > omapfb/overlays
-+echo "tv e:1" > omapfb/displays
-+
-+After this the configuration looks like (only relevant parts shown):
-+
-+FB0 +-- GFX  ---- LCD ---- LCD
-+     \- VID1 ---- TV  ---- TV
-+
-+Misc notes
-+----------
-+
-+OMAP FB allocates the framebuffer memory using the OMAP VRAM allocator. If
-+that fails, it will fall back to dma_alloc_writecombine().
-+
-+Using DSI DPLL to generate pixel clock it is possible produce the pixel clock
-+of 86.5MHz (max possible), and with that you get 1280x1024@57 output from DVI.
-+
-+Arguments
-+---------
-+
-+vram
-+	- Amount of total VRAM to preallocate. For example, "10M". omapfb
-+	  allocates memory for framebuffers from VRAM.
-+
-+omapfb.video_mode
-+	- Default video mode for default display. For example,
-+	  "800x400MR-24@60".  See drivers/video/modedb.c
-+
-+omapfb.vram
-+	- VRAM allocated for each framebuffer. Normally omapfb allocates vram
-+	  depending on the display size. With this you can manually allocate
-+	  more. For example "4M,3M" allocates 4M for fb0, 3M for fb1.
-+
-+omapfb.debug
-+	- Enable debug printing. You have to have OMAPFB debug support enabled
-+	  in kernel config.
-+
-+omap-dss.def_disp
-+	- Name of default display, to which all overlays will be connected.
-+	  Common examples are "lcd" or "tv".
-+
-+omap-dss.debug
-+	- Enable debug printing. You have to have DSS debug support enabled in
-+	  kernel config.
-+
-+TODO
-+----
-+
-+DSS locking
-+
-+Error checking
-+- Lots of checks are missing or implemented just as BUG()
-+
-+Rotate (external FB)
-+Rotate (VRFB)
-+Rotate (SMS)
-+
-+System DMA update for DSI
-+- Can be used for RGB16 and RGB24P modes. Probably not for RGB24U (how
-+  to skip the empty byte?)
-+
-+Power management
-+- Context saving
-+
-+OMAP1 support
-+- Not sure if needed
-+
++++ b/arch/arm/plat-omap/dss/venc.c
+@@ -0,0 +1,506 @@
++/*
++ * linux/arch/arm/plat-omap/dss/venc.c
++ *
++ * Copyright (C) 2008 Nokia Corporation
++ * Author: Tomi Valkeinen <tomi.valkeinen@nokia.com>
++ *
++ * VENC settings from TI's DSS driver
++ *
++ * This program is free software; you can redistribute it and/or modify it
++ * under the terms of the GNU General Public License version 2 as published by
++ * the Free Software Foundation.
++ *
++ * This program is distributed in the hope that it will be useful, but WITHOUT
++ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
++ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
++ * more details.
++ *
++ * You should have received a copy of the GNU General Public License along with
++ * this program.  If not, see <http://www.gnu.org/licenses/>.
++ */
++
++#define DSS_SUBSYS_NAME "VENC"
++
++#include <linux/kernel.h>
++#include <linux/clk.h>
++#include <linux/err.h>
++#include <linux/io.h>
++#include <linux/mutex.h>
++#include <linux/completion.h>
++#include <linux/delay.h>
++
++#include <mach/display.h>
++#include <mach/cpu.h>
++
++#include "dss.h"
++
++#define VENC_BASE	0x48050C00
++
++/* Venc registers */
++#define VENC_REV_ID				0x00
++#define VENC_STATUS				0x04
++#define VENC_F_CONTROL				0x08
++#define VENC_VIDOUT_CTRL			0x10
++#define VENC_SYNC_CTRL				0x14
++#define VENC_LLEN				0x1C
++#define VENC_FLENS				0x20
++#define VENC_HFLTR_CTRL				0x24
++#define VENC_CC_CARR_WSS_CARR			0x28
++#define VENC_C_PHASE				0x2C
++#define VENC_GAIN_U				0x30
++#define VENC_GAIN_V				0x34
++#define VENC_GAIN_Y				0x38
++#define VENC_BLACK_LEVEL			0x3C
++#define VENC_BLANK_LEVEL			0x40
++#define VENC_X_COLOR				0x44
++#define VENC_M_CONTROL				0x48
++#define VENC_BSTAMP_WSS_DATA			0x4C
++#define VENC_S_CARR				0x50
++#define VENC_LINE21				0x54
++#define VENC_LN_SEL				0x58
++#define VENC_L21__WC_CTL			0x5C
++#define VENC_HTRIGGER_VTRIGGER			0x60
++#define VENC_SAVID__EAVID			0x64
++#define VENC_FLEN__FAL				0x68
++#define VENC_LAL__PHASE_RESET			0x6C
++#define VENC_HS_INT_START_STOP_X		0x70
++#define VENC_HS_EXT_START_STOP_X		0x74
++#define VENC_VS_INT_START_X			0x78
++#define VENC_VS_INT_STOP_X__VS_INT_START_Y	0x7C
++#define VENC_VS_INT_STOP_Y__VS_EXT_START_X	0x80
++#define VENC_VS_EXT_STOP_X__VS_EXT_START_Y	0x84
++#define VENC_VS_EXT_STOP_Y			0x88
++#define VENC_AVID_START_STOP_X			0x90
++#define VENC_AVID_START_STOP_Y			0x94
++#define VENC_FID_INT_START_X__FID_INT_START_Y	0xA0
++#define VENC_FID_INT_OFFSET_Y__FID_EXT_START_X	0xA4
++#define VENC_FID_EXT_START_Y__FID_EXT_OFFSET_Y	0xA8
++#define VENC_TVDETGP_INT_START_STOP_X		0xB0
++#define VENC_TVDETGP_INT_START_STOP_Y		0xB4
++#define VENC_GEN_CTRL				0xB8
++#define VENC_OUTPUT_CONTROL			0xC4
++#define VENC_DAC_B__DAC_C			0xC8
++
++struct venc_config {
++	u32 f_control;
++	u32 vidout_ctrl;
++	u32 sync_ctrl;
++	u32 llen;
++	u32 flens;
++	u32 hfltr_ctrl;
++	u32 cc_carr_wss_carr;
++	u32 c_phase;
++	u32 gain_u;
++	u32 gain_v;
++	u32 gain_y;
++	u32 black_level;
++	u32 blank_level;
++	u32 x_color;
++	u32 m_control;
++	u32 bstamp_wss_data;
++	u32 s_carr;
++	u32 line21;
++	u32 ln_sel;
++	u32 l21__wc_ctl;
++	u32 htrigger_vtrigger;
++	u32 savid__eavid;
++	u32 flen__fal;
++	u32 lal__phase_reset;
++	u32 hs_int_start_stop_x;
++	u32 hs_ext_start_stop_x;
++	u32 vs_int_start_x;
++	u32 vs_int_stop_x__vs_int_start_y;
++	u32 vs_int_stop_y__vs_ext_start_x;
++	u32 vs_ext_stop_x__vs_ext_start_y;
++	u32 vs_ext_stop_y;
++	u32 avid_start_stop_x;
++	u32 avid_start_stop_y;
++	u32 fid_int_start_x__fid_int_start_y;
++	u32 fid_int_offset_y__fid_ext_start_x;
++	u32 fid_ext_start_y__fid_ext_offset_y;
++	u32 tvdetgp_int_start_stop_x;
++	u32 tvdetgp_int_start_stop_y;
++	u32 gen_ctrl;
++
++	int width;
++	int height;
++};
++
++/* from TRM */
++static const struct venc_config venc_config_pal_trm = {
++	.f_control				= 0,
++	.vidout_ctrl				= 1,
++	.sync_ctrl				= 0x40,
++	.llen					= 0x35F, /* 863 */
++	.flens					= 0x270, /* 624 */
++	.hfltr_ctrl				= 0,
++	.cc_carr_wss_carr			= 0x2F7225ED,
++	.c_phase				= 0,
++	.gain_u					= 0x111,
++	.gain_v					= 0x181,
++	.gain_y					= 0x140,
++	.black_level				= 0x3B,
++	.blank_level				= 0x3B,
++	.x_color				= 0x7,
++	.m_control				= 0x2,
++	.bstamp_wss_data			= 0x3F,
++	.s_carr					= 0x2A098ACB,
++	.line21					= 0,
++	.ln_sel					= 0x01290015,
++	.l21__wc_ctl				= 0x0000F603,
++	.htrigger_vtrigger			= 0,
++
++	.savid__eavid				= 0x06A70108,
++	.flen__fal				= 0x00180270,
++	.lal__phase_reset			= 0x00180270,
++	.hs_int_start_stop_x			= 0x00880358,
++	.hs_ext_start_stop_x			= 0x000F035F,
++	.vs_int_start_x				= 0x01A70000,
++	.vs_int_stop_x__vs_int_start_y		= 0x000001A7,
++	.vs_int_stop_y__vs_ext_start_x		= 0x01AF0000,
++	.vs_ext_stop_x__vs_ext_start_y		= 0x000101AF,
++	.vs_ext_stop_y				= 0x00000025,
++	.avid_start_stop_x			= 0x03530083,
++	.avid_start_stop_y			= 0x026C002E,
++	.fid_int_start_x__fid_int_start_y	= 0x0001008A,
++	.fid_int_offset_y__fid_ext_start_x	= 0x002E0138,
++	.fid_ext_start_y__fid_ext_offset_y	= 0x01380001,
++
++	.tvdetgp_int_start_stop_x		= 0x00140001,
++	.tvdetgp_int_start_stop_y		= 0x00010001,
++	.gen_ctrl				= 0x00FF0000,
++
++	.width = 720,
++	.height = 574, /* for some reason, this isn't 576 */
++};
++
++/* from TRM */
++static const struct venc_config venc_config_ntsc_trm = {
++	.f_control				= 0,
++	.vidout_ctrl				= 1,
++	.sync_ctrl				= 0x8040,
++	.llen					= 0x359,
++	.flens					= 0x20C,
++	.hfltr_ctrl				= 0,
++	.cc_carr_wss_carr			= 0x043F2631,
++	.c_phase				= 0,
++	.gain_u					= 0x102,
++	.gain_v					= 0x16C,
++	.gain_y					= 0x12F,
++	.black_level				= 0x43,
++	.blank_level				= 0x38,
++	.x_color				= 0x7,
++	.m_control				= 0x1,
++	.bstamp_wss_data			= 0x38,
++	.s_carr					= 0x21F07C1F,
++	.line21					= 0,
++	.ln_sel					= 0x01310011,
++	.l21__wc_ctl				= 0x0000F003,
++	.htrigger_vtrigger			= 0,
++
++	.savid__eavid				= 0x069300F4,
++	.flen__fal				= 0x0016020C,
++	.lal__phase_reset			= 0x00060107,
++	.hs_int_start_stop_x			= 0x008E0350,
++	.hs_ext_start_stop_x			= 0x000F0359,
++	.vs_int_start_x				= 0x01A00000,
++	.vs_int_stop_x__vs_int_start_y		= 0x020701A0,
++	.vs_int_stop_y__vs_ext_start_x		= 0x01AC0024,
++	.vs_ext_stop_x__vs_ext_start_y		= 0x020D01AC,
++	.vs_ext_stop_y				= 0x00000006,
++	.avid_start_stop_x			= 0x03480078,
++	.avid_start_stop_y			= 0x02060024,
++	.fid_int_start_x__fid_int_start_y	= 0x0001008A,
++	.fid_int_offset_y__fid_ext_start_x	= 0x01AC0106,
++	.fid_ext_start_y__fid_ext_offset_y	= 0x01060006,
++
++	.tvdetgp_int_start_stop_x		= 0x00140001,
++	.tvdetgp_int_start_stop_y		= 0x00010001,
++	.gen_ctrl				= 0x00F90000,
++
++	.width = 720,
++	.height = 482,
++};
++
++static const struct venc_config venc_config_pal_bdghi = {
++	.f_control				= 0,
++	.vidout_ctrl				= 0,
++	.sync_ctrl				= 0,
++	.hfltr_ctrl				= 0,
++	.x_color				= 0,
++	.line21					= 0,
++	.ln_sel					= 21,
++	.htrigger_vtrigger			= 0,
++	.tvdetgp_int_start_stop_x		= 0x00140001,
++	.tvdetgp_int_start_stop_y		= 0x00010001,
++	.gen_ctrl				= 0x00FB0000,
++
++	.llen					= 864-1,
++	.flens					= 625-1,
++	.cc_carr_wss_carr			= 0x2F7625ED,
++	.c_phase				= 0xDF,
++	.gain_u					= 0x111,
++	.gain_v					= 0x181,
++	.gain_y					= 0x140,
++	.black_level				= 0x3e,
++	.blank_level				= 0x3e,
++	.m_control				= 0<<2 | 1<<1,
++	.bstamp_wss_data			= 0x42,
++	.s_carr					= 0x2a098acb,
++	.l21__wc_ctl				= 0<<13 | 0x16<<8 | 0<<0,
++	.savid__eavid				= 0x06A70108,
++	.flen__fal				= 23<<16 | 624<<0,
++	.lal__phase_reset			= 2<<17 | 310<<0,
++	.hs_int_start_stop_x			= 0x00920358,
++	.hs_ext_start_stop_x			= 0x000F035F,
++	.vs_int_start_x				= 0x1a7<<16,
++	.vs_int_stop_x__vs_int_start_y		= 0x000601A7,
++	.vs_int_stop_y__vs_ext_start_x		= 0x01AF0036,
++	.vs_ext_stop_x__vs_ext_start_y		= 0x27101af,
++	.vs_ext_stop_y				= 0x05,
++	.avid_start_stop_x			= 0x03530082,
++	.avid_start_stop_y			= 0x0270002E,
++	.fid_int_start_x__fid_int_start_y	= 0x0005008A,
++	.fid_int_offset_y__fid_ext_start_x	= 0x002E0138,
++	.fid_ext_start_y__fid_ext_offset_y	= 0x01380005,
++
++	.width = 720,
++	.height = 576,
++};
++
++static struct {
++	void __iomem *base;
++	const struct venc_config *config;
++	struct mutex venc_lock;
++} venc;
++
++static struct omap_panel venc_panel = {
++	.name = "tv-out",
++	.bpp = 24,
++};
++
++static inline void venc_write_reg(int idx, u32 val)
++{
++	__raw_writel(val, venc.base + idx);
++}
++
++static inline u32 venc_read_reg(int idx)
++{
++	u32 l = __raw_readl(venc.base + idx);
++	return l;
++}
++
++static void venc_write_config(const struct venc_config *config)
++{
++	DSSDBG("write venc conf\n");
++
++	venc_write_reg(VENC_LLEN, config->llen);
++	venc_write_reg(VENC_FLENS, config->flens);
++	venc_write_reg(VENC_CC_CARR_WSS_CARR, config->cc_carr_wss_carr);
++	venc_write_reg(VENC_C_PHASE, config->c_phase);
++	venc_write_reg(VENC_GAIN_U, config->gain_u);
++	venc_write_reg(VENC_GAIN_V, config->gain_v);
++	venc_write_reg(VENC_GAIN_Y, config->gain_y);
++	venc_write_reg(VENC_BLACK_LEVEL, config->black_level);
++	venc_write_reg(VENC_BLANK_LEVEL, config->blank_level);
++	venc_write_reg(VENC_M_CONTROL, config->m_control);
++	venc_write_reg(VENC_BSTAMP_WSS_DATA, config->bstamp_wss_data);
++	venc_write_reg(VENC_S_CARR, config->s_carr);
++	venc_write_reg(VENC_L21__WC_CTL, config->l21__wc_ctl);
++	venc_write_reg(VENC_SAVID__EAVID, config->savid__eavid);
++	venc_write_reg(VENC_FLEN__FAL, config->flen__fal);
++	venc_write_reg(VENC_LAL__PHASE_RESET, config->lal__phase_reset);
++	venc_write_reg(VENC_HS_INT_START_STOP_X, config->hs_int_start_stop_x);
++	venc_write_reg(VENC_HS_EXT_START_STOP_X, config->hs_ext_start_stop_x);
++	venc_write_reg(VENC_VS_INT_START_X, config->vs_int_start_x);
++	venc_write_reg(VENC_VS_INT_STOP_X__VS_INT_START_Y,
++		       config->vs_int_stop_x__vs_int_start_y);
++	venc_write_reg(VENC_VS_INT_STOP_Y__VS_EXT_START_X,
++		       config->vs_int_stop_y__vs_ext_start_x);
++	venc_write_reg(VENC_VS_EXT_STOP_X__VS_EXT_START_Y,
++		       config->vs_ext_stop_x__vs_ext_start_y);
++	venc_write_reg(VENC_VS_EXT_STOP_Y, config->vs_ext_stop_y);
++	venc_write_reg(VENC_AVID_START_STOP_X, config->avid_start_stop_x);
++	venc_write_reg(VENC_AVID_START_STOP_Y, config->avid_start_stop_y);
++	venc_write_reg(VENC_FID_INT_START_X__FID_INT_START_Y,
++		       config->fid_int_start_x__fid_int_start_y);
++	venc_write_reg(VENC_FID_INT_OFFSET_Y__FID_EXT_START_X,
++		       config->fid_int_offset_y__fid_ext_start_x);
++	venc_write_reg(VENC_FID_EXT_START_Y__FID_EXT_OFFSET_Y,
++		       config->fid_ext_start_y__fid_ext_offset_y);
++
++	venc_write_reg(VENC_DAC_B__DAC_C,  venc_read_reg(VENC_DAC_B__DAC_C));
++	venc_write_reg(VENC_VIDOUT_CTRL, config->vidout_ctrl);
++	venc_write_reg(VENC_HFLTR_CTRL, config->hfltr_ctrl);
++	venc_write_reg(VENC_X_COLOR, config->x_color);
++	venc_write_reg(VENC_LINE21, config->line21);
++	venc_write_reg(VENC_LN_SEL, config->ln_sel);
++	venc_write_reg(VENC_HTRIGGER_VTRIGGER, config->htrigger_vtrigger);
++	venc_write_reg(VENC_TVDETGP_INT_START_STOP_X,
++		       config->tvdetgp_int_start_stop_x);
++	venc_write_reg(VENC_TVDETGP_INT_START_STOP_Y,
++		       config->tvdetgp_int_start_stop_y);
++	venc_write_reg(VENC_GEN_CTRL, config->gen_ctrl);
++	venc_write_reg(VENC_F_CONTROL, config->f_control);
++	venc_write_reg(VENC_SYNC_CTRL, config->sync_ctrl);
++}
++
++static void venc_reset(void)
++{
++	int t = 1000;
++
++	venc_write_reg(VENC_F_CONTROL, venc_read_reg(VENC_F_CONTROL) | (1<<8));
++	while (venc_read_reg(VENC_F_CONTROL) & (1<<8)) {
++		if (--t == 0) {
++			DSSERR("Failed to reset venc\n");
++			return;
++		}
++	}
++}
++
++static void venc_enable_clocks(int enable)
++{
++	if (enable)
++		dss_clk_enable(DSS_CLK_ICK | DSS_CLK_FCK1 | DSS_CLK_54M |
++				DSS_CLK_96M);
++	else
++		dss_clk_disable(DSS_CLK_ICK | DSS_CLK_FCK1 | DSS_CLK_54M |
++				DSS_CLK_96M);
++}
++
++int venc_init(void)
++{
++	u8 rev_id;
++	int use_pal = 1; /* XXX */
++
++	mutex_init(&venc.venc_lock);
++
++	if (use_pal)
++		venc.config = &venc_config_pal_trm;
++	else
++		venc.config = &venc_config_ntsc_trm;
++
++	venc_panel.timings.x_res = venc.config->width;
++	venc_panel.timings.y_res = venc.config->height;
++
++	venc.base = ioremap(VENC_BASE, SZ_1K);
++	if (!venc.base) {
++		DSSERR("can't ioremap VENC\n");
++		return -ENOMEM;
++	}
++
++	/* enable clocks */
++	venc_enable_clocks(1);
++
++	/* configure venc */
++	venc_reset();
++	venc_write_config(venc.config);
++
++	rev_id = (u8)(venc_read_reg(VENC_REV_ID) & 0xff);
++	printk(KERN_INFO "OMAP VENC rev %d\n", rev_id);
++
++	venc_enable_clocks(0);
++
++	return 0;
++}
++
++void venc_exit(void)
++{
++	iounmap(venc.base);
++}
++
++static void venc_sync_lost_handler(void *arg, u32 mask)
++{
++	/* we just catch SYNC_LOST_DIGIT here so that
++	 * dispc doesn't take it as an error */
++}
++
++static int venc_enable_display(struct omap_display *display)
++{
++	DSSDBG("venc_enable_display\n");
++
++	mutex_lock(&venc.venc_lock);
++
++	if (display->state != OMAP_DSS_DISPLAY_DISABLED) {
++		mutex_unlock(&venc.venc_lock);
++		return -EINVAL;
++	}
++
++	venc_enable_clocks(1);
++
++	dss_set_venc_output(display->hw_config.u.venc.type);
++	dss_set_dac_pwrdn_bgz(1);
++
++	if (display->hw_config.u.venc.type == OMAP_DSS_VENC_TYPE_COMPOSITE) {
++		if (cpu_is_omap24xx())
++			venc_write_reg(VENC_OUTPUT_CONTROL, 0x2);
++		else
++			venc_write_reg(VENC_OUTPUT_CONTROL, 0xa);
++	} else { /* S-Video */
++		venc_write_reg(VENC_OUTPUT_CONTROL, 0xd);
++	}
++
++	venc_write_config(venc.config);
++
++	dispc_set_digit_size(venc.config->width, venc.config->height/2);
++
++	if (display->hw_config.panel_enable)
++		display->hw_config.panel_enable(display);
++
++	dispc_go(OMAP_DSS_CHANNEL_DIGIT);
++
++	omap_dispc_register_isr(venc_sync_lost_handler, NULL,
++			DISPC_IRQ_SYNC_LOST_DIGIT);
++
++	dispc_enable_digit_out(1);
++
++	mdelay(20);
++
++	omap_dispc_unregister_isr(venc_sync_lost_handler);
++
++	display->state = OMAP_DSS_DISPLAY_ACTIVE;
++
++	mutex_unlock(&venc.venc_lock);
++
++	return 0;
++}
++
++static void venc_disable_display(struct omap_display *display)
++{
++	DSSDBG("venc_disable_display\n");
++
++	mutex_lock(&venc.venc_lock);
++
++	if (display->state == OMAP_DSS_DISPLAY_DISABLED) {
++		mutex_unlock(&venc.venc_lock);
++		return;
++	}
++
++	venc_write_reg(VENC_OUTPUT_CONTROL, 0);
++	dss_set_dac_pwrdn_bgz(0);
++
++	dispc_enable_digit_out(0);
++
++	if (display->hw_config.panel_disable)
++		display->hw_config.panel_disable(display);
++
++	venc_enable_clocks(0);
++
++	display->state = OMAP_DSS_DISPLAY_DISABLED;
++
++	mutex_unlock(&venc.venc_lock);
++}
++
++static void venc_get_timings(struct omap_display *display,
++			struct omap_video_timings *timings)
++{
++	*timings = venc_panel.timings;
++}
++
++void venc_init_display(struct omap_display *display)
++{
++	display->panel = &venc_panel;
++	display->enable = venc_enable_display;
++	display->disable = venc_disable_display;
++	display->get_timings = venc_get_timings;
++}
 
