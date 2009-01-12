@@ -1,175 +1,46 @@
-From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Subject: RE: [PATCH 00/12] DSS: Series description
-Date: Mon, 12 Jan 2009 20:22:28 +0530
-Message-ID: <19F8576C6E063C45BE387C64729E739403ECF7099C@dbde02.ent.ti.com>
-References: <150DBBCC-0280-4B01-A365-2A2B7E2DE0E1@student.utwente.nl>
+From: "Gadiyar, Anand" <gadiyar@ti.com>
+Subject: RE: [PATCH 06/10] ARM: OMAP: Fix DMA CCR programming for request
+ line > 63
+Date: Mon, 12 Jan 2009 20:29:51 +0530
+Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB02E678260F@dbde02.ent.ti.com>
+References: <20090112144453.24205.18451.stgit@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:33714 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752323AbZALOw5 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 12 Jan 2009 09:52:57 -0500
-In-Reply-To: <150DBBCC-0280-4B01-A365-2A2B7E2DE0E1@student.utwente.nl>
+Received: from devils.ext.ti.com ([198.47.26.153]:38932 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752244AbZALPAK (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 12 Jan 2009 10:00:10 -0500
+In-Reply-To: <20090112144453.24205.18451.stgit@localhost>
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Koen Kooi <k.kooi@student.utwente.nl>, Tomi Valkeinen <tomi.valkeinen@nokia.com>
-Cc: "linux-fbdev-devel@lists.sourceforge.net" <linux-fbdev-devel@lists.sourceforge.net>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Tony Lindgren <tony@atomide.com>, "linux-arm-kernel@lists.arm.linux.org.uk" <linux-arm-kernel@lists.arm.linux.org.uk>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-
-
-Thanks,
-Vaibhav Hiremath
-
-> -----Original Message-----
-> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
-> owner@vger.kernel.org] On Behalf Of Koen Kooi
-> Sent: Monday, January 12, 2009 7:14 PM
-> To: Tomi Valkeinen
-> Cc: linux-fbdev-devel@lists.sourceforge.net; linux-
-> omap@vger.kernel.org
-> Subject: Re: [PATCH 00/12] DSS: Series description
-> 
-> 
-> Op 12 jan 2009, om 12:47 heeft Tomi Valkeinen het volgende
-> geschreven:
-> 
-> > New Display Subsystem for OMAP2/3
-> > ---------------------------------
-> >
-> > This patch set implements new Display Subsystem (DSS) for OMAP2/3
-> > processors.
-> > The DSS is still under work and these patches are for review.
-> 
-> I've tested these patches on beagleboard and omap35x EVM. The
-> beagleboard is fully functional with it, the EVM has some glitches
-> with DVI, but that might be due to differences between revisions of
-> the EVM board (or rather the PMIC + SoC daugtherboards). 
-
-[Hiremath, Vaibhav] Koen, I have also tested DVI output on EVM and facing same issues but I believe they are not because of board revisions. I have validated the DVI output with our previous (TI version of DSS library) on the same board and it comes absolutely fine. I need to dig bit more to find where exactly the issue is.
-
-> The
-> internal
-> LCD works great on the EVM, the "3 dots in the corner" problem that
-> DSS1 had is gone.
-> 
-> Summary: please merge this, for beagleboard and omap3evm there are
-> no
-> regressions, only feature additions (s-video, better pixclock, etc)
-> over the current code.
-> 
-> regards,
-> 
-> Koen
-> 
-> 
-> 
-> > This is an updated version of the patch set I sent back in
-> november:
-> > http://marc.info/?l=linux-fbdev-devel&m=122581504222406&w=2
-> >
-> > The first patch is a doc file that tries to explain a bit how the
-> > drivers work.
-> >
-> > The patch set is based on the current linux-omap tree.
-> >
-> > You can find the patches also from a git tree at
-> > http://www.bat.org/~tomba/git/linux-omap-dss.git/
-> >
-> > ---
-> >
-> > Tomi Valkeinen (12):
-> >     DSS: Hacked N810 support
-> >     DSS: Support for OMAP3 EVM board
-> >     DSS: Support for OMAP3 SDP board
-> >     DSS: Sharp LS037V7DW01 LCD Panel driver
-> >     DSS: support for Beagle Board
-> >     DSS: Add generic DVI panel
-> >     DSS: OMAPFB: fb driver for new display subsystem
-> >     DSS: DSI support
-> >     DSS: VENC support
-> >     DSS: RFBI support
-> >     DSS: Display subsystem for OMAP2/3
-> >     DSS: Documentation for DSS2
-> >
-> >
-> > Documentation/arm/OMAP/DSS                    |  270 ++
-> > arch/arm/configs/dss_omap3_beagle_defconfig   | 1437 +++++++++++
-> > arch/arm/configs/dss_omap_3430sdp_defconfig   | 1603 +++++++++++++
-> > arch/arm/mach-omap2/board-3430sdp.c           |  215 ++
-> > arch/arm/mach-omap2/board-n800.c              |  214 +-
-> > arch/arm/mach-omap2/board-omap3beagle.c       |  101 +
-> > arch/arm/mach-omap2/board-omap3evm.c          |  203 ++
-> > arch/arm/plat-omap/Kconfig                    |    2
-> > arch/arm/plat-omap/Makefile                   |    4
-> > arch/arm/plat-omap/dss/Kconfig                |   71 +
-> > arch/arm/plat-omap/dss/Makefile               |    6
-> > arch/arm/plat-omap/dss/dispc.c                | 2113
-> +++++++++++++++++
-> > arch/arm/plat-omap/dss/display.c              |  787 ++++++
-> > arch/arm/plat-omap/dss/dpi.c                  |  344 +++
-> > arch/arm/plat-omap/dss/dsi.c                  | 3187
-> ++++++++++++++++
-> > +++++++++
-> > arch/arm/plat-omap/dss/dss.c                  |  774 ++++++
-> > arch/arm/plat-omap/dss/dss.h                  |  274 ++
-> > arch/arm/plat-omap/dss/rfbi.c                 | 1262 ++++++++++
-> > arch/arm/plat-omap/dss/sdi.c                  |  174 +
-> > arch/arm/plat-omap/dss/venc.c                 |  506 ++++
-> > arch/arm/plat-omap/fb-vram.c                  |  646 +++++
-> > arch/arm/plat-omap/fb.c                       |   22
-> > arch/arm/plat-omap/include/mach/display.h     |  462 ++++
-> > arch/arm/plat-omap/include/mach/omapfb.h      |   14
-> > drivers/video/Kconfig                         |    1
-> > drivers/video/Makefile                        |    1
-> > drivers/video/omap/Kconfig                    |    5
-> > drivers/video/omap2/Kconfig                   |   62
-> > drivers/video/omap2/Makefile                  |    8
-> > drivers/video/omap2/ctrl-blizzard.c           |  279 ++
-> > drivers/video/omap2/omapfb-ioctl.c            |  460 ++++
-> > drivers/video/omap2/omapfb-main.c             | 1442 +++++++++++
-> > drivers/video/omap2/omapfb-sysfs.c            |  901 +++++++
-> > drivers/video/omap2/omapfb.h                  |  115 +
-> > drivers/video/omap2/panel-generic.c           |   97 +
-> > drivers/video/omap2/panel-n800.c              |  437 +++
-> > drivers/video/omap2/panel-sharp-ls037v7dw01.c |  109 +
-> > 37 files changed, 18537 insertions(+), 71 deletions(-)
-> > create mode 100644 Documentation/arm/OMAP/DSS
-> > create mode 100644 arch/arm/configs/dss_omap3_beagle_defconfig
-> > create mode 100644 arch/arm/configs/dss_omap_3430sdp_defconfig
-> > create mode 100644 arch/arm/plat-omap/dss/Kconfig
-> > create mode 100644 arch/arm/plat-omap/dss/Makefile
-> > create mode 100644 arch/arm/plat-omap/dss/dispc.c
-> > create mode 100644 arch/arm/plat-omap/dss/display.c
-> > create mode 100644 arch/arm/plat-omap/dss/dpi.c
-> > create mode 100644 arch/arm/plat-omap/dss/dsi.c
-> > create mode 100644 arch/arm/plat-omap/dss/dss.c
-> > create mode 100644 arch/arm/plat-omap/dss/dss.h
-> > create mode 100644 arch/arm/plat-omap/dss/rfbi.c
-> > create mode 100644 arch/arm/plat-omap/dss/sdi.c
-> > create mode 100644 arch/arm/plat-omap/dss/venc.c
-> > create mode 100644 arch/arm/plat-omap/fb-vram.c
-> > create mode 100644 arch/arm/plat-omap/include/mach/display.h
-> > create mode 100644 drivers/video/omap2/Kconfig
-> > create mode 100644 drivers/video/omap2/Makefile
-> > create mode 100644 drivers/video/omap2/ctrl-blizzard.c
-> > create mode 100644 drivers/video/omap2/omapfb-ioctl.c
-> > create mode 100644 drivers/video/omap2/omapfb-main.c
-> > create mode 100644 drivers/video/omap2/omapfb-sysfs.c
-> > create mode 100644 drivers/video/omap2/omapfb.h
-> > create mode 100644 drivers/video/omap2/panel-generic.c
-> > create mode 100644 drivers/video/omap2/panel-n800.c
-> > create mode 100644 drivers/video/omap2/panel-sharp-ls037v7dw01.c
-> >
-> > --
-> > Tomi Valkeinen
-> >
-> > --
-> > To unsubscribe from this list: send the line "unsubscribe linux-
-> > omap" in
-> > the body of a message to majordomo@vger.kernel.org
-> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> >
-
+PiAtLS0tLU9yaWdpbmFsIE1lc3NhZ2UtLS0tLQ0KPiBGcm9tOiBUb255IExpbmRncmVuIFttYWls
+dG86dG9ueUBhdG9taWRlLmNvbV0gDQo+IFNlbnQ6IE1vbmRheSwgSmFudWFyeSAxMiwgMjAwOSA4
+OjE1IFBNDQo+IFRvOiBsaW51eC1hcm0ta2VybmVsQGxpc3RzLmFybS5saW51eC5vcmcudWsNCj4g
+Q2M6IGxpbnV4LW9tYXBAdmdlci5rZXJuZWwub3JnOyBHYWRpeWFyLCBBbmFuZA0KPiBTdWJqZWN0
+OiBbUEFUQ0ggMDYvMTBdIEFSTTogT01BUDogRml4IERNQSBDQ1IgcHJvZ3JhbW1pbmcgZm9yIHJl
+cXVlc3QgbGluZSA+IDYzDQo+IA0KPiBGcm9tOiBBbmFuZCBHYWRpeWFyIDxnYWRpeWFyQHRpLmNv
+bT4NCj4gDQo+IEJ1ZyBpbiBleGlzdGluZyBjb2RlIGNhdXNlcyBzeW5jaHJvIGNvbnRyb2wgdG8g
+YmUgc2V0ICszMiBpZiByZXF1ZXN0DQo+IGxpbmUgZ3JlYXRlciB0aGFuIDYzIGlzIHVzZWQuDQo+
+IA0KPiBSZXBvcnRlZCBieSBXZW5iaWFvIFdhbmcNCj4gDQo+IFNpZ25lZC1vZmYtYnk6IEFuYW5k
+IEdhZGl5YXIgPGdhZGl5YXJAdGkuY29tPg0KPiBTaWduZWQtb2ZmLWJ5OiBUb255IExpbmRncmVu
+IDx0b255QGF0b21pZGUuY29tPg0KPiAtLS0NCj4gIGFyY2gvYXJtL3BsYXQtb21hcC9kbWEuYyB8
+ICAgIDUgKy0tLS0NCj4gIDEgZmlsZXMgY2hhbmdlZCwgMSBpbnNlcnRpb25zKCspLCA0IGRlbGV0
+aW9ucygtKQ0KPiANCj4gZGlmZiAtLWdpdCBhL2FyY2gvYXJtL3BsYXQtb21hcC9kbWEuYyBiL2Fy
+Y2gvYXJtL3BsYXQtb21hcC9kbWEuYw0KPiBpbmRleCA2OTJkMmI0Li42MTUyNTg2IDEwMDY0NA0K
+PiAtLS0gYS9hcmNoL2FybS9wbGF0LW9tYXAvZG1hLmMNCj4gKysrIGIvYXJjaC9hcm0vcGxhdC1v
+bWFwL2RtYS5jDQo+IEBAIC0yNzksMTAgKzI3OSw3IEBAIHZvaWQgb21hcF9zZXRfZG1hX3RyYW5z
+ZmVyX3BhcmFtcyhpbnQgDQo+IGxjaCwgaW50IGRhdGFfdHlwZSwgaW50IGVsZW1fY291bnQsDQo+
+ICANCj4gIAkJdmFsID0gZG1hX3JlYWQoQ0NSKGxjaCkpOw0KPiAgCQl2YWwgJj0gfigzIDw8IDE5
+KTsNCj4gLQkJaWYgKGRtYV90cmlnZ2VyID4gNjMpDQo+IC0JCQl2YWwgfD0gMSA8PCAyMDsNCj4g
+LQkJaWYgKGRtYV90cmlnZ2VyID4gMzEpDQo+IC0JCQl2YWwgfD0gMSA8PCAxOTsNCj4gKwkJdmFs
+IHw9ICgoZG1hX3RyaWdnZXIgJiB+KDB4MWYpKSA8PCAxNCk7DQo+ICANCj4gIAkJdmFsICY9IH4o
+MHgxZik7DQo+ICAJCXZhbCB8PSAoZG1hX3RyaWdnZXIgJiAweDFmKTsNCj4gDQo+IA0KPiANCg0K
+UmV2aWV3aW5nIG15IG93biBwYXRjaC4gSXMgaXQgYmV0dGVyIHRvIHVzZQ0KCQl2YWwgfD0gKChk
+bWFfdHJpZ2dlciAmIDB4NjApIDw8IDE0KSBpbnN0ZWFkPw0KDQpPciBpcyB0aGlzIGZpbmUsIGFz
+IGlzPw0KDQpUaGFua3MsDQpBbmFuZA0K
