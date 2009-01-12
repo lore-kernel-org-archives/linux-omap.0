@@ -1,48 +1,88 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 08/10] ARM: OMAP: Fix OSK ASoC by registering I2C board info
-	for tlvaic23
-Date: Mon, 12 Jan 2009 16:47:29 +0200
-Message-ID: <20090112144729.24205.37961.stgit@localhost>
+Subject: [PATCH 09/10] ARM: OMAP: Fix ASoC by enabling writes to XCCR and RCCR
+	McBSP registers
+Date: Mon, 12 Jan 2009 16:48:47 +0200
+Message-ID: <20090112144847.24205.82344.stgit@localhost>
 References: <20090112143405.24205.52151.stgit@localhost>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-bos.mailhop.org ([63.208.196.178]:50447 "EHLO
+Received: from mho-01-bos.mailhop.org ([63.208.196.178]:51857 "EHLO
 	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752204AbZALOrd (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 12 Jan 2009 09:47:33 -0500
+	with ESMTP id S1751602AbZALOsw (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 12 Jan 2009 09:48:52 -0500
 In-Reply-To: <20090112143405.24205.52151.stgit@localhost>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-arm-kernel@lists.arm.linux.org.uk
-Cc: Arun KS <arunks@mistralsolutions.com>, linux-omap@vger.kernel.org, Jarkko Nikula <jarkko.nikula@nokia.com>
+Cc: linux-omap@vger.kernel.org, Jarkko Nikula <jarkko.nikula@nokia.com>, Misael Lopez Cruz <x0052729@ti.com>
 
-From: Arun KS <arunks@mistralsolutions.com>
+From: Tony Lindgren <Lopez>
 
-Adding I2C board info is required for tlvaic23 i2c chip driver.
+This patch enables writing to McBSP Transmit Configuration Control
+Register (XCCR) and Receive Configuration Control Register (RCCR)
+for 2430/34xx platforms. It also adds XCCR, RCCR entries in McBSP
+register configuration structure and bit definitions for both
+registers.
+
+If we enable the writing to CCR registers for 2430/34xx and don't
+set the default values (setting 0 as a consequence) in ASoC driver,
+the Transmit/Receive DMA mode gets disabled and the the
+transmission/reception doesn't happen, ending with a
+"write error: Input/Output error" when playing with 'aplay'.
 
 Cc: Jarkko Nikula <jarkko.nikula@nokia.com>
-Signed-off-by: Arun KS <arunks@mistralsolutions.com>
+Signed-off-by: Misael Lopez Cruz <x0052729@ti.com>
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
- arch/arm/mach-omap1/board-osk.c |    4 +++-
- 1 files changed, 3 insertions(+), 1 deletions(-)
+ arch/arm/plat-omap/include/mach/mcbsp.h |    7 +++++++
+ arch/arm/plat-omap/mcbsp.c              |    4 ++++
+ 2 files changed, 11 insertions(+), 0 deletions(-)
 
-diff --git a/arch/arm/mach-omap1/board-osk.c b/arch/arm/mach-omap1/board-osk.c
-index ff9e67b..d17952f 100644
---- a/arch/arm/mach-omap1/board-osk.c
-+++ b/arch/arm/mach-omap1/board-osk.c
-@@ -259,8 +259,10 @@ static struct i2c_board_info __initdata osk_i2c_board_info[] = {
- 		.platform_data	= &tps_board,
+diff --git a/arch/arm/plat-omap/include/mach/mcbsp.h b/arch/arm/plat-omap/include/mach/mcbsp.h
+index 6a0d1a0..cc48f2f 100644
+--- a/arch/arm/plat-omap/include/mach/mcbsp.h
++++ b/arch/arm/plat-omap/include/mach/mcbsp.h
+@@ -231,11 +231,16 @@
+ #define XPBBLK(value)		((value)<<7)	/* Bits 7:8 */
  
- 	},
-+	{
-+		I2C_BOARD_INFO("tlv320aic23", 0x1B),
-+	},
- 	/* TODO when driver support is ready:
--	 *  - aic23 audio chip at 0x1a
- 	 *  - optionally on Mistral, ov9640 camera sensor at 0x30
- 	 */
+ /*********************** McBSP XCCR bit definitions *************************/
++#define EXTCLKGATE		0x8000
++#define PPCONNECT		0x4000
++#define DXENDLY(value)		((value)<<12)	/* Bits 12:13 */
++#define XFULL_CYCLE		0x0800
+ #define DILB			0x0020
+ #define XDMAEN			0x0008
+ #define XDISABLE		0x0001
+ 
+ /********************** McBSP RCCR bit definitions *************************/
++#define RFULL_CYCLE		0x0800
+ #define RDMAEN			0x0008
+ #define RDISABLE		0x0001
+ 
+@@ -267,6 +272,8 @@ struct omap_mcbsp_reg_cfg {
+ 	u16 rcerh;
+ 	u16 xcerg;
+ 	u16 xcerh;
++	u16 xccr;
++	u16 rccr;
  };
+ 
+ typedef enum {
+diff --git a/arch/arm/plat-omap/mcbsp.c b/arch/arm/plat-omap/mcbsp.c
+index af33fc7..f2401a8 100644
+--- a/arch/arm/plat-omap/mcbsp.c
++++ b/arch/arm/plat-omap/mcbsp.c
+@@ -173,6 +173,10 @@ void omap_mcbsp_config(unsigned int id, const struct omap_mcbsp_reg_cfg *config)
+ 	OMAP_MCBSP_WRITE(io_base, MCR2, config->mcr2);
+ 	OMAP_MCBSP_WRITE(io_base, MCR1, config->mcr1);
+ 	OMAP_MCBSP_WRITE(io_base, PCR0, config->pcr0);
++	if (cpu_is_omap2430() || cpu_is_omap34xx()) {
++		OMAP_MCBSP_WRITE(io_base, XCCR, config->xccr);
++		OMAP_MCBSP_WRITE(io_base, RCCR, config->rccr);
++	}
+ }
+ EXPORT_SYMBOL(omap_mcbsp_config);
+ 
 
