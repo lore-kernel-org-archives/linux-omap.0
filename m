@@ -1,146 +1,371 @@
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: Re: [REVIEW PATCH 08/14] OMAP: CAM: Add ISP Core
-Date: Tue, 13 Jan 2009 08:34:16 +0100
-Message-ID: <200901130834.16645.hverkuil@xs4all.nl>
-References: <A24693684029E5489D1D202277BE894416429BCC@dlee02.ent.ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <video4linux-list-bounces@redhat.com>
-In-Reply-To: <A24693684029E5489D1D202277BE894416429BCC@dlee02.ent.ti.com>
-Content-Disposition: inline
-List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
-	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
-List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
-List-Post: <mailto:video4linux-list@redhat.com>
-List-Help: <mailto:video4linux-list-request@redhat.com?subject=help>
-List-Subscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
-	<mailto:video4linux-list-request@redhat.com?subject=subscribe>
-Sender: video4linux-list-bounces@redhat.com
-Errors-To: video4linux-list-bounces@redhat.com
-To: "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>
-Cc: "video4linux-list@redhat.com" <video4linux-list@redhat.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Sakari Ailus <sakari.ailus@nokia.com>, "Tuukka.O Toivonen" <tuukka.o.toivonen@nokia.com>, "Nagalla,
-	Hari" <hnagalla@ti.com>
+From: Manikandan Pillai <mani.pillai@ti.com>
+Subject: [PATCH 1/2] Include TPS6235x based Power regulator support
+Date: Tue, 13 Jan 2009 13:11:08 +0530
+Message-ID: <1231832468-7132-1-git-send-email-mani.pillai@ti.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:51498 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757244AbZAMHlb (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 13 Jan 2009 02:41:31 -0500
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org, broonie@sirena.org.uk
+Cc: Manikandan Pillai <mani.pillai@ti.com>
 
-On Monday 12 January 2009 21:16:28 Aguirre Rodriguez, Sergio Alberto 
-wrote:
-> Hi,
->
-> > From: Hans Verkuil [mailto:hverkuil@xs4all.nl]
->
-> <snip>
->
-> > > +               {
-> > > +                       .id = V4L2_CID_PRIVATE_ISP_COLOR_FX,
-> > > +                       .type = V4L2_CTRL_TYPE_INTEGER,
-> > > +                       .name = "Color Effects",
-> >
-> > What does this do? It definitely looks like this should be a menu,
-> > not an integer control. Forcing color to B&W is something that
-> > other hardware can do as well, so I think this is a very good
-> > candidate for a generic user control, rather than driver specific.
->
-> This basically enables some common color effects on image processing:
-> - Default colors (i.e. original captured colors)
-> - Sepia colored images
-> - B&W colored images.
->
-> I think its generic enough to propose for a new generic user CID.
+This patch provides the changes required for TPS6235x power
+regulator support. The driver is put in
+drivers/regulator/tps6235x-regulator.c.
 
-Yes.
+The Kconfig and Makefile are modified for build.
+This patch should be used alongwith Patch[2/2].
 
-> Ok, so, should I keep the Private CID as a menu type ctrl by now?
+The framework for the build is included. The build will pass
+only after the remaining parts of the patches are applied.
 
-No, just propose a new control for this. Shouldn't be a problem. The 
-only suggestion that I have is that the user control has B&W as the 
-second entry rather than the third. There are more devices that can 
-choose between color and B&W, but this is the first device I know of 
-that can do sepia. Having B&W as the second entry makes it easier for 
-drivers to omit the sepia entry by just setting the max control value 
-(= menu index) to B&W.
+Comment fixed
+1 removing externs
+2 Modifying the return values
+3 Making the regulator_registration similar to other code
 
-Note that in two weeks time I'm going to merge the V4L2 specification 
-into our v4l-dvb repository. That should make it easy to add 
-documentation for this new control as well.
+Signed-off-by: Manikandan Pillai <mani.pillai@ti.com>
+---
+ drivers/regulator/Kconfig              |   10 +
+ drivers/regulator/Makefile             |    1 +
+ drivers/regulator/tps6235x-regulator.c |  295 ++++++++++++++++++++++++++++++++
+ 3 files changed, 306 insertions(+), 0 deletions(-)
+ create mode 100644 drivers/regulator/tps6235x-regulator.c
 
->
-> > > +                       .minimum = PREV_DEFAULT_COLOR,
-> > > +                       .maximum = PREV_BW_COLOR,
-> > > +                       .step = 1,
-> > > +                       .default_value = PREV_DEFAULT_COLOR,
-> > > +               },
-> > > +               .current_value = PREV_DEFAULT_COLOR,
-> > > +       }
-> > > +};
-> > > +
->
-> <snip>
->
-> > > +
-> > > +       if (((isp_obj.if_status == ISP_PARLL) && (if_t ==
-> > > ISP_CSIA)) || +                               ((isp_obj.if_status
-> > > == ISP_CSIA) && +                               (if_t ==
-> > > ISP_PARLL)) ||
-> > > +                               ((isp_obj.if_status == ISP_CSIA)
-> > > && +                               (if_t == ISP_CSIB)) ||
-> > > +                               ((isp_obj.if_status == ISP_CSIB)
-> > > && +                               (if_t == ISP_CSIA)) ||
-> > > +                               (isp_obj.if_status == 0)) {
-> >
-> > Hard to understand. Why not:
-> >
-> >        if ((isp_obj.if_status == ISP_PARLL && if_t == ISP_CSIA) ||
-> >            (isp_obj.if_status == ISP_CSIA && if_t == ISP_PARLL) ||
-> >            (isp_obj.if_status == ISP_CSIA && if_t == ISP_CSIB) ||
-> >            (isp_obj.if_status == ISP_CSIB && if_t == ISP_CSIA) ||
-> >            isp_obj.if_status == 0) {
->
-> Done
->
-> > > +               isp_obj.if_status |= if_t;
-> > > +               return 0;
-> > > +       } else {
-> > > +               DPRINTK_ISPCTRL("ISP_ERR : Invalid Combination
-> > > Serial- \ +                       Parallel interface\n");
-> > > +               return -EINVAL;
-> > > +       }
-> > > +}
-> > > +EXPORT_SYMBOL(isp_request_interface);
->
-> <snip>
->
-> > > +       /* CONTROL_ */
-> > > +       omap_writel(
-> > > +               /* CSIb receiver data/clock or data/strobe mode
-> > > */ +               (config->u.csi.signalling << 10)
-> > > +               | BIT(12)       /* Enable differential
-> > > transceiver */ +               | BIT(13)       /* Disable reset
-> > > */
-> > > +#ifdef TERM_RESISTOR
-> >
-> > What is this define? It doesn't seem to be documented.
->
-> This define is to enable/disable an OMAP34xx internal resistor for
-> CSIb (CCP2) camera port.
->
-> A comment along its declaration should be enough?
-
-Yes. But shouldn't this be a module option, perhaps? Up to you, I'm just 
-wondering.
-
-> Thanks for your time.
-
-No problem,
-
-	Hans
-
-
+diff --git a/drivers/regulator/Kconfig b/drivers/regulator/Kconfig
+index 0765389..2eee878 100644
+--- a/drivers/regulator/Kconfig
++++ b/drivers/regulator/Kconfig
+@@ -80,4 +80,14 @@ config REGULATOR_DA903X
+ 	  Say y here to support the BUCKs and LDOs regulators found on
+ 	  Dialog Semiconductor DA9030/DA9034 PMIC.
+ 
++config REGULATOR_TPS6235X
++	bool "TPS6235X Power regulator for OMAP3EVM"
++	depends on I2C=y
++	help
++	  This driver supports the voltage regulators provided by TPS6235x chips.
++	  The TPS62352 and TPS62353 are mounted on PR785 Power module card for
++	  providing voltage regulator functions. The PR785 Power board from
++	  Texas Instruments Inc is a TPS6235X based power card used with OMAP3
++	  EVM boards.
++
+ endif
+diff --git a/drivers/regulator/Makefile b/drivers/regulator/Makefile
+index 0dacb18..fdc5f5b 100644
+--- a/drivers/regulator/Makefile
++++ b/drivers/regulator/Makefile
+@@ -12,5 +12,6 @@ obj-$(CONFIG_REGULATOR_TWL4030) += twl4030-regulator.o
+ obj-$(CONFIG_REGULATOR_WM8350) += wm8350-regulator.o
+ obj-$(CONFIG_REGULATOR_WM8400) += wm8400-regulator.o
+ obj-$(CONFIG_REGULATOR_DA903X)	+= da903x.o
++obj-$(CONFIG_REGULATOR_TPS6235X)+= tps6235x-regulator.o
+ 
+ ccflags-$(CONFIG_REGULATOR_DEBUG) += -DDEBUG
+diff --git a/drivers/regulator/tps6235x-regulator.c b/drivers/regulator/tps6235x-regulator.c
+new file mode 100644
+index 0000000..13e844a
+--- /dev/null
++++ b/drivers/regulator/tps6235x-regulator.c
+@@ -0,0 +1,295 @@
++/*
++ * tps6235x-regulator.c -- support regulators in tps6235x family chips
++ *
++ * Author : Manikandan Pillai<mani.pillai@ti.com>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 2 of the License, or
++ * (at your option) any later version.
++ */
++
++#include <linux/kernel.h>
++#include <linux/module.h>
++#include <linux/init.h>
++#include <linux/err.h>
++#include <linux/platform_device.h>
++#include <linux/regulator/driver.h>
++#include <linux/regulator/machine.h>
++#include <linux/i2c.h>
++#include <linux/delay.h>
++
++int tps_6235x_read_reg(struct i2c_client *client, u8 reg, u8 *val);
++int tps_6235x_write_reg(struct i2c_client *client, u8 reg, u8 val);
++extern struct regulator_consumer_supply tps62352_core_consumers;
++extern struct regulator_consumer_supply tps62352_mpu_consumers;
++
++/* Minimum and Maximum dc-dc voltage supported by the TPS6235x devices
++All voltages given in millivolts */
++#define	TPS62352_MIN_CORE_VOLT	750
++#define	TPS62352_MAX_CORE_VOLT	1537
++#define	TPS62353_MIN_MPU_VOLT	750
++#define	TPS62353_MAX_MPU_VOLT	1537
++
++/* Register bit settings */
++#define	TPS6235X_EN_DCDC	(0x1 << 0x7)
++#define	TPS6235X_VSM_MSK	(0x3F)
++#define	TPS6235X_EN_SYN_MSK	(0x1 << 0x5)
++#define	TPS6235X_SW_VOLT_MSK	(0x1 << 0x4)
++#define	TPS6235X_PWR_OK_MSK	(0x1 << 0x5)
++#define	TPS6235X_OUT_DIS_MSK	(0x1 << 0x6)
++#define	TPS6235X_GO_MSK		(0x1 << 0x7)
++
++#define	MODULE_NAME		"tps_6235x_pwr"
++/*
++ * These chips are often used in OMAP-based systems.
++ *
++ * This driver implements software-based resource control for various
++ * voltage regulators.  This is usually augmented with state machine
++ * based control.
++ */
++
++/* LDO control registers ... offset is from the base of its register bank.
++ * The first three registers of all power resource banks help hardware to
++ * manage the various resource groups.
++ */
++
++#define	TPS6235X_REG_VSEL0	0
++#define	TPS6235X_REG_VSEL1	1
++#define	TPS6235X_REG_CTRL1	2
++#define	TPS6235X_REG_CTRL2	3
++
++/* Device addresses for TPS devices */
++#define	TPS_62352_CORE_ADDR	0x4A
++#define	TPS_62353_MPU_ADDR	0x48
++
++int omap_i2c_match_child(struct device *dev, void *data);
++
++static int tps6235x_dcdc_is_enabled(struct regulator_dev *dev)
++{
++	unsigned char vsel1;
++	int ret;
++	struct i2c_client *tps_info	=
++			rdev_get_drvdata(dev);
++	ret = tps_6235x_read_reg(tps_info, TPS6235X_REG_VSEL1, &vsel1);
++	ret &= TPS6235X_EN_DCDC;
++	if (ret)
++		return 1;
++	else
++		return 0;
++}
++
++static int tps6235x_dcdc_enable(struct regulator_dev *dev)
++{
++	unsigned char vsel1;
++	int ret;
++
++	struct i2c_client *client = rdev_get_drvdata(dev);
++
++	ret = tps_6235x_read_reg(client, TPS6235X_REG_VSEL1, &vsel1);
++	if (ret == 0) {
++		vsel1 |= TPS6235X_EN_DCDC;
++		ret = tps_6235x_write_reg(client, TPS6235X_REG_VSEL1, vsel1);
++	}
++	return ret;
++}
++
++static int tps6235x_dcdc_disable(struct regulator_dev *dev)
++{
++	unsigned char vsel1;
++	int ret;
++	struct	i2c_client *client = rdev_get_drvdata(dev);
++
++	ret = tps_6235x_read_reg(client, TPS6235X_REG_VSEL1, &vsel1);
++	if (ret == 0) {
++		vsel1 &= ~(TPS6235X_EN_DCDC);
++		ret = tps_6235x_write_reg(client, TPS6235X_REG_VSEL1, vsel1);
++	}
++	return ret;
++}
++
++static int tps6235x_dcdc_get_voltage(struct regulator_dev *dev)
++{
++	struct	i2c_client *tps_info = rdev_get_drvdata(dev);
++	unsigned char vsel1;
++	unsigned int volt;
++
++	/* Read the VSEL1 register to get VSM */
++	tps_6235x_read_reg(tps_info, TPS6235X_REG_VSEL1, &vsel1);
++	/* Output voltage set is = min_op_volt + ( VSM * 12.5mv) */
++	/* To cut out floating point operation we will multiply by 25
++	divide by 2 */
++	volt = (((vsel1 & TPS6235X_VSM_MSK) * 25) / 2) + TPS62352_MIN_CORE_VOLT;
++
++	return volt * 1000;
++}
++
++static int tps6235x_dcdc_set_voltage(struct regulator_dev *dev,
++				int min_uV, int max_uV)
++{
++	unsigned char vsel1;
++	unsigned int volt;
++	struct	i2c_client *tps_info = rdev_get_drvdata(dev);
++	unsigned int millivolts = min_uV / 1000;
++
++	/* check if the millivolts is within range */
++	if ((millivolts < TPS62352_MIN_CORE_VOLT) ||
++		(millivolts > TPS62352_MAX_CORE_VOLT))
++		return -EINVAL;
++
++	/* Output voltage set is = min_op_volt + ( VSM * 12.5mv) */
++	volt = millivolts - TPS62352_MIN_CORE_VOLT;
++	volt /= 25;
++	volt *= 2;
++	vsel1 = ((TPS6235X_EN_DCDC) | (volt & TPS6235X_VSM_MSK));
++	tps_6235x_write_reg(tps_info, TPS6235X_REG_VSEL1, vsel1);
++	return 0;
++}
++
++static struct regulator_ops tps62352_dcdc_ops = {
++	.is_enabled = tps6235x_dcdc_is_enabled,
++	.get_voltage = tps6235x_dcdc_get_voltage,
++	.set_voltage = tps6235x_dcdc_set_voltage,
++};
++
++static struct regulator_ops tps62353_dcdc_ops = {
++	.is_enabled = tps6235x_dcdc_is_enabled,
++	.enable = tps6235x_dcdc_enable,
++	.disable = tps6235x_dcdc_disable,
++	.get_voltage = tps6235x_dcdc_get_voltage,
++	.set_voltage = tps6235x_dcdc_set_voltage,
++};
++
++static struct regulator_desc regulators[] = {
++	{
++		.name = "tps62352",
++		.id = 2,
++		.ops = &tps62352_dcdc_ops,
++		.type = REGULATOR_VOLTAGE,
++		.owner = THIS_MODULE,
++	},
++	{
++		.name = "tps62353",
++		.id = 3,
++		.ops = &tps62353_dcdc_ops,
++		.type = REGULATOR_VOLTAGE,
++		.owner = THIS_MODULE,
++	},
++};
++
++static const char *regulator_consumer_name[] = {
++			"vdd2",
++			"vdd1",
++};
++
++static
++int tps_6235x_probe(struct i2c_client *client, const struct i2c_device_id *id)
++{
++	struct  regulator_dev           *rdev = NULL;
++	unsigned char reg_val;
++	struct device *dev_child = NULL;
++
++	tps_6235x_read_reg(client, TPS6235X_REG_CTRL2, &reg_val);
++	reg_val |= (TPS6235X_OUT_DIS_MSK | TPS6235X_GO_MSK);
++	tps_6235x_write_reg(client, TPS6235X_REG_CTRL2, reg_val);
++	tps_6235x_read_reg(client, TPS6235X_REG_CTRL2, &reg_val);
++
++	if (reg_val & TPS6235X_PWR_OK_MSK)
++		dev_dbg(&client->dev, "Power is OK  %x\n", reg_val);
++	else {
++		dev_dbg(&client->dev, "Power not in range = %x\n", reg_val);
++		return -EIO;
++	}
++
++	/* Register the regulators */
++	dev_child = device_find_child(client->adapter->dev.parent,
++			(void *)regulator_consumer_name[id->driver_data],
++			omap_i2c_match_child);
++	rdev = regulator_register(&regulators[id->driver_data],
++			dev_child, client);
++
++	if (IS_ERR(rdev)) {
++		dev_err(dev_child, "failed to register %s\n",
++			regulator_consumer_name[id->driver_data]);
++		return PTR_ERR(rdev);
++	}
++
++	/* Set the regulator platform data for unregistration later on */
++	i2c_set_clientdata(client, rdev);
++
++	return 0;
++}
++
++/**
++ * tps_6235x_remove - TPS6235x driver i2c remove handler
++ * @client: i2c driver client device structure
++ *
++ * Unregister  TPS driver as an i2c client device driver
++ */
++static int __exit tps_6235x_remove(struct i2c_client *client)
++{
++	struct  regulator_dev   *rdev = NULL;
++
++	if (!client->adapter)
++		return -ENODEV; /* our client isn't attached */
++
++	rdev = (struct  regulator_dev *)i2c_get_clientdata(client);
++	regulator_unregister(rdev);
++	/* clear the client data in i2c */
++	i2c_set_clientdata(client, NULL);
++
++	return 0;
++}
++
++static const struct i2c_device_id tps_6235x_id[] = {
++	{ "tps62352", 0},
++	{ "tps62353", 1},
++	{},
++};
++
++MODULE_DEVICE_TABLE(i2c, tps_6235x_id);
++
++static struct i2c_driver tps_6235x_i2c_driver = {
++	.driver = {
++		.name	=	MODULE_NAME,
++		.owner	=	THIS_MODULE,
++	},
++	.probe		= tps_6235x_probe,
++	.remove		= __exit_p(tps_6235x_remove),
++	.id_table	= tps_6235x_id,
++};
++
++/**
++ * tps_6235x_init
++ *
++ * Module init function
++ */
++static int __init tps_6235x_init(void)
++{
++	int err;
++
++	err = i2c_add_driver(&tps_6235x_i2c_driver);
++	if (err) {
++		printk(KERN_ERR "Failed to register " MODULE_NAME ".\n");
++		return err;
++	}
++	return 0;
++}
++
++
++/**
++ * tps_6235x_cleanup
++ *
++ * Module exit function
++ */
++static void __exit tps_6235x_cleanup(void)
++{
++	i2c_del_driver(&tps_6235x_i2c_driver);
++}
++
++late_initcall(tps_6235x_init);
++module_exit(tps_6235x_cleanup);
++
++MODULE_AUTHOR("Texas Instruments");
++MODULE_DESCRIPTION("TPS6235x based linux driver");
++MODULE_LICENSE("GPL");
 -- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG
+1.5.6
 
---
-video4linux-list mailing list
-Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
-https://www.redhat.com/mailman/listinfo/video4linux-list
