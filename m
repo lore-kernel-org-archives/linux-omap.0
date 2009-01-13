@@ -1,117 +1,125 @@
-From: "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>
-Subject: [OMAPZOOM][PATCH] OMAP34XXCAM: PM: Fix ifdefs to CONFIG_OMAP3_PM
-Date: Tue, 13 Jan 2009 10:16:15 -0600
-Message-ID: <A24693684029E5489D1D202277BE8944164DF3B2@dlee02.ent.ti.com>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: [PATCH 0/7] OMAP2/3 clock: implement clock rate change notifiers
+Date: Tue, 13 Jan 2009 09:01:50 -0800
+Message-ID: <87ab9vkum9.fsf@deeprootsystems.com>
+References: <20081223101116.22979.53805.stgit@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:58801 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751914AbZAMQQW convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 13 Jan 2009 11:16:22 -0500
-Received: from dlep95.itg.ti.com ([157.170.170.107])
-	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id n0DGGG8t008583
-	for <linux-omap@vger.kernel.org>; Tue, 13 Jan 2009 10:16:22 -0600
-Received: from dlee75.ent.ti.com (localhost [127.0.0.1])
-	by dlep95.itg.ti.com (8.13.8/8.13.8) with ESMTP id n0DGGGbh020894
-	for <linux-omap@vger.kernel.org>; Tue, 13 Jan 2009 10:16:16 -0600 (CST)
-Content-Language: en-US
+Received: from wa-out-1112.google.com ([209.85.146.177]:2625 "EHLO
+	wa-out-1112.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754262AbZAMRBz (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 13 Jan 2009 12:01:55 -0500
+Received: by wa-out-1112.google.com with SMTP id v27so45926wah.21
+        for <linux-omap@vger.kernel.org>; Tue, 13 Jan 2009 09:01:54 -0800 (PST)
+In-Reply-To: <20081223101116.22979.53805.stgit@localhost.localdomain> (Paul Walmsley's message of "Tue\, 23 Dec 2008 03\:13\:49 -0700")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
-Cc: "Pandita, Vikram" <vikram.pandita@ti.com>
+To: Paul Walmsley <paul@pwsan.com>
+Cc: linux-omap@vger.kernel.org
 
->From 61698ca9a061f99c8f1d970a0a13c6f4d61b8e61 Mon Sep 17 00:00:00 2001
-From: Sergio Aguirre <saaguirre@ti.com>
-Date: Tue, 13 Jan 2009 10:06:49 -0600
-Subject: [PATCH] OMAP34XXCAM: PM: Fix ifdefs to CONFIG_OMAP3_PM
+Paul Walmsley <paul@pwsan.com> writes:
 
-This patch fixes ifdef checking around PM constraints for
-OMAP3. This fixes compilation without TI PM.
+> Hello,
+>
+> This series implements a clock rate change notifier for OMAP2/3 [1].
+> It applies on top of the "OMAP clock: bug fixes, cleanup,
+> optimization" series posted to linux-omap on Mon, 22 Dec 2008.
 
-Signed-off-by: Sergio Aguirre <saaguirre@ti.com>
-Reported-by: Anand Gadiyar <gadiyar@ti.com>
----
- drivers/media/video/omap34xxcam.c |   16 ++++++++--------
- 1 files changed, 8 insertions(+), 8 deletions(-)
+Now that the 'buf fixes, cleanup' series is now in linux-omap, I'll pull 
+this series into the PM branch for more testing.
 
-diff --git a/drivers/media/video/omap34xxcam.c b/drivers/media/video/omap34xxcam.c
-index 818ec6e..43eeb1c 100644
---- a/drivers/media/video/omap34xxcam.c
-+++ b/drivers/media/video/omap34xxcam.c
-@@ -34,7 +34,7 @@
- #include <media/v4l2-common.h>
- #include <media/v4l2-ioctl.h>
- 
--#ifdef CONFIG_PM
-+#ifdef CONFIG_OMAP3_PM
- #include <mach/resource.h>
- #endif
- 
-@@ -48,7 +48,7 @@
- /* global variables */
- static struct omap34xxcam_device *omap34xxcam;
- 
--#ifdef CONFIG_PM
-+#ifdef CONFIG_OMAP3_PM
- 	struct constraint_handle *co_opp_camera_vdd1;
- 	struct constraint_handle *co_opp_camera_vdd2;
- 	struct constraint_handle *co_opp_camera_latency;
-@@ -61,7 +61,7 @@ static int omap34xxcam_remove(struct platform_device *pdev);
- struct omap34xxcam_fh *camfh_saved;
- 
- /* constraint */
--#ifdef CONFIG_PM
-+#ifdef CONFIG_OMAP3_PM
- 	static struct constraint_id cnstr_id_vdd1 = {
- 		.type = RES_OPP_CO,
- 		.data = (void *)"vdd1_opp",
-@@ -725,7 +725,7 @@ static int vidioc_streamon(struct file *file, void *fh, enum v4l2_buf_type i)
- 	isp_af_notify(0);
- 	isp_sgdma_init();
- 
--#ifdef CONFIG_PM
-+#ifdef CONFIG_OMAP3_PM
- 	if (system_rev >= OMAP3430_REV_ES2_0) {
- 		if (ofh->pix.width >= 640 && ofh->pix.height >= 480) {
- 			/* Setting constraint for VDD1 */
-@@ -786,7 +786,7 @@ static int vidioc_streamoff(struct file *file, void *fh, enum v4l2_buf_type i)
- 
- 	omap34xxcam_slave_power_set(vdev, V4L2_POWER_STANDBY);
- 
--#ifdef CONFIG_PM
-+#ifdef CONFIG_OMAP3_PM
- 	if (system_rev >= OMAP3430_REV_ES2_0) {
- 		if (ofh->pix.width >= 640 && ofh->pix.height >= 480) {
- 			/* Removing constraint for VDD1 */
-@@ -1456,7 +1456,7 @@ static int omap34xxcam_release(struct inode *inode, struct file *file)
- 	}
- 	mutex_unlock(&vdev->mutex);
- 
--#ifdef CONFIG_PM
-+#ifdef CONFIG_OMAP3_PM
- 	if (system_rev >= OMAP3430_REV_ES2_0) {
- 		if (remove_constraints) {
- 			if (fh->pix.width >= 640 && fh->pix.height >= 480) {
-@@ -1828,7 +1828,7 @@ static int omap34xxcam_probe(struct platform_device *pdev)
- 
- 	omap34xxcam = cam;
- 
--#ifdef CONFIG_PM
-+#ifdef CONFIG_OMAP3_PM
- 	if (system_rev >= OMAP3430_REV_ES2_0) {
- 		/* Getting constraint for VDD1 and VDD2 */
- 		co_opp_camera_latency = constraint_get("omap34xxcam",
-@@ -1882,7 +1882,7 @@ static int omap34xxcam_remove(struct platform_device *pdev)
- 		cam->mmio_base_phys = 0;
- 	}
- 
--#ifdef CONFIG_PM
-+#ifdef CONFIG_OMAP3_PM
- 	if (system_rev >= OMAP3430_REV_ES2_0) {
- 		constraint_put(co_opp_camera_vdd1);
- 		constraint_put(co_opp_camera_vdd2);
--- 
-1.5.6.5
+Kevin
 
+> (The notes below assume that the notifiers are used by device drivers;
+> however, they are also usable by core code.)
+>
+> The clock notifier is called for both rate and parent changes, and
+> is called even when the current rate is the same as the future rate,
+> in the event that the reprogramming causes a glitch.
+>
+> A single notifier is defined, with four types of messages:
+>
+> CLK_PREPARE_RATE_CHANGE: Used to ask the driver whether a rate
+>    change is OK to complete.  When drivers receive this message,
+>    they should start any actions that must complete before a
+>    rate change can succeed.
+>
+> CLK_ABORT_RATE_CHANGE: Indicates that a notifier callback
+>    has aborted the rate change, or that the clock rate/parent
+>    change function has failed.  Upon receipt of this message,
+>    drivers can 
+>
+> CLK_PRE_RATE_CHANGE: Indicates that the rate/parent change is about
+>    to take place. The callback must not return until the driver
+>    is ready for the change.
+>
+> CLK_POST_RATE_CHANGE: Indicates that the rate/parent change has
+>    successfully completed.
+>
+> ...
+>
+> There are three possible sequences of notifier messages that a driver
+> can receive:
+>
+> PREPARE -> PRE -> POST: 
+>    Successful rate/parent change.
+>
+> PREPARE -> ABORT: 
+>    Rate/parent change aborted by one of the callbacks.
+>
+> PREPARE -> PRE -> ABORT
+>    Rate/parent change aborted by the clock's set_rate()/set_parent()
+>    functions.
+>
+> ...
+>
+> If clock notifier callbacks are expected to abort clock changes, they
+> probably should not be used as the only method for aborting changes.
+> The clk_set_rate() or clk_set_parent() functions will return -EAGAIN
+> if a driver aborts the change.  Higher-level code such as CPUFreq may
+> attempt to call the function repeatedly, pointlessly burning CPU
+> cycles.  In these situations, application code or system daemons
+> must also be used to prevent the frequency change from reaching the
+> clock code when it is expected to fail for long durations.
+>
+> Callbacks are called with the clock framework spinlock held.  Callback
+> code should be extremely fast and lightweight and must not call back
+> into the clock framework.
+>
+> Since support for clock notifiers currently does not exist in
+> include/linux/clk.h, drivers that wish to use them should pass
+> function pointers for clk_notifier_register() and
+> clk_notifier_unregister() via their platform_data structs.
+>
+> Please note that these patches have only been lightly tested.  Further
+> testing is ongoing; help always appreciated.
+>
+> Compile-tested on OMAP1.  Boot-tested on N800.  Notifier callback
+> tested on 3430SDP GP ES2.1.
+>
+> - Paul
+>
+> --
+>
+> 1, There's no technical reason why these can't also be implemented for
+> OMAP1.  I just don't have a convenient way to test OMAP1 builds at the
+> moment.
+>
+>
+> size:
+>    text    data     bss     dec     hex filename
+> 3582501  190928  108824 3882253  3b3d0d vmlinux.3430sdp.orig
+> 3583605  191824  108824 3884253  3b44dd vmlinux.3430sdp.patched
+>
+> diffstat:
+>  arch/arm/mach-omap2/clock.c             |   69 +++++++++--
+>  arch/arm/plat-omap/clock.c              |  203 +++++++++++++++++++++++++++++++
+>  arch/arm/plat-omap/include/mach/clock.h |   83 +++++++++++++
+>  3 files changed, 346 insertions(+), 9 deletions(-)
+>
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
