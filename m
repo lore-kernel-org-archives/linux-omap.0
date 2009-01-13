@@ -1,71 +1,53 @@
-From: "Gupta, Ajay Kumar" <ajay.gupta@ti.com>
-Subject: RE: [PATCH v2] usb: musb: fix bug in musbhsdma programming
-Date: Tue, 13 Jan 2009 10:01:52 +0530
-Message-ID: <19F8576C6E063C45BE387C64729E739403ECF70A33@dbde02.ent.ti.com>
-References: <1231475946-6810-1-git-send-email-ajay.gupta@ti.com>
- <20090112222649.GL25493@frodo>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: PM branch and cpufreq
+Date: Mon, 12 Jan 2009 20:33:57 -0800
+Message-ID: <878wpfn7t6.fsf@deeprootsystems.com>
+References: <F8E71D7D-92CC-4E6D-92F0-21BD8E9C432D@student.utwente.nl>
+	<D1986163-A086-4798-A1D7-0A5E93984C21@student.utwente.nl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:51757 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753375AbZAMEdL convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 12 Jan 2009 23:33:11 -0500
-In-Reply-To: <20090112222649.GL25493@frodo>
-Content-Language: en-US
+Received: from yw-out-2324.google.com ([74.125.46.29]:15806 "EHLO
+	yw-out-2324.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753688AbZAMEeB (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 12 Jan 2009 23:34:01 -0500
+Received: by yw-out-2324.google.com with SMTP id 9so3570542ywe.1
+        for <linux-omap@vger.kernel.org>; Mon, 12 Jan 2009 20:34:00 -0800 (PST)
+In-Reply-To: <D1986163-A086-4798-A1D7-0A5E93984C21@student.utwente.nl> (Koen Kooi's message of "Mon\, 12 Jan 2009 08\:16\:10 +0100")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "me@felipebalbi.com" <me@felipebalbi.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "david-b@pacbell.net" <david-b@pacbell.net>, "felipe.balbi@nokia.com" <felipe.balbi@nokia.com>
+To: Koen Kooi <k.kooi@student.utwente.nl>
+Cc: "linux-omap@vger.kernel.org List" <linux-omap@vger.kernel.org>
 
-> -----Original Message-----
-> From: Felipe Balbi [mailto:me@felipebalbi.com]
-> Sent: Tuesday, January 13, 2009 3:57 AM
-> To: Gupta, Ajay Kumar
-> Cc: linux-omap@vger.kernel.org; david-b@pacbell.net; felipe.balbi@nokia.com
-> Subject: Re: [PATCH v2] usb: musb: fix bug in musbhsdma programming
-> 
-> On Fri, Jan 09, 2009 at 10:09:06AM +0530, Ajay Kumar Gupta wrote:
-> > Mode bit should be set based on function parameter "mode" of
-> > configure_channel() function.
-> >
-> > Signed-off-by: Ajay Kumar Gupta <ajay.gupta@ti.com>
-> 
-> Acked-by: Felipe Balbi <felipe.balbi@nokia.com>
-> 
-> > ---
-> > Original version of this patch is at,
-> > http://marc.info/?l=linux-usb&m=123141793611158&w=2
-> 
-> tony, this should go to l-o
+Koen Kooi <k.kooi@student.utwente.nl> writes:
 
-Tony, 
+> Op 11 jan 2009, om 19:53 heeft Koen Kooi het volgende geschreven:
+>
+>> Hi,
+>>
+>> I was trying to get cpufreq going on beagleboard
+>> (http://cgit.openembedded.net/cgit.cgi?url=openembedded/blob/&id=f56b27781d810dcca0a9946cfd2524c36b7a49c0&path=packages/linux/linux-omap-pm/beagle-cpufreq.diff
+>> ) and I ran into a few issues;
+>>
+>> * pm-prev branch: SD card doesn't initialize, and my rootfs is in SD
+>
+> SD *does* initialize, but 'rootwait' doesn't work, booting from a
+> ubifs volume in nand works and udev automounts my SD card. Cpufreq
+> isn't working, so I still need advice on that :)
 
-Please use below version refreshed against latest l-o git.
+pm-next isn't supposed to work. ;) It is work in progress.  Once it's
+ready it will become 'pm'.
 
--Ajay
-=========================== cut here ======================================
-Mode bit should be set based on function parameter "mode" of
-configure_channel() function.
+Re: SD/MMC problem I see the same problem in linux-omap HEAD where
+rootwait doesn't seem to work, so at least the 'rootwait' problem
+think is not PM branch related.
 
-Signed-off-by: Ajay Kumar Gupta <ajay.gupta@ti.com>
-Acked-by: Felipe Balbi <felipe.balbi@nokia.com>
----
- drivers/usb/musb/musbhsdma.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+Re: CPUfreq on Beagle.  I haven't done any testing of CPUfreq on
+beagle.  AFAICT, the OPP definitions are not being defined for Beagle.
+That would explain no availabe operating points.
 
-diff --git a/drivers/usb/musb/musbhsdma.c b/drivers/usb/musb/musbhsdma.c index 75b15ce..4394bd3 100644
---- a/drivers/usb/musb/musbhsdma.c
-+++ b/drivers/usb/musb/musbhsdma.c
-@@ -136,7 +136,7 @@ static void configure_channel(struct dma_channel *channel,
- 		csr |= MUSB_HSDMA_BURSTMODE_INCR4;
- 
- 	csr |= (musb_channel->epnum << MUSB_HSDMA_ENDPOINT_SHIFT)
--		| MUSB_HSDMA_MODE1
-+		| (mode ? MUSB_HSDMA_MODE1 : 0)
- 		| MUSB_HSDMA_ENABLE
- 		| MUSB_HSDMA_IRQENABLE
- 		| (musb_channel->transmit
---
-1.5.6
+These are board specific settings.  You could start by looking at the
+*_rate_table definitions in board-3430sdp.c.
+
+Kevin
+
