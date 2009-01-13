@@ -1,63 +1,117 @@
-From: "Anuj Aggarwal" <anuj.aggarwal@gmail.com>
-Subject: Re: v2.6.28-omap1 tagged, some bugs remain
-Date: Tue, 13 Jan 2009 21:07:34 +0530
-Message-ID: <2ee9e08d0901130737k74448d8fua04881f374b227cc@mail.gmail.com>
-References: <20090112145051.GL9373@atomide.com>
-	 <B5CEECBB-9939-46B9-BEDB-D8D9879DB63E@student.utwente.nl>
-	 <20090112161514.GP9373@atomide.com>
-	 <20090113090801.3a575b89.jarkko.nikula@nokia.com>
+From: "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>
+Subject: [OMAPZOOM][PATCH] OMAP34XXCAM: PM: Fix ifdefs to CONFIG_OMAP3_PM
+Date: Tue, 13 Jan 2009 10:16:15 -0600
+Message-ID: <A24693684029E5489D1D202277BE8944164DF3B2@dlee02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from yw-out-2324.google.com ([74.125.46.31]:24563 "EHLO
-	yw-out-2324.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751309AbZAMPhg (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 13 Jan 2009 10:37:36 -0500
-Received: by yw-out-2324.google.com with SMTP id 9so26900ywe.1
-        for <linux-omap@vger.kernel.org>; Tue, 13 Jan 2009 07:37:35 -0800 (PST)
-In-Reply-To: <20090113090801.3a575b89.jarkko.nikula@nokia.com>
-Content-Disposition: inline
+Received: from comal.ext.ti.com ([198.47.26.152]:58801 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751914AbZAMQQW convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 13 Jan 2009 11:16:22 -0500
+Received: from dlep95.itg.ti.com ([157.170.170.107])
+	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id n0DGGG8t008583
+	for <linux-omap@vger.kernel.org>; Tue, 13 Jan 2009 10:16:22 -0600
+Received: from dlee75.ent.ti.com (localhost [127.0.0.1])
+	by dlep95.itg.ti.com (8.13.8/8.13.8) with ESMTP id n0DGGGbh020894
+	for <linux-omap@vger.kernel.org>; Tue, 13 Jan 2009 10:16:16 -0600 (CST)
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Jarkko Nikula <jarkko.nikula@nokia.com>
-Cc: ext Tony Lindgren <tony@atomide.com>, Koen Kooi <k.kooi@student.utwente.nl>, "linux-omap@vger.kernel.org List" <linux-omap@vger.kernel.org>
+To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Cc: "Pandita, Vikram" <vikram.pandita@ti.com>
 
-I tried ASoC by removing the commit "ARM: OMAP3: Mask interrupts when
-disabling interrupts" (023ae898bbbed8c2bc4d38bfbd05d2fee91c3468) and
-audio worked fine for me.
+>From 61698ca9a061f99c8f1d970a0a13c6f4d61b8e61 Mon Sep 17 00:00:00 2001
+From: Sergio Aguirre <saaguirre@ti.com>
+Date: Tue, 13 Jan 2009 10:06:49 -0600
+Subject: [PATCH] OMAP34XXCAM: PM: Fix ifdefs to CONFIG_OMAP3_PM
 
-Regards,
-Anuj
+This patch fixes ifdef checking around PM constraints for
+OMAP3. This fixes compilation without TI PM.
 
-On Tue, Jan 13, 2009 at 12:38 PM, Jarkko Nikula <jarkko.nikula@nokia.com> wrote:
->
-> On Mon, 12 Jan 2009 18:15:20 +0200
-> "ext Tony Lindgren" <tony@atomide.com> wrote:
->
-> > >> - According to Jarkko Nikula, ASoC does not currently work because of
-> > >>  some recent clock changes.
-> > >
-> > > Confirmed on omap3evm.
-> >
-> > Thanks, can you try to git-bisect the breaking commit?
-> >
-> I did very short test on sunday and it was working at least when
-> checkouting into 12081fce83c10221ccd1b282e3e2fbe56f742e21, i.e. commit
-> before 60b8b431e47d8c5b8c02a2e4fa9af388aae20790 which was mentioned in
-> the commit 818862e11bad091dc635baedace58265a126b5c8 :-)
->
-> Paul was going to take a look tomorrow.
->
->
-> Jarkko
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Signed-off-by: Sergio Aguirre <saaguirre@ti.com>
+Reported-by: Anand Gadiyar <gadiyar@ti.com>
+---
+ drivers/media/video/omap34xxcam.c |   16 ++++++++--------
+ 1 files changed, 8 insertions(+), 8 deletions(-)
 
+diff --git a/drivers/media/video/omap34xxcam.c b/drivers/media/video/omap34xxcam.c
+index 818ec6e..43eeb1c 100644
+--- a/drivers/media/video/omap34xxcam.c
++++ b/drivers/media/video/omap34xxcam.c
+@@ -34,7 +34,7 @@
+ #include <media/v4l2-common.h>
+ #include <media/v4l2-ioctl.h>
+ 
+-#ifdef CONFIG_PM
++#ifdef CONFIG_OMAP3_PM
+ #include <mach/resource.h>
+ #endif
+ 
+@@ -48,7 +48,7 @@
+ /* global variables */
+ static struct omap34xxcam_device *omap34xxcam;
+ 
+-#ifdef CONFIG_PM
++#ifdef CONFIG_OMAP3_PM
+ 	struct constraint_handle *co_opp_camera_vdd1;
+ 	struct constraint_handle *co_opp_camera_vdd2;
+ 	struct constraint_handle *co_opp_camera_latency;
+@@ -61,7 +61,7 @@ static int omap34xxcam_remove(struct platform_device *pdev);
+ struct omap34xxcam_fh *camfh_saved;
+ 
+ /* constraint */
+-#ifdef CONFIG_PM
++#ifdef CONFIG_OMAP3_PM
+ 	static struct constraint_id cnstr_id_vdd1 = {
+ 		.type = RES_OPP_CO,
+ 		.data = (void *)"vdd1_opp",
+@@ -725,7 +725,7 @@ static int vidioc_streamon(struct file *file, void *fh, enum v4l2_buf_type i)
+ 	isp_af_notify(0);
+ 	isp_sgdma_init();
+ 
+-#ifdef CONFIG_PM
++#ifdef CONFIG_OMAP3_PM
+ 	if (system_rev >= OMAP3430_REV_ES2_0) {
+ 		if (ofh->pix.width >= 640 && ofh->pix.height >= 480) {
+ 			/* Setting constraint for VDD1 */
+@@ -786,7 +786,7 @@ static int vidioc_streamoff(struct file *file, void *fh, enum v4l2_buf_type i)
+ 
+ 	omap34xxcam_slave_power_set(vdev, V4L2_POWER_STANDBY);
+ 
+-#ifdef CONFIG_PM
++#ifdef CONFIG_OMAP3_PM
+ 	if (system_rev >= OMAP3430_REV_ES2_0) {
+ 		if (ofh->pix.width >= 640 && ofh->pix.height >= 480) {
+ 			/* Removing constraint for VDD1 */
+@@ -1456,7 +1456,7 @@ static int omap34xxcam_release(struct inode *inode, struct file *file)
+ 	}
+ 	mutex_unlock(&vdev->mutex);
+ 
+-#ifdef CONFIG_PM
++#ifdef CONFIG_OMAP3_PM
+ 	if (system_rev >= OMAP3430_REV_ES2_0) {
+ 		if (remove_constraints) {
+ 			if (fh->pix.width >= 640 && fh->pix.height >= 480) {
+@@ -1828,7 +1828,7 @@ static int omap34xxcam_probe(struct platform_device *pdev)
+ 
+ 	omap34xxcam = cam;
+ 
+-#ifdef CONFIG_PM
++#ifdef CONFIG_OMAP3_PM
+ 	if (system_rev >= OMAP3430_REV_ES2_0) {
+ 		/* Getting constraint for VDD1 and VDD2 */
+ 		co_opp_camera_latency = constraint_get("omap34xxcam",
+@@ -1882,7 +1882,7 @@ static int omap34xxcam_remove(struct platform_device *pdev)
+ 		cam->mmio_base_phys = 0;
+ 	}
+ 
+-#ifdef CONFIG_PM
++#ifdef CONFIG_OMAP3_PM
+ 	if (system_rev >= OMAP3430_REV_ES2_0) {
+ 		constraint_put(co_opp_camera_vdd1);
+ 		constraint_put(co_opp_camera_vdd2);
+-- 
+1.5.6.5
 
-
---
-Best Regards,
-Anuj Aggarwal
