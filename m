@@ -1,68 +1,54 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [REVIEW PATCH 05/14] OMAP: CAM: Add ISP Front end
-Date: Tue, 13 Jan 2009 12:42:51 +0200
-Message-ID: <20090113104251.GC7344@atomide.com>
-References: <A24693684029E5489D1D202277BE894416429F9B@dlee02.ent.ti.com>
+From: David Brownell <david-b@pacbell.net>
+Subject: [patch omap-git] hsmmc: card detect irq bugfix
+Date: Tue, 13 Jan 2009 02:49:48 -0800
+Message-ID: <200901130249.48729.david-b@pacbell.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-media-owner@vger.kernel.org>
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from smtp120.sbc.mail.sp1.yahoo.com ([69.147.64.93]:20224 "HELO
+	smtp120.sbc.mail.sp1.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1750891AbZAMKtu (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Tue, 13 Jan 2009 05:49:50 -0500
 Content-Disposition: inline
-In-Reply-To: <A24693684029E5489D1D202277BE894416429F9B@dlee02.ent.ti.com>
-Sender: linux-media-owner@vger.kernel.org
-To: "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>, "video4linux-list@redhat.com" <video4linux-list@redhat.com>, Sakari Ailus <sakari.ailus@nokia.com>, "Tuukka.O Toivonen" <tuukka.o.toivonen@nokia.com>, "Nagalla, Hari" <hnagalla@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
 
-* Aguirre Rodriguez, Sergio Alberto <saaguirre@ti.com> [090113 04:04]:
-> This adds the OMAP ISP Front end modules to the kernel. Includes:
-> * ISP CCDC Driver
-> 
-> Signed-off-by: Sergio Aguirre <saaguirre@ti.com>
-> ---
->  drivers/media/video/isp/ispccdc.c | 1488 +++++++++++++++++++++++++++++++++++++
->  drivers/media/video/isp/ispccdc.h |  200 +++++
->  2 files changed, 1688 insertions(+), 0 deletions(-)
->  create mode 100644 drivers/media/video/isp/ispccdc.c
->  create mode 100644 drivers/media/video/isp/ispccdc.h
-> 
-> diff --git a/drivers/media/video/isp/ispccdc.c b/drivers/media/video/isp/ispccdc.c
-> new file mode 100644
-> index 0000000..f200baf
-> --- /dev/null
-> +++ b/drivers/media/video/isp/ispccdc.c
-> @@ -0,0 +1,1488 @@
-> +/*
-> + * drivers/media/video/isp/ispccdc.c
-> + *
-> + * Driver Library for CCDC module in TI's OMAP3 Camera ISP
-> + *
-> + * Copyright (C) 2008 Texas Instruments, Inc.
-> + *
-> + * Contributors:
-> + *     Senthilvadivu Guruswamy <svadivu@ti.com>
-> + *     Pallavi Kulkarni <p-kulkarni@ti.com>
-> + *
-> + * This package is free software; you can redistribute it and/or modify
-> + * it under the terms of the GNU General Public License version 2 as
-> + * published by the Free Software Foundation.
-> + *
-> + * THIS PACKAGE IS PROVIDED ``AS IS'' AND WITHOUT ANY EXPRESS OR
-> + * IMPLIED WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED
-> + * WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
-> + */
-> +
-> +#include <linux/mutex.h>
-> +#include <linux/module.h>
-> +#include <linux/errno.h>
-> +#include <linux/sched.h>
-> +#include <linux/delay.h>
-> +#include <linux/types.h>
-> +#include <asm/mach-types.h>
+From: David Brownell <dbrownell@users.sourceforge.net>
 
-You should not need mach-types.h in drivers. Please check if it can be
-left out. If it cannot be left out, you probably have something that
-should be passed from board-*.c files in platform_data.
+Work around lockdep issue when card detect IRQ handlers run in
+thread context ... it forces IRQF_DISABLED, which prevents all
+access to twl4030 card detect signals.
 
-Regards,
+Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
+---
+With so many OMAP3 boards having only one MMC/SD slot, used
+for rootfs by developers, it's no surprise this hasn't been
+noticed before!
 
-Tony
+ drivers/mmc/host/omap_hsmmc.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
+
+--- a/drivers/mmc/host/omap_hsmmc.c
++++ b/drivers/mmc/host/omap_hsmmc.c
+@@ -568,6 +568,9 @@ static void mmc_omap_detect(struct work_
+ {
+ 	struct mmc_omap_host *host = container_of(work, struct mmc_omap_host,
+ 						mmc_carddetect_work);
++	struct omap_mmc_slot_data *slot = &mmc_slot(host);
++
++	host->carddetect = slot->card_detect(slot->card_detect_irq);
+ 
+ 	sysfs_notify(&host->mmc->class_dev.kobj, NULL, "cover_switch");
+ 	mmc_omap_fclk_state(host, ON);
+@@ -591,7 +594,6 @@ static irqreturn_t omap_mmc_cd_handler(i
+ {
+ 	struct mmc_omap_host *host = (struct mmc_omap_host *)dev_id;
+ 
+-	host->carddetect = mmc_slot(host).card_detect(irq);
+ 	schedule_work(&host->mmc_carddetect_work);
+ 
+ 	return IRQ_HANDLED;
