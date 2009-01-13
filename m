@@ -1,2427 +1,3437 @@
 From: "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>
-Subject: [REVIEW PATCH 11/14] OMAP34XXCAM: Add driver
-Date: Mon, 12 Jan 2009 20:03:34 -0600
-Message-ID: <A24693684029E5489D1D202277BE894416429FA1@dlee02.ent.ti.com>
+Subject: [REVIEW PATCH 06/14] OMAP: CAM: Add ISP Back end
+Date: Mon, 12 Jan 2009 20:03:20 -0600
+Message-ID: <A24693684029E5489D1D202277BE894416429F9C@dlee02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <video4linux-list-bounces@redhat.com>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
+Return-path: <linux-media-owner@vger.kernel.org>
 Content-Language: en-US
-List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
-	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
-List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
-List-Post: <mailto:video4linux-list@redhat.com>
-List-Help: <mailto:video4linux-list-request@redhat.com?subject=help>
-List-Subscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
-	<mailto:video4linux-list-request@redhat.com?subject=subscribe>
-Sender: video4linux-list-bounces@redhat.com
-Errors-To: video4linux-list-bounces@redhat.com
+Sender: linux-media-owner@vger.kernel.org
 To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
-Cc: "video4linux-list@redhat.com" <video4linux-list@redhat.com>, "Nagalla,
-	Hari" <hnagalla@ti.com>, Sakari Ailus <sakari.ailus@nokia.com>, "Tuukka.O Toivonen" <tuukka.o.toivonen@nokia.com>, "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>, "video4linux-list@redhat.com" <video4linux-list@redhat.com>, Sakari Ailus <sakari.ailus@nokia.com>, "Tuukka.O Toivonen" <tuukka.o.toivonen@nokia.com>, "Nagalla, Hari" <hnagalla@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
+This adds the OMAP ISP Back end modules to the kernel. Includes:
+* ISP Preview Driver
+* ISP Resizer Driver
 
-Signed-off-by: Sakari Ailus <sakari.ailus@nokia.com>
 Signed-off-by: Sergio Aguirre <saaguirre@ti.com>
 ---
- drivers/media/video/Kconfig       |    8 +
- drivers/media/video/Makefile      |    2 +
- drivers/media/video/omap34xxcam.c | 2017 +++++++++++++++++++++++++++++++=
-++++++
- drivers/media/video/omap34xxcam.h |  215 ++++
- 4 files changed, 2242 insertions(+), 0 deletions(-)
- create mode 100644 drivers/media/video/omap34xxcam.c
- create mode 100644 drivers/media/video/omap34xxcam.h
+ drivers/media/video/isp/isppreview.c | 1957 ++++++++++++++++++++++++++++++++++
+ drivers/media/video/isp/isppreview.h |  356 ++++++
+ drivers/media/video/isp/ispresizer.c |  914 ++++++++++++++++
+ drivers/media/video/isp/ispresizer.h |  153 +++
+ 4 files changed, 3380 insertions(+), 0 deletions(-)
+ create mode 100644 drivers/media/video/isp/isppreview.c
+ create mode 100644 drivers/media/video/isp/isppreview.h
+ create mode 100644 drivers/media/video/isp/ispresizer.c
+ create mode 100644 drivers/media/video/isp/ispresizer.h
 
-diff --git a/drivers/media/video/Kconfig b/drivers/media/video/Kconfig
-index 47102c2..dcd3960 100644
---- a/drivers/media/video/Kconfig
-+++ b/drivers/media/video/Kconfig
-@@ -700,6 +700,14 @@ config VIDEO_CAFE_CCIC
-          CMOS camera controller.  This is the controller found on first-
-          generation OLPC systems.
-
-+config VIDEO_OMAP3
-+        tristate "OMAP 3 Camera support"
-+       select VIDEOBUF_GEN
-+       select VIDEOBUF_DMA_SG
-+       depends on VIDEO_V4L2 && ARCH_OMAP34XX
-+       ---help---
-+         Driver for an OMAP 3 camera controller.
-+
- config SOC_CAMERA
-        tristate "SoC camera support"
-        depends on VIDEO_V4L2 && HAS_DMA
-diff --git a/drivers/media/video/Makefile b/drivers/media/video/Makefile
-index 16962f3..a2f73cf 100644
---- a/drivers/media/video/Makefile
-+++ b/drivers/media/video/Makefile
-@@ -101,6 +101,8 @@ obj-$(CONFIG_VIDEO_OV7670)  +=3D ov7670.o
-
- obj-$(CONFIG_VIDEO_TCM825X) +=3D tcm825x.o
-
-+obj-$(CONFIG_VIDEO_OMAP3) +=3D omap34xxcam.o isp/
-+
- obj-$(CONFIG_USB_DABUSB)        +=3D dabusb.o
- obj-$(CONFIG_USB_OV511)         +=3D ov511.o
- obj-$(CONFIG_USB_SE401)         +=3D se401.o
-diff --git a/drivers/media/video/omap34xxcam.c b/drivers/media/video/omap=
-34xxcam.c
+diff --git a/drivers/media/video/isp/isppreview.c b/drivers/media/video/isp/isppreview.c
 new file mode 100644
-index 0000000..a920bf2
+index 0000000..33dfab1
 --- /dev/null
-+++ b/drivers/media/video/omap34xxcam.c
-@@ -0,0 +1,2017 @@
++++ b/drivers/media/video/isp/isppreview.c
+@@ -0,0 +1,1957 @@
 +/*
-+ * drivers/media/video/omap34xxcam.c
++ * drivers/media/video/isp/isppreview.c
 + *
-+ * Copyright (C) 2006--2008 Nokia Corporation
-+ * Copyright (C) 2007, 2008 Texas Instruments
++ * Driver Library for Preview module in TI's OMAP3 Camera ISP
 + *
-+ * Contact: Sakari Ailus <sakari.ailus@nokia.com>
-+ *          Tuukka Toivonen <tuukka.o.toivonen@nokia.com>
++ * Copyright (C) 2008 Texas Instruments, Inc.
 + *
-+ * Originally based on the OMAP 2 camera driver.
++ * Contributors:
++ *     Senthilvadivu Guruswamy <svadivu@ti.com>
++ *     Pallavi Kulkarni <p-kulkarni@ti.com>
 + *
-+ * Written by Sakari Ailus <sakari.ailus@nokia.com>
-+ *            Tuukka Toivonen <tuukka.o.toivonen@nokia.com>
-+ *            Sergio Aguirre <saaguirre@ti.com>
-+ *            Mohit Jalori
-+ *            Sameer Venkatraman
-+ *            Leonides Martinez
++ * This package is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
 + *
-+ * This program is free software; you can redistribute it and/or
-+ * modify it under the terms of the GNU General Public License
-+ * version 2 as published by the Free Software Foundation.
-+ *
-+ * This program is distributed in the hope that it will be useful, but
-+ * WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-+ * General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program; if not, write to the Free Software
-+ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
-+ * 02110-1301 USA
-+ *
++ * THIS PACKAGE IS PROVIDED ``AS IS'' AND WITHOUT ANY EXPRESS OR
++ * IMPLIED WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED
++ * WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 + */
 +
 +#include <linux/io.h>
-+#include <linux/clk.h>
-+#include <linux/pci.h>         /* needed for videobufs */
-+#include <linux/delay.h>
-+#include <linux/kernel.h>
-+#include <linux/interrupt.h>
-+#include <linux/videodev2.h>
-+#include <linux/version.h>
-+#include <linux/platform_device.h>
++#include <linux/errno.h>
++#include <linux/mutex.h>
++#include <linux/module.h>
++#include <linux/types.h>
++#include <linux/uaccess.h>
 +
-+#include <media/v4l2-common.h>
-+#include <media/v4l2-ioctl.h>
++#include "isp.h"
++#include "ispreg.h"
++#include "isppreview.h"
 +
-+#include "omap34xxcam.h"
-+#include "isp/isp.h"
-+#include "isp/ispmmu.h"
-+#include "isp/ispreg.h"
-+#include "isp/ispccdc.h"
-+#include "isp/isph3a.h"
-+#include "isp/isp_af.h"
-+#include "isp/isphist.h"
-+#include "isp/isppreview.h"
-+#include "isp/ispresizer.h"
++static struct ispprev_nf prev_nf_t;
++static struct ispprev_csc prev_csc_t;
++static struct prev_params *params;
++static int RG_update, GG_update, BG_update, NF_enable, NF_update;
++static int CSC_update;
 +
-+#define OMAP34XXCAM_VERSION KERNEL_VERSION(0, 0, 0)
++/* Structure for saving/restoring preview module registers */
++static struct isp_reg ispprev_reg_list[] = {
++       {OMAP3_ISP_IOMEM_PREV, ISPPRV_HORZ_INFO, 0x0000},
++       {OMAP3_ISP_IOMEM_PREV, ISPPRV_VERT_INFO, 0x0000},
++       {OMAP3_ISP_IOMEM_PREV, ISPPRV_RSDR_ADDR, 0x0000},
++       {OMAP3_ISP_IOMEM_PREV, ISPPRV_RADR_OFFSET, 0x0000},
++       {OMAP3_ISP_IOMEM_PREV, ISPPRV_DSDR_ADDR, 0x0000},
++       {OMAP3_ISP_IOMEM_PREV, ISPPRV_DRKF_OFFSET, 0x0000},
++       {OMAP3_ISP_IOMEM_PREV, ISPPRV_WSDR_ADDR, 0x0000},
++       {OMAP3_ISP_IOMEM_PREV, ISPPRV_WADD_OFFSET, 0x0000},
++       {OMAP3_ISP_IOMEM_PREV, ISPPRV_AVE, 0x0000},
++       {OMAP3_ISP_IOMEM_PREV, ISPPRV_HMED, 0x0000},
++       {OMAP3_ISP_IOMEM_PREV, ISPPRV_NF, 0x0000},
++       {OMAP3_ISP_IOMEM_PREV, ISPPRV_WB_DGAIN, 0x0000},
++       {OMAP3_ISP_IOMEM_PREV, ISPPRV_WBGAIN, 0x0000},
++       {OMAP3_ISP_IOMEM_PREV, ISPPRV_WBSEL, 0x0000},
++       {OMAP3_ISP_IOMEM_PREV, ISPPRV_CFA, 0x0000},
++       {OMAP3_ISP_IOMEM_PREV, ISPPRV_BLKADJOFF, 0x0000},
++       {OMAP3_ISP_IOMEM_PREV, ISPPRV_RGB_MAT1, 0x0000},
++       {OMAP3_ISP_IOMEM_PREV, ISPPRV_RGB_MAT2, 0x0000},
++       {OMAP3_ISP_IOMEM_PREV, ISPPRV_RGB_MAT3, 0x0000},
++       {OMAP3_ISP_IOMEM_PREV, ISPPRV_RGB_MAT4, 0x0000},
++       {OMAP3_ISP_IOMEM_PREV, ISPPRV_RGB_MAT5, 0x0000},
++       {OMAP3_ISP_IOMEM_PREV, ISPPRV_RGB_OFF1, 0x0000},
++       {OMAP3_ISP_IOMEM_PREV, ISPPRV_RGB_OFF2, 0x0000},
++       {OMAP3_ISP_IOMEM_PREV, ISPPRV_CSC0, 0x0000},
++       {OMAP3_ISP_IOMEM_PREV, ISPPRV_CSC1, 0x0000},
++       {OMAP3_ISP_IOMEM_PREV, ISPPRV_CSC2, 0x0000},
++       {OMAP3_ISP_IOMEM_PREV, ISPPRV_CSC_OFFSET, 0x0000},
++       {OMAP3_ISP_IOMEM_PREV, ISPPRV_CNT_BRT, 0x0000},
++       {OMAP3_ISP_IOMEM_PREV, ISPPRV_CSUP, 0x0000},
++       {OMAP3_ISP_IOMEM_PREV, ISPPRV_SETUP_YC, 0x0000},
++       {OMAP3_ISP_IOMEM_PREV, ISPPRV_CDC_THR0, 0x0000},
++       {OMAP3_ISP_IOMEM_PREV, ISPPRV_CDC_THR1, 0x0000},
++       {OMAP3_ISP_IOMEM_PREV, ISPPRV_CDC_THR2, 0x0000},
++       {OMAP3_ISP_IOMEM_PREV, ISPPRV_CDC_THR3, 0x0000},
++       {OMAP3_ISP_IOMEM_PREV, ISPPRV_PCR, 0x0000},
++       {0, ISP_TOK_TERM, 0x0000}
++};
 +
-+/* global variables */
-+static struct omap34xxcam_device *omap34xxcam;
 +
-+struct omap34xxcam_fh *camfh_saved;
++/* Default values in Office Flourescent Light for RGBtoRGB Blending */
++static struct ispprev_rgbtorgb flr_rgb2rgb = {
++       {       /* RGB-RGB Matrix */
++               {0x01E2, 0x0F30, 0x0FEE},
++               {0x0F9B, 0x01AC, 0x0FB9},
++               {0x0FE0, 0x0EC0, 0x0260}
++       },      /* RGB Offset */
++       {0x0000, 0x0000, 0x0000}
++};
 +
-+#define OMAP34XXCAM_POWEROFF_DELAY (2 * HZ)
++/* Default values in Office Flourescent Light for RGB to YUV Conversion*/
++static struct ispprev_csc flr_prev_csc[] = {
++       {
++               {       /* CSC Coef Matrix */
++                       {66, 129, 25},
++                       {-38, -75, 112},
++                       {112, -94 , -18}
++               },      /* CSC Offset */
++               {0x0, 0x0, 0x0}
++       },
++       {
++               {       /* CSC Coef Matrix Sepia */
++                       {19, 38, 7},
++                       {0, 0, 0},
++                       {0, 0, 0}
++               },      /* CSC Offset */
++               {0x0, 0xE7, 0x14}
++       },
++       {
++               {       /* CSC Coef Matrix BW */
++                       {66, 129, 25},
++                       {0, 0, 0},
++                       {0, 0, 0}
++               },      /* CSC Offset */
++               {0x0, 0x0, 0x0}
++       }
++};
++
++
++/* Default values in Office Flourescent Light for CFA Gradient*/
++#define FLR_CFA_GRADTHRS_HORZ  0x28
++#define FLR_CFA_GRADTHRS_VERT  0x28
++
++/* Default values in Office Flourescent Light for Chroma Suppression*/
++#define FLR_CSUP_GAIN          0x0D
++#define FLR_CSUP_THRES         0xEB
++
++/* Default values in Office Flourescent Light for Noise Filter*/
++#define FLR_NF_STRGTH          0x03
++
++/* Default values in Office Flourescent Light for White Balance*/
++#define FLR_WBAL_DGAIN         0x100
++#define FLR_WBAL_COEF0         0x68
++#define FLR_WBAL_COEF1         0x5c
++#define FLR_WBAL_COEF2         0x5c
++#define FLR_WBAL_COEF3         0x94
++
++#define FLR_WBAL_COEF0_ES1     0x23
++#define FLR_WBAL_COEF1_ES1     0x20
++#define FLR_WBAL_COEF2_ES1     0x20
++#define FLR_WBAL_COEF3_ES1     0x39
++
++/* Default values in Office Flourescent Light for Black Adjustment*/
++#define FLR_BLKADJ_BLUE                0x0
++#define FLR_BLKADJ_GREEN       0x0
++#define FLR_BLKADJ_RED         0x0
++
++static int update_color_matrix;
++
++/**
++ * struct isp_prev - Structure for storing ISP Preview module information
++ * @prev_inuse: Flag to determine if CCDC has been reserved or not (0 or 1).
++ * @prevout_w: Preview output width.
++ * @prevout_h: Preview output height.
++ * @previn_w: Preview input width.
++ * @previn_h: Preview input height.
++ * @prev_inpfmt: Preview input format.
++ * @prev_outfmt: Preview output format.
++ * @hmed_en: Horizontal median filter enable.
++ * @nf_en: Noise filter enable.
++ * @dcor_en: Defect correction enable.
++ * @cfa_en: Color Filter Array (CFA) interpolation enable.
++ * @csup_en: Chrominance suppression enable.
++ * @yenh_en: Luma enhancement enable.
++ * @fmtavg: Number of horizontal pixels to average in input formatter. The
++ *          input width should be a multiple of this number.
++ * @brightness: Brightness in preview module.
++ * @contrast: Contrast in preview module.
++ * @color: Color effect in preview module.
++ * @cfafmt: Color Filter Array (CFA) Format.
++ * @ispprev_mutex: Mutex for isp preview.
++ *
++ * This structure is used to store the OMAP ISP Preview module Information.
++ */
++static struct isp_prev {
++       u8 prev_inuse;
++       u32 prevout_w;
++       u32 prevout_h;
++       u32 previn_w;
++       u32 previn_h;
++       enum preview_input prev_inpfmt;
++       enum preview_output prev_outfmt;
++       u8 hmed_en;
++       u8 nf_en;
++       u8 dcor_en;
++       u8 cfa_en;
++       u8 csup_en;
++       u8 yenh_en;
++       u8 fmtavg;
++       u8 brightness;
++       u8 contrast;
++       int stream_on;
++       enum preview_color_effect color;
++       enum cfa_fmt cfafmt;
++       struct mutex ispprev_mutex; /* For checking/modifying prev_inuse */
++       spinlock_t ispprev_lock;
++       u32 sph;
++       u32 slv;
++} ispprev_obj;
++
++/* Saved parameters */
++struct prev_params *prev_config_params;
 +
 +/*
-+ *
-+ * Sensor handling.
++ * Coeficient Tables for the submodules in Preview.
++ * Array is initialised with the values from.the tables text file.
++ */
++
++/*
++ * CFA Filter Coefficient Table
 + *
 + */
++static u32 cfa_coef_table[] = {
++#include "cfa_coef_table.h"
++};
++
++/*
++ * Gamma Correction Table - Red
++ */
++static u32 redgamma_table[] = {
++#include "redgamma_table.h"
++};
++
++/*
++ * Gamma Correction Table - Green
++ */
++static u32 greengamma_table[] = {
++#include "greengamma_table.h"
++};
++
++/*
++ * Gamma Correction Table - Blue
++ */
++static u32 bluegamma_table[] = {
++#include "bluegamma_table.h"
++};
++
++/*
++ * Noise Filter Threshold table
++ */
++static u32 noise_filter_table[] = {
++#include "noise_filter_table.h"
++};
++
++/*
++ * Luminance Enhancement Table
++ */
++static u32 luma_enhance_table[] = {
++#include "luma_enhance_table.h"
++};
 +
 +/**
-+ * omap34xxcam_slave_power_set - set slave power state
-+ * @vdev: per-video device data structure
-+ * @power: new power state
-+ */
-+static int omap34xxcam_slave_power_set(struct omap34xxcam_videodev *vdev=
-,
-+                                      enum v4l2_power power,
-+                                      int mask)
++ * omap34xx_isp_preview_config - Abstraction layer Preview configuration.
++ * @userspace_add: Pointer from Userspace to structure with flags and data to
++ *                 update.
++ **/
++int omap34xx_isp_preview_config(void *userspace_add)
 +{
-+       int rval =3D 0, i =3D 0;
++       struct ispprev_hmed prev_hmed_t;
++       struct ispprev_cfa prev_cfa_t;
++       struct ispprev_csup csup_t;
++       struct ispprev_wbal prev_wbal_t;
++       struct ispprev_blkadj prev_blkadj_t;
++       struct ispprev_rgbtorgb rgb2rgb_t;
++       struct ispprev_yclimit yclimit_t;
++       struct ispprev_dcor prev_dcor_t;
++       struct ispprv_update_config *preview_struct;
++       struct isptables_update isp_table_update;
++       int yen_t[128];
 +
-+       BUG_ON(!mutex_is_locked(&vdev->mutex));
++       if (userspace_add == NULL)
++               return -EINVAL;
 +
-+       vdev->power_state_wish =3D -1;
++       preview_struct = (struct ispprv_update_config *)userspace_add;
 +
-+       for (i =3D 0; i <=3D OMAP34XXCAM_SLAVE_FLASH; i++) {
-+               if (vdev->slave[i] =3D=3D v4l2_int_device_dummy())
-+                       continue;
-+
-+               if (!(mask & (1 << i))
-+                   || power =3D=3D vdev->power_state[i])
-+                       continue;
-+
-+               rval =3D vidioc_int_s_power(vdev->slave[i], power);
-+
-+               if (rval && power !=3D V4L2_POWER_OFF) {
-+                       power =3D V4L2_POWER_OFF;
-+                       goto out;
++       if (ISP_ABS_PREV_LUMAENH & preview_struct->flag) {
++               if (ISP_ABS_PREV_LUMAENH & preview_struct->update) {
++                       if (copy_from_user(yen_t, preview_struct->yen,
++                                                               sizeof(yen_t)))
++                               goto err_copy_from_user;
++                       isppreview_config_luma_enhancement(yen_t);
 +               }
++               params->features |= PREV_LUMA_ENHANCE;
++       } else if (ISP_ABS_PREV_LUMAENH & preview_struct->update)
++                       params->features &= ~PREV_LUMA_ENHANCE;
 +
-+               vdev->power_state[i] =3D power;
++       if (ISP_ABS_PREV_INVALAW & preview_struct->flag) {
++               isppreview_enable_invalaw(1);
++               params->features |= PREV_INVERSE_ALAW;
++       } else {
++               isppreview_enable_invalaw(0);
++               params->features &= ~PREV_INVERSE_ALAW;
 +       }
++
++       if (ISP_ABS_PREV_HRZ_MED & preview_struct->flag) {
++               if (ISP_ABS_PREV_HRZ_MED & preview_struct->update) {
++                       if (copy_from_user(&prev_hmed_t,
++                                               (struct ispprev_hmed *)
++                                               preview_struct->prev_hmed,
++                                               sizeof(struct ispprev_hmed)))
++                               goto err_copy_from_user;
++                       isppreview_config_hmed(prev_hmed_t);
++               }
++               isppreview_enable_hmed(1);
++               params->features |= PREV_HORZ_MEDIAN_FILTER;
++       } else if (ISP_ABS_PREV_HRZ_MED & preview_struct->update) {
++               isppreview_enable_hmed(0);
++               params->features &= ~PREV_HORZ_MEDIAN_FILTER;
++       }
++
++       if (ISP_ABS_PREV_CFA & preview_struct->flag) {
++               if (ISP_ABS_PREV_CFA & preview_struct->update) {
++                       if (copy_from_user(&prev_cfa_t,
++                                               (struct ispprev_cfa *)
++                                               preview_struct->prev_cfa,
++                                               sizeof(struct ispprev_cfa)))
++                               goto err_copy_from_user;
++
++                       isppreview_config_cfa(prev_cfa_t);
++               }
++               isppreview_enable_cfa(1);
++               params->features |= PREV_CFA;
++       } else if (ISP_ABS_PREV_CFA & preview_struct->update) {
++               isppreview_enable_cfa(0);
++               params->features &= ~PREV_CFA;
++       }
++
++       if (ISP_ABS_PREV_CHROMA_SUPP & preview_struct->flag) {
++               if (ISP_ABS_PREV_CHROMA_SUPP & preview_struct->update) {
++                       if (copy_from_user(&csup_t,
++                                               (struct ispprev_csup *)
++                                               preview_struct->csup,
++                                               sizeof(struct ispprev_csup)))
++                               goto err_copy_from_user;
++                       isppreview_config_chroma_suppression(csup_t);
++               }
++               isppreview_enable_chroma_suppression(1);
++               params->features |= PREV_CHROMA_SUPPRESS;
++       } else if (ISP_ABS_PREV_CHROMA_SUPP & preview_struct->update) {
++               isppreview_enable_chroma_suppression(0);
++               params->features &= ~PREV_CHROMA_SUPPRESS;
++       }
++
++       if (ISP_ABS_PREV_WB & preview_struct->update) {
++               if (copy_from_user(&prev_wbal_t, (struct ispprev_wbal *)
++                                               preview_struct->prev_wbal,
++                                               sizeof(struct ispprev_wbal)))
++                       goto err_copy_from_user;
++               isppreview_config_whitebalance(prev_wbal_t);
++       }
++
++       if (ISP_ABS_PREV_BLKADJ & preview_struct->update) {
++               if (copy_from_user(&prev_blkadj_t, (struct ispprev_blkadjl *)
++                                       preview_struct->prev_blkadj,
++                                       sizeof(struct ispprev_blkadj)))
++                       goto err_copy_from_user;
++               isppreview_config_blkadj(prev_blkadj_t);
++       }
++
++       if (ISP_ABS_PREV_RGB2RGB & preview_struct->update) {
++               if (copy_from_user(&rgb2rgb_t, (struct ispprev_rgbtorgb *)
++                                       preview_struct->rgb2rgb,
++                                       sizeof(struct ispprev_rgbtorgb)))
++                       goto err_copy_from_user;
++               isppreview_config_rgb_blending(rgb2rgb_t);
++       }
++
++       if (ISP_ABS_PREV_COLOR_CONV & preview_struct->update) {
++               if (copy_from_user(&prev_csc_t, (struct ispprev_csc *)
++                                               preview_struct->prev_csc,
++                                               sizeof(struct ispprev_csc)))
++                       goto err_copy_from_user;
++               spin_lock(&ispprev_obj.ispprev_lock);
++               if (ispprev_obj.stream_on == 0) {
++                       isppreview_config_rgb_to_ycbcr(prev_csc_t);
++                       CSC_update = 0;
++               } else
++                       CSC_update = 1;
++
++               spin_unlock(&ispprev_obj.ispprev_lock);
++       } else
++               CSC_update = 0;
++
++       if (ISP_ABS_PREV_YC_LIMIT & preview_struct->update) {
++               if (copy_from_user(&yclimit_t, (struct ispprev_yclimit *)
++                                       preview_struct->yclimit,
++                                       sizeof(struct ispprev_yclimit)))
++                       goto err_copy_from_user;
++               isppreview_config_yc_range(yclimit_t);
++       }
++
++       if (ISP_ABS_PREV_DEFECT_COR & preview_struct->flag) {
++               if (ISP_ABS_PREV_DEFECT_COR & preview_struct->update) {
++                       if (copy_from_user(&prev_dcor_t,
++                                               (struct ispprev_dcor *)
++                                               preview_struct->prev_dcor,
++                                               sizeof(struct ispprev_dcor)))
++                               goto err_copy_from_user;
++                       isppreview_config_dcor(prev_dcor_t);
++               }
++               isppreview_enable_dcor(1);
++               params->features |= PREV_DEFECT_COR;
++       } else if (ISP_ABS_PREV_DEFECT_COR & preview_struct->update) {
++               isppreview_enable_dcor(0);
++               params->features &= ~PREV_DEFECT_COR;
++       }
++
++       if (ISP_ABS_PREV_GAMMABYPASS & preview_struct->flag) {
++               isppreview_enable_gammabypass(1);
++               params->features |= PREV_GAMMA_BYPASS;
++       } else {
++               isppreview_enable_gammabypass(0);
++               params->features &= ~PREV_GAMMA_BYPASS;
++       }
++
++       isp_table_update.update = preview_struct->update;
++       isp_table_update.flag = preview_struct->flag;
++       isp_table_update.prev_nf = preview_struct->prev_nf;
++       isp_table_update.red_gamma = preview_struct->red_gamma;
++       isp_table_update.green_gamma = preview_struct->green_gamma;
++       isp_table_update.blue_gamma = preview_struct->blue_gamma;
++
++       if (omap34xx_isp_tables_update(&isp_table_update))
++               goto err_copy_from_user;
 +
 +       return 0;
 +
-+out:
-+       for (i--; i >=3D 0; i--) {
-+               if (vdev->slave[i] =3D=3D v4l2_int_device_dummy())
-+                       continue;
++err_copy_from_user:
++       printk(KERN_ERR "Preview Config: Copy From User Error");
++       return -EINVAL;
++}
++EXPORT_SYMBOL(omap34xx_isp_preview_config);
 +
-+               if (!(mask & (1 << i)))
-+                       continue;
++/**
++ * omap34xx_isp_tables_update - Abstraction layer Tables update.
++ * @isptables_struct: Pointer from Userspace to structure with flags and table
++ *                 data to update.
++ **/
++int omap34xx_isp_tables_update(struct isptables_update *isptables_struct)
++{
++       int ctr;
 +
-+               vidioc_int_s_power(vdev->slave[i], power);
-+               vdev->power_state[i] =3D power;
++       if (ISP_ABS_TBL_NF & isptables_struct->flag) {
++               NF_enable = 1;
++               params->features |= PREV_NOISE_FILTER;
++               if (ISP_ABS_TBL_NF & isptables_struct->update) {
++                       if (copy_from_user(&prev_nf_t, (struct ispprev_nf *)
++                                               isptables_struct->prev_nf,
++                                               sizeof(struct ispprev_nf)))
++                               goto err_copy_from_user;
++
++                       spin_lock(&ispprev_obj.ispprev_lock);
++                       if (!ispprev_obj.stream_on) {
++                               NF_update = 0;
++                               isppreview_config_noisefilter(prev_nf_t);
++                               isppreview_enable_noisefilter(NF_enable);
++                       } else
++                               NF_update = 1;
++
++                       spin_unlock(&ispprev_obj.ispprev_lock);
++               } else
++                       NF_update = 0;
++       } else {
++               NF_enable = 0;
++               params->features &= ~PREV_NOISE_FILTER;
++               if (ISP_ABS_TBL_NF & isptables_struct->update)
++                       NF_update = 1;
++               else
++                       NF_update = 0;
 +       }
 +
-+       return rval;
-+}
++       if (ISP_ABS_TBL_REDGAMMA & isptables_struct->update) {
++               if (copy_from_user(redgamma_table, isptables_struct->red_gamma,
++                                               sizeof(redgamma_table))) {
++                       goto err_copy_from_user;
++               }
++               spin_lock(&ispprev_obj.ispprev_lock);
++               if (!ispprev_obj.stream_on) {
++                       RG_update = 0;
++                       isp_reg_writel(ISPPRV_TBL_ADDR_RED_G_START,
++                               OMAP3_ISP_IOMEM_PREV, ISPPRV_SET_TBL_ADDR);
++                       for (ctr = 0; ctr < ISP_GAMMA_TABLE_SIZE; ctr++)
++                               isp_reg_writel(redgamma_table[ctr],
++                               OMAP3_ISP_IOMEM_PREV, ISPPRV_SET_TBL_DATA);
++               } else
++                       RG_update = 1;
 +
-+static void omap34xxcam_slave_power_work(struct work_struct *work)
-+{
-+       struct omap34xxcam_videodev *vdev =3D
-+               container_of(work, struct omap34xxcam_videodev, poweroff_=
-work);
++               spin_unlock(&ispprev_obj.ispprev_lock);
++       } else
++               RG_update = 0;
 +
-+       mutex_lock(&vdev->mutex);
++       if (ISP_ABS_TBL_GREENGAMMA & isptables_struct->update) {
++               if (copy_from_user(greengamma_table,
++                                               isptables_struct->green_gamma,
++                                               sizeof(greengamma_table)))
++                       goto err_copy_from_user;
++               spin_lock(&ispprev_obj.ispprev_lock);
++               if (!ispprev_obj.stream_on) {
++                       GG_update = 0;
++                       isp_reg_writel(ISPPRV_TBL_ADDR_GREEN_G_START,
++                               OMAP3_ISP_IOMEM_PREV, ISPPRV_SET_TBL_ADDR);
++                       for (ctr = 0; ctr < ISP_GAMMA_TABLE_SIZE; ctr++)
++                               isp_reg_writel(greengamma_table[ctr],
++                                               OMAP3_ISP_IOMEM_PREV,
++                                               ISPPRV_SET_TBL_DATA);
++               } else
++                       GG_update = 1;
 +
-+       if (vdev->power_state_wish !=3D -1)
-+               omap34xxcam_slave_power_set(vdev, vdev->power_state_wish,
-+                                           vdev->power_state_mask);
++               spin_unlock(&ispprev_obj.ispprev_lock);
++       } else
++               GG_update = 0;
 +
-+       mutex_unlock(&vdev->mutex);
-+}
++       if (ISP_ABS_TBL_BLUEGAMMA & isptables_struct->update) {
++               if (copy_from_user(bluegamma_table,
++                                       isptables_struct->blue_gamma,
++                                       sizeof(bluegamma_table))) {
++                       goto err_copy_from_user;
++               }
++               spin_lock(&ispprev_obj.ispprev_lock);
++               if (!ispprev_obj.stream_on) {
++                       BG_update = 0;
++                       isp_reg_writel(ISPPRV_TBL_ADDR_BLUE_G_START,
++                                       OMAP3_ISP_IOMEM_PREV,
++                                       ISPPRV_SET_TBL_ADDR);
++                       for (ctr = 0; ctr < ISP_GAMMA_TABLE_SIZE; ctr++)
++                               isp_reg_writel(bluegamma_table[ctr],
++                                               OMAP3_ISP_IOMEM_PREV,
++                                               ISPPRV_SET_TBL_DATA);
++               } else
++                       BG_update = 1;
 +
-+static void omap34xxcam_slave_power_timer(unsigned long ptr)
-+{
-+       struct omap34xxcam_videodev *vdev =3D (void *)ptr;
++               spin_unlock(&ispprev_obj.ispprev_lock);
++       } else
++               BG_update = 0;
 +
-+       schedule_work(&vdev->poweroff_work);
++       return 0;
++
++err_copy_from_user:
++       printk(KERN_ERR "Preview Tables:Copy From User Error");
++       return -EINVAL;
 +}
 +
 +/**
-+ * omap34xxcam_slave_power_suggest - delayed power state change
++ * isppreview_config_shadow_registers - Program shadow registers for preview.
 + *
-+ * @vdev: per-video device data structure
-+ * @power: new power state
-+ */
-+static void omap34xxcam_slave_power_suggest(struct omap34xxcam_videodev =
-*vdev,
-+                                           enum v4l2_power power,
-+                                           int mask)
++ * Allows user to program shadow registers associated with preview module.
++ **/
++void isppreview_config_shadow_registers()
 +{
-+       BUG_ON(!mutex_is_locked(&vdev->mutex));
++       u8 current_brightness_contrast;
++       int ctr, prv_disabled;
 +
-+       del_timer(&vdev->poweroff_timer);
++       isppreview_query_brightness(&current_brightness_contrast);
++       if (current_brightness_contrast !=
++                       (ispprev_obj.brightness * ISPPRV_BRIGHT_UNITS)) {
++               DPRINTK_ISPPREV(" Changing Brightness level to %d\n",
++                                               ispprev_obj.brightness);
++               isppreview_config_brightness(ispprev_obj.brightness *
++                                                       ISPPRV_BRIGHT_UNITS);
++       }
 +
-+       vdev->power_state_wish =3D power;
-+       vdev->power_state_mask =3D mask;
++       isppreview_query_contrast(&current_brightness_contrast);
++       if (current_brightness_contrast !=
++                       (ispprev_obj.contrast * ISPPRV_CONTRAST_UNITS)) {
++               DPRINTK_ISPPREV(" Changing Contrast level to %d\n",
++                                                       ispprev_obj.contrast);
++               isppreview_config_contrast(ispprev_obj.contrast *
++                                                       ISPPRV_CONTRAST_UNITS);
++       }
++       if (update_color_matrix) {
++               isppreview_config_rgb_to_ycbcr(flr_prev_csc[ispprev_obj.color]);
++               update_color_matrix = 0;
++       }
++       if (GG_update || RG_update || BG_update || NF_update || CSC_update) {
++               isppreview_enable(0);
++               prv_disabled = 1;
++       }
 +
-+       mod_timer(&vdev->poweroff_timer, jiffies + OMAP34XXCAM_POWEROFF_D=
-ELAY);
++       if (CSC_update) {
++               isppreview_config_rgb_to_ycbcr(prev_csc_t);
++               CSC_update = 0;
++       }
++
++       if (GG_update) {
++               isp_reg_writel(ISPPRV_TBL_ADDR_GREEN_G_START,
++                               OMAP3_ISP_IOMEM_PREV, ISPPRV_SET_TBL_ADDR);
++
++               for (ctr = 0; ctr < ISP_GAMMA_TABLE_SIZE; ctr++) {
++                       isp_reg_writel(greengamma_table[ctr],
++                               OMAP3_ISP_IOMEM_PREV, ISPPRV_SET_TBL_DATA);
++               }
++               GG_update = 0;
++       }
++
++       if (RG_update) {
++               isp_reg_writel(ISPPRV_TBL_ADDR_RED_G_START,
++                               OMAP3_ISP_IOMEM_PREV, ISPPRV_SET_TBL_ADDR);
++
++               for (ctr = 0; ctr < ISP_GAMMA_TABLE_SIZE; ctr++) {
++                       isp_reg_writel(redgamma_table[ctr],
++                               OMAP3_ISP_IOMEM_PREV, ISPPRV_SET_TBL_DATA);
++               }
++               RG_update = 0;
++       }
++
++       if (BG_update) {
++               isp_reg_writel(ISPPRV_TBL_ADDR_BLUE_G_START,
++                               OMAP3_ISP_IOMEM_PREV, ISPPRV_SET_TBL_ADDR);
++
++               for (ctr = 0; ctr < ISP_GAMMA_TABLE_SIZE; ctr++) {
++                       isp_reg_writel(bluegamma_table[ctr],
++                               OMAP3_ISP_IOMEM_PREV, ISPPRV_SET_TBL_DATA);
++               }
++               BG_update = 0;
++       }
++
++       if (NF_update && NF_enable) {
++               isp_reg_writel(0xC00,
++                               OMAP3_ISP_IOMEM_PREV, ISPPRV_SET_TBL_ADDR);
++               isp_reg_writel(prev_nf_t.spread,
++                               OMAP3_ISP_IOMEM_PREV, ISPPRV_NF);
++               for (ctr = 0; ctr < 64; ctr++) {
++                       isp_reg_writel(prev_nf_t.table[ctr],
++                               OMAP3_ISP_IOMEM_PREV, ISPPRV_SET_TBL_DATA);
++               }
++               isppreview_enable_noisefilter(1);
++               NF_update = 0;
++       }
++
++       if (~NF_update && NF_enable)
++               isppreview_enable_noisefilter(1);
++
++       if (NF_update && ~NF_enable)
++               isppreview_enable_noisefilter(0);
++
++       if (prv_disabled) {
++               isppreview_enable(1);
++               prv_disabled = 0;
++       }
 +}
++EXPORT_SYMBOL(isppreview_config_shadow_registers);
 +
 +/**
-+ * omap34xxcam_update_vbq - Updates VBQ with completed input buffer
-+ * @vb: ptr. to standard V4L2 video buffer structure
++ * isppreview_request - Reserves the preview module.
 + *
-+ * Updates video buffer queue with completed buffer passed as
-+ * input parameter.  Also updates ISP H3A timestamp and field count
-+ * statistics.
-+ */
-+int omap34xxcam_update_vbq(struct videobuf_buffer *vb)
++ * Returns 0 if successful, or -EBUSY if the module was already reserved.
++ **/
++int isppreview_request()
 +{
-+       struct omap34xxcam_fh *fh =3D camfh_saved;
-+       struct omap34xxcam_videodev *vdev =3D fh->vdev;
-+       int rval =3D 0;
-+
-+       do_gettimeofday(&vb->ts);
-+       vb->field_count =3D atomic_add_return(2, &fh->field_count);
-+       vb->state =3D VIDEOBUF_DONE;
-+
-+       if (vdev->streaming)
-+               rval =3D 1;
-+
-+       wake_up(&vb->done);
-+
-+       return rval;
++       mutex_lock(&ispprev_obj.ispprev_mutex);
++       if (ispprev_obj.prev_inuse) {
++               mutex_unlock(&ispprev_obj.ispprev_mutex);
++               printk(KERN_ERR "ISP_ERR : Preview Module Busy\n");
++               return -EBUSY;
++       }
++       ispprev_obj.prev_inuse = 1;
++       mutex_unlock(&ispprev_obj.ispprev_mutex);
++       isp_reg_or(OMAP3_ISP_IOMEM_MAIN, ISP_CTRL, ISPCTRL_PREV_RAM_EN |
++                                               ISPCTRL_PREV_CLK_EN |
++                                               ISPCTRL_SBL_WR1_RAM_EN);
++       return 0;
 +}
++EXPORT_SYMBOL(isppreview_request);
 +
 +/**
-+ * omap34xxcam_vbq_setup - Calcs size and num of buffs allowed in queue
-+ * @vbq: ptr. to standard V4L2 video buffer queue structure
-+ * @cnt: ptr to location to hold the count of buffers to be in the queue
-+ * @size: ptr to location to hold the size of a frame
++ * isppreview_free - Frees the preview module.
 + *
-+ * Calculates the number of buffers of current image size that can be
-+ * supported by the available capture memory.
-+ */
-+static int omap34xxcam_vbq_setup(struct videobuf_queue *vbq, unsigned in=
-t *cnt,
-+                                unsigned int *size)
++ * Returns 0 if successful, or -EINVAL if the module was already freed.
++ **/
++int isppreview_free()
 +{
-+       struct omap34xxcam_fh *fh =3D vbq->priv_data;
++       mutex_lock(&ispprev_obj.ispprev_mutex);
++       if (ispprev_obj.prev_inuse) {
++               ispprev_obj.prev_inuse = 0;
++               mutex_unlock(&ispprev_obj.ispprev_mutex);
++               isp_reg_and(OMAP3_ISP_IOMEM_MAIN, ISP_CTRL,
++                                               ~(ISPCTRL_PREV_CLK_EN |
++                                               ISPCTRL_PREV_RAM_EN |
++                                               ISPCTRL_SBL_WR1_RAM_EN));
++               return 0;
++       } else {
++               mutex_unlock(&ispprev_obj.ispprev_mutex);
++               DPRINTK_ISPPREV("ISP_ERR : Preview Module already freed\n");
++               return -EINVAL;
++       }
 +
-+       if (*cnt <=3D 0)
-+               *cnt =3D VIDEO_MAX_FRAME; /* supply a default number of b=
-uffers */
++}
++EXPORT_SYMBOL(isppreview_free);
 +
-+       if (*cnt > VIDEO_MAX_FRAME)
-+               *cnt =3D VIDEO_MAX_FRAME;
++/** isppreview_config_datapath - Specifies input and output modules for Preview
++ * @input: Indicates the module that gives the image to preview.
++ * @output: Indicates the module to which the preview outputs to.
++ *
++ * Configures the default configuration for the CCDC to work with.
++ *
++ * The valid values for the input are PRV_RAW_CCDC (0), PRV_RAW_MEM (1),
++ * PRV_RGBBAYERCFA (2), PRV_COMPCFA (3), PRV_CCDC_DRKF (4), PRV_OTHERS (5).
++ *
++ * The valid values for the output are PREVIEW_RSZ (0), PREVIEW_MEM (1).
++ *
++ * Returns 0 if successful, or -EINVAL if wrong input or output values are
++ * specified.
++ **/
++int isppreview_config_datapath(enum preview_input input,
++                                               enum preview_output output)
++{
++       u32 pcr = 0;
++       u8 enable = 0;
++       struct prev_params *params = prev_config_params;
++       struct ispprev_yclimit yclimit;
 +
-+       *size =3D fh->pix.sizeimage;
++       pcr = isp_reg_readl(OMAP3_ISP_IOMEM_PREV, ISPPRV_PCR);
 +
-+       while (*size * *cnt > fh->vdev->vdev_sensor_config.capture_mem)
-+               (*cnt)--;
++       switch (input) {
++       case PRV_RAW_CCDC:
++               pcr &= ~ISPPRV_PCR_SOURCE;
++               pcr &= ~ISPPRV_PCR_ONESHOT;
++               ispprev_obj.prev_inpfmt = PRV_RAW_CCDC;
++               break;
++       case PRV_RAW_MEM:
++               pcr |= ISPPRV_PCR_SOURCE;
++               pcr |= ISPPRV_PCR_ONESHOT;
++               ispprev_obj.prev_inpfmt = PRV_RAW_MEM;
++               break;
++       case PRV_CCDC_DRKF:
++               pcr |= ISPPRV_PCR_DRKFCAP;
++               pcr |= ISPPRV_PCR_ONESHOT;
++               ispprev_obj.prev_inpfmt = PRV_CCDC_DRKF;
++               break;
++       case PRV_COMPCFA:
++               ispprev_obj.prev_inpfmt = PRV_COMPCFA;
++               break;
++       case PRV_OTHERS:
++               ispprev_obj.prev_inpfmt = PRV_OTHERS;
++               break;
++       case PRV_RGBBAYERCFA:
++               ispprev_obj.prev_inpfmt = PRV_RGBBAYERCFA;
++               break;
++       default:
++               printk(KERN_ERR "ISP_ERR : Wrong Input\n");
++               return -EINVAL;
++       };
 +
-+       while ((*size * *cnt) > ispmmu_get_mapeable_space())
-+               (*cnt)--;
++       switch (output) {
++       case PREVIEW_RSZ:
++               pcr |= ISPPRV_PCR_RSZPORT;
++               pcr &= ~ISPPRV_PCR_SDRPORT;
++               break;
++       case PREVIEW_MEM:
++               pcr &= ~ISPPRV_PCR_RSZPORT;
++               pcr |= ISPPRV_PCR_SDRPORT;
++               break;
++       default:
++               printk(KERN_ERR "ISP_ERR : Wrong Output\n");
++               return -EINVAL;
++       }
++       ispprev_obj.prev_outfmt = output;
 +
++       isp_reg_writel(pcr, OMAP3_ISP_IOMEM_PREV, ISPPRV_PCR);
++
++       isppreview_config_ycpos(params->pix_fmt);
++
++       if (params->cfa.cfa_table != NULL)
++               isppreview_config_cfa(params->cfa);
++       if (params->csup.hypf_en == 1)
++               isppreview_config_chroma_suppression(params->csup);
++       if (params->ytable != NULL)
++               isppreview_config_luma_enhancement(params->ytable);
++
++       if (params->gtable.redtable != NULL)
++               isppreview_config_gammacorrn(params->gtable);
++
++       enable = (params->features & PREV_CFA) ? 1 : 0;
++       isppreview_enable_cfa(enable);
++
++       enable = (params->features & PREV_CHROMA_SUPPRESS) ? 1 : 0;
++       isppreview_enable_chroma_suppression(enable);
++
++       enable = (params->features & PREV_LUMA_ENHANCE) ? 1 : 0;
++       isppreview_enable_luma_enhancement(enable);
++
++       enable = (params->features & PREV_NOISE_FILTER) ? 1 : 0;
++       if (enable)
++               isppreview_config_noisefilter(params->nf);
++       isppreview_enable_noisefilter(enable);
++
++       enable = (params->features & PREV_DEFECT_COR) ? 1 : 0;
++       if (enable)
++               isppreview_config_dcor(params->dcor);
++       isppreview_enable_dcor(enable);
++
++       enable = (params->features & PREV_GAMMA_BYPASS) ? 1 : 0;
++       isppreview_enable_gammabypass(enable);
++
++       isppreview_config_whitebalance(params->wbal);
++       isppreview_config_blkadj(params->blk_adj);
++       isppreview_config_rgb_blending(params->rgb2rgb);
++       isppreview_config_rgb_to_ycbcr(params->rgb2ycbcr);
++
++       isppreview_config_contrast(params->contrast * ISPPRV_CONTRAST_UNITS);
++       isppreview_config_brightness(params->brightness * ISPPRV_BRIGHT_UNITS);
++
++       yclimit.minC = ISPPRV_YC_MIN;
++       yclimit.maxC = ISPPRV_YC_MAX;
++       yclimit.minY = ISPPRV_YC_MIN;
++       yclimit.maxY = ISPPRV_YC_MAX;
++       isppreview_config_yc_range(yclimit);
++
++       return 0;
++}
++EXPORT_SYMBOL(isppreview_config_datapath);
++
++/**
++ * isppreview_set_skip - Set the number of rows/columns that should be skipped.
++ *  h - Start Pixel Horizontal.
++ *  v - Start Line Vertical.
++ **/
++void isppreview_set_skip(u32 h, u32 v)
++{
++       ispprev_obj.sph = h;
++       ispprev_obj.slv = v;
++}
++EXPORT_SYMBOL(isppreview_set_skip);
++
++/**
++ * isppreview_config_ycpos - Configure byte layout of YUV image.
++ * @mode: Indicates the required byte layout.
++ **/
++void isppreview_config_ycpos(enum preview_ycpos_mode mode)
++{
++       u32 pcr = isp_reg_readl(OMAP3_ISP_IOMEM_PREV, ISPPRV_PCR);
++       pcr &= ~ISPPRV_PCR_YCPOS_CrYCbY;
++       pcr |= (mode << ISPPRV_PCR_YCPOS_SHIFT);
++       isp_reg_writel(pcr, OMAP3_ISP_IOMEM_PREV, ISPPRV_PCR);
++}
++EXPORT_SYMBOL(isppreview_config_ycpos);
++
++/**
++ * isppreview_config_averager - Enable / disable / configure averager
++ * @average: Average value to be configured.
++ **/
++void isppreview_config_averager(u8 average)
++{
++       int reg = 0;
++
++       reg = AVE_ODD_PIXEL_DIST | AVE_EVEN_PIXEL_DIST | average;
++       isp_reg_writel(reg, OMAP3_ISP_IOMEM_PREV, ISPPRV_AVE);
++}
++EXPORT_SYMBOL(isppreview_config_averager);
++
++/**
++ * isppreview_enable_invalaw - Enable/Disable Inverse A-Law module in Preview.
++ * @enable: 1 - Reverse the A-Law done in CCDC.
++ **/
++void isppreview_enable_invalaw(u8 enable)
++{
++       u32 pcr_val = 0;
++       pcr_val = isp_reg_readl(OMAP3_ISP_IOMEM_PREV, ISPPRV_PCR);
++
++       if (enable) {
++               isp_reg_writel(pcr_val | ISPPRV_PCR_WIDTH | ISPPRV_PCR_INVALAW,
++                               OMAP3_ISP_IOMEM_PREV, ISPPRV_PCR);
++       } else {
++               isp_reg_writel(pcr_val &
++                               ~(ISPPRV_PCR_WIDTH | ISPPRV_PCR_INVALAW),
++                               OMAP3_ISP_IOMEM_PREV, ISPPRV_PCR);
++       }
++}
++EXPORT_SYMBOL(isppreview_enable_invalaw);
++
++/**
++ * isppreview_enable_drkframe - Enable/Disable of the darkframe subtract.
++ * @enable: 1 - Acquires memory bandwidth since the pixels in each frame is
++ *          subtracted with the pixels in the current frame.
++ *
++ * The proccess is applied for each captured frame.
++ **/
++void isppreview_enable_drkframe(u8 enable)
++{
++       if (enable)
++               isp_reg_or(OMAP3_ISP_IOMEM_PREV, ISPPRV_PCR, ISPPRV_PCR_DRKFEN);
++       else {
++               isp_reg_and(OMAP3_ISP_IOMEM_PREV, ISPPRV_PCR,
++                                                       ~ISPPRV_PCR_DRKFEN);
++       }
++}
++EXPORT_SYMBOL(isppreview_enable_drkframe);
++
++/**
++ * isppreview_enable_shadcomp - Enables/Disables the shading compensation.
++ * @enable: 1 - Enables the shading compensation.
++ *
++ * If dark frame subtract won't be used, then enable this shading
++ * compensation.
++ **/
++void isppreview_enable_shadcomp(u8 enable)
++{
++
++       if (enable) {
++               isp_reg_or(OMAP3_ISP_IOMEM_PREV, ISPPRV_PCR,
++                                                       ISPPRV_PCR_SCOMP_EN);
++               isppreview_enable_drkframe(1);
++       } else {
++               isp_reg_and(OMAP3_ISP_IOMEM_PREV, ISPPRV_PCR,
++                                                       ~ISPPRV_PCR_SCOMP_EN);
++       }
++}
++EXPORT_SYMBOL(isppreview_enable_shadcomp);
++
++/**
++ * isppreview_config_drkf_shadcomp - Configures shift value in shading comp.
++ * @scomp_shtval: 3bit value of shift used in shading compensation.
++ **/
++void isppreview_config_drkf_shadcomp(u8 scomp_shtval)
++{
++       u32 pcr_val = isp_reg_readl(OMAP3_ISP_IOMEM_PREV, ISPPRV_PCR);
++
++       pcr_val &= ISPPRV_PCR_SCOMP_SFT_MASK;
++       isp_reg_writel(pcr_val | (scomp_shtval << ISPPRV_PCR_SCOMP_SFT_SHIFT),
++                                       OMAP3_ISP_IOMEM_PREV, ISPPRV_PCR);
++}
++EXPORT_SYMBOL(isppreview_config_drkf_shadcomp);
++
++/**
++ * isppreview_enable_hmed - Enables/Disables of the Horizontal Median Filter.
++ * @enable: 1 - Enables Horizontal Median Filter.
++ **/
++void isppreview_enable_hmed(u8 enable)
++{
++       if (enable)
++               isp_reg_or(OMAP3_ISP_IOMEM_PREV, ISPPRV_PCR, ISPPRV_PCR_HMEDEN);
++       else {
++               isp_reg_and(OMAP3_ISP_IOMEM_PREV, ISPPRV_PCR,
++                                                       ~ISPPRV_PCR_HMEDEN);
++       }
++       ispprev_obj.hmed_en = enable ? 1 : 0;
++}
++EXPORT_SYMBOL(isppreview_enable_hmed);
++
++/**
++ * isppreview_config_hmed - Configures the Horizontal Median Filter.
++ * @prev_hmed: Structure containing the odd and even distance between the
++ *             pixels in the image along with the filter threshold.
++ **/
++void isppreview_config_hmed(struct ispprev_hmed prev_hmed)
++{
++
++       u32 odddist = 0;
++       u32 evendist = 0;
++
++       if (prev_hmed.odddist == 1)
++               odddist = ~ISPPRV_HMED_ODDDIST;
++       else
++               odddist = ISPPRV_HMED_ODDDIST;
++
++       if (prev_hmed.evendist == 1)
++               evendist = ~ISPPRV_HMED_EVENDIST;
++       else
++               evendist = ISPPRV_HMED_EVENDIST;
++
++       isp_reg_writel(odddist | evendist | (prev_hmed.thres <<
++                                       ISPPRV_HMED_THRESHOLD_SHIFT),
++                                       OMAP3_ISP_IOMEM_PREV, ISPPRV_HMED);
++
++}
++EXPORT_SYMBOL(isppreview_config_hmed);
++
++/**
++ * isppreview_config_noisefilter - Configures the Noise Filter.
++ * @prev_nf: Structure containing the noisefilter table, strength to be used
++ *           for the noise filter and the defect correction enable flag.
++ **/
++void isppreview_config_noisefilter(struct ispprev_nf prev_nf)
++{
++       int i = 0;
++
++       isp_reg_writel(prev_nf.spread, OMAP3_ISP_IOMEM_PREV, ISPPRV_NF);
++       isp_reg_writel(ISPPRV_NF_TABLE_ADDR, OMAP3_ISP_IOMEM_PREV,
++                                                       ISPPRV_SET_TBL_ADDR);
++       for (i = 0; i < 64; i++) {
++               isp_reg_writel(prev_nf.table[i], OMAP3_ISP_IOMEM_PREV,
++                                                       ISPPRV_SET_TBL_DATA);
++       }
++}
++EXPORT_SYMBOL(isppreview_config_noisefilter);
++
++/**
++ * isppreview_config_dcor - Configures the defect correction
++ * @prev_nf: Structure containing the defect correction structure
++ **/
++void isppreview_config_dcor(struct ispprev_dcor prev_dcor)
++{
++       if (prev_dcor.couplet_mode_en) {
++               isp_reg_writel(prev_dcor.detect_correct[0],
++                                       OMAP3_ISP_IOMEM_PREV, ISPPRV_CDC_THR0);
++               isp_reg_writel(prev_dcor.detect_correct[1],
++                                       OMAP3_ISP_IOMEM_PREV, ISPPRV_CDC_THR1);
++               isp_reg_writel(prev_dcor.detect_correct[2],
++                                       OMAP3_ISP_IOMEM_PREV, ISPPRV_CDC_THR2);
++               isp_reg_writel(prev_dcor.detect_correct[3],
++                                       OMAP3_ISP_IOMEM_PREV, ISPPRV_CDC_THR3);
++               isp_reg_or(OMAP3_ISP_IOMEM_PREV, ISPPRV_PCR, ISPPRV_PCR_DCCOUP);
++       } else {
++               isp_reg_and(OMAP3_ISP_IOMEM_PREV, ISPPRV_PCR,
++                                                       ~ISPPRV_PCR_DCCOUP);
++       }
++}
++EXPORT_SYMBOL(isppreview_config_dcor);
++
++/**
++ * isppreview_config_cfa - Configures the CFA Interpolation parameters.
++ * @prev_cfa: Structure containing the CFA interpolation table, CFA format
++ *            in the image, vertical and horizontal gradient threshold.
++ **/
++void isppreview_config_cfa(struct ispprev_cfa prev_cfa)
++{
++       int i = 0;
++
++       ispprev_obj.cfafmt = prev_cfa.cfafmt;
++
++       isp_reg_or(OMAP3_ISP_IOMEM_PREV, ISPPRV_PCR,
++                               (prev_cfa.cfafmt << ISPPRV_PCR_CFAFMT_SHIFT));
++
++       isp_reg_writel(
++               (prev_cfa.cfa_gradthrs_vert << ISPPRV_CFA_GRADTH_VER_SHIFT) |
++               (prev_cfa.cfa_gradthrs_horz << ISPPRV_CFA_GRADTH_HOR_SHIFT),
++               OMAP3_ISP_IOMEM_PREV, ISPPRV_CFA);
++
++       isp_reg_writel(ISPPRV_CFA_TABLE_ADDR, OMAP3_ISP_IOMEM_PREV,
++                                                       ISPPRV_SET_TBL_ADDR);
++
++       for (i = 0; i < 576; i++) {
++               isp_reg_writel(prev_cfa.cfa_table[i],
++                               OMAP3_ISP_IOMEM_PREV, ISPPRV_SET_TBL_DATA);
++       }
++}
++EXPORT_SYMBOL(isppreview_config_cfa);
++
++/**
++ * isppreview_config_gammacorrn - Configures the Gamma Correction table values
++ * @gtable: Structure containing the table for red, blue, green gamma table.
++ **/
++void isppreview_config_gammacorrn(struct ispprev_gtable gtable)
++{
++       int i = 0;
++
++       isp_reg_writel(ISPPRV_REDGAMMA_TABLE_ADDR,
++                               OMAP3_ISP_IOMEM_PREV, ISPPRV_SET_TBL_ADDR);
++       for (i = 0; i < 1024; i++) {
++               isp_reg_writel(gtable.redtable[i],
++                               OMAP3_ISP_IOMEM_PREV, ISPPRV_SET_TBL_DATA);
++       }
++
++       isp_reg_writel(ISPPRV_GREENGAMMA_TABLE_ADDR,
++                               OMAP3_ISP_IOMEM_PREV, ISPPRV_SET_TBL_ADDR);
++       for (i = 0; i < 1024; i++) {
++               isp_reg_writel(gtable.greentable[i],
++                               OMAP3_ISP_IOMEM_PREV, ISPPRV_SET_TBL_DATA);
++       }
++
++       isp_reg_writel(ISPPRV_BLUEGAMMA_TABLE_ADDR,
++                               OMAP3_ISP_IOMEM_PREV, ISPPRV_SET_TBL_ADDR);
++       for (i = 0; i < 1024; i++) {
++               isp_reg_writel(gtable.bluetable[i],
++                               OMAP3_ISP_IOMEM_PREV, ISPPRV_SET_TBL_DATA);
++       }
++}
++EXPORT_SYMBOL(isppreview_config_gammacorrn);
++
++/**
++ * isppreview_config_luma_enhancement - Sets the Luminance Enhancement table.
++ * @ytable: Structure containing the table for Luminance Enhancement table.
++ **/
++void isppreview_config_luma_enhancement(u32 *ytable)
++{
++       int i = 0;
++
++       isp_reg_writel(ISPPRV_YENH_TABLE_ADDR,
++                               OMAP3_ISP_IOMEM_PREV, ISPPRV_SET_TBL_ADDR);
++       for (i = 0; i < 128; i++) {
++               isp_reg_writel(ytable[i],
++                               OMAP3_ISP_IOMEM_PREV, ISPPRV_SET_TBL_DATA);
++       }
++}
++EXPORT_SYMBOL(isppreview_config_luma_enhancement);
++
++/**
++ * isppreview_config_chroma_suppression - Configures the Chroma Suppression.
++ * @csup: Structure containing the threshold value for suppression
++ *        and the hypass filter enable flag.
++ **/
++void isppreview_config_chroma_suppression(struct ispprev_csup csup)
++{
++       isp_reg_writel(csup.gain | (csup.thres << ISPPRV_CSUP_THRES_SHIFT) |
++                               (csup.hypf_en << ISPPRV_CSUP_HPYF_SHIFT),
++                               OMAP3_ISP_IOMEM_PREV, ISPPRV_CSUP);
++}
++EXPORT_SYMBOL(isppreview_config_chroma_suppression);
++
++/**
++ * isppreview_enable_noisefilter - Enables/Disables the Noise Filter.
++ * @enable: 1 - Enables the Noise Filter.
++ **/
++void isppreview_enable_noisefilter(u8 enable)
++{
++       if (enable)
++               isp_reg_or(OMAP3_ISP_IOMEM_PREV, ISPPRV_PCR, ISPPRV_PCR_NFEN);
++       else
++               isp_reg_and(OMAP3_ISP_IOMEM_PREV, ISPPRV_PCR, ~ISPPRV_PCR_NFEN);
++       ispprev_obj.nf_en = enable ? 1 : 0;
++}
++EXPORT_SYMBOL(isppreview_enable_noisefilter);
++
++/**
++ * isppreview_enable_dcor - Enables/Disables the defect correction.
++ * @enable: 1 - Enables the defect correction.
++ **/
++void isppreview_enable_dcor(u8 enable)
++{
++       if (enable)
++               isp_reg_or(OMAP3_ISP_IOMEM_PREV, ISPPRV_PCR, ISPPRV_PCR_DCOREN);
++       else {
++               isp_reg_and(OMAP3_ISP_IOMEM_PREV, ISPPRV_PCR,
++                                                       ~ISPPRV_PCR_DCOREN);
++       }
++       ispprev_obj.dcor_en = enable ? 1 : 0;
++}
++EXPORT_SYMBOL(isppreview_enable_dcor);
++
++/**
++ * isppreview_enable_cfa - Enable/Disable the CFA Interpolation.
++ * @enable: 1 - Enables the CFA.
++ **/
++void isppreview_enable_cfa(u8 enable)
++{
++       if (enable)
++               isp_reg_or(OMAP3_ISP_IOMEM_PREV, ISPPRV_PCR, ISPPRV_PCR_CFAEN);
++       else {
++               isp_reg_and(OMAP3_ISP_IOMEM_PREV, ISPPRV_PCR,
++                                                       ~ISPPRV_PCR_CFAEN);
++       }
++       ispprev_obj.cfa_en = enable ? 1 : 0;
++}
++EXPORT_SYMBOL(isppreview_enable_cfa);
++
++/**
++ * isppreview_enable_gammabypass - Enables/Disables the GammaByPass
++ * @enable: 1 - Bypasses Gamma - 10bit input is cropped to 8MSB.
++ *          0 - Goes through Gamma Correction. input and output is 10bit.
++ **/
++void isppreview_enable_gammabypass(u8 enable)
++{
++       if (enable) {
++               isp_reg_or(OMAP3_ISP_IOMEM_PREV, ISPPRV_PCR,
++                                               ISPPRV_PCR_GAMMA_BYPASS);
++       } else {
++               isp_reg_and(OMAP3_ISP_IOMEM_PREV, ISPPRV_PCR,
++                                               ~ISPPRV_PCR_GAMMA_BYPASS);
++       }
++}
++EXPORT_SYMBOL(isppreview_enable_gammabypass);
++
++/**
++ * isppreview_enable_luma_enhancement - Enables/Disables Luminance Enhancement
++ * @enable: 1 - Enable the Luminance Enhancement.
++ **/
++void isppreview_enable_luma_enhancement(u8 enable)
++{
++       if (enable) {
++               isp_reg_or(OMAP3_ISP_IOMEM_PREV, ISPPRV_PCR,
++                                                       ISPPRV_PCR_YNENHEN);
++       } else {
++               isp_reg_and(OMAP3_ISP_IOMEM_PREV, ISPPRV_PCR,
++                                                       ~ISPPRV_PCR_YNENHEN);
++       }
++       ispprev_obj.yenh_en = enable ? 1 : 0;
++}
++EXPORT_SYMBOL(isppreview_enable_luma_enhancement);
++
++/**
++ * isppreview_enable_chroma_suppression - Enables/Disables Chrominance Suppr.
++ * @enable: 1 - Enable the Chrominance Suppression.
++ **/
++void isppreview_enable_chroma_suppression(u8 enable)
++{
++       if (enable)
++               isp_reg_or(OMAP3_ISP_IOMEM_PREV, ISPPRV_PCR, ISPPRV_PCR_SUPEN);
++       else {
++               isp_reg_and(OMAP3_ISP_IOMEM_PREV, ISPPRV_PCR,
++                                                       ~ISPPRV_PCR_SUPEN);
++       }
++       ispprev_obj.csup_en = enable ? 1 : 0;
++}
++EXPORT_SYMBOL(isppreview_enable_chroma_suppression);
++
++/**
++ * isppreview_config_whitebalance - Configures the White Balance parameters.
++ * @prev_wbal: Structure containing the digital gain and white balance
++ *             coefficient.
++ *
++ * Coefficient matrix always with default values.
++ **/
++void isppreview_config_whitebalance(struct ispprev_wbal prev_wbal)
++{
++
++       isp_reg_writel(prev_wbal.dgain, OMAP3_ISP_IOMEM_PREV, ISPPRV_WB_DGAIN);
++       isp_reg_writel(prev_wbal.coef0 |
++                               prev_wbal.coef1 << ISPPRV_WBGAIN_COEF1_SHIFT |
++                               prev_wbal.coef2 << ISPPRV_WBGAIN_COEF2_SHIFT |
++                               prev_wbal.coef3 << ISPPRV_WBGAIN_COEF3_SHIFT,
++                               OMAP3_ISP_IOMEM_PREV, ISPPRV_WBGAIN);
++
++       isp_reg_writel((ISPPRV_WBSEL_COEF0 << ISPPRV_WBSEL_N0_0_SHIFT) |
++                       (ISPPRV_WBSEL_COEF1 << ISPPRV_WBSEL_N0_1_SHIFT) |
++                       (ISPPRV_WBSEL_COEF0 << ISPPRV_WBSEL_N0_2_SHIFT) |
++                       (ISPPRV_WBSEL_COEF1 << ISPPRV_WBSEL_N0_3_SHIFT) |
++                       (ISPPRV_WBSEL_COEF2 << ISPPRV_WBSEL_N1_0_SHIFT) |
++                       (ISPPRV_WBSEL_COEF3 << ISPPRV_WBSEL_N1_1_SHIFT) |
++                       (ISPPRV_WBSEL_COEF2 << ISPPRV_WBSEL_N1_2_SHIFT) |
++                       (ISPPRV_WBSEL_COEF3 << ISPPRV_WBSEL_N1_3_SHIFT) |
++                       (ISPPRV_WBSEL_COEF0 << ISPPRV_WBSEL_N2_0_SHIFT) |
++                       (ISPPRV_WBSEL_COEF1 << ISPPRV_WBSEL_N2_1_SHIFT) |
++                       (ISPPRV_WBSEL_COEF0 << ISPPRV_WBSEL_N2_2_SHIFT) |
++                       (ISPPRV_WBSEL_COEF1 << ISPPRV_WBSEL_N2_3_SHIFT) |
++                       (ISPPRV_WBSEL_COEF2 << ISPPRV_WBSEL_N3_0_SHIFT) |
++                       (ISPPRV_WBSEL_COEF3 << ISPPRV_WBSEL_N3_1_SHIFT) |
++                       (ISPPRV_WBSEL_COEF2 << ISPPRV_WBSEL_N3_2_SHIFT) |
++                       (ISPPRV_WBSEL_COEF3 << ISPPRV_WBSEL_N3_3_SHIFT),
++                       OMAP3_ISP_IOMEM_PREV, ISPPRV_WBSEL);
++
++}
++EXPORT_SYMBOL(isppreview_config_whitebalance);
++
++/**
++ * isppreview_config_whitebalance2 - Configures the White Balance parameters.
++ * @prev_wbal: Structure containing the digital gain and white balance
++ *             coefficient.
++ *
++ * Coefficient matrix can be changed.
++ **/
++void isppreview_config_whitebalance2(struct prev_white_balance prev_wbal)
++{
++       isp_reg_writel(prev_wbal.wb_dgain,
++                                       OMAP3_ISP_IOMEM_PREV, ISPPRV_WB_DGAIN);
++       isp_reg_writel(prev_wbal.wb_gain[0] |
++                       (prev_wbal.wb_gain[1] << ISPPRV_WBGAIN_COEF1_SHIFT) |
++                       (prev_wbal.wb_gain[2] << ISPPRV_WBGAIN_COEF2_SHIFT) |
++                       (prev_wbal.wb_gain[3] << ISPPRV_WBGAIN_COEF3_SHIFT),
++                       OMAP3_ISP_IOMEM_PREV, ISPPRV_WBGAIN);
++
++       isp_reg_writel(prev_wbal.wb_coefmatrix[0][0] << ISPPRV_WBSEL_N0_0_SHIFT |
++               prev_wbal.wb_coefmatrix[0][1] << ISPPRV_WBSEL_N0_1_SHIFT |
++               prev_wbal.wb_coefmatrix[0][2] << ISPPRV_WBSEL_N0_2_SHIFT |
++               prev_wbal.wb_coefmatrix[0][3] << ISPPRV_WBSEL_N0_3_SHIFT |
++               prev_wbal.wb_coefmatrix[1][0] << ISPPRV_WBSEL_N1_0_SHIFT |
++               prev_wbal.wb_coefmatrix[1][1] << ISPPRV_WBSEL_N1_1_SHIFT |
++               prev_wbal.wb_coefmatrix[1][2] << ISPPRV_WBSEL_N1_2_SHIFT |
++               prev_wbal.wb_coefmatrix[1][3] << ISPPRV_WBSEL_N1_3_SHIFT |
++               prev_wbal.wb_coefmatrix[2][0] << ISPPRV_WBSEL_N2_0_SHIFT |
++               prev_wbal.wb_coefmatrix[2][1] << ISPPRV_WBSEL_N2_1_SHIFT |
++               prev_wbal.wb_coefmatrix[2][2] << ISPPRV_WBSEL_N2_2_SHIFT |
++               prev_wbal.wb_coefmatrix[2][3] << ISPPRV_WBSEL_N2_3_SHIFT |
++               prev_wbal.wb_coefmatrix[3][0] << ISPPRV_WBSEL_N3_0_SHIFT |
++               prev_wbal.wb_coefmatrix[3][1] << ISPPRV_WBSEL_N3_1_SHIFT |
++               prev_wbal.wb_coefmatrix[3][2] << ISPPRV_WBSEL_N3_2_SHIFT |
++               prev_wbal.wb_coefmatrix[3][3] << ISPPRV_WBSEL_N3_3_SHIFT,
++               OMAP3_ISP_IOMEM_PREV, ISPPRV_WBSEL);
++}
++EXPORT_SYMBOL(isppreview_config_whitebalance2);
++
++/**
++ * isppreview_config_blkadj - Configures the Black Adjustment parameters.
++ * @prev_blkadj: Structure containing the black adjustment towards red, green,
++ *               blue.
++ **/
++void isppreview_config_blkadj(struct ispprev_blkadj prev_blkadj)
++{
++       isp_reg_writel(prev_blkadj.blue |
++                       (prev_blkadj.green << ISPPRV_BLKADJOFF_G_SHIFT) |
++                       (prev_blkadj.red << ISPPRV_BLKADJOFF_R_SHIFT),
++                       OMAP3_ISP_IOMEM_PREV, ISPPRV_BLKADJOFF);
++}
++EXPORT_SYMBOL(isppreview_config_blkadj);
++
++/**
++ * isppreview_config_rgb_blending - Configures the RGB-RGB Blending matrix.
++ * @rgb2rgb: Structure containing the rgb to rgb blending matrix and the rgb
++ *           offset.
++ **/
++void isppreview_config_rgb_blending(struct ispprev_rgbtorgb rgb2rgb)
++{
++       isp_reg_writel((rgb2rgb.matrix[0][0] << ISPPRV_RGB_MAT1_MTX_RR_SHIFT) |
++                       (rgb2rgb.matrix[0][1] << ISPPRV_RGB_MAT1_MTX_GR_SHIFT),
++                       OMAP3_ISP_IOMEM_PREV, ISPPRV_RGB_MAT1);
++
++       isp_reg_writel((rgb2rgb.matrix[0][2] << ISPPRV_RGB_MAT2_MTX_BR_SHIFT) |
++                       (rgb2rgb.matrix[1][0] << ISPPRV_RGB_MAT2_MTX_RG_SHIFT),
++                       OMAP3_ISP_IOMEM_PREV, ISPPRV_RGB_MAT2);
++
++       isp_reg_writel((rgb2rgb.matrix[1][1] << ISPPRV_RGB_MAT3_MTX_GG_SHIFT) |
++                       (rgb2rgb.matrix[1][2] << ISPPRV_RGB_MAT3_MTX_BG_SHIFT),
++                       OMAP3_ISP_IOMEM_PREV, ISPPRV_RGB_MAT3);
++
++       isp_reg_writel((rgb2rgb.matrix[2][0] << ISPPRV_RGB_MAT4_MTX_RB_SHIFT) |
++                       (rgb2rgb.matrix[2][1] << ISPPRV_RGB_MAT4_MTX_GB_SHIFT),
++                       OMAP3_ISP_IOMEM_PREV, ISPPRV_RGB_MAT4);
++
++       isp_reg_writel((rgb2rgb.matrix[2][2] << ISPPRV_RGB_MAT5_MTX_BB_SHIFT),
++                       OMAP3_ISP_IOMEM_PREV, ISPPRV_RGB_MAT5);
++
++       isp_reg_writel((rgb2rgb.offset[0] << ISPPRV_RGB_OFF1_MTX_OFFG_SHIFT) |
++                       (rgb2rgb.offset[1] << ISPPRV_RGB_OFF1_MTX_OFFR_SHIFT),
++                       OMAP3_ISP_IOMEM_PREV, ISPPRV_RGB_OFF1);
++
++       isp_reg_writel(rgb2rgb.offset[2] << ISPPRV_RGB_OFF2_MTX_OFFB_SHIFT,
++                       OMAP3_ISP_IOMEM_PREV, ISPPRV_RGB_OFF2);
++
++}
++EXPORT_SYMBOL(isppreview_config_rgb_blending);
++
++/**
++ * Configures the RGB-YCbYCr conversion matrix
++ * @prev_csc: Structure containing the RGB to YCbYCr matrix and the
++ *            YCbCr offset.
++ **/
++void isppreview_config_rgb_to_ycbcr(struct ispprev_csc prev_csc)
++{
++       isp_reg_writel(prev_csc.matrix[0][0] << ISPPRV_CSC0_RY_SHIFT |
++                               prev_csc.matrix[0][1] << ISPPRV_CSC0_GY_SHIFT |
++                               prev_csc.matrix[0][2] << ISPPRV_CSC0_BY_SHIFT,
++                               OMAP3_ISP_IOMEM_PREV, ISPPRV_CSC0);
++
++       isp_reg_writel(prev_csc.matrix[1][0] << ISPPRV_CSC1_RCB_SHIFT |
++                       prev_csc.matrix[1][1] << ISPPRV_CSC1_GCB_SHIFT |
++                       prev_csc.matrix[1][2] << ISPPRV_CSC1_BCB_SHIFT,
++                       OMAP3_ISP_IOMEM_PREV, ISPPRV_CSC1);
++
++       isp_reg_writel(prev_csc.matrix[2][0] << ISPPRV_CSC2_RCR_SHIFT |
++                       prev_csc.matrix[2][1] << ISPPRV_CSC2_GCR_SHIFT |
++                       prev_csc.matrix[2][2] << ISPPRV_CSC2_BCR_SHIFT,
++                       OMAP3_ISP_IOMEM_PREV, ISPPRV_CSC2);
++
++       isp_reg_writel(prev_csc.offset[0] << ISPPRV_CSC_OFFSET_CR_SHIFT |
++                       prev_csc.offset[1] << ISPPRV_CSC_OFFSET_CB_SHIFT |
++                       prev_csc.offset[2] << ISPPRV_CSC_OFFSET_Y_SHIFT,
++                       OMAP3_ISP_IOMEM_PREV, ISPPRV_CSC_OFFSET);
++}
++EXPORT_SYMBOL(isppreview_config_rgb_to_ycbcr);
++
++/**
++ * isppreview_query_contrast - Query the contrast.
++ * @contrast: Pointer to hold the current programmed contrast value.
++ **/
++void isppreview_query_contrast(u8 *contrast)
++{
++       u32 brt_cnt_val = 0;
++
++       brt_cnt_val = isp_reg_readl(OMAP3_ISP_IOMEM_PREV, ISPPRV_CNT_BRT);
++       *contrast = (brt_cnt_val >> ISPPRV_CNT_BRT_CNT_SHIFT) & 0xFF;
++       DPRINTK_ISPPREV(" Current brt cnt value in hw is %x\n", brt_cnt_val);
++}
++EXPORT_SYMBOL(isppreview_query_contrast);
++
++/**
++ * isppreview_update_contrast - Updates the contrast.
++ * @contrast: Pointer to hold the current programmed contrast value.
++ *
++ * Value should be programmed before enabling the module.
++ **/
++void isppreview_update_contrast(u8 *contrast)
++{
++       ispprev_obj.contrast = *contrast;
++}
++EXPORT_SYMBOL(isppreview_update_contrast);
++
++/**
++ * isppreview_config_contrast - Configures the Contrast.
++ * @contrast: 8 bit value in U8Q4 format.
++ *
++ * Value should be programmed before enabling the module.
++ **/
++void isppreview_config_contrast(u8 contrast)
++{
++       u32 brt_cnt_val = 0;
++
++       brt_cnt_val = isp_reg_readl(OMAP3_ISP_IOMEM_PREV, ISPPRV_CNT_BRT);
++       brt_cnt_val &= ~(0xFF << ISPPRV_CNT_BRT_CNT_SHIFT);
++       contrast &= 0xFF;
++       isp_reg_writel(brt_cnt_val | (contrast << ISPPRV_CNT_BRT_CNT_SHIFT),
++                               OMAP3_ISP_IOMEM_PREV, ISPPRV_CNT_BRT);
++}
++EXPORT_SYMBOL(isppreview_config_contrast);
++
++/**
++ * isppreview_get_contrast_range - Gets the range contrast value.
++ * @min_contrast: Pointer to hold the minimum Contrast value.
++ * @max_contrast: Pointer to hold the maximum Contrast value.
++ **/
++void isppreview_get_contrast_range(u8 *min_contrast, u8 *max_contrast)
++{
++       *min_contrast = ISPPRV_CONTRAST_MIN;
++       *max_contrast = ISPPRV_CONTRAST_MAX;
++}
++EXPORT_SYMBOL(isppreview_get_contrast_range);
++
++/**
++ * isppreview_update_brightness - Updates the brightness in preview module.
++ * @brightness: Pointer to hold the current programmed brightness value.
++ *
++ **/
++void isppreview_update_brightness(u8 *brightness)
++{
++       ispprev_obj.brightness = *brightness;
++}
++EXPORT_SYMBOL(isppreview_update_brightness);
++
++/**
++ * isppreview_config_brightness - Configures the brightness.
++ * @contrast: 8bitvalue in U8Q0 format.
++ **/
++void isppreview_config_brightness(u8 brightness)
++{
++       u32 brt_cnt_val = 0;
++
++       DPRINTK_ISPPREV("\tConfiguring brightness in ISP: %d\n", brightness);
++       brt_cnt_val = isp_reg_readl(OMAP3_ISP_IOMEM_PREV, ISPPRV_CNT_BRT);
++       brt_cnt_val &= ~(0xFF << ISPPRV_CNT_BRT_BRT_SHIFT);
++       brightness &= 0xFF;
++       isp_reg_writel(brt_cnt_val | (brightness << ISPPRV_CNT_BRT_BRT_SHIFT),
++                               OMAP3_ISP_IOMEM_PREV, ISPPRV_CNT_BRT);
++}
++EXPORT_SYMBOL(isppreview_config_brightness);
++
++/**
++ * isppreview_query_brightness - Query the brightness.
++ * @brightness: Pointer to hold the current programmed brightness value.
++ **/
++void isppreview_query_brightness(u8 *brightness)
++{
++       *brightness = isp_reg_readl(OMAP3_ISP_IOMEM_PREV, ISPPRV_CNT_BRT);
++}
++EXPORT_SYMBOL(isppreview_query_brightness);
++
++/**
++ * isppreview_get_brightness_range - Gets the range brightness value
++ * @min_brightness: Pointer to hold the minimum brightness value
++ * @max_brightness: Pointer to hold the maximum brightness value
++ **/
++void isppreview_get_brightness_range(u8 *min_brightness, u8 *max_brightness)
++{
++       *min_brightness = ISPPRV_BRIGHT_MIN;
++       *max_brightness = ISPPRV_BRIGHT_MAX;
++}
++EXPORT_SYMBOL(isppreview_get_brightness_range);
++
++/**
++ * isppreview_set_color - Sets the color effect.
++ * @mode: Indicates the required color effect.
++ **/
++void isppreview_set_color(u8 *mode)
++{
++       ispprev_obj.color = *mode;
++       update_color_matrix = 1;
++}
++EXPORT_SYMBOL(isppreview_set_color);
++
++/**
++ * isppreview_get_color - Gets the current color effect.
++ * @mode: Indicates the current color effect.
++ **/
++void isppreview_get_color(u8 *mode)
++{
++       *mode = ispprev_obj.color;
++}
++EXPORT_SYMBOL(isppreview_get_color);
++
++/**
++ * isppreview_config_yc_range - Configures the max and min Y and C values.
++ * @yclimit: Structure containing the range of Y and C values.
++ **/
++void isppreview_config_yc_range(struct ispprev_yclimit yclimit)
++{
++       isp_reg_writel(((yclimit.maxC << ISPPRV_SETUP_YC_MAXC_SHIFT) |
++                               (yclimit.maxY << ISPPRV_SETUP_YC_MAXY_SHIFT) |
++                               (yclimit.minC << ISPPRV_SETUP_YC_MINC_SHIFT) |
++                               (yclimit.minY << ISPPRV_SETUP_YC_MINY_SHIFT)),
++                               OMAP3_ISP_IOMEM_PREV, ISPPRV_SETUP_YC);
++}
++EXPORT_SYMBOL(isppreview_config_yc_range);
++
++/**
++ * isppreview_try_size - Calculates output dimensions with the modules enabled.
++ * @input_w: input width for the preview in number of pixels per line
++ * @input_h: input height for the preview in number of lines
++ * @output_w: output width from the preview in number of pixels per line
++ * @output_h: output height for the preview in number of lines
++ *
++ * Calculates the number of pixels cropped in the submodules that are enabled,
++ * Fills up the output width height variables in the isp_prev structure.
++ **/
++int isppreview_try_size(u32 input_w, u32 input_h, u32 *output_w, u32 *output_h)
++{
++       u32 prevout_w = input_w;
++       u32 prevout_h = input_h;
++       u32 div = 0;
++       int max_out;
++
++       ispprev_obj.previn_w = input_w;
++       ispprev_obj.previn_h = input_h;
++
++       if (input_w < 32 || input_h < 32) {
++               printk(KERN_ERR "ISP_ERR : preview does not support "
++                               "width < 16 or height < 32 \n");
++               return -EINVAL;
++       }
++       if (omap_rev() == OMAP3430_REV_ES1_0)
++               max_out = ISPPRV_MAXOUTPUT_WIDTH;
++       else
++               max_out = ISPPRV_MAXOUTPUT_WIDTH_ES2;
++
++       ispprev_obj.fmtavg = 0;
++
++       if (input_w > max_out) {
++               div = (input_w/max_out);
++               if (div >= 2 && div < 4) {
++                       ispprev_obj.fmtavg = 1;
++                       prevout_w /= 2;
++               } else if (div >= 4 && div < 8) {
++                       ispprev_obj.fmtavg = 2;
++                       prevout_w /= 4;
++               } else if (div >= 8) {
++                       ispprev_obj.fmtavg = 3;
++                       prevout_w /= 8;
++               }
++       }
++
++       if (ispprev_obj.hmed_en)
++               prevout_w -= 4;
++       if (ispprev_obj.nf_en) {
++               prevout_w -= 4;
++               prevout_h -= 4;
++       }
++       if (ispprev_obj.cfa_en) {
++               switch (ispprev_obj.cfafmt) {
++               case CFAFMT_BAYER:
++               case CFAFMT_SONYVGA:
++                       prevout_w -= 4;
++                       prevout_h -= 4;
++                       break;
++               case CFAFMT_RGBFOVEON:
++               case CFAFMT_RRGGBBFOVEON:
++               case CFAFMT_DNSPL:
++               case CFAFMT_HONEYCOMB:
++                       prevout_h -= 2;
++                       break;
++               };
++       }
++       if (ispprev_obj.yenh_en || ispprev_obj.csup_en)
++               prevout_w -= 2;
++
++       /* Start at the correct row/column by skipping
++        * a Sensor specific amount.
++        */
++       prevout_w -= ispprev_obj.sph;
++       prevout_h -= ispprev_obj.slv;
++
++
++       if (prevout_w % 2)
++               prevout_w -= 1;
++
++       if (ispprev_obj.prev_outfmt == PREVIEW_MEM) {
++               if (((prevout_w * 2) & ISP_32B_BOUNDARY_OFFSET) !=
++                                                       (prevout_w * 2)) {
++                       prevout_w = ((prevout_w * 2) &
++                                               ISP_32B_BOUNDARY_OFFSET) / 2;
++               }
++       }
++       *output_w = prevout_w;
++       ispprev_obj.prevout_w = prevout_w;
++       *output_h = prevout_h;
++       ispprev_obj.prevout_h = prevout_h;
++       return 0;
++}
++EXPORT_SYMBOL(isppreview_try_size);
++
++/**
++ * isppreview_config_size - Sets the size of ISP preview output.
++ * @input_w: input width for the preview in number of pixels per line
++ * @input_h: input height for the preview in number of lines
++ * @output_w: output width from the preview in number of pixels per line
++ * @output_h: output height for the preview in number of lines
++ *
++ * Configures the appropriate values stored in the isp_prev structure to
++ * HORZ/VERT_INFO. Configures PRV_AVE if needed for downsampling as calculated
++ * in trysize.
++ **/
++int isppreview_config_size(u32 input_w, u32 input_h, u32 output_w, u32 output_h)
++{
++       u32 prevsdroff;
++
++       if ((output_w != ispprev_obj.prevout_w) ||
++                                       (output_h != ispprev_obj.prevout_h)) {
++               printk(KERN_ERR "ISP_ERR : isppreview_try_size should "
++                                       "be called before config size\n");
++               return -EINVAL;
++       }
++
++       isp_reg_writel((ispprev_obj.sph << ISPPRV_HORZ_INFO_SPH_SHIFT) |
++                                       (ispprev_obj.previn_w - 1),
++                                       OMAP3_ISP_IOMEM_PREV, ISPPRV_HORZ_INFO);
++       isp_reg_writel((ispprev_obj.slv << ISPPRV_VERT_INFO_SLV_SHIFT) |
++                                       (ispprev_obj.previn_h - 1),
++                                       OMAP3_ISP_IOMEM_PREV, ISPPRV_VERT_INFO);
++
++       if (ispprev_obj.cfafmt == CFAFMT_BAYER)
++               isp_reg_writel(ISPPRV_AVE_EVENDIST_2 <<
++                                       ISPPRV_AVE_EVENDIST_SHIFT |
++                                       ISPPRV_AVE_ODDDIST_2 <<
++                                       ISPPRV_AVE_ODDDIST_SHIFT |
++                                       ispprev_obj.fmtavg,
++                                       OMAP3_ISP_IOMEM_PREV, ISPPRV_AVE);
++
++       if (ispprev_obj.prev_outfmt == PREVIEW_MEM) {
++               prevsdroff = ispprev_obj.prevout_w * 2;
++               if ((prevsdroff & ISP_32B_BOUNDARY_OFFSET) != prevsdroff) {
++                       DPRINTK_ISPPREV("ISP_WARN: Preview output buffer line"
++                                               " size is truncated"
++                                               " to 32byte boundary\n");
++                       prevsdroff &= ISP_32B_BOUNDARY_BUF ;
++               }
++               isppreview_config_outlineoffset(prevsdroff);
++       }
++       return 0;
++}
++EXPORT_SYMBOL(isppreview_config_size);
++
++/**
++ * isppreview_config_inlineoffset - Configures the Read address line offset.
++ * @offset: Line Offset for the input image.
++ **/
++int isppreview_config_inlineoffset(u32 offset)
++{
++       if ((offset & ISP_32B_BOUNDARY_OFFSET) == offset) {
++               isp_reg_writel(offset & 0xFFFF,
++                               OMAP3_ISP_IOMEM_PREV, ISPPRV_RADR_OFFSET);
++       } else {
++               printk(KERN_ERR "ISP_ERR : Offset should be in 32 byte "
++                                                               "boundary\n");
++               return -EINVAL;
++       }
++       return 0;
++}
++EXPORT_SYMBOL(isppreview_config_inlineoffset);
++
++/**
++ * isppreview_set_inaddr - Sets memory address of input frame.
++ * @addr: 32bit memory address aligned on 32byte boundary.
++ *
++ * Configures the memory address from which the input frame is to be read.
++ **/
++int isppreview_set_inaddr(u32 addr)
++{
++       if ((addr & ISP_32B_BOUNDARY_BUF) == addr)
++               isp_reg_writel(addr, OMAP3_ISP_IOMEM_PREV, ISPPRV_RSDR_ADDR);
++       else {
++               printk(KERN_ERR "ISP_ERR: Address should be in 32 byte "
++                                                               "boundary\n");
++               return -EINVAL;
++       }
++       return 0;
++}
++EXPORT_SYMBOL(isppreview_set_inaddr);
++
++/**
++ * isppreview_config_outlineoffset - Configures the Write address line offset.
++ * @offset: Line Offset for the preview output.
++ **/
++int isppreview_config_outlineoffset(u32 offset)
++{
++       if ((offset & ISP_32B_BOUNDARY_OFFSET) != offset) {
++               printk(KERN_ERR "ISP_ERR : Offset should be in 32 byte "
++                                                               "boundary\n");
++               return -EINVAL;
++       }
++       isp_reg_writel(offset & 0xFFFF, OMAP3_ISP_IOMEM_PREV, ISPPRV_WADD_OFFSET);
++       return 0;
++}
++EXPORT_SYMBOL(isppreview_config_outlineoffset);
++
++/**
++ * isppreview_set_outaddr - Sets the memory address to store output frame
++ * @addr: 32bit memory address aligned on 32byte boundary.
++ *
++ * Configures the memory address to which the output frame is written.
++ **/
++int isppreview_set_outaddr(u32 addr)
++{
++       if ((addr & ISP_32B_BOUNDARY_BUF) != addr) {
++               printk(KERN_ERR "ISP_ERR: Address should be in 32 byte "
++                                                               "boundary\n");
++               return -EINVAL;
++       }
++       isp_reg_writel(addr, OMAP3_ISP_IOMEM_PREV, ISPPRV_WSDR_ADDR);
++       return 0;
++}
++EXPORT_SYMBOL(isppreview_set_outaddr);
++
++/**
++ * isppreview_config_darklineoffset - Sets the Dark frame address line offset.
++ * @offset: Line Offset for the Darkframe.
++ **/
++int isppreview_config_darklineoffset(u32 offset)
++{
++       if ((offset & ISP_32B_BOUNDARY_OFFSET) != offset) {
++               printk(KERN_ERR "ISP_ERR : Offset should be in 32 byte "
++                                                               "boundary\n");
++               return -EINVAL;
++       }
++       isp_reg_writel(offset & 0xFFFF, OMAP3_ISP_IOMEM_PREV, ISPPRV_DRKF_OFFSET);
++       return 0;
++}
++EXPORT_SYMBOL(isppreview_config_darklineoffset);
++
++/**
++ * isppreview_set_darkaddr - Sets the memory address to store Dark frame.
++ * @addr: 32bit memory address aligned on 32 bit boundary.
++ **/
++int isppreview_set_darkaddr(u32 addr)
++{
++       if ((addr & ISP_32B_BOUNDARY_BUF) != addr) {
++               printk(KERN_ERR "ISP_ERR : Address should be in 32 byte "
++                                                               "boundary\n");
++               return -EINVAL;
++       }
++       isp_reg_writel(addr, OMAP3_ISP_IOMEM_PREV, ISPPRV_DSDR_ADDR);
++       return 0;
++}
++EXPORT_SYMBOL(isppreview_set_darkaddr);
++
++/**
++ * isppreview_enable - Enables the Preview module.
++ * @enable: 1 - Enables the preview module.
++ *
++ * Client should configure all the sub modules in Preview before this.
++ **/
++void isppreview_enable(u8 enable)
++{
++       spin_lock(&ispprev_obj.ispprev_lock);
++       ispprev_obj.stream_on = enable ? 1 : 0;
++       spin_unlock(&ispprev_obj.ispprev_lock);
++       if (enable)
++               isp_reg_or(OMAP3_ISP_IOMEM_PREV, ISPPRV_PCR, ISPPRV_PCR_EN);
++       else
++               isp_reg_and(OMAP3_ISP_IOMEM_PREV, ISPPRV_PCR, ~ISPPRV_PCR_EN);
++}
++EXPORT_SYMBOL(isppreview_enable);
++
++/**
++ * isppreview_busy - Gets busy state of preview module.
++ **/
++int isppreview_busy(void)
++{
++       return isp_reg_readl(OMAP3_ISP_IOMEM_PREV, ISPPRV_PCR) & ISPPRV_PCR_BUSY;
++}
++EXPORT_SYMBOL(isppreview_busy);
++
++/**
++ * isppreview_get_config - Gets parameters of preview module.
++ **/
++struct prev_params *isppreview_get_config(void)
++{
++       return prev_config_params;
++}
++EXPORT_SYMBOL(isppreview_get_config);
++
++/**
++ * isppreview_save_context - Saves the values of the preview module registers.
++ **/
++void isppreview_save_context(void)
++{
++       DPRINTK_ISPPREV("Saving context\n");
++       isp_save_context(ispprev_reg_list);
++}
++EXPORT_SYMBOL(isppreview_save_context);
++
++/**
++ * isppreview_restore_context - Restores the values of preview module registers
++ **/
++void isppreview_restore_context(void)
++{
++       DPRINTK_ISPPREV("Restoring context\n");
++       isp_restore_context(ispprev_reg_list);
++}
++EXPORT_SYMBOL(isppreview_restore_context);
++
++/**
++ * isppreview_print_status - Prints the values of the Preview Module registers.
++ *
++ * Also prints other debug information stored in the preview moduel.
++ **/
++void isppreview_print_status(void)
++{
++#ifdef OMAP_ISPPREV_DEBUG
++       printk("Module in use =%d\n", ispprev_obj.prev_inuse);
++       DPRINTK_ISPPREV("Preview Input format =%d, Output Format =%d\n",
++                                               ispprev_obj.prev_inpfmt,
++                                               ispprev_obj.prev_outfmt);
++       DPRINTK_ISPPREV("Accepted Preview Input (width = %d,Height = %d)\n",
++                                               ispprev_obj.previn_w,
++                                               ispprev_obj.previn_h);
++       DPRINTK_ISPPREV("Accepted Preview Output (width = %d,Height = %d)\n",
++                                               ispprev_obj.prevout_w,
++                                               ispprev_obj.prevout_h);
++       DPRINTK_ISPPREV("###ISP_CTRL in preview =0x%x\n",
++                       isp_reg_readl(OMAP3_ISP_IOMEM_MAIN, ISP_CTRL));
++       DPRINTK_ISPPREV("###ISP_IRQ0ENABLE in preview =0x%x\n",
++                       isp_reg_readl(OMAP3_ISP_IOMEM_MAIN, ISP_IRQ0ENABLE));
++       DPRINTK_ISPPREV("###ISP_IRQ0STATUS in preview =0x%x\n",
++                       isp_reg_readl(OMAP3_ISP_IOMEM_MAIN, ISP_IRQ0STATUS));
++       DPRINTK_ISPPREV("###PRV PCR =0x%x\n",
++                       isp_reg_readl(OMAP3_ISP_IOMEM_PREV, ISPPRV_PCR));
++       DPRINTK_ISPPREV("###PRV HORZ_INFO =0x%x\n",
++                       isp_reg_readl(OMAP3_ISP_IOMEM_PREV, ISPPRV_HORZ_INFO));
++       DPRINTK_ISPPREV("###PRV VERT_INFO =0x%x\n",
++                       isp_reg_readl(OMAP3_ISP_IOMEM_PREV, ISPPRV_VERT_INFO));
++       DPRINTK_ISPPREV("###PRV WSDR_ADDR =0x%x\n",
++                       isp_reg_readl(OMAP3_ISP_IOMEM_PREV, ISPPRV_WSDR_ADDR));
++       DPRINTK_ISPPREV("###PRV WADD_OFFSET =0x%x\n",
++                       isp_reg_readl(OMAP3_ISP_IOMEM_PREV, ISPPRV_WADD_OFFSET));
++       DPRINTK_ISPPREV("###PRV AVE =0x%x\n",
++                       isp_reg_readl(OMAP3_ISP_IOMEM_PREV, ISPPRV_AVE));
++       DPRINTK_ISPPREV("###PRV HMED =0x%x\n",
++                       isp_reg_readl(OMAP3_ISP_IOMEM_PREV, ISPPRV_HMED));
++       DPRINTK_ISPPREV("###PRV NF =0x%x\n",
++                       isp_reg_readl(OMAP3_ISP_IOMEM_PREV, ISPPRV_NF));
++       DPRINTK_ISPPREV("###PRV WB_DGAIN =0x%x\n",
++                       isp_reg_readl(OMAP3_ISP_IOMEM_PREV, ISPPRV_WB_DGAIN));
++       DPRINTK_ISPPREV("###PRV WBGAIN =0x%x\n",
++                       isp_reg_readl(OMAP3_ISP_IOMEM_PREV, ISPPRV_WBGAIN));
++       DPRINTK_ISPPREV("###PRV WBSEL =0x%x\n",
++                       isp_reg_readl(OMAP3_ISP_IOMEM_PREV, ISPPRV_WBSEL));
++       DPRINTK_ISPPREV("###PRV CFA =0x%x\n",
++                       isp_reg_readl(OMAP3_ISP_IOMEM_PREV, ISPPRV_CFA));
++       DPRINTK_ISPPREV("###PRV BLKADJOFF =0x%x\n",
++                       isp_reg_readl(OMAP3_ISP_IOMEM_PREV, ISPPRV_BLKADJOFF));
++       DPRINTK_ISPPREV("###PRV RGB_MAT1 =0x%x\n",
++                       isp_reg_readl(OMAP3_ISP_IOMEM_PREV, ISPPRV_RGB_MAT1));
++       DPRINTK_ISPPREV("###PRV RGB_MAT2 =0x%x\n",
++                       isp_reg_readl(OMAP3_ISP_IOMEM_PREV, ISPPRV_RGB_MAT2));
++       DPRINTK_ISPPREV("###PRV RGB_MAT3 =0x%x\n",
++                       isp_reg_readl(OMAP3_ISP_IOMEM_PREV, ISPPRV_RGB_MAT3));
++       DPRINTK_ISPPREV("###PRV RGB_MAT4 =0x%x\n",
++                       isp_reg_readl(OMAP3_ISP_IOMEM_PREV, ISPPRV_RGB_MAT4));
++       DPRINTK_ISPPREV("###PRV RGB_MAT5 =0x%x\n",
++                       isp_reg_readl(OMAP3_ISP_IOMEM_PREV, ISPPRV_RGB_MAT5));
++       DPRINTK_ISPPREV("###PRV RGB_OFF1 =0x%x\n",
++                       isp_reg_readl(OMAP3_ISP_IOMEM_PREV, ISPPRV_RGB_OFF1));
++       DPRINTK_ISPPREV("###PRV RGB_OFF2 =0x%x\n",
++                       isp_reg_readl(OMAP3_ISP_IOMEM_PREV, ISPPRV_RGB_OFF2));
++       DPRINTK_ISPPREV("###PRV CSC0 =0x%x\n",
++                       isp_reg_readl(OMAP3_ISP_IOMEM_PREV, ISPPRV_CSC0));
++       DPRINTK_ISPPREV("###PRV CSC1 =0x%x\n",
++                       isp_reg_readl(OMAP3_ISP_IOMEM_PREV, ISPPRV_CSC1));
++       DPRINTK_ISPPREV("###PRV CSC2 =0x%x\n",
++                       isp_reg_readl(OMAP3_ISP_IOMEM_PREV, ISPPRV_CSC2));
++       DPRINTK_ISPPREV("###PRV CSC_OFFSET =0x%x\n",
++                       isp_reg_readl(OMAP3_ISP_IOMEM_PREV, ISPPRV_CSC_OFFSET));
++       DPRINTK_ISPPREV("###PRV CNT_BRT =0x%x\n",
++                       isp_reg_readl(OMAP3_ISP_IOMEM_PREV, ISPPRV_CNT_BRT));
++       DPRINTK_ISPPREV("###PRV CSUP =0x%x\n",
++                       isp_reg_readl(OMAP3_ISP_IOMEM_PREV, ISPPRV_CSUP));
++       DPRINTK_ISPPREV("###PRV SETUP_YC =0x%x\n",
++                       isp_reg_readl(OMAP3_ISP_IOMEM_PREV, ISPPRV_SETUP_YC));
++#endif
++}
++EXPORT_SYMBOL(isppreview_print_status);
++
++/**
++ * isp_preview_init - Module Initialization.
++ **/
++int __init isp_preview_init(void)
++{
++       int i = 0;
++
++       prev_config_params = kmalloc(sizeof(*prev_config_params), GFP_KERNEL);
++       if (prev_config_params == NULL) {
++               printk(KERN_ERR "Can't get memory for isp_preview params!\n");
++               return -ENOMEM;
++       }
++       params = prev_config_params;
++
++       ispprev_obj.prev_inuse = 0;
++       mutex_init(&ispprev_obj.ispprev_mutex);
++       spin_lock_init(&ispprev_obj.ispprev_lock);
++
++       /* Init values */
++       ispprev_obj.sph = 2;
++       ispprev_obj.slv = 0;
++       ispprev_obj.color = PREV_DEFAULT_COLOR;
++       ispprev_obj.contrast = ISPPRV_CONTRAST_DEF;
++       params->contrast = ISPPRV_CONTRAST_DEF;
++       ispprev_obj.brightness = ISPPRV_BRIGHT_DEF;
++       params->brightness = ISPPRV_BRIGHT_DEF;
++       params->average = NO_AVE;
++       params->lens_shading_shift = 0;
++       params->pix_fmt = YCPOS_YCrYCb;
++       params->cfa.cfafmt = CFAFMT_BAYER;
++       params->cfa.cfa_table = cfa_coef_table;
++       params->cfa.cfa_gradthrs_horz = FLR_CFA_GRADTHRS_HORZ;
++       params->cfa.cfa_gradthrs_vert = FLR_CFA_GRADTHRS_VERT;
++       params->csup.gain = FLR_CSUP_GAIN;
++       params->csup.thres = FLR_CSUP_THRES;
++       params->csup.hypf_en = 0;
++       params->ytable = luma_enhance_table;
++       params->nf.spread = FLR_NF_STRGTH;
++       memcpy(params->nf.table, noise_filter_table, sizeof(params->nf.table));
++       params->dcor.couplet_mode_en = 1;
++       for (i = 0; i < 4; i++)
++               params->dcor.detect_correct[i] = 0xE;
++       params->gtable.bluetable = bluegamma_table;
++       params->gtable.greentable = greengamma_table;
++       params->gtable.redtable = redgamma_table;
++       params->wbal.dgain = FLR_WBAL_DGAIN;
++       if (omap_rev() > OMAP3430_REV_ES1_0) {
++               params->wbal.coef0 = FLR_WBAL_COEF0_ES1;
++               params->wbal.coef1 = FLR_WBAL_COEF1_ES1;
++               params->wbal.coef2 = FLR_WBAL_COEF2_ES1;
++               params->wbal.coef3 = FLR_WBAL_COEF3_ES1;
++       } else {
++               params->wbal.coef0 = FLR_WBAL_COEF0;
++               params->wbal.coef1 = FLR_WBAL_COEF1;
++               params->wbal.coef2 = FLR_WBAL_COEF2;
++               params->wbal.coef3 = FLR_WBAL_COEF3;
++       }
++       params->blk_adj.red = FLR_BLKADJ_RED;
++       params->blk_adj.green = FLR_BLKADJ_GREEN;
++       params->blk_adj.blue = FLR_BLKADJ_BLUE;
++       params->rgb2rgb = flr_rgb2rgb;
++       params->rgb2ycbcr = flr_prev_csc[ispprev_obj.color];
++
++       params->features = PREV_CFA | PREV_CHROMA_SUPPRESS | PREV_LUMA_ENHANCE
++                               | PREV_DEFECT_COR | PREV_NOISE_FILTER;
++       params->features &= ~(PREV_AVERAGER | PREV_INVERSE_ALAW |
++                                               PREV_HORZ_MEDIAN_FILTER |
++                                               PREV_GAMMA_BYPASS |
++                                               PREV_DARK_FRAME_SUBTRACT |
++                                               PREV_LENS_SHADING |
++                                               PREV_DARK_FRAME_CAPTURE);
 +       return 0;
 +}
 +
 +/**
-+ * omap34xxcam_vbq_release - Free resources for input VBQ and VB
-+ * @vbq: ptr. to standard V4L2 video buffer queue structure
-+ * @vb: ptr to standard V4L2 video buffer structure
-+ *
-+ * Unmap and free all memory associated with input VBQ and VB, also
-+ * unmap the address in ISP MMU.  Reset the VB state.
-+ */
-+static void omap34xxcam_vbq_release(struct videobuf_queue *vbq,
-+                                   struct videobuf_buffer *vb)
++ * isp_preview_cleanup - Module Cleanup.
++ **/
++void __exit isp_preview_cleanup(void)
 +{
-+       if (!vbq->streaming) {
-+               isp_vbq_release(vbq, vb);
-+               videobuf_dma_unmap(vbq, videobuf_to_dma(vb));
-+               videobuf_dma_free(videobuf_to_dma(vb));
-+               vb->state =3D VIDEOBUF_NEEDS_INIT;
++       kfree(prev_config_params);
++       prev_config_params = NULL;
++}
+diff --git a/drivers/media/video/isp/isppreview.h b/drivers/media/video/isp/isppreview.h
+new file mode 100644
+index 0000000..630295c
+--- /dev/null
++++ b/drivers/media/video/isp/isppreview.h
+@@ -0,0 +1,356 @@
++/*
++ * drivers/media/video/isp/isppreview.h
++ *
++ * Driver header file for Preview module in TI's OMAP3 Camera ISP
++ *
++ * Copyright (C) 2008 Texas Instruments, Inc.
++ *
++ * Contributors:
++ *     Senthilvadivu Guruswamy <svadivu@ti.com>
++ *     Pallavi Kulkarni <p-kulkarni@ti.com>
++ *
++ * This package is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ *
++ * THIS PACKAGE IS PROVIDED ``AS IS'' AND WITHOUT ANY EXPRESS OR
++ * IMPLIED WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED
++ * WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
++ */
++
++#ifndef OMAP_ISP_PREVIEW_H
++#define OMAP_ISP_PREVIEW_H
++
++#include <mach/isp_user.h>
++/* Isp query control structure */
++
++#define ISPPRV_BRIGHT_STEP             0x1
++#define ISPPRV_BRIGHT_DEF              0x1
++#define ISPPRV_BRIGHT_LOW              0x0
++#define ISPPRV_BRIGHT_HIGH             0xF
++#define ISPPRV_BRIGHT_UNITS            0x7
++
++#define ISPPRV_CONTRAST_STEP           0x1
++#define ISPPRV_CONTRAST_DEF            0x2
++#define ISPPRV_CONTRAST_LOW            0x0
++#define ISPPRV_CONTRAST_HIGH           0xF
++#define ISPPRV_CONTRAST_UNITS          0x5
++
++#define NO_AVE                         0x0
++#define AVE_2_PIX                      0x1
++#define AVE_4_PIX                      0x2
++#define AVE_8_PIX                      0x3
++#define AVE_ODD_PIXEL_DIST             (1 << 4) /* For Bayer Sensors */
++#define AVE_EVEN_PIXEL_DIST            (1 << 2)
++
++#define WB_GAIN_MAX                    4
++
++/* Features list */
++#define PREV_AVERAGER                  (1 << 0)
++#define PREV_INVERSE_ALAW              (1 << 1)
++#define PREV_HORZ_MEDIAN_FILTER                (1 << 2)
++#define PREV_NOISE_FILTER              (1 << 3)
++#define PREV_CFA                       (1 << 4)
++#define PREV_GAMMA_BYPASS              (1 << 5)
++#define PREV_LUMA_ENHANCE              (1 << 6)
++#define PREV_CHROMA_SUPPRESS           (1 << 7)
++#define PREV_DARK_FRAME_SUBTRACT       (1 << 8)
++#define PREV_LENS_SHADING              (1 << 9)
++#define PREV_DARK_FRAME_CAPTURE                (1 << 10)
++#define PREV_DEFECT_COR                        (1 << 11)
++
++
++#define ISP_NF_TABLE_SIZE              (1 << 10)
++
++#define ISP_GAMMA_TABLE_SIZE           (1 << 10)
++
++/* Table addresses */
++#define ISPPRV_TBL_ADDR_RED_G_START  0x00
++#define ISPPRV_TBL_ADDR_BLUE_G_START  0x800
++#define ISPPRV_TBL_ADDR_GREEN_G_START  0x400
++
++/*
++ *Enumeration Constants for input and output format
++ */
++enum preview_input {
++       PRV_RAW_CCDC,
++       PRV_RAW_MEM,
++       PRV_RGBBAYERCFA,
++       PRV_COMPCFA,
++       PRV_CCDC_DRKF,
++       PRV_OTHERS
++};
++enum preview_output {
++       PREVIEW_RSZ,
++       PREVIEW_MEM
++};
++/*
++ * Configure byte layout of YUV image
++ */
++enum preview_ycpos_mode {
++       YCPOS_YCrYCb = 0,
++       YCPOS_YCbYCr = 1,
++       YCPOS_CbYCrY = 2,
++       YCPOS_CrYCbY = 3
++};
++
++enum preview_color_effect {
++       PREV_DEFAULT_COLOR = 0,
++       PREV_SEPIA_COLOR = 1,
++       PREV_BW_COLOR = 2
++};
++
++
++/**
++ * struct ispprev_gtable - Structure for Gamma Correction.
++ * @redtable: Pointer to the red gamma table.
++ * @greentable: Pointer to the green gamma table.
++ * @bluetable: Pointer to the blue gamma table.
++ */
++struct ispprev_gtable {
++       u32 *redtable;
++       u32 *greentable;
++       u32 *bluetable;
++};
++
++/**
++ * struct prev_white_balance - Structure for White Balance 2.
++ * @wb_dgain: White balance common gain.
++ * @wb_gain: Individual color gains.
++ * @wb_coefmatrix: Coefficient matrix
++ */
++struct prev_white_balance {
++       u16 wb_dgain; /* white balance common gain */
++       u8 wb_gain[WB_GAIN_MAX]; /* individual color gains */
++       u8 wb_coefmatrix[WB_GAIN_MAX][WB_GAIN_MAX];
++};
++
++/**
++ * struct prev_size_params - Structure for size parameters.
++ * @hstart: Starting pixel.
++ * @vstart: Starting line.
++ * @hsize: Width of input image.
++ * @vsize: Height of input image.
++ * @pixsize: Pixel size of the image in terms of bits.
++ * @in_pitch: Line offset of input image.
++ * @out_pitch: Line offset of output image.
++ */
++struct prev_size_params {
++       unsigned int hstart;
++       unsigned int vstart;
++       unsigned int hsize;
++       unsigned int vsize;
++       unsigned char pixsize;
++       unsigned short in_pitch;
++       unsigned short out_pitch;
++};
++
++/**
++ * struct prev_rgb2ycbcr_coeffs - Structure RGB2YCbCr parameters.
++ * @coeff: Color conversion gains in 3x3 matrix.
++ * @offset: Color conversion offsets.
++ */
++struct prev_rgb2ycbcr_coeffs {
++       short coeff[RGB_MAX][RGB_MAX];
++       short offset[RGB_MAX];
++};
++
++/**
++ * struct prev_darkfrm_params - Structure for Dark frame suppression.
++ * @addr: Memory start address.
++ * @offset: Line offset.
++ */
++struct prev_darkfrm_params {
++       u32 addr;
++       u32 offset;
++};
++
++/**
++ * struct prev_params - Structure for all configuration
++ * @features: Set of features enabled.
++ * @pix_fmt: Output pixel format.
++ * @cfa: CFA coefficients.
++ * @csup: Chroma suppression coefficients.
++ * @ytable: Pointer to Luma enhancement coefficients.
++ * @nf: Noise filter coefficients.
++ * @dcor: Noise filter coefficients.
++ * @gtable: Gamma coefficients.
++ * @wbal: White Balance parameters.
++ * @blk_adj: Black adjustment parameters.
++ * @rgb2rgb: RGB blending parameters.
++ * @rgb2ycbcr: RGB to ycbcr parameters.
++ * @hmf_params: Horizontal median filter.
++ * @size_params: Size parameters.
++ * @drkf_params: Darkframe parameters.
++ * @lens_shading_shift:
++ * @average: Downsampling rate for averager.
++ * @contrast: Contrast.
++ * @brightness: Brightness.
++ */
++struct prev_params {
++       u16 features;
++       enum preview_ycpos_mode pix_fmt;
++       struct ispprev_cfa cfa;
++       struct ispprev_csup csup;
++       u32 *ytable;
++       struct ispprev_nf nf;
++       struct ispprev_dcor dcor;
++       struct ispprev_gtable gtable;
++       struct ispprev_wbal wbal;
++       struct ispprev_blkadj blk_adj;
++       struct ispprev_rgbtorgb rgb2rgb;
++       struct ispprev_csc rgb2ycbcr;
++       struct ispprev_hmed hmf_params;
++       struct prev_size_params size_params;
++       struct prev_darkfrm_params drkf_params;
++       u8 lens_shading_shift;
++       u8 average;
++       u8 contrast;
++       u8 brightness;
++};
++
++/**
++ * struct isptables_update - Structure for Table Configuration.
++ * @update: Specifies which tables should be updated.
++ * @flag: Specifies which tables should be enabled.
++ * @prev_nf: Pointer to structure for Noise Filter
++ * @lsc: Pointer to LSC gain table. (currently not used)
++ * @red_gamma: Pointer to red gamma correction table.
++ * @green_gamma: Pointer to green gamma correction table.
++ * @blue_gamma: Pointer to blue gamma correction table.
++ */
++struct isptables_update {
++       u16 update;
++       u16 flag;
++       struct ispprev_nf *prev_nf;
++       u32 *lsc;
++       u32 *red_gamma;
++       u32 *green_gamma;
++       u32 *blue_gamma;
++};
++
++void isppreview_config_shadow_registers(void);
++
++int isppreview_request(void);
++
++int isppreview_free(void);
++
++int isppreview_config_datapath(enum preview_input input,
++                                       enum preview_output output);
++
++void isppreview_config_ycpos(enum preview_ycpos_mode mode);
++
++void isppreview_config_averager(u8 average);
++
++void isppreview_enable_invalaw(u8 enable);
++
++void isppreview_enable_drkframe(u8 enable);
++
++void isppreview_enable_shadcomp(u8 enable);
++
++void isppreview_config_drkf_shadcomp(u8 scomp_shtval);
++
++void isppreview_enable_gammabypass(u8 enable);
++
++void isppreview_enable_hmed(u8 enable);
++
++void isppreview_config_hmed(struct ispprev_hmed);
++
++void isppreview_enable_noisefilter(u8 enable);
++
++void isppreview_config_noisefilter(struct ispprev_nf prev_nf);
++
++void isppreview_enable_dcor(u8 enable);
++
++void isppreview_config_dcor(struct ispprev_dcor prev_dcor);
++
++
++void isppreview_config_cfa(struct ispprev_cfa);
++
++void isppreview_config_gammacorrn(struct ispprev_gtable);
++
++void isppreview_config_chroma_suppression(struct ispprev_csup csup);
++
++void isppreview_enable_cfa(u8 enable);
++
++void isppreview_config_luma_enhancement(u32 *ytable);
++
++void isppreview_enable_luma_enhancement(u8 enable);
++
++void isppreview_enable_chroma_suppression(u8 enable);
++
++void isppreview_config_whitebalance(struct ispprev_wbal);
++
++void isppreview_config_blkadj(struct ispprev_blkadj);
++
++void isppreview_config_rgb_blending(struct ispprev_rgbtorgb);
++
++void isppreview_config_rgb_to_ycbcr(struct ispprev_csc);
++
++void isppreview_update_contrast(u8 *contrast);
++
++void isppreview_query_contrast(u8 *contrast);
++
++void isppreview_config_contrast(u8 contrast);
++
++void isppreview_get_contrast_range(u8 *min_contrast, u8 *max_contrast);
++
++void isppreview_update_brightness(u8 *brightness);
++
++void isppreview_config_brightness(u8 brightness);
++
++void isppreview_get_brightness_range(u8 *min_brightness, u8 *max_brightness);
++
++void isppreview_set_color(u8 *mode);
++
++void isppreview_get_color(u8 *mode);
++
++void isppreview_query_brightness(u8 *brightness);
++
++void isppreview_config_yc_range(struct ispprev_yclimit yclimit);
++
++int isppreview_try_size(u32 input_w, u32 input_h, u32 *output_w,
++                               u32 *output_h);
++
++int isppreview_config_size(u32 input_w, u32 input_h, u32 output_w,
++                       u32 output_h);
++
++int isppreview_config_inlineoffset(u32 offset);
++
++int isppreview_set_inaddr(u32 addr);
++
++int isppreview_config_outlineoffset(u32 offset);
++
++int isppreview_set_outaddr(u32 addr);
++
++int isppreview_config_darklineoffset(u32 offset);
++
++int isppreview_set_darkaddr(u32 addr);
++
++void isppreview_enable(u8 enable);
++
++int isppreview_busy(void);
++
++struct prev_params *isppreview_get_config(void);
++
++void isppreview_print_status(void);
++
++#ifndef CONFIG_ARCH_OMAP3410
++void isppreview_save_context(void);
++#else
++static inline void isppreview_save_context(void) {}
++#endif
++
++#ifndef CONFIG_ARCH_OMAP3410
++void isppreview_restore_context(void);
++#else
++static inline void isppreview_restore_context(void) {}
++#endif
++
++int omap34xx_isp_preview_config(void *userspace_add);
++
++int omap34xx_isp_tables_update(struct isptables_update *isptables_struct);
++
++void isppreview_set_skip(u32 h, u32 v);
++
++#endif/* OMAP_ISP_PREVIEW_H */
+diff --git a/drivers/media/video/isp/ispresizer.c b/drivers/media/video/isp/ispresizer.c
+new file mode 100644
+index 0000000..7d51964
+--- /dev/null
++++ b/drivers/media/video/isp/ispresizer.c
+@@ -0,0 +1,914 @@
++/*
++ * drivers/media/video/isp/ispresizer.c
++ *
++ * Driver Library for Resizer module in TI's OMAP3 Camera ISP
++ *
++ * Copyright (C)2008 Texas Instruments, Inc.
++ *
++ * Contributors:
++ *     Sameer Venkatraman <sameerv@ti.com>
++ *     Mohit Jalori
++ *
++ * This package is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ *
++ * THIS PACKAGE IS PROVIDED ``AS IS'' AND WITHOUT ANY EXPRESS OR
++ * IMPLIED WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED
++ * WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
++ */
++
++#include <linux/io.h>
++#include <linux/errno.h>
++#include <linux/types.h>
++#include <linux/delay.h>
++#include <linux/module.h>
++#include <linux/semaphore.h>
++
++#include "isp.h"
++#include "ispreg.h"
++#include "ispresizer.h"
++
++#if ISP_WORKAROUND
++dma_addr_t buff_addr_lsc_wa;
++#endif
++
++/* Default configuration of resizer,filter coefficients,yenh for camera isp */
++static struct isprsz_yenh ispreszdefaultyenh = {0, 0, 0, 0};
++static struct isprsz_coef ispreszdefcoef = {
++       {
++               0x0027, 0x00B2, 0x00B2, 0x0027,
++               0x0027, 0x00B2, 0x0027, 0x00B2,
++               0x0027, 0x00B2, 0x0027, 0x00B2,
++               0x0027, 0x00B2, 0x0027, 0x00B2,
++               0x0027, 0x00B2, 0x0027, 0x00B2,
++               0x0027, 0x00B2, 0x0027, 0x00B2,
++               0x0027, 0x00B2, 0x0027, 0x00B2,
++               0x0027, 0x00B2, 0x0027, 0x00B2,
++       },
++       {
++               0x0000, 0x0100, 0x0000, 0x0000,
++               0x03FA, 0x00F6, 0x0010, 0x0000,
++               0x03F9, 0x00DB, 0x002C, 0x0000,
++               0x03FB, 0x00B3, 0x0053, 0x03FF,
++               0x03FD, 0x0082, 0x0084, 0x03FD,
++               0x03FF, 0x0053, 0x00B3, 0x03FB,
++               0x0000, 0x002C, 0x00DB, 0x03F9,
++               0x0000, 0x0010, 0x00F6, 0x03FA
++       },
++       {
++               0x0004, 0x0023, 0x0023, 0x005A,
++               0x005A, 0x0058, 0x0058, 0x0004,
++               0x0023, 0x0023, 0x005A, 0x005A,
++               0x0058, 0x0058, 0x0004, 0x0023,
++               0x0023, 0x005A, 0x005A, 0x0058,
++               0x0058, 0x0004, 0x0023, 0x0023,
++               0x005A, 0x005A, 0x0058, 0x0058
++       },
++       {
++               0x0004, 0x0023, 0x005A, 0x0058,
++               0x0023, 0x0004, 0x0000, 0x0002,
++               0x0018, 0x004d, 0x0060, 0x0031,
++               0x0008, 0x0000, 0x0001, 0x000f,
++               0x003f, 0x0062, 0x003f, 0x000f,
++               0x0001, 0x0000, 0x0008, 0x0031,
++               0x0060, 0x004d, 0x0018, 0x0002
 +       }
++};
++
++/**
++ * struct isp_res - Structure for the resizer module to store its information.
++ * @res_inuse: Indicates if resizer module has been reserved. 1 - Reserved,
++ *             0 - Freed.
++ * @h_startphase: Horizontal starting phase.
++ * @v_startphase: Vertical starting phase.
++ * @h_resz: Horizontal resizing value.
++ * @v_resz: Vertical resizing value.
++ * @outputwidth: Output Image Width in pixels.
++ * @outputheight: Output Image Height in pixels.
++ * @inputwidth: Input Image Width in pixels.
++ * @inputheight: Input Image Height in pixels.
++ * @algo: Algorithm select. 0 - Disable, 1 - [-1 2 -1]/2 high-pass filter,
++ *        2 - [-1 -2 6 -2 -1]/4 high-pass filter.
++ * @ipht_crop: Vertical start line for cropping.
++ * @ipwd_crop: Horizontal start pixel for cropping.
++ * @cropwidth: Crop Width.
++ * @cropheight: Crop Height.
++ * @resinput: Resizer input.
++ * @coeflist: Register configuration for Resizer.
++ * @ispres_mutex: Mutex for isp resizer.
++ */
++static struct isp_res {
++       u8 res_inuse;
++       u8 h_startphase;
++       u8 v_startphase;
++       u16 h_resz;
++       u16 v_resz;
++       u32 outputwidth;
++       u32 outputheight;
++       u32 inputwidth;
++       u32 inputheight;
++       u8 algo;
++       u32 ipht_crop;
++       u32 ipwd_crop;
++       u32 cropwidth;
++       u32 cropheight;
++       enum ispresizer_input resinput;
++       struct isprsz_coef coeflist;
++       struct mutex ispres_mutex; /* For checking/modifying res_inuse */
++} ispres_obj;
++
++/* Structure for saving/restoring resizer module registers */
++static struct isp_reg isprsz_reg_list[] = {
++       {OMAP3_ISP_IOMEM_RESZ, ISPRSZ_CNT, 0x0000},
++       {OMAP3_ISP_IOMEM_RESZ, ISPRSZ_OUT_SIZE, 0x0000},
++       {OMAP3_ISP_IOMEM_RESZ, ISPRSZ_IN_START, 0x0000},
++       {OMAP3_ISP_IOMEM_RESZ, ISPRSZ_IN_SIZE, 0x0000},
++       {OMAP3_ISP_IOMEM_RESZ, ISPRSZ_SDR_INADD, 0x0000},
++       {OMAP3_ISP_IOMEM_RESZ, ISPRSZ_SDR_INOFF, 0x0000},
++       {OMAP3_ISP_IOMEM_RESZ, ISPRSZ_SDR_OUTADD, 0x0000},
++       {OMAP3_ISP_IOMEM_RESZ, ISPRSZ_SDR_OUTOFF, 0x0000},
++       {OMAP3_ISP_IOMEM_RESZ, ISPRSZ_HFILT10, 0x0000},
++       {OMAP3_ISP_IOMEM_RESZ, ISPRSZ_HFILT32, 0x0000},
++       {OMAP3_ISP_IOMEM_RESZ, ISPRSZ_HFILT54, 0x0000},
++       {OMAP3_ISP_IOMEM_RESZ, ISPRSZ_HFILT76, 0x0000},
++       {OMAP3_ISP_IOMEM_RESZ, ISPRSZ_HFILT98, 0x0000},
++       {OMAP3_ISP_IOMEM_RESZ, ISPRSZ_HFILT1110, 0x0000},
++       {OMAP3_ISP_IOMEM_RESZ, ISPRSZ_HFILT1312, 0x0000},
++       {OMAP3_ISP_IOMEM_RESZ, ISPRSZ_HFILT1514, 0x0000},
++       {OMAP3_ISP_IOMEM_RESZ, ISPRSZ_HFILT1716, 0x0000},
++       {OMAP3_ISP_IOMEM_RESZ, ISPRSZ_HFILT1918, 0x0000},
++       {OMAP3_ISP_IOMEM_RESZ, ISPRSZ_HFILT2120, 0x0000},
++       {OMAP3_ISP_IOMEM_RESZ, ISPRSZ_HFILT2322, 0x0000},
++       {OMAP3_ISP_IOMEM_RESZ, ISPRSZ_HFILT2524, 0x0000},
++       {OMAP3_ISP_IOMEM_RESZ, ISPRSZ_HFILT2726, 0x0000},
++       {OMAP3_ISP_IOMEM_RESZ, ISPRSZ_HFILT2928, 0x0000},
++       {OMAP3_ISP_IOMEM_RESZ, ISPRSZ_HFILT3130, 0x0000},
++       {OMAP3_ISP_IOMEM_RESZ, ISPRSZ_VFILT10, 0x0000},
++       {OMAP3_ISP_IOMEM_RESZ, ISPRSZ_VFILT32, 0x0000},
++       {OMAP3_ISP_IOMEM_RESZ, ISPRSZ_VFILT54, 0x0000},
++       {OMAP3_ISP_IOMEM_RESZ, ISPRSZ_VFILT76, 0x0000},
++       {OMAP3_ISP_IOMEM_RESZ, ISPRSZ_VFILT98, 0x0000},
++       {OMAP3_ISP_IOMEM_RESZ, ISPRSZ_VFILT1110, 0x0000},
++       {OMAP3_ISP_IOMEM_RESZ, ISPRSZ_VFILT1312, 0x0000},
++       {OMAP3_ISP_IOMEM_RESZ, ISPRSZ_VFILT1514, 0x0000},
++       {OMAP3_ISP_IOMEM_RESZ, ISPRSZ_VFILT1716, 0x0000},
++       {OMAP3_ISP_IOMEM_RESZ, ISPRSZ_VFILT1918, 0x0000},
++       {OMAP3_ISP_IOMEM_RESZ, ISPRSZ_VFILT2120, 0x0000},
++       {OMAP3_ISP_IOMEM_RESZ, ISPRSZ_VFILT2322, 0x0000},
++       {OMAP3_ISP_IOMEM_RESZ, ISPRSZ_VFILT2524, 0x0000},
++       {OMAP3_ISP_IOMEM_RESZ, ISPRSZ_VFILT2726, 0x0000},
++       {OMAP3_ISP_IOMEM_RESZ, ISPRSZ_VFILT2928, 0x0000},
++       {OMAP3_ISP_IOMEM_RESZ, ISPRSZ_VFILT3130, 0x0000},
++       {OMAP3_ISP_IOMEM_RESZ, ISPRSZ_YENH, 0x0000},
++       {0, ISP_TOK_TERM, 0x0000}
++};
++
++/**
++ * ispresizer_config_shadow_registers - Configure shadow registers.
++ **/
++void ispresizer_config_shadow_registers()
++{
 +       return;
 +}
++EXPORT_SYMBOL(ispresizer_config_shadow_registers);
 +
 +/**
-+ * omap34xxcam_vbq_prepare - V4L2 video ops buf_prepare handler
-+ * @vbq: ptr. to standard V4L2 video buffer queue structure
-+ * @vb: ptr to standard V4L2 video buffer structure
-+ * @field: standard V4L2 field enum
-+ *
-+ * Verifies there is sufficient locked memory for the requested
-+ * buffer, or if there is not, allocates, locks and initializes
-+ * it.
-+ */
-+static int omap34xxcam_vbq_prepare(struct videobuf_queue *vbq,
-+                                  struct videobuf_buffer *vb,
-+                                  enum v4l2_field field)
++ * ispresizer_trycrop - Validate crop dimensions.
++ * @left: Left distance to start position of crop.
++ * @top: Top distance to start position of crop.
++ * @width: Width of input image.
++ * @height: Height of input image.
++ * @ow: Width of output image.
++ * @oh: Height of output image.
++ **/
++void ispresizer_trycrop(u32 left, u32 top, u32 width, u32 height, u32 ow,
++                                                                       u32 oh)
 +{
-+       struct omap34xxcam_fh *fh =3D vbq->priv_data;
-+       int err =3D 0;
++       ispres_obj.cropwidth = width + 6;
++       ispres_obj.cropheight = height + 6;
++       ispresizer_try_size(&ispres_obj.cropwidth, &ispres_obj.cropheight, &ow,
++                                                                       &oh);
++       ispres_obj.ipht_crop = top;
++       ispres_obj.ipwd_crop = left;
++}
++EXPORT_SYMBOL(ispresizer_trycrop);
 +
-+       /*
-+        * Accessing pix here is okay since it's constant while
-+        * streaming is on (and we only get called then).
-+        */
-+       if (vb->baddr) {
-+               /* This is a userspace buffer. */
-+               if (fh->pix.sizeimage > vb->bsize)
-+                       /* The buffer isn't big enough. */
++/**
++ * ispresizer_applycrop - Apply crop to input image.
++ **/
++void ispresizer_applycrop()
++{
++       ispresizer_config_size(ispres_obj.cropwidth, ispres_obj.cropheight,
++                                               ispres_obj.outputwidth,
++                                               ispres_obj.outputheight);
++       return;
++}
++EXPORT_SYMBOL(ispresizer_applycrop);
++
++/**
++ * ispresizer_request - Reserves the Resizer module.
++ *
++ * Allows only one user at a time.
++ *
++ * Returns 0 if successful, or -EBUSY if resizer module was already requested.
++ **/
++int ispresizer_request()
++{
++       mutex_lock(&ispres_obj.ispres_mutex);
++       if (!ispres_obj.res_inuse) {
++               ispres_obj.res_inuse = 1;
++               mutex_unlock(&ispres_obj.ispres_mutex);
++               isp_reg_writel(isp_reg_readl(OMAP3_ISP_IOMEM_MAIN, ISP_CTRL) |
++                                       ISPCTRL_SBL_WR0_RAM_EN |
++                                       ISPCTRL_RSZ_CLK_EN,
++                                       OMAP3_ISP_IOMEM_MAIN, ISP_CTRL);
++               return 0;
++       } else {
++               mutex_unlock(&ispres_obj.ispres_mutex);
++               printk(KERN_ERR "ISP_ERR : Resizer Module Busy\n");
++               return -EBUSY;
++       }
++}
++EXPORT_SYMBOL(ispresizer_request);
++
++/**
++ * ispresizer_free - Makes Resizer module free.
++ *
++ * Returns 0 if successful, or -EINVAL if resizer module was already freed.
++ **/
++int ispresizer_free()
++{
++       mutex_lock(&ispres_obj.ispres_mutex);
++       if (ispres_obj.res_inuse) {
++               ispres_obj.res_inuse = 0;
++               mutex_unlock(&ispres_obj.ispres_mutex);
++               isp_reg_writel(isp_reg_readl(OMAP3_ISP_IOMEM_MAIN, ISP_CTRL) & ~(ISPCTRL_RSZ_CLK_EN |
++                                       ISPCTRL_SBL_WR0_RAM_EN), OMAP3_ISP_IOMEM_MAIN, ISP_CTRL);
++               return 0;
++       } else {
++               mutex_unlock(&ispres_obj.ispres_mutex);
++               DPRINTK_ISPRESZ("ISP_ERR : Resizer Module already freed\n");
++               return -EINVAL;
++       }
++}
++EXPORT_SYMBOL(ispresizer_free);
++
++/**
++ * ispresizer_config_datapath - Specifies which input to use in resizer module
++ * @input: Indicates the module that gives the image to resizer.
++ *
++ * Sets up the default resizer configuration according to the arguments.
++ *
++ * Returns 0 if successful, or -EINVAL if an unsupported input was requested.
++ **/
++int ispresizer_config_datapath(enum ispresizer_input input)
++{
++       u32 cnt = 0;
++       DPRINTK_ISPRESZ("ispresizer_config_datapath()+\n");
++       ispres_obj.resinput = input;
++       switch (input) {
++       case RSZ_OTFLY_YUV:
++               cnt &= ~ISPRSZ_CNT_INPTYP;
++               cnt &= ~ISPRSZ_CNT_INPSRC;
++               ispresizer_set_inaddr(0);
++               ispresizer_config_inlineoffset(0);
++               break;
++       case RSZ_MEM_YUV:
++               cnt |= ISPRSZ_CNT_INPSRC;
++               cnt &= ~ISPRSZ_CNT_INPTYP;
++               break;
++       case RSZ_MEM_COL8:
++               cnt |= ISPRSZ_CNT_INPSRC;
++               cnt |= ISPRSZ_CNT_INPTYP;
++               break;
++       default:
++               printk(KERN_ERR "ISP_ERR : Wrong Input\n");
++               return -EINVAL;
++       }
++       isp_reg_writel(isp_reg_readl(OMAP3_ISP_IOMEM_RESZ, ISPRSZ_CNT) | cnt, OMAP3_ISP_IOMEM_RESZ, ISPRSZ_CNT);
++       ispresizer_config_ycpos(0);
++       ispresizer_config_filter_coef(&ispreszdefcoef);
++       ispresizer_enable_cbilin(0);
++       ispresizer_config_luma_enhance(&ispreszdefaultyenh);
++       DPRINTK_ISPRESZ("ispresizer_config_datapath()-\n");
++       return 0;
++}
++EXPORT_SYMBOL(ispresizer_config_datapath);
++
++/**
++ * ispresizer_try_size - Validates input and output images size.
++ * @input_w: input width for the resizer in number of pixels per line
++ * @input_h: input height for the resizer in number of lines
++ * @output_w: output width from the resizer in number of pixels per line
++ *            resizer when writing to memory needs this to be multiple of 16.
++ * @output_h: output height for the resizer in number of lines, must be even.
++ *
++ * Calculates the horizontal and vertical resize ratio, number of pixels to
++ * be cropped in the resizer module and checks the validity of various
++ * parameters. Formula used for calculation is:-
++ *
++ * 8-phase 4-tap mode :-
++ * inputwidth = (32 * sph + (ow - 1) * hrsz + 16) >> 8 + 7
++ * inputheight = (32 * spv + (oh - 1) * vrsz + 16) >> 8 + 4
++ * endpahse for width = ((32 * sph + (ow - 1) * hrsz + 16) >> 5) % 8
++ * endphase for height = ((32 * sph + (oh - 1) * hrsz + 16) >> 5) % 8
++ *
++ * 4-phase 7-tap mode :-
++ * inputwidth = (64 * sph + (ow - 1) * hrsz + 32) >> 8 + 7
++ * inputheight = (64 * spv + (oh - 1) * vrsz + 32) >> 8 + 7
++ * endpahse for width = ((64 * sph + (ow - 1) * hrsz + 32) >> 6) % 4
++ * endphase for height = ((64 * sph + (oh - 1) * hrsz + 32) >> 6) % 4
++ *
++ * Where:
++ * sph = Start phase horizontal
++ * spv = Start phase vertical
++ * ow = Output width
++ * oh = Output height
++ * hrsz = Horizontal resize value
++ * vrsz = Vertical resize value
++ *
++ * Fills up the output/input widht/height, horizontal/vertical resize ratio,
++ * horizontal/vertical crop variables in the isp_res structure.
++ **/
++int ispresizer_try_size(u32 *input_width, u32 *input_height, u32 *output_w,
++                                                               u32 *output_h)
++{
++       u32 rsz, rsz_7, rsz_4;
++       u32 sph;
++       u32 input_w, input_h;
++       int max_in_otf, max_out_7tap;
++       input_w = *input_width;
++       input_h = *input_height;
++
++       if (input_w < 32 || input_h < 32) {
++               DPRINTK_ISPCCDC("ISP_ERR: RESIZER cannot handle input width"
++                               " less than 32 pixels or height less than"
++                               " 32\n");
++               return -EINVAL;
++       }
++       input_w -= 6;
++       input_h -= 6;
++
++       if (input_h > MAX_IN_HEIGHT)
++               return -EINVAL;
++
++       if (*output_w < 16)
++               *output_w = 16;
++
++       if (*output_h < 2)
++               *output_h = 2;
++
++       if (omap_rev() == OMAP3430_REV_ES1_0) {
++               max_in_otf = MAX_IN_WIDTH_ONTHEFLY_MODE;
++               max_out_7tap = MAX_7TAP_VRSZ_OUTWIDTH;
++       } else {
++               max_in_otf = MAX_IN_WIDTH_ONTHEFLY_MODE_ES2;
++               max_out_7tap = MAX_7TAP_VRSZ_OUTWIDTH_ES2;
++       }
++
++       if (ispres_obj.resinput == RSZ_OTFLY_YUV) {
++               if (input_w > max_in_otf)
 +                       return -EINVAL;
 +       } else {
-+               if (vb->state !=3D VIDEOBUF_NEEDS_INIT
-+                   && fh->pix.sizeimage > vb->bsize)
-+                       /*
-+                        * We have a kernel bounce buffer that has
-+                        * already been allocated.
-+                        */
-+                       omap34xxcam_vbq_release(vbq, vb);
++               if (input_w > MAX_IN_WIDTH_MEMORY_MODE)
++                       return -EINVAL;
 +       }
 +
-+       vb->size =3D fh->pix.bytesperline * fh->pix.height;
-+       vb->width =3D fh->pix.width;
-+       vb->height =3D fh->pix.height;
-+       vb->field =3D field;
-+
-+       if (vb->state =3D=3D VIDEOBUF_NEEDS_INIT) {
-+               err =3D videobuf_iolock(vbq, vb, NULL);
-+               if (!err) {
-+                       /* isp_addr will be stored locally inside isp cod=
-e */
-+                       err =3D isp_vbq_prepare(vbq, vb, field);
-+               }
-+       }
-+
-+       if (!err)
-+               vb->state =3D VIDEOBUF_PREPARED;
-+       else
-+               omap34xxcam_vbq_release(vbq, vb);
-+
-+       return err;
-+
-+}
-+
-+/**
-+ * omap34xxcam_vbq_queue - V4L2 video ops buf_queue handler
-+ * @vbq: ptr. to standard V4L2 video buffer queue structure
-+ * @vb: ptr to standard V4L2 video buffer structure
-+ *
-+ * Maps the video buffer to sgdma and through the isp, sets
-+ * the isp buffer done callback and sets the video buffer state
-+ * to active.
-+ */
-+static void omap34xxcam_vbq_queue(struct videobuf_queue *vbq,
-+                                 struct videobuf_buffer *vb)
-+{
-+       struct omap34xxcam_fh *fh =3D vbq->priv_data;
-+       struct omap34xxcam_videodev *vdev =3D fh->vdev;
-+       enum videobuf_state state =3D vb->state;
-+       isp_vbq_callback_ptr func_ptr;
-+       int err =3D 0;
-+       camfh_saved =3D fh;
-+
-+       func_ptr =3D omap34xxcam_update_vbq;
-+       vb->state =3D VIDEOBUF_ACTIVE;
-+
-+       err =3D isp_sgdma_queue(videobuf_to_dma(vb),
-+                             vb, 0, &vdev->cam->dma_notify, func_ptr);
-+       if (err) {
-+               dev_dbg(vdev->cam->dev, "vbq queue failed\n");
-+               vb->state =3D state;
-+       }
-+
-+}
-+
-+static struct videobuf_queue_ops omap34xxcam_vbq_ops =3D {
-+       .buf_setup =3D omap34xxcam_vbq_setup,
-+       .buf_prepare =3D omap34xxcam_vbq_prepare,
-+       .buf_queue =3D omap34xxcam_vbq_queue,
-+       .buf_release =3D omap34xxcam_vbq_release,
-+};
-+
-+/*
-+ *
-+ * IOCTL interface.
-+ *
-+ */
-+
-+/**
-+ * vidioc_querycap - V4L2 query capabilities IOCTL handler
-+ * @file: ptr. to system file structure
-+ * @fh: ptr to hold address of omap34xxcam_fh struct (per-filehandle dat=
-a)
-+ * @cap: ptr to standard V4L2 capability structure
-+ *
-+ * Fill in the V4L2 capabliity structure for the camera device
-+ */
-+static int vidioc_querycap(struct file *file, void *fh,
-+                          struct v4l2_capability *cap)
-+{
-+       struct omap34xxcam_fh *ofh =3D fh;
-+       struct omap34xxcam_videodev *vdev =3D ofh->vdev;
-+
-+       strlcpy(cap->driver, CAM_SHORT_NAME, sizeof(cap->driver));
-+       strlcpy(cap->card, vdev->vfd->name, sizeof(cap->card));
-+       cap->version =3D OMAP34XXCAM_VERSION;
-+       cap->capabilities =3D V4L2_CAP_VIDEO_CAPTURE | V4L2_CAP_STREAMING=
-;
-+
-+       return 0;
-+}
-+
-+/**
-+ * vidioc_enum_fmt_vid_cap - V4L2 enumerate format capabilities IOCTL ha=
-ndler
-+ * @file: ptr. to system file structure
-+ * @fh: ptr to hold address of omap34xxcam_fh struct (per-filehandle dat=
-a)
-+ * @f: ptr to standard V4L2 format description structure
-+ *
-+ * Fills in enumerate format capabilities information for sensor (if SOC
-+ * sensor attached) or ISP (if raw sensor attached).
-+ */
-+static int vidioc_enum_fmt_vid_cap(struct file *file, void *fh,
-+                                  struct v4l2_fmtdesc *f)
-+{
-+       struct omap34xxcam_fh *ofh =3D fh;
-+       struct omap34xxcam_videodev *vdev =3D ofh->vdev;
-+       int rval;
-+
-+       if (vdev->vdev_sensor_config.sensor_isp)
-+               rval =3D vidioc_int_enum_fmt_cap(vdev->vdev_sensor, f);
-+       else
-+               rval =3D isp_enum_fmt_cap(f);
-+
-+       return rval;
-+}
-+
-+/**
-+ * vidioc_g_fmt_vid_cap - V4L2 get format capabilities IOCTL handler
-+ * @file: ptr. to system file structure
-+ * @fh: ptr to hold address of omap34xxcam_fh struct (per-filehandle dat=
-a)
-+ * @f: ptr to standard V4L2 format structure
-+ *
-+ * Fills in format capabilities for sensor (if SOC sensor attached) or I=
-SP
-+ * (if raw sensor attached).
-+ */
-+static int vidioc_g_fmt_vid_cap(struct file *file, void *fh,
-+                               struct v4l2_format *f)
-+{
-+       struct omap34xxcam_fh *ofh =3D fh;
-+       struct omap34xxcam_videodev *vdev =3D ofh->vdev;
-+
-+       mutex_lock(&vdev->mutex);
-+       f->fmt.pix =3D ofh->pix;
-+       mutex_unlock(&vdev->mutex);
-+
-+       return 0;
-+}
-+
-+static int try_pix_parm(struct omap34xxcam_videodev *vdev,
-+                       struct v4l2_pix_format *best_pix_in,
-+                       struct v4l2_pix_format *wanted_pix_out,
-+                       struct v4l2_fract *best_ival)
-+{
-+       int fps;
-+       int rval;
-+       int size_index;
-+       struct v4l2_pix_format best_pix_out;
-+
-+       if (best_ival->numerator =3D=3D 0
-+           || best_ival->denominator =3D=3D 0)
-+               best_ival->denominator =3D 30, best_ival->numerator =3D 1=
-;
-+
-+       fps =3D best_ival->denominator / best_ival->numerator;
-+
-+       best_ival->denominator =3D 0;
-+
-+       best_pix_out.height =3D INT_MAX >> 1;
-+       best_pix_out.width =3D best_pix_out.height;
-+
-+       /*
-+        * Get supported resolutions.
-+        */
-+       for (size_index =3D 0; ; size_index++) {
-+               struct v4l2_frmsizeenum frms;
-+               struct v4l2_pix_format pix_tmp_in, pix_tmp_out;
-+               int ival_index;
-+
-+               frms.index =3D size_index;
-+               frms.pixel_format =3D best_pix_in->pixelformat;
-+
-+               rval =3D vidioc_int_enum_framesizes(vdev->vdev_sensor, &f=
-rms);
-+               if (rval) {
-+                       rval =3D 0;
-+                       break;
-+               }
-+
-+               pix_tmp_in.pixelformat =3D frms.pixel_format;
-+               pix_tmp_in.width =3D frms.discrete.width;
-+               pix_tmp_in.height =3D frms.discrete.height;
-+               pix_tmp_out =3D *wanted_pix_out;
-+               /* Don't do upscaling. */
-+               if (pix_tmp_out.width > pix_tmp_in.width)
-+                       pix_tmp_out.width =3D pix_tmp_in.width;
-+               if (pix_tmp_out.height > pix_tmp_in.height)
-+                       pix_tmp_out.height =3D pix_tmp_in.height;
-+               rval =3D isp_try_fmt_cap(&pix_tmp_in, &pix_tmp_out);
-+               if (rval)
-+                       return rval;
-+
-+#define IS_SMALLER_OR_EQUAL(pix1, pix2)                        \
-+               ((pix1)->width + (pix1)->height         \
-+                < (pix2)->width + (pix2)->height)
-+#define SIZE_DIFF(pix1, pix2)                                  \
-+               (abs((pix1)->width - (pix2)->width)             \
-+                + abs((pix1)->height - (pix2)->height))
-+
-+               /*
-+                * Don't use modes that are farther from wanted size
-+                * that what we already got.
-+                */
-+               if (SIZE_DIFF(&pix_tmp_out, wanted_pix_out)
-+                   > SIZE_DIFF(&best_pix_out, wanted_pix_out))
-+                       continue;
-+
-+               /*
-+                * There's an input mode that can provide output
-+                * closer to wanted.
-+                */
-+               if (SIZE_DIFF(&pix_tmp_out, wanted_pix_out)
-+                   < SIZE_DIFF(&best_pix_out, wanted_pix_out))
-+                       /* Force renegotation of fps etc. */
-+                       best_ival->denominator =3D 0;
-+
-+               for (ival_index =3D 0; ; ival_index++) {
-+                       struct v4l2_frmivalenum frmi;
-+
-+                       frmi.index =3D ival_index;
-+                       frmi.pixel_format =3D frms.pixel_format;
-+                       frmi.width =3D frms.discrete.width;
-+                       frmi.height =3D frms.discrete.height;
-+                       /* FIXME: try to fix standard... */
-+                       frmi.reserved[0] =3D 0xdeafbeef;
-+
-+                       rval =3D vidioc_int_enum_frameintervals(vdev->vde=
-v_sensor,
-+                                                             &frmi);
-+                       if (rval) {
-+                               rval =3D 0;
-+                               break;
-+                       }
-+
-+                       if (best_ival->denominator =3D=3D 0)
-+                               goto do_it_now;
-+
-+                       /*
-+                        * We aim to use maximum resolution from the
-+                        * sensor, provided that the fps is at least
-+                        * as close as on the current mode.
-+                        */
-+#define FPS_ABS_DIFF(fps, ival) abs(fps - (ival).denominator / (ival).nu=
-merator)
-+
-+                       /* Select mode with closest fps. */
-+                       if (FPS_ABS_DIFF(fps, frmi.discrete)
-+                           < FPS_ABS_DIFF(fps, *best_ival))
-+                               goto do_it_now;
-+
-+                       /*
-+                        * Select bigger resolution if it's available
-+                        * at same fps.
-+                        */
-+                       if (frmi.width > best_pix_in->width
-+                           && FPS_ABS_DIFF(fps, frmi.discrete)
-+                           <=3D FPS_ABS_DIFF(fps, *best_ival))
-+                               goto do_it_now;
-+
-+                       continue;
-+
-+do_it_now:
-+                       *best_ival =3D frmi.discrete;
-+                       best_pix_out =3D pix_tmp_out;
-+                       best_pix_in->width =3D frmi.width;
-+                       best_pix_in->height =3D frmi.height;
-+                       best_pix_in->pixelformat =3D frmi.pixel_format;
-+               }
-+       }
-+
-+       if (best_ival->denominator =3D=3D 0)
-+               return -EINVAL;
-+
-+       *wanted_pix_out =3D best_pix_out;
-+
-+       dev_info(vdev->cam->dev, "w %d, h %d -> w %d, h %d\n",
-+                best_pix_in->width, best_pix_in->height,
-+                best_pix_out.width, best_pix_out.height);
-+
-+       return isp_try_fmt_cap(best_pix_in, wanted_pix_out);
-+}
-+
-+static int s_pix_parm(struct omap34xxcam_videodev *vdev,
-+                     struct v4l2_pix_format *best_pix,
-+                     struct v4l2_pix_format *pix,
-+                     struct v4l2_fract *best_ival)
-+{
-+       struct v4l2_streamparm a;
-+       struct v4l2_format fmt;
-+       int rval;
-+       int fmtd_index;
-+
-+       for (fmtd_index =3D 0; ; fmtd_index++) {
-+               struct v4l2_fmtdesc fmtd;
-+
-+               fmtd.index =3D fmtd_index;
-+               fmtd.type =3D V4L2_BUF_TYPE_VIDEO_CAPTURE;
-+               rval =3D vidioc_int_enum_fmt_cap(vdev->vdev_sensor, &fmtd=
-);
-+               if (rval)
-+                       return rval;
-+               best_pix->pixelformat =3D fmtd.pixelformat;
-+
-+               rval =3D try_pix_parm(vdev, best_pix, pix, best_ival);
-+               if (!rval)
-+                       break;
-+       }
-+
-+       rval =3D isp_s_fmt_cap(best_pix, pix);
-+       if (rval)
-+               return rval;
-+
-+       fmt.type =3D V4L2_BUF_TYPE_VIDEO_CAPTURE;
-+       fmt.fmt.pix =3D *best_pix;
-+       rval =3D vidioc_int_s_fmt_cap(vdev->vdev_sensor, &fmt);
-+       if (rval)
-+               return rval;
-+
-+       a.type =3D V4L2_BUF_TYPE_VIDEO_CAPTURE;
-+       a.parm.capture.timeperframe =3D *best_ival;
-+       rval =3D vidioc_int_s_parm(vdev->vdev_sensor, &a);
-+
-+       return rval;
-+}
-+
-+/**
-+ * vidioc_s_fmt_vid_cap - V4L2 set format capabilities IOCTL handler
-+ * @file: ptr. to system file structure
-+ * @fh: ptr to hold address of omap34xxcam_fh struct (per-filehandle dat=
-a)
-+ * @f: ptr to standard V4L2 format structure
-+ *
-+ * Attempts to set input format with the sensor driver (first) and then =
-the
-+ * ISP.  Returns the return code from vidioc_g_fmt_vid_cap().
-+ */
-+static int vidioc_s_fmt_vid_cap(struct file *file, void *fh,
-+                               struct v4l2_format *f)
-+{
-+       struct omap34xxcam_fh *ofh =3D fh;
-+       struct omap34xxcam_videodev *vdev =3D ofh->vdev;
-+       struct v4l2_pix_format pix_tmp;
-+       struct v4l2_fract timeperframe;
-+       int rval;
-+
-+       mutex_lock(&vdev->mutex);
-+       if (vdev->streaming) {
-+               rval =3D -EBUSY;
-+               goto out;
-+       }
-+
-+       vdev->want_pix =3D f->fmt.pix;
-+
-+       timeperframe =3D vdev->want_timeperframe;
-+
-+       rval =3D s_pix_parm(vdev, &pix_tmp, &f->fmt.pix, &timeperframe);
-+       pix_tmp =3D f->fmt.pix;
-+
-+out:
-+       mutex_unlock(&vdev->mutex);
-+
-+       if (!rval) {
-+               mutex_lock(&ofh->vbq.vb_lock);
-+               ofh->pix =3D pix_tmp;
-+               mutex_unlock(&ofh->vbq.vb_lock);
-+       }
-+
-+       return rval;
-+}
-+
-+/**
-+ * vidioc_try_fmt_vid_cap - V4L2 try format capabilities IOCTL handler
-+ * @file: ptr. to system file structure
-+ * @fh: ptr to hold address of omap34xxcam_fh struct (per-filehandle dat=
-a)
-+ * @f: ptr to standard V4L2 format structure
-+ *
-+ * Checks if the given format is supported by the sensor driver and
-+ * by the ISP.
-+ */
-+static int vidioc_try_fmt_vid_cap(struct file *file, void *fh,
-+                                 struct v4l2_format *f)
-+{
-+       struct omap34xxcam_fh *ofh =3D fh;
-+       struct omap34xxcam_videodev *vdev =3D ofh->vdev;
-+       struct v4l2_pix_format pix_tmp;
-+       struct v4l2_fract timeperframe;
-+       int rval;
-+       int fmtd_index;
-+
-+       mutex_lock(&vdev->mutex);
-+
-+
-+       for (fmtd_index =3D 0; ; fmtd_index++) {
-+               struct v4l2_fmtdesc fmtd;
-+
-+               timeperframe =3D vdev->want_timeperframe;
-+
-+               fmtd.index =3D fmtd_index;
-+               fmtd.type =3D V4L2_BUF_TYPE_VIDEO_CAPTURE;
-+               rval =3D vidioc_int_enum_fmt_cap(vdev->vdev_sensor, &fmtd=
-);
-+               if (rval)
-+                       return rval;
-+               pix_tmp.pixelformat =3D fmtd.pixelformat;
-+
-+               rval =3D try_pix_parm(vdev, &pix_tmp, &f->fmt.pix, &timep=
-erframe);
-+               if (!rval)
-+                       break;
-+       }
-+
-+       mutex_unlock(&vdev->mutex);
-+
-+       return rval;
-+}
-+
-+/**
-+ * vidioc_reqbufs - V4L2 request buffers IOCTL handler
-+ * @file: ptr. to system file structure
-+ * @fh: ptr to hold address of omap34xxcam_fh struct (per-filehandle dat=
-a)
-+ * @b: ptr to standard V4L2 request buffers structure
-+ *
-+ * Attempts to get a buffer from the buffer queue associated with the
-+ * fh through the video buffer library API.
-+ */
-+static int vidioc_reqbufs(struct file *file, void *fh,
-+                         struct v4l2_requestbuffers *b)
-+{
-+       struct omap34xxcam_fh *ofh =3D fh;
-+       struct omap34xxcam_videodev *vdev =3D ofh->vdev;
-+       int rval;
-+
-+       mutex_lock(&vdev->mutex);
-+       if (vdev->streaming) {
-+               mutex_unlock(&vdev->mutex);
-+               return -EBUSY;
-+       }
-+
-+       mutex_unlock(&vdev->mutex);
-+
-+       rval =3D videobuf_reqbufs(&ofh->vbq, b);
-+
-+       /*
-+        * Either videobuf_reqbufs failed or the buffers are not
-+        * memory-mapped (which would need special attention).
-+        */
-+       if (rval < 0 || b->memory !=3D V4L2_MEMORY_MMAP)
-+               goto out;
-+
-+out:
-+       return rval;
-+}
-+
-+/**
-+ * vidioc_querybuf - V4L2 query buffer IOCTL handler
-+ * @file: ptr. to system file structure
-+ * @fh: ptr to hold address of omap34xxcam_fh struct (per-filehandle dat=
-a)
-+ * @b: ptr to standard V4L2 buffer structure
-+ *
-+ * Attempts to fill in the v4l2_buffer structure for the buffer queue
-+ * associated with the fh through the video buffer library API.
-+ */
-+static int vidioc_querybuf(struct file *file, void *fh, struct v4l2_buff=
-er *b)
-+{
-+       struct omap34xxcam_fh *ofh =3D fh;
-+
-+       return videobuf_querybuf(&ofh->vbq, b);
-+}
-+
-+/**
-+ * vidioc_qbuf - V4L2 queue buffer IOCTL handler
-+ * @file: ptr. to system file structure
-+ * @fh: ptr to hold address of omap34xxcam_fh struct (per-filehandle dat=
-a)
-+ * @b: ptr to standard V4L2 buffer structure
-+ *
-+ * Attempts to queue the v4l2_buffer on the buffer queue
-+ * associated with the fh through the video buffer library API.
-+ */
-+static int vidioc_qbuf(struct file *file, void *fh, struct v4l2_buffer *=
-b)
-+{
-+       struct omap34xxcam_fh *ofh =3D fh;
-+
-+       return videobuf_qbuf(&ofh->vbq, b);
-+}
-+
-+/**
-+ * vidioc_dqbuf - V4L2 dequeue buffer IOCTL handler
-+ * @file: ptr. to system file structure
-+ * @fh: ptr to hold address of omap34xxcam_fh struct (per-filehandle dat=
-a)
-+ * @b: ptr to standard V4L2 buffer structure
-+ *
-+ * Attempts to dequeue the v4l2_buffer from the buffer queue
-+ * associated with the fh through the video buffer library API.  If the
-+ * buffer is a user space buffer, then this function will also requeue i=
-t,
-+ * as user does not expect to do this.
-+ */
-+static int vidioc_dqbuf(struct file *file, void *fh, struct v4l2_buffer =
-*b)
-+{
-+       struct omap34xxcam_fh *ofh =3D fh;
-+
-+       return videobuf_dqbuf(&ofh->vbq, b, file->f_flags & O_NONBLOCK);
-+}
-+
-+/**
-+ * vidioc_streamon - V4L2 streamon IOCTL handler
-+ * @file: ptr. to system file structure
-+ * @fh: ptr to hold address of omap34xxcam_fh struct (per-filehandle dat=
-a)
-+ * @i: V4L2 buffer type
-+ *
-+ * Attempts to start streaming by enabling the sensor interface and turn=
-ing
-+ * on video buffer streaming through the video buffer library API.  Upon
-+ * success the function returns 0, otherwise an error code is returned.
-+ */
-+static int vidioc_streamon(struct file *file, void *fh, enum v4l2_buf_ty=
-pe i)
-+{
-+       struct omap34xxcam_fh *ofh =3D fh;
-+       struct omap34xxcam_videodev *vdev =3D ofh->vdev;
-+       struct omap34xxcam_device *cam =3D vdev->cam;
-+       int rval;
-+
-+       mutex_lock(&vdev->mutex);
-+       if (vdev->streaming) {
-+               rval =3D -EBUSY;
-+               goto out;
-+       }
-+
-+       cam->dma_notify =3D 1;
-+       isp_sgdma_init();
-+       rval =3D videobuf_streamon(&ofh->vbq);
-+       if (rval) {
-+               dev_dbg(vdev->cam->dev, "omap34xxcam_slave_power_set fail=
-ed\n");
-+               goto out;
-+       }
-+
-+
-+       rval =3D omap34xxcam_slave_power_set(vdev, V4L2_POWER_ON,
-+                                          OMAP34XXCAM_SLAVE_POWER_SENSOR=
-_LENS);
-+       if (!rval) {
-+               vdev->streaming =3D file;
-+       } else {
-+               isp_stop();
-+               videobuf_streamoff(&ofh->vbq);
-+       }
-+
-+out:
-+       mutex_unlock(&vdev->mutex);
-+
-+       return rval;
-+}
-+
-+/**
-+ * vidioc_streamoff - V4L2 streamoff IOCTL handler
-+ * @file: ptr. to system file structure
-+ * @fh: ptr to hold address of omap34xxcam_fh struct (per-filehandle dat=
-a)
-+ * @i: V4L2 buffer type
-+ *
-+ * Attempts to stop streaming by flushing all scheduled work, waiting on
-+ * any queued buffers to complete and then stopping the ISP and turning
-+ * off video buffer streaming through the video buffer library API.  Upo=
-n
-+ * success the function returns 0, otherwise an error code is returned.
-+ */
-+static int vidioc_streamoff(struct file *file, void *fh, enum v4l2_buf_t=
-ype i)
-+{
-+       struct omap34xxcam_fh *ofh =3D fh;
-+       struct omap34xxcam_videodev *vdev =3D ofh->vdev;
-+       struct videobuf_queue *q =3D &ofh->vbq;
-+       int rval;
-+
-+       mutex_lock(&vdev->mutex);
-+
-+       if (vdev->streaming =3D=3D file)
-+               isp_stop();
-+
-+       rval =3D videobuf_streamoff(q);
-+       if (!rval)
-+               vdev->streaming =3D NULL;
-+
-+       omap34xxcam_slave_power_set(vdev, V4L2_POWER_STANDBY,
-+                                       OMAP34XXCAM_SLAVE_POWER_SENSOR);
-+       omap34xxcam_slave_power_suggest(vdev, V4L2_POWER_STANDBY,
-+                                       OMAP34XXCAM_SLAVE_POWER_LENS);
-+
-+       mutex_unlock(&vdev->mutex);
-+
-+       return rval;
-+}
-+
-+/**
-+ * vidioc_enum_input - V4L2 enumerate input IOCTL handler
-+ * @file: ptr. to system file structure
-+ * @fh: ptr to hold address of omap34xxcam_fh struct (per-filehandle dat=
-a)
-+ * @inp: V4L2 input type information structure
-+ *
-+ * Fills in v4l2_input structure.  Returns 0.
-+ */
-+static int vidioc_enum_input(struct file *file, void *fh,
-+                            struct v4l2_input *inp)
-+{
-+       if (inp->index > 0)
-+               return -EINVAL;
-+
-+       strlcpy(inp->name, "camera", sizeof(inp->name));
-+       inp->type =3D V4L2_INPUT_TYPE_CAMERA;
-+
-+       return 0;
-+}
-+
-+/**
-+ * vidioc_g_input - V4L2 get input IOCTL handler
-+ * @file: ptr. to system file structure
-+ * @fh: ptr to hold address of omap34xxcam_fh struct (per-filehandle dat=
-a)
-+ * @i: address to hold index of input supported
-+ *
-+ * Sets index to 0.
-+ */
-+static int vidioc_g_input(struct file *file, void *fh, unsigned int *i)
-+{
-+       *i =3D 0;
-+
-+       return 0;
-+}
-+
-+/**
-+ * vidioc_s_input - V4L2 set input IOCTL handler
-+ * @file: ptr. to system file structure
-+ * @fh: ptr to hold address of omap34xxcam_fh struct (per-filehandle dat=
-a)
-+ * @i: index of input selected
-+ *
-+ * 0 is only index supported.
-+ */
-+static int vidioc_s_input(struct file *file, void *fh, unsigned int i)
-+{
-+       if (i > 0)
-+               return -EINVAL;
-+
-+       return 0;
-+}
-+
-+/**
-+ * vidioc_queryctrl - V4L2 query control IOCTL handler
-+ * @file: ptr. to system file structure
-+ * @fh: ptr to hold address of omap34xxcam_fh struct (per-filehandle dat=
-a)
-+ * @a: standard V4L2 query control ioctl structure
-+ *
-+ * If the requested control is supported, returns the control informatio=
-n
-+ * in the v4l2_queryctrl structure.  Otherwise, returns -EINVAL if the
-+ * control is not supported.  If the sensor being used is a "smart senso=
-r",
-+ * this request is passed to the sensor driver, otherwise the ISP is
-+ * queried and if it does not support the requested control, the request
-+ * is forwarded to the "raw" sensor driver to see if it supports it.
-+ */
-+static int vidioc_queryctrl(struct file *file, void *fh,
-+                           struct v4l2_queryctrl *a)
-+{
-+       struct omap34xxcam_fh *ofh =3D fh;
-+       struct omap34xxcam_videodev *vdev =3D ofh->vdev;
-+       struct v4l2_queryctrl a_tmp;
-+       int best_slave =3D -1;
-+       u32 best_ctrl =3D (u32)-1;
-+       int i;
-+
-+       if (vdev->vdev_sensor_config.sensor_isp)
-+               return vidioc_int_queryctrl(vdev->vdev_sensor, a);
-+
-+       /* No next flags: try slaves directly. */
-+       if (!(a->id & V4L2_CTRL_FLAG_NEXT_CTRL)) {
-+               for (i =3D 0; i <=3D OMAP34XXCAM_SLAVE_FLASH; i++) {
-+                       if (!vidioc_int_queryctrl(vdev->slave[i], a))
-+                               return 0;
-+               }
-+               return isp_queryctrl(a);
-+       }
-+
-+       /* Find slave with smallest next control id. */
-+       for (i =3D 0; i <=3D OMAP34XXCAM_SLAVE_FLASH; i++) {
-+               a_tmp =3D *a;
-+
-+               if (vidioc_int_queryctrl(vdev->slave[i], &a_tmp))
-+                       continue;
-+
-+               if (a_tmp.id < best_ctrl) {
-+                       best_slave =3D i;
-+                       best_ctrl =3D a_tmp.id;
-+               }
-+       }
-+
-+       a_tmp =3D *a;
-+       if (!isp_queryctrl(&a_tmp)) {
-+               if (a_tmp.id < best_ctrl) {
-+                       *a =3D a_tmp;
-+
-+                       return 0;
-+               }
-+       }
-+
-+       if (best_slave =3D=3D -1)
-+               return -EINVAL;
-+
-+       a->id =3D best_ctrl;
-+       return vidioc_int_queryctrl(vdev->slave[best_slave], a);
-+}
-+
-+/**
-+ * vidioc_querymenu - V4L2 query menu IOCTL handler
-+ * @file: ptr. to system file structure
-+ * @fh: ptr to hold address of omap34xxcam_fh struct (per-filehandle dat=
-a)
-+ * @a: standard V4L2 query menu ioctl structure
-+ *
-+ * If the requested control is supported, returns the menu information
-+ * in the v4l2_querymenu structure.  Otherwise, returns -EINVAL if the
-+ * control is not supported or is not a menu.  If the sensor being used
-+ * is a "smart sensor", this request is passed to the sensor driver,
-+ * otherwise the ISP is queried and if it does not support the requested
-+ * menu control, the request is forwarded to the "raw" sensor driver to
-+ * see if it supports it.
-+ */
-+static int vidioc_querymenu(struct file *file, void *fh,
-+                           struct v4l2_querymenu *a)
-+{
-+       struct omap34xxcam_fh *ofh =3D fh;
-+       struct omap34xxcam_videodev *vdev =3D ofh->vdev;
-+       int i;
-+
-+       if (vdev->vdev_sensor_config.sensor_isp)
-+               return vidioc_int_querymenu(vdev->vdev_sensor, a);
-+
-+       /* Try slaves directly. */
-+       for (i =3D 0; i <=3D OMAP34XXCAM_SLAVE_FLASH; i++) {
-+               if (!vidioc_int_querymenu(vdev->slave[i], a))
-+                       return 0;
-+       }
-+       return isp_querymenu(a);
-+}
-+
-+static int vidioc_g_ext_ctrls(struct file *file, void *fh,
-+                             struct v4l2_ext_controls *a)
-+{
-+       struct omap34xxcam_fh *ofh =3D fh;
-+       struct omap34xxcam_videodev *vdev =3D ofh->vdev;
-+       int i, ctrl_idx, rval =3D 0;
-+
-+       mutex_lock(&vdev->mutex);
-+
-+       for (ctrl_idx =3D 0; ctrl_idx < a->count; ctrl_idx++) {
-+               struct v4l2_control ctrl;
-+
-+               ctrl.id =3D a->controls[ctrl_idx].id;
-+
-+               if (vdev->vdev_sensor_config.sensor_isp) {
-+                       rval =3D vidioc_int_g_ctrl(vdev->vdev_sensor, &ct=
-rl);
-+               } else {
-+                       for (i =3D 0; i <=3D OMAP34XXCAM_SLAVE_FLASH; i++=
-) {
-+                               rval =3D vidioc_int_g_ctrl(vdev->slave[i]=
-, &ctrl);
-+                               if (!rval)
-+                                       break;
-+                       }
-+               }
-+
-+               if (rval)
-+                       rval =3D isp_g_ctrl(&ctrl);
-+
-+               if (rval) {
-+                       a->error_idx =3D ctrl_idx;
-+                       break;
-+               }
-+
-+               a->controls[ctrl_idx].value =3D ctrl.value;
-+       }
-+
-+       mutex_unlock(&vdev->mutex);
-+
-+       return rval;
-+}
-+
-+static int vidioc_s_ext_ctrls(struct file *file, void *fh,
-+                             struct v4l2_ext_controls *a)
-+{
-+       struct omap34xxcam_fh *ofh =3D fh;
-+       struct omap34xxcam_videodev *vdev =3D ofh->vdev;
-+       int i, ctrl_idx, rval =3D 0;
-+
-+       mutex_lock(&vdev->mutex);
-+
-+       for (ctrl_idx =3D 0; ctrl_idx < a->count; ctrl_idx++) {
-+               struct v4l2_control ctrl;
-+
-+               ctrl.id =3D a->controls[ctrl_idx].id;
-+               ctrl.value =3D a->controls[ctrl_idx].value;
-+
-+               if (vdev->vdev_sensor_config.sensor_isp) {
-+                       rval =3D vidioc_int_s_ctrl(vdev->vdev_sensor, &ct=
-rl);
-+               } else {
-+                       for (i =3D 0; i <=3D OMAP34XXCAM_SLAVE_FLASH; i++=
-) {
-+                               rval =3D vidioc_int_s_ctrl(vdev->slave[i]=
-, &ctrl);
-+                               if (!rval)
-+                                       break;
-+                       }
-+               }
-+
-+               if (rval)
-+                       rval =3D isp_s_ctrl(&ctrl);
-+
-+               if (rval) {
-+                       a->error_idx =3D ctrl_idx;
-+                       break;
-+               }
-+
-+               a->controls[ctrl_idx].value =3D ctrl.value;
-+       }
-+
-+       mutex_unlock(&vdev->mutex);
-+
-+       return rval;
-+}
-+
-+/**
-+ * vidioc_g_parm - V4L2 get parameters IOCTL handler
-+ * @file: ptr. to system file structure
-+ * @fh: ptr to hold address of omap34xxcam_fh struct (per-filehandle dat=
-a)
-+ * @a: standard V4L2 stream parameters structure
-+ *
-+ * If request is for video capture buffer type, handles request by
-+ * forwarding to sensor driver.
-+ */
-+static int vidioc_g_parm(struct file *file, void *fh, struct v4l2_stream=
-parm *a)
-+{
-+       struct omap34xxcam_fh *ofh =3D fh;
-+       struct omap34xxcam_videodev *vdev =3D ofh->vdev;
-+       int rval;
-+
-+       if (a->type !=3D V4L2_BUF_TYPE_VIDEO_CAPTURE)
-+               return -EINVAL;
-+
-+       mutex_lock(&vdev->mutex);
-+       rval =3D vidioc_int_g_parm(vdev->vdev_sensor, a);
-+       mutex_unlock(&vdev->mutex);
-+
-+       return rval;
-+}
-+
-+/**
-+ * vidioc_s_parm - V4L2 set parameters IOCTL handler
-+ * @file: ptr. to system file structure
-+ * @fh: ptr to hold address of omap34xxcam_fh struct (per-filehandle dat=
-a)
-+ * @a: standard V4L2 stream parameters structure
-+ *
-+ * If request is for video capture buffer type, handles request by
-+ * first getting current stream parameters from sensor, then forwarding
-+ * request to set new parameters to sensor driver.  It then attempts to
-+ * enable the sensor interface with the new parameters.  If this fails, =
-it
-+ * reverts back to the previous parameters.
-+ */
-+static int vidioc_s_parm(struct file *file, void *fh, struct v4l2_stream=
-parm *a)
-+{
-+       struct omap34xxcam_fh *ofh =3D fh;
-+       struct omap34xxcam_videodev *vdev =3D ofh->vdev;
-+       struct v4l2_pix_format pix_tmp_sensor, pix_tmp;
-+       int rval;
-+
-+       if (a->type !=3D V4L2_BUF_TYPE_VIDEO_CAPTURE)
-+               return -EINVAL;
-+
-+       mutex_lock(&vdev->mutex);
-+       if (vdev->streaming) {
-+               rval =3D -EBUSY;
-+               goto out;
-+       }
-+
-+       vdev->want_timeperframe =3D a->parm.capture.timeperframe;
-+
-+       pix_tmp =3D vdev->want_pix;
-+
-+       rval =3D s_pix_parm(vdev, &pix_tmp_sensor, &pix_tmp,
-+                         &a->parm.capture.timeperframe);
-+
-+out:
-+       mutex_unlock(&vdev->mutex);
-+
-+       return rval;
-+}
-+
-+/**
-+ * vidioc_cropcap - V4L2 crop capture IOCTL handler
-+ * @file: ptr. to system file structure
-+ * @fh: ptr to hold address of omap34xxcam_fh struct (per-filehandle dat=
-a)
-+ * @a: standard V4L2 crop capture structure
-+ *
-+ * If using a "smart" sensor, just forwards request to the sensor driver=
-,
-+ * otherwise fills in the v4l2_cropcap values locally.
-+ */
-+static int vidioc_cropcap(struct file *file, void *fh, struct v4l2_cropc=
-ap *a)
-+{
-+       struct omap34xxcam_fh *ofh =3D fh;
-+       struct omap34xxcam_videodev *vdev =3D ofh->vdev;
-+       struct v4l2_cropcap *cropcap =3D a;
-+       int rval;
-+
-+       mutex_lock(&vdev->mutex);
-+
-+       if (vdev->vdev_sensor_config.sensor_isp) {
-+               rval =3D vidioc_int_cropcap(vdev->vdev_sensor, a);
-+       } else {
-+               struct v4l2_format f;
-+
-+               rval =3D vidioc_int_cropcap(vdev->vdev_sensor, a);
-+               if (!rval)
-+                       return rval;
-+
-+               /* cropcap failed, try to do this via g_fmt_cap */
-+               rval =3D vidioc_int_g_fmt_cap(vdev->vdev_sensor, &f);
-+               if (!rval) {
-+                       cropcap->bounds.top =3D 0;
-+                       cropcap->bounds.left =3D 0;
-+                       cropcap->bounds.width =3D f.fmt.pix.width;
-+                       cropcap->bounds.height =3D f.fmt.pix.height;
-+                       cropcap->defrect =3D cropcap->bounds;
-+                       cropcap->pixelaspect.numerator =3D 1;
-+                       cropcap->pixelaspect.denominator =3D 1;
-+               }
-+       }
-+
-+       mutex_unlock(&vdev->mutex);
-+
-+       return rval;
-+}
-+
-+/**
-+ * vidioc_g_crop - V4L2 get capture crop IOCTL handler
-+ * @file: ptr. to system file structure
-+ * @fh: ptr to hold address of omap34xxcam_fh struct (per-filehandle dat=
-a)
-+ * @a: standard V4L2 crop structure
-+ *
-+ * If using a "smart" sensor, just forwards request to the sensor driver=
-,
-+ * otherwise calls the isp functions to fill in current crop values.
-+ */
-+static int vidioc_g_crop(struct file *file, void *fh, struct v4l2_crop *=
-a)
-+{
-+       struct omap34xxcam_fh *ofh =3D fh;
-+       struct omap34xxcam_videodev *vdev =3D ofh->vdev;
-+       int rval =3D 0;
-+
-+       mutex_lock(&vdev->mutex);
-+
-+       if (vdev->vdev_sensor_config.sensor_isp)
-+               rval =3D vidioc_int_g_crop(vdev->vdev_sensor, a);
-+       else
-+               rval =3D isp_g_crop(a);
-+
-+       mutex_unlock(&vdev->mutex);
-+
-+       return rval;
-+}
-+
-+/**
-+ * vidioc_s_crop - V4L2 set capture crop IOCTL handler
-+ * @file: ptr. to system file structure
-+ * @fh: ptr to hold address of omap34xxcam_fh struct (per-filehandle dat=
-a)
-+ * @a: standard V4L2 crop structure
-+ *
-+ * If using a "smart" sensor, just forwards request to the sensor driver=
-,
-+ * otherwise calls the isp functions to set the current crop values.
-+ */
-+static int vidioc_s_crop(struct file *file, void *fh, struct v4l2_crop *=
-a)
-+{
-+       struct omap34xxcam_fh *ofh =3D fh;
-+       struct omap34xxcam_videodev *vdev =3D ofh->vdev;
-+       struct v4l2_pix_format *pix =3D &ofh->pix;
-+       int rval =3D 0;
-+
-+       mutex_lock(&vdev->mutex);
-+
-+       if (vdev->vdev_sensor_config.sensor_isp)
-+               rval =3D vidioc_int_s_crop(vdev->vdev_sensor, a);
-+       else
-+               rval =3D isp_s_crop(a, pix);
-+
-+       mutex_unlock(&vdev->mutex);
-+
-+       return rval;
-+}
-+
-+static int vidioc_enum_framesizes(struct file *file, void *fh,
-+                                 struct v4l2_frmsizeenum *frms)
-+{
-+       struct omap34xxcam_fh *ofh =3D fh;
-+       struct omap34xxcam_videodev *vdev =3D ofh->vdev;
-+       u32 pixel_format;
-+       int rval;
-+
-+       pixel_format =3D frms->pixel_format;
-+       frms->pixel_format =3D V4L2_PIX_FMT_SGRBG10; /* We can accept any=
-. */
-+
-+       mutex_lock(&vdev->mutex);
-+       rval =3D vidioc_int_enum_framesizes(vdev->vdev_sensor, frms);
-+       mutex_unlock(&vdev->mutex);
-+
-+       frms->pixel_format =3D pixel_format;
-+
-+       return rval;
-+}
-+
-+static int vidioc_enum_frameintervals(struct file *file, void *fh,
-+                                     struct v4l2_frmivalenum *frmi)
-+{
-+       struct omap34xxcam_fh *ofh =3D fh;
-+       struct omap34xxcam_videodev *vdev =3D ofh->vdev;
-+       u32 pixel_format;
-+       int rval;
-+
-+       pixel_format =3D frmi->pixel_format;
-+       frmi->pixel_format =3D V4L2_PIX_FMT_SGRBG10; /* We can accept any=
-. */
-+
-+       mutex_lock(&vdev->mutex);
-+       rval =3D vidioc_int_enum_frameintervals(vdev->vdev_sensor, frmi);
-+       mutex_unlock(&vdev->mutex);
-+
-+       frmi->pixel_format =3D pixel_format;
-+
-+       return rval;
-+}
-+
-+/**
-+ * vidioc_default - private IOCTL handler
-+ * @file: ptr. to system file structure
-+ * @fh: ptr to hold address of omap34xxcam_fh struct (per-filehandle dat=
-a)
-+ * @cmd: ioctl cmd value
-+ * @arg: ioctl arg value
-+ *
-+ * If the sensor being used is a "smart sensor", this request is returne=
-d to
-+ * caller with -EINVAL err code.  Otherwise if the control id is the pri=
-vate
-+ * VIDIOC_PRIVATE_ISP_AEWB_REQ to update the analog gain or exposure,
-+ * then this request is forwared directly to the sensor to incorporate t=
-he
-+ * feedback. The request is then passed on to the ISP private IOCTL hand=
-ler,
-+ * isp_handle_private()
-+ */
-+static int vidioc_default(struct file *file, void *fh, int cmd, void *ar=
-g)
-+{
-+       struct omap34xxcam_fh *ofh =3D file->private_data;
-+       struct omap34xxcam_videodev *vdev =3D ofh->vdev;
-+       int rval;
-+
-+       if (vdev->vdev_sensor_config.sensor_isp) {
-+               rval =3D -EINVAL;
-+       } else {
-+               switch (cmd) {
-+               case VIDIOC_ENUM_FRAMESIZES:
-+                       rval =3D vidioc_enum_framesizes(file, fh, arg);
-+                       goto out;
-+               case VIDIOC_ENUM_FRAMEINTERVALS:
-+                       rval =3D vidioc_enum_frameintervals(file, fh, arg=
-);
-+                       goto out;
-+               case VIDIOC_PRIVATE_ISP_AEWB_REQ:
-+               {
-+                       /* Need to update sensor first */
-+                       struct isph3a_aewb_data *data;
-+                       struct v4l2_control vc;
-+
-+                       data =3D (struct isph3a_aewb_data *) arg;
-+                       if (data->update & SET_EXPOSURE) {
-+                               vc.id =3D V4L2_CID_EXPOSURE;
-+                               vc.value =3D data->shutter;
-+                               mutex_lock(&vdev->mutex);
-+                               rval =3D vidioc_int_s_ctrl(vdev->vdev_sen=
-sor,
-+                                                        &vc);
-+                               mutex_unlock(&vdev->mutex);
-+                               if (rval)
-+                                       goto out;
-+                       }
-+                       if (data->update & SET_ANALOG_GAIN) {
-+                               vc.id =3D V4L2_CID_GAIN;
-+                               vc.value =3D data->gain;
-+                               mutex_lock(&vdev->mutex);
-+                               rval =3D vidioc_int_s_ctrl(vdev->vdev_sen=
-sor,
-+                                                        &vc);
-+                               mutex_unlock(&vdev->mutex);
-+                               if (rval)
-+                                       goto out;
-+                       }
-+               }
-+               break;
-+               case VIDIOC_PRIVATE_ISP_AF_REQ: {
-+                       /* Need to update lens first */
-+                       struct isp_af_data *data;
-+                       struct v4l2_control vc;
-+
-+                       if (!vdev->vdev_lens) {
-+                               rval =3D -EINVAL;
-+                               goto out;
-+                       }
-+                       data =3D (struct isp_af_data *) arg;
-+                       if (data->update & LENS_DESIRED_POSITION) {
-+                               vc.id =3D V4L2_CID_FOCUS_ABSOLUTE;
-+                               vc.value =3D data->desired_lens_direction=
-;
-+                               mutex_lock(&vdev->mutex);
-+                               rval =3D vidioc_int_s_ctrl(vdev->vdev_len=
-s, &vc);
-+                               mutex_unlock(&vdev->mutex);
-+                               if (rval)
-+                                       goto out;
-+                       }
-+                       if (data->update & REQUEST_STATISTICS) {
-+                               vc.id =3D V4L2_CID_FOCUS_ABSOLUTE;
-+                               mutex_lock(&vdev->mutex);
-+                               rval =3D vidioc_int_g_ctrl(vdev->vdev_len=
-s, &vc);
-+                               mutex_unlock(&vdev->mutex);
-+                               if (rval)
-+                                       goto out;
-+                               data->xtrastats.lens_position =3D vc.valu=
-e;
-+                       }
-+               }
-+                       break;
-+               }
-+
-+               mutex_lock(&vdev->mutex);
-+               rval =3D isp_handle_private(cmd, arg);
-+               mutex_unlock(&vdev->mutex);
-+       }
-+out:
-+       return rval;
-+}
-+
-+/*
-+ *
-+ * File operations.
-+ *
-+ */
-+
-+static long omap34xxcam_unlocked_ioctl(struct file *file, unsigned int c=
-md,
-+                                      unsigned long arg)
-+{
-+       return (long)video_ioctl2(file->f_dentry->d_inode, file, cmd, arg=
-);
-+}
-+
-+/**
-+ * omap34xxcam_poll - file operations poll handler
-+ * @file: ptr. to system file structure
-+ * @wait: system poll table structure
-+ *
-+ */
-+static unsigned int omap34xxcam_poll(struct file *file,
-+                                    struct poll_table_struct *wait)
-+{
-+       struct omap34xxcam_fh *fh =3D file->private_data;
-+       struct omap34xxcam_videodev *vdev =3D fh->vdev;
-+       struct videobuf_buffer *vb;
-+
-+       mutex_lock(&vdev->mutex);
-+       if (vdev->streaming !=3D file) {
-+               mutex_unlock(&vdev->mutex);
-+               return POLLERR;
-+       }
-+       mutex_unlock(&vdev->mutex);
-+
-+       mutex_lock(&fh->vbq.vb_lock);
-+       if (list_empty(&fh->vbq.stream)) {
-+               mutex_unlock(&fh->vbq.vb_lock);
-+               return POLLERR;
-+       }
-+       vb =3D list_entry(fh->vbq.stream.next, struct videobuf_buffer, st=
-ream);
-+       mutex_unlock(&fh->vbq.vb_lock);
-+
-+       poll_wait(file, &vb->done, wait);
-+
-+       if (vb->state =3D=3D VIDEOBUF_DONE || vb->state =3D=3D VIDEOBUF_E=
-RROR)
-+               return POLLIN | POLLRDNORM;
-+
-+       return 0;
-+}
-+
-+/**
-+ * omap34xxcam_mmap - file operations mmap handler
-+ * @file: ptr. to system file structure
-+ * @vma: system virt. mem. area structure
-+ *
-+ * Maps a virtual memory area via the video buffer API
-+ */
-+static int omap34xxcam_mmap(struct file *file, struct vm_area_struct *vm=
-a)
-+{
-+       struct omap34xxcam_fh *fh =3D file->private_data;
-+       return videobuf_mmap_mapper(&fh->vbq, vma);
-+}
-+
-+/**
-+ * omap34xxcam_open - file operations open handler
-+ * @inode: ptr. to system inode structure
-+ * @file: ptr. to system file structure
-+ *
-+ * Allocates and initializes the per-filehandle data (omap34xxcam_fh),
-+ * enables the sensor, opens/initializes the ISP interface and the
-+ * video buffer queue.  Note that this function will allow multiple
-+ * file handles to be open simultaneously, however only the first
-+ * handle opened will initialize the ISP.  It is the application
-+ * responsibility to only use one handle for streaming and the others
-+ * for control only.
-+ * This function returns 0 upon success and -ENODEV upon error.
-+ */
-+static int omap34xxcam_open(struct inode *inode, struct file *file)
-+{
-+       struct omap34xxcam_videodev *vdev =3D NULL;
-+       struct omap34xxcam_device *cam =3D omap34xxcam;
-+       struct omap34xxcam_fh *fh;
-+       struct v4l2_format format;
-+       int i;
-+
-+       for (i =3D 0; i < OMAP34XXCAM_VIDEODEVS; i++) {
-+               if (cam->vdevs[i].vfd
-+                   && cam->vdevs[i].vfd->minor =3D=3D iminor(inode)) {
-+                       vdev =3D &cam->vdevs[i];
-+                       break;
-+               }
-+       }
-+
-+       if (!vdev || !vdev->vfd)
-+               return -ENODEV;
-+
-+       fh =3D kzalloc(sizeof(*fh), GFP_KERNEL);
-+       if (fh =3D=3D NULL)
-+               return -ENOMEM;
-+
-+       mutex_lock(&vdev->mutex);
-+       for (i =3D 0; i <=3D OMAP34XXCAM_SLAVE_FLASH; i++) {
-+               if (vdev->slave[i] !=3D v4l2_int_device_dummy()
-+                   && !try_module_get(vdev->slave[i]->module)) {
-+                       mutex_unlock(&vdev->mutex);
-+                       goto out_try_module_get;
-+               }
-+       }
-+
-+       if (atomic_inc_return(&vdev->users) =3D=3D 1) {
-+               isp_get();
-+               if (omap34xxcam_slave_power_set(vdev, V4L2_POWER_ON,
-+                                               OMAP34XXCAM_SLAVE_POWER_A=
-LL))
-+                       goto out_slave_power_set_standby;
-+               omap34xxcam_slave_power_set(
-+                       vdev, V4L2_POWER_STANDBY,
-+                       OMAP34XXCAM_SLAVE_POWER_SENSOR);
-+               omap34xxcam_slave_power_suggest(
-+                       vdev, V4L2_POWER_STANDBY,
-+                       OMAP34XXCAM_SLAVE_POWER_LENS);
-+       }
-+
-+       fh->vdev =3D vdev;
-+
-+       /* FIXME: Check that we have sensor now... */
-+       if (vdev->vdev_sensor_config.sensor_isp)
-+               vidioc_int_g_fmt_cap(vdev->vdev_sensor, &format);
-+       else
-+               isp_g_fmt_cap(&format.fmt.pix);
-+
-+       mutex_unlock(&vdev->mutex);
-+       /* FIXME: how about fh->pix when there are more users? */
-+       fh->pix =3D format.fmt.pix;
-+
-+       file->private_data =3D fh;
-+
-+       spin_lock_init(&fh->vbq_lock);
-+
-+       videobuf_queue_sg_init(&fh->vbq, &omap34xxcam_vbq_ops, NULL,
-+                               &fh->vbq_lock, V4L2_BUF_TYPE_VIDEO_CAPTUR=
-E,
-+                               V4L2_FIELD_NONE,
-+                               sizeof(struct videobuf_buffer), fh);
-+
-+       return 0;
-+
-+out_slave_power_set_standby:
-+       omap34xxcam_slave_power_set(vdev, V4L2_POWER_OFF,
-+                                   OMAP34XXCAM_SLAVE_POWER_ALL);
-+       isp_put();
-+       atomic_dec(&vdev->users);
-+       mutex_unlock(&vdev->mutex);
-+
-+out_try_module_get:
-+       for (i--; i >=3D 0; i--)
-+               if (vdev->slave[i] !=3D v4l2_int_device_dummy())
-+                       module_put(vdev->slave[i]->module);
-+
-+       kfree(fh);
-+
-+       return -ENODEV;
-+}
-+
-+/**
-+ * omap34xxcam_release - file operations release handler
-+ * @inode: ptr. to system inode structure
-+ * @file: ptr. to system file structure
-+ *
-+ * Complement of omap34xxcam_open.  This function will flush any schedul=
-ed
-+ * work, disable the sensor, close the ISP interface, stop the
-+ * video buffer queue from streaming and free the per-filehandle data
-+ * (omap34xxcam_fh).  Note that because multiple open file handles
-+ * are allowed, this function will only close the ISP and disable the
-+ * sensor when the last open file handle (by count) is closed.
-+ * This function returns 0.
-+ */
-+static int omap34xxcam_release(struct inode *inode, struct file *file)
-+{
-+       struct omap34xxcam_fh *fh =3D file->private_data;
-+       struct omap34xxcam_videodev *vdev =3D fh->vdev;
-+       int i;
-+
-+       mutex_lock(&vdev->mutex);
-+       if (vdev->streaming =3D=3D file) {
-+               isp_stop();
-+               videobuf_streamoff(&fh->vbq);
-+               omap34xxcam_slave_power_set(
-+                       vdev, V4L2_POWER_STANDBY,
-+                       OMAP34XXCAM_SLAVE_POWER_SENSOR);
-+               omap34xxcam_slave_power_suggest(
-+                       vdev, V4L2_POWER_STANDBY,
-+                       OMAP34XXCAM_SLAVE_POWER_LENS);
-+               vdev->streaming =3D NULL;
-+       }
-+
-+       if (atomic_dec_return(&vdev->users) =3D=3D 0) {
-+               omap34xxcam_slave_power_set(vdev, V4L2_POWER_OFF,
-+                                           OMAP34XXCAM_SLAVE_POWER_ALL);
-+               isp_put();
-+       }
-+       mutex_unlock(&vdev->mutex);
-+
-+       file->private_data =3D NULL;
-+
-+       for (i =3D 0; i <=3D OMAP34XXCAM_SLAVE_FLASH; i++)
-+               if (vdev->slave[i] !=3D v4l2_int_device_dummy())
-+                       module_put(vdev->slave[i]->module);
-+
-+       kfree(fh);
-+
-+       return 0;
-+}
-+
-+static struct file_operations omap34xxcam_fops =3D {
-+       .owner =3D THIS_MODULE,
-+       .llseek =3D no_llseek,
-+       .unlocked_ioctl =3D omap34xxcam_unlocked_ioctl,
-+       .poll =3D omap34xxcam_poll,
-+       .mmap =3D omap34xxcam_mmap,
-+       .open =3D omap34xxcam_open,
-+       .release =3D omap34xxcam_release,
-+};
-+
-+static void omap34xxcam_vfd_name_update(struct omap34xxcam_videodev *vde=
-v)
-+{
-+       struct video_device *vfd =3D vdev->vfd;
-+       int i;
-+
-+       strlcpy(vfd->name, CAM_SHORT_NAME, sizeof(vfd->name));
-+       for (i =3D 0; i <=3D OMAP34XXCAM_SLAVE_FLASH; i++) {
-+               strlcat(vfd->name, "/", sizeof(vfd->name));
-+               if (vdev->slave[i] =3D=3D v4l2_int_device_dummy())
-+                       continue;
-+               strlcat(vfd->name, vdev->slave[i]->name, sizeof(vfd->name=
-));
-+       }
-+       dev_info(vdev->cam->dev, "video%d is now %s\n", vfd->minor, vfd->=
-name);
-+}
-+
-+/**
-+ * omap34xxcam_device_unregister - V4L2 detach handler
-+ * @s: ptr. to standard V4L2 device information structure
-+ *
-+ * Detach sensor and unregister and release the video device.
-+ */
-+static void omap34xxcam_device_unregister(struct v4l2_int_device *s)
-+{
-+       struct omap34xxcam_videodev *vdev =3D s->u.slave->master->priv;
-+       struct omap34xxcam_hw_config hwc;
-+
-+       BUG_ON(vidioc_int_g_priv(s, &hwc) < 0);
-+
-+       mutex_lock(&vdev->mutex);
-+
-+       if (vdev->slave[hwc.dev_type] !=3D v4l2_int_device_dummy()) {
-+               vdev->slave[hwc.dev_type] =3D v4l2_int_device_dummy();
-+               vdev->slaves--;
-+               omap34xxcam_vfd_name_update(vdev);
-+       }
-+
-+       if (vdev->slaves =3D=3D 0 && vdev->vfd) {
-+               if (vdev->vfd->minor =3D=3D -1) {
-+                       /*
-+                        * The device was never registered, so release th=
-e
-+                        * video_device struct directly.
-+                        */
-+                       video_device_release(vdev->vfd);
-+               } else {
-+                       /*
-+                        * The unregister function will release the
-+                        * video_device struct as well as
-+                        * unregistering it.
-+                        */
-+                       video_unregister_device(vdev->vfd);
-+               }
-+               vdev->vfd =3D NULL;
-+       }
-+
-+       mutex_unlock(&vdev->mutex);
-+}
-+
-+static const struct v4l2_ioctl_ops omap34xxcam_ioctl_ops =3D {
-+       .vidioc_querycap         =3D vidioc_querycap,
-+       .vidioc_enum_fmt_vid_cap =3D vidioc_enum_fmt_vid_cap,
-+       .vidioc_g_fmt_vid_cap    =3D vidioc_g_fmt_vid_cap,
-+       .vidioc_s_fmt_vid_cap    =3D vidioc_s_fmt_vid_cap,
-+       .vidioc_try_fmt_vid_cap  =3D vidioc_try_fmt_vid_cap,
-+       .vidioc_reqbufs          =3D vidioc_reqbufs,
-+       .vidioc_querybuf         =3D vidioc_querybuf,
-+       .vidioc_qbuf             =3D vidioc_qbuf,
-+       .vidioc_dqbuf            =3D vidioc_dqbuf,
-+       .vidioc_streamon         =3D vidioc_streamon,
-+       .vidioc_streamoff        =3D vidioc_streamoff,
-+       .vidioc_enum_input       =3D vidioc_enum_input,
-+       .vidioc_g_input          =3D vidioc_g_input,
-+       .vidioc_s_input          =3D vidioc_s_input,
-+       .vidioc_queryctrl        =3D vidioc_queryctrl,
-+       .vidioc_querymenu        =3D vidioc_querymenu,
-+       .vidioc_g_ext_ctrls      =3D vidioc_g_ext_ctrls,
-+       .vidioc_s_ext_ctrls      =3D vidioc_s_ext_ctrls,
-+       .vidioc_g_parm           =3D vidioc_g_parm,
-+       .vidioc_s_parm           =3D vidioc_s_parm,
-+       .vidioc_cropcap          =3D vidioc_cropcap,
-+       .vidioc_g_crop           =3D vidioc_g_crop,
-+       .vidioc_s_crop           =3D vidioc_s_crop,
-+       .vidioc_default          =3D vidioc_default,
-+};
-+
-+/**
-+ * omap34xxcam_device_register - V4L2 attach handler
-+ * @s: ptr. to standard V4L2 device information structure
-+ *
-+ * Allocates and initializes the V4L2 video_device structure, initialize=
-s
-+ * the sensor, and finally
-+ registers the device with V4L2 based on the
-+ * video_device structure.
-+ *
-+ * Returns 0 on success, otherwise an appropriate error code on
-+ * failure.
-+ */
-+static int omap34xxcam_device_register(struct v4l2_int_device *s)
-+{
-+       struct omap34xxcam_videodev *vdev =3D s->u.slave->master->priv;
-+       struct omap34xxcam_device *cam =3D vdev->cam;
-+       struct omap34xxcam_hw_config hwc;
-+       struct video_device *vfd;
-+       int rval;
-+
-+       /* We need to check rval just once. The place is here. */
-+       if (vidioc_int_g_priv(s, &hwc))
-+               return -ENODEV;
-+
-+       if (vdev->index !=3D hwc.dev_index)
-+               return -ENODEV;
-+
-+       if (hwc.dev_type < 0 || hwc.dev_type > OMAP34XXCAM_SLAVE_FLASH)
-+               return -EINVAL;
-+
-+       if (vdev->slave[hwc.dev_type] !=3D v4l2_int_device_dummy())
-+               return -EBUSY;
-+
-+       mutex_lock(&vdev->mutex);
-+       if (atomic_read(&vdev->users)) {
-+               dev_err(cam->dev, "we're open (%d), can't register\n",
-+                       atomic_read(&vdev->users));
-+               mutex_unlock(&vdev->mutex);
-+               return -EBUSY;
-+       }
-+
-+       vdev->slaves++;
-+       vdev->slave[hwc.dev_type] =3D s;
-+       vdev->slave_config[hwc.dev_type] =3D hwc;
-+
-+       if (hwc.dev_type =3D=3D OMAP34XXCAM_SLAVE_SENSOR)
-+               isp_get();
-+       rval =3D omap34xxcam_slave_power_set(vdev, V4L2_POWER_ON,
-+                                          1 << hwc.dev_type);
-+       if (!rval && hwc.dev_type =3D=3D OMAP34XXCAM_SLAVE_SENSOR) {
-+               struct v4l2_format format;
-+               struct v4l2_streamparm a;
-+
-+               format.type =3D V4L2_BUF_TYPE_VIDEO_CAPTURE;
-+               rval =3D vidioc_int_g_fmt_cap(vdev->vdev_sensor, &format)=
-;
-+
-+               a.type =3D V4L2_BUF_TYPE_VIDEO_CAPTURE;
-+               rval |=3D vidioc_int_g_parm(vdev->vdev_sensor, &a);
-+               if (rval)
-+                       rval =3D -EBUSY;
-+
-+               vdev->want_pix =3D format.fmt.pix;
-+               vdev->want_timeperframe =3D a.parm.capture.timeperframe;
-+       }
-+       omap34xxcam_slave_power_set(vdev, V4L2_POWER_OFF, 1 << hwc.dev_ty=
-pe);
-+       if (hwc.dev_type =3D=3D OMAP34XXCAM_SLAVE_SENSOR)
-+               isp_put();
-+
-+       if (rval)
-+               goto err;
-+
-+       /* Are we the first slave? */
-+       if (vdev->slaves =3D=3D 1) {
-+               /* initialize the video_device struct */
-+               vdev->vfd =3D video_device_alloc();
-+               vfd =3D vdev->vfd;
-+               if (!vfd) {
-+                       dev_err(cam->dev,
-+                               "could not allocate video device struct\n=
-");
-+                       return -ENOMEM;
-+               }
-+               vfd->release    =3D video_device_release;
-+               vfd->minor      =3D -1;
-+               vfd->fops       =3D &omap34xxcam_fops;
-+               vfd->ioctl_ops  =3D &omap34xxcam_ioctl_ops;
-+               video_set_drvdata(vfd, vdev);
-+
-+               if (video_register_device(vfd, VFL_TYPE_GRABBER,
-+                                         hwc.dev_minor) < 0) {
-+                       dev_err(cam->dev,
-+                               "could not register V4L device\n");
-+                       vfd->minor =3D -1;
-+                       rval =3D -EBUSY;
-+                       goto err;
++       *output_h &= 0xfffffffe;
++       sph = DEFAULTSTPHASE;
++
++       rsz_7 = ((input_h - 7) * 256) / (*output_h - 1);
++       rsz_4 = ((input_h - 4) * 256) / (*output_h - 1);
++
++       rsz = (input_h * 256) / *output_h;
++
++       if (rsz <= MID_RESIZE_VALUE) {
++               rsz = rsz_4;
++               if (rsz < MINIMUM_RESIZE_VALUE) {
++                       rsz = MINIMUM_RESIZE_VALUE;
++                       *output_h = (((input_h - 4) * 256) / rsz) + 1;
++                       printk(KERN_INFO "%s: using output_h %d instead\n",
++                                                       __func__, *output_h);
 +               }
 +       } else {
-+               vfd =3D vdev->vfd;
++               rsz = rsz_7;
++               if (*output_w > max_out_7tap)
++                       *output_w = max_out_7tap;
++               if (rsz > MAXIMUM_RESIZE_VALUE) {
++                       rsz = MAXIMUM_RESIZE_VALUE;
++                       *output_h = (((input_h - 7) * 256) / rsz) + 1;
++                       printk(KERN_INFO "%s: using output_h %d instead\n",
++                                                       __func__, *output_h);
++               }
 +       }
 +
-+       omap34xxcam_vfd_name_update(vdev);
++       if (rsz > MID_RESIZE_VALUE) {
++               input_h =
++                       (((64 * sph) + ((*output_h - 1) * rsz) + 32) / 256) + 7;
++       } else {
++               input_h =
++                       (((32 * sph) + ((*output_h - 1) * rsz) + 16) / 256) + 4;
++       }
 +
-+       mutex_unlock(&vdev->mutex);
++       ispres_obj.outputheight = *output_h;
++       ispres_obj.v_resz = rsz;
++       ispres_obj.inputheight = input_h;
++       ispres_obj.ipht_crop = DEFAULTSTPIXEL;
++       ispres_obj.v_startphase = sph;
 +
++       *output_w &= 0xfffffff0;
++       sph = DEFAULTSTPHASE;
++
++       rsz_7 = ((input_w - 7) * 256) / (*output_w - 1);
++       rsz_4 = ((input_w - 4) * 256) / (*output_w - 1);
++
++       rsz = (input_w * 256) / *output_w;
++       if (rsz > MID_RESIZE_VALUE) {
++               rsz = rsz_7;
++               if (rsz > MAXIMUM_RESIZE_VALUE) {
++                       rsz = MAXIMUM_RESIZE_VALUE;
++                       *output_w = (((input_w - 7) * 256) / rsz) + 1;
++                       *output_w = (*output_w + 0xf) & 0xfffffff0;
++                       printk(KERN_INFO "%s: using output_w %d instead\n",
++                                                       __func__, *output_w);
++               }
++       } else {
++               rsz = rsz_4;
++               if (rsz < MINIMUM_RESIZE_VALUE) {
++                       rsz = MINIMUM_RESIZE_VALUE;
++                       *output_w = (((input_w - 4) * 256) / rsz) + 1;
++                       *output_w = (*output_w + 0xf) & 0xfffffff0;
++                       printk(KERN_INFO "%s: using output_w %d instead\n",
++                                                       __func__, *output_w);
++               }
++       }
++
++       /* Recalculate input based on TRM equations */
++       if (rsz > MID_RESIZE_VALUE) {
++               input_w =
++                       (((64 * sph) + ((*output_w - 1) * rsz) + 32) / 256) + 7;
++       } else {
++               input_w =
++                       (((32 * sph) + ((*output_w - 1) * rsz) + 16) / 256) + 7;
++       }
++
++       ispres_obj.outputwidth = *output_w;
++       ispres_obj.h_resz = rsz;
++       ispres_obj.inputwidth = input_w;
++       ispres_obj.ipwd_crop = DEFAULTSTPIXEL;
++       ispres_obj.h_startphase = sph;
++
++       *input_height = input_h;
++       *input_width = input_w;
 +       return 0;
-+
-+err:
-+       if (s =3D=3D vdev->slave[hwc.dev_type]) {
-+               vdev->slave[hwc.dev_type] =3D v4l2_int_device_dummy();
-+               vdev->slaves--;
-+       }
-+
-+       mutex_unlock(&vdev->mutex);
-+       omap34xxcam_device_unregister(s);
-+
-+       return rval;
 +}
++EXPORT_SYMBOL(ispresizer_try_size);
 +
-+static struct v4l2_int_master omap34xxcam_master =3D {
-+       .attach =3D omap34xxcam_device_register,
-+       .detach =3D omap34xxcam_device_unregister,
-+};
-+
-+/*
-+ *
-+ * Driver Suspend/Resume
-+ *
-+ */
-+
-+#ifdef CONFIG_PM
 +/**
-+ * omap34xxcam_suspend - platform driver PM suspend handler
-+ * @pdev: ptr. to platform level device information structure
-+ * @state: power state
++ * ispresizer_config_size - Configures input and output image size.
++ * @input_w: input width for the resizer in number of pixels per line.
++ * @input_h: input height for the resizer in number of lines.
++ * @output_w: output width from the resizer in number of pixels per line.
++ * @output_h: output height for the resizer in number of lines.
 + *
-+ * If applicable, stop capture and disable sensor.
++ * Configures the appropriate values stored in the isp_res structure in the
++ * resizer registers.
 + *
-+ * Returns 0 always
-+ */
-+static int omap34xxcam_suspend(struct platform_device *pdev, pm_message_=
-t state)
++ * Returns 0 if successful, or -EINVAL if passed values haven't been verified
++ * with ispresizer_try_size() previously.
++ **/
++int ispresizer_config_size(u32 input_w, u32 input_h, u32 output_w,
++                                                               u32 output_h)
 +{
-+       struct omap34xxcam_videodev *vdev =3D platform_get_drvdata(pdev);
-+
-+       if (atomic_read(&vdev->users) =3D=3D 0)
-+               return 0;
-+
-+       if (vdev->streaming) {
-+               isp_stop();
-+               omap34xxcam_slave_power_set(vdev, V4L2_POWER_OFF,
-+                                           OMAP34XXCAM_SLAVE_POWER_ALL);
++       int i, j;
++       u32 res;
++       DPRINTK_ISPRESZ("ispresizer_config_size()+, input_w = %d,input_h ="
++                                               " %d, output_w = %d, output_h"
++                                               " = %d,hresz = %d,vresz = %d,"
++                                               " hcrop = %d, vcrop = %d,"
++                                               " hstph = %d, vstph = %d\n",
++                                               ispres_obj.inputwidth,
++                                               ispres_obj.inputheight,
++                                               ispres_obj.outputwidth,
++                                               ispres_obj.outputheight,
++                                               ispres_obj.h_resz,
++                                               ispres_obj.v_resz,
++                                               ispres_obj.ipwd_crop,
++                                               ispres_obj.ipht_crop,
++                                               ispres_obj.h_startphase,
++                                               ispres_obj.v_startphase);
++       if ((output_w != ispres_obj.outputwidth)
++                               || (output_h != ispres_obj.outputheight)) {
++               printk(KERN_ERR "Output parameters passed do not match the"
++                                               " values calculated by the"
++                                               " trysize passed w %d, h %d"
++                                               " \n", output_w , output_h);
++               return -EINVAL;
 +       }
 +
-+       return 0;
-+}
-+
-+/**
-+ * omap34xxcam_resume - platform driver PM resume handler
-+ * @pdev: ptr. to platform level device information structure
-+ *
-+ * If applicable, resume capture and enable sensor.
-+ *
-+ * Returns 0 always
-+ */
-+static int omap34xxcam_resume(struct platform_device *pdev)
-+{
-+       struct omap34xxcam_videodev *vdev =3D platform_get_drvdata(pdev);
-+
-+       if (atomic_read(&vdev->users) =3D=3D 0)
-+               return 0;
-+
-+       if (vdev->streaming) {
-+               omap34xxcam_slave_power_set(vdev, V4L2_POWER_ON,
-+                                           OMAP34XXCAM_SLAVE_POWER_ALL);
-+               isp_start();
++#if ISP_WORKAROUND
++       buff_addr_lsc_wa = isp_buf_get();
++       if (buff_addr_lsc_wa) {
++               /* Set Resizer input address and offset adderss */
++               ispresizer_set_inaddr(buff_addr_lsc_wa);
++               ispresizer_config_inlineoffset(isp_reg_readl(OMAP3_ISP_IOMEM_PREV, ISPPRV_WADD_OFFSET));
 +       }
-+
-+       return 0;
-+}
 +#endif
 +
-+/*
-+ *
-+ * Driver initialisation and deinitialisation.
-+ *
-+ */
++       res = isp_reg_readl(OMAP3_ISP_IOMEM_RESZ, ISPRSZ_CNT) & (~(ISPRSZ_CNT_HSTPH_MASK |
++                                                       ISPRSZ_CNT_VSTPH_MASK));
++       isp_reg_writel(res | (ispres_obj.h_startphase << ISPRSZ_CNT_HSTPH_SHIFT) |
++                                               (ispres_obj.v_startphase <<
++                                               ISPRSZ_CNT_VSTPH_SHIFT),
++                                               OMAP3_ISP_IOMEM_RESZ,
++                                               ISPRSZ_CNT);
++#if ISP_WORKAROUND
++       isp_reg_writel((0x00 << ISPRSZ_IN_START_HORZ_ST_SHIFT) |
++                                       (0x00 << ISPRSZ_IN_START_VERT_ST_SHIFT),
++                                       OMAP3_ISP_IOMEM_RESZ,
++                                       ISPRSZ_IN_START);
 +
-+/**
-+ * omap34xxcam_remove - platform driver remove handler
-+ * @pdev: ptr. to platform level device information structure
-+ *
-+ * Unregister device with V4L2, unmap camera registers, and
-+ * free camera device information structure (omap34xxcam_device).
-+ *
-+ * Returns 0 always.
-+ */
-+static int omap34xxcam_remove(struct platform_device *pdev)
-+{
-+       struct omap34xxcam_device *cam =3D platform_get_drvdata(pdev);
-+       int i;
-+
-+       if (!cam)
-+               return 0;
-+
-+       for (i =3D 0; i < OMAP34XXCAM_VIDEODEVS; i++) {
-+               if (cam->vdevs[i].cam =3D=3D NULL)
-+                       continue;
-+
-+               v4l2_int_device_unregister(&cam->vdevs[i].master);
-+               cam->vdevs[i].cam =3D NULL;
-+       }
-+
-+       omap34xxcam =3D NULL;
-+
-+       kfree(cam);
-+
-+       return 0;
-+}
-+
-+/**
-+ * omap34xxcam_probe - platform driver probe handler
-+ * @pdev: ptr. to platform level device information structure
-+ *
-+ * Allocates and initializes camera device information structure
-+ * (omap34xxcam_device), maps the device registers and gets the
-+ * device IRQ.  Registers the device as a V4L2 client.
-+ *
-+ * Returns 0 on success or -ENODEV on failure.
-+ */
-+static int omap34xxcam_probe(struct platform_device *pdev)
-+{
-+       struct omap34xxcam_device *cam;
-+       struct isp_sysc isp_sysconfig;
-+       int i;
-+
-+       cam =3D kzalloc(sizeof(*cam), GFP_KERNEL);
-+       if (!cam) {
-+               dev_err(&pdev->dev, "could not allocate memory\n");
-+               goto err;
-+       }
-+
-+       platform_set_drvdata(pdev, cam);
-+
-+       cam->dev =3D &pdev->dev;
-+
-+       isp_get();
-+       isp_sysconfig.reset =3D 0;
-+       isp_sysconfig.idle_mode =3D 1;
-+       isp_power_settings(isp_sysconfig);
-+       isp_put();
-+
-+       omap34xxcam =3D cam;
-+
-+       for (i =3D 0; i < OMAP34XXCAM_VIDEODEVS; i++) {
-+               struct omap34xxcam_videodev *vdev =3D &cam->vdevs[i];
-+               struct v4l2_int_device *m =3D &vdev->master;
-+
-+               m->module       =3D THIS_MODULE;
-+               strlcpy(m->name, CAM_NAME, sizeof(m->name));
-+               m->type         =3D v4l2_int_type_master;
-+               m->u.master     =3D &omap34xxcam_master;
-+               m->priv         =3D vdev;
-+
-+               mutex_init(&vdev->mutex);
-+               vdev->index             =3D i;
-+               vdev->cam               =3D cam;
-+               vdev->vdev_sensor =3D
-+                       vdev->vdev_lens =3D
-+                       vdev->vdev_flash =3D v4l2_int_device_dummy();
-+               setup_timer(&vdev->poweroff_timer,
-+                           omap34xxcam_slave_power_timer, (unsigned long=
-)vdev);
-+               INIT_WORK(&vdev->poweroff_work, omap34xxcam_slave_power_w=
-ork);
-+
-+               if (v4l2_int_device_register(m))
-+                       goto err;
-+       }
-+
-+       return 0;
-+
-+err:
-+       omap34xxcam_remove(pdev);
-+       return -ENODEV;
-+}
-+
-+static struct platform_driver omap34xxcam_driver =3D {
-+       .probe =3D omap34xxcam_probe,
-+       .remove =3D omap34xxcam_remove,
-+#ifdef CONFIG_PM
-+       .suspend =3D omap34xxcam_suspend,
-+       .resume =3D omap34xxcam_resume,
++#else
++       isp_reg_writel(((ispres_obj.ipwd_crop * 2) <<
++                                               ISPRSZ_IN_START_HORZ_ST_SHIFT) |
++                                               (ispres_obj.ipht_crop <<
++                                               ISPRSZ_IN_START_VERT_ST_SHIFT),
++                                               OMAP3_ISP_IOMEM_RESZ,
++                                               ISPRSZ_IN_START);
 +#endif
-+       .driver =3D {
-+                  .name =3D CAM_NAME,
-+                  },
-+};
 +
-+/*
-+ *
-+ * Module initialisation and deinitialisation
-+ *
-+ */
++       isp_reg_writel((ispres_obj.inputwidth << ISPRSZ_IN_SIZE_HORZ_SHIFT) |
++                                               (ispres_obj.inputheight <<
++                                               ISPRSZ_IN_SIZE_VERT_SHIFT),
++                                               OMAP3_ISP_IOMEM_RESZ,
++                                               ISPRSZ_IN_SIZE);
++       if (!ispres_obj.algo) {
++               isp_reg_writel((output_w << ISPRSZ_OUT_SIZE_HORZ_SHIFT) |
++                                               (output_h <<
++                                               ISPRSZ_OUT_SIZE_VERT_SHIFT),
++                                               OMAP3_ISP_IOMEM_RESZ,
++                                               ISPRSZ_OUT_SIZE);
++       } else {
++               isp_reg_writel(((output_w - 4) << ISPRSZ_OUT_SIZE_HORZ_SHIFT) |
++                                               (output_h <<
++                                               ISPRSZ_OUT_SIZE_VERT_SHIFT),
++                                               OMAP3_ISP_IOMEM_RESZ,
++                                               ISPRSZ_OUT_SIZE);
++       }
++
++       res = isp_reg_readl(OMAP3_ISP_IOMEM_RESZ, ISPRSZ_CNT) & (~(ISPRSZ_CNT_HRSZ_MASK |
++                                               ISPRSZ_CNT_VRSZ_MASK));
++       isp_reg_writel(res | ((ispres_obj.h_resz - 1) << ISPRSZ_CNT_HRSZ_SHIFT) |
++                                               ((ispres_obj.v_resz - 1) <<
++                                               ISPRSZ_CNT_VRSZ_SHIFT),
++                                               OMAP3_ISP_IOMEM_RESZ,
++                                               ISPRSZ_CNT);
++       if (ispres_obj.h_resz <= MID_RESIZE_VALUE) {
++               j = 0;
++               for (i = 0; i < 16; i++) {
++                       isp_reg_writel((ispres_obj.coeflist.
++                                               h_filter_coef_4tap[j] <<
++                                               ISPRSZ_HFILT10_COEF0_SHIFT) |
++                                               (ispres_obj.coeflist.
++                                               h_filter_coef_4tap[j + 1] <<
++                                               ISPRSZ_HFILT10_COEF1_SHIFT),
++                                               OMAP3_ISP_IOMEM_RESZ,
++                                               ISPRSZ_HFILT10 + (i * 0x04));
++                       j += 2;
++               }
++       } else {
++               j = 0;
++               for (i = 0; i < 16; i++) {
++                       if ((i + 1) % 4 == 0) {
++                               isp_reg_writel((ispres_obj.coeflist.
++                                               h_filter_coef_7tap[j] <<
++                                               ISPRSZ_HFILT10_COEF0_SHIFT),
++                                               OMAP3_ISP_IOMEM_RESZ,
++                                               ISPRSZ_HFILT10 + (i * 0x04));
++                               j += 1;
++                       } else {
++                               isp_reg_writel((ispres_obj.coeflist.
++                                               h_filter_coef_7tap[j] <<
++                                               ISPRSZ_HFILT10_COEF0_SHIFT) |
++                                               (ispres_obj.coeflist.
++                                               h_filter_coef_7tap[j+1] <<
++                                               ISPRSZ_HFILT10_COEF1_SHIFT),
++                                               OMAP3_ISP_IOMEM_RESZ,
++                                               ISPRSZ_HFILT10 + (i * 0x04));
++                               j += 2;
++                       }
++               }
++       }
++       if (ispres_obj.v_resz <= MID_RESIZE_VALUE) {
++               j = 0;
++               for (i = 0; i < 16; i++) {
++                       isp_reg_writel((ispres_obj.coeflist.
++                                               v_filter_coef_4tap[j] <<
++                                               ISPRSZ_VFILT10_COEF0_SHIFT) |
++                                               (ispres_obj.coeflist.
++                                               v_filter_coef_4tap[j + 1] <<
++                                               ISPRSZ_VFILT10_COEF1_SHIFT),
++                                               OMAP3_ISP_IOMEM_RESZ,
++                                               ISPRSZ_VFILT10 + (i * 0x04));
++                       j += 2;
++               }
++       } else {
++               j = 0;
++               for (i = 0; i < 16; i++) {
++                       if ((i + 1) % 4 == 0) {
++                               isp_reg_writel((ispres_obj.coeflist.
++                                               v_filter_coef_7tap[j] <<
++                                               ISPRSZ_VFILT10_COEF0_SHIFT),
++                                               OMAP3_ISP_IOMEM_RESZ,
++                                               ISPRSZ_VFILT10 + (i * 0x04));
++                               j += 1;
++                       } else {
++                               isp_reg_writel((ispres_obj.coeflist.
++                                               v_filter_coef_7tap[j] <<
++                                               ISPRSZ_VFILT10_COEF0_SHIFT) |
++                                               (ispres_obj.coeflist.
++                                               v_filter_coef_7tap[j+1] <<
++                                               ISPRSZ_VFILT10_COEF1_SHIFT),
++                                               OMAP3_ISP_IOMEM_RESZ,
++                                               ISPRSZ_VFILT10 + (i * 0x04));
++                               j += 2;
++                       }
++               }
++       }
++
++       ispresizer_config_outlineoffset(output_w*2);
++       DPRINTK_ISPRESZ("ispresizer_config_size()-\n");
++       return 0;
++}
++EXPORT_SYMBOL(ispresizer_config_size);
 +
 +/**
-+ * omap34xxcam_init - module_init function
++ * ispresizer_enable - Enables the resizer module.
++ * @enable: 1 - Enable, 0 - Disable
 + *
-+ * Calls platfrom driver to register probe, remove,
-+ * suspend and resume functions.
-+ *
-+ */
-+static int __init omap34xxcam_init(void)
++ * Client should configure all the sub modules in resizer before this.
++ **/
++void ispresizer_enable(u8 enable)
 +{
-+       return platform_driver_register(&omap34xxcam_driver);
++       int val;
++       DPRINTK_ISPRESZ("+ispresizer_enable()+\n");
++       if (enable)
++               val = (((isp_reg_readl(OMAP3_ISP_IOMEM_RESZ, ISPRSZ_PCR)) & 0x2) | ISPRSZ_PCR_ENABLE);
++       else
++               val = (isp_reg_readl(OMAP3_ISP_IOMEM_RESZ, ISPRSZ_PCR) & ~ISPRSZ_PCR_ENABLE);
++       isp_reg_writel(val, OMAP3_ISP_IOMEM_RESZ, ISPRSZ_PCR);
++       DPRINTK_ISPRESZ("+ispresizer_enable()-\n");
++}
++EXPORT_SYMBOL(ispresizer_enable);
++
++/**
++ * ispresizer_busy - Checks if ISP resizer is busy.
++ *
++ * Returns busy field from ISPRSZ_PCR register.
++ **/
++int ispresizer_busy(void)
++{
++       return isp_reg_readl(OMAP3_ISP_IOMEM_RESZ, ISPRSZ_PCR) & ISPPRV_PCR_BUSY;
++}
++EXPORT_SYMBOL(ispresizer_busy);
++
++/**
++ * ispresizer_config_startphase - Sets the horizontal and vertical start phase.
++ * @hstartphase: horizontal start phase (0 - 7).
++ * @vstartphase: vertical startphase (0 - 7).
++ *
++ * This API just updates the isp_res struct. Actual register write happens in
++ * ispresizer_config_size.
++ **/
++void ispresizer_config_startphase(u8 hstartphase, u8 vstartphase)
++{
++       DPRINTK_ISPRESZ("ispresizer_config_startphase()+\n");
++       ispres_obj.h_startphase = hstartphase;
++       ispres_obj.v_startphase = vstartphase;
++       DPRINTK_ISPRESZ("ispresizer_config_startphase()-\n");
++}
++EXPORT_SYMBOL(ispresizer_config_startphase);
++
++/**
++ * ispresizer_config_ycpos - Specifies if output should be in YC or CY format.
++ * @yc: 0 - YC format, 1 - CY format
++ **/
++void ispresizer_config_ycpos(u8 yc)
++{
++       DPRINTK_ISPRESZ("ispresizer_config_ycpos()+\n");
++       if (yc) {
++               isp_reg_writel((isp_reg_readl(OMAP3_ISP_IOMEM_RESZ, ISPRSZ_CNT)) |
++                                       (ISPRSZ_CNT_YCPOS), OMAP3_ISP_IOMEM_RESZ, ISPRSZ_CNT);
++       } else {
++               isp_reg_writel((isp_reg_readl(OMAP3_ISP_IOMEM_RESZ, ISPRSZ_CNT)) &
++                                       (~ISPRSZ_CNT_YCPOS), OMAP3_ISP_IOMEM_RESZ, ISPRSZ_CNT);
++       }
++       DPRINTK_ISPRESZ("ispresizer_config_ycpos()-\n");
++}
++EXPORT_SYMBOL(ispresizer_config_ycpos);
++
++/**
++ * Sets the chrominance algorithm
++ * @cbilin: 0 - chrominance uses same processing as luminance,
++ *          1 - bilinear interpolation processing
++ **/
++void ispresizer_enable_cbilin(u8 enable)
++{
++       DPRINTK_ISPRESZ("ispresizer_enable_cbilin()+\n");
++       if (enable) {
++               isp_reg_writel(isp_reg_readl(OMAP3_ISP_IOMEM_RESZ, ISPRSZ_CNT) | ISPRSZ_CNT_CBILIN,
++                                       OMAP3_ISP_IOMEM_RESZ, ISPRSZ_CNT);
++       } else {
++               isp_reg_writel(isp_reg_readl(OMAP3_ISP_IOMEM_RESZ, ISPRSZ_CNT) & ~ISPRSZ_CNT_CBILIN,
++                                       OMAP3_ISP_IOMEM_RESZ, ISPRSZ_CNT);
++       }
++       DPRINTK_ISPRESZ("ispresizer_enable_cbilin()-\n");
++}
++EXPORT_SYMBOL(ispresizer_enable_cbilin);
++
++/**
++ * ispresizer_config_luma_enhance - Configures luminance enhancer parameters.
++ * @yenh: Pointer to structure containing desired values for core, slope, gain
++ *        and algo parameters.
++ **/
++void ispresizer_config_luma_enhance(struct isprsz_yenh *yenh)
++{
++       DPRINTK_ISPRESZ("ispresizer_config_luma_enhance()+\n");
++       ispres_obj.algo = yenh->algo;
++       isp_reg_writel((yenh->algo << ISPRSZ_YENH_ALGO_SHIFT) |
++                               (yenh->gain << ISPRSZ_YENH_GAIN_SHIFT) |
++                               (yenh->slope << ISPRSZ_YENH_SLOP_SHIFT) |
++                               (yenh->coreoffset << ISPRSZ_YENH_CORE_SHIFT),
++                               OMAP3_ISP_IOMEM_RESZ,
++                               ISPRSZ_YENH);
++       DPRINTK_ISPRESZ("ispresizer_config_luma_enhance()-\n");
++}
++EXPORT_SYMBOL(ispresizer_config_luma_enhance);
++
++/**
++ * ispresizer_config_filter_coef - Sets filter coefficients for 4 & 7-tap mode.
++ * This API just updates the isp_res struct.Actual register write happens in
++ * ispresizer_config_size.
++ * @coef: Structure containing horizontal and vertical filter coefficients for
++ *        both 4-tap and 7-tap mode.
++ **/
++void ispresizer_config_filter_coef(struct isprsz_coef *coef)
++{
++       int i;
++       DPRINTK_ISPRESZ("ispresizer_config_filter_coef()+\n");
++       for (i = 0; i < 32; i++) {
++               ispres_obj.coeflist.h_filter_coef_4tap[i] =
++                                               coef->h_filter_coef_4tap[i];
++               ispres_obj.coeflist.v_filter_coef_4tap[i] =
++                                               coef->v_filter_coef_4tap[i];
++       }
++       for (i = 0; i < 28; i++) {
++               ispres_obj.coeflist.h_filter_coef_7tap[i] =
++                                               coef->h_filter_coef_7tap[i];
++               ispres_obj.coeflist.v_filter_coef_7tap[i] =
++                                               coef->v_filter_coef_7tap[i];
++       }
++       DPRINTK_ISPRESZ("ispresizer_config_filter_coef()-\n");
++}
++EXPORT_SYMBOL(ispresizer_config_filter_coef);
++
++/**
++ * ispresizer_config_inlineoffset - Configures the read address line offset.
++ * @offset: Line Offset for the input image.
++ *
++ * Returns 0 if successful, or -EINVAL if offset is not 32 bits aligned.
++ **/
++int ispresizer_config_inlineoffset(u32 offset)
++{
++       DPRINTK_ISPRESZ("ispresizer_config_inlineoffset()+\n");
++       if (offset % 32)
++               return -EINVAL;
++       isp_reg_writel(offset << ISPRSZ_SDR_INOFF_OFFSET_SHIFT,
++                               OMAP3_ISP_IOMEM_RESZ, ISPRSZ_SDR_INOFF);
++       DPRINTK_ISPRESZ("ispresizer_config_inlineoffset()-\n");
++       return 0;
++}
++EXPORT_SYMBOL(ispresizer_config_inlineoffset);
++
++/**
++ * ispresizer_set_inaddr - Sets the memory address of the input frame.
++ * @addr: 32bit memory address aligned on 32byte boundary.
++ *
++ * Returns 0 if successful, or -EINVAL if address is not 32 bits aligned.
++ **/
++int ispresizer_set_inaddr(u32 addr)
++{
++       DPRINTK_ISPRESZ("ispresizer_set_inaddr()+\n");
++       if (addr % 32)
++               return -EINVAL;
++       isp_reg_writel(addr << ISPRSZ_SDR_INADD_ADDR_SHIFT,
++                               OMAP3_ISP_IOMEM_RESZ, ISPRSZ_SDR_INADD);
++       DPRINTK_ISPRESZ("ispresizer_set_inaddr()-\n");
++       return 0;
++}
++EXPORT_SYMBOL(ispresizer_set_inaddr);
++
++/**
++ * ispresizer_config_outlineoffset - Configures the write address line offset.
++ * @offset: Line offset for the preview output.
++ *
++ * Returns 0 if successful, or -EINVAL if address is not 32 bits aligned.
++ **/
++int ispresizer_config_outlineoffset(u32 offset)
++{
++       DPRINTK_ISPRESZ("ispresizer_config_outlineoffset()+\n");
++       if (offset % 32)
++               return -EINVAL;
++       isp_reg_writel(offset << ISPRSZ_SDR_OUTOFF_OFFSET_SHIFT,
++                               OMAP3_ISP_IOMEM_RESZ, ISPRSZ_SDR_OUTOFF);
++       DPRINTK_ISPRESZ("ispresizer_config_outlineoffset()-\n");
++       return 0;
++}
++EXPORT_SYMBOL(ispresizer_config_outlineoffset);
++
++/**
++ * Configures the memory address to which the output frame is written.
++ * @addr: 32bit memory address aligned on 32byte boundary.
++ **/
++int ispresizer_set_outaddr(u32 addr)
++{
++       DPRINTK_ISPRESZ("ispresizer_set_outaddr()+\n");
++       if (addr % 32)
++               return -EINVAL;
++       isp_reg_writel(addr << ISPRSZ_SDR_OUTADD_ADDR_SHIFT,
++                               OMAP3_ISP_IOMEM_RESZ, ISPRSZ_SDR_OUTADD);
++       DPRINTK_ISPRESZ("ispresizer_set_outaddr()-\n");
++       return 0;
++}
++EXPORT_SYMBOL(ispresizer_set_outaddr);
++
++/**
++ * ispresizer_save_context - Saves the values of the resizer module registers.
++ **/
++void ispresizer_save_context(void)
++{
++       DPRINTK_ISPRESZ("Saving context\n");
++       isp_save_context(isprsz_reg_list);
++}
++EXPORT_SYMBOL(ispresizer_save_context);
++
++/**
++ * ispresizer_restore_context - Restores resizer module register values.
++ **/
++void ispresizer_restore_context(void)
++{
++       DPRINTK_ISPRESZ("Restoring context\n");
++       isp_restore_context(isprsz_reg_list);
++}
++EXPORT_SYMBOL(ispresizer_restore_context);
++
++/**
++ * ispresizer_print_status - Prints the values of the resizer module registers.
++ **/
++void ispresizer_print_status()
++{
++       if (!is_ispresz_debug_enabled())
++               return;
++       DPRINTK_ISPRESZ("###ISP_CTRL inresizer =0x%x\n", isp_reg_readl(OMAP3_ISP_IOMEM_MAIN, ISP_CTRL));
++
++       DPRINTK_ISPRESZ("###ISP_IRQ0ENABLE in resizer =0x%x\n",
++                                               isp_reg_readl(OMAP3_ISP_IOMEM_MAIN, ISP_IRQ0ENABLE));
++       DPRINTK_ISPRESZ("###ISP_IRQ0STATUS in resizer =0x%x\n",
++                                               isp_reg_readl(OMAP3_ISP_IOMEM_MAIN, ISP_IRQ0STATUS));
++       DPRINTK_ISPRESZ("###RSZ PCR =0x%x\n", isp_reg_readl(OMAP3_ISP_IOMEM_RESZ, ISPRSZ_PCR));
++       DPRINTK_ISPRESZ("###RSZ CNT =0x%x\n", isp_reg_readl(OMAP3_ISP_IOMEM_RESZ, ISPRSZ_CNT));
++       DPRINTK_ISPRESZ("###RSZ OUT SIZE =0x%x\n",
++                                               isp_reg_readl(OMAP3_ISP_IOMEM_RESZ, ISPRSZ_OUT_SIZE));
++       DPRINTK_ISPRESZ("###RSZ IN START =0x%x\n",
++                                               isp_reg_readl(OMAP3_ISP_IOMEM_RESZ, ISPRSZ_IN_START));
++       DPRINTK_ISPRESZ("###RSZ IN SIZE =0x%x\n", isp_reg_readl(OMAP3_ISP_IOMEM_RESZ, ISPRSZ_IN_SIZE));
++       DPRINTK_ISPRESZ("###RSZ SDR INADD =0x%x\n",
++                                               isp_reg_readl(OMAP3_ISP_IOMEM_RESZ, ISPRSZ_SDR_INADD));
++       DPRINTK_ISPRESZ("###RSZ SDR INOFF =0x%x\n",
++                                               isp_reg_readl(OMAP3_ISP_IOMEM_RESZ, ISPRSZ_SDR_INOFF));
++       DPRINTK_ISPRESZ("###RSZ SDR OUTADD =0x%x\n",
++                                               isp_reg_readl(OMAP3_ISP_IOMEM_RESZ, ISPRSZ_SDR_OUTADD));
++       DPRINTK_ISPRESZ("###RSZ SDR OTOFF =0x%x\n",
++                                               isp_reg_readl(OMAP3_ISP_IOMEM_RESZ, ISPRSZ_SDR_OUTOFF));
++       DPRINTK_ISPRESZ("###RSZ YENH =0x%x\n", isp_reg_readl(OMAP3_ISP_IOMEM_RESZ, ISPRSZ_YENH));
++}
++EXPORT_SYMBOL(ispresizer_print_status);
++
++/**
++ * isp_resizer_init - Module Initialisation.
++ *
++ * Always returns 0.
++ **/
++int __init isp_resizer_init(void)
++{
++       mutex_init(&ispres_obj.ispres_mutex);
++       return 0;
 +}
 +
 +/**
-+ * omap34xxcam_cleanup - module_exit function
-+ *
-+ * Calls platfrom driver to unregister probe, remove,
-+ * suspend and resume functions.
-+ *
-+ */
-+static void __exit omap34xxcam_cleanup(void)
++ * isp_resizer_cleanup - Module Cleanup.
++ **/
++void __exit isp_resizer_cleanup(void)
 +{
-+       platform_driver_unregister(&omap34xxcam_driver);
 +}
-+
-+MODULE_AUTHOR("Sakari Ailus <sakari.ailus@nokia.com");
-+MODULE_DESCRIPTION("OMAP34xx Video for Linux camera driver");
-+MODULE_LICENSE("GPL");
-+
-+late_initcall(omap34xxcam_init);
-+module_exit(omap34xxcam_cleanup);
-diff --git a/drivers/media/video/omap34xxcam.h b/drivers/media/video/omap=
-34xxcam.h
+diff --git a/drivers/media/video/isp/ispresizer.h b/drivers/media/video/isp/ispresizer.h
 new file mode 100644
-index 0000000..cc024eb
+index 0000000..cd447ea
 --- /dev/null
-+++ b/drivers/media/video/omap34xxcam.h
-@@ -0,0 +1,215 @@
++++ b/drivers/media/video/isp/ispresizer.h
+@@ -0,0 +1,153 @@
 +/*
-+ * drivers/media/video/omap34xxcam.c
++ * drivers/media/video/isp/ispresizer.h
 + *
-+ * Copyright (C) 2006--2008 Nokia Corporation
-+ * Copyright (C) 2007, 2008 Texas Instruments
++ * Driver header file for Resizer module in TI's OMAP3 Camera ISP
 + *
-+ * Contact: Sakari Ailus <sakari.ailus@nokia.com>
-+ *          Tuukka Toivonen <tuukka.o.toivonen@nokia.com>
++ * Copyright (C) 2008 Texas Instruments, Inc.
 + *
-+ * Originally based on the OMAP 2 camera driver.
++ * Contributors:
++ *     Sameer Venkatraman <sameerv@ti.com>
++ *     Mohit Jalori
 + *
-+ * Written by Sakari Ailus <sakari.ailus@nokia.com>
-+ *            Tuukka Toivonen <tuukka.o.toivonen@nokia.com>
-+ *            Sergio Aguirre <saaguirre@ti.com>
-+ *            Mohit Jalori
-+ *            Sameer Venkatraman
-+ *            Leonides Martinez
++ * This package is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
 + *
-+ * This program is free software; you can redistribute it and/or
-+ * modify it under the terms of the GNU General Public License
-+ * version 2 as published by the Free Software Foundation.
-+ *
-+ * This program is distributed in the hope that it will be useful, but
-+ * WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-+ * General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program; if not, write to the Free Software
-+ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
-+ * 02110-1301 USA
-+ *
++ * THIS PACKAGE IS PROVIDED ``AS IS'' AND WITHOUT ANY EXPRESS OR
++ * IMPLIED WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED
++ * WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 + */
 +
-+#ifndef OMAP34XXCAM_H
-+#define OMAP34XXCAM_H
++#ifndef OMAP_ISP_RESIZER_H
++#define OMAP_ISP_RESIZER_H
 +
-+#include <media/v4l2-int-device.h>
-+#include "isp/isp.h"
++/*
++ * Resizer Constants
++ */
++#define MAX_IN_WIDTH_MEMORY_MODE       4095
 +
-+#define CAM_NAME                       "omap34xxcam"
-+#define CAM_SHORT_NAME                 "omap3"
++#define MAX_IN_WIDTH_ONTHEFLY_MODE     1280
++#define MAX_IN_WIDTH_ONTHEFLY_MODE_ES2 4095
++#define MAX_IN_HEIGHT                  4095
++#define MINIMUM_RESIZE_VALUE           64
++#define MAXIMUM_RESIZE_VALUE           1024
++#define MID_RESIZE_VALUE               512
 +
-+#define OMAP_ISP_AF            (1 << 4)
-+#define OMAP_ISP_HIST          (1 << 5)
-+#define OMAP34XXCAM_XCLK_NONE  -1
-+#define OMAP34XXCAM_XCLK_A     0
-+#define OMAP34XXCAM_XCLK_B     1
++#define MAX_7TAP_HRSZ_OUTWIDTH         1280
++#define MAX_7TAP_VRSZ_OUTWIDTH         640
 +
-+#define OMAP34XXCAM_SLAVE_SENSOR       0
-+#define OMAP34XXCAM_SLAVE_LENS         1
-+#define OMAP34XXCAM_SLAVE_FLASH                2 /* This is the last sla=
-ve! */
++#define MAX_7TAP_HRSZ_OUTWIDTH_ES2     3300
++#define MAX_7TAP_VRSZ_OUTWIDTH_ES2     1650
 +
-+/* mask for omap34xxcam_slave_power_set */
-+#define OMAP34XXCAM_SLAVE_POWER_SENSOR (1 << OMAP34XXCAM_SLAVE_SENSOR)
-+#define OMAP34XXCAM_SLAVE_POWER_LENS   (1 << OMAP34XXCAM_SLAVE_LENS)
-+#define OMAP34XXCAM_SLAVE_POWER_SENSOR_LENS \
-+       (OMAP34XXCAM_SLAVE_POWER_SENSOR | OMAP34XXCAM_SLAVE_POWER_LENS)
-+#define OMAP34XXCAM_SLAVE_POWER_FLASH  (1 << OMAP34XXCAM_SLAVE_FLASH)
-+#define OMAP34XXCAM_SLAVE_POWER_ALL    -1
++#define DEFAULTSTPIXEL                 0
++#define DEFAULTSTPHASE                 1
++#define DEFAULTHSTPIXEL4TAPMODE                3
++#define FOURPHASE                      4
++#define EIGHTPHASE                     8
++#define RESIZECONSTANT                 256
++#define SHIFTER4TAPMODE                        0
++#define SHIFTER7TAPMODE                        1
++#define DEFAULTOFFSET                  7
++#define OFFSETVERT4TAPMODE             4
++#define OPWDALIGNCONSTANT              0xFFFFFFF0
 +
-+#define OMAP34XXCAM_VIDEODEVS          4
++/*
++ * The client is supposed to call resizer API in the following sequence:
++ *     - request()
++ *     - config_datatpath()
++ *     - optionally config/enable sub modules
++ *     - try/config size
++ *     - setup callback
++ *     - setup in/out memory offsets and ptrs
++ *     - enable()
++ *     ...
++ *     - disable()
++ *     - free()
++ */
 +
-+struct omap34xxcam_device;
-+struct omap34xxcam_videodev;
-+
-+struct omap34xxcam_sensor_config {
-+       int xclk;
-+       int sensor_isp;
-+       u32 capture_mem;
-+};
-+
-+struct omap34xxcam_lens_config {
-+};
-+
-+struct omap34xxcam_flash_config {
++enum ispresizer_input {
++       RSZ_OTFLY_YUV,
++       RSZ_MEM_YUV,
++       RSZ_MEM_COL8
 +};
 +
 +/**
-+ * struct omap34xxcam_hw_config - struct for vidioc_int_g_priv ioctl
-+ * @xclk: OMAP34XXCAM_XCLK_A or OMAP34XXCAM_XCLK_B
-+ * @sensor_isp: Is sensor smart/SOC or raw
-+ * @s_pix_sparm: Access function to set pix and sparm.
-+ * Pix will override sparm
++ * struct isprsz_coef - Structure for resizer filter coeffcients.
++ * @h_filter_coef_4tap: Horizontal filter coefficients for 8-phase/4-tap
++ *                     mode (.5x-4x)
++ * @v_filter_coef_4tap: Vertical filter coefficients for 8-phase/4-tap
++ *                     mode (.5x-4x)
++ * @h_filter_coef_7tap: Horizontal filter coefficients for 4-phase/7-tap
++ *                     mode (.25x-.5x)
++ * @v_filter_coef_7tap: Vertical filter coefficients for 4-phase/7-tap
++ *                     mode (.25x-.5x)
 + */
-+struct omap34xxcam_hw_config {
-+       int dev_index; /* Index in omap34xxcam_sensors */
-+       int dev_minor; /* Video device minor number */
-+       int dev_type; /* OMAP34XXCAM_SLAVE_* */
-+       union {
-+               struct omap34xxcam_sensor_config sensor;
-+               struct omap34xxcam_lens_config lens;
-+               struct omap34xxcam_flash_config flash;
-+       } u;
++struct isprsz_coef {
++       u16 h_filter_coef_4tap[32];
++       u16 v_filter_coef_4tap[32];
++       u16 h_filter_coef_7tap[28];
++       u16 v_filter_coef_7tap[28];
 +};
 +
 +/**
-+ * struct omap34xxcam_videodev - per /dev/video* structure
-+ * @mutex: serialises access to this structure
-+ * @cam: pointer to cam hw structure
-+ * @master: we are v4l2_int_device master
-+ * @sensor: sensor device
-+ * @lens: lens device
-+ * @flash: flash device
-+ * @slaves: how many slaves we have at the moment
-+ * @vfd: our video device
-+ * @capture_mem: maximum kernel-allocated capture memory
-+ * @if_u: sensor interface stuff
-+ * @index: index of this structure in cam->vdevs
-+ * @users: how many users we have
-+ * @power_state: Current power state
-+ * @power_state_wish: New power state when poweroff_timer expires
-+ * @power_state_mask: Bitmask of devices to set the new power state
-+ * @poweroff_timer: Timer for dispatching poweroff_work
-+ * @poweroff_work: Work for slave power state change
-+ * @sensor_config: ISP-speicific sensor configuration
-+ * @lens_config: ISP-speicific lens configuration
-+ * @flash_config: ISP-speicific flash configuration
-+ * @streaming: streaming file handle, if streaming is enabled
++ * struct isprsz_yenh - Structure for resizer luminance enhancer parameters.
++ * @algo: Algorithm select.
++ * @gain: Maximum gain.
++ * @slope: Slope.
++ * @coreoffset: Coring offset.
 + */
-+struct omap34xxcam_videodev {
-+       struct mutex mutex; /* serialises access to this structure */
-+
-+       struct omap34xxcam_device *cam;
-+       struct v4l2_int_device master;
-+
-+#define vdev_sensor slave[OMAP34XXCAM_SLAVE_SENSOR]
-+#define vdev_lens slave[OMAP34XXCAM_SLAVE_LENS]
-+#define vdev_flash slave[OMAP34XXCAM_SLAVE_FLASH]
-+       struct v4l2_int_device *slave[OMAP34XXCAM_SLAVE_FLASH + 1];
-+
-+       /* number of slaves attached */
-+       int slaves;
-+
-+       /*** video device parameters ***/
-+       struct video_device *vfd;
-+       int capture_mem;
-+
-+       /*** general driver state information ***/
-+       /*
-+        * Sensor interface parameters: interface type, CC_CTRL
-+        * register value and interface specific data.
-+        */
-+       u32 xclk;
-+       /* index to omap34xxcam_videodevs of this structure */
-+       int index;
-+       atomic_t users;
-+       enum v4l2_power power_state[OMAP34XXCAM_SLAVE_FLASH + 1];
-+       enum v4l2_power power_state_wish;
-+       int power_state_mask;
-+       struct timer_list poweroff_timer;
-+       struct work_struct poweroff_work;
-+
-+#define vdev_sensor_config slave_config[OMAP34XXCAM_SLAVE_SENSOR].u.sens=
-or
-+#define vdev_lens_config slave_config[OMAP34XXCAM_SLAVE_LENS].u.lens
-+#define vdev_flash_config slave_config[OMAP34XXCAM_SLAVE_FLASH].u.flash
-+       struct omap34xxcam_hw_config slave_config[OMAP34XXCAM_SLAVE_FLASH=
- + 1];
-+
-+       /*** capture data ***/
-+       struct v4l2_fract want_timeperframe;
-+       struct v4l2_pix_format want_pix;
-+       /* file handle, if streaming is on */
-+       struct file *streaming;
++struct isprsz_yenh {
++       u8 algo;
++       u8 gain;
++       u8 slope;
++       u8 coreoffset;
 +};
 +
-+/**
-+ * struct omap34xxcam_device - per-device data structure
-+ * @mutex: mutex serialises access to this structure
-+ * @sgdma_in_queue: Number or sgdma requests in scatter-gather queue,
-+ * protected by the lock above.
-+ * @sgdma: ISP sgdma subsystem information structure
-+ * @dma_notify: DMA notify flag
-+ * @irq: irq number platform HW resource
-+ * @mmio_base: register map memory base (platform HW resource)
-+ * @mmio_base_phys: register map memory base physical address
-+ * @mmio_size: register map memory size
-+ * @dev: device structure
-+ * @vdevs: /dev/video specific structures
-+ * @fck: camera module fck clock information
-+ * @ick: camera module ick clock information
-+ */
-+struct omap34xxcam_device {
-+       struct mutex mutex; /* serialises access to this structure */
-+       int sgdma_in_queue;
-+       struct isp_sgdma sgdma;
-+       int dma_notify;
++void ispresizer_config_shadow_registers(void);
 +
-+       /*** interfaces and device ***/
-+       struct device *dev;
-+       struct omap34xxcam_videodev vdevs[OMAP34XXCAM_VIDEODEVS];
++int ispresizer_request(void);
 +
-+       /*** camera module clocks ***/
-+       struct clk *fck;
-+       struct clk *ick;
-+       bool sensor_if_enabled;
-+};
++int ispresizer_free(void);
 +
-+/**
-+ * struct omap34xxcam_fh - per-filehandle data structure
-+ * @vbq_lock: spinlock for the videobuf queue
-+ * @vbq: V4L2 video buffer queue structure
-+ * @pix: V4L2 pixel format structure (serialise pix by vbq->lock)
-+ * @field_count: field counter for videobuf_buffer
-+ * @vdev: our /dev/video specific structure
-+ */
-+struct omap34xxcam_fh {
-+       spinlock_t vbq_lock; /* spinlock for the videobuf queue */
-+       struct videobuf_queue vbq;
-+       struct v4l2_pix_format pix;
-+       atomic_t field_count;
-+       /* accessing cam here doesn't need serialisation: it's constant *=
-/
-+       struct omap34xxcam_videodev *vdev;
-+};
++int ispresizer_config_datapath(enum ispresizer_input input);
 +
-+#endif /* ifndef OMAP34XXCAM_H */
++void ispresizer_enable_cbilin(u8 enable);
++
++void ispresizer_config_ycpos(u8 yc);
++
++void ispresizer_config_startphase(u8 hstartphase, u8 vstartphase);
++
++void ispresizer_config_filter_coef(struct isprsz_coef *coef);
++
++void ispresizer_config_luma_enhance(struct isprsz_yenh *yenh);
++
++int ispresizer_try_size(u32 *input_w, u32 *input_h, u32 *output_w,
++                                                               u32 *output_h);
++
++void ispresizer_applycrop(void);
++
++void ispresizer_trycrop(u32 left, u32 top, u32 width, u32 height, u32 ow,
++                                                               u32 oh);
++
++int ispresizer_config_size(u32 input_w, u32 input_h, u32 output_w,
++                                                               u32 output_h);
++
++int ispresizer_config_inlineoffset(u32 offset);
++
++int ispresizer_set_inaddr(u32 addr);
++
++int ispresizer_config_outlineoffset(u32 offset);
++
++int ispresizer_set_outaddr(u32 addr);
++
++void ispresizer_enable(u8 enable);
++
++int ispresizer_busy(void);
++
++void ispresizer_save_context(void);
++
++void ispresizer_restore_context(void);
++
++void ispresizer_print_status(void);
++
++#endif         /* OMAP_ISP_RESIZER_H */
 --
 1.5.6.5
 
-
---
-video4linux-list mailing list
-Unsubscribe mailto:video4linux-list-request@redhat.com?subject=3Dunsubscr=
-ibe
-https://www.redhat.com/mailman/listinfo/video4linux-list
