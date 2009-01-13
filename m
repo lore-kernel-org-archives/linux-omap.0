@@ -1,45 +1,44 @@
-From: Mark Brown <broonie@sirena.org.uk>
-Subject: Re: [PATCH 1/2] Include TPS6235x based Power regulator support
-Date: Tue, 13 Jan 2009 21:15:25 +0000
-Message-ID: <20090113211523.GA8670@sirena.org.uk>
-References: <1231832468-7132-1-git-send-email-mani.pillai@ti.com>
+From: Frank Agius <ftagius@yahoo.com>
+Subject: Re: ADC timeout on Overo
+Date: Tue, 13 Jan 2009 16:31:54 -0500
+Message-ID: <gkj15a$f9c$1@ger.gmane.org>
+References: <gje3o3$gmr$1@ger.gmane.org> <49649D4F.5070903@yahoo.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from cassiel.sirena.org.uk ([80.68.93.111]:1379 "EHLO
-	cassiel.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752250AbZAMVPg (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 13 Jan 2009 16:15:36 -0500
-Content-Disposition: inline
-In-Reply-To: <1231832468-7132-1-git-send-email-mani.pillai@ti.com>
+Received: from main.gmane.org ([80.91.229.2]:36299 "EHLO ciao.gmane.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757019AbZAMVae (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 13 Jan 2009 16:30:34 -0500
+Received: from list by ciao.gmane.org with local (Exim 4.43)
+	id 1LMqqF-0008Lz-Da
+	for linux-omap@vger.kernel.org; Tue, 13 Jan 2009 21:30:31 +0000
+Received: from static-71-111-254-119.rlghnc.dsl-w.verizon.net ([71.111.254.119])
+        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-omap@vger.kernel.org>; Tue, 13 Jan 2009 21:30:31 +0000
+Received: from ftagius by static-71-111-254-119.rlghnc.dsl-w.verizon.net with local (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-omap@vger.kernel.org>; Tue, 13 Jan 2009 21:30:31 +0000
+In-Reply-To: <49649D4F.5070903@yahoo.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Manikandan Pillai <mani.pillai@ti.com>
-Cc: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
 
-On Tue, Jan 13, 2009 at 01:11:08PM +0530, Manikandan Pillai wrote:
+frank agius wrote:
 
-> +config REGULATOR_TPS6235X
-> +	bool "TPS6235X Power regulator for OMAP3EVM"
-> +	depends on I2C=y
+> Im trying to understand if this is a driver problem or something 
+> specific to the Overo.  Can anyone with one of the boards that has 
+> support enabled for the twl4030 driver (EVM2, EVM3, LDP and 
+> 2340/3430sdp)confirm the status of ADC on that board?  If it's 
+> functional, what is the Linux revision of the working driver?
 
-This driver should not be OMAP3EVM specific, I'd expect.
+Can I assume that since no one has confirmed ADC working on any of the 
+boards using the twl4030 driver that it means that ADC is not working on 
+any of those boards?
 
-> +extern struct regulator_consumer_supply tps62352_core_consumers;
-> +extern struct regulator_consumer_supply tps62352_mpu_consumers;
+frank
 
-These should not be required.
 
-> +	/* Register the regulators */
-> +	dev_child = device_find_child(client->adapter->dev.parent,
-> +			(void *)regulator_consumer_name[id->driver_data],
-> +			omap_i2c_match_child);
-> +	rdev = regulator_register(&regulators[id->driver_data],
-> +			dev_child, client);
 
-I'm not 100% sure what this is intended to do but apart from anything
-else it depends on specific consumer names which means that dependency
-on the specific board hasn't been removed.  This is also OMAP-specific.
-
-You should be using a device which is specific to the regulator as the
-device that is being registered.
