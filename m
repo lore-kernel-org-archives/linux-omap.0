@@ -1,1025 +1,74 @@
 From: "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>
-Subject: [REVIEW PATCH 07/14] OMAP: CAM: Add ISP SCM
-Date: Mon, 12 Jan 2009 20:03:23 -0600
-Message-ID: <A24693684029E5489D1D202277BE894416429F9D@dlee02.ent.ti.com>
+Subject: [REVIEW PATCH 09/14] OMAP: CAM: Add ISP Core
+Date: Mon, 12 Jan 2009 20:03:27 -0600
+Message-ID: <A24693684029E5489D1D202277BE894416429F9F@dlee02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <video4linux-list-bounces@redhat.com>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
+Return-path: <linux-media-owner@vger.kernel.org>
 Content-Language: en-US
-List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
-	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
-List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
-List-Post: <mailto:video4linux-list@redhat.com>
-List-Help: <mailto:video4linux-list-request@redhat.com?subject=help>
-List-Subscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
-	<mailto:video4linux-list-request@redhat.com?subject=subscribe>
-Sender: video4linux-list-bounces@redhat.com
-Errors-To: video4linux-list-bounces@redhat.com
+Sender: linux-media-owner@vger.kernel.org
 To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
-Cc: "video4linux-list@redhat.com" <video4linux-list@redhat.com>, "Nagalla,
-	Hari" <hnagalla@ti.com>, Sakari Ailus <sakari.ailus@nokia.com>, "Tuukka.O Toivonen" <tuukka.o.toivonen@nokia.com>, "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>, "video4linux-list@redhat.com" <video4linux-list@redhat.com>, Sakari Ailus <sakari.ailus@nokia.com>, "Tuukka.O Toivonen" <tuukka.o.toivonen@nokia.com>, "Nagalla, Hari" <hnagalla@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-This adds the OMAP ISP SCM modules to the kernel. Includes:
-* ISP Autofocus Driver
-* ISP H3A Driver
-* ISP Histogram Driver
+This adds the OMAP ISP Core modules to the kernel. Includes:
+* ISP Core Driver
+* ISP MMU Driver
 
 Signed-off-by: Sergio Aguirre <saaguirre@ti.com>
 ---
- drivers/media/video/isp/isp_af.c  |  749 +++++++++++++++++++++++++++++++
- drivers/media/video/isp/isp_af.h  |  118 +++++
- drivers/media/video/isp/isph3a.c  |  872 +++++++++++++++++++++++++++++++=
-++++++
- drivers/media/video/isp/isph3a.h  |  119 +++++
- drivers/media/video/isp/isphist.c |  577 ++++++++++++++++++++++++
- drivers/media/video/isp/isphist.h |   97 ++++
- 6 files changed, 2532 insertions(+), 0 deletions(-)
- create mode 100644 drivers/media/video/isp/isp_af.c
- create mode 100644 drivers/media/video/isp/isp_af.h
- create mode 100644 drivers/media/video/isp/isph3a.c
- create mode 100644 drivers/media/video/isp/isph3a.h
- create mode 100644 drivers/media/video/isp/isphist.c
- create mode 100644 drivers/media/video/isp/isphist.h
+ drivers/media/video/isp/Makefile |   12 +
+ drivers/media/video/isp/isp.c    | 2679 ++++++++++++++++++++++++++++++++++++++
+ drivers/media/video/isp/isp.h    |  408 ++++++
+ drivers/media/video/isp/ispmmu.c |  748 +++++++++++
+ drivers/media/video/isp/ispmmu.h |  119 ++
+ 5 files changed, 3966 insertions(+), 0 deletions(-)
+ create mode 100644 drivers/media/video/isp/Makefile
+ create mode 100644 drivers/media/video/isp/isp.c
+ create mode 100644 drivers/media/video/isp/isp.h
+ create mode 100644 drivers/media/video/isp/ispmmu.c
+ create mode 100644 drivers/media/video/isp/ispmmu.h
 
-diff --git a/drivers/media/video/isp/isp_af.c b/drivers/media/video/isp/i=
-sp_af.c
+diff --git a/drivers/media/video/isp/Makefile b/drivers/media/video/isp/Makefile
 new file mode 100644
-index 0000000..633eb27
+index 0000000..f2f831c
 --- /dev/null
-+++ b/drivers/media/video/isp/isp_af.c
-@@ -0,0 +1,749 @@
++++ b/drivers/media/video/isp/Makefile
+@@ -0,0 +1,12 @@
++# Makefile for OMAP3 ISP driver
++
++ifdef CONFIG_ARCH_OMAP3410
++isp-mod-objs += \
++       isp.o ispccdc.o ispmmu.o
++else
++isp-mod-objs += \
++       isp.o ispccdc.o ispmmu.o \
++       isppreview.o ispresizer.o isph3a.o isphist.o isp_af.o ispcsi2.o
++endif
++
++obj-$(CONFIG_VIDEO_OMAP3) += isp-mod.o
+diff --git a/drivers/media/video/isp/isp.c b/drivers/media/video/isp/isp.c
+new file mode 100644
+index 0000000..b6479dd
+--- /dev/null
++++ b/drivers/media/video/isp/isp.c
+@@ -0,0 +1,2679 @@
 +/*
-+ * drivers/media/video/isp/isp_af.c
++ * drivers/media/video/isp/isp.c
 + *
-+ * AF module for TI's OMAP3 Camera ISP
++ * Driver Library for ISP Control module in TI's OMAP3 Camera ISP
++ * ISP interface and IRQ related APIs are defined here.
 + *
 + * Copyright (C) 2008 Texas Instruments.
-+ *
-+ * This package is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ *
-+ * THIS PACKAGE IS PROVIDED ``AS IS'' AND WITHOUT ANY EXPRESS OR
-+ * IMPLIED WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED
-+ * WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
-+ */
-+
-+/* Linux specific include files */
-+#include <asm/cacheflush.h>
-+
-+#include <linux/cdev.h>
-+#include <linux/device.h>
-+#include <linux/delay.h>
-+#include <linux/fs.h>
-+#include <linux/mm.h>
-+#include <linux/module.h>
-+#include <linux/platform_device.h>
-+#include <linux/uaccess.h>
-+#include <linux/io.h>
-+#include <linux/mman.h>
-+#include <linux/syscalls.h>
-+#include <linux/errno.h>
-+#include <linux/types.h>
-+#include <linux/dma-mapping.h>
-+
-+#include <media/v4l2-int-device.h>
-+
-+#include "isp.h"
-+#include "ispreg.h"
-+#include "isph3a.h"
-+#include "isp_af.h"
-+#include "ispmmu.h"
-+
-+/**
-+ * struct isp_af_buffer - AF frame stats buffer.
-+ * @virt_addr: Virtual address to mmap the buffer.
-+ * @phy_addr: Physical address of the buffer.
-+ * @addr_align: Virtual Address 32 bytes aligned.
-+ * @ispmmu_addr: Address of the buffer mapped by the ISPMMU.
-+ * @mmap_addr: Mapped memory area of buffer. For userspace access.
-+ * @locked: 1 - Buffer locked from write. 0 - Buffer can be overwritten.
-+ * @frame_num: Frame number from which the statistics are taken.
-+ * @lens_position: Lens position currently set in the DW9710 Coil motor =
-driver.
-+ * @next: Pointer to link next buffer.
-+ */
-+struct isp_af_buffer {
-+       unsigned long virt_addr;
-+       unsigned long phy_addr;
-+       unsigned long addr_align;
-+       unsigned long ispmmu_addr;
-+       unsigned long mmap_addr;
-+
-+       u8 locked;
-+       u16 frame_num;
-+       struct isp_af_xtrastats xtrastats;
-+       struct isp_af_buffer *next;
-+};
-+
-+/**
-+ * struct isp_af_status - AF status.
-+ * @initialized: 1 - Buffers initialized.
-+ * @update: 1 - Update registers.
-+ * @stats_req: 1 - Future stats requested.
-+ * @stats_done: 1 - Stats ready for user.
-+ * @frame_req: Number of frame requested for statistics.
-+ * @af_buff: Array of statistics buffers to access.
-+ * @stats_buf_size: Statistics buffer size.
-+ * @curr_cfg_buf_size: Current user configured stats buff size.
-+ * @min_buf_size: Minimum statisitics buffer size.
-+ * @frame_count: Frame Count.
-+ * @stats_wait: Wait primitive for locking/unlocking the stats request.
-+ * @buffer_lock: Spinlock for statistics buffers access.
-+ */
-+static struct isp_af_status {
-+       u8 initialized;
-+       u8 update;
-+       u8 stats_req;
-+       u8 stats_done;
-+       u16 frame_req;
-+
-+       struct isp_af_buffer af_buff[H3A_MAX_BUFF];
-+       unsigned int stats_buf_size;
-+       unsigned int min_buf_size;
-+       unsigned int curr_cfg_buf_size;
-+
-+       u32 frame_count;
-+       wait_queue_head_t stats_wait;
-+       spinlock_t buffer_lock;         /* For stats buffers read/write s=
-ync */
-+} afstat;
-+
-+struct af_device *af_dev_configptr;
-+static struct isp_af_buffer *active_buff;
-+static int af_major =3D -1;
-+static int camnotify;
-+
-+/**
-+ * isp_af_setxtrastats - Receives extra statistics from prior frames.
-+ * @xtrastats: Pointer to structure containing extra statistics fields l=
-ike
-+ *             field count and timestamp of frame.
-+ *
-+ * Called from update_vbq in camera driver
-+ **/
-+void isp_af_setxtrastats(struct isp_af_xtrastats *xtrastats, u8 updatefl=
-ag)
-+{
-+       int i, past_i;
-+
-+       if (active_buff =3D=3D NULL)
-+               return;
-+
-+       for (i =3D 0; i < H3A_MAX_BUFF; i++) {
-+               if (afstat.af_buff[i].frame_num =3D=3D active_buff->frame=
-_num)
-+                       break;
-+       }
-+
-+       if (i =3D=3D H3A_MAX_BUFF)
-+               return;
-+
-+       if (i =3D=3D 0) {
-+               if (afstat.af_buff[H3A_MAX_BUFF - 1].locked =3D=3D 0)
-+                       past_i =3D H3A_MAX_BUFF - 1;
-+               else
-+                       past_i =3D H3A_MAX_BUFF - 2;
-+       } else if (i =3D=3D 1) {
-+               if (afstat.af_buff[0].locked =3D=3D 0)
-+                       past_i =3D 0;
-+               else
-+                       past_i =3D H3A_MAX_BUFF - 1;
-+       } else {
-+               if (afstat.af_buff[i - 1].locked =3D=3D 0)
-+                       past_i =3D i - 1;
-+               else
-+                       past_i =3D i - 2;
-+       }
-+
-+       if (updateflag & AF_UPDATEXS_TS)
-+               afstat.af_buff[past_i].xtrastats.ts =3D xtrastats->ts;
-+
-+       if (updateflag & AF_UPDATEXS_FIELDCOUNT)
-+               afstat.af_buff[past_i].xtrastats.field_count =3D
-+                                                       xtrastats->field_=
-count;
-+}
-+EXPORT_SYMBOL(isp_af_setxtrastats);
-+
-+/*
-+ * Helper function to update buffer cache pages
-+ */
-+static void isp_af_update_req_buffer(struct isp_af_buffer *buffer)
-+{
-+       int size =3D afstat.stats_buf_size;
-+
-+       size =3D PAGE_ALIGN(size);
-+       /* Update the kernel pages of the requested buffer */
-+       dmac_inv_range((void *)buffer->addr_align, (void *)buffer->addr_a=
-lign +
-+                                                                       s=
-ize);
-+}
-+
-+#define IS_OUT_OF_BOUNDS(value, min, max) \
-+       (((value) < (min)) || ((value) > (max)))
-+
-+/* Function to check paxel parameters */
-+int isp_af_check_paxel(void)
-+{
-+       struct af_paxel *paxel_cfg =3D &af_dev_configptr->config->paxel_c=
-onfig;
-+       struct af_iir *iir_cfg =3D &af_dev_configptr->config->iir_config;
-+
-+       /* Check horizontal Count */
-+       if (IS_OUT_OF_BOUNDS(paxel_cfg->hz_cnt, AF_PAXEL_HORIZONTAL_COUNT=
-_MIN,
-+                                       AF_PAXEL_HORIZONTAL_COUNT_MAX)) {
-+               DPRINTK_ISP_AF("Error : Horizontal Count is incorrect");
-+               return -AF_ERR_HZ_COUNT;
-+       }
-+
-+       /*Check Vertical Count */
-+       if (IS_OUT_OF_BOUNDS(paxel_cfg->vt_cnt, AF_PAXEL_VERTICAL_COUNT_M=
-IN,
-+                                       AF_PAXEL_VERTICAL_COUNT_MAX)) {
-+               DPRINTK_ISP_AF("Error : Vertical Count is incorrect");
-+               return -AF_ERR_VT_COUNT;
-+       }
-+
-+       /*Check Height */
-+       if (IS_OUT_OF_BOUNDS(paxel_cfg->height, AF_PAXEL_HEIGHT_MIN,
-+                                       AF_PAXEL_HEIGHT_MAX)) {
-+               DPRINTK_ISP_AF("Error : Height is incorrect");
-+               return -AF_ERR_HEIGHT;
-+       }
-+
-+       /*Check width */
-+       if (IS_OUT_OF_BOUNDS(paxel_cfg->width, AF_PAXEL_WIDTH_MIN,
-+                                       AF_PAXEL_WIDTH_MAX)) {
-+               DPRINTK_ISP_AF("Error : Width is incorrect");
-+               return -AF_ERR_WIDTH;
-+       }
-+
-+       /*Check Line Increment */
-+       if (IS_OUT_OF_BOUNDS(paxel_cfg->line_incr, AF_PAXEL_INCREMENT_MIN=
-,
-+                                       AF_PAXEL_INCREMENT_MAX)) {
-+               DPRINTK_ISP_AF("Error : Line Increment is incorrect");
-+               return -AF_ERR_INCR;
-+       }
-+
-+       /*Check Horizontal Start */
-+       if ((paxel_cfg->hz_start % 2 !=3D 0) ||
-+                       (paxel_cfg->hz_start < (iir_cfg->hz_start_pos + 2=
-)) ||
-+                       IS_OUT_OF_BOUNDS(paxel_cfg->hz_start,
-+                       AF_PAXEL_HZSTART_MIN, AF_PAXEL_HZSTART_MAX)) {
-+               DPRINTK_ISP_AF("Error : Horizontal Start is incorrect");
-+               return -AF_ERR_HZ_START;
-+       }
-+
-+       /*Check Vertical Start */
-+       if (IS_OUT_OF_BOUNDS(paxel_cfg->vt_start, AF_PAXEL_VTSTART_MIN,
-+                                       AF_PAXEL_VTSTART_MAX)) {
-+               DPRINTK_ISP_AF("Error : Vertical Start is incorrect");
-+               return -AF_ERR_VT_START;
-+       }
-+       return 0;
-+}
-+
-+/**
-+ * isp_af_check_iir - Function to check IIR Coefficient.
-+ **/
-+int isp_af_check_iir(void)
-+{
-+       struct af_iir *iir_cfg =3D &af_dev_configptr->config->iir_config;
-+       int index;
-+
-+       for (index =3D 0; index < AF_NUMBER_OF_COEF; index++) {
-+               if ((iir_cfg->coeff_set0[index]) > AF_COEF_MAX) {
-+                       DPRINTK_ISP_AF("Error : Coefficient for set 0 is =
-"
-+                                                               "incorrec=
-t");
-+                       return -AF_ERR_IIR_COEF;
-+               }
-+
-+               if ((iir_cfg->coeff_set1[index]) > AF_COEF_MAX) {
-+                       DPRINTK_ISP_AF("Error : Coefficient for set 1 is =
-"
-+                                                               "incorrec=
-t");
-+                       return -AF_ERR_IIR_COEF;
-+               }
-+       }
-+
-+       if (IS_OUT_OF_BOUNDS(iir_cfg->hz_start_pos, AF_IIRSH_MIN,
-+                                                               AF_IIRSH_=
-MAX)) {
-+               DPRINTK_ISP_AF("Error : IIRSH is incorrect");
-+               return -AF_ERR_IIRSH;
-+       }
-+
-+       return 0;
-+}
-+/**
-+ * isp_af_unlock_buffers - Helper function to unlock all buffers.
-+ **/
-+static void isp_af_unlock_buffers(void)
-+{
-+       int i;
-+       unsigned long irqflags;
-+
-+       spin_lock_irqsave(&afstat.buffer_lock, irqflags);
-+       for (i =3D 0; i < H3A_MAX_BUFF; i++)
-+               afstat.af_buff[i].locked =3D 0;
-+
-+       spin_unlock_irqrestore(&afstat.buffer_lock, irqflags);
-+}
-+
-+/*
-+ * Helper function to link allocated buffers
-+ */
-+static void isp_af_link_buffers(void)
-+{
-+       int i;
-+
-+       for (i =3D 0; i < H3A_MAX_BUFF; i++) {
-+               if ((i + 1) < H3A_MAX_BUFF)
-+                       afstat.af_buff[i].next =3D &afstat.af_buff[i + 1]=
-;
-+               else
-+                       afstat.af_buff[i].next =3D &afstat.af_buff[0];
-+       }
-+}
-+
-+/* Function to perform hardware set up */
-+int isp_af_configure(struct af_configuration *afconfig)
-+{
-+       int result;
-+       int buff_size, i;
-+       unsigned int busyaf;
-+       struct af_configuration *af_curr_cfg =3D af_dev_configptr->config=
-;
-+
-+       if (NULL =3D=3D afconfig) {
-+               printk(KERN_ERR "Null argument in configuration. \n");
-+               return -EINVAL;
-+       }
-+
-+       memcpy(af_curr_cfg, afconfig, sizeof(struct af_configuration));
-+       /* Get the value of PCR register */
-+       busyaf =3D isp_reg_readl(OMAP3_ISP_IOMEM_H3A, ISPH3A_PCR);
-+
-+       if ((busyaf & AF_BUSYAF) =3D=3D AF_BUSYAF) {
-+               DPRINTK_ISP_AF("AF_register_setup_ERROR : Engine Busy");
-+               DPRINTK_ISP_AF("\n Configuration cannot be done ");
-+               return -AF_ERR_ENGINE_BUSY;
-+       }
-+
-+       /* Check IIR Coefficient and start Values */
-+       result =3D isp_af_check_iir();
-+       if (result < 0)
-+               return result;
-+
-+       /* Check Paxel Values */
-+       result =3D isp_af_check_paxel();
-+       if (result < 0)
-+               return result;
-+
-+       /* Check HMF Threshold Values */
-+       if (af_curr_cfg->hmf_config.threshold > AF_THRESHOLD_MAX) {
-+               DPRINTK_ISP_AF("Error : HMF Threshold is incorrect");
-+               return -AF_ERR_THRESHOLD;
-+       }
-+
-+       /* Compute buffer size */
-+       buff_size =3D (af_curr_cfg->paxel_config.hz_cnt + 1) *
-+                       (af_curr_cfg->paxel_config.vt_cnt + 1) * AF_PAXEL=
-_SIZE;
-+
-+       afstat.curr_cfg_buf_size =3D buff_size;
-+       /* Deallocate the previous buffers */
-+       if (afstat.stats_buf_size && (buff_size > afstat.stats_buf_size))=
- {
-+               isp_af_enable(0);
-+               for (i =3D 0; i < H3A_MAX_BUFF; i++) {
-+                       ispmmu_unmap(afstat.af_buff[i].ispmmu_addr);
-+                       dma_free_coherent(NULL, afstat.min_buf_size,
-+                                       (void *)afstat.af_buff[i].virt_ad=
-dr,
-+                                       (dma_addr_t)afstat.af_buff[i].phy=
-_addr);
-+                       afstat.af_buff[i].virt_addr =3D 0;
-+               }
-+               afstat.stats_buf_size =3D 0;
-+       }
-+
-+       if (!afstat.af_buff[0].virt_addr) {
-+               afstat.stats_buf_size =3D buff_size;
-+               afstat.min_buf_size =3D PAGE_ALIGN(afstat.stats_buf_size)=
-;
-+
-+               for (i =3D 0; i < H3A_MAX_BUFF; i++) {
-+                       afstat.af_buff[i].virt_addr =3D
-+                                       (unsigned long)dma_alloc_coherent=
-(NULL,
-+                                       afstat.min_buf_size,
-+                                       (dma_addr_t *)
-+                                       &afstat.af_buff[i].phy_addr,
-+                                       GFP_KERNEL | GFP_DMA);
-+                       if (afstat.af_buff[i].virt_addr =3D=3D 0) {
-+                               printk(KERN_ERR "Can't acquire memory for=
- "
-+                                                       "buffer[%d]\n", i=
-);
-+                               return -ENOMEM;
-+                       }
-+                       afstat.af_buff[i].addr_align =3D
-+                                               afstat.af_buff[i].virt_ad=
-dr;
-+                       while ((afstat.af_buff[i].addr_align & 0xFFFFFFC0=
-) !=3D
-+                                               afstat.af_buff[i].addr_al=
-ign)
-+                               afstat.af_buff[i].addr_align++;
-+                       afstat.af_buff[i].ispmmu_addr =3D
-+                               ispmmu_map(afstat.af_buff[i].phy_addr,
-+                                                       afstat.min_buf_si=
-ze);
-+               }
-+               isp_af_unlock_buffers();
-+               isp_af_link_buffers();
-+
-+               /* First active buffer */
-+               if (active_buff =3D=3D NULL)
-+                       active_buff =3D &afstat.af_buff[0];
-+               isp_af_set_address(active_buff->ispmmu_addr);
-+       }
-+
-+       result =3D isp_af_register_setup(af_dev_configptr);
-+       if (result < 0)
-+               return result;
-+       af_dev_configptr->size_paxel =3D buff_size;
-+       afstat.initialized =3D 1;
-+       /* Set configuration flag to indicate HW setup done */
-+       if (af_curr_cfg->af_config)
-+               isp_af_enable(1);
-+       else
-+               isp_af_enable(0);
-+
-+       /* Success */
-+       return 0;
-+}
-+EXPORT_SYMBOL(isp_af_configure);
-+
-+int isp_af_register_setup(struct af_device *af_dev)
-+{
-+       unsigned int pcr =3D 0, pax1 =3D 0, pax2 =3D 0, paxstart =3D 0;
-+       unsigned int coef =3D 0;
-+       unsigned int base_coef_set0 =3D 0;
-+       unsigned int base_coef_set1 =3D 0;
-+       int index;
-+
-+       /* Configure Hardware Registers */
-+       /* Set PCR Register */
-+       pcr =3D isp_reg_readl(OMAP3_ISP_IOMEM_H3A, ISPH3A_PCR);   /* Read=
- PCR Register */
-+
-+       /* Set Accumulator Mode */
-+       if (af_dev->config->mode =3D=3D ACCUMULATOR_PEAK)
-+               pcr |=3D FVMODE;
-+       else
-+               pcr &=3D ~FVMODE;
-+
-+       /* Set A-law */
-+       if (af_dev->config->alaw_enable =3D=3D H3A_AF_ALAW_ENABLE)
-+               pcr |=3D AF_ALAW_EN;
-+       else
-+               pcr &=3D ~AF_ALAW_EN;
-+
-+       /* Set RGB Position */
-+       pcr &=3D ~RGBPOS;
-+       pcr |=3D (af_dev->config->rgb_pos) << AF_RGBPOS_SHIFT;
-+
-+       /* HMF Configurations */
-+       if (af_dev->config->hmf_config.enable =3D=3D H3A_AF_HMF_ENABLE) {
-+               pcr &=3D ~AF_MED_EN;
-+               /* Enable HMF */
-+               pcr |=3D AF_MED_EN;
-+
-+               /* Set Median Threshold */
-+               pcr &=3D ~MED_TH;
-+               pcr |=3D (af_dev->config->hmf_config.threshold) <<
-+                                                       AF_MED_TH_SHIFT;
-+       } else
-+               pcr &=3D ~AF_MED_EN;
-+
-+       isp_reg_writel(pcr, OMAP3_ISP_IOMEM_H3A, ISPH3A_PCR);
-+
-+       pax1 &=3D ~PAXW;
-+       pax1 |=3D (af_dev->config->paxel_config.width) << AF_PAXW_SHIFT;
-+
-+       /* Set height in AFPAX1 */
-+       pax1 &=3D ~PAXH;
-+       pax1 |=3D af_dev->config->paxel_config.height;
-+
-+       isp_reg_writel(pax1, OMAP3_ISP_IOMEM_H3A, ISPH3A_AFPAX1);
-+
-+       /* Configure AFPAX2 Register */
-+       /* Set Line Increment in AFPAX2 Register */
-+       pax2 &=3D ~AFINCV;
-+       pax2 |=3D (af_dev->config->paxel_config.line_incr) << AF_LINE_INC=
-R_SHIFT;
-+       /* Set Vertical Count */
-+       pax2 &=3D ~PAXVC;
-+       pax2 |=3D (af_dev->config->paxel_config.vt_cnt) << AF_VT_COUNT_SH=
-IFT;
-+       /* Set Horizontal Count */
-+       pax2 &=3D ~PAXHC;
-+       pax2 |=3D af_dev->config->paxel_config.hz_cnt;
-+       isp_reg_writel(pax2, OMAP3_ISP_IOMEM_H3A, ISPH3A_AFPAX2);
-+
-+       /* Configure PAXSTART Register */
-+       /*Configure Horizontal Start */
-+       paxstart &=3D ~PAXSH;
-+       paxstart |=3D (af_dev->config->paxel_config.hz_start) <<
-+                                                       AF_HZ_START_SHIFT=
-;
-+       /* Configure Vertical Start */
-+       paxstart &=3D ~PAXSV;
-+       paxstart |=3D af_dev->config->paxel_config.vt_start;
-+       isp_reg_writel(paxstart, OMAP3_ISP_IOMEM_H3A, ISPH3A_AFPAXSTART);
-+
-+       /*SetIIRSH Register */
-+       isp_reg_writel(af_dev->config->iir_config.hz_start_pos,
-+                                               OMAP3_ISP_IOMEM_H3A, ISPH=
-3A_AFIIRSH);
-+
-+       /*Set IIR Filter0 Coefficients */
-+       base_coef_set0 =3D ISPH3A_AFCOEF010;
-+       for (index =3D 0; index <=3D 8; index +=3D 2) {
-+               coef &=3D ~COEF_MASK0;
-+               coef |=3D af_dev->config->iir_config.coeff_set0[index];
-+               coef &=3D ~COEF_MASK1;
-+               coef |=3D (af_dev->config->iir_config.coeff_set0[index + =
-1]) <<
-+                                                               AF_COEF_S=
-HIFT;
-+               isp_reg_writel(coef, OMAP3_ISP_IOMEM_H3A, base_coef_set0)=
-;
-+               base_coef_set0 =3D base_coef_set0 + AFCOEF_OFFSET;
-+       }
-+
-+       /* set AFCOEF0010 Register */
-+       isp_reg_writel(af_dev->config->iir_config.coeff_set0[10],
-+                                               OMAP3_ISP_IOMEM_H3A, ISPH=
-3A_AFCOEF010);
-+
-+       /*Set IIR Filter1 Coefficients */
-+
-+       base_coef_set1 =3D ISPH3A_AFCOEF110;
-+       for (index =3D 0; index <=3D 8; index +=3D 2) {
-+               coef &=3D ~COEF_MASK0;
-+               coef |=3D af_dev->config->iir_config.coeff_set1[index];
-+               coef &=3D ~COEF_MASK1;
-+               coef |=3D (af_dev->config->iir_config.coeff_set1[index + =
-1]) <<
-+                                                               AF_COEF_S=
-HIFT;
-+               isp_reg_writel(coef, OMAP3_ISP_IOMEM_H3A, base_coef_set1)=
-;
-+
-+               base_coef_set1 =3D base_coef_set1 + AFCOEF_OFFSET;
-+       }
-+       isp_reg_writel(af_dev->config->iir_config.coeff_set1[10],
-+                                               OMAP3_ISP_IOMEM_H3A, ISPH=
-3A_AFCOEF1010);
-+
-+       return 0;
-+}
-+
-+/* Function to set address */
-+void isp_af_set_address(unsigned long address)
-+{
-+       isp_reg_writel(address, OMAP3_ISP_IOMEM_H3A, ISPH3A_AFBUFST);
-+}
-+
-+static int isp_af_stats_available(struct isp_af_data *afdata)
-+{
-+       int i, ret;
-+       unsigned long irqflags;
-+
-+       spin_lock_irqsave(&afstat.buffer_lock, irqflags);
-+       for (i =3D 0; i < H3A_MAX_BUFF; i++) {
-+               if ((afdata->frame_number =3D=3D afstat.af_buff[i].frame_=
-num) &&
-+                                               (afstat.af_buff[i].frame_=
-num !=3D
-+                                               active_buff->frame_num)) =
-{
-+                       afstat.af_buff[i].locked =3D 1;
-+                       spin_unlock_irqrestore(&afstat.buffer_lock, irqfl=
-ags);
-+                       isp_af_update_req_buffer(&afstat.af_buff[i]);
-+                       afstat.af_buff[i].frame_num =3D 0;
-+                       ret =3D copy_to_user((void *)afdata->af_statistic=
-s_buf,
-+                                       (void *)afstat.af_buff[i].virt_ad=
-dr,
-+                                       afstat.curr_cfg_buf_size);
-+                       if (ret) {
-+                               printk(KERN_ERR "Failed copy_to_user for =
-"
-+                                       "H3A stats buff, %d\n", ret);
-+                       }
-+                       afdata->xtrastats.ts =3D afstat.af_buff[i].xtrast=
-ats.ts;
-+                       afdata->xtrastats.field_count =3D
-+                                       afstat.af_buff[i].xtrastats.field=
-_count;
-+                       return 0;
-+               }
-+       }
-+       spin_unlock_irqrestore(&afstat.buffer_lock, irqflags);
-+       /* Stats unavailable */
-+
-+       return -1;
-+}
-+
-+void isp_af_notify(int notify)
-+{
-+       camnotify =3D notify;
-+       if (camnotify && afstat.initialized) {
-+               printk(KERN_DEBUG "Warning Camera Off \n");
-+               afstat.stats_req =3D 0;
-+               afstat.stats_done =3D 1;
-+               wake_up_interruptible(&afstat.stats_wait);
-+       }
-+}
-+EXPORT_SYMBOL(isp_af_notify);
-+/*
-+ * This API allows the user to update White Balance gains, as well as
-+ * exposure time and analog gain. It is also used to request frame
-+ * statistics.
-+ */
-+int isp_af_request_statistics(struct isp_af_data *afdata)
-+{
-+       int ret =3D 0;
-+       u16 frame_diff =3D 0;
-+       u16 frame_cnt =3D afstat.frame_count;
-+       wait_queue_t wqt;
-+
-+       if (!af_dev_configptr->config->af_config) {
-+               printk(KERN_ERR "AF engine not enabled\n");
-+               return -EINVAL;
-+       }
-+
-+       if (!(afdata->update & REQUEST_STATISTICS)) {
-+               afdata->af_statistics_buf =3D NULL;
-+               goto out;
-+       }
-+
-+       isp_af_unlock_buffers();
-+       /* Stats available? */
-+       DPRINTK_ISP_AF("Stats available?\n");
-+       ret =3D isp_af_stats_available(afdata);
-+       if (!ret)
-+               goto out;
-+
-+       /* Stats in near future? */
-+       DPRINTK_ISP_AF("Stats in near future?\n");
-+       if (afdata->frame_number > frame_cnt)
-+               frame_diff =3D afdata->frame_number - frame_cnt;
-+       else if (afdata->frame_number < frame_cnt) {
-+               if ((frame_cnt > (MAX_FRAME_COUNT - MAX_FUTURE_FRAMES)) &=
-&
-+                               (afdata->frame_number < MAX_FRAME_COUNT))=
- {
-+                       frame_diff =3D afdata->frame_number + MAX_FRAME_C=
-OUNT -
-+                                                               frame_cnt=
-;
-+               } else {
-+                       /* Frame unavailable */
-+                       frame_diff =3D MAX_FUTURE_FRAMES + 1;
-+               }
-+       }
-+
-+       if (frame_diff > MAX_FUTURE_FRAMES) {
-+               printk(KERN_ERR "Invalid frame requested, returning curre=
-nt"
-+                                                       " frame stats\n")=
-;
-+               afdata->frame_number =3D frame_cnt;
-+       }
-+       if (!camnotify) {
-+               /* Block until frame in near future completes */
-+               afstat.frame_req =3D afdata->frame_number;
-+               afstat.stats_req =3D 1;
-+               afstat.stats_done =3D 0;
-+               init_waitqueue_entry(&wqt, current);
-+               ret =3D wait_event_interruptible(afstat.stats_wait,
-+                                                       afstat.stats_done=
- =3D=3D 1);
-+               if (ret < 0) {
-+                       afdata->af_statistics_buf =3D NULL;
-+                       return ret;
-+               }
-+               DPRINTK_ISP_AF("ISP AF request status interrupt raised\n"=
-);
-+
-+               /* Stats now available */
-+               ret =3D isp_af_stats_available(afdata);
-+               if (ret) {
-+                       printk(KERN_ERR "After waiting for stats, stats n=
-ot"
-+                                                       " available!!\n")=
-;
-+                       afdata->af_statistics_buf =3D NULL;
-+               }
-+       }
-+
-+out:
-+       afdata->curr_frame =3D afstat.frame_count;
-+
-+       return 0;
-+}
-+EXPORT_SYMBOL(isp_af_request_statistics);
-+
-+/* This function will handle the H3A interrupt. */
-+static void isp_af_isr(unsigned long status, isp_vbq_callback_ptr arg1,
-+                                                               void *arg=
-2)
-+{
-+       u16 frame_align;
-+
-+       if ((H3A_AF_DONE & status) !=3D H3A_AF_DONE)
-+               return;
-+
-+       /* timestamp stats buffer */
-+       do_gettimeofday(&active_buff->xtrastats.ts);
-+
-+       /* Exchange buffers */
-+       active_buff =3D active_buff->next;
-+       if (active_buff->locked =3D=3D 1)
-+               active_buff =3D active_buff->next;
-+       isp_af_set_address(active_buff->ispmmu_addr);
-+
-+       /* Update frame counter */
-+       afstat.frame_count++;
-+       frame_align =3D afstat.frame_count;
-+       if (afstat.frame_count > MAX_FRAME_COUNT) {
-+               afstat.frame_count =3D 1;
-+               frame_align++;
-+       }
-+       active_buff->frame_num =3D afstat.frame_count;
-+
-+       /* Future Stats requested? */
-+       if (afstat.stats_req) {
-+               /* Is the frame we want already done? */
-+               if (frame_align >=3D (afstat.frame_req + 1)) {
-+                       afstat.stats_req =3D 0;
-+                       afstat.stats_done =3D 1;
-+                       wake_up_interruptible(&afstat.stats_wait);
-+               }
-+       }
-+}
-+
-+/* Function to Enable/Disable AF Engine */
-+int isp_af_enable(int enable)
-+{
-+       unsigned int pcr;
-+
-+       pcr =3D isp_reg_readl(OMAP3_ISP_IOMEM_H3A, ISPH3A_PCR);
-+
-+       /* Set AF_EN bit in PCR Register */
-+       if (enable) {
-+               if (isp_set_callback(CBK_H3A_AF_DONE, isp_af_isr,
-+                                               (void *)NULL, (void *)NUL=
-L)) {
-+                       printk(KERN_ERR "No callback for AF\n");
-+                       return -EINVAL;
-+               }
-+
-+               pcr |=3D AF_EN;
-+       } else {
-+               isp_unset_callback(CBK_H3A_AF_DONE);
-+               pcr &=3D ~AF_EN;
-+       }
-+       isp_reg_writel(pcr, OMAP3_ISP_IOMEM_H3A, ISPH3A_PCR);
-+       return 0;
-+}
-+
-+/* Function to register the AF character device driver. */
-+int __init isp_af_init(void)
-+{
-+       /*allocate memory for device structure and initialize it with 0 *=
-/
-+       af_dev_configptr =3D kzalloc(sizeof(struct af_device), GFP_KERNEL=
-);
-+       if (!af_dev_configptr)
-+               goto err_nomem1;
-+
-+       active_buff =3D NULL;
-+
-+       af_dev_configptr->config =3D (struct af_configuration *)
-+                       kzalloc(sizeof(struct af_configuration), GFP_KERN=
-EL);
-+
-+       if (af_dev_configptr->config =3D=3D NULL)
-+               goto err_nomem2;
-+
-+       memset(&afstat, 0, sizeof(afstat));
-+
-+       init_waitqueue_head(&afstat.stats_wait);
-+       spin_lock_init(&afstat.buffer_lock);
-+
-+       return 0;
-+
-+err_nomem2:
-+       kfree(af_dev_configptr);
-+err_nomem1:
-+       printk(KERN_ERR "Error: kmalloc fail");
-+       return -ENOMEM;
-+}
-+
-+void __exit isp_af_exit(void)
-+{
-+       int i;
-+
-+       if (afstat.af_buff) {
-+               /* Free buffers */
-+               for (i =3D 0; i < H3A_MAX_BUFF; i++) {
-+                       ispmmu_unmap(afstat.af_buff[i].ispmmu_addr);
-+                       dma_free_coherent(NULL, afstat.min_buf_size,
-+                                       (void *)afstat.af_buff[i].virt_ad=
-dr,
-+                                       (dma_addr_t)afstat.af_buff[i].phy=
-_addr);
-+               }
-+       }
-+       kfree(af_dev_configptr->config);
-+       kfree(af_dev_configptr);
-+
-+       memset(&afstat, 0, sizeof(afstat));
-+
-+       af_major =3D -1;
-+       isp_af_enable(0);
-+}
-diff --git a/drivers/media/video/isp/isp_af.h b/drivers/media/video/isp/i=
-sp_af.h
-new file mode 100644
-index 0000000..83f127d
---- /dev/null
-+++ b/drivers/media/video/isp/isp_af.h
-@@ -0,0 +1,118 @@
-+/*
-+ * drivers/media/video/isp/isp_af.h
-+ *
-+ * Include file for AF module in TI's OMAP3 Camera ISP
-+ *
-+ * Copyright (C) 2008 Texas Instruments, Inc.
-+ *
-+ * This package is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ *
-+ * THIS PACKAGE IS PROVIDED ``AS IS'' AND WITHOUT ANY EXPRESS OR
-+ * IMPLIED WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED
-+ * WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
-+ */
-+
-+/* Device Constants */
-+#ifndef OMAP_ISP_AF_H
-+#define OMAP_ISP_AF_H
-+
-+#include <mach/isp_user.h>
-+
-+#define AF_MAJOR_NUMBER                        0
-+#define ISPAF_NAME                     "OMAPISP_AF"
-+#define AF_NR_DEVS                     1
-+#define AF_TIMEOUT                     ((300 * HZ) / 1000)
-+
-+
-+
-+/* Print Macros */
-+/*list of error code */
-+#define AF_ERR_HZ_COUNT                        800     /* Invalid Horizo=
-ntal Count */
-+#define AF_ERR_VT_COUNT                        801     /* Invalid Vertic=
-al Count */
-+#define AF_ERR_HEIGHT                  802     /* Invalid Height */
-+#define AF_ERR_WIDTH                   803     /* Invalid width */
-+#define AF_ERR_INCR                    804     /* Invalid Increment */
-+#define AF_ERR_HZ_START                        805     /* Invalid horizo=
-ntal Start */
-+#define AF_ERR_VT_START                        806     /* Invalud vertic=
-al Start */
-+#define AF_ERR_IIRSH                   807     /* Invalid IIRSH value */
-+#define AF_ERR_IIR_COEF                        808     /* Invalid Coeffi=
-cient */
-+#define AF_ERR_SETUP                   809     /* Setup not done */
-+#define AF_ERR_THRESHOLD               810     /* Invalid Threshold */
-+#define AF_ERR_ENGINE_BUSY             811     /* Engine is busy */
-+
-+#define AFPID                          0x0     /* Peripheral Revision
-+                                                * and Class Information
-+                                                */
-+
-+#define AFCOEF_OFFSET                  0x00000004      /* COEFFICIENT BA=
-SE
-+                                                        * ADDRESS
-+                                                        */
-+
-+/*
-+ * PCR fields
-+ */
-+#define AF_BUSYAF                      (1 << 15)
-+#define FVMODE                         (1 << 14)
-+#define RGBPOS                         (0x7 << 11)
-+#define MED_TH                         (0xFF << 3)
-+#define AF_MED_EN                      (1 << 2)
-+#define AF_ALAW_EN                     (1 << 1)
-+#define AF_EN                          (1 << 0)
-+
-+/*
-+ * AFPAX1 fields
-+ */
-+#define PAXW                           (0x7F << 16)
-+#define PAXH                           0x7F
-+
-+/*
-+ * AFPAX2 fields
-+ */
-+#define AFINCV                         (0xF << 13)
-+#define PAXVC                          (0x7F << 6)
-+#define PAXHC                          0x3F
-+
-+/*
-+ * AFPAXSTART fields
-+ */
-+#define PAXSH                          (0xFFF<<16)
-+#define PAXSV                          0xFFF
-+
-+/*
-+ * COEFFICIENT MASK
-+ */
-+
-+#define COEF_MASK0                     0xFFF
-+#define COEF_MASK1                     (0xFFF<<16)
-+
-+/* BIT SHIFTS */
-+#define AF_RGBPOS_SHIFT                        11
-+#define AF_MED_TH_SHIFT                        3
-+#define AF_PAXW_SHIFT                  16
-+#define AF_LINE_INCR_SHIFT             13
-+#define AF_VT_COUNT_SHIFT              6
-+#define AF_HZ_START_SHIFT              16
-+#define AF_COEF_SHIFT                  16
-+
-+#define AF_UPDATEXS_TS                 (1 << 0)
-+#define AF_UPDATEXS_FIELDCOUNT (1 << 1)
-+#define AF_UPDATEXS_LENSPOS            (1 << 2)
-+
-+/* Structure for device of AF Engine */
-+struct af_device {
-+       struct af_configuration *config; /*Device configuration structure=
- */
-+       int size_paxel;         /*Paxel size in bytes */
-+};
-+
-+int isp_af_check_paxel(void);
-+int isp_af_check_iir(void);
-+int isp_af_register_setup(struct af_device *af_dev);
-+int isp_af_enable(int);
-+void isp_af_notify(int notify);
-+int isp_af_request_statistics(struct isp_af_data *afdata);
-+int isp_af_configure(struct af_configuration *afconfig);
-+void isp_af_set_address(unsigned long);
-+void isp_af_setxtrastats(struct isp_af_xtrastats *xtrastats, u8 updatefl=
-ag);
-+#endif /* OMAP_ISP_AF_H */
-diff --git a/drivers/media/video/isp/isph3a.c b/drivers/media/video/isp/i=
-sph3a.c
-new file mode 100644
-index 0000000..5c5aad4
---- /dev/null
-+++ b/drivers/media/video/isp/isph3a.c
-@@ -0,0 +1,872 @@
-+/*
-+ * drivers/media/video/isp/isph3a.c
-+ *
-+ * H3A module for TI's OMAP3 Camera ISP
-+ *
-+ * Copyright (C) 2008 Texas Instruments.
++ * Copyright (C) 2008 Nokia.
 + *
 + * Contributors:
-+ *     Sergio Aguirre <saaguirre@ti.com>
-+ *     Troy Laramy
++ *     Sameer Venkatraman <sameerv@ti.com>
++ *     Mohit Jalori <mjalori@ti.com>
++ *     Sakari Ailus <sakari.ailus@nokia.com>
++ *     Tuukka Toivonen <tuukka.o.toivonen@nokia.com>
++ *     Toni Leinonen <toni.leinonen@nokia.com>
 + *
 + * This package is free software; you can redistribute it and/or modify
 + * it under the terms of the GNU General Public License version 2 as
@@ -1030,991 +79,2680 @@ index 0000000..5c5aad4
 + * WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 + */
 +
-+#include <asm/cacheflush.h>
-+
-+#include <linux/mm.h>
-+#include <linux/mman.h>
-+#include <linux/syscalls.h>
 +#include <linux/module.h>
 +#include <linux/errno.h>
-+#include <linux/types.h>
++#include <linux/sched.h>
++#include <linux/delay.h>
++#include <linux/err.h>
++#include <linux/interrupt.h>
++#include <linux/clk.h>
 +#include <linux/dma-mapping.h>
-+#include <linux/io.h>
-+#include <linux/uaccess.h>
++#include <asm/irq.h>
++#include <linux/bitops.h>
++#include <linux/scatterlist.h>
++#include <asm/mach-types.h>
++#include <linux/device.h>
++#include <linux/videodev2.h>
++#include <linux/vmalloc.h>
++#include <linux/platform_device.h>
++
 +
 +#include "isp.h"
-+#include "ispreg.h"
-+#include "isph3a.h"
 +#include "ispmmu.h"
++#include "ispreg.h"
++#include "ispccdc.h"
++#include "isph3a.h"
++#include "isphist.h"
++#include "isp_af.h"
 +#include "isppreview.h"
++#include "ispresizer.h"
++#include "ispcsi2.h"
++
++static struct isp_device *omap3isp;
++
++#if ISP_WORKAROUND
++void *buff_addr;
++dma_addr_t buff_addr_mapped;
++struct scatterlist *sglist_alloc;
++static int alloc_done, num_sc;
++unsigned long offset_value;
++#endif
++
++/* List of image formats supported via OMAP ISP */
++const static struct v4l2_fmtdesc isp_formats[] = {
++       {
++               .description = "UYVY, packed",
++               .pixelformat = V4L2_PIX_FMT_UYVY,
++       },
++       {
++               .description = "YUYV (YUV 4:2:2), packed",
++               .pixelformat = V4L2_PIX_FMT_YUYV,
++       },
++       {
++               .description = "Bayer10 (GrR/BGb)",
++               .pixelformat = V4L2_PIX_FMT_SGRBG10,
++       },
++};
++
++/* ISP Crop capabilities */
++static struct v4l2_rect ispcroprect;
++static struct v4l2_rect cur_rect;
 +
 +/**
-+ * struct isph3a_aewb_buffer - AE, AWB frame stats buffer.
-+ * @virt_addr: Virtual address to mmap the buffer.
-+ * @phy_addr: Physical address of the buffer.
-+ * @addr_align: Virtual Address 32 bytes aligned.
-+ * @ispmmu_addr: Address of the buffer mapped by the ISPMMU.
-+ * @mmap_addr: Mapped memory area of buffer. For userspace access.
-+ * @locked: 1 - Buffer locked from write. 0 - Buffer can be overwritten.
-+ * @frame_num: Frame number from which the statistics are taken.
-+ * @next: Pointer to link next buffer.
++ * struct vcontrol - Video control structure.
++ * @qc: V4L2 Query control structure.
++ * @current_value: Current value of the control.
 + */
-+struct isph3a_aewb_buffer {
-+       unsigned long virt_addr;
-+       unsigned long phy_addr;
-+       unsigned long addr_align;
-+       unsigned long ispmmu_addr;
-+       unsigned long mmap_addr;        /* For userspace */
-+       struct timeval ts;
++static struct vcontrol {
++       struct v4l2_queryctrl qc;
++       int current_value;
++} video_control[] = {
++       {
++               {
++                       .id = V4L2_CID_BRIGHTNESS,
++                       .type = V4L2_CTRL_TYPE_INTEGER,
++                       .name = "Brightness",
++                       .minimum = ISPPRV_BRIGHT_LOW,
++                       .maximum = ISPPRV_BRIGHT_HIGH,
++                       .step = ISPPRV_BRIGHT_STEP,
++                       .default_value = ISPPRV_BRIGHT_DEF,
++               },
++               .current_value = ISPPRV_BRIGHT_DEF,
++       },
++       {
++               {
++                       .id = V4L2_CID_CONTRAST,
++                       .type = V4L2_CTRL_TYPE_INTEGER,
++                       .name = "Contrast",
++                       .minimum = ISPPRV_CONTRAST_LOW,
++                       .maximum = ISPPRV_CONTRAST_HIGH,
++                       .step = ISPPRV_CONTRAST_STEP,
++                       .default_value = ISPPRV_CONTRAST_DEF,
++               },
++               .current_value = ISPPRV_CONTRAST_DEF,
++       },
++       {
++               {
++                       .id = V4L2_CID_PRIVATE_ISP_COLOR_FX,
++                       .type = V4L2_CTRL_TYPE_MENU,
++                       .name = "Color Effects",
++                       .minimum = PREV_DEFAULT_COLOR,
++                       .maximum = PREV_BW_COLOR,
++                       .step = 1,
++                       .default_value = PREV_DEFAULT_COLOR,
++               },
++               .current_value = PREV_DEFAULT_COLOR,
++       }
++};
 +
-+       u8 locked;
-+       u16 frame_num;
-+       struct isph3a_aewb_buffer *next;
++static struct v4l2_querymenu video_menu[] = {
++       {
++               .id = V4L2_CID_PRIVATE_ISP_COLOR_FX,
++               .index = 0,
++               .name = "Default colors",
++       },
++       {
++               .id = V4L2_CID_PRIVATE_ISP_COLOR_FX,
++               .index = 1,
++               .name = "Sepia",
++       },
++       {
++               .id = V4L2_CID_PRIVATE_ISP_COLOR_FX,
++               .index = 2,
++               .name = "B&W",
++       },
 +};
 +
 +/**
-+ * struct isph3a_aewb_status - AE, AWB status.
-+ * @initialized: 1 - Buffers initialized.
-+ * @update: 1 - Update registers.
-+ * @stats_req: 1 - Future stats requested.
-+ * @stats_done: 1 - Stats ready for user.
-+ * @frame_req: Number of frame requested for statistics.
-+ * @h3a_buff: Array of statistics buffers to access.
-+ * @stats_buf_size: Statistics buffer size.
-+ * @min_buf_size: Minimum statisitics buffer size.
-+ * @win_count: Window Count.
-+ * @frame_count: Frame Count.
-+ * @stats_wait: Wait primitive for locking/unlocking the stats request.
-+ * @buffer_lock: Spinlock for statistics buffers access.
++ * struct ispirq - Structure for containing callbacks to be called in ISP ISR.
++ * @isp_callbk: Array which stores callback functions, indexed by the type of
++ *              callback (8 possible types).
++ * @isp_callbk_arg1: Pointer to array containing pointers to the first argument
++ *                   to be passed to the requested callback function.
++ * @isp_callbk_arg2: Pointer to array containing pointers to the second
++ *                   argument to be passed to the requested callback function.
++ *
++ * This structure is used to contain all the callback functions related for
++ * each callback type (CBK_CCDC_VD0, CBK_CCDC_VD1, CBK_PREV_DONE,
++ * CBK_RESZ_DONE, CBK_MMU_ERR, CBK_H3A_AWB_DONE, CBK_HIST_DONE, CBK_HS_VS,
++ * CBK_LSC_ISR).
 + */
-+static struct isph3a_aewb_status {
-+       u8 initialized;
-+       u8 update;
-+       u8 stats_req;
-+       u8 stats_done;
-+       u16 frame_req;
-+
-+       struct isph3a_aewb_buffer h3a_buff[H3A_MAX_BUFF];
-+       unsigned int stats_buf_size;
-+       unsigned int min_buf_size;
-+       unsigned int curr_cfg_buf_size;
-+
-+       u16 win_count;
-+       u32 frame_count;
-+       wait_queue_head_t stats_wait;
-+       spinlock_t buffer_lock;         /* For stats buffers read/write s=
-ync */
-+} aewbstat;
++static struct ispirq {
++       isp_callback_t isp_callbk[CBK_END];
++       isp_vbq_callback_ptr isp_callbk_arg1[CBK_END];
++       void *isp_callbk_arg2[CBK_END];
++} ispirq_obj;
 +
 +/**
-+ * struct isph3a_aewb_regs - Current value of AE, AWB configuration regi=
-sters.
-+ * reg_pcr: Peripheral control register.
-+ * reg_win1: Control register.
-+ * reg_start: Start position register.
-+ * reg_blk: Black line register.
-+ * reg_subwin: Configuration register.
++ * struct isp - Structure for storing ISP Control module information
++ * @lock: Spinlock to sync between isr and processes.
++ * @isp_temp_buf_lock: Temporary spinlock for buffer control.
++ * @isp_mutex: Semaphore used to get access to the ISP.
++ * @if_status: Type of interface used in ISP.
++ * @interfacetype: (Not used).
++ * @ref_count: Reference counter.
++ * @cam_ick: Pointer to ISP Interface clock.
++ * @cam_fck: Pointer to ISP Functional clock.
++ *
++ * This structure is used to store the OMAP ISP Control Information.
 + */
-+static struct isph3a_aewb_regs {
-+       u32 reg_pcr;
-+       u32 reg_win1;
-+       u32 reg_start;
-+       u32 reg_blk;
-+       u32 reg_subwin;
-+} aewb_regs;
++static struct isp {
++       spinlock_t lock;        /* For handling registered ISP callbacks */
++       spinlock_t isp_temp_buf_lock;   /* For handling isp buffers state */
++       struct mutex isp_mutex; /* For handling ref_count field */
++       u8 if_status;
++       u8 interfacetype;
++       int ref_count;
++       struct clk *cam_ick;
++       struct clk *cam_mclk;
++       struct clk *csi2_fck;
++} isp_obj;
 +
-+static struct isph3a_aewb_config aewb_config_local =3D {
-+       .saturation_limit =3D 0x3FF,
-+       .win_height =3D 0,
-+       .win_width =3D 0,
-+       .ver_win_count =3D 0,
-+       .hor_win_count =3D 0,
-+       .ver_win_start =3D 0,
-+       .hor_win_start =3D 0,
-+       .blk_ver_win_start =3D 0,
-+       .blk_win_height =3D 0,
-+       .subsample_ver_inc =3D 0,
-+       .subsample_hor_inc =3D 0,
-+       .alaw_enable =3D 0,
-+       .aewb_enable =3D 0,
++struct isp_sgdma ispsg;
++
++/**
++ * struct ispmodule - Structure for storing ISP sub-module information.
++ * @isp_pipeline: Bit mask for submodules enabled within the ISP.
++ * @isp_temp_state: State of current buffers.
++ * @applyCrop: Flag to do a crop operation when video buffer queue ISR is done
++ * @pix: Structure containing the format and layout of the output image.
++ * @ccdc_input_width: ISP CCDC module input image width.
++ * @ccdc_input_height: ISP CCDC module input image height.
++ * @ccdc_output_width: ISP CCDC module output image width.
++ * @ccdc_output_height: ISP CCDC module output image height.
++ * @preview_input_width: ISP Preview module input image width.
++ * @preview_input_height: ISP Preview module input image height.
++ * @preview_output_width: ISP Preview module output image width.
++ * @preview_output_height: ISP Preview module output image height.
++ * @resizer_input_width: ISP Resizer module input image width.
++ * @resizer_input_height: ISP Resizer module input image height.
++ * @resizer_output_width: ISP Resizer module output image width.
++ * @resizer_output_height: ISP Resizer module output image height.
++ */
++struct ispmodule {
++       unsigned int isp_pipeline;
++       int isp_temp_state;
++       int applyCrop;
++       struct v4l2_pix_format pix;
++       unsigned int ccdc_input_width;
++       unsigned int ccdc_input_height;
++       unsigned int ccdc_output_width;
++       unsigned int ccdc_output_height;
++       unsigned int preview_input_width;
++       unsigned int preview_input_height;
++       unsigned int preview_output_width;
++       unsigned int preview_output_height;
++       unsigned int resizer_input_width;
++       unsigned int resizer_input_height;
++       unsigned int resizer_output_width;
++       unsigned int resizer_output_height;
 +};
 +
-+/* Structure for saving/restoring h3a module registers */
-+static struct isp_reg isph3a_reg_list[] =3D {
-+       {OMAP3_ISP_IOMEM_H3A, ISPH3A_AEWWIN1, 0},
-+       {OMAP3_ISP_IOMEM_H3A, ISPH3A_AEWINSTART, 0},
-+       {OMAP3_ISP_IOMEM_H3A, ISPH3A_AEWINBLK, 0},
-+       {OMAP3_ISP_IOMEM_H3A, ISPH3A_AEWSUBWIN, 0},
-+       {OMAP3_ISP_IOMEM_H3A, ISPH3A_AEWBUFST, 0},
-+       {OMAP3_ISP_IOMEM_H3A, ISPH3A_AFPAX1, 0},
-+       {OMAP3_ISP_IOMEM_H3A, ISPH3A_AFPAX2, 0},
-+       {OMAP3_ISP_IOMEM_H3A, ISPH3A_AFPAXSTART, 0},
-+       {OMAP3_ISP_IOMEM_H3A, ISPH3A_AFIIRSH, 0},
-+       {OMAP3_ISP_IOMEM_H3A, ISPH3A_AFBUFST, 0},
-+       {OMAP3_ISP_IOMEM_H3A, ISPH3A_AFCOEF010, 0},
-+       {OMAP3_ISP_IOMEM_H3A, ISPH3A_AFCOEF032, 0},
-+       {OMAP3_ISP_IOMEM_H3A, ISPH3A_AFCOEF054, 0},
-+       {OMAP3_ISP_IOMEM_H3A, ISPH3A_AFCOEF076, 0},
-+       {OMAP3_ISP_IOMEM_H3A, ISPH3A_AFCOEF098, 0},
-+       {OMAP3_ISP_IOMEM_H3A, ISPH3A_AFCOEF0010, 0},
-+       {OMAP3_ISP_IOMEM_H3A, ISPH3A_AFCOEF110, 0},
-+       {OMAP3_ISP_IOMEM_H3A, ISPH3A_AFCOEF132, 0},
-+       {OMAP3_ISP_IOMEM_H3A, ISPH3A_AFCOEF154, 0},
-+       {OMAP3_ISP_IOMEM_H3A, ISPH3A_AFCOEF176, 0},
-+       {OMAP3_ISP_IOMEM_H3A, ISPH3A_AFCOEF198, 0},
-+       {OMAP3_ISP_IOMEM_H3A, ISPH3A_AFCOEF1010, 0},
++static struct ispmodule ispmodule_obj = {
++       .isp_pipeline = OMAP_ISP_CCDC,
++       .isp_temp_state = ISP_BUF_INIT,
++       .applyCrop = 0,
++       .pix = {
++               .width = ISP_OUTPUT_WIDTH_DEFAULT,
++               .height = ISP_OUTPUT_HEIGHT_DEFAULT,
++               .pixelformat = V4L2_PIX_FMT_UYVY,
++               .field = V4L2_FIELD_NONE,
++               .bytesperline = ISP_OUTPUT_WIDTH_DEFAULT * ISP_BYTES_PER_PIXEL,
++               .colorspace = V4L2_COLORSPACE_JPEG,
++               .priv = 0,
++       },
++};
++
++/* Structure for saving/restoring ISP module registers */
++static struct isp_reg isp_reg_list[] = {
++       {OMAP3_ISP_IOMEM_MAIN, ISP_SYSCONFIG, 0},
++       {OMAP3_ISP_IOMEM_MAIN, ISP_TCTRL_GRESET_LENGTH, 0},
++       {OMAP3_ISP_IOMEM_MAIN, ISP_TCTRL_PSTRB_REPLAY, 0},
++       {OMAP3_ISP_IOMEM_MAIN, ISP_CTRL, 0},
++       {OMAP3_ISP_IOMEM_MAIN, ISP_TCTRL_CTRL, 0},
++       {OMAP3_ISP_IOMEM_MAIN, ISP_TCTRL_FRAME, 0},
++       {OMAP3_ISP_IOMEM_MAIN, ISP_TCTRL_PSTRB_DELAY, 0},
++       {OMAP3_ISP_IOMEM_MAIN, ISP_TCTRL_STRB_DELAY, 0},
++       {OMAP3_ISP_IOMEM_MAIN, ISP_TCTRL_SHUT_DELAY, 0},
++       {OMAP3_ISP_IOMEM_MAIN, ISP_TCTRL_PSTRB_LENGTH, 0},
++       {OMAP3_ISP_IOMEM_MAIN, ISP_TCTRL_STRB_LENGTH, 0},
++       {OMAP3_ISP_IOMEM_MAIN, ISP_TCTRL_SHUT_LENGTH, 0},
++       {OMAP3_ISP_IOMEM_CBUFF, ISP_CBUFF_SYSCONFIG, 0},
++       {OMAP3_ISP_IOMEM_CBUFF, ISP_CBUFF_IRQENABLE, 0},
++       {OMAP3_ISP_IOMEM_CBUFF, ISP_CBUFF0_CTRL, 0},
++       {OMAP3_ISP_IOMEM_CBUFF, ISP_CBUFF1_CTRL, 0},
++       {OMAP3_ISP_IOMEM_CBUFF, ISP_CBUFF0_START, 0},
++       {OMAP3_ISP_IOMEM_CBUFF, ISP_CBUFF1_START, 0},
++       {OMAP3_ISP_IOMEM_CBUFF, ISP_CBUFF0_END, 0},
++       {OMAP3_ISP_IOMEM_CBUFF, ISP_CBUFF1_END, 0},
++       {OMAP3_ISP_IOMEM_CBUFF, ISP_CBUFF0_WINDOWSIZE, 0},
++       {OMAP3_ISP_IOMEM_CBUFF, ISP_CBUFF1_WINDOWSIZE, 0},
++       {OMAP3_ISP_IOMEM_CBUFF, ISP_CBUFF0_THRESHOLD, 0},
++       {OMAP3_ISP_IOMEM_CBUFF, ISP_CBUFF1_THRESHOLD, 0},
 +       {0, ISP_TOK_TERM, 0}
 +};
 +
-+static struct ispprev_wbal h3awb_update;
-+static struct isph3a_aewb_buffer *active_buff;
-+static struct isph3a_aewb_xtrastats h3a_xtrastats[H3A_MAX_BUFF];
-+static int camnotify;
-+static int wb_update;
-+static void isph3a_print_status(void);
++u32 isp_reg_readl(enum isp_mem_resources isp_mmio_range, u32 reg_offset)
++{
++       return __raw_readl(omap3isp->mmio_base[isp_mmio_range] + reg_offset);
++}
++EXPORT_SYMBOL(isp_reg_readl);
++
++void isp_reg_writel(u32 reg_value, enum isp_mem_resources isp_mmio_range,
++                                                               u32 reg_offset)
++{
++       __raw_writel(reg_value, omap3isp->mmio_base[isp_mmio_range] + reg_offset);
++}
++EXPORT_SYMBOL(isp_reg_writel);
++
++/*
++ *
++ * V4L2 Handling
++ *
++ */
 +
 +/**
-+ * isph3a_aewb_setxtrastats - Receives extra statistics from prior frame=
-s.
-+ * @xtrastats: Pointer to structure containing extra statistics fields l=
-ike
-+ *             field count and timestamp of frame.
++ * find_vctrl - Returns the index of the ctrl array of the requested ctrl ID.
++ * @id: Requested control ID.
 + *
-+ * Called from update_vbq in camera driver
++ * Returns 0 if successful, -EINVAL if not found, or -EDOM if its out of
++ * domain.
 + **/
-+void isph3a_aewb_setxtrastats(struct isph3a_aewb_xtrastats *xtrastats)
++static int find_vctrl(int id)
 +{
 +       int i;
 +
-+       if (active_buff =3D=3D NULL)
-+               return;
++       if (id < V4L2_CID_BASE)
++               return -EDOM;
 +
-+       for (i =3D 0; i < H3A_MAX_BUFF; i++) {
-+               if (aewbstat.h3a_buff[i].frame_num !=3D active_buff->fram=
-e_num)
-+                       continue;
++       for (i = (ARRAY_SIZE(video_control) - 1); i >= 0; i--)
++               if (video_control[i].qc.id == id)
++                       break;
 +
-+               if (i =3D=3D 0) {
-+                       if (aewbstat.h3a_buff[H3A_MAX_BUFF - 1].
-+                                                       locked =3D=3D 0) =
-{
-+                               h3a_xtrastats[H3A_MAX_BUFF - 1] =3D
-+                                                       *xtrastats;
-+                       } else {
-+                               h3a_xtrastats[H3A_MAX_BUFF - 2] =3D
-+                                                       *xtrastats;
-+                       }
-+               } else if (i =3D=3D 1) {
-+                       if (aewbstat.h3a_buff[0].locked =3D=3D 0)
-+                               h3a_xtrastats[0] =3D *xtrastats;
-+                       else {
-+                               h3a_xtrastats[H3A_MAX_BUFF - 1] =3D
-+                                                       *xtrastats;
-+                       }
-+               } else {
-+                       if (aewbstat.h3a_buff[i - 1].locked =3D=3D 0)
-+                               h3a_xtrastats[i - 1] =3D *xtrastats;
-+                       else
-+                               h3a_xtrastats[i - 2] =3D *xtrastats;
++       if (i < 0)
++               i = -EINVAL;
++
++       return i;
++}
++
++static int find_next_vctrl(int id)
++{
++       int i;
++       u32 best = (u32)-1;
++
++       for (i = 0; i < ARRAY_SIZE(video_control); i++) {
++               if (video_control[i].qc.id > id &&
++                                               (best == (u32)-1 ||
++                                               video_control[i].qc.id <
++                                               video_control[best].qc.id)) {
++                       best = i;
 +               }
-+               return;
 +       }
-+}
-+EXPORT_SYMBOL(isph3a_aewb_setxtrastats);
 +
-+/**
-+ * isph3a_aewb_enable - Enables AE, AWB engine in the H3A module.
-+ * @enable: 1 - Enables the AE & AWB engine.
-+ *
-+ * Client should configure all the AE & AWB registers in H3A before this=
-.
-+ **/
-+static void isph3a_aewb_enable(u8 enable)
-+{
-+       isp_reg_writel(IRQ0STATUS_H3A_AWB_DONE_IRQ, OMAP3_ISP_IOMEM_MAIN,=
- ISP_IRQ0STATUS);
++       if (best == (u32)-1)
++               return -EINVAL;
 +
-+       if (enable) {
-+               aewb_regs.reg_pcr |=3D ISPH3A_PCR_AEW_EN;
-+               isp_reg_writel(isp_reg_readl(OMAP3_ISP_IOMEM_H3A, ISPH3A_=
-PCR) | ISPH3A_PCR_AEW_EN,
-+                                       OMAP3_ISP_IOMEM_H3A, ISPH3A_PCR);
-+               DPRINTK_ISPH3A("    H3A enabled \n");
-+       } else {
-+               aewb_regs.reg_pcr &=3D ~ISPH3A_PCR_AEW_EN;
-+               isp_reg_writel(isp_reg_readl(OMAP3_ISP_IOMEM_H3A, ISPH3A_=
-PCR) & ~ISPH3A_PCR_AEW_EN,
-+                                       OMAP3_ISP_IOMEM_H3A, ISPH3A_PCR);
-+               DPRINTK_ISPH3A("    H3A disabled \n");
-+       }
-+       aewb_config_local.aewb_enable =3D enable;
++       return best;
 +}
 +
 +/**
-+ * isph3a_update_wb - Updates WB parameters.
++ * find_vmenu - Returns the index of the menu array of the requested ctrl option
++ * @id: Requested control ID.
++ * @index: Requested menu option index.
 + *
-+ * Needs to be called when no ISP Preview processing is taking place.
++ * Returns 0 if successful, -EINVAL if not found, or -EDOM if its out of
++ * domain.
 + **/
-+void isph3a_update_wb(void)
++static int find_vmenu(int id, int index)
 +{
-+       if (wb_update) {
-+               isppreview_config_whitebalance(h3awb_update);
-+               wb_update =3D 0;
++       int i;
++
++       if (id < V4L2_CID_BASE)
++               return -EDOM;
++
++       for (i = (ARRAY_SIZE(video_menu) - 1); i >= 0; i--) {
++               if ((video_menu[i].id != id) || (video_menu[i].index != index))
++                       continue;
++               return i;
 +       }
++
++       return -EINVAL;
++}
++
++/**
++ * isp_release_resources - Free ISP submodules
++ **/
++void isp_release_resources(void)
++{
++       if (ispmodule_obj.isp_pipeline & OMAP_ISP_CCDC)
++               ispccdc_free();
++
++       if (ispmodule_obj.isp_pipeline & OMAP_ISP_PREVIEW)
++               isppreview_free();
++
++       if (ispmodule_obj.isp_pipeline & OMAP_ISP_RESIZER)
++               ispresizer_free();
 +       return;
 +}
-+EXPORT_SYMBOL(isph3a_update_wb);
++EXPORT_SYMBOL(omapisp_unset_callback);
++
++/* Flag to check first time of isp_get */
++static int off_mode;
 +
 +/**
-+ * isph3a_aewb_update_regs - Helper function to update h3a registers.
++ * isp_set_sgdma_callback - Set Scatter-Gather DMA Callback.
++ * @sgdma_state: Pointer to structure with the SGDMA state for each videobuffer
++ * @func_ptr: Callback function pointer for SG-DMA management
 + **/
-+static void isph3a_aewb_update_regs(void)
++static int isp_set_sgdma_callback(struct isp_sgdma_state *sgdma_state,
++                                               isp_vbq_callback_ptr func_ptr)
 +{
-+       isp_reg_writel(aewb_regs.reg_pcr, OMAP3_ISP_IOMEM_H3A, ISPH3A_PCR=
-);
-+       isp_reg_writel(aewb_regs.reg_win1, OMAP3_ISP_IOMEM_H3A, ISPH3A_AE=
-WWIN1);
-+       isp_reg_writel(aewb_regs.reg_start, OMAP3_ISP_IOMEM_H3A, ISPH3A_A=
-EWINSTART);
-+       isp_reg_writel(aewb_regs.reg_blk, OMAP3_ISP_IOMEM_H3A, ISPH3A_AEW=
-INBLK);
-+       isp_reg_writel(aewb_regs.reg_subwin, OMAP3_ISP_IOMEM_H3A, ISPH3A_=
-AEWSUBWIN);
++       if ((ispmodule_obj.isp_pipeline & OMAP_ISP_RESIZER) &&
++                                               is_ispresizer_enabled()) {
++               isp_set_callback(CBK_RESZ_DONE, sgdma_state->callback,
++                                               func_ptr, sgdma_state->arg);
++       }
 +
-+       aewbstat.update =3D 0;
-+       aewbstat.frame_count =3D 0;
++       if ((ispmodule_obj.isp_pipeline & OMAP_ISP_PREVIEW) &&
++                                               is_isppreview_enabled()) {
++               isp_set_callback(CBK_PREV_DONE, sgdma_state->callback,
++                                               func_ptr, sgdma_state->arg);
++       }
++
++       if (ispmodule_obj.isp_pipeline & OMAP_ISP_CCDC) {
++               isp_set_callback(CBK_CCDC_VD0, sgdma_state->callback, func_ptr,
++                                                       sgdma_state->arg);
++               isp_set_callback(CBK_CCDC_VD1, sgdma_state->callback, func_ptr,
++                                                       sgdma_state->arg);
++               isp_set_callback(CBK_LSC_ISR, NULL, NULL, NULL);
++       }
++
++       isp_set_callback(CBK_HS_VS, sgdma_state->callback, func_ptr,
++                                                       sgdma_state->arg);
++       return 0;
 +}
 +
 +/**
-+ * isph3a_aewb_update_req_buffer - Helper function to update buffer cach=
-e pages
-+ * @buffer: Pointer to structure
-+ **/
-+static void isph3a_aewb_update_req_buffer(struct isph3a_aewb_buffer *buf=
-fer)
-+{
-+       int size =3D aewbstat.stats_buf_size;
-+
-+       size =3D PAGE_ALIGN(size);
-+       dmac_inv_range((void *)buffer->addr_align,
-+                                       (void *)buffer->addr_align + size=
-);
-+}
-+
-+/**
-+ * isph3a_aewb_stats_available - Check for stats available of specified =
-frame.
-+ * @aewbdata: Pointer to return AE AWB statistics data
++ * isp_set_callback - Sets the callback for the ISP module done events.
++ * @type: Type of the event for which callback is requested.
++ * @callback: Method to be called as callback in the ISR context.
++ * @arg1: First argument to be passed when callback is called in ISR.
++ * @arg2: Second argument to be passed when callback is called in ISR.
 + *
-+ * Returns 0 if successful, or -1 if statistics are unavailable.
++ * This function sets a callback function for a done event in the ISP
++ * module, and enables the corresponding interrupt.
 + **/
-+static int isph3a_aewb_stats_available(struct isph3a_aewb_data *aewbdata=
-)
++int isp_set_callback(enum isp_callback_type type, isp_callback_t callback,
++                                               isp_vbq_callback_ptr arg1,
++                                               void *arg2)
 +{
-+       int i, ret;
-+       unsigned long irqflags;
++       unsigned long irqflags = 0;
 +
-+       spin_lock_irqsave(&aewbstat.buffer_lock, irqflags);
-+       for (i =3D 0; i < H3A_MAX_BUFF; i++) {
-+               if ((aewbdata->frame_number !=3D aewbstat.h3a_buff[i].fra=
-me_num) ||
-+                       (aewbstat.h3a_buff[i].frame_num =3D=3D active_buf=
-f->frame_num))
-+                       continue;
-+               aewbstat.h3a_buff[i].locked =3D 1;
-+               spin_unlock_irqrestore(&aewbstat.buffer_lock, irqflags);
-+               isph3a_aewb_update_req_buffer(&aewbstat.h3a_buff[i]);
-+               aewbstat.h3a_buff[i].frame_num =3D 0;
-+               ret =3D copy_to_user((void *)aewbdata->h3a_aewb_statistic=
-s_buf,
-+                                       (void *)aewbstat.h3a_buff[i].virt=
-_addr,
-+                                       aewbstat.curr_cfg_buf_size);
-+               if (ret) {
-+                       printk(KERN_ERR "Failed copy_to_user for "
-+                                       "H3A stats buff, %d\n", ret);
-+               }
-+               aewbdata->ts =3D aewbstat.h3a_buff[i].ts;
-+               aewbdata->field_count =3D h3a_xtrastats[i].field_count;
++       if (callback == NULL) {
++               DPRINTK_ISPCTRL("ISP_ERR : Null Callback\n");
++               return -EINVAL;
++       }
++
++       spin_lock_irqsave(&isp_obj.lock, irqflags);
++       ispirq_obj.isp_callbk[type] = callback;
++       ispirq_obj.isp_callbk_arg1[type] = arg1;
++       ispirq_obj.isp_callbk_arg2[type] = arg2;
++       spin_unlock_irqrestore(&isp_obj.lock, irqflags);
++
++       switch (type) {
++       case CBK_HS_VS:
++               isp_reg_writel(IRQ0ENABLE_HS_VS_IRQ, OMAP3_ISP_IOMEM_MAIN, ISP_IRQ0STATUS);
++               isp_reg_writel(isp_reg_readl(OMAP3_ISP_IOMEM_MAIN, ISP_IRQ0ENABLE) | IRQ0ENABLE_HS_VS_IRQ,
++                                                       OMAP3_ISP_IOMEM_MAIN, ISP_IRQ0ENABLE);
++               break;
++       case CBK_PREV_DONE:
++               isp_reg_writel(IRQ0ENABLE_PRV_DONE_IRQ, OMAP3_ISP_IOMEM_MAIN, ISP_IRQ0STATUS);
++               isp_reg_writel(isp_reg_readl(OMAP3_ISP_IOMEM_MAIN, ISP_IRQ0ENABLE) |
++                                       IRQ0ENABLE_PRV_DONE_IRQ,
++                                       OMAP3_ISP_IOMEM_MAIN,
++                                       ISP_IRQ0ENABLE);
++               break;
++       case CBK_RESZ_DONE:
++               isp_reg_writel(IRQ0ENABLE_RSZ_DONE_IRQ, OMAP3_ISP_IOMEM_MAIN, ISP_IRQ0STATUS);
++               isp_reg_writel(isp_reg_readl(OMAP3_ISP_IOMEM_MAIN, ISP_IRQ0ENABLE) |
++                                       IRQ0ENABLE_RSZ_DONE_IRQ,
++                                       OMAP3_ISP_IOMEM_MAIN,
++                                       ISP_IRQ0ENABLE);
++               break;
++       case CBK_MMU_ERR:
++               isp_reg_writel(isp_reg_readl(OMAP3_ISP_IOMEM_MAIN, ISP_IRQ0ENABLE) |
++                                       IRQ0ENABLE_MMU_ERR_IRQ,
++                                       OMAP3_ISP_IOMEM_MAIN,
++                                       ISP_IRQ0ENABLE);
++
++               isp_reg_writel(isp_reg_readl(OMAP3_ISP_IOMEM_MMU, ISPMMU_IRQENABLE) |
++                                       IRQENABLE_MULTIHITFAULT |
++                                       IRQENABLE_TWFAULT |
++                                       IRQENABLE_EMUMISS |
++                                       IRQENABLE_TRANSLNFAULT |
++                                       IRQENABLE_TLBMISS,
++                                       OMAP3_ISP_IOMEM_MMU,
++                                       ISPMMU_IRQENABLE);
++               break;
++       case CBK_H3A_AWB_DONE:
++               isp_reg_writel(IRQ0ENABLE_H3A_AWB_DONE_IRQ, OMAP3_ISP_IOMEM_MAIN, ISP_IRQ0STATUS);
++               isp_reg_writel(isp_reg_readl(OMAP3_ISP_IOMEM_MAIN, ISP_IRQ0ENABLE) |
++                                       IRQ0ENABLE_H3A_AWB_DONE_IRQ,
++                                       OMAP3_ISP_IOMEM_MAIN,
++                                       ISP_IRQ0ENABLE);
++               break;
++       case CBK_H3A_AF_DONE:
++               isp_reg_writel(IRQ0ENABLE_H3A_AF_DONE_IRQ, OMAP3_ISP_IOMEM_MAIN, ISP_IRQ0STATUS);
++               isp_reg_writel(isp_reg_readl(OMAP3_ISP_IOMEM_MAIN, ISP_IRQ0ENABLE)|
++                                       IRQ0ENABLE_H3A_AF_DONE_IRQ,
++                                       OMAP3_ISP_IOMEM_MAIN,
++                                       ISP_IRQ0ENABLE);
++               break;
++       case CBK_HIST_DONE:
++               isp_reg_writel(IRQ0ENABLE_HIST_DONE_IRQ, OMAP3_ISP_IOMEM_MAIN, ISP_IRQ0STATUS);
++               isp_reg_writel(isp_reg_readl(OMAP3_ISP_IOMEM_MAIN, ISP_IRQ0ENABLE) |
++                                       IRQ0ENABLE_HIST_DONE_IRQ,
++                                       OMAP3_ISP_IOMEM_MAIN,
++                                       ISP_IRQ0ENABLE);
++               break;
++       case CBK_LSC_ISR:
++               isp_reg_writel(IRQ0ENABLE_CCDC_LSC_DONE_IRQ |
++                                       IRQ0ENABLE_CCDC_LSC_PREF_COMP_IRQ |
++                                       IRQ0ENABLE_CCDC_LSC_PREF_ERR_IRQ,
++                                       OMAP3_ISP_IOMEM_MAIN,
++                                       ISP_IRQ0STATUS);
++               isp_reg_writel(isp_reg_readl(OMAP3_ISP_IOMEM_MAIN, ISP_IRQ0ENABLE) |
++                                       IRQ0ENABLE_CCDC_LSC_DONE_IRQ |
++                                       IRQ0ENABLE_CCDC_LSC_PREF_COMP_IRQ |
++                                       IRQ0ENABLE_CCDC_LSC_PREF_ERR_IRQ,
++                                       OMAP3_ISP_IOMEM_MAIN,
++                                       ISP_IRQ0ENABLE);
++               break;
++       default:
++               break;
++       }
++
++       return 0;
++}
++EXPORT_SYMBOL(isp_set_callback);
++
++/**
++ * isp_unset_callback - Clears the callback for the ISP module done events.
++ * @type: Type of the event for which callback to be cleared.
++ *
++ * This function clears a callback function for a done event in the ISP
++ * module, and disables the corresponding interrupt.
++ **/
++int isp_unset_callback(enum isp_callback_type type)
++{
++       unsigned long irqflags = 0;
++
++       spin_lock_irqsave(&isp_obj.lock, irqflags);
++       ispirq_obj.isp_callbk[type] = NULL;
++       ispirq_obj.isp_callbk_arg1[type] = NULL;
++       ispirq_obj.isp_callbk_arg2[type] = NULL;
++       spin_unlock_irqrestore(&isp_obj.lock, irqflags);
++
++       switch (type) {
++       case CBK_CCDC_VD0:
++               isp_reg_writel((isp_reg_readl(OMAP3_ISP_IOMEM_MAIN, ISP_IRQ0ENABLE)) &
++                                               ~IRQ0ENABLE_CCDC_VD0_IRQ,
++                                               OMAP3_ISP_IOMEM_MAIN,
++                                               ISP_IRQ0ENABLE);
++               break;
++       case CBK_CCDC_VD1:
++               isp_reg_writel((isp_reg_readl(OMAP3_ISP_IOMEM_MAIN, ISP_IRQ0ENABLE)) &
++                                               ~IRQ0ENABLE_CCDC_VD1_IRQ,
++                                               OMAP3_ISP_IOMEM_MAIN,
++                                               ISP_IRQ0ENABLE);
++               break;
++       case CBK_PREV_DONE:
++               isp_reg_writel((isp_reg_readl(OMAP3_ISP_IOMEM_MAIN, ISP_IRQ0ENABLE)) &
++                                               ~IRQ0ENABLE_PRV_DONE_IRQ,
++                                               OMAP3_ISP_IOMEM_MAIN,
++                                               ISP_IRQ0ENABLE);
++               break;
++       case CBK_RESZ_DONE:
++               isp_reg_writel((isp_reg_readl(OMAP3_ISP_IOMEM_MAIN, ISP_IRQ0ENABLE)) &
++                                               ~IRQ0ENABLE_RSZ_DONE_IRQ,
++                                               OMAP3_ISP_IOMEM_MAIN,
++                                               ISP_IRQ0ENABLE);
++               break;
++       case CBK_MMU_ERR:
++               isp_reg_writel(isp_reg_readl(OMAP3_ISP_IOMEM_MAIN, ISPMMU_IRQENABLE) &
++                                               ~(IRQENABLE_MULTIHITFAULT |
++                                               IRQENABLE_TWFAULT |
++                                               IRQENABLE_EMUMISS |
++                                               IRQENABLE_TRANSLNFAULT |
++                                               IRQENABLE_TLBMISS),
++                                               OMAP3_ISP_IOMEM_MMU,
++                                               ISPMMU_IRQENABLE);
++               break;
++       case CBK_H3A_AWB_DONE:
++               isp_reg_writel((isp_reg_readl(OMAP3_ISP_IOMEM_MAIN, ISP_IRQ0ENABLE)) &
++                                               ~IRQ0ENABLE_H3A_AWB_DONE_IRQ,
++                                               OMAP3_ISP_IOMEM_MAIN,
++                                               ISP_IRQ0ENABLE);
++               break;
++       case CBK_H3A_AF_DONE:
++               isp_reg_writel((isp_reg_readl(OMAP3_ISP_IOMEM_MAIN, ISP_IRQ0ENABLE))&
++                                               ~IRQ0ENABLE_H3A_AF_DONE_IRQ,
++                                               OMAP3_ISP_IOMEM_MAIN,
++                                               ISP_IRQ0ENABLE);
++               break;
++       case CBK_HIST_DONE:
++               isp_reg_writel((isp_reg_readl(OMAP3_ISP_IOMEM_MAIN, ISP_IRQ0ENABLE)) &
++                                               ~IRQ0ENABLE_HIST_DONE_IRQ,
++                                               OMAP3_ISP_IOMEM_MAIN,
++                                               ISP_IRQ0ENABLE);
++               break;
++       case CBK_HS_VS:
++               isp_reg_writel((isp_reg_readl(OMAP3_ISP_IOMEM_MAIN, ISP_IRQ0ENABLE)) &
++                                               ~IRQ0ENABLE_HS_VS_IRQ,
++                                               OMAP3_ISP_IOMEM_MAIN,
++                                               ISP_IRQ0ENABLE);
++               break;
++       case CBK_LSC_ISR:
++               isp_reg_writel(isp_reg_readl(OMAP3_ISP_IOMEM_MAIN, ISP_IRQ0ENABLE) &
++                                       ~(IRQ0ENABLE_CCDC_LSC_DONE_IRQ |
++                                       IRQ0ENABLE_CCDC_LSC_PREF_COMP_IRQ |
++                                       IRQ0ENABLE_CCDC_LSC_PREF_ERR_IRQ),
++                                       OMAP3_ISP_IOMEM_MAIN,
++                                       ISP_IRQ0ENABLE);
++               break;
++       case CBK_CSIA:
++               isp_csi2_irq_set(0);
++               break;
++       case CBK_CSIB:
++               isp_reg_writel(IRQ0ENABLE_CSIB_IRQ, OMAP3_ISP_IOMEM_MAIN, ISP_IRQ0STATUS);
++               isp_reg_writel(isp_reg_readl(OMAP3_ISP_IOMEM_MAIN, ISP_IRQ0ENABLE) |
++                                       IRQ0ENABLE_CSIB_IRQ,
++                                       OMAP3_ISP_IOMEM_MAIN,
++                                       ISP_IRQ0ENABLE);
++               break;
++       default:
++               break;
++       }
++
++       return 0;
++}
++EXPORT_SYMBOL(isp_unset_callback);
++
++/**
++ * isp_request_interface - Requests an ISP interface type (parallel or serial).
++ * @if_t: Type of requested ISP interface (parallel or serial).
++ *
++ * This function requests for allocation of an ISP interface type.
++ **/
++int isp_request_interface(enum isp_interface_type if_t)
++{
++       if (isp_obj.if_status & if_t) {
++               DPRINTK_ISPCTRL("ISP_ERR : Requested Interface already \
++                       allocated\n");
++               return -EBUSY;
++       }
++       if ((isp_obj.if_status == (ISP_PARLL | ISP_CSIA))
++                       || isp_obj.if_status == (ISP_CSIA | ISP_CSIB)) {
++               DPRINTK_ISPCTRL("ISP_ERR : No Free interface now\n");
++               return -EBUSY;
++       }
++
++       if ((isp_obj.if_status == ISP_PARLL && if_t == ISP_CSIA) ||
++                       (isp_obj.if_status == ISP_CSIA && if_t == ISP_PARLL) ||
++                       (isp_obj.if_status == ISP_CSIA && if_t == ISP_CSIB) ||
++                       (isp_obj.if_status == ISP_CSIB && if_t == ISP_CSIA) ||
++                       (isp_obj.if_status == 0)) {
++               isp_obj.if_status |= if_t;
 +               return 0;
-+       }
-+       spin_unlock_irqrestore(&aewbstat.buffer_lock, irqflags);
-+
-+       return -1;
-+}
-+
-+/**
-+ * isph3a_aewb_link_buffers - Helper function to link allocated buffers.
-+ **/
-+static void isph3a_aewb_link_buffers(void)
-+{
-+       int i;
-+
-+       for (i =3D 0; i < H3A_MAX_BUFF; i++) {
-+               if ((i + 1) < H3A_MAX_BUFF) {
-+                       aewbstat.h3a_buff[i].next =3D &aewbstat.h3a_buff[=
-i + 1];
-+                       h3a_xtrastats[i].next =3D &h3a_xtrastats[i + 1];
-+               } else {
-+                       aewbstat.h3a_buff[i].next =3D &aewbstat.h3a_buff[=
-0];
-+                       h3a_xtrastats[i].next =3D &h3a_xtrastats[0];
-+               }
++       } else {
++               DPRINTK_ISPCTRL("ISP_ERR : Invalid Combination Serial- \
++                       Parallel interface\n");
++               return -EINVAL;
 +       }
 +}
++EXPORT_SYMBOL(isp_request_interface);
 +
 +/**
-+ * isph3a_aewb_unlock_buffers - Helper function to unlock all buffers.
-+ **/
-+static void isph3a_aewb_unlock_buffers(void)
-+{
-+       int i;
-+       unsigned long irqflags;
-+
-+       spin_lock_irqsave(&aewbstat.buffer_lock, irqflags);
-+       for (i =3D 0; i < H3A_MAX_BUFF; i++)
-+               aewbstat.h3a_buff[i].locked =3D 0;
-+
-+       spin_unlock_irqrestore(&aewbstat.buffer_lock, irqflags);
-+}
-+
-+/**
-+ * isph3a_aewb_isr - Callback from ISP driver for H3A AEWB interrupt.
-+ * @status: IRQ0STATUS in case of MMU error, 0 for H3A interrupt.
-+ * @arg1: Not used as of now.
-+ * @arg2: Not used as of now.
-+ */
-+static void isph3a_aewb_isr(unsigned long status, isp_vbq_callback_ptr a=
-rg1,
-+                                                               void *arg=
-2)
-+{
-+       u16 frame_align;
-+
-+       if ((H3A_AWB_DONE & status) !=3D H3A_AWB_DONE)
-+               return;
-+
-+       do_gettimeofday(&active_buff->ts);
-+       active_buff =3D active_buff->next;
-+       if (active_buff->locked =3D=3D 1)
-+               active_buff =3D active_buff->next;
-+       isp_reg_writel(active_buff->ispmmu_addr, OMAP3_ISP_IOMEM_H3A, ISP=
-H3A_AEWBUFST);
-+
-+       aewbstat.frame_count++;
-+       frame_align =3D aewbstat.frame_count;
-+       if (aewbstat.frame_count > MAX_FRAME_COUNT) {
-+               aewbstat.frame_count =3D 1;
-+               frame_align++;
-+       }
-+       active_buff->frame_num =3D aewbstat.frame_count;
-+
-+       if (aewbstat.stats_req) {
-+               DPRINTK_ISPH3A("waiting for frame %d\n", aewbstat.frame_r=
-eq);
-+               if (frame_align >=3D (aewbstat.frame_req + 1)) {
-+                       aewbstat.stats_req =3D 0;
-+                       aewbstat.stats_done =3D 1;
-+                       wake_up_interruptible(&aewbstat.stats_wait);
-+               }
-+       }
-+
-+       if (aewbstat.update)
-+               isph3a_aewb_update_regs();
-+}
-+
-+/**
-+ * isph3a_aewb_set_params - Helper function to check & store user given =
-params.
-+ * @user_cfg: Pointer to AE and AWB parameters struct.
++ * isp_free_interface - Frees an ISP interface type (parallel or serial).
++ * @if_t: Type of ISP interface to be freed (parallel or serial).
 + *
-+ * As most of them are busy-lock registers, need to wait until AEW_BUSY =
-=3D 0 to
-+ * program them during ISR.
-+ *
-+ * Returns 0 if successful, or -EINVAL if any of the parameters are inva=
-lid.
++ * This function frees the allocation of an ISP interface type.
 + **/
-+static int isph3a_aewb_set_params(struct isph3a_aewb_config *user_cfg)
++int isp_free_interface(enum isp_interface_type if_t)
 +{
-+       if (unlikely(user_cfg->saturation_limit > MAX_SATURATION_LIM)) {
-+               printk(KERN_ERR "Invalid Saturation_limit: %d\n",
-+                       user_cfg->saturation_limit);
++       isp_obj.if_status &= ~if_t;
++       return 0;
++}
++EXPORT_SYMBOL(isp_free_interface);
++
++/**
++ * isp_set_xclk - Configures the specified cam_xclk to the desired frequency.
++ * @xclk: Desired frequency of the clock in Hz.
++ * @xclksel: XCLK to configure (0 = A, 1 = B).
++ *
++ * Configures the specified MCLK divisor in the ISP timing control register
++ * (TCTRL_CTRL) to generate the desired xclk clock value.
++ *
++ * Divisor = CM_CAM_MCLK_HZ / xclk
++ *
++ * Returns the final frequency that is actually being generated
++ **/
++u32 isp_set_xclk(u32 xclk, u8 xclksel)
++{
++       u32 divisor;
++       u32 currentxclk;
++
++       if (xclk >= CM_CAM_MCLK_HZ) {
++               divisor = ISPTCTRL_CTRL_DIV_BYPASS;
++               currentxclk = CM_CAM_MCLK_HZ;
++       } else if (xclk >= 2) {
++               divisor = CM_CAM_MCLK_HZ / xclk;
++               if (divisor >= ISPTCTRL_CTRL_DIV_BYPASS)
++                       divisor = ISPTCTRL_CTRL_DIV_BYPASS - 1;
++               currentxclk = CM_CAM_MCLK_HZ / divisor;
++       } else {
++               divisor = xclk;
++               currentxclk = 0;
++       }
++
++       switch (xclksel) {
++       case 0:
++               isp_reg_writel((isp_reg_readl(OMAP3_ISP_IOMEM_MAIN, ISP_TCTRL_CTRL) &
++                               ~ISPTCTRL_CTRL_DIVA_MASK) |
++                               (divisor << ISPTCTRL_CTRL_DIVA_SHIFT),
++                               OMAP3_ISP_IOMEM_MAIN,
++                               ISP_TCTRL_CTRL);
++               DPRINTK_ISPCTRL("isp_set_xclk(): cam_xclka set to %d Hz\n",
++                                                               currentxclk);
++               break;
++       case 1:
++               isp_reg_writel((isp_reg_readl(OMAP3_ISP_IOMEM_MAIN, ISP_TCTRL_CTRL) &
++                               ~ISPTCTRL_CTRL_DIVB_MASK) |
++                               (divisor << ISPTCTRL_CTRL_DIVB_SHIFT),
++                               OMAP3_ISP_IOMEM_MAIN,
++                               ISP_TCTRL_CTRL);
++               DPRINTK_ISPCTRL("isp_set_xclk(): cam_xclkb set to %d Hz\n",
++                                                               currentxclk);
++               break;
++       default:
++               DPRINTK_ISPCTRL("ISP_ERR: isp_set_xclk(): Invalid requested "
++                                               "xclk. Must be 0 (A) or 1 (B)."
++                                               "\n");
 +               return -EINVAL;
 +       }
-+       if (aewb_config_local.saturation_limit !=3D user_cfg->saturation_=
-limit) {
-+               WRITE_SAT_LIM(aewb_regs.reg_pcr, user_cfg->saturation_lim=
-it);
-+               aewb_config_local.saturation_limit =3D
-+                                               user_cfg->saturation_limi=
-t;
-+               aewbstat.update =3D 1;
-+       }
 +
-+       if (aewb_config_local.alaw_enable !=3D user_cfg->alaw_enable) {
-+               WRITE_ALAW(aewb_regs.reg_pcr, user_cfg->alaw_enable);
-+               aewb_config_local.alaw_enable =3D user_cfg->alaw_enable;
-+               aewbstat.update =3D 1;
-+       }
++       return currentxclk;
++}
++EXPORT_SYMBOL(isp_set_xclk);
 +
-+       if (unlikely((user_cfg->win_height < MIN_WIN_H) ||
-+                                       (user_cfg->win_height > MAX_WIN_H=
-) ||
-+                                       (user_cfg->win_height & 0x01))) {
-+               printk(KERN_ERR "Invalid window height: %d\n",
-+                                                       user_cfg->win_hei=
-ght);
++/**
++ * isp_get_xclk - Returns the frequency in Hz of the desired cam_xclk.
++ * @xclksel: XCLK to retrieve (0 = A, 1 = B).
++ *
++ * This function returns the External Clock (XCLKA or XCLKB) value generated
++ * by the ISP.
++ **/
++u32 isp_get_xclk(u8 xclksel)
++{
++       u32 xclkdiv;
++       u32 xclk;
++
++       switch (xclksel) {
++       case 0:
++               xclkdiv = isp_reg_readl(OMAP3_ISP_IOMEM_MAIN, ISP_TCTRL_CTRL) & ISPTCTRL_CTRL_DIVA_MASK;
++               xclkdiv = xclkdiv >> ISPTCTRL_CTRL_DIVA_SHIFT;
++               break;
++       case 1:
++               xclkdiv = isp_reg_readl(OMAP3_ISP_IOMEM_MAIN, ISP_TCTRL_CTRL) & ISPTCTRL_CTRL_DIVB_MASK;
++               xclkdiv = xclkdiv >> ISPTCTRL_CTRL_DIVB_SHIFT;
++               break;
++       default:
++               DPRINTK_ISPCTRL("ISP_ERR: isp_get_xclk(): Invalid requested "
++                                               "xclk. Must be 0 (A) or 1 (B)."
++                                               "\n");
 +               return -EINVAL;
 +       }
-+       if (aewb_config_local.win_height !=3D user_cfg->win_height) {
-+               WRITE_WIN_H(aewb_regs.reg_win1, user_cfg->win_height);
-+               aewb_config_local.win_height =3D user_cfg->win_height;
-+               aewbstat.update =3D 1;
++
++       switch (xclkdiv) {
++       case 0:
++       case 1:
++               xclk = 0;
++               break;
++       case 0x1f:
++               xclk = CM_CAM_MCLK_HZ;
++               break;
++       default:
++               xclk = CM_CAM_MCLK_HZ / xclkdiv;
++               break;
 +       }
 +
-+       if (unlikely((user_cfg->win_width < MIN_WIN_W) ||
-+                                       (user_cfg->win_width > MAX_WIN_W)=
- ||
-+                                       (user_cfg->win_width & 0x01))) {
-+               printk(KERN_ERR "Invalid window width: %d\n",
-+                                                       user_cfg->win_wid=
-th);
++       return xclk;
++}
++EXPORT_SYMBOL(isp_get_xclk);
++
++/**
++ * isp_power_settings - Sysconfig settings, for Power Management.
++ * @isp_sysconfig: Structure containing the power settings for ISP to configure
++ *
++ * Sets the power settings for the ISP, and SBL bus.
++ **/
++void isp_power_settings(struct isp_sysc isp_sysconfig)
++{
++       if (isp_sysconfig.idle_mode) {
++               isp_reg_writel(ISP_SYSCONFIG_AUTOIDLE |
++                               (ISP_SYSCONFIG_MIDLEMODE_SMARTSTANDBY <<
++                               ISP_SYSCONFIG_MIDLEMODE_SHIFT),
++                               OMAP3_ISP_IOMEM_MAIN,
++                               ISP_SYSCONFIG);
++
++               isp_reg_writel(ISPMMU_AUTOIDLE | (ISPMMU_SIDLEMODE_SMARTIDLE <<
++                                               ISPMMU_SIDLEMODE_SHIFT),
++                                               OMAP3_ISP_IOMEM_MMU,
++                                               ISPMMU_SYSCONFIG);
++               if (omap_rev() == OMAP3430_REV_ES1_0) {
++                       isp_reg_writel(ISPCSI1_AUTOIDLE |
++                                       (ISPCSI1_MIDLEMODE_SMARTSTANDBY <<
++                                       ISPCSI1_MIDLEMODE_SHIFT),
++                                       OMAP3_ISP_IOMEM_CSI2A,
++                                       ISP_CSIA_SYSCONFIG);
++                       isp_reg_writel(ISPCSI1_AUTOIDLE |
++                                       (ISPCSI1_MIDLEMODE_SMARTSTANDBY <<
++                                       ISPCSI1_MIDLEMODE_SHIFT),
++                                       OMAP3_ISP_IOMEM_CCP2,
++                                       ISP_CSIB_SYSCONFIG);
++               }
++               isp_reg_writel(ISPCTRL_SBL_AUTOIDLE, OMAP3_ISP_IOMEM_MAIN, ISP_CTRL);
++
++       } else {
++               isp_reg_writel(ISP_SYSCONFIG_AUTOIDLE |
++                               (ISP_SYSCONFIG_MIDLEMODE_FORCESTANDBY <<
++                               ISP_SYSCONFIG_MIDLEMODE_SHIFT),
++                               OMAP3_ISP_IOMEM_MAIN,
++                               ISP_SYSCONFIG);
++
++               isp_reg_writel(ISPMMU_AUTOIDLE | (ISPMMU_SIDLEMODE_NOIDLE <<
++                                                       ISPMMU_SIDLEMODE_SHIFT),
++                                                       OMAP3_ISP_IOMEM_MMU,
++                                                       ISPMMU_SYSCONFIG);
++               if (omap_rev() == OMAP3430_REV_ES1_0) {
++                       isp_reg_writel(ISPCSI1_AUTOIDLE |
++                                       (ISPCSI1_MIDLEMODE_FORCESTANDBY <<
++                                       ISPCSI1_MIDLEMODE_SHIFT),
++                                       OMAP3_ISP_IOMEM_CSI2A,
++                                       ISP_CSIA_SYSCONFIG);
++
++                       isp_reg_writel(ISPCSI1_AUTOIDLE |
++                                       (ISPCSI1_MIDLEMODE_FORCESTANDBY <<
++                                       ISPCSI1_MIDLEMODE_SHIFT),
++                                       OMAP3_ISP_IOMEM_CCP2,
++                                       ISP_CSIB_SYSCONFIG);
++               }
++
++               isp_reg_writel(ISPCTRL_SBL_AUTOIDLE, OMAP3_ISP_IOMEM_MAIN, ISP_CTRL);
++       }
++}
++EXPORT_SYMBOL(isp_power_settings);
++
++#define BIT_SET(var, shift, mask, val)         \
++       do {                                    \
++               var = (var & ~(mask << shift))  \
++                       | (val << shift);       \
++       } while (0)
++
++static int isp_init_csi(struct isp_interface_config *config)
++{
++       u32 i = 0, val, reg;
++       int format;
++
++       switch (config->u.csi.format) {
++       case V4L2_PIX_FMT_SGRBG10:
++               format = 0x16;          /* RAW10+VP */
++               break;
++       case V4L2_PIX_FMT_SGRBG10DPCM8:
++               format = 0x12;          /* RAW8+DPCM10+VP */
++               break;
++       default:
++               printk(KERN_ERR "isp_init_csi: bad csi format\n");
 +               return -EINVAL;
 +       }
-+       if (aewb_config_local.win_width !=3D user_cfg->win_width) {
-+               WRITE_WIN_W(aewb_regs.reg_win1, user_cfg->win_width);
-+               aewb_config_local.win_width =3D user_cfg->win_width;
-+               aewbstat.update =3D 1;
++
++       /* Reset the CSI and wait for reset to complete */
++       isp_reg_writel(isp_reg_readl(OMAP3_ISP_IOMEM_CCP2, ISPCSI1_SYSCONFIG) | BIT(1),
++                                                       OMAP3_ISP_IOMEM_CCP2,
++                                                       ISPCSI1_SYSCONFIG);
++       while (!(isp_reg_readl(OMAP3_ISP_IOMEM_CCP2, ISPCSI1_SYSSTATUS) & BIT(0))) {
++               udelay(10);
++               if (i++ > 10)
++                       break;
++       }
++       if (!(isp_reg_readl(OMAP3_ISP_IOMEM_CCP2, ISPCSI1_SYSSTATUS) & BIT(0))) {
++               printk(KERN_WARNING
++                       "omap3_isp: timeout waiting for csi reset\n");
 +       }
 +
-+       if (unlikely((user_cfg->ver_win_count < 1) ||
-+                               (user_cfg->ver_win_count > MAX_WINVC))) {
-+               printk(KERN_ERR "Invalid vertical window count: %d\n",
-+                                               user_cfg->ver_win_count);
-+               return -EINVAL;
-+       }
-+       if (aewb_config_local.ver_win_count !=3D user_cfg->ver_win_count)=
- {
-+               WRITE_VER_C(aewb_regs.reg_win1, user_cfg->ver_win_count);
-+               aewb_config_local.ver_win_count =3D user_cfg->ver_win_cou=
-nt;
-+               aewbstat.update =3D 1;
++       /* CONTROL_CSIRXFE */
++       omap_writel(
++               /* CSIb receiver data/clock or data/strobe mode */
++               (config->u.csi.signalling << 10)
++               | BIT(12)       /* Enable differential transceiver */
++               | BIT(13)       /* Disable reset */
++       , CONTROL_CSIRXFE);
++
++       /* ISPCSI1_CTRL */
++       val = isp_reg_readl(OMAP3_ISP_IOMEM_CCP2, ISPCSI1_CTRL);
++       val &= ~BIT(11);        /* Enable VP only off ->
++                               extract embedded data to interconnect */
++       BIT_SET(val, 8, 0x3, config->u.csi.vpclk);      /* Video port clock */
++/*     val |= BIT(3);  */      /* Wait for FEC before disabling interface */
++       val |= BIT(2);          /* I/O cell output is parallel
++                               (no effect, but errata says should be enabled
++                               for class 1/2) */
++       val |= BIT(12);         /* VP clock polarity to falling edge
++                               (needed or bad picture!) */
++
++       /* Data/strobe physical layer */
++       BIT_SET(val, 1, 1, config->u.csi.signalling);
++       BIT_SET(val, 10, 1, config->u.csi.strobe_clock_inv);
++       val |= BIT(4);          /* Magic bit to enable CSI1 and strobe mode */
++       isp_reg_writel(val, OMAP3_ISP_IOMEM_CCP2, ISPCSI1_CTRL);
++
++       /* ISPCSI1_LCx_CTRL logical channel #0 */
++       reg = ISPCSI1_LCx_CTRL(0);      /* reg = ISPCSI1_CTRL1; */
++       val = isp_reg_readl(OMAP3_ISP_IOMEM_CCP2, reg);
++       /* Format = RAW10+VP or RAW8+DPCM10+VP*/
++       BIT_SET(val, 3, 0x1f, format);
++       /* Enable setting of frame regions of interest */
++       BIT_SET(val, 1, 1, 1);
++       BIT_SET(val, 2, 1, config->u.csi.crc);
++       isp_reg_writel(val, OMAP3_ISP_IOMEM_CCP2, reg);
++
++       /* ISPCSI1_DAT_START for logical channel #0 */
++       reg = ISPCSI1_LCx_DAT_START(0);         /* reg = ISPCSI1_DAT_START; */
++       val = isp_reg_readl(OMAP3_ISP_IOMEM_CCP2, reg);
++       BIT_SET(val, 16, 0xfff, config->u.csi.data_start);
++       isp_reg_writel(val, OMAP3_ISP_IOMEM_CCP2, reg);
++
++       /* ISPCSI1_DAT_SIZE for logical channel #0 */
++       reg = ISPCSI1_LCx_DAT_SIZE(0);          /* reg = ISPCSI1_DAT_SIZE; */
++       val = isp_reg_readl(OMAP3_ISP_IOMEM_CCP2, reg);
++       BIT_SET(val, 16, 0xfff, config->u.csi.data_size);
++       isp_reg_writel(val, OMAP3_ISP_IOMEM_CCP2, reg);
++
++       /* Clear status bits for logical channel #0 */
++       isp_reg_writel(0xFFF & ~BIT(6), OMAP3_ISP_IOMEM_CCP2, ISPCSI1_LC01_IRQSTATUS);
++
++       /* Enable CSI1 */
++       val = isp_reg_readl(OMAP3_ISP_IOMEM_CCP2, ISPCSI1_CTRL);
++       val |=  BIT(0) | BIT(4);
++       isp_reg_writel(val, OMAP3_ISP_IOMEM_CCP2, ISPCSI1_CTRL);
++
++       if (!(isp_reg_readl(OMAP3_ISP_IOMEM_CCP2, ISPCSI1_CTRL) & BIT(4))) {
++               printk(KERN_WARNING "OMAP3 CSI1 bus not available\n");
++               if (config->u.csi.signalling)   /* Strobe mode requires CSI1 */
++                       return -EIO;
 +       }
 +
-+       if (unlikely((user_cfg->hor_win_count < 1) ||
-+                               (user_cfg->hor_win_count > MAX_WINHC))) {
-+               printk(KERN_ERR "Invalid horizontal window count: %d\n",
-+                                               user_cfg->hor_win_count);
-+               return -EINVAL;
-+       }
-+       if (aewb_config_local.hor_win_count !=3D user_cfg->hor_win_count)=
- {
-+               WRITE_HOR_C(aewb_regs.reg_win1, user_cfg->hor_win_count);
-+               aewb_config_local.hor_win_count =3D user_cfg->hor_win_cou=
-nt;
-+               aewbstat.update =3D 1;
-+       }
-+
-+       if (unlikely(user_cfg->ver_win_start > MAX_WINSTART)) {
-+               printk(KERN_ERR "Invalid vertical window start: %d\n",
-+                                               user_cfg->ver_win_start);
-+               return -EINVAL;
-+       }
-+       if (aewb_config_local.ver_win_start !=3D user_cfg->ver_win_start)=
- {
-+               WRITE_VER_WIN_ST(aewb_regs.reg_start, user_cfg->ver_win_s=
-tart);
-+               aewb_config_local.ver_win_start =3D user_cfg->ver_win_sta=
-rt;
-+               aewbstat.update =3D 1;
-+       }
-+
-+       if (unlikely(user_cfg->hor_win_start > MAX_WINSTART)) {
-+               printk(KERN_ERR "Invalid horizontal window start: %d\n",
-+                                               user_cfg->hor_win_start);
-+               return -EINVAL;
-+       }
-+       if (aewb_config_local.hor_win_start !=3D user_cfg->hor_win_start)=
- {
-+               WRITE_HOR_WIN_ST(aewb_regs.reg_start, user_cfg->hor_win_s=
-tart);
-+               aewb_config_local.hor_win_start =3D user_cfg->hor_win_sta=
-rt;
-+               aewbstat.update =3D 1;
-+       }
-+
-+       if (unlikely(user_cfg->blk_ver_win_start > MAX_WINSTART)) {
-+               printk(KERN_ERR "Invalid black vertical window start: %d\=
-n",
-+                                               user_cfg->blk_ver_win_sta=
-rt);
-+               return -EINVAL;
-+       }
-+       if (aewb_config_local.blk_ver_win_start !=3D user_cfg->blk_ver_wi=
-n_start) {
-+               WRITE_BLK_VER_WIN_ST(aewb_regs.reg_blk,
-+                                               user_cfg->blk_ver_win_sta=
-rt);
-+               aewb_config_local.blk_ver_win_start =3D
-+                                               user_cfg->blk_ver_win_sta=
-rt;
-+               aewbstat.update =3D 1;
-+       }
-+
-+       if (unlikely((user_cfg->blk_win_height < MIN_WIN_H) ||
-+                               (user_cfg->blk_win_height > MAX_WIN_H) ||
-+                               (user_cfg->blk_win_height & 0x01))) {
-+               printk(KERN_ERR "Invalid black window height: %d\n",
-+                                               user_cfg->blk_win_height)=
-;
-+               return -EINVAL;
-+       }
-+       if (aewb_config_local.blk_win_height !=3D user_cfg->blk_win_heigh=
-t) {
-+               WRITE_BLK_WIN_H(aewb_regs.reg_blk, user_cfg->blk_win_heig=
-ht);
-+               aewb_config_local.blk_win_height =3D user_cfg->blk_win_he=
-ight;
-+               aewbstat.update =3D 1;
-+       }
-+
-+       if (unlikely((user_cfg->subsample_ver_inc < MIN_SUB_INC) ||
-+                               (user_cfg->subsample_ver_inc > MAX_SUB_IN=
-C) ||
-+                               (user_cfg->subsample_ver_inc & 0x01))) {
-+               printk(KERN_ERR "Invalid vertical subsample increment: %d=
-\n",
-+                                               user_cfg->subsample_ver_i=
-nc);
-+               return -EINVAL;
-+       }
-+       if (aewb_config_local.subsample_ver_inc !=3D user_cfg->subsample_=
-ver_inc) {
-+               WRITE_SUB_VER_INC(aewb_regs.reg_subwin,
-+                                               user_cfg->subsample_ver_i=
-nc);
-+               aewb_config_local.subsample_ver_inc =3D
-+                                               user_cfg->subsample_ver_i=
-nc;
-+               aewbstat.update =3D 1;
-+       }
-+
-+       if (unlikely((user_cfg->subsample_hor_inc < MIN_SUB_INC) ||
-+                               (user_cfg->subsample_hor_inc > MAX_SUB_IN=
-C) ||
-+                               (user_cfg->subsample_hor_inc & 0x01))) {
-+               printk(KERN_ERR "Invalid horizontal subsample increment: =
-%d\n",
-+                                               user_cfg->subsample_hor_i=
-nc);
-+               return -EINVAL;
-+       }
-+       if (aewb_config_local.subsample_hor_inc !=3D user_cfg->subsample_=
-hor_inc) {
-+               WRITE_SUB_HOR_INC(aewb_regs.reg_subwin,
-+                                               user_cfg->subsample_hor_i=
-nc);
-+               aewb_config_local.subsample_hor_inc =3D
-+                                               user_cfg->subsample_hor_i=
-nc;
-+               aewbstat.update =3D 1;
-+       }
-+
-+       if ((!aewbstat.initialized) || (0 =3D=3D aewb_config_local.aewb_e=
-nable)) {
-+               isph3a_aewb_update_regs();
-+               aewbstat.initialized =3D 1;
-+       }
 +       return 0;
 +}
 +
 +/**
-+ * isph3a_aewb_configure - Configure AEWB regs, enable/disable H3A engin=
-e.
-+ * @aewbcfg: Pointer to AEWB config structure.
++ * isp_configure_interface - Configures ISP Control I/F related parameters.
++ * @config: Pointer to structure containing the desired configuration for the
++ *     ISP.
 + *
-+ * Returns 0 if successful, -EINVAL if aewbcfg pointer is NULL, -ENOMEM =
-if
-+ * was unable to allocate memory for the buffer, of other errors if H3A
-+ * callback is not set or the parameters for AEWB are invalid.
++ * Configures ISP control register (ISP_CTRL) with the values specified inside
++ * the config structure. Controls:
++ * - Selection of parallel or serial input to the preview hardware.
++ * - Data lane shifter.
++ * - Pixel clock polarity.
++ * - 8 to 16-bit bridge at the input of CCDC module.
++ * - HS or VS synchronization signal detection
 + **/
-+int isph3a_aewb_configure(struct isph3a_aewb_config *aewbcfg)
++int isp_configure_interface(struct isp_interface_config *config)
 +{
-+       int ret =3D 0;
-+       int i;
-+       int win_count =3D 0;
++       u32 ispctrl_val = isp_reg_readl(OMAP3_ISP_IOMEM_MAIN, ISP_CTRL);
++       u32 ispccdc_vdint_val;
++       int r;
 +
-+       if (NULL =3D=3D aewbcfg) {
-+               printk(KERN_ERR "Null argument in configuration. \n");
++       ispctrl_val &= ISPCTRL_SHIFT_MASK;
++       ispctrl_val |= (config->dataline_shift << ISPCTRL_SHIFT_SHIFT);
++       ispctrl_val &= ~ISPCTRL_PAR_CLK_POL_INV;
++
++       ispctrl_val &= (ISPCTRL_PAR_SER_CLK_SEL_MASK);
++       switch (config->ccdc_par_ser) {
++       case ISP_PARLL:
++               ispctrl_val |= ISPCTRL_PAR_SER_CLK_SEL_PARALLEL;
++               ispctrl_val |= (config->u.par.par_clk_pol
++                                               << ISPCTRL_PAR_CLK_POL_SHIFT);
++               ispctrl_val &= ~ISPCTRL_PAR_BRIDGE_BENDIAN;
++               ispctrl_val |= (config->u.par.par_bridge
++                                               << ISPCTRL_PAR_BRIDGE_SHIFT);
++               break;
++       case ISP_CSIA:
++               ispctrl_val |= ISPCTRL_PAR_SER_CLK_SEL_CSIA;
++               ispctrl_val &= ~ISPCTRL_PAR_BRIDGE_BENDIAN;
++               ispctrl_val |= (0x03 << ISPCTRL_PAR_BRIDGE_SHIFT);
++
++               isp_csi2_ctx_config_format(0, config->u.csi.format);
++               isp_csi2_ctx_update(0, false);
++
++               if (config->u.csi.crc)
++                       isp_csi2_ctrl_config_ecc_enable(true);
++
++               isp_csi2_ctrl_config_vp_out_ctrl(config->u.csi.vpclk);
++               isp_csi2_ctrl_config_vp_only_enable(true);
++               isp_csi2_ctrl_config_vp_clk_enable(true);
++               isp_csi2_ctrl_update(false);
++
++               isp_csi2_irq_complexio1_set(1);
++               isp_csi2_irq_status_set(1);
++               isp_csi2_irq_set(1);
++
++               isp_csi2_enable(1);
++               mdelay(3);
++               break;
++       case ISP_CSIB:
++               ispctrl_val |= ISPCTRL_PAR_SER_CLK_SEL_CSIB;
++               r = isp_init_csi(config);
++               if (r)
++                       return r;
++               break;
++       default:
 +               return -EINVAL;
 +       }
 +
-+       if (!aewbstat.initialized) {
-+               DPRINTK_ISPH3A("Setting callback for H3A\n");
-+               ret =3D isp_set_callback(CBK_H3A_AWB_DONE, isph3a_aewb_is=
-r,
-+                                               (void *)NULL, (void *)NUL=
-L);
-+               if (ret) {
-+                       printk(KERN_ERR "No callback for H3A\n");
-+                       return ret;
-+               }
-+       }
++       ispctrl_val &= ~(ISPCTRL_SYNC_DETECT_VSRISE);
++       ispctrl_val |= (config->hsvs_syncdetect);
 +
-+       ret =3D isph3a_aewb_set_params(aewbcfg);
-+       if (ret) {
-+               printk(KERN_ERR "Invalid parameters! \n");
-+               return ret;
-+       }
++       isp_reg_writel(ispctrl_val, OMAP3_ISP_IOMEM_MAIN, ISP_CTRL);
 +
-+       win_count =3D (aewbcfg->ver_win_count * aewbcfg->hor_win_count);
-+       win_count +=3D aewbcfg->hor_win_count;
-+       ret =3D (win_count / 8);
-+       win_count +=3D (win_count % 8) ? 1 : 0;
-+       win_count +=3D ret;
++       ispccdc_vdint_val = isp_reg_readl(OMAP3_ISP_IOMEM_CCDC, ISPCCDC_VDINT);
++       ispccdc_vdint_val &= ~(ISPCCDC_VDINT_0_MASK << ISPCCDC_VDINT_0_SHIFT);
++       ispccdc_vdint_val &= ~(ISPCCDC_VDINT_1_MASK << ISPCCDC_VDINT_1_SHIFT);
++       isp_reg_writel((config->vdint0_timing << ISPCCDC_VDINT_0_SHIFT) |
++                                               (config->vdint1_timing <<
++                                               ISPCCDC_VDINT_1_SHIFT),
++                                               OMAP3_ISP_IOMEM_CCDC,
++                                               ISPCCDC_VDINT);
 +
-+       aewbstat.win_count =3D win_count;
-+       aewbstat.curr_cfg_buf_size =3D win_count * AEWB_PACKET_SIZE;
-+
-+       if (aewbstat.stats_buf_size && ((win_count * AEWB_PACKET_SIZE) >
-+                                               aewbstat.stats_buf_size))=
- {
-+               DPRINTK_ISPH3A("There was a previous buffer... "
-+                       "Freeing/unmapping current stat busffs\n");
-+               isph3a_aewb_enable(0);
-+               for (i =3D 0; i < H3A_MAX_BUFF; i++) {
-+                       ispmmu_unmap(aewbstat.h3a_buff[i].ispmmu_addr);
-+                       dma_free_coherent(NULL,
-+                               aewbstat.min_buf_size,
-+                               (void *)aewbstat.h3a_buff[i].virt_addr,
-+                               (dma_addr_t)aewbstat.h3a_buff[i].phy_addr=
-);
-+                       aewbstat.h3a_buff[i].virt_addr =3D 0;
-+               }
-+               aewbstat.stats_buf_size =3D 0;
-+       }
-+
-+       if (!aewbstat.h3a_buff[0].virt_addr) {
-+               aewbstat.stats_buf_size =3D win_count * AEWB_PACKET_SIZE;
-+               aewbstat.min_buf_size =3D PAGE_ALIGN(aewbstat.stats_buf_s=
-ize);
-+
-+               DPRINTK_ISPH3A("Allocating/mapping new stat buffs\n");
-+               for (i =3D 0; i < H3A_MAX_BUFF; i++) {
-+                       aewbstat.h3a_buff[i].virt_addr =3D
-+                               (unsigned long)dma_alloc_coherent(NULL,
-+                               aewbstat.min_buf_size,
-+                               (dma_addr_t *)&aewbstat.h3a_buff[i].phy_a=
-ddr,
-+                               GFP_KERNEL | GFP_DMA);
-+                       if (aewbstat.h3a_buff[i].virt_addr =3D=3D 0) {
-+                               printk(KERN_ERR "Can't acquire memory for=
- "
-+                                       "buffer[%d]\n", i);
-+                               return -ENOMEM;
-+                       }
-+                       aewbstat.h3a_buff[i].addr_align =3D
-+                                               aewbstat.h3a_buff[i].virt=
-_addr;
-+                       while ((aewbstat.h3a_buff[i].addr_align &
-+                                                       0xFFFFFFC0) !=3D
-+                                                       aewbstat.h3a_buff=
-[i].
-+                                                       addr_align)
-+                               aewbstat.h3a_buff[i].addr_align++;
-+                       aewbstat.h3a_buff[i].ispmmu_addr =3D ispmmu_map(a=
-ewbstat.
-+                                                       h3a_buff[i].phy_a=
-ddr,
-+                                                       aewbstat.min_buf_=
-size);
-+               }
-+               isph3a_aewb_unlock_buffers();
-+               isph3a_aewb_link_buffers();
-+
-+               if (active_buff =3D=3D NULL)
-+                       active_buff =3D &aewbstat.h3a_buff[0];
-+               isp_reg_writel(active_buff->ispmmu_addr, OMAP3_ISP_IOMEM_=
-H3A, ISPH3A_AEWBUFST);
-+       }
-+       for (i =3D 0; i < H3A_MAX_BUFF; i++) {
-+               DPRINTK_ISPH3A("buff[%d] addr is:\n    virt    0x%lX\n"
-+                                       "    aligned 0x%lX\n"
-+                                       "    phys    0x%lX\n"
-+                                       "    ispmmu  0x%08lX\n"
-+                                       "    mmapped 0x%lX\n", i,
-+                                       aewbstat.h3a_buff[i].virt_addr,
-+                                       aewbstat.h3a_buff[i].addr_align,
-+                                       aewbstat.h3a_buff[i].phy_addr,
-+                                       aewbstat.h3a_buff[i].ispmmu_addr,
-+                                       aewbstat.h3a_buff[i].mmap_addr);
-+       }
-+       isph3a_aewb_enable(aewbcfg->aewb_enable);
-+       isph3a_print_status();
++       /* Set sensor specific fields in CCDC and Previewer module.*/
++       isppreview_set_skip(config->prev_sph, config->prev_slv);
++       ispccdc_set_wenlog(config->wenlog);
 +
 +       return 0;
 +}
-+EXPORT_SYMBOL(isph3a_aewb_configure);
++EXPORT_SYMBOL(isp_configure_interface);
 +
 +/**
-+ * isph3a_aewb_request_statistics - REquest statistics and update gains =
-in AEWB
-+ * @aewbdata: Pointer to return AE AWB statistics data.
++ * isp_configure_interface_bridge - Configure CCDC i/f bridge.
 + *
-+ * This API allows the user to update White Balance gains, as well as
-+ * exposure time and analog gain. It is also used to request frame
-+ * statistics.
-+ *
-+ * Returns 0 if successful, -EINVAL when H3A engine is not enabled, or o=
-ther
-+ * errors when setting gains.
++ * Sets the bit field that controls the 8 to 16-bit bridge at
++ * the input to CCDC.
 + **/
-+int isph3a_aewb_request_statistics(struct isph3a_aewb_data *aewbdata)
++int isp_configure_interface_bridge(u32 par_bridge)
 +{
-+       int ret =3D 0;
-+       u16 frame_diff =3D 0;
-+       u16 frame_cnt =3D aewbstat.frame_count;
-+       wait_queue_t wqt;
++       u32 ispctrl_val = isp_reg_readl(OMAP3_ISP_IOMEM_MAIN, ISP_CTRL);
 +
-+       if (!aewb_config_local.aewb_enable) {
-+               printk(KERN_ERR "H3A engine not enabled\n");
-+               return -EINVAL;
++       ispctrl_val &= ~ISPCTRL_PAR_BRIDGE_BENDIAN;
++       ispctrl_val |= (par_bridge << ISPCTRL_PAR_BRIDGE_SHIFT);
++       isp_reg_writel(ispctrl_val, OMAP3_ISP_IOMEM_MAIN, ISP_CTRL);
++       return 0;
++}
++EXPORT_SYMBOL(isp_configure_interface_bridge);
++
++/**
++ * isp_CCDC_VD01_enable - Enables VD0 and VD1 IRQs.
++ *
++ * Sets VD0 and VD1 bits in IRQ0STATUS to reset the flag, and sets them in
++ * IRQ0ENABLE to enable the corresponding IRQs.
++ **/
++void isp_CCDC_VD01_enable(void)
++{
++       isp_reg_writel(IRQ0STATUS_CCDC_VD0_IRQ | IRQ0STATUS_CCDC_VD1_IRQ,
++                       OMAP3_ISP_IOMEM_MAIN, ISP_IRQ0STATUS);
++       isp_reg_writel(isp_reg_readl(OMAP3_ISP_IOMEM_MAIN, ISP_IRQ0ENABLE) |
++                       IRQ0ENABLE_CCDC_VD0_IRQ | IRQ0ENABLE_CCDC_VD1_IRQ,
++                       OMAP3_ISP_IOMEM_MAIN, ISP_IRQ0ENABLE);
++}
++
++/**
++ * isp_CCDC_VD01_disable - Disables VD0 and VD1 IRQs.
++ *
++ * Clears VD0 and VD1 bits in IRQ0ENABLE register.
++ **/
++void isp_CCDC_VD01_disable(void)
++{
++       isp_reg_writel(isp_reg_readl(OMAP3_ISP_IOMEM_MAIN, ISP_IRQ0ENABLE) &
++                       ~(IRQ0ENABLE_CCDC_VD0_IRQ | IRQ0ENABLE_CCDC_VD1_IRQ),
++                       OMAP3_ISP_IOMEM_MAIN, ISP_IRQ0ENABLE);
++}
++
++/**
++ * omap34xx_isp_isr - Interrupt Service Routine for Camera ISP module.
++ * @irq: Not used currently.
++ * @ispirq_disp: Pointer to the object that is passed while request_irq is
++ *               called. This is the ispirq_obj object containing info on the
++ *               callback.
++ *
++ * Handles the corresponding callback if plugged in.
++ *
++ * Returns IRQ_HANDLED when IRQ was correctly handled, or IRQ_NONE when the
++ * IRQ wasn't handled.
++ **/
++static irqreturn_t omap34xx_isp_isr(int irq, void *ispirq_disp)
++{
++       struct ispirq *irqdis = (struct ispirq *)ispirq_disp;
++       u32 irqstatus = 0;
++       unsigned long irqflags = 0;
++       u8 is_irqhandled = 0;
++
++       irqstatus = isp_reg_readl(OMAP3_ISP_IOMEM_MAIN, ISP_IRQ0STATUS);
++
++       spin_lock_irqsave(&isp_obj.lock, irqflags);
++
++       if (irqdis->isp_callbk[CBK_CATCHALL]) {
++               irqdis->isp_callbk[CBK_CATCHALL](irqstatus,
++                               irqdis->isp_callbk_arg1[CBK_CATCHALL],
++                               irqdis->isp_callbk_arg2[CBK_CATCHALL]);
++               is_irqhandled = 1;
 +       }
 +
-+       DPRINTK_ISPH3A("isph3a_aewb_request_statistics: Enter "
-+               "(frame req. =3D> %d, current frame =3D> %d, update =3D> =
-%d)\n",
-+               aewbdata->frame_number, frame_cnt, aewbdata->update);
-+       DPRINTK_ISPH3A("User data received: \n");
-+       DPRINTK_ISPH3A("Digital gain =3D 0x%04x\n", aewbdata->dgain);
-+       DPRINTK_ISPH3A("WB gain b *=3D   0x%04x\n", aewbdata->wb_gain_b);
-+       DPRINTK_ISPH3A("WB gain r *=3D   0x%04x\n", aewbdata->wb_gain_r);
-+       DPRINTK_ISPH3A("WB gain gb =3D   0x%04x\n", aewbdata->wb_gain_gb)=
-;
-+       DPRINTK_ISPH3A("WB gain gr =3D   0x%04x\n", aewbdata->wb_gain_gr)=
-;
-+       DPRINTK_ISPH3A("ISP AEWB request status wait for interrupt\n");
-+
-+       if (!aewbdata->update) {
-+               aewbdata->h3a_aewb_statistics_buf =3D NULL;
++       if ((irqstatus & MMU_ERR) == MMU_ERR) {
++               if (irqdis->isp_callbk[CBK_MMU_ERR])
++                       irqdis->isp_callbk[CBK_MMU_ERR](irqstatus,
++                               irqdis->isp_callbk_arg1[CBK_MMU_ERR],
++                               irqdis->isp_callbk_arg2[CBK_MMU_ERR]);
++               is_irqhandled = 1;
++               printk(KERN_ALERT "%s: MMU error!!! Ouch!\n", __func__);
 +               goto out;
 +       }
-+       if (aewbdata->update & SET_DIGITAL_GAIN)
-+               h3awb_update.dgain =3D (u16)aewbdata->dgain;
-+       if (aewbdata->update & SET_COLOR_GAINS) {
-+               h3awb_update.coef3 =3D (u8)aewbdata->wb_gain_b;
-+               h3awb_update.coef2 =3D (u8)aewbdata->wb_gain_gr;
-+               h3awb_update.coef1 =3D (u8)aewbdata->wb_gain_gb;
-+               h3awb_update.coef0 =3D (u8)aewbdata->wb_gain_r;
-+       }
-+       if (aewbdata->update & (SET_COLOR_GAINS | SET_DIGITAL_GAIN))
-+               wb_update =3D 1;
 +
-+       if (!(aewbdata->update & REQUEST_STATISTICS)) {
-+               aewbdata->h3a_aewb_statistics_buf =3D NULL;
-+               goto out;
-+       }
-+       isph3a_aewb_unlock_buffers();
-+
-+       DPRINTK_ISPH3A("Stats available?\n");
-+       ret =3D isph3a_aewb_stats_available(aewbdata);
-+       if (!ret)
-+               goto out;
-+
-+       DPRINTK_ISPH3A("Stats in near future?\n");
-+       if (aewbdata->frame_number > frame_cnt)
-+               frame_diff =3D aewbdata->frame_number - frame_cnt;
-+       else if (aewbdata->frame_number < frame_cnt) {
-+               if ((frame_cnt > (MAX_FRAME_COUNT - MAX_FUTURE_FRAMES)) &=
-&
-+                               (aewbdata->frame_number < MAX_FRAME_COUNT=
-)) {
-+                       frame_diff =3D aewbdata->frame_number + MAX_FRAME=
-_COUNT -
-+                                                               frame_cnt=
-;
-+               } else
-+                       frame_diff =3D MAX_FUTURE_FRAMES + 1;
++       if ((irqstatus & CCDC_VD1) == CCDC_VD1) {
++               if (irqdis->isp_callbk[CBK_CCDC_VD1])
++                               irqdis->isp_callbk[CBK_CCDC_VD1](CCDC_VD1,
++                               irqdis->isp_callbk_arg1[CBK_CCDC_VD1],
++                               irqdis->isp_callbk_arg2[CBK_CCDC_VD1]);
++               is_irqhandled = 1;
 +       }
 +
-+       if (frame_diff > MAX_FUTURE_FRAMES) {
-+               printk(KERN_ERR "Invalid frame requested, returning curre=
-nt"
-+                                                       " frame stats\n")=
-;
-+               aewbdata->frame_number =3D frame_cnt;
-+       }
-+       if (camnotify) {
-+               DPRINTK_ISPH3A("NOT Waiting on stats IRQ for frame %d "
-+                       "because camnotify set\n", aewbdata->frame_number=
-);
-+               aewbdata->h3a_aewb_statistics_buf =3D NULL;
-+               goto out;
-+       }
-+       DPRINTK_ISPH3A("Waiting on stats IRQ for frame %d\n",
-+                                               aewbdata->frame_number);
-+       aewbstat.frame_req =3D aewbdata->frame_number;
-+       aewbstat.stats_req =3D 1;
-+       aewbstat.stats_done =3D 0;
-+       init_waitqueue_entry(&wqt, current);
-+       ret =3D wait_event_interruptible(aewbstat.stats_wait,
-+                                               aewbstat.stats_done =3D=3D=
- 1);
-+       if (ret < 0) {
-+               printk(KERN_ERR "isph3a_aewb_request_statistics"
-+                                       " Error on wait event %d\n", ret)=
-;
-+               aewbdata->h3a_aewb_statistics_buf =3D NULL;
-+               return ret;
++       if ((irqstatus & CCDC_VD0) == CCDC_VD0) {
++               if (irqdis->isp_callbk[CBK_CCDC_VD0])
++                       irqdis->isp_callbk[CBK_CCDC_VD0](CCDC_VD0,
++                               irqdis->isp_callbk_arg1[CBK_CCDC_VD0],
++                               irqdis->isp_callbk_arg2[CBK_CCDC_VD0]);
++               is_irqhandled = 1;
 +       }
 +
-+       DPRINTK_ISPH3A("ISP AEWB request status interrupt raised\n");
-+       ret =3D isph3a_aewb_stats_available(aewbdata);
-+       if (ret) {
-+               DPRINTK_ISPH3A("After waiting for stats, stats not availa=
-ble!!\n");
-+               aewbdata->h3a_aewb_statistics_buf =3D NULL;
++       if ((irqstatus & PREV_DONE) == PREV_DONE) {
++               if (irqdis->isp_callbk[CBK_PREV_DONE])
++                       irqdis->isp_callbk[CBK_PREV_DONE](PREV_DONE,
++                               irqdis->isp_callbk_arg1[CBK_PREV_DONE],
++                               irqdis->isp_callbk_arg2[CBK_PREV_DONE]);
++               is_irqhandled = 1;
 +       }
++
++       if ((irqstatus & RESZ_DONE) == RESZ_DONE) {
++               if (irqdis->isp_callbk[CBK_RESZ_DONE])
++                       irqdis->isp_callbk[CBK_RESZ_DONE](RESZ_DONE,
++                               irqdis->isp_callbk_arg1[CBK_RESZ_DONE],
++                               irqdis->isp_callbk_arg2[CBK_RESZ_DONE]);
++               is_irqhandled = 1;
++       }
++
++       if ((irqstatus & H3A_AWB_DONE) == H3A_AWB_DONE) {
++               if (irqdis->isp_callbk[CBK_H3A_AWB_DONE])
++                       irqdis->isp_callbk[CBK_H3A_AWB_DONE](H3A_AWB_DONE,
++                               irqdis->isp_callbk_arg1[CBK_H3A_AWB_DONE],
++                               irqdis->isp_callbk_arg2[CBK_H3A_AWB_DONE]);
++               is_irqhandled = 1;
++       }
++
++       if ((irqstatus & HIST_DONE) == HIST_DONE) {
++               if (irqdis->isp_callbk[CBK_HIST_DONE])
++                       irqdis->isp_callbk[CBK_HIST_DONE](HIST_DONE,
++                               irqdis->isp_callbk_arg1[CBK_HIST_DONE],
++                               irqdis->isp_callbk_arg2[CBK_HIST_DONE]);
++               is_irqhandled = 1;
++       }
++
++       if ((irqstatus & HS_VS) == HS_VS) {
++               if (irqdis->isp_callbk[CBK_HS_VS])
++                       irqdis->isp_callbk[CBK_HS_VS](HS_VS,
++                               irqdis->isp_callbk_arg1[CBK_HS_VS],
++                               irqdis->isp_callbk_arg2[CBK_HS_VS]);
++               is_irqhandled = 1;
++       }
++
++       if ((irqstatus & H3A_AF_DONE) == H3A_AF_DONE) {
++               if (irqdis->isp_callbk[CBK_H3A_AF_DONE])
++                       irqdis->isp_callbk[CBK_H3A_AF_DONE](H3A_AF_DONE,
++                               irqdis->isp_callbk_arg1[CBK_H3A_AF_DONE],
++                               irqdis->isp_callbk_arg2[CBK_H3A_AF_DONE]);
++               is_irqhandled = 1;
++       }
++
++       if ((irqstatus & CSIA) == CSIA) {
++               isp_csi2_isr();
++               is_irqhandled = 1;
++       }
++
++       if (irqstatus & LSC_PRE_ERR) {
++               printk(KERN_ERR "isp_sr: LSC_PRE_ERR \n");
++               isp_reg_writel(irqstatus, OMAP3_ISP_IOMEM_MAIN, ISP_IRQ0STATUS);
++               ispccdc_enable_lsc(0);
++               ispccdc_enable_lsc(1);
++               spin_unlock_irqrestore(&isp_obj.lock, irqflags);
++               return IRQ_HANDLED;
++       }
++
++       if (irqstatus & IRQ0STATUS_CSIB_IRQ) {
++               u32 ispcsi1_irqstatus;
++
++               ispcsi1_irqstatus = isp_reg_readl(OMAP3_ISP_IOMEM_CCP2, ISPCSI1_LC01_IRQSTATUS);
++               DPRINTK_ISPCTRL("%x\n", ispcsi1_irqstatus);
++       }
++
 +out:
-+       DPRINTK_ISPH3A("isph3a_aewb_request_statistics: "
-+                               "aewbdata->h3a_aewb_statistics_buf =3D> %=
-p\n",
-+                               aewbdata->h3a_aewb_statistics_buf);
-+       aewbdata->curr_frame =3D aewbstat.frame_count;
++       isp_reg_writel(irqstatus, OMAP3_ISP_IOMEM_MAIN, ISP_IRQ0STATUS);
++       spin_unlock_irqrestore(&isp_obj.lock, irqflags);
++
++       if (is_irqhandled)
++               return IRQ_HANDLED;
++       else
++               return IRQ_NONE;
++}
++
++/* Device name, needed for resource tracking layer */
++struct device_driver camera_drv = {
++       .name = "camera"
++};
++
++struct device camera_dev = {
++       .driver = &camera_drv,
++};
++
++/**
++ * omapisp_unset_callback - Unsets all the callbacks associated with ISP module
++ **/
++void omapisp_unset_callback()
++{
++       isp_unset_callback(CBK_HS_VS);
++
++       if ((ispmodule_obj.isp_pipeline & OMAP_ISP_RESIZER) &&
++                                               is_ispresizer_enabled())
++               isp_unset_callback(CBK_RESZ_DONE);
++
++       if ((ispmodule_obj.isp_pipeline & OMAP_ISP_PREVIEW) &&
++                                               is_isppreview_enabled())
++               isp_unset_callback(CBK_PREV_DONE);
++
++       if (ispmodule_obj.isp_pipeline & OMAP_ISP_CCDC) {
++               isp_unset_callback(CBK_CCDC_VD0);
++               isp_unset_callback(CBK_CCDC_VD1);
++               isp_unset_callback(CBK_LSC_ISR);
++       }
++       isp_reg_writel(isp_reg_readl(OMAP3_ISP_IOMEM_MAIN, ISP_IRQ0STATUS) | ISP_INT_CLR,
++                                       OMAP3_ISP_IOMEM_MAIN, ISP_IRQ0STATUS);
++}
++
++#if ISP_WORKAROUND
++/**
++ *  isp_buf_allocation - To allocate a 10MB memory
++ *
++ **/
++u32 isp_buf_allocation(void)
++{
++       buff_addr = (void *)vmalloc(buffer_size);
++
++       if (!buff_addr) {
++               printk(KERN_ERR "Cannot allocate memory ");
++               return -ENOMEM;
++       }
++
++       sglist_alloc = videobuf_vmalloc_to_sg(buff_addr, no_of_pages);
++       if (!sglist_alloc) {
++               printk(KERN_ERR "videobuf_vmalloc_to_sg error");
++               return -ENOMEM;
++       }
++       num_sc = dma_map_sg(NULL, sglist_alloc, no_of_pages, 1);
++       buff_addr_mapped = ispmmu_map_sg(sglist_alloc, no_of_pages);
++       if (!buff_addr_mapped) {
++               printk(KERN_ERR "ispmmu_map_sg mapping failed ");
++               return -ENOMEM;
++       }
++       isppreview_set_outaddr(buff_addr_mapped);
++       alloc_done = 1;
++       return 0;
++}
++
++/**
++ *  isp_buf_get - Get the buffer pointer address
++ **/
++dma_addr_t isp_buf_get(void)
++{
++       dma_addr_t retaddr;
++
++       if (alloc_done == 1)
++               retaddr = buff_addr_mapped + offset_value;
++       else
++               retaddr = 0;
++       return retaddr;
++}
++
++/**
++ *  isp_buf_free - To free allocated 10MB memory
++ *
++ **/
++void isp_buf_free(void)
++{
++       if (alloc_done == 1) {
++               ispmmu_unmap(buff_addr_mapped);
++               dma_unmap_sg(NULL, sglist_alloc, no_of_pages, 1);
++               kfree(sglist_alloc);
++               vfree(buff_addr);
++               alloc_done = 0;
++       }
++}
++#endif
++
++/**
++ * isp_start - Starts ISP submodule
++ *
++ * Start the needed isp components assuming these components
++ * are configured correctly.
++ **/
++void isp_start(void)
++{
++       if ((ispmodule_obj.isp_pipeline & OMAP_ISP_PREVIEW) &&
++                                               is_isppreview_enabled())
++               isppreview_enable(1);
++
++       return;
++}
++EXPORT_SYMBOL(isp_start);
++
++#define ISP_STOP_TIMEOUT       1000
++/**
++ * isp_stop - Stops isp submodules
++ **/
++void isp_stop()
++{
++       unsigned long timeout = jiffies + ISP_STOP_TIMEOUT;
++
++       spin_lock(&isp_obj.isp_temp_buf_lock);
++       ispmodule_obj.isp_temp_state = ISP_FREE_RUNNING;
++       spin_unlock(&isp_obj.isp_temp_buf_lock);
++
++       omapisp_unset_callback();
++
++       ispccdc_enable_lsc(0);
++       ispccdc_enable(0);
++       while (ispccdc_busy() && !time_after(jiffies, timeout))
++               msleep(1);
++
++       if (ispccdc_busy())
++               printk(KERN_ERR "%s: ccdc doesn't stop\n", __func__);
++
++       timeout = jiffies + ISP_STOP_TIMEOUT;
++       isppreview_enable(0);
++       while (isppreview_busy() && !time_after(jiffies, timeout))
++               msleep(1);
++
++       if (isppreview_busy())
++               printk(KERN_ERR "%s: preview doesn't stop\n", __func__);
++
++       timeout = jiffies + ISP_STOP_TIMEOUT;
++       ispresizer_enable(0);
++       while (ispresizer_busy() && !time_after(jiffies, timeout))
++               msleep(1);
++
++       if (ispresizer_busy())
++               printk(KERN_ERR "%s: resizer doesn't stop\n", __func__);
++
++       timeout = jiffies + ISP_STOP_TIMEOUT;
++       isp_save_ctx();
++       isp_reg_writel(isp_reg_readl(OMAP3_ISP_IOMEM_MAIN, ISP_SYSCONFIG) |
++                                       ISP_SYSCONFIG_SOFTRESET,
++                                       OMAP3_ISP_IOMEM_MAIN, ISP_SYSCONFIG);
++       while (!(isp_reg_readl(OMAP3_ISP_IOMEM_MAIN, ISP_SYSSTATUS) & 0x1)) {
++               if (time_after(jiffies, timeout)) {
++                       printk(KERN_ALERT "isp.c: cannot reset ISP\n");
++                       return;
++               }
++               msleep(1);
++       }
++       isp_restore_ctx();
++}
++
++/**
++ * isp_set_buf - Sets output address for submodules.
++ * @sgdma_state: Pointer to structure with the SGDMA state for each videobuffer
++ **/
++void isp_set_buf(struct isp_sgdma_state *sgdma_state)
++{
++       if ((ispmodule_obj.isp_pipeline & OMAP_ISP_RESIZER) &&
++                                               is_ispresizer_enabled())
++               ispresizer_set_outaddr(sgdma_state->isp_addr);
++#if (ISP_WORKAROUND == 0)
++       else if ((ispmodule_obj.isp_pipeline & OMAP_ISP_PREVIEW) &&
++                                               is_isppreview_enabled())
++               isppreview_set_outaddr(sgdma_state->isp_addr);
++#endif
++       else if (ispmodule_obj.isp_pipeline & OMAP_ISP_CCDC)
++               ispccdc_set_outaddr(sgdma_state->isp_addr);
++
++}
++
++/**
++ * isp_calc_pipeline - Sets pipeline depending of input and output pixel format
++ * @pix_input: Pointer to V4L2 pixel format structure for input image.
++ * @pix_output: Pointer to V4L2 pixel format structure for output image.
++ **/
++u32 isp_calc_pipeline(struct v4l2_pix_format *pix_input,
++                                       struct v4l2_pix_format *pix_output)
++{
++#if ISP_WORKAROUND
++       int rval;
++#endif
++
++       isp_release_resources();
++       if ((pix_input->pixelformat == V4L2_PIX_FMT_SGRBG10) &&
++                       (pix_output->pixelformat != V4L2_PIX_FMT_SGRBG10)) {
++               ispmodule_obj.isp_pipeline = OMAP_ISP_CCDC | OMAP_ISP_PREVIEW |
++                                                       OMAP_ISP_RESIZER;
++               ispccdc_request();
++               isppreview_request();
++               ispresizer_request();
++               ispccdc_config_datapath(CCDC_RAW, CCDC_OTHERS_VP);
++#if ISP_WORKAROUND
++               isppreview_config_datapath(PRV_RAW_CCDC, PREVIEW_MEM);
++               ispresizer_config_datapath(RSZ_MEM_YUV);
++               if (alloc_done == 0) {
++                       rval = isp_buf_allocation();
++                       if (rval)
++                               return -EINVAL;
++               }
++#else
++               isppreview_config_datapath(PRV_RAW_CCDC, PREVIEW_RSZ);
++               ispresizer_config_datapath(RSZ_OTFLY_YUV);
++#endif
++       } else {
++               ispmodule_obj.isp_pipeline = OMAP_ISP_CCDC;
++               ispccdc_request();
++               if (pix_input->pixelformat == V4L2_PIX_FMT_SGRBG10)
++                       ispccdc_config_datapath(CCDC_RAW, CCDC_OTHERS_VP_MEM);
++               else
++                       ispccdc_config_datapath(CCDC_YUV_SYNC,
++                                                       CCDC_OTHERS_MEM);
++       }
++       return 0;
++}
++
++/**
++ * isp_config_pipeline - Configures the image size and ycpos for ISP submodules
++ * @pix_input: Pointer to V4L2 pixel format structure for input image.
++ * @pix_output: Pointer to V4L2 pixel format structure for output image.
++ *
++ * The configuration of ycpos depends on the output pixel format for both the
++ * Preview and Resizer submodules.
++ **/
++void isp_config_pipeline(struct v4l2_pix_format *pix_input,
++                                       struct v4l2_pix_format *pix_output)
++{
++       ispccdc_config_size(ispmodule_obj.ccdc_input_width,
++                       ispmodule_obj.ccdc_input_height,
++                       ispmodule_obj.ccdc_output_width,
++                       ispmodule_obj.ccdc_output_height);
++
++       if (ispmodule_obj.isp_pipeline & OMAP_ISP_PREVIEW) {
++               isppreview_config_size(ispmodule_obj.preview_input_width,
++                       ispmodule_obj.preview_input_height,
++                       ispmodule_obj.preview_output_width,
++                       ispmodule_obj.preview_output_height);
++       }
++
++       if (ispmodule_obj.isp_pipeline & OMAP_ISP_RESIZER) {
++               ispresizer_config_size(ispmodule_obj.resizer_input_width,
++                       ispmodule_obj.resizer_input_height,
++                       ispmodule_obj.resizer_output_width,
++                       ispmodule_obj.resizer_output_height);
++       }
++
++       if (pix_output->pixelformat == V4L2_PIX_FMT_UYVY) {
++               isppreview_config_ycpos(YCPOS_YCrYCb);
++               if (is_ispresizer_enabled())
++                       ispresizer_config_ycpos(0);
++       } else {
++               isppreview_config_ycpos(YCPOS_CrYCbY);
++               if (is_ispresizer_enabled())
++                       ispresizer_config_ycpos(1);
++       }
++
++       return;
++}
++
++/**
++ * isp_vbq_done - Callback for interrupt completion
++ * @status: IRQ0STATUS register value. Passed by the ISR, or the caller.
++ * @arg1: Pointer to callback function for SG-DMA management.
++ * @arg2: Pointer to videobuffer structure managed by ISP.
++ **/
++void isp_vbq_done(unsigned long status, isp_vbq_callback_ptr arg1, void *arg2)
++{
++       struct videobuf_buffer *vb = (struct videobuf_buffer *) arg2;
++       int notify = 0;
++       int rval = 0;
++       unsigned long flags;
++
++       switch (status) {
++       case CCDC_VD0:
++               ispccdc_config_shadow_registers();
++               if ((ispmodule_obj.isp_pipeline & OMAP_ISP_RESIZER) ||
++                       (ispmodule_obj.isp_pipeline & OMAP_ISP_PREVIEW))
++                       return;
++               else {
++                       spin_lock(&isp_obj.isp_temp_buf_lock);
++                       if (ispmodule_obj.isp_temp_state != ISP_BUF_INIT) {
++                               spin_unlock(&isp_obj.isp_temp_buf_lock);
++                               return;
++
++                       } else {
++                               spin_unlock(&isp_obj.isp_temp_buf_lock);
++                               break;
++                       }
++               }
++               break;
++       case CCDC_VD1:
++               if ((ispmodule_obj.isp_pipeline & OMAP_ISP_RESIZER) ||
++                               (ispmodule_obj.isp_pipeline & OMAP_ISP_PREVIEW))
++                       return;
++               spin_lock(&isp_obj.isp_temp_buf_lock);
++               if (ispmodule_obj.isp_temp_state == ISP_BUF_INIT) {
++                       spin_unlock(&isp_obj.isp_temp_buf_lock);
++                       ispccdc_enable(0);
++                       return;
++               }
++               spin_unlock(&isp_obj.isp_temp_buf_lock);
++               return;
++       case PREV_DONE:
++               if (is_isppreview_enabled()) {
++                       if (ispmodule_obj.isp_pipeline & OMAP_ISP_RESIZER) {
++                               spin_lock(&isp_obj.isp_temp_buf_lock);
++                               if (!ispmodule_obj.applyCrop &&
++                                               (ispmodule_obj.isp_temp_state ==
++                                               ISP_BUF_INIT))
++                                       ispresizer_enable(1);
++                               spin_unlock(&isp_obj.isp_temp_buf_lock);
++                               if (ispmodule_obj.applyCrop &&
++                                                       !ispresizer_busy()) {
++                                       ispresizer_enable(0);
++                                       ispresizer_applycrop();
++                                       ispmodule_obj.applyCrop = 0;
++                               }
++                               isppreview_config_shadow_registers();
++                               isph3a_update_wb();
++                       }
++                       if (ispmodule_obj.isp_pipeline & OMAP_ISP_RESIZER)
++                               return;
++               }
++               break;
++       case RESZ_DONE:
++               if (is_ispresizer_enabled()) {
++                       ispresizer_config_shadow_registers();
++                       spin_lock(&isp_obj.isp_temp_buf_lock);
++                       if (ispmodule_obj.isp_temp_state != ISP_BUF_INIT) {
++                               spin_unlock(&isp_obj.isp_temp_buf_lock);
++                               return;
++                       }
++                       spin_unlock(&isp_obj.isp_temp_buf_lock);
++               }
++               break;
++       case HS_VS:
++               spin_lock(&isp_obj.isp_temp_buf_lock);
++               if (ispmodule_obj.isp_temp_state == ISP_BUF_TRAN) {
++                       isp_CCDC_VD01_enable();
++                       ispmodule_obj.isp_temp_state = ISP_BUF_INIT;
++               }
++               spin_unlock(&isp_obj.isp_temp_buf_lock);
++               return;
++       default:
++               return;
++       }
++
++       spin_lock_irqsave(&ispsg.lock, flags);
++       ispsg.free_sgdma++;
++       if (ispsg.free_sgdma > NUM_SG_DMA)
++               ispsg.free_sgdma = NUM_SG_DMA;
++       spin_unlock_irqrestore(&ispsg.lock, flags);
++
++       rval = arg1(vb);
++
++       if (rval)
++               isp_sgdma_process(&ispsg, 1, &notify, arg1);
++
++       return;
++}
++
++/**
++ * isp_sgdma_init - Initializes Scatter Gather DMA status and operations.
++ **/
++void isp_sgdma_init()
++{
++       int sg;
++
++       ispsg.free_sgdma = NUM_SG_DMA;
++       ispsg.next_sgdma = 0;
++       for (sg = 0; sg < NUM_SG_DMA; sg++) {
++               ispsg.sg_state[sg].status = 0;
++               ispsg.sg_state[sg].callback = NULL;
++               ispsg.sg_state[sg].arg = NULL;
++       }
++}
++EXPORT_SYMBOL(isp_stop);
++
++/**
++ * isp_vbq_sync - Walks the pages table and flushes the cache for
++ *                each page.
++ **/
++int isp_vbq_sync(struct videobuf_buffer *vb)
++{
++       struct videobuf_dmabuf *vdma;
++       u32 sg_element_addr;
++       int i;
++
++       vdma = videobuf_to_dma(vb);
++
++       for (i = 0; i < vdma->sglen; i++) {
++               sg_element_addr = sg_dma_address(vdma->sglist + i);
++               /* Page align address */
++               sg_element_addr &= ~(PAGE_SIZE - 1);
++
++               dma_sync_single_for_cpu(NULL, sg_element_addr, PAGE_SIZE,
++                                                       DMA_FROM_DEVICE);
++       }
++       return 0;
++}
++
++/**
++ * isp_sgdma_process - Sets operations and config for specified SG DMA
++ * @sgdma: SG-DMA function to work on.
++ * @irq: Flag to specify if an IRQ is associated with the DMA completion.
++ * @dma_notify: Pointer to flag that says when the ISP has to be started.
++ * @func_ptr: Callback function pointer for SG-DMA setup.
++ **/
++void isp_sgdma_process(struct isp_sgdma *sgdma, int irq, int *dma_notify,
++                                               isp_vbq_callback_ptr func_ptr)
++{
++       struct isp_sgdma_state *sgdma_state;
++       unsigned long flags;
++       spin_lock_irqsave(&sgdma->lock, flags);
++
++       if (NUM_SG_DMA > sgdma->free_sgdma) {
++               sgdma_state = sgdma->sg_state + (sgdma->next_sgdma +
++                                               sgdma->free_sgdma) % NUM_SG_DMA;
++               if (!irq) {
++                       if (*dma_notify) {
++                               isp_set_sgdma_callback(sgdma_state, func_ptr);
++                               isp_set_buf(sgdma_state);
++                               ispccdc_enable(1);
++                               isp_start();
++                               *dma_notify = 0;
++                               spin_lock(&isp_obj.isp_temp_buf_lock);
++                               if (ispmodule_obj.isp_pipeline
++                                                       & OMAP_ISP_RESIZER) {
++                                       ispmodule_obj.isp_temp_state =
++                                                               ISP_BUF_INIT;
++                               } else {
++                                       ispmodule_obj.isp_temp_state =
++                                                               ISP_BUF_TRAN;
++                               }
++                               spin_unlock(&isp_obj.isp_temp_buf_lock);
++                       } else {
++                               spin_lock(&isp_obj.isp_temp_buf_lock);
++                               if (ispmodule_obj.isp_temp_state ==
++                                                       ISP_FREE_RUNNING) {
++                                       isp_set_sgdma_callback(sgdma_state,
++                                                               func_ptr);
++                                       isp_set_buf(sgdma_state);
++                                       /* Non startup case */
++                                       if (ispmodule_obj.isp_pipeline
++                                                       & OMAP_ISP_RESIZER) {
++                                               ispmodule_obj.isp_temp_state =
++                                                               ISP_BUF_INIT;
++                                       } else {
++                                               ispmodule_obj.isp_temp_state =
++                                                               ISP_BUF_TRAN;
++                                               ispccdc_enable(1);
++                                       }
++                               }
++                               spin_unlock(&isp_obj.isp_temp_buf_lock);
++                       }
++               } else {
++                       isp_set_sgdma_callback(sgdma_state, func_ptr);
++                       isp_set_buf(sgdma_state);
++                       /* Non startup case */
++                       if (!(ispmodule_obj.isp_pipeline & OMAP_ISP_RESIZER))
++                               ispccdc_enable(1);
++
++                       if (*dma_notify) {
++                               isp_start();
++                               *dma_notify = 0;
++                       }
++               }
++       } else {
++               spin_lock(&isp_obj.isp_temp_buf_lock);
++               isp_CCDC_VD01_disable();
++               ispresizer_enable(0);
++               ispmodule_obj.isp_temp_state = ISP_FREE_RUNNING;
++               spin_unlock(&isp_obj.isp_temp_buf_lock);
++       }
++       spin_unlock_irqrestore(&sgdma->lock, flags);
++       return;
++}
++
++/**
++ * isp_sgdma_queue - Queues a Scatter-Gather DMA videobuffer.
++ * @vdma: Pointer to structure containing the desired DMA video buffer
++ *        transfer parameters.
++ * @vb: Pointer to structure containing the target videobuffer.
++ * @irq: Flag to specify if an IRQ is associated with the DMA completion.
++ * @dma_notify: Pointer to flag that says when the ISP has to be started.
++ * @func_ptr: Callback function pointer for SG-DMA setup.
++ *
++ * Returns 0 if successful, -EINVAL if invalid SG linked list setup, or -EBUSY
++ * if the ISP SG-DMA is not free.
++ **/
++int isp_sgdma_queue(struct videobuf_dmabuf *vdma, struct videobuf_buffer *vb,
++                                               int irq, int *dma_notify,
++                                               isp_vbq_callback_ptr func_ptr)
++{
++       unsigned long flags;
++       struct isp_sgdma_state *sg_state;
++       const struct scatterlist *sglist = vdma->sglist;
++       int sglen = vdma->sglen;
++
++       if ((sglen < 0) || ((sglen > 0) & !sglist))
++               return -EINVAL;
++       isp_vbq_sync(vb);
++
++       spin_lock_irqsave(&ispsg.lock, flags);
++
++       if (!ispsg.free_sgdma) {
++               spin_unlock_irqrestore(&ispsg.lock, flags);
++               return -EBUSY;
++       }
++
++       sg_state = ispsg.sg_state + ispsg.next_sgdma;
++       sg_state->isp_addr = ispsg.isp_addr_capture[vb->i];
++       sg_state->status = 0;
++       sg_state->callback = isp_vbq_done;
++       sg_state->arg = vb;
++
++       ispsg.next_sgdma = (ispsg.next_sgdma + 1) % NUM_SG_DMA;
++       ispsg.free_sgdma--;
++
++       spin_unlock_irqrestore(&ispsg.lock, flags);
++
++       isp_sgdma_process(&ispsg, irq, dma_notify, func_ptr);
 +
 +       return 0;
 +}
-+EXPORT_SYMBOL(isph3a_aewb_request_statistics);
++EXPORT_SYMBOL(isp_sgdma_queue);
 +
 +/**
-+ * isph3a_aewb_init - Module Initialisation.
++ * isp_vbq_prepare - Videobuffer queue prepare.
++ * @vbq: Pointer to videobuf_queue structure.
++ * @vb: Pointer to videobuf_buffer structure.
++ * @field: Requested Field order for the videobuffer.
++ *
++ * Returns 0 if successful, or -EIO if the ispmmu was unable to map a
++ * scatter-gather linked list data space.
++ **/
++int isp_vbq_prepare(struct videobuf_queue *vbq, struct videobuf_buffer *vb,
++                                                       enum v4l2_field field)
++{
++       unsigned int isp_addr;
++       struct videobuf_dmabuf *vdma;
++
++       int err = 0;
++
++       vdma = videobuf_to_dma(vb);
++
++       isp_addr = ispmmu_map_sg(vdma->sglist, vdma->sglen);
++
++       if (!isp_addr)
++               err = -EIO;
++       else
++               ispsg.isp_addr_capture[vb->i] = isp_addr;
++
++       return err;
++}
++EXPORT_SYMBOL(isp_vbq_prepare);
++
++/**
++ * isp_vbq_release - Videobuffer queue release.
++ * @vbq: Pointer to videobuf_queue structure.
++ * @vb: Pointer to videobuf_buffer structure.
++ **/
++void isp_vbq_release(struct videobuf_queue *vbq, struct videobuf_buffer *vb)
++{
++       ispmmu_unmap(ispsg.isp_addr_capture[vb->i]);
++       ispsg.isp_addr_capture[vb->i] = (dma_addr_t)NULL;
++       return;
++}
++EXPORT_SYMBOL(isp_vbq_release);
++
++/**
++ * isp_queryctrl - Query V4L2 control from existing controls in ISP.
++ * @a: Pointer to v4l2_queryctrl structure. It only needs the id field filled.
++ *
++ * Returns 0 if successful, or -EINVAL if not found in ISP.
++ **/
++int isp_queryctrl(struct v4l2_queryctrl *a)
++{
++       int i;
++
++       if (a->id & V4L2_CTRL_FLAG_NEXT_CTRL) {
++               a->id &= ~V4L2_CTRL_FLAG_NEXT_CTRL;
++               i = find_next_vctrl(a->id);
++       } else {
++               i = find_vctrl(a->id);
++       }
++
++       if (i < 0)
++               return -EINVAL;
++
++       *a = video_control[i].qc;
++       return 0;
++}
++EXPORT_SYMBOL(isp_queryctrl);
++
++/**
++ * isp_queryctrl - Query V4L2 control from existing controls in ISP.
++ * @a: Pointer to v4l2_queryctrl structure. It only needs the id field filled.
++ *
++ * Returns 0 if successful, or -EINVAL if not found in ISP.
++ **/
++int isp_querymenu(struct v4l2_querymenu *a)
++{
++       int i;
++
++       i = find_vmenu(a->id, a->index);
++
++       if (i < 0)
++               return -EINVAL;
++
++       *a = video_menu[i];
++       return 0;
++}
++EXPORT_SYMBOL(isp_querymenu);
++
++/**
++ * isp_g_ctrl - Gets value of the desired V4L2 control.
++ * @a: V4L2 control to read actual value from.
++ *
++ * Return 0 if successful, or -EINVAL if chosen control is not found.
++ **/
++int isp_g_ctrl(struct v4l2_control *a)
++{
++       u8 current_value;
++       int rval = 0;
++
++       switch (a->id) {
++       case V4L2_CID_BRIGHTNESS:
++               isppreview_query_brightness(&current_value);
++               a->value = current_value / ISPPRV_BRIGHT_UNITS;
++               break;
++       case V4L2_CID_CONTRAST:
++               isppreview_query_contrast(&current_value);
++               a->value = current_value / ISPPRV_CONTRAST_UNITS;
++               break;
++       case V4L2_CID_PRIVATE_ISP_COLOR_FX:
++               isppreview_get_color(&current_value);
++               a->value = current_value;
++               break;
++       default:
++               rval = -EINVAL;
++               break;
++       }
++
++       return rval;
++}
++EXPORT_SYMBOL(isp_g_ctrl);
++
++/**
++ * isp_s_ctrl - Sets value of the desired V4L2 control.
++ * @a: V4L2 control to read actual value from.
++ *
++ * Return 0 if successful, -EINVAL if chosen control is not found or value
++ * is out of bounds, -EFAULT if copy_from_user or copy_to_user operation fails
++ * from camera abstraction layer related controls or the transfered user space
++ * pointer via the value field is not set properly.
++ **/
++int isp_s_ctrl(struct v4l2_control *a)
++{
++       int rval = 0;
++       u8 new_value = a->value;
++
++       switch (a->id) {
++       case V4L2_CID_BRIGHTNESS:
++               if (new_value > ISPPRV_BRIGHT_HIGH)
++                       rval = -EINVAL;
++               else
++                       isppreview_update_brightness(&new_value);
++               break;
++       case V4L2_CID_CONTRAST:
++               if (new_value > ISPPRV_CONTRAST_HIGH)
++                       rval = -EINVAL;
++               else
++                       isppreview_update_contrast(&new_value);
++               break;
++       case V4L2_CID_PRIVATE_ISP_COLOR_FX:
++               if (new_value > PREV_BW_COLOR)
++                       rval = -EINVAL;
++               else
++                       isppreview_set_color(&new_value);
++               break;
++       default:
++               rval = -EINVAL;
++               break;
++       }
++
++       return rval;
++}
++EXPORT_SYMBOL(isp_s_ctrl);
++
++/**
++ * isp_handle_private - Handle all private ioctls for isp module.
++ * @cmd: ioctl cmd value
++ * @arg: ioctl arg value
++ *
++ * Return 0 if successful, -EINVAL if chosen cmd value is not handled or value
++ * is out of bounds, -EFAULT if ioctl arg value is not valid.
++ * Function simply routes the input ioctl cmd id to the appropriate handler in
++ * the isp module.
++ **/
++int isp_handle_private(int cmd, void *arg)
++{
++       int rval = 0;
++
++       switch (cmd) {
++       case VIDIOC_PRIVATE_ISP_CCDC_CFG:
++               rval = omap34xx_isp_ccdc_config(arg);
++               break;
++       case VIDIOC_PRIVATE_ISP_PRV_CFG:
++               rval = omap34xx_isp_preview_config(arg);
++               break;
++       case VIDIOC_PRIVATE_ISP_AEWB_CFG: {
++               struct isph3a_aewb_config *params;
++               params = (struct isph3a_aewb_config *)arg;
++               rval = isph3a_aewb_configure(params);
++               }
++               break;
++       case VIDIOC_PRIVATE_ISP_AEWB_REQ: {
++               struct isph3a_aewb_data *data;
++               data = (struct isph3a_aewb_data *)arg;
++               rval = isph3a_aewb_request_statistics(data);
++               }
++               break;
++       case VIDIOC_PRIVATE_ISP_HIST_CFG: {
++               struct isp_hist_config *params;
++               params = (struct isp_hist_config *)arg;
++               rval = isp_hist_configure(params);
++               }
++               break;
++       case VIDIOC_PRIVATE_ISP_HIST_REQ: {
++               struct isp_hist_data *data;
++               data = (struct isp_hist_data *)arg;
++               rval = isp_hist_request_statistics(data);
++               }
++               break;
++       case VIDIOC_PRIVATE_ISP_AF_CFG: {
++               struct af_configuration *params;
++               params = (struct af_configuration *)arg;
++               rval = isp_af_configure(params);
++               }
++               break;
++       case VIDIOC_PRIVATE_ISP_AF_REQ: {
++               struct isp_af_data *data;
++               data = (struct isp_af_data *)arg;
++               rval = isp_af_request_statistics(data);
++               }
++               break;
++       default:
++               rval = -EINVAL;
++               break;
++       }
++       return rval;
++}
++EXPORT_SYMBOL(isp_handle_private);
++
++/**
++ * isp_enum_fmt_cap - Gets more information of chosen format index and type
++ * @f: Pointer to structure containing index and type of format to read from.
++ *
++ * Returns 0 if successful, or -EINVAL if format index or format type is
++ * invalid.
++ **/
++int isp_enum_fmt_cap(struct v4l2_fmtdesc *f)
++{
++       int index = f->index;
++       enum v4l2_buf_type type = f->type;
++       int rval = -EINVAL;
++
++       if (index >= NUM_ISP_CAPTURE_FORMATS)
++               goto err;
++
++       memset(f, 0, sizeof(*f));
++       f->index = index;
++       f->type = type;
++
++       switch (f->type) {
++       case V4L2_BUF_TYPE_VIDEO_CAPTURE:
++               rval = 0;
++               break;
++       default:
++               goto err;
++       }
++
++       f->flags = isp_formats[index].flags;
++       strncpy(f->description, isp_formats[index].description,
++                                               sizeof(f->description));
++       f->pixelformat = isp_formats[index].pixelformat;
++err:
++       return rval;
++}
++EXPORT_SYMBOL(isp_enum_fmt_cap);
++
++/**
++ * isp_g_fmt_cap - Gets current output image format.
++ * @f: Pointer to V4L2 format structure to be filled with current output format
++ **/
++void isp_g_fmt_cap(struct v4l2_pix_format *pix)
++{
++       *pix = ispmodule_obj.pix;
++       return;
++}
++EXPORT_SYMBOL(isp_g_fmt_cap);
++
++/**
++ * isp_s_fmt_cap - Sets I/O formats and crop and configures pipeline in ISP
++ * @f: Pointer to V4L2 format structure to be filled with current output format
++ *
++ * Returns 0 if successful, or return value of either isp_try_size or
++ * isp_try_fmt if there is an error.
++ **/
++int isp_s_fmt_cap(struct v4l2_pix_format *pix_input,
++                                       struct v4l2_pix_format *pix_output)
++{
++       int crop_scaling_w, crop_scaling_h = 0;
++       int rval = 0;
++
++       rval = isp_calc_pipeline(pix_input, pix_output);
++       if (rval)
++               goto out;
++
++       rval = isp_try_size(pix_input, pix_output);
++       if (rval)
++               goto out;
++
++       rval = isp_try_fmt(pix_input, pix_output);
++       if (rval)
++               goto out;
++
++       if (ispcroprect.width != pix_output->width) {
++               crop_scaling_w = 1;
++               ispcroprect.left = 0;
++               ispcroprect.width = pix_output->width;
++       }
++
++       if (ispcroprect.height != pix_output->height) {
++               crop_scaling_h = 1;
++               ispcroprect.top = 0;
++               ispcroprect.height = pix_output->height;
++       }
++
++       isp_config_pipeline(pix_input, pix_output);
++
++       if (crop_scaling_h || crop_scaling_w)
++               isp_config_crop(pix_output);
++
++out:
++       return rval;
++}
++EXPORT_SYMBOL(isp_s_fmt_cap);
++
++/**
++ * isp_config_crop - Configures crop parameters in isp resizer.
++ * @croppix: Pointer to V4L2 pixel format structure containing crop parameters
++ **/
++void isp_config_crop(struct v4l2_pix_format *croppix)
++{
++       u8 crop_scaling_w;
++       u8 crop_scaling_h;
++#if ISP_WORKAROUND
++       unsigned long org_left, num_pix, new_top;
++#endif
++
++       struct v4l2_pix_format *pix = croppix;
++
++       crop_scaling_w = (ispmodule_obj.preview_output_width * 10) /
++                                                               pix->width;
++       crop_scaling_h = (ispmodule_obj.preview_output_height * 10) /
++                                                               pix->height;
++
++       cur_rect.left = (ispcroprect.left * crop_scaling_w) / 10;
++       cur_rect.top = (ispcroprect.top * crop_scaling_h) / 10;
++       cur_rect.width = (ispcroprect.width * crop_scaling_w) / 10;
++       cur_rect.height = (ispcroprect.height * crop_scaling_h) / 10;
++
++#if ISP_WORKAROUND
++       org_left = cur_rect.left;
++       while (((int)cur_rect.left & 0xFFFFFFF0) != (int)cur_rect.left)
++               (int)cur_rect.left--;
++
++       num_pix = org_left - cur_rect.left;
++       new_top = (int)(num_pix * 3) / 4;
++       cur_rect.top = cur_rect.top - new_top;
++       cur_rect.height = (2 * new_top) + cur_rect.height;
++
++       cur_rect.width = cur_rect.width + (2 * num_pix);
++       while (((int)cur_rect.width & 0xFFFFFFF0) != (int)cur_rect.width)
++               (int)cur_rect.width--;
++
++       offset_value = ((cur_rect.left * 2) +
++               ((ispmodule_obj.preview_output_width) * 2 * cur_rect.top));
++#endif
++
++       ispresizer_trycrop(cur_rect.left, cur_rect.top, cur_rect.width,
++                                       cur_rect.height,
++                                       ispmodule_obj.resizer_output_width,
++                                       ispmodule_obj.resizer_output_height);
++
++       return;
++}
++EXPORT_SYMBOL(isp_config_crop);
++
++/**
++ * isp_g_crop - Gets crop rectangle size and position.
++ * @a: Pointer to V4L2 crop structure to be filled.
 + *
 + * Always returns 0.
 + **/
-+int __init isph3a_aewb_init(void)
++int isp_g_crop(struct v4l2_crop *a)
 +{
-+       memset(&aewbstat, 0, sizeof(aewbstat));
-+       memset(&aewb_regs, 0, sizeof(aewb_regs));
++       struct v4l2_crop *crop = a;
 +
-+       init_waitqueue_head(&aewbstat.stats_wait);
-+       spin_lock_init(&aewbstat.buffer_lock);
++       crop->c = ispcroprect;
++       return 0;
++}
++EXPORT_SYMBOL(isp_g_crop);
++
++/**
++ * isp_s_crop - Sets crop rectangle size and position and queues crop operation
++ * @a: Pointer to V4L2 crop structure with desired parameters.
++ * @pix: Pointer to V4L2 pixel format structure with desired parameters.
++ *
++ * Returns 0 if successful, or -EINVAL if crop parameters are out of bounds.
++ **/
++int isp_s_crop(struct v4l2_crop *a, struct v4l2_pix_format *pix)
++{
++       struct v4l2_crop *crop = a;
++       int rval = 0;
++
++       if ((crop->c.left + crop->c.width) > pix->width) {
++               rval = -EINVAL;
++               goto out;
++       }
++
++       if ((crop->c.top + crop->c.height) > pix->height) {
++               rval = -EINVAL;
++               goto out;
++       }
++
++       ispcroprect.left = crop->c.left;
++       ispcroprect.top = crop->c.top;
++       ispcroprect.width = crop->c.width;
++       ispcroprect.height = crop->c.height;
++
++       isp_config_crop(pix);
++
++       ispmodule_obj.applyCrop = 1;
++out:
++       return rval;
++}
++EXPORT_SYMBOL(isp_s_crop);
++
++/**
++ * isp_try_fmt_cap - Tries desired input/output image formats
++ * @pix_input: Pointer to V4L2 pixel format structure for input image.
++ * @pix_output: Pointer to V4L2 pixel format structure for output image.
++ *
++ * Returns 0 if successful, or return value of either isp_try_size or
++ * isp_try_fmt if there is an error.
++ **/
++int isp_try_fmt_cap(struct v4l2_pix_format *pix_input,
++                                       struct v4l2_pix_format *pix_output)
++{
++       int rval = 0;
++
++       rval = isp_calc_pipeline(pix_input, pix_output);
++       if (rval)
++               goto out;
++
++       rval = isp_try_size(pix_input, pix_output);
++       if (rval)
++               goto out;
++
++       rval = isp_try_fmt(pix_input, pix_output);
++       if (rval)
++               goto out;
++
++out:
++       return rval;
++}
++EXPORT_SYMBOL(isp_try_fmt_cap);
++
++/**
++ * isp_try_size - Tries size configuration for I/O images of each ISP submodule
++ * @pix_input: Pointer to V4L2 pixel format structure for input image.
++ * @pix_output: Pointer to V4L2 pixel format structure for output image.
++ *
++ * Returns 0 if successful, or return value of ispccdc_try_size,
++ * isppreview_try_size, or ispresizer_try_size (depending on the pipeline
++ * configuration) if there is an error.
++ **/
++int isp_try_size(struct v4l2_pix_format *pix_input,
++                                       struct v4l2_pix_format *pix_output)
++{
++       int rval = 0;
++
++       if ((pix_output->width <= ISPRSZ_MIN_OUTPUT) ||
++                               (pix_output->height <= ISPRSZ_MIN_OUTPUT))
++               return -EINVAL;
++
++       if ((pix_output->width >= ISPRSZ_MAX_OUTPUT) ||
++                               (pix_output->height > ISPRSZ_MAX_OUTPUT))
++               return -EINVAL;
++
++       ispmodule_obj.ccdc_input_width = pix_input->width;
++       ispmodule_obj.ccdc_input_height = pix_input->height;
++       ispmodule_obj.resizer_output_width = pix_output->width;
++       ispmodule_obj.resizer_output_height = pix_output->height;
++
++       if (ispmodule_obj.isp_pipeline & OMAP_ISP_CCDC) {
++               rval = ispccdc_try_size(ispmodule_obj.ccdc_input_width,
++                                       ispmodule_obj.ccdc_input_height,
++                                       &ispmodule_obj.ccdc_output_width,
++                                       &ispmodule_obj.ccdc_output_height);
++               if (rval) {
++                       printk(KERN_ERR "ISP_ERR: The dimensions %dx%d are not"
++                                       " supported\n", pix_input->width,
++                                       pix_input->height);
++                       return rval;
++               }
++               pix_output->width = ispmodule_obj.ccdc_output_width;
++               pix_output->height = ispmodule_obj.ccdc_output_height;
++       }
++
++       if (ispmodule_obj.isp_pipeline & OMAP_ISP_PREVIEW) {
++               ispmodule_obj.preview_input_width =
++                                       ispmodule_obj.ccdc_output_width;
++               ispmodule_obj.preview_input_height =
++                                       ispmodule_obj.ccdc_output_height;
++               rval = isppreview_try_size(ispmodule_obj.preview_input_width,
++                                       ispmodule_obj.preview_input_height,
++                                       &ispmodule_obj.preview_output_width,
++                                       &ispmodule_obj.preview_output_height);
++               if (rval) {
++                       printk(KERN_ERR "ISP_ERR: The dimensions %dx%d are not"
++                                       " supported\n", pix_input->width,
++                                       pix_input->height);
++                       return rval;
++               }
++               pix_output->width = ispmodule_obj.preview_output_width;
++               pix_output->height = ispmodule_obj.preview_output_height;
++       }
++
++       if (ispmodule_obj.isp_pipeline & OMAP_ISP_RESIZER) {
++               ispmodule_obj.resizer_input_width =
++                                       ispmodule_obj.preview_output_width;
++               ispmodule_obj.resizer_input_height =
++                                       ispmodule_obj.preview_output_height;
++               rval = ispresizer_try_size(&ispmodule_obj.resizer_input_width,
++                                       &ispmodule_obj.resizer_input_height,
++                                       &ispmodule_obj.resizer_output_width,
++                                       &ispmodule_obj.resizer_output_height);
++               if (rval) {
++                       printk(KERN_ERR "ISP_ERR: The dimensions %dx%d are not"
++                                       " supported\n", pix_input->width,
++                                       pix_input->height);
++                       return rval;
++               }
++               pix_output->width = ispmodule_obj.resizer_output_width;
++               pix_output->height = ispmodule_obj.resizer_output_height;
++       }
++
++       return rval;
++}
++EXPORT_SYMBOL(isp_try_size);
++
++/**
++ * isp_try_fmt - Validates input/output format parameters.
++ * @pix_input: Pointer to V4L2 pixel format structure for input image.
++ * @pix_output: Pointer to V4L2 pixel format structure for output image.
++ *
++ * Always returns 0.
++ **/
++int isp_try_fmt(struct v4l2_pix_format *pix_input,
++                                       struct v4l2_pix_format *pix_output)
++{
++       int ifmt;
++
++       for (ifmt = 0; ifmt < NUM_ISP_CAPTURE_FORMATS; ifmt++) {
++               if (pix_output->pixelformat == isp_formats[ifmt].pixelformat)
++                       break;
++       }
++       if (ifmt == NUM_ISP_CAPTURE_FORMATS)
++               ifmt = 1;
++       pix_output->pixelformat = isp_formats[ifmt].pixelformat;
++       pix_output->field = V4L2_FIELD_NONE;
++       pix_output->bytesperline = pix_output->width * ISP_BYTES_PER_PIXEL;
++       pix_output->sizeimage =
++               PAGE_ALIGN(pix_output->bytesperline * pix_output->height);
++       pix_output->priv = 0;
++       switch (pix_output->pixelformat) {
++       case V4L2_PIX_FMT_YUYV:
++       case V4L2_PIX_FMT_UYVY:
++               pix_output->colorspace = V4L2_COLORSPACE_JPEG;
++               break;
++       default:
++               pix_output->colorspace = V4L2_COLORSPACE_SRGB;
++       }
++
++       ispmodule_obj.pix.pixelformat = pix_output->pixelformat;
++       ispmodule_obj.pix.width = pix_output->width;
++       ispmodule_obj.pix.height = pix_output->height;
++       ispmodule_obj.pix.field = pix_output->field;
++       ispmodule_obj.pix.bytesperline = pix_output->bytesperline;
++       ispmodule_obj.pix.sizeimage = pix_output->sizeimage;
++       ispmodule_obj.pix.priv = pix_output->priv;
++       ispmodule_obj.pix.colorspace = pix_output->colorspace;
++
++       return 0;
++}
++EXPORT_SYMBOL(isp_try_fmt);
++
++/**
++ * isp_save_ctx - Saves ISP, CCDC, HIST, H3A, PREV, RESZ & MMU context.
++ *
++ * Routine for saving the context of each module in the ISP.
++ * CCDC, HIST, H3A, PREV, RESZ and MMU.
++ **/
++void isp_save_ctx(void)
++{
++       isp_save_context(isp_reg_list);
++       ispccdc_save_context();
++       ispmmu_save_context();
++       isphist_save_context();
++       isph3a_save_context();
++       isppreview_save_context();
++       ispresizer_save_context();
++}
++EXPORT_SYMBOL(isp_save_ctx);
++
++/**
++ * isp_restore_ctx - Restores ISP, CCDC, HIST, H3A, PREV, RESZ & MMU context.
++ *
++ * Routine for restoring the context of each module in the ISP.
++ * CCDC, HIST, H3A, PREV, RESZ and MMU.
++ **/
++void isp_restore_ctx(void)
++{
++       isp_restore_context(isp_reg_list);
++       ispccdc_restore_context();
++       ispmmu_restore_context();
++       isphist_restore_context();
++       isph3a_restore_context();
++       isppreview_restore_context();
++       ispresizer_restore_context();
++}
++EXPORT_SYMBOL(isp_restore_ctx);
++
++/**
++ * isp_get - Adquires the ISP resource.
++ *
++ * Initializes the clocks for the first acquire.
++ **/
++int isp_get(void)
++{
++       int ret_err = 0;
++       DPRINTK_ISPCTRL("isp_get: old %d\n", isp_obj.ref_count);
++       mutex_lock(&(isp_obj.isp_mutex));
++       if (isp_obj.ref_count == 0) {
++               isp_obj.cam_ick = clk_get(&camera_dev, "cam_ick");
++               if (IS_ERR(isp_obj.cam_ick)) {
++                       DPRINTK_ISPCTRL("ISP_ERR: clk_get for "
++                                                       "cam_ick failed\n");
++                       ret_err = PTR_ERR(isp_obj.cam_ick);
++                       goto out_clk_get_ick;
++               }
++               isp_obj.cam_mclk = clk_get(&camera_dev, "cam_mclk");
++               if (IS_ERR(isp_obj.cam_mclk)) {
++                       DPRINTK_ISPCTRL("ISP_ERR: clk_get for "
++                                                       "cam_mclk failed\n");
++                       ret_err = PTR_ERR(isp_obj.cam_mclk);
++                       goto out_clk_get_mclk;
++               }
++               isp_obj.csi2_fck = clk_get(&camera_dev, "csi2_96m_fck");
++               if (IS_ERR(isp_obj.csi2_fck)) {
++                       DPRINTK_ISPCTRL("ISP_ERR: clk_get for csi2_fclk"
++                                                               " failed\n");
++                       ret_err = PTR_ERR(isp_obj.csi2_fck);
++                       goto out_clk_get_csi2_fclk;
++               }
++               ret_err = clk_enable(isp_obj.cam_ick);
++               if (ret_err) {
++                       DPRINTK_ISPCTRL("ISP_ERR: clk_en for ick failed\n");
++                       goto out_clk_enable_ick;
++               }
++               ret_err = clk_enable(isp_obj.cam_mclk);
++               if (ret_err) {
++                       DPRINTK_ISPCTRL("ISP_ERR: clk_en for mclk failed\n");
++                       goto out_clk_enable_mclk;
++               }
++               ret_err = clk_enable(isp_obj.csi2_fck);
++               if (ret_err) {
++                       DPRINTK_ISPCTRL("ISP_ERR: clk_en for csi2_fclk"
++                                                               " failed\n");
++                       goto out_clk_enable_csi2_fclk;
++               }
++               if (off_mode == 1)
++                       isp_restore_ctx();
++       }
++       isp_obj.ref_count++;
++       mutex_unlock(&(isp_obj.isp_mutex));
++
++
++       DPRINTK_ISPCTRL("isp_get: new %d\n", isp_obj.ref_count);
++       return isp_obj.ref_count;
++
++out_clk_enable_csi2_fclk:
++       clk_disable(isp_obj.cam_mclk);
++out_clk_enable_mclk:
++       clk_disable(isp_obj.cam_ick);
++out_clk_enable_ick:
++       clk_put(isp_obj.csi2_fck);
++out_clk_get_csi2_fclk:
++       clk_put(isp_obj.cam_mclk);
++out_clk_get_mclk:
++       clk_put(isp_obj.cam_ick);
++out_clk_get_ick:
++
++       mutex_unlock(&(isp_obj.isp_mutex));
++
++       return ret_err;
++}
++EXPORT_SYMBOL(isp_get);
++
++/**
++ * isp_put - Releases the ISP resource.
++ *
++ * Releases the clocks also for the last release.
++ **/
++int isp_put(void)
++{
++       DPRINTK_ISPCTRL("isp_put: old %d\n", isp_obj.ref_count);
++       mutex_lock(&(isp_obj.isp_mutex));
++       if (isp_obj.ref_count) {
++               if (--isp_obj.ref_count == 0) {
++                       isp_save_ctx();
++                       off_mode = 1;
++#if ISP_WORKAROUND
++                       isp_buf_free();
++#endif
++                       isp_release_resources();
++                       ispmodule_obj.isp_pipeline = 0;
++                       clk_disable(isp_obj.cam_ick);
++                       clk_disable(isp_obj.cam_mclk);
++                       clk_disable(isp_obj.csi2_fck);
++                       clk_put(isp_obj.cam_ick);
++                       clk_put(isp_obj.cam_mclk);
++                       clk_put(isp_obj.csi2_fck);
++                       memset(&ispcroprect, 0, sizeof(ispcroprect));
++                       memset(&cur_rect, 0, sizeof(cur_rect));
++               }
++       }
++       mutex_unlock(&(isp_obj.isp_mutex));
++       DPRINTK_ISPCTRL("isp_put: new %d\n", isp_obj.ref_count);
++       return isp_obj.ref_count;
++}
++EXPORT_SYMBOL(isp_put);
++
++/**
++ * isp_save_context - Saves the values of the ISP module registers.
++ * @reg_list: Structure containing pairs of register address and value to
++ *            modify on OMAP.
++ **/
++void isp_save_context(struct isp_reg *reg_list)
++{
++       struct isp_reg *next = reg_list;
++
++       for (; next->reg != ISP_TOK_TERM; next++)
++               next->val = isp_reg_readl(next->mmio_range, next->reg);
++}
++EXPORT_SYMBOL(isp_save_context);
++
++/**
++ * isp_restore_context - Restores the values of the ISP module registers.
++ * @reg_list: Structure containing pairs of register address and value to
++ *            modify on OMAP.
++ **/
++void isp_restore_context(struct isp_reg *reg_list)
++{
++       struct isp_reg *next = reg_list;
++
++       for (; next->reg != ISP_TOK_TERM; next++)
++               isp_reg_writel(next->val, next->mmio_range, next->reg);
++}
++EXPORT_SYMBOL(isp_restore_context);
++
++static int isp_remove(struct platform_device *pdev)
++{
++       struct isp_device *isp = platform_get_drvdata(pdev);
++       int i;
++
++       if (!isp)
++               return 0;
++
++       free_irq(isp->irq, &ispirq_obj);
++
++       for (i = 0; i <= OMAP3_ISP_IOMEM_CSI2PHY; i++) {
++               if (isp->mmio_base[i]) {
++                       iounmap((void *)isp->mmio_base[i]);
++                       isp->mmio_base[i] = 0;
++               }
++
++               if (isp->mmio_base_phys[i]) {
++                       release_mem_region(isp->mmio_base_phys[i],
++                                               isp->mmio_size[i]);
++                       isp->mmio_base_phys[i] = 0;
++               }
++       }
++
++       omap3isp = NULL;
++
++       kfree(isp);
++
 +       return 0;
 +}
 +
-+/**
-+ * isph3a_aewb_cleanup - Module exit.
-+ **/
-+void __exit isph3a_aewb_cleanup(void)
++static int isp_probe(struct platform_device *pdev)
 +{
++       struct isp_device *isp;
++       int irq;
 +       int i;
-+       isph3a_aewb_enable(0);
-+       isp_unset_callback(CBK_H3A_AWB_DONE);
 +
-+       if (aewbstat.h3a_buff) {
-+               for (i =3D 0; i < H3A_MAX_BUFF; i++) {
-+                       ispmmu_unmap(aewbstat.h3a_buff[i].ispmmu_addr);
-+                       dma_free_coherent(NULL,
-+                               aewbstat.min_buf_size,
-+                               (void *)aewbstat.h3a_buff[i].virt_addr,
-+                               (dma_addr_t)aewbstat.h3a_buff[i].phy_addr=
-);
++       isp = kzalloc(sizeof(*isp), GFP_KERNEL);
++       if (!isp) {
++               dev_err(&pdev->dev, "could not allocate memory\n");
++               goto err;
++       }
++
++       platform_set_drvdata(pdev, isp);
++
++       isp->dev = &pdev->dev;
++
++       for (i = 0; i <= OMAP3_ISP_IOMEM_CSI2PHY; i++) {
++               struct resource *mem;
++               /* request the mem region for the camera registers */
++               mem = platform_get_resource(pdev, IORESOURCE_MEM, i);
++               if (!mem) {
++                       dev_err(isp->dev, "no mem resource?\n");
++                       goto err;
++               }
++
++               if (!request_mem_region(mem->start, (mem->end - mem->start) + 1,
++                                       pdev->name)) {
++                       dev_err(isp->dev,
++                               "cannot reserve camera register I/O region\n");
++                       goto err;
++
++               }
++               isp->mmio_base_phys[i] = mem->start;
++               isp->mmio_size[i] = (mem->end - mem->start) + 1;
++
++               /* map the region */
++               isp->mmio_base[i] = (unsigned long)
++                               ioremap_nocache(isp->mmio_base_phys[i],
++                               isp->mmio_size[i]);
++               if (!isp->mmio_base[i]) {
++                       dev_err(isp->dev, "cannot map camera register I/O region\n");
++                       goto err;
 +               }
 +       }
-+       memset(&aewbstat, 0, sizeof(aewbstat));
-+       memset(&aewb_regs, 0, sizeof(aewb_regs));
-+}
 +
-+/**
-+ * isph3a_print_status - Debug print. Values of H3A related registers.
-+ **/
-+static void isph3a_print_status(void)
-+{
-+       DPRINTK_ISPH3A("ISPH3A_PCR =3D 0x%08x\n", isp_reg_readl(OMAP3_ISP=
-_IOMEM_H3A, ISPH3A_PCR));
-+       DPRINTK_ISPH3A("ISPH3A_AEWWIN1 =3D 0x%08x\n",
-+                                               isp_reg_readl(OMAP3_ISP_I=
-OMEM_H3A, ISPH3A_AEWWIN1));
-+       DPRINTK_ISPH3A("ISPH3A_AEWINSTART =3D 0x%08x\n",
-+                                               isp_reg_readl(OMAP3_ISP_I=
-OMEM_H3A, ISPH3A_AEWINSTART));
-+       DPRINTK_ISPH3A("ISPH3A_AEWINBLK =3D 0x%08x\n",
-+                                               isp_reg_readl(OMAP3_ISP_I=
-OMEM_H3A, ISPH3A_AEWINBLK));
-+       DPRINTK_ISPH3A("ISPH3A_AEWSUBWIN =3D 0x%08x\n",
-+                                               isp_reg_readl(OMAP3_ISP_I=
-OMEM_H3A, ISPH3A_AEWSUBWIN));
-+       DPRINTK_ISPH3A("ISPH3A_AEWBUFST =3D 0x%08x\n",
-+                                               isp_reg_readl(OMAP3_ISP_I=
-OMEM_H3A, ISPH3A_AEWBUFST));
-+       DPRINTK_ISPH3A("stats windows =3D %d\n", aewbstat.win_count);
-+       DPRINTK_ISPH3A("stats buff size =3D %d\n", aewbstat.stats_buf_siz=
-e);
-+       DPRINTK_ISPH3A("currently configured stats buff size =3D %d\n",
-+                                               aewbstat.curr_cfg_buf_siz=
-e);
-+}
-+
-+/**
-+ * isph3a_notify - Unblocks user request for statistics when camera is o=
-ff
-+ * @notify: 1 - Camera is turned off
-+ *
-+ * Used when the user has requested statistics about a future frame, but=
- the
-+ * camera is turned off before it happens, and this function unblocks th=
-e
-+ * request so the user can continue in its program.
-+ **/
-+void isph3a_notify(int notify)
-+{
-+       camnotify =3D notify;
-+       if (camnotify && aewbstat.initialized) {
-+               printk(KERN_DEBUG "Warning Camera Off \n");
-+               aewbstat.stats_req =3D 0;
-+               aewbstat.stats_done =3D 1;
-+               wake_up_interruptible(&aewbstat.stats_wait);
++       irq = platform_get_irq(pdev, 0);
++       if (irq <= 0) {
++               dev_err(isp->dev, "no irq for camera?\n");
++               goto err;
 +       }
++       isp->irq = irq;
++
++       omap3isp = isp;
++
++       if (request_irq(isp->irq, omap34xx_isp_isr, IRQF_SHARED,
++                               "Omap 3 Camera ISP", &ispirq_obj)) {
++               DPRINTK_ISPCTRL("Could not install ISR\n");
++               goto err;
++       }
++
++       return 0;
++err:
++       isp_remove(pdev);
++       return -ENODEV;
 +}
-+EXPORT_SYMBOL(isph3a_notify);
++
++static struct platform_driver omap3isp_driver = {
++       .probe = isp_probe,
++       .remove = isp_remove,
++       .driver = {
++                  .name = "omap3isp",
++                  },
++};
 +
 +/**
-+ * isph3a_save_context - Saves the values of the h3a module registers.
++ * isp_init - ISP module initialization.
 + **/
-+void isph3a_save_context(void)
++static int __init isp_init(void)
 +{
-+       DPRINTK_ISPH3A(" Saving context\n");
-+       isp_save_context(isph3a_reg_list);
++       int plat_ret;
++
++       isp_obj.ref_count = 0;
++
++       mutex_init(&(isp_obj.isp_mutex));
++       spin_lock_init(&isp_obj.isp_temp_buf_lock);
++       spin_lock_init(&isp_obj.lock);
++
++       plat_ret = platform_driver_register(&omap3isp_driver);
++       if (plat_ret)
++               return plat_ret;
++
++       isp_ccdc_init();
++       isp_hist_init();
++       isph3a_aewb_init();
++       ispmmu_init();
++       isp_preview_init();
++       isp_resizer_init();
++       isp_af_init();
++       isp_csi2_init();
++
++       return 0;
 +}
-+EXPORT_SYMBOL(isph3a_save_context);
++EXPORT_SYMBOL(isp_sgdma_init);
 +
 +/**
-+ * isph3a_restore_context - Restores the values of the h3a module regist=
-ers.
++ * isp_cleanup - ISP module cleanup.
 + **/
-+void isph3a_restore_context(void)
++static void __exit isp_cleanup(void)
 +{
-+       DPRINTK_ISPH3A(" Restoring context\n");
-+       isp_restore_context(isph3a_reg_list);
++       isp_csi2_cleanup();
++       isp_af_exit();
++       isp_resizer_cleanup();
++       isp_preview_cleanup();
++       ispmmu_cleanup();
++       isph3a_aewb_cleanup();
++       isp_hist_cleanup();
++       isp_ccdc_cleanup();
++
++       platform_driver_unregister(&omap3isp_driver);
 +}
-+EXPORT_SYMBOL(isph3a_restore_context);
-diff --git a/drivers/media/video/isp/isph3a.h b/drivers/media/video/isp/i=
-sph3a.h
++
++/**
++ * isp_print_status - Prints the values of the ISP Control Module registers
++ *
++ * Also prints other debug information stored in the ISP module structure.
++ **/
++void isp_print_status(void)
++{
++       if (!is_ispctrl_debug_enabled())
++               return;
++
++       DPRINTK_ISPCTRL("###ISP_CTRL=0x%x\n", isp_reg_readl(OMAP3_ISP_IOMEM_MAIN, ISP_CTRL));
++       DPRINTK_ISPCTRL("###ISP_TCTRL_CTRL=0x%x\n", isp_reg_readl(OMAP3_ISP_IOMEM_MAIN, ISP_TCTRL_CTRL));
++       DPRINTK_ISPCTRL("###ISP_SYSCONFIG=0x%x\n", isp_reg_readl(OMAP3_ISP_IOMEM_MAIN, ISP_SYSCONFIG));
++       DPRINTK_ISPCTRL("###ISP_SYSSTATUS=0x%x\n", isp_reg_readl(OMAP3_ISP_IOMEM_MAIN, ISP_SYSSTATUS));
++       DPRINTK_ISPCTRL("###ISP_IRQ0ENABLE=0x%x\n", isp_reg_readl(OMAP3_ISP_IOMEM_MAIN, ISP_IRQ0ENABLE));
++       DPRINTK_ISPCTRL("###ISP_IRQ0STATUS=0x%x\n", isp_reg_readl(OMAP3_ISP_IOMEM_MAIN, ISP_IRQ0STATUS));
++}
++EXPORT_SYMBOL(isp_print_status);
++
++module_init(isp_init);
++module_exit(isp_cleanup);
++
++MODULE_AUTHOR("Texas Instruments");
++MODULE_DESCRIPTION("ISP Control Module Library");
++MODULE_LICENSE("GPL");
+diff --git a/drivers/media/video/isp/isp.h b/drivers/media/video/isp/isp.h
 new file mode 100644
-index 0000000..977a7b1
+index 0000000..7e281f3
 --- /dev/null
-+++ b/drivers/media/video/isp/isph3a.h
-@@ -0,0 +1,119 @@
++++ b/drivers/media/video/isp/isp.h
+@@ -0,0 +1,408 @@
 +/*
-+ * drivers/media/video/isp/isph3a.h
++ * drivers/media/video/isp/isp.h
 + *
-+ * Include file for H3A module in TI's OMAP3 Camera ISP
++ * Top level public header file for ISP Control module in
++ * TI's OMAP3 Camera ISP
 + *
-+ * Copyright (C) 2008 Texas Instruments, Inc.
++ * Copyright (C) 2008 Texas Instruments.
++ * Copyright (C) 2008 Nokia.
 + *
 + * Contributors:
-+ *     Sergio Aguirre <saaguirre@ti.com>
-+ *     Troy Laramy
++ *     Sameer Venkatraman <sameerv@ti.com>
++ *     Mohit Jalori <mjalori@ti.com>
++ *     Sakari Ailus <sakari.ailus@nokia.com>
++ *     Tuukka Toivonen <tuukka.o.toivonen@nokia.com>
 + *
 + * This package is free software; you can redistribute it and/or modify
 + * it under the terms of the GNU General Public License version 2 as
@@ -2025,130 +2763,406 @@ index 0000000..977a7b1
 + * WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 + */
 +
-+#ifndef OMAP_ISP_H3A_H
-+#define OMAP_ISP_H3A_H
++#ifndef OMAP_ISP_TOP_H
++#define OMAP_ISP_TOP_H
++#include <media/videobuf-dma-sg.h>
++#include <linux/videodev2.h>
++#define OMAP_ISP_CCDC          (1 << 0)
++#define OMAP_ISP_PREVIEW       (1 << 1)
++#define OMAP_ISP_RESIZER       (1 << 2)
++#define OMAP_ISP_AEWB          (1 << 3)
++#define OMAP_ISP_AF            (1 << 4)
++#define OMAP_ISP_HIST          (1 << 5)
 +
-+#include <mach/isp_user.h>
++/* Our ISP specific controls */
++#define V4L2_CID_PRIVATE_ISP_COLOR_FX          (V4L2_CID_PRIVATE_BASE + 0)
 +
-+#define AEWB_PACKET_SIZE       16
-+#define H3A_MAX_BUFF           5
++#define ISP_TOK_TERM           0xFFFFFFFF      /*
++                                                * terminating token for ISP
++                                                * modules reg list
++                                                */
++#define NUM_SG_DMA             (VIDEO_MAX_FRAME + 2)
 +
-+/* Flags for changed registers */
-+#define PCR_CHNG               (1 << 0)
-+#define AEWWIN1_CHNG           (1 << 1)
-+#define AEWINSTART_CHNG                (1 << 2)
-+#define AEWINBLK_CHNG          (1 << 3)
-+#define AEWSUBWIN_CHNG         (1 << 4)
-+#define PRV_WBDGAIN_CHNG       (1 << 5)
-+#define PRV_WBGAIN_CHNG                (1 << 6)
++#define ISP_BUF_INIT           0
++#define ISP_FREE_RUNNING       1
++#define ISP_BUF_TRAN           2
 +
-+/* ISPH3A REGISTERS bits */
-+#define ISPH3A_PCR_AF_EN       (1 << 0)
-+#define ISPH3A_PCR_AF_ALAW_EN  (1 << 1)
-+#define ISPH3A_PCR_AF_MED_EN   (1 << 2)
-+#define ISPH3A_PCR_AF_BUSY     (1 << 15)
-+#define ISPH3A_PCR_AEW_EN      (1 << 16)
-+#define ISPH3A_PCR_AEW_ALAW_EN (1 << 17)
-+#define ISPH3A_PCR_AEW_BUSY    (1 << 18)
++#ifndef CONFIG_ARCH_OMAP3410
++#define USE_ISP_PREVIEW
++#define USE_ISP_RESZ
++#define is_isppreview_enabled()                1
++#define is_ispresizer_enabled()                1
++#else
++#define is_isppreview_enabled()                0
++#define is_ispresizer_enabled()                0
++#endif
 +
-+#define WRITE_SAT_LIM(reg, sat_limit)  \
-+               (reg =3D (reg & (~(ISPH3A_PCR_AEW_AVE2LMT_MASK))) \
-+                       | (sat_limit << ISPH3A_PCR_AEW_AVE2LMT_SHIFT))
++#define ISP_XCLKA_DEFAULT              0x12
++#define ISP_OUTPUT_WIDTH_DEFAULT       176
++#define ISP_OUTPUT_HEIGHT_DEFAULT      144
++#define ISP_BYTES_PER_PIXEL            2
++#define NUM_ISP_CAPTURE_FORMATS        (sizeof(isp_formats) /\
++                                                       sizeof(isp_formats[0]))
++#define ISP_WORKAROUND 1
++#define buffer_size (1024 * 1024 * 10)
++#define no_of_pages (buffer_size / (4 * 1024))
 +
-+#define WRITE_ALAW(reg, alaw_en) \
-+               (reg =3D (reg & (~(ISPH3A_PCR_AEW_ALAW_EN))) \
-+                       | ((alaw_en & ISPH3A_PCR_AF_ALAW_EN) \
-+                       << ISPH3A_PCR_AEW_ALAW_EN_SHIFT))
++typedef int (*isp_vbq_callback_ptr) (struct videobuf_buffer *vb);
++typedef void (*isp_callback_t) (unsigned long status,
++                                       isp_vbq_callback_ptr arg1, void *arg2);
 +
-+#define WRITE_WIN_H(reg, height) \
-+               (reg =3D (reg & (~(ISPH3A_AEWWIN1_WINH_MASK))) \
-+                       | (((height >> 1) - 1) << ISPH3A_AEWWIN1_WINH_SHI=
-FT))
-+
-+#define WRITE_WIN_W(reg, width) \
-+               (reg =3D (reg & (~(ISPH3A_AEWWIN1_WINW_MASK))) \
-+                       | (((width >> 1) - 1) << ISPH3A_AEWWIN1_WINW_SHIF=
-T))
-+
-+#define WRITE_VER_C(reg, ver_count) \
-+               (reg =3D (reg & ~(ISPH3A_AEWWIN1_WINVC_MASK)) \
-+                       | ((ver_count - 1) << ISPH3A_AEWWIN1_WINVC_SHIFT)=
-)
-+
-+#define WRITE_HOR_C(reg, hor_count) \
-+               (reg =3D (reg & ~(ISPH3A_AEWWIN1_WINHC_MASK)) \
-+                       | ((hor_count - 1) << ISPH3A_AEWWIN1_WINHC_SHIFT)=
-)
-+
-+#define WRITE_VER_WIN_ST(reg, ver_win_st) \
-+               (reg =3D (reg & ~(ISPH3A_AEWINSTART_WINSV_MASK)) \
-+                       | (ver_win_st << ISPH3A_AEWINSTART_WINSV_SHIFT))
-+
-+#define WRITE_HOR_WIN_ST(reg, hor_win_st) \
-+               (reg =3D (reg & ~(ISPH3A_AEWINSTART_WINSH_MASK)) \
-+                       | (hor_win_st << ISPH3A_AEWINSTART_WINSH_SHIFT))
-+
-+#define WRITE_BLK_VER_WIN_ST(reg, blk_win_st) \
-+               (reg =3D (reg & ~(ISPH3A_AEWINBLK_WINSV_MASK)) \
-+                       | (blk_win_st << ISPH3A_AEWINBLK_WINSV_SHIFT))
-+
-+#define WRITE_BLK_WIN_H(reg, height) \
-+               (reg =3D (reg & ~(ISPH3A_AEWINBLK_WINH_MASK)) \
-+                       | (((height >> 1) - 1) << ISPH3A_AEWINBLK_WINH_SH=
-IFT))
-+
-+#define WRITE_SUB_VER_INC(reg, sub_ver_inc) \
-+               (reg =3D (reg & ~(ISPH3A_AEWSUBWIN_AEWINCV_MASK)) \
-+               | (((sub_ver_inc >> 1) - 1) << ISPH3A_AEWSUBWIN_AEWINCV_S=
-HIFT))
-+
-+#define WRITE_SUB_HOR_INC(reg, sub_hor_inc) \
-+               (reg =3D (reg & ~(ISPH3A_AEWSUBWIN_AEWINCH_MASK)) \
-+               | (((sub_hor_inc >> 1) - 1) << ISPH3A_AEWSUBWIN_AEWINCH_S=
-HIFT))
-+
-+/**
-+ * struct isph3a_aewb_xtrastats - Structure with extra statistics sent b=
-y cam.
-+ * @field_count: Sequence number of returned framestats.
-+ * @isph3a_aewb_xtrastats: Pointer to next buffer with extra stats.
-+ */
-+struct isph3a_aewb_xtrastats {
-+       unsigned long field_count;
-+       struct isph3a_aewb_xtrastats *next;
++enum isp_mem_resources {
++       OMAP3_ISP_IOMEM_MAIN,
++       OMAP3_ISP_IOMEM_CBUFF,
++       OMAP3_ISP_IOMEM_CCP2,
++       OMAP3_ISP_IOMEM_CCDC,
++       OMAP3_ISP_IOMEM_HIST,
++       OMAP3_ISP_IOMEM_H3A,
++       OMAP3_ISP_IOMEM_PREV,
++       OMAP3_ISP_IOMEM_RESZ,
++       OMAP3_ISP_IOMEM_SBL,
++       OMAP3_ISP_IOMEM_MMU,
++       OMAP3_ISP_IOMEM_CSI2A,
++       OMAP3_ISP_IOMEM_CSI2PHY
 +};
 +
-+void isph3a_aewb_setxtrastats(struct isph3a_aewb_xtrastats *xtrastats);
++struct isp_device {
++       struct device *dev;
 +
-+int isph3a_aewb_configure(struct isph3a_aewb_config *aewbcfg);
++       /*** platform HW resources ***/
++       unsigned int irq;
 +
-+int isph3a_aewb_request_statistics(struct isph3a_aewb_data *aewbdata);
++#define mmio_base_main mmio_base[OMAP3_ISP_IOMEM_MAIN]
++#define mmio_cbuff_main mmio_base[OMAP3_ISP_IOMEM_CBUFF]
++#define mmio_ccp2_main mmio_base[OMAP3_ISP_IOMEM_CCP2]
++#define mmio_ccdc_main mmio_base[OMAP3_ISP_IOMEM_CCDC]
++#define mmio_hist_main mmio_base[OMAP3_ISP_IOMEM_HIST]
++#define mmio_h3a_main mmio_base[OMAP3_ISP_IOMEM_H3A]
++#define mmio_prev_main mmio_base[OMAP3_ISP_IOMEM_PREV]
++#define mmio_resz_main mmio_base[OMAP3_ISP_IOMEM_RESZ]
++#define mmio_sbl_main mmio_base[OMAP3_ISP_IOMEM_SBL]
++#define mmio_mmu_main mmio_base[OMAP3_ISP_IOMEM_MMU]
++#define mmio_csi2_main mmio_base[OMAP3_ISP_IOMEM_CSI2A]
++#define mmio_csi2phy_main mmio_base[OMAP3_ISP_IOMEM_CSI2PHY]
++       unsigned long mmio_base[OMAP3_ISP_IOMEM_CSI2PHY + 1];
++       unsigned long mmio_base_phys[OMAP3_ISP_IOMEM_CSI2PHY + 1];
++       unsigned long mmio_size[OMAP3_ISP_IOMEM_CSI2PHY + 1];
++};
 +
-+void isph3a_save_context(void);
++enum isp_interface_type {
++       ISP_PARLL = 1,
++       ISP_CSIA = 2,
++       ISP_CSIB = 4
++};
 +
-+void isph3a_restore_context(void);
++enum isp_irqevents {
++       CSIA = 0x01,
++       CSIB = 0x10,
++       CCDC_VD0 = 0x100,
++       CCDC_VD1 = 0x200,
++       CCDC_VD2 = 0x400,
++       CCDC_ERR = 0x800,
++       H3A_AWB_DONE = 0x2000,
++       H3A_AF_DONE = 0x1000,
++       HIST_DONE = 0x10000,
++       PREV_DONE = 0x100000,
++       LSC_DONE = 0x20000,
++       LSC_PRE_COMP = 0x40000,
++       LSC_PRE_ERR = 0x80000,
++       RESZ_DONE = 0x1000000,
++       SBL_OVF = 0x2000000,
++       MMU_ERR = 0x10000000,
++       OCP_ERR = 0x20000000,
++       HS_VS = 0x80000000
++};
 +
-+void isph3a_update_wb(void);
++enum isp_callback_type {
++       CBK_CCDC_VD0,
++       CBK_CCDC_VD1,
++       CBK_PREV_DONE,
++       CBK_RESZ_DONE,
++       CBK_MMU_ERR,
++       CBK_H3A_AWB_DONE,
++       CBK_HIST_DONE,
++       CBK_HS_VS,
++       CBK_LSC_ISR,
++       CBK_H3A_AF_DONE,
++       CBK_CATCHALL,
++       CBK_CSIA,
++       CBK_CSIB,
++       CBK_END,
++};
 +
-+void isph3a_notify(int notify);
-+#endif         /* OMAP_ISP_H3A_H */
-diff --git a/drivers/media/video/isp/isphist.c b/drivers/media/video/isp/=
-isphist.c
++/**
++ * struct isp_reg - Structure for ISP register values.
++ * @reg: 32-bit Register address.
++ * @val: 32-bit Register value.
++ */
++struct isp_reg {
++       enum isp_mem_resources mmio_range;
++       u32 reg;
++       u32 val;
++};
++
++/**
++ * struct isp_sgdma_state - SG-DMA state for each videobuffer + 2 overlays
++ * @isp_addr: ISP space address mapped by ISP MMU.
++ * @status: DMA return code mapped by ISP MMU.
++ * @callback: Pointer to ISP callback function.
++ * @arg: Pointer to argument passed to the specified callback function.
++ */
++struct isp_sgdma_state {
++       dma_addr_t isp_addr;
++       u32 status;
++       isp_callback_t callback;
++       void *arg;
++};
++
++/**
++ * struct isp_sgdma - ISP Scatter Gather DMA status.
++ * @isp_addr_capture: Array of ISP space addresses mapped by the ISP MMU.
++ * @lock: Spinlock used to check free_sgdma field.
++ * @free_sgdma: Number of free SG-DMA slots.
++ * @next_sgdma: Index of next SG-DMA slot to use.
++ */
++struct isp_sgdma {
++       dma_addr_t isp_addr_capture[VIDEO_MAX_FRAME];
++       spinlock_t lock;        /* For handling current buffer */
++       int free_sgdma;
++       int next_sgdma;
++       struct isp_sgdma_state sg_state[NUM_SG_DMA];
++};
++
++/**
++ * struct isp_interface_config - ISP interface configuration.
++ * @ccdc_par_ser: ISP interface type. 0 - Parallel, 1 - CSIA, 2 - CSIB to CCDC.
++ * @par_bridge: CCDC Bridge input control. Parallel interface.
++ *                  0 - Disable, 1 - Enable, first byte->cam_d(bits 7 to 0)
++ *                  2 - Enable, first byte -> cam_d(bits 15 to 8)
++ * @par_clk_pol: Pixel clock polarity on the parallel interface.
++ *                    0 - Non Inverted, 1 - Inverted
++ * @dataline_shift: Data lane shifter.
++ *                      0 - No Shift, 1 - CAMEXT[13 to 2]->CAM[11 to 0]
++ *                      2 - CAMEXT[13 to 4]->CAM[9 to 0]
++ *                      3 - CAMEXT[13 to 6]->CAM[7 to 0]
++ * @hsvs_syncdetect: HS or VS synchronization signal detection.
++ *                       0 - HS Falling, 1 - HS rising
++ *                       2 - VS falling, 3 - VS rising
++ * @vdint0_timing: VD0 Interrupt timing.
++ * @vdint1_timing: VD1 Interrupt timing.
++ * @strobe: Strobe related parameter.
++ * @prestrobe: PreStrobe related parameter.
++ * @shutter: Shutter related parameter.
++ * @hskip: Horizontal Start Pixel performed in Preview module.
++ * @vskip: Vertical Start Line performed in Preview module.
++ * @wenlog: Store the value for the sensor specific wenlog field.
++ */
++struct isp_interface_config {
++       enum isp_interface_type ccdc_par_ser;
++       u8 dataline_shift;
++       u32 hsvs_syncdetect;
++       u16 vdint0_timing;
++       u16 vdint1_timing;
++       int strobe;
++       int prestrobe;
++       int shutter;
++       u32 prev_sph;
++       u32 prev_slv;
++       u32 wenlog;
++       union {
++               struct par {
++                       unsigned par_bridge:2;
++                       unsigned par_clk_pol:1;
++               } par;
++               struct csi {
++                       unsigned crc:1;
++                       unsigned mode:1;
++                       unsigned edge:1;
++                       unsigned signalling:1;
++                       unsigned strobe_clock_inv:1;
++                       unsigned vs_edge:1;
++                       unsigned channel:3;
++                       unsigned vpclk:2;       /* Video port output clock */
++                       unsigned int data_start;
++                       unsigned int data_size;
++                       u32 format;             /* V4L2_PIX_FMT_* */
++               } csi;
++       } u;
++};
++
++/**
++ * struct isp_sysc - ISP Power switches to set.
++ * @reset: Flag for setting ISP reset.
++ * @idle_mode: Flag for setting ISP idle mode.
++ */
++struct isp_sysc {
++       char reset;
++       char idle_mode;
++};
++
++u32 isp_reg_readl(enum isp_mem_resources isp_mmio_range, u32 reg_offset);
++
++void isp_reg_writel(u32 reg_value, enum isp_mem_resources isp_mmio_range,
++                                                               u32 reg_offset);
++
++static void inline isp_reg_and(enum isp_mem_resources mmio_range, u32 reg, u32 and_bits)
++{
++       u32 v = isp_reg_readl(mmio_range, reg);
++
++       isp_reg_writel(v & and_bits, mmio_range, reg);
++}
++
++static void inline isp_reg_or(enum isp_mem_resources mmio_range, u32 reg, u32 or_bits)
++{
++       u32 v = isp_reg_readl(mmio_range, reg);
++
++       isp_reg_writel(v | or_bits, mmio_range, reg);
++}
++
++static void inline isp_reg_and_or(enum isp_mem_resources mmio_range, u32 reg, u32 and_bits, u32 or_bits)
++{
++       u32 v = isp_reg_readl(mmio_range, reg);
++
++       isp_reg_writel((v & and_bits) | or_bits, mmio_range, reg);
++}
++
++void isp_release_resources(void);
++
++void isp_start(void);
++
++void isp_stop(void);
++
++void isp_sgdma_init(void);
++
++void isp_vbq_done(unsigned long status, isp_vbq_callback_ptr arg1, void *arg2);
++
++void isp_sgdma_process(struct isp_sgdma *sgdma, int irq, int *dma_notify,
++                                               isp_vbq_callback_ptr func_ptr);
++
++int isp_sgdma_queue(struct videobuf_dmabuf *vdma, struct videobuf_buffer *vb,
++                                               int irq, int *dma_notify,
++                                               isp_vbq_callback_ptr func_ptr);
++
++int isp_vbq_prepare(struct videobuf_queue *vbq, struct videobuf_buffer *vb,
++                                                       enum v4l2_field field);
++
++void isp_vbq_release(struct videobuf_queue *vbq, struct videobuf_buffer *vb);
++
++int isp_set_callback(enum isp_callback_type type, isp_callback_t callback,
++                                       isp_vbq_callback_ptr arg1, void *arg2);
++
++void omapisp_unset_callback(void);
++
++int isp_unset_callback(enum isp_callback_type type);
++
++u32 isp_set_xclk(u32 xclk, u8 xclksel);
++
++u32 isp_get_xclk(u8 xclksel);
++
++int isp_request_interface(enum isp_interface_type if_t);
++
++int isp_free_interface(enum isp_interface_type if_t);
++
++void isp_power_settings(struct isp_sysc);
++
++int isp_configure_interface(struct isp_interface_config *config);
++
++void isp_CCDC_VD01_disable(void);
++
++void isp_CCDC_VD01_enable(void);
++
++int isp_get(void);
++
++int isp_put(void);
++
++void isp_set_pipeline(int soc_type);
++
++void isp_config_pipeline(struct v4l2_pix_format *pix_input,
++                                       struct v4l2_pix_format *pix_output);
++
++int isp_queryctrl(struct v4l2_queryctrl *a);
++
++int isp_querymenu(struct v4l2_querymenu *a);
++
++int isp_g_ctrl(struct v4l2_control *a);
++
++int isp_s_ctrl(struct v4l2_control *a);
++
++int isp_enum_fmt_cap(struct v4l2_fmtdesc *f);
++
++int isp_try_fmt_cap(struct v4l2_pix_format *pix_input,
++                                       struct v4l2_pix_format *pix_output);
++
++void isp_g_fmt_cap(struct v4l2_pix_format *pix);
++
++int isp_s_fmt_cap(struct v4l2_pix_format *pix_input,
++                                       struct v4l2_pix_format *pix_output);
++
++int isp_g_crop(struct v4l2_crop *a);
++
++int isp_s_crop(struct v4l2_crop *a, struct v4l2_pix_format *pix);
++
++void isp_config_crop(struct v4l2_pix_format *pix);
++
++int isp_try_size(struct v4l2_pix_format *pix_input,
++                                       struct v4l2_pix_format *pix_output);
++
++int isp_try_fmt(struct v4l2_pix_format *pix_input,
++                                       struct v4l2_pix_format *pix_output);
++
++int isp_handle_private(int cmd, void *arg);
++
++void isp_save_context(struct isp_reg *);
++
++void isp_restore_context(struct isp_reg *);
++
++void isp_save_ctx(void);
++
++void isp_restore_ctx(void);
++
++/* Configure CCDC interface bridge*/
++int isp_configure_interface_bridge(u32 par_bridge);
++
++void isp_print_status(void);
++
++dma_addr_t isp_buf_get(void);
++
++int __init isp_ccdc_init(void);
++int __init isp_hist_init(void);
++int __init isph3a_aewb_init(void);
++int __init ispmmu_init(void);
++int __init isp_preview_init(void);
++int __init isp_resizer_init(void);
++int __init isp_af_init(void);
++int __init isp_csi2_init(void);
++
++void __exit isp_ccdc_cleanup(void);
++void __exit isp_hist_cleanup(void);
++void __exit isph3a_aewb_cleanup(void);
++void __exit ispmmu_cleanup(void);
++void __exit isp_preview_cleanup(void);
++void __exit isp_hist_cleanup(void);
++void __exit isp_resizer_cleanup(void);
++void __exit isp_af_exit(void);
++void __exit isp_csi2_cleanup(void);
++
++#endif /* OMAP_ISP_TOP_H */
+diff --git a/drivers/media/video/isp/ispmmu.c b/drivers/media/video/isp/ispmmu.c
 new file mode 100644
-index 0000000..5cc1f1f
+index 0000000..0975d22
 --- /dev/null
-+++ b/drivers/media/video/isp/isphist.c
-@@ -0,0 +1,577 @@
++++ b/drivers/media/video/isp/ispmmu.c
+@@ -0,0 +1,748 @@
 +/*
-+ * drivers/media/video/isp/isphist.c
++ * drivers/media/video/isp/ispmmu.c
 + *
-+ * HISTOGRAM module for TI's OMAP3 Camera ISP
++ * Driver Library for ISP MMU module in TI's OMAP3 Camera ISP
 + *
 + * Copyright (C) 2008 Texas Instruments.
 + *
 + * Contributors:
-+ *     Sergio Aguirre <saaguirre@ti.com>
-+ *     Troy Laramy
++ *     Senthilvadivu Guruswamy <svadivu@ti.com>
++ *     Thara Gopinath <thara@ti.com>
 + *
 + * This package is free software; you can redistribute it and/or modify
 + * it under the terms of the GNU General Public License version 2 as
@@ -2157,671 +3171,752 @@ index 0000000..5cc1f1f
 + * THIS PACKAGE IS PROVIDED ``AS IS'' AND WITHOUT ANY EXPRESS OR
 + * IMPLIED WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED
 + * WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
++ *
 + */
 +
-+#include <asm/cacheflush.h>
-+
-+#include <linux/mm.h>
-+#include <linux/mman.h>
-+#include <linux/syscalls.h>
++#include <linux/init.h>
 +#include <linux/module.h>
-+#include <linux/errno.h>
++#include <linux/moduleparam.h>
 +#include <linux/delay.h>
++#include <linux/errno.h>
++#include <linux/kernel.h>
++#include <linux/sched.h>
++#include <linux/interrupt.h>
 +#include <linux/types.h>
 +#include <linux/dma-mapping.h>
++#include <linux/mm.h>
++
 +#include <linux/io.h>
-+#include <linux/uaccess.h>
++#include <linux/scatterlist.h>
++#include <linux/semaphore.h>
++#include <asm/byteorder.h>
++#include <asm/irq.h>
 +
 +#include "isp.h"
 +#include "ispreg.h"
-+#include "isphist.h"
 +#include "ispmmu.h"
-+#include "isppreview.h"
 +
 +/**
-+ * struct isp_hist_status - Histogram status.
-+ * @hist_enable: Enables the histogram module.
-+ * @initialized: Flag to indicate that the module is correctly initializ=
-ated.
-+ * @frame_cnt: Actual frame count.
-+ * @frame_req: Frame requested by user.
-+ * @completed: Flag to indicate if a frame request is completed.
++ * struct ispmmu_mapattr - Struct for Mapping Attributes in L1, L2 descriptor
++ * endianism: Endianism.
++ * element_size: Bit size of the element.
++ * mixed_size: Mixed region type.
++ * map_size: Mapping size.
 + */
-+struct isp_hist_status {
-+       u8 hist_enable;
-+       u8 initialized;
-+       u8 frame_cnt;
-+       u8 frame_req;
-+       u8 completed;
-+} histstat;
-+
-+/**
-+ * struct isp_hist_buffer - Frame histogram buffer.
-+ * @virt_addr: Virtual address to mmap the buffer.
-+ * @phy_addr: Physical address of the buffer.
-+ * @addr_align: Virtual Address 32 bytes aligned.
-+ * @ispmmu_addr: Address of the buffer mapped by the ISPMMU.
-+ * @mmap_addr: Mapped memory area of buffer. For userspace access.
-+ */
-+struct isp_hist_buffer {
-+       unsigned long virt_addr;
-+       unsigned long phy_addr;
-+       unsigned long addr_align;
-+       unsigned long ispmmu_addr;
-+       unsigned long mmap_addr;
-+} hist_buff;
-+
-+/**
-+ * struct isp_hist_regs - Current value of Histogram configuration regis=
-ters.
-+ * @reg_pcr: Peripheral control register.
-+ * @reg_cnt: Histogram control register.
-+ * @reg_wb_gain: Histogram white balance gain register.
-+ * @reg_r0_h: Region 0 horizontal register.
-+ * @reg_r0_v: Region 0 vertical register.
-+ * @reg_r1_h: Region 1 horizontal register.
-+ * @reg_r1_v: Region 1 vertical register.
-+ * @reg_r2_h: Region 2 horizontal register.
-+ * @reg_r2_v: Region 2 vertical register.
-+ * @reg_r3_h: Region 3 horizontal register.
-+ * @reg_r3_v: Region 3 vertical register.
-+ * @reg_hist_addr: Histogram address register.
-+ * @reg_hist_data: Histogram data.
-+ * @reg_hist_radd: Address register. When input data comes from mem.
-+ * @reg_hist_radd_off: Address offset register. When input data comes fr=
-om mem.
-+ * @reg_h_v_info: Image size register. When input data comes from mem.
-+ */
-+static struct isp_hist_regs {
-+       u32 reg_pcr;
-+       u32 reg_cnt;
-+       u32 reg_wb_gain;
-+       u32 reg_r0_h;
-+       u32 reg_r0_v;
-+       u32 reg_r1_h;
-+       u32 reg_r1_v;
-+       u32 reg_r2_h;
-+       u32 reg_r2_v;
-+       u32 reg_r3_h;
-+       u32 reg_r3_v;
-+       u32 reg_hist_addr;
-+       u32 reg_hist_data;
-+       u32 reg_hist_radd;
-+       u32 reg_hist_radd_off;
-+       u32 reg_h_v_info;
-+} hist_regs;
-+
-+/* Structure for saving/restoring histogram module registers */
-+struct isp_reg isphist_reg_list[] =3D {
-+       {OMAP3_ISP_IOMEM_HIST, ISPHIST_CNT, 0},
-+       {OMAP3_ISP_IOMEM_HIST, ISPHIST_WB_GAIN, 0},
-+       {OMAP3_ISP_IOMEM_HIST, ISPHIST_R0_HORZ, 0},
-+       {OMAP3_ISP_IOMEM_HIST, ISPHIST_R0_VERT, 0},
-+       {OMAP3_ISP_IOMEM_HIST, ISPHIST_R1_HORZ, 0},
-+       {OMAP3_ISP_IOMEM_HIST, ISPHIST_R1_VERT, 0},
-+       {OMAP3_ISP_IOMEM_HIST, ISPHIST_R2_HORZ, 0},
-+       {OMAP3_ISP_IOMEM_HIST, ISPHIST_R2_VERT, 0},
-+       {OMAP3_ISP_IOMEM_HIST, ISPHIST_R3_HORZ, 0},
-+       {OMAP3_ISP_IOMEM_HIST, ISPHIST_R3_VERT, 0},
-+       {OMAP3_ISP_IOMEM_HIST, ISPHIST_ADDR, 0},
-+       {OMAP3_ISP_IOMEM_HIST, ISPHIST_RADD, 0},
-+       {OMAP3_ISP_IOMEM_HIST, ISPHIST_RADD_OFF, 0},
-+       {OMAP3_ISP_IOMEM_HIST, ISPHIST_H_V_INFO, 0},
-+       {0, ISP_TOK_TERM, 0}
++struct ispmmu_mapattr {
++       enum ISPMMU_MAP_ENDIAN endianism;
++       enum ISPMMU_MAP_ELEMENTSIZE element_size;
++       enum ISPMMU_MAP_MIXEDREGION mixed_size;
++       enum ISPMMU_MAP_SIZE map_size;
 +};
 +
-+static void isp_hist_print_status(void);
++/* Structure for saving/restoring mmu module registers */
++static struct isp_reg ispmmu_reg_list[] = {
++       {OMAP3_ISP_IOMEM_MMU, ISPMMU_SYSCONFIG, 0x0000},
++       {OMAP3_ISP_IOMEM_MMU, ISPMMU_IRQENABLE, 0x0000},
++       {OMAP3_ISP_IOMEM_MMU, ISPMMU_CNTL, 0x0000},
++       {OMAP3_ISP_IOMEM_MMU, ISPMMU_TTB, 0x0000},
++       {OMAP3_ISP_IOMEM_MMU, ISPMMU_LOCK, 0x0000},
++       {OMAP3_ISP_IOMEM_MMU, ISPMMU_LD_TLB, 0x0000},
++       {OMAP3_ISP_IOMEM_MMU, ISPMMU_CAM, 0x0000},
++       {OMAP3_ISP_IOMEM_MMU, ISPMMU_RAM, 0x0000},
++       {0, ISP_TOK_TERM, 0x0000}
++};
++
++/* Page structure for statically allocated l1 and l2 page tables */
++static struct page *ttb_page;
++static struct page *l2p_page;
++
++/*
++* Allocate the same number as of TTB entries for easy tracking
++* even though L2P tables are limited to 16 or so
++*/
++static u32 l2p_table_addr[4096];
++
++/* An array of flags to keep the L2P table allotted */
++static int l2p_table_allotted[L2P_TABLE_NR];
++
++/* Current count of l2 pages mapped */
++static int no_of_l2p_alloted;
++
++/* TTB virtual and physical address */
++static u32 *ttb, ttb_p;
++
++/* Worst case allocation for TTB for 16KB alignment */
++static u32 ttb_aligned_size;
++
++/* L2 page table base virtural and physical address */
++static u32 l2_page_cache, l2_page_cache_p;
++
++static struct ispmmu_mapattr l1_mapattr_obj, l2_mapattr_obj;
 +
 +/**
-+ * isp_hist_enable - Enables ISP Histogram submodule operation.
-+ * @enable: 1 - Enables the histogram submodule.
++ * ispmmu_set_pte - Sets the L1, L2 descriptor.
++ * @pte_addr: Pointer to the Indexed address in the L1 Page table ie TTB.
++ * @phy_addr: Section/Supersection/L2page table physical address.
++ * @mapattr: Mapping attributes applicable for Section/Supersections.
 + *
-+ * Client should configure all the Histogram registers before calling th=
-is
-+ * function.
++ * Set with section/supersection/Largepage/Smallpage base address or with L2
++ * Page table address depending on the size parameter.
++ *
++ * Returns the written L1/L2 descriptor.
 + **/
-+static void isp_hist_enable(u8 enable)
++static u32 ispmmu_set_pte(u32 *pte_addr, u32 phy_addr,
++                                               struct ispmmu_mapattr mapattr)
 +{
-+       if (enable) {
-+               isp_reg_writel(isp_reg_readl(OMAP3_ISP_IOMEM_HIST, ISPHIS=
-T_PCR) | (ISPHIST_PCR_EN),
-+                                       OMAP3_ISP_IOMEM_HIST, ISPHIST_PCR=
-);
-+               DPRINTK_ISPHIST("   histogram enabled \n");
++       u32 pte = 0;
++
++       switch (mapattr.map_size) {
++       case PAGE:
++               pte = ISPMMU_L1D_TYPE_PAGE << ISPMMU_L1D_TYPE_SHIFT;
++               pte |= (phy_addr >> ISPMMU_L1D_PAGE_ADDR_SHIFT)
++                                               << ISPMMU_L1D_PAGE_ADDR_SHIFT;
++               break;
++       case SMALLPAGE:
++               pte = ISPMMU_L2D_TYPE_SMALL_PAGE << ISPMMU_L2D_TYPE_SHIFT;
++               pte &= ~ISPMMU_L2D_M_ACCESSBASED;
++               if (mapattr.endianism)
++                       pte |= ISPMMU_L2D_E_BIGENDIAN;
++               else
++                       pte &= ~ISPMMU_L2D_E_BIGENDIAN;
++               pte &= ISPMMU_L2D_ES_MASK;
++               pte |= mapattr.element_size << ISPMMU_L2D_ES_SHIFT;
++               pte |= (phy_addr >> ISPMMU_L2D_SMALL_ADDR_SHIFT)
++                                               << ISPMMU_L2D_SMALL_ADDR_SHIFT;
++               break;
++       case L1DFAULT:
++               pte = ISPMMU_L1D_TYPE_FAULT << ISPMMU_L1D_TYPE_SHIFT;
++               break;
++       case L2DFAULT:
++               pte = ISPMMU_L2D_TYPE_FAULT << ISPMMU_L2D_TYPE_SHIFT;
++               break;
++       default:
++               break;
++       };
++
++       *pte_addr = pte;
++       return pte;
++}
++
++/**
++ * find_free_region_index - Returns the index in the ttb for a free 32MB region
++ *
++ * Returns 0 as an error code, if run out of regions.
++ **/
++static u32 find_free_region_index(void)
++{
++       int idx = 0;
++       for (idx = ISPMMU_REGION_ENTRIES_NR; idx < ISPMMU_TTB_ENTRIES_NR;
++                                       idx += ISPMMU_REGION_ENTRIES_NR) {
++               if (((*(ttb + idx)) & ISPMMU_L1D_TYPE_MASK) ==
++                                               (ISPMMU_L1D_TYPE_FAULT <<
++                                               ISPMMU_L1D_TYPE_SHIFT))
++                       break;
++       }
++       if (idx == ISPMMU_TTB_ENTRIES_NR) {
++               DPRINTK_ISPMMU("run out of virtual space\n");
++               return 0;
++       }
++       return idx;
++}
++
++/**
++ * page_aligned_addr - Returns the Page aligned address.
++ * @addr: Address to be page aligned.
++ **/
++static inline u32 page_aligned_addr(u32 addr)
++{
++       u32 paddress;
++       paddress = addr & ~(PAGE_SIZE-1);
++       return paddress;
++}
++
++
++/**
++ * l2_page_paddr - Returns the physical address of the allocated L2 page Table.
++ * @l2_table: Virtual address of the allocated l2 table.
++ **/
++static inline u32 l2_page_paddr(u32 l2_table)
++{
++       return l2_page_cache_p + (l2_table - l2_page_cache);
++}
++
++/**
++ * init_l2_page_cache - Allocates contigous memory for L2 page tables.
++ *
++ * Returns 0 if successful, or -ENOMEM if no memory for L2 page tables.
++ **/
++static int init_l2_page_cache(void)
++{
++       int i;
++       u32 *l2p;
++
++       l2p_page = alloc_pages(GFP_KERNEL, get_order(L2P_TABLES_SIZE));
++       if (!l2p_page) {
++               DPRINTK_ISPMMU("ISP_ERR : No Memory for L2 page tables\n");
++               return -ENOMEM;
++       }
++       l2p = page_address(l2p_page);
++       l2_page_cache = (u32)l2p;
++       l2_page_cache_p = __pa(l2p);
++       l2_page_cache = (u32)ioremap_nocache(l2_page_cache_p, L2P_TABLES_SIZE);
++
++       for (i = 0; i < L2P_TABLE_NR; i++)
++               l2p_table_allotted[i] = 0;
++       no_of_l2p_alloted = 0;
++
++       DPRINTK_ISPMMU("Mem for L2 page tables at l2_paddr = %x,"
++                                       " l2_vaddr = 0x%x, of bytes = 0x%x\n",
++                                       l2_page_cache_p, l2_page_cache,
++                                       L2P_TABLES_SIZE);
++
++       if (omap_rev() < OMAP3430_REV_ES2_0)
++               l2_mapattr_obj.endianism = B_ENDIAN;
++       else
++               l2_mapattr_obj.endianism = L_ENDIAN;
++       l2_mapattr_obj.element_size = ES_8BIT;
++       l2_mapattr_obj.mixed_size = ACCESS_BASED;
++       l2_mapattr_obj.map_size = L2DFAULT;
++       return 0;
++}
++
++/**
++ * cleanup_l2_page_cache - Frees the memory of L2 page tables.
++ **/
++static void cleanup_l2_page_cache(void)
++{
++       if (l2p_page) {
++               ioremap_cached(l2_page_cache_p, L2P_TABLES_SIZE);
++               __free_pages(l2p_page, get_order(L2P_TABLES_SIZE));
++       }
++}
++
++/**
++ * request_l2_page_table - Requests L2 Page table slot.
++ *
++ * Finds a free L2 Page table slot.
++ * Fills the allotted L2 Page table with default entries.
++ * Returns the virtual address of the allocatted L2 Pagetable, or 0 if cannot
++ * allocate the requested L2 pagetables
++ **/
++static u32 request_l2_page_table(void)
++{
++       int i, j;
++       u32 l2_table;
++
++       for (i = 0; i < L2P_TABLE_NR; i++) {
++               if (!l2p_table_allotted[i])
++                       break;
++       }
++       if (i < L2P_TABLE_NR) {
++               l2p_table_allotted[i] = 1;
++               l2_table = l2_page_cache + (i * L2P_TABLE_SIZE);
++               l2_mapattr_obj.map_size = L2DFAULT;
++               for (j = 0; j < ISPMMU_L2D_ENTRIES_NR; j++)
++                       ispmmu_set_pte((u32 *)l2_table + j, 0, l2_mapattr_obj);
++               DPRINTK_ISPMMU("Allotted l2 page table at 0x%x\n",
++                                       (u32)l2_table);
++               no_of_l2p_alloted++;
++               return l2_table;
 +       } else {
-+               isp_reg_writel(isp_reg_readl(OMAP3_ISP_IOMEM_HIST, ISPHIS=
-T_PCR) & ~ISPHIST_PCR_EN,
-+                                       OMAP3_ISP_IOMEM_HIST, ISPHIST_PCR=
-);
-+               DPRINTK_ISPHIST("   histogram disabled \n");
-+       }
-+
-+       histstat.hist_enable =3D enable;
-+}
-+
-+/**
-+ * isp_hist_update_regs - Helper function to update Histogram registers.
-+ **/
-+static void isp_hist_update_regs(void)
-+{
-+       isp_reg_writel(hist_regs.reg_pcr, OMAP3_ISP_IOMEM_HIST, ISPHIST_P=
-CR);
-+       isp_reg_writel(hist_regs.reg_cnt, OMAP3_ISP_IOMEM_HIST, ISPHIST_C=
-NT);
-+       isp_reg_writel(hist_regs.reg_wb_gain, OMAP3_ISP_IOMEM_HIST, ISPHI=
-ST_WB_GAIN);
-+       isp_reg_writel(hist_regs.reg_r0_h, OMAP3_ISP_IOMEM_HIST, ISPHIST_=
-R0_HORZ);
-+       isp_reg_writel(hist_regs.reg_r0_v, OMAP3_ISP_IOMEM_HIST, ISPHIST_=
-R0_VERT);
-+       isp_reg_writel(hist_regs.reg_r1_h, OMAP3_ISP_IOMEM_HIST, ISPHIST_=
-R1_HORZ);
-+       isp_reg_writel(hist_regs.reg_r1_v, OMAP3_ISP_IOMEM_HIST, ISPHIST_=
-R1_VERT);
-+       isp_reg_writel(hist_regs.reg_r2_h, OMAP3_ISP_IOMEM_HIST, ISPHIST_=
-R2_HORZ);
-+       isp_reg_writel(hist_regs.reg_r2_v, OMAP3_ISP_IOMEM_HIST, ISPHIST_=
-R2_VERT);
-+       isp_reg_writel(hist_regs.reg_r3_h, OMAP3_ISP_IOMEM_HIST, ISPHIST_=
-R3_HORZ);
-+       isp_reg_writel(hist_regs.reg_r3_v, OMAP3_ISP_IOMEM_HIST, ISPHIST_=
-R3_VERT);
-+       isp_reg_writel(hist_regs.reg_hist_addr, OMAP3_ISP_IOMEM_HIST, ISP=
-HIST_ADDR);
-+       isp_reg_writel(hist_regs.reg_hist_data, OMAP3_ISP_IOMEM_HIST, ISP=
-HIST_DATA);
-+       isp_reg_writel(hist_regs.reg_hist_radd, OMAP3_ISP_IOMEM_HIST, ISP=
-HIST_RADD);
-+       isp_reg_writel(hist_regs.reg_hist_radd_off, OMAP3_ISP_IOMEM_HIST,=
- ISPHIST_RADD_OFF);
-+       isp_reg_writel(hist_regs.reg_h_v_info, OMAP3_ISP_IOMEM_HIST, ISPH=
-IST_H_V_INFO);
-+}
-+
-+/**
-+ * isp_hist_isr - Callback from ISP driver for HIST interrupt.
-+ * @status: IRQ0STATUS in case of MMU error, 0 for hist interrupt.
-+ *          arg1 and arg2 Not used as of now.
-+ **/
-+static void isp_hist_isr(unsigned long status, isp_vbq_callback_ptr arg1=
-,
-+                                                               void *arg=
-2)
-+{
-+       isp_hist_enable(0);
-+
-+       if ((HIST_DONE & status) !=3D HIST_DONE)
-+               return;
-+
-+       if (!histstat.completed) {
-+               if (histstat.frame_req =3D=3D histstat.frame_cnt) {
-+                       histstat.frame_cnt =3D 0;
-+                       histstat.frame_req =3D 0;
-+                       histstat.completed =3D 1;
-+               } else {
-+                       isp_hist_enable(1);
-+                       histstat.frame_cnt++;
-+               }
++               DPRINTK_ISPMMU("ISP_ERR : Cannot allocate more than 16 L2\
++                               Page Tables");
++               return 0;
 +       }
 +}
 +
 +/**
-+ * isp_hist_reset_mem - clear Histogram memory before start stats engine=
-.
++ * free_l2_page_table - Frees the allocatted L2 Page table slot.
++ * @l2_table: 32 bit address for L2 Table to be freed.
 + *
-+ * Returns 0 after histogram memory was cleared.
++ * Returns 0 if successful, or -EINVAL if table is not found.
 + **/
-+static int isp_hist_reset_mem(void)
++static int free_l2_page_table(u32 l2_table)
 +{
 +       int i;
 +
-+       isp_reg_writel((isp_reg_readl(OMAP3_ISP_IOMEM_HIST, ISPHIST_CNT))=
- | ISPHIST_CNT_CLR_EN,
-+                                       OMAP3_ISP_IOMEM_HIST, ISPHIST_CNT=
-);
++       DPRINTK_ISPMMU("Free l2 page table at 0x%x\n", l2_table);
++       for (i = 0; i < L2P_TABLE_NR; i++) {
++               if (l2_table == (l2_page_cache + (i * L2P_TABLE_SIZE))) {
++                       if (!l2p_table_allotted[i])
++                               DPRINTK_ISPMMU("L2 page not in use\n");
 +
-+       for (i =3D 0; i < HIST_MEM_SIZE; i++)
-+               isp_reg_readl(OMAP3_ISP_IOMEM_HIST, ISPHIST_DATA);
-+
-+       isp_reg_writel((isp_reg_readl(OMAP3_ISP_IOMEM_HIST, ISPHIST_CNT))=
- & ~ISPHIST_CNT_CLR_EN,
-+                                       OMAP3_ISP_IOMEM_HIST, ISPHIST_CNT=
-);
-+
-+       return 0;
++                       l2p_table_allotted[i] = 0;
++                       no_of_l2p_alloted--;
++                       return 0;
++               }
++       }
++       DPRINTK_ISPMMU("L2 table not found\n");
++       return -EINVAL;
 +}
 +
 +/**
-+ * isp_hist_set_params - Helper function to check and store user given p=
-arams.
-+ * @user_cfg: Pointer to user configuration structure.
-+ *
-+ * Returns 0 on success configuration.
++ * ispmmu_get_available_page_tables - Returns current available pages size
 + **/
-+static int isp_hist_set_params(struct isp_hist_config *user_cfg)
++int ispmmu_get_mapeable_space(void)
 +{
++       return (L2P_TABLE_NR - no_of_l2p_alloted) * ISPMMU_TTB_ENTRIES_NR *
++                                                       ISPMMU_L2D_ENTRIES_NR;
++}
 +
-+       int reg_num =3D 0;
-+       int bit_shift =3D 0;
++/**
++ * ispmmu_map - Map a physically contiguous buffer to ISP space.
++ * @p_addr: Physical address of the contigous mem to be mapped.
++ * @size: Size of the contigous mem to be mapped.
++ *
++ * This call is used to map a frame buffer.
++ *
++ * Returns a valid address when successful, 0 if no memory could be mapped,
++ * or -EINVAL if runned out of virtual space.
++ **/
++dma_addr_t ispmmu_map(u32 p_addr, int size)
++{
++       int i, j, idx, num;
++       u32 sz, first_padding;
++       u32 p_addr_align, p_addr_align_end;
++       u32 pd;
++       u32 *l2_table;
++       dma_addr_t ret_addr;
 +
++       DPRINTK_ISPMMU("map: p_addr = 0x%x, size = 0x%x\n", p_addr, size);
 +
-+       if (isp_reg_readl(OMAP3_ISP_IOMEM_HIST, ISPHIST_PCR) & ISPHIST_PC=
-R_BUSY_MASK)
-+               return -EINVAL;
++       p_addr_align = page_aligned_addr(p_addr);
 +
-+       if (user_cfg->input_bit_width > MIN_BIT_WIDTH)
-+               WRITE_DATA_SIZE(hist_regs.reg_cnt, 0);
++       first_padding = p_addr - p_addr_align;
++       if (first_padding > size)
++               sz = 0;
 +       else
-+               WRITE_DATA_SIZE(hist_regs.reg_cnt, 1);
++               sz = size - first_padding;
 +
-+       WRITE_SOURCE(hist_regs.reg_cnt, user_cfg->hist_source);
++       num = (sz / PAGE_SIZE) + ((sz % PAGE_SIZE) ? 1 : 0) +
++                                               (first_padding ? 1 : 0);
++       p_addr_align_end = p_addr_align + num * PAGE_SIZE;
 +
-+       if (user_cfg->hist_source) {
-+               WRITE_HV_INFO(hist_regs.reg_h_v_info, user_cfg->hist_h_v_=
-info);
++       DPRINTK_ISPMMU("buffer at 0x%x of size 0x%x spans to %d pages\n",
++                                                       p_addr, size, num);
 +
-+               if ((user_cfg->hist_radd & ISP_32B_BOUNDARY_BUF) =3D=3D
-+                                                       user_cfg->hist_ra=
-dd) {
-+                       WRITE_RADD(hist_regs.reg_hist_radd,
-+                                                       user_cfg->hist_ra=
-dd);
-+               } else {
-+                       printk(KERN_ERR "Address should be in 32 byte bou=
-ndary"
-+                                                                       "=
-\n");
-+                       return -EINVAL;
-+               }
-+
-+               if ((user_cfg->hist_radd_off & ISP_32B_BOUNDARY_OFFSET) =3D=
-=3D
-+                                               user_cfg->hist_radd_off) =
-{
-+                       WRITE_RADD_OFF(hist_regs.reg_hist_radd_off,
-+                                               user_cfg->hist_radd_off);
-+               } else {
-+                       printk(KERN_ERR "Offset should be in 32 byte boun=
-dary"
-+                                                                       "=
-\n");
-+                       return -EINVAL;
-+               }
-+
-+       }
-+
-+       isp_hist_reset_mem();
-+       DPRINTK_ISPHIST("ISPHIST: Memory Cleared\n");
-+       histstat.frame_req =3D user_cfg->hist_frames;
-+
-+       if (unlikely((user_cfg->wb_gain_R > MAX_WB_GAIN) ||
-+                               (user_cfg->wb_gain_RG > MAX_WB_GAIN) ||
-+                               (user_cfg->wb_gain_B > MAX_WB_GAIN) ||
-+                               (user_cfg->wb_gain_BG > MAX_WB_GAIN))) {
-+               printk(KERN_ERR "Invalid WB gain\n");
-+               return -EINVAL;
-+       } else {
-+               WRITE_WB_R(hist_regs.reg_wb_gain, user_cfg->wb_gain_R);
-+               WRITE_WB_RG(hist_regs.reg_wb_gain, user_cfg->wb_gain_RG);
-+               WRITE_WB_B(hist_regs.reg_wb_gain, user_cfg->wb_gain_B);
-+               WRITE_WB_BG(hist_regs.reg_wb_gain, user_cfg->wb_gain_BG);
-+       }
-+
-+       /* Regions size and position */
-+
-+       if (user_cfg->num_regions > MAX_REGIONS)
-+               return -EINVAL;
-+
-+       if (likely((user_cfg->reg0_hor & ISPHIST_REGHORIZ_HEND_MASK) -
-+                                       ((user_cfg->reg0_hor &
-+                                       ISPHIST_REGHORIZ_HSTART_MASK) >>
-+                                       ISPHIST_REGHORIZ_HSTART_SHIFT))) =
-{
-+               WRITE_REG_HORIZ(hist_regs.reg_r0_h, user_cfg->reg0_hor);
-+               reg_num++;
-+       } else {
-+               printk(KERN_ERR "Invalid Region parameters\n");
++       idx = find_free_region_index();
++       if (!idx) {
++               DPRINTK_ISPMMU("Runs out of virtual space");
 +               return -EINVAL;
 +       }
++       DPRINTK_ISPMMU("allocating region %d\n", idx/ISPMMU_REGION_ENTRIES_NR);
 +
-+       if (likely((user_cfg->reg0_ver & ISPHIST_REGVERT_VEND_MASK) -
-+                       ((user_cfg->reg0_ver & ISPHIST_REGVERT_VSTART_MAS=
-K) >>
-+                       ISPHIST_REGVERT_VSTART_SHIFT))) {
-+               WRITE_REG_VERT(hist_regs.reg_r0_v, user_cfg->reg0_ver);
-+       } else {
-+               printk(KERN_ERR "Invalid Region parameters\n");
-+               return -EINVAL;
++       num = num / ISPMMU_L2D_ENTRIES_NR +
++                               ((num % ISPMMU_L2D_ENTRIES_NR) ? 1 : 0);
++       DPRINTK_ISPMMU("need %d second-level page tables (1KB each)\n", num);
++
++       for (i = 0; i < num; i++) {
++               l2_table = (u32 *)request_l2_page_table();
++               if (!l2_table) {
++                       DPRINTK_ISPMMU("no memory\n");
++                       i--;
++                       goto release_mem;
++               }
++
++               l1_mapattr_obj.map_size = PAGE;
++               pd = ispmmu_set_pte(ttb+idx+i, l2_page_paddr((u32)l2_table),
++                                                       l1_mapattr_obj);
++               DPRINTK_ISPMMU("L1 pte[%d] = 0x%x\n", idx+i, pd);
++
++               l2_mapattr_obj.map_size = SMALLPAGE;
++               for (j = 0; j < ISPMMU_L2D_ENTRIES_NR; j++) {
++                       pd = ispmmu_set_pte(l2_table + j, p_addr_align,
++                                                               l2_mapattr_obj);
++                       p_addr_align += PAGE_SIZE;
++                       if (p_addr_align == p_addr_align_end)
++                               break;
++               }
++               l2p_table_addr[idx + i] = (u32)l2_table;
 +       }
 +
-+       if (user_cfg->num_regions >=3D 1) {
-+               if (likely((user_cfg->reg1_hor & ISPHIST_REGHORIZ_HEND_MA=
-SK) -
-+                                       ((user_cfg->reg1_hor &
-+                                       ISPHIST_REGHORIZ_HSTART_MASK) >>
-+                                       ISPHIST_REGHORIZ_HSTART_SHIFT))) =
-{
-+                       WRITE_REG_HORIZ(hist_regs.reg_r1_h, user_cfg->reg=
-1_hor);
-+               } else {
-+                       printk(KERN_ERR "Invalid Region parameters\n");
-+                       return -EINVAL;
-+               }
++       DPRINTK_ISPMMU("mapped to ISP virtual address 0x%x\n",
++                       (u32)((idx << 20) + (p_addr & (PAGE_SIZE - 1))));
 +
-+               if (likely((user_cfg->reg1_ver & ISPHIST_REGVERT_VEND_MAS=
-K) -
-+                                       ((user_cfg->reg1_ver &
-+                                       ISPHIST_REGVERT_VSTART_MASK) >>
-+                                       ISPHIST_REGVERT_VSTART_SHIFT))) {
-+                       WRITE_REG_VERT(hist_regs.reg_r1_v, user_cfg->reg1=
-_ver);
-+               } else {
-+                       printk(KERN_ERR "Invalid Region parameters\n");
-+                       return -EINVAL;
-+               }
++       isp_reg_writel(1, OMAP3_ISP_IOMEM_MMU, ISPMMU_GFLUSH);
++       ret_addr = (dma_addr_t)((idx << 20) + (p_addr & (PAGE_SIZE - 1)));
++       return ret_addr;
++
++release_mem:
++       for (; i >= 0; i--) {
++               free_l2_page_table(l2p_table_addr[idx + i]);
++               l2p_table_addr[idx + i] = 0;
 +       }
-+
-+       if (user_cfg->num_regions >=3D 2) {
-+               if (likely((user_cfg->reg2_hor & ISPHIST_REGHORIZ_HEND_MA=
-SK) -
-+                                       ((user_cfg->reg2_hor &
-+                                       ISPHIST_REGHORIZ_HSTART_MASK) >>
-+                                       ISPHIST_REGHORIZ_HSTART_SHIFT))) =
-{
-+                       WRITE_REG_HORIZ(hist_regs.reg_r2_h, user_cfg->reg=
-2_hor);
-+               } else {
-+                       printk(KERN_ERR "Invalid Region parameters\n");
-+                       return -EINVAL;
-+               }
-+
-+               if (likely((user_cfg->reg2_ver & ISPHIST_REGVERT_VEND_MAS=
-K) -
-+                                       ((user_cfg->reg2_ver &
-+                                       ISPHIST_REGVERT_VSTART_MASK) >>
-+                                       ISPHIST_REGVERT_VSTART_SHIFT))) {
-+                       WRITE_REG_VERT(hist_regs.reg_r2_v, user_cfg->reg2=
-_ver);
-+               } else {
-+                       printk(KERN_ERR "Invalid Region parameters\n");
-+                       return -EINVAL;
-+               }
-+       }
-+
-+       if (user_cfg->num_regions >=3D 3) {
-+               if (likely((user_cfg->reg3_hor & ISPHIST_REGHORIZ_HEND_MA=
-SK) -
-+                                       ((user_cfg->reg3_hor &
-+                                       ISPHIST_REGHORIZ_HSTART_MASK) >>
-+                                       ISPHIST_REGHORIZ_HSTART_SHIFT))) =
-{
-+                       WRITE_REG_HORIZ(hist_regs.reg_r3_h, user_cfg->reg=
-3_hor);
-+               } else {
-+                       printk(KERN_ERR "Invalid Region parameters\n");
-+                       return -EINVAL;
-+               }
-+
-+               if (likely((user_cfg->reg3_ver & ISPHIST_REGVERT_VEND_MAS=
-K) -
-+                                       ((user_cfg->reg3_ver &
-+                                       ISPHIST_REGVERT_VSTART_MASK) >>
-+                                       ISPHIST_REGVERT_VSTART_SHIFT))) {
-+                       WRITE_REG_VERT(hist_regs.reg_r3_v, user_cfg->reg3=
-_ver);
-+               } else {
-+                       printk(KERN_ERR "Invalid Region parameters\n");
-+                       return -EINVAL;
-+               }
-+       }
-+       reg_num =3D user_cfg->num_regions;
-+       if (unlikely(((user_cfg->hist_bins > BINS_256) &&
-+                               (user_cfg->hist_bins !=3D BINS_32)) ||
-+                               ((user_cfg->hist_bins =3D=3D BINS_256) &&
-+                               reg_num !=3D 0) || ((user_cfg->hist_bins =
-=3D=3D
-+                               BINS_128) && reg_num >=3D 2))) {
-+               printk(KERN_ERR "Invalid Bins Number: %d\n",
-+                                                       user_cfg->hist_bi=
-ns);
-+               return -EINVAL;
-+       } else {
-+               WRITE_NUM_BINS(hist_regs.reg_cnt, user_cfg->hist_bins);
-+       }
-+
-+       if ((user_cfg->input_bit_width > MAX_BIT_WIDTH) ||
-+                               (user_cfg->input_bit_width < MIN_BIT_WIDT=
-H)) {
-+               printk(KERN_ERR "Invalid Bit Width: %d\n",
-+                                               user_cfg->input_bit_width=
-);
-+               return -EINVAL;
-+       } else {
-+               switch (user_cfg->hist_bins) {
-+               case BINS_256:
-+                       bit_shift =3D user_cfg->input_bit_width - 8;
-+                       break;
-+               case BINS_128:
-+                       bit_shift =3D user_cfg->input_bit_width - 7;
-+                       break;
-+               case BINS_64:
-+                       bit_shift =3D user_cfg->input_bit_width - 6;
-+                       break;
-+               case BINS_32:
-+                       bit_shift =3D user_cfg->input_bit_width - 5;
-+                       break;
-+               default:
-+                       return -EINVAL;
-+               }
-+               WRITE_BIT_SHIFT(hist_regs.reg_cnt, bit_shift);
-+       }
-+
-+       isp_hist_update_regs();
-+       histstat.initialized =3D 1;
-+
 +       return 0;
 +}
++EXPORT_SYMBOL_GPL(ispmmu_map);
 +
 +/**
-+ * isp_hist_configure - API to configure HIST registers.
-+ * @histcfg: Pointer to user configuration structure.
++ * ispmmu_map_sg - Map a physically discontiguous buffer to ISP space.
++ * @sg_list: Address of the Scatter gather linked list.
++ * @sglen: Number of elements in the sg list.
 + *
-+ * Returns 0 on success configuration.
++ * This call is used to map a user buffer or a vmalloc buffer. The sg list is
++ * a set of pages.
++ *
++ * Returns a valid address when successful, 0 if no memory could be mapped,
++ * or -EINVAL if runned out of virtual space.
 + **/
-+int isp_hist_configure(struct isp_hist_config *histcfg)
++dma_addr_t ispmmu_map_sg(const struct scatterlist *sglist, int sglen)
 +{
++       int i, j, idx, num, sg_num = 0;
++       u32 pd, sg_element_addr;
++       u32 *l2_table;
++       dma_addr_t ret_addr;
 +
-+       int ret =3D 0;
++       DPRINTK_ISPMMU("Map_sg: sglen (num of pages) = %d\n", sglen);
 +
-+       if (NULL =3D=3D histcfg) {
-+               printk(KERN_ERR "Null argument in configuration. \n");
++       idx = find_free_region_index();
++       if (!idx) {
++               DPRINTK_ISPMMU("Runs out of virtual space");
 +               return -EINVAL;
 +       }
 +
-+       if (!histstat.initialized) {
-+               DPRINTK_ISPHIST("Setting callback for HISTOGRAM\n");
-+               ret =3D isp_set_callback(CBK_HIST_DONE, isp_hist_isr,
-+                                               (void *)NULL, (void *)NUL=
-L);
-+               if (ret) {
-+                       printk(KERN_ERR "No callback for HIST\n");
-+                       return ret;
++       DPRINTK_ISPMMU("allocating region %d\n", idx/ISPMMU_REGION_ENTRIES_NR);
++
++       num = sglen / ISPMMU_L2D_ENTRIES_NR +
++                       ((sglen % ISPMMU_L2D_ENTRIES_NR) ? 1 : 0);
++       DPRINTK_ISPMMU("Need %d second-level page tables (1KB each)\n", num);
++
++       for (i = 0; i < num; i++) {
++               l2_table = (u32 *)request_l2_page_table();
++               if (!l2_table) {
++                       DPRINTK_ISPMMU("No memory\n");
++                       i--;
++                       goto release_mem;
 +               }
++               l1_mapattr_obj.map_size = PAGE;
++               pd = ispmmu_set_pte(ttb + idx + i, l2_page_paddr((u32)l2_table),
++                                               l1_mapattr_obj);
++               DPRINTK_ISPMMU("L1 pte[%d] = 0x%x\n", idx + i, pd);
++
++               l2_mapattr_obj.map_size = SMALLPAGE;
++               for (j = 0; j < ISPMMU_L2D_ENTRIES_NR; j++) {
++                       sg_element_addr = sg_dma_address(sglist + sg_num);
++                       if ((sg_num > 0) && page_aligned_addr(sg_element_addr)
++                                                       != sg_element_addr)
++                               DPRINTK_ISPMMU("ISP_ERR : Intermediate SG"
++                                               " elements are not"
++                                               " page aligned = 0x%x\n",
++                                               sg_element_addr);
++                       pd = ispmmu_set_pte(l2_table + j, sg_element_addr,
++                                                       l2_mapattr_obj);
++
++                       /* DPRINTK_ISPMMU("L2 pte[%d] = 0x%x\n", j, pd); */
++
++                       sg_num++;
++                       if (sg_num == sglen)
++                               break;
++               }
++               /* save it so we can free this l2 table later */
++               l2p_table_addr[idx + i] = (u32)l2_table;
 +       }
 +
-+       ret =3D isp_hist_set_params(histcfg);
-+       if (ret) {
-+               printk(KERN_ERR "Invalid parameters! \n");
-+               return ret;
++       DPRINTK_ISPMMU("mapped sg list to ISP virtual address 0x%x, idx=%d\n",
++                       (u32)((idx << 20) + (sg_dma_address(sglist + 0) &
++                                               (PAGE_SIZE - 1))), idx);
++
++       isp_reg_writel(1, OMAP3_ISP_IOMEM_MMU, ISPMMU_GFLUSH);
++       ret_addr = (dma_addr_t)((idx << 20) + (sg_dma_address(sglist + 0) &
++                                                       (PAGE_SIZE - 1)));
++       return ret_addr;
++
++release_mem:
++       for (; i >= 0; i--) {
++               free_l2_page_table(l2p_table_addr[idx + i]);
++               l2p_table_addr[idx + i] = 0;
 +       }
-+
-+       histstat.frame_cnt =3D 0;
-+       histstat.completed =3D 0;
-+       isp_hist_enable(1);
-+       isp_hist_print_status();
-+
 +       return 0;
 +}
-+EXPORT_SYMBOL(isp_hist_configure);
++EXPORT_SYMBOL_GPL(ispmmu_map_sg);
 +
 +/**
-+ * isp_hist_request_statistics - Request statistics in Histogram.
-+ * @histdata: Pointer to data structure.
++ * ispmmu_unmap - Unmap a ISP space that was mmapped before.
++ * @v_addr: Virtural address to be unmapped
 + *
-+ * This API allows the user to request for histogram statistics.
++ * Works with mmapped spaces either with ispmmu_map or ispmmu_map_sg.
 + *
-+ * Returns 0 on successful request.
++ * Returns 0 if successful, or -EINVAL if wrong region, or non region-aligned
 + **/
-+int isp_hist_request_statistics(struct isp_hist_data *histdata)
++int ispmmu_unmap(dma_addr_t v_addr)
 +{
-+       int i, ret;
-+       u32 curr;
++       u32 v_addr_align;
++       int idx;
 +
-+       if (isp_reg_readl(OMAP3_ISP_IOMEM_HIST, ISPHIST_PCR) & ISPHIST_PC=
-R_BUSY_MASK)
-+               return -EBUSY;
++       DPRINTK_ISPMMU("+ispmmu_unmap: 0x%x\n", v_addr);
 +
-+       if (!histstat.completed && histstat.initialized)
++       v_addr_align = page_aligned_addr(v_addr);
++       idx = v_addr_align >> 20;
++       if ((idx < ISPMMU_REGION_ENTRIES_NR) || (idx >
++                                       (ISPMMU_REGION_ENTRIES_NR *
++                                       (ISPMMU_REGION_NR - 1))) ||
++                                       ((idx << 20) != v_addr_align) ||
++                                       (idx % ISPMMU_REGION_ENTRIES_NR)) {
++               DPRINTK_ISPMMU("Cannot unmap a non region-aligned space"
++                                                       " 0x%x\n", v_addr);
 +               return -EINVAL;
++       }
 +
-+       isp_reg_writel((isp_reg_readl(OMAP3_ISP_IOMEM_HIST, ISPHIST_CNT))=
- | ISPHIST_CNT_CLR_EN,
-+                                       OMAP3_ISP_IOMEM_HIST, ISPHIST_CNT=
-);
++       if (((*(ttb + idx)) & (ISPMMU_L1D_TYPE_MASK <<
++                                               ISPMMU_L1D_TYPE_SHIFT)) !=
++                                               (ISPMMU_L1D_TYPE_PAGE <<
++                                               ISPMMU_L1D_TYPE_SHIFT)) {
++               DPRINTK_ISPMMU("unmap a wrong region\n");
++               return -EINVAL;
++       }
 +
-+       for (i =3D 0; i < HIST_MEM_SIZE; i++) {
-+               curr =3D isp_reg_readl(OMAP3_ISP_IOMEM_HIST, ISPHIST_DATA=
-);
-+               ret =3D put_user(curr, (histdata->hist_statistics_buf + i=
-));
-+               if (ret) {
-+                       printk(KERN_ERR "Failed copy_to_user for "
-+                                               "HIST stats buff, %d\n", =
-ret);
++       while (((*(ttb + idx)) & (ISPMMU_L1D_TYPE_MASK <<
++                                               ISPMMU_L1D_TYPE_SHIFT)) ==
++                                               (ISPMMU_L1D_TYPE_PAGE <<
++                                               ISPMMU_L1D_TYPE_SHIFT)) {
++               *(ttb + idx) = (ISPMMU_L1D_TYPE_FAULT <<
++                                               ISPMMU_L1D_TYPE_SHIFT);
++               free_l2_page_table(l2p_table_addr[idx]);
++               l2p_table_addr[idx++] = 0;
++               if (!(idx % ISPMMU_REGION_ENTRIES_NR)) {
++                       DPRINTK_ISPMMU("Do not exceed this 32M region\n");
++                       break;
++               }
++       }
++       isp_reg_writel(1, OMAP3_ISP_IOMEM_MMU, ISPMMU_GFLUSH);
++
++       DPRINTK_ISPMMU("-ispmmu_unmap()\n");
++       return 0;
++}
++EXPORT_SYMBOL_GPL(ispmmu_unmap);
++
++/**
++ * ispmmu_isr - Callback from ISP driver for MMU interrupt.
++ * @status: IRQ status of ISPMMU
++ * @arg1: Not used as of now.
++ * @arg2: Not used as of now.
++ **/
++static void ispmmu_isr(unsigned long status, isp_vbq_callback_ptr arg1,
++                                                               void *arg2)
++{
++       u32 irqstatus = 0;
++
++       irqstatus = isp_reg_readl(OMAP3_ISP_IOMEM_MMU, ISPMMU_IRQSTATUS);
++       DPRINTK_ISPMMU("mmu error 0x%lx, 0x%x\n", status, irqstatus);
++       if (irqstatus & IRQENABLE_TLBMISS)
++               DPRINTK_ISPMMU("ISP_ERR: TLB Miss\n");
++       if (irqstatus & IRQENABLE_TRANSLNFAULT)
++               DPRINTK_ISPMMU("ISP_ERR: Invalide descriptor in the"
++                                               " translation table -"
++                                               " Translation Fault\n");
++       if (irqstatus & IRQENABLE_EMUMISS) {
++               DPRINTK_ISPMMU("ISP_ERR: TLB Miss during debug -"
++                                                       " Emulation mode\n");
++       }
++       if (irqstatus & IRQENABLE_TWFAULT)
++               DPRINTK_ISPMMU("ISP_ERR: Table Walk Fault\n");
++       if (irqstatus & IRQENABLE_MULTIHITFAULT)
++               DPRINTK_ISPMMU("ISP_ERR: Multiple Matches in the TLB\n");
++       DPRINTK_ISPMMU("Fault address for the ISPMMU is 0x%x",
++                                               isp_reg_readl(OMAP3_ISP_IOMEM_MMU, ISPMMU_FAULT_AD));
++       isp_reg_writel(irqstatus, OMAP3_ISP_IOMEM_MMU, ISPMMU_IRQSTATUS);
++}
++
++/**
++ * ispmmu_init - ISP MMU Initialization.
++ *
++ * - Reserves memory for L1 and L2 Page tables.
++ * - Initializes the ISPMMU with TTB address, fault entries as default in the
++ * - TTB table.
++ * - Enables MMU and TWL.
++ * - Sets the callback for the MMU error events.
++ *
++ * Returns 0 if successful, -ENODEV if can't take ISP MMU out of reset, -ENOMEM
++ * when no memory for TTB, or init_l2_page_cache return value if L2 page cache
++ * init fails.
++ **/
++int __init ispmmu_init(void)
++{
++       int i, val = 0;
++       struct isp_sysc isp_sysconfig;
++
++       isp_get();
++
++       isp_reg_writel(2, OMAP3_ISP_IOMEM_MMU, ISPMMU_SYSCONFIG);
++       while (((isp_reg_readl(OMAP3_ISP_IOMEM_MMU, ISPMMU_SYSSTATUS) & 0x1) != 0x1) && val--)
++               udelay(10);
++
++       if ((isp_reg_readl(OMAP3_ISP_IOMEM_MMU, ISPMMU_SYSSTATUS) & 0x1) != 0x1) {
++               DPRINTK_ISPMMU("can't take ISP MMU out of reset\n");
++               isp_put();
++               return -ENODEV;
++       }
++       isp_sysconfig.reset = 0;
++       isp_sysconfig.idle_mode = 1;
++       isp_power_settings(isp_sysconfig);
++
++       ttb_page = alloc_pages(GFP_KERNEL, get_order(ISPMMU_TTB_ENTRIES_NR *
++                                                                       4));
++       if (!ttb_page) {
++               DPRINTK_ISPMMU("No Memory for TTB\n");
++               isp_put();
++               return -ENOMEM;
++       }
++
++       ttb = page_address(ttb_page);
++       ttb_p = __pa(ttb);
++       ttb_aligned_size = ISPMMU_TTB_ENTRIES_NR * 4;
++       ttb = ioremap_nocache(ttb_p, ttb_aligned_size);
++       if ((ttb_p & 0xFFFFC000) != ttb_p) {
++               DPRINTK_ISPMMU("ISP_ERR : TTB address not aligned at 16KB\n");
++               __free_pages(ttb_page, get_order(ISPMMU_TTB_ENTRIES_NR * 4));
++               ttb_aligned_size = (ISPMMU_TTB_ENTRIES_NR * 4) +
++                                               (ISPMMU_TTB_MISALIGN_SIZE);
++               ttb_page = alloc_pages(GFP_KERNEL, get_order(ttb_aligned_size));
++               if (!ttb_page) {
++                       DPRINTK_ISPMMU("No Memory for TTB\n");
++                       isp_put();
++                       return -ENOMEM;
++               }
++               ttb = page_address(ttb_page);
++               ttb_p = __pa(ttb);
++               ttb = ioremap_nocache(ttb_p, ttb_aligned_size);
++               if ((ttb_p & 0xFFFFC000) != ttb_p) {
++                       ttb = (u32 *)(((u32)ttb & 0xFFFFC000) + 0x4000);
++                       ttb_p = __pa(ttb);
 +               }
 +       }
 +
-+       isp_reg_writel((isp_reg_readl(OMAP3_ISP_IOMEM_HIST, ISPHIST_CNT))=
- & ~ISPHIST_CNT_CLR_EN,
-+                                       OMAP3_ISP_IOMEM_HIST, ISPHIST_CNT=
-);
-+       histstat.completed =3D 0;
++       DPRINTK_ISPMMU("TTB allocated at p = 0x%x, v = 0x%x, size = 0x%x\n",
++                                       ttb_p, (u32)ttb, ttb_aligned_size);
++
++       if (omap_rev() < OMAP3430_REV_ES2_0)
++               l1_mapattr_obj.endianism = B_ENDIAN;
++       else
++               l1_mapattr_obj.endianism = L_ENDIAN;
++       l1_mapattr_obj.element_size = ES_8BIT;
++       l1_mapattr_obj.mixed_size = ACCESS_BASED;
++       l1_mapattr_obj.map_size = L1DFAULT;
++
++       val = init_l2_page_cache();
++       if (val) {
++               DPRINTK_ISPMMU("ISP_ERR: init l2 page cache\n");
++               ttb = page_address(ttb_page);
++               ttb_p = __pa(ttb);
++               ioremap_cached(ttb_p, ttb_aligned_size);
++               __free_pages(ttb_page, get_order(ttb_aligned_size));
++               isp_put();
++               return val;
++       }
++
++       for (i = 0; i < ISPMMU_TTB_ENTRIES_NR; i++)
++               ispmmu_set_pte(ttb + i, 0, l1_mapattr_obj);
++
++       isp_reg_writel(ttb_p, OMAP3_ISP_IOMEM_MMU, ISPMMU_TTB);
++
++       isp_reg_writel((ISPMMU_MMUCNTL_MMU_EN | ISPMMU_MMUCNTL_TWL_EN),
++                                       OMAP3_ISP_IOMEM_MMU, ISPMMU_CNTL);
++       isp_reg_writel(isp_reg_readl(OMAP3_ISP_IOMEM_MMU, ISPMMU_IRQSTATUS),
++                                       OMAP3_ISP_IOMEM_MMU, ISPMMU_IRQSTATUS);
++       isp_reg_writel(0xf, OMAP3_ISP_IOMEM_MMU, ISPMMU_IRQENABLE);
++
++       isp_set_callback(CBK_MMU_ERR, ispmmu_isr, (void *)NULL, (void *)NULL);
++
++       val = isp_reg_readl(OMAP3_ISP_IOMEM_MMU, ISPMMU_REVISION);
++       DPRINTK_ISPMMU("ISP MMU Rev %c.%c initialized\n",
++                               (val >> ISPMMU_REVISION_REV_MAJOR_SHIFT) + '0',
++                               (val & ISPMMU_REVISION_REV_MINOR_MASK) + '0');
++       isp_put();
 +       return 0;
-+}
-+EXPORT_SYMBOL(isp_hist_request_statistics);
 +
-+/**
-+ * isp_hist_init - Module Initialization.
-+ *
-+ * Returns 0 if successful.
-+ **/
-+int __init isp_hist_init(void)
-+{
-+       memset(&histstat, 0, sizeof(histstat));
-+       memset(&hist_regs, 0, sizeof(hist_regs));
-+
-+       return 0;
 +}
 +
 +/**
-+ * isp_hist_cleanup - Module cleanup.
++ * ispmmu_cleanup - Frees the L1, L2 Page tables. Unsets the callback for MMU.
 + **/
-+void __exit isp_hist_cleanup(void)
++void __exit ispmmu_cleanup(void)
 +{
-+       isp_hist_enable(0);
-+       mdelay(100);
-+       isp_unset_callback(CBK_HIST_DONE);
++       ttb = page_address(ttb_page);
++       ttb_p = __pa(ttb);
++       ioremap_cached(ttb_p, ttb_aligned_size);
++       __free_pages(ttb_page, get_order(ttb_aligned_size));
++       isp_unset_callback(CBK_MMU_ERR);
++       cleanup_l2_page_cache();
 +
-+       memset(&histstat, 0, sizeof(histstat));
-+       memset(&hist_regs, 0, sizeof(hist_regs));
++       return;
 +}
 +
 +/**
-+ * isphist_save_context - Saves the values of the histogram module regis=
-ters.
++ * ispmmu_save_context - Saves the values of the mmu module registers.
 + **/
-+void isphist_save_context(void)
++void ispmmu_save_context(void)
 +{
-+       DPRINTK_ISPHIST(" Saving context\n");
-+       isp_save_context(isphist_reg_list);
++       DPRINTK_ISPMMU(" Saving context\n");
++       isp_save_context(ispmmu_reg_list);
 +}
-+EXPORT_SYMBOL(isphist_save_context);
++EXPORT_SYMBOL_GPL(ispmmu_save_context);
 +
 +/**
-+ * isphist_restore_context - Restores the values of the histogram module=
- regs.
++ * ispmmu_restore_context - Restores the values of the mmu module registers.
 + **/
-+void isphist_restore_context(void)
++void ispmmu_restore_context(void)
 +{
-+       DPRINTK_ISPHIST(" Restoring context\n");
-+       isp_restore_context(isphist_reg_list);
++       DPRINTK_ISPMMU(" Restoring context\n");
++       isp_restore_context(ispmmu_reg_list);
 +}
-+EXPORT_SYMBOL(isphist_restore_context);
++EXPORT_SYMBOL_GPL(ispmmu_restore_context);
 +
 +/**
-+ * isp_hist_print_status - Debug print
++ * ispmmu_print_status - Prints the values of the ISPMMU registers
++ * Also prints other debug information stored
 + **/
-+static void isp_hist_print_status(void)
++void ispmmu_print_status(void)
 +{
-+       DPRINTK_ISPHIST("ISPHIST_PCR =3D 0x%08x\n", isp_reg_readl(OMAP3_I=
-SP_IOMEM_HIST, ISPHIST_PCR));
-+       DPRINTK_ISPHIST("ISPHIST_CNT =3D 0x%08x\n", isp_reg_readl(OMAP3_I=
-SP_IOMEM_HIST, ISPHIST_CNT));
-+       DPRINTK_ISPHIST("ISPHIST_WB_GAIN =3D 0x%08x\n",
-+                                               isp_reg_readl(OMAP3_ISP_I=
-OMEM_HIST, ISPHIST_WB_GAIN));
-+       DPRINTK_ISPHIST("ISPHIST_R0_HORZ =3D 0x%08x\n",
-+                                               isp_reg_readl(OMAP3_ISP_I=
-OMEM_HIST, ISPHIST_R0_HORZ));
-+       DPRINTK_ISPHIST("ISPHIST_R0_VERT =3D 0x%08x\n",
-+                                               isp_reg_readl(OMAP3_ISP_I=
-OMEM_HIST, ISPHIST_R0_VERT));
-+       DPRINTK_ISPHIST("ISPHIST_R1_HORZ =3D 0x%08x\n",
-+                                               isp_reg_readl(OMAP3_ISP_I=
-OMEM_HIST, ISPHIST_R1_HORZ));
-+       DPRINTK_ISPHIST("ISPHIST_R1_VERT =3D 0x%08x\n",
-+                                               isp_reg_readl(OMAP3_ISP_I=
-OMEM_HIST, ISPHIST_R1_VERT));
-+       DPRINTK_ISPHIST("ISPHIST_R2_HORZ =3D 0x%08x\n",
-+                                               isp_reg_readl(OMAP3_ISP_I=
-OMEM_HIST, ISPHIST_R2_HORZ));
-+       DPRINTK_ISPHIST("ISPHIST_R2_VERT =3D 0x%08x\n",
-+                                               isp_reg_readl(OMAP3_ISP_I=
-OMEM_HIST, ISPHIST_R2_VERT));
-+       DPRINTK_ISPHIST("ISPHIST_R3_HORZ =3D 0x%08x\n",
-+                                               isp_reg_readl(OMAP3_ISP_I=
-OMEM_HIST, ISPHIST_R3_HORZ));
-+       DPRINTK_ISPHIST("ISPHIST_R3_VERT =3D 0x%08x\n",
-+                                               isp_reg_readl(OMAP3_ISP_I=
-OMEM_HIST, ISPHIST_R3_VERT));
-+       DPRINTK_ISPHIST("ISPHIST_ADDR =3D 0x%08x\n", isp_reg_readl(OMAP3_=
-ISP_IOMEM_HIST, ISPHIST_ADDR));
-+       DPRINTK_ISPHIST("ISPHIST_RADD =3D 0x%08x\n", isp_reg_readl(OMAP3_=
-ISP_IOMEM_HIST, ISPHIST_RADD));
-+       DPRINTK_ISPHIST("ISPHIST_RADD_OFF =3D 0x%08x\n",
-+                                               isp_reg_readl(OMAP3_ISP_I=
-OMEM_HIST, ISPHIST_RADD_OFF));
-+       DPRINTK_ISPHIST("ISPHIST_H_V_INFO =3D 0x%08x\n",
-+                                               isp_reg_readl(OMAP3_ISP_I=
-OMEM_HIST, ISPHIST_H_V_INFO));
++       if (!is_ispmmu_debug_enabled())
++               return;
++       DPRINTK_ISPMMU("TTB v_addr = 0x%x, p_addr = 0x%x\n", (u32)ttb, ttb_p);
++       DPRINTK_ISPMMU("L2P base v_addr = 0x%x, p_addr = 0x%x\n",
++                                               l2_page_cache, l2_page_cache_p);
++       DPRINTK_ISPMMU("ISPMMU_REVISION = 0x%x\n",
++                                               isp_reg_readl(OMAP3_ISP_IOMEM_MMU, ISPMMU_REVISION));
++       DPRINTK_ISPMMU("ISPMMU_SYSCONFIG = 0x%x\n",
++                                               isp_reg_readl(OMAP3_ISP_IOMEM_MMU, ISPMMU_SYSCONFIG));
++       DPRINTK_ISPMMU("ISPMMU_SYSSTATUS = 0x%x\n",
++                                               isp_reg_readl(OMAP3_ISP_IOMEM_MMU, ISPMMU_SYSSTATUS));
++       DPRINTK_ISPMMU("ISPMMU_IRQSTATUS = 0x%x\n",
++                                               isp_reg_readl(OMAP3_ISP_IOMEM_MMU, ISPMMU_IRQSTATUS));
++       DPRINTK_ISPMMU("ISPMMU_IRQENABLE = 0x%x\n",
++                                               isp_reg_readl(OMAP3_ISP_IOMEM_MMU, ISPMMU_IRQENABLE));
++       DPRINTK_ISPMMU("ISPMMU_WALKING_ST = 0x%x\n",
++                                               isp_reg_readl(OMAP3_ISP_IOMEM_MMU, ISPMMU_WALKING_ST));
++       DPRINTK_ISPMMU("ISPMMU_CNTL = 0x%x\n", isp_reg_readl(OMAP3_ISP_IOMEM_MMU, ISPMMU_CNTL));
++       DPRINTK_ISPMMU("ISPMMU_FAULT_AD = 0x%x\n",
++                                               isp_reg_readl(OMAP3_ISP_IOMEM_MMU, ISPMMU_FAULT_AD));
++       DPRINTK_ISPMMU("ISPMMU_TTB = 0x%x\n", isp_reg_readl(OMAP3_ISP_IOMEM_MMU, ISPMMU_TTB));
++       DPRINTK_ISPMMU("ISPMMU_LOCK = 0x%x\n", isp_reg_readl(OMAP3_ISP_IOMEM_MMU, ISPMMU_LOCK));
++       DPRINTK_ISPMMU("ISPMMU_LD_TLB= 0x%x\n", isp_reg_readl(OMAP3_ISP_IOMEM_MMU, ISPMMU_LD_TLB));
++       DPRINTK_ISPMMU("ISPMMU_CAM = 0x%x\n", isp_reg_readl(OMAP3_ISP_IOMEM_MMU, ISPMMU_CAM));
++       DPRINTK_ISPMMU("ISPMMU_RAM = 0x%x\n", isp_reg_readl(OMAP3_ISP_IOMEM_MMU, ISPMMU_RAM));
++       DPRINTK_ISPMMU("ISPMMU_GFLUSH = 0x%x\n", isp_reg_readl(OMAP3_ISP_IOMEM_MMU, ISPMMU_GFLUSH));
++       DPRINTK_ISPMMU("ISPMMU_FLUSH_ENTRY = 0x%x\n",
++                                       isp_reg_readl(OMAP3_ISP_IOMEM_MMU, ISPMMU_FLUSH_ENTRY));
++       DPRINTK_ISPMMU("ISPMMU_READ_CAM = 0x%x\n",
++                                               isp_reg_readl(OMAP3_ISP_IOMEM_MMU, ISPMMU_READ_CAM));
++       DPRINTK_ISPMMU("ISPMMU_READ_RAM = 0x%x\n",
++                                               isp_reg_readl(OMAP3_ISP_IOMEM_MMU, ISPMMU_READ_RAM));
 +}
-diff --git a/drivers/media/video/isp/isphist.h b/drivers/media/video/isp/=
-isphist.h
++EXPORT_SYMBOL_GPL(ispmmu_print_status);
+diff --git a/drivers/media/video/isp/ispmmu.h b/drivers/media/video/isp/ispmmu.h
 new file mode 100644
-index 0000000..b67558f
+index 0000000..a20b3b0
 --- /dev/null
-+++ b/drivers/media/video/isp/isphist.h
-@@ -0,0 +1,97 @@
++++ b/drivers/media/video/isp/ispmmu.h
+@@ -0,0 +1,119 @@
 +/*
-+ * drivers/media/video/isp/isphist.h
++ * drivers/media/video/isp/ispmmu.h
 + *
-+ * Header file for HISTOGRAM module in TI's OMAP3 Camera ISP
++ * OMAP3 Camera ISP MMU API
 + *
-+ * Copyright (C) 2008 Texas Instruments, Inc.
++ * Copyright (C) 2008 Texas Instruments.
 + *
 + * Contributors:
-+ *     Sergio Aguirre <saaguirre@ti.com>
-+ *     Troy Laramy
++ *     Senthilvadivu Guruswamy <svadivu@ti.com>
++ *     Thara Gopinath <thara@ti.com>
 + *
 + * This package is free software; you can redistribute it and/or modify
 + * it under the terms of the GNU General Public License version 2 as
@@ -2832,89 +3927,105 @@ index 0000000..b67558f
 + * WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 + */
 +
-+#ifndef OMAP_ISP_HIST_H
-+#define OMAP_ISP_HIST_H
++#ifndef OMAP_ISP_MMU_H
++#define OMAP_ISP_MMU_H
 +
-+#include <mach/isp_user.h>
++#define ISPMMU_L1D_TYPE_SHIFT          0
++#define ISPMMU_L1D_TYPE_MASK           0x3
++#define ISPMMU_L1D_TYPE_FAULT          0
++#define ISPMMU_L1D_TYPE_FAULT1         3
++#define ISPMMU_L1D_TYPE_PAGE           1
++#define ISPMMU_L1D_TYPE_SECTION                2
++#define ISPMMU_L1D_PAGE_ADDR_SHIFT     10
 +
-+#define MAX_REGIONS            0x4
-+#define MAX_WB_GAIN            255
-+#define MIN_WB_GAIN            0x0
-+#define MAX_BIT_WIDTH          14
-+#define MIN_BIT_WIDTH          8
++#define ISPMMU_L2D_TYPE_SHIFT          0
++#define ISPMMU_L2D_TYPE_MASK           0x3
++#define ISPMMU_L2D_TYPE_FAULT          0
++#define ISPMMU_L2D_TYPE_LARGE_PAGE     1
++#define ISPMMU_L2D_TYPE_SMALL_PAGE     2
++#define ISPMMU_L2D_SMALL_ADDR_SHIFT    12
++#define ISPMMU_L2D_SMALL_ADDR_MASK     0xFFFFF000
++#define ISPMMU_L2D_M_ACCESSBASED       (1 << 11)
++#define ISPMMU_L2D_E_BIGENDIAN         (1 << 9)
++#define ISPMMU_L2D_ES_SHIFT            4
++#define ISPMMU_L2D_ES_MASK             (~(3 << 4))
++#define ISPMMU_L2D_ES_8BIT             0
++#define ISPMMU_L2D_ES_16BIT            1
++#define ISPMMU_L2D_ES_32BIT            2
++#define ISPMMU_L2D_ES_NOENCONV         3
 +
-+#define ISPHIST_PCR_EN         (1 << 0)
-+#define HIST_MEM_SIZE          1024
-+#define ISPHIST_CNT_CLR_EN     (1 << 7)
++#define ISPMMU_TTB_ENTRIES_NR          4096
 +
-+#define WRITE_SOURCE(reg, source)      \
-+               (reg =3D (reg & ~(ISPHIST_CNT_SOURCE_MASK)) \
-+               | (source << ISPHIST_CNT_SOURCE_SHIFT))
++/* Number 1MB entries in TTB in one 32MB region */
++#define ISPMMU_REGION_ENTRIES_NR       32
 +
-+#define WRITE_HV_INFO(reg, hv_info) \
-+               (reg =3D ((reg & ~(ISPHIST_HV_INFO_MASK)) \
-+               | (hv_info & ISPHIST_HV_INFO_MASK)))
++/* 128 region entries */
++#define ISPMMU_REGION_NR (ISPMMU_TTB_ENTRIES_NR / ISPMMU_REGION_ENTRIES_NR)
 +
-+#define WRITE_RADD(reg, radd) \
-+               (reg =3D (reg & ~(ISPHIST_RADD_MASK)) \
-+               | (radd << ISPHIST_RADD_SHIFT))
++/* Each region is 32MB */
++#define ISPMMU_REGION_SIZE             (ISPMMU_REGION_ENTRIES_NR * (1 << 20))
 +
-+#define WRITE_RADD_OFF(reg, radd_off) \
-+               (reg =3D (reg & ~(ISPHIST_RADD_OFF_MASK)) \
-+               | (radd_off << ISPHIST_RADD_OFF_SHIFT))
++/* Number of entries per L2 Page table */
++#define ISPMMU_L2D_ENTRIES_NR          256
 +
-+#define WRITE_BIT_SHIFT(reg, bit_shift) \
-+               (reg =3D (reg & ~(ISPHIST_CNT_SHIFT_MASK)) \
-+               | (bit_shift << ISPHIST_CNT_SHIFT_SHIFT))
++/*
++ * Statically allocate 16KB for L2 page tables. 16KB can be used for
++ * up to 16 L2 page tables which cover up to 16MB space. We use an array of 16
++ * to keep track of these 16 L2 page table's status.
++ */
++#define L2P_TABLE_SIZE                 1024
++#define L2P_TABLE_NR                   41 /* Currently supports 4*5MP shots */
++#define L2P_TABLES_SIZE                (L2P_TABLE_SIZE * L2P_TABLE_NR)
 +
-+#define WRITE_DATA_SIZE(reg, data_size) \
-+               (reg =3D (reg & ~(ISPHIST_CNT_DATASIZE_MASK)) \
-+               | (data_size << ISPHIST_CNT_DATASIZE_SHIFT))
++/* Extra memory allocated to get ttb aligned on 16KB */
++#define ISPMMU_TTB_MISALIGN_SIZE       0x3000
 +
-+#define WRITE_NUM_BINS(reg, num_bins) \
-+               (reg =3D (reg & ~(ISPHIST_CNT_BINS_MASK)) \
-+               | (num_bins << ISPHIST_CNT_BINS_SHIFT))
++#ifdef CONFIG_ARCH_OMAP3410
++#include <linux/scatterlist.h>
++#endif
 +
-+#define WRITE_WB_R(reg, reg_wb_gain) \
-+               reg =3D ((reg & ~(ISPHIST_WB_GAIN_WG00_MASK)) \
-+               | (reg_wb_gain << ISPHIST_WB_GAIN_WG00_SHIFT))
++enum ISPMMU_MAP_ENDIAN {
++       L_ENDIAN,
++       B_ENDIAN
++};
 +
-+#define WRITE_WB_RG(reg, reg_wb_gain) \
-+               (reg =3D (reg & ~(ISPHIST_WB_GAIN_WG01_MASK)) \
-+               | (reg_wb_gain << ISPHIST_WB_GAIN_WG01_SHIFT))
++enum ISPMMU_MAP_ELEMENTSIZE {
++       ES_8BIT,
++       ES_16BIT,
++       ES_32BIT,
++       ES_NOENCONV
++};
 +
-+#define WRITE_WB_B(reg, reg_wb_gain) \
-+               (reg =3D (reg & ~(ISPHIST_WB_GAIN_WG02_MASK)) \
-+               | (reg_wb_gain << ISPHIST_WB_GAIN_WG02_SHIFT))
++enum ISPMMU_MAP_MIXEDREGION {
++       ACCESS_BASED,
++       PAGE_BASED
++};
 +
-+#define WRITE_WB_BG(reg, reg_wb_gain) \
-+               (reg =3D (reg & ~(ISPHIST_WB_GAIN_WG03_MASK)) \
-+               | (reg_wb_gain << ISPHIST_WB_GAIN_WG03_SHIFT))
++enum ISPMMU_MAP_SIZE {
++       L1DFAULT,
++       PAGE,
++       SECTION,
++       SUPERSECTION,
++       L2DFAULT,
++       LARGEPAGE,
++       SMALLPAGE
++};
 +
-+#define WRITE_REG_HORIZ(reg, reg_n_hor) \
-+               (reg =3D ((reg & ~ISPHIST_REGHORIZ_MASK) \
-+               | (reg_n_hor & ISPHIST_REGHORIZ_MASK)))
++int ispmmu_get_mapeable_space(void);
 +
-+#define WRITE_REG_VERT(reg, reg_n_vert) \
-+               (reg =3D ((reg & ~ISPHIST_REGVERT_MASK) \
-+               | (reg_n_vert & ISPHIST_REGVERT_MASK)))
++dma_addr_t ispmmu_map(unsigned int p_addr, int size);
 +
++dma_addr_t ispmmu_map_sg(const struct scatterlist *sglist, int sglen);
 +
-+int isp_hist_configure(struct isp_hist_config *histcfg);
++int ispmmu_unmap(dma_addr_t isp_addr);
 +
-+int isp_hist_request_statistics(struct isp_hist_data *histdata);
++void ispmmu_print_status(void);
 +
-+void isphist_save_context(void);
++void ispmmu_save_context(void);
 +
-+void isphist_restore_context(void);
++void ispmmu_restore_context(void);
 +
-+#endif                         /* OMAP_ISP_HIST */
++#endif /* OMAP_ISP_MMU_H */
 --
 1.5.6.5
 
-
---
-video4linux-list mailing list
-Unsubscribe mailto:video4linux-list-request@redhat.com?subject=3Dunsubscr=
-ibe
-https://www.redhat.com/mailman/listinfo/video4linux-list
