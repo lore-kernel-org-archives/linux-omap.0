@@ -1,85 +1,89 @@
-From: ext-eero.nurkkala@nokia.com
-Subject: [PATCH 3/3] ASoC: Always syncronize audio transfers on frames
-Date: Tue, 13 Jan 2009 09:52:15 +0200
-Message-ID: <1231833140301-git-send-email-ext-eero.nurkkala@nokia.com>
-References: <12318331352537-git-send-email-ext-eero.nurkkala@nokia.com>
- <12318331373879-git-send-email-ext-eero.nurkkala@nokia.com>
- <12318331393997-git-send-email-ext-eero.nurkkala@nokia.com>
+From: Koen Kooi <k.kooi@student.utwente.nl>
+Subject: Re: PM branch and cpufreq
+Date: Tue, 13 Jan 2009 08:58:11 +0100
+Message-ID: <1EA5690A-7DC6-41C9-81AB-BACBEDAAD938@student.utwente.nl>
+References: <F8E71D7D-92CC-4E6D-92F0-21BD8E9C432D@student.utwente.nl> <D1986163-A086-4798-A1D7-0A5E93984C21@student.utwente.nl> <878wpfn7t6.fsf@deeprootsystems.com>
+Mime-Version: 1.0 (Apple Message framework v930.3)
+Content-Type: multipart/signed; protocol="application/pgp-signature"; micalg=pgp-sha1; boundary="Apple-Mail-15-123221415"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:56835 "EHLO
-	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752259AbZAMH4R (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 13 Jan 2009 02:56:17 -0500
-Received: from vaebh106.NOE.Nokia.com (vaebh106.europe.nokia.com [10.160.244.32])
-	by mgw-mx06.nokia.com (Switch-3.2.6/Switch-3.2.6) with ESMTP id n0D7taXF009170
-	for <linux-omap@vger.kernel.org>; Tue, 13 Jan 2009 09:56:14 +0200
-In-Reply-To: <12318331393997-git-send-email-ext-eero.nurkkala@nokia.com>
+Received: from smtp1.utsp.utwente.nl ([130.89.2.8]:44017 "EHLO smtp.utwente.nl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1758389AbZAMH60 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 13 Jan 2009 02:58:26 -0500
+In-Reply-To: <878wpfn7t6.fsf@deeprootsystems.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Eero Nurkkala <ext-eero.nurkkala@nokia.com>
+To: Kevin Hilman <khilman@deeprootsystems.com>
+Cc: "linux-omap@vger.kernel.org List" <linux-omap@vger.kernel.org>
 
-From: Eero Nurkkala <ext-eero.nurkkala@nokia.com>
+This is an OpenPGP/MIME signed message (RFC 2440 and 3156)
+--Apple-Mail-15-123221415
+Content-Type: text/plain; charset=US-ASCII; format=flowed; delsp=yes
+Content-Transfer-Encoding: 7bit
 
-All these steps are required for ASoC to behave correctly.
-This is, no RFIG or XFIG (Not defined in 34xx), correct
-initiliazation of rccr and xccr. They are format dependent,
-for example TDM audio has different values than I2S or
-DSP_A. Also the omap_mcbsp_xmit_enable and/or
-omap_mcbsp_recv_enable must be called right after the
-DMA has started. This provides no longer L and R channels
-switching at random.
 
-Signed-off-by: Eero Nurkkala <ext-eero.nurkkala@nokia.com>
----
- sound/soc/omap/omap-mcbsp.c |   16 ++++++++++++++--
- 1 files changed, 14 insertions(+), 2 deletions(-)
+Op 13 jan 2009, om 05:33 heeft Kevin Hilman het volgende geschreven:
 
-diff --git a/sound/soc/omap/omap-mcbsp.c b/sound/soc/omap/omap-mcbsp.c
-index 8485a8a..06b6367 100644
---- a/sound/soc/omap/omap-mcbsp.c
-+++ b/sound/soc/omap/omap-mcbsp.c
-@@ -178,6 +178,11 @@ static int omap_mcbsp_dai_trigger(struct snd_pcm_substream *substream, int cmd)
- 	case SNDRV_PCM_TRIGGER_PAUSE_RELEASE:
- 		if (!mcbsp_data->active++)
- 			omap_mcbsp_start(mcbsp_data->bus_id);
-+		/* Make sure data transfer is frame synchronized */
-+		if (substream->stream == SNDRV_PCM_STREAM_PLAYBACK)
-+			omap_mcbsp_xmit_enable(mcbsp_data->bus_id, 1);
-+		else
-+			omap_mcbsp_recv_enable(mcbsp_data->bus_id, 1);
- 		break;
- 
- 	case SNDRV_PCM_TRIGGER_STOP:
-@@ -293,19 +298,26 @@ static int omap_mcbsp_dai_set_dai_fmt(struct snd_soc_dai *cpu_dai,
- 	/* Generic McBSP register settings */
- 	regs->spcr2	|= XINTM(3) | FREE;
- 	regs->spcr1	|= RINTM(3);
--	regs->rcr2	|= RFIG;
--	regs->xcr2	|= XFIG;
-+	/* RFIG and XFIG are not defined in 34xx */
-+	if (!cpu_is_omap34xx()) {
-+		regs->rcr2	|= RFIG;
-+		regs->xcr2	|= XFIG;
-+	}
- 
- 	switch (fmt & SND_SOC_DAIFMT_FORMAT_MASK) {
- 	case SND_SOC_DAIFMT_I2S:
- 		/* 1-bit data delay */
- 		regs->rcr2	|= RDATDLY(1);
- 		regs->xcr2	|= XDATDLY(1);
-+		regs->rccr	|= RFULL_CYCLE | RDMAEN | RDISABLE;
-+		regs->xccr	|= (DXENDLY(1) | XDMAEN | XDISABLE);
- 		break;
- 	case SND_SOC_DAIFMT_DSP_A:
- 		/* 0-bit data delay */
- 		regs->rcr2      |= RDATDLY(0);
- 		regs->xcr2      |= XDATDLY(0);
-+		regs->rccr	|= RFULL_CYCLE | RDMAEN | RDISABLE;
-+		regs->xccr	|= (DXENDLY(1) | XDMAEN | XDISABLE);
- 		break;
- 	default:
- 		/* Unsupported data format */
--- 
-1.5.2
+> Koen Kooi <k.kooi@student.utwente.nl> writes:
+>
+>> Op 11 jan 2009, om 19:53 heeft Koen Kooi het volgende geschreven:
+>>
+>>> Hi,
+>>>
+>>> I was trying to get cpufreq going on beagleboard
+>>> (http://cgit.openembedded.net/cgit.cgi?url=openembedded/blob/&id=f56b27781d810dcca0a9946cfd2524c36b7a49c0&path=packages/linux/linux-omap-pm/beagle-cpufreq.diff
+>>> ) and I ran into a few issues;
+>>>
+>>> * pm-prev branch: SD card doesn't initialize, and my rootfs is in SD
+>>
+>> SD *does* initialize, but 'rootwait' doesn't work, booting from a
+>> ubifs volume in nand works and udev automounts my SD card. Cpufreq
+>> isn't working, so I still need advice on that :)
+>
+> pm-next isn't supposed to work. ;) It is work in progress.  Once it's
+> ready it will become 'pm'.
+>
+> Re: SD/MMC problem I see the same problem in linux-omap HEAD where
+> rootwait doesn't seem to work, so at least the 'rootwait' problem
+> think is not PM branch related.
+>
+> Re: CPUfreq on Beagle.  I haven't done any testing of CPUfreq on
+> beagle.  AFAICT, the OPP definitions are not being defined for Beagle.
+> That would explain no availabe operating points.
+>
+> These are board specific settings.  You could start by looking at the
+> *_rate_table definitions in board-3430sdp.c.
 
+Thats' where http://cgit.openembedded.net/cgit.cgi?url=openembedded/blob/&id=95234a14a387c1437e71eafe0c48d4ebf95a9bc8&path=packages/linux/linux-omap-pm/beagle-cpufreq.diff 
+  comes in :)
+
+It doesn't seem to have any effect though, no 'cpufreq' prints in  
+dmesg whatsoever (with pm-prev, that is).
+
+regards,
+
+Koen
+>
+>
+> Kevin
+>
+>
+
+
+--Apple-Mail-15-123221415
+content-type: application/pgp-signature; x-mac-type=70674453;
+	name=PGP.sig
+content-description: Dit deel van het bericht is digitaal ondertekend
+content-disposition: inline; filename=PGP.sig
+content-transfer-encoding: 7bit
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.5 (Darwin)
+
+iD8DBQFJbEmWMkyGM64RGpERAu65AKCrQp8OAkLmCTFUiqPSgMQ5BdPcvACgrvuo
+Cr+zuu2T/3+xjpNiskxZDVo=
+=QWWJ
+-----END PGP SIGNATURE-----
+
+--Apple-Mail-15-123221415--
