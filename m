@@ -1,61 +1,45 @@
 From: "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>
-Subject: [REVIEW PATCH 00/14] OMAP3 camera + ISP + MT9P012 sensor driver v2
-Date: Mon, 12 Jan 2009 20:03:05 -0600
-Message-ID: <A24693684029E5489D1D202277BE894416429F96@dlee02.ent.ti.com>
+Subject: [REVIEW PATCH 02/14] v4l2-int-device: add support for
+ VIDIOC_QUERYMENU
+Date: Mon, 12 Jan 2009 20:03:10 -0600
+Message-ID: <A24693684029E5489D1D202277BE894416429F98@dlee02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <video4linux-list-bounces@redhat.com>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
+Return-path: <linux-media-owner@vger.kernel.org>
 Content-Language: en-US
-List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
-	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
-List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
-List-Post: <mailto:video4linux-list@redhat.com>
-List-Help: <mailto:video4linux-list-request@redhat.com?subject=help>
-List-Subscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
-	<mailto:video4linux-list-request@redhat.com?subject=subscribe>
-Sender: video4linux-list-bounces@redhat.com
-Errors-To: video4linux-list-bounces@redhat.com
+Sender: linux-media-owner@vger.kernel.org
 To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
-Cc: "video4linux-list@redhat.com" <video4linux-list@redhat.com>, "Nagalla,
-	Hari" <hnagalla@ti.com>, Sakari Ailus <sakari.ailus@nokia.com>, "Tuukka.O Toivonen" <tuukka.o.toivonen@nokia.com>, "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>, "video4linux-list@redhat.com" <video4linux-list@redhat.com>, Sakari Ailus <sakari.ailus@nokia.com>, "Tuukka.O Toivonen" <tuukka.o.toivonen@nokia.com>, "Nagalla, Hari" <hnagalla@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
 
-I'm sending the following patchset for review to the relevant lists (linu=
-x-omap, v4l, linux-media).
+Signed-off-by: Tuukka Toivonen <tuukka.o.toivonen@nokia.com>
+Signed-off-by: Sergio Aguirre <saaguirre@ti.com>
+---
+ include/media/v4l2-int-device.h |    2 ++
+ 1 files changed, 2 insertions(+), 0 deletions(-)
 
-Includes:
- - Omap3 camera core + ISP drivers.
- - MT9P012 sensor driver (adapted to 3430SDP)
- - DW9710 lens driver (adapted to work with MT9P012 for SDP)
- - Necessary v4l2-int-device changes to make above drivers work
- - Redefine OMAP3 ISP platform device.
- - Review comments fixed from: (Thanks a lot for their time and help)
-   - Hans Verkuil
-   - Tony Lindgreen
-   - Felipe Balbi
-   - Vaibhav Hiremath
-   - David Brownell
+diff --git a/include/media/v4l2-int-device.h b/include/media/v4l2-int-device.h
+index 85a1834..052ffe0 100644
+--- a/include/media/v4l2-int-device.h
++++ b/include/media/v4l2-int-device.h
+@@ -178,6 +178,7 @@ enum v4l2_int_ioctl_num {
+ 	vidioc_int_s_fmt_cap_num,
+ 	vidioc_int_try_fmt_cap_num,
+ 	vidioc_int_queryctrl_num,
++	vidioc_int_querymenu_num,
+ 	vidioc_int_g_ctrl_num,
+ 	vidioc_int_s_ctrl_num,
+ 	vidioc_int_cropcap_num,
+@@ -279,6 +280,7 @@ V4L2_INT_WRAPPER_1(g_fmt_cap, struct v4l2_format, *);
+ V4L2_INT_WRAPPER_1(s_fmt_cap, struct v4l2_format, *);
+ V4L2_INT_WRAPPER_1(try_fmt_cap, struct v4l2_format, *);
+ V4L2_INT_WRAPPER_1(queryctrl, struct v4l2_queryctrl, *);
++V4L2_INT_WRAPPER_1(querymenu, struct v4l2_querymenu, *);
+ V4L2_INT_WRAPPER_1(g_ctrl, struct v4l2_control, *);
+ V4L2_INT_WRAPPER_1(s_ctrl, struct v4l2_control, *);
+ V4L2_INT_WRAPPER_1(cropcap, struct v4l2_cropcap, *);
+-- 
+1.5.6.5
 
-Some notes:
- - Uses v4l2-int-device solution.
- - Tested with 3430SDP ES3.0 VG5.0.1 with Camkit v3.0.1
- - Applies cleanly on top of commit 0ec95b96fd77036a13398c66901e11cd30119=
-0d0 by Jouni Hogander (OMAP3: PM: Emu_pwrdm is switched off by hardware e=
-ven when sdti is in use)
- - ISP wrappers dropped from the patchset, as a rework is going on curren=
-tly.
-
-
-I appreciate in advance your time.
-
-Regards,
-Sergio
-
---
-video4linux-list mailing list
-Unsubscribe mailto:video4linux-list-request@redhat.com?subject=3Dunsubscr=
-ibe
-https://www.redhat.com/mailman/listinfo/video4linux-list
