@@ -1,88 +1,49 @@
-From: David Brownell <david-b@pacbell.net>
-Subject: Re: [PATCH 2/2] Changes for adding and building TPS6235x based PR785 board support
-Date: Tue, 13 Jan 2009 13:49:09 -0800
-Message-ID: <200901131349.09907.david-b@pacbell.net>
+From: Mark Brown <broonie@sirena.org.uk>
+Subject: Re: [PATCH 2/2] Changes for adding and building TPS6235x based
+	PR785 board support
+Date: Tue, 13 Jan 2009 21:51:54 +0000
+Message-ID: <20090113215153.GB8670@sirena.org.uk>
 References: <1231832505-7166-1-git-send-email-mani.pillai@ti.com> <20090113145909.GQ7344@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp117.sbc.mail.sp1.yahoo.com ([69.147.64.90]:31914 "HELO
-	smtp117.sbc.mail.sp1.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1752381AbZAMVtM (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Tue, 13 Jan 2009 16:49:12 -0500
-In-Reply-To: <20090113145909.GQ7344@atomide.com>
+Received: from cassiel.sirena.org.uk ([80.68.93.111]:3744 "EHLO
+	cassiel.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753435AbZAMVwE (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 13 Jan 2009 16:52:04 -0500
 Content-Disposition: inline
+In-Reply-To: <20090113145909.GQ7344@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, Manikandan Pillai <mani.pillai@ti.com>
-Cc: linux-omap@vger.kernel.org, broonie@sirena.org.uk
+To: Tony Lindgren <tony@atomide.com>
+Cc: Manikandan Pillai <mani.pillai@ti.com>, linux-omap@vger.kernel.org
 
-On Tuesday 13 January 2009, Tony Lindgren wrote:
+On Tue, Jan 13, 2009 at 04:59:10PM +0200, Tony Lindgren wrote:
+
+> > +int tps_6235x_read_reg(struct i2c_client *client, u8 reg, u8 *val)
+
 > The the read/write_reg should be in drivers/mfd somewhere.
 
-I wouldn't think so ... it's not an MFD, it's just a
-regulator that has a feature that's not yet envisioned
-by the current regulator framework.  (Floor/Ceiling
-controls, basically.)
+Is this a multi-function device?  If so then there should be a similar
+structure to the TWL4030 drivers should be used with the function
+drivers all being platform drivers instantiated by the core (either
+manually or via the MFD helpers).  The regulator driver was a regular
+I2C device, suggesting that all the device does is regulation, in which
+case the register I/O functions should be in there.
 
-
-> > @@ -160,5 +218,14 @@ int __init omap_register_i2c_bus(int bus_id, u=
-32
-> > clkrate, }
-> > =A0
-> > =A0=A0=A0=A0=A0=A0omap_i2c_mux_pins(bus_id - 1);
-> > -=A0=A0=A0=A0=A0return platform_device_register(pdev);
-> > +=A0=A0=A0=A0=A0platform_device_register(pdev);
+> > +	platform_device_register(pdev);
 > > +#if defined(CONFIG_OMAP3EVM_PR785)
-> > +=A0=A0=A0=A0=A0if (bus_id =3D=3D 1) {
-> > +=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0omap_i2c_register_child(pde=
-v, "vdd2_consumer", \
-> > +=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=
-=A0=A0=A0=A0=A0=A0=A0&vdd2_platform_device);
-> > +=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0omap_i2c_register_child(pde=
-v, "vdd1_consumer", \
-> > +=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=
-=A0=A0=A0=A0=A0=A0=A0&vdd1_platform_device);
-> > +=A0=A0=A0=A0=A0}
+> > +	if (bus_id == 1) {
+> > +		omap_i2c_register_child(pdev, "vdd2_consumer", \
+> > +				&vdd2_platform_device);
+> > +		omap_i2c_register_child(pdev, "vdd1_consumer", \
+> > +				&vdd1_platform_device);
+> > +	}
 > > +#endif
-> > +=A0=A0=A0=A0=A0return 0;
-> > =A0}
->
-> Argh, i2c-omap.c is the _bus_ driver, not i2c device!
+> > +	return 0;
+> >  }
 
-Right.  I don't understand why there's this urge to
-scatter board-specific code throughout the driver
-tree, instead of leaving it all in mach-omap2/pr785.c
-and having the tps6235x.c driver be a pure regulator
-driver...
+> Argh, i2c-omap.c is the _bus_ driver, not i2c device! Please move
+> the above code to drivers/mfd somewhere.
 
-
-> How different tps6235 is from the twl4030? Maybe you can just add
-> functionality to the existing drivers/mfd/twl4030-core.c.
-
-It's very different ... the tps623x chips are trivial,
-with about four registers each.  No capability OTHER
-than being a voltage regulator.
-
-Which is why it's puzzling to see it take so long to
-just get a simple voltage regulator driver patch...
-
-
-Admittedly, the regulator framework is new, and parts
-of it still seem to me like they have design problems.
-But even so, it's not so hard to figure out how to pass
-board-specific regulator configuration data down to the
-regulator drivers from a pr785.c board driver.
-
-Now, there *can* be a bit of chicken/egg going on in
-some of that initialization.  But I don't think that
-applies to all of the PR785 support.
-
-- Dave
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+There should be no need to do this at all.
