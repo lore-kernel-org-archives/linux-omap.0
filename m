@@ -1,53 +1,146 @@
-From: Peter Barada <peterb@logicpd.com>
-Subject: RE: Missing USB OTG ID interrupt../
-Date: Tue, 13 Jan 2009 02:25:45 -0500
-Message-ID: <1231831546.14918.35.camel@blackhole>
-References: <1231789145.14918.31.camel@blackhole>
-	 <19F8576C6E063C45BE387C64729E739403ECF70A80@dbde02.ent.ti.com>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Subject: Re: [REVIEW PATCH 08/14] OMAP: CAM: Add ISP Core
+Date: Tue, 13 Jan 2009 08:34:16 +0100
+Message-ID: <200901130834.16645.hverkuil@xs4all.nl>
+References: <A24693684029E5489D1D202277BE894416429BCC@dlee02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail.logicpd.com ([66.162.60.3]:16624 "EHLO smtp.logicpd.com"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1753150AbZAMHZs (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 13 Jan 2009 02:25:48 -0500
-In-Reply-To: <19F8576C6E063C45BE387C64729E739403ECF70A80@dbde02.ent.ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <video4linux-list-bounces@redhat.com>
+In-Reply-To: <A24693684029E5489D1D202277BE894416429BCC@dlee02.ent.ti.com>
+Content-Disposition: inline
+List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
+	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
+List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
+List-Post: <mailto:video4linux-list@redhat.com>
+List-Help: <mailto:video4linux-list-request@redhat.com?subject=help>
+List-Subscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
+	<mailto:video4linux-list-request@redhat.com?subject=subscribe>
+Sender: video4linux-list-bounces@redhat.com
+Errors-To: video4linux-list-bounces@redhat.com
+To: "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>
+Cc: "video4linux-list@redhat.com" <video4linux-list@redhat.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Sakari Ailus <sakari.ailus@nokia.com>, "Tuukka.O Toivonen" <tuukka.o.toivonen@nokia.com>, "Nagalla,
+	Hari" <hnagalla@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: "Gupta, Ajay Kumar" <ajay.gupta@ti.com>
-Cc: linux-omap <linux-omap@vger.kernel.org>
 
-On Tue, 2009-01-13 at 11:14 +0530, Gupta, Ajay Kumar wrote:
-> V
-> 
-> > -----Original Message-----
-> > From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Peter
-> > Barada
-> > Sent: Tuesday, January 13, 2009 1:09 AM
-> > To: linux-omap
-> > Subject: Missing USB OTG ID interrupt../
-> > 
-> > On the current PM tree (2.6.28-rc8, revision 2beb9b4b) I have USB OTG
-> > working - I see a device plugged in on boot, and it detaches when I pull
-> > the cable, but it doesn't appear again when I reinsert the cable.
-> 
-> Vbus is switched-off when device is detached. Try using the patch at,
-> http://marc.info/?l=linux-usb&m=122535802102316&w=2
+On Monday 12 January 2009 21:16:28 Aguirre Rodriguez, Sergio Alberto 
+wrote:
+> Hi,
+>
+> > From: Hans Verkuil [mailto:hverkuil@xs4all.nl]
+>
+> <snip>
+>
+> > > +               {
+> > > +                       .id = V4L2_CID_PRIVATE_ISP_COLOR_FX,
+> > > +                       .type = V4L2_CTRL_TYPE_INTEGER,
+> > > +                       .name = "Color Effects",
+> >
+> > What does this do? It definitely looks like this should be a menu,
+> > not an integer control. Forcing color to B&W is something that
+> > other hardware can do as well, so I think this is a very good
+> > candidate for a generic user control, rather than driver specific.
+>
+> This basically enables some common color effects on image processing:
+> - Default colors (i.e. original captured colors)
+> - Sepia colored images
+> - B&W colored images.
+>
+> I think its generic enough to propose for a new generic user CID.
 
-Thank you, that works fine, great!  Now to test with suspend/resume...
+Yes.
+
+> Ok, so, should I keep the Private CID as a menu type ctrl by now?
+
+No, just propose a new control for this. Shouldn't be a problem. The 
+only suggestion that I have is that the user control has B&W as the 
+second entry rather than the third. There are more devices that can 
+choose between color and B&W, but this is the first device I know of 
+that can do sepia. Having B&W as the second entry makes it easier for 
+drivers to omit the sepia entry by just setting the max control value 
+(= menu index) to B&W.
+
+Note that in two weeks time I'm going to merge the V4L2 specification 
+into our v4l-dvb repository. That should make it easy to add 
+documentation for this new control as well.
+
+>
+> > > +                       .minimum = PREV_DEFAULT_COLOR,
+> > > +                       .maximum = PREV_BW_COLOR,
+> > > +                       .step = 1,
+> > > +                       .default_value = PREV_DEFAULT_COLOR,
+> > > +               },
+> > > +               .current_value = PREV_DEFAULT_COLOR,
+> > > +       }
+> > > +};
+> > > +
+>
+> <snip>
+>
+> > > +
+> > > +       if (((isp_obj.if_status == ISP_PARLL) && (if_t ==
+> > > ISP_CSIA)) || +                               ((isp_obj.if_status
+> > > == ISP_CSIA) && +                               (if_t ==
+> > > ISP_PARLL)) ||
+> > > +                               ((isp_obj.if_status == ISP_CSIA)
+> > > && +                               (if_t == ISP_CSIB)) ||
+> > > +                               ((isp_obj.if_status == ISP_CSIB)
+> > > && +                               (if_t == ISP_CSIA)) ||
+> > > +                               (isp_obj.if_status == 0)) {
+> >
+> > Hard to understand. Why not:
+> >
+> >        if ((isp_obj.if_status == ISP_PARLL && if_t == ISP_CSIA) ||
+> >            (isp_obj.if_status == ISP_CSIA && if_t == ISP_PARLL) ||
+> >            (isp_obj.if_status == ISP_CSIA && if_t == ISP_CSIB) ||
+> >            (isp_obj.if_status == ISP_CSIB && if_t == ISP_CSIA) ||
+> >            isp_obj.if_status == 0) {
+>
+> Done
+>
+> > > +               isp_obj.if_status |= if_t;
+> > > +               return 0;
+> > > +       } else {
+> > > +               DPRINTK_ISPCTRL("ISP_ERR : Invalid Combination
+> > > Serial- \ +                       Parallel interface\n");
+> > > +               return -EINVAL;
+> > > +       }
+> > > +}
+> > > +EXPORT_SYMBOL(isp_request_interface);
+>
+> <snip>
+>
+> > > +       /* CONTROL_ */
+> > > +       omap_writel(
+> > > +               /* CSIb receiver data/clock or data/strobe mode
+> > > */ +               (config->u.csi.signalling << 10)
+> > > +               | BIT(12)       /* Enable differential
+> > > transceiver */ +               | BIT(13)       /* Disable reset
+> > > */
+> > > +#ifdef TERM_RESISTOR
+> >
+> > What is this define? It doesn't seem to be documented.
+>
+> This define is to enable/disable an OMAP34xx internal resistor for
+> CSIb (CCP2) camera port.
+>
+> A comment along its declaration should be enough?
+
+Yes. But shouldn't this be a module option, perhaps? Up to you, I'm just 
+wondering.
+
+> Thanks for your time.
+
+No problem,
+
+	Hans
 
 
-> -ajay
-> > 
-> > Any ideas on why the device doesn't show up again?
-> > 
-> > --
-> > Peter Barada <peterb@logicpd.com>
-> > --
-> > To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> > the body of a message to majordomo@vger.kernel.org
-> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
 -- 
-Peter Barada <peterb@logicpd.com>
+Hans Verkuil - video4linux developer - sponsored by TANDBERG
+
+--
+video4linux-list mailing list
+Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
+https://www.redhat.com/mailman/listinfo/video4linux-list
