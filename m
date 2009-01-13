@@ -1,43 +1,68 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: updated git pull request for omap compile fixes, mailbox and
-	hsmmc
-Date: Tue, 13 Jan 2009 12:30:02 +0200
-Message-ID: <20090113102955.GB7344@atomide.com>
-References: <20090107111615.GG27566@atomide.com> <20090107111744.GH27566@atomide.com> <20090107161843.GA11471@n2100.arm.linux.org.uk> <20090107175020.GU27566@atomide.com> <20090107220053.GD11471@n2100.arm.linux.org.uk> <20090108073611.GW27566@atomide.com> <20090110110524.GC28945@n2100.arm.linux.org.uk> <20090111101449.GA7684@n2100.arm.linux.org.uk> <20090112062441.GA4968@atomide.com> <20090112164329.GE6152@n2100.arm.linux.org.uk>
+Subject: Re: [REVIEW PATCH 05/14] OMAP: CAM: Add ISP Front end
+Date: Tue, 13 Jan 2009 12:42:51 +0200
+Message-ID: <20090113104251.GC7344@atomide.com>
+References: <A24693684029E5489D1D202277BE894416429F9B@dlee02.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-bos.mailhop.org ([63.208.196.178]:56352 "EHLO
-	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752253AbZAMKaR (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 13 Jan 2009 05:30:17 -0500
+Return-path: <linux-media-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20090112164329.GE6152@n2100.arm.linux.org.uk>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <A24693684029E5489D1D202277BE894416429F9B@dlee02.ent.ti.com>
+Sender: linux-media-owner@vger.kernel.org
+To: "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>, "video4linux-list@redhat.com" <video4linux-list@redhat.com>, Sakari Ailus <sakari.ailus@nokia.com>, "Tuukka.O Toivonen" <tuukka.o.toivonen@nokia.com>, "Nagalla, Hari" <hnagalla@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: linux-arm-kernel@lists.arm.linux.org.uk, linux-omap@vger.kernel.org, "Nikula Jarkko (NRC/Helsinki)" <jarkko.nikula@nokia.com>, Pierre Ossman <drzeus-list@drzeus.cx>, "Jarkko Lavinen (NMP/Helsinki)" <jarkko.lavinen@nokia.com>
 
-* Russell King - ARM Linux <linux@arm.linux.org.uk> [090112 18:47]:
-> On Mon, Jan 12, 2009 at 08:24:42AM +0200, Tony Lindgren wrote:
-> > * Russell King - ARM Linux <linux@arm.linux.org.uk> [090111 12:15]:
-> > > On Sat, Jan 10, 2009 at 11:05:24AM +0000, Russell King - ARM Linux wrote:
-> > > > On Thu, Jan 08, 2009 at 09:36:12AM +0200, Tony Lindgren wrote:
-> > > > > Madhusudhan Chikkature (1):
-> > > > >       omap mmc: Add new omap hsmmc controller for 2430 and 34xx, v3
-> > > > 
-> > > > This I'd argue falls into the same category, but since its well known
-> > > > between us and Pierre who's acked it, I think it has sufficiently low
-> > > > impact that it can be accepted.
-> > > 
-> > > ... and now -rc1 is out, it's now too late for this.
-> > 
-> > Oh well. Will resubmit it later on LKML for Pierre, at least
-> > the MMC init code is mostly dealt with now.
+* Aguirre Rodriguez, Sergio Alberto <saaguirre@ti.com> [090113 04:04]:
+> This adds the OMAP ISP Front end modules to the kernel. Includes:
+> * ISP CCDC Driver
 > 
-> Actually, as Pierre is okay with it coming via my tree, I'd prefer that
-> so I can sanely run my devel branch on the LDP.
+> Signed-off-by: Sergio Aguirre <saaguirre@ti.com>
+> ---
+>  drivers/media/video/isp/ispccdc.c | 1488 +++++++++++++++++++++++++++++++++++++
+>  drivers/media/video/isp/ispccdc.h |  200 +++++
+>  2 files changed, 1688 insertions(+), 0 deletions(-)
+>  create mode 100644 drivers/media/video/isp/ispccdc.c
+>  create mode 100644 drivers/media/video/isp/ispccdc.h
+> 
+> diff --git a/drivers/media/video/isp/ispccdc.c b/drivers/media/video/isp/ispccdc.c
+> new file mode 100644
+> index 0000000..f200baf
+> --- /dev/null
+> +++ b/drivers/media/video/isp/ispccdc.c
+> @@ -0,0 +1,1488 @@
+> +/*
+> + * drivers/media/video/isp/ispccdc.c
+> + *
+> + * Driver Library for CCDC module in TI's OMAP3 Camera ISP
+> + *
+> + * Copyright (C) 2008 Texas Instruments, Inc.
+> + *
+> + * Contributors:
+> + *     Senthilvadivu Guruswamy <svadivu@ti.com>
+> + *     Pallavi Kulkarni <p-kulkarni@ti.com>
+> + *
+> + * This package is free software; you can redistribute it and/or modify
+> + * it under the terms of the GNU General Public License version 2 as
+> + * published by the Free Software Foundation.
+> + *
+> + * THIS PACKAGE IS PROVIDED ``AS IS'' AND WITHOUT ANY EXPRESS OR
+> + * IMPLIED WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED
+> + * WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
+> + */
+> +
+> +#include <linux/mutex.h>
+> +#include <linux/module.h>
+> +#include <linux/errno.h>
+> +#include <linux/sched.h>
+> +#include <linux/delay.h>
+> +#include <linux/types.h>
+> +#include <asm/mach-types.h>
 
-OK, will start putting together for-next branch.
+You should not need mach-types.h in drivers. Please check if it can be
+left out. If it cannot be left out, you probably have something that
+should be passed from board-*.c files in platform_data.
+
+Regards,
 
 Tony
