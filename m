@@ -1,92 +1,442 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: git-pull request for omap-fixes for 2.6.29-rc1 (Re: [PATCH 00/10]
-	Omap fixes for 2.6.29-rc1)
-Date: Tue, 13 Jan 2009 16:35:29 +0200
-Message-ID: <20090113143528.GP7344@atomide.com>
-References: <20090112143405.24205.52151.stgit@localhost>
+Subject: Re: [PATCH 2/2] Changes for adding and building TPS6235x based
+	PR785 board support
+Date: Tue, 13 Jan 2009 16:59:10 +0200
+Message-ID: <20090113145909.GQ7344@atomide.com>
+References: <1231832505-7166-1-git-send-email-mani.pillai@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="UPT3ojh+0CqEDtpF"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-bos.mailhop.org ([63.208.196.178]:61473 "EHLO
+Received: from mho-01-bos.mailhop.org ([63.208.196.178]:53867 "EHLO
 	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756021AbZAMOfb (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 13 Jan 2009 09:35:31 -0500
+	with ESMTP id S1753585AbZAMO7O (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 13 Jan 2009 09:59:14 -0500
 Content-Disposition: inline
-In-Reply-To: <20090112143405.24205.52151.stgit@localhost>
+In-Reply-To: <1231832505-7166-1-git-send-email-mani.pillai@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-arm-kernel@lists.arm.linux.org.uk
-Cc: linux-omap@vger.kernel.org
+To: Manikandan Pillai <mani.pillai@ti.com>
+Cc: linux-omap@vger.kernel.org, broonie@sirena.org.uk
 
+Hi,
 
---UPT3ojh+0CqEDtpF
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Few comments below.
 
-* Tony Lindgren <tony@atomide.com> [090112 16:37]:
-> Hi,
+* Manikandan Pillai <mani.pillai@ti.com> [090113 09:42]:
+> TPS6235x chip based PR785 power modules are from Texas Instruments
+> for OMAP3 EVM boards. This patch supports the PR785 card
+> and provides the driver support for the TPS devices.
 > 
-> Here are some omap fixes for review. Some of these patches
-> were posted earlier.
+> For compilation, the LCD and MMC drivers are modified and will not
+> work. Further patches will be provided for support of LCD and MMC
+> with PR785 boards.
+> 
+> Signed-off-by: Manikandan Pillai <mani.pillai@ti.com>
+> ---
+>  arch/arm/mach-omap2/Kconfig          |   11 +++
+>  arch/arm/mach-omap2/board-omap3evm.c |  137 ++++++++++++++++++++++++++++++++++
+>  arch/arm/mach-omap2/mmc-twl4030.c    |    4 +-
+>  arch/arm/plat-omap/i2c.c             |   69 +++++++++++++++++-
+>  drivers/video/omap/lcd_omap3evm.c    |    6 ++
+>  5 files changed, 225 insertions(+), 2 deletions(-)
+> 
+> diff --git a/arch/arm/mach-omap2/Kconfig b/arch/arm/mach-omap2/Kconfig
+> index 0a86a88..91890be 100644
+> --- a/arch/arm/mach-omap2/Kconfig
+> +++ b/arch/arm/mach-omap2/Kconfig
+> @@ -121,6 +121,17 @@ config MACH_OMAP3EVM
+>  	bool "OMAP 3530 EVM board"
+>  	depends on ARCH_OMAP3 && ARCH_OMAP34XX
+>  
+> +menu 	"PR785 Power board selection for OMAP3 EVM"
+> +config OMAP3EVM_PR785
+> +	bool "Power board for OMAP3 EVM"
+> +	depends on I2C=y && ARCH_OMAP34XX
+> +	help
+> +	Say yes here if you are using the TPS6235x based PR785 Power Module
+> +	for the EVM boards. This core driver provides register access and IRQ
+> +	handling facilities, and registers devices for the various functions
+> +	so that function-specific drivers can bind to them.
+> +endmenu
+> +
+>  config MACH_OMAP3_BEAGLE
+>  	bool "OMAP3 BEAGLE board"
+>  	depends on ARCH_OMAP3 && ARCH_OMAP34XX
+> diff --git a/arch/arm/mach-omap2/board-omap3evm.c b/arch/arm/mach-omap2/board-omap3evm.c
+> index e4e60e2..60d2d22 100644
+> --- a/arch/arm/mach-omap2/board-omap3evm.c
+> +++ b/arch/arm/mach-omap2/board-omap3evm.c
+> @@ -36,12 +36,19 @@
+>  #include <mach/usb-ehci.h>
+>  #include <mach/common.h>
+>  #include <mach/mcspi.h>
+> +#include <mach/mux.h>
+>  
+>  #include "sdram-micron-mt46h32m32lf-6.h"
+>  #include "twl4030-generic-scripts.h"
+>  #include "mmc-twl4030.h"
+> +#include <linux/regulator/machine.h>
+> +#include <linux/regulator/driver.h>
+>  
+> +#define TPS6235X_REG_MAX	3
+>  
+> +#if defined(CONFIG_OMAP3EVM_PR785) && defined(CONFIG_TWL4030_CORE)
+> +#error config err : only one of OMAP3EVM_PR785 or TWL4030_CORE can be defined
+> +#endif
+>  static struct resource omap3evm_smc911x_resources[] = {
+>  	[0] =	{
+>  		.start  = OMAP3EVM_ETHR_START,
+> @@ -89,6 +96,7 @@ static struct omap_uart_config omap3_evm_uart_config __initdata = {
+>  	.enabled_uarts	= ((1 << 0) | (1 << 1) | (1 << 2)),
+>  };
+>  
+> +#if defined(CONFIG_TWL4030_CORE)
+>  static struct twl4030_gpio_platform_data omap3evm_gpio_data = {
+>  	.gpio_base	= OMAP_MAX_GPIO_LINES,
+>  	.irq_base	= TWL4030_GPIO_IRQ_BASE,
+> @@ -150,16 +158,125 @@ static struct i2c_board_info __initdata omap3evm_i2c_boardinfo[] = {
+>  		.platform_data = &omap3evm_twldata,
+>  	},
+>  };
+> +#endif
+> +
+> +#if defined(CONFIG_OMAP3EVM_PR785)
+> +/* CORE voltage regulator */
+> +struct regulator_consumer_supply tps62352_core_consumers = {
+> +	.supply = "vdd2",
+> +};
+> +
+> +/* MPU voltage regulator */
+> +struct regulator_consumer_supply tps62352_mpu_consumers = {
+> +	.supply = "vdd1",
+> +};
+> +
+> +struct regulator_init_data vdd2_tps_regulator_data = {
+> +		.constraints = {
+> +			.min_uV = 750000,
+> +			.max_uV = 1537000,
+> +			.valid_ops_mask = (REGULATOR_CHANGE_VOLTAGE |
+> +				REGULATOR_CHANGE_STATUS),
+> +		},
+> +		.num_consumer_supplies  = 1,
+> +		.consumer_supplies      = &tps62352_core_consumers,
+> +};
+> +
+> +struct regulator_init_data vdd1_tps_regulator_data = {
+> +		.constraints = {
+> +			.min_uV = 750000,
+> +			.max_uV = 1537000,
+> +			.valid_ops_mask = (REGULATOR_CHANGE_VOLTAGE |
+> +				REGULATOR_CHANGE_STATUS),
+> +		},
+> +		.num_consumer_supplies  = 1,
+> +		.consumer_supplies      = &tps62352_mpu_consumers,
+> +};
+> +
+> +static struct i2c_board_info __initdata tps_6235x_i2c_board_info[] = {
+> +	{
+> +		I2C_BOARD_INFO("tps62352", 0x4A),
+> +		.flags = I2C_CLIENT_WAKE,
+> +		.platform_data = &vdd2_tps_regulator_data,
+> +	},
+> +	{
+> +		I2C_BOARD_INFO("tps62353", 0x48),
+> +		.flags = I2C_CLIENT_WAKE,
+> +		.platform_data = &vdd1_tps_regulator_data,
+> +	},
+> +};
+> +#endif
+>
+>  static int __init omap3_evm_i2c_init(void)
+>  {
+> +#if defined(CONFIG_OMAP3EVM_PR785)
+> +	omap_register_i2c_bus(1, 2600, tps_6235x_i2c_board_info,
+> +		ARRAY_SIZE(tps_6235x_i2c_board_info));
+> +#endif
+> +#if defined(CONFIG_TWL4030_CORE)
+>  	omap_register_i2c_bus(1, 2600, omap3evm_i2c_boardinfo,
+>  			ARRAY_SIZE(omap3evm_i2c_boardinfo));
+> +#endif
+>  	omap_register_i2c_bus(2, 400, NULL, 0);
+>  	omap_register_i2c_bus(3, 400, NULL, 0);
+>  	return 0;
+>  }
+>  
+> +/*
+> + * Read a value from a register in an tps_6235x device.
+> + * The value is returned in 'val'.
+> + * Returns zero if successful, or non-zero otherwise.
+> + */
+> +int tps_6235x_read_reg(struct i2c_client *client, u8 reg, u8 *val)
+> +{
+> +	u8 data;
+> +
+> +	if (!client->adapter)
+> +		return -ENODEV;
+> +
+> +	if (reg > TPS6235X_REG_MAX)
+> +		return -1;
+> +
+> +	data = i2c_smbus_read_byte_data(client, reg);
+> +	*val = data;
+> +	return 0;
+> +}
+> +
+> +/*
+> + * Write a value to a register in an tps_6235x device.
+> + * Returns zero if successful, or non-zero otherwise.
+> + */
+> +int tps_6235x_write_reg(struct i2c_client *client, u8 reg, u8 val)
+> +{
+> +	int err;
+> +	int retry = 0;
+> +
+> +	if (!client->adapter)
+> +		return -ENODEV;
+> +
+> +	if (reg > TPS6235X_REG_MAX)
+> +		return -1;
+> +
+> +again:
+> +	err = i2c_smbus_write_byte_data(client, reg, val);
+> +	if (err >= 0)
+> +		return 0;
+> +
+> +	dev_err(&client->dev,
+> +		"wrote 0x%.2x to offset 0x%.2x error %d\n", val, reg, err);
+> +
+> +	/* Try 3 times */
+> +	if (retry <= 3) {
+> +		dev_info(&client->dev, "retry ... %d\n", retry);
+> +		retry++;
+> +		schedule_timeout(msecs_to_jiffies(20));
+> +		goto again;
+> +	}
+> +	return err;
+> +}
+> +
+> +/*-------------------------------------------------------------------*/
+> +
 
-If no other comments, here's the pull request:
+The the read/write_reg should be in drivers/mfd somewhere.
 
 
---UPT3ojh+0CqEDtpF
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline; filename="pull.txt"
+>  static struct platform_device omap3_evm_lcd_device = {
+>  	.name		= "omap3evm_lcd",
+>  	.id		= -1,
+> @@ -233,6 +350,7 @@ static struct platform_device *omap3_evm_devices[] __initdata = {
+>  	&omap3evm_smc911x_device,
+>  };
+>  
+> +#if defined(CONFIG_TWL4030_CORE)
+>  static struct twl4030_hsmmc_info mmc[] __initdata = {
+>  	{
+>  		.mmc		= 1,
+> @@ -242,6 +360,20 @@ static struct twl4030_hsmmc_info mmc[] __initdata = {
+>  	},
+>  	{}	/* Terminator */
+>  };
+> +#endif
+> +
+> +static void omap_init_pr785(void)
+> +{
+> +	/* Initialize the mux settings for PR785 power module board */
+> +	if (cpu_is_omap343x()) {
+> +		omap_cfg_reg(AF26_34XX_GPIO0);
+> +		omap_cfg_reg(AF22_34XX_GPIO9);
+> +		omap_cfg_reg(AF6_34XX_GPIO140_UP);
+> +		omap_cfg_reg(AE6_34XX_GPIO141);
+> +		omap_cfg_reg(AF5_34XX_GPIO142);
+> +		omap_cfg_reg(AE5_34XX_GPIO143);
+> +	}
+> +}
+>  
+>  static void __init omap3_evm_init(void)
+>  {
+> @@ -255,7 +387,12 @@ static void __init omap3_evm_init(void)
+>  				ARRAY_SIZE(omap3evm_spi_board_info));
+>  
+>  	omap_serial_init();
+> +#if defined(CONFIG_TWL4030_CORE)
+>  	twl4030_mmc_init(mmc);
+> +#endif
+> +#if defined(CONFIG_OMAP3EVM_PR785)
+> +	omap_init_pr785();
+> +#endif
+>  	usb_musb_init();
+>  	usb_ehci_init();
+>  	omap3evm_flash_init();
+> diff --git a/arch/arm/mach-omap2/mmc-twl4030.c b/arch/arm/mach-omap2/mmc-twl4030.c
+> index 437f520..d907889 100644
+> --- a/arch/arm/mach-omap2/mmc-twl4030.c
+> +++ b/arch/arm/mach-omap2/mmc-twl4030.c
+> @@ -168,7 +168,7 @@ static int twl_mmc_resume(struct device *dev, int slot)
+>   */
+>  static int twl_mmc_set_voltage(struct twl_mmc_controller *c, int vdd)
+>  {
+> -	int ret;
+> +	int ret = 0;
+>  	u8 vmmc, dev_grp_val;
+>  
+>  	switch (1 << vdd) {
+> @@ -223,6 +223,7 @@ static int twl_mmc_set_voltage(struct twl_mmc_controller *c, int vdd)
+>  	else
+>  		dev_grp_val = LDO_CLR;		/* Power down */
+>  
+> +#if defined(CONFIG_TWL4030_CORE)
+>  	ret = twl4030_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER,
+>  					dev_grp_val, c->twl_vmmc_dev_grp);
+>  	if (ret)
+> @@ -231,6 +232,7 @@ static int twl_mmc_set_voltage(struct twl_mmc_controller *c, int vdd)
+>  	ret = twl4030_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER,
+>  					vmmc, c->twl_mmc_dedicated);
+>  
+> +#endif
+>  	return ret;
+>  }
+>  
+> diff --git a/arch/arm/plat-omap/i2c.c b/arch/arm/plat-omap/i2c.c
+> index 89a6ab0..3bc21bb 100644
+> --- a/arch/arm/plat-omap/i2c.c
+> +++ b/arch/arm/plat-omap/i2c.c
+> @@ -27,6 +27,8 @@
+>  #include <linux/platform_device.h>
+>  #include <linux/i2c.h>
+>  #include <mach/mux.h>
+> +#include <linux/string.h>
+> +#include <linux/regulator/machine.h>
+>  
+>  #define OMAP_I2C_SIZE		0x3f
+>  #define OMAP1_I2C_BASE		0xfffb3800
+> @@ -97,6 +99,15 @@ static const int omap34xx_pins[][2] = {
+>  static const int omap34xx_pins[][2] = {};
+>  #endif
+>  
+> +#if defined(CONFIG_OMAP3EVM_PR785)
+> +struct platform_device *vdd2_platform_device;
+> +struct platform_device *vdd1_platform_device;
+> +extern struct regulator_init_data vdd2_tps_regulator_data;
+> +extern struct regulator_init_data vdd1_tps_regulator_data;
+> +extern struct regulator_consumer_supply tps62352_core_consumers;
+> +extern struct regulator_consumer_supply tps62352_mpu_consumers;
+> +#endif
+> +
+>  static void __init omap_i2c_mux_pins(int bus)
+>  {
+>  	int scl, sda;
+> @@ -118,6 +129,53 @@ static void __init omap_i2c_mux_pins(int bus)
+>  	omap_cfg_reg(scl);
+>  }
+>  
+> +#if defined(CONFIG_OMAP3EVM_PR785)
+> +/* This is the callback function used to find the correct
+> + * i2c platform child for the regulator consumer
+> +*/
+> +int omap_i2c_match_child(struct device *dev, void *data)
+> +{
+> +	struct regulator_init_data *reg_init_data = dev->platform_data;
+> +	char *name = data;
+> +
+> +	/* Child does not match */
+> +	if (strcmp(name, reg_init_data->consumer_supplies->supply))
+> +		return 0;
+> +	else
+> +		return 1;
+> +}
+> +
+> +int omap_i2c_register_child(struct platform_device *pdev_parent,
+> +			const char *name, struct platform_device **pdev)
+> +{
+> +	int ret = 0;
+> +
+> +	*pdev = platform_device_alloc(name, -1);
+> +	if (pdev == NULL) {
+> +		dev_err(&(*pdev)->dev, "Failed to alloc i2c-child %s\n", name);
+> +		return -1;
+> +	}
+> +
+> +	(*pdev)->dev.parent = &pdev_parent->dev;
+> +	if (strcmp(name, "vdd2_consumer") == 0) {
+> +		tps62352_core_consumers.dev = &(*pdev)->dev;
+> +		(*pdev)->dev.platform_data = &vdd2_tps_regulator_data;
+> +	} else if (strcmp(name, "vdd1_consumer") == 0) {
+> +		tps62352_mpu_consumers.dev = &(*pdev)->dev;
+> +		(*pdev)->dev.platform_data = &vdd1_tps_regulator_data;
+> +	}
+> +
+> +	ret = platform_device_add(*pdev);
+> +	if (ret != 0) {
+> +		dev_err(&(*pdev)->dev, "Failed to register %s: %d\n",
+> +			name, ret);
+> +		platform_device_put(*pdev);
+> +		*pdev = NULL;
+> +	}
+> +	return ret;
+> +}
+> +#endif
+> +
+>  int __init omap_register_i2c_bus(int bus_id, u32 clkrate,
+>  			  struct i2c_board_info const *info,
+>  			  unsigned len)
+> @@ -160,5 +218,14 @@ int __init omap_register_i2c_bus(int bus_id, u32 clkrate,
+>  	}
+>  
+>  	omap_i2c_mux_pins(bus_id - 1);
+> -	return platform_device_register(pdev);
+> +	platform_device_register(pdev);
+> +#if defined(CONFIG_OMAP3EVM_PR785)
+> +	if (bus_id == 1) {
+> +		omap_i2c_register_child(pdev, "vdd2_consumer", \
+> +				&vdd2_platform_device);
+> +		omap_i2c_register_child(pdev, "vdd1_consumer", \
+> +				&vdd1_platform_device);
+> +	}
+> +#endif
+> +	return 0;
+>  }
 
-The following changes since commit c59765042f53a79a7a65585042ff463b69cb248c:
-  Linus Torvalds (1):
-        Linux 2.6.29-rc1
+Argh, i2c-omap.c is the _bus_ driver, not i2c device! Please move
+the above code to drivers/mfd somewhere.
 
-are available in the git repository at:
+How different tps6235 is from the twl4030? Maybe you can just add
+functionality to the existing drivers/mfd/twl4030-core.c.
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap-2.6.git omap-fixes
 
-Anand Gadiyar (1):
-      ARM: OMAP: Fix DMA CCR programming for request line > 63, v3
+> diff --git a/drivers/video/omap/lcd_omap3evm.c b/drivers/video/omap/lcd_omap3evm.c
+> index 1c3d814..4f373b2 100644
+> --- a/drivers/video/omap/lcd_omap3evm.c
+> +++ b/drivers/video/omap/lcd_omap3evm.c
+> @@ -66,9 +66,11 @@ static int omap3evm_panel_init(struct lcd_panel *panel,
+>  	gpio_direction_output(LCD_PANEL_LR, 1);
+>  	gpio_direction_output(LCD_PANEL_UD, 1);
+>  
+> +#if defined(CONFIG_TWL4030_CORE)
+>  	twl4030_i2c_write_u8(TWL4030_MODULE_LED, 0x11, TWL_LED_LEDEN);
+>  	twl4030_i2c_write_u8(TWL4030_MODULE_PWMA, 0x01, TWL_PWMA_PWMAON);
+>  	twl4030_i2c_write_u8(TWL4030_MODULE_PWMA, 0x02, TWL_PWMA_PWMAOFF);
+> +#endif
+>  	bklight_level = 100;
+>  
+>  	return 0;
+> @@ -97,6 +99,7 @@ static unsigned long omap3evm_panel_get_caps(struct lcd_panel *panel)
+>  static int omap3evm_bklight_setlevel(struct lcd_panel *panel,
+>  						unsigned int level)
+>  {
+> +#if defined(CONFIG_TWL4030_CORE)
+>  	u8 c;
+>  	if ((level >= 0) && (level <= 100)) {
+>  		c = (125 * (100 - level)) / 100 + 2;
+> @@ -104,6 +107,9 @@ static int omap3evm_bklight_setlevel(struct lcd_panel *panel,
+>  		bklight_level = level;
+>  	}
+>  	return 0;
+> +#endif
+> +	/* Fix this once patch fix is sent out for TPS-boards */
+> +	return -1;
+>  }
+>  
+>  static unsigned int omap3evm_bklight_getlevel(struct lcd_panel *panel)
 
-Arun KS (1):
-      ARM: OMAP: Fix OSK ASoC by registering I2C board info for tlvaic23
+Looks like the above needs some more work too.
 
-Huang Weiyi (1):
-      ARM: OMAP: remove duplicated #include's
-
-Jarkko Nikula (1):
-      ARM: OMAP: Fix gpio by switching to generic gpio calls, v2
-
-Tony Lindgren (6):
-      ARM: OMAP: Fix compile for various McBSP
-      ARM: OMAP: Fix compile for palmte
-      ARM: OMAP: Fix compile for beagle
-      ARM: OMAP: Fix gpio.c compile on 15xx with CONFIG_DEBUGFS
-      ARM: OMAP: Fix ASoC by enabling writes to XCCR and RCCR McBSP registers
-      ARM: OMAP: Remove unused platform devices for old ALSA code
-
- arch/arm/mach-omap1/board-h2.c          |   38 ----------
- arch/arm/mach-omap1/board-h3.c          |   38 ----------
- arch/arm/mach-omap1/board-innovator.c   |   39 ----------
- arch/arm/mach-omap1/board-nokia770.c    |    7 ++
- arch/arm/mach-omap1/board-osk.c         |   43 +-----------
- arch/arm/mach-omap1/board-palmte.c      |   29 --------
- arch/arm/mach-omap1/board-palmtt.c      |   41 -----------
- arch/arm/mach-omap1/board-palmz71.c     |   37 ----------
- arch/arm/mach-omap1/board-sx1.c         |   38 +---------
- arch/arm/mach-omap1/board-voiceblue.c   |    1 -
- arch/arm/mach-omap1/mcbsp.c             |    1 +
- arch/arm/mach-omap2/board-apollon.c     |   64 ++---------------
- arch/arm/mach-omap2/board-ldp.c         |    2 +-
- arch/arm/mach-omap2/board-omap3beagle.c |    9 ++-
- arch/arm/mach-omap2/mcbsp.c             |    1 +
- arch/arm/plat-omap/dma.c                |   13 ++--
- arch/arm/plat-omap/gpio.c               |    3 +
- arch/arm/plat-omap/include/mach/aic23.h |  116 -------------------------------
- arch/arm/plat-omap/include/mach/gpio.h  |   10 ---
- arch/arm/plat-omap/include/mach/mcbsp.h |    7 ++
- arch/arm/plat-omap/mcbsp.c              |    4 +
- drivers/mtd/onenand/omap2.c             |    6 +-
- 22 files changed, 49 insertions(+), 498 deletions(-)
- delete mode 100644 arch/arm/plat-omap/include/mach/aic23.h
-
---UPT3ojh+0CqEDtpF--
+Tony
