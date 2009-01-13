@@ -1,8 +1,7 @@
 From: "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>
-Subject: [REVIEW PATCH 02/14] v4l2-int-device: add support for
- VIDIOC_QUERYMENU
-Date: Mon, 12 Jan 2009 20:03:10 -0600
-Message-ID: <A24693684029E5489D1D202277BE894416429F98@dlee02.ent.ti.com>
+Subject: [REVIEW PATCH 01/14] V4L: Int if: Dummy slave
+Date: Mon, 12 Jan 2009 20:03:08 -0600
+Message-ID: <A24693684029E5489D1D202277BE894416429F97@dlee02.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7BIT
@@ -13,33 +12,60 @@ To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>, "video4linux-list@redhat.com" <video4linux-list@redhat.com>, Sakari Ailus <sakari.ailus@nokia.com>, "Tuukka.O Toivonen" <tuukka.o.toivonen@nokia.com>, "Nagalla, Hari" <hnagalla@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
+This patch implements a dummy slave that has no functionality. Helps
+managing slaves in the OMAP 3 camera driver; no need to check for NULL
+pointers.
 
-Signed-off-by: Tuukka Toivonen <tuukka.o.toivonen@nokia.com>
+Signed-off-by: Sakari Ailus <sakari.ailus@nokia.com>
 Signed-off-by: Sergio Aguirre <saaguirre@ti.com>
 ---
- include/media/v4l2-int-device.h |    2 ++
- 1 files changed, 2 insertions(+), 0 deletions(-)
+ drivers/media/video/v4l2-int-device.c |   19 +++++++++++++++++++
+ include/media/v4l2-int-device.h       |    2 ++
+ 2 files changed, 21 insertions(+), 0 deletions(-)
 
+diff --git a/drivers/media/video/v4l2-int-device.c b/drivers/media/video/v4l2-int-device.c
+index a935bae..cba1c9c 100644
+--- a/drivers/media/video/v4l2-int-device.c
++++ b/drivers/media/video/v4l2-int-device.c
+@@ -32,6 +32,25 @@
+ static DEFINE_MUTEX(mutex);
+ static LIST_HEAD(int_list);
+ 
++static struct v4l2_int_slave dummy_slave = {
++	/* Dummy pointer to avoid underflow in find_ioctl. */
++	.ioctls = (void *)0x80000000,
++	.num_ioctls = 0,
++};
++
++static struct v4l2_int_device dummy = {
++	.type = v4l2_int_type_slave,
++	.u = {
++		.slave = &dummy_slave,
++	},
++};
++
++struct v4l2_int_device *v4l2_int_device_dummy()
++{
++	return &dummy;
++}
++EXPORT_SYMBOL_GPL(v4l2_int_device_dummy);
++
+ void v4l2_int_device_try_attach_all(void)
+ {
+ 	struct v4l2_int_device *m, *s;
 diff --git a/include/media/v4l2-int-device.h b/include/media/v4l2-int-device.h
-index 85a1834..052ffe0 100644
+index 9c2df41..85a1834 100644
 --- a/include/media/v4l2-int-device.h
 +++ b/include/media/v4l2-int-device.h
-@@ -178,6 +178,7 @@ enum v4l2_int_ioctl_num {
- 	vidioc_int_s_fmt_cap_num,
- 	vidioc_int_try_fmt_cap_num,
- 	vidioc_int_queryctrl_num,
-+	vidioc_int_querymenu_num,
- 	vidioc_int_g_ctrl_num,
- 	vidioc_int_s_ctrl_num,
- 	vidioc_int_cropcap_num,
-@@ -279,6 +280,7 @@ V4L2_INT_WRAPPER_1(g_fmt_cap, struct v4l2_format, *);
- V4L2_INT_WRAPPER_1(s_fmt_cap, struct v4l2_format, *);
- V4L2_INT_WRAPPER_1(try_fmt_cap, struct v4l2_format, *);
- V4L2_INT_WRAPPER_1(queryctrl, struct v4l2_queryctrl, *);
-+V4L2_INT_WRAPPER_1(querymenu, struct v4l2_querymenu, *);
- V4L2_INT_WRAPPER_1(g_ctrl, struct v4l2_control, *);
- V4L2_INT_WRAPPER_1(s_ctrl, struct v4l2_control, *);
- V4L2_INT_WRAPPER_1(cropcap, struct v4l2_cropcap, *);
+@@ -84,6 +84,8 @@ struct v4l2_int_device {
+ 	void *priv;
+ };
+ 
++struct v4l2_int_device *v4l2_int_device_dummy(void);
++
+ void v4l2_int_device_try_attach_all(void);
+ 
+ int v4l2_int_device_register(struct v4l2_int_device *d);
 -- 
 1.5.6.5
 
