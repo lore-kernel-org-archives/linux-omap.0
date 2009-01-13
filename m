@@ -1,39 +1,32 @@
-From: David Brownell <david-b@pacbell.net>
-Subject: Re: [PATCH 10/12] DSS: Support for OMAP3 SDP
-	board
-Date: Tue, 13 Jan 2009 03:15:21 -0800
-Message-ID: <200901130315.21651.david-b@pacbell.net>
-References: <20090112114718.1003.23643.stgit@tubuntu>
-	<20090112114824.1003.10690.stgit@tubuntu>
+From: Trilok Soni <soni.trilok@gmail.com>
+Subject: Re: [REVIEW PATCH 04/14] OMAP: CAM: Add ISP user header and register
+	defs
+Date: Tue, 13 Jan 2009 17:02:31 +0530
+Message-ID: <5d5443650901130332l748240bfi7697dc446b92d3c5@mail.gmail.com>
+References: <A24693684029E5489D1D202277BE894416429F9A@dlee02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-fbdev-devel-bounces@lists.sourceforge.net>
-In-Reply-To: <20090112114824.1003.10690.stgit@tubuntu>
-Content-Disposition: inline
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/linux-fbdev-devel>,
-	<mailto:linux-fbdev-devel-request@lists.sourceforge.net?subject=unsubscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum_name=linux-fbdev-devel>
-List-Post: <mailto:linux-fbdev-devel@lists.sourceforge.net>
-List-Help: <mailto:linux-fbdev-devel-request@lists.sourceforge.net?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/linux-fbdev-devel>,
-	<mailto:linux-fbdev-devel-request@lists.sourceforge.net?subject=subscribe>
-Errors-To: linux-fbdev-devel-bounces@lists.sourceforge.net
-To: Tomi Valkeinen <tomi.valkeinen@nokia.com>
-Cc: linux-omap@vger.kernel.org, linux-fbdev-devel@lists.sourceforge.net
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-media-owner@vger.kernel.org>
+In-Reply-To: <A24693684029E5489D1D202277BE894416429F9A@dlee02.ent.ti.com>
+Sender: linux-media-owner@vger.kernel.org
+To: "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>, "video4linux-list@redhat.com" <video4linux-list@redhat.com>, Sakari Ailus <sakari.ailus@nokia.com>, "Tuukka.O Toivonen" <tuukka.o.toivonen@nokia.com>, "Nagalla, Hari" <hnagalla@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Monday 12 January 2009, Tomi Valkeinen wrote:
-> =A0arch/arm/configs/dss_omap_3430sdp_defconfig | 1603 +++++++++++++++++++=
-++++++++
+Hi Sergio,
 
-Likewise.  In fact, defconfig updates are a lot nicer as
-patches that don't touch source code...
+> +++ b/arch/arm/plat-omap/include/mach/isp_user.h
+> @@ -0,0 +1,668 @@
+> +/*
+> + * include/asm-arm/arch-omap/isp_user.h
+> + *
+
+Path doesn't match. Better remove paths from all files, as they keep
+changing, and maintaining them is hard.
 
 
----------------------------------------------------------------------------=
----
-This SF.net email is sponsored by:
-SourcForge Community
-SourceForge wants to tell your story.
-http://p.sf.net/sfu/sf-spreadtheword
+-- 
+---Trilok Soni
+http://triloksoni.wordpress.com
+http://www.linkedin.com/in/triloksoni
