@@ -1,83 +1,45 @@
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: [REVIEW PATCH 10/14] OMAP: CAM: Add ISP gain tables
-Date: Tue, 13 Jan 2009 19:06:20 -0200
-Message-ID: <20090113190620.3927e6ef@pedra.chehab.org>
-References: <A24693684029E5489D1D202277BE894416429FA0@dlee02.ent.ti.com>
+From: Mark Brown <broonie@sirena.org.uk>
+Subject: Re: [PATCH 1/2] Include TPS6235x based Power regulator support
+Date: Tue, 13 Jan 2009 21:15:25 +0000
+Message-ID: <20090113211523.GA8670@sirena.org.uk>
+References: <1231832468-7132-1-git-send-email-mani.pillai@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([18.85.46.34]:39810 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751197AbZAMVGz (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 13 Jan 2009 16:06:55 -0500
-In-Reply-To: <A24693684029E5489D1D202277BE894416429FA0@dlee02.ent.ti.com>
+Received: from cassiel.sirena.org.uk ([80.68.93.111]:1379 "EHLO
+	cassiel.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752250AbZAMVPg (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 13 Jan 2009 16:15:36 -0500
+Content-Disposition: inline
+In-Reply-To: <1231832468-7132-1-git-send-email-mani.pillai@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>, "video4linux-list@redhat.com" <video4linux-list@redhat.com>, Sakari Ailus <sakari.ailus@nokia.com>, "Tuukka.O Toivonen" <tuukka.o.toivonen@nokia.com>, "Nagalla, Hari" <hnagalla@ti.com>
+To: Manikandan Pillai <mani.pillai@ti.com>
+Cc: linux-omap@vger.kernel.org
 
-On Mon, 12 Jan 2009 20:03:30 -0600
-"Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com> wrote:
+On Tue, Jan 13, 2009 at 01:11:08PM +0530, Manikandan Pillai wrote:
 
-> This adds the OMAP ISP gain tables. Includes:
-> * Blue Gamma gain table
-> * CFA gain table
-> * Green Gamma gain table
-> * Luma Enhancement gain table
-> * Noise filter gain table
-> * Red Gamma gain table
-> 
-> Signed-off-by: Sergio Aguirre <saaguirre@ti.com>
-> ---
->  drivers/media/video/isp/bluegamma_table.h    | 1040 ++++++++++++++++++++++++++
->  drivers/media/video/isp/cfa_coef_table.h     |  592 +++++++++++++++
->  drivers/media/video/isp/greengamma_table.h   | 1040 ++++++++++++++++++++++++++
->  drivers/media/video/isp/luma_enhance_table.h |  144 ++++
->  drivers/media/video/isp/noise_filter_table.h |   79 ++
->  drivers/media/video/isp/redgamma_table.h     | 1040 ++++++++++++++++++++++++++
->  6 files changed, 3935 insertions(+), 0 deletions(-)
->  create mode 100644 drivers/media/video/isp/bluegamma_table.h
->  create mode 100644 drivers/media/video/isp/cfa_coef_table.h
->  create mode 100644 drivers/media/video/isp/greengamma_table.h
->  create mode 100644 drivers/media/video/isp/luma_enhance_table.h
->  create mode 100644 drivers/media/video/isp/noise_filter_table.h
->  create mode 100644 drivers/media/video/isp/redgamma_table.h
+> +config REGULATOR_TPS6235X
+> +	bool "TPS6235X Power regulator for OMAP3EVM"
+> +	depends on I2C=y
 
-Hmm... patch 06/14 needs this one to compile... This patch should have been added before 06/14...
+This driver should not be OMAP3EVM specific, I'd expect.
 
-Also, this is just a series of magic numbers. Could you please put a generic
-comment about the meaning of those numbers, better specifying what those tables
-are meant to and how are they handled? 
+> +extern struct regulator_consumer_supply tps62352_core_consumers;
+> +extern struct regulator_consumer_supply tps62352_mpu_consumers;
 
-Also, instead of just having a magic sequence of numbers, is better to have the
-struct definition there, and put it into a nicer format.
+These should not be required.
 
-So, instead of:
+> +	/* Register the regulators */
+> +	dev_child = device_find_child(client->adapter->dev.parent,
+> +			(void *)regulator_consumer_name[id->driver_data],
+> +			omap_i2c_match_child);
+> +	rdev = regulator_register(&regulators[id->driver_data],
+> +			dev_child, client);
 
-/*
- * CFA Filter Coefficient Table
- *
- */
-static u32 cfa_coef_table[] = {
-#include "cfa_coef_table.h"
-};
+I'm not 100% sure what this is intended to do but apart from anything
+else it depends on specific consumer names which means that dependency
+on the specific board hasn't been removed.  This is also OMAP-specific.
 
-You should do something like:
-
-/*
- * Color Filter Array (CFA) Coefficient Table
- *
- * This table specifies coefficients for a filter that ...
- *
- */
-static u32 cfa_coef_table[] = {
-	0,   247,   0, 244, 247,  36,  27,  12,
-	0,    27,   0, 250, 244,  12, 250,   4,
-
-	...
-
-};
-
-Cheers,
-Mauro
+You should be using a device which is specific to the regulator as the
+device that is being registered.
