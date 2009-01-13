@@ -1,2361 +1,2427 @@
 From: "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>
-Subject: [REVIEW PATCH 04/14] OMAP: CAM: Add ISP user header and register
- defs
-Date: Mon, 12 Jan 2009 20:03:15 -0600
-Message-ID: <A24693684029E5489D1D202277BE894416429F9A@dlee02.ent.ti.com>
+Subject: [REVIEW PATCH 11/14] OMAP34XXCAM: Add driver
+Date: Mon, 12 Jan 2009 20:03:34 -0600
+Message-ID: <A24693684029E5489D1D202277BE894416429FA1@dlee02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
-Return-path: <linux-media-owner@vger.kernel.org>
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <video4linux-list-bounces@redhat.com>
 Content-Language: en-US
-Sender: linux-media-owner@vger.kernel.org
+List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
+	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
+List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
+List-Post: <mailto:video4linux-list@redhat.com>
+List-Help: <mailto:video4linux-list-request@redhat.com?subject=help>
+List-Subscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
+	<mailto:video4linux-list-request@redhat.com?subject=subscribe>
+Sender: video4linux-list-bounces@redhat.com
+Errors-To: video4linux-list-bounces@redhat.com
 To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
-Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>, "video4linux-list@redhat.com" <video4linux-list@redhat.com>, Sakari Ailus <sakari.ailus@nokia.com>, "Tuukka.O Toivonen" <tuukka.o.toivonen@nokia.com>, "Nagalla, Hari" <hnagalla@ti.com>
+Cc: "video4linux-list@redhat.com" <video4linux-list@redhat.com>, "Nagalla,
+	Hari" <hnagalla@ti.com>, Sakari Ailus <sakari.ailus@nokia.com>, "Tuukka.O Toivonen" <tuukka.o.toivonen@nokia.com>, "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-This adds the defines used by ISP driver (ispreg.h), and the defines
-needed by the user to operate ISP in app level (isp_user.h)
 
+Signed-off-by: Sakari Ailus <sakari.ailus@nokia.com>
 Signed-off-by: Sergio Aguirre <saaguirre@ti.com>
 ---
- arch/arm/plat-omap/include/mach/isp_user.h |  668 +++++++++++
- drivers/media/video/isp/ispreg.h           | 1652 ++++++++++++++++++++++++++++
- 2 files changed, 2320 insertions(+), 0 deletions(-)
- create mode 100644 arch/arm/plat-omap/include/mach/isp_user.h
- create mode 100644 drivers/media/video/isp/ispreg.h
+ drivers/media/video/Kconfig       |    8 +
+ drivers/media/video/Makefile      |    2 +
+ drivers/media/video/omap34xxcam.c | 2017 +++++++++++++++++++++++++++++++=
+++++++
+ drivers/media/video/omap34xxcam.h |  215 ++++
+ 4 files changed, 2242 insertions(+), 0 deletions(-)
+ create mode 100644 drivers/media/video/omap34xxcam.c
+ create mode 100644 drivers/media/video/omap34xxcam.h
 
-diff --git a/arch/arm/plat-omap/include/mach/isp_user.h b/arch/arm/plat-omap/include/mach/isp_user.h
+diff --git a/drivers/media/video/Kconfig b/drivers/media/video/Kconfig
+index 47102c2..dcd3960 100644
+--- a/drivers/media/video/Kconfig
++++ b/drivers/media/video/Kconfig
+@@ -700,6 +700,14 @@ config VIDEO_CAFE_CCIC
+          CMOS camera controller.  This is the controller found on first-
+          generation OLPC systems.
+
++config VIDEO_OMAP3
++        tristate "OMAP 3 Camera support"
++       select VIDEOBUF_GEN
++       select VIDEOBUF_DMA_SG
++       depends on VIDEO_V4L2 && ARCH_OMAP34XX
++       ---help---
++         Driver for an OMAP 3 camera controller.
++
+ config SOC_CAMERA
+        tristate "SoC camera support"
+        depends on VIDEO_V4L2 && HAS_DMA
+diff --git a/drivers/media/video/Makefile b/drivers/media/video/Makefile
+index 16962f3..a2f73cf 100644
+--- a/drivers/media/video/Makefile
++++ b/drivers/media/video/Makefile
+@@ -101,6 +101,8 @@ obj-$(CONFIG_VIDEO_OV7670)  +=3D ov7670.o
+
+ obj-$(CONFIG_VIDEO_TCM825X) +=3D tcm825x.o
+
++obj-$(CONFIG_VIDEO_OMAP3) +=3D omap34xxcam.o isp/
++
+ obj-$(CONFIG_USB_DABUSB)        +=3D dabusb.o
+ obj-$(CONFIG_USB_OV511)         +=3D ov511.o
+ obj-$(CONFIG_USB_SE401)         +=3D se401.o
+diff --git a/drivers/media/video/omap34xxcam.c b/drivers/media/video/omap=
+34xxcam.c
 new file mode 100644
-index 0000000..5eb5598
+index 0000000..a920bf2
 --- /dev/null
-+++ b/arch/arm/plat-omap/include/mach/isp_user.h
-@@ -0,0 +1,668 @@
++++ b/drivers/media/video/omap34xxcam.c
+@@ -0,0 +1,2017 @@
 +/*
-+ * include/asm-arm/arch-omap/isp_user.h
++ * drivers/media/video/omap34xxcam.c
 + *
-+ * Include file for OMAP ISP module in TI's OMAP3.
++ * Copyright (C) 2006--2008 Nokia Corporation
++ * Copyright (C) 2007, 2008 Texas Instruments
 + *
-+ * Copyright (C) 2008 Texas Instruments, Inc.
++ * Contact: Sakari Ailus <sakari.ailus@nokia.com>
++ *          Tuukka Toivonen <tuukka.o.toivonen@nokia.com>
 + *
-+ * Contributors:
-+ *     Mohit Jalori <mjalori@ti.com>
++ * Originally based on the OMAP 2 camera driver.
 + *
-+ * This package is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
++ * Written by Sakari Ailus <sakari.ailus@nokia.com>
++ *            Tuukka Toivonen <tuukka.o.toivonen@nokia.com>
++ *            Sergio Aguirre <saaguirre@ti.com>
++ *            Mohit Jalori
++ *            Sameer Venkatraman
++ *            Leonides Martinez
 + *
-+ * THIS PACKAGE IS PROVIDED ``AS IS'' AND WITHOUT ANY EXPRESS OR
-+ * IMPLIED WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED
-+ * WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
++ * This program is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU General Public License
++ * version 2 as published by the Free Software Foundation.
++ *
++ * This program is distributed in the hope that it will be useful, but
++ * WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++ * General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
++ * 02110-1301 USA
++ *
 + */
 +
-+#ifndef OMAP_ISP_USER_H
-+#define OMAP_ISP_USER_H
++#include <linux/io.h>
++#include <linux/clk.h>
++#include <linux/pci.h>         /* needed for videobufs */
++#include <linux/delay.h>
++#include <linux/kernel.h>
++#include <linux/interrupt.h>
++#include <linux/videodev2.h>
++#include <linux/version.h>
++#include <linux/platform_device.h>
 +
-+/* ISP Private IOCTLs */
-+#define VIDIOC_PRIVATE_ISP_CCDC_CFG    \
-+       _IOWR('V', BASE_VIDIOC_PRIVATE + 1, struct ispccdc_update_config)
-+#define VIDIOC_PRIVATE_ISP_PRV_CFG \
-+       _IOWR('V', BASE_VIDIOC_PRIVATE + 2, struct ispprv_update_config)
-+#define VIDIOC_PRIVATE_ISP_AEWB_CFG \
-+       _IOWR('V', BASE_VIDIOC_PRIVATE + 4, struct isph3a_aewb_config)
-+#define VIDIOC_PRIVATE_ISP_AEWB_REQ \
-+       _IOWR('V', BASE_VIDIOC_PRIVATE + 5, struct isph3a_aewb_data)
-+#define VIDIOC_PRIVATE_ISP_HIST_CFG \
-+       _IOWR('V', BASE_VIDIOC_PRIVATE + 6, struct isp_hist_config)
-+#define VIDIOC_PRIVATE_ISP_HIST_REQ \
-+       _IOWR('V', BASE_VIDIOC_PRIVATE + 7, struct isp_hist_data)
-+#define VIDIOC_PRIVATE_ISP_AF_CFG \
-+       _IOWR('V', BASE_VIDIOC_PRIVATE + 8, struct af_configuration)
-+#define VIDIOC_PRIVATE_ISP_AF_REQ \
-+       _IOWR('V', BASE_VIDIOC_PRIVATE + 9, struct isp_af_data)
++#include <media/v4l2-common.h>
++#include <media/v4l2-ioctl.h>
 +
-+/* AE/AWB related structures and flags*/
++#include "omap34xxcam.h"
++#include "isp/isp.h"
++#include "isp/ispmmu.h"
++#include "isp/ispreg.h"
++#include "isp/ispccdc.h"
++#include "isp/isph3a.h"
++#include "isp/isp_af.h"
++#include "isp/isphist.h"
++#include "isp/isppreview.h"
++#include "isp/ispresizer.h"
 +
-+/* Flags for update field */
-+#define REQUEST_STATISTICS     (1 << 0)
-+#define SET_COLOR_GAINS                (1 << 1)
-+#define SET_DIGITAL_GAIN       (1 << 2)
-+#define SET_EXPOSURE           (1 << 3)
-+#define SET_ANALOG_GAIN                (1 << 4)
++#define OMAP34XXCAM_VERSION KERNEL_VERSION(0, 0, 0)
 +
-+#define MAX_FRAME_COUNT                0x0FFF
-+#define MAX_FUTURE_FRAMES      10
++/* global variables */
++static struct omap34xxcam_device *omap34xxcam;
 +
-+#define MAX_SATURATION_LIM     1023
-+#define MIN_WIN_H              2
-+#define MAX_WIN_H              256
-+#define MIN_WIN_W              6
-+#define MAX_WIN_W              256
-+#define MAX_WINVC              128
-+#define MAX_WINHC              36
-+#define MAX_WINSTART           4095
-+#define MIN_SUB_INC            2
-+#define MAX_SUB_INC            32
++struct omap34xxcam_fh *camfh_saved;
 +
-+/* Range Constants */
-+#define AF_IIRSH_MIN                   0
-+#define AF_IIRSH_MAX                   4094
-+#define AF_PAXEL_HORIZONTAL_COUNT_MIN  0
-+#define AF_PAXEL_HORIZONTAL_COUNT_MAX  35
-+#define AF_PAXEL_VERTICAL_COUNT_MIN    0
-+#define AF_PAXEL_VERTICAL_COUNT_MAX    127
-+#define AF_PAXEL_INCREMENT_MIN         0
-+#define AF_PAXEL_INCREMENT_MAX         14
-+#define AF_PAXEL_HEIGHT_MIN            0
-+#define AF_PAXEL_HEIGHT_MAX            127
-+#define AF_PAXEL_WIDTH_MIN             0
-+#define AF_PAXEL_WIDTH_MAX             127
-+#define AF_PAXEL_HZSTART_MIN           2
-+#define AF_PAXEL_HZSTART_MAX           4094
++#define OMAP34XXCAM_POWEROFF_DELAY (2 * HZ)
 +
-+#define AF_PAXEL_VTSTART_MIN           0
-+#define AF_PAXEL_VTSTART_MAX           4095
-+#define AF_THRESHOLD_MAX               255
-+#define AF_COEF_MAX                    4095
-+#define AF_PAXEL_SIZE                  48
++/*
++ *
++ * Sensor handling.
++ *
++ */
 +
 +/**
-+ * struct isph3a_aewb_config - AE AWB configuration reset values.
-+ * saturation_limit: Saturation limit.
-+ * @win_height: Window Height. Range 2 - 256, even values only.
-+ * @win_width: Window Width. Range 6 - 256, even values only.
-+ * @ver_win_count: Vertical Window Count. Range 1 - 128.
-+ * @hor_win_count: Horizontal Window Count. Range 1 - 36.
-+ * @ver_win_start: Vertical Window Start. Range 0 - 4095.
-+ * @hor_win_start: Horizontal Window Start. Range 0 - 4095.
-+ * @blk_ver_win_start: Black Vertical Windows Start. Range 0 - 4095.
-+ * @blk_win_height: Black Window Height. Range 2 - 256, even values only.
-+ * @subsample_ver_inc: Subsample Vertical points increment Range 2 - 32, even
-+ *                     values only.
-+ * @subsample_hor_inc: Subsample Horizontal points increment Range 2 - 32, even
-+ *                     values only.
-+ * @alaw_enable: AEW ALAW EN flag.
-+ * @aewb_enable: AE AWB stats generation EN flag.
++ * omap34xxcam_slave_power_set - set slave power state
++ * @vdev: per-video device data structure
++ * @power: new power state
 + */
-+struct isph3a_aewb_config {
-+       __u16 saturation_limit;
-+       __u16 win_height;
-+       __u16 win_width;
-+       __u16 ver_win_count;
-+       __u16 hor_win_count;
-+       __u16 ver_win_start;
-+       __u16 hor_win_start;
-+       __u16 blk_ver_win_start;
-+       __u16 blk_win_height;
-+       __u16 subsample_ver_inc;
-+       __u16 subsample_hor_inc;
-+       __u8 alaw_enable;
-+       __u8 aewb_enable;
-+};
++static int omap34xxcam_slave_power_set(struct omap34xxcam_videodev *vdev=
+,
++                                      enum v4l2_power power,
++                                      int mask)
++{
++       int rval =3D 0, i =3D 0;
++
++       BUG_ON(!mutex_is_locked(&vdev->mutex));
++
++       vdev->power_state_wish =3D -1;
++
++       for (i =3D 0; i <=3D OMAP34XXCAM_SLAVE_FLASH; i++) {
++               if (vdev->slave[i] =3D=3D v4l2_int_device_dummy())
++                       continue;
++
++               if (!(mask & (1 << i))
++                   || power =3D=3D vdev->power_state[i])
++                       continue;
++
++               rval =3D vidioc_int_s_power(vdev->slave[i], power);
++
++               if (rval && power !=3D V4L2_POWER_OFF) {
++                       power =3D V4L2_POWER_OFF;
++                       goto out;
++               }
++
++               vdev->power_state[i] =3D power;
++       }
++
++       return 0;
++
++out:
++       for (i--; i >=3D 0; i--) {
++               if (vdev->slave[i] =3D=3D v4l2_int_device_dummy())
++                       continue;
++
++               if (!(mask & (1 << i)))
++                       continue;
++
++               vidioc_int_s_power(vdev->slave[i], power);
++               vdev->power_state[i] =3D power;
++       }
++
++       return rval;
++}
++
++static void omap34xxcam_slave_power_work(struct work_struct *work)
++{
++       struct omap34xxcam_videodev *vdev =3D
++               container_of(work, struct omap34xxcam_videodev, poweroff_=
+work);
++
++       mutex_lock(&vdev->mutex);
++
++       if (vdev->power_state_wish !=3D -1)
++               omap34xxcam_slave_power_set(vdev, vdev->power_state_wish,
++                                           vdev->power_state_mask);
++
++       mutex_unlock(&vdev->mutex);
++}
++
++static void omap34xxcam_slave_power_timer(unsigned long ptr)
++{
++       struct omap34xxcam_videodev *vdev =3D (void *)ptr;
++
++       schedule_work(&vdev->poweroff_work);
++}
 +
 +/**
-+ * struct isph3a_aewb_data - Structure of data sent to or received from user
-+ * @h3a_aewb_statistics_buf: Pointer to pass to user.
-+ * @shutter: Shutter speed.
-+ * @gain: Sensor analog Gain.
-+ * @shutter_cap: Shutter speed for capture.
-+ * @gain_cap: Sensor Gain for capture.
-+ * @dgain: White balance digital gain.
-+ * @wb_gain_b: White balance color gain blue.
-+ * @wb_gain_r: White balance color gain red.
-+ * @wb_gain_gb: White balance color gain green blue.
-+ * @wb_gain_gr: White balance color gain green red.
-+ * @frame_number: Frame number of requested stats.
-+ * @curr_frame: Current frame number being processed.
-+ * @update: Bitwise flags to update parameters.
-+ * @ts: Timestamp of returned framestats.
-+ * @field_count: Sequence number of returned framestats.
++ * omap34xxcam_slave_power_suggest - delayed power state change
++ *
++ * @vdev: per-video device data structure
++ * @power: new power state
 + */
-+struct isph3a_aewb_data {
-+       void *h3a_aewb_statistics_buf;
-+       __u32 shutter;
-+       __u16 gain;
-+       __u32 shutter_cap;
-+       __u16 gain_cap;
-+       __u16 dgain;
-+       __u16 wb_gain_b;
-+       __u16 wb_gain_r;
-+       __u16 wb_gain_gb;
-+       __u16 wb_gain_gr;
-+       __u16 frame_number;
-+       __u16 curr_frame;
-+       __u8 update;
-+       struct timeval ts;
-+       unsigned long field_count;
-+};
++static void omap34xxcam_slave_power_suggest(struct omap34xxcam_videodev =
+*vdev,
++                                           enum v4l2_power power,
++                                           int mask)
++{
++       BUG_ON(!mutex_is_locked(&vdev->mutex));
 +
++       del_timer(&vdev->poweroff_timer);
 +
-+/* Histogram related structs */
-+/* Flags for number of bins */
-+#define BINS_32                        0x0
-+#define BINS_64                        0x1
-+#define BINS_128               0x2
-+#define BINS_256               0x3
++       vdev->power_state_wish =3D power;
++       vdev->power_state_mask =3D mask;
 +
-+struct isp_hist_config {
-+       __u8 hist_source;               /* CCDC or Memory */
-+       __u8 input_bit_width;   /* Needed o know the size per pixel */
-+       __u8 hist_frames;               /* Num of frames to be processed and
-+                                * accumulated
-+                                */
-+       __u8 hist_h_v_info;     /* frame-input width and height if source is
-+                                * memory
-+                                */
-+       __u16 hist_radd;                /* frame-input address in memory */
-+       __u16 hist_radd_off;    /* line-offset for frame-input */
-+       __u16 hist_bins;        /* number of bins: 32, 64, 128, or 256 */
-+       __u16 wb_gain_R;        /* White Balance Field-to-Pattern Assignments */
-+       __u16 wb_gain_RG;       /* White Balance Field-to-Pattern Assignments */
-+       __u16 wb_gain_B;        /* White Balance Field-to-Pattern Assignments */
-+       __u16 wb_gain_BG;       /* White Balance Field-to-Pattern Assignments */
-+       __u8 num_regions;               /* number of regions to be configured */
-+       __u16 reg0_hor;         /* Region 0 size and position */
-+       __u16 reg0_ver;         /* Region 0 size and position */
-+       __u16 reg1_hor;         /* Region 1 size and position */
-+       __u16 reg1_ver;         /* Region 1 size and position */
-+       __u16 reg2_hor;         /* Region 2 size and position */
-+       __u16 reg2_ver;         /* Region 2 size and position */
-+       __u16 reg3_hor;         /* Region 3 size and position */
-+       __u16 reg3_ver;         /* Region 3 size and position */
-+};
-+
-+struct isp_hist_data {
-+       __u32 *hist_statistics_buf;     /* Pointer to pass to user */
-+};
-+
-+/* Auto Focus related structs */
-+
-+#define AF_NUMBER_OF_COEF              11
-+
-+/* Flags for update field */
-+#define REQUEST_STATISTICS             (1 << 0)
-+#define LENS_DESIRED_POSITION  (1 << 1)
-+#define LENS_CURRENT_POSITION  (1 << 2)
++       mod_timer(&vdev->poweroff_timer, jiffies + OMAP34XXCAM_POWEROFF_D=
+ELAY);
++}
 +
 +/**
-+ * struct isp_af_xtrastats - Extra statistics related to AF generated stats.
-+ * @ts: Timestamp when the frame gets delivered to the user.
-+ * @field_count: Field count of the frame delivered to the user.
-+ * @lens_position: Lens position when the stats are being generated.
++ * omap34xxcam_update_vbq - Updates VBQ with completed input buffer
++ * @vb: ptr. to standard V4L2 video buffer structure
++ *
++ * Updates video buffer queue with completed buffer passed as
++ * input parameter.  Also updates ISP H3A timestamp and field count
++ * statistics.
 + */
-+struct isp_af_xtrastats {
-+       struct timeval ts;
-+       unsigned long field_count;
-+       __u16 lens_position;
-+};
++int omap34xxcam_update_vbq(struct videobuf_buffer *vb)
++{
++       struct omap34xxcam_fh *fh =3D camfh_saved;
++       struct omap34xxcam_videodev *vdev =3D fh->vdev;
++       int rval =3D 0;
++
++       do_gettimeofday(&vb->ts);
++       vb->field_count =3D atomic_add_return(2, &fh->field_count);
++       vb->state =3D VIDEOBUF_DONE;
++
++       if (vdev->streaming)
++               rval =3D 1;
++
++       wake_up(&vb->done);
++
++       return rval;
++}
 +
 +/**
-+ * struct isp_af_data - AF statistics data to transfer between driver and user.
-+ * @af_statistics_buf: Pointer to pass to user.
-+ * @lens_current_position: Read value of lens absolute position.
-+ * @desired_lens_direction: Lens desired location.
-+ * @update: Bitwise flags to update parameters.
-+ * @frame_number: Data for which frame is desired/given.
-+ * @curr_frame: Current frame number being processed by AF module.
-+ * @xtrastats: Extra statistics structure.
++ * omap34xxcam_vbq_setup - Calcs size and num of buffs allowed in queue
++ * @vbq: ptr. to standard V4L2 video buffer queue structure
++ * @cnt: ptr to location to hold the count of buffers to be in the queue
++ * @size: ptr to location to hold the size of a frame
++ *
++ * Calculates the number of buffers of current image size that can be
++ * supported by the available capture memory.
 + */
-+struct isp_af_data {
-+       void *af_statistics_buf;
-+       __u16 lens_current_position;
-+       __u16 desired_lens_direction;
-+       __u16 update;
-+       __u16 frame_number;
-+       __u16 curr_frame;
-+       struct isp_af_xtrastats xtrastats;
-+};
++static int omap34xxcam_vbq_setup(struct videobuf_queue *vbq, unsigned in=
+t *cnt,
++                                unsigned int *size)
++{
++       struct omap34xxcam_fh *fh =3D vbq->priv_data;
 +
-+/* enum used for status of specific feature */
-+enum af_alaw_enable {
-+       H3A_AF_ALAW_DISABLE = 0,
-+       H3A_AF_ALAW_ENABLE = 1
-+};
++       if (*cnt <=3D 0)
++               *cnt =3D VIDEO_MAX_FRAME; /* supply a default number of b=
+uffers */
 +
-+enum af_hmf_enable {
-+       H3A_AF_HMF_DISABLE = 0,
-+       H3A_AF_HMF_ENABLE = 1
-+};
++       if (*cnt > VIDEO_MAX_FRAME)
++               *cnt =3D VIDEO_MAX_FRAME;
 +
-+enum af_config_flag {
-+       H3A_AF_CFG_DISABLE = 0,
-+       H3A_AF_CFG_ENABLE = 1
-+};
++       *size =3D fh->pix.sizeimage;
 +
-+enum af_mode {
-+       ACCUMULATOR_SUMMED = 0,
-+       ACCUMULATOR_PEAK = 1
-+};
++       while (*size * *cnt > fh->vdev->vdev_sensor_config.capture_mem)
++               (*cnt)--;
 +
-+/* Red, Green, and blue pixel location in the AF windows */
-+enum rgbpos {
-+       GR_GB_BAYER = 0,        /* GR and GB as Bayer pattern */
-+       RG_GB_BAYER = 1,        /* RG and GB as Bayer pattern */
-+       GR_BG_BAYER = 2,        /* GR and BG as Bayer pattern */
-+       RG_BG_BAYER = 3,        /* RG and BG as Bayer pattern */
-+       GG_RB_CUSTOM = 4,       /* GG and RB as custom pattern */
-+       RB_GG_CUSTOM = 5        /* RB and GG as custom pattern */
-+};
++       while ((*size * *cnt) > ispmmu_get_mapeable_space())
++               (*cnt)--;
 +
-+/* Contains the information regarding the Horizontal Median Filter */
-+struct af_hmf {
-+       enum af_hmf_enable enable;      /* Status of Horizontal Median Filter */
-+       unsigned int threshold; /* Threshhold Value for Horizontal Median
-+                                * Filter
-+                                */
-+};
-+
-+/* Contains the information regarding the IIR Filters */
-+struct af_iir {
-+       unsigned int hz_start_pos;      /* IIR Start Register Value */
-+       int coeff_set0[AF_NUMBER_OF_COEF];      /*
-+                                                * IIR Filter Coefficient for
-+                                                * Set 0
-+                                                */
-+       int coeff_set1[AF_NUMBER_OF_COEF];      /*
-+                                                * IIR Filter Coefficient for
-+                                                * Set 1
-+                                                */
-+};
-+
-+/* Contains the information regarding the Paxels Structure in AF Engine */
-+struct af_paxel {
-+       unsigned int width;     /* Width of the Paxel */
-+       unsigned int height;    /* Height of the Paxel */
-+       unsigned int hz_start;  /* Horizontal Start Position */
-+       unsigned int vt_start;  /* Vertical Start Position */
-+       unsigned int hz_cnt;    /* Horizontal Count */
-+       unsigned int vt_cnt;    /* vertical Count */
-+       unsigned int line_incr; /* Line Increment */
-+};
-+/* Contains the parameters required for hardware set up of AF Engine */
-+struct af_configuration {
-+       enum af_alaw_enable alaw_enable;        /*ALWAW status */
-+       struct af_hmf hmf_config;       /*HMF configurations */
-+       enum rgbpos rgb_pos;            /*RGB Positions */
-+       struct af_iir iir_config;       /*IIR filter configurations */
-+       struct af_paxel paxel_config;   /*Paxel parameters */
-+       enum af_mode mode;              /*Accumulator mode */
-+       enum af_config_flag af_config; /*Flag indicates Engine is configured */
-+};
-+
-+/* ISP CCDC structs */
-+
-+/* Abstraction layer CCDC configurations */
-+#define ISP_ABS_CCDC_ALAW              (1 << 0)
-+#define ISP_ABS_CCDC_LPF               (1 << 1)
-+#define ISP_ABS_CCDC_BLCLAMP           (1 << 2)
-+#define ISP_ABS_CCDC_BCOMP             (1 << 3)
-+#define ISP_ABS_CCDC_FPC               (1 << 4)
-+#define ISP_ABS_CCDC_CULL              (1 << 5)
-+#define ISP_ABS_CCDC_COLPTN            (1 << 6)
-+#define ISP_ABS_CCDC_CONFIG_LSC                (1 << 7)
-+#define ISP_ABS_TBL_LSC                        (1 << 8)
-+
-+#define RGB_MAX                                3
-+
-+/* Enumeration constants for Alaw input width */
-+enum alaw_ipwidth {
-+       ALAW_BIT12_3 = 0x3,
-+       ALAW_BIT11_2 = 0x4,
-+       ALAW_BIT10_1 = 0x5,
-+       ALAW_BIT9_0 = 0x6
-+};
-+
-+/* Enumeration constants for Video Port */
-+enum vpin {
-+       BIT12_3 = 3,
-+       BIT11_2 = 4,
-+       BIT10_1 = 5,
-+       BIT9_0 = 6
-+};
-+
-+enum vpif_freq {
-+       PIXCLKBY2,
-+       PIXCLKBY3_5,
-+       PIXCLKBY4_5,
-+       PIXCLKBY5_5,
-+       PIXCLKBY6_5
-+};
++       return 0;
++}
 +
 +/**
-+ * struct ispccdc_lsc_config - Structure for LSC configuration.
-+ * @offset: Table Offset of the gain table.
-+ * @gain_mode_n: Vertical dimension of a paxel in LSC configuration.
-+ * @gain_mode_m: Horizontal dimension of a paxel in LSC configuration.
-+ * @gain_format: Gain table format.
-+ * @fmtsph: Start pixel horizontal from start of the HS sync pulse.
-+ * @fmtlnh: Number of pixels in horizontal direction to use for the data
-+ *          reformatter.
-+ * @fmtslv: Start line from start of VS sync pulse for the data reformatter.
-+ * @fmtlnv: Number of lines in vertical direction for the data reformatter.
-+ * @initial_x: X position, in pixels, of the first active pixel in reference
-+ *             to the first active paxel. Must be an even number.
-+ * @initial_y: Y position, in pixels, of the first active pixel in reference
-+ *             to the first active paxel. Must be an even number.
-+ * @size: Size of LSC gain table. Filled when loaded from userspace.
++ * omap34xxcam_vbq_release - Free resources for input VBQ and VB
++ * @vbq: ptr. to standard V4L2 video buffer queue structure
++ * @vb: ptr to standard V4L2 video buffer structure
++ *
++ * Unmap and free all memory associated with input VBQ and VB, also
++ * unmap the address in ISP MMU.  Reset the VB state.
 + */
-+struct ispccdc_lsc_config {
-+       __u16 offset;
-+       __u8 gain_mode_n;
-+       __u8 gain_mode_m;
-+       __u8 gain_format;
-+       __u16 fmtsph;
-+       __u16 fmtlnh;
-+       __u16 fmtslv;
-+       __u16 fmtlnv;
-+       __u8 initial_x;
-+       __u8 initial_y;
-+       __u32 size;
-+};
++static void omap34xxcam_vbq_release(struct videobuf_queue *vbq,
++                                   struct videobuf_buffer *vb)
++{
++       if (!vbq->streaming) {
++               isp_vbq_release(vbq, vb);
++               videobuf_dma_unmap(vbq, videobuf_to_dma(vb));
++               videobuf_dma_free(videobuf_to_dma(vb));
++               vb->state =3D VIDEOBUF_NEEDS_INIT;
++       }
++       return;
++}
 +
 +/**
-+ * struct ispccdc_bclamp - Structure for Optical & Digital black clamp subtract
-+ * @obgain: Optical black average gain.
-+ * @obstpixel: Start Pixel w.r.t. HS pulse in Optical black sample.
-+ * @oblines: Optical Black Sample lines.
-+ * @oblen: Optical Black Sample Length.
-+ * @dcsubval: Digital Black Clamp subtract value.
++ * omap34xxcam_vbq_prepare - V4L2 video ops buf_prepare handler
++ * @vbq: ptr. to standard V4L2 video buffer queue structure
++ * @vb: ptr to standard V4L2 video buffer structure
++ * @field: standard V4L2 field enum
++ *
++ * Verifies there is sufficient locked memory for the requested
++ * buffer, or if there is not, allocates, locks and initializes
++ * it.
 + */
-+struct ispccdc_bclamp {
-+       __u8 obgain;
-+       __u8 obstpixel;
-+       __u8 oblines;
-+       __u8 oblen;
-+       __u16 dcsubval;
-+};
++static int omap34xxcam_vbq_prepare(struct videobuf_queue *vbq,
++                                  struct videobuf_buffer *vb,
++                                  enum v4l2_field field)
++{
++       struct omap34xxcam_fh *fh =3D vbq->priv_data;
++       int err =3D 0;
++
++       /*
++        * Accessing pix here is okay since it's constant while
++        * streaming is on (and we only get called then).
++        */
++       if (vb->baddr) {
++               /* This is a userspace buffer. */
++               if (fh->pix.sizeimage > vb->bsize)
++                       /* The buffer isn't big enough. */
++                       return -EINVAL;
++       } else {
++               if (vb->state !=3D VIDEOBUF_NEEDS_INIT
++                   && fh->pix.sizeimage > vb->bsize)
++                       /*
++                        * We have a kernel bounce buffer that has
++                        * already been allocated.
++                        */
++                       omap34xxcam_vbq_release(vbq, vb);
++       }
++
++       vb->size =3D fh->pix.bytesperline * fh->pix.height;
++       vb->width =3D fh->pix.width;
++       vb->height =3D fh->pix.height;
++       vb->field =3D field;
++
++       if (vb->state =3D=3D VIDEOBUF_NEEDS_INIT) {
++               err =3D videobuf_iolock(vbq, vb, NULL);
++               if (!err) {
++                       /* isp_addr will be stored locally inside isp cod=
+e */
++                       err =3D isp_vbq_prepare(vbq, vb, field);
++               }
++       }
++
++       if (!err)
++               vb->state =3D VIDEOBUF_PREPARED;
++       else
++               omap34xxcam_vbq_release(vbq, vb);
++
++       return err;
++
++}
 +
 +/**
-+ * ispccdc_fpc - Structure for FPC
-+ * @fpnum: Number of faulty pixels to be corrected in the frame.
-+ * @fpcaddr: Memory address of the FPC Table
++ * omap34xxcam_vbq_queue - V4L2 video ops buf_queue handler
++ * @vbq: ptr. to standard V4L2 video buffer queue structure
++ * @vb: ptr to standard V4L2 video buffer structure
++ *
++ * Maps the video buffer to sgdma and through the isp, sets
++ * the isp buffer done callback and sets the video buffer state
++ * to active.
 + */
-+struct ispccdc_fpc {
-+       __u16 fpnum;
-+       __u32 fpcaddr;
-+};
++static void omap34xxcam_vbq_queue(struct videobuf_queue *vbq,
++                                 struct videobuf_buffer *vb)
++{
++       struct omap34xxcam_fh *fh =3D vbq->priv_data;
++       struct omap34xxcam_videodev *vdev =3D fh->vdev;
++       enum videobuf_state state =3D vb->state;
++       isp_vbq_callback_ptr func_ptr;
++       int err =3D 0;
++       camfh_saved =3D fh;
 +
-+/**
-+ * ispccdc_blcomp - Structure for Black Level Compensation parameters.
-+ * @b_mg: B/Mg pixels. 2's complement. -128 to +127.
-+ * @gb_g: Gb/G pixels. 2's complement. -128 to +127.
-+ * @gr_cy: Gr/Cy pixels. 2's complement. -128 to +127.
-+ * @r_ye: R/Ye pixels. 2's complement. -128 to +127.
-+ */
-+struct ispccdc_blcomp {
-+       __u8 b_mg;
-+       __u8 gb_g;
-+       __u8 gr_cy;
-+       __u8 r_ye;
-+};
++       func_ptr =3D omap34xxcam_update_vbq;
++       vb->state =3D VIDEOBUF_ACTIVE;
 +
-+/**
-+ * struct ispccdc_vp - Structure for Video Port parameters
-+ * @bitshift_sel: Video port input select. 3 - bits 12-3, 4 - bits 11-2,
-+ *                5 - bits 10-1, 6 - bits 9-0.
-+ * @freq_sel: Video port data ready frequency. 1 - 1/3.5, 2 - 1/4.5,
-+ *            3 - 1/5.5, 4 - 1/6.5.
-+ */
-+struct ispccdc_vp {
-+       enum vpin bitshift_sel;
-+       enum vpif_freq freq_sel;
-+};
++       err =3D isp_sgdma_queue(videobuf_to_dma(vb),
++                             vb, 0, &vdev->cam->dma_notify, func_ptr);
++       if (err) {
++               dev_dbg(vdev->cam->dev, "vbq queue failed\n");
++               vb->state =3D state;
++       }
 +
-+/**
-+ * ispccdc_culling - Structure for Culling parameters.
-+ * @v_pattern: Vertical culling pattern.
-+ * @h_odd: Horizontal Culling pattern for odd lines.
-+ * @h_even: Horizontal Culling pattern for even lines.
-+ */
-+struct ispccdc_culling {
-+       __u8 v_pattern;
-+       __u16 h_odd;
-+       __u16 h_even;
-+};
++}
 +
-+/**
-+ * ispccdc_update_config - Structure for CCDC configuration.
-+ * @update: Specifies which CCDC registers should be updated.
-+ * @flag: Specifies which CCDC functions should be enabled.
-+ * @alawip: Enable/Disable A-Law compression.
-+ * @bclamp: Black clamp control register.
-+ * @blcomp: Black level compensation value for RGrGbB Pixels. 2's complement.
-+ * @fpc: Number of faulty pixels corrected in the frame, address of FPC table.
-+ * @cull: Cull control register.
-+ * @colptn: Color pattern of the sensor.
-+ * @lsc: Pointer to LSC gain table.
-+ */
-+struct ispccdc_update_config {
-+       __u16 update;
-+       __u16 flag;
-+       enum alaw_ipwidth alawip;
-+       struct ispccdc_bclamp *bclamp;
-+       struct ispccdc_blcomp *blcomp;
-+       struct ispccdc_fpc *fpc;
-+       struct ispccdc_lsc_config *lsc_cfg;
-+       struct ispccdc_culling *cull;
-+       __u32 colptn;
-+       __u8 *lsc;
-+};
-+
-+/* Preview configuration */
-+
-+/*Abstraction layer preview configurations*/
-+#define ISP_ABS_PREV_LUMAENH           (1 << 0)
-+#define ISP_ABS_PREV_INVALAW           (1 << 1)
-+#define ISP_ABS_PREV_HRZ_MED           (1 << 2)
-+#define ISP_ABS_PREV_CFA               (1 << 3)
-+#define ISP_ABS_PREV_CHROMA_SUPP       (1 << 4)
-+#define ISP_ABS_PREV_WB                        (1 << 5)
-+#define ISP_ABS_PREV_BLKADJ            (1 << 6)
-+#define ISP_ABS_PREV_RGB2RGB           (1 << 7)
-+#define ISP_ABS_PREV_COLOR_CONV                (1 << 8)
-+#define ISP_ABS_PREV_YC_LIMIT          (1 << 9)
-+#define ISP_ABS_PREV_DEFECT_COR                (1 << 10)
-+#define ISP_ABS_PREV_GAMMABYPASS       (1 << 11)
-+#define ISP_ABS_TBL_NF                         (1 << 12)
-+#define ISP_ABS_TBL_REDGAMMA           (1 << 13)
-+#define ISP_ABS_TBL_GREENGAMMA         (1 << 14)
-+#define ISP_ABS_TBL_BLUEGAMMA          (1 << 15)
-+
-+/**
-+ * struct ispprev_hmed - Structure for Horizontal Median Filter.
-+ * @odddist: Distance between consecutive pixels of same color in the odd line.
-+ * @evendist: Distance between consecutive pixels of same color in the even
-+ *            line.
-+ * @thres: Horizontal median filter threshold.
-+ */
-+struct ispprev_hmed {
-+       __u8 odddist;
-+       __u8 evendist;
-+       __u8 thres;
++static struct videobuf_queue_ops omap34xxcam_vbq_ops =3D {
++       .buf_setup =3D omap34xxcam_vbq_setup,
++       .buf_prepare =3D omap34xxcam_vbq_prepare,
++       .buf_queue =3D omap34xxcam_vbq_queue,
++       .buf_release =3D omap34xxcam_vbq_release,
 +};
 +
 +/*
-+ * Enumeration for CFA Formats supported by preview
++ *
++ * IOCTL interface.
++ *
 + */
-+enum cfa_fmt {
-+       CFAFMT_BAYER, CFAFMT_SONYVGA, CFAFMT_RGBFOVEON,
-+       CFAFMT_DNSPL, CFAFMT_HONEYCOMB, CFAFMT_RRGGBBFOVEON
++
++/**
++ * vidioc_querycap - V4L2 query capabilities IOCTL handler
++ * @file: ptr. to system file structure
++ * @fh: ptr to hold address of omap34xxcam_fh struct (per-filehandle dat=
+a)
++ * @cap: ptr to standard V4L2 capability structure
++ *
++ * Fill in the V4L2 capabliity structure for the camera device
++ */
++static int vidioc_querycap(struct file *file, void *fh,
++                          struct v4l2_capability *cap)
++{
++       struct omap34xxcam_fh *ofh =3D fh;
++       struct omap34xxcam_videodev *vdev =3D ofh->vdev;
++
++       strlcpy(cap->driver, CAM_SHORT_NAME, sizeof(cap->driver));
++       strlcpy(cap->card, vdev->vfd->name, sizeof(cap->card));
++       cap->version =3D OMAP34XXCAM_VERSION;
++       cap->capabilities =3D V4L2_CAP_VIDEO_CAPTURE | V4L2_CAP_STREAMING=
+;
++
++       return 0;
++}
++
++/**
++ * vidioc_enum_fmt_vid_cap - V4L2 enumerate format capabilities IOCTL ha=
+ndler
++ * @file: ptr. to system file structure
++ * @fh: ptr to hold address of omap34xxcam_fh struct (per-filehandle dat=
+a)
++ * @f: ptr to standard V4L2 format description structure
++ *
++ * Fills in enumerate format capabilities information for sensor (if SOC
++ * sensor attached) or ISP (if raw sensor attached).
++ */
++static int vidioc_enum_fmt_vid_cap(struct file *file, void *fh,
++                                  struct v4l2_fmtdesc *f)
++{
++       struct omap34xxcam_fh *ofh =3D fh;
++       struct omap34xxcam_videodev *vdev =3D ofh->vdev;
++       int rval;
++
++       if (vdev->vdev_sensor_config.sensor_isp)
++               rval =3D vidioc_int_enum_fmt_cap(vdev->vdev_sensor, f);
++       else
++               rval =3D isp_enum_fmt_cap(f);
++
++       return rval;
++}
++
++/**
++ * vidioc_g_fmt_vid_cap - V4L2 get format capabilities IOCTL handler
++ * @file: ptr. to system file structure
++ * @fh: ptr to hold address of omap34xxcam_fh struct (per-filehandle dat=
+a)
++ * @f: ptr to standard V4L2 format structure
++ *
++ * Fills in format capabilities for sensor (if SOC sensor attached) or I=
+SP
++ * (if raw sensor attached).
++ */
++static int vidioc_g_fmt_vid_cap(struct file *file, void *fh,
++                               struct v4l2_format *f)
++{
++       struct omap34xxcam_fh *ofh =3D fh;
++       struct omap34xxcam_videodev *vdev =3D ofh->vdev;
++
++       mutex_lock(&vdev->mutex);
++       f->fmt.pix =3D ofh->pix;
++       mutex_unlock(&vdev->mutex);
++
++       return 0;
++}
++
++static int try_pix_parm(struct omap34xxcam_videodev *vdev,
++                       struct v4l2_pix_format *best_pix_in,
++                       struct v4l2_pix_format *wanted_pix_out,
++                       struct v4l2_fract *best_ival)
++{
++       int fps;
++       int rval;
++       int size_index;
++       struct v4l2_pix_format best_pix_out;
++
++       if (best_ival->numerator =3D=3D 0
++           || best_ival->denominator =3D=3D 0)
++               best_ival->denominator =3D 30, best_ival->numerator =3D 1=
+;
++
++       fps =3D best_ival->denominator / best_ival->numerator;
++
++       best_ival->denominator =3D 0;
++
++       best_pix_out.height =3D INT_MAX >> 1;
++       best_pix_out.width =3D best_pix_out.height;
++
++       /*
++        * Get supported resolutions.
++        */
++       for (size_index =3D 0; ; size_index++) {
++               struct v4l2_frmsizeenum frms;
++               struct v4l2_pix_format pix_tmp_in, pix_tmp_out;
++               int ival_index;
++
++               frms.index =3D size_index;
++               frms.pixel_format =3D best_pix_in->pixelformat;
++
++               rval =3D vidioc_int_enum_framesizes(vdev->vdev_sensor, &f=
+rms);
++               if (rval) {
++                       rval =3D 0;
++                       break;
++               }
++
++               pix_tmp_in.pixelformat =3D frms.pixel_format;
++               pix_tmp_in.width =3D frms.discrete.width;
++               pix_tmp_in.height =3D frms.discrete.height;
++               pix_tmp_out =3D *wanted_pix_out;
++               /* Don't do upscaling. */
++               if (pix_tmp_out.width > pix_tmp_in.width)
++                       pix_tmp_out.width =3D pix_tmp_in.width;
++               if (pix_tmp_out.height > pix_tmp_in.height)
++                       pix_tmp_out.height =3D pix_tmp_in.height;
++               rval =3D isp_try_fmt_cap(&pix_tmp_in, &pix_tmp_out);
++               if (rval)
++                       return rval;
++
++#define IS_SMALLER_OR_EQUAL(pix1, pix2)                        \
++               ((pix1)->width + (pix1)->height         \
++                < (pix2)->width + (pix2)->height)
++#define SIZE_DIFF(pix1, pix2)                                  \
++               (abs((pix1)->width - (pix2)->width)             \
++                + abs((pix1)->height - (pix2)->height))
++
++               /*
++                * Don't use modes that are farther from wanted size
++                * that what we already got.
++                */
++               if (SIZE_DIFF(&pix_tmp_out, wanted_pix_out)
++                   > SIZE_DIFF(&best_pix_out, wanted_pix_out))
++                       continue;
++
++               /*
++                * There's an input mode that can provide output
++                * closer to wanted.
++                */
++               if (SIZE_DIFF(&pix_tmp_out, wanted_pix_out)
++                   < SIZE_DIFF(&best_pix_out, wanted_pix_out))
++                       /* Force renegotation of fps etc. */
++                       best_ival->denominator =3D 0;
++
++               for (ival_index =3D 0; ; ival_index++) {
++                       struct v4l2_frmivalenum frmi;
++
++                       frmi.index =3D ival_index;
++                       frmi.pixel_format =3D frms.pixel_format;
++                       frmi.width =3D frms.discrete.width;
++                       frmi.height =3D frms.discrete.height;
++                       /* FIXME: try to fix standard... */
++                       frmi.reserved[0] =3D 0xdeafbeef;
++
++                       rval =3D vidioc_int_enum_frameintervals(vdev->vde=
+v_sensor,
++                                                             &frmi);
++                       if (rval) {
++                               rval =3D 0;
++                               break;
++                       }
++
++                       if (best_ival->denominator =3D=3D 0)
++                               goto do_it_now;
++
++                       /*
++                        * We aim to use maximum resolution from the
++                        * sensor, provided that the fps is at least
++                        * as close as on the current mode.
++                        */
++#define FPS_ABS_DIFF(fps, ival) abs(fps - (ival).denominator / (ival).nu=
+merator)
++
++                       /* Select mode with closest fps. */
++                       if (FPS_ABS_DIFF(fps, frmi.discrete)
++                           < FPS_ABS_DIFF(fps, *best_ival))
++                               goto do_it_now;
++
++                       /*
++                        * Select bigger resolution if it's available
++                        * at same fps.
++                        */
++                       if (frmi.width > best_pix_in->width
++                           && FPS_ABS_DIFF(fps, frmi.discrete)
++                           <=3D FPS_ABS_DIFF(fps, *best_ival))
++                               goto do_it_now;
++
++                       continue;
++
++do_it_now:
++                       *best_ival =3D frmi.discrete;
++                       best_pix_out =3D pix_tmp_out;
++                       best_pix_in->width =3D frmi.width;
++                       best_pix_in->height =3D frmi.height;
++                       best_pix_in->pixelformat =3D frmi.pixel_format;
++               }
++       }
++
++       if (best_ival->denominator =3D=3D 0)
++               return -EINVAL;
++
++       *wanted_pix_out =3D best_pix_out;
++
++       dev_info(vdev->cam->dev, "w %d, h %d -> w %d, h %d\n",
++                best_pix_in->width, best_pix_in->height,
++                best_pix_out.width, best_pix_out.height);
++
++       return isp_try_fmt_cap(best_pix_in, wanted_pix_out);
++}
++
++static int s_pix_parm(struct omap34xxcam_videodev *vdev,
++                     struct v4l2_pix_format *best_pix,
++                     struct v4l2_pix_format *pix,
++                     struct v4l2_fract *best_ival)
++{
++       struct v4l2_streamparm a;
++       struct v4l2_format fmt;
++       int rval;
++       int fmtd_index;
++
++       for (fmtd_index =3D 0; ; fmtd_index++) {
++               struct v4l2_fmtdesc fmtd;
++
++               fmtd.index =3D fmtd_index;
++               fmtd.type =3D V4L2_BUF_TYPE_VIDEO_CAPTURE;
++               rval =3D vidioc_int_enum_fmt_cap(vdev->vdev_sensor, &fmtd=
+);
++               if (rval)
++                       return rval;
++               best_pix->pixelformat =3D fmtd.pixelformat;
++
++               rval =3D try_pix_parm(vdev, best_pix, pix, best_ival);
++               if (!rval)
++                       break;
++       }
++
++       rval =3D isp_s_fmt_cap(best_pix, pix);
++       if (rval)
++               return rval;
++
++       fmt.type =3D V4L2_BUF_TYPE_VIDEO_CAPTURE;
++       fmt.fmt.pix =3D *best_pix;
++       rval =3D vidioc_int_s_fmt_cap(vdev->vdev_sensor, &fmt);
++       if (rval)
++               return rval;
++
++       a.type =3D V4L2_BUF_TYPE_VIDEO_CAPTURE;
++       a.parm.capture.timeperframe =3D *best_ival;
++       rval =3D vidioc_int_s_parm(vdev->vdev_sensor, &a);
++
++       return rval;
++}
++
++/**
++ * vidioc_s_fmt_vid_cap - V4L2 set format capabilities IOCTL handler
++ * @file: ptr. to system file structure
++ * @fh: ptr to hold address of omap34xxcam_fh struct (per-filehandle dat=
+a)
++ * @f: ptr to standard V4L2 format structure
++ *
++ * Attempts to set input format with the sensor driver (first) and then =
+the
++ * ISP.  Returns the return code from vidioc_g_fmt_vid_cap().
++ */
++static int vidioc_s_fmt_vid_cap(struct file *file, void *fh,
++                               struct v4l2_format *f)
++{
++       struct omap34xxcam_fh *ofh =3D fh;
++       struct omap34xxcam_videodev *vdev =3D ofh->vdev;
++       struct v4l2_pix_format pix_tmp;
++       struct v4l2_fract timeperframe;
++       int rval;
++
++       mutex_lock(&vdev->mutex);
++       if (vdev->streaming) {
++               rval =3D -EBUSY;
++               goto out;
++       }
++
++       vdev->want_pix =3D f->fmt.pix;
++
++       timeperframe =3D vdev->want_timeperframe;
++
++       rval =3D s_pix_parm(vdev, &pix_tmp, &f->fmt.pix, &timeperframe);
++       pix_tmp =3D f->fmt.pix;
++
++out:
++       mutex_unlock(&vdev->mutex);
++
++       if (!rval) {
++               mutex_lock(&ofh->vbq.vb_lock);
++               ofh->pix =3D pix_tmp;
++               mutex_unlock(&ofh->vbq.vb_lock);
++       }
++
++       return rval;
++}
++
++/**
++ * vidioc_try_fmt_vid_cap - V4L2 try format capabilities IOCTL handler
++ * @file: ptr. to system file structure
++ * @fh: ptr to hold address of omap34xxcam_fh struct (per-filehandle dat=
+a)
++ * @f: ptr to standard V4L2 format structure
++ *
++ * Checks if the given format is supported by the sensor driver and
++ * by the ISP.
++ */
++static int vidioc_try_fmt_vid_cap(struct file *file, void *fh,
++                                 struct v4l2_format *f)
++{
++       struct omap34xxcam_fh *ofh =3D fh;
++       struct omap34xxcam_videodev *vdev =3D ofh->vdev;
++       struct v4l2_pix_format pix_tmp;
++       struct v4l2_fract timeperframe;
++       int rval;
++       int fmtd_index;
++
++       mutex_lock(&vdev->mutex);
++
++
++       for (fmtd_index =3D 0; ; fmtd_index++) {
++               struct v4l2_fmtdesc fmtd;
++
++               timeperframe =3D vdev->want_timeperframe;
++
++               fmtd.index =3D fmtd_index;
++               fmtd.type =3D V4L2_BUF_TYPE_VIDEO_CAPTURE;
++               rval =3D vidioc_int_enum_fmt_cap(vdev->vdev_sensor, &fmtd=
+);
++               if (rval)
++                       return rval;
++               pix_tmp.pixelformat =3D fmtd.pixelformat;
++
++               rval =3D try_pix_parm(vdev, &pix_tmp, &f->fmt.pix, &timep=
+erframe);
++               if (!rval)
++                       break;
++       }
++
++       mutex_unlock(&vdev->mutex);
++
++       return rval;
++}
++
++/**
++ * vidioc_reqbufs - V4L2 request buffers IOCTL handler
++ * @file: ptr. to system file structure
++ * @fh: ptr to hold address of omap34xxcam_fh struct (per-filehandle dat=
+a)
++ * @b: ptr to standard V4L2 request buffers structure
++ *
++ * Attempts to get a buffer from the buffer queue associated with the
++ * fh through the video buffer library API.
++ */
++static int vidioc_reqbufs(struct file *file, void *fh,
++                         struct v4l2_requestbuffers *b)
++{
++       struct omap34xxcam_fh *ofh =3D fh;
++       struct omap34xxcam_videodev *vdev =3D ofh->vdev;
++       int rval;
++
++       mutex_lock(&vdev->mutex);
++       if (vdev->streaming) {
++               mutex_unlock(&vdev->mutex);
++               return -EBUSY;
++       }
++
++       mutex_unlock(&vdev->mutex);
++
++       rval =3D videobuf_reqbufs(&ofh->vbq, b);
++
++       /*
++        * Either videobuf_reqbufs failed or the buffers are not
++        * memory-mapped (which would need special attention).
++        */
++       if (rval < 0 || b->memory !=3D V4L2_MEMORY_MMAP)
++               goto out;
++
++out:
++       return rval;
++}
++
++/**
++ * vidioc_querybuf - V4L2 query buffer IOCTL handler
++ * @file: ptr. to system file structure
++ * @fh: ptr to hold address of omap34xxcam_fh struct (per-filehandle dat=
+a)
++ * @b: ptr to standard V4L2 buffer structure
++ *
++ * Attempts to fill in the v4l2_buffer structure for the buffer queue
++ * associated with the fh through the video buffer library API.
++ */
++static int vidioc_querybuf(struct file *file, void *fh, struct v4l2_buff=
+er *b)
++{
++       struct omap34xxcam_fh *ofh =3D fh;
++
++       return videobuf_querybuf(&ofh->vbq, b);
++}
++
++/**
++ * vidioc_qbuf - V4L2 queue buffer IOCTL handler
++ * @file: ptr. to system file structure
++ * @fh: ptr to hold address of omap34xxcam_fh struct (per-filehandle dat=
+a)
++ * @b: ptr to standard V4L2 buffer structure
++ *
++ * Attempts to queue the v4l2_buffer on the buffer queue
++ * associated with the fh through the video buffer library API.
++ */
++static int vidioc_qbuf(struct file *file, void *fh, struct v4l2_buffer *=
+b)
++{
++       struct omap34xxcam_fh *ofh =3D fh;
++
++       return videobuf_qbuf(&ofh->vbq, b);
++}
++
++/**
++ * vidioc_dqbuf - V4L2 dequeue buffer IOCTL handler
++ * @file: ptr. to system file structure
++ * @fh: ptr to hold address of omap34xxcam_fh struct (per-filehandle dat=
+a)
++ * @b: ptr to standard V4L2 buffer structure
++ *
++ * Attempts to dequeue the v4l2_buffer from the buffer queue
++ * associated with the fh through the video buffer library API.  If the
++ * buffer is a user space buffer, then this function will also requeue i=
+t,
++ * as user does not expect to do this.
++ */
++static int vidioc_dqbuf(struct file *file, void *fh, struct v4l2_buffer =
+*b)
++{
++       struct omap34xxcam_fh *ofh =3D fh;
++
++       return videobuf_dqbuf(&ofh->vbq, b, file->f_flags & O_NONBLOCK);
++}
++
++/**
++ * vidioc_streamon - V4L2 streamon IOCTL handler
++ * @file: ptr. to system file structure
++ * @fh: ptr to hold address of omap34xxcam_fh struct (per-filehandle dat=
+a)
++ * @i: V4L2 buffer type
++ *
++ * Attempts to start streaming by enabling the sensor interface and turn=
+ing
++ * on video buffer streaming through the video buffer library API.  Upon
++ * success the function returns 0, otherwise an error code is returned.
++ */
++static int vidioc_streamon(struct file *file, void *fh, enum v4l2_buf_ty=
+pe i)
++{
++       struct omap34xxcam_fh *ofh =3D fh;
++       struct omap34xxcam_videodev *vdev =3D ofh->vdev;
++       struct omap34xxcam_device *cam =3D vdev->cam;
++       int rval;
++
++       mutex_lock(&vdev->mutex);
++       if (vdev->streaming) {
++               rval =3D -EBUSY;
++               goto out;
++       }
++
++       cam->dma_notify =3D 1;
++       isp_sgdma_init();
++       rval =3D videobuf_streamon(&ofh->vbq);
++       if (rval) {
++               dev_dbg(vdev->cam->dev, "omap34xxcam_slave_power_set fail=
+ed\n");
++               goto out;
++       }
++
++
++       rval =3D omap34xxcam_slave_power_set(vdev, V4L2_POWER_ON,
++                                          OMAP34XXCAM_SLAVE_POWER_SENSOR=
+_LENS);
++       if (!rval) {
++               vdev->streaming =3D file;
++       } else {
++               isp_stop();
++               videobuf_streamoff(&ofh->vbq);
++       }
++
++out:
++       mutex_unlock(&vdev->mutex);
++
++       return rval;
++}
++
++/**
++ * vidioc_streamoff - V4L2 streamoff IOCTL handler
++ * @file: ptr. to system file structure
++ * @fh: ptr to hold address of omap34xxcam_fh struct (per-filehandle dat=
+a)
++ * @i: V4L2 buffer type
++ *
++ * Attempts to stop streaming by flushing all scheduled work, waiting on
++ * any queued buffers to complete and then stopping the ISP and turning
++ * off video buffer streaming through the video buffer library API.  Upo=
+n
++ * success the function returns 0, otherwise an error code is returned.
++ */
++static int vidioc_streamoff(struct file *file, void *fh, enum v4l2_buf_t=
+ype i)
++{
++       struct omap34xxcam_fh *ofh =3D fh;
++       struct omap34xxcam_videodev *vdev =3D ofh->vdev;
++       struct videobuf_queue *q =3D &ofh->vbq;
++       int rval;
++
++       mutex_lock(&vdev->mutex);
++
++       if (vdev->streaming =3D=3D file)
++               isp_stop();
++
++       rval =3D videobuf_streamoff(q);
++       if (!rval)
++               vdev->streaming =3D NULL;
++
++       omap34xxcam_slave_power_set(vdev, V4L2_POWER_STANDBY,
++                                       OMAP34XXCAM_SLAVE_POWER_SENSOR);
++       omap34xxcam_slave_power_suggest(vdev, V4L2_POWER_STANDBY,
++                                       OMAP34XXCAM_SLAVE_POWER_LENS);
++
++       mutex_unlock(&vdev->mutex);
++
++       return rval;
++}
++
++/**
++ * vidioc_enum_input - V4L2 enumerate input IOCTL handler
++ * @file: ptr. to system file structure
++ * @fh: ptr to hold address of omap34xxcam_fh struct (per-filehandle dat=
+a)
++ * @inp: V4L2 input type information structure
++ *
++ * Fills in v4l2_input structure.  Returns 0.
++ */
++static int vidioc_enum_input(struct file *file, void *fh,
++                            struct v4l2_input *inp)
++{
++       if (inp->index > 0)
++               return -EINVAL;
++
++       strlcpy(inp->name, "camera", sizeof(inp->name));
++       inp->type =3D V4L2_INPUT_TYPE_CAMERA;
++
++       return 0;
++}
++
++/**
++ * vidioc_g_input - V4L2 get input IOCTL handler
++ * @file: ptr. to system file structure
++ * @fh: ptr to hold address of omap34xxcam_fh struct (per-filehandle dat=
+a)
++ * @i: address to hold index of input supported
++ *
++ * Sets index to 0.
++ */
++static int vidioc_g_input(struct file *file, void *fh, unsigned int *i)
++{
++       *i =3D 0;
++
++       return 0;
++}
++
++/**
++ * vidioc_s_input - V4L2 set input IOCTL handler
++ * @file: ptr. to system file structure
++ * @fh: ptr to hold address of omap34xxcam_fh struct (per-filehandle dat=
+a)
++ * @i: index of input selected
++ *
++ * 0 is only index supported.
++ */
++static int vidioc_s_input(struct file *file, void *fh, unsigned int i)
++{
++       if (i > 0)
++               return -EINVAL;
++
++       return 0;
++}
++
++/**
++ * vidioc_queryctrl - V4L2 query control IOCTL handler
++ * @file: ptr. to system file structure
++ * @fh: ptr to hold address of omap34xxcam_fh struct (per-filehandle dat=
+a)
++ * @a: standard V4L2 query control ioctl structure
++ *
++ * If the requested control is supported, returns the control informatio=
+n
++ * in the v4l2_queryctrl structure.  Otherwise, returns -EINVAL if the
++ * control is not supported.  If the sensor being used is a "smart senso=
+r",
++ * this request is passed to the sensor driver, otherwise the ISP is
++ * queried and if it does not support the requested control, the request
++ * is forwarded to the "raw" sensor driver to see if it supports it.
++ */
++static int vidioc_queryctrl(struct file *file, void *fh,
++                           struct v4l2_queryctrl *a)
++{
++       struct omap34xxcam_fh *ofh =3D fh;
++       struct omap34xxcam_videodev *vdev =3D ofh->vdev;
++       struct v4l2_queryctrl a_tmp;
++       int best_slave =3D -1;
++       u32 best_ctrl =3D (u32)-1;
++       int i;
++
++       if (vdev->vdev_sensor_config.sensor_isp)
++               return vidioc_int_queryctrl(vdev->vdev_sensor, a);
++
++       /* No next flags: try slaves directly. */
++       if (!(a->id & V4L2_CTRL_FLAG_NEXT_CTRL)) {
++               for (i =3D 0; i <=3D OMAP34XXCAM_SLAVE_FLASH; i++) {
++                       if (!vidioc_int_queryctrl(vdev->slave[i], a))
++                               return 0;
++               }
++               return isp_queryctrl(a);
++       }
++
++       /* Find slave with smallest next control id. */
++       for (i =3D 0; i <=3D OMAP34XXCAM_SLAVE_FLASH; i++) {
++               a_tmp =3D *a;
++
++               if (vidioc_int_queryctrl(vdev->slave[i], &a_tmp))
++                       continue;
++
++               if (a_tmp.id < best_ctrl) {
++                       best_slave =3D i;
++                       best_ctrl =3D a_tmp.id;
++               }
++       }
++
++       a_tmp =3D *a;
++       if (!isp_queryctrl(&a_tmp)) {
++               if (a_tmp.id < best_ctrl) {
++                       *a =3D a_tmp;
++
++                       return 0;
++               }
++       }
++
++       if (best_slave =3D=3D -1)
++               return -EINVAL;
++
++       a->id =3D best_ctrl;
++       return vidioc_int_queryctrl(vdev->slave[best_slave], a);
++}
++
++/**
++ * vidioc_querymenu - V4L2 query menu IOCTL handler
++ * @file: ptr. to system file structure
++ * @fh: ptr to hold address of omap34xxcam_fh struct (per-filehandle dat=
+a)
++ * @a: standard V4L2 query menu ioctl structure
++ *
++ * If the requested control is supported, returns the menu information
++ * in the v4l2_querymenu structure.  Otherwise, returns -EINVAL if the
++ * control is not supported or is not a menu.  If the sensor being used
++ * is a "smart sensor", this request is passed to the sensor driver,
++ * otherwise the ISP is queried and if it does not support the requested
++ * menu control, the request is forwarded to the "raw" sensor driver to
++ * see if it supports it.
++ */
++static int vidioc_querymenu(struct file *file, void *fh,
++                           struct v4l2_querymenu *a)
++{
++       struct omap34xxcam_fh *ofh =3D fh;
++       struct omap34xxcam_videodev *vdev =3D ofh->vdev;
++       int i;
++
++       if (vdev->vdev_sensor_config.sensor_isp)
++               return vidioc_int_querymenu(vdev->vdev_sensor, a);
++
++       /* Try slaves directly. */
++       for (i =3D 0; i <=3D OMAP34XXCAM_SLAVE_FLASH; i++) {
++               if (!vidioc_int_querymenu(vdev->slave[i], a))
++                       return 0;
++       }
++       return isp_querymenu(a);
++}
++
++static int vidioc_g_ext_ctrls(struct file *file, void *fh,
++                             struct v4l2_ext_controls *a)
++{
++       struct omap34xxcam_fh *ofh =3D fh;
++       struct omap34xxcam_videodev *vdev =3D ofh->vdev;
++       int i, ctrl_idx, rval =3D 0;
++
++       mutex_lock(&vdev->mutex);
++
++       for (ctrl_idx =3D 0; ctrl_idx < a->count; ctrl_idx++) {
++               struct v4l2_control ctrl;
++
++               ctrl.id =3D a->controls[ctrl_idx].id;
++
++               if (vdev->vdev_sensor_config.sensor_isp) {
++                       rval =3D vidioc_int_g_ctrl(vdev->vdev_sensor, &ct=
+rl);
++               } else {
++                       for (i =3D 0; i <=3D OMAP34XXCAM_SLAVE_FLASH; i++=
+) {
++                               rval =3D vidioc_int_g_ctrl(vdev->slave[i]=
+, &ctrl);
++                               if (!rval)
++                                       break;
++                       }
++               }
++
++               if (rval)
++                       rval =3D isp_g_ctrl(&ctrl);
++
++               if (rval) {
++                       a->error_idx =3D ctrl_idx;
++                       break;
++               }
++
++               a->controls[ctrl_idx].value =3D ctrl.value;
++       }
++
++       mutex_unlock(&vdev->mutex);
++
++       return rval;
++}
++
++static int vidioc_s_ext_ctrls(struct file *file, void *fh,
++                             struct v4l2_ext_controls *a)
++{
++       struct omap34xxcam_fh *ofh =3D fh;
++       struct omap34xxcam_videodev *vdev =3D ofh->vdev;
++       int i, ctrl_idx, rval =3D 0;
++
++       mutex_lock(&vdev->mutex);
++
++       for (ctrl_idx =3D 0; ctrl_idx < a->count; ctrl_idx++) {
++               struct v4l2_control ctrl;
++
++               ctrl.id =3D a->controls[ctrl_idx].id;
++               ctrl.value =3D a->controls[ctrl_idx].value;
++
++               if (vdev->vdev_sensor_config.sensor_isp) {
++                       rval =3D vidioc_int_s_ctrl(vdev->vdev_sensor, &ct=
+rl);
++               } else {
++                       for (i =3D 0; i <=3D OMAP34XXCAM_SLAVE_FLASH; i++=
+) {
++                               rval =3D vidioc_int_s_ctrl(vdev->slave[i]=
+, &ctrl);
++                               if (!rval)
++                                       break;
++                       }
++               }
++
++               if (rval)
++                       rval =3D isp_s_ctrl(&ctrl);
++
++               if (rval) {
++                       a->error_idx =3D ctrl_idx;
++                       break;
++               }
++
++               a->controls[ctrl_idx].value =3D ctrl.value;
++       }
++
++       mutex_unlock(&vdev->mutex);
++
++       return rval;
++}
++
++/**
++ * vidioc_g_parm - V4L2 get parameters IOCTL handler
++ * @file: ptr. to system file structure
++ * @fh: ptr to hold address of omap34xxcam_fh struct (per-filehandle dat=
+a)
++ * @a: standard V4L2 stream parameters structure
++ *
++ * If request is for video capture buffer type, handles request by
++ * forwarding to sensor driver.
++ */
++static int vidioc_g_parm(struct file *file, void *fh, struct v4l2_stream=
+parm *a)
++{
++       struct omap34xxcam_fh *ofh =3D fh;
++       struct omap34xxcam_videodev *vdev =3D ofh->vdev;
++       int rval;
++
++       if (a->type !=3D V4L2_BUF_TYPE_VIDEO_CAPTURE)
++               return -EINVAL;
++
++       mutex_lock(&vdev->mutex);
++       rval =3D vidioc_int_g_parm(vdev->vdev_sensor, a);
++       mutex_unlock(&vdev->mutex);
++
++       return rval;
++}
++
++/**
++ * vidioc_s_parm - V4L2 set parameters IOCTL handler
++ * @file: ptr. to system file structure
++ * @fh: ptr to hold address of omap34xxcam_fh struct (per-filehandle dat=
+a)
++ * @a: standard V4L2 stream parameters structure
++ *
++ * If request is for video capture buffer type, handles request by
++ * first getting current stream parameters from sensor, then forwarding
++ * request to set new parameters to sensor driver.  It then attempts to
++ * enable the sensor interface with the new parameters.  If this fails, =
+it
++ * reverts back to the previous parameters.
++ */
++static int vidioc_s_parm(struct file *file, void *fh, struct v4l2_stream=
+parm *a)
++{
++       struct omap34xxcam_fh *ofh =3D fh;
++       struct omap34xxcam_videodev *vdev =3D ofh->vdev;
++       struct v4l2_pix_format pix_tmp_sensor, pix_tmp;
++       int rval;
++
++       if (a->type !=3D V4L2_BUF_TYPE_VIDEO_CAPTURE)
++               return -EINVAL;
++
++       mutex_lock(&vdev->mutex);
++       if (vdev->streaming) {
++               rval =3D -EBUSY;
++               goto out;
++       }
++
++       vdev->want_timeperframe =3D a->parm.capture.timeperframe;
++
++       pix_tmp =3D vdev->want_pix;
++
++       rval =3D s_pix_parm(vdev, &pix_tmp_sensor, &pix_tmp,
++                         &a->parm.capture.timeperframe);
++
++out:
++       mutex_unlock(&vdev->mutex);
++
++       return rval;
++}
++
++/**
++ * vidioc_cropcap - V4L2 crop capture IOCTL handler
++ * @file: ptr. to system file structure
++ * @fh: ptr to hold address of omap34xxcam_fh struct (per-filehandle dat=
+a)
++ * @a: standard V4L2 crop capture structure
++ *
++ * If using a "smart" sensor, just forwards request to the sensor driver=
+,
++ * otherwise fills in the v4l2_cropcap values locally.
++ */
++static int vidioc_cropcap(struct file *file, void *fh, struct v4l2_cropc=
+ap *a)
++{
++       struct omap34xxcam_fh *ofh =3D fh;
++       struct omap34xxcam_videodev *vdev =3D ofh->vdev;
++       struct v4l2_cropcap *cropcap =3D a;
++       int rval;
++
++       mutex_lock(&vdev->mutex);
++
++       if (vdev->vdev_sensor_config.sensor_isp) {
++               rval =3D vidioc_int_cropcap(vdev->vdev_sensor, a);
++       } else {
++               struct v4l2_format f;
++
++               rval =3D vidioc_int_cropcap(vdev->vdev_sensor, a);
++               if (!rval)
++                       return rval;
++
++               /* cropcap failed, try to do this via g_fmt_cap */
++               rval =3D vidioc_int_g_fmt_cap(vdev->vdev_sensor, &f);
++               if (!rval) {
++                       cropcap->bounds.top =3D 0;
++                       cropcap->bounds.left =3D 0;
++                       cropcap->bounds.width =3D f.fmt.pix.width;
++                       cropcap->bounds.height =3D f.fmt.pix.height;
++                       cropcap->defrect =3D cropcap->bounds;
++                       cropcap->pixelaspect.numerator =3D 1;
++                       cropcap->pixelaspect.denominator =3D 1;
++               }
++       }
++
++       mutex_unlock(&vdev->mutex);
++
++       return rval;
++}
++
++/**
++ * vidioc_g_crop - V4L2 get capture crop IOCTL handler
++ * @file: ptr. to system file structure
++ * @fh: ptr to hold address of omap34xxcam_fh struct (per-filehandle dat=
+a)
++ * @a: standard V4L2 crop structure
++ *
++ * If using a "smart" sensor, just forwards request to the sensor driver=
+,
++ * otherwise calls the isp functions to fill in current crop values.
++ */
++static int vidioc_g_crop(struct file *file, void *fh, struct v4l2_crop *=
+a)
++{
++       struct omap34xxcam_fh *ofh =3D fh;
++       struct omap34xxcam_videodev *vdev =3D ofh->vdev;
++       int rval =3D 0;
++
++       mutex_lock(&vdev->mutex);
++
++       if (vdev->vdev_sensor_config.sensor_isp)
++               rval =3D vidioc_int_g_crop(vdev->vdev_sensor, a);
++       else
++               rval =3D isp_g_crop(a);
++
++       mutex_unlock(&vdev->mutex);
++
++       return rval;
++}
++
++/**
++ * vidioc_s_crop - V4L2 set capture crop IOCTL handler
++ * @file: ptr. to system file structure
++ * @fh: ptr to hold address of omap34xxcam_fh struct (per-filehandle dat=
+a)
++ * @a: standard V4L2 crop structure
++ *
++ * If using a "smart" sensor, just forwards request to the sensor driver=
+,
++ * otherwise calls the isp functions to set the current crop values.
++ */
++static int vidioc_s_crop(struct file *file, void *fh, struct v4l2_crop *=
+a)
++{
++       struct omap34xxcam_fh *ofh =3D fh;
++       struct omap34xxcam_videodev *vdev =3D ofh->vdev;
++       struct v4l2_pix_format *pix =3D &ofh->pix;
++       int rval =3D 0;
++
++       mutex_lock(&vdev->mutex);
++
++       if (vdev->vdev_sensor_config.sensor_isp)
++               rval =3D vidioc_int_s_crop(vdev->vdev_sensor, a);
++       else
++               rval =3D isp_s_crop(a, pix);
++
++       mutex_unlock(&vdev->mutex);
++
++       return rval;
++}
++
++static int vidioc_enum_framesizes(struct file *file, void *fh,
++                                 struct v4l2_frmsizeenum *frms)
++{
++       struct omap34xxcam_fh *ofh =3D fh;
++       struct omap34xxcam_videodev *vdev =3D ofh->vdev;
++       u32 pixel_format;
++       int rval;
++
++       pixel_format =3D frms->pixel_format;
++       frms->pixel_format =3D V4L2_PIX_FMT_SGRBG10; /* We can accept any=
+. */
++
++       mutex_lock(&vdev->mutex);
++       rval =3D vidioc_int_enum_framesizes(vdev->vdev_sensor, frms);
++       mutex_unlock(&vdev->mutex);
++
++       frms->pixel_format =3D pixel_format;
++
++       return rval;
++}
++
++static int vidioc_enum_frameintervals(struct file *file, void *fh,
++                                     struct v4l2_frmivalenum *frmi)
++{
++       struct omap34xxcam_fh *ofh =3D fh;
++       struct omap34xxcam_videodev *vdev =3D ofh->vdev;
++       u32 pixel_format;
++       int rval;
++
++       pixel_format =3D frmi->pixel_format;
++       frmi->pixel_format =3D V4L2_PIX_FMT_SGRBG10; /* We can accept any=
+. */
++
++       mutex_lock(&vdev->mutex);
++       rval =3D vidioc_int_enum_frameintervals(vdev->vdev_sensor, frmi);
++       mutex_unlock(&vdev->mutex);
++
++       frmi->pixel_format =3D pixel_format;
++
++       return rval;
++}
++
++/**
++ * vidioc_default - private IOCTL handler
++ * @file: ptr. to system file structure
++ * @fh: ptr to hold address of omap34xxcam_fh struct (per-filehandle dat=
+a)
++ * @cmd: ioctl cmd value
++ * @arg: ioctl arg value
++ *
++ * If the sensor being used is a "smart sensor", this request is returne=
+d to
++ * caller with -EINVAL err code.  Otherwise if the control id is the pri=
+vate
++ * VIDIOC_PRIVATE_ISP_AEWB_REQ to update the analog gain or exposure,
++ * then this request is forwared directly to the sensor to incorporate t=
+he
++ * feedback. The request is then passed on to the ISP private IOCTL hand=
+ler,
++ * isp_handle_private()
++ */
++static int vidioc_default(struct file *file, void *fh, int cmd, void *ar=
+g)
++{
++       struct omap34xxcam_fh *ofh =3D file->private_data;
++       struct omap34xxcam_videodev *vdev =3D ofh->vdev;
++       int rval;
++
++       if (vdev->vdev_sensor_config.sensor_isp) {
++               rval =3D -EINVAL;
++       } else {
++               switch (cmd) {
++               case VIDIOC_ENUM_FRAMESIZES:
++                       rval =3D vidioc_enum_framesizes(file, fh, arg);
++                       goto out;
++               case VIDIOC_ENUM_FRAMEINTERVALS:
++                       rval =3D vidioc_enum_frameintervals(file, fh, arg=
+);
++                       goto out;
++               case VIDIOC_PRIVATE_ISP_AEWB_REQ:
++               {
++                       /* Need to update sensor first */
++                       struct isph3a_aewb_data *data;
++                       struct v4l2_control vc;
++
++                       data =3D (struct isph3a_aewb_data *) arg;
++                       if (data->update & SET_EXPOSURE) {
++                               vc.id =3D V4L2_CID_EXPOSURE;
++                               vc.value =3D data->shutter;
++                               mutex_lock(&vdev->mutex);
++                               rval =3D vidioc_int_s_ctrl(vdev->vdev_sen=
+sor,
++                                                        &vc);
++                               mutex_unlock(&vdev->mutex);
++                               if (rval)
++                                       goto out;
++                       }
++                       if (data->update & SET_ANALOG_GAIN) {
++                               vc.id =3D V4L2_CID_GAIN;
++                               vc.value =3D data->gain;
++                               mutex_lock(&vdev->mutex);
++                               rval =3D vidioc_int_s_ctrl(vdev->vdev_sen=
+sor,
++                                                        &vc);
++                               mutex_unlock(&vdev->mutex);
++                               if (rval)
++                                       goto out;
++                       }
++               }
++               break;
++               case VIDIOC_PRIVATE_ISP_AF_REQ: {
++                       /* Need to update lens first */
++                       struct isp_af_data *data;
++                       struct v4l2_control vc;
++
++                       if (!vdev->vdev_lens) {
++                               rval =3D -EINVAL;
++                               goto out;
++                       }
++                       data =3D (struct isp_af_data *) arg;
++                       if (data->update & LENS_DESIRED_POSITION) {
++                               vc.id =3D V4L2_CID_FOCUS_ABSOLUTE;
++                               vc.value =3D data->desired_lens_direction=
+;
++                               mutex_lock(&vdev->mutex);
++                               rval =3D vidioc_int_s_ctrl(vdev->vdev_len=
+s, &vc);
++                               mutex_unlock(&vdev->mutex);
++                               if (rval)
++                                       goto out;
++                       }
++                       if (data->update & REQUEST_STATISTICS) {
++                               vc.id =3D V4L2_CID_FOCUS_ABSOLUTE;
++                               mutex_lock(&vdev->mutex);
++                               rval =3D vidioc_int_g_ctrl(vdev->vdev_len=
+s, &vc);
++                               mutex_unlock(&vdev->mutex);
++                               if (rval)
++                                       goto out;
++                               data->xtrastats.lens_position =3D vc.valu=
+e;
++                       }
++               }
++                       break;
++               }
++
++               mutex_lock(&vdev->mutex);
++               rval =3D isp_handle_private(cmd, arg);
++               mutex_unlock(&vdev->mutex);
++       }
++out:
++       return rval;
++}
++
++/*
++ *
++ * File operations.
++ *
++ */
++
++static long omap34xxcam_unlocked_ioctl(struct file *file, unsigned int c=
+md,
++                                      unsigned long arg)
++{
++       return (long)video_ioctl2(file->f_dentry->d_inode, file, cmd, arg=
+);
++}
++
++/**
++ * omap34xxcam_poll - file operations poll handler
++ * @file: ptr. to system file structure
++ * @wait: system poll table structure
++ *
++ */
++static unsigned int omap34xxcam_poll(struct file *file,
++                                    struct poll_table_struct *wait)
++{
++       struct omap34xxcam_fh *fh =3D file->private_data;
++       struct omap34xxcam_videodev *vdev =3D fh->vdev;
++       struct videobuf_buffer *vb;
++
++       mutex_lock(&vdev->mutex);
++       if (vdev->streaming !=3D file) {
++               mutex_unlock(&vdev->mutex);
++               return POLLERR;
++       }
++       mutex_unlock(&vdev->mutex);
++
++       mutex_lock(&fh->vbq.vb_lock);
++       if (list_empty(&fh->vbq.stream)) {
++               mutex_unlock(&fh->vbq.vb_lock);
++               return POLLERR;
++       }
++       vb =3D list_entry(fh->vbq.stream.next, struct videobuf_buffer, st=
+ream);
++       mutex_unlock(&fh->vbq.vb_lock);
++
++       poll_wait(file, &vb->done, wait);
++
++       if (vb->state =3D=3D VIDEOBUF_DONE || vb->state =3D=3D VIDEOBUF_E=
+RROR)
++               return POLLIN | POLLRDNORM;
++
++       return 0;
++}
++
++/**
++ * omap34xxcam_mmap - file operations mmap handler
++ * @file: ptr. to system file structure
++ * @vma: system virt. mem. area structure
++ *
++ * Maps a virtual memory area via the video buffer API
++ */
++static int omap34xxcam_mmap(struct file *file, struct vm_area_struct *vm=
+a)
++{
++       struct omap34xxcam_fh *fh =3D file->private_data;
++       return videobuf_mmap_mapper(&fh->vbq, vma);
++}
++
++/**
++ * omap34xxcam_open - file operations open handler
++ * @inode: ptr. to system inode structure
++ * @file: ptr. to system file structure
++ *
++ * Allocates and initializes the per-filehandle data (omap34xxcam_fh),
++ * enables the sensor, opens/initializes the ISP interface and the
++ * video buffer queue.  Note that this function will allow multiple
++ * file handles to be open simultaneously, however only the first
++ * handle opened will initialize the ISP.  It is the application
++ * responsibility to only use one handle for streaming and the others
++ * for control only.
++ * This function returns 0 upon success and -ENODEV upon error.
++ */
++static int omap34xxcam_open(struct inode *inode, struct file *file)
++{
++       struct omap34xxcam_videodev *vdev =3D NULL;
++       struct omap34xxcam_device *cam =3D omap34xxcam;
++       struct omap34xxcam_fh *fh;
++       struct v4l2_format format;
++       int i;
++
++       for (i =3D 0; i < OMAP34XXCAM_VIDEODEVS; i++) {
++               if (cam->vdevs[i].vfd
++                   && cam->vdevs[i].vfd->minor =3D=3D iminor(inode)) {
++                       vdev =3D &cam->vdevs[i];
++                       break;
++               }
++       }
++
++       if (!vdev || !vdev->vfd)
++               return -ENODEV;
++
++       fh =3D kzalloc(sizeof(*fh), GFP_KERNEL);
++       if (fh =3D=3D NULL)
++               return -ENOMEM;
++
++       mutex_lock(&vdev->mutex);
++       for (i =3D 0; i <=3D OMAP34XXCAM_SLAVE_FLASH; i++) {
++               if (vdev->slave[i] !=3D v4l2_int_device_dummy()
++                   && !try_module_get(vdev->slave[i]->module)) {
++                       mutex_unlock(&vdev->mutex);
++                       goto out_try_module_get;
++               }
++       }
++
++       if (atomic_inc_return(&vdev->users) =3D=3D 1) {
++               isp_get();
++               if (omap34xxcam_slave_power_set(vdev, V4L2_POWER_ON,
++                                               OMAP34XXCAM_SLAVE_POWER_A=
+LL))
++                       goto out_slave_power_set_standby;
++               omap34xxcam_slave_power_set(
++                       vdev, V4L2_POWER_STANDBY,
++                       OMAP34XXCAM_SLAVE_POWER_SENSOR);
++               omap34xxcam_slave_power_suggest(
++                       vdev, V4L2_POWER_STANDBY,
++                       OMAP34XXCAM_SLAVE_POWER_LENS);
++       }
++
++       fh->vdev =3D vdev;
++
++       /* FIXME: Check that we have sensor now... */
++       if (vdev->vdev_sensor_config.sensor_isp)
++               vidioc_int_g_fmt_cap(vdev->vdev_sensor, &format);
++       else
++               isp_g_fmt_cap(&format.fmt.pix);
++
++       mutex_unlock(&vdev->mutex);
++       /* FIXME: how about fh->pix when there are more users? */
++       fh->pix =3D format.fmt.pix;
++
++       file->private_data =3D fh;
++
++       spin_lock_init(&fh->vbq_lock);
++
++       videobuf_queue_sg_init(&fh->vbq, &omap34xxcam_vbq_ops, NULL,
++                               &fh->vbq_lock, V4L2_BUF_TYPE_VIDEO_CAPTUR=
+E,
++                               V4L2_FIELD_NONE,
++                               sizeof(struct videobuf_buffer), fh);
++
++       return 0;
++
++out_slave_power_set_standby:
++       omap34xxcam_slave_power_set(vdev, V4L2_POWER_OFF,
++                                   OMAP34XXCAM_SLAVE_POWER_ALL);
++       isp_put();
++       atomic_dec(&vdev->users);
++       mutex_unlock(&vdev->mutex);
++
++out_try_module_get:
++       for (i--; i >=3D 0; i--)
++               if (vdev->slave[i] !=3D v4l2_int_device_dummy())
++                       module_put(vdev->slave[i]->module);
++
++       kfree(fh);
++
++       return -ENODEV;
++}
++
++/**
++ * omap34xxcam_release - file operations release handler
++ * @inode: ptr. to system inode structure
++ * @file: ptr. to system file structure
++ *
++ * Complement of omap34xxcam_open.  This function will flush any schedul=
+ed
++ * work, disable the sensor, close the ISP interface, stop the
++ * video buffer queue from streaming and free the per-filehandle data
++ * (omap34xxcam_fh).  Note that because multiple open file handles
++ * are allowed, this function will only close the ISP and disable the
++ * sensor when the last open file handle (by count) is closed.
++ * This function returns 0.
++ */
++static int omap34xxcam_release(struct inode *inode, struct file *file)
++{
++       struct omap34xxcam_fh *fh =3D file->private_data;
++       struct omap34xxcam_videodev *vdev =3D fh->vdev;
++       int i;
++
++       mutex_lock(&vdev->mutex);
++       if (vdev->streaming =3D=3D file) {
++               isp_stop();
++               videobuf_streamoff(&fh->vbq);
++               omap34xxcam_slave_power_set(
++                       vdev, V4L2_POWER_STANDBY,
++                       OMAP34XXCAM_SLAVE_POWER_SENSOR);
++               omap34xxcam_slave_power_suggest(
++                       vdev, V4L2_POWER_STANDBY,
++                       OMAP34XXCAM_SLAVE_POWER_LENS);
++               vdev->streaming =3D NULL;
++       }
++
++       if (atomic_dec_return(&vdev->users) =3D=3D 0) {
++               omap34xxcam_slave_power_set(vdev, V4L2_POWER_OFF,
++                                           OMAP34XXCAM_SLAVE_POWER_ALL);
++               isp_put();
++       }
++       mutex_unlock(&vdev->mutex);
++
++       file->private_data =3D NULL;
++
++       for (i =3D 0; i <=3D OMAP34XXCAM_SLAVE_FLASH; i++)
++               if (vdev->slave[i] !=3D v4l2_int_device_dummy())
++                       module_put(vdev->slave[i]->module);
++
++       kfree(fh);
++
++       return 0;
++}
++
++static struct file_operations omap34xxcam_fops =3D {
++       .owner =3D THIS_MODULE,
++       .llseek =3D no_llseek,
++       .unlocked_ioctl =3D omap34xxcam_unlocked_ioctl,
++       .poll =3D omap34xxcam_poll,
++       .mmap =3D omap34xxcam_mmap,
++       .open =3D omap34xxcam_open,
++       .release =3D omap34xxcam_release,
++};
++
++static void omap34xxcam_vfd_name_update(struct omap34xxcam_videodev *vde=
+v)
++{
++       struct video_device *vfd =3D vdev->vfd;
++       int i;
++
++       strlcpy(vfd->name, CAM_SHORT_NAME, sizeof(vfd->name));
++       for (i =3D 0; i <=3D OMAP34XXCAM_SLAVE_FLASH; i++) {
++               strlcat(vfd->name, "/", sizeof(vfd->name));
++               if (vdev->slave[i] =3D=3D v4l2_int_device_dummy())
++                       continue;
++               strlcat(vfd->name, vdev->slave[i]->name, sizeof(vfd->name=
+));
++       }
++       dev_info(vdev->cam->dev, "video%d is now %s\n", vfd->minor, vfd->=
+name);
++}
++
++/**
++ * omap34xxcam_device_unregister - V4L2 detach handler
++ * @s: ptr. to standard V4L2 device information structure
++ *
++ * Detach sensor and unregister and release the video device.
++ */
++static void omap34xxcam_device_unregister(struct v4l2_int_device *s)
++{
++       struct omap34xxcam_videodev *vdev =3D s->u.slave->master->priv;
++       struct omap34xxcam_hw_config hwc;
++
++       BUG_ON(vidioc_int_g_priv(s, &hwc) < 0);
++
++       mutex_lock(&vdev->mutex);
++
++       if (vdev->slave[hwc.dev_type] !=3D v4l2_int_device_dummy()) {
++               vdev->slave[hwc.dev_type] =3D v4l2_int_device_dummy();
++               vdev->slaves--;
++               omap34xxcam_vfd_name_update(vdev);
++       }
++
++       if (vdev->slaves =3D=3D 0 && vdev->vfd) {
++               if (vdev->vfd->minor =3D=3D -1) {
++                       /*
++                        * The device was never registered, so release th=
+e
++                        * video_device struct directly.
++                        */
++                       video_device_release(vdev->vfd);
++               } else {
++                       /*
++                        * The unregister function will release the
++                        * video_device struct as well as
++                        * unregistering it.
++                        */
++                       video_unregister_device(vdev->vfd);
++               }
++               vdev->vfd =3D NULL;
++       }
++
++       mutex_unlock(&vdev->mutex);
++}
++
++static const struct v4l2_ioctl_ops omap34xxcam_ioctl_ops =3D {
++       .vidioc_querycap         =3D vidioc_querycap,
++       .vidioc_enum_fmt_vid_cap =3D vidioc_enum_fmt_vid_cap,
++       .vidioc_g_fmt_vid_cap    =3D vidioc_g_fmt_vid_cap,
++       .vidioc_s_fmt_vid_cap    =3D vidioc_s_fmt_vid_cap,
++       .vidioc_try_fmt_vid_cap  =3D vidioc_try_fmt_vid_cap,
++       .vidioc_reqbufs          =3D vidioc_reqbufs,
++       .vidioc_querybuf         =3D vidioc_querybuf,
++       .vidioc_qbuf             =3D vidioc_qbuf,
++       .vidioc_dqbuf            =3D vidioc_dqbuf,
++       .vidioc_streamon         =3D vidioc_streamon,
++       .vidioc_streamoff        =3D vidioc_streamoff,
++       .vidioc_enum_input       =3D vidioc_enum_input,
++       .vidioc_g_input          =3D vidioc_g_input,
++       .vidioc_s_input          =3D vidioc_s_input,
++       .vidioc_queryctrl        =3D vidioc_queryctrl,
++       .vidioc_querymenu        =3D vidioc_querymenu,
++       .vidioc_g_ext_ctrls      =3D vidioc_g_ext_ctrls,
++       .vidioc_s_ext_ctrls      =3D vidioc_s_ext_ctrls,
++       .vidioc_g_parm           =3D vidioc_g_parm,
++       .vidioc_s_parm           =3D vidioc_s_parm,
++       .vidioc_cropcap          =3D vidioc_cropcap,
++       .vidioc_g_crop           =3D vidioc_g_crop,
++       .vidioc_s_crop           =3D vidioc_s_crop,
++       .vidioc_default          =3D vidioc_default,
 +};
 +
 +/**
-+ * struct ispprev_cfa - Structure for CFA Inpterpolation.
-+ * @cfafmt: CFA Format Enum value supported by preview.
-+ * @cfa_gradthrs_vert: CFA Gradient Threshold - Vertical.
-+ * @cfa_gradthrs_horz: CFA Gradient Threshold - Horizontal.
-+ * @cfa_table: Pointer to the CFA table.
++ * omap34xxcam_device_register - V4L2 attach handler
++ * @s: ptr. to standard V4L2 device information structure
++ *
++ * Allocates and initializes the V4L2 video_device structure, initialize=
+s
++ * the sensor, and finally
++ registers the device with V4L2 based on the
++ * video_device structure.
++ *
++ * Returns 0 on success, otherwise an appropriate error code on
++ * failure.
 + */
-+struct ispprev_cfa {
-+       enum cfa_fmt cfafmt;
-+       __u8 cfa_gradthrs_vert;
-+       __u8 cfa_gradthrs_horz;
-+       __u32 *cfa_table;
++static int omap34xxcam_device_register(struct v4l2_int_device *s)
++{
++       struct omap34xxcam_videodev *vdev =3D s->u.slave->master->priv;
++       struct omap34xxcam_device *cam =3D vdev->cam;
++       struct omap34xxcam_hw_config hwc;
++       struct video_device *vfd;
++       int rval;
++
++       /* We need to check rval just once. The place is here. */
++       if (vidioc_int_g_priv(s, &hwc))
++               return -ENODEV;
++
++       if (vdev->index !=3D hwc.dev_index)
++               return -ENODEV;
++
++       if (hwc.dev_type < 0 || hwc.dev_type > OMAP34XXCAM_SLAVE_FLASH)
++               return -EINVAL;
++
++       if (vdev->slave[hwc.dev_type] !=3D v4l2_int_device_dummy())
++               return -EBUSY;
++
++       mutex_lock(&vdev->mutex);
++       if (atomic_read(&vdev->users)) {
++               dev_err(cam->dev, "we're open (%d), can't register\n",
++                       atomic_read(&vdev->users));
++               mutex_unlock(&vdev->mutex);
++               return -EBUSY;
++       }
++
++       vdev->slaves++;
++       vdev->slave[hwc.dev_type] =3D s;
++       vdev->slave_config[hwc.dev_type] =3D hwc;
++
++       if (hwc.dev_type =3D=3D OMAP34XXCAM_SLAVE_SENSOR)
++               isp_get();
++       rval =3D omap34xxcam_slave_power_set(vdev, V4L2_POWER_ON,
++                                          1 << hwc.dev_type);
++       if (!rval && hwc.dev_type =3D=3D OMAP34XXCAM_SLAVE_SENSOR) {
++               struct v4l2_format format;
++               struct v4l2_streamparm a;
++
++               format.type =3D V4L2_BUF_TYPE_VIDEO_CAPTURE;
++               rval =3D vidioc_int_g_fmt_cap(vdev->vdev_sensor, &format)=
+;
++
++               a.type =3D V4L2_BUF_TYPE_VIDEO_CAPTURE;
++               rval |=3D vidioc_int_g_parm(vdev->vdev_sensor, &a);
++               if (rval)
++                       rval =3D -EBUSY;
++
++               vdev->want_pix =3D format.fmt.pix;
++               vdev->want_timeperframe =3D a.parm.capture.timeperframe;
++       }
++       omap34xxcam_slave_power_set(vdev, V4L2_POWER_OFF, 1 << hwc.dev_ty=
+pe);
++       if (hwc.dev_type =3D=3D OMAP34XXCAM_SLAVE_SENSOR)
++               isp_put();
++
++       if (rval)
++               goto err;
++
++       /* Are we the first slave? */
++       if (vdev->slaves =3D=3D 1) {
++               /* initialize the video_device struct */
++               vdev->vfd =3D video_device_alloc();
++               vfd =3D vdev->vfd;
++               if (!vfd) {
++                       dev_err(cam->dev,
++                               "could not allocate video device struct\n=
+");
++                       return -ENOMEM;
++               }
++               vfd->release    =3D video_device_release;
++               vfd->minor      =3D -1;
++               vfd->fops       =3D &omap34xxcam_fops;
++               vfd->ioctl_ops  =3D &omap34xxcam_ioctl_ops;
++               video_set_drvdata(vfd, vdev);
++
++               if (video_register_device(vfd, VFL_TYPE_GRABBER,
++                                         hwc.dev_minor) < 0) {
++                       dev_err(cam->dev,
++                               "could not register V4L device\n");
++                       vfd->minor =3D -1;
++                       rval =3D -EBUSY;
++                       goto err;
++               }
++       } else {
++               vfd =3D vdev->vfd;
++       }
++
++       omap34xxcam_vfd_name_update(vdev);
++
++       mutex_unlock(&vdev->mutex);
++
++       return 0;
++
++err:
++       if (s =3D=3D vdev->slave[hwc.dev_type]) {
++               vdev->slave[hwc.dev_type] =3D v4l2_int_device_dummy();
++               vdev->slaves--;
++       }
++
++       mutex_unlock(&vdev->mutex);
++       omap34xxcam_device_unregister(s);
++
++       return rval;
++}
++
++static struct v4l2_int_master omap34xxcam_master =3D {
++       .attach =3D omap34xxcam_device_register,
++       .detach =3D omap34xxcam_device_unregister,
 +};
++
++/*
++ *
++ * Driver Suspend/Resume
++ *
++ */
++
++#ifdef CONFIG_PM
++/**
++ * omap34xxcam_suspend - platform driver PM suspend handler
++ * @pdev: ptr. to platform level device information structure
++ * @state: power state
++ *
++ * If applicable, stop capture and disable sensor.
++ *
++ * Returns 0 always
++ */
++static int omap34xxcam_suspend(struct platform_device *pdev, pm_message_=
+t state)
++{
++       struct omap34xxcam_videodev *vdev =3D platform_get_drvdata(pdev);
++
++       if (atomic_read(&vdev->users) =3D=3D 0)
++               return 0;
++
++       if (vdev->streaming) {
++               isp_stop();
++               omap34xxcam_slave_power_set(vdev, V4L2_POWER_OFF,
++                                           OMAP34XXCAM_SLAVE_POWER_ALL);
++       }
++
++       return 0;
++}
 +
 +/**
-+ * struct ispprev_csup - Structure for Chrominance Suppression.
-+ * @gain: Gain.
-+ * @thres: Threshold.
-+ * @hypf_en: Flag to enable/disable the High Pass Filter.
++ * omap34xxcam_resume - platform driver PM resume handler
++ * @pdev: ptr. to platform level device information structure
++ *
++ * If applicable, resume capture and enable sensor.
++ *
++ * Returns 0 always
 + */
-+struct ispprev_csup {
-+       __u8 gain;
-+       __u8 thres;
-+       __u8 hypf_en;
-+};
++static int omap34xxcam_resume(struct platform_device *pdev)
++{
++       struct omap34xxcam_videodev *vdev =3D platform_get_drvdata(pdev);
++
++       if (atomic_read(&vdev->users) =3D=3D 0)
++               return 0;
++
++       if (vdev->streaming) {
++               omap34xxcam_slave_power_set(vdev, V4L2_POWER_ON,
++                                           OMAP34XXCAM_SLAVE_POWER_ALL);
++               isp_start();
++       }
++
++       return 0;
++}
++#endif
++
++/*
++ *
++ * Driver initialisation and deinitialisation.
++ *
++ */
 +
 +/**
-+ * struct ispprev_wbal - Structure for White Balance.
-+ * @dgain: Digital gain (U10Q8).
-+ * @coef3: White balance gain - COEF 3 (U8Q5).
-+ * @coef2: White balance gain - COEF 2 (U8Q5).
-+ * @coef1: White balance gain - COEF 1 (U8Q5).
-+ * @coef0: White balance gain - COEF 0 (U8Q5).
++ * omap34xxcam_remove - platform driver remove handler
++ * @pdev: ptr. to platform level device information structure
++ *
++ * Unregister device with V4L2, unmap camera registers, and
++ * free camera device information structure (omap34xxcam_device).
++ *
++ * Returns 0 always.
 + */
-+struct ispprev_wbal {
-+       __u16 dgain;
-+       __u8 coef3;
-+       __u8 coef2;
-+       __u8 coef1;
-+       __u8 coef0;
-+};
++static int omap34xxcam_remove(struct platform_device *pdev)
++{
++       struct omap34xxcam_device *cam =3D platform_get_drvdata(pdev);
++       int i;
++
++       if (!cam)
++               return 0;
++
++       for (i =3D 0; i < OMAP34XXCAM_VIDEODEVS; i++) {
++               if (cam->vdevs[i].cam =3D=3D NULL)
++                       continue;
++
++               v4l2_int_device_unregister(&cam->vdevs[i].master);
++               cam->vdevs[i].cam =3D NULL;
++       }
++
++       omap34xxcam =3D NULL;
++
++       kfree(cam);
++
++       return 0;
++}
 +
 +/**
-+ * struct ispprev_blkadj - Structure for Black Adjustment.
-+ * @red: Black level offset adjustment for Red in 2's complement format
-+ * @green: Black level offset adjustment for Green in 2's complement format
-+ * @blue: Black level offset adjustment for Blue in 2's complement format
++ * omap34xxcam_probe - platform driver probe handler
++ * @pdev: ptr. to platform level device information structure
++ *
++ * Allocates and initializes camera device information structure
++ * (omap34xxcam_device), maps the device registers and gets the
++ * device IRQ.  Registers the device as a V4L2 client.
++ *
++ * Returns 0 on success or -ENODEV on failure.
 + */
-+struct ispprev_blkadj {
-+       /*Black level offset adjustment for Red in 2's complement format */
-+       __u8 red;
-+       /*Black level offset adjustment for Green in 2's complement format */
-+       __u8 green;
-+       /* Black level offset adjustment for Blue in 2's complement format */
-+       __u8 blue;
++static int omap34xxcam_probe(struct platform_device *pdev)
++{
++       struct omap34xxcam_device *cam;
++       struct isp_sysc isp_sysconfig;
++       int i;
++
++       cam =3D kzalloc(sizeof(*cam), GFP_KERNEL);
++       if (!cam) {
++               dev_err(&pdev->dev, "could not allocate memory\n");
++               goto err;
++       }
++
++       platform_set_drvdata(pdev, cam);
++
++       cam->dev =3D &pdev->dev;
++
++       isp_get();
++       isp_sysconfig.reset =3D 0;
++       isp_sysconfig.idle_mode =3D 1;
++       isp_power_settings(isp_sysconfig);
++       isp_put();
++
++       omap34xxcam =3D cam;
++
++       for (i =3D 0; i < OMAP34XXCAM_VIDEODEVS; i++) {
++               struct omap34xxcam_videodev *vdev =3D &cam->vdevs[i];
++               struct v4l2_int_device *m =3D &vdev->master;
++
++               m->module       =3D THIS_MODULE;
++               strlcpy(m->name, CAM_NAME, sizeof(m->name));
++               m->type         =3D v4l2_int_type_master;
++               m->u.master     =3D &omap34xxcam_master;
++               m->priv         =3D vdev;
++
++               mutex_init(&vdev->mutex);
++               vdev->index             =3D i;
++               vdev->cam               =3D cam;
++               vdev->vdev_sensor =3D
++                       vdev->vdev_lens =3D
++                       vdev->vdev_flash =3D v4l2_int_device_dummy();
++               setup_timer(&vdev->poweroff_timer,
++                           omap34xxcam_slave_power_timer, (unsigned long=
+)vdev);
++               INIT_WORK(&vdev->poweroff_work, omap34xxcam_slave_power_w=
+ork);
++
++               if (v4l2_int_device_register(m))
++                       goto err;
++       }
++
++       return 0;
++
++err:
++       omap34xxcam_remove(pdev);
++       return -ENODEV;
++}
++
++static struct platform_driver omap34xxcam_driver =3D {
++       .probe =3D omap34xxcam_probe,
++       .remove =3D omap34xxcam_remove,
++#ifdef CONFIG_PM
++       .suspend =3D omap34xxcam_suspend,
++       .resume =3D omap34xxcam_resume,
++#endif
++       .driver =3D {
++                  .name =3D CAM_NAME,
++                  },
 +};
++
++/*
++ *
++ * Module initialisation and deinitialisation
++ *
++ */
 +
 +/**
-+ * struct ispprev_rgbtorgb - Structure for RGB to RGB Blending.
-+ * @matrix: Blending values(S12Q8 format)
-+ *              [RR] [GR] [BR]
-+ *              [RG] [GG] [BG]
-+ *              [RB] [GB] [BB]
-+ * @offset: Blending offset value for R,G,B in 2's complement integer format.
++ * omap34xxcam_init - module_init function
++ *
++ * Calls platfrom driver to register probe, remove,
++ * suspend and resume functions.
++ *
 + */
-+struct ispprev_rgbtorgb {
-+       __u16 matrix[3][3];
-+       __u16 offset[3];
-+};
++static int __init omap34xxcam_init(void)
++{
++       return platform_driver_register(&omap34xxcam_driver);
++}
 +
 +/**
-+ * struct ispprev_csc - Structure for Color Space Conversion from RGB-YCbYCr
-+ * @matrix: Color space conversion coefficients(S10Q8)
-+ *              [CSCRY]  [CSCGY]  [CSCBY]
-+ *              [CSCRCB] [CSCGCB] [CSCBCB]
-+ *              [CSCRCR] [CSCGCR] [CSCBCR]
-+ * @offset: CSC offset values for Y offset, CB offset and CR offset respectively
++ * omap34xxcam_cleanup - module_exit function
++ *
++ * Calls platfrom driver to unregister probe, remove,
++ * suspend and resume functions.
++ *
 + */
-+struct ispprev_csc {
-+       __u16 matrix[RGB_MAX][RGB_MAX];
-+       __s16 offset[RGB_MAX];
-+};
++static void __exit omap34xxcam_cleanup(void)
++{
++       platform_driver_unregister(&omap34xxcam_driver);
++}
 +
-+/**
-+ * struct ispprev_yclimit - Structure for Y, C Value Limit.
-+ * @minC: Minimum C value
-+ * @maxC: Maximum C value
-+ * @minY: Minimum Y value
-+ * @maxY: Maximum Y value
-+ */
-+struct ispprev_yclimit {
-+       __u8 minC;
-+       __u8 maxC;
-+       __u8 minY;
-+       __u8 maxY;
-+};
++MODULE_AUTHOR("Sakari Ailus <sakari.ailus@nokia.com");
++MODULE_DESCRIPTION("OMAP34xx Video for Linux camera driver");
++MODULE_LICENSE("GPL");
 +
-+/**
-+ * struct ispprev_dcor - Structure for Defect correction.
-+ * @couplet_mode_en: Flag to enable or disable the couplet dc Correction in NF
-+ * @detect_correct: Thresholds for correction bit 0:10 detect 16:25 correct
-+ */
-+struct ispprev_dcor {
-+       __u8 couplet_mode_en;
-+       __u32 detect_correct[4];
-+};
-+
-+/**
-+ * struct ispprev_nf - Structure for Noise Filter
-+ * @spread: Spread value to be used in Noise Filter
-+ * @table: Pointer to the Noise Filter table
-+ */
-+struct ispprev_nf {
-+       __u8 spread;
-+       __u32 table[64];
-+};
-+
-+/**
-+ * struct ispprv_update_config - Structure for Preview Configuration (user).
-+ * @update: Specifies which ISP Preview registers should be updated.
-+ * @flag: Specifies which ISP Preview functions should be enabled.
-+ * @yen: Pointer to luma enhancement table.
-+ * @shading_shift: 3bit value of shift used in shading compensation.
-+ * @prev_hmed: Pointer to structure containing the odd and even distance.
-+ *             between the pixels in the image along with the filter threshold.
-+ * @prev_cfa: Pointer to structure containing the CFA interpolation table, CFA.
-+ *            format in the image, vertical and horizontal gradient threshold.
-+ * @csup: Pointer to Structure for Chrominance Suppression coefficients.
-+ * @prev_wbal: Pointer to structure for White Balance.
-+ * @prev_blkadj: Pointer to structure for Black Adjustment.
-+ * @rgb2rgb: Pointer to structure for RGB to RGB Blending.
-+ * @prev_csc: Pointer to structure for Color Space Conversion from RGB-YCbYCr.
-+ * @yclimit: Pointer to structure for Y, C Value Limit.
-+ * @prev_dcor: Pointer to structure for defect correction.
-+ * @prev_nf: Pointer to structure for Noise Filter
-+ * @red_gamma: Pointer to red gamma correction table.
-+ * @green_gamma: Pointer to green gamma correction table.
-+ * @blue_gamma: Pointer to blue gamma correction table.
-+ */
-+struct ispprv_update_config {
-+       __u16 update;
-+       __u16 flag;
-+       void *yen;
-+       __u32 shading_shift;
-+       struct ispprev_hmed *prev_hmed;
-+       struct ispprev_cfa *prev_cfa;
-+       struct ispprev_csup *csup;
-+       struct ispprev_wbal *prev_wbal;
-+       struct ispprev_blkadj *prev_blkadj;
-+       struct ispprev_rgbtorgb *rgb2rgb;
-+       struct ispprev_csc *prev_csc;
-+       struct ispprev_yclimit *yclimit;
-+       struct ispprev_dcor *prev_dcor;
-+       struct ispprev_nf *prev_nf;
-+       __u32 *red_gamma;
-+       __u32 *green_gamma;
-+       __u32 *blue_gamma;
-+};
-+
-+#endif /* OMAP_ISP_USER_H */
-diff --git a/drivers/media/video/isp/ispreg.h b/drivers/media/video/isp/ispreg.h
++late_initcall(omap34xxcam_init);
++module_exit(omap34xxcam_cleanup);
+diff --git a/drivers/media/video/omap34xxcam.h b/drivers/media/video/omap=
+34xxcam.h
 new file mode 100644
-index 0000000..7be09d9
+index 0000000..cc024eb
 --- /dev/null
-+++ b/drivers/media/video/isp/ispreg.h
-@@ -0,0 +1,1652 @@
++++ b/drivers/media/video/omap34xxcam.h
+@@ -0,0 +1,215 @@
 +/*
-+ * drivers/media/video/isp/ispreg.h
++ * drivers/media/video/omap34xxcam.c
 + *
-+ * Header file for all the ISP module in TI's OMAP3 Camera ISP.
-+ * It has the OMAP HW register definitions.
++ * Copyright (C) 2006--2008 Nokia Corporation
++ * Copyright (C) 2007, 2008 Texas Instruments
 + *
-+ * Copyright (C) 2008 Texas Instruments.
-+ * Copyright (C) 2008 Nokia.
++ * Contact: Sakari Ailus <sakari.ailus@nokia.com>
++ *          Tuukka Toivonen <tuukka.o.toivonen@nokia.com>
 + *
-+ * Contributors:
-+ *     Tuukka Toivonen <tuukka.o.toivonen@nokia.com>
-+ *     Thara Gopinath <thara@ti.com>
++ * Originally based on the OMAP 2 camera driver.
 + *
-+ * This package is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
++ * Written by Sakari Ailus <sakari.ailus@nokia.com>
++ *            Tuukka Toivonen <tuukka.o.toivonen@nokia.com>
++ *            Sergio Aguirre <saaguirre@ti.com>
++ *            Mohit Jalori
++ *            Sameer Venkatraman
++ *            Leonides Martinez
 + *
-+ * THIS PACKAGE IS PROVIDED ``AS IS'' AND WITHOUT ANY EXPRESS OR
-+ * IMPLIED WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED
-+ * WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
++ * This program is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU General Public License
++ * version 2 as published by the Free Software Foundation.
++ *
++ * This program is distributed in the hope that it will be useful, but
++ * WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++ * General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
++ * 02110-1301 USA
++ *
 + */
 +
-+#ifndef __ISPREG_H__
-+#define __ISPREG_H__
-+
-+#include <mach/omap34xx.h>
-+
-+#if 0
-+#define OMAP_ISPCTRL_DEBUG
-+#define OMAP_ISPCCDC_DEBUG
-+#define OMAP_ISPPREV_DEBUG
-+#define OMAP_ISPRESZ_DEBUG
-+#define OMAP_ISPMMU_DEBUG
-+#define OMAP_ISPH3A_DEBUG
-+#define OMAP_ISP_AF_DEBUG
-+#define OMAP_ISPHIST_DEBUG
-+#endif
-+
-+#ifdef OMAP_ISPCTRL_DEBUG
-+#define DPRINTK_ISPCTRL(format, ...)\
-+       printk(KERN_INFO "ISPCTRL: " format, ## __VA_ARGS__)
-+#define is_ispctrl_debug_enabled()             1
-+#else
-+#define DPRINTK_ISPCTRL(format, ...)
-+#define is_ispctrl_debug_enabled()             0
-+#endif
-+
-+#ifdef OMAP_ISPCCDC_DEBUG
-+#define DPRINTK_ISPCCDC(format, ...)\
-+       printk(KERN_INFO "ISPCCDC: " format, ## __VA_ARGS__)
-+#define is_ispccdc_debug_enabled()             1
-+#else
-+#define DPRINTK_ISPCCDC(format, ...)
-+#define is_ispccdc_debug_enabled()             0
-+#endif
-+
-+#ifdef OMAP_ISPPREV_DEBUG
-+#define DPRINTK_ISPPREV(format, ...)\
-+       printk(KERN_INFO "ISPPREV: " format, ## __VA_ARGS__)
-+#define is_ispprev_debug_enabled()             1
-+#else
-+#define DPRINTK_ISPPREV(format, ...)
-+#define is_ispprev_debug_enabled()             0
-+#endif
-+
-+#ifdef OMAP_ISPRESZ_DEBUG
-+#define DPRINTK_ISPRESZ(format, ...)\
-+       printk(KERN_INFO "ISPRESZ: " format, ## __VA_ARGS__)
-+#define is_ispresz_debug_enabled()             1
-+#else
-+#define DPRINTK_ISPRESZ(format, ...)
-+#define is_ispresz_debug_enabled()             0
-+#endif
-+
-+#ifdef OMAP_ISPMMU_DEBUG
-+#define DPRINTK_ISPMMU(format, ...)\
-+       printk(KERN_INFO "ISPMMU: " format, ## __VA_ARGS__)
-+#define is_ispmmu_debug_enabled()              1
-+#else
-+#define DPRINTK_ISPMMU(format, ...)
-+#define is_ispmmu_debug_enabled()              0
-+#endif
-+
-+#ifdef OMAP_ISPH3A_DEBUG
-+#define DPRINTK_ISPH3A(format, ...)\
-+       printk(KERN_INFO "ISPH3A: " format, ## __VA_ARGS__)
-+#define is_isph3a_debug_enabled()              1
-+#else
-+#define DPRINTK_ISPH3A(format, ...)
-+#define is_isph3a_debug_enabled()              0
-+#endif
-+
-+#ifdef OMAP_ISP_AF_DEBUG
-+#define DPRINTK_ISP_AF(format, ...)\
-+       printk(KERN_INFO "ISP_AF: " format, ## __VA_ARGS__)
-+#define is_isp_af_debug_enabled()              1
-+#else
-+#define DPRINTK_ISP_AF(format, ...)
-+#define is_isp_af_debug_enabled()              0
-+#endif
-+
-+#ifdef OMAP_ISPHIST_DEBUG
-+#define DPRINTK_ISPHIST(format, ...)\
-+       printk(KERN_INFO "ISPHIST: " format, ## __VA_ARGS__)
-+#define is_isphist_debug_enabled()             1
-+#else
-+#define DPRINTK_ISPHIST(format, ...)
-+#define is_isphist_debug_enabled()             0
-+#endif
-+
-+#define ISP_32B_BOUNDARY_BUF           0xFFFFFFE0
-+#define ISP_32B_BOUNDARY_OFFSET                0x0000FFE0
-+
-+#define CONTROL_CSIRXFE                        (L4_34XX_BASE + 0x22DC)
-+#define CONTROL_CSI                    (L4_34XX_BASE + 0x2530)
-+
-+#define CM_CAM_MCLK_HZ                 216000000
-+
-+/* ISP Submodules offset */
-+
-+#define OMAP3ISP_REG_BASE              OMAP3_ISP_BASE
-+#define OMAP3ISP_REG(offset)           (OMAP3ISP_REG_BASE + (offset))
-+
-+#define OMAP3ISP_CBUFF_REG_OFFSET      0x0100
-+#define OMAP3ISP_CBUFF_REG_BASE                (OMAP3ISP_REG_BASE + OMAP3ISP_CBUFF_REG_OFFSET)
-+#define OMAP3ISP_CBUFF_REG(offset)     (OMAP3ISP_CBUFF_REG_BASE + (offset))
-+
-+#define OMAP3ISP_CCP2_REG_OFFSET       0x0400
-+#define OMAP3ISP_CCP2_REG_BASE         (OMAP3ISP_REG_BASE + OMAP3ISP_CCP2_REG_OFFSET)
-+#define OMAP3ISP_CCP2_REG(offset)      (OMAP3ISP_CCP2_REG_BASE + (offset))
-+
-+#define OMAP3ISP_CCDC_REG_OFFSET       0x0600
-+#define OMAP3ISP_CCDC_REG_BASE         (OMAP3ISP_REG_BASE + OMAP3ISP_CCDC_REG_OFFSET)
-+#define OMAP3ISP_CCDC_REG(offset)      (OMAP3ISP_CCDC_REG_BASE + (offset))
-+
-+#define OMAP3ISP_HIST_REG_OFFSET       0x0A00
-+#define OMAP3ISP_HIST_REG_BASE         (OMAP3ISP_REG_BASE + OMAP3ISP_HIST_REG_OFFSET)
-+#define OMAP3ISP_HIST_REG(offset)      (OMAP3ISP_HIST_REG_BASE + (offset))
-+
-+#define OMAP3ISP_H3A_REG_OFFSET                0x0C00
-+#define OMAP3ISP_H3A_REG_BASE          (OMAP3ISP_REG_BASE + OMAP3ISP_H3A_REG_OFFSET)
-+#define OMAP3ISP_H3A_REG(offset)       (OMAP3ISP_H3A_REG_BASE + (offset))
-+
-+#define OMAP3ISP_PREV_REG_OFFSET       0x0E00
-+#define OMAP3ISP_PREV_REG_BASE         (OMAP3ISP_REG_BASE + OMAP3ISP_PREV_REG_OFFSET)
-+#define OMAP3ISP_PREV_REG(offset)      (OMAP3ISP_PREV_REG_BASE + (offset))
-+
-+#define OMAP3ISP_RESZ_REG_OFFSET       0x1000
-+#define OMAP3ISP_RESZ_REG_BASE         (OMAP3ISP_REG_BASE + OMAP3ISP_RESZ_REG_OFFSET)
-+#define OMAP3ISP_RESZ_REG(offset)      (OMAP3ISP_RESZ_REG_BASE + (offset))
-+
-+#define OMAP3ISP_SBL_REG_OFFSET                0x1200
-+#define OMAP3ISP_SBL_REG_BASE          (OMAP3ISP_REG_BASE + OMAP3ISP_SBL_REG_OFFSET)
-+#define OMAP3ISP_SBL_REG(offset)       (OMAP3ISP_SBL_REG_BASE + (offset))
-+
-+#define OMAP3ISP_MMU_REG_OFFSET                0x1400
-+#define OMAP3ISP_MMU_REG_BASE          (OMAP3ISP_REG_BASE + OMAP3ISP_MMU_REG_OFFSET)
-+#define OMAP3ISP_MMU_REG(offset)       (OMAP3ISP_MMU_REG_BASE + (offset))
-+
-+#define OMAP3ISP_CSI2A_REG_OFFSET      0x1800
-+#define OMAP3ISP_CSI2A_REG_BASE                (OMAP3ISP_REG_BASE + OMAP3ISP_CSI2A_REG_OFFSET)
-+#define OMAP3ISP_CSI2A_REG(offset)     (OMAP3ISP_CSI2A_REG_BASE + (offset))
-+
-+#define OMAP3ISP_CSI2PHY_REG_OFFSET    0x1970
-+#define OMAP3ISP_CSI2PHY_REG_BASE      (OMAP3ISP_REG_BASE + OMAP3ISP_CSI2PHY_REG_OFFSET)
-+#define OMAP3ISP_CSI2PHY_REG(offset)   (OMAP3ISP_CSI2PHY_REG_BASE + (offset))
-+
-+/* ISP module register offset */
-+
-+#define ISP_REVISION                   (0x000)
-+#define ISP_SYSCONFIG                  (0x004)
-+#define ISP_SYSSTATUS                  (0x008)
-+#define ISP_IRQ0ENABLE                 (0x00C)
-+#define ISP_IRQ0STATUS                 (0x010)
-+#define ISP_IRQ1ENABLE                 (0x014)
-+#define ISP_IRQ1STATUS                 (0x018)
-+#define ISP_TCTRL_GRESET_LENGTH                (0x030)
-+#define ISP_TCTRL_PSTRB_REPLAY         (0x034)
-+#define ISP_CTRL                       (0x040)
-+#define ISP_SECURE                     (0x044)
-+#define ISP_TCTRL_CTRL                 (0x050)
-+#define ISP_TCTRL_FRAME                        (0x054)
-+#define ISP_TCTRL_PSTRB_DELAY          (0x058)
-+#define ISP_TCTRL_STRB_DELAY           (0x05C)
-+#define ISP_TCTRL_SHUT_DELAY           (0x060)
-+#define ISP_TCTRL_PSTRB_LENGTH         (0x064)
-+#define ISP_TCTRL_STRB_LENGTH          (0x068)
-+#define ISP_TCTRL_SHUT_LENGTH          (0x06C)
-+#define ISP_PING_PONG_ADDR             (0x070)
-+#define ISP_PING_PONG_MEM_RANGE                (0x074)
-+#define ISP_PING_PONG_BUF_SIZE         (0x078)
-+
-+/* CSI1 receiver registers (ES2.0) */
-+#define ISPCSI1_REVISION               (0x000)
-+#define ISPCSI1_SYSCONFIG              (0x004)
-+#define ISPCSI1_SYSSTATUS              (0x008)
-+#define ISPCSI1_LC01_IRQENABLE         (0x00C)
-+#define ISPCSI1_LC01_IRQSTATUS         (0x010)
-+#define ISPCSI1_LC23_IRQENABLE         (0x014)
-+#define ISPCSI1_LC23_IRQSTATUS         (0x018)
-+#define ISPCSI1_LCM_IRQENABLE          (0x02C)
-+#define ISPCSI1_LCM_IRQSTATUS          (0x030)
-+#define ISPCSI1_CTRL                   (0x040)
-+#define ISPCSI1_DBG                    (0x044)
-+#define ISPCSI1_GNQ                    (0x048)
-+#define ISPCSI1_LCx_CTRL(x)            ((0x050)+0x30*(x))
-+#define ISPCSI1_LCx_CODE(x)            ((0x054)+0x30*(x))
-+#define ISPCSI1_LCx_STAT_START(x)      ((0x058)+0x30*(x))
-+#define ISPCSI1_LCx_STAT_SIZE(x)       ((0x05C)+0x30*(x))
-+#define ISPCSI1_LCx_SOF_ADDR(x)                ((0x060)+0x30*(x))
-+#define ISPCSI1_LCx_EOF_ADDR(x)                ((0x064)+0x30*(x))
-+#define ISPCSI1_LCx_DAT_START(x)       ((0x068)+0x30*(x))
-+#define ISPCSI1_LCx_DAT_SIZE(x)                ((0x06C)+0x30*(x))
-+#define ISPCSI1_LCx_DAT_PING_ADDR(x)   ((0x070)+0x30*(x))
-+#define ISPCSI1_LCx_DAT_PONG_ADDR(x)   ((0x074)+0x30*(x))
-+#define ISPCSI1_LCx_DAT_OFST(x)                ((0x078)+0x30*(x))
-+#define ISPCSI1_LCM_CTRL               (0x1D0)
-+#define ISPCSI1_LCM_VSIZE              (0x1D4)
-+#define ISPCSI1_LCM_HSIZE              (0x1D8)
-+#define ISPCSI1_LCM_PREFETCH           (0x1DC)
-+#define ISPCSI1_LCM_SRC_ADDR           (0x1E0)
-+#define ISPCSI1_LCM_SRC_OFST           (0x1E4)
-+#define ISPCSI1_LCM_DST_ADDR           (0x1E8)
-+#define ISPCSI1_LCM_DST_OFST           (0x1EC)
-+#define ISP_CSIB_SYSCONFIG             ISPCSI1_SYSCONFIG
-+#define ISP_CSIA_SYSCONFIG             ISPCSI2_SYSCONFIG
-+
-+/* ISP_CBUFF Registers */
-+
-+#define ISP_CBUFF_SYSCONFIG            (0x010)
-+#define ISP_CBUFF_IRQENABLE            (0x01C)
-+
-+#define ISP_CBUFF0_CTRL                        (0x020)
-+#define ISP_CBUFF1_CTRL                        (0x024)
-+
-+#define ISP_CBUFF0_START               (0x040)
-+#define ISP_CBUFF1_START               (0x044)
-+
-+#define ISP_CBUFF0_END                 (0x050)
-+#define ISP_CBUFF1_END                 (0x054)
-+
-+#define ISP_CBUFF0_WINDOWSIZE          (0x060)
-+#define ISP_CBUFF1_WINDOWSIZE          (0x064)
-+
-+#define ISP_CBUFF0_THRESHOLD           (0x070)
-+#define ISP_CBUFF1_THRESHOLD           (0x074)
-+
-+/* CCDC module register offset */
-+
-+#define ISPCCDC_PID                    (0x000)
-+#define ISPCCDC_PCR                    (0x004)
-+#define ISPCCDC_SYN_MODE               (0x008)
-+#define ISPCCDC_HD_VD_WID              (0x00C)
-+#define ISPCCDC_PIX_LINES              (0x010)
-+#define ISPCCDC_HORZ_INFO              (0x014)
-+#define ISPCCDC_VERT_START             (0x018)
-+#define ISPCCDC_VERT_LINES             (0x01C)
-+#define ISPCCDC_CULLING                        (0x020)
-+#define ISPCCDC_HSIZE_OFF              (0x024)
-+#define ISPCCDC_SDOFST                 (0x028)
-+#define ISPCCDC_SDR_ADDR               (0x02C)
-+#define ISPCCDC_CLAMP                  (0x030)
-+#define ISPCCDC_DCSUB                  (0x034)
-+#define ISPCCDC_COLPTN                 (0x038)
-+#define ISPCCDC_BLKCMP                 (0x03C)
-+#define ISPCCDC_FPC                    (0x040)
-+#define ISPCCDC_FPC_ADDR               (0x044)
-+#define ISPCCDC_VDINT                  (0x048)
-+#define ISPCCDC_ALAW                   (0x04C)
-+#define ISPCCDC_REC656IF               (0x050)
-+#define ISPCCDC_CFG                    (0x054)
-+#define ISPCCDC_FMTCFG                 (0x058)
-+#define ISPCCDC_FMT_HORZ               (0x05C)
-+#define ISPCCDC_FMT_VERT               (0x060)
-+#define ISPCCDC_FMT_ADDR0              (0x064)
-+#define ISPCCDC_FMT_ADDR1              (0x068)
-+#define ISPCCDC_FMT_ADDR2              (0x06C)
-+#define ISPCCDC_FMT_ADDR3              (0x070)
-+#define ISPCCDC_FMT_ADDR4              (0x074)
-+#define ISPCCDC_FMT_ADDR5              (0x078)
-+#define ISPCCDC_FMT_ADDR6              (0x07C)
-+#define ISPCCDC_FMT_ADDR7              (0x080)
-+#define ISPCCDC_PRGEVEN0               (0x084)
-+#define ISPCCDC_PRGEVEN1               (0x088)
-+#define ISPCCDC_PRGODD0                        (0x08C)
-+#define ISPCCDC_PRGODD1                        (0x090)
-+#define ISPCCDC_VP_OUT                 (0x094)
-+
-+#define ISPCCDC_LSC_CONFIG             (0x098)
-+#define ISPCCDC_LSC_INITIAL            (0x09C)
-+#define ISPCCDC_LSC_TABLE_BASE         (0x0A0)
-+#define ISPCCDC_LSC_TABLE_OFFSET       (0x0A4)
-+
-+/* Histogram registers */
-+#define ISPHIST_PID                    (0x000)
-+#define ISPHIST_PCR                    (0x004)
-+#define ISPHIST_CNT                    (0x008)
-+#define ISPHIST_WB_GAIN                        (0x00C)
-+#define ISPHIST_R0_HORZ                        (0x010)
-+#define ISPHIST_R0_VERT                        (0x014)
-+#define ISPHIST_R1_HORZ                        (0x018)
-+#define ISPHIST_R1_VERT                        (0x01C)
-+#define ISPHIST_R2_HORZ                        (0x020)
-+#define ISPHIST_R2_VERT                        (0x024)
-+#define ISPHIST_R3_HORZ                        (0x028)
-+#define ISPHIST_R3_VERT                        (0x02C)
-+#define ISPHIST_ADDR                   (0x030)
-+#define ISPHIST_DATA                   (0x034)
-+#define ISPHIST_RADD                   (0x038)
-+#define ISPHIST_RADD_OFF               (0x03C)
-+#define ISPHIST_H_V_INFO               (0x040)
-+
-+/* H3A module registers */
-+#define ISPH3A_PID                     (0x000)
-+#define ISPH3A_PCR                     (0x004)
-+#define ISPH3A_AEWWIN1                 (0x04C)
-+#define ISPH3A_AEWINSTART              (0x050)
-+#define ISPH3A_AEWINBLK                        (0x054)
-+#define ISPH3A_AEWSUBWIN               (0x058)
-+#define ISPH3A_AEWBUFST                        (0x05C)
-+#define ISPH3A_AFPAX1                  (0x008)
-+#define ISPH3A_AFPAX2                  (0x00C)
-+#define ISPH3A_AFPAXSTART              (0x010)
-+#define ISPH3A_AFIIRSH                 (0x014)
-+#define ISPH3A_AFBUFST                 (0x018)
-+#define ISPH3A_AFCOEF010               (0x01C)
-+#define ISPH3A_AFCOEF032               (0x020)
-+#define ISPH3A_AFCOEF054               (0x024)
-+#define ISPH3A_AFCOEF076               (0x028)
-+#define ISPH3A_AFCOEF098               (0x02C)
-+#define ISPH3A_AFCOEF0010              (0x030)
-+#define ISPH3A_AFCOEF110               (0x034)
-+#define ISPH3A_AFCOEF132               (0x038)
-+#define ISPH3A_AFCOEF154               (0x03C)
-+#define ISPH3A_AFCOEF176               (0x040)
-+#define ISPH3A_AFCOEF198               (0x044)
-+#define ISPH3A_AFCOEF1010              (0x048)
-+
-+#define ISPPRV_PCR                     (0x004)
-+#define ISPPRV_HORZ_INFO               (0x008)
-+#define ISPPRV_VERT_INFO               (0x00C)
-+#define ISPPRV_RSDR_ADDR               (0x010)
-+#define ISPPRV_RADR_OFFSET             (0x014)
-+#define ISPPRV_DSDR_ADDR               (0x018)
-+#define ISPPRV_DRKF_OFFSET             (0x01C)
-+#define ISPPRV_WSDR_ADDR               (0x020)
-+#define ISPPRV_WADD_OFFSET             (0x024)
-+#define ISPPRV_AVE                     (0x028)
-+#define ISPPRV_HMED                    (0x02C)
-+#define ISPPRV_NF                      (0x030)
-+#define ISPPRV_WB_DGAIN                        (0x034)
-+#define ISPPRV_WBGAIN                  (0x038)
-+#define ISPPRV_WBSEL                   (0x03C)
-+#define ISPPRV_CFA                     (0x040)
-+#define ISPPRV_BLKADJOFF               (0x044)
-+#define ISPPRV_RGB_MAT1                        (0x048)
-+#define ISPPRV_RGB_MAT2                        (0x04C)
-+#define ISPPRV_RGB_MAT3                        (0x050)
-+#define ISPPRV_RGB_MAT4                        (0x054)
-+#define ISPPRV_RGB_MAT5                        (0x058)
-+#define ISPPRV_RGB_OFF1                        (0x05C)
-+#define ISPPRV_RGB_OFF2                        (0x060)
-+#define ISPPRV_CSC0                    (0x064)
-+#define ISPPRV_CSC1                    (0x068)
-+#define ISPPRV_CSC2                    (0x06C)
-+#define ISPPRV_CSC_OFFSET              (0x070)
-+#define ISPPRV_CNT_BRT                 (0x074)
-+#define ISPPRV_CSUP                    (0x078)
-+#define ISPPRV_SETUP_YC                        (0x07C)
-+#define ISPPRV_SET_TBL_ADDR            (0x080)
-+#define ISPPRV_SET_TBL_DATA            (0x084)
-+#define ISPPRV_CDC_THR0                        (0x090)
-+#define ISPPRV_CDC_THR1                        (ISPPRV_CDC_THR0 + (0x4))
-+#define ISPPRV_CDC_THR2                        (ISPPRV_CDC_THR0 + (0x4) * 2)
-+#define ISPPRV_CDC_THR3                        (ISPPRV_CDC_THR0 + (0x4) * 3)
-+
-+#define ISPPRV_REDGAMMA_TABLE_ADDR     0x0000
-+#define ISPPRV_GREENGAMMA_TABLE_ADDR   0x0400
-+#define ISPPRV_BLUEGAMMA_TABLE_ADDR    0x0800
-+#define ISPPRV_NF_TABLE_ADDR           0x0C00
-+#define ISPPRV_YENH_TABLE_ADDR         0x1000
-+#define ISPPRV_CFA_TABLE_ADDR          0x1400
-+
-+#define ISPPRV_MAXOUTPUT_WIDTH         1280
-+#define ISPPRV_MAXOUTPUT_WIDTH_ES2     3300
-+#define ISPRSZ_MIN_OUTPUT              64
-+#define ISPRSZ_MAX_OUTPUT              3312
-+
-+/* Resizer module register offset */
-+#define ISPRSZ_PID                     (0x000)
-+#define ISPRSZ_PCR                     (0x004)
-+#define ISPRSZ_CNT                     (0x008)
-+#define ISPRSZ_OUT_SIZE                        (0x00C)
-+#define ISPRSZ_IN_START                        (0x010)
-+#define ISPRSZ_IN_SIZE                 (0x014)
-+#define ISPRSZ_SDR_INADD               (0x018)
-+#define ISPRSZ_SDR_INOFF               (0x01C)
-+#define ISPRSZ_SDR_OUTADD              (0x020)
-+#define ISPRSZ_SDR_OUTOFF              (0x024)
-+#define ISPRSZ_HFILT10                 (0x028)
-+#define ISPRSZ_HFILT32                 (0x02C)
-+#define ISPRSZ_HFILT54                 (0x030)
-+#define ISPRSZ_HFILT76                 (0x034)
-+#define ISPRSZ_HFILT98                 (0x038)
-+#define ISPRSZ_HFILT1110               (0x03C)
-+#define ISPRSZ_HFILT1312               (0x040)
-+#define ISPRSZ_HFILT1514               (0x044)
-+#define ISPRSZ_HFILT1716               (0x048)
-+#define ISPRSZ_HFILT1918               (0x04C)
-+#define ISPRSZ_HFILT2120               (0x050)
-+#define ISPRSZ_HFILT2322               (0x054)
-+#define ISPRSZ_HFILT2524               (0x058)
-+#define ISPRSZ_HFILT2726               (0x05C)
-+#define ISPRSZ_HFILT2928               (0x060)
-+#define ISPRSZ_HFILT3130               (0x064)
-+#define ISPRSZ_VFILT10                 (0x068)
-+#define ISPRSZ_VFILT32                 (0x06C)
-+#define ISPRSZ_VFILT54                 (0x070)
-+#define ISPRSZ_VFILT76                 (0x074)
-+#define ISPRSZ_VFILT98                 (0x078)
-+#define ISPRSZ_VFILT1110               (0x07C)
-+#define ISPRSZ_VFILT1312               (0x080)
-+#define ISPRSZ_VFILT1514               (0x084)
-+#define ISPRSZ_VFILT1716               (0x088)
-+#define ISPRSZ_VFILT1918               (0x08C)
-+#define ISPRSZ_VFILT2120               (0x090)
-+#define ISPRSZ_VFILT2322               (0x094)
-+#define ISPRSZ_VFILT2524               (0x098)
-+#define ISPRSZ_VFILT2726               (0x09C)
-+#define ISPRSZ_VFILT2928               (0x0A0)
-+#define ISPRSZ_VFILT3130               (0x0A4)
-+#define ISPRSZ_YENH                    (0x0A8)
-+
-+/* MMU module registers */
-+#define ISPMMU_REVISION                        (0x000)
-+#define ISPMMU_SYSCONFIG               (0x010)
-+#define ISPMMU_SYSSTATUS               (0x014)
-+#define ISPMMU_IRQSTATUS               (0x018)
-+#define ISPMMU_IRQENABLE               (0x01C)
-+#define ISPMMU_WALKING_ST              (0x040)
-+#define ISPMMU_CNTL                    (0x044)
-+#define ISPMMU_FAULT_AD                        (0x048)
-+#define ISPMMU_TTB                     (0x04C)
-+#define ISPMMU_LOCK                    (0x050)
-+#define ISPMMU_LD_TLB                  (0x054)
-+#define ISPMMU_CAM                     (0x058)
-+#define ISPMMU_RAM                     (0x05C)
-+#define ISPMMU_GFLUSH                  (0x060)
-+#define ISPMMU_FLUSH_ENTRY             (0x064)
-+#define ISPMMU_READ_CAM                        (0x068)
-+#define ISPMMU_READ_RAM                        (0x06c)
-+#define ISPMMU_EMU_FAULT_AD            (0x070)
-+
-+#define ISP_INT_CLR                    0xFF113F11
-+#define ISPPRV_PCR_EN                  1
-+#define ISPPRV_PCR_BUSY                        (1 << 1)
-+#define ISPPRV_PCR_SOURCE              (1 << 2)
-+#define ISPPRV_PCR_ONESHOT             (1 << 3)
-+#define ISPPRV_PCR_WIDTH               (1 << 4)
-+#define ISPPRV_PCR_INVALAW             (1 << 5)
-+#define ISPPRV_PCR_DRKFEN              (1 << 6)
-+#define ISPPRV_PCR_DRKFCAP             (1 << 7)
-+#define ISPPRV_PCR_HMEDEN              (1 << 8)
-+#define ISPPRV_PCR_NFEN                        (1 << 9)
-+#define ISPPRV_PCR_CFAEN               (1 << 10)
-+#define ISPPRV_PCR_CFAFMT_SHIFT                11
-+#define ISPPRV_PCR_CFAFMT_MASK         0x7800
-+#define ISPPRV_PCR_CFAFMT_BAYER                (0 << 11)
-+#define ISPPRV_PCR_CFAFMT_SONYVGA      (1 << 11)
-+#define ISPPRV_PCR_CFAFMT_RGBFOVEON    (2 << 11)
-+#define ISPPRV_PCR_CFAFMT_DNSPL                (3 << 11)
-+#define ISPPRV_PCR_CFAFMT_HONEYCOMB    (4 << 11)
-+#define ISPPRV_PCR_CFAFMT_RRGGBBFOVEON (5 << 11)
-+#define ISPPRV_PCR_YNENHEN             (1 << 15)
-+#define ISPPRV_PCR_SUPEN               (1 << 16)
-+#define ISPPRV_PCR_YCPOS_SHIFT         17
-+#define ISPPRV_PCR_YCPOS_YCrYCb                (0 << 17)
-+#define ISPPRV_PCR_YCPOS_YCbYCr                (1 << 17)
-+#define ISPPRV_PCR_YCPOS_CbYCrY                (2 << 17)
-+#define ISPPRV_PCR_YCPOS_CrYCbY                (3 << 17)
-+#define ISPPRV_PCR_RSZPORT             (1 << 19)
-+#define ISPPRV_PCR_SDRPORT             (1 << 20)
-+#define ISPPRV_PCR_SCOMP_EN            (1 << 21)
-+#define ISPPRV_PCR_SCOMP_SFT_SHIFT     (22)
-+#define ISPPRV_PCR_SCOMP_SFT_MASK      (~(7 << 22))
-+#define ISPPRV_PCR_GAMMA_BYPASS                (1 << 26)
-+#define ISPPRV_PCR_DCOREN              (1 << 27)
-+#define ISPPRV_PCR_DCCOUP              (1 << 28)
-+#define ISPPRV_PCR_DRK_FAIL            (1 << 31)
-+
-+#define ISPPRV_HORZ_INFO_EPH_SHIFT     0
-+#define ISPPRV_HORZ_INFO_EPH_MASK      0x3fff
-+#define ISPPRV_HORZ_INFO_SPH_SHIFT     16
-+#define ISPPRV_HORZ_INFO_SPH_MASK      0x3fff0
-+
-+#define ISPPRV_VERT_INFO_ELV_SHIFT     0
-+#define ISPPRV_VERT_INFO_ELV_MASK      0x3fff
-+#define ISPPRV_VERT_INFO_SLV_SHIFT     16
-+#define ISPPRV_VERT_INFO_SLV_MASK      0x3fff0
-+
-+#define ISPPRV_AVE_EVENDIST_SHIFT      2
-+#define ISPPRV_AVE_EVENDIST_1          0x0
-+#define ISPPRV_AVE_EVENDIST_2          0x1
-+#define ISPPRV_AVE_EVENDIST_3          0x2
-+#define ISPPRV_AVE_EVENDIST_4          0x3
-+#define ISPPRV_AVE_ODDDIST_SHIFT       4
-+#define ISPPRV_AVE_ODDDIST_1           0x0
-+#define ISPPRV_AVE_ODDDIST_2           0x1
-+#define ISPPRV_AVE_ODDDIST_3           0x2
-+#define ISPPRV_AVE_ODDDIST_4           0x3
-+
-+#define ISPPRV_HMED_THRESHOLD_SHIFT    0
-+#define ISPPRV_HMED_EVENDIST           (1 << 8)
-+#define ISPPRV_HMED_ODDDIST            (1 << 9)
-+
-+#define ISPPRV_WBGAIN_COEF0_SHIFT      0
-+#define ISPPRV_WBGAIN_COEF1_SHIFT      8
-+#define ISPPRV_WBGAIN_COEF2_SHIFT      16
-+#define ISPPRV_WBGAIN_COEF3_SHIFT      24
-+
-+#define ISPPRV_WBSEL_COEF0             0x0
-+#define ISPPRV_WBSEL_COEF1             0x1
-+#define ISPPRV_WBSEL_COEF2             0x2
-+#define ISPPRV_WBSEL_COEF3             0x3
-+
-+#define ISPPRV_WBSEL_N0_0_SHIFT                0
-+#define ISPPRV_WBSEL_N0_1_SHIFT                2
-+#define ISPPRV_WBSEL_N0_2_SHIFT                4
-+#define ISPPRV_WBSEL_N0_3_SHIFT                6
-+#define ISPPRV_WBSEL_N1_0_SHIFT                8
-+#define ISPPRV_WBSEL_N1_1_SHIFT                10
-+#define ISPPRV_WBSEL_N1_2_SHIFT                12
-+#define ISPPRV_WBSEL_N1_3_SHIFT                14
-+#define ISPPRV_WBSEL_N2_0_SHIFT                16
-+#define ISPPRV_WBSEL_N2_1_SHIFT                18
-+#define ISPPRV_WBSEL_N2_2_SHIFT                20
-+#define ISPPRV_WBSEL_N2_3_SHIFT                22
-+#define ISPPRV_WBSEL_N3_0_SHIFT                24
-+#define ISPPRV_WBSEL_N3_1_SHIFT                26
-+#define ISPPRV_WBSEL_N3_2_SHIFT                28
-+#define ISPPRV_WBSEL_N3_3_SHIFT                30
-+
-+#define ISPPRV_CFA_GRADTH_HOR_SHIFT    0
-+#define ISPPRV_CFA_GRADTH_VER_SHIFT    8
-+
-+#define ISPPRV_BLKADJOFF_B_SHIFT       0
-+#define ISPPRV_BLKADJOFF_G_SHIFT       8
-+#define ISPPRV_BLKADJOFF_R_SHIFT       16
-+
-+#define ISPPRV_RGB_MAT1_MTX_RR_SHIFT   0
-+#define ISPPRV_RGB_MAT1_MTX_GR_SHIFT   16
-+
-+#define ISPPRV_RGB_MAT2_MTX_BR_SHIFT   0
-+#define ISPPRV_RGB_MAT2_MTX_RG_SHIFT   16
-+
-+#define ISPPRV_RGB_MAT3_MTX_GG_SHIFT   0
-+#define ISPPRV_RGB_MAT3_MTX_BG_SHIFT   16
-+
-+#define ISPPRV_RGB_MAT4_MTX_RB_SHIFT   0
-+#define ISPPRV_RGB_MAT4_MTX_GB_SHIFT   16
-+
-+#define ISPPRV_RGB_MAT5_MTX_BB_SHIFT   0
-+
-+#define ISPPRV_RGB_OFF1_MTX_OFFG_SHIFT 0
-+#define ISPPRV_RGB_OFF1_MTX_OFFR_SHIFT 16
-+
-+#define ISPPRV_RGB_OFF2_MTX_OFFB_SHIFT 0
-+
-+#define ISPPRV_CSC0_RY_SHIFT           0
-+#define ISPPRV_CSC0_GY_SHIFT           10
-+#define ISPPRV_CSC0_BY_SHIFT           20
-+
-+#define ISPPRV_CSC1_RCB_SHIFT          0
-+#define ISPPRV_CSC1_GCB_SHIFT          10
-+#define ISPPRV_CSC1_BCB_SHIFT          20
-+
-+#define ISPPRV_CSC2_RCR_SHIFT          0
-+#define ISPPRV_CSC2_GCR_SHIFT          10
-+#define ISPPRV_CSC2_BCR_SHIFT          20
-+
-+#define ISPPRV_CSC_OFFSET_CR_SHIFT     0
-+#define ISPPRV_CSC_OFFSET_CB_SHIFT     8
-+#define ISPPRV_CSC_OFFSET_Y_SHIFT      16
-+
-+#define ISPPRV_CNT_BRT_BRT_SHIFT       0
-+#define ISPPRV_CNT_BRT_CNT_SHIFT       8
-+
-+#define ISPPRV_CONTRAST_MAX            0x10
-+#define ISPPRV_CONTRAST_MIN            0xFF
-+#define ISPPRV_BRIGHT_MIN              0x00
-+#define ISPPRV_BRIGHT_MAX              0xFF
-+
-+#define ISPPRV_CSUP_CSUPG_SHIFT                0
-+#define ISPPRV_CSUP_THRES_SHIFT                8
-+#define ISPPRV_CSUP_HPYF_SHIFT         16
-+
-+#define ISPPRV_SETUP_YC_MINC_SHIFT     0
-+#define ISPPRV_SETUP_YC_MAXC_SHIFT     8
-+#define ISPPRV_SETUP_YC_MINY_SHIFT     16
-+#define ISPPRV_SETUP_YC_MAXY_SHIFT     24
-+#define ISPPRV_YC_MAX                  0xFF
-+#define ISPPRV_YC_MIN                  0x0
-+
-+/* Define bit fields within selected registers */
-+#define ISP_REVISION_SHIFT                     0
-+
-+#define ISP_SYSCONFIG_AUTOIDLE                 0
-+#define ISP_SYSCONFIG_SOFTRESET                        (1 << 1)
-+#define ISP_SYSCONFIG_MIDLEMODE_SHIFT          12
-+#define ISP_SYSCONFIG_MIDLEMODE_FORCESTANDBY   0x0
-+#define ISP_SYSCONFIG_MIDLEMODE_NOSTANBY       0x1
-+#define ISP_SYSCONFIG_MIDLEMODE_SMARTSTANDBY   0x2
-+
-+#define ISP_SYSSTATUS_RESETDONE                        0
-+
-+#define IRQ0ENABLE_CSIA_IRQ                    1
-+#define IRQ0ENABLE_CSIA_LC1_IRQ                        (1 << 1)
-+#define IRQ0ENABLE_CSIA_LC2_IRQ                        (1 << 2)
-+#define IRQ0ENABLE_CSIA_LC3_IRQ                        (1 << 3)
-+#define IRQ0ENABLE_CSIB_IRQ                    (1 << 4)
-+#define IRQ0ENABLE_CSIB_LC1_IRQ                        (1 << 5)
-+#define IRQ0ENABLE_CSIB_LC2_IRQ                        (1 << 6)
-+#define IRQ0ENABLE_CSIB_LC3_IRQ                        (1 << 7)
-+#define IRQ0ENABLE_CCDC_VD0_IRQ                        (1 << 8)
-+#define IRQ0ENABLE_CCDC_VD1_IRQ                        (1 << 9)
-+#define IRQ0ENABLE_CCDC_VD2_IRQ                        (1 << 10)
-+#define IRQ0ENABLE_CCDC_ERR_IRQ                        (1 << 11)
-+#define IRQ0ENABLE_H3A_AF_DONE_IRQ             (1 << 12)
-+#define IRQ0ENABLE_H3A_AWB_DONE_IRQ            (1 << 13)
-+#define IRQ0ENABLE_HIST_DONE_IRQ               (1 << 16)
-+#define IRQ0ENABLE_CCDC_LSC_DONE_IRQ           (1 << 17)
-+#define IRQ0ENABLE_CCDC_LSC_PREF_COMP_IRQ      (1 << 18)
-+#define IRQ0ENABLE_CCDC_LSC_PREF_ERR_IRQ       (1 << 19)
-+#define IRQ0ENABLE_PRV_DONE_IRQ                        (1 << 20)
-+#define IRQ0ENABLE_RSZ_DONE_IRQ                        (1 << 24)
-+#define IRQ0ENABLE_OVF_IRQ                     (1 << 25)
-+#define IRQ0ENABLE_PING_IRQ                    (1 << 26)
-+#define IRQ0ENABLE_PONG_IRQ                    (1 << 27)
-+#define IRQ0ENABLE_MMU_ERR_IRQ                 (1 << 28)
-+#define IRQ0ENABLE_OCP_ERR_IRQ                 (1 << 29)
-+#define IRQ0ENABLE_SEC_ERR_IRQ                 (1 << 30)
-+#define IRQ0ENABLE_HS_VS_IRQ                   (1 << 31)
-+
-+#define IRQ0STATUS_CSIA_IRQ                    1
-+#define IRQ0STATUS_CSIA_LC1_IRQ                        (1 << 1)
-+#define IRQ0STATUS_CSIA_LC2_IRQ                        (1 << 2)
-+#define IRQ0STATUS_CSIA_LC3_IRQ                        (1 << 3)
-+#define IRQ0STATUS_CSIB_IRQ                    (1 << 4)
-+#define IRQ0STATUS_CSIB_LC1_IRQ                        (1 << 5)
-+#define IRQ0STATUS_CSIB_LC2_IRQ                        (1 << 6)
-+#define IRQ0STATUS_CSIB_LC3_IRQ                        (1 << 7)
-+#define IRQ0STATUS_CCDC_VD0_IRQ                        (1 << 8)
-+#define IRQ0STATUS_CCDC_VD1_IRQ                        (1 << 9)
-+#define IRQ0STATUS_CCDC_VD2_IRQ                        (1 << 10)
-+#define IRQ0STATUS_CCDC_ERR_IRQ                        (1 << 11)
-+#define IRQ0STATUS_H3A_AF_DONE_IRQ             (1 << 12)
-+#define IRQ0STATUS_H3A_AWB_DONE_IRQ            (1 << 13)
-+#define IRQ0STATUS_HIST_DONE_IRQ               (1 << 16)
-+#define IRQ0STATUS_PRV_DONE_IRQ                        (1 << 20)
-+#define IRQ0STATUS_RSZ_DONE_IRQ                        (1 << 24)
-+#define IRQ0STATUS_OVF_IRQ                     (1 << 25)
-+#define IRQ0STATUS_PING_IRQ                    (1 << 26)
-+#define IRQ0STATUS_PONG_IRQ                    (1 << 27)
-+#define IRQ0STATUS_MMU_ERR_IRQ                 (1 << 28)
-+#define IRQ0STATUS_OCP_ERR_IRQ                 (1 << 29)
-+#define IRQ0STATUS_SEC_ERR_IRQ                 (1 << 30)
-+#define IRQ0STATUS_HS_VS_IRQ                   (1 << 31)
-+
-+#define TCTRL_GRESET_LEN                       0
-+
-+#define TCTRL_PSTRB_REPLAY_DELAY               0
-+#define TCTRL_PSTRB_REPLAY_COUNTER_SHIFT       25
-+
-+#define ISPCTRL_PAR_SER_CLK_SEL_PARALLEL       0x0
-+#define ISPCTRL_PAR_SER_CLK_SEL_CSIA           0x1
-+#define ISPCTRL_PAR_SER_CLK_SEL_CSIB           0x2
-+#define ISPCTRL_PAR_SER_CLK_SEL_MASK           0xFFFFFFFC
-+
-+#define ISPCTRL_PAR_BRIDGE_SHIFT               2
-+#define ISPCTRL_PAR_BRIDGE_DISABLE             (0x0 << 2)
-+#define ISPCTRL_PAR_BRIDGE_LENDIAN             (0x2 << 2)
-+#define ISPCTRL_PAR_BRIDGE_BENDIAN             (0x3 << 2)
-+
-+#define ISPCTRL_PAR_CLK_POL_SHIFT              4
-+#define ISPCTRL_PAR_CLK_POL_INV                        (1 << 4)
-+#define ISPCTRL_PING_PONG_EN                   (1 << 5)
-+#define ISPCTRL_SHIFT_SHIFT                    6
-+#define ISPCTRL_SHIFT_0                                (0x0 << 6)
-+#define ISPCTRL_SHIFT_2                                (0x1 << 6)
-+#define ISPCTRL_SHIFT_4                                (0x2 << 6)
-+#define ISPCTRL_SHIFT_MASK                     (~(0x3 << 6))
-+
-+#define ISPCTRL_CCDC_CLK_EN                    (1 << 8)
-+#define ISPCTRL_SCMP_CLK_EN                    (1 << 9)
-+#define ISPCTRL_H3A_CLK_EN                     (1 << 10)
-+#define ISPCTRL_HIST_CLK_EN                    (1 << 11)
-+#define ISPCTRL_PREV_CLK_EN                    (1 << 12)
-+#define ISPCTRL_RSZ_CLK_EN                     (1 << 13)
-+#define ISPCTRL_SYNC_DETECT_SHIFT              14
-+#define ISPCTRL_SYNC_DETECT_HSFALL     (0x0 << ISPCTRL_SYNC_DETECT_SHIFT)
-+#define ISPCTRL_SYNC_DETECT_HSRISE     (0x1 << ISPCTRL_SYNC_DETECT_SHIFT)
-+#define ISPCTRL_SYNC_DETECT_VSFALL     (0x2 << ISPCTRL_SYNC_DETECT_SHIFT)
-+#define ISPCTRL_SYNC_DETECT_VSRISE     (0x3 << ISPCTRL_SYNC_DETECT_SHIFT)
-+#define ISPCTRL_SYNC_DETECT_MASK       (0x3 << ISPCTRL_SYNC_DETECT_SHIFT)
-+
-+#define ISPCTRL_CCDC_RAM_EN            (1 << 16)
-+#define ISPCTRL_PREV_RAM_EN            (1 << 17)
-+#define ISPCTRL_SBL_RD_RAM_EN          (1 << 18)
-+#define ISPCTRL_SBL_WR1_RAM_EN         (1 << 19)
-+#define ISPCTRL_SBL_WR0_RAM_EN         (1 << 20)
-+#define ISPCTRL_SBL_AUTOIDLE           (1 << 21)
-+#define ISPCTRL_SBL_SHARED_RPORTB      (1 << 28)
-+#define ISPCTRL_JPEG_FLUSH             (1 << 30)
-+#define ISPCTRL_CCDC_FLUSH             (1 << 31)
-+
-+#define ISPSECURE_SECUREMODE           0
-+
-+#define ISPTCTRL_CTRL_DIV_LOW          0x0
-+#define ISPTCTRL_CTRL_DIV_HIGH         0x1
-+#define ISPTCTRL_CTRL_DIV_BYPASS       0x1F
-+
-+#define ISPTCTRL_CTRL_DIVA_SHIFT       0
-+#define ISPTCTRL_CTRL_DIVA_MASK                (0x1F << ISPTCTRL_CTRL_DIVA_SHIFT)
-+
-+#define ISPTCTRL_CTRL_DIVB_SHIFT       5
-+#define ISPTCTRL_CTRL_DIVB_MASK                (0x1F << ISPTCTRL_CTRL_DIVB_SHIFT)
-+
-+#define ISPTCTRL_CTRL_DIVC_SHIFT       10
-+#define ISPTCTRL_CTRL_DIVC_NOCLOCK     (0x0 << 10)
-+
-+#define ISPTCTRL_CTRL_SHUTEN           (1 << 21)
-+#define ISPTCTRL_CTRL_PSTRBEN          (1 << 22)
-+#define ISPTCTRL_CTRL_STRBEN           (1 << 23)
-+#define ISPTCTRL_CTRL_SHUTPOL          (1 << 24)
-+#define ISPTCTRL_CTRL_STRBPSTRBPOL     (1 << 26)
-+
-+#define ISPTCTRL_CTRL_INSEL_SHIFT      27
-+#define ISPTCTRL_CTRL_INSEL_PARALLEL   (0x0 << 27)
-+#define ISPTCTRL_CTRL_INSEL_CSIA       (0x1 << 27)
-+#define ISPTCTRL_CTRL_INSEL_CSIB       (0x2 << 27)
-+
-+#define ISPTCTRL_CTRL_GRESETEn         (1 << 29)
-+#define ISPTCTRL_CTRL_GRESETPOL                (1 << 30)
-+#define ISPTCTRL_CTRL_GRESETDIR                (1 << 31)
-+
-+#define ISPTCTRL_FRAME_SHUT_SHIFT              0
-+#define ISPTCTRL_FRAME_PSTRB_SHIFT             6
-+#define ISPTCTRL_FRAME_STRB_SHIFT              12
-+
-+#define ISPCCDC_PID_PREV_SHIFT                 0
-+#define ISPCCDC_PID_CID_SHIFT                  8
-+#define ISPCCDC_PID_TID_SHIFT                  16
-+
-+#define ISPCCDC_PCR_EN                         1
-+#define ISPCCDC_PCR_BUSY                       (1 << 1)
-+
-+#define ISPCCDC_SYN_MODE_VDHDOUT               0x1
-+#define ISPCCDC_SYN_MODE_FLDOUT                        (1 << 1)
-+#define ISPCCDC_SYN_MODE_VDPOL                 (1 << 2)
-+#define ISPCCDC_SYN_MODE_HDPOL                 (1 << 3)
-+#define ISPCCDC_SYN_MODE_FLDPOL                        (1 << 4)
-+#define ISPCCDC_SYN_MODE_EXWEN                 (1 << 5)
-+#define ISPCCDC_SYN_MODE_DATAPOL               (1 << 6)
-+#define ISPCCDC_SYN_MODE_FLDMODE               (1 << 7)
-+#define ISPCCDC_SYN_MODE_DATSIZ_MASK           0xFFFFF8FF
-+#define ISPCCDC_SYN_MODE_DATSIZ_8_16           (0x0 << 8)
-+#define ISPCCDC_SYN_MODE_DATSIZ_12             (0x4 << 8)
-+#define ISPCCDC_SYN_MODE_DATSIZ_11             (0x5 << 8)
-+#define ISPCCDC_SYN_MODE_DATSIZ_10             (0x6 << 8)
-+#define ISPCCDC_SYN_MODE_DATSIZ_8              (0x7 << 8)
-+#define ISPCCDC_SYN_MODE_PACK8                 (1 << 11)
-+#define ISPCCDC_SYN_MODE_INPMOD_MASK           0xFFFFCFFF
-+#define ISPCCDC_SYN_MODE_INPMOD_RAW            (0 << 12)
-+#define ISPCCDC_SYN_MODE_INPMOD_YCBCR16                (1 << 12)
-+#define ISPCCDC_SYN_MODE_INPMOD_YCBCR8         (2 << 12)
-+#define ISPCCDC_SYN_MODE_LPF                   (1 << 14)
-+#define ISPCCDC_SYN_MODE_FLDSTAT               (1 << 15)
-+#define ISPCCDC_SYN_MODE_VDHDEN                        (1 << 16)
-+#define ISPCCDC_SYN_MODE_WEN                   (1 << 17)
-+#define ISPCCDC_SYN_MODE_VP2SDR                        (1 << 18)
-+#define ISPCCDC_SYN_MODE_SDR2RSZ               (1 << 19)
-+
-+#define ISPCCDC_HD_VD_WID_VDW_SHIFT            0
-+#define ISPCCDC_HD_VD_WID_HDW_SHIFT            16
-+
-+#define ISPCCDC_PIX_LINES_HLPRF_SHIFT          0
-+#define ISPCCDC_PIX_LINES_PPLN_SHIFT           16
-+
-+#define ISPCCDC_HORZ_INFO_NPH_SHIFT            0
-+#define ISPCCDC_HORZ_INFO_NPH_MASK             0xFFFF8000
-+#define ISPCCDC_HORZ_INFO_SPH_MASK             0x1000FFFF
-+#define ISPCCDC_HORZ_INFO_SPH_SHIFT            16
-+
-+#define ISPCCDC_VERT_START_SLV0_SHIFT          16
-+#define ISPCCDC_VERT_START_SLV0_MASK           0x1000FFFF
-+#define ISPCCDC_VERT_START_SLV1_SHIFT          0
-+
-+#define ISPCCDC_VERT_LINES_NLV_MASK            0xFFFF8000
-+#define ISPCCDC_VERT_LINES_NLV_SHIFT           0
-+
-+#define ISPCCDC_CULLING_CULV_SHIFT             0
-+#define ISPCCDC_CULLING_CULHODD_SHIFT          16
-+#define ISPCCDC_CULLING_CULHEVN_SHIFT          24
-+
-+#define ISPCCDC_HSIZE_OFF_SHIFT                        0
-+
-+#define ISPCCDC_SDOFST_FINV                    (1 << 14)
-+#define ISPCCDC_SDOFST_FOFST_1L                        (~(3 << 12))
-+#define ISPCCDC_SDOFST_FOFST_4L                        (3 << 12)
-+#define ISPCCDC_SDOFST_LOFST3_SHIFT            0
-+#define ISPCCDC_SDOFST_LOFST2_SHIFT            3
-+#define ISPCCDC_SDOFST_LOFST1_SHIFT            6
-+#define ISPCCDC_SDOFST_LOFST0_SHIFT            9
-+#define EVENEVEN                               1
-+#define ODDEVEN                                        2
-+#define EVENODD                                        3
-+#define ODDODD                                 4
-+
-+#define ISPCCDC_CLAMP_OBGAIN_SHIFT             0
-+#define ISPCCDC_CLAMP_OBST_SHIFT               10
-+#define ISPCCDC_CLAMP_OBSLN_SHIFT              25
-+#define ISPCCDC_CLAMP_OBSLEN_SHIFT             28
-+#define ISPCCDC_CLAMP_CLAMPEN                  (1 << 31)
-+
-+#define ISPCCDC_COLPTN_R_Ye                    0x0
-+#define ISPCCDC_COLPTN_Gr_Cy                   0x1
-+#define ISPCCDC_COLPTN_Gb_G                    0x2
-+#define ISPCCDC_COLPTN_B_Mg                    0x3
-+#define ISPCCDC_COLPTN_CP0PLC0_SHIFT           0
-+#define ISPCCDC_COLPTN_CP0PLC1_SHIFT           2
-+#define ISPCCDC_COLPTN_CP0PLC2_SHIFT           4
-+#define ISPCCDC_COLPTN_CP0PLC3_SHIFT           6
-+#define ISPCCDC_COLPTN_CP1PLC0_SHIFT           8
-+#define ISPCCDC_COLPTN_CP1PLC1_SHIFT           10
-+#define ISPCCDC_COLPTN_CP1PLC2_SHIFT           12
-+#define ISPCCDC_COLPTN_CP1PLC3_SHIFT           14
-+#define ISPCCDC_COLPTN_CP2PLC0_SHIFT           16
-+#define ISPCCDC_COLPTN_CP2PLC1_SHIFT           18
-+#define ISPCCDC_COLPTN_CP2PLC2_SHIFT           20
-+#define ISPCCDC_COLPTN_CP2PLC3_SHIFT           22
-+#define ISPCCDC_COLPTN_CP3PLC0_SHIFT           24
-+#define ISPCCDC_COLPTN_CP3PLC1_SHIFT           26
-+#define ISPCCDC_COLPTN_CP3PLC2_SHIFT           28
-+#define ISPCCDC_COLPTN_CP3PLC3_SHIFT           30
-+
-+#define ISPCCDC_BLKCMP_B_MG_SHIFT              0
-+#define ISPCCDC_BLKCMP_GB_G_SHIFT              8
-+#define ISPCCDC_BLKCMP_GR_CY_SHIFT             16
-+#define ISPCCDC_BLKCMP_R_YE_SHIFT              24
-+
-+#define ISPCCDC_FPC_FPNUM_SHIFT                        0
-+#define ISPCCDC_FPC_FPCEN                      (1 << 15)
-+#define ISPCCDC_FPC_FPERR                      (1 << 16)
-+
-+#define ISPCCDC_VDINT_1_SHIFT                  0
-+#define ISPCCDC_VDINT_0_SHIFT                  16
-+#define ISPCCDC_VDINT_0_MASK                   0x7FFF
-+#define ISPCCDC_VDINT_1_MASK                   0x7FFF
-+
-+#define ISPCCDC_ALAW_GWDI_SHIFT                        0
-+#define ISPCCDC_ALAW_CCDTBL                    (1 << 3)
-+
-+#define ISPCCDC_REC656IF_R656ON                        1
-+#define ISPCCDC_REC656IF_ECCFVH                        (1 << 1)
-+
-+#define ISPCCDC_CFG_BW656                      (1 << 5)
-+#define ISPCCDC_CFG_FIDMD_SHIFT                        6
-+#define ISPCCDC_CFG_WENLOG                     (1 << 8)
-+#define ISPCCDC_CFG_WENLOG_AND                 (0 << 8)
-+#define ISPCCDC_CFG_WENLOG_OR          (1 << 8)
-+#define ISPCCDC_CFG_Y8POS                      (1 << 11)
-+#define ISPCCDC_CFG_BSWD                       (1 << 12)
-+#define ISPCCDC_CFG_MSBINVI                    (1 << 13)
-+#define ISPCCDC_CFG_VDLC                       (1 << 15)
-+
-+#define ISPCCDC_FMTCFG_FMTEN                   0x1
-+#define ISPCCDC_FMTCFG_LNALT                   (1 << 1)
-+#define ISPCCDC_FMTCFG_LNUM_SHIFT              2
-+#define ISPCCDC_FMTCFG_PLEN_ODD_SHIFT          4
-+#define ISPCCDC_FMTCFG_PLEN_EVEN_SHIFT         8
-+#define ISPCCDC_FMTCFG_VPIN_MASK               0xFFFF8000
-+#define ISPCCDC_FMTCFG_VPIN_12_3               (0x3 << 12)
-+#define ISPCCDC_FMTCFG_VPIN_11_2               (0x4 << 12)
-+#define ISPCCDC_FMTCFG_VPIN_10_1               (0x5 << 12)
-+#define ISPCCDC_FMTCFG_VPIN_9_0                        (0x6 << 12)
-+#define ISPCCDC_FMTCFG_VPEN                    (1 << 15)
-+
-+#define ISPCCDC_FMTCF_VPIF_FRQ_MASK            0xFFF8FFFF
-+#define ISPCCDC_FMTCF_VPIF_FRQ_BY2             (0x0 << 16)
-+#define ISPCCDC_FMTCF_VPIF_FRQ_BY3             (0x1 << 16)
-+#define ISPCCDC_FMTCF_VPIF_FRQ_BY4             (0x2 << 16)
-+#define ISPCCDC_FMTCF_VPIF_FRQ_BY5             (0x3 << 16)
-+#define ISPCCDC_FMTCF_VPIF_FRQ_BY6             (0x4 << 16)
-+
-+#define ISPCCDC_FMT_HORZ_FMTLNH_SHIFT          0
-+#define ISPCCDC_FMT_HORZ_FMTSPH_SHIFT          16
-+
-+#define ISPCCDC_FMT_VERT_FMTLNV_SHIFT          0
-+#define ISPCCDC_FMT_VERT_FMTSLV_SHIFT          16
-+
-+#define ISPCCDC_FMT_HORZ_FMTSPH_MASK           0x1FFF0000
-+#define ISPCCDC_FMT_HORZ_FMTLNH_MASK           0x1FFF
-+
-+#define ISPCCDC_FMT_VERT_FMTSLV_MASK           0x1FFF0000
-+#define ISPCCDC_FMT_VERT_FMTLNV_MASK           0x1FFF
-+
-+#define ISPCCDC_VP_OUT_HORZ_ST_SHIFT           0
-+#define ISPCCDC_VP_OUT_HORZ_NUM_SHIFT          4
-+#define ISPCCDC_VP_OUT_VERT_NUM_SHIFT          17
-+
-+#define ISPRSZ_PID_PREV_SHIFT                  0
-+#define ISPRSZ_PID_CID_SHIFT                   8
-+#define ISPRSZ_PID_TID_SHIFT                   16
-+
-+#define ISPRSZ_PCR_ENABLE                      0x5
-+#define ISPRSZ_PCR_BUSY                                (1 << 1)
-+
-+#define ISPRSZ_CNT_HRSZ_SHIFT                  0
-+#define ISPRSZ_CNT_HRSZ_MASK                   0x3FF
-+#define ISPRSZ_CNT_VRSZ_SHIFT                  10
-+#define ISPRSZ_CNT_VRSZ_MASK                   0xFFC00
-+#define ISPRSZ_CNT_HSTPH_SHIFT                 20
-+#define ISPRSZ_CNT_HSTPH_MASK                  0x700000
-+#define ISPRSZ_CNT_VSTPH_SHIFT                 23
-+#define        ISPRSZ_CNT_VSTPH_MASK                   0x3800000
-+#define        ISPRSZ_CNT_CBILIN_MASK                  0x20000000
-+#define        ISPRSZ_CNT_INPTYP_MASK                  0x08000000
-+#define        ISPRSZ_CNT_PIXFMT_MASK                  0x04000000
-+#define ISPRSZ_CNT_YCPOS                       (1 << 26)
-+#define ISPRSZ_CNT_INPTYP                      (1 << 27)
-+#define ISPRSZ_CNT_INPSRC                      (1 << 28)
-+#define ISPRSZ_CNT_CBILIN                      (1 << 29)
-+
-+#define ISPRSZ_OUT_SIZE_HORZ_SHIFT             0
-+#define ISPRSZ_OUT_SIZE_HORZ_MASK              0x7FF
-+#define ISPRSZ_OUT_SIZE_VERT_SHIFT             16
-+#define ISPRSZ_OUT_SIZE_VERT_MASK              0x7FF0000
-+
-+
-+#define ISPRSZ_IN_START_HORZ_ST_SHIFT          0
-+#define ISPRSZ_IN_START_HORZ_ST_MASK           0x1FFF
-+#define ISPRSZ_IN_START_VERT_ST_SHIFT          16
-+#define ISPRSZ_IN_START_VERT_ST_MASK           0x1FFF0000
-+
-+
-+#define ISPRSZ_IN_SIZE_HORZ_SHIFT              0
-+#define ISPRSZ_IN_SIZE_HORZ_MASK               0x1FFF
-+#define ISPRSZ_IN_SIZE_VERT_SHIFT              16
-+#define ISPRSZ_IN_SIZE_VERT_MASK               0x1FFF0000
-+
-+#define ISPRSZ_SDR_INADD_ADDR_SHIFT            0
-+#define ISPRSZ_SDR_INADD_ADDR_MASK             0xFFFFFFFF
-+
-+#define ISPRSZ_SDR_INOFF_OFFSET_SHIFT          0
-+#define ISPRSZ_SDR_INOFF_OFFSET_MASK           0xFFFF
-+
-+#define ISPRSZ_SDR_OUTADD_ADDR_SHIFT           0
-+#define ISPRSZ_SDR_OUTADD_ADDR_MASK            0xFFFFFFFF
-+
-+
-+#define ISPRSZ_SDR_OUTOFF_OFFSET_SHIFT         0
-+#define ISPRSZ_SDR_OUTOFF_OFFSET_MASK          0xFFFF
-+
-+#define ISPRSZ_HFILT10_COEF0_SHIFT             0
-+#define ISPRSZ_HFILT10_COEF0_MASK              0x3FF
-+#define ISPRSZ_HFILT10_COEF1_SHIFT             16
-+#define ISPRSZ_HFILT10_COEF1_MASK              0x3FF0000
-+
-+#define ISPRSZ_HFILT32_COEF2_SHIFT             0
-+#define ISPRSZ_HFILT32_COEF2_MASK              0x3FF
-+#define ISPRSZ_HFILT32_COEF3_SHIFT             16
-+#define ISPRSZ_HFILT32_COEF3_MASK              0x3FF0000
-+
-+#define ISPRSZ_HFILT54_COEF4_SHIFT             0
-+#define ISPRSZ_HFILT54_COEF4_MASK              0x3FF
-+#define ISPRSZ_HFILT54_COEF5_SHIFT             16
-+#define ISPRSZ_HFILT54_COEF5_MASK              0x3FF0000
-+
-+#define ISPRSZ_HFILT76_COEFF6_SHIFT            0
-+#define ISPRSZ_HFILT76_COEFF6_MASK             0x3FF
-+#define ISPRSZ_HFILT76_COEFF7_SHIFT            16
-+#define ISPRSZ_HFILT76_COEFF7_MASK             0x3FF0000
-+
-+#define ISPRSZ_HFILT98_COEFF8_SHIFT            0
-+#define ISPRSZ_HFILT98_COEFF8_MASK             0x3FF
-+#define ISPRSZ_HFILT98_COEFF9_SHIFT            16
-+#define ISPRSZ_HFILT98_COEFF9_MASK             0x3FF0000
-+
-+#define ISPRSZ_HFILT1110_COEF10_SHIFT          0
-+#define ISPRSZ_HFILT1110_COEF10_MASK           0x3FF
-+#define ISPRSZ_HFILT1110_COEF11_SHIFT          16
-+#define ISPRSZ_HFILT1110_COEF11_MASK           0x3FF0000
-+
-+#define ISPRSZ_HFILT1312_COEFF12_SHIFT         0
-+#define ISPRSZ_HFILT1312_COEFF12_MASK          0x3FF
-+#define ISPRSZ_HFILT1312_COEFF13_SHIFT         16
-+#define ISPRSZ_HFILT1312_COEFF13_MASK          0x3FF0000
-+
-+#define ISPRSZ_HFILT1514_COEFF14_SHIFT         0
-+#define ISPRSZ_HFILT1514_COEFF14_MASK          0x3FF
-+#define ISPRSZ_HFILT1514_COEFF15_SHIFT         16
-+#define ISPRSZ_HFILT1514_COEFF15_MASK          0x3FF0000
-+
-+#define ISPRSZ_HFILT1716_COEF16_SHIFT          0
-+#define ISPRSZ_HFILT1716_COEF16_MASK           0x3FF
-+#define ISPRSZ_HFILT1716_COEF17_SHIFT          16
-+#define ISPRSZ_HFILT1716_COEF17_MASK           0x3FF0000
-+
-+#define ISPRSZ_HFILT1918_COEF18_SHIFT          0
-+#define ISPRSZ_HFILT1918_COEF18_MASK           0x3FF
-+#define ISPRSZ_HFILT1918_COEF19_SHIFT          16
-+#define ISPRSZ_HFILT1918_COEF19_MASK           0x3FF0000
-+
-+#define ISPRSZ_HFILT2120_COEF20_SHIFT          0
-+#define ISPRSZ_HFILT2120_COEF20_MASK           0x3FF
-+#define ISPRSZ_HFILT2120_COEF21_SHIFT          16
-+#define ISPRSZ_HFILT2120_COEF21_MASK           0x3FF0000
-+
-+#define ISPRSZ_HFILT2322_COEF22_SHIFT          0
-+#define ISPRSZ_HFILT2322_COEF22_MASK           0x3FF
-+#define ISPRSZ_HFILT2322_COEF23_SHIFT          16
-+#define ISPRSZ_HFILT2322_COEF23_MASK           0x3FF0000
-+
-+#define ISPRSZ_HFILT2524_COEF24_SHIFT          0
-+#define ISPRSZ_HFILT2524_COEF24_MASK           0x3FF
-+#define ISPRSZ_HFILT2524_COEF25_SHIFT          16
-+#define ISPRSZ_HFILT2524_COEF25_MASK           0x3FF0000
-+
-+#define ISPRSZ_HFILT2726_COEF26_SHIFT          0
-+#define ISPRSZ_HFILT2726_COEF26_MASK           0x3FF
-+#define ISPRSZ_HFILT2726_COEF27_SHIFT          16
-+#define ISPRSZ_HFILT2726_COEF27_MASK           0x3FF0000
-+
-+#define ISPRSZ_HFILT2928_COEF28_SHIFT          0
-+#define ISPRSZ_HFILT2928_COEF28_MASK           0x3FF
-+#define ISPRSZ_HFILT2928_COEF29_SHIFT          16
-+#define ISPRSZ_HFILT2928_COEF29_MASK           0x3FF0000
-+
-+#define ISPRSZ_HFILT3130_COEF30_SHIFT          0
-+#define ISPRSZ_HFILT3130_COEF30_MASK           0x3FF
-+#define ISPRSZ_HFILT3130_COEF31_SHIFT          16
-+#define ISPRSZ_HFILT3130_COEF31_MASK           0x3FF0000
-+
-+#define ISPRSZ_VFILT10_COEF0_SHIFT             0
-+#define ISPRSZ_VFILT10_COEF0_MASK              0x3FF
-+#define ISPRSZ_VFILT10_COEF1_SHIFT             16
-+#define ISPRSZ_VFILT10_COEF1_MASK              0x3FF0000
-+
-+#define ISPRSZ_VFILT32_COEF2_SHIFT             0
-+#define ISPRSZ_VFILT32_COEF2_MASK              0x3FF
-+#define ISPRSZ_VFILT32_COEF3_SHIFT             16
-+#define ISPRSZ_VFILT32_COEF3_MASK              0x3FF0000
-+
-+#define ISPRSZ_VFILT54_COEF4_SHIFT             0
-+#define ISPRSZ_VFILT54_COEF4_MASK              0x3FF
-+#define ISPRSZ_VFILT54_COEF5_SHIFT             16
-+#define ISPRSZ_VFILT54_COEF5_MASK              0x3FF0000
-+
-+#define ISPRSZ_VFILT76_COEFF6_SHIFT            0
-+#define ISPRSZ_VFILT76_COEFF6_MASK             0x3FF
-+#define ISPRSZ_VFILT76_COEFF7_SHIFT            16
-+#define ISPRSZ_VFILT76_COEFF7_MASK             0x3FF0000
-+
-+#define ISPRSZ_VFILT98_COEFF8_SHIFT            0
-+#define ISPRSZ_VFILT98_COEFF8_MASK             0x3FF
-+#define ISPRSZ_VFILT98_COEFF9_SHIFT            16
-+#define ISPRSZ_VFILT98_COEFF9_MASK             0x3FF0000
-+
-+#define ISPRSZ_VFILT1110_COEF10_SHIFT          0
-+#define ISPRSZ_VFILT1110_COEF10_MASK           0x3FF
-+#define ISPRSZ_VFILT1110_COEF11_SHIFT          16
-+#define ISPRSZ_VFILT1110_COEF11_MASK           0x3FF0000
-+
-+#define ISPRSZ_VFILT1312_COEFF12_SHIFT         0
-+#define ISPRSZ_VFILT1312_COEFF12_MASK          0x3FF
-+#define ISPRSZ_VFILT1312_COEFF13_SHIFT         16
-+#define ISPRSZ_VFILT1312_COEFF13_MASK          0x3FF0000
-+
-+#define ISPRSZ_VFILT1514_COEFF14_SHIFT         0
-+#define ISPRSZ_VFILT1514_COEFF14_MASK          0x3FF
-+#define ISPRSZ_VFILT1514_COEFF15_SHIFT         16
-+#define ISPRSZ_VFILT1514_COEFF15_MASK          0x3FF0000
-+
-+#define ISPRSZ_VFILT1716_COEF16_SHIFT          0
-+#define ISPRSZ_VFILT1716_COEF16_MASK           0x3FF
-+#define ISPRSZ_VFILT1716_COEF17_SHIFT          16
-+#define ISPRSZ_VFILT1716_COEF17_MASK           0x3FF0000
-+
-+#define ISPRSZ_VFILT1918_COEF18_SHIFT          0
-+#define ISPRSZ_VFILT1918_COEF18_MASK           0x3FF
-+#define ISPRSZ_VFILT1918_COEF19_SHIFT          16
-+#define ISPRSZ_VFILT1918_COEF19_MASK           0x3FF0000
-+
-+#define ISPRSZ_VFILT2120_COEF20_SHIFT          0
-+#define ISPRSZ_VFILT2120_COEF20_MASK           0x3FF
-+#define ISPRSZ_VFILT2120_COEF21_SHIFT          16
-+#define ISPRSZ_VFILT2120_COEF21_MASK           0x3FF0000
-+
-+#define ISPRSZ_VFILT2322_COEF22_SHIFT          0
-+#define ISPRSZ_VFILT2322_COEF22_MASK           0x3FF
-+#define ISPRSZ_VFILT2322_COEF23_SHIFT          16
-+#define ISPRSZ_VFILT2322_COEF23_MASK           0x3FF0000
-+
-+#define ISPRSZ_VFILT2524_COEF24_SHIFT          0
-+#define ISPRSZ_VFILT2524_COEF24_MASK           0x3FF
-+#define ISPRSZ_VFILT2524_COEF25_SHIFT          16
-+#define ISPRSZ_VFILT2524_COEF25_MASK           0x3FF0000
-+
-+#define ISPRSZ_VFILT2726_COEF26_SHIFT          0
-+#define ISPRSZ_VFILT2726_COEF26_MASK           0x3FF
-+#define ISPRSZ_VFILT2726_COEF27_SHIFT          16
-+#define ISPRSZ_VFILT2726_COEF27_MASK           0x3FF0000
-+
-+#define ISPRSZ_VFILT2928_COEF28_SHIFT          0
-+#define ISPRSZ_VFILT2928_COEF28_MASK           0x3FF
-+#define ISPRSZ_VFILT2928_COEF29_SHIFT          16
-+#define ISPRSZ_VFILT2928_COEF29_MASK           0x3FF0000
-+
-+#define ISPRSZ_VFILT3130_COEF30_SHIFT          0
-+#define ISPRSZ_VFILT3130_COEF30_MASK           0x3FF
-+#define ISPRSZ_VFILT3130_COEF31_SHIFT          16
-+#define ISPRSZ_VFILT3130_COEF31_MASK           0x3FF0000
-+
-+#define ISPRSZ_YENH_CORE_SHIFT                 0
-+#define ISPRSZ_YENH_CORE_MASK                  0xFF
-+#define ISPRSZ_YENH_SLOP_SHIFT                 8
-+#define ISPRSZ_YENH_SLOP_MASK                  0xF00
-+#define ISPRSZ_YENH_GAIN_SHIFT                 12
-+#define ISPRSZ_YENH_GAIN_MASK                  0xF000
-+#define ISPRSZ_YENH_ALGO_SHIFT                 16
-+#define ISPRSZ_YENH_ALGO_MASK                  0x30000
-+
-+#define ISPH3A_PCR_AEW_ALAW_EN_SHIFT           1
-+#define ISPH3A_PCR_AF_MED_TH_SHIFT             3
-+#define ISPH3A_PCR_AF_RGBPOS_SHIFT             11
-+#define ISPH3A_PCR_AEW_AVE2LMT_SHIFT           22
-+#define ISPH3A_PCR_AEW_AVE2LMT_MASK            0xFFC00000
-+
-+#define ISPH3A_AEWWIN1_WINHC_SHIFT             0
-+#define ISPH3A_AEWWIN1_WINHC_MASK              0x3F
-+#define ISPH3A_AEWWIN1_WINVC_SHIFT             6
-+#define ISPH3A_AEWWIN1_WINVC_MASK              0x1FC0
-+#define ISPH3A_AEWWIN1_WINW_SHIFT              13
-+#define ISPH3A_AEWWIN1_WINW_MASK               0xFE000
-+#define ISPH3A_AEWWIN1_WINH_SHIFT              24
-+#define ISPH3A_AEWWIN1_WINH_MASK               0x7F000000
-+
-+#define ISPH3A_AEWINSTART_WINSH_SHIFT          0
-+#define ISPH3A_AEWINSTART_WINSH_MASK           0x0FFF
-+#define ISPH3A_AEWINSTART_WINSV_SHIFT          16
-+#define ISPH3A_AEWINSTART_WINSV_MASK           0x0FFF0000
-+
-+#define ISPH3A_AEWINBLK_WINH_SHIFT             0
-+#define ISPH3A_AEWINBLK_WINH_MASK              0x7F
-+#define ISPH3A_AEWINBLK_WINSV_SHIFT            16
-+#define ISPH3A_AEWINBLK_WINSV_MASK             0x0FFF0000
-+
-+#define ISPH3A_AEWSUBWIN_AEWINCH_SHIFT         0
-+#define ISPH3A_AEWSUBWIN_AEWINCH_MASK          0x0F
-+#define ISPH3A_AEWSUBWIN_AEWINCV_SHIFT         8
-+#define ISPH3A_AEWSUBWIN_AEWINCV_MASK          0x0F00
-+
-+#define ISPHIST_PCR_ENABLE_SHIFT       0
-+#define ISPHIST_PCR_ENABLE_MASK                0x01
-+#define ISPHIST_PCR_BUSY_SHIFT         1
-+#define ISPHIST_PCR_BUSY_MASK          0x02
-+
-+#define ISPHIST_CNT_DATASIZE_SHIFT     8
-+#define ISPHIST_CNT_DATASIZE_MASK      0x0100
-+#define ISPHIST_CNT_CLEAR_SHIFT                7
-+#define ISPHIST_CNT_CLEAR_MASK         0x080
-+#define ISPHIST_CNT_CFA_SHIFT          6
-+#define ISPHIST_CNT_CFA_MASK           0x040
-+#define ISPHIST_CNT_BINS_SHIFT         4
-+#define ISPHIST_CNT_BINS_MASK          0x030
-+#define ISPHIST_CNT_SOURCE_SHIFT       3
-+#define ISPHIST_CNT_SOURCE_MASK                0x08
-+#define ISPHIST_CNT_SHIFT_SHIFT                0
-+#define ISPHIST_CNT_SHIFT_MASK         0x07
-+
-+#define ISPHIST_WB_GAIN_WG00_SHIFT     24
-+#define ISPHIST_WB_GAIN_WG00_MASK      0xFF000000
-+#define ISPHIST_WB_GAIN_WG01_SHIFT     16
-+#define ISPHIST_WB_GAIN_WG01_MASK      0xFF0000
-+#define ISPHIST_WB_GAIN_WG02_SHIFT     8
-+#define ISPHIST_WB_GAIN_WG02_MASK      0xFF00
-+#define ISPHIST_WB_GAIN_WG03_SHIFT     0
-+#define ISPHIST_WB_GAIN_WG03_MASK      0xFF
-+
-+#define ISPHIST_REGHORIZ_HSTART_SHIFT          16      /*
-+                                                       * REGION 0 to 3 HORZ
-+                                                       * and VERT
-+                                                       */
-+#define ISPHIST_REGHORIZ_HSTART_MASK           0x3FFF0000
-+#define ISPHIST_REGHORIZ_HEND_SHIFT            0
-+#define ISPHIST_REGHORIZ_HEND_MASK             0x3FFF
-+#define ISPHIST_REGVERT_VSTART_SHIFT           16
-+#define ISPHIST_REGVERT_VSTART_MASK            0x3FFF0000
-+#define ISPHIST_REGVERT_VEND_SHIFT             0
-+#define ISPHIST_REGVERT_VEND_MASK              0x3FFF
-+
-+#define ISPHIST_REGHORIZ_MASK                  0x3FFF3FFF
-+#define ISPHIST_REGVERT_MASK                   0x3FFF3FFF
-+
-+#define ISPHIST_ADDR_SHIFT                     0
-+#define ISPHIST_ADDR_MASK                      0x3FF
-+
-+#define ISPHIST_DATA_SHIFT                     0
-+#define ISPHIST_DATA_MASK                      0xFFFFF
-+
-+#define ISPHIST_RADD_SHIFT                     0
-+#define ISPHIST_RADD_MASK                      0xFFFFFFFF
-+
-+#define ISPHIST_RADD_OFF_SHIFT                 0
-+#define ISPHIST_RADD_OFF_MASK                  0xFFFF
-+
-+#define ISPHIST_HV_INFO_HSIZE_SHIFT            16
-+#define ISPHIST_HV_INFO_HSIZE_MASK             0x3FFF0000
-+#define ISPHIST_HV_INFO_VSIZE_SHIFT            0
-+#define ISPHIST_HV_INFO_VSIZE_MASK             0x3FFF
-+
-+#define ISPHIST_HV_INFO_MASK                   0x3FFF3FFF
-+
-+#define ISPCCDC_LSC_GAIN_MODE_N_MASK           0x700
-+#define ISPCCDC_LSC_GAIN_MODE_N_SHIFT          8
-+#define ISPCCDC_LSC_GAIN_MODE_M_MASK           0x3800
-+#define ISPCCDC_LSC_GAIN_MODE_M_SHIFT          12
-+#define ISPCCDC_LSC_GAIN_FORMAT_MASK           0xE
-+#define ISPCCDC_LSC_GAIN_FORMAT_SHIFT          1
-+#define ISPCCDC_LSC_AFTER_REFORMATTER_MASK     (1<<6)
-+
-+#define ISPCCDC_LSC_INITIAL_X_MASK             0x3F
-+#define ISPCCDC_LSC_INITIAL_X_SHIFT            0
-+#define ISPCCDC_LSC_INITIAL_Y_MASK             0x3F0000
-+#define ISPCCDC_LSC_INITIAL_Y_SHIFT            16
-+
-+#define ISPMMU_REVISION_REV_MINOR_MASK         0xF
-+#define ISPMMU_REVISION_REV_MAJOR_SHIFT                0x4
-+
-+#define IRQENABLE_MULTIHITFAULT                        (1<<4)
-+#define IRQENABLE_TWFAULT                      (1<<3)
-+#define IRQENABLE_EMUMISS                      (1<<2)
-+#define IRQENABLE_TRANSLNFAULT                 (1<<1)
-+#define IRQENABLE_TLBMISS                      (1)
-+
-+#define ISPMMU_MMUCNTL_MMU_EN                  (1<<1)
-+#define ISPMMU_MMUCNTL_TWL_EN                  (1<<2)
-+#define ISPMMU_MMUCNTL_EMUTLBUPDATE            (1<<3)
-+#define ISPMMU_AUTOIDLE                                0x1
-+#define ISPMMU_SIDLEMODE_FORCEIDLE             0
-+#define ISPMMU_SIDLEMODE_NOIDLE                        1
-+#define ISPMMU_SIDLEMODE_SMARTIDLE             2
-+#define ISPMMU_SIDLEMODE_SHIFT                 3
-+
-+#define ISPCSI1_AUTOIDLE                       0x1
-+#define ISPCSI1_MIDLEMODE_SHIFT                        12
-+#define ISPCSI1_MIDLEMODE_FORCESTANDBY         0x0
-+#define ISPCSI1_MIDLEMODE_NOSTANDBY            0x1
-+#define ISPCSI1_MIDLEMODE_SMARTSTANDBY         0x2
-+
-+/* CSI2 receiver registers (ES2.0) */
-+#define ISPCSI2_REVISION                       (0x000)
-+#define ISPCSI2_SYSCONFIG                      (0x010)
-+#define ISPCSI2_SYSCONFIG_MSTANDBY_MODE_SHIFT  12
-+#define ISPCSI2_SYSCONFIG_MSTANDBY_MODE_MASK \
-+                               (0x3 << ISPCSI2_SYSCONFIG_MSTANDBY_MODE_SHIFT)
-+#define ISPCSI2_SYSCONFIG_MSTANDBY_MODE_FORCE \
-+                               (0x0 << ISPCSI2_SYSCONFIG_MSTANDBY_MODE_SHIFT)
-+#define ISPCSI2_SYSCONFIG_MSTANDBY_MODE_NO \
-+                               (0x1 << ISPCSI2_SYSCONFIG_MSTANDBY_MODE_SHIFT)
-+#define ISPCSI2_SYSCONFIG_MSTANDBY_MODE_SMART \
-+                               (0x2 << ISPCSI2_SYSCONFIG_MSTANDBY_MODE_SHIFT)
-+#define ISPCSI2_SYSCONFIG_SOFT_RESET_SHIFT     1
-+#define ISPCSI2_SYSCONFIG_SOFT_RESET_MASK \
-+                               (0x1 << ISPCSI2_SYSCONFIG_SOFT_RESET_SHIFT)
-+#define ISPCSI2_SYSCONFIG_SOFT_RESET_NORMAL \
-+                               (0x0 << ISPCSI2_SYSCONFIG_SOFT_RESET_SHIFT)
-+#define ISPCSI2_SYSCONFIG_SOFT_RESET_RESET \
-+                               (0x1 << ISPCSI2_SYSCONFIG_SOFT_RESET_SHIFT)
-+#define ISPCSI2_SYSCONFIG_AUTO_IDLE_SHIFT      0
-+#define ISPCSI2_SYSCONFIG_AUTO_IDLE_MASK \
-+                               (0x1 << ISPCSI2_SYSCONFIG_AUTO_IDLE_SHIFT)
-+#define ISPCSI2_SYSCONFIG_AUTO_IDLE_FREE \
-+                               (0x0 << ISPCSI2_SYSCONFIG_AUTO_IDLE_SHIFT)
-+#define ISPCSI2_SYSCONFIG_AUTO_IDLE_AUTO \
-+                               (0x1 << ISPCSI2_SYSCONFIG_AUTO_IDLE_SHIFT)
-+#define ISPCSI2_SYSSTATUS                      (0x014)
-+#define ISPCSI2_SYSSTATUS_RESET_DONE_SHIFT     0
-+#define ISPCSI2_SYSSTATUS_RESET_DONE_MASK \
-+                               (0x1 << ISPCSI2_SYSSTATUS_RESET_DONE_SHIFT)
-+#define ISPCSI2_SYSSTATUS_RESET_DONE_ONGOING \
-+                               (0x0 << ISPCSI2_SYSSTATUS_RESET_DONE_SHIFT)
-+#define ISPCSI2_SYSSTATUS_RESET_DONE_DONE \
-+                               (0x1 << ISPCSI2_SYSSTATUS_RESET_DONE_SHIFT)
-+#define ISPCSI2_IRQSTATUS                              (0x018)
-+#define ISPCSI2_IRQSTATUS_OCP_ERR_IRQ                  (1 << 14)
-+#define ISPCSI2_IRQSTATUS_SHORT_PACKET_IRQ             (1 << 13)
-+#define ISPCSI2_IRQSTATUS_ECC_CORRECTION_IRQ           (1 << 12)
-+#define ISPCSI2_IRQSTATUS_ECC_NO_CORRECTION_IRQ                (1 << 11)
-+#define ISPCSI2_IRQSTATUS_COMPLEXIO2_ERR_IRQ           (1 << 10)
-+#define ISPCSI2_IRQSTATUS_COMPLEXIO1_ERR_IRQ           (1 << 9)
-+#define ISPCSI2_IRQSTATUS_FIFO_OVF_IRQ                 (1 << 8)
-+#define ISPCSI2_IRQSTATUS_CONTEXT(n)                   (1 << (n))
-+
-+#define ISPCSI2_IRQENABLE                      (0x01C)
-+#define ISPCSI2_CTRL                           (0x040)
-+#define ISPCSI2_CTRL_VP_CLK_EN_SHIFT   15
-+#define ISPCSI2_CTRL_VP_CLK_EN_MASK    (0x1 << ISPCSI2_CTRL_VP_CLK_EN_SHIFT)
-+#define ISPCSI2_CTRL_VP_CLK_EN_DISABLE (0x0 << ISPCSI2_CTRL_VP_CLK_EN_SHIFT)
-+#define ISPCSI2_CTRL_VP_CLK_EN_ENABLE  (0x1 << ISPCSI2_CTRL_VP_CLK_EN_SHIFT)
-+
-+#define ISPCSI2_CTRL_VP_ONLY_EN_SHIFT  11
-+#define ISPCSI2_CTRL_VP_ONLY_EN_MASK   (0x1 << ISPCSI2_CTRL_VP_ONLY_EN_SHIFT)
-+#define ISPCSI2_CTRL_VP_ONLY_EN_DISABLE        (0x0 << ISPCSI2_CTRL_VP_ONLY_EN_SHIFT)
-+#define ISPCSI2_CTRL_VP_ONLY_EN_ENABLE (0x1 << ISPCSI2_CTRL_VP_ONLY_EN_SHIFT)
-+
-+#define ISPCSI2_CTRL_VP_OUT_CTRL_SHIFT         8
-+#define ISPCSI2_CTRL_VP_OUT_CTRL_MASK          (0x3 << \
-+                                               ISPCSI2_CTRL_VP_OUT_CTRL_SHIFT)
-+#define ISPCSI2_CTRL_VP_OUT_CTRL_DISABLE       (0x0 << \
-+                                               ISPCSI2_CTRL_VP_OUT_CTRL_SHIFT)
-+#define ISPCSI2_CTRL_VP_OUT_CTRL_DIV2          (0x1 << \
-+                                               ISPCSI2_CTRL_VP_OUT_CTRL_SHIFT)
-+#define ISPCSI2_CTRL_VP_OUT_CTRL_DIV3          (0x2 << \
-+                                               ISPCSI2_CTRL_VP_OUT_CTRL_SHIFT)
-+#define ISPCSI2_CTRL_VP_OUT_CTRL_DIV4          (0x3 << \
-+                                               ISPCSI2_CTRL_VP_OUT_CTRL_SHIFT)
-+
-+#define ISPCSI2_CTRL_DBG_EN_SHIFT      7
-+#define ISPCSI2_CTRL_DBG_EN_MASK       (0x1 << ISPCSI2_CTRL_DBG_EN_SHIFT)
-+#define ISPCSI2_CTRL_DBG_EN_DISABLE    (0x0 << ISPCSI2_CTRL_DBG_EN_SHIFT)
-+#define ISPCSI2_CTRL_DBG_EN_ENABLE     (0x1 << ISPCSI2_CTRL_DBG_EN_SHIFT)
-+
-+#define ISPCSI2_CTRL_BURST_SIZE_SHIFT          5
-+#define ISPCSI2_CTRL_BURST_SIZE_MASK           (0x3 << \
-+                                               ISPCSI2_CTRL_BURST_SIZE_SHIFT)
-+#define ISPCSI2_CTRL_BURST_SIZE_MYSTERY_VAL            (0x2 << \
-+                                               ISPCSI2_CTRL_BURST_SIZE_SHIFT)
-+
-+#define ISPCSI2_CTRL_FRAME_SHIFT       3
-+#define ISPCSI2_CTRL_FRAME_MASK                (0x1 << ISPCSI2_CTRL_FRAME_SHIFT)
-+#define ISPCSI2_CTRL_FRAME_DISABLE_IMM (0x0 << ISPCSI2_CTRL_FRAME_SHIFT)
-+#define ISPCSI2_CTRL_FRAME_DISABLE_FEC (0x1 << ISPCSI2_CTRL_FRAME_SHIFT)
-+
-+#define ISPCSI2_CTRL_ECC_EN_SHIFT      2
-+#define ISPCSI2_CTRL_ECC_EN_MASK       (0x1 << ISPCSI2_CTRL_ECC_EN_SHIFT)
-+#define ISPCSI2_CTRL_ECC_EN_DISABLE    (0x0 << ISPCSI2_CTRL_ECC_EN_SHIFT)
-+#define ISPCSI2_CTRL_ECC_EN_ENABLE     (0x1 << ISPCSI2_CTRL_ECC_EN_SHIFT)
-+
-+#define ISPCSI2_CTRL_SECURE_SHIFT      1
-+#define ISPCSI2_CTRL_SECURE_MASK       (0x1 << ISPCSI2_CTRL_SECURE_SHIFT)
-+#define ISPCSI2_CTRL_SECURE_DISABLE    (0x0 << ISPCSI2_CTRL_SECURE_SHIFT)
-+#define ISPCSI2_CTRL_SECURE_ENABLE     (0x1 << ISPCSI2_CTRL_SECURE_SHIFT)
-+
-+#define ISPCSI2_CTRL_IF_EN_SHIFT       0
-+#define ISPCSI2_CTRL_IF_EN_MASK                (0x1 << ISPCSI2_CTRL_IF_EN_SHIFT)
-+#define ISPCSI2_CTRL_IF_EN_DISABLE     (0x0 << ISPCSI2_CTRL_IF_EN_SHIFT)
-+#define ISPCSI2_CTRL_IF_EN_ENABLE      (0x1 << ISPCSI2_CTRL_IF_EN_SHIFT)
-+
-+#define ISPCSI2_DBG_H                          (0x044)
-+#define ISPCSI2_GNQ                            (0x048)
-+#define ISPCSI2_COMPLEXIO_CFG1                 (0x050)
-+#define ISPCSI2_COMPLEXIO_CFG1_RESET_DONE_SHIFT                29
-+#define ISPCSI2_COMPLEXIO_CFG1_RESET_DONE_MASK \
-+                       (0x1 << ISPCSI2_COMPLEXIO_CFG1_RESET_DONE_SHIFT)
-+#define ISPCSI2_COMPLEXIO_CFG1_RESET_DONE_ONGOING \
-+                       (0x0 << ISPCSI2_COMPLEXIO_CFG1_RESET_DONE_SHIFT)
-+#define ISPCSI2_COMPLEXIO_CFG1_RESET_DONE_DONE \
-+                       (0x1 << ISPCSI2_COMPLEXIO_CFG1_RESET_DONE_SHIFT)
-+#define ISPCSI2_COMPLEXIO_CFG1_PWR_CMD_SHIFT           27
-+#define ISPCSI2_COMPLEXIO_CFG1_PWR_CMD_MASK \
-+                       (0x3 << ISPCSI2_COMPLEXIO_CFG1_PWR_CMD_SHIFT)
-+#define ISPCSI2_COMPLEXIO_CFG1_PWR_CMD_OFF \
-+                       (0x0 << ISPCSI2_COMPLEXIO_CFG1_PWR_CMD_SHIFT)
-+#define ISPCSI2_COMPLEXIO_CFG1_PWR_CMD_ON \
-+                       (0x1 << ISPCSI2_COMPLEXIO_CFG1_PWR_CMD_SHIFT)
-+#define ISPCSI2_COMPLEXIO_CFG1_PWR_CMD_ULPW \
-+                       (0x2 << ISPCSI2_COMPLEXIO_CFG1_PWR_CMD_SHIFT)
-+#define ISPCSI2_COMPLEXIO_CFG1_PWR_STATUS_SHIFT                25
-+#define ISPCSI2_COMPLEXIO_CFG1_PWR_STATUS_MASK \
-+                       (0x3 << ISPCSI2_COMPLEXIO_CFG1_PWR_STATUS_SHIFT)
-+#define ISPCSI2_COMPLEXIO_CFG1_PWR_STATUS_OFF \
-+                       (0x0 << ISPCSI2_COMPLEXIO_CFG1_PWR_STATUS_SHIFT)
-+#define ISPCSI2_COMPLEXIO_CFG1_PWR_STATUS_ON \
-+                       (0x1 << ISPCSI2_COMPLEXIO_CFG1_PWR_STATUS_SHIFT)
-+#define ISPCSI2_COMPLEXIO_CFG1_PWR_STATUS_ULPW \
-+                       (0x2 << ISPCSI2_COMPLEXIO_CFG1_PWR_STATUS_SHIFT)
-+#define ISPCSI2_COMPLEXIO_CFG1_PWR_AUTO_SHIFT          24
-+#define ISPCSI2_COMPLEXIO_CFG1_PWR_AUTO_MASK \
-+                       (0x1 << ISPCSI2_COMPLEXIO_CFG1_PWR_AUTO_SHIFT)
-+#define ISPCSI2_COMPLEXIO_CFG1_PWR_AUTO_DISABLE \
-+                       (0x0 << ISPCSI2_COMPLEXIO_CFG1_PWR_AUTO_SHIFT)
-+#define ISPCSI2_COMPLEXIO_CFG1_PWR_AUTO_ENABLE \
-+                       (0x1 << ISPCSI2_COMPLEXIO_CFG1_PWR_AUTO_SHIFT)
-+
-+#define ISPCSI2_COMPLEXIO_CFG1_DATA_POL_SHIFT(n)       (3 + ((n) * 4))
-+#define ISPCSI2_COMPLEXIO_CFG1_DATA_POL_MASK(n) (0x1 << \
-+                               ISPCSI2_COMPLEXIO_CFG1_DATA_POL_SHIFT(n))
-+#define ISPCSI2_COMPLEXIO_CFG1_DATA_POL_PN(n) (0x0 << \
-+                               ISPCSI2_COMPLEXIO_CFG1_DATA_POL_SHIFT(n))
-+#define ISPCSI2_COMPLEXIO_CFG1_DATA_POL_NP(n) (0x1 << \
-+                               ISPCSI2_COMPLEXIO_CFG1_DATA_POL_SHIFT(n))
-+
-+#define ISPCSI2_COMPLEXIO_CFG1_DATA_POSITION_SHIFT(n)  ((n) * 4)
-+#define ISPCSI2_COMPLEXIO_CFG1_DATA_POSITION_MASK(n)   (0x7 << \
-+                               ISPCSI2_COMPLEXIO_CFG1_DATA_POSITION_SHIFT(n))
-+#define ISPCSI2_COMPLEXIO_CFG1_DATA_POSITION_NC(n)     (0x0 << \
-+                               ISPCSI2_COMPLEXIO_CFG1_DATA_POSITION_SHIFT(n))
-+#define ISPCSI2_COMPLEXIO_CFG1_DATA_POSITION_1(n)      (0x1 << \
-+                               ISPCSI2_COMPLEXIO_CFG1_DATA_POSITION_SHIFT(n))
-+#define ISPCSI2_COMPLEXIO_CFG1_DATA_POSITION_2(n)      (0x2 << \
-+                               ISPCSI2_COMPLEXIO_CFG1_DATA_POSITION_SHIFT(n))
-+#define ISPCSI2_COMPLEXIO_CFG1_DATA_POSITION_3(n)      (0x3 << \
-+                               ISPCSI2_COMPLEXIO_CFG1_DATA_POSITION_SHIFT(n))
-+#define ISPCSI2_COMPLEXIO_CFG1_DATA_POSITION_4(n)      (0x4 << \
-+                               ISPCSI2_COMPLEXIO_CFG1_DATA_POSITION_SHIFT(n))
-+#define ISPCSI2_COMPLEXIO_CFG1_DATA_POSITION_5(n)      (0x5 << \
-+                               ISPCSI2_COMPLEXIO_CFG1_DATA_POSITION_SHIFT(n))
-+
-+#define ISPCSI2_COMPLEXIO_CFG1_CLOCK_POL_SHIFT         3
-+#define ISPCSI2_COMPLEXIO_CFG1_CLOCK_POL_MASK \
-+                       (0x1 << ISPCSI2_COMPLEXIO_CFG1_CLOCK_POL_SHIFT)
-+#define ISPCSI2_COMPLEXIO_CFG1_CLOCK_POL_PN \
-+                       (0x0 << ISPCSI2_COMPLEXIO_CFG1_CLOCK_POL_SHIFT)
-+#define ISPCSI2_COMPLEXIO_CFG1_CLOCK_POL_NP \
-+                       (0x1 << ISPCSI2_COMPLEXIO_CFG1_CLOCK_POL_SHIFT)
-+
-+#define ISPCSI2_COMPLEXIO_CFG1_CLOCK_POSITION_SHIFT            0
-+#define ISPCSI2_COMPLEXIO_CFG1_CLOCK_POSITION_MASK \
-+                       (0x7 << ISPCSI2_COMPLEXIO_CFG1_CLOCK_POSITION_SHIFT)
-+#define ISPCSI2_COMPLEXIO_CFG1_CLOCK_POSITION_1 \
-+                       (0x1 << ISPCSI2_COMPLEXIO_CFG1_CLOCK_POSITION_SHIFT)
-+#define ISPCSI2_COMPLEXIO_CFG1_CLOCK_POSITION_2 \
-+                       (0x2 << ISPCSI2_COMPLEXIO_CFG1_CLOCK_POSITION_SHIFT)
-+#define ISPCSI2_COMPLEXIO_CFG1_CLOCK_POSITION_3 \
-+                       (0x3 << ISPCSI2_COMPLEXIO_CFG1_CLOCK_POSITION_SHIFT)
-+#define ISPCSI2_COMPLEXIO_CFG1_CLOCK_POSITION_4 \
-+                       (0x4 << ISPCSI2_COMPLEXIO_CFG1_CLOCK_POSITION_SHIFT)
-+#define ISPCSI2_COMPLEXIO_CFG1_CLOCK_POSITION_5 \
-+                       (0x5 << ISPCSI2_COMPLEXIO_CFG1_CLOCK_POSITION_SHIFT)
-+
-+#define ISPCSI2_COMPLEXIO1_IRQSTATUS                   (0x054)
-+#define ISPCSI2_COMPLEXIO1_IRQSTATUS_STATEALLULPMEXIT  (1 << 26)
-+#define ISPCSI2_COMPLEXIO1_IRQSTATUS_STATEALLULPMENTER (1 << 25)
-+#define ISPCSI2_COMPLEXIO1_IRQSTATUS_STATEULPM5                (1 << 24)
-+#define ISPCSI2_COMPLEXIO1_IRQSTATUS_STATEULPM4                (1 << 23)
-+#define ISPCSI2_COMPLEXIO1_IRQSTATUS_STATEULPM3                (1 << 22)
-+#define ISPCSI2_COMPLEXIO1_IRQSTATUS_STATEULPM2                (1 << 21)
-+#define ISPCSI2_COMPLEXIO1_IRQSTATUS_STATEULPM1                (1 << 20)
-+#define ISPCSI2_COMPLEXIO1_IRQSTATUS_ERRCONTROL5       (1 << 19)
-+#define ISPCSI2_COMPLEXIO1_IRQSTATUS_ERRCONTROL4       (1 << 18)
-+#define ISPCSI2_COMPLEXIO1_IRQSTATUS_ERRCONTROL3       (1 << 17)
-+#define ISPCSI2_COMPLEXIO1_IRQSTATUS_ERRCONTROL2       (1 << 16)
-+#define ISPCSI2_COMPLEXIO1_IRQSTATUS_ERRCONTROL1       (1 << 15)
-+#define ISPCSI2_COMPLEXIO1_IRQSTATUS_ERRESC5           (1 << 14)
-+#define ISPCSI2_COMPLEXIO1_IRQSTATUS_ERRESC4           (1 << 13)
-+#define ISPCSI2_COMPLEXIO1_IRQSTATUS_ERRESC3           (1 << 12)
-+#define ISPCSI2_COMPLEXIO1_IRQSTATUS_ERRESC2           (1 << 11)
-+#define ISPCSI2_COMPLEXIO1_IRQSTATUS_ERRESC1           (1 << 10)
-+#define ISPCSI2_COMPLEXIO1_IRQSTATUS_ERRSOTSYNCHS5     (1 << 9)
-+#define ISPCSI2_COMPLEXIO1_IRQSTATUS_ERRSOTSYNCHS4     (1 << 8)
-+#define ISPCSI2_COMPLEXIO1_IRQSTATUS_ERRSOTSYNCHS3     (1 << 7)
-+#define ISPCSI2_COMPLEXIO1_IRQSTATUS_ERRSOTSYNCHS2     (1 << 6)
-+#define ISPCSI2_COMPLEXIO1_IRQSTATUS_ERRSOTSYNCHS1     (1 << 5)
-+#define ISPCSI2_COMPLEXIO1_IRQSTATUS_ERRSOTHS5         (1 << 4)
-+#define ISPCSI2_COMPLEXIO1_IRQSTATUS_ERRSOTHS4         (1 << 3)
-+#define ISPCSI2_COMPLEXIO1_IRQSTATUS_ERRSOTHS3         (1 << 2)
-+#define ISPCSI2_COMPLEXIO1_IRQSTATUS_ERRSOTHS2         (1 << 1)
-+#define ISPCSI2_COMPLEXIO1_IRQSTATUS_ERRSOTHS1         1
-+
-+#define ISPCSI2_SHORT_PACKET           (0x05C)
-+#define ISPCSI2_COMPLEXIO1_IRQENABLE                   (0x060)
-+#define ISPCSI2_COMPLEXIO1_IRQENABLE_STATEALLULPMEXIT  (1 << 26)
-+#define ISPCSI2_COMPLEXIO1_IRQENABLE_STATEALLULPMENTER (1 << 25)
-+#define ISPCSI2_COMPLEXIO1_IRQENABLE_STATEULPM5                (1 << 24)
-+#define ISPCSI2_COMPLEXIO1_IRQENABLE_STATEULPM4                (1 << 23)
-+#define ISPCSI2_COMPLEXIO1_IRQENABLE_STATEULPM3                (1 << 22)
-+#define ISPCSI2_COMPLEXIO1_IRQENABLE_STATEULPM2                (1 << 21)
-+#define ISPCSI2_COMPLEXIO1_IRQENABLE_STATEULPM1                (1 << 20)
-+#define ISPCSI2_COMPLEXIO1_IRQENABLE_ERRCONTROL5       (1 << 19)
-+#define ISPCSI2_COMPLEXIO1_IRQENABLE_ERRCONTROL4       (1 << 18)
-+#define ISPCSI2_COMPLEXIO1_IRQENABLE_ERRCONTROL3       (1 << 17)
-+#define ISPCSI2_COMPLEXIO1_IRQENABLE_ERRCONTROL2       (1 << 16)
-+#define ISPCSI2_COMPLEXIO1_IRQENABLE_ERRCONTROL1       (1 << 15)
-+#define ISPCSI2_COMPLEXIO1_IRQENABLE_ERRESC5           (1 << 14)
-+#define ISPCSI2_COMPLEXIO1_IRQENABLE_ERRESC4           (1 << 13)
-+#define ISPCSI2_COMPLEXIO1_IRQENABLE_ERRESC3           (1 << 12)
-+#define ISPCSI2_COMPLEXIO1_IRQENABLE_ERRESC2           (1 << 11)
-+#define ISPCSI2_COMPLEXIO1_IRQENABLE_ERRESC1           (1 << 10)
-+#define ISPCSI2_COMPLEXIO1_IRQENABLE_ERRSOTSYNCHS5     (1 << 9)
-+#define ISPCSI2_COMPLEXIO1_IRQENABLE_ERRSOTSYNCHS4     (1 << 8)
-+#define ISPCSI2_COMPLEXIO1_IRQENABLE_ERRSOTSYNCHS3     (1 << 7)
-+#define ISPCSI2_COMPLEXIO1_IRQENABLE_ERRSOTSYNCHS2     (1 << 6)
-+#define ISPCSI2_COMPLEXIO1_IRQENABLE_ERRSOTSYNCHS1     (1 << 5)
-+#define ISPCSI2_COMPLEXIO1_IRQENABLE_ERRSOTHS5         (1 << 4)
-+#define ISPCSI2_COMPLEXIO1_IRQENABLE_ERRSOTHS4         (1 << 3)
-+#define ISPCSI2_COMPLEXIO1_IRQENABLE_ERRSOTHS3         (1 << 2)
-+#define ISPCSI2_COMPLEXIO1_IRQENABLE_ERRSOTHS2         (1 << 1)
-+#define ISPCSI2_COMPLEXIO1_IRQENABLE_ERRSOTHS1         1
-+#define ISPCSI2_DBG_P                  (0x068)
-+#define ISPCSI2_TIMING                 (0x06C)
-+
-+
-+#define ISPCSI2_TIMING_FORCE_RX_MODE_IO_SHIFT(n)       ((16 * ((n) - 1)) + 15)
-+#define ISPCSI2_TIMING_FORCE_RX_MODE_IO_MASK(n)        (0x1 << \
-+                               ISPCSI2_TIMING_FORCE_RX_MODE_IO_SHIFT(n))
-+#define ISPCSI2_TIMING_FORCE_RX_MODE_IO_DISABLE(n)     (0x0 << \
-+                               ISPCSI2_TIMING_FORCE_RX_MODE_IO_SHIFT(n))
-+#define ISPCSI2_TIMING_FORCE_RX_MODE_IO_ENABLE(n)      (0x1 << \
-+                               ISPCSI2_TIMING_FORCE_RX_MODE_IO_SHIFT(n))
-+#define ISPCSI2_TIMING_STOP_STATE_X16_IO_SHIFT(n)      ((16 * ((n) - 1)) + 14)
-+#define ISPCSI2_TIMING_STOP_STATE_X16_IO_MASK(n)       (0x1 << \
-+                               ISPCSI2_TIMING_STOP_STATE_X16_IO_SHIFT(n))
-+#define ISPCSI2_TIMING_STOP_STATE_X16_IO_DISABLE(n)    (0x0 << \
-+                               ISPCSI2_TIMING_STOP_STATE_X16_IO_SHIFT(n))
-+#define ISPCSI2_TIMING_STOP_STATE_X16_IO_ENABLE(n)     (0x1 << \
-+                               ISPCSI2_TIMING_STOP_STATE_X16_IO_SHIFT(n))
-+#define ISPCSI2_TIMING_STOP_STATE_X4_IO_SHIFT(n)       ((16 * ((n) - 1)) + 13)
-+#define ISPCSI2_TIMING_STOP_STATE_X4_IO_MASK(n)                (0x1 << \
-+                               ISPCSI2_TIMING_STOP_STATE_X4_IO_SHIFT(n))
-+#define ISPCSI2_TIMING_STOP_STATE_X4_IO_DISABLE(n)     (0x0 << \
-+                               ISPCSI2_TIMING_STOP_STATE_X4_IO_SHIFT(n))
-+#define ISPCSI2_TIMING_STOP_STATE_X4_IO_ENABLE(n)              (0x1 << \
-+                               ISPCSI2_TIMING_STOP_STATE_X4_IO_SHIFT(n))
-+#define ISPCSI2_TIMING_STOP_STATE_COUNTER_IO_SHIFT(n)  (16 * ((n) - 1))
-+#define ISPCSI2_TIMING_STOP_STATE_COUNTER_IO_MASK(n)   (0x1FFF << \
-+                               ISPCSI2_TIMING_STOP_STATE_COUNTER_IO_SHIFT(n))
-+
-+#define ISPCSI2_CTX_CTRL1(n)           ((0x070) + 0x20 * (n))
-+#define ISPCSI2_CTX_CTRL1_COUNT_SHIFT          8
-+#define ISPCSI2_CTX_CTRL1_COUNT_MASK           (0xFF << \
-+                                               ISPCSI2_CTX_CTRL1_COUNT_SHIFT)
-+#define ISPCSI2_CTX_CTRL1_EOF_EN_SHIFT         7
-+#define ISPCSI2_CTX_CTRL1_EOF_EN_MASK          (0x1 << \
-+                                               ISPCSI2_CTX_CTRL1_EOF_EN_SHIFT)
-+#define ISPCSI2_CTX_CTRL1_EOF_EN_DISABLE       (0x0 << \
-+                                               ISPCSI2_CTX_CTRL1_EOF_EN_SHIFT)
-+#define ISPCSI2_CTX_CTRL1_EOF_EN_ENABLE                (0x1 << \
-+                                               ISPCSI2_CTX_CTRL1_EOF_EN_SHIFT)
-+#define ISPCSI2_CTX_CTRL1_EOL_EN_SHIFT         6
-+#define ISPCSI2_CTX_CTRL1_EOL_EN_MASK          (0x1 << \
-+                                               ISPCSI2_CTX_CTRL1_EOL_EN_SHIFT)
-+#define ISPCSI2_CTX_CTRL1_EOL_EN_DISABLE       (0x0 << \
-+                                               ISPCSI2_CTX_CTRL1_EOL_EN_SHIFT)
-+#define ISPCSI2_CTX_CTRL1_EOL_EN_ENABLE                (0x1 << \
-+                                               ISPCSI2_CTX_CTRL1_EOL_EN_SHIFT)
-+#define ISPCSI2_CTX_CTRL1_CS_EN_SHIFT          5
-+#define ISPCSI2_CTX_CTRL1_CS_EN_MASK           (0x1 << \
-+                                               ISPCSI2_CTX_CTRL1_CS_EN_SHIFT)
-+#define ISPCSI2_CTX_CTRL1_CS_EN_DISABLE                (0x0 << \
-+                                               ISPCSI2_CTX_CTRL1_CS_EN_SHIFT)
-+#define ISPCSI2_CTX_CTRL1_CS_EN_ENABLE         (0x1 << \
-+                                               ISPCSI2_CTX_CTRL1_CS_EN_SHIFT)
-+#define ISPCSI2_CTX_CTRL1_COUNT_UNLOCK_EN_SHIFT                4
-+#define ISPCSI2_CTX_CTRL1_COUNT_UNLOCK_EN_MASK         (0x1 << \
-+                                       ISPCSI2_CTX_CTRL1_COUNT_UNLOCK_EN_SHIFT)
-+#define ISPCSI2_CTX_CTRL1_COUNT_UNLOCK_EN_DISABLE      (0x0 << \
-+                                       ISPCSI2_CTX_CTRL1_COUNT_UNLOCK_EN_SHIFT)
-+#define ISPCSI2_CTX_CTRL1_COUNT_UNLOCK_EN_ENABLE       (0x1 << \
-+                                       ISPCSI2_CTX_CTRL1_COUNT_UNLOCK_EN_SHIFT)
-+#define ISPCSI2_CTX_CTRL1_PING_PONG_SHIFT      3
-+#define ISPCSI2_CTX_CTRL1_PING_PONG_MASK       (0x1 << \
-+                                       ISPCSI2_CTX_CTRL1_PING_PONG_SHIFT)
-+#define ISPCSI2_CTX_CTRL1_CTX_EN_SHIFT         0
-+#define ISPCSI2_CTX_CTRL1_CTX_EN_MASK          (0x1 << \
-+                                               ISPCSI2_CTX_CTRL1_CTX_EN_SHIFT)
-+#define ISPCSI2_CTX_CTRL1_CTX_EN_DISABLE       (0x0 << \
-+                                               ISPCSI2_CTX_CTRL1_CTX_EN_SHIFT)
-+#define ISPCSI2_CTX_CTRL1_CTX_EN_ENABLE                (0x1 << \
-+                                               ISPCSI2_CTX_CTRL1_CTX_EN_SHIFT)
-+
-+#define ISPCSI2_CTX_CTRL2(n)           ((0x074) + 0x20 * (n))
-+#define ISPCSI2_CTX_CTRL2_VIRTUAL_ID_SHIFT     11
-+#define ISPCSI2_CTX_CTRL2_VIRTUAL_ID_MASK      (0x3 << \
-+                                       ISPCSI2_CTX_CTRL2_VIRTUAL_ID_SHIFT)
-+#define ISPCSI2_CTX_CTRL2_FORMAT_SHIFT 0
-+#define ISPCSI2_CTX_CTRL2_FORMAT_MASK  (0x3FF << \
-+                                       ISPCSI2_CTX_CTRL2_FORMAT_SHIFT)
-+
-+#define ISPCSI2_CTX_DAT_OFST(n)                ((0x078) + 0x20 * (n))
-+#define ISPCSI2_CTX_DAT_OFST_OFST_SHIFT        5
-+#define ISPCSI2_CTX_DAT_OFST_OFST_MASK (0x7FF << \
-+                                               ISPCSI2_CTX_DAT_OFST_OFST_SHIFT)
-+
-+#define ISPCSI2_CTX_DAT_PING_ADDR(n)   ((0x07C) + 0x20 * (n))
-+#define ISPCSI2_CTX_DAT_PONG_ADDR(n)   ((0x080) + 0x20 * (n))
-+#define ISPCSI2_CTX_IRQENABLE(n)       ((0x084) + 0x20 * (n))
-+#define ISPCSI2_CTX_IRQENABLE_ECC_CORRECTION_IRQ               (1 << 8)
-+#define ISPCSI2_CTX_IRQENABLE_LINE_NUMBER_IRQ          (1 << 7)
-+#define ISPCSI2_CTX_IRQENABLE_FRAME_NUMBER_IRQ         (1 << 6)
-+#define ISPCSI2_CTX_IRQENABLE_CS_IRQ                   (1 << 5)
-+#define ISPCSI2_CTX_IRQENABLE_LE_IRQ                   (1 << 3)
-+#define ISPCSI2_CTX_IRQENABLE_LS_IRQ                   (1 << 2)
-+#define ISPCSI2_CTX_IRQENABLE_FE_IRQ                   (1 << 1)
-+#define ISPCSI2_CTX_IRQENABLE_FS_IRQ                   1
-+#define ISPCSI2_CTX_IRQSTATUS(n)       ((0x088) + 0x20 * (n))
-+#define ISPCSI2_CTX_IRQSTATUS_ECC_CORRECTION_IRQ               (1 << 8)
-+#define ISPCSI2_CTX_IRQSTATUS_LINE_NUMBER_IRQ          (1 << 7)
-+#define ISPCSI2_CTX_IRQSTATUS_FRAME_NUMBER_IRQ         (1 << 6)
-+#define ISPCSI2_CTX_IRQSTATUS_CS_IRQ                   (1 << 5)
-+#define ISPCSI2_CTX_IRQSTATUS_LE_IRQ                   (1 << 3)
-+#define ISPCSI2_CTX_IRQSTATUS_LS_IRQ                   (1 << 2)
-+#define ISPCSI2_CTX_IRQSTATUS_FE_IRQ                   (1 << 1)
-+#define ISPCSI2_CTX_IRQSTATUS_FS_IRQ                   1
-+
-+#define ISPCSI2_CTX_CTRL3(n)           ((0x08C) + 0x20 * (n))
-+#define ISPCSI2_CTX_CTRL3_ALPHA_SHIFT  5
-+#define ISPCSI2_CTX_CTRL3_ALPHA_MASK   (0x3FFF << \
-+                                               ISPCSI2_CTX_CTRL3_ALPHA_SHIFT)
-+
-+#define ISPCSI2PHY_CFG0                                (0x000)
-+#define ISPCSI2PHY_CFG0_THS_TERM_SHIFT         8
-+#define ISPCSI2PHY_CFG0_THS_TERM_MASK \
-+                               (0xFF << ISPCSI2PHY_CFG0_THS_TERM_SHIFT)
-+#define ISPCSI2PHY_CFG0_THS_TERM_RESETVAL \
-+                               (0x04 << ISPCSI2PHY_CFG0_THS_TERM_SHIFT)
-+#define ISPCSI2PHY_CFG0_THS_SETTLE_SHIFT               0
-+#define ISPCSI2PHY_CFG0_THS_SETTLE_MASK \
-+                               (0xFF << ISPCSI2PHY_CFG0_THS_SETTLE_SHIFT)
-+#define ISPCSI2PHY_CFG0_THS_SETTLE_RESETVAL \
-+                               (0x27 << ISPCSI2PHY_CFG0_THS_SETTLE_SHIFT)
-+#define ISPCSI2PHY_CFG1                                (0x004)
-+#define ISPCSI2PHY_CFG1_TCLK_TERM_SHIFT                18
-+#define ISPCSI2PHY_CFG1_TCLK_TERM_MASK \
-+                               (0x7F << ISPCSI2PHY_CFG1_TCLK_TERM_SHIFT)
-+#define ISPCSI2PHY_CFG1_TCLK_TERM__RESETVAL \
-+                               (0x00 << ISPCSI2PHY_CFG1_TCLK_TERM_SHIFT)
-+#define ISPCSI2PHY_CFG1_RESERVED1_SHIFT                10
-+#define ISPCSI2PHY_CFG1_RESERVED1_MASK \
-+                               (0xFF << ISPCSI2PHY_CFG1_RESERVED1_SHIFT)
-+#define ISPCSI2PHY_CFG1_RESERVED1__RESETVAL \
-+                               (0xB8 << ISPCSI2PHY_CFG1_RESERVED1_SHIFT)
-+#define ISPCSI2PHY_CFG1_TCLK_MISS_SHIFT                8
-+#define ISPCSI2PHY_CFG1_TCLK_MISS_MASK \
-+                               (0x3 << ISPCSI2PHY_CFG1_TCLK_MISS_SHIFT)
-+#define ISPCSI2PHY_CFG1_TCLK_MISS__RESETVAL \
-+                               (0x1 << ISPCSI2PHY_CFG1_TCLK_MISS_SHIFT)
-+#define ISPCSI2PHY_CFG1_TCLK_SETTLE_SHIFT              0
-+#define ISPCSI2PHY_CFG1_TCLK_SETTLE_MASK \
-+                               (0xFF << ISPCSI2PHY_CFG1_TCLK_TERM_SHIFT)
-+#define ISPCSI2PHY_CFG1_TCLK_SETTLE__RESETVAL \
-+                               (0x0E << ISPCSI2PHY_CFG1_TCLK_TERM_SHIFT)
-+#define ISPCSI2PHY_CFG1__RESETVAL      (ISPCSI2PHY_CFG1_TCLK_TERM__RESETVAL | \
-+                                       ISPCSI2PHY_CFG1_RESERVED1__RESETVAL | \
-+                                       ISPCSI2PHY_CFG1_TCLK_MISS__RESETVAL | \
-+                                       ISPCSI2PHY_CFG1_TCLK_SETTLE__RESETVAL)
-+#define ISPCSI2PHY_CFG1__EDITABLE_MASK (ISPCSI2PHY_CFG1_TCLK_TERM_MASK | \
-+                                       ISPCSI2PHY_CFG1_RESERVED1_MASK | \
-+                                       ISPCSI2PHY_CFG1_TCLK_MISS_MASK | \
-+                                       ISPCSI2PHY_CFG1_TCLK_SETTLE_MASK)
-+
-+#endif /* __ISPREG_H__ */
++#ifndef OMAP34XXCAM_H
++#define OMAP34XXCAM_H
++
++#include <media/v4l2-int-device.h>
++#include "isp/isp.h"
++
++#define CAM_NAME                       "omap34xxcam"
++#define CAM_SHORT_NAME                 "omap3"
++
++#define OMAP_ISP_AF            (1 << 4)
++#define OMAP_ISP_HIST          (1 << 5)
++#define OMAP34XXCAM_XCLK_NONE  -1
++#define OMAP34XXCAM_XCLK_A     0
++#define OMAP34XXCAM_XCLK_B     1
++
++#define OMAP34XXCAM_SLAVE_SENSOR       0
++#define OMAP34XXCAM_SLAVE_LENS         1
++#define OMAP34XXCAM_SLAVE_FLASH                2 /* This is the last sla=
+ve! */
++
++/* mask for omap34xxcam_slave_power_set */
++#define OMAP34XXCAM_SLAVE_POWER_SENSOR (1 << OMAP34XXCAM_SLAVE_SENSOR)
++#define OMAP34XXCAM_SLAVE_POWER_LENS   (1 << OMAP34XXCAM_SLAVE_LENS)
++#define OMAP34XXCAM_SLAVE_POWER_SENSOR_LENS \
++       (OMAP34XXCAM_SLAVE_POWER_SENSOR | OMAP34XXCAM_SLAVE_POWER_LENS)
++#define OMAP34XXCAM_SLAVE_POWER_FLASH  (1 << OMAP34XXCAM_SLAVE_FLASH)
++#define OMAP34XXCAM_SLAVE_POWER_ALL    -1
++
++#define OMAP34XXCAM_VIDEODEVS          4
++
++struct omap34xxcam_device;
++struct omap34xxcam_videodev;
++
++struct omap34xxcam_sensor_config {
++       int xclk;
++       int sensor_isp;
++       u32 capture_mem;
++};
++
++struct omap34xxcam_lens_config {
++};
++
++struct omap34xxcam_flash_config {
++};
++
++/**
++ * struct omap34xxcam_hw_config - struct for vidioc_int_g_priv ioctl
++ * @xclk: OMAP34XXCAM_XCLK_A or OMAP34XXCAM_XCLK_B
++ * @sensor_isp: Is sensor smart/SOC or raw
++ * @s_pix_sparm: Access function to set pix and sparm.
++ * Pix will override sparm
++ */
++struct omap34xxcam_hw_config {
++       int dev_index; /* Index in omap34xxcam_sensors */
++       int dev_minor; /* Video device minor number */
++       int dev_type; /* OMAP34XXCAM_SLAVE_* */
++       union {
++               struct omap34xxcam_sensor_config sensor;
++               struct omap34xxcam_lens_config lens;
++               struct omap34xxcam_flash_config flash;
++       } u;
++};
++
++/**
++ * struct omap34xxcam_videodev - per /dev/video* structure
++ * @mutex: serialises access to this structure
++ * @cam: pointer to cam hw structure
++ * @master: we are v4l2_int_device master
++ * @sensor: sensor device
++ * @lens: lens device
++ * @flash: flash device
++ * @slaves: how many slaves we have at the moment
++ * @vfd: our video device
++ * @capture_mem: maximum kernel-allocated capture memory
++ * @if_u: sensor interface stuff
++ * @index: index of this structure in cam->vdevs
++ * @users: how many users we have
++ * @power_state: Current power state
++ * @power_state_wish: New power state when poweroff_timer expires
++ * @power_state_mask: Bitmask of devices to set the new power state
++ * @poweroff_timer: Timer for dispatching poweroff_work
++ * @poweroff_work: Work for slave power state change
++ * @sensor_config: ISP-speicific sensor configuration
++ * @lens_config: ISP-speicific lens configuration
++ * @flash_config: ISP-speicific flash configuration
++ * @streaming: streaming file handle, if streaming is enabled
++ */
++struct omap34xxcam_videodev {
++       struct mutex mutex; /* serialises access to this structure */
++
++       struct omap34xxcam_device *cam;
++       struct v4l2_int_device master;
++
++#define vdev_sensor slave[OMAP34XXCAM_SLAVE_SENSOR]
++#define vdev_lens slave[OMAP34XXCAM_SLAVE_LENS]
++#define vdev_flash slave[OMAP34XXCAM_SLAVE_FLASH]
++       struct v4l2_int_device *slave[OMAP34XXCAM_SLAVE_FLASH + 1];
++
++       /* number of slaves attached */
++       int slaves;
++
++       /*** video device parameters ***/
++       struct video_device *vfd;
++       int capture_mem;
++
++       /*** general driver state information ***/
++       /*
++        * Sensor interface parameters: interface type, CC_CTRL
++        * register value and interface specific data.
++        */
++       u32 xclk;
++       /* index to omap34xxcam_videodevs of this structure */
++       int index;
++       atomic_t users;
++       enum v4l2_power power_state[OMAP34XXCAM_SLAVE_FLASH + 1];
++       enum v4l2_power power_state_wish;
++       int power_state_mask;
++       struct timer_list poweroff_timer;
++       struct work_struct poweroff_work;
++
++#define vdev_sensor_config slave_config[OMAP34XXCAM_SLAVE_SENSOR].u.sens=
+or
++#define vdev_lens_config slave_config[OMAP34XXCAM_SLAVE_LENS].u.lens
++#define vdev_flash_config slave_config[OMAP34XXCAM_SLAVE_FLASH].u.flash
++       struct omap34xxcam_hw_config slave_config[OMAP34XXCAM_SLAVE_FLASH=
+ + 1];
++
++       /*** capture data ***/
++       struct v4l2_fract want_timeperframe;
++       struct v4l2_pix_format want_pix;
++       /* file handle, if streaming is on */
++       struct file *streaming;
++};
++
++/**
++ * struct omap34xxcam_device - per-device data structure
++ * @mutex: mutex serialises access to this structure
++ * @sgdma_in_queue: Number or sgdma requests in scatter-gather queue,
++ * protected by the lock above.
++ * @sgdma: ISP sgdma subsystem information structure
++ * @dma_notify: DMA notify flag
++ * @irq: irq number platform HW resource
++ * @mmio_base: register map memory base (platform HW resource)
++ * @mmio_base_phys: register map memory base physical address
++ * @mmio_size: register map memory size
++ * @dev: device structure
++ * @vdevs: /dev/video specific structures
++ * @fck: camera module fck clock information
++ * @ick: camera module ick clock information
++ */
++struct omap34xxcam_device {
++       struct mutex mutex; /* serialises access to this structure */
++       int sgdma_in_queue;
++       struct isp_sgdma sgdma;
++       int dma_notify;
++
++       /*** interfaces and device ***/
++       struct device *dev;
++       struct omap34xxcam_videodev vdevs[OMAP34XXCAM_VIDEODEVS];
++
++       /*** camera module clocks ***/
++       struct clk *fck;
++       struct clk *ick;
++       bool sensor_if_enabled;
++};
++
++/**
++ * struct omap34xxcam_fh - per-filehandle data structure
++ * @vbq_lock: spinlock for the videobuf queue
++ * @vbq: V4L2 video buffer queue structure
++ * @pix: V4L2 pixel format structure (serialise pix by vbq->lock)
++ * @field_count: field counter for videobuf_buffer
++ * @vdev: our /dev/video specific structure
++ */
++struct omap34xxcam_fh {
++       spinlock_t vbq_lock; /* spinlock for the videobuf queue */
++       struct videobuf_queue vbq;
++       struct v4l2_pix_format pix;
++       atomic_t field_count;
++       /* accessing cam here doesn't need serialisation: it's constant *=
+/
++       struct omap34xxcam_videodev *vdev;
++};
++
++#endif /* ifndef OMAP34XXCAM_H */
 --
 1.5.6.5
 
+
+--
+video4linux-list mailing list
+Unsubscribe mailto:video4linux-list-request@redhat.com?subject=3Dunsubscr=
+ibe
+https://www.redhat.com/mailman/listinfo/video4linux-list
