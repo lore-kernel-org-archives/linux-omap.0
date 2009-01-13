@@ -1,125 +1,86 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH 0/7] OMAP2/3 clock: implement clock rate change notifiers
-Date: Tue, 13 Jan 2009 09:01:50 -0800
-Message-ID: <87ab9vkum9.fsf@deeprootsystems.com>
-References: <20081223101116.22979.53805.stgit@localhost.localdomain>
+From: "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>
+Subject: [OMAPZOOM][PATCH 2/2] OMAP3: CAM: Make MT9P012 DW9710 OV3640 depend
+ on OMAP3
+Date: Tue, 13 Jan 2009 11:02:13 -0600
+Message-ID: <A24693684029E5489D1D202277BE8944164DF4AA@dlee02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from wa-out-1112.google.com ([209.85.146.177]:2625 "EHLO
-	wa-out-1112.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754262AbZAMRBz (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 13 Jan 2009 12:01:55 -0500
-Received: by wa-out-1112.google.com with SMTP id v27so45926wah.21
-        for <linux-omap@vger.kernel.org>; Tue, 13 Jan 2009 09:01:54 -0800 (PST)
-In-Reply-To: <20081223101116.22979.53805.stgit@localhost.localdomain> (Paul Walmsley's message of "Tue\, 23 Dec 2008 03\:13\:49 -0700")
+Received: from comal.ext.ti.com ([198.47.26.152]:33605 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755070AbZAMRCU convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 13 Jan 2009 12:02:20 -0500
+Received: from dlep95.itg.ti.com ([157.170.170.107])
+	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id n0DH2EOA004193
+	for <linux-omap@vger.kernel.org>; Tue, 13 Jan 2009 11:02:19 -0600
+Received: from dlee74.ent.ti.com (localhost [127.0.0.1])
+	by dlep95.itg.ti.com (8.13.8/8.13.8) with ESMTP id n0DH2EPY008655
+	for <linux-omap@vger.kernel.org>; Tue, 13 Jan 2009 11:02:14 -0600 (CST)
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: linux-omap@vger.kernel.org
+To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Cc: "Pandita, Vikram" <vikram.pandita@ti.com>
 
-Paul Walmsley <paul@pwsan.com> writes:
+>From da51df52f8b583e5060963941810fa9f6d3feedd Mon Sep 17 00:00:00 2001
+From: Sergio Aguirre <saaguirre@ti.com>
+Date: Tue, 13 Jan 2009 10:53:34 -0600
+Subject: [PATCH 2/2] OMAP3: CAM: Make MT9P012 DW9710 OV3640 depend on OMAP3
 
-> Hello,
->
-> This series implements a clock rate change notifier for OMAP2/3 [1].
-> It applies on top of the "OMAP clock: bug fixes, cleanup,
-> optimization" series posted to linux-omap on Mon, 22 Dec 2008.
+This patch adds dependency on sensor drivers to work only
+when omap3 camera is enabled, as this is the only tested
+environment.
 
-Now that the 'buf fixes, cleanup' series is now in linux-omap, I'll pull 
-this series into the PM branch for more testing.
+NOTE: This is really a temporary fix, until the driver
+works in some other environment/platform.
 
-Kevin
+Signed-off-by: Sergio Aguirre <saaguirre@ti.com>
+Reported-by: Anand Gadiyar <gadiyar@ti.com>
+---
+ drivers/media/video/Kconfig |    8 ++++----
+ 1 files changed, 4 insertions(+), 4 deletions(-)
 
-> (The notes below assume that the notifiers are used by device drivers;
-> however, they are also usable by core code.)
->
-> The clock notifier is called for both rate and parent changes, and
-> is called even when the current rate is the same as the future rate,
-> in the event that the reprogramming causes a glitch.
->
-> A single notifier is defined, with four types of messages:
->
-> CLK_PREPARE_RATE_CHANGE: Used to ask the driver whether a rate
->    change is OK to complete.  When drivers receive this message,
->    they should start any actions that must complete before a
->    rate change can succeed.
->
-> CLK_ABORT_RATE_CHANGE: Indicates that a notifier callback
->    has aborted the rate change, or that the clock rate/parent
->    change function has failed.  Upon receipt of this message,
->    drivers can 
->
-> CLK_PRE_RATE_CHANGE: Indicates that the rate/parent change is about
->    to take place. The callback must not return until the driver
->    is ready for the change.
->
-> CLK_POST_RATE_CHANGE: Indicates that the rate/parent change has
->    successfully completed.
->
-> ...
->
-> There are three possible sequences of notifier messages that a driver
-> can receive:
->
-> PREPARE -> PRE -> POST: 
->    Successful rate/parent change.
->
-> PREPARE -> ABORT: 
->    Rate/parent change aborted by one of the callbacks.
->
-> PREPARE -> PRE -> ABORT
->    Rate/parent change aborted by the clock's set_rate()/set_parent()
->    functions.
->
-> ...
->
-> If clock notifier callbacks are expected to abort clock changes, they
-> probably should not be used as the only method for aborting changes.
-> The clk_set_rate() or clk_set_parent() functions will return -EAGAIN
-> if a driver aborts the change.  Higher-level code such as CPUFreq may
-> attempt to call the function repeatedly, pointlessly burning CPU
-> cycles.  In these situations, application code or system daemons
-> must also be used to prevent the frequency change from reaching the
-> clock code when it is expected to fail for long durations.
->
-> Callbacks are called with the clock framework spinlock held.  Callback
-> code should be extremely fast and lightweight and must not call back
-> into the clock framework.
->
-> Since support for clock notifiers currently does not exist in
-> include/linux/clk.h, drivers that wish to use them should pass
-> function pointers for clk_notifier_register() and
-> clk_notifier_unregister() via their platform_data structs.
->
-> Please note that these patches have only been lightly tested.  Further
-> testing is ongoing; help always appreciated.
->
-> Compile-tested on OMAP1.  Boot-tested on N800.  Notifier callback
-> tested on 3430SDP GP ES2.1.
->
-> - Paul
->
-> --
->
-> 1, There's no technical reason why these can't also be implemented for
-> OMAP1.  I just don't have a convenient way to test OMAP1 builds at the
-> moment.
->
->
-> size:
->    text    data     bss     dec     hex filename
-> 3582501  190928  108824 3882253  3b3d0d vmlinux.3430sdp.orig
-> 3583605  191824  108824 3884253  3b44dd vmlinux.3430sdp.patched
->
-> diffstat:
->  arch/arm/mach-omap2/clock.c             |   69 +++++++++--
->  arch/arm/plat-omap/clock.c              |  203 +++++++++++++++++++++++++++++++
->  arch/arm/plat-omap/include/mach/clock.h |   83 +++++++++++++
->  3 files changed, 346 insertions(+), 9 deletions(-)
->
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/drivers/media/video/Kconfig b/drivers/media/video/Kconfig
+index 84be126..6467b4c 100644
+--- a/drivers/media/video/Kconfig
++++ b/drivers/media/video/Kconfig
+@@ -305,7 +305,7 @@ config VIDEO_OV9640
+ 
+ config VIDEO_MT9P012
+ 	tristate "Micron MT9P012 raw sensor driver (5MP)"
+-	depends on I2C && VIDEO_V4L2
++	depends on I2C && VIDEO_V4L2 && VIDEO_OMAP3
+ 	---help---
+ 	  This is a Video4Linux2 sensor-level driver for the Micron
+ 	  MT9P012 camera.  It is currently working with the TI OMAP3
+@@ -313,7 +313,7 @@ config VIDEO_MT9P012
+ 
+ config VIDEO_DW9710
+ 	tristate "Lens driver for DW9710"
+-	depends on I2C && VIDEO_V4L2
++	depends on I2C && VIDEO_V4L2 && VIDEO_OMAP3
+ 	---help---
+ 	  This is a Video4Linux2 lens driver for the Dongwoon
+ 	  DW9710 coil.  It is currently working with the TI OMAP3
+@@ -321,7 +321,7 @@ config VIDEO_DW9710
+ 
+ config VIDEO_OV3640
+ 	tristate "OmniVision ov3640 smart sensor driver (3MP)"
+-	depends on I2C && VIDEO_V4L2
++	depends on I2C && VIDEO_V4L2 && VIDEO_OMAP3
+ 	---help---
+ 	  This is a Video4Linux2 sensor-level driver for the OmniVision
+ 	  OV3640 camera.  It is currently working with the TI OMAP3
+@@ -329,7 +329,7 @@ config VIDEO_OV3640
+ 
+ config VIDEO_OV3640_CSI2
+ 	bool "CSI2 bus support for OmniVision ov3640 sensor"
+-	depends on I2C && VIDEO_V4L2 && VIDEO_OV3640
++	depends on I2C && VIDEO_V4L2 && VIDEO_OV3640 && VIDEO_OMAP3
+ 	---help---
+ 	  This enables the use of the CSI2 serial bus for the ov3640
+ 	  camera.
+-- 
+1.5.6.5
+
