@@ -1,7 +1,7 @@
 From: "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>
-Subject: [REVIEW PATCH 05/14] OMAP: CAM: Add ISP Front end
-Date: Mon, 12 Jan 2009 20:03:18 -0600
-Message-ID: <A24693684029E5489D1D202277BE894416429F9B@dlee02.ent.ti.com>
+Subject: [REVIEW PATCH 12/14] OMAP: CAM: Add MT9P012 Sensor Driver
+Date: Mon, 12 Jan 2009 20:03:36 -0600
+Message-ID: <A24693684029E5489D1D202277BE894416429FA2@dlee02.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="iso-8859-1"
 Content-Transfer-Encoding: quoted-printable
@@ -21,1908 +21,2339 @@ Cc: "video4linux-list@redhat.com" <video4linux-list@redhat.com>, "Nagalla,
 	Hari" <hnagalla@ti.com>, Sakari Ailus <sakari.ailus@nokia.com>, "Tuukka.O Toivonen" <tuukka.o.toivonen@nokia.com>, "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-This adds the OMAP ISP Front end modules to the kernel. Includes:
-* ISP CCDC Driver
+This adds the Micron MT9P012 sensor driver
 
 Signed-off-by: Sergio Aguirre <saaguirre@ti.com>
 ---
- drivers/media/video/isp/ispccdc.c | 1488 +++++++++++++++++++++++++++++++=
+ drivers/media/video/Kconfig        |    8 +
+ drivers/media/video/Makefile       |    1 +
+ drivers/media/video/mt9p012.c      | 1890 ++++++++++++++++++++++++++++++=
 ++++++
- drivers/media/video/isp/ispccdc.h |  200 +++++
- 2 files changed, 1688 insertions(+), 0 deletions(-)
- create mode 100644 drivers/media/video/isp/ispccdc.c
- create mode 100644 drivers/media/video/isp/ispccdc.h
+ drivers/media/video/mt9p012_regs.h |   74 ++
+ include/media/mt9p012.h            |   37 +
+ 5 files changed, 2010 insertions(+), 0 deletions(-)
+ create mode 100644 drivers/media/video/mt9p012.c
+ create mode 100644 drivers/media/video/mt9p012_regs.h
+ create mode 100644 include/media/mt9p012.h
 
-diff --git a/drivers/media/video/isp/ispccdc.c b/drivers/media/video/isp/=
-ispccdc.c
+diff --git a/drivers/media/video/Kconfig b/drivers/media/video/Kconfig
+index dcd3960..1616c32 100644
+--- a/drivers/media/video/Kconfig
++++ b/drivers/media/video/Kconfig
+@@ -305,6 +305,14 @@ config VIDEO_TCM825X
+          This is a driver for the Toshiba TCM825x VGA camera sensor.
+          It is used for example in Nokia N800.
+
++config VIDEO_MT9P012
++       tristate "Micron MT9P012 raw sensor driver (5MP)"
++       depends on I2C && VIDEO_V4L2
++       ---help---
++         This is a Video4Linux2 sensor-level driver for the Micron
++         MT9P012 camera.  It is currently working with the TI OMAP3
++         camera controller.
++
+ config VIDEO_SAA7110
+        tristate "Philips SAA7110 video decoder"
+        depends on VIDEO_V4L1 && I2C
+diff --git a/drivers/media/video/Makefile b/drivers/media/video/Makefile
+index a2f73cf..f73b65c 100644
+--- a/drivers/media/video/Makefile
++++ b/drivers/media/video/Makefile
+@@ -100,6 +100,7 @@ obj-$(CONFIG_VIDEO_CAFE_CCIC) +=3D cafe_ccic.o
+ obj-$(CONFIG_VIDEO_OV7670)     +=3D ov7670.o
+
+ obj-$(CONFIG_VIDEO_TCM825X) +=3D tcm825x.o
++obj-$(CONFIG_VIDEO_MT9P012)    +=3D mt9p012.o
+
+ obj-$(CONFIG_VIDEO_OMAP3) +=3D omap34xxcam.o isp/
+
+diff --git a/drivers/media/video/mt9p012.c b/drivers/media/video/mt9p012.=
+c
 new file mode 100644
-index 0000000..f200baf
+index 0000000..466570a
 --- /dev/null
-+++ b/drivers/media/video/isp/ispccdc.c
-@@ -0,0 +1,1488 @@
++++ b/drivers/media/video/mt9p012.c
+@@ -0,0 +1,1890 @@
 +/*
-+ * drivers/media/video/isp/ispccdc.c
++ * drivers/media/video/mt9p012.c
 + *
-+ * Driver Library for CCDC module in TI's OMAP3 Camera ISP
++ * mt9p012 sensor driver
 + *
-+ * Copyright (C) 2008 Texas Instruments, Inc.
++ * Copyright (C) 2008 Texas Instruments.
 + *
 + * Contributors:
-+ *     Senthilvadivu Guruswamy <svadivu@ti.com>
-+ *     Pallavi Kulkarni <p-kulkarni@ti.com>
++ *     Sameer Venkatraman <sameerv@ti.com>
++ *     Sergio Aguirre <saaguirre@ti.com>
++ *     Martinez Leonides
 + *
-+ * This package is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
++ * Leverage OV9640.c
 + *
-+ * THIS PACKAGE IS PROVIDED ``AS IS'' AND WITHOUT ANY EXPRESS OR
-+ * IMPLIED WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED
-+ * WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
++ * This file is licensed under the terms of the GNU General Public Licen=
+se
++ * version 2. This program is licensed "as is" without any warranty of a=
+ny
++ * kind, whether express or implied.
 + */
 +
-+#include <linux/mutex.h>
-+#include <linux/module.h>
-+#include <linux/errno.h>
-+#include <linux/sched.h>
++#include <linux/i2c.h>
 +#include <linux/delay.h>
-+#include <linux/types.h>
-+#include <asm/mach-types.h>
-+#include <linux/io.h>
-+#include <linux/scatterlist.h>
-+#include <linux/uaccess.h>
++#include <media/v4l2-int-device.h>
 +
-+#include "isp.h"
-+#include "ispreg.h"
-+#include "ispccdc.h"
-+#include "ispmmu.h"
++#include <media/mt9p012.h>
++#include "mt9p012_regs.h"
 +
-+#define LSC_TABLE_INIT_SIZE    50052
++#define DRIVER_NAME  "mt9p012"
++#define MOD_NAME "MT9P012: "
 +
-+static u32 *fpc_table_add;
-+static unsigned long fpc_table_add_m;
++/* MT9P012 has 8/16/32 registers */
++#define MT9P012_8BIT                   1
++#define MT9P012_16BIT                  2
++#define MT9P012_32BIT                  4
++
++/* terminating token for reg list */
++#define MT9P012_TOK_TERM               0xFF
++
++/* delay token for reg list */
++#define MT9P012_TOK_DELAY              100
++
++/* The ID values we are looking for */
++#define MT9P012_MOD_ID                 0x2800
++#define MT9P012_MFR_ID                 0x0006
++
++/* FPS Capabilities */
++#define MT9P012_MIN_FPS                11
++#define MT9P012_DEF_FPS                15
++#define MT9P012_MAX_FPS                30
++
++#define MT9P012_I2C_RETRY_COUNT        5
++
++#define MT9P012_XCLK_NOM_1 12000000
++#define MT9P012_XCLK_NOM_2 24000000
++
++/* Still capture 5 MP */
++#define MT9P012_IMAGE_WIDTH_MAX                2592
++#define MT9P012_IMAGE_HEIGHT_MAX       1944
++/* Still capture 3 MP and down to VGA, using ISP resizer */
++#define MT9P012_IMAGE_WIDTH_MIN                2048
++#define MT9P012_IMAGE_HEIGHT_MIN       1536
++
++/* Video mode, for D1 NTSC, D1 PAL */
++#define MT9P012_VIDEO_WIDTH_2X_BINN    1296
++#define MT9P012_VIDEO_HEIGHT_2X_BINN   972
++
++/* Sensor Video mode size for VGA, CIF, QVGA in 4x binning mode */
++#define MT9P012_VIDEO_WIDTH_4X_BINN    648
++#define MT9P012_VIDEO_HEIGHT_4X_BINN   486
++/* To improve image quality in VGA */
++#define CIF_PIXELS             (352 * 288)
++#define QQVGA_PIXELS           (160 * 120)
++
++/* Video mode, for QCIF, SQCIF */
++#define MT9P012_VIDEO_WIDTH_4X_BINN_SCALED      216
++#define MT9P012_VIDEO_HEIGHT_4X_BINN_SCALED     162
++
++/* Default coarse integration times to get a good exposure */
++#define COARSE_INT_TIME_216             550
++#define COARSE_INT_TIME_648             550
++#define COARSE_INT_TIME_216_30FPS      1350
++#define COARSE_INT_TIME_648_30FPS      1350
++#define COARSE_INT_TIME_1296           1000
++#define COARSE_INT_TIME_3MP            1700
++#define COARSE_INT_TIME_5MP            1700
++#define COARSE_INT_TIME_INDEX          1
++#define TST_PAT                        0x0
++
++/* Analog gain values */
++#define MIN_GAIN       0x08
++#define MAX_GAIN       0x7F
++#define DEF_GAIN       0x43
++#define GAIN_STEP      0x1
++
++#define GAIN_INDEX     1
++
++/* Exposure time values */
++#define DEF_MIN_EXPOSURE       0x08
++#define DEF_MAX_EXPOSURE       0x7F
++#define DEF_EXPOSURE           0x43
++#define EXPOSURE_STEP          1
++
++#define SENSOR_DETECTED                1
++#define SENSOR_NOT_DETECTED    0
 +
 +/**
-+ * struct isp_ccdc - Structure for the CCDC module to store its own info=
-rmation
-+ * @ccdc_inuse: Flag to determine if CCDC has been reserved or not (0 or=
- 1).
-+ * @ccdcout_w: CCDC output width.
-+ * @ccdcout_h: CCDC output height.
-+ * @ccdcin_w: CCDC input width.
-+ * @ccdcin_h: CCDC input height.
-+ * @ccdcin_woffset: CCDC input horizontal offset.
-+ * @ccdcin_hoffset: CCDC input vertical offset.
-+ * @crop_w: Crop width.
-+ * @crop_h: Crop weight.
-+ * @ccdc_inpfmt: CCDC input format.
-+ * @ccdc_outfmt: CCDC output format.
-+ * @vpout_en: Video port output enable.
-+ * @wen: Data write enable.
-+ * @exwen: External data write enable.
-+ * @refmt_en: Reformatter enable.
-+ * @ccdcslave: CCDC slave mode enable.
-+ * @syncif_ipmod: Image
-+ * @obclamp_en: Data input format.
-+ * @mutexlock: Mutex used to get access to the CCDC.
++ * struct mt9p012_reg - mt9p012 register format
++ * @length: length of the register
++ * @reg: 16-bit offset to register
++ * @val: 8/16/32-bit register value
++ *
++ * Define a structure for MT9P012 register initialization values
 + */
-+static struct isp_ccdc {
-+       u8 ccdc_inuse;
-+       u32 ccdcout_w;
-+       u32 ccdcout_h;
-+       u32 ccdcin_w;
-+       u32 ccdcin_h;
-+       u32 ccdcin_woffset;
-+       u32 ccdcin_hoffset;
-+       u32 crop_w;
-+       u32 crop_h;
-+       u8 ccdc_inpfmt;
-+       u8 ccdc_outfmt;
-+       u8 vpout_en;
-+       u8 wen;
-+       u8 exwen;
-+       u8 refmt_en;
-+       u8 ccdcslave;
-+       u8 syncif_ipmod;
-+       u8 obclamp_en;
-+       u8 lsc_en;
-+       struct mutex mutexlock; /* For checking/modifying ccdc_inuse */
-+       u32 wenlog;
-+} ispccdc_obj;
++struct mt9p012_reg {
++       u16     length;
++       u16     reg;
++       u32     val;
++};
 +
-+static struct ispccdc_lsc_config lsc_config;
-+static u8 *lsc_gain_table;
-+static unsigned long lsc_ispmmu_addr;
-+static int lsc_initialized;
-+static int size_mismatch;
-+static u8 ccdc_use_lsc;
-+static u8 ispccdc_lsc_tbl[LSC_TABLE_INIT_SIZE];
++enum image_size {
++       BIN4XSCALE,
++       BIN4X,
++       BIN2X,
++       THREE_MP,
++       FIVE_MP
++};
 +
-+/* Structure for saving/restoring CCDC module registers*/
-+static struct isp_reg ispccdc_reg_list[] =3D {
-+       {OMAP3_ISP_IOMEM_CCDC, ISPCCDC_SYN_MODE, 0},
-+       {OMAP3_ISP_IOMEM_CCDC, ISPCCDC_HD_VD_WID, 0},
-+       {OMAP3_ISP_IOMEM_CCDC, ISPCCDC_PIX_LINES, 0},
-+       {OMAP3_ISP_IOMEM_CCDC, ISPCCDC_HORZ_INFO, 0},
-+       {OMAP3_ISP_IOMEM_CCDC, ISPCCDC_VERT_START, 0},
-+       {OMAP3_ISP_IOMEM_CCDC, ISPCCDC_VERT_LINES, 0},
-+       {OMAP3_ISP_IOMEM_CCDC, ISPCCDC_CULLING, 0},
-+       {OMAP3_ISP_IOMEM_CCDC, ISPCCDC_HSIZE_OFF, 0},
-+       {OMAP3_ISP_IOMEM_CCDC, ISPCCDC_SDOFST, 0},
-+       {OMAP3_ISP_IOMEM_CCDC, ISPCCDC_SDR_ADDR, 0},
-+       {OMAP3_ISP_IOMEM_CCDC, ISPCCDC_CLAMP, 0},
-+       {OMAP3_ISP_IOMEM_CCDC, ISPCCDC_DCSUB, 0},
-+       {OMAP3_ISP_IOMEM_CCDC, ISPCCDC_COLPTN, 0},
-+       {OMAP3_ISP_IOMEM_CCDC, ISPCCDC_BLKCMP, 0},
-+       {OMAP3_ISP_IOMEM_CCDC, ISPCCDC_FPC, 0},
-+       {OMAP3_ISP_IOMEM_CCDC, ISPCCDC_FPC_ADDR, 0},
-+       {OMAP3_ISP_IOMEM_CCDC, ISPCCDC_VDINT, 0},
-+       {OMAP3_ISP_IOMEM_CCDC, ISPCCDC_ALAW, 0},
-+       {OMAP3_ISP_IOMEM_CCDC, ISPCCDC_REC656IF, 0},
-+       {OMAP3_ISP_IOMEM_CCDC, ISPCCDC_CFG, 0},
-+       {OMAP3_ISP_IOMEM_CCDC, ISPCCDC_FMTCFG, 0},
-+       {OMAP3_ISP_IOMEM_CCDC, ISPCCDC_FMT_HORZ, 0},
-+       {OMAP3_ISP_IOMEM_CCDC, ISPCCDC_FMT_VERT, 0},
-+       {OMAP3_ISP_IOMEM_CCDC, ISPCCDC_FMT_ADDR0, 0},
-+       {OMAP3_ISP_IOMEM_CCDC, ISPCCDC_FMT_ADDR1, 0},
-+       {OMAP3_ISP_IOMEM_CCDC, ISPCCDC_FMT_ADDR2, 0},
-+       {OMAP3_ISP_IOMEM_CCDC, ISPCCDC_FMT_ADDR3, 0},
-+       {OMAP3_ISP_IOMEM_CCDC, ISPCCDC_FMT_ADDR4, 0},
-+       {OMAP3_ISP_IOMEM_CCDC, ISPCCDC_FMT_ADDR5, 0},
-+       {OMAP3_ISP_IOMEM_CCDC, ISPCCDC_FMT_ADDR6, 0},
-+       {OMAP3_ISP_IOMEM_CCDC, ISPCCDC_FMT_ADDR7, 0},
-+       {OMAP3_ISP_IOMEM_CCDC, ISPCCDC_PRGEVEN0, 0},
-+       {OMAP3_ISP_IOMEM_CCDC, ISPCCDC_PRGEVEN1, 0},
-+       {OMAP3_ISP_IOMEM_CCDC, ISPCCDC_PRGODD0, 0},
-+       {OMAP3_ISP_IOMEM_CCDC, ISPCCDC_PRGODD1, 0},
-+       {OMAP3_ISP_IOMEM_CCDC, ISPCCDC_VP_OUT, 0},
-+       {OMAP3_ISP_IOMEM_CCDC, ISPCCDC_LSC_CONFIG, 0},
-+       {OMAP3_ISP_IOMEM_CCDC, ISPCCDC_LSC_INITIAL, 0},
-+       {OMAP3_ISP_IOMEM_CCDC, ISPCCDC_LSC_TABLE_BASE, 0},
-+       {OMAP3_ISP_IOMEM_CCDC, ISPCCDC_LSC_TABLE_OFFSET, 0},
-+       {0, ISP_TOK_TERM, 0}
++enum pixel_format {
++       RAWBAYER10
++};
++
++#define NUM_IMAGE_SIZES                5
++#define NUM_PIXEL_FORMATS      1
++#define NUM_FPS                        2       /* 2 ranges */
++#define FPS_LOW_RANGE          0
++#define FPS_HIGH_RANGE         1
++
++/**
++ * struct capture_size - image capture size information
++ * @width: image width in pixels
++ * @height: image height in pixels
++ */
++struct capture_size {
++       unsigned long width;
++       unsigned long height;
 +};
 +
 +/**
-+ * omap34xx_isp_ccdc_config - Sets CCDC configuration from userspace
-+ * @userspace_add: Structure containing CCDC configuration sent from use=
-rspace.
-+ *
-+ * Returns 0 if successful, -EINVAL if the pointer to the configuration
-+ * structure is null, or the copy_from_user function fails to copy user =
-space
-+ * memory to kernel space memory.
-+ **/
-+int omap34xx_isp_ccdc_config(void *userspace_add)
-+{
-+       struct ispccdc_bclamp bclamp_t;
-+       struct ispccdc_blcomp blcomp_t;
-+       struct ispccdc_fpc fpc_t;
-+       struct ispccdc_culling cull_t;
-+       struct ispccdc_update_config *ccdc_struct;
-+       u32 old_size;
-+
-+       if (userspace_add =3D=3D NULL)
-+               return -EINVAL;
-+
-+       ccdc_struct =3D (struct ispccdc_update_config *) userspace_add;
-+
-+       if (ISP_ABS_CCDC_ALAW & ccdc_struct->flag) {
-+               if (ISP_ABS_CCDC_ALAW & ccdc_struct->update)
-+                       ispccdc_config_alaw(ccdc_struct->alawip);
-+               ispccdc_enable_alaw(1);
-+       } else if (ISP_ABS_CCDC_ALAW & ccdc_struct->update)
-+               ispccdc_enable_alaw(0);
-+
-+       if (ISP_ABS_CCDC_LPF & ccdc_struct->flag)
-+               ispccdc_enable_lpf(1);
-+       else
-+               ispccdc_enable_lpf(0);
-+
-+       if (ISP_ABS_CCDC_BLCLAMP & ccdc_struct->flag) {
-+               if (ISP_ABS_CCDC_BLCLAMP & ccdc_struct->update) {
-+                       if (copy_from_user(&bclamp_t, (struct ispccdc_bcl=
-amp *)
-+                                               (ccdc_struct->bclamp),
-+                                               sizeof(struct ispccdc_bcl=
-amp)))
-+                               goto copy_from_user_err;
-+
-+                       ispccdc_enable_black_clamp(1);
-+                       ispccdc_config_black_clamp(bclamp_t);
-+               } else
-+                       ispccdc_enable_black_clamp(1);
-+       } else {
-+               if (ISP_ABS_CCDC_BLCLAMP & ccdc_struct->update) {
-+                       ispccdc_enable_black_clamp(0);
-+                       ispccdc_config_black_clamp(bclamp_t);
-+               }
-+       }
-+
-+       if (ISP_ABS_CCDC_BCOMP & ccdc_struct->update) {
-+               if (copy_from_user(&blcomp_t, (struct ispccdc_blcomp *)
-+                                                       (ccdc_struct->blc=
-omp),
-+                                                       sizeof(blcomp_t))=
-)
-+                       goto copy_from_user_err;
-+
-+               ispccdc_config_black_comp(blcomp_t);
-+       }
-+
-+       if (ISP_ABS_CCDC_FPC & ccdc_struct->flag) {
-+               if (ISP_ABS_CCDC_FPC & ccdc_struct->update) {
-+                       if (copy_from_user(&fpc_t, (struct ispccdc_fpc *)
-+                                                       (ccdc_struct->fpc=
-),
-+                                                       sizeof(fpc_t)))
-+                               goto copy_from_user_err;
-+                       fpc_table_add =3D kmalloc((64 + (fpc_t.fpnum * 4)=
-),
-+                                                       GFP_KERNEL | GFP_=
-DMA);
-+                       if (!fpc_table_add) {
-+                               printk(KERN_ERR "Cannot allocate memory f=
-or"
-+                                                               " FPC tab=
-le");
-+                               return -ENOMEM;
-+                       }
-+                       while (((int)fpc_table_add & 0xFFFFFFC0) !=3D
-+                                                       (int)fpc_table_ad=
-d)
-+                               fpc_table_add++;
-+
-+                       fpc_table_add_m =3D ispmmu_map(virt_to_phys
-+                                                       (fpc_table_add),
-+                                                       (fpc_t.fpnum) * 4=
-);
-+
-+                       if (copy_from_user(fpc_table_add, (u32 *)fpc_t.fp=
-caddr,
-+                                                       fpc_t.fpnum * 4))
-+                               goto copy_from_user_err;
-+
-+                       fpc_t.fpcaddr =3D fpc_table_add_m;
-+                       ispccdc_config_fpc(fpc_t);
-+               }
-+               ispccdc_enable_fpc(1);
-+       } else if (ISP_ABS_CCDC_FPC & ccdc_struct->update)
-+                       ispccdc_enable_fpc(0);
-+
-+       if (ISP_ABS_CCDC_CULL & ccdc_struct->update) {
-+               if (copy_from_user(&cull_t, (struct ispccdc_culling *)
-+                                                       (ccdc_struct->cul=
-l),
-+                                                       sizeof(cull_t)))
-+                       goto copy_from_user_err;
-+               ispccdc_config_culling(cull_t);
-+       }
-+
-+       if (is_isplsc_activated()) {
-+               if (ISP_ABS_CCDC_CONFIG_LSC & ccdc_struct->flag) {
-+                       if (ISP_ABS_CCDC_CONFIG_LSC & ccdc_struct->update=
-) {
-+                               old_size =3D lsc_config.size;
-+                               if (copy_from_user(&lsc_config,
-+                                               (struct ispccdc_lsc_confi=
-g *)
-+                                               (ccdc_struct->lsc_cfg),
-+                                               sizeof(struct
-+                                               ispccdc_lsc_config)))
-+                                       goto copy_from_user_err;
-+                               lsc_initialized =3D 0;
-+                               if (lsc_config.size <=3D old_size)
-+                                       size_mismatch =3D 0;
-+                               else
-+                                       size_mismatch =3D 1;
-+                               ispccdc_config_lsc(&lsc_config);
-+                       }
-+                       ccdc_use_lsc =3D 1;
-+               } else if (ISP_ABS_CCDC_CONFIG_LSC & ccdc_struct->update)=
- {
-+                               ispccdc_enable_lsc(0);
-+                               ccdc_use_lsc =3D 0;
-+               }
-+               if (ISP_ABS_TBL_LSC & ccdc_struct->update) {
-+                       if (size_mismatch) {
-+                               ispmmu_unmap(lsc_ispmmu_addr);
-+                               kfree(lsc_gain_table);
-+                               lsc_gain_table =3D kmalloc(
-+                                       lsc_config.size,
-+                                       GFP_KERNEL | GFP_DMA);
-+                               if (!lsc_gain_table) {
-+                                       printk(KERN_ERR
-+                                               "Cannot allocate\
-+                                               memory for \
-+                                               gain tables \n");
-+                                       return -ENOMEM;
-+                               }
-+                               lsc_ispmmu_addr =3D ispmmu_map(
-+                                       virt_to_phys(lsc_gain_table),
-+                                       lsc_config.size);
-+                               isp_reg_writel(lsc_ispmmu_addr,
-+                                       OMAP3_ISP_IOMEM_CCDC,
-+                                       ISPCCDC_LSC_TABLE_BASE);
-+                               lsc_initialized =3D 1;
-+                               size_mismatch =3D 0;
-+                       }
-+                       if (copy_from_user(lsc_gain_table,
-+                               (ccdc_struct->lsc), lsc_config.size))
-+                               goto copy_from_user_err;
-+               }
-+       }
-+
-+       if (ISP_ABS_CCDC_COLPTN & ccdc_struct->update)
-+               ispccdc_config_imgattr(ccdc_struct->colptn);
-+
-+       return 0;
-+
-+copy_from_user_err:
-+       printk(KERN_ERR "CCDC Config:Copy From User Error");
-+       return -EINVAL ;
-+}
-+EXPORT_SYMBOL(omap34xx_isp_ccdc_config);
-+
-+/**
-+ * Set the value to be used for CCDC_CFG.WENLOG.
-+ *  w - Value of wenlog.
++ * struct mt9p012_pll_settings - struct for storage of sensor pll values
++ * @vt_pix_clk_div: vertical pixel clock divider
++ * @vt_sys_clk_div: veritcal system clock divider
++ * @pre_pll_div: pre pll divider
++ * @fine_int_tm: fine resolution interval time
++ * @frame_lines: number of lines in frame
++ * @line_len: number of pixels in line
++ * @min_pll: minimum pll multiplier
++ * @max_pll: maximum pll multiplier
 + */
-+void ispccdc_set_wenlog(u32 wenlog)
-+{
-+       ispccdc_obj.wenlog =3D wenlog;
-+}
-+EXPORT_SYMBOL(ispccdc_set_wenlog);
++struct mt9p012_pll_settings {
++       u16     vt_pix_clk_div;
++       u16     vt_sys_clk_div;
++       u16     pre_pll_div;
++
++       u16     fine_int_tm;
++       u16     frame_lines;
++       u16     line_len;
++
++       u16     min_pll;
++       u16     max_pll;
++};
 +
-+/**
-+ * ispccdc_request - Reserves the CCDC module.
-+ *
-+ * Reserves the CCDC module and assures that is used only once at a time=
-.
-+ *
-+ * Returns 0 if successful, or -EBUSY if CCDC module is busy.
-+ **/
-+int ispccdc_request(void)
-+{
-+       mutex_lock(&ispccdc_obj.mutexlock);
-+       if (ispccdc_obj.ccdc_inuse) {
-+               mutex_unlock(&ispccdc_obj.mutexlock);
-+               DPRINTK_ISPCCDC("ISP_ERR : CCDC Module Busy");
-+               return -EBUSY;
-+       }
-+
-+       ispccdc_obj.ccdc_inuse =3D 1;
-+       mutex_unlock(&ispccdc_obj.mutexlock);
-+       isp_reg_or(OMAP3_ISP_IOMEM_MAIN, ISP_CTRL, ISPCTRL_CCDC_RAM_EN |
-+                                                       ISPCTRL_CCDC_CLK_=
-EN |
-+                                                       ISPCTRL_SBL_WR1_R=
-AM_EN);
-+       isp_reg_or(OMAP3_ISP_IOMEM_CCDC, ISPCCDC_CFG, ISPCCDC_CFG_VDLC);
-+       return 0;
-+}
-+EXPORT_SYMBOL(ispccdc_request);
-+
-+/**
-+ * ispccdc_free - Frees the CCDC module.
-+ *
-+ * Frees the CCDC module so it can be used by another process.
-+ *
-+ * Returns 0 if successful, or -EINVAL if module has been already freed.
-+ **/
-+int ispccdc_free(void)
-+{
-+       mutex_lock(&ispccdc_obj.mutexlock);
-+       if (!ispccdc_obj.ccdc_inuse) {
-+               mutex_unlock(&ispccdc_obj.mutexlock);
-+               DPRINTK_ISPCCDC("ISP_ERR: CCDC Module already freed\n");
-+               return -EINVAL;
-+       }
-+
-+       ispccdc_obj.ccdc_inuse =3D 0;
-+       mutex_unlock(&ispccdc_obj.mutexlock);
-+       isp_reg_and(OMAP3_ISP_IOMEM_MAIN, ISP_CTRL,
-+                       ~(ISPCTRL_CCDC_CLK_EN |
-+                       ISPCTRL_CCDC_RAM_EN |
-+                       ISPCTRL_SBL_WR1_RAM_EN));
-+       return 0;
-+}
-+EXPORT_SYMBOL(ispccdc_free);
-+
-+/**
-+ * ispccdc_load_lsc - Load Lens Shading Compensation table.
-+ * @table_size: LSC gain table size.
-+ *
-+ * Returns 0 if successful, or -ENOMEM of its no memory available.
-+ **/
-+int ispccdc_load_lsc(u32 table_size)
-+{
-+       if (!is_isplsc_activated())
-+               return 0;
-+
-+       if (table_size =3D=3D 0)
-+               return -EINVAL;
-+
-+       if (lsc_initialized)
-+               return 0;
-+
-+       ispccdc_enable_lsc(0);
-+       lsc_gain_table =3D kmalloc(table_size, GFP_KERNEL | GFP_DMA);
-+
-+       if (!lsc_gain_table) {
-+               printk(KERN_ERR "Cannot allocate memory for gain tables \=
-n");
-+               return -ENOMEM;
-+       }
-+
-+       memcpy(lsc_gain_table, ispccdc_lsc_tbl, table_size);
-+       lsc_ispmmu_addr =3D ispmmu_map(virt_to_phys(lsc_gain_table), tabl=
-e_size);
-+       isp_reg_writel(lsc_ispmmu_addr, OMAP3_ISP_IOMEM_CCDC, ISPCCDC_LSC=
-_TABLE_BASE);
-+       lsc_initialized =3D 1;
-+       return 0;
-+}
-+EXPORT_SYMBOL(ispccdc_load_lsc);
-+
-+/**
-+ * ispccdc_config_lsc - Configures the lens shading compensation module
-+ * @lsc_cfg: LSC configuration structure
-+ **/
-+void ispccdc_config_lsc(struct ispccdc_lsc_config *lsc_cfg)
-+{
-+       int reg;
-+
-+       if (!is_isplsc_activated())
-+               return;
-+
-+       ispccdc_enable_lsc(0);
-+       isp_reg_writel(lsc_cfg->offset, OMAP3_ISP_IOMEM_CCDC,
-+                                       ISPCCDC_LSC_TABLE_OFFSET);
-+
-+       reg =3D 0;
-+       reg |=3D (lsc_cfg->gain_mode_n << ISPCCDC_LSC_GAIN_MODE_N_SHIFT);
-+       reg |=3D (lsc_cfg->gain_mode_m << ISPCCDC_LSC_GAIN_MODE_M_SHIFT);
-+       reg |=3D (lsc_cfg->gain_format << ISPCCDC_LSC_GAIN_FORMAT_SHIFT);
-+       isp_reg_writel(reg, OMAP3_ISP_IOMEM_CCDC, ISPCCDC_LSC_CONFIG);
-+
-+       reg =3D 0;
-+       reg &=3D ~ISPCCDC_LSC_INITIAL_X_MASK;
-+       reg |=3D (lsc_cfg->initial_x << ISPCCDC_LSC_INITIAL_X_SHIFT);
-+       reg &=3D ~ISPCCDC_LSC_INITIAL_Y_MASK;
-+       reg |=3D (lsc_cfg->initial_y << ISPCCDC_LSC_INITIAL_Y_SHIFT);
-+       isp_reg_writel(reg, OMAP3_ISP_IOMEM_CCDC, ISPCCDC_LSC_INITIAL);
-+}
-+EXPORT_SYMBOL(ispccdc_config_lsc);
-+
-+/**
-+ * ispccdc_enable_lsc - Enables/Disables the Lens Shading Compensation m=
-odule.
-+ * @enable: 0 Disables LSC, 1 Enables LSC.
-+ **/
-+void ispccdc_enable_lsc(u8 enable)
-+{
-+       if (!is_isplsc_activated())
-+               return;
-+
-+       if (enable) {
-+               isp_reg_or(OMAP3_ISP_IOMEM_MAIN, ISP_CTRL,
-+                       ISPCTRL_SBL_SHARED_RPORTB | ISPCTRL_SBL_RD_RAM_EN=
-);
-+
-+               isp_reg_or(OMAP3_ISP_IOMEM_CCDC, ISPCCDC_LSC_CONFIG, 0x1)=
-;
-+
-+               ispccdc_obj.lsc_en =3D 1;
-+       } else {
-+               isp_reg_and(OMAP3_ISP_IOMEM_CCDC, ISPCCDC_LSC_CONFIG, 0xF=
-FFE);
-+               ispccdc_obj.lsc_en =3D 0;
-+       }
-+}
-+EXPORT_SYMBOL(ispccdc_enable_lsc);
-+
-+
-+/**
-+ * ispccdc_config_crop - Configures crop parameters for the ISP CCDC.
-+ * @left: Left offset of the crop area.
-+ * @top: Top offset of the crop area.
-+ * @height: Height of the crop area.
-+ * @width: Width of the crop area.
-+ *
-+ * The following restrictions are applied for the crop settings. If inco=
-ming
-+ * values do not follow these restrictions then we map the settings to t=
-he
-+ * closest acceptable crop value.
-+ * 1) Left offset is always odd. This can be avoided if we enable byte s=
-wap
-+ *    option for incoming data into CCDC.
-+ * 2) Top offset is always even.
-+ * 3) Crop height is always even.
-+ * 4) Crop width is always a multiple of 16 pixels
-+ **/
-+void ispccdc_config_crop(u32 left, u32 top, u32 height, u32 width)
-+{
-+       ispccdc_obj.ccdcin_woffset =3D left + ((left + 1) % 2);
-+       ispccdc_obj.ccdcin_hoffset =3D top + (top % 2);
-+
-+       ispccdc_obj.crop_w =3D width - (width % 16);
-+       ispccdc_obj.crop_h =3D height + (height % 2);
-+
-+       DPRINTK_ISPCCDC("\n\tOffsets L %d T %d W %d H %d\n",
-+                                               ispccdc_obj.ccdcin_woffse=
-t,
-+                                               ispccdc_obj.ccdcin_hoffse=
-t,
-+                                               ispccdc_obj.crop_w,
-+                                               ispccdc_obj.crop_h);
-+}
-+
-+/**
-+ * ispccdc_config_datapath - Specifies the input and output modules for =
-CCDC.
-+ * @input: Indicates the module that inputs the image to the CCDC.
-+ * @output: Indicates the module to which the CCDC outputs the image.
-+ *
-+ * Configures the default configuration for the CCDC to work with.
-+ *
-+ * The valid values for the input are CCDC_RAW (0), CCDC_YUV_SYNC (1),
-+ * CCDC_YUV_BT (2), and CCDC_OTHERS (3).
-+ *
-+ * The valid values for the output are CCDC_YUV_RSZ (0), CCDC_YUV_MEM_RS=
-Z (1),
-+ * CCDC_OTHERS_VP (2), CCDC_OTHERS_MEM (3), CCDC_OTHERS_VP_MEM (4).
-+ *
-+ * Returns 0 if successful, or -EINVAL if wrong I/O combination or wrong=
- input
-+ * or output values.
-+ **/
-+int ispccdc_config_datapath(enum ccdc_input input, enum ccdc_output outp=
-ut)
-+{
-+       u32 syn_mode =3D 0;
-+       struct ispccdc_vp vpcfg;
-+       struct ispccdc_syncif syncif;
-+       struct ispccdc_bclamp blkcfg;
-+
-+       u32 colptn =3D (ISPCCDC_COLPTN_Gr_Cy << ISPCCDC_COLPTN_CP0PLC0_SH=
-IFT) |
-+               (ISPCCDC_COLPTN_R_Ye << ISPCCDC_COLPTN_CP0PLC1_SHIFT) |
-+               (ISPCCDC_COLPTN_Gr_Cy << ISPCCDC_COLPTN_CP0PLC2_SHIFT) |
-+               (ISPCCDC_COLPTN_R_Ye << ISPCCDC_COLPTN_CP0PLC3_SHIFT) |
-+               (ISPCCDC_COLPTN_B_Mg << ISPCCDC_COLPTN_CP1PLC0_SHIFT) |
-+               (ISPCCDC_COLPTN_Gb_G << ISPCCDC_COLPTN_CP1PLC1_SHIFT) |
-+               (ISPCCDC_COLPTN_B_Mg << ISPCCDC_COLPTN_CP1PLC2_SHIFT) |
-+               (ISPCCDC_COLPTN_Gb_G << ISPCCDC_COLPTN_CP1PLC3_SHIFT) |
-+               (ISPCCDC_COLPTN_Gr_Cy << ISPCCDC_COLPTN_CP2PLC0_SHIFT) |
-+               (ISPCCDC_COLPTN_R_Ye << ISPCCDC_COLPTN_CP2PLC1_SHIFT) |
-+               (ISPCCDC_COLPTN_Gr_Cy << ISPCCDC_COLPTN_CP2PLC2_SHIFT) |
-+               (ISPCCDC_COLPTN_R_Ye << ISPCCDC_COLPTN_CP2PLC3_SHIFT) |
-+               (ISPCCDC_COLPTN_B_Mg << ISPCCDC_COLPTN_CP3PLC0_SHIFT) |
-+               (ISPCCDC_COLPTN_Gb_G << ISPCCDC_COLPTN_CP3PLC1_SHIFT) |
-+               (ISPCCDC_COLPTN_B_Mg << ISPCCDC_COLPTN_CP3PLC2_SHIFT) |
-+               (ISPCCDC_COLPTN_Gb_G << ISPCCDC_COLPTN_CP3PLC3_SHIFT);
-+
-+       /* CCDC does not convert the image format */
-+       if (((input =3D=3D CCDC_RAW) || (input =3D=3D CCDC_OTHERS)) &&
-+                                               (output =3D=3D CCDC_YUV_R=
-SZ)) {
-+               DPRINTK_ISPCCDC("ISP_ERR: Wrong CCDC I/O Combination\n");
-+               return -EINVAL;
-+       }
-+
-+       syn_mode =3D isp_reg_readl(OMAP3_ISP_IOMEM_CCDC, ISPCCDC_SYN_MODE=
-);
-+
-+       switch (output) {
-+       case CCDC_YUV_RSZ:
-+               syn_mode |=3D ISPCCDC_SYN_MODE_SDR2RSZ;
-+               syn_mode &=3D ~ISPCCDC_SYN_MODE_WEN;
-+               break;
-+
-+       case CCDC_YUV_MEM_RSZ:
-+               syn_mode |=3D ISPCCDC_SYN_MODE_SDR2RSZ;
-+               ispccdc_obj.wen =3D 1;
-+               syn_mode |=3D ISPCCDC_SYN_MODE_WEN;
-+               break;
-+
-+       case CCDC_OTHERS_VP:
-+               syn_mode &=3D ~ISPCCDC_SYN_MODE_VP2SDR;
-+               syn_mode &=3D ~ISPCCDC_SYN_MODE_SDR2RSZ;
-+               syn_mode &=3D ~ISPCCDC_SYN_MODE_WEN;
-+               vpcfg.bitshift_sel =3D BIT9_0;
-+               vpcfg.freq_sel =3D PIXCLKBY2;
-+               ispccdc_config_vp(vpcfg);
-+               ispccdc_enable_vp(1);
-+               break;
-+
-+       case CCDC_OTHERS_MEM:
-+               syn_mode &=3D ~ISPCCDC_SYN_MODE_VP2SDR;
-+               syn_mode &=3D ~ISPCCDC_SYN_MODE_SDR2RSZ;
-+               syn_mode |=3D ISPCCDC_SYN_MODE_WEN;
-+               syn_mode &=3D ~ISPCCDC_SYN_MODE_EXWEN;
-+               isp_reg_and(OMAP3_ISP_IOMEM_CCDC, ISPCCDC_CFG, ~ISPCCDC_C=
-FG_WENLOG);
-+               vpcfg.bitshift_sel =3D BIT11_2;
-+               vpcfg.freq_sel =3D PIXCLKBY2;
-+               ispccdc_config_vp(vpcfg);
-+               ispccdc_enable_vp(0);
-+               break;
-+
-+       case CCDC_OTHERS_VP_MEM:
-+               syn_mode &=3D ~ISPCCDC_SYN_MODE_VP2SDR;
-+               syn_mode &=3D ~ISPCCDC_SYN_MODE_SDR2RSZ;
-+               syn_mode |=3D ISPCCDC_SYN_MODE_WEN;
-+               syn_mode |=3D ISPCCDC_SYN_MODE_EXWEN;
-+               isp_reg_and_or(OMAP3_ISP_IOMEM_CCDC, ISPCCDC_CFG,
-+                                                       ~ISPCCDC_CFG_WENL=
-OG,
-+                                                       ispccdc_obj.wenlo=
-g);
-+               vpcfg.bitshift_sel =3D BIT9_0;
-+               vpcfg.freq_sel =3D PIXCLKBY2;
-+               ispccdc_config_vp(vpcfg);
-+               ispccdc_enable_vp(1);
-+               break;
-+       default:
-+               DPRINTK_ISPCCDC("ISP_ERR: Wrong CCDC Output");
-+               return -EINVAL;
-+       };
-+
-+       isp_reg_writel(syn_mode, OMAP3_ISP_IOMEM_CCDC, ISPCCDC_SYN_MODE);
-+
-+       switch (input) {
-+       case CCDC_RAW:
-+               syncif.ccdc_mastermode =3D 0;
-+               syncif.datapol =3D 0;
-+               syncif.datsz =3D DAT10;
-+               syncif.fldmode =3D 0;
-+               syncif.fldout =3D 0;
-+               syncif.fldpol =3D 0;
-+               syncif.fldstat =3D 0;
-+               syncif.hdpol =3D 0;
-+               syncif.ipmod =3D RAW;
-+               syncif.vdpol =3D 0;
-+               ispccdc_config_sync_if(syncif);
-+               ispccdc_config_imgattr(colptn);
-+               blkcfg.dcsubval =3D 42;
-+               ispccdc_config_black_clamp(blkcfg);
-+               if (is_isplsc_activated()) {
-+                       ispccdc_config_lsc(&lsc_config);
-+                       ispccdc_load_lsc((u32)sizeof(ispccdc_lsc_tbl));
-+               }
-+
-+               break;
-+       case CCDC_YUV_SYNC:
-+               syncif.ccdc_mastermode =3D 0;
-+               syncif.datapol =3D 0;
-+               syncif.datsz =3D DAT8;
-+               syncif.fldmode =3D 0;
-+               syncif.fldout =3D 0;
-+               syncif.fldpol =3D 0;
-+               syncif.fldstat =3D 0;
-+               syncif.hdpol =3D 0;
-+               syncif.ipmod =3D YUV16;
-+               syncif.vdpol =3D 0;
-+               ispccdc_config_imgattr(0);
-+               ispccdc_config_sync_if(syncif);
-+               blkcfg.dcsubval =3D 0;
-+               ispccdc_config_black_clamp(blkcfg);
-+               break;
-+       case CCDC_YUV_BT:
-+               break;
-+       case CCDC_OTHERS:
-+               break;
-+       default:
-+               DPRINTK_ISPCCDC("ISP_ERR: Wrong CCDC Input");
-+               return -EINVAL;
-+       }
-+
-+       ispccdc_obj.ccdc_inpfmt =3D input;
-+       ispccdc_obj.ccdc_outfmt =3D output;
-+       ispccdc_print_status();
-+       isp_print_status();
-+       return 0;
-+}
-+EXPORT_SYMBOL(ispccdc_config_datapath);
-+
-+/**
-+ * ispccdc_config_sync_if - Sets the sync i/f params between sensor and =
-CCDC.
-+ * @syncif: Structure containing the sync parameters like field state, C=
-CDC in
-+ *          master/slave mode, raw/yuv data, polarity of data, field, hs=
-, vs
-+ *          signals.
-+ **/
-+void ispccdc_config_sync_if(struct ispccdc_syncif syncif)
-+{
-+       u32 syn_mode =3D isp_reg_readl(OMAP3_ISP_IOMEM_CCDC, ISPCCDC_SYN_=
-MODE);
-+
-+       syn_mode |=3D ISPCCDC_SYN_MODE_VDHDEN;
-+
-+       if (syncif.fldstat)
-+               syn_mode |=3D ISPCCDC_SYN_MODE_FLDSTAT;
-+       else
-+               syn_mode &=3D ~ISPCCDC_SYN_MODE_FLDSTAT;
-+
-+       syn_mode &=3D ISPCCDC_SYN_MODE_INPMOD_MASK;
-+       ispccdc_obj.syncif_ipmod =3D syncif.ipmod;
-+
-+       switch (syncif.ipmod) {
-+       case RAW:
-+               break;
-+       case YUV16:
-+               syn_mode |=3D ISPCCDC_SYN_MODE_INPMOD_YCBCR16;
-+               break;
-+       case YUV8:
-+               syn_mode |=3D ISPCCDC_SYN_MODE_INPMOD_YCBCR8;
-+               break;
-+       };
-+
-+       syn_mode &=3D ISPCCDC_SYN_MODE_DATSIZ_MASK;
-+       switch (syncif.datsz) {
-+       case DAT8:
-+               syn_mode |=3D ISPCCDC_SYN_MODE_DATSIZ_8;
-+               break;
-+       case DAT10:
-+               syn_mode |=3D ISPCCDC_SYN_MODE_DATSIZ_10;
-+               break;
-+       case DAT11:
-+               syn_mode |=3D ISPCCDC_SYN_MODE_DATSIZ_11;
-+               break;
-+       case DAT12:
-+               syn_mode |=3D ISPCCDC_SYN_MODE_DATSIZ_12;
-+               break;
-+       };
-+
-+       if (syncif.fldmode)
-+               syn_mode |=3D ISPCCDC_SYN_MODE_FLDMODE;
-+       else
-+               syn_mode &=3D ~ISPCCDC_SYN_MODE_FLDMODE;
-+
-+       if (syncif.datapol)
-+               syn_mode |=3D ISPCCDC_SYN_MODE_DATAPOL;
-+       else
-+               syn_mode &=3D ~ISPCCDC_SYN_MODE_DATAPOL;
-+
-+       if (syncif.fldpol)
-+               syn_mode |=3D ISPCCDC_SYN_MODE_FLDPOL;
-+       else
-+               syn_mode &=3D ~ISPCCDC_SYN_MODE_FLDPOL;
-+
-+       if (syncif.hdpol)
-+               syn_mode |=3D ISPCCDC_SYN_MODE_HDPOL;
-+       else
-+               syn_mode &=3D ~ISPCCDC_SYN_MODE_HDPOL;
-+
-+       if (syncif.vdpol)
-+               syn_mode |=3D ISPCCDC_SYN_MODE_VDPOL;
-+       else
-+               syn_mode &=3D ~ISPCCDC_SYN_MODE_VDPOL;
-+
-+       if (syncif.ccdc_mastermode) {
-+               syn_mode |=3D ISPCCDC_SYN_MODE_FLDOUT | ISPCCDC_SYN_MODE_=
-VDHDOUT;
-+               isp_reg_writel((syncif.hs_width << ISPCCDC_HD_VD_WID_HDW_=
-SHIFT)
-+                                               | (syncif.vs_width <<
-+                                               ISPCCDC_HD_VD_WID_VDW_SHI=
-FT),
-+                                               OMAP3_ISP_IOMEM_CCDC,
-+                                               ISPCCDC_HD_VD_WID);
-+
-+               isp_reg_writel(syncif.ppln << ISPCCDC_PIX_LINES_PPLN_SHIF=
-T
-+                       | syncif.hlprf << ISPCCDC_PIX_LINES_HLPRF_SHIFT,
-+                       OMAP3_ISP_IOMEM_CCDC,
-+                       ISPCCDC_PIX_LINES);
-+       } else
-+               syn_mode &=3D ~(ISPCCDC_SYN_MODE_FLDOUT |
-+                                               ISPCCDC_SYN_MODE_VDHDOUT)=
-;
-+
-+       isp_reg_writel(syn_mode, OMAP3_ISP_IOMEM_CCDC, ISPCCDC_SYN_MODE);
-+
-+       if (!(syncif.bt_r656_en)) {
-+               isp_reg_and(OMAP3_ISP_IOMEM_CCDC, ISPCCDC_REC656IF,
-+                                               ~ISPCCDC_REC656IF_R656ON)=
-;
-+       }
-+}
-+EXPORT_SYMBOL(ispccdc_config_sync_if);
-+
-+/**
-+ * ispccdc_config_black_clamp - Configures the clamp parameters in CCDC.
-+ * @bclamp: Structure containing the optical black average gain, optical=
- black
-+ *          sample length, sample lines, and the start pixel position of=
- the
-+ *          samples w.r.t the HS pulse.
-+ * Configures the clamp parameters in CCDC. Either if its being used the
-+ * optical black clamp, or the digital clamp. If its a digital clamp, th=
-en
-+ * assures to put a valid DC substraction level.
-+ *
-+ * Returns always 0 when completed.
-+ **/
-+int ispccdc_config_black_clamp(struct ispccdc_bclamp bclamp)
-+{
-+       u32 bclamp_val =3D 0;
-+
-+       if (ispccdc_obj.obclamp_en) {
-+               bclamp_val |=3D bclamp.obgain << ISPCCDC_CLAMP_OBGAIN_SHI=
-FT;
-+               bclamp_val |=3D bclamp.oblen << ISPCCDC_CLAMP_OBSLEN_SHIF=
-T;
-+               bclamp_val |=3D bclamp.oblines << ISPCCDC_CLAMP_OBSLN_SHI=
-FT;
-+               bclamp_val |=3D bclamp.obstpixel << ISPCCDC_CLAMP_OBST_SH=
-IFT;
-+               isp_reg_writel(bclamp_val, OMAP3_ISP_IOMEM_CCDC, ISPCCDC_=
-CLAMP);
-+       } else {
-+               if (omap_rev() < OMAP3430_REV_ES2_0)
-+                       if ((ispccdc_obj.syncif_ipmod =3D=3D YUV16) ||
-+                                       (ispccdc_obj.syncif_ipmod =3D=3D =
-YUV8) ||
-+                                       (isp_reg_readl(OMAP3_ISP_IOMEM_CC=
-DC,
-+                                       ISPCCDC_REC656IF) &
-+                                       ISPCCDC_REC656IF_R656ON))
-+                               bclamp.dcsubval =3D 0;
-+               isp_reg_writel(bclamp.dcsubval, OMAP3_ISP_IOMEM_CCDC, ISP=
-CCDC_DCSUB);
-+       }
-+       return 0;
-+}
-+EXPORT_SYMBOL(ispccdc_config_black_clamp);
-+
-+/**
-+ * ispccdc_enable_black_clamp - Enables/Disables the optical black clamp=
-.
-+ * @enable: 0 Disables optical black clamp, 1 Enables optical black clam=
-p.
-+ *
-+ * Enables or disables the optical black clamp. When disabled, the digit=
-al
-+ * clamp operates.
-+ **/
-+void ispccdc_enable_black_clamp(u8 enable)
-+{
-+       isp_reg_and_or(OMAP3_ISP_IOMEM_CCDC, ISPCCDC_CLAMP,
-+                                       ~ISPCCDC_CLAMP_CLAMPEN,
-+                                       enable ? ISPCCDC_CLAMP_CLAMPEN : =
-0);
-+       ispccdc_obj.obclamp_en =3D enable;
-+}
-+EXPORT_SYMBOL(ispccdc_enable_black_clamp);
-+
-+/**
-+ * ispccdc_config_fpc - Configures the Faulty Pixel Correction parameter=
-s.
-+ * @fpc: Structure containing the number of faulty pixels corrected in t=
-he
-+ *       frame, address of the FPC table.
-+ *
-+ * Returns 0 if successful, or -EINVAL if FPC Address is not on the 64 b=
-yte
-+ * boundary.
-+ **/
-+int ispccdc_config_fpc(struct ispccdc_fpc fpc)
-+{
-+       u32 fpc_val =3D 0;
-+
-+       fpc_val =3D isp_reg_readl(OMAP3_ISP_IOMEM_CCDC, ISPCCDC_FPC);
-+
-+       if ((fpc.fpcaddr & 0xFFFFFFC0) =3D=3D fpc.fpcaddr) {
-+               isp_reg_writel(fpc_val & (~ISPCCDC_FPC_FPCEN),
-+                                       OMAP3_ISP_IOMEM_CCDC, ISPCCDC_FPC=
-);
-+               isp_reg_writel(fpc.fpcaddr,
-+                               OMAP3_ISP_IOMEM_CCDC, ISPCCDC_FPC_ADDR);
-+       } else {
-+               DPRINTK_ISPCCDC("FPC Address should be on 64byte boundary=
-\n");
-+               return -EINVAL;
-+       }
-+       isp_reg_writel(fpc_val | (fpc.fpnum << ISPCCDC_FPC_FPNUM_SHIFT),
-+                                       OMAP3_ISP_IOMEM_CCDC, ISPCCDC_FPC=
-);
-+       return 0;
-+}
-+EXPORT_SYMBOL(ispccdc_config_fpc);
-+
-+/**
-+ * ispccdc_enable_fpc - Enables the Faulty Pixel Correction.
-+ * @enable: 0 Disables FPC, 1 Enables FPC.
-+ **/
-+void ispccdc_enable_fpc(u8 enable)
-+{
-+       isp_reg_and_or(OMAP3_ISP_IOMEM_CCDC, ISPCCDC_FPC,
-+                                       ~ISPCCDC_FPC_FPCEN,
-+                                       enable ? ISPCCDC_FPC_FPCEN : 0);
-+}
-+EXPORT_SYMBOL(ispccdc_enable_fpc);
-+
-+/**
-+ * ispccdc_config_black_comp - Configures Black Level Compensation param=
-eters.
-+ * @blcomp: Structure containing the black level compensation value for =
-RGrGbB
-+ *          pixels. in 2's complement.
-+ **/
-+void ispccdc_config_black_comp(struct ispccdc_blcomp blcomp)
-+{
-+       u32 blcomp_val =3D 0;
-+
-+       blcomp_val |=3D blcomp.b_mg << ISPCCDC_BLKCMP_B_MG_SHIFT;
-+       blcomp_val |=3D blcomp.gb_g << ISPCCDC_BLKCMP_GB_G_SHIFT;
-+       blcomp_val |=3D blcomp.gr_cy << ISPCCDC_BLKCMP_GR_CY_SHIFT;
-+       blcomp_val |=3D blcomp.r_ye << ISPCCDC_BLKCMP_R_YE_SHIFT;
-+
-+       isp_reg_writel(blcomp_val, OMAP3_ISP_IOMEM_CCDC, ISPCCDC_BLKCMP);
-+}
-+EXPORT_SYMBOL(ispccdc_config_black_comp);
-+
-+/**
-+ * ispccdc_config_vp - Configures the Video Port Configuration parameter=
-s.
-+ * @vpcfg: Structure containing the Video Port input frequency, and the =
-10 bit
-+ *         format.
-+ **/
-+void ispccdc_config_vp(struct ispccdc_vp vpcfg)
-+{
-+       u32 fmtcfg_vp =3D isp_reg_readl(OMAP3_ISP_IOMEM_CCDC, ISPCCDC_FMT=
-CFG);
-+
-+       fmtcfg_vp &=3D ISPCCDC_FMTCFG_VPIN_MASK & ISPCCDC_FMTCF_VPIF_FRQ_=
-MASK;
-+
-+       switch (vpcfg.bitshift_sel) {
-+       case BIT9_0:
-+               fmtcfg_vp |=3D ISPCCDC_FMTCFG_VPIN_9_0;
-+               break;
-+       case BIT10_1:
-+               fmtcfg_vp |=3D ISPCCDC_FMTCFG_VPIN_10_1;
-+               break;
-+       case BIT11_2:
-+               fmtcfg_vp |=3D ISPCCDC_FMTCFG_VPIN_11_2;
-+               break;
-+       case BIT12_3:
-+               fmtcfg_vp |=3D ISPCCDC_FMTCFG_VPIN_12_3;
-+               break;
-+       };
-+       switch (vpcfg.freq_sel) {
-+       case PIXCLKBY2:
-+               fmtcfg_vp |=3D ISPCCDC_FMTCF_VPIF_FRQ_BY2;
-+               break;
-+       case PIXCLKBY3_5:
-+               fmtcfg_vp |=3D ISPCCDC_FMTCF_VPIF_FRQ_BY3;
-+               break;
-+       case PIXCLKBY4_5:
-+               fmtcfg_vp |=3D ISPCCDC_FMTCF_VPIF_FRQ_BY4;
-+               break;
-+       case PIXCLKBY5_5:
-+               fmtcfg_vp |=3D ISPCCDC_FMTCF_VPIF_FRQ_BY5;
-+               break;
-+       case PIXCLKBY6_5:
-+               fmtcfg_vp |=3D ISPCCDC_FMTCF_VPIF_FRQ_BY6;
-+               break;
-+       };
-+       isp_reg_writel(fmtcfg_vp, OMAP3_ISP_IOMEM_CCDC, ISPCCDC_FMTCFG);
-+}
-+EXPORT_SYMBOL(ispccdc_config_vp);
-+
-+/**
-+ * ispccdc_enable_vp - Enables the Video Port.
-+ * @enable: 0 Disables VP, 1 Enables VP
-+ **/
-+void ispccdc_enable_vp(u8 enable)
-+{
-+       isp_reg_and_or(OMAP3_ISP_IOMEM_CCDC, ISPCCDC_FMTCFG,
-+                                       ~ISPCCDC_FMTCFG_VPEN,
-+                                       enable ? ISPCCDC_FMTCFG_VPEN : 0)=
-;
-+}
-+EXPORT_SYMBOL(ispccdc_enable_vp);
-+
-+/**
-+ * ispccdc_config_reformatter - Configures the Reformatter.
-+ * @refmt: Structure containing the memory address to format and the bit=
- fields
-+ *         for the reformatter registers.
-+ *
-+ * Configures the Reformatter register values if line alternating is dis=
-abled.
-+ * Else, just enabling line alternating is enough.
-+ **/
-+void ispccdc_config_reformatter(struct ispccdc_refmt refmt)
-+{
-+       u32 fmtcfg_val =3D 0;
-+
-+       fmtcfg_val =3D isp_reg_readl(OMAP3_ISP_IOMEM_CCDC, ISPCCDC_FMTCFG=
-);
-+
-+       if (refmt.lnalt)
-+               fmtcfg_val |=3D ISPCCDC_FMTCFG_LNALT;
-+       else {
-+               fmtcfg_val &=3D ~ISPCCDC_FMTCFG_LNALT;
-+               fmtcfg_val &=3D 0xFFFFF003;
-+               fmtcfg_val |=3D refmt.lnum << ISPCCDC_FMTCFG_LNUM_SHIFT;
-+               fmtcfg_val |=3D refmt.plen_even <<
-+                                               ISPCCDC_FMTCFG_PLEN_EVEN_=
-SHIFT;
-+               fmtcfg_val |=3D refmt.plen_odd << ISPCCDC_FMTCFG_PLEN_ODD=
-_SHIFT;
-+
-+               isp_reg_writel(refmt.prgeven0, OMAP3_ISP_IOMEM_CCDC, ISPC=
-CDC_PRGEVEN0);
-+               isp_reg_writel(refmt.prgeven1, OMAP3_ISP_IOMEM_CCDC, ISPC=
-CDC_PRGEVEN1);
-+               isp_reg_writel(refmt.prgodd0, OMAP3_ISP_IOMEM_CCDC, ISPCC=
-DC_PRGODD0);
-+               isp_reg_writel(refmt.prgodd1, OMAP3_ISP_IOMEM_CCDC, ISPCC=
-DC_PRGODD1);
-+               isp_reg_writel(refmt.fmtaddr0, OMAP3_ISP_IOMEM_CCDC, ISPC=
-CDC_FMT_ADDR0);
-+               isp_reg_writel(refmt.fmtaddr1, OMAP3_ISP_IOMEM_CCDC, ISPC=
-CDC_FMT_ADDR1);
-+               isp_reg_writel(refmt.fmtaddr2, OMAP3_ISP_IOMEM_CCDC, ISPC=
-CDC_FMT_ADDR2);
-+               isp_reg_writel(refmt.fmtaddr3, OMAP3_ISP_IOMEM_CCDC, ISPC=
-CDC_FMT_ADDR3);
-+               isp_reg_writel(refmt.fmtaddr4, OMAP3_ISP_IOMEM_CCDC, ISPC=
-CDC_FMT_ADDR4);
-+               isp_reg_writel(refmt.fmtaddr5, OMAP3_ISP_IOMEM_CCDC, ISPC=
-CDC_FMT_ADDR5);
-+               isp_reg_writel(refmt.fmtaddr6, OMAP3_ISP_IOMEM_CCDC, ISPC=
-CDC_FMT_ADDR6);
-+               isp_reg_writel(refmt.fmtaddr7, OMAP3_ISP_IOMEM_CCDC, ISPC=
-CDC_FMT_ADDR7);
-+       }
-+       isp_reg_writel(fmtcfg_val, OMAP3_ISP_IOMEM_CCDC, ISPCCDC_FMTCFG);
-+}
-+EXPORT_SYMBOL(ispccdc_config_reformatter);
-+
-+/**
-+ * ispccdc_enable_reformatter - Enables the Reformatter.
-+ * @enable: 0 Disables Reformatter, 1- Enables Data Reformatter
-+ **/
-+void ispccdc_enable_reformatter(u8 enable)
-+{
-+       isp_reg_and_or(OMAP3_ISP_IOMEM_CCDC, ISPCCDC_FMTCFG,
-+                                       ~ISPCCDC_FMTCFG_FMTEN,
-+                                       enable ? ISPCCDC_FMTCFG_FMTEN : 0=
-);
-+       ispccdc_obj.refmt_en =3D enable;
-+}
-+EXPORT_SYMBOL(ispccdc_enable_reformatter);
-+
-+/**
-+ * ispccdc_config_culling - Configures the culling parameters.
-+ * @cull: Structure containing the vertical culling pattern, and horizon=
-tal
-+ *        culling pattern for odd and even lines.
-+ **/
-+void ispccdc_config_culling(struct ispccdc_culling cull)
-+{
-+       u32 culling_val =3D 0;
-+
-+       culling_val |=3D cull.v_pattern << ISPCCDC_CULLING_CULV_SHIFT;
-+       culling_val |=3D cull.h_even << ISPCCDC_CULLING_CULHEVN_SHIFT;
-+       culling_val |=3D cull.h_odd << ISPCCDC_CULLING_CULHODD_SHIFT;
-+
-+       isp_reg_writel(culling_val, OMAP3_ISP_IOMEM_CCDC, ISPCCDC_CULLING=
-);
-+}
-+EXPORT_SYMBOL(ispccdc_config_culling);
-+
-+/**
-+ * ispccdc_enable_lpf - Enables the Low-Pass Filter (LPF).
-+ * @enable: 0 Disables LPF, 1 Enables LPF
-+ **/
-+void ispccdc_enable_lpf(u8 enable)
-+{
-+       isp_reg_and_or(OMAP3_ISP_IOMEM_CCDC, ISPCCDC_SYN_MODE,
-+                                       ~ISPCCDC_SYN_MODE_LPF,
-+                                       enable ? ISPCCDC_SYN_MODE_LPF : 0=
-);
-+}
-+EXPORT_SYMBOL(ispccdc_enable_lpf);
-+
-+/**
-+ * ispccdc_config_alaw - Configures the input width for A-law.
-+ * @ipwidth: Input width for A-law
-+ **/
-+void ispccdc_config_alaw(enum alaw_ipwidth ipwidth)
-+{
-+       isp_reg_writel(ipwidth << ISPCCDC_ALAW_GWDI_SHIFT,
-+                                       OMAP3_ISP_IOMEM_CCDC, ISPCCDC_ALA=
-W);
-+}
-+EXPORT_SYMBOL(ispccdc_config_alaw);
-+
-+/**
-+ * ispccdc_enable_alaw - Enables the A-law compression.
-+ * @enable: 0 - Disables A-law, 1 - Enables A-law
-+ **/
-+void ispccdc_enable_alaw(u8 enable)
-+{
-+       isp_reg_and_or(OMAP3_ISP_IOMEM_CCDC, ISPCCDC_ALAW,
-+                                       ~ISPCCDC_ALAW_CCDTBL,
-+                                       enable ? ISPCCDC_ALAW_CCDTBL : 0)=
-;
-+}
-+EXPORT_SYMBOL(ispccdc_enable_alaw);
-+
-+/**
-+ * ispccdc_config_imgattr - Configures the sensor image specific attribu=
-tes.
-+ * @colptn: Color pattern of the sensor.
-+ **/
-+void ispccdc_config_imgattr(u32 colptn)
-+{
-+       isp_reg_writel(colptn, OMAP3_ISP_IOMEM_CCDC, ISPCCDC_COLPTN);
-+}
-+EXPORT_SYMBOL(ispccdc_config_imgattr);
-+
-+/**
-+ * ispccdc_config_shadow_registers - Programs the shadow registers for C=
-CDC.
-+ * Currently nothing to program in shadow, but kept for future use.
-+ **/
-+void ispccdc_config_shadow_registers(void)
-+{
-+       return;
-+}
-+EXPORT_SYMBOL(ispccdc_config_shadow_registers);
-+
-+/**
-+ * ispccdc_try_size - Checks if requested Input/output dimensions are va=
-lid
-+ * @input_w: input width for the CCDC in number of pixels per line
-+ * @input_h: input height for the CCDC in number of lines
-+ * @output_w: output width from the CCDC in number of pixels per line
-+ * @output_h: output height for the CCDC in number of lines
-+ *
-+ * Calculates the number of pixels cropped if the reformater is disabled=
-,
-+ * Fills up the output width and height variables in the isp_ccdc struct=
-ure.
-+ *
-+ * Returns 0 if successful, or -EINVAL if the input width is less than 2=
- pixels
-+ **/
-+int ispccdc_try_size(u32 input_w, u32 input_h, u32 *output_w, u32 *outpu=
-t_h)
-+{
-+       if (input_w < 32 || input_h < 32) {
-+               DPRINTK_ISPCCDC("ISP_ERR: CCDC cannot handle input width =
-less"
-+                               " than 32 pixels or height less than 32\n=
-");
-+               return -EINVAL;
-+       }
-+
-+       if (ispccdc_obj.crop_w)
-+               *output_w =3D ispccdc_obj.crop_w;
-+       else
-+               *output_w =3D input_w;
-+
-+       if (ispccdc_obj.crop_h)
-+               *output_h =3D ispccdc_obj.crop_h;
-+       else
-+               *output_h =3D input_h;
-+
-+       if ((!ispccdc_obj.refmt_en) && ((ispccdc_obj.ccdc_outfmt !=3D
-+               CCDC_OTHERS_MEM) && ispccdc_obj.ccdc_outfmt !=3D
-+                                       CCDC_OTHERS_VP_MEM))
-+               *output_h -=3D 1;
-+
-+       if ((ispccdc_obj.ccdc_outfmt =3D=3D CCDC_OTHERS_MEM) ||
-+                                               (ispccdc_obj.ccdc_outfmt =
-=3D=3D
-+                                               CCDC_OTHERS_VP_MEM)) {
-+               if (*output_w % 16) {
-+                       *output_w -=3D (*output_w % 16);
-+                       *output_w +=3D 16;
-+               }
-+       }
-+
-+       ispccdc_obj.ccdcout_w =3D *output_w;
-+       ispccdc_obj.ccdcout_h =3D *output_h;
-+       ispccdc_obj.ccdcin_w =3D input_w;
-+       ispccdc_obj.ccdcin_h =3D input_h;
-+
-+       DPRINTK_ISPCCDC("try size: ccdcin_w=3D%u,ccdcin_h=3D%u,ccdcout_w=3D=
-%u,"
-+                                                       " ccdcout_h=3D%u\=
-n",
-+                                                       ispccdc_obj.ccdci=
-n_w,
-+                                                       ispccdc_obj.ccdci=
-n_h,
-+                                                       ispccdc_obj.ccdco=
-ut_w,
-+                                                       ispccdc_obj.ccdco=
-ut_h);
-+
-+       return 0;
-+}
-+EXPORT_SYMBOL(ispccdc_try_size);
-+
-+/**
-+ * ispccdc_config_size - Configure the dimensions of the CCDC input/outp=
-ut
-+ * @input_w: input width for the CCDC in number of pixels per line
-+ * @input_h: input height for the CCDC in number of lines
-+ * @output_w: output width from the CCDC in number of pixels per line
-+ * @output_h: output height for the CCDC in number of lines
-+ *
-+ * Configures the appropriate values stored in the isp_ccdc structure to
-+ * HORZ/VERT_INFO registers and the VP_OUT depending on whether the imag=
-e
-+ * is stored in memory or given to the another module in the ISP pipelin=
-e.
-+ *
-+ * Returns 0 if successful, or -EINVAL if try_size was not called before=
- to
-+ * validate the requested dimensions.
-+ **/
-+int ispccdc_config_size(u32 input_w, u32 input_h, u32 output_w, u32 outp=
-ut_h)
-+{
-+       DPRINTK_ISPCCDC("config size: input_w=3D%u, input_h=3D%u, output_=
-w=3D%u,"
-+                                                       " output_h=3D%u\n=
-",
-+                                                       input_w, input_h,
-+                                                       output_w, output_=
-h);
-+       if ((output_w !=3D ispccdc_obj.ccdcout_w) || (output_h !=3D
-+                                               ispccdc_obj.ccdcout_h)) {
-+               DPRINTK_ISPCCDC("ISP_ERR : ispccdc_try_size should"
-+                                       " be called before config size\n"=
-);
-+               return -EINVAL;
-+       }
-+
-+       if (ispccdc_obj.ccdc_outfmt =3D=3D CCDC_OTHERS_VP) {
-+               isp_reg_writel((ispccdc_obj.ccdcin_woffset <<
-+                                       ISPCCDC_FMT_HORZ_FMTSPH_SHIFT) |
-+                                       (ispccdc_obj.ccdcin_w <<
-+                                       ISPCCDC_FMT_HORZ_FMTLNH_SHIFT),
-+                                       OMAP3_ISP_IOMEM_CCDC,
-+                                       ISPCCDC_FMT_HORZ);
-+               isp_reg_writel((ispccdc_obj.ccdcin_hoffset <<
-+                                       ISPCCDC_FMT_VERT_FMTSLV_SHIFT) |
-+                                       (ispccdc_obj.ccdcin_h <<
-+                                       ISPCCDC_FMT_VERT_FMTLNV_SHIFT),
-+                                       OMAP3_ISP_IOMEM_CCDC,
-+                                       ISPCCDC_FMT_VERT);
-+               isp_reg_writel((ispccdc_obj.ccdcout_w <<
-+                                       ISPCCDC_VP_OUT_HORZ_NUM_SHIFT) |
-+                                       (ispccdc_obj.ccdcout_h <<
-+                                       ISPCCDC_VP_OUT_VERT_NUM_SHIFT),
-+                                       OMAP3_ISP_IOMEM_CCDC,
-+                                       ISPCCDC_VP_OUT);
-+               isp_reg_writel((((ispccdc_obj.ccdcout_h - 25) &
-+                                       ISPCCDC_VDINT_0_MASK) <<
-+                                       ISPCCDC_VDINT_0_SHIFT) |
-+                                       ((50 & ISPCCDC_VDINT_1_MASK) <<
-+                                       ISPCCDC_VDINT_1_SHIFT),
-+                                       OMAP3_ISP_IOMEM_CCDC,
-+                                       ISPCCDC_VDINT);
-+
-+       } else if (ispccdc_obj.ccdc_outfmt =3D=3D CCDC_OTHERS_MEM) {
-+               isp_reg_writel(0, OMAP3_ISP_IOMEM_CCDC, ISPCCDC_VP_OUT);
-+               if (ispccdc_obj.ccdc_inpfmt =3D=3D CCDC_RAW) {
-+                       isp_reg_writel(1 << ISPCCDC_HORZ_INFO_SPH_SHIFT
-+                                       | ((ispccdc_obj.ccdcout_w - 1)
-+                                       << ISPCCDC_HORZ_INFO_NPH_SHIFT),
-+                                       OMAP3_ISP_IOMEM_CCDC,
-+                                       ISPCCDC_HORZ_INFO);
-+               } else {
-+                       isp_reg_writel(0 << ISPCCDC_HORZ_INFO_SPH_SHIFT
-+                                       | ((ispccdc_obj.ccdcout_w - 1)
-+                                       << ISPCCDC_HORZ_INFO_NPH_SHIFT),
-+                                       OMAP3_ISP_IOMEM_CCDC,
-+                                       ISPCCDC_HORZ_INFO);
-+               }
-+               isp_reg_writel(0 << ISPCCDC_VERT_START_SLV0_SHIFT,
-+                                                       OMAP3_ISP_IOMEM_C=
-CDC,
-+                                                       ISPCCDC_VERT_STAR=
-T);
-+               isp_reg_writel((ispccdc_obj.ccdcout_h - 1) <<
-+                                               ISPCCDC_VERT_LINES_NLV_SH=
-IFT,
-+                                               OMAP3_ISP_IOMEM_CCDC,
-+                                               ISPCCDC_VERT_LINES);
-+
-+               ispccdc_config_outlineoffset(ispccdc_obj.ccdcout_w * 2, 0=
-, 0);
-+               isp_reg_writel((((ispccdc_obj.ccdcout_h - 2) &
-+                                       ISPCCDC_VDINT_0_MASK) <<
-+                                       ISPCCDC_VDINT_0_SHIFT) |
-+                                       ((50 & ISPCCDC_VDINT_1_MASK) <<
-+                                       ISPCCDC_VDINT_1_SHIFT),
-+                                       OMAP3_ISP_IOMEM_CCDC,
-+                                       ISPCCDC_VDINT);
-+       } else if (ispccdc_obj.ccdc_outfmt =3D=3D CCDC_OTHERS_VP_MEM) {
-+               isp_reg_writel((1 << ISPCCDC_FMT_HORZ_FMTSPH_SHIFT) |
-+                                       (ispccdc_obj.ccdcin_w <<
-+                                       ISPCCDC_FMT_HORZ_FMTLNH_SHIFT),
-+                                       OMAP3_ISP_IOMEM_CCDC,
-+                                       ISPCCDC_FMT_HORZ);
-+               isp_reg_writel((0 << ISPCCDC_FMT_VERT_FMTSLV_SHIFT) |
-+                                       ((ispccdc_obj.ccdcin_h) <<
-+                                       ISPCCDC_FMT_VERT_FMTLNV_SHIFT),
-+                                       OMAP3_ISP_IOMEM_CCDC,
-+                                       ISPCCDC_FMT_VERT);
-+               isp_reg_writel((ispccdc_obj.ccdcout_w
-+                                       << ISPCCDC_VP_OUT_HORZ_NUM_SHIFT)=
- |
-+                                       (ispccdc_obj.ccdcout_h <<
-+                                       ISPCCDC_VP_OUT_VERT_NUM_SHIFT),
-+                                       OMAP3_ISP_IOMEM_CCDC,
-+                                       ISPCCDC_VP_OUT);
-+               isp_reg_writel(0 << ISPCCDC_HORZ_INFO_SPH_SHIFT |
-+                                       ((ispccdc_obj.ccdcout_w - 1) <<
-+                                       ISPCCDC_HORZ_INFO_NPH_SHIFT),
-+                                       OMAP3_ISP_IOMEM_CCDC,
-+                                       ISPCCDC_HORZ_INFO);
-+               isp_reg_writel(0 << ISPCCDC_VERT_START_SLV0_SHIFT,
-+                                       OMAP3_ISP_IOMEM_CCDC,
-+                                       ISPCCDC_VERT_START);
-+               isp_reg_writel((ispccdc_obj.ccdcout_h - 1) <<
-+                                       ISPCCDC_VERT_LINES_NLV_SHIFT,
-+                                       OMAP3_ISP_IOMEM_CCDC,
-+                                       ISPCCDC_VERT_LINES);
-+               ispccdc_config_outlineoffset(ispccdc_obj.ccdcout_w * 2, 0=
-, 0);
-+               isp_reg_writel((((ispccdc_obj.ccdcout_h - 25) &
-+                                       ISPCCDC_VDINT_0_MASK) <<
-+                                       ISPCCDC_VDINT_0_SHIFT) |
-+                                       ((50 & ISPCCDC_VDINT_1_MASK) <<
-+                                       ISPCCDC_VDINT_1_SHIFT),
-+                                       OMAP3_ISP_IOMEM_CCDC,
-+                                       ISPCCDC_VDINT);
-+       }
-+
-+       if (is_isplsc_activated()) {
-+               if (ispccdc_obj.ccdc_inpfmt =3D=3D CCDC_RAW) {
-+                       ispccdc_config_lsc(&lsc_config);
-+                       ispccdc_load_lsc(lsc_config.size);
-+               }
-+       }
-+
-+       return 0;
-+}
-+EXPORT_SYMBOL(ispccdc_config_size);
-+
-+/**
-+ * ispccdc_config_outlineoffset - Configures the output line offset
-+ * @offset: Must be twice the Output width and aligned on 32 byte bounda=
-ry
-+ * @oddeven: Specifies the odd/even line pattern to be chosen to store t=
-he
-+ *           output.
-+ * @numlines: Set the value 0-3 for +1-4lines, 4-7 for -1-4lines.
-+ *
-+ * - Configures the output line offset when stored in memory
-+ * - Sets the odd/even line pattern to store the output
-+ *    (EVENEVEN (1), ODDEVEN (2), EVENODD (3), ODDODD (4))
-+ * - Configures the number of even and odd line fields in case of rearra=
-nging
-+ * the lines.
-+ *
-+ * Returns 0 if successful, or -EINVAL if the offset is not in 32 byte
-+ * boundary.
-+ **/
-+int ispccdc_config_outlineoffset(u32 offset, u8 oddeven, u8 numlines)
-+{
-+       if ((offset & ISP_32B_BOUNDARY_OFFSET) =3D=3D offset)
-+               isp_reg_writel((offset & 0xFFFF), OMAP3_ISP_IOMEM_CCDC, I=
-SPCCDC_HSIZE_OFF);
-+       else {
-+               DPRINTK_ISPCCDC("ISP_ERR : Offset should be in 32 byte"
-+                                                               " boundar=
-y");
-+               return -EINVAL;
-+       }
-+
-+       isp_reg_and(OMAP3_ISP_IOMEM_CCDC, ISPCCDC_SDOFST, ~ISPCCDC_SDOFST=
-_FINV);
-+
-+       isp_reg_and(OMAP3_ISP_IOMEM_CCDC, ISPCCDC_SDOFST, ISPCCDC_SDOFST_=
-FOFST_1L);
-+
-+       switch (oddeven) {
-+       case EVENEVEN:
-+               isp_reg_or(OMAP3_ISP_IOMEM_CCDC, ISPCCDC_SDOFST,
-+                       (numlines & 0x7) << ISPCCDC_SDOFST_LOFST0_SHIFT);
-+               break;
-+       case ODDEVEN:
-+               isp_reg_or(OMAP3_ISP_IOMEM_CCDC, ISPCCDC_SDOFST,
-+                       (numlines & 0x7) << ISPCCDC_SDOFST_LOFST1_SHIFT);
-+               break;
-+       case EVENODD:
-+               isp_reg_or(OMAP3_ISP_IOMEM_CCDC, ISPCCDC_SDOFST,
-+                       (numlines & 0x7) << ISPCCDC_SDOFST_LOFST2_SHIFT);
-+               break;
-+       case ODDODD:
-+               isp_reg_or(OMAP3_ISP_IOMEM_CCDC, ISPCCDC_SDOFST,
-+                       (numlines & 0x7) << ISPCCDC_SDOFST_LOFST3_SHIFT);
-+               break;
-+       default:
-+               break;
-+       }
-+       return 0;
-+}
-+EXPORT_SYMBOL(ispccdc_config_outlineoffset);
-+
-+/**
-+ * ispccdc_set_outaddr - Sets the memory address where the output will b=
-e saved
-+ * @addr: 32-bit memory address aligned on 32 byte boundary.
-+ *
-+ * Sets the memory address where the output will be saved.
-+ *
-+ * Returns 0 if successful, or -EINVAL if the address is not in the 32 b=
-yte
-+ * boundary.
-+ **/
-+int ispccdc_set_outaddr(u32 addr)
-+{
-+       if ((addr & ISP_32B_BOUNDARY_BUF) =3D=3D addr) {
-+               isp_reg_writel(addr, OMAP3_ISP_IOMEM_CCDC, ISPCCDC_SDR_AD=
-DR);
-+               return 0;
-+       } else {
-+               DPRINTK_ISPCCDC("ISP_ERR : Address should be in 32 byte"
-+                                                               " boundar=
-y");
-+               return -EINVAL;
-+       }
-+
-+}
-+EXPORT_SYMBOL(ispccdc_set_outaddr);
-+
-+/**
-+ * ispccdc_enable - Enables the CCDC module.
-+ * @enable: 0 Disables CCDC, 1 Enables CCDC
-+ *
-+ * Client should configure all the sub modules in CCDC before this.
-+ **/
-+void ispccdc_enable(u8 enable)
-+{
-+       if (ccdc_use_lsc && !ispccdc_obj.lsc_en &&
-+                               (ispccdc_obj.ccdc_inpfmt =3D=3D CCDC_RAW)=
- &&
-+                               enable)
-+               ispccdc_enable_lsc(1);
-+
-+       isp_reg_and_or(OMAP3_ISP_IOMEM_CCDC, ISPCCDC_PCR, ~ISPCCDC_PCR_EN=
-,
-+                                               enable ? ISPCCDC_PCR_EN :=
- 0);
-+}
-+EXPORT_SYMBOL(ispccdc_enable);
-+
-+/**
-+ * ispccdc_busy - Gets busy state of the CCDC.
-+ **/
-+int ispccdc_busy(void)
-+{
-+       return isp_reg_readl(OMAP3_ISP_IOMEM_CCDC, ISPCCDC_PCR) &
-+                                                       ISPCCDC_PCR_BUSY;
-+}
-+EXPORT_SYMBOL(ispccdc_busy);
-+
-+/**
-+ * ispccdc_save_context - Saves the values of the CCDC module registers
-+ **/
-+void ispccdc_save_context(void)
-+{
-+       DPRINTK_ISPCCDC("Saving context\n");
-+       isp_save_context(ispccdc_reg_list);
-+}
-+EXPORT_SYMBOL(ispccdc_save_context);
-+
-+/**
-+ * ispccdc_restore_context - Restores the values of the CCDC module regi=
-sters
-+ **/
-+void ispccdc_restore_context(void)
-+{
-+       DPRINTK_ISPCCDC("Restoring context\n");
-+       isp_restore_context(ispccdc_reg_list);
-+}
-+EXPORT_SYMBOL(ispccdc_restore_context);
-+
-+/**
-+ * ispccdc_print_status - Prints the values of the CCDC Module registers
-+ *
-+ * Also prints other debug information stored in the CCDC module.
-+ **/
-+void ispccdc_print_status(void)
-+{
-+       if (!is_ispccdc_debug_enabled())
-+               return;
-+
-+       DPRINTK_ISPCCDC("Module in use =3D%d\n", ispccdc_obj.ccdc_inuse);
-+       DPRINTK_ISPCCDC("Accepted CCDC Input (width =3D %d,Height =3D %d)=
-\n",
-+                                                       ispccdc_obj.ccdci=
-n_w,
-+                                                       ispccdc_obj.ccdci=
-n_h);
-+       DPRINTK_ISPCCDC("Accepted CCDC Output (width =3D %d,Height =3D %d=
-)\n",
-+                                                       ispccdc_obj.ccdco=
-ut_w,
-+                                                       ispccdc_obj.ccdco=
-ut_h);
-+       DPRINTK_ISPCCDC("###CCDC PCR=3D0x%x\n", isp_reg_readl(OMAP3_ISP_I=
-OMEM_CCDC, ISPCCDC_PCR));
-+       DPRINTK_ISPCCDC("ISP_CTRL =3D0x%x\n", isp_reg_readl(OMAP3_ISP_IOM=
-EM_MAIN, ISP_CTRL));
-+       switch (ispccdc_obj.ccdc_inpfmt) {
-+       case CCDC_RAW:
-+               DPRINTK_ISPCCDC("ccdc input format is CCDC_RAW\n");
-+               break;
-+       case CCDC_YUV_SYNC:
-+               DPRINTK_ISPCCDC("ccdc input format is CCDC_YUV_SYNC\n");
-+               break;
-+       case CCDC_YUV_BT:
-+               DPRINTK_ISPCCDC("ccdc input format is CCDC_YUV_BT\n");
-+               break;
-+       }
-+
-+       switch (ispccdc_obj.ccdc_outfmt) {
-+       case CCDC_OTHERS_VP:
-+               DPRINTK_ISPCCDC("ccdc output format is CCDC_OTHERS_VP\n")=
-;
-+               break;
-+       case CCDC_OTHERS_MEM:
-+               DPRINTK_ISPCCDC("ccdc output format is CCDC_OTHERS_MEM\n"=
-);
-+               break;
-+       case CCDC_YUV_RSZ:
-+               DPRINTK_ISPCCDC("ccdc output format is CCDC_YUV_RSZ\n");
-+               break;
-+       }
-+
-+       DPRINTK_ISPCCDC("###ISP_CTRL in ccdc =3D0x%x\n",
-+                       isp_reg_readl(OMAP3_ISP_IOMEM_MAIN, ISP_CTRL));
-+       DPRINTK_ISPCCDC("###ISP_IRQ0ENABLE in ccdc =3D0x%x\n",
-+                       isp_reg_readl(OMAP3_ISP_IOMEM_MAIN, ISP_IRQ0ENABL=
-E));
-+       DPRINTK_ISPCCDC("###ISP_IRQ0STATUS in ccdc =3D0x%x\n",
-+                       isp_reg_readl(OMAP3_ISP_IOMEM_MAIN, ISP_IRQ0STATU=
-S));
-+       DPRINTK_ISPCCDC("###CCDC SYN_MODE=3D0x%x\n",
-+                       isp_reg_readl(OMAP3_ISP_IOMEM_CCDC, ISPCCDC_SYN_M=
-ODE));
-+       DPRINTK_ISPCCDC("###CCDC HORZ_INFO=3D0x%x\n",
-+                       isp_reg_readl(OMAP3_ISP_IOMEM_CCDC, ISPCCDC_HORZ_=
-INFO));
-+       DPRINTK_ISPCCDC("###CCDC VERT_START=3D0x%x\n",
-+                       isp_reg_readl(OMAP3_ISP_IOMEM_CCDC, ISPCCDC_VERT_=
-START));
-+       DPRINTK_ISPCCDC("###CCDC VERT_LINES=3D0x%x\n",
-+                       isp_reg_readl(OMAP3_ISP_IOMEM_CCDC, ISPCCDC_VERT_=
-LINES));
-+       DPRINTK_ISPCCDC("###CCDC CULLING=3D0x%x\n",
-+                       isp_reg_readl(OMAP3_ISP_IOMEM_CCDC, ISPCCDC_CULLI=
-NG));
-+       DPRINTK_ISPCCDC("###CCDC HSIZE_OFF=3D0x%x\n",
-+                       isp_reg_readl(OMAP3_ISP_IOMEM_CCDC, ISPCCDC_HSIZE=
-_OFF));
-+       DPRINTK_ISPCCDC("###CCDC SDOFST=3D0x%x\n",
-+                       isp_reg_readl(OMAP3_ISP_IOMEM_CCDC, ISPCCDC_SDOFS=
-T));
-+       DPRINTK_ISPCCDC("###CCDC SDR_ADDR=3D0x%x\n",
-+                       isp_reg_readl(OMAP3_ISP_IOMEM_CCDC, ISPCCDC_SDR_A=
-DDR));
-+       DPRINTK_ISPCCDC("###CCDC CLAMP=3D0x%x\n",
-+                       isp_reg_readl(OMAP3_ISP_IOMEM_CCDC, ISPCCDC_CLAMP=
-));
-+       DPRINTK_ISPCCDC("###CCDC COLPTN=3D0x%x\n",
-+                       isp_reg_readl(OMAP3_ISP_IOMEM_CCDC, ISPCCDC_COLPT=
-N));
-+       DPRINTK_ISPCCDC("###CCDC CFG=3D0x%x\n",
-+                       isp_reg_readl(OMAP3_ISP_IOMEM_CCDC, ISPCCDC_CFG))=
-;
-+       DPRINTK_ISPCCDC("###CCDC VP_OUT=3D0x%x\n",
-+                       isp_reg_readl(OMAP3_ISP_IOMEM_CCDC, ISPCCDC_VP_OU=
-T));
-+       DPRINTK_ISPCCDC("###CCDC_SDR_ADDR=3D 0x%x\n",
-+                       isp_reg_readl(OMAP3_ISP_IOMEM_CCDC, ISPCCDC_SDR_A=
-DDR));
-+       DPRINTK_ISPCCDC("###CCDC FMTCFG=3D0x%x\n",
-+                       isp_reg_readl(OMAP3_ISP_IOMEM_CCDC, ISPCCDC_FMTCF=
-G));
-+       DPRINTK_ISPCCDC("###CCDC FMT_HORZ=3D0x%x\n",
-+                       isp_reg_readl(OMAP3_ISP_IOMEM_CCDC, ISPCCDC_FMT_H=
-ORZ));
-+       DPRINTK_ISPCCDC("###CCDC FMT_VERT=3D0x%x\n",
-+                       isp_reg_readl(OMAP3_ISP_IOMEM_CCDC, ISPCCDC_FMT_V=
-ERT));
-+       DPRINTK_ISPCCDC("###CCDC LSC_CONFIG=3D0x%x\n",
-+                       isp_reg_readl(OMAP3_ISP_IOMEM_CCDC, ISPCCDC_LSC_C=
-ONFIG));
-+       DPRINTK_ISPCCDC("###CCDC LSC_INIT=3D0x%x\n",
-+                       isp_reg_readl(OMAP3_ISP_IOMEM_CCDC, ISPCCDC_LSC_I=
-NITIAL));
-+       DPRINTK_ISPCCDC("###CCDC LSC_TABLE BASE=3D0x%x\n",
-+                       isp_reg_readl(OMAP3_ISP_IOMEM_CCDC, ISPCCDC_LSC_T=
-ABLE_BASE));
-+       DPRINTK_ISPCCDC("###CCDC LSC TABLE OFFSET=3D0x%x\n",
-+                       isp_reg_readl(OMAP3_ISP_IOMEM_CCDC, ISPCCDC_LSC_T=
-ABLE_OFFSET));
-+}
-+EXPORT_SYMBOL(ispccdc_print_status);
-+
-+/**
-+ * isp_ccdc_init - CCDC module initialization.
-+ *
-+ * Always returns 0
-+ **/
-+int __init isp_ccdc_init(void)
-+{
-+       ispccdc_obj.ccdc_inuse =3D 0;
-+       ispccdc_config_crop(0, 0, 0, 0);
-+       mutex_init(&ispccdc_obj.mutexlock);
-+
-+       if (is_isplsc_activated()) {
-+               memset(ispccdc_lsc_tbl, 0x40, LSC_TABLE_INIT_SIZE);
-+               lsc_config.initial_x =3D 0;
-+               lsc_config.initial_y =3D 0;
-+               lsc_config.gain_mode_n =3D 0x6;
-+               lsc_config.gain_mode_m =3D 0x6;
-+               lsc_config.gain_format =3D 0x4;
-+               lsc_config.offset =3D 0x60;
-+               lsc_config.size =3D LSC_TABLE_INIT_SIZE;
-+               ccdc_use_lsc =3D 1;
-+       }
-+
-+       return 0;
-+}
-+
-+/**
-+ * isp_ccdc_cleanup - CCDC module cleanup.
-+ **/
-+void isp_ccdc_cleanup(void)
-+{
-+       if (is_isplsc_activated()) {
-+               if (lsc_initialized) {
-+                       ispmmu_unmap(lsc_ispmmu_addr);
-+                       kfree(lsc_gain_table);
-+                       lsc_initialized =3D 0;
-+               }
-+       }
-+
-+       if (fpc_table_add_m !=3D 0) {
-+               ispmmu_unmap(fpc_table_add_m);
-+               kfree(fpc_table_add);
-+       }
-+}
-diff --git a/drivers/media/video/isp/ispccdc.h b/drivers/media/video/isp/=
-ispccdc.h
-new file mode 100644
-index 0000000..f691279
---- /dev/null
-+++ b/drivers/media/video/isp/ispccdc.h
-@@ -0,0 +1,200 @@
 +/*
-+ * drivers/media/video/isp/ispccdc.h
-+ *
-+ * Driver header file for CCDC module in TI's OMAP3 Camera ISP
-+ *
-+ * Copyright (C) 2008 Texas Instruments, Inc.
-+ *
-+ * Contributors:
-+ *     Senthilvadivu Guruswamy <svadivu@ti.com>
-+ *     Pallavi Kulkarni <p-kulkarni@ti.com>
-+ *
-+ * This package is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ *
-+ * THIS PACKAGE IS PROVIDED ``AS IS'' AND WITHOUT ANY EXPRESS OR
-+ * IMPLIED WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED
-+ * WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
++ * Array of image sizes supported by MT9P012.  These must be ordered fro=
+m
++ * smallest image size to largest.
 + */
-+
-+#ifndef OMAP_ISP_CCDC_H
-+#define OMAP_ISP_CCDC_H
-+
-+#include <mach/isp_user.h>
-+
-+#define is_isplsc_activated()          1
-+
-+/* Enumeration constants for CCDC input output format */
-+enum ccdc_input {
-+       CCDC_RAW,
-+       CCDC_YUV_SYNC,
-+       CCDC_YUV_BT,
-+       CCDC_OTHERS
++const static struct capture_size mt9p012_sizes[] =3D {
++       {  216, 162 },  /* 4X BINNING+SCALING */
++       {  648, 486 },  /* 4X BINNING */
++       { 1296, 972 },  /* 2X BINNING */
++       { 2048, 1536},  /* 3 MP */
++       { 2592, 1944},  /* 5 MP */
 +};
 +
-+enum ccdc_output {
-+       CCDC_YUV_RSZ,
-+       CCDC_YUV_MEM_RSZ,
-+       CCDC_OTHERS_VP,
-+       CCDC_OTHERS_MEM,
-+       CCDC_OTHERS_VP_MEM
++/* PLL settings for MT9P012 */
++enum mt9p012_pll_type {
++  PLL_5MP =3D 0,
++  PLL_3MP,
++  PLL_1296_15FPS,
++  PLL_1296_30FPS,
++  PLL_648_15FPS,
++  PLL_648_30FPS,
++  PLL_216_15FPS,
++  PLL_216_30FPS
 +};
 +
-+/* Enumeration constants for the sync interface parameters */
-+enum inpmode {
-+       RAW,
-+       YUV16,
-+       YUV8
++/* Debug functions */
++static int debug;
++module_param(debug, bool, 0644);
++MODULE_PARM_DESC(debug, "Debug level (0-1)");
++
++/**
++ * struct mt9p012_sensor - main structure for storage of sensor informat=
+ion
++ * @pdata: access functions and data for platform level information
++ * @v4l2_int_device: V4L2 device structure structure
++ * @i2c_client: iic client device structure
++ * @pix: V4L2 pixel format information structure
++ * @timeperframe: time per frame expressed as V4L fraction
++ * @scaler:
++ * @ver: mt9p012 chip version
++ * @fps: frames per second value
++ */
++struct mt9p012_sensor {
++       const struct mt9p012_platform_data *pdata;
++       struct v4l2_int_device *v4l2_int_device;
++       struct i2c_client *i2c_client;
++       struct v4l2_pix_format pix;
++       struct v4l2_fract timeperframe;
++       int scaler;
++       int ver;
++       int fps;
++       int state;
 +};
-+enum datasize {
-+       DAT8,
-+       DAT10,
-+       DAT11,
-+       DAT12
++
++static struct mt9p012_sensor mt9p012;
++static struct i2c_driver mt9p012sensor_i2c_driver;
++static unsigned long xclk_current =3D MT9P012_XCLK_NOM_1;
++
++/* list of image formats supported by mt9p012 sensor */
++const static struct v4l2_fmtdesc mt9p012_formats[] =3D {
++       {
++               .description    =3D "Bayer10 (GrR/BGb)",
++               .pixelformat    =3D V4L2_PIX_FMT_SGRBG10,
++       }
 +};
++
++#define NUM_CAPTURE_FORMATS ARRAY_SIZE(mt9p012_formats)
++
++/* Enters soft standby, all settings are maintained */
++const static struct mt9p012_reg stream_off_list[] =3D {
++       {.length =3D MT9P012_8BIT, .reg =3D REG_MODE_SELECT, .val =3D 0x0=
+0},
++       {.length =3D MT9P012_TOK_TERM, .reg =3D 0, .val =3D 0}
++};
++
++/* Exits soft standby */
++const static struct mt9p012_reg stream_on_list[] =3D {
++       {.length =3D MT9P012_8BIT, .reg =3D REG_MODE_SELECT, .val =3D 0x0=
+1},
++       /* Sensor datasheet says we need 1 ms to allow PLL lock */
++       {.length =3D MT9P012_TOK_DELAY, .reg =3D 0x00, .val =3D 1},
++       {.length =3D MT9P012_TOK_TERM, .reg =3D 0, .val =3D 0}
++};
++
++/* Structure which will set the exposure time */
++static struct mt9p012_reg set_exposure_time[] =3D {
++       {.length =3D MT9P012_8BIT, .reg =3D REG_GROUPED_PAR_HOLD, .val =3D=
+ 0x01},
++       /* less than frame_lines-1 */
++       {.length =3D MT9P012_16BIT, .reg =3D REG_COARSE_INT_TIME, .val =3D=
+ 500},
++        /* updating */
++       {.length =3D MT9P012_8BIT, .reg =3D REG_GROUPED_PAR_HOLD, .val =3D=
+ 0x00},
++       {.length =3D MT9P012_TOK_TERM, .reg =3D 0, .val =3D 0}
++};
++
++/* Structure to set analog gain */
++static struct mt9p012_reg set_analog_gain[] =3D {
++       {.length =3D MT9P012_8BIT, .reg =3D REG_GROUPED_PAR_HOLD, .val =3D=
+ 0x01},
++       {.length =3D MT9P012_16BIT, .reg =3D REG_ANALOG_GAIN_GLOBAL,
++               .val =3D MIN_GAIN},
++        /* updating */
++       {.length =3D MT9P012_8BIT, .reg =3D REG_GROUPED_PAR_HOLD, .val =3D=
+ 0x00},
++       {.length =3D MT9P012_TOK_TERM, .reg =3D 0, .val =3D 0},
++};
++
++/*
++ * Common MT9P012 register initialization for all image sizes, pixel for=
+mats,
++ * and frame rates
++ */
++const static struct mt9p012_reg mt9p012_common[] =3D {
++       {MT9P012_8BIT, REG_SOFTWARE_RESET, 0x01},
++       {MT9P012_TOK_DELAY, 0x00, 5}, /* Delay =3D 5ms, min 2400 xcks */
++       {MT9P012_16BIT, REG_RESET_REGISTER, 0x10C8},
++       {MT9P012_8BIT, REG_GROUPED_PAR_HOLD, 0x01}, /* hold */
++       {MT9P012_16BIT, REG_ANALOG_GAIN_GREENR, 0x0020},
++       {MT9P012_16BIT, REG_ANALOG_GAIN_RED, 0x0020},
++       {MT9P012_16BIT, REG_ANALOG_GAIN_BLUE, 0x0020},
++       {MT9P012_16BIT, REG_ANALOG_GAIN_GREENB, 0x0020},
++       {MT9P012_16BIT, REG_DIGITAL_GAIN_GREENR, 0x0100},
++       {MT9P012_16BIT, REG_DIGITAL_GAIN_RED, 0x0100},
++       {MT9P012_16BIT, REG_DIGITAL_GAIN_BLUE, 0x0100},
++       {MT9P012_16BIT, REG_DIGITAL_GAIN_GREENB, 0x0100},
++       /* Recommended values for image quality, sensor Rev 1 */
++       {MT9P012_16BIT, 0x3088, 0x6FFB},
++       {MT9P012_16BIT, 0x308E, 0x2020},
++       {MT9P012_16BIT, 0x309E, 0x4400},
++       {MT9P012_16BIT, 0x30D4, 0x9080},
++       {MT9P012_16BIT, 0x3126, 0x00FF},
++       {MT9P012_16BIT, 0x3154, 0x1482},
++       {MT9P012_16BIT, 0x3158, 0x97C7},
++       {MT9P012_16BIT, 0x315A, 0x97C6},
++       {MT9P012_16BIT, 0x3162, 0x074C},
++       {MT9P012_16BIT, 0x3164, 0x0756},
++       {MT9P012_16BIT, 0x3166, 0x0760},
++       {MT9P012_16BIT, 0x316E, 0x8488},
++       {MT9P012_16BIT, 0x3172, 0x0003},
++       {MT9P012_16BIT, 0x30EA, 0x3F06},
++       {MT9P012_8BIT, REG_GROUPED_PAR_HOLD, 0x00}, /* update all at once=
+ */
++       {MT9P012_TOK_TERM, 0, 0}
++
++};
++
++/*
++ * mt9p012 register configuration for all combinations of pixel format a=
+nd
++ * image size
++ */
++       /* 4X BINNING+SCALING */
++const static struct mt9p012_reg enter_video_216_15fps[] =3D {
++       /* stream off */
++       {.length =3D MT9P012_8BIT, .reg =3D REG_MODE_SELECT, .val =3D 0x0=
+0},
++       {.length =3D MT9P012_TOK_DELAY, .reg =3D 0x00, .val =3D 100},
++        /* hold */
++       {.length =3D MT9P012_8BIT, .reg =3D REG_GROUPED_PAR_HOLD, .val =3D=
+ 0x01},
++       {.length =3D MT9P012_16BIT, .reg =3D REG_VT_PIX_CLK_DIV, .val =3D=
+ 8},
++       {.length =3D MT9P012_16BIT, .reg =3D REG_VT_SYS_CLK_DIV, .val =3D=
+ 2},
++       {.length =3D MT9P012_16BIT, .reg =3D REG_PRE_PLL_CLK_DIV, .val =3D=
+ 2},
++       {.length =3D MT9P012_16BIT, .reg =3D REG_PLL_MULTIPLIER, .val =3D=
+ 126},
++       {.length =3D MT9P012_16BIT, .reg =3D REG_OP_PIX_CLK_DIV, .val =3D=
+ 8},
++       {.length =3D MT9P012_16BIT, .reg =3D REG_OP_SYS_CLK_DIV, .val =3D=
+ 2},
++       {.length =3D MT9P012_16BIT, .reg =3D REG_RESERVED_MFR_3064,
++               .val =3D 0x0805},
++       {.length =3D MT9P012_16BIT, .reg =3D REG_X_OUTPUT_SIZE,
++               .val =3D MT9P012_VIDEO_WIDTH_4X_BINN_SCALED},
++       {.length =3D MT9P012_16BIT, .reg =3D REG_Y_OUTPUT_SIZE,
++               .val =3D MT9P012_VIDEO_HEIGHT_4X_BINN_SCALED},
++       {.length =3D MT9P012_16BIT, .reg =3D REG_X_ADDR_START, .val =3D 8=
+},
++       {.length =3D MT9P012_16BIT, .reg =3D REG_Y_ADDR_START, .val =3D 8=
+},
++       {.length =3D MT9P012_16BIT, .reg =3D REG_X_ADDR_END, .val =3D 259=
+3},
++       {.length =3D MT9P012_16BIT, .reg =3D REG_Y_ADDR_END, .val =3D 194=
+5},
++       {.length =3D MT9P012_16BIT, .reg =3D REG_READ_MODE, .val =3D 0x04=
+FC},
++       {.length =3D MT9P012_16BIT, .reg =3D REG_FINE_INT_TIME, .val =3D =
+1794},
++       {.length =3D MT9P012_16BIT, .reg =3D REG_FRAME_LEN_LINES, .val =3D=
+ 574},
++       {.length =3D MT9P012_16BIT, .reg =3D REG_LINE_LEN_PCK, .val =3D 2=
+712},
++        /* 0x10/0x30 =3D 0.3333 */
++       {.length =3D MT9P012_16BIT, .reg =3D REG_SCALE_M, .val =3D 0x0030=
+},
++       /* enable scaler */
++       {.length =3D MT9P012_16BIT, .reg =3D REG_SCALING_MODE, .val =3D 0=
+x0002},
++       {.length =3D MT9P012_16BIT, .reg =3D REG_COARSE_INT_TIME,
++               .val =3D COARSE_INT_TIME_216},
++       /* update */
++       {.length =3D MT9P012_8BIT, .reg =3D REG_GROUPED_PAR_HOLD, .val =3D=
+ 0x00},
++       {.length =3D MT9P012_TOK_TERM, .reg =3D 0, .val =3D 0}
++       };
++
++       /* Video mode, 4x binning + scaling, range 16 - 30 fps */
++const static struct mt9p012_reg enter_video_216_30fps[] =3D {
++       /* stream off */
++       {.length =3D MT9P012_8BIT, .reg =3D REG_MODE_SELECT, .val =3D 0x0=
+0},
++       {.length =3D MT9P012_TOK_DELAY, .reg =3D 0x00, .val =3D 100},
++       /* hold */
++       {.length =3D MT9P012_8BIT, .reg =3D REG_GROUPED_PAR_HOLD, .val =3D=
+ 0x01},
++       {.length =3D MT9P012_16BIT, .reg =3D REG_VT_PIX_CLK_DIV, .val =3D=
+ 5},
++       {.length =3D MT9P012_16BIT, .reg =3D REG_VT_SYS_CLK_DIV, .val =3D=
+ 2},
++       {.length =3D MT9P012_16BIT, .reg =3D REG_PRE_PLL_CLK_DIV, .val =3D=
+ 3},
++       {.length =3D MT9P012_16BIT, .reg =3D REG_PLL_MULTIPLIER, .val =3D=
+ 192},
++       {.length =3D MT9P012_16BIT, .reg =3D REG_OP_PIX_CLK_DIV, .val =3D=
+ 10},
++       {.length =3D MT9P012_16BIT, .reg =3D REG_OP_SYS_CLK_DIV, .val =3D=
+ 2},
++       {.length =3D MT9P012_16BIT, .reg =3D REG_RESERVED_MFR_3064, .val =
+=3D 0x0805},
++       {.length =3D MT9P012_16BIT, .reg =3D REG_X_OUTPUT_SIZE,
++               .val =3D MT9P012_VIDEO_WIDTH_4X_BINN},
++       {.length =3D MT9P012_16BIT, .reg =3D REG_Y_OUTPUT_SIZE,
++               .val =3D MT9P012_VIDEO_HEIGHT_4X_BINN},
++       {.length =3D MT9P012_16BIT, .reg =3D REG_X_ADDR_START, .val =3D 8=
+},
++       {.length =3D MT9P012_16BIT, .reg =3D REG_Y_ADDR_START, .val =3D 8=
+},
++       {.length =3D MT9P012_16BIT, .reg =3D REG_X_ADDR_END, .val =3D 259=
+3},
++       {.length =3D MT9P012_16BIT, .reg =3D REG_Y_ADDR_END, .val =3D 194=
+5},
++       {.length =3D MT9P012_16BIT, .reg =3D REG_READ_MODE, .val =3D 0x04=
+FC},
++       {.length =3D MT9P012_16BIT, .reg =3D REG_FINE_INT_TIME, .val =3D =
+1794},
++       {.length =3D MT9P012_16BIT, .reg =3D REG_FRAME_LEN_LINES, .val =3D=
+ 1374},
++       {.length =3D MT9P012_16BIT, .reg =3D REG_LINE_LEN_PCK, .val =3D 3=
+712},
++       /* 0x10/0x30 =3D 0.3333 */
++       {.length =3D MT9P012_16BIT, .reg =3D REG_SCALE_M, .val =3D 0x0030=
+},
++       /* enable scaler */
++       {.length =3D MT9P012_16BIT, .reg =3D REG_SCALING_MODE, .val =3D 0=
+x0002},
++       {.length =3D MT9P012_16BIT, .reg =3D REG_COARSE_INT_TIME,
++               .val =3D COARSE_INT_TIME_216_30FPS},
++       /* update */
++       {.length =3D MT9P012_8BIT, .reg =3D REG_GROUPED_PAR_HOLD, .val =3D=
+ 0x00},
++       {.length =3D MT9P012_TOK_TERM, .reg =3D 0, .val =3D 0}
++       };
++
++
++       /*Video mode, 4x binning: 648 x 486, range 8 - 15 fps*/
++const static struct mt9p012_reg enter_video_648_15fps[] =3D {
++       /* stream off */
++       {.length =3D MT9P012_8BIT, .reg =3D REG_MODE_SELECT, .val =3D 0x0=
+0},
++       {.length =3D MT9P012_TOK_DELAY, .reg =3D 0x00, .val =3D 100},
++       /* hold */
++       {.length =3D MT9P012_8BIT, .reg =3D REG_GROUPED_PAR_HOLD, .val =3D=
+ 0x01},
++       {.length =3D MT9P012_16BIT, .reg =3D REG_VT_PIX_CLK_DIV, .val =3D=
+ 8},
++       {.length =3D MT9P012_16BIT, .reg =3D REG_VT_SYS_CLK_DIV, .val =3D=
+ 2},
++       {.length =3D MT9P012_16BIT, .reg =3D REG_PRE_PLL_CLK_DIV, .val =3D=
+ 2},
++       {.length =3D MT9P012_16BIT, .reg =3D REG_PLL_MULTIPLIER, .val =3D=
+ 126},
++       {.length =3D MT9P012_16BIT, .reg =3D REG_OP_PIX_CLK_DIV, .val =3D=
+ 8},
++       {.length =3D MT9P012_16BIT, .reg =3D REG_OP_SYS_CLK_DIV, .val =3D=
+ 2},
++       {.length =3D MT9P012_16BIT, .reg =3D REG_RESERVED_MFR_3064, .val =
+=3D 0x0805},
++       {.length =3D MT9P012_16BIT, .reg =3D REG_X_OUTPUT_SIZE,
++               .val =3D MT9P012_VIDEO_WIDTH_4X_BINN},
++       {.length =3D MT9P012_16BIT, .reg =3D REG_Y_OUTPUT_SIZE,
++               .val =3D MT9P012_VIDEO_HEIGHT_4X_BINN},
++       {.length =3D MT9P012_16BIT, .reg =3D REG_X_ADDR_START, .val =3D 8=
+},
++       {.length =3D MT9P012_16BIT, .reg =3D REG_Y_ADDR_START, .val =3D 8=
+},
++       {.length =3D MT9P012_16BIT, .reg =3D REG_X_ADDR_END, .val =3D 259=
+3},
++       {.length =3D MT9P012_16BIT, .reg =3D REG_Y_ADDR_END, .val =3D 194=
+5},
++       {.length =3D MT9P012_16BIT, .reg =3D REG_READ_MODE, .val =3D 0x04=
+FC},
++       {.length =3D MT9P012_16BIT, .reg =3D REG_FINE_INT_TIME, .val =3D =
+1794},
++       {.length =3D MT9P012_16BIT, .reg =3D REG_FRAME_LEN_LINES, .val =3D=
+ 574},
++       {.length =3D MT9P012_16BIT, .reg =3D REG_LINE_LEN_PCK, .val =3D 2=
+712},
++       {.length =3D MT9P012_16BIT, .reg =3D REG_SCALING_MODE, .val =3D 0=
+x0000},
++       {.length =3D MT9P012_16BIT, .reg =3D REG_COARSE_INT_TIME,
++               .val =3D COARSE_INT_TIME_648},
++       /* update */
++       {.length =3D MT9P012_8BIT, .reg =3D REG_GROUPED_PAR_HOLD, .val =3D=
+ 0x00},
++       {.length =3D MT9P012_TOK_TERM, .reg =3D 0, .val =3D 0}
++};
++
++       /* Video mode, 4x binning: 648 x 486, range 16 - 30 fps */
++const static struct mt9p012_reg enter_video_648_30fps[] =3D {
++       /* stream off */
++       {.length =3D MT9P012_8BIT, .reg =3D REG_MODE_SELECT, .val =3D 0x0=
+0},
++       {.length =3D MT9P012_TOK_DELAY, .reg =3D 0x00, .val =3D 100},
++       /* hold */
++       {.length =3D MT9P012_8BIT, .reg =3D REG_GROUPED_PAR_HOLD, .val =3D=
+ 0x01},
++       {.length =3D MT9P012_16BIT, .reg =3D REG_VT_PIX_CLK_DIV, .val =3D=
+ 5},
++       {.length =3D MT9P012_16BIT, .reg =3D REG_VT_SYS_CLK_DIV, .val =3D=
+ 2},
++       {.length =3D MT9P012_16BIT, .reg =3D REG_PRE_PLL_CLK_DIV, .val =3D=
+ 3},
++       {.length =3D MT9P012_16BIT, .reg =3D REG_PLL_MULTIPLIER, .val =3D=
+ 192},
++       {.length =3D MT9P012_16BIT, .reg =3D REG_OP_PIX_CLK_DIV, .val =3D=
+ 10},
++       {.length =3D MT9P012_16BIT, .reg =3D REG_OP_SYS_CLK_DIV, .val =3D=
+ 2},
++       {.length =3D MT9P012_16BIT, .reg =3D REG_RESERVED_MFR_3064, .val =
+=3D 0x0805},
++       {.length =3D MT9P012_16BIT, .reg =3D REG_X_OUTPUT_SIZE,
++               .val =3D MT9P012_VIDEO_WIDTH_4X_BINN},
++       {.length =3D MT9P012_16BIT, .reg =3D REG_Y_OUTPUT_SIZE,
++               .val =3D MT9P012_VIDEO_HEIGHT_4X_BINN},
++       {.length =3D MT9P012_16BIT, .reg =3D REG_X_ADDR_START, .val =3D 8=
+},
++       {.length =3D MT9P012_16BIT, .reg =3D REG_Y_ADDR_START, .val =3D 8=
+},
++       {.length =3D MT9P012_16BIT, .reg =3D REG_X_ADDR_END, .val =3D 259=
+3},
++       {.length =3D MT9P012_16BIT, .reg =3D REG_Y_ADDR_END, .val =3D 194=
+5},
++       {.length =3D MT9P012_16BIT, .reg =3D REG_READ_MODE, .val =3D 0x04=
+FC},
++       {.length =3D MT9P012_16BIT, .reg =3D REG_FINE_INT_TIME, .val =3D =
+1794},
++       {.length =3D MT9P012_16BIT, .reg =3D REG_FRAME_LEN_LINES, .val =3D=
+ 1374},
++       {.length =3D MT9P012_16BIT, .reg =3D REG_LINE_LEN_PCK, .val =3D 3=
+712},
++       {.length =3D MT9P012_16BIT, .reg =3D REG_SCALING_MODE, .val =3D 0=
+x0000},
++       {.length =3D MT9P012_16BIT, .reg =3D REG_COARSE_INT_TIME,
++               .val =3D COARSE_INT_TIME_648_30FPS},
++       /* update */
++       {.length =3D MT9P012_8BIT, .reg =3D REG_GROUPED_PAR_HOLD, .val =3D=
+ 0x00},
++       {.length =3D MT9P012_TOK_TERM, .reg =3D 0, .val =3D 0}
++};
++
++       /* Video mode, scaler off: 1296 x 972, range  11 - 21 fps*/
++const static struct mt9p012_reg enter_video_1296_15fps[] =3D {
++       /* stream off */
++       {.length =3D MT9P012_8BIT, .reg =3D REG_MODE_SELECT, .val =3D 0x0=
+0},
++       {.length =3D MT9P012_TOK_DELAY, .reg =3D 0x00, .val =3D 100},
++       /* hold */
++       {.length =3D MT9P012_8BIT, .reg =3D REG_GROUPED_PAR_HOLD, .val =3D=
+ 0x01},
++       {.length =3D MT9P012_16BIT, .reg =3D REG_VT_PIX_CLK_DIV, .val =3D=
+ 5},
++       {.length =3D MT9P012_16BIT, .reg =3D REG_VT_SYS_CLK_DIV, .val =3D=
+ 2},
++       {.length =3D MT9P012_16BIT, .reg =3D REG_PRE_PLL_CLK_DIV, .val =3D=
+ 3},
++       {.length =3D MT9P012_16BIT, .reg =3D REG_PLL_MULTIPLIER, .val =3D=
+ 134},
++       {.length =3D MT9P012_16BIT, .reg =3D REG_OP_PIX_CLK_DIV, .val =3D=
+ 10},
++       {.length =3D MT9P012_16BIT, .reg =3D REG_OP_SYS_CLK_DIV, .val =3D=
+ 1},
++       {.length =3D MT9P012_16BIT, .reg =3D REG_RESERVED_MFR_3064, .val =
+=3D 0x0805},
++       {.length =3D MT9P012_16BIT, .reg =3D REG_X_OUTPUT_SIZE,
++               .val =3D MT9P012_VIDEO_WIDTH_2X_BINN},
++       {.length =3D MT9P012_16BIT, .reg =3D REG_Y_OUTPUT_SIZE,
++               .val =3D MT9P012_VIDEO_HEIGHT_2X_BINN},
++       {.length =3D MT9P012_16BIT, .reg =3D REG_X_ADDR_START, .val =3D 8=
+},
++       {.length =3D MT9P012_16BIT, .reg =3D REG_Y_ADDR_START, .val =3D 8=
+},
++       {.length =3D MT9P012_16BIT, .reg =3D REG_X_ADDR_END, .val =3D 259=
+7},
++       {.length =3D MT9P012_16BIT, .reg =3D REG_Y_ADDR_END, .val =3D 194=
+9},
++       {.length =3D MT9P012_16BIT, .reg =3D REG_READ_MODE, .val =3D 0x04=
+6C},
++       {.length =3D MT9P012_16BIT, .reg =3D REG_FINE_INT_TIME, .val =3D =
+1794},
++       {.length =3D MT9P012_16BIT, .reg =3D REG_FRAME_LEN_LINES, .val =3D=
+ 1061},
++       {.length =3D MT9P012_16BIT, .reg =3D REG_LINE_LEN_PCK, .val =3D 3=
+360},
++       {.length =3D MT9P012_16BIT, .reg =3D REG_SCALING_MODE, .val =3D 0=
+x0000},
++       {.length =3D MT9P012_16BIT, .reg =3D REG_COARSE_INT_TIME,
++               .val =3D COARSE_INT_TIME_1296},
++       /* update */
++       {.length =3D MT9P012_8BIT, .reg =3D REG_GROUPED_PAR_HOLD, .val =3D=
+ 0x00},
++       {.length =3D MT9P012_TOK_TERM, .reg =3D 0, .val =3D 0}
++};
++
++       /* YUV (YCbCr) VGA */
++const static struct mt9p012_reg enter_video_1296_30fps[] =3D {
++       /* stream off */
++       {.length =3D MT9P012_8BIT, .reg =3D REG_MODE_SELECT, .val =3D 0x0=
+0},
++       {.length =3D MT9P012_TOK_DELAY, .reg =3D 0x00, .val =3D 100},
++       /* hold */
++       {.length =3D MT9P012_8BIT, .reg =3D REG_GROUPED_PAR_HOLD, .val =3D=
+ 0x01},
++       {.length =3D MT9P012_16BIT, .reg =3D REG_VT_PIX_CLK_DIV, .val =3D=
+ 5},
++       {.length =3D MT9P012_16BIT, .reg =3D REG_VT_SYS_CLK_DIV, .val =3D=
+ 1},
++       {.length =3D MT9P012_16BIT, .reg =3D REG_PRE_PLL_CLK_DIV, .val =3D=
+ 3},
++       {.length =3D MT9P012_16BIT, .reg =3D REG_PLL_MULTIPLIER, .val =3D=
+ 134},
++       {.length =3D MT9P012_16BIT, .reg =3D REG_OP_PIX_CLK_DIV, .val =3D=
+ 10},
++       {.length =3D MT9P012_16BIT, .reg =3D REG_OP_SYS_CLK_DIV, .val =3D=
+ 1},
++       {.length =3D MT9P012_16BIT, .reg =3D REG_RESERVED_MFR_3064, .val =
+=3D 0x0805},
++       {.length =3D MT9P012_16BIT, .reg =3D REG_X_OUTPUT_SIZE,
++               .val =3D MT9P012_VIDEO_WIDTH_2X_BINN},
++       {.length =3D MT9P012_16BIT, .reg =3D REG_Y_OUTPUT_SIZE,
++               .val =3D MT9P012_VIDEO_HEIGHT_2X_BINN},
++       {.length =3D MT9P012_16BIT, .reg =3D REG_X_ADDR_START, .val =3D 8=
+},
++       {.length =3D MT9P012_16BIT, .reg =3D REG_Y_ADDR_START, .val =3D 8=
+},
++       {.length =3D MT9P012_16BIT, .reg =3D REG_X_ADDR_END, .val =3D 259=
+7},
++       {.length =3D MT9P012_16BIT, .reg =3D REG_Y_ADDR_END, .val =3D 194=
+9},
++       {.length =3D MT9P012_16BIT, .reg =3D REG_READ_MODE, .val =3D 0x04=
+6C},
++       {.length =3D MT9P012_16BIT, .reg =3D REG_FINE_INT_TIME, .val =3D =
+1794},
++       {.length =3D MT9P012_16BIT, .reg =3D REG_FRAME_LEN_LINES, .val =3D=
+ 1061},
++       {.length =3D MT9P012_16BIT, .reg =3D REG_LINE_LEN_PCK, .val =3D 3=
+360},
++       {.length =3D MT9P012_16BIT, .reg =3D REG_SCALING_MODE, .val =3D 0=
+x0000},
++       {.length =3D MT9P012_16BIT, .reg =3D REG_COARSE_INT_TIME,
++               .val =3D COARSE_INT_TIME_1296},
++        /* update */
++       {.length =3D MT9P012_8BIT, .reg =3D REG_GROUPED_PAR_HOLD, .val =3D=
+ 0x00},
++       {.length =3D MT9P012_TOK_TERM, .reg =3D 0, .val =3D 0}
++};
++
++const static struct mt9p012_reg enter_image_mode_3MP_10fps[] =3D {
++       /* stream off */
++       {.length =3D MT9P012_8BIT, .reg =3D REG_MODE_SELECT, .val =3D 0x0=
+0},
++       {.length =3D MT9P012_TOK_DELAY, .reg =3D 0x00, .val =3D 100},
++       /* hold */
++       {.length =3D MT9P012_8BIT, .reg =3D REG_GROUPED_PAR_HOLD, .val =3D=
+ 0x01},
++       {.length =3D MT9P012_16BIT, .reg =3D REG_VT_PIX_CLK_DIV, .val =3D=
+ 4},
++       {.length =3D MT9P012_16BIT, .reg =3D REG_VT_SYS_CLK_DIV, .val =3D=
+ 1},
++       {.length =3D MT9P012_16BIT, .reg =3D REG_PRE_PLL_CLK_DIV, .val =3D=
+ 5},
++       /* 10 fps */
++       {.length =3D MT9P012_16BIT, .reg =3D REG_PLL_MULTIPLIER, .val =3D=
+ 184},
++       {.length =3D MT9P012_16BIT, .reg =3D REG_OP_PIX_CLK_DIV, .val =3D=
+ 8},
++       {.length =3D MT9P012_16BIT, .reg =3D REG_OP_SYS_CLK_DIV, .val =3D=
+ 1},
++       {.length =3D MT9P012_16BIT, .reg =3D REG_RESERVED_MFR_3064, .val =
+=3D 0x0805},
++       {.length =3D MT9P012_16BIT, .reg =3D REG_X_OUTPUT_SIZE,
++               .val =3D MT9P012_IMAGE_WIDTH_MIN},
++       {.length =3D MT9P012_16BIT, .reg =3D REG_Y_OUTPUT_SIZE,
++               .val =3D MT9P012_IMAGE_HEIGHT_MIN},
++       {.length =3D MT9P012_16BIT, .reg =3D REG_X_ADDR_START, .val =3D 8=
+},
++       {.length =3D MT9P012_16BIT, .reg =3D REG_Y_ADDR_START, .val =3D 8=
+},
++       {.length =3D MT9P012_16BIT, .reg =3D REG_X_ADDR_END, .val =3D 259=
+9},
++       {.length =3D MT9P012_16BIT, .reg =3D REG_Y_ADDR_END, .val =3D 195=
+1},
++       {.length =3D MT9P012_16BIT, .reg =3D REG_READ_MODE, .val =3D 0x00=
+24},
++       {.length =3D MT9P012_16BIT, .reg =3D REG_FINE_INT_TIME, .val =3D =
+882},
++       {.length =3D MT9P012_16BIT, .reg =3D REG_FRAME_LEN_LINES, .val =3D=
+ 2056},
++       {.length =3D MT9P012_16BIT, .reg =3D REG_LINE_LEN_PCK, .val =3D 5=
+372},
++       /* 0x10/0x14 =3D 0.80 */
++       {.length =3D MT9P012_16BIT, .reg =3D REG_SCALE_M, .val =3D 0x0014=
+},
++       /* enable scaler */
++       {.length =3D MT9P012_16BIT, .reg =3D REG_SCALING_MODE, .val =3D 0=
+x0002},
++       {.length =3D MT9P012_16BIT, .reg =3D REG_TEST_PATTERN, .val =3D T=
+ST_PAT},
++       {.length =3D MT9P012_16BIT, .reg =3D REG_COARSE_INT_TIME,
++               .val =3D COARSE_INT_TIME_3MP},
++       /* update */
++       {.length =3D MT9P012_8BIT, .reg =3D REG_GROUPED_PAR_HOLD, .val =3D=
+ 0x00},
++       {.length =3D MT9P012_TOK_TERM, .reg =3D 0, .val =3D 0}
++};
++
++/* Image mode, 5 MP @ 10 fps */
++const static struct mt9p012_reg enter_image_mode_5MP_10fps[] =3D {
++       /* stream off */
++       {.length =3D MT9P012_8BIT, .reg =3D REG_MODE_SELECT, .val =3D 0x0=
+0},
++       {.length =3D MT9P012_TOK_DELAY, .reg =3D 0x00, .val =3D 100},
++       /* hold */
++       {.length =3D MT9P012_8BIT, .reg =3D REG_GROUPED_PAR_HOLD, .val =3D=
+ 0x01},
++       {.length =3D MT9P012_16BIT, .reg =3D REG_VT_PIX_CLK_DIV, .val =3D=
+ 4},
++       {.length =3D MT9P012_16BIT, .reg =3D REG_VT_SYS_CLK_DIV, .val =3D=
+ 1},
++       {.length =3D MT9P012_16BIT, .reg =3D REG_PRE_PLL_CLK_DIV, .val =3D=
+ 5},
++       /* 10 fps */
++       {.length =3D MT9P012_16BIT, .reg =3D REG_PLL_MULTIPLIER, .val =3D=
+ 184},
++       {.length =3D MT9P012_16BIT, .reg =3D REG_OP_PIX_CLK_DIV, .val =3D=
+ 8},
++       {.length =3D MT9P012_16BIT, .reg =3D REG_OP_SYS_CLK_DIV, .val =3D=
+ 1},
++       {.length =3D MT9P012_16BIT, .reg =3D REG_RESERVED_MFR_3064, .val =
+=3D 0x0805},
++       {.length =3D MT9P012_16BIT, .reg =3D REG_X_OUTPUT_SIZE,
++               .val =3D MT9P012_IMAGE_WIDTH_MAX},
++       {.length =3D MT9P012_16BIT, .reg =3D REG_Y_OUTPUT_SIZE,
++               .val =3D MT9P012_IMAGE_HEIGHT_MAX},
++       {.length =3D MT9P012_16BIT, .reg =3D REG_X_ADDR_START, .val =3D 8=
+},
++       {.length =3D MT9P012_16BIT, .reg =3D REG_Y_ADDR_START, .val =3D 8=
+},
++       {.length =3D MT9P012_16BIT, .reg =3D REG_X_ADDR_END, .val =3D 259=
+9},
++       {.length =3D MT9P012_16BIT, .reg =3D REG_Y_ADDR_END, .val =3D 195=
+1},
++       {.length =3D MT9P012_16BIT, .reg =3D REG_READ_MODE, .val =3D 0x00=
+24},
++       {.length =3D MT9P012_16BIT, .reg =3D REG_FINE_INT_TIME, .val =3D =
+882},
++       {.length =3D MT9P012_16BIT, .reg =3D REG_FRAME_LEN_LINES, .val =3D=
+ 2056},
++       {.length =3D MT9P012_16BIT, .reg =3D REG_LINE_LEN_PCK, .val =3D 5=
+372},
++       {.length =3D MT9P012_16BIT, .reg =3D REG_SCALE_M, .val =3D 0x0000=
+},
++       /* disable scaler */
++       {.length =3D MT9P012_16BIT, .reg =3D REG_SCALING_MODE, .val =3D 0=
+x0000},
++       {.length =3D MT9P012_16BIT, .reg =3D REG_COARSE_INT_TIME,
++               .val =3D COARSE_INT_TIME_5MP},
++       /* update */
++       {.length =3D MT9P012_8BIT, .reg =3D REG_GROUPED_PAR_HOLD, .val =3D=
+ 0x00},
++       {.length =3D MT9P012_TOK_TERM, .reg =3D 0, .val =3D 0}
++};
++
++static u32 min_exposure_time;
++static u32 max_exposure_time;
++static u32 pix_clk_freq;
++
++/* Structure to set frame rate */
++static struct mt9p012_reg set_fps[2];
++
++/**
++ * struct mt9p012_pll_settings - struct for storage of sensor pll values
++ * @vt_pix_clk_div: vertical pixel clock divider
++ * @vt_sys_clk_div: veritcal system clock divider
++ * @pre_pll_div: pre pll divider
++ * @fine_int_tm: fine resolution interval time
++ * @frame_lines: number of lines in frame
++ * @line_len: number of pixels in line
++ * @min_pll: minimum pll multiplier
++ * @max_pll: maximum pll multiplier
++ */
++const static struct mt9p012_pll_settings all_pll_settings[] =3D {
++       /* PLL_5MP */
++       {.vt_pix_clk_div =3D 4, .vt_sys_clk_div =3D 1, .pre_pll_div =3D 5=
+,
++       .fine_int_tm =3D 882, .frame_lines =3D 2056, .line_len =3D 5372,
++       .min_pll =3D 160, .max_pll =3D 200},
++       /* PLL_3MP */
++       {.vt_pix_clk_div =3D 4, .vt_sys_clk_div =3D 1, .pre_pll_div =3D 5=
+,
++       .fine_int_tm =3D 882, .frame_lines =3D 2056, .line_len =3D 5372,
++       .min_pll =3D 160, .max_pll =3D 200},
++       /* PLL_1296_15FPS */
++       {.vt_pix_clk_div =3D 5, .vt_sys_clk_div =3D 2, .pre_pll_div =3D 3=
+,
++       .fine_int_tm =3D 1794, .frame_lines =3D 1061, .line_len =3D 3360,
++       .min_pll =3D 96, .max_pll =3D 190},
++       /* PLL_1296_30FPS */
++       {.vt_pix_clk_div =3D 5, .vt_sys_clk_div =3D 1, .pre_pll_div =3D 3=
+,
++       .fine_int_tm =3D 1794, .frame_lines =3D 1061, .line_len =3D 3360,
++       .min_pll =3D 96, .max_pll =3D 150},
++       /* PLL_648_15FPS */
++       {.vt_pix_clk_div =3D 8, .vt_sys_clk_div =3D 2, .pre_pll_div =3D 2=
+,
++       .fine_int_tm =3D 1794, .frame_lines =3D 574, .line_len =3D 2712,
++       .min_pll =3D 92, .max_pll =3D 128},
++       /* PLL_648_30FPS */
++       {.vt_pix_clk_div =3D 5, .vt_sys_clk_div =3D 2, .pre_pll_div =3D 3=
+,
++       .fine_int_tm =3D 1794, .frame_lines =3D 1374, .line_len =3D 3712,
++       .min_pll =3D 96, .max_pll =3D 192},
++       /* PLL_216_15FPS */
++       {.vt_pix_clk_div =3D 8, .vt_sys_clk_div =3D 2, .pre_pll_div =3D 2=
+,
++       .fine_int_tm =3D 1794,  .frame_lines =3D 574, .line_len =3D 2712,
++       .min_pll =3D 92, .max_pll =3D 126},
++       /* PLL_216_30FPS */
++       {.vt_pix_clk_div =3D 5, .vt_sys_clk_div =3D 2, .pre_pll_div =3D 3=
+,
++       .fine_int_tm =3D 1794,  .frame_lines =3D 1374, .line_len =3D 3712=
+,
++       .min_pll =3D 96, .max_pll =3D 192}
++};
++
++static enum mt9p012_pll_type current_pll_video;
++
++const static struct mt9p012_reg *
++       mt9p012_reg_init[NUM_FPS][NUM_IMAGE_SIZES] =3D
++{
++       {
++               enter_video_216_15fps,
++               enter_video_648_15fps,
++               enter_video_1296_15fps,
++               enter_image_mode_3MP_10fps,
++               enter_image_mode_5MP_10fps
++       },
++       {
++               enter_video_216_30fps,
++               enter_video_648_30fps,
++               enter_video_1296_30fps,
++               enter_image_mode_3MP_10fps,
++               enter_image_mode_5MP_10fps
++       },
++};
++
++/**
++ * struct vcontrol - Video controls
++ * @v4l2_queryctrl: V4L2 VIDIOC_QUERYCTRL ioctl structure
++ * @current_value: current value of this control
++ */
++static struct vcontrol {
++       struct v4l2_queryctrl qc;
++       int current_value;
++} video_control[] =3D {
++       {
++               {
++                       .id =3D V4L2_CID_EXPOSURE,
++                       .type =3D V4L2_CTRL_TYPE_INTEGER,
++                       .name =3D "Exposure",
++                       .minimum =3D DEF_MIN_EXPOSURE,
++                       .maximum =3D DEF_MAX_EXPOSURE,
++                       .step =3D EXPOSURE_STEP,
++                       .default_value =3D DEF_EXPOSURE,
++               },
++               .current_value =3D DEF_EXPOSURE,
++       },
++       {
++               {
++                       .id =3D V4L2_CID_GAIN,
++                       .type =3D V4L2_CTRL_TYPE_INTEGER,
++                       .name =3D "Gain",
++                       .minimum =3D MIN_GAIN,
++                       .maximum =3D MAX_GAIN,
++                       .step =3D GAIN_STEP,
++                       .default_value =3D DEF_GAIN,
++               },
++               .current_value =3D DEF_GAIN,
++       }
++};
++
++/**
++ * find_vctrl - Finds the requested ID in the video control structure ar=
+ray
++ * @id: ID of control to search the video control array for
++ *
++ * Returns the index of the requested ID from the control structure arra=
+y
++ */
++static int
++find_vctrl(int id)
++{
++       int i;
++
++       if (id < V4L2_CID_BASE)
++               return -EDOM;
++
++       for (i =3D (ARRAY_SIZE(video_control) - 1); i >=3D 0; i--)
++               if (video_control[i].qc.id =3D=3D id)
++                       break;
++       if (i < 0)
++               i =3D -EINVAL;
++       return i;
++}
++
++/**
++ * mt9p012_read_reg - Read a value from a register in an mt9p012 sensor =
+device
++ * @client: i2c driver client structure
++ * @data_length: length of data to be read
++ * @reg: register address / offset
++ * @val: stores the value that gets read
++ *
++ * Read a value from a register in an mt9p012 sensor device.
++ * The value is returned in 'val'.
++ * Returns zero if successful, or non-zero otherwise.
++ */
++static int
++mt9p012_read_reg(struct i2c_client *client, u16 data_length, u16 reg, u3=
+2 *val)
++{
++       int err;
++       struct i2c_msg msg[1];
++       unsigned char data[4];
++
++       if (!client->adapter)
++               return -ENODEV;
++       if (data_length !=3D MT9P012_8BIT && data_length !=3D MT9P012_16B=
+IT
++                                       && data_length !=3D MT9P012_32BIT=
+)
++               return -EINVAL;
++
++       msg->addr =3D client->addr;
++       msg->flags =3D 0;
++       msg->len =3D 2;
++       msg->buf =3D data;
++
++       /* high byte goes out first */
++       data[0] =3D (u8) (reg >> 8);;
++       data[1] =3D (u8) (reg & 0xff);
++       err =3D i2c_transfer(client->adapter, msg, 1);
++       if (err >=3D 0) {
++               msg->len =3D data_length;
++               msg->flags =3D I2C_M_RD;
++               err =3D i2c_transfer(client->adapter, msg, 1);
++       }
++       if (err >=3D 0) {
++               *val =3D 0;
++               /* high byte comes first */
++               if (data_length =3D=3D MT9P012_8BIT)
++                       *val =3D data[0];
++               else if (data_length =3D=3D MT9P012_16BIT)
++                       *val =3D data[1] + (data[0] << 8);
++               else
++                       *val =3D data[3] + (data[2] << 8) +
++                               (data[1] << 16) + (data[0] << 24);
++               return 0;
++       }
++       dev_err(&client->dev, "read from offset 0x%x error %d", reg, err)=
+;
++       return err;
++}
++/**
++ * mt9p012_write_reg - Write a value to a register in an mt9p012 sensor =
+device
++ * @client: i2c driver client structure
++ * @data_length: length of data to be read
++ * @reg: register address / offset
++ * @val: value to be written to specified register
++ *
++ * Write a value to a register in an mt9p012 sensor device.
++ * Returns zero if successful, or non-zero otherwise.
++ */
++static int
++mt9p012_write_reg(struct i2c_client *client, u16 data_length, u16 reg, u=
+32 val)
++{
++       int err;
++       struct i2c_msg msg[1];
++       unsigned char data[6];
++       int retry =3D 0;
++
++       if (!client->adapter)
++               return -ENODEV;
++
++       if (data_length !=3D MT9P012_8BIT && data_length !=3D MT9P012_16B=
+IT
++                                       && data_length !=3D MT9P012_32BIT=
+)
++               return -EINVAL;
++
++again:
++       msg->addr =3D client->addr;
++       msg->flags =3D 0;
++       msg->len =3D 2 + data_length;
++       msg->buf =3D data;
++
++       /* high byte goes out first */
++       data[0] =3D (u8) (reg >> 8);;
++       data[1] =3D (u8) (reg & 0xff);
++
++       if (data_length =3D=3D MT9P012_8BIT)
++               data[2] =3D (u8) (val & 0xff);
++       else if (data_length =3D=3D MT9P012_16BIT) {
++               data[2] =3D (u8) (val >> 8);
++               data[3] =3D (u8) (val & 0xff);
++       } else {
++               data[2] =3D (u8) (val >> 24);
++               data[3] =3D (u8) (val >> 16);
++               data[4] =3D (u8) (val >> 8);
++               data[5] =3D (u8) (val & 0xff);
++       }
++
++       err =3D i2c_transfer(client->adapter, msg, 1);
++       if (err >=3D 0)
++               return 0;
++
++       v4l_dbg(1, debug, client, "wrote 0x%x to offset 0x%x error %d", v=
+al,
++                                                       reg, err);
++       if (retry <=3D MT9P012_I2C_RETRY_COUNT) {
++               v4l_warn(client, "retry ... %d", retry);
++               retry++;
++               mdelay(20);
++               goto again;
++       }
++       return err;
++}
++
++/**
++ * mt9p012_write_regs - Initializes a list of MT9P012 registers
++ * @client: i2c driver client structure
++ * @reglist: list of registers to be written
++ *
++ * Initializes a list of MT9P012 registers. The list of registers is
++ * terminated by MT9P012_TOK_TERM.
++ */
++static int
++mt9p012_write_regs(struct i2c_client *client,
++                       const struct mt9p012_reg reglist[])
++{
++       int err;
++       const struct mt9p012_reg *next =3D reglist;
++
++       for (; next->length !=3D MT9P012_TOK_TERM; next++) {
++               if (next->length =3D=3D MT9P012_TOK_DELAY) {
++                       mdelay(next->val);
++                       continue;
++               }
++
++               err =3D mt9p012_write_reg(client, next->length,
++                                               next->reg, next->val);
++               if (err)
++                       return err;
++       }
++       return 0;
++}
++
++/**
++ * mt9p012_calc_pll - Calculate PLL settings based on input image size
++ * @isize: enum value corresponding to image size
++ * @xclk: xclk value (calculate by mt9p012sensor_calc_xclk())
++ * @sensor: pointer to sensor device information structure
++ *
++ * Calculates sensor PLL related settings (scaler, fps, pll_multiplier,
++ * pix_clk_freq, min_exposure_time, max_exposure_time) based on input
++ * image size.  It then applies the fps register settings based on
++ * these calculations.
++ */
++static int
++mt9p012_calc_pll(enum image_size isize,
++               unsigned long xclk,
++               struct mt9p012_sensor *sensor)
++{
++       int err =3D 0, row =3D 1, i =3D 0;
++       unsigned int vt_pix_clk;
++       unsigned int pll_multiplier;
++       unsigned int exposure_factor, pix_clk_scaled;
++       struct i2c_client *client =3D sensor->i2c_client;
++       struct vcontrol *lvc;
++
++       /* Greater than 1296x972
++       1. Scaler is 0
++       2. fps is 10
++       3. Apply image mode settings
++       4. Turn Streaming ON.
++       5. Exit
++       */
++       if (isize > BIN2X) {
++               /* Burst Mode */
++               sensor->scaler =3D 0;
++               sensor->fps =3D 10;
++               current_pll_video =3D PLL_5MP;
++               return 0;
++       }
++
++       /* Greater than 648X486 case
++       1. Scaler is 0
++       2. If fps>21 then choose PLL for 30
++       3. If fps<21 then choose PLL for 15
++
++       Greater than 216X162 case
++       1. Scaler is 1
++       2. If fps>15 then choose PLL for 30
++       3. If fps<15 then choose PLL for 15
++
++       Greater than 0 to 216x162
++       1. Scaler is 2.
++       2. If fps>15 then choose PLL for 30
++       3. If fps<15 then choose PLL for 15
++       */
++
++       if (isize > BIN4X) {
++               sensor->scaler =3D 0;
++               if (sensor->fps > 21)
++                       current_pll_video =3D PLL_1296_30FPS;
++               else
++                       current_pll_video =3D PLL_1296_15FPS;
++       } else if (isize > BIN4XSCALE) {
++               sensor->scaler =3D 1;
++               if (sensor->fps > 15)
++                       current_pll_video =3D PLL_648_30FPS;
++               else
++                       current_pll_video =3D PLL_648_15FPS;
++       } else {
++               sensor->scaler =3D 2;
++               if (sensor->fps > 15)
++                       current_pll_video =3D PLL_216_30FPS;
++               else
++                       current_pll_video =3D PLL_216_15FPS;
++       }
++
++       /* Row adjustment */
++       if (sensor->scaler && (sensor->fps < 16))
++               row =3D 2; /* Adjustment when using 4x binning and 12 MHz=
+ clk */
++
++       /* Calculate the PLL, set fps register */
++       vt_pix_clk =3D sensor->fps *
++               all_pll_settings[current_pll_video].frame_lines *
++               all_pll_settings[current_pll_video].line_len;
++
++       pll_multiplier =3D
++               (((vt_pix_clk
++                  * all_pll_settings[current_pll_video].vt_pix_clk_div
++                  * all_pll_settings[current_pll_video].vt_sys_clk_div
++                  * row) / xclk)
++                  * all_pll_settings[current_pll_video].pre_pll_div) + 1=
+;
++
++       if (pll_multiplier < all_pll_settings[current_pll_video].min_pll)
++               pll_multiplier =3D all_pll_settings[current_pll_video].mi=
+n_pll;
++       else if (pll_multiplier > all_pll_settings[current_pll_video].max=
+_pll)
++               pll_multiplier =3D all_pll_settings[current_pll_video].ma=
+x_pll;
++
++       pix_clk_freq =3D (xclk /
++                       (all_pll_settings[current_pll_video].pre_pll_div
++                        * all_pll_settings[current_pll_video].vt_pix_clk=
+_div
++                        * all_pll_settings[current_pll_video].vt_sys_clk=
+_div
++                        * row)) * pll_multiplier;
++       min_exposure_time =3D (all_pll_settings[current_pll_video].fine_i=
+nt_tm
++                            * 1000000 / pix_clk_freq) + 1;
++       exposure_factor =3D (all_pll_settings[current_pll_video].frame_li=
+nes - 1)
++                               * all_pll_settings[current_pll_video].lin=
+e_len;
++       exposure_factor +=3D all_pll_settings[current_pll_video].fine_int=
+_tm;
++       exposure_factor *=3D 100;
++       pix_clk_scaled =3D pix_clk_freq / 100;
++       max_exposure_time =3D (exposure_factor / pix_clk_scaled) * 100;
++
++       /* Apply the fps settings */
++       set_fps[0].length =3D MT9P012_16BIT;
++       set_fps[0].reg =3D REG_PLL_MULTIPLIER;
++       set_fps[0].val =3D pll_multiplier;
++       set_fps[1].length =3D MT9P012_TOK_TERM;
++       set_fps[1].reg =3D 0;
++       set_fps[1].val =3D 0;
++
++       /* Update min/max for query control */
++       i =3D find_vctrl(V4L2_CID_EXPOSURE);
++       if (i >=3D 0) {
++               lvc =3D &video_control[i];
++               lvc->qc.minimum =3D min_exposure_time;
++               lvc->qc.maximum =3D max_exposure_time;
++       }
++
++       err =3D mt9p012_write_regs(client, set_fps);
++       return err;
++}
++
++/**
++ * mt9p012_calc_size - Find the best match for a requested image capture=
+ size
++ * @width: requested image width in pixels
++ * @height: requested image height in pixels
++ *
++ * Find the best match for a requested image capture size.  The best mat=
+ch
++ * is chosen as the nearest match that has the same number or fewer pixe=
+ls
++ * as the requested size, or the smallest image size if the requested si=
+ze
++ * has fewer pixels than the smallest image.
++ */
++static enum image_size mt9p012_calc_size(unsigned int width,
++                                                       unsigned int heig=
+ht)
++{
++       enum image_size isize;
++       unsigned long pixels =3D width * height;
++
++       for (isize =3D BIN4XSCALE; isize <=3D FIVE_MP; isize++) {
++               if (mt9p012_sizes[isize].height *
++                                       mt9p012_sizes[isize].width >=3D p=
+ixels) {
++                       /* To improve image quality in VGA */
++                       if ((pixels > CIF_PIXELS) && (isize =3D=3D BIN4X)=
+) {
++                               isize =3D BIN2X;
++                       } else if ((pixels > QQVGA_PIXELS) &&
++                                                       (isize =3D=3D BIN=
+4XSCALE)) {
++                               isize =3D BIN4X;
++                       }
++                       return isize;
++               }
++       }
++
++       return FIVE_MP;
++}
++
++/**
++ * mt9p012_find_isize - Find the best match for a requested image captur=
+e size
++ * @width: requested image width in pixels
++ * @height: requested image height in pixels
++ *
++ * Find the best match for a requested image capture size.  The best mat=
+ch
++ * is chosen as the nearest match that has the same number or fewer pixe=
+ls
++ * as the requested size, or the smallest image size if the requested si=
+ze
++ * has fewer pixels than the smallest image.
++ */
++static enum image_size mt9p012_find_isize(unsigned int width)
++{
++       enum image_size isize;
++
++       for (isize =3D BIN4XSCALE; isize <=3D FIVE_MP; isize++) {
++               if (mt9p012_sizes[isize].width >=3D width)
++                       break;
++       }
++
++       return isize;
++}
++/**
++ * mt9p012_find_fps_index - Find the best fps range match for a
++ *  requested frame rate
++ * @fps: desired frame rate
++ * @isize: enum value corresponding to image size
++ *
++ * Find the best match for a requested frame rate.  The best match
++ * is chosen between two fps ranges (11 - 15 and 16 - 30 fps) depending =
+on
++ * the image size. For image sizes larger than BIN2X, frame rate is fixe=
+d
++ * at 10 fps.
++ */
++static unsigned int mt9p012_find_fps_index(unsigned int fps,
++                                                       enum image_size i=
+size)
++{
++       unsigned int index =3D FPS_LOW_RANGE;
++
++       if (isize > BIN4X) {
++               if (fps > 21)
++                       index =3D FPS_HIGH_RANGE;
++       } else {
++               if (fps > 15)
++                       index =3D FPS_HIGH_RANGE;
++       }
++
++       return index;
++}
++
++/**
++ * mt9p012sensor_calc_xclk - Calculate the required xclk frequency
++ * @c: i2c client driver structure
++ *
++ * Given the image capture format in pix, the nominal frame period in
++ * timeperframe, calculate and return the required xclk frequency
++ */
++static unsigned long mt9p012sensor_calc_xclk(struct i2c_client *c)
++{
++       struct mt9p012_sensor *sensor =3D i2c_get_clientdata(c);
++       struct v4l2_fract *timeperframe =3D &sensor->timeperframe;
++       struct v4l2_pix_format *pix =3D &sensor->pix;
++
++       if ((timeperframe->numerator =3D=3D 0)
++       || (timeperframe->denominator =3D=3D 0)) {
++               /* supply a default nominal_timeperframe */
++               timeperframe->numerator =3D 1;
++               timeperframe->denominator =3D MT9P012_DEF_FPS;
++       }
++
++       sensor->fps =3D timeperframe->denominator/timeperframe->numerator=
+;
++       if (sensor->fps < MT9P012_MIN_FPS)
++               sensor->fps =3D MT9P012_MIN_FPS;
++       else if (sensor->fps > MT9P012_MAX_FPS)
++               sensor->fps =3D MT9P012_MAX_FPS;
++
++       timeperframe->numerator =3D 1;
++       timeperframe->denominator =3D sensor->fps;
++
++       if ((pix->width <=3D MT9P012_VIDEO_WIDTH_4X_BINN) && (sensor->fps=
+ > 15))
++               xclk_current =3D MT9P012_XCLK_NOM_2;
++       else
++               xclk_current =3D MT9P012_XCLK_NOM_1;
++
++       return xclk_current;
++}
++
++/**
++ * mt9p012_configure - Configure the mt9p012 for the specified image mod=
+e
++ * @s: pointer to standard V4L2 device structure
++ *
++ * Configure the mt9p012 for a specified image size, pixel format, and f=
+rame
++ * period.  xclk is the frequency (in Hz) of the xclk input to the mt9p0=
+12.
++ * fper is the frame period (in seconds) expressed as a fraction.
++ * Returns zero if successful, or non-zero otherwise.
++ * The actual frame period is returned in fper.
++ */
++static int mt9p012_configure(struct v4l2_int_device *s)
++{
++       struct mt9p012_sensor *sensor =3D s->priv;
++       struct v4l2_pix_format *pix =3D &sensor->pix;
++       struct i2c_client *client =3D sensor->i2c_client;
++       enum image_size isize;
++       unsigned int fps_index;
++       int err;
++
++       isize =3D mt9p012_find_isize(pix->width);
++
++       /* common register initialization */
++       err =3D mt9p012_write_regs(client, mt9p012_common);
++       if (err)
++               return err;
++
++       fps_index =3D mt9p012_find_fps_index(sensor->fps, isize);
++
++       /* configure image size and pixel format */
++       err =3D mt9p012_write_regs(client, mt9p012_reg_init[fps_index][is=
+ize]);
++       if (err)
++               return err;
++
++       /* configure frame rate */
++       err =3D mt9p012_calc_pll(isize, xclk_current, sensor);
++       if (err)
++               return err;
++
++       /* configure streaming ON */
++       err =3D mt9p012_write_regs(client, stream_on_list);
++
++       return err;
++}
++
++/**
++ * mt9p012_detect - Detect if an mt9p012 is present, and if so which rev=
+ision
++ * @client: pointer to the i2c client driver structure
++ *
++ * Detect if an mt9p012 is present, and if so which revision.
++ * A device is considered to be detected if the manufacturer ID (MIDH an=
+d MIDL)
++ * and the product ID (PID) registers match the expected values.
++ * Any value of the version ID (VER) register is accepted.
++ * Here are the version numbers we know about:
++ *     0x48 --> mt9p012 Revision 1 or mt9p012 Revision 2
++ *     0x49 --> mt9p012 Revision 3
++ * Returns a negative error number if no device is detected, or the
++ * non-negative value of the version ID register if a device is detected=
+.
++ */
++static int
++mt9p012_detect(struct i2c_client *client)
++{
++       u32 model_id, mfr_id, rev;
++
++       if (!client)
++               return -ENODEV;
++
++       if (mt9p012_read_reg(client, MT9P012_16BIT, REG_MODEL_ID, &model_=
+id))
++               return -ENODEV;
++       if (mt9p012_read_reg(client, MT9P012_8BIT, REG_MANUFACTURER_ID,
++                               &mfr_id))
++               return -ENODEV;
++       if (mt9p012_read_reg(client, MT9P012_8BIT, REG_REVISION_NUMBER, &=
+rev))
++               return -ENODEV;
++
++       dev_info(&client->dev, "model id detected 0x%x mfr 0x%x\n", model=
+_id,
++                                                               mfr_id);
++       if ((model_id !=3D MT9P012_MOD_ID) || (mfr_id !=3D MT9P012_MFR_ID=
+)) {
++               /* We didn't read the values we expected, so
++                * this must not be an MT9P012.
++                */
++               dev_warn(&client->dev, "model id mismatch 0x%x mfr 0x%x\n=
+",
++                       model_id, mfr_id);
++
++               return -ENODEV;
++       }
++       return 0;
++
++}
++
++/**
++ * mt9p012sensor_set_exposure_time - sets exposure time per input value
++ * @exp_time: exposure time to be set on device
++ * @s: pointer to standard V4L2 device structure
++ * @lvc: pointer to V4L2 exposure entry in video_controls array
++ *
++ * If the requested exposure time is within the allowed limits, the HW
++ * is configured to use the new exposure time, and the video_controls
++ * array is updated with the new current value.
++ * The function returns 0 upon success.  Otherwise an error code is
++ * returned.
++ */
++int
++mt9p012sensor_set_exposure_time(u32 exp_time, struct v4l2_int_device *s,
++                                               struct vcontrol *lvc)
++{
++       int err;
++       struct mt9p012_sensor *sensor =3D s->priv;
++       struct i2c_client *client =3D sensor->i2c_client;
++       u32 coarse_int_time =3D 0;
++
++       if ((exp_time < min_exposure_time) ||
++                       (exp_time > max_exposure_time)) {
++               dev_err(&client->dev, "Exposure time not within the "
++                       "legal range.\n");
++               dev_err(&client->dev, "Min time %d us Max time %d us",
++                       min_exposure_time, max_exposure_time);
++               return -EINVAL;
++       }
++       coarse_int_time =3D ((((exp_time / 10) * (pix_clk_freq / 1000)) /=
+ 1000) -
++               (all_pll_settings[current_pll_video].fine_int_tm / 10)) /
++               (all_pll_settings[current_pll_video].line_len / 10);
++
++       dev_dbg(&client->dev, "coarse_int_time calculated =3D %d\n",
++                                               coarse_int_time);
++
++       set_exposure_time[COARSE_INT_TIME_INDEX].val =3D coarse_int_time;
++       err =3D mt9p012_write_regs(client, set_exposure_time);
++
++       if (err)
++               dev_err(&client->dev, "Error setting exposure time %d\n",
++                                                                       e=
+rr);
++       else
++               lvc->current_value =3D exp_time;
++
++       return err;
++}
++
++/**
++ * mt9p012sensor_set_gain - sets sensor analog gain per input value
++ * @gain: analog gain value to be set on device
++ * @s: pointer to standard V4L2 device structure
++ * @lvc: pointer to V4L2 analog gain entry in video_controls array
++ *
++ * If the requested analog gain is within the allowed limits, the HW
++ * is configured to use the new gain value, and the video_controls
++ * array is updated with the new current value.
++ * The function returns 0 upon success.  Otherwise an error code is
++ * returned.
++ */
++int
++mt9p012sensor_set_gain(u16 gain, struct v4l2_int_device *s,
++                                       struct vcontrol *lvc)
++{
++       int err;
++       struct mt9p012_sensor *sensor =3D s->priv;
++       struct i2c_client *client =3D sensor->i2c_client;
++
++       if ((gain < MIN_GAIN) || (gain > MAX_GAIN)) {
++               dev_err(&client->dev, "Gain not within the legal range");
++               return -EINVAL;
++       }
++       set_analog_gain[GAIN_INDEX].val =3D gain;
++       err =3D mt9p012_write_regs(client, set_analog_gain);
++       if (err) {
++               dev_err(&client->dev, "Error setting gain.%d", err);
++               return err;
++       } else
++               lvc->current_value =3D gain;
++
++       return err;
++}
++
++/**
++ * ioctl_queryctrl - V4L2 sensor interface handler for VIDIOC_QUERYCTRL =
+ioctl
++ * @s: pointer to standard V4L2 device structure
++ * @qc: standard V4L2 VIDIOC_QUERYCTRL ioctl structure
++ *
++ * If the requested control is supported, returns the control informatio=
+n
++ * from the video_control[] array.  Otherwise, returns -EINVAL if the
++ * control is not supported.
++ */
++static int ioctl_queryctrl(struct v4l2_int_device *s,
++                               struct v4l2_queryctrl *qc)
++{
++       int i;
++
++       i =3D find_vctrl(qc->id);
++       if (i =3D=3D -EINVAL)
++               qc->flags =3D V4L2_CTRL_FLAG_DISABLED;
++
++       if (i < 0)
++               return -EINVAL;
++
++       *qc =3D video_control[i].qc;
++       return 0;
++}
++
++/**
++ * ioctl_g_ctrl - V4L2 sensor interface handler for VIDIOC_G_CTRL ioctl
++ * @s: pointer to standard V4L2 device structure
++ * @vc: standard V4L2 VIDIOC_G_CTRL ioctl structure
++ *
++ * If the requested control is supported, returns the control's current
++ * value from the video_control[] array.  Otherwise, returns -EINVAL
++ * if the control is not supported.
++ */
++static int ioctl_g_ctrl(struct v4l2_int_device *s,
++                            struct v4l2_control *vc)
++{
++       struct vcontrol *lvc;
++       int i;
++
++       i =3D find_vctrl(vc->id);
++       if (i < 0)
++               return -EINVAL;
++       lvc =3D &video_control[i];
++
++       switch (vc->id) {
++       case  V4L2_CID_EXPOSURE:
++               vc->value =3D lvc->current_value;
++               break;
++       case V4L2_CID_GAIN:
++               vc->value =3D lvc->current_value;
++               break;
++       }
++
++       return 0;
++}
++
++/**
++ * ioctl_s_ctrl - V4L2 sensor interface handler for VIDIOC_S_CTRL ioctl
++ * @s: pointer to standard V4L2 device structure
++ * @vc: standard V4L2 VIDIOC_S_CTRL ioctl structure
++ *
++ * If the requested control is supported, sets the control's current
++ * value in HW (and updates the video_control[] array).  Otherwise,
++ * returns -EINVAL if the control is not supported.
++ */
++static int ioctl_s_ctrl(struct v4l2_int_device *s,
++                            struct v4l2_control *vc)
++{
++       int retval =3D -EINVAL;
++       int i;
++       struct vcontrol *lvc;
++
++       i =3D find_vctrl(vc->id);
++       if (i < 0)
++               return -EINVAL;
++       lvc =3D &video_control[i];
++
++       switch (vc->id) {
++       case V4L2_CID_EXPOSURE:
++               retval =3D mt9p012sensor_set_exposure_time(vc->value, s, =
+lvc);
++               break;
++       case V4L2_CID_GAIN:
++               retval =3D mt9p012sensor_set_gain(vc->value, s, lvc);
++               break;
++       }
++
++       return retval;
++}
 +
 +
 +/**
-+ * struct ispccdc_syncif - Structure for Sync Interface between sensor a=
-nd CCDC
-+ * @ccdc_mastermode: Master mode. 1 - Master, 0 - Slave.
-+ * @fldstat: Field state. 0 - Odd Field, 1 - Even Field.
-+ * @ipmod: Input mode.
-+ * @datsz: Data size.
-+ * @fldmode: 0 - Progressive, 1 - Interlaced.
-+ * @datapol: 0 - Positive, 1 - Negative.
-+ * @fldpol: 0 - Positive, 1 - Negative.
-+ * @hdpol: 0 - Positive, 1 - Negative.
-+ * @vdpol: 0 - Positive, 1 - Negative.
-+ * @fldout: 0 - Input, 1 - Output.
-+ * @hs_width: Width of the Horizontal Sync pulse, used for HS/VS Output.
-+ * @vs_width: Width of the Vertical Sync pulse, used for HS/VS Output.
-+ * @ppln: Number of pixels per line, used for HS/VS Output.
-+ * @hlprf: Number of half lines per frame, used for HS/VS Output.
-+ * @bt_r656_en: 1 - Enable ITU-R BT656 mode, 0 - Sync mode.
++ * ioctl_enum_fmt_cap - Implement the CAPTURE buffer VIDIOC_ENUM_FMT ioc=
+tl
++ * @s: pointer to standard V4L2 device structure
++ * @fmt: standard V4L2 VIDIOC_ENUM_FMT ioctl structure
++ *
++ * Implement the VIDIOC_ENUM_FMT ioctl for the CAPTURE buffer type.
 + */
-+struct ispccdc_syncif {
-+       u8 ccdc_mastermode;
-+       u8 fldstat;
-+       enum inpmode ipmod;
-+       enum datasize datsz;
-+       u8 fldmode;
-+       u8 datapol;
-+       u8 fldpol;
-+       u8 hdpol;
-+       u8 vdpol;
-+       u8 fldout;
-+       u8 hs_width;
-+       u8 vs_width;
-+       u8 ppln;
-+       u8 hlprf;
-+       u8 bt_r656_en;
++static int ioctl_enum_fmt_cap(struct v4l2_int_device *s,
++                                  struct v4l2_fmtdesc *fmt)
++{
++       int index =3D fmt->index;
++       enum v4l2_buf_type type =3D fmt->type;
++
++       memset(fmt, 0, sizeof(*fmt));
++       fmt->index =3D index;
++       fmt->type =3D type;
++
++       switch (fmt->type) {
++       case V4L2_BUF_TYPE_VIDEO_CAPTURE:
++               if (index >=3D NUM_CAPTURE_FORMATS)
++                       return -EINVAL;
++       break;
++       default:
++               return -EINVAL;
++       }
++
++       fmt->flags =3D mt9p012_formats[index].flags;
++       strlcpy(fmt->description, mt9p012_formats[index].description,
++                                       sizeof(fmt->description));
++       fmt->pixelformat =3D mt9p012_formats[index].pixelformat;
++
++       return 0;
++}
++
++/**
++ * ioctl_try_fmt_cap - Implement the CAPTURE buffer VIDIOC_TRY_FMT ioctl
++ * @s: pointer to standard V4L2 device structure
++ * @f: pointer to standard V4L2 VIDIOC_TRY_FMT ioctl structure
++ *
++ * Implement the VIDIOC_TRY_FMT ioctl for the CAPTURE buffer type.  This
++ * ioctl is used to negotiate the image capture size and pixel format
++ * without actually making it take effect.
++ */
++static int ioctl_try_fmt_cap(struct v4l2_int_device *s,
++                            struct v4l2_format *f)
++{
++       enum image_size isize;
++       int ifmt;
++       struct v4l2_pix_format *pix =3D &f->fmt.pix;
++       struct mt9p012_sensor *sensor =3D s->priv;
++       struct v4l2_pix_format *pix2 =3D &sensor->pix;
++
++       isize =3D mt9p012_calc_size(pix->width, pix->height);
++
++       pix->width =3D mt9p012_sizes[isize].width;
++       pix->height =3D mt9p012_sizes[isize].height;
++       for (ifmt =3D 0; ifmt < NUM_CAPTURE_FORMATS; ifmt++) {
++               if (pix->pixelformat =3D=3D mt9p012_formats[ifmt].pixelfo=
+rmat)
++                       break;
++       }
++       if (ifmt =3D=3D NUM_CAPTURE_FORMATS)
++               ifmt =3D 0;
++       pix->pixelformat =3D mt9p012_formats[ifmt].pixelformat;
++       pix->field =3D V4L2_FIELD_NONE;
++       pix->bytesperline =3D pix->width * 2;
++       pix->sizeimage =3D pix->bytesperline * pix->height;
++       pix->priv =3D 0;
++       switch (pix->pixelformat) {
++       case V4L2_PIX_FMT_YUYV:
++       case V4L2_PIX_FMT_UYVY:
++               pix->colorspace =3D V4L2_COLORSPACE_JPEG;
++               break;
++       case V4L2_PIX_FMT_RGB565:
++       case V4L2_PIX_FMT_RGB565X:
++       case V4L2_PIX_FMT_RGB555:
++       case V4L2_PIX_FMT_SGRBG10:
++       case V4L2_PIX_FMT_RGB555X:
++       default:
++               pix->colorspace =3D V4L2_COLORSPACE_SRGB;
++               break;
++       }
++       *pix2 =3D *pix;
++       return 0;
++}
++
++/**
++ * ioctl_s_fmt_cap - V4L2 sensor interface handler for VIDIOC_S_FMT ioct=
+l
++ * @s: pointer to standard V4L2 device structure
++ * @f: pointer to standard V4L2 VIDIOC_S_FMT ioctl structure
++ *
++ * If the requested format is supported, configures the HW to use that
++ * format, returns error code if format not supported or HW can't be
++ * correctly configured.
++ */
++static int ioctl_s_fmt_cap(struct v4l2_int_device *s,
++                               struct v4l2_format *f)
++{
++       struct mt9p012_sensor *sensor =3D s->priv;
++       struct v4l2_pix_format *pix =3D &f->fmt.pix;
++       int rval;
++
++       rval =3D ioctl_try_fmt_cap(s, f);
++       if (!rval)
++               sensor->pix =3D *pix;
++
++       return rval;
++}
++
++/**
++ * ioctl_g_fmt_cap - V4L2 sensor interface handler for ioctl_g_fmt_cap
++ * @s: pointer to standard V4L2 device structure
++ * @f: pointer to standard V4L2 v4l2_format structure
++ *
++ * Returns the sensor's current pixel format in the v4l2_format
++ * parameter.
++ */
++static int ioctl_g_fmt_cap(struct v4l2_int_device *s,
++                               struct v4l2_format *f)
++{
++       struct mt9p012_sensor *sensor =3D s->priv;
++       f->fmt.pix =3D sensor->pix;
++
++       return 0;
++}
++
++/**
++ * ioctl_g_parm - V4L2 sensor interface handler for VIDIOC_G_PARM ioctl
++ * @s: pointer to standard V4L2 device structure
++ * @a: pointer to standard V4L2 VIDIOC_G_PARM ioctl structure
++ *
++ * Returns the sensor's video CAPTURE parameters.
++ */
++static int ioctl_g_parm(struct v4l2_int_device *s,
++                            struct v4l2_streamparm *a)
++{
++       struct mt9p012_sensor *sensor =3D s->priv;
++       struct v4l2_captureparm *cparm =3D &a->parm.capture;
++
++       if (a->type !=3D V4L2_BUF_TYPE_VIDEO_CAPTURE)
++               return -EINVAL;
++
++       memset(a, 0, sizeof(*a));
++       a->type =3D V4L2_BUF_TYPE_VIDEO_CAPTURE;
++
++       cparm->capability =3D V4L2_CAP_TIMEPERFRAME;
++       cparm->timeperframe =3D sensor->timeperframe;
++
++       return 0;
++}
++
++/**
++ * ioctl_s_parm - V4L2 sensor interface handler for VIDIOC_S_PARM ioctl
++ * @s: pointer to standard V4L2 device structure
++ * @a: pointer to standard V4L2 VIDIOC_S_PARM ioctl structure
++ *
++ * Configures the sensor to use the input parameters, if possible.  If
++ * not possible, reverts to the old parameters and returns the
++ * appropriate error code.
++ */
++static int ioctl_s_parm(struct v4l2_int_device *s,
++                            struct v4l2_streamparm *a)
++{
++       struct mt9p012_sensor *sensor =3D s->priv;
++       struct i2c_client *client =3D sensor->i2c_client;
++       struct v4l2_fract *timeperframe =3D &a->parm.capture.timeperframe=
+;
++
++       sensor->timeperframe =3D *timeperframe;
++       mt9p012sensor_calc_xclk(client);
++       *timeperframe =3D sensor->timeperframe;
++
++       return 0;
++}
++
++/**
++ * ioctl_g_priv - V4L2 sensor interface handler for vidioc_int_g_priv_nu=
+m
++ * @s: pointer to standard V4L2 device structure
++ * @p: void pointer to hold sensor's private data address
++ *
++ * Returns device's (sensor's) private data area address in p parameter
++ */
++static int ioctl_g_priv(struct v4l2_int_device *s, void *p)
++{
++       struct mt9p012_sensor *sensor =3D s->priv;
++
++       return sensor->pdata->priv_data_set(p);
++}
++
++/**
++ * ioctl_s_power - V4L2 sensor interface handler for vidioc_int_s_power_=
+num
++ * @s: pointer to standard V4L2 device structure
++ * @on: power state to which device is to be set
++ *
++ * Sets devices power state to requrested state, if possible.
++ */
++static int ioctl_s_power(struct v4l2_int_device *s, enum v4l2_power on)
++{
++       struct mt9p012_sensor *sensor =3D s->priv;
++       struct i2c_client *c =3D sensor->i2c_client;
++       int rval;
++
++       if ((on =3D=3D V4L2_POWER_STANDBY) && (sensor->state =3D=3D SENSO=
+R_DETECTED))
++               mt9p012_write_regs(c, stream_off_list);
++
++       if (on !=3D V4L2_POWER_ON)
++               sensor->pdata->set_xclk(0);
++       else
++               sensor->pdata->set_xclk(xclk_current);
++
++       rval =3D sensor->pdata->power_set(on);
++       if (rval < 0) {
++               dev_err(&c->dev, "Unable to set the power state: " DRIVER=
+_NAME
++                                                               " sensor\=
+n");
++               sensor->pdata->set_xclk(0);
++               return rval;
++       }
++
++       if ((on =3D=3D V4L2_POWER_ON) && (sensor->state =3D=3D SENSOR_DET=
+ECTED))
++               mt9p012_configure(s);
++
++       if ((on =3D=3D V4L2_POWER_ON) && (sensor->state =3D=3D SENSOR_NOT=
+_DETECTED)) {
++               rval =3D mt9p012_detect(c);
++               if (rval < 0) {
++                       dev_err(&c->dev, "Unable to detect " DRIVER_NAME
++                                                               " sensor\=
+n");
++                       sensor->state =3D SENSOR_NOT_DETECTED;
++                       return rval;
++               }
++               sensor->state =3D SENSOR_DETECTED;
++               sensor->ver =3D rval;
++               pr_info(DRIVER_NAME " chip version 0x%02x detected\n",
++                                                               sensor->v=
+er);
++       }
++
++       return 0;
++}
++
++/**
++ * ioctl_init - V4L2 sensor interface handler for VIDIOC_INT_INIT
++ * @s: pointer to standard V4L2 device structure
++ *
++ * Initialize the sensor device (call mt9p012_configure())
++ */
++static int ioctl_init(struct v4l2_int_device *s)
++{
++       return 0;
++}
++
++/**
++ * ioctl_dev_exit - V4L2 sensor interface handler for vidioc_int_dev_exi=
+t_num
++ * @s: pointer to standard V4L2 device structure
++ *
++ * Delinitialise the dev. at slave detach.  The complement of ioctl_dev_=
+init.
++ */
++static int ioctl_dev_exit(struct v4l2_int_device *s)
++{
++       return 0;
++}
++
++/**
++ * ioctl_dev_init - V4L2 sensor interface handler for vidioc_int_dev_ini=
+t_num
++ * @s: pointer to standard V4L2 device structure
++ *
++ * Initialise the device when slave attaches to the master.  Returns 0 i=
+f
++ * mt9p012 device could be found, otherwise returns appropriate error.
++ */
++static int ioctl_dev_init(struct v4l2_int_device *s)
++{
++       return 0;
++}
++/**
++ * ioctl_enum_framesizes - V4L2 sensor if handler for vidioc_int_enum_fr=
+amesizes
++ * @s: pointer to standard V4L2 device structure
++ * @frms: pointer to standard V4L2 framesizes enumeration structure
++ *
++ * Returns possible framesizes depending on choosen pixel format
++ **/
++static int ioctl_enum_framesizes(struct v4l2_int_device *s,
++                                       struct v4l2_frmsizeenum *frms)
++{
++       int ifmt;
++
++       for (ifmt =3D 0; ifmt < NUM_CAPTURE_FORMATS; ifmt++) {
++               if (frms->pixel_format =3D=3D mt9p012_formats[ifmt].pixel=
+format)
++                       break;
++       }
++       /* Is requested pixelformat not found on sensor? */
++       if (ifmt =3D=3D NUM_CAPTURE_FORMATS)
++               return -EINVAL;
++
++       /* Do we already reached all discrete framesizes? */
++       if (frms->index >=3D 5)
++               return -EINVAL;
++
++       frms->type =3D V4L2_FRMSIZE_TYPE_DISCRETE;
++       frms->discrete.width =3D mt9p012_sizes[frms->index].width;
++       frms->discrete.height =3D mt9p012_sizes[frms->index].height;
++
++       return 0;
++}
++
++const struct v4l2_fract mt9p012_frameintervals[] =3D {
++       {  .numerator =3D 1, .denominator =3D 11 },
++       {  .numerator =3D 1, .denominator =3D 15 },
++       {  .numerator =3D 1, .denominator =3D 20 },
++       {  .numerator =3D 1, .denominator =3D 25 },
++       {  .numerator =3D 1, .denominator =3D 30 },
++};
++
++static int ioctl_enum_frameintervals(struct v4l2_int_device *s,
++                                       struct v4l2_frmivalenum *frmi)
++{
++       int ifmt;
++
++       for (ifmt =3D 0; ifmt < NUM_CAPTURE_FORMATS; ifmt++) {
++               if (frmi->pixel_format =3D=3D mt9p012_formats[ifmt].pixel=
+format)
++                       break;
++       }
++       /* Is requested pixelformat not found on sensor? */
++       if (ifmt =3D=3D NUM_CAPTURE_FORMATS)
++               return -EINVAL;
++
++       /* Do we already reached all discrete framesizes? */
++
++       if (((frmi->width =3D=3D mt9p012_sizes[4].width) &&
++                               (frmi->height =3D=3D mt9p012_sizes[4].hei=
+ght)) ||
++                               ((frmi->width =3D=3D mt9p012_sizes[3].wid=
+th) &&
++                               (frmi->height =3D=3D mt9p012_sizes[3].hei=
+ght))) {
++               /* FIXME: The only frameinterval supported by 5MP and 3MP
++                * capture sizes is 1/11 fps
++                */
++               if (frmi->index !=3D 0)
++                       return -EINVAL;
++       } else {
++               if (frmi->index >=3D 5)
++                       return -EINVAL;
++       }
++
++       frmi->type =3D V4L2_FRMSIZE_TYPE_DISCRETE;
++       frmi->discrete.numerator =3D
++                               mt9p012_frameintervals[frmi->index].numer=
+ator;
++       frmi->discrete.denominator =3D
++                               mt9p012_frameintervals[frmi->index].denom=
+inator;
++
++       return 0;
++}
++
++static struct v4l2_int_ioctl_desc mt9p012_ioctl_desc[] =3D {
++       { .num =3D vidioc_int_enum_framesizes_num,
++         .func =3D (v4l2_int_ioctl_func *)ioctl_enum_framesizes },
++       { .num =3D vidioc_int_enum_frameintervals_num,
++         .func =3D (v4l2_int_ioctl_func *)ioctl_enum_frameintervals },
++       { .num =3D vidioc_int_dev_init_num,
++         .func =3D (v4l2_int_ioctl_func *)ioctl_dev_init },
++       { .num =3D vidioc_int_dev_exit_num,
++         .func =3D (v4l2_int_ioctl_func *)ioctl_dev_exit },
++       { .num =3D vidioc_int_s_power_num,
++         .func =3D (v4l2_int_ioctl_func *)ioctl_s_power },
++       { .num =3D vidioc_int_g_priv_num,
++         .func =3D (v4l2_int_ioctl_func *)ioctl_g_priv },
++       { .num =3D vidioc_int_init_num,
++         .func =3D (v4l2_int_ioctl_func *)ioctl_init },
++       { .num =3D vidioc_int_enum_fmt_cap_num,
++         .func =3D (v4l2_int_ioctl_func *)ioctl_enum_fmt_cap },
++       { .num =3D vidioc_int_try_fmt_cap_num,
++         .func =3D (v4l2_int_ioctl_func *)ioctl_try_fmt_cap },
++       { .num =3D vidioc_int_g_fmt_cap_num,
++         .func =3D (v4l2_int_ioctl_func *)ioctl_g_fmt_cap },
++       { .num =3D vidioc_int_s_fmt_cap_num,
++         .func =3D (v4l2_int_ioctl_func *)ioctl_s_fmt_cap },
++       { .num =3D vidioc_int_g_parm_num,
++         .func =3D (v4l2_int_ioctl_func *)ioctl_g_parm },
++       { .num =3D vidioc_int_s_parm_num,
++         .func =3D (v4l2_int_ioctl_func *)ioctl_s_parm },
++       { .num =3D vidioc_int_queryctrl_num,
++         .func =3D (v4l2_int_ioctl_func *)ioctl_queryctrl },
++       { .num =3D vidioc_int_g_ctrl_num,
++         .func =3D (v4l2_int_ioctl_func *)ioctl_g_ctrl },
++       { .num =3D vidioc_int_s_ctrl_num,
++         .func =3D (v4l2_int_ioctl_func *)ioctl_s_ctrl },
++};
++
++static struct v4l2_int_slave mt9p012_slave =3D {
++       .ioctls =3D mt9p012_ioctl_desc,
++       .num_ioctls =3D ARRAY_SIZE(mt9p012_ioctl_desc),
++};
++
++static struct v4l2_int_device mt9p012_int_device =3D {
++       .module =3D THIS_MODULE,
++       .name =3D DRIVER_NAME,
++       .priv =3D &mt9p012,
++       .type =3D v4l2_int_type_slave,
++       .u =3D {
++               .slave =3D &mt9p012_slave,
++       },
 +};
 +
 +/**
-+ * ispccdc_refmt - Structure for Reformatter parameters
-+ * @lnalt: Line alternating mode enable. 0 - Enable, 1 - Disable.
-+ * @lnum: Number of output lines from 1 input line. 1 to 4 lines.
-+ * @plen_even: Number of program entries in even line minus 1.
-+ * @plen_odd: Number of program entries in odd line minus 1.
-+ * @prgeven0: Program entries 0-7 for even lines register
-+ * @prgeven1: Program entries 8-15 for even lines register
-+ * @prgodd0: Program entries 0-7 for odd lines register
-+ * @prgodd1: Program entries 8-15 for odd lines register
-+ * @fmtaddr0: Output line in which the original pixel is to be placed
-+ * @fmtaddr1: Output line in which the original pixel is to be placed
-+ * @fmtaddr2: Output line in which the original pixel is to be placed
-+ * @fmtaddr3: Output line in which the original pixel is to be placed
-+ * @fmtaddr4: Output line in which the original pixel is to be placed
-+ * @fmtaddr5: Output line in which the original pixel is to be placed
-+ * @fmtaddr6: Output line in which the original pixel is to be placed
-+ * @fmtaddr7: Output line in which the original pixel is to be placed
++ * mt9p012_probe - sensor driver i2c probe handler
++ * @client: i2c driver client device structure
++ *
++ * Register sensor as an i2c client device and V4L2
++ * device.
 + */
-+struct ispccdc_refmt {
-+       u8 lnalt;
-+       u8 lnum;
-+       u8 plen_even;
-+       u8 plen_odd;
-+       u32 prgeven0;
-+       u32 prgeven1;
-+       u32 prgodd0;
-+       u32 prgodd1;
-+       u32 fmtaddr0;
-+       u32 fmtaddr1;
-+       u32 fmtaddr2;
-+       u32 fmtaddr3;
-+       u32 fmtaddr4;
-+       u32 fmtaddr5;
-+       u32 fmtaddr6;
-+       u32 fmtaddr7;
++static int
++mt9p012_probe(struct i2c_client *client, const struct i2c_device_id *id)
++{
++       struct mt9p012_sensor *sensor =3D &mt9p012;
++       int err;
++
++       if (i2c_get_clientdata(client))
++               return -EBUSY;
++
++       sensor->pdata =3D client->dev.platform_data;
++
++       if (!sensor->pdata) {
++               dev_err(&client->dev, "no platform data?\n");
++               return -ENODEV;
++       }
++
++       sensor->v4l2_int_device =3D &mt9p012_int_device;
++       sensor->i2c_client =3D client;
++
++       i2c_set_clientdata(client, sensor);
++
++       /* Make the default capture format QCIF V4L2_PIX_FMT_SGRBG10 */
++       sensor->pix.width =3D MT9P012_VIDEO_WIDTH_4X_BINN_SCALED;
++       sensor->pix.height =3D MT9P012_VIDEO_WIDTH_4X_BINN_SCALED;
++       sensor->pix.pixelformat =3D V4L2_PIX_FMT_SGRBG10;
++
++       err =3D v4l2_int_device_register(sensor->v4l2_int_device);
++       if (err)
++               i2c_set_clientdata(client, NULL);
++
++       return err;
++}
++
++/**
++ * mt9p012_remove - sensor driver i2c remove handler
++ * @client: i2c driver client device structure
++ *
++ * Unregister sensor as an i2c client device and V4L2
++ * device.  Complement of mt9p012_probe().
++ */
++static int __exit
++mt9p012_remove(struct i2c_client *client)
++{
++       struct mt9p012_sensor *sensor =3D i2c_get_clientdata(client);
++
++       if (!client->adapter)
++               return -ENODEV; /* our client isn't attached */
++
++       v4l2_int_device_unregister(sensor->v4l2_int_device);
++       i2c_set_clientdata(client, NULL);
++
++       return 0;
++}
++
++static const struct i2c_device_id mt9p012_id[] =3D {
++       { DRIVER_NAME, 0 },
++       { },
++};
++MODULE_DEVICE_TABLE(i2c, mt9p012_id);
++
++static struct i2c_driver mt9p012sensor_i2c_driver =3D {
++       .driver =3D {
++               .name =3D DRIVER_NAME,
++               .owner =3D THIS_MODULE,
++       },
++       .probe =3D mt9p012_probe,
++       .remove =3D __exit_p(mt9p012_remove),
++       .id_table =3D mt9p012_id,
 +};
 +
-+int ispccdc_request(void);
++static struct mt9p012_sensor mt9p012 =3D {
++       .timeperframe =3D {
++               .numerator =3D 1,
++               .denominator =3D 15,
++       },
++       .state =3D SENSOR_NOT_DETECTED,
++};
 +
-+int ispccdc_free(void);
++/**
++ * mt9p012sensor_init - sensor driver module_init handler
++ *
++ * Registers driver as an i2c client driver.  Returns 0 on success,
++ * error code otherwise.
++ */
++static int __init mt9p012sensor_init(void)
++{
++       return i2c_add_driver(&mt9p012sensor_i2c_driver);
++}
++module_init(mt9p012sensor_init);
 +
-+int ispccdc_config_datapath(enum ccdc_input input, enum ccdc_output outp=
-ut);
++/**
++ * mt9p012sensor_cleanup - sensor driver module_exit handler
++ *
++ * Unregisters/deletes driver as an i2c client driver.
++ * Complement of mt9p012sensor_init.
++ */
++static void __exit mt9p012sensor_cleanup(void)
++{
++       i2c_del_driver(&mt9p012sensor_i2c_driver);
++}
++module_exit(mt9p012sensor_cleanup);
 +
-+void ispccdc_config_crop(u32 left, u32 top, u32 height, u32 width);
++MODULE_LICENSE("GPL");
++MODULE_DESCRIPTION("mt9p012 camera sensor driver");
+diff --git a/drivers/media/video/mt9p012_regs.h b/drivers/media/video/mt9=
+p012_regs.h
+new file mode 100644
+index 0000000..70f6ee7
+--- /dev/null
++++ b/drivers/media/video/mt9p012_regs.h
+@@ -0,0 +1,74 @@
++/*
++ * drivers/media/video/mt9p012_regs.h
++ *
++ * Register definitions for the MT9P012 camera sensor.
++ *
++ * Author:
++ *     Sameer Venkatraman <sameerv@ti.com>
++ *     Sergio Aguirre <saaguirre@ti.com>
++ *     Martinez Leonides
++ *
++ *
++ * Copyright (C) 2008 Texas Instruments.
++ *
++ * This file is licensed under the terms of the GNU General Public Licen=
+se
++ * version 2. This program is licensed "as is" without any warranty of a=
+ny
++ * kind, whether express or implied.
++ */
 +
-+void ispccdc_config_sync_if(struct ispccdc_syncif syncif);
++#define REG_MODEL_ID                   0x0000
++#define REG_REVISION_NUMBER            0x0002
++#define REG_MANUFACTURER_ID            0x0003
 +
-+int ispccdc_config_black_clamp(struct ispccdc_bclamp bclamp);
++#define REG_MODE_SELECT                        0x0100
++#define REG_IMAGE_ORIENTATION          0x0101
++#define REG_SOFTWARE_RESET             0x0103
++#define REG_GROUPED_PAR_HOLD           0x0104
 +
-+void ispccdc_enable_black_clamp(u8 enable);
++#define REG_FINE_INT_TIME              0x0200
++#define REG_COARSE_INT_TIME            0x0202
 +
-+int ispccdc_config_fpc(struct ispccdc_fpc fpc);
++#define REG_ANALOG_GAIN_GLOBAL         0x0204
++#define REG_ANALOG_GAIN_GREENR         0x0206
++#define REG_ANALOG_GAIN_RED            0x0208
++#define REG_ANALOG_GAIN_BLUE           0x020A
++#define REG_ANALOG_GAIN_GREENB         0x020C
++#define REG_DIGITAL_GAIN_GREENR                0x020E
++#define REG_DIGITAL_GAIN_RED           0x0210
++#define REG_DIGITAL_GAIN_BLUE          0x0212
++#define REG_DIGITAL_GAIN_GREENB                0x0214
 +
-+void ispccdc_enable_fpc(u8 enable);
++#define REG_VT_PIX_CLK_DIV             0x0300
++#define REG_VT_SYS_CLK_DIV             0x0302
++#define REG_PRE_PLL_CLK_DIV            0x0304
++#define REG_PLL_MULTIPLIER             0x0306
++#define REG_OP_PIX_CLK_DIV             0x0308
++#define REG_OP_SYS_CLK_DIV             0x030A
 +
-+void ispccdc_config_black_comp(struct ispccdc_blcomp blcomp);
++#define REG_FRAME_LEN_LINES            0x0340
++#define REG_LINE_LEN_PCK               0x0342
 +
-+void ispccdc_config_vp(struct ispccdc_vp vp);
++#define REG_X_ADDR_START               0x0344
++#define REG_Y_ADDR_START               0x0346
++#define REG_X_ADDR_END                 0x0348
++#define REG_Y_ADDR_END                 0x034A
++#define REG_X_OUTPUT_SIZE              0x034C
++#define REG_Y_OUTPUT_SIZE              0x034E
++#define REG_X_ODD_INC                  0x0382
++#define REG_Y_ODD_INC                  0x0386
 +
-+void ispccdc_enable_vp(u8 enable);
++#define REG_SCALING_MODE               0x0400
++#define REG_SCALE_M                    0x0404
++#define REG_SCALE_N                    0x0406
 +
-+void ispccdc_config_reformatter(struct ispccdc_refmt refmt);
++#define REG_ROW_SPEED                  0x3016
++#define REG_RESET_REGISTER             0x301A
++#define REG_PIXEL_ORDER                        0x3024
++#define REG_READ_MODE                  0x3040
 +
-+void ispccdc_enable_reformatter(u8 enable);
++#define REG_DATAPATH_STATUS            0x306A
++#define REG_DATAPATH_SELECT            0x306E
 +
-+void ispccdc_config_culling(struct ispccdc_culling culling);
++#define REG_RESERVED_MFR_3064          0x3064
++#define REG_TEST_PATTERN               0x3070
 +
-+void ispccdc_enable_lpf(u8 enable);
+diff --git a/include/media/mt9p012.h b/include/media/mt9p012.h
+new file mode 100644
+index 0000000..13a9745
+--- /dev/null
++++ b/include/media/mt9p012.h
+@@ -0,0 +1,37 @@
++/*
++ * drivers/media/video/mt9p012.h
++ *
++ * Register definitions for the MT9P012 camera sensor.
++ *
++ * Author:
++ *     Sameer Venkatraman <sameerv@ti.com>
++ *     Martinez Leonides
++ *
++ *
++ * Copyright (C) 2008 Texas Instruments.
++ *
++ * This file is licensed under the terms of the GNU General Public Licen=
+se
++ * version 2. This program is licensed "as is" without any warranty of a=
+ny
++ * kind, whether express or implied.
++ */
 +
-+void ispccdc_config_alaw(enum alaw_ipwidth ipwidth);
++#ifndef MT9P012_H
++#define MT9P012_H
 +
-+void ispccdc_enable_alaw(u8 enable);
 +
-+int ispccdc_load_lsc(u32 table_size);
++#define MT9P012_I2C_ADDR               0x10
 +
-+void ispccdc_config_lsc(struct ispccdc_lsc_config *lsc_cfg);
++/**
++ * struct mt9p012_platform_data - platform data values and access functi=
+ons
++ * @power_set: Power state access function, zero is off, non-zero is on.
++ * @default_regs: Default registers written after power-on or reset.
++ * @ifparm: Interface parameters access function
++ * @priv_data_set: device private data (pointer) access function
++ */
++struct mt9p012_platform_data {
++       int (*power_set)(enum v4l2_power power);
++       u32 (*set_xclk)(u32 xclkfreq);
++       int (*priv_data_set)(void *);
++};
 +
-+void ispccdc_enable_lsc(u8 enable);
-+
-+void ispccdc_config_imgattr(u32 colptn);
-+
-+void ispccdc_config_shadow_registers(void);
-+
-+int ispccdc_try_size(u32 input_w, u32 input_h, u32 *output_w, u32 *outpu=
-t_h);
-+
-+int ispccdc_config_size(u32 input_w, u32 input_h, u32 output_w, u32 outp=
-ut_h);
-+
-+int ispccdc_config_outlineoffset(u32 offset, u8 oddeven, u8 numlines);
-+
-+int ispccdc_set_outaddr(u32 addr);
-+
-+void ispccdc_enable(u8 enable);
-+
-+int ispccdc_busy(void);
-+
-+void ispccdc_save_context(void);
-+
-+void ispccdc_restore_context(void);
-+
-+void ispccdc_print_status(void);
-+
-+int omap34xx_isp_ccdc_config(void *userspace_add);
-+
-+void ispccdc_set_wenlog(u32 wenlog);
-+
-+#endif         /* OMAP_ISP_CCDC_H */
++#endif /* ifndef MT9P012_H */
 --
 1.5.6.5
 
