@@ -1,107 +1,61 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH] PM: OMAP3: Refreshed DVFS VDD1 control against latest clock fw
-Date: Mon, 12 Jan 2009 17:04:45 -0800
-Message-ID: <87wsd0m2xe.fsf@deeprootsystems.com>
-References: <1231515465-10162-1-git-send-email-tero.kristo@nokia.com>
+From: "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>
+Subject: [REVIEW PATCH 00/14] OMAP3 camera + ISP + MT9P012 sensor driver v2
+Date: Mon, 12 Jan 2009 20:03:05 -0600
+Message-ID: <A24693684029E5489D1D202277BE894416429F96@dlee02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from an-out-0708.google.com ([209.85.132.246]:34906 "EHLO
-	an-out-0708.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752101AbZAMBEv (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 12 Jan 2009 20:04:51 -0500
-Received: by an-out-0708.google.com with SMTP id d40so3611193and.1
-        for <linux-omap@vger.kernel.org>; Mon, 12 Jan 2009 17:04:50 -0800 (PST)
-In-Reply-To: <1231515465-10162-1-git-send-email-tero.kristo@nokia.com> (Tero Kristo's message of "Fri\,  9 Jan 2009 17\:37\:45 +0200")
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <video4linux-list-bounces@redhat.com>
+Content-Language: en-US
+List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
+	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
+List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
+List-Post: <mailto:video4linux-list@redhat.com>
+List-Help: <mailto:video4linux-list-request@redhat.com?subject=help>
+List-Subscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
+	<mailto:video4linux-list-request@redhat.com?subject=subscribe>
+Sender: video4linux-list-bounces@redhat.com
+Errors-To: video4linux-list-bounces@redhat.com
+To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Cc: "video4linux-list@redhat.com" <video4linux-list@redhat.com>, "Nagalla,
+	Hari" <hnagalla@ti.com>, Sakari Ailus <sakari.ailus@nokia.com>, "Tuukka.O Toivonen" <tuukka.o.toivonen@nokia.com>, "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
-To: Tero Kristo <tero.kristo@nokia.com>
-Cc: linux-omap@vger.kernel.org
 
-Tero Kristo <tero.kristo@nokia.com> writes:
+Hi,
 
-> New clock framework patches from Paul Walmsley broke the DVFS for OMAP3.
-> This patch fixes the VDD1 part of it. Applies on top of latest PM branch
-> (pm-next) in Kevin's tree.
->
-> Signed-off-by: Tero Kristo <tero.kristo@nokia.com>
+I'm sending the following patchset for review to the relevant lists (linu=
+x-omap, v4l, linux-media).
 
-Thanks, pulling into pm-next.
+Includes:
+ - Omap3 camera core + ISP drivers.
+ - MT9P012 sensor driver (adapted to 3430SDP)
+ - DW9710 lens driver (adapted to work with MT9P012 for SDP)
+ - Necessary v4l2-int-device changes to make above drivers work
+ - Redefine OMAP3 ISP platform device.
+ - Review comments fixed from: (Thanks a lot for their time and help)
+   - Hans Verkuil
+   - Tony Lindgreen
+   - Felipe Balbi
+   - Vaibhav Hiremath
+   - David Brownell
 
-Kevin
+Some notes:
+ - Uses v4l2-int-device solution.
+ - Tested with 3430SDP ES3.0 VG5.0.1 with Camkit v3.0.1
+ - Applies cleanly on top of commit 0ec95b96fd77036a13398c66901e11cd30119=
+0d0 by Jouni Hogander (OMAP3: PM: Emu_pwrdm is switched off by hardware e=
+ven when sdti is in use)
+ - ISP wrappers dropped from the patchset, as a rework is going on curren=
+tly.
 
-> ---
->  arch/arm/mach-omap2/clock34xx.c |   11 +----------
->  arch/arm/mach-omap2/clock34xx.h |    6 ++++--
->  2 files changed, 5 insertions(+), 12 deletions(-)
->
-> diff --git a/arch/arm/mach-omap2/clock34xx.c b/arch/arm/mach-omap2/clock34xx.c
-> index 0434552..55981dd 100644
-> --- a/arch/arm/mach-omap2/clock34xx.c
-> +++ b/arch/arm/mach-omap2/clock34xx.c
-> @@ -796,11 +796,8 @@ int __init omap2_clk_init(void)
->  	for (clkp = onchip_34xx_clks;
->  	     clkp < onchip_34xx_clks + ARRAY_SIZE(onchip_34xx_clks);
->  	     clkp++) {
-> -		if ((*clkp)->flags & cpu_clkflg) {
-> +		if ((*clkp)->flags & cpu_clkflg)
->  			clk_register(*clkp);
-> -			if (!((*clkp)->flags & VIRTUAL_CLOCK))
-> -				omap2_init_clk_clkdm(*clkp);
-> -		}
->  	}
->  
->  	/* REVISIT: Not yet ready for OMAP3 */
-> @@ -969,10 +966,6 @@ static int omap3_select_table_rate(struct clk *clk, unsigned long rate)
->  		clk_set_rate(dpll1_clk, prcm_vdd->rate);
->  		clk_set_rate(dpll2_clk, dsp_opps[index].rate);
->  		curr_vdd1_prcm_set = prcm_vdd;
-> -		omap2_clksel_recalc(&mpu_ck);
-> -		propagate_rate(&mpu_ck);
-> -		omap2_clksel_recalc(&iva2_ck);
-> -		propagate_rate(&iva2_ck);
->  #ifndef CONFIG_CPU_FREQ
->  		/*Update loops_per_jiffy if processor speed is being changed*/
->  		loops_per_jiffy = compute_lpj(loops_per_jiffy,
-> @@ -981,8 +974,6 @@ static int omap3_select_table_rate(struct clk *clk, unsigned long rate)
->  	} else {
->  		clk_set_rate(dpll3_clk, prcm_vdd->rate);
->  		curr_vdd2_prcm_set = prcm_vdd;
-> -		omap2_clksel_recalc(&core_ck);
-> -		propagate_rate(&core_ck);
->  	}
->  
->  	omap3_save_scratchpad_contents();
-> diff --git a/arch/arm/mach-omap2/clock34xx.h b/arch/arm/mach-omap2/clock34xx.h
-> index 8751fa9..8bda785 100644
-> --- a/arch/arm/mach-omap2/clock34xx.h
-> +++ b/arch/arm/mach-omap2/clock34xx.h
-> @@ -3341,8 +3341,9 @@ static struct clk wdt1_fck = {
->  
->  static struct clk virt_vdd1_prcm_set = {
->  	.name = "virt_vdd1_prcm_set",
-> -	.flags = CLOCK_IN_OMAP343X | VIRTUAL_CLOCK | ALWAYS_ENABLED,
-> +	.flags = CLOCK_IN_OMAP343X | ALWAYS_ENABLED,
->  	.parent = &mpu_ck, /* Indexed by mpu speed, no parent */
-> +	.clkdm = { .name = "virt_opp_clkdm" },
->  	.recalc = &omap3_table_recalc, /*sets are keyed on mpu rate */
->  	.set_rate = &omap3_select_table_rate,
->  	.round_rate = &omap3_round_to_table_rate,
-> @@ -3350,8 +3351,9 @@ static struct clk virt_vdd1_prcm_set = {
->  
->  static struct clk virt_vdd2_prcm_set = {
->  	.name = "virt_vdd2_prcm_set",
-> -	.flags = CLOCK_IN_OMAP343X | VIRTUAL_CLOCK | ALWAYS_ENABLED,
-> +	.flags = CLOCK_IN_OMAP343X | ALWAYS_ENABLED,
->  	.parent = &core_ck,
-> +	.clkdm = { .name = "virt_opp_clkdm" },
->  	.recalc = &omap3_table_recalc,
->  	.set_rate = &omap3_select_table_rate,
->  	.round_rate = &omap3_round_to_table_rate,
-> -- 
-> 1.5.4.3
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+I appreciate in advance your time.
+
+Regards,
+Sergio
+
+--
+video4linux-list mailing list
+Unsubscribe mailto:video4linux-list-request@redhat.com?subject=3Dunsubscr=
+ibe
+https://www.redhat.com/mailman/listinfo/video4linux-list
