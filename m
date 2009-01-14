@@ -1,67 +1,43 @@
-From: Krishna Kishore <krishna.kishore@sasken.com>
-Subject: RE: OMAP3430 clock settings
-Date: Wed, 14 Jan 2009 16:44:18 +0530
-Message-ID: <F9F1042FDECC134ABFBF4EC5EBEC88DAB357EF@EXGZ02.sasken.com>
-References: <1231897985-5274-1-git-send-email-stanley.miao@windriver.com> <F9F1042FDECC134ABFBF4EC5EBEC88DAB35794@EXGZ02.sasken.com> <3a2dabf50901140100i63899449ud8fee54bd7763bff@mail.gmail.com>
+From: Mark Brown <broonie@sirena.org.uk>
+Subject: Re: [PATCH 1/2] Include TPS6235x based Power regulator support
+Date: Wed, 14 Jan 2009 11:48:51 +0000
+Message-ID: <20090114114850.GB24895@sirena.org.uk>
+References: <1231832468-7132-1-git-send-email-mani.pillai@ti.com> <200901131619.28700.david-b@pacbell.net> <19F8576C6E063C45BE387C64729E739403ECF70CCA@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mta-blr2.sasken.com ([164.164.56.19]:62467 "EHLO
-	mta-blr2.sasken.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753709AbZANLOh convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 14 Jan 2009 06:14:37 -0500
-Content-Class: urn:content-classes:message
+Received: from cassiel.sirena.org.uk ([80.68.93.111]:1351 "EHLO
+	cassiel.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755900AbZANLsz (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 14 Jan 2009 06:48:55 -0500
+Content-Disposition: inline
+In-Reply-To: <19F8576C6E063C45BE387C64729E739403ECF70CCA@dbde02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Ramesh Gupta Guntha <grgupta77@gmail.com>
-Cc: linux-omap@vger.kernel.org
+To: "Pillai, Manikandan" <mani.pillai@ti.com>
+Cc: David Brownell <david-b@pacbell.net>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
+On Wed, Jan 14, 2009 at 04:09:07PM +0530, Pillai, Manikandan wrote:
 
-Hi Ramesh Guptha,
+> The other problem which I encounter is with the function regulator_get().
+> Regulator_get() requires 2 parameters - device pointer should point to the
 
-   Thanks a lot for your response.
+> One passed during regulator_register. It also takes a string a second parameter
 
-   We can check this PRCM section. 
-   After reading IVA2_CM and MPU_CM registers, I want to know how to
-calculate the clock speeds.
-   Since this procedure/formula will already be known, can you please
-let me know?
+The struct device that is being checked is the struct device from the
+consumer list.  It is not the struct device that is passed immediately 
+in the arguments to regulator_register().  The struct device passed to
+register regulator should not be being used with regulator_get().
 
-Regards,
-Kishore.
- 
+Both parameters used with regulator_get() are being compared with the
+information supplied in the consumer list.
 
------Original Message-----
-From: Ramesh Gupta Guntha [mailto:grgupta77@gmail.com] 
-Sent: Wednesday, January 14, 2009 2:31 PM
-To: Krishna Kishore
-Cc: linux-omap@vger.kernel.org
-Subject: Re: OMAP3430 clock settings
+> Which is compared with the supply string initialized in the regulator init data
+> element regulator_consumer_supply.supply.
 
-Hi Krishna,
+Right, just like the device that is asked for is compared with the
+struct device that is specified by the dev field of the same structure.
 
-On 1/14/09, Krishna Kishore <krishna.kishore@sasken.com> wrote:
+> Passing the client->dev, invoking regulator_register() fails.
 
->   We need to find this out during runtime. Which register to read and 
-> how to
->   know the clock settings of DSP, ARM and L3?
-
-Please refer to PRCM and Interconnect sections of the TRM, you may be
-interested in IVA2_CM, MPU_CM etc.
-
-thanks
-Ramesh
-SASKEN BUSINESS DISCLAIMER
--------------------------
-This message may contain confidential, proprietary or legally privileged information. In 
-case you are not the original intended Recipient of the message, you must not, directly or 
-indirectly, use, Disclose, distribute, print, or copy any part of this message and you are 
-requested to delete it and inform the sender. Any views expressed in this message are 
-those of the individual sender unless otherwise stated. Nothing contained in this message 
-shall be construed as an offer or acceptance of any offer by Sasken Communication 
-Technologies Limited ("Sasken") unless sent with that express intent and with due 
-authority of Sasken. Sasken has taken enough precautions to prevent the spread of 
-viruses. However the company accepts no liability for any damage caused by any virus 
-transmitted by this email
-
+I'm not sure what you mean by "passing the client->dev" here?
