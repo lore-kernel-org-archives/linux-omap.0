@@ -1,15 +1,15 @@
 From: "Peter 'p2' De Schrijver" <peter.de-schrijver@nokia.com>
 Subject: [PATCH] Don't scale voltage in C1 state
-Date: Wed, 14 Jan 2009 18:06:36 +0200
-Message-ID: <1231949196-7480-1-git-send-email-peter.de-schrijver@nokia.com>
+Date: Wed, 14 Jan 2009 18:32:35 +0200
+Message-ID: <1231950755-8620-1-git-send-email-peter.de-schrijver@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:47691 "EHLO
-	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754442AbZANQGn (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 14 Jan 2009 11:06:43 -0500
-Received: from vaebh105.NOE.Nokia.com (vaebh105.europe.nokia.com [10.160.244.31])
-	by mgw-mx06.nokia.com (Switch-3.2.6/Switch-3.2.6) with ESMTP id n0EG6VUC018296
-	for <linux-omap@vger.kernel.org>; Wed, 14 Jan 2009 18:06:40 +0200
+Received: from smtp.nokia.com ([192.100.105.134]:53192 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1761008AbZANQdE (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 14 Jan 2009 11:33:04 -0500
+Received: from esebh106.NOE.Nokia.com (esebh106.ntc.nokia.com [172.21.138.213])
+	by mgw-mx09.nokia.com (Switch-3.2.6/Switch-3.2.6) with ESMTP id n0EGWZo8016735
+	for <linux-omap@vger.kernel.org>; Wed, 14 Jan 2009 10:33:01 -0600
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
@@ -18,6 +18,9 @@ Cc: Peter 'p2' De Schrijver <peter.de-schrijver@nokia.com>
 This patch prevents VDD1 and VDD2 to go to the lowest OPP when entering C1.
 It improves wakeup latency from 600us to about 50us.
 
+Now with signoff :)
+
+Signed-off-by: Peter 'p2' De Schrijver <peter.de-schrijver@nokia.com>
 ---
  arch/arm/mach-omap2/pm34xx.c |    2 +-
  1 files changed, 1 insertions(+), 1 deletions(-)
