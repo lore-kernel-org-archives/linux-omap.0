@@ -1,40 +1,51 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: v2.6.28-omap1 tagged, some bugs remain
-Date: Wed, 14 Jan 2009 17:28:07 +0200
-Message-ID: <20090114152806.GP29324@atomide.com>
-References: <1231921649.13843.171.camel@eenurkka-desktop>
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: Patch series in Tarball submitted (RE: [REVIEW PATCH 00/14]
+ OMAP3 camera + ISP + MT9P012 sensor driver v2)
+Date: Wed, 14 Jan 2009 13:55:24 -0200
+Message-ID: <20090114135524.0f51a82d@pedra.chehab.org>
+References: <19F8576C6E063C45BE387C64729E739403ECF70CEB@dbde02.ent.ti.com>
+	<A24693684029E5489D1D202277BE8944164DFC34@dlee02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-bos.mailhop.org ([63.208.196.178]:54399 "EHLO
-	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756655AbZANP2H (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 14 Jan 2009 10:28:07 -0500
-Content-Disposition: inline
-In-Reply-To: <1231921649.13843.171.camel@eenurkka-desktop>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-media-owner@vger.kernel.org>
+In-Reply-To: <A24693684029E5489D1D202277BE8944164DFC34@dlee02.ent.ti.com>
+Sender: linux-media-owner@vger.kernel.org
+To: "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>
+Cc: "Hiremath, Vaibhav" <hvaibhav@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>, "video4linux-list@redhat.com" <video4linux-list@redhat.com>, Sakari Ailus <sakari.ailus@nokia.com>, "Tuukka.O Toivonen" <tuukka.o.toivonen@nokia.com>, "Nagalla, Hari" <hnagalla@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: Eero Nurkkala <ext-eero.nurkkala@nokia.com>, "Nikula Jarkko (NRC/Helsinki)" <jarkko.nikula@nokia.com>
-Cc: linux-omap@vger.kernel.org
 
-* Eero Nurkkala <ext-eero.nurkkala@nokia.com> [090114 12:05]:
-> > >> - According to Jarkko Nikula, ASoC does not currently work because
-> > >>  of some recent clock changes.
-> 
-> I would like to note, that currently there's no counterpart for this
-> commit:
-> 
-> 3456ef483b5322ba4a7647f024e2c5b7846cd7e3
-> 
-> ARM: OMAP3: Enable writing to XCCR and RCCR McBSP registers for OMAP
-> 2430/34xx
-> 
-> 
-> You need to have the counterpart (in /sound/soc/omap/omap-mcbsp.c) for
-> that patch, othwerwise there's no chance to hear any DMA transferred
-> audio.
+On Wed, 14 Jan 2009 08:55:08 -0600
+"Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com> wrote:
 
-Jarkko, can you post the patch queued up for alsa? We might want to
-have that in linux-omap too.
+> 
+> 
+> > -----Original Message-----
+> > From: Hiremath, Vaibhav
+> > Sent: Wednesday, January 14, 2009 8:51 AM
+> 
+> <snip>
+> 
+> > [Hiremath, Vaibhav] I tried to build camera driver as module and got
+> > following error -
+> > 
+> > ERROR: "ispmmu_get_mapeable_space" [drivers/media/video/omap34xxcam.ko]
+> > undefined!
+> > make[1]: *** [__modpost] Error 1
+> > make: *** [modules] Error 2
+> > 
+> > You have missed to export this symbol, please correct in next version of
+> > patches.
+> > 
+> 
+> Oops, good catch. Thanks, I'll correct that. No problem.
 
-Tony
+Better to wait a little bit before posting the new version... I'm still
+analyzing the current posting. 
+
+It would be useful if you could document the private ioctls you've added, to
+help me to better analyse the remaining patches.
+
+
+Cheers,
+Mauro
