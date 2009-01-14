@@ -1,54 +1,117 @@
-From: "Felipe Contreras" <felipe.contreras@gmail.com>
-Subject: Re: Important changes, please read
-Date: Wed, 14 Jan 2009 16:34:46 +0200
-Message-ID: <94a0d4530901140634r3ef9fd66w96d3d0f7890344b2@mail.gmail.com>
-References: <20090114134152.GJ29324@atomide.com>
+From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+Subject: RE: Patch series in Tarball submitted (RE: [REVIEW PATCH 00/14]
+ OMAP3 camera + ISP + MT9P012 sensor driver v2)
+Date: Wed, 14 Jan 2009 20:20:38 +0530
+Message-ID: <19F8576C6E063C45BE387C64729E739403ECF70CEB@dbde02.ent.ti.com>
+References: <A24693684029E5489D1D202277BE8944164DF781@dlee02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from fg-out-1718.google.com ([72.14.220.152]:21905 "EHLO
-	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754078AbZANOes (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 14 Jan 2009 09:34:48 -0500
-Received: by fg-out-1718.google.com with SMTP id 19so295972fgg.17
-        for <linux-omap@vger.kernel.org>; Wed, 14 Jan 2009 06:34:47 -0800 (PST)
-In-Reply-To: <20090114134152.GJ29324@atomide.com>
-Content-Disposition: inline
+Received: from devils.ext.ti.com ([198.47.26.153]:52154 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753833AbZANOvj convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 14 Jan 2009 09:51:39 -0500
+In-Reply-To: <A24693684029E5489D1D202277BE8944164DF781@dlee02.ent.ti.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org
+To: "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>, "video4linux-list@redhat.com" <video4linux-list@redhat.com>, Sakari Ailus <sakari.ailus@nokia.com>, "Tuukka.O Toivonen" <tuukka.o.toivonen@nokia.com>, "Nagalla, Hari" <hnagalla@ti.com>
 
-On Wed, Jan 14, 2009 at 3:41 PM, Tony Lindgren <tony@atomide.com> wrote:
+
+Thanks,
+Vaibhav Hiremath
+Platform Support Products
+Texas Instruments Inc
+Ph: +91-80-25099927
+> -----Original Message-----
+> From: linux-media-owner@vger.kernel.org [mailto:linux-media-
+> owner@vger.kernel.org] On Behalf Of Aguirre Rodriguez, Sergio
+> Alberto
+> Sent: Wednesday, January 14, 2009 1:49 AM
+> To: linux-omap@vger.kernel.org
+> Cc: linux-media@vger.kernel.org; video4linux-list@redhat.com; Sakari
+> Ailus; Tuukka.O Toivonen; Nagalla, Hari
+> Subject: Patch series in Tarball submitted (RE: [REVIEW PATCH 00/14]
+> OMAP3 camera + ISP + MT9P012 sensor driver v2)
+> 
 > Hi all,
->
-> I'll be merging in v2.6.29-rc1 soonish, and suggest that we make some
-> changes to continue aligning our tree with the mainline tree. So
-> I suggest:
->
-> - We move the dspgateway code into a separate branch as discussed
->  earlier.
->
-> - We stop using source.mvista.com git tree, and only use the
->  kernel.org git tree. There's no need for having two master trees,
->  and kernel.org is the standard way to go. Big thanks to
->  Monta Vista for hosting us for many years.
->
-> - We reset arch/arm/mach-omap1 to be what's in the mainline and
->  tag that patch again with "REMOVE OMAP LEGACY CODE" so it's easy
->  to find later on. Naturally any code in that patch can be reworked
->  so it can be integrated to the mainline kernel.
->
-> - We add a clocks branch maintained by Paul Walmsley that's based
->  off the mainline tree
->
-> - We change the pm branch maintained by Kevin Hilman to be based
->  on top of the mainline tree
->
-> Comments and suggestions anybody?
+> 
+> Just in case you're having troubles getting the patches, heres a
+> tarball with all of them:
+> 
+> https://omapzoom.org/gf/download/docmanfileversion/51/959/l-
+> o_cam_patches_2009_01_12.tar.bz2
+> 
+[Hiremath, Vaibhav] I tried to build camera driver as module and got following error - 
 
-Perhaps remove old unused branches?
+ERROR: "ispmmu_get_mapeable_space" [drivers/media/video/omap34xxcam.ko] undefined!
+make[1]: *** [__modpost] Error 1
+make: *** [modules] Error 2
 
--- 
-Felipe Contreras
+You have missed to export this symbol, please correct in next version of patches.
+
+> I appreciate your time,
+> Sergio
+> 
+> > -----Original Message-----
+> > From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
+> > owner@vger.kernel.org] On Behalf Of Aguirre Rodriguez, Sergio
+> Alberto
+> > Sent: Monday, January 12, 2009 8:03 PM
+> > To: linux-omap@vger.kernel.org
+> > Cc: linux-media@vger.kernel.org; video4linux-list@redhat.com;
+> Sakari
+> > Ailus; Tuukka.O Toivonen; Nagalla, Hari
+> > Subject: [REVIEW PATCH 00/14] OMAP3 camera + ISP + MT9P012 sensor
+> driver
+> > v2
+> >
+> > Hi,
+> >
+> > I'm sending the following patchset for review to the relevant
+> lists
+> > (linux-omap, v4l, linux-media).
+> >
+> > Includes:
+> >  - Omap3 camera core + ISP drivers.
+> >  - MT9P012 sensor driver (adapted to 3430SDP)
+> >  - DW9710 lens driver (adapted to work with MT9P012 for SDP)
+> >  - Necessary v4l2-int-device changes to make above drivers work
+> >  - Redefine OMAP3 ISP platform device.
+> >  - Review comments fixed from: (Thanks a lot for their time and
+> help)
+> >    - Hans Verkuil
+> >    - Tony Lindgreen
+> >    - Felipe Balbi
+> >    - Vaibhav Hiremath
+> >    - David Brownell
+> >
+> > Some notes:
+> >  - Uses v4l2-int-device solution.
+> >  - Tested with 3430SDP ES3.0 VG5.0.1 with Camkit v3.0.1
+> >  - Applies cleanly on top of commit
+> > 0ec95b96fd77036a13398c66901e11cd301190d0 by Jouni Hogander (OMAP3:
+> PM:
+> > Emu_pwrdm is switched off by hardware even when sdti is in use)
+> >  - ISP wrappers dropped from the patchset, as a rework is going on
+> > currently.
+> >
+> >
+> > I appreciate in advance your time.
+> >
+> > Regards,
+> > Sergio
+> > --
+> > To unsubscribe from this list: send the line "unsubscribe linux-
+> omap" in
+> > the body of a message to majordomo@vger.kernel.org
+> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-
+> media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
