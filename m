@@ -1,46 +1,40 @@
-From: "Gadiyar, Anand" <gadiyar@ti.com>
-Subject: [PATCH OMAPZOOM] Kill compile warning in pm_34xx.c
-Date: Wed, 14 Jan 2009 20:38:13 +0530
-Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB02E6782B14@dbde02.ent.ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: v2.6.28-omap1 tagged, some bugs remain
+Date: Wed, 14 Jan 2009 17:28:07 +0200
+Message-ID: <20090114152806.GP29324@atomide.com>
+References: <1231921649.13843.171.camel@eenurkka-desktop>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:58958 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753927AbZANPIf convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 14 Jan 2009 10:08:35 -0500
-Received: from dbdp20.itg.ti.com ([172.24.170.38])
-	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id n0EF8SAZ005567
-	for <linux-omap@vger.kernel.org>; Wed, 14 Jan 2009 09:08:34 -0600
-Received: from dbde70.ent.ti.com (localhost [127.0.0.1])
-	by dbdp20.itg.ti.com (8.13.8/8.13.8) with ESMTP id n0EF8Qup004192
-	for <linux-omap@vger.kernel.org>; Wed, 14 Jan 2009 20:38:27 +0530 (IST)
-Content-Language: en-US
+Received: from mho-01-bos.mailhop.org ([63.208.196.178]:54399 "EHLO
+	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756655AbZANP2H (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 14 Jan 2009 10:28:07 -0500
+Content-Disposition: inline
+In-Reply-To: <1231921649.13843.171.camel@eenurkka-desktop>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
-Cc: "Pandita, Vikram" <vikram.pandita@ti.com>
+To: Eero Nurkkala <ext-eero.nurkkala@nokia.com>, "Nikula Jarkko (NRC/Helsinki)" <jarkko.nikula@nokia.com>
+Cc: linux-omap@vger.kernel.org
 
-From: Anand Gadiyar <gadiyar@ti.com>
+* Eero Nurkkala <ext-eero.nurkkala@nokia.com> [090114 12:05]:
+> > >> - According to Jarkko Nikula, ASoC does not currently work because
+> > >>  of some recent clock changes.
+> 
+> I would like to note, that currently there's no counterpart for this
+> commit:
+> 
+> 3456ef483b5322ba4a7647f024e2c5b7846cd7e3
+> 
+> ARM: OMAP3: Enable writing to XCCR and RCCR McBSP registers for OMAP
+> 2430/34xx
+> 
+> 
+> You need to have the counterpart (in /sound/soc/omap/omap-mcbsp.c) for
+> that patch, othwerwise there's no chance to hear any DMA transferred
+> audio.
 
-Fix this compilation warning in pm_34xx.c
+Jarkko, can you post the patch queued up for alsa? We might want to
+have that in linux-omap too.
 
-  CC      arch/arm/mach-omap2/pm_34xx.o
-arch/arm/mach-omap2/pm_34xx.c:214: warning: function declaration isn't a prototype
-
-Signed-off-by: Anand Gadiyar <gadiyar@ti.com>
----
-diff --git a/arch/arm/mach-omap2/pm_34xx.c b/arch/arm/mach-omap2/pm_34xx.c
-index aeeb055..abe9618 100644
---- a/arch/arm/mach-omap2/pm_34xx.c
-+++ b/arch/arm/mach-omap2/pm_34xx.c
-@@ -210,7 +210,7 @@ u32 omap3_start_rng(void)
- }
- #endif /* #ifdef OMAP3_START_RNG */
- 
--void omap3_push_sram_functions()
-+void omap3_push_sram_functions(void)
- {
- 	_omap_sram_idle = omap_sram_push(omap34xx_cpu_suspend,
- 				omap34xx_cpu_suspend_sz);
+Tony
