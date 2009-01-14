@@ -1,71 +1,157 @@
 From: Adrian Hunter <ext-adrian.hunter@nokia.com>
 Subject: Re: [PATCH 2/2] OMAP: HSMMC: Fix response type for busy after response
-Date: Wed, 14 Jan 2009 12:19:55 +0200
-Message-ID: <496DBC4B.2000609@nokia.com>
-References: <20090113133827.29474.92645.sendpatchset@ahunter-laptop> <20090113133841.29474.15852.sendpatchset@ahunter-laptop>
+Date: Wed, 14 Jan 2009 12:21:37 +0200
+Message-ID: <496DBCB1.6020508@nokia.com>
+References: <20090113133827.29474.92645.sendpatchset@ahunter-laptop> <20090113133841.29474.15852.sendpatchset@ahunter-laptop> <496DBC4B.2000609@nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:16769 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751675AbZANKH4 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 14 Jan 2009 05:07:56 -0500
-In-Reply-To: <20090113133841.29474.15852.sendpatchset@ahunter-laptop>
+Received: from smtp.nokia.com ([192.100.122.230]:34117 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751675AbZANKJ7 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 14 Jan 2009 05:09:59 -0500
+In-Reply-To: <496DBC4B.2000609@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Adrian Hunter <ext-adrian.hunter@nokia.com>
 Cc: Tony Lindgren <tony@atomide.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, lkml <linux-kernel@vger.kernel.org>, Pierre Ossman <drzeus-mmc@drzeus.cx>, linux-omap Mailing List <linux-omap@vger.kernel.org>
 
-Adrian Hunter wrote:
->>From 410bc62034c021f8767c8dae469c3215783992ca Mon Sep 17 00:00:00 200=
-1
-> From: Adrian Hunter <ext-adrian.hunter@nokia.com>
-> Date: Mon, 12 Jan 2009 16:13:08 +0200
-> Subject: [PATCH] OMAP: HSMMC: Fix response type for busy after respon=
-se
->=20
-> Some MMC commands result in the card becoming busy after
-> the response is received.  This needs to be specified
-> for the omap_hsmmc host controller, which is what this
-> patch does.  However, the effect is that some commands
-> with no data will cause a Transfer Complete (TC) interrupt
-> in addition to the Command Complete (CC) interrupt.
-> In order to deal with that, the irq handler has needed
-> a few changes also.
->=20
-> The benefit of this change is that the omap_hsmmc host
-> controller driver now waits for the TC interrupt while
-> the card is busy, so the mmc_block driver needs to poll
-> the card status just once instead of repeatedly.
-> i.e. the net result is more sleep and less cpu.
->=20
-> This also fixes the hidden problem that the controller
-> was turning off the clock to the card while the card
-> was busy - the clock was then switched on for the
-> duration of each Send Status command used for polling,
-> which is why writes did not lock up altogether.
-> i.e. really dysfunctional.
+>From f1038d1f1b3360130b41ffe77c568d76bc4102e9 Mon Sep 17 00:00:00 2001
+From: Adrian Hunter <ext-adrian.hunter@nokia.com>
+Date: Mon, 12 Jan 2009 16:13:08 +0200
+Subject: [PATCH] OMAP: HSMMC: Fix response type for busy after response
 
-That paragraph is not true.  According to the standard:
+Some MMC commands result in the card becoming busy after
+the response is received.  This needs to be specified
+for the omap_hsmmc host controller, which is what this
+patch does.  However, the effect is that some commands
+with no data will cause a Transfer Complete (TC) interrupt
+in addition to the Command Complete (CC) interrupt.
+In order to deal with that, the irq handler has needed
+a few changes also.
 
-"The host is allowed to shut down the clock of a =93busy=94 card. The c=
-ard will complete the programming
-operation regardless of the host clock. However, the host must provide =
-a clock edge for the card to turn
-off its busy signal. Without a clock edge the card (unless previously d=
-isconnected by a deselect command
--CMD7) will force the DAT0 line down, forever."
+The benefit of this change is that the omap_hsmmc host
+controller driver now waits for the TC interrupt while
+the card is busy, so the mmc_block driver needs to poll
+the card status just once instead of repeatedly.
+i.e. the net result is more sleep and less cpu.
 
-i.e. during busy state the clock is only needed to check whether the bu=
-sy state is over.
+The command sequence for open-ended multi-block write
+with DMA is now:
 
-I will resend the patch, without that paragraph and with a fix to repor=
-t the
-error code when there is a timeout error in the busy state.
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+	Issue write command CMD25
+	Receive CC interrupt
+	Data is sent
+	Receive TC interrupt (DMA is done)
+	Issue stop command CMD12
+	Receive CC interrupt
+	Card is busy
+	Receive TC interrupt
+	Card is now ready for next transfer
+
+Signed-off-by: Adrian Hunter <ext-adrian.hunter@nokia.com>
+---
+ drivers/mmc/host/omap_hsmmc.c |   40 +++++++++++++++++++++++++++++++---------
+ 1 files changed, 31 insertions(+), 9 deletions(-)
+
+diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
+index 115d114..3ce2a38 100644
+--- a/drivers/mmc/host/omap_hsmmc.c
++++ b/drivers/mmc/host/omap_hsmmc.c
+@@ -151,6 +151,7 @@ struct mmc_omap_host {
+ 	int			initstr;
+ 	int			slot_id;
+ 	int			dbclk_enabled;
++	int			response_busy;
+ 
+ 	struct timer_list       idle_timer;
+ 	spinlock_t		clk_lock;     /* for changing enabled state */
+@@ -288,10 +289,14 @@ mmc_omap_start_command(struct mmc_omap_host *host, struct mmc_command *cmd,
+ 	OMAP_HSMMC_WRITE(host->base, ISE, INT_EN_MASK);
+ 	OMAP_HSMMC_WRITE(host->base, IE, INT_EN_MASK);
+ 
++	host->response_busy = 0;
+ 	if (cmd->flags & MMC_RSP_PRESENT) {
+ 		if (cmd->flags & MMC_RSP_136)
+ 			resptype = 1;
+-		else
++		else if (cmd->flags & MMC_RSP_BUSY) {
++			resptype = 3;
++			host->response_busy = 1;
++		} else
+ 			resptype = 2;
+ 	}
+ 
+@@ -326,6 +331,15 @@ mmc_omap_start_command(struct mmc_omap_host *host, struct mmc_command *cmd,
+ static void
+ mmc_omap_xfer_done(struct mmc_omap_host *host, struct mmc_data *data)
+ {
++	if (!data) {
++		struct mmc_request *mrq = host->mrq;
++
++		host->mrq = NULL;
++		mmc_omap_fclk_lazy_disable(host);
++		mmc_request_done(host->mmc, mrq);
++		return;
++	}
++
+ 	host->data = NULL;
+ 
+ 	if (host->use_dma && host->dma_ch != -1)
+@@ -368,7 +382,7 @@ mmc_omap_cmd_done(struct mmc_omap_host *host, struct mmc_command *cmd)
+ 			cmd->resp[0] = OMAP_HSMMC_READ(host->base, RSP10);
+ 		}
+ 	}
+-	if (host->data == NULL || cmd->error) {
++	if ((host->data == NULL && !host->response_busy) || cmd->error) {
+ 		host->mrq = NULL;
+ 		mmc_omap_fclk_lazy_disable(host);
+ 		mmc_request_done(host->mmc, cmd->mrq);
+@@ -433,7 +447,7 @@ static irqreturn_t mmc_omap_irq(int irq, void *dev_id)
+ 	struct mmc_data *data;
+ 	int end_cmd = 0, end_trans = 0, status;
+ 
+-	if (host->cmd == NULL && host->data == NULL) {
++	if (host->mrq == NULL) {
+ 		OMAP_HSMMC_WRITE(host->base, STAT,
+ 			OMAP_HSMMC_READ(host->base, STAT));
+ 		return IRQ_HANDLED;
+@@ -464,8 +478,11 @@ static irqreturn_t mmc_omap_irq(int irq, void *dev_id)
+ 				}
+ 				end_cmd = 1;
+ 			}
+-			if (host->data) {
+-				mmc_dma_cleanup(host, -ETIMEDOUT);
++			if (host->data || host->response_busy) {
++				if (host->data)
++					mmc_dma_cleanup(host, -ETIMEDOUT);
++				host->response_busy = 0;
++
+ 				OMAP_HSMMC_WRITE(host->base, SYSCTL,
+ 					OMAP_HSMMC_READ(host->base,
+ 							SYSCTL) | SRD);
+@@ -475,11 +492,16 @@ static irqreturn_t mmc_omap_irq(int irq, void *dev_id)
+ 			}
+ 		}
+ 		if ((status & DATA_TIMEOUT) || (status & DATA_CRC)) {
+-			if (host->data) {
+-				if (status & DATA_TIMEOUT)
+-					mmc_dma_cleanup(host, -ETIMEDOUT);
++			if (host->data || host->response_busy) {
++				int err = (status & DATA_TIMEOUT) ?
++						-ETIMEDOUT : -EILSEQ;
++
++				if (host->data)
++					mmc_dma_cleanup(host, err);
+ 				else
+-					mmc_dma_cleanup(host, -EILSEQ);
++					host->mrq->cmd->error = err;
++				host->response_busy = 0;
++
+ 				OMAP_HSMMC_WRITE(host->base, SYSCTL,
+ 					OMAP_HSMMC_READ(host->base,
+ 							SYSCTL) | SRD);
+-- 
+1.5.4.3
+
