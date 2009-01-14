@@ -1,37 +1,34 @@
 From: David Brownell <david-b@pacbell.net>
-Subject: Re: OMAP3430 clock settings
-Date: Wed, 14 Jan 2009 10:11:15 -0800
-Message-ID: <200901141011.15673.david-b@pacbell.net>
-References: <1231897985-5274-1-git-send-email-stanley.miao@windriver.com> <3a2dabf50901140100i63899449ud8fee54bd7763bff@mail.gmail.com> <F9F1042FDECC134ABFBF4EC5EBEC88DAB357EF@EXGZ02.sasken.com>
+Subject: Re: [PATCH 1/2] Include TPS6235x based Power regulator support
+Date: Wed, 14 Jan 2009 10:16:52 -0800
+Message-ID: <200901141016.52800.david-b@pacbell.net>
+References: <1231832468-7132-1-git-send-email-mani.pillai@ti.com> <20090113220738.GA13227@sirena.org.uk> <19F8576C6E063C45BE387C64729E739403ECF70CC7@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp121.sbc.mail.sp1.yahoo.com ([69.147.64.94]:29306 "HELO
-	smtp121.sbc.mail.sp1.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1753910AbZANSLR (ORCPT
+Received: from smtp124.sbc.mail.sp1.yahoo.com ([69.147.64.97]:24703 "HELO
+	smtp124.sbc.mail.sp1.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1752870AbZANSQz (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Wed, 14 Jan 2009 13:11:17 -0500
-In-Reply-To: <F9F1042FDECC134ABFBF4EC5EBEC88DAB357EF@EXGZ02.sasken.com>
+	Wed, 14 Jan 2009 13:16:55 -0500
+In-Reply-To: <19F8576C6E063C45BE387C64729E739403ECF70CC7@dbde02.ent.ti.com>
 Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Krishna Kishore <krishna.kishore@sasken.com>
-Cc: Ramesh Gupta Guntha <grgupta77@gmail.com>, linux-omap@vger.kernel.org
+To: "Pillai, Manikandan" <mani.pillai@ti.com>
+Cc: Mark Brown <broonie@sirena.org.uk>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Wednesday 14 January 2009, Krishna Kishore wrote:
->=20
-> =A0 =A0After reading IVA2_CM and MPU_CM registers, I want to know how=
- to
-> calculate the clock speeds.
+On Wednesday 14 January 2009, Pillai, Manikandan wrote:
+> The issue is that passing the initial value for regulators is done by
+> 
+>     struct regulator_init_data *init_data = dev->platform_data;
+> 
+> in regulator_register() function. Do we have a way to initialize the
+> platform data for the i2c client struct.
 
-You should be using the clock framework.  If you do that,
-then clk_get_rate() does that for you.
+Provide it in the struct i2c_board_info that your pr785.c file
+uses to configure the regulators.
 
-- Dave
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
