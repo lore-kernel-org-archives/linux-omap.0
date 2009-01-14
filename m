@@ -1,97 +1,350 @@
-From: "Ramirez Luna, Omar" <x00omar@ti.com>
-Subject: [OMAPZOOM][PATCH] DSPBRIDGE Wakeup IVA before accessing IVA MMU
- Registers
-Date: Wed, 14 Jan 2009 14:07:01 -0600
-Message-ID: <27F9C60D11D683428E133F85D2BB4A5303F21B0E6F@dlee03.ent.ti.com>
+From: "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>
+Subject: RE: [REVIEW PATCH 04/14] OMAP: CAM: Add ISP user header and
+ register defs
+Date: Wed, 14 Jan 2009 16:10:14 -0600
+Message-ID: <A24693684029E5489D1D202277BE8944153C47FF@dlee02.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:57999 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756934AbZANUHJ convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 14 Jan 2009 15:07:09 -0500
-Received: from dlep95.itg.ti.com ([157.170.170.107])
-	by bear.ext.ti.com (8.13.7/8.13.7) with ESMTP id n0EK73mR020252
-	for <linux-omap@vger.kernel.org>; Wed, 14 Jan 2009 14:07:08 -0600
-Received: from dlee73.ent.ti.com (localhost [127.0.0.1])
-	by dlep95.itg.ti.com (8.13.8/8.13.8) with ESMTP id n0EK73Br006405
-	for <linux-omap@vger.kernel.org>; Wed, 14 Jan 2009 14:07:03 -0600 (CST)
+Content-Transfer-Encoding: quoted-printable
+Return-path: <video4linux-list-bounces@redhat.com>
 Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
+	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
+List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
+List-Post: <mailto:video4linux-list@redhat.com>
+List-Help: <mailto:video4linux-list-request@redhat.com?subject=help>
+List-Subscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
+	<mailto:video4linux-list-request@redhat.com?subject=subscribe>
+Sender: video4linux-list-bounces@redhat.com
+Errors-To: video4linux-list-bounces@redhat.com
+To: "mchehab@infradead.org" <mchehab@infradead.org>
+Cc: "video4linux-list@redhat.com" <video4linux-list@redhat.com>, "sakari.ailus@nokia.com" <sakari.ailus@nokia.com>, "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "tuukka.o.toivonen@nokia.com" <tuukka.o.toivonen@nokia.com>, "Nagalla, Hari" <hnagalla@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: "Pandita, Vikram" <vikram.pandita@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-From: Ramesh Gupta <grgupta@ti.com>
-Date: Wed, 14 Jan 2009 17:39:20 +0530
-Subject: [PATCH] DSPBRIDGE Wakeup IVA before accessing IVA MMU Registers
 
-Wakeup IVA before accessing IVA MMU Registers
 
-Signed-off-by: Ramesh Gupta G <grgupta@ti.com>
+> -----Original Message-----
+> From: Mauro Carvalho Chehab [mailto:mchehab@infradead.org]
+> Sent: Tuesday, January 13, 2009 2:42 PM
+> To: Aguirre Rodriguez, Sergio Alberto
+> Cc: linux-omap@vger.kernel.org; linux-media@vger.kernel.org; video4linu=
+x-
+> list@redhat.com; Sakari Ailus; Tuukka.O Toivonen; Nagalla, Hari
+> Subject: Re: [REVIEW PATCH 04/14] OMAP: CAM: Add ISP user header and
+> register defs
+>
+> On Mon, 12 Jan 2009 20:03:15 -0600
+> "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com> wrote:
+>
+> > +/* ISP Private IOCTLs */
+> > +#define VIDIOC_PRIVATE_ISP_CCDC_CFG    \
+> > +       _IOWR('V', BASE_VIDIOC_PRIVATE + 1, struct
+> ispccdc_update_config)
+> > +#define VIDIOC_PRIVATE_ISP_PRV_CFG \
+> > +       _IOWR('V', BASE_VIDIOC_PRIVATE + 2, struct ispprv_update_conf=
+ig)
+> > +#define VIDIOC_PRIVATE_ISP_AEWB_CFG \
+> > +       _IOWR('V', BASE_VIDIOC_PRIVATE + 4, struct isph3a_aewb_config=
+)
+> > +#define VIDIOC_PRIVATE_ISP_AEWB_REQ \
+> > +       _IOWR('V', BASE_VIDIOC_PRIVATE + 5, struct isph3a_aewb_data)
+> > +#define VIDIOC_PRIVATE_ISP_HIST_CFG \
+> > +       _IOWR('V', BASE_VIDIOC_PRIVATE + 6, struct isp_hist_config)
+> > +#define VIDIOC_PRIVATE_ISP_HIST_REQ \
+> > +       _IOWR('V', BASE_VIDIOC_PRIVATE + 7, struct isp_hist_data)
+> > +#define VIDIOC_PRIVATE_ISP_AF_CFG \
+> > +       _IOWR('V', BASE_VIDIOC_PRIVATE + 8, struct af_configuration)
+> > +#define VIDIOC_PRIVATE_ISP_AF_REQ \
+> > +       _IOWR('V', BASE_VIDIOC_PRIVATE + 9, struct isp_af_data)
+>
+> Are those new ioctl meant to be used by the userspace API? If so, we ne=
+ed
+> to
+> understand each one, since maybe some of them make some sense to be in =
+the
+> public API. Also, a proper documentation should be provided for all of
+> those
+> ioctls.
 
----
- drivers/dsp/bridge/wmd/tiomap3430.c |   21 +++++++++++++++++++--
- 1 files changed, 19 insertions(+), 2 deletions(-)
+Yes, this Private IOCTLs that we added to the driver are currently being =
+used by some of our customers by their userspace applications that contai=
+n algos for performing Auto Focus, AutoExposure, Auto White Balance, and =
+some other gain table programming into the driver. A description of each =
+one is shown below:
 
-diff --git a/drivers/dsp/bridge/wmd/tiomap3430.c b/drivers/dsp/bridge/wmd/tiomap3430.c
-index c05383e..d838169 100644
---- a/drivers/dsp/bridge/wmd/tiomap3430.c
-+++ b/drivers/dsp/bridge/wmd/tiomap3430.c
-@@ -1289,6 +1290,7 @@ static DSP_STATUS WMD_BRD_MemMap(struct WMD_DEV_CONTEXT *hDevContext,
- 	struct HW_MMUMapAttrs_t hwAttrs;
- 	u32 numOfActualTabEntries = 0;
- 	u32 temp = 0;
-+	struct CFG_HOSTRES resources;
- 	u32 *pPhysAddrPageTbl = NULL;
- 	struct vm_area_struct *vma;
- 	struct mm_struct *mm = current->mm;
-@@ -1296,6 +1298,10 @@ static DSP_STATUS WMD_BRD_MemMap(struct WMD_DEV_CONTEXT *hDevContext,
- 	DBG_Trace(DBG_ENTER, "> WMD_BRD_MemMap hDevContext %x, pa %x, va %x, "
- 		 "size %x, ulMapAttr %x\n", hDevContext, ulMpuAddr, ulVirtAddr,
- 		 ulNumBytes, ulMapAttr);
-+	status = CFG_GetHostResources(
-+			(struct CFG_DEVNODE *)DRV_GetFirstDevExtension(),
-+					&resources);
-+
- 	if (ulNumBytes == 0)
- 		return DSP_EINVALIDARG;
- 
-@@ -1423,7 +1429,16 @@ func_cont:
- 	 * This is called from here instead from PteUpdate to avoid unnecessary
- 	 * repetition while mapping non-contiguous physical regions of a virtual
- 	 * region */
--	HW_MMU_TLBFlushAll(pDevContext->dwDSPMmuBase);
-+	HW_PWRST_IVA2RegGet(resources.dwPrmBase, &temp);
-+	if ((temp & HW_PWR_STATE_ON) == HW_PWR_STATE_OFF) {
-+		/* IVA domain is not in ON state*/
-+		DBG_Trace(DBG_LEVEL7, "temp value is 0x%x\n", temp);
-+		CLK_Enable(SERVICESCLK_iva2_ck);
-+		WakeDSP(pDevContext, NULL);
-+		HW_MMU_TLBFlushAll(pDevContext->dwDSPMmuBase);
-+		CLK_Disable(SERVICESCLK_iva2_ck);
-+	} else
-+		HW_MMU_TLBFlushAll(pDevContext->dwDSPMmuBase);
- 	DBG_Trace(DBG_ENTER, "< WMD_BRD_MemMap status %x\n", status);
- 	return status;
- }
-@@ -1564,6 +1579,7 @@ static DSP_STATUS WMD_BRD_MemUnMap(struct WMD_DEV_CONTEXT *hDevContext,
- 	 /* It is better to flush the TLB here, so that any stale old entries
- 	 * get flushed */
- EXIT_LOOP:
-+	IO_InterruptDSP2(pDevContext, MBX_PM_DSPWAKEUP);
- 	HW_MMU_TLBFlushAll(pDevContext->dwDSPMmuBase);
- 	DBG_Trace(DBG_LEVEL1, "WMD_BRD_MemUnMap vaCurr %x, pteAddrL1 %x "
- 		  "pteAddrL2 %x\n", vaCurr, pteAddrL1, pteAddrL2);
-@@ -2048,6 +2064,7 @@ func_cont:
- 	 * repetition while mapping non-contiguous physical regions of a virtual
- 	 * region */
- 	/* Waking up DSP before calling TLB Flush */
-+	IO_InterruptDSP2(pDevContext, MBX_PM_DSPWAKEUP);
- 	HW_MMU_TLBFlushAll(pDevContext->dwDSPMmuBase);
- 	DBG_Trace(DBG_LEVEL7, "< WMD_BRD_MemMap  at end status %x\n", status);
- 	return status;
--- 
-1.5.3.2
+************************************************
+OMAP3 ISP driver Private IOCTLs explanation
 
+- VIDIOC_PRIVATE_ISP_CCDC_CFG: Configures the OMAP3 ISP CCDC module setti=
+ngs contained in struct ispccdc_update_config (defined in arch/arm/plat-o=
+map/include/mach/isp_user.h).
+
+/**
+ * ispccdc_update_config - Structure for CCDC configuration.
+ * @update: Specifies which CCDC registers should be updated.
+ * @flag: Specifies which CCDC functions should be enabled.
+ * @alawip: Enable/Disable A-Law compression.
+ * @bclamp: Black clamp control register.
+ * @blcomp: Black level compensation value for RGrGbB Pixels. 2's complem=
+ent.
+ * @fpc: Number of faulty pixels corrected in the frame, address of FPC t=
+able.
+ * @cull: Cull control register.
+ * @colptn: Color pattern of the sensor.
+ * @lsc: Pointer to LSC gain table.
+ */
+struct ispccdc_update_config {
+        __u16 update;
+        __u16 flag;
+        enum alaw_ipwidth alawip;
+        struct ispccdc_bclamp *bclamp;
+        struct ispccdc_blcomp *blcomp;
+        struct ispccdc_fpc *fpc;
+        struct ispccdc_lsc_config *lsc_cfg;
+        struct ispccdc_culling *cull;
+        __u32 colptn;
+        __u8 *lsc;
+};
+
+- VIDIOC_PRIVATE_ISP_PRV_CFG: Configures the OMAP3 ISP Preview module set=
+tings contained in struct ispprv_update_config (defined in arch/arm/plat-=
+omap/include/mach/isp_user.h).
+
+/**
+ * struct ispprv_update_config - Structure for Preview Configuration (use=
+r).
+ * @update: Specifies which ISP Preview registers should be updated.
+ * @flag: Specifies which ISP Preview functions should be enabled.
+ * @yen: Pointer to luma enhancement table.
+ * @shading_shift: 3bit value of shift used in shading compensation.
+ * @prev_hmed: Pointer to structure containing the odd and even distance.
+ *             between the pixels in the image along with the filter thre=
+shold.
+ * @prev_cfa: Pointer to structure containing the CFA interpolation table=
+, CFA.
+ *            format in the image, vertical and horizontal gradient thres=
+hold.
+ * @csup: Pointer to Structure for Chrominance Suppression coefficients.
+ * @prev_wbal: Pointer to structure for White Balance.
+ * @prev_blkadj: Pointer to structure for Black Adjustment.
+ * @rgb2rgb: Pointer to structure for RGB to RGB Blending.
+ * @prev_csc: Pointer to structure for Color Space Conversion from RGB-YC=
+bYCr.
+ * @yclimit: Pointer to structure for Y, C Value Limit.
+ * @prev_dcor: Pointer to structure for defect correction.
+ * @prev_nf: Pointer to structure for Noise Filter
+ * @red_gamma: Pointer to red gamma correction table.
+ * @green_gamma: Pointer to green gamma correction table.
+ * @blue_gamma: Pointer to blue gamma correction table.
+ */
+struct ispprv_update_config {
+        __u16 update;
+        __u16 flag;
+        void *yen;
+        __u32 shading_shift;
+        struct ispprev_hmed *prev_hmed;
+        struct ispprev_cfa *prev_cfa;
+        struct ispprev_csup *csup;
+        struct ispprev_wbal *prev_wbal;
+        struct ispprev_blkadj *prev_blkadj;
+        struct ispprev_rgbtorgb *rgb2rgb;
+        struct ispprev_csc *prev_csc;
+        struct ispprev_yclimit *yclimit;
+        struct ispprev_dcor *prev_dcor;
+        struct ispprev_nf *prev_nf;
+        __u32 *red_gamma;
+        __u32 *green_gamma;
+        __u32 *blue_gamma;
+};
+
+- VIDIOC_PRIVATE_ISP_AEWB_CFG: Configures OMAP3 ISP Statistic Collection =
+Modules for Auto Exposure and Auto White Balance algos in userspace. Sett=
+ings sent using struct isph3a_aewb_config (defined in arch/arm/plat-omap/=
+include/mach/isp_user.h).
+
+/**
+ * struct isph3a_aewb_config - AE AWB configuration reset values.
+ * saturation_limit: Saturation limit.
+ * @win_height: Window Height. Range 2 - 256, even values only.
+ * @win_width: Window Width. Range 6 - 256, even values only.
+ * @ver_win_count: Vertical Window Count. Range 1 - 128.
+ * @hor_win_count: Horizontal Window Count. Range 1 - 36.
+ * @ver_win_start: Vertical Window Start. Range 0 - 4095.
+ * @hor_win_start: Horizontal Window Start. Range 0 - 4095.
+ * @blk_ver_win_start: Black Vertical Windows Start. Range 0 - 4095.
+ * @blk_win_height: Black Window Height. Range 2 - 256, even values only.
+ * @subsample_ver_inc: Subsample Vertical points increment Range 2 - 32, =
+even
+ *                     values only.
+ * @subsample_hor_inc: Subsample Horizontal points increment Range 2 - 32=
+, even
+ *                     values only.
+ * @alaw_enable: AEW ALAW EN flag.
+ * @aewb_enable: AE AWB stats generation EN flag.
+ */
+struct isph3a_aewb_config {
+        __u16 saturation_limit;
+        __u16 win_height;
+        __u16 win_width;
+        __u16 ver_win_count;
+        __u16 hor_win_count;
+        __u16 ver_win_start;
+        __u16 hor_win_start;
+        __u16 blk_ver_win_start;
+        __u16 blk_win_height;
+        __u16 subsample_ver_inc;
+        __u16 subsample_hor_inc;
+        __u8 alaw_enable;
+        __u8 aewb_enable;
+};
+
+- VIDIOC_PRIVATE_ISP_AEWB_REQ: Used for Auto Exposure and White balance c=
+ontrol loops. Retrieves specific frame statistics (based on config set on=
+ other IOCTL), and configures used sensor and ISP gains too. Uses struct =
+isph3a_aewb_data (defined in arch/arm/plat-omap/include/mach/isp_user.h).
+
+/**
+ * struct isph3a_aewb_data - Structure of data sent to or received from u=
+ser
+ * @h3a_aewb_statistics_buf: Pointer to pass to user.
+ * @shutter: Shutter speed.
+ * @gain: Sensor analog Gain.
+ * @shutter_cap: Shutter speed for capture.
+ * @gain_cap: Sensor Gain for capture.
+ * @dgain: White balance digital gain.
+ * @wb_gain_b: White balance color gain blue.
+ * @wb_gain_r: White balance color gain red.
+ * @wb_gain_gb: White balance color gain green blue.
+ * @wb_gain_gr: White balance color gain green red.
+ * @frame_number: Frame number of requested stats.
+ * @curr_frame: Current frame number being processed.
+ * @update: Bitwise flags to update parameters.
+ * @ts: Timestamp of returned framestats.
+ * @field_count: Sequence number of returned framestats.
+ */
+struct isph3a_aewb_data {
+        void *h3a_aewb_statistics_buf;
+        __u32 shutter;
+        __u16 gain;
+        __u32 shutter_cap;
+        __u16 gain_cap;
+        __u16 dgain;
+        __u16 wb_gain_b;
+        __u16 wb_gain_r;
+        __u16 wb_gain_gb;
+        __u16 wb_gain_gr;
+        __u16 frame_number;
+        __u16 curr_frame;
+        __u8 update;
+        struct timeval ts;
+        unsigned long field_count;
+};
+
+- VIDIOC_PRIVATE_ISP_HIST_CFG: Configures OMAP3 ISP Histogram Statistic c=
+ollection module. Uses struct isp_hist_config (defined in arch/arm/plat-o=
+map/include/mach/isp_user.h).
+
+struct isp_hist_config {
+        __u8 hist_source;               /* CCDC or Memory */
+        __u8 input_bit_width;   /* Needed o know the size per pixel */
+        __u8 hist_frames;               /* Num of frames to be processed =
+and
+                                 * accumulated
+                                 */
+        __u8 hist_h_v_info;     /* frame-input width and height if source=
+ is
+                                 * memory
+                                 */
+        __u16 hist_radd;                /* frame-input address in memory =
+*/
+        __u16 hist_radd_off;    /* line-offset for frame-input */
+        __u16 hist_bins;        /* number of bins: 32, 64, 128, or 256 */
+        __u16 wb_gain_R;        /* White Balance Field-to-Pattern Assignm=
+ents */
+        __u16 wb_gain_RG;       /* White Balance Field-to-Pattern Assignm=
+ents */
+        __u16 wb_gain_B;        /* White Balance Field-to-Pattern Assignm=
+ents */
+        __u16 wb_gain_BG;       /* White Balance Field-to-Pattern Assignm=
+ents */
+        __u8 num_regions;               /* number of regions to be config=
+ured */
+        __u16 reg0_hor;         /* Region 0 size and position */
+        __u16 reg0_ver;         /* Region 0 size and position */
+        __u16 reg1_hor;         /* Region 1 size and position */
+        __u16 reg1_ver;         /* Region 1 size and position */
+        __u16 reg2_hor;         /* Region 2 size and position */
+        __u16 reg2_ver;         /* Region 2 size and position */
+        __u16 reg3_hor;         /* Region 3 size and position */
+        __u16 reg3_ver;         /* Region 3 size and position */
+};
+
+- VIDIOC_PRIVATE_ISP_HIST_REQ: Retrieves specific frame statistics (based=
+ on config set on other IOCTL). Uses struct isp_hist_data (defined in arc=
+h/arm/plat-omap/include/mach/isp_user.h).
+
+struct isp_hist_data {
+        __u32 *hist_statistics_buf;     /* Pointer to pass to user */
+};
+
+- VIDIOC_PRIVATE_ISP_AF_CFG: Configures OMAP3 ISP Statistic Collection Mo=
+dules for Auto Focus algo in userspace. Settings sent using struct af_con=
+figuration (defined in arch/arm/plat-omap/include/mach/isp_user.h).
+
+/* Contains the parameters required for hardware set up of AF Engine */
+struct af_configuration {
+        enum af_alaw_enable alaw_enable;        /*ALWAW status */
+        struct af_hmf hmf_config;       /*HMF configurations */
+        enum rgbpos rgb_pos;            /*RGB Positions */
+        struct af_iir iir_config;       /*IIR filter configurations */
+        struct af_paxel paxel_config;   /*Paxel parameters */
+        enum af_mode mode;              /*Accumulator mode */
+        enum af_config_flag af_config; /*Flag indicates Engine is configu=
+red */
+};
+
+- VIDIOC_PRIVATE_ISP_AF_REQ: Used for Auto Focus control loop. Retrieves =
+specific frame statistics (based on config set on other IOCTL), and confi=
+gures used lens driver position. Uses struct isp_af_data (defined in arch=
+/arm/plat-omap/include/mach/isp_user.h).
+
+/**
+ * struct isp_af_data - AF statistics data to transfer between driver and=
+ user.
+ * @af_statistics_buf: Pointer to pass to user.
+ * @lens_current_position: Read value of lens absolute position.
+ * @desired_lens_direction: Lens desired location.
+ * @update: Bitwise flags to update parameters.
+ * @frame_number: Data for which frame is desired/given.
+ * @curr_frame: Current frame number being processed by AF module.
+ * @xtrastats: Extra statistics structure.
+ */
+struct isp_af_data {
+        void *af_statistics_buf;
+        __u16 lens_current_position;
+        __u16 desired_lens_direction;
+        __u16 update;
+        __u16 frame_number;
+        __u16 curr_frame;
+        struct isp_af_xtrastats xtrastats;
+};
+
+************************************************
+
+I hope this helps in understanding the driver Private IOCTLs better.
+
+Anything else please let me know.
+
+Regards,
+Sergio
+
+>
+> Cheers,
+> Mauro
+
+
+--
+video4linux-list mailing list
+Unsubscribe mailto:video4linux-list-request@redhat.com?subject=3Dunsubscr=
+ibe
+https://www.redhat.com/mailman/listinfo/video4linux-list
