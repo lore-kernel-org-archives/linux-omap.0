@@ -1,72 +1,71 @@
-From: "Pillai, Manikandan" <mani.pillai@ti.com>
-Subject: RE: [PATCH 1/2] Include TPS6235x based Power regulator support
-Date: Wed, 14 Jan 2009 15:32:17 +0530
-Message-ID: <19F8576C6E063C45BE387C64729E739403ECF70CC7@dbde02.ent.ti.com>
-References: <1231832468-7132-1-git-send-email-mani.pillai@ti.com>
- <20090113220738.GA13227@sirena.org.uk>
+From: Adrian Hunter <ext-adrian.hunter@nokia.com>
+Subject: Re: [PATCH 2/2] OMAP: HSMMC: Fix response type for busy after response
+Date: Wed, 14 Jan 2009 12:19:55 +0200
+Message-ID: <496DBC4B.2000609@nokia.com>
+References: <20090113133827.29474.92645.sendpatchset@ahunter-laptop> <20090113133841.29474.15852.sendpatchset@ahunter-laptop>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=windows-1252;
+	format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:47276 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753557AbZANKCk convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 14 Jan 2009 05:02:40 -0500
-In-Reply-To: <20090113220738.GA13227@sirena.org.uk>
-Content-Language: en-US
+Received: from smtp.nokia.com ([192.100.105.134]:16769 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751675AbZANKH4 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 14 Jan 2009 05:07:56 -0500
+In-Reply-To: <20090113133841.29474.15852.sendpatchset@ahunter-laptop>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Mark Brown <broonie@sirena.org.uk>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Adrian Hunter <ext-adrian.hunter@nokia.com>
+Cc: Tony Lindgren <tony@atomide.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, lkml <linux-kernel@vger.kernel.org>, Pierre Ossman <drzeus-mmc@drzeus.cx>, linux-omap Mailing List <linux-omap@vger.kernel.org>
 
-Hi ,
+Adrian Hunter wrote:
+>>From 410bc62034c021f8767c8dae469c3215783992ca Mon Sep 17 00:00:00 200=
+1
+> From: Adrian Hunter <ext-adrian.hunter@nokia.com>
+> Date: Mon, 12 Jan 2009 16:13:08 +0200
+> Subject: [PATCH] OMAP: HSMMC: Fix response type for busy after respon=
+se
+>=20
+> Some MMC commands result in the card becoming busy after
+> the response is received.  This needs to be specified
+> for the omap_hsmmc host controller, which is what this
+> patch does.  However, the effect is that some commands
+> with no data will cause a Transfer Complete (TC) interrupt
+> in addition to the Command Complete (CC) interrupt.
+> In order to deal with that, the irq handler has needed
+> a few changes also.
+>=20
+> The benefit of this change is that the omap_hsmmc host
+> controller driver now waits for the TC interrupt while
+> the card is busy, so the mmc_block driver needs to poll
+> the card status just once instead of repeatedly.
+> i.e. the net result is more sleep and less cpu.
+>=20
+> This also fixes the hidden problem that the controller
+> was turning off the clock to the card while the card
+> was busy - the clock was then switched on for the
+> duration of each Send Status command used for polling,
+> which is why writes did not lock up altogether.
+> i.e. really dysfunctional.
 
-Pls find my comments below
+That paragraph is not true.  According to the standard:
 
-Regards
+"The host is allowed to shut down the clock of a =93busy=94 card. The c=
+ard will complete the programming
+operation regardless of the host clock. However, the host must provide =
+a clock edge for the card to turn
+off its busy signal. Without a clock edge the card (unless previously d=
+isconnected by a deselect command
+-CMD7) will force the DAT0 line down, forever."
 
+i.e. during busy state the clock is only needed to check whether the bu=
+sy state is over.
 
-> -----Original Message-----
-> From: Mark Brown [mailto:broonie@sirena.org.uk]
-> Sent: Wednesday, January 14, 2009 3:38 AM
-> To: Pillai, Manikandan
-> Cc: linux-omap@vger.kernel.org
-> Subject: Re: [PATCH 1/2] Include TPS6235x based Power regulator support
-> 
-> On Tue, Jan 13, 2009 at 01:11:08PM +0530, Manikandan Pillai wrote:
-> 
-> > +static
-> > +int tps_6235x_probe(struct i2c_client *client, const struct i2c_device_id
-> *id)
-> > +{
-> > +	struct  regulator_dev           *rdev = NULL;
-> > +	unsigned char reg_val;
-> > +	struct device *dev_child = NULL;
-> 
-> ...
-> 
-> > +	/* Register the regulators */
-> > +	dev_child = device_find_child(client->adapter->dev.parent,
-> > +			(void *)regulator_consumer_name[id->driver_data],
-> > +			omap_i2c_match_child);
-> > +	rdev = regulator_register(&regulators[id->driver_data],
-> > +			dev_child, client);
-> 
-> With current mainline this should be rewritten as:
-> 
-> 	rdev = regulator_register(&regulators[id->driver_data],
-> 				  &client->dev, client);
-> 
-> though I'm not sure what's currently merged up into the OMAP trees.
-[Pillai, Manikandan] 
-The issue is that passing the initial value for regulators is done by
-
-struct regulator_init_data *init_data = dev->platform_data;
-
-in regulator_register() function. Do we have a way to initialize the
-platform data for the i2c client struct.
-
-> 
-> As discussed in the followup to your previous patch the register I/O
-> functions should also be moved into this driver.
-
+I will resend the patch, without that paragraph and with a fix to repor=
+t the
+error code when there is a timeout error in the busy state.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
