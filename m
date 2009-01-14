@@ -1,136 +1,53 @@
-From: "Pandita, Vikram" <vikram.pandita@ti.com>
-Subject: RE: [OMAPZOOM][PATCH] OMAP34XXCAM: PM: Fix ifdefs to	CONFIG_OMAP3_PM
-Date: Wed, 14 Jan 2009 20:32:07 +0530
-Message-ID: <FCCFB4CDC6E5564B9182F639FC3560870251462D75@dbde02.ent.ti.com>
-References: <A24693684029E5489D1D202277BE8944164DF3B2@dlee02.ent.ti.com>
- <20090114125434.GI29324@atomide.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: Important changes, please read
+Date: Wed, 14 Jan 2009 17:05:03 +0200
+Message-ID: <20090114150502.GN29324@atomide.com>
+References: <20090114134152.GJ29324@atomide.com> <94a0d4530901140634r3ef9fd66w96d3d0f7890344b2@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:45986 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756070AbZANPCU convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 14 Jan 2009 10:02:20 -0500
-In-Reply-To: <20090114125434.GI29324@atomide.com>
-Content-Language: en-US
+Received: from mho-01-bos.mailhop.org ([63.208.196.178]:62354 "EHLO
+	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754115AbZANPFI (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 14 Jan 2009 10:05:08 -0500
+Content-Disposition: inline
+In-Reply-To: <94a0d4530901140634r3ef9fd66w96d3d0f7890344b2@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Felipe Contreras <felipe.contreras@gmail.com>
+Cc: linux-omap@vger.kernel.org
 
+* Felipe Contreras <felipe.contreras@gmail.com> [090114 16:34]:
+> On Wed, Jan 14, 2009 at 3:41 PM, Tony Lindgren <tony@atomide.com> wrote:
+> > Hi all,
+> >
+> > I'll be merging in v2.6.29-rc1 soonish, and suggest that we make some
+> > changes to continue aligning our tree with the mainline tree. So
+> > I suggest:
+> >
+> > - We move the dspgateway code into a separate branch as discussed
+> >  earlier.
+> >
+> > - We stop using source.mvista.com git tree, and only use the
+> >  kernel.org git tree. There's no need for having two master trees,
+> >  and kernel.org is the standard way to go. Big thanks to
+> >  Monta Vista for hosting us for many years.
+> >
+> > - We reset arch/arm/mach-omap1 to be what's in the mainline and
+> >  tag that patch again with "REMOVE OMAP LEGACY CODE" so it's easy
+> >  to find later on. Naturally any code in that patch can be reworked
+> >  so it can be integrated to the mainline kernel.
+> >
+> > - We add a clocks branch maintained by Paul Walmsley that's based
+> >  off the mainline tree
+> >
+> > - We change the pm branch maintained by Kevin Hilman to be based
+> >  on top of the mainline tree
+> >
+> > Comments and suggestions anybody?
+> 
+> Perhaps remove old unused branches?
 
->From: Tony Lindgren [mailto:tony@atomide.com]
->Sent: Wednesday, January 14, 2009 6:55 AM
->To: Aguirre Rodriguez, Sergio Alberto
->Cc: linux-omap@vger.kernel.org; Pandita, Vikram
->Subject: Re: [OMAPZOOM][PATCH] OMAP34XXCAM: PM: Fix ifdefs to CONFIG_OMAP3_PM
->
->
->These ifdefs are completely getting out of control in the omap-zoom
->tree. There should be absolutely no need for CONFIG_OMAP3_PM.
+Those are already gone on kernel.org.
 
-There is an absolute need for such an ifdef. 
-This is an old discussion happened so many times and has been a trigger for the omapzoom.org TI tree.
-
-In l-o tree we do not have complete PM functionality and there are customers that want to go to actual "Products" in market. Eg: Latest Palm Pre and others
-
-The current PM code shaping up on L-O tree is no doubt clean but what about the functionality complete aspect and Time to market.
-
-Till then #ifdefs are the only option.
-
-
->
->
->
->
->> Signed-off-by: Sergio Aguirre <saaguirre@ti.com>
->> Reported-by: Anand Gadiyar <gadiyar@ti.com>
->> ---
->>  drivers/media/video/omap34xxcam.c |   16 ++++++++--------
->>  1 files changed, 8 insertions(+), 8 deletions(-)
->>
->> diff --git a/drivers/media/video/omap34xxcam.c b/drivers/media/video/omap34xxcam.c
->> index 818ec6e..43eeb1c 100644
->> --- a/drivers/media/video/omap34xxcam.c
->> +++ b/drivers/media/video/omap34xxcam.c
->> @@ -34,7 +34,7 @@
->>  #include <media/v4l2-common.h>
->>  #include <media/v4l2-ioctl.h>
->>
->> -#ifdef CONFIG_PM
->> +#ifdef CONFIG_OMAP3_PM
->>  #include <mach/resource.h>
->>  #endif
->>
->> @@ -48,7 +48,7 @@
->>  /* global variables */
->>  static struct omap34xxcam_device *omap34xxcam;
->>
->> -#ifdef CONFIG_PM
->> +#ifdef CONFIG_OMAP3_PM
->>  	struct constraint_handle *co_opp_camera_vdd1;
->>  	struct constraint_handle *co_opp_camera_vdd2;
->>  	struct constraint_handle *co_opp_camera_latency;
->> @@ -61,7 +61,7 @@ static int omap34xxcam_remove(struct platform_device *pdev);
->>  struct omap34xxcam_fh *camfh_saved;
->>
->>  /* constraint */
->> -#ifdef CONFIG_PM
->> +#ifdef CONFIG_OMAP3_PM
->>  	static struct constraint_id cnstr_id_vdd1 = {
->>  		.type = RES_OPP_CO,
->>  		.data = (void *)"vdd1_opp",
->> @@ -725,7 +725,7 @@ static int vidioc_streamon(struct file *file, void *fh, enum v4l2_buf_type i)
->>  	isp_af_notify(0);
->>  	isp_sgdma_init();
->>
->> -#ifdef CONFIG_PM
->> +#ifdef CONFIG_OMAP3_PM
->>  	if (system_rev >= OMAP3430_REV_ES2_0) {
->>  		if (ofh->pix.width >= 640 && ofh->pix.height >= 480) {
->>  			/* Setting constraint for VDD1 */
->> @@ -786,7 +786,7 @@ static int vidioc_streamoff(struct file *file, void *fh, enum v4l2_buf_type i)
->>
->>  	omap34xxcam_slave_power_set(vdev, V4L2_POWER_STANDBY);
->>
->> -#ifdef CONFIG_PM
->> +#ifdef CONFIG_OMAP3_PM
->>  	if (system_rev >= OMAP3430_REV_ES2_0) {
->>  		if (ofh->pix.width >= 640 && ofh->pix.height >= 480) {
->>  			/* Removing constraint for VDD1 */
->> @@ -1456,7 +1456,7 @@ static int omap34xxcam_release(struct inode *inode, struct file *file)
->>  	}
->>  	mutex_unlock(&vdev->mutex);
->>
->> -#ifdef CONFIG_PM
->> +#ifdef CONFIG_OMAP3_PM
->>  	if (system_rev >= OMAP3430_REV_ES2_0) {
->>  		if (remove_constraints) {
->>  			if (fh->pix.width >= 640 && fh->pix.height >= 480) {
->> @@ -1828,7 +1828,7 @@ static int omap34xxcam_probe(struct platform_device *pdev)
->>
->>  	omap34xxcam = cam;
->>
->> -#ifdef CONFIG_PM
->> +#ifdef CONFIG_OMAP3_PM
->>  	if (system_rev >= OMAP3430_REV_ES2_0) {
->>  		/* Getting constraint for VDD1 and VDD2 */
->>  		co_opp_camera_latency = constraint_get("omap34xxcam",
->> @@ -1882,7 +1882,7 @@ static int omap34xxcam_remove(struct platform_device *pdev)
->>  		cam->mmio_base_phys = 0;
->>  	}
->>
->> -#ifdef CONFIG_PM
->> +#ifdef CONFIG_OMAP3_PM
->>  	if (system_rev >= OMAP3430_REV_ES2_0) {
->>  		constraint_put(co_opp_camera_vdd1);
->>  		constraint_put(co_opp_camera_vdd2);
->> --
->> 1.5.6.5
->>
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
+Tony
