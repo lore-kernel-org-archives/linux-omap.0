@@ -1,43 +1,50 @@
-From: "Peter 'p2' De Schrijver" <peter.de-schrijver@nokia.com>
-Subject: [PATCH] Don't scale voltage in C1 state
-Date: Wed, 14 Jan 2009 18:32:35 +0200
-Message-ID: <1231950755-8620-1-git-send-email-peter.de-schrijver@nokia.com>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: new PM branch available
+Date: Wed, 14 Jan 2009 08:35:36 -0800
+Message-ID: <496E1458.2070700@deeprootsystems.com>
+References: <87iqoij2me.fsf@deeprootsystems.com> <3a2dabf50901140440y12b8c874j4b0da8100c763c24@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:53192 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1761008AbZANQdE (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 14 Jan 2009 11:33:04 -0500
-Received: from esebh106.NOE.Nokia.com (esebh106.ntc.nokia.com [172.21.138.213])
-	by mgw-mx09.nokia.com (Switch-3.2.6/Switch-3.2.6) with ESMTP id n0EGWZo8016735
-	for <linux-omap@vger.kernel.org>; Wed, 14 Jan 2009 10:33:01 -0600
+Received: from yx-out-2324.google.com ([74.125.44.28]:59524 "EHLO
+	yx-out-2324.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1761225AbZANQfk (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 14 Jan 2009 11:35:40 -0500
+Received: by yx-out-2324.google.com with SMTP id 8so257783yxm.1
+        for <linux-omap@vger.kernel.org>; Wed, 14 Jan 2009 08:35:39 -0800 (PST)
+In-Reply-To: <3a2dabf50901140440y12b8c874j4b0da8100c763c24@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Peter 'p2' De Schrijver <peter.de-schrijver@nokia.com>
+To: Ramesh Gupta Guntha <grgupta77@gmail.com>
+Cc: linux-omap@vger.kernel.org
 
-This patch prevents VDD1 and VDD2 to go to the lowest OPP when entering C1.
-It improves wakeup latency from 600us to about 50us.
+Ramesh Gupta Guntha wrote:
+> Hi Kevin,
+> 
+> On 1/14/09, Kevin Hilman <khilman@deeprootsystems.com> wrote:
+>> Hello,
+>>
+>> The latest PM branch is now available[1].
+>>
+>> I've done basic testing of retention and off-mode (suspend and dynamic
+>> idle) on Beagle and custom HW.  My SDP has something still keeping
+>> CORE active that others have not seen, but I have yet to debug.  Any
+>> other reports from SDP testing would be appreciated.
+> 
+> I have tested on my SDP, I too observed the similar behaviour, I am
+> seeing both PER and CORE are active.
+> 
 
-Now with signoff :)
+Hmm, if you're seeing both PER and CORE, then UART clocks are probably 
+still active.
 
-Signed-off-by: Peter 'p2' De Schrijver <peter.de-schrijver@nokia.com>
----
- arch/arm/mach-omap2/pm34xx.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+Please try this:
 
-diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
-index b0b2188..87ef55e 100644
---- a/arch/arm/mach-omap2/pm34xx.c
-+++ b/arch/arm/mach-omap2/pm34xx.c
-@@ -1052,7 +1052,7 @@ static void __init configure_vc(void)
- 				OMAP3_PRM_VC_I2C_CFG_OFFSET);
- 
- 	/* Setup voltctrl and other setup times */
--	prm_write_mod_reg(OMAP3430_AUTO_RET | OMAP3430_AUTO_SLEEP,
-+	prm_write_mod_reg(OMAP3430_AUTO_RET,
- 			  OMAP3430_GR_MOD, OMAP3_PRM_VOLTCTRL_OFFSET);
- 
- 	prm_write_mod_reg(OMAP3430_CLKSETUP_DURATION, OMAP3430_GR_MOD,
--- 
-1.5.6.3
+# echo 1 > /sys/power/clocks_off_while_idle
 
+then try again.
+
+Thanks,
+
+Kevin
