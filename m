@@ -1,46 +1,40 @@
-From: Matti Aarnio <matti.aarnio@zmailer.org>
-Subject: Re: Please update linux-omap git link at vger (Re: Important
-	changes, please read)
-Date: Thu, 15 Jan 2009 20:41:50 +0200
-Message-ID: <20090115184150.GJ5643@mea-ext.zmailer.org>
-References: <20090114134152.GJ29324@atomide.com> <94a0d4530901140634r3ef9fd66w96d3d0f7890344b2@mail.gmail.com> <20090114150502.GN29324@atomide.com> <496E15E0.70705@canonical.com> <20090115072605.GS29324@atomide.com> <20090115091310.GW29324@atomide.com>
+From: "Gadiyar, Anand" <gadiyar@ti.com>
+Subject: [PATCH] Fix compile error in usb-ehci.c
+Date: Fri, 16 Jan 2009 00:18:14 +0530
+Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB02E6815B89@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from z2.cat.iki.fi ([212.16.98.133]:50094 "EHLO z2.cat.iki.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755002AbZAOSly (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 15 Jan 2009 13:41:54 -0500
-Received: (mea@mea-ext) by mail.zmailer.org id S3542991AbZAOSlu (ORCPT
-	<rfc822;linux-omap@vger.kernel.org> + 1 other);
-	Thu, 15 Jan 2009 20:41:50 +0200
-Content-Disposition: inline
-In-Reply-To: <20090115091310.GW29324@atomide.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:47890 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754249AbZAOSsa convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 15 Jan 2009 13:48:30 -0500
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: postmaster@vger.kernel.org, linux-omap@vger.kernel.org, Tim Gardner <tim.gardner@canonical.com>
+To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Cc: Tony Lindgren <tony@atomide.com>
 
-On Thu, Jan 15, 2009 at 11:13:16AM +0200, Tony Lindgren wrote:
-> Dave, patch against vger-lists.html is attached.
+From: Anand Gadiyar <gadiyar@ti.com>
 
-Nope.  That file is generated from text files elsewere.
-Supply clean new data, not HTML junk.
+Fix this compile error
 
-> Regards,
-> 
-> Tony
+  CC      arch/arm/mach-omap2/usb-ehci.o
+arch/arm/mach-omap2/usb-ehci.c:39: error: 'INT_34XX_EHCI_IRQ' undeclared here (not in a function)
+make[1]: *** [arch/arm/mach-omap2/usb-ehci.o] Error 1
+make: *** [arch/arm/mach-omap2] Error 2
 
-> diff -Nru a/vger-lists.html b/vger-lists.html
-> --- a/vger-lists.html	2009-01-15 10:59:52.076730202 +0200
-> +++ b/vger-lists.html	2009-01-15 11:01:24.883396113 +0200
-> @@ -1442,7 +1442,7 @@
->  series. Send OMAP related infos, bugs or patches to this list, at least in          
->  CC if they affect other subsystems. See
->  
-> -<a href="http://source.mvista.com/git/?p=linux-omap-2.6.git;a=summary">http://source.mvista.com/git/?p=linux-omap-2.6.git;a=summary
-> +<a href="http://git.kernel.org/?p=linux/kernel/git/tmlind/linux-omap-2.6.git;a=summary">http://git.kernel.org/?p=linux/kernel/git/tmlind/linux-omap-2.6.git;a=summary
->  </a>
->  for OMAP git kernel discussed on this list.
->  </pre></td></tr>
-
+Signed-off-by: Anand Gadiyar <gadiyar@ti.com>
+---
+diff --git a/arch/arm/mach-omap2/usb-ehci.c b/arch/arm/mach-omap2/usb-ehci.c
+index 489439d..6af0b02 100644
+--- a/arch/arm/mach-omap2/usb-ehci.c
++++ b/arch/arm/mach-omap2/usb-ehci.c
+@@ -25,6 +25,7 @@
+ #include <linux/usb/musb.h>
+ 
+ #include <mach/hardware.h>
++#include <mach/irqs.h>
+ #include <mach/pm.h>
+ #include <mach/usb.h>
