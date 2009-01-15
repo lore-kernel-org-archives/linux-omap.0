@@ -1,42 +1,34 @@
-From: Koen Kooi <koen@openembedded.org>
-Subject: [PATCH] ARM: OMAP: board-omap3beagle: set i2c-3 to 100kHz
-Date: Thu, 15 Jan 2009 20:43:51 +0100
-Message-ID: <1232048631-21614-1-git-send-email-koen@openembedded.org>
+From: "Woodruff, Richard" <r-woodruff2@ti.com>
+Subject: RE: Reading OMAP3 CONTROL_RAND_KEY_0 register hangs
+Date: Thu, 15 Jan 2009 13:43:46 -0600
+Message-ID: <13B9B4C6EF24D648824FF11BE8967162036D63FEB7@dlee02.ent.ti.com>
+References: <496F6310.30104@googlemail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from [80.81.242.146] ([80.81.242.146]:60579 "EHLO
-	amethyst.openembedded.net" rhost-flags-FAIL-FAIL-OK-OK)
-	by vger.kernel.org with ESMTP id S1757422AbZAOTnT (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Thu, 15 Jan 2009 14:43:19 -0500
+Received: from devils.ext.ti.com ([198.47.26.153]:51219 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758072AbZAOTnx convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 15 Jan 2009 14:43:53 -0500
+In-Reply-To: <496F6310.30104@googlemail.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Koen Kooi <koen@beagleboard.org>
+To: Dirk Behme <dirk.behme@googlemail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-From: Koen Kooi <koen@beagleboard.org>
+> With OMAP3530 on BeagleBoard we like to read OMAP3's
+> CONTROL_RAND_KEY_0 (0x4800 2318) register with something like
+>
+> printf ("attempting cpu_uid read\n");
+> u32 cpu_uid = *((u32 *) 0x48002318);
+> /* u32 cpu_uid = readl(&ctrl_base->randkey_0); */
+> printf ("cpu_uid read done\n");
 
-Changing it to 100kHz is needed to make more devices works properly. Controlling the TI DLP Pico projector[1] doesn't work properly at 400kHz, 100kHz and lower work fine. EDID readout is unaffected by this change.
+This address is not accessible out side of secure mode along with some other qualifiers.
 
-[1] http://focus.ti.com/dlpdmd/docs/dlpdiscovery.tsp?sectionId=60&tabId=2234
+Trying to access is futile and will result in an abort.  The control register range is full of readable and aborting addresses.
 
-Signed-off-by: Koen Kooi <koen@beagleboard.org>
----
- arch/arm/mach-omap2/board-omap3beagle.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/board-omap3beagle.c b/arch/arm/mach-omap2/board-omap3beagle.c
-index fe97bab..f279404 100644
---- a/arch/arm/mach-omap2/board-omap3beagle.c
-+++ b/arch/arm/mach-omap2/board-omap3beagle.c
-@@ -227,7 +227,7 @@ static int __init omap3_beagle_i2c_init(void)
- #ifdef CONFIG_I2C2_OMAP_BEAGLE
- 	omap_register_i2c_bus(2, 400, NULL, 0);
- #endif
--	omap_register_i2c_bus(3, 400, NULL, 0);
-+	omap_register_i2c_bus(3, 100, NULL, 0);
- 	return 0;
- }
- 
--- 
-1.5.6.3
+Regards,
+Richard W.
 
