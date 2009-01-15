@@ -1,586 +1,72 @@
-From: "Stanley.Miao" <stanley.miao@windriver.com>
-Subject: [PATCHv4] OMAP: Fix McBSP spin_lock deadlock
-Date: Thu, 15 Jan 2009 17:11:52 +0800
-Message-ID: <1232010712-25142-1-git-send-email-stanley.miao@windriver.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Please update linux-omap git link at vger (Re: Important changes,
+	please read)
+Date: Thu, 15 Jan 2009 11:13:16 +0200
+Message-ID: <20090115091310.GW29324@atomide.com>
+References: <20090114134152.GJ29324@atomide.com> <94a0d4530901140634r3ef9fd66w96d3d0f7890344b2@mail.gmail.com> <20090114150502.GN29324@atomide.com> <496E15E0.70705@canonical.com> <20090115072605.GS29324@atomide.com>
+Mime-Version: 1.0
+Content-Type: multipart/mixed; boundary="9crTWz/Z+Zyzu20v"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail.windriver.com ([147.11.1.11]:35217 "EHLO mail.wrs.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752401AbZAOJDK (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 15 Jan 2009 04:03:10 -0500
-Received: from ALA-MAIL03.corp.ad.wrs.com (ala-mail03 [147.11.57.144])
-	by mail.wrs.com (8.13.6/8.13.6) with ESMTP id n0F9395o000023
-	for <linux-omap@vger.kernel.org>; Thu, 15 Jan 2009 01:03:09 -0800 (PST)
+Received: from mho-01-bos.mailhop.org ([63.208.196.178]:53734 "EHLO
+	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750752AbZAOJNR (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 15 Jan 2009 04:13:17 -0500
+Content-Disposition: inline
+In-Reply-To: <20090115072605.GS29324@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
+To: postmaster@vger.kernel.org
+Cc: linux-omap@vger.kernel.org, Tim Gardner <tim.gardner@canonical.com>
 
-A spin_lock deadlock will occur when omap_mcbsp_request() is invoked.
 
-omap_mcbsp_request()
-\- clk_enable(mcbsp->clk)         [takes and holds clockfw_lock]
-    \- omap2_clk_enable()
-       \- _omap2_clk_enable()
-           \- omap_mcbsp_clk_enable()
-              \- clk_enable(child clock)   [tries for clockfw_lock again]
+--9crTWz/Z+Zyzu20v
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-mcbsp_clk is a virtual clock and it comprises several child clocks. when
-enable mcbsp_clk in omap_mcbsp_request(), the enable function of mcbsp_clk
-will enable its child clocks, then the deadlock occurs.
+Hi Dave,
 
-The solution is to remove the virtual clock and enable these child clocks in
-omap_mcbsp_request() directly.
+Could you please change the linux-omap git link to point to
+kernel.org instead of source.mvista.com as discussed in the
+thread below?
 
-Signed-off-by: Stanley.Miao <stanley.miao@windriver.com>
----
- arch/arm/mach-omap1/mcbsp.c             |   98 ++------------------
- arch/arm/mach-omap2/mcbsp.c             |  150 +++++-------------------------
- arch/arm/plat-omap/include/mach/mcbsp.h |    6 +-
- arch/arm/plat-omap/mcbsp.c              |   52 ++++++++---
- 4 files changed, 78 insertions(+), 228 deletions(-)
+* Tony Lindgren <tony@atomide.com> [090115 09:26]:
+> * Tim Gardner <tim.gardner@canonical.com> [090114 18:42]:
+> > Tony Lindgren wrote:
+> > >>> - We stop using source.mvista.com git tree, and only use the
+> > >>>  kernel.org git tree. There's no need for having two master trees,
+> > >>>  and kernel.org is the standard way to go. Big thanks to
+> > >>>  Monta Vista for hosting us for many years.
+> > 
+> > The git path at http://vger.kernel.org/vger-lists.html#linux-omap needs
+> > to be changed.
+> 
+> Good point. Also needs to be changed at:
+> 
+> http://www.muru.com/linux/omap/README_OMAP_GIT
 
-diff --git a/arch/arm/mach-omap1/mcbsp.c b/arch/arm/mach-omap1/mcbsp.c
-index 7de7c69..fa8680e 100644
---- a/arch/arm/mach-omap1/mcbsp.c
-+++ b/arch/arm/mach-omap1/mcbsp.c
-@@ -26,81 +26,8 @@
- #define DPS_RSTCT2_PER_EN	(1 << 0)
- #define DSP_RSTCT2_WD_PER_EN	(1 << 1)
- 
--struct mcbsp_internal_clk {
--	struct clk clk;
--	struct clk **childs;
--	int n_childs;
--};
--
- #if defined(CONFIG_ARCH_OMAP15XX) || defined(CONFIG_ARCH_OMAP16XX)
--static void omap_mcbsp_clk_init(struct mcbsp_internal_clk *mclk)
--{
--	const char *clk_names[] = { "dsp_ck", "api_ck", "dspxor_ck" };
--	int i;
--
--	mclk->n_childs = ARRAY_SIZE(clk_names);
--	mclk->childs = kzalloc(mclk->n_childs * sizeof(struct clk *),
--				GFP_KERNEL);
--
--	for (i = 0; i < mclk->n_childs; i++) {
--		/* We fake a platform device to get correct device id */
--		struct platform_device pdev;
--
--		pdev.dev.bus = &platform_bus_type;
--		pdev.id = mclk->clk.id;
--		mclk->childs[i] = clk_get(&pdev.dev, clk_names[i]);
--		if (IS_ERR(mclk->childs[i]))
--			printk(KERN_ERR "Could not get clock %s (%d).\n",
--				clk_names[i], mclk->clk.id);
--	}
--}
--
--static int omap_mcbsp_clk_enable(struct clk *clk)
--{
--	struct mcbsp_internal_clk *mclk = container_of(clk,
--					struct mcbsp_internal_clk, clk);
--	int i;
--
--	for (i = 0; i < mclk->n_childs; i++)
--		clk_enable(mclk->childs[i]);
--	return 0;
--}
--
--static void omap_mcbsp_clk_disable(struct clk *clk)
--{
--	struct mcbsp_internal_clk *mclk = container_of(clk,
--					struct mcbsp_internal_clk, clk);
--	int i;
--
--	for (i = 0; i < mclk->n_childs; i++)
--		clk_disable(mclk->childs[i]);
--}
--
--static struct mcbsp_internal_clk omap_mcbsp_clks[] = {
--	{
--		.clk = {
--			.name 		= "mcbsp_clk",
--			.id		= 1,
--			.enable		= omap_mcbsp_clk_enable,
--			.disable	= omap_mcbsp_clk_disable,
--		},
--	},
--	{
--		.clk = {
--			.name 		= "mcbsp_clk",
--			.id		= 3,
--			.enable		= omap_mcbsp_clk_enable,
--			.disable	= omap_mcbsp_clk_disable,
--		},
--	},
--};
--
--#define omap_mcbsp_clks_size	ARRAY_SIZE(omap_mcbsp_clks)
--#else
--#define omap_mcbsp_clks_size	0
--static struct mcbsp_internal_clk __initdata *omap_mcbsp_clks;
--static inline void omap_mcbsp_clk_init(struct mcbsp_internal_clk *mclk)
--{ }
-+const char *clk_names[] = { "dsp_ck", "api_ck", "dspxor_ck" };
- #endif
- 
- static void omap1_mcbsp_request(unsigned int id)
-@@ -165,8 +92,9 @@ static struct omap_mcbsp_platform_data omap15xx_mcbsp_pdata[] = {
- 		.rx_irq		= INT_McBSP1RX,
- 		.tx_irq		= INT_McBSP1TX,
- 		.ops		= &omap1_mcbsp_ops,
--		.clk_name	= "mcbsp_clk",
--		},
-+		.clk_names	= clk_names,
-+		.num_clks	= 3,
-+	},
- 	{
- 		.phys_base	= OMAP1510_MCBSP2_BASE,
- 		.dma_rx_sync	= OMAP_DMA_MCBSP2_RX,
-@@ -182,7 +110,8 @@ static struct omap_mcbsp_platform_data omap15xx_mcbsp_pdata[] = {
- 		.rx_irq		= INT_McBSP3RX,
- 		.tx_irq		= INT_McBSP3TX,
- 		.ops		= &omap1_mcbsp_ops,
--		.clk_name	= "mcbsp_clk",
-+		.clk_names	= clk_names,
-+		.num_clks	= 3,
- 	},
- };
- #define OMAP15XX_MCBSP_PDATA_SZ		ARRAY_SIZE(omap15xx_mcbsp_pdata)
-@@ -200,7 +129,8 @@ static struct omap_mcbsp_platform_data omap16xx_mcbsp_pdata[] = {
- 		.rx_irq		= INT_McBSP1RX,
- 		.tx_irq		= INT_McBSP1TX,
- 		.ops		= &omap1_mcbsp_ops,
--		.clk_name	= "mcbsp_clk",
-+		.clk_names	= clk_names,
-+		.num_clks	= 3,
- 	},
- 	{
- 		.phys_base	= OMAP1610_MCBSP2_BASE,
-@@ -217,7 +147,8 @@ static struct omap_mcbsp_platform_data omap16xx_mcbsp_pdata[] = {
- 		.rx_irq		= INT_McBSP3RX,
- 		.tx_irq		= INT_McBSP3TX,
- 		.ops		= &omap1_mcbsp_ops,
--		.clk_name	= "mcbsp_clk",
-+		.clk_names	= clk_names,
-+		.num_clks	= 3,
- 	},
- };
- #define OMAP16XX_MCBSP_PDATA_SZ		ARRAY_SIZE(omap16xx_mcbsp_pdata)
-@@ -228,15 +159,6 @@ static struct omap_mcbsp_platform_data omap16xx_mcbsp_pdata[] = {
- 
- int __init omap1_mcbsp_init(void)
- {
--	int i;
--
--	for (i = 0; i < omap_mcbsp_clks_size; i++) {
--		if (cpu_is_omap15xx() || cpu_is_omap16xx()) {
--			omap_mcbsp_clk_init(&omap_mcbsp_clks[i]);
--			clk_register(&omap_mcbsp_clks[i].clk);
--		}
--	}
--
- 	if (cpu_is_omap730())
- 		omap_mcbsp_count = OMAP730_MCBSP_PDATA_SZ;
- 	if (cpu_is_omap15xx())
-diff --git a/arch/arm/mach-omap2/mcbsp.c b/arch/arm/mach-omap2/mcbsp.c
-index b40b29a..661e5ab 100644
---- a/arch/arm/mach-omap2/mcbsp.c
-+++ b/arch/arm/mach-omap2/mcbsp.c
-@@ -22,111 +22,7 @@
- #include <mach/cpu.h>
- #include <mach/mcbsp.h>
- 
--struct mcbsp_internal_clk {
--	struct clk clk;
--	struct clk **childs;
--	int n_childs;
--};
--
--#if defined(CONFIG_ARCH_OMAP24XX) || defined(CONFIG_ARCH_OMAP34XX)
--static void omap_mcbsp_clk_init(struct mcbsp_internal_clk *mclk)
--{
--	const char *clk_names[] = { "mcbsp_ick", "mcbsp_fck" };
--	int i;
--
--	mclk->n_childs = ARRAY_SIZE(clk_names);
--	mclk->childs = kzalloc(mclk->n_childs * sizeof(struct clk *),
--				GFP_KERNEL);
--
--	for (i = 0; i < mclk->n_childs; i++) {
--		/* We fake a platform device to get correct device id */
--		struct platform_device pdev;
--
--		pdev.dev.bus = &platform_bus_type;
--		pdev.id = mclk->clk.id;
--		mclk->childs[i] = clk_get(&pdev.dev, clk_names[i]);
--		if (IS_ERR(mclk->childs[i]))
--			printk(KERN_ERR "Could not get clock %s (%d).\n",
--				clk_names[i], mclk->clk.id);
--	}
--}
--
--static int omap_mcbsp_clk_enable(struct clk *clk)
--{
--	struct mcbsp_internal_clk *mclk = container_of(clk,
--					struct mcbsp_internal_clk, clk);
--	int i;
--
--	for (i = 0; i < mclk->n_childs; i++)
--		clk_enable(mclk->childs[i]);
--	return 0;
--}
--
--static void omap_mcbsp_clk_disable(struct clk *clk)
--{
--	struct mcbsp_internal_clk *mclk = container_of(clk,
--					struct mcbsp_internal_clk, clk);
--	int i;
--
--	for (i = 0; i < mclk->n_childs; i++)
--		clk_disable(mclk->childs[i]);
--}
--
--static struct mcbsp_internal_clk omap_mcbsp_clks[] = {
--	{
--		.clk = {
--			.name 		= "mcbsp_clk",
--			.id		= 1,
--			.clkdm		= { .name = "virt_opp_clkdm" },
--			.enable		= omap_mcbsp_clk_enable,
--			.disable	= omap_mcbsp_clk_disable,
--		},
--	},
--	{
--		.clk = {
--			.name 		= "mcbsp_clk",
--			.id		= 2,
--			.clkdm		= { .name = "virt_opp_clkdm" },
--			.enable		= omap_mcbsp_clk_enable,
--			.disable	= omap_mcbsp_clk_disable,
--		},
--	},
--	{
--		.clk = {
--			.name		= "mcbsp_clk",
--			.id		= 3,
--			.clkdm		= { .name = "virt_opp_clkdm" },
--			.enable		= omap_mcbsp_clk_enable,
--			.disable	= omap_mcbsp_clk_disable,
--		},
--	},
--	{
--		.clk = {
--			.name		= "mcbsp_clk",
--			.id		= 4,
--			.clkdm		= { .name = "virt_opp_clkdm" },
--			.enable		= omap_mcbsp_clk_enable,
--			.disable	= omap_mcbsp_clk_disable,
--		},
--	},
--	{
--		.clk = {
--			.name		= "mcbsp_clk",
--			.id		= 5,
--			.clkdm		= { .name = "virt_opp_clkdm" },
--			.enable		= omap_mcbsp_clk_enable,
--			.disable	= omap_mcbsp_clk_disable,
--		},
--	},
--};
--
--#define omap_mcbsp_clks_size	ARRAY_SIZE(omap_mcbsp_clks)
--#else
--#define omap_mcbsp_clks_size	0
--static struct mcbsp_internal_clk __initdata *omap_mcbsp_clks;
--static inline void omap_mcbsp_clk_init(struct clk *clk)
--{ }
--#endif
-+const char *clk_names[] = { "mcbsp_ick", "mcbsp_fck" };
- 
- static void omap2_mcbsp2_mux_setup(void)
- {
-@@ -159,7 +55,8 @@ static struct omap_mcbsp_platform_data omap2420_mcbsp_pdata[] = {
- 		.rx_irq		= INT_24XX_MCBSP1_IRQ_RX,
- 		.tx_irq		= INT_24XX_MCBSP1_IRQ_TX,
- 		.ops		= &omap2_mcbsp_ops,
--		.clk_name	= "mcbsp_clk",
-+		.clk_names	= clk_names,
-+		.num_clks	= 2,
- 	},
- 	{
- 		.phys_base	= OMAP24XX_MCBSP2_BASE,
-@@ -168,7 +65,8 @@ static struct omap_mcbsp_platform_data omap2420_mcbsp_pdata[] = {
- 		.rx_irq		= INT_24XX_MCBSP2_IRQ_RX,
- 		.tx_irq		= INT_24XX_MCBSP2_IRQ_TX,
- 		.ops		= &omap2_mcbsp_ops,
--		.clk_name	= "mcbsp_clk",
-+		.clk_names	= clk_names,
-+		.num_clks	= 2,
- 	},
- };
- #define OMAP2420_MCBSP_PDATA_SZ		ARRAY_SIZE(omap2420_mcbsp_pdata)
-@@ -186,7 +84,8 @@ static struct omap_mcbsp_platform_data omap2430_mcbsp_pdata[] = {
- 		.rx_irq		= INT_24XX_MCBSP1_IRQ_RX,
- 		.tx_irq		= INT_24XX_MCBSP1_IRQ_TX,
- 		.ops		= &omap2_mcbsp_ops,
--		.clk_name	= "mcbsp_clk",
-+		.clk_names	= clk_names,
-+		.num_clks	= 2,
- 	},
- 	{
- 		.phys_base	= OMAP24XX_MCBSP2_BASE,
-@@ -195,7 +94,8 @@ static struct omap_mcbsp_platform_data omap2430_mcbsp_pdata[] = {
- 		.rx_irq		= INT_24XX_MCBSP2_IRQ_RX,
- 		.tx_irq		= INT_24XX_MCBSP2_IRQ_TX,
- 		.ops		= &omap2_mcbsp_ops,
--		.clk_name	= "mcbsp_clk",
-+		.clk_names	= clk_names,
-+		.num_clks	= 2,
- 	},
- 	{
- 		.phys_base	= OMAP2430_MCBSP3_BASE,
-@@ -204,7 +104,8 @@ static struct omap_mcbsp_platform_data omap2430_mcbsp_pdata[] = {
- 		.rx_irq		= INT_24XX_MCBSP3_IRQ_RX,
- 		.tx_irq		= INT_24XX_MCBSP3_IRQ_TX,
- 		.ops		= &omap2_mcbsp_ops,
--		.clk_name	= "mcbsp_clk",
-+		.clk_names	= clk_names,
-+		.num_clks	= 2,
- 	},
- 	{
- 		.phys_base	= OMAP2430_MCBSP4_BASE,
-@@ -213,7 +114,8 @@ static struct omap_mcbsp_platform_data omap2430_mcbsp_pdata[] = {
- 		.rx_irq		= INT_24XX_MCBSP4_IRQ_RX,
- 		.tx_irq		= INT_24XX_MCBSP4_IRQ_TX,
- 		.ops		= &omap2_mcbsp_ops,
--		.clk_name	= "mcbsp_clk",
-+		.clk_names	= clk_names,
-+		.num_clks	= 2,
- 	},
- 	{
- 		.phys_base	= OMAP2430_MCBSP5_BASE,
-@@ -222,7 +124,8 @@ static struct omap_mcbsp_platform_data omap2430_mcbsp_pdata[] = {
- 		.rx_irq		= INT_24XX_MCBSP5_IRQ_RX,
- 		.tx_irq		= INT_24XX_MCBSP5_IRQ_TX,
- 		.ops		= &omap2_mcbsp_ops,
--		.clk_name	= "mcbsp_clk",
-+		.clk_names	= clk_names,
-+		.num_clks	= 2,
- 	},
- };
- #define OMAP2430_MCBSP_PDATA_SZ		ARRAY_SIZE(omap2430_mcbsp_pdata)
-@@ -240,7 +143,8 @@ static struct omap_mcbsp_platform_data omap34xx_mcbsp_pdata[] = {
- 		.rx_irq		= INT_24XX_MCBSP1_IRQ_RX,
- 		.tx_irq		= INT_24XX_MCBSP1_IRQ_TX,
- 		.ops		= &omap2_mcbsp_ops,
--		.clk_name	= "mcbsp_clk",
-+		.clk_names	= clk_names,
-+		.num_clks	= 2,
- 	},
- 	{
- 		.phys_base	= OMAP34XX_MCBSP2_BASE,
-@@ -249,7 +153,8 @@ static struct omap_mcbsp_platform_data omap34xx_mcbsp_pdata[] = {
- 		.rx_irq		= INT_24XX_MCBSP2_IRQ_RX,
- 		.tx_irq		= INT_24XX_MCBSP2_IRQ_TX,
- 		.ops		= &omap2_mcbsp_ops,
--		.clk_name	= "mcbsp_clk",
-+		.clk_names	= clk_names,
-+		.num_clks	= 2,
- 	},
- 	{
- 		.phys_base	= OMAP34XX_MCBSP3_BASE,
-@@ -258,7 +163,8 @@ static struct omap_mcbsp_platform_data omap34xx_mcbsp_pdata[] = {
- 		.rx_irq		= INT_24XX_MCBSP3_IRQ_RX,
- 		.tx_irq		= INT_24XX_MCBSP3_IRQ_TX,
- 		.ops		= &omap2_mcbsp_ops,
--		.clk_name	= "mcbsp_clk",
-+		.clk_names	= clk_names,
-+		.num_clks	= 2,
- 	},
- 	{
- 		.phys_base	= OMAP34XX_MCBSP4_BASE,
-@@ -267,7 +173,8 @@ static struct omap_mcbsp_platform_data omap34xx_mcbsp_pdata[] = {
- 		.rx_irq		= INT_24XX_MCBSP4_IRQ_RX,
- 		.tx_irq		= INT_24XX_MCBSP4_IRQ_TX,
- 		.ops		= &omap2_mcbsp_ops,
--		.clk_name	= "mcbsp_clk",
-+		.clk_names	= clk_names,
-+		.num_clks	= 2,
- 	},
- 	{
- 		.phys_base	= OMAP34XX_MCBSP5_BASE,
-@@ -276,7 +183,8 @@ static struct omap_mcbsp_platform_data omap34xx_mcbsp_pdata[] = {
- 		.rx_irq		= INT_24XX_MCBSP5_IRQ_RX,
- 		.tx_irq		= INT_24XX_MCBSP5_IRQ_TX,
- 		.ops		= &omap2_mcbsp_ops,
--		.clk_name	= "mcbsp_clk",
-+		.clk_names	= clk_names,
-+		.num_clks	= 2,
- 	},
- };
- #define OMAP34XX_MCBSP_PDATA_SZ		ARRAY_SIZE(omap34xx_mcbsp_pdata)
-@@ -287,14 +195,6 @@ static struct omap_mcbsp_platform_data omap34xx_mcbsp_pdata[] = {
- 
- static int __init omap2_mcbsp_init(void)
- {
--	int i;
--
--	for (i = 0; i < omap_mcbsp_clks_size; i++) {
--		/* Once we call clk_get inside init, we do not register it */
--		omap_mcbsp_clk_init(&omap_mcbsp_clks[i]);
--		clk_register(&omap_mcbsp_clks[i].clk);
--	}
--
- 	if (cpu_is_omap2420())
- 		omap_mcbsp_count = OMAP2420_MCBSP_PDATA_SZ;
- 	if (cpu_is_omap2430())
-diff --git a/arch/arm/plat-omap/include/mach/mcbsp.h b/arch/arm/plat-omap/include/mach/mcbsp.h
-index cc48f2f..433e810 100644
---- a/arch/arm/plat-omap/include/mach/mcbsp.h
-+++ b/arch/arm/plat-omap/include/mach/mcbsp.h
-@@ -340,7 +340,8 @@ struct omap_mcbsp_platform_data {
- 	u8 dma_rx_sync, dma_tx_sync;
- 	u16 rx_irq, tx_irq;
- 	struct omap_mcbsp_ops *ops;
--	char const *clk_name;
-+	char const **clk_names;
-+	int num_clks;
- };
- 
- struct omap_mcbsp {
-@@ -372,7 +373,8 @@ struct omap_mcbsp {
- 	/* Protect the field .free, while checking if the mcbsp is in use */
- 	spinlock_t lock;
- 	struct omap_mcbsp_platform_data *pdata;
--	struct clk *clk;
-+	struct clk **clks;
-+	int num_clks;
- };
- extern struct omap_mcbsp **mcbsp_ptr;
- extern int omap_mcbsp_count;
-diff --git a/arch/arm/plat-omap/mcbsp.c b/arch/arm/plat-omap/mcbsp.c
-index f2401a8..e5842e3 100644
---- a/arch/arm/plat-omap/mcbsp.c
-+++ b/arch/arm/plat-omap/mcbsp.c
-@@ -214,6 +214,7 @@ EXPORT_SYMBOL(omap_mcbsp_set_io_type);
- int omap_mcbsp_request(unsigned int id)
- {
- 	struct omap_mcbsp *mcbsp;
-+	int i;
- 	int err;
- 
- 	if (!omap_mcbsp_check_valid_id(id)) {
-@@ -225,7 +226,8 @@ int omap_mcbsp_request(unsigned int id)
- 	if (mcbsp->pdata && mcbsp->pdata->ops && mcbsp->pdata->ops->request)
- 		mcbsp->pdata->ops->request(id);
- 
--	clk_enable(mcbsp->clk);
-+	for (i = 0; i < mcbsp->num_clks; i++)
-+		clk_enable(mcbsp->clks[i]);
- 
- 	spin_lock(&mcbsp->lock);
- 	if (!mcbsp->free) {
-@@ -276,6 +278,7 @@ EXPORT_SYMBOL(omap_mcbsp_request);
- void omap_mcbsp_free(unsigned int id)
- {
- 	struct omap_mcbsp *mcbsp;
-+	int i;
- 
- 	if (!omap_mcbsp_check_valid_id(id)) {
- 		printk(KERN_ERR "%s: Invalid id (%d)\n", __func__, id + 1);
-@@ -286,7 +289,8 @@ void omap_mcbsp_free(unsigned int id)
- 	if (mcbsp->pdata && mcbsp->pdata->ops && mcbsp->pdata->ops->free)
- 		mcbsp->pdata->ops->free(id);
- 
--	clk_disable(mcbsp->clk);
-+	for (i = mcbsp->num_clks - 1; i >= 0; i--)
-+		clk_disable(mcbsp->clks[i]);
- 
- 	spin_lock(&mcbsp->lock);
- 	if (mcbsp->free) {
-@@ -872,6 +876,7 @@ static int __devinit omap_mcbsp_probe(struct platform_device *pdev)
- 	struct omap_mcbsp_platform_data *pdata = pdev->dev.platform_data;
- 	struct omap_mcbsp *mcbsp;
- 	int id = pdev->id - 1;
-+	int i;
- 	int ret = 0;
- 
- 	if (!pdata) {
-@@ -916,14 +921,25 @@ static int __devinit omap_mcbsp_probe(struct platform_device *pdev)
- 	mcbsp->dma_rx_sync = pdata->dma_rx_sync;
- 	mcbsp->dma_tx_sync = pdata->dma_tx_sync;
- 
--	if (pdata->clk_name)
--		mcbsp->clk = clk_get(&pdev->dev, pdata->clk_name);
--	if (IS_ERR(mcbsp->clk)) {
--		dev_err(&pdev->dev,
--			"Invalid clock configuration for McBSP%d.\n",
--			mcbsp->id);
--		ret = PTR_ERR(mcbsp->clk);
--		goto err_clk;
-+	if (pdata->num_clks) {
-+		mcbsp->num_clks = pdata->num_clks;
-+		mcbsp->clks = kzalloc(mcbsp->num_clks * sizeof(struct clk *),
-+					GFP_KERNEL);
-+		if (!mcbsp->clks) {
-+			ret = -ENOMEM;
-+			goto exit;
-+		}
-+		for (i = 0; i < mcbsp->num_clks; i++) {
-+			mcbsp->clks[i] = clk_get(&pdev->dev, pdata->clk_names[i]);
-+			if (IS_ERR(mcbsp->clks[i])) {
-+				dev_err(&pdev->dev,
-+					"Invalid %s configuration for McBSP%d.\n",
-+					pdata->clk_names[i], mcbsp->id);
-+				ret = PTR_ERR(mcbsp->clks[i]);
-+				goto err_clk;
-+			}
-+		}
-+
- 	}
- 
- 	mcbsp->pdata = pdata;
-@@ -932,6 +948,9 @@ static int __devinit omap_mcbsp_probe(struct platform_device *pdev)
- 	return 0;
- 
- err_clk:
-+	while (i--)
-+		clk_put(mcbsp->clks[i]);
-+	kfree(mcbsp->clks);
- 	iounmap(mcbsp->io_base);
- err_ioremap:
- 	mcbsp->free = 0;
-@@ -942,6 +961,7 @@ exit:
- static int __devexit omap_mcbsp_remove(struct platform_device *pdev)
- {
- 	struct omap_mcbsp *mcbsp = platform_get_drvdata(pdev);
-+	int i;
- 
- 	platform_set_drvdata(pdev, NULL);
- 	if (mcbsp) {
-@@ -950,12 +970,18 @@ static int __devexit omap_mcbsp_remove(struct platform_device *pdev)
- 				mcbsp->pdata->ops->free)
- 			mcbsp->pdata->ops->free(mcbsp->id);
- 
--		clk_disable(mcbsp->clk);
--		clk_put(mcbsp->clk);
-+		for (i = mcbsp->num_clks - 1; i >= 0; i--) {
-+			clk_disable(mcbsp->clks[i]);
-+			clk_put(mcbsp->clks[i]);
-+		}
- 
- 		iounmap(mcbsp->io_base);
- 
--		mcbsp->clk = NULL;
-+		if (mcbsp->num_clks) {
-+			kfree(mcbsp->clks);
-+			mcbsp->clks = NULL;
-+			mcbsp->num_clks = 0;
-+		}
- 		mcbsp->free = 0;
- 		mcbsp->dev = NULL;
- 	}
--- 
-1.5.6.3
+I've changed the above link.
 
+Dave, patch against vger-lists.html is attached.
+
+Regards,
+
+Tony
+
+--9crTWz/Z+Zyzu20v
+Content-Type: text/x-diff; charset=us-ascii
+Content-Disposition: inline; filename="vger-lists.html.patch"
+
+diff -Nru a/vger-lists.html b/vger-lists.html
+--- a/vger-lists.html	2009-01-15 10:59:52.076730202 +0200
++++ b/vger-lists.html	2009-01-15 11:01:24.883396113 +0200
+@@ -1442,7 +1442,7 @@
+ series. Send OMAP related infos, bugs or patches to this list, at least in          
+ CC if they affect other subsystems. See
+ 
+-<a href="http://source.mvista.com/git/?p=linux-omap-2.6.git;a=summary">http://source.mvista.com/git/?p=linux-omap-2.6.git;a=summary
++<a href="http://git.kernel.org/?p=linux/kernel/git/tmlind/linux-omap-2.6.git;a=summary">http://git.kernel.org/?p=linux/kernel/git/tmlind/linux-omap-2.6.git;a=summary
+ </a>
+ for OMAP git kernel discussed on this list.
+ </pre></td></tr>
+
+--9crTWz/Z+Zyzu20v--
