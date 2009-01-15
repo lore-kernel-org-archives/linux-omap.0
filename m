@@ -1,34 +1,46 @@
-From: David Brownell <david-b@pacbell.net>
-Subject: Re: Git tree updated to v2.6.29-rc1, omap-2.6.28 branch added
-Date: Thu, 15 Jan 2009 10:21:38 -0800
-Message-ID: <200901151021.38538.david-b@pacbell.net>
-References: <20090115154327.GF4128@atomide.com>
-Reply-To: dbrownell@users.sourceforge.net
+From: Matti Aarnio <matti.aarnio@zmailer.org>
+Subject: Re: Please update linux-omap git link at vger (Re: Important
+	changes, please read)
+Date: Thu, 15 Jan 2009 20:41:50 +0200
+Message-ID: <20090115184150.GJ5643@mea-ext.zmailer.org>
+References: <20090114134152.GJ29324@atomide.com> <94a0d4530901140634r3ef9fd66w96d3d0f7890344b2@mail.gmail.com> <20090114150502.GN29324@atomide.com> <496E15E0.70705@canonical.com> <20090115072605.GS29324@atomide.com> <20090115091310.GW29324@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp125.sbc.mail.sp1.yahoo.com ([69.147.65.184]:40451 "HELO
-	smtp125.sbc.mail.sp1.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1754743AbZAOSVk (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Thu, 15 Jan 2009 13:21:40 -0500
-In-Reply-To: <20090115154327.GF4128@atomide.com>
+Received: from z2.cat.iki.fi ([212.16.98.133]:50094 "EHLO z2.cat.iki.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755002AbZAOSly (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 15 Jan 2009 13:41:54 -0500
+Received: (mea@mea-ext) by mail.zmailer.org id S3542991AbZAOSlu (ORCPT
+	<rfc822;linux-omap@vger.kernel.org> + 1 other);
+	Thu, 15 Jan 2009 20:41:50 +0200
 Content-Disposition: inline
+In-Reply-To: <20090115091310.GW29324@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org
+Cc: postmaster@vger.kernel.org, linux-omap@vger.kernel.org, Tim Gardner <tim.gardner@canonical.com>
 
-On Thursday 15 January 2009, Tony Lindgren wrote:
-> I've updated our git tree to v2.6.29-rc1,
+On Thu, Jan 15, 2009 at 11:13:16AM +0200, Tony Lindgren wrote:
+> Dave, patch against vger-lists.html is attached.
 
-  CC      arch/arm/mach-omap2/usb-musb.o
-arch/arm/mach-omap2/usb-musb.c:47: error: 'INT_243X_HS_USB_MC' undeclared here (not in a function)
-arch/arm/mach-omap2/usb-musb.c:51: error: 'INT_243X_HS_USB_DMA' undeclared here (not in a function)
-make[1]: *** [arch/arm/mach-omap2/usb-musb.o] Error 1
+Nope.  That file is generated from text files elsewere.
+Supply clean new data, not HTML junk.
 
-... just FYI.  I won't have time to sort that out for a few
-hours yet, so if someone else has a patch that'd be good.
+> Regards,
+> 
+> Tony
+
+> diff -Nru a/vger-lists.html b/vger-lists.html
+> --- a/vger-lists.html	2009-01-15 10:59:52.076730202 +0200
+> +++ b/vger-lists.html	2009-01-15 11:01:24.883396113 +0200
+> @@ -1442,7 +1442,7 @@
+>  series. Send OMAP related infos, bugs or patches to this list, at least in          
+>  CC if they affect other subsystems. See
+>  
+> -<a href="http://source.mvista.com/git/?p=linux-omap-2.6.git;a=summary">http://source.mvista.com/git/?p=linux-omap-2.6.git;a=summary
+> +<a href="http://git.kernel.org/?p=linux/kernel/git/tmlind/linux-omap-2.6.git;a=summary">http://git.kernel.org/?p=linux/kernel/git/tmlind/linux-omap-2.6.git;a=summary
+>  </a>
+>  for OMAP git kernel discussed on this list.
+>  </pre></td></tr>
 
