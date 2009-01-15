@@ -1,36 +1,45 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCHv4] OMAP: Fix McBSP spin_lock deadlock
-Date: Thu, 15 Jan 2009 17:44:23 +0200
-Message-ID: <20090115154423.GG4128@atomide.com>
-References: <1232010712-25142-1-git-send-email-stanley.miao@windriver.com> <200901150135.27298.david-b@pacbell.net>
+From: David Brownell <david-b@pacbell.net>
+Subject: Re: leds-gpio broken with current git?
+Date: Thu, 15 Jan 2009 07:58:49 -0800
+Message-ID: <200901150758.49601.david-b@pacbell.net>
+References: <7088542D-28A0-4BCA-9583-6BCDDF9E960A@student.utwente.nl>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=iso-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-bos.mailhop.org ([63.208.196.178]:59778 "EHLO
-	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754224AbZAOPoY (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 15 Jan 2009 10:44:24 -0500
+Received: from smtp127.sbc.mail.sp1.yahoo.com ([69.147.65.186]:25847 "HELO
+	smtp127.sbc.mail.sp1.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1755091AbZAOP7N (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Thu, 15 Jan 2009 10:59:13 -0500
+In-Reply-To: <7088542D-28A0-4BCA-9583-6BCDDF9E960A@student.utwente.nl>
 Content-Disposition: inline
-In-Reply-To: <200901150135.27298.david-b@pacbell.net>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: David Brownell <david-b@pacbell.net>
-Cc: "Stanley.Miao" <stanley.miao@windriver.com>, linux-omap@vger.kernel.org
+To: Koen Kooi <k.kooi@student.utwente.nl>
+Cc: "linux-omap@vger.kernel.org List" <linux-omap@vger.kernel.org>
 
-* David Brownell <david-b@pacbell.net> [090115 11:35]:
-> On Thursday 15 January 2009, Stanley.Miao wrote:
-> > =A04 files changed, 78 insertions(+), 228 deletions(-)
+On Thursday 15 January 2009, Koen Kooi wrote:
+> I've been playing with different kernels on beagleboard lately and it=
+ =A0
+> seems that somewhere between 2.6.28rc8 and the final release leds-gpi=
+o =A0
+> got broken for beagleboard:
 >=20
-> You know, I'm always predisposed to like bugfixes that delete
-> more code than they add.  ;)
+> Registered led device: beagleboard::usr0
+> Registered led device: beagleboard::usr1
+> leds-gpio: probe of leds-gpio failed with error -22
 
-Thanks Stanley, pushed to linux-omap at 2.6.29-rc1, omap-2.6.28,
-and added to omap-fixes queue for the mainline kernel.
+Works for me, no "-EINVAL", on 2.6.28-omap1 and no patches
+that should affect GPIOs or LEDs.  Last patch applied to
+GIT is 15f75b6226c2d3b82062bb721e7cb9a1d6f35efd (musbhsdma).
 
-Regards,
+OK, I'm just pulling a new batch of objects, I'm guessing
+Tony snuck in RC1 already ... yes, I see he just sent a
+post about that a few minutes ago.  ;)
 
-Tony
+- Dave
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
 n
