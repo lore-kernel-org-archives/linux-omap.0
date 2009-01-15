@@ -1,39 +1,38 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Git tree updated to v2.6.29-rc1, omap-2.6.28 branch added
-Date: Thu, 15 Jan 2009 17:43:28 +0200
-Message-ID: <20090115154327.GF4128@atomide.com>
+Subject: Re: [PATCHv4] OMAP: Fix McBSP spin_lock deadlock
+Date: Thu, 15 Jan 2009 17:44:23 +0200
+Message-ID: <20090115154423.GG4128@atomide.com>
+References: <1232010712-25142-1-git-send-email-stanley.miao@windriver.com> <200901150135.27298.david-b@pacbell.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-bos.mailhop.org ([63.208.196.178]:58781 "EHLO
+Received: from mho-01-bos.mailhop.org ([63.208.196.178]:59778 "EHLO
 	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758094AbZAOPn2 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 15 Jan 2009 10:43:28 -0500
-Received: from muru.com ([72.249.23.125] helo=localhost.localdomain)
-	by mho-01-bos.mailhop.org with esmtpa (Exim 4.68)
-	(envelope-from <tony@atomide.com>)
-	id 1LNUNS-000JfR-If
-	for linux-omap@vger.kernel.org; Thu, 15 Jan 2009 15:43:27 +0000
+	with ESMTP id S1754224AbZAOPoY (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 15 Jan 2009 10:44:24 -0500
 Content-Disposition: inline
+In-Reply-To: <200901150135.27298.david-b@pacbell.net>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
+To: David Brownell <david-b@pacbell.net>
+Cc: "Stanley.Miao" <stanley.miao@windriver.com>, linux-omap@vger.kernel.org
 
-Hi all,
+* David Brownell <david-b@pacbell.net> [090115 11:35]:
+> On Thursday 15 January 2009, Stanley.Miao wrote:
+> > =A04 files changed, 78 insertions(+), 228 deletions(-)
+>=20
+> You know, I'm always predisposed to like bugfixes that delete
+> more code than they add.  ;)
 
-I've updated our git tree to v2.6.29-rc1, and will start cleaning up
-code in it by resetting what can be reset to be the same as in the
-mainline tree.
-
-This means that everybody please resend the stuff you want back as
-patches against the mainline tree! Most likely the stuff I'm removing
-will require a bit of clean-up work. But cleaning it all up is just
-way too much work for one person to do, so we take the distributed
-approach :)
-
-I've also added a new branch omap-2.6.28 where we can add few bug
-fixes until we can tag v2.6.28-omap2.
+Thanks Stanley, pushed to linux-omap at 2.6.29-rc1, omap-2.6.28,
+and added to omap-fixes queue for the mainline kernel.
 
 Regards,
 
 Tony
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
