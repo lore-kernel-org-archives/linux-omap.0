@@ -1,157 +1,234 @@
-From: "Steve Sakoman" <sakoman@gmail.com>
-Subject: Re: v2.6.28-omap1 tagged, some bugs remain
-Date: Thu, 15 Jan 2009 06:53:51 -0800
-Message-ID: <5e088bd90901150653m5588663kaf3ddb78b7c951f4@mail.gmail.com>
-References: <20090112145051.GL9373@atomide.com>
+From: "Sriram V" <vshrirama@gmail.com>
+Subject: Re: new PM branch available
+Date: Thu, 15 Jan 2009 20:30:10 +0530
+Message-ID: <8bf247760901150700r6ceab3c7wd203643b086d0679@mail.gmail.com>
+References: <87iqoij2me.fsf@deeprootsystems.com>
+	 <8bf247760901140557t22298e6ch4e56675c03ef65f9@mail.gmail.com>
+	 <496E1546.4070309@deeprootsystems.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-bw0-f21.google.com ([209.85.218.21]:39295 "EHLO
-	mail-bw0-f21.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752760AbZAOOxz (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 15 Jan 2009 09:53:55 -0500
-Received: by bwz14 with SMTP id 14so3490925bwz.13
-        for <linux-omap@vger.kernel.org>; Thu, 15 Jan 2009 06:53:53 -0800 (PST)
-In-Reply-To: <20090112145051.GL9373@atomide.com>
+Received: from wf-out-1314.google.com ([209.85.200.171]:36916 "EHLO
+	wf-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753993AbZAOPAM (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 15 Jan 2009 10:00:12 -0500
+Received: by wf-out-1314.google.com with SMTP id 27so1311489wfd.4
+        for <linux-omap@vger.kernel.org>; Thu, 15 Jan 2009 07:00:11 -0800 (PST)
+In-Reply-To: <496E1546.4070309@deeprootsystems.com>
 Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, linux-omap <linux-omap@vger.kernel.org>
+To: Kevin Hilman <khilman@deeprootsystems.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Mon, Jan 12, 2009 at 6:50 AM, Tony Lindgren <tony@atomide.com> wrote:
-> Hi all,
->
-> I've just tagged v2.6.28-omap1, and looks like we might want to also
-> do v2.6.28-omap2 as there are few annoying bugs remaining:
->
-> - According to Jarkko Nikula, ASoC does not currently work because of
->  some recent clock changes.
+Hi,
+ Here are my observations on omap3evm.
 
-Just to verify -- does this issue manifest as a segmentation fault?
+1) With default config file, The kernel boots. If youre seeing junk
+after a certain point while booting. it could be related to your
+bootargs console options. (console=ttyS0,115200n8)
 
-Here's what I am seeing on Overo with the current top of tree:
+2) Sometimes i do get  the usual omapfb errors.
+3) If i enable cpuidle - the ethernet driver is unable to get an IP
+address. So it is unable to mount NFS.  If i give a statically
+assigned IP in my bootargs. NFS mount also fails. This happens only
+when cpuidle is enabled.
+4) If i enable SMC debug, i see ethernet interrupts happening, for
+some reason. NFS mount/getting a dhcp address fails.
+  I am not sure if this is a wakeup issue. Sometimes, if i add some
+debug prints it works. but this does not work every time.
+5) If i boot with rootfs on MMC and with cpu idle enabled. i cannot
+ping. cpuidle is somehow effecting the network stuff. I also see some
+rx overruns. is this a wakeup issue?
 
-root@overo:~# mplayer /these.mp3
-MPlayer dev-SVN-r27659-4.3.1 (C) 2000-2008 MPlayer Team
-CPU: ARM
+Regards,
+Sriram
 
-Playing /these.mp3.
-Audio only file format detected.
-Clip info:
- Title:
- Artist:
- Album:
- Year:
- Comment:
- Genre: Other
-==========================================================================
-Forced audio codec: mad
-Opening audio decoder: [libmad] libmad mpeg audio decoder
-AUDIOAlignment trap: not handling instruction e193cf9f at [<c00f9374>]
-Unhandled fault: alignment exception (0x001) at 0xc04853da
-Internal error: : 1 [#1]
-Modules linked in: libertas_sdio libertas rt73usb ipv6 ftdi_sio
-rt2x00usb rtl8187 eeprom_93cx6 rt2x00lib usbserial
-CPU: 0    Not tainted  (2.6.28-omap1 #1)
-PC is at omap2_clkdm_clk_enable+0x30/0x7c
-LR is at omap2_clk_enable+0x3c/0xb0
-pc : [<c00f9378>]    lr : [<c00f73dc>]    psr: a0000093
-sp : cdcb9c90  ip : cdcb9ca8  fp : cdcb9ca4
-r10: cddc4340  r9 : c05107cc  r8 : c0510bf0
-r7 : cf9f1cc0  r6 : c05107f0  r5 : 80000013  r4 : c04853ca
-r3 : c04853da  r2 : c00f73a0  r1 : 00000000  r0 : c04853ca
-Flags: NzCv  IRQs off  FIQs on  Mode SVC_32  ISA ARM  Segment user
-Control: 10c5387d  Table: 8ecc8018  DAC: 00000015
-Process mplayer (pid: 3377, stack limit = 0xcdcb82e8)
-Stack: (0xcdcb9c90 to 0xcdcba000)
-9c80:                                     c04e75d4 80000013 cdcb9cbc cdcb9ca8
-9ca0: c00f73dc c00f9354 c04e75d4 80000013 cdcb9cdc cdcb9cc0 c00fc36c c00f73ac
-9cc0: cf840bc0 cecc1400 c05107f0 cf9f1cc0 cdcb9cfc cdcb9ce0 c0101128 c00fc338
-9ce0: c0510690 cecc1400 c0510690 cecc1400 cdcb9d0c cdcb9d00 c032c128 c01010c4
-9d00: cdcb9d44 cdcb9d10 c03282bc c032c100 0000000b c0510b88 c0306ce8 00000000
-9d20: cdcb9ddc cec9e8c0 cec0f000 cdcb9d80 00000000 cddc4340 cdcb9d64 cdcb9d48
-9d40: c03091ec c0328278 cdcb9d80 cf9f1cc0 cdcb9d80 cdcb9da8 cdcb9e0c cdcb9d68
-9d60: c031a064 c0309190 cdcb9d8c cece3c90 00000001 cdcb8000 0000000e 00000003
-9d80: 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000
-9da0: 00000000 00000000 616c706d 00726579 00000000 00000000 cf9f4700 c04f6a28
-9dc0: cdcb9dec cdcb9dd0 00000000 cdc3a140 c0108c24 cec0f138 cec0f138 cf87c3e0
-9de0: cdcb9dfc c040f8d8 00000003 00000003 cddc4340 cece3c90 cdcb8000 cf44d818
-9e00: cdcb9e34 cdcb9e10 c02fc090 c0319e28 00000000 cf87c3e0 cece3c90 00000000
-9e20: cddc4340 cdcb8000 cdcb9e64 cdcb9e38 c0160634 c02fbf98 c01678e0 00000003
-9e40: cf80a220 cddc4340 cece3c90 c0160500 00000000 cf80ad20 cdcb9e8c cdcb9e68
-9e60: c015bf58 c016050c cddc4340 cdcb9ed8 ffffff9c 00000004 cef11000 00020802
-9e80: cdcb9eac cdcb9e90 c015c0a8 c015be2c 00000000 cdcb9ed8 ffffff9c 00000000
-9ea0: cdcb9f64 cdcb9eb0 c0168ae0 c015c07c 00020802 c069be60 cdcb9f04 00000000
-9ec0: 00020801 00000000 00000022 00027000 00000000 cecc8000 cf80ad20 cf44d818
-9ee0: c0149128 c0148164 0000001f 00000101 00000001 00000000 cdcb9fac 00000000
-9f00: cef69980 c00f3d44 cecc8000 cdcb9f20 c0126150 ffffffff cf8a0be0 00020802
-9f20: 00000000 cddc4340 00000000 cdcb8000 cdcb9f64 cdcb9f40 c0170450 00020801
-9f40: 00000000 ffffff9c 00000004 cef11000 cdcb8000 0075ab0c cdcb9f94 cdcb9f68
-9f60: c015bd38 c016876c 0000ac44 00a5b030 cdcb9f9c 00000000 00000801 005e05ec
-9f80: 00000005 c00eefc4 cdcb9fa4 cdcb9f98 c015be00 c015bce8 00000000 cdcb9fa8
-9fa0: c00eee40 c015bde8 00000000 00000801 005e05ec 00020801 00000000 000021d4
-9fc0: 00000000 00000801 005e05ec 00000005 0075ab08 bef40aa4 0075ab0c 00000002
-9fe0: 0075966c bef409e0 00027268 400ddf78 60000010 005e05ec 00000000 00000000
-Backtrace:
-[<c00f9348>] (omap2_clkdm_clk_enable+0x0/0x7c) from [<c00f73dc>]
-(omap2_clk_enable+0x3c/0xb0)
- r5:80000013 r4:c04e75d4
-[<c00f73a0>] (omap2_clk_enable+0x0/0xb0) from [<c00fc36c>]
-(clk_enable+0x40/0x80)
- r5:80000013 r4:c04e75d4
-[<c00fc32c>] (clk_enable+0x0/0x80) from [<c0101128>]
-(omap_mcbsp_request+0x70/0x1c0)
- r7:cf9f1cc0 r6:c05107f0 r5:cecc1400 r4:cf840bc0
-[<c01010b8>] (omap_mcbsp_request+0x0/0x1c0) from [<c032c128>]
-(omap_mcbsp_dai_startup+0x34/0x38)
- r5:cecc1400 r4:c0510690
-[<c032c0f4>] (omap_mcbsp_dai_startup+0x0/0x38) from [<c03282bc>]
-(soc_pcm_open+0x50/0x34c)
-[<c032826c>] (soc_pcm_open+0x0/0x34c) from [<c03091ec>]
-(snd_pcm_open_substream+0x68/0xcc)
-[<c0309184>] (snd_pcm_open_substream+0x0/0xcc) from [<c031a064>]
-(snd_pcm_oss_open+0x248/0x444)
- r5:cdcb9da8 r4:cdcb9d80
-[<c0319e1c>] (snd_pcm_oss_open+0x0/0x444) from [<c02fc090>]
-(soundcore_open+0x104/0x18c)
-[<c02fbf8c>] (soundcore_open+0x0/0x18c) from [<c0160634>]
-(chrdev_open+0x134/0x154)
- r9:cdcb8000 r8:cddc4340 r7:00000000 r6:cece3c90 r5:cf87c3e0
-r4:00000000
-[<c0160500>] (chrdev_open+0x0/0x154) from [<c015bf58>]
-(__dentry_open+0x138/0x250)
- r8:cf80ad20 r7:00000000 r6:c0160500 r5:cece3c90 r4:cddc4340
-[<c015be20>] (__dentry_open+0x0/0x250) from [<c015c0a8>]
-(nameidata_to_filp+0x38/0x50)
-[<c015c070>] (nameidata_to_filp+0x0/0x50) from [<c0168ae0>]
-(do_filp_open+0x380/0x700)
- r4:00000000
-[<c0168760>] (do_filp_open+0x0/0x700) from [<c015bd38>] (do_sys_open+0x5c/0xec)
-[<c015bcdc>] (do_sys_open+0x0/0xec) from [<c015be00>] (sys_open+0x24/0x28)
- r8:c00eefc4 r7:00000005 r6:005e05ec r5:00000801 r4:00000000
-[<c015bddc>] (sys_open+0x0/0x28) from [<c00eee40>] (ret_fast_syscall+0x0/0x2c)
-Code: 03e00015 089da830 e2843010 e193cf9f (e28cc001)
-: 44100 Hz, 2 ch, s16le, 192.0 k---[ end trace 71f57f514e7970ae ]---
-bit/13.61% (ratio: 24000->176400)
-Selected audio codec: [mad] afm: libmad (libMAD MPEG layer 1-2-3)
-==========================================================================
-Segmentation fault
-@overo:/home/root#
-
-> - MMC seems to be broken for omap1, Ladislav Michl  might have a patch
->  coming up for that.
+On Wed, Jan 14, 2009 at 10:09 PM, Kevin Hilman
+<khilman@deeprootsystems.com> wrote:
 >
-> - I2C is broken for 2430 according to Kainan Cha.
+> Sriram V wrote:
+>>
+>> Hi,
+>>    OMAP3EVM. all domains hit retention in suspend.
+>>
+>>  On enabling cpuidle, network and mmc is not stable. network is
+>> unable to get an IP address.
 >
-> Also looks like source.mvista.com is down, so please use the kernel.org
-> tree.
+> Sriram,
 >
-> Regards,
+> Can you send me your .config for omap3evm?  I'm trying to get my recently received EVM working but I am getting lots of garbage on the serial console on linux-omap HEAD and PM branch on omap3evm.  Do you have any additional patches for EVM that you're using?
 >
-> Tony
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Kevin
+>
+>
+>>
+>> On Wed, Jan 14, 2009 at 3:21 AM, Kevin Hilman
+>> <khilman@deeprootsystems.com> wrote:
+>>>
+>>> Hello,
+>>>
+>>> The latest PM branch is now available[1].
+>>>
+>>> I've done basic testing of retention and off-mode (suspend and dynamic
+>>> idle) on Beagle and custom HW.  My SDP has something still keeping
+>>> CORE active that others have not seen, but I have yet to debug.  Any
+>>> other reports from SDP testing would be appreciated.
+>>>
+>>> Notable changes/updates
+>>> - rebased on latest clock updates and fixes from Paul
+>>> - clockfw pre- and post- notifiers
+>>> - DVFS for VDD2
+>>>
+>>> Full git shortlog below[2]
+>>>
+>>> Enjoy,
+>>>
+>>> Kevin
+>>>
+>>> [1] See branch 'pm' in my git repo:
+>>> git://git.kernel.org/pub/scm/linux/kernel/git/khilman/linux-omap-pm.git
+>>> which is also mirrored as the branch 'pm' of the normal linux-omap
+>>> repo (but will not sync until 03:30 GMT)
+>>>
+>>>
+>>> [2] git shortlog:
+>>>
+>>> Carlos Chinea (1):
+>>>     OMAP3:PM: Update SSI omapdev record
+>>>
+>>> Jouni Hogander (5):
+>>>     OMAP3: PM: Use pwrdm_set_next_pwrst instead of set_pwrdm_state in idle loop
+>>>     OMAP3: PM: Fix wrong sequence in suspend.
+>>>     OMAP3: PM: Do not build suspend code if SUSPEND is not enabled
+>>>     OMAP: PM: Build fails if PM is not enabled
+>>>     OMAP2: PM: Fix omap2 build
+>>>
+>>> Kalle Jokiniemi (3):
+>>>     OMAP: PM: sysfs interface for enabling voltage off in idle
+>>>     OMAP3: PM: Fix cpu idle init sequencing
+>>>     OMAP: SRF: Fixes to shared resource framework (Ver.3)
+>>>
+>>> Kevin Hilman (4):
+>>>     OMAP3: PM: CPUidle: obey enable_off_mode flag
+>>>     OMAP3: PM: CPUidle: restrict C-states on UART activity
+>>>     OMAP3: PM: decouple PER and CORE context save and restore
+>>>     OMAP2/3: PM: system_rev -> omap_rev()
+>>>
+>>> Paul Walmsley (29):
+>>>     OMAP2/3 clock: implement clock notifier infrastructure
+>>>     OMAP clock: add notifier infrastructure
+>>>     OMAP2/3 clock: store planned clock rates into temporary rate storage
+>>>     OMAP2/3 clock: add clk post-rate-change notifiers
+>>>     OMAP2/3 clock: add clock pre-rate-change notification
+>>>     OMAP2/3 clock: add clock prepare-rate-change notifications
+>>>     OMAP2/3 clock: add clock abort-rate-change notifications
+>>>     OMAP2/3 PM: create the OMAP PM interface and add a default OMAP PM no-op layer.
+>>>     OMAP2/3 omapdev: add basic omapdev structure
+>>>     OMAP242x omapdev: add OMAP242x omapdev records
+>>>     OMAP243x omapdev: add OMAP243x omapdev records
+>>>     OMAP3xxx omapdev: add OMAP3xxx omapdev records
+>>>     OMAP2/3 omapdev: add code to walk the omapdev records
+>>>     ARM: MMU: add a Non-cacheable Normal executable memory type
+>>>     OMAP3 SRAM: mark OCM RAM as Non-cacheable Normal memory
+>>>     OMAP3 SRAM: add ARM barriers to omap3_sram_configure_core_dpll
+>>>     OMAP3 clock: add interconnect barriers to CORE DPLL M2 change
+>>>     OMAP3 SRAM: clear the SDRC PWRENA bit during SDRC frequency change
+>>>     OMAP3 SDRC: Add 166MHz, 83MHz SDRC settings for the BeagleBoard
+>>>     OMAP3 SDRC: initialize SDRC_POWER at boot
+>>>     OMAP3 SRAM: renumber registers to make space for argument passing
+>>>     OMAP3 clock: only unlock SDRC DLL if SDRC clk < 83MHz
+>>>     OMAP3 clock: use pr_debug() rather than pr_info() in some clock change code
+>>>     OMAP3 clock: remove wait for DPLL3 M2 clock to stabilize
+>>>     OMAP3 clock: initialize SDRC timings at kernel start
+>>>     OMAP3 clock: add a short delay when lowering CORE clk rate
+>>>     OMAP3 clock/SDRC: program SDRC_MR register during SDRC clock change
+>>>     OMAP3 SRAM: add more comments on the SRAM code
+>>>     OMAP3 SRAM: convert SRAM code to use macros rather than magic numbers
+>>>
+>>> Peter 'p2' De Schrijver (12):
+>>>     OMAP: PM counter infrastructure.
+>>>     OMAP: PM: Hook into PM counters
+>>>     OMAP: PM: Add closures to clkdm_for_each and pwrdm_for_each.
+>>>     OMAP: PM: Add pm-debug counters
+>>>     OMAP: PM debug: make powerdomains use PM-debug counters
+>>>     OMAP: PM: Add definitions for ETK pads and observability registers
+>>>     OMAP: Debug observability and ETK padconf implementation
+>>>     OMAP: Add debug observablity (debobs) Kconfig item
+>>>     OMAP: PM: Implement get_last_off_on_transaction_id()
+>>>     Save sram context after changing MPU, DSP or core clocks
+>>>     Fix omap_getspeed.
+>>>     Make sure omap cpufreq driver initializes after cpufreq framework and governors
+>>>
+>>> Rajendra Nayak (35):
+>>>     OMAP3: PM: GPMC context save/restore
+>>>     OMAP3: PM: GPIO context save/restore
+>>>     OMAP3: PM: I2C context save/restore
+>>>     OMAP3: PM: INTC context save/restore
+>>>     OMAP3: PM: PRCM context save/restore
+>>>     OMAP3: PM: Populate scratchpad contents
+>>>     OMAP3: PM: SCM context save/restore
+>>>     OMAP3: PM: SRAM restore function
+>>>     OMAP3: PM: handle PER/NEON/CORE in idle
+>>>     OMAP3: PM: Restore MMU table entry
+>>>     OMAP3: PM: MPU off-mode support
+>>>     OMAP3: PM: CORE domain off-mode support
+>>>     OMAP3: PM: allow runtime enable/disable of OFF mode
+>>>     OMAP3: 3430SDP minimal kernel defconfig
+>>>     OMAP3: PM: CPUidle: Basic support for C1-C2
+>>>     OMAP3: PM: CPUidle: Enables state C4
+>>>     OMAP3: PM: CPUidle: Enables C3 and C5
+>>>     OMAP3: PM: CPUidle: Safe-state on bm-activity
+>>>     OMAP3 SRF: Generic shared resource f/w
+>>>     OMAP3 SRF: MPU/CORE/PD latency modeling
+>>>     OMAP3 SRF: omap3 srf driver
+>>>     OMAP3 SRF: OMAP PM srf implementation
+>>>     OMAP3 SRF: Add CORE rate table param in OMAP-PM
+>>>     OMAP3 SRF: Add VDD1/VDD2 rate tables for 3430SDP
+>>>     OMAP3 SRF: Add virt clk nodes for VDD1/VDD2
+>>>     OMAP3 SRF: Adds OPP/Freq res's in SRF
+>>>     OMAP3 SRF: Update OMAP-PM layer
+>>>     OMAP3 SRF: Voltage scaling support
+>>>     OMAP3 SRF: VDD2 scaling support
+>>>     OMAP3 SRF: Adds sysfs control for VDD1/VDD2 OPP's
+>>>     OMAP3 PM: Replace spinlocks with mutex in SRF
+>>>     OMAP3 PM: CPUFreq driver for OMAP3
+>>>     OMAP3 PM: Update the min defconfig for 3430sdp
+>>>     OMAP3 SRF: Fix crash on non-3430SDP platforms with DVFS/CPUFreq
+>>>     OMAP3: PM: Scale VDD2 OPP for VDD1 OPP3 and higher
+>>>
+>>> Tero Kristo (26):
+>>>     OMAP: PM debug: do not print out status for meta powerdomains (dpll*)
+>>>     OMAP: PM debug: Add PRCM register dump support
+>>>     OMAP: PM: DMA context save / restore
+>>>     OMAP: PM: off-mode support for DMA on EMU/HS devices
+>>>     OMAP3: SRAM size fix for HS/EMU devices
+>>>     OMAP3 PM: off-mode support for HS/EMU devices
+>>>     OMAP3: PM: Enable SDRAM auto-refresh during sleep
+>>>     OMAP: SDRC: Add new register definitions for SDRAM controller
+>>>     OMAP3: PM: SDRC auto-refresh workaround for off-mode
+>>>     PM: Added three PLL registers to the PRCM context save
+>>>     PM: Changed secure RAM storage size from 0x8000 to 0x803F
+>>>     PM: Added suspend target state control to debugfs for OMAP3
+>>>     OMAP3: PM: Prevent PER from going OFF when CORE is going INA
+>>>     PM OMAP3: Change omap3_save_secure_ram to be called only during init
+>>>     OMAP3: PM: MPU and CORE should stay awake if there is CAM domain ACTIVE
+>>>     OMAP3: GPIO fixes for off-mode
+>>>     PM: OMAP3: Refreshed DVFS VDD1 control against latest clock fw
+>>>     OMAP3: Add support for DPLL3 divisor values higher than 2
+>>>     OMAP3: PM: Fixed VDD2 control to work from both sysfs and SRF API
+>>>     OMAP3: PM: Added DVFS OPP locking interface for VDD1 and VDD2
+>>>     OMAP3: Fix rate calculation bug in omap3_select_table_rate
+>>>     OMAP3: PM: Prevented DVFS state switches when enabling off-mode
+>>>     OMAP3: PM: Enable VDD2 OPP1
+>>>     OMAP3: PM: Fix linker error without CONFIG_PM option
+>>>     PM: OMAP3: Removed a couple of unused variables from DVFS code
+>>>     PM: OMAP3: Added support for possibly failing clk_set_rate to DVFS
+>>>
+>>> --
+>>> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+>>> the body of a message to majordomo@vger.kernel.org
+>>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>>>
 >
