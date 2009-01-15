@@ -1,38 +1,46 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 11/10] ARM: OMAP: Fix compile for h3 MMC
-Date: Thu, 15 Jan 2009 14:13:26 +0200
-Message-ID: <20090115121325.GC4128@atomide.com>
-References: <20090112143405.24205.52151.stgit@localhost> <20090112145005.24205.31628.stgit@localhost>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: git-pull request for omap-fixes for 2.6.29-rc1 (Re: [PATCH 00/10] Omap fixes for 2.6.29-rc1)
+Date: Thu, 15 Jan 2009 12:40:16 +0000
+Message-ID: <20090115124016.GA20409@n2100.arm.linux.org.uk>
+References: <20090112143405.24205.52151.stgit@localhost> <20090113143528.GP7344@atomide.com> <20090115103716.GL2162@n2100.arm.linux.org.uk> <20090115112611.GX29324@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-bos.mailhop.org ([63.208.196.178]:49822 "EHLO
-	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754241AbZAOMNZ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 15 Jan 2009 07:13:25 -0500
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:40677 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754510AbZAOMk2 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 15 Jan 2009 07:40:28 -0500
 Content-Disposition: inline
-In-Reply-To: <20090112145005.24205.31628.stgit@localhost>
+In-Reply-To: <20090115112611.GX29324@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-arm-kernel@lists.arm.linux.org.uk
-Cc: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-arm-kernel@lists.arm.linux.org.uk, linux-omap@vger.kernel.org
 
-Fix compile for h3 MMC
+On Thu, Jan 15, 2009 at 01:26:12PM +0200, Tony Lindgren wrote:
+> * Russell King - ARM Linux <linux@arm.linux.org.uk> [090115 12:37]:
+> > On Tue, Jan 13, 2009 at 04:35:29PM +0200, Tony Lindgren wrote:
+> > > * Tony Lindgren <tony@atomide.com> [090112 16:37]:
+> > > > Hi,
+> > > > 
+> > > > Here are some omap fixes for review. Some of these patches
+> > > > were posted earlier.
+> > > 
+> > > If no other comments, here's the pull request:
+> > 
+> > Unfortunately, this breaks stuff.  Whereas before pulling this I get:
+> > 
+> >   CC      drivers/usb/core/hub.o
+> > drivers/usb/core/hub.c: In function `usb_configure_device_otg':
+> > drivers/usb/core/hub.c:1557: error: too few arguments to function `usb_port_suspend'
+> 
+> Hmm, I thought I build all the defconfigs before posting the series.
+> Will update in just few mins.
 
-Signed-off-by: Tony Lindgren <tony@atomide.com>
+Thanks.  It would also be nice if the USB error could be fixed by USB
+folk as well - it's been broken since 2.6.28-git12.  (Maybe people
+should check kautobuild's errors summary page?)
 
-diff --git a/arch/arm/plat-omap/include/mach/board-h3.h b/arch/arm/plat-omap/include/mach/board-h3.h
-index 14909dc..1888326 100644
---- a/arch/arm/plat-omap/include/mach/board-h3.h
-+++ b/arch/arm/plat-omap/include/mach/board-h3.h
-@@ -30,7 +30,9 @@
- /* In OMAP1710 H3 the Ethernet is directly connected to CS1 */
- #define OMAP1710_ETHR_START		0x04000300
- 
-+#define H3_TPS_GPIO_BASE		(OMAP_MAX_GPIO_LINES + 16 /* MPUIO */)
-+#	define H3_TPS_GPIO_MMC_PWR_EN	(H3_TPS_GPIO_BASE + 4)
-+
- extern void h3_mmc_init(void);
--extern void h3_mmc_slot_cover_handler(void *arg, int state);
- 
- #endif /*  __ASM_ARCH_OMAP_H3_H */
+http://armlinux.simtec.co.uk/kautobuild/<version>/errors.html
+
+where <version> should be replaced by, eg, 2.6.29-rc1-git4
