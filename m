@@ -1,63 +1,48 @@
-From: Koen Kooi <k.kooi@student.utwente.nl>
-Subject: leds-gpio broken with current git?
-Date: Thu, 15 Jan 2009 15:19:22 +0100
-Message-ID: <7088542D-28A0-4BCA-9583-6BCDDF9E960A@student.utwente.nl>
-Mime-Version: 1.0 (Apple Message framework v930.3)
-Content-Type: multipart/signed; protocol="application/pgp-signature"; micalg=pgp-sha1; boundary="Apple-Mail-9-318891698"
-Content-Transfer-Encoding: 7bit
+From: Alan Stern <stern@rowland.harvard.edu>
+Subject: Re: git-pull request for omap-fixes for 2.6.29-rc1 (Re: [PATCH 00/10]
+ Omap fixes for 2.6.29-rc1)
+Date: Thu, 15 Jan 2009 09:49:46 -0500 (EST)
+Message-ID: <Pine.LNX.4.44L0.0901150948150.2490-100000@iolanthe.rowland.org>
+References: <20090115133417.GB20409@n2100.arm.linux.org.uk>
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp1.utsp.utwente.nl ([130.89.2.8]:58188 "EHLO smtp.utwente.nl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757191AbZAOOUV (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 15 Jan 2009 09:20:21 -0500
-Received: from [172.20.1.5] (vpn006014.vpn.utwente.nl [130.89.6.14])
-          by smtp.utwente.nl (8.12.10/SuSE Linux 0.7) with ESMTP id n0FEJOVR027716
-          for <linux-omap@vger.kernel.org>; Thu, 15 Jan 2009 15:19:24 +0100
+Received: from iolanthe.rowland.org ([192.131.102.54]:37066 "HELO
+	iolanthe.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1761004AbZAOOtt (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 15 Jan 2009 09:49:49 -0500
+In-Reply-To: <20090115133417.GB20409@n2100.arm.linux.org.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "linux-omap@vger.kernel.org List" <linux-omap@vger.kernel.org>
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: Felipe Balbi <felipe.balbi@nokia.com>, Greg Kroah-Hartman <gregkh@suse.de>, Tony Lindgren <tony@atomide.com>, David Brownell <david-b@pacbell.net>, linux-arm-kernel@lists.arm.linux.org.uk, linux-omap@vger.kernel.org
 
-This is an OpenPGP/MIME signed message (RFC 2440 and 3156)
---Apple-Mail-9-318891698
-Content-Type: text/plain; charset=US-ASCII; format=flowed; delsp=yes
-Content-Transfer-Encoding: 7bit
+On Thu, 15 Jan 2009, Russell King - ARM Linux wrote:
 
-Hi,
+> On Thu, Jan 15, 2009 at 03:15:45PM +0200, Felipe Balbi wrote:
+> > On Thu, Jan 15, 2009 at 12:40:16PM +0000, ext Russell King - ARM Linux wrote:
+> > > Thanks.  It would also be nice if the USB error could be fixed by USB
+> > > folk as well - it's been broken since 2.6.28-git12.  (Maybe people
+> > > should check kautobuild's errors summary page?)
+> > 
+> > are you talking about
+> > 
+> > drivers/usb/core/hub.c:1557: error: too few arguments to function
+> > 'usb_port_suspend' ??
+> 
+> That was indeed the one quoted in my message.
+> 
+> > that should be fixed by Greg, no ??
+> 
+> Not sure - looks to be related to OTG... and seems to be caused by Alan
+> Stern's 65bfd2967c906ca322a4bb69a285fe0de8916ac6 change "USB: Enhance
+> usage of pm_message_t".  Adding To's.
 
-I've been playing with different kernels on beagleboard lately and it  
-seems that somewhere between 2.6.28rc8 and the final release leds-gpio  
-got broken for beagleboard:
+Apparently the patch to fix this is still in Greg's queue.  If you want
+to test the patch for yourself, it's here:
 
-Registered led device: beagleboard::usr0
-Registered led device: beagleboard::usr1
-leds-gpio: probe of leds-gpio failed with error -22
+	http://marc.info/?l=linux-usb&m=123032171110450&w=2
 
-and in userspace:
+Alan Stern
 
-root@beagleboard:~# ls /sys/class/leds/
-root@beagleboard:~#
 
-I'm currently too swamped with exams and testing the PM branch to do a  
-bisect for 3 blinkenlights, so if anyone has a suggestion were to  
-look....
-
-regards,
-
-Koen
-
---Apple-Mail-9-318891698
-content-type: application/pgp-signature; x-mac-type=70674453;
-	name=PGP.sig
-content-description: Dit deel van het bericht is digitaal ondertekend
-content-disposition: inline; filename=PGP.sig
-content-transfer-encoding: 7bit
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.5 (Darwin)
-
-iD8DBQFJb0XrMkyGM64RGpERAi9oAJoCMr1SUyaHY3g7181Z+Ujo0fMxSgCgov/B
-SqWQJd6mYFu8zyUbHQy7vLE=
-=1GJX
------END PGP SIGNATURE-----
-
---Apple-Mail-9-318891698--
