@@ -1,42 +1,42 @@
-From: "Gadiyar, Anand" <gadiyar@ti.com>
-Subject: [PATCH] Fix compile error in usb-musb.c
-Date: Fri, 16 Jan 2009 00:18:20 +0530
-Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB02E6815B88@dbde02.ent.ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+From: Koen Kooi <koen@openembedded.org>
+Subject: [PATCH] ARM: OMAP: board-omap3beagle: set i2c-3 to 100kHz
+Date: Thu, 15 Jan 2009 20:43:51 +0100
+Message-ID: <1232048631-21614-1-git-send-email-koen@openembedded.org>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:53074 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754256AbZAOSsd convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 15 Jan 2009 13:48:33 -0500
-Content-Language: en-US
+Received: from [80.81.242.146] ([80.81.242.146]:60579 "EHLO
+	amethyst.openembedded.net" rhost-flags-FAIL-FAIL-OK-OK)
+	by vger.kernel.org with ESMTP id S1757422AbZAOTnT (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Thu, 15 Jan 2009 14:43:19 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
-Cc: Tony Lindgren <tony@atomide.com>, David Brownell <david-b@pacbell.net>
+To: linux-omap@vger.kernel.org
+Cc: Koen Kooi <koen@beagleboard.org>
 
-From: Anand Gadiyar <gadiyar@ti.com>
+From: Koen Kooi <koen@beagleboard.org>
 
-Fix this compile error
+Changing it to 100kHz is needed to make more devices works properly. Controlling the TI DLP Pico projector[1] doesn't work properly at 400kHz, 100kHz and lower work fine. EDID readout is unaffected by this change.
 
-  CC      arch/arm/mach-omap2/usb-musb.o
-arch/arm/mach-omap2/usb-musb.c:47: error: 'INT_243X_HS_USB_MC' undeclared here (not in a function)
-arch/arm/mach-omap2/usb-musb.c:51: error: 'INT_243X_HS_USB_DMA' undeclared here (not in a function)
-make[1]: *** [arch/arm/mach-omap2/usb-musb.o] Error 1
+[1] http://focus.ti.com/dlpdmd/docs/dlpdiscovery.tsp?sectionId=60&tabId=2234
 
-Signed-off-by: Anand Gadiyar <gadiyar@ti.com>
-Reported-by: David Brownell <david-b@pacbell.net>
+Signed-off-by: Koen Kooi <koen@beagleboard.org>
 ---
-diff --git a/arch/arm/mach-omap2/usb-musb.c b/arch/arm/mach-omap2/usb-musb.c
-index 61c5709..5d79f89 100644
---- a/arch/arm/mach-omap2/usb-musb.c
-+++ b/arch/arm/mach-omap2/usb-musb.c
-@@ -28,6 +28,7 @@
- #include <linux/usb/musb.h>
+ arch/arm/mach-omap2/board-omap3beagle.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/board-omap3beagle.c b/arch/arm/mach-omap2/board-omap3beagle.c
+index fe97bab..f279404 100644
+--- a/arch/arm/mach-omap2/board-omap3beagle.c
++++ b/arch/arm/mach-omap2/board-omap3beagle.c
+@@ -227,7 +227,7 @@ static int __init omap3_beagle_i2c_init(void)
+ #ifdef CONFIG_I2C2_OMAP_BEAGLE
+ 	omap_register_i2c_bus(2, 400, NULL, 0);
+ #endif
+-	omap_register_i2c_bus(3, 400, NULL, 0);
++	omap_register_i2c_bus(3, 100, NULL, 0);
+ 	return 0;
+ }
  
- #include <mach/hardware.h>
-+#include <mach/irqs.h>
- #include <mach/pm.h>
- #include <mach/mux.h>
- #include <mach/usb.h>
+-- 
+1.5.6.3
+
