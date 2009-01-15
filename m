@@ -1,81 +1,79 @@
-From: Koen Kooi <k.kooi@student.utwente.nl>
-Subject: Re: new PM branch available
-Date: Thu, 15 Jan 2009 09:18:35 +0100
-Message-ID: <0A31781D-EC15-4B4D-A48A-47A67AC38824@student.utwente.nl>
-References: <87iqoij2me.fsf@deeprootsystems.com> <84166B96-7874-4B6D-B86E-659250F62558@student.utwente.nl> <87wscxk022.fsf@deeprootsystems.com>
-Mime-Version: 1.0 (Apple Message framework v930.3)
-Content-Type: multipart/signed; protocol="application/pgp-signature"; micalg=pgp-sha1; boundary="Apple-Mail-3-297244985"
-Content-Transfer-Encoding: 7bit
+From: "Premi, Sanjeev" <premi@ti.com>
+Subject: RE: [PATCH 0/3] Add support for OMAP35x processors (v3)
+Date: Thu, 15 Jan 2009 14:23:45 +0530
+Message-ID: <B85A65D85D7EB246BE421B3FB0FBB59301BB8D81FC@dbde02.ent.ti.com>
+References: <1231617620-18667-1-git-send-email-premi@ti.com>
+ <87hc43j8o7.fsf@deeprootsystems.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mx3.utsp.utwente.nl ([130.89.2.14]:13192 "EHLO mx.utwente.nl"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:35482 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754754AbZAOISq (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 15 Jan 2009 03:18:46 -0500
-In-Reply-To: <87wscxk022.fsf@deeprootsystems.com>
+	id S1757324AbZAOIyD convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 15 Jan 2009 03:54:03 -0500
+In-Reply-To: <87hc43j8o7.fsf@deeprootsystems.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Kevin Hilman <khilman@deeprootsystems.com>
-Cc: "linux-omap@vger.kernel.org List" <linux-omap@vger.kernel.org>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-This is an OpenPGP/MIME signed message (RFC 2440 and 3156)
---Apple-Mail-3-297244985
-Content-Type: text/plain; charset=US-ASCII; format=flowed; delsp=yes
-Content-Transfer-Encoding: 7bit
+> -----Original Message-----
+> From: Kevin Hilman [mailto:khilman@deeprootsystems.com] 
+> Sent: Wednesday, January 14, 2009 1:11 AM
+> To: Premi, Sanjeev
+> Cc: linux-omap@vger.kernel.org
+> Subject: Re: [PATCH 0/3] Add support for OMAP35x processors (v3)
+> 
+> Sanjeev Premi <premi@ti.com> writes:
+> 
+> > These patches provide support for the OMAP35x processors.
+> >
+> > This is essentially a re-submit after series of discusions 
+> earlier in 
+> > the list. It had always been getting pushed in my to-do list :(
+> > See: http://marc.info/?l=linux-omap&m=122029900603111&w=2
+> >
+> > Based on the comments received, this patch includes following:
+> >   1) Updates to Kconfig
+> >      (Includes the changes suggested by Aguirre Rodriguez)
+> >   2) Runtime check for OMAP35x
+> >   3) Updates to omap3_evm_defconfig
+> >
+> > If the changes look good, I can make updates to Beagle, Overo and 
+> > Pandora boards as well.
+> >
+> > Best regards,
+> > Sanjeev
+> 
+> Sanjeev,
+> 
+> Is the HEAD of linux-omap working for you on omap3evm?  I 
+> just got my EVM and am getting it going but it doesn't boot 
+> without CONFIG_DEBUG_LL, and with that enabled, as soon as 
+> the normal serial driver is enabled, the serial console goes 
+> crazy with garbage output.
 
+Here is the git-log from my working branch that works fine for me.
 
-Op 14 jan 2009, om 23:14 heeft Kevin Hilman het volgende geschreven:
+commit 15f75b6226c2d3b82062bb721e7cb9a1d6f35efd
+Author: Ajay Kumar Gupta <ajay.gupta@ti.com>
+Date:   Tue Jan 13 14:08:44 2009 +0200
+    usb: musb: fix bug in musbhsdma programming
+    <snip>--<snip>
 
-> Koen Kooi <k.kooi@student.utwente.nl> writes:
->
->> Op 13 jan 2009, om 22:51 heeft Kevin Hilman het volgende geschreven:
->>
->>> Hello,
->>>
->>> The latest PM branch is now available[1].
->>>
->>> I've done basic testing of retention and off-mode (suspend and  
->>> dynamic
->>> idle) on Beagle and custom HW.  My SDP has something still keeping
->>> CORE active that others have not seen, but I have yet to debug.  Any
->>> other reports from SDP testing would be appreciated.
->>>
->>> Notable changes/updates
->>> - rebased on latest clock updates and fixes from Paul
->>> - clockfw pre- and post- notifiers
->>> - DVFS for VDD2
->>
->> The bootlog on my rev C1D beagle looks suspicious:
->>
->
-> Hi Koen,
->
-> Hmm, it looks like you're tree is missing the McBSP fix from Paul[1].
-> This patch made it in before v2.6.28-omap1 which the latest PM branch
-> is based on, so I'm guessing you're not testing the latest PM branch.
+commit 0ec95b96fd77036a13398c66901e11cd301190d0
+Author: Jouni Hogander <jouni.hogander@nokia.com>
+Date:   Fri Jan 9 09:52:33 2009 +0200
+    OMAP3: PM: Emu_pwrdm is switched off by hardware even when sdti is in use
+    <snip>--<snip>
+> 
+> I'm about to push a new PM branch and wanted to do some 
+> testing on the EVM.
+> 
 
-Indeed:
+Currently building HEAD of your branch will update soon.
 
->>  Image Name:   Angstrom/2.6.28-pm1+gitrb5d11429
-
-The latest is gitr998bd567. I'll test the proper one later today.
-
-regards,
-
-Koen
-
---Apple-Mail-3-297244985
-content-type: application/pgp-signature; x-mac-type=70674453;
-	name=PGP.sig
-content-description: Dit deel van het bericht is digitaal ondertekend
-content-disposition: inline; filename=PGP.sig
-content-transfer-encoding: 7bit
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.5 (Darwin)
-
-iD8DBQFJbvFdMkyGM64RGpERAl2WAJ94ru5xq09jmJq2LlKDDomqfbgT4gCeIQxA
-a+kwz26byymIAqSgdGzcLtI=
-=rn0Z
------END PGP SIGNATURE-----
-
---Apple-Mail-3-297244985--
+Best regards,
+Sanjeev
