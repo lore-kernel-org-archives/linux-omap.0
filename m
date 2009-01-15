@@ -1,126 +1,78 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: git-pull request for omap-fixes for 2.6.29-rc1 (Re: [PATCH
-	00/10] Omap fixes for 2.6.29-rc1)
-Date: Thu, 15 Jan 2009 15:37:47 +0200
-Message-ID: <20090115133746.GE4128@atomide.com>
-References: <20090112143405.24205.52151.stgit@localhost> <20090113143528.GP7344@atomide.com> <20090115103716.GL2162@n2100.arm.linux.org.uk> <20090115112611.GX29324@atomide.com> <20090115124016.GA20409@n2100.arm.linux.org.uk>
+From: Trilok Soni <soni.trilok@gmail.com>
+Subject: Re: lowmemory android driver not needed?
+Date: Thu, 15 Jan 2009 19:02:48 +0530
+Message-ID: <5d5443650901150532r20a4c25q834afadde2f98a3@mail.gmail.com>
+References: <20090114010223.GA21380@kroah.com>
+	 <20090114021801.GA14759@bulgaria.corp.google.com>
+	 <d6200be20901131830r7103ff8eoe0314f9faf89d89b@mail.gmail.com>
+	 <20090114035237.GB16442@kroah.com> <20090114104307.GA20451@elf.ucw.cz>
+	 <20090114104834.18387fca@lxorguk.ukuu.org.uk>
+	 <d6200be20901141426r1d48ea33gc9a380451e4aaf93@mail.gmail.com>
+	 <20090114231739.GB24111@kroah.com>
+	 <d6200be20901141532y6f236104kd521041d640c152e@mail.gmail.com>
+	 <20090115001224.GC11328@kroah.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="vv4Sf/kQfcwinyKX"
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-bos.mailhop.org ([63.208.196.178]:56885 "EHLO
-	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757562AbZAONhv (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 15 Jan 2009 08:37:51 -0500
-Content-Disposition: inline
-In-Reply-To: <20090115124016.GA20409@n2100.arm.linux.org.uk>
+Received: from wf-out-1314.google.com ([209.85.200.170]:27220 "EHLO
+	wf-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757582AbZAONkF convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 15 Jan 2009 08:40:05 -0500
+Received: by wf-out-1314.google.com with SMTP id 27so1275639wfd.4
+        for <linux-omap@vger.kernel.org>; Thu, 15 Jan 2009 05:40:05 -0800 (PST)
+In-Reply-To: <20090115001224.GC11328@kroah.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: linux-arm-kernel@lists.arm.linux.org.uk, linux-omap@vger.kernel.org
+To: Greg KH <greg@kroah.com>
+Cc: =?ISO-8859-1?Q?Arve_Hj=F8nnev=E5g?= <arve@android.com>, Alan Cox <alan@lxorguk.ukuu.org.uk>, Pavel Machek <pavel@suse.cz>, Brian Swetland <swetland@google.com>, arve@google.com, San Mehat <san@android.com>, Robert Love <rlove@google.com>, linux-kernel@vger.kernel.org, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, =?ISO-8859-1?Q?ext_Juha_Yrj=F6l=E4?= <juha.yrjola@solidboot.com>, viktor.rosendahl@nokia.com
 
+Hi Greg,
 
---vv4Sf/kQfcwinyKX
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+On Thu, Jan 15, 2009 at 5:42 AM, Greg KH <greg@kroah.com> wrote:
+> On Wed, Jan 14, 2009 at 03:32:38PM -0800, Arve Hj=F8nnev=E5g wrote:
+>> On Wed, Jan 14, 2009 at 3:17 PM, Greg KH <greg@kroah.com> wrote:
+>> >> We actually use 6 different thresholds for killing processes. I d=
+on't
+>> >> know what all the classes are, processes with a higher oom_adj va=
+lue
+>> >> can be killed with less impact to the user than processes with a =
+lower
+>> >> oom_adj value. The first few classes only affect latency when
+>> >> switching apps, but later classes stop non critical background
+>> >> services and finally the foreground app. Another reason to not ki=
+ll
+>> >> every process at the same threshold is that memory may not be fre=
+e
+>> >> immediately when the process is killed.
+>> >
+>> > But the lowmemorykiller android module doesn't have anything to do=
+ with
+>> > this, right?
+>> >
+>>
+>> It does. We write the thresholds to
+>> /sys/module/lowmemorykiller/parameters/adj and
+>> /sys/module/lowmemorykiller/parameters/minfree then set the oom_adj
+>> value per process. If the standard oom killer can be adjusted in a
+>> similar way, then we will not need the lowmemorykiller module.
+>
+> Great, care to document this somewhere so people like me don't get
+> confused?
 
-* Russell King - ARM Linux <linux@arm.linux.org.uk> [090115 14:40]:
-> On Thu, Jan 15, 2009 at 01:26:12PM +0200, Tony Lindgren wrote:
-> > * Russell King - ARM Linux <linux@arm.linux.org.uk> [090115 12:37]:
-> > > On Tue, Jan 13, 2009 at 04:35:29PM +0200, Tony Lindgren wrote:
-> > > > * Tony Lindgren <tony@atomide.com> [090112 16:37]:
-> > > > > Hi,
-> > > > > 
-> > > > > Here are some omap fixes for review. Some of these patches
-> > > > > were posted earlier.
-> > > > 
-> > > > If no other comments, here's the pull request:
-> > > 
-> > > Unfortunately, this breaks stuff.  Whereas before pulling this I get:
-> > > 
-> > >   CC      drivers/usb/core/hub.o
-> > > drivers/usb/core/hub.c: In function `usb_configure_device_otg':
-> > > drivers/usb/core/hub.c:1557: error: too few arguments to function `usb_port_suspend'
-> > 
-> > Hmm, I thought I build all the defconfigs before posting the series.
-> > Will update in just few mins.
-> 
-> Thanks.  It would also be nice if the USB error could be fixed by USB
-> folk as well - it's been broken since 2.6.28-git12.  (Maybe people
-> should check kautobuild's errors summary page?)
-> 
-> http://armlinux.simtec.co.uk/kautobuild/<version>/errors.html
-> 
-> where <version> should be replaced by, eg, 2.6.29-rc1-git4
+And there is one more lowmem driver developed by Nokia for Nokia 8xx
+tablets it seems. CCed Tony Lindgren,  Juha and Viktor.
 
-Regarding the USB hub.c issue, sounds like Dave and Felipe are
-already looking into it.
+http://git.kernel.org/?p=3Dlinux/kernel/git/tmlind/linux-omap-2.6.git;a=
+=3Dblob;f=3Dsecurity/lowmem.c;h=3Dae78a530af39703e335ad769f1e6f097f63ec=
+6dd;hb=3DHEAD
 
-I think I missed the other build errors because I probably forgot
-to manually try to rebuild the boards that failed on the usb.c
-error..
-
-Here's the updated pull request for the other omap fixes.
-
-Tony
-
-
---vv4Sf/kQfcwinyKX
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline; filename="pull.txt"
-
-The following changes since commit 5393f780277165f282a37ed82dd878159ec9dad5:
-  Linus Torvalds (1):
-        Merge branch 'merge' of git://git.kernel.org/.../benh/powerpc
-
-are available in the git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap-2.6.git omap-fixes
-
-Anand Gadiyar (1):
-      ARM: OMAP: Fix DMA CCR programming for request line > 63, v3
-
-Arun KS (1):
-      ARM: OMAP: Fix OSK ASoC by registering I2C board info for tlvaic23
-
-Huang Weiyi (1):
-      ARM: OMAP: remove duplicated #include's
-
-Jarkko Nikula (1):
-      ARM: OMAP: Fix gpio by switching to generic gpio calls, v2
-
-Tony Lindgren (7):
-      ARM: OMAP: Fix compile for various McBSP
-      ARM: OMAP: Fix compile for palmte
-      ARM: OMAP: Fix compile for beagle
-      ARM: OMAP: Fix gpio.c compile on 15xx with CONFIG_DEBUGFS
-      ARM: OMAP: Fix ASoC by enabling writes to XCCR and RCCR McBSP registers, v3
-      ARM: OMAP: Remove unused platform devices, v3
-      ARM: OMAP: Fix compile for h3 MMC
-
- arch/arm/mach-omap1/board-h2.c             |   45 +-----------
- arch/arm/mach-omap1/board-h3.c             |   50 ------------
- arch/arm/mach-omap1/board-innovator.c      |   39 ---------
- arch/arm/mach-omap1/board-nokia770.c       |    8 ++-
- arch/arm/mach-omap1/board-osk.c            |   43 +----------
- arch/arm/mach-omap1/board-palmte.c         |   29 -------
- arch/arm/mach-omap1/board-palmtt.c         |   41 ----------
- arch/arm/mach-omap1/board-palmz71.c        |   37 ---------
- arch/arm/mach-omap1/board-sx1.c            |   39 +--------
- arch/arm/mach-omap1/board-voiceblue.c      |    1 -
- arch/arm/mach-omap1/mcbsp.c                |    1 +
- arch/arm/mach-omap2/board-apollon.c        |   64 ++--------------
- arch/arm/mach-omap2/board-ldp.c            |    2 +-
- arch/arm/mach-omap2/board-omap3beagle.c    |    9 +-
- arch/arm/mach-omap2/mcbsp.c                |    1 +
- arch/arm/plat-omap/dma.c                   |   13 +--
- arch/arm/plat-omap/gpio.c                  |    3 +
- arch/arm/plat-omap/include/mach/aic23.h    |  116 ----------------------------
- arch/arm/plat-omap/include/mach/board-h3.h |    4 +-
- arch/arm/plat-omap/include/mach/gpio.h     |   10 ---
- arch/arm/plat-omap/include/mach/mcbsp.h    |   11 +++
- arch/arm/plat-omap/mcbsp.c                 |    4 +
- drivers/mtd/onenand/omap2.c                |    6 +-
- 23 files changed, 58 insertions(+), 518 deletions(-)
- delete mode 100644 arch/arm/plat-omap/include/mach/aic23.h
-
---vv4Sf/kQfcwinyKX--
+--=20
+---Trilok Soni
+http://triloksoni.wordpress.com
+http://www.linkedin.com/in/triloksoni
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
