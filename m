@@ -1,41 +1,125 @@
-From: Dirk Behme <dirk.behme@googlemail.com>
-Subject: Re: Reading OMAP3 CONTROL_RAND_KEY_0 register hangs
-Date: Fri, 16 Jan 2009 17:11:22 +0100
-Message-ID: <4970B1AA.7090403@googlemail.com>
-References: <496F6310.30104@googlemail.com> <13B9B4C6EF24D648824FF11BE8967162036D63FEB7@dlee02.ent.ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+From: "Peter 'p2' De Schrijver" <peter.de-schrijver@nokia.com>
+Subject: [PATCH] Wait for SDRC ready iso a blind delay
+Date: Fri, 16 Jan 2009 18:53:48 +0200
+Message-ID: <1232124828-21748-1-git-send-email-peter.de-schrijver@nokia.com>
+References: <87ocy9jzd2.fsf@deeprootsystems.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from fg-out-1718.google.com ([72.14.220.157]:61578 "EHLO
-	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755573AbZAPQLa (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 16 Jan 2009 11:11:30 -0500
-Received: by fg-out-1718.google.com with SMTP id 19so846457fgg.17
-        for <linux-omap@vger.kernel.org>; Fri, 16 Jan 2009 08:11:28 -0800 (PST)
-In-Reply-To: <13B9B4C6EF24D648824FF11BE8967162036D63FEB7@dlee02.ent.ti.com>
+Received: from smtp.nokia.com ([192.100.122.233]:37932 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758739AbZAPQyG (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 16 Jan 2009 11:54:06 -0500
+Received: from vaebh105.NOE.Nokia.com (vaebh105.europe.nokia.com [10.160.244.31])
+	by mgw-mx06.nokia.com (Switch-3.2.6/Switch-3.2.6) with ESMTP id n0GGrl9g029236
+	for <linux-omap@vger.kernel.org>; Fri, 16 Jan 2009 18:54:00 +0200
+In-Reply-To: <87ocy9jzd2.fsf@deeprootsystems.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Woodruff, Richard" <r-woodruff2@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: linux-omap@vger.kernel.org
+Cc: Peter 'p2' De Schrijver <peter.de-schrijver@nokia.com>
 
-Woodruff, Richard wrote:
->> With OMAP3530 on BeagleBoard we like to read OMAP3's
->> CONTROL_RAND_KEY_0 (0x4800 2318) register with something like
->>
->> printf ("attempting cpu_uid read\n");
->> u32 cpu_uid = *((u32 *) 0x48002318);
->> /* u32 cpu_uid = readl(&ctrl_base->randkey_0); */
->> printf ("cpu_uid read done\n");
-> 
-> This address is not accessible out side of secure mode along with some other qualifiers.
-> 
-> Trying to access is futile and will result in an abort.  The control register range is full of readable and aborting addresses.
+This patch improves the wakeup SRAM code polling the SDRC to become ready
+instead of just waiting for a fixed amount of time.
 
-Is there any hint in TRM (spruf98b.pdf) identifying/marking which 
-registers are readable in normal and which are only accessible in 
-secure mode?
+Now with signoff :)
 
-Thanks
+Signed-off-by: Peter 'p2' De Schrijver <peter.de-schrijver@nokia.com>
+---
+ arch/arm/mach-omap2/sleep34xx.S |   51 +++++++++++++++++++++++++++++----------
+ 1 files changed, 38 insertions(+), 13 deletions(-)
 
-Dirk
+diff --git a/arch/arm/mach-omap2/sleep34xx.S b/arch/arm/mach-omap2/sleep34xx.S
+index 0c33e30..33ee85b 100644
+--- a/arch/arm/mach-omap2/sleep34xx.S
++++ b/arch/arm/mach-omap2/sleep34xx.S
+@@ -30,6 +30,7 @@
+ #include <mach/pm.h>
+ #include <mach/control.h>
+ 
++#include "cm.h"
+ #include "prm.h"
+ #include "sdrc.h"
+ 
+@@ -38,6 +39,8 @@
+ #define PM_PREPWSTST_CORE_P	0x48306AE8
+ #define PM_PREPWSTST_MPU_V	OMAP34XX_PRM_REGADDR(MPU_MOD, \
+ 				OMAP3430_PM_PREPWSTST)
++#define CM_IDLEST1_CORE_V	OMAP34XX_CM_REGADDR(CORE_MOD, CM_IDLEST1)
++
+ /*
+  * This is the physical address of the register as specified
+  * by the _P. To be used while the MMU is still disabled.
+@@ -57,6 +60,8 @@
+ #define SDRC_MR_1_P		(OMAP343X_SDRC_BASE + SDRC_MR_1)
+ #define SDRC_EMR2_1_P		(OMAP343X_SDRC_BASE + SDRC_EMR2_1)
+ #define SDRC_MANUAL_1_P		(OMAP343X_SDRC_BASE + SDRC_MANUAL_1)
++#define SDRC_DLLA_STATUS_V	OMAP34XX_SDRC_REGADDR(SDRC_DLLA_STATUS)
++#define SDRC_DLLA_CTRL_V	OMAP34XX_SDRC_REGADDR(SDRC_DLLA_CTRL)
+ 
+ 	.text
+ /* Function call to get the restore pointer for resume from OFF */
+@@ -192,7 +197,7 @@ loop:
+ 	nop
+ 	nop
+ 	nop
+-	bl i_dll_wait
++	bl wait_sdrc_ok
+ 
+ 	ldmfd	sp!, {r0-r12, pc}		@ restore regs and return
+ restore_es3:
+@@ -651,21 +656,41 @@ skip_l2_inval:
+ 	nop
+ 	nop
+ 	nop
+-	bl i_dll_wait
++	bl wait_sdrc_ok
+ 	/* restore regs and return */
+ 	ldmfd   sp!, {r0-r12, pc}
+ 
+-i_dll_wait:
+-	ldr     r4, clk_stabilize_delay
+-
+-i_dll_delay:
+-	subs    r4, r4, #0x1
+-	bne     i_dll_delay
+-	ldr     r4, sdrc_power
+-	ldr     r5, [r4]
+-	bic     r5, r5, #0x40
+-	str     r5, [r4]
+-	bx	lr
++/* Make sure SDRC accesses are ok */
++wait_sdrc_ok:
++        ldr     r4, cm_idlest1_core
++        ldr     r5, [r4]
++        and     r5, r5, #0x2
++        cmp     r5, #0
++        bne     wait_sdrc_ok
++        ldr     r4, sdrc_power
++        ldr     r5, [r4]
++        bic     r5, r5, #0x40
++        str     r5, [r4]
++wait_dll_lock:
++        /* Is dll in lock mode? */
++        ldr     r4, sdrc_dlla_ctrl
++        ldr     r5, [r4]
++        tst     r5, #0x4
++        bxne    lr
++        /* wait till dll locks */
++        ldr     r4, sdrc_dlla_status
++        ldr     r5, [r4]
++        and     r5, r5, #0x4
++        cmp     r5, #0x4
++        bne     wait_dll_lock
++        bx      lr
++
++cm_idlest1_core:
++	.word	CM_IDLEST1_CORE_V
++sdrc_dlla_status:
++	.word	SDRC_DLLA_STATUS_V
++sdrc_dlla_ctrl:
++	.word	SDRC_DLLA_CTRL_V
+ pm_prepwstst_core:
+ 	.word	PM_PREPWSTST_CORE_V
+ pm_prepwstst_core_p:
+-- 
+1.5.6.3
+
