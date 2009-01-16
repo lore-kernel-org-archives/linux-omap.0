@@ -1,52 +1,44 @@
-From: Greg KH <greg@kroah.com>
-Subject: Re: lowmemory android driver not needed?
-Date: Fri, 16 Jan 2009 07:23:38 -0800
-Message-ID: <20090116152338.GB9357@kroah.com>
-References: <20090114104307.GA20451@elf.ucw.cz> <20090114104834.18387fca@lxorguk.ukuu.org.uk> <d6200be20901141426r1d48ea33gc9a380451e4aaf93@mail.gmail.com> <20090114231739.GB24111@kroah.com> <d6200be20901141532y6f236104kd521041d640c152e@mail.gmail.com> <20090115001224.GC11328@kroah.com> <5d5443650901150532r20a4c25q834afadde2f98a3@mail.gmail.com> <20090115234404.GA20142@kroah.com> <20090116090210.GB7039@linux-sh.org> <2f11576a0901160316u20030f4u51c9e4c059398b70@mail.gmail.com>
+From: Felipe Balbi <me@felipebalbi.com>
+Subject: Re: [PATCH] Fix compile error in usb-musb.c
+Date: Fri, 16 Jan 2009 17:35:23 +0200
+Message-ID: <20090116153523.GD32481@frodo>
+References: <5A47E75E594F054BAF48C5E4FC4B92AB02E6815B88@dbde02.ent.ti.com> <20090116072904.GN4128@atomide.com> <20090116073736.GO4128@atomide.com>
+Reply-To: me@felipebalbi.com
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from kroah.org ([198.145.64.141]:39876 "EHLO coco.kroah.org"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S935940AbZAPPYm (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 16 Jan 2009 10:24:42 -0500
+Received: from ns1.siteground211.com ([209.62.36.12]:40462 "EHLO
+	serv01.siteground211.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932723AbZAPPfb (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 16 Jan 2009 10:35:31 -0500
 Content-Disposition: inline
-In-Reply-To: <2f11576a0901160316u20030f4u51c9e4c059398b70@mail.gmail.com>
+In-Reply-To: <20090116073736.GO4128@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: Paul Mundt <lethal@linux-sh.org>, Trilok Soni <soni.trilok@gmail.com>, Arve Hj?nnev?g <arve@android.com>, Alan Cox <alan@lxorguk.ukuu.org.uk>, Pavel Machek <pavel@suse.cz>, Brian Swetland <swetland@google.com>, arve@google.com, San Mehat <san@android.com>, Robert Love <rlove@google.com>, linux-kernel@vger.kernel.org, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, ext Juha Yrj?l? <juha.yrjola@solidboot.com>, viktor.rosendahl@nokia.com
+To: Tony Lindgren <tony@atomide.com>
+Cc: "Gadiyar, Anand" <gadiyar@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, David Brownell <david-b@pacbell.net>
 
-On Fri, Jan 16, 2009 at 08:16:51PM +0900, KOSAKI Motohiro wrote:
+On Fri, Jan 16, 2009 at 09:37:38AM +0200, Tony Lindgren wrote:
+> * Tony Lindgren <tony@atomide.com> [090116 09:29]:
+> > * Gadiyar, Anand <gadiyar@ti.com> [090115 20:48]:
+> > > From: Anand Gadiyar <gadiyar@ti.com>
+> > > 
+> > > Fix this compile error
+> > 
+> > This one should go via the usb list too.
 > 
-> As far as I know, embedded guys strong want to lowmem notification mecanism.
-
-I think the big server guys also want the same thing :)
-
-> At least, I and my mem_notify receive multiple contact from embedded
-> and JavaVM developer.
->  (include sun javavm engineer)
+> Uh, looks like my usb filter is set too sensitive :)
 > 
-> In ideal, I think linux MM should care this requirement directly.
-
-I agree.
-
-> LSM and driver notifier is easy breakable because these component
-> deeply depend on MM.
-
-Agreed.
-
-> (eg, I developed /dev/mem_notify patch last year. but this patch don't
-> work on 2.6.28 because split-lru patch series totally changed MM
-> reclaim processing.)
+> This is the platform code part, I'll apply this and queue it up
+> in omap-fixes.
 > 
-> Unfortunately, we don't have any consensus of memory notification requirement.
-> various people have various requirement. so, if I can discuss it and
-> we get consensus, I'm glad.
 
-Care to work on your mem_notify patch again and bring it up to date?
-That would be a good place to start working from, right?
+I think it's time to send this via greg so we can get musb working on
+beagle. No otg though due to missing CONFIG_PM for omap3. Any plans to
+get that upstream ??
 
-thanks,
+Maybe it's better to get PM there first and avoid compile issues without
+CONFIG_PM=y
 
-greg k-h
+-- 
+balbi
