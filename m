@@ -1,55 +1,22 @@
-From: Sanjeev Premi <premi@ti.com>
-Subject: [PATCH 3/3v4] Updates for OMAP3EVM
-Date: Fri, 16 Jan 2009 21:16:23 +0530
-Message-ID: <1232120783-7595-1-git-send-email-premi@ti.com>
+From: "Gadiyar, Anand" <gadiyar@ti.com>
+Subject: OMAP3 SDP support in mainline
+Date: Fri, 16 Jan 2009 21:17:09 +0530
+Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB02E6815EF2@dbde02.ent.ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:52559 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753984AbZAPPqb (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 16 Jan 2009 10:46:31 -0500
-Received: from dbdp31.itg.ti.com ([172.24.170.98])
-	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id n0GFkO0h015122
-	for <linux-omap@vger.kernel.org>; Fri, 16 Jan 2009 09:46:30 -0600
+Received: from arroyo.ext.ti.com ([192.94.94.40]:38390 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754075AbZAPPrY convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 16 Jan 2009 10:47:24 -0500
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Sanjeev Premi <premi@ti.com>
+To: Tony Lindgren <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Includes:
-- Updates to default board configuration.
-- Call function omap2_set_globals_35xx()
+Tony,
 
-Signed-off-by: Sanjeev Premi <premi@ti.com>
----
- arch/arm/configs/omap3_evm_defconfig |    1 +
- arch/arm/mach-omap2/board-omap3evm.c |    2 +-
- 2 files changed, 2 insertions(+), 1 deletions(-)
+Are there any plans to get 3430SDP support in mainline?
 
-diff --git a/arch/arm/configs/omap3_evm_defconfig b/arch/arm/configs/omap3_evm_defconfig
-index f276c3a..6f67996 100644
---- a/arch/arm/configs/omap3_evm_defconfig
-+++ b/arch/arm/configs/omap3_evm_defconfig
-@@ -206,6 +206,7 @@ CONFIG_OMAP_LL_DEBUG_UART1=y
- CONFIG_OMAP_SERIAL_WAKE=y
- CONFIG_ARCH_OMAP34XX=y
- CONFIG_ARCH_OMAP3430=y
-+CONFIG_ARCH_OMAP35XX=y
- 
- #
- # OMAP Board Type
-diff --git a/arch/arm/mach-omap2/board-omap3evm.c b/arch/arm/mach-omap2/board-omap3evm.c
-index e4e60e2..7fb3eef 100644
---- a/arch/arm/mach-omap2/board-omap3evm.c
-+++ b/arch/arm/mach-omap2/board-omap3evm.c
-@@ -264,7 +264,7 @@ static void __init omap3_evm_init(void)
- 
- static void __init omap3_evm_map_io(void)
- {
--	omap2_set_globals_343x();
-+	omap2_set_globals_35xx();
- 	omap2_map_common_io();
- }
- 
--- 
-1.5.6
-
+- Anand
