@@ -1,142 +1,194 @@
-From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Subject: Re: lowmemory android driver not needed?
-Date: Fri, 16 Jan 2009 22:18:13 +0900
-Message-ID: <2f11576a0901160518g52a3e70endc98fe4792a98b9b@mail.gmail.com>
-References: <20090114010223.GA21380@kroah.com>
-	 <20090114035237.GB16442@kroah.com> <20090114104307.GA20451@elf.ucw.cz>
-	 <20090114104834.18387fca@lxorguk.ukuu.org.uk>
-	 <d6200be20901141426r1d48ea33gc9a380451e4aaf93@mail.gmail.com>
-	 <20090114231739.GB24111@kroah.com>
-	 <d6200be20901141532y6f236104kd521041d640c152e@mail.gmail.com>
-	 <20090115001224.GC11328@kroah.com>
-	 <5d5443650901150532r20a4c25q834afadde2f98a3@mail.gmail.com>
-	 <2f11576a0901160342x291267cn11b33d65ec9239b4@mail.gmail.com>
+From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+Subject: Re: [PATCH 01/10] omap mailbox: cleanup omap2 register definition
+ with macro
+Date: Fri, 16 Jan 2009 15:21:12 +0200 (EET)
+Message-ID: <20090116.152112.90140354.Hiroshi.DOYU@nokia.com>
+References: <20090116082706.17571.31102.stgit@oreo.research.nokia.com>
+	<25e057c00901160156w6058ade2j9c99ef727d8767ab@mail.gmail.com>
+	<20090116.141524.236287675.Hiroshi.DOYU@nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: Multipart/Mixed;
+ boundary="--Next_Part(Fri_Jan_16_15_21_12_2009_137)--"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from rv-out-0506.google.com ([209.85.198.230]:32381 "EHLO
-	rv-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759451AbZAPNSO (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 16 Jan 2009 08:18:14 -0500
-In-Reply-To: <2f11576a0901160342x291267cn11b33d65ec9239b4@mail.gmail.com>
+Received: from smtp.nokia.com ([192.100.105.134]:58121 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1761014AbZAPNVX (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 16 Jan 2009 08:21:23 -0500
+In-Reply-To: <20090116.141524.236287675.Hiroshi.DOYU@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: =?ISO-8859-1?Q?Arve_Hj=F8nnev=E5g?= <arve@android.com>
-Cc: Greg KH <greg@kroah.com>, Alan Cox <alan@lxorguk.ukuu.org.uk>, Pavel Machek <pavel@suse.cz>, Brian Swetland <swetland@google.com>, arve@google.com, San Mehat <san@android.com>, Robert Love <rlove@google.com>, linux-kernel@vger.kernel.org, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, =?ISO-8859-1?Q?ext_Juha_Yrj=F6l=E4?= <juha.yrjola@solidboot.com>, viktor.rosendahl@nokia.com, Trilok Soni <soni.trilok@gmail.com>
+To: roel.kluin@gmail.com
+Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.arm.linux.org.uk, linux-omap@vger.kernel.org
 
-also quick review to lowmemorykiller.c
+----Next_Part(Fri_Jan_16_15_21_12_2009_137)--
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 
-> #include <linux/module.h>
-> #include <linux/kernel.h>
-> #include <linux/mm.h>
-> #include <linux/oom.h>
-> #include <linux/sched.h>
->
-> static int lowmem_shrink(int nr_to_scan, gfp_t gfp_mask);
->
-> static struct shrinker lowmem_shrinker = {
->         .shrink = lowmem_shrink,
->         .seeks = DEFAULT_SEEKS * 16
-> };
+Updated one attached.
 
-why do you choice *16?
+From: "ext Hiroshi DOYU" <Hiroshi.DOYU@nokia.com>
+Subject: Re: [PATCH 01/10] omap mailbox: cleanup omap2 register definition with macro
+Date: Fri, 16 Jan 2009 14:15:24 +0200 (EET)
 
+> From: "ext roel kluin" <roel.kluin@gmail.com>
+> Subject: Re: [PATCH 01/10] omap mailbox: cleanup omap2 register definition with macro
+> Date: Fri, 16 Jan 2009 10:56:01 +0100
+> 
+> [...]
+> > > +#define MAILBOX_SYSCONFIG              0x010
+> > > +#define MAILBOX_SYSSTATUS              0x014
+> > > +#define MAILBOX_MESSAGE(m)             (0x040 + 4 * (m))
+> > > +#define MAILBOX_FIFOSTATUS(m)          (0x080 + 4 * (m))
+> > > +#define MAILBOX_MSGSTATUS(m)           (0x0c0 + 4 * (m))
+> > > +#define MAILBOX_IRQSTATUS(u)           (0x100 + 8 * (u))
+> > > +#define MAILBOX_IRQENABLE(u)           (0x108 + 8 * (u))
+> >                                                                   ^^^^^^^
+> > shouldn't this be
+> > #define MAILBOX_IRQENABLE(u)           (0x104 + 8 * (u))
+> 
+> Right. I'll fix, thanks.
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
-> static uint32_t lowmem_debug_level = 2;
-> static int lowmem_adj[6] = {
+----Next_Part(Fri_Jan_16_15_21_12_2009_137)--
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline; filename=omap-mailbox-cleanup-omap2-reg
 
-why do you choice [6]?
+omap mailbox: cleanup omap2 register definition with macro
 
->         0,
->         1,
->         6,
->         12,
-> };
->
-> static int lowmem_adj_size = 4;
-> static size_t lowmem_minfree[6] = {
->         3*512, // 6MB
->         2*1024, // 8MB
->         4*1024, // 16MB
->         16*1024, // 64MB
-> };
-> static int lowmem_minfree_size = 4;
->
-> #define lowmem_print(level, x...) do { if(lowmem_debug_level >= (level)) printk(x); } while(0)
->
-> module_param_named(cost, lowmem_shrinker.seeks, int, S_IRUGO | S_IWUSR);
-> module_param_array_named(adj, lowmem_adj, int, &lowmem_adj_size, S_IRUGO | S_IWUSR);
-> module_param_array_named(minfree, lowmem_minfree, uint, &lowmem_minfree_size, S_IRUGO | S_IWUSR);
-> module_param_named(debug_level, lowmem_debug_level, uint, S_IRUGO | S_IWUSR);
->
-> static int lowmem_shrink(int nr_to_scan, gfp_t gfp_mask)
-> {
->         struct task_struct *p;
->         struct task_struct *selected = NULL;
->         int rem = 0;
->         int tasksize;
->         int i;
->         int min_adj = OOM_ADJUST_MAX + 1;
->         int selected_tasksize = 0;
->         int array_size = ARRAY_SIZE(lowmem_adj);
->         int other_free = global_page_state(NR_FREE_PAGES) + global_page_state(NR_FILE_PAGES);
+From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
 
-I think you don't consider mlocked page (and/or other unevictable page).
-if much mlocked file page exist, other_free can become large value.
-then, this routine don't kill any process.
+Signed-off-by: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+---
+
+ arch/arm/mach-omap2/mailbox.c |   77 +++++++++++++++--------------------------
+ 1 files changed, 29 insertions(+), 48 deletions(-)
 
 
->         if(lowmem_adj_size < array_size)
->                 array_size = lowmem_adj_size;
->         if(lowmem_minfree_size < array_size)
->                 array_size = lowmem_minfree_size;
->         for(i = 0; i < array_size; i++) {
->                 if(other_free < lowmem_minfree[i]) {
->                         min_adj = lowmem_adj[i];
->                         break;
->                 }
->         }
->
->
->         if(nr_to_scan > 0)
->                 lowmem_print(3, "lowmem_shrink %d, %x, ofree %d, ma %d\n", nr_to_scan, gfp_mask, other_fr> ee, min_adj);
->         read_lock(&tasklist_lock);
->         for_each_process(p) {
+diff --git a/arch/arm/mach-omap2/mailbox.c b/arch/arm/mach-omap2/mailbox.c
+index 32b7af3..85c3ab8 100644
+--- a/arch/arm/mach-omap2/mailbox.c
++++ b/arch/arm/mach-omap2/mailbox.c
+@@ -1,9 +1,9 @@
+ /*
+- * Mailbox reservation modules for OMAP2
++ * Mailbox reservation modules for OMAP2/3
+  *
+- * Copyright (C) 2006 Nokia Corporation
++ * Copyright (C) 2006-2008 Nokia Corporation
+  * Written by: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+- *        and  Paul Mundt <paul.mundt@nokia.com>
++ *        and  Paul Mundt
+  *
+  * This file is subject to the terms and conditions of the GNU General Public
+  * License.  See the file "COPYING" in the main directory of this archive
+@@ -18,40 +18,19 @@
+ #include <mach/mailbox.h>
+ #include <mach/irqs.h>
+ 
+-#define MAILBOX_REVISION		0x00
+-#define MAILBOX_SYSCONFIG		0x10
+-#define MAILBOX_SYSSTATUS		0x14
+-#define MAILBOX_MESSAGE_0		0x40
+-#define MAILBOX_MESSAGE_1		0x44
+-#define MAILBOX_MESSAGE_2		0x48
+-#define MAILBOX_MESSAGE_3		0x4c
+-#define MAILBOX_MESSAGE_4		0x50
+-#define MAILBOX_MESSAGE_5		0x54
+-#define MAILBOX_FIFOSTATUS_0		0x80
+-#define MAILBOX_FIFOSTATUS_1		0x84
+-#define MAILBOX_FIFOSTATUS_2		0x88
+-#define MAILBOX_FIFOSTATUS_3		0x8c
+-#define MAILBOX_FIFOSTATUS_4		0x90
+-#define MAILBOX_FIFOSTATUS_5		0x94
+-#define MAILBOX_MSGSTATUS_0		0xc0
+-#define MAILBOX_MSGSTATUS_1		0xc4
+-#define MAILBOX_MSGSTATUS_2		0xc8
+-#define MAILBOX_MSGSTATUS_3		0xcc
+-#define MAILBOX_MSGSTATUS_4		0xd0
+-#define MAILBOX_MSGSTATUS_5		0xd4
+-#define MAILBOX_IRQSTATUS_0		0x100
+-#define MAILBOX_IRQENABLE_0		0x104
+-#define MAILBOX_IRQSTATUS_1		0x108
+-#define MAILBOX_IRQENABLE_1		0x10c
+-#define MAILBOX_IRQSTATUS_2		0x110
+-#define MAILBOX_IRQENABLE_2		0x114
+-#define MAILBOX_IRQSTATUS_3		0x118
+-#define MAILBOX_IRQENABLE_3		0x11c
++#define MAILBOX_REVISION		0x000
++#define MAILBOX_SYSCONFIG		0x010
++#define MAILBOX_SYSSTATUS		0x014
++#define MAILBOX_MESSAGE(m)		(0x040 + 4 * (m))
++#define MAILBOX_FIFOSTATUS(m)		(0x080 + 4 * (m))
++#define MAILBOX_MSGSTATUS(m)		(0x0c0 + 4 * (m))
++#define MAILBOX_IRQSTATUS(u)		(0x100 + 8 * (u))
++#define MAILBOX_IRQENABLE(u)		(0x104 + 8 * (u))
+ 
+-static unsigned long mbox_base;
++#define MAILBOX_IRQ_NEWMSG(u)		(1 << (2 * (u)))
++#define MAILBOX_IRQ_NOTFULL(u)		(1 << (2 * (u) + 1))
+ 
+-#define MAILBOX_IRQ_NOTFULL(n)		(1 << (2 * (n) + 1))
+-#define MAILBOX_IRQ_NEWMSG(n)		(1 << (2 * (n)))
++static unsigned long mbox_base;
+ 
+ struct omap_mbox2_fifo {
+ 	unsigned long msg;
+@@ -209,15 +188,15 @@ static struct omap_mbox_ops omap2_mbox_ops = {
+ /* DSP */
+ static struct omap_mbox2_priv omap2_mbox_dsp_priv = {
+ 	.tx_fifo = {
+-		.msg		= MAILBOX_MESSAGE_0,
+-		.fifo_stat	= MAILBOX_FIFOSTATUS_0,
++		.msg		= MAILBOX_MESSAGE(0),
++		.fifo_stat	= MAILBOX_FIFOSTATUS(0),
+ 	},
+ 	.rx_fifo = {
+-		.msg		= MAILBOX_MESSAGE_1,
+-		.msg_stat	= MAILBOX_MSGSTATUS_1,
++		.msg		= MAILBOX_MESSAGE(1),
++		.msg_stat	= MAILBOX_MSGSTATUS(1),
+ 	},
+-	.irqenable	= MAILBOX_IRQENABLE_0,
+-	.irqstatus	= MAILBOX_IRQSTATUS_0,
++	.irqenable	= MAILBOX_IRQENABLE(0),
++	.irqstatus	= MAILBOX_IRQSTATUS(0),
+ 	.notfull_bit	= MAILBOX_IRQ_NOTFULL(0),
+ 	.newmsg_bit	= MAILBOX_IRQ_NEWMSG(1),
+ };
+@@ -232,15 +211,15 @@ EXPORT_SYMBOL(mbox_dsp_info);
+ /* IVA */
+ static struct omap_mbox2_priv omap2_mbox_iva_priv = {
+ 	.tx_fifo = {
+-		.msg		= MAILBOX_MESSAGE_2,
+-		.fifo_stat	= MAILBOX_FIFOSTATUS_2,
++		.msg		= MAILBOX_MESSAGE(2),
++		.fifo_stat	= MAILBOX_FIFOSTATUS(2),
+ 	},
+ 	.rx_fifo = {
+-		.msg		= MAILBOX_MESSAGE_3,
+-		.msg_stat	= MAILBOX_MSGSTATUS_3,
++		.msg		= MAILBOX_MESSAGE(3),
++		.msg_stat	= MAILBOX_MSGSTATUS(3),
+ 	},
+-	.irqenable	= MAILBOX_IRQENABLE_3,
+-	.irqstatus	= MAILBOX_IRQSTATUS_3,
++	.irqenable	= MAILBOX_IRQENABLE(3),
++	.irqstatus	= MAILBOX_IRQSTATUS(3),
+ 	.notfull_bit	= MAILBOX_IRQ_NOTFULL(2),
+ 	.newmsg_bit	= MAILBOX_IRQ_NEWMSG(3),
+ };
+@@ -320,4 +299,6 @@ static void __exit omap2_mbox_exit(void)
+ module_init(omap2_mbox_init);
+ module_exit(omap2_mbox_exit);
+ 
+-MODULE_LICENSE("GPL");
++MODULE_LICENSE("GPL v2");
++MODULE_DESCRIPTION("omap mailbox: omap2/3 architecture specific functions");
++MODULE_AUTHOR("Hiroshi DOYU <Hiroshi.DOYU@nokia.com>, Paul Mundt");
 
-Oops. too long locking.
-shrink_slab() is freqentlly called function. I don't like costly operation.
-
->                 if(p->oomkilladj >= 0 && p->mm) {
->                         tasksize = get_mm_rss(p->mm);
->                         if(nr_to_scan > 0 && tasksize > 0 && p->oomkilladj >= min_adj) {
->                                 if(selected == NULL ||
->                                    p->oomkilladj > selected->oomkilladj ||
->                                    (p->oomkilladj == selected->oomkilladj &&
->                                     tasksize > selected_tasksize)) {
->                                         selected = p;
->                                         selected_tasksize = tasksize;
->                                         lowmem_print(2, "select %d (%s), adj %d, size %d, to kill\n",
->                                                      p->pid, p->comm, p->oomkilladj, tasksize);
->                                 }
->                         }
->                         rem += tasksize;
-
-this code mean,
-shrinker->shrink(0, gfp_mask) indicate to recalculate total rss every time.
-it is too CPU and battery wasting.
-
-
->                 }
->         }
->         if(selected != NULL) {
->                 lowmem_print(1, "send sigkill to %d (%s), adj %d, size %d\n",
->                              selected->pid, selected->comm,
->                              selected->oomkilladj, selected_tasksize);
->                 force_sig(SIGKILL, selected);
->                 rem -= selected_tasksize;
->         }
->         lowmem_print(4, "lowmem_shrink %d, %x, return %d\n", nr_to_scan, gfp_mask, rem);
->         read_unlock(&tasklist_lock);
->         return rem;
-> }
+----Next_Part(Fri_Jan_16_15_21_12_2009_137)----
