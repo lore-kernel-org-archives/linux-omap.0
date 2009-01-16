@@ -1,49 +1,118 @@
-From: "Gadiyar, Anand" <gadiyar@ti.com>
-Subject: RE: [PATCH] Fix compile error in usb-musb.c
-Date: Fri, 16 Jan 2009 21:08:57 +0530
-Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB02E6815EED@dbde02.ent.ti.com>
-References: <20090116153523.GD32481@frodo>
+From: Felipe Balbi <me@felipebalbi.com>
+Subject: Re: [PATCH 02/10] omap mailbox: add initial omap3 support
+Date: Fri, 16 Jan 2009 17:43:58 +0200
+Message-ID: <20090116154357.GE32481@frodo>
+References: <20090116081919.17571.34378.stgit@oreo.research.nokia.com> <20090116082711.17571.38818.stgit@oreo.research.nokia.com>
+Reply-To: me@felipebalbi.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:56068 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751834AbZAPPjN convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 16 Jan 2009 10:39:13 -0500
-In-Reply-To: <20090116153523.GD32481@frodo>
-Content-Language: en-US
+Received: from ns1.siteground211.com ([209.62.36.12]:55207 "EHLO
+	serv01.siteground211.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751539AbZAPPoH (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 16 Jan 2009 10:44:07 -0500
+Content-Disposition: inline
+In-Reply-To: <20090116082711.17571.38818.stgit@oreo.research.nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "me@felipebalbi.com" <me@felipebalbi.com>, Tony Lindgren <tony@atomide.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, David Brownell <david-b@pacbell.net>
+To: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.arm.linux.org.uk, linux-omap@vger.kernel.org
 
-> On Fri, Jan 16, 2009 at 09:37:38AM +0200, Tony Lindgren wrote:
-> > * Tony Lindgren <tony@atomide.com> [090116 09:29]:
-> > > * Gadiyar, Anand <gadiyar@ti.com> [090115 20:48]:
-> > > > From: Anand Gadiyar <gadiyar@ti.com>
-> > > > 
-> > > > Fix this compile error
-> > > 
-> > > This one should go via the usb list too.
-> > 
-> > Uh, looks like my usb filter is set too sensitive :)
-> > 
-> > This is the platform code part, I'll apply this and queue it up
-> > in omap-fixes.
-> > 
-> 
-> I think it's time to send this via greg so we can get musb working on
-> beagle. No otg though due to missing CONFIG_PM for omap3. Any plans to
-> get that upstream ??
-> 
-> Maybe it's better to get PM there first and avoid compile issues without
-> CONFIG_PM=y
+Hi Hiroshi,
 
-I still don't get it. Why Greg?
+On Fri, Jan 16, 2009 at 10:27:11AM +0200, Hiroshi DOYU wrote:
+>  static inline void omap_init_mbox(void)
+>  {
+> +	if (cpu_is_omap2420()) {
+> +		mbox_device.num_resources = ARRAY_SIZE(omap2_mbox_resources);
+> +		mbox_device.resource = omap2_mbox_resources;
+> +	} else if (cpu_is_omap3430()) {
+> +		mbox_device.num_resources = ARRAY_SIZE(omap3_mbox_resources);
+> +		mbox_device.resource = omap3_mbox_resources;
+> +	} else {
 
-It's a one-line compile fix for God's sake - nothing even remotely related
-to a change in USB - it's platform code that got broken for some reason.
+how about a pr_info() or pr_err() here ?? Something like:
+pr_err("%s: platform not supported yet\n", __func__);
 
-And Tony's already going to queue it up.
+> +		return;
+> +	}
+>  	platform_device_register(&mbox_device);
+>  }
+>  #else
+>  static inline void omap_init_mbox(void) { }
+> -#endif
+> +#endif /* CONFIG_OMAP_MBOX_FWK */
+>  
+>  #if defined(CONFIG_OMAP_STI)
+>  
+> diff --git a/arch/arm/mach-omap2/mailbox.c b/arch/arm/mach-omap2/mailbox.c
+> index 0609e2d..3176bb7 100644
+> --- a/arch/arm/mach-omap2/mailbox.c
+> +++ b/arch/arm/mach-omap2/mailbox.c
+> @@ -30,7 +30,7 @@
+>  #define MAILBOX_IRQ_NEWMSG(u)		(1 << (2 * (u)))
+>  #define MAILBOX_IRQ_NOTFULL(u)		(1 << (2 * (u) + 1))
+>  
+> -static unsigned long mbox_base;
+> +static void __iomem *mbox_base;
+>  
+>  struct omap_mbox2_fifo {
+>  	unsigned long msg;
+> @@ -52,14 +52,14 @@ static struct clk *mbox_ick_handle;
+>  static void omap2_mbox_enable_irq(struct omap_mbox *mbox,
+>  				  omap_mbox_type_t irq);
+>  
+> -static inline unsigned int mbox_read_reg(unsigned int reg)
+> +static inline unsigned int mbox_read_reg(size_t ofs)
+>  {
+> -	return __raw_readl(mbox_base + reg);
+> +	return __raw_readl(mbox_base + ofs);
+>  }
+>  
+> -static inline void mbox_write_reg(unsigned int val, unsigned int reg)
+> +static inline void mbox_write_reg(u32 val, size_t ofs)
+>  {
+> -	__raw_writel(val, mbox_base + reg);
+> +	__raw_writel(val, mbox_base + ofs);
+>  }
+>  
+>  /* Mailbox H/W preparations */
+> @@ -208,7 +208,7 @@ struct omap_mbox mbox_dsp_info = {
+>  };
+>  EXPORT_SYMBOL(mbox_dsp_info);
+>  
+> -/* IVA */
+> +#if defined(CONFIG_ARCH_OMAP2420) /* IVA */
 
+would be nice to have something like if (cpu_has_iva()) { ... } and move
+this check to a later location e.g. on probe(), but this wouldn't prevent
+this patch from going in now. Just a suggestion for later improvements.
+
+>  static struct omap_mbox2_priv omap2_mbox_iva_priv = {
+>  	.tx_fifo = {
+>  		.msg		= MAILBOX_MESSAGE(2),
+> @@ -229,17 +229,12 @@ static struct omap_mbox mbox_iva_info = {
+>  	.ops	= &omap2_mbox_ops,
+>  	.priv	= &omap2_mbox_iva_priv,
+>  };
+> +#endif
+
+[snip]
+
+> -	/* IVA IRQ */
+> -	res = platform_get_resource(pdev, IORESOURCE_IRQ, 1);
+> -	if (unlikely(!res)) {
+> -		dev_err(&pdev->dev, "invalid irq resource\n");
+> -		return -ENODEV;
+> +	if (ret)
+> +		goto err_dsp;
+> +
+> +#if defined(CONFIG_ARCH_OMAP2420) /* IVA */
+> +	if (cpu_is_omap2420()) {
+> +		/* IVA IRQ */
+> +		res = platform_get_resource(pdev, IORESOURCE_IRQ, 1);
+
+platform_get_irq(pdev, 0) would look more standard, I think.
+
+-- 
+balbi
