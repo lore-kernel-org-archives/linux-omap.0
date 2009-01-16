@@ -1,52 +1,34 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: Git tree updated to v2.6.29-rc1, omap-2.6.28 branch added
-Date: Fri, 16 Jan 2009 10:51:20 +0200
-Message-ID: <20090116085118.GT4128@atomide.com>
-References: <20090115154327.GF4128@atomide.com> <200901151401.17763.david-b@pacbell.net> <20090116074443.GQ4128@atomide.com> <200901152359.11433.david-b@pacbell.net> <20090116081245.GS4128@atomide.com>
+From: Paul Mundt <lethal@linux-sh.org>
+Subject: Re: lowmemory android driver not needed?
+Date: Fri, 16 Jan 2009 18:02:11 +0900
+Message-ID: <20090116090210.GB7039@linux-sh.org>
+References: <d6200be20901131830r7103ff8eoe0314f9faf89d89b@mail.gmail.com> <20090114035237.GB16442@kroah.com> <20090114104307.GA20451@elf.ucw.cz> <20090114104834.18387fca@lxorguk.ukuu.org.uk> <d6200be20901141426r1d48ea33gc9a380451e4aaf93@mail.gmail.com> <20090114231739.GB24111@kroah.com> <d6200be20901141532y6f236104kd521041d640c152e@mail.gmail.com> <20090115001224.GC11328@kroah.com> <5d5443650901150532r20a4c25q834afadde2f98a3@mail.gmail.com> <20090115234404.GA20142@kroah.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-bos.mailhop.org ([63.208.196.178]:62506 "EHLO
-	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755506AbZAPIvT (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 16 Jan 2009 03:51:19 -0500
+Received: from mta23.gyao.ne.jp ([125.63.38.249]:57497 "EHLO mx.gate01.com"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1755049AbZAPJFJ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 16 Jan 2009 04:05:09 -0500
 Content-Disposition: inline
-In-Reply-To: <20090116081245.GS4128@atomide.com>
+In-Reply-To: <20090115234404.GA20142@kroah.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: dbrownell@users.sourceforge.net
-Cc: linux-omap@vger.kernel.org
+To: Greg KH <greg@kroah.com>
+Cc: Trilok Soni <soni.trilok@gmail.com>, Arve Hj?nnev?g <arve@android.com>, Alan Cox <alan@lxorguk.ukuu.org.uk>, Pavel Machek <pavel@suse.cz>, Brian Swetland <swetland@google.com>, arve@google.com, San Mehat <san@android.com>, Robert Love <rlove@google.com>, linux-kernel@vger.kernel.org, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, ext Juha Yrj?l? <juha.yrjola@solidboot.com>, viktor.rosendahl@nokia.com
 
-* Tony Lindgren <tony@atomide.com> [090116 10:13]:
-> * David Brownell <david-b@pacbell.net> [090116 09:59]:
-> > On Thursday 15 January 2009, Tony Lindgren wrote:
-> > >=20
-> > > > Then when it tries to boot, (a) the HSMMC driver reports
-> > > > "error -110" then chokes, so no root FS; and then (b) MUSB
-> > > > misdetects the high speed hub as full speed then chokes,
-> > > > so no network links either. ....
-> > >=20
-> > > > That's on a trusty Beagle config. =A0I don't think I'll be
-> > > > upgrading anything else just yet...
-> > >=20
-> > > Hmm, that sounds conservative! :)
-> >=20
-> > You're just trying to get me to find out what's broken
-> > and fix it!  I'm on to that particular dastardly plot...  ;)
->=20
-> Oh no, busted!
->=20
-> > It'd be somewhat usable if the MMC were live.
->=20
-> Seems to work on at least overo, no ideas what might have
-> happened to it on beagle.
-
-MMC seems to work also on omap3430sdp.
-
-Tony
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+On Thu, Jan 15, 2009 at 03:44:04PM -0800, Greg KH wrote:
+> On Thu, Jan 15, 2009 at 07:02:48PM +0530, Trilok Soni wrote:
+> > And there is one more lowmem driver developed by Nokia for Nokia 8xx
+> > tablets it seems. CCed Tony Lindgren,  Juha and Viktor.
+> > 
+> > http://git.kernel.org/?p=linux/kernel/git/tmlind/linux-omap-2.6.git;a=blob;f=security/lowmem.c;h=ae78a530af39703e335ad769f1e6f097f63ec6dd;hb=HEAD
+> 
+> As we can't stack LSMs, using the lsm interface for a simple memory
+> driver seems pretty wasteful :)
+> 
+The heuristics and tunables are more what ended up being useful with this
+module, which could trivially be abstracted out. The focus of the lowmem
+module was mostly giving userspace an opportunity to change its behaviour,
+and to try to save critical state. I don't know how well this would map
+to the Android use cases, though.
