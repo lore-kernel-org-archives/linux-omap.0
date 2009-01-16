@@ -1,34 +1,41 @@
-From: "Gadiyar, Anand" <gadiyar@ti.com>
-Subject: RE: [PATCH] Fix compile error in usb-musb.c
-Date: Fri, 16 Jan 2009 21:24:10 +0530
-Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB02E6815EF8@dbde02.ent.ti.com>
-References: <20090116154922.GF32481@frodo>
+From: Dirk Behme <dirk.behme@googlemail.com>
+Subject: Re: Reading OMAP3 CONTROL_RAND_KEY_0 register hangs
+Date: Fri, 16 Jan 2009 17:11:22 +0100
+Message-ID: <4970B1AA.7090403@googlemail.com>
+References: <496F6310.30104@googlemail.com> <13B9B4C6EF24D648824FF11BE8967162036D63FEB7@dlee02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:32876 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1764624AbZAPPyZ convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 16 Jan 2009 10:54:25 -0500
-In-Reply-To: <20090116154922.GF32481@frodo>
-Content-Language: en-US
+Received: from fg-out-1718.google.com ([72.14.220.157]:61578 "EHLO
+	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755573AbZAPQLa (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 16 Jan 2009 11:11:30 -0500
+Received: by fg-out-1718.google.com with SMTP id 19so846457fgg.17
+        for <linux-omap@vger.kernel.org>; Fri, 16 Jan 2009 08:11:28 -0800 (PST)
+In-Reply-To: <13B9B4C6EF24D648824FF11BE8967162036D63FEB7@dlee02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "me@felipebalbi.com" <me@felipebalbi.com>
-Cc: Tony Lindgren <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, David Brownell <david-b@pacbell.net>
+To: "Woodruff, Richard" <r-woodruff2@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-> On Fri, Jan 16, 2009 at 09:08:57PM +0530, Gadiyar, Anand wrote:
-> > I still don't get it. Why Greg?
-> > 
-> > It's a one-line compile fix for God's sake - nothing even remotely related
-> > to a change in USB - it's platform code that got broken for some reason.
-> > 
-> > And Tony's already going to queue it up.
+Woodruff, Richard wrote:
+>> With OMAP3530 on BeagleBoard we like to read OMAP3's
+>> CONTROL_RAND_KEY_0 (0x4800 2318) register with something like
+>>
+>> printf ("attempting cpu_uid read\n");
+>> u32 cpu_uid = *((u32 *) 0x48002318);
+>> /* u32 cpu_uid = readl(&ctrl_base->randkey_0); */
+>> printf ("cpu_uid read done\n");
 > 
-> I'm talking about pushing the whole file via musb patches ;-)
+> This address is not accessible out side of secure mode along with some other qualifiers.
 > 
+> Trying to access is futile and will result in an abort.  The control register range is full of readable and aborting addresses.
 
-Oh, ok. Sorry.
+Is there any hint in TRM (spruf98b.pdf) identifying/marking which 
+registers are readable in normal and which are only accessible in 
+secure mode?
 
-- Anand
+Thanks
+
+Dirk
