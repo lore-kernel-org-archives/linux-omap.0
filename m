@@ -1,89 +1,61 @@
-From: "roel kluin" <roel.kluin@gmail.com>
-Subject: Re: [PATCH 01/10] omap mailbox: cleanup omap2 register definition with macro
-Date: Fri, 16 Jan 2009 10:56:01 +0100
-Message-ID: <25e057c00901160156w6058ade2j9c99ef727d8767ab@mail.gmail.com>
-References: <20090116081919.17571.34378.stgit@oreo.research.nokia.com>
-	 <20090116082706.17571.31102.stgit@oreo.research.nokia.com>
+From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Subject: Re: lowmemory android driver not needed?
+Date: Fri, 16 Jan 2009 20:16:51 +0900
+Message-ID: <2f11576a0901160316u20030f4u51c9e4c059398b70@mail.gmail.com>
+References: <d6200be20901131830r7103ff8eoe0314f9faf89d89b@mail.gmail.com>
+	 <20090114104307.GA20451@elf.ucw.cz>
+	 <20090114104834.18387fca@lxorguk.ukuu.org.uk>
+	 <d6200be20901141426r1d48ea33gc9a380451e4aaf93@mail.gmail.com>
+	 <20090114231739.GB24111@kroah.com>
+	 <d6200be20901141532y6f236104kd521041d640c152e@mail.gmail.com>
+	 <20090115001224.GC11328@kroah.com>
+	 <5d5443650901150532r20a4c25q834afadde2f98a3@mail.gmail.com>
+	 <20090115234404.GA20142@kroah.com>
+	 <20090116090210.GB7039@linux-sh.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-bw0-f21.google.com ([209.85.218.21]:45196 "EHLO
-	mail-bw0-f21.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1761577AbZAPJ4E (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 16 Jan 2009 04:56:04 -0500
-In-Reply-To: <20090116082706.17571.31102.stgit@oreo.research.nokia.com>
-Content-Disposition: inline
+Received: from rv-out-0506.google.com ([209.85.198.229]:21605 "EHLO
+	rv-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755400AbZAPLQv (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 16 Jan 2009 06:16:51 -0500
+In-Reply-To: <20090116090210.GB7039@linux-sh.org>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
-Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.arm.linux.org.uk, linux-omap@vger.kernel.org
+To: Paul Mundt <lethal@linux-sh.org>, Greg KH <greg@kroah.com>, Trilok Soni <soni.trilok@gmail.com>, Arve Hj?nnev?g <arve@android.com>, Alan Cox <alan@lxorguk.ukuu.org.uk>, Pavel
 
-2009/1/16 Hiroshi DOYU <Hiroshi.DOYU@nokia.com>:
-> Signed-off-by: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
-> ---
->
->  arch/arm/mach-omap2/mailbox.c |   77 +++++++++++++++--------------------------
->  1 files changed, 29 insertions(+), 48 deletions(-)
->
-> diff --git a/arch/arm/mach-omap2/mailbox.c b/arch/arm/mach-omap2/mailbox.c
-> index 32b7af3..0609e2d 100644
-> --- a/arch/arm/mach-omap2/mailbox.c
-> +++ b/arch/arm/mach-omap2/mailbox.c
+Hi
 
-> @@ -18,40 +18,19 @@
->  #include <mach/mailbox.h>
->  #include <mach/irqs.h>
->
-> -#define MAILBOX_REVISION               0x00
-> -#define MAILBOX_SYSCONFIG              0x10
-> -#define MAILBOX_SYSSTATUS              0x14
-> -#define MAILBOX_MESSAGE_0              0x40
-> -#define MAILBOX_MESSAGE_1              0x44
-> -#define MAILBOX_MESSAGE_2              0x48
-> -#define MAILBOX_MESSAGE_3              0x4c
-> -#define MAILBOX_MESSAGE_4              0x50
-> -#define MAILBOX_MESSAGE_5              0x54
-> -#define MAILBOX_FIFOSTATUS_0           0x80
-> -#define MAILBOX_FIFOSTATUS_1           0x84
-> -#define MAILBOX_FIFOSTATUS_2           0x88
-> -#define MAILBOX_FIFOSTATUS_3           0x8c
-> -#define MAILBOX_FIFOSTATUS_4           0x90
-> -#define MAILBOX_FIFOSTATUS_5           0x94
-> -#define MAILBOX_MSGSTATUS_0            0xc0
-> -#define MAILBOX_MSGSTATUS_1            0xc4
-> -#define MAILBOX_MSGSTATUS_2            0xc8
-> -#define MAILBOX_MSGSTATUS_3            0xcc
-> -#define MAILBOX_MSGSTATUS_4            0xd0
-> -#define MAILBOX_MSGSTATUS_5            0xd4
-> -#define MAILBOX_IRQSTATUS_0            0x100
-> -#define MAILBOX_IRQENABLE_0            0x104
-> -#define MAILBOX_IRQSTATUS_1            0x108
-> -#define MAILBOX_IRQENABLE_1            0x10c
-> -#define MAILBOX_IRQSTATUS_2            0x110
-> -#define MAILBOX_IRQENABLE_2            0x114
-> -#define MAILBOX_IRQSTATUS_3            0x118
-> -#define MAILBOX_IRQENABLE_3            0x11c
-> +#define MAILBOX_REVISION               0x000
-> +#define MAILBOX_SYSCONFIG              0x010
-> +#define MAILBOX_SYSSTATUS              0x014
-> +#define MAILBOX_MESSAGE(m)             (0x040 + 4 * (m))
-> +#define MAILBOX_FIFOSTATUS(m)          (0x080 + 4 * (m))
-> +#define MAILBOX_MSGSTATUS(m)           (0x0c0 + 4 * (m))
-> +#define MAILBOX_IRQSTATUS(u)           (0x100 + 8 * (u))
-> +#define MAILBOX_IRQENABLE(u)           (0x108 + 8 * (u))
-                                                                  ^^^^^^^
-shouldn't this be
-#define MAILBOX_IRQENABLE(u)           (0x104 + 8 * (u))
+>> > And there is one more lowmem driver developed by Nokia for Nokia 8xx
+>> > tablets it seems. CCed Tony Lindgren,  Juha and Viktor.
+>> >
+>> > http://git.kernel.org/?p=linux/kernel/git/tmlind/linux-omap-2.6.git;a=blob;f=security/lowmem.c;h=ae78a530af39703e335ad769f1e6f097f63ec6dd;hb=HEAD
+>>
+>> As we can't stack LSMs, using the lsm interface for a simple memory
+>> driver seems pretty wasteful :)
+>>
+> The heuristics and tunables are more what ended up being useful with this
+> module, which could trivially be abstracted out. The focus of the lowmem
+> module was mostly giving userspace an opportunity to change its behaviour,
+> and to try to save critical state. I don't know how well this would map
+> to the Android use cases, though.
 
->
-> -static unsigned long mbox_base;
-> +#define MAILBOX_IRQ_NEWMSG(u)          (1 << (2 * (u)))
-> +#define MAILBOX_IRQ_NOTFULL(u)         (1 << (2 * (u) + 1))
->
-> -#define MAILBOX_IRQ_NOTFULL(n)         (1 << (2 * (n) + 1))
-> -#define MAILBOX_IRQ_NEWMSG(n)          (1 << (2 * (n)))
-> +static unsigned long mbox_base;
->
->  struct omap_mbox2_fifo {
->        unsigned long msg;
+This thread is very interesting.
+
+As far as I know, embedded guys strong want to lowmem notification mecanism.
+At least, I and my mem_notify receive multiple contact from embedded
+and JavaVM developer.
+ (include sun javavm engineer)
+
+In ideal, I think linux MM should care this requirement directly.
+LSM and driver notifier is easy breakable because these component
+deeply depend on MM.
+
+(eg, I developed /dev/mem_notify patch last year. but this patch don't
+work on 2.6.28 because
+split-lru patch series totally changed MM reclaim processing.)
+
+Unfortunately, we don't have any consensus of memory notification requirement.
+various people have various requirement. so, if I can discuss it and
+we get consensus, I'm glad.
