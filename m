@@ -1,36 +1,33 @@
 From: David Brownell <david-b@pacbell.net>
-Subject: Re: Question on how to best access a chip on init that needs VAUX1 power?
-Date: Fri, 16 Jan 2009 13:11:25 -0800
-Message-ID: <200901161311.25655.david-b@pacbell.net>
-References: <1232134287.347.44.camel@blackhole> <13B9B4C6EF24D648824FF11BE8967162036D6A1527@dlee02.ent.ti.com> <1232139902.347.64.camel@blackhole>
+Subject: Re: [PATCH] Fix compile error in usb-musb.c
+Date: Fri, 16 Jan 2009 13:27:52 -0800
+Message-ID: <200901161327.52661.david-b@pacbell.net>
+References: <5A47E75E594F054BAF48C5E4FC4B92AB02E6815B88@dbde02.ent.ti.com> <20090116073736.GO4128@atomide.com> <20090116153523.GD32481@frodo>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp115.sbc.mail.sp1.yahoo.com ([69.147.64.88]:29219 "HELO
-	smtp115.sbc.mail.sp1.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1759926AbZAPVL1 (ORCPT
+Received: from smtp127.sbc.mail.sp1.yahoo.com ([69.147.65.186]:46416 "HELO
+	smtp127.sbc.mail.sp1.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1764465AbZAPV1y (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Fri, 16 Jan 2009 16:11:27 -0500
-In-Reply-To: <1232139902.347.64.camel@blackhole>
+	Fri, 16 Jan 2009 16:27:54 -0500
+In-Reply-To: <20090116153523.GD32481@frodo>
 Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Peter Barada <peterb@logicpd.com>
-Cc: "Woodruff, Richard" <r-woodruff2@ti.com>, linux-omap <linux-omap@vger.kernel.org>
+To: me@felipebalbi.com
+Cc: Tony Lindgren <tony@atomide.com>, "Gadiyar, Anand" <gadiyar@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Friday 16 January 2009, Peter Barada wrote:
-> Ultimately I should just pull the block of data in u-boot, extract wh=
-at
-> I need for u-boot, and then pass it to the kernel. =A0Outside of crea=
-ting
-> a specific ATAG for this, what's the best way to pass a block of data
-> from u-boot to the kernel?
+On Friday 16 January 2009, Felipe Balbi wrote:
+> 
+> I think it's time to send this via greg so we can get musb working on
+> beagle. No otg though due to missing CONFIG_PM for omap3. Any plans to
+> get that upstream ??
 
-kernel command line parameters.
+So why not just enable PM=y in the configuration?  It's not
+actually required to do much, beyond not being broken.
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+- Dave
+
