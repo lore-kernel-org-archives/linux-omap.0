@@ -1,45 +1,66 @@
-From: Felipe Balbi <me@felipebalbi.com>
-Subject: Re: [PATCH] Fix compile error in usb-musb.c
-Date: Sat, 17 Jan 2009 00:41:11 +0200
-Message-ID: <20090116224111.GD8189@frodo>
-References: <5A47E75E594F054BAF48C5E4FC4B92AB02E6815B88@dbde02.ent.ti.com> <200901161327.52661.david-b@pacbell.net> <20090116221920.GC8189@frodo> <200901161431.00469.david-b@pacbell.net>
-Reply-To: me@felipebalbi.com
+From: "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>
+Subject: [OMAPZOOM][PATCH] OMAP3ISP: Fix lsc_initialized flag setting
+Date: Fri, 16 Jan 2009 16:51:03 -0600
+Message-ID: <A24693684029E5489D1D202277BE8944165DC5D0@dlee02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ns1.siteground211.com ([209.62.36.12]:51122 "EHLO
-	serv01.siteground211.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759510AbZAPWlU (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 16 Jan 2009 17:41:20 -0500
-Content-Disposition: inline
-In-Reply-To: <200901161431.00469.david-b@pacbell.net>
+Received: from devils.ext.ti.com ([198.47.26.153]:47355 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757221AbZAPWvK convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 16 Jan 2009 17:51:10 -0500
+Received: from dlep95.itg.ti.com ([157.170.170.107])
+	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id n0GMp48L002912
+	for <linux-omap@vger.kernel.org>; Fri, 16 Jan 2009 16:51:09 -0600
+Received: from dlee74.ent.ti.com (localhost [127.0.0.1])
+	by dlep95.itg.ti.com (8.13.8/8.13.8) with ESMTP id n0GMp4d1003823
+	for <linux-omap@vger.kernel.org>; Fri, 16 Jan 2009 16:51:04 -0600 (CST)
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: David Brownell <david-b@pacbell.net>
-Cc: me@felipebalbi.com, Tony Lindgren <tony@atomide.com>, "Gadiyar, Anand" <gadiyar@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Cc: "Pandita, Vikram" <vikram.pandita@ti.com>
 
-On Fri, Jan 16, 2009 at 02:31:00PM -0800, David Brownell wrote:
-> On Friday 16 January 2009, Felipe Balbi wrote:
-> > On Fri, Jan 16, 2009 at 01:27:52PM -0800, David Brownell wrote:
-> > > So why not just enable PM=y in the configuration?  It's not
-> > > actually required to do much, beyond not being broken.
-> > 
-> > That patch would have to go through tony
-> > 
-> > arch/arm/plat-omap/include/mach/pm.h:
-> > 
-> > #if     !defined(CONFIG_ARCH_OMAP730) && \
-> > 	!defined(CONFIG_ARCH_OMAP15XX) && \
-> > 	!defined(CONFIG_ARCH_OMAP16XX) && \
-> > 	!defined(CONFIG_ARCH_OMAP24XX) && \
-> > 	!defined(CONFIG_ARCH_OMAP34XX)
-> > #error "Power management for this processor not implemented yet"
-> > #endif
-> 
-> I didn't realize anyone outside of TI had their hands
-> on OMAP4 chips yet.  :)
+>From 551a60b7f66bdf314702062214345464679e6481 Mon Sep 17 00:00:00 2001
+From: Sergio Aguirre <saaguirre@ti.com>
+Date: Fri, 16 Jan 2009 16:17:07 -0600
+Subject: [PATCH] OMAP3ISP: Fix lsc_initialized flag setting
 
-hehe, the last line isn't in mainline ;-)
+This patch fixes an incorrect clearing of the lsc_initialized
+flag, so when loading an equal or lower size LSC table from abstraction
+layer, the flag doesn't get cleared anymore.
 
+The leakage comes because on ispccdc_cleanup(), the unmmap was
+conditioned when lsc_initialized was set to 1.
+
+Based on Fix by Margarita Olaya on Internal TI tree.
+
+Signed-off-by: Margarita Olaya <magi.olaya@ti.com>
+Signed-off-by: Sergio Aguirre <saaguirre@ti.com>
+---
+ drivers/media/video/isp/ispccdc.c |    5 +++--
+ 1 files changed, 3 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/media/video/isp/ispccdc.c b/drivers/media/video/isp/ispccdc.c
+index 75a4a06..fab4f72 100644
+--- a/drivers/media/video/isp/ispccdc.c
++++ b/drivers/media/video/isp/ispccdc.c
+@@ -270,11 +270,12 @@ int omap34xx_isp_ccdc_config(void *userspace_add)
+ 						ispccdc_lsc_config)))
+ 					goto copy_from_user_err;
+ 				down(&ispccdc_mutex);
+-				lsc_initialized = 0;
+ 				if (lsc_config.size <= old_size)
+ 					size_mismatch = 0;
+-				else
++				else {
+ 					size_mismatch = 1;
++					lsc_initialized = 0;
++				}
+ 				up(&ispccdc_mutex);
+ 				ispccdc_config_lsc(&lsc_config);
+ 			}
 -- 
-balbi
+1.5.6.5
+
