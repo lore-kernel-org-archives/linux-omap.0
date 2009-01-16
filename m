@@ -1,72 +1,47 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 0/1] ASoC patch on top of linux-omap 2.6.29-rc1
-	(TWL4030 related)
-Date: Fri, 16 Jan 2009 09:27:12 +0200
-Message-ID: <20090116072712.GL4128@atomide.com>
-References: <1232086493-2811-1-git-send-email-peter.ujfalusi@nokia.com> <200901160821.07772.peter.ujfalusi@nokia.com>
+Subject: Re: [PATCH] Fix compile error in usb-ehci.c
+Date: Fri, 16 Jan 2009 09:28:24 +0200
+Message-ID: <20090116072823.GM4128@atomide.com>
+References: <5A47E75E594F054BAF48C5E4FC4B92AB02E6815B89@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-bos.mailhop.org ([63.208.196.178]:64278 "EHLO
+Received: from mho-01-bos.mailhop.org ([63.208.196.178]:64604 "EHLO
 	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756789AbZAPH1M (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 16 Jan 2009 02:27:12 -0500
+	with ESMTP id S1754446AbZAPH2X (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 16 Jan 2009 02:28:23 -0500
 Content-Disposition: inline
-In-Reply-To: <200901160821.07772.peter.ujfalusi@nokia.com>
+In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB02E6815B89@dbde02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Peter Ujfalusi <peter.ujfalusi@nokia.com>
-Cc: linux-omap@vger.kernel.org
+To: "Gadiyar, Anand" <gadiyar@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-* Peter Ujfalusi <peter.ujfalusi@nokia.com> [090116 08:21]:
-> Hmm, should I take the patch from Takashi's tree (with his sign-off) =
-and
-> resend it?
-> This patch is the one that I have sent to alsa-devel...
+* Gadiyar, Anand <gadiyar@ti.com> [090115 20:48]:
+> From: Anand Gadiyar <gadiyar@ti.com>
+> 
+> Fix this compile error
 
-In general that would be best, as then I know it's been acked and on
-it's way to the mainline kernel via alsa already. Meaning it's safe
-for me to apply to linux-omap without increasing the diff to mainline
-kernel.
+Can you please resend via the usb list?
 
-Tony
+Acked-by: Tony Lindgren <tony@atomide.com>
 
->=20
-> --=20
-> P=E9ter
->=20
-> On Friday 16 January 2009 08:14:52 Peter Ujfalusi wrote:
-> > Hello,
-> >
-> > This patch has been sent after 29-rc1 to ALSA devel, it is already =
-in
-> > Takashi's tree and will go upstream as soon as possible.
-> >
-> > Somehow I have left out this from the soc_value_enum type merge to =
-the
-> > soc_enum series, which kind of renders the twl4030 codec driver to =
-not to
-> > update the value_enum types. In other words: without this patch the=
- twl4030
-> > codec is not working.
-> >
-> > The patch applies cleanly to the head of linux-omap tree.
-> >
-> > ---
-> > Peter Ujfalusi (1):
-> >   ASoC: Fix the power update function for snd_soc_dapm_value_mux
-> >
-> >  sound/soc/soc-dapm.c |    3 ++-
-> >  1 files changed, 2 insertions(+), 1 deletions(-)
->=20
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap"=
- in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+>   CC      arch/arm/mach-omap2/usb-ehci.o
+> arch/arm/mach-omap2/usb-ehci.c:39: error: 'INT_34XX_EHCI_IRQ' undeclared here (not in a function)
+> make[1]: *** [arch/arm/mach-omap2/usb-ehci.o] Error 1
+> make: *** [arch/arm/mach-omap2] Error 2
+> 
+> Signed-off-by: Anand Gadiyar <gadiyar@ti.com>
+> ---
+> diff --git a/arch/arm/mach-omap2/usb-ehci.c b/arch/arm/mach-omap2/usb-ehci.c
+> index 489439d..6af0b02 100644
+> --- a/arch/arm/mach-omap2/usb-ehci.c
+> +++ b/arch/arm/mach-omap2/usb-ehci.c
+> @@ -25,6 +25,7 @@
+>  #include <linux/usb/musb.h>
+>  
+>  #include <mach/hardware.h>
+> +#include <mach/irqs.h>
+>  #include <mach/pm.h>
+>  #include <mach/usb.h>
