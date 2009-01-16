@@ -1,81 +1,45 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: Git tree updated to v2.6.29-rc1, omap-2.6.28 branch added
-Date: Fri, 16 Jan 2009 09:44:45 +0200
-Message-ID: <20090116074443.GQ4128@atomide.com>
-References: <20090115154327.GF4128@atomide.com> <200901151401.17763.david-b@pacbell.net>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Peter Ujfalusi <peter.ujfalusi@nokia.com>
+Subject: [PATCH 0/1] ASoC patch on top of linux-omap 2.6.29-rc1 (TWL4030 related) - try2
+Date: Fri, 16 Jan 2009 09:48:05 +0200
+Message-ID: <1232092086-30074-1-git-send-email-peter.ujfalusi@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-bos.mailhop.org ([63.208.196.178]:53943 "EHLO
-	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752605AbZAPHoo (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 16 Jan 2009 02:44:44 -0500
-Content-Disposition: inline
-In-Reply-To: <200901151401.17763.david-b@pacbell.net>
+Received: from smtp.nokia.com ([192.100.122.233]:37427 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754684AbZAPHsM (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 16 Jan 2009 02:48:12 -0500
+Received: from esebh106.NOE.Nokia.com (esebh106.ntc.nokia.com [172.21.138.213])
+	by mgw-mx06.nokia.com (Switch-3.2.6/Switch-3.2.6) with ESMTP id n0G7lrng006696
+	for <linux-omap@vger.kernel.org>; Fri, 16 Jan 2009 09:48:08 +0200
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: David Brownell <david-b@pacbell.net>
-Cc: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: Peter Ujfalusi <peter.ujfalusi@nokia.com>
 
-* David Brownell <david-b@pacbell.net> [090116 00:03]:
-> On Thursday 15 January 2009, Tony Lindgren wrote:
-> > I've updated our git tree to v2.6.29-rc1,
-> 
-> OK, after adding the IRQ patch from Anand, and the appended
-> USB patch (from before the 2.6.29 merge window), it builds.
-> 
-> Then when it tries to boot, (a) the HSMMC driver reports
-> "error -110" then chokes, so no root FS; and then (b) MUSB
-> misdetects the high speed hub as full speed then chokes,
-> so no network links either.  I'm not thinking (a) relates
-> to the "can't get debounce clock" message, I saw that on
-> earlier code that still booted just fine.
+Hello,
 
-Thanks, applied and pushed to l-o tree.
+This patch has been sent after 29-rc1 to ALSA devel, it is already in Takashi's
+tree and will go upstream as soon as possible.
 
-> That's on a trusty Beagle config.  I don't think I'll be
-> upgrading anything else just yet...
+Somehow I have left out this from the soc_value_enum type merge to the soc_enum
+series, which kind of renders the twl4030 codec driver to not to update the
+value_enum types. In other words: without this patch the twl4030 codec is not
+working.
 
-Hmm, that sounds conservative! :)
+The patch applies cleanly to the head of linux-omap tree.
 
-Tony
+BTW: the twl4030 codec driver has been changed dramatically, meaning that
+most (shall I say all?) of the platforms using it need to be updated to define
+the correct output and input pins.
+The playback and capture path now implemented with DAPM, so without the correct
+definitions the audio is most likely will not going to work.
+On the bright side: all possible playback and capture routing combination can be
+configured (except for the pre-DAC routing, but I can send a sample code,
+which does it in the board file).
 
+---
+Peter Ujfalusi (1):
+  ASoC: Fix the power update function for snd_soc_dapm_value_mux
 
-> 
-> - Dave
-> 
-> 
-> ============= CUT HERE
-> Subject: drivers/usb/core/hub.c: fix CONFIG_USB_OTG=y build
-> From: David Brownell <dbrownell@users.sourceforge.net>
-> 
-> Carry out the PM-routine interface change in the USB OTG pathway.  This
-> was omitted from the earlier interface-change patch by mistake.
-> 
-> Signed-off-by: Alan Stern <stern@rowland.harvard.edu>
-> Cc: Greg KH <greg@kroah.com>
-> Cc: Russell King <rmk@arm.linux.org.uk>
-> Cc: Felipe Balbi <felipe.balbi@nokia.com>
-> Cc: Tony Lindgren <tony@atomide.com>
-> Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-> ---
-> 
->  drivers/usb/core/hub.c |    2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> diff -puN drivers/usb/core/hub.c~drivers-usb-core-hubc-fix-config_usb_otg=y-build drivers/usb/core/hub.c
-> --- a/drivers/usb/core/hub.c~drivers-usb-core-hubc-fix-config_usb_otg=y-build
-> +++ a/drivers/usb/core/hub.c
-> @@ -1554,7 +1554,7 @@ static int usb_configure_device_otg(stru
->  		 * (Includes HNP test device.)
->  		 */
->  		if (udev->bus->b_hnp_enable || udev->bus->is_b_host) {
-> -			err = usb_port_suspend(udev);
-> +			err = usb_port_suspend(udev, PMSG_SUSPEND);
->  			if (err < 0)
->  				dev_dbg(&udev->dev, "HNP fail, %d\n", err);
->  		}
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+ sound/soc/soc-dapm.c |    3 ++-
+ 1 files changed, 2 insertions(+), 1 deletions(-)
+
