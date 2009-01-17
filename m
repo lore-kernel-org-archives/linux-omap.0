@@ -1,42 +1,50 @@
-From: "Woodruff, Richard" <r-woodruff2@ti.com>
-Subject: RE: Reading OMAP3 CONTROL_RAND_KEY_0 register hangs
-Date: Fri, 16 Jan 2009 18:14:50 -0600
-Message-ID: <13B9B4C6EF24D648824FF11BE8967162036D6A180F@dlee02.ent.ti.com>
-References: <496F6310.30104@googlemail.com>
- <13B9B4C6EF24D648824FF11BE8967162036D63FEB7@dlee02.ent.ti.com>
- <4970B1AA.7090403@googlemail.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: RE: [PATCH] ARM: OMAP3: Enable writing to XCCR and RCCR McBSP
+ registers for OMAP 2430/34xx
+Date: Sat, 17 Jan 2009 00:09:31 -0700 (MST)
+Message-ID: <alpine.DEB.2.00.0901170006140.5091@utopia.booyaka.com>
+References: <2C7D3DF36ADFFC479B44490D912B616705A484AAD4@dlee07.ent.ti.com> <20090108155718.GX27566@atomide.com> <2C7D3DF36ADFFC479B44490D912B616705A496D1E0@dlee07.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:50904 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1762166AbZAQAO6 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 16 Jan 2009 19:14:58 -0500
-In-Reply-To: <4970B1AA.7090403@googlemail.com>
-Content-Language: en-US
+Received: from utopia.booyaka.com ([72.9.107.138]:46784 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754302AbZAQHJd (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 17 Jan 2009 02:09:33 -0500
+In-Reply-To: <2C7D3DF36ADFFC479B44490D912B616705A496D1E0@dlee07.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Dirk Behme <dirk.behme@googlemail.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: "Lopez Cruz, Misael" <x0052729@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Pandita, Vikram" <vikram.pandita@ti.com>, Jarkko Nikula <jarkko.nikula@nokia.com>, sakoman@gmail.com
 
-> > This address is not accessible out side of secure mode along with some other
-> qualifiers.
+On Thu, 8 Jan 2009, Lopez Cruz, Misael wrote:
+
+> > * Lopez Cruz, Misael <x0052729@ti.com> [081219 04:53]:
+> > > This patch enables writing to McBSP Transmit Configuration Control 
+> > > Register (XCCR) and Receive Configuration Control Register 
+> > (RCCR) for 
+> > > 2430/34xx platforms. It also adds XCCR, RCCR entries in 
+> > McBSP register 
+> > > configuration structure and bit definitions for both registers.
 > >
-> > Trying to access is futile and will result in an abort.  The control
-> register range is full of readable and aborting addresses.
->
-> Is there any hint in TRM (spruf98b.pdf) identifying/marking which
-> registers are readable in normal and which are only accessible in
-> secure mode?
+> > Pushing to l-o. Can you briefly describe what happens with 
+> > ASoC if these registers are not used? We may be able to send 
+> > this as a fix to mainline during the -rc cycle.
+> 
+> If we enable the writing to those registers for 2430/34xx and don't set the default values (setting 0 as a consequence) in ASoC driver, the Transmit/Receive DMA mode gets disabled and the the transmission/reception doesn't happen, ending with a "write error: Input/Output error" when playing with 'aplay'.
+> 
+> -Misa--
 
-Hints, in that TRM, I'd not looked in that one before, but yes.  Actually, it seems all those registers have sufficient information for you to know if they are good to access or not.
+Something is wrong with this patch, at least on Beagle.  When 
+starting audio playback, there is a 
+several second pause, then a console message:
 
-In each register description the 'type' field instead of having 'r/w/..' has 'refer to table-xyz'.  The table is right after the register.  That table gives accessibility for NSP and SP modes (non-secure and secure).
+ALSA sound/core/pcm_native.c:1493: playback drain error (DMA or IRQ 
+trouble?)
 
-For CONTROL_RAND_KEY_0 in Table 7-144 is shows 'Not Accessible' in NSP mode.
+No audio emerges from the board.
 
-You can also look at CONTROL_SEC_CTRL register which sets the behavior of some of these register groups.  Secure code at boot would have set the defaults.
+With this patch reverted, a very basic audio test here seems to work.
 
-Regards,
-Richard W.
+
+- Paul
