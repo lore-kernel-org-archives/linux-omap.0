@@ -1,51 +1,45 @@
-From: Jarkko Nikula <jarkko.nikula@nokia.com>
-Subject: Re: v2.6.28-omap1 tagged, some bugs remain
-Date: Mon, 19 Jan 2009 09:54:29 +0200
-Message-ID: <20090119095429.629b2606.jarkko.nikula@nokia.com>
-References: <1231921649.13843.171.camel@eenurkka-desktop>
-	<20090114152806.GP29324@atomide.com>
+From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+Subject: Re: [PATCH 1/6] omap iommu: tlb and pagetable primitives
+Date: Mon, 19 Jan 2009 11:44:07 +0200 (EET)
+Message-ID: <20090119.114407.177399457.Hiroshi.DOYU@nokia.com>
+References: <20090116083709.18344.74524.stgit@oreo.research.nokia.com>
+	<20090117160608.GA12341@n2100.arm.linux.org.uk>
+	<200901171248.45757.david-b@pacbell.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: Text/Plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:41979 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753685AbZASHyo (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 19 Jan 2009 02:54:44 -0500
-In-Reply-To: <20090114152806.GP29324@atomide.com>
+Received: from smtp.nokia.com ([192.100.122.233]:62277 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757149AbZASJpL convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 19 Jan 2009 04:45:11 -0500
+In-Reply-To: <200901171248.45757.david-b@pacbell.net>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: ext Tony Lindgren <tony@atomide.com>
-Cc: Eero Nurkkala <ext-eero.nurkkala@nokia.com>, linux-omap@vger.kernel.org, "ext Lopez Cruz, Misael" <x0052729@ti.com>
+To: dbrownell@users.sourceforge.net, david-b@pacbell.net
+Cc: linux@arm.linux.org.uk, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.arm.linux.org.uk, linux-omap@vger.kernel.org
 
-On Wed, 14 Jan 2009 17:28:07 +0200
-"ext Tony Lindgren" <tony@atomide.com> wrote:
+Hi David,
 
-> > You need to have the counterpart (in /sound/soc/omap/omap-mcbsp.c) for
-> > that patch, othwerwise there's no chance to hear any DMA transferred
-> > audio.
-> 
-> Jarkko, can you post the patch queued up for alsa? We might want to
-> have that in linux-omap too.
-> 
-Patch was made by Misael and I think he is waiting until the plat-omap
-part goes into mainline. And which means that OMAP3 audio is broken
-until sound/soc/omap/omap-mcbsp.c is patched.
+=46rom: "ext David Brownell" <david-b@pacbell.net>
+Subject: Re: [PATCH 1/6] omap iommu: tlb and pagetable primitives
+Date: Sat, 17 Jan 2009 12:48:45 -0800
 
-I would say that we wouldn't want to hack with sound/ directory in
-linux-omap. Especially code which is not in Takashi's tree since then
-we have yet another conflict point if one wants to merge from his tree
-on top of linux-omap.
+> On Saturday 17 January 2009, Russell King - ARM Linux wrote:
+> > > +#ifdef DEBUG_VERBOSE
+> > > +=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0dev_dbg(obj->dev, "%s:\ta=
+ new pte:%p\n", __func__, iopte);
+> > > +#endif
+> >=20
+> > Not sure wrapping these in DEBUG_VERBOSE is necessary. =A0dev_dbg()=
+ is a
+> > no-op unless DEBUG is defined.
+>=20
+> Use dev_vdbg() to get the "NOP unless VERBOSE is set" semantics.
 
-Probably we should revert the patch and split it into three
-separate patches:
-
-1. Header change in linux-omap adding those registers (and queue it)
-2. Patch to alsa-devel setting default values to those registers
-3. Patch to linux-omap writing those registers
-
-Or better: send those two patches to LKML, cc linux-omap and alsa-devel
-and let it fall down from -mm or linux-next tree.
-
-
-Jarkko
+Thanks. This is what I wanted... I'll update with "dev_vdbg()".
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
