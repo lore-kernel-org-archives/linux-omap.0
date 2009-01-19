@@ -1,155 +1,118 @@
-From: "Premi, Sanjeev" <premi@ti.com>
-Subject: RE: new PM branch available
-Date: Mon, 19 Jan 2009 21:34:14 +0530
-Message-ID: <B85A65D85D7EB246BE421B3FB0FBB59301BBA4F66D@dbde02.ent.ti.com>
-References: <5A47E75E594F054BAF48C5E4FC4B92AB02E6815EA9@dbde02.ent.ti.com>
- <87fxjj845c.fsf@deeprootsystems.com>
- <B85A65D85D7EB246BE421B3FB0FBB59301BBA4F654@dbde02.ent.ti.com>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: ioremap()/iounmap() problem
+Date: Mon, 19 Jan 2009 16:13:58 +0000
+Message-ID: <20090119161358.GE18301@n2100.arm.linux.org.uk>
+References: <1232360583.6481.92.camel@tubuntu> <13B9B4C6EF24D648824FF11BE8967162036D6A19F2@dlee02.ent.ti.com> <20090119134329.GA18301@n2100.arm.linux.org.uk> <13B9B4C6EF24D648824FF11BE8967162036D6A1A0F@dlee02.ent.ti.com> <20090119135654.GB18301@n2100.arm.linux.org.uk> <op.un0ew10nl1df02@matts.therealanswer.com> <20090119152237.GC18301@n2100.arm.linux.org.uk> <op.un0ggdb6l1df02@matts.therealanswer.com> <20090119155857.GD18301@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:35944 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750908AbZASQE0 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 19 Jan 2009 11:04:26 -0500
-In-Reply-To: <B85A65D85D7EB246BE421B3FB0FBB59301BBA4F654@dbde02.ent.ti.com>
-Content-Language: en-US
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:57585 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751006AbZASQOR (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 19 Jan 2009 11:14:17 -0500
+Content-Disposition: inline
+In-Reply-To: <20090119155857.GD18301@n2100.arm.linux.org.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Premi, Sanjeev" <premi@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>, "Nayak, Rajendra" <rnayak@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Matt Gerassimoff <mgeras@gmail.com>
+Cc: "Woodruff, Richard" <r-woodruff2@ti.com>, "tomi.valkeinen@nokia.com" <tomi.valkeinen@nokia.com>, "linux-arm-kernel@lists.arm.linux.org.uk" <linux-arm-kernel@lists.arm.linux.org.uk>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
+On Mon, Jan 19, 2009 at 03:58:57PM +0000, Russell King - ARM Linux wrote:
+> On Mon, Jan 19, 2009 at 08:39:39AM -0700, Matt Gerassimoff wrote:
+> > >>But without that code, everything works 100%.  I'm not sure what all the
+> > >>remap_area_sections()
+> > >>code does, but the cleanup definitely does not work,  as the kernel OOPS
+> > >>will testify.
+> > >>There may be a better solution, but as far as I can tell, it's not  
+> > >>really
+> > >>needed.  Maybe
+> > >>someone else will disagree.
+> > >
+> > >We might as well rip this code out then.  I'm all for simpler code, but  
+> > >I'm
+> > >sure the folk who want to squeeze the best performance out of their  
+> > >machines
+> > >will quickly squeel if I did that.
+> > >
+> > >And what cleanup are you referring to?
+> > 
+> > I meant freeing, not cleanup.  Sorry.
+> 
+> Okay, I won't include that bug fix with the fix I'm going to be working
+> on, even though it's clearly a bug in its own right.  After all, it
+> "definitely does not work" in your words.
+> 
+> (It may not fix the problem _you're_ seeing, but I assure you, that code
+> as it stands is wrong.)
+> 
+> > As I said it's a start.  I'm all for performance but not at the expense
+> > of integrity.  Right now the code doesn't work and needs to be fixed.
+> 
+> Yes, I think everyone realises that there is a bug here which needs
+> fixing.
+> 
+> Unfortunately, vague "it fails" bug reports are utterly useless for
+> finding bugs.  Your report provided that extra bit of information
+> which points to where the real problem lies.
+> 
+> Now, I could be looking at finishing off what I'm currently working on
+> so I can move on to fixing it instead of writing this message in reply
+> to an obvious statement.
+
+Right, ignoring everything about "that fix definitely does not work"
+here's an as yet untested patch which should fix the problem.
+
+The other thing to point out is that vunmap() does its work lazily
+(as Richard tried to point out).  However, it'll become unlazy when
+it has more than 32MB * NR_CPUS to deal with.  So, make sure that your
+ioremap/vmalloc region is larger than 32MB otherwise you'll still see
+crashes.
+
+(That being the space between top of RAM + 8MB, and VMALLOC_END as seen
+in Documentation/arm/memory.txt.)
+
+diff --git a/arch/arm/mm/ioremap.c b/arch/arm/mm/ioremap.c
+index 18373f7..9f88dd3 100644
+--- a/arch/arm/mm/ioremap.c
++++ b/arch/arm/mm/ioremap.c
+@@ -138,7 +138,7 @@ void __check_kvm_seq(struct mm_struct *mm)
+  */
+ static void unmap_area_sections(unsigned long virt, unsigned long size)
+ {
+-	unsigned long addr = virt, end = virt + (size & ~SZ_1M);
++	unsigned long addr = virt, end = virt + (size & ~(SZ_1M - 1));
+ 	pgd_t *pgd;
  
-
-> -----Original Message-----
-> From: linux-omap-owner@vger.kernel.org 
-> [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Premi, Sanjeev
-> Sent: Monday, January 19, 2009 9:16 PM
-> To: Kevin Hilman; Nayak, Rajendra
-> Cc: linux-omap@vger.kernel.org
-> Subject: RE: new PM branch available
-> 
->  
-> 
-> > -----Original Message-----
-> > From: linux-omap-owner@vger.kernel.org 
-> > [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Kevin Hilman
-> > Sent: Saturday, January 17, 2009 12:33 AM
-> > To: Nayak, Rajendra
-> > Cc: linux-omap@vger.kernel.org
-> > Subject: Re: new PM branch available
-> > 
-> > "Nayak, Rajendra" <rnayak@ti.com> writes:
-> > 
-> > > I did some testing today on my 3.0GP 3430SDP. This is with
-> > the omap_3430sdp_min_defconfig.
-> > >
-> > > 1) Idle.
-> > > echo -n 1 > /sys/power/clocks_off_while_idle echo -n 1 > 
-> > > /sys/power/enable_off Could not hit RET. something seems to
-> > be still
-> > > active. Not sure if it could be something to do with this
-> > error that's
-> > > thrown while bootup
-> > >
-> > > <6>Disabling unused clock "dpll5_ck"
-> > > Disabling unused clock "dpll5_ck"
-> > > <3>clock: dpll5_ck failed transition to 'locked'
-> > > clock: dpll5_ck failed transition to 'locked'
-> > 
-> > This is the same results I see on my SDP.
-> > 
-> > Looking at the registers, I am pretty sure it is the D2D 
-> clockdomain 
-> > that still has activity, but due to very poor Stacked-mode 
-> docs and no 
-> > responses to the D2D questions asked to TI I have not been able to 
-> > figure this one out.
-> > 
-> > Help debugging this would be greatly appreciated.
-> > 
-> > > Further doing a
-> > > echo -n 1 > /sys/power/sleep_while_idle causes a hang after
-> > the 5 odd
-> > > secs of UART inactivity.
-> > > Is'nt this option supposed to affect only the suspend 
-> path behavior?
-> > 
-> > No, this affects the common idle loop, with and without CPUidle.
-> > 
-> > > Is CPUidle disabled in the default defconfig now?
-> > >
-> > > 2) Suspend
-> > > echo -n 1 > /sys/power/clocks_off_while_idle Hangs on a 
-> echo mem > 
-> > > /sys/power/state Goes into suspend, but cannot recover
-> > 
-> > I'm pretty sure all the hangs going into RET are related.
-> > 
-> > Kevin
-> > 
-> > > 3) DVFS
-> > > Both VDD1 and VDD2 DVFS seem to function fine.
-> > >
-> 
-> [sp] I was trying to test DVFS on the OMAP3EVM. This log from 
-> my console illustrates the problems I face:
-> 
-> # cat /sys/devices/system/cpu/cpu0/cpufreq/scaling_available_governors
-> ondemand performance
-> #
-> # cat 
-> /sys/devices/system/cpu/cpu0/cpufreq/scaling_available_frequencies
-> cat: read error: No such device
-> #
-> # cat /sys/devices/system/cpu/cpu0/cpufreq/scaling_governor
-> performance
-> #
-> # echo -n "ondemand" > 
-> /sys/devices/system/cpu/cpu0/cpufreq/scaling_governor
-> #
-> # cat /sys/devices/system/cpu/cpu0/cpufreq/scaling_governor
-> Performance
-> 
-> Here is snapshot from "menuconfig":
-> [*] CPU Frequency scaling
-> [ ]   Enable CPUfreq debugging
-> <*>   CPU frequency translation statistics
-> [ ]     CPU frequency translation statistics details
->       Default CPUFreq governor (performance)  --->
-> -*-   'performance' governor
-> < >   'powersave' governor
-> < >   'userspace' governor for userspace frequency scaling
-> <*>   'ondemand' cpufreq policy governor
-> < >   'conservative' cpufreq governor
-> 
-> Currently building with ondemand as default...
-> 
-
-[sp] with ondemand and default governor, I did not see cpufreq getting loaded.
-Will be looking further tomorrow morning. Any updates till then?
-
-> Best regards,
-> Sanjeev
-> 
-> > >> -----Original Message-----
-> > >> From: linux-omap-owner@vger.kernel.org 
-> > >> [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of 
-> Kevin Hilman
-> > >> Sent: Wednesday, January 14, 2009 3:22 AM
-> > >> To: linux-omap@vger.kernel.org
-> > >> Subject: new PM branch available
-> > >> 
-> > >> Hello,
-> > >> 
-> > >> The latest PM branch is now available[1].
-> > >> 
-> <snip>--<snip>
-> --
-> To unsubscribe from this list: send the line "unsubscribe 
-> linux-omap" in the body of a message to 
-> majordomo@vger.kernel.org More majordomo info at  
-> http://vger.kernel.org/majordomo-info.html
-> 
-> 
+ 	flush_cache_vunmap(addr, end);
+@@ -337,10 +337,7 @@ void __iounmap(volatile void __iomem *io_addr)
+ 	void *addr = (void *)(PAGE_MASK & (unsigned long)io_addr);
+ #ifndef CONFIG_SMP
+ 	struct vm_struct **p, *tmp;
+-#endif
+-	unsigned int section_mapping = 0;
+ 
+-#ifndef CONFIG_SMP
+ 	/*
+ 	 * If this is a section based mapping we need to handle it
+ 	 * specially as the VM subsystem does not know how to handle
+@@ -352,11 +349,8 @@ void __iounmap(volatile void __iomem *io_addr)
+ 	for (p = &vmlist ; (tmp = *p) ; p = &tmp->next) {
+ 		if ((tmp->flags & VM_IOREMAP) && (tmp->addr == addr)) {
+ 			if (tmp->flags & VM_ARM_SECTION_MAPPING) {
+-				*p = tmp->next;
+ 				unmap_area_sections((unsigned long)tmp->addr,
+ 						    tmp->size);
+-				kfree(tmp);
+-				section_mapping = 1;
+ 			}
+ 			break;
+ 		}
+@@ -364,7 +358,6 @@ void __iounmap(volatile void __iomem *io_addr)
+ 	write_unlock(&vmlist_lock);
+ #endif
+ 
+-	if (!section_mapping)
+-		vunmap(addr);
++	vunmap(addr);
+ }
+ EXPORT_SYMBOL(__iounmap);
