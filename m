@@ -1,45 +1,40 @@
-From: "andrzej zaborowski" <balrogg@gmail.com>
-Subject: Re: mmci-omap regressions
-Date: Tue, 20 Jan 2009 10:36:59 +0100
-Message-ID: <fb249edb0901200136w1787db58ga6600b878b1e0ec7@mail.gmail.com>
-References: <20090112091721.GA11921@michl.2n.cz>
+From: David Brownell <david-b@pacbell.net>
+Subject: Re: Important changes, please read
+Date: Tue, 20 Jan 2009 02:26:18 -0800
+Message-ID: <200901200226.19385.david-b@pacbell.net>
+References: <20090114134152.GJ29324@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from rv-out-0506.google.com ([209.85.198.236]:2139 "EHLO
-	rv-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754777AbZATJhA (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 20 Jan 2009 04:37:00 -0500
-Received: by rv-out-0506.google.com with SMTP id k40so3036889rvb.1
-        for <linux-omap@vger.kernel.org>; Tue, 20 Jan 2009 01:37:00 -0800 (PST)
-In-Reply-To: <20090112091721.GA11921@michl.2n.cz>
+Received: from smtp120.sbc.mail.sp1.yahoo.com ([69.147.64.93]:39255 "HELO
+	smtp120.sbc.mail.sp1.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1753350AbZATK0V (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Tue, 20 Jan 2009 05:26:21 -0500
+In-Reply-To: <20090114134152.GJ29324@atomide.com>
 Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Ladislav Michl <ladis@linux-mips.org>
+To: Tony Lindgren <tony@atomide.com>
 Cc: linux-omap@vger.kernel.org
 
-2009/1/12 Ladislav Michl <ladis@linux-mips.org>:
-> Last time I used MMC card with linux-2.6.15-omap2 and it worked pretty well on
-> my custom 5910 based board. Current git nor linux-2.6.22-omap1 (currently used
-> for production) doesn't work at all. Inspecting diff between 2.6.15-omap2 and
-> 2.6.22-omap1 showed that
-> --- a/drivers/mmc/host/omap.c   2009-01-12 09:32:23.000000000 +0100
-> +++ b/drivers/mmc/host/omap.c   2009-01-12 09:46:26.000000000 +0100
-> @@ -974,7 +974,7 @@
->         * Writing to the CON register twice seems to do the trick. */
->        for (i = 0; i < 2; i++)
->                OMAP_MMC_WRITE(host, CON, dsor);
-> -       if (ios->power_mode == MMC_POWER_ON) {
-> +       if (ios->power_mode == MMC_POWER_UP) {
->                /* Send clock cycles, poll completion */
->                OMAP_MMC_WRITE(host, IE, 0);
->                OMAP_MMC_WRITE(host, STAT, 0xffff);
-> did the trick.
+On Wednesday 14 January 2009, Tony Lindgren wrote:
+> - We stop using source.mvista.com git tree, and only use the
+> =A0 kernel.org git tree. There's no need for having two master trees,
+> =A0 and kernel.org is the standard way to go. Big thanks to
+> =A0 Monta Vista for hosting us for many years.
 
-Just confirming that I had the same issue on Palm T|E (omap15xx) and
-used a similar modification to make it work.  This was with 2.6.22 so
-very long ago.
+This means that the new "OMAP and DaVinci for Dummies"
+book needs updating already.  ;)
 
-Cheers
+I see the DaVinci tree there includes a "WARNING..." that
+points to the kernel.org tree .. maybe the OMAP tree should
+do the same.
+
+- Dave
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
