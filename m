@@ -1,106 +1,51 @@
-From: "Premi, Sanjeev" <premi@ti.com>
-Subject: RE: [PATCH 2/3v4] Runtime check for OMAP35x
-Date: Tue, 20 Jan 2009 22:11:40 +0530
-Message-ID: <B85A65D85D7EB246BE421B3FB0FBB59301C69A054A@dbde02.ent.ti.com>
-References: <1232120769-7569-1-git-send-email-premi@ti.com>
-	<87mydmn9z3.fsf@deeprootsystems.com>
-	<B85A65D85D7EB246BE421B3FB0FBB59301C69A03AD@dbde02.ent.ti.com>
- <87ljt66lal.fsf@deeprootsystems.com>
+From: Mark Brown <broonie@sirena.org.uk>
+Subject: Re: [PATCH 1/2] Include TPS6235x based Power regulator support
+Date: Tue, 20 Jan 2009 20:28:10 +0000
+Message-ID: <20090120202810.GB6864@sirena.org.uk>
+References: <1231832468-7132-1-git-send-email-mani.pillai@ti.com> <200901131619.28700.david-b@pacbell.net> <200901201106.00914.david-b@pacbell.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:53754 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757104AbZATQlx convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 20 Jan 2009 11:41:53 -0500
-In-Reply-To: <87ljt66lal.fsf@deeprootsystems.com>
-Content-Language: en-US
+Received: from cassiel.sirena.org.uk ([80.68.93.111]:2958 "EHLO
+	cassiel.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751534AbZATU2W (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 20 Jan 2009 15:28:22 -0500
+Content-Disposition: inline
+In-Reply-To: <200901201106.00914.david-b@pacbell.net>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@deeprootsystems.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: David Brownell <david-b@pacbell.net>
+Cc: Manikandan Pillai <mani.pillai@ti.com>, linux-omap@vger.kernel.org
 
+On Tue, Jan 20, 2009 at 11:06:00AM -0800, David Brownell wrote:
+> On Tuesday 13 January 2009, David Brownell wrote:
 
-> -----Original Message-----
-> From: Kevin Hilman [mailto:khilman@deeprootsystems.com] 
-> Sent: Tuesday, January 20, 2009 9:07 PM
-> To: Premi, Sanjeev
-> Cc: linux-omap@vger.kernel.org
-> Subject: Re: [PATCH 2/3v4] Runtime check for OMAP35x
-> 
-> "Premi, Sanjeev" <premi@ti.com> writes:
-> 
-> > <snip>--<snip>
-> >
-> >> > +#ifdef CONFIG_ARCH_OMAP35XX
-> >> > +static struct omap_globals omap35xx_globals = {
-> >> > +	.class	= OMAP35XX_CLASS,
-> >> > +	.tap	= OMAP2_IO_ADDRESS(0x4830A000),
-> >> > +	.sdrc	= OMAP2_IO_ADDRESS(OMAP343X_SDRC_BASE),
-> >> > +	.sms	= OMAP2_IO_ADDRESS(OMAP343X_SMS_BASE),
-> >> > +	.ctrl	= OMAP2_IO_ADDRESS(OMAP343X_CTRL_BASE),
-> >> > +	.prm	= OMAP2_IO_ADDRESS(OMAP3430_PRM_BASE),
-> >> > +	.cm	= OMAP2_IO_ADDRESS(OMAP3430_CM_BASE),
-> >> > +};
-> >> 
-> >> This is exactly the same as omap34xx_globals.  Why is this needed?
-> >
-> 
-> > [sp] I have tried to add minimal support for OMAP35x. Since OMAP34x 
-> > and OMAP35x seem to be compatible today, this structure 
-> seems same. As 
-> > more code for specific OMAP35x variants comes in, I expect this to 
-> > change.
-> >
-> > The key difference here (as against OMAP34x) is use of 
-> OMAP35XX_CLASS; 
-> > which helps in identifying the different OMAP variants. We 
-> could have 
-> > 're-used' OMAP35XX_CLASS, it I wouldn't be right as this 
-> definition is 
-> > used to print the CPU name and Si version in id.c.
-> >
-> > With this patch, boot log with show (for example) "OMAP3530 ES2.1"
-> > on the OMAP3530 EVM - which can be considered same as 
-> OMAP3430 ES2.1; 
-> > but with 3503, 3515 and 3525 the print would read 3403, 3415,
-> > 3425 resp; this definitley would not be right.
-> 
-> I was not asking about the patch as a whole, I was commenting 
-> only on the addition of the omap35xx_globals variable.  You 
-> added a new struct which is exactly the same as the 35xx 
-> struct instead of just re-using the old one with a new name 
-> as I suggested.
-> 
-> Kevin
+> > +=A0=A0=A0=A0=A0=A0=A0/* adjust to match supported range, fail if o=
+ut of range */
+> > +=A0=A0=A0=A0=A0=A0=A0if (min_uV < info->min_uV)
+> > +=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0min_uV =3D info->min_=
+uV;
+> > +=A0=A0=A0=A0=A0=A0=A0if (max_uV > info->max_uV)
+> > +=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0max_uV =3D info->min_=
+uV;
 
-[sp] This would mean adding another #ifdef to get the right _CLASS. From earlier discussion, I understood that we wanted to remove #ifdefs so that same image can work for OMAP35x and OMAP34x.
+> On second thought, those particular checks would be better
+> handled by updating the board-level constraints in probe().
 
-> 
-> >> 
-> >> > +
-> >> > +void __init omap2_set_globals_35xx(void) {
-> >> > +	omap2_globals = &omap35xx_globals;
-> >> > +
-> >> > +	__omap2_set_globals();
-> >> > +}
-> >> > +#endif	/* CONFIG_ARCH_OMAP35XX */
-> >> > +
-> >> 
-> >> What is the problem of the init code just leaving
-> >> omap2_set_globals_343x()
-> >> 
-> >> If you really think this will confuse folks, then how about just 
-> >> changing the #ifdef of the 343x defines to:
-> >> 
-> >> #if defined(CONFIG_ARCH_OMAP3430) || defined(CONFIG_ARCH_OMAP35XX)
-> >> 
-> >> and then adding this:
-> >> 
-> >> #define omap2_set_globals_35xx omap2_set_globals_343x()
-> >> 
-> >> Kevin
-> >> 
+If doing this you should complain loudy - it may be better to just
+refuse to run rather than fixing them up in case something else is
+noticably wrong with them and they might be risky.
 
-<snip>--<snip>
+> That will let this driver not worry about the chip's hard
+> limits in set_voltage(), and will ensure that the constraints
+> listed in sysfs are accurate ... in the sense of not lying
+> about what the actual system capabilities are.
+
+Indeed - if the constraints are accurate there should be no need to
+validate them at all.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
