@@ -1,52 +1,254 @@
-From: David Brownell <david-b@pacbell.net>
-Subject: [patch 2.6.29-rc2-omap1-git 0/7] regulator and MMC updates...
-Date: Tue, 20 Jan 2009 02:44:36 -0800
-Message-ID: <200901200244.36238.david-b@pacbell.net>
+From: "Premi, Sanjeev" <premi@ti.com>
+Subject: RE: [PATCH 2/3v4] Runtime check for OMAP35x
+Date: Tue, 20 Jan 2009 17:55:21 +0530
+Message-ID: <B85A65D85D7EB246BE421B3FB0FBB59301C69A03AD@dbde02.ent.ti.com>
+References: <1232120769-7569-1-git-send-email-premi@ti.com>
+ <87mydmn9z3.fsf@deeprootsystems.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp121.sbc.mail.sp1.yahoo.com ([69.147.64.94]:44258 "HELO
-	smtp121.sbc.mail.sp1.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1753934AbZATLBR (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Tue, 20 Jan 2009 06:01:17 -0500
-Content-Disposition: inline
+Received: from comal.ext.ti.com ([198.47.26.152]:33432 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750912AbZATMZd convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 20 Jan 2009 07:25:33 -0500
+In-Reply-To: <87mydmn9z3.fsf@deeprootsystems.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: OMAP <linux-omap@vger.kernel.org>
+To: Kevin Hilman <khilman@deeprootsystems.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Several patches here:
+<snip>--<snip>
 
- - New interface in regulator core ... in the regulator queue
-   (presumably for 2.6.30 merge)
+> > +#ifdef CONFIG_ARCH_OMAP35XX
+> > +static struct omap_globals omap35xx_globals = {
+> > +	.class	= OMAP35XX_CLASS,
+> > +	.tap	= OMAP2_IO_ADDRESS(0x4830A000),
+> > +	.sdrc	= OMAP2_IO_ADDRESS(OMAP343X_SDRC_BASE),
+> > +	.sms	= OMAP2_IO_ADDRESS(OMAP343X_SMS_BASE),
+> > +	.ctrl	= OMAP2_IO_ADDRESS(OMAP343X_CTRL_BASE),
+> > +	.prm	= OMAP2_IO_ADDRESS(OMAP3430_PRM_BASE),
+> > +	.cm	= OMAP2_IO_ADDRESS(OMAP3430_CM_BASE),
+> > +};
+> 
+> This is exactly the same as omap34xx_globals.  Why is this needed?
 
- - twl4030 regulator updates to use that interface
+[sp] I have tried to add minimal support for OMAP35x. Since OMAP34x and OMAP35x seem to be compatible today, this structure seems same. As more code for specific OMAP35x variants comes in, I expect this to change.
 
-Given that second part, I think the twl4030 regulator code can
-be submitted upstream.
+The key difference here (as against OMAP34x) is use of OMAP35XX_CLASS; which helps in identifying the different OMAP variants. We could have 're-used' OMAP35XX_CLASS, it I wouldn't be right as this definition is used to print the CPU name and Si version in id.c.
 
- - Init updates for OMAP 3430 SDP ... regulators, MMC switches,
-   and a bit more.
+With this patch, boot log with show (for example) "OMAP3530 ES2.1" on the OMAP3530 EVM - which can be considered same as OMAP3430 ES2.1; but with 3503, 3515 and 3525 the print would read 3403, 3415, 3425 resp; this definitley would not be right.
 
- - Minor Overo init update:  set up VMMC1
-
- - HSMMC init update:  pass device back so regulator setup can
-   use it.  (Not as invasive as a cleaner fix would be...)
-
- - Beagle init update:  hook up the regulators used by MMC-1
-   (relies on that init update)
-
- - SDP init update:  hook up regulators used by MMC-1 and MMC-2
-   (also relies on that init update)
-
-These go on top of patches I sent previously, to work around
-a lockdep issue in the hsmmc driver (that might go to mainline
-as a bugfix, assuming that driver goes to mainline for 2.6.29)
-and correct the mach-omap2/mmc-twl4030.c power switching.
-
-Once that's merged, it'll be ready to start using the regulator
-calls to switch power for MMC on at least those platforms.
-
-- Dave
+> 
+> > +
+> > +void __init omap2_set_globals_35xx(void) {
+> > +	omap2_globals = &omap35xx_globals;
+> > +
+> > +	__omap2_set_globals();
+> > +}
+> > +#endif	/* CONFIG_ARCH_OMAP35XX */
+> > +
+> 
+> What is the problem of the init code just leaving
+> omap2_set_globals_343x()
+> 
+> If you really think this will confuse folks, then how about 
+> just changing the #ifdef of the 343x defines to:
+> 
+> #if defined(CONFIG_ARCH_OMAP3430) || defined(CONFIG_ARCH_OMAP35XX)
+> 
+> and then adding this:
+> 
+> #define omap2_set_globals_35xx omap2_set_globals_343x()
+> 
+> Kevin
+> 
+> > diff --git a/arch/arm/plat-omap/include/mach/common.h 
+> > b/arch/arm/plat-omap/include/mach/common.h
+> > index af4105f..f41cba2 100644
+> > --- a/arch/arm/plat-omap/include/mach/common.h
+> > +++ b/arch/arm/plat-omap/include/mach/common.h
+> > @@ -60,6 +60,7 @@ struct omap_globals {  void 
+> > omap2_set_globals_242x(void);  void omap2_set_globals_243x(void);  
+> > void omap2_set_globals_343x(void);
+> > +void omap2_set_globals_35xx(void);
+> >  
+> >  /* These get called from omap2_set_globals_xxxx(), do not 
+> call these 
+> > */  void omap2_set_globals_tap(struct omap_globals *); diff --git 
+> > a/arch/arm/plat-omap/include/mach/cpu.h 
+> > b/arch/arm/plat-omap/include/mach/cpu.h
+> > index b2062f1..447e053 100644
+> > --- a/arch/arm/plat-omap/include/mach/cpu.h
+> > +++ b/arch/arm/plat-omap/include/mach/cpu.h
+> > @@ -93,7 +93,7 @@ unsigned int omap_rev(void);  #  define OMAP_NAME 
+> > omap2430  # endif  #endif -#ifdef CONFIG_ARCH_OMAP3430
+> > +#if defined(CONFIG_ARCH_OMAP3430) && !defined(CONFIG_ARCH_OMAP35XX)
+> >  # ifdef OMAP_NAME
+> >  #  undef  MULTI_OMAP2
+> >  #  define MULTI_OMAP2
+> > @@ -102,6 +102,46 @@ unsigned int omap_rev(void);  # endif  #endif
+> >  
+> > +#ifdef CONFIG_ARCH_OMAP35XX
+> > +# ifdef CONFIG_ARCH_OMAP3503
+> > +#  ifdef OMAP_NAME
+> > +#   undef  MULTI_OMAP2
+> > +#   define MULTI_OMAP2
+> > +#  else
+> > +#   define OMAP_NAME omap3503
+> > +#  endif
+> > +# endif  /* ifdef CONFIG_ARCH_OMAP3503 */
+> > +
+> > +# ifdef CONFIG_ARCH_OMAP3515
+> > +#  ifdef OMAP_NAME
+> > +#   undef  MULTI_OMAP2
+> > +#   define MULTI_OMAP2
+> > +#  else
+> > +#   define OMAP_NAME omap3515
+> > +#  endif
+> > +# endif  /* ifdef CONFIG_ARCH_OMAP3515 */
+> > +
+> > +# ifdef CONFIG_ARCH_OMAP3525
+> > +#  ifdef OMAP_NAME
+> > +#   undef  MULTI_OMAP2
+> > +#   define MULTI_OMAP2
+> > +#  else
+> > +#   define OMAP_NAME omap3525
+> > +#  endif
+> > +# endif  /* ifdef CONFIG_ARCH_OMAP3525 */
+> > +
+> > +# ifdef CONFIG_ARCH_OMAP3530
+> > +#  ifdef OMAP_NAME
+> > +#   undef  MULTI_OMAP2
+> > +#   define MULTI_OMAP2
+> > +#  else
+> > +#   define OMAP_NAME omap3530
+> > +#  endif
+> > +# endif  /* ifdef CONFIG_ARCH_OMAP3530 */
+> > +
+> > +#endif  /* ifdef CONFIG_ARCH_OMAP35XX */
+> > +
+> > +
+> >  /*
+> >   * Macros to group OMAP into cpu classes.
+> >   * These can be used in most places.
+> > @@ -112,6 +152,7 @@ unsigned int omap_rev(void);
+> >   * cpu_is_omap242x():	True for OMAP2420, OMAP2422, OMAP2423
+> >   * cpu_is_omap243x():	True for OMAP2430
+> >   * cpu_is_omap343x():	True for OMAP3430
+> > + * cpu_is_omap35xx():	True for OMAP35XX
+> >   */
+> >  #define GET_OMAP_CLASS	(omap_rev() & 0xff)
+> >  
+> > @@ -147,6 +188,7 @@ IS_OMAP_SUBCLASS(343x, 0x343)
+> >  #define cpu_is_omap243x()		0
+> >  #define cpu_is_omap34xx()		0
+> >  #define cpu_is_omap343x()		0
+> > +#define cpu_is_omap35xx()		0
+> >  
+> >  #if defined(MULTI_OMAP1)
+> >  # if defined(CONFIG_ARCH_OMAP730)
+> > @@ -191,6 +233,10 @@ IS_OMAP_SUBCLASS(343x, 0x343)
+> >  #  define cpu_is_omap34xx()		is_omap34xx()
+> >  #  define cpu_is_omap343x()		is_omap343x()
+> >  # endif
+> > +# if defined(CONFIG_ARCH_OMAP35XX)
+> > +#  undef  cpu_is_omap35xx
+> > +#  define cpu_is_omap35xx()		is_omap35xx()
+> > +# endif
+> >  #else
+> >  # if defined(CONFIG_ARCH_OMAP24XX)
+> >  #  undef  cpu_is_omap24xx
+> > @@ -212,6 +258,10 @@ IS_OMAP_SUBCLASS(343x, 0x343)  #  undef  
+> > cpu_is_omap343x
+> >  #  define cpu_is_omap343x()		1
+> >  # endif
+> > +# if defined(CONFIG_ARCH_OMAP35XX)
+> > +#  undef  cpu_is_omap35xx
+> > +#  define cpu_is_omap35xx()		1
+> > +# endif
+> >  #endif
+> >  
+> >  /*
+> > @@ -230,7 +280,11 @@ IS_OMAP_SUBCLASS(343x, 0x343)
+> >   * cpu_is_omap2423():	True for OMAP2423
+> >   * cpu_is_omap2430():	True for OMAP2430
+> >   * cpu_is_omap3430():	True for OMAP3430
+> > - */
+> > + * cpu_is_omap3503():	True for OMAP3503
+> > + * cpu_is_omap3515():	True for OMAP3515
+> > + * cpu_is_omap3525():	True for OMAP3525
+> > + * cpu_is_omap3530():	True for OMAP3530
+> > + */;
+> >  #define GET_OMAP_TYPE	((omap_rev() >> 16) & 0xffff)
+> >  
+> >  #define IS_OMAP_TYPE(type, id)				\
+> > @@ -252,6 +306,10 @@ IS_OMAP_TYPE(2422, 0x2422)  IS_OMAP_TYPE(2423, 
+> > 0x2423)  IS_OMAP_TYPE(2430, 0x2430)  IS_OMAP_TYPE(3430, 0x3430)
+> > +IS_OMAP_TYPE(3503, 0x3503)
+> > +IS_OMAP_TYPE(3515, 0x3515)
+> > +IS_OMAP_TYPE(3525, 0x3525)
+> > +IS_OMAP_TYPE(3530, 0x3530)
+> >  
+> >  #define cpu_is_omap310()		0
+> >  #define cpu_is_omap730()		0
+> > @@ -266,6 +324,10 @@ IS_OMAP_TYPE(3430, 0x3430)
+> >  #define cpu_is_omap2423()		0
+> >  #define cpu_is_omap2430()		0
+> >  #define cpu_is_omap3430()		0
+> > +#define cpu_is_omap3503()		0
+> > +#define cpu_is_omap3515()		0
+> > +#define cpu_is_omap3525()		0
+> > +#define cpu_is_omap3530()		0
+> >  
+> >  #if defined(MULTI_OMAP1)
+> >  # if defined(CONFIG_ARCH_OMAP730)
+> > @@ -319,6 +381,18 @@ IS_OMAP_TYPE(3430, 0x3430)
+> >  # define cpu_is_omap3430()		is_omap3430()
+> >  #endif
+> >  
+> > +#if defined(CONFIG_ARCH_OMAP35XX)
+> > +# undef cpu_is_omap3503
+> > +# undef cpu_is_omap3515
+> > +# undef cpu_is_omap3525
+> > +# undef cpu_is_omap3530
+> > +
+> > +# define cpu_is_omap3503()		is_omap3503()
+> > +# define cpu_is_omap3515()		is_omap3515()
+> > +# define cpu_is_omap3525()		is_omap3525()
+> > +# define cpu_is_omap3530()		is_omap3530()
+> > +#endif	/* if defined(CONFIG_ARCH_OMAP35XX) */
+> > +
+> >  /* Macros to detect if we have OMAP1 or OMAP2 */
+> >  #define cpu_class_is_omap1()	(cpu_is_omap730() || 
+> cpu_is_omap15xx() || \
+> >  				cpu_is_omap16xx())
+> > @@ -340,6 +414,16 @@ IS_OMAP_TYPE(3430, 0x3430)
+> >  #define OMAP3430_REV_ES2_1	0x34302034
+> >  #define OMAP3430_REV_ES3_0	0x34303034
+> >  
+> > +#define OMAP35XX_CLASS		0x35000035
+> > +#define OMAP3503_MASK		0x00030000
+> > +#define OMAP3515_MASK		0x00150000
+> > +#define OMAP3525_MASK		0x00250000
+> > +#define OMAP3530_MASK		0x00300000
+> > +
+> > +#define OMAP35XX_MASK_ES2_0	0x00001000
+> > +#define OMAP35XX_MASK_ES2_1	0x00002000
+> > +#define OMAP35XX_MASK_ES3_0	0x00003000
+> > +
+> >  /*
+> >   * omap_chip bits
+> >   *
+> > --
+> > 1.5.6
+> >
+> > --
+> > To unsubscribe from this list: send the line "unsubscribe 
+> linux-omap" 
+> > in the body of a message to majordomo@vger.kernel.org More 
+> majordomo 
+> > info at  http://vger.kernel.org/majordomo-info.html
+> 
+> 
