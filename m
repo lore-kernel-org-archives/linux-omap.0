@@ -1,71 +1,44 @@
-From: =?iso-8859-1?Q?M=E5ns_Rullg=E5rd?= <mans@mansr.com>
-Subject: Re: mmci-omap regressions
-Date: Tue, 20 Jan 2009 01:10:04 +0000
-Message-ID: <yw1xfxjeu6j7.fsf@thrashbarg.mansr.com>
-References: <20090112091721.GA11921@michl.2n.cz>
+From: "stanley.miao" <stanley.miao@windriver.com>
+Subject: Re: BUG: LDP - smc911x region too small
+Date: Tue, 20 Jan 2009 14:36:43 +0800
+Message-ID: <1232433403.31748.8.camel@localhost>
+References: <20090119223750.GL18301@n2100.arm.linux.org.uk>
+Reply-To: stanley.miao@windriver.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from main.gmane.org ([80.91.229.2]:46269 "EHLO ciao.gmane.org"
+Received: from mail.windriver.com ([147.11.1.11]:65221 "EHLO mail.wrs.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754547AbZATBKW (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 19 Jan 2009 20:10:22 -0500
-Received: from list by ciao.gmane.org with local (Exim 4.43)
-	id 1LP58C-00037k-7s
-	for linux-omap@vger.kernel.org; Tue, 20 Jan 2009 01:10:16 +0000
-Received: from thrashbarg.mansr.com ([78.86.181.100])
-        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-omap@vger.kernel.org>; Tue, 20 Jan 2009 01:10:16 +0000
-Received: from mans by thrashbarg.mansr.com with local (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-omap@vger.kernel.org>; Tue, 20 Jan 2009 01:10:16 +0000
+	id S1752525AbZATG17 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 20 Jan 2009 01:27:59 -0500
+In-Reply-To: <20090119223750.GL18301@n2100.arm.linux.org.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: linux-omap@vger.kernel.org
 
-Ladislav Michl <ladis@linux-mips.org> writes:
+On Mon, 2009-01-19 at 22:37 +0000, Russell King - ARM Linux wrote:
+> At the moment:
+> 
+>         ldp_smc911x_resources[0].start = cs_mem_base + 0x0;
+>         ldp_smc911x_resources[0].end   = cs_mem_base + 0xf;
+> 
+> However, the SMC911x driver wants to claim 256 bytes from this region.
+> Indeed, its register set definitions appears to indicate that its needs
+> more than 16 bytes of address space.
+> 
+> So, the question is what is the right fix?
+> 
+> Unfortunately, fixing this will cause problems with the SMSC911x patches,
+> so I'd like to get an answer on this sooner rather than later please.
 
-> Last time I used MMC card with linux-2.6.15-omap2 and it worked
-> pretty well on my custom 5910 based board. Current git nor
-> linux-2.6.22-omap1 (currently used for production) doesn't work at
-> all. Inspecting diff between 2.6.15-omap2 and 2.6.22-omap1 showed
-> that
+Here should be 0x100. Fixing this won't cause problems with smsc911x
+patches.
 
-[...]
+Stanley.
 
-> Doing the same modification in current git doesn't help. Moreover rem=
-oving
-> omap.ko and inserting again behaves differently than inserting for fi=
-rst
-> time:
-> # modprobe omap
-> mmci-omap mmci-omap.0: command timeout (CMD8)
-> mmci-omap mmci-omap.0: command timeout (CMD5)
-> mmci-omap mmci-omap.0: command timeout (CMD5)
-> mmci-omap mmci-omap.0: command timeout (CMD5)
-> mmci-omap mmci-omap.0: command timeout (CMD5)
-> mmci-omap mmci-omap.0: command timeout (CMD55)
-> mmci-omap mmci-omap.0: command timeout (CMD55)
-> mmci-omap mmci-omap.0: command timeout (CMD55)
-> mmci-omap mmci-omap.0: command timeout (CMD55)
-> mmc0: error -22 whilst initialising MMC card
-> # rmmod omap
-> # modprobe omap
-> mmci-omap: probe of mmci-omap.0 failed with error -16
->
-> I'll happily send any requested debug informations and test any patch=
-es
-
-I'm getting the same error on Nokia 770.  Anything I can do to help?
-
---=20
-M=E5ns Rullg=E5rd
-mans@mansr.com
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
