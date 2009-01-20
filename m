@@ -1,97 +1,52 @@
 From: David Brownell <david-b@pacbell.net>
-Subject: [patch 2.6.29-rc2-omap1-git 5/7] hsmmc init passes device nodes back
-Date: Tue, 20 Jan 2009 02:52:02 -0800
-Message-ID: <200901200252.02581.david-b@pacbell.net>
-References: <200901200244.36238.david-b@pacbell.net>
+Subject: [patch 2.6.29-rc2-omap1-git 0/7] regulator and MMC updates...
+Date: Tue, 20 Jan 2009 02:44:36 -0800
+Message-ID: <200901200244.36238.david-b@pacbell.net>
 Mime-Version: 1.0
 Content-Type: text/plain;
   charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp121.sbc.mail.sp1.yahoo.com ([69.147.64.94]:44270 "HELO
+Received: from smtp121.sbc.mail.sp1.yahoo.com ([69.147.64.94]:44258 "HELO
 	smtp121.sbc.mail.sp1.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1756904AbZATLBV (ORCPT
+	by vger.kernel.org with SMTP id S1753934AbZATLBR (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Tue, 20 Jan 2009 06:01:21 -0500
-In-Reply-To: <200901200244.36238.david-b@pacbell.net>
+	Tue, 20 Jan 2009 06:01:17 -0500
 Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: OMAP <linux-omap@vger.kernel.org>
 
-From: David Brownell <dbrownell@users.sourceforge.net>
+Several patches here:
 
-When setting up HSMMC devices, pass pass the device nodes back so
-board code can linking them to their power supply regulators.
+ - New interface in regulator core ... in the regulator queue
+   (presumably for 2.6.30 merge)
 
-Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
----
-Kind of ugly, but minimally invasive.  A cleaner approach might
-have board code initialize one controller at a time, with that
-call returning the relevant device node.
+ - twl4030 regulator updates to use that interface
 
- arch/arm/mach-omap2/mmc-twl4030.c     |   10 ++++++++++
- arch/arm/mach-omap2/mmc-twl4030.h     |    1 +
- arch/arm/plat-omap/devices.c          |    3 +++
- arch/arm/plat-omap/include/mach/mmc.h |    2 ++
- 4 files changed, 16 insertions(+)
+Given that second part, I think the twl4030 regulator code can
+be submitted upstream.
 
---- a/arch/arm/mach-omap2/mmc-twl4030.c
-+++ b/arch/arm/mach-omap2/mmc-twl4030.c
-@@ -17,6 +17,7 @@
- #include <linux/delay.h>
- #include <linux/gpio.h>
- #include <linux/i2c/twl4030.h>
-+#include <linux/regulator/machine.h>
- 
- #include <mach/hardware.h>
- #include <mach/control.h>
-@@ -436,6 +437,15 @@ void __init twl4030_mmc_init(struct twl4
- 	}
- 
- 	omap2_init_mmc(hsmmc_data, OMAP34XX_NR_MMC);
-+
-+	/* pass the device nodes back to board setup code */
-+	for (c = controllers; c->mmc; c++) {
-+		struct omap_mmc_platform_data *mmc = hsmmc_data[c->mmc - 1];
-+
-+		if (!c->mmc || c->mmc > nr_hsmmc)
-+			continue;
-+		c->dev = mmc->dev;
-+	}
- }
- 
- #endif
---- a/arch/arm/mach-omap2/mmc-twl4030.h
-+++ b/arch/arm/mach-omap2/mmc-twl4030.h
-@@ -13,6 +13,7 @@ struct twl4030_hsmmc_info {
- 	bool	ext_clock;	/* use external pin for input clock */
- 	int	gpio_cd;	/* or -EINVAL */
- 	int	gpio_wp;	/* or -EINVAL */
-+	struct device *dev;	/* returned: pointer to mmc adapter */
- };
- 
- #if	defined(CONFIG_TWL4030_CORE) && \
---- a/arch/arm/plat-omap/devices.c
-+++ b/arch/arm/plat-omap/devices.c
-@@ -232,6 +232,9 @@ int __init omap_mmc_add(int id, unsigned
- 	ret = platform_device_add(pdev);
- 	if (ret)
- 		goto fail;
-+
-+	/* return device handle to board setup code */
-+	data->dev = &pdev->dev;
- 	return 0;
- 
- fail:
---- a/arch/arm/plat-omap/include/mach/mmc.h
-+++ b/arch/arm/plat-omap/include/mach/mmc.h
-@@ -37,6 +37,8 @@
- #define OMAP_MMC_MAX_SLOTS	2
- 
- struct omap_mmc_platform_data {
-+	/* back-link to device */
-+	struct device *dev;
- 
- 	/* number of slots per controller */
- 	unsigned nr_slots:2;
+ - Init updates for OMAP 3430 SDP ... regulators, MMC switches,
+   and a bit more.
+
+ - Minor Overo init update:  set up VMMC1
+
+ - HSMMC init update:  pass device back so regulator setup can
+   use it.  (Not as invasive as a cleaner fix would be...)
+
+ - Beagle init update:  hook up the regulators used by MMC-1
+   (relies on that init update)
+
+ - SDP init update:  hook up regulators used by MMC-1 and MMC-2
+   (also relies on that init update)
+
+These go on top of patches I sent previously, to work around
+a lockdep issue in the hsmmc driver (that might go to mainline
+as a bugfix, assuming that driver goes to mainline for 2.6.29)
+and correct the mach-omap2/mmc-twl4030.c power switching.
+
+Once that's merged, it'll be ready to start using the regulator
+calls to switch power for MMC on at least those platforms.
+
+- Dave
