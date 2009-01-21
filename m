@@ -1,107 +1,36 @@
-From: Kalle Jokiniemi <kalle.jokiniemi@digia.com>
-Subject: [PATCH 1/1] TWL: USB: disable VUSB regulators when cable unplugged
-Date: Wed, 21 Jan 2009 15:15:18 +0200
-Message-ID: <1232543718-18199-2-git-send-email-kalle.jokiniemi@digia.com>
-References: <1232543718-18199-1-git-send-email-kalle.jokiniemi@digia.com>
+From: Steve Sakoman <sakoman@gmail.com>
+Subject: Re: [PATCH] ASoC: Complete Beagleboard support
+Date: Wed, 21 Jan 2009 06:40:41 -0800
+Message-ID: <5e088bd90901210640v4ce21f8clae9469b60226a6f0@mail.gmail.com>
+References: <5e088bd90901202305m26900888jcaa2b0ec57d3fab1@mail.gmail.com>
+	 <200901210953.36630.peter.ujfalusi@nokia.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from sink.edelkey.net ([213.138.147.137]:56694 "EHLO
-	sink.edelkey.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756595AbZAUNPf (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 21 Jan 2009 08:15:35 -0500
-In-Reply-To: <1232543718-18199-1-git-send-email-kalle.jokiniemi@digia.com>
+Received: from mail-bw0-f21.google.com ([209.85.218.21]:63436 "EHLO
+	mail-bw0-f21.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753436AbZAUOkn (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 21 Jan 2009 09:40:43 -0500
+Received: by bwz14 with SMTP id 14so12885050bwz.13
+        for <linux-omap@vger.kernel.org>; Wed, 21 Jan 2009 06:40:41 -0800 (PST)
+In-Reply-To: <200901210953.36630.peter.ujfalusi@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: felipe.balbi@nokia.com, david-b@pacbell.net, Kalle Jokiniemi <kalle.jokiniemi@digia.com>
+To: Peter Ujfalusi <peter.ujfalusi@nokia.com>
+Cc: alsa-devel@alsa-project.org, linux-omap <linux-omap@vger.kernel.org>
 
-This patch disables USB regulators VUSB1V5, VUSB1V8, and VUSB3V1
-when the USB cable is unplugged to reduce power consumption.
+On Tue, Jan 20, 2009 at 11:53 PM, Peter Ujfalusi
+<peter.ujfalusi@nokia.com> wrote:
+> Hello,
+>
+> for ure now you can build it, but does it actually works?
+> I mean there has been quite a bit of change in the twl4030
+> codec driver... The DAPM routing implementation might require
+> some change in the board file also (SND_SOC_DAPM_HP,
+> SND_SOC_DAPM_LINE, etc).
 
-Signed-off-by: Kalle Jokiniemi <kalle.jokiniemi@digia.com>
----
- drivers/usb/otg/twl4030-usb.c |   30 ++++++++++++++++++++++++------
- 1 files changed, 24 insertions(+), 6 deletions(-)
+I will test this morning.  I expect it should work since Overo works
+and Beagle is largely identical.
 
-diff --git a/drivers/usb/otg/twl4030-usb.c b/drivers/usb/otg/twl4030-usb.c
-index 416e441..105ab55 100644
---- a/drivers/usb/otg/twl4030-usb.c
-+++ b/drivers/usb/otg/twl4030-usb.c
-@@ -34,6 +34,7 @@
- #include <linux/delay.h>
- #include <linux/usb/otg.h>
- #include <linux/i2c/twl4030.h>
-+#include <linux/regulator/consumer.h>
- 
- 
- /* Register defines */
-@@ -246,6 +247,11 @@ struct twl4030_usb {
- 	struct otg_transceiver	otg;
- 	struct device		*dev;
- 
-+	/* TWL4030 internal USB regulator supplies */
-+	struct regulator	*usb1v5;
-+	struct regulator	*usb1v8;
-+	struct regulator	*usb3v1;
-+
- 	/* for vbus reporting with irqs disabled */
- 	spinlock_t		lock;
- 
-@@ -434,6 +440,9 @@ static void twl4030_phy_power(struct twl4030_usb *twl, int on)
- 
- 	pwr = twl4030_usb_read(twl, PHY_PWR_CTRL);
- 	if (on) {
-+		regulator_enable(twl->usb1v5);
-+		regulator_enable(twl->usb1v8);
-+		regulator_enable(twl->usb3v1);
- 		pwr &= ~PHY_PWR_PHYPWD;
- 		WARN_ON(twl4030_usb_write_verify(twl, PHY_PWR_CTRL, pwr) < 0);
- 		twl4030_usb_write(twl, PHY_CLK_CTRL,
-@@ -443,6 +452,9 @@ static void twl4030_phy_power(struct twl4030_usb *twl, int on)
- 	} else  {
- 		pwr |= PHY_PWR_PHYPWD;
- 		WARN_ON(twl4030_usb_write_verify(twl, PHY_PWR_CTRL, pwr) < 0);
-+		regulator_disable(twl->usb1v5);
-+		regulator_disable(twl->usb1v8);
-+		regulator_disable(twl->usb3v1);
- 	}
- }
- 
-@@ -480,16 +492,19 @@ static void twl4030_usb_ldo_init(struct twl4030_usb *twl)
- 	/* input to VUSB3V1 LDO is from VBAT, not VBUS */
- 	twl4030_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER, 0x14, VUSB_DEDICATED1);
- 
--	/* turn on 3.1V regulator */
--	twl4030_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER, 0x20, VUSB3V1_DEV_GRP);
-+	/* Initialize 3.1V regulator */
-+	twl4030_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER, 0, VUSB3V1_DEV_GRP);
-+	twl->usb3v1 = regulator_get(twl->dev, "usb3v1");
- 	twl4030_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER, 0, VUSB3V1_TYPE);
- 
--	/* turn on 1.5V regulator */
--	twl4030_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER, 0x20, VUSB1V5_DEV_GRP);
-+	/* Initialize 1.5V regulator */
-+	twl4030_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER, 0, VUSB1V5_DEV_GRP);
-+	twl->usb1v5 = regulator_get(twl->dev, "usb1v5");
- 	twl4030_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER, 0, VUSB1V5_TYPE);
- 
--	/* turn on 1.8V regulator */
--	twl4030_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER, 0x20, VUSB1V8_DEV_GRP);
-+	/* Initialize 1.8V regulator */
-+	twl4030_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER, 0, VUSB1V8_DEV_GRP);
-+	twl->usb1v8 = regulator_get(twl->dev, "usb1v8");
- 	twl4030_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER, 0, VUSB1V8_TYPE);
- 
- 	/* disable access to power configuration registers */
-@@ -688,6 +703,9 @@ static int __exit twl4030_usb_remove(struct platform_device *pdev)
- 	twl4030_usb_clear_bits(twl, POWER_CTRL, POWER_CTRL_OTG_ENAB);
- 
- 	twl4030_phy_power(twl, 0);
-+	regulator_put(twl->usb1v5);
-+	regulator_put(twl->usb1v8);
-+	regulator_put(twl->usb3v1);
- 
- 	kfree(twl);
- 
--- 
-1.5.6.5
-
+Steve
