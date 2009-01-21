@@ -1,81 +1,80 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH 2/3v4] Runtime check for OMAP35x
-Date: Tue, 20 Jan 2009 12:53:02 -0800
-Message-ID: <871vux66oh.fsf@deeprootsystems.com>
-References: <1232120769-7569-1-git-send-email-premi@ti.com>
-	<87mydmn9z3.fsf@deeprootsystems.com>
-	<B85A65D85D7EB246BE421B3FB0FBB59301C69A03AD@dbde02.ent.ti.com>
-	<87ljt66lal.fsf@deeprootsystems.com>
-	<B85A65D85D7EB246BE421B3FB0FBB59301C69A054A@dbde02.ent.ti.com>
+From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Subject: Re: lowmemory android driver not needed?
+Date: Wed, 21 Jan 2009 11:50:48 +0900 (JST)
+Message-ID: <20090122114955.32F3.KOSAKI.MOTOHIRO@jp.fujitsu.com>
+References: <2f11576a0901160316u20030f4u51c9e4c059398b70@mail.gmail.com> <20090116152338.GB9357@kroah.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="US-ASCII"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from rv-out-0506.google.com ([209.85.198.232]:6891 "EHLO
-	rv-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753423AbZATUxI (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 20 Jan 2009 15:53:08 -0500
-Received: by rv-out-0506.google.com with SMTP id k40so3277399rvb.1
-        for <linux-omap@vger.kernel.org>; Tue, 20 Jan 2009 12:53:05 -0800 (PST)
-In-Reply-To: <B85A65D85D7EB246BE421B3FB0FBB59301C69A054A@dbde02.ent.ti.com> (Sanjeev Premi's message of "Tue\, 20 Jan 2009 22\:11\:40 +0530")
+Received: from fgwmail5.fujitsu.co.jp ([192.51.44.35]:37324 "EHLO
+	fgwmail5.fujitsu.co.jp" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754656AbZAUCvg (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 20 Jan 2009 21:51:36 -0500
+In-Reply-To: <20090116152338.GB9357@kroah.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Premi, Sanjeev" <premi@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Greg KH <greg@kroah.com>
+Cc: kosaki.motohiro@jp.fujitsu.com, Paul Mundt <lethal@linux-sh.org>, Trilok Soni <soni.trilok@gmail.com>, Arve Hj?nnev?g <arve@android.com>, Alan Cox <alan@lxorguk.ukuu.org.uk>, Pavel Machek <pavel@suse.cz>, Brian Swetland <swetland@google.com>, arve@google.com, San Mehat <san@android.com>, Robert Love <rlove@google.com>, linux-kernel@vger.kernel.org, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, ext Juha Yrj?l? <juha.yrjola@solidboot.com>, viktor.rosendahl@nokia.com
 
-"Premi, Sanjeev" <premi@ti.com> writes:
+> On Fri, Jan 16, 2009 at 08:16:51PM +0900, KOSAKI Motohiro wrote:
+> > 
+> > As far as I know, embedded guys strong want to lowmem notification mecanism.
+> 
+> I think the big server guys also want the same thing :)
 
->> > <snip>--<snip>
->> >
->> >> > +#ifdef CONFIG_ARCH_OMAP35XX
->> >> > +static struct omap_globals omap35xx_globals = {
->> >> > +	.class	= OMAP35XX_CLASS,
->> >> > +	.tap	= OMAP2_IO_ADDRESS(0x4830A000),
->> >> > +	.sdrc	= OMAP2_IO_ADDRESS(OMAP343X_SDRC_BASE),
->> >> > +	.sms	= OMAP2_IO_ADDRESS(OMAP343X_SMS_BASE),
->> >> > +	.ctrl	= OMAP2_IO_ADDRESS(OMAP343X_CTRL_BASE),
->> >> > +	.prm	= OMAP2_IO_ADDRESS(OMAP3430_PRM_BASE),
->> >> > +	.cm	= OMAP2_IO_ADDRESS(OMAP3430_CM_BASE),
->> >> > +};
->> >> 
->> >> This is exactly the same as omap34xx_globals.  Why is this needed?
->> >
->> 
->> > [sp] I have tried to add minimal support for OMAP35x. Since OMAP34x 
->> > and OMAP35x seem to be compatible today, this structure 
->> seems same. As 
->> > more code for specific OMAP35x variants comes in, I expect this to 
->> > change.
->> >
->> > The key difference here (as against OMAP34x) is use of 
->> OMAP35XX_CLASS; 
->> > which helps in identifying the different OMAP variants. We 
->> could have 
->> > 're-used' OMAP35XX_CLASS, it I wouldn't be right as this 
->> definition is 
->> > used to print the CPU name and Si version in id.c.
->> >
->> > With this patch, boot log with show (for example) "OMAP3530 ES2.1"
->> > on the OMAP3530 EVM - which can be considered same as 
->> OMAP3430 ES2.1; 
->> > but with 3503, 3515 and 3525 the print would read 3403, 3415,
->> > 3425 resp; this definitley would not be right.
->> 
->> I was not asking about the patch as a whole, I was commenting 
->> only on the addition of the omap35xx_globals variable.  You 
->> added a new struct which is exactly the same as the 35xx 
->> struct instead of just re-using the old one with a new name 
->> as I suggested.
->> 
->> Kevin
->
-> [sp] This would mean adding another #ifdef to get the right
-> _CLASS. From earlier discussion, I understood that we wanted to
-> remove #ifdefs so that same image can work for OMAP35x and OMAP34x.
+Yeah! I know, because my company is definitry big server vendor :)
 
-Indeed, I hadn't noticed the new class definition.  This looks ok to
-me.
 
-Kevin
+> > At least, I and my mem_notify receive multiple contact from embedded
+> > and JavaVM developer.
+> >  (include sun javavm engineer)
+> > 
+> > In ideal, I think linux MM should care this requirement directly.
+> 
+> I agree.
+> 
+> > LSM and driver notifier is easy breakable because these component
+> > deeply depend on MM.
+> 
+> Agreed.
+> 
+> > (eg, I developed /dev/mem_notify patch last year. but this patch don't
+> > work on 2.6.28 because split-lru patch series totally changed MM
+> > reclaim processing.)
+> > 
+> > Unfortunately, we don't have any consensus of memory notification requirement.
+> > various people have various requirement. so, if I can discuss it and
+> > we get consensus, I'm glad.
+> 
+> Care to work on your mem_notify patch again and bring it up to date?
+> That would be a good place to start working from, right?
+
+Unfortunately No ;)
+
+I should rewrite memory notification patchset from scratch.
+the new version will construct on memcg infrastrcture.
+
+Why?
+
+last year, I received many feedback from lkml folks and my article reader.
+(I monthly write kernel patch introduction article to japanese web
+ magazine and receive some feedback periodically)
+
+I learned many people want flexibility notification.
+(per workload, per user, et al)
+eg. nokia lowmem driver have exception process defined by uid.
+
+at top of last year, I thought memcg don't provide good infrastructure.
+the first version memcg is just pretty funny joke. if its config turn on,
+memory workload performance decrease ~30% although the user don't use 
+memcg at runtime. then nobody use it.
+but recently, KAMEZAWA hiroyuki (and Li zefan, Daisuke Nishimura et al)
+dramatically improvement memcg performance. 
+now, memcg overhead become less than 1%. 
+
+Then, I think any memory accounting activity should use this infrastructure.
+That's my homework.
 
 
 
