@@ -1,80 +1,57 @@
-From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+From: Paul Mundt <lethal@linux-sh.org>
 Subject: Re: lowmemory android driver not needed?
-Date: Wed, 21 Jan 2009 11:50:48 +0900 (JST)
-Message-ID: <20090122114955.32F3.KOSAKI.MOTOHIRO@jp.fujitsu.com>
-References: <2f11576a0901160316u20030f4u51c9e4c059398b70@mail.gmail.com> <20090116152338.GB9357@kroah.com>
+Date: Wed, 21 Jan 2009 12:05:04 +0900
+Message-ID: <20090121030504.GA14094@linux-sh.org>
+References: <2f11576a0901160316u20030f4u51c9e4c059398b70@mail.gmail.com> <20090116152338.GB9357@kroah.com> <20090122114955.32F3.KOSAKI.MOTOHIRO@jp.fujitsu.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="US-ASCII"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from fgwmail5.fujitsu.co.jp ([192.51.44.35]:37324 "EHLO
-	fgwmail5.fujitsu.co.jp" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754656AbZAUCvg (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 20 Jan 2009 21:51:36 -0500
-In-Reply-To: <20090116152338.GB9357@kroah.com>
+Received: from mta23.gyao.ne.jp ([125.63.38.249]:48552 "EHLO mx.gate01.com"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1754191AbZAUDIH (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 20 Jan 2009 22:08:07 -0500
+Content-Disposition: inline
+In-Reply-To: <20090122114955.32F3.KOSAKI.MOTOHIRO@jp.fujitsu.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Greg KH <greg@kroah.com>
-Cc: kosaki.motohiro@jp.fujitsu.com, Paul Mundt <lethal@linux-sh.org>, Trilok Soni <soni.trilok@gmail.com>, Arve Hj?nnev?g <arve@android.com>, Alan Cox <alan@lxorguk.ukuu.org.uk>, Pavel Machek <pavel@suse.cz>, Brian Swetland <swetland@google.com>, arve@google.com, San Mehat <san@android.com>, Robert Love <rlove@google.com>, linux-kernel@vger.kernel.org, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, ext Juha Yrj?l? <juha.yrjola@solidboot.com>, viktor.rosendahl@nokia.com
+To: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Greg KH <greg@kroah.com>, Trilok Soni <soni.trilok@gmail.com>, Arve Hj?nnev?g <arve@android.com>, Alan Cox <alan@lxorguk.ukuu.org.uk>, Pavel Machek <pavel@suse.cz>, Brian Swetland <swetland@google.com>, arve@google.com, San Mehat <san@android.com>, Robert Love <rlove@google.com>, linux-kernel@vger.kernel.org, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, ext Juha Yrj?l? <juha.yrjola@solidboot.com>, viktor.rosendahl@nokia.com
 
-> On Fri, Jan 16, 2009 at 08:16:51PM +0900, KOSAKI Motohiro wrote:
-> > 
-> > As far as I know, embedded guys strong want to lowmem notification mecanism.
+On Wed, Jan 21, 2009 at 11:50:48AM +0900, KOSAKI Motohiro wrote:
+> I should rewrite memory notification patchset from scratch.
+> the new version will construct on memcg infrastrcture.
 > 
-> I think the big server guys also want the same thing :)
-
-Yeah! I know, because my company is definitry big server vendor :)
-
-
-> > At least, I and my mem_notify receive multiple contact from embedded
-> > and JavaVM developer.
-> >  (include sun javavm engineer)
-> > 
-> > In ideal, I think linux MM should care this requirement directly.
+> Why?
 > 
-> I agree.
+> last year, I received many feedback from lkml folks and my article reader.
+> (I monthly write kernel patch introduction article to japanese web
+>  magazine and receive some feedback periodically)
 > 
-> > LSM and driver notifier is easy breakable because these component
-> > deeply depend on MM.
+> I learned many people want flexibility notification.
+> (per workload, per user, et al)
+> eg. nokia lowmem driver have exception process defined by uid.
 > 
-> Agreed.
+> at top of last year, I thought memcg don't provide good infrastructure.
+> the first version memcg is just pretty funny joke. if its config turn on,
+> memory workload performance decrease ~30% although the user don't use 
+> memcg at runtime. then nobody use it.
+> but recently, KAMEZAWA hiroyuki (and Li zefan, Daisuke Nishimura et al)
+> dramatically improvement memcg performance. 
+> now, memcg overhead become less than 1%. 
 > 
-> > (eg, I developed /dev/mem_notify patch last year. but this patch don't
-> > work on 2.6.28 because split-lru patch series totally changed MM
-> > reclaim processing.)
-> > 
-> > Unfortunately, we don't have any consensus of memory notification requirement.
-> > various people have various requirement. so, if I can discuss it and
-> > we get consensus, I'm glad.
+> Then, I think any memory accounting activity should use this infrastructure.
+> That's my homework.
 > 
-> Care to work on your mem_notify patch again and bring it up to date?
-> That would be a good place to start working from, right?
+Building on top of the memory cgroup makes sense given that it has a
+lot more knowledge of the actual state in different contexts compared to
+something like security_vm_enough_memory()/__vm_enough_memory().
 
-Unfortunately No ;)
+Despite that, a notification layer on top of cgroups in general might be
+worth thinking about, particularly since each controller may want to use
+notifications for different things. It is conceivable that people will
+also want different types of notifications from the memory controller
+beyond a simple lowmem notifier.
 
-I should rewrite memory notification patchset from scratch.
-the new version will construct on memcg infrastrcture.
-
-Why?
-
-last year, I received many feedback from lkml folks and my article reader.
-(I monthly write kernel patch introduction article to japanese web
- magazine and receive some feedback periodically)
-
-I learned many people want flexibility notification.
-(per workload, per user, et al)
-eg. nokia lowmem driver have exception process defined by uid.
-
-at top of last year, I thought memcg don't provide good infrastructure.
-the first version memcg is just pretty funny joke. if its config turn on,
-memory workload performance decrease ~30% although the user don't use 
-memcg at runtime. then nobody use it.
-but recently, KAMEZAWA hiroyuki (and Li zefan, Daisuke Nishimura et al)
-dramatically improvement memcg performance. 
-now, memcg overhead become less than 1%. 
-
-Then, I think any memory accounting activity should use this infrastructure.
-That's my homework.
-
-
-
+The LSM lowmem module itself used multiple notification levels to tune
+application behaviour for instance, though obviously this is something
+that is highly workload dependent.
