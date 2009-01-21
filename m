@@ -1,44 +1,33 @@
 From: Kalle Jokiniemi <kalle.jokiniemi@digia.com>
-Subject: Re: twl4030-usb.c
-Date: Wed, 21 Jan 2009 14:28:34 +0200
-Message-ID: <1232540914.6515.360.camel@ubuntu>
-References: <1232536259.6515.351.camel@ubuntu>
-	 <20090121113207.GA9233@scadufax.research.nokia.com>
-Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Subject: [PATCH 0/1] TWL: USB: disable VUSB regulators
+Date: Wed, 21 Jan 2009 15:15:17 +0200
+Message-ID: <1232543718-18199-1-git-send-email-kalle.jokiniemi@digia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from sink.edelkey.net ([213.138.147.137]:34631 "EHLO
+Received: from sink.edelkey.net ([213.138.147.137]:56683 "EHLO
 	sink.edelkey.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756604AbZAUM2u (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 21 Jan 2009 07:28:50 -0500
-In-Reply-To: <20090121113207.GA9233@scadufax.research.nokia.com>
+	with ESMTP id S1756504AbZAUNPc (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 21 Jan 2009 08:15:32 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: felipe.balbi@nokia.com
-Cc: linux-omap@vger.kernel.org, tony@atomide.com
+To: linux-omap@vger.kernel.org
+Cc: felipe.balbi@nokia.com, david-b@pacbell.net
 
-On Wed, 2009-01-21 at 13:32 +0200, Felipe Balbi wrote:
-> On Wed, Jan 21, 2009 at 01:10:59PM +0200, ext Kalle Jokiniemi wrote:
-> > 
-> > The twl4030-usb.c seems to have moved from /drivers/usb/otg back
-> > to /drivers/i2c/chips after the recent mainline merge. Felipe, any plans
-> > to put it back to drivers/usb/otg?
-> > 
-> > I have a patch for twl4030-usb enabling regulator switching, so I'm just
-> > wondering against what tree should I post the patch. And to which list?
-> 
-> how about you git pull ?? For me it appears under drivers/usb/otg:
+The TWL5030/4030 internal VUSB regulators are eating current
+like small piggies. The following patch makes an aptempt at
+making the twl4030-usb consumer driver dynamically disable
+and enable the regulators it needs.
 
-Ugh, I did a git pull, but it seems that our IT department has been
-active and closed the git port. I just didn't notice the error before.
-Well, switching to http.
+This regulator fw stuff is fairly new so any comments are
+appreciated.
 
-- Kalle
+Tested on custom omap3430 hw. Build tested on beagle and
+SDP defconfigs. If anyone could test this on public hw, that
+would be great. There should be a noticeable drop in power
+consumption when usb cable is unplugged with this patch. 
 
-> 
-> HEAD: commit 45e5c5ffd32ade5a21a5e87b4040072590ec3ae1
-> 
-> ~/workspace/linux-omap-2.6$ ls drivers/usb/otg/
-> gpio_vbus.c  isp1301_omap.c  Kconfig  Makefile  otg.c  twl4030-usb.c
-> 
+
+Kalle Jokiniemi (1):
+      TWL: USB: disable VUSB regulators when cable unplugged
+
+
+
