@@ -1,43 +1,276 @@
-From: David Brownell <david-b@pacbell.net>
-Subject: Re: [PATCH 0/1] TWL: USB: disable VUSB regulators
-Date: Wed, 21 Jan 2009 13:47:05 -0800
-Message-ID: <200901211347.05694.david-b@pacbell.net>
-References: <1232543718-18199-1-git-send-email-kalle.jokiniemi@digia.com> <200901211238.33229.david-b@pacbell.net> <13B9B4C6EF24D648824FF11BE896716203751D487F@dlee02.ent.ti.com>
+From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+Subject: Re: [PATCH 02/10] omap mailbox: add initial omap3 support
+Date: Thu, 22 Jan 2009 00:45:19 +0200 (EET)
+Message-ID: <20090122.004519.48985185.Hiroshi.DOYU@nokia.com>
+References: <1227605998-13531-2-git-send-email-Hiroshi.DOYU@nokia.com>
+	<1227605998-13531-3-git-send-email-Hiroshi.DOYU@nokia.com>
+	<8F7AF80515AF0D4D93307E594F3CB40E207E78FB@dlee03.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
+Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp104.sbc.mail.gq1.yahoo.com ([67.195.15.63]:40595 "HELO
-	smtp104.sbc.mail.gq1.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1749667AbZAUVxr (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Wed, 21 Jan 2009 16:53:47 -0500
-In-Reply-To: <13B9B4C6EF24D648824FF11BE896716203751D487F@dlee02.ent.ti.com>
-Content-Disposition: inline
+Received: from smtp.nokia.com ([192.100.122.230]:21559 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753790AbZAUWp2 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 21 Jan 2009 17:45:28 -0500
+In-Reply-To: <8F7AF80515AF0D4D93307E594F3CB40E207E78FB@dlee03.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Woodruff, Richard" <r-woodruff2@ti.com>
-Cc: Kalle Jokiniemi <kalle.jokiniemi@digia.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "felipe.balbi@nokia.com" <felipe.balbi@nokia.com>
+To: h-kanigeri2@ti.com
+Cc: linux-omap@vger.kernel.org
 
-On Wednesday 21 January 2009, Woodruff, Richard wrote:
-> A simple but impacting point is a LDO when left on, wastes a lot of system power.
+Hi Hari,
 
-So I guess I'll poke a bit harder at finding ways to
-make sure the LDOs on the twl4030 get turned off..
-this patch looks like a good start (since the VUSB
-regulators are completely set up).
+From: "ext Kanigeri, Hari" <h-kanigeri2@ti.com>
+Subject: RE: [PATCH 02/10] omap mailbox: add initial omap3 support
+Date: Wed, 21 Jan 2009 14:02:05 -0600
 
-VAUX3 seems to be inappropriately enabled on a lot
-of OMAP3 boards; short of fixing u-boot, that'd be
-another bit of low-hanging fruit.
+> Hi Doyu-san,
+> 
+> Can we add the function to return number of messages in the mailbox ?
 
+Yes. I assume that you meant the number of h/w fifo.
+It would be helpful if you explain the case where this API is used.
 
-> Didn't know Dave was such a poet :)
-
-Well, I dunno about the rhyme or scansion, but I
-do sort of like the "feral code" imagery.  It seems
-to highlight some key behaviors better than many
-more familiar terms!
-
-- Dave
+> 
+> Thank you,
+> Best regards,
+> Hari
+> 
+> > -----Original Message-----
+> > From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
+> > owner@vger.kernel.org] On Behalf Of Hiroshi DOYU
+> > Sent: Tuesday, November 25, 2008 3:40 AM
+> > To: linux-omap@vger.kernel.org
+> > Cc: Hiroshi DOYU
+> > Subject: [PATCH 02/10] omap mailbox: add initial omap3 support
+> > 
+> > Signed-off-by: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+> > ---
+> >  arch/arm/mach-omap2/devices.c              |   24 +++++++++++---
+> >  arch/arm/mach-omap2/mailbox.c              |   46 ++++++++++++++++++-----
+> > -----
+> >  arch/arm/plat-omap/Kconfig                 |    2 +-
+> >  arch/arm/plat-omap/include/mach/irqs.h     |    1 +
+> >  arch/arm/plat-omap/include/mach/omap34xx.h |    2 +-
+> >  5 files changed, 52 insertions(+), 23 deletions(-)
+> > 
+> > diff --git a/arch/arm/mach-omap2/devices.c b/arch/arm/mach-omap2/devices.c
+> > index 241e418..d385f0f 100644
+> > --- a/arch/arm/mach-omap2/devices.c
+> > +++ b/arch/arm/mach-omap2/devices.c
+> > @@ -84,13 +84,15 @@ static inline void omap_init_camera(void)
+> >  }
+> >  #endif
+> > 
+> > -#if defined(CONFIG_OMAP_DSP) || defined(CONFIG_OMAP_DSP_MODULE)
+> > -#define OMAP2_MBOX_BASE		IO_ADDRESS(OMAP24XX_MAILBOX_BASE)
+> > +#if defined(CONFIG_OMAP_MBOX_FWK) || defined(CONFIG_OMAP_MBOX_FWK_MODULE)
+> > +
+> > +#define MBOX_REG_SIZE	0x120
+> > 
+> >  static struct resource mbox_resources[] = {
+> > +#if defined(CONFIG_ARCH_OMAP2420)
+> >  	{
+> > -		.start		= OMAP2_MBOX_BASE,
+> > -		.end		= OMAP2_MBOX_BASE + 0x11f,
+> > +		.start		= OMAP24XX_MAILBOX_BASE,
+> > +		.end		= OMAP24XX_MAILBOX_BASE + MBOX_REG_SIZE - 1,
+> >  		.flags		= IORESOURCE_MEM,
+> >  	},
+> >  	{
+> > @@ -101,6 +103,18 @@ static struct resource mbox_resources[] = {
+> >  		.start		= INT_24XX_MAIL_U3_MPU,
+> >  		.flags		= IORESOURCE_IRQ,
+> >  	},
+> > +/* FIXME: if multiple architecture support is necessary */
+> > +#elif  defined(CONFIG_ARCH_OMAP3)
+> > +	{
+> > +		.start		= OMAP34XX_MAILBOX_BASE,
+> > +		.end		= OMAP34XX_MAILBOX_BASE + MBOX_REG_SIZE - 1,
+> > +		.flags		= IORESOURCE_MEM,
+> > +	},
+> > +	{
+> > +		.start		= INT_34XX_MAIL_U0_MPU,
+> > +		.flags		= IORESOURCE_IRQ,
+> > +	},
+> > +#endif
+> >  };
+> > 
+> >  static struct platform_device mbox_device = {
+> > @@ -116,7 +130,7 @@ static inline void omap_init_mbox(void)
+> >  }
+> >  #else
+> >  static inline void omap_init_mbox(void) { }
+> > -#endif
+> > +#endif /* CONFIG_OMAP_MBOX_FWK */
+> > 
+> >  #if defined(CONFIG_OMAP_STI)
+> > 
+> > diff --git a/arch/arm/mach-omap2/mailbox.c b/arch/arm/mach-omap2/mailbox.c
+> > index 5ff2ed8..261cd79 100644
+> > --- a/arch/arm/mach-omap2/mailbox.c
+> > +++ b/arch/arm/mach-omap2/mailbox.c
+> > @@ -30,7 +30,7 @@
+> >  #define MAILBOX_IRQ_NEWMSG(u)		(1 << (2 * (u)))
+> >  #define MAILBOX_IRQ_NOTFULL(u)		(1 << (2 * (u) + 1))
+> > 
+> > -static unsigned long mbox_base;
+> > +static void __iomem *mbox_base;
+> > 
+> >  struct omap_mbox2_fifo {
+> >  	unsigned long msg;
+> > @@ -52,14 +52,14 @@ static struct clk *mbox_ick_handle;
+> >  static void omap2_mbox_enable_irq(struct omap_mbox *mbox,
+> >  				  omap_mbox_type_t irq);
+> > 
+> > -static inline unsigned int mbox_read_reg(unsigned int reg)
+> > +static inline unsigned int mbox_read_reg(size_t ofs)
+> >  {
+> > -	return __raw_readl((void __iomem *)(mbox_base + reg));
+> > +	return __raw_readl(mbox_base + ofs);
+> >  }
+> > 
+> > -static inline void mbox_write_reg(unsigned int val, unsigned int reg)
+> > +static inline void mbox_write_reg(u32 val, size_t ofs)
+> >  {
+> > -	__raw_writel(val, (void __iomem *)(mbox_base + reg));
+> > +	__raw_writel(val, mbox_base + ofs);
+> >  }
+> > 
+> >  /* Mailbox H/W preparations */
+> > @@ -208,7 +208,7 @@ struct omap_mbox mbox_dsp_info = {
+> >  };
+> >  EXPORT_SYMBOL(mbox_dsp_info);
+> > 
+> > -/* IVA */
+> > +#if defined(CONFIG_ARCH_OMAP2420) /* IVA */
+> >  static struct omap_mbox2_priv omap2_mbox_iva_priv = {
+> >  	.tx_fifo = {
+> >  		.msg		= MAILBOX_MESSAGE(2),
+> > @@ -229,52 +229,66 @@ static struct omap_mbox mbox_iva_info = {
+> >  	.ops	= &omap2_mbox_ops,
+> >  	.priv	= &omap2_mbox_iva_priv,
+> >  };
+> > +#endif
+> > 
+> >  static int __init omap2_mbox_probe(struct platform_device *pdev)
+> >  {
+> >  	struct resource *res;
+> >  	int ret = 0;
+> > 
+> > -	if (pdev->num_resources != 3) {
+> > -		dev_err(&pdev->dev, "invalid number of resources: %d\n",
+> > -			pdev->num_resources);
+> > -		return -ENODEV;
+> > -	}
+> > -
+> >  	/* MBOX base */
+> >  	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+> >  	if (unlikely(!res)) {
+> >  		dev_err(&pdev->dev, "invalid mem resource\n");
+> >  		return -ENODEV;
+> >  	}
+> > -	mbox_base = res->start;
+> > +	mbox_base = ioremap(res->start, res->end - res->start);
+> > +	if (!mbox_base)
+> > +		return -ENOMEM;
+> > 
+> > -	/* DSP IRQ */
+> > +	/* DSP or IVA2 IRQ */
+> >  	res = platform_get_resource(pdev, IORESOURCE_IRQ, 0);
+> >  	if (unlikely(!res)) {
+> >  		dev_err(&pdev->dev, "invalid irq resource\n");
+> > -		return -ENODEV;
+> > +		ret = -ENODEV;
+> > +		goto err_dsp;
+> >  	}
+> >  	mbox_dsp_info.irq = res->start;
+> > 
+> >  	ret = omap_mbox_register(&mbox_dsp_info);
+> > +	if (!ret)
+> > +		goto err_dsp;
+> > 
+> > +#if defined(CONFIG_ARCH_OMAP2420)
+> >  	/* IVA IRQ */
+> >  	res = platform_get_resource(pdev, IORESOURCE_IRQ, 1);
+> >  	if (unlikely(!res)) {
+> >  		dev_err(&pdev->dev, "invalid irq resource\n");
+> > -		return -ENODEV;
+> > +		ret = -ENODEV;
+> > +		goto err_iva1;
+> >  	}
+> >  	mbox_iva_info.irq = res->start;
+> > 
+> >  	ret = omap_mbox_register(&mbox_iva_info);
+> > +	if (!ret)
+> > +		goto err_iva1;
+> > +#endif
+> > +	return ret;
+> > 
+> > +err_iva1:
+> > +	omap_mbox_unregister(&mbox_dsp_info);
+> > +err_dsp:
+> > +	iounmap(mbox_base);
+> >  	return ret;
+> >  }
+> > 
+> >  static int omap2_mbox_remove(struct platform_device *pdev)
+> >  {
+> > +#if defined(CONFIG_ARCH_OMAP2420)
+> > +	omap_mbox_unregister(&mbox_iva_info);
+> > +#endif
+> >  	omap_mbox_unregister(&mbox_dsp_info);
+> > +	iounmap(mbox_base);
+> >  	return 0;
+> >  }
+> > 
+> > diff --git a/arch/arm/plat-omap/Kconfig b/arch/arm/plat-omap/Kconfig
+> > index 960c13f..2465aea 100644
+> > --- a/arch/arm/plat-omap/Kconfig
+> > +++ b/arch/arm/plat-omap/Kconfig
+> > @@ -180,7 +180,7 @@ config OMAP_MBOX_FWK
+> >  	default n
+> >  	help
+> >  	  Say Y here if you want to use OMAP Mailbox framework support for
+> > -	  DSP and IVA1.0 in OMAP1/2.
+> > +	  DSP, IVA1.0 and IVA2 in OMAP1/2/3.
+> > 
+> >  choice
+> >          prompt "System timer"
+> > diff --git a/arch/arm/plat-omap/include/mach/irqs.h b/arch/arm/plat-
+> > omap/include/mach/irqs.h
+> > index d12c39f..74f58c6 100644
+> > --- a/arch/arm/plat-omap/include/mach/irqs.h
+> > +++ b/arch/arm/plat-omap/include/mach/irqs.h
+> > @@ -315,6 +315,7 @@
+> >  #define INT_34XX_MCBSP3_IRQ	22
+> >  #define INT_34XX_MCBSP4_IRQ	23
+> >  #define INT_34XX_CAM_IRQ	24
+> > +#define INT_34XX_MAIL_U0_MPU	26
+> >  #define INT_34XX_MCBSP5_IRQ	27
+> >  #define INT_34XX_GPIO_BANK1	29
+> >  #define INT_34XX_GPIO_BANK2	30
+> > diff --git a/arch/arm/plat-omap/include/mach/omap34xx.h b/arch/arm/plat-
+> > omap/include/mach/omap34xx.h
+> > index 0a137c1..afd0f6c 100644
+> > --- a/arch/arm/plat-omap/include/mach/omap34xx.h
+> > +++ b/arch/arm/plat-omap/include/mach/omap34xx.h
+> > @@ -63,8 +63,8 @@
+> >  #define OMAP2_CM_BASE			OMAP3430_CM_BASE
+> >  #define OMAP2_PRM_BASE			OMAP3430_PRM_BASE
+> >  #define OMAP2_VA_IC_BASE		IO_ADDRESS(OMAP34XX_IC_BASE)
+> > +#define OMAP34XX_MAILBOX_BASE		(L4_34XX_BASE + 0x94000)
+> >  #define OMAP34XX_CAMERA_BASE		(L4_34XX_BASE + 0xBC000)
+> > -
+> >  #endif
+> > 
+> >  #define OMAP34XX_DSP_BASE	0x58000000
+> > --
+> > 1.6.0.3.613.g9f8f13
+> > 
+> > --
+> > To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> > the body of a message to majordomo@vger.kernel.org
+> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
