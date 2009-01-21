@@ -1,53 +1,83 @@
-From: Jarkko Nikula <jarkko.nikula@nokia.com>
-Subject: Re: Is anybody else having problems with SDHC cards on Beagleboard?
-Date: Wed, 21 Jan 2009 09:34:44 +0200
-Message-ID: <20090121093444.314804f6.jarkko.nikula@nokia.com>
-References: <1232455118.6982.14.camel@surfer>
+From: Peter Ujfalusi <peter.ujfalusi@nokia.com>
+Subject: Re: [PATCH] ASoC: Complete Beagleboard support
+Date: Wed, 21 Jan 2009 09:53:36 +0200
+Message-ID: <200901210953.36630.peter.ujfalusi@nokia.com>
+References: <5e088bd90901202305m26900888jcaa2b0ec57d3fab1@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:18389 "EHLO
-	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755374AbZAUHe5 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 21 Jan 2009 02:34:57 -0500
-In-Reply-To: <1232455118.6982.14.camel@surfer>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <alsa-devel-bounces@alsa-project.org>
+In-Reply-To: <5e088bd90901202305m26900888jcaa2b0ec57d3fab1@mail.gmail.com>
+Content-Disposition: inline
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Sender: alsa-devel-bounces@alsa-project.org
+Errors-To: alsa-devel-bounces@alsa-project.org
+To: ext Steve Sakoman <sakoman@gmail.com>
+Cc: alsa-devel@alsa-project.org, linux-omap <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
-To: ext David Hagood <david.hagood@gmail.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Tue, 20 Jan 2009 06:38:38 -0600
-"ext David Hagood" <david.hagood@gmail.com> wrote:
+Hello,
 
-> I have been trying to bring up a Beagleboard as a development platform
-> for a project at work, but I am having a killer problem: any significant
-> access of the memory card (a class 8 SDHC 8G card) will die with a
-> transfer error, followed by about 10 failed sector accesses, followed by
-> the system dying.
-> 
-> I've tried 2 different Beagleboards and 3 different cards by 2 different
-> manufacturers, and the problem is repeatable on all permutations. I've
-> put the cards into a card reader on my workstation and done a "dd
-> if=/dev/sdf of=/dev/null" to verify the cards aren't wedged.
-> 
-For me both 2 GB microSD and 8 GB class 4 microSDHC cards are working
-fine. E.g. no problems with these commands:
+for ure now you can build it, but does it actually works?
+I mean there has been quite a bit of change in the twl4030
+codec driver... The DAPM routing implementation might require
+some change in the board file also (SND_SOC_DAPM_HP,
+SND_SOC_DAPM_LINE, etc).
 
-dd if=/dev/zero of=foo bs=1M count=500
-dd if=foo of=/dev/null
+-- =
 
+P=E9ter
 
-My linux-omap head is
-
-commit 45e5c5ffd32ade5a21a5e87b4040072590ec3ae1
-Merge: c699464... 1de9e8e...
-Author: Tony Lindgren <tony@atomide.com>
-Date:   Sun Jan 18 14:08:53 2009 +0200
-
-    Merge current mainline tree into linux-omap tree
-
-And kernel is built with "make omap3_beagle_defconfig".
-
-
-Jarkko
+On Wednesday 21 January 2009 09:05:27 ext Steve Sakoman wrote:
+> Commit dc06102a0c8b5aa0dd7f9a40ce241e793c252a87 in the asoc tree
+> did not include the necessary Kconfig and Makefile changes.  This patch
+> completes the support for Beagleboard
+>
+> Signed-off-by: Steve Sakoman <steve@sakoman.com>
+>
+> ---
+>  sound/soc/omap/Kconfig  |   10 ++++++++++
+>  sound/soc/omap/Makefile |    2 ++
+>  2 files changed, 12 insertions(+), 0 deletions(-)
+>
+> diff --git a/sound/soc/omap/Kconfig b/sound/soc/omap/Kconfig
+> index 4f7f040..ccd8973 100644
+> --- a/sound/soc/omap/Kconfig
+> +++ b/sound/soc/omap/Kconfig
+> @@ -55,3 +55,13 @@ config SND_OMAP_SOC_OMAP3_PANDORA
+>  	select SND_SOC_TWL4030
+>  	help
+>  	  Say Y if you want to add support for SoC audio on the OMAP3 Pandora.
+> +
+> +config SND_OMAP_SOC_OMAP3_BEAGLE
+> +	tristate "SoC Audio support for OMAP3 Beagle"
+> +	depends on TWL4030_CORE && SND_OMAP_SOC && MACH_OMAP3_BEAGLE
+> +	select SND_OMAP_SOC_MCBSP
+> +	select SND_SOC_TWL4030
+> +	help
+> +	  Say Y if you want to add support for SoC audio on the Beagleboard.
+> +
+> +
+> diff --git a/sound/soc/omap/Makefile b/sound/soc/omap/Makefile
+> index 76fedd9..0c9e4ac 100644
+> --- a/sound/soc/omap/Makefile
+> +++ b/sound/soc/omap/Makefile
+> @@ -12,6 +12,7 @@ snd-soc-overo-objs :=3D overo.o
+>  snd-soc-omap2evm-objs :=3D omap2evm.o
+>  snd-soc-sdp3430-objs :=3D sdp3430.o
+>  snd-soc-omap3pandora-objs :=3D omap3pandora.o
+> +snd-soc-omap3beagle-objs :=3D omap3beagle.o
+>
+>  obj-$(CONFIG_SND_OMAP_SOC_N810) +=3D snd-soc-n810.o
+>  obj-$(CONFIG_SND_OMAP_SOC_OSK5912) +=3D snd-soc-osk5912.o
+> @@ -19,3 +20,4 @@ obj-$(CONFIG_SND_OMAP_SOC_OVERO) +=3D snd-soc-overo.o
+>  obj-$(CONFIG_MACH_OMAP2EVM) +=3D snd-soc-omap2evm.o
+>  obj-$(CONFIG_SND_OMAP_SOC_SDP3430) +=3D snd-soc-sdp3430.o
+>  obj-$(CONFIG_SND_OMAP_SOC_OMAP3_PANDORA) +=3D snd-soc-omap3pandora.o
+> +obj-$(CONFIG_SND_OMAP_SOC_OMAP3_BEAGLE) +=3D snd-soc-omap3beagle.o
