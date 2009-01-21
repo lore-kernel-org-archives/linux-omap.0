@@ -1,26 +1,37 @@
-From: Kalle Jokiniemi <kalle.jokiniemi@digia.com>
-Subject: twl4030-usb.c
-Date: Wed, 21 Jan 2009 13:10:59 +0200
-Message-ID: <1232536259.6515.351.camel@ubuntu>
+From: Mark Brown <broonie@sirena.org.uk>
+Subject: Re: [PATCH] ASoC: Complete Beagleboard support
+Date: Wed, 21 Jan 2009 11:35:51 +0000
+Message-ID: <20090121113535.GB22213@sirena.org.uk>
+References: <5e088bd90901202305m26900888jcaa2b0ec57d3fab1@mail.gmail.com>
+	<200901210953.36630.peter.ujfalusi@nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from gate.edelkey.net ([213.138.147.140]:42878 "EHLO
-	gate.edelkey.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755400AbZAUL2e (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 21 Jan 2009 06:28:34 -0500
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <alsa-devel-bounces@alsa-project.org>
+Content-Disposition: inline
+In-Reply-To: <200901210953.36630.peter.ujfalusi@nokia.com>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Sender: alsa-devel-bounces@alsa-project.org
+Errors-To: alsa-devel-bounces@alsa-project.org
+To: Peter Ujfalusi <peter.ujfalusi@nokia.com>
+Cc: ext Steve Sakoman <sakoman@gmail.com>, alsa-devel@alsa-project.org, linux-omap <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
-To: felipe.balbi@nokia.com
-Cc: linux-omap@vger.kernel.org, tony@atomide.com
 
+On Wed, Jan 21, 2009 at 09:53:36AM +0200, Peter Ujfalusi wrote:
 
-The twl4030-usb.c seems to have moved from /drivers/usb/otg back
-to /drivers/i2c/chips after the recent mainline merge. Felipe, any plans
-to put it back to drivers/usb/otg?
+> for ure now you can build it, but does it actually works?
+> I mean there has been quite a bit of change in the twl4030
+> codec driver... The DAPM routing implementation might require
+> some change in the board file also (SND_SOC_DAPM_HP,
+> SND_SOC_DAPM_LINE, etc).
 
-I have a patch for twl4030-usb enabling regulator switching, so I'm just
-wondering against what tree should I post the patch. And to which list?
+The DAPM default is that all the endpoints are on so it should work fine
+but possibly won't be optimal so further tuning patches may be required.
 
-- Kalle
+I'll apply the patch since it's going to be needed whatever the case.
