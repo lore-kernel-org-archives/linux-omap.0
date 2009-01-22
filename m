@@ -1,114 +1,178 @@
-From: Sriram V <vshrirama@gmail.com>
-Subject: Re: cpuidle and NO_HZ
-Date: Thu, 22 Jan 2009 22:36:57 +0530
-Message-ID: <8bf247760901220906n1ab095a0h695e9c1f5e8db916@mail.gmail.com>
-References: <B85A65D85D7EB246BE421B3FB0FBB59301C6DD0347@dbde02.ent.ti.com>
+From: David Brownell <david-b@pacbell.net>
+Subject: Re: [patch/rfc 2.6.28-rc2] input: twl4030_keypad driver
+Date: Thu, 22 Jan 2009 09:42:49 -0800
+Message-ID: <200901220942.50252.david-b@pacbell.net>
+References: <200901211613.06427.david-b@pacbell.net> <5d5443650901212309u10bdbf46pb76950f49fc7cebb@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary=000e0cd24262c5a2e90461154cba
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from an-out-0708.google.com ([209.85.132.250]:7727 "EHLO
-	an-out-0708.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752438AbZAVRG6 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 22 Jan 2009 12:06:58 -0500
-Received: by an-out-0708.google.com with SMTP id c2so498326anc.1
-        for <linux-omap@vger.kernel.org>; Thu, 22 Jan 2009 09:06:57 -0800 (PST)
-In-Reply-To: <B85A65D85D7EB246BE421B3FB0FBB59301C6DD0347@dbde02.ent.ti.com>
+Received: from smtp127.sbc.mail.sp1.yahoo.com ([69.147.65.186]:24644 "HELO
+	smtp127.sbc.mail.sp1.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1753940AbZAVRmx (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Thu, 22 Jan 2009 12:42:53 -0500
+In-Reply-To: <5d5443650901212309u10bdbf46pb76950f49fc7cebb@mail.gmail.com>
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Premi, Sanjeev" <premi@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Trilok Soni <soni.trilok@gmail.com>
+Cc: linux-input@vger.kernel.org, OMAP <linux-omap@vger.kernel.org>
 
---000e0cd24262c5a2e90461154cba
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Hi,
 
-Sanjeev,
+On Wednesday 21 January 2009, Trilok Soni wrote:
+> > +
+> > +static void twl4030_kp_scan(struct twl4030_keypad *kp, int release_all)
+> > +{
+> > +       u16 new_state[MAX_ROWS];
+> > +       int col, row;
+> > +
+> > +       ...
+> > +
+> > +                       key = twl4030_find_key(kp, col, row);
+> > +                       if (key < 0)
+> > +                               dev_warn(kp->dbg_dev,
+> > +                                       "Spurious key event %d-%d\n",
+> > +                                        col, row);
+> > +                       else if (key & KEY_PERSISTENT)
+> > +                               continue;
+> > +                       else
+> > +                               input_report_key(kp->input, key,
+> > +                                                new_state[row] & (1 << col));
+> > +               }
+> > +               kp->kp_state[row] = new_state[row];
+> > +       }
+> 
+> where do I find input_sync(...) being called?
 
-On Thu, Jan 22, 2009 at 8:14 PM, Premi, Sanjeev <premi@ti.com> wrote:
-> Hi all,
->
-> While trying to use NFS hosted filesystem, I have made a strange observation. Have verified it on multiple OMAP3EVM boards.
->
-> With CONFIG_NO_HZ and CONFIG_CPU_IDLE, after the print "Freeing init memory: 152K" in the log below; the boot sequence almost stops for approx a minute before proceeding further.
->
->   Sending DHCP requests .<6>eth0: link up, 100Mbps, full-duplex, lpa 0x01E1
->   ., OK
->   IP-Config: Got DHCP answer from 0.0.0.0, my address is 192.168.1.9
->   IP-Config: Complete:
->     device=eth0, addr=192.168.1.9, mask=255.255.255.0, gw=192.168.1.9,
->     host=192.168.1.9, domain=india.ti.com, nis-domain=(none),
->     bootserver=0.0.0.0, rootserver=192.168.1.2, rootpath=
->   Looking up port of RPC 100003/2 on 192.168.1.2
->   Looking up port of RPC 100005/1 on 192.168.1.2
->   VFS: Mounted root (nfs filesystem).
->   Freeing init memory: 152K
->   init started: BusyBox v1.11.1 (2008-08-06 21:12:30 IST)
->   starting pid 442, tty '': '/etc/init.d/rcS'
->
-
-This seems to be a wakeup issue. SMC gpio irq needs to be enabled as a
-wakeup source.
-I notice that sometimes even after enabling it as a wakeup source
-network interface has trouble. either it is too slow or it just hangs
-during nfs mount or takes a long time to mount. this issue could be
-somewhere else
-
-I also notice that the whenever network interface hangs during nfs mount.
-the nfs server would have exited.
+Yeah, I was wondering about that too.  The code
+obviously works without it ... I'll add that call
+anyway.
 
 
+> > +
+> > +       dev_set_drvdata(&pdev->dev, kp);
+> 
+> How about platform_set_drvdata ??
 
-Regards,
-sriram
+Those calls are exactly equivalent, although you're
+right that platform_* versions are preferred.  Either
+is correct.
 
 
+> > +       /* setup input device */
+> > +       set_bit(EV_KEY, kp->input->evbit);
+> 
+> __set_bit please.
+> 
+> > +
+> > +       /* Enable auto repeat feature of Linux input subsystem */
+> > +       if (pdata->rep)
+> > +               set_bit(EV_REP, kp->input->evbit);
+> > +
+> > +       for (i = 0; i < kp->keymapsize; i++)
+> > +               set_bit(kp->keymap[i] & KEYNUM_MASK,
+> > +                               kp->input->keybit);
+> 
+> Ditto.
+
+The practical difference there being that __set_bit() is
+a bit less costly (space and time), being non-atomic; there
+is no semantic difference.  Either is correct.
 
 
+> > +       /*
+> > +        * This ISR will always execute in kernel thread context because of
+> > +        * the need to access the TWL4030 over the I2C bus.
+> > +        *
+> > +        * NOTE:  we assume this host is wired to TWL4040 INT1, not INT2 ...
+> > +        */
+> > +       ret = request_irq(kp->irq, do_kp_irq, 0, pdev->name, kp);
+> 
+> How about adding IRQF_SAMPLE_RANDOME here ??
+
+Input system does that automagically; it should not be
+sampled twice.
 
 
+> > +err5:
+> > +       /* mask all events - we don't care about the result */
+> > +       (void) twl4030_kpwrite_u8(kp, 0xff, KEYP_IMR1);
+> > +       free_irq(kp->irq, NULL);
+> > +err3:
+> > +       input_unregister_device(kp->input);
+> 
+> No free_device after input_unregister_device. Add kp->input = NULL above.
+> 
+> > +err2:
+> > +       input_free_device(kp->input);
 
-> Later, the system response is slow.
->
-> Toggling either of these CONFIG options seems to resolve the issue.
->
-> My initial suspicion was on the SMC911x driver, but during this 'wait' period ping requests to the EVM are successful.
->
-> Just wanted to check if anyone has seen this behavior.
-> (I am on Kevin's latest PM branch 998bd5675a1e...).
->
-> Best regards,
-> Sanjeev
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
+and kfree(kp) was missing too ...
 
---000e0cd24262c5a2e90461154cba
-Content-Type: text/x-patch; charset=US-ASCII;
-	name="PM-OMAP3EVM-enable-smc-irq-gpio-as-a-wakeup-source.patch"
-Content-Disposition: attachment;
-	filename="PM-OMAP3EVM-enable-smc-irq-gpio-as-a-wakeup-source.patch"
-Content-Transfer-Encoding: base64
-X-Attachment-Id: f_fq9o23460
+I'll merge the following with any other feedback.
 
-RnJvbSAwMjYxZmE3YjdjMDA2ZTY0OTMxOWFjMDI5MDdhYmUzNWM2YWE3YTExIE1vbiBTZXAgMTcg
-MDA6MDA6MDAgMjAwMQpGcm9tOiBTcmlyYW0gViA8dnNyaXJhbUBtaXN0cmFsc29sdXRpb25zLmNv
-bT4KRGF0ZTogVGh1LCAyMiBKYW4gMjAwOSAyMjoyNzoyOSArMDUzMApTdWJqZWN0OiBbUEFUQ0hd
-IFBNOiBPTUFQM0VWTTogZW5hYmxlIHNtYyBpcnEgZ3BpbyBhcyBhIHdha2V1cCBzb3VyY2UKClNp
-Z25lZC1vZmYtYnk6IFNyaXJhbSBWIDx2c3JpcmFtQG1pc3RyYWxzb2x1dGlvbnMuY29tPgotLS0K
-IGFyY2gvYXJtL21hY2gtb21hcDIvYm9hcmQtb21hcDNldm0uYyB8ICAgIDUgKysrKysKIDEgZmls
-ZXMgY2hhbmdlZCwgNSBpbnNlcnRpb25zKCspLCAwIGRlbGV0aW9ucygtKQoKZGlmZiAtLWdpdCBh
-L2FyY2gvYXJtL21hY2gtb21hcDIvYm9hcmQtb21hcDNldm0uYyBiL2FyY2gvYXJtL21hY2gtb21h
-cDIvYm9hcmQtb21hcDNldm0uYwppbmRleCA2ZmJiZTk1Li4zZWI4YjYwIDEwMDY0NAotLS0gYS9h
-cmNoL2FybS9tYWNoLW9tYXAyL2JvYXJkLW9tYXAzZXZtLmMKKysrIGIvYXJjaC9hcm0vbWFjaC1v
-bWFwMi9ib2FyZC1vbWFwM2V2bS5jCkBAIC0xOSw2ICsxOSw3IEBACiAjaW5jbHVkZSA8bGludXgv
-ZXJyLmg+CiAjaW5jbHVkZSA8bGludXgvY2xrLmg+CiAjaW5jbHVkZSA8bGludXgvaW5wdXQuaD4K
-KyNpbmNsdWRlIDxsaW51eC9pbnRlcnJ1cHQuaD4KIAogI2luY2x1ZGUgPGxpbnV4L3NwaS9zcGku
-aD4KICNpbmNsdWRlIDxsaW51eC9zcGkvYWRzNzg0Ni5oPgpAQCAtODMsNiArODQsMTAgQEAgc3Rh
-dGljIGlubGluZSB2b2lkIF9faW5pdCBvbWFwM2V2bV9pbml0X3NtYzkxMXgodm9pZCkKIAl9CiAK
-IAlncGlvX2RpcmVjdGlvbl9pbnB1dChPTUFQM0VWTV9FVEhSX0dQSU9fSVJRKTsKKworI2lmZGVm
-IENPTkZJR19QTQorCWVuYWJsZV9pcnFfd2FrZShncGlvX3RvX2lycShPTUFQM0VWTV9FVEhSX0dQ
-SU9fSVJRKSk7CisjZW5kaWYKIH0KIAogc3RhdGljIHN0cnVjdCBvbWFwX3VhcnRfY29uZmlnIG9t
-YXAzX2V2bV91YXJ0X2NvbmZpZyBfX2luaXRkYXRhID0gewotLSAKMS42LjEKCg==
---000e0cd24262c5a2e90461154cba--
+- Dave
+
+---
+ drivers/input/keyboard/twl4030_keypad.c |   14 ++++++++------
+ 1 file changed, 8 insertions(+), 6 deletions(-)
+
+--- a/drivers/input/keyboard/twl4030_keypad.c
++++ b/drivers/input/keyboard/twl4030_keypad.c
+@@ -260,6 +260,7 @@ static void twl4030_kp_scan(struct twl40
+ 		}
+ 		kp->kp_state[row] = new_state[row];
+ 	}
++	input_sync(kp->input);
+ }
+ 
+ /*
+@@ -316,7 +317,7 @@ static int __devinit twl4030_kp_probe(st
+ 
+ 	/* ASSERT:  cols <= 8, rows <= 8 */
+ 
+-	dev_set_drvdata(&pdev->dev, kp);
++	platform_set_drvdata(pdev, kp);
+ 
+ 	/* Get the debug Device */
+ 	kp->dbg_dev = &pdev->dev;
+@@ -334,14 +335,14 @@ static int __devinit twl4030_kp_probe(st
+ 	kp->irq = platform_get_irq(pdev, 0);
+ 
+ 	/* setup input device */
+-	set_bit(EV_KEY, kp->input->evbit);
++	__set_bit(EV_KEY, kp->input->evbit);
+ 
+ 	/* Enable auto repeat feature of Linux input subsystem */
+ 	if (pdata->rep)
+-		set_bit(EV_REP, kp->input->evbit);
++		__set_bit(EV_REP, kp->input->evbit);
+ 
+ 	for (i = 0; i < kp->keymapsize; i++)
+-		set_bit(kp->keymap[i] & KEYNUM_MASK,
++		__set_bit(kp->keymap[i] & KEYNUM_MASK,
+ 				kp->input->keybit);
+ 
+ 	kp->input->name	= "TWL4030 Keypad";
+@@ -441,15 +442,16 @@ err5:
+ 	free_irq(kp->irq, NULL);
+ err3:
+ 	input_unregister_device(kp->input);
++	kp->input = NULL;
+ err2:
+ 	input_free_device(kp->input);
+-
++	kfree(kp);
+ 	return -ENODEV;
+ }
+ 
+ static int __devexit twl4030_kp_remove(struct platform_device *pdev)
+ {
+-	struct twl4030_keypad *kp = dev_get_drvdata(&pdev->dev);
++	struct twl4030_keypad *kp = platform_get_drvdata(pdev);
+ 
+ 	free_irq(kp->irq, kp);
+ 	input_unregister_device(kp->input);
+
