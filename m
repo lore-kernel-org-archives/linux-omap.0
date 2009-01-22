@@ -1,32 +1,44 @@
-From: "Pakaravoor, Jagadeesh" <j-pakaravoor@ti.com>
-Subject: OMAP I2C: query on save and restore
-Date: Thu, 22 Jan 2009 12:02:15 +0530
-Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB02A39CE7F6@dbde02.ent.ti.com>
+From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+Subject: Re: [OMAPZOOM][PATCH]DSPBRIDGE: Change GFP_ATOMIC to GFP_KERNEL
+Date: Thu, 22 Jan 2009 08:34:14 +0200 (EET)
+Message-ID: <20090122.083414.188795203.Hiroshi.DOYU@nokia.com>
+References: <496565EC904933469F292DDA3F1663E60284C6C596@dlee06.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:44859 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754244AbZAVGcb convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 22 Jan 2009 01:32:31 -0500
-Content-Language: en-US
+Received: from smtp.nokia.com ([192.100.105.134]:22240 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755328AbZAVGeY (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 22 Jan 2009 01:34:24 -0500
+In-Reply-To: <496565EC904933469F292DDA3F1663E60284C6C596@dlee06.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
-Cc: "jouni.hogander@nokia.com" <jouni.hogander@nokia.com>, "Nayak, Rajendra" <rnayak@ti.com>
+To: x0095840@ti.com
+Cc: linux-omap@vger.kernel.org, vikram.pandita@ti.com
 
-For i2c-omap.c, on the origin/pm branch, upon save and restore, OMAP_I2C_SYSC_REG is not saved and restored.
+Hi Fernando, 
 
-Any specific reason, why it is so? Or is it a bug?
+From: "ext Guzman Lugo, Fernando" <x0095840@ti.com>
+Subject: [OMAPZOOM][PATCH]DSPBRIDGE: Change GFP_ATOMIC to GFP_KERNEL
+Date: Wed, 21 Jan 2009 18:46:01 -0600
 
-TIA.
+> 
+> From: Fernando Guzman Lugo <x0095840@ti.com>
+> Date: Wed, 21 Jan 2009 17:39:38 -0600
+> Subject: [PATCH] BRIDGE: Change GFP_ATOMIC to GFP_KERNEL
+> 
+> This patch replace the memory allocations which use
+> GFP_ATOMIC with GFP_KERNEL since the calls for memory
+> allocation in dspbridge are not in interrupt context.
+> 
+> Signed-off-by: Fernando Guzman Lugo <x0095840@ti.com>
+> Acked-by: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
 
---
-With Regards,
-Jagadeesh Bhaskar P
- 
-----------------------------
-Some men see things as they are and say why - I dream things that never were and say why not.
-- George Bernard Shaw
-----------------------------
+You swapped "From:/Signed-off-by:" and "Acked-by:" name;-)
+Would it be possible to send the updated one again?
+Then, I'll put it on "tidspbridge" branch.
+
+Thank you for your verification of this patch.
+
+	Hiroshi DOYU
