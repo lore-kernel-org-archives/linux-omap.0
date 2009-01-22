@@ -1,76 +1,52 @@
-From: "Pakaravoor, Jagadeesh" <j-pakaravoor@ti.com>
-Subject: [PATCH] OMAP I2C: Include OMAP_I2C_SYSC_REG in save and restore.
-Date: Thu, 22 Jan 2009 12:49:21 +0530
-Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB02A39CE87C@dbde02.ent.ti.com>
+From: Peter Ujfalusi <peter.ujfalusi@nokia.com>
+Subject: Re: [alsa-devel] [PATCH] ASoC: Complete Beagleboard support
+Date: Thu, 22 Jan 2009 09:53:23 +0200
+Message-ID: <200901220953.23657.peter.ujfalusi@nokia.com>
+References: <5e088bd90901202305m26900888jcaa2b0ec57d3fab1@mail.gmail.com> <5e088bd90901210640v4ce21f8clae9469b60226a6f0@mail.gmail.com> <5e088bd90901210835neb0d8f1s309d4668cf444cc0@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:46426 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754172AbZAVHTe convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 22 Jan 2009 02:19:34 -0500
-Content-Language: en-US
+Received: from smtp.nokia.com ([192.100.122.233]:24969 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752767AbZAVHxe convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 22 Jan 2009 02:53:34 -0500
+In-Reply-To: <5e088bd90901210835neb0d8f1s309d4668cf444cc0@mail.gmail.com>
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
-Cc: "jouni.hogander@nokia.com" <jouni.hogander@nokia.com>, "khilman@deeprootsystems.com" <khilman@deeprootsystems.com>
+To: alsa-devel@alsa-project.org
+Cc: ext Steve Sakoman <sakoman@gmail.com>, linux-omap <linux-omap@vger.kernel.org>
 
-From: Jagadeesh Bhaskar Pakaravoor <j-pakaravoor@ti.com>
 
-Save and restore should include OMAP_I2C_SYSC_REG.
-This patch applies on origin/pm.
+On Wednesday 21 January 2009 18:35:54 ext Steve Sakoman wrote:
+> I did a quick mplayer test and was able to play an mp3 with this patc=
+h
+> applied to linux-omap top of tree.
 
-Signed-off-by: Jagadeesh Bhaskar Pakaravoor <j-pakaravoor@ti.com>
----
-Index: linux-omap-2.6/drivers/i2c/busses/i2c-omap.c
-===================================================================
---- linux-omap-2.6.orig/drivers/i2c/busses/i2c-omap.c	2009-01-22 12:11:12.000000000 +0530
-+++ linux-omap-2.6/drivers/i2c/busses/i2c-omap.c	2009-01-22 12:44:12.202367296 +0530
-@@ -182,6 +182,7 @@ struct omap_i2c_dev {
- 	u16			scllstate;
- 	u16			sclhstate;
- 	u16			bufstate;
-+	u16			syscstate;
- };
- 
- static inline void omap_i2c_write_reg(struct omap_i2c_dev *i2c_dev,
-@@ -240,6 +241,7 @@ static void omap_i2c_unidle(struct omap_
- 		omap_i2c_write_reg(dev, OMAP_I2C_SCLL_REG, dev->scllstate);
- 		omap_i2c_write_reg(dev, OMAP_I2C_SCLH_REG, dev->sclhstate);
- 		omap_i2c_write_reg(dev, OMAP_I2C_BUF_REG, dev->bufstate);
-+		omap_i2c_write_reg(dev, OMAP_I2C_SYSC_REG, dev->syscstate);
- 	}
- 	dev->idle = 0;
- 	omap_i2c_write_reg(dev, OMAP_I2C_IE_REG, dev->iestate);
-@@ -300,14 +302,15 @@ static int omap_i2c_init(struct omap_i2c
- 		} else if (dev->rev >= OMAP_I2C_REV_ON_3430) {
- 			u32 v;
- 
--			v = SYSC_AUTOIDLE_MASK;
--			v |= SYSC_ENAWAKEUP_MASK;
--			v |= (SYSC_IDLEMODE_SMART <<
-+			dev->syscstate = SYSC_AUTOIDLE_MASK;
-+			dev->syscstate |= SYSC_ENAWAKEUP_MASK;
-+			dev->syscstate |= (SYSC_IDLEMODE_SMART <<
- 			      __ffs(SYSC_SIDLEMODE_MASK));
--			v |= (SYSC_CLOCKACTIVITY_FCLK <<
-+			dev->syscstate |= (SYSC_CLOCKACTIVITY_FCLK <<
- 			      __ffs(SYSC_CLOCKACTIVITY_MASK));
- 
--			omap_i2c_write_reg(dev, OMAP_I2C_SYSC_REG, v);
-+			omap_i2c_write_reg(dev, OMAP_I2C_SYSC_REG,
-+							dev->syscstate);
- 			/*
- 			 * Enabling all wakup sources to stop I2C freezing on
- 			 * WFI instruction.
+That's great!
+Not that I had any objections to the patch itself, but I was not sure i=
+f it is=20
+working. As Mark pointed out - and I was not aware off - that all endpo=
+ints=20
+are on by default and has to be explicitely marked as not connected if =
+they=20
+are not in use.
+
+> Hardware was Beagle Rev C1D
+>
+> Steve
+
+--=20
+P=E9ter
+
+> _______________________________________________
+> Alsa-devel mailing list
+> Alsa-devel@alsa-project.org
+> http://mailman.alsa-project.org/mailman/listinfo/alsa-devel
 
 --
-With Regards,
-Jagadeesh Bhaskar P
- 
-----------------------------
-Some men see things as they are and say why - I dream things that never were and say why not.
-- George Bernard Shaw
--------------------
-
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
