@@ -1,579 +1,191 @@
-From: David Brownell <david-b@pacbell.net>
-Subject: [patch/rfc 2.6.28-rc2] input: twl4030_keypad driver
-Date: Wed, 21 Jan 2009 16:13:06 -0800
-Message-ID: <200901211613.06427.david-b@pacbell.net>
+From: "Guzman Lugo, Fernando" <x0095840@ti.com>
+Subject: [OMAPZOOM][PATCH]DSPBRIDGE: Change GFP_ATOMIC to GFP_KERNEL
+Date: Wed, 21 Jan 2009 18:46:01 -0600
+Message-ID: <496565EC904933469F292DDA3F1663E60284C6C596@dlee06.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed;
+	boundary="_002_496565EC904933469F292DDA3F1663E60284C6C596dlee06enttico_"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp121.sbc.mail.sp1.yahoo.com ([69.147.64.94]:29822 "HELO
-	smtp121.sbc.mail.sp1.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1753016AbZAVANJ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Wed, 21 Jan 2009 19:13:09 -0500
-Content-Disposition: inline
+Received: from bear.ext.ti.com ([192.94.94.41]:33967 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754485AbZAVAqK (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 21 Jan 2009 19:46:10 -0500
+Received: from dlep95.itg.ti.com ([157.170.170.107])
+	by bear.ext.ti.com (8.13.7/8.13.7) with ESMTP id n0M0k3Ff023507
+	for <linux-omap@vger.kernel.org>; Wed, 21 Jan 2009 18:46:08 -0600
+Received: from dlee75.ent.ti.com (localhost [127.0.0.1])
+	by dlep95.itg.ti.com (8.13.8/8.13.8) with ESMTP id n0M0k35j028097
+	for <linux-omap@vger.kernel.org>; Wed, 21 Jan 2009 18:46:03 -0600 (CST)
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-input@vger.kernel.org
-Cc: OMAP <linux-omap@vger.kernel.org>
+To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Cc: "Pandita, Vikram" <vikram.pandita@ti.com>
 
-From: David Brownell <dbrownell@users.sourceforge.net>
+--_002_496565EC904933469F292DDA3F1663E60284C6C596dlee06enttico_
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 
-Driver for the twl4030 family keypad controller.  This controller
-supports a key matrix of up to 8 rows by 8 columns.  Board init
-code passes a description of the key matrix to the driver.
 
-Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
+From: Fernando Guzman Lugo <x0095840@ti.com>
+Date: Wed, 21 Jan 2009 17:39:38 -0600
+Subject: [PATCH] BRIDGE: Change GFP_ATOMIC to GFP_KERNEL
+
+This patch replace the memory allocations which use
+GFP_ATOMIC with GFP_KERNEL since the calls for memory
+allocation in dspbridge are not in interrupt context.
+
+Signed-off-by: Fernando Guzman Lugo <x0095840@ti.com>
+Acked-by: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+
 ---
-This is what's in the current OMAP tree, with two changes:
-(a) includes a pending patch to remove OMAP-isms; (b) rename
-to remove another OMAP-ism.
+ drivers/dsp/bridge/services/mem.c |   18 +++++++++---------
+ 1 files changed, 9 insertions(+), 9 deletions(-)
 
- drivers/input/keyboard/Kconfig          |   11 
- drivers/input/keyboard/Makefile         |    1 
- drivers/input/keyboard/twl4030_keypad.c |  489 ++++++++++++++++++++++++++++++
- include/linux/i2c/twl4030.h             |    9 
- 4 files changed, 509 insertions(+), 1 deletion(-)
+diff --git a/drivers/dsp/bridge/services/mem.c b/drivers/dsp/bridge/service=
+s/mem.c
+index 9256744..95efe92
+--- a/drivers/dsp/bridge/services/mem.c
++++ b/drivers/dsp/bridge/services/mem.c
+@@ -281,10 +281,10 @@ void *MEM_Alloc(u32 cBytes, enum MEM_POOLATTRS type)
+ 		/* If non-paged memory required, see note at top of file. */
+ 		case MEM_PAGED:
+ #ifndef MEM_CHECK
+-			pMem =3D kmalloc(cBytes, GFP_ATOMIC);
++			pMem =3D kmalloc(cBytes, GFP_KERNEL);
+ #else
+ 			pMem =3D kmalloc(cBytes + sizeof(struct memInfo),
+-			       GFP_ATOMIC);
++			       GFP_KERNEL);
+ 			if (pMem) {
+ 				pMem->size =3D cBytes;
+ 				pMem->caller =3D __builtin_return_address(0);
+@@ -303,11 +303,11 @@ void *MEM_Alloc(u32 cBytes, enum MEM_POOLATTRS type)
+ 		case MEM_LARGEVIRTMEM:
+ #ifndef MEM_CHECK
+ 			/* FIXME - Replace with 'vmalloc' after BP fix */
+-			pMem =3D __vmalloc(cBytes, GFP_ATOMIC, PAGE_KERNEL);
++			pMem =3D __vmalloc(cBytes, GFP_KERNEL, PAGE_KERNEL);
+ #else
+ 			/* FIXME - Replace with 'vmalloc' after BP fix */
+ 			pMem =3D __vmalloc((cBytes + sizeof(struct memInfo)),
+-				GFP_ATOMIC, PAGE_KERNEL);
++				GFP_KERNEL, PAGE_KERNEL);
+ 			if (pMem) {
+ 				pMem->size =3D cBytes;
+ 				pMem->caller =3D __builtin_return_address(0);
+@@ -357,7 +357,7 @@ void *MEM_AllocPhysMem(u32 cBytes, u32 ulAlign, OUT u32=
+ *pPhysicalAddress)
+ 						    (u32 *)&paMem);
+ 		} else
+ 			pVaMem =3D dma_alloc_coherent(NULL, cBytes, &paMem,
+-						   GFP_ATOMIC);
++						   GFP_KERNEL);
+ 		if (pVaMem =3D=3D NULL) {
+ 			*pPhysicalAddress =3D 0;
+ 			GT_1trace(MEM_debugMask, GT_6CLASS,
+@@ -389,13 +389,13 @@ void *MEM_Calloc(u32 cBytes, enum MEM_POOLATTRS type)
+ 		/* If non-paged memory required, see note at top of file. */
+ 		case MEM_PAGED:
+ #ifndef MEM_CHECK
+-			pMem =3D kmalloc(cBytes, GFP_ATOMIC);
++			pMem =3D kmalloc(cBytes, GFP_KERNEL);
+ 			if (pMem)
+ 				memset(pMem, 0, cBytes);
+=20
+ #else
+ 			pMem =3D kmalloc(cBytes + sizeof(struct memInfo),
+-				      GFP_ATOMIC);
++				      GFP_KERNEL);
+ 			if (pMem) {
+ 				memset((void *)((u32)pMem +
+ 					sizeof(struct memInfo)), 0, cBytes);
+@@ -414,14 +414,14 @@ void *MEM_Calloc(u32 cBytes, enum MEM_POOLATTRS type)
+ 		case MEM_LARGEVIRTMEM:
+ #ifndef MEM_CHECK
+ 			/* FIXME - Replace with 'vmalloc' after BP fix */
+-			pMem =3D __vmalloc(cBytes, GFP_ATOMIC, PAGE_KERNEL);
++			pMem =3D __vmalloc(cBytes, GFP_KERNEL, PAGE_KERNEL);
+ 			if (pMem)
+ 				memset(pMem, 0, cBytes);
+=20
+ #else
+ 			/* FIXME - Replace with 'vmalloc' after BP fix */
+ 			pMem =3D __vmalloc(cBytes + sizeof(struct memInfo),
+-				GFP_ATOMIC, PAGE_KERNEL);
++				GFP_KERNEL, PAGE_KERNEL);
+ 			if (pMem) {
+ 				memset((void *)((u32)pMem +
+ 					sizeof(struct memInfo)), 0, cBytes);
+--=20
+1.5.6.4
 
---- a/drivers/input/keyboard/Kconfig
-+++ b/drivers/input/keyboard/Kconfig
-@@ -259,6 +259,17 @@ config KEYBOARD_OMAP
- 	  To compile this driver as a module, choose M here: the
- 	  module will be called omap-keypad.
- 
-+config KEYBOARD_TWL4030
-+	tristate "TI TWL4030/TWL5030/TPS659x0 keypad support"
-+	depends on TWL4030_CORE
-+	help
-+	  Say Y here if your board use the keypad controller on
-+	  TWL4030 family chips.  It's safe to say enable this
-+	  even on boards that don't use the keypad controller.
-+
-+	  To compile this driver as a module, choose M here: the
-+	  module will be called twl4030_keypad.
-+
- config KEYBOARD_PXA27x
- 	tristate "PXA27x/PXA3xx keypad support"
- 	depends on PXA27x || PXA3xx
---- a/drivers/input/keyboard/Makefile
-+++ b/drivers/input/keyboard/Makefile
-@@ -28,3 +28,4 @@ obj-$(CONFIG_KEYBOARD_HP7XX)		+= jornada
- obj-$(CONFIG_KEYBOARD_MAPLE)		+= maple_keyb.o
- obj-$(CONFIG_KEYBOARD_BFIN)		+= bf54x-keys.o
- obj-$(CONFIG_KEYBOARD_SH_KEYSC)		+= sh_keysc.o
-+obj-$(CONFIG_KEYBOARD_TWL4030)		+= twl4030_keypad.o
---- /dev/null
-+++ b/drivers/input/keyboard/twl4030_keypad.c
-@@ -0,0 +1,489 @@
-+/*
-+ * twl4030_keypad.c
-+ *
-+ * Copyright (C) 2007 Texas Instruments, Inc.
-+ * Copyright (C) 2008 Nokia Corporation
-+ *
-+ * Code re-written for 2430SDP by:
-+ * Syed Mohammed Khasim <x0khasim@ti.com>
-+ *
-+ * Initial Code:
-+ * Manjunatha G K <manjugk@ti.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation; either version 2 of the License, or
-+ * (at your option) any later version.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-+ * GNU General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program; if not, write to the Free Software
-+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
-+ */
-+
-+#include <linux/kernel.h>
-+#include <linux/module.h>
-+#include <linux/init.h>
-+#include <linux/interrupt.h>
-+#include <linux/input.h>
-+#include <linux/platform_device.h>
-+#include <linux/i2c/twl4030.h>
-+
-+/*
-+ * The TWL4030 family chips include a keypad controller that supports
-+ * up to an 8x8 switch matrix.  The controller can issue system wakeup
-+ * events, since it uses only the always-on 32KiHz oscillator, and has
-+ * an internal state machine that decodes pressed keys, including
-+ * multi-key combinations.
-+ *
-+ * This driver lets boards define what keycodes they wish to report for
-+ * which scancodes, as part of the "struct twl4030_keypad_data" used in
-+ * the probe() routine.
-+ *
-+ * See the TPS65950 documentation; that's the general availability
-+ * version of the TWL5030 second generation part.
-+ */
-+#define MAX_ROWS		8	/* TWL4030 hard limit */
-+
-+struct twl4030_keypad {
-+	int		*keymap;
-+	unsigned int	keymapsize;
-+	u16		kp_state[MAX_ROWS];
-+	int		n_rows;
-+	int		n_cols;
-+	int		irq;
-+
-+	struct device	*dbg_dev;
-+	struct input_dev *input;
-+};
-+
-+#define ROWCOL_MASK	KEY(0xf, 0xf, 0)
-+#define KEYNUM_MASK	(~PERSISTENT_KEY(0xf, 0xf))
-+
-+/*----------------------------------------------------------------------*/
-+
-+/* arbitrary prescaler value 0..7 */
-+#define PTV_PRESCALER			4
-+
-+/* Register Offsets */
-+#define KEYP_CTRL			0x00
-+#define KEYP_DEB			0x01
-+#define KEYP_LONG_KEY			0x02
-+#define KEYP_LK_PTV			0x03
-+#define KEYP_TIMEOUT_L			0x04
-+#define KEYP_TIMEOUT_H			0x05
-+#define KEYP_KBC			0x06
-+#define KEYP_KBR			0x07
-+#define KEYP_SMS			0x08
-+#define KEYP_FULL_CODE_7_0		0x09	/* row 0 column status */
-+#define KEYP_FULL_CODE_15_8		0x0a	/* ... row 1 ... */
-+#define KEYP_FULL_CODE_23_16		0x0b
-+#define KEYP_FULL_CODE_31_24		0x0c
-+#define KEYP_FULL_CODE_39_32		0x0d
-+#define KEYP_FULL_CODE_47_40		0x0e
-+#define KEYP_FULL_CODE_55_48		0x0f
-+#define KEYP_FULL_CODE_63_56		0x10
-+#define KEYP_ISR1			0x11
-+#define KEYP_IMR1			0x12
-+#define KEYP_ISR2			0x13
-+#define KEYP_IMR2			0x14
-+#define KEYP_SIR			0x15
-+#define KEYP_EDR			0x16	/* edge triggers */
-+#define KEYP_SIH_CTRL			0x17
-+
-+/* KEYP_CTRL_REG Fields */
-+#define KEYP_CTRL_SOFT_NRST		BIT(0)
-+#define KEYP_CTRL_SOFTMODEN		BIT(1)
-+#define KEYP_CTRL_LK_EN			BIT(2)
-+#define KEYP_CTRL_TOE_EN		BIT(3)
-+#define KEYP_CTRL_TOLE_EN		BIT(4)
-+#define KEYP_CTRL_RP_EN			BIT(5)
-+#define KEYP_CTRL_KBD_ON		BIT(6)
-+
-+/* KEYP_DEB, KEYP_LONG_KEY, KEYP_TIMEOUT_x*/
-+#define KEYP_PERIOD_US(t, prescale)	((t) / (31 << (prescale + 1)) - 1)
-+
-+/* KEYP_LK_PTV_REG Fields */
-+#define KEYP_LK_PTV_PTV_SHIFT		5
-+
-+/* KEYP_{IMR,ISR,SIR} Fields */
-+#define KEYP_IMR1_MIS			BIT(3)
-+#define KEYP_IMR1_TO			BIT(2)
-+#define KEYP_IMR1_LK			BIT(1)
-+#define KEYP_IMR1_KP			BIT(0)
-+
-+/* KEYP_EDR Fields */
-+#define KEYP_EDR_KP_FALLING		0x01
-+#define KEYP_EDR_KP_RISING		0x02
-+#define KEYP_EDR_KP_BOTH		0x03
-+#define KEYP_EDR_LK_FALLING		0x04
-+#define KEYP_EDR_LK_RISING		0x08
-+#define KEYP_EDR_TO_FALLING		0x10
-+#define KEYP_EDR_TO_RISING		0x20
-+#define KEYP_EDR_MIS_FALLING		0x40
-+#define KEYP_EDR_MIS_RISING		0x80
-+
-+
-+/*----------------------------------------------------------------------*/
-+
-+static int twl4030_kpread(struct twl4030_keypad *kp,
-+		u8 *data, u32 reg, u8 num_bytes)
-+{
-+	int ret;
-+
-+	ret = twl4030_i2c_read(TWL4030_MODULE_KEYPAD, data, reg, num_bytes);
-+	if (ret < 0) {
-+		dev_warn(kp->dbg_dev,
-+			"Couldn't read TWL4030: %X - ret %d[%x]\n",
-+			 reg, ret, ret);
-+		return ret;
-+	}
-+	return ret;
-+}
-+
-+static int twl4030_kpwrite_u8(struct twl4030_keypad *kp, u8 data, u32 reg)
-+{
-+	int ret;
-+
-+	ret = twl4030_i2c_write_u8(TWL4030_MODULE_KEYPAD, data, reg);
-+	if (ret < 0) {
-+		dev_warn(kp->dbg_dev,
-+			"Could not write TWL4030: %X - ret %d[%x]\n",
-+			 reg, ret, ret);
-+		return ret;
-+	}
-+	return ret;
-+}
-+
-+static int twl4030_find_key(struct twl4030_keypad *kp, int col, int row)
-+{
-+	int i, rc;
-+
-+	rc = KEY(col, row, 0);
-+	for (i = 0; i < kp->keymapsize; i++)
-+		if ((kp->keymap[i] & ROWCOL_MASK) == rc)
-+			return kp->keymap[i] & (KEYNUM_MASK | KEY_PERSISTENT);
-+
-+	return -EINVAL;
-+}
-+
-+static inline u16 twl4030_col_xlate(struct twl4030_keypad *kp, u8 col)
-+{
-+	/* If all bits in a row are active for all coloumns then
-+	 * we have that row line connected to gnd. Mark this
-+	 * key on as if it was on matrix position n_cols (ie
-+	 * one higher than the size of the matrix).
-+	 */
-+	if (col == 0xFF)
-+		return 1 << kp->n_cols;
-+	else
-+		return col & ((1 << kp->n_cols) - 1);
-+}
-+
-+static int twl4030_read_kp_matrix_state(struct twl4030_keypad *kp, u16 *state)
-+{
-+	u8 new_state[MAX_ROWS];
-+	int row;
-+	int ret = twl4030_kpread(kp,
-+				 new_state, KEYP_FULL_CODE_7_0, kp->n_rows);
-+	if (ret >= 0) {
-+		for (row = 0; row < kp->n_rows; row++)
-+			state[row] = twl4030_col_xlate(kp, new_state[row]);
-+	}
-+	return ret;
-+}
-+
-+static int twl4030_is_in_ghost_state(struct twl4030_keypad *kp, u16 *key_state)
-+{
-+	int i;
-+	u16 check = 0;
-+
-+	for (i = 0; i < kp->n_rows; i++) {
-+		u16 col = key_state[i];
-+
-+		if ((col & check) && hweight16(col) > 1)
-+			return 1;
-+		check |= col;
-+	}
-+
-+	return 0;
-+}
-+
-+static void twl4030_kp_scan(struct twl4030_keypad *kp, int release_all)
-+{
-+	u16 new_state[MAX_ROWS];
-+	int col, row;
-+
-+	if (release_all)
-+		memset(new_state, 0, sizeof(new_state));
-+	else {
-+		/* check for any changes */
-+		int ret = twl4030_read_kp_matrix_state(kp, new_state);
-+
-+		if (ret < 0)	/* panic ... */
-+			return;
-+		if (twl4030_is_in_ghost_state(kp, new_state))
-+			return;
-+	}
-+
-+	/* check for changes and print those */
-+	for (row = 0; row < kp->n_rows; row++) {
-+		int changed = new_state[row] ^ kp->kp_state[row];
-+
-+		if (!changed)
-+			continue;
-+
-+		for (col = 0; col < kp->n_cols; col++) {
-+			int key;
-+
-+			if (!(changed & (1 << col)))
-+				continue;
-+
-+			dev_dbg(kp->dbg_dev, "key [%d:%d] %s\n", row, col,
-+				(new_state[row] & (1 << col)) ?
-+				"press" : "release");
-+
-+			key = twl4030_find_key(kp, col, row);
-+			if (key < 0)
-+				dev_warn(kp->dbg_dev,
-+					"Spurious key event %d-%d\n",
-+					 col, row);
-+			else if (key & KEY_PERSISTENT)
-+				continue;
-+			else
-+				input_report_key(kp->input, key,
-+						 new_state[row] & (1 << col));
-+		}
-+		kp->kp_state[row] = new_state[row];
-+	}
-+}
-+
-+/*
-+ * Keypad interrupt handler
-+ */
-+static irqreturn_t do_kp_irq(int irq, void *_kp)
-+{
-+	struct twl4030_keypad *kp = _kp;
-+	u8 reg;
-+	int ret;
-+
-+#ifdef CONFIG_LOCKDEP
-+	/* WORKAROUND for lockdep forcing IRQF_DISABLED on us, which
-+	 * we don't want and can't tolerate.  Although it might be
-+	 * friendlier not to borrow this thread context...
-+	 */
-+	local_irq_enable();
-+#endif
-+
-+	/* Read & Clear TWL4030 pending interrupt */
-+	ret = twl4030_kpread(kp, &reg, KEYP_ISR1, 1);
-+
-+	/* Release all keys if I2C has gone bad or
-+	 * the KEYP has gone to idle state */
-+	if ((ret >= 0) && (reg & KEYP_IMR1_KP))
-+		twl4030_kp_scan(kp, 0);
-+	else
-+		twl4030_kp_scan(kp, 1);
-+
-+	return IRQ_HANDLED;
-+}
-+
-+/*
-+ * Registers keypad device with input subsystem
-+ * and configures TWL4030 keypad registers
-+ */
-+static int __devinit twl4030_kp_probe(struct platform_device *pdev)
-+{
-+	u8 reg;
-+	int i;
-+	int ret = 0;
-+	struct twl4030_keypad *kp;
-+	struct twl4030_keypad_data *pdata = pdev->dev.platform_data;
-+
-+	kp = kzalloc(sizeof(*kp), GFP_KERNEL);
-+	if (!kp)
-+		return -ENOMEM;
-+
-+	if (!pdata->rows || !pdata->cols || !pdata->keymap) {
-+		dev_err(&pdev->dev, "No rows, cols or keymap from pdata\n");
-+		kfree(kp);
-+		return -EINVAL;
-+	}
-+
-+	/* ASSERT:  cols <= 8, rows <= 8 */
-+
-+	dev_set_drvdata(&pdev->dev, kp);
-+
-+	/* Get the debug Device */
-+	kp->dbg_dev = &pdev->dev;
-+
-+	kp->input = input_allocate_device();
-+	if (!kp->input) {
-+		kfree(kp);
-+		return -ENOMEM;
-+	}
-+
-+	kp->keymap = pdata->keymap;
-+	kp->keymapsize = pdata->keymapsize;
-+	kp->n_rows = pdata->rows;
-+	kp->n_cols = pdata->cols;
-+	kp->irq = platform_get_irq(pdev, 0);
-+
-+	/* setup input device */
-+	set_bit(EV_KEY, kp->input->evbit);
-+
-+	/* Enable auto repeat feature of Linux input subsystem */
-+	if (pdata->rep)
-+		set_bit(EV_REP, kp->input->evbit);
-+
-+	for (i = 0; i < kp->keymapsize; i++)
-+		set_bit(kp->keymap[i] & KEYNUM_MASK,
-+				kp->input->keybit);
-+
-+	kp->input->name	= "TWL4030 Keypad";
-+	kp->input->phys	= "twl4030_keypad/input0";
-+	kp->input->dev.parent	= &pdev->dev;
-+
-+	kp->input->id.bustype	= BUS_HOST;
-+	kp->input->id.vendor	= 0x0001;
-+	kp->input->id.product	= 0x0001;
-+	kp->input->id.version	= 0x0003;
-+
-+	kp->input->keycode	= kp->keymap;
-+	kp->input->keycodesize	= sizeof(unsigned int);
-+	kp->input->keycodemax	= kp->keymapsize;
-+
-+	ret = input_register_device(kp->input);
-+	if (ret < 0) {
-+		dev_err(kp->dbg_dev,
-+			"Unable to register twl4030 keypad device\n");
-+		goto err2;
-+	}
-+
-+	/* Enable controller, with hardware decoding but not autorepeat */
-+	reg = KEYP_CTRL_SOFT_NRST | KEYP_CTRL_SOFTMODEN
-+		| KEYP_CTRL_TOE_EN | KEYP_CTRL_KBD_ON;
-+	ret = twl4030_kpwrite_u8(kp, reg, KEYP_CTRL);
-+	if (ret < 0)
-+		goto err3;
-+
-+	/* NOTE:  we don't use the sih_setup() here to package
-+	 * the four keypad event sources as four different IRQs.
-+	 */
-+
-+	/* Enable TO rising and KP rising and falling edge detection */
-+	reg = KEYP_EDR_KP_BOTH | KEYP_EDR_TO_RISING;
-+	ret = twl4030_kpwrite_u8(kp, reg, KEYP_EDR);
-+	if (ret < 0)
-+		goto err3;
-+
-+	/* Set PTV prescaler Field */
-+	reg = (PTV_PRESCALER << KEYP_LK_PTV_PTV_SHIFT);
-+	ret = twl4030_kpwrite_u8(kp, reg, KEYP_LK_PTV);
-+	if (ret < 0)
-+		goto err3;
-+
-+	/* Set key debounce time to 20 ms */
-+	i = KEYP_PERIOD_US(20000, PTV_PRESCALER);
-+	ret = twl4030_kpwrite_u8(kp, i, KEYP_DEB);
-+	if (ret < 0)
-+		goto err3;
-+
-+	/* Set timeout period to 100 ms */
-+	i = KEYP_PERIOD_US(200000, PTV_PRESCALER);
-+	ret = twl4030_kpwrite_u8(kp, (i & 0xFF), KEYP_TIMEOUT_L);
-+	if (ret < 0)
-+		goto err3;
-+	ret = twl4030_kpwrite_u8(kp, (i >> 8), KEYP_TIMEOUT_H);
-+	if (ret < 0)
-+		goto err3;
-+
-+	/* Enable Clear-on-Read; disable remembering events that fire
-+	 * after the IRQ but before our handler acks (reads) them,
-+	 */
-+	reg = TWL4030_SIH_CTRL_COR_MASK | TWL4030_SIH_CTRL_PENDDIS_MASK;
-+	ret = twl4030_kpwrite_u8(kp, reg, KEYP_SIH_CTRL);
-+	if (ret < 0)
-+		goto err3;
-+
-+	/* initialize key state; irqs update it from here on */
-+	ret = twl4030_read_kp_matrix_state(kp, kp->kp_state);
-+	if (ret < 0)
-+		goto err3;
-+
-+	/*
-+	 * This ISR will always execute in kernel thread context because of
-+	 * the need to access the TWL4030 over the I2C bus.
-+	 *
-+	 * NOTE:  we assume this host is wired to TWL4040 INT1, not INT2 ...
-+	 */
-+	ret = request_irq(kp->irq, do_kp_irq, 0, pdev->name, kp);
-+	if (ret < 0) {
-+		dev_info(kp->dbg_dev, "request_irq failed for irq no=%d\n",
-+			kp->irq);
-+		goto err3;
-+	} else {
-+		/* Enable KP and TO interrupts now. */
-+		reg = (u8) ~(KEYP_IMR1_KP | KEYP_IMR1_TO);
-+		ret = twl4030_kpwrite_u8(kp, reg, KEYP_IMR1);
-+		if (ret < 0)
-+			goto err5;
-+	}
-+
-+	return ret;
-+err5:
-+	/* mask all events - we don't care about the result */
-+	(void) twl4030_kpwrite_u8(kp, 0xff, KEYP_IMR1);
-+	free_irq(kp->irq, NULL);
-+err3:
-+	input_unregister_device(kp->input);
-+err2:
-+	input_free_device(kp->input);
-+
-+	return -ENODEV;
-+}
-+
-+static int __devexit twl4030_kp_remove(struct platform_device *pdev)
-+{
-+	struct twl4030_keypad *kp = dev_get_drvdata(&pdev->dev);
-+
-+	free_irq(kp->irq, kp);
-+	input_unregister_device(kp->input);
-+	kfree(kp);
-+
-+	return 0;
-+}
-+
-+MODULE_ALIAS("platform:twl4030_keypad");
-+
-+static struct platform_driver twl4030_kp_driver = {
-+	.probe		= twl4030_kp_probe,
-+	.remove		= __devexit_p(twl4030_kp_remove),
-+	.driver		= {
-+		.name	= "twl4030_keypad",
-+		.owner	= THIS_MODULE,
-+	},
-+};
-+
-+/*
-+ * OMAP TWL4030 Keypad init
-+ */
-+static int __init twl4030_kp_init(void)
-+{
-+	return platform_driver_register(&twl4030_kp_driver);
-+}
-+module_init(twl4030_kp_init);
-+
-+static void __exit twl4030_kp_exit(void)
-+{
-+	platform_driver_unregister(&twl4030_kp_driver);
-+}
-+module_exit(twl4030_kp_exit);
-+
-+MODULE_AUTHOR("Texas Instruments");
-+MODULE_DESCRIPTION("TWL4030 Keypad Driver");
-+MODULE_LICENSE("GPL");
---- a/include/linux/i2c/twl4030.h
-+++ b/include/linux/i2c/twl4030.h
-@@ -255,11 +255,18 @@ struct twl4030_madc_platform_data {
- 	int		irq_line;
- };
- 
-+/* Boards have uniqe mappings of {col, row} --> keycode.
-+ * Column and row are 4 bits, but range only from 0..7;
-+ * a PERSISTENT_KEY is "always on" and never reported.
-+ */
-+#define KEY_PERSISTENT		0x00800000
-+#define KEY(col, row, keycode)	(((col) << 28) | ((row) << 24) | (keycode))
-+#define PERSISTENT_KEY(c, r)	KEY(c, r, KEY_PERSISTENT)
-+
- struct twl4030_keypad_data {
- 	int rows;
- 	int cols;
- 	int *keymap;
--	int irq;
- 	unsigned int keymapsize;
- 	unsigned int rep:1;
- };
+--_002_496565EC904933469F292DDA3F1663E60284C6C596dlee06enttico_
+Content-Type: application/octet-stream;
+	name="0001-BRIDGE-Change-GFP_ATOMIC-to-GFP_KERNEL.patch"
+Content-Description: 0001-BRIDGE-Change-GFP_ATOMIC-to-GFP_KERNEL.patch
+Content-Disposition: attachment;
+	filename="0001-BRIDGE-Change-GFP_ATOMIC-to-GFP_KERNEL.patch"; size=3227;
+	creation-date="Wed, 21 Jan 2009 17:53:15 GMT";
+	modification-date="Wed, 21 Jan 2009 17:53:15 GMT"
+Content-Transfer-Encoding: base64
+
+RnJvbSBjOWU2ZWVmZjIxMWE4ZGQxN2MxNzcyOWFjYTg2ZWYzMDYyNDVlMjk4IE1vbiBTZXAgMTcg
+MDA6MDA6MDAgMjAwMQpGcm9tOiBGZXJuYW5kbyBHdXptYW4gTHVnbyA8eDAwOTU4NDBAdGkuY29t
+PgpEYXRlOiBXZWQsIDIxIEphbiAyMDA5IDE3OjM5OjM4IC0wNjAwClN1YmplY3Q6IFtQQVRDSF0g
+QlJJREdFOiBDaGFuZ2UgR0ZQX0FUT01JQyB0byBHRlBfS0VSTkVMCgpUaGlzIHBhdGNoIHJlcGxh
+Y2UgdGhlIG1lbW9yeSBhbGxvY2F0aW9ucyB3aGljaCB1c2UKR0ZQX0FUT01JQyB3aXRoIEdGUF9L
+RVJORUwgc2luY2UgdGhlIGNhbGxzIGZvciBtZW1vcnkKYWxsb2NhdGlvbiBpbiBkc3BicmlkZ2Ug
+YXJlIG5vdCBpbiBpbnRlcnJ1cHQgY29udGV4dC4KClNpZ25lZC1vZmYtYnk6IEZlcm5hbmRvIEd1
+em1hbiBMdWdvIDx4MDA5NTg0MEB0aS5jb20+CkFja2VkLWJ5OiBIaXJvc2hpIERPWVUgPEhpcm9z
+aGkuRE9ZVUBub2tpYS5jb20+CgotLS0KIGRyaXZlcnMvZHNwL2JyaWRnZS9zZXJ2aWNlcy9tZW0u
+YyB8ICAgMTggKysrKysrKysrLS0tLS0tLS0tCiAxIGZpbGVzIGNoYW5nZWQsIDkgaW5zZXJ0aW9u
+cygrKSwgOSBkZWxldGlvbnMoLSkKCmRpZmYgLS1naXQgYS9kcml2ZXJzL2RzcC9icmlkZ2Uvc2Vy
+dmljZXMvbWVtLmMgYi9kcml2ZXJzL2RzcC9icmlkZ2Uvc2VydmljZXMvbWVtLmMKaW5kZXggOTI1
+Njc0NC4uOTVlZmU5MgotLS0gYS9kcml2ZXJzL2RzcC9icmlkZ2Uvc2VydmljZXMvbWVtLmMKKysr
+IGIvZHJpdmVycy9kc3AvYnJpZGdlL3NlcnZpY2VzL21lbS5jCkBAIC0yODEsMTAgKzI4MSwxMCBA
+QCB2b2lkICpNRU1fQWxsb2ModTMyIGNCeXRlcywgZW51bSBNRU1fUE9PTEFUVFJTIHR5cGUpCiAJ
+CS8qIElmIG5vbi1wYWdlZCBtZW1vcnkgcmVxdWlyZWQsIHNlZSBub3RlIGF0IHRvcCBvZiBmaWxl
+LiAqLwogCQljYXNlIE1FTV9QQUdFRDoKICNpZm5kZWYgTUVNX0NIRUNLCi0JCQlwTWVtID0ga21h
+bGxvYyhjQnl0ZXMsIEdGUF9BVE9NSUMpOworCQkJcE1lbSA9IGttYWxsb2MoY0J5dGVzLCBHRlBf
+S0VSTkVMKTsKICNlbHNlCiAJCQlwTWVtID0ga21hbGxvYyhjQnl0ZXMgKyBzaXplb2Yoc3RydWN0
+IG1lbUluZm8pLAotCQkJICAgICAgIEdGUF9BVE9NSUMpOworCQkJICAgICAgIEdGUF9LRVJORUwp
+OwogCQkJaWYgKHBNZW0pIHsKIAkJCQlwTWVtLT5zaXplID0gY0J5dGVzOwogCQkJCXBNZW0tPmNh
+bGxlciA9IF9fYnVpbHRpbl9yZXR1cm5fYWRkcmVzcygwKTsKQEAgLTMwMywxMSArMzAzLDExIEBA
+IHZvaWQgKk1FTV9BbGxvYyh1MzIgY0J5dGVzLCBlbnVtIE1FTV9QT09MQVRUUlMgdHlwZSkKIAkJ
+Y2FzZSBNRU1fTEFSR0VWSVJUTUVNOgogI2lmbmRlZiBNRU1fQ0hFQ0sKIAkJCS8qIEZJWE1FIC0g
+UmVwbGFjZSB3aXRoICd2bWFsbG9jJyBhZnRlciBCUCBmaXggKi8KLQkJCXBNZW0gPSBfX3ZtYWxs
+b2MoY0J5dGVzLCBHRlBfQVRPTUlDLCBQQUdFX0tFUk5FTCk7CisJCQlwTWVtID0gX192bWFsbG9j
+KGNCeXRlcywgR0ZQX0tFUk5FTCwgUEFHRV9LRVJORUwpOwogI2Vsc2UKIAkJCS8qIEZJWE1FIC0g
+UmVwbGFjZSB3aXRoICd2bWFsbG9jJyBhZnRlciBCUCBmaXggKi8KIAkJCXBNZW0gPSBfX3ZtYWxs
+b2MoKGNCeXRlcyArIHNpemVvZihzdHJ1Y3QgbWVtSW5mbykpLAotCQkJCUdGUF9BVE9NSUMsIFBB
+R0VfS0VSTkVMKTsKKwkJCQlHRlBfS0VSTkVMLCBQQUdFX0tFUk5FTCk7CiAJCQlpZiAocE1lbSkg
+ewogCQkJCXBNZW0tPnNpemUgPSBjQnl0ZXM7CiAJCQkJcE1lbS0+Y2FsbGVyID0gX19idWlsdGlu
+X3JldHVybl9hZGRyZXNzKDApOwpAQCAtMzU3LDcgKzM1Nyw3IEBAIHZvaWQgKk1FTV9BbGxvY1Bo
+eXNNZW0odTMyIGNCeXRlcywgdTMyIHVsQWxpZ24sIE9VVCB1MzIgKnBQaHlzaWNhbEFkZHJlc3Mp
+CiAJCQkJCQkgICAgKHUzMiAqKSZwYU1lbSk7CiAJCX0gZWxzZQogCQkJcFZhTWVtID0gZG1hX2Fs
+bG9jX2NvaGVyZW50KE5VTEwsIGNCeXRlcywgJnBhTWVtLAotCQkJCQkJICAgR0ZQX0FUT01JQyk7
+CisJCQkJCQkgICBHRlBfS0VSTkVMKTsKIAkJaWYgKHBWYU1lbSA9PSBOVUxMKSB7CiAJCQkqcFBo
+eXNpY2FsQWRkcmVzcyA9IDA7CiAJCQlHVF8xdHJhY2UoTUVNX2RlYnVnTWFzaywgR1RfNkNMQVNT
+LApAQCAtMzg5LDEzICszODksMTMgQEAgdm9pZCAqTUVNX0NhbGxvYyh1MzIgY0J5dGVzLCBlbnVt
+IE1FTV9QT09MQVRUUlMgdHlwZSkKIAkJLyogSWYgbm9uLXBhZ2VkIG1lbW9yeSByZXF1aXJlZCwg
+c2VlIG5vdGUgYXQgdG9wIG9mIGZpbGUuICovCiAJCWNhc2UgTUVNX1BBR0VEOgogI2lmbmRlZiBN
+RU1fQ0hFQ0sKLQkJCXBNZW0gPSBrbWFsbG9jKGNCeXRlcywgR0ZQX0FUT01JQyk7CisJCQlwTWVt
+ID0ga21hbGxvYyhjQnl0ZXMsIEdGUF9LRVJORUwpOwogCQkJaWYgKHBNZW0pCiAJCQkJbWVtc2V0
+KHBNZW0sIDAsIGNCeXRlcyk7CiAKICNlbHNlCiAJCQlwTWVtID0ga21hbGxvYyhjQnl0ZXMgKyBz
+aXplb2Yoc3RydWN0IG1lbUluZm8pLAotCQkJCSAgICAgIEdGUF9BVE9NSUMpOworCQkJCSAgICAg
+IEdGUF9LRVJORUwpOwogCQkJaWYgKHBNZW0pIHsKIAkJCQltZW1zZXQoKHZvaWQgKikoKHUzMilw
+TWVtICsKIAkJCQkJc2l6ZW9mKHN0cnVjdCBtZW1JbmZvKSksIDAsIGNCeXRlcyk7CkBAIC00MTQs
+MTQgKzQxNCwxNCBAQCB2b2lkICpNRU1fQ2FsbG9jKHUzMiBjQnl0ZXMsIGVudW0gTUVNX1BPT0xB
+VFRSUyB0eXBlKQogCQljYXNlIE1FTV9MQVJHRVZJUlRNRU06CiAjaWZuZGVmIE1FTV9DSEVDSwog
+CQkJLyogRklYTUUgLSBSZXBsYWNlIHdpdGggJ3ZtYWxsb2MnIGFmdGVyIEJQIGZpeCAqLwotCQkJ
+cE1lbSA9IF9fdm1hbGxvYyhjQnl0ZXMsIEdGUF9BVE9NSUMsIFBBR0VfS0VSTkVMKTsKKwkJCXBN
+ZW0gPSBfX3ZtYWxsb2MoY0J5dGVzLCBHRlBfS0VSTkVMLCBQQUdFX0tFUk5FTCk7CiAJCQlpZiAo
+cE1lbSkKIAkJCQltZW1zZXQocE1lbSwgMCwgY0J5dGVzKTsKIAogI2Vsc2UKIAkJCS8qIEZJWE1F
+IC0gUmVwbGFjZSB3aXRoICd2bWFsbG9jJyBhZnRlciBCUCBmaXggKi8KIAkJCXBNZW0gPSBfX3Zt
+YWxsb2MoY0J5dGVzICsgc2l6ZW9mKHN0cnVjdCBtZW1JbmZvKSwKLQkJCQlHRlBfQVRPTUlDLCBQ
+QUdFX0tFUk5FTCk7CisJCQkJR0ZQX0tFUk5FTCwgUEFHRV9LRVJORUwpOwogCQkJaWYgKHBNZW0p
+IHsKIAkJCQltZW1zZXQoKHZvaWQgKikoKHUzMilwTWVtICsKIAkJCQkJc2l6ZW9mKHN0cnVjdCBt
+ZW1JbmZvKSksIDAsIGNCeXRlcyk7Ci0tIAoxLjUuNi40Cgo=
+
+--_002_496565EC904933469F292DDA3F1663E60284C6C596dlee06enttico_--
