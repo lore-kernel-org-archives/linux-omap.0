@@ -1,109 +1,50 @@
-From: "Premi, Sanjeev" <premi@ti.com>
-Subject: RE: cpuidle and NO_HZ
-Date: Fri, 23 Jan 2009 00:01:49 +0530
-Message-ID: <B85A65D85D7EB246BE421B3FB0FBB59301C6DD03F9@dbde02.ent.ti.com>
-References: <B85A65D85D7EB246BE421B3FB0FBB59301C6DD0347@dbde02.ent.ti.com>
- <8bf247760901220906n1ab095a0h695e9c1f5e8db916@mail.gmail.com>
+From: green <greenfreedom10@gmail.com>
+Subject: Re: [PATCH 0/3] Hacks to make Nokia N800 compile
+Date: Thu, 22 Jan 2009 13:53:47 -0700
+Message-ID: <20090122205347.GC6548@swansys>
+References: <20090122131602.18315.84862.stgit@tikku>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="Qbvjkv9qwOGw/5Fx"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:54612 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753013AbZAVScF convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 22 Jan 2009 13:32:05 -0500
-In-Reply-To: <8bf247760901220906n1ab095a0h695e9c1f5e8db916@mail.gmail.com>
-Content-Language: en-US
+Received: from qw-out-2122.google.com ([74.125.92.24]:52104 "EHLO
+	qw-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750896AbZAVUyH (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 22 Jan 2009 15:54:07 -0500
+Received: by qw-out-2122.google.com with SMTP id 3so2019201qwe.37
+        for <linux-omap@vger.kernel.org>; Thu, 22 Jan 2009 12:54:05 -0800 (PST)
+Content-Disposition: inline
+In-Reply-To: <20090122131602.18315.84862.stgit@tikku>
+Content-Language: en
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Sriram V <vshrirama@gmail.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: linux-omap@vger.kernel.org
 
-> -----Original Message-----
-> From: Sriram V [mailto:vshrirama@gmail.com] 
-> Sent: Thursday, January 22, 2009 10:37 PM
-> To: Premi, Sanjeev
-> Cc: linux-omap@vger.kernel.org
-> Subject: Re: cpuidle and NO_HZ
-> 
-> Sanjeev,
-> 
-> On Thu, Jan 22, 2009 at 8:14 PM, Premi, Sanjeev <premi@ti.com> wrote:
-> > Hi all,
-> >
-> > While trying to use NFS hosted filesystem, I have made a 
-> strange observation. Have verified it on multiple OMAP3EVM boards.
-> >
-> > With CONFIG_NO_HZ and CONFIG_CPU_IDLE, after the print 
-> "Freeing init memory: 152K" in the log below; the boot 
-> sequence almost stops for approx a minute before proceeding further.
-> >
-> >   Sending DHCP requests .<6>eth0: link up, 100Mbps, 
-> full-duplex, lpa 0x01E1
-> >   ., OK
-> >   IP-Config: Got DHCP answer from 0.0.0.0, my address is 192.168.1.9
-> >   IP-Config: Complete:
-> >     device=eth0, addr=192.168.1.9, mask=255.255.255.0, 
-> gw=192.168.1.9,
-> >     host=192.168.1.9, domain=india.ti.com, nis-domain=(none),
-> >     bootserver=0.0.0.0, rootserver=192.168.1.2, rootpath=
-> >   Looking up port of RPC 100003/2 on 192.168.1.2
-> >   Looking up port of RPC 100005/1 on 192.168.1.2
-> >   VFS: Mounted root (nfs filesystem).
-> >   Freeing init memory: 152K
-> >   init started: BusyBox v1.11.1 (2008-08-06 21:12:30 IST)
-> >   starting pid 442, tty '': '/etc/init.d/rcS'
-> >
-> 
-> This seems to be a wakeup issue. SMC gpio irq needs to be 
-> enabled as a wakeup source.
-> I notice that sometimes even after enabling it as a wakeup 
-> source network interface has trouble. either it is too slow 
-> or it just hangs during nfs mount or takes a long time to 
-> mount. this issue could be somewhere else
-> 
-> I also notice that the whenever network interface hangs 
-> during nfs mount.
-> the nfs server would have exited.
 
-[sp]Thanks. I will try the patch.
+--Qbvjkv9qwOGw/5Fx
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-I did believe it was a wakeup issue until I had not tried the ping.
-All pings were successful; indicating that eth interface is still up.
+On Thu, 2009-01-22, 022, Kalle Valo wrote:
+> In currently linux-omap tree n800_defconfig doesn't compile because of few
+> compiler and linker errors. Here are the fixes/hacks which I use. I'll se=
+nd=20
+> them in case anyone else is interested them.
 
-The 'mount' succeeding after about a minute is confirms it as well.
+Thanks; I hope to try this again soon on an N810.
 
-Best regards,
-Sanjeev
-> 
-> 
-> 
-> Regards,
-> sriram
-> 
-> 
-> 
-> 
-> 
-> 
-> 
-> > Later, the system response is slow.
-> >
-> > Toggling either of these CONFIG options seems to resolve the issue.
-> >
-> > My initial suspicion was on the SMC911x driver, but during 
-> this 'wait' period ping requests to the EVM are successful.
-> >
-> > Just wanted to check if anyone has seen this behavior.
-> > (I am on Kevin's latest PM branch 998bd5675a1e...).
-> >
-> > Best regards,
-> > Sanjeev
-> > --
-> > To unsubscribe from this list: send the line "unsubscribe 
-> linux-omap" 
-> > in the body of a message to majordomo@vger.kernel.org More 
-> majordomo 
-> > info at  http://vger.kernel.org/majordomo-info.html
-> >
-> 
+--Qbvjkv9qwOGw/5Fx
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.9 (GNU/Linux)
+
+iEYEARECAAYFAkl43NsACgkQ682C+dBP+oRLoQCg2f5AxwkS6xG+MFex4jQ6FFdL
+xdEAoMhRa99LO1bF3IbV0MxnPSlN8r2p
+=mGSp
+-----END PGP SIGNATURE-----
+
+--Qbvjkv9qwOGw/5Fx--
