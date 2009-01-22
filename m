@@ -1,276 +1,579 @@
-From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
-Subject: Re: [PATCH 02/10] omap mailbox: add initial omap3 support
-Date: Thu, 22 Jan 2009 00:45:19 +0200 (EET)
-Message-ID: <20090122.004519.48985185.Hiroshi.DOYU@nokia.com>
-References: <1227605998-13531-2-git-send-email-Hiroshi.DOYU@nokia.com>
-	<1227605998-13531-3-git-send-email-Hiroshi.DOYU@nokia.com>
-	<8F7AF80515AF0D4D93307E594F3CB40E207E78FB@dlee03.ent.ti.com>
+From: David Brownell <david-b@pacbell.net>
+Subject: [patch/rfc 2.6.28-rc2] input: twl4030_keypad driver
+Date: Wed, 21 Jan 2009 16:13:06 -0800
+Message-ID: <200901211613.06427.david-b@pacbell.net>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
+Content-Type: text/plain;
+  charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:21559 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753790AbZAUWp2 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 21 Jan 2009 17:45:28 -0500
-In-Reply-To: <8F7AF80515AF0D4D93307E594F3CB40E207E78FB@dlee03.ent.ti.com>
+Received: from smtp121.sbc.mail.sp1.yahoo.com ([69.147.64.94]:29822 "HELO
+	smtp121.sbc.mail.sp1.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1753016AbZAVANJ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Wed, 21 Jan 2009 19:13:09 -0500
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: h-kanigeri2@ti.com
-Cc: linux-omap@vger.kernel.org
+To: linux-input@vger.kernel.org
+Cc: OMAP <linux-omap@vger.kernel.org>
 
-Hi Hari,
+From: David Brownell <dbrownell@users.sourceforge.net>
 
-From: "ext Kanigeri, Hari" <h-kanigeri2@ti.com>
-Subject: RE: [PATCH 02/10] omap mailbox: add initial omap3 support
-Date: Wed, 21 Jan 2009 14:02:05 -0600
+Driver for the twl4030 family keypad controller.  This controller
+supports a key matrix of up to 8 rows by 8 columns.  Board init
+code passes a description of the key matrix to the driver.
 
-> Hi Doyu-san,
-> 
-> Can we add the function to return number of messages in the mailbox ?
+Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
+---
+This is what's in the current OMAP tree, with two changes:
+(a) includes a pending patch to remove OMAP-isms; (b) rename
+to remove another OMAP-ism.
 
-Yes. I assume that you meant the number of h/w fifo.
-It would be helpful if you explain the case where this API is used.
+ drivers/input/keyboard/Kconfig          |   11 
+ drivers/input/keyboard/Makefile         |    1 
+ drivers/input/keyboard/twl4030_keypad.c |  489 ++++++++++++++++++++++++++++++
+ include/linux/i2c/twl4030.h             |    9 
+ 4 files changed, 509 insertions(+), 1 deletion(-)
 
-> 
-> Thank you,
-> Best regards,
-> Hari
-> 
-> > -----Original Message-----
-> > From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
-> > owner@vger.kernel.org] On Behalf Of Hiroshi DOYU
-> > Sent: Tuesday, November 25, 2008 3:40 AM
-> > To: linux-omap@vger.kernel.org
-> > Cc: Hiroshi DOYU
-> > Subject: [PATCH 02/10] omap mailbox: add initial omap3 support
-> > 
-> > Signed-off-by: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
-> > ---
-> >  arch/arm/mach-omap2/devices.c              |   24 +++++++++++---
-> >  arch/arm/mach-omap2/mailbox.c              |   46 ++++++++++++++++++-----
-> > -----
-> >  arch/arm/plat-omap/Kconfig                 |    2 +-
-> >  arch/arm/plat-omap/include/mach/irqs.h     |    1 +
-> >  arch/arm/plat-omap/include/mach/omap34xx.h |    2 +-
-> >  5 files changed, 52 insertions(+), 23 deletions(-)
-> > 
-> > diff --git a/arch/arm/mach-omap2/devices.c b/arch/arm/mach-omap2/devices.c
-> > index 241e418..d385f0f 100644
-> > --- a/arch/arm/mach-omap2/devices.c
-> > +++ b/arch/arm/mach-omap2/devices.c
-> > @@ -84,13 +84,15 @@ static inline void omap_init_camera(void)
-> >  }
-> >  #endif
-> > 
-> > -#if defined(CONFIG_OMAP_DSP) || defined(CONFIG_OMAP_DSP_MODULE)
-> > -#define OMAP2_MBOX_BASE		IO_ADDRESS(OMAP24XX_MAILBOX_BASE)
-> > +#if defined(CONFIG_OMAP_MBOX_FWK) || defined(CONFIG_OMAP_MBOX_FWK_MODULE)
-> > +
-> > +#define MBOX_REG_SIZE	0x120
-> > 
-> >  static struct resource mbox_resources[] = {
-> > +#if defined(CONFIG_ARCH_OMAP2420)
-> >  	{
-> > -		.start		= OMAP2_MBOX_BASE,
-> > -		.end		= OMAP2_MBOX_BASE + 0x11f,
-> > +		.start		= OMAP24XX_MAILBOX_BASE,
-> > +		.end		= OMAP24XX_MAILBOX_BASE + MBOX_REG_SIZE - 1,
-> >  		.flags		= IORESOURCE_MEM,
-> >  	},
-> >  	{
-> > @@ -101,6 +103,18 @@ static struct resource mbox_resources[] = {
-> >  		.start		= INT_24XX_MAIL_U3_MPU,
-> >  		.flags		= IORESOURCE_IRQ,
-> >  	},
-> > +/* FIXME: if multiple architecture support is necessary */
-> > +#elif  defined(CONFIG_ARCH_OMAP3)
-> > +	{
-> > +		.start		= OMAP34XX_MAILBOX_BASE,
-> > +		.end		= OMAP34XX_MAILBOX_BASE + MBOX_REG_SIZE - 1,
-> > +		.flags		= IORESOURCE_MEM,
-> > +	},
-> > +	{
-> > +		.start		= INT_34XX_MAIL_U0_MPU,
-> > +		.flags		= IORESOURCE_IRQ,
-> > +	},
-> > +#endif
-> >  };
-> > 
-> >  static struct platform_device mbox_device = {
-> > @@ -116,7 +130,7 @@ static inline void omap_init_mbox(void)
-> >  }
-> >  #else
-> >  static inline void omap_init_mbox(void) { }
-> > -#endif
-> > +#endif /* CONFIG_OMAP_MBOX_FWK */
-> > 
-> >  #if defined(CONFIG_OMAP_STI)
-> > 
-> > diff --git a/arch/arm/mach-omap2/mailbox.c b/arch/arm/mach-omap2/mailbox.c
-> > index 5ff2ed8..261cd79 100644
-> > --- a/arch/arm/mach-omap2/mailbox.c
-> > +++ b/arch/arm/mach-omap2/mailbox.c
-> > @@ -30,7 +30,7 @@
-> >  #define MAILBOX_IRQ_NEWMSG(u)		(1 << (2 * (u)))
-> >  #define MAILBOX_IRQ_NOTFULL(u)		(1 << (2 * (u) + 1))
-> > 
-> > -static unsigned long mbox_base;
-> > +static void __iomem *mbox_base;
-> > 
-> >  struct omap_mbox2_fifo {
-> >  	unsigned long msg;
-> > @@ -52,14 +52,14 @@ static struct clk *mbox_ick_handle;
-> >  static void omap2_mbox_enable_irq(struct omap_mbox *mbox,
-> >  				  omap_mbox_type_t irq);
-> > 
-> > -static inline unsigned int mbox_read_reg(unsigned int reg)
-> > +static inline unsigned int mbox_read_reg(size_t ofs)
-> >  {
-> > -	return __raw_readl((void __iomem *)(mbox_base + reg));
-> > +	return __raw_readl(mbox_base + ofs);
-> >  }
-> > 
-> > -static inline void mbox_write_reg(unsigned int val, unsigned int reg)
-> > +static inline void mbox_write_reg(u32 val, size_t ofs)
-> >  {
-> > -	__raw_writel(val, (void __iomem *)(mbox_base + reg));
-> > +	__raw_writel(val, mbox_base + ofs);
-> >  }
-> > 
-> >  /* Mailbox H/W preparations */
-> > @@ -208,7 +208,7 @@ struct omap_mbox mbox_dsp_info = {
-> >  };
-> >  EXPORT_SYMBOL(mbox_dsp_info);
-> > 
-> > -/* IVA */
-> > +#if defined(CONFIG_ARCH_OMAP2420) /* IVA */
-> >  static struct omap_mbox2_priv omap2_mbox_iva_priv = {
-> >  	.tx_fifo = {
-> >  		.msg		= MAILBOX_MESSAGE(2),
-> > @@ -229,52 +229,66 @@ static struct omap_mbox mbox_iva_info = {
-> >  	.ops	= &omap2_mbox_ops,
-> >  	.priv	= &omap2_mbox_iva_priv,
-> >  };
-> > +#endif
-> > 
-> >  static int __init omap2_mbox_probe(struct platform_device *pdev)
-> >  {
-> >  	struct resource *res;
-> >  	int ret = 0;
-> > 
-> > -	if (pdev->num_resources != 3) {
-> > -		dev_err(&pdev->dev, "invalid number of resources: %d\n",
-> > -			pdev->num_resources);
-> > -		return -ENODEV;
-> > -	}
-> > -
-> >  	/* MBOX base */
-> >  	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-> >  	if (unlikely(!res)) {
-> >  		dev_err(&pdev->dev, "invalid mem resource\n");
-> >  		return -ENODEV;
-> >  	}
-> > -	mbox_base = res->start;
-> > +	mbox_base = ioremap(res->start, res->end - res->start);
-> > +	if (!mbox_base)
-> > +		return -ENOMEM;
-> > 
-> > -	/* DSP IRQ */
-> > +	/* DSP or IVA2 IRQ */
-> >  	res = platform_get_resource(pdev, IORESOURCE_IRQ, 0);
-> >  	if (unlikely(!res)) {
-> >  		dev_err(&pdev->dev, "invalid irq resource\n");
-> > -		return -ENODEV;
-> > +		ret = -ENODEV;
-> > +		goto err_dsp;
-> >  	}
-> >  	mbox_dsp_info.irq = res->start;
-> > 
-> >  	ret = omap_mbox_register(&mbox_dsp_info);
-> > +	if (!ret)
-> > +		goto err_dsp;
-> > 
-> > +#if defined(CONFIG_ARCH_OMAP2420)
-> >  	/* IVA IRQ */
-> >  	res = platform_get_resource(pdev, IORESOURCE_IRQ, 1);
-> >  	if (unlikely(!res)) {
-> >  		dev_err(&pdev->dev, "invalid irq resource\n");
-> > -		return -ENODEV;
-> > +		ret = -ENODEV;
-> > +		goto err_iva1;
-> >  	}
-> >  	mbox_iva_info.irq = res->start;
-> > 
-> >  	ret = omap_mbox_register(&mbox_iva_info);
-> > +	if (!ret)
-> > +		goto err_iva1;
-> > +#endif
-> > +	return ret;
-> > 
-> > +err_iva1:
-> > +	omap_mbox_unregister(&mbox_dsp_info);
-> > +err_dsp:
-> > +	iounmap(mbox_base);
-> >  	return ret;
-> >  }
-> > 
-> >  static int omap2_mbox_remove(struct platform_device *pdev)
-> >  {
-> > +#if defined(CONFIG_ARCH_OMAP2420)
-> > +	omap_mbox_unregister(&mbox_iva_info);
-> > +#endif
-> >  	omap_mbox_unregister(&mbox_dsp_info);
-> > +	iounmap(mbox_base);
-> >  	return 0;
-> >  }
-> > 
-> > diff --git a/arch/arm/plat-omap/Kconfig b/arch/arm/plat-omap/Kconfig
-> > index 960c13f..2465aea 100644
-> > --- a/arch/arm/plat-omap/Kconfig
-> > +++ b/arch/arm/plat-omap/Kconfig
-> > @@ -180,7 +180,7 @@ config OMAP_MBOX_FWK
-> >  	default n
-> >  	help
-> >  	  Say Y here if you want to use OMAP Mailbox framework support for
-> > -	  DSP and IVA1.0 in OMAP1/2.
-> > +	  DSP, IVA1.0 and IVA2 in OMAP1/2/3.
-> > 
-> >  choice
-> >          prompt "System timer"
-> > diff --git a/arch/arm/plat-omap/include/mach/irqs.h b/arch/arm/plat-
-> > omap/include/mach/irqs.h
-> > index d12c39f..74f58c6 100644
-> > --- a/arch/arm/plat-omap/include/mach/irqs.h
-> > +++ b/arch/arm/plat-omap/include/mach/irqs.h
-> > @@ -315,6 +315,7 @@
-> >  #define INT_34XX_MCBSP3_IRQ	22
-> >  #define INT_34XX_MCBSP4_IRQ	23
-> >  #define INT_34XX_CAM_IRQ	24
-> > +#define INT_34XX_MAIL_U0_MPU	26
-> >  #define INT_34XX_MCBSP5_IRQ	27
-> >  #define INT_34XX_GPIO_BANK1	29
-> >  #define INT_34XX_GPIO_BANK2	30
-> > diff --git a/arch/arm/plat-omap/include/mach/omap34xx.h b/arch/arm/plat-
-> > omap/include/mach/omap34xx.h
-> > index 0a137c1..afd0f6c 100644
-> > --- a/arch/arm/plat-omap/include/mach/omap34xx.h
-> > +++ b/arch/arm/plat-omap/include/mach/omap34xx.h
-> > @@ -63,8 +63,8 @@
-> >  #define OMAP2_CM_BASE			OMAP3430_CM_BASE
-> >  #define OMAP2_PRM_BASE			OMAP3430_PRM_BASE
-> >  #define OMAP2_VA_IC_BASE		IO_ADDRESS(OMAP34XX_IC_BASE)
-> > +#define OMAP34XX_MAILBOX_BASE		(L4_34XX_BASE + 0x94000)
-> >  #define OMAP34XX_CAMERA_BASE		(L4_34XX_BASE + 0xBC000)
-> > -
-> >  #endif
-> > 
-> >  #define OMAP34XX_DSP_BASE	0x58000000
-> > --
-> > 1.6.0.3.613.g9f8f13
-> > 
-> > --
-> > To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> > the body of a message to majordomo@vger.kernel.org
-> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+--- a/drivers/input/keyboard/Kconfig
++++ b/drivers/input/keyboard/Kconfig
+@@ -259,6 +259,17 @@ config KEYBOARD_OMAP
+ 	  To compile this driver as a module, choose M here: the
+ 	  module will be called omap-keypad.
+ 
++config KEYBOARD_TWL4030
++	tristate "TI TWL4030/TWL5030/TPS659x0 keypad support"
++	depends on TWL4030_CORE
++	help
++	  Say Y here if your board use the keypad controller on
++	  TWL4030 family chips.  It's safe to say enable this
++	  even on boards that don't use the keypad controller.
++
++	  To compile this driver as a module, choose M here: the
++	  module will be called twl4030_keypad.
++
+ config KEYBOARD_PXA27x
+ 	tristate "PXA27x/PXA3xx keypad support"
+ 	depends on PXA27x || PXA3xx
+--- a/drivers/input/keyboard/Makefile
++++ b/drivers/input/keyboard/Makefile
+@@ -28,3 +28,4 @@ obj-$(CONFIG_KEYBOARD_HP7XX)		+= jornada
+ obj-$(CONFIG_KEYBOARD_MAPLE)		+= maple_keyb.o
+ obj-$(CONFIG_KEYBOARD_BFIN)		+= bf54x-keys.o
+ obj-$(CONFIG_KEYBOARD_SH_KEYSC)		+= sh_keysc.o
++obj-$(CONFIG_KEYBOARD_TWL4030)		+= twl4030_keypad.o
+--- /dev/null
++++ b/drivers/input/keyboard/twl4030_keypad.c
+@@ -0,0 +1,489 @@
++/*
++ * twl4030_keypad.c
++ *
++ * Copyright (C) 2007 Texas Instruments, Inc.
++ * Copyright (C) 2008 Nokia Corporation
++ *
++ * Code re-written for 2430SDP by:
++ * Syed Mohammed Khasim <x0khasim@ti.com>
++ *
++ * Initial Code:
++ * Manjunatha G K <manjugk@ti.com>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 2 of the License, or
++ * (at your option) any later version.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
++ * GNU General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
++ */
++
++#include <linux/kernel.h>
++#include <linux/module.h>
++#include <linux/init.h>
++#include <linux/interrupt.h>
++#include <linux/input.h>
++#include <linux/platform_device.h>
++#include <linux/i2c/twl4030.h>
++
++/*
++ * The TWL4030 family chips include a keypad controller that supports
++ * up to an 8x8 switch matrix.  The controller can issue system wakeup
++ * events, since it uses only the always-on 32KiHz oscillator, and has
++ * an internal state machine that decodes pressed keys, including
++ * multi-key combinations.
++ *
++ * This driver lets boards define what keycodes they wish to report for
++ * which scancodes, as part of the "struct twl4030_keypad_data" used in
++ * the probe() routine.
++ *
++ * See the TPS65950 documentation; that's the general availability
++ * version of the TWL5030 second generation part.
++ */
++#define MAX_ROWS		8	/* TWL4030 hard limit */
++
++struct twl4030_keypad {
++	int		*keymap;
++	unsigned int	keymapsize;
++	u16		kp_state[MAX_ROWS];
++	int		n_rows;
++	int		n_cols;
++	int		irq;
++
++	struct device	*dbg_dev;
++	struct input_dev *input;
++};
++
++#define ROWCOL_MASK	KEY(0xf, 0xf, 0)
++#define KEYNUM_MASK	(~PERSISTENT_KEY(0xf, 0xf))
++
++/*----------------------------------------------------------------------*/
++
++/* arbitrary prescaler value 0..7 */
++#define PTV_PRESCALER			4
++
++/* Register Offsets */
++#define KEYP_CTRL			0x00
++#define KEYP_DEB			0x01
++#define KEYP_LONG_KEY			0x02
++#define KEYP_LK_PTV			0x03
++#define KEYP_TIMEOUT_L			0x04
++#define KEYP_TIMEOUT_H			0x05
++#define KEYP_KBC			0x06
++#define KEYP_KBR			0x07
++#define KEYP_SMS			0x08
++#define KEYP_FULL_CODE_7_0		0x09	/* row 0 column status */
++#define KEYP_FULL_CODE_15_8		0x0a	/* ... row 1 ... */
++#define KEYP_FULL_CODE_23_16		0x0b
++#define KEYP_FULL_CODE_31_24		0x0c
++#define KEYP_FULL_CODE_39_32		0x0d
++#define KEYP_FULL_CODE_47_40		0x0e
++#define KEYP_FULL_CODE_55_48		0x0f
++#define KEYP_FULL_CODE_63_56		0x10
++#define KEYP_ISR1			0x11
++#define KEYP_IMR1			0x12
++#define KEYP_ISR2			0x13
++#define KEYP_IMR2			0x14
++#define KEYP_SIR			0x15
++#define KEYP_EDR			0x16	/* edge triggers */
++#define KEYP_SIH_CTRL			0x17
++
++/* KEYP_CTRL_REG Fields */
++#define KEYP_CTRL_SOFT_NRST		BIT(0)
++#define KEYP_CTRL_SOFTMODEN		BIT(1)
++#define KEYP_CTRL_LK_EN			BIT(2)
++#define KEYP_CTRL_TOE_EN		BIT(3)
++#define KEYP_CTRL_TOLE_EN		BIT(4)
++#define KEYP_CTRL_RP_EN			BIT(5)
++#define KEYP_CTRL_KBD_ON		BIT(6)
++
++/* KEYP_DEB, KEYP_LONG_KEY, KEYP_TIMEOUT_x*/
++#define KEYP_PERIOD_US(t, prescale)	((t) / (31 << (prescale + 1)) - 1)
++
++/* KEYP_LK_PTV_REG Fields */
++#define KEYP_LK_PTV_PTV_SHIFT		5
++
++/* KEYP_{IMR,ISR,SIR} Fields */
++#define KEYP_IMR1_MIS			BIT(3)
++#define KEYP_IMR1_TO			BIT(2)
++#define KEYP_IMR1_LK			BIT(1)
++#define KEYP_IMR1_KP			BIT(0)
++
++/* KEYP_EDR Fields */
++#define KEYP_EDR_KP_FALLING		0x01
++#define KEYP_EDR_KP_RISING		0x02
++#define KEYP_EDR_KP_BOTH		0x03
++#define KEYP_EDR_LK_FALLING		0x04
++#define KEYP_EDR_LK_RISING		0x08
++#define KEYP_EDR_TO_FALLING		0x10
++#define KEYP_EDR_TO_RISING		0x20
++#define KEYP_EDR_MIS_FALLING		0x40
++#define KEYP_EDR_MIS_RISING		0x80
++
++
++/*----------------------------------------------------------------------*/
++
++static int twl4030_kpread(struct twl4030_keypad *kp,
++		u8 *data, u32 reg, u8 num_bytes)
++{
++	int ret;
++
++	ret = twl4030_i2c_read(TWL4030_MODULE_KEYPAD, data, reg, num_bytes);
++	if (ret < 0) {
++		dev_warn(kp->dbg_dev,
++			"Couldn't read TWL4030: %X - ret %d[%x]\n",
++			 reg, ret, ret);
++		return ret;
++	}
++	return ret;
++}
++
++static int twl4030_kpwrite_u8(struct twl4030_keypad *kp, u8 data, u32 reg)
++{
++	int ret;
++
++	ret = twl4030_i2c_write_u8(TWL4030_MODULE_KEYPAD, data, reg);
++	if (ret < 0) {
++		dev_warn(kp->dbg_dev,
++			"Could not write TWL4030: %X - ret %d[%x]\n",
++			 reg, ret, ret);
++		return ret;
++	}
++	return ret;
++}
++
++static int twl4030_find_key(struct twl4030_keypad *kp, int col, int row)
++{
++	int i, rc;
++
++	rc = KEY(col, row, 0);
++	for (i = 0; i < kp->keymapsize; i++)
++		if ((kp->keymap[i] & ROWCOL_MASK) == rc)
++			return kp->keymap[i] & (KEYNUM_MASK | KEY_PERSISTENT);
++
++	return -EINVAL;
++}
++
++static inline u16 twl4030_col_xlate(struct twl4030_keypad *kp, u8 col)
++{
++	/* If all bits in a row are active for all coloumns then
++	 * we have that row line connected to gnd. Mark this
++	 * key on as if it was on matrix position n_cols (ie
++	 * one higher than the size of the matrix).
++	 */
++	if (col == 0xFF)
++		return 1 << kp->n_cols;
++	else
++		return col & ((1 << kp->n_cols) - 1);
++}
++
++static int twl4030_read_kp_matrix_state(struct twl4030_keypad *kp, u16 *state)
++{
++	u8 new_state[MAX_ROWS];
++	int row;
++	int ret = twl4030_kpread(kp,
++				 new_state, KEYP_FULL_CODE_7_0, kp->n_rows);
++	if (ret >= 0) {
++		for (row = 0; row < kp->n_rows; row++)
++			state[row] = twl4030_col_xlate(kp, new_state[row]);
++	}
++	return ret;
++}
++
++static int twl4030_is_in_ghost_state(struct twl4030_keypad *kp, u16 *key_state)
++{
++	int i;
++	u16 check = 0;
++
++	for (i = 0; i < kp->n_rows; i++) {
++		u16 col = key_state[i];
++
++		if ((col & check) && hweight16(col) > 1)
++			return 1;
++		check |= col;
++	}
++
++	return 0;
++}
++
++static void twl4030_kp_scan(struct twl4030_keypad *kp, int release_all)
++{
++	u16 new_state[MAX_ROWS];
++	int col, row;
++
++	if (release_all)
++		memset(new_state, 0, sizeof(new_state));
++	else {
++		/* check for any changes */
++		int ret = twl4030_read_kp_matrix_state(kp, new_state);
++
++		if (ret < 0)	/* panic ... */
++			return;
++		if (twl4030_is_in_ghost_state(kp, new_state))
++			return;
++	}
++
++	/* check for changes and print those */
++	for (row = 0; row < kp->n_rows; row++) {
++		int changed = new_state[row] ^ kp->kp_state[row];
++
++		if (!changed)
++			continue;
++
++		for (col = 0; col < kp->n_cols; col++) {
++			int key;
++
++			if (!(changed & (1 << col)))
++				continue;
++
++			dev_dbg(kp->dbg_dev, "key [%d:%d] %s\n", row, col,
++				(new_state[row] & (1 << col)) ?
++				"press" : "release");
++
++			key = twl4030_find_key(kp, col, row);
++			if (key < 0)
++				dev_warn(kp->dbg_dev,
++					"Spurious key event %d-%d\n",
++					 col, row);
++			else if (key & KEY_PERSISTENT)
++				continue;
++			else
++				input_report_key(kp->input, key,
++						 new_state[row] & (1 << col));
++		}
++		kp->kp_state[row] = new_state[row];
++	}
++}
++
++/*
++ * Keypad interrupt handler
++ */
++static irqreturn_t do_kp_irq(int irq, void *_kp)
++{
++	struct twl4030_keypad *kp = _kp;
++	u8 reg;
++	int ret;
++
++#ifdef CONFIG_LOCKDEP
++	/* WORKAROUND for lockdep forcing IRQF_DISABLED on us, which
++	 * we don't want and can't tolerate.  Although it might be
++	 * friendlier not to borrow this thread context...
++	 */
++	local_irq_enable();
++#endif
++
++	/* Read & Clear TWL4030 pending interrupt */
++	ret = twl4030_kpread(kp, &reg, KEYP_ISR1, 1);
++
++	/* Release all keys if I2C has gone bad or
++	 * the KEYP has gone to idle state */
++	if ((ret >= 0) && (reg & KEYP_IMR1_KP))
++		twl4030_kp_scan(kp, 0);
++	else
++		twl4030_kp_scan(kp, 1);
++
++	return IRQ_HANDLED;
++}
++
++/*
++ * Registers keypad device with input subsystem
++ * and configures TWL4030 keypad registers
++ */
++static int __devinit twl4030_kp_probe(struct platform_device *pdev)
++{
++	u8 reg;
++	int i;
++	int ret = 0;
++	struct twl4030_keypad *kp;
++	struct twl4030_keypad_data *pdata = pdev->dev.platform_data;
++
++	kp = kzalloc(sizeof(*kp), GFP_KERNEL);
++	if (!kp)
++		return -ENOMEM;
++
++	if (!pdata->rows || !pdata->cols || !pdata->keymap) {
++		dev_err(&pdev->dev, "No rows, cols or keymap from pdata\n");
++		kfree(kp);
++		return -EINVAL;
++	}
++
++	/* ASSERT:  cols <= 8, rows <= 8 */
++
++	dev_set_drvdata(&pdev->dev, kp);
++
++	/* Get the debug Device */
++	kp->dbg_dev = &pdev->dev;
++
++	kp->input = input_allocate_device();
++	if (!kp->input) {
++		kfree(kp);
++		return -ENOMEM;
++	}
++
++	kp->keymap = pdata->keymap;
++	kp->keymapsize = pdata->keymapsize;
++	kp->n_rows = pdata->rows;
++	kp->n_cols = pdata->cols;
++	kp->irq = platform_get_irq(pdev, 0);
++
++	/* setup input device */
++	set_bit(EV_KEY, kp->input->evbit);
++
++	/* Enable auto repeat feature of Linux input subsystem */
++	if (pdata->rep)
++		set_bit(EV_REP, kp->input->evbit);
++
++	for (i = 0; i < kp->keymapsize; i++)
++		set_bit(kp->keymap[i] & KEYNUM_MASK,
++				kp->input->keybit);
++
++	kp->input->name	= "TWL4030 Keypad";
++	kp->input->phys	= "twl4030_keypad/input0";
++	kp->input->dev.parent	= &pdev->dev;
++
++	kp->input->id.bustype	= BUS_HOST;
++	kp->input->id.vendor	= 0x0001;
++	kp->input->id.product	= 0x0001;
++	kp->input->id.version	= 0x0003;
++
++	kp->input->keycode	= kp->keymap;
++	kp->input->keycodesize	= sizeof(unsigned int);
++	kp->input->keycodemax	= kp->keymapsize;
++
++	ret = input_register_device(kp->input);
++	if (ret < 0) {
++		dev_err(kp->dbg_dev,
++			"Unable to register twl4030 keypad device\n");
++		goto err2;
++	}
++
++	/* Enable controller, with hardware decoding but not autorepeat */
++	reg = KEYP_CTRL_SOFT_NRST | KEYP_CTRL_SOFTMODEN
++		| KEYP_CTRL_TOE_EN | KEYP_CTRL_KBD_ON;
++	ret = twl4030_kpwrite_u8(kp, reg, KEYP_CTRL);
++	if (ret < 0)
++		goto err3;
++
++	/* NOTE:  we don't use the sih_setup() here to package
++	 * the four keypad event sources as four different IRQs.
++	 */
++
++	/* Enable TO rising and KP rising and falling edge detection */
++	reg = KEYP_EDR_KP_BOTH | KEYP_EDR_TO_RISING;
++	ret = twl4030_kpwrite_u8(kp, reg, KEYP_EDR);
++	if (ret < 0)
++		goto err3;
++
++	/* Set PTV prescaler Field */
++	reg = (PTV_PRESCALER << KEYP_LK_PTV_PTV_SHIFT);
++	ret = twl4030_kpwrite_u8(kp, reg, KEYP_LK_PTV);
++	if (ret < 0)
++		goto err3;
++
++	/* Set key debounce time to 20 ms */
++	i = KEYP_PERIOD_US(20000, PTV_PRESCALER);
++	ret = twl4030_kpwrite_u8(kp, i, KEYP_DEB);
++	if (ret < 0)
++		goto err3;
++
++	/* Set timeout period to 100 ms */
++	i = KEYP_PERIOD_US(200000, PTV_PRESCALER);
++	ret = twl4030_kpwrite_u8(kp, (i & 0xFF), KEYP_TIMEOUT_L);
++	if (ret < 0)
++		goto err3;
++	ret = twl4030_kpwrite_u8(kp, (i >> 8), KEYP_TIMEOUT_H);
++	if (ret < 0)
++		goto err3;
++
++	/* Enable Clear-on-Read; disable remembering events that fire
++	 * after the IRQ but before our handler acks (reads) them,
++	 */
++	reg = TWL4030_SIH_CTRL_COR_MASK | TWL4030_SIH_CTRL_PENDDIS_MASK;
++	ret = twl4030_kpwrite_u8(kp, reg, KEYP_SIH_CTRL);
++	if (ret < 0)
++		goto err3;
++
++	/* initialize key state; irqs update it from here on */
++	ret = twl4030_read_kp_matrix_state(kp, kp->kp_state);
++	if (ret < 0)
++		goto err3;
++
++	/*
++	 * This ISR will always execute in kernel thread context because of
++	 * the need to access the TWL4030 over the I2C bus.
++	 *
++	 * NOTE:  we assume this host is wired to TWL4040 INT1, not INT2 ...
++	 */
++	ret = request_irq(kp->irq, do_kp_irq, 0, pdev->name, kp);
++	if (ret < 0) {
++		dev_info(kp->dbg_dev, "request_irq failed for irq no=%d\n",
++			kp->irq);
++		goto err3;
++	} else {
++		/* Enable KP and TO interrupts now. */
++		reg = (u8) ~(KEYP_IMR1_KP | KEYP_IMR1_TO);
++		ret = twl4030_kpwrite_u8(kp, reg, KEYP_IMR1);
++		if (ret < 0)
++			goto err5;
++	}
++
++	return ret;
++err5:
++	/* mask all events - we don't care about the result */
++	(void) twl4030_kpwrite_u8(kp, 0xff, KEYP_IMR1);
++	free_irq(kp->irq, NULL);
++err3:
++	input_unregister_device(kp->input);
++err2:
++	input_free_device(kp->input);
++
++	return -ENODEV;
++}
++
++static int __devexit twl4030_kp_remove(struct platform_device *pdev)
++{
++	struct twl4030_keypad *kp = dev_get_drvdata(&pdev->dev);
++
++	free_irq(kp->irq, kp);
++	input_unregister_device(kp->input);
++	kfree(kp);
++
++	return 0;
++}
++
++MODULE_ALIAS("platform:twl4030_keypad");
++
++static struct platform_driver twl4030_kp_driver = {
++	.probe		= twl4030_kp_probe,
++	.remove		= __devexit_p(twl4030_kp_remove),
++	.driver		= {
++		.name	= "twl4030_keypad",
++		.owner	= THIS_MODULE,
++	},
++};
++
++/*
++ * OMAP TWL4030 Keypad init
++ */
++static int __init twl4030_kp_init(void)
++{
++	return platform_driver_register(&twl4030_kp_driver);
++}
++module_init(twl4030_kp_init);
++
++static void __exit twl4030_kp_exit(void)
++{
++	platform_driver_unregister(&twl4030_kp_driver);
++}
++module_exit(twl4030_kp_exit);
++
++MODULE_AUTHOR("Texas Instruments");
++MODULE_DESCRIPTION("TWL4030 Keypad Driver");
++MODULE_LICENSE("GPL");
+--- a/include/linux/i2c/twl4030.h
++++ b/include/linux/i2c/twl4030.h
+@@ -255,11 +255,18 @@ struct twl4030_madc_platform_data {
+ 	int		irq_line;
+ };
+ 
++/* Boards have uniqe mappings of {col, row} --> keycode.
++ * Column and row are 4 bits, but range only from 0..7;
++ * a PERSISTENT_KEY is "always on" and never reported.
++ */
++#define KEY_PERSISTENT		0x00800000
++#define KEY(col, row, keycode)	(((col) << 28) | ((row) << 24) | (keycode))
++#define PERSISTENT_KEY(c, r)	KEY(c, r, KEY_PERSISTENT)
++
+ struct twl4030_keypad_data {
+ 	int rows;
+ 	int cols;
+ 	int *keymap;
+-	int irq;
+ 	unsigned int keymapsize;
+ 	unsigned int rep:1;
+ };
