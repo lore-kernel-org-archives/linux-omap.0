@@ -1,50 +1,42 @@
-From: green <greenfreedom10@gmail.com>
-Subject: Re: [PATCH 0/3] Hacks to make Nokia N800 compile
-Date: Thu, 22 Jan 2009 13:53:47 -0700
-Message-ID: <20090122205347.GC6548@swansys>
-References: <20090122131602.18315.84862.stgit@tikku>
+From: david.hagood@gmail.com
+Subject: Odd behavior in musb_hdrc OTG if gadget drivers are modules
+Date: Thu, 22 Jan 2009 15:46:28 -0600 (CST)
+Message-ID: <6cc6e376b34fd371cf946c1660c97f6e.squirrel@localhost>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="Qbvjkv9qwOGw/5Fx"
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from qw-out-2122.google.com ([74.125.92.24]:52104 "EHLO
-	qw-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750896AbZAVUyH (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 22 Jan 2009 15:54:07 -0500
-Received: by qw-out-2122.google.com with SMTP id 3so2019201qwe.37
-        for <linux-omap@vger.kernel.org>; Thu, 22 Jan 2009 12:54:05 -0800 (PST)
-Content-Disposition: inline
-In-Reply-To: <20090122131602.18315.84862.stgit@tikku>
-Content-Language: en
+Received: from mail-ew0-f20.google.com ([209.85.219.20]:54436 "EHLO
+	mail-ew0-f20.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752527AbZAVVqh (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 22 Jan 2009 16:46:37 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+
+I've spend the day tracking down a weird behavior on a Beagleboard with
+2.6.29-rc2-omap1.
+
+If you select the mode for the musb to operate in OnTheGo mode
+(CONFIG_USB_MUSB_OTG), and if you compile the gadget drivers as modules,
+the the USB port will NOT be brought up at system boot, even if it has a
+USB mini-A cable plugged in (and thus should be in host mode, not gadget
+mode).
+
+If you then modprobe an appropriate gadget driver, then the interface will
+be brought up in host mode.
+
+If you DON'T modprobe a gadget driver, AND you attempt to force the port
+to host mode by
+  echo host > /sys/devices/platform/musb_hdrc/mode
+
+Then we get a kernel page fault trying to change modes, even though we are
+changing to host mode, which should be valid.
+
+It seems to me that either the port should be brought up in host mode if
+no gadget drivers are loaded, and an attempt to switch to gadget mode
+should fail if no driver is loaded, OR there should be a config options to
+set what the default gadget driver is in the absence of one being loaded
+by the system.
 
 
---Qbvjkv9qwOGw/5Fx
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-
-On Thu, 2009-01-22, 022, Kalle Valo wrote:
-> In currently linux-omap tree n800_defconfig doesn't compile because of few
-> compiler and linker errors. Here are the fixes/hacks which I use. I'll se=
-nd=20
-> them in case anyone else is interested them.
-
-Thanks; I hope to try this again soon on an N810.
-
---Qbvjkv9qwOGw/5Fx
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.9 (GNU/Linux)
-
-iEYEARECAAYFAkl43NsACgkQ682C+dBP+oRLoQCg2f5AxwkS6xG+MFex4jQ6FFdL
-xdEAoMhRa99LO1bF3IbV0MxnPSlN8r2p
-=mGSp
------END PGP SIGNATURE-----
-
---Qbvjkv9qwOGw/5Fx--
