@@ -1,94 +1,109 @@
-From: Trilok Soni <soni.trilok@gmail.com>
-Subject: Re: [patch/rfc 2.6.28-rc2] input: twl4030_keypad driver
-Date: Thu, 22 Jan 2009 23:27:30 +0530
-Message-ID: <5d5443650901220957i1852982sadc2baf77223decb@mail.gmail.com>
-References: <200901211613.06427.david-b@pacbell.net>
-	 <5d5443650901212309u10bdbf46pb76950f49fc7cebb@mail.gmail.com>
-	 <200901220942.50252.david-b@pacbell.net>
+From: "Premi, Sanjeev" <premi@ti.com>
+Subject: RE: cpuidle and NO_HZ
+Date: Fri, 23 Jan 2009 00:01:49 +0530
+Message-ID: <B85A65D85D7EB246BE421B3FB0FBB59301C6DD03F9@dbde02.ent.ti.com>
+References: <B85A65D85D7EB246BE421B3FB0FBB59301C6DD0347@dbde02.ent.ti.com>
+ <8bf247760901220906n1ab095a0h695e9c1f5e8db916@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-input-owner@vger.kernel.org>
-In-Reply-To: <200901220942.50252.david-b@pacbell.net>
-Sender: linux-input-owner@vger.kernel.org
-To: David Brownell <david-b@pacbell.net>
-Cc: linux-input@vger.kernel.org, OMAP <linux-omap@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:54612 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753013AbZAVScF convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 22 Jan 2009 13:32:05 -0500
+In-Reply-To: <8bf247760901220906n1ab095a0h695e9c1f5e8db916@mail.gmail.com>
+Content-Language: en-US
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Sriram V <vshrirama@gmail.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Hi David,
+> -----Original Message-----
+> From: Sriram V [mailto:vshrirama@gmail.com] 
+> Sent: Thursday, January 22, 2009 10:37 PM
+> To: Premi, Sanjeev
+> Cc: linux-omap@vger.kernel.org
+> Subject: Re: cpuidle and NO_HZ
+> 
+> Sanjeev,
+> 
+> On Thu, Jan 22, 2009 at 8:14 PM, Premi, Sanjeev <premi@ti.com> wrote:
+> > Hi all,
+> >
+> > While trying to use NFS hosted filesystem, I have made a 
+> strange observation. Have verified it on multiple OMAP3EVM boards.
+> >
+> > With CONFIG_NO_HZ and CONFIG_CPU_IDLE, after the print 
+> "Freeing init memory: 152K" in the log below; the boot 
+> sequence almost stops for approx a minute before proceeding further.
+> >
+> >   Sending DHCP requests .<6>eth0: link up, 100Mbps, 
+> full-duplex, lpa 0x01E1
+> >   ., OK
+> >   IP-Config: Got DHCP answer from 0.0.0.0, my address is 192.168.1.9
+> >   IP-Config: Complete:
+> >     device=eth0, addr=192.168.1.9, mask=255.255.255.0, 
+> gw=192.168.1.9,
+> >     host=192.168.1.9, domain=india.ti.com, nis-domain=(none),
+> >     bootserver=0.0.0.0, rootserver=192.168.1.2, rootpath=
+> >   Looking up port of RPC 100003/2 on 192.168.1.2
+> >   Looking up port of RPC 100005/1 on 192.168.1.2
+> >   VFS: Mounted root (nfs filesystem).
+> >   Freeing init memory: 152K
+> >   init started: BusyBox v1.11.1 (2008-08-06 21:12:30 IST)
+> >   starting pid 442, tty '': '/etc/init.d/rcS'
+> >
+> 
+> This seems to be a wakeup issue. SMC gpio irq needs to be 
+> enabled as a wakeup source.
+> I notice that sometimes even after enabling it as a wakeup 
+> source network interface has trouble. either it is too slow 
+> or it just hangs during nfs mount or takes a long time to 
+> mount. this issue could be somewhere else
+> 
+> I also notice that the whenever network interface hangs 
+> during nfs mount.
+> the nfs server would have exited.
 
-On Thu, Jan 22, 2009 at 11:12 PM, David Brownell <david-b@pacbell.net> wrote:
-> Hi,
->
->
-> ---
->  drivers/input/keyboard/twl4030_keypad.c |   14 ++++++++------
->  1 file changed, 8 insertions(+), 6 deletions(-)
->
-> --- a/drivers/input/keyboard/twl4030_keypad.c
-> +++ b/drivers/input/keyboard/twl4030_keypad.c
-> @@ -260,6 +260,7 @@ static void twl4030_kp_scan(struct twl40
->                }
->                kp->kp_state[row] = new_state[row];
->        }
-> +       input_sync(kp->input);
->  }
->
->  /*
-> @@ -316,7 +317,7 @@ static int __devinit twl4030_kp_probe(st
->
->        /* ASSERT:  cols <= 8, rows <= 8 */
->
-> -       dev_set_drvdata(&pdev->dev, kp);
-> +       platform_set_drvdata(pdev, kp);
->
->        /* Get the debug Device */
->        kp->dbg_dev = &pdev->dev;
-> @@ -334,14 +335,14 @@ static int __devinit twl4030_kp_probe(st
->        kp->irq = platform_get_irq(pdev, 0);
->
->        /* setup input device */
-> -       set_bit(EV_KEY, kp->input->evbit);
-> +       __set_bit(EV_KEY, kp->input->evbit);
->
->        /* Enable auto repeat feature of Linux input subsystem */
->        if (pdata->rep)
-> -               set_bit(EV_REP, kp->input->evbit);
-> +               __set_bit(EV_REP, kp->input->evbit);
->
->        for (i = 0; i < kp->keymapsize; i++)
-> -               set_bit(kp->keymap[i] & KEYNUM_MASK,
-> +               __set_bit(kp->keymap[i] & KEYNUM_MASK,
->                                kp->input->keybit);
->
->        kp->input->name = "TWL4030 Keypad";
-> @@ -441,15 +442,16 @@ err5:
->        free_irq(kp->irq, NULL);
->  err3:
->        input_unregister_device(kp->input);
-> +       kp->input = NULL;
->  err2:
->        input_free_device(kp->input);
-> -
-> +       kfree(kp);
->        return -ENODEV;
->  }
->
->  static int __devexit twl4030_kp_remove(struct platform_device *pdev)
->  {
-> -       struct twl4030_keypad *kp = dev_get_drvdata(&pdev->dev);
-> +       struct twl4030_keypad *kp = platform_get_drvdata(pdev);
->
->        free_irq(kp->irq, kp);
->        input_unregister_device(kp->input);
->
->
+[sp]Thanks. I will try the patch.
 
-Thanks for making changes:
+I did believe it was a wakeup issue until I had not tried the ping.
+All pings were successful; indicating that eth interface is still up.
 
-Reviewed-by: Trilok Soni <soni.trilok@gmail.com>
+The 'mount' succeeding after about a minute is confirms it as well.
 
--- 
----Trilok Soni
-http://triloksoni.wordpress.com
-http://www.linkedin.com/in/triloksoni
+Best regards,
+Sanjeev
+> 
+> 
+> 
+> Regards,
+> sriram
+> 
+> 
+> 
+> 
+> 
+> 
+> 
+> > Later, the system response is slow.
+> >
+> > Toggling either of these CONFIG options seems to resolve the issue.
+> >
+> > My initial suspicion was on the SMC911x driver, but during 
+> this 'wait' period ping requests to the EVM are successful.
+> >
+> > Just wanted to check if anyone has seen this behavior.
+> > (I am on Kevin's latest PM branch 998bd5675a1e...).
+> >
+> > Best regards,
+> > Sanjeev
+> > --
+> > To unsubscribe from this list: send the line "unsubscribe 
+> linux-omap" 
+> > in the body of a message to majordomo@vger.kernel.org More 
+> majordomo 
+> > info at  http://vger.kernel.org/majordomo-info.html
+> >
+> 
