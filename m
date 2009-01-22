@@ -1,52 +1,59 @@
-From: Peter Ujfalusi <peter.ujfalusi@nokia.com>
-Subject: Re: [alsa-devel] [PATCH] ASoC: Complete Beagleboard support
-Date: Thu, 22 Jan 2009 09:53:23 +0200
-Message-ID: <200901220953.23657.peter.ujfalusi@nokia.com>
-References: <5e088bd90901202305m26900888jcaa2b0ec57d3fab1@mail.gmail.com> <5e088bd90901210640v4ce21f8clae9469b60226a6f0@mail.gmail.com> <5e088bd90901210835neb0d8f1s309d4668cf444cc0@mail.gmail.com>
+From: Juha Yrjola <juha.yrjola@solidboot.com>
+Subject: Re: [PATCH] ARM OMAP: Fix race in OMAP2/3 DMA IRQ handling
+Date: Thu, 22 Jan 2009 10:13:35 +0200
+Message-ID: <49782AAF.4070506@solidboot.com>
+References: <20090121172409.GA23967@mail.solidboot.com> <EAF47CD23C76F840A9E7FCE10091EFAB02A39CE60B@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:24969 "EHLO
-	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752767AbZAVHxe convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 22 Jan 2009 02:53:34 -0500
-In-Reply-To: <5e088bd90901210835neb0d8f1s309d4668cf444cc0@mail.gmail.com>
-Content-Disposition: inline
+Received: from solidboot.com ([92.48.122.80]:46157 "EHLO rei.solidboot.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751336AbZAVIes (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 22 Jan 2009 03:34:48 -0500
+In-Reply-To: <EAF47CD23C76F840A9E7FCE10091EFAB02A39CE60B@dbde02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: alsa-devel@alsa-project.org
-Cc: ext Steve Sakoman <sakoman@gmail.com>, linux-omap <linux-omap@vger.kernel.org>
+To: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
+Shilimkar, Santosh wrote:
+>> --- a/arch/arm/plat-omap/dma.c
+>> +++ b/arch/arm/plat-omap/dma.c
+>> @@ -1898,11 +1898,11 @@ static int omap2_dma_handle_ch(int ch)
+>>  		status = dma_read(CSR(ch));
+>>  	}
+>>  
+>> +	dma_write(status, CSR(ch));
+> This is not necessary. Refers line  "dma_write(OMAP2_DMA_CSR_CLEAR_MASK, CSR(ch));" just above.
 
-On Wednesday 21 January 2009 18:35:54 ext Steve Sakoman wrote:
-> I did a quick mplayer test and was able to play an mp3 with this patc=
-h
-> applied to linux-omap top of tree.
+Yes, the current DMA code is full of inconsistencies and illogic. In 
+general, clearing a hard-coded mask of bits in an IRQ status register is 
+a nice way to enter a race with the machine. And that's a race you 
+cannot win every time, so you'll miss IRQs that you haven't handled yet.
 
-That's great!
-Not that I had any objections to the patch itself, but I was not sure i=
-f it is=20
-working. As Mark pointed out - and I was not aware off - that all endpo=
-ints=20
-are on by default and has to be explicitely marked as not connected if =
-they=20
-are not in use.
+A major cleanup should be done to the DMA code, but that's no reason not 
+to fix bugs now.
 
-> Hardware was Beagle Rev C1D
->
-> Steve
+> It will any way do the job of clearing. In a way, clear done after
+> the  callback has no effect since the status reg and global IRQ_enable for
+> the particular channel is already disabled before that.
 
---=20
-P=E9ter
+Yes, in a way that completely ignores the code and hardware behaviour.
 
-> _______________________________________________
-> Alsa-devel mailing list
-> Alsa-devel@alsa-project.org
-> http://mailman.alsa-project.org/mailman/listinfo/alsa-devel
+If you write a 1 to, say, the FRAME bit of the CSR *after* a transfer 
+has been completed, *before* handling the event, you lose the CSR value, 
+so the channel handling function complains (correctly) about a spurious 
+IRQ and refuses to do anything more productive.
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+If you start a quick transfer from the callback function, the FRAME bit 
+*will* get set before control returns from the callback function.
+
+> So dma library is safe from the problem you have described.
+
+Sounds like you're in denial, man. I didn't just randomly send a patch, 
+I actually ran into the problem, fixed it, verified it indeed is fixed, 
+and only after that did I send it.
+
+Cheers,
+Juha
