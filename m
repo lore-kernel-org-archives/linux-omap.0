@@ -1,298 +1,228 @@
-From: Ramesh Gupta Guntha <grgupta77@gmail.com>
-Subject: Re: [PATCH 02/10] omap mailbox: add initial omap3 support
-Date: Thu, 22 Jan 2009 10:42:52 +0530
-Message-ID: <3a2dabf50901212112p10bfd8e7sc31ea58b1c36bfb7@mail.gmail.com>
-References: <1227605998-13531-2-git-send-email-Hiroshi.DOYU@nokia.com>
-	 <1227605998-13531-3-git-send-email-Hiroshi.DOYU@nokia.com>
-	 <8F7AF80515AF0D4D93307E594F3CB40E207E78FB@dlee03.ent.ti.com>
-	 <20090122.004519.48985185.Hiroshi.DOYU@nokia.com>
+From: "Hemanth V" <hemanthv@ti.com>
+Subject: Re: [PATCH] OMAP3 McSPI:  Adds context save/restore
+Date: Thu, 22 Jan 2009 11:18:29 +0530
+Message-ID: <001201c97c55$0f4b7e80$LocalHost@wipultra793>
+References: <64283.10.24.255.17.1232533474.squirrel@dbdmail.itg.ti.com> <87eiywr34b.fsf@deeprootsystems.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain;
+	format=flowed;
+	charset="iso-8859-1";
+	reply-type=original
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from rv-out-0506.google.com ([209.85.198.239]:45510 "EHLO
-	rv-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751161AbZAVFMx (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 22 Jan 2009 00:12:53 -0500
-Received: by rv-out-0506.google.com with SMTP id k40so3963483rvb.1
-        for <linux-omap@vger.kernel.org>; Wed, 21 Jan 2009 21:12:52 -0800 (PST)
-In-Reply-To: <20090122.004519.48985185.Hiroshi.DOYU@nokia.com>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:58557 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755565AbZAVFsm (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 22 Jan 2009 00:48:42 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
-Cc: h-kanigeri2@ti.com, linux-omap@vger.kernel.org
+To: Kevin Hilman <khilman@deeprootsystems.com>
+Cc: linux-omap@vger.kernel.org
 
-Hi Hiroshi,
-
-
-On 1/22/09, Hiroshi DOYU <Hiroshi.DOYU@nokia.com> wrote:
-> Hi Hari,
+From: "Kevin Hilman" <khilman@deeprootsystems.com>
+> "Hemanth V" <hemanthv@ti.com> writes:
 >
-> From: "ext Kanigeri, Hari" <h-kanigeri2@ti.com>
-> Subject: RE: [PATCH 02/10] omap mailbox: add initial omap3 support
-> Date: Wed, 21 Jan 2009 14:02:05 -0600
+>> From: Hemanth V <hemanthv@ti.com>
+>>
+>> This patch adds context save/restore feature to McSPI driver. This has 
+>> been
+>> tested by instrumenting the driver code i.e by adding a McSPI softreset
+>> in omap2_mcspi_disable_clocks function.
 >
-> > Hi Doyu-san,
-> >
-> > Can we add the function to return number of messages in the mailbox ?
+> Were you able to test this on the PM branch with off-mode enabled?
+
+Since OFF-mode is currently not working on 3430SDP board, I have tested this 
+with instrumentation on the PM branch. The instrumentation was to do a 
+softreset on clock disable to ensure all registers are reset to default 
+values. Hence when you enable the clocks, context restore would get tested.
+
 >
-> Yes. I assume that you meant the number of h/w fifo.
-> It would be helpful if you explain the case where this API is used.
-
-This is to make sure that mail box fifo is not full before trying to
-write a new message, if it is full for any reason, one can wait for a
-while until fifo is empty.
-
-thanks
-Ramesh Gupta G
-
-
-
-
-> > > -----Original Message-----
-> > > From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
-> > > owner@vger.kernel.org] On Behalf Of Hiroshi DOYU
-> > > Sent: Tuesday, November 25, 2008 3:40 AM
-> > > To: linux-omap@vger.kernel.org
-> > > Cc: Hiroshi DOYU
-> > > Subject: [PATCH 02/10] omap mailbox: add initial omap3 support
-> > >
-> > > Signed-off-by: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
-> > > ---
-> > >  arch/arm/mach-omap2/devices.c              |   24 +++++++++++---
-> > >  arch/arm/mach-omap2/mailbox.c              |   46 ++++++++++++++++++-----
-> > > -----
-> > >  arch/arm/plat-omap/Kconfig                 |    2 +-
-> > >  arch/arm/plat-omap/include/mach/irqs.h     |    1 +
-> > >  arch/arm/plat-omap/include/mach/omap34xx.h |    2 +-
-> > >  5 files changed, 52 insertions(+), 23 deletions(-)
-> > >
-> > > diff --git a/arch/arm/mach-omap2/devices.c b/arch/arm/mach-omap2/devices.c
-> > > index 241e418..d385f0f 100644
-> > > --- a/arch/arm/mach-omap2/devices.c
-> > > +++ b/arch/arm/mach-omap2/devices.c
-> > > @@ -84,13 +84,15 @@ static inline void omap_init_camera(void)
-> > >  }
-> > >  #endif
-> > >
-> > > -#if defined(CONFIG_OMAP_DSP) || defined(CONFIG_OMAP_DSP_MODULE)
-> > > -#define OMAP2_MBOX_BASE            IO_ADDRESS(OMAP24XX_MAILBOX_BASE)
-> > > +#if defined(CONFIG_OMAP_MBOX_FWK) || defined(CONFIG_OMAP_MBOX_FWK_MODULE)
-> > > +
-> > > +#define MBOX_REG_SIZE      0x120
-> > >
-> > >  static struct resource mbox_resources[] = {
-> > > +#if defined(CONFIG_ARCH_OMAP2420)
-> > >     {
-> > > -           .start          = OMAP2_MBOX_BASE,
-> > > -           .end            = OMAP2_MBOX_BASE + 0x11f,
-> > > +           .start          = OMAP24XX_MAILBOX_BASE,
-> > > +           .end            = OMAP24XX_MAILBOX_BASE + MBOX_REG_SIZE - 1,
-> > >             .flags          = IORESOURCE_MEM,
-> > >     },
-> > >     {
-> > > @@ -101,6 +103,18 @@ static struct resource mbox_resources[] = {
-> > >             .start          = INT_24XX_MAIL_U3_MPU,
-> > >             .flags          = IORESOURCE_IRQ,
-> > >     },
-> > > +/* FIXME: if multiple architecture support is necessary */
-> > > +#elif  defined(CONFIG_ARCH_OMAP3)
-> > > +   {
-> > > +           .start          = OMAP34XX_MAILBOX_BASE,
-> > > +           .end            = OMAP34XX_MAILBOX_BASE + MBOX_REG_SIZE - 1,
-> > > +           .flags          = IORESOURCE_MEM,
-> > > +   },
-> > > +   {
-> > > +           .start          = INT_34XX_MAIL_U0_MPU,
-> > > +           .flags          = IORESOURCE_IRQ,
-> > > +   },
-> > > +#endif
-> > >  };
-> > >
-> > >  static struct platform_device mbox_device = {
-> > > @@ -116,7 +130,7 @@ static inline void omap_init_mbox(void)
-> > >  }
-> > >  #else
-> > >  static inline void omap_init_mbox(void) { }
-> > > -#endif
-> > > +#endif /* CONFIG_OMAP_MBOX_FWK */
-> > >
-> > >  #if defined(CONFIG_OMAP_STI)
-> > >
-> > > diff --git a/arch/arm/mach-omap2/mailbox.c b/arch/arm/mach-omap2/mailbox.c
-> > > index 5ff2ed8..261cd79 100644
-> > > --- a/arch/arm/mach-omap2/mailbox.c
-> > > +++ b/arch/arm/mach-omap2/mailbox.c
-> > > @@ -30,7 +30,7 @@
-> > >  #define MAILBOX_IRQ_NEWMSG(u)              (1 << (2 * (u)))
-> > >  #define MAILBOX_IRQ_NOTFULL(u)             (1 << (2 * (u) + 1))
-> > >
-> > > -static unsigned long mbox_base;
-> > > +static void __iomem *mbox_base;
-> > >
-> > >  struct omap_mbox2_fifo {
-> > >     unsigned long msg;
-> > > @@ -52,14 +52,14 @@ static struct clk *mbox_ick_handle;
-> > >  static void omap2_mbox_enable_irq(struct omap_mbox *mbox,
-> > >                               omap_mbox_type_t irq);
-> > >
-> > > -static inline unsigned int mbox_read_reg(unsigned int reg)
-> > > +static inline unsigned int mbox_read_reg(size_t ofs)
-> > >  {
-> > > -   return __raw_readl((void __iomem *)(mbox_base + reg));
-> > > +   return __raw_readl(mbox_base + ofs);
-> > >  }
-> > >
-> > > -static inline void mbox_write_reg(unsigned int val, unsigned int reg)
-> > > +static inline void mbox_write_reg(u32 val, size_t ofs)
-> > >  {
-> > > -   __raw_writel(val, (void __iomem *)(mbox_base + reg));
-> > > +   __raw_writel(val, mbox_base + ofs);
-> > >  }
-> > >
-> > >  /* Mailbox H/W preparations */
-> > > @@ -208,7 +208,7 @@ struct omap_mbox mbox_dsp_info = {
-> > >  };
-> > >  EXPORT_SYMBOL(mbox_dsp_info);
-> > >
-> > > -/* IVA */
-> > > +#if defined(CONFIG_ARCH_OMAP2420) /* IVA */
-> > >  static struct omap_mbox2_priv omap2_mbox_iva_priv = {
-> > >     .tx_fifo = {
-> > >             .msg            = MAILBOX_MESSAGE(2),
-> > > @@ -229,52 +229,66 @@ static struct omap_mbox mbox_iva_info = {
-> > >     .ops    = &omap2_mbox_ops,
-> > >     .priv   = &omap2_mbox_iva_priv,
-> > >  };
-> > > +#endif
-> > >
-> > >  static int __init omap2_mbox_probe(struct platform_device *pdev)
-> > >  {
-> > >     struct resource *res;
-> > >     int ret = 0;
-> > >
-> > > -   if (pdev->num_resources != 3) {
-> > > -           dev_err(&pdev->dev, "invalid number of resources: %d\n",
-> > > -                   pdev->num_resources);
-> > > -           return -ENODEV;
-> > > -   }
-> > > -
-> > >     /* MBOX base */
-> > >     res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-> > >     if (unlikely(!res)) {
-> > >             dev_err(&pdev->dev, "invalid mem resource\n");
-> > >             return -ENODEV;
-> > >     }
-> > > -   mbox_base = res->start;
-> > > +   mbox_base = ioremap(res->start, res->end - res->start);
-> > > +   if (!mbox_base)
-> > > +           return -ENOMEM;
-> > >
-> > > -   /* DSP IRQ */
-> > > +   /* DSP or IVA2 IRQ */
-> > >     res = platform_get_resource(pdev, IORESOURCE_IRQ, 0);
-> > >     if (unlikely(!res)) {
-> > >             dev_err(&pdev->dev, "invalid irq resource\n");
-> > > -           return -ENODEV;
-> > > +           ret = -ENODEV;
-> > > +           goto err_dsp;
-> > >     }
-> > >     mbox_dsp_info.irq = res->start;
-> > >
-> > >     ret = omap_mbox_register(&mbox_dsp_info);
-> > > +   if (!ret)
-> > > +           goto err_dsp;
-> > >
-> > > +#if defined(CONFIG_ARCH_OMAP2420)
-> > >     /* IVA IRQ */
-> > >     res = platform_get_resource(pdev, IORESOURCE_IRQ, 1);
-> > >     if (unlikely(!res)) {
-> > >             dev_err(&pdev->dev, "invalid irq resource\n");
-> > > -           return -ENODEV;
-> > > +           ret = -ENODEV;
-> > > +           goto err_iva1;
-> > >     }
-> > >     mbox_iva_info.irq = res->start;
-> > >
-> > >     ret = omap_mbox_register(&mbox_iva_info);
-> > > +   if (!ret)
-> > > +           goto err_iva1;
-> > > +#endif
-> > > +   return ret;
-> > >
-> > > +err_iva1:
-> > > +   omap_mbox_unregister(&mbox_dsp_info);
-> > > +err_dsp:
-> > > +   iounmap(mbox_base);
-> > >     return ret;
-> > >  }
-> > >
-> > >  static int omap2_mbox_remove(struct platform_device *pdev)
-> > >  {
-> > > +#if defined(CONFIG_ARCH_OMAP2420)
-> > > +   omap_mbox_unregister(&mbox_iva_info);
-> > > +#endif
-> > >     omap_mbox_unregister(&mbox_dsp_info);
-> > > +   iounmap(mbox_base);
-> > >     return 0;
-> > >  }
-> > >
-> > > diff --git a/arch/arm/plat-omap/Kconfig b/arch/arm/plat-omap/Kconfig
-> > > index 960c13f..2465aea 100644
-> > > --- a/arch/arm/plat-omap/Kconfig
-> > > +++ b/arch/arm/plat-omap/Kconfig
-> > > @@ -180,7 +180,7 @@ config OMAP_MBOX_FWK
-> > >     default n
-> > >     help
-> > >       Say Y here if you want to use OMAP Mailbox framework support for
-> > > -     DSP and IVA1.0 in OMAP1/2.
-> > > +     DSP, IVA1.0 and IVA2 in OMAP1/2/3.
-> > >
-> > >  choice
-> > >          prompt "System timer"
-> > > diff --git a/arch/arm/plat-omap/include/mach/irqs.h b/arch/arm/plat-
-> > > omap/include/mach/irqs.h
-> > > index d12c39f..74f58c6 100644
-> > > --- a/arch/arm/plat-omap/include/mach/irqs.h
-> > > +++ b/arch/arm/plat-omap/include/mach/irqs.h
-> > > @@ -315,6 +315,7 @@
-> > >  #define INT_34XX_MCBSP3_IRQ        22
-> > >  #define INT_34XX_MCBSP4_IRQ        23
-> > >  #define INT_34XX_CAM_IRQ   24
-> > > +#define INT_34XX_MAIL_U0_MPU       26
-> > >  #define INT_34XX_MCBSP5_IRQ        27
-> > >  #define INT_34XX_GPIO_BANK1        29
-> > >  #define INT_34XX_GPIO_BANK2        30
-> > > diff --git a/arch/arm/plat-omap/include/mach/omap34xx.h b/arch/arm/plat-
-> > > omap/include/mach/omap34xx.h
-> > > index 0a137c1..afd0f6c 100644
-> > > --- a/arch/arm/plat-omap/include/mach/omap34xx.h
-> > > +++ b/arch/arm/plat-omap/include/mach/omap34xx.h
-> > > @@ -63,8 +63,8 @@
-> > >  #define OMAP2_CM_BASE                      OMAP3430_CM_BASE
-> > >  #define OMAP2_PRM_BASE                     OMAP3430_PRM_BASE
-> > >  #define OMAP2_VA_IC_BASE           IO_ADDRESS(OMAP34XX_IC_BASE)
-> > > +#define OMAP34XX_MAILBOX_BASE              (L4_34XX_BASE + 0x94000)
-> > >  #define OMAP34XX_CAMERA_BASE               (L4_34XX_BASE + 0xBC000)
-> > > -
-> > >  #endif
-> > >
-> > >  #define OMAP34XX_DSP_BASE  0x58000000
-> > > --
-> > > 1.6.0.3.613.g9f8f13
-> > >
-> > > --
-> > > To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> > > the body of a message to majordomo@vger.kernel.org
-> > > More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> >
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Some general comments:
 >
+> The save/restore only affects a small number of registers and ones
+> that do not change very often.
+>
+> So, I think the save/restore would be more efficiently done by getting
+> rid of the 'save_ctx' and using shadow regs in memory.  IOW, when ever
+> the registers are changed in the code, just update the copy in
+> omap2_mcspi_ctx.  Then you do not need a save_ctx function, you only
+> need a restore.
 
+Yes I agree, will change this.
 
--- 
-Thanks
-Ramesh Gupta G
+>
+> Also, the restore should normally check whether its powerdomain
+> actually went off before restoring.  The OMAP PM layer has the
+> function omap_pm_get_last_off_on_transaction_id() for this.
+>
+> However, In the case of this driver, for only 4 registers it's
+> probably faster to just always restore.
+
+>
+>> Signed-off-by: Hemanth V <hemanthv@ti.com>
+>>
+>> ---
+>>  drivers/spi/omap2_mcspi.c |   88 
+>> +++++++++++++++++++++++++++++++++++++++-------
+>>  1 files changed, 76 insertions(+), 12 deletions(-)
+>>
+>> Index: linux-omap-2.6/drivers/spi/omap2_mcspi.c
+>> ===================================================================
+>> --- linux-omap-2.6.orig/drivers/spi/omap2_mcspi.c 2009-01-21 
+>> 15:03:12.000000000
+>> +0530
+>> +++ linux-omap-2.6/drivers/spi/omap2_mcspi.c 2009-01-21 
+>> 15:05:20.000000000 +0530
+>> @@ -133,6 +133,15 @@
+>>  int word_len;
+>>  };
+>>
+>> +struct omap2_mcspi_regs {
+>> + u32 sysconfig;
+>> + u32 modulctrl;
+>> + u32 chconf0;
+>> + u32 wakeupenable;
+>> +};
+>> +
+>> +static struct omap2_mcspi_regs omap2_mcspi_ctx[4];
+>> +
+>
+> Can you use a symbolic constant here instead of 4?  Something like
+> MAX_SPI_CONTROLLERS with a comment saying someting about omap2 having
+> 3 and omap3 having 4.
+
+Yes, will changes this.
+
+>
+>>  static struct workqueue_struct *omap2_mcspi_wq;
+>>
+>>  #define MOD_REG_BIT(val, mask, set) do { \
+>> @@ -219,6 +228,63 @@
+>>  mcspi_write_reg(master, OMAP2_MCSPI_MODULCTRL, l);
+>>  }
+>>
+>> +static void omap2_mcspi_save_ctx(struct omap2_mcspi *mcspi)
+>> +{
+>> + struct spi_master *spi_cntrl;
+>> + spi_cntrl = mcspi->master;
+>> +
+>> + /* McSPI : context save */
+>> + omap2_mcspi_ctx[spi_cntrl->bus_num - 1].modulctrl =
+>> + mcspi_read_reg(spi_cntrl, OMAP2_MCSPI_MODULCTRL);
+>> +
+>> + omap2_mcspi_ctx[spi_cntrl->bus_num - 1].sysconfig =
+>> + mcspi_read_reg(spi_cntrl, OMAP2_MCSPI_SYSCONFIG);
+>> +
+>> + omap2_mcspi_ctx[spi_cntrl->bus_num - 1].chconf0 =
+>> + mcspi_read_reg(spi_cntrl, OMAP2_MCSPI_CHCONF0);
+>> +
+>> + omap2_mcspi_ctx[spi_cntrl->bus_num - 1].wakeupenable =
+>> + mcspi_read_reg(spi_cntrl, OMAP2_MCSPI_WAKEUPENABLE);
+>> +}
+>> +
+>> +static void omap2_mcspi_restore_ctx(struct omap2_mcspi *mcspi)
+>> +{
+>> + struct spi_master *spi_cntrl;
+>> + spi_cntrl = mcspi->master;
+>> +
+>> + /*McSPI : context restore */
+>> + mcspi_write_reg(spi_cntrl, OMAP2_MCSPI_MODULCTRL,
+>> + omap2_mcspi_ctx[spi_cntrl->bus_num - 1].modulctrl);
+>> +
+>> + mcspi_write_reg(spi_cntrl, OMAP2_MCSPI_SYSCONFIG,
+>> + omap2_mcspi_ctx[spi_cntrl->bus_num - 1].sysconfig);
+>> +
+>> + mcspi_write_reg(spi_cntrl, OMAP2_MCSPI_CHCONF0,
+>> + omap2_mcspi_ctx[spi_cntrl->bus_num - 1].chconf0);
+>> +
+>> + mcspi_write_reg(spi_cntrl, OMAP2_MCSPI_WAKEUPENABLE,
+>> + omap2_mcspi_ctx[spi_cntrl->bus_num - 1].wakeupenable);
+>> +}
+>> +static void omap2_mcspi_disable_clocks(struct omap2_mcspi *mcspi)
+>> +{
+>> + omap2_mcspi_save_ctx(mcspi);
+>> +
+>> + clk_disable(mcspi->ick);
+>> + clk_disable(mcspi->fck);
+>> +}
+>> +
+>> +static int omap2_mcspi_enable_clocks(struct omap2_mcspi *mcspi)
+>> +{
+>> + if (clk_enable(mcspi->ick))
+>> + return -ENODEV;
+>> + if (clk_enable(mcspi->fck))
+>> + return -ENODEV;
+>> +
+>> + omap2_mcspi_restore_ctx(mcspi);
+>> +
+>> + return 0;
+>> +}
+>> +
+>>  static unsigned
+>>  omap2_mcspi_txrx_dma(struct spi_device *spi, struct spi_transfer *xfer)
+>>  {
+>> @@ -649,11 +715,11 @@
+>>  return ret;
+>>  }
+>>
+>> - clk_enable(mcspi->ick);
+>> - clk_enable(mcspi->fck);
+>> + if (omap2_mcspi_enable_clocks(mcspi))
+>> + return -ENODEV;
+>> +
+>>  ret = omap2_mcspi_setup_transfer(spi, NULL);
+>> - clk_disable(mcspi->fck);
+>> - clk_disable(mcspi->ick);
+>> + omap2_mcspi_disable_clocks(mcspi);
+>>
+>>  return ret;
+>>  }
+>> @@ -685,8 +751,8 @@
+>>  mcspi = container_of(work, struct omap2_mcspi, work);
+>>  spin_lock_irq(&mcspi->lock);
+>>
+>> - clk_enable(mcspi->ick);
+>> - clk_enable(mcspi->fck);
+>> + if (omap2_mcspi_enable_clocks(mcspi))
+>> + return;
+>>
+>>  /* We only enable one channel at a time -- the one whose message is
+>>  * at the head of the queue -- although this controller would gladly
+>> @@ -788,8 +854,7 @@
+>>  spin_lock_irq(&mcspi->lock);
+>>  }
+>>
+>> - clk_disable(mcspi->fck);
+>> - clk_disable(mcspi->ick);
+>> + omap2_mcspi_disable_clocks(mcspi);
+>>
+>>  spin_unlock_irq(&mcspi->lock);
+>>  }
+>> @@ -877,8 +942,8 @@
+>>  struct spi_master *master = mcspi->master;
+>>  u32 tmp;
+>>
+>> - clk_enable(mcspi->ick);
+>> - clk_enable(mcspi->fck);
+>> + if (omap2_mcspi_enable_clocks(mcspi))
+>> + return -1;
+>>
+>>  mcspi_write_reg(master, OMAP2_MCSPI_SYSCONFIG,
+>>  OMAP2_MCSPI_SYSCONFIG_SOFTRESET);
+>> @@ -896,8 +961,7 @@
+>>
+>>  omap2_mcspi_set_master_mode(master);
+>>
+>> - clk_disable(mcspi->fck);
+>> - clk_disable(mcspi->ick);
+>> + omap2_mcspi_disable_clocks(mcspi);
+>>  return 0;
+>>  }
+>>
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
+> 
+
