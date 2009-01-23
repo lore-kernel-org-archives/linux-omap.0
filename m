@@ -1,57 +1,36 @@
-From: Felipe Balbi <felipe.balbi@nokia.com>
-Subject: Re: [PATCH] usb: musb: fix bug in musbhsdma programming
-Date: Fri, 23 Jan 2009 12:18:12 +0200
-Message-ID: <20090123101812.GP9233@scadufax.research.nokia.com>
-References: <1231417896-32363-1-git-send-email-ajay.gupta@ti.com>
-Reply-To: felipe.balbi@nokia.com
+From: David Brownell <david-b-yBeKhBN/0LDR7s880joybQ@public.gmane.org>
+Subject: Re: [PATCH 2/3] usb: musb: fix compilation error in musb_platform_init
+Date: Fri, 23 Jan 2009 02:39:37 -0800
+Message-ID: <200901230239.37353.david-b@pacbell.net>
+References: <1231326846-22691-1-git-send-email-ajay.gupta@ti.com> <20090123101630.GN9233@scadufax.research.nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:35724 "EHLO
-	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753951AbZAWKaH (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 23 Jan 2009 05:30:07 -0500
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20090123101630.GN9233-isLFH4NzETkyzkgwUT+3V04zl0OMDgKpQQ4Iyu8u01E@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1231417896-32363-1-git-send-email-ajay.gupta@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org
+Cc: ext Ajay Kumar Gupta <ajay.gupta-l0cyMroinI0@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: ext Ajay Kumar Gupta <ajay.gupta@ti.com>
-Cc: linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, david-b@pacbell.net, felipe.balbi@nokia.com
 
-On Thu, Jan 08, 2009 at 06:01:36PM +0530, Ajay Kumar Gupta wrote:
-> Mode bit should be set based on function parameter "mode" of
-> configure_channel() function.
-> 
-> Signed-off-by: Ajay Kumar Gupta <ajay.gupta@ti.com>
+On Friday 23 January 2009, Felipe Balbi wrote:
+> > --- a/drivers/usb/musb/Kconfig
+> > +++ b/drivers/usb/musb/Kconfig
+> > @@ -11,6 +11,7 @@ config USB_MUSB_HDRC
+> > =A0=A0=A0=A0=A0=A0depends on (USB || USB_GADGET) && HAVE_CLK
+> > =A0=A0=A0=A0=A0=A0depends on !SUPERH
+> > =A0=A0=A0=A0=A0=A0select TWL4030_USB if MACH_OMAP_3430SDP
+> > +=A0=A0=A0=A0=A0select USB_OTG_UTILS if ARCH_OMAP34XX
+> > =A0=A0=A0=A0=A0=A0tristate 'Inventra Highspeed Dual Role Controller=
+ (TI, ADI, ...)'
+> > =A0=A0=A0=A0=A0=A0help
+> > =A0=A0=A0=A0=A0=A0 =A0Say Y here if your system has a dual role hig=
+h speed USB
 
-Acked-by: Felipe Balbi <felipe.balbi@nokia.com>
-
-> ---
->  drivers/usb/musb/musbhsdma.c |    3 ++-
->  1 files changed, 2 insertions(+), 1 deletions(-)
-> 
-> diff --git a/drivers/usb/musb/musbhsdma.c b/drivers/usb/musb/musbhsdma.c
-> index a23d005..d87c6c7 100644
-> --- a/drivers/usb/musb/musbhsdma.c
-> +++ b/drivers/usb/musb/musbhsdma.c
-> @@ -225,13 +225,14 @@ static void configure_channel(struct dma_channel *channel,
->  			csr |= MUSB_HSDMA_BURSTMODE_INCR4;
->  
->  		csr |= (musb_channel->epnum << MUSB_HSDMA_ENDPOINT_SHIFT)
-> -			| MUSB_HSDMA_MODE1
->  			| MUSB_HSDMA_ENABLE
->  			| MUSB_HSDMA_IRQENABLE
->  			| (musb_channel->transmit
->  					? MUSB_HSDMA_TRANSMIT
->  					: 0);
->  
-> +		if (mode)
-> +			csr |= MUSB_HSDMA_MODE1;
->  		/* address/count */
->  		musb_write_hsdma_addr(mbase, bchannel, dma_addr);
->  		musb_write_hsdma_count(mbase, bchannel, len);
-> -- 
-> 1.5.6
-
--- 
-balbi
+NAK -- not needed given my more-complete "another musb buildfix",
+which includes a non-conditional "select" for this.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
