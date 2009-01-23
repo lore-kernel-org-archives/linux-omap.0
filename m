@@ -1,121 +1,76 @@
-From: ext-eero.nurkkala@nokia.com
-Subject: [PATCH] OMAP: McBSP: Wakeups utilized
-Date: Fri, 23 Jan 2009 08:43:43 +0200
-Message-ID: <12326930232272-git-send-email-ext-eero.nurkkala@nokia.com>
+From: "Pakaravoor, Jagadeesh" <j-pakaravoor@ti.com>
+Subject: [PATCH] I2C: OMAP: Include OMAP_I2C_SYSC_REG in save and restore
+Date: Fri, 23 Jan 2009 12:24:45 +0530
+Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB02A39CF069@dbde02.ent.ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:17275 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751026AbZAWGsw (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 23 Jan 2009 01:48:52 -0500
-Received: from esebh105.NOE.Nokia.com (esebh105.ntc.nokia.com [172.21.138.211])
-	by mgw-mx03.nokia.com (Switch-3.2.6/Switch-3.2.6) with ESMTP id n0N6mXbL000708
-	for <linux-omap@vger.kernel.org>; Fri, 23 Jan 2009 08:48:49 +0200
+Received: from comal.ext.ti.com ([198.47.26.152]:59187 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751745AbZAWGzG convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 23 Jan 2009 01:55:06 -0500
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Eero Nurkkala <ext-eero.nurkkala@nokia.com>
+To: "linux-i2c@vger.kernel.org" <linux-i2c@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Cc: Jean Delvare <khali@linux-fr.org>
 
-From: Eero Nurkkala <ext-eero.nurkkala@nokia.com>
+From: Jagadeesh Bhaskar Pakaravoor <j-pakaravoor@ti.com>
 
-This patch enables the smart idle mode while
-McBPS is being utilized. Once it's done,
-force idle mode is taken instead. 
+Save and restore should include OMAP_I2C_SYSC_REG.
 
-Signed-off-by: Eero Nurkkala <ext-eero.nurkkala@nokia.com>
+Signed-off-by: Jagadeesh Bhaskar Pakaravoor <j-pakaravoor@ti.com>
+CC: Jouni Hogander <jouni.hogander@nokia.com>
 ---
- arch/arm/plat-omap/include/mach/mcbsp.h |   16 ++++++++++++++++
- arch/arm/plat-omap/mcbsp.c              |   28 ++++++++++++++++++++++++++++
- 2 files changed, 44 insertions(+), 0 deletions(-)
-
-diff --git a/arch/arm/plat-omap/include/mach/mcbsp.h b/arch/arm/plat-omap/include/mach/mcbsp.h
-index 113c246..7232950 100644
---- a/arch/arm/plat-omap/include/mach/mcbsp.h
-+++ b/arch/arm/plat-omap/include/mach/mcbsp.h
-@@ -249,8 +249,24 @@
- #define RDISABLE		0x0001
+Index: linux-omap-2.6/drivers/i2c/busses/i2c-omap.c
+===================================================================
+--- linux-omap-2.6.orig/drivers/i2c/busses/i2c-omap.c	2009-01-22 12:11:12.000000000 +0530
++++ linux-omap-2.6/drivers/i2c/busses/i2c-omap.c	2009-01-22 12:44:12.202367296 +0530
+@@ -182,6 +182,7 @@ struct omap_i2c_dev {
+ 	u16			scllstate;
+ 	u16			sclhstate;
+ 	u16			bufstate;
++	u16			syscstate;
+ };
  
- /********************** McBSP SYSCONFIG bit definitions ********************/
-+#define SIDLEMODE(value)	((value)<<3)
-+#define ENAWAKEUP		0x0004
- #define SOFTRST			0x0002
- 
-+/********************** McBSP WAKEUPEN bit definitions *********************/
-+#define XEMPTYEOFEN		0x4000
-+#define XRDYEN			0x0400
-+#define XEOFEN			0x0200
-+#define XFSXEN			0x0100
-+#define XSYNCERREN		0x0080
-+#define RRDYEN			0x0008
-+#define REOFEN			0x0004
-+#define RFSREN			0x0002
-+#define RSYNCERREN		0x0001
-+#define WAKEUPEN_ALL		(XEMPTYEOFEN | XRDYEN | XEOFEN | XFSXEN | \
-+				 XSYNCERREN | RRDYEN | REOFEN | RFSREN | \
-+				 RSYNCERREN)
-+
- /* we don't do multichannel for now */
- struct omap_mcbsp_reg_cfg {
- 	u16 spcr2;
-diff --git a/arch/arm/plat-omap/mcbsp.c b/arch/arm/plat-omap/mcbsp.c
-index e5842e3..ce9d09f 100644
---- a/arch/arm/plat-omap/mcbsp.c
-+++ b/arch/arm/plat-omap/mcbsp.c
-@@ -216,6 +216,7 @@ int omap_mcbsp_request(unsigned int id)
- 	struct omap_mcbsp *mcbsp;
- 	int i;
- 	int err;
-+	u16 syscon;
- 
- 	if (!omap_mcbsp_check_valid_id(id)) {
- 		printk(KERN_ERR "%s: Invalid id (%d)\n", __func__, id + 1);
-@@ -241,6 +242,19 @@ int omap_mcbsp_request(unsigned int id)
- 	spin_unlock(&mcbsp->lock);
- 
- 	/*
-+	 * Enable wakup behavior, smart idle and all wakeups
-+	 * REVISIT: some wakeups may be unnecessary
-+	 */
-+	if (cpu_is_omap34xx()) {
-+		syscon = OMAP_MCBSP_READ(mcbsp->io_base, SYSCON);
-+		syscon &= ~(ENAWAKEUP | SIDLEMODE(0x03));
-+		syscon |= (ENAWAKEUP | SIDLEMODE(0x02));
-+		OMAP_MCBSP_WRITE(mcbsp->io_base, SYSCON, syscon);
-+
-+		OMAP_MCBSP_WRITE(mcbsp->io_base, WAKEUPEN, WAKEUPEN_ALL);
-+	}
-+
-+	/*
- 	 * Make sure that transmitter, receiver and sample-rate generator are
- 	 * not running before activating IRQs.
- 	 */
-@@ -278,6 +292,7 @@ EXPORT_SYMBOL(omap_mcbsp_request);
- void omap_mcbsp_free(unsigned int id)
- {
- 	struct omap_mcbsp *mcbsp;
-+	u16 syscon, wakeupen;
- 	int i;
- 
- 	if (!omap_mcbsp_check_valid_id(id)) {
-@@ -286,6 +301,19 @@ void omap_mcbsp_free(unsigned int id)
+ static inline void omap_i2c_write_reg(struct omap_i2c_dev *i2c_dev,
+@@ -240,6 +241,7 @@ static void omap_i2c_unidle(struct omap_
+ 		omap_i2c_write_reg(dev, OMAP_I2C_SCLL_REG, dev->scllstate);
+ 		omap_i2c_write_reg(dev, OMAP_I2C_SCLH_REG, dev->sclhstate);
+ 		omap_i2c_write_reg(dev, OMAP_I2C_BUF_REG, dev->bufstate);
++		omap_i2c_write_reg(dev, OMAP_I2C_SYSC_REG, dev->syscstate);
  	}
- 	mcbsp = id_to_mcbsp_ptr(id);
+ 	dev->idle = 0;
+ 	omap_i2c_write_reg(dev, OMAP_I2C_IE_REG, dev->iestate);
+@@ -300,14 +302,15 @@ static int omap_i2c_init(struct omap_i2c
+ 		} else if (dev->rev >= OMAP_I2C_REV_ON_3430) {
+ 			u32 v;
  
-+	/*
-+	 * Disable wakup behavior, smart idle and all wakeups
-+	 */
-+	if (cpu_is_omap34xx()) {
-+		syscon = OMAP_MCBSP_READ(mcbsp->io_base, SYSCON);
-+		syscon &= ~(ENAWAKEUP | SIDLEMODE(0x03));
-+		OMAP_MCBSP_WRITE(mcbsp->io_base, SYSCON, syscon);
-+
-+		wakeupen = OMAP_MCBSP_READ(mcbsp->io_base, WAKEUPEN);
-+		wakeupen &= ~WAKEUPEN_ALL;
-+		OMAP_MCBSP_WRITE(mcbsp->io_base, WAKEUPEN, wakeupen);
-+	}
-+
- 	if (mcbsp->pdata && mcbsp->pdata->ops && mcbsp->pdata->ops->free)
- 		mcbsp->pdata->ops->free(id);
+-			v = SYSC_AUTOIDLE_MASK;
+-			v |= SYSC_ENAWAKEUP_MASK;
+-			v |= (SYSC_IDLEMODE_SMART <<
++			dev->syscstate = SYSC_AUTOIDLE_MASK;
++			dev->syscstate |= SYSC_ENAWAKEUP_MASK;
++			dev->syscstate |= (SYSC_IDLEMODE_SMART <<
+ 			      __ffs(SYSC_SIDLEMODE_MASK));
+-			v |= (SYSC_CLOCKACTIVITY_FCLK <<
++			dev->syscstate |= (SYSC_CLOCKACTIVITY_FCLK <<
+ 			      __ffs(SYSC_CLOCKACTIVITY_MASK));
  
--- 
-1.6.0
+-			omap_i2c_write_reg(dev, OMAP_I2C_SYSC_REG, v);
++			omap_i2c_write_reg(dev, OMAP_I2C_SYSC_REG,
++							dev->syscstate);
+ 			/*
+ 			 * Enabling all wakup sources to stop I2C freezing on
+ 			 * WFI instruction.
+
+--
+With Regards,
+Jagadeesh Bhaskar P
+ 
+----------------------------
+Some men see things as they are and say why - I dream things that never were and say why not.
+- George Bernard Shaw
+----------------------------
 
