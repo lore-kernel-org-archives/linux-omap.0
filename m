@@ -1,66 +1,235 @@
-From: "Hunter, Jon" <jon-hunter@ti.com>
-Subject: RE: OMAP1: mcbsp clocks
-Date: Fri, 23 Jan 2009 13:03:32 -0600
-Message-ID: <7B4574D56E4ADF438756313E9A172A872CABB868@dlee01.ent.ti.com>
-References: <20090122235543.GC8137@n2100.arm.linux.org.uk>
- <20090123011726.GG7172@atomide.com>
- <20090123174249.GM26184@n2100.arm.linux.org.uk>
- <20090123175401.GU7172@atomide.com>
+From: "Premi, Sanjeev" <premi@ti.com>
+Subject: RE: cpuidle and NO_HZ
+Date: Sat, 24 Jan 2009 00:36:17 +0530
+Message-ID: <B85A65D85D7EB246BE421B3FB0FBB59301C6EC7322@dbde02.ent.ti.com>
+References: <B85A65D85D7EB246BE421B3FB0FBB59301C6DD0347@dbde02.ent.ti.com>
+	<8bf247760901220906n1ab095a0h695e9c1f5e8db916@mail.gmail.com>
+	<B85A65D85D7EB246BE421B3FB0FBB59301C6DD03F9@dbde02.ent.ti.com>
+	<B85A65D85D7EB246BE421B3FB0FBB59301C6EC7222@dbde02.ent.ti.com>
+	<8bf247760901230752h4835083foaa486311425c6c68@mail.gmail.com>
+ <87ab9i6i9j.fsf@deeprootsystems.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:40126 "EHLO bear.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:39778 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752571AbZAWTDo convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 23 Jan 2009 14:03:44 -0500
-In-Reply-To: <20090123175401.GU7172@atomide.com>
+	id S1752814AbZAWTG3 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 23 Jan 2009 14:06:29 -0500
+In-Reply-To: <87ab9i6i9j.fsf@deeprootsystems.com>
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Paul Walmsley <paul@pwsan.com>, Stanley Miao <stanley.miao@windriver.com>
+To: Kevin Hilman <khilman@deeprootsystems.com>, Sriram V <vshrirama@gmail.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Tony Lindgren wrote on Friday, January 23, 2009 11:54 AM:
+> -----Original Message-----
+> From: linux-omap-owner@vger.kernel.org 
+> [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Kevin Hilman
+> Sent: Friday, January 23, 2009 11:02 PM
+> To: Sriram V
+> Cc: Premi, Sanjeev; linux-omap@vger.kernel.org
+> Subject: Re: cpuidle and NO_HZ
+> 
+> Sriram V <vshrirama@gmail.com> writes:
+> 
+> > Sanjeev,
+> > I am not really sure what the problem could be.
+> > By enabling smc irq as wakeup resulted in faster nfs mounts 
+> compared 
+> > to before. however this does not happen everytime.
+> > On enabling smc debug i can see interrupts happening all while.
+> > for me ping stops after a while.
+> >
+> > Booting out a MMC card. I am unable to ping from the board. 
+> i see rx 
+> > overruns. However i can smc interrupts happening
 
-> * Russell King - ARM Linux <linux@arm.linux.org.uk> [090123 09:43]:
->> On Thu, Jan 22, 2009 at 05:17:28PM -0800, Tony Lindgren wrote:
->>> Basically we currently cannot use virtual clocks because of this
->>> and the fact that the parent of the virtual clock may not be known
->>> as pointed out by Paul Walmsley.
->>
->> One other thing I'd like to confirm is how the kernel treats the
->> OMAP5912. OMAP5912 is interesting to me at the moment because it
->> seems that all the information on it is freely available.  I don't
->> know about the others.
->>
->> However, it would be useful to know how the kernel treats this - iow,
->> which of the four categories for OMAP1 SoCs - 310, 730, 1510, 1610.
->
-> 5912 = 1611b = 16xx. Then 1710 is quite similar.
+[sp] Haven't tried booting from MMC so far
 
-Right, the OMAP5912 started off life as the 1611, but 1611 involved into the 1621. So really 5912 = 1621. There are a couple differences between the 1610 and 1621, one of the main being the size of the internal RAM.
+> >
+> > For some reason this happens only when cpuidle is enabled.
+> 
 
->> Of course, if someone knows (or can send me, maybe Richard W?) where
->> there's a similar document to spru751a for the clock architecture for
->> these other CPUs (and OMAP2420, OMAP2430, OMAP3430, etc) it would be
->> most useful.
+[sp] I notice it only when both cpuidle & dynamic tick are enabled.
+BTW, what is the uboot version you are using?
 
-Unfortunately, most of the original devices have NDA restrictions which is a royal pain in the neck especially for people in the open-source community who would like to develop with these. I am sure this infuriates many. Please don't shoot the messenger!
+> Are you allowing the chip to hit OFF (by 'echo 1 >
+> /sys/power/enable_off_mode') or are you only hitting retention.
+> 
+> This is most likely a latency issue.  For starters, you could 
+> modify the smc91x driver to register a latency requirement 
+> with the OMAP PM layer.  This would prevent entering deeper 
+> C-states which may have wakeup latencies that the smc91x 
+> cannot handle.
+> 
 
-I am disappointed it is still that way for some of these parts. The good news is that for OMAP3 we appear to be getting our act together here.
+[sp] Once the kernel boots-up (thought very slow & late), powertop doesn't indicate any state transition from C0 despite enabling sleep_when_idle.
 
-> I have some links on my webpage to the docs:
->
-> http://www.muru.com/linux/omap/
-
-Tony, I see you have a link on your website to the OMAP3525. The OMAP3530 == OMAP3430, I would recommend that you point people to the following product folder for documentation:
-http://focus.ti.com/docs/prod/folders/print/omap3530.html
-
-The OMAP3525 has a reduced feature set...see the following page for an overview of the OMAP35xx series:
-http://wiki.omap.com/index.php?title=OMAP3_Overview
-
-Cheers
-Jon
-
-
+> Alternatively, you you do some experiments to see exactly 
+> which C-states are causing the problems.  You could modify 
+> cpuidle34xx.c and set the 'valid' flag in the higher C-states 
+> to zero so that they cannot be entered and see which C-states 
+> (if any) are working.
+> 
+> That being said, I'm not sure how this could be happening 
+> during boot, since the UART clocks should be preventing 
+> retention or off until you 'echo 1 > /sys/power/clocks_off_when_idle.'
+> 
+> Kevin
+> 
+> >
+> >
+> >
+> >
+> >
+> >
+> >  But, i also see
+> >
+> >
+> > Regards,
+> > sriram
+> >
+> >
+> >
+> >  as i said this could be something else.
+> >
+> > Regards,
+> > sriram
+> >
+> >
+> >
+> >
+> > On Fri, Jan 23, 2009 at 6:58 PM, Premi, Sanjeev 
+> <premi@ti.com> wrote:
+> >>> -----Original Message-----
+> >>> From: linux-omap-owner@vger.kernel.org 
+> >>> [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Premi, 
+> >>> Sanjeev
+> >>> Sent: Friday, January 23, 2009 12:02 AM
+> >>> To: Sriram V
+> >>> Cc: linux-omap@vger.kernel.org
+> >>> Subject: RE: cpuidle and NO_HZ
+> >>>
+> >>> > -----Original Message-----
+> >>> > From: Sriram V [mailto:vshrirama@gmail.com]
+> >>> > Sent: Thursday, January 22, 2009 10:37 PM
+> >>> > To: Premi, Sanjeev
+> >>> > Cc: linux-omap@vger.kernel.org
+> >>> > Subject: Re: cpuidle and NO_HZ
+> >>> >
+> >>> > Sanjeev,
+> >>> >
+> >>> > On Thu, Jan 22, 2009 at 8:14 PM, Premi, Sanjeev
+> >>> <premi@ti.com> wrote:
+> >>> > > Hi all,
+> >>> > >
+> >>> > > While trying to use NFS hosted filesystem, I have made a
+> >>> > strange observation. Have verified it on multiple 
+> OMAP3EVM boards.
+> >>> > >
+> >>> > > With CONFIG_NO_HZ and CONFIG_CPU_IDLE, after the print
+> >>> > "Freeing init memory: 152K" in the log below; the boot
+> >>> sequence almost
+> >>> > stops for approx a minute before proceeding further.
+> >>> > >
+> >>> > >   Sending DHCP requests .<6>eth0: link up, 100Mbps,
+> >>> > full-duplex, lpa 0x01E1
+> >>> > >   ., OK
+> >>> > >   IP-Config: Got DHCP answer from 0.0.0.0, my address is
+> >>> 192.168.1.9
+> >>> > >   IP-Config: Complete:
+> >>> > >     device=eth0, addr=192.168.1.9, mask=255.255.255.0,
+> >>> > gw=192.168.1.9,
+> >>> > >     host=192.168.1.9, domain=india.ti.com, nis-domain=(none),
+> >>> > >     bootserver=0.0.0.0, rootserver=192.168.1.2, rootpath=
+> >>> > >   Looking up port of RPC 100003/2 on 192.168.1.2
+> >>> > >   Looking up port of RPC 100005/1 on 192.168.1.2
+> >>> > >   VFS: Mounted root (nfs filesystem).
+> >>> > >   Freeing init memory: 152K
+> >>> > >   init started: BusyBox v1.11.1 (2008-08-06 21:12:30 IST)
+> >>> > >   starting pid 442, tty '': '/etc/init.d/rcS'
+> >>> > >
+> >>> >
+> >>> > This seems to be a wakeup issue. SMC gpio irq needs to be
+> >>> enabled as a
+> >>> > wakeup source.
+> >>> > I notice that sometimes even after enabling it as a 
+> wakeup source 
+> >>> > network interface has trouble. either it is too slow or it
+> >>> just hangs
+> >>> > during nfs mount or takes a long time to mount. this 
+> issue could 
+> >>> > be somewhere else
+> >>> >
+> >>> > I also notice that the whenever network interface hangs 
+> during nfs 
+> >>> > mount.
+> >>> > the nfs server would have exited.
+> >>>
+> >>> [sp]Thanks. I will try the patch.
+> >>>
+> >>> I did believe it was a wakeup issue until I had not tried 
+> the ping.
+> >>> All pings were successful; indicating that eth interface 
+> is still up.
+> >>>
+> >>> The 'mount' succeeding after about a minute is confirms 
+> it as well.
+> >>>
+> >>> Best regards,
+> >>> Sanjeev
+> >>> >
+> >>
+> >> [sp] The patch did not help :( behavior is still the same
+> >>
+> >>> >
+> >>> >
+> >>> > Regards,
+> >>> > sriram
+> >>> >
+> >>> >
+> >>> >
+> >>> >
+> >>> >
+> >>> >
+> >>> >
+> >>> > > Later, the system response is slow.
+> >>> > >
+> >>> > > Toggling either of these CONFIG options seems to resolve
+> >>> the issue.
+> >>> > >
+> >>> > > My initial suspicion was on the SMC911x driver, but during
+> >>> > this 'wait' period ping requests to the EVM are successful.
+> >>> > >
+> >>> > > Just wanted to check if anyone has seen this behavior.
+> >>> > > (I am on Kevin's latest PM branch 998bd5675a1e...).
+> >>> > >
+> >>> > > Best regards,
+> >>> > > Sanjeev
+> >>> > > --
+> >>> > > To unsubscribe from this list: send the line "unsubscribe
+> >>> > linux-omap"
+> >>> > > in the body of a message to majordomo@vger.kernel.org More
+> >>> > majordomo
+> >>> > > info at  http://vger.kernel.org/majordomo-info.html
+> >>> > >
+> >>> > --
+> >>> To unsubscribe from this list: send the line "unsubscribe 
+> >>> linux-omap" in the body of a message to majordomo@vger.kernel.org 
+> >>> More majordomo info at http://vger.kernel.org/majordomo-info.html
+> >>>
+> >>>
+> > --
+> > To unsubscribe from this list: send the line "unsubscribe 
+> linux-omap" 
+> > in the body of a message to majordomo@vger.kernel.org More 
+> majordomo 
+> > info at  http://vger.kernel.org/majordomo-info.html
+> --
+> To unsubscribe from this list: send the line "unsubscribe 
+> linux-omap" in the body of a message to 
+> majordomo@vger.kernel.org More majordomo info at  
+> http://vger.kernel.org/majordomo-info.html
+> 
+> 
