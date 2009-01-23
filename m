@@ -1,57 +1,116 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 3/3] Disable linux-omap version of menelaus
-Date: Fri, 23 Jan 2009 11:23:25 -0800
-Message-ID: <20090123192323.GX7172@atomide.com>
-References: <20090122131602.18315.84862.stgit@tikku> <20090122131920.18315.68032.stgit@tikku> <20090122131509.GH9233@scadufax.research.nokia.com> <20090123022334.GN7172@atomide.com> <20090123192144.GZ440@frodo>
+From: "Premi, Sanjeev" <premi@ti.com>
+Subject: RE: OMAP1: mcbsp clocks
+Date: Sat, 24 Jan 2009 00:56:36 +0530
+Message-ID: <B85A65D85D7EB246BE421B3FB0FBB59301C6EC7330@dbde02.ent.ti.com>
+References: <20090122235543.GC8137@n2100.arm.linux.org.uk>
+ <20090123011726.GG7172@atomide.com>
+ <20090123174249.GM26184@n2100.arm.linux.org.uk>
+ <20090123175401.GU7172@atomide.com>
+ <7B4574D56E4ADF438756313E9A172A872CABB868@dlee01.ent.ti.com>
+ <20090123191721.GW7172@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-bos.mailhop.org ([63.208.196.178]:60972 "EHLO
-	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751383AbZAWTXb (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 23 Jan 2009 14:23:31 -0500
-Content-Disposition: inline
-In-Reply-To: <20090123192144.GZ440@frodo>
+Received: from comal.ext.ti.com ([198.47.26.152]:40803 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753035AbZAWT04 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 23 Jan 2009 14:26:56 -0500
+In-Reply-To: <20090123191721.GW7172@atomide.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Balbi <me@felipebalbi.com>
-Cc: Felipe Balbi <felipe.balbi@nokia.com>, ext Kalle Valo <kalle.valo@nokia.com>, linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>, "Hunter, Jon" <jon-hunter@ti.com>
+Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Paul Walmsley <paul@pwsan.com>, Stanley Miao <stanley.miao@windriver.com>
 
-* Felipe Balbi <me@felipebalbi.com> [090123 11:22]:
-> On Thu, Jan 22, 2009 at 06:23:34PM -0800, Tony Lindgren wrote:
-> > * Felipe Balbi <felipe.balbi@nokia.com> [090122 05:27]:
-> > > On Thu, Jan 22, 2009 at 03:19:20PM +0200, Kalle Valo wrote:
-> > > > Fixes linker errors like this:
-> > > > 
-> > > > drivers/i2c/built-in.o: In function `menelaus_set_vdcdc':
-> > > > lp5521.c:(.text+0x3910): multiple definition of `menelaus_set_vdcdc'
-> > > > drivers/mfd/built-in.o:menelaus.c:(.text+0x95c): first defined here
-> > > > drivers/i2c/built-in.o: In function `menelaus_set_vio':
-> > > > lp5521.c:(.text+0x3990): multiple definition of `menelaus_set_vio'
-> > > > 
-> > > > Signed-off-by: Kalle Valo <kalle.valo@nokia.com>
-> > > > ---
-> > > > 
-> > > >  drivers/i2c/chips/Makefile |    1 -
-> > > >  1 files changed, 0 insertions(+), 1 deletions(-)
-> > > > 
-> > > > diff --git a/drivers/i2c/chips/Makefile b/drivers/i2c/chips/Makefile
-> > > > index b451369..d8bef8c 100644
-> > > > --- a/drivers/i2c/chips/Makefile
-> > > > +++ b/drivers/i2c/chips/Makefile
-> > > > @@ -18,7 +18,6 @@ obj-$(CONFIG_SENSORS_PCA9539)	+= pca9539.o
-> > > >  obj-$(CONFIG_SENSORS_PCF8574)	+= pcf8574.o
-> > > >  obj-$(CONFIG_PCF8575)		+= pcf8575.o
-> > > >  obj-$(CONFIG_SENSORS_PCF8591)	+= pcf8591.o
-> > > > -obj-$(CONFIG_MENELAUS)		+= menelaus.o
+ 
+
+> -----Original Message-----
+> From: linux-omap-owner@vger.kernel.org 
+> [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Tony Lindgren
+> Sent: Saturday, January 24, 2009 12:47 AM
+> To: Hunter, Jon
+> Cc: Russell King - ARM Linux; linux-omap@vger.kernel.org; 
+> Paul Walmsley; Stanley Miao
+> Subject: Re: OMAP1: mcbsp clocks
+> 
+> * Hunter, Jon <jon-hunter@ti.com> [090123 11:03]:
+> > Tony Lindgren wrote on Friday, January 23, 2009 11:54 AM:
 > > 
-> > I'll also remove drivers/i2c/chips/menelaus.c.
+> > > * Russell King - ARM Linux <linux@arm.linux.org.uk> 
+> [090123 09:43]:
+> > >> On Thu, Jan 22, 2009 at 05:17:28PM -0800, Tony Lindgren wrote:
+> > >>> Basically we currently cannot use virtual clocks 
+> because of this 
+> > >>> and the fact that the parent of the virtual clock may 
+> not be known 
+> > >>> as pointed out by Paul Walmsley.
+> > >>
+> > >> One other thing I'd like to confirm is how the kernel treats the 
+> > >> OMAP5912. OMAP5912 is interesting to me at the moment because it 
+> > >> seems that all the information on it is freely 
+> available.  I don't 
+> > >> know about the others.
+> > >>
+> > >> However, it would be useful to know how the kernel treats this - 
+> > >> iow, which of the four categories for OMAP1 SoCs - 310, 
+> 730, 1510, 1610.
+> > >
+> > > 5912 = 1611b = 16xx. Then 1710 is quite similar.
+> > 
+> > Right, the OMAP5912 started off life as the 1611, but 1611 
+> involved into the 1621. So really 5912 = 1621. There are a 
+> couple differences between the 1610 and 1621, one of the main 
+> being the size of the internal RAM.
 > 
-> why, did this driver make its way to mainline with a different name then
-> ??
+> Thanks for setting that straight. And looks like we have 
+> cpu_is_omap1621() macro in the kernel.
 > 
-> Where did Jean move it ?
+> > >> Of course, if someone knows (or can send me, maybe Richard W?) 
+> > >> where there's a similar document to spru751a for the clock 
+> > >> architecture for these other CPUs (and OMAP2420, OMAP2430, 
+> > >> OMAP3430, etc) it would be most useful.
+> > 
+> > Unfortunately, most of the original devices have NDA 
+> restrictions which is a royal pain in the neck especially for 
+> people in the open-source community who would like to develop 
+> with these. I am sure this infuriates many. Please don't 
+> shoot the messenger!
+> > 
+> > I am disappointed it is still that way for some of these 
+> parts. The good news is that for OMAP3 we appear to be 
+> getting our act together here.
+> > 
+> > > I have some links on my webpage to the docs:
+> > >
+> > > http://www.muru.com/linux/omap/
+> > 
+> > Tony, I see you have a link on your website to the 
+> OMAP3525. The OMAP3530 == OMAP3430, I would recommend that 
+> you point people to the following product folder for documentation:
+> > http://focus.ti.com/docs/prod/folders/print/omap3530.html
+> 
+> Thanks, fixed now. Also removed some earlier dead link.
+> 
+> > The OMAP3525 has a reduced feature set...see the following 
+> page for an overview of the OMAP35xx series:
+> > http://wiki.omap.com/index.php?title=OMAP3_Overview
+> > 
+> > Cheers
+> > Jon
+> > 
 
-Dave has been busy again.. 88e75cc347f66bc20e3c2b920431fc07253d69be.
+Tony,
 
-Tony
+I haven't heard any specific comments since Kevin's okay for the OMAP35x patchset. Is it on your 'push' list?
+
+Best regards,
+Sanjeev
+> > 
+> --
+> To unsubscribe from this list: send the line "unsubscribe 
+> linux-omap" in the body of a message to 
+> majordomo@vger.kernel.org More majordomo info at  
+> http://vger.kernel.org/majordomo-info.html
+> 
+> 
