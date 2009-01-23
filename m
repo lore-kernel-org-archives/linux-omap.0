@@ -1,77 +1,133 @@
-From: "Nayak, Rajendra" <rnayak@ti.com>
-Subject: RE: new PM branch available
-Date: Fri, 23 Jan 2009 17:40:30 +0530
-Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB02F51109BA@dbde02.ent.ti.com>
+From: Koen Kooi <k.kooi@student.utwente.nl>
+Subject: Re: new PM branch available
+Date: Fri, 23 Jan 2009 13:10:48 +0100
+Message-ID: <E5387292-875B-4ACA-A008-3F1F11B6562B@student.utwente.nl>
 References: <5A47E75E594F054BAF48C5E4FC4B92AB02F51109B5@dbde02.ent.ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Mime-Version: 1.0 (Apple Message framework v930.3)
+Content-Type: multipart/signed; protocol="application/pgp-signature"; micalg=pgp-sha1; boundary="Apple-Mail-1-1002378079"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:45291 "EHLO bear.ext.ti.com"
+Received: from mx3.utsp.utwente.nl ([130.89.2.14]:22759 "EHLO mx.utwente.nl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752561AbZAWMKo (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 23 Jan 2009 07:10:44 -0500
+	id S1751761AbZAWMLQ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 23 Jan 2009 07:11:16 -0500
 In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB02F51109B5@dbde02.ent.ti.com>
-Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: =?utf-8?B?SMO2Z2FuZGVyIEpvdW5p?= <jouni.hogander@nokia.com>
-Cc: Kevin Hilman <khilman@deeprootsystems.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: "Nayak, Rajendra" <rnayak@ti.com>
+Cc: =?ISO-8859-1?Q?H=F6gander_Jouni?= <jouni.hogander@nokia.com>, Kevin Hilman <khilman@deeprootsystems.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-PiAtLS0tLU9yaWdpbmFsIE1lc3NhZ2UtLS0tLQ0KPiBGcm9tOiBsaW51eC1vbWFwLW93bmVyQHZn
-ZXIua2VybmVsLm9yZyANCj4gW21haWx0bzpsaW51eC1vbWFwLW93bmVyQHZnZXIua2VybmVsLm9y
-Z10gT24gQmVoYWxmIE9mIE5heWFrLCBSYWplbmRyYQ0KPiBTZW50OiBGcmlkYXksIEphbnVhcnkg
-MjMsIDIwMDkgNTozMCBQTQ0KPiBUbzogSMO2Z2FuZGVyIEpvdW5pDQo+IENjOiBLZXZpbiBIaWxt
-YW47IGxpbnV4LW9tYXBAdmdlci5rZXJuZWwub3JnDQo+IFN1YmplY3Q6IFJFOiBuZXcgUE0gYnJh
-bmNoIGF2YWlsYWJsZQ0KPiANCj4gIA0KPiANCj4gPiAtLS0tLU9yaWdpbmFsIE1lc3NhZ2UtLS0t
-LQ0KPiA+IEZyb206IEjDtmdhbmRlciBKb3VuaSBbbWFpbHRvOmpvdW5pLmhvZ2FuZGVyQG5va2lh
-LmNvbV0gDQo+ID4gU2VudDogRnJpZGF5LCBKYW51YXJ5IDIzLCAyMDA5IDQ6NTIgUE0NCj4gPiBU
-bzogTmF5YWssIFJhamVuZHJhDQo+ID4gQ2M6IEtldmluIEhpbG1hbjsgbGludXgtb21hcEB2Z2Vy
-Lmtlcm5lbC5vcmcNCj4gPiBTdWJqZWN0OiBSZTogbmV3IFBNIGJyYW5jaCBhdmFpbGFibGUNCj4g
-PiANCj4gPiAiZXh0IE5heWFrLCBSYWplbmRyYSIgPHJuYXlha0B0aS5jb20+IHdyaXRlczoNCj4g
-PiANCj4gPiA+PiBJIGRpZCBzb21lIHRlc3RpbmcgdG9kYXkgb24gbXkgMy4wR1AgMzQzMFNEUC4g
-VGhpcyBpcyB3aXRoIA0KPiA+IHRoZSBvbWFwXzM0MzBzZHBfbWluX2RlZmNvbmZpZy4NCj4gPiA+
-Pg0KPiA+ID4+IDEpIElkbGUuDQo+ID4gPj4gZWNobyAtbiAxID4gL3N5cy9wb3dlci9jbG9ja3Nf
-b2ZmX3doaWxlX2lkbGUNCj4gPiA+PiBlY2hvIC1uIDEgPiAvc3lzL3Bvd2VyL2VuYWJsZV9vZmYN
-Cj4gPiA+PiBDb3VsZCBub3QgaGl0IFJFVC4gc29tZXRoaW5nIHNlZW1zIHRvIGJlIHN0aWxsIGFj
-dGl2ZS4gTm90IA0KPiA+IHN1cmUgaWYgaXQgY291bGQgYmUgc29tZXRoaW5nDQo+ID4gPj4gdG8g
-ZG8gd2l0aCB0aGlzIGVycm9yIHRoYXQncyB0aHJvd24gd2hpbGUgYm9vdHVwDQo+ID4gPj4NCj4g
-PiA+PiA8Nj5EaXNhYmxpbmcgdW51c2VkIGNsb2NrICJkcGxsNV9jayINCj4gPiA+PiBEaXNhYmxp
-bmcgdW51c2VkIGNsb2NrICJkcGxsNV9jayINCj4gPiA+PiA8Mz5jbG9jazogZHBsbDVfY2sgZmFp
-bGVkIHRyYW5zaXRpb24gdG8gJ2xvY2tlZCcNCj4gPiA+PiBjbG9jazogZHBsbDVfY2sgZmFpbGVk
-IHRyYW5zaXRpb24gdG8gJ2xvY2tlZCcNCj4gPiA+PiANCj4gPiA+PiBUaGlzIGlzIHRoZSBzYW1l
-IHJlc3VsdHMgSSBzZWUgb24gbXkgU0RQLg0KPiA+ID4+IA0KPiA+ID4+IExvb2tpbmcgYXQgdGhl
-IHJlZ2lzdGVycywgSSBhbSBwcmV0dHkgc3VyZSBpdCBpcyB0aGUgRDJEIA0KPiA+IGNsb2NrZG9t
-YWluDQo+ID4gPj4gdGhhdCBzdGlsbCBoYXMgYWN0aXZpdHksIGJ1dCBkdWUgdG8gdmVyeSBwb29y
-IFN0YWNrZWQtbW9kZSANCj4gPiBkb2NzIGFuZCBubw0KPiA+ID4+IHJlc3BvbnNlcyB0byB0aGUg
-RDJEIHF1ZXN0aW9ucyBhc2tlZCB0byBUSSBJIGhhdmUgbm90IA0KPiBiZWVuIGFibGUgdG8NCj4g
-PiA+PiBmaWd1cmUgdGhpcyBvbmUgb3V0Lg0KPiA+ID4+IA0KPiA+ID4+IEhlbHAgZGVidWdnaW5n
-IHRoaXMgd291bGQgYmUgZ3JlYXRseSBhcHByZWNpYXRlZC4NCj4gPiA+DQo+ID4gPiBJIGxvb2tl
-ZCBzb21lIG1vcmUgaW50byB0aGlzIHRvZGF5IGFuZCBzYXcgdGhhdCB0aGUgaGFuZyBpcyANCj4g
-PiBpbmRlZWQgY2F1c2VkDQo+ID4gPiBkdWUgdG8gc29tZSBraW5kIG9mIGRlYnVnIGNvbnNvbGUg
-Z29pbmcgZGVhZC4gVGhlIHN5c3RlbSANCj4gPiB3YXMgc3RpbGwgbG9vcGluZyBpbiB0aGUNCj4g
-PiA+IGlkbGUgdGhyZWFkLiBJIGNvdWxkIGV2ZW4gZG8gYSB0ZWxuZXQgcmVtb3RlbHkgdG8gbXkg
-DQo+IGJvYXJkIGFuZCB0YWtlDQo+ID4gPiBzb21lIGRlYnVnIGR1bXBzLi4NCj4gPiANCj4gPiBU
-aGlzIG1pZ2h0IGhlbHAgeW91Og0KPiANCj4gWXVwLCB0aGlzIGRvZXMgaGVscC4gVGhlcmUncyBu
-byBoYW5nIG5vdyBlaXRoZXIgaW4gaWRsZSBvciBpbiBzdXNwZW5kLg0KPiBOb3Qgc3VyZSB3aHkg
-dGhpcyB3YXMgYWZmZWN0aW5nIG9ubHkgdGhlIFNEUCB3aGlsZSB0aGUgcG0gYnJhbmNoIHNlZW1z
-DQo+IHRvIGZ1bmN0aW9uIHdpdGhvdXQgdGhpcyBmb3IgYmVhZ2xlIGFuZCBvdGhlciBvbWFwMyBw
-bGF0Zm9ybXM/DQoNCkxvb2tzIGxpa2UgYWxsIG90aGVyIHBsYXRmb3JtcyB1c2UgVUFSVDMgYW5k
-IFNEUCBpcyB0aGUgb25seSBvbmUgdXNpbmcgVUFSVDENCmZvciBkZWJ1ZyBjb25zb2xlLg0KDQpX
-b3VsZCB5b3UgYmUgc2VuZGluZyBhIHBhdGNoIGZvciB0aGlzIG9uIHRoZSBwbSBicmFuY2g/DQoN
-Cj4gDQo+ID4gDQo+ID4gZGlmZiAtLWdpdCBhL2FyY2gvYXJtL21hY2gtb21hcDIvcG0zNHh4LmMg
-DQo+ID4gYi9hcmNoL2FybS9tYWNoLW9tYXAyL3BtMzR4eC5jDQo+ID4gaW5kZXggYjJkYjBiYS4u
-MjY2ZTRmNSAxMDA2NDQNCj4gPiAtLS0gYS9hcmNoL2FybS9tYWNoLW9tYXAyL3BtMzR4eC5jDQo+
-ID4gKysrIGIvYXJjaC9hcm0vbWFjaC1vbWFwMi9wbTM0eHguYw0KPiA+IEBAIC00MDEsNiArNDAx
-LDggQEAgdm9pZCBvbWFwX3NyYW1faWRsZSh2b2lkKQ0KPiA+ICAgICAgICAgICAgICAgICAgICAg
-ICAgIG9tYXAzX3ByY21fcmVzdG9yZV9jb250ZXh0KCk7DQo+ID4gICAgICAgICAgICAgICAgICAg
-ICAgICAgb21hcDNfc3JhbV9yZXN0b3JlX2NvbnRleHQoKTsNCj4gPiAgICAgICAgICAgICAgICAg
-fQ0KPiA+ICsgICAgICAgICAgICAgICBvbWFwX3VhcnRfcmVzdW1lX2lkbGUoMCk7DQo+ID4gKyAg
-ICAgICAgICAgICAgIG9tYXBfdWFydF9yZXN1bWVfaWRsZSgxKTsNCj4gPiAgICAgICAgICAgICAg
-ICAgaWYgKGNvcmVfbmV4dF9zdGF0ZSA9PSBQV1JETV9QT1dFUl9PRkYpDQo+ID4gICAgICAgICAg
-ICAgICAgICAgICAgICAgcHJtX2NsZWFyX21vZF9yZWdfYml0cyhPTUFQMzQzMF9BVVRPX09GRiwN
-Cj4gPiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIE9NQVAz
-NDMwX0dSX01PRCwNCj4gPiANCj4gPiAtLSANCj4gPiBKb3VuaSBIw7ZnYW5kZXINCj4gPiANCj4g
-PiANCj4gPiATICDsubscICYgfiAmIBggICstICDdthcgIHcgIMubICAgbSBiICBoICBiICBebiBy
-ICAgeiAaICBoICAgICYgDQo+ICAeIEcgICBoIAMoIOmajiDdomoiICAaIBttICAgICB6IN6WICAg
-ZiAgIGggICB+IG0g
+This is an OpenPGP/MIME signed message (RFC 2440 and 3156)
+--Apple-Mail-1-1002378079
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed; delsp=yes
+Content-Transfer-Encoding: quoted-printable
+
+
+Op 23 jan 2009, om 13:00 heeft Nayak, Rajendra het volgende geschreven:
+
+>
+>
+>> -----Original Message-----
+>> From: H=F6gander Jouni [mailto:jouni.hogander@nokia.com]
+>> Sent: Friday, January 23, 2009 4:52 PM
+>> To: Nayak, Rajendra
+>> Cc: Kevin Hilman; linux-omap@vger.kernel.org
+>> Subject: Re: new PM branch available
+>>
+>> "ext Nayak, Rajendra" <rnayak@ti.com> writes:
+>>
+>>>> I did some testing today on my 3.0GP 3430SDP. This is with
+>> the omap_3430sdp_min_defconfig.
+>>>>
+>>>> 1) Idle.
+>>>> echo -n 1 > /sys/power/clocks_off_while_idle
+>>>> echo -n 1 > /sys/power/enable_off
+>>>> Could not hit RET. something seems to be still active. Not
+>> sure if it could be something
+>>>> to do with this error that's thrown while bootup
+>>>>
+>>>> <6>Disabling unused clock "dpll5_ck"
+>>>> Disabling unused clock "dpll5_ck"
+>>>> <3>clock: dpll5_ck failed transition to 'locked'
+>>>> clock: dpll5_ck failed transition to 'locked'
+>>>>
+>>>> This is the same results I see on my SDP.
+>>>>
+>>>> Looking at the registers, I am pretty sure it is the D2D
+>> clockdomain
+>>>> that still has activity, but due to very poor Stacked-mode
+>> docs and no
+>>>> responses to the D2D questions asked to TI I have not been able to
+>>>> figure this one out.
+>>>>
+>>>> Help debugging this would be greatly appreciated.
+>>>
+>>> I looked some more into this today and saw that the hang is
+>> indeed caused
+>>> due to some kind of debug console going dead. The system
+>> was still looping in the
+>>> idle thread. I could even do a telnet remotely to my board and take
+>>> some debug dumps..
+>>
+>> This might help you:
+>
+> Yup, this does help. There's no hang now either in idle or in suspend.
+> Not sure why this was affecting only the SDP while the pm branch seems
+> to function without this for beagle and other omap3 platforms?
+
+I get 'hangs' on the beagle as well with the PM branch. They mostly =20
+seem to happen when I boot a fresh rootfs and the packagemanager runs =20=
+
+a lot of postinst scripts without any form of user interaction.
+
+regards,
+
+Koen
+
+
+>
+>
+>>
+>> diff --git a/arch/arm/mach-omap2/pm34xx.c
+>> b/arch/arm/mach-omap2/pm34xx.c
+>> index b2db0ba..266e4f5 100644
+>> --- a/arch/arm/mach-omap2/pm34xx.c
+>> +++ b/arch/arm/mach-omap2/pm34xx.c
+>> @@ -401,6 +401,8 @@ void omap_sram_idle(void)
+>>                        omap3_prcm_restore_context();
+>>                        omap3_sram_restore_context();
+>>                }
+>> +               omap_uart_resume_idle(0);
+>> +               omap_uart_resume_idle(1);
+>>                if (core_next_state =3D=3D PWRDM_POWER_OFF)
+>>                        prm_clear_mod_reg_bits(OMAP3430_AUTO_OFF,
+>>                                               OMAP3430_GR_MOD,
+>>
+>> --=20
+>> Jouni H=F6gander
+>>
+>>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-=20
+> omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>>
+
+
+--Apple-Mail-1-1002378079
+content-type: application/pgp-signature; x-mac-type=70674453;
+	name=PGP.sig
+content-description: Dit deel van het bericht is digitaal ondertekend
+content-disposition: inline; filename=PGP.sig
+content-transfer-encoding: 7bit
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.5 (Darwin)
+
+iD8DBQFJebPLMkyGM64RGpERAsE9AJ9zOD1YXE7DNHNIeQq6waHQMqlmrgCgmqm5
+w9DZsh6b/BwrVJMqv3y48us=
+=Wd2/
+-----END PGP SIGNATURE-----
+
+--Apple-Mail-1-1002378079--
