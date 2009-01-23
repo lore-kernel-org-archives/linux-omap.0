@@ -1,116 +1,27 @@
-From: "Premi, Sanjeev" <premi@ti.com>
-Subject: RE: OMAP1: mcbsp clocks
-Date: Sat, 24 Jan 2009 00:56:36 +0530
-Message-ID: <B85A65D85D7EB246BE421B3FB0FBB59301C6EC7330@dbde02.ent.ti.com>
-References: <20090122235543.GC8137@n2100.arm.linux.org.uk>
- <20090123011726.GG7172@atomide.com>
- <20090123174249.GM26184@n2100.arm.linux.org.uk>
- <20090123175401.GU7172@atomide.com>
- <7B4574D56E4ADF438756313E9A172A872CABB868@dlee01.ent.ti.com>
- <20090123191721.GW7172@atomide.com>
+From: Felipe Balbi <me@felipebalbi.com>
+Subject: Re: [PATCH 3/3] Disable linux-omap version of menelaus
+Date: Fri, 23 Jan 2009 21:27:07 +0200
+Message-ID: <20090123192707.GB440@frodo>
+References: <20090122131602.18315.84862.stgit@tikku> <20090122131920.18315.68032.stgit@tikku> <20090122131509.GH9233@scadufax.research.nokia.com> <20090123022334.GN7172@atomide.com> <20090123192144.GZ440@frodo> <20090123192323.GX7172@atomide.com>
+Reply-To: me@felipebalbi.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:40803 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753035AbZAWT04 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 23 Jan 2009 14:26:56 -0500
-In-Reply-To: <20090123191721.GW7172@atomide.com>
-Content-Language: en-US
+Received: from ns1.siteground211.com ([209.62.36.12]:44173 "EHLO
+	serv01.siteground211.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753035AbZAWT1T (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 23 Jan 2009 14:27:19 -0500
+Content-Disposition: inline
+In-Reply-To: <20090123192323.GX7172@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, "Hunter, Jon" <jon-hunter@ti.com>
-Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Paul Walmsley <paul@pwsan.com>, Stanley Miao <stanley.miao@windriver.com>
+To: Tony Lindgren <tony@atomide.com>
+Cc: Felipe Balbi <me@felipebalbi.com>, Felipe Balbi <felipe.balbi@nokia.com>, ext Kalle Valo <kalle.valo@nokia.com>, linux-omap@vger.kernel.org
 
- 
+On Fri, Jan 23, 2009 at 11:23:25AM -0800, Tony Lindgren wrote:
+> Dave has been busy again.. 88e75cc347f66bc20e3c2b920431fc07253d69be.
 
-> -----Original Message-----
-> From: linux-omap-owner@vger.kernel.org 
-> [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Tony Lindgren
-> Sent: Saturday, January 24, 2009 12:47 AM
-> To: Hunter, Jon
-> Cc: Russell King - ARM Linux; linux-omap@vger.kernel.org; 
-> Paul Walmsley; Stanley Miao
-> Subject: Re: OMAP1: mcbsp clocks
-> 
-> * Hunter, Jon <jon-hunter@ti.com> [090123 11:03]:
-> > Tony Lindgren wrote on Friday, January 23, 2009 11:54 AM:
-> > 
-> > > * Russell King - ARM Linux <linux@arm.linux.org.uk> 
-> [090123 09:43]:
-> > >> On Thu, Jan 22, 2009 at 05:17:28PM -0800, Tony Lindgren wrote:
-> > >>> Basically we currently cannot use virtual clocks 
-> because of this 
-> > >>> and the fact that the parent of the virtual clock may 
-> not be known 
-> > >>> as pointed out by Paul Walmsley.
-> > >>
-> > >> One other thing I'd like to confirm is how the kernel treats the 
-> > >> OMAP5912. OMAP5912 is interesting to me at the moment because it 
-> > >> seems that all the information on it is freely 
-> available.  I don't 
-> > >> know about the others.
-> > >>
-> > >> However, it would be useful to know how the kernel treats this - 
-> > >> iow, which of the four categories for OMAP1 SoCs - 310, 
-> 730, 1510, 1610.
-> > >
-> > > 5912 = 1611b = 16xx. Then 1710 is quite similar.
-> > 
-> > Right, the OMAP5912 started off life as the 1611, but 1611 
-> involved into the 1621. So really 5912 = 1621. There are a 
-> couple differences between the 1610 and 1621, one of the main 
-> being the size of the internal RAM.
-> 
-> Thanks for setting that straight. And looks like we have 
-> cpu_is_omap1621() macro in the kernel.
-> 
-> > >> Of course, if someone knows (or can send me, maybe Richard W?) 
-> > >> where there's a similar document to spru751a for the clock 
-> > >> architecture for these other CPUs (and OMAP2420, OMAP2430, 
-> > >> OMAP3430, etc) it would be most useful.
-> > 
-> > Unfortunately, most of the original devices have NDA 
-> restrictions which is a royal pain in the neck especially for 
-> people in the open-source community who would like to develop 
-> with these. I am sure this infuriates many. Please don't 
-> shoot the messenger!
-> > 
-> > I am disappointed it is still that way for some of these 
-> parts. The good news is that for OMAP3 we appear to be 
-> getting our act together here.
-> > 
-> > > I have some links on my webpage to the docs:
-> > >
-> > > http://www.muru.com/linux/omap/
-> > 
-> > Tony, I see you have a link on your website to the 
-> OMAP3525. The OMAP3530 == OMAP3430, I would recommend that 
-> you point people to the following product folder for documentation:
-> > http://focus.ti.com/docs/prod/folders/print/omap3530.html
-> 
-> Thanks, fixed now. Also removed some earlier dead link.
-> 
-> > The OMAP3525 has a reduced feature set...see the following 
-> page for an overview of the OMAP35xx series:
-> > http://wiki.omap.com/index.php?title=OMAP3_Overview
-> > 
-> > Cheers
-> > Jon
-> > 
+aaa ok, it's difficult to follow Dave, heh :-)
 
-Tony,
-
-I haven't heard any specific comments since Kevin's okay for the OMAP35x patchset. Is it on your 'push' list?
-
-Best regards,
-Sanjeev
-> > 
-> --
-> To unsubscribe from this list: send the line "unsubscribe 
-> linux-omap" in the body of a message to 
-> majordomo@vger.kernel.org More majordomo info at  
-> http://vger.kernel.org/majordomo-info.html
-> 
-> 
+-- 
+balbi
