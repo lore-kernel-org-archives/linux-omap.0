@@ -1,64 +1,79 @@
-From: Kalle Jokiniemi <kalle.jokiniemi@digia.com>
-Subject: Re: [PATCH 0/1] TWL: USB: disable VUSB regulators
-Date: Fri, 23 Jan 2009 12:55:19 +0200
-Message-ID: <1232708119.6515.443.camel@ubuntu>
-References: <1232543718-18199-1-git-send-email-kalle.jokiniemi@digia.com>
-	 <200901211238.33229.david-b@pacbell.net>
+From: jouni.hogander@nokia.com (=?utf-8?Q?H=C3=B6gander?= Jouni)
+Subject: Re: new PM branch available
+Date: Fri, 23 Jan 2009 13:21:34 +0200
+Message-ID: <877i4mgtdt.fsf@trdhcp146196.ntc.nokia.com>
+References: <5A47E75E594F054BAF48C5E4FC4B92AB02F5110938@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from sally.edelkey.net ([213.138.147.136]:47250 "EHLO
-	sally.edelkey.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752501AbZAWKzc (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 23 Jan 2009 05:55:32 -0500
-In-Reply-To: <200901211238.33229.david-b@pacbell.net>
+Received: from smtp.nokia.com ([192.100.122.233]:41255 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754878AbZAWLUY convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 23 Jan 2009 06:20:24 -0500
+In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB02F5110938@dbde02.ent.ti.com>
+	(ext Nayak's message of "Fri, 23 Jan 2009 15:49:30 +0530")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: David Brownell <david-b@pacbell.net>
-Cc: linux-omap@vger.kernel.org, felipe.balbi@nokia.com
+To: "ext Nayak, Rajendra" <rnayak@ti.com>
+Cc: Kevin Hilman <khilman@deeprootsystems.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Hi Dave,
+"ext Nayak, Rajendra" <rnayak@ti.com> writes:
 
-Sorry for the late response, I was out of office yesterday.
+>> I did some testing today on my 3.0GP 3430SDP. This is with the omap_=
+3430sdp_min_defconfig.
+>>
+>> 1) Idle.
+>> echo -n 1 > /sys/power/clocks_off_while_idle
+>> echo -n 1 > /sys/power/enable_off
+>> Could not hit RET. something seems to be still active. Not sure if i=
+t could be something
+>> to do with this error that's thrown while bootup
+>>
+>> <6>Disabling unused clock "dpll5_ck"
+>> Disabling unused clock "dpll5_ck"
+>> <3>clock: dpll5_ck failed transition to 'locked'
+>> clock: dpll5_ck failed transition to 'locked'
+>>=20
+>> This is the same results I see on my SDP.
+>>=20
+>> Looking at the registers, I am pretty sure it is the D2D clockdomain
+>> that still has activity, but due to very poor Stacked-mode docs and =
+no
+>> responses to the D2D questions asked to TI I have not been able to
+>> figure this one out.
+>>=20
+>> Help debugging this would be greatly appreciated.
+>
+> I looked some more into this today and saw that the hang is indeed ca=
+used
+> due to some kind of debug console going dead. The system was still lo=
+oping in the
+> idle thread. I could even do a telnet remotely to my board and take
+> some debug dumps..
 
-On Wed, 2009-01-21 at 12:38 -0800, David Brownell wrote:
-> On Wednesday 21 January 2009, Kalle Jokiniemi wrote:
-> > The TWL5030/4030 internal VUSB regulators are eating current
-> > like small piggies.
-> 
-> Feral pigs are a big problem in many places ...
-> no surprise that feral code is too!
-> 
-> 
-> > The following patch makes an aptempt at 
-> > making the twl4030-usb consumer driver dynamically disable
-> > and enable the regulators it needs.
-> 
-> Thanks, I'll have a look.  It's a bit different
-> from some old hacks I didn't finish debugging.
-> 
-> Shouldn't the power down sequence mirror the
-> power up sequence?  Up 1.5, 1.8, 3.1 ... then
-> down 3.1, 1.8, 1.5?  Or does that matter?
+This might help you:
 
-Good question. The TRM tells quite little on these VUSB regulators,
-other than they supply the USB sub-chip in TWL. For VUSB3V1 there is a
-bit more information, telling that it supplies USB PHY, CEA Carkit
-modules and MCPC (seems to be some special usb UART specification). 
+diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.=
+c
+index b2db0ba..266e4f5 100644
+--- a/arch/arm/mach-omap2/pm34xx.c
++++ b/arch/arm/mach-omap2/pm34xx.c
+@@ -401,6 +401,8 @@ void omap_sram_idle(void)
+                        omap3_prcm_restore_context();
+                        omap3_sram_restore_context();
+                }
++               omap_uart_resume_idle(0);
++               omap_uart_resume_idle(1);
+                if (core_next_state =3D=3D PWRDM_POWER_OFF)
+                        prm_clear_mod_reg_bits(OMAP3430_AUTO_OFF,
+                                               OMAP3430_GR_MOD,
 
-I would think they all can be shut down in whatever order, if there is
-nothing connected to the usb connector.
+--=20
+Jouni H=C3=B6gander
 
-> 
-> Also, I'm thinking that the DEV_GRP and TYPE
-> register updates belong in regulator code, not
-> transceiver code.  That's something to take care
-> of with a separate patch though.
-
-I agree.
-
-- Kalle 
-
-> 
-> - Dave
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
