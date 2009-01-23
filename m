@@ -1,33 +1,172 @@
-From: Felipe Balbi <felipe.balbi@nokia.com>
-Subject: Re: [PATCH 2/3] tsub6010: fix omap compile
-Date: Fri, 23 Jan 2009 15:57:24 +0200
-Message-ID: <20090123135724.GX9233@scadufax.research.nokia.com>
-References: <20090122131602.18315.84862.stgit@tikku> <20090122131913.18315.73478.stgit@tikku> <20090123021051.GM7172@atomide.com> <20090123121423.GT9233@scadufax.research.nokia.com> <87y6x215l6.fsf@nokia.com>
-Reply-To: felipe.balbi@nokia.com
+From: Sriram V <vshrirama@gmail.com>
+Subject: Re: cpuidle and NO_HZ
+Date: Fri, 23 Jan 2009 21:22:56 +0530
+Message-ID: <8bf247760901230752h4835083foaa486311425c6c68@mail.gmail.com>
+References: <B85A65D85D7EB246BE421B3FB0FBB59301C6DD0347@dbde02.ent.ti.com>
+	 <8bf247760901220906n1ab095a0h695e9c1f5e8db916@mail.gmail.com>
+	 <B85A65D85D7EB246BE421B3FB0FBB59301C6DD03F9@dbde02.ent.ti.com>
+	 <B85A65D85D7EB246BE421B3FB0FBB59301C6EC7222@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:58110 "EHLO
-	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756222AbZAWOOj (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 23 Jan 2009 09:14:39 -0500
-Content-Disposition: inline
-In-Reply-To: <87y6x215l6.fsf@nokia.com>
+Received: from mail-gx0-f21.google.com ([209.85.217.21]:53466 "EHLO
+	mail-gx0-f21.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755857AbZAWPxI (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 23 Jan 2009 10:53:08 -0500
+Received: by gxk14 with SMTP id 14so4331302gxk.13
+        for <linux-omap@vger.kernel.org>; Fri, 23 Jan 2009 07:53:07 -0800 (PST)
+In-Reply-To: <B85A65D85D7EB246BE421B3FB0FBB59301C6EC7222@dbde02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kalle Valo <kalle.valo@nokia.com>
-Cc: felipe.balbi@nokia.com, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org
+To: "Premi, Sanjeev" <premi@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Fri, Jan 23, 2009 at 04:04:37PM +0200, Kalle Valo wrote:
-> T=E1 bom :)
+Sanjeev,
+I am not really sure what the problem could be.
+By enabling smc irq as wakeup resulted in faster nfs mounts compared
+to before. however this does not happen everytime.
+On enabling smc debug i can see interrupts happening all while.
+for me ping stops after a while.
 
-hehe :-)
+Booting out a MMC card. I am unable to ping from the board. i see
+rx overruns. However i can smc interrupts happening
 
---=20
-balbi
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+For some reason this happens only when cpuidle is enabled.
+
+Regards,
+sriram
+
+
+
+
+
+
+ But, i also see
+
+
+Regards,
+sriram
+
+
+
+ as i said this could be something else.
+
+Regards,
+sriram
+
+
+
+
+On Fri, Jan 23, 2009 at 6:58 PM, Premi, Sanjeev <premi@ti.com> wrote:
+>> -----Original Message-----
+>> From: linux-omap-owner@vger.kernel.org
+>> [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Premi, Sanjeev
+>> Sent: Friday, January 23, 2009 12:02 AM
+>> To: Sriram V
+>> Cc: linux-omap@vger.kernel.org
+>> Subject: RE: cpuidle and NO_HZ
+>>
+>> > -----Original Message-----
+>> > From: Sriram V [mailto:vshrirama@gmail.com]
+>> > Sent: Thursday, January 22, 2009 10:37 PM
+>> > To: Premi, Sanjeev
+>> > Cc: linux-omap@vger.kernel.org
+>> > Subject: Re: cpuidle and NO_HZ
+>> >
+>> > Sanjeev,
+>> >
+>> > On Thu, Jan 22, 2009 at 8:14 PM, Premi, Sanjeev
+>> <premi@ti.com> wrote:
+>> > > Hi all,
+>> > >
+>> > > While trying to use NFS hosted filesystem, I have made a
+>> > strange observation. Have verified it on multiple OMAP3EVM boards.
+>> > >
+>> > > With CONFIG_NO_HZ and CONFIG_CPU_IDLE, after the print
+>> > "Freeing init memory: 152K" in the log below; the boot
+>> sequence almost
+>> > stops for approx a minute before proceeding further.
+>> > >
+>> > >   Sending DHCP requests .<6>eth0: link up, 100Mbps,
+>> > full-duplex, lpa 0x01E1
+>> > >   ., OK
+>> > >   IP-Config: Got DHCP answer from 0.0.0.0, my address is
+>> 192.168.1.9
+>> > >   IP-Config: Complete:
+>> > >     device=eth0, addr=192.168.1.9, mask=255.255.255.0,
+>> > gw=192.168.1.9,
+>> > >     host=192.168.1.9, domain=india.ti.com, nis-domain=(none),
+>> > >     bootserver=0.0.0.0, rootserver=192.168.1.2, rootpath=
+>> > >   Looking up port of RPC 100003/2 on 192.168.1.2
+>> > >   Looking up port of RPC 100005/1 on 192.168.1.2
+>> > >   VFS: Mounted root (nfs filesystem).
+>> > >   Freeing init memory: 152K
+>> > >   init started: BusyBox v1.11.1 (2008-08-06 21:12:30 IST)
+>> > >   starting pid 442, tty '': '/etc/init.d/rcS'
+>> > >
+>> >
+>> > This seems to be a wakeup issue. SMC gpio irq needs to be
+>> enabled as a
+>> > wakeup source.
+>> > I notice that sometimes even after enabling it as a wakeup source
+>> > network interface has trouble. either it is too slow or it
+>> just hangs
+>> > during nfs mount or takes a long time to mount. this issue could be
+>> > somewhere else
+>> >
+>> > I also notice that the whenever network interface hangs during nfs
+>> > mount.
+>> > the nfs server would have exited.
+>>
+>> [sp]Thanks. I will try the patch.
+>>
+>> I did believe it was a wakeup issue until I had not tried the ping.
+>> All pings were successful; indicating that eth interface is still up.
+>>
+>> The 'mount' succeeding after about a minute is confirms it as well.
+>>
+>> Best regards,
+>> Sanjeev
+>> >
+>
+> [sp] The patch did not help :( behavior is still the same
+>
+>> >
+>> >
+>> > Regards,
+>> > sriram
+>> >
+>> >
+>> >
+>> >
+>> >
+>> >
+>> >
+>> > > Later, the system response is slow.
+>> > >
+>> > > Toggling either of these CONFIG options seems to resolve
+>> the issue.
+>> > >
+>> > > My initial suspicion was on the SMC911x driver, but during
+>> > this 'wait' period ping requests to the EVM are successful.
+>> > >
+>> > > Just wanted to check if anyone has seen this behavior.
+>> > > (I am on Kevin's latest PM branch 998bd5675a1e...).
+>> > >
+>> > > Best regards,
+>> > > Sanjeev
+>> > > --
+>> > > To unsubscribe from this list: send the line "unsubscribe
+>> > linux-omap"
+>> > > in the body of a message to majordomo@vger.kernel.org More
+>> > majordomo
+>> > > info at  http://vger.kernel.org/majordomo-info.html
+>> > >
+>> > --
+>> To unsubscribe from this list: send the line "unsubscribe
+>> linux-omap" in the body of a message to
+>> majordomo@vger.kernel.org More majordomo info at
+>> http://vger.kernel.org/majordomo-info.html
+>>
+>>
