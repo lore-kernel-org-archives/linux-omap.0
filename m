@@ -1,52 +1,66 @@
-From: David Brownell <david-b-yBeKhBN/0LDR7s880joybQ@public.gmane.org>
-Subject: Re: [PATCH] usb: musb: fix bug in musbhsdma programming
-Date: Fri, 23 Jan 2009 10:50:33 -0800
-Message-ID: <200901231050.34154.david-b@pacbell.net>
-References: <1231417896-32363-1-git-send-email-ajay.gupta@ti.com> <200901231036.04376.david-b@pacbell.net> <20090123183814.GV440@frodo>
+From: "Hunter, Jon" <jon-hunter@ti.com>
+Subject: RE: OMAP1: mcbsp clocks
+Date: Fri, 23 Jan 2009 13:03:32 -0600
+Message-ID: <7B4574D56E4ADF438756313E9A172A872CABB868@dlee01.ent.ti.com>
+References: <20090122235543.GC8137@n2100.arm.linux.org.uk>
+ <20090123011726.GG7172@atomide.com>
+ <20090123174249.GM26184@n2100.arm.linux.org.uk>
+ <20090123175401.GU7172@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20090123183814.GV440@frodo>
-Content-Disposition: inline
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: me-uiRdBs8odbtmTBlB0Cgj/Q@public.gmane.org
-Cc: felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org, Ajay Kumar Gupta <ajay.gupta-l0cyMroinI0@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:40126 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752571AbZAWTDo convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 23 Jan 2009 14:03:44 -0500
+In-Reply-To: <20090123175401.GU7172@atomide.com>
+Content-Language: en-US
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Paul Walmsley <paul@pwsan.com>, Stanley Miao <stanley.miao@windriver.com>
 
-On Friday 23 January 2009, Felipe Balbi wrote:
-> 
-> > NAK -- interpretation of the MODE parameter is correct
-> > (though it's not clear to me that the callers set it right),
-> > but this won't apply to current GIT since the code differs.
-> 
-> hmmm.. don't get what you mean. If mode parameter in channel_program()
-> is true, that means channel->desired_mode should be true and we're
-> trying to kick mode1 dma, isn't it ??
+Tony Lindgren wrote on Friday, January 23, 2009 11:54 AM:
 
-What I mean is:  you're working on "mode1 DMA"
-(multiple packets per request, the only sane mode,
-when it works) ... and I know you've had a hard time
-getting it all to behave.  Ergo it's not clear to me
-that Ajay's patch could be sufficient.  If it were,
-then you've been spending a LOT of time on something
-very simple ... ;)
+> * Russell King - ARM Linux <linux@arm.linux.org.uk> [090123 09:43]:
+>> On Thu, Jan 22, 2009 at 05:17:28PM -0800, Tony Lindgren wrote:
+>>> Basically we currently cannot use virtual clocks because of this
+>>> and the fact that the parent of the virtual clock may not be known
+>>> as pointed out by Paul Walmsley.
+>>
+>> One other thing I'd like to confirm is how the kernel treats the
+>> OMAP5912. OMAP5912 is interesting to me at the moment because it
+>> seems that all the information on it is freely available.  I don't
+>> know about the others.
+>>
+>> However, it would be useful to know how the kernel treats this - iow,
+>> which of the four categories for OMAP1 SoCs - 310, 730, 1510, 1610.
+>
+> 5912 = 1611b = 16xx. Then 1710 is quite similar.
 
-The "desired_mode" thing is confusing too; it's
-TX vs RX, unrelated to "mode1" or "mode0", but
-that's a separate naming issue.
+Right, the OMAP5912 started off life as the 1611, but 1611 involved into the 1621. So really 5912 = 1621. There are a couple differences between the 1610 and 1621, one of the main being the size of the internal RAM.
 
-- Dave
+>> Of course, if someone knows (or can send me, maybe Richard W?) where
+>> there's a similar document to spru751a for the clock architecture for
+>> these other CPUs (and OMAP2420, OMAP2430, OMAP3430, etc) it would be
+>> most useful.
+
+Unfortunately, most of the original devices have NDA restrictions which is a royal pain in the neck especially for people in the open-source community who would like to develop with these. I am sure this infuriates many. Please don't shoot the messenger!
+
+I am disappointed it is still that way for some of these parts. The good news is that for OMAP3 we appear to be getting our act together here.
+
+> I have some links on my webpage to the docs:
+>
+> http://www.muru.com/linux/omap/
+
+Tony, I see you have a link on your website to the OMAP3525. The OMAP3530 == OMAP3430, I would recommend that you point people to the following product folder for documentation:
+http://focus.ti.com/docs/prod/folders/print/omap3530.html
+
+The OMAP3525 has a reduced feature set...see the following page for an overview of the OMAP35xx series:
+http://wiki.omap.com/index.php?title=OMAP3_Overview
+
+Cheers
+Jon
 
 
-
-> 
-> But true, should be re-issued
-> 
-
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
