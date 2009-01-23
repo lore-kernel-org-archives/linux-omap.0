@@ -1,79 +1,64 @@
-From: jouni.hogander@nokia.com (=?utf-8?Q?H=C3=B6gander?= Jouni)
-Subject: Re: new PM branch available
-Date: Fri, 23 Jan 2009 13:21:34 +0200
-Message-ID: <877i4mgtdt.fsf@trdhcp146196.ntc.nokia.com>
-References: <5A47E75E594F054BAF48C5E4FC4B92AB02F5110938@dbde02.ent.ti.com>
+From: "Nayak, Rajendra" <rnayak@ti.com>
+Subject: RE: new PM branch available
+Date: Fri, 23 Jan 2009 17:30:24 +0530
+Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB02F51109B5@dbde02.ent.ti.com>
+References: <877i4mgtdt.fsf@trdhcp146196.ntc.nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:41255 "EHLO
-	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754878AbZAWLUY convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 23 Jan 2009 06:20:24 -0500
-In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB02F5110938@dbde02.ent.ti.com>
-	(ext Nayak's message of "Fri, 23 Jan 2009 15:49:30 +0530")
+Received: from devils.ext.ti.com ([198.47.26.153]:49389 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754233AbZAWMAk (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 23 Jan 2009 07:00:40 -0500
+In-Reply-To: <877i4mgtdt.fsf@trdhcp146196.ntc.nokia.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "ext Nayak, Rajendra" <rnayak@ti.com>
+To: =?utf-8?B?SMO2Z2FuZGVyIEpvdW5p?= <jouni.hogander@nokia.com>
 Cc: Kevin Hilman <khilman@deeprootsystems.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-"ext Nayak, Rajendra" <rnayak@ti.com> writes:
-
->> I did some testing today on my 3.0GP 3430SDP. This is with the omap_=
-3430sdp_min_defconfig.
->>
->> 1) Idle.
->> echo -n 1 > /sys/power/clocks_off_while_idle
->> echo -n 1 > /sys/power/enable_off
->> Could not hit RET. something seems to be still active. Not sure if i=
-t could be something
->> to do with this error that's thrown while bootup
->>
->> <6>Disabling unused clock "dpll5_ck"
->> Disabling unused clock "dpll5_ck"
->> <3>clock: dpll5_ck failed transition to 'locked'
->> clock: dpll5_ck failed transition to 'locked'
->>=20
->> This is the same results I see on my SDP.
->>=20
->> Looking at the registers, I am pretty sure it is the D2D clockdomain
->> that still has activity, but due to very poor Stacked-mode docs and =
-no
->> responses to the D2D questions asked to TI I have not been able to
->> figure this one out.
->>=20
->> Help debugging this would be greatly appreciated.
->
-> I looked some more into this today and saw that the hang is indeed ca=
-used
-> due to some kind of debug console going dead. The system was still lo=
-oping in the
-> idle thread. I could even do a telnet remotely to my board and take
-> some debug dumps..
-
-This might help you:
-
-diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.=
-c
-index b2db0ba..266e4f5 100644
---- a/arch/arm/mach-omap2/pm34xx.c
-+++ b/arch/arm/mach-omap2/pm34xx.c
-@@ -401,6 +401,8 @@ void omap_sram_idle(void)
-                        omap3_prcm_restore_context();
-                        omap3_sram_restore_context();
-                }
-+               omap_uart_resume_idle(0);
-+               omap_uart_resume_idle(1);
-                if (core_next_state =3D=3D PWRDM_POWER_OFF)
-                        prm_clear_mod_reg_bits(OMAP3430_AUTO_OFF,
-                                               OMAP3430_GR_MOD,
-
---=20
-Jouni H=C3=B6gander
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+IA0KDQo+IC0tLS0tT3JpZ2luYWwgTWVzc2FnZS0tLS0tDQo+IEZyb206IEjDtmdhbmRlciBKb3Vu
+aSBbbWFpbHRvOmpvdW5pLmhvZ2FuZGVyQG5va2lhLmNvbV0gDQo+IFNlbnQ6IEZyaWRheSwgSmFu
+dWFyeSAyMywgMjAwOSA0OjUyIFBNDQo+IFRvOiBOYXlhaywgUmFqZW5kcmENCj4gQ2M6IEtldmlu
+IEhpbG1hbjsgbGludXgtb21hcEB2Z2VyLmtlcm5lbC5vcmcNCj4gU3ViamVjdDogUmU6IG5ldyBQ
+TSBicmFuY2ggYXZhaWxhYmxlDQo+IA0KPiAiZXh0IE5heWFrLCBSYWplbmRyYSIgPHJuYXlha0B0
+aS5jb20+IHdyaXRlczoNCj4gDQo+ID4+IEkgZGlkIHNvbWUgdGVzdGluZyB0b2RheSBvbiBteSAz
+LjBHUCAzNDMwU0RQLiBUaGlzIGlzIHdpdGggDQo+IHRoZSBvbWFwXzM0MzBzZHBfbWluX2RlZmNv
+bmZpZy4NCj4gPj4NCj4gPj4gMSkgSWRsZS4NCj4gPj4gZWNobyAtbiAxID4gL3N5cy9wb3dlci9j
+bG9ja3Nfb2ZmX3doaWxlX2lkbGUNCj4gPj4gZWNobyAtbiAxID4gL3N5cy9wb3dlci9lbmFibGVf
+b2ZmDQo+ID4+IENvdWxkIG5vdCBoaXQgUkVULiBzb21ldGhpbmcgc2VlbXMgdG8gYmUgc3RpbGwg
+YWN0aXZlLiBOb3QgDQo+IHN1cmUgaWYgaXQgY291bGQgYmUgc29tZXRoaW5nDQo+ID4+IHRvIGRv
+IHdpdGggdGhpcyBlcnJvciB0aGF0J3MgdGhyb3duIHdoaWxlIGJvb3R1cA0KPiA+Pg0KPiA+PiA8
+Nj5EaXNhYmxpbmcgdW51c2VkIGNsb2NrICJkcGxsNV9jayINCj4gPj4gRGlzYWJsaW5nIHVudXNl
+ZCBjbG9jayAiZHBsbDVfY2siDQo+ID4+IDwzPmNsb2NrOiBkcGxsNV9jayBmYWlsZWQgdHJhbnNp
+dGlvbiB0byAnbG9ja2VkJw0KPiA+PiBjbG9jazogZHBsbDVfY2sgZmFpbGVkIHRyYW5zaXRpb24g
+dG8gJ2xvY2tlZCcNCj4gPj4gDQo+ID4+IFRoaXMgaXMgdGhlIHNhbWUgcmVzdWx0cyBJIHNlZSBv
+biBteSBTRFAuDQo+ID4+IA0KPiA+PiBMb29raW5nIGF0IHRoZSByZWdpc3RlcnMsIEkgYW0gcHJl
+dHR5IHN1cmUgaXQgaXMgdGhlIEQyRCANCj4gY2xvY2tkb21haW4NCj4gPj4gdGhhdCBzdGlsbCBo
+YXMgYWN0aXZpdHksIGJ1dCBkdWUgdG8gdmVyeSBwb29yIFN0YWNrZWQtbW9kZSANCj4gZG9jcyBh
+bmQgbm8NCj4gPj4gcmVzcG9uc2VzIHRvIHRoZSBEMkQgcXVlc3Rpb25zIGFza2VkIHRvIFRJIEkg
+aGF2ZSBub3QgYmVlbiBhYmxlIHRvDQo+ID4+IGZpZ3VyZSB0aGlzIG9uZSBvdXQuDQo+ID4+IA0K
+PiA+PiBIZWxwIGRlYnVnZ2luZyB0aGlzIHdvdWxkIGJlIGdyZWF0bHkgYXBwcmVjaWF0ZWQuDQo+
+ID4NCj4gPiBJIGxvb2tlZCBzb21lIG1vcmUgaW50byB0aGlzIHRvZGF5IGFuZCBzYXcgdGhhdCB0
+aGUgaGFuZyBpcyANCj4gaW5kZWVkIGNhdXNlZA0KPiA+IGR1ZSB0byBzb21lIGtpbmQgb2YgZGVi
+dWcgY29uc29sZSBnb2luZyBkZWFkLiBUaGUgc3lzdGVtIA0KPiB3YXMgc3RpbGwgbG9vcGluZyBp
+biB0aGUNCj4gPiBpZGxlIHRocmVhZC4gSSBjb3VsZCBldmVuIGRvIGEgdGVsbmV0IHJlbW90ZWx5
+IHRvIG15IGJvYXJkIGFuZCB0YWtlDQo+ID4gc29tZSBkZWJ1ZyBkdW1wcy4uDQo+IA0KPiBUaGlz
+IG1pZ2h0IGhlbHAgeW91Og0KDQpZdXAsIHRoaXMgZG9lcyBoZWxwLiBUaGVyZSdzIG5vIGhhbmcg
+bm93IGVpdGhlciBpbiBpZGxlIG9yIGluIHN1c3BlbmQuDQpOb3Qgc3VyZSB3aHkgdGhpcyB3YXMg
+YWZmZWN0aW5nIG9ubHkgdGhlIFNEUCB3aGlsZSB0aGUgcG0gYnJhbmNoIHNlZW1zDQp0byBmdW5j
+dGlvbiB3aXRob3V0IHRoaXMgZm9yIGJlYWdsZSBhbmQgb3RoZXIgb21hcDMgcGxhdGZvcm1zPw0K
+DQo+IA0KPiBkaWZmIC0tZ2l0IGEvYXJjaC9hcm0vbWFjaC1vbWFwMi9wbTM0eHguYyANCj4gYi9h
+cmNoL2FybS9tYWNoLW9tYXAyL3BtMzR4eC5jDQo+IGluZGV4IGIyZGIwYmEuLjI2NmU0ZjUgMTAw
+NjQ0DQo+IC0tLSBhL2FyY2gvYXJtL21hY2gtb21hcDIvcG0zNHh4LmMNCj4gKysrIGIvYXJjaC9h
+cm0vbWFjaC1vbWFwMi9wbTM0eHguYw0KPiBAQCAtNDAxLDYgKzQwMSw4IEBAIHZvaWQgb21hcF9z
+cmFtX2lkbGUodm9pZCkNCj4gICAgICAgICAgICAgICAgICAgICAgICAgb21hcDNfcHJjbV9yZXN0
+b3JlX2NvbnRleHQoKTsNCj4gICAgICAgICAgICAgICAgICAgICAgICAgb21hcDNfc3JhbV9yZXN0
+b3JlX2NvbnRleHQoKTsNCj4gICAgICAgICAgICAgICAgIH0NCj4gKyAgICAgICAgICAgICAgIG9t
+YXBfdWFydF9yZXN1bWVfaWRsZSgwKTsNCj4gKyAgICAgICAgICAgICAgIG9tYXBfdWFydF9yZXN1
+bWVfaWRsZSgxKTsNCj4gICAgICAgICAgICAgICAgIGlmIChjb3JlX25leHRfc3RhdGUgPT0gUFdS
+RE1fUE9XRVJfT0ZGKQ0KPiAgICAgICAgICAgICAgICAgICAgICAgICBwcm1fY2xlYXJfbW9kX3Jl
+Z19iaXRzKE9NQVAzNDMwX0FVVE9fT0ZGLA0KPiAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
+ICAgICAgICAgICAgICAgICAgIE9NQVAzNDMwX0dSX01PRCwNCj4gDQo+IC0tIA0KPiBKb3VuaSBI
+w7ZnYW5kZXINCj4gDQo+IA0KPiA=
