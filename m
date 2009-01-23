@@ -1,84 +1,121 @@
-From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Subject: RE: [PATCH] ARM OMAP: Fix race in OMAP2/3 DMA IRQ handling
-Date: Fri, 23 Jan 2009 10:05:33 +0530
-Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB02A39CEE9C@dbde02.ent.ti.com>
-References: <20090121172409.GA23967@mail.solidboot.com>
- <EAF47CD23C76F840A9E7FCE10091EFAB02A39CE60B@dbde02.ent.ti.com>
- <49782AAF.4070506@solidboot.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+From: ext-eero.nurkkala@nokia.com
+Subject: [PATCH] OMAP: McBSP: Wakeups utilized
+Date: Fri, 23 Jan 2009 08:43:43 +0200
+Message-ID: <12326930232272-git-send-email-ext-eero.nurkkala@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:54121 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754547AbZAWEfs convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 22 Jan 2009 23:35:48 -0500
-In-Reply-To: <49782AAF.4070506@solidboot.com>
-Content-Language: en-US
+Received: from smtp.nokia.com ([192.100.122.230]:17275 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751026AbZAWGsw (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 23 Jan 2009 01:48:52 -0500
+Received: from esebh105.NOE.Nokia.com (esebh105.ntc.nokia.com [172.21.138.211])
+	by mgw-mx03.nokia.com (Switch-3.2.6/Switch-3.2.6) with ESMTP id n0N6mXbL000708
+	for <linux-omap@vger.kernel.org>; Fri, 23 Jan 2009 08:48:49 +0200
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Juha Yrjola <juha.yrjola@solidboot.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: linux-omap@vger.kernel.org
+Cc: Eero Nurkkala <ext-eero.nurkkala@nokia.com>
 
+From: Eero Nurkkala <ext-eero.nurkkala@nokia.com>
 
+This patch enables the smart idle mode while
+McBPS is being utilized. Once it's done,
+force idle mode is taken instead. 
 
-Regards,
-Santosh
+Signed-off-by: Eero Nurkkala <ext-eero.nurkkala@nokia.com>
+---
+ arch/arm/plat-omap/include/mach/mcbsp.h |   16 ++++++++++++++++
+ arch/arm/plat-omap/mcbsp.c              |   28 ++++++++++++++++++++++++++++
+ 2 files changed, 44 insertions(+), 0 deletions(-)
+
+diff --git a/arch/arm/plat-omap/include/mach/mcbsp.h b/arch/arm/plat-omap/include/mach/mcbsp.h
+index 113c246..7232950 100644
+--- a/arch/arm/plat-omap/include/mach/mcbsp.h
++++ b/arch/arm/plat-omap/include/mach/mcbsp.h
+@@ -249,8 +249,24 @@
+ #define RDISABLE		0x0001
  
+ /********************** McBSP SYSCONFIG bit definitions ********************/
++#define SIDLEMODE(value)	((value)<<3)
++#define ENAWAKEUP		0x0004
+ #define SOFTRST			0x0002
+ 
++/********************** McBSP WAKEUPEN bit definitions *********************/
++#define XEMPTYEOFEN		0x4000
++#define XRDYEN			0x0400
++#define XEOFEN			0x0200
++#define XFSXEN			0x0100
++#define XSYNCERREN		0x0080
++#define RRDYEN			0x0008
++#define REOFEN			0x0004
++#define RFSREN			0x0002
++#define RSYNCERREN		0x0001
++#define WAKEUPEN_ALL		(XEMPTYEOFEN | XRDYEN | XEOFEN | XFSXEN | \
++				 XSYNCERREN | RRDYEN | REOFEN | RFSREN | \
++				 RSYNCERREN)
++
+ /* we don't do multichannel for now */
+ struct omap_mcbsp_reg_cfg {
+ 	u16 spcr2;
+diff --git a/arch/arm/plat-omap/mcbsp.c b/arch/arm/plat-omap/mcbsp.c
+index e5842e3..ce9d09f 100644
+--- a/arch/arm/plat-omap/mcbsp.c
++++ b/arch/arm/plat-omap/mcbsp.c
+@@ -216,6 +216,7 @@ int omap_mcbsp_request(unsigned int id)
+ 	struct omap_mcbsp *mcbsp;
+ 	int i;
+ 	int err;
++	u16 syscon;
+ 
+ 	if (!omap_mcbsp_check_valid_id(id)) {
+ 		printk(KERN_ERR "%s: Invalid id (%d)\n", __func__, id + 1);
+@@ -241,6 +242,19 @@ int omap_mcbsp_request(unsigned int id)
+ 	spin_unlock(&mcbsp->lock);
+ 
+ 	/*
++	 * Enable wakup behavior, smart idle and all wakeups
++	 * REVISIT: some wakeups may be unnecessary
++	 */
++	if (cpu_is_omap34xx()) {
++		syscon = OMAP_MCBSP_READ(mcbsp->io_base, SYSCON);
++		syscon &= ~(ENAWAKEUP | SIDLEMODE(0x03));
++		syscon |= (ENAWAKEUP | SIDLEMODE(0x02));
++		OMAP_MCBSP_WRITE(mcbsp->io_base, SYSCON, syscon);
++
++		OMAP_MCBSP_WRITE(mcbsp->io_base, WAKEUPEN, WAKEUPEN_ALL);
++	}
++
++	/*
+ 	 * Make sure that transmitter, receiver and sample-rate generator are
+ 	 * not running before activating IRQs.
+ 	 */
+@@ -278,6 +292,7 @@ EXPORT_SYMBOL(omap_mcbsp_request);
+ void omap_mcbsp_free(unsigned int id)
+ {
+ 	struct omap_mcbsp *mcbsp;
++	u16 syscon, wakeupen;
+ 	int i;
+ 
+ 	if (!omap_mcbsp_check_valid_id(id)) {
+@@ -286,6 +301,19 @@ void omap_mcbsp_free(unsigned int id)
+ 	}
+ 	mcbsp = id_to_mcbsp_ptr(id);
+ 
++	/*
++	 * Disable wakup behavior, smart idle and all wakeups
++	 */
++	if (cpu_is_omap34xx()) {
++		syscon = OMAP_MCBSP_READ(mcbsp->io_base, SYSCON);
++		syscon &= ~(ENAWAKEUP | SIDLEMODE(0x03));
++		OMAP_MCBSP_WRITE(mcbsp->io_base, SYSCON, syscon);
++
++		wakeupen = OMAP_MCBSP_READ(mcbsp->io_base, WAKEUPEN);
++		wakeupen &= ~WAKEUPEN_ALL;
++		OMAP_MCBSP_WRITE(mcbsp->io_base, WAKEUPEN, wakeupen);
++	}
++
+ 	if (mcbsp->pdata && mcbsp->pdata->ops && mcbsp->pdata->ops->free)
+ 		mcbsp->pdata->ops->free(id);
+ 
+-- 
+1.6.0
 
-> -----Original Message-----
-> From: Juha Yrjola [mailto:juha.yrjola@solidboot.com] 
-> Sent: Thursday, January 22, 2009 1:44 PM
-> To: Shilimkar, Santosh
-> Cc: linux-omap@vger.kernel.org
-> Subject: Re: [PATCH] ARM OMAP: Fix race in OMAP2/3 DMA IRQ handling
-> 
-> Shilimkar, Santosh wrote:
-> >> --- a/arch/arm/plat-omap/dma.c
-> >> +++ b/arch/arm/plat-omap/dma.c
-> >> @@ -1898,11 +1898,11 @@ static int omap2_dma_handle_ch(int ch)
-> >>  		status = dma_read(CSR(ch));
-> >>  	}
-> >>  
-> >> +	dma_write(status, CSR(ch));
-> > This is not necessary. Refers line  
-> "dma_write(OMAP2_DMA_CSR_CLEAR_MASK, CSR(ch));" just above.
-> 
-> Yes, the current DMA code is full of inconsistencies and illogic. In 
-> general, clearing a hard-coded mask of bits in an IRQ status 
-> register is 
-> a nice way to enter a race with the machine. And that's a race you 
-> cannot win every time, so you'll miss IRQs that you haven't 
-> handled yet.
-> 
-> A major cleanup should be done to the DMA code, but that's no 
-> reason not 
-> to fix bugs now.
-> 
-> > It will any way do the job of clearing. In a way, clear done after
-> > the  callback has no effect since the status reg and global 
-> IRQ_enable for
-> > the particular channel is already disabled before that.
-> 
-> Yes, in a way that completely ignores the code and hardware behaviour.
-> 
-> If you write a 1 to, say, the FRAME bit of the CSR *after* a transfer 
-> has been completed, *before* handling the event, you lose the 
-> CSR value, 
-> so the channel handling function complains (correctly) about 
-> a spurious 
-> IRQ and refuses to do anything more productive.
-What you mean by *before* handling the event ? Do you mean the callback. Because status passed to the callback is read in the beginning of ISR. I agree with your point partly. Partly because I sill have a question in mind.
-> If you start a quick transfer from the callback function, the 
-> FRAME bit 
-> *will* get set before control returns from the callback function.
-> 
-> > So dma library is safe from the problem you have described.
-> 
-> Sounds like you're in denial, man. I didn't just randomly 
-> send a patch, 
-> I actually ran into the problem, fixed it, verified it indeed 
-> is fixed, 
-> and only after that did I send it.
-Not really in denail mode.I just couldn't visualise the issue completely. For that matter any patch fixes the bug is welcome :) 
-Since DMA channel interrupt refelcts at two levels ( global DMA_IRQSTATUS and Cannel specific CSR), and global updates are independent of any mask, I was curious about the issue. We have already seen some spurious IRQ issue because of above when DMA hardware is being used by two independent software modules running together.  
