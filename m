@@ -1,118 +1,64 @@
-From: Koen Kooi <koen@beagleboard.org>
-Subject: Re: [PATCH] ARM: OMAP: board-omap3beagle: set i2c-3 to 100kHz
-Date: Fri, 23 Jan 2009 11:48:38 +0100
-Message-ID: <196A1830-3227-48D0-B3BE-C7D935601BF5@beagleboard.org>
-References: <1232047837-23052-1-git-send-email-koen@openembedded.net> <A11F15D6-F171-4D62-ADB9-1508B57037E4@beagleboard.org> <200901230152.17239.david-b@pacbell.net>
-Mime-Version: 1.0 (Apple Message framework v930.3)
-Content-Type: multipart/signed; protocol="application/pgp-signature"; micalg=pgp-sha1; boundary="Apple-Mail-3-997448320"
+From: Kalle Jokiniemi <kalle.jokiniemi@digia.com>
+Subject: Re: [PATCH 0/1] TWL: USB: disable VUSB regulators
+Date: Fri, 23 Jan 2009 12:55:19 +0200
+Message-ID: <1232708119.6515.443.camel@ubuntu>
+References: <1232543718-18199-1-git-send-email-kalle.jokiniemi@digia.com>
+	 <200901211238.33229.david-b@pacbell.net>
+Mime-Version: 1.0
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ew0-f20.google.com ([209.85.219.20]:41153 "EHLO
-	mail-ew0-f20.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753363AbZAWKss (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 23 Jan 2009 05:48:48 -0500
-Received: by ewy13 with SMTP id 13so3383947ewy.13
-        for <linux-omap@vger.kernel.org>; Fri, 23 Jan 2009 02:48:46 -0800 (PST)
-In-Reply-To: <200901230152.17239.david-b@pacbell.net>
+Received: from sally.edelkey.net ([213.138.147.136]:47250 "EHLO
+	sally.edelkey.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752501AbZAWKzc (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 23 Jan 2009 05:55:32 -0500
+In-Reply-To: <200901211238.33229.david-b@pacbell.net>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: David Brownell <david-b@pacbell.net>
-Cc: "linux-omap@vger.kernel.org List" <linux-omap@vger.kernel.org>, Beagle Board <beagleboard@googlegroups.com>
+Cc: linux-omap@vger.kernel.org, felipe.balbi@nokia.com
 
-This is an OpenPGP/MIME signed message (RFC 2440 and 3156)
---Apple-Mail-3-997448320
-Content-Type: text/plain; charset=US-ASCII; format=flowed; delsp=yes
-Content-Transfer-Encoding: 7bit
+Hi Dave,
 
+Sorry for the late response, I was out of office yesterday.
 
-Op 23 jan 2009, om 10:52 heeft David Brownell het volgende geschreven:
+On Wed, 2009-01-21 at 12:38 -0800, David Brownell wrote:
+> On Wednesday 21 January 2009, Kalle Jokiniemi wrote:
+> > The TWL5030/4030 internal VUSB regulators are eating current
+> > like small piggies.
+> 
+> Feral pigs are a big problem in many places ...
+> no surprise that feral code is too!
+> 
+> 
+> > The following patch makes an aptempt at 
+> > making the twl4030-usb consumer driver dynamically disable
+> > and enable the regulators it needs.
+> 
+> Thanks, I'll have a look.  It's a bit different
+> from some old hacks I didn't finish debugging.
+> 
+> Shouldn't the power down sequence mirror the
+> power up sequence?  Up 1.5, 1.8, 3.1 ... then
+> down 3.1, 1.8, 1.5?  Or does that matter?
 
-> On Friday 23 January 2009, Koen Kooi wrote:
->>
->> Op 15 jan 2009, om 20:30 heeft Koen Kooi het volgende geschreven:
->>
->>> From: Koen Kooi <koen@beagleboard.org>
->>>
->>> Changing it to 100kHz is needed to make more devices works properly.
->>> Controlling the TI DLP Pico projector[1] doesn't work properly at
->>> 400kHz, 100kHz and lower work fine. EDID readout is unaffected by
->>> this change.
->>>
->>> [1] http://focus.ti.com/dlpdmd/docs/dlpdiscovery.tsp?sectionId=60&tabId=2234
->>>
->>> Signed-off-by: Koen Kooi <koen@beagleboard.org>
->>
->> Any comments on this patch?
->
-> I2C-3 is only used for talking on DVI, right?
-> Which means EDID ... and maybe DLP/Pico, unless
-> someone uses it as an I2C adapter.  (Which some
-> folk hack together on PCs...)
->
-> Seems harmless to me, but I'd add a comment
-> explaining why just 100 MHz.  (The Pico manual
-> says 400 KHz should work.)
+Good question. The TRM tells quite little on these VUSB regulators,
+other than they supply the USB sub-chip in TWL. For VUSB3V1 there is a
+bit more information, telling that it supplies USB PHY, CEA Carkit
+modules and MCPC (seems to be some special usb UART specification). 
 
-The updated manual will say 400kHz won't work, the TI DLP engineers  
-were the ones that designed the pico that pointed the i2c speed  
-problem out to me :)
-I'd be happy to change the patch if needed, but I think the updated  
-manual will take care of most issues.
+I would think they all can be shut down in whatever order, if there is
+nothing connected to the usb connector.
 
-regards,
+> 
+> Also, I'm thinking that the DEV_GRP and TYPE
+> register updates belong in regulator code, not
+> transceiver code.  That's something to take care
+> of with a separate patch though.
 
-Koen
+I agree.
 
->
->
+- Kalle 
+
+> 
 > - Dave
->
->
->>
->> regards,
->>
->> Koen
->>
->>
->>
->>
->>>
->>> ---
->>> arch/arm/mach-omap2/board-omap3beagle.c |    2 +-
->>> 1 files changed, 1 insertions(+), 1 deletions(-)
->>>
->>> diff --git a/arch/arm/mach-omap2/board-omap3beagle.c b/arch/arm/ 
->>> mach-
->>> omap2/board-omap3beagle.c
->>> index fe97bab..f279404 100644
->>> --- a/arch/arm/mach-omap2/board-omap3beagle.c
->>> +++ b/arch/arm/mach-omap2/board-omap3beagle.c
->>> @@ -227,7 +227,7 @@ static int __init omap3_beagle_i2c_init(void)
->>> #ifdef CONFIG_I2C2_OMAP_BEAGLE
->>> 	omap_register_i2c_bus(2, 400, NULL, 0);
->>> #endif
->>> -	omap_register_i2c_bus(3, 400, NULL, 0);
->>> +	omap_register_i2c_bus(3, 100, NULL, 0);
->>> 	return 0;
->>> }
->>>
->>> -- 
->>> 1.5.6.3
-
-
---Apple-Mail-3-997448320
-content-type: application/pgp-signature; x-mac-type=70674453;
-	name=PGP.sig
-content-description: Dit deel van het bericht is digitaal ondertekend
-content-disposition: inline; filename=PGP.sig
-content-transfer-encoding: 7bit
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.5 (Darwin)
-
-iD8DBQFJeaCIMkyGM64RGpERAq0EAJwKkYOmAlQGW9EFmUGdD/xErqQLUACfe7Ft
-V7zvusapJTc+DFUEkAaTB3c=
-=C0GH
------END PGP SIGNATURE-----
-
---Apple-Mail-3-997448320--
