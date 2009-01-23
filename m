@@ -1,95 +1,54 @@
-From: Koen Kooi <koen@beagleboard.org>
-Subject: Re: [PATCH] ARM: OMAP: board-omap3beagle: set i2c-3 to 100kHz
-Date: Fri, 23 Jan 2009 09:00:01 +0100
-Message-ID: <A11F15D6-F171-4D62-ADB9-1508B57037E4@beagleboard.org>
-References: <1232047837-23052-1-git-send-email-koen@openembedded.net>
-Mime-Version: 1.0 (Apple Message framework v930.3)
-Content-Type: multipart/signed; protocol="application/pgp-signature"; micalg=pgp-sha1; boundary="Apple-Mail-1-987331304"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ey-out-2122.google.com ([74.125.78.27]:15219 "EHLO
-	ey-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750960AbZAWIAK (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 23 Jan 2009 03:00:10 -0500
-Received: by ey-out-2122.google.com with SMTP id 22so917777eye.37
-        for <linux-omap@vger.kernel.org>; Fri, 23 Jan 2009 00:00:08 -0800 (PST)
-In-Reply-To: <1232047837-23052-1-git-send-email-koen@openembedded.net>
-Sender: linux-omap-owner@vger.kernel.org
+From: "Pakaravoor, Jagadeesh" <j-pakaravoor-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH] I2C: OMAP: Add missing wakeup events
+Date: Fri, 23 Jan 2009 14:19:24 +0530
+Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB02A39CF17B@dbde02.ent.ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
+Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Language: en-US
+Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Cc: "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Ben Dooks <ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: "linux-omap@vger.kernel.org List" <linux-omap@vger.kernel.org>
-Cc: Beagle Board <beagleboard@googlegroups.com>
 
-This is an OpenPGP/MIME signed message (RFC 2440 and 3156)
---Apple-Mail-1-987331304
-Content-Type: text/plain; charset=US-ASCII; format=flowed; delsp=yes
-Content-Transfer-Encoding: 7bit
+From: Jagadeesh Bhaskar Pakaravoor <j-pakaravoor-l0cyMroinI0@public.gmane.org>
 
+Include wake up events for receiver overflow and transmitter
+underflow in OMAP_I2C_WE_REG configuration. Also fix a small
+typo.
 
-Op 15 jan 2009, om 20:30 heeft Koen Kooi het volgende geschreven:
-
-> From: Koen Kooi <koen@beagleboard.org>
->
-> Changing it to 100kHz is needed to make more devices works properly.  
-> Controlling the TI DLP Pico projector[1] doesn't work properly at  
-> 400kHz, 100kHz and lower work fine. EDID readout is unaffected by  
-> this change.
->
-> [1] http://focus.ti.com/dlpdmd/docs/dlpdiscovery.tsp?sectionId=60&tabId=2234
->
-> Signed-off-by: Koen Kooi <koen@beagleboard.org>
-
-Any comments on this patch?
-
-regards,
-
-Koen
-
-
-
-
->
-> ---
-> arch/arm/mach-omap2/board-omap3beagle.c |    2 +-
-> 1 files changed, 1 insertions(+), 1 deletions(-)
->
-> diff --git a/arch/arm/mach-omap2/board-omap3beagle.c b/arch/arm/mach- 
-> omap2/board-omap3beagle.c
-> index fe97bab..f279404 100644
-> --- a/arch/arm/mach-omap2/board-omap3beagle.c
-> +++ b/arch/arm/mach-omap2/board-omap3beagle.c
-> @@ -227,7 +227,7 @@ static int __init omap3_beagle_i2c_init(void)
-> #ifdef CONFIG_I2C2_OMAP_BEAGLE
-> 	omap_register_i2c_bus(2, 400, NULL, 0);
-> #endif
-> -	omap_register_i2c_bus(3, 400, NULL, 0);
-> +	omap_register_i2c_bus(3, 100, NULL, 0);
-> 	return 0;
-> }
->
-> -- 
-> 1.5.6.3
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux- 
-> omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
-
-
---Apple-Mail-1-987331304
-content-type: application/pgp-signature; x-mac-type=70674453;
-	name=PGP.sig
-content-description: Dit deel van het bericht is digitaal ondertekend
-content-disposition: inline; filename=PGP.sig
-content-transfer-encoding: 7bit
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.5 (Darwin)
-
-iD8DBQFJeXkDMkyGM64RGpERAqWHAKCGjsg2TcRWwQ8KWx2i59sUvRWPAwCffslZ
-+hKGvFAZgFfvHzGJcT0GFSg=
-=KbPo
------END PGP SIGNATURE-----
-
---Apple-Mail-1-987331304--
+Signed-off-by: Jagadeesh Bhaskar Pakaravoor <j-pakaravoor-l0cyMroinI0@public.gmane.org>
+---
+Index: kernel_org/drivers/i2c/busses/i2c-omap.c
+===================================================================
+--- kernel_org.orig/drivers/i2c/busses/i2c-omap.c	2009-01-23 12:46:58.000000000 +0530
++++ kernel_org/drivers/i2c/busses/i2c-omap.c	2009-01-23 14:15:52.187150630 +0530
+@@ -92,8 +92,10 @@
+ #define OMAP_I2C_STAT_AL	(1 << 0)	/* Arbitration lost int ena */
+ 
+ /* I2C WE wakeup enable register */
+-#define OMAP_I2C_WE_XDR_WE	(1 << 14)	/* TX drain wakup */
++#define OMAP_I2C_WE_XDR_WE	(1 << 14)	/* TX drain wakeup */
+ #define OMAP_I2C_WE_RDR_WE	(1 << 13)	/* RX drain wakeup */
++#define OMAP_I2C_WE_ROVR_WE	(1 << 11)	/* RX overflow wakeup */
++#define OMAP_I2C_WE_XUDF_WE	(1 << 10)	/* TX underflow wakeup */
+ #define OMAP_I2C_WE_AAS_WE	(1 << 9)	/* Address as slave wakeup*/
+ #define OMAP_I2C_WE_BF_WE	(1 << 8)	/* Bus free wakeup */
+ #define OMAP_I2C_WE_STC_WE	(1 << 6)	/* Start condition wakeup */
+@@ -104,6 +106,7 @@
+ #define OMAP_I2C_WE_AL_WE	(1 << 0)	/* Arbitration lost wakeup */
+ 
+ #define OMAP_I2C_WE_ALL		(OMAP_I2C_WE_XDR_WE | OMAP_I2C_WE_RDR_WE | \
++				OMAP_I2C_WE_ROVR_WE | OMAP_I2C_WE_XUDF_WE | \
+ 				OMAP_I2C_WE_AAS_WE | OMAP_I2C_WE_BF_WE | \
+ 				OMAP_I2C_WE_STC_WE | OMAP_I2C_WE_GC_WE | \
+ 				OMAP_I2C_WE_DRDY_WE | OMAP_I2C_WE_ARDY_WE | \
+--
+With Regards,
+Jagadeesh Bhaskar P
+ 
+----------------------------
+Some men see things as they are and say why - I dream things that never were and say why not.
+- George Bernard Shaw
+----------------------------
