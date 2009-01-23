@@ -1,61 +1,60 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: OMAP1: mcbsp clocks
-Date: Thu, 22 Jan 2009 23:55:43 +0000
-Message-ID: <20090122235543.GC8137@n2100.arm.linux.org.uk>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: v2.6.28-omap1 tagged, some bugs remain
+Date: Thu, 22 Jan 2009 16:02:21 -0800
+Message-ID: <20090123000220.GE7172@atomide.com>
+References: <1231921649.13843.171.camel@eenurkka-desktop> <20090114152806.GP29324@atomide.com> <20090119095429.629b2606.jarkko.nikula@nokia.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:51538 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758763AbZAVXzv (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 22 Jan 2009 18:55:51 -0500
-Received: from n2100.arm.linux.org.uk ([2002:4e20:1eda:1:214:fdff:fe10:4f86])
-	by caramon.arm.linux.org.uk with esmtpsa (TLSv1:AES256-SHA:256)
-	(Exim 4.69)
-	(envelope-from <linux@arm.linux.org.uk>)
-	id 1LQ9Oj-0008Iz-Ut
-	for linux-omap@vger.kernel.org; Thu, 22 Jan 2009 23:55:46 +0000
-Received: from linux by n2100.arm.linux.org.uk with local (Exim 4.69)
-	(envelope-from <linux@n2100.arm.linux.org.uk>)
-	id 1LQ9Oi-0004GS-0V
-	for linux-omap@vger.kernel.org; Thu, 22 Jan 2009 23:55:44 +0000
+Received: from mho-01-bos.mailhop.org ([63.208.196.178]:50191 "EHLO
+	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755233AbZAWACY (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 22 Jan 2009 19:02:24 -0500
 Content-Disposition: inline
+In-Reply-To: <20090119095429.629b2606.jarkko.nikula@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
+To: Jarkko Nikula <jarkko.nikula@nokia.com>
+Cc: Eero Nurkkala <ext-eero.nurkkala@nokia.com>, linux-omap@vger.kernel.org, "ext Lopez Cruz, Misael" <x0052729@ti.com>
 
-A question about OMAP1 mcbsp clocks.  From what I understand from the
-OMAP5912 clock architecture documentation, mcbsp1 and mcbsp3 have two
-clocks:
+* Jarkko Nikula <jarkko.nikula@nokia.com> [090118 23:54]:
+> On Wed, 14 Jan 2009 17:28:07 +0200
+> "ext Tony Lindgren" <tony@atomide.com> wrote:
+> 
+> > > You need to have the counterpart (in /sound/soc/omap/omap-mcbsp.c) for
+> > > that patch, othwerwise there's no chance to hear any DMA transferred
+> > > audio.
+> > 
+> > Jarkko, can you post the patch queued up for alsa? We might want to
+> > have that in linux-omap too.
+> > 
+> Patch was made by Misael and I think he is waiting until the plat-omap
+> part goes into mainline. And which means that OMAP3 audio is broken
+> until sound/soc/omap/omap-mcbsp.c is patched.
+> 
+> I would say that we wouldn't want to hack with sound/ directory in
+> linux-omap. Especially code which is not in Takashi's tree since then
+> we have yet another conflict point if one wants to merge from his tree
+> on top of linux-omap.
+> 
+> Probably we should revert the patch and split it into three
+> separate patches:
+> 
+> 1. Header change in linux-omap adding those registers (and queue it)
+> 2. Patch to alsa-devel setting default values to those registers
+> 3. Patch to linux-omap writing those registers
 
-1. interface clock switchable between DSPPER_CK and DSPXOR_CK.
-2. a function clock which could be DSPXOR_CK (mcbsp3), and
-   CK_DPLL1OUT or MCBS1_CLKS (mcbsp1).
+OK, I've reverted #3 above in l-o master and omap-2.6.28 branches.
 
-However, the code in mach-omap1/mcbsp.c associates both mcbsp1 and 3
-unconditionally with all of: DSP_CK, API_CK and DSPXOR_CK.  As far as
-I can see, DSP_CK (for the DSP processor) and API_CK (for system dma)
-have nothing to do with mcbsp1,3.
+> Or better: send those two patches to LKML, cc linux-omap and alsa-devel
+> and let it fall down from -mm or linux-next tree.
 
-So, the question is why is it this way, and what would be the effect
-of correcting this so that both of these mcbsp units are associated
-with their proper interface and function clocks?
+Well since #3 is already queued in omap-fixes, I'd rather let it go to
+mainline and not mess with that queue.
 
-On a related note, mcbsp2 has its own interface and function clocks,
-both tied to ARMPER_CK, which it doesn't even claim.  Again - why
-not?
+Maybe after that you could try to get #1 & #2 above merged to mainline
+via alsa-devel list as one patch?
 
-And on that note, can someone explain to me the weird way idle stuff
-is handled?  It seems that idle modes are only controlled in one
-situation:
+Regards,
 
-1. a clock has CLOCK_NO_IDLE_PARENT set
-2. the parent has CLOCK_IDLE_CONTROL set
-
-In other words, to invoke the idle state of a clock, it's _child_ needs
-to be manipulated - manipulating the clock itself, even if it has
-CLOCK_IDLE_CONTROL, has no effect on the idle states.  Why is this?
-
-(There's also a bunch of clocks which have CLOCK_IDLE_CONTROL set
-but which don't have any children, making the idle state for those
-clocks effectively unreachable - bug?)
+Tony
