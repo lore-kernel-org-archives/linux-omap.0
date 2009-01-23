@@ -1,52 +1,55 @@
-From: David Brownell <david-b@pacbell.net>
-Subject: Re: [PATCH] usb: musb: adding nop usb transceiver
-Date: Thu, 22 Jan 2009 23:29:07 -0800
-Message-ID: <200901222329.07689.david-b@pacbell.net>
-References: <1231411988-7330-1-git-send-email-ajay.gupta@ti.com>
+From: Jarkko Nikula <jarkko.nikula@nokia.com>
+Subject: Re: v2.6.28-omap1 tagged, some bugs remain
+Date: Fri, 23 Jan 2009 09:49:47 +0200
+Message-ID: <20090123094947.491eb750.jarkko.nikula@nokia.com>
+References: <1231921649.13843.171.camel@eenurkka-desktop>
+	<20090114152806.GP29324@atomide.com>
+	<20090119095429.629b2606.jarkko.nikula@nokia.com>
+	<20090123000220.GE7172@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp128.sbc.mail.sp1.yahoo.com ([69.147.65.187]:34645 "HELO
-	smtp128.sbc.mail.sp1.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1752021AbZAWH3J (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Fri, 23 Jan 2009 02:29:09 -0500
-In-Reply-To: <1231411988-7330-1-git-send-email-ajay.gupta@ti.com>
-Content-Disposition: inline
+Received: from smtp.nokia.com ([192.100.122.230]:25004 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751864AbZAWHuP (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 23 Jan 2009 02:50:15 -0500
+In-Reply-To: <20090123000220.GE7172@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Ajay Kumar Gupta <ajay.gupta@ti.com>
-Cc: linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, felipe.balbi@nokia.com
+To: ext Tony Lindgren <tony@atomide.com>
+Cc: Eero Nurkkala <ext-eero.nurkkala@nokia.com>, linux-omap@vger.kernel.org, "ext Lopez Cruz, Misael" <x0052729@ti.com>
 
-On Thursday 08 January 2009, Ajay Kumar Gupta wrote:
-> OP transceiver is used by all the usb transceiver which are mostly
-> autonomous and doesn't require any programming or which are built
-> into the usb ip itself.NOP transceiver only allocates the memory
-> for struct xceiv and calls otg_set_transceiver() so function call
-> to otg_get_transceiver() will return a valid ransceiver.
+On Thu, 22 Jan 2009 16:02:21 -0800
+"ext Tony Lindgren" <tony@atomide.com> wrote:
+
+> > Probably we should revert the patch and split it into three
+> > separate patches:
+> > 
+> > 1. Header change in linux-omap adding those registers (and queue it)
+> > 2. Patch to alsa-devel setting default values to those registers
+> > 3. Patch to linux-omap writing those registers
 > 
-> NOP transceiver device is required to be registered using
-> platform_device_register() in platform files.
+> OK, I've reverted #3 above in l-o master and omap-2.6.28 branches.
 > 
-> Signed-off-by: Ajay Kumar Gupta <ajay.gupta@ti.com>
+> > Or better: send those two patches to LKML, cc linux-omap and alsa-devel
+> > and let it fall down from -mm or linux-next tree.
+> 
+> Well since #3 is already queued in omap-fixes, I'd rather let it go to
+> mainline and not mess with that queue.
+> 
+I think that's fine for now since "accident" has happened and we are
+aware the issues it will cause.
 
-We'll need something like this, yes.
+> Maybe after that you could try to get #1 & #2 above merged to mainline
+> via alsa-devel list as one patch?
+> 
+Can you Misael send your ASoC part of the patch to alsa-devel with a
+remark that it's waiting above patch before it can be applied?
 
-This one looks to need a bit of tweaking yet though ...
-probably that could be done after merge.  The state can
-need changing after one of the drivers is unregistered;
-using __exit not __devexit is likely wrong (especially
-given your MUSB patchlet); xceiv_to_nop() should be
-an inline function; check otg_set_transceiver() value;
-don't bother with dev_info(); and I'm not quite sure
-of the methods.
+Anyway, functionalities from these two patches are needed since
+otherwise audio is not working on some boards where bootloader hasn't
+set those XCCR and RCCR registers.
 
-Plus I think it's probably best to include a utility
-that board init code can call to register the NOP
-transceiver device ... instead of cloning that bit of
-code (in your second patch) into every board-*.c file
-that needs it.
 
-- Dave
+Jarkko
