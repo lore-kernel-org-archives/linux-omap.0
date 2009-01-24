@@ -1,96 +1,63 @@
-From: "Gupta, Ajay Kumar" <ajay.gupta@ti.com>
-Subject: RE: [PATCH] usb: musb: fix bug in musbhsdma programming
-Date: Sat, 24 Jan 2009 08:34:52 +0530
-Message-ID: <19F8576C6E063C45BE387C64729E739403FA6CCD3A@dbde02.ent.ti.com>
-References: <1231417896-32363-1-git-send-email-ajay.gupta@ti.com>
- <20090123101812.GP9233@scadufax.research.nokia.com>,<200901231036.04376.david-b@pacbell.net>
+From: "Alejandro Blanca G." <alex.blanca@gmail.com>
+Subject: Re: OMAP1: mcbsp clocks
+Date: Fri, 23 Jan 2009 22:28:42 -0600
+Message-ID: <b6ab3a160901232028o396f7d6bl32769860c0be5131@mail.gmail.com>
+References: <20090122235543.GC8137@n2100.arm.linux.org.uk>
+	 <20090123175401.GU7172@atomide.com>
+	 <7B4574D56E4ADF438756313E9A172A872CABB868@dlee01.ent.ti.com>
+	 <20090123191721.GW7172@atomide.com>
+	 <b6ab3a160901231159xcfca2ebx3e7390e195bfa102@mail.gmail.com>
+	 <b6ab3a160901231202s1422a1b4o7507ecb058c3b309@mail.gmail.com>
+	 <7B4574D56E4ADF438756313E9A172A872CB818B5@dlee01.ent.ti.com>
+	 <b6ab3a160901231347n67feec99va7731328671925fe@mail.gmail.com>
+	 <b6ab3a160901231348m4d1808a9ycd3519058324aafb@mail.gmail.com>
+	 <7B4574D56E4ADF438756313E9A172A872CB819E0@dlee01.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:32933 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752956AbZAXDFM convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 23 Jan 2009 22:05:12 -0500
-In-Reply-To: <200901231036.04376.david-b@pacbell.net>
-Content-Language: en-US
+Received: from rn-out-0910.google.com ([64.233.170.188]:26174 "EHLO
+	rn-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750971AbZAXE2n convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 23 Jan 2009 23:28:43 -0500
+Received: by rn-out-0910.google.com with SMTP id k40so1287889rnd.17
+        for <linux-omap@vger.kernel.org>; Fri, 23 Jan 2009 20:28:42 -0800 (PST)
+In-Reply-To: <7B4574D56E4ADF438756313E9A172A872CB819E0@dlee01.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: David Brownell <david-b@pacbell.net>, "felipe.balbi@nokia.com" <felipe.balbi@nokia.com>
-Cc: "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: "Hunter, Jon" <jon-hunter@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
+Perfect then.
 
-> On Thu, Jan 08, 2009 at 06:01:36PM +0530, Ajay Kumar Gupta wrote:
-> > Mode bit should be set based on function parameter "mode" of
-> > configure_channel() function.
-> >
-> > Signed-off-by: Ajay Kumar Gupta <ajay.gupta@ti.com>
+Thanks a lot for the info. It's been really helpful.
+
+Best regards,
+
+Alex B.
+
+On Fri, Jan 23, 2009 at 4:54 PM, Hunter, Jon <jon-hunter@ti.com> wrote:
+> Alejandro Blanca G wrote on :
 >
-> Acked-by: Felipe Balbi <felipe.balbi@nokia.com>
-
-> NAK -- interpretation of the MODE parameter is correct
-> (t hough it's not clear to me that the callers set it right),
-> but this won't apply to current GIT since the code differs.
-
-> I don't know what this is *against* but it's not mainline
-> or the OMAP tree...
-
->        csr |= (musb_channel->epnum << MUSB_HSDMA_ENDPOINT_SHIFT)
->                | (1 << MUSB_HSDMA_ENABLE_SHIFT)
->                | (1 << MUSB_HSDMA_IRQENABLE_SHIFT)
->                | (musb_channel->transmit
->                                ? (1 << MUSB_HSDMA_TRANSMIT_SHIFT)
->                                : 0);
-
->Ajay, if this needs to merge to mainline (e.g. so it can be
->pulled down to omap-git and fix DMA there) please re-issue.
-
-This patch is not for mainline. 
-It is intended for MV's OMAP GIT to solve the bug introduced by [1] below
-and is already applied at [2], the modified version of this patch. 
-
-As [1] is not yet gone to mainline so this patch is also not required in mainline.
-
-[1] usb: musb: musbhsdma cleanup
-http://source.mvista.com/git/gitweb.cgi?p=linux-omap-2.6-historic.git;a=commitdiff;h=cd66af4a8d9ea5923e9e935a9d6fb7bded6e1655
-[2]usb: musb: fix bug in musbhsdma programming
-http://source.mvista.com/git/gitweb.cgi?p=linux-omap-2.6-historic.git;a=commitdiff;h=15f75b6226c2d3b82062bb721e7cb9a1d6f35efd
-
--Ajay
->- Dave
-
+>> So, if I understood correctly, the internal RAM you're talking about
+>> is the one coming with the OMAP itself. Additionally, you could count
+>> on the RAM coming with the board and the internal caches available,
+>> right? Or are you using the term "internal RAM" to refer to the L1 /
+>> L2 caches (if any)?
 >
-> > ---
-> >  drivers/usb/musb/musbhsdma.c |    3 ++-
-> >  1 files changed, 2 insertions(+), 1 deletions(-)
-> >
-> > diff --git a/drivers/usb/musb/musbhsdma.c b/drivers/usb/musb/musbhsdma.c
-> > index a23d005..d87c6c7 100644
-> > --- a/drivers/usb/musb/musbhsdma.c
-> > +++ b/drivers/usb/musb/musbhsdma.c
-> > @@ -225,13 +225,14 @@ static void configure_channel(struct dma_channel *channel,
-> >                     csr |= MUSB_HSDMA_BURSTMODE_INCR4;
-> >
-> >             csr |= (musb_channel->epnum << MUSB_HSDMA_ENDPOINT_SHIFT)
-> > -                   | MUSB_HSDMA_MODE1
-> >                     | MUSB_HSDMA_ENABLE
-> >                     | MUSB_HSDMA_IRQENABLE
-> >                     | (musb_channel->transmit
-> >                                     ? MUSB_HSDMA_TRANSMIT
-> >                                     : 0);
-> >
-> > +           if (mode)
-> > +                   csr |= MUSB_HSDMA_MODE1;
-> >             /* address/count */
-> >             musb_write_hsdma_addr(mbase, bchannel, dma_addr);
-> >             musb_write_hsdma_count(mbase, bchannel, len);
-> > --
-> > 1.5.6
+> Yes, the internal RAM being the SRAM inside the OMAP. The SRAM is accessible by the ARM and DSP cores. This is should not be confused with the ARM or DSP caches, these are separate.
 >
-> --
-> balbi
+>> Regarding peripheral support, then this means that the driver support
+>> should be basically the same among revisions, right?
 >
+> Yes they will be pretty much the same. Actually, here is what I recommend...
 >
-
-
-
+> The initial OMAP5912 devices were in fact OMAP1611 and the production version is a OMAP1621. If you refer to the OMAP5912 documentation on the below webpage, you will see in some documents that it states "not available on XOMAP5912 or POMAP5912" in certain areas. The XOMAP5912 and POMAP5912 are indeed OMAP1611 devices. So if OMAP1611 is what you have then anything that says "not available on XOMAP5912 or POMAP5912" will also be not available on the OMAP1611.
+>
+> You will find some examples of this in the OMAP5912 Subsystem User Guide:
+> http://focus.ti.com/dsp/docs/dspsupporttechdocsc.tsp?sectionId=3&tabId=409&familyId=325&abstractName=spru749b
+>
+> All OMAP5912 documentation can be found here: http://focus.ti.com/docs/prod/folders/print/omap5912.html
+>
+> Jon
+>
