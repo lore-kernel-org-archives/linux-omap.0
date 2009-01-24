@@ -1,54 +1,76 @@
-From: Koen Kooi <koen@beagleboard.org>
-Subject: Re: [PATCH] ARM: OMAP: board-omap3beagle: set i2c-3 to 100kHz
-Date: Sat, 24 Jan 2009 22:09:22 +0100
-Message-ID: <C28EC916-AC18-4D09-8F2F-A9CF1A80DF88@beagleboard.org>
-References: <1232047837-23052-1-git-send-email-koen@openembedded.net> <196A1830-3227-48D0-B3BE-C7D935601BF5@beagleboard.org> <A73F0912-41CB-43F7-BE84-A4B91183B66B@beagleboard.org> <200901241230.34735.david-b@pacbell.net>
-Mime-Version: 1.0 (iPhone Mail 5G77)
-Content-Type: text/plain;
-	charset=us-ascii;
-	format=flowed;
-	delsp=yes
-Content-Transfer-Encoding: 7bit
+From: green <greenfreedom10@gmail.com>
+Subject: Re: using git with linux-omap
+Date: Sat, 24 Jan 2009 15:20:08 -0700
+Message-ID: <20090124222008.GA6457@swansys>
+References: <20081224032419.GG4080@swansys> <20081224041903.GD10240@frodo> <20081225004631.GH4080@swansys> <20081225195450.GF10240@frodo>
+Mime-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="cWoXeonUoKmBZSoM"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ik-out-1112.google.com ([66.249.90.183]:34659 "EHLO
-	ik-out-1112.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755634AbZAXVQH (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 24 Jan 2009 16:16:07 -0500
-Received: by ik-out-1112.google.com with SMTP id c28so639686ika.5
-        for <linux-omap@vger.kernel.org>; Sat, 24 Jan 2009 13:16:04 -0800 (PST)
-In-Reply-To: <200901241230.34735.david-b@pacbell.net>
+Received: from qw-out-2122.google.com ([74.125.92.26]:26980 "EHLO
+	qw-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751753AbZAXWUh (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 24 Jan 2009 17:20:37 -0500
+Received: by qw-out-2122.google.com with SMTP id 3so2511769qwe.37
+        for <linux-omap@vger.kernel.org>; Sat, 24 Jan 2009 14:20:36 -0800 (PST)
+Content-Disposition: inline
+In-Reply-To: <20081225195450.GF10240@frodo>
+Content-Language: en
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: David Brownell <david-b@pacbell.net>
-Cc: Jason Kridner <jkridner@beagleboard.org>, "linux-omap@vger.kernel.org List" <linux-omap@vger.kernel.org>, Beagle Board <beagleboard@googlegroups.com>
+To: Linux-OMAP List <linux-omap@vger.kernel.org>
 
 
+--cWoXeonUoKmBZSoM
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Op 24 jan 2009 om 21:30 heeft David Brownell <david-b@pacbell.net> het  
-volgende geschreven:\
+On Thu, 2008-12-25, 360, Felipe Balbi wrote:
+> On Wed, Dec 24, 2008 at 06:46:31PM -0600, green wrote:
+> > On Wed, 2008.12.24, 359, Felipe Balbi wrote:
+> > > On Tue, Dec 23, 2008 at 09:24:19PM -0600, green wrote:
+> > > > I have cloned linux-omap-2.6 and created a local branch.  In the lo=
+cal branch I=20
+> > > > have made one very simple commit with a single line change to Makef=
+ile for use=20
+> > > > when cross-compiling (arm-linux-gnueabi-).  I would like to be able=
+ to rebase=20
+> > > > that branch (just the 1 commit) onto any commit in the master branc=
+h so that I=20
+> > > > can test N810 builds using git-bisect without modifying the Makefil=
+e every=20
+> > > > time.  I can easily move the branch forward to the latest commit wi=
+th 'git=20
+> > > > rebase master' (with the local branch active) but something like 'g=
+it rebase=20
+> > > > v2.6.27-omap1' returns merge errors.  Of course that 1 commit will =
+apply easily=20
+> > > > to that specific tree.
+> > >=20
+> > > hmmm, something like git rebase --onto HEAD v2.6.27-omap1 <your_branc=
+h>
+> > > should work.
+> >=20
+> > I got a bunch of merge conflicts this way.
+>=20
+> maybe I got the parameters wrong. git help rebase will have the correct
+> answer.
 
-> On Saturday 24 January 2009, Jason Kridner wrote:
->>
->> Given that this port is only used on the DVI port for the  
->> BeagleBoard,
->> I believe it is appropriate to set it to 100kHz as Koen has done.
->
-> That's what I meant to say (kHz not MHZ!) ... except, also add a
-> comment saying why the (un-obvious) restriction is being made.
->
+Hey, I got it to work:
+git rebase --onto v2.6.27-omap1 master <my_branch>
 
-In the .c file or commit message?
+--cWoXeonUoKmBZSoM
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+Content-Disposition: inline
 
-Regards,
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.9 (GNU/Linux)
 
-Koen
+iEYEARECAAYFAkl7lBcACgkQ682C+dBP+oQeCACfT8BydiXTmZgX9Wzcbuq5ksID
+GwwAnRPzO0fWreI9ZI5ybHNjxw4nqDAT
+=/eRj
+-----END PGP SIGNATURE-----
 
-
-> Though I did note that since it's a nice level-shifted I2C, some
-> folk may want to use it for non-DDC purposes [1], where a 100 KHz
-> limit might not always be wanted.
->
-> - Dave
->
-> [1] http://www.paintyourdragon.com/uc/i2c/index.html
->
+--cWoXeonUoKmBZSoM--
