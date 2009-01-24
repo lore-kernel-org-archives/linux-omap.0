@@ -1,99 +1,107 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: [ANNOUNCE:RFC] convert OMAP to use clkdev
-Date: Sat, 24 Jan 2009 12:03:17 +0000
-Message-ID: <20090124120317.GA20593@n2100.arm.linux.org.uk>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Jason Kridner <jkridner@beagleboard.org>
+Subject: Re: [PATCH] ARM: OMAP: board-omap3beagle: set i2c-3 to 100kHz
+Date: Sat, 24 Jan 2009 09:06:22 -0600
+Message-ID: <A73F0912-41CB-43F7-BE84-A4B91183B66B@beagleboard.org>
+References: <1232047837-23052-1-git-send-email-koen@openembedded.net> <A11F15D6-F171-4D62-ADB9-1508B57037E4@beagleboard.org> <200901230152.17239.david-b@pacbell.net> <196A1830-3227-48D0-B3BE-C7D935601BF5@beagleboard.org>
+Mime-Version: 1.0 (Apple Message framework v930.3)
+Content-Type: text/plain; charset=US-ASCII; format=flowed; delsp=yes
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:56604 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751363AbZAXMDZ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 24 Jan 2009 07:03:25 -0500
-Received: from n2100.arm.linux.org.uk ([2002:4e20:1eda:1:214:fdff:fe10:4f86])
-	by caramon.arm.linux.org.uk with esmtpsa (TLSv1:AES256-SHA:256)
-	(Exim 4.69)
-	(envelope-from <linux@arm.linux.org.uk>)
-	id 1LQhEN-0003t9-Jq
-	for linux-omap@vger.kernel.org; Sat, 24 Jan 2009 12:03:20 +0000
-Received: from linux by n2100.arm.linux.org.uk with local (Exim 4.69)
-	(envelope-from <linux@n2100.arm.linux.org.uk>)
-	id 1LQhEL-0006Ju-VJ
-	for linux-omap@vger.kernel.org; Sat, 24 Jan 2009 12:03:18 +0000
-Content-Disposition: inline
+Received: from rv-out-0506.google.com ([209.85.198.225]:12146 "EHLO
+	rv-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750778AbZAXPG0 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 24 Jan 2009 10:06:26 -0500
+Received: by rv-out-0506.google.com with SMTP id k40so5182185rvb.1
+        for <linux-omap@vger.kernel.org>; Sat, 24 Jan 2009 07:06:25 -0800 (PST)
+In-Reply-To: <196A1830-3227-48D0-B3BE-C7D935601BF5@beagleboard.org>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
+To: Koen Kooi <koen@beagleboard.org>
+Cc: David Brownell <david-b@pacbell.net>, "linux-omap@vger.kernel.org List" <linux-omap@vger.kernel.org>, Beagle Board <beagleboard@googlegroups.com>
 
-All,
 
-In a bid to clean up the clk API implementations, and more importantly
-ensure that implementations are using the clk API correctly, I've
-converted OMAP over to the generic clock lookup (clkdev) implementation.
+On Jan 23, 2009, at 4:48 AM, Koen Kooi wrote:
 
-In doing so, I've shaken out a number of OMAP quirks and OMAP1 specific
-clock code from the drivers.
+>
+> Op 23 jan 2009, om 10:52 heeft David Brownell het volgende geschreven:
+>
+>> On Friday 23 January 2009, Koen Kooi wrote:
+>>>
+>>> Op 15 jan 2009, om 20:30 heeft Koen Kooi het volgende geschreven:
+>>>
+>>>> From: Koen Kooi <koen@beagleboard.org>
+>>>>
+>>>> Changing it to 100kHz is needed to make more devices works  
+>>>> properly.
+>>>> Controlling the TI DLP Pico projector[1] doesn't work properly at
+>>>> 400kHz, 100kHz and lower work fine. EDID readout is unaffected by
+>>>> this change.
+>>>>
+>>>> [1] http://focus.ti.com/dlpdmd/docs/dlpdiscovery.tsp?sectionId=60&tabId=2234
+>>>>
+>>>> Signed-off-by: Koen Kooi <koen@beagleboard.org>
+>>>
+>>> Any comments on this patch?
+>>
+>> I2C-3 is only used for talking on DVI, right?
+>> Which means EDID ... and maybe DLP/Pico, unless
+>> someone uses it as an I2C adapter.  (Which some
+>> folk hack together on PCs...)
+>>
+>> Seems harmless to me, but I'd add a comment
+>> explaining why just 100 MHz.  (The Pico manual
+>> says 400 KHz should work.)
+>
+> The updated manual will say 400kHz won't work, the TI DLP engineers  
+> were the ones that designed the pico that pointed the i2c speed  
+> problem out to me :)
+> I'd be happy to change the patch if needed, but I think the updated  
+> manual will take care of most issues.
+>
+> regards,
+>
+> Koen
 
-The set of patches (minus two[*]) are available in my 'omap-clks2' branch.
-This is built on top of the omap-clks1 branch, which some people here
-already know about.
+Given that this port is only used on the DVI port for the BeagleBoard,  
+I believe it is appropriate to set it to 100kHz as Koen has done.
 
-I do need to make some points:
 
-1. the omap-clks1 branch has been updated with various silly fixes I've
-   found along the way, so this won't be the same as the omap-clks1 branch
-   from a month ago.
+>
+>
+>>
+>>
+>> - Dave
+>>
+>>
+>>>
+>>> regards,
+>>>
+>>> Koen
+>>>
+>>>
+>>>
+>>>
+>>>>
+>>>> ---
+>>>> arch/arm/mach-omap2/board-omap3beagle.c |    2 +-
+>>>> 1 files changed, 1 insertions(+), 1 deletions(-)
+>>>>
+>>>> diff --git a/arch/arm/mach-omap2/board-omap3beagle.c b/arch/arm/ 
+>>>> mach-
+>>>> omap2/board-omap3beagle.c
+>>>> index fe97bab..f279404 100644
+>>>> --- a/arch/arm/mach-omap2/board-omap3beagle.c
+>>>> +++ b/arch/arm/mach-omap2/board-omap3beagle.c
+>>>> @@ -227,7 +227,7 @@ static int __init omap3_beagle_i2c_init(void)
+>>>> #ifdef CONFIG_I2C2_OMAP_BEAGLE
+>>>> 	omap_register_i2c_bus(2, 400, NULL, 0);
+>>>> #endif
+>>>> -	omap_register_i2c_bus(3, 400, NULL, 0);
+>>>> +	omap_register_i2c_bus(3, 100, NULL, 0);
+>>>> 	return 0;
+>>>> }
+>>>>
+>>>> -- 
+>>>> 1.5.6.3
+>
 
-2. omap-clks2 branch follows on from the omap-clks1 branch - in other words,
-   arm:omap-clks2.diff is a superset of omap-clks1.diff.
-
-3. clkdev's current matching algorithm leads to false positives on OMAP,
-   so you need the clkdev fix which is in the master branch as well.
-
-With this, I've been able to boot my LDP board (with the HS MMC driver)
-through to a shell prompt, and kernel messages look good.  I've also a
-bodgerated QEMU H2-based-on-OMAP310 environment which I've been checking
-OMAP1 on, and that looks reasonable.  Obviously, it's no subsitute for
-real hardware.
-
-Reviews and comments obviously welcome, testing more preferred.  Probably
-the easiest way to apply these changes for testing is to download the
-diffs from the FTP site: arm.diff and arm:omap-clks2.diff, and apply
-them in that order to a fresh mainline tree.
-
-There's still a bit of work to be done here - I've left the original
-'name' and 'id' members in the struct clk solely for the debugfs code.
-Obviously this is wasteful if you don't have debugfs enabled.
-
-Finally, the diffstat for the clkdev conversion for OMAP (omap-clks1
-to omap-clks2) shows a saving of 500 lines of code - definitely
-something not to be sniffed at:
-
- arch/arm/mach-omap1/clock.c              |  152 ++++++++--
- arch/arm/mach-omap1/clock.h              |  171 ++--------
- arch/arm/mach-omap1/mcbsp.c              |  133 ++------
- arch/arm/mach-omap2/clock24xx.c          |  197 +++++++++++-
- arch/arm/mach-omap2/clock24xx.h          |  353 ++-------------------
- arch/arm/mach-omap2/clock34xx.c          |  268 ++++++++++++++--
- arch/arm/mach-omap2/clock34xx.h          |  513 +++++-------------------------
- arch/arm/mach-omap2/devices.c            |    1 +
- arch/arm/mach-omap2/mcbsp.c              |  121 -------
- arch/arm/plat-omap/Kconfig               |    3 +
- arch/arm/plat-omap/clock.c               |   48 +---
- arch/arm/plat-omap/include/mach/clkdev.h |   13 +
- arch/arm/plat-omap/include/mach/clock.h  |   11 +-
- arch/arm/plat-omap/include/mach/mcbsp.h  |    4 +-
- arch/arm/plat-omap/mcbsp.c               |   66 +++--
- drivers/i2c/busses/i2c-omap.c            |   47 ++--
- drivers/mmc/host/omap.c                  |   24 +-
- drivers/spi/omap2_mcspi.c                |    4 +-
- drivers/spi/omap_uwire.c                 |    9 +-
- drivers/w1/masters/omap_hdq.c            |    4 +-
- drivers/watchdog/omap_wdt.c              |   94 ++-----
- 21 files changed, 868 insertions(+), 1368 deletions(-)
-
-[*] - these are for the RNG and OHCI drivers, and have been left out
-for the time being because they conflict with my master branch, and
-would make the omap-clks2 patch unnecessarily difficult for people to
-try.
-
-Note: please don't think about polluting mach/clkdev.h, thanks.
