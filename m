@@ -1,41 +1,99 @@
-From: David Brownell <david-b-yBeKhBN/0LDR7s880joybQ@public.gmane.org>
-Subject: Re: [PATCH] usb: musb: fix bug in musbhsdma programming
-Date: Fri, 23 Jan 2009 20:31:14 -0800
-Message-ID: <200901232031.14265.david-b@pacbell.net>
-References: <1231417896-32363-1-git-send-email-ajay.gupta@ti.com> <200901231036.04376.david-b@pacbell.net> <19F8576C6E063C45BE387C64729E739403FA6CCD3A@dbde02.ent.ti.com>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: [ANNOUNCE:RFC] convert OMAP to use clkdev
+Date: Sat, 24 Jan 2009 12:03:17 +0000
+Message-ID: <20090124120317.GA20593@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <19F8576C6E063C45BE387C64729E739403FA6CCD3A-/tLxBxkBPtCIQmiDNMet8wC/G2K4zDHf@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:56604 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751363AbZAXMDZ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 24 Jan 2009 07:03:25 -0500
+Received: from n2100.arm.linux.org.uk ([2002:4e20:1eda:1:214:fdff:fe10:4f86])
+	by caramon.arm.linux.org.uk with esmtpsa (TLSv1:AES256-SHA:256)
+	(Exim 4.69)
+	(envelope-from <linux@arm.linux.org.uk>)
+	id 1LQhEN-0003t9-Jq
+	for linux-omap@vger.kernel.org; Sat, 24 Jan 2009 12:03:20 +0000
+Received: from linux by n2100.arm.linux.org.uk with local (Exim 4.69)
+	(envelope-from <linux@n2100.arm.linux.org.uk>)
+	id 1LQhEL-0006Ju-VJ
+	for linux-omap@vger.kernel.org; Sat, 24 Jan 2009 12:03:18 +0000
 Content-Disposition: inline
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Gupta, Ajay Kumar" <ajay.gupta-l0cyMroinI0@public.gmane.org>
-Cc: "felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org" <felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>, "linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
 
-On Friday 23 January 2009, Gupta, Ajay Kumar wrote:
-> This patch is not for mainline. 
-> It is intended for MV's OMAP GIT
+All,
 
-Ah, I see.  Thanks for clarifying.
+In a bid to clean up the clk API implementations, and more importantly
+ensure that implementations are using the clk API correctly, I've
+converted OMAP over to the generic clock lookup (clkdev) implementation.
 
-However ... that's not MontaVista's GIT tree, exactly,
-except in that they've hosted the OMAP community tree.
-And since that tree is now obsolete, and that patch 
-isn't in the main branch ... I'll just ignore this.  :)
+In doing so, I've shaken out a number of OMAP quirks and OMAP1 specific
+clock code from the drivers.
 
-- Dave
+The set of patches (minus two[*]) are available in my 'omap-clks2' branch.
+This is built on top of the omap-clks1 branch, which some people here
+already know about.
 
+I do need to make some points:
 
-> to solve the bug introduced by [1] below 
-> and is already applied at [2], the modified version of this patch. 
-> 
-> As [1] is not yet gone to mainline so this patch is also not required in mainline.
+1. the omap-clks1 branch has been updated with various silly fixes I've
+   found along the way, so this won't be the same as the omap-clks1 branch
+   from a month ago.
 
+2. omap-clks2 branch follows on from the omap-clks1 branch - in other words,
+   arm:omap-clks2.diff is a superset of omap-clks1.diff.
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+3. clkdev's current matching algorithm leads to false positives on OMAP,
+   so you need the clkdev fix which is in the master branch as well.
+
+With this, I've been able to boot my LDP board (with the HS MMC driver)
+through to a shell prompt, and kernel messages look good.  I've also a
+bodgerated QEMU H2-based-on-OMAP310 environment which I've been checking
+OMAP1 on, and that looks reasonable.  Obviously, it's no subsitute for
+real hardware.
+
+Reviews and comments obviously welcome, testing more preferred.  Probably
+the easiest way to apply these changes for testing is to download the
+diffs from the FTP site: arm.diff and arm:omap-clks2.diff, and apply
+them in that order to a fresh mainline tree.
+
+There's still a bit of work to be done here - I've left the original
+'name' and 'id' members in the struct clk solely for the debugfs code.
+Obviously this is wasteful if you don't have debugfs enabled.
+
+Finally, the diffstat for the clkdev conversion for OMAP (omap-clks1
+to omap-clks2) shows a saving of 500 lines of code - definitely
+something not to be sniffed at:
+
+ arch/arm/mach-omap1/clock.c              |  152 ++++++++--
+ arch/arm/mach-omap1/clock.h              |  171 ++--------
+ arch/arm/mach-omap1/mcbsp.c              |  133 ++------
+ arch/arm/mach-omap2/clock24xx.c          |  197 +++++++++++-
+ arch/arm/mach-omap2/clock24xx.h          |  353 ++-------------------
+ arch/arm/mach-omap2/clock34xx.c          |  268 ++++++++++++++--
+ arch/arm/mach-omap2/clock34xx.h          |  513 +++++-------------------------
+ arch/arm/mach-omap2/devices.c            |    1 +
+ arch/arm/mach-omap2/mcbsp.c              |  121 -------
+ arch/arm/plat-omap/Kconfig               |    3 +
+ arch/arm/plat-omap/clock.c               |   48 +---
+ arch/arm/plat-omap/include/mach/clkdev.h |   13 +
+ arch/arm/plat-omap/include/mach/clock.h  |   11 +-
+ arch/arm/plat-omap/include/mach/mcbsp.h  |    4 +-
+ arch/arm/plat-omap/mcbsp.c               |   66 +++--
+ drivers/i2c/busses/i2c-omap.c            |   47 ++--
+ drivers/mmc/host/omap.c                  |   24 +-
+ drivers/spi/omap2_mcspi.c                |    4 +-
+ drivers/spi/omap_uwire.c                 |    9 +-
+ drivers/w1/masters/omap_hdq.c            |    4 +-
+ drivers/watchdog/omap_wdt.c              |   94 ++-----
+ 21 files changed, 868 insertions(+), 1368 deletions(-)
+
+[*] - these are for the RNG and OHCI drivers, and have been left out
+for the time being because they conflict with my master branch, and
+would make the omap-clks2 patch unnecessarily difficult for people to
+try.
+
+Note: please don't think about polluting mach/clkdev.h, thanks.
