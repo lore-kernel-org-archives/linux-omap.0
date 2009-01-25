@@ -1,26 +1,44 @@
-From: David Brownell <david-b@pacbell.net>
-Subject: Re: [PATCH] ARM: OMAP: board-omap3beagle: set i2c-3 to 100kHz
-Date: Sat, 24 Jan 2009 14:33:09 -0800
-Message-ID: <200901241433.10041.david-b@pacbell.net>
-References: <1232047837-23052-1-git-send-email-koen@openembedded.net> <200901241230.34735.david-b@pacbell.net> <C28EC916-AC18-4D09-8F2F-A9CF1A80DF88@beagleboard.org>
-Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+From: Koen Kooi <koen@openembedded.org>
+Subject: [PATCH v2] board-omap3beagle: set i2c-3 to 100kHz
+Date: Sun, 25 Jan 2009 09:46:17 +0100
+Message-ID: <1232873177-15531-1-git-send-email-koen@openembedded.org>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp118.sbc.mail.sp1.yahoo.com ([69.147.64.91]:45163 "HELO
-	smtp118.sbc.mail.sp1.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1753642AbZAXWdQ (ORCPT
+Received: from [80.81.242.146] ([80.81.242.146]:51007 "EHLO
+	amethyst.openembedded.net" rhost-flags-FAIL-FAIL-OK-OK)
+	by vger.kernel.org with ESMTP id S1751383AbZAYIo7 (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Sat, 24 Jan 2009 17:33:16 -0500
-In-Reply-To: <C28EC916-AC18-4D09-8F2F-A9CF1A80DF88@beagleboard.org>
-Content-Disposition: inline
+	Sun, 25 Jan 2009 03:44:59 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Koen Kooi <koen@beagleboard.org>
-Cc: Jason Kridner <jkridner@beagleboard.org>, "linux-omap@vger.kernel.org List" <linux-omap@vger.kernel.org>, Beagle Board <beagleboard@googlegroups.com>
+To: linux-omap@vger.kernel.org
+Cc: Koen Kooi <koen@beagleboard.org>
 
-On Saturday 24 January 2009, Koen Kooi wrote:
-> In the .c file or commit message?
+From: Koen Kooi <koen@beagleboard.org>
 
-A one line comment in the C file.
+Changing it do 100kHz is needed to make more devices works properly. Controlling the TI DLP Pico projector[1] doesn't work properly at 400kHz, 100kHz and lower work fine. EDID readout is unaffected by this change.
+
+[1] http://focus.ti.com/dlpdmd/docs/dlpdiscovery.tsp?sectionId=60&tabId=2234
+
+Signed-off-by: Koen Kooi <koen@beagleboard.org>
+---
+ arch/arm/mach-omap2/board-omap3beagle.c |    4 +++-
+ 1 files changed, 3 insertions(+), 1 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/board-omap3beagle.c b/arch/arm/mach-omap2/board-omap3beagle.c
+index fe97bab..f7a6f7d 100644
+--- a/arch/arm/mach-omap2/board-omap3beagle.c
++++ b/arch/arm/mach-omap2/board-omap3beagle.c
+@@ -227,7 +227,9 @@ static int __init omap3_beagle_i2c_init(void)
+ #ifdef CONFIG_I2C2_OMAP_BEAGLE
+ 	omap_register_i2c_bus(2, 400, NULL, 0);
+ #endif
+-	omap_register_i2c_bus(3, 400, NULL, 0);
++	/* Bus 3 is attached to the DVI port where devices like the pico DLP 
++	 * projector don't work reliably with 400kHz */
++	omap_register_i2c_bus(3, 100, NULL, 0);
+ 	return 0;
+ }
+ 
+-- 
+1.5.6.5
+
