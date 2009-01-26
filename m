@@ -1,37 +1,41 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 3/3] Disable linux-omap version of menelaus
-Date: Mon, 26 Jan 2009 13:52:55 -0800
-Message-ID: <20090126215254.GA15757@atomide.com>
-References: <20090122131602.18315.84862.stgit@tikku> <20090123022334.GN7172@atomide.com> <877i4iqp00.fsf@nokia.com> <200901261340.05286.david-b@pacbell.net>
+From: "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>
+Subject: Fix for Zero sized arch/arm/mach-integrator/clock.h on distclean
+Date: Mon, 26 Jan 2009 17:14:18 -0600
+Message-ID: <A24693684029E5489D1D202277BE8944202A97C1@dlee02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-bos.mailhop.org ([63.208.196.178]:52607 "EHLO
-	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753539AbZAZVxA (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 26 Jan 2009 16:53:00 -0500
-Content-Disposition: inline
-In-Reply-To: <200901261340.05286.david-b@pacbell.net>
+Received: from devils.ext.ti.com ([198.47.26.153]:39658 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751688AbZAZXO0 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 26 Jan 2009 18:14:26 -0500
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: David Brownell <david-b@pacbell.net>
-Cc: Kalle Valo <kalle.valo@nokia.com>, Felipe Balbi <felipe.balbi@nokia.com>, linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-* David Brownell <david-b@pacbell.net> [090126 13:41]:
-> On Monday 26 January 2009, Kalle Valo wrote:
-> > > I'll also remove drivers/i2c/chips/menelaus.c.
-> > 
-> > Thanks. It's nice to see drivers going to upstream.
-> 
-> That driver has been upstream for quite a long time now.
-> This change was just helping scrub drivers/i2c/chips,
-> since it's going away.
-> 
-> That means all drivers which the OMAP tree has in that
-> directory should be pushed upstream, or at least moved
-> to a better home, soon ... :)
+Hi Tony,
 
-Or else we'll just remove them until somebody patches them back
-against the mainline tree.
+I noticed that when doing distclean on the tree, I keep receiving a changed file when I request a distclean:
 
-Tony
+saaguirre@x0091359-linux:~/linux-omap-2.6$ git status
+# On branch camera-submit-6-nokiafixes
+# Changed but not updated:
+#   (use "git add/rm <file>..." to update what will be committed)
+#
+#       deleted:    arch/arm/mach-integrator/clock.h
+#
+no changes added to commit (use "git add" and/or "git commit -a")
+
+I noticed that this is because a zero sized file existed in mainline, instead of being adequately deleted.
+
+But I also noticed that there is a fix for this already by Andrew Price:
+
+http://marc.info/?l=linux-kernel&m=123134235028543&w=2
+
+Is it possible to pull this fix into the l-o tree?
+
+Thanks and regards,
+Sergio
