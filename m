@@ -1,549 +1,219 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 2/3v4] Runtime check for OMAP35x
-Date: Mon, 26 Jan 2009 17:08:36 -0800
-Message-ID: <20090127010835.GC15757@atomide.com>
-References: <1232120769-7569-1-git-send-email-premi@ti.com> <87mydmn9z3.fsf@deeprootsystems.com> <B85A65D85D7EB246BE421B3FB0FBB59301C69A03AD@dbde02.ent.ti.com> <87ljt66lal.fsf@deeprootsystems.com> <B85A65D85D7EB246BE421B3FB0FBB59301C69A054A@dbde02.ent.ti.com>
+From: "Hemanth V" <hemanthv@ti.com>
+Subject: Re: [PATCH] OMAP3 McSPI:  Adds context save/restore
+Date: Tue, 27 Jan 2009 12:20:58 +0530 (IST)
+Message-ID: <5549.10.24.255.17.1233039058.squirrel@dbdmail.itg.ti.com>
+References: <64283.10.24.255.17.1232533474.squirrel@dbdmail.itg.ti.com>
+    <87eiywr34b.fsf@deeprootsystems.com>
+    <001201c97c55$0f4b7e80$LocalHost@wipultra793>
+    <10293.10.24.255.17.1232693785.squirrel@dbdmail.itg.ti.com>
+    <871vuu7y20.fsf@deeprootsystems.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="Q68bSM7Ycu6FN28Q"
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-bos.mailhop.org ([63.208.196.178]:65070 "EHLO
-	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751799AbZA0BIk (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 26 Jan 2009 20:08:40 -0500
-Content-Disposition: inline
-In-Reply-To: <B85A65D85D7EB246BE421B3FB0FBB59301C69A054A@dbde02.ent.ti.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:54119 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751225AbZA0GvG (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 27 Jan 2009 01:51:06 -0500
+In-Reply-To: <871vuu7y20.fsf@deeprootsystems.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Premi, Sanjeev" <premi@ti.com>
-Cc: Kevin Hilman <khilman@deeprootsystems.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Kevin Hilman <khilman@deeprootsystems.com>
+Cc: linux-omap@vger.kernel.org
 
+From: Hemanth V <hemanthv@ti.com>
 
---Q68bSM7Ycu6FN28Q
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+This patch adds context save/restore feature to McSPI driver. This has been
+tested by instrumenting the driver code i.e by adding a McSPI softreset
+in omap2_mcspi_disable_clocks function.
 
-* Premi, Sanjeev <premi@ti.com> [090120 08:42]:
-> 
-> > -----Original Message-----
-> > From: Kevin Hilman [mailto:khilman@deeprootsystems.com] 
-> > Sent: Tuesday, January 20, 2009 9:07 PM
-> > To: Premi, Sanjeev
-> > Cc: linux-omap@vger.kernel.org
-> > Subject: Re: [PATCH 2/3v4] Runtime check for OMAP35x
-> > 
-> > "Premi, Sanjeev" <premi@ti.com> writes:
-> > 
-> > > <snip>--<snip>
-> > >
-> > >> > +#ifdef CONFIG_ARCH_OMAP35XX
-> > >> > +static struct omap_globals omap35xx_globals = {
-> > >> > +	.class	= OMAP35XX_CLASS,
-> > >> > +	.tap	= OMAP2_IO_ADDRESS(0x4830A000),
-> > >> > +	.sdrc	= OMAP2_IO_ADDRESS(OMAP343X_SDRC_BASE),
-> > >> > +	.sms	= OMAP2_IO_ADDRESS(OMAP343X_SMS_BASE),
-> > >> > +	.ctrl	= OMAP2_IO_ADDRESS(OMAP343X_CTRL_BASE),
-> > >> > +	.prm	= OMAP2_IO_ADDRESS(OMAP3430_PRM_BASE),
-> > >> > +	.cm	= OMAP2_IO_ADDRESS(OMAP3430_CM_BASE),
-> > >> > +};
-> > >> 
-> > >> This is exactly the same as omap34xx_globals.  Why is this needed?
-> > >
-> > 
-> > > [sp] I have tried to add minimal support for OMAP35x. Since OMAP34x 
-> > > and OMAP35x seem to be compatible today, this structure 
-> > seems same. As 
-> > > more code for specific OMAP35x variants comes in, I expect this to 
-> > > change.
-> > >
-> > > The key difference here (as against OMAP34x) is use of 
-> > OMAP35XX_CLASS; 
-> > > which helps in identifying the different OMAP variants. We 
-> > could have 
-> > > 're-used' OMAP35XX_CLASS, it I wouldn't be right as this 
-> > definition is 
-> > > used to print the CPU name and Si version in id.c.
-> > >
-> > > With this patch, boot log with show (for example) "OMAP3530 ES2.1"
-> > > on the OMAP3530 EVM - which can be considered same as 
-> > OMAP3430 ES2.1; 
-> > > but with 3503, 3515 and 3525 the print would read 3403, 3415,
-> > > 3425 resp; this definitley would not be right.
-> > 
-> > I was not asking about the patch as a whole, I was commenting 
-> > only on the addition of the omap35xx_globals variable.  You 
-> > added a new struct which is exactly the same as the 35xx 
-> > struct instead of just re-using the old one with a new name 
-> > as I suggested.
-> > 
-> > Kevin
-> 
-> [sp] This would mean adding another #ifdef to get the right _CLASS. From earlier discussion, I understood that we wanted to remove #ifdefs so that same image can work for OMAP35x and OMAP34x.
+This patch includes review comment fixes
 
-Well the 34xx and 35xx are pretty much the same except for some
-onboard features. How about the attached patch instead?
+Signed-off-by: Hemanth V <hemanthv@ti.com>
 
-As an extra bonus it prints out the onboard coprocessors :)
+---
+ drivers/spi/omap2_mcspi.c |   97 ++++++++++++++++++++++++++++++++++++----------
+ 1 files changed, 77 insertions(+), 20 deletions(-)
 
-This is what I'm getting on my omap3430sdp:
+Index: linux-omap-2.6/drivers/spi/omap2_mcspi.c
+===================================================================
+--- linux-omap-2.6.orig/drivers/spi/omap2_mcspi.c
++++ linux-omap-2.6/drivers/spi/omap2_mcspi.c
+@@ -41,6 +41,9 @@
 
-OMAP3430 ES2.0 (full speed SGX, IVA2)
+ #define OMAP2_MCSPI_MAX_FREQ		48000000
 
-And this is what I'm getting on my overo:
-
-OMAP3503 ES2.1 (no SGX, no IVA2)
-
-I'll update it to detect between 3410, 3420 and 3430, but meanwhile
-some testing on various 35xx processors would be appreciated.
-
-Regards,
-
-Tony
-
---Q68bSM7Ycu6FN28Q
-Content-Type: text/x-diff; charset=us-ascii
-Content-Disposition: inline; filename="35xx-rev.patch"
-
->From 11c30c03a544a16c44ad5f0fbe682e251e76ee0e Mon Sep 17 00:00:00 2001
-From: Tony Lindgren <tony@atomide.com>
-Date: Mon, 26 Jan 2009 10:43:52 -0800
-Subject: [PATCH] ARM: OMAP3: Add detection for 35xx
-
-Add detection for 35xx and print info about the onboard coprocessors.
-
-Some parts of the 35xx detection based on an earlier patch by
-Sanjeev Premi <premi@ti.com>.
-
-Signed-off-by: Tony Lindgren <tony@atomide.com>
-
-diff --git a/arch/arm/mach-omap2/board-omap3beagle.c b/arch/arm/mach-omap2/board-omap3beagle.c
-index fe97bab..2e9691a 100644
---- a/arch/arm/mach-omap2/board-omap3beagle.c
-+++ b/arch/arm/mach-omap2/board-omap3beagle.c
-@@ -370,7 +370,7 @@ static void __init omap3_beagle_init(void)
- 
- static void __init omap3_beagle_map_io(void)
- {
--	omap2_set_globals_343x();
-+	omap2_set_globals_35xx();
- 	omap2_map_common_io();
- }
- 
-diff --git a/arch/arm/mach-omap2/board-overo.c b/arch/arm/mach-omap2/board-overo.c
-index 9995ac2..b0af6f3 100644
---- a/arch/arm/mach-omap2/board-overo.c
-+++ b/arch/arm/mach-omap2/board-overo.c
-@@ -282,7 +282,7 @@ static void __init overo_init(void)
- 
- static void __init overo_map_io(void)
- {
--	omap2_set_globals_343x();
-+	omap2_set_globals_35xx();
- 	omap2_map_common_io();
- }
- 
-diff --git a/arch/arm/mach-omap2/id.c b/arch/arm/mach-omap2/id.c
-index 7cd1b2e..c8c4703 100644
---- a/arch/arm/mach-omap2/id.c
-+++ b/arch/arm/mach-omap2/id.c
-@@ -69,6 +69,12 @@ EXPORT_SYMBOL(omap_type);
- 
- /*----------------------------------------------------------------------------*/
- 
-+#define FEAT_OMAP3503	((OMAP343X_SGX_NONE << OMAP343X_FEATURE_SGX_SHIFT) | \
-+				OMAP343X_FEATURE_IVA2_HW_NONE)
-+#define FEAT_OMAP3515	OMAP343X_FEATURE_IVA2_HW_NONE
-+#define FEAT_OMAP3525	(OMAP343X_SGX_NONE << OMAP343X_FEATURE_SGX_SHIFT)
-+#define FEAT_OMAP3530	0
++/* OMAP2 has 3 SPI controllers, while OMAP3 has 4 */
++#define OMAP2_MCSPI_MAX_CTRL 		4
 +
- #define OMAP_TAP_IDCODE		0x0204
- #define OMAP_TAP_DIE_ID_0	0x0218
- #define OMAP_TAP_DIE_ID_1	0x021C
-@@ -152,12 +158,126 @@ void __init omap24xx_check_revision(void)
- 	pr_info("\n");
- }
- 
--void __init omap34xx_check_revision(void)
-+static u32 __init omap34xx_get_features(char *feat_name)
-+{
-+	u32 features, module;
+ #define OMAP2_MCSPI_REVISION		0x00
+ #define OMAP2_MCSPI_SYSCONFIG		0x10
+ #define OMAP2_MCSPI_SYSSTATUS		0x14
+@@ -133,6 +136,18 @@
+ 	int			word_len;
+ };
+
++/* used for context save and restore, structure members to be updated whenever
++ * corresponding registers are modified.
++ */
++struct omap2_mcspi_regs {
++	u32 sysconfig;
++	u32 modulctrl;
++	u32 chconf0;
++	u32 wakeupenable;
++};
 +
-+	features = omap_ctrl_readl(OMAP343X_CONTROL_FEATURE_OMAP_STATUS) &
-+				(OMAP343X_FEATURE_SGX_MASK |
-+					OMAP343X_FEATURE_IVA2_HW_NONE);
++static struct omap2_mcspi_regs omap2_mcspi_ctx[OMAP2_MCSPI_MAX_CTRL];
 +
-+	module = (features & OMAP343X_FEATURE_SGX_MASK) >>
-+					OMAP343X_FEATURE_SGX_SHIFT;
-+	switch (module) {
-+	case OMAP343X_SGX_FULL:
-+		strcat(feat_name, "full speed SGX, ");
-+		break;
-+	case OMAP343X_SGX_HALF:
-+		strcat(feat_name, "half speed SGX, ");
-+		break;
-+	case OMAP343X_SGX_NONE:
-+		strcat(feat_name, "no SGX, ");
-+		break;
-+	default:
-+		strcat(feat_name, "unknown SGX, ");
-+		break;
-+	}
+ static struct workqueue_struct *omap2_mcspi_wq;
+
+ #define MOD_REG_BIT(val, mask, set) do { \
+@@ -217,6 +232,45 @@
+ 	MOD_REG_BIT(l, OMAP2_MCSPI_MODULCTRL_MS, 0);
+ 	MOD_REG_BIT(l, OMAP2_MCSPI_MODULCTRL_SINGLE, 1);
+ 	mcspi_write_reg(master, OMAP2_MCSPI_MODULCTRL, l);
 +
-+	module = features & OMAP343X_FEATURE_IVA2_HW_NONE;
-+	switch (module) {
-+	case 0:
-+		strcat(feat_name, "IVA2");
-+		break;
-+	case OMAP343X_FEATURE_IVA2_HW_NONE:
-+		strcat(feat_name, "no IVA2");
-+		break;
-+	default:
-+		break;
-+	}
-+
-+	return features;
++	omap2_mcspi_ctx[master->bus_num - 1].modulctrl = l;
 +}
 +
-+static void __init omap34xx_set_revision(u8 rev, char *rev_name, char *features)
++static void omap2_mcspi_restore_ctx(struct omap2_mcspi *mcspi)
 +{
-+	u32 coprocessors;
++	struct spi_master *spi_cntrl;
++	spi_cntrl = mcspi->master;
 +
-+	coprocessors = omap34xx_get_features(features);
++	/* McSPI : context restore */
++	mcspi_write_reg(spi_cntrl, OMAP2_MCSPI_MODULCTRL,
++			omap2_mcspi_ctx[spi_cntrl->bus_num - 1].modulctrl);
 +
-+	switch (rev) {
-+	case 0:
-+		omap_revision = OMAP3430_REV_ES2_0;
-+		strcat(rev_name, "ES2.0");
-+		break;
-+	case 2:
-+		omap_revision = OMAP3430_REV_ES2_1;
-+		strcat(rev_name, "ES2.1");
-+		break;
-+	case 3:
-+		omap_revision = OMAP3430_REV_ES3_0;
-+		strcat(rev_name, "ES3.0");
-+		break;
-+	case 4:
-+		omap_revision = OMAP3430_REV_ES3_1;
-+		strcat(rev_name, "ES3.1");
-+		break;
-+	default:
-+		/* Use the latest known revision as default */
-+		omap_revision = OMAP3430_REV_ES3_1;
-+		strcat(rev_name, "Unknown revision");
-+	}
++	mcspi_write_reg(spi_cntrl, OMAP2_MCSPI_SYSCONFIG,
++			omap2_mcspi_ctx[spi_cntrl->bus_num - 1].sysconfig);
++
++	mcspi_write_reg(spi_cntrl, OMAP2_MCSPI_CHCONF0,
++			omap2_mcspi_ctx[spi_cntrl->bus_num - 1].chconf0);
++
++
++	mcspi_write_reg(spi_cntrl, OMAP2_MCSPI_WAKEUPENABLE,
++			omap2_mcspi_ctx[spi_cntrl->bus_num - 1].wakeupenable);
++}
++static void omap2_mcspi_disable_clocks(struct omap2_mcspi *mcspi)
++{
++	clk_disable(mcspi->ick);
++	clk_disable(mcspi->fck);
 +}
 +
-+static void __init omap35xx_set_revision(u8 rev, char *rev_name, char *features)
++static int omap2_mcspi_enable_clocks(struct omap2_mcspi *mcspi)
 +{
-+	u32 coprocessors;
++	if (clk_enable(mcspi->ick))
++		return -ENODEV;
++	if (clk_enable(mcspi->fck))
++		return -ENODEV;
 +
-+	/* Get the subrevision based on the onboard coprocessors */
-+	coprocessors = omap34xx_get_features(features);
-+	switch (coprocessors) {
-+	case FEAT_OMAP3503:
-+		omap_revision |= OMAP3503_MASK;
-+		break;
-+	case FEAT_OMAP3515:
-+		omap_revision |= OMAP3515_MASK;
-+		break;
-+	case FEAT_OMAP3525:
-+		omap_revision |= OMAP3525_MASK;
-+		break;
-+	case FEAT_OMAP3530:
-+		omap_revision |= OMAP3530_MASK;
-+		break;
-+	default:
-+		break;
-+	}
++	omap2_mcspi_restore_ctx(mcspi);
 +
-+	/* Get the silicon revision */
-+	switch (rev) {
-+	case 1:
-+		omap_revision |= OMAP35XX_MASK_ES2_0;
-+		strcat(rev_name, "ES2.0");
-+		break;
-+	case 2:
-+		omap_revision |= OMAP35XX_MASK_ES2_1;
-+		strcat(rev_name, "ES2.1");
-+		break;
-+	case 3:
-+		omap_revision |= OMAP35XX_MASK_ES3_0;
-+		strcat(rev_name, "ES3.0");
-+		break;
-+	default:
-+		/* Use the latest known revision as default */
-+		omap_revision |= OMAP35XX_MASK_ES3_0;
-+		strcat(rev_name, "Unknown revision");
-+	}
-+}
-+
-+static void __init omap34xx_check_revision(void)
++	return 0;
+ }
+
+ static unsigned
+@@ -486,10 +540,12 @@
  {
- 	u32 cpuid, idcode;
- 	u16 hawkeye;
- 	u8 rev;
--	char *rev_name = "ES1.0";
-+	char rev_name[32] = "", feat_name[32] = "";
- 
- 	/*
- 	 * We cannot access revision registers on ES1.0.
-@@ -181,32 +301,14 @@ void __init omap34xx_check_revision(void)
- 	rev = (idcode >> 28) & 0xff;
- 
- 	if (hawkeye == 0xb7ae) {
--		switch (rev) {
--		case 0:
--			omap_revision = OMAP3430_REV_ES2_0;
--			rev_name = "ES2.0";
--			break;
--		case 2:
--			omap_revision = OMAP3430_REV_ES2_1;
--			rev_name = "ES2.1";
--			break;
--		case 3:
--			omap_revision = OMAP3430_REV_ES3_0;
--			rev_name = "ES3.0";
--			break;
--		case 4:
--			omap_revision = OMAP3430_REV_ES3_1;
--			rev_name = "ES3.1";
--			break;
--		default:
--			/* Use the latest known revision as default */
--			omap_revision = OMAP3430_REV_ES3_1;
--			rev_name = "Unknown revision\n";
--		}
-+		if (cpu_is_omap35xx())
-+			omap35xx_set_revision(rev, rev_name, feat_name);
-+		else
-+			omap34xx_set_revision(rev, rev_name, feat_name);
+ 	struct omap2_mcspi_cs *cs = spi->controller_state;
+ 	struct omap2_mcspi *mcspi;
++	struct spi_master *spi_cntrl;
+ 	u32 l = 0, div = 0;
+ 	u8 word_len = spi->bits_per_word;
+
+ 	mcspi = spi_master_get_devdata(spi->master);
++	spi_cntrl = mcspi->master;
+
+ 	if (t != NULL && t->bits_per_word)
+ 		word_len = t->bits_per_word;
+@@ -537,6 +593,8 @@
+
+ 	mcspi_write_cs_reg(spi, OMAP2_MCSPI_CHCONF0, l);
+
++	omap2_mcspi_ctx[spi_cntrl->bus_num - 1].chconf0 = l;
++
+ 	dev_dbg(&spi->dev, "setup: speed %d, sample %s edge, clk %s\n",
+ 			OMAP2_MCSPI_MAX_FREQ / (1 << div),
+ 			(spi->mode & SPI_CPHA) ? "trailing" : "leading",
+@@ -649,11 +707,11 @@
+ 			return ret;
  	}
- 
- out:
--	pr_info("OMAP%04x %s\n", omap_rev() >> 16, rev_name);
-+	pr_info("OMAP%04x %s (%s)\n", omap_rev() >> 16, rev_name, feat_name);
- }
- 
- /*
-@@ -241,6 +343,10 @@ void __init omap2_check_revision(void)
- 			omap_chip.oc |= CHIP_IS_OMAP3430ES1;
- 		else if (omap_rev() > OMAP3430_REV_ES1_0)
- 			omap_chip.oc |= CHIP_IS_OMAP3430ES2;
-+	} else if (cpu_is_omap35xx()) {
-+		/* 35xx are treated as 3430ES2 for power and clockdomains */
-+		omap_chip.oc = CHIP_IS_OMAP3430;
-+		omap_chip.oc |= CHIP_IS_OMAP3430ES2;
- 	} else {
- 		pr_err("Uninitialized omap_chip, please fix!\n");
- 	}
-diff --git a/arch/arm/plat-omap/common.c b/arch/arm/plat-omap/common.c
-index 8c53125..311822a 100644
---- a/arch/arm/plat-omap/common.c
-+++ b/arch/arm/plat-omap/common.c
-@@ -316,7 +316,7 @@ void __init omap2_set_globals_243x(void)
- 
- #if defined(CONFIG_ARCH_OMAP3430)
- 
--static struct omap_globals omap343x_globals = {
-+static struct omap_globals omap34xx_globals = {
- 	.class	= OMAP343X_CLASS,
- 	.tap	= OMAP2_IO_ADDRESS(0x4830A000),
- 	.sdrc	= OMAP2_IO_ADDRESS(OMAP343X_SDRC_BASE),
-@@ -328,7 +328,14 @@ static struct omap_globals omap343x_globals = {
- 
- void __init omap2_set_globals_343x(void)
- {
--	omap2_globals = &omap343x_globals;
-+	omap2_globals = &omap34xx_globals;
-+	__omap2_set_globals();
-+}
-+
-+void __init omap2_set_globals_35xx(void)
-+{
-+	omap34xx_globals.class = OMAP35XX_CLASS;
-+	omap2_globals = &omap34xx_globals;
- 	__omap2_set_globals();
- }
- #endif
-diff --git a/arch/arm/plat-omap/include/mach/common.h b/arch/arm/plat-omap/include/mach/common.h
-index af4105f..f41cba2 100644
---- a/arch/arm/plat-omap/include/mach/common.h
-+++ b/arch/arm/plat-omap/include/mach/common.h
-@@ -60,6 +60,7 @@ struct omap_globals {
- void omap2_set_globals_242x(void);
- void omap2_set_globals_243x(void);
- void omap2_set_globals_343x(void);
-+void omap2_set_globals_35xx(void);
- 
- /* These get called from omap2_set_globals_xxxx(), do not call these */
- void omap2_set_globals_tap(struct omap_globals *);
-diff --git a/arch/arm/plat-omap/include/mach/control.h b/arch/arm/plat-omap/include/mach/control.h
-index 4038596..8d067e3 100644
---- a/arch/arm/plat-omap/include/mach/control.h
-+++ b/arch/arm/plat-omap/include/mach/control.h
-@@ -186,6 +186,25 @@
- #define OMAP2_SYSBOOT_1_MASK		(1 << 1)
- #define OMAP2_SYSBOOT_0_MASK		(1 << 0)
- 
-+/* CONTROL_FEATURE_OMAP_STATUS register and bits */
-+#define OMAP343X_CONTROL_FEATURE_OMAP_STATUS	0x044c
-+#define OMAP343X_FEATURE_SGX_MASK	(0x3 << 13)
-+#define OMAP343X_FEATURE_SGX_SHIFT	13
-+#define		OMAP343X_SGX_FULL	0
-+#define		OMAP343X_SGX_HALF	1
-+#define		OMAP343X_SGX_NONE	2
-+#define OMAP343X_FEATURE_IVA2_HW_NONE	(1 << 12)
-+#define OMAP343X_FEATURE_L2_CACHE_MASK	(0x3 << 10)
-+#define OMAP343X_FEATURE_L2_CACHE_SHIFT	10
-+#define		OMAP343X_L2_0KB		0
-+#define		OMAP343X_L2_64KB	1
-+#define		OMAP343X_L2_128KB	2
-+#define		OMAP343X_L2_256KB	3
-+#define OMAP343X_FEATURE_ARM_MHZ_MASK	(0x3 << 8)
-+#define OMAP343X_FEATURE_ARM_MHZ_SHIFT	8
-+#define OMAP343X_FEATURE_IVA2_MHZ_MASK	(0x3 << 6)
-+#define OMAP343X_FEATURE_IVA2_MHZ_SHIFT	6
-+
- /* CONTROL_FUSE_SR bits */
- #define OMAP343X_SR2_SENNENABLE_MASK	(0x3 << 10)
- #define OMAP343X_SR2_SENNENABLE_SHIFT	10
-diff --git a/arch/arm/plat-omap/include/mach/cpu.h b/arch/arm/plat-omap/include/mach/cpu.h
-index a8e1178..d3b26b6 100644
---- a/arch/arm/plat-omap/include/mach/cpu.h
-+++ b/arch/arm/plat-omap/include/mach/cpu.h
-@@ -112,6 +112,7 @@ unsigned int omap_rev(void);
-  * cpu_is_omap242x():	True for OMAP2420, OMAP2422, OMAP2423
-  * cpu_is_omap243x():	True for OMAP2430
-  * cpu_is_omap343x():	True for OMAP3430
-+ * cpu_is_omap35xx():	True for OMAP3503, OMAP3515, OMAP3525, OMAP3530
-  */
- #define GET_OMAP_CLASS	(omap_rev() & 0xff)
- 
-@@ -123,10 +124,10 @@ static inline int is_omap ##class (void)		\
- 
- #define GET_OMAP_SUBCLASS	((omap_rev() >> 20) & 0x0fff)
- 
--#define IS_OMAP_SUBCLASS(subclass, id)			\
-+#define IS_OMAP_SUBCLASS(subclass, id, mask)		\
- static inline int is_omap ##subclass (void)		\
- {							\
--	return (GET_OMAP_SUBCLASS == (id)) ? 1 : 0;	\
-+	return ((GET_OMAP_SUBCLASS & (mask)) == ((id) & (mask))) ? 1 : 0; \
- }
- 
- IS_OMAP_CLASS(7xx, 0x07)
-@@ -135,9 +136,10 @@ IS_OMAP_CLASS(16xx, 0x16)
- IS_OMAP_CLASS(24xx, 0x24)
- IS_OMAP_CLASS(34xx, 0x34)
- 
--IS_OMAP_SUBCLASS(242x, 0x242)
--IS_OMAP_SUBCLASS(243x, 0x243)
--IS_OMAP_SUBCLASS(343x, 0x343)
-+IS_OMAP_SUBCLASS(242x, 0x242, 0xfff)
-+IS_OMAP_SUBCLASS(243x, 0x243, 0xfff)
-+IS_OMAP_SUBCLASS(343x, 0x343, 0xfff)
-+IS_OMAP_SUBCLASS(35xx, 0x350, 0xff0)
- 
- #define cpu_is_omap7xx()		0
- #define cpu_is_omap15xx()		0
-@@ -147,6 +149,7 @@ IS_OMAP_SUBCLASS(343x, 0x343)
- #define cpu_is_omap243x()		0
- #define cpu_is_omap34xx()		0
- #define cpu_is_omap343x()		0
-+#define cpu_is_omap35xx()		0
- 
- #if defined(MULTI_OMAP1)
- # if defined(CONFIG_ARCH_OMAP730)
-@@ -188,8 +191,10 @@ IS_OMAP_SUBCLASS(343x, 0x343)
- # if defined(CONFIG_ARCH_OMAP34XX)
- #  undef  cpu_is_omap34xx
- #  undef  cpu_is_omap343x
-+#  undef  cpu_is_omap35xx
- #  define cpu_is_omap34xx()		is_omap34xx()
- #  define cpu_is_omap343x()		is_omap343x()
-+#  define cpu_is_omap35xx()		is_omap35xx()
- # endif
- #else
- # if defined(CONFIG_ARCH_OMAP24XX)
-@@ -209,8 +214,12 @@ IS_OMAP_SUBCLASS(343x, 0x343)
- #  define cpu_is_omap34xx()		1
- # endif
- # if defined(CONFIG_ARCH_OMAP3430)
-+#  undef  cpu_is_omap34xx
- #  undef  cpu_is_omap343x
--#  define cpu_is_omap343x()		1
-+#  undef  cpu_is_omap35xx
-+#  define cpu_is_omap34xx()		is_omap34xx()
-+#  define cpu_is_omap343x()		is_omap343x()
-+#  define cpu_is_omap35xx()		is_omap35xx()
- # endif
- #endif
- 
-@@ -230,6 +239,10 @@ IS_OMAP_SUBCLASS(343x, 0x343)
-  * cpu_is_omap2423():	True for OMAP2423
-  * cpu_is_omap2430():	True for OMAP2430
-  * cpu_is_omap3430():	True for OMAP3430
-+ * cpu_is_omap3503():	True for OMAP3503
-+ * cpu_is_omap3515():	True for OMAP3515
-+ * cpu_is_omap3525():	True for OMAP3525
-+ * cpu_is_omap3530():	True for OMAP3530
-  */
- #define GET_OMAP_TYPE	((omap_rev() >> 16) & 0xffff)
- 
-@@ -252,6 +265,10 @@ IS_OMAP_TYPE(2422, 0x2422)
- IS_OMAP_TYPE(2423, 0x2423)
- IS_OMAP_TYPE(2430, 0x2430)
- IS_OMAP_TYPE(3430, 0x3430)
-+IS_OMAP_TYPE(3503, 0x3503)
-+IS_OMAP_TYPE(3515, 0x3515)
-+IS_OMAP_TYPE(3525, 0x3525)
-+IS_OMAP_TYPE(3530, 0x3530)
- 
- #define cpu_is_omap310()		0
- #define cpu_is_omap730()		0
-@@ -266,6 +283,10 @@ IS_OMAP_TYPE(3430, 0x3430)
- #define cpu_is_omap2423()		0
- #define cpu_is_omap2430()		0
- #define cpu_is_omap3430()		0
-+#define cpu_is_omap3503()		0
-+#define cpu_is_omap3515()		0
-+#define cpu_is_omap3525()		0
-+#define cpu_is_omap3530()		0
- 
- #if defined(MULTI_OMAP1)
- # if defined(CONFIG_ARCH_OMAP730)
-@@ -316,7 +337,15 @@ IS_OMAP_TYPE(3430, 0x3430)
- 
- #if defined(CONFIG_ARCH_OMAP34XX)
- # undef cpu_is_omap3430
-+# undef cpu_is_omap3503
-+# undef cpu_is_omap3515
-+# undef cpu_is_omap3525
-+# undef cpu_is_omap3530
- # define cpu_is_omap3430()		is_omap3430()
-+# define cpu_is_omap3503()		is_omap3503()
-+# define cpu_is_omap3515()		is_omap3515()
-+# define cpu_is_omap3525()		is_omap3525()
-+# define cpu_is_omap3530()		is_omap3530()
- #endif
- 
- /* Macros to detect if we have OMAP1 or OMAP2 */
-@@ -341,6 +370,16 @@ IS_OMAP_TYPE(3430, 0x3430)
- #define OMAP3430_REV_ES3_0	0x34303034
- #define OMAP3430_REV_ES3_1	0x34304034
- 
-+#define OMAP35XX_CLASS		0x35000034	/* Yes, it's still a 34xx */
-+#define OMAP3503_MASK		0x00030000
-+#define OMAP3515_MASK		0x00150000
-+#define OMAP3525_MASK		0x00250000
-+#define OMAP3530_MASK		0x00300000
-+
-+#define OMAP35XX_MASK_ES2_0	0x00001000
-+#define OMAP35XX_MASK_ES2_1	0x00002000
-+#define OMAP35XX_MASK_ES3_0	0x00003000
-+
- /*
-  * omap_chip bits
-  *
 
---Q68bSM7Ycu6FN28Q--
+-	clk_enable(mcspi->ick);
+-	clk_enable(mcspi->fck);
++	if (omap2_mcspi_enable_clocks(mcspi))
++		return -ENODEV;
++
+ 	ret = omap2_mcspi_setup_transfer(spi, NULL);
+-	clk_disable(mcspi->fck);
+-	clk_disable(mcspi->ick);
++	omap2_mcspi_disable_clocks(mcspi);
+
+ 	return ret;
+ }
+@@ -685,8 +743,8 @@
+ 	mcspi = container_of(work, struct omap2_mcspi, work);
+ 	spin_lock_irq(&mcspi->lock);
+
+-	clk_enable(mcspi->ick);
+-	clk_enable(mcspi->fck);
++	if (omap2_mcspi_enable_clocks(mcspi))
++		return;
+
+ 	/* We only enable one channel at a time -- the one whose message is
+ 	 * at the head of the queue -- although this controller would gladly
+@@ -788,8 +846,7 @@
+ 		spin_lock_irq(&mcspi->lock);
+ 	}
+
+-	clk_disable(mcspi->fck);
+-	clk_disable(mcspi->ick);
++	omap2_mcspi_disable_clocks(mcspi);
+
+ 	spin_unlock_irq(&mcspi->lock);
+ }
+@@ -877,8 +934,8 @@
+ 	struct spi_master	*master = mcspi->master;
+ 	u32			tmp;
+
+-	clk_enable(mcspi->ick);
+-	clk_enable(mcspi->fck);
++	if (omap2_mcspi_enable_clocks(mcspi))
++		return -1;
+
+ 	mcspi_write_reg(master, OMAP2_MCSPI_SYSCONFIG,
+ 			OMAP2_MCSPI_SYSCONFIG_SOFTRESET);
+@@ -886,18 +943,18 @@
+ 		tmp = mcspi_read_reg(master, OMAP2_MCSPI_SYSSTATUS);
+ 	} while (!(tmp & OMAP2_MCSPI_SYSSTATUS_RESETDONE));
+
+-	mcspi_write_reg(master, OMAP2_MCSPI_SYSCONFIG,
+-			OMAP2_MCSPI_SYSCONFIG_AUTOIDLE |
+-			OMAP2_MCSPI_SYSCONFIG_ENAWAKEUP |
+-			OMAP2_MCSPI_SYSCONFIG_SMARTIDLE);
+-
+-	mcspi_write_reg(master, OMAP2_MCSPI_WAKEUPENABLE,
+-			OMAP2_MCSPI_WAKEUPENABLE_WKEN);
++	tmp = OMAP2_MCSPI_SYSCONFIG_AUTOIDLE |
++		OMAP2_MCSPI_SYSCONFIG_ENAWAKEUP |
++		OMAP2_MCSPI_SYSCONFIG_SMARTIDLE;
++	mcspi_write_reg(master, OMAP2_MCSPI_SYSCONFIG, tmp);
++	omap2_mcspi_ctx[master->bus_num - 1].sysconfig = tmp;
++
++	tmp = OMAP2_MCSPI_WAKEUPENABLE_WKEN;
++	mcspi_write_reg(master, OMAP2_MCSPI_WAKEUPENABLE, tmp);
++	omap2_mcspi_ctx[master->bus_num - 1].wakeupenable = tmp;
+
+ 	omap2_mcspi_set_master_mode(master);
+-
+-	clk_disable(mcspi->fck);
+-	clk_disable(mcspi->ick);
++	omap2_mcspi_disable_clocks(mcspi);
+ 	return 0;
+ }
+
+
+
+
+
