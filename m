@@ -1,62 +1,57 @@
-From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
-Subject: Re: [PATCH 1/6] omap iommu: tlb and pagetable primitives
-Date: Tue, 27 Jan 2009 23:31:39 +0200 (EET)
-Message-ID: <20090127.233139.58420377.Hiroshi.DOYU@nokia.com>
-References: <20090116083709.18344.74524.stgit@oreo.research.nokia.com>
-	<20090117160608.GA12341@n2100.arm.linux.org.uk>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: [PATCH] Don't scale voltage in C1 state
+Date: Tue, 27 Jan 2009 14:34:36 -0800
+Message-ID: <87mydcs7ib.fsf@deeprootsystems.com>
+References: <1231950755-8620-1-git-send-email-peter.de-schrijver@nokia.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:38972 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751565AbZA0Vci (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 27 Jan 2009 16:32:38 -0500
-In-Reply-To: <20090117160608.GA12341@n2100.arm.linux.org.uk>
+Received: from rv-out-0506.google.com ([209.85.198.227]:61027 "EHLO
+	rv-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753887AbZA0Wej (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 27 Jan 2009 17:34:39 -0500
+Received: by rv-out-0506.google.com with SMTP id k40so6624832rvb.1
+        for <linux-omap@vger.kernel.org>; Tue, 27 Jan 2009 14:34:38 -0800 (PST)
+In-Reply-To: <1231950755-8620-1-git-send-email-peter.de-schrijver@nokia.com> (Peter De Schrijver's message of "Wed\, 14 Jan 2009 18\:32\:35 +0200")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux@arm.linux.org.uk
-Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.arm.linux.org.uk, linux-omap@vger.kernel.org
+To: Peter 'p2' De Schrijver <peter.de-schrijver@nokia.com>
+Cc: linux-omap@vger.kernel.org
 
-Hi Russell, Thank you for your reivew.
+"Peter 'p2' De Schrijver" <peter.de-schrijver@nokia.com> writes:
 
-Just for your convenience, the updated patchset is available as below.
+> This patch prevents VDD1 and VDD2 to go to the lowest OPP when entering C1.
+> It improves wakeup latency from 600us to about 50us.
+>
+> Now with signoff :)
+>
+> Signed-off-by: Peter 'p2' De Schrijver <peter.de-schrijver@nokia.com>
 
-The following changes since commit 1de9e8e70f5acc441550ca75433563d91b269bbe:
-  Linus Torvalds (1):
-        Linux 2.6.29-rc2
+Thanks, pushed to PM branch.
 
-are available in the git repository at:
+Kevin
 
-  http://git.gitorious.org/lk/mainline.git iommu
-
-Hiroshi DOYU (6):
-      omap iommu: tlb and pagetable primitives
-      omap iommu: omap2 architecture specific functions
-      omap iommu: omap3 iommu device registration
-      omap iommu: simple virtual address space management
-      omap iommu: entries for Kconfig and Makefile
-      omap2 iommu: entries for Kconfig and Makefile
-
- arch/arm/include/asm/io.h                |    6 +
- arch/arm/mach-omap2/Makefile             |    5 +
- arch/arm/mach-omap2/iommu2.c             |  326 ++++++++++
- arch/arm/mach-omap2/omap3-iommu.c        |  103 ++++
- arch/arm/mm/ioremap.c                    |   11 +
- arch/arm/plat-omap/Kconfig               |    8 +
- arch/arm/plat-omap/Makefile              |    1 +
- arch/arm/plat-omap/include/mach/iommu.h  |  157 +++++
- arch/arm/plat-omap/include/mach/iommu2.h |   94 +++
- arch/arm/plat-omap/include/mach/iovmm.h  |   94 +++
- arch/arm/plat-omap/iommu.c               |  953 ++++++++++++++++++++++++++++++
- arch/arm/plat-omap/iopgtable.h           |   72 +++
- arch/arm/plat-omap/iovmm.c               |  891 ++++++++++++++++++++++++++++
- 13 files changed, 2721 insertions(+), 0 deletions(-)
- create mode 100644 arch/arm/mach-omap2/iommu2.c
- create mode 100644 arch/arm/mach-omap2/omap3-iommu.c
- create mode 100644 arch/arm/plat-omap/include/mach/iommu.h
- create mode 100644 arch/arm/plat-omap/include/mach/iommu2.h
- create mode 100644 arch/arm/plat-omap/include/mach/iovmm.h
- create mode 100644 arch/arm/plat-omap/iommu.c
- create mode 100644 arch/arm/plat-omap/iopgtable.h
- create mode 100644 arch/arm/plat-omap/iovmm.c
+> ---
+>  arch/arm/mach-omap2/pm34xx.c |    2 +-
+>  1 files changed, 1 insertions(+), 1 deletions(-)
+>
+> diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
+> index b0b2188..87ef55e 100644
+> --- a/arch/arm/mach-omap2/pm34xx.c
+> +++ b/arch/arm/mach-omap2/pm34xx.c
+> @@ -1052,7 +1052,7 @@ static void __init configure_vc(void)
+>  				OMAP3_PRM_VC_I2C_CFG_OFFSET);
+>  
+>  	/* Setup voltctrl and other setup times */
+> -	prm_write_mod_reg(OMAP3430_AUTO_RET | OMAP3430_AUTO_SLEEP,
+> +	prm_write_mod_reg(OMAP3430_AUTO_RET,
+>  			  OMAP3430_GR_MOD, OMAP3_PRM_VOLTCTRL_OFFSET);
+>  
+>  	prm_write_mod_reg(OMAP3430_CLKSETUP_DURATION, OMAP3430_GR_MOD,
+> -- 
+> 1.5.6.3
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
