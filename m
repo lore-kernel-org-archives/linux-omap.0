@@ -1,39 +1,104 @@
-From: Kalle Jokiniemi <kalle.jokiniemi@digia.com>
-Subject: Re: [PATCH 1/1] TWL: USB: disable VUSB regulators when cable
-	unplugged
-Date: Tue, 27 Jan 2009 11:50:03 +0200
-Message-ID: <1233049803.6515.475.camel@ubuntu>
-References: <1232543718-18199-1-git-send-email-kalle.jokiniemi@digia.com>
-	 <1232543718-18199-2-git-send-email-kalle.jokiniemi@digia.com>
-	 <200901220955.51986.david-b@pacbell.net>
-Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+From: Grazvydas Ignotas <notasas@gmail.com>
+Subject: [PATCH] hsmmc: Add MMC3 support
+Date: Tue, 27 Jan 2009 11:53:42 +0200
+Message-ID: <1233050022-5769-1-git-send-email-notasas@gmail.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from gate.edelkey.net ([213.138.147.140]:49139 "EHLO
-	gate.edelkey.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751124AbZA0JuT (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 27 Jan 2009 04:50:19 -0500
-In-Reply-To: <200901220955.51986.david-b@pacbell.net>
+Received: from fk-out-0910.google.com ([209.85.128.191]:33281 "EHLO
+	fk-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751881AbZA0Jxs (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 27 Jan 2009 04:53:48 -0500
+Received: by fk-out-0910.google.com with SMTP id f33so3069194fkf.5
+        for <linux-omap@vger.kernel.org>; Tue, 27 Jan 2009 01:53:46 -0800 (PST)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: David Brownell <david-b@pacbell.net>
-Cc: linux-omap@vger.kernel.org, felipe.balbi@nokia.com
+To: linux-omap@vger.kernel.org
+Cc: Grazvydas Ignotas <notasas@gmail.com>
 
-On Thu, 2009-01-22 at 09:55 -0800, David Brownell wrote:
-> On Wednesday 21 January 2009, Kalle Jokiniemi wrote:
-> > This patch disables USB regulators VUSB1V5, VUSB1V8, and VUSB3V1
-> > when the USB cable is unplugged to reduce power consumption.
-> 
-> Worked fine on a Beagle, now I'm trying to find out
-> what's borked on an Overo ...
+Device connected to MMC3 is assumed to be self-powered, so
+set_power() function is empty. It can't be omited because
+host driver requires it. Array size for hsmmc[] is specified
+because hsmmc[2].name is needed for MMC3 name.
 
-Did you manage to get it working on Overo? 
+Also fix a leak which happens if invalid controller id
+is passed.
 
-BTW. Should I post this patch to linux-usb as well?
+Signed-off-by: Grazvydas Ignotas <notasas@gmail.com>
+---
+This patch applies on top of David Brownel's recent 2 patches.
 
-- Kalle
+ arch/arm/mach-omap2/board-omap3pandora.c |    6 ++++++
+ arch/arm/mach-omap2/mmc-twl4030.c        |   18 ++++++++++++++++--
+ 2 files changed, 22 insertions(+), 2 deletions(-)
 
-> 
-> - Dave
-> 
+diff --git a/arch/arm/mach-omap2/board-omap3pandora.c b/arch/arm/mach-omap2/board-omap3pandora.c
+index 2637641..6c1e8fe 100644
+--- a/arch/arm/mach-omap2/board-omap3pandora.c
++++ b/arch/arm/mach-omap2/board-omap3pandora.c
+@@ -159,6 +159,12 @@ static struct twl4030_hsmmc_info omap3pandora_mmc[] = {
+ 		.ext_clock	= 1,
+ 		.transceiver	= true,
+ 	},
++	{
++		.mmc		= 3,
++		.wires		= 4,
++		.gpio_cd	= -EINVAL,
++		.gpio_wp	= -EINVAL,
++	},
+ 	{}	/* Terminator */
+ };
+ 
+diff --git a/arch/arm/mach-omap2/mmc-twl4030.c b/arch/arm/mach-omap2/mmc-twl4030.c
+index b45135e..3b98948 100644
+--- a/arch/arm/mach-omap2/mmc-twl4030.c
++++ b/arch/arm/mach-omap2/mmc-twl4030.c
+@@ -61,7 +61,7 @@ static struct twl_mmc_controller {
+ 	u8		twl_vmmc_dev_grp;
+ 	u8		twl_mmc_dedicated;
+ 	char		name[HSMMC_NAME_LEN];
+-} hsmmc[] = {
++} hsmmc[OMAP34XX_NR_MMC] = {
+ 	{
+ 		.twl_vmmc_dev_grp		= VMMC1_DEV_GRP,
+ 		.twl_mmc_dedicated		= VMMC1_DEDICATED,
+@@ -346,6 +346,15 @@ static int twl_mmc2_set_power(struct device *dev, int slot, int power_on, int vd
+ 	return ret;
+ }
+ 
++static int twl_mmc3_set_power(struct device *dev, int slot, int power_on, int vdd)
++{
++	/*
++	 * Assume MMC3 has self-powered device connected, for example on-board
++	 * chip with external power source.
++	 */
++	return 0;
++}
++
+ static struct omap_mmc_platform_data *hsmmc_data[OMAP34XX_NR_MMC] __initdata;
+ 
+ void __init twl4030_mmc_init(struct twl4030_hsmmc_info *controllers)
+@@ -413,7 +422,7 @@ void __init twl4030_mmc_init(struct twl4030_hsmmc_info *controllers)
+ 
+ 		/* NOTE:  we assume OMAP's MMC1 and MMC2 use
+ 		 * the TWL4030's VMMC1 and VMMC2, respectively;
+-		 * and that OMAP's MMC3 isn't used.
++		 * and that MMC3 device has it's own power source.
+ 		 */
+ 
+ 		switch (c->mmc) {
+@@ -428,8 +437,13 @@ void __init twl4030_mmc_init(struct twl4030_hsmmc_info *controllers)
+ 			else
+ 				mmc->slots[0].ocr_mask = MMC_VDD_165_195;
+ 			break;
++		case 3:
++			mmc->slots[0].set_power = twl_mmc3_set_power;
++			mmc->slots[0].ocr_mask = MMC_VDD_165_195;
++			break;
+ 		default:
+ 			pr_err("MMC%d configuration not supported!\n", c->mmc);
++			kfree(mmc);
+ 			continue;
+ 		}
+ 		hsmmc_data[c->mmc - 1] = mmc;
+-- 
+1.5.6.3
+
