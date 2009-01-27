@@ -1,46 +1,45 @@
-From: Arun KS <getarunks@gmail.com>
-Subject: Re: No audio support for BeagleBoard in Latest GIT tree?
-Date: Tue, 27 Jan 2009 16:38:47 +0530
-Message-ID: <dfeb90390901270308g64f6fbd7s35e4314eb4c3f02d@mail.gmail.com>
-References: <1232047837-23052-1-git-send-email-koen@openembedded.net>
-	 <bd7b27490901250616q2363c5b4wf422d32831bd3638@mail.gmail.com>
-	 <258288.30602.qm@web81108.mail.mud.yahoo.com>
-	 <200901271138.03901.peter.ujfalusi@nokia.com>
-	 <320898.80694.qm@web81105.mail.mud.yahoo.com>
+From: Adrian Hunter <ext-adrian.hunter@nokia.com>
+Subject: Re: [PATCH] OMAP HSMMC: fix MMC3 dma
+Date: Tue, 27 Jan 2009 14:02:42 +0200
+Message-ID: <497EF7E2.7010906@nokia.com>
+References: <1233052573-6223-1-git-send-email-notasas@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ti-out-0910.google.com ([209.85.142.188]:44494 "EHLO
-	ti-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754494AbZA0LIu convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 27 Jan 2009 06:08:50 -0500
-Received: by ti-out-0910.google.com with SMTP id b6so3389523tic.23
-        for <linux-omap@vger.kernel.org>; Tue, 27 Jan 2009 03:08:47 -0800 (PST)
-In-Reply-To: <320898.80694.qm@web81105.mail.mud.yahoo.com>
+Received: from smtp.nokia.com ([192.100.122.230]:63472 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752741AbZA0Ltw (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 27 Jan 2009 06:49:52 -0500
+In-Reply-To: <1233052573-6223-1-git-send-email-notasas@gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: ndno72-omap@yahoo.com
-Cc: Peter Ujfalusi <peter.ujfalusi@nokia.com>, beagleboard@googlegroups.com, "linux-omap@vger.kernel.orgList" <linux-omap@vger.kernel.org>
+To: Grazvydas Ignotas <notasas@gmail.com>
+Cc: "tony@atomide.com" <tony@atomide.com>, "drzeus-mmc@drzeus.cx" <drzeus-mmc@drzeus.cx>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 
-l-o tree is now at
-git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap-2.6.git
+Grazvydas Ignotas wrote:
+> Data transfers on third OMAP3 MMC controller don't work
+> because DMA line numbers are only defined for MMC1 and MMC2.
+> Fix that and store line numbers in mmc_omap_host structure
+> to reduce code size.
+> Tested on OMAP3 pandora board.
+> 
+> Signed-off-by: Grazvydas Ignotas <notasas@gmail.com>
+> ---
+>  drivers/mmc/host/omap_hsmmc.c |   31 +++++++++++++++++++++++--------
+>  1 files changed, 23 insertions(+), 8 deletions(-)
+> 
 
-On Tue, Jan 27, 2009 at 4:05 PM,  <ndno72-omap@yahoo.com> wrote:
->>
->> You need to take this patch sent by Steve Sakoman:
->> http://git.kernel.org/?p=linux/kernel/git/tiwai/sound-2.6.git;a=commit;h=80c509fdd74f3b158267374cc55156965c8bf930
->> This has been sent to l-o also, so you can take the patch from this mailing
->> list...
->>
->
-> Thanks!  So where is the official OMAP3 GIT tree located?  The one you mentioned above has Steve's patch but the one (Steve's own link) mentioned on the wiki page doesn't.  There are 2 or 3 OMAP3 GIT sites out there and I don't know which one is the "official" working one.  I just noticed the one sponsored by Montavista  is now obsolete.
->
-> Regards,
-> Andy
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
+Have you considered using the scatter-gather emulation patch:
+
+	http://marc.info/?l=linux-omap&m=122726069922195&w=2
+
+It was reverted:
+
+	http://marc.info/?l=linux-omap&m=122904725322787&w=2
+
+because of a hardware problem with OMAP3430 before ES3.0, but applying:
+
+	http://git.kernel.org/?p=linux/kernel/git/torvalds/linux-2.6.git;a=commitdiff;h=6a79e391df295bd7c2aa1309ea5031f361c197fd
+
+seems to overcome even that.
