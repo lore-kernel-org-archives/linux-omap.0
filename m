@@ -1,172 +1,69 @@
 From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: [PATCH PM 1/2] OMAP2/3: GPIO: generalize prepare for idle
-Date: Tue, 27 Jan 2009 11:26:53 -0800
-Message-ID: <1233084414-8088-2-git-send-email-khilman@deeprootsystems.com>
+Subject: [PATCH PM 2/2] OMAP3: GPIO: disable GPIO debounce clocks on idle
+Date: Tue, 27 Jan 2009 11:26:54 -0800
+Message-ID: <1233084414-8088-3-git-send-email-khilman@deeprootsystems.com>
 References: <1233084414-8088-1-git-send-email-khilman@deeprootsystems.com>
+ <1233084414-8088-2-git-send-email-khilman@deeprootsystems.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from wf-out-1314.google.com ([209.85.200.169]:41631 "EHLO
-	wf-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753246AbZA0T1B (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 27 Jan 2009 14:27:01 -0500
-Received: by wf-out-1314.google.com with SMTP id 27so7636443wfd.4
-        for <linux-omap@vger.kernel.org>; Tue, 27 Jan 2009 11:27:01 -0800 (PST)
-In-Reply-To: <1233084414-8088-1-git-send-email-khilman@deeprootsystems.com>
+Received: from an-out-0708.google.com ([209.85.132.243]:1754 "EHLO
+	an-out-0708.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753866AbZA0T1G (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 27 Jan 2009 14:27:06 -0500
+Received: by an-out-0708.google.com with SMTP id c2so1506221anc.1
+        for <linux-omap@vger.kernel.org>; Tue, 27 Jan 2009 11:27:04 -0800 (PST)
+In-Reply-To: <1233084414-8088-2-git-send-email-khilman@deeprootsystems.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 
-Currently, the GPIO 'prepare' hook is only called when going to
-off-mode, while the function is called 'prepare_for_retention.'  This
-patch renames the function to 'prepare_for_idle' and calls it for any
-powersate != PWRDM_POWER_ON passing in the powerstate.
-
-The hook itself is then responsible for doing various preparation
-based on the powerstate.
+Ensure GPIO debounce clocks are disabled when idle.  Otherwise,
+clocks will prevent PER powerdomain from entering retention.
 
 Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
 ---
- arch/arm/mach-omap2/pm24xx.c           |    4 ++--
- arch/arm/mach-omap2/pm34xx.c           |   10 ++++------
- arch/arm/plat-omap/gpio.c              |   19 +++++++++++++------
- arch/arm/plat-omap/include/mach/gpio.h |    4 ++--
- 4 files changed, 21 insertions(+), 16 deletions(-)
+ arch/arm/plat-omap/gpio.c |    8 ++++++++
+ 1 files changed, 8 insertions(+), 0 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/pm24xx.c b/arch/arm/mach-omap2/pm24xx.c
-index 1095917..d2bae9c 100644
---- a/arch/arm/mach-omap2/pm24xx.c
-+++ b/arch/arm/mach-omap2/pm24xx.c
-@@ -114,7 +114,7 @@ static void omap2_enter_full_retention(void)
- 	l = omap_ctrl_readl(OMAP2_CONTROL_DEVCONF0) | OMAP24XX_USBSTANDBYCTRL;
- 	omap_ctrl_writel(l, OMAP2_CONTROL_DEVCONF0);
- 
--	omap2_gpio_prepare_for_retention();
-+	omap2_gpio_prepare_for_idle(PWRDM_POWER_RET);
- 
- 	if (omap2_pm_debug) {
- 		omap2_pm_dump(0, 0, 0);
-@@ -147,7 +147,7 @@ no_sleep:
- 		tmp = timespec_to_ns(&ts_idle) * NSEC_PER_USEC;
- 		omap2_pm_dump(0, 1, tmp);
- 	}
--	omap2_gpio_resume_after_retention();
-+	omap2_gpio_resume_after_idle();
- 
- 	clk_enable(osc_ck);
- 
-diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
-index 615b327..3a6c1f1 100644
---- a/arch/arm/mach-omap2/pm34xx.c
-+++ b/arch/arm/mach-omap2/pm34xx.c
-@@ -330,15 +330,14 @@ void omap_sram_idle(void)
- 	core_next_state = pwrdm_read_next_pwrst(core_pwrdm);
- 	if (per_next_state < PWRDM_POWER_ON) {
- 		omap_uart_prepare_idle(2);
-+		omap2_gpio_prepare_for_idle(per_next_state);
- 		if (per_next_state == PWRDM_POWER_OFF) {
- 			if (core_next_state == PWRDM_POWER_ON) {
- 				per_next_state = PWRDM_POWER_RET;
- 				pwrdm_set_next_pwrst(per_pwrdm, per_next_state);
- 				per_state_modified = 1;
--			} else {
--				omap2_gpio_prepare_for_retention();
-+			} else
- 				omap3_per_save_context();
--			}
- 		}
- 	}
- 
-@@ -412,10 +411,9 @@ void omap_sram_idle(void)
- 	/* PER */
- 	if (per_next_state < PWRDM_POWER_ON) {
- 		per_prev_state = pwrdm_read_prev_pwrst(per_pwrdm);
--		if (per_prev_state == PWRDM_POWER_OFF) {
-+		omap2_gpio_resume_after_idle();
-+		if (per_prev_state == PWRDM_POWER_OFF)
- 			omap3_per_restore_context();
--			omap2_gpio_resume_after_retention();
--		}
- 		omap_uart_resume_idle(2);
- 		if (per_state_modified)
- 			pwrdm_set_next_pwrst(per_pwrdm, PWRDM_POWER_OFF);
 diff --git a/arch/arm/plat-omap/gpio.c b/arch/arm/plat-omap/gpio.c
-index 76a705a..cd7380e 100644
+index cd7380e..eb7a703 100644
 --- a/arch/arm/plat-omap/gpio.c
 +++ b/arch/arm/plat-omap/gpio.c
-@@ -24,6 +24,7 @@
- #include <mach/irqs.h>
- #include <mach/gpio.h>
- #include <asm/mach/irq.h>
-+#include <mach/powerdomain.h>
+@@ -154,6 +154,7 @@ struct gpio_bank {
+ 	spinlock_t lock;
+ 	struct gpio_chip chip;
+ 	struct clk *dbck;
++	u32 dbck_enable_mask;
+ };
  
- /*
-  * OMAP1510 GPIO registers
-@@ -1626,19 +1627,24 @@ static struct sys_device omap_gpio_device = {
+ #define METHOD_MPUIO		0
+@@ -489,6 +490,7 @@ void omap_set_gpio_debounce(int gpio, int enable)
+ 		goto done;
  
- static int workaround_enabled;
- 
--void omap2_gpio_prepare_for_retention(void)
-+void omap2_gpio_prepare_for_idle(int power_state)
- {
- 	int i, c = 0;
- 	int min = 0;
- 
- 	if (cpu_is_omap34xx())
- 		min = 1;
--	/* Remove triggering for all non-wakeup GPIOs.  Otherwise spurious
--	 * IRQs will be generated.  See OMAP2420 Errata item 1.101. */
-+
- 	for (i = min; i < gpio_bank_count; i++) {
+ 	if (cpu_is_omap34xx()) {
++		bank->dbck_enable_mask = val;
+ 		if (enable)
+ 			clk_enable(bank->dbck);
+ 		else
+@@ -1639,6 +1641,9 @@ void omap2_gpio_prepare_for_idle(int power_state)
  		struct gpio_bank *bank = &gpio_bank[i];
  		u32 l1, l2;
  
-+		if (power_state > PWRDM_POWER_OFF)
-+			continue;
++		if (cpu_is_omap34xx() && bank->dbck_enable_mask)
++			clk_disable(bank->dbck);
 +
-+		/* If going to OFF, remove triggering for all
-+		 * non-wakeup GPIOs.  Otherwise spurious IRQs will be
-+		 * generated.  See OMAP2420 Errata item 1.101. */
- 		if (!(bank->enabled_non_wakeup_gpios))
+ 		if (power_state > PWRDM_POWER_OFF)
  			continue;
- #if defined(CONFIG_ARCH_OMAP24XX) || defined(CONFIG_ARCH_OMAP34XX)
-@@ -1665,19 +1671,20 @@ void omap2_gpio_prepare_for_retention(void)
- 	workaround_enabled = 1;
- }
  
--void omap2_gpio_resume_after_retention(void)
-+void omap2_gpio_resume_after_idle(void)
- {
- 	int i;
- 	int min = 0;
- 
--	if (!workaround_enabled)
--		return;
- 	if (cpu_is_omap34xx())
- 		min = 1;
- 	for (i = min; i < gpio_bank_count; i++) {
+@@ -1682,6 +1687,9 @@ void omap2_gpio_resume_after_idle(void)
  		struct gpio_bank *bank = &gpio_bank[i];
  		u32 l;
  
-+		if (!workaround_enabled)
-+			continue;
++		if (cpu_is_omap34xx() && bank->dbck_enable_mask)
++			clk_enable(bank->dbck);
 +
- 		if (!(bank->enabled_non_wakeup_gpios))
+ 		if (!workaround_enabled)
  			continue;
- #if defined(CONFIG_ARCH_OMAP24XX) || defined(CONFIG_ARCH_OMAP34XX)
-diff --git a/arch/arm/plat-omap/include/mach/gpio.h b/arch/arm/plat-omap/include/mach/gpio.h
-index 8f63e2b..fb4fb4e 100644
---- a/arch/arm/plat-omap/include/mach/gpio.h
-+++ b/arch/arm/plat-omap/include/mach/gpio.h
-@@ -71,8 +71,8 @@
- 				 IH_GPIO_BASE + (nr))
  
- extern int omap_gpio_init(void);	/* Call from board init only */
--extern void omap2_gpio_prepare_for_retention(void);
--extern void omap2_gpio_resume_after_retention(void);
-+extern void omap2_gpio_prepare_for_idle(int power_state);
-+extern void omap2_gpio_resume_after_idle(void);
- extern void omap_set_gpio_debounce(int gpio, int enable);
- extern void omap_set_gpio_debounce_time(int gpio, int enable);
- extern void omap3_gpio_save_context(void);
 -- 
 1.6.1
 
