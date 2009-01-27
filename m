@@ -1,58 +1,56 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] OMAP HSMMC: fix MMC3 dma
-Date: Tue, 27 Jan 2009 09:13:09 -0800
-Message-ID: <20090127171306.GC32148@atomide.com>
-References: <1233052573-6223-1-git-send-email-notasas@gmail.com> <497EF7E2.7010906@nokia.com> <6ed0b2680901270900t24838c73l3aa8edca62c91710@mail.gmail.com>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: PM branch updates: 3430sdp and omap3evm results
+Date: Tue, 27 Jan 2009 10:16:06 -0800
+Message-ID: <87fxj4ty1l.fsf@deeprootsystems.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-bos.mailhop.org ([63.208.196.178]:53379 "EHLO
-	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757046AbZA0RNS (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 27 Jan 2009 12:13:18 -0500
-Content-Disposition: inline
-In-Reply-To: <6ed0b2680901270900t24838c73l3aa8edca62c91710@mail.gmail.com>
+Received: from yx-out-2324.google.com ([74.125.44.28]:9613 "EHLO
+	yx-out-2324.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753368AbZA0SQM (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 27 Jan 2009 13:16:12 -0500
+Received: by yx-out-2324.google.com with SMTP id 8so2827424yxm.1
+        for <linux-omap@vger.kernel.org>; Tue, 27 Jan 2009 10:16:11 -0800 (PST)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Grazvydas Ignotas <notasas@gmail.com>
-Cc: Adrian Hunter <ext-adrian.hunter@nokia.com>, "drzeus-mmc@drzeus.cx" <drzeus-mmc@drzeus.cx>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "Jarkko Lavinen (NMP/Helsinki)" <jarkko.lavinen@nokia.com>
+To: linux-omap@vger.kernel.org
 
-* Grazvydas Ignotas <notasas@gmail.com> [090127 09:00]:
-> On Tue, Jan 27, 2009 at 2:02 PM, Adrian Hunter
-> <ext-adrian.hunter@nokia.com> wrote:
-> > Grazvydas Ignotas wrote:
-> >>
-> >> Data transfers on third OMAP3 MMC controller don't work
-> >> because DMA line numbers are only defined for MMC1 and MMC2.
-> >> Fix that and store line numbers in mmc_omap_host structure
-> >> to reduce code size.
-> >> Tested on OMAP3 pandora board.
-> >>
-> >> Signed-off-by: Grazvydas Ignotas <notasas@gmail.com>
-> >> ---
-> >>  drivers/mmc/host/omap_hsmmc.c |   31 +++++++++++++++++++++++--------
-> >>  1 files changed, 23 insertions(+), 8 deletions(-)
-> >>
-> >
-> > Have you considered using the scatter-gather emulation patch:
-> >
-> >        http://marc.info/?l=linux-omap&m=122726069922195&w=2
-> >
-> > It was reverted:
-> >
-> >        http://marc.info/?l=linux-omap&m=122904725322787&w=2
-> >
-> > because of a hardware problem with OMAP3430 before ES3.0, but applying:
-> >
-> >
-> >  http://git.kernel.org/?p=linux/kernel/git/torvalds/linux-2.6.git;a=commitdiff;h=6a79e391df295bd7c2aa1309ea5031f361c197fd
-> >
-> > seems to overcome even that.
-> 
-> Hmm, but it still doesn't know about MMC3. But in case that SG patch
-> goes first, I can resend.
+Hello,
 
-On related news, looks like the hsmmc.c has finally hit the mainline
-tree!
+I've updated the PM branch with a couple of fixes that get it working
+on the 3430SDP.
 
-Tony
+For it to work on the SDP, you need the latest u-boot from the
+omapzoom u-boot tree[1].  This fixes the problems I was having with
+the D2D clockdomain remaining active or hanging upon clock disable.
+
+For omap3evm, it is not hitting retention because it uses the GPIO
+debounce feature for the touchscreen and the GPIO debounce clocks are
+not disabled in idle or suspend.  As a temporary hack, you can test
+the patch below[2] which simply doesn't call the gpio debounce
+functions for the touchscreen.  In the meantime, I'm working on a
+patch to disable the debounce clocks on idle.
+
+Kevin
+
+[1] git://git.omapzoom.org/repo/u-boot.git
+
+[2]
+da7df18bc7f5648ac7fe6e674065ca5899ff8d3d
+ arch/arm/mach-omap2/board-omap3evm.c |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/board-omap3evm.c b/arch/arm/mach-omap2/board-omap3evm.c
+index 6fbbe95..18a07b5 100644
+--- a/arch/arm/mach-omap2/board-omap3evm.c
++++ b/arch/arm/mach-omap2/board-omap3evm.c
+@@ -176,8 +176,8 @@ static void ads7846_dev_init(void)
+ 
+ 	gpio_direction_input(OMAP3_EVM_TS_GPIO);
+ 
+-	omap_set_gpio_debounce(OMAP3_EVM_TS_GPIO, 1);
+-	omap_set_gpio_debounce_time(OMAP3_EVM_TS_GPIO, 0xa);
++/* 	omap_set_gpio_debounce(OMAP3_EVM_TS_GPIO, 1); */
++/* 	omap_set_gpio_debounce_time(OMAP3_EVM_TS_GPIO, 0xa); */
+ }
+ 
