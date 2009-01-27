@@ -1,219 +1,132 @@
-From: "Hemanth V" <hemanthv@ti.com>
-Subject: Re: [PATCH] OMAP3 McSPI:  Adds context save/restore
-Date: Tue, 27 Jan 2009 12:20:58 +0530 (IST)
-Message-ID: <5549.10.24.255.17.1233039058.squirrel@dbdmail.itg.ti.com>
-References: <64283.10.24.255.17.1232533474.squirrel@dbdmail.itg.ti.com>
-    <87eiywr34b.fsf@deeprootsystems.com>
-    <001201c97c55$0f4b7e80$LocalHost@wipultra793>
-    <10293.10.24.255.17.1232693785.squirrel@dbdmail.itg.ti.com>
-    <871vuu7y20.fsf@deeprootsystems.com>
+From: "Nayak, Rajendra" <rnayak@ti.com>
+Subject: RE: new PM branch available
+Date: Tue, 27 Jan 2009 14:48:40 +0530
+Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB02F535EEC9@dbde02.ent.ti.com>
+References: <871vut7w27.fsf@deeprootsystems.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:54119 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751225AbZA0GvG (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 27 Jan 2009 01:51:06 -0500
-In-Reply-To: <871vuu7y20.fsf@deeprootsystems.com>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:37724 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751124AbZA0JSz convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 27 Jan 2009 04:18:55 -0500
+In-Reply-To: <871vut7w27.fsf@deeprootsystems.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Kevin Hilman <khilman@deeprootsystems.com>
-Cc: linux-omap@vger.kernel.org
+Cc: =?iso-8859-1?Q?H=F6gander_Jouni?= <jouni.hogander@nokia.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-From: Hemanth V <hemanthv@ti.com>
+> -----Original Message-----
+> From: Kevin Hilman [mailto:khilman@deeprootsystems.com]=20
+> Sent: Friday, January 23, 2009 11:19 PM
+> To: Nayak, Rajendra
+> Cc: H=F6gander Jouni; linux-omap@vger.kernel.org
+> Subject: Re: new PM branch available
+>=20
+> "Nayak, Rajendra" <rnayak@ti.com> writes:
+>=20
+> > =20
+> >
+> >> -----Original Message-----
+> >> From: H=F6gander Jouni [mailto:jouni.hogander@nokia.com]=20
+> >> Sent: Friday, January 23, 2009 4:52 PM
+> >> To: Nayak, Rajendra
+> >> Cc: Kevin Hilman; linux-omap@vger.kernel.org
+> >> Subject: Re: new PM branch available
+> >>=20
+> >> "ext Nayak, Rajendra" <rnayak@ti.com> writes:
+> >>=20
+> >> >> I did some testing today on my 3.0GP 3430SDP. This is with=20
+> >> the omap_3430sdp_min_defconfig.
+> >> >>
+> >> >> 1) Idle.
+> >> >> echo -n 1 > /sys/power/clocks_off_while_idle
+> >> >> echo -n 1 > /sys/power/enable_off
+> >> >> Could not hit RET. something seems to be still active. Not=20
+> >> sure if it could be something
+> >> >> to do with this error that's thrown while bootup
+> >> >>
+> >> >> <6>Disabling unused clock "dpll5_ck"
+> >> >> Disabling unused clock "dpll5_ck"
+> >> >> <3>clock: dpll5_ck failed transition to 'locked'
+> >> >> clock: dpll5_ck failed transition to 'locked'
+> >> >>=20
+> >> >> This is the same results I see on my SDP.
+> >> >>=20
+> >> >> Looking at the registers, I am pretty sure it is the D2D=20
+> >> clockdomain
+> >> >> that still has activity, but due to very poor Stacked-mode=20
+> >> docs and no
+> >> >> responses to the D2D questions asked to TI I have not=20
+> been able to
+> >> >> figure this one out.
+> >> >>=20
+> >> >> Help debugging this would be greatly appreciated.
+> >> >
+> >> > I looked some more into this today and saw that the hang is=20
+> >> indeed caused
+> >> > due to some kind of debug console going dead. The system=20
+> >> was still looping in the
+> >> > idle thread. I could even do a telnet remotely to my=20
+> board and take
+> >> > some debug dumps..
+> >>=20
+> >> This might help you:
+> >
+> > Yup, this does help. There's no hang now either in idle or=20
+> in suspend.
+>=20
+> Rajendra,
+>=20
+> Is CORE hitting retention for you?  while UART wakeups are=20
+> now working,
+> CORE is still not hitting retention.
+>=20
+> Kevin
 
-This patch adds context save/restore feature to McSPI driver. This has been
-tested by instrumenting the driver code i.e by adding a McSPI softreset
-in omap2_mcspi_disable_clocks function.
+Yes, like I said IVA seemed to have been keeping the system active
+after bootup.
+Looks like the errata implementation done as part of the omap3_iva_idle
+is needed only on silicon rev's 1.0 and 2.0. On my ES3.0 *not* doing th=
+at is
+helping me hit RET/OFF in idle and suspend.
+Not sure if this is an expected behaviour or some changes are needed in=
+ the
+errata fix sequence. I'll try finding out more on that.
+But for now, not doing the errata fix helps me hit CORE RET/OFF on my
+ES3.0SDP.
 
-This patch includes review comment fixes
-
-Signed-off-by: Hemanth V <hemanthv@ti.com>
-
----
- drivers/spi/omap2_mcspi.c |   97 ++++++++++++++++++++++++++++++++++++----------
- 1 files changed, 77 insertions(+), 20 deletions(-)
-
-Index: linux-omap-2.6/drivers/spi/omap2_mcspi.c
-===================================================================
---- linux-omap-2.6.orig/drivers/spi/omap2_mcspi.c
-+++ linux-omap-2.6/drivers/spi/omap2_mcspi.c
-@@ -41,6 +41,9 @@
-
- #define OMAP2_MCSPI_MAX_FREQ		48000000
-
-+/* OMAP2 has 3 SPI controllers, while OMAP3 has 4 */
-+#define OMAP2_MCSPI_MAX_CTRL 		4
-+
- #define OMAP2_MCSPI_REVISION		0x00
- #define OMAP2_MCSPI_SYSCONFIG		0x10
- #define OMAP2_MCSPI_SYSSTATUS		0x14
-@@ -133,6 +136,18 @@
- 	int			word_len;
- };
-
-+/* used for context save and restore, structure members to be updated whenever
-+ * corresponding registers are modified.
-+ */
-+struct omap2_mcspi_regs {
-+	u32 sysconfig;
-+	u32 modulctrl;
-+	u32 chconf0;
-+	u32 wakeupenable;
-+};
-+
-+static struct omap2_mcspi_regs omap2_mcspi_ctx[OMAP2_MCSPI_MAX_CTRL];
-+
- static struct workqueue_struct *omap2_mcspi_wq;
-
- #define MOD_REG_BIT(val, mask, set) do { \
-@@ -217,6 +232,45 @@
- 	MOD_REG_BIT(l, OMAP2_MCSPI_MODULCTRL_MS, 0);
- 	MOD_REG_BIT(l, OMAP2_MCSPI_MODULCTRL_SINGLE, 1);
- 	mcspi_write_reg(master, OMAP2_MCSPI_MODULCTRL, l);
-+
-+	omap2_mcspi_ctx[master->bus_num - 1].modulctrl = l;
-+}
-+
-+static void omap2_mcspi_restore_ctx(struct omap2_mcspi *mcspi)
-+{
-+	struct spi_master *spi_cntrl;
-+	spi_cntrl = mcspi->master;
-+
-+	/* McSPI : context restore */
-+	mcspi_write_reg(spi_cntrl, OMAP2_MCSPI_MODULCTRL,
-+			omap2_mcspi_ctx[spi_cntrl->bus_num - 1].modulctrl);
-+
-+	mcspi_write_reg(spi_cntrl, OMAP2_MCSPI_SYSCONFIG,
-+			omap2_mcspi_ctx[spi_cntrl->bus_num - 1].sysconfig);
-+
-+	mcspi_write_reg(spi_cntrl, OMAP2_MCSPI_CHCONF0,
-+			omap2_mcspi_ctx[spi_cntrl->bus_num - 1].chconf0);
-+
-+
-+	mcspi_write_reg(spi_cntrl, OMAP2_MCSPI_WAKEUPENABLE,
-+			omap2_mcspi_ctx[spi_cntrl->bus_num - 1].wakeupenable);
-+}
-+static void omap2_mcspi_disable_clocks(struct omap2_mcspi *mcspi)
-+{
-+	clk_disable(mcspi->ick);
-+	clk_disable(mcspi->fck);
-+}
-+
-+static int omap2_mcspi_enable_clocks(struct omap2_mcspi *mcspi)
-+{
-+	if (clk_enable(mcspi->ick))
-+		return -ENODEV;
-+	if (clk_enable(mcspi->fck))
-+		return -ENODEV;
-+
-+	omap2_mcspi_restore_ctx(mcspi);
-+
-+	return 0;
- }
-
- static unsigned
-@@ -486,10 +540,12 @@
- {
- 	struct omap2_mcspi_cs *cs = spi->controller_state;
- 	struct omap2_mcspi *mcspi;
-+	struct spi_master *spi_cntrl;
- 	u32 l = 0, div = 0;
- 	u8 word_len = spi->bits_per_word;
-
- 	mcspi = spi_master_get_devdata(spi->master);
-+	spi_cntrl = mcspi->master;
-
- 	if (t != NULL && t->bits_per_word)
- 		word_len = t->bits_per_word;
-@@ -537,6 +593,8 @@
-
- 	mcspi_write_cs_reg(spi, OMAP2_MCSPI_CHCONF0, l);
-
-+	omap2_mcspi_ctx[spi_cntrl->bus_num - 1].chconf0 = l;
-+
- 	dev_dbg(&spi->dev, "setup: speed %d, sample %s edge, clk %s\n",
- 			OMAP2_MCSPI_MAX_FREQ / (1 << div),
- 			(spi->mode & SPI_CPHA) ? "trailing" : "leading",
-@@ -649,11 +707,11 @@
- 			return ret;
- 	}
-
--	clk_enable(mcspi->ick);
--	clk_enable(mcspi->fck);
-+	if (omap2_mcspi_enable_clocks(mcspi))
-+		return -ENODEV;
-+
- 	ret = omap2_mcspi_setup_transfer(spi, NULL);
--	clk_disable(mcspi->fck);
--	clk_disable(mcspi->ick);
-+	omap2_mcspi_disable_clocks(mcspi);
-
- 	return ret;
- }
-@@ -685,8 +743,8 @@
- 	mcspi = container_of(work, struct omap2_mcspi, work);
- 	spin_lock_irq(&mcspi->lock);
-
--	clk_enable(mcspi->ick);
--	clk_enable(mcspi->fck);
-+	if (omap2_mcspi_enable_clocks(mcspi))
-+		return;
-
- 	/* We only enable one channel at a time -- the one whose message is
- 	 * at the head of the queue -- although this controller would gladly
-@@ -788,8 +846,7 @@
- 		spin_lock_irq(&mcspi->lock);
- 	}
-
--	clk_disable(mcspi->fck);
--	clk_disable(mcspi->ick);
-+	omap2_mcspi_disable_clocks(mcspi);
-
- 	spin_unlock_irq(&mcspi->lock);
- }
-@@ -877,8 +934,8 @@
- 	struct spi_master	*master = mcspi->master;
- 	u32			tmp;
-
--	clk_enable(mcspi->ick);
--	clk_enable(mcspi->fck);
-+	if (omap2_mcspi_enable_clocks(mcspi))
-+		return -1;
-
- 	mcspi_write_reg(master, OMAP2_MCSPI_SYSCONFIG,
- 			OMAP2_MCSPI_SYSCONFIG_SOFTRESET);
-@@ -886,18 +943,18 @@
- 		tmp = mcspi_read_reg(master, OMAP2_MCSPI_SYSSTATUS);
- 	} while (!(tmp & OMAP2_MCSPI_SYSSTATUS_RESETDONE));
-
--	mcspi_write_reg(master, OMAP2_MCSPI_SYSCONFIG,
--			OMAP2_MCSPI_SYSCONFIG_AUTOIDLE |
--			OMAP2_MCSPI_SYSCONFIG_ENAWAKEUP |
--			OMAP2_MCSPI_SYSCONFIG_SMARTIDLE);
--
--	mcspi_write_reg(master, OMAP2_MCSPI_WAKEUPENABLE,
--			OMAP2_MCSPI_WAKEUPENABLE_WKEN);
-+	tmp = OMAP2_MCSPI_SYSCONFIG_AUTOIDLE |
-+		OMAP2_MCSPI_SYSCONFIG_ENAWAKEUP |
-+		OMAP2_MCSPI_SYSCONFIG_SMARTIDLE;
-+	mcspi_write_reg(master, OMAP2_MCSPI_SYSCONFIG, tmp);
-+	omap2_mcspi_ctx[master->bus_num - 1].sysconfig = tmp;
-+
-+	tmp = OMAP2_MCSPI_WAKEUPENABLE_WKEN;
-+	mcspi_write_reg(master, OMAP2_MCSPI_WAKEUPENABLE, tmp);
-+	omap2_mcspi_ctx[master->bus_num - 1].wakeupenable = tmp;
-
- 	omap2_mcspi_set_master_mode(master);
--
--	clk_disable(mcspi->fck);
--	clk_disable(mcspi->ick);
-+	omap2_mcspi_disable_clocks(mcspi);
- 	return 0;
- }
-
-
-
-
-
+>=20
+> > Not sure why this was affecting only the SDP while the pm=20
+> branch seems
+> > to function without this for beagle and other omap3 platforms?
+> >
+> >>=20
+> >> diff --git a/arch/arm/mach-omap2/pm34xx.c=20
+> >> b/arch/arm/mach-omap2/pm34xx.c
+> >> index b2db0ba..266e4f5 100644
+> >> --- a/arch/arm/mach-omap2/pm34xx.c
+> >> +++ b/arch/arm/mach-omap2/pm34xx.c
+> >> @@ -401,6 +401,8 @@ void omap_sram_idle(void)
+> >>                         omap3_prcm_restore_context();
+> >>                         omap3_sram_restore_context();
+> >>                 }
+> >> +               omap_uart_resume_idle(0);
+> >> +               omap_uart_resume_idle(1);
+> >>                 if (core_next_state =3D=3D PWRDM_POWER_OFF)
+> >>                         prm_clear_mod_reg_bits(OMAP3430_AUTO_OFF,
+> >>                                                OMAP3430_GR_MOD,
+> >>=20
+> >> --=20
+> >> Jouni H=F6gander
+> >>=20
+> >>=20
+> >>=20
+>=20
+> --
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
