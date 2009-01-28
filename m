@@ -1,66 +1,100 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: [PATCH C 01/13] OMAP3 clock: fix DPLL jitter correction and rate
-	programming
-Date: Wed, 28 Jan 2009 12:08:11 -0700
-Message-ID: <20090128190805.12092.73106.stgit@localhost.localdomain>
+Subject: [PATCH C 06/13] OMAP3 clock: DPLLs should enter bypass if new rate is
+	sys_ck
+Date: Wed, 28 Jan 2009 12:08:26 -0700
+Message-ID: <20090128190823.12092.2638.stgit@localhost.localdomain>
 References: <20090128190724.12092.22239.stgit@localhost.localdomain>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:60361 "EHLO
+Received: from utopia.booyaka.com ([72.9.107.138]:60394 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751857AbZA1UZJ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 28 Jan 2009 15:25:09 -0500
+	with ESMTP id S1751857AbZA1UZP (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 28 Jan 2009 15:25:15 -0500
 In-Reply-To: <20090128190724.12092.22239.stgit@localhost.localdomain>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-arm-kernel@lists.arm.linux.org.uk, linux-kernel@vger.kernel.org
 Cc: linux-omap@vger.kernel.org, Paul Walmsley <paul@pwsan.com>, Tony Lindgren <tony@atomide.com>
 
-Fix DPLL jitter correction programming.  Previously,
-omap3_noncore_dpll_program() stored the FREQSEL jitter correction
-parameter to the wrong register.  This caused jitter correction to be set
-incorrectly and also caused the DPLL divider to be programmed incorrectly.
+This patch causes a DPLL to enter bypass when it is instructed to set
+its rate to that of its bypass clock.  Previously this was only possible
+after setting the DPLL rate, then disabling and re-enabling it.
 
-Also, fix DPLL divider programming.  An off-by-one error existed in
-omap3_noncore_dpll_program(), causing DPLLs to be programmed with a higher
-divider than intended.
-
-linux-omap source commit is 5c0ec88a2145cdf2f2c9cc5fae49635c4c2476c7.
+linux-omap source commit is 9c909ac90902a9c0ecca2bc9ac36289cb84990f5.
 
 Signed-off-by: Paul Walmsley <paul@pwsan.com>
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
- arch/arm/mach-omap2/clock34xx.c |   13 ++++++++-----
- 1 files changed, 8 insertions(+), 5 deletions(-)
+ arch/arm/mach-omap2/clock34xx.c |   40 ++++++++++++++++++++++++++++-----------
+ 1 files changed, 29 insertions(+), 11 deletions(-)
 
 diff --git a/arch/arm/mach-omap2/clock34xx.c b/arch/arm/mach-omap2/clock34xx.c
-index b6fe2c9..ff43058 100644
+index c5efd7e..0f058c3 100644
 --- a/arch/arm/mach-omap2/clock34xx.c
 +++ b/arch/arm/mach-omap2/clock34xx.c
-@@ -346,14 +346,17 @@ static int omap3_noncore_dpll_program(struct clk *clk, u16 m, u8 n, u16 freqsel)
- 	/* 3430 ES2 TRM: 4.7.6.9 DPLL Programming Sequence */
- 	_omap3_noncore_dpll_bypass(clk);
+@@ -371,13 +371,17 @@ static int omap3_noncore_dpll_program(struct clk *clk, u16 m, u8 n, u16 freqsel)
+  * @clk: struct clk * of DPLL to set
+  * @rate: rounded target rate
+  *
+- * Program the DPLL with the rounded target rate.  Returns -EINVAL upon
+- * error, or 0 upon success.
++ * Set the DPLL CLKOUT to the target rate.  If the DPLL can enter
++ * low-power bypass, and the target rate is the bypass source clock
++ * rate, then configure the DPLL for bypass.  Otherwise, round the
++ * target rate if it hasn't been done already, then program and lock
++ * the DPLL.  Returns -EINVAL upon error, or 0 upon success.
+  */
+ static int omap3_noncore_dpll_set_rate(struct clk *clk, unsigned long rate)
+ {
+ 	u16 freqsel;
+ 	struct dpll_data *dd;
++	int ret;
  
-+	/* Set jitter correction */
-+	v = __raw_readl(dd->control_reg);
-+	v &= ~dd->freqsel_mask;
-+	v |= freqsel << __ffs(dd->freqsel_mask);
-+	__raw_writel(v, dd->control_reg);
+ 	if (!clk || !rate)
+ 		return -EINVAL;
+@@ -389,18 +393,32 @@ static int omap3_noncore_dpll_set_rate(struct clk *clk, unsigned long rate)
+ 	if (rate == omap2_get_dpll_rate(clk))
+ 		return 0;
+ 
+-	if (dd->last_rounded_rate != rate)
+-		omap2_dpll_round_rate(clk, rate);
++	if (dd->bypass_clk->rate == rate &&
++	    (clk->dpll_data->modes & (1 << DPLL_LOW_POWER_BYPASS))) {
+ 
+-	if (dd->last_rounded_rate == 0)
+-		return -EINVAL;
++		pr_debug("clock: %s: set rate: entering bypass.\n", clk->name);
 +
-+	/* Set DPLL multiplier, divider */
- 	v = __raw_readl(dd->mult_div1_reg);
- 	v &= ~(dd->mult_mask | dd->div1_mask);
--
--	/* Set mult (M), div1 (N), freqsel */
- 	v |= m << __ffs(dd->mult_mask);
--	v |= n << __ffs(dd->div1_mask);
--	v |= freqsel << __ffs(dd->freqsel_mask);
--
-+	v |= (n - 1) << __ffs(dd->div1_mask);
- 	__raw_writel(v, dd->mult_div1_reg);
++		ret = _omap3_noncore_dpll_bypass(clk);
++
++	} else {
++
++		if (dd->last_rounded_rate != rate)
++			omap2_dpll_round_rate(clk, rate);
  
- 	/* We let the clock framework set the other output dividers later */
+-	freqsel = _omap3_dpll_compute_freqsel(clk, dd->last_rounded_n);
+-	if (!freqsel)
+-		WARN_ON(1);
++		if (dd->last_rounded_rate == 0)
++			return -EINVAL;
+ 
+-	omap3_noncore_dpll_program(clk, dd->last_rounded_m, dd->last_rounded_n,
+-				   freqsel);
++		freqsel = _omap3_dpll_compute_freqsel(clk, dd->last_rounded_n);
++		if (!freqsel)
++			WARN_ON(1);
++
++		pr_debug("clock: %s: set rate: locking rate to %lu.\n",
++			 clk->name, rate);
++
++		ret = omap3_noncore_dpll_program(clk, dd->last_rounded_m,
++						 dd->last_rounded_n, freqsel);
++
++	}
+ 
+ 	omap3_dpll_recalc(clk);
+ 
 
 
