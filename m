@@ -1,111 +1,302 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: OMAP clock fast-forward: an introduction to six series
-Date: Wed, 28 Jan 2009 13:22:22 -0700 (MST)
-Message-ID: <alpine.DEB.2.00.0901281310590.14710@utopia.booyaka.com>
+Subject: [PATCH A 01/10] OMAP2/3: Add non-CORE DPLL rate set code and M,
+	N programming
+Date: Tue, 27 Jan 2009 19:12:47 -0700
+Message-ID: <20090128021243.7244.6362.stgit@localhost.localdomain>
+References: <20090128020447.7244.80496.stgit@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:60046 "EHLO
+Received: from utopia.booyaka.com ([72.9.107.138]:60061 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751565AbZA1UWY (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 28 Jan 2009 15:22:24 -0500
+	with ESMTP id S1751790AbZA1UWp (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 28 Jan 2009 15:22:45 -0500
+In-Reply-To: <20090128020447.7244.80496.stgit@localhost.localdomain>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-arm-kernel@lists.arm.linux.org.uk
-Cc: tony@atomide.com, rmk@arm.linux.org.uk, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+To: linux-arm-kernel@lists.arm.linux.org.uk, linux-kernel@vger.kernel.org
+Cc: Paul Walmsley <paul@pwsan.com>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org
+
+Add non-CORE DPLL rate set code and M,N programming for OMAP3.
+Connect it to OMAP34xx DPLLs 1, 2, 4, 5 via the clock framework.
+
+You may see some warnings on rate sets from the freqsel code.  The
+table that TI presented in the 3430 TRM Rev F does not cover Fint <
+750000, which definitely occurs in practice.  However, the lack of this
+freqsel case does not appear to impair the DPLL rate change.
+
+linux-omap source commit is 689fe67c6d1ad8f52f7f7b139a3274b79bf3e784.
+
+Signed-off-by: Paul Walmsley <paul@pwsan.com>
+Signed-off-by: Tony Lindgren <tony@atomide.com>
+---
+ arch/arm/mach-omap2/clock34xx.c         |  141 +++++++++++++++++++++++++++++++
+ arch/arm/mach-omap2/clock34xx.h         |   10 ++
+ arch/arm/plat-omap/include/mach/clock.h |    1 
+ 3 files changed, 151 insertions(+), 1 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/clock34xx.c b/arch/arm/mach-omap2/clock34xx.c
+index 31bb701..b6fe2c9 100644
+--- a/arch/arm/mach-omap2/clock34xx.c
++++ b/arch/arm/mach-omap2/clock34xx.c
+@@ -104,6 +104,42 @@ static int _omap3_wait_dpll_status(struct clk *clk, u8 state)
+ 	return ret;
+ }
+ 
++/* From 3430 TRM ES2 4.7.6.2 */
++static u16 _omap3_dpll_compute_freqsel(struct clk *clk, u8 n)
++{
++	unsigned long fint;
++	u16 f = 0;
++
++	fint = clk->parent->rate / (n + 1);
++
++	pr_debug("clock: fint is %lu\n", fint);
++
++	if (fint >= 750000 && fint <= 1000000)
++		f = 0x3;
++	else if (fint > 1000000 && fint <= 1250000)
++		f = 0x4;
++	else if (fint > 1250000 && fint <= 1500000)
++		f = 0x5;
++	else if (fint > 1500000 && fint <= 1750000)
++		f = 0x6;
++	else if (fint > 1750000 && fint <= 2100000)
++		f = 0x7;
++	else if (fint > 7500000 && fint <= 10000000)
++		f = 0xB;
++	else if (fint > 10000000 && fint <= 12500000)
++		f = 0xC;
++	else if (fint > 12500000 && fint <= 15000000)
++		f = 0xD;
++	else if (fint > 15000000 && fint <= 17500000)
++		f = 0xE;
++	else if (fint > 17500000 && fint <= 21000000)
++		f = 0xF;
++	else
++		pr_debug("clock: unknown freqsel setting for %d\n", n);
++
++	return f;
++}
++
+ /* Non-CORE DPLL (e.g., DPLLs that do not control SDRC) clock functions */
+ 
+ /*
+@@ -240,7 +276,7 @@ static int omap3_noncore_dpll_enable(struct clk *clk)
+ 	if (clk == &dpll3_ck)
+ 		return -EINVAL;
+ 
+-	if (clk->parent->rate == clk_get_rate(clk))
++	if (clk->parent->rate == omap2_get_dpll_rate(clk))
+ 		r = _omap3_noncore_dpll_bypass(clk);
+ 	else
+ 		r = _omap3_noncore_dpll_lock(clk);
+@@ -270,6 +306,109 @@ static void omap3_noncore_dpll_disable(struct clk *clk)
+ 	_omap3_noncore_dpll_stop(clk);
+ }
+ 
++
++/* Non-CORE DPLL rate set code */
++
++/*
++ * omap3_noncore_dpll_program - set non-core DPLL M,N values directly
++ * @clk: struct clk * of DPLL to set
++ * @m: DPLL multiplier to set
++ * @n: DPLL divider to set
++ * @freqsel: FREQSEL value to set
++ *
++ * Program the DPLL with the supplied M, N values, and wait for the DPLL to
++ * lock..  Returns -EINVAL upon error, or 0 upon success.
++ */
++static int omap3_noncore_dpll_program(struct clk *clk, u16 m, u8 n, u16 freqsel)
++{
++	struct dpll_data *dd;
++	u32 v;
++
++	if (!clk)
++		return -EINVAL;
++
++	dd = clk->dpll_data;
++	if (!dd)
++		return -EINVAL;
++
++	/*
++	 * According to the 12-5 CDP code from TI, "Limitation 2.5"
++	 * on 3430ES1 prevents us from changing DPLL multipliers or dividers
++	 * on DPLL4.
++	 */
++	if (omap_rev() == OMAP3430_REV_ES1_0 &&
++	    !strcmp("dpll4_ck", clk->name)) {
++		printk(KERN_ERR "clock: DPLL4 cannot change rate due to "
++		       "silicon 'Limitation 2.5' on 3430ES1.\n");
++		return -EINVAL;
++	}
++
++	/* 3430 ES2 TRM: 4.7.6.9 DPLL Programming Sequence */
++	_omap3_noncore_dpll_bypass(clk);
++
++	v = __raw_readl(dd->mult_div1_reg);
++	v &= ~(dd->mult_mask | dd->div1_mask);
++
++	/* Set mult (M), div1 (N), freqsel */
++	v |= m << __ffs(dd->mult_mask);
++	v |= n << __ffs(dd->div1_mask);
++	v |= freqsel << __ffs(dd->freqsel_mask);
++
++	__raw_writel(v, dd->mult_div1_reg);
++
++	/* We let the clock framework set the other output dividers later */
++
++	/* REVISIT: Set ramp-up delay? */
++
++	_omap3_noncore_dpll_lock(clk);
++
++	return 0;
++}
++
++/**
++ * omap3_noncore_dpll_set_rate - set non-core DPLL rate
++ * @clk: struct clk * of DPLL to set
++ * @rate: rounded target rate
++ *
++ * Program the DPLL with the rounded target rate.  Returns -EINVAL upon
++ * error, or 0 upon success.
++ */
++static int omap3_noncore_dpll_set_rate(struct clk *clk, unsigned long rate)
++{
++	u16 freqsel;
++	struct dpll_data *dd;
++
++	if (!clk || !rate)
++		return -EINVAL;
++
++	dd = clk->dpll_data;
++	if (!dd)
++		return -EINVAL;
++
++	if (rate == omap2_get_dpll_rate(clk))
++		return 0;
++
++	if (dd->last_rounded_rate != rate)
++		omap2_dpll_round_rate(clk, rate);
++
++	if (dd->last_rounded_rate == 0)
++		return -EINVAL;
++
++	freqsel = _omap3_dpll_compute_freqsel(clk, dd->last_rounded_n);
++	if (!freqsel)
++		WARN_ON(1);
++
++	omap3_noncore_dpll_program(clk, dd->last_rounded_m, dd->last_rounded_n,
++				   freqsel);
++
++	omap3_dpll_recalc(clk);
++
++	return 0;
++}
++
++/* DPLL autoidle read/set code */
++
++
+ /**
+  * omap3_dpll_autoidle_read - read a DPLL's autoidle bits
+  * @clk: struct clk * of the DPLL to read
+diff --git a/arch/arm/mach-omap2/clock34xx.h b/arch/arm/mach-omap2/clock34xx.h
+index a826094..877b274 100644
+--- a/arch/arm/mach-omap2/clock34xx.h
++++ b/arch/arm/mach-omap2/clock34xx.h
+@@ -34,6 +34,7 @@ static void omap3_dpll_deny_idle(struct clk *clk);
+ static u32 omap3_dpll_autoidle_read(struct clk *clk);
+ static int omap3_noncore_dpll_enable(struct clk *clk);
+ static void omap3_noncore_dpll_disable(struct clk *clk);
++static int omap3_noncore_dpll_set_rate(struct clk *clk, unsigned long rate);
+ 
+ /* Maximum DPLL multiplier, divider values for OMAP3 */
+ #define OMAP3_MAX_DPLL_MULT		2048
+@@ -263,6 +264,7 @@ static struct dpll_data dpll1_dd = {
+ 	.mult_div1_reg	= OMAP_CM_REGADDR(MPU_MOD, OMAP3430_CM_CLKSEL1_PLL),
+ 	.mult_mask	= OMAP3430_MPU_DPLL_MULT_MASK,
+ 	.div1_mask	= OMAP3430_MPU_DPLL_DIV_MASK,
++	.freqsel_mask	= OMAP3430_MPU_DPLL_FREQSEL_MASK,
+ 	.control_reg	= OMAP_CM_REGADDR(MPU_MOD, OMAP3430_CM_CLKEN_PLL),
+ 	.enable_mask	= OMAP3430_EN_MPU_DPLL_MASK,
+ 	.modes		= (1 << DPLL_LOW_POWER_BYPASS) | (1 << DPLL_LOCKED),
+@@ -284,6 +286,7 @@ static struct clk dpll1_ck = {
+ 	.dpll_data	= &dpll1_dd,
+ 	.flags		= CLOCK_IN_OMAP343X | RATE_PROPAGATES | ALWAYS_ENABLED,
+ 	.round_rate	= &omap2_dpll_round_rate,
++	.set_rate	= &omap3_noncore_dpll_set_rate,
+ 	.recalc		= &omap3_dpll_recalc,
+ };
+ 
+@@ -329,6 +332,7 @@ static struct dpll_data dpll2_dd = {
+ 	.mult_div1_reg	= OMAP_CM_REGADDR(OMAP3430_IVA2_MOD, OMAP3430_CM_CLKSEL1_PLL),
+ 	.mult_mask	= OMAP3430_IVA2_DPLL_MULT_MASK,
+ 	.div1_mask	= OMAP3430_IVA2_DPLL_DIV_MASK,
++	.freqsel_mask	= OMAP3430_IVA2_DPLL_FREQSEL_MASK,
+ 	.control_reg	= OMAP_CM_REGADDR(OMAP3430_IVA2_MOD, OMAP3430_CM_CLKEN_PLL),
+ 	.enable_mask	= OMAP3430_EN_IVA2_DPLL_MASK,
+ 	.modes		= (1 << DPLL_LOW_POWER_STOP) | (1 << DPLL_LOCKED) |
+@@ -353,6 +357,7 @@ static struct clk dpll2_ck = {
+ 	.enable		= &omap3_noncore_dpll_enable,
+ 	.disable	= &omap3_noncore_dpll_disable,
+ 	.round_rate	= &omap2_dpll_round_rate,
++	.set_rate	= &omap3_noncore_dpll_set_rate,
+ 	.recalc		= &omap3_dpll_recalc,
+ };
+ 
+@@ -387,6 +392,7 @@ static struct dpll_data dpll3_dd = {
+ 	.mult_div1_reg	= OMAP_CM_REGADDR(PLL_MOD, CM_CLKSEL1),
+ 	.mult_mask	= OMAP3430_CORE_DPLL_MULT_MASK,
+ 	.div1_mask	= OMAP3430_CORE_DPLL_DIV_MASK,
++	.freqsel_mask	= OMAP3430_CORE_DPLL_FREQSEL_MASK,
+ 	.control_reg	= OMAP_CM_REGADDR(PLL_MOD, CM_CLKEN),
+ 	.enable_mask	= OMAP3430_EN_CORE_DPLL_MASK,
+ 	.auto_recal_bit	= OMAP3430_EN_CORE_DPLL_DRIFTGUARD_SHIFT,
+@@ -565,6 +571,7 @@ static struct dpll_data dpll4_dd = {
+ 	.mult_div1_reg	= OMAP_CM_REGADDR(PLL_MOD, CM_CLKSEL2),
+ 	.mult_mask	= OMAP3430_PERIPH_DPLL_MULT_MASK,
+ 	.div1_mask	= OMAP3430_PERIPH_DPLL_DIV_MASK,
++	.freqsel_mask	= OMAP3430_PERIPH_DPLL_FREQSEL_MASK,
+ 	.control_reg	= OMAP_CM_REGADDR(PLL_MOD, CM_CLKEN),
+ 	.enable_mask	= OMAP3430_EN_PERIPH_DPLL_MASK,
+ 	.modes		= (1 << DPLL_LOW_POWER_STOP) | (1 << DPLL_LOCKED),
+@@ -588,6 +595,7 @@ static struct clk dpll4_ck = {
+ 	.enable		= &omap3_noncore_dpll_enable,
+ 	.disable	= &omap3_noncore_dpll_disable,
+ 	.round_rate	= &omap2_dpll_round_rate,
++	.set_rate	= &omap3_noncore_dpll_set_rate,
+ 	.recalc		= &omap3_dpll_recalc,
+ };
+ 
+@@ -867,6 +875,7 @@ static struct dpll_data dpll5_dd = {
+ 	.mult_div1_reg	= OMAP_CM_REGADDR(PLL_MOD, OMAP3430ES2_CM_CLKSEL4),
+ 	.mult_mask	= OMAP3430ES2_PERIPH2_DPLL_MULT_MASK,
+ 	.div1_mask	= OMAP3430ES2_PERIPH2_DPLL_DIV_MASK,
++	.freqsel_mask	= OMAP3430ES2_PERIPH2_DPLL_FREQSEL_MASK,
+ 	.control_reg	= OMAP_CM_REGADDR(PLL_MOD, OMAP3430ES2_CM_CLKEN2),
+ 	.enable_mask	= OMAP3430ES2_EN_PERIPH2_DPLL_MASK,
+ 	.modes		= (1 << DPLL_LOW_POWER_STOP) | (1 << DPLL_LOCKED),
+@@ -890,6 +899,7 @@ static struct clk dpll5_ck = {
+ 	.enable		= &omap3_noncore_dpll_enable,
+ 	.disable	= &omap3_noncore_dpll_disable,
+ 	.round_rate	= &omap2_dpll_round_rate,
++	.set_rate	= &omap3_noncore_dpll_set_rate,
+ 	.recalc		= &omap3_dpll_recalc,
+ };
+ 
+diff --git a/arch/arm/plat-omap/include/mach/clock.h b/arch/arm/plat-omap/include/mach/clock.h
+index 7192985..85a88ad 100644
+--- a/arch/arm/plat-omap/include/mach/clock.h
++++ b/arch/arm/plat-omap/include/mach/clock.h
+@@ -42,6 +42,7 @@ struct dpll_data {
+ 	u8			max_divider;
+ 	u32			max_tolerance;
+ #  if defined(CONFIG_ARCH_OMAP3)
++	u32			freqsel_mask;
+ 	u8			modes;
+ 	void __iomem		*control_reg;
+ 	u32			enable_mask;
 
 
-Hello,
-
-This set of six patch series brings mainline Linux up-to-date with the 
-current state of the clock framework in the linux-omap tree.  The patches 
-have received extensive testing by OMAP users on the linux-omap mailing 
-list, linux-omap@vger.kernel.org.  Current-generation OMAP dev boards 
-include the BeagleBoard <http://www.beagleboard.org/> and the Gumstix 
-Overo <http://www.gumstix.com/>.
-
-The oldest of the source patches dates back to June 2008.  It's not clear 
-to me why the upstream merge process for these patches has been so 
-difficult.  I hope that, going forward, upstream merges for OMAP patches 
-can keep up with the pace of development on linux-omap, so this type of 
-massive merge is unnecessary.
-
-Per rmk's preferences, some patches have been 'compressed.' That is, some 
-fix patches have been rolled into a single patch with the original.  To 
-ease cross-referencing with the linux-omap git tree, original commit IDs 
-have been inserted into the patch messages.  Also, what would have been an 
-extremely long series has been split into six smaller, cumulative, roughly 
-thematic patch series.  If requested, I would be pleased to simply send 
-one large series of the original, uncompressed patches.  Thanks to the git 
-and stgit authors and contributors: without those tools, this process 
-would have been nearly impossible.
-
-Each series has been compile-tested for 5912 OSK (OMAP1), H4 and 2430SDP 
-(OMAP2), and BeagleBoard (OMAP3), and boot-tested on 2430SDP and Beagle.
-After the sixth series, the diff with the linux-omap tree for the files 
-listed below is minimal.
-
-
-regards,
-
-- Paul
-
-
-manifest:
-
-[PATCH A 00/10] OMAP clock, A of F: preliminaries
-[PATCH B 00/10] OMAP clock, B of F: clockdomain, powerdomain updates
-[PATCH C 00/13] OMAP clock, C of F: DPLL updates
-[PATCH D 00/11] OMAP clock, D of F: clock code cleanup
-[PATCH E 00/14] OMAP clock, E of F: SDRAM fixes, clock optimization
-[PATCH F 00/12] OMAP clock, F of F: more clock cleanup
-
-diffstat (post-compression; pre-compression stats are larger):
-
- arch/arm/mach-omap1/clock.c                   |  168 -                              
- arch/arm/mach-omap1/clock.h                   |  136 -                              
- arch/arm/mach-omap2/Makefile                  |    8                                
- arch/arm/mach-omap2/board-2430sdp.c           |    2                                
- arch/arm/mach-omap2/board-apollon.c           |    2                                
- arch/arm/mach-omap2/board-generic.c           |    2
- arch/arm/mach-omap2/board-h4.c                |    2
- arch/arm/mach-omap2/board-ldp.c               |    2
- arch/arm/mach-omap2/board-omap3beagle.c       |    2
- arch/arm/mach-omap2/clock.c                   |  786 ++++----
- arch/arm/mach-omap2/clock.h                   |   30
- arch/arm/mach-omap2/clock24xx.c               |  409 ++--
- arch/arm/mach-omap2/clock24xx.h               | 1395 ++++++++------
- arch/arm/mach-omap2/clock34xx.c               |  399 +++-
- arch/arm/mach-omap2/clock34xx.h               | 2509 ++++++++++++++------------
- arch/arm/mach-omap2/clockdomain.c             |   66
- arch/arm/mach-omap2/clockdomains.h            |  132 -
- arch/arm/mach-omap2/cm-regbits-24xx.h         |   81
- arch/arm/mach-omap2/cm-regbits-34xx.h         |  121 -
- arch/arm/mach-omap2/cm.h                      |   20
- arch/arm/mach-omap2/io.c                      |   10
- arch/arm/mach-omap2/mcbsp.c                   |    5
- arch/arm/mach-omap2/memory.c                  |   14
- arch/arm/mach-omap2/memory.h                  |   43
- arch/arm/mach-omap2/pm.c                      |    2
- arch/arm/mach-omap2/powerdomains.h            |    8
- arch/arm/mach-omap2/powerdomains34xx.h        |   63
- arch/arm/mach-omap2/prcm-common.h             |  198 +-
- arch/arm/mach-omap2/prm-regbits-34xx.h        |    9
- arch/arm/mach-omap2/prm.h                     |  166 -
- arch/arm/mach-omap2/sdrc.c                    |   95
- arch/arm/mach-omap2/sdrc2xxx.c                |   83
- arch/arm/mach-omap2/sram242x.S                |    5
- arch/arm/mach-omap2/sram243x.S                |    5
- arch/arm/plat-omap/clock.c                    |  366 ++-
- arch/arm/plat-omap/common.c                   |    4
- arch/arm/plat-omap/cpu-omap.c                 |   57
- arch/arm/plat-omap/include/mach/clock.h       |  178 -
- arch/arm/plat-omap/include/mach/clockdomain.h |   24
- arch/arm/plat-omap/include/mach/common.h      |    7
- arch/arm/plat-omap/include/mach/gpmc.h        |    2
- arch/arm/plat-omap/include/mach/io.h          |    4
- arch/arm/plat-omap/include/mach/powerdomain.h |    5
- arch/arm/plat-omap/include/mach/prcm.h        |    5
- arch/arm/plat-omap/include/mach/sdrc.h        |   82
- arch/arm/plat-omap/include/mach/system.h      |    4
- 46 files changed, 4641 insertions(+), 3075 deletions(-)
