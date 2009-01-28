@@ -1,86 +1,61 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: [PATCH B 06/10] OMAP3 pwrdm: add CORE SAR handling (for USBTLL module)
-Date: Tue, 27 Jan 2009 19:44:25 -0700
-Message-ID: <20090128024421.27240.95450.stgit@localhost.localdomain>
+Subject: [PATCH B 08/10] OMAP: wait for pwrdm transition after clk_enable()
+Date: Tue, 27 Jan 2009 19:44:31 -0700
+Message-ID: <20090128024428.27240.35785.stgit@localhost.localdomain>
 References: <20090128024301.27240.39391.stgit@localhost.localdomain>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:60243 "EHLO
+Received: from utopia.booyaka.com ([72.9.107.138]:60257 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751886AbZA1UYD (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 28 Jan 2009 15:24:03 -0500
+	with ESMTP id S1751120AbZA1UYF (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 28 Jan 2009 15:24:05 -0500
 In-Reply-To: <20090128024301.27240.39391.stgit@localhost.localdomain>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-arm-kernel@lists.arm.linux.org.uk, linux-kernel@vger.kernel.org
-Cc: linux-omap@vger.kernel.org, Paul Walmsley <paul@pwsan.com>, Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org, Tomi Valkeinen <tomi.valkeinen@nokia.com>, Paul Walmsley <paul@pwsan.com>, Tony Lindgren <tony@atomide.com>
 
-34xx TRM Delta G->H notes that the CORE powerdomain has a hardware
-save-and-restore (SAR) control bit for the USBTLL module, similar to
-the USBHOST powerdomain SAR bit.  Split the existing core_34xx struct
-powerdomain into two structs, one for ES1 and one for ES2, and add the
-PWRDM_HAS_HDWR_SAR flag to the ES2 powerdomain.
+From: Tomi Valkeinen <tomi.valkeinen@nokia.com>
 
+Enabling clock in a disabled power domain causes the power domain to be
+turned on. However, the power transition is not always finished when
+clk_enable() returns and this randomly crashes the kernel when an
+interrupt happens right after the clk_enable, and the kernel tries to
+read the irq status register for that domain.
+
+Why the irq status register is inaccessible, I don't know. Also it
+doesn't seem to be related to the module being not powered up, but to
+the transition itself.
+
+The same could perhaps happen after clk_disable also, but I have not
+witnessed that.
+
+The problem affects at least dss, cam and sgx clocks.
+
+This change waits for the transition to be finished before returning
+from omap2_clkdm_clk_enable().
+
+Signed-off-by: Tomi Valkeinen <tomi.valkeinen@nokia.com>
 Signed-off-by: Paul Walmsley <paul@pwsan.com>
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
- arch/arm/mach-omap2/powerdomains.h     |    3 ++-
- arch/arm/mach-omap2/powerdomains34xx.h |   23 +++++++++++++++++++++--
- 2 files changed, 23 insertions(+), 3 deletions(-)
+ arch/arm/mach-omap2/clockdomain.c |    2 ++
+ 1 files changed, 2 insertions(+), 0 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/powerdomains.h b/arch/arm/mach-omap2/powerdomains.h
-index 1329443..51623e2 100644
---- a/arch/arm/mach-omap2/powerdomains.h
-+++ b/arch/arm/mach-omap2/powerdomains.h
-@@ -171,7 +171,8 @@ static struct powerdomain *powerdomains_omap[] __initdata = {
- 	&iva2_pwrdm,
- 	&mpu_34xx_pwrdm,
- 	&neon_pwrdm,
--	&core_34xx_pwrdm,
-+	&core_34xx_es1_pwrdm,
-+	&core_34xx_es2_pwrdm,
- 	&cam_pwrdm,
- 	&dss_pwrdm,
- 	&per_pwrdm,
-diff --git a/arch/arm/mach-omap2/powerdomains34xx.h b/arch/arm/mach-omap2/powerdomains34xx.h
-index 7b63fa0..446a1ed 100644
---- a/arch/arm/mach-omap2/powerdomains34xx.h
-+++ b/arch/arm/mach-omap2/powerdomains34xx.h
-@@ -200,12 +200,31 @@ static struct powerdomain mpu_34xx_pwrdm = {
- };
+diff --git a/arch/arm/mach-omap2/clockdomain.c b/arch/arm/mach-omap2/clockdomain.c
+index 882809d..ad6dfe4 100644
+--- a/arch/arm/mach-omap2/clockdomain.c
++++ b/arch/arm/mach-omap2/clockdomain.c
+@@ -561,6 +561,8 @@ int omap2_clkdm_clk_enable(struct clockdomain *clkdm, struct clk *clk)
+ 	else
+ 		omap2_clkdm_wakeup(clkdm);
  
- /* No wkdeps or sleepdeps for 34xx core apparently */
--static struct powerdomain core_34xx_pwrdm = {
-+static struct powerdomain core_34xx_es1_pwrdm = {
- 	.name		  = "core_pwrdm",
- 	.prcm_offs	  = CORE_MOD,
--	.omap_chip	  = OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
-+	.omap_chip	  = OMAP_CHIP_INIT(CHIP_IS_OMAP3430ES1),
-+	.pwrsts		  = PWRSTS_OFF_RET_ON,
-+	.dep_bit	  = OMAP3430_EN_CORE_SHIFT,
-+	.banks		  = 2,
-+	.pwrsts_mem_ret	  = {
-+		[0] = PWRSTS_OFF_RET,	 /* MEM1RETSTATE */
-+		[1] = PWRSTS_OFF_RET,	 /* MEM2RETSTATE */
-+	},
-+	.pwrsts_mem_on	  = {
-+		[0] = PWRSTS_OFF_RET_ON, /* MEM1ONSTATE */
-+		[1] = PWRSTS_OFF_RET_ON, /* MEM2ONSTATE */
-+	},
-+};
++	pwrdm_wait_transition(clkdm->pwrdm.ptr);
 +
-+/* No wkdeps or sleepdeps for 34xx core apparently */
-+static struct powerdomain core_34xx_es2_pwrdm = {
-+	.name		  = "core_pwrdm",
-+	.prcm_offs	  = CORE_MOD,
-+	.omap_chip	  = OMAP_CHIP_INIT(CHIP_IS_OMAP3430ES2),
- 	.pwrsts		  = PWRSTS_OFF_RET_ON,
- 	.dep_bit	  = OMAP3430_EN_CORE_SHIFT,
-+	.flags		  = PWRDM_HAS_HDWR_SAR, /* for USBTLL only */
- 	.banks		  = 2,
- 	.pwrsts_mem_ret	  = {
- 		[0] = PWRSTS_OFF_RET,	 /* MEM1RETSTATE */
+ 	return 0;
+ }
+ 
 
 
