@@ -1,60 +1,47 @@
-From: Kyungmin Park <kmpark@infradead.org>
-Subject: Re: 2.6.29-rc: remaining regression: n770_defconfig,
-	omap_apollon_2420_defconfig
-Date: Wed, 28 Jan 2009 10:10:41 +0900
-Message-ID: <9c9fda240901271710q50ba1233m363c628013648d93@mail.gmail.com>
-References: <20090127225000.GC639@n2100.arm.linux.org.uk>
-	 <20090127234155.GI32148@atomide.com>
-	 <200901271545.59632.david-b@pacbell.net>
+From: David Brownell <david-b@pacbell.net>
+Subject: Re: [PATCH 1/1] TWL: USB: disable VUSB regulators when cable unplugged
+Date: Tue, 27 Jan 2009 18:02:21 -0800
+Message-ID: <200901271802.21196.david-b@pacbell.net>
+References: <1232543718-18199-1-git-send-email-kalle.jokiniemi@digia.com> <200901220955.51986.david-b@pacbell.net> <1233049803.6515.475.camel@ubuntu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain;
+  charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from yw-out-2324.google.com ([74.125.46.30]:52298 "EHLO
-	yw-out-2324.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751696AbZA1BKm (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 27 Jan 2009 20:10:42 -0500
-In-Reply-To: <200901271545.59632.david-b@pacbell.net>
+Received: from smtp121.sbc.mail.sp1.yahoo.com ([69.147.64.94]:47820 "HELO
+	smtp121.sbc.mail.sp1.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1752098AbZA1CCX (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Tue, 27 Jan 2009 21:02:23 -0500
+In-Reply-To: <1233049803.6515.475.camel@ubuntu>
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: dbrownell@users.sourceforge.net
-Cc: Tony Lindgren <tony@atomide.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, linux-usb@vger.kernel.org
+To: Kalle Jokiniemi <kalle.jokiniemi@digia.com>
+Cc: linux-omap@vger.kernel.org, felipe.balbi@nokia.com
 
-Hi,
+On Tuesday 27 January 2009, Kalle Jokiniemi wrote:
+> On Thu, 2009-01-22 at 09:55 -0800, David Brownell wrote:
+> > On Wednesday 21 January 2009, Kalle Jokiniemi wrote:
+> > > This patch disables USB regulators VUSB1V5, VUSB1V8, and VUSB3V1
+> > > when the USB cable is unplugged to reduce power consumption.
+> > 
+> > Worked fine on a Beagle, now I'm trying to find out
+> > what's borked on an Overo ...
+> 
+> Did you manage to get it working on Overo? 
 
-On Wed, Jan 28, 2009 at 8:45 AM, David Brownell <david-b@pacbell.net> wrote:
-> On Tuesday 27 January 2009, Tony Lindgren wrote:
->> * Russell King - ARM Linux <linux@arm.linux.org.uk> [090127 14:50]:
->> > Now that the usb_port_suspend() build error is fixed in 2.6.29-rc1-git6,
->> > n770_defconfig and omap_apollon_2420_defconfig now suffers from:
->> >
->> > drivers/built-in.o: In function `ohci_omap_init':
->> > hid-quirks.c:(.text+0x6c620): undefined reference to `otg_get_transceiver'
->> > drivers/built-in.o: In function `omap_udc_probe':
->> > hid-quirks.c:(.init.text+0x34c0): undefined reference to `otg_get_transceiver'
->> > hid-quirks.c:(.init.text+0x3d40): undefined reference to `otg_put_transceiver'
->>
->> Adding linux-usb to the list hoping there's already a fix for this.
->
-> Scheduled for 2.6.29-soon:
->
-> http://www.kernel.org/pub/linux/kernel/people/gregkh/gregkh-2.6
->        /gregkh-02-usb.current/usb-omap1-ohci-buildfix.patch
->
+Yes.  It must have either been a bad build, or an issue
+with one of the other patches, or something.
 
-Also need following patch in case of usb gadget only.
 
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
----
-diff --git a/drivers/usb/gadget/Kconfig b/drivers/usb/gadget/Kconfig
-index 3219d13..b26d6e6 100644
---- a/drivers/usb/gadget/Kconfig
-+++ b/drivers/usb/gadget/Kconfig
-@@ -191,6 +191,7 @@ config USB_GADGET_OMAP
- 	boolean "OMAP USB Device Controller"
- 	depends on ARCH_OMAP
- 	select ISP1301_OMAP if MACH_OMAP_H2 || MACH_OMAP_H3 || MACH_OMAP_H4_OTG
-+	select USB_OTG_UTILS if ARCH_OMAP
- 	help
- 	   Many Texas Instruments OMAP processors have flexible full
- 	   speed USB device controllers, with support for up to 30
+> BTW. Should I post this patch to linux-usb as well?
+
+If you like, but it can't merge yet ... the twl4030
+regulator code isn't in mainline yet.  I think it's
+ready given the patches I posted earlier.
+
+- Dave
+ 
+
+
