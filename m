@@ -1,57 +1,69 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 7/9] ARM: OMAP: gptimer min_delta_ns corrected
-Date: Wed, 28 Jan 2009 10:30:52 -0800
-Message-ID: <20090128183052.21007.60486.stgit@localhost>
+Subject: [PATCH 8/9] ARM: OMAP: Mask interrupts when disabling interrupts
+Date: Wed, 28 Jan 2009 10:32:09 -0800
+Message-ID: <20090128183209.21007.86828.stgit@localhost>
 References: <20090128181931.21007.73744.stgit@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-bos.mailhop.org ([63.208.196.178]:61374 "EHLO
+Received: from mho-01-bos.mailhop.org ([63.208.196.178]:62703 "EHLO
 	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751672AbZA1Saz (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 28 Jan 2009 13:30:55 -0500
+	with ESMTP id S1750979AbZA1ScM (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 28 Jan 2009 13:32:12 -0500
 In-Reply-To: <20090128181931.21007.73744.stgit@localhost>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-arm-kernel@lists.arm.linux.org.uk
-Cc: linux-omap@vger.kernel.org, Aaro Koskinen <Aaro.Koskinen@nokia.com>
+Cc: Kim Kyuwon <chammoru@gmail.com>, linux-omap@vger.kernel.org
 
-From: Aaro Koskinen <Aaro.Koskinen@nokia.com>
+=46rom: =EA=B9=80=EA=B7=9C=EC=9B=90 <chammoru@gmail.com>
 
-When 32 kHz timer is used the min_delta_ns should be initialized so
-that it reflects the timer programming cost. A write to the timer
-device will be usually posted, but it takes roughly 3 cycles before
-it is effective. If the timer is reprogrammed before that, the CPU
-will stall until the previous write completes. This was pointed out by
-Richard Woodruff.
+By Ingo Molnar, interrupts are not masked by default.
+(refer to 76d2160147f43f982dfe881404cfde9fd0a9da21)
 
-Since the lower bound for min_delta_ns is 1000, the change is visible
-only with tick rates less than 3 MHz.
+But if interrupts are not masked, the processor can wake up while in
+Suspend-to-RAM state by an external interrupt. For example, if an
+OMAP3 board is connected to Host PC by USB and entered to Suspend-to-RA=
+M
+state, it wake up automatically by M_IRQ_92. The disable_irq() function
+can't disable the interrupt in H/W level, So I modified
+arch/arm/mach-omap2/irq.c
 
-Also note that the old value is incorrect for 32 kHz also due to
-a rounding error, and it can cause the timer queue to hang (due to
-clockevent code trying to program the timer with zero ticks).
-
-Signed-off-by: Aaro Koskinen <Aaro.Koskinen@nokia.com>
-Reviewed-by: Richard Woodruff <r-woodruff2@ti.com>
+Signed-off-by: Kim Kyuwon <chammoru@gmail.com>
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
- arch/arm/mach-omap2/timer-gp.c |    3 ++-
- 1 files changed, 2 insertions(+), 1 deletions(-)
+ arch/arm/mach-omap2/irq.c |    6 ++++++
+ 1 files changed, 6 insertions(+), 0 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/timer-gp.c b/arch/arm/mach-omap2/timer-gp.c
-index ae60363..9fc13a2 100644
---- a/arch/arm/mach-omap2/timer-gp.c
-+++ b/arch/arm/mach-omap2/timer-gp.c
-@@ -118,7 +118,8 @@ static void __init omap2_gp_clockevent_init(void)
- 	clockevent_gpt.max_delta_ns =
- 		clockevent_delta2ns(0xffffffff, &clockevent_gpt);
- 	clockevent_gpt.min_delta_ns =
--		clockevent_delta2ns(1, &clockevent_gpt);
-+		clockevent_delta2ns(3, &clockevent_gpt);
-+		/* Timer internal resynch latency. */
- 
- 	clockevent_gpt.cpumask = cpumask_of(0);
- 	clockevents_register_device(&clockevent_gpt);
+diff --git a/arch/arm/mach-omap2/irq.c b/arch/arm/mach-omap2/irq.c
+index 636e282..52772f9 100644
+--- a/arch/arm/mach-omap2/irq.c
++++ b/arch/arm/mach-omap2/irq.c
+@@ -123,6 +123,11 @@ static void omap_unmask_irq(unsigned int irq)
+ 	intc_bank_write_reg(1 << irq, &irq_banks[0], INTC_MIR_CLEAR0 + offset=
+);
+ }
+=20
++static void omap_disable_irq(unsigned int irq)
++{
++	omap_mask_irq(irq);
++}
++
+ static void omap_mask_ack_irq(unsigned int irq)
+ {
+ 	omap_mask_irq(irq);
+@@ -134,6 +139,7 @@ static struct irq_chip omap_irq_chip =3D {
+ 	.ack	=3D omap_mask_ack_irq,
+ 	.mask	=3D omap_mask_irq,
+ 	.unmask	=3D omap_unmask_irq,
++	.disable =3D omap_disable_irq,
+ };
+=20
+ static void __init omap_irq_bank_init_one(struct omap_irq_bank *bank)
 
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
