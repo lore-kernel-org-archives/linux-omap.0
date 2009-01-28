@@ -1,45 +1,59 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 4/9] ARM: OMAP: DMA: Fix uninitialized channel flags
-Date: Wed, 28 Jan 2009 10:26:58 -0800
-Message-ID: <20090128182658.21007.3757.stgit@localhost>
+Subject: [PATCH 5/9] ARM: OMAP: Fix omap34xx revision detection for ES3.1
+Date: Wed, 28 Jan 2009 10:28:16 -0800
+Message-ID: <20090128182816.21007.94947.stgit@localhost>
 References: <20090128181931.21007.73744.stgit@localhost>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-bos.mailhop.org ([63.208.196.178]:57378 "EHLO
+Received: from mho-01-bos.mailhop.org ([63.208.196.178]:58639 "EHLO
 	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751870AbZA1S1D (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 28 Jan 2009 13:27:03 -0500
+	with ESMTP id S1751281AbZA1S2V (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 28 Jan 2009 13:28:21 -0500
 In-Reply-To: <20090128181931.21007.73744.stgit@localhost>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-arm-kernel@lists.arm.linux.org.uk
-Cc: linux-omap@vger.kernel.org, Jarkko Nikula <jarkko.nikula@nokia.com>
+Cc: linux-omap@vger.kernel.org
 
-From: Jarkko Nikula <jarkko.nikula@nokia.com>
+Fix omap34xx revision detection for ES3.1
 
-This has similar symptoms than 66c23551b1b774e2be3c7bdf91c0ebf2c7a3519e
-where just omap_request_dma, omap_dma_link_lch and omap_dma_unlink_lch
-can cause incorrect dump_stack(). Here it can happen if channel has been
-used before and the channel flags variable holds old status.
-
-Signed-off-by: Jarkko Nikula <jarkko.nikula@nokia.com>
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
- arch/arm/plat-omap/dma.c |    1 +
- 1 files changed, 1 insertions(+), 0 deletions(-)
+ arch/arm/mach-omap2/id.c              |    6 +++++-
+ arch/arm/plat-omap/include/mach/cpu.h |    1 +
+ 2 files changed, 6 insertions(+), 1 deletions(-)
 
-diff --git a/arch/arm/plat-omap/dma.c b/arch/arm/plat-omap/dma.c
-index bec8e36..47ec77a 100644
---- a/arch/arm/plat-omap/dma.c
-+++ b/arch/arm/plat-omap/dma.c
-@@ -709,6 +709,7 @@ int omap_request_dma(int dev_id, const char *dev_name,
- 	chan->dev_name = dev_name;
- 	chan->callback = callback;
- 	chan->data = data;
-+	chan->flags = 0;
+diff --git a/arch/arm/mach-omap2/id.c b/arch/arm/mach-omap2/id.c
+index b0f8e7d..b52a02f 100644
+--- a/arch/arm/mach-omap2/id.c
++++ b/arch/arm/mach-omap2/id.c
+@@ -172,9 +172,13 @@ void __init omap34xx_check_revision(void)
+ 			omap_revision = OMAP3430_REV_ES3_0;
+ 			rev_name = "ES3.0";
+ 			break;
++		case 4:
++			omap_revision = OMAP3430_REV_ES3_1;
++			rev_name = "ES3.1";
++			break;
+ 		default:
+ 			/* Use the latest known revision as default */
+-			omap_revision = OMAP3430_REV_ES3_0;
++			omap_revision = OMAP3430_REV_ES3_1;
+ 			rev_name = "Unknown revision\n";
+ 		}
+ 	}
+diff --git a/arch/arm/plat-omap/include/mach/cpu.h b/arch/arm/plat-omap/include/mach/cpu.h
+index b2062f1..a8e1178 100644
+--- a/arch/arm/plat-omap/include/mach/cpu.h
++++ b/arch/arm/plat-omap/include/mach/cpu.h
+@@ -339,6 +339,7 @@ IS_OMAP_TYPE(3430, 0x3430)
+ #define OMAP3430_REV_ES2_0	0x34301034
+ #define OMAP3430_REV_ES2_1	0x34302034
+ #define OMAP3430_REV_ES3_0	0x34303034
++#define OMAP3430_REV_ES3_1	0x34304034
  
- #ifndef CONFIG_ARCH_OMAP1
- 	if (cpu_class_is_omap2()) {
+ /*
+  * omap_chip bits
 
