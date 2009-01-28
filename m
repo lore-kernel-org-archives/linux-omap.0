@@ -1,53 +1,124 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: [PATCH E 06/14] PM: OMAP3: Make sure clk_disable_unused() order is
-	correct
-Date: Wed, 28 Jan 2009 12:27:45 -0700
-Message-ID: <20090128192742.29333.70826.stgit@localhost.localdomain>
+Subject: [PATCH E 14/14] OMAP clock: rearrange clock.h structure order
+Date: Wed, 28 Jan 2009 12:28:07 -0700
+Message-ID: <20090128192804.29333.82743.stgit@localhost.localdomain>
 References: <20090128192551.29333.82943.stgit@localhost.localdomain>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:32927 "EHLO
+Received: from utopia.booyaka.com ([72.9.107.138]:32961 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755387AbZA1U33 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 28 Jan 2009 15:29:29 -0500
+	with ESMTP id S1755446AbZA1U3d (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 28 Jan 2009 15:29:33 -0500
 In-Reply-To: <20090128192551.29333.82943.stgit@localhost.localdomain>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-arm-kernel@lists.arm.linux.org.uk, linux-kernel@vger.kernel.org
-Cc: linux-omap@vger.kernel.org, Tero Kristo <tero.kristo@nokia.com>, Kevin Hilman <khilman@deeprootsystems.com>
+Cc: linux-omap@vger.kernel.org, Russell King <rmk+kernel@arm.linux.org.uk>, Paul Walmsley <paul@pwsan.com>, Tony Lindgren <tony@atomide.com>
 
-From: Tero Kristo <tero.kristo@nokia.com>
+From: Russell King <rmk@dyn-67.arm.linux.org.uk>
 
-Current implementation will disable clocks in the order defined in clock34xx.h,
-at least DPLL4_M2X2 will hang in certain cases (and prevent retention / off)
-if clocks are not disabled in correct order. This patch makes sure the parent
-clocks will be active when disabling a clock.
+... to eliminate unnecessary padding.  We have rather a lot of these
+structures, so eliminating unnecessary padding results in a saving of
+1488 bytes.
 
-linux-omap source commit is 672680063420ef8c8c4e7271984bb9cc08171d29.
+[paul@pwsan.com: updated against current linux-omap clock tree, now saves
+1512 bytes on OMAP3 builds]
 
-Signed-off-by: Tero Kristo <tero.kristo@nokia.com>
-Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
+linux-omap source commit is 64a423d87fae87608642c28393bb440b45e5e25e.
+
+Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
+Signed-off-by: Paul Walmsley <paul@pwsan.com>
+Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
- arch/arm/mach-omap2/clock.c |    6 +++++-
- 1 files changed, 5 insertions(+), 1 deletions(-)
+ arch/arm/plat-omap/include/mach/clock.h |   30 +++++++++++++++---------------
+ 1 files changed, 15 insertions(+), 15 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/clock.c b/arch/arm/mach-omap2/clock.c
-index 9c62ada..d4d2e7b 100644
---- a/arch/arm/mach-omap2/clock.c
-+++ b/arch/arm/mach-omap2/clock.c
-@@ -1078,6 +1078,10 @@ void omap2_clk_disable_unused(struct clk *clk)
- 		return;
+diff --git a/arch/arm/plat-omap/include/mach/clock.h b/arch/arm/plat-omap/include/mach/clock.h
+index 58450a1..9d38a25 100644
+--- a/arch/arm/plat-omap/include/mach/clock.h
++++ b/arch/arm/plat-omap/include/mach/clock.h
+@@ -20,8 +20,8 @@ struct clockdomain;
+ #if defined(CONFIG_ARCH_OMAP2) || defined(CONFIG_ARCH_OMAP3)
  
- 	printk(KERN_INFO "Disabling unused clock \"%s\"\n", clk->name);
--	_omap2_clk_disable(clk);
-+	if (cpu_is_omap34xx()) {
-+		omap2_clk_enable(clk);
-+		omap2_clk_disable(clk);
-+	} else
-+		_omap2_clk_disable(clk);
- }
- #endif
+ struct clksel_rate {
+-	u8			div;
+ 	u32			val;
++	u8			div;
+ 	u8			flags;
+ };
+ 
+@@ -31,30 +31,30 @@ struct clksel {
+ };
+ 
+ struct dpll_data {
+-	u16			mult_div1_reg;
+ 	u32			mult_mask;
+ 	u32			div1_mask;
+-	u16			last_rounded_m;
+-	u8			last_rounded_n;
+ 	unsigned long		last_rounded_rate;
+ 	unsigned int		rate_tolerance;
+-	u16			max_multiplier;
+-	u8			min_divider;
+-	u8			max_divider;
+ 	u32			max_tolerance;
+ 	struct clk		*bypass_clk;
+-	u16			control_reg;
+ 	u32			enable_mask;
++	u16			mult_div1_reg;
++	u16			control_reg;
++	u16			max_multiplier;
++	u16			last_rounded_m;
++	u8			last_rounded_n;
++	u8			min_divider;
++	u8			max_divider;
+ #  if defined(CONFIG_ARCH_OMAP3)
+-	u16			idlest_reg;
+-	u32			idlest_mask;
+-	u32			freqsel_mask;
+ 	u8			modes;
+ 	u8			auto_recal_bit;
+ 	u8			recal_en_bit;
+ 	u8			recal_st_bit;
+ 	u16			autoidle_reg;
++	u16			idlest_reg;
+ 	u32			autoidle_mask;
++	u32			idlest_mask;
++	u32			freqsel_mask;
+ #  endif
+ };
+ 
+@@ -85,18 +85,17 @@ struct clk {
+ 	struct list_head	children;
+ 	__u32			flags;
+ 	u32			enable_reg;
+-	__u8			enable_bit;
+-	__s8			usecount;
+-	u8			idlest_bit;
+ 	void			(*recalc)(struct clk *, unsigned long, u8);
+ 	int			(*set_rate)(struct clk *, unsigned long);
+ 	long			(*round_rate)(struct clk *, unsigned long);
+ 	void			(*init)(struct clk *);
+ 	int			(*enable)(struct clk *);
+ 	void			(*disable)(struct clk *);
++	__u8			enable_bit;
++	__s8			usecount;
++	u8			idlest_bit;
+ #if defined(CONFIG_ARCH_OMAP2) || defined(CONFIG_ARCH_OMAP3)
+ 	u8			fixed_div;
+-	u16			clksel_reg;
+ 	u32			clksel_mask;
+ 	const struct clksel	*clksel;
+ 	struct dpll_data	*dpll_data;
+@@ -104,6 +103,7 @@ struct clk {
+ 		const char		*name;
+ 		struct clockdomain	*ptr;
+ 	} clkdm;
++	u16			clksel_reg;
+ 	s16			prcm_mod;
+ #else
+ 	__u8			rate_offset;
 
 
