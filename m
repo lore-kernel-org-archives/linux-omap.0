@@ -1,90 +1,65 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: [PATCH A 00/10] OMAP clock, A of F: preliminaries
-Date: Tue, 27 Jan 2009 19:12:43 -0700
-Message-ID: <20090128020447.7244.80496.stgit@localhost.localdomain>
+Subject: [PATCH A 03/10] OMAP24xx clock: add missing SSI L4 interface clock
+Date: Tue, 27 Jan 2009 19:12:54 -0700
+Message-ID: <20090128021250.7244.77061.stgit@localhost.localdomain>
+References: <20090128020447.7244.80496.stgit@localhost.localdomain>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:60057 "EHLO
+Received: from utopia.booyaka.com ([72.9.107.138]:60071 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751783AbZA1UWo (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 28 Jan 2009 15:22:44 -0500
+	with ESMTP id S1751787AbZA1UWq (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 28 Jan 2009 15:22:46 -0500
+In-Reply-To: <20090128020447.7244.80496.stgit@localhost.localdomain>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-arm-kernel@lists.arm.linux.org.uk, linux-kernel@vger.kernel.org
-Cc: linux-omap@vger.kernel.org
+Cc: Paul Walmsley <paul@pwsan.com>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org
 
-This series A is the first of six to bring the mainline kernel OMAP
-clock code up-to-date with the linux-omap tree.
+This patch adds a missing OMAP24xx clock, the SSI L4 interface clock,
+as "ssi_l4_ick".
 
-Major changes in this series:
+linux-omap source commit is ace129d39b3107d330d4cf6934385d13521f2fec.
 
-. Clean up sparse, checkpatch issues in PM code
-. Synchronize clock tree with what is on the hardware 
-. Add DPLL programming code
-. Use PRCM rates for CPUfreq
-
-Some patches have been "compressed" together, as requested by rmk -
-original commit IDs are in the patch descriptions.
-
-Compile-tested on OSK5912 (OMAP1), H4 and 2430SDP (OMAP2), and
-BeagleBoard (OMAP3).  Boot-tested on 2430SDP and BeagleBoard.
-
-Applies on 5ee810072175042775e39bdd3eaaa68884c27805.
-
-
-- Paul
-
+Signed-off-by: Paul Walmsley <paul@pwsan.com>
+Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
+ arch/arm/mach-omap2/clock24xx.h |   15 +++++++++++++++
+ 1 files changed, 15 insertions(+), 0 deletions(-)
 
-Daniel Stone (1):
-      OMAP2: Fix definition of SGX clock register bits
+diff --git a/arch/arm/mach-omap2/clock24xx.h b/arch/arm/mach-omap2/clock24xx.h
+index ad6d98d..f8bed57 100644
+--- a/arch/arm/mach-omap2/clock24xx.h
++++ b/arch/arm/mach-omap2/clock24xx.h
+@@ -1290,6 +1290,20 @@ static struct clk ssi_ssr_sst_fck = {
+ 	.set_rate	= &omap2_clksel_set_rate
+ };
+ 
++/*
++ * Presumably this is the same as SSI_ICLK.
++ * TRM contradicts itself on what clockdomain SSI_ICLK is in
++ */
++static struct clk ssi_l4_ick = {
++	.name		= "ssi_l4_ick",
++	.parent		= &l4_ck,
++	.clkdm_name	= "core_l4_clkdm",
++	.flags		= CLOCK_IN_OMAP242X | CLOCK_IN_OMAP243X,
++	.enable_reg	= OMAP_CM_REGADDR(CORE_MOD, CM_ICLKEN2),
++	.enable_bit	= OMAP24XX_EN_SSI_SHIFT,
++	.recalc		= &followparent_recalc,
++};
++
+ 
+ /*
+  * GFX clock domain
+@@ -2685,6 +2699,7 @@ static struct clk *onchip_24xx_clks[] __initdata = {
+ 	&usb_l4_ick,
+ 	/* L4 domain clocks */
+ 	&l4_ck,			/* used as both core_l4 and wu_l4 */
++	&ssi_l4_ick,
+ 	/* virtual meta-group clock */
+ 	&virt_prcm_set,
+ 	/* general l4 interface ck, multi-parent functional clk */
 
-Kevin Hilman (1):
-      OMAP2: Implement CPUfreq frequency table based on PRCM table
-
-Paul Walmsley (6):
-      OMAP: Make dpll4_m4_ck programmable with clk_set_rate()
-      OMAP3 clock: fix 96MHz clocks
-      OMAP3: move USBHOST SAR handling from clock framework to powerdomain layer
-      OMAP24xx clock: add missing SSI L4 interface clock
-      OMAP: Fix sparse, checkpatch warnings in OMAP2/3 PRCM/PM code
-      OMAP2/3: Add non-CORE DPLL rate set code and M,N programming
-
-Sergio Aguirre (1):
-      OMAP: Add CSI2 clock struct for handling it with clock API.
-
-Tony Lindgren (1):
-      OMAP2/3: Remove OMAP_PRM_REGADDR, OMAP_CM_REGADDR
-
-
- arch/arm/mach-omap2/clock.c                   |   83 ++--
- arch/arm/mach-omap2/clock.h                   |    2 
- arch/arm/mach-omap2/clock24xx.c               |  145 +++++--
- arch/arm/mach-omap2/clock24xx.h               |  335 +++++++++-------
- arch/arm/mach-omap2/clock34xx.c               |  141 +++++++
- arch/arm/mach-omap2/clock34xx.h               |  516 +++++++++++++------------
- arch/arm/mach-omap2/cm-regbits-34xx.h         |   25 +
- arch/arm/mach-omap2/cm.h                      |   17 -
- arch/arm/mach-omap2/memory.c                  |    3 
- arch/arm/mach-omap2/pm.c                      |    2 
- arch/arm/mach-omap2/powerdomains34xx.h        |    1 
- arch/arm/mach-omap2/prm-regbits-34xx.h        |    9 
- arch/arm/mach-omap2/prm.h                     |  166 ++++----
- arch/arm/mach-omap2/sram242x.S                |    5 
- arch/arm/mach-omap2/sram243x.S                |    5 
- arch/arm/plat-omap/common.c                   |    1 
- arch/arm/plat-omap/cpu-omap.c                 |   57 +++
- arch/arm/plat-omap/include/mach/clock.h       |   11 -
- arch/arm/plat-omap/include/mach/common.h      |    5 
- arch/arm/plat-omap/include/mach/powerdomain.h |    1 
- arch/arm/plat-omap/include/mach/prcm.h        |    5 
- arch/arm/plat-omap/include/mach/system.h      |    4 
- 22 files changed, 949 insertions(+), 590 deletions(-)
-
-
-   text    data     bss     dec     hex filename
-3240479  164160  100912 3505551  357d8f vmlinux.beagle.orig
-3241423  164192  100912 3506527  35815f vmlinux.beagle
 
