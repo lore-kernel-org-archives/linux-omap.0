@@ -1,57 +1,57 @@
-From: Kalle Jokiniemi <kalle.jokiniemi@digia.com>
-Subject: Re: [PATCH 1/1] TWL: USB: disable VUSB regulators when cable
-	unplugged
-Date: Wed, 28 Jan 2009 08:36:55 +0200
-Message-ID: <1233124615.6515.517.camel@ubuntu>
-References: <1232543718-18199-1-git-send-email-kalle.jokiniemi@digia.com>
-	 <200901220955.51986.david-b@pacbell.net> <1233049803.6515.475.camel@ubuntu>
-	 <200901271802.21196.david-b@pacbell.net>
+From: Adrian Hunter <ext-adrian.hunter@nokia.com>
+Subject: Re: [PATCH] OMAP HSMMC: fix MMC3 dma
+Date: Wed, 28 Jan 2009 10:35:09 +0200
+Message-ID: <498018BD.2000806@nokia.com>
+References: <1233052573-6223-1-git-send-email-notasas@gmail.com>	 <497EF7E2.7010906@nokia.com> <6ed0b2680901270900t24838c73l3aa8edca62c91710@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from harmaja.edelkey.net ([213.138.147.141]:59488 "EHLO
-	harmaja.edelkey.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752644AbZA1GhL (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 28 Jan 2009 01:37:11 -0500
-In-Reply-To: <200901271802.21196.david-b@pacbell.net>
+Received: from smtp.nokia.com ([192.100.122.230]:33940 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752829AbZA1IWb (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 28 Jan 2009 03:22:31 -0500
+In-Reply-To: <6ed0b2680901270900t24838c73l3aa8edca62c91710@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: David Brownell <david-b@pacbell.net>
-Cc: linux-omap@vger.kernel.org, felipe.balbi@nokia.com
+To: Grazvydas Ignotas <notasas@gmail.com>
+Cc: "tony@atomide.com" <tony@atomide.com>, "drzeus-mmc@drzeus.cx" <drzeus-mmc@drzeus.cx>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 
-On Tue, 2009-01-27 at 18:02 -0800, David Brownell wrote:
-> On Tuesday 27 January 2009, Kalle Jokiniemi wrote:
-> > On Thu, 2009-01-22 at 09:55 -0800, David Brownell wrote:
-> > > On Wednesday 21 January 2009, Kalle Jokiniemi wrote:
-> > > > This patch disables USB regulators VUSB1V5, VUSB1V8, and VUSB3V1
-> > > > when the USB cable is unplugged to reduce power consumption.
-> > > 
-> > > Worked fine on a Beagle, now I'm trying to find out
-> > > what's borked on an Overo ...
-> > 
-> > Did you manage to get it working on Overo? 
+Grazvydas Ignotas wrote:
+> On Tue, Jan 27, 2009 at 2:02 PM, Adrian Hunter
+> <ext-adrian.hunter@nokia.com> wrote:
+>> Grazvydas Ignotas wrote:
+>>> Data transfers on third OMAP3 MMC controller don't work
+>>> because DMA line numbers are only defined for MMC1 and MMC2.
+>>> Fix that and store line numbers in mmc_omap_host structure
+>>> to reduce code size.
+>>> Tested on OMAP3 pandora board.
+>>>
+>>> Signed-off-by: Grazvydas Ignotas <notasas@gmail.com>
+>>> ---
+>>>  drivers/mmc/host/omap_hsmmc.c |   31 +++++++++++++++++++++++--------
+>>>  1 files changed, 23 insertions(+), 8 deletions(-)
+>>>
+>> Have you considered using the scatter-gather emulation patch:
+>>
+>>        http://marc.info/?l=linux-omap&m=122726069922195&w=2
+>>
+>> It was reverted:
+>>
+>>        http://marc.info/?l=linux-omap&m=122904725322787&w=2
+>>
+>> because of a hardware problem with OMAP3430 before ES3.0, but applying:
+>>
+>>
+>>  http://git.kernel.org/?p=linux/kernel/git/torvalds/linux-2.6.git;a=commitdiff;h=6a79e391df295bd7c2aa1309ea5031f361c197fd
+>>
+>> seems to overcome even that.
 > 
-> Yes.  It must have either been a bad build, or an issue
-> with one of the other patches, or something.
+> Hmm, but it still doesn't know about MMC3. But in case that SG patch
+> goes first, I can resend.
 
-OK, great :)
+I just meant, you might be interested because it gives better performance.
 
-> 
-> 
-> > BTW. Should I post this patch to linux-usb as well?
-> 
-> If you like, but it can't merge yet ... the twl4030
-> regulator code isn't in mainline yet.  I think it's
-> ready given the patches I posted earlier.
+No, it doesn't know about MMC3, but it does hit some of the same lines of
+code.
 
-Oh, so it seems. I guess I'll have to wait for the regulator code to hit
-mainline.
-
-- Kalle
-
-> 
-> - Dave
->  
-> 
-> 
