@@ -1,90 +1,74 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: [PATCH F 06/12] OMAP2/3 clock: every clock must have a clkdm
-Date: Wed, 28 Jan 2009 12:35:15 -0700
-Message-ID: <20090128193512.2396.75340.stgit@localhost.localdomain>
+Subject: [PATCH F 04/12] OMAP clock: drop clk_get_usecount()
+Date: Wed, 28 Jan 2009 12:35:09 -0700
+Message-ID: <20090128193506.2396.29611.stgit@localhost.localdomain>
 References: <20090128193326.2396.9437.stgit@localhost.localdomain>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:47851 "EHLO
+Received: from utopia.booyaka.com ([72.9.107.138]:47813 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755520AbZA1UcU (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 28 Jan 2009 15:32:20 -0500
+	with ESMTP id S1756487AbZA1UcP (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 28 Jan 2009 15:32:15 -0500
 In-Reply-To: <20090128193326.2396.9437.stgit@localhost.localdomain>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-arm-kernel@lists.arm.linux.org.uk, linux-kernel@vger.kernel.org
 Cc: linux-omap@vger.kernel.org, Paul Walmsley <paul@pwsan.com>, Tony Lindgren <tony@atomide.com>
 
-Every OMAP2/3 clock must now have an assigned clockdomain, so we can
-remove the checks from clk_enable()/clk_disable().  Instead, verify
-that the clockdomain is present only at clock init time via the
-arch_clock clk_register() hook.
+This function is race-prone and mistakenly conveys the impression to
+drivers that it is part of the clock interface.  Get rid of it: core
+code that absolutely needs this can just check clk->usecount.  Drivers
+should not use it at all.
 
-linux-omap source commit is 60b8b431e47d8c5b8c02a2e4fa9af388aae20790.
+linux-omap source commit is 5df9e4adc2f6a6d55aca53ee27b8baad18897c05.
 
 Signed-off-by: Paul Walmsley <paul@pwsan.com>
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
- arch/arm/mach-omap2/clock.c |   20 +++++++++-----------
- 1 files changed, 9 insertions(+), 11 deletions(-)
+ arch/arm/plat-omap/clock.c              |   16 ----------------
+ arch/arm/plat-omap/include/mach/clock.h |    1 -
+ 2 files changed, 0 insertions(+), 17 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/clock.c b/arch/arm/mach-omap2/clock.c
-index c93a5aa..600b2f4 100644
---- a/arch/arm/mach-omap2/clock.c
-+++ b/arch/arm/mach-omap2/clock.c
-@@ -199,11 +199,6 @@ void omap2_init_clk_clkdm(struct clk *clk)
- {
- 	struct clockdomain *clkdm;
+diff --git a/arch/arm/plat-omap/clock.c b/arch/arm/plat-omap/clock.c
+index 2a4819f..f4a89c5 100644
+--- a/arch/arm/plat-omap/clock.c
++++ b/arch/arm/plat-omap/clock.c
+@@ -260,22 +260,6 @@ out:
+ }
+ EXPORT_SYMBOL(clk_disable);
  
--	if (!clk->clkdm.name) {
--		pr_err("clock: %s: missing clockdomain", clk->name);
--		return;
--	}
+-int clk_get_usecount(struct clk *clk)
+-{
+-	unsigned long flags;
+-	int ret = 0;
 -
- 	clkdm = clkdm_lookup(clk->clkdm.name);
- 	if (clkdm) {
- 		pr_debug("clock: associated clk %s to clkdm %s\n",
-@@ -479,8 +474,7 @@ void omap2_clk_disable(struct clk *clk)
- 		_omap2_clk_disable(clk);
- 		if (clk->parent)
- 			omap2_clk_disable(clk->parent);
--		if (clk->clkdm.ptr)
--			omap2_clkdm_clk_disable(clk->clkdm.ptr, clk);
-+		omap2_clkdm_clk_disable(clk->clkdm.ptr, clk);
- 
- 	}
- }
-@@ -498,14 +492,12 @@ int omap2_clk_enable(struct clk *clk)
- 			return ret;
- 		}
- 
--		if (clk->clkdm.ptr)
--			omap2_clkdm_clk_enable(clk->clkdm.ptr, clk);
-+		omap2_clkdm_clk_enable(clk->clkdm.ptr, clk);
- 
- 		ret = _omap2_clk_enable(clk);
- 
- 		if (ret != 0) {
--			if (clk->clkdm.ptr)
--				omap2_clkdm_clk_disable(clk->clkdm.ptr, clk);
-+			omap2_clkdm_clk_disable(clk->clkdm.ptr, clk);
- 
- 			if (clk->parent) {
- 				omap2_clk_disable(clk->parent);
-@@ -1090,6 +1082,12 @@ void omap2_clk_disable_unused(struct clk *clk)
- 
- int omap2_clk_register(struct clk *clk)
+-	if (clk == NULL || IS_ERR(clk))
+-		return 0;
+-
+-	spin_lock_irqsave(&clockfw_lock, flags);
+-	ret = clk->usecount;
+-	spin_unlock_irqrestore(&clockfw_lock, flags);
+-
+-	return ret;
+-}
+-EXPORT_SYMBOL(clk_get_usecount);
+-
+ unsigned long clk_get_rate(struct clk *clk)
  {
-+	if (!clk->clkdm.name) {
-+		pr_debug("clock: %s: missing clockdomain", clk->name);
-+		WARN_ON(1);
-+		return -EINVAL;
-+	}
-+
- 	omap2_init_clk_clkdm(clk);
- 	return 0;
- }
+ 	unsigned long flags;
+diff --git a/arch/arm/plat-omap/include/mach/clock.h b/arch/arm/plat-omap/include/mach/clock.h
+index 9d38a25..2a30268 100644
+--- a/arch/arm/plat-omap/include/mach/clock.h
++++ b/arch/arm/plat-omap/include/mach/clock.h
+@@ -142,7 +142,6 @@ extern void followparent_recalc(struct clk *clk, unsigned long parent_rate,
+ 				u8 rate_storage);
+ extern void clk_allow_idle(struct clk *clk);
+ extern void clk_deny_idle(struct clk *clk);
+-extern int clk_get_usecount(struct clk *clk);
+ extern void clk_enable_init_clocks(void);
+ #ifdef CONFIG_CPU_FREQ
+ extern void clk_init_cpufreq_table(struct cpufreq_frequency_table **table);
 
 
