@@ -1,60 +1,80 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: [PATCH A 08/10] OMAP: Make dpll4_m4_ck programmable with
-	clk_set_rate()
-Date: Tue, 27 Jan 2009 19:13:12 -0700
-Message-ID: <20090128021309.7244.65001.stgit@localhost.localdomain>
+Subject: [PATCH A 06/10] OMAP2: Fix definition of SGX clock register bits
+Date: Tue, 27 Jan 2009 19:13:05 -0700
+Message-ID: <20090128021302.7244.33650.stgit@localhost.localdomain>
 References: <20090128020447.7244.80496.stgit@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:60113 "EHLO
+Received: from utopia.booyaka.com ([72.9.107.138]:60100 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751846AbZA1UWw (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 28 Jan 2009 15:22:52 -0500
+	with ESMTP id S1751826AbZA1UWv (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 28 Jan 2009 15:22:51 -0500
 In-Reply-To: <20090128020447.7244.80496.stgit@localhost.localdomain>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-arm-kernel@lists.arm.linux.org.uk, linux-kernel@vger.kernel.org
-Cc: =?utf-8?b?TcOlbnM=?= =?utf-8?b?UnVsbGfDpXJk?= <mans@mansr.com>, Tomi Valkeinen <tomi.valkeinen@nokia.com>, Paul Walmsley <paul@pwsan.com>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org
+Cc: Daniel Stone <daniel.stone@nokia.com>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org
 
-=46illing the set_rate and round_rate fields of dpll4_m4_ck makes
-this clock programmable through clk_set_rate().  This is needed
-to give omapfb control over the dss1_alwon_fck rate.
+From: Daniel Stone <daniel.stone@nokia.com>
 
-This patch includes a fix from Tomi Valkeinen <tomi.valkeinen@nokia.com=
->.
+The GFX/SGX functional and interface clocks have different masks, for
+some unknown reason, so split EN_SGX_SHIFT into one each for fclk and
+iclk.
 
-linux-omap source commits are e42218d45afbc3e654e289e021e6b80c657b16c2 =
-and
-9d211b761b3cdf7736602ecf7e68f8a298c13278.
+Correct according to the TRM and the far more important 'does this
+actually work at all?' metric.
 
-Signed-off-by: M=C3=A5ns Rullg=C3=A5rd <mans@mansr.com>
-Signed-off-by: Tomi Valkeinen <tomi.valkeinen@nokia.com>
-Signed-off-by: Paul Walmsley <paul@pwsan.com>
+linux-omap source commit is de1121fdb899f762b9e717f44eaf3fae7c00cd3e.
+
+Signed-off-by: Daniel Stone <daniel.stone@nokia.com>
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
- arch/arm/mach-omap2/clock34xx.h |    2 ++
- 1 files changed, 2 insertions(+), 0 deletions(-)
+ arch/arm/mach-omap2/clock34xx.h       |    4 ++--
+ arch/arm/mach-omap2/cm-regbits-34xx.h |    8 ++++++--
+ 2 files changed, 8 insertions(+), 4 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/clock34xx.h b/arch/arm/mach-omap2/cloc=
-k34xx.h
-index d19558d..a01d8d9 100644
+diff --git a/arch/arm/mach-omap2/clock34xx.h b/arch/arm/mach-omap2/clock34xx.h
+index f8c9885..63adfab 100644
 --- a/arch/arm/mach-omap2/clock34xx.h
 +++ b/arch/arm/mach-omap2/clock34xx.h
-@@ -816,6 +816,8 @@ static struct clk dpll4_m4_ck =3D {
- 	.flags		=3D CLOCK_IN_OMAP343X | RATE_PROPAGATES |
- 				PARENT_CONTROLS_CLOCK,
- 	.recalc		=3D &omap2_clksel_recalc,
-+	.set_rate	=3D &omap2_clksel_set_rate,
-+	.round_rate	=3D &omap2_clksel_round_rate,
- };
-=20
- /* The PWRDN bit is apparently only available on 3430ES2 and above */
+@@ -1293,7 +1293,7 @@ static struct clk sgx_fck = {
+ 	.name		= "sgx_fck",
+ 	.init		= &omap2_init_clksel_parent,
+ 	.enable_reg	= OMAP_CM_REGADDR(OMAP3430ES2_SGX_MOD, CM_FCLKEN),
+-	.enable_bit	= OMAP3430ES2_EN_SGX_SHIFT,
++	.enable_bit	= OMAP3430ES2_CM_FCLKEN_SGX_EN_SGX_SHIFT,
+ 	.clksel_reg	= OMAP_CM_REGADDR(OMAP3430ES2_SGX_MOD, CM_CLKSEL),
+ 	.clksel_mask	= OMAP3430ES2_CLKSEL_SGX_MASK,
+ 	.clksel		= sgx_clksel,
+@@ -1307,7 +1307,7 @@ static struct clk sgx_ick = {
+ 	.parent		= &l3_ick,
+ 	.init		= &omap2_init_clk_clkdm,
+ 	.enable_reg	= OMAP_CM_REGADDR(OMAP3430ES2_SGX_MOD, CM_ICLKEN),
+-	.enable_bit	= OMAP3430ES2_EN_SGX_SHIFT,
++	.enable_bit	= OMAP3430ES2_CM_ICLKEN_SGX_EN_SGX_SHIFT,
+ 	.flags		= CLOCK_IN_OMAP3430ES2,
+ 	.clkdm_name	= "sgx_clkdm",
+ 	.recalc		= &followparent_recalc,
+diff --git a/arch/arm/mach-omap2/cm-regbits-34xx.h b/arch/arm/mach-omap2/cm-regbits-34xx.h
+index a46f93c..f3c327b 100644
+--- a/arch/arm/mach-omap2/cm-regbits-34xx.h
++++ b/arch/arm/mach-omap2/cm-regbits-34xx.h
+@@ -332,8 +332,12 @@
+ #define OMAP3430ES1_CLKACTIVITY_GFX_MASK		(1 << 0)
+ 
+ /* CM_FCLKEN_SGX */
+-#define OMAP3430ES2_EN_SGX_SHIFT			1
+-#define OMAP3430ES2_EN_SGX_MASK				(1 << 1)
++#define OMAP3430ES2_CM_FCLKEN_SGX_EN_SGX_SHIFT		1
++#define OMAP3430ES2_CM_FCLKEN_SGX_EN_SGX_MASK		(1 << 1)
++
++/* CM_ICLKEN_SGX */
++#define OMAP3430ES2_CM_ICLKEN_SGX_EN_SGX_SHIFT		0
++#define OMAP3430ES2_CM_ICLKEN_SGX_EN_SGX_MASK		(1 << 0)
+ 
+ /* CM_CLKSEL_SGX */
+ #define OMAP3430ES2_CLKSEL_SGX_SHIFT			0
 
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
