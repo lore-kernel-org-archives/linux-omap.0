@@ -1,189 +1,90 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: [PATCH A 05/10] OMAP3 clock: fix 96MHz clocks
-Date: Tue, 27 Jan 2009 19:13:02 -0700
-Message-ID: <20090128021257.7244.98901.stgit@localhost.localdomain>
-References: <20090128020447.7244.80496.stgit@localhost.localdomain>
+Subject: [PATCH A 00/10] OMAP clock, A of F: preliminaries
+Date: Tue, 27 Jan 2009 19:12:43 -0700
+Message-ID: <20090128020447.7244.80496.stgit@localhost.localdomain>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:60095 "EHLO
+Received: from utopia.booyaka.com ([72.9.107.138]:60057 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751824AbZA1UWu (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 28 Jan 2009 15:22:50 -0500
-In-Reply-To: <20090128020447.7244.80496.stgit@localhost.localdomain>
+	with ESMTP id S1751783AbZA1UWo (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 28 Jan 2009 15:22:44 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-arm-kernel@lists.arm.linux.org.uk, linux-kernel@vger.kernel.org
-Cc: Paul Walmsley <paul@pwsan.com>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org
+Cc: linux-omap@vger.kernel.org
 
-Fix some bugs in the OMAP3 clock tree pertaining to the 96MHz clocks.
-The 96MHz portion of the clock tree should now have reasonable
-fidelity to the 34xx TRM Rev I.
+This series A is the first of six to bring the mainline kernel OMAP
+clock code up-to-date with the linux-omap tree.
 
-One remaining question mark: it's not clear exactly which 96MHz source
-clock the USIM uses.  This patch sticks with the previous setting, which
-seems reasonable.
+Major changes in this series:
 
-linux-omap source commit is 15c706e8179ce238c3ba70a25846a36b73bd2359.
+. Clean up sparse, checkpatch issues in PM code
+. Synchronize clock tree with what is on the hardware 
+. Add DPLL programming code
+. Use PRCM rates for CPUfreq
 
-Signed-off-by: Paul Walmsley <paul@pwsan.com>
-Signed-off-by: Tony Lindgren <tony@atomide.com>
+Some patches have been "compressed" together, as requested by rmk -
+original commit IDs are in the patch descriptions.
+
+Compile-tested on OSK5912 (OMAP1), H4 and 2430SDP (OMAP2), and
+BeagleBoard (OMAP3).  Boot-tested on 2430SDP and BeagleBoard.
+
+Applies on 5ee810072175042775e39bdd3eaaa68884c27805.
+
+
+- Paul
+
 ---
- arch/arm/mach-omap2/clock34xx.h       |   60 +++++++++++++++++++++------------
- arch/arm/mach-omap2/cm-regbits-34xx.h |    8 +++-
- 2 files changed, 44 insertions(+), 24 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/clock34xx.h b/arch/arm/mach-omap2/clock34xx.h
-index 23b909d..f8c9885 100644
---- a/arch/arm/mach-omap2/clock34xx.h
-+++ b/arch/arm/mach-omap2/clock34xx.h
-@@ -646,6 +646,12 @@ static const struct clksel omap_96m_alwon_fck_clksel[] = {
- 	{ .parent = NULL }
- };
- 
-+/*
-+ * DPLL4 generates DPLL4_M2X2_CLK which is then routed into the PRM as
-+ * PRM_96M_ALWON_(F)CLK.  Two clocks then emerge from the PRM:
-+ * 96M_ALWON_FCLK (called "omap_96m_alwon_fck" below) and
-+ * CM_96K_(F)CLK.
-+ */
- static struct clk omap_96m_alwon_fck = {
- 	.name		= "omap_96m_alwon_fck",
- 	.parent		= &dpll4_m2x2_ck,
-@@ -654,31 +660,41 @@ static struct clk omap_96m_alwon_fck = {
- 	.clksel_mask	= OMAP3430_ST_PERIPH_CLK_MASK,
- 	.clksel		= omap_96m_alwon_fck_clksel,
- 	.flags		= CLOCK_IN_OMAP343X | RATE_PROPAGATES |
--				 PARENT_CONTROLS_CLOCK,
-+				PARENT_CONTROLS_CLOCK,
- 	.recalc		= &omap2_clksel_recalc,
- };
- 
--static struct clk omap_96m_fck = {
--	.name		= "omap_96m_fck",
-+static struct clk cm_96m_fck = {
-+	.name		= "cm_96m_fck",
- 	.parent		= &omap_96m_alwon_fck,
- 	.flags		= CLOCK_IN_OMAP343X | RATE_PROPAGATES |
- 				PARENT_CONTROLS_CLOCK,
- 	.recalc		= &followparent_recalc,
- };
- 
--static const struct clksel cm_96m_fck_clksel[] = {
--	{ .parent = &sys_ck,	    .rates = dpll_bypass_rates },
--	{ .parent = &dpll4_m2x2_ck, .rates = dpll_locked_rates },
-+static const struct clksel_rate omap_96m_dpll_rates[] = {
-+	{ .div = 1, .val = 0, .flags = RATE_IN_343X | DEFAULT_RATE },
-+	{ .div = 0 }
-+};
-+
-+static const struct clksel_rate omap_96m_sys_rates[] = {
-+	{ .div = 1, .val = 1, .flags = RATE_IN_343X | DEFAULT_RATE },
-+	{ .div = 0 }
-+};
-+
-+static const struct clksel omap_96m_fck_clksel[] = {
-+	{ .parent = &cm_96m_fck, .rates = omap_96m_dpll_rates },
-+	{ .parent = &sys_ck,	 .rates = omap_96m_sys_rates },
- 	{ .parent = NULL }
- };
- 
--static struct clk cm_96m_fck = {
--	.name		= "cm_96m_fck",
--	.parent		= &dpll4_m2x2_ck,
-+static struct clk omap_96m_fck = {
-+	.name		= "omap_96m_fck",
-+	.parent		= &sys_ck,
- 	.init		= &omap2_init_clksel_parent,
--	.clksel_reg	= OMAP_CM_REGADDR(PLL_MOD, CM_IDLEST),
--	.clksel_mask	= OMAP3430_ST_PERIPH_CLK_MASK,
--	.clksel		= cm_96m_fck_clksel,
-+	.clksel_reg	= OMAP_CM_REGADDR(PLL_MOD, CM_CLKSEL1),
-+	.clksel_mask	= OMAP3430_SOURCE_96M_MASK,
-+	.clksel		= omap_96m_fck_clksel,
- 	.flags		= CLOCK_IN_OMAP343X | RATE_PROPAGATES |
- 				PARENT_CONTROLS_CLOCK,
- 	.recalc		= &omap2_clksel_recalc,
-@@ -746,14 +762,14 @@ static struct clk omap_54m_fck = {
- 	.name		= "omap_54m_fck",
- 	.init		= &omap2_init_clksel_parent,
- 	.clksel_reg	= OMAP_CM_REGADDR(PLL_MOD, CM_CLKSEL1),
--	.clksel_mask	= OMAP3430_SOURCE_54M,
-+	.clksel_mask	= OMAP3430_SOURCE_54M_MASK,
- 	.clksel		= omap_54m_clksel,
- 	.flags		= CLOCK_IN_OMAP343X | RATE_PROPAGATES |
- 				PARENT_CONTROLS_CLOCK,
- 	.recalc		= &omap2_clksel_recalc,
- };
- 
--static const struct clksel_rate omap_48m_96md2_rates[] = {
-+static const struct clksel_rate omap_48m_cm96m_rates[] = {
- 	{ .div = 2, .val = 0, .flags = RATE_IN_343X | DEFAULT_RATE },
- 	{ .div = 0 }
- };
-@@ -764,7 +780,7 @@ static const struct clksel_rate omap_48m_alt_rates[] = {
- };
- 
- static const struct clksel omap_48m_clksel[] = {
--	{ .parent = &cm_96m_fck, .rates = omap_48m_96md2_rates },
-+	{ .parent = &cm_96m_fck, .rates = omap_48m_cm96m_rates },
- 	{ .parent = &sys_altclk, .rates = omap_48m_alt_rates },
- 	{ .parent = NULL }
- };
-@@ -773,7 +789,7 @@ static struct clk omap_48m_fck = {
- 	.name		= "omap_48m_fck",
- 	.init		= &omap2_init_clksel_parent,
- 	.clksel_reg	= OMAP_CM_REGADDR(PLL_MOD, CM_CLKSEL1),
--	.clksel_mask	= OMAP3430_SOURCE_48M,
-+	.clksel_mask	= OMAP3430_SOURCE_48M_MASK,
- 	.clksel		= omap_48m_clksel,
- 	.flags		= CLOCK_IN_OMAP343X | RATE_PROPAGATES |
- 				PARENT_CONTROLS_CLOCK,
-@@ -961,10 +977,10 @@ static const struct clksel_rate clkout2_src_54m_rates[] = {
- };
- 
- static const struct clksel clkout2_src_clksel[] = {
--	{ .parent = &core_ck,		  .rates = clkout2_src_core_rates },
--	{ .parent = &sys_ck,		  .rates = clkout2_src_sys_rates },
--	{ .parent = &omap_96m_alwon_fck,  .rates = clkout2_src_96m_rates },
--	{ .parent = &omap_54m_fck,	  .rates = clkout2_src_54m_rates },
-+	{ .parent = &core_ck,		.rates = clkout2_src_core_rates },
-+	{ .parent = &sys_ck,		.rates = clkout2_src_sys_rates },
-+	{ .parent = &cm_96m_fck,	.rates = clkout2_src_96m_rates },
-+	{ .parent = &omap_54m_fck,	.rates = clkout2_src_54m_rates },
- 	{ .parent = NULL }
- };
- 
-@@ -2777,8 +2793,8 @@ static struct clk mcbsp4_ick = {
- };
- 
- static const struct clksel mcbsp_234_clksel[] = {
--	{ .parent = &per_96m_fck, .rates = common_mcbsp_96m_rates },
--	{ .parent = &mcbsp_clks,  .rates = common_mcbsp_mcbsp_rates },
-+	{ .parent = &core_96m_fck, .rates = common_mcbsp_96m_rates },
-+	{ .parent = &mcbsp_clks,   .rates = common_mcbsp_mcbsp_rates },
- 	{ .parent = NULL }
- };
- 
-diff --git a/arch/arm/mach-omap2/cm-regbits-34xx.h b/arch/arm/mach-omap2/cm-regbits-34xx.h
-index 219f5c8..a46f93c 100644
---- a/arch/arm/mach-omap2/cm-regbits-34xx.h
-+++ b/arch/arm/mach-omap2/cm-regbits-34xx.h
-@@ -449,8 +449,12 @@
- #define OMAP3430_CORE_DPLL_MULT_MASK			(0x7ff << 16)
- #define OMAP3430_CORE_DPLL_DIV_SHIFT			8
- #define OMAP3430_CORE_DPLL_DIV_MASK			(0x7f << 8)
--#define OMAP3430_SOURCE_54M				(1 << 5)
--#define OMAP3430_SOURCE_48M				(1 << 3)
-+#define OMAP3430_SOURCE_96M_SHIFT			6
-+#define OMAP3430_SOURCE_96M_MASK			(1 << 6)
-+#define OMAP3430_SOURCE_54M_SHIFT			5
-+#define OMAP3430_SOURCE_54M_MASK			(1 << 5)
-+#define OMAP3430_SOURCE_48M_SHIFT			3
-+#define OMAP3430_SOURCE_48M_MASK			(1 << 3)
- 
- /* CM_CLKSEL2_PLL */
- #define OMAP3430_PERIPH_DPLL_MULT_SHIFT			8
+Daniel Stone (1):
+      OMAP2: Fix definition of SGX clock register bits
 
+Kevin Hilman (1):
+      OMAP2: Implement CPUfreq frequency table based on PRCM table
+
+Paul Walmsley (6):
+      OMAP: Make dpll4_m4_ck programmable with clk_set_rate()
+      OMAP3 clock: fix 96MHz clocks
+      OMAP3: move USBHOST SAR handling from clock framework to powerdomain layer
+      OMAP24xx clock: add missing SSI L4 interface clock
+      OMAP: Fix sparse, checkpatch warnings in OMAP2/3 PRCM/PM code
+      OMAP2/3: Add non-CORE DPLL rate set code and M,N programming
+
+Sergio Aguirre (1):
+      OMAP: Add CSI2 clock struct for handling it with clock API.
+
+Tony Lindgren (1):
+      OMAP2/3: Remove OMAP_PRM_REGADDR, OMAP_CM_REGADDR
+
+
+ arch/arm/mach-omap2/clock.c                   |   83 ++--
+ arch/arm/mach-omap2/clock.h                   |    2 
+ arch/arm/mach-omap2/clock24xx.c               |  145 +++++--
+ arch/arm/mach-omap2/clock24xx.h               |  335 +++++++++-------
+ arch/arm/mach-omap2/clock34xx.c               |  141 +++++++
+ arch/arm/mach-omap2/clock34xx.h               |  516 +++++++++++++------------
+ arch/arm/mach-omap2/cm-regbits-34xx.h         |   25 +
+ arch/arm/mach-omap2/cm.h                      |   17 -
+ arch/arm/mach-omap2/memory.c                  |    3 
+ arch/arm/mach-omap2/pm.c                      |    2 
+ arch/arm/mach-omap2/powerdomains34xx.h        |    1 
+ arch/arm/mach-omap2/prm-regbits-34xx.h        |    9 
+ arch/arm/mach-omap2/prm.h                     |  166 ++++----
+ arch/arm/mach-omap2/sram242x.S                |    5 
+ arch/arm/mach-omap2/sram243x.S                |    5 
+ arch/arm/plat-omap/common.c                   |    1 
+ arch/arm/plat-omap/cpu-omap.c                 |   57 +++
+ arch/arm/plat-omap/include/mach/clock.h       |   11 -
+ arch/arm/plat-omap/include/mach/common.h      |    5 
+ arch/arm/plat-omap/include/mach/powerdomain.h |    1 
+ arch/arm/plat-omap/include/mach/prcm.h        |    5 
+ arch/arm/plat-omap/include/mach/system.h      |    4 
+ 22 files changed, 949 insertions(+), 590 deletions(-)
+
+
+   text    data     bss     dec     hex filename
+3240479  164160  100912 3505551  357d8f vmlinux.beagle.orig
+3241423  164192  100912 3506527  35815f vmlinux.beagle
 
