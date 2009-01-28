@@ -1,68 +1,121 @@
 From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [PATCH A 01/10] OMAP2/3: Add non-CORE DPLL rate set code and M, N programming
-Date: Wed, 28 Jan 2009 22:26:12 +0000
-Message-ID: <20090128222612.GK23301@n2100.arm.linux.org.uk>
-References: <20090128020447.7244.80496.stgit@localhost.localdomain> <20090128021243.7244.6362.stgit@localhost.localdomain> <20090128221056.GJ23301@n2100.arm.linux.org.uk>
+Subject: Re: [PATCH A 09/10] OMAP2/3: Remove OMAP_PRM_REGADDR, OMAP_CM_REGADDR
+Date: Wed, 28 Jan 2009 23:28:31 +0000
+Message-ID: <20090128232831.GL23301@n2100.arm.linux.org.uk>
+References: <20090128020447.7244.80496.stgit@localhost.localdomain> <20090128021312.7244.2415.stgit@localhost.localdomain>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:44192 "EHLO
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:52149 "EHLO
 	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753742AbZA1W02 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 28 Jan 2009 17:26:28 -0500
+	with ESMTP id S1757326AbZA1X2s (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 28 Jan 2009 18:28:48 -0500
 Content-Disposition: inline
-In-Reply-To: <20090128221056.GJ23301@n2100.arm.linux.org.uk>
+In-Reply-To: <20090128021312.7244.2415.stgit@localhost.localdomain>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Paul Walmsley <paul@pwsan.com>
 Cc: linux-arm-kernel@lists.arm.linux.org.uk, linux-kernel@vger.kernel.org, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org
 
-On Wed, Jan 28, 2009 at 10:10:56PM +0000, Russell King - ARM Linux wrote:
-> Since it's been posted to lists, comments are going to be made...
-> 
-> On Tue, Jan 27, 2009 at 07:12:47PM -0700, Paul Walmsley wrote:
-> > +	/*
-> > +	 * According to the 12-5 CDP code from TI, "Limitation 2.5"
-> > +	 * on 3430ES1 prevents us from changing DPLL multipliers or dividers
-> > +	 * on DPLL4.
-> > +	 */
-> > +	if (omap_rev() == OMAP3430_REV_ES1_0 &&
-> > +	    !strcmp("dpll4_ck", clk->name)) {
-> > +		printk(KERN_ERR "clock: DPLL4 cannot change rate due to "
-> > +		       "silicon 'Limitation 2.5' on 3430ES1.\n");
-> > +		return -EINVAL;
-> > +	}
-> 
-> Yuck.  That's revolting and extremely fragile.  Don't play these games.
-> You've got plenty of free flag bits in clk->flags which could be used
-> to prevent the DPLL from being changed.  You've also got other ways to
-> prevent it - eg, setting dpll_data to NULL.
-> 
-> To do exception handling based on strcmp(), or even worse register offset
-> and bit position (as is done elsewhere in the OMAP code) is utterly insane.
+On Tue, Jan 27, 2009 at 07:13:16PM -0700, Paul Walmsley wrote:
+> diff --git a/arch/arm/mach-omap2/clock.c b/arch/arm/mach-omap2/clock.c
+> index c4b80a4..55c5d67 100644
+> --- a/arch/arm/mach-omap2/clock.c
+> +++ b/arch/arm/mach-omap2/clock.c
+> @@ -27,6 +27,7 @@
+>  #include <mach/clock.h>
+>  #include <mach/clockdomain.h>
+>  #include <mach/cpu.h>
+> +#include <mach/prcm.h>
+>  #include <asm/div64.h>
+>  
+>  #include "memory.h"
+> @@ -247,9 +248,9 @@ static void omap2_clk_wait_ready(struct clk *clk)
+>  	/* REVISIT: What are the appropriate exclusions for 34XX? */
+>  	/* OMAP3: ignore DSS-mod clocks */
+>  	if (cpu_is_omap34xx() &&
+> -	    (((u32)reg & ~0xff) == (u32)OMAP_CM_REGADDR(OMAP3430_DSS_MOD, 0) ||
+> -	     ((((u32)reg & ~0xff) == (u32)OMAP_CM_REGADDR(CORE_MOD, 0)) &&
+> -	     clk->enable_bit == OMAP3430_EN_SSI_SHIFT)))
+> +	    (((u32)reg & ~0xff) == cm_read_mod_reg(OMAP3430_DSS_MOD, 0) ||
+> +	     ((((u32)reg & ~0xff) == cm_read_mod_reg(CORE_MOD, 0)) &&
+> +	      clk->enable_bit == OMAP3430_EN_SSI_SHIFT)))
+>  		return;
 
-To further expand on this point, this patch also has:
+As suggested in patch 2, I hate this approach.  It's far better to deal
+with this by changing the way we handle enabling and disabling clocks,
+hence my
 
-@@ -588,6 +595,7 @@ static struct clk dpll4_ck = {
-        .enable         = &omap3_noncore_dpll_enable,
-        .disable        = &omap3_noncore_dpll_disable,
-        .round_rate     = &omap2_dpll_round_rate,
-+       .set_rate       = &omap3_noncore_dpll_set_rate,
-        .recalc         = &omap3_dpll_recalc,
- };
+"[ARM] omap: eliminate unnecessary conditionals in omap2_clk_wait_ready"
 
+> @@ -476,6 +466,37 @@ static int __init omap2_clk_arch_init(void)
+>  }
+>  arch_initcall(omap2_clk_arch_init);
+>  
+> +static u32 prm_base;
+> +static u32 cm_base;
+> +
+> +/*
+> + * Since we share clock data for 242x and 243x, we need to rewrite some
+> + * some register base offsets. Assume offset is at prm_base if flagged,
+> + * else assume it's cm_base.
+> + */
+> +static inline void omap2_clk_check_reg(u32 flags, void __iomem **reg)
+> +{
+> +	u32 tmp = (__force u32)*reg;
+> +
+> +	if ((tmp >> 24) != 0)
+> +		return;
+> +
+> +	if (flags & OFFSET_GR_MOD)
+> +		tmp += prm_base;
+> +	else
+> +		tmp += cm_base;
+> +
+> +	*reg = (__force void __iomem *)tmp;
+> +}
+> +
+> +void __init omap2_clk_rewrite_base(struct clk *clk)
+> +{
+> +	omap2_clk_check_reg(clk->flags, &clk->clksel_reg);
+> +	omap2_clk_check_reg(clk->flags, &clk->enable_reg);
+> +	if (clk->dpll_data)
+> +		omap2_clk_check_reg(0, &clk->dpll_data->mult_div1_reg);
+> +}
+> +
+>  int __init omap2_clk_init(void)
+>  {
+>  	struct prcm_config *prcm;
+> @@ -487,6 +508,12 @@ int __init omap2_clk_init(void)
+>  	else if (cpu_is_omap2430())
+>  		cpu_mask = RATE_IN_243X;
+>  
+> +	for (clkp = onchip_24xx_clks;
+> +	     clkp < onchip_24xx_clks + ARRAY_SIZE(onchip_24xx_clks);
+> +	     clkp++) {
+> +			omap2_clk_rewrite_base(*clkp);
+> +	}
+> +
 
-We can handle this exception by replacing that set_rate function with
-one which knows about this explicit quirk for this clock.  In other
-words, rather than having that strcmp(), the following would be a much
-better way to handle this exception:
+I'm afraid this also fails to satisfy my decency filter.  Let's summarise
+what's going on here.
 
-static int omap3_dpll4_set_rate(struct clk *clk, unsigned long rate)
-{
-	if (omap_rev() == OMAP3430_REV_ES1_0) {
-		printk(KERN_ERR "clock: DPLL4 cannot change rate due to "
-		       "silicon 'Limitation 2.5' on 3430ES1.\n");
-		return -EINVAL;
-	}
-	return omap3_noncore_dpll_set_rate(clk, rate);
-}
+- the structure initializers are setup to cast integer register offsets
+  to void __iomem *.
+- the code above walks all clock structures, looking for what could be
+  considered an offset (iow, bits 31-24 of the pointer being zero).
+- it looks at the OFFSET_GR_MOD flag to determine which base to add in
+- the base address is not 'void __iomem *' but 'u32'.
+- we update the void __iomem * pointers in the structure.
+
+So, we have a base address which is an integer, and an offset which is
+an void __iomem *.
+
+I can see why you want to do this, but I think it needs more thought.
+I'll sit on this patch for a while.
+
+In the mean time, I've fixed up patches 1-8,10 to apply on top of my
+patch set.
+
+However, still waiting for a few to come through: D6, E2 and F2.  No,
+these aren't suck in any of my mail spools or list admin queues.
