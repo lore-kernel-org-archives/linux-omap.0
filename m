@@ -1,52 +1,84 @@
-From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
-Subject: Re: [PATCH 3/6] omap iommu: omap3 iommu device registration
-Date: Wed, 28 Jan 2009 13:37:58 +0200 (EET)
-Message-ID: <20090128.133758.55858977.Hiroshi.DOYU@nokia.com>
-References: <20090117162139.GB12341@n2100.arm.linux.org.uk>
-	<20090127.232935.68131092.Hiroshi.DOYU@nokia.com>
-	<20090128104157.GC15907@n2100.arm.linux.org.uk>
+From: Naveen Krishna Ch <naveenkrishna.ch@gmail.com>
+Subject: ASoC : underrun messages
+Date: Wed, 28 Jan 2009 19:09:10 +0530
+Message-ID: <ef0d8a250901280539v7f0b4a74nfb698796e72fb247@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:29727 "EHLO
-	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754593AbZA1Lib (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 28 Jan 2009 06:38:31 -0500
-In-Reply-To: <20090128104157.GC15907@n2100.arm.linux.org.uk>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <alsa-devel-bounces@alsa-project.org>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Sender: alsa-devel-bounces@alsa-project.org
+Errors-To: alsa-devel-bounces@alsa-project.org
+To: linux-omap-open-source@linux.omap.com
+Cc: alsa-devel@alsa-project.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux@arm.linux.org.uk
-Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.arm.linux.org.uk, linux-omap@vger.kernel.org
 
-From: ext Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [PATCH 3/6] omap iommu: omap3 iommu device registration
-Date: Wed, 28 Jan 2009 11:41:57 +0100
+Hello,
 
-> On Tue, Jan 27, 2009 at 11:29:35PM +0200, Hiroshi DOYU wrote:
-> > I attached the update one.
-> 
-> Thanks.  I want to hold off on taking these just a little bit longer.
+I am experiencing some audio issue
+While playing using aplay
+some times i see the following messages.
+(Sorry if the messages are too long)
 
-OK. agreed.
+[root@OMAP3 audio_samples]#aplay sample_96K.wav
+Playing WAVE 'sample_96K.wav' : Signed 16 bit Little Endian, Rate 96000 Hz,
+Stereo
+underrun!!! (at least 1307.251 ms long)
+underrun!!! (at least 554.656 ms long)
+underrun!!! (at least 988.861 ms long)
+underrun!!! (at least 554.443 ms long)
+underrun!!! (at least 987.670 ms long)
+underrun!!! (at least 995.484 ms long)
+^CAborted by signal Interrupt...
 
-> > +static const struct iommu_platform_data omap3_iommu_pdata[] __initconst = {
-> > +     {
-> > +             .name = "isp",
-> > +             .nr_tlb_entries = 8,
-> > +             .clk_name = "cam_ick",
-> > +     },
-> > +     {
-> > +             .name = "iva2",
-> > +             .nr_tlb_entries = 32,
-> > +             .clk_name = "iva2_ck",
-> 
-> With the omap clk implementation in a state of flux, hopefully moving
-> towards something which better reflects the intentions of the clk API,
-> passing clk names around becomes entirely wasteful and unnecessary.
-> 
-> That's not to say that what you currently have won't work with the patches
-> as they currently stand - it will work as is.  I'd just rather avoid
-> having to have a separate patch to convert this code as well.
+[root@OMAP3 audio_samples]#aplay sample_48K.wav
+Playing WAVE 'sample_48K.wav' : Signed 16 bit Little Endian, Rate 48000 Hz,
+Stereo
+underrun!!! (at least 69.306 ms long)
+underrun!!! (at least 130.981 ms long)
+underrun!!! (at least 205.750 ms long)
+underrun!!! (at least 178.100 ms long)
+underrun!!! (at least 146.057 ms long)
+^CAborted by signal Interrupt...
 
-OK. I'll update later, then.
+[root@OMAP3 audio_samples]#aplay sample_8K.wav
+Playing WAVE 'sample_8K.wav' : Signed 16 bit Little Endian, Rate 8000 Hz,
+Stereo
+^C^[[AAborted by signal Interrupt...
+
+[root@OMAP3 audio_samples]#aplay sample_22K.wav
+Playing WAVE 'sample_22K.wav' : Signed 16 bit Little Endian, Rate 22050 Hz,
+Stereo
+^CAborted by signal Interrupt...
+
+[root@OMAP3 audio_samples]#aplay sample_44K.wav
+Playing WAVE 'sample_44K.wav' : Signed 16 bit Little Endian, Rate 44100 Hz,
+Stereo
+underrun!!! (at least 1602.264 ms long)
+underrun!!! (at least 873.078 ms long)
+underrun!!! (at least 1693.268 ms long)
+underrun!!! (at least 870.483 ms long)
+underrun!!! (at least 540.466 ms long)
+underrun!!! (at least 1122.711 ms long)
+
+I am using OMAP3430 + twl4030 ASoC audio codec drivers.
+
+I understand that the prints are coming from alsa-lib aplay.c file
+As a result of the client not reading the buffers fast enough.
+
+These are not conditionally reproducible, i see them uncertainly.
+
+I saw the same isue with 2.6.26 some one suggested me to find
+if there is any bug in the asoc layer.
+Now i am using 2.6.28 kernel from kernel.org but still got the same
+
+Can any one suggest me a way to find a fix for this..
+-- 
+Cheers
+(: Naveen Krishna Ch :)
