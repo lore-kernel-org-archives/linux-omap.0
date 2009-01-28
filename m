@@ -1,15 +1,16 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: [PATCH C 02/13] OMAP3 clock: DPLL{1,2}_FCLK clksel can divide by 4
-Date: Wed, 28 Jan 2009 12:08:14 -0700
-Message-ID: <20090128190811.12092.98984.stgit@localhost.localdomain>
+Subject: [PATCH C 01/13] OMAP3 clock: fix DPLL jitter correction and rate
+	programming
+Date: Wed, 28 Jan 2009 12:08:11 -0700
+Message-ID: <20090128190805.12092.73106.stgit@localhost.localdomain>
 References: <20090128190724.12092.22239.stgit@localhost.localdomain>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:60365 "EHLO
+Received: from utopia.booyaka.com ([72.9.107.138]:60361 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751930AbZA1UZJ (ORCPT
+	with ESMTP id S1751857AbZA1UZJ (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>); Wed, 28 Jan 2009 15:25:09 -0500
 In-Reply-To: <20090128190724.12092.22239.stgit@localhost.localdomain>
 Sender: linux-omap-owner@vger.kernel.org
@@ -17,69 +18,49 @@ List-Id: linux-omap@vger.kernel.org
 To: linux-arm-kernel@lists.arm.linux.org.uk, linux-kernel@vger.kernel.org
 Cc: linux-omap@vger.kernel.org, Paul Walmsley <paul@pwsan.com>, Tony Lindgren <tony@atomide.com>
 
-OMAP34xx ES2 TRM Delta G to H states that the divider for DPLL1_FCLK and
-DPLL2_FCLK can divide by 4 in addition to dividing by 1 and 2. Encode this
-into the OMAP3 clock framework.
+Fix DPLL jitter correction programming.  Previously,
+omap3_noncore_dpll_program() stored the FREQSEL jitter correction
+parameter to the wrong register.  This caused jitter correction to be set
+incorrectly and also caused the DPLL divider to be programmed incorrectly.
 
-linux-omap source commit is 050684c18f2ea0b08fdd5233a0cd3c7f96e00a0e.
+Also, fix DPLL divider programming.  An off-by-one error existed in
+omap3_noncore_dpll_program(), causing DPLLs to be programmed with a higher
+divider than intended.
+
+linux-omap source commit is 5c0ec88a2145cdf2f2c9cc5fae49635c4c2476c7.
 
 Signed-off-by: Paul Walmsley <paul@pwsan.com>
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
- arch/arm/mach-omap2/clock34xx.h |   20 ++++++++++++++++----
- 1 files changed, 16 insertions(+), 4 deletions(-)
+ arch/arm/mach-omap2/clock34xx.c |   13 ++++++++-----
+ 1 files changed, 8 insertions(+), 5 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/clock34xx.h b/arch/arm/mach-omap2/clock34xx.h
-index 781da12..9d123c6 100644
---- a/arch/arm/mach-omap2/clock34xx.h
-+++ b/arch/arm/mach-omap2/clock34xx.h
-@@ -1102,8 +1102,15 @@ static struct clk corex2_fck = {
+diff --git a/arch/arm/mach-omap2/clock34xx.c b/arch/arm/mach-omap2/clock34xx.c
+index b6fe2c9..ff43058 100644
+--- a/arch/arm/mach-omap2/clock34xx.c
++++ b/arch/arm/mach-omap2/clock34xx.c
+@@ -346,14 +346,17 @@ static int omap3_noncore_dpll_program(struct clk *clk, u16 m, u8 n, u16 freqsel)
+ 	/* 3430 ES2 TRM: 4.7.6.9 DPLL Programming Sequence */
+ 	_omap3_noncore_dpll_bypass(clk);
  
- /* DPLL power domain clock controls */
- 
--static const struct clksel div2_core_clksel[] = {
--	{ .parent = &core_ck, .rates = div2_rates },
-+static const struct clksel_rate div4_rates[] = {
-+	{ .div = 1, .val = 1, .flags = RATE_IN_343X | DEFAULT_RATE },
-+	{ .div = 2, .val = 2, .flags = RATE_IN_343X },
-+	{ .div = 4, .val = 4, .flags = RATE_IN_343X },
-+	{ .div = 0 }
-+};
++	/* Set jitter correction */
++	v = __raw_readl(dd->control_reg);
++	v &= ~dd->freqsel_mask;
++	v |= freqsel << __ffs(dd->freqsel_mask);
++	__raw_writel(v, dd->control_reg);
 +
-+static const struct clksel div4_core_clksel[] = {
-+	{ .parent = &core_ck, .rates = div4_rates },
- 	{ .parent = NULL }
- };
++	/* Set DPLL multiplier, divider */
+ 	v = __raw_readl(dd->mult_div1_reg);
+ 	v &= ~(dd->mult_mask | dd->div1_mask);
+-
+-	/* Set mult (M), div1 (N), freqsel */
+ 	v |= m << __ffs(dd->mult_mask);
+-	v |= n << __ffs(dd->div1_mask);
+-	v |= freqsel << __ffs(dd->freqsel_mask);
+-
++	v |= (n - 1) << __ffs(dd->div1_mask);
+ 	__raw_writel(v, dd->mult_div1_reg);
  
-@@ -1113,7 +1120,7 @@ static struct clk dpll1_fck = {
- 	.init		= &omap2_init_clksel_parent,
- 	.clksel_reg	= _OMAP34XX_CM_REGADDR(MPU_MOD, OMAP3430_CM_CLKSEL1_PLL),
- 	.clksel_mask	= OMAP3430_MPU_CLK_SRC_MASK,
--	.clksel		= div2_core_clksel,
-+	.clksel		= div4_core_clksel,
- 	.flags		= CLOCK_IN_OMAP343X | RATE_PROPAGATES |
- 				PARENT_CONTROLS_CLOCK,
- 	.clkdm		= { .name = "cm_clkdm" },
-@@ -1191,7 +1198,7 @@ static struct clk dpll2_fck = {
- 	.init		= &omap2_init_clksel_parent,
- 	.clksel_reg	= _OMAP34XX_CM_REGADDR(OMAP3430_IVA2_MOD, OMAP3430_CM_CLKSEL1_PLL),
- 	.clksel_mask	= OMAP3430_IVA2_CLK_SRC_MASK,
--	.clksel		= div2_core_clksel,
-+	.clksel		= div4_core_clksel,
- 	.flags		= CLOCK_IN_OMAP343X | RATE_PROPAGATES |
- 				PARENT_CONTROLS_CLOCK,
- 	.clkdm		= { .name = "cm_clkdm" },
-@@ -1228,6 +1235,11 @@ static struct clk iva2_ck = {
- 
- /* Common interface clocks */
- 
-+static const struct clksel div2_core_clksel[] = {
-+	{ .parent = &core_ck, .rates = div2_rates },
-+	{ .parent = NULL }
-+};
-+
- static struct clk l3_ick = {
- 	.name		= "l3_ick",
- 	.parent		= &core_ck,
+ 	/* We let the clock framework set the other output dividers later */
 
 
