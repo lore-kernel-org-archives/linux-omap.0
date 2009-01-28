@@ -1,51 +1,74 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 2/9] ARM: OMAP: Fix McBSP spin_lock deadlock
-Date: Wed, 28 Jan 2009 13:28:55 -0800
-Message-ID: <20090128212854.GV32148@atomide.com>
-References: <20090128181931.21007.73744.stgit@localhost> <20090128182422.21007.97536.stgit@localhost> <20090128192705.GG23301@n2100.arm.linux.org.uk>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: [PATCH A 01/10] OMAP2/3: Add non-CORE DPLL rate set code and M, N programming
+Date: Wed, 28 Jan 2009 22:10:56 +0000
+Message-ID: <20090128221056.GJ23301@n2100.arm.linux.org.uk>
+References: <20090128020447.7244.80496.stgit@localhost.localdomain> <20090128021243.7244.6362.stgit@localhost.localdomain>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-bos.mailhop.org ([63.208.196.178]:61099 "EHLO
-	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751433AbZA1V3F (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 28 Jan 2009 16:29:05 -0500
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:36526 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753428AbZA1WLM (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 28 Jan 2009 17:11:12 -0500
 Content-Disposition: inline
-In-Reply-To: <20090128192705.GG23301@n2100.arm.linux.org.uk>
+In-Reply-To: <20090128021243.7244.6362.stgit@localhost.localdomain>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: linux-arm-kernel@lists.arm.linux.org.uk, "Stanley.Miao" <stanley.miao@windriver.com>, linux-omap@vger.kernel.org
+To: Paul Walmsley <paul@pwsan.com>
+Cc: linux-arm-kernel@lists.arm.linux.org.uk, linux-kernel@vger.kernel.org, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org
 
-* Russell King - ARM Linux <linux@arm.linux.org.uk> [090128 11:27]:
-> On Wed, Jan 28, 2009 at 10:24:22AM -0800, Tony Lindgren wrote:
-> > From: Stanley.Miao <stanley.miao@windriver.com>
-> > 
-> > A spin_lock deadlock will occur when omap_mcbsp_request() is invoked.
-> > 
-> > omap_mcbsp_request()
-> > \- clk_enable(mcbsp->clk)         [takes and holds clockfw_lock]
-> >     \- omap2_clk_enable()
-> >        \- _omap2_clk_enable()
-> >            \- omap_mcbsp_clk_enable()
-> >               \- clk_enable(child clock)   [tries for clockfw_lock again]
-> > 
-> > mcbsp_clk is a virtual clock and it comprises several child clocks. when
-> > enable mcbsp_clk in omap_mcbsp_request(), the enable function of mcbsp_clk
-> > will enable its child clocks, then the deadlock occurs.
-> 
-> I'm debating about this.  On one hand, it looks like this has been like
-> this for approaching six months, so what's a few more months to wait
-> for the clkdev stuff.
+Since it's been posted to lists, comments are going to be made...
 
-Yeah that's why we've been going back and forth with this on the
-linux-omap list.
+On Tue, Jan 27, 2009 at 07:12:47PM -0700, Paul Walmsley wrote:
+> +	/*
+> +	 * According to the 12-5 CDP code from TI, "Limitation 2.5"
+> +	 * on 3430ES1 prevents us from changing DPLL multipliers or dividers
+> +	 * on DPLL4.
+> +	 */
+> +	if (omap_rev() == OMAP3430_REV_ES1_0 &&
+> +	    !strcmp("dpll4_ck", clk->name)) {
+> +		printk(KERN_ERR "clock: DPLL4 cannot change rate due to "
+> +		       "silicon 'Limitation 2.5' on 3430ES1.\n");
+> +		return -EINVAL;
+> +	}
 
-> On the other hand, we probably need this fix.  The question is, are there
-> real problems being caused by this, or is this patch just the result of
-> code analysis?  And can these problems be produced with mainline (iow,
-> do we have enough other code merged to expose this)?
+Yuck.  That's revolting and extremely fragile.  Don't play these games.
+You've got plenty of free flag bits in clk->flags which could be used
+to prevent the DPLL from being changed.  You've also got other ways to
+prevent it - eg, setting dpll_data to NULL.
 
-AFAIK it happens in the mainline with CONFIG_PREMEPT and ASoC.
+To do exception handling based on strcmp(), or even worse register offset
+and bit position (as is done elsewhere in the OMAP code) is utterly insane.
 
-Tony
+However, what's worse is that, below...
+
+> +static int omap3_noncore_dpll_set_rate(struct clk *clk, unsigned long rate)
+> +{
+> +	u16 freqsel;
+> +	struct dpll_data *dd;
+> +
+> +	if (!clk || !rate)
+> +		return -EINVAL;
+> +
+> +	dd = clk->dpll_data;
+> +	if (!dd)
+> +		return -EINVAL;
+> +
+> +	if (rate == omap2_get_dpll_rate(clk))
+> +		return 0;
+> +
+> +	if (dd->last_rounded_rate != rate)
+> +		omap2_dpll_round_rate(clk, rate);
+> +
+> +	if (dd->last_rounded_rate == 0)
+> +		return -EINVAL;
+> +
+> +	freqsel = _omap3_dpll_compute_freqsel(clk, dd->last_rounded_n);
+> +	if (!freqsel)
+> +		WARN_ON(1);
+> +
+> +	omap3_noncore_dpll_program(clk, dd->last_rounded_m, dd->last_rounded_n,
+> +				   freqsel);
+
+The return value from the above test isn't checked, so this function
+will succeed even for dpll4_ck.
