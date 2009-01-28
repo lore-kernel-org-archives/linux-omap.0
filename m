@@ -1,49 +1,67 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: Beagle PM hangs
-Date: Wed, 28 Jan 2009 09:46:14 -0800
-Message-ID: <87skn3qq6x.fsf@deeprootsystems.com>
-References: <345163910901280814nb847b34pca50f4ee6e49929d@mail.gmail.com>
-	<87zlhbqtrv.fsf@deeprootsystems.com>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: [PATCH 05/10] omap mailbox: fix empty struct device for omap1
+Date: Wed, 28 Jan 2009 17:50:43 +0000
+Message-ID: <20090128175043.GB23301@n2100.arm.linux.org.uk>
+References: <20090116081919.17571.34378.stgit@oreo.research.nokia.com> <20090116082727.17571.87307.stgit@oreo.research.nokia.com> <20090128144955.GA23089@n2100.arm.linux.org.uk> <20090128.172951.193700554.Hiroshi.DOYU@nokia.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from yw-out-2324.google.com ([74.125.46.31]:50436 "EHLO
-	yw-out-2324.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751019AbZA1RrL (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 28 Jan 2009 12:47:11 -0500
-Received: by yw-out-2324.google.com with SMTP id 9so3041816ywe.1
-        for <linux-omap@vger.kernel.org>; Wed, 28 Jan 2009 09:47:09 -0800 (PST)
-In-Reply-To: <87zlhbqtrv.fsf@deeprootsystems.com> (Kevin Hilman's message of "Wed\, 28 Jan 2009 08\:28\:52 -0800")
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:45078 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751714AbZA1Ru5 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 28 Jan 2009 12:50:57 -0500
+Content-Disposition: inline
+In-Reply-To: <20090128.172951.193700554.Hiroshi.DOYU@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Peter Reid <ppeter.reid@gmail.com>
-Cc: Koen Kooi <koen@beagleboard.org>, linux-omap@vger.kernel.org
+To: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.arm.linux.org.uk, linux-omap@vger.kernel.org
 
-Kevin Hilman <khilman@deeprootsystems.com> writes:
+On Wed, Jan 28, 2009 at 05:29:51PM +0200, Hiroshi DOYU wrote:
+> diff --git a/arch/arm/mach-omap2/mailbox.c b/arch/arm/mach-omap2/mailbox.c
+> index 44e9101..af32db0 100644
+> --- a/arch/arm/mach-omap2/mailbox.c
+> +++ b/arch/arm/mach-omap2/mailbox.c
+> @@ -14,7 +14,9 @@
+>  #include <linux/clk.h>
+>  #include <linux/err.h>
+>  #include <linux/platform_device.h>
+> -#include <linux/io.h>
+> +
+> +#include <asm/io.h>
+> +
 
-> Peter Reid <ppeter.reid@gmail.com> writes:
->
->> Hi Kevin,
->>    I get hangs after boot on beagle with latest PM tree i have quite a
->> few scripts that run on boot.
->>
->>    have you seen this before?
->
-> I have not, but I believe Koen has see something similar.  I've mainly
-> been testing just a minimal rootfs and a minimal set of drivers on
-> Beagle so I can hit full-chip off in idle.
->
-> It would help if you could desribe your setup in more detail.  What
-> kernel config are you using, what rootfs are you using?  Does it hang
-> in the same spot every time?  If so, what is going on when it hangs?
-> Have you written anything to any of the /sys/power/* files?
->
+NAK.
 
-Just a thought, do you still see these problems when using the CPUfreq
-performance governor instead of the ondemand governor?
+> diff --git a/arch/arm/mach-omap1/mailbox.c b/arch/arm/mach-omap1/mailbox.c
+> index 59abbf3..92a90be 100644
+> --- a/arch/arm/mach-omap1/mailbox.c
+> +++ b/arch/arm/mach-omap1/mailbox.c
+> @@ -1,7 +1,7 @@
+>  /*
+>   * Mailbox reservation modules for DSP
+>   *
+> - * Copyright (C) 2006 Nokia Corporation
+> + * Copyright (C) 2006-2009 Nokia Corporation
+>   * Written by: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+>   *
+>   * This file is subject to the terms and conditions of the GNU General Public
+> @@ -13,7 +13,9 @@
+>  #include <linux/resource.h>
+>  #include <linux/interrupt.h>
+>  #include <linux/platform_device.h>
+> -#include <linux/io.h>
+> +
+> +#include <asm/io.h>
+> +
 
-It could be pointing to some bugs in the switching of operating points.
+NAK.
 
-Kevin
+See fced80c735941fa518ac67c0b61bbe153fb8c050.
 
+The above can not be explained by a mis-merge - they are not a mere
+reversion of the above change.  They look like a purposeful change
+back to the wrong include file.
 
+Can someone please work out why this has happened and what needs to
+be done to prevent it happening in the future.
