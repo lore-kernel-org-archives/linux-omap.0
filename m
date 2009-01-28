@@ -1,69 +1,53 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 8/9] ARM: OMAP: Mask interrupts when disabling interrupts
-Date: Wed, 28 Jan 2009 10:32:09 -0800
-Message-ID: <20090128183209.21007.86828.stgit@localhost>
+Subject: [PATCH 9/9] ARM: OMAP: fix fault in enter_full_retention()
+Date: Wed, 28 Jan 2009 10:33:26 -0800
+Message-ID: <20090128183326.21007.78004.stgit@localhost>
 References: <20090128181931.21007.73744.stgit@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-bos.mailhop.org ([63.208.196.178]:62703 "EHLO
+Received: from mho-01-bos.mailhop.org ([63.208.196.178]:63956 "EHLO
 	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750979AbZA1ScM (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 28 Jan 2009 13:32:12 -0500
+	with ESMTP id S1750899AbZA1Sd3 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 28 Jan 2009 13:33:29 -0500
 In-Reply-To: <20090128181931.21007.73744.stgit@localhost>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-arm-kernel@lists.arm.linux.org.uk
-Cc: Kim Kyuwon <chammoru@gmail.com>, linux-omap@vger.kernel.org
+Cc: Kevin Hilman <khilman@deeprootsystems.com>, linux-omap@vger.kernel.org
 
-=46rom: =EA=B9=80=EA=B7=9C=EC=9B=90 <chammoru@gmail.com>
+From: Kevin Hilman <khilman@deeprootsystems.com>
 
-By Ingo Molnar, interrupts are not masked by default.
-(refer to 76d2160147f43f982dfe881404cfde9fd0a9da21)
+In omap24xx_cpu_suspend assembly routine, the r2 register which holds
+the address of the SDRC_POWER reg is set to zero before the value is
+written back triggering a fault due to writing to address zero.
 
-But if interrupts are not masked, the processor can wake up while in
-Suspend-to-RAM state by an external interrupt. For example, if an
-OMAP3 board is connected to Host PC by USB and entered to Suspend-to-RA=
-M
-state, it wake up automatically by M_IRQ_92. The disable_irq() function
-can't disable the interrupt in H/W level, So I modified
-arch/arm/mach-omap2/irq.c
+It's hard to tell where this change was introduced since this file
+has been moved and merged.
 
-Signed-off-by: Kim Kyuwon <chammoru@gmail.com>
+While this fix prevents a crash, suspend on my n810 is broken with
+current kernels.  I never come out of suspend.
+
+Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
- arch/arm/mach-omap2/irq.c |    6 ++++++
- 1 files changed, 6 insertions(+), 0 deletions(-)
+ arch/arm/mach-omap2/sleep24xx.S |    3 +--
+ 1 files changed, 1 insertions(+), 2 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/irq.c b/arch/arm/mach-omap2/irq.c
-index 636e282..52772f9 100644
---- a/arch/arm/mach-omap2/irq.c
-+++ b/arch/arm/mach-omap2/irq.c
-@@ -123,6 +123,11 @@ static void omap_unmask_irq(unsigned int irq)
- 	intc_bank_write_reg(1 << irq, &irq_banks[0], INTC_MIR_CLEAR0 + offset=
-);
- }
-=20
-+static void omap_disable_irq(unsigned int irq)
-+{
-+	omap_mask_irq(irq);
-+}
-+
- static void omap_mask_ack_irq(unsigned int irq)
- {
- 	omap_mask_irq(irq);
-@@ -134,6 +139,7 @@ static struct irq_chip omap_irq_chip =3D {
- 	.ack	=3D omap_mask_ack_irq,
- 	.mask	=3D omap_mask_irq,
- 	.unmask	=3D omap_unmask_irq,
-+	.disable =3D omap_disable_irq,
- };
-=20
- static void __init omap_irq_bank_init_one(struct omap_irq_bank *bank)
+diff --git a/arch/arm/mach-omap2/sleep24xx.S b/arch/arm/mach-omap2/sleep24xx.S
+index 43336b9..bf9e961 100644
+--- a/arch/arm/mach-omap2/sleep24xx.S
++++ b/arch/arm/mach-omap2/sleep24xx.S
+@@ -93,9 +93,8 @@ ENTRY(omap24xx_cpu_suspend)
+ 	orr	r4, r4, #0x40		@ enable self refresh on idle req
+ 	mov	r5, #0x2000		@ set delay (DPLL relock + DLL relock)
+ 	str	r4, [r2]		@ make it so
+-	mov	r2, #0
+ 	nop
+-	mcr	p15, 0, r2, c7, c0, 4	@ wait for interrupt
++	mcr	p15, 0, r3, c7, c0, 4	@ wait for interrupt
+ 	nop
+ loop:
+ 	subs	r5, r5, #0x1		@ awake, wait just a bit
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
