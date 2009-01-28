@@ -1,80 +1,79 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: [PATCH A 06/10] OMAP2: Fix definition of SGX clock register bits
-Date: Tue, 27 Jan 2009 19:13:05 -0700
-Message-ID: <20090128021302.7244.33650.stgit@localhost.localdomain>
+Subject: [PATCH A 07/10] OMAP: Add CSI2 clock struct for handling it with
+	clock API.
+Date: Tue, 27 Jan 2009 19:13:09 -0700
+Message-ID: <20090128021305.7244.10176.stgit@localhost.localdomain>
 References: <20090128020447.7244.80496.stgit@localhost.localdomain>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:60100 "EHLO
+Received: from utopia.booyaka.com ([72.9.107.138]:60134 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751826AbZA1UWv (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 28 Jan 2009 15:22:51 -0500
+	with ESMTP id S1751885AbZA1UW4 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 28 Jan 2009 15:22:56 -0500
 In-Reply-To: <20090128020447.7244.80496.stgit@localhost.localdomain>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-arm-kernel@lists.arm.linux.org.uk, linux-kernel@vger.kernel.org
-Cc: Daniel Stone <daniel.stone@nokia.com>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org
+Cc: Sergio Aguirre <saaguirre@ti.com>, Paul Walmsley <paul@pwsan.com>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org
 
-From: Daniel Stone <daniel.stone@nokia.com>
+From: Sergio Aguirre <saaguirre@ti.com>
 
-The GFX/SGX functional and interface clocks have different masks, for
-some unknown reason, so split EN_SGX_SHIFT into one each for fclk and
-iclk.
+Add CSI2 clock struct for handling it with clock API when TI PM is disabled.
 
-Correct according to the TRM and the far more important 'does this
-actually work at all?' metric.
+linux-omap source commit is 8b20f4498928459276bd3366e3381ad595d23432.
 
-linux-omap source commit is de1121fdb899f762b9e717f44eaf3fae7c00cd3e.
-
-Signed-off-by: Daniel Stone <daniel.stone@nokia.com>
+Signed-off-by: Sergio Aguirre <saaguirre@ti.com>
+Acked-by: Paul Walmsley <paul@pwsan.com>
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
- arch/arm/mach-omap2/clock34xx.h       |    4 ++--
- arch/arm/mach-omap2/cm-regbits-34xx.h |    8 ++++++--
- 2 files changed, 8 insertions(+), 4 deletions(-)
+ arch/arm/mach-omap2/clock34xx.h       |   12 ++++++++++++
+ arch/arm/mach-omap2/cm-regbits-34xx.h |    2 ++
+ 2 files changed, 14 insertions(+), 0 deletions(-)
 
 diff --git a/arch/arm/mach-omap2/clock34xx.h b/arch/arm/mach-omap2/clock34xx.h
-index f8c9885..63adfab 100644
+index 63adfab..d19558d 100644
 --- a/arch/arm/mach-omap2/clock34xx.h
 +++ b/arch/arm/mach-omap2/clock34xx.h
-@@ -1293,7 +1293,7 @@ static struct clk sgx_fck = {
- 	.name		= "sgx_fck",
- 	.init		= &omap2_init_clksel_parent,
- 	.enable_reg	= OMAP_CM_REGADDR(OMAP3430ES2_SGX_MOD, CM_FCLKEN),
--	.enable_bit	= OMAP3430ES2_EN_SGX_SHIFT,
-+	.enable_bit	= OMAP3430ES2_CM_FCLKEN_SGX_EN_SGX_SHIFT,
- 	.clksel_reg	= OMAP_CM_REGADDR(OMAP3430ES2_SGX_MOD, CM_CLKSEL),
- 	.clksel_mask	= OMAP3430ES2_CLKSEL_SGX_MASK,
- 	.clksel		= sgx_clksel,
-@@ -1307,7 +1307,7 @@ static struct clk sgx_ick = {
- 	.parent		= &l3_ick,
- 	.init		= &omap2_init_clk_clkdm,
- 	.enable_reg	= OMAP_CM_REGADDR(OMAP3430ES2_SGX_MOD, CM_ICLKEN),
--	.enable_bit	= OMAP3430ES2_EN_SGX_SHIFT,
-+	.enable_bit	= OMAP3430ES2_CM_ICLKEN_SGX_EN_SGX_SHIFT,
- 	.flags		= CLOCK_IN_OMAP3430ES2,
- 	.clkdm_name	= "sgx_clkdm",
+@@ -2196,6 +2196,17 @@ static struct clk cam_ick = {
  	.recalc		= &followparent_recalc,
+ };
+ 
++static struct clk csi2_96m_fck = {
++	.name		= "csi2_96m_fck",
++	.parent		= &core_96m_fck,
++	.init		= &omap2_init_clk_clkdm,
++	.enable_reg	= OMAP_CM_REGADDR(OMAP3430_CAM_MOD, CM_FCLKEN),
++	.enable_bit	= OMAP3430_EN_CSI2_SHIFT,
++	.flags		= CLOCK_IN_OMAP343X,
++	.clkdm_name	= "cam_clkdm",
++	.recalc		= &followparent_recalc,
++};
++
+ /* USBHOST - 3430ES2 only */
+ 
+ static struct clk usbhost_120m_fck = {
+@@ -3176,6 +3187,7 @@ static struct clk *onchip_34xx_clks[] __initdata = {
+ 	&dss_ick,
+ 	&cam_mclk,
+ 	&cam_ick,
++	&csi2_96m_fck,
+ 	&usbhost_120m_fck,
+ 	&usbhost_48m_fck,
+ 	&usbhost_ick,
 diff --git a/arch/arm/mach-omap2/cm-regbits-34xx.h b/arch/arm/mach-omap2/cm-regbits-34xx.h
-index a46f93c..f3c327b 100644
+index f3c327b..aaf68a5 100644
 --- a/arch/arm/mach-omap2/cm-regbits-34xx.h
 +++ b/arch/arm/mach-omap2/cm-regbits-34xx.h
-@@ -332,8 +332,12 @@
- #define OMAP3430ES1_CLKACTIVITY_GFX_MASK		(1 << 0)
+@@ -524,6 +524,8 @@
+ #define OMAP3430_CLKACTIVITY_DSS_MASK			(1 << 0)
  
- /* CM_FCLKEN_SGX */
--#define OMAP3430ES2_EN_SGX_SHIFT			1
--#define OMAP3430ES2_EN_SGX_MASK				(1 << 1)
-+#define OMAP3430ES2_CM_FCLKEN_SGX_EN_SGX_SHIFT		1
-+#define OMAP3430ES2_CM_FCLKEN_SGX_EN_SGX_MASK		(1 << 1)
-+
-+/* CM_ICLKEN_SGX */
-+#define OMAP3430ES2_CM_ICLKEN_SGX_EN_SGX_SHIFT		0
-+#define OMAP3430ES2_CM_ICLKEN_SGX_EN_SGX_MASK		(1 << 0)
+ /* CM_FCLKEN_CAM specific bits */
++#define OMAP3430_EN_CSI2				(1 << 1)
++#define OMAP3430_EN_CSI2_SHIFT				1
  
- /* CM_CLKSEL_SGX */
- #define OMAP3430ES2_CLKSEL_SGX_SHIFT			0
+ /* CM_ICLKEN_CAM specific bits */
+ 
 
 
