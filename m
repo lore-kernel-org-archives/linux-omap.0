@@ -1,98 +1,59 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: [PATCH F 11/12] OMAP2/3 clock: don't tinker with hardirqs when they
-	are supposed to be disabled
-Date: Wed, 28 Jan 2009 12:35:31 -0700
-Message-ID: <20090128193528.2396.10870.stgit@localhost.localdomain>
+Subject: [PATCH F 08/12] OMAP2/3 clock: omap2_clk_enable(): fix bugs in
+	clockdomain handling
+Date: Wed, 28 Jan 2009 12:35:22 -0700
+Message-ID: <20090128193519.2396.80753.stgit@localhost.localdomain>
 References: <20090128193326.2396.9437.stgit@localhost.localdomain>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:47868 "EHLO
+Received: from utopia.booyaka.com ([72.9.107.138]:47821 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756551AbZA1UcV (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 28 Jan 2009 15:32:21 -0500
+	with ESMTP id S1756474AbZA1UcQ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 28 Jan 2009 15:32:16 -0500
 In-Reply-To: <20090128193326.2396.9437.stgit@localhost.localdomain>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-arm-kernel@lists.arm.linux.org.uk, linux-kernel@vger.kernel.org
 Cc: linux-omap@vger.kernel.org, Paul Walmsley <paul@pwsan.com>, Tony Lindgren <tony@atomide.com>
 
-Clock rate change code executes inside a spinlock with hardirqs
-disabled.  The only code that should be messing around with the
-hardirq state should be the plat-omap/clock.c code.  In the
-omap2_reprogram_dpllcore() case, this probably just wastes cycles, but
-in the omap3_core_dpll_m2_set_rate() case, this is a nasty bug.
+omap2_clk_enable() should enable a clock's clockdomain before
+attempting to enable its parent clock's clockdomain.  Similarly, in
+the unlikely event that the parent clock enable fails, the clockdomain
+should be disabled.
 
-linux-omap source commit is b9b6208dadb5e0d8b290900a3ffa911673ca97ed.
+linux-omap source commit is 6d6e285e5a7912b1ea68fadac387304c914aaba8.
 
 Signed-off-by: Paul Walmsley <paul@pwsan.com>
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
- arch/arm/mach-omap2/clock24xx.c |   12 +++---------
- arch/arm/mach-omap2/clock34xx.c |    2 --
- 2 files changed, 3 insertions(+), 11 deletions(-)
+ arch/arm/mach-omap2/clock.c |    5 +++--
+ 1 files changed, 3 insertions(+), 2 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/clock24xx.c b/arch/arm/mach-omap2/clock24xx.c
-index c24c937..1947ffa 100644
---- a/arch/arm/mach-omap2/clock24xx.c
-+++ b/arch/arm/mach-omap2/clock24xx.c
-@@ -221,10 +221,7 @@ static int omap2_reprogram_dpllcore(struct clk *clk, unsigned long rate)
- 	u32 bypass = 0;
- 	struct prcm_config tmpset;
- 	const struct dpll_data *dd;
--	unsigned long flags;
--	int ret = -EINVAL;
+diff --git a/arch/arm/mach-omap2/clock.c b/arch/arm/mach-omap2/clock.c
+index 6ab9de3..adbb928 100644
+--- a/arch/arm/mach-omap2/clock.c
++++ b/arch/arm/mach-omap2/clock.c
+@@ -486,16 +486,17 @@ int omap2_clk_enable(struct clk *clk)
+ 	if (++clk->usecount > 1)
+ 		return 0;
  
--	local_irq_save(flags);
- 	cur_rate = omap2xxx_clk_get_core_rate(&dpll_ck, dpll_ck.parent->rate);
- 	mult = cm_read_mod_reg(PLL_MOD, CM_CLKSEL2);
- 	mult &= OMAP24XX_CORE_CLK_SRC_MASK;
-@@ -236,7 +233,7 @@ static int omap2_reprogram_dpllcore(struct clk *clk, unsigned long rate)
- 	} else if (rate != cur_rate) {
- 		valid_rate = omap2_dpllcore_round_rate(rate);
- 		if (valid_rate != rate)
--			goto dpll_exit;
-+			return -EINVAL;
++	omap2_clkdm_clk_enable(clk->clkdm.ptr, clk);
++
+ 	if (clk->parent)
+ 		ret = omap2_clk_enable(clk->parent);
  
- 		if (mult == 1)
- 			low = curr_prcm_set->dpll_speed;
-@@ -245,7 +242,7 @@ static int omap2_reprogram_dpllcore(struct clk *clk, unsigned long rate)
- 
- 		dd = clk->dpll_data;
- 		if (!dd)
--			goto dpll_exit;
-+			return -EINVAL;
- 
- 		tmpset.cm_clksel1_pll = cm_read_mod_reg(clk->prcm_mod,
- 							dd->mult_div1_reg);
-@@ -283,11 +280,8 @@ static int omap2_reprogram_dpllcore(struct clk *clk, unsigned long rate)
- 		omap2xxx_sdrc_init_params(omap2xxx_sdrc_dll_is_unlocked());
- 		omap2xxx_sdrc_reprogram(done_rate, 0);
+ 	if (ret != 0) {
+ 		clk->usecount--;
++		omap2_clkdm_clk_disable(clk->clkdm.ptr, clk);
+ 		return ret;
  	}
--	ret = 0;
  
--dpll_exit:
--	local_irq_restore(flags);
--	return(ret);
-+	return 0;
- }
+-	omap2_clkdm_clk_enable(clk->clkdm.ptr, clk);
+-
+ 	ret = _omap2_clk_enable(clk);
  
- /**
-diff --git a/arch/arm/mach-omap2/clock34xx.c b/arch/arm/mach-omap2/clock34xx.c
-index 824144e..f7ac5c1 100644
---- a/arch/arm/mach-omap2/clock34xx.c
-+++ b/arch/arm/mach-omap2/clock34xx.c
-@@ -491,10 +491,8 @@ static int omap3_core_dpll_m2_set_rate(struct clk *clk, unsigned long rate)
- 	WARN_ON(new_div != 1 && new_div != 2);
- 
- 	/* REVISIT: Add SDRC_MR changing to this code also */
--	local_irq_disable();
- 	omap3_configure_core_dpll(sp->rfr_ctrl, sp->actim_ctrla,
- 				  sp->actim_ctrlb, new_div);
--	local_irq_enable();
- 
- 	return 0;
- }
+ 	if (ret != 0) {
 
 
