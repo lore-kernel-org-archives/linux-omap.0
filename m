@@ -1,16 +1,15 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: [PATCH F 02/12] OMAP2xxx clock: consolidate DELAYED_APP clock commits;
-	fix barrier
-Date: Wed, 28 Jan 2009 12:35:03 -0700
-Message-ID: <20090128193501.2396.70073.stgit@localhost.localdomain>
+Subject: [PATCH F 01/12] OMAP2/3 clock: don't use a barrier after clk_disable()
+Date: Wed, 28 Jan 2009 12:35:01 -0700
+Message-ID: <20090128193456.2396.29131.stgit@localhost.localdomain>
 References: <20090128193326.2396.9437.stgit@localhost.localdomain>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:47778 "EHLO
+Received: from utopia.booyaka.com ([72.9.107.138]:47773 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756429AbZA1UcJ (ORCPT
+	with ESMTP id S1756425AbZA1UcJ (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>); Wed, 28 Jan 2009 15:32:09 -0500
 In-Reply-To: <20090128193326.2396.9437.stgit@localhost.localdomain>
 Sender: linux-omap-owner@vger.kernel.org
@@ -18,77 +17,55 @@ List-Id: linux-omap@vger.kernel.org
 To: linux-arm-kernel@lists.arm.linux.org.uk, linux-kernel@vger.kernel.org
 Cc: linux-omap@vger.kernel.org, Paul Walmsley <paul@pwsan.com>, Tony Lindgren <tony@atomide.com>
 
-Consolidate the commit code for DELAYED_APP clocks into a subroutine,
-_omap2xxx_clk_commit().  Also convert the MPU barrier wmb() into an
-OCP barrier, since with an MPU barrier, we have no guarantee that the
-write actually reached the endpoint device.
+clk_disable() previously used an ARM barrier, wmb(), to try to ensure
+that the hardware write completed before continuing.  There are some
+problems with this approach.
 
-linux-omap source commit is 0f5bdb736515801b296125d16937a21ff7b3cfdc.
+The first problem is that wmb() only ensures that the write leaves the
+ARM -- not that it actually reaches the endpoint device.  In this
+case, the endpoint device - either the PRM, CM, or SCM - is three
+interconnects away from the ARM, and the final interconnect is
+low-speed.  And the OCP interconnects will post the write, who knows
+how long that will take to complete.  So the wmb() is not really what
+we want.
+
+Worse, the wmb() is indiscriminate; it will cause the ARM to flush any
+other unrelated buffered writes and wait for the local interconnect to
+acknowledge them - potentially very expensive.
+
+This first problem could be fixed by doing a readback of the same PRM/CM/SCM
+register.  Since these devices use a single OCP thread, this will cause the
+MPU to wait for the write to complete.
+
+But the primary problem is a conceptual one: clk_disable() should not
+need any kind of barrier.  clk_enable() needs one since device driver
+code must not access a device until its clocks are known to be
+enabled.  But clk_disable() has no such restriction.
+
+Since blocking the MPU on a PRM/CM/SCM write can be a very
+high-latency operation - several hundred MPU cycles - it's worth
+avoiding this barrier if possible.
+
+linux-omap source commit is f4aacad2c0ed1055622d5c1e910befece24ef0e2.
 
 Signed-off-by: Paul Walmsley <paul@pwsan.com>
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
- arch/arm/mach-omap2/clock.c |   34 ++++++++++++++++++++++++----------
- 1 files changed, 24 insertions(+), 10 deletions(-)
+ arch/arm/mach-omap2/clock.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
 diff --git a/arch/arm/mach-omap2/clock.c b/arch/arm/mach-omap2/clock.c
-index a1ccdcb..25efa93 100644
+index 07b6232..a1ccdcb 100644
 --- a/arch/arm/mach-omap2/clock.c
 +++ b/arch/arm/mach-omap2/clock.c
-@@ -119,6 +119,28 @@ static void _omap2_clk_write_reg(u32 v, u16 reg_offset, struct clk *clk)
- 		cm_write_mod_reg(v, clk->prcm_mod, reg_offset);
+@@ -448,7 +448,7 @@ static void _omap2_clk_disable(struct clk *clk)
+ 	else
+ 		v &= ~(1 << clk->enable_bit);
+ 	_omap2_clk_write_reg(v, clk->enable_reg, clk);
+-	wmb();
++	/* No OCP barrier needed here since it is a disable operation */
  }
  
-+/**
-+ * _omap2xxx_clk_commit - commit clock parent/rate changes in hardware
-+ * @clk: struct clk *
-+ *
-+ * If @clk has the DELAYED_APP flag set, meaning that parent/rate changes
-+ * don't take effect until the VALID_CONFIG bit is written, write the
-+ * VALID_CONFIG bit and wait for the write to complete.  No return value.
-+ */
-+static void _omap2xxx_clk_commit(struct clk *clk)
-+{
-+	if (!cpu_is_omap24xx())
-+		return;
-+
-+	if (!(clk->flags & DELAYED_APP))
-+		return;
-+
-+	prm_write_mod_reg(OMAP24XX_VALID_CONFIG, OMAP24XX_GR_MOD,
-+			  OMAP24XX_PRCM_CLKCFG_CTRL_OFFSET);
-+	/* OCP barrier */
-+	prm_read_mod_reg(OMAP24XX_GR_MOD, OMAP24XX_PRCM_CLKCFG_CTRL_OFFSET);
-+}
-+
- /*
-  * _dpll_test_fint - test whether an Fint value is valid for the DPLL
-  * @clk: DPLL struct clk to test
-@@ -755,11 +777,7 @@ int omap2_clksel_set_rate(struct clk *clk, unsigned long rate)
- 
- 	clk->rate = clk->parent->rate / new_div;
- 
--	if (clk->flags & DELAYED_APP && cpu_is_omap24xx()) {
--		prm_write_mod_reg(OMAP24XX_VALID_CONFIG,
--			OMAP24XX_GR_MOD, OMAP24XX_PRCM_CLKCFG_CTRL_OFFSET);
--		wmb();
--	}
-+	_omap2xxx_clk_commit(clk);
- 
- 	return 0;
- }
-@@ -833,11 +851,7 @@ int omap2_clk_set_parent(struct clk *clk, struct clk *new_parent)
- 	_omap2_clk_write_reg(v, clk->clksel_reg, clk);
- 	wmb();
- 
--	if (clk->flags & DELAYED_APP && cpu_is_omap24xx()) {
--		prm_write_mod_reg(OMAP24XX_VALID_CONFIG,
--			OMAP24XX_GR_MOD, OMAP24XX_PRCM_CLKCFG_CTRL_OFFSET);
--		wmb();
--	}
-+	_omap2xxx_clk_commit(clk);
- 
- 	if (clk->usecount > 0)
- 		_omap2_clk_enable(clk);
+ void omap2_clk_disable(struct clk *clk)
 
 
