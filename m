@@ -1,73 +1,85 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: [PATCH C 00/13] OMAP clock, C of F: DPLL updates
-Date: Wed, 28 Jan 2009 12:08:05 -0700
-Message-ID: <20090128190724.12092.22239.stgit@localhost.localdomain>
+Subject: [PATCH C 02/13] OMAP3 clock: DPLL{1,2}_FCLK clksel can divide by 4
+Date: Wed, 28 Jan 2009 12:08:14 -0700
+Message-ID: <20090128190811.12092.98984.stgit@localhost.localdomain>
+References: <20090128190724.12092.22239.stgit@localhost.localdomain>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:60358 "EHLO
+Received: from utopia.booyaka.com ([72.9.107.138]:60365 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751621AbZA1UZJ (ORCPT
+	with ESMTP id S1751930AbZA1UZJ (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>); Wed, 28 Jan 2009 15:25:09 -0500
+In-Reply-To: <20090128190724.12092.22239.stgit@localhost.localdomain>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-arm-kernel@lists.arm.linux.org.uk, linux-kernel@vger.kernel.org
-Cc: linux-omap@vger.kernel.org
+Cc: linux-omap@vger.kernel.org, Paul Walmsley <paul@pwsan.com>, Tony Lindgren <tony@atomide.com>
 
-This series is the third of six to bring the mainline kernel OMAP
-clock code up-to-date with the linux-omap tree.
+OMAP34xx ES2 TRM Delta G to H states that the divider for DPLL1_FCLK and
+DPLL2_FCLK can divide by 4 in addition to dividing by 1 and 2. Encode this
+into the OMAP3 clock framework.
 
-Major changes in this series:
+linux-omap source commit is 050684c18f2ea0b08fdd5233a0cd3c7f96e00a0e.
 
-- Fix DPLL jitter compensation (FREQSEL).
-- Calculate correct rates when DPLL is in bypass.
-- Remove the virtual "bypass clocks."
-- Optimize DPLL rate rounding algorithm.
-
-Some patches have been "compressed" together, as requested by rmk -
-original commit IDs are in the patch descriptions.
-
-Compile-tested on OSK5912 (OMAP1), H4 and 2430SDP (OMAP2), and
-BeagleBoard (OMAP3).  Boot-tested on 2430SDP and BeagleBoard.
-
-Applies on top of series B, posted earlier.
-
-
-- Paul
-
+Signed-off-by: Paul Walmsley <paul@pwsan.com>
+Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
+ arch/arm/mach-omap2/clock34xx.h |   20 ++++++++++++++++----
+ 1 files changed, 16 insertions(+), 4 deletions(-)
 
-Paul Walmsley (12):
-      OMAP3 clock: disable DPLL autoidle while waiting for DPLL to lock
-      OMAP3 clock: avoid invalid FREQSEL values during DPLL rate rounding
-      OMAP3 clock: optimize DPLL rate rounding algorithm
-      OMAP3 clock: remove unnecessary dpll_data dereferences
-      OMAP3 clock: fix non-CORE DPLL rate assignment bugs
-      OMAP3 clock: put DPLL into bypass if bypass rate = clk->rate, not hardware rate
-      OMAP3 clock: recalculate DPLL subtree after bypass entry/exit
-      OMAP3 clock: DPLLs should enter bypass if new rate is sys_ck
-      OMAP3 clock: note the bypass source clock for DPLLs
-      OMAP3 clock: convert dpll_data.idlest_bit to idlest_mask
-      OMAP3 clock: DPLL{1,2}_FCLK clksel can divide by 4
-      OMAP3 clock: fix DPLL jitter correction and rate programming
-
-Tero Kristo (1):
-      OMAP2/3 clock: fix DPLL rate calculation
-
-
- arch/arm/mach-omap2/clock.c             |  162 +++++++++++++++++++-----
- arch/arm/mach-omap2/clock.h             |   15 ++
- arch/arm/mach-omap2/clock24xx.c         |   43 ++++--
- arch/arm/mach-omap2/clock24xx.h         |    3 
- arch/arm/mach-omap2/clock34xx.c         |   95 +++++++++-----
- arch/arm/mach-omap2/clock34xx.h         |  213 +++++++------------------------
- arch/arm/mach-omap2/memory.c            |    2 
- arch/arm/plat-omap/include/mach/clock.h |   15 +-
- 8 files changed, 296 insertions(+), 252 deletions(-)
-
-   text    data     bss     dec     hex filename
-3241711  163872  100912 3506495  35813f vmlinux.beagle.orig
-3241515  163680  100912 3506107  357fbb vmlinux.beagle
+diff --git a/arch/arm/mach-omap2/clock34xx.h b/arch/arm/mach-omap2/clock34xx.h
+index 781da12..9d123c6 100644
+--- a/arch/arm/mach-omap2/clock34xx.h
++++ b/arch/arm/mach-omap2/clock34xx.h
+@@ -1102,8 +1102,15 @@ static struct clk corex2_fck = {
+ 
+ /* DPLL power domain clock controls */
+ 
+-static const struct clksel div2_core_clksel[] = {
+-	{ .parent = &core_ck, .rates = div2_rates },
++static const struct clksel_rate div4_rates[] = {
++	{ .div = 1, .val = 1, .flags = RATE_IN_343X | DEFAULT_RATE },
++	{ .div = 2, .val = 2, .flags = RATE_IN_343X },
++	{ .div = 4, .val = 4, .flags = RATE_IN_343X },
++	{ .div = 0 }
++};
++
++static const struct clksel div4_core_clksel[] = {
++	{ .parent = &core_ck, .rates = div4_rates },
+ 	{ .parent = NULL }
+ };
+ 
+@@ -1113,7 +1120,7 @@ static struct clk dpll1_fck = {
+ 	.init		= &omap2_init_clksel_parent,
+ 	.clksel_reg	= _OMAP34XX_CM_REGADDR(MPU_MOD, OMAP3430_CM_CLKSEL1_PLL),
+ 	.clksel_mask	= OMAP3430_MPU_CLK_SRC_MASK,
+-	.clksel		= div2_core_clksel,
++	.clksel		= div4_core_clksel,
+ 	.flags		= CLOCK_IN_OMAP343X | RATE_PROPAGATES |
+ 				PARENT_CONTROLS_CLOCK,
+ 	.clkdm		= { .name = "cm_clkdm" },
+@@ -1191,7 +1198,7 @@ static struct clk dpll2_fck = {
+ 	.init		= &omap2_init_clksel_parent,
+ 	.clksel_reg	= _OMAP34XX_CM_REGADDR(OMAP3430_IVA2_MOD, OMAP3430_CM_CLKSEL1_PLL),
+ 	.clksel_mask	= OMAP3430_IVA2_CLK_SRC_MASK,
+-	.clksel		= div2_core_clksel,
++	.clksel		= div4_core_clksel,
+ 	.flags		= CLOCK_IN_OMAP343X | RATE_PROPAGATES |
+ 				PARENT_CONTROLS_CLOCK,
+ 	.clkdm		= { .name = "cm_clkdm" },
+@@ -1228,6 +1235,11 @@ static struct clk iva2_ck = {
+ 
+ /* Common interface clocks */
+ 
++static const struct clksel div2_core_clksel[] = {
++	{ .parent = &core_ck, .rates = div2_rates },
++	{ .parent = NULL }
++};
++
+ static struct clk l3_ick = {
+ 	.name		= "l3_ick",
+ 	.parent		= &core_ck,
 
 
