@@ -1,44 +1,117 @@
-From: "Woodruff, Richard" <r-woodruff2@ti.com>
-Subject: RE: [PATCH B 06/10] OMAP3 pwrdm: add CORE SAR handling (for USBTLL
- module)
-Date: Wed, 28 Jan 2009 20:21:18 -0600
-Message-ID: <13B9B4C6EF24D648824FF11BE89671620376DEB7A5@dlee02.ent.ti.com>
-References: <20090128024301.27240.39391.stgit@localhost.localdomain>
- <20090128024421.27240.95450.stgit@localhost.localdomain>
+From: =?ISO-8859-1?Q?Arve_Hj=F8nnev=E5g?= <arve@android.com>
+Subject: Re: lowmemory android driver not needed?
+Date: Wed, 28 Jan 2009 18:51:07 -0800
+Message-ID: <d6200be20901281851k45f9692em1379140c8951c195@mail.gmail.com>
+References: <2f11576a0901160518g52a3e70endc98fe4792a98b9b@mail.gmail.com>
+	 <d6200be20901212213x1069762cpd377d04bc5a04a91@mail.gmail.com>
+	 <20090128234209.A949.KOSAKI.MOTOHIRO@jp.fujitsu.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:34322 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752667AbZA2CVk (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 28 Jan 2009 21:21:40 -0500
-In-Reply-To: <20090128024421.27240.95450.stgit@localhost.localdomain>
-Content-Language: en-US
+Received: from mail-ew0-f21.google.com ([209.85.219.21]:49316 "EHLO
+	mail-ew0-f21.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751772AbZA2CvJ convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 28 Jan 2009 21:51:09 -0500
+In-Reply-To: <20090128234209.A949.KOSAKI.MOTOHIRO@jp.fujitsu.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>, "linux-arm-kernel@lists.arm.linux.org.uk" <linux-arm-kernel@lists.arm.linux.org.uk>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>
+To: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Greg KH <greg@kroah.com>, Alan Cox <alan@lxorguk.ukuu.org.uk>, Pavel Machek <pavel@suse.cz>, Brian Swetland <swetland@google.com>, arve@google.com, San Mehat <san@android.com>, Robert Love <rlove@google.com>, linux-kernel@vger.kernel.org, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, =?UTF-8?B?ZXh0IEp1aGEgWXJq7pKU44O7?= <juha.yrjola@solidboot.com>, viktor.rosendahl@nokia.com, Trilok Soni <soni.trilok@gmail.com>
 
-PiAzNHh4IFRSTSBEZWx0YSBHLT5IIG5vdGVzIHRoYXQgdGhlIENPUkUgcG93ZXJkb21haW4gaGFz
-IGEgaGFyZHdhcmUNCj4gc2F2ZS1hbmQtcmVzdG9yZSAoU0FSKSBjb250cm9sIGJpdCBmb3IgdGhl
-IFVTQlRMTCBtb2R1bGUsIHNpbWlsYXIgdG8NCj4gdGhlIFVTQkhPU1QgcG93ZXJkb21haW4gU0FS
-IGJpdC4gIFNwbGl0IHRoZSBleGlzdGluZyBjb3JlXzM0eHggc3RydWN0DQo+IHBvd2VyZG9tYWlu
-IGludG8gdHdvIHN0cnVjdHMsIG9uZSBmb3IgRVMxIGFuZCBvbmUgZm9yIEVTMiwgYW5kIGFkZCB0
-aGUNCj4gUFdSRE1fSEFTX0hEV1JfU0FSIGZsYWcgdG8gdGhlIEVTMiBwb3dlcmRvbWFpbi4NCj4N
-Cj4gU2lnbmVkLW9mZi1ieTogUGF1bCBXYWxtc2xleSA8cGF1bEBwd3Nhbi5jb20+DQo+IFNpZ25l
-ZC1vZmYtYnk6IFRvbnkgTGluZGdyZW4gPHRvbnlAYXRvbWlkZS5jb20+DQo+ICsNCj4gKy8qIE5v
-IHdrZGVwcyBvciBzbGVlcGRlcHMgZm9yIDM0eHggY29yZSBhcHBhcmVudGx5ICovDQo+ICtzdGF0
-aWMgc3RydWN0IHBvd2VyZG9tYWluIGNvcmVfMzR4eF9lczJfcHdyZG0gPSB7DQo+ICsgICAgIC5u
-YW1lICAgICAgICAgICAgID0gImNvcmVfcHdyZG0iLA0KPiArICAgICAucHJjbV9vZmZzICAgICAg
-ICA9IENPUkVfTU9ELA0KPiArICAgICAub21hcF9jaGlwICAgICAgICA9IE9NQVBfQ0hJUF9JTklU
-KENISVBfSVNfT01BUDM0MzBFUzIpLA0KPiAgICAgICAucHdyc3RzICAgICAgICAgICA9IFBXUlNU
-U19PRkZfUkVUX09OLA0KPiAgICAgICAuZGVwX2JpdCAgICAgICAgICA9IE9NQVAzNDMwX0VOX0NP
-UkVfU0hJRlQsDQo+ICsgICAgIC5mbGFncyAgICAgICAgICAgID0gUFdSRE1fSEFTX0hEV1JfU0FS
-LCAvKiBmb3IgVVNCVExMIG9ubHkgKi8NCj4gICAgICAgLmJhbmtzICAgICAgICAgICAgPSAyLA0K
-PiAgICAgICAucHdyc3RzX21lbV9yZXQgICA9IHsNCj4gICAgICAgICAgICAgICBbMF0gPSBQV1JT
-VFNfT0ZGX1JFVCwgICAgLyogTUVNMVJFVFNUQVRFICovDQoNClRMTFNBUiBpcyBub3QgZnVuY3Rp
-b25hbCB0aWxsIEVTMy4xIChhbmQgYmV5b3VuZCkuICBJcyBpdCBwb3NzaWJsZSB0byBmbGFnIGl0
-IHRoaXMgd2F5Pw0KDQpJZiB5b3UgdHJ5IGFuZCB1c2UgaXQgeW91ciBzeXN0ZW0gd2lsbCBkZWFk
-bG9jayBvbiAybmQgT0ZGIG1vZGUgdHJhbnNpdGlvbiBkdWUgdG8gaGFyZHdhcmUgYnVnLg0KDQpS
-ZWdhcmRzLA0KUmljaGFyZCBXLg0K
+On Wed, Jan 28, 2009 at 5:48 PM, KOSAKI Motohiro
+<kosaki.motohiro@jp.fujitsu.com> wrote:
+>> To indicate that it is more expensive to restart a killed process th=
+an
+>> a regular cache page.
+>
+> I think you already know this answer isn't actual answer.
+> anybody know >1 mean expensive. a reviewer want to know why DEFAULT_S=
+EEKS * 16
+> is best, not *10 nor *20.
+
+DEFAULT_SEEKS * 16 is probably not best. 10 or 20 probably works just
+as well. I don't remember what values I tried, but at some point
+lowmem_shrink did not get called often enough to be effective.
+
+>> >> static uint32_t lowmem_debug_level =3D 2;
+>> >> static int lowmem_adj[6] =3D {
+>> >
+>> > why do you choice [6]?
+>>
+>> We use six levels.
+>
+> if you don't consider other user and other usage case,
+> this file can't merge forever.
+
+I never expected it to be merged. I wrote it to allow us to ship a prod=
+uct.
+
+> The top problem is, this file stay on non proper place.
+> then, MM folks don't review at all.
+>
+> I think this patch need to receive MM folks review.
+
+This patch solves two problems for us:
+1. It gives us more control over which process gets killed when we run
+out of memory. This can easily be fixed in the regular oom killer
+instead.
+2. It prevents the system from getting unusable due to excessive
+demand paging. Before we added the low memory killer, we had devices
+stuck for many minutes before the system managed to allocate enough
+memory for the oom killer to kick in.
+The second problem is the most critical and if it is solved, we will
+not need this patch.
+
+>> Another problem we run into is that allocations of contiguous pages
+>> can cause kswapd to empty all the caches. This will not trigger this
+>> lowmemorykiller or the regular oom killer.
+>
+> strange usage.
+> you shouldn't use high order allocation on embedded machine.
+
+The first level page table on arm needs four contiguous pages. This is
+enough to trigger this problem. I suspect the lack of swap makes this
+problem much more apparent.
+
+>> How about this:
+>> ----
+>> diff --git a/drivers/misc/lowmemorykiller.c b/drivers/misc/lowmemory=
+killer.c
+>> index 3715d56..3f4e41a 100644
+>> --- a/drivers/misc/lowmemorykiller.c
+>> +++ b/drivers/misc/lowmemorykiller.c
+>> @@ -71,6 +71,12 @@ static int lowmem_shrink(int nr_to_scan, gfp_t gf=
+p_mask)
+>>         }
+>>         if(nr_to_scan > 0)
+>>                 lowmem_print(3, "lowmem_shrink %d, %x, ofree %d, ma
+>> %d\n", nr_to_scan, gfp_mask, other_free, min_adj);
+>> +       rem =3D global_page_state(NR_ACTIVE_ANON) +
+>> global_page_state(NR_ACTIVE_FILE);
+>> +       if (!nr_to_scan || min_adj =3D=3D OOM_ADJUST_MAX + 1) {
+>> +               lowmem_print(5, "lowmem_shrink %d, %x, return %d\n",
+>> nr_to_scan, gfp_mask, rem);
+>> +               return rem;
+>> +       }
+>> +
+>
+> I don't understand your intention.
+> if file server machine has tons NR_ACTIVE_FILE, this logic kill many
+> process.
+>
+> Do I misunderstand anything?
+
+It only kills one process at a time, and only if the amount of memory
+available is below the selected threshold. The number returned is a
+very rough estimate of how much memory can be freed. The old code used
+the sum of rss for the killable processes which is not accurate
+either.
+
+--=20
+Arve Hj=F8nnev=E5g
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
