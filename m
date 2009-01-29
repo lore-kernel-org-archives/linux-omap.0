@@ -1,216 +1,80 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCHv2] ARM: OMAP: gptimer based event monitor driver for oprofile
-Date: Thu, 29 Jan 2009 12:10:06 -0800
-Message-ID: <87tz7hlvq9.fsf@deeprootsystems.com>
-References: <200901290521.08407.siarhei.siamashka@nokia.com>
+From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+Subject: RE: [REVIEW PATCH 2/2] OMAP3EVM Multi-Media Daughter Card Support
+Date: Fri, 30 Jan 2009 01:49:50 +0530
+Message-ID: <19F8576C6E063C45BE387C64729E739403FA7901CD@dbde02.ent.ti.com>
+References: <200901292032.48972.hverkuil@xs4all.nl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from wf-out-1314.google.com ([209.85.200.175]:40132 "EHLO
-	wf-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751022AbZA2UKL (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 29 Jan 2009 15:10:11 -0500
-Received: by wf-out-1314.google.com with SMTP id 27so95437wfd.4
-        for <linux-omap@vger.kernel.org>; Thu, 29 Jan 2009 12:10:10 -0800 (PST)
-In-Reply-To: <200901290521.08407.siarhei.siamashka@nokia.com> (Siarhei Siamashka's message of "Thu\, 29 Jan 2009 05\:21\:07 +0200")
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-media-owner@vger.kernel.org>
+In-Reply-To: <200901292032.48972.hverkuil@xs4all.nl>
+Content-Language: en-US
+Sender: linux-media-owner@vger.kernel.org
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>, "Jadav, Brijesh R" <brijesh.j@ti.com>, "Shah, Hardik" <hardik.shah@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: Siarhei Siamashka <siarhei.siamashka@nokia.com>
-Cc: "linux-arm-kernel@lists.arm.linux.org.uk" <linux-arm-kernel@lists.arm.linux.org.uk>, linux-omap@vger.kernel.org, oprofile-list@lists.sourceforge.net
 
-Siarhei Siamashka <siarhei.siamashka@nokia.com> writes:
 
-> Signed-off-by: Siarhei Siamashka <siarhei.siamashka@nokia.com>
-> ---
->
-> A second revision of gptimer oprofile patch
-> http://marc.info/?l=linux-omap&m=123143937515088&w=2
-> with the fixes suggested by Tony Lindgren
->
-> Timers from the CORE domain seem to work best on OMAP3.
-> Also tested the patch on Nokia 770 (OMAP1710).
->
-> Please let me know if anything else needs to be fixed.
 
-Sorry to review this so late, but...
+Thanks,
+Vaibhav Hiremath
 
-Why do you need to use a hardware timer for this?  If you just need a
-periodic event to fire, you should just use an hrtimer.
+> -----Original Message-----
+> From: Hans Verkuil [mailto:hverkuil@xs4all.nl]
+> Sent: Friday, January 30, 2009 1:03 AM
+> To: Hiremath, Vaibhav
+> Cc: linux-omap@vger.kernel.org; linux-media@vger.kernel.org; Jadav,
+> Brijesh R; Shah, Hardik
+> Subject: Re: [REVIEW PATCH 2/2] OMAP3EVM Multi-Media Daughter Card
+> Support
+> 
+> On Thursday 29 January 2009 20:22:30 hvaibhav@ti.com wrote:
+> > From: Vaibhav Hiremath <hvaibhav@ti.com>
+> >
+> > This is second version of OMAP3EVM Mulit-Media/Mass Market
+> > Daughter Card support.
+> >
+> > Fixes:
+> >     - Cleaned unused header files, struct formating, and unused
+> >       comments.
+> >     - Pad/mux configuration handled in mux.ch
+> >     - mux.ch related changes moved to seperate patch
+> >     - Renamed file board-omap3evm-dc.c to board-omap3evm-dc-v4l.c
+> >       to make more explicit.
+> >     - Added some more meaningful name for Kconfig option
+> >
+> > TODO:
+> >     - Camera sensor support (for future development).
+> >     - Driver header file inclusion (dependency on ISP-Camera
+> patches)
+> >       I am working with Sergio to seperate/move header file to
+> standard
+> >       location.
+> >     - Still need to fix naming convention for DC
+> >
+> > Tested:
+> >     - TVP5146 (BT656) decoder interface on top of
+> >       Sergio's ISP-Camera patches.
+> >     - Loopback application, capturing image through TVP5146
+> >       and saving it to file per frame.
+> 
+> What is the status of converting tvp5146 to v4l2_subdev? The longer
+> it takes
+> to convert it, the harder it will be now that you are starting to
+> use this
+> driver. v4l2_int_device should be phased out, preferably by 2.6.30.
+> 
+> I'm more than happy to assist in this conversion, but please try to
+> do this
+> asap!
+> 
+[Hiremath, Vaibhav] Hans, I understand your concerns here. The TVP driver has strong dependency on ISP-Camera driver (Master) and without which it really doesn't make sense atleast for me. So actually I was trying to finish the ISP-Camera with V4L2-int and then migrate everything to the sub-devices. I am working with Sergio to finish this as early as possible.
+As far as sub-device framework is concerned, we have taken pro-active steps. If I understand correctly Davinci team here has already started migrating to the sub-device framework and the patches are under review internally. Soon you will see some patches on v4L mailing list for this.
 
-This would be a good way to make an oprofile model that is generic
-and would not need any HW timer support.
-
-Kevin
-
->  arch/arm/Kconfig                          |    6 ++
->  arch/arm/oprofile/Makefile                |    1 +
->  arch/arm/oprofile/common.c                |    5 ++
->  arch/arm/oprofile/op_arm_model.h          |    2 +
->  arch/arm/oprofile/op_model_omap_gptimer.c |   93 +++++++++++++++++++++++++++++
->  5 files changed, 107 insertions(+), 0 deletions(-)
->  create mode 100644 arch/arm/oprofile/op_model_omap_gptimer.c
->
-> diff --git a/arch/arm/Kconfig b/arch/arm/Kconfig
-> index e7fb201..8774136 100644
-> --- a/arch/arm/Kconfig
-> +++ b/arch/arm/Kconfig
-> @@ -160,6 +160,12 @@ config GENERIC_HARDIRQS_NO__DO_IRQ
->  
->  if OPROFILE
->  
-> +config OPROFILE_OMAP_GPTIMER
-> +	def_bool y
-> +	depends on ARCH_OMAP
-> +	select CONFIG_OMAP_32K_TIMER
-> +	select CONFIG_OMAP_DM_TIMER
-> +
->  config OPROFILE_ARMV6
->  	def_bool y
->  	depends on CPU_V6 && !SMP
-> diff --git a/arch/arm/oprofile/Makefile b/arch/arm/oprofile/Makefile
-> index 88e31f5..fc2bc02 100644
-> --- a/arch/arm/oprofile/Makefile
-> +++ b/arch/arm/oprofile/Makefile
-> @@ -8,6 +8,7 @@ DRIVER_OBJS = $(addprefix ../../../drivers/oprofile/, \
->  
->  oprofile-y				:= $(DRIVER_OBJS) common.o backtrace.o
->  oprofile-$(CONFIG_CPU_XSCALE)		+= op_model_xscale.o
-> +oprofile-$(CONFIG_OPROFILE_OMAP_GPTIMER)	+= op_model_omap_gptimer.o
->  oprofile-$(CONFIG_OPROFILE_ARM11_CORE)	+= op_model_arm11_core.o
->  oprofile-$(CONFIG_OPROFILE_ARMV6)	+= op_model_v6.o
->  oprofile-$(CONFIG_OPROFILE_MPCORE)	+= op_model_mpcore.o
-> diff --git a/arch/arm/oprofile/common.c b/arch/arm/oprofile/common.c
-> index 3fcd752..add3cb4 100644
-> --- a/arch/arm/oprofile/common.c
-> +++ b/arch/arm/oprofile/common.c
-> @@ -133,6 +133,11 @@ int __init oprofile_arch_init(struct oprofile_operations *ops)
->  
->  	ops->backtrace = arm_backtrace;
->  
-> +/* comes first, so that it can be overrided by a better implementation */
-> +#ifdef CONFIG_OPROFILE_OMAP_GPTIMER
-> +	spec = &op_omap_gptimer_spec;
-> +#endif
-> +
->  #ifdef CONFIG_CPU_XSCALE
->  	spec = &op_xscale_spec;
->  #endif
-> diff --git a/arch/arm/oprofile/op_arm_model.h b/arch/arm/oprofile/op_arm_model.h
-> index 8c4e4f6..db936da 100644
-> --- a/arch/arm/oprofile/op_arm_model.h
-> +++ b/arch/arm/oprofile/op_arm_model.h
-> @@ -24,6 +24,8 @@ struct op_arm_model_spec {
->  extern struct op_arm_model_spec op_xscale_spec;
->  #endif
->  
-> +extern struct op_arm_model_spec op_omap_gptimer_spec;
-> +
->  extern struct op_arm_model_spec op_armv6_spec;
->  extern struct op_arm_model_spec op_mpcore_spec;
->  extern struct op_arm_model_spec op_armv7_spec;
-> diff --git a/arch/arm/oprofile/op_model_omap_gptimer.c b/arch/arm/oprofile/op_model_omap_gptimer.c
-> new file mode 100644
-> index 0000000..98f7d2b
-> --- /dev/null
-> +++ b/arch/arm/oprofile/op_model_omap_gptimer.c
-> @@ -0,0 +1,93 @@
-> +/**
-> + * OMAP gptimer based event monitor driver for oprofile
-> + *
-> + * Copyright (C) 2009 Nokia Corporation
-> + * Author: Siarhei Siamashka <siarhei.siamashka@nokia.com>
-> + *
-> + * This program is free software; you can redistribute it and/or modify
-> + * it under the terms of the GNU General Public License version 2 as
-> + * published by the Free Software Foundation.
-> + *
-> + */
-> +
-> +#include <linux/types.h>
-> +#include <linux/oprofile.h>
-> +#include <linux/interrupt.h>
-> +#include <linux/irq.h>
-> +
-> +#include <mach/dmtimer.h>
-> +
-> +#include "op_counter.h"
-> +#include "op_arm_model.h"
-> +
-> +static struct omap_dm_timer *gptimer;
-> +
-> +static int gptimer_init(void)
-> +{
-> +	return 0;
-> +}
-> +
-> +static int gptimer_setup(void)
-> +{
-> +	return 0;
-> +}
-> +
-> +static irqreturn_t gptimer_interrupt(int irq, void *arg)
-> +{
-> +	omap_dm_timer_write_status(gptimer, OMAP_TIMER_INT_OVERFLOW);
-> +	oprofile_add_sample(get_irq_regs(), 0);
-> +	return IRQ_HANDLED;
-> +}
-> +
-> +static int gptimer_start(void)
-> +{
-> +	int err;
-> +	u32 count = counter_config[0].count;
-> +
-> +	BUG_ON(gptimer != NULL);
-> +	/* First try to request timers from CORE power domain for OMAP3 */
-> +	if (cpu_is_omap34xx()) {
-> +		gptimer = omap_dm_timer_request_specific(10);
-> +		if (gptimer == NULL)
-> +			gptimer = omap_dm_timer_request_specific(11);
-> +	}
-> +	/* Just any timer would be fine */
-> +	if (gptimer == NULL)
-> +		gptimer = omap_dm_timer_request();
-> +	if (gptimer == NULL)
-> +		return -ENODEV;
-> +
-> +	omap_dm_timer_set_source(gptimer, OMAP_TIMER_SRC_32_KHZ);
-> +	err = request_irq(omap_dm_timer_get_irq(gptimer), gptimer_interrupt,
-> +				IRQF_DISABLED, "oprofile gptimer", NULL);
-> +	if (err) {
-> +		omap_dm_timer_free(gptimer);
-> +		gptimer = NULL;
-> +		printk(KERN_ERR "oprofile: unable to request gptimer IRQ\n");
-> +		return err;
-> +	}
-> +
-> +	if (count < 1)
-> +		count = 1;
-> +
-> +	omap_dm_timer_set_load_start(gptimer, 1, 0xffffffff - count);
-> +	omap_dm_timer_set_int_enable(gptimer, OMAP_TIMER_INT_OVERFLOW);
-> +	return 0;
-> +}
-> +
-> +static void gptimer_stop(void)
-> +{
-> +	omap_dm_timer_set_int_enable(gptimer, 0);
-> +	free_irq(omap_dm_timer_get_irq(gptimer), NULL);
-> +	omap_dm_timer_free(gptimer);
-> +	gptimer = NULL;
-> +}
-> +
-> +struct op_arm_model_spec op_omap_gptimer_spec = {
-> +	.init		= gptimer_init,
-> +	.num_counters	= 1,
-> +	.setup_ctrs	= gptimer_setup,
-> +	.start		= gptimer_start,
-> +	.stop		= gptimer_stop,
-> +	.name		= "hrtimer",
-> +};
-> -- 
-> 1.5.6.5
->
+> Thanks,
+> 
+> 	Hans
+> 
 > --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Hans Verkuil - video4linux developer - sponsored by TANDBERG
+
