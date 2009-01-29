@@ -1,40 +1,56 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: OMAP clock fast-forward: an introduction to six series
-Date: Thu, 29 Jan 2009 17:14:50 +0000
-Message-ID: <20090129171450.GG18233@n2100.arm.linux.org.uk>
-References: <alpine.DEB.2.00.0901281310590.14710@utopia.booyaka.com> <20090128211844.GI23301@n2100.arm.linux.org.uk> <alpine.DEB.2.00.0901282357560.32081@utopia.booyaka.com> <20090129081117.GA11519@n2100.arm.linux.org.uk> <20090129083049.GB11519@n2100.arm.linux.org.uk> <20090129162556.GA32148@atomide.com> <20090129163501.GE18233@n2100.arm.linux.org.uk> <20090129164103.GD32148@atomide.com> <20090129165335.GI32148@atomide.com>
+From: Peter Reid <ppeter.reid@gmail.com>
+Subject: Re: Beagle PM hangs
+Date: Thu, 29 Jan 2009 22:50:25 +0530
+Message-ID: <345163910901290920j2fa02b20p566118fa2ae61b39@mail.gmail.com>
+References: <345163910901280814nb847b34pca50f4ee6e49929d@mail.gmail.com>
+	 <87zlhbqtrv.fsf@deeprootsystems.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:35906 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751773AbZA2RPF (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 29 Jan 2009 12:15:05 -0500
-Content-Disposition: inline
-In-Reply-To: <20090129165335.GI32148@atomide.com>
+Received: from yw-out-2324.google.com ([74.125.46.30]:14607 "EHLO
+	yw-out-2324.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752118AbZA2RU1 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 29 Jan 2009 12:20:27 -0500
+Received: by yw-out-2324.google.com with SMTP id 9so11331ywe.1
+        for <linux-omap@vger.kernel.org>; Thu, 29 Jan 2009 09:20:26 -0800 (PST)
+In-Reply-To: <87zlhbqtrv.fsf@deeprootsystems.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Paul Walmsley <paul@pwsan.com>, linux-arm-kernel@lists.arm.linux.org.uk, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Kevin Hilman <khilman@deeprootsystems.com>
+Cc: Koen Kooi <koen@beagleboard.org>, linux-omap@vger.kernel.org
 
-On Thu, Jan 29, 2009 at 08:53:35AM -0800, Tony Lindgren wrote:
-> * Tony Lindgren <tony@atomide.com> [090129 08:42]:
-> > * Russell King - ARM Linux <linux@arm.linux.org.uk> [090129 08:35]:
-> > > On Thu, Jan 29, 2009 at 08:25:58AM -0800, Tony Lindgren wrote:
-> > > > To me it does not matter which way the stuff gets merged. We just need
-> > > > to get it all merged.
-> > > > 
-> > > > If you guys can't get it merged and sorted out then it will all fall
-> > > > down on me. And then I have to use tools no smaller than a sledgehammer
-> > > > to merge it all, so the outcome won't be pretty!
-> > > 
-> > > Well, I've continued with my approach.  28 patches are currently merged
-> > > onto a follow-on branch (scattered throughout the series but in order)
-> > > and the result builds for my OMAP1, OMAP2 and OMAP3 test builds.
-> > 
-> > OK, only 32 more patches to go :)
-> 
-> I mean 42!
+Hi Kevin,
 
-You were closer first time around - there's 9 patches I'm not going to merge
-as they currently stand, which I've provided comments on.
+On Wed, Jan 28, 2009 at 9:58 PM, Kevin Hilman
+<khilman@deeprootsystems.com> wrote:
+> Peter Reid <ppeter.reid@gmail.com> writes:
+>
+>> Hi Kevin,
+>>    I get hangs after boot on beagle with latest PM tree i have quite a
+>> few scripts that run on boot.
+>>
+>>    have you seen this before?
+>
+> I have not, but I believe Koen has see something similar.  I've mainly
+> been testing just a minimal rootfs and a minimal set of drivers on
+> Beagle so I can hit full-chip off in idle.
+
+   I have a default omap3_beagle_defconfig with cpuidle, cpufreq
+   enabled.   It hangs after running the /etc boot scripts. The behaviour is
+   random. Have seen this working randomly before.
+   yet to debug this.
+
+
+  Regards,
+   reid.
+
+
+>
+> It would help if you could desribe your setup in more detail.  What
+> kernel config are you using, what rootfs are you using?  Does it hang
+> in the same spot every time?  If so, what is going on when it hangs?
+> Have you written anything to any of the /sys/power/* files?
+>
+> Kevin
+>
