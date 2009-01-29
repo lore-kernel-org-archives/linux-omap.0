@@ -1,54 +1,47 @@
-From: Greg KH <greg@kroah.com>
-Subject: Re: lowmemory android driver not needed?
-Date: Wed, 28 Jan 2009 20:59:16 -0800
-Message-ID: <20090129045916.GA24842@kroah.com>
-References: <20090129124555.b83ea0ae.kamezawa.hiroyu@jp.fujitsu.com> <20090129042748.GA24108@kroah.com> <20090129134233.A95C.KOSAKI.MOTOHIRO@jp.fujitsu.com>
+From: Krishna Kishore <krishna.kishore@sasken.com>
+Subject: [DSPBridge driver] bridgedriver: Unknown symbol __bad_func_type
+Date: Thu, 29 Jan 2009 10:49:57 +0530
+Message-ID: <F9F1042FDECC134ABFBF4EC5EBEC88DAB3600F@EXGZ02.sasken.com>
+References: <27F9C60D11D683428E133F85D2BB4A5303F7EA4D94@dlee03.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from kroah.org ([198.145.64.141]:55983 "EHLO coco.kroah.org"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1750701AbZA2FBY (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 29 Jan 2009 00:01:24 -0500
-Content-Disposition: inline
-In-Reply-To: <20090129134233.A95C.KOSAKI.MOTOHIRO@jp.fujitsu.com>
+Received: from mta-blr1.sasken.com ([203.200.200.72]:31036 "EHLO
+	mta-blr1.sasken.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750701AbZA2FUB convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 29 Jan 2009 00:20:01 -0500
+Content-Class: urn:content-classes:message
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>, Arve =?utf-8?B?SGrvv71ubmV26JmN?= <arve@android.com>, Alan Cox <alan@lxorguk.ukuu.org.uk>, Pavel Machek <pavel@suse.cz>, Brian Swetland <swetland@google.com>, arve@google.com, San Mehat <san@android.com>, Robert Love <rlove@google.com>, linux-kernel@vger.kernel.org, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, ext Juha =?utf-8?B?WXJq77+9bOODuw==?= <juha.yrjola@solidboot.com>, viktor.rosendahl@nokia.com, Trilok Soni <soni.trilok@gmail.com>
+To: linux-omap@vger.kernel.org
 
-On Thu, Jan 29, 2009 at 01:43:51PM +0900, KOSAKI Motohiro wrote:
-> > > > I never expected it to be merged. I wrote it to allow us to ship a product.
-> > > > 
-> > > Then, please write "DON'T MERGE ME" on the top of patch description.
-> > > we can adjust our viewpoints.
-> > 
-> > The code will live in the drivers/staging/ directory for now and not get
-> > merged into the "main" portion of the kernel tree until everyone can
-> > agree on it.
-> > 
-> > But for now, it is useful and seems to work for a few million devices
-> > out there, so we can't just ignore it :)
-> 
-> No. 
-> if author don't hope review and merge, we don't have any reason to reviewing.
+ 
+Hi,
 
-I don't think you understand the goal/model for the drivers/staging/
-subdirectories.  This is where "drivers" and other stand-alone chunks of
-code live while they are not yet up to the real mergable status for the
-rest of the kernel tree.  While there, they get cleaned up, fixed up,
-and then hopefully, merged into the main portion of the kernel tree when
-the proper subsystem maintainers say it is ok.
+   We are successful in building and using bridge driver with opensource
+linux kernel 
+   (with kernel provided in CSSD 23.3,23.7 and 23.11 packages).
 
-Whenever code in these directories is loaded, it taints the kernel with
-a TAINT_CRAP flag so that everyone involved knows to ignore any bug
-reports.
+   But, when we build bridge driver with a different kernel
+(Montavista), we are getting 
+         "bridgedriver: Unknown symbol __bad_func_type"
+   when we install bridgedriver.ko.
 
-So while a review would be wonderful to have, it's not being asked for
-for this specific low-memory "driver".  I'd like to see your final
-version of what you proposed a while ago, if that goes into the kernel
-tree, then this chunk of code will merely be deleted entirely.
+   Why is this problem occuring with one specific linux kernel?
 
-Hope this helps explain things better,
+Regards,
+Kishore.
+SASKEN BUSINESS DISCLAIMER
+-------------------------
+This message may contain confidential, proprietary or legally privileged information. In 
+case you are not the original intended Recipient of the message, you must not, directly or 
+indirectly, use, Disclose, distribute, print, or copy any part of this message and you are 
+requested to delete it and inform the sender. Any views expressed in this message are 
+those of the individual sender unless otherwise stated. Nothing contained in this message 
+shall be construed as an offer or acceptance of any offer by Sasken Communication 
+Technologies Limited ("Sasken") unless sent with that express intent and with due 
+authority of Sasken. Sasken has taken enough precautions to prevent the spread of 
+viruses. However the company accepts no liability for any damage caused by any virus 
+transmitted by this email
 
-greg k-h
