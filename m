@@ -1,55 +1,40 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [PATCH E 11/14] OMAP clock: track child clocks
-Date: Thu, 29 Jan 2009 15:14:01 +0000
-Message-ID: <20090129151401.GC18233@n2100.arm.linux.org.uk>
-References: <20090128192551.29333.82943.stgit@localhost.localdomain> <20090128192756.29333.41541.stgit@localhost.localdomain>
+From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+Subject: Naming convention used in mux.c
+Date: Thu, 29 Jan 2009 21:04:22 +0530
+Message-ID: <19F8576C6E063C45BE387C64729E739403FA79019A@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:33258 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754828AbZA2POP (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 29 Jan 2009 10:14:15 -0500
-Content-Disposition: inline
-In-Reply-To: <20090128192756.29333.41541.stgit@localhost.localdomain>
+Received: from comal.ext.ti.com ([198.47.26.152]:48069 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752606AbZA2Peb convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 29 Jan 2009 10:34:31 -0500
+Received: from dbdp20.itg.ti.com ([172.24.170.38])
+	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id n0TFYN7F002626
+	for <linux-omap@vger.kernel.org>; Thu, 29 Jan 2009 09:34:29 -0600
+Received: from dbde71.ent.ti.com (localhost [127.0.0.1])
+	by dbdp20.itg.ti.com (8.13.8/8.13.8) with ESMTP id n0TFYMmW014450
+	for <linux-omap@vger.kernel.org>; Thu, 29 Jan 2009 21:04:22 +0530 (IST)
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: linux-arm-kernel@lists.arm.linux.org.uk, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>
+To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Wed, Jan 28, 2009 at 12:27:59PM -0700, Paul Walmsley wrote:
-> The price paid is additional runtime memory consumption - 8 bytes per
-> clock and 16 bytes per child clock - roughly 4.5KiB on OMAP3.
+Hi,
 
-For OMAP3, that's 222 struct clks of which 182 are children, and indeed
-222 * 8 + 182 * 16 gives about 4.5K.  On OMAP2, it's 140 and 136,
-giving 140 * 8 + 136 * 16 = 3.3K.
+Can anybody tell me the meaning of naming convention used in mux.c file, e.g. - 
 
-Moving struct clk_child into struct clk means that its clk and flags
-members can be deleted, making it 8 bytes in size - effectively just
-the list_head.  We need a list_head for the 'children' as you have it.
-So, that works out as 16 bytes per clock.  That gives 3.5K on OMAP3
-and 2.2K on OMAP2.
+MUX_CFG_34XX("AH8_34XX_GPIO29", 0x5fa,
+                OMAP34XX_MUX_MODE4 | OMAP34XX_PIN_INPUT)
+MUX_CFG_34XX("J25_34XX_GPIO170", 0x1c6,
+                OMAP34XX_MUX_MODE4 | OMAP34XX_PIN_INPUT)
 
-So, by taking that alternative approach, not only do you end up using
-less memory, but you also don't have to have the overhead of your
-custom memory bookkeeping.
+What the suffix "AH8_" and "J25_" means here? I looked into TRM and could not able to co-relate with any meaningful?
 
-The other change I'd suggest is that you have one function which deals
-with setting the parent of a clock:
+Thanks,
+Vaibhav Hiremath
+Platform Support Products
+Texas Instruments Inc
+Ph: +91-80-25099927
 
-void clk_reparent(struct clk *child, struct clk *parent)
-{
-	list_del_init(&child->sibling);
-	if (parent)
-		list_add(&child->sibling, &parent->children);
-	child->parent = parent;
-
-	/* now do the debugfs renaming to reattach the child
-	   to the proper parent */
-}
-
-which is a lot simpler than your omap_clk_add_child() and omap_clk_del_child().
-
-These should be in the _core_ OMAP clock code, not just in the OMAP2
-clock code.  OMAP1 has child clocks as well as OMAP2.
