@@ -1,73 +1,150 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH A 01/10] OMAP2/3: Add non-CORE DPLL rate set code and M,
- N programming
-Date: Thu, 29 Jan 2009 00:21:22 -0700 (MST)
-Message-ID: <alpine.DEB.2.00.0901290006150.32081@utopia.booyaka.com>
-References: <20090128020447.7244.80496.stgit@localhost.localdomain> <20090128021243.7244.6362.stgit@localhost.localdomain> <20090128221056.GJ23301@n2100.arm.linux.org.uk>
+Subject: Re: [PATCH A 09/10] OMAP2/3: Remove OMAP_PRM_REGADDR,
+ OMAP_CM_REGADDR
+Date: Thu, 29 Jan 2009 00:40:09 -0700 (MST)
+Message-ID: <alpine.DEB.2.00.0901290021360.32081@utopia.booyaka.com>
+References: <20090128020447.7244.80496.stgit@localhost.localdomain> <20090128021312.7244.2415.stgit@localhost.localdomain> <20090128232831.GL23301@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:40918 "EHLO
+Received: from utopia.booyaka.com ([72.9.107.138]:33263 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752180AbZA2HVY (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 29 Jan 2009 02:21:24 -0500
-In-Reply-To: <20090128221056.GJ23301@n2100.arm.linux.org.uk>
+	with ESMTP id S1752386AbZA2HkM (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 29 Jan 2009 02:40:12 -0500
+In-Reply-To: <20090128232831.GL23301@n2100.arm.linux.org.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Russell King - ARM Linux <linux@arm.linux.org.uk>
 Cc: linux-arm-kernel@lists.arm.linux.org.uk, linux-kernel@vger.kernel.org, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org
 
-Hello Russell,
+Hi Russell,
 
 On Wed, 28 Jan 2009, Russell King - ARM Linux wrote:
 
-> Since it's been posted to lists, comments are going to be made...
-
-Yes, that was the point.
-
-> On Tue, Jan 27, 2009 at 07:12:47PM -0700, Paul Walmsley wrote:
-> > +	/*
-> > +	 * According to the 12-5 CDP code from TI, "Limitation 2.5"
-> > +	 * on 3430ES1 prevents us from changing DPLL multipliers or dividers
-> > +	 * on DPLL4.
-> > +	 */
-> > +	if (omap_rev() == OMAP3430_REV_ES1_0 &&
-> > +	    !strcmp("dpll4_ck", clk->name)) {
-> > +		printk(KERN_ERR "clock: DPLL4 cannot change rate due to "
-> > +		       "silicon 'Limitation 2.5' on 3430ES1.\n");
-> > +		return -EINVAL;
-> > +	}
+> On Tue, Jan 27, 2009 at 07:13:16PM -0700, Paul Walmsley wrote:
+> > diff --git a/arch/arm/mach-omap2/clock.c b/arch/arm/mach-omap2/clock.c
+> > index c4b80a4..55c5d67 100644
+> > --- a/arch/arm/mach-omap2/clock.c
+> > +++ b/arch/arm/mach-omap2/clock.c
+> > @@ -27,6 +27,7 @@
+> >  #include <mach/clock.h>
+> >  #include <mach/clockdomain.h>
+> >  #include <mach/cpu.h>
+> > +#include <mach/prcm.h>
+> >  #include <asm/div64.h>
+> >  
+> >  #include "memory.h"
+> > @@ -247,9 +248,9 @@ static void omap2_clk_wait_ready(struct clk *clk)
+> >  	/* REVISIT: What are the appropriate exclusions for 34XX? */
+> >  	/* OMAP3: ignore DSS-mod clocks */
+> >  	if (cpu_is_omap34xx() &&
+> > -	    (((u32)reg & ~0xff) == (u32)OMAP_CM_REGADDR(OMAP3430_DSS_MOD, 0) ||
+> > -	     ((((u32)reg & ~0xff) == (u32)OMAP_CM_REGADDR(CORE_MOD, 0)) &&
+> > -	     clk->enable_bit == OMAP3430_EN_SSI_SHIFT)))
+> > +	    (((u32)reg & ~0xff) == cm_read_mod_reg(OMAP3430_DSS_MOD, 0) ||
+> > +	     ((((u32)reg & ~0xff) == cm_read_mod_reg(CORE_MOD, 0)) &&
+> > +	      clk->enable_bit == OMAP3430_EN_SSI_SHIFT)))
+> >  		return;
 > 
-> Yuck.  That's revolting and extremely fragile.  Don't play these games. 
-> You've got plenty of free flag bits in clk->flags which could be used to 
-> prevent the DPLL from being changed.  You've also got other ways to 
-> prevent it - eg, setting dpll_data to NULL.
-
-dpll_data is used for other DPLL register settings (such as autoidle and 
-mode setting), so we should probably leave dpll_data as-is.  Your proposed 
-fix in your subsequent message sounds good (viz., adding a separate static 
-omap3_dpll4_set_rate() function).
-
-> However, what's worse is that, below...
+> As suggested in patch 2, I hate this approach.  It's far better to deal
+> with this by changing the way we handle enabling and disabling clocks,
+> hence my
 > 
-> > +static int omap3_noncore_dpll_set_rate(struct clk *clk, unsigned long rate)
+> "[ARM] omap: eliminate unnecessary conditionals in omap2_clk_wait_ready"
+
+This function is radically cleaned up in a following patch, patch D 10.  I 
+regret that I wasn't able to compress the above patch with D 10, but the 
+change delta between the two patches was quite large.
+
+> > @@ -476,6 +466,37 @@ static int __init omap2_clk_arch_init(void)
+> >  }
+> >  arch_initcall(omap2_clk_arch_init);
+> >  
+> > +static u32 prm_base;
+> > +static u32 cm_base;
+> > +
+> > +/*
+> > + * Since we share clock data for 242x and 243x, we need to rewrite some
+> > + * some register base offsets. Assume offset is at prm_base if flagged,
+> > + * else assume it's cm_base.
+> > + */
+> > +static inline void omap2_clk_check_reg(u32 flags, void __iomem **reg)
 > > +{
-
-...
-
-> > +	omap3_noncore_dpll_program(clk, dd->last_rounded_m, dd->last_rounded_n,
-> > +				   freqsel);
+> > +	u32 tmp = (__force u32)*reg;
+> > +
+> > +	if ((tmp >> 24) != 0)
+> > +		return;
+> > +
+> > +	if (flags & OFFSET_GR_MOD)
+> > +		tmp += prm_base;
+> > +	else
+> > +		tmp += cm_base;
+> > +
+> > +	*reg = (__force void __iomem *)tmp;
+> > +}
+> > +
+> > +void __init omap2_clk_rewrite_base(struct clk *clk)
+> > +{
+> > +	omap2_clk_check_reg(clk->flags, &clk->clksel_reg);
+> > +	omap2_clk_check_reg(clk->flags, &clk->enable_reg);
+> > +	if (clk->dpll_data)
+> > +		omap2_clk_check_reg(0, &clk->dpll_data->mult_div1_reg);
+> > +}
+> > +
+> >  int __init omap2_clk_init(void)
+> >  {
+> >  	struct prcm_config *prcm;
+> > @@ -487,6 +508,12 @@ int __init omap2_clk_init(void)
+> >  	else if (cpu_is_omap2430())
+> >  		cpu_mask = RATE_IN_243X;
+> >  
+> > +	for (clkp = onchip_24xx_clks;
+> > +	     clkp < onchip_24xx_clks + ARRAY_SIZE(onchip_24xx_clks);
+> > +	     clkp++) {
+> > +			omap2_clk_rewrite_base(*clkp);
+> > +	}
+> > +
 > 
-> The return value from the above test isn't checked, so this function
-> will succeed even for dpll4_ck.
+> I'm afraid this also fails to satisfy my decency filter.  Let's summarise
+> what's going on here.
+> 
+> - the structure initializers are setup to cast integer register offsets
+>   to void __iomem *.
+> - the code above walks all clock structures, looking for what could be
+>   considered an offset (iow, bits 31-24 of the pointer being zero).
+> - it looks at the OFFSET_GR_MOD flag to determine which base to add in
+> - the base address is not 'void __iomem *' but 'u32'.
+> - we update the void __iomem * pointers in the structure.
+> 
+> So, we have a base address which is an integer, and an offset which is
+> an void __iomem *.
+> 
+> I can see why you want to do this, but I think it needs more thought.
+> I'll sit on this patch for a while.
 
-Indeed, the return value should be passed along to the caller.  The 
-previous check does, however, prevent the DPLL4 registers from being 
-written on 3430ES1.
+I agree with your decency filter.  I believe that patch was written for 
+expediency.  It turns out that all of the register rewriting code is 
+ultimately unnecessary, and is wiped out in patch D 08.
 
->From your subsequent message, it sounds like you've merged a version of 
-this patch with your proposed fixes.  Please let me know if you'd 
-like me to send an updated version of this patch anyway.
+> In the mean time, I've fixed up patches 1-8,10 to apply on top of my
+> patch set.
+> 
+> However, still waiting for a few to come through: D6, E2 and F2.  No,
+> these aren't suck in any of my mail spools or list admin queues.
+
+The patches did make it to linux-kernel and linux-omap, but these three 
+patches were bounced by the linux-arm-kernel mailing list manager with the 
+following error message:
+
+---
+Remote host said: 550-Subjects containing xxx are taboo to many list 
+subscribers; we have no
+550 option but to reject your message.  Sorry.
+---
+
+The subject lines of these patches contain words like 'OMAP2xxx'.  
+Would you like me to resend these patches to your list with the subject 
+lines changed?
 
 
 - Paul
