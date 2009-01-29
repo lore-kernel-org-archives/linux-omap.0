@@ -1,66 +1,46 @@
-From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Subject: Re: lowmemory android driver not needed?
-Date: Thu, 29 Jan 2009 14:29:05 +0900 (JST)
-Message-ID: <20090129141238.A962.KOSAKI.MOTOHIRO@jp.fujitsu.com>
-References: <20090129134233.A95C.KOSAKI.MOTOHIRO@jp.fujitsu.com> <20090129045916.GA24842@kroah.com>
+From: Ramesh Gupta Guntha <grgupta77@gmail.com>
+Subject: Re: [DSPBridge driver] bridgedriver: Unknown symbol __bad_func_type
+Date: Thu, 29 Jan 2009 12:14:54 +0530
+Message-ID: <3a2dabf50901282244n26f39318t80268334d9373f5e@mail.gmail.com>
+References: <27F9C60D11D683428E133F85D2BB4A5303F7EA4D94@dlee03.ent.ti.com>
+	 <F9F1042FDECC134ABFBF4EC5EBEC88DAB3600F@EXGZ02.sasken.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-2022-JP"
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1756344AbZA2F3Z@vger.kernel.org>
-In-Reply-To: <20090129045916.GA24842@kroah.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Greg KH <greg@kroah.com>
-Cc: kosaki.motohiro@jp.fujitsu.com, KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>, Arve =?ISO-2022-JP?B?SGo/bm5ldhskQmlIGyhC?= <arve@android.com>, Alan Cox <alan@lxorguk.ukuu.org.uk>, Pavel Machek <pavel@suse.cz>, Brian Swetland <swetland@google.com>, arve@google.com, San Mehat <san@android.com>, Robert Love <rlove@google.com>, linux-kernel@vger.kernel.org, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, ext Juha =?ISO-2022-JP?B?WXJqP2wbJEIhJhsoQiA=?= <juha.yrjola@solidboot.com>, viktor.rosendahl@nokia.com, Trilok Soni <soni.trilok@gmail.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from rv-out-0506.google.com ([209.85.198.233]:28434 "EHLO
+	rv-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750988AbZA2Go4 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 29 Jan 2009 01:44:56 -0500
+Received: by rv-out-0506.google.com with SMTP id g9so2142125rvb.5
+        for <linux-omap@vger.kernel.org>; Wed, 28 Jan 2009 22:44:54 -0800 (PST)
+In-Reply-To: <F9F1042FDECC134ABFBF4EC5EBEC88DAB3600F@EXGZ02.sasken.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Krishna Kishore <krishna.kishore@sasken.com>
+Cc: linux-omap@vger.kernel.org
 
-> > > > > I never expected it to be merged. I wrote it to allow us to ship a product.
-> > > > > 
-> > > > Then, please write "DON'T MERGE ME" on the top of patch description.
-> > > > we can adjust our viewpoints.
-> > > 
-> > > The code will live in the drivers/staging/ directory for now and not get
-> > > merged into the "main" portion of the kernel tree until everyone can
-> > > agree on it.
-> > > 
-> > > But for now, it is useful and seems to work for a few million devices
-> > > out there, so we can't just ignore it :)
-> > 
-> > No. 
-> > if author don't hope review and merge, we don't have any reason to reviewing.
-> 
-> I don't think you understand the goal/model for the drivers/staging/
-> subdirectories.  This is where "drivers" and other stand-alone chunks of
-> code live while they are not yet up to the real mergable status for the
-> rest of the kernel tree.  
-
-I think staging is great activity, but I also think it is no good idea 
-for kernel core piece.
-
-> While there, they get cleaned up, fixed up,
-> and then hopefully, merged into the main portion of the kernel tree when
-> the proper subsystem maintainers say it is ok.
-
-The fact is simple more. if auther refuse to receive reviewing,
-the code don't clean up at all, don't fix up at all.
-then, dropping is better.
+Hi Krishna,
 
 
-> Whenever code in these directories is loaded, it taints the kernel with
-> a TAINT_CRAP flag so that everyone involved knows to ignore any bug
-> reports.
-> 
-> So while a review would be wonderful to have, it's not being asked for
-> for this specific low-memory "driver".  I'd like to see your final
-> version of what you proposed a while ago, if that goes into the kernel
-> tree, then this chunk of code will merely be deleted entirely.
-> 
-> Hope this helps explain things better,
+On 1/29/09, Krishna Kishore <krishna.kishore@sasken.com> wrote:
+>
+> Hi,
+>
+>   We are successful in building and using bridge driver with opensource
+> linux kernel
+>   (with kernel provided in CSSD 23.3,23.7 and 23.11 packages).
+>
+>   But, when we build bridge driver with a different kernel
+> (Montavista), we are getting
+>         "bridgedriver: Unknown symbol __bad_func_type"
+>   when we install bridgedriver.ko.
+>
+>   Why is this problem occuring with one specific linux kernel?
 
-Again, I respect for your drivers/staging activity largely.
-then, I don't oppose any driver merge to staging.
+Are you seeing any warnings while building the Bridgedriver with
+Montavista kernel? I think may be some of the functions are not
+supported in Montavista Kernel.
 
-but I don't think driver/staging is good place for non driver code.
-The problem is, any patch must be reviewed by stakeholder, not maintenar only.
-then, the patch should post lkml and subsystem mailing list at first.
-
-I like reviewed code than unreviewed code.
+regards
+Ramesh Gupta G
