@@ -1,80 +1,55 @@
-From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Subject: RE: [REVIEW PATCH 2/2] OMAP3EVM Multi-Media Daughter Card Support
-Date: Fri, 30 Jan 2009 01:49:50 +0530
-Message-ID: <19F8576C6E063C45BE387C64729E739403FA7901CD@dbde02.ent.ti.com>
-References: <200901292032.48972.hverkuil@xs4all.nl>
+From: David Brownell <david-b-yBeKhBN/0LDR7s880joybQ@public.gmane.org>
+Subject: Re: [PATCH] usb: musb: adding nop usb transceiver
+Date: Thu, 29 Jan 2009 12:41:18 -0800
+Message-ID: <200901291241.19602.david-b@pacbell.net>
+References: <1231411988-7330-1-git-send-email-ajay.gupta@ti.com> <200901222329.07689.david-b@pacbell.net> <19F8576C6E063C45BE387C64729E739403FA790059@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-media-owner@vger.kernel.org>
-In-Reply-To: <200901292032.48972.hverkuil@xs4all.nl>
-Content-Language: en-US
-Sender: linux-media-owner@vger.kernel.org
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>, "Jadav, Brijesh R" <brijesh.j@ti.com>, "Shah, Hardik" <hardik.shah@ti.com>
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <19F8576C6E063C45BE387C64729E739403FA790059-/tLxBxkBPtCIQmiDNMet8wC/G2K4zDHf@public.gmane.org>
+Content-Disposition: inline
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "Gupta, Ajay Kumar" <ajay.gupta-l0cyMroinI0@public.gmane.org>
+Cc: "linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org" <felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
+On Thursday 29 January 2009, Gupta, Ajay Kumar wrote:
+> > We'll need something like this, yes.
+> > This one looks to need a bit of tweaking yet though ...
+> > probably that could be done after merge. =A0
+>=20
+> > The state can need changing after one of the drivers is unregistere=
+d;
+>=20
+> I didn't get this comment.
+
+Basically, that almost all of the OTG state machine must be
+handled outside of this code.  It's a bit of a puzzle how to
+partition that state machine between the drivers that need
+to collaborate on it.  At this point I don't think there can
+be a single model that applies everywhere ... but maybe one
+could evolve over time.
 
 
-Thanks,
-Vaibhav Hiremath
+> done. Added this nop_xceiv_register() which can be called from
+> board-init files to register NOP.
+>=20
+> Please review the modified patch version below.
 
-> -----Original Message-----
-> From: Hans Verkuil [mailto:hverkuil@xs4all.nl]
-> Sent: Friday, January 30, 2009 1:03 AM
-> To: Hiremath, Vaibhav
-> Cc: linux-omap@vger.kernel.org; linux-media@vger.kernel.org; Jadav,
-> Brijesh R; Shah, Hardik
-> Subject: Re: [REVIEW PATCH 2/2] OMAP3EVM Multi-Media Daughter Card
-> Support
-> 
-> On Thursday 29 January 2009 20:22:30 hvaibhav@ti.com wrote:
-> > From: Vaibhav Hiremath <hvaibhav@ti.com>
-> >
-> > This is second version of OMAP3EVM Mulit-Media/Mass Market
-> > Daughter Card support.
-> >
-> > Fixes:
-> >     - Cleaned unused header files, struct formating, and unused
-> >       comments.
-> >     - Pad/mux configuration handled in mux.ch
-> >     - mux.ch related changes moved to seperate patch
-> >     - Renamed file board-omap3evm-dc.c to board-omap3evm-dc-v4l.c
-> >       to make more explicit.
-> >     - Added some more meaningful name for Kconfig option
-> >
-> > TODO:
-> >     - Camera sensor support (for future development).
-> >     - Driver header file inclusion (dependency on ISP-Camera
-> patches)
-> >       I am working with Sergio to seperate/move header file to
-> standard
-> >       location.
-> >     - Still need to fix naming convention for DC
-> >
-> > Tested:
-> >     - TVP5146 (BT656) decoder interface on top of
-> >       Sergio's ISP-Camera patches.
-> >     - Loopback application, capturing image through TVP5146
-> >       and saving it to file per frame.
-> 
-> What is the status of converting tvp5146 to v4l2_subdev? The longer
-> it takes
-> to convert it, the harder it will be now that you are starting to
-> use this
-> driver. v4l2_int_device should be phased out, preferably by 2.6.30.
-> 
-> I'm more than happy to assist in this conversion, but please try to
-> do this
-> asap!
-> 
-[Hiremath, Vaibhav] Hans, I understand your concerns here. The TVP driver has strong dependency on ISP-Camera driver (Master) and without which it really doesn't make sense atleast for me. So actually I was trying to finish the ISP-Camera with V4L2-int and then migrate everything to the sub-devices. I am working with Sergio to finish this as early as possible.
-As far as sub-device framework is concerned, we have taken pro-active steps. If I understand correctly Davinci team here has already started migrating to the sub-device framework and the patches are under review internally. Soon you will see some patches on v4L mailing list for this.
+Well, I count *two* patches.  :)
 
-> Thanks,
-> 
-> 	Hans
-> 
-> --
-> Hans Verkuil - video4linux developer - sponsored by TANDBERG
+I'll tweak this one a bit.  It's pretty close.  That
+registration function should have a usb_*() prefix
+and not be declared in an MUSB-only header, since it
+could potentially be used with other OTG hardware.
 
+Thanks.
+
+- Dave
+
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
