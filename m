@@ -1,85 +1,42 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: [PATCH v2 2/2] OMAP3: GPIO: disable GPIO debounce clocks on idle
-Date: Wed, 28 Jan 2009 17:58:02 -0800
-Message-ID: <1233194282-30057-3-git-send-email-khilman@deeprootsystems.com>
-References: <1233194282-30057-1-git-send-email-khilman@deeprootsystems.com>
- <1233194282-30057-2-git-send-email-khilman@deeprootsystems.com>
+From: David Brownell <david-b@pacbell.net>
+Subject: Re: [PATCH 2/9] ARM: OMAP: Fix McBSP spin_lock deadlock
+Date: Wed, 28 Jan 2009 18:05:38 -0800
+Message-ID: <200901281805.38609.david-b@pacbell.net>
+References: <20090128181931.21007.73744.stgit@localhost> <200901281553.07677.david-b@pacbell.net> <20090129005127.GW32148@atomide.com>
+Mime-Version: 1.0
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from wf-out-1314.google.com ([209.85.200.169]:10300 "EHLO
-	wf-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753388AbZA2B6M (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 28 Jan 2009 20:58:12 -0500
-Received: by wf-out-1314.google.com with SMTP id 27so8408212wfd.4
-        for <linux-omap@vger.kernel.org>; Wed, 28 Jan 2009 17:58:11 -0800 (PST)
-In-Reply-To: <1233194282-30057-2-git-send-email-khilman@deeprootsystems.com>
+Received: from smtp126.sbc.mail.sp1.yahoo.com ([69.147.65.185]:41673 "HELO
+	smtp126.sbc.mail.sp1.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1752288AbZA2CFk (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Wed, 28 Jan 2009 21:05:40 -0500
+In-Reply-To: <20090129005127.GW32148@atomide.com>
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, linux-arm-kernel@lists.arm.linux.org.uk, "Stanley.Miao" <stanley.miao@windriver.com>, linux-omap@vger.kernel.org
 
-Ensure GPIO debounce clocks are disabled when idle.  Otherwise,
-clocks will prevent PER powerdomain from entering retention.
+On Wednesday 28 January 2009, Tony Lindgren wrote:
+> 
+> > > AFAIK it happens in the mainline with CONFIG_PREMEPT and ASoC.
+> > 
+> > I thought it was just spinlock debugging, period.
 
-Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
----
- arch/arm/mach-omap2/pm34xx.c |    4 ++++
- arch/arm/plat-omap/gpio.c    |    8 ++++++++
- 2 files changed, 12 insertions(+), 0 deletions(-)
+... on top of ASoC, yes.
 
-diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
-index 5ac0393..bf309f2 100644
---- a/arch/arm/mach-omap2/pm34xx.c
-+++ b/arch/arm/mach-omap2/pm34xx.c
-@@ -466,6 +466,10 @@ static int omap3_fclks_active(void)
- 	fck_core1 &= ~(OMAP3430_EN_UART1 | OMAP3430_EN_UART2);
- 	fck_per &= ~OMAP3430_EN_UART3;
  
-+	/* Ignore GPIO clocks.  Handled by GPIO prepare-idle hooks */
-+	fck_per &= ~(OMAP3430_EN_GPIO2 | OMAP3430_EN_GPIO3 |
-+		     OMAP3430_EN_GPIO4 | OMAP3430_EN_GPIO5 | OMAP3430_EN_GPIO6);
-+
- 	if (fck_core1 | fck_core3 | fck_sgx | fck_dss |
- 	    fck_cam | fck_per | fck_usbhost)
- 		return 1;
-diff --git a/arch/arm/plat-omap/gpio.c b/arch/arm/plat-omap/gpio.c
-index cd7380e..eb7a703 100644
---- a/arch/arm/plat-omap/gpio.c
-+++ b/arch/arm/plat-omap/gpio.c
-@@ -154,6 +154,7 @@ struct gpio_bank {
- 	spinlock_t lock;
- 	struct gpio_chip chip;
- 	struct clk *dbck;
-+	u32 dbck_enable_mask;
- };
- 
- #define METHOD_MPUIO		0
-@@ -489,6 +490,7 @@ void omap_set_gpio_debounce(int gpio, int enable)
- 		goto done;
- 
- 	if (cpu_is_omap34xx()) {
-+		bank->dbck_enable_mask = val;
- 		if (enable)
- 			clk_enable(bank->dbck);
- 		else
-@@ -1639,6 +1641,9 @@ void omap2_gpio_prepare_for_idle(int power_state)
- 		struct gpio_bank *bank = &gpio_bank[i];
- 		u32 l1, l2;
- 
-+		if (cpu_is_omap34xx() && bank->dbck_enable_mask)
-+			clk_disable(bank->dbck);
-+
- 		if (power_state > PWRDM_POWER_OFF)
- 			continue;
- 
-@@ -1682,6 +1687,9 @@ void omap2_gpio_resume_after_idle(void)
- 		struct gpio_bank *bank = &gpio_bank[i];
- 		u32 l;
- 
-+		if (cpu_is_omap34xx() && bank->dbck_enable_mask)
-+			clk_enable(bank->dbck);
-+
- 		if (!workaround_enabled)
- 			continue;
- 
--- 
-1.6.1
+> Yeah right, that's all there is to it. Without ASoC there may not be
+> any McBSP users.. And to see the warnings spinlock debugging is needed.
+
+And, as I understand, it works OK without spinlock debugging.
+
+Some of us leave that on all the time though, which means that
+OMAP3 ALSA support is more heard "of" than heard.  ;)
+
+- Dave
+
 
