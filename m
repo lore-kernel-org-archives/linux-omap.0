@@ -1,53 +1,49 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: RE: [PATCH B 06/10] OMAP3 pwrdm: add CORE SAR handling (for USBTLL
- module)
-Date: Thu, 29 Jan 2009 00:47:36 -0700 (MST)
-Message-ID: <alpine.DEB.2.00.0901290042020.32081@utopia.booyaka.com>
-References: <20090128024301.27240.39391.stgit@localhost.localdomain> <20090128024421.27240.95450.stgit@localhost.localdomain> <13B9B4C6EF24D648824FF11BE89671620376DEB7A5@dlee02.ent.ti.com>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: OMAP clock fast-forward: an introduction to six series
+Date: Thu, 29 Jan 2009 08:11:17 +0000
+Message-ID: <20090129081117.GA11519@n2100.arm.linux.org.uk>
+References: <alpine.DEB.2.00.0901281310590.14710@utopia.booyaka.com> <20090128211844.GI23301@n2100.arm.linux.org.uk> <alpine.DEB.2.00.0901282357560.32081@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:54868 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752639AbZA2Hrh (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 29 Jan 2009 02:47:37 -0500
-In-Reply-To: <13B9B4C6EF24D648824FF11BE89671620376DEB7A5@dlee02.ent.ti.com>
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:45832 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751256AbZA2ILh (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 29 Jan 2009 03:11:37 -0500
+Content-Disposition: inline
+In-Reply-To: <alpine.DEB.2.00.0901282357560.32081@utopia.booyaka.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Woodruff, Richard" <r-woodruff2@ti.com>
-Cc: "linux-arm-kernel@lists.arm.linux.org.uk" <linux-arm-kernel@lists.arm.linux.org.uk>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>
+To: Paul Walmsley <paul@pwsan.com>
+Cc: linux-arm-kernel@lists.arm.linux.org.uk, tony@atomide.com, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 
-Hi Richard,
-
-On Wed, 28 Jan 2009, Woodruff, Richard wrote:
-
-> > 34xx TRM Delta G->H notes that the CORE powerdomain has a hardware
-> > save-and-restore (SAR) control bit for the USBTLL module, similar to
-> > the USBHOST powerdomain SAR bit.  Split the existing core_34xx struct
-> > powerdomain into two structs, one for ES1 and one for ES2, and add the
-> > PWRDM_HAS_HDWR_SAR flag to the ES2 powerdomain.
-> >
-> > Signed-off-by: Paul Walmsley <paul@pwsan.com>
-> > Signed-off-by: Tony Lindgren <tony@atomide.com>
-> > +
-> > +/* No wkdeps or sleepdeps for 34xx core apparently */
-> > +static struct powerdomain core_34xx_es2_pwrdm = {
-> > +     .name             = "core_pwrdm",
-> > +     .prcm_offs        = CORE_MOD,
-> > +     .omap_chip        = OMAP_CHIP_INIT(CHIP_IS_OMAP3430ES2),
-> >       .pwrsts           = PWRSTS_OFF_RET_ON,
-> >       .dep_bit          = OMAP3430_EN_CORE_SHIFT,
-> > +     .flags            = PWRDM_HAS_HDWR_SAR, /* for USBTLL only */
-> >       .banks            = 2,
-> >       .pwrsts_mem_ret   = {
-> >               [0] = PWRSTS_OFF_RET,    /* MEM1RETSTATE */
+On Thu, Jan 29, 2009 at 12:05:13AM -0700, Paul Walmsley wrote:
+> Hello Russell,
 > 
-> TLLSAR is not functional till ES3.1 (and beyound).  Is it possible to flag it this way?
+> On Wed, 28 Jan 2009, Russell King - ARM Linux wrote:
+> 
+> > On Wed, Jan 28, 2009 at 01:22:22PM -0700, Paul Walmsley wrote:
+> > > Per rmk's preferences, some patches have been 'compressed.' That is, some 
+> > > fix patches have been rolled into a single patch with the original.  To 
+> > > ease cross-referencing with the linux-omap git tree, original commit IDs 
+> > > have been inserted into the patch messages.  Also, what would have been an 
+> > > extremely long series has been split into six smaller, cumulative, roughly 
+> > > thematic patch series.  If requested, I would be pleased to simply send 
+> > > one large series of the original, uncompressed patches.  Thanks to the git 
+> > > and stgit authors and contributors: without those tools, this process 
+> > > would have been nearly impossible.
+> > 
+> > Since this patch series was only really meant for me to do some follow-on
+> > work on it (to merge it into my tree) is it really necessary to submit
+> > this 70 patch series via slow email via several mailing lists?
+> 
+> I posted the patches for final review and upstream merging.
+> 
+> Not sure what the follow-on work is that you mention.  But if it's 
+> additional development work, such as modifying the linux-omap clock code 
+> to use your recent clkdev code, that should really be discussed 
+> separately, and patches posted for comment to linux-omap, so the OMAP 
+> community has a chance to test it first.  People on that list seem to be 
+> pretty reasonable...
 
-Yes, it's easy in this case.  Thanks for the note.  I will send along an 
-updated patch for this.
-
-> If you try and use it your system will deadlock on 2nd OFF mode transition due to hardware bug.
-
-
-- Paul
+If that's what you thought I was offering, forget it.  I wasn't.
