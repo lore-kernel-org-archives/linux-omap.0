@@ -1,117 +1,200 @@
-From: =?ISO-8859-1?Q?Arve_Hj=F8nnev=E5g?= <arve@android.com>
-Subject: Re: lowmemory android driver not needed?
-Date: Wed, 28 Jan 2009 18:51:07 -0800
-Message-ID: <d6200be20901281851k45f9692em1379140c8951c195@mail.gmail.com>
-References: <2f11576a0901160518g52a3e70endc98fe4792a98b9b@mail.gmail.com>
-	 <d6200be20901212213x1069762cpd377d04bc5a04a91@mail.gmail.com>
-	 <20090128234209.A949.KOSAKI.MOTOHIRO@jp.fujitsu.com>
+From: Siarhei Siamashka <siarhei.siamashka@nokia.com>
+Subject: [PATCHv2] ARM: OMAP: gptimer based event monitor driver for oprofile
+Date: Thu, 29 Jan 2009 05:21:07 +0200
+Message-ID: <200901290521.08407.siarhei.siamashka@nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ew0-f21.google.com ([209.85.219.21]:49316 "EHLO
-	mail-ew0-f21.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751772AbZA2CvJ convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 28 Jan 2009 21:51:09 -0500
-In-Reply-To: <20090128234209.A949.KOSAKI.MOTOHIRO@jp.fujitsu.com>
+Received: from smtp.nokia.com ([192.100.122.233]:38684 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751655AbZA2D07 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 28 Jan 2009 22:26:59 -0500
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: Greg KH <greg@kroah.com>, Alan Cox <alan@lxorguk.ukuu.org.uk>, Pavel Machek <pavel@suse.cz>, Brian Swetland <swetland@google.com>, arve@google.com, San Mehat <san@android.com>, Robert Love <rlove@google.com>, linux-kernel@vger.kernel.org, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, =?UTF-8?B?ZXh0IEp1aGEgWXJq7pKU44O7?= <juha.yrjola@solidboot.com>, viktor.rosendahl@nokia.com, Trilok Soni <soni.trilok@gmail.com>
+To: "linux-arm-kernel@lists.arm.linux.org.uk" <linux-arm-kernel@lists.arm.linux.org.uk>
+Cc: linux-omap@vger.kernel.org, oprofile-list@lists.sourceforge.net
 
-On Wed, Jan 28, 2009 at 5:48 PM, KOSAKI Motohiro
-<kosaki.motohiro@jp.fujitsu.com> wrote:
->> To indicate that it is more expensive to restart a killed process th=
-an
->> a regular cache page.
->
-> I think you already know this answer isn't actual answer.
-> anybody know >1 mean expensive. a reviewer want to know why DEFAULT_S=
-EEKS * 16
-> is best, not *10 nor *20.
 
-DEFAULT_SEEKS * 16 is probably not best. 10 or 20 probably works just
-as well. I don't remember what values I tried, but at some point
-lowmem_shrink did not get called often enough to be effective.
+Signed-off-by: Siarhei Siamashka <siarhei.siamashka@nokia.com>
+---
 
->> >> static uint32_t lowmem_debug_level =3D 2;
->> >> static int lowmem_adj[6] =3D {
->> >
->> > why do you choice [6]?
->>
->> We use six levels.
->
-> if you don't consider other user and other usage case,
-> this file can't merge forever.
+A second revision of gptimer oprofile patch
+http://marc.info/?l=linux-omap&m=123143937515088&w=2
+with the fixes suggested by Tony Lindgren
 
-I never expected it to be merged. I wrote it to allow us to ship a prod=
-uct.
+Timers from the CORE domain seem to work best on OMAP3.
+Also tested the patch on Nokia 770 (OMAP1710).
 
-> The top problem is, this file stay on non proper place.
-> then, MM folks don't review at all.
->
-> I think this patch need to receive MM folks review.
+Please let me know if anything else needs to be fixed.
 
-This patch solves two problems for us:
-1. It gives us more control over which process gets killed when we run
-out of memory. This can easily be fixed in the regular oom killer
-instead.
-2. It prevents the system from getting unusable due to excessive
-demand paging. Before we added the low memory killer, we had devices
-stuck for many minutes before the system managed to allocate enough
-memory for the oom killer to kick in.
-The second problem is the most critical and if it is solved, we will
-not need this patch.
+ arch/arm/Kconfig                          |    6 ++
+ arch/arm/oprofile/Makefile                |    1 +
+ arch/arm/oprofile/common.c                |    5 ++
+ arch/arm/oprofile/op_arm_model.h          |    2 +
+ arch/arm/oprofile/op_model_omap_gptimer.c |   93 +++++++++++++++++++++++++++++
+ 5 files changed, 107 insertions(+), 0 deletions(-)
+ create mode 100644 arch/arm/oprofile/op_model_omap_gptimer.c
 
->> Another problem we run into is that allocations of contiguous pages
->> can cause kswapd to empty all the caches. This will not trigger this
->> lowmemorykiller or the regular oom killer.
->
-> strange usage.
-> you shouldn't use high order allocation on embedded machine.
+diff --git a/arch/arm/Kconfig b/arch/arm/Kconfig
+index e7fb201..8774136 100644
+--- a/arch/arm/Kconfig
++++ b/arch/arm/Kconfig
+@@ -160,6 +160,12 @@ config GENERIC_HARDIRQS_NO__DO_IRQ
+ 
+ if OPROFILE
+ 
++config OPROFILE_OMAP_GPTIMER
++	def_bool y
++	depends on ARCH_OMAP
++	select CONFIG_OMAP_32K_TIMER
++	select CONFIG_OMAP_DM_TIMER
++
+ config OPROFILE_ARMV6
+ 	def_bool y
+ 	depends on CPU_V6 && !SMP
+diff --git a/arch/arm/oprofile/Makefile b/arch/arm/oprofile/Makefile
+index 88e31f5..fc2bc02 100644
+--- a/arch/arm/oprofile/Makefile
++++ b/arch/arm/oprofile/Makefile
+@@ -8,6 +8,7 @@ DRIVER_OBJS = $(addprefix ../../../drivers/oprofile/, \
+ 
+ oprofile-y				:= $(DRIVER_OBJS) common.o backtrace.o
+ oprofile-$(CONFIG_CPU_XSCALE)		+= op_model_xscale.o
++oprofile-$(CONFIG_OPROFILE_OMAP_GPTIMER)	+= op_model_omap_gptimer.o
+ oprofile-$(CONFIG_OPROFILE_ARM11_CORE)	+= op_model_arm11_core.o
+ oprofile-$(CONFIG_OPROFILE_ARMV6)	+= op_model_v6.o
+ oprofile-$(CONFIG_OPROFILE_MPCORE)	+= op_model_mpcore.o
+diff --git a/arch/arm/oprofile/common.c b/arch/arm/oprofile/common.c
+index 3fcd752..add3cb4 100644
+--- a/arch/arm/oprofile/common.c
++++ b/arch/arm/oprofile/common.c
+@@ -133,6 +133,11 @@ int __init oprofile_arch_init(struct oprofile_operations *ops)
+ 
+ 	ops->backtrace = arm_backtrace;
+ 
++/* comes first, so that it can be overrided by a better implementation */
++#ifdef CONFIG_OPROFILE_OMAP_GPTIMER
++	spec = &op_omap_gptimer_spec;
++#endif
++
+ #ifdef CONFIG_CPU_XSCALE
+ 	spec = &op_xscale_spec;
+ #endif
+diff --git a/arch/arm/oprofile/op_arm_model.h b/arch/arm/oprofile/op_arm_model.h
+index 8c4e4f6..db936da 100644
+--- a/arch/arm/oprofile/op_arm_model.h
++++ b/arch/arm/oprofile/op_arm_model.h
+@@ -24,6 +24,8 @@ struct op_arm_model_spec {
+ extern struct op_arm_model_spec op_xscale_spec;
+ #endif
+ 
++extern struct op_arm_model_spec op_omap_gptimer_spec;
++
+ extern struct op_arm_model_spec op_armv6_spec;
+ extern struct op_arm_model_spec op_mpcore_spec;
+ extern struct op_arm_model_spec op_armv7_spec;
+diff --git a/arch/arm/oprofile/op_model_omap_gptimer.c b/arch/arm/oprofile/op_model_omap_gptimer.c
+new file mode 100644
+index 0000000..98f7d2b
+--- /dev/null
++++ b/arch/arm/oprofile/op_model_omap_gptimer.c
+@@ -0,0 +1,93 @@
++/**
++ * OMAP gptimer based event monitor driver for oprofile
++ *
++ * Copyright (C) 2009 Nokia Corporation
++ * Author: Siarhei Siamashka <siarhei.siamashka@nokia.com>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ *
++ */
++
++#include <linux/types.h>
++#include <linux/oprofile.h>
++#include <linux/interrupt.h>
++#include <linux/irq.h>
++
++#include <mach/dmtimer.h>
++
++#include "op_counter.h"
++#include "op_arm_model.h"
++
++static struct omap_dm_timer *gptimer;
++
++static int gptimer_init(void)
++{
++	return 0;
++}
++
++static int gptimer_setup(void)
++{
++	return 0;
++}
++
++static irqreturn_t gptimer_interrupt(int irq, void *arg)
++{
++	omap_dm_timer_write_status(gptimer, OMAP_TIMER_INT_OVERFLOW);
++	oprofile_add_sample(get_irq_regs(), 0);
++	return IRQ_HANDLED;
++}
++
++static int gptimer_start(void)
++{
++	int err;
++	u32 count = counter_config[0].count;
++
++	BUG_ON(gptimer != NULL);
++	/* First try to request timers from CORE power domain for OMAP3 */
++	if (cpu_is_omap34xx()) {
++		gptimer = omap_dm_timer_request_specific(10);
++		if (gptimer == NULL)
++			gptimer = omap_dm_timer_request_specific(11);
++	}
++	/* Just any timer would be fine */
++	if (gptimer == NULL)
++		gptimer = omap_dm_timer_request();
++	if (gptimer == NULL)
++		return -ENODEV;
++
++	omap_dm_timer_set_source(gptimer, OMAP_TIMER_SRC_32_KHZ);
++	err = request_irq(omap_dm_timer_get_irq(gptimer), gptimer_interrupt,
++				IRQF_DISABLED, "oprofile gptimer", NULL);
++	if (err) {
++		omap_dm_timer_free(gptimer);
++		gptimer = NULL;
++		printk(KERN_ERR "oprofile: unable to request gptimer IRQ\n");
++		return err;
++	}
++
++	if (count < 1)
++		count = 1;
++
++	omap_dm_timer_set_load_start(gptimer, 1, 0xffffffff - count);
++	omap_dm_timer_set_int_enable(gptimer, OMAP_TIMER_INT_OVERFLOW);
++	return 0;
++}
++
++static void gptimer_stop(void)
++{
++	omap_dm_timer_set_int_enable(gptimer, 0);
++	free_irq(omap_dm_timer_get_irq(gptimer), NULL);
++	omap_dm_timer_free(gptimer);
++	gptimer = NULL;
++}
++
++struct op_arm_model_spec op_omap_gptimer_spec = {
++	.init		= gptimer_init,
++	.num_counters	= 1,
++	.setup_ctrs	= gptimer_setup,
++	.start		= gptimer_start,
++	.stop		= gptimer_stop,
++	.name		= "hrtimer",
++};
+-- 
+1.5.6.5
 
-The first level page table on arm needs four contiguous pages. This is
-enough to trigger this problem. I suspect the lack of swap makes this
-problem much more apparent.
-
->> How about this:
->> ----
->> diff --git a/drivers/misc/lowmemorykiller.c b/drivers/misc/lowmemory=
-killer.c
->> index 3715d56..3f4e41a 100644
->> --- a/drivers/misc/lowmemorykiller.c
->> +++ b/drivers/misc/lowmemorykiller.c
->> @@ -71,6 +71,12 @@ static int lowmem_shrink(int nr_to_scan, gfp_t gf=
-p_mask)
->>         }
->>         if(nr_to_scan > 0)
->>                 lowmem_print(3, "lowmem_shrink %d, %x, ofree %d, ma
->> %d\n", nr_to_scan, gfp_mask, other_free, min_adj);
->> +       rem =3D global_page_state(NR_ACTIVE_ANON) +
->> global_page_state(NR_ACTIVE_FILE);
->> +       if (!nr_to_scan || min_adj =3D=3D OOM_ADJUST_MAX + 1) {
->> +               lowmem_print(5, "lowmem_shrink %d, %x, return %d\n",
->> nr_to_scan, gfp_mask, rem);
->> +               return rem;
->> +       }
->> +
->
-> I don't understand your intention.
-> if file server machine has tons NR_ACTIVE_FILE, this logic kill many
-> process.
->
-> Do I misunderstand anything?
-
-It only kills one process at a time, and only if the amount of memory
-available is below the selected threshold. The number returned is a
-very rough estimate of how much memory can be freed. The old code used
-the sum of rss for the killable processes which is not accurate
-either.
-
---=20
-Arve Hj=F8nnev=E5g
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
