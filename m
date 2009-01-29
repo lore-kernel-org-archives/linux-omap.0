@@ -1,96 +1,38 @@
-From: Tony Lindgren <tony@atomide.com>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
 Subject: Re: OMAP clock fast-forward: an introduction to six series
-Date: Thu, 29 Jan 2009 08:25:58 -0800
-Message-ID: <20090129162556.GA32148@atomide.com>
-References: <alpine.DEB.2.00.0901281310590.14710@utopia.booyaka.com> <20090128211844.GI23301@n2100.arm.linux.org.uk> <alpine.DEB.2.00.0901282357560.32081@utopia.booyaka.com> <20090129081117.GA11519@n2100.arm.linux.org.uk> <20090129083049.GB11519@n2100.arm.linux.org.uk>
+Date: Thu, 29 Jan 2009 16:35:01 +0000
+Message-ID: <20090129163501.GE18233@n2100.arm.linux.org.uk>
+References: <alpine.DEB.2.00.0901281310590.14710@utopia.booyaka.com> <20090128211844.GI23301@n2100.arm.linux.org.uk> <alpine.DEB.2.00.0901282357560.32081@utopia.booyaka.com> <20090129081117.GA11519@n2100.arm.linux.org.uk> <20090129083049.GB11519@n2100.arm.linux.org.uk> <20090129162556.GA32148@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-bos.mailhop.org ([63.208.196.178]:63395 "EHLO
-	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753094AbZA2Q0L (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 29 Jan 2009 11:26:11 -0500
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:36865 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754054AbZA2QfR (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 29 Jan 2009 11:35:17 -0500
 Content-Disposition: inline
-In-Reply-To: <20090129083049.GB11519@n2100.arm.linux.org.uk>
+In-Reply-To: <20090129162556.GA32148@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+To: Tony Lindgren <tony@atomide.com>
 Cc: Paul Walmsley <paul@pwsan.com>, linux-arm-kernel@lists.arm.linux.org.uk, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 
-* Russell King - ARM Linux <linux@arm.linux.org.uk> [090129 00:31]:
-> On Thu, Jan 29, 2009 at 08:11:17AM +0000, Russell King - ARM Linux wrote:
-> > On Thu, Jan 29, 2009 at 12:05:13AM -0700, Paul Walmsley wrote:
-> > > Hello Russell,
-> > > 
-> > > On Wed, 28 Jan 2009, Russell King - ARM Linux wrote:
-> > > 
-> > > > On Wed, Jan 28, 2009 at 01:22:22PM -0700, Paul Walmsley wrote:
-> > > > > Per rmk's preferences, some patches have been 'compressed.' That is, some 
-> > > > > fix patches have been rolled into a single patch with the original.  To 
-> > > > > ease cross-referencing with the linux-omap git tree, original commit IDs 
-> > > > > have been inserted into the patch messages.  Also, what would have been an 
-> > > > > extremely long series has been split into six smaller, cumulative, roughly 
-> > > > > thematic patch series.  If requested, I would be pleased to simply send 
-> > > > > one large series of the original, uncompressed patches.  Thanks to the git 
-> > > > > and stgit authors and contributors: without those tools, this process 
-> > > > > would have been nearly impossible.
-> > > > 
-> > > > Since this patch series was only really meant for me to do some follow-on
-> > > > work on it (to merge it into my tree) is it really necessary to submit
-> > > > this 70 patch series via slow email via several mailing lists?
-> > > 
-> > > I posted the patches for final review and upstream merging.
-> > > 
-> > > Not sure what the follow-on work is that you mention.  But if it's 
-> > > additional development work, such as modifying the linux-omap clock code 
-> > > to use your recent clkdev code, that should really be discussed 
-> > > separately, and patches posted for comment to linux-omap, so the OMAP 
-> > > community has a chance to test it first.  People on that list seem to be 
-> > > pretty reasonable...
-> > 
-> > If that's what you thought I was offering, forget it.  I wasn't.
+On Thu, Jan 29, 2009 at 08:25:58AM -0800, Tony Lindgren wrote:
+> To me it does not matter which way the stuff gets merged. We just need
+> to get it all merged.
 > 
-> I'll expand on that.  When clockdomain and powerdomain support was added
-> to the mainline kernel about six months ago, I specifically asked the
-> question "Is this everything for this new code" and got told "yes".
-> 
-> I wanted to ensure that the new code I was merging was 100% up to date
-> with mainline so we wouldn't have a constant drip of old patches to it.
-> 
-> A few weeks later I pulled the omapzoom tree, which contains tony's tree
-> and diffed the new code, finding some unmerged patches which I added
-> _before_ that stuff went to Linus.
-> 
-> Since then, I've asked Tony whether the clock code was 100% up to date and
-> if not send me the patches.  No patches ever came forward.
-> 
-> So, with my work on OMAP first to sort out some of the utter crappyness
-> in there (which Tony had accepted.)  Tony whinged about it clashing with
-> your work, but still no clock patches from you or Tony were forthcoming.
-> 
-> Subsequent to that acceptance, and as a result of me getting utterly
-> pissed off with waiting for something to happen, I converted OMAP over
-> to use clkdev (so that OMAP can stop abusing the API and being used
-> as a reason why new implementations should continue this abuse.)
-> 
-> Again, Tony whinged about the big merge problem that this was creating.
-> So I made an offer to manipulate _your_ changes to apply with my changes.
-> 
-> That's the offer.  The offer is not to merge your code and then think
-> about what to do with mine possibly in a year or two's time.  OMAP
-> _is_ going to use the API correctly as soon as possible, no iffs or buts.
-> 
-> Not taking the offer means that you and Tony have to deal with the merging
-> issues.  Accepting the offer means I do that work for you and publish the
-> results back to you for your comment.
-> 
-> Your call.
+> If you guys can't get it merged and sorted out then it will all fall
+> down on me. And then I have to use tools no smaller than a sledgehammer
+> to merge it all, so the outcome won't be pretty!
 
-To me it does not matter which way the stuff gets merged. We just need
-to get it all merged.
+Well, I've continued with my approach.  28 patches are currently merged
+onto a follow-on branch (scattered throughout the series but in order)
+and the result builds for my OMAP1, OMAP2 and OMAP3 test builds.
 
-If you guys can't get it merged and sorted out then it will all fall
-down on me. And then I have to use tools no smaller than a sledgehammer
-to merge it all, so the outcome won't be pretty!
+Patches which I've provided non-trivial comments on by and large haven't
+been merged.  Once I've worked through the set, I'll provide a final list
+of those outstanding so nothing should be lost.
 
-Tony
+I would appreciate someone _bouncing_ (not forwarding) the patches I'm
+missing to linux@arm.linux.org.uk please.  Those being D6, E2 and F2.
+
