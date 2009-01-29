@@ -1,71 +1,58 @@
-From: hvaibhav@ti.com
-Subject: [PATCH 1/2] Pad configuration for OMAP3EVM Multi-Media Daughter Card Support
-Date: Fri, 30 Jan 2009 00:52:29 +0530
-Message-ID: <1233256950-26704-1-git-send-email-hvaibhav@ti.com>
-References: <hvaibhav@ti.com>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:59495 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754449AbZA2TWk (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 29 Jan 2009 14:22:40 -0500
-In-Reply-To: <hvaibhav@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Subject: Re: [REVIEW PATCH 2/2] OMAP3EVM Multi-Media Daughter Card Support
+Date: Thu, 29 Jan 2009 20:32:48 +0100
+Message-ID: <200901292032.48972.hverkuil@xs4all.nl>
+References: <hvaibhav@ti.com> <1233256950-26704-2-git-send-email-hvaibhav@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-media-owner@vger.kernel.org>
+In-Reply-To: <1233256950-26704-2-git-send-email-hvaibhav@ti.com>
+Content-Disposition: inline
+Sender: linux-media-owner@vger.kernel.org
+To: hvaibhav@ti.com
+Cc: linux-omap@vger.kernel.org, linux-media@vger.kernel.org, Brijesh Jadav <brijesh.j@ti.com>, Hardik Shah <hardik.shah@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: linux-media@vger.kernel.org, Vaibhav Hiremath <hvaibhav@ti.com>, Brijesh Jadav <brijesh.j@ti.com>, Hardik Shah <hardik.shah@ti.com>
 
-From: Vaibhav Hiremath <hvaibhav@ti.com>
+On Thursday 29 January 2009 20:22:30 hvaibhav@ti.com wrote:
+> From: Vaibhav Hiremath <hvaibhav@ti.com>
+>
+> This is second version of OMAP3EVM Mulit-Media/Mass Market
+> Daughter Card support.
+>
+> Fixes:
+>     - Cleaned unused header files, struct formating, and unused
+>       comments.
+>     - Pad/mux configuration handled in mux.ch
+>     - mux.ch related changes moved to seperate patch
+>     - Renamed file board-omap3evm-dc.c to board-omap3evm-dc-v4l.c
+>       to make more explicit.
+>     - Added some more meaningful name for Kconfig option
+>
+> TODO:
+>     - Camera sensor support (for future development).
+>     - Driver header file inclusion (dependency on ISP-Camera patches)
+>       I am working with Sergio to seperate/move header file to standard
+>       location.
+>     - Still need to fix naming convention for DC
+>
+> Tested:
+>     - TVP5146 (BT656) decoder interface on top of
+>       Sergio's ISP-Camera patches.
+>     - Loopback application, capturing image through TVP5146
+>       and saving it to file per frame.
 
-On OMAP3EVM Mass Market Daugher Card following GPIO pins are being
-used -
+What is the status of converting tvp5146 to v4l2_subdev? The longer it takes 
+to convert it, the harder it will be now that you are starting to use this 
+driver. v4l2_int_device should be phased out, preferably by 2.6.30.
 
-GPIO134 --> Enable/Disable TVP5146 interface
-GPIO54 --> Enable/Disable Expansion Camera interface
-GPIO136 --> Enable/Disable Camera (Sensor) interface
+I'm more than happy to assist in this conversion, but please try to do this 
+asap!
 
-Added entry for the above GPIO's in mux.c and mux.h file
+Thanks,
 
-Signed-off-by: Brijesh Jadav <brijesh.j@ti.com>
-Signed-off-by: Hardik Shah <hardik.shah@ti.com>
-Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
----
- arch/arm/mach-omap2/mux.c             |    6 ++++++
- arch/arm/plat-omap/include/mach/mux.h |    5 ++++-
- 2 files changed, 10 insertions(+), 1 deletions(-)
+	Hans
 
-diff --git a/arch/arm/mach-omap2/mux.c b/arch/arm/mach-omap2/mux.c
-index 1556688..d226d81 100644
---- a/arch/arm/mach-omap2/mux.c
-+++ b/arch/arm/mach-omap2/mux.c
-@@ -471,6 +471,12 @@ MUX_CFG_34XX("AF5_34XX_GPIO142", 0x170,
- 		OMAP34XX_MUX_MODE4 | OMAP34XX_PIN_OUTPUT)
- MUX_CFG_34XX("AE5_34XX_GPIO143", 0x172,
- 		OMAP34XX_MUX_MODE4 | OMAP34XX_PIN_OUTPUT)
-+MUX_CFG_34XX("AG4_34XX_GPIO134", 0x160,
-+		OMAP34XX_MUX_MODE4 | OMAP34XX_PIN_OUTPUT)
-+MUX_CFG_34XX("U8_34XX_GPIO54", 0x0b4,
-+		OMAP34XX_MUX_MODE4 | OMAP34XX_PIN_OUTPUT)
-+MUX_CFG_34XX("AE4_34XX_GPIO136", 0x164,
-+		OMAP34XX_MUX_MODE4 | OMAP34XX_PIN_OUTPUT)
-
- };
-
-diff --git a/arch/arm/plat-omap/include/mach/mux.h b/arch/arm/plat-omap/include/mach/mux.h
-index 67fddec..ace037f 100644
---- a/arch/arm/plat-omap/include/mach/mux.h
-+++ b/arch/arm/plat-omap/include/mach/mux.h
-@@ -795,7 +795,10 @@ enum omap34xx_index {
- 	AF6_34XX_GPIO140_UP,
- 	AE6_34XX_GPIO141,
- 	AF5_34XX_GPIO142,
--	AE5_34XX_GPIO143
-+	AE5_34XX_GPIO143,
-+	AG4_34XX_GPIO134,
-+	U8_34XX_GPIO54,
-+	AE4_34XX_GPIO136,
- };
-
- struct omap_mux_cfg {
---
-1.5.6
-
+-- 
+Hans Verkuil - video4linux developer - sponsored by TANDBERG
