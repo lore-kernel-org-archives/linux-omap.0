@@ -1,85 +1,83 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: git pull request for omap-fixes (Re: [PATCH 0/9] Omap fixes for
-	2.6.29-rc series, also one arm generic fix)
-Date: Thu, 29 Jan 2009 10:49:43 -0800
-Message-ID: <20090129184943.GC7215@atomide.com>
-References: <20090128181931.21007.73744.stgit@localhost> <20090128192126.GF23301@n2100.arm.linux.org.uk>
+From: Imre Deak <imre.deak@nokia.com>
+Subject: Re: [PATCH] OMAP3 McSPI:  Adds context save/restore
+Date: Thu, 29 Jan 2009 21:06:05 +0200
+Message-ID: <20090129190605.GA7792@localhost>
+References: <5A47E75E594F054BAF48C5E4FC4B92AB02F535F346@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="0eh6TmSyL6TZE2Uz"
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-bos.mailhop.org ([63.208.196.178]:51533 "EHLO
-	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756782AbZA2Stt (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 29 Jan 2009 13:49:49 -0500
+Received: from smtp.nokia.com ([192.100.105.134]:44889 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751597AbZA2TLm (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 29 Jan 2009 14:11:42 -0500
 Content-Disposition: inline
-In-Reply-To: <20090128192126.GF23301@n2100.arm.linux.org.uk>
+In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB02F535F346@dbde02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: linux-arm-kernel@lists.arm.linux.org.uk, linux-omap@vger.kernel.org
+To: "ext Nayak, Rajendra" <rnayak@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Kevin Hilman <khilman@deeprootsystems.com>, "V, Hemanth" <hemanthv@ti.com>
+
+On Wed, Jan 28, 2009 at 10:11:29AM +0100, ext Nayak, Rajendra wrote:
+> From: Hemanth V <hemanthv@ti.com>
+> 
+> This patch adds context save/restore feature to McSPI driver.
+> This has been tested by instrumenting the driver code i.e by
+> adding a McSPI softreset in omap2_mcspi_disable_clocks function.
+> 
+> This patch includes review comment fixes
+> 
+> Signed-off-by: Hemanth V <hemanthv@ti.com>
+> 
+> ---
+>  drivers/spi/omap2_mcspi.c |   97 ++++++++++++++++++++++++++++++++++++----------
+>  1 files changed, 77 insertions(+), 20 deletions(-)
+> 
+> Index: linux-omap-2.6/drivers/spi/omap2_mcspi.c
+> ===================================================================
+> --- linux-omap-2.6.orig/drivers/spi/omap2_mcspi.c       2009-01-27 11:45:06.000000000 +0530
+> +++ linux-omap-2.6/drivers/spi/omap2_mcspi.c    2009-01-27 11:53:16.000000000 +0530
+>
+> [...]
+>
+> +static void omap2_mcspi_restore_ctx(struct omap2_mcspi *mcspi)
+> +{
+> +       struct spi_master *spi_cntrl;
+> +       spi_cntrl = mcspi->master;
+> +
+> +       /* McSPI: context restore */
+> +       mcspi_write_reg(spi_cntrl, OMAP2_MCSPI_MODULCTRL,
+> +                       omap2_mcspi_ctx[spi_cntrl->bus_num - 1].modulctrl);
+> +
+> +       mcspi_write_reg(spi_cntrl, OMAP2_MCSPI_SYSCONFIG,
+> +                       omap2_mcspi_ctx[spi_cntrl->bus_num - 1].sysconfig);
+> +
+> +       mcspi_write_reg(spi_cntrl, OMAP2_MCSPI_CHCONF0,
+> +                       omap2_mcspi_ctx[spi_cntrl->bus_num - 1].chconf0);
+
+You have to restore this to the proper CHCONF register. And in the
+current form you have to restore all of them.
+
+> +
+> +
+> +       mcspi_write_reg(spi_cntrl, OMAP2_MCSPI_WAKEUPENABLE,
+> +                       omap2_mcspi_ctx[spi_cntrl->bus_num - 1].wakeupenable);
+> +}
+> +static void omap2_mcspi_disable_clocks(struct omap2_mcspi *mcspi)
+> +{
+> +       clk_disable(mcspi->ick);
+> +       clk_disable(mcspi->fck);
+> +}
+> +
+> [...]
+>
+> @@ -537,6 +593,8 @@
+> 
+>         mcspi_write_cs_reg(spi, OMAP2_MCSPI_CHCONF0, l);
+> 
+> +       omap2_mcspi_ctx[spi_cntrl->bus_num - 1].chconf0 = l;
+
+And here save it to a slot based on CS.
+
+--Imre
 
 
---0eh6TmSyL6TZE2Uz
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-
-* Russell King - ARM Linux <linux@arm.linux.org.uk> [090128 11:21]:
-> No other comments on 3,4,5,7 and 9.
-
-Here's the pull request for you.
-
-Tony
-
---0eh6TmSyL6TZE2Uz
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline; filename="pull.txt"
-Content-Transfer-Encoding: 8bit
-
-The following changes since commit 18e352e4a73465349711a9324767e1b2453383e2:
-  Linus Torvalds (1):
-        Linux 2.6.29-rc3
-
-are available in the git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap-2.6.git omap-fixes
-
-Aaro Koskinen (1):
-      ARM: OMAP: gptimer min_delta_ns corrected
-
-Jarkko Nikula (1):
-      ARM: OMAP: DMA: Fix uninitialized channel flags
-
-Juha Yrjola (1):
-      ARM: OMAP: Fix race in OMAP2/3 DMA IRQ handling
-
-Kevin Hilman (1):
-      ARM: OMAP: fix fault in enter_full_retention()
-
-Stanley.Miao (1):
-      ARM: OMAP: Fix McBSP spin_lock deadlock
-
-Tony Lindgren (2):
-      ARM: OMAP: Fix omap34xx revision detection for ES3.1
-      ARM: OMAP: Fix hsmmc init, v2
-
-김규원 (1):
-      ARM: OMAP: Mask interrupts when disabling interrupts, v2
-
- arch/arm/mach-omap1/devices.c           |    2 +-
- arch/arm/mach-omap1/mcbsp.c             |   98 ++-------------------
- arch/arm/mach-omap2/devices.c           |   11 ++-
- arch/arm/mach-omap2/id.c                |    6 +-
- arch/arm/mach-omap2/irq.c               |    1 +
- arch/arm/mach-omap2/mcbsp.c             |  145 ++++++-------------------------
- arch/arm/mach-omap2/sleep24xx.S         |    3 +-
- arch/arm/mach-omap2/timer-gp.c          |    3 +-
- arch/arm/plat-omap/devices.c            |    7 +-
- arch/arm/plat-omap/dma.c                |    5 +-
- arch/arm/plat-omap/include/mach/cpu.h   |    1 +
- arch/arm/plat-omap/include/mach/mcbsp.h |    6 +-
- arch/arm/plat-omap/include/mach/mmc.h   |   10 ++-
- arch/arm/plat-omap/mcbsp.c              |   52 ++++++++---
- 14 files changed, 109 insertions(+), 241 deletions(-)
-
---0eh6TmSyL6TZE2Uz--
