@@ -1,38 +1,80 @@
 From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [PATCH C 06/13] OMAP3 clock: DPLLs should enter bypass if new rate is sys_ck
-Date: Thu, 29 Jan 2009 12:39:36 +0000
-Message-ID: <20090129123936.GA16644@n2100.arm.linux.org.uk>
-References: <20090128190724.12092.22239.stgit@localhost.localdomain> <20090128190823.12092.2638.stgit@localhost.localdomain>
+Subject: Re: [PATCH A 01/10] OMAP2/3: Add non-CORE DPLL rate set code and M, N programming
+Date: Thu, 29 Jan 2009 14:23:03 +0000
+Message-ID: <20090129142303.GA18233@n2100.arm.linux.org.uk>
+References: <20090128020447.7244.80496.stgit@localhost.localdomain> <20090128021243.7244.6362.stgit@localhost.localdomain>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:37804 "EHLO
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:57486 "EHLO
 	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753117AbZA2Mjx (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 29 Jan 2009 07:39:53 -0500
+	with ESMTP id S1755463AbZA2OXT (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 29 Jan 2009 09:23:19 -0500
 Content-Disposition: inline
-In-Reply-To: <20090128190823.12092.2638.stgit@localhost.localdomain>
+In-Reply-To: <20090128021243.7244.6362.stgit@localhost.localdomain>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Paul Walmsley <paul@pwsan.com>
-Cc: linux-arm-kernel@lists.arm.linux.org.uk, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>
+Cc: linux-arm-kernel@lists.arm.linux.org.uk, linux-kernel@vger.kernel.org, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org
 
-On Wed, Jan 28, 2009 at 12:08:26PM -0700, Paul Walmsley wrote:
-> This patch causes a DPLL to enter bypass when it is instructed to set
-> its rate to that of its bypass clock.  Previously this was only possible
-> after setting the DPLL rate, then disabling and re-enabling it.
+On Tue, Jan 27, 2009 at 07:12:47PM -0700, Paul Walmsley wrote:
+> +/* Non-CORE DPLL rate set code */
+> +
+> +/*
+> + * omap3_noncore_dpll_program - set non-core DPLL M,N values directly
+> + * @clk: struct clk * of DPLL to set
+> + * @m: DPLL multiplier to set
+> + * @n: DPLL divider to set
+> + * @freqsel: FREQSEL value to set
+> + *
+> + * Program the DPLL with the supplied M, N values, and wait for the DPLL to
+> + * lock..  Returns -EINVAL upon error, or 0 upon success.
+> + */
+> +static int omap3_noncore_dpll_program(struct clk *clk, u16 m, u8 n, u16 freqsel)
+> +{
+> +	struct dpll_data *dd;
+> +	u32 v;
+> +
+> +	if (!clk)
+> +		return -EINVAL;
+> +
+> +	dd = clk->dpll_data;
+> +	if (!dd)
+> +		return -EINVAL;
 
-The more I think about this, especially with reference to patch D1, the
-more I'm convinced this is not entirely the right approach.
+Final point... this is only called from the function below, which also
+checks that clk and clk->dpll_data are both non-NULL.  So these checks
+are unnecessary.
 
-Patch D1 introduces the necessary mechanics to make clk_get_parent()
-work.  If you use this on a PLL clock, and the PLL is in bypass mode,
-it returns the non-bypass clock.
-
-Now, I suspect that your first thought to resolving that would be to
-add some complexity to clk_get_parent().  I advise against that.
-Instead, arrange for clk->parent to _always_ point at the correct
-parent clock, whether the PLL is in bypass mode or not.
-
-In other words, encapsulate all the PLL mechanics localized inside
-the PLL handling code and don't let them leak outside that code.
+> +static int omap3_noncore_dpll_set_rate(struct clk *clk, unsigned long rate)
+> +{
+> +	u16 freqsel;
+> +	struct dpll_data *dd;
+> +
+> +	if (!clk || !rate)
+> +		return -EINVAL;
+> +
+> +	dd = clk->dpll_data;
+> +	if (!dd)
+> +		return -EINVAL;
+> +
+> +	if (rate == omap2_get_dpll_rate(clk))
+> +		return 0;
+> +
+> +	if (dd->last_rounded_rate != rate)
+> +		omap2_dpll_round_rate(clk, rate);
+> +
+> +	if (dd->last_rounded_rate == 0)
+> +		return -EINVAL;
+> +
+> +	freqsel = _omap3_dpll_compute_freqsel(clk, dd->last_rounded_n);
+> +	if (!freqsel)
+> +		WARN_ON(1);
+> +
+> +	omap3_noncore_dpll_program(clk, dd->last_rounded_m, dd->last_rounded_n,
+> +				   freqsel);
+> +
+> +	omap3_dpll_recalc(clk);
+> +
+> +	return 0;
+> +}
