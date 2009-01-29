@@ -1,29 +1,55 @@
 From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [PATCH D 11/11] Fix omap1 clock issues
-Date: Thu, 29 Jan 2009 14:37:33 +0000
-Message-ID: <20090129143733.GB18233@n2100.arm.linux.org.uk>
-References: <20090128191638.16688.33452.stgit@localhost.localdomain> <20090128191844.16688.39372.stgit@localhost.localdomain>
+Subject: Re: [PATCH E 11/14] OMAP clock: track child clocks
+Date: Thu, 29 Jan 2009 15:14:01 +0000
+Message-ID: <20090129151401.GC18233@n2100.arm.linux.org.uk>
+References: <20090128192551.29333.82943.stgit@localhost.localdomain> <20090128192756.29333.41541.stgit@localhost.localdomain>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1758771AbZA2OiA@vger.kernel.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:33258 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754828AbZA2POP (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 29 Jan 2009 10:14:15 -0500
 Content-Disposition: inline
-In-Reply-To: <20090128191844.16688.39372.stgit@localhost.localdomain>
-Sender: linux-kernel-owner@vger.kernel.org
+In-Reply-To: <20090128192756.29333.41541.stgit@localhost.localdomain>
+Sender: linux-omap-owner@vger.kernel.org
+List-Id: linux-omap@vger.kernel.org
 To: Paul Walmsley <paul@pwsan.com>
 Cc: linux-arm-kernel@lists.arm.linux.org.uk, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>
-List-Id: linux-omap@vger.kernel.org
 
-On Wed, Jan 28, 2009 at 12:18:48PM -0700, Paul Walmsley wrote:
-> From: Tony Lindgren <tony@atomide.com>
-> 
-> This fixes booting, and is a step toward fixing things properly:
-> 
-> - Make enable_reg u32 instead of u16
+On Wed, Jan 28, 2009 at 12:27:59PM -0700, Paul Walmsley wrote:
+> The price paid is additional runtime memory consumption - 8 bytes per
+> clock and 16 bytes per child clock - roughly 4.5KiB on OMAP3.
 
-No, you're passing this to __raw_read/write, so it needs to be
-void __iomem *, not u32.  If there's another patch doing that it
-needs to be combined with this one.  The miniscule details of
-fixes upon fixes aren't interesting for submission purposes, and
-just adds extra unnecessary review load for upstream people.
+For OMAP3, that's 222 struct clks of which 182 are children, and indeed
+222 * 8 + 182 * 16 gives about 4.5K.  On OMAP2, it's 140 and 136,
+giving 140 * 8 + 136 * 16 = 3.3K.
 
-Ditto for anything else which is passed to __raw_read/write*.
+Moving struct clk_child into struct clk means that its clk and flags
+members can be deleted, making it 8 bytes in size - effectively just
+the list_head.  We need a list_head for the 'children' as you have it.
+So, that works out as 16 bytes per clock.  That gives 3.5K on OMAP3
+and 2.2K on OMAP2.
+
+So, by taking that alternative approach, not only do you end up using
+less memory, but you also don't have to have the overhead of your
+custom memory bookkeeping.
+
+The other change I'd suggest is that you have one function which deals
+with setting the parent of a clock:
+
+void clk_reparent(struct clk *child, struct clk *parent)
+{
+	list_del_init(&child->sibling);
+	if (parent)
+		list_add(&child->sibling, &parent->children);
+	child->parent = parent;
+
+	/* now do the debugfs renaming to reattach the child
+	   to the proper parent */
+}
+
+which is a lot simpler than your omap_clk_add_child() and omap_clk_del_child().
+
+These should be in the _core_ OMAP clock code, not just in the OMAP2
+clock code.  OMAP1 has child clocks as well as OMAP2.
