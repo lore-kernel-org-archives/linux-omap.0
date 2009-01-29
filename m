@@ -1,55 +1,208 @@
-From: David Brownell <david-b-yBeKhBN/0LDR7s880joybQ@public.gmane.org>
-Subject: Re: [PATCH] usb: musb: adding nop usb transceiver
-Date: Thu, 29 Jan 2009 12:41:18 -0800
-Message-ID: <200901291241.19602.david-b@pacbell.net>
-References: <1231411988-7330-1-git-send-email-ajay.gupta@ti.com> <200901222329.07689.david-b@pacbell.net> <19F8576C6E063C45BE387C64729E739403FA790059@dbde02.ent.ti.com>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: [PATCH E 11/14] OMAP clock: track child clocks
+Date: Thu, 29 Jan 2009 22:06:08 +0000
+Message-ID: <20090129220608.GJ18233@n2100.arm.linux.org.uk>
+References: <20090128192551.29333.82943.stgit@localhost.localdomain> <20090128192756.29333.41541.stgit@localhost.localdomain> <20090129151401.GC18233@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <19F8576C6E063C45BE387C64729E739403FA790059-/tLxBxkBPtCIQmiDNMet8wC/G2K4zDHf@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:42034 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759135AbZA2WGW (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 29 Jan 2009 17:06:22 -0500
 Content-Disposition: inline
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Gupta, Ajay Kumar" <ajay.gupta-l0cyMroinI0@public.gmane.org>
-Cc: "linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org" <felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
+In-Reply-To: <20090129151401.GC18233@n2100.arm.linux.org.uk>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Paul Walmsley <paul@pwsan.com>
+Cc: linux-arm-kernel@lists.arm.linux.org.uk, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>
 
-On Thursday 29 January 2009, Gupta, Ajay Kumar wrote:
-> > We'll need something like this, yes.
-> > This one looks to need a bit of tweaking yet though ...
-> > probably that could be done after merge. =A0
->=20
-> > The state can need changing after one of the drivers is unregistere=
-d;
->=20
-> I didn't get this comment.
+On Thu, Jan 29, 2009 at 03:14:01PM +0000, Russell King - ARM Linux wrote:
+> On Wed, Jan 28, 2009 at 12:27:59PM -0700, Paul Walmsley wrote:
+> > The price paid is additional runtime memory consumption - 8 bytes per
+> > clock and 16 bytes per child clock - roughly 4.5KiB on OMAP3.
+> 
+> For OMAP3, that's 222 struct clks of which 182 are children, and indeed
+> 222 * 8 + 182 * 16 gives about 4.5K.  On OMAP2, it's 140 and 136,
+> giving 140 * 8 + 136 * 16 = 3.3K.
+> 
+> Moving struct clk_child into struct clk means that its clk and flags
+> members can be deleted, making it 8 bytes in size - effectively just
+> the list_head.  We need a list_head for the 'children' as you have it.
+> So, that works out as 16 bytes per clock.  That gives 3.5K on OMAP3
+> and 2.2K on OMAP2.
+> 
+> So, by taking that alternative approach, not only do you end up using
+> less memory, but you also don't have to have the overhead of your
+> custom memory bookkeeping.
+> 
+> The other change I'd suggest is that you have one function which deals
+> with setting the parent of a clock:
+> 
+> void clk_reparent(struct clk *child, struct clk *parent)
+> {
+> 	list_del_init(&child->sibling);
+> 	if (parent)
+> 		list_add(&child->sibling, &parent->children);
+> 	child->parent = parent;
+> 
+> 	/* now do the debugfs renaming to reattach the child
+> 	   to the proper parent */
+> }
+> 
+> which is a lot simpler than your omap_clk_add_child() and omap_clk_del_child().
+> 
+> These should be in the _core_ OMAP clock code, not just in the OMAP2
+> clock code.  OMAP1 has child clocks as well as OMAP2.
 
-Basically, that almost all of the OTG state machine must be
-handled outside of this code.  It's a bit of a puzzle how to
-partition that state machine between the drivers that need
-to collaborate on it.  At this point I don't think there can
-be a single model that applies everywhere ... but maybe one
-could evolve over time.
+And here is my version of this patch:
 
+ arch/arm/mach-omap2/clock.c             |    4 +-
+ arch/arm/plat-omap/clock.c              |   49 +++++++++++++++++++------------
+ arch/arm/plat-omap/include/mach/clock.h |    3 ++
+ 3 files changed, 35 insertions(+), 21 deletions(-)
 
-> done. Added this nop_xceiv_register() which can be called from
-> board-init files to register NOP.
->=20
-> Please review the modified patch version below.
-
-Well, I count *two* patches.  :)
-
-I'll tweak this one a bit.  It's pretty close.  That
-registration function should have a usb_*() prefix
-and not be declared in an MUSB-only header, since it
-could potentially be used with other OTG hardware.
-
-Thanks.
-
-- Dave
-
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/arch/arm/mach-omap2/clock.c b/arch/arm/mach-omap2/clock.c
+index 56d9ea4..14bf566 100644
+--- a/arch/arm/mach-omap2/clock.c
++++ b/arch/arm/mach-omap2/clock.c
+@@ -175,7 +175,7 @@ void omap2_init_clksel_parent(struct clk *clk)
+ 						 clk->name, clks->parent->name,
+ 						 ((clk->parent) ?
+ 						  clk->parent->name : "NULL"));
+-					clk->parent = clks->parent;
++					clk_reparent(clk, clks->parent);
+ 				};
+ 				found = 1;
+ 			}
+@@ -780,7 +780,7 @@ int omap2_clk_set_parent(struct clk *clk, struct clk *new_parent)
+ 	if (clk->usecount > 0)
+ 		_omap2_clk_enable(clk);
+ 
+-	clk->parent = new_parent;
++	clk_reparent(clk, new_parent);
+ 
+ 	/* CLKSEL clocks follow their parents' rates, divided by a divisor */
+ 	clk->rate = new_parent->rate;
+diff --git a/arch/arm/plat-omap/clock.c b/arch/arm/plat-omap/clock.c
+index 3688400..58e42b1 100644
+--- a/arch/arm/plat-omap/clock.c
++++ b/arch/arm/plat-omap/clock.c
+@@ -127,8 +127,7 @@ int clk_set_rate(struct clk *clk, unsigned long rate)
+ 	if (ret == 0) {
+ 		if (clk->recalc)
+ 			clk->recalc(clk);
+-		if (clk->flags & RATE_PROPAGATES)
+-			propagate_rate(clk);
++		propagate_rate(clk);
+ 	}
+ 	spin_unlock_irqrestore(&clockfw_lock, flags);
+ 
+@@ -150,8 +149,7 @@ int clk_set_parent(struct clk *clk, struct clk *parent)
+ 	if (ret == 0) {
+ 		if (clk->recalc)
+ 			clk->recalc(clk);
+-		if (clk->flags & RATE_PROPAGATES)
+-			propagate_rate(clk);
++		propagate_rate(clk);
+ 	}
+ 	spin_unlock_irqrestore(&clockfw_lock, flags);
+ 
+@@ -192,27 +190,34 @@ void followparent_recalc(struct clk *clk)
+ 	clk->rate = clk->parent->rate;
+ }
+ 
++void clk_reparent(struct clk *child, struct clk *parent)
++{
++	list_del_init(&child->sibling);
++	if (parent)
++		list_add(&child->sibling, &parent->children);
++	child->parent = parent;
++
++	/* now do the debugfs renaming to reattach the child
++	   to the proper parent */
++}
++
+ /* Propagate rate to children */
+ void propagate_rate(struct clk * tclk)
+ {
+ 	struct clk *clkp;
+ 
+-	if (tclk == NULL || IS_ERR(tclk))
+-		return;
+-
+-	list_for_each_entry(clkp, &clocks, node) {
+-		if (likely(clkp->parent != tclk))
+-			continue;
++	list_for_each_entry(clkp, &tclk->children, sibling) {
+ 		if (clkp->recalc) {
+ 			unsigned long old_rate = clkp->rate;
+ 			clkp->recalc(clkp);
+-			if (clkp->rate != old_rate &&
+-			    (clkp->flags & RATE_PROPAGATES))
++			if (clkp->rate != old_rate)
+ 				propagate_rate(clkp);
+ 		}
+ 	}
+ }
+ 
++static LIST_HEAD(root_clks);
++
+ /**
+  * recalculate_root_clocks - recalculate and propagate all root clocks
+  *
+@@ -224,13 +229,10 @@ void recalculate_root_clocks(void)
+ {
+ 	struct clk *clkp;
+ 
+-	list_for_each_entry(clkp, &clocks, node) {
+-		if (!clkp->parent) {
+-			if (clkp->recalc)
+-				clkp->recalc(clkp);
+-			if (clkp->flags & RATE_PROPAGATES)
+-				propagate_rate(clkp);
+-		}
++	list_for_each_entry(clkp, &root_clks, sibling) {
++		if (clkp->recalc)
++			clkp->recalc(clkp);
++		propagate_rate(clkp);
+ 	}
+ }
+ 
+@@ -246,6 +248,15 @@ int clk_register(struct clk *clk)
+ 		return 0;
+ 
+ 	mutex_lock(&clocks_mutex);
++	if (!clk->children.next)
++		INIT_LIST_HEAD(&clk->children);
++	if (clk->parent && !clk->parent->children.next)
++		INIT_LIST_HEAD(&clk->parent->children);
++	if (clk->parent)
++		list_add(&clk->sibling, &clk->parent->children);
++	else
++		list_add(&clk->sibling, &root_clks);
++
+ 	list_add(&clk->node, &clocks);
+ 	if (clk->init)
+ 		clk->init(clk);
+diff --git a/arch/arm/plat-omap/include/mach/clock.h b/arch/arm/plat-omap/include/mach/clock.h
+index ad0345f..3504c2b 100644
+--- a/arch/arm/plat-omap/include/mach/clock.h
++++ b/arch/arm/plat-omap/include/mach/clock.h
+@@ -70,6 +70,8 @@ struct clk {
+ 	const char		*name;
+ 	int			id;
+ 	struct clk		*parent;
++	struct list_head	children;
++	struct list_head	sibling;	/* node for children */
+ 	unsigned long		rate;
+ 	__u32			flags;
+ 	void __iomem		*enable_reg;
+@@ -116,6 +118,7 @@ extern unsigned int mpurate;
+ 
+ extern int clk_init(struct clk_functions *custom_clocks);
+ extern int clk_register(struct clk *clk);
++extern void clk_reparent(struct clk *child, struct clk *parent);
+ extern void clk_unregister(struct clk *clk);
+ extern void propagate_rate(struct clk *clk);
+ extern void recalculate_root_clocks(void);
