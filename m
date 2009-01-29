@@ -1,45 +1,73 @@
-From: David Brownell <david-b@pacbell.net>
-Subject: Re: [REVIEW PATCH 2/2] Added OMAP3EVM Multi-Media Daughter Card Support
-Date: Wed, 28 Jan 2009 23:20:56 -0800
-Message-ID: <200901282320.56988.david-b@pacbell.net>
-References: <19F8576C6E063C45BE387C64729E739403FA78FFC5@dbde02.ent.ti.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH A 01/10] OMAP2/3: Add non-CORE DPLL rate set code and M,
+ N programming
+Date: Thu, 29 Jan 2009 00:21:22 -0700 (MST)
+Message-ID: <alpine.DEB.2.00.0901290006150.32081@utopia.booyaka.com>
+References: <20090128020447.7244.80496.stgit@localhost.localdomain> <20090128021243.7244.6362.stgit@localhost.localdomain> <20090128221056.GJ23301@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp116.sbc.mail.sp1.yahoo.com ([69.147.64.89]:42875 "HELO
-	smtp116.sbc.mail.sp1.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1751916AbZA2HU7 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Thu, 29 Jan 2009 02:20:59 -0500
-In-Reply-To: <19F8576C6E063C45BE387C64729E739403FA78FFC5@dbde02.ent.ti.com>
-Content-Disposition: inline
+Received: from utopia.booyaka.com ([72.9.107.138]:40918 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752180AbZA2HVY (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 29 Jan 2009 02:21:24 -0500
+In-Reply-To: <20090128221056.GJ23301@n2100.arm.linux.org.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>, "video4linux-list@redhat.com" <video4linux-list@redhat.com>, "Jadav, Brijesh R" <brijesh.j@ti.com>, "Shah, Hardik" <hardik.shah@ti.com>, "Hadli, Manjunath" <mrh@ti.com>, "R, Sivaraj" <sivaraj@ti.com>
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: linux-arm-kernel@lists.arm.linux.org.uk, linux-kernel@vger.kernel.org, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org
+
+Hello Russell,
+
+On Wed, 28 Jan 2009, Russell King - ARM Linux wrote:
+
+> Since it's been posted to lists, comments are going to be made...
+
+Yes, that was the point.
+
+> On Tue, Jan 27, 2009 at 07:12:47PM -0700, Paul Walmsley wrote:
+> > +	/*
+> > +	 * According to the 12-5 CDP code from TI, "Limitation 2.5"
+> > +	 * on 3430ES1 prevents us from changing DPLL multipliers or dividers
+> > +	 * on DPLL4.
+> > +	 */
+> > +	if (omap_rev() == OMAP3430_REV_ES1_0 &&
+> > +	    !strcmp("dpll4_ck", clk->name)) {
+> > +		printk(KERN_ERR "clock: DPLL4 cannot change rate due to "
+> > +		       "silicon 'Limitation 2.5' on 3430ES1.\n");
+> > +		return -EINVAL;
+> > +	}
+> 
+> Yuck.  That's revolting and extremely fragile.  Don't play these games. 
+> You've got plenty of free flag bits in clk->flags which could be used to 
+> prevent the DPLL from being changed.  You've also got other ways to 
+> prevent it - eg, setting dpll_data to NULL.
+
+dpll_data is used for other DPLL register settings (such as autoidle and 
+mode setting), so we should probably leave dpll_data as-is.  Your proposed 
+fix in your subsequent message sounds good (viz., adding a separate static 
+omap3_dpll4_set_rate() function).
+
+> However, what's worse is that, below...
+> 
+> > +static int omap3_noncore_dpll_set_rate(struct clk *clk, unsigned long rate)
+> > +{
+
+...
+
+> > +	omap3_noncore_dpll_program(clk, dd->last_rounded_m, dd->last_rounded_n,
+> > +				   freqsel);
+> 
+> The return value from the above test isn't checked, so this function
+> will succeed even for dpll4_ck.
+
+Indeed, the return value should be passed along to the caller.  The 
+previous check does, however, prevent the DPLL4 registers from being 
+written on 3430ES1.
+
+>From your subsequent message, it sounds like you've merged a version of 
+this patch with your proposed fixes.  Please let me know if you'd 
+like me to send an updated version of this patch anyway.
 
 
-> > > +config MACH_OMAP3EVM_DC
-> > > +=A0=A0=A0=A0=A0=A0=A0bool "OMAP 3530 EVM daughter card board"
-> > > +=A0=A0=A0=A0=A0=A0=A0depends on ARCH_OMAP3 && ARCH_OMAP34XX && M=
-ACH_OMAP3EVM
-> >=20
-> > There can be other daughtercards, so the Kconfig text should
-> > say which specific card is being configured.  And it should
-> > probably use the "zero or one of these choices" syntax, so
-> > it's easier to include other options..
-> >=20
-> [Hiremath, Vaibhav] I do agree with this point, but as of now I
-> believe there is only one Daughter card which is available with
-> us. And I would prefer to have menu option for the future when
-> any new daughter card available and gets added to tree.  =20
->
-> Any other opinions would be helpful?
-
-Nothing particular.
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+- Paul
