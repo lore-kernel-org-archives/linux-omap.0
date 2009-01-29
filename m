@@ -1,33 +1,168 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: RE: [PATCH B 06/10] OMAP3 pwrdm: add CORE SAR handling (for USBTLL
- module)
-Date: Thu, 29 Jan 2009 02:15:44 -0700 (MST)
-Message-ID: <alpine.DEB.2.00.0901290212360.18004@utopia.booyaka.com>
-References: <20090128024301.27240.39391.stgit@localhost.localdomain> <20090128024421.27240.95450.stgit@localhost.localdomain> <13B9B4C6EF24D648824FF11BE89671620376DEB7A5@dlee02.ent.ti.com> <alpine.DEB.2.00.0901290042020.32081@utopia.booyaka.com>
+Subject: [PATCH 1/2] OMAP3: update ES level flags to discriminate between
+	post-ES2 revisions
+Date: Thu, 29 Jan 2009 02:12:05 -0700
+Message-ID: <20090129091203.24256.61109.stgit@localhost.localdomain>
+References: <20090129090821.24256.46439.stgit@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:40384 "EHLO
+Received: from utopia.booyaka.com ([72.9.107.138]:33563 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752339AbZA2JPq (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 29 Jan 2009 04:15:46 -0500
-In-Reply-To: <alpine.DEB.2.00.0901290042020.32081@utopia.booyaka.com>
+	with ESMTP id S1753180AbZA2JQP (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 29 Jan 2009 04:16:15 -0500
+In-Reply-To: <20090129090821.24256.46439.stgit@localhost.localdomain>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Woodruff, Richard" <r-woodruff2@ti.com>
-Cc: "linux-arm-kernel@lists.arm.linux.org.uk" <linux-arm-kernel@lists.arm.linux.org.uk>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>
+To: linux-omap@vger.kernel.org
+Cc: Paul Walmsley <paul@pwsan.com>
 
-Hi Richard,
+Some OMAP3 chip behaviors change in ES levels after ES2.  Modify the
+existing omap_chip flags to add options for ES3.0 and ES3.1.
 
-On Thu, 29 Jan 2009, Paul Walmsley wrote:
+Add a new macro, CHIP_GE_OMAP3430ES2, to cover ES levels from ES2
+onwards - a common pattern for OMAP3 features.  Update all current
+users of the omap_chip macros to use this new macro.
 
-> > TLLSAR is not functional till ES3.1 (and beyound).  Is it possible to flag it this way?
-> 
-> Yes, it's easy in this case.  Thanks for the note.  I will send along an 
-> updated patch for this.
+Also add CHIP_GE_OMAP3430ES3_1 to cover the USBTLL SAR errata case
+(described and fixed in the following patch)
 
-N.B. - fixxing this required a separate change to the omap_chip flag 
-system, so I'll send the two necessary patches to the linux-omap mailing 
-list for further testing.
+Signed-off-by: Paul Walmsley <paul@pwsan.com>
+---
+ arch/arm/mach-omap2/clockdomains.h     |    6 +++---
+ arch/arm/mach-omap2/id.c               |    7 ++++++-
+ arch/arm/mach-omap2/powerdomains34xx.h |    8 ++++----
+ arch/arm/plat-omap/include/mach/cpu.h  |   26 ++++++++++++++++++++------
+ 4 files changed, 33 insertions(+), 14 deletions(-)
 
-- Paul
+diff --git a/arch/arm/mach-omap2/clockdomains.h b/arch/arm/mach-omap2/clockdomains.h
+index 3d4eaca..a21df93 100644
+--- a/arch/arm/mach-omap2/clockdomains.h
++++ b/arch/arm/mach-omap2/clockdomains.h
+@@ -185,7 +185,7 @@ static struct clockdomain sgx_clkdm = {
+ 	.pwrdm		= { .name = "sgx_pwrdm" },
+ 	.flags		= CLKDM_CAN_HWSUP_SWSUP,
+ 	.clktrctrl_mask = OMAP3430ES2_CLKTRCTRL_SGX_MASK,
+-	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430ES2),
++	.omap_chip	= OMAP_CHIP_INIT(CHIP_GE_OMAP3430ES2),
+ };
+ 
+ /*
+@@ -240,7 +240,7 @@ static struct clockdomain usbhost_clkdm = {
+ 	.pwrdm		= { .name = "usbhost_pwrdm" },
+ 	.flags		= CLKDM_CAN_HWSUP_SWSUP,
+ 	.clktrctrl_mask = OMAP3430ES2_CLKTRCTRL_USBHOST_MASK,
+-	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430ES2),
++	.omap_chip	= OMAP_CHIP_INIT(CHIP_GE_OMAP3430ES2),
+ };
+ 
+ static struct clockdomain per_clkdm = {
+@@ -290,7 +290,7 @@ static struct clockdomain dpll4_clkdm = {
+ static struct clockdomain dpll5_clkdm = {
+ 	.name		= "dpll5_clkdm",
+ 	.pwrdm		= { .name = "dpll5_pwrdm" },
+-	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430ES2),
++	.omap_chip	= OMAP_CHIP_INIT(CHIP_GE_OMAP3430ES2),
+ };
+ 
+ #endif   /* CONFIG_ARCH_OMAP34XX */
+diff --git a/arch/arm/mach-omap2/id.c b/arch/arm/mach-omap2/id.c
+index 7cd1b2e..32ceaa6 100644
+--- a/arch/arm/mach-omap2/id.c
++++ b/arch/arm/mach-omap2/id.c
+@@ -239,8 +239,13 @@ void __init omap2_check_revision(void)
+ 		omap_chip.oc = CHIP_IS_OMAP3430;
+ 		if (omap_rev() == OMAP3430_REV_ES1_0)
+ 			omap_chip.oc |= CHIP_IS_OMAP3430ES1;
+-		else if (omap_rev() > OMAP3430_REV_ES1_0)
++		else if (omap_rev() >= OMAP3430_REV_ES2_0 &&
++			 omap_rev() <= OMAP3430_REV_ES2_1)
+ 			omap_chip.oc |= CHIP_IS_OMAP3430ES2;
++		else if (omap_rev() == OMAP3430_REV_ES3_0)
++			omap_chip.oc |= CHIP_IS_OMAP3430ES3_0;
++		else if (omap_rev() == OMAP3430_REV_ES3_1)
++			omap_chip.oc |= CHIP_IS_OMAP3430ES3_1;
+ 	} else {
+ 		pr_err("Uninitialized omap_chip, please fix!\n");
+ 	}
+diff --git a/arch/arm/mach-omap2/powerdomains34xx.h b/arch/arm/mach-omap2/powerdomains34xx.h
+index edfad42..6b9d126 100644
+--- a/arch/arm/mach-omap2/powerdomains34xx.h
++++ b/arch/arm/mach-omap2/powerdomains34xx.h
+@@ -221,7 +221,7 @@ static struct powerdomain core_34xx_es1_pwrdm = {
+ static struct powerdomain core_34xx_es2_pwrdm = {
+ 	.name		  = "core_pwrdm",
+ 	.prcm_offs	  = CORE_MOD,
+-	.omap_chip	  = OMAP_CHIP_INIT(CHIP_IS_OMAP3430ES2),
++	.omap_chip	  = OMAP_CHIP_INIT(CHIP_GE_OMAP3430ES2),
+ 	.pwrsts		  = PWRSTS_OFF_RET_ON,
+ 	.dep_bit	  = OMAP3430_EN_CORE_SHIFT,
+ 	.flags		  = PWRDM_HAS_HDWR_SAR, /* for USBTLL only */
+@@ -263,7 +263,7 @@ static struct powerdomain dss_pwrdm = {
+ static struct powerdomain sgx_pwrdm = {
+ 	.name		  = "sgx_pwrdm",
+ 	.prcm_offs	  = OMAP3430ES2_SGX_MOD,
+-	.omap_chip	  = OMAP_CHIP_INIT(CHIP_IS_OMAP3430ES2),
++	.omap_chip	  = OMAP_CHIP_INIT(CHIP_GE_OMAP3430ES2),
+ 	.wkdep_srcs	  = gfx_sgx_wkdeps,
+ 	.sleepdep_srcs	  = cam_gfx_sleepdeps,
+ 	/* XXX This is accurate for 3430 SGX, but what about GFX? */
+@@ -331,7 +331,7 @@ static struct powerdomain neon_pwrdm = {
+ static struct powerdomain usbhost_pwrdm = {
+ 	.name		  = "usbhost_pwrdm",
+ 	.prcm_offs	  = OMAP3430ES2_USBHOST_MOD,
+-	.omap_chip	  = OMAP_CHIP_INIT(CHIP_IS_OMAP3430ES2),
++	.omap_chip	  = OMAP_CHIP_INIT(CHIP_GE_OMAP3430ES2),
+ 	.wkdep_srcs	  = per_usbhost_wkdeps,
+ 	.sleepdep_srcs	  = dss_per_usbhost_sleepdeps,
+ 	.pwrsts		  = PWRSTS_OFF_RET_ON,
+@@ -373,7 +373,7 @@ static struct powerdomain dpll4_pwrdm = {
+ static struct powerdomain dpll5_pwrdm = {
+ 	.name		= "dpll5_pwrdm",
+ 	.prcm_offs	= PLL_MOD,
+-	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430ES2),
++	.omap_chip	= OMAP_CHIP_INIT(CHIP_GE_OMAP3430ES2),
+ };
+ 
+ 
+diff --git a/arch/arm/plat-omap/include/mach/cpu.h b/arch/arm/plat-omap/include/mach/cpu.h
+index a8e1178..40d1196 100644
+--- a/arch/arm/plat-omap/include/mach/cpu.h
++++ b/arch/arm/plat-omap/include/mach/cpu.h
+@@ -355,13 +355,27 @@ IS_OMAP_TYPE(3430, 0x3430)
+  * use omap_chip_is().
+  *
+  */
+-#define CHIP_IS_OMAP2420       (1 << 0)
+-#define CHIP_IS_OMAP2430       (1 << 1)
+-#define CHIP_IS_OMAP3430       (1 << 2)
+-#define CHIP_IS_OMAP3430ES1    (1 << 3)
+-#define CHIP_IS_OMAP3430ES2    (1 << 4)
++#define CHIP_IS_OMAP2420		(1 << 0)
++#define CHIP_IS_OMAP2430		(1 << 1)
++#define CHIP_IS_OMAP3430		(1 << 2)
++#define CHIP_IS_OMAP3430ES1		(1 << 3)
++#define CHIP_IS_OMAP3430ES2		(1 << 4)
++#define CHIP_IS_OMAP3430ES3_0		(1 << 5)
++#define CHIP_IS_OMAP3430ES3_1		(1 << 6)
++
++#define CHIP_IS_OMAP24XX		(CHIP_IS_OMAP2420 | CHIP_IS_OMAP2430)
++
++/* 
++ * "GE" here represents "greater than or equal to" in terms of ES
++ * levels.  So CHIP_GE_OMAP3430ES2 is intended to match all OMAP3430
++ * chips at ES2 and beyond, but not, for example, any OMAP lines after
++ * OMAP3.
++ */
++#define CHIP_GE_OMAP3430ES2		(CHIP_IS_OMAP3430ES2 | \
++					 CHIP_IS_OMAP3430ES3_0 | \
++					 CHIP_IS_OMAP3430ES3_1)
++#define CHIP_GE_OMAP3430ES3_1		(CHIP_IS_OMAP3430ES3_1)
+ 
+-#define CHIP_IS_OMAP24XX       (CHIP_IS_OMAP2420 | CHIP_IS_OMAP2430)
+ 
+ int omap_chip_is(struct omap_chip_id oci);
+ int omap_type(void);
+
+
