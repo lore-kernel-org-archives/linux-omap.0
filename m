@@ -1,16 +1,16 @@
 From: Dominic Curran <dcurran@ti.com>
-Subject: [OMAPZOOM][PATCH 1/6] CSI2: Add function to change number of data lanes used.
-Date: Thu, 29 Jan 2009 18:53:26 -0600
-Message-ID: <200901291853.26533.dcurran@ti.com>
+Subject: [OMAPZOOM][PATCH 2/6] Increase isp workaround buffer size for 8MP sensor.
+Date: Thu, 29 Jan 2009 18:53:31 -0600
+Message-ID: <200901291853.31318.dcurran@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
   charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:57828 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753180AbZA3Axr (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 29 Jan 2009 19:53:47 -0500
+Received: from bear.ext.ti.com ([192.94.94.41]:48616 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753332AbZA3Axw (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 29 Jan 2009 19:53:52 -0500
 Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
@@ -18,108 +18,86 @@ To: linux-omap <linux-omap@vger.kernel.org>, video4linux-list@redhat.com
 Cc: greg.hofer@hp.com
 
 From: Dominic Curran <dcurran@ti.com>
-Subject: [OMAPZOOM][PATCH 1/6] CSI2: Add function to change number of data lanes 
-used.
+Subject: [OMAPZOOM][PATCH 2/6] Increase isp workaround buffer size for 8MP 
+sensor.
 
-Add new CSI2 function.
-New function is isp_csi2_complexio_lanes_count().
-Sets the number of CSI2 data lanes that should be used.
+A temporary buffer is created to hold the image while it is written by
+Previewer module and then read by Resizer module. This is called LSC
+Workaround. To take into account the Sony IMX046 8MP sensor that buffer
+needs to be increased in size.
+Changed the #defines to be upper case.
+Patch also fixes the initialization of a couple of CCDC values.
 
 Signed-off-by: Dominic Curran <dcurran@ti.com>
-Signed-off-by: Greg Hofer <greg.hofer@hp.com>
 ---
- drivers/media/video/isp/ispcsi2.c |   33 +++++++++++++++++++++++++++++++--
- drivers/media/video/isp/ispcsi2.h |    5 +++++
- 2 files changed, 36 insertions(+), 2 deletions(-)
- mode change 100644 => 100755 drivers/media/video/isp/ispcsi2.c
- mode change 100644 => 100755 drivers/media/video/isp/ispcsi2.h
+ drivers/media/video/isp/isp.c     |   10 +++++-----
+ drivers/media/video/isp/isp.h     |    4 ++--
+ drivers/media/video/isp/ispccdc.c |    2 ++
+ 3 files changed, 9 insertions(+), 7 deletions(-)
 
-Index: omapzoom04/drivers/media/video/isp/ispcsi2.c
+Index: omapzoom04/drivers/media/video/isp/isp.c
 ===================================================================
---- omapzoom04.orig/drivers/media/video/isp/ispcsi2.c
-+++ omapzoom04/drivers/media/video/isp/ispcsi2.c
-@@ -112,6 +112,11 @@ int isp_csi2_complexio_lanes_config(stru
- 			currlanes_u->data[i] = true;
- 			update_complexio_cfg1 = true;
- 		}
-+		/* If the lane position is non zero then we can assume that
-+		 * the initial lane state is on.
-+		 */
-+		if (currlanes->data[i].pos)
-+			currlanes->data[i].state = ISP_CSI2_LANE_ON;
+--- omapzoom04.orig/drivers/media/video/isp/isp.c
++++ omapzoom04/drivers/media/video/isp/isp.c
+@@ -1172,20 +1172,20 @@ void omapisp_unset_callback()
+  **/
+ u32 isp_buf_allocation(void)
+ {
+-	buff_addr = (void *) vmalloc(buffer_size);
++	buff_addr = (void *) vmalloc(ISP_BUFFER_MAX_SIZE);
+ 
+ 	if (!buff_addr) {
+ 		printk(KERN_ERR "Cannot allocate memory ");
+ 		return -ENOMEM;
  	}
  
- 	if (currlanes->clk.pos != reqcfg->clk.pos) {
-@@ -158,9 +163,10 @@ int isp_csi2_complexio_lanes_update(bool
- 									1));
- 			reg |= (currlanes->data[i].pol <<
- 				ISPCSI2_COMPLEXIO_CFG1_DATA_POL_SHIFT(i + 1));
--			reg |= (currlanes->data[i].pos <<
-+			if (currlanes->data[i].state == ISP_CSI2_LANE_ON)
-+				reg |= (currlanes->data[i].pos <<
- 				ISPCSI2_COMPLEXIO_CFG1_DATA_POSITION_SHIFT(i +
--									1));
-+					 1));
- 			currlanes_u->data[i] = false;
- 		}
+-	sglist_alloc = videobuf_vmalloc_to_sg(buff_addr, no_of_pages);
++	sglist_alloc = videobuf_vmalloc_to_sg(buff_addr, ISP_BUFFER_MAX_PAGES);
+ 	if (!sglist_alloc) {
+ 		printk(KERN_ERR "videobuf_vmalloc_to_sg error");
+ 		return -ENOMEM;
  	}
-@@ -181,6 +187,29 @@ int isp_csi2_complexio_lanes_update(bool
- }
- 
- /**
-+ * isp_csi2_complexio_lanes_count - Turn data lanes on/off dynamically.
-+ * @ cnt: Number of data lanes to enable.
-+ *
-+ * Always returns 0.
-+ **/
-+int isp_csi2_complexio_lanes_count(int cnt)
-+{
-+	struct isp_csi2_lanes_cfg *currlanes = &current_csi2_cfg.lanes;
-+	int i;
-+
-+	for (i = 0; i < 4; i++) {
-+		if (i < cnt)
-+			currlanes->data[i].state = ISP_CSI2_LANE_ON;
-+		else
-+			currlanes->data[i].state = ISP_CSI2_LANE_OFF;
-+	}
-+
-+	isp_csi2_complexio_lanes_update(true);
-+	return 0;
-+}
-+EXPORT_SYMBOL(isp_csi2_complexio_lanes_count);
-+
-+/**
-  * isp_csi2_complexio_lanes_get - Gets CSI2 ComplexIO lanes configuration.
-  *
-  * Gets settings from HW registers and fills in the internal driver memory
-Index: omapzoom04/drivers/media/video/isp/ispcsi2.h
+-	num_sc = dma_map_sg(NULL, sglist_alloc, no_of_pages, 1);
+-	buff_addr_mapped = ispmmu_map_sg(sglist_alloc, no_of_pages);
++	num_sc = dma_map_sg(NULL, sglist_alloc, ISP_BUFFER_MAX_PAGES, 1);
++	buff_addr_mapped = ispmmu_map_sg(sglist_alloc, ISP_BUFFER_MAX_PAGES);
+ 	if (!buff_addr_mapped) {
+ 		printk(KERN_ERR "ispmmu_map_sg mapping failed ");
+ 		return -ENOMEM;
+@@ -1217,7 +1217,7 @@ void isp_buf_free(void)
+ {
+ 	if (alloc_done == 1) {
+ 		ispmmu_unmap(buff_addr_mapped);
+-		dma_unmap_sg(NULL, sglist_alloc, no_of_pages, 1);
++		dma_unmap_sg(NULL, sglist_alloc, ISP_BUFFER_MAX_PAGES, 1);
+ 		kfree(sglist_alloc);
+ 		vfree(buff_addr);
+ 		alloc_done = 0;
+Index: omapzoom04/drivers/media/video/isp/isp.h
 ===================================================================
---- omapzoom04.orig/drivers/media/video/isp/ispcsi2.h
-+++ omapzoom04/drivers/media/video/isp/ispcsi2.h
-@@ -20,6 +20,9 @@
- #define OMAP_ISP_CSI2_API_H
- #include <linux/videodev2.h>
+--- omapzoom04.orig/drivers/media/video/isp/isp.h
++++ omapzoom04/drivers/media/video/isp/isp.h
+@@ -69,8 +69,8 @@
+ #define NUM_ISP_CAPTURE_FORMATS 	(sizeof(isp_formats) /\
+ 							sizeof(isp_formats[0]))
+ #define ISP_WORKAROUND 1
+-#define buffer_size (1024 * 1024 * 10)
+-#define no_of_pages (buffer_size / (4 * 1024))
++#define ISP_BUFFER_MAX_SIZE (1024 * 1024 * 16)
++#define ISP_BUFFER_MAX_PAGES (ISP_BUFFER_MAX_SIZE / (4 * 1024))
  
-+#define ISP_CSI2_LANE_OFF 	0
-+#define ISP_CSI2_LANE_ON 	1
-+
- enum isp_csi2_irqevents {
- 	OCP_ERR_IRQ = 0x4000,
- 	SHORT_PACKET_IRQ = 0x2000,
-@@ -63,6 +66,7 @@ enum isp_csi2_frame_mode {
- struct csi2_lanecfg {
- 	u8 pos;
- 	u8 pol;
-+	u8 state; 	/*Current state - 1-Used  0-Unused */
- };
+ typedef int (*isp_vbq_callback_ptr) (struct videobuf_buffer *vb);
+ typedef void (*isp_callback_t) (unsigned long status,
+Index: omapzoom04/drivers/media/video/isp/ispccdc.c
+===================================================================
+--- omapzoom04.orig/drivers/media/video/isp/ispccdc.c
++++ omapzoom04/drivers/media/video/isp/ispccdc.c
+@@ -1265,6 +1265,8 @@ int ispccdc_config_size(u32 input_w, u32
+ 	}
  
- struct isp_csi2_lanes_cfg {
-@@ -175,6 +179,7 @@ struct isp_csi2_cfg_update {
- 
- int isp_csi2_complexio_lanes_config(struct isp_csi2_lanes_cfg *reqcfg);
- int isp_csi2_complexio_lanes_update(bool force_update);
-+int isp_csi2_complexio_lanes_count(int cnt);
- int isp_csi2_complexio_lanes_get(void);
- int isp_csi2_complexio_power_autoswitch(bool enable);
- int isp_csi2_complexio_power(enum isp_csi2_power_cmds power_cmd);
+ 	if (ispccdc_obj.ccdc_outfmt == CCDC_OTHERS_VP) {
++		ispccdc_obj.ccdcin_woffset = 0;
++		ispccdc_obj.ccdcin_hoffset = 0;
+ 		omap_writel((ispccdc_obj.ccdcin_woffset <<
+ 					ISPCCDC_FMT_HORZ_FMTSPH_SHIFT) |
+ 					(ispccdc_obj.ccdcin_w <<
