@@ -1,52 +1,39 @@
-From: Brian Swetland <swetland@google.com>
-Subject: Re: lowmemory android driver not needed?
-Date: Thu, 29 Jan 2009 22:41:13 -0800
-Message-ID: <20090130064113.GB7870@bulgaria.corp.google.com>
-References: <20090129134233.A95C.KOSAKI.MOTOHIRO@jp.fujitsu.com> <20090129045916.GA24842@kroah.com> <20090129141238.A962.KOSAKI.MOTOHIRO@jp.fujitsu.com> <20090130062010.GD31209@kroah.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH D 11/11] Fix omap1 clock issues
+Date: Fri, 30 Jan 2009 00:58:16 -0700 (MST)
+Message-ID: <alpine.DEB.2.00.0901300057360.26985@utopia.booyaka.com>
+References: <20090128191638.16688.33452.stgit@localhost.localdomain> <20090128191844.16688.39372.stgit@localhost.localdomain> <20090129143733.GB18233@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp-out.google.com ([216.239.45.13]:57355 "EHLO
-	smtp-out.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751025AbZA3Glv (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 30 Jan 2009 01:41:51 -0500
-Content-Disposition: inline
-In-Reply-To: <20090130062010.GD31209@kroah.com>
+Received: from utopia.booyaka.com ([72.9.107.138]:42417 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753290AbZA3H6S (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 30 Jan 2009 02:58:18 -0500
+In-Reply-To: <20090129143733.GB18233@n2100.arm.linux.org.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Greg KH <greg@kroah.com>
-Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>, KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>, Arve =?utf-8?B?SGo/bm5lduiZjQ==?= <arve@android.com>, Alan Cox <alan@lxorguk.ukuu.org.uk>, Pavel Machek <pavel@suse.cz>, arve@google.com, San Mehat <san@android.com>, Robert Love <rlove@google.com>, linux-kernel@vger.kernel.org, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, ext Juha =?utf-8?B?WXJqP2zjg7s=?= <juha.yrjola@solidboot.com>, viktor.rosendahl@nokia.com, Trilok Soni <soni.trilok@gmail.com>
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: linux-arm-kernel@lists.arm.linux.org.uk, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>
 
-[Greg KH <greg@kroah.com>]
-> > but I don't think driver/staging is good place for non driver code.
-> > The problem is, any patch must be reviewed by stakeholder, not maintenar only.
-> > then, the patch should post lkml and subsystem mailing list at first.
+On Thu, 29 Jan 2009, Russell King - ARM Linux wrote:
+
+> On Wed, Jan 28, 2009 at 12:18:48PM -0700, Paul Walmsley wrote:
+> > From: Tony Lindgren <tony@atomide.com>
 > > 
-> > I like reviewed code than unreviewed code.
+> > This fixes booting, and is a step toward fixing things properly:
+> > 
+> > - Make enable_reg u32 instead of u16
 > 
-> Heh, so do I.
+> No, you're passing this to __raw_read/write, so it needs to be
+> void __iomem *, not u32.  If there's another patch doing that it
+> needs to be combined with this one.  The miniscule details of
+> fixes upon fixes aren't interesting for submission purposes, and
+> just adds extra unnecessary review load for upstream people.
 > 
-> And this is an odd "driver", I do know that.
-> 
-> But it solves a real problem that can't be solved any other way
-> currently, which is needed for a real system that is shipping.  So, if
-> it can't be solved any other way, do you have a way this kind of thing
-> could be more "correct"?
+> Ditto for anything else which is passed to __raw_read/write*.
 
-I think a lot of the confusion here comes from Arve's earlier (very
-terse) remark:  "I never expected it to be merged. I wrote it to allow 
-us to ship a product."
+Will build a revised patch for this and pass it to Tony for a boot test, 
+then repost.
 
-At the risk of putting words in his mouth, I believe this should be
-parsed as "we wrote this to solve problems necessary to ship products
-and did not expect it to be merged to mainline as-is".  
-
-We'd love to get support for low memory process killing that works for
-our app model into the mainline.  If that's by reworking this driver
-until it's acceptable or by implementing the same functionality a
-different way, making use of some other subsystem, or whatever, we're
-not particularly picky.  Our goal is, eventually, to maintain as few
-patches outside of the kernel as possible so things can build "out of
-the box."
-
-Brian
+- Paul
