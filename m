@@ -1,65 +1,62 @@
 From: Dominic Curran <dcurran@ti.com>
-Subject: [OMAPZOOM][PATCH v2 4/6] Add support for Sony imx046 to OMAP3430 SDP board.
-Date: Fri, 30 Jan 2009 17:46:07 -0600
-Message-ID: <200901301746.07539.dcurran@ti.com>
+Subject: [OMAPZOOM][PATCH v2 6/6] Add support for Sony imx046 to OMAP zoom2 board.
+Date: Fri, 30 Jan 2009 17:46:23 -0600
+Message-ID: <200901301746.23848.dcurran@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
   charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:36768 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756703AbZA3XqO (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 30 Jan 2009 18:46:14 -0500
+Return-path: <linux-media-owner@vger.kernel.org>
 Content-Disposition: inline
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
-To: linux-media@vger.kernel.org, linux-omap <linux-omap@vger.kernel.org>
+Sender: linux-media-owner@vger.kernel.org
+To: linux-omap <linux-omap@vger.kernel.org>, linux-media@vger.kernel.org
 Cc: greg.hofer@hp.com
+List-Id: linux-omap@vger.kernel.org
 
 From: Dominic Curran <dcurran@ti.com>
-Subject: [OMAPZOOM][PATCH v2 4/6] Add support for Sony imx046 to OMAP3430 SDP 
+Subject: [OMAPZOOM][PATCH v2 6/6] Add support for Sony imx046 to OMAP zoom2 
 board.
 
-Support for the Sony IMX046 sensor on the OMAP3430 SDP board.
+Support for the Sony IMX046 sensor on the OMAP Zoom2 board.
 
-Signed-off-by: Greg Hofer <greg.hofer@hp.com>
 Signed-off-by: Dominic Curran <dcurran@ti.com>
 ---
- arch/arm/mach-omap2/board-3430sdp.c |  197 ++++++++++++++++++++++++++++++++++++
- 1 file changed, 197 insertions(+)
+ arch/arm/configs/omap_zoom2_defconfig |    1 
+ arch/arm/mach-omap2/board-zoom2.c     |  206 +++++++++++++++++++++++++++++++++-
+ 2 files changed, 205 insertions(+), 2 deletions(-)
 
-Index: omapzoom04/arch/arm/mach-omap2/board-3430sdp.c
+Index: omapzoom04/arch/arm/configs/omap_zoom2_defconfig
 ===================================================================
---- omapzoom04.orig/arch/arm/mach-omap2/board-3430sdp.c
-+++ omapzoom04/arch/arm/mach-omap2/board-3430sdp.c
-@@ -45,6 +45,9 @@
- #include "ti-compat.h"
+--- omapzoom04.orig/arch/arm/configs/omap_zoom2_defconfig
++++ omapzoom04/arch/arm/configs/omap_zoom2_defconfig
+@@ -994,6 +994,7 @@ CONFIG_VIDEO_CAPTURE_DRIVERS=y
+ # CONFIG_VIDEO_MT9P012 is not set
+ # CONFIG_VIDEO_DW9710 is not set
+ # CONFIG_VIDEO_OV3640 is not set
++CONFIG_VIDEO_IMX046=y
+ # CONFIG_VIDEO_SAA711X is not set
+ # CONFIG_VIDEO_SAA717X is not set
+ # CONFIG_VIDEO_TVP5150 is not set
+Index: omapzoom04/arch/arm/mach-omap2/board-zoom2.c
+===================================================================
+--- omapzoom04.orig/arch/arm/mach-omap2/board-zoom2.c
++++ omapzoom04/arch/arm/mach-omap2/board-zoom2.c
+@@ -23,6 +23,7 @@
+ #include <linux/synaptics_i2c_rmi.h>
+ #include <linux/spi/spi.h>
+ #include <linux/i2c/twl4030.h>
++#include <linux/mm.h>
  
- #ifdef CONFIG_VIDEO_OMAP3
-+#ifndef CONFIG_TWL4030_CORE
-+#error "no power companion board defined!"
-+#endif
- #include <media/v4l2-int-device.h>
- #include <../drivers/media/video/omap34xxcam.h>
- #include <../drivers/media/video/isp/ispreg.h>
-@@ -52,9 +55,11 @@
- #define FPGA_SPR_GPIO1_3v3	(0x1 << 14)
- #define FPGA_GPIO6_DIR_CTRL	(0x1 << 6)
- static void __iomem *fpga_map_addr;
-+
- #if defined(CONFIG_VIDEO_MT9P012) || defined(CONFIG_VIDEO_MT9P012_MODULE)
- #include <../drivers/media/video/mt9p012.h>
+ #include <mach/hardware.h>
+ #include <asm/mach-types.h>
+@@ -50,6 +51,30 @@
+ #include <mach/prcm_34xx.h>
  #endif
-+
- #if defined(CONFIG_VIDEO_OV3640) || defined(CONFIG_VIDEO_OV3640_MODULE)
- #include <../drivers/media/video/ov3640.h>
- #include <../drivers/media/video/isp/ispcsi2.h>
-@@ -71,6 +76,22 @@ static	struct omap34xxcam_hw_config *hwc
- #define OV3640_CSI2_PHY_TCLK_MISS	1
- #define OV3640_CSI2_PHY_TCLK_SETTLE	14
- #endif
-+
+ 
++#ifdef CONFIG_VIDEO_OMAP3
++#include <media/v4l2-int-device.h>
++#include <../drivers/media/video/omap34xxcam.h>
++#include <../drivers/media/video/isp/ispreg.h>
 +#if defined(CONFIG_VIDEO_IMX046) || defined(CONFIG_VIDEO_IMX046_MODULE)
 +#include <../drivers/media/video/imx046.h>
 +#include <../drivers/media/video/isp/ispcsi2.h>
@@ -74,15 +71,19 @@ Index: omapzoom04/arch/arm/mach-omap2/board-3430sdp.c
 +#define IMX046_CSI2_PHY_TCLK_TERM	0
 +#define IMX046_CSI2_PHY_TCLK_MISS	1
 +#define IMX046_CSI2_PHY_TCLK_SETTLE	14
++#ifndef CONFIG_TWL4030_CORE
++#error "no power companion board defined!"
 +#endif
- #endif
- 
- #ifdef CONFIG_VIDEO_DW9710
-@@ -926,6 +947,176 @@ static struct ov3640_platform_data sdp34
- 
- #endif
- 
++#endif
++#endif
 +
+ #ifdef CONFIG_TOUCHSCREEN_SYNAPTICS
+ #define OMAP_SYNAPTICS_GPIO		163
+ #endif
+@@ -301,6 +326,175 @@ static struct twl4030_keypad_data ldp_kp
+ 	.irq		= TWL4030_MODIRQ_KEYPAD,
+ };
+ 
 +#if defined(CONFIG_VIDEO_IMX046) || defined(CONFIG_VIDEO_IMX046_MODULE)
 +
 +static struct omap34xxcam_sensor_config imx046_hwc = {
@@ -95,12 +96,12 @@ Index: omapzoom04/arch/arm/mach-omap2/board-3430sdp.c
 +{
 +	struct omap34xxcam_hw_config *hwc = priv;
 +
-+	hwc->u.sensor.xclk 	= imx046_hwc.xclk;
++	hwc->u.sensor.xclk	= imx046_hwc.xclk;
 +	hwc->u.sensor.sensor_isp = imx046_hwc.sensor_isp;
-+	hwc->dev_index 		= 2;
-+	hwc->dev_minor 		= 5;
++	hwc->dev_index		= 2;
++	hwc->dev_minor		= 5;
 +	hwc->dev_type		= OMAP34XXCAM_SLAVE_SENSOR;
-+	hwc->interface_type 	= ISP_CSIA;
++	hwc->interface_type	= ISP_CSIA;
 +
 +	hwc->csi2.hw_csi2.lanes.clock.polarity   = IMX046_CSI2_CLOCK_POLARITY;
 +	hwc->csi2.hw_csi2.lanes.clock.position   = IMX046_CSI2_CLOCK_LANE;
@@ -237,7 +238,7 @@ Index: omapzoom04/arch/arm/mach-omap2/board-3430sdp.c
 +	return err;
 +}
 +
-+static struct imx046_platform_data sdp3430_imx046_platform_data = {
++static struct imx046_platform_data zoom2_imx046_platform_data = {
 +	.power_set            = imx046_sensor_power_set,
 +	.priv_data_set        = imx046_sensor_set_prv_data,
 +	.default_regs         = NULL,
@@ -252,19 +253,42 @@ Index: omapzoom04/arch/arm/mach-omap2/board-3430sdp.c
 +};
 +#endif
 +
- static struct platform_device sdp3430_lcd_device = {
- 	.name		= "sdp2430_lcd",
- 	.id		= -1,
-@@ -1063,6 +1254,12 @@ static struct i2c_board_info __initdata 
- 		.platform_data = &sdp3430_ov3640_platform_data,
+ static int __init msecure_init(void)
+ {
+ 	int ret = 0;
+@@ -506,15 +700,23 @@ static struct synaptics_i2c_rmi_platform
+ 	.version	= 0,
+ 	.power		= &synaptics_power,
+ };
++#endif
+ 
+ static struct i2c_board_info __initdata zoom2_i2c_bus2_info[] = {
++#ifdef CONFIG_TOUCHSCREEN_SYNAPTICS
+ 	{
+ 		I2C_BOARD_INFO(SYNAPTICS_I2C_RMI_NAME,  SYNAPTICS_I2C_ADDR),
+ 		.platform_data = &ldp3430_synaptics_platform_data,
+ 		.irq = 0,
  	},
+-};
  #endif
 +#if defined(CONFIG_VIDEO_IMX046) || defined(CONFIG_VIDEO_IMX046_MODULE)
 +	{
 +		I2C_BOARD_INFO("imx046", IMX046_I2C_ADDR),
-+		.platform_data = &sdp3430_imx046_platform_data,
++		.platform_data = &zoom2_imx046_platform_data,
 +	},
 +#endif
- };
++};
  
- static int __init omap3430_i2c_init(void)
+ static int __init omap_i2c_init(void)
+ {
+@@ -522,9 +724,9 @@ static int __init omap_i2c_init(void)
+ 			ARRAY_SIZE(zoom2_i2c_bus1_info));
+ #ifdef CONFIG_TOUCHSCREEN_SYNAPTICS
+ 	zoom2_i2c_bus2_info[0].irq = OMAP_GPIO_IRQ(OMAP_SYNAPTICS_GPIO);
++#endif
+ 	omap_register_i2c_bus(2, 100, zoom2_i2c_bus2_info,
+ 			ARRAY_SIZE(zoom2_i2c_bus2_info));
+-#endif
+ 	omap_register_i2c_bus(3, 400, NULL, 0);
+ 	return 0;
+ }
