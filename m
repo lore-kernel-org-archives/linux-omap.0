@@ -1,58 +1,137 @@
-From: David Brownell <david-b@pacbell.net>
-Subject: Re: [patch/rfc 2.6.28-rc2] input: twl4030_keypad driver
-Date: Thu, 29 Jan 2009 16:57:49 -0800
-Message-ID: <200901291657.50008.david-b@pacbell.net>
-References: <200901211613.06427.david-b@pacbell.net> <BD79186B4FD85F4B8E60E381CAEE1909011A527A@mi8nycmail19.Mi8.com>
+From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+Subject: RE: [OMAPZOOM][PATCH 2/6] Increase isp workaround buffer size for
+ 8MP	sensor.
+Date: Fri, 30 Jan 2009 09:20:01 +0530
+Message-ID: <19F8576C6E063C45BE387C64729E739403FA7901FC@dbde02.ent.ti.com>
+References: <200901291853.31318.dcurran@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-input-owner@vger.kernel.org>
-In-Reply-To: <BD79186B4FD85F4B8E60E381CAEE1909011A527A@mi8nycmail19.Mi8.com>
-Content-Disposition: inline
-Sender: linux-input-owner@vger.kernel.org
-To: hartleys <hartleys@visionengravers.com>
-Cc: linux-input@vger.kernel.org, OMAP <linux-omap@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:35382 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755433AbZA3Du1 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 29 Jan 2009 22:50:27 -0500
+In-Reply-To: <200901291853.31318.dcurran@ti.com>
+Content-Language: en-US
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "Curran, Dominic" <dcurran@ti.com>, linux-omap <linux-omap@vger.kernel.org>, "video4linux-list@redhat.com" <video4linux-list@redhat.com>
+Cc: "greg.hofer@hp.com" <greg.hofer@hp.com>
 
-On Thursday 29 January 2009, hartleys wrote:
-> > +/* Boards have uniqe mappings of {col, row} --> keycode.
-> > + * Column and row are 4 bits, but range only from 0..7;
-> > + * a PERSISTENT_KEY is "always on" and never reported.
-> > + */
-> > +#define KEY_PERSISTENT=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=
-0x00800000
-> > +#define KEY(col, row, keycode)=A0=A0=A0=A0=A0=A0=A0(((col) << 28) =
-| ((row) << 24) |
-> (keycode))
->=20
-> The same KEY macro is defined in:
->=20
-> arch/arm/mach-pxa/include/mach/pxa27x_keypad.h
-> arch/arm/plat-omap/include/mach/keypad.h
 
-I copied it from the OMAP version as part of removing
-needless OMAP dependencies from this driver.
 
-=20
-> I also have a keypad driver for the ep93xx that uses the same macro.
->=20
-> Shouldn't/couldn't this be generalized and added to the
-> include/linux/input.h file? =A0Allowing 4-bits for row/col gives a ma=
-ximum
-> key matrix of 16x16 keys which should be enough for just about anythi=
-ng.
+Thanks,
+Vaibhav Hiremath
 
-Makes sense.  But that's not what this patch is
-about, and I also think the KEY prefix is probably
-too generic.
+> -----Original Message-----
+> From: video4linux-list-bounces@redhat.com [mailto:video4linux-list-
+> bounces@redhat.com] On Behalf Of Curran, Dominic
+> Sent: Friday, January 30, 2009 6:24 AM
+> To: linux-omap; video4linux-list@redhat.com
+> Cc: greg.hofer@hp.com
+> Subject: [OMAPZOOM][PATCH 2/6] Increase isp workaround buffer size
+> for 8MP sensor.
+> 
+> From: Dominic Curran <dcurran@ti.com>
+> Subject: [OMAPZOOM][PATCH 2/6] Increase isp workaround buffer size
+> for 8MP
+> sensor.
+> 
+> A temporary buffer is created to hold the image while it is written
+> by
+> Previewer module and then read by Resizer module. This is called LSC
+> Workaround. To take into account the Sony IMX046 8MP sensor that
+> buffer
+> needs to be increased in size.
+> Changed the #defines to be upper case.
+> Patch also fixes the initialization of a couple of CCDC values.
+> 
+> Signed-off-by: Dominic Curran <dcurran@ti.com>
+> ---
+>  drivers/media/video/isp/isp.c     |   10 +++++-----
+>  drivers/media/video/isp/isp.h     |    4 ++--
+>  drivers/media/video/isp/ispccdc.c |    2 ++
+>  3 files changed, 9 insertions(+), 7 deletions(-)
+> 
+> Index: omapzoom04/drivers/media/video/isp/isp.c
+> ===================================================================
+> --- omapzoom04.orig/drivers/media/video/isp/isp.c
+> +++ omapzoom04/drivers/media/video/isp/isp.c
+> @@ -1172,20 +1172,20 @@ void omapisp_unset_callback()
+>   **/
+>  u32 isp_buf_allocation(void)
+>  {
+> -	buff_addr = (void *) vmalloc(buffer_size);
+> +	buff_addr = (void *) vmalloc(ISP_BUFFER_MAX_SIZE);
+> 
+>  	if (!buff_addr) {
+>  		printk(KERN_ERR "Cannot allocate memory ");
+>  		return -ENOMEM;
+>  	}
+> 
+> -	sglist_alloc = videobuf_vmalloc_to_sg(buff_addr, no_of_pages);
+> +	sglist_alloc = videobuf_vmalloc_to_sg(buff_addr,
+> ISP_BUFFER_MAX_PAGES);
+>  	if (!sglist_alloc) {
+>  		printk(KERN_ERR "videobuf_vmalloc_to_sg error");
+>  		return -ENOMEM;
+>  	}
+> -	num_sc = dma_map_sg(NULL, sglist_alloc, no_of_pages, 1);
+> -	buff_addr_mapped = ispmmu_map_sg(sglist_alloc, no_of_pages);
+> +	num_sc = dma_map_sg(NULL, sglist_alloc, ISP_BUFFER_MAX_PAGES,
+> 1);
+> +	buff_addr_mapped = ispmmu_map_sg(sglist_alloc,
+> ISP_BUFFER_MAX_PAGES);
+>  	if (!buff_addr_mapped) {
+>  		printk(KERN_ERR "ispmmu_map_sg mapping failed ");
+>  		return -ENOMEM;
+> @@ -1217,7 +1217,7 @@ void isp_buf_free(void)
+>  {
+>  	if (alloc_done == 1) {
+>  		ispmmu_unmap(buff_addr_mapped);
+> -		dma_unmap_sg(NULL, sglist_alloc, no_of_pages, 1);
+> +		dma_unmap_sg(NULL, sglist_alloc, ISP_BUFFER_MAX_PAGES,
+> 1);
+>  		kfree(sglist_alloc);
+>  		vfree(buff_addr);
+>  		alloc_done = 0;
+> Index: omapzoom04/drivers/media/video/isp/isp.h
+> ===================================================================
+> --- omapzoom04.orig/drivers/media/video/isp/isp.h
+> +++ omapzoom04/drivers/media/video/isp/isp.h
+> @@ -69,8 +69,8 @@
+>  #define NUM_ISP_CAPTURE_FORMATS 	(sizeof(isp_formats) /\
+>  							sizeof(isp_formats[0]))
+>  #define ISP_WORKAROUND 1
+> -#define buffer_size (1024 * 1024 * 10)
+> -#define no_of_pages (buffer_size / (4 * 1024))
+> +#define ISP_BUFFER_MAX_SIZE (1024 * 1024 * 16)
+> +#define ISP_BUFFER_MAX_PAGES (ISP_BUFFER_MAX_SIZE / (4 * 1024))
+> 
+[Hiremath, Vaibhav] Is here (4 * 1024) indicates ISP-MMUSG page size configuration or normal kernel page size?
 
-I'd support an overall cleanup patch that fixes
-all those things at once.
+If it is kernel page size, then we can use PAGE_SIZE macro instead of hard coding.
 
-- Dave
+>  typedef int (*isp_vbq_callback_ptr) (struct videobuf_buffer *vb);
+>  typedef void (*isp_callback_t) (unsigned long status,
+> Index: omapzoom04/drivers/media/video/isp/ispccdc.c
+> ===================================================================
+> --- omapzoom04.orig/drivers/media/video/isp/ispccdc.c
+> +++ omapzoom04/drivers/media/video/isp/ispccdc.c
+> @@ -1265,6 +1265,8 @@ int ispccdc_config_size(u32 input_w, u32
+>  	}
+> 
+>  	if (ispccdc_obj.ccdc_outfmt == CCDC_OTHERS_VP) {
+> +		ispccdc_obj.ccdcin_woffset = 0;
+> +		ispccdc_obj.ccdcin_hoffset = 0;
+>  		omap_writel((ispccdc_obj.ccdcin_woffset <<
+>  					ISPCCDC_FMT_HORZ_FMTSPH_SHIFT) |
+>  					(ispccdc_obj.ccdcin_w <<
+> 
+> --
+> video4linux-list mailing list
+> Unsubscribe mailto:video4linux-list-
+> request@redhat.com?subject=unsubscribe
+> https://www.redhat.com/mailman/listinfo/video4linux-list
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-input" =
-in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
