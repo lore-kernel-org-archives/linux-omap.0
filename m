@@ -1,27 +1,22 @@
 From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Subject: RE: [OMAPZOOM][PATCH 4/6] Add support for Sony imx046 to OMAP3430
- SDP	board.
-Date: Fri, 30 Jan 2009 09:20:09 +0530
-Message-ID: <19F8576C6E063C45BE387C64729E739403FA7901FD@dbde02.ent.ti.com>
-References: <200901291853.45415.dcurran@ti.com>
+Subject: RE: [OMAPZOOM][PATCH 5/6] ZOOM2: Rename the zoom2 i2c struct.
+Date: Fri, 30 Jan 2009 09:21:48 +0530
+Message-ID: <19F8576C6E063C45BE387C64729E739403FA790201@dbde02.ent.ti.com>
+References: <200901291853.49092.dcurran@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <video4linux-list-bounces@redhat.com>
-In-Reply-To: <200901291853.45415.dcurran@ti.com>
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:55337 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754593AbZA3DwL convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 29 Jan 2009 22:52:11 -0500
+In-Reply-To: <200901291853.49092.dcurran@ti.com>
 Content-Language: en-US
-List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
-	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
-List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
-List-Post: <mailto:video4linux-list@redhat.com>
-List-Help: <mailto:video4linux-list-request@redhat.com?subject=help>
-List-Subscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
-	<mailto:video4linux-list-request@redhat.com?subject=subscribe>
-Sender: video4linux-list-bounces@redhat.com
-Errors-To: video4linux-list-bounces@redhat.com
+Sender: linux-omap-owner@vger.kernel.org
+List-Id: linux-omap@vger.kernel.org
 To: "Curran, Dominic" <dcurran@ti.com>, linux-omap <linux-omap@vger.kernel.org>, "video4linux-list@redhat.com" <video4linux-list@redhat.com>
 Cc: "greg.hofer@hp.com" <greg.hofer@hp.com>
-List-Id: linux-omap@vger.kernel.org
 
 
 
@@ -34,300 +29,71 @@ Vaibhav Hiremath
 > Sent: Friday, January 30, 2009 6:24 AM
 > To: linux-omap; video4linux-list@redhat.com
 > Cc: greg.hofer@hp.com
-> Subject: [OMAPZOOM][PATCH 4/6] Add support for Sony imx046 to
-> OMAP3430 SDP board.
->=20
+> Subject: [OMAPZOOM][PATCH 5/6] ZOOM2: Rename the zoom2 i2c struct.
+> 
 > From: Dominic Curran <dcurran@ti.com>
-> Subject: [OMAPZOOM][PATCH 4/6] Add support for Sony imx046 to
-> OMAP3430 SDP board.
->=20
-> Support for the Sony IMX046 sensor on the OMAP3430 SDP board.
->=20
+> Subject: [OMAPZOOM][PATCH 5/6] ZOOM2: Rename the zoom2 i2c struct.
+> 
+> Rename i2c structures to something sensible.
+> This patch is not specific for imx046 sensor.
+> Do this in preparation for i2c changes for imx046 sensor.
+> 
 > Signed-off-by: Greg Hofer <greg.hofer@hp.com>
 > Signed-off-by: Dominic Curran <dcurran@ti.com>
 > ---
->  arch/arm/mach-omap2/board-3430sdp.c |  197
-> ++++++++++++++++++++++++++++++++++++
->  1 file changed, 197 insertions(+)
->=20
-> Index: omapzoom04/arch/arm/mach-omap2/board-3430sdp.c
-> =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
-> --- omapzoom04.orig/arch/arm/mach-omap2/board-3430sdp.c
-> +++ omapzoom04/arch/arm/mach-omap2/board-3430sdp.c
-> @@ -45,6 +45,9 @@
->  #include "ti-compat.h"
->=20
->  #ifdef CONFIG_VIDEO_OMAP3
-> +#ifndef CONFIG_TWL4030_CORE
-> +#error "no power companion board defined!"
-> +#endif
-[Hiremath, Vaibhav] Do we really required to do this?
-
->  #include <media/v4l2-int-device.h>
->  #include <../drivers/media/video/omap34xxcam.h>
->  #include <../drivers/media/video/isp/ispreg.h>
-> @@ -52,9 +55,11 @@
->  #define FPGA_SPR_GPIO1_3v3	(0x1 << 14)
->  #define FPGA_GPIO6_DIR_CTRL	(0x1 << 6)
->  static void __iomem *fpga_map_addr;
-> +
->  #if defined(CONFIG_VIDEO_MT9P012) ||
-> defined(CONFIG_VIDEO_MT9P012_MODULE)
->  #include <../drivers/media/video/mt9p012.h>
->  #endif
-> +
->  #if defined(CONFIG_VIDEO_OV3640) ||
-> defined(CONFIG_VIDEO_OV3640_MODULE)
->  #include <../drivers/media/video/ov3640.h>
->  #include <../drivers/media/video/isp/ispcsi2.h>
-> @@ -71,6 +76,22 @@ static	struct omap34xxcam_hw_config *hwc
->  #define OV3640_CSI2_PHY_TCLK_MISS	1
->  #define OV3640_CSI2_PHY_TCLK_SETTLE	14
->  #endif
-> +
-> +#if defined(CONFIG_VIDEO_IMX046) ||
-> defined(CONFIG_VIDEO_IMX046_MODULE)
-> +#include <../drivers/media/video/imx046.h>
-> +#include <../drivers/media/video/isp/ispcsi2.h>
-> +#define IMX046_CSI2_CLOCK_POLARITY	0	/* +/- pin order */
-> +#define IMX046_CSI2_DATA0_POLARITY	0	/* +/- pin order */
-> +#define IMX046_CSI2_DATA1_POLARITY	0	/* +/- pin order */
-> +#define IMX046_CSI2_CLOCK_LANE		1	 /* Clock lane
-> position: 1 */
-> +#define IMX046_CSI2_DATA0_LANE		2	 /* Data0 lane
-> position: 2 */
-> +#define IMX046_CSI2_DATA1_LANE		3	 /* Data1 lane
-> position: 3 */
-> +#define IMX046_CSI2_PHY_THS_TERM	2
-> +#define IMX046_CSI2_PHY_THS_SETTLE	23
-> +#define IMX046_CSI2_PHY_TCLK_TERM	0
-> +#define IMX046_CSI2_PHY_TCLK_MISS	1
-> +#define IMX046_CSI2_PHY_TCLK_SETTLE	14
-> +#endif
->  #endif
->=20
->  #ifdef CONFIG_VIDEO_DW9710
-> @@ -926,6 +947,176 @@ static struct ov3640_platform_data sdp34
->=20
->  #endif
->=20
-> +
-> +#if defined(CONFIG_VIDEO_IMX046) ||
-> defined(CONFIG_VIDEO_IMX046_MODULE)
-> +
-> +static struct omap34xxcam_sensor_config imx046_hwc =3D {
-> +	.sensor_isp =3D 0,
-> +	.xclk =3D OMAP34XXCAM_XCLK_B,
-> +	.capture_mem =3D PAGE_ALIGN(3280 * 2464 * 2) * 2,
-> +};
-> +
-[Hiremath, Vaibhav] You may want to align the structure, same comment I h=
-ad also received from Tony on MMDC support patch.
-
-> +static int imx046_sensor_set_prv_data(void *priv)
-> +{
-> +	struct omap34xxcam_hw_config *hwc =3D priv;
-> +
-> +	hwc->u.sensor.xclk =3D imx046_hwc.xclk;
-> +	hwc->u.sensor.sensor_isp =3D imx046_hwc.sensor_isp;
-> +	hwc->dev_index =3D 2;
-> +	hwc->dev_minor =3D 5;
-> +	hwc->dev_type =3D OMAP34XXCAM_SLAVE_SENSOR;
-> +	hwc->interface_type =3D ISP_CSIA;
-> +
-> +	hwc->csi2.hw_csi2.lanes.clock.polarity =3D
-> IMX046_CSI2_CLOCK_POLARITY;
-> +	hwc->csi2.hw_csi2.lanes.clock.position =3D
-> IMX046_CSI2_CLOCK_LANE;
-> +	hwc->csi2.hw_csi2.lanes.data[0].polarity =3D
-> IMX046_CSI2_DATA0_POLARITY;
-> +	hwc->csi2.hw_csi2.lanes.data[0].position =3D
-> IMX046_CSI2_DATA0_LANE;
-> +	hwc->csi2.hw_csi2.lanes.data[1].polarity =3D
-> IMX046_CSI2_DATA1_POLARITY;
-> +	hwc->csi2.hw_csi2.lanes.data[1].position =3D
-> IMX046_CSI2_DATA1_LANE;
-> +	hwc->csi2.hw_csi2.phy.ths_term =3D IMX046_CSI2_PHY_THS_TERM;
-> +	hwc->csi2.hw_csi2.phy.ths_settle =3D IMX046_CSI2_PHY_THS_SETTLE;
-> +	hwc->csi2.hw_csi2.phy.tclk_term =3D IMX046_CSI2_PHY_TCLK_TERM;
-> +	hwc->csi2.hw_csi2.phy.tclk_miss =3D IMX046_CSI2_PHY_TCLK_MISS;
-> +	hwc->csi2.hw_csi2.phy.tclk_settle =3D
-> IMX046_CSI2_PHY_TCLK_SETTLE;
-> +	return 0;
-> +}
-> +
-> +static struct isp_interface_config imx046_if_config =3D {
-> +	.ccdc_par_ser =3D ISP_CSIA,
-> +	.dataline_shift =3D 0x0,
-> +	.hsvs_syncdetect =3D ISPCTRL_SYNC_DETECT_VSRISE,
-> +	.vdint0_timing =3D 0x0,
-> +	.vdint1_timing =3D 0x0,
-> +	.strobe =3D 0x0,
-> +	.prestrobe =3D 0x0,
-> +	.shutter =3D 0x0,
-> +	.prev_sph =3D 2,
-> +	.prev_slv =3D 0,
-> +	.wenlog =3D ISPCCDC_CFG_WENLOG_OR,
-> +	.dcsub =3D IMX046_BLACK_LEVEL_AVG,
-> +	.u.csi.crc =3D 0x0,
-> +	.u.csi.mode =3D 0x0,
-> +	.u.csi.edge =3D 0x0,
-> +	.u.csi.signalling =3D 0x0,
-> +	.u.csi.strobe_clock_inv =3D 0x0,
-> +	.u.csi.vs_edge =3D 0x0,
-> +	.u.csi.channel =3D 0x0,
-> +	.u.csi.vpclk =3D 0x2,
-> +	.u.csi.data_start =3D 0x0,
-> +	.u.csi.data_size =3D 0x0,
-> +	.u.csi.format =3D V4L2_PIX_FMT_SGRBG10,
-> +};
-> +
-[Hiremath, Vaibhav] Same here.
-> +
-> +static int imx046_sensor_power_set(enum v4l2_power power)
-> +{
-> +	struct isp_csi2_lanes_cfg lanecfg;
-> +	struct isp_csi2_phy_cfg phyconfig;
-> +	static enum v4l2_power previous_power =3D V4L2_POWER_OFF;
-> +	int err =3D 0;
-> +
-> +	switch (power) {
-> +	case V4L2_POWER_ON:
-> +		/* Power Up Sequence */
-> +		printk(KERN_DEBUG "imx046_sensor_power_set(ON)\n");
-> +		if (previous_power =3D=3D V4L2_POWER_OFF)
-> +			isp_csi2_reset();
-> +
-> +		lanecfg.clk.pol =3D IMX046_CSI2_CLOCK_POLARITY;
-> +		lanecfg.clk.pos =3D IMX046_CSI2_CLOCK_LANE;
-> +		lanecfg.data[0].pol =3D IMX046_CSI2_DATA0_POLARITY;
-> +		lanecfg.data[0].pos =3D IMX046_CSI2_DATA0_LANE;
-> +		lanecfg.data[1].pol =3D IMX046_CSI2_DATA1_POLARITY;
-> +		lanecfg.data[1].pos =3D IMX046_CSI2_DATA1_LANE;
-> +		lanecfg.data[2].pol =3D 0;
-> +		lanecfg.data[2].pos =3D 0;
-> +		lanecfg.data[3].pol =3D 0;
-> +		lanecfg.data[3].pos =3D 0;
-> +		isp_csi2_complexio_lanes_config(&lanecfg);
-> +		isp_csi2_complexio_lanes_update(true);
-> +
-> +		isp_csi2_ctrl_config_ecc_enable(true);
-> +
-> +		phyconfig.ths_term =3D IMX046_CSI2_PHY_THS_TERM;
-> +		phyconfig.ths_settle =3D IMX046_CSI2_PHY_THS_SETTLE;
-> +		phyconfig.tclk_term =3D IMX046_CSI2_PHY_TCLK_TERM;
-> +		phyconfig.tclk_miss =3D IMX046_CSI2_PHY_TCLK_MISS;
-> +		phyconfig.tclk_settle =3D IMX046_CSI2_PHY_TCLK_SETTLE;
-> +		isp_csi2_phy_config(&phyconfig);
-> +		isp_csi2_phy_update(true);
-> +
-> +		isp_configure_interface(&imx046_if_config);
-> +
-> +		if (previous_power =3D=3D V4L2_POWER_OFF) {
-> +			/* Request and configure gpio pins */
-> +			if (omap_request_gpio(IMX046_RESET_GPIO) !=3D 0)
-> +				return -EIO;
-> +
-> +			/* nRESET is active LOW. set HIGH to release reset
-> */
-> +			omap_set_gpio_dataout(IMX046_RESET_GPIO, 1);
-> +
-> +			/* set to output mode */
-> +			omap_set_gpio_direction(IMX046_RESET_GPIO,
-> +				GPIO_DIR_OUTPUT);
-> +
-> +			/* turn on analog power */
-> +			twl4030_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER,
-> +					VAUX_2_8_V, TWL4030_VAUX2_DEDICATED);
-> +			twl4030_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER,
-> +					VAUX_DEV_GRP_P1,
-> TWL4030_VAUX2_DEV_GRP);
-> +
-> +			twl4030_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER,
-> +					VAUX_1_8_V, TWL4030_VAUX4_DEDICATED);
-> +			twl4030_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER,
-> +					VAUX_DEV_GRP_P1,
-> TWL4030_VAUX4_DEV_GRP);
-> +			udelay(100);
-> +
-> +			/* have to put sensor to reset to guarantee
-> detection */
-> +			omap_set_gpio_dataout(IMX046_RESET_GPIO, 0);
-> +			udelay(1500);
-> +
-> +			/* nRESET is active LOW. set HIGH to release reset
-> */
-> +			omap_set_gpio_dataout(IMX046_RESET_GPIO, 1);
-> +			udelay(300);
-> +		}
-> +		break;
-> +	case V4L2_POWER_OFF:
-> +		printk(KERN_DEBUG "imx046_sensor_power_set(OFF)\n");
-> +		/* Power Down Sequence */
-> +		isp_csi2_complexio_power(ISP_CSI2_POWER_OFF);
-> +
-> +		twl4030_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER,
-> +				VAUX_DEV_GRP_NONE, TWL4030_VAUX4_DEV_GRP);
-> +		twl4030_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER,
-> +				VAUX_DEV_GRP_NONE, TWL4030_VAUX2_DEV_GRP);
-> +		omap_free_gpio(IMX046_RESET_GPIO);
-> +		break;
-> +	case V4L2_POWER_STANDBY:
-> +		printk(KERN_DEBUG "imx046_sensor_power_set(STANDBY)\n");
-> +		/*TODO*/
-> +		break;
-> +	}
-> +
-> +	/* Save powerstate to know what was before calling POWER_ON.
-> */
-> +	previous_power =3D power;
-> +	return err;
-> +}
-> +
-> +static struct imx046_platform_data sdp3430_imx046_platform_data =3D {
-> +	.power_set            =3D imx046_sensor_power_set,
-> +	.priv_data_set        =3D imx046_sensor_set_prv_data,
-> +	.default_regs         =3D NULL,
-> +	.set_xclk             =3D isp_set_xclk,
-> +	.cfg_interface_bridge =3D isp_configure_interface_bridge,
-> +	.csi2_lane_count      =3D isp_csi2_complexio_lanes_count,
-> +	.csi2_cfg_vp_out_ctrl =3D isp_csi2_ctrl_config_vp_out_ctrl,
-> +	.csi2_ctrl_update     =3D isp_csi2_ctrl_update,
-> +	.csi2_cfg_virtual_id  =3D isp_csi2_ctx_config_virtual_id,
-> +	.csi2_ctx_update      =3D isp_csi2_ctx_update,
-> +	.csi2_calc_phy_cfg0   =3D isp_csi2_calc_phy_cfg0,
-> +};
-> +#endif
-> +
->  static struct platform_device sdp3430_lcd_device =3D {
->  	.name		=3D "sdp2430_lcd",
->  	.id		=3D -1,
-> @@ -1063,6 +1254,12 @@ static struct i2c_board_info __initdata
->  		.platform_data =3D &sdp3430_ov3640_platform_data,
->  	},
->  #endif
-> +#if defined(CONFIG_VIDEO_IMX046) ||
-> defined(CONFIG_VIDEO_IMX046_MODULE)
-> +	{
-> +		I2C_BOARD_INFO("imx046", IMX046_I2C_ADDR),
-> +		.platform_data =3D &sdp3430_imx046_platform_data,
-> +	},
-> +#endif
+>  arch/arm/mach-omap2/board-zoom2.c |   14 +++++++-------
+>  1 file changed, 7 insertions(+), 7 deletions(-)
+> 
+> Index: omapzoom04/arch/arm/mach-omap2/board-zoom2.c
+> ===================================================================
+> --- omapzoom04.orig/arch/arm/mach-omap2/board-zoom2.c
+> +++ omapzoom04/arch/arm/mach-omap2/board-zoom2.c
+> @@ -472,7 +472,7 @@ static struct twl4030_platform_data ldp_
+>  	.keypad		= &ldp_kp_twl4030_data,
 >  };
->=20
->  static int __init omap3430_i2c_init(void)
->=20
+> 
+> -static struct i2c_board_info __initdata ldp_i2c_boardinfo[] = {
+> +static struct i2c_board_info __initdata zoom2_i2c_bus1_info[] = {
+[Hiremath, Vaibhav] I think zoom2_i2c1_info should be sufficient, since i2c1,2,3 itself indicates bus.
+
+>  	{
+>  		I2C_BOARD_INFO("twl4030", 0x48),
+>  		.flags = I2C_CLIENT_WAKE,
+> @@ -507,7 +507,7 @@ static struct synaptics_i2c_rmi_platform
+>  	.power		= &synaptics_power,
+>  };
+> 
+> -static struct i2c_board_info __initdata ldp3430_i2c_board_info[] =
+> {
+> +static struct i2c_board_info __initdata zoom2_i2c_bus2_info[] = {
+>  	{
+>  		I2C_BOARD_INFO(SYNAPTICS_I2C_RMI_NAME,
+> SYNAPTICS_I2C_ADDR),
+>  		.platform_data = &ldp3430_synaptics_platform_data,
+> @@ -518,12 +518,12 @@ static struct i2c_board_info __initdata
+> 
+>  static int __init omap_i2c_init(void)
+>  {
+> -	omap_register_i2c_bus(1, 2600, ldp_i2c_boardinfo,
+> -			ARRAY_SIZE(ldp_i2c_boardinfo));
+> +	omap_register_i2c_bus(1, 2600, zoom2_i2c_bus1_info,
+> +			ARRAY_SIZE(zoom2_i2c_bus1_info));
+>  #ifdef CONFIG_TOUCHSCREEN_SYNAPTICS
+> -	ldp3430_i2c_board_info[0].irq =
+> OMAP_GPIO_IRQ(OMAP_SYNAPTICS_GPIO);
+> -	omap_register_i2c_bus(2, 100, ldp3430_i2c_board_info,
+> -			ARRAY_SIZE(ldp3430_i2c_board_info));
+> +	zoom2_i2c_bus2_info[0].irq =
+> OMAP_GPIO_IRQ(OMAP_SYNAPTICS_GPIO);
+> +	omap_register_i2c_bus(2, 100, zoom2_i2c_bus2_info,
+> +			ARRAY_SIZE(zoom2_i2c_bus2_info));
+>  #endif
+>  	omap_register_i2c_bus(3, 400, NULL, 0);
+>  	return 0;
+> 
 > --
 > video4linux-list mailing list
 > Unsubscribe mailto:video4linux-list-
-> request@redhat.com?subject=3Dunsubscribe
+> request@redhat.com?subject=unsubscribe
 > https://www.redhat.com/mailman/listinfo/video4linux-list
 
-
---
-video4linux-list mailing list
-Unsubscribe mailto:video4linux-list-request@redhat.com?subject=3Dunsubscr=
-ibe
-https://www.redhat.com/mailman/listinfo/video4linux-list
