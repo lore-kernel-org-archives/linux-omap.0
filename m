@@ -1,67 +1,69 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 00/10] arm: omap mailbox: add omap3 support with some
-	fixes
-Date: Fri, 30 Jan 2009 10:57:23 -0800
-Message-ID: <20090130185721.GG7215@atomide.com>
-References: <20090116081919.17571.34378.stgit@oreo.research.nokia.com>
+From: "Pandita, Vikram" <vikram.pandita@ti.com>
+Subject: RE: Beagle PM hangs
+Date: Sat, 31 Jan 2009 01:11:42 +0530
+Message-ID: <FCCFB4CDC6E5564B9182F639FC35608702DE7B7679@dbde02.ent.ti.com>
+References: <345163910901280814nb847b34pca50f4ee6e49929d@mail.gmail.com>
+	<87zlhbqtrv.fsf@deeprootsystems.com>	<87skn3qq6x.fsf@deeprootsystems.com>
+	<8bf247760901300616k53722fb0if55e2d07c71df10c@mail.gmail.com>
+	<13B9B4C6EF24D648824FF11BE89671620376DEC131@dlee02.ent.ti.com>
+ <87hc3gk9au.fsf@deeprootsystems.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-bos.mailhop.org ([63.208.196.178]:59957 "EHLO
-	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752390AbZA3S50 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 30 Jan 2009 13:57:26 -0500
-Content-Disposition: inline
-In-Reply-To: <20090116081919.17571.34378.stgit@oreo.research.nokia.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:44049 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755882AbZA3TmA convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 30 Jan 2009 14:42:00 -0500
+In-Reply-To: <87hc3gk9au.fsf@deeprootsystems.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
-Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.arm.linux.org.uk, linux-omap@vger.kernel.org
-
-* Hiroshi DOYU <Hiroshi.DOYU@nokia.com> [090116 00:29]:
-> The following patches add omap3 support and some cleanups.
-> 
-> This "omap mailbox" device driver has been used for the interprocessor
-> communication between ARM and some co-processors(DSP) inside of omap
-> SoC, which is a kind of interrupt driven FIFO.
-
-Adding the mailbox series to the omap for-next branch. Ignoring the
-iommu series for now as it still needs some updates.
-
-Tony
+To: Kevin Hilman <khilman@deeprootsystems.com>, "Woodruff, Richard" <r-woodruff2@ti.com>
+Cc: Sriram V <vshrirama@gmail.com>, Peter Reid <ppeter.reid@gmail.com>, Koen Kooi <koen@beagleboard.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
 
-> ---
-> 
-> Hiroshi DOYU (10):
->       omap mailbox: remove unnecessary header file inclusion
->       omap mailbox: convert sequence bit checking to module paramter
->       omap mailbox: move mailbox.h into mailbox.c
->       omap mailbox: add save_/restore_ctx() for PM
->       omap mailbox: fix empty struct device for omap2
->       omap mailbox: fix empty struct device for omap1
->       omap mailbox: fix empty struct device for omap_mbox
->       omap mailbox: print hardware revision at startup
->       omap mailbox: add initial omap3 support
->       omap mailbox: cleanup omap2 register definition with macro
-> 
-> 
->  arch/arm/mach-omap1/devices.c              |    2 
->  arch/arm/mach-omap1/mailbox.c              |   31 ++--
->  arch/arm/mach-omap2/devices.c              |   38 ++++-
->  arch/arm/mach-omap2/mailbox.c              |  195 +++++++++++++++++-----------
->  arch/arm/plat-omap/Kconfig                 |    8 +
->  arch/arm/plat-omap/include/mach/mailbox.h  |   27 ++++
->  arch/arm/plat-omap/include/mach/omap34xx.h |    1 
->  arch/arm/plat-omap/mailbox.c               |  152 ++++++++++++++++------
->  arch/arm/plat-omap/mailbox.h               |  100 --------------
->  9 files changed, 311 insertions(+), 243 deletions(-)
->  delete mode 100644 arch/arm/plat-omap/mailbox.h
-> 
-> -- 
->    Hiroshi DOYU
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+>-----Original Message-----
+>
+>Richard,
+>
+>"Woodruff, Richard" <r-woodruff2@ti.com> writes:
+>
+>>>   I wait for a min and try to wakeup - It works.
+>>>
+>>>   If i wait a little longer before waking it up say, 3 or 4 minutes.
+>>> It does not wakeup.
+>>
+>> That is consistent with your memory not being placed into self refresh properly.
+>>
+>> 5 general bugs I've seen over time:
+>>         sw bug:
+>>                 - ctrl sequence issue before sleep
+>>                 - CKE balls not muxed correctly
+>>                 - crash on unexpected wake path
+>>         chip bug:
+>>                 - (3430 >= es3 requires a errata sequence to work)
+>>         board bug:
+>>                 - hooking ddr-chip-CKE wrongly or a way OMAP doesn't support like sharing between
+>dies.
+>
+>Another possibility is that the the memory timings for the custom
+>board are not set correctly.
+>
+>Richard, Do you have pointers to CDP/zoom code that has a workaround
+>for the 3430 > es3 errata as well as the 'ctrl sequence issue' you
+>mentioned?
+
+Richard, 
+All the fixes should be available on [1] Time to Market Branch: ti-2.6.24-omap3
+You could point patches from there if required.
+
+[1] http://git.omapzoom.com/?p=omapkernel.git;a=shortlog;h=refs/heads/ti-2.6.24-omap3
+
+
+>
+>Kevin
+>
+>
+>
