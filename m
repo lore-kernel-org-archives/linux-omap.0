@@ -1,41 +1,46 @@
-From: "Woodruff, Richard" <r-woodruff2@ti.com>
-Subject: RE: Beagle PM hangs
-Date: Fri, 30 Jan 2009 08:34:46 -0600
-Message-ID: <13B9B4C6EF24D648824FF11BE89671620376DEC131@dlee02.ent.ti.com>
-References: <345163910901280814nb847b34pca50f4ee6e49929d@mail.gmail.com>
-	 <87zlhbqtrv.fsf@deeprootsystems.com>	 <87skn3qq6x.fsf@deeprootsystems.com>
- <8bf247760901300616k53722fb0if55e2d07c71df10c@mail.gmail.com>
+From: "Gupta, Ajay Kumar" <ajay.gupta-l0cyMroinI0@public.gmane.org>
+Subject: RE: [PATCH] usb: musb: adding nop usb transceiver
+Date: Fri, 30 Jan 2009 21:32:38 +0530
+Message-ID: <19F8576C6E063C45BE387C64729E739403FA6CCD47@dbde02.ent.ti.com>
+References: <1231411988-7330-1-git-send-email-ajay.gupta@ti.com>
+ <200901222329.07689.david-b@pacbell.net>
+ <19F8576C6E063C45BE387C64729E739403FA790059@dbde02.ent.ti.com>,<200901291241.19602.david-b@pacbell.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:45649 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752530AbZA3Oez convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 30 Jan 2009 09:34:55 -0500
-In-Reply-To: <8bf247760901300616k53722fb0if55e2d07c71df10c@mail.gmail.com>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <200901291241.19602.david-b-yBeKhBN/0LDR7s880joybQ@public.gmane.org>
 Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: David Brownell <david-b-yBeKhBN/0LDR7s880joybQ@public.gmane.org>
+Cc: "linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org" <felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Sriram V <vshrirama@gmail.com>, Kevin Hilman <khilman@deeprootsystems.com>
-Cc: Peter Reid <ppeter.reid@gmail.com>, Koen Kooi <koen@beagleboard.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
->   I wait for a min and try to wakeup - It works.
->
->   If i wait a little longer before waking it up say, 3 or 4 minutes.
-> It does not wakeup.
+> Basically, that almost all of the OTG state machine must be
+> handled outside of this code.  It's a bit of a puzzle how to
+> partition that state machine between the drivers that need
+> to collaborate on it.  At this point I don't think there can
+> be a single model that applies everywhere ... but maybe one
+> could evolve over time.
 
-That is consistent with your memory not being placed into self refresh properly.
+Thanks for clarifying.
 
-5 general bugs I've seen over time:
-        sw bug:
-                - ctrl sequence issue before sleep
-                - CKE balls not muxed correctly
-                - crash on unexpected wake path
-        chip bug:
-                - (3430 >= es3 requires a errata sequence to work)
-        board bug:
-                - hooking ddr-chip-CKE wrongly or a way OMAP doesn't support like sharing between dies.
+> I'll tweak this one a bit.  It's pretty close.  That
+> registration function should have a usb_*() prefix
 
-Regards,
-Richard W.
+Ok fine.
+
+> and not be declared in an MUSB-only header, since it
+> could potentially be used with other OTG hardware.
+
+Is it ok to add it in include/linux/usb/otg.h ?
+
+Thanks,
+Ajay
+
+
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
