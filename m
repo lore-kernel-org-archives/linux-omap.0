@@ -1,167 +1,73 @@
 From: "Ramirez Luna, Omar" <x00omar@ti.com>
-Subject: [OMAPZOOM] [PATCH 1/6] BRIDGE: Remove -Wno-strict-prototypes
-Date: Thu, 29 Jan 2009 17:56:23 -0600
-Message-ID: <27F9C60D11D683428E133F85D2BB4A5303F7EA52AE@dlee03.ent.ti.com>
+Subject: [OMAPZOOM] [PATCH 2/6] DSPBRIDGE: Freeing allocated resources on
+ rmmod
+Date: Thu, 29 Jan 2009 18:14:44 -0600
+Message-ID: <27F9C60D11D683428E133F85D2BB4A5303F7EA52BB@dlee03.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:35502 "EHLO arroyo.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:48406 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751850AbZA2X4a convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 29 Jan 2009 18:56:30 -0500
+	id S1754592AbZA3AOv convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 29 Jan 2009 19:14:51 -0500
 Received: from dlep95.itg.ti.com ([157.170.170.107])
-	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id n0TNuOTt030502
-	for <linux-omap@vger.kernel.org>; Thu, 29 Jan 2009 17:56:29 -0600
-Received: from dlee75.ent.ti.com (localhost [127.0.0.1])
-	by dlep95.itg.ti.com (8.13.8/8.13.8) with ESMTP id n0TNuOh6006741
-	for <linux-omap@vger.kernel.org>; Thu, 29 Jan 2009 17:56:24 -0600 (CST)
+	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id n0U0Ej33016287
+	for <linux-omap@vger.kernel.org>; Thu, 29 Jan 2009 18:14:50 -0600
+Received: from dlee73.ent.ti.com (localhost [127.0.0.1])
+	by dlep95.itg.ti.com (8.13.8/8.13.8) with ESMTP id n0U0EjT2015996
+	for <linux-omap@vger.kernel.org>; Thu, 29 Jan 2009 18:14:45 -0600 (CST)
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: "Pandita, Vikram" <vikram.pandita@ti.com>
 Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
-Date: Sat, 22 Nov 2008 00:02:05 +0200
-Subject: [PATCH] BRIDGE: Remove -Wno-strict-prototypes
+From: Omar Ramirez Luna <x00omar@ti.com>
+Date: Wed, 28 Jan 2009 19:00:22 -0600
+Subject: [PATCH] DSPBRIDGE: Freeing allocated resources on rmmod
 
-Signed-off-by: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+This patch implements the cleanup of allocated resources whenever the
+module is removed from the kernel.
+
+Signed-off-by: Omar Ramirez Luna <x00omar@ti.com>
 ---
- arch/arm/plat-omap/include/dspbridge/cod.h  |    6 +++---
- arch/arm/plat-omap/include/dspbridge/dev.h  |    6 +++---
- arch/arm/plat-omap/include/dspbridge/dpc.h  |    8 ++++----
- arch/arm/plat-omap/include/dspbridge/mgr.h  |    4 ++--
- arch/arm/plat-omap/include/dspbridge/proc.h |    4 ++--
- 5 files changed, 14 insertions(+), 14 deletions(-)
+ drivers/dsp/bridge/rmgr/drv_interface.c |   20 ++++++++++++++++++++
+ 1 files changed, 20 insertions(+), 0 deletions(-)
 
-diff --git a/arch/arm/plat-omap/include/dspbridge/cod.h b/arch/arm/plat-omap/include/dspbridge/cod.h
-index e13d7cf..d9db3e8 100644
---- a/arch/arm/plat-omap/include/dspbridge/cod.h
-+++ b/arch/arm/plat-omap/include/dspbridge/cod.h
-@@ -176,9 +176,9 @@
-  *  Requires:
-  *      COD initialized.
-  *  Ensures:
-- *      Resources acquired in COD_Init() are freed.
-+ *      Resources acquired in COD_Init(void) are freed.
-  */
--	extern void COD_Exit();
-+	extern void COD_Exit(void);
+diff --git a/drivers/dsp/bridge/rmgr/drv_interface.c b/drivers/dsp/bridge/rmgr/drv_interface.c
+index 126f5de..a756997 100644
+--- a/drivers/dsp/bridge/rmgr/drv_interface.c
++++ b/drivers/dsp/bridge/rmgr/drv_interface.c
+@@ -534,8 +534,28 @@ static void __exit bridge_exit(void)
+ {
+ 	dev_t devno;
+ 	bool ret;
++	DSP_STATUS dsp_status = DSP_SOK;
++	HANDLE hDrvObject = NULL;
++	struct PROCESS_CONTEXT    *pCtxtclosed = NULL;
++
+ 	GT_0trace(driverTrace, GT_ENTER, "-> driver_exit\n");
  
- /*
-  *  ======== COD_GetBaseLib ========
-@@ -322,7 +322,7 @@
-  *  Ensures:
-  *      A requirement for each of the other public COD functions.
-  */
--	extern bool COD_Init();
-+	extern bool COD_Init(void);
- 
- /*
-  *  ======== COD_LoadBase ========
-diff --git a/arch/arm/plat-omap/include/dspbridge/dev.h b/arch/arm/plat-omap/include/dspbridge/dev.h
-index 05dc3d6..72212ab 100644
---- a/arch/arm/plat-omap/include/dspbridge/dev.h
-+++ b/arch/arm/plat-omap/include/dspbridge/dev.h
-@@ -437,7 +437,7 @@
-  *      A subsequent call to DEV_GetNext will return the next device object in
-  *      the list.
-  */
--	extern struct DEV_OBJECT *DEV_GetFirst();
-+	extern struct DEV_OBJECT *DEV_GetFirst(void);
- 
- /*
-  *  ======== DEV_GetIntfFxns ========
-@@ -603,7 +603,7 @@
-  *  Ensures:
-  *      When reference count == 0, DEV's private resources are freed.
-  */
--	extern void DEV_Exit();
-+	extern void DEV_Exit(void);
- 
- /*
-  *  ======== DEV_Init ========
-@@ -616,7 +616,7 @@
-  *  Ensures:
-  *      TRUE: A requirement for the other public DEV functions.
-  */
--	extern bool DEV_Init();
-+	extern bool DEV_Init(void);
- 
- /*
-  *  ======== DEV_IsLocked ========
-diff --git a/arch/arm/plat-omap/include/dspbridge/dpc.h b/arch/arm/plat-omap/include/dspbridge/dpc.h
-index 620d79c..41838f8 100644
---- a/arch/arm/plat-omap/include/dspbridge/dpc.h
-+++ b/arch/arm/plat-omap/include/dspbridge/dpc.h
-@@ -128,11 +128,11 @@
-  *  Parameters:
-  *  Returns:
-  *  Requires:
-- *      DPC_Init() was previously called.
-+ *      DPC_Init(void) was previously called.
-  *  Ensures:
-- *      Resources acquired in DPC_Init() are freed.
-+ *      Resources acquired in DPC_Init(void) are freed.
-  */
--	extern void DPC_Exit();
-+	extern void DPC_Exit(void);
- 
- /*
-  *  ======== DPC_Init ========
-@@ -145,7 +145,7 @@
-  *  Ensures:
-  *      A requirement for each of the other public DPC functions.
-  */
--	extern bool DPC_Init();
-+	extern bool DPC_Init(void);
- 
- /*
-  *  ======== DPC_Schedule ========
-diff --git a/arch/arm/plat-omap/include/dspbridge/mgr.h b/arch/arm/plat-omap/include/dspbridge/mgr.h
-index 6d4ebd3..5d27344 100644
---- a/arch/arm/plat-omap/include/dspbridge/mgr.h
-+++ b/arch/arm/plat-omap/include/dspbridge/mgr.h
-@@ -194,7 +194,7 @@
-  *  Ensures:
-  *      When reference count == 0, MGR's private resources are freed.
-  */
--	extern void MGR_Exit();
-+	extern void MGR_Exit(void);
- 
- /*
-  *  ======== MGR_GetDCDHandle ========
-@@ -229,6 +229,6 @@
-  *  Ensures:
-  *      TRUE: A requirement for the other public MGR functions.
-  */
--	extern bool MGR_Init();
-+	extern bool MGR_Init(void);
- 
- #endif				/* MGR_ */
-diff --git a/arch/arm/plat-omap/include/dspbridge/proc.h b/arch/arm/plat-omap/include/dspbridge/proc.h
-index ecb83b8..12af76b 100644
---- a/arch/arm/plat-omap/include/dspbridge/proc.h
-+++ b/arch/arm/plat-omap/include/dspbridge/proc.h
-@@ -246,7 +246,7 @@
-  *  Ensures:
-  *      When reference count == 0, PROC's private resources are freed.
-  */
--	extern void PROC_Exit();
-+	extern void PROC_Exit(void);
- 
- /*
-  * ======== PROC_GetDevObject =========
-@@ -280,7 +280,7 @@
-  *  Ensures:
-  *      TRUE: A requirement for the other public PROC functions.
-  */
--	extern bool PROC_Init();
-+	extern bool PROC_Init(void);
- 
- /*
-  *  ======== PROC_GetState ========
++
++	dsp_status = CFG_GetObject((u32 *)&hDrvObject, REG_DRV_OBJECT);
++	if (DSP_FAILED(dsp_status))
++		goto func_cont;
++
++	DRV_GetProcCtxtList(&pCtxtclosed, (struct DRV_OBJECT *)hDrvObject);
++	while (pCtxtclosed != NULL) {
++		GT_1trace(driverTrace, GT_5CLASS, "***Cleanup of "
++			 "process***%d\n", pCtxtclosed->pid);
++		DRV_RemoveAllResources(pCtxtclosed);
++		PROC_Detach(pCtxtclosed->hProcessor);
++		DRV_RemoveProcContext((struct DRV_OBJECT *)hDrvObject,
++				     pCtxtclosed, (void *)pCtxtclosed->pid);
++		pCtxtclosed = pCtxtclosed->next;;
++	}
++func_cont:
+ #ifndef CONFIG_DISABLE_BRIDGE_PM
+ #ifndef CONFIG_DISABLE_BRIDGE_DVFS
+ 	/* remove the constraints */
 -- 
 1.5.4.3
 
