@@ -1,92 +1,146 @@
-From: Koen Kooi <koen@beagleboard.org>
-Subject: Re: Beagle PM hangs
-Date: Fri, 30 Jan 2009 23:09:13 +0100
-Message-ID: <212700A7-C5FE-4CAA-BACF-7931D45C02CC@beagleboard.org>
-References: <345163910901280814nb847b34pca50f4ee6e49929d@mail.gmail.com> <87zlhbqtrv.fsf@deeprootsystems.com> <87skn3qq6x.fsf@deeprootsystems.com> <ABB3227E-1B40-47F0-BD79-FE974FDEF4CE@beagleboard.org> <13B9B4C6EF24D648824FF11BE89671620376E9A5E5@dlee02.ent.ti.com>
-Mime-Version: 1.0 (Apple Message framework v930.3)
-Content-Type: multipart/signed; protocol="application/pgp-signature"; micalg=pgp-sha1; boundary="Apple-Mail-2--504400544"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ew0-f21.google.com ([209.85.219.21]:46892 "EHLO
-	mail-ew0-f21.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753864AbZA3WJV (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 30 Jan 2009 17:09:21 -0500
-Received: by ewy14 with SMTP id 14so1004919ewy.13
-        for <linux-omap@vger.kernel.org>; Fri, 30 Jan 2009 14:09:18 -0800 (PST)
-In-Reply-To: <13B9B4C6EF24D648824FF11BE89671620376E9A5E5@dlee02.ent.ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: [RFC] ARM: Add SMSC911X support to Overo platform
+Date: Fri, 30 Jan 2009 14:18:10 -0800
+Message-ID: <87d4e4igkd.fsf@deeprootsystems.com>
+References: <5e088bd90901301228l3a0ab25m35a7341ac972e9de@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <5e088bd90901301228l3a0ab25m35a7341ac972e9de@mail.gmail.com> (Steve Sakoman's message of "Fri\, 30 Jan 2009 12\:28\:38 -0800")
+Sender: netdev-owner@vger.kernel.org
+To: Steve Sakoman <sakoman@gmail.com>
+Cc: linux-omap <linux-omap@vger.kernel.org>, netdev@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Woodruff, Richard" <r-woodruff2@ti.com>
-Cc: Kevin Hilman <khilman@deeprootsystems.com>, "linux-omap@vger.kernel.org List" <linux-omap@vger.kernel.org>
 
-This is an OpenPGP/MIME signed message (RFC 2440 and 3156)
---Apple-Mail-2--504400544
-Content-Type: text/plain; charset=US-ASCII; format=flowed; delsp=yes
-Content-Transfer-Encoding: 7bit
+Steve Sakoman <sakoman@gmail.com> writes:
 
-
-Op 30 jan 2009, om 23:03 heeft Woodruff, Richard het volgende  
-geschreven:
-
+> Gumstix will soon be shipping a variant of their Summit board that
+> includes an SMSC9221 ethernet interface.  This patch is intended to
+> provide support via the smsc911x driver when enabled in defconfig.
+> The final submission of course will also include an updated defconfig.
 >
->>> Just a thought, do you still see these problems when using the  
->>> CPUfreq
->>> performance governor instead of the ondemand governor?
->>>
->>> It could be pointing to some bugs in the switching of operating
->>> points.
->>
->> Speaking of operating points, is there a reason why cpufreq only goes
->> to 550MHz? It's disappointing that omap3 gets marketed with "600MHz",
->> but that TI won't let it run at that speed with their cpufreq  
->> drivers.
+> Signed-off-by: Steve Sakoman <steve@sakoman.com>
+> ---
+> diff --git a/arch/arm/mach-omap2/board-overo.c
+> b/arch/arm/mach-omap2/board-overo.c
+> index 9995ac2..97d95a4 100644
+> --- a/arch/arm/mach-omap2/board-overo.c
+> +++ b/arch/arm/mach-omap2/board-overo.c
+> @@ -55,6 +55,63 @@
+>  #define GPMC_CS0_BASE  0x60
+>  #define GPMC_CS_SIZE   0x30
 >
-> Run at that speed on your board if you like.  You can run even  
-> faster if you like but at some point you will start to have odd  
-> failures.
+> +#if defined(CONFIG_SMSC911X) || defined(CONFIG_SMSC911X_MODULE)
+> +
+> +#include <linux/smsc911x.h>
+> +
+> +static struct resource overo_smsc911x_resources[] = {
+> +	{
+> +		.name	= "smsc911x-memory",
+> +		.flags	= IORESOURCE_MEM,
+> +	},
+> +	{
+> +		.flags	= IORESOURCE_IRQ | IORESOURCE_IRQ_LOWLEVEL,
+> +	},
+> +};
+> +
+> +static struct smsc911x_platform_config overo_smsc911x_config = {
+> +	.irq_polarity	= SMSC911X_IRQ_POLARITY_ACTIVE_LOW,
+> +	.irq_type	= SMSC911X_IRQ_TYPE_OPEN_DRAIN,
+> +	.flags		= SMSC911X_USE_32BIT ,
+> +	.phy_interface	= PHY_INTERFACE_MODE_MII,
+> +};
+> +
+> +static struct platform_device overo_smsc911x_device = {
+> +	.name		= "smsc911x",
+> +	.id		= -1,
+> +	.num_resources	= ARRAY_SIZE(overo_smsc911x_resources),
+> +	.resource	= &overo_smsc911x_resources,
+> +	.dev		= {
+> +		.platform_data = &overo_smsc911x_config,
+> +	},
+> +};
+> +
+> +static inline void __init overo_init_smsc911x(void)
+> +{
+> +	unsigned long cs_mem_base;
+> +
+> +	if (gpmc_cs_request(OVERO_SMSC911X_CS, SZ_16M, &cs_mem_base) < 0) {
+> +		printk(KERN_ERR "Failed request for GPMC mem for smsc911x\n");
+> +		return;
+> +	}
+> +
+> +	overo_smsc911x_resources[0].start = cs_mem_base + 0x0;
+> +	overo_smsc911x_resources[0].end   = cs_mem_base + 0xff;
+> +
+> +	if ((gpio_request(OVERO_SMSC911X_GPIO, "SMSC911X IRQ") == 0) &&
+> +	    (gpio_direction_input(OVERO_SMSC911X_GPIO) == 0)) {
+> +		gpio_export(OVERO_SMSC911X_GPIO, 0);
+> +	} else {
+> +		printk(KERN_ERR "could not obtain gpio for SMSC911X IRQ\n");
+> +		return;
+> +	}
+> +
+> +	overo_smsc911x_resources[1].start = OMAP_GPIO_IRQ(OVERO_SMSC911X_GPIO),
+> +	overo_smsc911x_resources[1].end	  = OMAP_GPIO_IRQ(OVERO_SMSC911X_GPIO),
+
+I would put the 'platform_device_register(&overo_smsc911x_device)' here.
+
+> +}
+> +
+
+Then here, add:
+
+#else
+static inline void __init overo_init_smsc911x(void) { return; }
+
+This allows you to drop the #ifdefs below and have it look a little
+cleaner.
+
+Other than that, looks OK to me.
+
+Kevin
+
+> +#endif
+> +
+>  static struct mtd_partition overo_nand_partitions[] = {
+>  	{
+>  		.name           = "xloader",
+> @@ -187,6 +244,9 @@ static void __init overo_init_irq(void)
+>  	omap2_init_common_hw(mt46h32m32lf6_sdrc_params);
+>  	omap_init_irq();
+>  	omap_gpio_init();
+> +#if defined(CONFIG_SMSC911X) || defined(CONFIG_SMSC911X_MODULE)
+> +	overo_init_smsc911x();
+> +#endif
+>  }
 >
-> The 600MHz overdrive operating point is such that if you use it all  
-> the time your part life may be reduced.  If you use the stock  
-> ondemand governor with no kind of policy teak you'll be at that OPP  
-> a lot.
+>  static struct platform_device overo_lcd_device = {
+> @@ -204,6 +264,9 @@ static struct omap_board_config_kernel
+> overo_config[] __initdata = {
+>  };
 >
-> Percentage operation in overdrive figures into expected life of a  
-> given part. For reference code we just make the needed use cases  
-> explicitly ask for overdrive.  This way usage is predictable in well  
-> defined mobile product.
+>  static struct platform_device *overo_devices[] __initdata = {
+> +#if defined(CONFIG_SMSC911X) || defined(CONFIG_SMSC911X_MODULE)
+> +	&overo_smsc911x_device,
+> +#endif
+>  	&overo_lcd_device,
+>  };
 >
-> Depending on the chip you buy things are rated differently.  This  
-> rating requires part sorting which typically pushes the price up  
-> some.  Any step you add into fabrication of high volumes increases  
-> cost.
-
-If you look at http://beagleboard.org/hardware it says "600Mhz"  
-multiple times, so I'd expect the board to be running at 600MHz if I  
-were a customer. If I read the TRM right I can run the cpu at 600MHz  
-continuously for a few years, which exceeds the lifespan of most  
-mobile products I have owned.
-So my real question is: why limit it in the kernel if all that's  
-needed is a costum userspace governer?
-
-regards,
-
-Koen
-
-
-
---Apple-Mail-2--504400544
-content-type: application/pgp-signature; x-mac-type=70674453;
-	name=PGP.sig
-content-description: Dit deel van het bericht is digitaal ondertekend
-content-disposition: inline; filename=PGP.sig
-content-transfer-encoding: 7bit
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.5 (Darwin)
-
-iD8DBQFJg3qLMkyGM64RGpERAuFcAJ9SN7TCPjU06V2u/jpm9XWQswB2MwCgrG90
-1xkcJGdpgCxZQfBl9JGlITY=
-=pEca
------END PGP SIGNATURE-----
-
---Apple-Mail-2--504400544--
+> diff --git a/arch/arm/plat-omap/include/mach/board-overo.h
+> b/arch/arm/plat-omap/include/mach/board-overo.h
+> index 7ecae66..8635171 100644
+> --- a/arch/arm/plat-omap/include/mach/board-overo.h
+> +++ b/arch/arm/plat-omap/include/mach/board-overo.h
+> @@ -22,5 +22,8 @@
+>  #define OVERO_GPIO_USBH_CPEN	168
+>  #define OVERO_GPIO_USBH_NRESET	183
+>
+> +#define OVERO_SMSC911X_CS	5
+> +#define OVERO_SMSC911X_GPIO	176
+> +
+>  #endif /* ____ASM_ARCH_OVERO_H */
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
