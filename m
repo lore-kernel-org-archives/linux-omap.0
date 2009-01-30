@@ -1,49 +1,41 @@
 From: "Woodruff, Richard" <r-woodruff2@ti.com>
-Subject: RE: [PATCH E 08/14] OMAP clock: move rate recalc, propagation code
- up to plat-omap/clock.c
-Date: Fri, 30 Jan 2009 08:23:49 -0600
-Message-ID: <13B9B4C6EF24D648824FF11BE89671620376DEC116@dlee02.ent.ti.com>
-References: <20090128192551.29333.82943.stgit@localhost.localdomain>
- <20090128192748.29333.5856.stgit@localhost.localdomain>
- <20090129174153.GH18233@n2100.arm.linux.org.uk>
- <alpine.DEB.2.00.0901300135560.26985@utopia.booyaka.com>
- <20090130085249.GB6864@n2100.arm.linux.org.uk>
+Subject: RE: Beagle PM hangs
+Date: Fri, 30 Jan 2009 08:34:46 -0600
+Message-ID: <13B9B4C6EF24D648824FF11BE89671620376DEC131@dlee02.ent.ti.com>
+References: <345163910901280814nb847b34pca50f4ee6e49929d@mail.gmail.com>
+	 <87zlhbqtrv.fsf@deeprootsystems.com>	 <87skn3qq6x.fsf@deeprootsystems.com>
+ <8bf247760901300616k53722fb0if55e2d07c71df10c@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:45167 "EHLO comal.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:45649 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751916AbZA3OYG convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 30 Jan 2009 09:24:06 -0500
-In-Reply-To: <20090130085249.GB6864@n2100.arm.linux.org.uk>
+	id S1752530AbZA3Oez convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 30 Jan 2009 09:34:55 -0500
+In-Reply-To: <8bf247760901300616k53722fb0if55e2d07c71df10c@mail.gmail.com>
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>, Paul Walmsley <paul@pwsan.com>
-Cc: "linux-arm-kernel@lists.arm.linux.org.uk" <linux-arm-kernel@lists.arm.linux.org.uk>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>
+To: Sriram V <vshrirama@gmail.com>, Kevin Hilman <khilman@deeprootsystems.com>
+Cc: Peter Reid <ppeter.reid@gmail.com>, Koen Kooi <koen@beagleboard.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-
-> There's one bug that your version highlights in mine - the virtual mpu
-> clock in omap1 touches the DPLL and repropagates that rate.  I've
-> removed that repropagation, so that needs fixing.
+>   I wait for a min and try to wakeup - It works.
 >
-> However, this raises a question: why is the virtual mpu clock touching
-> some other part of the clock tree.  I wonder whether this should be
-> handled a different way, though the first thing that needs answering is
-> why we have this alias for 'arm_ck' ?
+>   If i wait a little longer before waking it up say, 3 or 4 minutes.
+> It does not wakeup.
 
-At one point in time the virtual clock allowed control for a set of clocks with some dependencies.  The mpu alias provided a convenient control point.
+That is consistent with your memory not being placed into self refresh properly.
 
-Tukka did original omap1 in this format. I forget its exact meaning.
-
-The original omap2 code had behavior:
-        - mpu-dpll had a clock node which allowed direct mpu speed control
-        - mpu-virt-clock allowed switching between sets that have fixed ratio dependency which were pegged to current mpu-dll speed.
-                * This way round_rate would allow you to discover all valid OPPs.
-
-The first pass OMAP3 code TI did followed omap2 but it wasn't strongly bound by ratio-sets given the multiple async-dplls. Paul has taken code in a bit different direction.  He can comment on current behavior here.
+5 general bugs I've seen over time:
+        sw bug:
+                - ctrl sequence issue before sleep
+                - CKE balls not muxed correctly
+                - crash on unexpected wake path
+        chip bug:
+                - (3430 >= es3 requires a errata sequence to work)
+        board bug:
+                - hooking ddr-chip-CKE wrongly or a way OMAP doesn't support like sharing between dies.
 
 Regards,
 Richard W.
-
