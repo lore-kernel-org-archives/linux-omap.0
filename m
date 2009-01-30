@@ -1,236 +1,411 @@
-From: Timo Kokkonen <timo.t.kokkonen@nokia.com>
-Subject: [PATCH 1/1] Export dmtimer functions
-Date: Fri, 30 Jan 2009 11:22:55 +0200
-Message-ID: <1233307375-5943-2-git-send-email-timo.t.kokkonen@nokia.com>
-References: <1233307375-5943-1-git-send-email-timo.t.kokkonen@nokia.com>
+From: Manikandan Pillai <mani.pillai@ti.com>
+Subject: [PATCH 1/2] Adding TPS6235x regulator support
+Date: Fri, 30 Jan 2009 14:52:36 +0530
+Message-ID: <1233307356-14935-1-git-send-email-mani.pillai@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:31349 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752088AbZA3JXF (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 30 Jan 2009 04:23:05 -0500
-Received: from esebh106.NOE.Nokia.com (esebh106.ntc.nokia.com [172.21.138.213])
-	by mgw-mx03.nokia.com (Switch-3.2.6/Switch-3.2.6) with ESMTP id n0U9MfvM004642
-	for <linux-omap@vger.kernel.org>; Fri, 30 Jan 2009 11:23:02 +0200
-In-Reply-To: <1233307375-5943-1-git-send-email-timo.t.kokkonen@nokia.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:44096 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752155AbZA3JXL (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 30 Jan 2009 04:23:11 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Timo Kokkonen <timo.t.kokkonen@nokia.com>
+To: broonie@sirena.org.uk, linux-omap@vger.kernel.org
+Cc: Manikandan Pillai <mani.pillai@ti.com>
 
-Make the dmtimer function symbols available so modules can take use of
-them.
+The patch has been fixed for comments given by David Brownell
+for adding TPS6235x support on OMAP3 EVM.
 
-Signed-off-by: Timo Kokkonen <timo.t.kokkonen@nokia.com>
+Signed-off-by: Manikandan Pillai <mani.pillai@ti.com>
 ---
- arch/arm/plat-omap/dmtimer.c |   26 ++++++++++++++++++++++++++
- 1 files changed, 26 insertions(+), 0 deletions(-)
+ drivers/regulator/Kconfig              |   18 ++
+ drivers/regulator/tps6235x-regulator.c |  351 ++++++++++++++++++++++++++++++++
+ 2 files changed, 369 insertions(+), 0 deletions(-)
+ create mode 100644 drivers/regulator/tps6235x-regulator.c
 
-diff --git a/arch/arm/plat-omap/dmtimer.c b/arch/arm/plat-omap/dmtimer.c
-index ed397f0..a05205c 100644
---- a/arch/arm/plat-omap/dmtimer.c
-+++ b/arch/arm/plat-omap/dmtimer.c
-@@ -33,6 +33,7 @@
- #include <linux/clk.h>
- #include <linux/delay.h>
- #include <linux/io.h>
+diff --git a/drivers/regulator/Kconfig b/drivers/regulator/Kconfig
+index 0765389..41b0b7d 100644
+--- a/drivers/regulator/Kconfig
++++ b/drivers/regulator/Kconfig
+@@ -80,4 +80,22 @@ config REGULATOR_DA903X
+ 	  Say y here to support the BUCKs and LDOs regulators found on
+ 	  Dialog Semiconductor DA9030/DA9034 PMIC.
+ 
++config REGULATOR_TPS6235X
++        tristate "TI TPS6235x Power regulators"
++	depends on I2C
++	help
++          This driver supports TPS6235x voltage regulator chips, for values
++	  of "x" from 0 to 6.  These are buck converters which support TI's
++	  hardware based "SmartReflex" dynamic voltage scaling.
++
++config REGULATOR_TPS6235X
++	bool "TPS6235X Power regulator for OMAP3EVM"
++	depends on I2C=y
++	help
++	  This driver supports the voltage regulators provided by TPS6235x chips.
++	  The TPS62352 and TPS62353 are mounted on PR785 Power module card for
++	  providing voltage regulator functions. The PR785 Power board from
++	  Texas Instruments Inc is a TPS6235X based power card used with OMAP3
++	  EVM boards.
++
+ endif
+diff --git a/drivers/regulator/tps6235x-regulator.c b/drivers/regulator/tps6235x-regulator.c
+new file mode 100644
+index 0000000..340720d
+--- /dev/null
++++ b/drivers/regulator/tps6235x-regulator.c
+@@ -0,0 +1,351 @@
++/*
++ * tps6235x-regulator.c -- support regulators in tps6235x family chips
++ *
++ * Author : Manikandan Pillai<mani.pillai@ti.com>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 2 of the License, or
++ * (at your option) any later version.
++ */
++
++#include <linux/kernel.h>
 +#include <linux/module.h>
- #include <mach/hardware.h>
- #include <mach/dmtimer.h>
- #include <mach/irqs.h>
-@@ -360,6 +361,7 @@ struct omap_dm_timer *omap_dm_timer_request(void)
- 
- 	return timer;
- }
-+EXPORT_SYMBOL_GPL(omap_dm_timer_request);
- 
- struct omap_dm_timer *omap_dm_timer_request_specific(int id)
- {
-@@ -383,6 +385,7 @@ struct omap_dm_timer *omap_dm_timer_request_specific(int id)
- 
- 	return timer;
- }
-+EXPORT_SYMBOL_GPL(omap_dm_timer_request_specific);
- 
- void omap_dm_timer_free(struct omap_dm_timer *timer)
- {
-@@ -393,6 +396,7 @@ void omap_dm_timer_free(struct omap_dm_timer *timer)
- 	WARN_ON(!timer->reserved);
- 	timer->reserved = 0;
- }
-+EXPORT_SYMBOL_GPL(omap_dm_timer_free);
- 
- void omap_dm_timer_enable(struct omap_dm_timer *timer)
- {
-@@ -404,6 +408,7 @@ void omap_dm_timer_enable(struct omap_dm_timer *timer)
- 
- 	timer->enabled = 1;
- }
-+EXPORT_SYMBOL_GPL(omap_dm_timer_enable);
- 
- void omap_dm_timer_disable(struct omap_dm_timer *timer)
- {
-@@ -415,11 +420,13 @@ void omap_dm_timer_disable(struct omap_dm_timer *timer)
- 
- 	timer->enabled = 0;
- }
-+EXPORT_SYMBOL_GPL(omap_dm_timer_disable);
- 
- int omap_dm_timer_get_irq(struct omap_dm_timer *timer)
- {
- 	return timer->irq;
- }
-+EXPORT_SYMBOL_GPL(omap_dm_timer_get_irq);
- 
- #if defined(CONFIG_ARCH_OMAP1)
- 
-@@ -450,6 +457,7 @@ __u32 omap_dm_timer_modify_idlect_mask(__u32 inputmask)
- 
- 	return inputmask;
- }
-+EXPORT_SYMBOL_GPL(omap_dm_timer_modify_idlect_mask);
- 
- #elif defined(CONFIG_ARCH_OMAP2) || defined (CONFIG_ARCH_OMAP3)
- 
-@@ -457,6 +465,7 @@ struct clk *omap_dm_timer_get_fclk(struct omap_dm_timer *timer)
- {
- 	return timer->fclk;
- }
-+EXPORT_SYMBOL_GPL(omap_dm_timer_get_fclk);
- 
- __u32 omap_dm_timer_modify_idlect_mask(__u32 inputmask)
- {
-@@ -464,6 +473,7 @@ __u32 omap_dm_timer_modify_idlect_mask(__u32 inputmask)
- 
- 	return 0;
- }
-+EXPORT_SYMBOL_GPL(omap_dm_timer_modify_idlect_mask);
- 
- #endif
- 
-@@ -471,6 +481,7 @@ void omap_dm_timer_trigger(struct omap_dm_timer *timer)
- {
- 	omap_dm_timer_write_reg(timer, OMAP_TIMER_TRIGGER_REG, 0);
- }
-+EXPORT_SYMBOL_GPL(omap_dm_timer_trigger);
- 
- void omap_dm_timer_start(struct omap_dm_timer *timer)
- {
-@@ -482,6 +493,7 @@ void omap_dm_timer_start(struct omap_dm_timer *timer)
- 		omap_dm_timer_write_reg(timer, OMAP_TIMER_CTRL_REG, l);
- 	}
- }
-+EXPORT_SYMBOL_GPL(omap_dm_timer_start);
- 
- void omap_dm_timer_stop(struct omap_dm_timer *timer)
- {
-@@ -493,6 +505,7 @@ void omap_dm_timer_stop(struct omap_dm_timer *timer)
- 		omap_dm_timer_write_reg(timer, OMAP_TIMER_CTRL_REG, l);
- 	}
- }
-+EXPORT_SYMBOL_GPL(omap_dm_timer_stop);
- 
- #ifdef CONFIG_ARCH_OMAP1
- 
-@@ -505,6 +518,7 @@ void omap_dm_timer_set_source(struct omap_dm_timer *timer, int source)
- 	l |= source << n;
- 	omap_writel(l, MOD_CONF_CTRL_1);
- }
-+EXPORT_SYMBOL_GPL(omap_dm_timer_set_source);
- 
- #else
- 
-@@ -521,6 +535,7 @@ void omap_dm_timer_set_source(struct omap_dm_timer *timer, int source)
- 	 * cause an abort. */
- 	__delay(150000);
- }
-+EXPORT_SYMBOL_GPL(omap_dm_timer_set_source);
- 
- #endif
- 
-@@ -539,6 +554,7 @@ void omap_dm_timer_set_load(struct omap_dm_timer *timer, int autoreload,
- 
- 	omap_dm_timer_write_reg(timer, OMAP_TIMER_TRIGGER_REG, 0);
- }
-+EXPORT_SYMBOL_GPL(omap_dm_timer_set_load);
- 
- /* Optimized set_load which removes costly spin wait in timer_start */
- void omap_dm_timer_set_load_start(struct omap_dm_timer *timer, int autoreload,
-@@ -558,6 +574,7 @@ void omap_dm_timer_set_load_start(struct omap_dm_timer *timer, int autoreload,
- 	omap_dm_timer_write_reg(timer, OMAP_TIMER_COUNTER_REG, load);
- 	omap_dm_timer_write_reg(timer, OMAP_TIMER_CTRL_REG, l);
- }
-+EXPORT_SYMBOL_GPL(omap_dm_timer_set_load_start);
- 
- void omap_dm_timer_set_match(struct omap_dm_timer *timer, int enable,
- 			     unsigned int match)
-@@ -572,6 +589,7 @@ void omap_dm_timer_set_match(struct omap_dm_timer *timer, int enable,
- 	omap_dm_timer_write_reg(timer, OMAP_TIMER_CTRL_REG, l);
- 	omap_dm_timer_write_reg(timer, OMAP_TIMER_MATCH_REG, match);
- }
-+EXPORT_SYMBOL_GPL(omap_dm_timer_set_match);
- 
- void omap_dm_timer_set_pwm(struct omap_dm_timer *timer, int def_on,
- 			   int toggle, int trigger)
-@@ -588,6 +606,7 @@ void omap_dm_timer_set_pwm(struct omap_dm_timer *timer, int def_on,
- 	l |= trigger << 10;
- 	omap_dm_timer_write_reg(timer, OMAP_TIMER_CTRL_REG, l);
- }
-+EXPORT_SYMBOL_GPL(omap_dm_timer_set_pwm);
- 
- void omap_dm_timer_set_prescaler(struct omap_dm_timer *timer, int prescaler)
- {
-@@ -601,6 +620,7 @@ void omap_dm_timer_set_prescaler(struct omap_dm_timer *timer, int prescaler)
- 	}
- 	omap_dm_timer_write_reg(timer, OMAP_TIMER_CTRL_REG, l);
- }
-+EXPORT_SYMBOL_GPL(omap_dm_timer_set_prescaler);
- 
- void omap_dm_timer_set_int_enable(struct omap_dm_timer *timer,
- 				  unsigned int value)
-@@ -608,6 +628,7 @@ void omap_dm_timer_set_int_enable(struct omap_dm_timer *timer,
- 	omap_dm_timer_write_reg(timer, OMAP_TIMER_INT_EN_REG, value);
- 	omap_dm_timer_write_reg(timer, OMAP_TIMER_WAKEUP_EN_REG, value);
- }
-+EXPORT_SYMBOL_GPL(omap_dm_timer_set_int_enable);
- 
- unsigned int omap_dm_timer_read_status(struct omap_dm_timer *timer)
- {
-@@ -617,11 +638,13 @@ unsigned int omap_dm_timer_read_status(struct omap_dm_timer *timer)
- 
- 	return l;
- }
-+EXPORT_SYMBOL_GPL(omap_dm_timer_read_status);
- 
- void omap_dm_timer_write_status(struct omap_dm_timer *timer, unsigned int value)
- {
- 	omap_dm_timer_write_reg(timer, OMAP_TIMER_STAT_REG, value);
- }
-+EXPORT_SYMBOL_GPL(omap_dm_timer_write_status);
- 
- unsigned int omap_dm_timer_read_counter(struct omap_dm_timer *timer)
- {
-@@ -631,11 +654,13 @@ unsigned int omap_dm_timer_read_counter(struct omap_dm_timer *timer)
- 
- 	return l;
- }
-+EXPORT_SYMBOL_GPL(omap_dm_timer_read_counter);
- 
- void omap_dm_timer_write_counter(struct omap_dm_timer *timer, unsigned int value)
- {
- 	omap_dm_timer_write_reg(timer, OMAP_TIMER_COUNTER_REG, value);
- }
-+EXPORT_SYMBOL_GPL(omap_dm_timer_write_counter);
- 
- int omap_dm_timers_active(void)
- {
-@@ -656,6 +681,7 @@ int omap_dm_timers_active(void)
- 	}
- 	return 0;
- }
-+EXPORT_SYMBOL_GPL(omap_dm_timers_active);
- 
- int __init omap_dm_timer_init(void)
- {
++#include <linux/init.h>
++#include <linux/err.h>
++#include <linux/platform_device.h>
++#include <linux/regulator/driver.h>
++#include <linux/regulator/machine.h>
++#include <linux/i2c.h>
++#include <linux/delay.h>
++
++/*
++ * These chips are often used in OMAP-based systems.
++ *
++ * This driver implements software-based resource control for various
++ * voltage regulators.  This is usually augmented with state machine
++ * based control.
++ *
++ * For now, all regulator operations apply to VSEL1 (the "ceiling"),
++ * instead of VSEL0 (the "floor") which is used for low power modes.
++ * Also, this *assumes* only software mode control is used...
++*/
++
++#define	TPS6235X_REG_VSEL0	0
++#define	TPS6235X_REG_VSEL1	1
++#define	TPS6235X_REG_CTRL1	2
++#define	TPS6235X_REG_CTRL2	3
++
++/* VSEL bitfields (EN_DCDC is shared) */
++#define	TPS6235X_EN_DCDC	BIT(7)
++#define	TPS6235X_LIGHTPFM	BIT(6)
++#define	TPS6235X_VSM_MSK	(0x3F)
++
++/* CTRL1 bitfields */
++#define TPS6235X_EN_SYNC	BIT(5)
++#define TPS6235X_HW_nSW		BIT(4)
++
++/* CTRL2 bitfields */
++#define TPS6235X_PWR_OK_MSK	BIT(5)
++#define TPS6235X_OUT_DIS_MSK	BIT(6)
++#define TPS6235X_GO_MSK		BIT(7)
++
++struct tps_info {
++	unsigned		min_uV;
++	unsigned		max_uV;
++	unsigned		mult_uV;
++	bool			fixed;
++};
++
++struct tps {
++	struct regulator_desc	desc;
++	struct i2c_client	*client;
++	struct regulator_dev	*rdev;
++	const struct tps_info	*info;
++};
++
++static inline int tps_6235x_read_reg(struct tps *tps, u8 reg, u8 *val)
++{
++	int status;
++
++	status = i2c_smbus_read_byte_data(tps->client, reg);
++	*val = status;
++	if (status < 0)
++		return status;
++	return 0;
++}
++
++static inline int tps_6235x_write_reg(struct tps *tps, u8 reg, u8 val)
++{
++	return i2c_smbus_write_byte_data(tps->client, reg, val);
++}
++
++static int tps6235x_dcdc_is_enabled(struct regulator_dev *dev)
++{
++	struct tps *tps = rdev_get_drvdata(dev);
++
++	ret = tps_6235x_read_reg(tps, TPS6235X_REG_VSEL1, &vsel1);
++	/* REVISIT we need to be able to report errors here ... */
++
++	return !!(vsel1 & TPS6235X_EN_DCDC);
++}
++
++static int tps6235x_dcdc_enable(struct regulator_dev *dev)
++{
++	unsigned char vsel1;
++	int ret;
++	struct tps *tps = rdev_get_drvdata(dev);
++
++	ret = tps_6235x_read_reg(tps, TPS6235X_REG_VSEL1, &vsel1);
++
++	if (ret == 0) {
++		vsel1 |= TPS6235X_EN_DCDC;
++		ret = tps_6235x_write_reg(tps, TPS6235X_REG_VSEL1, vsel1);
++	}
++	return ret;
++}
++
++static int tps6235x_dcdc_disable(struct regulator_dev *dev)
++{
++	unsigned char vsel1;
++	int ret;
++	struct tps *tps = rdev_get_drvdata(dev);
++
++	ret = tps_6235x_read_reg(tps, TPS6235X_REG_VSEL1, &vsel1);
++	if (ret == 0) {
++		vsel1 &= ~(TPS6235X_EN_DCDC);
++		ret = tps_6235x_write_reg(tps, TPS6235X_REG_VSEL1, vsel1);
++	}
++	return ret;
++}
++
++static int tps6235x_dcdc_get_voltage(struct regulator_dev *dev)
++{
++	struct	i2c_client *tps_info = rdev_get_drvdata(dev);
++	unsigned char vsel1;
++	const struct tps_info *info = tps->info;
++	int status;
++
++	status = tps_6235x_read_reg(tps, TPS6235X_REG_VSEL1, &vsel1);
++	if (status < 0)
++		return status;
++	return info->min_uV + ((vsel1 & TPS6235X_VSM_MSK) * info->mult_uV);
++}
++
++static int tps6235x_dcdc_set_voltage(struct regulator_dev *dev,
++				int min_uV, int max_uV)
++{
++	struct tps *tps = rdev_get_drvdata(dev);
++	const struct tps_info *info = tps->info;
++	unsigned char vsel1;
++	unsigned step;
++	int status;
++
++	/* Output voltage set is = min_op_volt + ( VSM * 12.5mv) */
++	/* compute and sanity-check voltage step multiplier */
++	step = DIV_ROUND_UP(min_uV - info->min_uV, info->mult_uV);
++	if ((info->min_uV + (step * info->mult_uV)) > max_uV)
++		return -EINVAL;
++
++	status = tps_6235x_read_reg(tps, TPS6235X_REG_VSEL1, &vsel1);
++	if (status < 0)
++		return status;
++
++	/* update voltage */
++	vsel1 &= ~TPS6235X_VSM_MSK;
++	vsel1 |= step;
++	return tps_6235x_write_reg(tps, TPS6235X_REG_VSEL1, vsel1);
++}
++
++/* tps6345{0,2,4,5} have some parameters hard-wired */
++static struct regulator_ops tps6235x_fixed_dcdc_ops = {
++	.is_enabled	= tps6235x_dcdc_is_enabled,
++	.get_voltage	= tps6235x_dcdc_get_voltage,
++	.set_voltage	= tps6235x_dcdc_set_voltage,
++};
++
++/* tps6345{1,3,6} are more programmable */
++static struct regulator_ops tps6235x_dcdc_ops = {
++	.is_enabled	= tps6235x_dcdc_is_enabled,
++	.enable		= tps6235x_dcdc_enable,
++	.disable	= tps6235x_dcdc_disable,
++	.get_voltage	= tps6235x_dcdc_get_voltage,
++	.set_voltage	= tps6235x_dcdc_set_voltage,
++
++};
++
++static
++int tps_6235x_probe(struct i2c_client *client, const struct i2c_device_id *id)
++{
++	static int desc_id;
++	const struct tps_info *info = (void *)id->driver_data;
++	struct regulator_init_data *init_data;
++	struct regulator_dev *rdev;
++	struct tps *tps;
++
++	unsigned char reg_val;
++
++	if (!i2c_check_functionality(client->adapter, I2C_FUNC_SMBUS_BYTE_DATA))
++		return -EIO;
++
++	init_data = client->dev.platform_data;
++	if (!init_data)
++		return -EIO;
++
++	tps = kzalloc(sizeof(*tps), GFP_KERNEL);
++	if (!tps)
++		return -ENOMEM;
++
++	tps->desc.name = id->name;
++	tps->desc.id = desc_id++;
++	tps->desc.ops = info->fixed ? &tps6235x_fixed_dcdc_ops :
++			&tps6235x_dcdc_ops;
++	tps->desc.type = REGULATOR_VOLTAGE;
++	tps->desc.owner = THIS_MODULE;
++
++	tps->client = client;
++	tps->info = info;
++
++	/* FIXME board init code should provide init_data->driver_data
++	 * saying how to configure this regulator:  how big is the
++	 * inductor (affects light PFM mode optimization), slew rate,
++	 * PLL multiplier, and so forth.
++	 */
++	tps_6235x_read_reg(tps, TPS6235X_REG_CTRL2, &reg_val);
++
++	reg_val |= (TPS6235X_OUT_DIS_MSK | TPS6235X_GO_MSK);
++
++	tps_6235x_write_reg(tps, TPS6235X_REG_CTRL2, reg_val);
++	tps_6235x_read_reg(tps, TPS6235X_REG_CTRL2, &reg_val);
++
++	if (reg_val & TPS6235X_PWR_OK_MSK)
++		dev_dbg(&client->dev, "Power is OK  %x\n", reg_val);
++	else
++		dev_dbg(&client->dev, "Power not in range = %x\n", reg_val);
++
++	/* Register the regulators */
++	rdev = regulator_register(&tps->desc, &client->dev, tps);
++
++	if (IS_ERR(rdev)) {
++		dev_err(&client->dev, "failed to register %s\n", id->name);
++			kfree(tps);
++
++		return PTR_ERR(rdev);
++	}
++
++	/* Save regulator for cleanup */
++	tps->rdev = rdev;
++	i2c_set_clientdata(client, tps);
++
++	return 0;
++}
++
++/**
++ * tps_6235x_remove - TPS6235x driver i2c remove handler
++ * @client: i2c driver client device structure
++ *
++ * Unregister  TPS driver as an i2c client device driver
++ */
++static int __devexit tps_6235x_remove(struct i2c_client *client)
++{
++	struct tps *tps = i2c_get_clientdata(client);
++	regulator_unregister(tps->rdev);
++	/* clear the client data in i2c */
++	i2c_set_clientdata(client, NULL);
++	kfree(tps);
++	return 0;
++}
++
++/*
++ * These regulators have the same register structure, and differ
++ * primarily according to supported voltages and default settings.
++ */
++static const struct tps_info tps62350_info = {
++	.min_uV		=  750000,
++	.max_uV		= 1537500,
++	.mult_uV	=   12500,
++	.fixed		=    true,
++};
++static const struct tps_info tps62351_info = {
++	.min_uV		=  900000,
++	.max_uV		= 1687500,
++	.mult_uV	=   12500,
++};
++static const struct tps_info tps62352_info = {
++	.min_uV		=  750000,
++	.max_uV		= 1437500,
++	.mult_uV	=   12500,
++	.fixed		=    true,
++};
++static const struct tps_info tps62353_info = {
++	.min_uV		=  750000,
++	.max_uV		= 1537500,
++	.mult_uV	=   12500,
++};
++static const struct tps_info tps62354_info = {
++	.min_uV		=  750000,
++	.max_uV		= 1537500,
++	.mult_uV	=   12500,
++	.fixed		=    true,
++};
++static const struct tps_info tps62355_info = {
++	.min_uV		=  750000,
++	.max_uV		= 1537500,
++	.mult_uV	=   12500,
++	.fixed		=    true,
++};
++static const struct tps_info tps62356_info = {
++	.min_uV		= 1500000,
++	.max_uV		= 1975000,
++	.mult_uV	=   25000,
++};
++
++static const struct i2c_device_id tps_6235x_id[] = {
++	{ "tps62350", (unsigned long) &tps62350_info, },
++	{ "tps62351", (unsigned long) &tps62351_info, },
++	{ "tps62352", (unsigned long) &tps62352_info, },
++	{ "tps62353", (unsigned long) &tps62353_info, },
++	{ "tps62354", (unsigned long) &tps62354_info, },
++	{ "tps62355", (unsigned long) &tps62355_info, },
++	{ "tps62356", (unsigned long) &tps62356_info, },
++	{},
++};
++
++MODULE_DEVICE_TABLE(i2c, tps_6235x_id);
++
++static struct i2c_driver tps_6235x_i2c_driver = {
++	.driver = {
++		.name	=	"tps_6235x_pwr",
++		.owner	=	THIS_MODULE,
++	},
++	.probe		= tps_6235x_probe,
++	.remove		= __devexit_p(tps_6235x_remove),
++	.id_table	= tps_6235x_id,
++};
++
++/**
++ * tps_6235x_init
++ *
++ * Module init function
++ */
++static int __init tps_6235x_init(void)
++{
++	return i2c_add_driver(&tps_6235x_i2c_driver);
++}
++
++
++/**
++ * tps_6235x_cleanup
++ *
++ * Module exit function
++ */
++static void __exit tps_6235x_cleanup(void)
++{
++	i2c_del_driver(&tps_6235x_i2c_driver);
++}
++subsys_initcall(tps_6235x_init);
++module_exit(tps_6235x_cleanup);
++
++MODULE_AUTHOR("Texas Instruments");
++MODULE_DESCRIPTION("TPS6235x voltage regulator driver");
++MODULE_LICENSE("GPL");
 -- 
-1.6.0.6
+1.5.6
 
