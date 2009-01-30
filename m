@@ -1,114 +1,53 @@
-From: Mark Brown <broonie@sirena.org.uk>
-Subject: Re: [PATCH 2/2] Adding and building TPS6235x based PR785 board support
-Date: Fri, 30 Jan 2009 11:53:14 +0000
-Message-ID: <20090130115313.GB18825@sirena.org.uk>
-References: <1233307390-14974-1-git-send-email-mani.pillai@ti.com>
+From: "Premi, Sanjeev" <premi@ti.com>
+Subject: RE: Omap3430 does not resume after suspend
+Date: Fri, 30 Jan 2009 19:32:43 +0530
+Message-ID: <B85A65D85D7EB246BE421B3FB0FBB59301C7069769@dbde02.ent.ti.com>
+References: <d105d8d00901300124i60025abete9f0b0e86d676f82@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from cassiel.sirena.org.uk ([80.68.93.111]:1204 "EHLO
-	cassiel.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751407AbZA3LxQ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 30 Jan 2009 06:53:16 -0500
-Content-Disposition: inline
-In-Reply-To: <1233307390-14974-1-git-send-email-mani.pillai@ti.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:53089 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751788AbZA3ODD convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 30 Jan 2009 09:03:03 -0500
+In-Reply-To: <d105d8d00901300124i60025abete9f0b0e86d676f82@mail.gmail.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Manikandan Pillai <mani.pillai@ti.com>
-Cc: linux-omap@vger.kernel.org
+To: Shreyas Mahajan <mahajan.shreyas@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Fri, Jan 30, 2009 at 02:53:10PM +0530, Manikandan Pillai wrote:
+> -----Original Message-----
+> From: linux-omap-owner@vger.kernel.org 
+> [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Shreyas Mahajan
+> Sent: Friday, January 30, 2009 2:54 PM
+> To: linux-omap@vger.kernel.org
+> Subject: Omap3430 does not resume after suspend
+> 
+> Hello,
+>          I am a newbie with omap3430. As a part of my 
+> project, I suspended my board with 'echo mem > 
+> /sys/power/state'.The suspend happens correctly, without 
+> giving any failure message. But, when I tried it to resume, 
+> it is not resuming.I tried to find some reasons for this, and 
+> got the patches for unmasking keyboard interrupt while 
+> suspending. But, all patches are for omap2 and omap1 board 
+> architecture.
+[sp] Are you following updates in Kevin Hilman's pm branch?
+With lastest updates you shouldn't see this problem on a minimal config.
 
-> --- a/arch/arm/plat-omap/i2c.c
-> +++ b/arch/arm/plat-omap/i2c.c
-> @@ -27,6 +27,8 @@
->  #include <linux/platform_device.h>
->  #include <linux/i2c.h>
->  #include <mach/mux.h>
-> +#include <linux/string.h>
-> +#include <linux/regulator/machine.h>
+Would be good to start from here and add drivers selectively.
 
-> +#if defined(CONFIG_OMAP3EVM_PR785)
-> +/* This is the callback function used to find the correct
-> + * i2c platform child for the regulator consumer
-> +*/
-> +int omap_i2c_match_child(struct device *dev, void *data)
-> +{
-> +	struct regulator_init_data *reg_init_data = dev->platform_data;
-> +	char *name = data;
-> +
-> +	/* Child does not match */
-> +	if (strcmp(name, reg_init_data->consumer_supplies->supply))
-> +		return 0;
-> +	else
-> +		return 1;
-> +}
-> +
-> +int omap_i2c_register_child(struct platform_device *pdev_parent,
-> +			const char *name, struct platform_device **pdev)
-> +{
-> +	int ret = 0;
-> +
-> +	*pdev = platform_device_alloc(name, -1);
-> +	if (pdev == NULL) {
-> +		dev_err(&(*pdev)->dev, "Failed to alloc i2c-child %s\n", name);
-> +		return -1;
-> +	}
-> +
-> +	(*pdev)->dev.parent = &pdev_parent->dev;
-> +	if (!strcmp(name, "vdd2_consumer"))
-> +		(*pdev)->dev.platform_data = &vdd2_tps_regulator_data;
-> +	else if (!strcmp(name, "vdd1_consumer"))
-> +		(*pdev)->dev.platform_data = &vdd1_tps_regulator_data;
-> +
-> +
-> +	ret = platform_device_add(*pdev);
-> +	if (ret != 0) {
-> +		dev_err(&(*pdev)->dev, "Failed to register %s: %d\n",
-> +			name, ret);
-> +		platform_device_put(*pdev);
-> +		*pdev = NULL;
-> +	}
-> +	return ret;
-> +}
-> +#endif
+> Are there any patches to do this thing in omap3430?
 
-I'm not sure what this is intended for but if it's in the generic OMAP
-I2C driver it shouldn't be conditional on this particular EVM and
-shouldn't have hard coded references to board specific things.
+[sp] omap2 applies to OMAP3430 as well.
 
-> @@ -160,5 +216,16 @@ int __init omap_register_i2c_bus(int bus_id, u32 clkrate,
->  
->  	omap_i2c_mux_pins(bus_id - 1);
-> -	return platform_device_register(pdev);
-> +	platform_device_register(pdev);
-> +#if defined(CONFIG_OMAP3EVM_PR785)
-> +	if (bus_id == 1) {
-> +		omap_i2c_register_child(pdev, "vdd2_consumer", \
-> +				&vdd2_platform_device);
-> +		omap_i2c_register_child(pdev, "vdd1_consumer", \
-> +				&vdd1_platform_device);
-> +		tps62352_core_consumers.dev = &vdd2_platform_device->dev;
-> +		tps62352_mpu_consumers.dev = &vdd1_platform_device->dev;
-> +	}
-> +#endif
-> +	return 0;
-
-Ditto.  It's important to remember that this I2C driver is going to be
-used by all OMAP systems using I2C - patching in ifdefs for setting up
-each board isn't going to scale, they would end up obscuring the code
-for the I2C controller itself.
-
-> diff --git a/drivers/regulator/Makefile b/drivers/regulator/Makefile
-> index 0dacb18..fdc5f5b 100644
-> --- a/drivers/regulator/Makefile
-> +++ b/drivers/regulator/Makefile
-> @@ -12,5 +12,6 @@ obj-$(CONFIG_REGULATOR_TWL4030) += twl4030-regulator.o
->  obj-$(CONFIG_REGULATOR_WM8350) += wm8350-regulator.o
->  obj-$(CONFIG_REGULATOR_WM8400) += wm8400-regulator.o
->  obj-$(CONFIG_REGULATOR_DA903X)	+= da903x.o
-> +obj-$(CONFIG_REGULATOR_TPS6235X)+= tps6235x-regulator.o
->  
-
-This wants to be in your previous patch, as do the changes to the
-regulator driver below.
+> 
+> Thanks,
+> --
+> To unsubscribe from this list: send the line "unsubscribe 
+> linux-omap" in the body of a message to 
+> majordomo@vger.kernel.org More majordomo info at  
+> http://vger.kernel.org/majordomo-info.html
+> 
+> 
