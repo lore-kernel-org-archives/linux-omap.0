@@ -1,96 +1,49 @@
-From: Sriram V <vshrirama@gmail.com>
-Subject: Re: Beagle PM hangs
-Date: Fri, 30 Jan 2009 19:46:20 +0530
-Message-ID: <8bf247760901300616k53722fb0if55e2d07c71df10c@mail.gmail.com>
-References: <345163910901280814nb847b34pca50f4ee6e49929d@mail.gmail.com>
-	 <87zlhbqtrv.fsf@deeprootsystems.com>
-	 <87skn3qq6x.fsf@deeprootsystems.com>
+From: "Woodruff, Richard" <r-woodruff2@ti.com>
+Subject: RE: [PATCH E 08/14] OMAP clock: move rate recalc, propagation code
+ up to plat-omap/clock.c
+Date: Fri, 30 Jan 2009 08:23:49 -0600
+Message-ID: <13B9B4C6EF24D648824FF11BE89671620376DEC116@dlee02.ent.ti.com>
+References: <20090128192551.29333.82943.stgit@localhost.localdomain>
+ <20090128192748.29333.5856.stgit@localhost.localdomain>
+ <20090129174153.GH18233@n2100.arm.linux.org.uk>
+ <alpine.DEB.2.00.0901300135560.26985@utopia.booyaka.com>
+ <20090130085249.GB6864@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from wf-out-1314.google.com ([209.85.200.171]:7277 "EHLO
-	wf-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753461AbZA3OQV (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 30 Jan 2009 09:16:21 -0500
-Received: by wf-out-1314.google.com with SMTP id 27so506665wfd.4
-        for <linux-omap@vger.kernel.org>; Fri, 30 Jan 2009 06:16:20 -0800 (PST)
-In-Reply-To: <87skn3qq6x.fsf@deeprootsystems.com>
+Received: from comal.ext.ti.com ([198.47.26.152]:45167 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751916AbZA3OYG convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 30 Jan 2009 09:24:06 -0500
+In-Reply-To: <20090130085249.GB6864@n2100.arm.linux.org.uk>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@deeprootsystems.com>
-Cc: Peter Reid <ppeter.reid@gmail.com>, Koen Kooi <koen@beagleboard.org>, linux-omap@vger.kernel.org
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>, Paul Walmsley <paul@pwsan.com>
+Cc: "linux-arm-kernel@lists.arm.linux.org.uk" <linux-arm-kernel@lists.arm.linux.org.uk>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>
 
-Hi,
-  I have done some testing on a custom board. it uses uart2
-  I also see serial hang issues here. I have a minimum defconfig with
- only i2c enabled. no cpuidle/cpufreq.
 
-  This is what i try to do -
+> There's one bug that your version highlights in mine - the virtual mpu
+> clock in omap1 touches the DPLL and repropagates that rate.  I've
+> removed that repropagation, so that needs fixing.
+>
+> However, this raises a question: why is the virtual mpu clock touching
+> some other part of the clock tree.  I wonder whether this should be
+> handled a different way, though the first thing that needs answering is
+> why we have this alias for 'arm_ck' ?
 
-  # echo -n mem > /sys/power/state
+At one point in time the virtual clock allowed control for a set of clocks with some dependencies.  The mpu alias provided a convenient control point.
 
-  I wait for a min and try to wakeup - It works.
+Tukka did original omap1 in this format. I forget its exact meaning.
 
-  If i wait a little longer before waking it up say, 3 or 4 minutes.
-It does not wakeup.
+The original omap2 code had behavior:
+        - mpu-dpll had a clock node which allowed direct mpu speed control
+        - mpu-virt-clock allowed switching between sets that have fixed ratio dependency which were pegged to current mpu-dll speed.
+                * This way round_rate would allow you to discover all valid OPPs.
 
-  I tried the same disabling clocks when idle The result is the same.
-
-   # echo -n 1 > /sys/power/sleep_while_idle
-   # echo -n 1 > /sys/power/clocks_off_while_idle
-   # echo -n mem > /sys/power/state
-
-   With the above,  i see all domains hitting retention.
-   I have tried both keypads and uart activity as my wakeup
-   sources.
-   Am trying to debug this. why the serial is dead if
-   there is no activity for a longer time.
-
+The first pass OMAP3 code TI did followed omap2 but it wasn't strongly bound by ratio-sets given the multiple async-dplls. Paul has taken code in a bit different direction.  He can comment on current behavior here.
 
 Regards,
-sriram
+Richard W.
 
-
-
-
-
-
-
-
-
-On Wed, Jan 28, 2009 at 11:16 PM, Kevin Hilman
-<khilman@deeprootsystems.com> wrote:
-> Kevin Hilman <khilman@deeprootsystems.com> writes:
->
->> Peter Reid <ppeter.reid@gmail.com> writes:
->>
->>> Hi Kevin,
->>>    I get hangs after boot on beagle with latest PM tree i have quite a
->>> few scripts that run on boot.
->>>
->>>    have you seen this before?
->>
->> I have not, but I believe Koen has see something similar.  I've mainly
->> been testing just a minimal rootfs and a minimal set of drivers on
->> Beagle so I can hit full-chip off in idle.
->>
->> It would help if you could desribe your setup in more detail.  What
->> kernel config are you using, what rootfs are you using?  Does it hang
->> in the same spot every time?  If so, what is going on when it hangs?
->> Have you written anything to any of the /sys/power/* files?
->>
->
-> Just a thought, do you still see these problems when using the CPUfreq
-> performance governor instead of the ondemand governor?
->
-> It could be pointing to some bugs in the switching of operating points.
->
-> Kevin
->
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
