@@ -1,115 +1,64 @@
-From: Imre Deak <imre.deak@nokia.com>
-Subject: Re: [PATCH] OMAP3 McSPI:  Adds context save/restore
-Date: Fri, 30 Jan 2009 10:06:28 +0200
-Message-ID: <20090130080628.GA1682@localhost>
-References: <5A47E75E594F054BAF48C5E4FC4B92AB02F535F346@dbde02.ent.ti.com> <20090129190605.GA7792@localhost> <015001c982a3$3e25e200$LocalHost@wipultra793>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH E 11/14] OMAP clock: track child clocks
+Date: Fri, 30 Jan 2009 01:35:33 -0700 (MST)
+Message-ID: <alpine.DEB.2.00.0901300122530.26985@utopia.booyaka.com>
+References: <20090128192551.29333.82943.stgit@localhost.localdomain> <20090128192756.29333.41541.stgit@localhost.localdomain> <20090129151401.GC18233@n2100.arm.linux.org.uk> <20090129220608.GJ18233@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:19606 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751384AbZA3IJy (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 30 Jan 2009 03:09:54 -0500
-Content-Disposition: inline
-In-Reply-To: <015001c982a3$3e25e200$LocalHost@wipultra793>
+Received: from utopia.booyaka.com ([72.9.107.138]:49794 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752171AbZA3Iff (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 30 Jan 2009 03:35:35 -0500
+In-Reply-To: <20090129220608.GJ18233@n2100.arm.linux.org.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: ext Hemanth V <hemanthv@ti.com>
-Cc: "ext Nayak, Rajendra" <rnayak@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Kevin Hilman <khilman@deeprootsystems.com>
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: linux-arm-kernel@lists.arm.linux.org.uk, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>
 
-On Fri, Jan 30, 2009 at 07:23:16AM +0100, ext Hemanth V wrote:
-> 
-> ----- Original Message -----
-> From: "Imre Deak" <imre.deak@nokia.com>
-> To: "ext Nayak, Rajendra" <rnayak@ti.com>
-> Cc: <linux-omap@vger.kernel.org>; "Kevin Hilman"
-> <khilman@deeprootsystems.com>; "V, Hemanth" <hemanthv@ti.com>
-> Sent: Friday, January 30, 2009 12:36 AM
-> Subject: Re: [PATCH] OMAP3 McSPI: Adds context save/restore
-> 
-> 
-> > On Wed, Jan 28, 2009 at 10:11:29AM +0100, ext Nayak, Rajendra wrote:
-> >> From: Hemanth V <hemanthv@ti.com>
-> >>
-> >> This patch adds context save/restore feature to McSPI driver.
-> >> This has been tested by instrumenting the driver code i.e by
-> >> adding a McSPI softreset in omap2_mcspi_disable_clocks function.
-> >>
-> >> This patch includes review comment fixes
-> >>
-> >> Signed-off-by: Hemanth V <hemanthv@ti.com>
-> >>
-> >> ---
-> >>  drivers/spi/omap2_mcspi.c |   97
-> >> ++++++++++++++++++++++++++++++++++++----------
-> >>  1 files changed, 77 insertions(+), 20 deletions(-)
-> >>
-> >> Index: linux-omap-2.6/drivers/spi/omap2_mcspi.c
-> >> ===================================================================
-> >> --- linux-omap-2.6.orig/drivers/spi/omap2_mcspi.c       2009-01-27
-> >> 11:45:06.000000000 +0530
-> >> +++ linux-omap-2.6/drivers/spi/omap2_mcspi.c    2009-01-27
-> >> 11:53:16.000000000 +0530
-> >>
-> >> [...]
-> >>
-> >> +static void omap2_mcspi_restore_ctx(struct omap2_mcspi *mcspi)
-> >> +{
-> >> +       struct spi_master *spi_cntrl;
-> >> +       spi_cntrl = mcspi->master;
-> >> +
-> >> +       /* McSPI: context restore */
-> >> +       mcspi_write_reg(spi_cntrl, OMAP2_MCSPI_MODULCTRL,
-> >> +                       omap2_mcspi_ctx[spi_cntrl->bus_num -
-> >> 1].modulctrl);
-> >> +
-> >> +       mcspi_write_reg(spi_cntrl, OMAP2_MCSPI_SYSCONFIG,
-> >> +                       omap2_mcspi_ctx[spi_cntrl->bus_num -
-> >> 1].sysconfig);
-> >> +
-> >> +       mcspi_write_reg(spi_cntrl, OMAP2_MCSPI_CHCONF0,
-> >> +                       omap2_mcspi_ctx[spi_cntrl->bus_num - 1].chconf0);
-> >
-> > You have to restore this to the proper CHCONF register. And in the
-> > current form you have to restore all of them.
-> 
-> Currently only CS0 CHCONF i.e chconf0 is being saved and restored, since its
-> the only one configured and used
-> by the driver.
+On Thu, 29 Jan 2009, Russell King - ARM Linux wrote:
 
-What do you mean, your specific HW configuration has only an SPI device
-with CS0? This driver _will_ use all CHCONFx registers based on what CS
-lines are used by the SPI devices on a given board.
-
---Imre
-
+> On Thu, Jan 29, 2009 at 03:14:01PM +0000, Russell King - ARM Linux wrote:
+> > On Wed, Jan 28, 2009 at 12:27:59PM -0700, Paul Walmsley wrote:
+> > > The price paid is additional runtime memory consumption - 8 bytes per
+> > > clock and 16 bytes per child clock - roughly 4.5KiB on OMAP3.
+> > 
+> > For OMAP3, that's 222 struct clks of which 182 are children, and indeed
+> > 222 * 8 + 182 * 16 gives about 4.5K.  On OMAP2, it's 140 and 136,
+> > giving 140 * 8 + 136 * 16 = 3.3K.
+> > 
+> > Moving struct clk_child into struct clk means that its clk and flags
+> > members can be deleted, making it 8 bytes in size - effectively just
+> > the list_head.  We need a list_head for the 'children' as you have it.
+> > So, that works out as 16 bytes per clock.  That gives 3.5K on OMAP3
+> > and 2.2K on OMAP2.
+> > 
+> > So, by taking that alternative approach, not only do you end up using
+> > less memory, but you also don't have to have the overhead of your
+> > custom memory bookkeeping.
+> > 
+> > The other change I'd suggest is that you have one function which deals
+> > with setting the parent of a clock:
+> > 
+> > void clk_reparent(struct clk *child, struct clk *parent)
+> > {
+> > 	list_del_init(&child->sibling);
+> > 	if (parent)
+> > 		list_add(&child->sibling, &parent->children);
+> > 	child->parent = parent;
+> > 
+> > 	/* now do the debugfs renaming to reattach the child
+> > 	   to the proper parent */
+> > }
+> > 
+> > which is a lot simpler than your omap_clk_add_child() and omap_clk_del_child().
+> > 
+> > These should be in the _core_ OMAP clock code, not just in the OMAP2
+> > clock code.  OMAP1 has child clocks as well as OMAP2.
 > 
-> >
-> >> +
-> >> +
-> >> +       mcspi_write_reg(spi_cntrl, OMAP2_MCSPI_WAKEUPENABLE,
-> >> +                       omap2_mcspi_ctx[spi_cntrl->bus_num -
-> >> 1].wakeupenable);
-> >> +}
-> >> +static void omap2_mcspi_disable_clocks(struct omap2_mcspi *mcspi)
-> >> +{
-> >> +       clk_disable(mcspi->ick);
-> >> +       clk_disable(mcspi->fck);
-> >> +}
-> >> +
-> >> [...]
-> >>
-> >> @@ -537,6 +593,8 @@
-> >>
-> >>         mcspi_write_cs_reg(spi, OMAP2_MCSPI_CHCONF0, l);
-> >>
-> >> +       omap2_mcspi_ctx[spi_cntrl->bus_num - 1].chconf0 = l;
-> >
-> > And here save it to a slot based on CS.
-> >
-> > --Imre
-> >
-> >
-> >
-> >
-> 
+> And here is my version of this patch:
+
+Thanks, I'll take a closer look at this later today.
+
+
+- Paul
