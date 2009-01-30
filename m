@@ -1,51 +1,55 @@
-From: "Ramirez Luna, Omar" <x00omar@ti.com>
-Subject: [OMAPZOOM][PATCH 3/6] DSPBRIDGE Fix for DCD stack overflow
-Date: Thu, 29 Jan 2009 18:15:27 -0600
-Message-ID: <27F9C60D11D683428E133F85D2BB4A5303F7EA52BD@dlee03.ent.ti.com>
+From: "hartleys" <hartleys@visionengravers.com>
+Subject: RE: [patch/rfc 2.6.28-rc2] input: twl4030_keypad driver
+Date: Thu, 29 Jan 2009 19:17:43 -0500
+Message-ID: <BD79186B4FD85F4B8E60E381CAEE1909011A527A@mi8nycmail19.Mi8.com>
+References: <200901211613.06427.david-b@pacbell.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain;
+	charset="US-ASCII"
 Content-Transfer-Encoding: 8BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:47162 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751931AbZA3APe convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 29 Jan 2009 19:15:34 -0500
-Received: from dlep95.itg.ti.com ([157.170.170.107])
-	by bear.ext.ti.com (8.13.7/8.13.7) with ESMTP id n0U0FSKo003754
-	for <linux-omap@vger.kernel.org>; Thu, 29 Jan 2009 18:15:33 -0600
-Received: from dlee74.ent.ti.com (localhost [127.0.0.1])
-	by dlep95.itg.ti.com (8.13.8/8.13.8) with ESMTP id n0U0FSMC016387
-	for <linux-omap@vger.kernel.org>; Thu, 29 Jan 2009 18:15:28 -0600 (CST)
-Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-input-owner@vger.kernel.org>
+Content-class: urn:content-classes:message
+In-Reply-To: <200901211613.06427.david-b@pacbell.net>
+Sender: linux-input-owner@vger.kernel.org
+To: David Brownell <david-b@pacbell.net>, linux-input@vger.kernel.org
+Cc: OMAP <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
-To: "Pandita, Vikram" <vikram.pandita@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-From: Fernando Guzman Lugo <x0095840@ti.com>
-Date: Wed, 28 Jan 2009 19:23:24 -0600
-Subject: [PATCH] DSPBRIDGE Fix for DCD stack overflow
+On Wednesday, January 21, 2009 5:13 PM, David Brownell wrote:
+> Driver for the twl4030 family keypad controller.  This controller
+> supports a key matrix of up to 8 rows by 8 columns.  Board init
+> code passes a description of the key matrix to the driver.
+>
+> Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
+> ---
 
-Fixed DCD stack buffer overflow.
+[SNIP]
 
-Signed-off-by: Fernando Guzman Lugo <x0095840@ti.com>
----
- drivers/dsp/bridge/rmgr/dbdcd.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+> --- a/include/linux/i2c/twl4030.h
+> +++ b/include/linux/i2c/twl4030.h
+> @@ -255,11 +255,18 @@ struct twl4030_madc_platform_data {
+>  	int		irq_line;
+>  };
+>  
+> +/* Boards have uniqe mappings of {col, row} --> keycode.
+> + * Column and row are 4 bits, but range only from 0..7;
+> + * a PERSISTENT_KEY is "always on" and never reported.
+> + */
+> +#define KEY_PERSISTENT		0x00800000
+> +#define KEY(col, row, keycode)	(((col) << 28) | ((row) << 24) |
+(keycode))
 
-diff --git a/drivers/dsp/bridge/rmgr/dbdcd.c b/drivers/dsp/bridge/rmgr/dbdcd.c
-index 129c16b..6fbe03f 100644
---- a/drivers/dsp/bridge/rmgr/dbdcd.c
-+++ b/drivers/dsp/bridge/rmgr/dbdcd.c
-@@ -473,7 +473,7 @@ DSP_STATUS DCD_GetObjectDef(IN struct DCD_MANAGER *hDcdMgr,
- 	u32 dwBufSize;	/* Used by REG functions */
- 	char szRegKey[REG_MAXREGPATHLENGTH];
- 	char *szUuid;		/*[MAXUUIDLEN];*/
--	char szRegData[MAXUUIDLEN];
-+	char szRegData[REG_MAXREGPATHLENGTH];
- 	char szSectName[MAXUUIDLEN + 2];	/* ".[UUID]\0" */
- 	char *pszCoffBuf;
- 	u32 dwKeyLen;		/* Len of REG key. */
--- 
-1.5.4.3
+The same KEY macro is defined in:
+
+arch/arm/mach-pxa/include/mach/pxa27x_keypad.h
+arch/arm/plat-omap/include/mach/keypad.h
+
+I also have a keypad driver for the ep93xx that uses the same macro.
+
+Shouldn't/couldn't this be generalized and added to the
+include/linux/input.h file?  Allowing 4-bits for row/col gives a maximum
+key matrix of 16x16 keys which should be enough for just about anything.
+
+Regards,
+Hartley
 
