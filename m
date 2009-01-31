@@ -1,53 +1,41 @@
-From: Igor Stoppa <igor.stoppa@nokia.com>
-Subject: Re: Beagle PM hangs
-Date: Sat, 31 Jan 2009 13:18:32 +0200
-Message-ID: <1233400712.14037.34.camel@localhost>
-References: <345163910901280814nb847b34pca50f4ee6e49929d@mail.gmail.com>
-	 <87zlhbqtrv.fsf@deeprootsystems.com>	<87skn3qq6x.fsf@deeprootsystems.com>
-	 <ABB3227E-1B40-47F0-BD79-FE974FDEF4CE@beagleboard.org>
-	 <13B9B4C6EF24D648824FF11BE89671620376E9A5E5@dlee02.ent.ti.com>
-	 <212700A7-C5FE-4CAA-BACF-7931D45C02CC@beagleboard.org>
-	 <87y6wsh100.fsf@deeprootsystems.com>
-	 <13B9B4C6EF24D648824FF11BE89671620376E9A684@dlee02.ent.ti.com>
-	 <87pri4gz1m.fsf@deeprootsystems.com>
-Reply-To: igor.stoppa@nokia.com
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: [PATCH E 08/14] OMAP clock: move rate recalc, propagation code up to plat-omap/clock.c
+Date: Sat, 31 Jan 2009 11:40:14 +0000
+Message-ID: <20090131114014.GD1394@n2100.arm.linux.org.uk>
+References: <20090128192551.29333.82943.stgit@localhost.localdomain> <20090128192748.29333.5856.stgit@localhost.localdomain> <20090129174153.GH18233@n2100.arm.linux.org.uk> <alpine.DEB.2.00.0901300135560.26985@utopia.booyaka.com> <20090130085249.GB6864@n2100.arm.linux.org.uk> <13B9B4C6EF24D648824FF11BE89671620376DEC116@dlee02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:41812 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750930AbZAaLVH (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 31 Jan 2009 06:21:07 -0500
-In-Reply-To: <87pri4gz1m.fsf@deeprootsystems.com>
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:34077 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752012AbZAaLka (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 31 Jan 2009 06:40:30 -0500
+Content-Disposition: inline
+In-Reply-To: <13B9B4C6EF24D648824FF11BE89671620376DEC116@dlee02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: ext Kevin Hilman <khilman@deeprootsystems.com>
-Cc: "Woodruff, Richard" <r-woodruff2@ti.com>, Koen Kooi <koen@beagleboard.org>, "linux-omap@vger.kernel.org List" <linux-omap@vger.kernel.org>
+To: "Woodruff, Richard" <r-woodruff2@ti.com>
+Cc: Paul Walmsley <paul@pwsan.com>, "linux-arm-kernel@lists.arm.linux.org.uk" <linux-arm-kernel@lists.arm.linux.org.uk>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>
 
-On Sat, 2009-01-31 at 00:21 +0100, ext Kevin Hilman wrote:
+On Fri, Jan 30, 2009 at 08:23:49AM -0600, Woodruff, Richard wrote:
+> 
+> > There's one bug that your version highlights in mine - the virtual mpu
+> > clock in omap1 touches the DPLL and repropagates that rate.  I've
+> > removed that repropagation, so that needs fixing.
+> >
+> > However, this raises a question: why is the virtual mpu clock touching
+> > some other part of the clock tree.  I wonder whether this should be
+> > handled a different way, though the first thing that needs answering is
+> > why we have this alias for 'arm_ck' ?
+> 
+> At one point in time the virtual clock allowed control for a set of clocks
+> with some dependencies.  The mpu alias provided a convenient control point.
 
-> CPUfreq policy is just as easily set in the kernel at init time.  Then
-> the default would be set right, and the rootfs would be left to change
-> it if desired.
+>From what I can see (checking both mainline and Tony's tree), this mpu
+alias (virtual_ck_mpu) is not used on OMAP1, which seems to suggest
+that this quirk has become redundant.  If it is redundant, it should
+be removed.
 
-But in general the situation is more complex and knowledge about the
-packaging and its thermal model is needed.
-
-Note that with packaging i refer to both the omap package (does it use
-stacked memory or not, is it a memory combo, etc) and the _device_
-package.
-
-Not getting errors is not a good indication that the system is really
-operating in a safe mode; the device might be stable all the time but
-its life be more than halved.
-
--- 
-
-Cheers, Igor
-
----
-
-Igor Stoppa
-Maemo Software - Nokia Devices R&D - Helsinki
-
+If there is some code somewhere to use it, this quirk should live with
+the user of the quirk until such time that the user becomes ready to be
+merged.
