@@ -1,25 +1,53 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [PATCH F 10/12] OMAP2/3 clock: omap2_clk_enable(): fix logic
-Date: Sat, 31 Jan 2009 10:58:48 +0000
-Message-ID: <20090131105848.GC1394@n2100.arm.linux.org.uk>
-References: <20090128193326.2396.9437.stgit@localhost.localdomain> <20090128193525.2396.11744.stgit@localhost.localdomain>
+From: Igor Stoppa <igor.stoppa@nokia.com>
+Subject: Re: Beagle PM hangs
+Date: Sat, 31 Jan 2009 13:18:32 +0200
+Message-ID: <1233400712.14037.34.camel@localhost>
+References: <345163910901280814nb847b34pca50f4ee6e49929d@mail.gmail.com>
+	 <87zlhbqtrv.fsf@deeprootsystems.com>	<87skn3qq6x.fsf@deeprootsystems.com>
+	 <ABB3227E-1B40-47F0-BD79-FE974FDEF4CE@beagleboard.org>
+	 <13B9B4C6EF24D648824FF11BE89671620376E9A5E5@dlee02.ent.ti.com>
+	 <212700A7-C5FE-4CAA-BACF-7931D45C02CC@beagleboard.org>
+	 <87y6wsh100.fsf@deeprootsystems.com>
+	 <13B9B4C6EF24D648824FF11BE89671620376E9A684@dlee02.ent.ti.com>
+	 <87pri4gz1m.fsf@deeprootsystems.com>
+Reply-To: igor.stoppa@nokia.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:58972 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752050AbZAaK7B (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 31 Jan 2009 05:59:01 -0500
-Content-Disposition: inline
-In-Reply-To: <20090128193525.2396.11744.stgit@localhost.localdomain>
+Received: from smtp.nokia.com ([192.100.105.134]:41812 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750930AbZAaLVH (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 31 Jan 2009 06:21:07 -0500
+In-Reply-To: <87pri4gz1m.fsf@deeprootsystems.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: linux-arm-kernel@lists.arm.linux.org.uk, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>
+To: ext Kevin Hilman <khilman@deeprootsystems.com>
+Cc: "Woodruff, Richard" <r-woodruff2@ti.com>, Koen Kooi <koen@beagleboard.org>, "linux-omap@vger.kernel.org List" <linux-omap@vger.kernel.org>
 
-On Wed, Jan 28, 2009 at 12:35:28PM -0700, Paul Walmsley wrote:
-> Rearrange the parent clock enable status check code so it actually makes
-> sense.  No functional change.
+On Sat, 2009-01-31 at 00:21 +0100, ext Kevin Hilman wrote:
 
-I don't think there's anything gained from introducing the additional
-'parent_ret' variable.
+> CPUfreq policy is just as easily set in the kernel at init time.  Then
+> the default would be set right, and the rootfs would be left to change
+> it if desired.
+
+But in general the situation is more complex and knowledge about the
+packaging and its thermal model is needed.
+
+Note that with packaging i refer to both the omap package (does it use
+stacked memory or not, is it a memory combo, etc) and the _device_
+package.
+
+Not getting errors is not a good indication that the system is really
+operating in a safe mode; the device might be stable all the time but
+its life be more than halved.
+
+-- 
+
+Cheers, Igor
+
+---
+
+Igor Stoppa
+Maemo Software - Nokia Devices R&D - Helsinki
+
