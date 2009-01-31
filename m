@@ -1,31 +1,62 @@
 From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [PATCH F 12/12] OMAP2/3 McBSP: add temporary clockdomain fix for McBSP virtual clocks
-Date: Sat, 31 Jan 2009 11:42:26 +0000
-Message-ID: <20090131114226.GE1394@n2100.arm.linux.org.uk>
-References: <20090128193326.2396.9437.stgit@localhost.localdomain> <20090128193531.2396.91172.stgit@localhost.localdomain>
+Subject: Re: [PATCH B 01/10] OMAP2/3 clock: combine clkdm, clkdm_name into union in struct clk
+Date: Sat, 31 Jan 2009 11:55:23 +0000
+Message-ID: <20090131115523.GF1394@n2100.arm.linux.org.uk>
+References: <20090128024301.27240.39391.stgit@localhost.localdomain> <20090128024401.27240.68328.stgit@localhost.localdomain>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:34081 "EHLO
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:60272 "EHLO
 	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752024AbZAaLmk (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 31 Jan 2009 06:42:40 -0500
+	with ESMTP id S1751991AbZAaLzh (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 31 Jan 2009 06:55:37 -0500
 Content-Disposition: inline
-In-Reply-To: <20090128193531.2396.91172.stgit@localhost.localdomain>
+In-Reply-To: <20090128024401.27240.68328.stgit@localhost.localdomain>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Paul Walmsley <paul@pwsan.com>
-Cc: linux-arm-kernel@lists.arm.linux.org.uk, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Eero Nurkkala <ext-eero.nurkkala@nokia.com>
+Cc: linux-arm-kernel@lists.arm.linux.org.uk, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>
 
-On Wed, Jan 28, 2009 at 12:35:33PM -0700, Paul Walmsley wrote:
-> The McBSP driver uses virtual clocks to handle enabling and disabling
-> its hardware clocks.  These virtual clocks have no associated
-> clockdomain. After commit 60b8b431e47d8c5b8c02a2e4fa9af388aae20790,
-> this prevents the McBSP clocks from registering correctly.
-> Resolve this for the short term by using virt_opp_clkdm for these clocks.
-> These McBSP virtual clocks should be removed, but such a fix would require
-> significant changes to the McBSP drivers that would require testing on
-> OMAP1, 2, and 3 platforms.
+On Tue, Jan 27, 2009 at 07:44:08PM -0700, Paul Walmsley wrote:
+> diff --git a/arch/arm/mach-omap2/clock.c b/arch/arm/mach-omap2/clock.c
+> index 55c5d67..7aa09f5 100644
+> --- a/arch/arm/mach-omap2/clock.c
+> +++ b/arch/arm/mach-omap2/clock.c
+> @@ -77,17 +77,17 @@ void omap2_init_clk_clkdm(struct clk *clk)
+>  {
+>  	struct clockdomain *clkdm;
+>  
+> -	if (!clk->clkdm_name)
+> +	if (!clk->clkdm.name)
+>  		return;
+>  
+> -	clkdm = clkdm_lookup(clk->clkdm_name);
+> +	clkdm = clkdm_lookup(clk->clkdm.name);
+>  	if (clkdm) {
+>  		pr_debug("clock: associated clk %s to clkdm %s\n",
+> -			 clk->name, clk->clkdm_name);
+> -		clk->clkdm = clkdm;
+> +			 clk->name, clk->clkdm.name);
+> +		clk->clkdm.ptr = clkdm;
+>  	} else {
+>  		pr_debug("clock: could not associate clk %s to "
+> -			 "clkdm %s\n", clk->name, clk->clkdm_name);
+> +			 "clkdm %s\n", clk->name, clk->clkdm.name);
+>  	}
 
-With either my clkdev patches or the spinlock fixing for mcbsp, this patch
-seems to be redundant.
+This is unsafe - if the clock domain can not be found, you leave the
+union pointing at the string, and there's no way for this to prevent
+the clock from being registered.
+
+The result is that:
+
+> -		if (clk->clkdm)
+> -			omap2_clkdm_clk_disable(clk->clkdm, clk);
+> +		if (clk->clkdm.ptr)
+> +			omap2_clkdm_clk_disable(clk->clkdm.ptr, clk);
+
+and similar places will pass the pointer to the string, potentially
+causing an oops, or worse, data corruption due to scribbing over
+someone elses memory.
+
+So I don't think this patch is acceptable as-is.
