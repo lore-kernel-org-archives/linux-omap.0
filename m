@@ -1,59 +1,25 @@
-From: Kim Kyuwon <chammoru@gmail.com>
-Subject: [PATCH] ARM: OMAP: Disable USB interrupt in the musb_resume()
-	function
-Date: Sat, 31 Jan 2009 17:21:56 +0900
-Message-ID: <4d34a0a70901310021l6f42b34es24ca320e44c51ae6@mail.gmail.com>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: [PATCH F 10/12] OMAP2/3 clock: omap2_clk_enable(): fix logic
+Date: Sat, 31 Jan 2009 10:58:48 +0000
+Message-ID: <20090131105848.GC1394@n2100.arm.linux.org.uk>
+References: <20090128193326.2396.9437.stgit@localhost.localdomain> <20090128193525.2396.11744.stgit@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from wf-out-1314.google.com ([209.85.200.168]:44846 "EHLO
-	wf-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750842AbZAaIV5 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 31 Jan 2009 03:21:57 -0500
-Received: by wf-out-1314.google.com with SMTP id 27so894001wfd.4
-        for <linux-omap@vger.kernel.org>; Sat, 31 Jan 2009 00:21:56 -0800 (PST)
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:58972 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752050AbZAaK7B (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 31 Jan 2009 05:59:01 -0500
+Content-Disposition: inline
+In-Reply-To: <20090128193525.2396.11744.stgit@localhost.localdomain>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: =?EUC-KR?B?udqw5rnO?= <kyungmin.park@samsung.com>, =?EUC-KR?B?seix1L/4?= <q1.kim@samsung.com>
+To: Paul Walmsley <paul@pwsan.com>
+Cc: linux-arm-kernel@lists.arm.linux.org.uk, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>
 
-USB should be suspended with interrupt disabled[1]. If USB is suspended with
-interrupt enabled and connected to host PC, a kernel panic would occur When
-it wakes up. Because, after the arch_suspend_enable_irqs() function is called
-in the suspend_enter() function, USB Interrupt handler is called, even though
-USB controller is still not resumed! All devices are resumed after the
-device_resume() is called.
+On Wed, Jan 28, 2009 at 12:35:28PM -0700, Paul Walmsley wrote:
+> Rearrange the parent clock enable status check code so it actually makes
+> sense.  No functional change.
 
-[1] /Documentation/power/devices.txt: 412 line
-
-Signed-off-by: Kim Kyuwon <chammoru@gmail.com>
----
- drivers/usb/musb/musb_core.c |    4 ++++
- 1 files changed, 4 insertions(+), 0 deletions(-)
-
-diff --git a/drivers/usb/musb/musb_core.c b/drivers/usb/musb/musb_core.c
-index 2cc34fa..0dfe15e 100644
---- a/drivers/usb/musb/musb_core.c
-+++ b/drivers/usb/musb/musb_core.c
-@@ -2151,6 +2151,8 @@ static int musb_suspend(struct platform_device
-*pdev, pm_message_t message)
-
- 	spin_lock_irqsave(&musb->lock, flags);
-
-+	disable_irq(musb->nIrq);
-+
- 	if (is_peripheral_active(musb)) {
- 		/* FIXME force disconnect unless we know USB will wake
- 		 * the system up quickly enough to respond ...
-@@ -2184,6 +2186,8 @@ static int musb_resume(struct platform_device *pdev)
- 	else
- 		clk_enable(musb->clock);
-
-+	enable_irq(musb->nIrq);
-+
- 	/* for static cmos like DaVinci, register values were preserved
- 	 * unless for some reason the whole soc powered down and we're
- 	 * not treating that as a whole-system restart (e.g. swsusp)
--- 
-Kim Kyuwon
+I don't think there's anything gained from introducing the additional
+'parent_ret' variable.
