@@ -1,48 +1,152 @@
-From: =?iso-8859-1?Q?M=E5ns_Rullg=E5rd?= <mans@mansr.com>
-Subject: Re: [PATCH D 01/11] OMAP: Add clk_get_parent() for OMAP2/3
-Date: Sat, 31 Jan 2009 15:07:06 +0000
-Message-ID: <yw1xhc3f5xb9.fsf@thrashbarg.mansr.com>
-References: <20090128191638.16688.33452.stgit@localhost.localdomain>
-	<20090128191807.16688.91255.stgit@localhost.localdomain>
-	<20090129110043.GE12627@n2100.arm.linux.org.uk>
-	<alpine.DEB.2.00.0901292327090.26985@utopia.booyaka.com>
-	<20090131142344.GM1394@n2100.arm.linux.org.uk>
+From: Alexey Klimov <klimov.linux@gmail.com>
+Subject: Re: [OMAPZOOM][PATCH v2 2/6] Increase isp workaround buffer size
+ for 8MP sensor.
+Date: Sat, 31 Jan 2009 18:08:29 +0300
+Message-ID: <1233414510.19658.18.camel@tux.localhost>
+References: <200901301745.54348.dcurran@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1754710AbZAaPH2@vger.kernel.org>
-In-Reply-To: <20090131142344.GM1394@n2100.arm.linux.org.uk> (Russell King's message of "Sat, 31 Jan 2009 14:23:44 +0000")
-Sender: linux-kernel-owner@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: Paul Walmsley <paul@pwsan.com>, linux-arm-kernel@lists.arm.linux.org.uk, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, =?iso-8859-1?Q?M=E5ns_Rullg=E5rd?= <mans@mansr.com>, Tony Lindgren <tony@atomide.com>
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-media-owner@vger.kernel.org>
+In-Reply-To: <200901301745.54348.dcurran@ti.com>
+Sender: linux-media-owner@vger.kernel.org
+To: Dominic Curran <dcurran@ti.com>
+Cc: linux-media@vger.kernel.org, linux-omap <linux-omap@vger.kernel.org>, greg.hofer@hp.com
 List-Id: linux-omap@vger.kernel.org
 
-Russell King - ARM Linux <linux@arm.linux.org.uk> writes:
+Hello, Dominic
+May i ask few questions ?
 
-> On Thu, Jan 29, 2009 at 11:29:31PM -0700, Paul Walmsley wrote:
->> On Thu, 29 Jan 2009, Russell King - ARM Linux wrote:
->>=20
->> > On Wed, Jan 28, 2009 at 12:18:16PM -0700, Paul Walmsley wrote:
->> > > From: Mans Rullgard <mans@mansr.com>
->> > >=20
->> > > This makes clk_get_parent() work on OMAP2/3.
->> >=20
->> > This is clearly something that the generic code should be doing.
->> > It's not something specific to OMAP2/3.  Please move it to
->> > arch/arm/plat-omap/clock.c
->>=20
->> Done; revised patch below.
->
-> Great, thanks.  However, I'd forgotten that one of my patches complet=
-ely
-> removes clk_get_parent() since it's unused by any code in OMAP at pre=
-sent.
->
-> What was the reasoning behind making this work?
+Well, looks like it's unrelated to your patch. Lines that don't looks
+okay to me appear in your patch.
 
-It is needed for the omapfb/dss driver to set an optimal rate for
-dpll4_m4_ck.
+On Fri, 2009-01-30 at 17:45 -0600, Dominic Curran wrote:
+> From: Dominic Curran <dcurran@ti.com>
+> Subject: [OMAPZOOM][PATCH v2 2/6] Increase isp workaround buffer size for 8MP 
+> sensor.
+> 
+> A temporary buffer is created to hold the image while it is written by
+> Previewer module and then read by Resizer module. This is called LSC
+> Workaround. To take into account the Sony IMX046 8MP sensor that buffer
+> needs to be increased in size.
+> Changed the #defines to be upper case.
+> Patch also fixes the initialization of a couple of CCDC values.
+> 
+> Signed-off-by: Dominic Curran <dcurran@ti.com>
+> ---
+>  drivers/media/video/isp/isp.c     |   10 +++++-----
+>  drivers/media/video/isp/isp.h     |    7 +++++--
+>  drivers/media/video/isp/ispccdc.c |    2 ++
+>  drivers/media/video/isp/ispmmu.h  |    3 +++
+>  4 files changed, 15 insertions(+), 7 deletions(-)
+> 
+> Index: omapzoom04/drivers/media/video/isp/isp.c
+> ===================================================================
+> --- omapzoom04.orig/drivers/media/video/isp/isp.c
+> +++ omapzoom04/drivers/media/video/isp/isp.c
+> @@ -1172,20 +1172,20 @@ void omapisp_unset_callback()
+>   **/
+>  u32 isp_buf_allocation(void)
+>  {
+> -	buff_addr = (void *) vmalloc(buffer_size);
+> +	buff_addr = (void *) vmalloc(ISP_BUFFER_MAX_SIZE);
+>  
+>  	if (!buff_addr) {
+>  		printk(KERN_ERR "Cannot allocate memory ");
 
---=20
-M=E5ns Rullg=E5rd
-mans@mansr.com
+Will user understand what module (or system of kernel) provide this
+printk message ? Should module name be here ?
+
+>  		return -ENOMEM;
+>  	}
+>  
+> -	sglist_alloc = videobuf_vmalloc_to_sg(buff_addr, no_of_pages);
+> +	sglist_alloc = videobuf_vmalloc_to_sg(buff_addr, ISP_BUFFER_MAX_PAGES);
+>  	if (!sglist_alloc) {
+>  		printk(KERN_ERR "videobuf_vmalloc_to_sg error");
+
+Well, may be here too..
+By the way, why there is no "\n" in the end of messages in this
+function ?
+
+>  		return -ENOMEM;
+>  	}
+> -	num_sc = dma_map_sg(NULL, sglist_alloc, no_of_pages, 1);
+> -	buff_addr_mapped = ispmmu_map_sg(sglist_alloc, no_of_pages);
+> +	num_sc = dma_map_sg(NULL, sglist_alloc, ISP_BUFFER_MAX_PAGES, 1);
+> +	buff_addr_mapped = ispmmu_map_sg(sglist_alloc, ISP_BUFFER_MAX_PAGES);
+>  	if (!buff_addr_mapped) {
+>  		printk(KERN_ERR "ispmmu_map_sg mapping failed ");
+
+Probably the same thing here.
+May be someone can correct sitation if necessary..
+
+>  		return -ENOMEM;
+> @@ -1217,7 +1217,7 @@ void isp_buf_free(void)
+>  {
+>  	if (alloc_done == 1) {
+>  		ispmmu_unmap(buff_addr_mapped);
+> -		dma_unmap_sg(NULL, sglist_alloc, no_of_pages, 1);
+> +		dma_unmap_sg(NULL, sglist_alloc, ISP_BUFFER_MAX_PAGES, 1);
+>  		kfree(sglist_alloc);
+>  		vfree(buff_addr);
+>  		alloc_done = 0;
+> Index: omapzoom04/drivers/media/video/isp/isp.h
+> ===================================================================
+> --- omapzoom04.orig/drivers/media/video/isp/isp.h
+> +++ omapzoom04/drivers/media/video/isp/isp.h
+> @@ -26,6 +26,9 @@
+>  #define OMAP_ISP_TOP_H
+>  #include <media/videobuf-dma-sg.h>
+>  #include <linux/videodev2.h>
+> +
+> +#include "ispmmu.h"
+> +
+>  #define OMAP_ISP_CCDC		(1 << 0)
+>  #define OMAP_ISP_PREVIEW	(1 << 1)
+>  #define OMAP_ISP_RESIZER	(1 << 2)
+> @@ -69,8 +72,8 @@
+>  #define NUM_ISP_CAPTURE_FORMATS 	(sizeof(isp_formats) /\
+>  							sizeof(isp_formats[0]))
+>  #define ISP_WORKAROUND 1
+> -#define buffer_size (1024 * 1024 * 10)
+> -#define no_of_pages (buffer_size / (4 * 1024))
+> +#define ISP_BUFFER_MAX_SIZE (1024 * 1024 * 16)
+> +#define ISP_BUFFER_MAX_PAGES (ISP_BUFFER_MAX_SIZE / ISPMMU_PAGE_SIZE)
+>  
+>  typedef int (*isp_vbq_callback_ptr) (struct videobuf_buffer *vb);
+>  typedef void (*isp_callback_t) (unsigned long status,
+> Index: omapzoom04/drivers/media/video/isp/ispccdc.c
+> ===================================================================
+> --- omapzoom04.orig/drivers/media/video/isp/ispccdc.c
+> +++ omapzoom04/drivers/media/video/isp/ispccdc.c
+> @@ -1265,6 +1265,8 @@ int ispccdc_config_size(u32 input_w, u32
+>  	}
+>  
+>  	if (ispccdc_obj.ccdc_outfmt == CCDC_OTHERS_VP) {
+> +		ispccdc_obj.ccdcin_woffset = 0;
+> +		ispccdc_obj.ccdcin_hoffset = 0;
+>  		omap_writel((ispccdc_obj.ccdcin_woffset <<
+>  					ISPCCDC_FMT_HORZ_FMTSPH_SHIFT) |
+>  					(ispccdc_obj.ccdcin_w <<
+> Index: omapzoom04/drivers/media/video/isp/ispmmu.h
+> ===================================================================
+> --- omapzoom04.orig/drivers/media/video/isp/ispmmu.h
+> +++ omapzoom04/drivers/media/video/isp/ispmmu.h
+> @@ -59,6 +59,9 @@
+>  /* Number of entries per L2 Page table */
+>  #define ISPMMU_L2D_ENTRIES_NR		256
+>  
+> +/* Size of MMU page in bytes */
+> +#define ISPMMU_PAGE_SIZE		4096
+> +
+>  /*
+>   * Statically allocate 16KB for L2 page tables. 16KB can be used for
+>   * up to 16 L2 page tables which cover up to 16MB space. We use an array of 16
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-- 
+Best regards, Klimov Alexey
+
