@@ -1,68 +1,52 @@
-From: Belisko Marek <marek.belisko@gmail.com>
-Subject: TI omap850
-Date: Sat, 31 Jan 2009 20:38:12 +0100
-Message-ID: <e7c6a05e0901311138t8e37768ya8e47f5fb8f2d728@mail.gmail.com>
+From: Jarkko Nikula <jhnikula@gmail.com>
+Subject: Re: Soft lockups with 2.6.29-rc3 when using ASoC?
+Date: Sun, 1 Feb 2009 10:41:19 +0200
+Message-ID: <20090201104119.9346796a.jhnikula@gmail.com>
+References: <5e088bd90901310651o59b31a80yda2d2e51c9074679@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from fg-out-1718.google.com ([72.14.220.153]:8016 "EHLO
+Received: from fg-out-1718.google.com ([72.14.220.155]:15893 "EHLO
 	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751517AbZAaTiO convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 31 Jan 2009 14:38:14 -0500
-Received: by fg-out-1718.google.com with SMTP id 16so276564fgg.17
-        for <linux-omap@vger.kernel.org>; Sat, 31 Jan 2009 11:38:12 -0800 (PST)
+	with ESMTP id S1751644AbZBAIje (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 1 Feb 2009 03:39:34 -0500
+Received: by fg-out-1718.google.com with SMTP id 16so344454fgg.17
+        for <linux-omap@vger.kernel.org>; Sun, 01 Feb 2009 00:39:32 -0800 (PST)
+In-Reply-To: <5e088bd90901310651o59b31a80yda2d2e51c9074679@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
+To: Steve Sakoman <sakoman@gmail.com>
+Cc: linux-omap <linux-omap@vger.kernel.org>
 
-Hi,
+On Sat, 31 Jan 2009 06:51:45 -0800
+Steve Sakoman <sakoman@gmail.com> wrote:
 
-I'm trying to port Linux on HTC Oxygen (omap850). As start point I choo=
-se
-previous port at:http://vivien.chappelier.free.fr/typhoon/index.html
+> I did a quick test of 2.6.29-rc3.  Things looked pretty good till I
+> tried mplayer.
+> 
+> There was a one minute hang (no sound), then a set of soft lockup
+> messages:
+> 
+..
+> I do not see this issue with 2.6.29-rc2
+> (675e66d8261d3327bc467426f8a7e15ec8ffad2c) and the identical patch
+> set.
+> 
+I'm pretty sure 2.6.29-rc3 will work if you apply this patch from
+mainline
 
-I try to modify tft driver for my board but with no success. I'm still
-missing some
-variables in  lcd_panel structure.
+commit ef390c0b6e3f4d2d2d43f53f4bd35e1884571a14
+Author: Misael Lopez Cruz <x0052729@ti.com>
+Date:   Thu Jan 29 13:29:46 2009 +0200
 
-What important is still missing is pixel_freq parameter.
-I have an egg and chicken problem. Rootfs as initrd is not working
-(don't know why)
-and display also not :). So I try to focus on display.
+    ASoC: OMAP: Initialize XCCR and RCCR registers in McBSP DAI driver
 
-I dump some memory regions with Haret to get clock detailed infos.
-Dumps:
-ARM_CKCTL=3D0x6506 is different from the settings in
-the linux kernel for CONFIG_OMAP_ARM_195MHZ (0x050e).
-
-DPLL_CTL=3D0x2fb3 is different from the settings in
-the linux kernel for CONFIG_OMAP_ARM_195MHZ (0x2790).
-
-=46or retreiving of pixel_freq I can use
-function in lcdc.c lck =3D clk_get_rate(omap_lcdc.lcd_ck); but
-I'ts hard for me to find how clock on OMAP is working (very complex
-for beginner).
-
-Could you please clarify this to me and also why values ARM_CKCTL
-and DPLL_CTL are in kernel set differently (compare to wince).
+2.6.29-rc2 was working because Tony reverted temporary the counterpart
+commit writing those registers and now it came back from mainline. Bit
+hassle but hopefully will work ok after Tony's next pull. But mainline
+is ok :-)
 
 
-thanks,
-
-
-Marek
-
---=20
-as simple as primitive as possible
-----------------------------------------------
-Marek Beli=C5=A1ko - open-nandra
-Rusk=C3=A1 Nov=C3=A1 Ves 219
-08005 Pre=C5=A1ov
-Slovakia
-http://open-nandra.com
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-- 
+Jarkko
