@@ -1,42 +1,105 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH F 12/12] OMAP2/3 McBSP: add temporary clockdomain fix
- for McBSP virtual clocks
-Date: Mon, 2 Feb 2009 01:09:14 -0700 (MST)
-Message-ID: <alpine.DEB.2.00.0902020105370.888@utopia.booyaka.com>
-References: <20090128193326.2396.9437.stgit@localhost.localdomain> <20090128193531.2396.91172.stgit@localhost.localdomain> <20090131114226.GE1394@n2100.arm.linux.org.uk>
+From: Jean Pihet <jpihet@mvista.com>
+Subject: Re: [PATCH] OMAP: MMC: recover from transfer failures
+Date: Mon, 2 Feb 2009 09:46:15 +0100
+Message-ID: <200902020946.16508.jpihet@mvista.com>
+References: <20081207213617.10456.43951.stgit@localhost> <4965C120.3010705@nokia.com> <200901081249.20152.jpihet@mvista.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain;
+  charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:48940 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752695AbZBBIJP (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 2 Feb 2009 03:09:15 -0500
-In-Reply-To: <20090131114226.GE1394@n2100.arm.linux.org.uk>
+Received: from gateway-1237.mvista.com ([63.81.120.158]:10325 "EHLO
+	gateway-1237.mvista.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752348AbZBBIqc (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 2 Feb 2009 03:46:32 -0500
+In-Reply-To: <200901081249.20152.jpihet@mvista.com>
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: linux-arm-kernel@lists.arm.linux.org.uk, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Eero Nurkkala <ext-eero.nurkkala@nokia.com>
+To: Tony Lindgren <tony@atomide.com>
+Cc: Adrian Hunter <ext-adrian.hunter@nokia.com>, linux-arm-kernel@lists.arm.linux.org.uk, linux-omap@vger.kernel.org
 
-Hi Russell,
-
-On Sat, 31 Jan 2009, Russell King - ARM Linux wrote:
-
-> On Wed, Jan 28, 2009 at 12:35:33PM -0700, Paul Walmsley wrote:
-> > The McBSP driver uses virtual clocks to handle enabling and disabling
-> > its hardware clocks.  These virtual clocks have no associated
-> > clockdomain. After commit 60b8b431e47d8c5b8c02a2e4fa9af388aae20790,
-> > this prevents the McBSP clocks from registering correctly.
-> > Resolve this for the short term by using virt_opp_clkdm for these clocks.
-> > These McBSP virtual clocks should be removed, but such a fix would require
-> > significant changes to the McBSP drivers that would require testing on
-> > OMAP1, 2, and 3 platforms.
-> 
-> With either my clkdev patches or the spinlock fixing for mcbsp, this patch
-> seems to be redundant.
-
-Indeed.  It was included so the patch set would work if your tree didn't 
-have Stanley's McBSP patch applied; I don't think it's made it up to 
-mainline.
-
-
-- Paul
+VG9ueSwKCkhhcyB0aGlzIHBhdGNoIGJlZW4gYXBwbGllZCB0byB0aGUgbGludXgtb21hcCB0cmVl
+PyBEb2VzIGl0IG5lZWQgdG8gZ28gdGhlIApwYXRjaHdvcms/CgpDZi4gaHR0cDovL21hcmMuaW5m
+by8/bD1saW51eC1vbWFwJm09MTIzMTQxNTc3MzA4MTc3Jnc9MgoKUmVnYXJkcywKSmVhbgoKT24g
+VGh1cnNkYXkgMDggSmFudWFyeSAyMDA5IDEyOjQ5OjE5IEplYW4gUGloZXQgd3JvdGU6Cj4gVGhh
+bmtzIGZvciB0aGUgc3VnZ2VzdGlvbiwgaXQgd29ya3MgZ3JlYXQgKHN0cmVzcyB0ZXN0ZWQpIGFu
+ZCBpcyBhIGNsZWFuZXIKPiBmaXguCj4gSGVyZSBpcyBhIHBhdGNoIHRoZSBsYXRlc3QgbGludXgt
+b21hcC0yLjYgdHJlZS4gSXMgdGhpcyBPSz8KPgo+IFJlZ2FyZHMsCj4gSmVhbgo+Cj4gRnJvbSBk
+MTQzZjZiMmU3MDVhYTRlOWQyYjAzMjA5N2ZkMWM4MmY4MTYzMjYyIE1vbiBTZXAgMTcgMDA6MDA6
+MDAgMjAwMQo+IEZyb206IEplYW4gUGloZXQgPGpwaWhldEBtdmlzdGEuY29tPgo+IERhdGU6IFRo
+dSwgOCBKYW4gMjAwOSAxMjozNToyMSArMDEwMAo+IFN1YmplY3Q6IFtQQVRDSF0gT01BUDogTU1D
+OiByZWNvdmVyIGZyb20gdHJhbnNmZXIgZmFpbHVyZXMKPgo+IFRpbWVvdXRzIGR1cmluZyBhIGNv
+bW1hbmQgdGhhdCBoYXMgYSBkYXRhIHBoYXNlIGNhbiByZXN1bHQgaW4gdGhlCj4gbmV4dCBjb21t
+YW5kIGlzc3VlZCBhZnRlciB0aGUgY29tbWFuZCB0aGF0IGZhaWxlZCBub3QgYmVpbmcgcHJvY2Vz
+c2VkLAo+IGkuZS4gbm8gaW50ZXJydXB0IGV2ZXIgb2NjdXJzIHRvIGluZGljYXRlIHRoZSBjb21t
+YW5kIGhhcyBjb21wbGV0ZWQuCj4gVGhpcyBmYWlsdXJlIGNhbiByZXN1bHQgaW4gYSBkZWFkbG9j
+ay4KPgo+IFRoaXMgcGF0Y2ggcmVzZXRzIHRoZSBkYXRhIHN0YXRlIG1hY2hpbmUgdG8gY2xlYXIg
+dGhlIGVycm9yIGluCj4gY2FzZSBvZiBhIGNvbW1hbmQgdGltZW91dC4KPgo+IFRlc3RlZCBvbiBP
+TUFQMzQzMCBjaGlwIGFuZCBpbnRlbnNpdmUgTU1DL1NEIGRldmljZSByZW1vdmFsIHdoaWxlCj4g
+dHJhbnNmZXJyaW5nIGRhdGEuCj4KPiBTaWduZWQtb2ZmLWJ5OiBBbmR5IExvd2UgPGFsb3dlQG12
+aXN0YS5jb20+Cj4gU2lnbmVkLW9mZi1ieTogSmVhbiBQaWhldCA8anBpaGV0QG12aXN0YS5jb20+
+Cj4gU2lnbmVkLW9mZi1ieTogQWRyaWFuIEh1bnRlciA8ZXh0LWFkcmlhbi5odW50ZXJAbm9raWEu
+Y29tPgo+IC0tLQo+ICBkcml2ZXJzL21tYy9ob3N0L29tYXBfaHNtbWMuYyB8ICAgIDkgKysrKysr
+KystCj4gIDEgZmlsZXMgY2hhbmdlZCwgOCBpbnNlcnRpb25zKCspLCAxIGRlbGV0aW9ucygtKQo+
+Cj4gZGlmZiAtLWdpdCBhL2RyaXZlcnMvbW1jL2hvc3Qvb21hcF9oc21tYy5jIGIvZHJpdmVycy9t
+bWMvaG9zdC9vbWFwX2hzbW1jLmMKPiBpbmRleCBkNWMxZTlkLi45NzE1MGMwIDEwMDY0NAo+IC0t
+LSBhL2RyaXZlcnMvbW1jL2hvc3Qvb21hcF9oc21tYy5jCj4gKysrIGIvZHJpdmVycy9tbWMvaG9z
+dC9vbWFwX2hzbW1jLmMKPiBAQCAtNDY0LDggKzQ2NCwxNSBAQCBzdGF0aWMgaXJxcmV0dXJuX3Qg
+bW1jX29tYXBfaXJxKGludCBpcnEsIHZvaWQgKmRldl9pZCkKPiAgICAgICAgICAgICAgICAgICAg
+ICAgICAgICAgICAgIH0KPiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIGVuZF9jbWQg
+PSAxOwo+ICAgICAgICAgICAgICAgICAgICAgICAgIH0KPiAtICAgICAgICAgICAgICAgICAgICAg
+ICBpZiAoaG9zdC0+ZGF0YSkKPiArICAgICAgICAgICAgICAgICAgICAgICBpZiAoaG9zdC0+ZGF0
+YSkgewo+ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgbW1jX2RtYV9jbGVhbnVwKGhv
+c3QpOwo+ICsgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgT01BUF9IU01NQ19XUklURSho
+b3N0LT5iYXNlLCBTWVNDVEwsCj4gKyAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
+ICAgIE9NQVBfSFNNTUNfUkVBRChob3N0LT5iYXNlLAo+ICsgICAgICAgICAgICAgICAgICAgICAg
+ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgU1lTQ1RMKSB8IFNSRCk7Cj4gKyAgICAg
+ICAgICAgICAgICAgICAgICAgICAgICAgICB3aGlsZSAoT01BUF9IU01NQ19SRUFEKGhvc3QtPmJh
+c2UsCj4gKyAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgU1lT
+Q1RMKSAmIFNSRCkKPiArICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgOwo+
+ICsgICAgICAgICAgICAgICAgICAgICAgIH0KPiAgICAgICAgICAgICAgICAgfQo+ICAgICAgICAg
+ICAgICAgICBpZiAoKHN0YXR1cyAmIERBVEFfVElNRU9VVCkgfHwKPiAgICAgICAgICAgICAgICAg
+ICAgICAgICAoc3RhdHVzICYgREFUQV9DUkMpKSB7Cj4gLS0KPiAxLjUuNC40LjIxLmdjNGE2Ywo+
+Cj4gT24gVGh1cnNkYXkgMDggSmFudWFyeSAyMDA5IDEwOjAyOjI0IEFkcmlhbiBIdW50ZXIgd3Jv
+dGU6Cj4gPiBXaHkgbm90IGRvIHRoZSByZXNldCBpbiBtbWNfb21hcF9pcnEoKSBsaWtlIHRoZSBv
+dGhlciByZXNldHM/Cj4gPiBlLmcuCj4gPgo+ID4gc3RhdGljIGlycXJldHVybl90IG1tY19vbWFw
+X2lycShpbnQgaXJxLCB2b2lkICpkZXZfaWQpCj4gPiAuLi4KPiA+IMKgwqDCoMKgwqDCoMKgwqDC
+oMKgwqDCoMKgwqDCoMKgaWYgKChzdGF0dXMgJiBDTURfVElNRU9VVCkgfHwKPiA+IMKgwqDCoMKg
+wqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoChzdGF0dXMgJiBDTURfQ1JD
+KSkgewo+ID4gwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKg
+aWYgKGhvc3QtPmNtZCkgewo+ID4gwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKg
+wqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoGlmIChzdGF0dXMgJiBDTURfVElNRU9VVCkgewo+
+ID4gwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKg
+wqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqBPTUFQX0hTTU1DX1dSSVRFKGhvc3QtPmJhc2UsCj4g
+PiBTWVNDVEwsIE9NQVBfSFNNTUNfUkVBRChob3N0LT5iYXNlLCBTWVNDVEwpIHwgU1JDKTsgd2hp
+bGUKPiA+IChPTUFQX0hTTU1DX1JFQUQoaG9zdC0+YmFzZSwgU1lTQ1RMKSAmIFNSQykgOwo+ID4K
+PiA+IMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDC
+oMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgaG9zdC0+Y21kLT5lcnJvciA9IC1FVElNRURPVVQ7
+Cj4gPiDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKg
+wqDCoMKgwqDCoMKgfSBlbHNlIHsKPiA+IMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKg
+wqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgaG9zdC0+Y21k
+LT5lcnJvciA9IC1FSUxTRVE7Cj4gPiDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKg
+wqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgfQo+ID4gwqDCoMKgwqDCoMKgwqDCoMKgwqDC
+oMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoGVuZF9jbWQgPSAxOwo+
+ID4gwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgfQo+ID4g
+LcKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqBpZiAoaG9zdC0+
+ZGF0YSkKPiA+ICvCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKg
+aWYgKGhvc3QtPmRhdGEpIHsKPiA+IMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDC
+oMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqBtbWNfZG1hX2NsZWFudXAoaG9zdCk7Cj4gPiAr
+wqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDC
+oMKgwqBPTUFQX0hTTU1DX1dSSVRFKGhvc3QtPmJhc2UsIFNZU0NUTCwKPiA+ICvCoMKgwqDCoMKg
+wqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDC
+oMKgwqDCoMKgwqBPTUFQX0hTTU1DX1JFQUQoaG9zdC0+YmFzZSwKPiA+ICvCoMKgwqDCoMKgwqDC
+oMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKg
+wqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoFNZU0NUTCkgfCBTUkQpOwo+
+ID4gK8KgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDC
+oMKgwqDCoMKgd2hpbGUgKE9NQVBfSFNNTUNfUkVBRChob3N0LT5iYXNlLAo+ID4gK8KgwqDCoMKg
+wqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDC
+oMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqBTWVNDVEwpICYgU1JEKQo+ID4gK8KgwqDCoMKg
+wqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDC
+oMKgwqDCoMKgwqDCoDsKPiA+ICvCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDC
+oMKgwqDCoMKgfQo+ID4gwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqB9Cj4gPiDCoMKg
+wqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoGlmICgoc3RhdHVzICYgREFUQV9USU1FT1VUKSB8
+fAo+ID4gwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgKHN0
+YXR1cyAmIERBVEFfQ1JDKSkgewoKCg==
