@@ -1,81 +1,74 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH E 08/14] OMAP clock: move rate recalc, propagation code
- up to plat-omap/clock.c
-Date: Mon, 2 Feb 2009 00:13:02 -0700 (MST)
-Message-ID: <alpine.DEB.2.00.0902012355320.888@utopia.booyaka.com>
-References: <20090128192551.29333.82943.stgit@localhost.localdomain> <20090128192748.29333.5856.stgit@localhost.localdomain> <20090129174153.GH18233@n2100.arm.linux.org.uk> <alpine.DEB.2.00.0901300135560.26985@utopia.booyaka.com>
+From: "Pakaravoor, Jagadeesh" <j-pakaravoor-l0cyMroinI0@public.gmane.org>
+Subject: RE: [PATCH] I2C: OMAP: Add missing wakeup events
+Date: Mon, 2 Feb 2009 12:47:05 +0530
+Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB02A3D44D79@dbde02.ent.ti.com>
+References: <EAF47CD23C76F840A9E7FCE10091EFAB02A39CF17B@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:53965 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751900AbZBBHNE (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 2 Feb 2009 02:13:04 -0500
-In-Reply-To: <alpine.DEB.2.00.0901300135560.26985@utopia.booyaka.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <EAF47CD23C76F840A9E7FCE10091EFAB02A39CF17B-/tLxBxkBPtCIQmiDNMet8wC/G2K4zDHf@public.gmane.org>
+Content-Language: en-US
+Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Ben Dooks <ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org>
+Cc: "linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: linux-arm-kernel@lists.arm.linux.org.uk, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>
 
-Hello Russell,
+Ben,
 
-On Fri, 30 Jan 2009, Paul Walmsley wrote:
-
-> On Thu, 29 Jan 2009, Russell King - ARM Linux wrote:
-> 
-> > I must say that this commit looks very much like a combination of
-> > my commits from November:
-> > 
-> > [ARM] omap: move clock propagation into core omap clock code
-> > [ARM] omap: remove unnecessary calls to propagate_rate()
-> > [ARM] omap: move propagate_rate() calls into generic omap clock code
-> > 
-> > which do basically the same thing a little more efficiently, and an
-> > additional patch from you to call ->recalc after set_rate or
-> > reparenting a clock.
-> > 
-> > So I think I can drop everything from this apart from the additional
-> > recalc calls, and the removal of those omap2_dpllcore_recalc() calls.
-> > 
-> > Please confirm my suspicions.
-> 
-> I haven't looked closely at your above three patches for this, but plan to 
-> do so later today.
-> 
-> Regarding provenance, the patches that I sent you were developed 
-> independently, for clock notifier support.  Ultimately, I have no personal 
-> attachment as to whose patches for this go in, if all technical aspects 
-> are equal.
-
-Based on a comparison of E 08 with the three omap-clks1 commits you 
-mentioned above, here are some differences that would merit further 
-attention.  Some of these you've mentioned in subsequent E-mails.
-
-If you use your patches, I would suggest making the following changes:
-
-1. "remove unnecessary calls to propagate_rate()" should keep the 
-propagate_rate(&ck_dpll1) call in omap1_select_table_rate(), since this 
-function is only used by struct clk virtual_clk_mpu.  virtual_clk_mpu is 
-farther away from the root of the clock tree than struct clk ck_dpll1.
-
-2. In plat-omap2/clock.c, clk_set_rate() and clk_set_parent() should call 
-propagate_rate() after recalc.
-
-3. Several internal calls to *_recalc() functions can be dropped - 
-specifically, in omap2_reprogram_dpllcore(), omap2_select_table_rate(), 
-omap3_noncore_dpll_set_rate(), and omap3_core_dpll_m2_set_rate().
+  Did you get a chance to look at this patch?
 
 
-If you merge E 08, I'd suggest the following changes:
 
-1. In clock24xx.c:omap2_clk_init(), your patches call propagate_rate() on 
-osc_ck and sys_ck immediately after recalcs, which looks like a good 
-idea to me.
+-----Original Message-----
+From: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org [mailto:linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org] On Behalf Of Pakaravoor, Jagadeesh
+Sent: Friday, January 23, 2009 2:19 PM
+To: linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; Ben Dooks
+Subject: [PATCH] I2C: OMAP: Add missing wakeup events
 
-2. The mach-omap1/clock.c:omap1_clk_init() change to consolidate the two 
-propagate_rate(&ck_dpll1) calls also is good.
+From: Jagadeesh Bhaskar Pakaravoor <j-pakaravoor-l0cyMroinI0@public.gmane.org>
 
+Include wake up events for receiver overflow and transmitter
+underflow in OMAP_I2C_WE_REG configuration. Also fix a small
+typo.
 
-Please let me know if you'd like any followup patches here.
+Signed-off-by: Jagadeesh Bhaskar Pakaravoor <j-pakaravoor-l0cyMroinI0@public.gmane.org>
+---
+Index: kernel_org/drivers/i2c/busses/i2c-omap.c
+===================================================================
+--- kernel_org.orig/drivers/i2c/busses/i2c-omap.c	2009-01-23 12:46:58.000000000 +0530
++++ kernel_org/drivers/i2c/busses/i2c-omap.c	2009-01-23 14:15:52.187150630 +0530
+@@ -92,8 +92,10 @@
+ #define OMAP_I2C_STAT_AL	(1 << 0)	/* Arbitration lost int ena */
+ 
+ /* I2C WE wakeup enable register */
+-#define OMAP_I2C_WE_XDR_WE	(1 << 14)	/* TX drain wakup */
++#define OMAP_I2C_WE_XDR_WE	(1 << 14)	/* TX drain wakeup */
+ #define OMAP_I2C_WE_RDR_WE	(1 << 13)	/* RX drain wakeup */
++#define OMAP_I2C_WE_ROVR_WE	(1 << 11)	/* RX overflow wakeup */
++#define OMAP_I2C_WE_XUDF_WE	(1 << 10)	/* TX underflow wakeup */
+ #define OMAP_I2C_WE_AAS_WE	(1 << 9)	/* Address as slave wakeup*/
+ #define OMAP_I2C_WE_BF_WE	(1 << 8)	/* Bus free wakeup */
+ #define OMAP_I2C_WE_STC_WE	(1 << 6)	/* Start condition wakeup */
+@@ -104,6 +106,7 @@
+ #define OMAP_I2C_WE_AL_WE	(1 << 0)	/* Arbitration lost wakeup */
+ 
+ #define OMAP_I2C_WE_ALL		(OMAP_I2C_WE_XDR_WE | OMAP_I2C_WE_RDR_WE | \
++				OMAP_I2C_WE_ROVR_WE | OMAP_I2C_WE_XUDF_WE | \
+ 				OMAP_I2C_WE_AAS_WE | OMAP_I2C_WE_BF_WE | \
+ 				OMAP_I2C_WE_STC_WE | OMAP_I2C_WE_GC_WE | \
+ 				OMAP_I2C_WE_DRDY_WE | OMAP_I2C_WE_ARDY_WE | \
+--
+With Regards,
+Jagadeesh Bhaskar P
+ 
+----------------------------
+Some men see things as they are and say why - I dream things that never were and say why not.
+- George Bernard Shaw
+----------------------------
 
-- Paul
+--
+To unsubscribe from this list: send the line "unsubscribe linux-i2c" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
