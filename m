@@ -1,124 +1,81 @@
-From: Steve Sakoman <sakoman@gmail.com>
-Subject: [PATCH/RFC] ARM: Add ADS7846 touchscreen support to Overo platform
-Date: Sun, 1 Feb 2009 22:42:23 -0800
-Message-ID: <5e088bd90902012242q2bc7a272p244a02e9b54002ec@mail.gmail.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH E 08/14] OMAP clock: move rate recalc, propagation code
+ up to plat-omap/clock.c
+Date: Mon, 2 Feb 2009 00:13:02 -0700 (MST)
+Message-ID: <alpine.DEB.2.00.0902012355320.888@utopia.booyaka.com>
+References: <20090128192551.29333.82943.stgit@localhost.localdomain> <20090128192748.29333.5856.stgit@localhost.localdomain> <20090129174153.GH18233@n2100.arm.linux.org.uk> <alpine.DEB.2.00.0901300135560.26985@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-fx0-f20.google.com ([209.85.220.20]:56312 "EHLO
-	mail-fx0-f20.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752554AbZBBGm0 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 2 Feb 2009 01:42:26 -0500
-Received: by fxm13 with SMTP id 13so1269258fxm.13
-        for <linux-omap@vger.kernel.org>; Sun, 01 Feb 2009 22:42:24 -0800 (PST)
+Received: from utopia.booyaka.com ([72.9.107.138]:53965 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751900AbZBBHNE (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 2 Feb 2009 02:13:04 -0500
+In-Reply-To: <alpine.DEB.2.00.0901300135560.26985@utopia.booyaka.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap <linux-omap@vger.kernel.org>
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: linux-arm-kernel@lists.arm.linux.org.uk, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>
 
-An upcoming Overo expansion board includes an ADS7846 touchscreen controller.
+Hello Russell,
 
-This patch adds support via the ads7846 driver when enabled in the
-kernel config.
+On Fri, 30 Jan 2009, Paul Walmsley wrote:
 
-Signed-off-by: Steve Sakoman <steve@sakoman.com>
----
- arch/arm/mach-omap2/board-overo.c             |   61 +++++++++++++++++++++++++
- arch/arm/plat-omap/include/mach/board-overo.h |    1 +
- 2 files changed, 62 insertions(+), 0 deletions(-)
+> On Thu, 29 Jan 2009, Russell King - ARM Linux wrote:
+> 
+> > I must say that this commit looks very much like a combination of
+> > my commits from November:
+> > 
+> > [ARM] omap: move clock propagation into core omap clock code
+> > [ARM] omap: remove unnecessary calls to propagate_rate()
+> > [ARM] omap: move propagate_rate() calls into generic omap clock code
+> > 
+> > which do basically the same thing a little more efficiently, and an
+> > additional patch from you to call ->recalc after set_rate or
+> > reparenting a clock.
+> > 
+> > So I think I can drop everything from this apart from the additional
+> > recalc calls, and the removal of those omap2_dpllcore_recalc() calls.
+> > 
+> > Please confirm my suspicions.
+> 
+> I haven't looked closely at your above three patches for this, but plan to 
+> do so later today.
+> 
+> Regarding provenance, the patches that I sent you were developed 
+> independently, for clock notifier support.  Ultimately, I have no personal 
+> attachment as to whose patches for this go in, if all technical aspects 
+> are equal.
 
-diff --git a/arch/arm/mach-omap2/board-overo.c
-b/arch/arm/mach-omap2/board-overo.c
-index 032a2c9..2521b21 100644
---- a/arch/arm/mach-omap2/board-overo.c
-+++ b/arch/arm/mach-omap2/board-overo.c
-@@ -116,6 +116,66 @@ static inline void __init overo_init_smsc911x(void)
- static inline void __init overo_init_smsc911x(void) { return; }
- #endif
+Based on a comparison of E 08 with the three omap-clks1 commits you 
+mentioned above, here are some differences that would merit further 
+attention.  Some of these you've mentioned in subsequent E-mails.
 
-+#if defined(CONFIG_TOUCHSCREEN_ADS7846) || \
-+	defined(CONFIG_TOUCHSCREEN_ADS7846_MODULE)
-+
-+#include <mach/mcspi.h>
-+#include <linux/spi/spi.h>
-+#include <linux/spi/ads7846.h>
-+
-+static struct omap2_mcspi_device_config ads7846_mcspi_config = {
-+	.turbo_mode	= 0,
-+	.single_channel	= 1,	/* 0: slave, 1: master */
-+};
-+
-+
-+static int ads7846_get_pendown_state(void)
-+{
-+	return !gpio_get_value(OVERO_GPIO_PENDOWN);
-+}
-+
-+static struct ads7846_platform_data ads7846_config = {
-+	.x_max			= 0x0fff,
-+	.y_max			= 0x0fff,
-+	.x_plate_ohms		= 180,
-+	.pressure_max		= 255,
-+	.debounce_max		= 10,
-+	.debounce_tol		= 3,
-+	.debounce_rep		= 1,
-+	.get_pendown_state	= ads7846_get_pendown_state,
-+	.keep_vref_on		= 1,
-+};
-+
-+static struct spi_board_info overo_spi_board_info[] __initdata = {
-+	{
-+		.modalias		= "ads7846",
-+		.bus_num		= 1,
-+		.chip_select		= 0,
-+		.max_speed_hz		= 1500000,
-+		.controller_data	= &ads7846_mcspi_config,
-+		.irq			= OMAP_GPIO_IRQ(OVERO_GPIO_PENDOWN),
-+		.platform_data		= &ads7846_config,
-+	}
-+};
-+
-+static void __init overo_ads7846_init(void)
-+{
-+	if ((gpio_request(OVERO_GPIO_PENDOWN, "ADS7846_PENDOWN") == 0) &&
-+	    (gpio_direction_input(OVERO_GPIO_PENDOWN) == 0)) {
-+		gpio_export(OVERO_GPIO_PENDOWN, 0);
-+	} else {
-+		printk(KERN_ERR "could not obtain gpio for ADS7846_PENDOWN\n");
-+		return;
-+	}
-+
-+	spi_register_board_info(overo_spi_board_info,
-+			ARRAY_SIZE(overo_spi_board_info));
-+}
-+
-+#else
-+static inline void __init overo_ads7846_init(void) { return; }
-+#endif
-+
- static struct mtd_partition overo_nand_partitions[] = {
- 	{
- 		.name           = "xloader",
-@@ -296,6 +356,7 @@ static void __init overo_init(void)
- 	usb_ehci_init();
- 	overo_flash_init();
- 	overo_init_smsc911x();
-+	overo_ads7846_init();
+If you use your patches, I would suggest making the following changes:
 
- 	if ((gpio_request(OVERO_GPIO_W2W_NRESET,
- 			  "OVERO_GPIO_W2W_NRESET") == 0) &&
-diff --git a/arch/arm/plat-omap/include/mach/board-overo.h
-b/arch/arm/plat-omap/include/mach/board-overo.h
-index 8635171..aca717d 100644
---- a/arch/arm/plat-omap/include/mach/board-overo.h
-+++ b/arch/arm/plat-omap/include/mach/board-overo.h
-@@ -18,6 +18,7 @@
+1. "remove unnecessary calls to propagate_rate()" should keep the 
+propagate_rate(&ck_dpll1) call in omap1_select_table_rate(), since this 
+function is only used by struct clk virtual_clk_mpu.  virtual_clk_mpu is 
+farther away from the root of the clock tree than struct clk ck_dpll1.
 
- #define OVERO_GPIO_BT_XGATE	15
- #define OVERO_GPIO_W2W_NRESET	16
-+#define OVERO_GPIO_PENDOWN	114
- #define OVERO_GPIO_BT_NRESET	164
- #define OVERO_GPIO_USBH_CPEN	168
- #define OVERO_GPIO_USBH_NRESET	183
--- 
-1.5.6.3
+2. In plat-omap2/clock.c, clk_set_rate() and clk_set_parent() should call 
+propagate_rate() after recalc.
+
+3. Several internal calls to *_recalc() functions can be dropped - 
+specifically, in omap2_reprogram_dpllcore(), omap2_select_table_rate(), 
+omap3_noncore_dpll_set_rate(), and omap3_core_dpll_m2_set_rate().
+
+
+If you merge E 08, I'd suggest the following changes:
+
+1. In clock24xx.c:omap2_clk_init(), your patches call propagate_rate() on 
+osc_ck and sys_ck immediately after recalcs, which looks like a good 
+idea to me.
+
+2. The mach-omap1/clock.c:omap1_clk_init() change to consolidate the two 
+propagate_rate(&ck_dpll1) calls also is good.
+
+
+Please let me know if you'd like any followup patches here.
+
+- Paul
