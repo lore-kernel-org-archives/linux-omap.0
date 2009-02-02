@@ -1,74 +1,95 @@
-From: "Pakaravoor, Jagadeesh" <j-pakaravoor-l0cyMroinI0@public.gmane.org>
-Subject: RE: [PATCH] I2C: OMAP: Add missing wakeup events
-Date: Mon, 2 Feb 2009 12:47:05 +0530
-Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB02A3D44D79@dbde02.ent.ti.com>
-References: <EAF47CD23C76F840A9E7FCE10091EFAB02A39CF17B@dbde02.ent.ti.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH E 11/14] OMAP clock: track child clocks
+Date: Mon, 2 Feb 2009 00:57:39 -0700 (MST)
+Message-ID: <alpine.DEB.2.00.0902020033260.888@utopia.booyaka.com>
+References: <20090128192551.29333.82943.stgit@localhost.localdomain> <20090128192756.29333.41541.stgit@localhost.localdomain> <20090129195211.GI18233@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <EAF47CD23C76F840A9E7FCE10091EFAB02A39CF17B-/tLxBxkBPtCIQmiDNMet8wC/G2K4zDHf@public.gmane.org>
-Content-Language: en-US
-Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Ben Dooks <ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org>
-Cc: "linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from utopia.booyaka.com ([72.9.107.138]:55454 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751106AbZBBH5l (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 2 Feb 2009 02:57:41 -0500
+In-Reply-To: <20090129195211.GI18233@n2100.arm.linux.org.uk>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: linux-arm-kernel@lists.arm.linux.org.uk, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>
 
-Ben,
+Hello Russell,
 
-  Did you get a chance to look at this patch?
+On Thu, 29 Jan 2009, Russell King - ARM Linux wrote:
 
+> On Wed, Jan 28, 2009 at 12:27:59PM -0700, Paul Walmsley wrote:
+> > +static int omap_clk_for_each_child(struct clk *clk, unsigned long parent_rate,
+> > +		   u8 rate_storage, int (*cb)(struct clk *, unsigned long, u8))
+> > +{
+> > +	struct clk_child *child;
+> > +	int ret;
+> > +
+> > +	list_for_each_entry(child, &clk->children, node) {
+> > +		ret = (*cb)(child->clk, parent_rate, rate_storage);
+> > +		if (ret)
+> > +			break;
+> > +	}
+> > +
+> > +	return ret;
+> > +}
+> 
+> > +static int _do_propagate_rate(struct clk *clk, unsigned long parent_rate,
+> > +			      u8 rate_storage)
+> > +{
+> > +	if (clk->recalc)
+> > +		clk->recalc(clk, parent_rate, rate_storage);
+> > +	if (omap_clk_has_children(clk))
+> > +		propagate_rate(clk, rate_storage);
+> > +	return 0;
+> > +}
+> 
+> >  /* Propagate rate to children */
+> >  void propagate_rate(struct clk *tclk, u8 rate_storage)
+> >  {
+> >  	unsigned long parent_rate = 0;
+> >  
+> >  	if (tclk == NULL || IS_ERR(tclk))
+> >  		return;
+> >  
+> > +	if (rate_storage == CURRENT_RATE)
+> > +		parent_rate = tclk->rate;
+> > +	else if (rate_storage == TEMP_RATE)
+> > +		parent_rate = tclk->temp_rate;
+> >  
+> > +	omap_clk_for_each_child(tclk, parent_rate, rate_storage,
+> > +				_do_propagate_rate);
+> >  }
+> 
+> This worries me.  Calling this puts onto the stack:
+> 
+> - a frame for propagate_rate()
+> - a frame for omap_clk_for_each_child
+> - a frame for _do_propagate_rate
+> 
+> for every level of children.  How close we get to overflowing the kernels
+> depends on how much each of those functions puts on the kernel stack.
+> However, since this is recursive, minimising the number of stack frames
+> is a good idea.
+> 
+> That's why I have in my patch:
+> 
+>  [ARM] omap: move propagate_rate() calls into generic omap clock code
+> 
+> I've arranged for there to be the minimum of function nesting here.
+> I suggest keeping this.
 
-
------Original Message-----
-From: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org [mailto:linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org] On Behalf Of Pakaravoor, Jagadeesh
-Sent: Friday, January 23, 2009 2:19 PM
-To: linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; Ben Dooks
-Subject: [PATCH] I2C: OMAP: Add missing wakeup events
-
-From: Jagadeesh Bhaskar Pakaravoor <j-pakaravoor-l0cyMroinI0@public.gmane.org>
-
-Include wake up events for receiver overflow and transmitter
-underflow in OMAP_I2C_WE_REG configuration. Also fix a small
-typo.
-
-Signed-off-by: Jagadeesh Bhaskar Pakaravoor <j-pakaravoor-l0cyMroinI0@public.gmane.org>
----
-Index: kernel_org/drivers/i2c/busses/i2c-omap.c
-===================================================================
---- kernel_org.orig/drivers/i2c/busses/i2c-omap.c	2009-01-23 12:46:58.000000000 +0530
-+++ kernel_org/drivers/i2c/busses/i2c-omap.c	2009-01-23 14:15:52.187150630 +0530
-@@ -92,8 +92,10 @@
- #define OMAP_I2C_STAT_AL	(1 << 0)	/* Arbitration lost int ena */
+Those two new function calls are probaby not necessary for rate 
+propagation, so, keeping the original single-function recursion should be 
+fine.  The original motivation behind using them was to share the clock 
+tree traversal code with the clock notifier patches, e.g.,
  
- /* I2C WE wakeup enable register */
--#define OMAP_I2C_WE_XDR_WE	(1 << 14)	/* TX drain wakup */
-+#define OMAP_I2C_WE_XDR_WE	(1 << 14)	/* TX drain wakeup */
- #define OMAP_I2C_WE_RDR_WE	(1 << 13)	/* RX drain wakeup */
-+#define OMAP_I2C_WE_ROVR_WE	(1 << 11)	/* RX overflow wakeup */
-+#define OMAP_I2C_WE_XUDF_WE	(1 << 10)	/* TX underflow wakeup */
- #define OMAP_I2C_WE_AAS_WE	(1 << 9)	/* Address as slave wakeup*/
- #define OMAP_I2C_WE_BF_WE	(1 << 8)	/* Bus free wakeup */
- #define OMAP_I2C_WE_STC_WE	(1 << 6)	/* Start condition wakeup */
-@@ -104,6 +106,7 @@
- #define OMAP_I2C_WE_AL_WE	(1 << 0)	/* Arbitration lost wakeup */
- 
- #define OMAP_I2C_WE_ALL		(OMAP_I2C_WE_XDR_WE | OMAP_I2C_WE_RDR_WE | \
-+				OMAP_I2C_WE_ROVR_WE | OMAP_I2C_WE_XUDF_WE | \
- 				OMAP_I2C_WE_AAS_WE | OMAP_I2C_WE_BF_WE | \
- 				OMAP_I2C_WE_STC_WE | OMAP_I2C_WE_GC_WE | \
- 				OMAP_I2C_WE_DRDY_WE | OMAP_I2C_WE_ARDY_WE | \
---
-With Regards,
-Jagadeesh Bhaskar P
- 
-----------------------------
-Some men see things as they are and say why - I dream things that never were and say why not.
-- George Bernard Shaw
-----------------------------
+http://www.mail-archive.com/linux-omap@vger.kernel.org/msg08068.html
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-i2c" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Would you like a patch to remove _do_propagate_rate() and 
+omap_clk_for_each_child()?
+
+
+- Paul
