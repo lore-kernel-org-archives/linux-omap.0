@@ -1,41 +1,37 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: Remaining bits for basic support of LDP
-Date: Mon, 2 Feb 2009 22:29:09 +0000
-Message-ID: <20090202222909.GC16069@n2100.arm.linux.org.uk>
-References: <20090202213953.GB16069@n2100.arm.linux.org.uk> <20090202.134530.63616213.davem@davemloft.net>
+From: "Woodruff, Richard" <r-woodruff2@ti.com>
+Subject: RE: BUG: LDP - smc911x region too small
+Date: Mon, 2 Feb 2009 16:41:22 -0600
+Message-ID: <13B9B4C6EF24D648824FF11BE89671620376E9B0F3@dlee02.ent.ti.com>
+References: <20090119223750.GL18301@n2100.arm.linux.org.uk>
+ <1232433403.31748.8.camel@localhost>
+ <20090120083121.GA11157@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <netdev-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20090202.134530.63616213.davem@davemloft.net>
-Sender: netdev-owner@vger.kernel.org
-To: David Miller <davem@davemloft.net>
-Cc: tony@atomide.com, linux-omap@vger.kernel.org, netdev@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:50878 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752920AbZBBWle convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 2 Feb 2009 17:41:34 -0500
+In-Reply-To: <20090120083121.GA11157@n2100.arm.linux.org.uk>
+Content-Language: en-US
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>, "stanley.miao" <stanley.miao@windriver.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Mon, Feb 02, 2009 at 01:45:30PM -0800, David Miller wrote:
-> From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-> Date: Mon, 2 Feb 2009 21:39:53 +0000
-> 
-> > The patch to fix these issues would seem to be relatively small (12
-> > lines in the smc911x and one line change in board-ldp.c) - is it
-> > something we want done for -rc4 or do we scrap the ethernet support 
-> > on the LDP until the SMSC driver has been merged ?
-> > 
-> > Obviously, having working ethernet would be helpful, and since it was
-> > half heartedly merged when the initial OMAP3 stuff went upstream we
-> > should do something with it one way or another.
-> 
-> Well, the SMSC driver is there already in the tree.
+> > Here should be 0x100. Fixing this won't cause problems with smsc911x
+> > patches.
 >
-> The only thing not currently being scheduled to hit
-> 2.6.29-rcX are the recent changes to support platform
-> specified interrupt flags and all of that stuff.
-> 
-> If you want, we can look into pushing that work into
-> 2.6.29-rcX
+> Yes it will - if it gets fixed in the -rc series for the smc911x driver
+> your patches will conflict.
+>
+> There's more which needs fixing though - no platform data is being passed
+> so the smc911x driver still fails to initialise.
 
-Hmm.  Since we should assume that the other smc911x using platforms work
-as-is, merging Steve's first four and the LDP patch seems to be a sane
-idea.  We can queue the remainder for when bugs are reported or the
-next merge window, whichever comes earlier.
+Data sheet shows addressable range as 0x50 from base --> 0xFC.  So 0xFF should be good.
+
+I tried to send Russell data sheet but his emails is rejecting it.
+
+Regards,
+Richard W.
