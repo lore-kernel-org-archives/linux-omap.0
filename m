@@ -1,50 +1,81 @@
-From: "Peter 'p2' De Schrijver" <peter.de-schrijver@nokia.com>
-Subject: Re: new PM branch available
-Date: Mon, 2 Feb 2009 19:45:32 +0200
-Message-ID: <20090202174532.GJ4954@codecarver.research.nokia.com>
-References: <87iqoij2me.fsf@deeprootsystems.com>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: [PATCH omap-fixes] OMAP2/3: GPIO: remove recursion in IRQ wakeup path
+Date: Mon, 02 Feb 2009 09:51:29 -0800
+Message-ID: <87bptkenha.fsf@deeprootsystems.com>
+References: <1233167723-12026-1-git-send-email-khilman@deeprootsystems.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:26281 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752846AbZBBRpv (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 2 Feb 2009 12:45:51 -0500
-Content-Disposition: inline
-In-Reply-To: <87iqoij2me.fsf@deeprootsystems.com>
+Received: from wf-out-1314.google.com ([209.85.200.172]:39302 "EHLO
+	wf-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757515AbZBBRvd (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 2 Feb 2009 12:51:33 -0500
+Received: by wf-out-1314.google.com with SMTP id 27so1782501wfd.4
+        for <linux-omap@vger.kernel.org>; Mon, 02 Feb 2009 09:51:32 -0800 (PST)
+In-Reply-To: <1233167723-12026-1-git-send-email-khilman@deeprootsystems.com> (Kevin Hilman's message of "Wed\, 28 Jan 2009 10\:35\:23 -0800")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: ext Kevin Hilman <khilman@deeprootsystems.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: linux-omap@vger.kernel.org
 
-Hi Kevin,
+Kevin Hilman <khilman@deeprootsystems.com> writes:
 
-> Hello,
-> 
-> The latest PM branch is now available[1].
-> 
-> I've done basic testing of retention and off-mode (suspend and dynamic
-> idle) on Beagle and custom HW.  My SDP has something still keeping
-> CORE active that others have not seen, but I have yet to debug.  Any
-> other reports from SDP testing would be appreciated.
-> 
-> Notable changes/updates
-> - rebased on latest clock updates and fixes from Paul
-> - clockfw pre- and post- notifiers
-> - DVFS for VDD2
-> 
+> Now that the generic IRQ and GPIO frameworks are used for enabling and
+> disabling GPIO IRQ wakeup sources, there is no longer a need to call
+> [enable|disable]_irq_wake() in the low-level code.  Doing so results
+> in recursive calls to [enable|disable]_irq_wake().
+>
+> This was discovered in the suspend/resume path on OMAP3/Beagle using
+> the gpio-keys driver which disables/re-enables GPIO IRQ wakeups in the
+> suspend/resume path.
+>
+> Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
 
-I tried it on a beagleboard last night, but couldn't get even static
-retention to work. Some domains (core, per, dss) stay on, but even mpu
-and neon don't go to retention. They only go to inactive. 
-So could you send your .config file ? Which rootfs are you using, I'm
-using debian, so maybe something keeps the CPU busy. Are you using NAND
-or MMC to store your rootfs ? Which beagle HW rev do you have ? I'm
-testing on a B5 board. And which u-boot are you using ?
+Tony,
 
-Thanks,
+Not sure if it's too late, but this could go into omap-fixes too.
 
-Peter.
+Kevin
 
--- 
-goa is a state of mind
+
+> ---
+>  arch/arm/plat-omap/gpio.c |   14 ++++----------
+>  1 files changed, 4 insertions(+), 10 deletions(-)
+>
+> diff --git a/arch/arm/plat-omap/gpio.c b/arch/arm/plat-omap/gpio.c
+> index f856a90..798a8cd 100644
+> --- a/arch/arm/plat-omap/gpio.c
+> +++ b/arch/arm/plat-omap/gpio.c
+> @@ -837,13 +837,10 @@ static int _set_gpio_wakeup(struct gpio_bank *bank, int gpio, int enable)
+>  	case METHOD_MPUIO:
+>  	case METHOD_GPIO_1610:
+>  		spin_lock_irqsave(&bank->lock, flags);
+> -		if (enable) {
+> +		if (enable)
+>  			bank->suspend_wakeup |= (1 << gpio);
+> -			enable_irq_wake(bank->irq);
+> -		} else {
+> -			disable_irq_wake(bank->irq);
+> +		else
+>  			bank->suspend_wakeup &= ~(1 << gpio);
+> -		}
+>  		spin_unlock_irqrestore(&bank->lock, flags);
+>  		return 0;
+>  #endif
+> @@ -856,13 +853,10 @@ static int _set_gpio_wakeup(struct gpio_bank *bank, int gpio, int enable)
+>  			return -EINVAL;
+>  		}
+>  		spin_lock_irqsave(&bank->lock, flags);
+> -		if (enable) {
+> +		if (enable)
+>  			bank->suspend_wakeup |= (1 << gpio);
+> -			enable_irq_wake(bank->irq);
+> -		} else {
+> -			disable_irq_wake(bank->irq);
+> +		else
+>  			bank->suspend_wakeup &= ~(1 << gpio);
+> -		}
+>  		spin_unlock_irqrestore(&bank->lock, flags);
+>  		return 0;
+>  #endif
+> -- 
+> 1.6.1
