@@ -1,62 +1,50 @@
-From: Dominic Curran <dcurran@ti.com>
-Subject: [OMAPZOOM][PATCH] ISP: Fix printk's error messages.
-Date: Mon, 2 Feb 2009 11:32:49 -0600
-Message-ID: <200902021132.50290.dcurran@ti.com>
+From: "Peter 'p2' De Schrijver" <peter.de-schrijver@nokia.com>
+Subject: Re: new PM branch available
+Date: Mon, 2 Feb 2009 19:45:32 +0200
+Message-ID: <20090202174532.GJ4954@codecarver.research.nokia.com>
+References: <87iqoij2me.fsf@deeprootsystems.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:47954 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752609AbZBBRdB (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 2 Feb 2009 12:33:01 -0500
+Received: from smtp.nokia.com ([192.100.122.230]:26281 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752846AbZBBRpv (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 2 Feb 2009 12:45:51 -0500
 Content-Disposition: inline
+In-Reply-To: <87iqoij2me.fsf@deeprootsystems.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap <linux-omap@vger.kernel.org>
-Cc: klimov.linux@gmail.com
+To: ext Kevin Hilman <khilman@deeprootsystems.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-From: Dominic Curran <dcurran@ti.com>
-Subject: [OMAPZOOM][PATCH] ISP: Fix printk's error messages.
+Hi Kevin,
 
-This patch adds CRLF characters to some printk's.
-Added 'ISP_ERR' at beginning of message a thats how other printks are formated in 
-this module.
-Reported-by: Alexey Klimov <klimov.linux@gmail.com>
+> Hello,
+> 
+> The latest PM branch is now available[1].
+> 
+> I've done basic testing of retention and off-mode (suspend and dynamic
+> idle) on Beagle and custom HW.  My SDP has something still keeping
+> CORE active that others have not seen, but I have yet to debug.  Any
+> other reports from SDP testing would be appreciated.
+> 
+> Notable changes/updates
+> - rebased on latest clock updates and fixes from Paul
+> - clockfw pre- and post- notifiers
+> - DVFS for VDD2
+> 
 
-Signed-off-by: Dominic Curran <dcurran@ti.com>
----
- drivers/media/video/isp/isp.c |    7 ++++---
- 1 file changed, 4 insertions(+), 3 deletions(-)
+I tried it on a beagleboard last night, but couldn't get even static
+retention to work. Some domains (core, per, dss) stay on, but even mpu
+and neon don't go to retention. They only go to inactive. 
+So could you send your .config file ? Which rootfs are you using, I'm
+using debian, so maybe something keeps the CPU busy. Are you using NAND
+or MMC to store your rootfs ? Which beagle HW rev do you have ? I'm
+testing on a B5 board. And which u-boot are you using ?
 
-Index: omapzoom04/drivers/media/video/isp/isp.c
-===================================================================
---- omapzoom04.orig/drivers/media/video/isp/isp.c
-+++ omapzoom04/drivers/media/video/isp/isp.c
-@@ -1175,13 +1175,14 @@ u32 isp_buf_allocation(void)
- 	buff_addr = (void *) vmalloc(ISP_BUFFER_MAX_SIZE);
- 
- 	if (!buff_addr) {
--		printk(KERN_ERR "Cannot allocate memory ");
-+		printk(KERN_ERR "ISP_ERR: Cannot allocate "
-+			"ISP_WORKAROUND memory\n");
- 		return -ENOMEM;
- 	}
- 
- 	sglist_alloc = videobuf_vmalloc_to_sg(buff_addr, ISP_BUFFER_MAX_PAGES);
- 	if (!sglist_alloc) {
--		printk(KERN_ERR "videobuf_vmalloc_to_sg error");
-+		printk(KERN_ERR "ISP_ERR: videobuf_vmalloc_to_sg failed\n");
- 		return -ENOMEM;
- 	}
- 	num_sc = dma_map_sg(NULL, sglist_alloc, ISP_BUFFER_MAX_PAGES, 1);
-@@ -1196,7 +1197,7 @@ u32 isp_buf_mmap(void)
- {
- 	buff_addr_mapped = ispmmu_map_sg(sglist_alloc, ISP_BUFFER_MAX_PAGES);
- 	if (!buff_addr_mapped) {
--		printk(KERN_ERR "ispmmu_map_sg mapping failed ");
-+		printk(KERN_ERR "ISP_ERR: ispmmu_map_sg mapping failed\n");
- 		return -ENOMEM;
- 	}
- 	isppreview_set_outaddr(buff_addr_mapped);
+Thanks,
+
+Peter.
+
+-- 
+goa is a state of mind
