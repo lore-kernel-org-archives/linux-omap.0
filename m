@@ -1,50 +1,78 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH F 06/12] OMAP2/3 clock: every clock must have a clkdm
-Date: Tue, 3 Feb 2009 02:27:00 -0700 (MST)
-Message-ID: <alpine.DEB.2.00.0902030011320.5741@utopia.booyaka.com>
-References: <20090128193326.2396.9437.stgit@localhost.localdomain> <20090128193512.2396.75340.stgit@localhost.localdomain> <20090131140804.GH1394@n2100.arm.linux.org.uk>
+From: "Premi, Sanjeev" <premi@ti.com>
+Subject: RE: Omap3430 does not resume after suspend
+Date: Tue, 3 Feb 2009 15:02:06 +0530
+Message-ID: <B85A65D85D7EB246BE421B3FB0FBB59301C70FEB63@dbde02.ent.ti.com>
+References: <d105d8d00901300124i60025abete9f0b0e86d676f82@mail.gmail.com>
+	 <B85A65D85D7EB246BE421B3FB0FBB59301C7069769@dbde02.ent.ti.com>
+ <d105d8d00902022214r4f67ecdcp4ce153f0c88cb512@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1751944AbZBCJ1b@vger.kernel.org>
-In-Reply-To: <20090131140804.GH1394@n2100.arm.linux.org.uk>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: linux-arm-kernel@lists.arm.linux.org.uk, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:33834 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751314AbZBCJcQ convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 3 Feb 2009 04:32:16 -0500
+In-Reply-To: <d105d8d00902022214r4f67ecdcp4ce153f0c88cb512@mail.gmail.com>
+Content-Language: en-US
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Shreyas Mahajan <mahajan.shreyas@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Hello Russell,
-
-On Sat, 31 Jan 2009, Russell King - ARM Linux wrote:
-
-> On Wed, Jan 28, 2009 at 12:35:15PM -0700, Paul Walmsley wrote:
-> > Every OMAP2/3 clock must now have an assigned clockdomain, so we can
-> > remove the checks from clk_enable()/clk_disable().  Instead, verify
-> > that the clockdomain is present only at clock init time via the
-> > arch_clock clk_register() hook.
+> -----Original Message-----
+> From: Shreyas Mahajan [mailto:mahajan.shreyas@gmail.com] 
+> Sent: Tuesday, February 03, 2009 11:44 AM
+> To: Premi, Sanjeev; linux-omap@vger.kernel.org
+> Subject: Re: Omap3430 does not resume after suspend
 > 
-> I don't see the point of requiring all clocks to have a clockdomain field.
+> On Fri, Jan 30, 2009 at 7:32 PM, Premi, Sanjeev <premi@ti.com> wrote:
+> >
+> > > -----Original Message-----
+> > > From: linux-omap-owner@vger.kernel.org 
+> > > [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Shreyas 
+> > > Mahajan
+> > > Sent: Friday, January 30, 2009 2:54 PM
+> > > To: linux-omap@vger.kernel.org
+> > > Subject: Omap3430 does not resume after suspend
+> > >
+> > > Hello,
+> > >          I am a newbie with omap3430. As a part of my project, I 
+> > > suspended my board with 'echo mem > /sys/power/state'.The suspend 
+> > > happens correctly, without giving any failure message. 
+> But, when I 
+> > > tried it to resume, it is not resuming.I tried to find 
+> some reasons 
+> > > for this, and got the patches for unmasking keyboard 
+> interrupt while 
+> > > suspending. But, all patches are for omap2 and omap1 board 
+> > > architecture.
+> > [sp] Are you following updates in Kevin Hilman's pm branch?
+> > With lastest updates you shouldn't see this problem on a 
+> minimal config.
+> >
+> > Would be good to start from here and add drivers selectively.
+> >
+> > > Are there any patches to do this thing in omap3430?
+> >
+> > [sp] omap2 applies to OMAP3430 as well.
+> >
+> > >
+> > > Thanks,
+> > > --
+> > > To unsubscribe from this list: send the line "unsubscribe 
+> > > linux-omap" in the body of a message to majordomo@vger.kernel.org 
+> > > More majordomo info at http://vger.kernel.org/majordomo-info.html
+> > >
+> > >
+> 
+> Thanks for reply.
+> I went through the Kevin Hilman's PM branch and found the 
+> same problem posted by you (@Sanjeev),
+> 
+> 'Hangs on a echo mem > /sys/power/state
+> > Goes into suspend, but cannot recover'
+> 
+> So, can you please tell me if this problem is solved?
+> 
 
-For physical clocks, the idea is to match the OMAP2/3 hardware, in which 
-nearly every clock is associated with a clockdomain.  The point for 
-virtual clocks is to discourage the use of virtual clocks.
-
-> Given that we have virtual clocks, it is quite reasonable for some clocks
-> not to have a clock domain associated with them.
-
-Virtual clocks should soon be eliminated from the OMAP clock tree.  ( 
-"Virtual clocks" is here used to refer a clock that does not have a 
-referent in the hardware; the usage of the term in the code is loose.)  
-So far as I know, all of the OMAP virtual clocks have either turned out to 
-be superfluous (and prone to spinlock recursion bugs), or to be better 
-implemented outside of the clock framework (such as the virtual OPP 
-clocks).  We've eliminated the former.  We should be able to eliminate the 
-latter in a few months.
-
-Only physical hardware clocks will then be left in the clock tree.  For 
-OMAP2/3, it makes sense to keep those grouped into clockdomains, since 
-that is how they are implemented in the hardware.
-
-So I'd recommend keeping this requirement.
-
-
-- Paul
+[sp] Have not been able to follow-up in the latest tree for last couple of days, but with minimal driver configuration; this problem is solved. I am in process of finding the 'offending' driver.
