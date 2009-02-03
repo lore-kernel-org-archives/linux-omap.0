@@ -1,36 +1,70 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [PATCH B 02/10] OMAP2/3 clockdomains: combine pwrdm, pwrdm_name into union in struct clockdomain
-Date: Tue, 3 Feb 2009 15:52:08 +0000
-Message-ID: <20090203155208.GB9840@n2100.arm.linux.org.uk>
-References: <20090128024301.27240.39391.stgit@localhost.localdomain> <20090128024408.27240.32198.stgit@localhost.localdomain> <20090131120112.GG1394@n2100.arm.linux.org.uk> <alpine.DEB.2.00.0902030149520.29513@utopia.booyaka.com>
+From: David Brownell <david-b@pacbell.net>
+Subject: Re: hotplug problem in MMC due to GPIOlib
+Date: Tue, 3 Feb 2009 08:28:56 -0800
+Message-ID: <200902030828.56827.david-b@pacbell.net>
+References: <003201c985f0$05f94fc0$LocalHost@wipultra796>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:38164 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755788AbZBCPwX (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 3 Feb 2009 10:52:23 -0500
+Received: from smtp115.sbc.mail.sp1.yahoo.com ([69.147.64.88]:27388 "HELO
+	smtp115.sbc.mail.sp1.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1751761AbZBCQ27 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 3 Feb 2009 11:28:59 -0500
+In-Reply-To: <003201c985f0$05f94fc0$LocalHost@wipultra796>
 Content-Disposition: inline
-In-Reply-To: <alpine.DEB.2.00.0902030149520.29513@utopia.booyaka.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: linux-arm-kernel@lists.arm.linux.org.uk, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>
+To: kishore kadiyala <kishore.kadiyala@ti.com>
+Cc: linux-omap@vger.kernel.org
 
-On Tue, Feb 03, 2009 at 02:20:44AM -0700, Paul Walmsley wrote:
-> Hello Russell,
+On Tuesday 03 February 2009, kishore kadiyala wrote:
+> Hi ,
 > 
-> On Sat, 31 Jan 2009, Russell King - ARM Linux wrote:
+> On 3430 SDP , the MMC card insertion and removal is not working on the linux -omap tree !
+> It seems like interrupts are  not getting  triggered on Card insertion & removal !
 > 
-> > On Tue, Jan 27, 2009 at 07:44:11PM -0700, Paul Walmsley wrote:
-> > > struct clockdomain contains a struct powerdomain *pwrdm and const char
-> > > *pwrdm_name.  The pwrdm_name is only used at initialization to look up
-> > > the appropriate pwrdm pointer.  Combining these into a union saves
-> > > about 100 bytes on 3430SDP.  This patch should not cause any change in
-> > > kernel function.
-> > 
-> > For the same reasons as B1, this would seem to be unsafe.
-> 
-> Fixed; updated patch attached below.
+> I wonder if it has to do something with GPIO library  !
+> Also whether the GPIO library takes care of the requests to TWL4030 ?
 
-Better.  Can I have it in email format so git-am can handle it please?
+I wonder if the patch I sent several weeks ago solves the bug
+for you like it did for me ... fix worked on the sdp.
+
+This gets resent soonish for mainline inclusion.
+
+- Dave
+
+
+=========== CUT HERE
+From: David Brownell <dbrownell@users.sourceforge.net>
+
+Work around lockdep issue when card detect IRQ handlers run in
+thread context ... it forces IRQF_DISABLED, which prevents all
+access to twl4030 card detect signals.
+
+Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
+---
+ drivers/mmc/host/omap_hsmmc.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
+
+--- a/drivers/mmc/host/omap_hsmmc.c
++++ b/drivers/mmc/host/omap_hsmmc.c
+@@ -568,6 +568,9 @@ static void mmc_omap_detect(struct work_
+ {
+ 	struct mmc_omap_host *host = container_of(work, struct mmc_omap_host,
+ 						mmc_carddetect_work);
++	struct omap_mmc_slot_data *slot = &mmc_slot(host);
++
++	host->carddetect = slot->card_detect(slot->card_detect_irq);
+ 
+ 	sysfs_notify(&host->mmc->class_dev.kobj, NULL, "cover_switch");
+ 	mmc_omap_fclk_state(host, ON);
+@@ -591,7 +594,6 @@ static irqreturn_t omap_mmc_cd_handler(i
+ {
+ 	struct mmc_omap_host *host = (struct mmc_omap_host *)dev_id;
+ 
+-	host->carddetect = mmc_slot(host).card_detect(irq);
+ 	schedule_work(&host->mmc_carddetect_work);
+ 
+ 	return IRQ_HANDLED;
