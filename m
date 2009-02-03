@@ -1,68 +1,178 @@
-From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Subject: Re: lowmemory android driver not needed?
-Date: Tue,  3 Feb 2009 22:40:14 +0900 (JST)
-Message-ID: <20090203114855.EC9D.KOSAKI.MOTOHIRO@jp.fujitsu.com>
-References: <20090130062010.GD31209@kroah.com> <20090130064113.GB7870@bulgaria.corp.google.com>
+From: Jean Pihet <jpihet@mvista.com>
+Subject: [PATCH] OMAP: MMC: recover from transfer failures - Resend
+Date: Tue, 3 Feb 2009 15:05:58 +0100
+Message-ID: <200902031505.58697.jpihet@mvista.com>
+References: <20081207213617.10456.43951.stgit@localhost> <200902020946.16508.jpihet@mvista.com> <20090202190503.GT7215@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-2022-JP"
-Content-Transfer-Encoding: 7bit
+Content-Type: Multipart/Mixed;
+  boundary="Boundary-00=_G9EiJNWwaG+ypeG"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from fgwmail7.fujitsu.co.jp ([192.51.44.37]:43662 "EHLO
-	fgwmail7.fujitsu.co.jp" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753279AbZBCNkT (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 3 Feb 2009 08:40:19 -0500
-In-Reply-To: <20090130064113.GB7870@bulgaria.corp.google.com>
+Received: from gateway-1237.mvista.com ([63.81.120.158]:54132 "EHLO
+	gateway-1237.mvista.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751583AbZBCOGZ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 3 Feb 2009 09:06:25 -0500
+In-Reply-To: <20090202190503.GT7215@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Brian Swetland <swetland@google.com>
-Cc: kosaki.motohiro@jp.fujitsu.com, Greg KH <greg@kroah.com>, KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>, Arve =?ISO-2022-JP?B?SGo/bm5ldhskQmlIGyhC?= <arve@android.com>, Alan Cox <alan@lxorguk.ukuu.org.uk>, Pavel Machek <pavel@suse.cz>, arve@google.com, San Mehat <san@android.com>, Robert Love <rlove@google.com>, linux-kernel@vger.kernel.org, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, ext Juha =?ISO-2022-JP?B?WXJqP2wbJEIhJhsoQg==?= <juha.yrjola@solidboot.com>, viktor.rosendahl@nokia.com, Trilok Soni <soni.trilok@gmail.com>
+To: Tony Lindgren <tony@atomide.com>, Adrian Hunter <ext-adrian.hunter@nokia.com>, linux-arm-kernel@lists.arm.linux.org.uk, linux-omap@vger.kernel.org, "Jarkko Lavinen (NMP/Helsinki)" <j>
 
-Hi
+--Boundary-00=_G9EiJNWwaG+ypeG
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+Content-Disposition: inline
 
-> [Greg KH <greg@kroah.com>]
-> > > but I don't think driver/staging is good place for non driver code.
-> > > The problem is, any patch must be reviewed by stakeholder, not maintenar only.
-> > > then, the patch should post lkml and subsystem mailing list at first.
-> > > 
-> > > I like reviewed code than unreviewed code.
-> > 
-> > Heh, so do I.
-> > 
-> > And this is an odd "driver", I do know that.
-> > 
-> > But it solves a real problem that can't be solved any other way
-> > currently, which is needed for a real system that is shipping.  So, if
-> > it can't be solved any other way, do you have a way this kind of thing
-> > could be more "correct"?
+Hi,
 
-I agree this patch address correct requirement.
+This is a re-send of the patch that fixes a MMC host controller deadlock. T=
+he=20
+problem happens when removing the MMC/SD device when a transfer is on-going.
+
+It has been tested on OMAP3430 but this fix should apply to OMAP2 chips as=
+=20
+well, as seen from the TRMs.
+
+Regards,
+Jean
+
+=46rom d143f6b2e705aa4e9d2b032097fd1c82f8163262 Mon Sep 17 00:00:00 2001
+=46rom: Jean Pihet <jpihet@mvista.com>
+Date: Thu, 8 Jan 2009 12:35:21 +0100
+Subject: [PATCH] OMAP: MMC: recover from transfer failures
+
+Timeouts during a command that has a data phase can result in the
+next command issued after the command that failed not being processed,
+i.e. no interrupt ever occurs to indicate the command has completed.
+This failure can result in a deadlock.
+
+This patch resets the data state machine to clear the error in
+case of a command timeout.
+
+Tested on OMAP3430 chip and intensive MMC/SD device removal while
+transferring data.
+
+Signed-off-by: Andy Lowe <alowe@mvista.com>
+Signed-off-by: Jean Pihet <jpihet@mvista.com>
+Signed-off-by: Adrian Hunter <ext-adrian.hunter@nokia.com>
+=2D--
+=A0drivers/mmc/host/omap_hsmmc.c | =A0 =A09 ++++++++-
+=A01 files changed, 8 insertions(+), 1 deletions(-)
+
+diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
+index d5c1e9d..97150c0 100644
+=2D-- a/drivers/mmc/host/omap_hsmmc.c
++++ b/drivers/mmc/host/omap_hsmmc.c
+@@ -464,8 +464,15 @@ static irqreturn_t mmc_omap_irq(int irq, void *dev_id)
+=A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 }
+=A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 end_cmd =3D=
+ 1;
+=A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 }
+=2D =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (host->data)
++ =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (host->data) {
+=A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 mmc_dma_cle=
+anup(host);
++ =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 OMAP_HSMMC_WR=
+ITE(host->base, SYSCTL,
++ =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
+=A0 OMAP_HSMMC_READ(host->base,
++ =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
+=A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 SYSCTL) | SRD);
++ =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 while (OMAP_H=
+SMMC_READ(host->base,
++ =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
+=A0 =A0 =A0 =A0 =A0 SYSCTL) & SRD)
++ =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
+=A0 ;
++ =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 }
+=A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 }
+=A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 if ((status & DATA_TIMEOUT) ||
+=A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 (status & DATA_CRC)) {
+=2D-
+1.5.4.4.21.gc4a6c
 
 
-> I think a lot of the confusion here comes from Arve's earlier (very
-> terse) remark:  "I never expected it to be merged. I wrote it to allow 
-> us to ship a product."
-> 
-> At the risk of putting words in his mouth, I believe this should be
-> parsed as "we wrote this to solve problems necessary to ship products
-> and did not expect it to be merged to mainline as-is".  
-
-ok. I believe you.
-I also hope that I'm working with various background guys.
-
-
-thanks.
-
-> We'd love to get support for low memory process killing that works for
-> our app model into the mainline.  
+On Monday 02 February 2009 20:05:06 Tony Lindgren wrote:
+> Hi,
 >
-> If that's by reworking this driver
-> until it's acceptable or by implementing the same functionality a
-> different way, making use of some other subsystem, or whatever, we're
-> not particularly picky.  Our goal is, eventually, to maintain as few
-> patches outside of the kernel as possible so things can build "out of
-> the box."
+> * Jean Pihet <jpihet@mvista.com> [090202 00:46]:
+> > Tony,
+> >
+> > Has this patch been applied to the linux-omap tree? Does it need to go
+> > the patchwork?
+> >
+> > Cf. http://marc.info/?l=3Dlinux-omap&m=3D123141577308177&w=3D2
+>
+> I'm not applying MMC patches, we need to move that discussion to LKML
+> and keep Pierre involved.
+>
+> Jarkko Lavinen was planning to set up a git branch against the mainline
+> tree for the omap mmc patches, so until we have that, let's just let the
+> patches float on the list for a while.
+>
+> But yeah, if you want patchwork to pick up your patch so it does not
+> get lost, just please resend it to the linux-omap list and it should
+> get automatically picked up by patchwork.
+>
+> Regards,
+>
+> Tony
 
 
 
+--Boundary-00=_G9EiJNWwaG+ypeG
+Content-Type: text/x-diff;
+  charset="iso 8859-15";
+  name="OMAP-MMC-recover-from-transfer-failures.patch"
+Content-Transfer-Encoding: quoted-printable
+Content-Disposition: attachment;
+	filename="OMAP-MMC-recover-from-transfer-failures.patch"
+
+=46rom d143f6b2e705aa4e9d2b032097fd1c82f8163262 Mon Sep 17 00:00:00 2001
+=46rom: Jean Pihet <jpihet@mvista.com>
+Date: Thu, 8 Jan 2009 12:35:21 +0100
+Subject: [PATCH] OMAP: MMC: recover from transfer failures
+
+Timeouts during a command that has a data phase can result in the
+next command issued after the command that failed not being processed,
+i.e. no interrupt ever occurs to indicate the command has completed.
+This failure can result in a deadlock.
+
+This patch resets the data state machine to clear the error in
+case of a command timeout.
+
+Tested on OMAP3430 chip and intensive MMC/SD device removal while
+transferring data.
+
+Signed-off-by: Andy Lowe <alowe@mvista.com>
+Signed-off-by: Jean Pihet <jpihet@mvista.com>
+Signed-off-by: Adrian Hunter <ext-adrian.hunter@nokia.com>
+=2D--
+ drivers/mmc/host/omap_hsmmc.c |    9 ++++++++-
+ 1 files changed, 8 insertions(+), 1 deletions(-)
+
+diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
+index d5c1e9d..97150c0 100644
+=2D-- a/drivers/mmc/host/omap_hsmmc.c
++++ b/drivers/mmc/host/omap_hsmmc.c
+@@ -464,8 +464,15 @@ static irqreturn_t mmc_omap_irq(int irq, void *dev_id)
+ 				}
+ 				end_cmd =3D 1;
+ 			}
+=2D			if (host->data)
++			if (host->data) {
+ 				mmc_dma_cleanup(host);
++				OMAP_HSMMC_WRITE(host->base, SYSCTL,
++					OMAP_HSMMC_READ(host->base,
++							SYSCTL) | SRD);
++				while (OMAP_HSMMC_READ(host->base,
++						SYSCTL) & SRD)
++					;
++			}
+ 		}
+ 		if ((status & DATA_TIMEOUT) ||
+ 			(status & DATA_CRC)) {
+=2D-=20
+1.5.4.4.21.gc4a6c
 
 
+--Boundary-00=_G9EiJNWwaG+ypeG--
