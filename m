@@ -1,72 +1,42 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] ARM: OMAP: Disable USB interrupt in the musb_resume()
-	function
-Date: Tue, 3 Feb 2009 12:42:36 -0800
-Message-ID: <20090203204235.GH7215@atomide.com>
-References: <4d34a0a70901310021l6f42b34es24ca320e44c51ae6@mail.gmail.com>
+Subject: Re: lowmemory android driver not needed?
+Date: Tue, 3 Feb 2009 12:55:21 -0800
+Message-ID: <20090203205518.GI7215@atomide.com>
+References: <20090114035237.GB16442@kroah.com> <20090114104307.GA20451@elf.ucw.cz> <20090114104834.18387fca@lxorguk.ukuu.org.uk> <d6200be20901141426r1d48ea33gc9a380451e4aaf93@mail.gmail.com> <20090114231739.GB24111@kroah.com> <d6200be20901141532y6f236104kd521041d640c152e@mail.gmail.com> <20090115001224.GC11328@kroah.com> <5d5443650901150532r20a4c25q834afadde2f98a3@mail.gmail.com> <20090115234404.GA20142@kroah.com> <20090116090210.GB7039@linux-sh.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-bos.mailhop.org ([63.208.196.178]:49791 "EHLO
+Received: from mho-01-bos.mailhop.org ([63.208.196.178]:63358 "EHLO
 	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751717AbZBCUml (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 3 Feb 2009 15:42:41 -0500
+	with ESMTP id S1751936AbZBCUzf (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 3 Feb 2009 15:55:35 -0500
 Content-Disposition: inline
-In-Reply-To: <4d34a0a70901310021l6f42b34es24ca320e44c51ae6@mail.gmail.com>
+In-Reply-To: <20090116090210.GB7039@linux-sh.org>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kim Kyuwon <chammoru@gmail.com>
-Cc: linux-omap@vger.kernel.org, =?utf-8?B?67CV6rK966+8?= <kyungmin.park@samsung.com>, =?utf-8?B?6rmA6rec7JuQ?= <q1.kim@samsung.com>
+To: Paul Mundt <lethal@linux-sh.org>, Greg KH <greg@kroah.com>, Trilok Soni <soni.trilok@gmail.com>, Arve Hj?nnev?g <arve@android.com>, Alan Cox <alan@lxorguk.ukuu.org.uk>, Pavel
 
-* Kim Kyuwon <chammoru@gmail.com> [090131 00:22]:
-> USB should be suspended with interrupt disabled[1]. If USB is suspended with
-> interrupt enabled and connected to host PC, a kernel panic would occur When
-> it wakes up. Because, after the arch_suspend_enable_irqs() function is called
-> in the suspend_enter() function, USB Interrupt handler is called, even though
-> USB controller is still not resumed! All devices are resumed after the
-> device_resume() is called.
+* Paul Mundt <lethal@linux-sh.org> [090116 01:05]:
+> On Thu, Jan 15, 2009 at 03:44:04PM -0800, Greg KH wrote:
+> > On Thu, Jan 15, 2009 at 07:02:48PM +0530, Trilok Soni wrote:
+> > > And there is one more lowmem driver developed by Nokia for Nokia 8xx
+> > > tablets it seems. CCed Tony Lindgren,  Juha and Viktor.
+> > > 
+> > > http://git.kernel.org/?p=linux/kernel/git/tmlind/linux-omap-2.6.git;a=blob;f=security/lowmem.c;h=ae78a530af39703e335ad769f1e6f097f63ec6dd;hb=HEAD
+> > 
+> > As we can't stack LSMs, using the lsm interface for a simple memory
+> > driver seems pretty wasteful :)
+> > 
+> The heuristics and tunables are more what ended up being useful with this
+> module, which could trivially be abstracted out. The focus of the lowmem
+> module was mostly giving userspace an opportunity to change its behaviour,
+> and to try to save critical state. I don't know how well this would map
+> to the Android use cases, though.
 
-Please send the usb patches to the linux-usb@vger.kernel.org list
-with linux-omap list Cc'd.
+FYI, I've dropped the lowmem.c module from the linux-omap tree
+considering the rest of this thread. The commit is
+c00b5565aaaefadfe68d7c32d05617c81bb9edff for reference.
 
 Regards,
 
 Tony
-
-
-> [1] /Documentation/power/devices.txt: 412 line
-> 
-> Signed-off-by: Kim Kyuwon <chammoru@gmail.com>
-> ---
->  drivers/usb/musb/musb_core.c |    4 ++++
->  1 files changed, 4 insertions(+), 0 deletions(-)
-> 
-> diff --git a/drivers/usb/musb/musb_core.c b/drivers/usb/musb/musb_core.c
-> index 2cc34fa..0dfe15e 100644
-> --- a/drivers/usb/musb/musb_core.c
-> +++ b/drivers/usb/musb/musb_core.c
-> @@ -2151,6 +2151,8 @@ static int musb_suspend(struct platform_device
-> *pdev, pm_message_t message)
-> 
->  	spin_lock_irqsave(&musb->lock, flags);
-> 
-> +	disable_irq(musb->nIrq);
-> +
->  	if (is_peripheral_active(musb)) {
->  		/* FIXME force disconnect unless we know USB will wake
->  		 * the system up quickly enough to respond ...
-> @@ -2184,6 +2186,8 @@ static int musb_resume(struct platform_device *pdev)
->  	else
->  		clk_enable(musb->clock);
-> 
-> +	enable_irq(musb->nIrq);
-> +
->  	/* for static cmos like DaVinci, register values were preserved
->  	 * unless for some reason the whole soc powered down and we're
->  	 * not treating that as a whole-system restart (e.g. swsusp)
-> -- 
-> Kim Kyuwon
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
