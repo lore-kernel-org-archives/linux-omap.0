@@ -1,49 +1,59 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: Remaining bits for basic support of LDP
-Date: Tue, 3 Feb 2009 08:10:42 +0000
-Message-ID: <20090203081042.GA4220@n2100.arm.linux.org.uk>
-References: <20090202213953.GB16069@n2100.arm.linux.org.uk> <20090202.134530.63616213.davem@davemloft.net> <20090202235741.GX7215@atomide.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH E 08/14] OMAP clock: move rate recalc, propagation code
+ up to plat-omap/clock.c
+Date: Tue, 3 Feb 2009 01:42:03 -0700 (MST)
+Message-ID: <alpine.DEB.2.00.0902030133040.29513@utopia.booyaka.com>
+References: <20090128192551.29333.82943.stgit@localhost.localdomain> <20090128192748.29333.5856.stgit@localhost.localdomain> <20090129174153.GH18233@n2100.arm.linux.org.uk> <alpine.DEB.2.00.0901300135560.26985@utopia.booyaka.com> <20090130085249.GB6864@n2100.arm.linux.org.uk>
+ <13B9B4C6EF24D648824FF11BE89671620376DEC116@dlee02.ent.ti.com> <20090131114014.GD1394@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:35545 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751344AbZBCILB (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 3 Feb 2009 03:11:01 -0500
-Content-Disposition: inline
-In-Reply-To: <20090202235741.GX7215@atomide.com>
+Received: from utopia.booyaka.com ([72.9.107.138]:47352 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750895AbZBCImH (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 3 Feb 2009 03:42:07 -0500
+In-Reply-To: <20090131114014.GD1394@n2100.arm.linux.org.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: David Miller <davem@davemloft.net>, linux-omap@vger.kernel.org, netdev@vger.kernel.org
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: "Woodruff, Richard" <r-woodruff2@ti.com>, "linux-arm-kernel@lists.arm.linux.org.uk" <linux-arm-kernel@lists.arm.linux.org.uk>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>
 
-On Mon, Feb 02, 2009 at 03:57:45PM -0800, Tony Lindgren wrote:
-> * David Miller <davem@davemloft.net> [090202 13:45]:
-> > From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-> > Date: Mon, 2 Feb 2009 21:39:53 +0000
-> > 
-> > > The patch to fix these issues would seem to be relatively small (12
-> > > lines in the smc911x and one line change in board-ldp.c) - is it
-> > > something we want done for -rc4 or do we scrap the ethernet support 
-> > > on the LDP until the SMSC driver has been merged ?
-> 
-> Would be nice to have it of course!
-> 
-> > > Obviously, having working ethernet would be helpful, and since it was
-> > > half heartedly merged when the initial OMAP3 stuff went upstream we
-> > > should do something with it one way or another.
-> > 
-> > Well, the SMSC driver is there already in the tree.
-> > 
-> > The only thing not currently being scheduled to hit
-> > 2.6.29-rcX are the recent changes to support platform
-> > specified interrupt flags and all of that stuff.
-> > 
-> > If you want, we can look into pushing that work into
-> > 2.6.29-rcX
-> 
-> That would be great, more platforms to test it on.
+Hello Russell, 
 
-Mainline during the -rc series is not for pushing stuff to get additional
-testing.  It's for resolving regressions and fixing bugs, not introducing
-changes which could cause regressions and bugs.
+On Sat, 31 Jan 2009, Russell King - ARM Linux wrote:
+
+> On Fri, Jan 30, 2009 at 08:23:49AM -0600, Woodruff, Richard wrote:
+> > 
+> > > There's one bug that your version highlights in mine - the virtual mpu
+> > > clock in omap1 touches the DPLL and repropagates that rate.  I've
+> > > removed that repropagation, so that needs fixing.
+> > >
+> > > However, this raises a question: why is the virtual mpu clock touching
+> > > some other part of the clock tree.  I wonder whether this should be
+> > > handled a different way, though the first thing that needs answering is
+> > > why we have this alias for 'arm_ck' ?
+> > 
+> > At one point in time the virtual clock allowed control for a set of clocks
+> > with some dependencies.  The mpu alias provided a convenient control point.
+> 
+> >From what I can see (checking both mainline and Tony's tree), this mpu
+> alias (virtual_ck_mpu) is not used on OMAP1, which seems to suggest
+> that this quirk has become redundant.  If it is redundant, it should
+> be removed.
+>
+> If there is some code somewhere to use it, this quirk should live with
+> the user of the quirk until such time that the user becomes ready to be
+> merged.
+
+I don't think there's any reason for virtual_ck_mpu or virt_prcm_set to 
+have a parent clock listed.  
+
+At some point this year, those virtual OPP clocks will be removed from the 
+clock tree and implemented in a different manner.
+
+If you like, I will send a patch for removal of virtual_ck_mpu from OMAP1, 
+although my suspicion is that OMAP1 is just missing a CPUFreq driver to 
+use that OPP clock.
+
+
+- Paul
