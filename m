@@ -1,44 +1,65 @@
-From: Remith Ravi <remith@mistralsolutions.com>
-Subject: USB and SD performance issue
-Date: Tue, 3 Feb 2009 16:46:03 +0530
-Message-ID: <814dfab70902030316u36fd4912n55b5fa98571cc88c@mail.gmail.com>
+From: "kishore kadiyala" <kishore.kadiyala@ti.com>
+Subject: Re: MMC not working on 3430SDP
+Date: Tue, 3 Feb 2009 16:51:51 +0530
+Message-ID: <00a201c985f1$9dc0f190$LocalHost@wipultra796>
+References: <EAF47CD23C76F840A9E7FCE10091EFAB02A3D45333@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain;
+	format=flowed;
+	charset="iso-8859-1";
+	reply-type=original
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ti-out-0910.google.com ([209.85.142.189]:60198 "EHLO
-	ti-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751983AbZBCLQF (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 3 Feb 2009 06:16:05 -0500
-Received: by ti-out-0910.google.com with SMTP id b6so1023134tic.23
-        for <linux-omap@vger.kernel.org>; Tue, 03 Feb 2009 03:16:03 -0800 (PST)
+Received: from devils.ext.ti.com ([198.47.26.153]:49211 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752006AbZBCLWG (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 3 Feb 2009 06:22:06 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
+To: "Pakaravoor, Jagadeesh" <j-pakaravoor@ti.com>, Tony Lindgren <tony@atomide.com>, dbrownell@users.sourceforge.net
+Cc: linux-omap@vger.kernel.org
 
-Hello,
+Hi ,
 
-Recently I have done a performance comparison of OMAP3 'USB OTG Host'
-and 'SD' drivers on different Linux Kernels.
-The performance of latest git kernel is less comparing to 2.6.22 TI kernel.
-Could some one please explain me what cause this performance difference?
+On 3430 SDP , the MMC card insertion and removal is not working on the 
+linux -omap tree !
+It seems like interrupts are  not getting  triggered on Card insertion & 
+removal !
 
-The performance is calculated by doing data transfer between RAM and
-the storage device (using 'time' command).
+I wonder if it has to do something with GPIO library  !
+Also whether the GPIO library takes care of the requests to TWL4030 ?
 
-The performance details are given below.
+Thanks & Regards,
+Kishore
 
-1) 2.6.29-rc2 kernel
-USB OTG (Host)         Read (4.2 MB/s)		Write (2.6 MB/s)	
-SD Card                     Read (3.88 MB/s)		Write (3.1 MB/s)
+----- Original Message ----- 
+From: "Pakaravoor, Jagadeesh" <j-pakaravoor@ti.com>
+To: "Tony Lindgren" <tony@atomide.com>
+Cc: <linux-omap@vger.kernel.org>
+Sent: Tuesday, February 03, 2009 1:01 AM
+Subject: OMAP: MMC not working on 3430SDP
 
-2) 2.6.28 kernel
-USB OTG (Host)         error		                error	
-SD Card                     Read  (4.2 MB/s)		Write (3.27 MB/s)
 
-3) 2.6.22 TI kernel
-USB OTG (Host)         Read (5.4MB/s)		Write (6.14MB/s)	
-SD Card                      Read (6.7MB/s)		Write (6.43MB/s)
+> Hi,
+>  When using the latest Linux Omap code base, MMC functionality is broken. 
+> MMC card insertion is not giving interrupts. Also at proc/interrupts, 
+> where mmc interrupt should have been, the entry says:
+> "Err:          0"
+>
+> --
+> With Regards,
+> Jagadeesh Bhaskar P
+>
+> ----------------------------
+> Some men see things as they are and say why - I dream things that never 
+> were and say why not.
+> - George Bernard Shaw
+> ----------------------------
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
+> 
 
-Regards,
-Remith
