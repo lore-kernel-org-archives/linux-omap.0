@@ -1,28 +1,65 @@
-From: Mark Brown <broonie@sirena.org.uk>
-Subject: Re: [PATCH 2/2] Add and build TPS6235x based PR785 board support
-Date: Tue, 3 Feb 2009 11:57:29 +0000
-Message-ID: <20090203115724.GB23827@sirena.org.uk>
-References: <1233638880-32652-1-git-send-email-mani.pillai@ti.com>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: Remaining bits for basic support of LDP
+Date: Tue, 3 Feb 2009 12:21:38 +0000
+Message-ID: <20090203122138.GA9148@n2100.arm.linux.org.uk>
+References: <20090203081042.GA4220@n2100.arm.linux.org.uk> <OF4F840E52.4A9545A8-ON80257552.003BBA78-80257552.003CC882@smsc.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from cassiel.sirena.org.uk ([80.68.93.111]:4308 "EHLO
-	cassiel.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751472AbZBCL5b (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 3 Feb 2009 06:57:31 -0500
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:42587 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754324AbZBCMVx (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 3 Feb 2009 07:21:53 -0500
 Content-Disposition: inline
-In-Reply-To: <1233638880-32652-1-git-send-email-mani.pillai@ti.com>
+In-Reply-To: <OF4F840E52.4A9545A8-ON80257552.003BBA78-80257552.003CC882@smsc.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Manikandan Pillai <mani.pillai@ti.com>
-Cc: linux-omap@vger.kernel.org
+To: Steve.Glendinning@smsc.com
+Cc: David Miller <davem@davemloft.net>, linux-omap@vger.kernel.org, netdev@vger.kernel.org, Tony Lindgren <tony@atomide.com>
 
-On Tue, Feb 03, 2009 at 10:58:00AM +0530, Manikandan Pillai wrote:
-> Change in this patch include
-> comments fix from David Brownell and Mark
+On Tue, Feb 03, 2009 at 11:02:31AM +0000, Steve.Glendinning@smsc.com wrote:
+> Russell King - ARM Linux <linux@arm.linux.org.uk> wrote on 03/02/2009 
+> 08:10:42:
+> > On Mon, Feb 02, 2009 at 03:57:45PM -0800, Tony Lindgren wrote:
+> > > * David Miller <davem@davemloft.net> [090202 13:45]:
+> > > > Well, the SMSC driver is there already in the tree.
+> > > > 
+> > > > The only thing not currently being scheduled to hit
+> > > > 2.6.29-rcX are the recent changes to support platform
+> > > > specified interrupt flags and all of that stuff.
+> > > > 
+> > > > If you want, we can look into pushing that work into
+> > > > 2.6.29-rcX
+> > > 
+> > > That would be great, more platforms to test it on.
+> > 
+> > Mainline during the -rc series is not for pushing stuff to get 
+> additional
+> > testing.  It's for resolving regressions and fixing bugs, not 
+> introducing
+> > changes which could cause regressions and bugs.
+> 
+> Does it help that the smsc911x driver is new this cycle?
 
->  arch/arm/plat-omap/i2c.c               |    4 +-
->  drivers/regulator/tps6235x-regulator.c |    8 ++--
+No.
 
-Please address the issues previously raised with the changes in these
-files.
+> Without these patches the driver fails to register its interrupt on many 
+> arm platforms, so it could be said that these patches do fix regressions 
+> against the smc911x driver it's intended to replace.
+
+As far as I'm aware, the smc911x driver works as is on the majority of
+ARM platforms.  The fact that it works is enough justification to leave
+well alone during the -rc series.
+
+Changing it involves risk that something will break, which will cause
+a regression.  This is not a risk that we want, and we certainly don't
+want any new regressions in the -rc series.  The proper time to take
+that risk is during the merge window.
+
+> On a related note, if these go in during the next merge window, is there a 
+> mechanism for ensuring the platform support patches in the set are merged 
+> after these?
+
+No, and that's the problem with splitting it across two separate trees,
+which is a point I was trying to make when these patches first came to
+my attention.
