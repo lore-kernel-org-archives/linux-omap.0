@@ -1,78 +1,57 @@
-From: "Premi, Sanjeev" <premi@ti.com>
-Subject: RE: Omap3430 does not resume after suspend
-Date: Tue, 3 Feb 2009 15:02:06 +0530
-Message-ID: <B85A65D85D7EB246BE421B3FB0FBB59301C70FEB63@dbde02.ent.ti.com>
-References: <d105d8d00901300124i60025abete9f0b0e86d676f82@mail.gmail.com>
-	 <B85A65D85D7EB246BE421B3FB0FBB59301C7069769@dbde02.ent.ti.com>
- <d105d8d00902022214r4f67ecdcp4ce153f0c88cb512@mail.gmail.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH E 08/14] OMAP clock: move rate recalc, propagation code
+ up to plat-omap/clock.c
+Date: Tue, 3 Feb 2009 02:45:31 -0700 (MST)
+Message-ID: <alpine.DEB.2.00.0902030114530.5741@utopia.booyaka.com>
+References: <20090128192551.29333.82943.stgit@localhost.localdomain> <20090128192748.29333.5856.stgit@localhost.localdomain> <20090129174153.GH18233@n2100.arm.linux.org.uk> <alpine.DEB.2.00.0901300135560.26985@utopia.booyaka.com> <20090130085249.GB6864@n2100.arm.linux.org.uk>
+ <13B9B4C6EF24D648824FF11BE89671620376DEC116@dlee02.ent.ti.com> <20090131114014.GD1394@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:33834 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751314AbZBCJcQ convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 3 Feb 2009 04:32:16 -0500
-In-Reply-To: <d105d8d00902022214r4f67ecdcp4ce153f0c88cb512@mail.gmail.com>
-Content-Language: en-US
+Received: from utopia.booyaka.com ([72.9.107.138]:40619 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751577AbZBCJpd (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 3 Feb 2009 04:45:33 -0500
+In-Reply-To: <20090131114014.GD1394@n2100.arm.linux.org.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Shreyas Mahajan <mahajan.shreyas@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: "Woodruff, Richard" <r-woodruff2@ti.com>, "linux-arm-kernel@lists.arm.linux.org.uk" <linux-arm-kernel@lists.arm.linux.org.uk>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, tuukka.tikkanen@nokia.com, Tony Lindgren <tony@atomide.com>
 
-> -----Original Message-----
-> From: Shreyas Mahajan [mailto:mahajan.shreyas@gmail.com] 
-> Sent: Tuesday, February 03, 2009 11:44 AM
-> To: Premi, Sanjeev; linux-omap@vger.kernel.org
-> Subject: Re: Omap3430 does not resume after suspend
-> 
-> On Fri, Jan 30, 2009 at 7:32 PM, Premi, Sanjeev <premi@ti.com> wrote:
-> >
-> > > -----Original Message-----
-> > > From: linux-omap-owner@vger.kernel.org 
-> > > [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Shreyas 
-> > > Mahajan
-> > > Sent: Friday, January 30, 2009 2:54 PM
-> > > To: linux-omap@vger.kernel.org
-> > > Subject: Omap3430 does not resume after suspend
-> > >
-> > > Hello,
-> > >          I am a newbie with omap3430. As a part of my project, I 
-> > > suspended my board with 'echo mem > /sys/power/state'.The suspend 
-> > > happens correctly, without giving any failure message. 
-> But, when I 
-> > > tried it to resume, it is not resuming.I tried to find 
-> some reasons 
-> > > for this, and got the patches for unmasking keyboard 
-> interrupt while 
-> > > suspending. But, all patches are for omap2 and omap1 board 
-> > > architecture.
-> > [sp] Are you following updates in Kevin Hilman's pm branch?
-> > With lastest updates you shouldn't see this problem on a 
-> minimal config.
-> >
-> > Would be good to start from here and add drivers selectively.
-> >
-> > > Are there any patches to do this thing in omap3430?
-> >
-> > [sp] omap2 applies to OMAP3430 as well.
-> >
-> > >
-> > > Thanks,
-> > > --
-> > > To unsubscribe from this list: send the line "unsubscribe 
-> > > linux-omap" in the body of a message to majordomo@vger.kernel.org 
-> > > More majordomo info at http://vger.kernel.org/majordomo-info.html
-> > >
-> > >
-> 
-> Thanks for reply.
-> I went through the Kevin Hilman's PM branch and found the 
-> same problem posted by you (@Sanjeev),
-> 
-> 'Hangs on a echo mem > /sys/power/state
-> > Goes into suspend, but cannot recover'
-> 
-> So, can you please tell me if this problem is solved?
-> 
+Hi Russell,
 
-[sp] Have not been able to follow-up in the latest tree for last couple of days, but with minimal driver configuration; this problem is solved. I am in process of finding the 'offending' driver.
+On Sat, 31 Jan 2009, Russell King - ARM Linux wrote:
+
+> On Fri, Jan 30, 2009 at 08:23:49AM -0600, Woodruff, Richard wrote:
+> > 
+> > > There's one bug that your version highlights in mine - the virtual mpu
+> > > clock in omap1 touches the DPLL and repropagates that rate.  I've
+> > > removed that repropagation, so that needs fixing.
+> > >
+> > > However, this raises a question: why is the virtual mpu clock touching
+> > > some other part of the clock tree.  I wonder whether this should be
+> > > handled a different way, though the first thing that needs answering is
+> > > why we have this alias for 'arm_ck' ?
+> > 
+> > At one point in time the virtual clock allowed control for a set of clocks
+> > with some dependencies.  The mpu alias provided a convenient control point.
+> 
+> >From what I can see (checking both mainline and Tony's tree), this mpu
+> alias (virtual_ck_mpu) is not used on OMAP1, which seems to suggest
+> that this quirk has become redundant.  If it is redundant, it should
+> be removed.
+> 
+> If there is some code somewhere to use it, this quirk should live with
+> the user of the quirk until such time that the user becomes ready to be
+> merged.
+
+It was probably an OMAP1 implementation of OPPs, similar to virt_prcm_set 
+on OMAP2.  Looks like the tree is missing a CPUFreq driver that uses it.  
+Cc'ing Tuukka in case he recalls.
+
+One fix that might solve your particular problem would be to remove the 
+parent clock pointer from virtual_ck_mpu.  Neither virtual_ck_mpu or 
+virt_prcm_set should need it.
+
+
+- Paul
