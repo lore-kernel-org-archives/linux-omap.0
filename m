@@ -1,46 +1,101 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: Remaining bits for basic support of LDP
-Date: Mon, 2 Feb 2009 15:57:45 -0800
-Message-ID: <20090202235741.GX7215@atomide.com>
-References: <20090202213953.GB16069@n2100.arm.linux.org.uk> <20090202.134530.63616213.davem@davemloft.net>
+From: "Pillai, Manikandan" <mani.pillai@ti.com>
+Subject: RE: [PATCH 2/2] Add and build TPS6235x based PR785 board support
+Date: Tue, 3 Feb 2009 09:26:34 +0530
+Message-ID: <19F8576C6E063C45BE387C64729E739403FA7909C6@dbde02.ent.ti.com>
+References: <1233568325-6938-1-git-send-email-mani.pillai@ti.com>
+ <20090202115951.GC16510@sirena.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-bos.mailhop.org ([63.208.196.178]:57198 "EHLO
-	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753244AbZBBX5u (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 2 Feb 2009 18:57:50 -0500
-Content-Disposition: inline
-In-Reply-To: <20090202.134530.63616213.davem@davemloft.net>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:48476 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751371AbZBCD45 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 2 Feb 2009 22:56:57 -0500
+In-Reply-To: <20090202115951.GC16510@sirena.org.uk>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: David Miller <davem@davemloft.net>
-Cc: linux@arm.linux.org.uk, linux-omap@vger.kernel.org, netdev@vger.kernel.org
+To: Mark Brown <broonie@sirena.org.uk>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-* David Miller <davem@davemloft.net> [090202 13:45]:
-> From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-> Date: Mon, 2 Feb 2009 21:39:53 +0000
+Hi Mark,
+
+I can remove all the consumer related portion in the patch.
+The consumer patch will be sent as different patch like the
+Other consumer drivers.
+
+Regards
+Mani
+
+> -----Original Message-----
+> From: Mark Brown [mailto:broonie@sirena.org.uk]
+> Sent: Monday, February 02, 2009 5:30 PM
+> To: Pillai, Manikandan
+> Cc: linux-omap@vger.kernel.org
+> Subject: Re: [PATCH 2/2] Add and build TPS6235x based PR785 board support
 > 
-> > The patch to fix these issues would seem to be relatively small (12
-> > lines in the smc911x and one line change in board-ldp.c) - is it
-> > something we want done for -rc4 or do we scrap the ethernet support 
-> > on the LDP until the SMSC driver has been merged ?
-
-Would be nice to have it of course!
-
-> > Obviously, having working ethernet would be helpful, and since it was
-> > half heartedly merged when the initial OMAP3 stuff went upstream we
-> > should do something with it one way or another.
+> On Mon, Feb 02, 2009 at 03:22:05PM +0530, Manikandan Pillai wrote:
 > 
-> Well, the SMSC driver is there already in the tree.
+> > +int omap_i2c_register_child(struct platform_device *pdev_parent,
+> > +			const char *name, struct platform_device **pdev)
+> > +{
 > 
-> The only thing not currently being scheduled to hit
-> 2.6.29-rcX are the recent changes to support platform
-> specified interrupt flags and all of that stuff.
+> > +	(*pdev)->dev.parent = &pdev_parent->dev;
+> > +	if (!strcmp(name, "vdd2_consumer"))
+> > +		(*pdev)->dev.platform_data = &vdd2_tps_regulator_data;
+> > +	else if (!strcmp(name, "vdd1_consumer"))
+> > +		(*pdev)->dev.platform_data = &vdd1_tps_regulator_data;
 > 
-> If you want, we can look into pushing that work into
-> 2.6.29-rcX
+> With a name like that this function shouldn't have this sort of device
+> specific stuff in it.  I'm really not clear what you're trying to do
+> here so it's difficult to comment in any detail.
 
-That would be great, more platforms to test it on.
+> 
+> > +	/* Initialize the regulator consumer platform devices here */
+> > +	pdev = &omap_i2c_devices[0];
+> > +	omap_i2c_register_child(pdev, "vdd2_consumer", \
+> > +		&vdd2_platform_device);
+> > +	omap_i2c_register_child(pdev, "vdd1_consumer", \
+> > +		&vdd1_platform_device);
+> > +	tps62352_core_consumers.dev = &vdd2_platform_device->dev;
+> > +	tps62352_mpu_consumers.dev = &vdd1_platform_device->dev;
+> 
+> The concerns previously raised by myself and David still appear to exist
+> here: you shouldn't be adding platform devices as children of the I2C
+> controller like this and the "vdd1_consumer" and "vdd2_consumer" names
+> look very suspicious - I'd be surprised to see someone adding a device
+> driver with either name.
+> 
+> Given the large number of interations this has been through I feel it
+> would be better if you were to remove configuration of the consumers
+> from this patch and then add it in later along with the code for the
+> consumer devices.  I expect that review of the drivers for the consumer
+> devices is likely to also address the issues here.
+> 
+> >  #define OMAP_I2C_SIZE		0x3f
+> >  #define OMAP1_I2C_BASE		0xfffb3800
+> > @@ -69,7 +71,7 @@ static struct resource i2c_resources[][2] = {
+> >  	}
+> >
+> >  static u32 i2c_rate[ARRAY_SIZE(i2c_resources)];
+> > -static struct platform_device omap_i2c_devices[] = {
+> > +struct platform_device omap_i2c_devices[] = {
+> >  	I2C_DEV_BUILDER(1, i2c_resources[0], &i2c_rate[0]),
+> >  #if	defined(CONFIG_ARCH_OMAP24XX) || defined(CONFIG_ARCH_OMAP34XX)
+> >  	I2C_DEV_BUILDER(2, i2c_resources[1], &i2c_rate[1]),
+> 
+> You should not need to do this.
+> 
+> > diff --git a/drivers/regulator/tps6235x-regulator.c
+> b/drivers/regulator/tps6235x-regulator.c
+> > index f10fae6..36e6fcf 100644
+> > --- a/drivers/regulator/tps6235x-regulator.c
+> > +++ b/drivers/regulator/tps6235x-regulator.c
+> > @@ -82,12 +82,12 @@ static inline int tps_6235x_write_reg(struct tps *tps,
+> u8 reg, u8 val)
+> 
+> As previously mentioned you should merge this in with the regulator
+> patch if it is required.  Either this patch is broken or the regulator
+> driver is quite clearly broken without this patch.
 
-Tony
