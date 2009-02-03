@@ -1,24 +1,68 @@
-From: Jouni Hogander <jouni.hogander@nokia.com>
-Subject: [PATCH PM 0/1] OMAP3: MCSPI: Fix to spi save/restore
-Date: Tue,  3 Feb 2009 15:35:20 +0200
-Message-ID: <1233668121-32200-1-git-send-email-jouni.hogander@nokia.com>
+From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Subject: Re: lowmemory android driver not needed?
+Date: Tue,  3 Feb 2009 22:40:14 +0900 (JST)
+Message-ID: <20090203114855.EC9D.KOSAKI.MOTOHIRO@jp.fujitsu.com>
+References: <20090130062010.GD31209@kroah.com> <20090130064113.GB7870@bulgaria.corp.google.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="ISO-2022-JP"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:55392 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750959AbZBCNhT (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 3 Feb 2009 08:37:19 -0500
-Received: from esebh105.NOE.Nokia.com (esebh105.ntc.nokia.com [172.21.138.211])
-	by mgw-mx03.nokia.com (Switch-3.2.6/Switch-3.2.6) with ESMTP id n13DbFAq020928
-	for <linux-omap@vger.kernel.org>; Tue, 3 Feb 2009 15:37:16 +0200
-Received: from localhost.localdomain (trdhcp147193.ntc.nokia.com [172.22.147.193])
-	by mgw-int02.ntc.nokia.com (Switch-3.2.5/Switch-3.2.5) with ESMTP id n13DXEVD007687
-	for <linux-omap@vger.kernel.org>; Tue, 3 Feb 2009 15:33:14 +0200
+Received: from fgwmail7.fujitsu.co.jp ([192.51.44.37]:43662 "EHLO
+	fgwmail7.fujitsu.co.jp" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753279AbZBCNkT (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 3 Feb 2009 08:40:19 -0500
+In-Reply-To: <20090130064113.GB7870@bulgaria.corp.google.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
+To: Brian Swetland <swetland@google.com>
+Cc: kosaki.motohiro@jp.fujitsu.com, Greg KH <greg@kroah.com>, KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>, Arve =?ISO-2022-JP?B?SGo/bm5ldhskQmlIGyhC?= <arve@android.com>, Alan Cox <alan@lxorguk.ukuu.org.uk>, Pavel Machek <pavel@suse.cz>, arve@google.com, San Mehat <san@android.com>, Robert Love <rlove@google.com>, linux-kernel@vger.kernel.org, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, ext Juha =?ISO-2022-JP?B?WXJqP2wbJEIhJhsoQg==?= <juha.yrjola@solidboot.com>, viktor.rosendahl@nokia.com, Trilok Soni <soni.trilok@gmail.com>
 
-There is a bug in SPI save/restore. This patch is supposed to fix that.
+Hi
 
-omap2_mcspi.c |   15 +++++++--------
-1 file changed, 7 insertions(+), 8 deletions(-)
+> [Greg KH <greg@kroah.com>]
+> > > but I don't think driver/staging is good place for non driver code.
+> > > The problem is, any patch must be reviewed by stakeholder, not maintenar only.
+> > > then, the patch should post lkml and subsystem mailing list at first.
+> > > 
+> > > I like reviewed code than unreviewed code.
+> > 
+> > Heh, so do I.
+> > 
+> > And this is an odd "driver", I do know that.
+> > 
+> > But it solves a real problem that can't be solved any other way
+> > currently, which is needed for a real system that is shipping.  So, if
+> > it can't be solved any other way, do you have a way this kind of thing
+> > could be more "correct"?
+
+I agree this patch address correct requirement.
+
+
+> I think a lot of the confusion here comes from Arve's earlier (very
+> terse) remark:  "I never expected it to be merged. I wrote it to allow 
+> us to ship a product."
+> 
+> At the risk of putting words in his mouth, I believe this should be
+> parsed as "we wrote this to solve problems necessary to ship products
+> and did not expect it to be merged to mainline as-is".  
+
+ok. I believe you.
+I also hope that I'm working with various background guys.
+
+
+thanks.
+
+> We'd love to get support for low memory process killing that works for
+> our app model into the mainline.  
+>
+> If that's by reworking this driver
+> until it's acceptable or by implementing the same functionality a
+> different way, making use of some other subsystem, or whatever, we're
+> not particularly picky.  Our goal is, eventually, to maintain as few
+> patches outside of the kernel as possible so things can build "out of
+> the box."
+
+
+
+
 
