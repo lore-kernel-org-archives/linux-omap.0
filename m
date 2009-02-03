@@ -1,57 +1,65 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH E 08/14] OMAP clock: move rate recalc, propagation code
- up to plat-omap/clock.c
-Date: Tue, 3 Feb 2009 02:45:31 -0700 (MST)
-Message-ID: <alpine.DEB.2.00.0902030114530.5741@utopia.booyaka.com>
-References: <20090128192551.29333.82943.stgit@localhost.localdomain> <20090128192748.29333.5856.stgit@localhost.localdomain> <20090129174153.GH18233@n2100.arm.linux.org.uk> <alpine.DEB.2.00.0901300135560.26985@utopia.booyaka.com> <20090130085249.GB6864@n2100.arm.linux.org.uk>
- <13B9B4C6EF24D648824FF11BE89671620376DEC116@dlee02.ent.ti.com> <20090131114014.GD1394@n2100.arm.linux.org.uk>
+From: jouni.hogander@nokia.com (=?utf-8?Q?H=C3=B6gander?= Jouni)
+Subject: Re: [PATCH 0/1] Do a warm reboot instead of a cold reboot
+Date: Tue, 03 Feb 2009 11:50:28 +0200
+Message-ID: <87hc3b4zob.fsf@trdhcp146196.ntc.nokia.com>
+References: <1233594624-21615-1-git-send-email-peter.de-schrijver@nokia.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:40619 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751577AbZBCJpd (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 3 Feb 2009 04:45:33 -0500
-In-Reply-To: <20090131114014.GD1394@n2100.arm.linux.org.uk>
+Received: from smtp.nokia.com ([192.100.122.230]:19340 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751230AbZBCJtZ convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 3 Feb 2009 04:49:25 -0500
+Received: from vaebh105.NOE.Nokia.com (vaebh105.europe.nokia.com [10.160.244.31])
+	by mgw-mx03.nokia.com (Switch-3.2.6/Switch-3.2.6) with ESMTP id n139mnIe026964
+	for <linux-omap@vger.kernel.org>; Tue, 3 Feb 2009 11:49:22 +0200
+In-Reply-To: <1233594624-21615-1-git-send-email-peter.de-schrijver@nokia.com>
+	(De-Schrijver Peter's message of "Mon, 2 Feb 2009 18:10:23 +0100")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: "Woodruff, Richard" <r-woodruff2@ti.com>, "linux-arm-kernel@lists.arm.linux.org.uk" <linux-arm-kernel@lists.arm.linux.org.uk>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, tuukka.tikkanen@nokia.com, Tony Lindgren <tony@atomide.com>
+To: "De-Schrijver Peter (Nokia-D/Helsinki)" <Peter.De-Schrijver@nokia.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Hi Russell,
+"De-Schrijver Peter (Nokia-D/Helsinki)" <Peter.De-Schrijver@nokia.com>
+writes:
 
-On Sat, 31 Jan 2009, Russell King - ARM Linux wrote:
+> This patch makes arch_reset do a warm reboot instead of a cold reboot=
+=2E This
+> is necessary because otherwise the system does not reboot reliably wh=
+en disabling
+> CLKEN in retention.
+>
+> Note : Unfortuately this breaks retention :( IVA2, PER and CORE don't=
+ go to
+>        retention after reboot.
 
-> On Fri, Jan 30, 2009 at 08:23:49AM -0600, Woodruff, Richard wrote:
-> > 
-> > > There's one bug that your version highlights in mine - the virtual mpu
-> > > clock in omap1 touches the DPLL and repropagates that rate.  I've
-> > > removed that repropagation, so that needs fixing.
-> > >
-> > > However, this raises a question: why is the virtual mpu clock touching
-> > > some other part of the clock tree.  I wonder whether this should be
-> > > handled a different way, though the first thing that needs answering is
-> > > why we have this alias for 'arm_ck' ?
-> > 
-> > At one point in time the virtual clock allowed control for a set of clocks
-> > with some dependencies.  The mpu alias provided a convenient control point.
-> 
-> >From what I can see (checking both mainline and Tony's tree), this mpu
-> alias (virtual_ck_mpu) is not used on OMAP1, which seems to suggest
-> that this quirk has become redundant.  If it is redundant, it should
-> be removed.
-> 
-> If there is some code somewhere to use it, this quirk should live with
-> the user of the quirk until such time that the user becomes ready to be
-> merged.
+I'm not sure if fixing the problem this way makes sense
+currently. This will mean that after reboot OMAP modules are not
+reset. This will cause excactly this kind of problems. If we had that
+code for reset all the modules on boot, situation might be different.
 
-It was probably an OMAP1 implementation of OPPs, similar to virt_prcm_set 
-on OMAP2.  Looks like the tree is missing a CPUFreq driver that uses it.  
-Cc'ing Tuukka in case he recalls.
+How about "resetting" also twl4030 in case of reboot. E.g. remove all
+the scripts from the twl4030?
 
-One fix that might solve your particular problem would be to remove the 
-parent clock pointer from virtual_ck_mpu.  Neither virtual_ck_mpu or 
-virt_prcm_set should need it.
+>
+> Peter 'p2' De Schrijver (1):
+>   Do a soft reboot instead of a cold boot
+>
+>  arch/arm/mach-omap2/prcm.c |    2 +-
+>  1 files changed, 1 insertions(+), 1 deletions(-)
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap"=
+ in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
+--=20
+Jouni H=C3=B6gander
 
-- Paul
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
