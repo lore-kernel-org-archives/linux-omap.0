@@ -1,65 +1,38 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: Remaining bits for basic support of LDP
-Date: Tue, 3 Feb 2009 12:21:38 +0000
-Message-ID: <20090203122138.GA9148@n2100.arm.linux.org.uk>
-References: <20090203081042.GA4220@n2100.arm.linux.org.uk> <OF4F840E52.4A9545A8-ON80257552.003BBA78-80257552.003CC882@smsc.com>
+From: Grazvydas Ignotas <notasas@gmail.com>
+Subject: Re: MMC not working on 3430SDP
+Date: Tue, 3 Feb 2009 14:44:50 +0200
+Message-ID: <6ed0b2680902030444q51c58a52n2b3223fde82dab56@mail.gmail.com>
+References: <EAF47CD23C76F840A9E7FCE10091EFAB02A3D45333@dbde02.ent.ti.com>
+	 <00a301c985f1$9e5bf910$LocalHost@wipultra796>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:42587 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754324AbZBCMVx (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 3 Feb 2009 07:21:53 -0500
-Content-Disposition: inline
-In-Reply-To: <OF4F840E52.4A9545A8-ON80257552.003BBA78-80257552.003CC882@smsc.com>
+Received: from mail-fx0-f20.google.com ([209.85.220.20]:37300 "EHLO
+	mail-fx0-f20.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750866AbZBCMoy (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 3 Feb 2009 07:44:54 -0500
+Received: by fxm13 with SMTP id 13so2169681fxm.13
+        for <linux-omap@vger.kernel.org>; Tue, 03 Feb 2009 04:44:52 -0800 (PST)
+In-Reply-To: <00a301c985f1$9e5bf910$LocalHost@wipultra796>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Steve.Glendinning@smsc.com
-Cc: David Miller <davem@davemloft.net>, linux-omap@vger.kernel.org, netdev@vger.kernel.org, Tony Lindgren <tony@atomide.com>
+To: kishore kadiyala <kishore.kadiyala@ti.com>
+Cc: "Pakaravoor, Jagadeesh" <j-pakaravoor@ti.com>, Tony Lindgren <tony@atomide.com>, dbrownell@users.sourceforge.net, linux-omap@vger.kernel.org
 
-On Tue, Feb 03, 2009 at 11:02:31AM +0000, Steve.Glendinning@smsc.com wrote:
-> Russell King - ARM Linux <linux@arm.linux.org.uk> wrote on 03/02/2009 
-> 08:10:42:
-> > On Mon, Feb 02, 2009 at 03:57:45PM -0800, Tony Lindgren wrote:
-> > > * David Miller <davem@davemloft.net> [090202 13:45]:
-> > > > Well, the SMSC driver is there already in the tree.
-> > > > 
-> > > > The only thing not currently being scheduled to hit
-> > > > 2.6.29-rcX are the recent changes to support platform
-> > > > specified interrupt flags and all of that stuff.
-> > > > 
-> > > > If you want, we can look into pushing that work into
-> > > > 2.6.29-rcX
-> > > 
-> > > That would be great, more platforms to test it on.
-> > 
-> > Mainline during the -rc series is not for pushing stuff to get 
-> additional
-> > testing.  It's for resolving regressions and fixing bugs, not 
-> introducing
-> > changes which could cause regressions and bugs.
-> 
-> Does it help that the smsc911x driver is new this cycle?
+On Tue, Feb 3, 2009 at 1:21 PM, kishore kadiyala
+<kishore.kadiyala@ti.com> wrote:
+> Hi ,
+>
+> On 3430 SDP , the MMC card insertion and removal is not working on the linux
+> -omap tree !
+> It seems like interrupts are  not getting  triggered on Card insertion &
+> removal !
+>
+> I wonder if it has to do something with GPIO library  !
+> Also whether the GPIO library takes care of the requests to TWL4030 ?
 
-No.
-
-> Without these patches the driver fails to register its interrupt on many 
-> arm platforms, so it could be said that these patches do fix regressions 
-> against the smc911x driver it's intended to replace.
-
-As far as I'm aware, the smc911x driver works as is on the majority of
-ARM platforms.  The fact that it works is enough justification to leave
-well alone during the -rc series.
-
-Changing it involves risk that something will break, which will cause
-a regression.  This is not a risk that we want, and we certainly don't
-want any new regressions in the -rc series.  The proper time to take
-that risk is during the merge window.
-
-> On a related note, if these go in during the next merge window, is there a 
-> mechanism for ensuring the platform support patches in the set are merged 
-> after these?
-
-No, and that's the problem with splitting it across two separate trees,
-which is a point I was trying to make when these patches first came to
-my attention.
+If your board has TWL4030 you need to update the board file to
+initialize .gpio_cd in twl4030_hsmmc_info structure (and send a patch
+here, probably). For an example, see how it's done for beagle and
+pandora.
