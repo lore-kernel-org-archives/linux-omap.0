@@ -1,66 +1,49 @@
-From: Shreyas Mahajan <mahajan.shreyas@gmail.com>
-Subject: Re: Omap3430 does not resume after suspend
-Date: Tue, 3 Feb 2009 11:44:08 +0530
-Message-ID: <d105d8d00902022214r4f67ecdcp4ce153f0c88cb512@mail.gmail.com>
-References: <d105d8d00901300124i60025abete9f0b0e86d676f82@mail.gmail.com>
-	 <B85A65D85D7EB246BE421B3FB0FBB59301C7069769@dbde02.ent.ti.com>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: Remaining bits for basic support of LDP
+Date: Tue, 3 Feb 2009 08:10:42 +0000
+Message-ID: <20090203081042.GA4220@n2100.arm.linux.org.uk>
+References: <20090202213953.GB16069@n2100.arm.linux.org.uk> <20090202.134530.63616213.davem@davemloft.net> <20090202235741.GX7215@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from wa-out-1112.google.com ([209.85.146.180]:6680 "EHLO
-	wa-out-1112.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751097AbZBCGOJ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 3 Feb 2009 01:14:09 -0500
-Received: by wa-out-1112.google.com with SMTP id v33so908071wah.21
-        for <linux-omap@vger.kernel.org>; Mon, 02 Feb 2009 22:14:08 -0800 (PST)
-In-Reply-To: <B85A65D85D7EB246BE421B3FB0FBB59301C7069769@dbde02.ent.ti.com>
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:35545 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751344AbZBCILB (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 3 Feb 2009 03:11:01 -0500
+Content-Disposition: inline
+In-Reply-To: <20090202235741.GX7215@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Premi, Sanjeev" <premi@ti.com>, linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: David Miller <davem@davemloft.net>, linux-omap@vger.kernel.org, netdev@vger.kernel.org
 
-On Fri, Jan 30, 2009 at 7:32 PM, Premi, Sanjeev <premi@ti.com> wrote:
->
-> > -----Original Message-----
-> > From: linux-omap-owner@vger.kernel.org
-> > [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Shreyas Mahajan
-> > Sent: Friday, January 30, 2009 2:54 PM
-> > To: linux-omap@vger.kernel.org
-> > Subject: Omap3430 does not resume after suspend
-> >
-> > Hello,
-> >          I am a newbie with omap3430. As a part of my
-> > project, I suspended my board with 'echo mem >
-> > /sys/power/state'.The suspend happens correctly, without
-> > giving any failure message. But, when I tried it to resume,
-> > it is not resuming.I tried to find some reasons for this, and
-> > got the patches for unmasking keyboard interrupt while
-> > suspending. But, all patches are for omap2 and omap1 board
-> > architecture.
-> [sp] Are you following updates in Kevin Hilman's pm branch?
-> With lastest updates you shouldn't see this problem on a minimal config.
->
-> Would be good to start from here and add drivers selectively.
->
-> > Are there any patches to do this thing in omap3430?
->
-> [sp] omap2 applies to OMAP3430 as well.
->
-> >
-> > Thanks,
-> > --
-> > To unsubscribe from this list: send the line "unsubscribe
-> > linux-omap" in the body of a message to
-> > majordomo@vger.kernel.org More majordomo info at
-> > http://vger.kernel.org/majordomo-info.html
-> >
-> >
+On Mon, Feb 02, 2009 at 03:57:45PM -0800, Tony Lindgren wrote:
+> * David Miller <davem@davemloft.net> [090202 13:45]:
+> > From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+> > Date: Mon, 2 Feb 2009 21:39:53 +0000
+> > 
+> > > The patch to fix these issues would seem to be relatively small (12
+> > > lines in the smc911x and one line change in board-ldp.c) - is it
+> > > something we want done for -rc4 or do we scrap the ethernet support 
+> > > on the LDP until the SMSC driver has been merged ?
+> 
+> Would be nice to have it of course!
+> 
+> > > Obviously, having working ethernet would be helpful, and since it was
+> > > half heartedly merged when the initial OMAP3 stuff went upstream we
+> > > should do something with it one way or another.
+> > 
+> > Well, the SMSC driver is there already in the tree.
+> > 
+> > The only thing not currently being scheduled to hit
+> > 2.6.29-rcX are the recent changes to support platform
+> > specified interrupt flags and all of that stuff.
+> > 
+> > If you want, we can look into pushing that work into
+> > 2.6.29-rcX
+> 
+> That would be great, more platforms to test it on.
 
-Thanks for reply.
-I went through the Kevin Hilman's PM branch and found the same problem
-posted by you (@Sanjeev),
-
-'Hangs on a echo mem > /sys/power/state
-> Goes into suspend, but cannot recover'
-
-So, can you please tell me if this problem is solved?
+Mainline during the -rc series is not for pushing stuff to get additional
+testing.  It's for resolving regressions and fixing bugs, not introducing
+changes which could cause regressions and bugs.
