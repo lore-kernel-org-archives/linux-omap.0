@@ -1,273 +1,144 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [patch omap-git] mmc-twl4030 voltage cleanup
-Date: Tue, 3 Feb 2009 10:34:32 -0800
-Message-ID: <20090203183422.GE7215@atomide.com>
-References: <200901131249.13386.david-b@pacbell.net>
+Subject: Re: [OMAPZOOM][PATCH] OMAP34XXCAM: PM: Fix ifdefs to CONFIG_OMAP3_PM
+Date: Tue, 3 Feb 2009 10:37:33 -0800
+Message-ID: <20090203183731.GF7215@atomide.com>
+References: <A24693684029E5489D1D202277BE8944164DF3B2@dlee02.ent.ti.com> <20090114125434.GI29324@atomide.com> <FCCFB4CDC6E5564B9182F639FC3560870251462D75@dbde02.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-bos.mailhop.org ([63.208.196.178]:54041 "EHLO
+Received: from mho-01-bos.mailhop.org ([63.208.196.178]:57173 "EHLO
 	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753782AbZBCSeg (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 3 Feb 2009 13:34:36 -0500
+	with ESMTP id S1751869AbZBCShh (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 3 Feb 2009 13:37:37 -0500
 Content-Disposition: inline
-In-Reply-To: <200901131249.13386.david-b@pacbell.net>
+In-Reply-To: <FCCFB4CDC6E5564B9182F639FC3560870251462D75@dbde02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: David Brownell <david-b@pacbell.net>
-Cc: OMAP <linux-omap@vger.kernel.org>
+To: "Pandita, Vikram" <vikram.pandita@ti.com>
+Cc: "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-* David Brownell <david-b@pacbell.net> [090114 00:53]:
-> From: David Brownell <dbrownell@users.sourceforge.net>
+* Pandita, Vikram <vikram.pandita@ti.com> [090114 07:02]:
 > 
-> Correct twl4030 MMC power switching:  fix voltage ranges reported
-> for each slot, and handle them fully.
+> >From: Tony Lindgren [mailto:tony@atomide.com]
+> >Sent: Wednesday, January 14, 2009 6:55 AM
+> >To: Aguirre Rodriguez, Sergio Alberto
+> >Cc: linux-omap@vger.kernel.org; Pandita, Vikram
+> >Subject: Re: [OMAPZOOM][PATCH] OMAP34XXCAM: PM: Fix ifdefs to CONFIG_OMAP3_PM
+> >
+> >
+> >These ifdefs are completely getting out of control in the omap-zoom
+> >tree. There should be absolutely no need for CONFIG_OMAP3_PM.
 > 
->  Lies corrected:
->   - MMC-1 doesn't support the 2.6-2.7 Volt range
->   - MMC-2 can't normally support anything except 1.8V
->  Omissions corrected
->   - MMC-1 *does* handle the 2.8-2.9 Volt range
->   - MMC-2 can handle 2.5-3.2 Volt cards, given a transceiver
->  
-> Add transciever support for MMC-2; enable it for Overo and Pandora.
-> (Depends on something else to have set up pinmuxing for control
-> signals instead of as MMC2_DAT4..7 pins.)
+> There is an absolute need for such an ifdef. 
+> This is an old discussion happened so many times and has been a trigger for the omapzoom.org TI tree.
 > 
-> Also shrink twl4030_hsmmc_info a smidgeon ... padding is all gone.
+> In l-o tree we do not have complete PM functionality and there are customers that want to go to actual "Products" in market. Eg: Latest Palm Pre and others
+> 
+> The current PM code shaping up on L-O tree is no doubt clean but what about the functionality complete aspect and Time to market.
+> 
+> Till then #ifdefs are the only option.
 
-Pushing to l-o and adding to omap3-upstream queue.
+Yet the other platforms don't need silly ifdefs like that?
+
+Believe me writing code based on ifdefs makes it unmaintainable
+within months.
 
 Tony
 
 
-> Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
-> ---
-> MMC2 changes verified on 3430 SDP (mobile MMC card works, higher
-> voltage cards fail cleanly), Beagle, Overo (WLAN via transceiver).
 > 
->  arch/arm/mach-omap2/board-omap3pandora.c |    1 
->  arch/arm/mach-omap2/board-overo.c        |    1 
->  arch/arm/mach-omap2/mmc-twl4030.c        |  127 ++++++++++++++++++-----------
->  arch/arm/mach-omap2/mmc-twl4030.h        |    3 
->  4 files changed, 84 insertions(+), 48 deletions(-)
 > 
-> --- a/arch/arm/mach-omap2/board-omap3pandora.c
-> +++ b/arch/arm/mach-omap2/board-omap3pandora.c
-> @@ -157,6 +157,7 @@ static struct twl4030_hsmmc_info omap3pa
->  		.gpio_cd	= -EINVAL,
->  		.gpio_wp	= 127,
->  		.ext_clock	= 1,
-> +		.transceiver	= true,
->  	},
->  	{}	/* Terminator */
->  };
-> --- a/arch/arm/mach-omap2/board-overo.c
-> +++ b/arch/arm/mach-omap2/board-overo.c
-> @@ -219,6 +219,7 @@ static struct twl4030_hsmmc_info mmc[] _
->  		.wires		= 4,
->  		.gpio_cd	= -EINVAL,
->  		.gpio_wp	= -EINVAL,
-> +		.transceiver	= true,
->  	},
->  	{}	/* Terminator */
->  };
-> --- a/arch/arm/mach-omap2/mmc-twl4030.c
-> +++ b/arch/arm/mach-omap2/mmc-twl4030.c
-> @@ -44,6 +44,7 @@
->  #define VMMC2_315V		0x0c
->  #define VMMC2_300V		0x0b
->  #define VMMC2_285V		0x0a
-> +#define VMMC2_280V		0x09
->  #define VMMC2_260V		0x08
->  #define VMMC2_185V		0x06
->  #define VMMC2_DEDICATED		0x2E
-> @@ -166,56 +167,73 @@ static int twl_mmc_resume(struct device 
->  /*
->   * Sets the MMC voltage in twl4030
->   */
-> +
-> +#define MMC1_OCR	(MMC_VDD_165_195 \
-> +		|MMC_VDD_28_29|MMC_VDD_29_30|MMC_VDD_30_31|MMC_VDD_31_32)
-> +#define MMC2_OCR	(MMC_VDD_165_195 \
-> +		|MMC_VDD_25_26|MMC_VDD_26_27|MMC_VDD_27_28 \
-> +		|MMC_VDD_28_29|MMC_VDD_29_30|MMC_VDD_30_31|MMC_VDD_31_32)
-> +
->  static int twl_mmc_set_voltage(struct twl_mmc_controller *c, int vdd)
->  {
->  	int ret;
->  	u8 vmmc, dev_grp_val;
->  
-> -	switch (1 << vdd) {
-> -	case MMC_VDD_35_36:
-> -	case MMC_VDD_34_35:
-> -	case MMC_VDD_33_34:
-> -	case MMC_VDD_32_33:
-> -	case MMC_VDD_31_32:
-> -	case MMC_VDD_30_31:
-> -		if (c->twl_vmmc_dev_grp == VMMC1_DEV_GRP)
-> -			vmmc = VMMC1_315V;
-> -		else
-> -			vmmc = VMMC2_315V;
-> -		break;
-> -	case MMC_VDD_29_30:
-> -		if (c->twl_vmmc_dev_grp == VMMC1_DEV_GRP)
-> -			vmmc = VMMC1_315V;
-> -		else
-> -			vmmc = VMMC2_300V;
-> -		break;
-> -	case MMC_VDD_27_28:
-> -	case MMC_VDD_26_27:
-> -		if (c->twl_vmmc_dev_grp == VMMC1_DEV_GRP)
-> -			vmmc = VMMC1_285V;
-> -		else
-> -			vmmc = VMMC2_285V;
-> -		break;
-> -	case MMC_VDD_25_26:
-> -	case MMC_VDD_24_25:
-> -	case MMC_VDD_23_24:
-> -	case MMC_VDD_22_23:
-> -	case MMC_VDD_21_22:
-> -	case MMC_VDD_20_21:
-> -		if (c->twl_vmmc_dev_grp == VMMC1_DEV_GRP)
-> -			vmmc = VMMC1_285V;
-> -		else
-> -			vmmc = VMMC2_260V;
-> -		break;
-> -	case MMC_VDD_165_195:
-> -		if (c->twl_vmmc_dev_grp == VMMC1_DEV_GRP)
-> +	if (c->twl_vmmc_dev_grp == VMMC1_DEV_GRP) {
-> +		/* VMMC1:  max 220 mA.  And for 8-bit mode,
-> +		 * VSIM:  max 50 mA
-> +		 */
-> +		switch (1 << vdd) {
-> +		case MMC_VDD_165_195:
->  			vmmc = VMMC1_185V;
-> -		else
-> +			/* and VSIM_180V */
-> +			break;
-> +		case MMC_VDD_28_29:
-> +			vmmc = VMMC1_285V;
-> +			/* and VSIM_280V */
-> +			break;
-> +		case MMC_VDD_29_30:
-> +		case MMC_VDD_30_31:
-> +			vmmc = VMMC1_300V;
-> +			/* and VSIM_300V */
-> +			break;
-> +		case MMC_VDD_31_32:
-> +			vmmc = VMMC1_315V;
-> +			/* error if VSIM needed */
-> +			break;
-> +		default:
-> +			vmmc = 0;
-> +			break;
-> +		}
-> +	} else if (c->twl_vmmc_dev_grp == VMMC2_DEV_GRP) {
-> +		/* VMMC2:  max 100 mA */
-> +		switch (1 << vdd) {
-> +		case MMC_VDD_165_195:
->  			vmmc = VMMC2_185V;
-> -		break;
-> -	default:
-> -		vmmc = 0;
-> -		break;
-> +			break;
-> +		case MMC_VDD_25_26:
-> +		case MMC_VDD_26_27:
-> +			vmmc = VMMC2_260V;
-> +			break;
-> +		case MMC_VDD_27_28:
-> +			vmmc = VMMC2_280V;
-> +			break;
-> +		case MMC_VDD_28_29:
-> +			vmmc = VMMC2_285V;
-> +			break;
-> +		case MMC_VDD_29_30:
-> +		case MMC_VDD_30_31:
-> +			vmmc = VMMC2_300V;
-> +			break;
-> +		case MMC_VDD_31_32:
-> +			vmmc = VMMC2_315V;
-> +			break;
-> +		default:
-> +			vmmc = 0;
-> +			break;
-> +		}
-> +	} else {
-> +		return 0;
->  	}
->  
->  	if (vmmc)
-> @@ -242,6 +260,14 @@ static int twl_mmc1_set_power(struct dev
->  	struct twl_mmc_controller *c = &hsmmc[0];
->  	struct omap_mmc_platform_data *mmc = dev->platform_data;
->  
-> +	/*
-> +	 * Assume we power both OMAP VMMC1 (for CMD, CLK, DAT0..3) and the
-> +	 * card using the same TWL VMMC1 supply (hsmmc[0]); OMAP has both
-> +	 * 1.8V and 3.0V modes, controlled by the PBIAS register.
-> +	 *
-> +	 * In 8-bit modes, OMAP VMMC1A (for DAT4..7) needs a supply, which
-> +	 * is most naturally TWL VSIM; those pins also use PBIAS.
-> +	 */
->  	if (power_on) {
->  		if (cpu_is_omap2430()) {
->  			reg = omap_ctrl_readl(OMAP243X_CONTROL_DEVCONF1);
-> @@ -298,6 +324,12 @@ static int twl_mmc2_set_power(struct dev
->  	struct twl_mmc_controller *c = &hsmmc[1];
->  	struct omap_mmc_platform_data *mmc = dev->platform_data;
->  
-> +	/*
-> +	 * Assume TWL VMMC2 (hsmmc[1]) is used only to power the card ... OMAP
-> +	 * VDDS is used to power the pins, optionally with a transceiver to
-> +	 * support cards using voltages other than VDDS (1.8V nominal).  When a
-> +	 * transceiver is used, DAT3..7 are muxed as transceiver control pins.
-> +	 */
->  	if (power_on) {
->  		if (mmc->slots[0].internal_clock) {
->  			u32 reg;
-> @@ -352,10 +384,6 @@ void __init twl4030_mmc_init(struct twl4
->  		sprintf(twl->name, "mmc%islot%i", c->mmc, 1);
->  		mmc->slots[0].name = twl->name;
->  		mmc->nr_slots = 1;
-> -		mmc->slots[0].ocr_mask = MMC_VDD_165_195 |
-> -					MMC_VDD_26_27 | MMC_VDD_27_28 |
-> -					MMC_VDD_29_30 |
-> -					MMC_VDD_30_31 | MMC_VDD_31_32;
->  		mmc->slots[0].wires = c->wires;
->  		mmc->slots[0].internal_clock = !c->ext_clock;
->  		mmc->dma_mask = 0xffffffff;
-> @@ -391,9 +419,14 @@ void __init twl4030_mmc_init(struct twl4
->  		switch (c->mmc) {
->  		case 1:
->  			mmc->slots[0].set_power = twl_mmc1_set_power;
-> +			mmc->slots[0].ocr_mask = MMC1_OCR;
->  			break;
->  		case 2:
->  			mmc->slots[0].set_power = twl_mmc2_set_power;
-> +			if (c->transceiver)
-> +				mmc->slots[0].ocr_mask = MMC2_OCR;
-> +			else
-> +				mmc->slots[0].ocr_mask = MMC_VDD_165_195;
->  			break;
->  		default:
->  			pr_err("MMC%d configuration not supported!\n", c->mmc);
-> --- a/arch/arm/mach-omap2/mmc-twl4030.h
-> +++ b/arch/arm/mach-omap2/mmc-twl4030.h
-> @@ -9,9 +9,10 @@
->  struct twl4030_hsmmc_info {
->  	u8	mmc;		/* controller 1/2/3 */
->  	u8	wires;		/* 1/4/8 wires */
-> +	bool	transceiver;	/* MMC-2 option */
-> +	bool	ext_clock;	/* use external pin for input clock */
->  	int	gpio_cd;	/* or -EINVAL */
->  	int	gpio_wp;	/* or -EINVAL */
-> -	int	ext_clock:1;	/* use external pin for input clock */
->  };
->  
->  #if	defined(CONFIG_TWL4030_CORE) && \
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> >
+> >
+> >
+> >
+> >> Signed-off-by: Sergio Aguirre <saaguirre@ti.com>
+> >> Reported-by: Anand Gadiyar <gadiyar@ti.com>
+> >> ---
+> >>  drivers/media/video/omap34xxcam.c |   16 ++++++++--------
+> >>  1 files changed, 8 insertions(+), 8 deletions(-)
+> >>
+> >> diff --git a/drivers/media/video/omap34xxcam.c b/drivers/media/video/omap34xxcam.c
+> >> index 818ec6e..43eeb1c 100644
+> >> --- a/drivers/media/video/omap34xxcam.c
+> >> +++ b/drivers/media/video/omap34xxcam.c
+> >> @@ -34,7 +34,7 @@
+> >>  #include <media/v4l2-common.h>
+> >>  #include <media/v4l2-ioctl.h>
+> >>
+> >> -#ifdef CONFIG_PM
+> >> +#ifdef CONFIG_OMAP3_PM
+> >>  #include <mach/resource.h>
+> >>  #endif
+> >>
+> >> @@ -48,7 +48,7 @@
+> >>  /* global variables */
+> >>  static struct omap34xxcam_device *omap34xxcam;
+> >>
+> >> -#ifdef CONFIG_PM
+> >> +#ifdef CONFIG_OMAP3_PM
+> >>  	struct constraint_handle *co_opp_camera_vdd1;
+> >>  	struct constraint_handle *co_opp_camera_vdd2;
+> >>  	struct constraint_handle *co_opp_camera_latency;
+> >> @@ -61,7 +61,7 @@ static int omap34xxcam_remove(struct platform_device *pdev);
+> >>  struct omap34xxcam_fh *camfh_saved;
+> >>
+> >>  /* constraint */
+> >> -#ifdef CONFIG_PM
+> >> +#ifdef CONFIG_OMAP3_PM
+> >>  	static struct constraint_id cnstr_id_vdd1 = {
+> >>  		.type = RES_OPP_CO,
+> >>  		.data = (void *)"vdd1_opp",
+> >> @@ -725,7 +725,7 @@ static int vidioc_streamon(struct file *file, void *fh, enum v4l2_buf_type i)
+> >>  	isp_af_notify(0);
+> >>  	isp_sgdma_init();
+> >>
+> >> -#ifdef CONFIG_PM
+> >> +#ifdef CONFIG_OMAP3_PM
+> >>  	if (system_rev >= OMAP3430_REV_ES2_0) {
+> >>  		if (ofh->pix.width >= 640 && ofh->pix.height >= 480) {
+> >>  			/* Setting constraint for VDD1 */
+> >> @@ -786,7 +786,7 @@ static int vidioc_streamoff(struct file *file, void *fh, enum v4l2_buf_type i)
+> >>
+> >>  	omap34xxcam_slave_power_set(vdev, V4L2_POWER_STANDBY);
+> >>
+> >> -#ifdef CONFIG_PM
+> >> +#ifdef CONFIG_OMAP3_PM
+> >>  	if (system_rev >= OMAP3430_REV_ES2_0) {
+> >>  		if (ofh->pix.width >= 640 && ofh->pix.height >= 480) {
+> >>  			/* Removing constraint for VDD1 */
+> >> @@ -1456,7 +1456,7 @@ static int omap34xxcam_release(struct inode *inode, struct file *file)
+> >>  	}
+> >>  	mutex_unlock(&vdev->mutex);
+> >>
+> >> -#ifdef CONFIG_PM
+> >> +#ifdef CONFIG_OMAP3_PM
+> >>  	if (system_rev >= OMAP3430_REV_ES2_0) {
+> >>  		if (remove_constraints) {
+> >>  			if (fh->pix.width >= 640 && fh->pix.height >= 480) {
+> >> @@ -1828,7 +1828,7 @@ static int omap34xxcam_probe(struct platform_device *pdev)
+> >>
+> >>  	omap34xxcam = cam;
+> >>
+> >> -#ifdef CONFIG_PM
+> >> +#ifdef CONFIG_OMAP3_PM
+> >>  	if (system_rev >= OMAP3430_REV_ES2_0) {
+> >>  		/* Getting constraint for VDD1 and VDD2 */
+> >>  		co_opp_camera_latency = constraint_get("omap34xxcam",
+> >> @@ -1882,7 +1882,7 @@ static int omap34xxcam_remove(struct platform_device *pdev)
+> >>  		cam->mmio_base_phys = 0;
+> >>  	}
+> >>
+> >> -#ifdef CONFIG_PM
+> >> +#ifdef CONFIG_OMAP3_PM
+> >>  	if (system_rev >= OMAP3430_REV_ES2_0) {
+> >>  		constraint_put(co_opp_camera_vdd1);
+> >>  		constraint_put(co_opp_camera_vdd2);
+> >> --
+> >> 1.5.6.5
+> >>
+> >> --
+> >> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> >> the body of a message to majordomo@vger.kernel.org
+> >> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
