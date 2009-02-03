@@ -1,59 +1,69 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH E 08/14] OMAP clock: move rate recalc, propagation code
- up to plat-omap/clock.c
-Date: Tue, 3 Feb 2009 01:42:03 -0700 (MST)
-Message-ID: <alpine.DEB.2.00.0902030133040.29513@utopia.booyaka.com>
-References: <20090128192551.29333.82943.stgit@localhost.localdomain> <20090128192748.29333.5856.stgit@localhost.localdomain> <20090129174153.GH18233@n2100.arm.linux.org.uk> <alpine.DEB.2.00.0901300135560.26985@utopia.booyaka.com> <20090130085249.GB6864@n2100.arm.linux.org.uk>
- <13B9B4C6EF24D648824FF11BE89671620376DEC116@dlee02.ent.ti.com> <20090131114014.GD1394@n2100.arm.linux.org.uk>
+Subject: Re: [PATCH B 01/10] OMAP2/3 clock: combine clkdm, clkdm_name into
+ union in struct clk
+Date: Tue, 3 Feb 2009 01:47:41 -0700 (MST)
+Message-ID: <alpine.DEB.2.00.0902030142590.29513@utopia.booyaka.com>
+References: <20090128024301.27240.39391.stgit@localhost.localdomain> <20090128024401.27240.68328.stgit@localhost.localdomain> <20090131115523.GF1394@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:47352 "EHLO
+Received: from utopia.booyaka.com ([72.9.107.138]:53473 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750895AbZBCImH (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 3 Feb 2009 03:42:07 -0500
-In-Reply-To: <20090131114014.GD1394@n2100.arm.linux.org.uk>
+	with ESMTP id S1750895AbZBCIrm (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 3 Feb 2009 03:47:42 -0500
+In-Reply-To: <20090131115523.GF1394@n2100.arm.linux.org.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: "Woodruff, Richard" <r-woodruff2@ti.com>, "linux-arm-kernel@lists.arm.linux.org.uk" <linux-arm-kernel@lists.arm.linux.org.uk>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>
-
-Hello Russell, 
+Cc: linux-arm-kernel@lists.arm.linux.org.uk, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>
 
 On Sat, 31 Jan 2009, Russell King - ARM Linux wrote:
 
-> On Fri, Jan 30, 2009 at 08:23:49AM -0600, Woodruff, Richard wrote:
-> > 
-> > > There's one bug that your version highlights in mine - the virtual mpu
-> > > clock in omap1 touches the DPLL and repropagates that rate.  I've
-> > > removed that repropagation, so that needs fixing.
-> > >
-> > > However, this raises a question: why is the virtual mpu clock touching
-> > > some other part of the clock tree.  I wonder whether this should be
-> > > handled a different way, though the first thing that needs answering is
-> > > why we have this alias for 'arm_ck' ?
-> > 
-> > At one point in time the virtual clock allowed control for a set of clocks
-> > with some dependencies.  The mpu alias provided a convenient control point.
+> On Tue, Jan 27, 2009 at 07:44:08PM -0700, Paul Walmsley wrote:
+> > diff --git a/arch/arm/mach-omap2/clock.c b/arch/arm/mach-omap2/clock.c
+> > index 55c5d67..7aa09f5 100644
+> > --- a/arch/arm/mach-omap2/clock.c
+> > +++ b/arch/arm/mach-omap2/clock.c
+> > @@ -77,17 +77,17 @@ void omap2_init_clk_clkdm(struct clk *clk)
+> >  {
+> >  	struct clockdomain *clkdm;
+> >  
+> > -	if (!clk->clkdm_name)
+> > +	if (!clk->clkdm.name)
+> >  		return;
+> >  
+> > -	clkdm = clkdm_lookup(clk->clkdm_name);
+> > +	clkdm = clkdm_lookup(clk->clkdm.name);
+> >  	if (clkdm) {
+> >  		pr_debug("clock: associated clk %s to clkdm %s\n",
+> > -			 clk->name, clk->clkdm_name);
+> > -		clk->clkdm = clkdm;
+> > +			 clk->name, clk->clkdm.name);
+> > +		clk->clkdm.ptr = clkdm;
+> >  	} else {
+> >  		pr_debug("clock: could not associate clk %s to "
+> > -			 "clkdm %s\n", clk->name, clk->clkdm_name);
+> > +			 "clkdm %s\n", clk->name, clk->clkdm.name);
+> >  	}
 > 
-> >From what I can see (checking both mainline and Tony's tree), this mpu
-> alias (virtual_ck_mpu) is not used on OMAP1, which seems to suggest
-> that this quirk has become redundant.  If it is redundant, it should
-> be removed.
->
-> If there is some code somewhere to use it, this quirk should live with
-> the user of the quirk until such time that the user becomes ready to be
-> merged.
+> This is unsafe - if the clock domain can not be found, you leave the
+> union pointing at the string, and there's no way for this to prevent
+> the clock from being registered.
+> 
+> The result is that:
+> 
+> > -		if (clk->clkdm)
+> > -			omap2_clkdm_clk_disable(clk->clkdm, clk);
+> > +		if (clk->clkdm.ptr)
+> > +			omap2_clkdm_clk_disable(clk->clkdm.ptr, clk);
+> 
+> and similar places will pass the pointer to the string, potentially
+> causing an oops, or worse, data corruption due to scribbing over
+> someone elses memory.
 
-I don't think there's any reason for virtual_ck_mpu or virt_prcm_set to 
-have a parent clock listed.  
-
-At some point this year, those virtual OPP clocks will be removed from the 
-clock tree and implemented in a different manner.
-
-If you like, I will send a patch for removal of virtual_ck_mpu from OMAP1, 
-although my suspicion is that OMAP1 is just missing a CPUFreq driver to 
-use that OPP clock.
+Agreed.  Now that omap2_init_clk_clkdm() is called by the 
+OMAP arch-specific clk_register(), this should be pretty easy to 
+implement.  Will send a patch that applies on top of F 06.
 
 
 - Paul
