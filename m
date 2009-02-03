@@ -1,69 +1,45 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH B 01/10] OMAP2/3 clock: combine clkdm, clkdm_name into
- union in struct clk
-Date: Tue, 3 Feb 2009 01:47:41 -0700 (MST)
-Message-ID: <alpine.DEB.2.00.0902030142590.29513@utopia.booyaka.com>
-References: <20090128024301.27240.39391.stgit@localhost.localdomain> <20090128024401.27240.68328.stgit@localhost.localdomain> <20090131115523.GF1394@n2100.arm.linux.org.uk>
+From: "stanley.miao" <stanley.miao@windriver.com>
+Subject: Re: BUG: LDP - smc911x region too small
+Date: Tue, 03 Feb 2009 17:01:26 +0800
+Message-ID: <498807E6.4090503@windriver.com>
+References: <20090119223750.GL18301@n2100.arm.linux.org.uk> <1232433403.31748.8.camel@localhost> <20090120083121.GA11157@n2100.arm.linux.org.uk> <13B9B4C6EF24D648824FF11BE89671620376E9B0F3@dlee02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:53473 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750895AbZBCIrm (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 3 Feb 2009 03:47:42 -0500
-In-Reply-To: <20090131115523.GF1394@n2100.arm.linux.org.uk>
+Received: from mail.windriver.com ([147.11.1.11]:63602 "EHLO mail.wrs.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752132AbZBCIwL (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 3 Feb 2009 03:52:11 -0500
+In-Reply-To: <13B9B4C6EF24D648824FF11BE89671620376E9B0F3@dlee02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: linux-arm-kernel@lists.arm.linux.org.uk, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>
+To: "Woodruff, Richard" <r-woodruff2@ti.com>
+Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Sat, 31 Jan 2009, Russell King - ARM Linux wrote:
+Woodruff, Richard wrote:
+>>> Here should be 0x100. Fixing this won't cause problems with smsc911x
+>>> patches.
+>>>       
+>> Yes it will - if it gets fixed in the -rc series for the smc911x driver
+>> your patches will conflict.
+>>
+>> There's more which needs fixing though - no platform data is being passed
+>> so the smc911x driver still fails to initialise.
+>>     
+>
+> Data sheet shows addressable range as 0x50 from base --> 0xFC.  So 0xFF should be good.
+>
+> I tried to send Russell data sheet but his emails is rejecting it.
+>
+> Regards,
+> Richard W.
+>
+>   
+It has been fixed.
 
-> On Tue, Jan 27, 2009 at 07:44:08PM -0700, Paul Walmsley wrote:
-> > diff --git a/arch/arm/mach-omap2/clock.c b/arch/arm/mach-omap2/clock.c
-> > index 55c5d67..7aa09f5 100644
-> > --- a/arch/arm/mach-omap2/clock.c
-> > +++ b/arch/arm/mach-omap2/clock.c
-> > @@ -77,17 +77,17 @@ void omap2_init_clk_clkdm(struct clk *clk)
-> >  {
-> >  	struct clockdomain *clkdm;
-> >  
-> > -	if (!clk->clkdm_name)
-> > +	if (!clk->clkdm.name)
-> >  		return;
-> >  
-> > -	clkdm = clkdm_lookup(clk->clkdm_name);
-> > +	clkdm = clkdm_lookup(clk->clkdm.name);
-> >  	if (clkdm) {
-> >  		pr_debug("clock: associated clk %s to clkdm %s\n",
-> > -			 clk->name, clk->clkdm_name);
-> > -		clk->clkdm = clkdm;
-> > +			 clk->name, clk->clkdm.name);
-> > +		clk->clkdm.ptr = clkdm;
-> >  	} else {
-> >  		pr_debug("clock: could not associate clk %s to "
-> > -			 "clkdm %s\n", clk->name, clk->clkdm_name);
-> > +			 "clkdm %s\n", clk->name, clk->clkdm.name);
-> >  	}
-> 
-> This is unsafe - if the clock domain can not be found, you leave the
-> union pointing at the string, and there's no way for this to prevent
-> the clock from being registered.
-> 
-> The result is that:
-> 
-> > -		if (clk->clkdm)
-> > -			omap2_clkdm_clk_disable(clk->clkdm, clk);
-> > +		if (clk->clkdm.ptr)
-> > +			omap2_clkdm_clk_disable(clk->clkdm.ptr, clk);
-> 
-> and similar places will pass the pointer to the string, potentially
-> causing an oops, or worse, data corruption due to scribbing over
-> someone elses memory.
-
-Agreed.  Now that omap2_init_clk_clkdm() is called by the 
-OMAP arch-specific clk_register(), this should be pretty easy to 
-implement.  Will send a patch that applies on top of F 06.
+http://marc.info/?l=linux-arm-kernel&m=123307584619895&w=2
 
 
-- Paul
+Stanley.
+
