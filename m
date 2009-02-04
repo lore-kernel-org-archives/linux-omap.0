@@ -1,81 +1,68 @@
-From: "Peter 'p2' De Schrijver" <peter.de-schrijver@nokia.com>
-Subject: Re: new PM branch available
-Date: Wed, 4 Feb 2009 02:52:28 +0200
-Message-ID: <20090204005228.GA30147@codecarver.research.nokia.com>
-References: <87iqoij2me.fsf@deeprootsystems.com> <20090202174532.GJ4954@codecarver.research.nokia.com> <87wsc8bp79.fsf@deeprootsystems.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: [PATCH/RFC 0/3] first pass at core PM sync-up
+Date: Tue,  3 Feb 2009 18:03:46 -0800
+Message-ID: <1233713029-14904-1-git-send-email-khilman@deeprootsystems.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:27708 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750997AbZBDAwm (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 3 Feb 2009 19:52:42 -0500
-Content-Disposition: inline
-In-Reply-To: <87wsc8bp79.fsf@deeprootsystems.com>
+Received: from wf-out-1314.google.com ([209.85.200.168]:20893 "EHLO
+	wf-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751870AbZBDCDy (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 3 Feb 2009 21:03:54 -0500
+Received: by wf-out-1314.google.com with SMTP id 27so2575471wfd.4
+        for <linux-omap@vger.kernel.org>; Tue, 03 Feb 2009 18:03:53 -0800 (PST)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: ext Kevin Hilman <khilman@deeprootsystems.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: linux-omap@vger.kernel.org
 
-Hi Kevin,
+The linux-omap tree has long carried some core PM code that has never
+gone upstream.  This is a first pass to get a base PM core upstream,
+so that the PM branch can be pushed next.  
 
-> Hi Peter,
-> 
-> "Peter 'p2' De Schrijver" <peter.de-schrijver@nokia.com> writes:
-> 
-> 
-> A first guess: this sounds like CONFIG_OMAP_RESET_CLOCKS=y is missing
-> from your .config.
-> 
-> The MPU/NEON going active but not RET is an indication to me that some
-> fclk is active so that the fclk check in omap3_can_sleep() fails, so a
-> WFI is never attempted.  That's shy
-> 
+This code has been touched by many folks, and it's impossible to give
+credit to everyone, but I tried to mention significant contributions
+in the patch headers.  Please let me know if I missed anyone.
 
-Ok. I did enable CONFIG_OMAP_RESET_CLOCKS. But with your config file
-only PER and CORE did not go to retention. One difference is that I did
-not enable smartreflex, but as B5 (and B4) are using OMAP3s without
-proper efuse values, smartreflex shouldn't matter I assume ?
+This series currently applies on top of the large clock update series
+sent by Paul Walmsley.  I will rebase onto RMKs clock merge when
+it is ready and available.
 
-I upgrade my u-boot to the latest version, and then PER went to
-retention as well. 
+Paul's series is in the 'staging/paul-clock1' branch of my
+linux-omap-pm git repo.  This series is pushed on top of that
+in the 'staging/pm-upstream' branch.  
 
-The only way to get core to retention was to force idle USBOTG and
-disable the USBOTG driver.
+Kevin
 
-Dynamic retention seems to work only once the system has been in static
-retention once.
 
-Static off mode seems to work, but resume from off kills the UART. The
-system seems to run though, at least LED0 flickers as usual when the
-system runs. Sometimes it hangs and I have seen one reboot.
+Jouni Hogander (1):
+  OMAP: Add new function to check wether there is irq pending
 
-> 
-> > Which rootfs are you using, I'm using debian, so maybe something
-> > keeps the CPU busy. Are you using NAND or MMC to store your rootfs ?
-> 
-> I'm using rootfs on MMC and have tested with busybox-only, debian and
-> OE rootfs.  With debian and OE, I usually boot a minimal rootfs,
-> before a full userland comes up.  With debian, I changed my
-> /etc/init.d/rcS to start initlevel 1 instead of 'S'.
-> 
+Kalle Jokiniemi (1):
+  OMAP3: PM: SmartReflex driver integration
 
-Ok. I tried with both the small OE ramdisk image and rather minimal debian 
-install. I didn't see a difference in behaviour between both.
+Kevin Hilman (1):
+  OMAP2/3: PM: push core PM code from linux-omap
 
-> > And which u-boot are you using ?
-> 
-> I'm using the u-boot from Steve Sakoman's tree[1].  That helped a lot
-> in my initial Beagle testing, but I think the kernel should reset the
-> IVA and D2D now which is the domains that I was having problems with
-> before, so I think that the out of the box u-boot should work fine.
-> 
+ arch/arm/mach-omap2/Makefile               |    4 +
+ arch/arm/mach-omap2/irq.c                  |   17 +-
+ arch/arm/mach-omap2/pm-debug.c             |  157 ++++++
+ arch/arm/mach-omap2/pm.c                   |  154 +++---
+ arch/arm/mach-omap2/pm.h                   |   32 ++
+ arch/arm/mach-omap2/pm24xx.c               |  545 ++++++++++++++++++++
+ arch/arm/mach-omap2/pm34xx.c               |  695 +++++++++++++++++++++++++
+ arch/arm/mach-omap2/prm-regbits-34xx.h     |   20 +-
+ arch/arm/mach-omap2/sleep34xx.S            |  544 ++++++++++++++++++++
+ arch/arm/mach-omap2/smartreflex.c          |  762 ++++++++++++++++++++++++++++
+ arch/arm/mach-omap2/smartreflex.h          |  259 ++++++++++
+ arch/arm/plat-omap/Kconfig                 |   31 ++
+ arch/arm/plat-omap/include/mach/control.h  |   18 +
+ arch/arm/plat-omap/include/mach/irqs.h     |    1 +
+ arch/arm/plat-omap/include/mach/omap34xx.h |    3 +-
+ arch/arm/plat-omap/include/mach/pm.h       |   77 +---
+ 16 files changed, 3169 insertions(+), 150 deletions(-)
+ create mode 100644 arch/arm/mach-omap2/pm-debug.c
+ create mode 100644 arch/arm/mach-omap2/pm.h
+ create mode 100644 arch/arm/mach-omap2/pm24xx.c
+ create mode 100644 arch/arm/mach-omap2/pm34xx.c
+ create mode 100644 arch/arm/mach-omap2/sleep34xx.S
+ create mode 100644 arch/arm/mach-omap2/smartreflex.c
+ create mode 100644 arch/arm/mach-omap2/smartreflex.h
 
-I upgraded to this u-boot and it resolved at least one issue. 
-
-Cheers,
-
-Peter.
-
--- 
-goa is a state of mind
