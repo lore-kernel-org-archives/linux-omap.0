@@ -1,104 +1,66 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
+From: Koen Kooi <k.kooi@student.utwente.nl>
 Subject: Re: new PM branch available
-Date: Wed, 04 Feb 2009 08:04:54 -0800
-Message-ID: <87eiye89y1.fsf@deeprootsystems.com>
-References: <87iqoij2me.fsf@deeprootsystems.com>
-	<20090202174532.GJ4954@codecarver.research.nokia.com>
-	<87wsc8bp79.fsf@deeprootsystems.com>
-	<20090204005228.GA30147@codecarver.research.nokia.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Date: Wed, 4 Feb 2009 17:15:38 +0100
+Message-ID: <975E7C45-55D7-4468-8C21-8EFB737ED60A@student.utwente.nl>
+References: <87iqoij2me.fsf@deeprootsystems.com> <20090202174532.GJ4954@codecarver.research.nokia.com> <87wsc8bp79.fsf@deeprootsystems.com> <20090204005228.GA30147@codecarver.research.nokia.com> <87eiye89y1.fsf@deeprootsystems.com>
+Mime-Version: 1.0 (Apple Message framework v930.3)
+Content-Type: multipart/signed; protocol="application/pgp-signature"; micalg=pgp-sha1; boundary="Apple-Mail-1--93615413"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from yw-out-2324.google.com ([74.125.46.30]:65143 "EHLO
-	yw-out-2324.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751807AbZBDQFD (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 4 Feb 2009 11:05:03 -0500
-Received: by yw-out-2324.google.com with SMTP id 9so941953ywe.1
-        for <linux-omap@vger.kernel.org>; Wed, 04 Feb 2009 08:05:01 -0800 (PST)
-In-Reply-To: <20090204005228.GA30147@codecarver.research.nokia.com> (Peter De Schrijver's message of "Wed\, 4 Feb 2009 02\:52\:28 +0200")
+Received: from mx1.utsp.utwente.nl ([130.89.2.12]:41149 "EHLO mx.utwente.nl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752764AbZBDQRj (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 4 Feb 2009 11:17:39 -0500
+In-Reply-To: <87eiye89y1.fsf@deeprootsystems.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Peter 'p2' De Schrijver <peter.de-schrijver@nokia.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Kevin Hilman <khilman@deeprootsystems.com>
+Cc: Peter 'p2' De Schrijver <peter.de-schrijver@nokia.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-"Peter 'p2' De Schrijver" <peter.de-schrijver@nokia.com> writes:
+This is an OpenPGP/MIME signed message (RFC 2440 and 3156)
+--Apple-Mail-1--93615413
+Content-Type: text/plain; charset=US-ASCII; format=flowed; delsp=yes
+Content-Transfer-Encoding: 7bit
 
-> Hi Kevin,
+
+Op 4 feb 2009, om 17:04 heeft Kevin Hilman het volgende geschreven:
+
+> "Peter 'p2' De Schrijver" <peter.de-schrijver@nokia.com> writes:
 >
->> Hi Peter,
->> 
->> "Peter 'p2' De Schrijver" <peter.de-schrijver@nokia.com> writes:
->> 
->> 
->> A first guess: this sounds like CONFIG_OMAP_RESET_CLOCKS=y is missing
->> from your .config.
->> 
->> The MPU/NEON going active but not RET is an indication to me that some
->> fclk is active so that the fclk check in omap3_can_sleep() fails, so a
->> WFI is never attempted.  That's shy
->> 
+>> Dynamic retention seems to work only once the system has been in  
+>> static
+>> retention once.
+>>
+>> Static off mode seems to work, but resume from off kills the UART.  
+>> The
+>> system seems to run though, at least LED0 flickers as usual when the
+>> system runs. Sometimes it hangs and I have seen one reboot.
 >
-> Ok. I did enable CONFIG_OMAP_RESET_CLOCKS. But with your config file
-> only PER and CORE did not go to retention. One difference is that I did
-> not enable smartreflex, but as B5 (and B4) are using OMAP3s without
-> proper efuse values, smartreflex shouldn't matter I assume ?
+> I have noticed this as well.
 >
-> I upgrade my u-boot to the latest version, and then PER went to
-> retention as well. 
+> I haven't looked at all at the T2 scripts being used on Beagle.  Do
+> you think some of these issues may be related to those scripts?
 
-Did you happen to notice what was keeping PER out of retention before
-the u-boot upgrade?  Looks like we might still need some init-time
-reset code to compensate for bootloaders.
+The scripts prevent 'reboot' from working, disabling them makes it  
+work again (on beagle).
 
-> The only way to get core to retention was to force idle USBOTG and
-> disable the USBOTG driver.
+regards,
 
-This is the same issue on 3430SDP.  The PM branch code does the
-force-idle, and I usually have USB built as modules and not loaded
-when I do the tests.
+Koen
 
-I'm guessing this is a result of u-boot configuring/using USB.
+--Apple-Mail-1--93615413
+content-type: application/pgp-signature; x-mac-type=70674453;
+	name=PGP.sig
+content-description: Dit deel van het bericht is digitaal ondertekend
+content-disposition: inline; filename=PGP.sig
+content-transfer-encoding: 7bit
 
-> Dynamic retention seems to work only once the system has been in static
-> retention once.
->
-> Static off mode seems to work, but resume from off kills the UART. The
-> system seems to run though, at least LED0 flickers as usual when the
-> system runs. Sometimes it hangs and I have seen one reboot.
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.5 (Darwin)
 
-I have noticed this as well.
+iD8DBQFJib8sMkyGM64RGpERAkV1AKCZxPRHziCCp19iC/yxixiQ2/Jy7wCfY2Ka
+Oi4O2Ip/zHEQOueBLWmNUqA=
+=6La7
+-----END PGP SIGNATURE-----
 
-I haven't looked at all at the T2 scripts being used on Beagle.  Do
-you think some of these issues may be related to those scripts?
-
-Kevin
-
->> 
->> > Which rootfs are you using, I'm using debian, so maybe something
->> > keeps the CPU busy. Are you using NAND or MMC to store your rootfs ?
->> 
->> I'm using rootfs on MMC and have tested with busybox-only, debian and
->> OE rootfs.  With debian and OE, I usually boot a minimal rootfs,
->> before a full userland comes up.  With debian, I changed my
->> /etc/init.d/rcS to start initlevel 1 instead of 'S'.
->> 
->
-> Ok. I tried with both the small OE ramdisk image and rather minimal debian 
-> install. I didn't see a difference in behaviour between both.
->
->> > And which u-boot are you using ?
->> 
->> I'm using the u-boot from Steve Sakoman's tree[1].  That helped a lot
->> in my initial Beagle testing, but I think the kernel should reset the
->> IVA and D2D now which is the domains that I was having problems with
->> before, so I think that the out of the box u-boot should work fine.
->> 
->
-> I upgraded to this u-boot and it resolved at least one issue. 
->
-> Cheers,
->
-> Peter.
->
-> -- 
-> goa is a state of mind
+--Apple-Mail-1--93615413--
