@@ -1,46 +1,104 @@
-From: Gary Thomas <gary@mlbassoc.com>
-Subject: Re: OMAP TV video
-Date: Wed, 04 Feb 2009 08:33:07 -0700
-Message-ID: <4989B533.9080303@mlbassoc.com>
-References: <4989ACE1.7050409@mlbassoc.com> <20090204151541.GC22351@localhost>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: new PM branch available
+Date: Wed, 04 Feb 2009 08:04:54 -0800
+Message-ID: <87eiye89y1.fsf@deeprootsystems.com>
+References: <87iqoij2me.fsf@deeprootsystems.com>
+	<20090202174532.GJ4954@codecarver.research.nokia.com>
+	<87wsc8bp79.fsf@deeprootsystems.com>
+	<20090204005228.GA30147@codecarver.research.nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from 137-67-76-76-skybeam.com ([76.76.67.137]:1593 "EHLO
-	mail.chez-thomas.org" rhost-flags-OK-FAIL-OK-OK) by vger.kernel.org
-	with ESMTP id S1752313AbZBDPdP (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 4 Feb 2009 10:33:15 -0500
-In-Reply-To: <20090204151541.GC22351@localhost>
+Received: from yw-out-2324.google.com ([74.125.46.30]:65143 "EHLO
+	yw-out-2324.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751807AbZBDQFD (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 4 Feb 2009 11:05:03 -0500
+Received: by yw-out-2324.google.com with SMTP id 9so941953ywe.1
+        for <linux-omap@vger.kernel.org>; Wed, 04 Feb 2009 08:05:01 -0800 (PST)
+In-Reply-To: <20090204005228.GA30147@codecarver.research.nokia.com> (Peter De Schrijver's message of "Wed\, 4 Feb 2009 02\:52\:28 +0200")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Imre Deak <imre.deak@nokia.com>
+To: Peter 'p2' De Schrijver <peter.de-schrijver@nokia.com>
 Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Imre Deak wrote:
-> On Wed, Feb 04, 2009 at 03:57:37PM +0100, ext Gary Thomas wrote:
->> Note: if this is the wrong list, or if there's a better place
->> to ask these questions, please redirect me.
->>
->> I have an OMAP/Zoom1 (3430 LDP).  I'm trying to use the
->> S-Video output, without much success.  Today, I grabbed
->> the latest tree (as least from what I can gather from various
->> web pages) from git://git.omapzoom.org/repo/omapkernel.git
->>
->> When I try to use the TV, the kernel crashes immediately:
->> Unhandled fault: external abort on non-linefetch (0x1008) at 0xd8050440
-> 
-> I'm guessing that the external abort is caused by the DSS interface
-> clock being disabled.
+"Peter 'p2' De Schrijver" <peter.de-schrijver@nokia.com> writes:
 
-How can I fix it?  Am I missing some setup?
+> Hi Kevin,
+>
+>> Hi Peter,
+>> 
+>> "Peter 'p2' De Schrijver" <peter.de-schrijver@nokia.com> writes:
+>> 
+>> 
+>> A first guess: this sounds like CONFIG_OMAP_RESET_CLOCKS=y is missing
+>> from your .config.
+>> 
+>> The MPU/NEON going active but not RET is an indication to me that some
+>> fclk is active so that the fclk check in omap3_can_sleep() fails, so a
+>> WFI is never attempted.  That's shy
+>> 
+>
+> Ok. I did enable CONFIG_OMAP_RESET_CLOCKS. But with your config file
+> only PER and CORE did not go to retention. One difference is that I did
+> not enable smartreflex, but as B5 (and B4) are using OMAP3s without
+> proper efuse values, smartreflex shouldn't matter I assume ?
+>
+> I upgrade my u-boot to the latest version, and then PER went to
+> retention as well. 
 
-How am I supposed to use the S-Video (TV) interface?  Currently,
-I'm executing this (which used to work):
-  echo tv >/sys/class/display_control/omap_disp_control/graphics
+Did you happen to notice what was keeping PER out of retention before
+the u-boot upgrade?  Looks like we might still need some init-time
+reset code to compensate for bootloaders.
 
--- 
-------------------------------------------------------------
-Gary Thomas                 |  Consulting for the
-MLB Associates              |    Embedded world
-------------------------------------------------------------
+> The only way to get core to retention was to force idle USBOTG and
+> disable the USBOTG driver.
+
+This is the same issue on 3430SDP.  The PM branch code does the
+force-idle, and I usually have USB built as modules and not loaded
+when I do the tests.
+
+I'm guessing this is a result of u-boot configuring/using USB.
+
+> Dynamic retention seems to work only once the system has been in static
+> retention once.
+>
+> Static off mode seems to work, but resume from off kills the UART. The
+> system seems to run though, at least LED0 flickers as usual when the
+> system runs. Sometimes it hangs and I have seen one reboot.
+
+I have noticed this as well.
+
+I haven't looked at all at the T2 scripts being used on Beagle.  Do
+you think some of these issues may be related to those scripts?
+
+Kevin
+
+>> 
+>> > Which rootfs are you using, I'm using debian, so maybe something
+>> > keeps the CPU busy. Are you using NAND or MMC to store your rootfs ?
+>> 
+>> I'm using rootfs on MMC and have tested with busybox-only, debian and
+>> OE rootfs.  With debian and OE, I usually boot a minimal rootfs,
+>> before a full userland comes up.  With debian, I changed my
+>> /etc/init.d/rcS to start initlevel 1 instead of 'S'.
+>> 
+>
+> Ok. I tried with both the small OE ramdisk image and rather minimal debian 
+> install. I didn't see a difference in behaviour between both.
+>
+>> > And which u-boot are you using ?
+>> 
+>> I'm using the u-boot from Steve Sakoman's tree[1].  That helped a lot
+>> in my initial Beagle testing, but I think the kernel should reset the
+>> IVA and D2D now which is the domains that I was having problems with
+>> before, so I think that the out of the box u-boot should work fine.
+>> 
+>
+> I upgraded to this u-boot and it resolved at least one issue. 
+>
+> Cheers,
+>
+> Peter.
+>
+> -- 
+> goa is a state of mind
