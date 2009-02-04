@@ -1,83 +1,118 @@
-From: Imre Deak <imre.deak@nokia.com>
-Subject: Re: OMAP TV video
-Date: Wed, 4 Feb 2009 17:15:41 +0200
-Message-ID: <20090204151541.GC22351@localhost>
-References: <4989ACE1.7050409@mlbassoc.com>
+From: "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>
+Subject: RE: Missing first 4 frames
+Date: Wed, 4 Feb 2009 09:22:13 -0600
+Message-ID: <A24693684029E5489D1D202277BE894420665A17@dlee02.ent.ti.com>
+References: <ca6476860902040437h710ab4echd5e837502ce796d3@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:55193 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756596AbZBDPTf (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 4 Feb 2009 10:19:35 -0500
-Content-Disposition: inline
-In-Reply-To: <4989ACE1.7050409@mlbassoc.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:35429 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750837AbZBDPWU convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 4 Feb 2009 10:22:20 -0500
+In-Reply-To: <ca6476860902040437h710ab4echd5e837502ce796d3@mail.gmail.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: ext Gary Thomas <gary@mlbassoc.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: halli manjunatha <hallimanju@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Cc: "Nagalla, Hari" <hnagalla@ti.com>
 
-On Wed, Feb 04, 2009 at 03:57:37PM +0100, ext Gary Thomas wrote:
-> Note: if this is the wrong list, or if there's a better place
-> to ask these questions, please redirect me.
-> 
-> I have an OMAP/Zoom1 (3430 LDP).  I'm trying to use the
-> S-Video output, without much success.  Today, I grabbed
-> the latest tree (as least from what I can gather from various
-> web pages) from git://git.omapzoom.org/repo/omapkernel.git
-> 
-> When I try to use the TV, the kernel crashes immediately:
-> Unhandled fault: external abort on non-linefetch (0x1008) at 0xd8050440
 
-I'm guessing that the external abort is caused by the DSS interface
-clock being disabled.
 
---Imre
+> -----Original Message-----
+> From: video4linux-list-bounces@redhat.com [mailto:video4linux-list-
+> bounces@redhat.com] On Behalf Of halli manjunatha
+> Sent: Wednesday, February 04, 2009 6:37 AM
+> To: video4linux-list@redhat.com
+> Subject: Missing first 4 frames
+> 
+> Hi ,
+>        I am working on omap3 custom board and using the TI's camera
+> patches
+> on 2.6.28 kernel  and the problem is that first 4 frames are coming 1/4 of
+> HVGA but i am capturing HVGA  images. after 4 frames everything is normal.
 
-> Internal error: : 1008 [#1]
-> Modules linked in:
+Hi,
+
+(Looping linux-omap ML, and replacing v4l with linux-media ML)
+
+I have some questions for you:
+
+- The camera sensor you are using, is it:
+	- Interfaced to OMAP through: Parallel, CCP2, or CSI2?
+	- Raw (without internal ISP: Image Signal Processing) or smart (With ISP)
+	- Which pixel format are you requesting?
+
+- Which patchset did you use? The ones submitted on:
+	- 12 Jan 2009 or
+	- 12 Dec 2008
+
+- The frames you're getting are stored with a wrong filesize? Or you're getting an incomplete frame?
+
+- Can you describe me the steps you take for capturing (if its possible, your V4L2 test app source)
+
+Regards,
+Sergio
+
 > 
-> CPU: 0    Not tainted  (2.6.27.10-omap1-00181-gc9fd795 #1)
-> PC is at omap2_disp_enable_output_dev+0x30/0x44
-> LR is at write_layer_out+0x118/0x220
-> pc : [<c0053a84>]    lr : [<c018f3d4>]    psr: 60000013
-> sp : c7963ec8  ip : c7963ed8  fp : c7963ed4
-> r10: c7963f70  r9 : c7940e78  r8 : c039c8f0
-> r7 : 00000000  r6 : 00000003  r5 : c78626f8  r4 : c03c3c44
-> r3 : 00000000  r2 : d8050000  r1 : 00000003  r0 : 00000005
-> Flags: nZCv  IRQs on  FIQs on  Mode SVC_32  ISA ARM  Segment user
-> Control: 00c5387f  Table: 87320018  DAC: 00000015
-> Process echo (pid: 723, stack limit = 0xc79622e0)
+>       I don't wether it is the right list to say this problem, please guid
+> me where to look, following is my register dump
 > 
-> kernel version: Linux version 2.6.27.10-omap1-00181-gc9fd795
-> config: omap_ldp_defconfig
 > 
-> Notes:
-> * An older kernel (circa 2008-12-01) does not crash.  The
->   TV output is not correct, but at least it doesn't crash.
-> * How can I turn off the double printk()?  All kernel messages
->   get duplicated and it makes it terribly hard to use.  e.g.
+> ###CM_FCLKEN_CAM=0x3
+> ###CM_ICLKEN_CAM=0x1
+> ###CM_CLKSEL_CAM=0x4
+> ###CM_AUTOIDLE_CAM=0x1
+> ###CM_CLKEN_PLL[18:16] should be 0x7, = 0x90371037
+> ###CM_CLKSEL2_PLL[18:8] should be 0x2D, [6:0] should be 1 = 0x1b00c
+> ###CTRL_PADCONF_CAM_HS=0x1080108
+> ###CTRL_PADCONF_CAM_XCLKA=0x1080108
+> ###CTRL_PADCONF_CAM_D1=0x1000100
+> ###CTRL_PADCONF_CAM_D3=0x1080100
+> ###CTRL_PADCONF_CAM_D5=0x1080108
+> ###CTRL_PADCONF_CAM_D7=0x1080108
+> ###CTRL_PADCONF_CAM_D9=0x1080108
+> ###CTRL_PADCONF_CAM_D11=0x108
+> ###ISP_CTRL=0x3bf188
+> ###ISP_TCTRL_CTRL=0x9
+> ###ISP_SYSCONFIG=0x2000
+> ###ISP_SYSSTATUS=0x1
+> ###ISP_IRQ0ENABLE=0x90000300
+> ###ISP_IRQ0STATUS=0x0
+> ###CCDC PCR=0x1
+> ISP_CTRL =0x3bf188
+> ###ISP_CTRL in ccdc =0x3bf188
+> ###ISP_IRQ0ENABLE in ccdc =0x90000300
+> ###ISP_IRQ0STATUS in ccdc =0x0
+> ###CCDC SYN_MODE=0x31700
+> ###CCDC HORZ_INFO=0x13f
+> ###CCDC VERT_START=0x0
+> ###CCDC VERT_LINES=0x1df
+> ###CCDC CULLING=0xffff00ff
+> ###CCDC HSIZE_OFF=0x280
+> ###CCDC SDOFST=0x0
+> ###CCDC SDR_ADDR=0x4000000
+> ###CCDC CLAMP=0x10
+> ###CCDC COLPTN=0x0
+> ###CCDC CFG=0x8000
+> ###CCDC VP_OUT=0x0
+> ###CCDC_SDR_ADDR= 0x4000000
+> ###CCDC FMTCFG=0x4000
+> ###CCDC FMT_HORZ=0x0
+> ###CCDC FMT_VERT=0x0
+> ###CCDC LSC_CONFIG=0x6600
+> ###CCDC LSC_INIT=0x0
+> ###CCDC LSC_TABLE BASE=0x0
+> ###CCDC LSC TABLE OFFSET=0x0
 > 
->     <5>Looking up port of RPC 100003/2 on 192.168.1.100
->     Looking up port of RPC 100003/2 on 192.168.1.100
->     <5>Looking up port of RPC 100005/1 on 192.168.1.100
->     Looking up port of RPC 100005/1 on 192.168.1.100
->     VFS: Mounted root (nfs filesystem).
->     VFS: Mounted root (nfs filesystem).
-> 
->   Other kernels (PowerPC, etc) don't suffer from this.
-> * This kernel version is very unstable - it simply quits after
->   just a few moments of running.  I didn't see this with the
->   older kernel.
-> 
-> Thanks for any ideas/pointers
-> 
+> Thanks in advance
 > --
-> ------------------------------------------------------------
-> Gary Thomas                 |  Consulting for the
-> MLB Associates              |    Embedded world
-> ------------------------------------------------------------
+> Regards
+> 
+> Hall
 > --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> video4linux-list mailing list
+> Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
+> https://www.redhat.com/mailman/listinfo/video4linux-list
+
