@@ -1,35 +1,77 @@
-From: "TK, Pratheesh Gangadhar" <pratheesh@ti.com>
-Subject: RE: Anyone get the TI/PowerVR stuff working?
-Date: Wed, 4 Feb 2009 11:46:06 +0530
-Message-ID: <B85A65D85D7EB246BE421B3FB0FBB59301C70FF1C1@dbde02.ent.ti.com>
-References: <048498231b3317298ee233d78d65c194.squirrel@localhost>
- <6E8DB4E1-2500-401C-9DDB-D6AF694F87C2@student.utwente.nl>
+From: Ramesh Gupta Guntha <grgupta77@gmail.com>
+Subject: Re: PM branch updates: 3430sdp and omap3evm results
+Date: Wed, 4 Feb 2009 11:54:23 +0530
+Message-ID: <3a2dabf50902032224u740e0039t4f16f5aa0952d0d7@mail.gmail.com>
+References: <87fxj4ty1l.fsf@deeprootsystems.com>
+	 <3a2dabf50902010605n4f642d21p35d76f1eef8fa908@mail.gmail.com>
+	 <3a2dabf50902032134tf769d73m5fe7837e6d6c79a2@mail.gmail.com>
+	 <877i46ahcn.fsf@deeprootsystems.com>
+	 <3a2dabf50902032144i24a539a4i887b0153e81d1e9e@mail.gmail.com>
+	 <871vueag1z.fsf@deeprootsystems.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:60320 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754219AbZBDGQY convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 4 Feb 2009 01:16:24 -0500
-In-Reply-To: <6E8DB4E1-2500-401C-9DDB-D6AF694F87C2@student.utwente.nl>
-Content-Language: en-US
+Received: from rv-out-0506.google.com ([209.85.198.230]:44897 "EHLO
+	rv-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751067AbZBDGYY (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 4 Feb 2009 01:24:24 -0500
+Received: by rv-out-0506.google.com with SMTP id k40so2410249rvb.1
+        for <linux-omap@vger.kernel.org>; Tue, 03 Feb 2009 22:24:23 -0800 (PST)
+In-Reply-To: <871vueag1z.fsf@deeprootsystems.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Koen Kooi <k.kooi@student.utwente.nl>, "linux-omap@vger.kernel.org List" <linux-omap@vger.kernel.org>
+To: Kevin Hilman <khilman@deeprootsystems.com>
+Cc: linux-omap@vger.kernel.org
 
------Original Message-----
-From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Koen Kooi
-Sent: Wednesday, February 04, 2009 1:50 AM
-To: linux-omap@vger.kernel.org List
-Subject: Re: Anyone get the TI/PowerVR stuff working?
+Hi Kevin,
 
-I have the 1.3.1397 GPLv2 kernel drivers working (http://www.bat.org/~tomba/git/omap3-sgx.git/ 
-) working with the yet-to-be-released 1.3.1397 userspace and Tomi's  
-DSS2 patches. The release is scheduled to be 'soon', but I've heard  
-rumours that WTBU customers can download it already.
 
-> When I tried last using DSS2, I was getting "no flipping error" and flickery output. Is there a fix for this ?
+On 2/4/09, Kevin Hilman <khilman@deeprootsystems.com> wrote:
+> Ramesh Gupta Guntha <grgupta77@gmail.com> writes:
+>
+> > Kevin,
+> >
+> >
+> > On 2/4/09, Kevin Hilman <khilman@deeprootsystems.com> wrote:
+> >> Ramesh Gupta Guntha <grgupta77@gmail.com> writes:
+> >>
+> >> > Hi,
+> >> >
+> >> >  I am able to resolve all other issues with this pm branch except one issue,
+> >> >
+> >> > I am not able to enable the iva2 clock once system is suspended and
+> >> > resumed, I am getting below messages.
+> >> >>
+> >> >> <3>clock: dpll2_ck failed transition to 'locked'
+> >> >> clock: dpll2_ck failed transition to 'locked'
+> >> >> <3>clock: dpll2_ck failed transition to 'locked'
+> >> >> clock: dpll2_ck failed transition to 'locked'
+> >> >
+> >> > Once after booting ( without adding bridgedriver/ installing bridgedriver)
+> >> > CM_CLKEN_PLL_IVA2 value shows as 0x37 indicates IVA2 DPLL in locked mode.
+> >> >
+> >> > once after system suspend the value is not restored I am seeing that as
+> >> >  0x11 indicates IVA2 DPLL is low power stop mode.
+> >> >
+> >> > Can any one please provide your inputs on the above error? I tried
+> >> > reconfiguring the CM_CLKEN_PLL_IVA2 to lock mode but still I am seeing
+> >> > the same messages as above while enabling iva2 clock.
+> >>
+> >> Are you suspending into retention or off-mode?
+> >
+> > I am suspending into Off mode.
+> >
+>
+> Do you see this problem when only going into retention?
+>
+> If not, sounds like we're missing some registers being saved/restored
+> across off-mode.
 
-Regards,
-Pratheeh
+I am seeing this issue only with OFF mode , retention works fine for me,
+yeah, looks like some registers are not restored properly across off mode.
+please let me know your inputs on this.
+
+-- 
+Thanks
+Ramesh Gupta G
