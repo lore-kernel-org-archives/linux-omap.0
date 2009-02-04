@@ -1,127 +1,89 @@
-From: Shreyas Mahajan <mahajan.shreyas@gmail.com>
-Subject: Re: Omap3430 does not resume after suspend
-Date: Wed, 4 Feb 2009 12:00:04 +0530
-Message-ID: <d105d8d00902032230w2a5ff7a3yd3511002cbcc9850@mail.gmail.com>
-References: <d105d8d00901300124i60025abete9f0b0e86d676f82@mail.gmail.com>
-	 <B85A65D85D7EB246BE421B3FB0FBB59301C7069769@dbde02.ent.ti.com>
-	 <d105d8d00902022214r4f67ecdcp4ce153f0c88cb512@mail.gmail.com>
-	 <B85A65D85D7EB246BE421B3FB0FBB59301C70FEB63@dbde02.ent.ti.com>
+From: <jouni.hogander@nokia.com>
+Subject: RE: PM branch updates: 3430sdp and omap3evm results
+Date: Wed, 4 Feb 2009 07:34:58 +0100
+Message-ID: <6DE24BE3F4BE384E84BFB60F2B7F0834036C46762F@NOK-EUMSG-02.mgdnok.nokia.com>
+References: <87fxj4ty1l.fsf@deeprootsystems.com>
+	<3a2dabf50902010605n4f642d21p35d76f1eef8fa908@mail.gmail.com>
+	<3a2dabf50902032134tf769d73m5fe7837e6d6c79a2@mail.gmail.com>
+	<877i46ahcn.fsf@deeprootsystems.com>
+	<3a2dabf50902032144i24a539a4i887b0153e81d1e9e@mail.gmail.com>
+ <871vueag1z.fsf@deeprootsystems.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from wa-out-1112.google.com ([209.85.146.180]:8467 "EHLO
-	wa-out-1112.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751129AbZBDGaG convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 4 Feb 2009 01:30:06 -0500
-Received: by wa-out-1112.google.com with SMTP id v33so1177498wah.21
-        for <linux-omap@vger.kernel.org>; Tue, 03 Feb 2009 22:30:04 -0800 (PST)
-In-Reply-To: <B85A65D85D7EB246BE421B3FB0FBB59301C70FEB63@dbde02.ent.ti.com>
+Received: from smtp.nokia.com ([192.100.122.233]:37294 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751007AbZBDGfQ convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 4 Feb 2009 01:35:16 -0500
+In-Reply-To: <871vueag1z.fsf@deeprootsystems.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Premi, Sanjeev" <premi@ti.com>, linux-omap@vger.kernel.org
+To: khilman@deeprootsystems.com, grgupta77@gmail.com
+Cc: linux-omap@vger.kernel.org
 
- Hi,
-    Thanks for constantly tolerating my ignorance. I git-cloned the
-latest PM tree available and booted my 3430 LDP board with ldp
-defconfig configuration. Now the problem regarding hanging of machine
-after some small interval is solved but when I done 'echo mem
->/sys/power/state' it gives error to suspend,
-This is log for it,
-
-'/ # echo mem > /sys/power/state
-<6>PM: Syncing filesystems ... PM: Syncing filesystems ... done.
-done.
-=46reezing user space processes ... Freezing user space processes ...
-(elapsed 0.00 seconds) (elapsed 0.00 seconds) done.
-done.
-=46reezing remaining freezable tasks ... Freezing remaining freezable
-tasks ... (elapsed 0=EF=BF=BD=02)=EF=BF=BD=EF=BF=BD=EF=BF=BD=EF=BF=BDr$=
-=EF=BF=BDPowerdomain (core_pwrdm) d1
-Powerdomain (per_pwrdm) didn't enter target state 1
-             =EF=BF=BD*43
-Could not enter target state in pm_suspendend to debug)
-=EF=BF=BD=021=EF=BF=BD=D5=BC=EF=BF=BD=EF=BF=BD=EF=BF=BD,=02=E6=A3=AE=EF=
-=BF=BD=D1=A0r=EF=BF=BD=EF=BF=BD
-Restarting tasks ... Restarting tasks ... done.%=EF=BF=BD=EF=BF=BD=EF=BF=
-=BD=EF=BF=BD=EF=BF=BD=EF=BF=BD=EF=BF=BD=EF=BF=BD J$=EF=BF=BD4%=EF=BF=BD=
-%=06=D1=B4=EF=BF=BD*43
-done.F=EF=BF=BD=F3=B0=AF=85)=EF=BF=BD=EF=BF=BD=EF=BF=BD=EF=BF=BD=EF=BF=BD=
-=EF=BF=BD=EF=BF=BD=EF=BF=BD=EF=BF=BD=EF=BF=BD=EF=BF=BD=EF=BF=BD J$=EF=BF=
-=BD4%=EF=BF=BD%=06=D1=B4=EF=BF=BD*43
-'
-I searched similar problems on mailing list, in which suspend log
-contains exactly which process could not be stopped as reason to
-suspend failure. But in above log, I could not interpret such a
-reason.
-         Could anyone please help me with this?
-
-On Tue, Feb 3, 2009 at 3:02 PM, Premi, Sanjeev <premi@ti.com> wrote:
->> -----Original Message-----
->> From: Shreyas Mahajan [mailto:mahajan.shreyas@gmail.com]
->> Sent: Tuesday, February 03, 2009 11:44 AM
->> To: Premi, Sanjeev; linux-omap@vger.kernel.org
->> Subject: Re: Omap3430 does not resume after suspend
+>-----Original Message-----
+>From: linux-omap-owner@vger.kernel.org
+>[mailto:linux-omap-owner@vger.kernel.org] On Behalf Of ext Kevin Hilman
+>Sent: 04.02.2009 08:10
+>To: Ramesh Gupta Guntha
+>Cc: linux-omap@vger.kernel.org
+>Subject: Re: PM branch updates: 3430sdp and omap3evm results
+>
+>Ramesh Gupta Guntha <grgupta77@gmail.com> writes:
+>
+>> Kevin,
 >>
->> On Fri, Jan 30, 2009 at 7:32 PM, Premi, Sanjeev <premi@ti.com> wrote=
-:
->> >
->> > > -----Original Message-----
->> > > From: linux-omap-owner@vger.kernel.org
->> > > [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Shreyas
->> > > Mahajan
->> > > Sent: Friday, January 30, 2009 2:54 PM
->> > > To: linux-omap@vger.kernel.org
->> > > Subject: Omap3430 does not resume after suspend
->> > >
->> > > Hello,
->> > >          I am a newbie with omap3430. As a part of my project, I
->> > > suspended my board with 'echo mem > /sys/power/state'.The suspen=
-d
->> > > happens correctly, without giving any failure message.
->> But, when I
->> > > tried it to resume, it is not resuming.I tried to find
->> some reasons
->> > > for this, and got the patches for unmasking keyboard
->> interrupt while
->> > > suspending. But, all patches are for omap2 and omap1 board
->> > > architecture.
->> > [sp] Are you following updates in Kevin Hilman's pm branch?
->> > With lastest updates you shouldn't see this problem on a
->> minimal config.
->> >
->> > Would be good to start from here and add drivers selectively.
->> >
->> > > Are there any patches to do this thing in omap3430?
->> >
->> > [sp] omap2 applies to OMAP3430 as well.
->> >
->> > >
->> > > Thanks,
->> > > --
->> > > To unsubscribe from this list: send the line "unsubscribe
->> > > linux-omap" in the body of a message to majordomo@vger.kernel.or=
-g
->> > > More majordomo info at http://vger.kernel.org/majordomo-info.htm=
-l
->> > >
->> > >
 >>
->> Thanks for reply.
->> I went through the Kevin Hilman's PM branch and found the
->> same problem posted by you (@Sanjeev),
+>> On 2/4/09, Kevin Hilman <khilman@deeprootsystems.com> wrote:
+>>> Ramesh Gupta Guntha <grgupta77@gmail.com> writes:
+>>>
+>>> > Hi,
+>>> >
+>>> >  I am able to resolve all other issues with this pm branch except
+>>> > one issue,
+>>> >
+>>> > I am not able to enable the iva2 clock once system is
+>suspended and
+>>> > resumed, I am getting below messages.
+>>> >>
+>>> >> <3>clock: dpll2_ck failed transition to 'locked'
+>>> >> clock: dpll2_ck failed transition to 'locked'
+>>> >> <3>clock: dpll2_ck failed transition to 'locked'
+>>> >> clock: dpll2_ck failed transition to 'locked'
+>>> >
+>>> > Once after booting ( without adding bridgedriver/ installing
+>>> > bridgedriver)
+>>> > CM_CLKEN_PLL_IVA2 value shows as 0x37 indicates IVA2 DPLL
+>in locked mode.
+>>> >
+>>> > once after system suspend the value is not restored I am seeing
+>>> > that as
+>>> >  0x11 indicates IVA2 DPLL is low power stop mode.
+>>> >
+>>> > Can any one please provide your inputs on the above
+>error? I tried
+>>> > reconfiguring the CM_CLKEN_PLL_IVA2 to lock mode but still I am
+>>> > seeing the same messages as above while enabling iva2 clock.
+>>>
+>>> Are you suspending into retention or off-mode?
 >>
->> 'Hangs on a echo mem > /sys/power/state
->> > Goes into suspend, but cannot recover'
->>
->> So, can you please tell me if this problem is solved?
+>> I am suspending into Off mode.
 >>
 >
-> [sp] Have not been able to follow-up in the latest tree for last coup=
-le of days, but with minimal driver configuration; this problem is solv=
-ed. I am in process of finding the 'offending' driver.
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>Do you see this problem when only going into retention?
+>
+>If not, sounds like we're missing some registers being
+>saved/restored across off-mode.
+
+This remids me about another issue which is with DPLL5. ROM code is not currently saving/restoring that. Maybe there is similar situation with DPLL2.
+
+>
+>Kevin
+>--
+>To unsubscribe from this list: send the line "unsubscribe
+>linux-omap" in the body of a message to
+>majordomo@vger.kernel.org More majordomo info at
+>http://vger.kernel.org/majordomo-info.html
+>
