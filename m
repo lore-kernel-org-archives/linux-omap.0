@@ -1,112 +1,132 @@
 From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: [PATCH 00/21] OMAP: update PM infrastructure
-Date: Wed,  4 Feb 2009 18:05:46 -0800
-Message-ID: <1233799567-22250-1-git-send-email-khilman@deeprootsystems.com>
+Subject: [PATCH 02/21] OMAP: Add new function to check wether there is irq pending
+Date: Wed,  4 Feb 2009 18:05:48 -0800
+Message-ID: <1233799567-22250-3-git-send-email-khilman@deeprootsystems.com>
+References: <1233799567-22250-1-git-send-email-khilman@deeprootsystems.com>
+ <1233799567-22250-2-git-send-email-khilman@deeprootsystems.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-gx0-f21.google.com ([209.85.217.21]:64350 "EHLO
-	mail-gx0-f21.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752485AbZBECGN (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 4 Feb 2009 21:06:13 -0500
-Received: by gxk14 with SMTP id 14so2466369gxk.13
-        for <linux-omap@vger.kernel.org>; Wed, 04 Feb 2009 18:06:11 -0800 (PST)
+Received: from an-out-0708.google.com ([209.85.132.244]:13429 "EHLO
+	an-out-0708.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756594AbZBECGa (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 4 Feb 2009 21:06:30 -0500
+Received: by an-out-0708.google.com with SMTP id c2so43anc.1
+        for <linux-omap@vger.kernel.org>; Wed, 04 Feb 2009 18:06:28 -0800 (PST)
+In-Reply-To: <1233799567-22250-2-git-send-email-khilman@deeprootsystems.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-arm-kernel@lists.arm.linux.org.uk
-Cc: linux-omap@vger.kernel.org
+Cc: linux-omap@vger.kernel.org, Jouni Hogander <jouni.hogander@nokia.com>, Tony Lindgren <tony@atomide.com>
 
-Here is a first pass at updating the core PM code for OMAP.
-High-level summary of this series:
+From: Jouni Hogander <jouni.hogander@nokia.com>
 
-- sync up PM core code from linux-omap
-- updated PM debug infrastructure
-- UART idle and off-mode support for PM development using serial console
+Add common omap2/3 function to check wether there is irq pending.
+Switch to use it in omap2 pm code instead of its own.
 
-Applies on top of the recent OMAP clock framework series from
-Paul Walmsley.
+Signed-off-by: Jouni Hogander <jouni.hogander@nokia.com>
+Signed-off-by: Tony Lindgren <tony@atomide.com>
+Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
+---
+ arch/arm/mach-omap2/irq.c              |   17 ++++++++++++++++-
+ arch/arm/mach-omap2/pm24xx.c           |   19 +++----------------
+ arch/arm/plat-omap/include/mach/irqs.h |    1 +
+ 3 files changed, 20 insertions(+), 17 deletions(-)
 
-Tested on 3430SDP and Beagle and am able to hit full-chip retention in
-idle and in suspend.
-
-This series is also available in the 'staging/pm-upstream' branch of
-my linux-omap-pm git tree[1]
-
-Kevin
-
-[1] http://git.kernel.org/?p=linux/kernel/git/khilman/linux-omap-pm.git;a=summary
---
-
-Jouni Hogander (2):
-  OMAP: Add new function to check wether there is irq pending
-  OMAP: UART: Add sysfs interface for adjusting UART sleep timeout
-
-Kalle Jokiniemi (1):
-  OMAP3: PM: SmartReflex driver integration
-
-Kevin Hilman (8):
-  OMAP2/3: PM: push core PM code from linux-omap
-  OMAP: Kconfig: move GP timer selection alongside other timer options
-  OMAP: dmtimer: enable all timers to be wakeup events
-  OMAP3: PM: Add wake-up bit defintiions for CONTROL_PADCONF_X
-  OMAP3: PM: UART: disable clocks when idle and off-mode support
-  OMAP3: PM: Force IVA2 into idle during bootup
-  OMAP3: PM: Add D2D clocks and auto-idle setup to PRCM init
-  OMAP3: PM: D2D clockdomain supports SW supervised transitions
-
-Peter 'p2' De Schrijver (8):
-  OMAP: PM counter infrastructure.
-  OMAP: PM: Hook into PM counters
-  OMAP: PM: Add closures to clkdm_for_each and pwrdm_for_each.
-  OMAP: PM: Add pm-debug counters
-  OMAP: PM debug: make powerdomains use PM-debug counters
-  OMAP: PM: Add definitions for ETK pads and observability registers
-  OMAP: Debug observability and ETK padconf implementation
-  OMAP: Add debug observablity (debobs) Kconfig item
-
-Tero Kristo (2):
-  OMAP: PM debug: do not print out status for meta powerdomains (dpll*)
-  OMAP: PM debug: Add PRCM register dump support
-
- arch/arm/mach-omap2/Kconfig                   |    2 +-
- arch/arm/mach-omap2/Makefile                  |    7 +
- arch/arm/mach-omap2/clock.c                   |    2 +
- arch/arm/mach-omap2/clock34xx.h               |   38 ++-
- arch/arm/mach-omap2/clockdomain.c             |   10 +-
- arch/arm/mach-omap2/clockdomains.h            |    2 +-
- arch/arm/mach-omap2/cm-regbits-34xx.h         |   14 +
- arch/arm/mach-omap2/debobs.c                  |  239 ++++++++
- arch/arm/mach-omap2/irq.c                     |   17 +-
- arch/arm/mach-omap2/pm-debug.c                |  539 +++++++++++++++++
- arch/arm/mach-omap2/pm.c                      |  154 +++---
- arch/arm/mach-omap2/pm.h                      |   40 ++
- arch/arm/mach-omap2/pm24xx.c                  |  559 ++++++++++++++++++
- arch/arm/mach-omap2/pm34xx.c                  |  763 +++++++++++++++++++++++++
- arch/arm/mach-omap2/powerdomain.c             |  110 ++++-
- arch/arm/mach-omap2/prcm-common.h             |    2 +
- arch/arm/mach-omap2/prm-regbits-34xx.h        |   20 +-
- arch/arm/mach-omap2/serial.c                  |  431 +++++++++++++-
- arch/arm/mach-omap2/sleep34xx.S               |  544 ++++++++++++++++++
- arch/arm/mach-omap2/smartreflex.c             |  762 ++++++++++++++++++++++++
- arch/arm/mach-omap2/smartreflex.h             |  259 +++++++++
- arch/arm/plat-omap/Kconfig                    |   53 ++
- arch/arm/plat-omap/dmtimer.c                  |    6 +-
- arch/arm/plat-omap/include/mach/clockdomain.h |    3 +-
- arch/arm/plat-omap/include/mach/common.h      |    2 -
- arch/arm/plat-omap/include/mach/control.h     |   74 +++-
- arch/arm/plat-omap/include/mach/debobs.h      |    7 +
- arch/arm/plat-omap/include/mach/irqs.h        |    1 +
- arch/arm/plat-omap/include/mach/omap34xx.h    |    3 +-
- arch/arm/plat-omap/include/mach/pm.h          |   77 +--
- arch/arm/plat-omap/include/mach/powerdomain.h |   15 +-
- arch/arm/plat-omap/include/mach/serial.h      |    9 +
- include/linux/serial_reg.h                    |    1 +
- 33 files changed, 4570 insertions(+), 195 deletions(-)
- create mode 100644 arch/arm/mach-omap2/debobs.c
- create mode 100755 arch/arm/mach-omap2/pm-debug.c
- create mode 100755 arch/arm/mach-omap2/pm.h
- create mode 100644 arch/arm/mach-omap2/pm24xx.c
- create mode 100644 arch/arm/mach-omap2/pm34xx.c
- create mode 100644 arch/arm/mach-omap2/sleep34xx.S
- create mode 100644 arch/arm/mach-omap2/smartreflex.c
- create mode 100644 arch/arm/mach-omap2/smartreflex.h
- create mode 100644 arch/arm/plat-omap/include/mach/debobs.h
+diff --git a/arch/arm/mach-omap2/irq.c b/arch/arm/mach-omap2/irq.c
+index 636e282..6d5b8c1 100644
+--- a/arch/arm/mach-omap2/irq.c
++++ b/arch/arm/mach-omap2/irq.c
+@@ -28,7 +28,6 @@
+ #define INTC_MIR_CLEAR0		0x0088
+ #define INTC_MIR_SET0		0x008c
+ #define INTC_PENDING_IRQ0	0x0098
+-
+ /* Number of IRQ state bits in each MIR register */
+ #define IRQ_BITS_PER_REG	32
+ 
+@@ -156,6 +155,22 @@ static void __init omap_irq_bank_init_one(struct omap_irq_bank *bank)
+ 	intc_bank_write_reg(1 << 0, bank, INTC_SYSCONFIG);
+ }
+ 
++int omap_irq_pending(void)
++{
++	int i;
++
++	for (i = 0; i < ARRAY_SIZE(irq_banks); i++) {
++		struct omap_irq_bank *bank = irq_banks + i;
++		int irq;
++
++		for (irq = 0; irq < bank->nr_irqs; irq += 32)
++			if (intc_bank_read_reg(bank, INTC_PENDING_IRQ0 +
++					       ((irq >> 5) << 5)))
++				return 1;
++	}
++	return 0;
++}
++
+ void __init omap_init_irq(void)
+ {
+ 	unsigned long nr_of_irqs = 0;
+diff --git a/arch/arm/mach-omap2/pm24xx.c b/arch/arm/mach-omap2/pm24xx.c
+index b3268c5..3e9ed3f 100644
+--- a/arch/arm/mach-omap2/pm24xx.c
++++ b/arch/arm/mach-omap2/pm24xx.c
+@@ -78,19 +78,6 @@ static int omap2_fclks_active(void)
+ 	return 0;
+ }
+ 
+-static int omap2_irq_pending(void)
+-{
+-	u32 pending_reg = 0x480fe098;
+-	int i;
+-
+-	for (i = 0; i < 4; i++) {
+-		if (omap_readl(pending_reg))
+-			return 1;
+-		pending_reg += 0x20;
+-	}
+-	return 0;
+-}
+-
+ static void omap2_enter_full_retention(void)
+ {
+ 	u32 l;
+@@ -129,7 +116,7 @@ static void omap2_enter_full_retention(void)
+ 
+ 	/* One last check for pending IRQs to avoid extra latency due
+ 	 * to sleeping unnecessarily. */
+-	if (omap2_irq_pending())
++	if (omap_irq_pending())
+ 		goto no_sleep;
+ 
+ 	/* Jump to SRAM suspend code */
+@@ -275,13 +262,13 @@ static void omap2_pm_idle(void)
+ 	local_fiq_disable();
+ 
+ 	if (!omap2_can_sleep()) {
+-		if (!atomic_read(&sleep_block) && omap2_irq_pending())
++		if (!atomic_read(&sleep_block) && omap_irq_pending())
+ 			goto out;
+ 		omap2_enter_mpu_retention();
+ 		goto out;
+ 	}
+ 
+-	if (omap2_irq_pending())
++	if (omap_irq_pending())
+ 		goto out;
+ 
+ 	omap2_enter_full_retention();
+diff --git a/arch/arm/plat-omap/include/mach/irqs.h b/arch/arm/plat-omap/include/mach/irqs.h
+index bed5274..990573f 100644
+--- a/arch/arm/plat-omap/include/mach/irqs.h
++++ b/arch/arm/plat-omap/include/mach/irqs.h
+@@ -386,6 +386,7 @@
+ 
+ #ifndef __ASSEMBLY__
+ extern void omap_init_irq(void);
++extern int omap_irq_pending(void);
+ #endif
+ 
+ #include <mach/hardware.h>
+-- 
+1.6.1
 
