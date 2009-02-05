@@ -1,7 +1,7 @@
 From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: [PATCH 12/21] OMAP: PM counter infrastructure.
-Date: Wed,  4 Feb 2009 18:05:58 -0800
-Message-ID: <1233799567-22250-13-git-send-email-khilman@deeprootsystems.com>
+Subject: [PATCH 13/21] OMAP: PM: Hook into PM counters
+Date: Wed,  4 Feb 2009 18:05:59 -0800
+Message-ID: <1233799567-22250-14-git-send-email-khilman@deeprootsystems.com>
 References: <1233799567-22250-1-git-send-email-khilman@deeprootsystems.com>
  <1233799567-22250-2-git-send-email-khilman@deeprootsystems.com>
  <1233799567-22250-3-git-send-email-khilman@deeprootsystems.com>
@@ -14,14 +14,15 @@ References: <1233799567-22250-1-git-send-email-khilman@deeprootsystems.com>
  <1233799567-22250-10-git-send-email-khilman@deeprootsystems.com>
  <1233799567-22250-11-git-send-email-khilman@deeprootsystems.com>
  <1233799567-22250-12-git-send-email-khilman@deeprootsystems.com>
+ <1233799567-22250-13-git-send-email-khilman@deeprootsystems.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from an-out-0708.google.com ([209.85.132.244]:13429 "EHLO
-	an-out-0708.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755885AbZBECHL (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 4 Feb 2009 21:07:11 -0500
-Received: by an-out-0708.google.com with SMTP id c2so43anc.1
-        for <linux-omap@vger.kernel.org>; Wed, 04 Feb 2009 18:07:10 -0800 (PST)
-In-Reply-To: <1233799567-22250-12-git-send-email-khilman@deeprootsystems.com>
+Received: from yw-out-2324.google.com ([74.125.46.30]:57993 "EHLO
+	yw-out-2324.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757282AbZBECHP (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 4 Feb 2009 21:07:15 -0500
+Received: by yw-out-2324.google.com with SMTP id 9so61ywe.1
+        for <linux-omap@vger.kernel.org>; Wed, 04 Feb 2009 18:07:14 -0800 (PST)
+In-Reply-To: <1233799567-22250-13-git-send-email-khilman@deeprootsystems.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-arm-kernel@lists.arm.linux.org.uk
@@ -29,188 +30,83 @@ Cc: linux-omap@vger.kernel.org, Peter 'p2' De Schrijver <peter.de-schrijver@noki
 
 From: Peter 'p2' De Schrijver <peter.de-schrijver@nokia.com>
 
-This patch provides the infrastructure to count how many times a
-powerdomain entered a given power state (on, inactive, retention,
-off). A number of functions are provided which will be called by the
-chip specific powerdomain and clockdomain code whenever a transition
-might have happened.
+This patch modifies the clock, clockdomain and OMAP3 specific
+powerdomain code to call the PM counter infrastructure whenever one or
+more powerdomains might have changed state.
 
 Signed-off-by: Peter 'p2' De Schrijver <peter.de-schrijver@nokia.com>
 Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
 ---
- arch/arm/mach-omap2/clockdomain.c             |    2 +
- arch/arm/mach-omap2/powerdomain.c             |  101 ++++++++++++++++++++++++-
- arch/arm/plat-omap/include/mach/powerdomain.h |    7 ++
- 3 files changed, 108 insertions(+), 2 deletions(-)
+ arch/arm/mach-omap2/clock.c       |    2 ++
+ arch/arm/mach-omap2/clockdomain.c |    3 +++
+ arch/arm/mach-omap2/pm34xx.c      |    6 ++++++
+ 3 files changed, 11 insertions(+), 0 deletions(-)
 
+diff --git a/arch/arm/mach-omap2/clock.c b/arch/arm/mach-omap2/clock.c
+index 72e3db8..1de04d1 100644
+--- a/arch/arm/mach-omap2/clock.c
++++ b/arch/arm/mach-omap2/clock.c
+@@ -1080,6 +1080,8 @@ void omap2_clk_disable_unused(struct clk *clk)
+ 		omap2_clk_disable(clk);
+ 	} else
+ 		_omap2_clk_disable(clk);
++	if (clk->clkdm.ptr != NULL)
++		pwrdm_clkdm_state_switch(clk->clkdm.ptr);
+ }
+ #endif
+ 
 diff --git a/arch/arm/mach-omap2/clockdomain.c b/arch/arm/mach-omap2/clockdomain.c
-index f713d0b..a7c2d87 100644
+index a7c2d87..6650d44 100644
 --- a/arch/arm/mach-omap2/clockdomain.c
 +++ b/arch/arm/mach-omap2/clockdomain.c
-@@ -480,6 +480,8 @@ void omap2_clkdm_allow_idle(struct clockdomain *clkdm)
- 			    v << __ffs(clkdm->clktrctrl_mask),
- 			    clkdm->pwrdm.ptr->prcm_offs,
- 			    CM_CLKSTCTRL);
-+
+@@ -570,6 +570,7 @@ int omap2_clkdm_clk_enable(struct clockdomain *clkdm, struct clk *clk)
+ 		omap2_clkdm_wakeup(clkdm);
+ 
+ 	pwrdm_wait_transition(clkdm->pwrdm.ptr);
 +	pwrdm_clkdm_state_switch(clkdm);
+ 
+ 	return 0;
  }
+@@ -622,6 +623,8 @@ int omap2_clkdm_clk_disable(struct clockdomain *clkdm, struct clk *clk)
+ 	else
+ 		omap2_clkdm_sleep(clkdm);
  
- /**
-diff --git a/arch/arm/mach-omap2/powerdomain.c b/arch/arm/mach-omap2/powerdomain.c
-index 73e2971..3a9e151 100644
---- a/arch/arm/mach-omap2/powerdomain.c
-+++ b/arch/arm/mach-omap2/powerdomain.c
-@@ -35,6 +35,11 @@
- #include <mach/powerdomain.h>
- #include <mach/clockdomain.h>
- 
-+enum {
-+	PWRDM_STATE_NOW = 0,
-+	PWRDM_STATE_PREV,
-+};
++	pwrdm_clkdm_state_switch(clkdm);
 +
- /* pwrdm_list contains all registered struct powerdomains */
- static LIST_HEAD(pwrdm_list);
- 
-@@ -102,6 +107,63 @@ static struct powerdomain *_pwrdm_deps_lookup(struct powerdomain *pwrdm,
- 	return pd->pwrdm;
- }
- 
-+static int _pwrdm_state_switch(struct powerdomain *pwrdm, int flag)
-+{
-+
-+	int prev;
-+	int state;
-+
-+	if (pwrdm == NULL)
-+		return -EINVAL;
-+
-+	state = pwrdm_read_pwrst(pwrdm);
-+
-+	switch (flag) {
-+	case PWRDM_STATE_NOW:
-+		prev = pwrdm->state;
-+		break;
-+	case PWRDM_STATE_PREV:
-+		prev = pwrdm_read_prev_pwrst(pwrdm);
-+		if (pwrdm->state != prev)
-+			pwrdm->state_counter[prev]++;
-+		break;
-+	default:
-+		return -EINVAL;
-+	}
-+
-+	if (state != prev)
-+		pwrdm->state_counter[state]++;
-+
-+	pwrdm->state = state;
-+
-+	return 0;
-+}
-+
-+static int _pwrdm_pre_transition_cb(struct powerdomain *pwrdm)
-+{
-+	pwrdm_clear_all_prev_pwrst(pwrdm);
-+	_pwrdm_state_switch(pwrdm, PWRDM_STATE_NOW);
-+	return 0;
-+}
-+
-+static int _pwrdm_post_transition_cb(struct powerdomain *pwrdm)
-+{
-+	_pwrdm_state_switch(pwrdm, PWRDM_STATE_PREV);
-+	return 0;
-+}
-+
-+static __init void _pwrdm_setup(struct powerdomain *pwrdm)
-+{
-+	int i;
-+
-+	for (i = 0; i < 4; i++)
-+		pwrdm->state_counter[i] = 0;
-+
-+	pwrdm_wait_transition(pwrdm);
-+	pwrdm->state = pwrdm_read_pwrst(pwrdm);
-+	pwrdm->state_counter[pwrdm->state] = 1;
-+
-+}
- 
- /* Public functions */
- 
-@@ -117,9 +179,12 @@ void pwrdm_init(struct powerdomain **pwrdm_list)
- {
- 	struct powerdomain **p = NULL;
- 
--	if (pwrdm_list)
--		for (p = pwrdm_list; *p; p++)
-+	if (pwrdm_list) {
-+		for (p = pwrdm_list; *p; p++) {
- 			pwrdm_register(*p);
-+			_pwrdm_setup(*p);
-+		}
-+	}
- }
- 
- /**
-@@ -1110,4 +1175,36 @@ int pwrdm_wait_transition(struct powerdomain *pwrdm)
  	return 0;
  }
  
-+int pwrdm_state_switch(struct powerdomain *pwrdm)
-+{
-+	return _pwrdm_state_switch(pwrdm, PWRDM_STATE_NOW);
-+}
+diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
+index 87ac320..253ab97 100644
+--- a/arch/arm/mach-omap2/pm34xx.c
++++ b/arch/arm/mach-omap2/pm34xx.c
+@@ -176,6 +176,8 @@ static void omap_sram_idle(void)
+ 	disable_smartreflex(SR1);
+ 	disable_smartreflex(SR2);
+ 
++	pwrdm_pre_transition();
 +
-+int pwrdm_clkdm_state_switch(struct clockdomain *clkdm)
-+{
-+	if (clkdm != NULL && clkdm->pwrdm.ptr != NULL) {
-+		pwrdm_wait_transition(clkdm->pwrdm.ptr);
-+		return pwrdm_state_switch(clkdm->pwrdm.ptr);
-+	}
+ 	omap2_gpio_prepare_for_retention();
+ 	omap_uart_prepare_idle(0);
+ 	omap_uart_prepare_idle(1);
+@@ -191,6 +193,9 @@ static void omap_sram_idle(void)
+ 	/* Enable smartreflex after WFI */
+ 	enable_smartreflex(SR1);
+ 	enable_smartreflex(SR2);
 +
-+	return -EINVAL;
-+}
-+int pwrdm_clk_state_switch(struct clk *clk)
-+{
-+	if (clk != NULL && clk->clkdm.ptr != NULL)
-+		return pwrdm_clkdm_state_switch(clk->clkdm.ptr);
-+	return -EINVAL;
-+}
++	pwrdm_post_transition();
 +
-+int pwrdm_pre_transition(void)
-+{
-+	pwrdm_for_each(_pwrdm_pre_transition_cb);
-+	return 0;
-+}
-+
-+int pwrdm_post_transition(void)
-+{
-+	pwrdm_for_each(_pwrdm_post_transition_cb);
-+	return 0;
-+}
+ }
  
-diff --git a/arch/arm/plat-omap/include/mach/powerdomain.h b/arch/arm/plat-omap/include/mach/powerdomain.h
-index 69c9e67..52663fc 100644
---- a/arch/arm/plat-omap/include/mach/powerdomain.h
-+++ b/arch/arm/plat-omap/include/mach/powerdomain.h
-@@ -117,6 +117,8 @@ struct powerdomain {
+ /*
+@@ -284,6 +289,7 @@ static int set_pwrdm_state(struct powerdomain *pwrdm, u32 state)
+ 	if (sleep_switch) {
+ 		omap2_clkdm_allow_idle(pwrdm->pwrdm_clkdms[0]);
+ 		pwrdm_wait_transition(pwrdm);
++		pwrdm_state_switch(pwrdm);
+ 	}
  
- 	struct list_head node;
- 
-+	int state;
-+	unsigned state_counter[4];
- };
- 
- 
-@@ -164,4 +166,9 @@ bool pwrdm_has_hdwr_sar(struct powerdomain *pwrdm);
- 
- int pwrdm_wait_transition(struct powerdomain *pwrdm);
- 
-+int pwrdm_state_switch(struct powerdomain *pwrdm);
-+int pwrdm_clkdm_state_switch(struct clockdomain *clkdm);
-+int pwrdm_pre_transition(void);
-+int pwrdm_post_transition(void);
-+
- #endif
+ err:
 -- 
 1.6.1
 
