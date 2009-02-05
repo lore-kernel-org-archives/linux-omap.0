@@ -1,84 +1,100 @@
-From: jouni.hogander@nokia.com (=?utf-8?Q?H=C3=B6gander?= Jouni)
-Subject: Re: [PATCH PM 1/2] OMAP McSPI: Fix context save/restore
-Date: Thu, 05 Feb 2009 16:50:45 +0200
-Message-ID: <87eiydhr96.fsf@trdhcp146196.ntc.nokia.com>
-References: <498AC802.8040302@nokia.com>
-	<1233832029-21614-1-git-send-email-Aaro.Koskinen@nokia.com>
-	<56834.10.24.255.18.1233834716.squirrel@dbdmail.itg.ti.com>
-	<87ocxh6jpq.fsf@deeprootsystems.com>
-	<01de01c9879f$905ec6d0$LocalHost@wipultra793>
+From: Ramesh Gupta Guntha <grgupta77@gmail.com>
+Subject: Re: PM branch updates: 3430sdp and omap3evm results
+Date: Thu, 5 Feb 2009 20:20:24 +0530
+Message-ID: <3a2dabf50902050650id663062mde28de09787e2043@mail.gmail.com>
+References: <87fxj4ty1l.fsf@deeprootsystems.com>
+	 <3a2dabf50902010605n4f642d21p35d76f1eef8fa908@mail.gmail.com>
+	 <3a2dabf50902032134tf769d73m5fe7837e6d6c79a2@mail.gmail.com>
+	 <877i46ahcn.fsf@deeprootsystems.com>
+	 <3a2dabf50902032144i24a539a4i887b0153e81d1e9e@mail.gmail.com>
+	 <871vueag1z.fsf@deeprootsystems.com>
+	 <3a2dabf50902032224u740e0039t4f16f5aa0952d0d7@mail.gmail.com>
+	 <87eiyd6jgn.fsf@deeprootsystems.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:38388 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751833AbZBEOsn convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 5 Feb 2009 09:48:43 -0500
-In-Reply-To: <01de01c9879f$905ec6d0$LocalHost@wipultra793> (ext Hemanth V.'s
-	message of "Thu, 5 Feb 2009 15:39:31 +0100")
+Received: from rv-out-0506.google.com ([209.85.198.239]:1524 "EHLO
+	rv-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751259AbZBEOuZ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 5 Feb 2009 09:50:25 -0500
+Received: by rv-out-0506.google.com with SMTP id k40so295301rvb.1
+        for <linux-omap@vger.kernel.org>; Thu, 05 Feb 2009 06:50:24 -0800 (PST)
+In-Reply-To: <87eiyd6jgn.fsf@deeprootsystems.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: ext Hemanth V <hemanthv@ti.com>
-Cc: Kevin Hilman <khilman@deeprootsystems.com>, "Koskinen Aaro (Nokia-D/Helsinki)" <aaro.koskinen@nokia.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Kevin Hilman <khilman@deeprootsystems.com>
+Cc: linux-omap@vger.kernel.org
 
-ext Hemanth V <hemanthv@ti.com> writes:
+Kevin,
+I applied the patch maually at my end and tested, this works fine for
+me. anyway I will try with pm branch .
 
-> ----- Original Message -----
-> From: "Kevin Hilman" <khilman@deeprootsystems.com>
-> To: "Hemanth V" <hemanthv@ti.com>
-> Cc: "Aaro Koskinen" <Aaro.Koskinen@nokia.com>; <linux-omap@vger.kerne=
-l.org>
-> Sent: Thursday, February 05, 2009 7:59 PM
-> Subject: Re: [PATCH PM 1/2] OMAP McSPI: Fix context save/restore
+thanks
+Ramesh Gupta G
+On 2/5/09, Kevin Hilman <khilman@deeprootsystems.com> wrote:
+> Ramesh Gupta Guntha <grgupta77@gmail.com> writes:
 >
+> > Hi Kevin,
+> >
+> >
+> > On 2/4/09, Kevin Hilman <khilman@deeprootsystems.com> wrote:
+> >> Ramesh Gupta Guntha <grgupta77@gmail.com> writes:
+> >>
+> >> > Kevin,
+> >> >
+> >> >
+> >> > On 2/4/09, Kevin Hilman <khilman@deeprootsystems.com> wrote:
+> >> >> Ramesh Gupta Guntha <grgupta77@gmail.com> writes:
+> >> >>
+> >> >> > Hi,
+> >> >> >
+> >> >> >  I am able to resolve all other issues with this pm branch except one issue,
+> >> >> >
+> >> >> > I am not able to enable the iva2 clock once system is suspended and
+> >> >> > resumed, I am getting below messages.
+> >> >> >>
+> >> >> >> <3>clock: dpll2_ck failed transition to 'locked'
+> >> >> >> clock: dpll2_ck failed transition to 'locked'
+> >> >> >> <3>clock: dpll2_ck failed transition to 'locked'
+> >> >> >> clock: dpll2_ck failed transition to 'locked'
+> >> >> >
+> >> >> > Once after booting ( without adding bridgedriver/ installing bridgedriver)
+> >> >> > CM_CLKEN_PLL_IVA2 value shows as 0x37 indicates IVA2 DPLL in locked mode.
+> >> >> >
+> >> >> > once after system suspend the value is not restored I am seeing that as
+> >> >> >  0x11 indicates IVA2 DPLL is low power stop mode.
+> >> >> >
+> >> >> > Can any one please provide your inputs on the above error? I tried
+> >> >> > reconfiguring the CM_CLKEN_PLL_IVA2 to lock mode but still I am seeing
+> >> >> > the same messages as above while enabling iva2 clock.
+> >> >>
+> >> >> Are you suspending into retention or off-mode?
+> >> >
+> >> > I am suspending into Off mode.
+> >> >
+> >>
+> >> Do you see this problem when only going into retention?
+> >>
+> >> If not, sounds like we're missing some registers being saved/restored
+> >> across off-mode.
+> >
+> > I am seeing this issue only with OFF mode , retention works fine for me,
+> > yeah, looks like some registers are not restored properly across off mode.
+> > please let me know your inputs on this.
+> >
 >
->> "Hemanth V" <hemanthv@ti.com> writes:
->>
->>>> Fix context save/restore to work with chip select. Also update the
->>>> shadow
->>>> CHCONF0 register on every write and eliminate register reads.
->>>
->>> I believe the shadow CHCONF register need to have only the default
->>> configuration as initialized by omap2_mcspi_setup_transfer(), since=
- other
->>> other
->>> bits are initialized as and when required by omap2_mcspi_work().
->>>
->>> The original problem you saw might be because of not masking
->>> OMAP2_MCSPI_CHCONF_TRM_MASK and OMAP2_MCSPI_CHCONF_FORCE bits while
->>> storing to
->>> shadow register.
->>
->> Hemanth,
->>
->> Can you address this problem and post a single patch with the full
->> save/restore.
->>
->> I have reverted the original patch in the pm branch and would like
->> to see a single patch including the fixes from Jouni and Aaro.
+> I have just updated the PM branch with a fix from Jouni to
+> save/restore CM_CLKSEL1_PLL_IVA2.
 >
-> Kevin,
+> Can you try the latest PM branch?
 >
-> Both fixes cannot be taken since they are conflicting, I would like
-> to go with Jouni's fix.
+> Thanks,
+>
+> Kevin
+>
 
-Bad thing in that one is that it doesn't work:)
 
-Kevin, to my understanding patches from Aaro Koskinen are working. If
-they are ok to you, please push them. So the patches are:
-
-[PATCH PM 0/2] OMAP McSPI: Fixes to save/restore
-[PATCH PM 1/2] OMAP McSPI: Fix context save/restore
-[PATCH PM 2/2] OMAP McSPI: spin_unlock_irq() missing
-
-and the sender is Koskinen Aaro. Those patches are working alone.
-
---=20
-Jouni H=C3=B6gander
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-- 
+Thanks
+Ramesh Gupta G
