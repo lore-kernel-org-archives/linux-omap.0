@@ -1,43 +1,29 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: RE: [PATCH F 06/12] OMAP2/3 clock: every clock must have a clkdm
-Date: Thu, 5 Feb 2009 02:03:43 -0700 (MST)
-Message-ID: <alpine.DEB.2.00.0902050201250.8567@utopia.booyaka.com>
-References: <20090128193326.2396.9437.stgit@localhost.localdomain> <20090128193512.2396.75340.stgit@localhost.localdomain> <20090131140804.GH1394@n2100.arm.linux.org.uk> <alpine.DEB.2.00.0902030011320.5741@utopia.booyaka.com>
- <13B9B4C6EF24D648824FF11BE89671620376F47DFB@dlee02.ent.ti.com>
+From: Aaro Koskinen <aaro.koskinen@nokia.com>
+Subject: [PATCH PM 0/2] OMAP McSPI: Fixes to save/restore
+Date: Thu, 05 Feb 2009 13:05:38 +0200
+Message-ID: <498AC802.8040302@nokia.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1756407AbZBEJEQ@vger.kernel.org>
-In-Reply-To: <13B9B4C6EF24D648824FF11BE89671620376F47DFB@dlee02.ent.ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Woodruff, Richard" <r-woodruff2@ti.com>
-Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, "linux-arm-kernel@lists.arm.linux.org.uk" <linux-arm-kernel@lists.arm.linux.org.uk>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from smtp.nokia.com ([192.100.122.233]:60020 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751684AbZBELFq (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 5 Feb 2009 06:05:46 -0500
+Received: from esebh105.NOE.Nokia.com (esebh105.ntc.nokia.com [172.21.138.211])
+	by mgw-mx06.nokia.com (Switch-3.2.6/Switch-3.2.6) with ESMTP id n15B5TWc023344
+	for <linux-omap@vger.kernel.org>; Thu, 5 Feb 2009 13:05:43 +0200
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Hi Richard,
+Hello,
 
-On Tue, 3 Feb 2009, Woodruff, Richard wrote:
+Here's two fixes for the recent save/restore change (OMAP3 McSPI: Adds 
+context save/restore), which does not seem to work with chip select. 
+Jouni Hogander already sent one patch, but it does not solve all the 
+problems. This patch updates the shadow value on every write, and uses 
+it instead of reading the register.
 
-> > Virtual clocks should soon be eliminated from the OMAP clock tree.  (
-> > "Virtual clocks" is here used to refer a clock that does not have a
-> > referent in the hardware; the usage of the term in the code is loose.)
-> > So far as I know, all of the OMAP virtual clocks have either turned out to
-> > be superfluous (and prone to spinlock recursion bugs), or to be better
-> > implemented outside of the clock framework (such as the virtual OPP
-> > clocks).  We've eliminated the former.  We should be able to eliminate the
-> > latter in a few months.
-> 
-> What is your idea for replacement of virtual OPPs?
-> 
-> Especially on OMAP2 they were useful with tightly coupled clock sets.  
-> Some later versions of 2420 were characterized such that some of the 
-> dependencies could be ignored but that is not the case for all of them.  
-> The centerline design as I understand it wasn't for this. It just 
-> happened that enough margin was there in some binn'ed lots to do this.
+A.
 
-The rates and voltages would still be tightly coupled; the OPP change just 
-wouldn't be handled by the clock framework.  Will send patches to you once 
-the code is fully baked, the patches would probably the best thing to 
-comment on...
-
-
-- Paul
