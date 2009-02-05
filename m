@@ -1,142 +1,73 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: [REPOST] [PATCH] ARM: MMU: add a Non-cacheable Normal executable
- memory type
-Date: Thu, 5 Feb 2009 00:52:20 -0700 (MST)
-Message-ID: <alpine.DEB.2.00.0902050043060.20959@utopia.booyaka.com>
+Subject: [PATCH] OMAP2/3 clock: fix CONFIG_OMAP_RESET_CLOCKS
+Date: Thu, 5 Feb 2009 01:18:09 -0700 (MST)
+Message-ID: <alpine.DEB.2.00.0902050103210.3715@utopia.booyaka.com>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:34509 "EHLO
+Received: from utopia.booyaka.com ([72.9.107.138]:53779 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753736AbZBEHwW (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 5 Feb 2009 02:52:22 -0500
+	with ESMTP id S1756177AbZBEISL (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 5 Feb 2009 03:18:11 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-arm-kernel@lists.arm.linux.org.uk
-Cc: linux-omap@vger.kernel.org, r-woodruff2@ti.com, linux-kernel@vger.kernel.org, catalin.marinas@arm.com
+To: linux@arm.linux.org.uk
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.arm.linux.org.uk, linux-kernel@vger.kernel.org, tero.kristo@nokia.com, khilman@deeprootsystems.com, tony@atomide.com
 
 
-Hello,
+Hello Russell,
 
-Any comments on this patch?  It is an unusual use for executable, uncached 
-memory; but for our purposes, it should be much faster than a full cache 
-flush, and conceptually cleaner than strongly-ordered executable memory, 
-which appear to be our only other options in this situation.
+Kevin Hilman kindly alerted me to a bugfix patch that I had omitted from 
+the sets that I sent to you recently.  It's inserted below.  Perhaps you 
+might consider merging it along with the other sets that you are working 
+on?  Without it, chip power management won't work correctly.
 
-We've tested this on ARMv7 (OMAP3).  If anyone would care to doublecheck 
-the setup for architectures below ARMv7, it would be much appreciated.
+The good news is that it is a small and self-contained patch that should 
+be possible to apply at any point after patch D 08.
 
-This patch has been entered into rmk's parch system as patch 5356/1. 
-Unfortunately, we can't merge any of the OMAP3 CORE DVFS code until this 
-patch, or one like it, is merged.  Any reason why this patch, or one like 
-it, shouldn't be merged?
 
-thanks for any review and comment,
-
+thanks,
 
 - Paul
 
----------- Forwarded message ----------
-Date: Mon, 15 Dec 2008 14:07:07 -0700 (MST)
+
 From: Paul Walmsley <paul@pwsan.com>
-To: linux-arm-kernel@lists.arm.linux.org.uk
-Cc: linux-omap@vger.kernel.org, r-woodruff2@ti.com
-Subject: [PATCH] ARM: MMU: add a Non-cacheable Normal executable memory type
+Date: Thu, 5 Feb 2009 00:58:23 -0700
 
+OMAP2/3 clock: fix CONFIG_OMAP_RESET_CLOCKS
 
-This patch adds a Non-cacheable Normal ARM executable memory type, 
-MT_MEMORY_NONCACHED.
+plat-omap/clock.c was skipping clocks with enable_reg == 0.  This no longer
+works now that we use enable_reg as an offset from a PRCM module.
 
-On OMAP3, this is used for rapid dynamic voltage/frequency scaling in the 
-VDD2 voltage domain.  OMAP3's SDRAM controller (SDRC) is in the VDD2 
-voltage domain, and its clock frequency must change along with voltage.  
-The SDRC clock change code cannot run from SDRAM itself, since SDRAM 
-accesses are paused during the clock change.  So the current 
-implementation of the DVFS code executes from OMAP on-chip SRAM, aka "OCM 
-RAM."
+Problem found and traced by Tero Kristo <tero.kristo@nokia.com> -
+thanks Tero.
 
-If the OCM RAM pages are marked as Cacheable, the ARM cache controller 
-will attempt to flush dirty cache lines to the SDRC, so it can fill those 
-lines with OCM RAM instruction code.  The problem is that the SDRC is 
-paused during DVFS, and so any SDRAM access causes the ARM MPU subsystem 
-to hang.
-
-TI's original solution to this problem was to mark the OCM RAM sections as 
-Strongly Ordered memory, thus preventing caching.  This is overkill: since 
-the memory is marked as non-bufferable, OCM RAM writes become quite 
-needlessly slow.  The idea of "Strongly Ordered SRAM" is also conceptually 
-disturbing.  Previous LAKML list discussion is here:
-
-   http://www.spinics.net/lists/arm-kernel/msg54312.html
-
-Now this memory type MT_MEMORY_NONCACHED is used by a future patch for OCM 
-RAM.
+linux-omap source commit is 4c1cb27545d19642d43874ebeacef83bf3566b86.
 
 Signed-off-by: Paul Walmsley <paul@pwsan.com>
-Cc: Richard Woodruff <r-woodruff2@ti.com>
+Signed-off-by: Tony Lindgren <tony@atomide.com>
+Cc: Tero Kristo <tero.kristo@nokia.com>
 ---
- arch/arm/include/asm/mach/map.h |    1 +
- arch/arm/mm/mmu.c               |   23 +++++++++++++++++++++++
- 2 files changed, 24 insertions(+), 0 deletions(-)
+ arch/arm/plat-omap/clock.c |    7 +++++--
+ 1 files changed, 5 insertions(+), 2 deletions(-)
 
-diff --git a/arch/arm/include/asm/mach/map.h b/arch/arm/include/asm/mach/map.h
-index 39d949b..58cf91f 100644
---- a/arch/arm/include/asm/mach/map.h
-+++ b/arch/arm/include/asm/mach/map.h
-@@ -26,6 +26,7 @@ struct map_desc {
- #define MT_HIGH_VECTORS		8
- #define MT_MEMORY		9
- #define MT_ROM			10
-+#define MT_MEMORY_NONCACHED	11
+diff --git a/arch/arm/plat-omap/clock.c b/arch/arm/plat-omap/clock.c
+index c1fad02..bdf2cd4 100644
+--- a/arch/arm/plat-omap/clock.c
++++ b/arch/arm/plat-omap/clock.c
+@@ -547,8 +547,11 @@ static int __init clk_disable_unused(void)
+ 	unsigned long flags;
  
- #ifdef CONFIG_MMU
- extern void iotable_init(struct map_desc *, int);
-diff --git a/arch/arm/mm/mmu.c b/arch/arm/mm/mmu.c
-index 7f36c82..9ad6413 100644
---- a/arch/arm/mm/mmu.c
-+++ b/arch/arm/mm/mmu.c
-@@ -242,6 +242,10 @@ static struct mem_type mem_types[] = {
- 		.prot_sect = PMD_TYPE_SECT,
- 		.domain    = DOMAIN_KERNEL,
- 	},
-+	[MT_MEMORY_NONCACHED] = {
-+		.prot_sect = PMD_TYPE_SECT | PMD_SECT_AP_WRITE,
-+		.domain    = DOMAIN_KERNEL,
-+	},
- };
- 
- const struct mem_type *get_mem_type(unsigned int type)
-@@ -405,9 +409,28 @@ static void __init build_mem_type_table(void)
- 		kern_pgprot |= L_PTE_SHARED;
- 		vecs_pgprot |= L_PTE_SHARED;
- 		mem_types[MT_MEMORY].prot_sect |= PMD_SECT_S;
-+		mem_types[MT_MEMORY_NONCACHED].prot_sect |= PMD_SECT_S;
- #endif
- 	}
- 
-+	/*
-+	 * Non-cacheable Normal - intended for memory areas that must
-+	 * not cause dirty cache line writebacks when used
-+	 */
-+	if (cpu_arch >= CPU_ARCH_ARMv6) {
-+		if (cpu_arch >= CPU_ARCH_ARMv7 && (cr & CR_TRE)) {
-+			/* Non-cacheable Normal is XCB = 001 */
-+			mem_types[MT_MEMORY_NONCACHED].prot_sect |=
-+				PMD_SECT_BUFFERED;
-+		} else {
-+			/* For both ARMv6 and non-TEX-remapping ARMv7 */
-+			mem_types[MT_MEMORY_NONCACHED].prot_sect |=
-+				PMD_SECT_TEX(1);
-+		}
-+	} else {
-+		mem_types[MT_MEMORY_NONCACHED].prot_sect |= PMD_SECT_BUFFERABLE;
-+	}
+ 	list_for_each_entry(ck, &clocks, node) {
+-		if (ck->usecount > 0 || (ck->flags & ALWAYS_ENABLED) ||
+-			ck->enable_reg == 0)
++		if (ck->usecount > 0 ||
++		    (ck->flags & (ALWAYS_ENABLED | PARENT_CONTROLS_CLOCK)))
++			continue;
 +
- 	for (i = 0; i < 16; i++) {
- 		unsigned long v = pgprot_val(protection_map[i]);
- 		protection_map[i] = __pgprot(v | user_pgprot);
-
--------------------------------------------------------------------
-List admin: http://lists.arm.linux.org.uk/mailman/listinfo/linux-arm-kernel
-FAQ:        http://www.arm.linux.org.uk/mailinglists/faq.php
-Etiquette:  http://www.arm.linux.org.uk/mailinglists/etiquette.php
++		if (cpu_class_is_omap1() && ck->enable_reg == 0)
+ 			continue;
+ 
+ 		spin_lock_irqsave(&clockfw_lock, flags);
+-- 
+1.6.0.2.GIT
