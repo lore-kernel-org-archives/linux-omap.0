@@ -1,100 +1,281 @@
-From: Ramesh Gupta Guntha <grgupta77@gmail.com>
-Subject: Re: PM branch updates: 3430sdp and omap3evm results
-Date: Thu, 5 Feb 2009 20:20:24 +0530
-Message-ID: <3a2dabf50902050650id663062mde28de09787e2043@mail.gmail.com>
-References: <87fxj4ty1l.fsf@deeprootsystems.com>
-	 <3a2dabf50902010605n4f642d21p35d76f1eef8fa908@mail.gmail.com>
-	 <3a2dabf50902032134tf769d73m5fe7837e6d6c79a2@mail.gmail.com>
-	 <877i46ahcn.fsf@deeprootsystems.com>
-	 <3a2dabf50902032144i24a539a4i887b0153e81d1e9e@mail.gmail.com>
-	 <871vueag1z.fsf@deeprootsystems.com>
-	 <3a2dabf50902032224u740e0039t4f16f5aa0952d0d7@mail.gmail.com>
-	 <87eiyd6jgn.fsf@deeprootsystems.com>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: [PATCH PM 1/2] OMAP McSPI: Fix context save/restore
+Date: Thu, 05 Feb 2009 06:52:24 -0800
+Message-ID: <878wol6imv.fsf@deeprootsystems.com>
+References: <498AC802.8040302@nokia.com>
+	<1233832029-21614-1-git-send-email-Aaro.Koskinen@nokia.com>
+	<56834.10.24.255.18.1233834716.squirrel@dbdmail.itg.ti.com>
+	<87ocxh6jpq.fsf@deeprootsystems.com>
+	<01de01c9879f$905ec6d0$LocalHost@wipultra793>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from rv-out-0506.google.com ([209.85.198.239]:1524 "EHLO
-	rv-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751259AbZBEOuZ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 5 Feb 2009 09:50:25 -0500
-Received: by rv-out-0506.google.com with SMTP id k40so295301rvb.1
-        for <linux-omap@vger.kernel.org>; Thu, 05 Feb 2009 06:50:24 -0800 (PST)
-In-Reply-To: <87eiyd6jgn.fsf@deeprootsystems.com>
+Received: from mail-qy0-f11.google.com ([209.85.221.11]:43955 "EHLO
+	mail-qy0-f11.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751377AbZBEOwa (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 5 Feb 2009 09:52:30 -0500
+Received: by qyk4 with SMTP id 4so356444qyk.13
+        for <linux-omap@vger.kernel.org>; Thu, 05 Feb 2009 06:52:28 -0800 (PST)
+In-Reply-To: <01de01c9879f$905ec6d0$LocalHost@wipultra793> (Hemanth V.'s message of "Thu\, 5 Feb 2009 20\:09\:31 +0530")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@deeprootsystems.com>
-Cc: linux-omap@vger.kernel.org
+To: Hemanth V <hemanthv@ti.com>
+Cc: Aaro Koskinen <Aaro.Koskinen@nokia.com>, linux-omap@vger.kernel.org
 
-Kevin,
-I applied the patch maually at my end and tested, this works fine for
-me. anyway I will try with pm branch .
+"Hemanth V" <hemanthv@ti.com> writes:
 
-thanks
-Ramesh Gupta G
-On 2/5/09, Kevin Hilman <khilman@deeprootsystems.com> wrote:
-> Ramesh Gupta Guntha <grgupta77@gmail.com> writes:
+> ----- Original Message ----- 
+> From: "Kevin Hilman" <khilman@deeprootsystems.com>
+> To: "Hemanth V" <hemanthv@ti.com>
+> Cc: "Aaro Koskinen" <Aaro.Koskinen@nokia.com>; <linux-omap@vger.kernel.org>
+> Sent: Thursday, February 05, 2009 7:59 PM
+> Subject: Re: [PATCH PM 1/2] OMAP McSPI: Fix context save/restore
 >
-> > Hi Kevin,
-> >
-> >
-> > On 2/4/09, Kevin Hilman <khilman@deeprootsystems.com> wrote:
-> >> Ramesh Gupta Guntha <grgupta77@gmail.com> writes:
-> >>
-> >> > Kevin,
-> >> >
-> >> >
-> >> > On 2/4/09, Kevin Hilman <khilman@deeprootsystems.com> wrote:
-> >> >> Ramesh Gupta Guntha <grgupta77@gmail.com> writes:
-> >> >>
-> >> >> > Hi,
-> >> >> >
-> >> >> >  I am able to resolve all other issues with this pm branch except one issue,
-> >> >> >
-> >> >> > I am not able to enable the iva2 clock once system is suspended and
-> >> >> > resumed, I am getting below messages.
-> >> >> >>
-> >> >> >> <3>clock: dpll2_ck failed transition to 'locked'
-> >> >> >> clock: dpll2_ck failed transition to 'locked'
-> >> >> >> <3>clock: dpll2_ck failed transition to 'locked'
-> >> >> >> clock: dpll2_ck failed transition to 'locked'
-> >> >> >
-> >> >> > Once after booting ( without adding bridgedriver/ installing bridgedriver)
-> >> >> > CM_CLKEN_PLL_IVA2 value shows as 0x37 indicates IVA2 DPLL in locked mode.
-> >> >> >
-> >> >> > once after system suspend the value is not restored I am seeing that as
-> >> >> >  0x11 indicates IVA2 DPLL is low power stop mode.
-> >> >> >
-> >> >> > Can any one please provide your inputs on the above error? I tried
-> >> >> > reconfiguring the CM_CLKEN_PLL_IVA2 to lock mode but still I am seeing
-> >> >> > the same messages as above while enabling iva2 clock.
-> >> >>
-> >> >> Are you suspending into retention or off-mode?
-> >> >
-> >> > I am suspending into Off mode.
-> >> >
-> >>
-> >> Do you see this problem when only going into retention?
-> >>
-> >> If not, sounds like we're missing some registers being saved/restored
-> >> across off-mode.
-> >
-> > I am seeing this issue only with OFF mode , retention works fine for me,
-> > yeah, looks like some registers are not restored properly across off mode.
-> > please let me know your inputs on this.
-> >
 >
-> I have just updated the PM branch with a fix from Jouni to
-> save/restore CM_CLKSEL1_PLL_IVA2.
+>> "Hemanth V" <hemanthv@ti.com> writes:
+>>
+>>>> Fix context save/restore to work with chip select. Also update the
+>>>> shadow
+>>>> CHCONF0 register on every write and eliminate register reads.
+>>>
+>>> I believe the shadow CHCONF register need to have only the default
+>>> configuration as initialized by omap2_mcspi_setup_transfer(), since
+>>> other other
+>>> bits are initialized as and when required by omap2_mcspi_work().
+>>>
+>>> The original problem you saw might be because of not masking
+>>> OMAP2_MCSPI_CHCONF_TRM_MASK and OMAP2_MCSPI_CHCONF_FORCE bits while
+>>> storing to
+>>> shadow register.
+>>
+>> Hemanth,
+>>
+>> Can you address this problem and post a single patch with the full
+>> save/restore.
+>>
+>> I have reverted the original patch in the pm branch and would like
+>> to see a single patch including the fixes from Jouni and Aaro.
 >
-> Can you try the latest PM branch?
+> Kevin,
 >
-> Thanks,
->
-> Kevin
+> Both fixes cannot be taken since they are conflicting, I would like
+> to go with Jouni's fix.
 >
 
+Actually, I'd prefer to see Aaro's fix as it goes a little further to
+optimize the save/restore path.  He also fixed a locking bug.
 
--- 
-Thanks
-Ramesh Gupta G
+Kevin
+
+>
+>>
+>> Kevin
+>>
+>>
+>>>>
+>>>> Signed-off-by: Aaro Koskinen <Aaro.Koskinen@nokia.com>
+>>>> ---
+>>>>  drivers/spi/omap2_mcspi.c |   51
+>>>> +++++++++++++++++++++++++-------------------
+>>>>  1 files changed, 29 insertions(+), 22 deletions(-)
+>>>>
+>>>> diff --git a/drivers/spi/omap2_mcspi.c b/drivers/spi/omap2_mcspi.c
+>>>> index a7ee3b7..4d09777 100644
+>>>> --- a/drivers/spi/omap2_mcspi.c
+>>>> +++ b/drivers/spi/omap2_mcspi.c
+>>>> @@ -134,6 +134,7 @@ struct omap2_mcspi_cs {
+>>>>  void __iomem *base;
+>>>>  unsigned long phys;
+>>>>  int word_len;
+>>>> + u32 chconf0;
+>>>>  };
+>>>>
+>>>>  /* used for context save and restore, structure members to be
+>>>> updated whenever
+>>>> @@ -142,7 +143,6 @@ struct omap2_mcspi_cs {
+>>>>  struct omap2_mcspi_regs {
+>>>>  u32 sysconfig;
+>>>>  u32 modulctrl;
+>>>> - u32 chconf0;
+>>>>  u32 wakeupenable;
+>>>>  };
+>>>>
+>>>> @@ -187,12 +187,27 @@ static inline u32 mcspi_read_cs_reg(const struct
+>>>> spi_device *spi, int idx)
+>>>>  return __raw_readl(cs->base + idx);
+>>>>  }
+>>>>
+>>>> +static inline u32 mcspi_cached_chconf0(const struct spi_device *spi)
+>>>> +{
+>>>> + struct omap2_mcspi_cs *cs = spi->controller_state;
+>>>> +
+>>>> + return cs->chconf0;
+>>>> +}
+>>>> +
+>>>> +static inline void mcspi_write_chconf0(const struct spi_device
+>>>> *spi, u32 val)
+>>>> +{
+>>>> + struct omap2_mcspi_cs *cs = spi->controller_state;
+>>>> +
+>>>> + cs->chconf0 = val;
+>>>> + mcspi_write_cs_reg(spi, OMAP2_MCSPI_CHCONF0, val);
+>>>> +}
+>>>> +
+>>>>  static void omap2_mcspi_set_dma_req(const struct spi_device *spi,
+>>>>  int is_read, int enable)
+>>>>  {
+>>>>  u32 l, rw;
+>>>>
+>>>> - l = mcspi_read_cs_reg(spi, OMAP2_MCSPI_CHCONF0);
+>>>> + l = mcspi_cached_chconf0(spi);
+>>>>
+>>>>  if (is_read) /* 1 is read, 0 write */
+>>>>  rw = OMAP2_MCSPI_CHCONF_DMAR;
+>>>> @@ -200,7 +215,7 @@ static void omap2_mcspi_set_dma_req(const
+>>>> struct spi_device
+>>>> *spi,
+>>>>  rw = OMAP2_MCSPI_CHCONF_DMAW;
+>>>>
+>>>>  MOD_REG_BIT(l, rw, enable);
+>>>> - mcspi_write_cs_reg(spi, OMAP2_MCSPI_CHCONF0, l);
+>>>> + mcspi_write_chconf0(spi, l);
+>>>>  }
+>>>>
+>>>>  static void omap2_mcspi_set_enable(const struct spi_device *spi,
+>>>> int enable)
+>>>> @@ -215,9 +230,9 @@ static void omap2_mcspi_force_cs(struct
+>>>> spi_device *spi,
+>>>> int cs_active)
+>>>>  {
+>>>>  u32 l;
+>>>>
+>>>> - l = mcspi_read_cs_reg(spi, OMAP2_MCSPI_CHCONF0);
+>>>> + l = mcspi_cached_chconf0(spi);
+>>>>  MOD_REG_BIT(l, OMAP2_MCSPI_CHCONF_FORCE, cs_active);
+>>>> - mcspi_write_cs_reg(spi, OMAP2_MCSPI_CHCONF0, l);
+>>>> + mcspi_write_chconf0(spi, l);
+>>>>  }
+>>>>
+>>>>  static void omap2_mcspi_set_master_mode(struct spi_master *master)
+>>>> @@ -248,10 +263,6 @@ static void omap2_mcspi_restore_ctx(struct
+>>>> omap2_mcspi
+>>>> *mcspi)
+>>>>  mcspi_write_reg(spi_cntrl, OMAP2_MCSPI_SYSCONFIG,
+>>>>  omap2_mcspi_ctx[spi_cntrl->bus_num - 1].sysconfig);
+>>>>
+>>>> - mcspi_write_reg(spi_cntrl, OMAP2_MCSPI_CHCONF0,
+>>>> - omap2_mcspi_ctx[spi_cntrl->bus_num - 1].chconf0);
+>>>> -
+>>>> -
+>>>>  mcspi_write_reg(spi_cntrl, OMAP2_MCSPI_WAKEUPENABLE,
+>>>>  omap2_mcspi_ctx[spi_cntrl->bus_num - 1].wakeupenable);
+>>>>  }
+>>>> @@ -392,7 +403,7 @@ omap2_mcspi_txrx_pio(struct spi_device *spi, struct
+>>>> spi_transfer *xfer)
+>>>>  c = count;
+>>>>  word_len = cs->word_len;
+>>>>
+>>>> - l = mcspi_read_cs_reg(spi, OMAP2_MCSPI_CHCONF0);
+>>>> + l = mcspi_cached_chconf0(spi);
+>>>>  l &= ~OMAP2_MCSPI_CHCONF_TRM_MASK;
+>>>>
+>>>>  /* We store the pre-calculated register addresses on stack to speed
+>>>> @@ -432,8 +443,7 @@ omap2_mcspi_txrx_pio(struct spi_device *spi, struct
+>>>> spi_transfer *xfer)
+>>>>  * more word i/o: switch to rx+tx
+>>>>  */
+>>>>  if (c == 0 && tx == NULL)
+>>>> - mcspi_write_cs_reg(spi,
+>>>> - OMAP2_MCSPI_CHCONF0, l);
+>>>> + mcspi_write_chconf0(spi, l);
+>>>>  *rx++ = __raw_readl(rx_reg);
+>>>>  #ifdef VERBOSE
+>>>>  dev_dbg(&spi->dev, "read-%d %02x\n",
+>>>> @@ -471,8 +481,7 @@ omap2_mcspi_txrx_pio(struct spi_device *spi, struct
+>>>> spi_transfer *xfer)
+>>>>  * more word i/o: switch to rx+tx
+>>>>  */
+>>>>  if (c == 0 && tx == NULL)
+>>>> - mcspi_write_cs_reg(spi,
+>>>> - OMAP2_MCSPI_CHCONF0, l);
+>>>> + mcspi_write_chconf0(spi, l);
+>>>>  *rx++ = __raw_readl(rx_reg);
+>>>>  #ifdef VERBOSE
+>>>>  dev_dbg(&spi->dev, "read-%d %04x\n",
+>>>> @@ -510,8 +519,7 @@ omap2_mcspi_txrx_pio(struct spi_device *spi, struct
+>>>> spi_transfer *xfer)
+>>>>  * more word i/o: switch to rx+tx
+>>>>  */
+>>>>  if (c == 0 && tx == NULL)
+>>>> - mcspi_write_cs_reg(spi,
+>>>> - OMAP2_MCSPI_CHCONF0, l);
+>>>> + mcspi_write_chconf0(spi, l);
+>>>>  *rx++ = __raw_readl(rx_reg);
+>>>>  #ifdef VERBOSE
+>>>>  dev_dbg(&spi->dev, "read-%d %04x\n",
+>>>> @@ -559,7 +567,7 @@ static int omap2_mcspi_setup_transfer(struct
+>>>> spi_device
+>>>> *spi,
+>>>>  } else
+>>>>  div = 15;
+>>>>
+>>>> - l = mcspi_read_cs_reg(spi, OMAP2_MCSPI_CHCONF0);
+>>>> + l = mcspi_cached_chconf0(spi);
+>>>>
+>>>>  /* standard 4-wire master mode:  SCK, MOSI/out, MISO/in, nCS
+>>>>  * REVISIT: this controller could support SPI_3WIRE mode.
+>>>> @@ -591,9 +599,7 @@ static int omap2_mcspi_setup_transfer(struct
+>>>> spi_device
+>>>> *spi,
+>>>>  else
+>>>>  l &= ~OMAP2_MCSPI_CHCONF_PHA;
+>>>>
+>>>> - mcspi_write_cs_reg(spi, OMAP2_MCSPI_CHCONF0, l);
+>>>> -
+>>>> - omap2_mcspi_ctx[spi_cntrl->bus_num - 1].chconf0 = l;
+>>>> + mcspi_write_chconf0(spi, l);
+>>>>
+>>>>  dev_dbg(&spi->dev, "setup: speed %d, sample %s edge, clk %s\n",
+>>>>  OMAP2_MCSPI_MAX_FREQ / (1 << div),
+>>>> @@ -697,6 +703,7 @@ static int omap2_mcspi_setup(struct spi_device *spi)
+>>>>  return -ENOMEM;
+>>>>  cs->base = mcspi->base + spi->chip_select * 0x14;
+>>>>  cs->phys = mcspi->phys + spi->chip_select * 0x14;
+>>>> + cs->chconf0 = 0;
+>>>>  spi->controller_state = cs;
+>>>>  }
+>>>>
+>>>> @@ -791,13 +798,13 @@ static void omap2_mcspi_work(struct
+>>>> work_struct *work)
+>>>>  cs_active = 1;
+>>>>  }
+>>>>
+>>>> - chconf = mcspi_read_cs_reg(spi, OMAP2_MCSPI_CHCONF0);
+>>>> + chconf = mcspi_cached_chconf0(spi);
+>>>>  chconf &= ~OMAP2_MCSPI_CHCONF_TRM_MASK;
+>>>>  if (t->tx_buf == NULL)
+>>>>  chconf |= OMAP2_MCSPI_CHCONF_TRM_RX_ONLY;
+>>>>  else if (t->rx_buf == NULL)
+>>>>  chconf |= OMAP2_MCSPI_CHCONF_TRM_TX_ONLY;
+>>>> - mcspi_write_cs_reg(spi, OMAP2_MCSPI_CHCONF0, chconf);
+>>>> + mcspi_write_chconf0(spi, chconf);
+>>>>
+>>>>  if (t->len) {
+>>>>  unsigned count;
+>>>> --
+>>>> 1.5.4.3
+>>>>
+>>>> --
+>>>> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+>>>> the body of a message to majordomo@vger.kernel.org
+>>>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>>>>
+>>>>
+>>>
+>>>
+>>> --
+>>> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+>>> the body of a message to majordomo@vger.kernel.org
+>>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>>
+>>
