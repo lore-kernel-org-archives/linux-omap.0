@@ -1,72 +1,85 @@
 From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH PM 1/1] OMAP3: PM: Save and restore also CM_CLKSEL1_PLL_IVA2
-Date: Thu, 05 Feb 2009 06:30:34 -0800
-Message-ID: <87k5856jn9.fsf@deeprootsystems.com>
-References: <1233833641-5329-1-git-send-email-jouni.hogander@nokia.com>
-	<1233833641-5329-2-git-send-email-jouni.hogander@nokia.com>
+Subject: Re: PM branch updates: 3430sdp and omap3evm results
+Date: Thu, 05 Feb 2009 06:34:32 -0800
+Message-ID: <87eiyd6jgn.fsf@deeprootsystems.com>
+References: <87fxj4ty1l.fsf@deeprootsystems.com>
+	<3a2dabf50902010605n4f642d21p35d76f1eef8fa908@mail.gmail.com>
+	<3a2dabf50902032134tf769d73m5fe7837e6d6c79a2@mail.gmail.com>
+	<877i46ahcn.fsf@deeprootsystems.com>
+	<3a2dabf50902032144i24a539a4i887b0153e81d1e9e@mail.gmail.com>
+	<871vueag1z.fsf@deeprootsystems.com>
+	<3a2dabf50902032224u740e0039t4f16f5aa0952d0d7@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from qw-out-2122.google.com ([74.125.92.27]:26809 "EHLO
-	qw-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751825AbZBEOaj (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 5 Feb 2009 09:30:39 -0500
-Received: by qw-out-2122.google.com with SMTP id 3so131598qwe.37
-        for <linux-omap@vger.kernel.org>; Thu, 05 Feb 2009 06:30:38 -0800 (PST)
-In-Reply-To: <1233833641-5329-2-git-send-email-jouni.hogander@nokia.com> (Jouni Hogander's message of "Thu\,  5 Feb 2009 13\:34\:01 +0200")
+Received: from mail-qy0-f11.google.com ([209.85.221.11]:43217 "EHLO
+	mail-qy0-f11.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753270AbZBEOeh (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 5 Feb 2009 09:34:37 -0500
+Received: by qyk4 with SMTP id 4so340693qyk.13
+        for <linux-omap@vger.kernel.org>; Thu, 05 Feb 2009 06:34:35 -0800 (PST)
+In-Reply-To: <3a2dabf50902032224u740e0039t4f16f5aa0952d0d7@mail.gmail.com> (Ramesh Gupta Guntha's message of "Wed\, 4 Feb 2009 11\:54\:23 +0530")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Jouni Hogander <jouni.hogander@nokia.com>
+To: Ramesh Gupta Guntha <grgupta77@gmail.com>
 Cc: linux-omap@vger.kernel.org
 
-Jouni Hogander <jouni.hogander@nokia.com> writes:
+Ramesh Gupta Guntha <grgupta77@gmail.com> writes:
 
-> CM_CLKSEL1_PLL_IVA2 is not saved/restored currently. This patch is
-> adding save and restore for it.
+> Hi Kevin,
 >
-> Signed-off-by: Jouni Hogander <jouni.hogander@nokia.com>
-> ---
->  arch/arm/mach-omap2/prcm.c |    5 +++++
->  1 files changed, 5 insertions(+), 0 deletions(-)
+>
+> On 2/4/09, Kevin Hilman <khilman@deeprootsystems.com> wrote:
+>> Ramesh Gupta Guntha <grgupta77@gmail.com> writes:
+>>
+>> > Kevin,
+>> >
+>> >
+>> > On 2/4/09, Kevin Hilman <khilman@deeprootsystems.com> wrote:
+>> >> Ramesh Gupta Guntha <grgupta77@gmail.com> writes:
+>> >>
+>> >> > Hi,
+>> >> >
+>> >> >  I am able to resolve all other issues with this pm branch except one issue,
+>> >> >
+>> >> > I am not able to enable the iva2 clock once system is suspended and
+>> >> > resumed, I am getting below messages.
+>> >> >>
+>> >> >> <3>clock: dpll2_ck failed transition to 'locked'
+>> >> >> clock: dpll2_ck failed transition to 'locked'
+>> >> >> <3>clock: dpll2_ck failed transition to 'locked'
+>> >> >> clock: dpll2_ck failed transition to 'locked'
+>> >> >
+>> >> > Once after booting ( without adding bridgedriver/ installing bridgedriver)
+>> >> > CM_CLKEN_PLL_IVA2 value shows as 0x37 indicates IVA2 DPLL in locked mode.
+>> >> >
+>> >> > once after system suspend the value is not restored I am seeing that as
+>> >> >  0x11 indicates IVA2 DPLL is low power stop mode.
+>> >> >
+>> >> > Can any one please provide your inputs on the above error? I tried
+>> >> > reconfiguring the CM_CLKEN_PLL_IVA2 to lock mode but still I am seeing
+>> >> > the same messages as above while enabling iva2 clock.
+>> >>
+>> >> Are you suspending into retention or off-mode?
+>> >
+>> > I am suspending into Off mode.
+>> >
+>>
+>> Do you see this problem when only going into retention?
+>>
+>> If not, sounds like we're missing some registers being saved/restored
+>> across off-mode.
+>
+> I am seeing this issue only with OFF mode , retention works fine for me,
+> yeah, looks like some registers are not restored properly across off mode.
+> please let me know your inputs on this.
+>
 
-Thanks, pushed to pm branch.
+I have just updated the PM branch with a fix from Jouni to
+save/restore CM_CLKSEL1_PLL_IVA2.
+
+Can you try the latest PM branch?
+
+Thanks,
 
 Kevin
-
-> diff --git a/arch/arm/mach-omap2/prcm.c b/arch/arm/mach-omap2/prcm.c
-> index c64b668..7ccaf7f 100644
-> --- a/arch/arm/mach-omap2/prcm.c
-> +++ b/arch/arm/mach-omap2/prcm.c
-> @@ -36,6 +36,7 @@ static void __iomem *cm_base;
->  
->  struct omap3_prcm_regs {
->  	u32 control_padconf_sys_nirq;
-> +	u32 iva2_cm_clksel1;
->  	u32 iva2_cm_clksel2;
->  	u32 cm_sysconfig;
->  	u32 sgx_cm_clksel;
-> @@ -218,6 +219,8 @@ void omap3_prcm_save_context(void)
->  {
->  	prcm_context.control_padconf_sys_nirq =
->  			 omap_ctrl_readl(OMAP343X_CONTROL_PADCONF_SYSNIRQ);
-> +	prcm_context.iva2_cm_clksel1 =
-> +			 cm_read_mod_reg(OMAP3430_IVA2_MOD, CM_CLKSEL1);
->  	prcm_context.iva2_cm_clksel2 =
->  			 cm_read_mod_reg(OMAP3430_IVA2_MOD, CM_CLKSEL2);
->  	prcm_context.cm_sysconfig = __raw_readl(OMAP3430_CM_SYSCONFIG);
-> @@ -371,6 +374,8 @@ void omap3_prcm_restore_context(void)
->  {
->  	omap_ctrl_writel(prcm_context.control_padconf_sys_nirq,
->  					 OMAP343X_CONTROL_PADCONF_SYSNIRQ);
-> +	cm_write_mod_reg(prcm_context.iva2_cm_clksel1, OMAP3430_IVA2_MOD,
-> +					 CM_CLKSEL1);
->  	cm_write_mod_reg(prcm_context.iva2_cm_clksel2, OMAP3430_IVA2_MOD,
->  					 CM_CLKSEL2);
->  	__raw_writel(prcm_context.cm_sysconfig, OMAP3430_CM_SYSCONFIG);
-> -- 
-> 1.6.0.1
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
