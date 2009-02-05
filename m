@@ -1,7 +1,7 @@
 From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: [PATCH 19/21] OMAP: PM: Add definitions for ETK pads and observability registers
-Date: Wed,  4 Feb 2009 18:06:05 -0800
-Message-ID: <1233799567-22250-20-git-send-email-khilman@deeprootsystems.com>
+Subject: [PATCH 20/21] OMAP: Debug observability and ETK padconf implementation
+Date: Wed,  4 Feb 2009 18:06:06 -0800
+Message-ID: <1233799567-22250-21-git-send-email-khilman@deeprootsystems.com>
 References: <1233799567-22250-1-git-send-email-khilman@deeprootsystems.com>
  <1233799567-22250-2-git-send-email-khilman@deeprootsystems.com>
  <1233799567-22250-3-git-send-email-khilman@deeprootsystems.com>
@@ -21,14 +21,15 @@ References: <1233799567-22250-1-git-send-email-khilman@deeprootsystems.com>
  <1233799567-22250-17-git-send-email-khilman@deeprootsystems.com>
  <1233799567-22250-18-git-send-email-khilman@deeprootsystems.com>
  <1233799567-22250-19-git-send-email-khilman@deeprootsystems.com>
+ <1233799567-22250-20-git-send-email-khilman@deeprootsystems.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from yx-out-2324.google.com ([74.125.44.28]:56091 "EHLO
-	yx-out-2324.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1762604AbZBECHr (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 4 Feb 2009 21:07:47 -0500
-Received: by yx-out-2324.google.com with SMTP id 8so195yxm.1
-        for <linux-omap@vger.kernel.org>; Wed, 04 Feb 2009 18:07:46 -0800 (PST)
-In-Reply-To: <1233799567-22250-19-git-send-email-khilman@deeprootsystems.com>
+Received: from el-out-1112.google.com ([209.85.162.176]:25061 "EHLO
+	el-out-1112.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758850AbZBECHt (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 4 Feb 2009 21:07:49 -0500
+Received: by el-out-1112.google.com with SMTP id b25so227elf.1
+        for <linux-omap@vger.kernel.org>; Wed, 04 Feb 2009 18:07:47 -0800 (PST)
+In-Reply-To: <1233799567-22250-20-git-send-email-khilman@deeprootsystems.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-arm-kernel@lists.arm.linux.org.uk
@@ -39,67 +40,270 @@ From: Peter 'p2' De Schrijver <peter.de-schrijver@nokia.com>
 Signed-off-by: Peter 'p2' De Schrijver <peter.de-schrijver@nokia.com>
 Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
 ---
- arch/arm/plat-omap/include/mach/control.h |   47 +++++++++++++++++++++++++++-
- 1 files changed, 45 insertions(+), 2 deletions(-)
+ arch/arm/mach-omap2/debobs.c             |  239 ++++++++++++++++++++++++++++++
+ arch/arm/plat-omap/include/mach/debobs.h |    7 +
+ 2 files changed, 246 insertions(+), 0 deletions(-)
+ create mode 100644 arch/arm/mach-omap2/debobs.c
+ create mode 100644 arch/arm/plat-omap/include/mach/debobs.h
 
-diff --git a/arch/arm/plat-omap/include/mach/control.h b/arch/arm/plat-omap/include/mach/control.h
-index 9052a0a..c76e4ec 100644
---- a/arch/arm/plat-omap/include/mach/control.h
-+++ b/arch/arm/plat-omap/include/mach/control.h
-@@ -150,8 +150,51 @@
- #define OMAP343X_CONTROL_FUSE_SR	(OMAP2_CONTROL_GENERAL + 0x0130)
- #define OMAP343X_CONTROL_IVA2_BOOTADDR	(OMAP2_CONTROL_GENERAL + 0x0190)
- #define OMAP343X_CONTROL_IVA2_BOOTMOD	(OMAP2_CONTROL_GENERAL + 0x0194)
--#define OMAP343X_CONTROL_PBIAS_LITE	(OMAP2_CONTROL_GENERAL + 0x02b0)
--#define OMAP343X_CONTROL_TEMP_SENSOR	(OMAP2_CONTROL_GENERAL + 0x02b4)
-+#define OMAP343X_CONTROL_DEBOBS(i)	(OMAP2_CONTROL_GENERAL + 0x01B0 \
-+					+ ((i) >> 1) * 4 + (!(i & 1)) * 2)
-+#define OMAP343X_CONTROL_PROG_IO0	(OMAP2_CONTROL_GENERAL + 0x01D4)
-+#define OMAP343X_CONTROL_PROG_IO1	(OMAP2_CONTROL_GENERAL + 0x01D8)
-+#define OMAP343X_CONTROL_DSS_DPLL_SPREADING	(OMAP2_CONTROL_GENERAL + 0x01E0)
-+#define OMAP343X_CONTROL_CORE_DPLL_SPREADING	(OMAP2_CONTROL_GENERAL + 0x01E4)
-+#define OMAP343X_CONTROL_PER_DPLL_SPREADING	(OMAP2_CONTROL_GENERAL + 0x01E8)
-+#define OMAP343X_CONTROL_USBHOST_DPLL_SPREADING	(OMAP2_CONTROL_GENERAL + 0x01EC)
-+#define OMAP343X_CONTROL_PBIAS_LITE	(OMAP2_CONTROL_GENERAL + 0x02B0)
-+#define OMAP343X_CONTROL_TEMP_SENSOR	(OMAP2_CONTROL_GENERAL + 0x02B4)
-+#define OMAP343X_CONTROL_SRAMLDO4	(OMAP2_CONTROL_GENERAL + 0x02B8)
-+#define OMAP343X_CONTROL_SRAMLDO5	(OMAP2_CONTROL_GENERAL + 0x02C0)
-+#define OMAP343X_CONTROL_CSI		(OMAP2_CONTROL_GENERAL + 0x02C4)
+diff --git a/arch/arm/mach-omap2/debobs.c b/arch/arm/mach-omap2/debobs.c
+new file mode 100644
+index 0000000..4fbabef
+--- /dev/null
++++ b/arch/arm/mach-omap2/debobs.c
+@@ -0,0 +1,239 @@
++/*
++ * arch/arm/mach-omap2/debobs.c
++ *
++ * Handle debobs pads
++ *
++ * Copyright (C) 2008 Nokia Corporation
++ *
++ * Written by Peter De Schrijver <peter.de-schrijver@nokia.com>
++ *
++ * This file is subject to the terms and conditions of the GNU General
++ * Public License. See the file "COPYING" in the main directory of this
++ * archive for more details.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
++ */
 +
 +
-+/* 34xx PADCONF register offsets */
-+#define OMAP343X_PADCONF_ETK(i)		(OMAP2_CONTROL_PADCONFS + 0x5a8 + \
-+						(i)*2)
-+#define OMAP343X_PADCONF_ETK_CLK	OMAP343X_PADCONF_ETK(0)
-+#define OMAP343X_PADCONF_ETK_CTL	OMAP343X_PADCONF_ETK(1)
-+#define OMAP343X_PADCONF_ETK_D0		OMAP343X_PADCONF_ETK(2)
-+#define OMAP343X_PADCONF_ETK_D1		OMAP343X_PADCONF_ETK(3)
-+#define OMAP343X_PADCONF_ETK_D2		OMAP343X_PADCONF_ETK(4)
-+#define OMAP343X_PADCONF_ETK_D3		OMAP343X_PADCONF_ETK(5)
-+#define OMAP343X_PADCONF_ETK_D4		OMAP343X_PADCONF_ETK(6)
-+#define OMAP343X_PADCONF_ETK_D5		OMAP343X_PADCONF_ETK(7)
-+#define OMAP343X_PADCONF_ETK_D6		OMAP343X_PADCONF_ETK(8)
-+#define OMAP343X_PADCONF_ETK_D7		OMAP343X_PADCONF_ETK(9)
-+#define OMAP343X_PADCONF_ETK_D8		OMAP343X_PADCONF_ETK(10)
-+#define OMAP343X_PADCONF_ETK_D9		OMAP343X_PADCONF_ETK(11)
-+#define OMAP343X_PADCONF_ETK_D10	OMAP343X_PADCONF_ETK(12)
-+#define OMAP343X_PADCONF_ETK_D11	OMAP343X_PADCONF_ETK(13)
-+#define OMAP343X_PADCONF_ETK_D12	OMAP343X_PADCONF_ETK(14)
-+#define OMAP343X_PADCONF_ETK_D13	OMAP343X_PADCONF_ETK(15)
-+#define OMAP343X_PADCONF_ETK_D14	OMAP343X_PADCONF_ETK(16)
-+#define OMAP343X_PADCONF_ETK_D15	OMAP343X_PADCONF_ETK(17)
++#include <linux/kernel.h>
++#include <linux/init.h>
++#include <linux/debugfs.h>
++#include <linux/uaccess.h>
++#include <linux/module.h>
++#include <mach/control.h>
++#include <mach/mux.h>
++#include <mach/gpio.h>
++#include <mach/board.h>
 +
-+/* 34xx GENERAL_WKUP regist offsets */
-+#define OMAP343X_CONTROL_WKUP_DEBOBSMUX(i) (OMAP343X_CONTROL_GENERAL_WKUP + \
-+						0x008 + (i))
-+#define OMAP343X_CONTROL_WKUP_DEBOBS0 (OMAP343X_CONTROL_GENERAL_WKUP + 0x008)
-+#define OMAP343X_CONTROL_WKUP_DEBOBS1 (OMAP343X_CONTROL_GENERAL_WKUP + 0x00C)
-+#define OMAP343X_CONTROL_WKUP_DEBOBS2 (OMAP343X_CONTROL_GENERAL_WKUP + 0x010)
-+#define OMAP343X_CONTROL_WKUP_DEBOBS3 (OMAP343X_CONTROL_GENERAL_WKUP + 0x014)
-+#define OMAP343X_CONTROL_WKUP_DEBOBS4 (OMAP343X_CONTROL_GENERAL_WKUP + 0x018)
- 
- /*
-  * REVISIT: This list of registers is not comprehensive - there are more
++#define ETK_GPIO_BEGIN		12
++#define ETK_GPIO(i)		(ETK_GPIO_BEGIN + i)
++#define NUM_OF_DEBOBS_PADS	18
++
++static int debobs_initialized;
++
++enum debobs_pad_mode {
++	GPIO = 0,
++	OBS = 1,
++	ETK = 2,
++	NO_MODE = 3,
++};
++
++static char *debobs_pad_mode_names[] = {
++	[GPIO] = "GPIO",
++	[OBS] = "OBS",
++	[ETK] = "ETK",
++};
++
++struct obs {
++	u16 offset;
++	u8 value;
++	u8 mask;
++};
++
++struct debobs_pad {
++	enum debobs_pad_mode mode;
++	struct obs core_obs;
++	struct obs wakeup_obs;
++};
++
++static struct debobs_pad debobs_pads[NUM_OF_DEBOBS_PADS];
++
++static int debobs_mode_open(struct inode *inode, struct file *file)
++{
++	file->private_data = inode->i_private;
++
++	return 0;
++}
++
++static ssize_t debobs_mode_read(struct file *file, char __user *user_buf,
++				size_t count, loff_t *ppos)
++{
++	char buffer[10];
++	int size;
++	int pad_number = (int)file->private_data;
++	struct debobs_pad *e = &debobs_pads[pad_number];
++
++	size = snprintf(buffer, sizeof(buffer), "%s\n",
++			debobs_pad_mode_names[e->mode]);
++	return simple_read_from_buffer(user_buf, count, ppos, buffer, size);
++}
++
++static ssize_t debobs_mode_write(struct file *file, const char __user *user_buf,
++				size_t count, loff_t *ppos)
++{
++	char buffer[10];
++	int buf_size, i, pad_number;
++	u16 muxmode = OMAP34XX_MUX_MODE7;
++
++	memset(buffer, 0, sizeof(buffer));
++	buf_size = min(count, (sizeof(buffer)-1));
++
++	if (copy_from_user(buffer, user_buf, buf_size))
++		return -EFAULT;
++
++	pad_number = (int)file->private_data;
++
++	for (i = 0; i < NO_MODE; i++) {
++		if (!strnicmp(debobs_pad_mode_names[i],
++				buffer,
++				strlen(debobs_pad_mode_names[i]))) {
++			switch (i) {
++			case ETK:
++				muxmode = OMAP34XX_MUX_MODE0;
++				break;
++			case GPIO:
++				muxmode = OMAP34XX_MUX_MODE4;
++				break;
++			case OBS:
++				muxmode = OMAP34XX_MUX_MODE7;
++				break;
++			}
++			omap_ctrl_writew(muxmode,
++					OMAP343X_PADCONF_ETK(pad_number));
++			debobs_pads[pad_number].mode = i;
++
++			return count;
++		}
++	}
++
++	return -EINVAL;
++}
++
++static const struct file_operations debobs_mode_fops = {
++	.open 	= debobs_mode_open,
++	.read	= debobs_mode_read,
++	.write	= debobs_mode_write,
++};
++
++static int debobs_get(void *data, u64 *val)
++{
++	struct obs *o = data;
++
++	*val = o->value;
++
++	return 0;
++}
++
++static int debobs_set(void *data, u64 val)
++{
++	struct obs *o = data;
++
++	val &= BIT(o->mask) - 1;
++
++	omap_ctrl_writeb(val, o->offset);
++	o->value = val;
++
++	return 0;
++}
++
++DEFINE_SIMPLE_ATTRIBUTE(debobs_fops, debobs_get, debobs_set, "%llu\n");
++
++static inline int __init _new_debobs_pad(struct debobs_pad *pad, char *name,
++					int number, struct dentry *root)
++{
++	struct dentry *d;
++	struct obs *o;
++
++	d = debugfs_create_dir(name, root);
++	if (IS_ERR(d))
++		return PTR_ERR(d);
++
++	omap_ctrl_writew(OMAP34XX_MUX_MODE4, OMAP343X_PADCONF_ETK(number));
++	gpio_direction_input(ETK_GPIO(number));
++	gpio_export(ETK_GPIO(number), 1);
++	(void) debugfs_create_file("mode", S_IRUGO | S_IWUGO, d,
++					(void *)number, &debobs_mode_fops);
++
++	o = &pad->core_obs;
++	o->offset = OMAP343X_CONTROL_DEBOBS(number);
++	o->value = omap_ctrl_readw(o->offset);
++	o->mask = 7;
++	(void) debugfs_create_file("coreobs", S_IRUGO | S_IWUGO, d, o,
++					&debobs_fops);
++
++	o = &pad->wakeup_obs;
++	o->offset = OMAP343X_CONTROL_WKUP_DEBOBSMUX(number);
++	o->value = omap_ctrl_readb(o->offset);
++	o->mask = 5;
++	(void) debugfs_create_file("wakeupobs", S_IRUGO | S_IWUGO, d, o,
++					&debobs_fops);
++
++	return 0;
++}
++
++/* Public functions */
++
++void debug_gpio_set(unsigned gpio, int value)
++{
++	if (!debobs_initialized)
++		return ;
++
++	WARN_ON(gpio >= NUM_OF_DEBOBS_PADS);
++	if (gpio < NUM_OF_DEBOBS_PADS)
++		__gpio_set_value(ETK_GPIO(gpio), value);
++}
++
++int debug_gpio_get(unsigned gpio)
++{
++	if (!debobs_initialized)
++		return -EINVAL;
++
++	WARN_ON(gpio >= NUM_OF_DEBOBS_PADS);
++	if (gpio < NUM_OF_DEBOBS_PADS)
++		return __gpio_get_value(ETK_GPIO(gpio));
++
++	return -EINVAL;
++}
++
++int __init init_debobs(void)
++{
++	struct dentry *debobs_root;
++	int i, err;
++	char name[10];
++
++	debobs_root = debugfs_create_dir("debobs", NULL);
++	if (IS_ERR(debobs_root))
++		return PTR_ERR(debobs_root);
++
++	for (i = 0; i < NUM_OF_DEBOBS_PADS; i++) {
++		snprintf(name, sizeof(name), "hw_dbg%d", i);
++		if (!gpio_request(ETK_GPIO(i), name)) {
++			err = _new_debobs_pad(&debobs_pads[i], name, i,
++						debobs_root);
++		} else
++			gpio_free(ETK_GPIO(i));
++	}
++
++	debobs_initialized = 1;
++
++	return 0;
++}
++
++late_initcall_sync(init_debobs);
+diff --git a/arch/arm/plat-omap/include/mach/debobs.h b/arch/arm/plat-omap/include/mach/debobs.h
+new file mode 100644
+index 0000000..67f765d
+--- /dev/null
++++ b/arch/arm/plat-omap/include/mach/debobs.h
+@@ -0,0 +1,7 @@
++#ifndef __DEBOBS_H
++#define __DEBOBS_H
++
++void debug_gpio_set(unsigned gpio, int value);
++int debug_gpio_get(unsigned gpio);
++
++#endif
 -- 
 1.6.1
 
