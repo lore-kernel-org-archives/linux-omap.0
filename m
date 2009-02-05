@@ -1,214 +1,142 @@
-From: "Pillai, Manikandan" <mani.pillai@ti.com>
-Subject: RE: [patch/rft 2.6.29-rc3-omap-git] omap3 evm: MMC switch support
-Date: Thu, 5 Feb 2009 11:18:55 +0530
-Message-ID: <19F8576C6E063C45BE387C64729E739403FA81AD36@dbde02.ent.ti.com>
-References: <200902041523.07767.david-b@pacbell.net>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: [REPOST] [PATCH] ARM: MMU: add a Non-cacheable Normal executable
+ memory type
+Date: Thu, 5 Feb 2009 00:52:20 -0700 (MST)
+Message-ID: <alpine.DEB.2.00.0902050043060.20959@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:39924 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752766AbZBEFtL convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 5 Feb 2009 00:49:11 -0500
-In-Reply-To: <200902041523.07767.david-b@pacbell.net>
-Content-Language: en-US
+Received: from utopia.booyaka.com ([72.9.107.138]:34509 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753736AbZBEHwW (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 5 Feb 2009 02:52:22 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: David Brownell <david-b@pacbell.net>, OMAP <linux-omap@vger.kernel.org>
+To: linux-arm-kernel@lists.arm.linux.org.uk
+Cc: linux-omap@vger.kernel.org, r-woodruff2@ti.com, linux-kernel@vger.kernel.org, catalin.marinas@arm.com
 
-Hi ,
 
-I tested the patch on the OMAP 3 EVM. I still find that the hotplug feature does not work on the OMAP3 EVM. The issue is that if I read the gpio_cd, I am getting
-the correct value on the gpio pin(INSERT = 0, PLUGOUT = 1) but the interrupts are not generated.
+Hello,
 
-The mmc0 interrupts always shows 0.
+Any comments on this patch?  It is an unusual use for executable, uncached 
+memory; but for our purposes, it should be much faster than a full cache 
+flush, and conceptually cleaner than strongly-ordered executable memory, 
+which appear to be our only other options in this situation.
 
-root@172.24.190.49:~# cat /proc/interrupts 
-           CPU0
- 11:          0        INTC  prcm
- 12:          4        INTC  DMA
- 25:          0        INTC  dispc
- 37:       1724        INTC  gp timer
- 56:        267        INTC  i2c_omap
- 57:          0        INTC  i2c_omap
- 61:          0        INTC  i2c_omap
- 72:        178        INTC  serial idle, serial
- 73:          1        INTC  serial idle
- 74:          1        INTC  serial idle
- 83:         43        INTC  mmc0
- 92:          0        INTC  musb_hdrc
- 93:          0        INTC  musb_hdrc
-335:          0        GPIO  ads7846
-336:       3565        GPIO  eth0
-369:          0     twl4030  twl4030_keypad
-378:          0     twl4030  twl4030_usb
-384:          0     twl4030  mmc0
-Err:          0
+We've tested this on ARMv7 (OMAP3).  If anyone would care to doublecheck 
+the setup for architectures below ARMv7, it would be much appreciated.
 
-Regards
-Mani
+This patch has been entered into rmk's parch system as patch 5356/1. 
+Unfortunately, we can't merge any of the OMAP3 CORE DVFS code until this 
+patch, or one like it, is merged.  Any reason why this patch, or one like 
+it, shouldn't be merged?
 
-> -----Original Message-----
-> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
-> owner@vger.kernel.org] On Behalf Of David Brownell
-> Sent: Thursday, February 05, 2009 4:53 AM
-> To: OMAP
-> Subject: [patch/rft 2.6.29-rc3-omap-git] omap3 evm: MMC switch support
-> 
-> Update OMAP3 EVM board support to support the MMC/SD switches,
-> when used with the twl4030 based power card.
-> 
-> Also, less usefully, LEDB as a GPIO LED ... it's on the underside
-> of the board, so it's probably not very useful to most folk.  The
-> LCD backlight is controlled by LEDA though; more useful, though
-> its PWM mode might not be practical on this board (I don't know
-> how that inductor will affect things).
-> 
-> This is done from schematics, so it needs testing (and maybe some
-> bugfixes) from folk with an EVM board.
-> 
-> - Dave
-> 
-> ---
->  arch/arm/mach-omap2/board-omap3evm.c  |   69 ++++++++++++++++++++++++++------
->  arch/arm/mach-omap2/mux.c             |    2
->  arch/arm/plat-omap/include/mach/mux.h |    1
->  3 files changed, 61 insertions(+), 11 deletions(-)
-> 
-> --- a/arch/arm/mach-omap2/board-omap3evm.c
-> +++ b/arch/arm/mach-omap2/board-omap3evm.c
-> @@ -19,6 +19,7 @@
->  #include <linux/err.h>
->  #include <linux/clk.h>
->  #include <linux/input.h>
-> +#include <linux/leds.h>
-> 
->  #include <linux/spi/spi.h>
->  #include <linux/spi/ads7846.h>
-> @@ -31,6 +32,7 @@
-> 
->  #include <mach/gpio.h>
->  #include <mach/board.h>
-> +#include <mach/mux.h>
->  #include <mach/usb-musb.h>
->  #include <mach/usb-ehci.h>
->  #include <mach/common.h>
-> @@ -88,10 +90,66 @@ static struct omap_uart_config omap3_evm
->  	.enabled_uarts	= ((1 << 0) | (1 << 1) | (1 << 2)),
->  };
-> 
-> +static struct twl4030_hsmmc_info mmc[] = {
-> +	{
-> +		.mmc		= 1,
-> +		.wires		= 4,
-> +		.gpio_cd	= -EINVAL,
-> +		.gpio_wp	= 63,
-> +	},
-> +	{}	/* Terminator */
-> +};
-> +
-> +static struct gpio_led gpio_leds[] = {
-> +	{
-> +		.name			= "omap3evm::ledb",
-> +		/* normally not visible (board underside) */
-> +		.default_trigger	= "default-on",
-> +		.gpio			= -EINVAL,	/* gets replaced */
-> +		.active_low		= true,
-> +	},
-> +};
-> +
-> +static struct gpio_led_platform_data gpio_led_info = {
-> +	.leds		= gpio_leds,
-> +	.num_leds	= ARRAY_SIZE(gpio_leds),
-> +};
-> +
-> +static struct platform_device leds_gpio = {
-> +	.name	= "leds-gpio",
-> +	.id	= -1,
-> +	.dev	= {
-> +		.platform_data	= &gpio_led_info,
-> +	},
-> +};
-> +
-> +
-> +static int omap3evm_twl_gpio_setup(struct device *dev,
-> +		unsigned gpio, unsigned ngpio)
-> +{
-> +	/* gpio + 0 is "mmc0_cd" (input/IRQ) */
-> +	omap_cfg_reg(L8_34XX_GPIO63);
-> +	mmc[0].gpio_cd = gpio + 0;
-> +	twl4030_mmc_init(mmc);
-> +
-> +	/* Most GPIOs are for USB OTG.  Some are mostly sent to
-> +	 * the P2 connector; notably LEDA for the LCD backlight.
-> +	 */
-> +
-> +	/* TWL4030_GPIO_MAX + 1 == ledB (out, active low LED) */
-> +	gpio_leds[2].gpio = gpio + TWL4030_GPIO_MAX + 1;
-> +
-> +	platform_device_register(&leds_gpio);
-> +
-> +	return 0;
-> +}
-> +
->  static struct twl4030_gpio_platform_data omap3evm_gpio_data = {
->  	.gpio_base	= OMAP_MAX_GPIO_LINES,
->  	.irq_base	= TWL4030_GPIO_IRQ_BASE,
->  	.irq_end	= TWL4030_GPIO_IRQ_END,
-> +	.use_leds	= true,
-> +	.setup		= omap3evm_twl_gpio_setup,
->  };
-> 
->  static struct twl4030_usb_data omap3evm_usb_data = {
-> @@ -232,16 +290,6 @@ static struct platform_device *omap3_evm
->  	&omap3evm_smc911x_device,
->  };
-> 
-> -static struct twl4030_hsmmc_info mmc[] __initdata = {
-> -	{
-> -		.mmc		= 1,
-> -		.wires		= 4,
-> -		.gpio_cd	= -EINVAL,
-> -		.gpio_wp	= -EINVAL,
-> -	},
-> -	{}	/* Terminator */
-> -};
-> -
->  static void __init omap3_evm_init(void)
->  {
->  	omap3_evm_i2c_init();
-> @@ -254,7 +302,6 @@ static void __init omap3_evm_init(void)
->  				ARRAY_SIZE(omap3evm_spi_board_info));
-> 
->  	omap_serial_init();
-> -	twl4030_mmc_init(mmc);
->  	usb_musb_init();
->  	usb_ehci_init();
->  	omap3evm_flash_init();
-> --- a/arch/arm/mach-omap2/mux.c
-> +++ b/arch/arm/mach-omap2/mux.c
-> @@ -463,6 +463,8 @@ MUX_CFG_34XX("AF26_34XX_GPIO0", 0x1e0,
->  		OMAP34XX_MUX_MODE4 | OMAP34XX_PIN_OUTPUT)
->  MUX_CFG_34XX("AF22_34XX_GPIO9", 0xa18,
->  		OMAP34XX_MUX_MODE4 | OMAP34XX_PIN_OUTPUT)
-> +MUX_CFG_34XX("L8_34XX_GPIO63", 0x0ce,
-> +		OMAP34XX_MUX_MODE4 | OMAP34XX_PIN_OUTPUT)
->  MUX_CFG_34XX("AF6_34XX_GPIO140_UP", 0x16c,
->  		OMAP34XX_MUX_MODE4 | OMAP34XX_PIN_INPUT_PULLUP)
->  MUX_CFG_34XX("AE6_34XX_GPIO141", 0x16e,
-> --- a/arch/arm/plat-omap/include/mach/mux.h
-> +++ b/arch/arm/plat-omap/include/mach/mux.h
-> @@ -792,6 +792,7 @@ enum omap34xx_index {
->  	J25_34XX_GPIO170,
->  	AF26_34XX_GPIO0,
->  	AF22_34XX_GPIO9,
-> +	L8_34XX_GPIO63,
->  	AF6_34XX_GPIO140_UP,
->  	AE6_34XX_GPIO141,
->  	AF5_34XX_GPIO142,
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+thanks for any review and comment,
 
+
+- Paul
+
+---------- Forwarded message ----------
+Date: Mon, 15 Dec 2008 14:07:07 -0700 (MST)
+From: Paul Walmsley <paul@pwsan.com>
+To: linux-arm-kernel@lists.arm.linux.org.uk
+Cc: linux-omap@vger.kernel.org, r-woodruff2@ti.com
+Subject: [PATCH] ARM: MMU: add a Non-cacheable Normal executable memory type
+
+
+This patch adds a Non-cacheable Normal ARM executable memory type, 
+MT_MEMORY_NONCACHED.
+
+On OMAP3, this is used for rapid dynamic voltage/frequency scaling in the 
+VDD2 voltage domain.  OMAP3's SDRAM controller (SDRC) is in the VDD2 
+voltage domain, and its clock frequency must change along with voltage.  
+The SDRC clock change code cannot run from SDRAM itself, since SDRAM 
+accesses are paused during the clock change.  So the current 
+implementation of the DVFS code executes from OMAP on-chip SRAM, aka "OCM 
+RAM."
+
+If the OCM RAM pages are marked as Cacheable, the ARM cache controller 
+will attempt to flush dirty cache lines to the SDRC, so it can fill those 
+lines with OCM RAM instruction code.  The problem is that the SDRC is 
+paused during DVFS, and so any SDRAM access causes the ARM MPU subsystem 
+to hang.
+
+TI's original solution to this problem was to mark the OCM RAM sections as 
+Strongly Ordered memory, thus preventing caching.  This is overkill: since 
+the memory is marked as non-bufferable, OCM RAM writes become quite 
+needlessly slow.  The idea of "Strongly Ordered SRAM" is also conceptually 
+disturbing.  Previous LAKML list discussion is here:
+
+   http://www.spinics.net/lists/arm-kernel/msg54312.html
+
+Now this memory type MT_MEMORY_NONCACHED is used by a future patch for OCM 
+RAM.
+
+Signed-off-by: Paul Walmsley <paul@pwsan.com>
+Cc: Richard Woodruff <r-woodruff2@ti.com>
+---
+ arch/arm/include/asm/mach/map.h |    1 +
+ arch/arm/mm/mmu.c               |   23 +++++++++++++++++++++++
+ 2 files changed, 24 insertions(+), 0 deletions(-)
+
+diff --git a/arch/arm/include/asm/mach/map.h b/arch/arm/include/asm/mach/map.h
+index 39d949b..58cf91f 100644
+--- a/arch/arm/include/asm/mach/map.h
++++ b/arch/arm/include/asm/mach/map.h
+@@ -26,6 +26,7 @@ struct map_desc {
+ #define MT_HIGH_VECTORS		8
+ #define MT_MEMORY		9
+ #define MT_ROM			10
++#define MT_MEMORY_NONCACHED	11
+ 
+ #ifdef CONFIG_MMU
+ extern void iotable_init(struct map_desc *, int);
+diff --git a/arch/arm/mm/mmu.c b/arch/arm/mm/mmu.c
+index 7f36c82..9ad6413 100644
+--- a/arch/arm/mm/mmu.c
++++ b/arch/arm/mm/mmu.c
+@@ -242,6 +242,10 @@ static struct mem_type mem_types[] = {
+ 		.prot_sect = PMD_TYPE_SECT,
+ 		.domain    = DOMAIN_KERNEL,
+ 	},
++	[MT_MEMORY_NONCACHED] = {
++		.prot_sect = PMD_TYPE_SECT | PMD_SECT_AP_WRITE,
++		.domain    = DOMAIN_KERNEL,
++	},
+ };
+ 
+ const struct mem_type *get_mem_type(unsigned int type)
+@@ -405,9 +409,28 @@ static void __init build_mem_type_table(void)
+ 		kern_pgprot |= L_PTE_SHARED;
+ 		vecs_pgprot |= L_PTE_SHARED;
+ 		mem_types[MT_MEMORY].prot_sect |= PMD_SECT_S;
++		mem_types[MT_MEMORY_NONCACHED].prot_sect |= PMD_SECT_S;
+ #endif
+ 	}
+ 
++	/*
++	 * Non-cacheable Normal - intended for memory areas that must
++	 * not cause dirty cache line writebacks when used
++	 */
++	if (cpu_arch >= CPU_ARCH_ARMv6) {
++		if (cpu_arch >= CPU_ARCH_ARMv7 && (cr & CR_TRE)) {
++			/* Non-cacheable Normal is XCB = 001 */
++			mem_types[MT_MEMORY_NONCACHED].prot_sect |=
++				PMD_SECT_BUFFERED;
++		} else {
++			/* For both ARMv6 and non-TEX-remapping ARMv7 */
++			mem_types[MT_MEMORY_NONCACHED].prot_sect |=
++				PMD_SECT_TEX(1);
++		}
++	} else {
++		mem_types[MT_MEMORY_NONCACHED].prot_sect |= PMD_SECT_BUFFERABLE;
++	}
++
+ 	for (i = 0; i < 16; i++) {
+ 		unsigned long v = pgprot_val(protection_map[i]);
+ 		protection_map[i] = __pgprot(v | user_pgprot);
+
+-------------------------------------------------------------------
+List admin: http://lists.arm.linux.org.uk/mailman/listinfo/linux-arm-kernel
+FAQ:        http://www.arm.linux.org.uk/mailinglists/faq.php
+Etiquette:  http://www.arm.linux.org.uk/mailinglists/etiquette.php
