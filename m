@@ -1,119 +1,265 @@
 From: Ajay Kumar Gupta <ajay.gupta@ti.com>
-Subject: [PATCH 3/3] usb: musb: NAK timeout scheme on bulk reserved ep
-Date: Fri,  6 Feb 2009 17:22:35 +0530
-Message-ID: <1233921155-4077-1-git-send-email-ajay.gupta@ti.com>
+Subject: [PATCH v2] usb: otg: adding nop usb transceiver
+Date: Fri,  6 Feb 2009 17:32:35 +0530
+Message-ID: <1233921755-8640-1-git-send-email-ajay.gupta@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:40070 "EHLO comal.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:35859 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752389AbZBFLww (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 6 Feb 2009 06:52:52 -0500
+	id S1751916AbZBFMCu (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 6 Feb 2009 07:02:50 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-usb@vger.kernel.org
 Cc: linux-omap@vger.kernel.org, david-b@pacbell.net, felipe.balbi@nokia.com, Ajay Kumar Gupta <ajay.gupta@ti.com>
 
-Fixes endpoint starvation issue when more than one bulk qhs
-are multiplexed on reserved bulk endpoint.NAK timeout interval
-is set for such qhs and next qh is scheduled when NAK timeout
-occurs.
-This scheme doesn't work for devices which are connected to a
-high to full speed tree as there is no NAK timeout interrupt
-at musb controller from such devices.
+NOP transceiver is used by all the usb transceiver which are mostly
+autonomous and doesn't require any programming or which are built
+into the usb ip itself.NOP transceiver only allocates the memory
+for struct xceiv and calls otg_set_transceiver() so function call
+to otg_get_transceiver() will return a valid transceiver.
+
+NOP transceiver device should be registered by calling
+usb_nop_xceiv_register() from platform files.
 
 Signed-off-by: Ajay Kumar Gupta <ajay.gupta@ti.com>
 ---
- drivers/usb/musb/musb_host.c |   63 ++++++++++++++++++++++++++++++++++++++++--
- 1 files changed, 60 insertions(+), 3 deletions(-)
+ drivers/usb/otg/Kconfig         |    8 ++
+ drivers/usb/otg/Makefile        |    1 +
+ drivers/usb/otg/nop-usb-xceiv.c |  180 +++++++++++++++++++++++++++++++++++++++
+ include/linux/usb/otg.h         |    4 +
+ 4 files changed, 193 insertions(+), 0 deletions(-)
+ create mode 100644 drivers/usb/otg/nop-usb-xceiv.c
 
-diff --git a/drivers/usb/musb/musb_host.c b/drivers/usb/musb/musb_host.c
-index 1a78f00..255b1d1 100644
---- a/drivers/usb/musb/musb_host.c
-+++ b/drivers/usb/musb/musb_host.c
-@@ -1366,6 +1366,49 @@ finish:
+diff --git a/drivers/usb/otg/Kconfig b/drivers/usb/otg/Kconfig
+index ee55b44..fc1ca03 100644
+--- a/drivers/usb/otg/Kconfig
++++ b/drivers/usb/otg/Kconfig
+@@ -51,4 +51,12 @@ config TWL4030_USB
+ 	  This transceiver supports high and full speed devices plus,
+ 	  in host mode, low speed.
  
- #endif
++config NOP_USB_XCEIV
++	tristate "NOP USB Transceiver Driver"
++	select USB_OTG_UTILS
++	help
++	 this driver is to be used by all the usb transceiver which are either
++	 built-in with usb ip or which are autonomous and doesn't require any
++	 phy programming such as ISP1x04 etc.
++
+ endif # USB || OTG
+diff --git a/drivers/usb/otg/Makefile b/drivers/usb/otg/Makefile
+index d73c7cf..2081678 100644
+--- a/drivers/usb/otg/Makefile
++++ b/drivers/usb/otg/Makefile
+@@ -9,6 +9,7 @@ obj-$(CONFIG_USB_OTG_UTILS)	+= otg.o
+ obj-$(CONFIG_USB_GPIO_VBUS)	+= gpio_vbus.o
+ obj-$(CONFIG_ISP1301_OMAP)	+= isp1301_omap.o
+ obj-$(CONFIG_TWL4030_USB)	+= twl4030-usb.o
++obj-$(CONFIG_NOP_USB_XCEIV)	+= nop-usb-xceiv.o
  
-+/* Schedule next qh from musb->in_bulk and add the current qh at tail
-+ * to avoid endpoint starvation.
+ ccflags-$(CONFIG_USB_DEBUG)	+= -DDEBUG
+ ccflags-$(CONFIG_USB_GADGET_DEBUG) += -DDEBUG
+diff --git a/drivers/usb/otg/nop-usb-xceiv.c b/drivers/usb/otg/nop-usb-xceiv.c
+new file mode 100644
+index 0000000..4b933f6
+--- /dev/null
++++ b/drivers/usb/otg/nop-usb-xceiv.c
+@@ -0,0 +1,180 @@
++/*
++ * drivers/usb/otg/nop-usb-xceiv.c
++ *
++ * NOP USB transceiver for all USB transceiver which are either built-in
++ * into USB IP or which are mostly autonomous.
++ *
++ * Copyright (C) 2009 Texas Instruments Inc
++ * Author: Ajay Kumar Gupta <ajay.gupta@ti.com>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 2 of the License, or
++ * (at your option) any later version.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
++ *
++ * Current status:
++ * 	this is to add "nop" transceiver for all those phy which is
++ * 	autonomous such as isp1504 etc.
 + */
-+static void musb_bulk_nak_timeout(struct musb *musb, struct musb_hw_ep *ep)
++
++#include <linux/module.h>
++#include <linux/platform_device.h>
++#include <linux/dma-mapping.h>
++#include <linux/usb/otg.h>
++
++struct nop_usb_xceiv {
++	struct otg_transceiver	otg;
++	struct device		*dev;
++};
++
++static u64 nop_xceiv_dmamask = DMA_32BIT_MASK;
++
++static struct platform_device nop_xceiv_device = {
++	.name           = "nop_usb_xceiv",
++	.id             = -1,
++	.dev = {
++		.dma_mask               = &nop_xceiv_dmamask,
++		.coherent_dma_mask      = DMA_32BIT_MASK,
++		.platform_data          = NULL,
++	},
++};
++
++void usb_nop_xceiv_register(void)
 +{
-+	struct dma_channel	*dma;
-+	struct urb	*urb;
-+	void __iomem	*mbase = musb->mregs;
-+	void __iomem	*epio = ep->regs;
-+	struct musb_qh	*cur_qh, *next_qh;
-+	u16	rx_csr;
-+
-+	musb_ep_select(mbase, ep->epnum);
-+	dma = is_dma_capable() ? ep->rx_channel : NULL;
-+
-+	/* clear nak timeout bit */
-+	rx_csr = musb_readw(epio, MUSB_RXCSR);
-+	rx_csr &= ~MUSB_RXCSR_DATAERROR;
-+	musb_writew(epio, MUSB_RXCSR, rx_csr);
-+
-+	cur_qh = first_qh(&musb->in_bulk);
-+	if (cur_qh) {
-+		urb = next_urb(cur_qh);
-+		if (dma_channel_status(dma) == MUSB_DMA_STATUS_BUSY) {
-+			dma->status = MUSB_DMA_STATUS_CORE_ABORT;
-+			musb->dma_controller->channel_abort(dma);
-+			urb->actual_length += dma->actual_len;
-+			dma->actual_len = 0L;
-+		}
-+		musb_save_toggle(ep, 1, urb);
-+
-+		/* delete cur_qh and add to tail to musb->in_bulk */
-+		list_move_tail(&cur_qh->ring, &musb->in_bulk);
-+
-+		/* get the next qh from musb->in_bulk */
-+		next_qh = first_qh(&musb->in_bulk);
-+
-+		/* set rx_reinit and schedule the next qh */
-+		ep->rx_reinit = 1;
-+		musb_start_urb(musb, 1, next_qh);
++	if (platform_device_register(&nop_xceiv_device) < 0) {
++		printk(KERN_ERR "Unable to register usb nop transceiver\n");
++		return;
 +	}
 +}
 +
- /*
-  * Service an RX interrupt for the given IN endpoint; docs cover bulk, iso,
-  * and high-bandwidth IN transfer cases.
-@@ -1437,10 +1480,14 @@ void musb_host_rx(struct musb *musb, u8 epnum)
- 			 * we have a candidate... NAKing is *NOT* an error
- 			 */
- 			DBG(6, "RX end %d NAK timeout\n", epnum);
-+			if (usb_pipebulk(urb->pipe) && qh->mux == 1 &&
-+				!list_is_singular(&musb->in_bulk)) {
-+				musb_bulk_nak_timeout(musb, hw_ep);
-+				return;
-+			}
- 			musb_ep_select(mbase, epnum);
--			musb_writew(epio, MUSB_RXCSR,
--					MUSB_RXCSR_H_WZC_BITS
--					| MUSB_RXCSR_H_REQPKT);
-+			rx_csr &= ~MUSB_RXCSR_DATAERROR;
-+			musb_writew(epio, MUSB_RXCSR, rx_csr);
++void usb_nop_xceiv_unregister(void)
++{
++	platform_device_unregister(&nop_xceiv_device);
++}
++
++static inline struct nop_usb_xceiv *xceiv_to_nop(struct otg_transceiver *x)
++{
++	return container_of(x, struct nop_usb_xceiv, otg);
++}
++
++static int nop_set_suspend(struct otg_transceiver *x, int suspend)
++{
++	return 0;
++}
++
++static int nop_set_peripheral(struct otg_transceiver *x,
++		struct usb_gadget *gadget)
++{
++	struct nop_usb_xceiv *nop;
++
++	if (!x)
++		return -ENODEV;
++
++	nop = xceiv_to_nop(x);
++
++	if (!gadget) {
++		nop->otg.gadget = NULL;
++		return -ENODEV;
++	}
++
++	nop->otg.gadget = gadget;
++	nop->otg.state = OTG_STATE_B_IDLE;
++	return 0;
++}
++
++static int nop_set_host(struct otg_transceiver *x, struct usb_bus *host)
++{
++	struct nop_usb_xceiv *nop;
++
++	if (!x)
++		return -ENODEV;
++
++	nop = xceiv_to_nop(x);
++
++	if (!host) {
++		nop->otg.host = NULL;
++		return -ENODEV;
++	}
++
++	nop->otg.host = host;
++	return 0;
++}
++
++static int __devinit nop_usb_xceiv_probe(struct platform_device *pdev)
++{
++	struct nop_usb_xceiv	*nop;
++	int err;
++
++	nop = kzalloc(sizeof *nop, GFP_KERNEL);
++	if (!nop)
++		return -ENOMEM;
++
++	nop->dev		= &pdev->dev;
++	nop->otg.dev		= nop->dev;
++	nop->otg.label		= "nop-xceiv";
++	nop->otg.state		= OTG_STATE_UNDEFINED;
++	nop->otg.set_host	= nop_set_host;
++	nop->otg.set_peripheral	= nop_set_peripheral;
++	nop->otg.set_suspend	= nop_set_suspend;
++
++	err = otg_set_transceiver(&nop->otg);
++	if (err) {
++		dev_err(&pdev->dev, "can't register transceiver, err: %d\n",
++			err);
++		goto exit;
++	}
++
++	platform_set_drvdata(pdev, nop);
++
++	return 0;
++exit:
++	kfree(nop);
++	return err;
++}
++
++static int __devexit nop_usb_xceiv_remove(struct platform_device *pdev)
++{
++	struct nop_usb_xceiv *nop = platform_get_drvdata(pdev);
++
++	otg_set_transceiver(NULL);
++
++	platform_set_drvdata(pdev, NULL);
++	kfree(nop);
++
++	return 0;
++}
++
++static struct platform_driver nop_usb_xceiv_driver = {
++	.probe		= nop_usb_xceiv_probe,
++	.remove		= __devexit_p(nop_usb_xceiv_remove),
++	.driver		= {
++		.name	= "nop_usb_xceiv",
++		.owner	= THIS_MODULE,
++	},
++};
++
++static int __init nop_usb_xceiv_init(void)
++{
++	return platform_driver_register(&nop_usb_xceiv_driver);
++}
++subsys_initcall(nop_usb_xceiv_init);
++
++static void __exit nop_usb_xceiv_exit(void)
++{
++	platform_driver_unregister(&nop_usb_xceiv_driver);
++}
++module_exit(nop_usb_xceiv_exit);
++
++MODULE_ALIAS("platform:nop_usb_xceiv");
++MODULE_AUTHOR("Texas Instruments Inc");
++MODULE_DESCRIPTION("NOP USB Transceiver driver");
++MODULE_LICENSE("GPL");
+diff --git a/include/linux/usb/otg.h b/include/linux/usb/otg.h
+index 94df4fe..54f2424 100644
+--- a/include/linux/usb/otg.h
++++ b/include/linux/usb/otg.h
+@@ -80,6 +80,10 @@ struct otg_transceiver {
  
- 			goto finish;
- 		} else {
-@@ -1774,6 +1821,16 @@ static int musb_schedule(
- 			head = &musb->in_bulk;
- 		else
- 			head = &musb->out_bulk;
-+		/* Enable bulk NAK time out scheme when bulk requests are
-+		 * multiplxed.This scheme doen't work in high speed to full
-+		 * speed scenario as NAK interrupts are not coming from a
-+		 * full speed device connected to a high speed device.
-+		 * NAK timeout interval is 8 (128 uframe or 16ms) for HS and
-+		 * 4 (8 frame or 8ms) for FS device.
-+		 */
-+		if (is_in && qh->dev)
-+			qh->intv_reg =
-+				(USB_SPEED_HIGH == qh->dev->speed) ? 8 : 4;
- 		goto success;
- 	} else if (best_end < 0) {
- 		return -ENOSPC;
+ /* for board-specific init logic */
+ extern int otg_set_transceiver(struct otg_transceiver *);
++#ifdef CONFIG_NOP_USB_XCEIV
++extern void usb_nop_xceiv_register(void);
++extern void usb_nop_xceiv_unregister(void);
++#endif
+ 
+ 
+ /* for usb host and peripheral controller drivers */
 -- 
 1.5.6
 
