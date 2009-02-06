@@ -1,70 +1,37 @@
-From: Koen Kooi <k.kooi@student.utwente.nl>
-Subject: Re: [PATCH v2] board-omap3beagle: set i2c-3 to 100kHz
-Date: Fri, 6 Feb 2009 15:15:43 +0100
-Message-ID: <0447C4C2-86D0-4FC4-9C33-E09CDE1D2055@student.utwente.nl>
-References: <1232873177-15531-1-git-send-email-koen@openembedded.org> <200901250404.11059.david-b@pacbell.net> <1DDF6542-7A64-44F0-9B7B-7B841D02A512@beagleboard.org>
-Mime-Version: 1.0 (Apple Message framework v930.3)
-Content-Type: multipart/signed; protocol="application/pgp-signature"; micalg=pgp-sha1; boundary="Apple-Mail-1-71989360"
+From: Sergei Shtylyov <sshtylyov-hkdhdckH98+B+jHODAdFcQ@public.gmane.org>
+Subject: Re: [PATCH 2/3] usb: musb: fix bug in musb_start_urb
+Date: Fri, 06 Feb 2009 18:03:55 +0300
+Message-ID: <498C515B.20603@ru.mvista.com>
+References: <1233921146-4046-1-git-send-email-ajay.gupta@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mx2.utsp.utwente.nl ([130.89.2.13]:47287 "EHLO mx.utwente.nl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752462AbZBFOQA (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 6 Feb 2009 09:16:00 -0500
-Received: from [172.20.1.5] (vpn006013.vpn.utwente.nl [130.89.6.13])
-          by mx.utwente.nl (8.12.10/SuSE Linux 0.7) with ESMTP id n16EFjpw016381
-          for <linux-omap@vger.kernel.org>; Fri, 6 Feb 2009 15:15:45 +0100
-In-Reply-To: <1DDF6542-7A64-44F0-9B7B-7B841D02A512@beagleboard.org>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1233921146-4046-1-git-send-email-ajay.gupta-l0cyMroinI0@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Ajay Kumar Gupta <ajay.gupta-l0cyMroinI0@public.gmane.org>
+Cc: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, david-b-yBeKhBN/0LDR7s880joybQ@public.gmane.org, felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: "linux-omap@vger.kernel.org List" <linux-omap@vger.kernel.org>
 
-This is an OpenPGP/MIME signed message (RFC 2440 and 3156)
---Apple-Mail-1-71989360
-Content-Type: text/plain; charset=US-ASCII; format=flowed; delsp=yes
-Content-Transfer-Encoding: 7bit
+Ajay Kumar Gupta wrote:
 
+> urb->transfer_buffer_length and urb->transfer_buffer should be
+> updated based on urb->actual_length.For a fresh and first time urb,
+> actual_length will be zero but for urbs which has been stopped and
+> restarted (as bulk nak scheme does) actual_length may not be zero.
 
-Op 4 feb 2009, om 20:58 heeft Koen Kooi het volgende geschreven:
+> Signed-off-by: Ajay Kumar Gupta <ajay.gupta-l0cyMroinI0@public.gmane.org>
 
->
-> Op 25 jan 2009, om 13:04 heeft David Brownell het volgende geschreven:
->
->> On Sunday 25 January 2009, Koen Kooi wrote:
->>> From: Koen Kooi <koen@beagleboard.org>
->>>
->>> Changing it do 100kHz is needed to make more devices works  
->>> properly. Controlling the TI DLP Pico projector[1] doesn't work  
->>> properly at 400kHz, 100kHz and lower work fine. EDID readout is  
->>> unaffected by this change.
->>>
->>> [1] http://focus.ti.com/dlpdmd/docs/dlpdiscovery.tsp?sectionId=60&tabId=2234
->>>
->>> Signed-off-by: Koen Kooi <koen@beagleboard.org>
->>
->> Acked-by: David Brownell <dbrownell@users.sourceforge.net>
->
-> ping
+    NAK, this is not a problem for the current driver since URBs do not ever 
+get restarted. Also, musb_host_tx() doesn't update urb->actual_length -- 
+please fix it too. Also, you must not clear qh->iso_idx when restarting -- you 
+must not start ISO transfer all over again too. Also, you should not set 
+musb->ep0_state to MUSB_EP0_START again in this case (I agree that control 
+transfers will remain not restartable from an arbitatry place even then).  If 
+you're trying to make musb_start_urb() able to re-start, please be consistent.
 
-Any more changes needed before this can go in?
-
-regards,
-
-Koen
-
---Apple-Mail-1-71989360
-content-type: application/pgp-signature; x-mac-type=70674453;
-	name=PGP.sig
-content-description: Dit deel van het bericht is digitaal ondertekend
-content-disposition: inline; filename=PGP.sig
-content-transfer-encoding: 7bit
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.5 (Darwin)
-
-iD8DBQFJjEYRMkyGM64RGpERAjG/AKCKoGOpQUvNJMsX1G0j0BoCtFAlhQCdH0YT
-pmrkDsn1yTQdOlmh4TQxuwY=
-=hgH5
------END PGP SIGNATURE-----
-
---Apple-Mail-1-71989360--
+WBR, Sergei
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
