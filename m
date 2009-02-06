@@ -1,42 +1,119 @@
-From: Ajay Kumar Gupta <ajay.gupta-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH 2/3] usb: musb: fix bug in musb_start_urb
-Date: Fri,  6 Feb 2009 17:22:26 +0530
-Message-ID: <1233921146-4046-1-git-send-email-ajay.gupta@ti.com>
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, david-b-yBeKhBN/0LDR7s880joybQ@public.gmane.org, felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org, Ajay Kumar Gupta <ajay.gupta-l0cyMroinI0@public.gmane.org>
+From: Ajay Kumar Gupta <ajay.gupta@ti.com>
+Subject: [PATCH 3/3] usb: musb: NAK timeout scheme on bulk reserved ep
+Date: Fri,  6 Feb 2009 17:22:35 +0530
+Message-ID: <1233921155-4077-1-git-send-email-ajay.gupta@ti.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:40070 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752389AbZBFLww (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 6 Feb 2009 06:52:52 -0500
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-usb@vger.kernel.org
+Cc: linux-omap@vger.kernel.org, david-b@pacbell.net, felipe.balbi@nokia.com, Ajay Kumar Gupta <ajay.gupta@ti.com>
 
-urb->transfer_buffer_length and urb->transfer_buffer should be
-updated based on urb->actual_length.For a fresh and first time urb,
-actual_length will be zero but for urbs which has been stopped and
-restarted (as bulk nak scheme does) actual_length may not be zero.
+Fixes endpoint starvation issue when more than one bulk qhs
+are multiplexed on reserved bulk endpoint.NAK timeout interval
+is set for such qhs and next qh is scheduled when NAK timeout
+occurs.
+This scheme doesn't work for devices which are connected to a
+high to full speed tree as there is no NAK timeout interrupt
+at musb controller from such devices.
 
-Signed-off-by: Ajay Kumar Gupta <ajay.gupta-l0cyMroinI0@public.gmane.org>
+Signed-off-by: Ajay Kumar Gupta <ajay.gupta@ti.com>
 ---
- drivers/usb/musb/musb_host.c |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
+ drivers/usb/musb/musb_host.c |   63 ++++++++++++++++++++++++++++++++++++++++--
+ 1 files changed, 60 insertions(+), 3 deletions(-)
 
 diff --git a/drivers/usb/musb/musb_host.c b/drivers/usb/musb/musb_host.c
-index a776951..1a78f00 100644
+index 1a78f00..255b1d1 100644
 --- a/drivers/usb/musb/musb_host.c
 +++ b/drivers/usb/musb/musb_host.c
-@@ -201,8 +201,8 @@ musb_start_urb(struct musb *musb, int is_in, struct musb_qh *qh)
- 		len = urb->iso_frame_desc[0].length;
- 		break;
- 	default:		/* bulk, interrupt */
--		buf = urb->transfer_buffer;
--		len = urb->transfer_buffer_length;
-+		buf = urb->transfer_buffer + urb->actual_length;
-+		len = urb->transfer_buffer_length - urb->actual_length;
- 	}
+@@ -1366,6 +1366,49 @@ finish:
  
- 	DBG(4, "qh %p urb %p dev%d ep%d%s%s, hw_ep %d, %p/%d\n",
+ #endif
+ 
++/* Schedule next qh from musb->in_bulk and add the current qh at tail
++ * to avoid endpoint starvation.
++ */
++static void musb_bulk_nak_timeout(struct musb *musb, struct musb_hw_ep *ep)
++{
++	struct dma_channel	*dma;
++	struct urb	*urb;
++	void __iomem	*mbase = musb->mregs;
++	void __iomem	*epio = ep->regs;
++	struct musb_qh	*cur_qh, *next_qh;
++	u16	rx_csr;
++
++	musb_ep_select(mbase, ep->epnum);
++	dma = is_dma_capable() ? ep->rx_channel : NULL;
++
++	/* clear nak timeout bit */
++	rx_csr = musb_readw(epio, MUSB_RXCSR);
++	rx_csr &= ~MUSB_RXCSR_DATAERROR;
++	musb_writew(epio, MUSB_RXCSR, rx_csr);
++
++	cur_qh = first_qh(&musb->in_bulk);
++	if (cur_qh) {
++		urb = next_urb(cur_qh);
++		if (dma_channel_status(dma) == MUSB_DMA_STATUS_BUSY) {
++			dma->status = MUSB_DMA_STATUS_CORE_ABORT;
++			musb->dma_controller->channel_abort(dma);
++			urb->actual_length += dma->actual_len;
++			dma->actual_len = 0L;
++		}
++		musb_save_toggle(ep, 1, urb);
++
++		/* delete cur_qh and add to tail to musb->in_bulk */
++		list_move_tail(&cur_qh->ring, &musb->in_bulk);
++
++		/* get the next qh from musb->in_bulk */
++		next_qh = first_qh(&musb->in_bulk);
++
++		/* set rx_reinit and schedule the next qh */
++		ep->rx_reinit = 1;
++		musb_start_urb(musb, 1, next_qh);
++	}
++}
++
+ /*
+  * Service an RX interrupt for the given IN endpoint; docs cover bulk, iso,
+  * and high-bandwidth IN transfer cases.
+@@ -1437,10 +1480,14 @@ void musb_host_rx(struct musb *musb, u8 epnum)
+ 			 * we have a candidate... NAKing is *NOT* an error
+ 			 */
+ 			DBG(6, "RX end %d NAK timeout\n", epnum);
++			if (usb_pipebulk(urb->pipe) && qh->mux == 1 &&
++				!list_is_singular(&musb->in_bulk)) {
++				musb_bulk_nak_timeout(musb, hw_ep);
++				return;
++			}
+ 			musb_ep_select(mbase, epnum);
+-			musb_writew(epio, MUSB_RXCSR,
+-					MUSB_RXCSR_H_WZC_BITS
+-					| MUSB_RXCSR_H_REQPKT);
++			rx_csr &= ~MUSB_RXCSR_DATAERROR;
++			musb_writew(epio, MUSB_RXCSR, rx_csr);
+ 
+ 			goto finish;
+ 		} else {
+@@ -1774,6 +1821,16 @@ static int musb_schedule(
+ 			head = &musb->in_bulk;
+ 		else
+ 			head = &musb->out_bulk;
++		/* Enable bulk NAK time out scheme when bulk requests are
++		 * multiplxed.This scheme doen't work in high speed to full
++		 * speed scenario as NAK interrupts are not coming from a
++		 * full speed device connected to a high speed device.
++		 * NAK timeout interval is 8 (128 uframe or 16ms) for HS and
++		 * 4 (8 frame or 8ms) for FS device.
++		 */
++		if (is_in && qh->dev)
++			qh->intv_reg =
++				(USB_SPEED_HIGH == qh->dev->speed) ? 8 : 4;
+ 		goto success;
+ 	} else if (best_end < 0) {
+ 		return -ENOSPC;
 -- 
 1.5.6
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
