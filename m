@@ -1,37 +1,68 @@
-From: Sergei Shtylyov <sshtylyov-hkdhdckH98+B+jHODAdFcQ@public.gmane.org>
-Subject: Re: [PATCH 2/3] usb: musb: fix bug in musb_start_urb
-Date: Fri, 06 Feb 2009 18:03:55 +0300
-Message-ID: <498C515B.20603@ru.mvista.com>
-References: <1233921146-4046-1-git-send-email-ajay.gupta@ti.com>
+From: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+Subject: Re: [REVIEW PATCH 00/14] OMAP3 camera + ISP + MT9P012 sensor driver
+ v2
+Date: Fri, 06 Feb 2009 17:03:26 +0200
+Message-ID: <498C513E.6080501@maxwell.research.nokia.com>
+References: <19F8576C6E063C45BE387C64729E739403FA81B0D0@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1233921146-4046-1-git-send-email-ajay.gupta-l0cyMroinI0@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Ajay Kumar Gupta <ajay.gupta-l0cyMroinI0@public.gmane.org>
-Cc: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, david-b-yBeKhBN/0LDR7s880joybQ@public.gmane.org, felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org
+Return-path: <linux-media-owner@vger.kernel.org>
+In-Reply-To: <19F8576C6E063C45BE387C64729E739403FA81B0D0@dbde02.ent.ti.com>
+Sender: linux-media-owner@vger.kernel.org
+To: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+Cc: "Ailus Sakari (Nokia-D/Helsinki)" <Sakari.Ailus@nokia.com>, "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>, "Nagalla, Hari" <hnagalla@ti.com>, "video4linux-list@redhat.com" <video4linux-list@redhat.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Toivonen Tuukka.O (Nokia-D/Oulu)" <tuukka.o.toivonen@nokia.com>, "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-Ajay Kumar Gupta wrote:
+Hiremath, Vaibhav wrote:
+> [Hiremath, Vaibhav] Sakari, Can you share your version of code
+> (either in form of patches or source) here onto the mailing list, so
+> that everybody those who are interested will be aware of changes?
 
-> urb->transfer_buffer_length and urb->transfer_buffer should be
-> updated based on urb->actual_length.For a fresh and first time urb,
-> actual_length will be zero but for urbs which has been stopped and
-> restarted (as bulk nak scheme does) actual_length may not be zero.
+I will synchronise soon with Sergio (as he noted). After that we'll send 
+a new patchset. I was thinking of separating the ISP and camera driver 
+patches from other hardware dependent patches. The resulting patchset 
+wouldn't be that huge anymore but on the other hand it wouldn't be very 
+usable as such.
 
-> Signed-off-by: Ajay Kumar Gupta <ajay.gupta-l0cyMroinI0@public.gmane.org>
+> Atleast for me I would get prior view of changes which might affect
+> BT656 support (posted on top of Sergio's patch).
+> 
+> Again one more thing I would like to bring to your notice is about
+> sub-device framework. Also we need to plan for the migration from
+> V4L2-int to sub-device framework, which is of equal important. I feel
+> the more time we spend in merging and aligning offline, more we are
+> carrying risk.
 
-    NAK, this is not a problem for the current driver since URBs do not ever 
-get restarted. Also, musb_host_tx() doesn't update urb->actual_length -- 
-please fix it too. Also, you must not clear qh->iso_idx when restarting -- you 
-must not start ISO transfer all over again too. Also, you should not set 
-musb->ep0_state to MUSB_EP0_START again in this case (I agree that control 
-transfers will remain not restartable from an arbitatry place even then).  If 
-you're trying to make musb_start_urb() able to re-start, please be consistent.
+I agree that we should be moving to v4l2 sub-device at some point, 
+preferrably sooner than later, but I think the ISP driver should get a 
+much much better interface than it currently has. So that should be part 
+of the task.
 
-WBR, Sergei
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> According to me as I mentioned before, the plan should be to push
+> ISP-Camera with V4L2-int interface as early as possible with whatever
+> minimal sensor/decoder support we have today, which will make sure
+> that our underneath ISP-library is in place. Once that is placed in,
+> we can have additional patches on top of it to add more features.
+
+I agree. But I'd say that fixing the bugs and cleaning up the code is as 
+least as important than adding new features.
+
+> In this way, we can plan for migration to sub-device framework and
+> also be easier and simpler. Even if any customers are interested,
+> they can pick it up the ISP library and start development on top of
+> it.
+
+There's still a long way to get there --- the ISP driver's current 
+interface and internals don't mix well with either v4l2 sub-device or 
+v4l2-int-if. For example, there's no ISP object, just function calls and 
+then output frame size / frame interval enumeration doesn't work 
+properly for YUV (maybe not even for RAW10). Enumerating frame size has 
+side effects. The ISP driver doesn't have a standard interface, it's now 
+specific to OMAP 3. And this is just an example...
+
+Regards,
+
+-- 
+Sakari Ailus
+sakari.ailus@maxwell.research.nokia.com
