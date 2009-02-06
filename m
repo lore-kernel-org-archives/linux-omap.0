@@ -1,38 +1,45 @@
-From: DongSoo Kim <dongsoo.kim@gmail.com>
-Subject: Re: [REVIEW PATCH 11/14] OMAP34XXCAM: Add driver
-Date: Fri, 6 Feb 2009 11:26:23 +0900
-Message-ID: <5e9665e10902051826k7863ea56v99bdff7ee429c832@mail.gmail.com>
-References: <Acl1IyQQvIDQejCAQ5O/QnkHIBmt3w==>
-	 <A24693684029E5489D1D202277BE894416429FA1@dlee02.ent.ti.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH B 06/10] OMAP3 pwrdm: add CORE SAR handling (for USBTLL
+ module)
+Date: Thu, 5 Feb 2009 20:52:17 -0700 (MST)
+Message-ID: <alpine.DEB.2.00.0902052050220.8131@utopia.booyaka.com>
+References: <20090128024301.27240.39391.stgit@localhost.localdomain> <20090128024421.27240.95450.stgit@localhost.localdomain> <13B9B4C6EF24D648824FF11BE89671620376DEB7A5@dlee02.ent.ti.com> <alpine.DEB.2.00.0901290042020.32081@utopia.booyaka.com>
+ <alpine.DEB.2.00.0901290212360.18004@utopia.booyaka.com> <20090131142213.GL1394@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-media-owner@vger.kernel.org>
-In-Reply-To: <A24693684029E5489D1D202277BE894416429FA1@dlee02.ent.ti.com>
-Sender: linux-media-owner@vger.kernel.org
-To: "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>
-Cc: linux-media@vger.kernel.org, linux-omap@vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from utopia.booyaka.com ([72.9.107.138]:59956 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752090AbZBFDwS (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 5 Feb 2009 22:52:18 -0500
+In-Reply-To: <20090131142213.GL1394@n2100.arm.linux.org.uk>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: "Woodruff, Richard" <r-woodruff2@ti.com>, "linux-arm-kernel@lists.arm.linux.org.uk" <linux-arm-kernel@lists.arm.linux.org.uk>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>
 
-Hello.
+Hello Russell,
 
-This could be something trivial.
+On Sat, 31 Jan 2009, Russell King - ARM Linux wrote:
 
-On Tue, Jan 13, 2009 at 11:03 AM, Aguirre Rodriguez, Sergio Alberto
-<saaguirre@ti.com> wrote:
-> +/**
-> + * struct omap34xxcam_hw_config - struct for vidioc_int_g_priv ioctl
-> + * @xclk: OMAP34XXCAM_XCLK_A or OMAP34XXCAM_XCLK_B
-> + * @sensor_isp: Is sensor smart/SOC or raw
-> + * @s_pix_sparm: Access function to set pix and sparm.
-> + * Pix will override sparm
-> + */
-> +struct omap34xxcam_hw_config {
-> +       int dev_index; /* Index in omap34xxcam_sensors */
+> On Thu, Jan 29, 2009 at 02:15:44AM -0700, Paul Walmsley wrote:
+> > Hi Richard,
+> > 
+> > On Thu, 29 Jan 2009, Paul Walmsley wrote:
+> > 
+> > > > TLLSAR is not functional till ES3.1 (and beyound).  Is it possible to flag it this way?
+> > > 
+> > > Yes, it's easy in this case.  Thanks for the note.  I will send along an 
+> > > updated patch for this.
+> > 
+> > N.B. - fixxing this required a separate change to the omap_chip flag 
+> > system, so I'll send the two necessary patches to the linux-omap mailing 
+> > list for further testing.
+> 
+> I'll hold off on this patch then.
 
-I found "omap34xxcam_sensors" in your comment, but it couldn't found anywhere.
-Let me guess that it means "omap34xxcam_videodev". Am I right?
-Cheers.
+The patches that obsolete patch B 06 have lasted a week on linux-omap@vger 
+without any comment, so am passing them along in subsequent E-mails.
 
-Regards,
-Nate
+
+- Paul
