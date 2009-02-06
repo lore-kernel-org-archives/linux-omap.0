@@ -1,45 +1,65 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH B 06/10] OMAP3 pwrdm: add CORE SAR handling (for USBTLL
- module)
-Date: Thu, 5 Feb 2009 20:52:17 -0700 (MST)
-Message-ID: <alpine.DEB.2.00.0902052050220.8131@utopia.booyaka.com>
-References: <20090128024301.27240.39391.stgit@localhost.localdomain> <20090128024421.27240.95450.stgit@localhost.localdomain> <13B9B4C6EF24D648824FF11BE89671620376DEB7A5@dlee02.ent.ti.com> <alpine.DEB.2.00.0901290042020.32081@utopia.booyaka.com>
- <alpine.DEB.2.00.0901290212360.18004@utopia.booyaka.com> <20090131142213.GL1394@n2100.arm.linux.org.uk>
+Subject: [PATCH 1/3] ARM: OMAP: Fix omap34xx revision detection for ES3.1
+Date: Thu, 05 Feb 2009 20:45:16 -0700
+Message-ID: <20090206034513.31313.42445.stgit@localhost.localdomain>
+References: <20090206033847.31313.45612.stgit@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:59956 "EHLO
+Received: from utopia.booyaka.com ([72.9.107.138]:59977 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752090AbZBFDwS (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 5 Feb 2009 22:52:18 -0500
-In-Reply-To: <20090131142213.GL1394@n2100.arm.linux.org.uk>
+	with ESMTP id S1752664AbZBFDwx (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 5 Feb 2009 22:52:53 -0500
+In-Reply-To: <20090206033847.31313.45612.stgit@localhost.localdomain>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: "Woodruff, Richard" <r-woodruff2@ti.com>, "linux-arm-kernel@lists.arm.linux.org.uk" <linux-arm-kernel@lists.arm.linux.org.uk>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>
+To: linux@arm.linux.org.uk
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.arm.linux.org.uk, linux-kernel@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Paul Walmsley <paul@pwsan.com>
 
-Hello Russell,
+From: Tony Lindgren <tony@atomide.com>
 
-On Sat, 31 Jan 2009, Russell King - ARM Linux wrote:
+Fix omap34xx revision detection for ES3.1
 
-> On Thu, Jan 29, 2009 at 02:15:44AM -0700, Paul Walmsley wrote:
-> > Hi Richard,
-> > 
-> > On Thu, 29 Jan 2009, Paul Walmsley wrote:
-> > 
-> > > > TLLSAR is not functional till ES3.1 (and beyound).  Is it possible to flag it this way?
-> > > 
-> > > Yes, it's easy in this case.  Thanks for the note.  I will send along an 
-> > > updated patch for this.
-> > 
-> > N.B. - fixxing this required a separate change to the omap_chip flag 
-> > system, so I'll send the two necessary patches to the linux-omap mailing 
-> > list for further testing.
-> 
-> I'll hold off on this patch then.
+linux-omap source commit is 1bafdfd33cc7a2b053ca705cf8623e1ae6cd4c52.
 
-The patches that obsolete patch B 06 have lasted a week on linux-omap@vger 
-without any comment, so am passing them along in subsequent E-mails.
+Signed-off-by: Tony Lindgren <tony@atomide.com>
+Signed-off-by: Paul Walmsley <paul@pwsan.com>
+---
+ arch/arm/mach-omap2/id.c              |    6 +++++-
+ arch/arm/plat-omap/include/mach/cpu.h |    1 +
+ 2 files changed, 6 insertions(+), 1 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/id.c b/arch/arm/mach-omap2/id.c
+index b0f8e7d..b52a02f 100644
+--- a/arch/arm/mach-omap2/id.c
++++ b/arch/arm/mach-omap2/id.c
+@@ -172,9 +172,13 @@ void __init omap34xx_check_revision(void)
+ 			omap_revision = OMAP3430_REV_ES3_0;
+ 			rev_name = "ES3.0";
+ 			break;
++		case 4:
++			omap_revision = OMAP3430_REV_ES3_1;
++			rev_name = "ES3.1";
++			break;
+ 		default:
+ 			/* Use the latest known revision as default */
+-			omap_revision = OMAP3430_REV_ES3_0;
++			omap_revision = OMAP3430_REV_ES3_1;
+ 			rev_name = "Unknown revision\n";
+ 		}
+ 	}
+diff --git a/arch/arm/plat-omap/include/mach/cpu.h b/arch/arm/plat-omap/include/mach/cpu.h
+index b2062f1..a8e1178 100644
+--- a/arch/arm/plat-omap/include/mach/cpu.h
++++ b/arch/arm/plat-omap/include/mach/cpu.h
+@@ -339,6 +339,7 @@ IS_OMAP_TYPE(3430, 0x3430)
+ #define OMAP3430_REV_ES2_0	0x34301034
+ #define OMAP3430_REV_ES2_1	0x34302034
+ #define OMAP3430_REV_ES3_0	0x34303034
++#define OMAP3430_REV_ES3_1	0x34304034
+ 
+ /*
+  * omap_chip bits
 
 
-- Paul
