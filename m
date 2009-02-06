@@ -1,36 +1,48 @@
-From: Aaro Koskinen <aaro.koskinen@nokia.com>
-Subject: Re: [PATCH PM] OMAP3 McSPI:  Adds context save/restore
-Date: Fri, 06 Feb 2009 14:15:30 +0200
-Message-ID: <498C29E2.5020303@nokia.com>
-References: <5A47E75E594F054BAF48C5E4FC4B92AB02F54B9C80@dbde02.ent.ti.com>
+From: Jean Pihet <jpihet@mvista.com>
+Subject: Re: [PATCH] OMAP: MMC: recover from transfer failures - Resend
+Date: Fri, 6 Feb 2009 14:22:32 +0100
+Message-ID: <200902061422.32689.jpihet@mvista.com>
+References: <20081207213617.10456.43951.stgit@localhost> <20090205121045.4022c319.akpm@linux-foundation.org> <alpine.DEB.2.00.0902051323090.8131@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Type: text/plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:63485 "EHLO
-	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752554AbZBFMRP (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 6 Feb 2009 07:17:15 -0500
-In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB02F54B9C80@dbde02.ent.ti.com>
+Received: from gateway-1237.mvista.com ([63.81.120.158]:49784 "EHLO
+	gateway-1237.mvista.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753141AbZBFNXA (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 6 Feb 2009 08:23:00 -0500
+In-Reply-To: <alpine.DEB.2.00.0902051323090.8131@utopia.booyaka.com>
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "ext Nayak, Rajendra" <rnayak@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
-Cc: Kevin Hilman <khilman@deeprootsystems.com>, "Hogander Jouni (Nokia-D/Tampere)" <jouni.hogander@nokia.com>, "V, Hemanth" <hemanthv@ti.com>
+To: Paul Walmsley <paul@pwsan.com>, Andrew Morton <akpm@linux-foundation.org>
+Cc: tony@atomide.com, ext-adrian.hunter@nokia.com, linux-arm-kernel@lists.arm.linux.org.uk, linux-omap@vger.kernel.org, jarkko.lavinen@nokia.com, drzeus-mmc@drzeus.cx, linux-kernel@vger.kernel.org
 
-Hello,
+On Thursday 05 February 2009 21:32:03 Paul Walmsley wrote:
+> On Thu, 5 Feb 2009, Andrew Morton wrote:
+> > On Tue, 3 Feb 2009 15:05:58 +0100
+> >
+> > Jean Pihet <jpihet@mvista.com> wrote:
+> > > +	while (OMAP_HSMMC_READ(host->base,
+> > > + 			SYSCTL) & SRD)
+> > > + 		;
+> >
+> > Is a __raw_readl() sufficient to prevent the cpu from burning up here,
+> > or should we add cpu_relax()?
+>
+> The __raw_readl() should be sufficient.  The MMC controller is located on
+> the L4 CORE interconnect, so the round trip latency for the read from MMC
+> is at least 90 ns, while the CPU cycle time is only about 1 to 2 ns.
+Ok.
+>
+> > An infinite loop which assumes the hardware is perfect is always a
+> > worry.  But I see the driver already does that, so we're no worse off..
+Do you want a finite loop with udelay in it? I located 4 places were this 
+could be used. If so I can generate a new patch for that.
 
-ext Nayak, Rajendra wrote:
-> From: Hemanth V <hemanthv@ti.com>
-> 
-> This patch adds context save/restore feature to McSPI driver.
-> This includes fixes by Aaro Koskinen
-> 
-> Signed-off-by: Hemanth V <hemanthv@ti.com>
+>
+> - Paul
 
-For some reason git-am does not take this to my tree, but when applied 
-with patch it's OK. So the patch may need to be refreshed, but for the 
-code itself:
-
-Reviewed-by: Aaro Koskinen <Aaro.Koskinen@nokia.com>
-
-A.
+Regards,
+Jean
