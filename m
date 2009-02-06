@@ -1,33 +1,48 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [PATCH D 11/11] Fix omap1 clock issues
-Date: Fri, 6 Feb 2009 21:44:50 +0000
-Message-ID: <20090206214450.GN13758@n2100.arm.linux.org.uk>
-References: <20090128191638.16688.33452.stgit@localhost.localdomain> <20090128191844.16688.39372.stgit@localhost.localdomain> <20090129143733.GB18233@n2100.arm.linux.org.uk> <alpine.DEB.2.00.0902061417390.26737@utopia.booyaka.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH v2] board-omap3beagle: set i2c-3 to 100kHz
+Date: Fri, 6 Feb 2009 14:23:01 -0800
+Message-ID: <20090206222255.GJ10721@atomide.com>
+References: <1232873177-15531-1-git-send-email-koen@openembedded.org> <200901250404.11059.david-b@pacbell.net> <1DDF6542-7A64-44F0-9B7B-7B841D02A512@beagleboard.org> <0447C4C2-86D0-4FC4-9C33-E09CDE1D2055@student.utwente.nl>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:33791 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753485AbZBFVpF (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 6 Feb 2009 16:45:05 -0500
+Received: from mho-01-bos.mailhop.org ([63.208.196.178]:56429 "EHLO
+	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751450AbZBFWXG (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 6 Feb 2009 17:23:06 -0500
 Content-Disposition: inline
-In-Reply-To: <alpine.DEB.2.00.0902061417390.26737@utopia.booyaka.com>
+In-Reply-To: <0447C4C2-86D0-4FC4-9C33-E09CDE1D2055@student.utwente.nl>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: linux-arm-kernel@lists.arm.linux.org.uk, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>
+To: Koen Kooi <k.kooi@student.utwente.nl>
+Cc: "linux-omap@vger.kernel.org List" <linux-omap@vger.kernel.org>
 
-On Fri, Feb 06, 2009 at 02:19:34PM -0700, Paul Walmsley wrote:
-> [paul@pwsan.com: This patch has been updated to use offsets for OMAP1 
-> clock enable registers, to resolve all current sparse warnings with the 
-> clock code, and to convert most magic constants into symbolic macros.  
+* Koen Kooi <k.kooi@student.utwente.nl> [090206 06:16]:
+>
+> Op 4 feb 2009, om 20:58 heeft Koen Kooi het volgende geschreven:
+>
+>>
+>> Op 25 jan 2009, om 13:04 heeft David Brownell het volgende geschreven:
+>>
+>>> On Sunday 25 January 2009, Koen Kooi wrote:
+>>>> From: Koen Kooi <koen@beagleboard.org>
+>>>>
+>>>> Changing it do 100kHz is needed to make more devices works  
+>>>> properly. Controlling the TI DLP Pico projector[1] doesn't work  
+>>>> properly at 400kHz, 100kHz and lower work fine. EDID readout is  
+>>>> unaffected by this change.
+>>>>
+>>>> [1] http://focus.ti.com/dlpdmd/docs/dlpdiscovery.tsp?sectionId=60&tabId=2234
+>>>>
+>>>> Signed-off-by: Koen Kooi <koen@beagleboard.org>
+>>>
+>>> Acked-by: David Brownell <dbrownell@users.sourceforge.net>
+>>
+>> ping
+>
+> Any more changes needed before this can go in?
 
-Wish you hadn't; I've been avoiding the patches changing the way registers
-are accessed for the time being - until I have an opportunity to think
-about them for a bit.
+Just few more days, I'll need to get my upstream queues ready..
+Otherwise I'll forget to apply it somewhere :)
 
-As can be seen in the OMAP2 updates, this approach causes additional
-struct clk's to appear for mcbsp clocks because they have controlling
-registers split across two subsystems.  This is contary to one of your
-other statements about wanting the struct clk's to reflect the real
-clock structure without virtual clocks.
+Tony
