@@ -1,83 +1,82 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: [PATCH 3/3] OMAP3 powerdomains: make USBTLL SAR only available on
-	ES3.1 and beyond
-Date: Thu, 05 Feb 2009 20:45:28 -0700
-Message-ID: <20090206034525.31313.32758.stgit@localhost.localdomain>
-References: <20090206033847.31313.45612.stgit@localhost.localdomain>
+From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+Subject: RE: [REVIEW PATCH 00/14] OMAP3 camera + ISP + MT9P012 sensor driver
+ v2
+Date: Fri, 6 Feb 2009 13:57:26 +0530
+Message-ID: <19F8576C6E063C45BE387C64729E739403FA81B0D0@dbde02.ent.ti.com>
+References: <497453DC.6020102@nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:59995 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752795AbZBFDwz (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 5 Feb 2009 22:52:55 -0500
-In-Reply-To: <20090206033847.31313.45612.stgit@localhost.localdomain>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-media-owner@vger.kernel.org>
+In-Reply-To: <497453DC.6020102@nokia.com>
+Content-Language: en-US
+Sender: linux-media-owner@vger.kernel.org
+To: Sakari Ailus <sakari.ailus@nokia.com>, "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>
+Cc: "Nagalla, Hari" <hnagalla@ti.com>, "video4linux-list@redhat.com" <video4linux-list@redhat.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Tuukka.O Toivonen" <tuukka.o.toivonen@nokia.com>, "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
-To: linux@arm.linux.org.uk
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.arm.linux.org.uk, linux-kernel@vger.kernel.org, paul@pwsan.com, Richard Woodruff <r-woodruff2@ti.com>
 
-Richard Woodruff writes that chip errata prevent USBTLL SAR from working
-on OMAP3 ES levels before ES3.1:
 
-http://marc.info/?l=linux-arm-kernel&m=123319614808833&w=2
 
-Update the OMAP3 powerdomain structures appropriately.
+Thanks,
+Vaibhav Hiremath
 
-Signed-off-by: Paul Walmsley <paul@pwsan.com>
-Cc: Richard Woodruff <r-woodruff2@ti.com>
----
- arch/arm/mach-omap2/powerdomains.h     |    4 ++--
- arch/arm/mach-omap2/powerdomains34xx.h |   10 ++++++----
- 2 files changed, 8 insertions(+), 6 deletions(-)
+> -----Original Message-----
+> From: video4linux-list-bounces@redhat.com [mailto:video4linux-list-
+> bounces@redhat.com] On Behalf Of Sakari Ailus
+> Sent: Monday, January 19, 2009 3:50 PM
+> To: Aguirre Rodriguez, Sergio Alberto
+> Cc: Nagalla, Hari; video4linux-list@redhat.com; linux-
+> omap@vger.kernel.org; Tuukka.O Toivonen; linux-media@vger.kernel.org
+> Subject: Re: [REVIEW PATCH 00/14] OMAP3 camera + ISP + MT9P012
+> sensor driver v2
+> 
+> Aguirre Rodriguez, Sergio Alberto wrote:
+> > Hi,
+> >
+> > I'm sending the following patchset for review to the relevant
+> lists (linux-omap, v4l, linux-media).
+> >
+> > Includes:
+> >  - Omap3 camera core + ISP drivers.
+> >  - MT9P012 sensor driver (adapted to 3430SDP)
+> >  - DW9710 lens driver (adapted to work with MT9P012 for SDP)
+> >  - Necessary v4l2-int-device changes to make above drivers work
+> >  - Redefine OMAP3 ISP platform device.
+> >  - Review comments fixed from: (Thanks a lot for their time and
+> help)
+> >    - Hans Verkuil
+> >    - Tony Lindgreen
+> >    - Felipe Balbi
+> >    - Vaibhav Hiremath
+> >    - David Brownell
+> 
+> Hi Sergio,
+> 
+> We should try to figure out how we could synchronise our version of
+> the
+> ISP and camera ASAP before making any more changes... I wouldn't
+> want to
+> start posting a competing version. ;-)
+> 
+[Hiremath, Vaibhav] Sakari,
+Can you share your version of code (either in form of patches or source) here onto the mailing list, so that everybody those who are interested will be aware of changes?
 
-diff --git a/arch/arm/mach-omap2/powerdomains.h b/arch/arm/mach-omap2/powerdomains.h
-index 51623e2..691470e 100644
---- a/arch/arm/mach-omap2/powerdomains.h
-+++ b/arch/arm/mach-omap2/powerdomains.h
-@@ -171,8 +171,8 @@ static struct powerdomain *powerdomains_omap[] __initdata = {
- 	&iva2_pwrdm,
- 	&mpu_34xx_pwrdm,
- 	&neon_pwrdm,
--	&core_34xx_es1_pwrdm,
--	&core_34xx_es2_pwrdm,
-+	&core_34xx_pre_es3_1_pwrdm,
-+	&core_34xx_es3_1_pwrdm,
- 	&cam_pwrdm,
- 	&dss_pwrdm,
- 	&per_pwrdm,
-diff --git a/arch/arm/mach-omap2/powerdomains34xx.h b/arch/arm/mach-omap2/powerdomains34xx.h
-index 6b9d126..4dcf94b 100644
---- a/arch/arm/mach-omap2/powerdomains34xx.h
-+++ b/arch/arm/mach-omap2/powerdomains34xx.h
-@@ -200,10 +200,12 @@ static struct powerdomain mpu_34xx_pwrdm = {
- };
- 
- /* No wkdeps or sleepdeps for 34xx core apparently */
--static struct powerdomain core_34xx_es1_pwrdm = {
-+static struct powerdomain core_34xx_pre_es3_1_pwrdm = {
- 	.name		  = "core_pwrdm",
- 	.prcm_offs	  = CORE_MOD,
--	.omap_chip	  = OMAP_CHIP_INIT(CHIP_IS_OMAP3430ES1),
-+	.omap_chip	  = OMAP_CHIP_INIT(CHIP_IS_OMAP3430ES1 |
-+					   CHIP_IS_OMAP3430ES2 |
-+					   CHIP_IS_OMAP3430ES3_0),
- 	.pwrsts		  = PWRSTS_OFF_RET_ON,
- 	.dep_bit	  = OMAP3430_EN_CORE_SHIFT,
- 	.banks		  = 2,
-@@ -218,10 +220,10 @@ static struct powerdomain core_34xx_es1_pwrdm = {
- };
- 
- /* No wkdeps or sleepdeps for 34xx core apparently */
--static struct powerdomain core_34xx_es2_pwrdm = {
-+static struct powerdomain core_34xx_es3_1_pwrdm = {
- 	.name		  = "core_pwrdm",
- 	.prcm_offs	  = CORE_MOD,
--	.omap_chip	  = OMAP_CHIP_INIT(CHIP_GE_OMAP3430ES2),
-+	.omap_chip	  = OMAP_CHIP_INIT(CHIP_GE_OMAP3430ES3_1),
- 	.pwrsts		  = PWRSTS_OFF_RET_ON,
- 	.dep_bit	  = OMAP3430_EN_CORE_SHIFT,
- 	.flags		  = PWRDM_HAS_HDWR_SAR, /* for USBTLL only */
+Atleast for me I would get prior view of changes which might affect BT656 support (posted on top of Sergio's patch).
 
+Again one more thing I would like to bring to your notice is about sub-device framework. Also we need to plan for the migration from V4L2-int to sub-device framework, which is of equal important. I feel the more time we spend in merging and aligning offline, more we are carrying risk.
+
+According to me as I mentioned before, the plan should be to push ISP-Camera with V4L2-int interface as early as possible with whatever minimal sensor/decoder support we have today, which will make sure that our underneath ISP-library is in place. Once that is placed in, we can have additional patches on top of it to add more features. 
+
+In this way, we can plan for migration to sub-device framework and also be easier and simpler. Even if any customers are interested, they can pick it up the ISP library and start development on top of it.
+
+
+> --
+> Sakari Ailus
+> sakari.ailus@nokia.com
+> 
+> --
+> video4linux-list mailing list
+> Unsubscribe mailto:video4linux-list-
+> request@redhat.com?subject=unsubscribe
+> https://www.redhat.com/mailman/listinfo/video4linux-list
 
