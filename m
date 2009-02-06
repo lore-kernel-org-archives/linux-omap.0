@@ -1,80 +1,318 @@
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: Re: [REVIEW PATCH 00/14] OMAP3 camera + ISP + MT9P012 sensor driver v2
-Date: Fri, 6 Feb 2009 16:16:48 +0100
-Message-ID: <200902061616.48299.hverkuil@xs4all.nl>
-References: <19F8576C6E063C45BE387C64729E739403FA81B0D0@dbde02.ent.ti.com> <498C513E.6080501@maxwell.research.nokia.com>
+From: Jean Pihet <jpihet@mvista.com>
+Subject: [PATCH] OMAP: MMC: replace infinite loops with timeouts (was Re: [PATCH] OMAP: MMC: recover from transfer failures - Resend)
+Date: Fri, 6 Feb 2009 16:53:12 +0100
+Message-ID: <200902061653.12821.jpihet@mvista.com>
+References: <20081207213617.10456.43951.stgit@localhost> <200902061422.32689.jpihet@mvista.com> <20090206145343.2b8a5353@mjolnir.drzeus.cx>
 Mime-Version: 1.0
+Content-Type: Multipart/Mixed;
+  boundary="Boundary-00=_ozFjJIHCmBlPTfO"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from gateway-1237.mvista.com ([63.81.120.158]:23551 "EHLO
+	gateway-1237.mvista.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752995AbZBFPxg (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 6 Feb 2009 10:53:36 -0500
+In-Reply-To: <20090206145343.2b8a5353@mjolnir.drzeus.cx>
+Sender: linux-omap-owner@vger.kernel.org
+List-Id: linux-omap@vger.kernel.org
+To: Pierre Ossman <drzeus-mmc@drzeus.cx>
+Cc: tony@atomide.com, Paul Walmsley <paul@pwsan.com>, Andrew Morton <akpm@linux-foundation.org>, ext-adrian.hunter@nokia.com, linux-arm-kernel@lists.arm.linux.org.uk, linux-omap@vger.kernel.org, jarkko.lavinen@nokia.com, linux-kernel@vger.kernel.org
+
+--Boundary-00=_ozFjJIHCmBlPTfO
 Content-Type: text/plain;
   charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-media-owner@vger.kernel.org>
-In-Reply-To: <498C513E.6080501@maxwell.research.nokia.com>
+Content-Transfer-Encoding: quoted-printable
 Content-Disposition: inline
-Sender: linux-media-owner@vger.kernel.org
-To: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
-Cc: "Hiremath, Vaibhav" <hvaibhav@ti.com>, "Ailus Sakari (Nokia-D/Helsinki)" <Sakari.Ailus@nokia.com>, "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>, "Nagalla, Hari" <hnagalla@ti.com>, "video4linux-list@redhat.com" <video4linux-list@redhat.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Toivonen Tuukka.O (Nokia-D/Oulu)" <tuukka.o.toivonen@nokia.com>, "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-List-Id: linux-omap@vger.kernel.org
 
-On Friday 06 February 2009 16:03:26 Sakari Ailus wrote:
-> Hiremath, Vaibhav wrote:
-> > [Hiremath, Vaibhav] Sakari, Can you share your version of code
-> > (either in form of patches or source) here onto the mailing list, so
-> > that everybody those who are interested will be aware of changes?
->
-> I will synchronise soon with Sergio (as he noted). After that we'll send
-> a new patchset. I was thinking of separating the ISP and camera driver
-> patches from other hardware dependent patches. The resulting patchset
-> wouldn't be that huge anymore but on the other hand it wouldn't be very
-> usable as such.
->
-> > Atleast for me I would get prior view of changes which might affect
-> > BT656 support (posted on top of Sergio's patch).
+Hi,
+
+> > > On Thu, 5 Feb 2009, Andrew Morton wrote:
+> > > > An infinite loop which assumes the hardware is perfect is always a
+> > > > worry.  But I see the driver already does that, so we're no worse
+> > > > off..
 > >
-> > Again one more thing I would like to bring to your notice is about
-> > sub-device framework. Also we need to plan for the migration from
-> > V4L2-int to sub-device framework, which is of equal important. I feel
-> > the more time we spend in merging and aligning offline, more we are
-> > carrying risk.
+> > Do you want a finite loop with udelay in it? I located 4 places were th=
+is
+> > could be used. If so I can generate a new patch for that.
 >
-> I agree that we should be moving to v4l2 sub-device at some point,
-> preferrably sooner than later, but I think the ISP driver should get a
-> much much better interface than it currently has. So that should be part
-> of the task.
+> Even if Andrew doesn't, I'd sure like it. (the finite bit at least) :)
+Ok here is a patch that replaces the infinite loops with a timeout version.
+This patch applies on top of the previous one I sent ('[PATCH] OMAP: MMC:=20
+recover from transfer failures - Resend'). Is that OK?
+
+> Related, who is the maintainer of this driver? Tony? I'd like to have
+> someone who checks patches before I queue them up.
 >
-> > According to me as I mentioned before, the plan should be to push
-> > ISP-Camera with V4L2-int interface as early as possible with whatever
-> > minimal sensor/decoder support we have today, which will make sure
-> > that our underneath ISP-library is in place. Once that is placed in,
-> > we can have additional patches on top of it to add more features.
 >
-> I agree. But I'd say that fixing the bugs and cleaning up the code is as
-> least as important than adding new features.
->
-> > In this way, we can plan for migration to sub-device framework and
-> > also be easier and simpler. Even if any customers are interested,
-> > they can pick it up the ISP library and start development on top of
-> > it.
->
-> There's still a long way to get there --- the ISP driver's current
-> interface and internals don't mix well with either v4l2 sub-device or
-> v4l2-int-if. For example, there's no ISP object, just function calls and
-> then output frame size / frame interval enumeration doesn't work
-> properly for YUV (maybe not even for RAW10). Enumerating frame size has
-> side effects. The ISP driver doesn't have a standard interface, it's now
-> specific to OMAP 3. And this is just an example...
+> Rgds
 
-Please note that it is easy to add a subdevice-specific set of ops if 
-needed. It is not implemented at the moment, but if you need it please ask 
-and I can show you how to do it.
+=46rom 5ee867d09efe22a903ac7373a05e9e047bad6544 Mon Sep 17 00:00:00 2001
+=46rom: Jean Pihet <jpihet@mvista.com>
+Date: Fri, 6 Feb 2009 16:42:51 +0100
+Subject: [PATCH] OMAP: MMC: replace infinite loops with timeouts
 
-In general, if you think something is missing in v4l2_subdev or if something 
-is awkward to use, please ask me! I'd be happy to help you with that. It's 
-an internal API, so changes are possible and almost certainly necessary for 
-omap anyway.
+Replace the 'while() ;' with a timeout
 
-Regards,
+Signed-off-by: Jean Pihet <jpihet@mvista.com>
+=2D--
+ drivers/mmc/host/omap_hsmmc.c |   56=20
++++++++++++++++++++++++++++++++++--------
+ 1 files changed, 45 insertions(+), 11 deletions(-)
 
-	Hans
+diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
+index 1ac6918..7ddc77e 100644
+=2D-- a/drivers/mmc/host/omap_hsmmc.c
++++ b/drivers/mmc/host/omap_hsmmc.c
+@@ -102,6 +102,8 @@
+ #define OMAP_MMC_DATADIR_READ  1
+ #define OMAP_MMC_DATADIR_WRITE 2
+ #define MMC_TIMEOUT_MS         20
++#define MMC_TIMEOUT_WAIT       100     /* Active wait duration, in usec */
++#define MMC_TIMEOUT_WAIT_LOOPS ((MMC_TIMEOUT_MS * 1000) / MMC_TIMEOUT_WAIT)
+ #define OMAP_MMC_MASTER_CLOCK  96000000
+ #define DRIVER_NAME            "mmci-omap-hs"
 
--- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG
+@@ -384,6 +386,7 @@ static irqreturn_t mmc_omap_irq(int irq, void *dev_id)
+        struct mmc_omap_host *host =3D dev_id;
+        struct mmc_data *data;
+        int end_cmd =3D 0, end_trans =3D 0, status;
++       unsigned long timeout_counter;
+
+        if (host->cmd =3D=3D NULL && host->data =3D=3D NULL) {
+                OMAP_HSMMC_WRITE(host->base, STAT,
+@@ -406,9 +409,17 @@ static irqreturn_t mmc_omap_irq(int irq, void *dev_id)
+                                        OMAP_HSMMC_WRITE(host->base, SYSCTL,
+                                                OMAP_HSMMC_READ(host->base,
+                                                                SYSCTL) |=20
+SRC);
+=2D                                       while (OMAP_HSMMC_READ(host->base,
+=2D                                                       SYSCTL) & SRC)
+=2D                                               ;
++                                       timeout_counter =3D 0;
++                                       while ((OMAP_HSMMC_READ(host->base,
++                                                               SYSCTL) & S=
+RC)
++                                               && (timeout_counter++ <
++                                                              =20
+MMC_TIMEOUT_WAIT_LOOPS))
++                                                      =20
+udelay(MMC_TIMEOUT_WAIT);
++
++                                       if (OMAP_HSMMC_READ(host->base,
++                                                               SYSCTL) & S=
+RC)
++                                               dev_err(mmc_dev(host->mmc),
++                                                       "Timeout waiting on=
+=20
+SRC\n");
+
+                                        host->cmd->error =3D -ETIMEDOUT;
+                                } else {
+@@ -421,9 +432,17 @@ static irqreturn_t mmc_omap_irq(int irq, void *dev_id)
+                                OMAP_HSMMC_WRITE(host->base, SYSCTL,
+                                        OMAP_HSMMC_READ(host->base,
+                                                        SYSCTL) | SRD);
+=2D                               while (OMAP_HSMMC_READ(host->base,
+=2D                                               SYSCTL) & SRD)
+=2D                                       ;
++                               timeout_counter =3D 0;
++                               while ((OMAP_HSMMC_READ(host->base,
++                                                       SYSCTL) & SRD)
++                                       && (timeout_counter++ <
++                                                      =20
+MMC_TIMEOUT_WAIT_LOOPS))
++                                       udelay(MMC_TIMEOUT_WAIT);
++
++                               if (OMAP_HSMMC_READ(host->base,
++                                                       SYSCTL) & SRD)
++                                       dev_err(mmc_dev(host->mmc),
++                                               "Timeout waiting on SRD\n");
+                        }
+                }
+                if ((status & DATA_TIMEOUT) ||
+@@ -436,9 +455,17 @@ static irqreturn_t mmc_omap_irq(int irq, void *dev_id)
+                                OMAP_HSMMC_WRITE(host->base, SYSCTL,
+                                        OMAP_HSMMC_READ(host->base,
+                                                        SYSCTL) | SRD);
+=2D                               while (OMAP_HSMMC_READ(host->base,
+=2D                                               SYSCTL) & SRD)
+=2D                                       ;
++                               timeout_counter =3D 0;
++                               while ((OMAP_HSMMC_READ(host->base,
++                                                       SYSCTL) & SRD)
++                                       && (timeout_counter++ <
++                                                      =20
+MMC_TIMEOUT_WAIT_LOOPS))
++                                       udelay(MMC_TIMEOUT_WAIT);
++
++                               if (OMAP_HSMMC_READ(host->base,
++                                                       SYSCTL) & SRD)
++                                       dev_err(mmc_dev(host->mmc),
++                                               "Timeout waiting on SRD\n");
+                                end_trans =3D 1;
+                        }
+                }
+@@ -524,6 +551,7 @@ static void mmc_omap_detect(struct work_struct *work)
+ {
+        struct mmc_omap_host *host =3D container_of(work, struct mmc_omap_h=
+ost,
+                                                mmc_carddetect_work);
++       unsigned long timeout;
+
+        sysfs_notify(&host->mmc->class_dev.kobj, NULL, "cover_switch");
+        if (host->carddetect) {
+@@ -531,8 +559,14 @@ static void mmc_omap_detect(struct work_struct *work)
+        } else {
+                OMAP_HSMMC_WRITE(host->base, SYSCTL,
+                        OMAP_HSMMC_READ(host->base, SYSCTL) | SRD);
+=2D               while (OMAP_HSMMC_READ(host->base, SYSCTL) & SRD)
+=2D                       ;
++               /* Wait till the SRD bit is reset */
++               timeout =3D jiffies + msecs_to_jiffies(MMC_TIMEOUT_MS);
++               while ((OMAP_HSMMC_READ(host->base, SYSCTL) & SRD)
++                       && time_before(jiffies, timeout))
++                       msleep(1);
++
++               if (OMAP_HSMMC_READ(host->base, SYSCTL) & SRD)
++                       dev_err(mmc_dev(host->mmc), "Timeout waiting on=20
+SRD\n");
+
+                mmc_detect_change(host->mmc, (HZ * 50) / 1000);
+        }
+=2D-
+1.6.0.1.42.gf8c9c
+
+--Boundary-00=_ozFjJIHCmBlPTfO
+Content-Type: text/x-diff;
+  charset="iso 8859-15";
+  name="OMAP-MMC-replace-infinite-loops-with-timeouts.patch"
+Content-Transfer-Encoding: quoted-printable
+Content-Disposition: attachment;
+	filename="OMAP-MMC-replace-infinite-loops-with-timeouts.patch"
+
+=46rom 5ee867d09efe22a903ac7373a05e9e047bad6544 Mon Sep 17 00:00:00 2001
+=46rom: Jean Pihet <jpihet@mvista.com>
+Date: Fri, 6 Feb 2009 16:42:51 +0100
+Subject: [PATCH] OMAP: MMC: replace infinite loops with timeouts
+
+Replace the 'while() ;' with a timeout
+
+Signed-off-by: Jean Pihet <jpihet@mvista.com>
+=2D--
+ drivers/mmc/host/omap_hsmmc.c |   56 +++++++++++++++++++++++++++++++++----=
+=2D---
+ 1 files changed, 45 insertions(+), 11 deletions(-)
+
+diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
+index 1ac6918..7ddc77e 100644
+=2D-- a/drivers/mmc/host/omap_hsmmc.c
++++ b/drivers/mmc/host/omap_hsmmc.c
+@@ -102,6 +102,8 @@
+ #define OMAP_MMC_DATADIR_READ	1
+ #define OMAP_MMC_DATADIR_WRITE	2
+ #define MMC_TIMEOUT_MS		20
++#define MMC_TIMEOUT_WAIT	100	/* Active wait duration, in usec */
++#define MMC_TIMEOUT_WAIT_LOOPS	((MMC_TIMEOUT_MS * 1000) / MMC_TIMEOUT_WAIT)
+ #define OMAP_MMC_MASTER_CLOCK	96000000
+ #define DRIVER_NAME		"mmci-omap-hs"
+=20
+@@ -384,6 +386,7 @@ static irqreturn_t mmc_omap_irq(int irq, void *dev_id)
+ 	struct mmc_omap_host *host =3D dev_id;
+ 	struct mmc_data *data;
+ 	int end_cmd =3D 0, end_trans =3D 0, status;
++	unsigned long timeout_counter;
+=20
+ 	if (host->cmd =3D=3D NULL && host->data =3D=3D NULL) {
+ 		OMAP_HSMMC_WRITE(host->base, STAT,
+@@ -406,9 +409,17 @@ static irqreturn_t mmc_omap_irq(int irq, void *dev_id)
+ 					OMAP_HSMMC_WRITE(host->base, SYSCTL,
+ 						OMAP_HSMMC_READ(host->base,
+ 								SYSCTL) | SRC);
+=2D					while (OMAP_HSMMC_READ(host->base,
+=2D							SYSCTL) & SRC)
+=2D						;
++					timeout_counter =3D 0;
++					while ((OMAP_HSMMC_READ(host->base,
++								SYSCTL) & SRC)
++						&& (timeout_counter++ <
++								MMC_TIMEOUT_WAIT_LOOPS))
++							udelay(MMC_TIMEOUT_WAIT);
++
++					if (OMAP_HSMMC_READ(host->base,
++								SYSCTL)	& SRC)
++						dev_err(mmc_dev(host->mmc),
++							"Timeout waiting on SRC\n");
+=20
+ 					host->cmd->error =3D -ETIMEDOUT;
+ 				} else {
+@@ -421,9 +432,17 @@ static irqreturn_t mmc_omap_irq(int irq, void *dev_id)
+ 				OMAP_HSMMC_WRITE(host->base, SYSCTL,
+ 					OMAP_HSMMC_READ(host->base,
+ 							SYSCTL) | SRD);
+=2D				while (OMAP_HSMMC_READ(host->base,
+=2D						SYSCTL) & SRD)
+=2D					;
++				timeout_counter =3D 0;
++				while ((OMAP_HSMMC_READ(host->base,
++							SYSCTL) & SRD)
++					&& (timeout_counter++ <
++							MMC_TIMEOUT_WAIT_LOOPS))
++					udelay(MMC_TIMEOUT_WAIT);
++
++				if (OMAP_HSMMC_READ(host->base,
++							SYSCTL)	& SRD)
++					dev_err(mmc_dev(host->mmc),
++						"Timeout waiting on SRD\n");
+ 			}
+ 		}
+ 		if ((status & DATA_TIMEOUT) ||
+@@ -436,9 +455,17 @@ static irqreturn_t mmc_omap_irq(int irq, void *dev_id)
+ 				OMAP_HSMMC_WRITE(host->base, SYSCTL,
+ 					OMAP_HSMMC_READ(host->base,
+ 							SYSCTL) | SRD);
+=2D				while (OMAP_HSMMC_READ(host->base,
+=2D						SYSCTL) & SRD)
+=2D					;
++				timeout_counter =3D 0;
++				while ((OMAP_HSMMC_READ(host->base,
++							SYSCTL) & SRD)
++					&& (timeout_counter++ <
++							MMC_TIMEOUT_WAIT_LOOPS))
++					udelay(MMC_TIMEOUT_WAIT);
++
++				if (OMAP_HSMMC_READ(host->base,
++							SYSCTL)	& SRD)
++					dev_err(mmc_dev(host->mmc),
++						"Timeout waiting on SRD\n");
+ 				end_trans =3D 1;
+ 			}
+ 		}
+@@ -524,6 +551,7 @@ static void mmc_omap_detect(struct work_struct *work)
+ {
+ 	struct mmc_omap_host *host =3D container_of(work, struct mmc_omap_host,
+ 						mmc_carddetect_work);
++	unsigned long timeout;
+=20
+ 	sysfs_notify(&host->mmc->class_dev.kobj, NULL, "cover_switch");
+ 	if (host->carddetect) {
+@@ -531,8 +559,14 @@ static void mmc_omap_detect(struct work_struct *work)
+ 	} else {
+ 		OMAP_HSMMC_WRITE(host->base, SYSCTL,
+ 			OMAP_HSMMC_READ(host->base, SYSCTL) | SRD);
+=2D		while (OMAP_HSMMC_READ(host->base, SYSCTL) & SRD)
+=2D			;
++		/* Wait till the SRD bit is reset */
++		timeout =3D jiffies + msecs_to_jiffies(MMC_TIMEOUT_MS);
++		while ((OMAP_HSMMC_READ(host->base, SYSCTL) & SRD)
++			&& time_before(jiffies, timeout))
++			msleep(1);
++
++		if (OMAP_HSMMC_READ(host->base, SYSCTL) & SRD)
++			dev_err(mmc_dev(host->mmc), "Timeout waiting on SRD\n");
+=20
+ 		mmc_detect_change(host->mmc, (HZ * 50) / 1000);
+ 	}
+=2D-=20
+1.6.0.1.42.gf8c9c
+
+
+--Boundary-00=_ozFjJIHCmBlPTfO--
