@@ -1,48 +1,53 @@
-From: David Brownell <david-b@pacbell.net>
-Subject: Re: [PATCH] OMAP: MMC: recover from transfer failures - Resend
-Date: Sun, 8 Feb 2009 12:27:03 -0800
-Message-ID: <200902081227.03526.david-b@pacbell.net>
-References: <20081207213617.10456.43951.stgit@localhost> <20090205121045.4022c319.akpm@linux-foundation.org> <alpine.DEB.2.00.0902051323090.8131@utopia.booyaka.com>
-Reply-To: dbrownell@users.sourceforge.net
+From: Mark Brown <broonie@sirena.org.uk>
+Subject: Re: [patch 2.6.29-rc3-git 1/2] regulator: twl4030 regulators
+Date: Sun, 8 Feb 2009 23:29:23 +0000
+Message-ID: <20090208232922.GA16966@sirena.org.uk>
+References: <200902081037.06645.david-b@pacbell.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp116.sbc.mail.sp1.yahoo.com ([69.147.64.89]:39645 "HELO
-	smtp116.sbc.mail.sp1.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1752791AbZBHU1H (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 8 Feb 2009 15:27:07 -0500
-In-Reply-To: <alpine.DEB.2.00.0902051323090.8131@utopia.booyaka.com>
+Received: from cassiel.sirena.org.uk ([80.68.93.111]:3004 "EHLO
+	cassiel.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752805AbZBHX3n (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 8 Feb 2009 18:29:43 -0500
 Content-Disposition: inline
+In-Reply-To: <200902081037.06645.david-b@pacbell.net>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: Andrew Morton <akpm@linux-foundation.org>, Jean Pihet <jpihet@mvista.com>, tony@atomide.com, ext-adrian.hunter@nokia.com, linux-arm-kernel@lists.arm.linux.org.uk, linux-omap@vger.kernel.org, jarkko.lavinen@nokia.com, drzeus-mmc@drzeus.cx, linux-kernel@vger.kernel.org
+To: David Brownell <david-b@pacbell.net>
+Cc: Liam Girdwood <lrg@slimlogic.co.uk>, lkml <linux-kernel@vger.kernel.org>, OMAP <linux-omap@vger.kernel.org>
 
-On Thursday 05 February 2009, Paul Walmsley wrote:
->=20
-> > > +=A0=A0=A0while (OMAP_HSMMC_READ(host->base,
-> > > + =A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0SYSCTL) &=
- SRD)
-> > > + =A0=A0=A0=A0=A0=A0=A0=A0=A0=A0;
-> >=20
-> > Is a __raw_readl() sufficient to prevent the cpu from burning up he=
-re,
-> > or should we add cpu_relax()?
->=20
-> The __raw_readl() should be sufficient. =A0The MMC controller is loca=
-ted on=20
-> the L4 CORE interconnect, so the round trip latency for the read from=
- MMC=20
-> is at least 90 ns, while the CPU cycle time is only about 1 to 2 ns.
+On Sun, Feb 08, 2009 at 10:37:06AM -0800, David Brownell wrote:
 
-It's still good policy to have a cpu_relax() in
-such loops.  Not that it'll do much on most ARMs,
-but empty statements are in general worth avoiding.
+> +/*
+> + * We list regulators here if systems need some level of
+> + * software control over them after boot.
+> + */
+> +static struct twlreg_info twl4030_regs[] = {
 
+> +	/*
+> +	TWL_ADJUSTABLE_LDO(VPLL1, 0x2f, 7),
+> +	TWL_ADJUSTABLE_LDO(VPLL2, 0x33, 8),
+> +	*/
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Minor nit, but I guess the comment would be a bit more accurate if the
+comment said that the regulators that aren't likely to be changed have
+been commented out (it required that little extra bit of thinking).
+
+> +	/* Constrain board-specific capabilities according to what
+> +	 * this driver and the chip itself can actually do.
+> +	 */
+> +	c = &initdata->constraints;
+> +	if (!c->min_uV || c->min_uV < min_uV)
+> +		c->min_uV = min_uV;
+
+If we're going to do this I think it'd be better to push it into the
+core and let the regulators pass in a set of constraints so that the
+behaviour will be consistent between drivers.
+
+I'd also expect to have the registration fail or at least issue a
+warning if the code kicks in since that indicates that the board
+constraints have been set up incorrectly.  There's a reasonable chance
+that the fixed up constraints will still need to be changed for the
+board to be configured properly and things may end up being driven out
+of spec, potentially causing damage.
