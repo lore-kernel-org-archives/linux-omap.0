@@ -1,43 +1,154 @@
 From: Jarkko Nikula <jhnikula@gmail.com>
-Subject: [REPOST][PATCH 0/3] ARM: OMAP: Add command line option for I2C bus speed
-Date: Sun,  8 Feb 2009 19:32:46 +0200
-Message-ID: <1234114369-11399-1-git-send-email-jhnikula@gmail.com>
+Subject: [PATCH] ARM: OMAP: Add method to register additional I2C busses on the command line
+Date: Sun,  8 Feb 2009 19:32:49 +0200
+Message-ID: <1234114369-11399-4-git-send-email-jhnikula@gmail.com>
+References: <1234114369-11399-1-git-send-email-jhnikula@gmail.com>
+ <1234114369-11399-2-git-send-email-jhnikula@gmail.com>
+ <1234114369-11399-3-git-send-email-jhnikula@gmail.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from nf-out-0910.google.com ([64.233.182.185]:5284 "EHLO
-	nf-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752773AbZBHRak (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 8 Feb 2009 12:30:40 -0500
-Received: by nf-out-0910.google.com with SMTP id d3so238261nfc.21
-        for <linux-omap@vger.kernel.org>; Sun, 08 Feb 2009 09:30:38 -0800 (PST)
+Received: from mail-ew0-f21.google.com ([209.85.219.21]:55513 "EHLO
+	mail-ew0-f21.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752812AbZBHRat (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 8 Feb 2009 12:30:49 -0500
+Received: by mail-ew0-f21.google.com with SMTP id 14so2177451ewy.13
+        for <linux-omap@vger.kernel.org>; Sun, 08 Feb 2009 09:30:48 -0800 (PST)
+In-Reply-To: <1234114369-11399-3-git-send-email-jhnikula@gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
+Cc: Jarkko Nikula <jarkko.nikula@nokia.com>
 
-Hi
+From: Jarkko Nikula <jarkko.nikula@nokia.com>
 
-I'm reposting this patch[set] adding command line option for I2C bus speed.
-First version was
+This patch extends command line option "i2c_bus=bus_id,clkrate" so that
+it allow to register additional I2C busses that are not registered with
+omap_register_i2c_bus from board initialization code.
 
-http://marc.info/?l=linux-omap&m=123289314421984&w=2
+Purpose of this is to register additional board busses which are routed
+to external connectors only without any on board I2C devices.
 
-With this set, the option name is now i2c_bus instead of i2c_rate and this
-version allow to register busses from command line as well. Idea of the set
-is mostly for EVM boards where bus speed may depend on use case and extra
-components connected into it.
+Signed-off-by: Jarkko Nikula <jarkko.nikula@nokia.com>
+---
+ arch/arm/plat-omap/i2c.c |   73 ++++++++++++++++++++++++++++++++-------------
+ 1 files changed, 52 insertions(+), 21 deletions(-)
 
-With this it should be possible to revert one Dirk Behme's patch 
-
-commit bae4b6a716ccf3247a1991d3c20b5e58ddd52890
-Author: Dirk Behme <dirk.behme@gmail.com>
-Date:   Tue Aug 5 14:09:15 2008 +0300
-
-    ARM: OMAP3: Make I2C bus 2 configurable for BeagleBoard
+diff --git a/arch/arm/plat-omap/i2c.c b/arch/arm/plat-omap/i2c.c
+index aa70e43..a303071 100644
+--- a/arch/arm/plat-omap/i2c.c
++++ b/arch/arm/plat-omap/i2c.c
+@@ -98,6 +98,8 @@ static const int omap34xx_pins[][2] = {
+ static const int omap34xx_pins[][2] = {};
+ #endif
  
-
-This is tested only with unmodified Beagle so I'm interested to hear if one
-has e.g. a Beagle with extra I2C devices connected into second I2C bus and
-those starts working just by adding "i2c_bus=2,100" on the kernel command line.
-
-
++#define OMAP_I2C_CMDLINE_SETUP	(BIT(31))
++
+ static void __init omap_i2c_mux_pins(int bus)
+ {
+ 	int scl, sda;
+@@ -133,6 +135,31 @@ static int __init omap_i2c_nr_ports(void)
+ 	return ports;
+ }
+ 
++static int __init omap_i2c_add_bus(int bus_id)
++{
++	struct platform_device *pdev;
++	struct resource *res;
++	resource_size_t base, irq;
++
++	pdev = &omap_i2c_devices[bus_id - 1];
++	if (bus_id == 1) {
++		res = pdev->resource;
++		if (cpu_class_is_omap1()) {
++			base = OMAP1_I2C_BASE;
++			irq = INT_I2C;
++		} else {
++			base = OMAP2_I2C_BASE1;
++			irq = INT_24XX_I2C1_IRQ;
++		}
++		res[0].start = base;
++		res[0].end = base + OMAP_I2C_SIZE;
++		res[1].start = irq;
++	}
++
++	omap_i2c_mux_pins(bus_id - 1);
++	return platform_device_register(pdev);
++}
++
+ /**
+  * omap_i2c_bus_setup - Process command line options for the I2C bus speed
+  * @str: String of options
+@@ -154,11 +181,33 @@ static int __init omap_i2c_bus_setup(char *str)
+ 	if (ints[0] < 2 || ints[1] < 1 || ints[1] > ports)
+ 		return 0;
+ 	i2c_rate[ints[1] - 1] = ints[2];
++	i2c_rate[ints[1] - 1] |= OMAP_I2C_CMDLINE_SETUP;
+ 
+ 	return 1;
+ }
+ __setup("i2c_bus=", omap_i2c_bus_setup);
+ 
++/*
++ * Register busses defined in command line but that are not registered with
++ * omap_register_i2c_bus from board initialization code.
++ */
++static int __init omap_register_i2c_bus_cmdline(void)
++{
++	int i, err = 0;
++
++	for (i = 0; i < ARRAY_SIZE(i2c_rate); i++)
++		if (i2c_rate[i] & OMAP_I2C_CMDLINE_SETUP) {
++			i2c_rate[i] &= ~OMAP_I2C_CMDLINE_SETUP;
++			err = omap_i2c_add_bus(i + 1);
++			if (err)
++				goto out;
++		}
++
++out:
++	return err;
++}
++subsys_initcall(omap_register_i2c_bus_cmdline);
++
+ /**
+  * omap_register_i2c_bus - register I2C bus with device descriptors
+  * @bus_id: bus id counting from number 1
+@@ -173,9 +222,6 @@ int __init omap_register_i2c_bus(int bus_id, u32 clkrate,
+ 			  unsigned len)
+ {
+ 	int err;
+-	struct platform_device *pdev;
+-	struct resource *res;
+-	resource_size_t base, irq;
+ 
+ 	BUG_ON(bus_id < 1 || bus_id > omap_i2c_nr_ports());
+ 
+@@ -185,24 +231,9 @@ int __init omap_register_i2c_bus(int bus_id, u32 clkrate,
+ 			return err;
+ 	}
+ 
+-	pdev = &omap_i2c_devices[bus_id - 1];
+-	if (i2c_rate[bus_id - 1] == 0)
++	if (!i2c_rate[bus_id - 1])
+ 		i2c_rate[bus_id - 1] = clkrate;
++	i2c_rate[bus_id - 1] &= ~OMAP_I2C_CMDLINE_SETUP;
+ 
+-	if (bus_id == 1) {
+-		res = pdev->resource;
+-		if (cpu_class_is_omap1()) {
+-			base = OMAP1_I2C_BASE;
+-			irq = INT_I2C;
+-		} else {
+-			base = OMAP2_I2C_BASE1;
+-			irq = INT_24XX_I2C1_IRQ;
+-		}
+-		res[0].start = base;
+-		res[0].end = base + OMAP_I2C_SIZE;
+-		res[1].start = irq;
+-	}
+-
+-	omap_i2c_mux_pins(bus_id - 1);
+-	return platform_device_register(pdev);
++	return omap_i2c_add_bus(bus_id);
+ }
 -- 
-Jarkko
+1.5.6.5
+
