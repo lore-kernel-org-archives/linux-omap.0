@@ -1,50 +1,40 @@
 From: David Brownell <david-b@pacbell.net>
-Subject: Re: [PATCH] hsmmc: Add MMC3 support
-Date: Sun, 8 Feb 2009 11:41:56 -0800
-Message-ID: <200902081141.56632.david-b@pacbell.net>
-References: <1233050022-5769-1-git-send-email-notasas@gmail.com>
-Reply-To: dbrownell@users.sourceforge.net
+Subject: Re: [PATCH E 10/14] OMAP clock: support "dry run" rate and parent changes
+Date: Sun, 8 Feb 2009 11:48:58 -0800
+Message-ID: <200902081148.59158.david-b@pacbell.net>
+References: <20090128192551.29333.82943.stgit@localhost.localdomain> <20090128192753.29333.56931.stgit@localhost.localdomain> <20090208131734.GA21434@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
 Content-Type: text/plain;
   charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp126.sbc.mail.sp1.yahoo.com ([69.147.65.185]:46108 "HELO
-	smtp126.sbc.mail.sp1.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1752404AbZBHTl6 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 8 Feb 2009 14:41:58 -0500
-In-Reply-To: <1233050022-5769-1-git-send-email-notasas@gmail.com>
+Received: from smtp125.sbc.mail.sp1.yahoo.com ([69.147.65.184]:48796 "HELO
+	smtp125.sbc.mail.sp1.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1752851AbZBHTtH (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 8 Feb 2009 14:49:07 -0500
+In-Reply-To: <20090208131734.GA21434@n2100.arm.linux.org.uk>
 Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Grazvydas Ignotas <notasas@gmail.com>
-Cc: linux-omap@vger.kernel.org
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: Paul Walmsley <paul@pwsan.com>, linux-arm-kernel@lists.arm.linux.org.uk, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>
 
-On Tuesday 27 January 2009, Grazvydas Ignotas wrote:
-> Device connected to MMC3 is assumed to be self-powered, so
-> set_power() function is empty. It can't be omited because
-> host driver requires it. Array size for hsmmc[] is specified
-> because hsmmc[2].name is needed for MMC3 name.
+On Sunday 08 February 2009, Russell King - ARM Linux wrote:
+> A far better way to approach this would be to split the set_rate/recalc
+> functionality into two parts:
+> 
+> 1. a method which returns the both the new clock rate and the hardware
+>    programming information
+> 2. a method to commit the hardware programming information to the registers
 
-Just for the record ... this should eventually be handled
-using the regulator framework, which will also help with the
-decoupling of hsmmc setup from twl4030 setup.
+Much simpler to just pass a "commit" flag and not
+try to come up with some generic way to represent
+"hardware programming information"; in general that
+will be very different between clocks.
 
-So for example if a given slot is hooked up to an SDIO
-chip with a hard-wired 3v3 supply (Pandora MMC3, and
-Overo MMC2) then it'd have a fixed voltage regulator;
-and the HSMMC driver would just use that.  (It would
-get a "can't do that" error on disable though.)
+Then clk_round_rate() passes "false" for commit,
+while clk_set_rate() passes "true".  And in both
+cases the value returned is the rate, or negative
+errno to indicate a fault.
 
 - Dave
-
-
-> 
-> Also fix a leak which happens if invalid controller id
-> is passed.
-> 
-> Signed-off-by: Grazvydas Ignotas <notasas@gmail.com>
-> ---
-> This patch applies on top of David Brownell's recent 2 patches.
-
-
