@@ -1,154 +1,113 @@
-From: Jarkko Nikula <jhnikula@gmail.com>
-Subject: [PATCH] ARM: OMAP: Add method to register additional I2C busses on the command line
-Date: Sun,  8 Feb 2009 19:32:49 +0200
-Message-ID: <1234114369-11399-4-git-send-email-jhnikula@gmail.com>
-References: <1234114369-11399-1-git-send-email-jhnikula@gmail.com>
- <1234114369-11399-2-git-send-email-jhnikula@gmail.com>
- <1234114369-11399-3-git-send-email-jhnikula@gmail.com>
+From: David Brownell <david-b@pacbell.net>
+Subject: [patch 2.6.29-rc3-git 2/2] USB: disable twl4030 USB regulators when cable unplugged
+Date: Sun, 8 Feb 2009 10:52:59 -0800
+Message-ID: <200902081053.00255.david-b@pacbell.net>
+Mime-Version: 1.0
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ew0-f21.google.com ([209.85.219.21]:55513 "EHLO
-	mail-ew0-f21.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752812AbZBHRat (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 8 Feb 2009 12:30:49 -0500
-Received: by mail-ew0-f21.google.com with SMTP id 14so2177451ewy.13
-        for <linux-omap@vger.kernel.org>; Sun, 08 Feb 2009 09:30:48 -0800 (PST)
-In-Reply-To: <1234114369-11399-3-git-send-email-jhnikula@gmail.com>
+Received: from smtp117.sbc.mail.sp1.yahoo.com ([69.147.64.90]:46135 "HELO
+	smtp117.sbc.mail.sp1.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1752812AbZBHThD (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 8 Feb 2009 14:37:03 -0500
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Jarkko Nikula <jarkko.nikula@nokia.com>
+To: Liam Girdwood <lrg@slimlogic.co.uk>, Mark Brown <broonie@sirena.org.uk>
+Cc: lkml <linux-kernel@vger.kernel.org>, linux-usb@vger.kernel.org, OMAP <linux-omap@vger.kernel.org>, Kalle Jokiniemi <kalle.jokiniemi@digia.com>
 
-From: Jarkko Nikula <jarkko.nikula@nokia.com>
+From: Kalle Jokiniemi <kalle.jokiniemi@digia.com>
 
-This patch extends command line option "i2c_bus=bus_id,clkrate" so that
-it allow to register additional I2C busses that are not registered with
-omap_register_i2c_bus from board initialization code.
+This patch disables LDO regulators VUSB1V5, VUSB1V8, and VUSB3V1
+when the USB cable is unplugged, to eliminate that source of power
+waste.  (Enabled LDOs consume power at all times.)
 
-Purpose of this is to register additional board busses which are routed
-to external connectors only without any on board I2C devices.
-
-Signed-off-by: Jarkko Nikula <jarkko.nikula@nokia.com>
+Signed-off-by: Kalle Jokiniemi <kalle.jokiniemi@digia.com>
+Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
 ---
- arch/arm/plat-omap/i2c.c |   73 ++++++++++++++++++++++++++++++++-------------
- 1 files changed, 52 insertions(+), 21 deletions(-)
+Depends on the twl4030 regulator driver, so I'm suggesting this
+be merged (with that driver) through the regulator patch queue
+to simplify things.
 
-diff --git a/arch/arm/plat-omap/i2c.c b/arch/arm/plat-omap/i2c.c
-index aa70e43..a303071 100644
---- a/arch/arm/plat-omap/i2c.c
-+++ b/arch/arm/plat-omap/i2c.c
-@@ -98,6 +98,8 @@ static const int omap34xx_pins[][2] = {
- static const int omap34xx_pins[][2] = {};
- #endif
+ drivers/usb/otg/twl4030-usb.c |   30 ++++++++++++++++++++++++------
+ 1 file changed, 24 insertions(+), 6 deletions(-)
+
+--- a/drivers/usb/otg/twl4030-usb.c
++++ b/drivers/usb/otg/twl4030-usb.c
+@@ -34,6 +34,7 @@
+ #include <linux/delay.h>
+ #include <linux/usb/otg.h>
+ #include <linux/i2c/twl4030.h>
++#include <linux/regulator/consumer.h>
  
-+#define OMAP_I2C_CMDLINE_SETUP	(BIT(31))
-+
- static void __init omap_i2c_mux_pins(int bus)
- {
- 	int scl, sda;
-@@ -133,6 +135,31 @@ static int __init omap_i2c_nr_ports(void)
- 	return ports;
- }
  
-+static int __init omap_i2c_add_bus(int bus_id)
-+{
-+	struct platform_device *pdev;
-+	struct resource *res;
-+	resource_size_t base, irq;
-+
-+	pdev = &omap_i2c_devices[bus_id - 1];
-+	if (bus_id == 1) {
-+		res = pdev->resource;
-+		if (cpu_class_is_omap1()) {
-+			base = OMAP1_I2C_BASE;
-+			irq = INT_I2C;
-+		} else {
-+			base = OMAP2_I2C_BASE1;
-+			irq = INT_24XX_I2C1_IRQ;
-+		}
-+		res[0].start = base;
-+		res[0].end = base + OMAP_I2C_SIZE;
-+		res[1].start = irq;
-+	}
-+
-+	omap_i2c_mux_pins(bus_id - 1);
-+	return platform_device_register(pdev);
-+}
-+
- /**
-  * omap_i2c_bus_setup - Process command line options for the I2C bus speed
-  * @str: String of options
-@@ -154,11 +181,33 @@ static int __init omap_i2c_bus_setup(char *str)
- 	if (ints[0] < 2 || ints[1] < 1 || ints[1] > ports)
- 		return 0;
- 	i2c_rate[ints[1] - 1] = ints[2];
-+	i2c_rate[ints[1] - 1] |= OMAP_I2C_CMDLINE_SETUP;
+ /* Register defines */
+@@ -246,6 +247,11 @@ struct twl4030_usb {
+ 	struct otg_transceiver	otg;
+ 	struct device		*dev;
  
- 	return 1;
- }
- __setup("i2c_bus=", omap_i2c_bus_setup);
- 
-+/*
-+ * Register busses defined in command line but that are not registered with
-+ * omap_register_i2c_bus from board initialization code.
-+ */
-+static int __init omap_register_i2c_bus_cmdline(void)
-+{
-+	int i, err = 0;
++	/* TWL4030 internal USB regulator supplies */
++	struct regulator	*usb1v5;
++	struct regulator	*usb1v8;
++	struct regulator	*usb3v1;
 +
-+	for (i = 0; i < ARRAY_SIZE(i2c_rate); i++)
-+		if (i2c_rate[i] & OMAP_I2C_CMDLINE_SETUP) {
-+			i2c_rate[i] &= ~OMAP_I2C_CMDLINE_SETUP;
-+			err = omap_i2c_add_bus(i + 1);
-+			if (err)
-+				goto out;
-+		}
-+
-+out:
-+	return err;
-+}
-+subsys_initcall(omap_register_i2c_bus_cmdline);
-+
- /**
-  * omap_register_i2c_bus - register I2C bus with device descriptors
-  * @bus_id: bus id counting from number 1
-@@ -173,9 +222,6 @@ int __init omap_register_i2c_bus(int bus_id, u32 clkrate,
- 			  unsigned len)
- {
- 	int err;
--	struct platform_device *pdev;
--	struct resource *res;
--	resource_size_t base, irq;
+ 	/* for vbus reporting with irqs disabled */
+ 	spinlock_t		lock;
  
- 	BUG_ON(bus_id < 1 || bus_id > omap_i2c_nr_ports());
+@@ -434,6 +440,9 @@ static void twl4030_phy_power(struct twl
  
-@@ -185,24 +231,9 @@ int __init omap_register_i2c_bus(int bus_id, u32 clkrate,
- 			return err;
+ 	pwr = twl4030_usb_read(twl, PHY_PWR_CTRL);
+ 	if (on) {
++		regulator_enable(twl->usb1v5);
++		regulator_enable(twl->usb1v8);
++		regulator_enable(twl->usb3v1);
+ 		pwr &= ~PHY_PWR_PHYPWD;
+ 		WARN_ON(twl4030_usb_write_verify(twl, PHY_PWR_CTRL, pwr) < 0);
+ 		twl4030_usb_write(twl, PHY_CLK_CTRL,
+@@ -443,6 +452,9 @@ static void twl4030_phy_power(struct twl
+ 	} else  {
+ 		pwr |= PHY_PWR_PHYPWD;
+ 		WARN_ON(twl4030_usb_write_verify(twl, PHY_PWR_CTRL, pwr) < 0);
++		regulator_disable(twl->usb1v5);
++		regulator_disable(twl->usb1v8);
++		regulator_disable(twl->usb3v1);
  	}
- 
--	pdev = &omap_i2c_devices[bus_id - 1];
--	if (i2c_rate[bus_id - 1] == 0)
-+	if (!i2c_rate[bus_id - 1])
- 		i2c_rate[bus_id - 1] = clkrate;
-+	i2c_rate[bus_id - 1] &= ~OMAP_I2C_CMDLINE_SETUP;
- 
--	if (bus_id == 1) {
--		res = pdev->resource;
--		if (cpu_class_is_omap1()) {
--			base = OMAP1_I2C_BASE;
--			irq = INT_I2C;
--		} else {
--			base = OMAP2_I2C_BASE1;
--			irq = INT_24XX_I2C1_IRQ;
--		}
--		res[0].start = base;
--		res[0].end = base + OMAP_I2C_SIZE;
--		res[1].start = irq;
--	}
--
--	omap_i2c_mux_pins(bus_id - 1);
--	return platform_device_register(pdev);
-+	return omap_i2c_add_bus(bus_id);
  }
--- 
-1.5.6.5
-
+ 
+@@ -480,16 +492,19 @@ static void twl4030_usb_ldo_init(struct 
+ 	/* input to VUSB3V1 LDO is from VBAT, not VBUS */
+ 	twl4030_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER, 0x14, VUSB_DEDICATED1);
+ 
+-	/* turn on 3.1V regulator */
+-	twl4030_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER, 0x20, VUSB3V1_DEV_GRP);
++	/* Initialize 3.1V regulator */
++	twl4030_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER, 0, VUSB3V1_DEV_GRP);
++	twl->usb3v1 = regulator_get(twl->dev, "usb3v1");
+ 	twl4030_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER, 0, VUSB3V1_TYPE);
+ 
+-	/* turn on 1.5V regulator */
+-	twl4030_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER, 0x20, VUSB1V5_DEV_GRP);
++	/* Initialize 1.5V regulator */
++	twl4030_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER, 0, VUSB1V5_DEV_GRP);
++	twl->usb1v5 = regulator_get(twl->dev, "usb1v5");
+ 	twl4030_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER, 0, VUSB1V5_TYPE);
+ 
+-	/* turn on 1.8V regulator */
+-	twl4030_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER, 0x20, VUSB1V8_DEV_GRP);
++	/* Initialize 1.8V regulator */
++	twl4030_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER, 0, VUSB1V8_DEV_GRP);
++	twl->usb1v8 = regulator_get(twl->dev, "usb1v8");
+ 	twl4030_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER, 0, VUSB1V8_TYPE);
+ 
+ 	/* disable access to power configuration registers */
+@@ -688,6 +703,9 @@ static int __exit twl4030_usb_remove(str
+ 	twl4030_usb_clear_bits(twl, POWER_CTRL, POWER_CTRL_OTG_ENAB);
+ 
+ 	twl4030_phy_power(twl, 0);
++	regulator_put(twl->usb1v5);
++	regulator_put(twl->usb1v8);
++	regulator_put(twl->usb3v1);
+ 
+ 	kfree(twl);
+ 
