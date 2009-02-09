@@ -1,65 +1,108 @@
-From: Joonyoung Shim <dofmind@gmail.com>
-Subject: Re: [PATCH] OMAP3 GPIO: Fix getting the value of the GPIO output pin
-Date: Mon, 9 Feb 2009 21:19:48 +0900
-Message-ID: <4e1455be0902090419v206bae9et23ddb5492db49e55@mail.gmail.com>
-References: <4e1455be0902062015i1ff94b28p93588e61b7860618@mail.gmail.com>
-	 <200902082011.36500.david-b@pacbell.net>
-	 <4e1455be0902082129i2c038477g886c8de03d3073dd@mail.gmail.com>
-	 <200902082153.30479.david-b@pacbell.net>
+From: Kim Kyuwon <chammoru@gmail.com>
+Subject: Re: [patch 2.6.29-rc3-omap-git] omap3: gpio pin config bugfixes
+Date: Mon, 9 Feb 2009 21:24:36 +0900
+Message-ID: <4d34a0a70902090424n5e64a4fjeae8ce20bd4fafd0@mail.gmail.com>
+References: <200902082055.08954.david-b@pacbell.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from rv-out-0506.google.com ([209.85.198.238]:23040 "EHLO
-	rv-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753341AbZBIMTt (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 9 Feb 2009 07:19:49 -0500
-In-Reply-To: <200902082153.30479.david-b@pacbell.net>
+Received: from wf-out-1314.google.com ([209.85.200.174]:23199 "EHLO
+	wf-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754174AbZBIMYh (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 9 Feb 2009 07:24:37 -0500
+Received: by wf-out-1314.google.com with SMTP id 28so2361805wfa.4
+        for <linux-omap@vger.kernel.org>; Mon, 09 Feb 2009 04:24:36 -0800 (PST)
+In-Reply-To: <200902082055.08954.david-b@pacbell.net>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: David Brownell <david-b@pacbell.net>
-Cc: linux-arm-kernel@lists.arm.linux.org.uk, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>, kyungmin.park@samsung.com
+Cc: OMAP <linux-omap@vger.kernel.org>, Manikandan Pillai <mani.pillai@ti.com>
 
-2009/2/9 David Brownell <david-b@pacbell.net>:
-> On Sunday 08 February 2009, Joonyoung Shim wrote:
->> > Which should clearly be AE6_34XX_GPIO141_OUT since it does
->> > not enable the input driver.  Try making that ...PIN_OUTPUT
->> > read ...PIN_INPUT and see if things behave.
->>
->> Of course, it will be better if the name is clear as AE6_34XX_GPIO141_OUT.
->> but, the core of this problem is not it, the chip->get() called in
->> gpiolib_dbg_show()
->> of drivers/gpio/gpiolib.c or dbg_gpio_show() of arch/arm/plat-omap/gpio.c
->> can return the wrong value when gpio pin is configured as an output.
->
-> No, the core of the problem is that you're using a GPIO
-> which is explicitly configured as output-only ... but are
-> treating it as if it were a normal bi-directional GPIO.
->
-> It's acting *exactly* right for an output-only GPIO.  But
-> that's not the behavior you expect, or want.
->
-> If you weren't disabling the input driver, then when you
-> ask for the input value it would work as you expect.  Which
-> is why I suggested you change how that ball is configured.
-> (That's actually a bugfix to those muxing tables ...)
+Hi,
 
-I understood that you say, ths PIN_OUTPUT flag must use
-when GPIO pin is output-only, and i got the result i want
-after GPIO pin is configured as bi-diretional GPIO.
-
-But i wonder why don't control in gpio_get() of arch/arm/plat-omap/gpio.c
-when the GPIO pin is output-only?
-
-thank you.
-
-- Joonyoung
-
+On Mon, Feb 9, 2009 at 1:55 PM, David Brownell <david-b@pacbell.net> wrote:
+> From: David Brownell <dbrownell@users.sourceforge.net>
 >
-> - Dave
+> Bugfix several GPIO mux configurations which didn't enable the
+> input drivers, but weren't named as e.g. ..._GPIO141_OUT.
+> These bugs were added quite recently, for OMAP3 EVM support.
 >
-> p.s. This specific confusion is new on OMAP3; previous
->     OMAPs didn't have the extra byte of options to
->     configure.  The PIN_INPUT flag was, on previous
->     chips, effectively hard-wired on for GPIOs.
+> To help avoid such bugs in the future, update the comment to
+> clarify the rule:  always use PIN_INPUT, unless the name uses
+> that name suffix, to be crystal-clear on the signal's use as
+> output-only.
 >
+> (Also adds GPIO-63, for the EVM's MMC-1 writeprotect switch.
+> Presumably that works right...)
+>
+> Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
+> ---
+>
+>  arch/arm/mach-omap2/mux.c             |   13 ++++++++-----
+>  arch/arm/plat-omap/include/mach/mux.h |    1 +
+>  2 files changed, 9 insertions(+), 5 deletions(-)
+>
+> --- a/arch/arm/mach-omap2/mux.c
+> +++ b/arch/arm/mach-omap2/mux.c
+> @@ -453,6 +453,7 @@ MUX_CFG_34XX("AC1_3430_USB3FS_PHY_MM3_TX
+>
+>
+>  /* 34XX GPIO - bidirectional, unless the name has an "_OUT" suffix.
+> + * (Always specify PIN_INPUT, except for names suffixed by "_OUT".)
+>  * No internal pullup/pulldown without "_UP" or "_DOWN" suffix.
+>  */
+>  MUX_CFG_34XX("AH8_34XX_GPIO29", 0x5fa,
+> @@ -460,17 +461,19 @@ MUX_CFG_34XX("AH8_34XX_GPIO29", 0x5fa,
+>  MUX_CFG_34XX("J25_34XX_GPIO170", 0x1c6,
+>                OMAP34XX_MUX_MODE4 | OMAP34XX_PIN_INPUT)
+>  MUX_CFG_34XX("AF26_34XX_GPIO0", 0x1e0,
+> -               OMAP34XX_MUX_MODE4 | OMAP34XX_PIN_OUTPUT)
+> +               OMAP34XX_MUX_MODE4 | OMAP34XX_PIN_INPUT)
+>  MUX_CFG_34XX("AF22_34XX_GPIO9", 0xa18,
+> -               OMAP34XX_MUX_MODE4 | OMAP34XX_PIN_OUTPUT)
+> +               OMAP34XX_MUX_MODE4 | OMAP34XX_PIN_INPUT)
+> +MUX_CFG_34XX("L8_34XX_GPIO63", 0x0ce,
+> +               OMAP34XX_MUX_MODE4 | OMAP34XX_PIN_INPUT)
+>  MUX_CFG_34XX("AF6_34XX_GPIO140_UP", 0x16c,
+>                OMAP34XX_MUX_MODE4 | OMAP34XX_PIN_INPUT_PULLUP)
+>  MUX_CFG_34XX("AE6_34XX_GPIO141", 0x16e,
+> -               OMAP34XX_MUX_MODE4 | OMAP34XX_PIN_OUTPUT)
+> +               OMAP34XX_MUX_MODE4 | OMAP34XX_PIN_INPUT)
+>  MUX_CFG_34XX("AF5_34XX_GPIO142", 0x170,
+> -               OMAP34XX_MUX_MODE4 | OMAP34XX_PIN_OUTPUT)
+> +               OMAP34XX_MUX_MODE4 | OMAP34XX_PIN_INPUT)
+>  MUX_CFG_34XX("AE5_34XX_GPIO143", 0x172,
+> -               OMAP34XX_MUX_MODE4 | OMAP34XX_PIN_OUTPUT)
+> +               OMAP34XX_MUX_MODE4 | OMAP34XX_PIN_INPUT)
+>
+>  };
+>
+
+So the thing is, OMAP34XX_PIN_INPUT doens't mean input-only, but
+input-and-output. And OMAP34XX_PIN_OUTPUT doen't mean output, but output-only.
+Names of macros are really confusing me. Shouldn't we change names of these
+macros first? For example,
+OMAP34XX_PIN_INPUT -> OMAP34XX_PIN_INPUT_EN
+OMAP34XX_PIN_OUTPUT -> OMAP34XX_PIN_OUTPUT_ONLY
+
+> --- a/arch/arm/plat-omap/include/mach/mux.h
+> +++ b/arch/arm/plat-omap/include/mach/mux.h
+> @@ -792,6 +792,7 @@ enum omap34xx_index {
+>        J25_34XX_GPIO170,
+>        AF26_34XX_GPIO0,
+>        AF22_34XX_GPIO9,
+> +       L8_34XX_GPIO63,
+>        AF6_34XX_GPIO140_UP,
+>        AE6_34XX_GPIO141,
+>        AF5_34XX_GPIO142,
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
+
+
+
+-- 
+Kim Kyuwon
