@@ -1,34 +1,35 @@
-From: Steve Sakoman <sakoman@gmail.com>
-Subject: musb OTG broken in 2.6.29-rc3?
-Date: Mon, 9 Feb 2009 09:40:57 -0800
-Message-ID: <5e088bd90902090940s3c6de0eqac55e21acd4490bc@mail.gmail.com>
+From: Jarkko Lavinen <jarkko.lavinen@nokia.com>
+Subject: Re: [PATCH] OMAP: MMC: recover from transfer failures - Resend
+Date: Mon, 9 Feb 2009 19:58:51 +0200
+Message-ID: <20090209175851.GA30769@angel.research.nokia.com>
+References: <20090206145343.2b8a5353@mjolnir.drzeus.cx>
+Reply-To: Jarkko Lavinen <jarkko.lavinen@nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mu-out-0910.google.com ([209.85.134.185]:15678 "EHLO
-	mu-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754652AbZBIRlA (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 9 Feb 2009 12:41:00 -0500
-Received: by mu-out-0910.google.com with SMTP id i10so1180501mue.1
-        for <linux-omap@vger.kernel.org>; Mon, 09 Feb 2009 09:40:57 -0800 (PST)
+Received: from smtp.nokia.com ([192.100.122.230]:45031 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751549AbZBISFy (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 9 Feb 2009 13:05:54 -0500
+Content-Disposition: inline
+In-Reply-To: <20090206145343.2b8a5353@mjolnir.drzeus.cx>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap <linux-omap@vger.kernel.org>
+To: Pierre Ossman <drzeus@drzeus.dddcx>
+Cc: Jean Pihet <jpihet@mvista.com>, Paul Walmsley <paul@pwsan.com>, " Hunter Adrian (EXT-Teleca/Helsinki)" <ext-adrian.hunter@nokia.com>, OMAP <linux-omap@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, " linux-arm-kernel@lists.arm.linux.org.uk" <linux-arm-kernel@lists.arm.linux.org.uk>
 
-I've been running with musb in host mode on Overo.
+Pierre Ossman wrote:
+> Related, who is the maintainer of this driver? Tony? I'd like
+> to have someone who checks patches before I queue them up.
 
-Now that EHCI is working, I decided to try putting musb in OTG mode.
+I can be.  Tony asked me a month ago to set up git tree for OMAP
+HSMMC and put the workaround for the HSMMC multi-block DMA read
+corruption there, but hate to admit things have been hanging on
+todo list.
 
-Last time I tried this was back in 2.6.28 and it seemed to work just fine.
+There are some other fixes waiting. Omap_mmc_set_ios() doesn't
+handle power off case correctly and resume from suspend can hang
+if the SDBP bit fails to set.
 
-In 2.6.29-rc3 I don't get any joy - the musb port doesn't seem to
-switch into host mode when I plug in a miniA cable. Booting with the
-miniA cable in place doesn't seem to help.  Compiling the kernel with
-host mode enabled works as expected.
-
-Before I spend too much time debugging, has anyone else been
-successful with musb OTG in 2.6.29-rc3?  A quick search of this list
-didn't turn up any discussion of issues.
-
-Steve
+Cheers
+Jarkko
