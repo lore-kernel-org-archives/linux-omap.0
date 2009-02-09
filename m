@@ -1,85 +1,71 @@
-From: David Brownell <david-b@pacbell.net>
-Subject: [patch 2.6.29-rc3-omap-git] omap3: gpio pin config bugfixes
-Date: Sun, 8 Feb 2009 20:55:08 -0800
-Message-ID: <200902082055.08954.david-b@pacbell.net>
+From: Joonyoung Shim <dofmind@gmail.com>
+Subject: Re: [PATCH] OMAP3 GPIO: Fix getting the value of the GPIO output pin
+Date: Mon, 9 Feb 2009 14:29:15 +0900
+Message-ID: <4e1455be0902082129i2c038477g886c8de03d3073dd@mail.gmail.com>
+References: <4e1455be0902062015i1ff94b28p93588e61b7860618@mail.gmail.com>
+	 <200902081156.15950.david-b@pacbell.net>
+	 <4e1455be0902081838y27b34dc4ia283768bbc16408c@mail.gmail.com>
+	 <200902082011.36500.david-b@pacbell.net>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp127.sbc.mail.sp1.yahoo.com ([69.147.65.186]:34756 "HELO
-	smtp127.sbc.mail.sp1.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1753928AbZBIEzL (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 8 Feb 2009 23:55:11 -0500
-Content-Disposition: inline
+Received: from rv-out-0506.google.com ([209.85.198.228]:52128 "EHLO
+	rv-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750741AbZBIF3Q (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 9 Feb 2009 00:29:16 -0500
+In-Reply-To: <200902082011.36500.david-b@pacbell.net>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: OMAP <linux-omap@vger.kernel.org>
-Cc: Manikandan Pillai <mani.pillai@ti.com>
+To: David Brownell <david-b@pacbell.net>
+Cc: linux-arm-kernel@lists.arm.linux.org.uk, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>, kyungmin.park@samsung.com
 
-From: David Brownell <dbrownell@users.sourceforge.net>
+Sorry, I added CC.
 
-Bugfix several GPIO mux configurations which didn't enable the
-input drivers, but weren't named as e.g. ..._GPIO141_OUT.
-These bugs were added quite recently, for OMAP3 EVM support.
+2009/2/9 David Brownell <david-b@pacbell.net>:
+> On Sunday 08 February 2009, Joonyoung Shim wrote:
+>> I have knew if gpio pin is configured as an output, the value of the
+>> corresponding bit
+>> in the GPIO_DATAOUT register is driven on the corresponding gpio pin.
+>> But the implemented API only reports the value of the corresponding bit in the
+>> GPIO_DATAIN register. This can report a wrong value.
+>>
+>> For example, even though the gpio 141pin is configured as an output and assigns
+>> the gpio's value to 1 through gpio_set_value(), the result of
+>> "# cat /sys/kernel/debug/gpio" reports to me as follows.
+>>
+>> GPIOs 128-159, gpio:
+>>  gpio-141 (motor enable        ) out lo
+>>
+>> but it should have reported "hi" instead of "lo".
+>
+> I happen to observe that mach-omap2/mux.c there are a bunch
+> of pins that are wrongly multiplexed.  Like:
+>
+> MUX_CFG_34XX("AE6_34XX_GPIO141", 0x16e,
+>                OMAP34XX_MUX_MODE4 | OMAP34XX_PIN_OUTPUT)
 
-To help avoid such bugs in the future, update the comment to
-clarify the rule:  always use PIN_INPUT, unless the name uses
-that name suffix, to be crystal-clear on the signal's use as
-output-only.
+I think that it is right because i want to use gpio141 pin as output,
 
-(Also adds GPIO-63, for the EVM's MMC-1 writeprotect switch.
-Presumably that works right...)
+>
+> Which should clearly be AE6_34XX_GPIO141_OUT since it does
+> not enable the input driver.  Try making that ...PIN_OUTPUT
+> read ...PIN_INPUT and see if things behave.
 
-Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
----
+Of course, it will be better if the name is clear as AE6_34XX_GPIO141_OUT.
+but, the core of this problem is not it, the chip->get() called in
+gpiolib_dbg_show()
+of drivers/gpio/gpiolib.c or dbg_gpio_show() of arch/arm/plat-omap/gpio.c
+can return the wrong value when gpio pin is configured as an output.
 
- arch/arm/mach-omap2/mux.c             |   13 ++++++++-----
- arch/arm/plat-omap/include/mach/mux.h |    1 +
- 2 files changed, 9 insertions(+), 5 deletions(-)
+the reason as i say at former email, is because __omap_get_gpio_datain()
+called by gpio_get() of arch/arm/plat-omap/gpio.c reports only value of
+OMAP24XX_GPIO_DATAIN register.
 
---- a/arch/arm/mach-omap2/mux.c
-+++ b/arch/arm/mach-omap2/mux.c
-@@ -453,6 +453,7 @@ MUX_CFG_34XX("AC1_3430_USB3FS_PHY_MM3_TX
- 
- 
- /* 34XX GPIO - bidirectional, unless the name has an "_OUT" suffix.
-+ * (Always specify PIN_INPUT, except for names suffixed by "_OUT".)
-  * No internal pullup/pulldown without "_UP" or "_DOWN" suffix.
-  */
- MUX_CFG_34XX("AH8_34XX_GPIO29", 0x5fa,
-@@ -460,17 +461,19 @@ MUX_CFG_34XX("AH8_34XX_GPIO29", 0x5fa,
- MUX_CFG_34XX("J25_34XX_GPIO170", 0x1c6,
- 		OMAP34XX_MUX_MODE4 | OMAP34XX_PIN_INPUT)
- MUX_CFG_34XX("AF26_34XX_GPIO0", 0x1e0,
--		OMAP34XX_MUX_MODE4 | OMAP34XX_PIN_OUTPUT)
-+		OMAP34XX_MUX_MODE4 | OMAP34XX_PIN_INPUT)
- MUX_CFG_34XX("AF22_34XX_GPIO9", 0xa18,
--		OMAP34XX_MUX_MODE4 | OMAP34XX_PIN_OUTPUT)
-+		OMAP34XX_MUX_MODE4 | OMAP34XX_PIN_INPUT)
-+MUX_CFG_34XX("L8_34XX_GPIO63", 0x0ce,
-+		OMAP34XX_MUX_MODE4 | OMAP34XX_PIN_INPUT)
- MUX_CFG_34XX("AF6_34XX_GPIO140_UP", 0x16c,
- 		OMAP34XX_MUX_MODE4 | OMAP34XX_PIN_INPUT_PULLUP)
- MUX_CFG_34XX("AE6_34XX_GPIO141", 0x16e,
--		OMAP34XX_MUX_MODE4 | OMAP34XX_PIN_OUTPUT)
-+		OMAP34XX_MUX_MODE4 | OMAP34XX_PIN_INPUT)
- MUX_CFG_34XX("AF5_34XX_GPIO142", 0x170,
--		OMAP34XX_MUX_MODE4 | OMAP34XX_PIN_OUTPUT)
-+		OMAP34XX_MUX_MODE4 | OMAP34XX_PIN_INPUT)
- MUX_CFG_34XX("AE5_34XX_GPIO143", 0x172,
--		OMAP34XX_MUX_MODE4 | OMAP34XX_PIN_OUTPUT)
-+		OMAP34XX_MUX_MODE4 | OMAP34XX_PIN_INPUT)
- 
- };
- 
---- a/arch/arm/plat-omap/include/mach/mux.h
-+++ b/arch/arm/plat-omap/include/mach/mux.h
-@@ -792,6 +792,7 @@ enum omap34xx_index {
- 	J25_34XX_GPIO170,
- 	AF26_34XX_GPIO0,
- 	AF22_34XX_GPIO9,
-+	L8_34XX_GPIO63,
- 	AF6_34XX_GPIO140_UP,
- 	AE6_34XX_GPIO141,
- 	AF5_34XX_GPIO142,
+- Joonyoung
+
+>
+> - Dave
+>
+>
+>
