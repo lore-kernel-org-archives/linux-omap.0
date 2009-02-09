@@ -1,33 +1,115 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [PATCH C 06/13] OMAP3 clock: DPLLs should enter bypass if new rate is sys_ck
-Date: Mon, 9 Feb 2009 11:19:22 +0000
-Message-ID: <20090209111922.GA11668@n2100.arm.linux.org.uk>
-References: <20090128190724.12092.22239.stgit@localhost.localdomain> <20090128190823.12092.2638.stgit@localhost.localdomain> <20090129123936.GA16644@n2100.arm.linux.org.uk> <alpine.DEB.2.00.0901292244211.26985@utopia.booyaka.com>
+From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
+Subject: RE: [PATCH] OMAP: sDMA: DMA channel reservation using bootargs
+Date: Mon, 9 Feb 2009 17:10:26 +0530
+Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB02A3FFE933@dbde02.ent.ti.com>
+References: <EAF47CD23C76F840A9E7FCE10091EFAB02A3E3D868@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1753976AbZBILTx@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <alpine.DEB.2.00.0901292244211.26985@utopia.booyaka.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: linux-arm-kernel@lists.arm.linux.org.uk, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:40968 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753424AbZBILkk convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 9 Feb 2009 06:40:40 -0500
+In-Reply-To: <EAF47CD23C76F840A9E7FCE10091EFAB02A3E3D868@dbde02.ent.ti.com>
+Content-Language: en-US
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, Tony Lindgren <tony@atomide.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Thu, Jan 29, 2009 at 10:47:40PM -0700, Paul Walmsley wrote:
-> Hello Russell,
+Tony,
+Did you happen to have a look at these couple of patches ?
+> -----Original Message-----
+> From: linux-omap-owner@vger.kernel.org 
+> [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of 
+> Shilimkar, Santosh
+> Sent: Wednesday, February 04, 2009 2:39 PM
+> To: Tony Lindgren
+> Cc: linux-omap@vger.kernel.org
+> Subject: [PATCH] OMAP: sDMA: DMA channel reservation using bootargs
 > 
-> this E-mail responds to your comments on patches C 04 through C 08.  
-> My understanding is that you'd like me to:
+> Tony,
+> Here is the first patch as promised.
 > 
-> 1. Compress patches C 04 through C 09;
-
-What I would like to see is a clear set of patches (or maybe just a
-single patch if appropriate) implementing the bypass DPLL support,
-and have it implemented in a common form for both OMAP2 and OMAP3.
-
-In other words, if we're going to have a 'bypass' clock in the DPLL
-data, it shouldn't be just an OMAP3 thing.
-
-I suspect it's going to be easier for me to figure out what's going
-on, clean up the existing patches and work from them so that they
-still fit in the existing series.
+> From: Santosh Shilimkar <santosh.shilimkar@ti.com>
+> 
+>     This patch set up a cmdline option for omap dma for masking the
+>     available channels. It is needed since the OMAP DMA is a 
+> system wide
+>     resource and can be used by another software apart from 
+> the kernel.
+> 
+>     To reserve the omap SDMA channels for kernel dma usage, 
+> use cmdline
+>     bootarg "omap_dma_reserve_ch=". The valid range is 1 to 32.
+> 
+> Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+> Acked By: Nishant Kamat <nskamat@ti.com>
+> cc: Tony Lindgren <tony@atomide.com>
+> ---
+>  arch/arm/plat-omap/dma.c |   20 +++++++++++++++++++-
+>  1 files changed, 19 insertions(+), 1 deletion(-)
+> 
+> Index: omapkernel/arch/arm/plat-omap/dma.c
+> ===================================================================
+> --- omapkernel.orig/arch/arm/plat-omap/dma.c	2009-02-04 
+> 12:11:55.779687209 +0530
+> +++ omapkernel/arch/arm/plat-omap/dma.c	2009-02-04 
+> 14:05:32.971853579 +0530
+> @@ -131,6 +131,7 @@ static struct dma_link_info *dma_linked_
+>  
+>  static int dma_lch_count;
+>  static int dma_chan_count;
+> +static int omap_dma_reserve_channels;
+>  
+>  static spinlock_t dma_chan_lock;
+>  static struct omap_dma_lch *dma_chan;
+> @@ -2409,6 +2410,10 @@ static int __init omap_init_dma(void)
+>  		return -ENODEV;
+>  	}
+>  
+> +	if (cpu_class_is_omap2() && omap_dma_reserve_channels
+> +			&& (omap_dma_reserve_channels <= dma_lch_count))
+> +		dma_lch_count = omap_dma_reserve_channels;
+> +
+>  	dma_chan = kzalloc(sizeof(struct omap_dma_lch) * dma_lch_count,
+>  				GFP_KERNEL);
+>  	if (!dma_chan)
+> @@ -2459,7 +2464,7 @@ static int __init omap_init_dma(void)
+>  		u8 revision = dma_read(REVISION) & 0xff;
+>  		printk(KERN_INFO "OMAP DMA hardware revision %d.%d\n",
+>  		       revision >> 4, revision & 0xf);
+> -		dma_chan_count = OMAP_DMA4_LOGICAL_DMA_CH_COUNT;
+> +		dma_chan_count = dma_lch_count;
+>  	} else {
+>  		dma_chan_count = 0;
+>  		return 0;
+> @@ -2525,4 +2530,17 @@ static int __init omap_init_dma(void)
+>  
+>  arch_initcall(omap_init_dma);
+>  
+> +/*
+> + * Reserve the omap SDMA channels using cmdline bootarg
+> + * "omap_dma_reserve_ch=". The valid range is 1 to 32
+> + */
+> +static int __init omap_dma_cmdline_reserve_ch(char *str)
+> +{
+> +	if (get_option(&str, &omap_dma_reserve_channels) != 1)
+> +		omap_dma_reserve_channels = 0;
+> +	return 1;
+> +}
+> +
+> +__setup("omap_dma_reserve_ch=", omap_dma_cmdline_reserve_ch);
+> +
+>  
+> 
+> Regards,
+> Santosh
+> --
+> To unsubscribe from this list: send the line "unsubscribe 
+> linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+> 
