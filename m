@@ -1,55 +1,71 @@
-From: Joonyoung Shim <dofmind@gmail.com>
-Subject: Re: [PATCH] twl4030-gpio: Fix getting the value of the TWL4030 GPIO
-	output pin
-Date: Mon, 9 Feb 2009 22:02:28 +0900
-Message-ID: <4e1455be0902090502l554ca462m9c096e359a5b29c3@mail.gmail.com>
-References: <4e1455be0902062213o769a4d15ha0c892508839dbad@mail.gmail.com>
-	 <200902070000.49089.david-b@pacbell.net>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: [PATCH E 11/14] OMAP clock: track child clocks
+Date: Mon, 9 Feb 2009 14:11:56 +0000
+Message-ID: <20090209141156.GB16626@n2100.arm.linux.org.uk>
+References: <20090128192551.29333.82943.stgit@localhost.localdomain> <20090128192756.29333.41541.stgit@localhost.localdomain> <20090129151401.GC18233@n2100.arm.linux.org.uk> <20090129220608.GJ18233@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from rv-out-0506.google.com ([209.85.198.235]:28243 "EHLO
-	rv-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753623AbZBINCa (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 9 Feb 2009 08:02:30 -0500
-In-Reply-To: <200902070000.49089.david-b@pacbell.net>
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:49862 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754253AbZBIOML (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 9 Feb 2009 09:12:11 -0500
+Content-Disposition: inline
+In-Reply-To: <20090129220608.GJ18233@n2100.arm.linux.org.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: David Brownell <david-b@pacbell.net>
-Cc: Tony Lindgren <tony@atomide.com>, linux-arm-kernel@lists.arm.linux.org.uk, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+To: Paul Walmsley <paul@pwsan.com>
+Cc: linux-arm-kernel@lists.arm.linux.org.uk, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>
 
-2009/2/7 David Brownell <david-b@pacbell.net>:
-> On Friday 06 February 2009, Joonyoung Shim wrote:
->> If TWL4030 GPIO pin is output, must read the value from REG_GPIODATAOUTx
->> register in twl4030_get_gpio_datainout().
->
-> Why "must"?  The goal is to return the *actual* value of the pin,
-> not the intended one.  When an external signal overwhelms the drive
-> capability of that GPIO -- just a couple mA -- the correct value
-> to return can't be the value written in the output register.
+On Thu, Jan 29, 2009 at 10:06:08PM +0000, Russell King - ARM Linux wrote:
+> @@ -780,7 +780,7 @@ int omap2_clk_set_parent(struct clk *clk, struct clk *new_parent)
+>  	if (clk->usecount > 0)
+>  		_omap2_clk_enable(clk);
+>  
+> -	clk->parent = new_parent;
+> +	clk_reparent(clk, new_parent);
 
-but, it doesn't return actual value of the pin if twl4030 GPIO pin is output.
+While looking at the DPLL patches, I've realised that omap2_clk_set_parent()
+is buggy, as are any other places which reparent the clock (thankfully
+the only other place is in the initialisation code where it doesn't
+matter.)
 
-For example, the GPIO13 pin of twl4030 is configured as an output
-using gpio_direction_output() and assigns the GPIO's value to 1
-using gpio_set_value_cansleep(), the result of "# cat /sys/kernel/debug/gpio"
-reports to me as follows.
+Consider what happens when a clock is enabled - we walk up the tree
+enabling all parents.  If we then change the clock's parent, and
+then disable the child, we will again walk up the tree, but since
+we've reparented it, it will be a different clock tree.  The result
+is that the ancestors clock usage counts, and therefore their enable
+status, will end up getting screwed up.
 
-GPIOs 192-209, platform/twl4030_gpio, twl4030, can sleep:
- gpio-205 (keyled              ) out lo
+So, this has revealed a logical bug here.  We need to walk the
+parent tree before and after the switch to ensure that things stay
+sane.
 
-but it should have reported "hi" instead of "lo".
+This brings up a question: what we currently do here is:
 
+- disable the child
+- program clksel
+- enable the child
+- change child->parent
 
->
-> Plus, this patch won't even link ... you changed the name of the
-> function at its definition, but not at its use points.
+If we add in the parent handling, there are two possibilities:
 
-Sorry, i missed some code.
+- disable the child
+- enable the new parent tree
+- program clksel
+- change child->parent
+- disable the old parent tree
+- enable the child
 
->
-> NAK, unless you can show there's a real bug this addresses...
->
-> - Dave
->
+OR
+
+- disable the child and the old parent tree
+- program clksel
+- change child->parent
+- enable the new parent tree and the child
+
+(note those 'and's have implied ordering).
+
+Is there anything which dictates one approach over the other?
+Obviously the latter approach results in something smaller and
+cleaner, but might not be technically correct.
