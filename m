@@ -1,93 +1,34 @@
-From: Mark Brown <broonie@sirena.org.uk>
-Subject: Re: [patch 2.6.29-rc3-git 1/2] regulator: twl4030 regulators
-Date: Mon, 9 Feb 2009 17:27:15 +0000
-Message-ID: <20090209172714.GA17637@sirena.org.uk>
-References: <200902081037.06645.david-b@pacbell.net> <20090208232922.GA16966@sirena.org.uk> <200902081604.29905.david-b@pacbell.net>
+From: Steve Sakoman <sakoman@gmail.com>
+Subject: musb OTG broken in 2.6.29-rc3?
+Date: Mon, 9 Feb 2009 09:40:57 -0800
+Message-ID: <5e088bd90902090940s3c6de0eqac55e21acd4490bc@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from cassiel.sirena.org.uk ([80.68.93.111]:3411 "EHLO
-	cassiel.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754987AbZBIR1X (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 9 Feb 2009 12:27:23 -0500
-Content-Disposition: inline
-In-Reply-To: <200902081604.29905.david-b@pacbell.net>
+Received: from mu-out-0910.google.com ([209.85.134.185]:15678 "EHLO
+	mu-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754652AbZBIRlA (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 9 Feb 2009 12:41:00 -0500
+Received: by mu-out-0910.google.com with SMTP id i10so1180501mue.1
+        for <linux-omap@vger.kernel.org>; Mon, 09 Feb 2009 09:40:57 -0800 (PST)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: David Brownell <david-b@pacbell.net>
-Cc: Liam Girdwood <lrg@slimlogic.co.uk>, lkml <linux-kernel@vger.kernel.org>, OMAP <linux-omap@vger.kernel.org>
+To: linux-omap <linux-omap@vger.kernel.org>
 
-On Sun, Feb 08, 2009 at 04:04:29PM -0800, David Brownell wrote:
-> On Sunday 08 February 2009, Mark Brown wrote:
+I've been running with musb in host mode on Overo.
 
-> > If we're going to do this I think it'd be better to push it into the
-> > core and let the regulators pass in a set of constraints so that the
-> > behaviour will be consistent between drivers.
+Now that EHCI is working, I decided to try putting musb in OTG mode.
 
-> Maybe, but there is no such mechanism right yet.
-> When it's created, then this could switch over.
+Last time I tried this was back in 2.6.28 and it seemed to work just fine.
 
-Since you appear to be writing the code already... :)
+In 2.6.29-rc3 I don't get any joy - the musb port doesn't seem to
+switch into host mode when I plug in a miniA cable. Booting with the
+miniA cable in place doesn't seem to help.  Compiling the kernel with
+host mode enabled works as expected.
 
-> > I'd also expect to have the registration fail or at least issue a
-> > warning if the code kicks in since that indicates that the board
-> > constraints have been set up incorrectly.
+Before I spend too much time debugging, has anyone else been
+successful with musb OTG in 2.6.29-rc3?  A quick search of this list
+didn't turn up any discussion of issues.
 
-> A warning might make sense in some cases ... that's
-> something I would expect to see from the regulator
-> core, though.
-
-That's what I'm suggesting should happen - that things like this should
-be implemented in the core so that the behaviour of the API remains
-consistent for users moving between platforms and everyone benefits from
-new features.
-
->                Example, I see no "max < min" checks
-> triggering registration errors.
-
-Not a bad idea, though.  The core currently doesn't do much checking of
-the constraints but that's as much because nobody spent the time on it
-as anything else.  To the extent it's a deliberate design decision it's
-because the constraints and consumer lists are where the information
-about what's possible on a given system comes from and so the checking
-that can be done by software is relatively minor.
-
-> > There's a reasonable chance 
-> > that the fixed up constraints will still need to be changed for the
-> > board to be configured properly and things may end up being driven out
-> > of spec, potentially causing damage.
-
-> I don't see that happening ... all that code does is
-> tighten existing constraints to match what the hardware
-> can do.  The result is just a subset of the range the
-> board already said was OK.  If no valid subset exists,
-
-The trouble is that this code should only do anything if the board code
-provided a configuration that can't be supported by the hardware, which
-is a bit of a red flag.  I'd expect it'd end up catching things like the
-user typing extra digits by mistake (this has definitely happened when
-writing consumer drivers).
-
-Your current patch does also set constraints for the voltages if they
-weren't there previously (though this shouldn't matter since voltage
-setting shouldn't be enabled without voltage value constraints).
-
-> I can easily imagine having things partially set up, and
-> not really caring whether, on a particular board, those
-> initial constraints are really the most specific ones
-> applicable.  One component tolerates a range of 1V8..3V6
-> maybe, but on any given board it can be hooked up to any
-> supply that's even partially in-range.
-
-The pattern you're describing is very much that for consumer and
-regulator drivers.  They should work with as wide a set of constraints
-as possible to allow them to be used on different systems with different
-capabilities and needs - allowing this is essential for the API to be
-usable since so many chips are flexible about the supplies they can use.
-
-It's different for the machine constraints since they are by definition
-specific to a given system.  While it's expected that users (especially
-those sensitive to power consumption) may want to optimise the
-configuration of their system during development to get the best
-performance out of it there is also an expectation that users will be
-making decisions based on knowledge of the hardware design.
+Steve
