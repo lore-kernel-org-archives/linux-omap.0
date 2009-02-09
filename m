@@ -1,201 +1,93 @@
-From: Adrian Hunter <ext-adrian.hunter@nokia.com>
-Subject: Re: [PATCH] OMAP: MMC: replace infinite loops with timeouts (was
- Re: [PATCH] OMAP: MMC: recover from transfer failures - Resend)
-Date: Mon, 09 Feb 2009 17:58:14 +0200
-Message-ID: <49905296.2060308@nokia.com>
-References: <20081207213617.10456.43951.stgit@localhost> <200902061422.32689.jpihet@mvista.com> <20090206145343.2b8a5353@mjolnir.drzeus.cx> <200902061653.12821.jpihet@mvista.com>
+From: Mark Brown <broonie@sirena.org.uk>
+Subject: Re: [patch 2.6.29-rc3-git 1/2] regulator: twl4030 regulators
+Date: Mon, 9 Feb 2009 17:27:15 +0000
+Message-ID: <20090209172714.GA17637@sirena.org.uk>
+References: <200902081037.06645.david-b@pacbell.net> <20090208232922.GA16966@sirena.org.uk> <200902081604.29905.david-b@pacbell.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:57464 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754929AbZBIPvI (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 9 Feb 2009 10:51:08 -0500
-In-Reply-To: <200902061653.12821.jpihet@mvista.com>
+Received: from cassiel.sirena.org.uk ([80.68.93.111]:3411 "EHLO
+	cassiel.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754987AbZBIR1X (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 9 Feb 2009 12:27:23 -0500
+Content-Disposition: inline
+In-Reply-To: <200902081604.29905.david-b@pacbell.net>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Jean Pihet <jpihet@mvista.com>
-Cc: Pierre Ossman <drzeus-mmc@drzeus.cx>, "tony@atomide.com" <tony@atomide.com>, Paul Walmsley <paul@pwsan.com>, Andrew Morton <akpm@linux-foundation.org>, "linux-arm-kernel@lists.arm.linux.org.uk" <linux-arm-kernel@lists.arm.linux.org.uk>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Lavinen Jarkko (Nokia-D/Helsinki)" <jarkko.lavinen@nokia.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+To: David Brownell <david-b@pacbell.net>
+Cc: Liam Girdwood <lrg@slimlogic.co.uk>, lkml <linux-kernel@vger.kernel.org>, OMAP <linux-omap@vger.kernel.org>
 
-Jean Pihet wrote:
-> Hi,
-> 
->>>> On Thu, 5 Feb 2009, Andrew Morton wrote:
->>>>> An infinite loop which assumes the hardware is perfect is always a
->>>>> worry.  But I see the driver already does that, so we're no worse
->>>>> off..
->>> Do you want a finite loop with udelay in it? I located 4 places were this
->>> could be used. If so I can generate a new patch for that.
->> Even if Andrew doesn't, I'd sure like it. (the finite bit at least) :)
-> Ok here is a patch that replaces the infinite loops with a timeout version.
-> This patch applies on top of the previous one I sent ('[PATCH] OMAP: MMC:
-> recover from transfer failures - Resend'). Is that OK?
-> 
+On Sun, Feb 08, 2009 at 04:04:29PM -0800, David Brownell wrote:
+> On Sunday 08 February 2009, Mark Brown wrote:
 
-What about making use of a function like this:
+> > If we're going to do this I think it'd be better to push it into the
+> > core and let the regulators pass in a set of constraints so that the
+> > behaviour will be consistent between drivers.
 
-static void reset_host_controller(struct mmc_omap_host *host, unsigned bit)
-{
-	unsigned long i, limit = loops_per_jiffy;
+> Maybe, but there is no such mechanism right yet.
+> When it's created, then this could switch over.
 
-	OMAP_HSMMC_WRITE(host->base, SYSCTL,
-			 OMAP_HSMMC_READ(host->base, SYSCTL) | bit);
-	for (i = 0; i < limit; i++) {
-		if (!(OMAP_HSMMC_READ(host->base, SYSCTL) & bit))
-			return;
-		cpu_relax();
-	}
-	dev_err(mmc_dev(host->mmc), "%s: timeout waiting on software reset\n",
-		mmc_hostname(host->mmc));
-}
+Since you appear to be writing the code already... :)
 
-And then just put:
+> > I'd also expect to have the registration fail or at least issue a
+> > warning if the code kicks in since that indicates that the board
+> > constraints have been set up incorrectly.
 
-	reset_host_controller(host, SRD);
+> A warning might make sense in some cases ... that's
+> something I would expect to see from the regulator
+> core, though.
 
-and
+That's what I'm suggesting should happen - that things like this should
+be implemented in the core so that the behaviour of the API remains
+consistent for users moving between platforms and everyone benefits from
+new features.
 
-	reset_host_controller(host, SRC);
+>                Example, I see no "max < min" checks
+> triggering registration errors.
 
-in the right places.
+Not a bad idea, though.  The core currently doesn't do much checking of
+the constraints but that's as much because nobody spent the time on it
+as anything else.  To the extent it's a deliberate design decision it's
+because the constraints and consumer lists are where the information
+about what's possible on a given system comes from and so the checking
+that can be done by software is relatively minor.
 
->> Related, who is the maintainer of this driver? Tony? I'd like to have
->> someone who checks patches before I queue them up.
->>
->>
->> Rgds
-> 
->>From 5ee867d09efe22a903ac7373a05e9e047bad6544 Mon Sep 17 00:00:00 2001
-> From: Jean Pihet <jpihet@mvista.com>
-> Date: Fri, 6 Feb 2009 16:42:51 +0100
-> Subject: [PATCH] OMAP: MMC: replace infinite loops with timeouts
-> 
-> Replace the 'while() ;' with a timeout
-> 
-> Signed-off-by: Jean Pihet <jpihet@mvista.com>
-> ---
->  drivers/mmc/host/omap_hsmmc.c |   56
-> +++++++++++++++++++++++++++++++++--------
->  1 files changed, 45 insertions(+), 11 deletions(-)
-> 
-> diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
-> index 1ac6918..7ddc77e 100644
-> --- a/drivers/mmc/host/omap_hsmmc.c
-> +++ b/drivers/mmc/host/omap_hsmmc.c
-> @@ -102,6 +102,8 @@
->  #define OMAP_MMC_DATADIR_READ  1
->  #define OMAP_MMC_DATADIR_WRITE 2
->  #define MMC_TIMEOUT_MS         20
-> +#define MMC_TIMEOUT_WAIT       100     /* Active wait duration, in usec */
-> +#define MMC_TIMEOUT_WAIT_LOOPS ((MMC_TIMEOUT_MS * 1000) / MMC_TIMEOUT_WAIT)
->  #define OMAP_MMC_MASTER_CLOCK  96000000
->  #define DRIVER_NAME            "mmci-omap-hs"
-> 
-> @@ -384,6 +386,7 @@ static irqreturn_t mmc_omap_irq(int irq, void *dev_id)
->         struct mmc_omap_host *host = dev_id;
->         struct mmc_data *data;
->         int end_cmd = 0, end_trans = 0, status;
-> +       unsigned long timeout_counter;
-> 
->         if (host->cmd == NULL && host->data == NULL) {
->                 OMAP_HSMMC_WRITE(host->base, STAT,
-> @@ -406,9 +409,17 @@ static irqreturn_t mmc_omap_irq(int irq, void *dev_id)
->                                         OMAP_HSMMC_WRITE(host->base, SYSCTL,
->                                                 OMAP_HSMMC_READ(host->base,
->                                                                 SYSCTL) |
-> SRC);
-> -                                       while (OMAP_HSMMC_READ(host->base,
-> -                                                       SYSCTL) & SRC)
-> -                                               ;
-> +                                       timeout_counter = 0;
-> +                                       while ((OMAP_HSMMC_READ(host->base,
-> +                                                               SYSCTL) & SRC)
-> +                                               && (timeout_counter++ <
-> +
-> MMC_TIMEOUT_WAIT_LOOPS))
-> +
-> udelay(MMC_TIMEOUT_WAIT);
-> +
-> +                                       if (OMAP_HSMMC_READ(host->base,
-> +                                                               SYSCTL) & SRC)
-> +                                               dev_err(mmc_dev(host->mmc),
-> +                                                       "Timeout waiting on
-> SRC\n");
-> 
->                                         host->cmd->error = -ETIMEDOUT;
->                                 } else {
-> @@ -421,9 +432,17 @@ static irqreturn_t mmc_omap_irq(int irq, void *dev_id)
->                                 OMAP_HSMMC_WRITE(host->base, SYSCTL,
->                                         OMAP_HSMMC_READ(host->base,
->                                                         SYSCTL) | SRD);
-> -                               while (OMAP_HSMMC_READ(host->base,
-> -                                               SYSCTL) & SRD)
-> -                                       ;
-> +                               timeout_counter = 0;
-> +                               while ((OMAP_HSMMC_READ(host->base,
-> +                                                       SYSCTL) & SRD)
-> +                                       && (timeout_counter++ <
-> +
-> MMC_TIMEOUT_WAIT_LOOPS))
-> +                                       udelay(MMC_TIMEOUT_WAIT);
-> +
-> +                               if (OMAP_HSMMC_READ(host->base,
-> +                                                       SYSCTL) & SRD)
-> +                                       dev_err(mmc_dev(host->mmc),
-> +                                               "Timeout waiting on SRD\n");
->                         }
->                 }
->                 if ((status & DATA_TIMEOUT) ||
-> @@ -436,9 +455,17 @@ static irqreturn_t mmc_omap_irq(int irq, void *dev_id)
->                                 OMAP_HSMMC_WRITE(host->base, SYSCTL,
->                                         OMAP_HSMMC_READ(host->base,
->                                                         SYSCTL) | SRD);
-> -                               while (OMAP_HSMMC_READ(host->base,
-> -                                               SYSCTL) & SRD)
-> -                                       ;
-> +                               timeout_counter = 0;
-> +                               while ((OMAP_HSMMC_READ(host->base,
-> +                                                       SYSCTL) & SRD)
-> +                                       && (timeout_counter++ <
-> +
-> MMC_TIMEOUT_WAIT_LOOPS))
-> +                                       udelay(MMC_TIMEOUT_WAIT);
-> +
-> +                               if (OMAP_HSMMC_READ(host->base,
-> +                                                       SYSCTL) & SRD)
-> +                                       dev_err(mmc_dev(host->mmc),
-> +                                               "Timeout waiting on SRD\n");
->                                 end_trans = 1;
->                         }
->                 }
-> @@ -524,6 +551,7 @@ static void mmc_omap_detect(struct work_struct *work)
->  {
->         struct mmc_omap_host *host = container_of(work, struct mmc_omap_host,
->                                                 mmc_carddetect_work);
-> +       unsigned long timeout;
-> 
->         sysfs_notify(&host->mmc->class_dev.kobj, NULL, "cover_switch");
->         if (host->carddetect) {
-> @@ -531,8 +559,14 @@ static void mmc_omap_detect(struct work_struct *work)
->         } else {
->                 OMAP_HSMMC_WRITE(host->base, SYSCTL,
->                         OMAP_HSMMC_READ(host->base, SYSCTL) | SRD);
-> -               while (OMAP_HSMMC_READ(host->base, SYSCTL) & SRD)
-> -                       ;
-> +               /* Wait till the SRD bit is reset */
-> +               timeout = jiffies + msecs_to_jiffies(MMC_TIMEOUT_MS);
-> +               while ((OMAP_HSMMC_READ(host->base, SYSCTL) & SRD)
-> +                       && time_before(jiffies, timeout))
-> +                       msleep(1);
-> +
-> +               if (OMAP_HSMMC_READ(host->base, SYSCTL) & SRD)
-> +                       dev_err(mmc_dev(host->mmc), "Timeout waiting on
-> SRD\n");
-> 
->                 mmc_detect_change(host->mmc, (HZ * 50) / 1000);
->         }
-> --
-> 1.6.0.1.42.gf8c9c
-> 
+> > There's a reasonable chance 
+> > that the fixed up constraints will still need to be changed for the
+> > board to be configured properly and things may end up being driven out
+> > of spec, potentially causing damage.
 
+> I don't see that happening ... all that code does is
+> tighten existing constraints to match what the hardware
+> can do.  The result is just a subset of the range the
+> board already said was OK.  If no valid subset exists,
+
+The trouble is that this code should only do anything if the board code
+provided a configuration that can't be supported by the hardware, which
+is a bit of a red flag.  I'd expect it'd end up catching things like the
+user typing extra digits by mistake (this has definitely happened when
+writing consumer drivers).
+
+Your current patch does also set constraints for the voltages if they
+weren't there previously (though this shouldn't matter since voltage
+setting shouldn't be enabled without voltage value constraints).
+
+> I can easily imagine having things partially set up, and
+> not really caring whether, on a particular board, those
+> initial constraints are really the most specific ones
+> applicable.  One component tolerates a range of 1V8..3V6
+> maybe, but on any given board it can be hooked up to any
+> supply that's even partially in-range.
+
+The pattern you're describing is very much that for consumer and
+regulator drivers.  They should work with as wide a set of constraints
+as possible to allow them to be used on different systems with different
+capabilities and needs - allowing this is essential for the API to be
+usable since so many chips are flexible about the supplies they can use.
+
+It's different for the machine constraints since they are by definition
+specific to a given system.  While it's expected that users (especially
+those sensitive to power consumption) may want to optimise the
+configuration of their system during development to get the best
+performance out of it there is also an expectation that users will be
+making decisions based on knowledge of the hardware design.
