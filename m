@@ -1,108 +1,55 @@
-From: Kim Kyuwon <chammoru@gmail.com>
-Subject: Re: [patch 2.6.29-rc3-omap-git] omap3: gpio pin config bugfixes
-Date: Mon, 9 Feb 2009 21:24:36 +0900
-Message-ID: <4d34a0a70902090424n5e64a4fjeae8ce20bd4fafd0@mail.gmail.com>
-References: <200902082055.08954.david-b@pacbell.net>
+From: Joonyoung Shim <dofmind@gmail.com>
+Subject: Re: [PATCH] twl4030-gpio: Fix getting the value of the TWL4030 GPIO
+	output pin
+Date: Mon, 9 Feb 2009 22:02:28 +0900
+Message-ID: <4e1455be0902090502l554ca462m9c096e359a5b29c3@mail.gmail.com>
+References: <4e1455be0902062213o769a4d15ha0c892508839dbad@mail.gmail.com>
+	 <200902070000.49089.david-b@pacbell.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from wf-out-1314.google.com ([209.85.200.174]:23199 "EHLO
-	wf-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754174AbZBIMYh (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 9 Feb 2009 07:24:37 -0500
-Received: by wf-out-1314.google.com with SMTP id 28so2361805wfa.4
-        for <linux-omap@vger.kernel.org>; Mon, 09 Feb 2009 04:24:36 -0800 (PST)
-In-Reply-To: <200902082055.08954.david-b@pacbell.net>
+Received: from rv-out-0506.google.com ([209.85.198.235]:28243 "EHLO
+	rv-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753623AbZBINCa (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 9 Feb 2009 08:02:30 -0500
+In-Reply-To: <200902070000.49089.david-b@pacbell.net>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: David Brownell <david-b@pacbell.net>
-Cc: OMAP <linux-omap@vger.kernel.org>, Manikandan Pillai <mani.pillai@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, linux-arm-kernel@lists.arm.linux.org.uk, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
 
-Hi,
+2009/2/7 David Brownell <david-b@pacbell.net>:
+> On Friday 06 February 2009, Joonyoung Shim wrote:
+>> If TWL4030 GPIO pin is output, must read the value from REG_GPIODATAOUTx
+>> register in twl4030_get_gpio_datainout().
+>
+> Why "must"?  The goal is to return the *actual* value of the pin,
+> not the intended one.  When an external signal overwhelms the drive
+> capability of that GPIO -- just a couple mA -- the correct value
+> to return can't be the value written in the output register.
 
-On Mon, Feb 9, 2009 at 1:55 PM, David Brownell <david-b@pacbell.net> wrote:
-> From: David Brownell <dbrownell@users.sourceforge.net>
->
-> Bugfix several GPIO mux configurations which didn't enable the
-> input drivers, but weren't named as e.g. ..._GPIO141_OUT.
-> These bugs were added quite recently, for OMAP3 EVM support.
->
-> To help avoid such bugs in the future, update the comment to
-> clarify the rule:  always use PIN_INPUT, unless the name uses
-> that name suffix, to be crystal-clear on the signal's use as
-> output-only.
->
-> (Also adds GPIO-63, for the EVM's MMC-1 writeprotect switch.
-> Presumably that works right...)
->
-> Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
-> ---
->
->  arch/arm/mach-omap2/mux.c             |   13 ++++++++-----
->  arch/arm/plat-omap/include/mach/mux.h |    1 +
->  2 files changed, 9 insertions(+), 5 deletions(-)
->
-> --- a/arch/arm/mach-omap2/mux.c
-> +++ b/arch/arm/mach-omap2/mux.c
-> @@ -453,6 +453,7 @@ MUX_CFG_34XX("AC1_3430_USB3FS_PHY_MM3_TX
->
->
->  /* 34XX GPIO - bidirectional, unless the name has an "_OUT" suffix.
-> + * (Always specify PIN_INPUT, except for names suffixed by "_OUT".)
->  * No internal pullup/pulldown without "_UP" or "_DOWN" suffix.
->  */
->  MUX_CFG_34XX("AH8_34XX_GPIO29", 0x5fa,
-> @@ -460,17 +461,19 @@ MUX_CFG_34XX("AH8_34XX_GPIO29", 0x5fa,
->  MUX_CFG_34XX("J25_34XX_GPIO170", 0x1c6,
->                OMAP34XX_MUX_MODE4 | OMAP34XX_PIN_INPUT)
->  MUX_CFG_34XX("AF26_34XX_GPIO0", 0x1e0,
-> -               OMAP34XX_MUX_MODE4 | OMAP34XX_PIN_OUTPUT)
-> +               OMAP34XX_MUX_MODE4 | OMAP34XX_PIN_INPUT)
->  MUX_CFG_34XX("AF22_34XX_GPIO9", 0xa18,
-> -               OMAP34XX_MUX_MODE4 | OMAP34XX_PIN_OUTPUT)
-> +               OMAP34XX_MUX_MODE4 | OMAP34XX_PIN_INPUT)
-> +MUX_CFG_34XX("L8_34XX_GPIO63", 0x0ce,
-> +               OMAP34XX_MUX_MODE4 | OMAP34XX_PIN_INPUT)
->  MUX_CFG_34XX("AF6_34XX_GPIO140_UP", 0x16c,
->                OMAP34XX_MUX_MODE4 | OMAP34XX_PIN_INPUT_PULLUP)
->  MUX_CFG_34XX("AE6_34XX_GPIO141", 0x16e,
-> -               OMAP34XX_MUX_MODE4 | OMAP34XX_PIN_OUTPUT)
-> +               OMAP34XX_MUX_MODE4 | OMAP34XX_PIN_INPUT)
->  MUX_CFG_34XX("AF5_34XX_GPIO142", 0x170,
-> -               OMAP34XX_MUX_MODE4 | OMAP34XX_PIN_OUTPUT)
-> +               OMAP34XX_MUX_MODE4 | OMAP34XX_PIN_INPUT)
->  MUX_CFG_34XX("AE5_34XX_GPIO143", 0x172,
-> -               OMAP34XX_MUX_MODE4 | OMAP34XX_PIN_OUTPUT)
-> +               OMAP34XX_MUX_MODE4 | OMAP34XX_PIN_INPUT)
->
->  };
->
+but, it doesn't return actual value of the pin if twl4030 GPIO pin is output.
 
-So the thing is, OMAP34XX_PIN_INPUT doens't mean input-only, but
-input-and-output. And OMAP34XX_PIN_OUTPUT doen't mean output, but output-only.
-Names of macros are really confusing me. Shouldn't we change names of these
-macros first? For example,
-OMAP34XX_PIN_INPUT -> OMAP34XX_PIN_INPUT_EN
-OMAP34XX_PIN_OUTPUT -> OMAP34XX_PIN_OUTPUT_ONLY
+For example, the GPIO13 pin of twl4030 is configured as an output
+using gpio_direction_output() and assigns the GPIO's value to 1
+using gpio_set_value_cansleep(), the result of "# cat /sys/kernel/debug/gpio"
+reports to me as follows.
 
-> --- a/arch/arm/plat-omap/include/mach/mux.h
-> +++ b/arch/arm/plat-omap/include/mach/mux.h
-> @@ -792,6 +792,7 @@ enum omap34xx_index {
->        J25_34XX_GPIO170,
->        AF26_34XX_GPIO0,
->        AF22_34XX_GPIO9,
-> +       L8_34XX_GPIO63,
->        AF6_34XX_GPIO140_UP,
->        AE6_34XX_GPIO141,
->        AF5_34XX_GPIO142,
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
+GPIOs 192-209, platform/twl4030_gpio, twl4030, can sleep:
+ gpio-205 (keyled              ) out lo
+
+but it should have reported "hi" instead of "lo".
 
 
+>
+> Plus, this patch won't even link ... you changed the name of the
+> function at its definition, but not at its use points.
 
--- 
-Kim Kyuwon
+Sorry, i missed some code.
+
+>
+> NAK, unless you can show there's a real bug this addresses...
+>
+> - Dave
+>
