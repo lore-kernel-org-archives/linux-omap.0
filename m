@@ -1,46 +1,35 @@
-From: Jarkko Nikula <jarkko.nikula@nokia.com>
-Subject: Re: musb OTG broken in 2.6.29-rc3?
-Date: Tue, 10 Feb 2009 16:34:26 +0200
-Message-ID: <20090210163426.bb9c1420.jarkko.nikula@nokia.com>
-References: <5e088bd90902090940s3c6de0eqac55e21acd4490bc@mail.gmail.com>
-	<19F8576C6E063C45BE387C64729E739403FA81B5E5@dbde02.ent.ti.com>
-	<5e088bd90902092043u913d35axe658e784d4befb59@mail.gmail.com>
-	<19F8576C6E063C45BE387C64729E739403FA81B610@dbde02.ent.ti.com>
-	<20090210073525.GE3166@scadufax.research.nokia.com>
-	<20090210104634.40706b4f.jarkko.nikula@nokia.com>
-	<5e088bd90902100627m746674d7mb7d929c584c7515a@mail.gmail.com>
+From: Mark Brown <broonie-GFdadSzt00ze9xe1eoZjHA@public.gmane.org>
+Subject: Re: [patch 2.6.29-rc3-git 2/2] USB: disable twl4030 USB regulators when cable unplugged
+Date: Tue, 10 Feb 2009 15:19:03 +0000
+Message-ID: <20090210151902.GA31365@sirena.org.uk>
+References: <200902081053.00255.david-b@pacbell.net> <1234271294.17391.12.camel@ubuntu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:43260 "EHLO
-	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751860AbZBJOmj (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 10 Feb 2009 09:42:39 -0500
-In-Reply-To: <5e088bd90902100627m746674d7mb7d929c584c7515a@mail.gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1234271294.17391.12.camel@ubuntu>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Kalle Jokiniemi <kalle.jokiniemi-sMOQStClEysAvxtiuMwx3w@public.gmane.org>
+Cc: David Brownell <david-b-yBeKhBN/0LDR7s880joybQ@public.gmane.org>, Liam Girdwood <lrg-kDsPt+C1G03kYMGBc/C6ZA@public.gmane.org>, lkml <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, OMAP <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: ext Steve Sakoman <sakoman@gmail.com>
-Cc: "Balbi Felipe (Nokia-D/Helsinki)" <felipe.balbi@nokia.com>, "ext Gupta, Ajay Kumar" <ajay.gupta@ti.com>, linux-omap <linux-omap@vger.kernel.org>
 
-On Tue, 10 Feb 2009 15:27:18 +0100
-ext Steve Sakoman <sakoman@gmail.com> wrote:
+On Tue, Feb 10, 2009 at 03:08:14PM +0200, Kalle Jokiniemi wrote:
 
-> > But for me Beagle work. Ethernet gadget just fine and HS HUB by
-> > kicking the session on.
-> 
-> What method did you use to kick the session on?  Was this always
-> required?  I might be misremembering, but I seem to recall that
-> plugging in a miniA cable resulted in musb automatically switching
-> modes to host.
-> 
-I used Felipe's patch and "echo 1 >/sys/...musb_something/session". That
-was required each time I reconnected the cable.
+> A bug has been discovered here. If the twl-regulator is not compiled in,
+> the twl4030-usb fails while trying to access the reg-fw interfaces (and
 
-> Sorry for the perhaps stupid questions, I am *far* from being a USB
-> expert :-)
-> 
-Me too :-)
+reg-fw is the regulator framework?
 
+> not checking error values). Also it's bit confusing how we get different
+> error values if reg_fw is not compiled (no error) vs. reg_fw is
+> compiled, but twl_regulator is not... (error)
 
-Jarkko
+The general model is that if you've got regulator API support enabled
+then you'll have the relevant regulator drivers enabled.  The support
+for compiling out the core is intended to allow configurations that
+don't use regulators at all.  This is a bit restrictive but works well
+for most users.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
