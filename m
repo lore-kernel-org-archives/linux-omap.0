@@ -1,117 +1,41 @@
-From: Felipe Balbi <felipe.balbi@nokia.com>
-Subject: Re: musb OTG broken in 2.6.29-rc3?
-Date: Tue, 10 Feb 2009 09:35:31 +0200
-Message-ID: <20090210073525.GE3166@scadufax.research.nokia.com>
-References: <5e088bd90902090940s3c6de0eqac55e21acd4490bc@mail.gmail.com> <19F8576C6E063C45BE387C64729E739403FA81B5E5@dbde02.ent.ti.com> <5e088bd90902092043u913d35axe658e784d4befb59@mail.gmail.com> <19F8576C6E063C45BE387C64729E739403FA81B610@dbde02.ent.ti.com>
-Reply-To: felipe.balbi@nokia.com
+From: Jarkko Nikula <jarkko.nikula@nokia.com>
+Subject: Re: [PATCH] ASoC: Replace snd_soc_machine by snd_soc_card structure
+ in SDP3430 machine driver
+Date: Tue, 10 Feb 2009 09:51:46 +0200
+Message-ID: <20090210095146.63a77c83.jarkko.nikula@nokia.com>
+References: <2C7D3DF36ADFFC479B44490D912B616705D6175398@dlee07.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:27671 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751075AbZBJHtk (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 10 Feb 2009 02:49:40 -0500
-Content-Disposition: inline
-In-Reply-To: <19F8576C6E063C45BE387C64729E739403FA81B610@dbde02.ent.ti.com>
+Received: from smtp.nokia.com ([192.100.122.230]:63650 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751276AbZBJHvo (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 10 Feb 2009 02:51:44 -0500
+In-Reply-To: <2C7D3DF36ADFFC479B44490D912B616705D6175398@dlee07.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "ext Gupta, Ajay Kumar" <ajay.gupta@ti.com>
-Cc: Steve Sakoman <sakoman@gmail.com>, linux-omap <linux-omap@vger.kernel.org>
+To: "ext Lopez Cruz, Misael" <x0052729@ti.com>
+Cc: "alsa-devel-request@alsa-project.org" <alsa-devel-request@alsa-project.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Nagalla, Hari" <hnagalla@ti.com>
 
-On Tue, Feb 10, 2009 at 05:47:16AM +0100, Ajay Kumar Gupta wrote:
-> > -----Original Message-----
-> > From: Steve Sakoman [mailto:sakoman@gmail.com]
-> > Sent: Tuesday, February 10, 2009 10:13 AM
-> > To: Gupta, Ajay Kumar
-> > Cc: linux-omap
-> > Subject: Re: musb OTG broken in 2.6.29-rc3?
-> >
-> > On Mon, Feb 9, 2009 at 8:05 PM, Gupta, Ajay Kumar <ajay.gupta@ti.com> wrote:
-> >
-> > >> Before I spend too much time debugging, has anyone else been
-> > >> successful with musb OTG in 2.6.29-rc3?  A quick search of this list
-> > >> didn't turn up any discussion of issues.
-> > >
-> > > It works fine on OMAP35x EVM too. I had to add a proc entry for session start
-> > > (Switching on the vBus).
-> >
-> > Could you give me a little more detail on what you had to do for
-> > session start?  Perhaps I have a similar issue on Overo.
-> It is same $ echo "F" >/proc/driver/musb_hdrc, which was earlier
-> In musb_procfs.c and now been removed.
+On Tue, 10 Feb 2009 00:57:00 +0100
+"ext Lopez Cruz, Misael" <x0052729@ti.com> wrote:
+
+> This patch replaces "snd_soc_machine" structure by "snd_soc_card" in
+> SP3430 driver. This change is needed in SDP3430 driver to reflect
+> changes introduced by "ASoC: Rename snd_soc_card to snd_soc_machine"
+> patch (875065491fba8eb13219f16c36e79a6fb4e15c68).
 > 
-> +       case 'F':
-> +               reg = musb_readb(mbase, MUSB_DEVCTL);
-> +               reg |= MUSB_DEVCTL_SESSION;
-> +               musb_writeb(mbase, MUSB_DEVCTL, reg);
+> Signed-off-by: Misael Lopez Cruz <x0052729@ti.com>
+> ---
+>  sound/soc/omap/sdp3430.c |    4 ++--
+>  1 files changed, 2 insertions(+), 2 deletions(-)
+> 
+Looks like you haven't subscribed to alsa-devel since I don't see your
+patch there? You can subscribe but have mail delivery disabled if you
+don't want to get mailing list traffic to your account.
 
-a temp sysfs for that will help:
+Patch itself looks like for 2.6.29-rc since it fixes a compilation
+error. Ack from me, compile tested on linux-omap.
 
-Steve, could you try the following
-
-==== cut here ====
-
-diff --git a/drivers/usb/musb/musb_core.c b/drivers/usb/musb/musb_core.c
-index 2cc34fa..0ffd611 100644
---- a/drivers/usb/musb/musb_core.c
-+++ b/drivers/usb/musb/musb_core.c
-@@ -1713,6 +1713,32 @@ musb_vbus_show(struct device *dev, struct device_attribute *attr, char *buf)
- }
- static DEVICE_ATTR(vbus, 0644, musb_vbus_show, musb_vbus_store);
- 
-+static ssize_t
-+musb_session_store(struct device *dev, struct device_attribute *attr,
-+               const char *buf, size_t n)
-+{
-+       struct musb     *musb = dev_to_musb(dev);
-+       unsigned short  session;
-+       u8              devctl;
-+
-+       if (sscanf(buf, "%hu", &session) != 1
-+                       || (session != 1) || (session != 0)) {
-+               dev_err(dev, "value must be 1 on 0\n");
-+               return -EINVAL;
-+       }
-+
-+       devctl = musb_readb(musb->mregs, MUSB_DEVCTL);
-+       if (session)
-+               devctl |= MUSB_DEVCTL_SESSION;
-+       else
-+               devctl &= ~MUSB_DEVCTL_SESSION;
-+
-+       musb_writeb(musb->mregs, MUSB_DEVCTL, devctl);
-+
-+       return n;
-+}
-+static DEVICE_ATTR(session, 0644, NULL, musb_session_store);
-+
- #ifdef CONFIG_USB_GADGET_MUSB_HDRC
- 
- /* Gadget drivers can't know that a host is connected so they might want
-@@ -1813,6 +1839,7 @@ static void musb_free(struct musb *musb)
-         */
- 
- #ifdef CONFIG_SYSFS
-+       device_remove_file(musb->controller, &dev_attr_session);
-        device_remove_file(musb->controller, &dev_attr_mode);
-        device_remove_file(musb->controller, &dev_attr_vbus);
- #ifdef CONFIG_USB_MUSB_OTG
-@@ -2047,6 +2074,7 @@ bad_config:
-        }
- 
- #ifdef CONFIG_SYSFS
-+       status = device_create_file(dev, &dev_attr_session);
-        status = device_create_file(dev, &dev_attr_mode);
-        status = device_create_file(dev, &dev_attr_vbus);
- #ifdef CONFIG_USB_GADGET_MUSB_HDRC
-@@ -2061,6 +2089,7 @@ bad_config:
- 
- fail2:
- #ifdef CONFIG_SYSFS
-+       device_remove_file(musb->controller, &dev_attr_session);
-        device_remove_file(musb->controller, &dev_attr_mode);
-        device_remove_file(musb->controller, &dev_attr_vbus);
- #ifdef CONFIG_USB_MUSB_OTG
-
--- 
-balbi
+Acked-by: Jarkko Nikula <jarkko.nikula@nokia.com>
