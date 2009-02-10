@@ -1,80 +1,142 @@
-From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Subject: RE: [REVIEW PATCH 2/2] OMAP3EVM Multi-Media Daughter Card Support
-Date: Tue, 10 Feb 2009 17:41:26 +0530
-Message-ID: <19F8576C6E063C45BE387C64729E739403FA81B820@dbde02.ent.ti.com>
-References: <1233419338.19837.21.camel@tux.localhost>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-media-owner@vger.kernel.org>
-In-Reply-To: <1233419338.19837.21.camel@tux.localhost>
-Content-Language: en-US
-Sender: linux-media-owner@vger.kernel.org
-To: Alexey Klimov <klimov.linux@gmail.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>, "Jadav, Brijesh R" <brijesh.j@ti.com>, "Shah, Hardik" <hardik.shah@ti.com>
+From: Felipe Balbi <felipe.balbi@nokia.com>
+Subject: [PATCH 6/8] input: lm8323: get rid of global pdata pointer
+Date: Tue, 10 Feb 2009 14:16:03 +0200
+Message-ID: <1234268165-23573-7-git-send-email-felipe.balbi@nokia.com>
+References: <1234268165-23573-1-git-send-email-felipe.balbi@nokia.com>
+ <1234268165-23573-2-git-send-email-felipe.balbi@nokia.com>
+ <1234268165-23573-3-git-send-email-felipe.balbi@nokia.com>
+ <1234268165-23573-4-git-send-email-felipe.balbi@nokia.com>
+ <1234268165-23573-5-git-send-email-felipe.balbi@nokia.com>
+ <1234268165-23573-6-git-send-email-felipe.balbi@nokia.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from smtp.nokia.com ([192.100.122.230]:62460 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753493AbZBJMa0 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 10 Feb 2009 07:30:26 -0500
+Received: from vaebh106.NOE.Nokia.com (vaebh106.europe.nokia.com [10.160.244.32])
+	by mgw-mx03.nokia.com (Switch-3.2.6/Switch-3.2.6) with ESMTP id n1ACU28j003644
+	for <linux-omap@vger.kernel.org>; Tue, 10 Feb 2009 14:30:23 +0200
+In-Reply-To: <1234268165-23573-6-git-send-email-felipe.balbi@nokia.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: Felipe Balbi <felipe.balbi@nokia.com>
 
+pdata is only used during probe to initialize a few fields
+from lm8323 device structure. Moving pdata pointer to probe
+won't harm anybody.
 
+Signed-off-by: Felipe Balbi <felipe.balbi@nokia.com>
+---
+ drivers/input/keyboard/lm8323.c |   34 ++++++++++++++++------------------
+ 1 files changed, 16 insertions(+), 18 deletions(-)
 
-Thanks,
-Vaibhav Hiremath
+diff --git a/drivers/input/keyboard/lm8323.c b/drivers/input/keyboard/lm8323.c
+index 342ef6a..60abe61 100644
+--- a/drivers/input/keyboard/lm8323.c
++++ b/drivers/input/keyboard/lm8323.c
+@@ -186,9 +186,6 @@ static struct lm8323_chip *pwm_to_lm8323(struct lm8323_pwm *pwm)
+ 	}
+ }
+ 
+-static struct lm8323_platform_data *lm8323_pdata;
+-
+-
+ #define LM8323_MAX_DATA 8
+ 
+ /*
+@@ -682,6 +679,7 @@ static DEVICE_ATTR(disable_kp, 0644, lm8323_show_disable, lm8323_set_disable);
+ static int lm8323_probe(struct i2c_client *client,
+ 					const struct i2c_device_id *id)
+ {
++	struct lm8323_platform_data *pdata;
+ 	struct input_dev *idev;
+ 	struct lm8323_chip *lm;
+ 	int i, err = 0;
+@@ -694,11 +692,11 @@ static int lm8323_probe(struct i2c_client *client,
+ 
+ 	i2c_set_clientdata(client, lm);
+ 	lm->client = client;
+-	lm8323_pdata = client->dev.platform_data;
+-	if (!lm8323_pdata)
++	pdata = client->dev.platform_data;
++	if (!pdata)
+ 		return -EINVAL; /* ? */
+ 
+-	lm->size_x = lm8323_pdata->size_x;
++	lm->size_x = pdata->size_x;
+ 	if (lm->size_x == 0) {
+ 		lm->size_x = 8;
+ 	} else if (lm->size_x > 8) {
+@@ -707,7 +705,7 @@ static int lm8323_probe(struct i2c_client *client,
+ 		lm->size_x = 8;
+ 	}
+ 
+-	lm->size_y = lm8323_pdata->size_y;
++	lm->size_y = pdata->size_y;
+ 	if (lm->size_y == 0) {
+ 		lm->size_y = 12;
+ 	} else if (lm->size_y > 12) {
+@@ -718,13 +716,13 @@ static int lm8323_probe(struct i2c_client *client,
+ 
+ 	debug(&c->dev, "Keypad size: %d x %d\n", lm->size_x, lm->size_y);
+ 
+-	lm->debounce_time = lm8323_pdata->debounce_time;
++	lm->debounce_time = pdata->debounce_time;
+ 	if (lm->debounce_time == 0) /* Default. */
+ 		lm->debounce_time = 12;
+ 	else if (lm->debounce_time == -1) /* Disable debounce. */
+ 		lm->debounce_time = 0;
+ 
+-	lm->active_time = lm8323_pdata->active_time;
++	lm->active_time = pdata->active_time;
+ 	if (lm->active_time == 0) /* Default. */
+ 		lm->active_time = 500;
+ 	else if (lm->active_time == -1) /* Disable sleep. */
+@@ -756,11 +754,11 @@ static int lm8323_probe(struct i2c_client *client,
+ 		goto fail2;
+ 	}
+ 
+-	if (init_pwm(lm, 1, &client->dev, lm8323_pdata->pwm1_name) < 0)
++	if (init_pwm(lm, 1, &client->dev, pdata->pwm1_name) < 0)
+ 		goto fail3;
+-	if (init_pwm(lm, 2, &client->dev, lm8323_pdata->pwm2_name) < 0)
++	if (init_pwm(lm, 2, &client->dev, pdata->pwm2_name) < 0)
+ 		goto fail4;
+-	if (init_pwm(lm, 3, &client->dev, lm8323_pdata->pwm3_name) < 0)
++	if (init_pwm(lm, 3, &client->dev, pdata->pwm3_name) < 0)
+ 		goto fail5;
+ 
+ 	mutex_init(&lm->lock);
+@@ -787,8 +785,8 @@ static int lm8323_probe(struct i2c_client *client,
+ 		goto fail8;
+ 	}
+ 
+-	if (lm8323_pdata->name)
+-		idev->name = lm8323_pdata->name;
++	if (pdata->name)
++		idev->name = pdata->name;
+ 	else
+ 		idev->name = "LM8323 keypad";
+ 	snprintf(lm->phys, sizeof(lm->phys), "%s/input-kp", client->dev.bus_id);
+@@ -797,13 +795,13 @@ static int lm8323_probe(struct i2c_client *client,
+ 	lm->keys_down = 0;
+ 	idev->evbit[0] = BIT(EV_KEY);
+ 	for (i = 0; i < LM8323_KEYMAP_SIZE; i++) {
+-		if (lm8323_pdata->keymap[i] > 0)
+-			set_bit(lm8323_pdata->keymap[i], idev->keybit);
++		if (pdata->keymap[i] > 0)
++			set_bit(pdata->keymap[i], idev->keybit);
+ 
+-		lm->keymap[i] = lm8323_pdata->keymap[i];
++		lm->keymap[i] = pdata->keymap[i];
+ 	}
+ 
+-	if (lm8323_pdata->repeat)
++	if (pdata->repeat)
+ 		set_bit(EV_REP, idev->evbit);
+ 
+ 	lm->idev = idev;
+-- 
+1.6.1.265.g9a013
 
-> -----Original Message-----
-> From: Alexey Klimov [mailto:klimov.linux@gmail.com]
-> Sent: Saturday, January 31, 2009 9:59 PM
-> To: Hiremath, Vaibhav
-> Cc: linux-omap@vger.kernel.org; linux-media@vger.kernel.org; Jadav,
-> Brijesh R; Shah, Hardik
-> Subject: Re: [REVIEW PATCH 2/2] OMAP3EVM Multi-Media Daughter Card
-> Support
-> 
-> Hello, Vaibhav
-> May i tell few suggestions ?
-> 
-> On Fri, 2009-01-30 at 00:52 +0530, hvaibhav@ti.com wrote:
-> > From: Vaibhav Hiremath <hvaibhav@ti.com>
-> >
-> > This is second version of OMAP3EVM Mulit-Media/Mass Market
-> > Daughter Card support.
-> >
-> > Fixes:
-> >     - Cleaned unused header files, struct formating, and unused
-> >       comments.
-> >     - Pad/mux configuration handled in mux.ch
-> >     - mux.ch related changes moved to seperate patch
-> >     - Renamed file board-omap3evm-dc.c to board-omap3evm-dc-v4l.c
-> >       to make more explicit.
-> >     - Added some more meaningful name for Kconfig option
-> >
-> > TODO:
-> >     - Camera sensor support (for future development).
-> >     - Driver header file inclusion (dependency on ISP-Camera
-> patches)
-> >       I am working with Sergio to seperate/move header file to
-> standard
-> >       location.
-> >     - Still need to fix naming convention for DC
-> >
-> > Tested:
-> >     - TVP5146 (BT656) decoder interface on top of
-> >       Sergio's ISP-Camera patches.
-> >     - Loopback application, capturing image through TVP5146
-> >       and saving it to file per frame.
-> >     - Basic functionality of HSUSB Transceiver USB-83320
-> >
-> > Signed-off-by: Brijesh Jadav <brijesh.j@ti.com>
-> > Signed-off-by: Hardik Shah <hardik.shah@ti.com>
-> > Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
-> > ---
-> >  arch/arm/mach-omap2/Kconfig                 |    8 +-
-> >  arch/arm/mach-omap2/Makefile                |    1 +
-> >  arch/arm/mach-omap2/board-omap3evm-dc-v4l.c |  348
-> +++++++++++++++++++++++++++
-> >  arch/arm/mach-omap2/board-omap3evm-dc.h     |   42 ++++
-> >  4 files changed, 398 insertions(+), 1 deletions(-)
-> >  create mode 100644 arch/arm/mach-omap2/board-omap3evm-dc-v4l.c
-> >  create mode 100644 arch/arm/mach-omap2/board-omap3evm-dc.h
-> >
-[Hiremath, Vaibhav] This patch is strongly dependent on ISP-Camera patches, and need rebase/refreshment/synchronization with latest code-base from Sergio and Sakari. I believe they are under process of fixing review comments.
-
-Since there are only minor review comments received for MMDC patch, I will wait till the time Sergio posts the patches supporting ISP-Camera module. And then I will submit it to the community after refreshing on top of it (with review comment fix).
