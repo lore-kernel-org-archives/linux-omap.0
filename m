@@ -1,97 +1,44 @@
-From: "Pakaravoor, Jagadeesh" <j-pakaravoor@ti.com>
-Subject: RE: [PATCH] OMAP I2C: Include OMAP_I2C_SYSC_REG in save and restore.
-Date: Tue, 10 Feb 2009 15:57:32 +0530
-Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB02A3FFF0D2@dbde02.ent.ti.com>
-References: <EAF47CD23C76F840A9E7FCE10091EFAB02A39CE87C@dbde02.ent.ti.com>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: Remaining bits for basic support of LDP
+Date: Tue, 10 Feb 2009 11:48:55 +0000
+Message-ID: <20090210114855.GA9746@n2100.arm.linux.org.uk>
+References: <20090202213953.GB16069@n2100.arm.linux.org.uk> <20090202.134530.63616213.davem@davemloft.net> <20090202222909.GC16069@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:60033 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752451AbZBJK1t convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 10 Feb 2009 05:27:49 -0500
-In-Reply-To: <EAF47CD23C76F840A9E7FCE10091EFAB02A39CE87C@dbde02.ent.ti.com>
-Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <netdev-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20090202222909.GC16069@n2100.arm.linux.org.uk>
+Sender: netdev-owner@vger.kernel.org
+To: David Miller <davem@davemloft.net>
+Cc: tony@atomide.com, linux-omap@vger.kernel.org, netdev@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "khilman@deeprootsystems.com" <khilman@deeprootsystems.com>
-Cc: "jouni.hogander@nokia.com" <jouni.hogander@nokia.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Kevin,
-  Did you get a chance to review this patch?
+On Mon, Feb 02, 2009 at 10:29:09PM +0000, Russell King - ARM Linux wrote:
+> On Mon, Feb 02, 2009 at 01:45:30PM -0800, David Miller wrote:
+> > From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+> > Date: Mon, 2 Feb 2009 21:39:53 +0000
+> > 
+> > > The patch to fix these issues would seem to be relatively small (12
+> > > lines in the smc911x and one line change in board-ldp.c) - is it
+> > > something we want done for -rc4 or do we scrap the ethernet support 
+> > > on the LDP until the SMSC driver has been merged ?
+> > > 
+> > > Obviously, having working ethernet would be helpful, and since it was
+> > > half heartedly merged when the initial OMAP3 stuff went upstream we
+> > > should do something with it one way or another.
+> > 
+> > Well, the SMSC driver is there already in the tree.
+> >
+> > The only thing not currently being scheduled to hit
+> > 2.6.29-rcX are the recent changes to support platform
+> > specified interrupt flags and all of that stuff.
+> > 
+> > If you want, we can look into pushing that work into
+> > 2.6.29-rcX
+> 
+> Hmm.  Since we should assume that the other smc911x using platforms work
+> as-is, merging Steve's first four and the LDP patch seems to be a sane
+> idea.  We can queue the remainder for when bugs are reported or the
+> next merge window, whichever comes earlier.
 
---
-Jagadeesh
-
-> -----Original Message-----
-> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of
-> Pakaravoor, Jagadeesh
-> Sent: Thursday, January 22, 2009 12:49 PM
-> To: linux-omap@vger.kernel.org
-> Cc: jouni.hogander@nokia.com; khilman@deeprootsystems.com
-> Subject: [PATCH] OMAP I2C: Include OMAP_I2C_SYSC_REG in save and restore.
-> 
-> From: Jagadeesh Bhaskar Pakaravoor <j-pakaravoor@ti.com>
-> 
-> Save and restore should include OMAP_I2C_SYSC_REG.
-> This patch applies on origin/pm.
-> 
-> Signed-off-by: Jagadeesh Bhaskar Pakaravoor <j-pakaravoor@ti.com>
-> ---
-> Index: linux-omap-2.6/drivers/i2c/busses/i2c-omap.c
-> ===================================================================
-> --- linux-omap-2.6.orig/drivers/i2c/busses/i2c-omap.c	2009-01-22 12:11:12.000000000 +0530
-> +++ linux-omap-2.6/drivers/i2c/busses/i2c-omap.c	2009-01-22 12:44:12.202367296 +0530
-> @@ -182,6 +182,7 @@ struct omap_i2c_dev {
->  	u16			scllstate;
->  	u16			sclhstate;
->  	u16			bufstate;
-> +	u16			syscstate;
->  };
-> 
->  static inline void omap_i2c_write_reg(struct omap_i2c_dev *i2c_dev,
-> @@ -240,6 +241,7 @@ static void omap_i2c_unidle(struct omap_
->  		omap_i2c_write_reg(dev, OMAP_I2C_SCLL_REG, dev->scllstate);
->  		omap_i2c_write_reg(dev, OMAP_I2C_SCLH_REG, dev->sclhstate);
->  		omap_i2c_write_reg(dev, OMAP_I2C_BUF_REG, dev->bufstate);
-> +		omap_i2c_write_reg(dev, OMAP_I2C_SYSC_REG, dev->syscstate);
->  	}
->  	dev->idle = 0;
->  	omap_i2c_write_reg(dev, OMAP_I2C_IE_REG, dev->iestate);
-> @@ -300,14 +302,15 @@ static int omap_i2c_init(struct omap_i2c
->  		} else if (dev->rev >= OMAP_I2C_REV_ON_3430) {
->  			u32 v;
-> 
-> -			v = SYSC_AUTOIDLE_MASK;
-> -			v |= SYSC_ENAWAKEUP_MASK;
-> -			v |= (SYSC_IDLEMODE_SMART <<
-> +			dev->syscstate = SYSC_AUTOIDLE_MASK;
-> +			dev->syscstate |= SYSC_ENAWAKEUP_MASK;
-> +			dev->syscstate |= (SYSC_IDLEMODE_SMART <<
->  			      __ffs(SYSC_SIDLEMODE_MASK));
-> -			v |= (SYSC_CLOCKACTIVITY_FCLK <<
-> +			dev->syscstate |= (SYSC_CLOCKACTIVITY_FCLK <<
->  			      __ffs(SYSC_CLOCKACTIVITY_MASK));
-> 
-> -			omap_i2c_write_reg(dev, OMAP_I2C_SYSC_REG, v);
-> +			omap_i2c_write_reg(dev, OMAP_I2C_SYSC_REG,
-> +							dev->syscstate);
->  			/*
->  			 * Enabling all wakup sources to stop I2C freezing on
->  			 * WFI instruction.
-> 
-> --
-> With Regards,
-> Jagadeesh Bhaskar P
-> 
-> ----------------------------
-> Some men see things as they are and say why - I dream things that never were and say why not.
-> - George Bernard Shaw
-> -------------------
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
+So, what's happening on this?
