@@ -1,53 +1,29 @@
-From: "Lopez Cruz, Misael" <x0052729@ti.com>
-Subject: [PATCH] ASoC: Replace snd_soc_machine by snd_soc_card structure in
- SDP3430 machine driver
-Date: Mon, 9 Feb 2009 17:57:00 -0600
-Message-ID: <2C7D3DF36ADFFC479B44490D912B616705D6175398@dlee07.ent.ti.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH] OMAP: MMC: recover from transfer failures - Resend
+Date: Mon, 9 Feb 2009 17:09:48 -0700 (MST)
+Message-ID: <alpine.DEB.2.00.0902091707330.12013@utopia.booyaka.com>
+References: <20081207213617.10456.43951.stgit@localhost> <20090205121045.4022c319.akpm@linux-foundation.org> <alpine.DEB.2.00.0902051323090.8131@utopia.booyaka.com> <200902061422.32689.jpihet@mvista.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:50918 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750712AbZBIX5K convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 9 Feb 2009 18:57:10 -0500
-Content-Language: en-US
+Received: from utopia.booyaka.com ([72.9.107.138]:44134 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752885AbZBJAJu (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 9 Feb 2009 19:09:50 -0500
+In-Reply-To: <200902061422.32689.jpihet@mvista.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "alsa-devel-request@alsa-project.org" <alsa-devel-request@alsa-project.org>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Nagalla, Hari" <hnagalla@ti.com>
+To: Jean Pihet <jpihet@mvista.com>
+Cc: Andrew Morton <akpm@linux-foundation.org>, tony@atomide.com, ext-adrian.hunter@nokia.com, linux-arm-kernel@lists.arm.linux.org.uk, linux-omap@vger.kernel.org, jarkko.lavinen@nokia.com, drzeus-mmc@drzeus.cx, linux-kernel@vger.kernel.org
 
-This patch replaces "snd_soc_machine" structure by "snd_soc_card" in
-SP3430 driver. This change is needed in SDP3430 driver to reflect
-changes introduced by "ASoC: Rename snd_soc_card to snd_soc_machine" patch
-(875065491fba8eb13219f16c36e79a6fb4e15c68).
+On Fri, 6 Feb 2009, Jean Pihet wrote:
 
-Signed-off-by: Misael Lopez Cruz <x0052729@ti.com>
----
- sound/soc/omap/sdp3430.c |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
+> Do you want a finite loop with udelay in it? I located 4 places were this 
+> could be used. If so I can generate a new patch for that.
 
-diff --git a/sound/soc/omap/sdp3430.c b/sound/soc/omap/sdp3430.c
-index ad97836..e226fa7 100644
---- a/sound/soc/omap/sdp3430.c
-+++ b/sound/soc/omap/sdp3430.c
-@@ -91,7 +91,7 @@ static struct snd_soc_dai_link sdp3430_dai = {
- };
- 
- /* Audio machine driver */
--static struct snd_soc_machine snd_soc_machine_sdp3430 = {
-+static struct snd_soc_card snd_soc_sdp3430 = {
- 	.name = "SDP3430",
- 	.platform = &omap_soc_platform,
- 	.dai_link = &sdp3430_dai,
-@@ -100,7 +100,7 @@ static struct snd_soc_machine snd_soc_machine_sdp3430 = {
- 
- /* Audio subsystem */
- static struct snd_soc_device sdp3430_snd_devdata = {
--	.machine = &snd_soc_machine_sdp3430,
-+	.card = &snd_soc_sdp3430,
- 	.codec_dev = &soc_codec_dev_twl4030,
- };
- 
--- 
-1.5.4.3
+Just as an aside, from the standpoint of minimizing CPU usage, there seems 
+little point in using udelay() here, since it is implemented as a CPU 
+busy-wait.
+
+
+- Paul
