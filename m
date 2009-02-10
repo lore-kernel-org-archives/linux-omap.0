@@ -1,39 +1,36 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: Remaining bits for basic support of LDP
-Date: Tue, 10 Feb 2009 14:08:39 -0800
-Message-ID: <20090210220837.GL14200@atomide.com>
-References: <20090202213953.GB16069@n2100.arm.linux.org.uk> <20090202.134530.63616213.davem@davemloft.net> <20090202222909.GC16069@n2100.arm.linux.org.uk> <20090210114855.GA9746@n2100.arm.linux.org.uk> <20090210115615.GA9869@n2100.arm.linux.org.uk> <20090210210159.GK14200@atomide.com> <20090210213712.GB19041@n2100.arm.linux.org.uk>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: [PATCH] OMAP I2C: Include OMAP_I2C_SYSC_REG in save and restore.
+Date: Tue, 10 Feb 2009 14:25:25 -0800
+Message-ID: <87eiy62alm.fsf@deeprootsystems.com>
+References: <EAF47CD23C76F840A9E7FCE10091EFAB02A39CE87C@dbde02.ent.ti.com>
+	<EAF47CD23C76F840A9E7FCE10091EFAB02A3FFF0D2@dbde02.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <netdev-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20090210213712.GB19041@n2100.arm.linux.org.uk>
-Sender: netdev-owner@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: David Miller <davem@davemloft.net>, linux-omap@vger.kernel.org, netdev@vger.kernel.org
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from qw-out-2122.google.com ([74.125.92.24]:18151 "EHLO
+	qw-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755929AbZBJWZc (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 10 Feb 2009 17:25:32 -0500
+Received: by qw-out-2122.google.com with SMTP id 5so80609qwi.37
+        for <linux-omap@vger.kernel.org>; Tue, 10 Feb 2009 14:25:30 -0800 (PST)
+In-Reply-To: <EAF47CD23C76F840A9E7FCE10091EFAB02A3FFF0D2@dbde02.ent.ti.com> (Jagadeesh Pakaravoor's message of "Tue\, 10 Feb 2009 15\:57\:32 +0530")
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "Pakaravoor, Jagadeesh" <j-pakaravoor@ti.com>
+Cc: "jouni.hogander@nokia.com" <jouni.hogander@nokia.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-* Russell King - ARM Linux <linux@arm.linux.org.uk> [090210 13:37]:
-> On Tue, Feb 10, 2009 at 01:02:02PM -0800, Tony Lindgren wrote:
-> > Yeah, the smsc updates for omap might take a while longer to get going.
-> > So here's my ack for this smc911x patch:
-> > 
-> > Acked-by: Tony Lindgren <tony@atomide.com>
-> 
-> Thanks.
-> 
-> > For the smsc changes, I don't have an LDP to test with. But I'll try
-> > to get another board to work with smsc now that I have some MMC voltage
-> > weirdness out of the way and have a proper root on MMC :) That is after
-> > I have musb working on it so I can scp the module over g_ether..
-> 
-> I've tested them both on the LDP, both work fine.
-> 
-> That talk of MMC voltage weirdness sounds like bug fixes - do they
-> need to get into mainline?
+"Pakaravoor, Jagadeesh" <j-pakaravoor@ti.com> writes:
 
-Yes, I'll check few things first and then post a patch in a separate
-thread. Basically the issue is with a 3.0V internal MMC card connected
-to MMC2 where omap_hsmmc.c SVDS still needs to be set to use 1.8V.
+> Kevin,
+>   Did you get a chance to review this patch?
+>
 
-Tony
+Yes, and I applied it to the PM branch early last week.  See the
+commit log[1].
+
+I guess I forgot to respond to the list.  Sorry...
+ 
+Kevin
+
+[1] http://git.kernel.org/?p=linux/kernel/git/khilman/linux-omap-pm.git;a=shortlog;h=pm
+
