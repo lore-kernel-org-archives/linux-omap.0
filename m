@@ -1,242 +1,121 @@
 From: Felipe Balbi <felipe.balbi@nokia.com>
-Subject: [PATCH 4/8] i2c: lp5521: move to LED framework
-Date: Tue, 10 Feb 2009 14:16:01 +0200
-Message-ID: <1234268165-23573-5-git-send-email-felipe.balbi@nokia.com>
+Subject: [PATCH 7/8] input: lm8323: get rid of useless debug macro
+Date: Tue, 10 Feb 2009 14:16:04 +0200
+Message-ID: <1234268165-23573-8-git-send-email-felipe.balbi@nokia.com>
 References: <1234268165-23573-1-git-send-email-felipe.balbi@nokia.com>
  <1234268165-23573-2-git-send-email-felipe.balbi@nokia.com>
  <1234268165-23573-3-git-send-email-felipe.balbi@nokia.com>
  <1234268165-23573-4-git-send-email-felipe.balbi@nokia.com>
+ <1234268165-23573-5-git-send-email-felipe.balbi@nokia.com>
+ <1234268165-23573-6-git-send-email-felipe.balbi@nokia.com>
+ <1234268165-23573-7-git-send-email-felipe.balbi@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:30612 "EHLO
-	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753502AbZBJMa1 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 10 Feb 2009 07:30:27 -0500
-Received: from esebh106.NOE.Nokia.com (esebh106.ntc.nokia.com [172.21.138.213])
-	by mgw-mx06.nokia.com (Switch-3.2.6/Switch-3.2.6) with ESMTP id n1ACTvt4024847
-	for <linux-omap@vger.kernel.org>; Tue, 10 Feb 2009 14:30:24 +0200
-In-Reply-To: <1234268165-23573-4-git-send-email-felipe.balbi@nokia.com>
+Received: from smtp.nokia.com ([192.100.122.230]:62452 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753372AbZBJMaY (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 10 Feb 2009 07:30:24 -0500
+Received: from vaebh106.NOE.Nokia.com (vaebh106.europe.nokia.com [10.160.244.32])
+	by mgw-mx03.nokia.com (Switch-3.2.6/Switch-3.2.6) with ESMTP id n1ACU28h003644
+	for <linux-omap@vger.kernel.org>; Tue, 10 Feb 2009 14:30:22 +0200
+In-Reply-To: <1234268165-23573-7-git-send-email-felipe.balbi@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: Felipe Balbi <felipe.balbi@nokia.com>
 
-Register three separate leds for lp5521 and allow
-them to be controlled separately while keeping
-backwards compatibility with userspace programs
-based on old implementation.
+we can use dev_vdbg() which is only true when VERBOSE is
+enabled.
 
 Signed-off-by: Felipe Balbi <felipe.balbi@nokia.com>
 ---
- drivers/i2c/chips/lp5521.c |  146 +++++++++++++++++++++++++++++++++++++++++++-
- 1 files changed, 144 insertions(+), 2 deletions(-)
+ drivers/input/keyboard/lm8323.c |   28 +++++++++++-----------------
+ 1 files changed, 11 insertions(+), 17 deletions(-)
 
-diff --git a/drivers/i2c/chips/lp5521.c b/drivers/i2c/chips/lp5521.c
-index 9e94ff8..a5c3425 100644
---- a/drivers/i2c/chips/lp5521.c
-+++ b/drivers/i2c/chips/lp5521.c
-@@ -4,6 +4,7 @@
-  * Copyright (C) 2007 Nokia Corporation
-  *
-  * Written by Mathias Nyman <mathias.nyman@nokia.com>
-+ * Updated by Felipe Balbi <felipe.balbi@nokia.com>
-  *
-  * This program is free software; you can redistribute it and/or modify
-  * it under the terms of the GNU General Public License as published by
-@@ -23,7 +24,9 @@
- #include <linux/module.h>
- #include <linux/init.h>
- #include <linux/i2c.h>
-+#include <linux/leds.h>
- #include <linux/mutex.h>
-+#include <linux/workqueue.h>
+diff --git a/drivers/input/keyboard/lm8323.c b/drivers/input/keyboard/lm8323.c
+index 60abe61..0812bef 100644
+--- a/drivers/input/keyboard/lm8323.c
++++ b/drivers/input/keyboard/lm8323.c
+@@ -33,12 +33,6 @@
+ #include <asm/mach-types.h>
+ #include <asm/mach/irq.h>
  
- #define LP5521_DRIVER_NAME		"lp5521"
+-#ifdef VERBOSE
+-#define debug dev_dbg
+-#else
+-#define debug(...)
+-#endif
+-
+ /* Commands to send to the chip. */
+ #define LM8323_CMD_READ_ID		0x80 /* Read chip ID. */
+ #define LM8323_CMD_WRITE_CFG		0x81 /* Set configuration item. */
+@@ -303,7 +297,7 @@ static void process_keys(struct lm8323_chip *lm)
+ 		s16 keycode = lm->keymap[key];
  
-@@ -75,7 +78,17 @@ struct lp5521_chip {
- 	/* device lock */
- 	struct mutex		lock;
- 	struct i2c_client	*client;
-+
-+	struct work_struct	red_work;
-+	struct work_struct	green_work;
-+	struct work_struct	blue_work;
-+
-+	struct led_classdev	ledr;
-+	struct led_classdev	ledg;
-+	struct led_classdev	ledb;
-+
- 	enum lp5521_mode	mode;
-+
- 	int			red;
- 	int			green;
- 	int			blue;
-@@ -489,6 +502,87 @@ static int lp5521_set_mode(struct lp5521_chip *chip, enum lp5521_mode mode)
- 	return ret;
+ 		if (likely(keycode > 0)) {
+-			debug(&lm->client->dev, "key 0x%02x %s\n", key,
++			dev_vdbg(&lm->client->dev, "key 0x%02x %s\n", key,
+ 			      isdown ? "down" : "up");
+ 			if (likely(lm->kp_enabled)) {
+ 				input_report_key(lm->idev, keycode, isdown);
+@@ -337,13 +331,13 @@ static void lm8323_process_error(struct lm8323_chip *lm)
+ 
+ 	if (lm8323_read(lm, LM8323_CMD_READ_ERR, &error, 1) == 1) {
+ 		if (error & ERR_FIFOOVER)
+-			debug(&lm->client->dev, "fifo overflow!\n");
++			dev_vdbg(&lm->client->dev, "fifo overflow!\n");
+ 		if (error & ERR_KEYOVR)
+-			debug(&lm->client->dev, "more than two keys pressed\n");
++			dev_vdbg(&lm->client->dev, "more than two keys pressed\n");
+ 		if (error & ERR_CMDUNK)
+-			debug(&lm->client->dev, "unknown command submitted\n");
++			dev_vdbg(&lm->client->dev, "unknown command submitted\n");
+ 		if (error & ERR_BADPAR)
+-			debug(&lm->client->dev, "bad command parameter\n");
++			dev_vdbg(&lm->client->dev, "bad command parameter\n");
+ 	}
  }
  
-+static void lp5521_red_work(struct work_struct *work)
-+{
-+	struct lp5521_chip *chip = container_of(work, struct lp5521_chip, red_work);
-+	int ret;
-+
-+	ret = lp5521_configure(chip->client);
-+	if (ret) {
-+		dev_dbg(&chip->client->dev, "could not configure lp5521, %d\n",
-+				ret);
-+		return;
-+	}
-+
-+	ret = lp5521_write(chip->client, LP5521_REG_R_PWM, chip->red);
-+	if (ret)
-+		dev_dbg(&chip->client->dev, "could not set brightness, %d\n",
-+				ret);
-+}
-+
-+static void lp5521_red_set(struct led_classdev *led,
-+		enum led_brightness value)
-+{
-+	struct lp5521_chip *chip = container_of(led, struct lp5521_chip, ledr);
-+
-+	chip->red = value;
-+	schedule_work(&chip->red_work);
-+}
-+
-+static void lp5521_green_work(struct work_struct *work)
-+{
-+	struct lp5521_chip *chip = container_of(work, struct lp5521_chip, green_work);
-+	int ret;
-+
-+	ret = lp5521_configure(chip->client);
-+	if (ret) {
-+		dev_dbg(&chip->client->dev, "could not configure lp5521, %d\n",
-+				ret);
-+		return;
-+	}
-+
-+	ret = lp5521_write(chip->client, LP5521_REG_G_PWM, chip->green);
-+	if (ret)
-+		dev_dbg(&chip->client->dev, "could not set brightness, %d\n",
-+				ret);
-+}
-+
-+static void lp5521_green_set(struct led_classdev *led,
-+		enum led_brightness value)
-+{
-+	struct lp5521_chip *chip = container_of(led, struct lp5521_chip, ledg);
-+
-+	chip->green = value;
-+	schedule_work(&chip->green_work);
-+}
-+
-+static void lp5521_blue_work(struct work_struct *work)
-+{
-+	struct lp5521_chip *chip = container_of(work, struct lp5521_chip, blue_work);
-+	int ret;
-+
-+	ret = lp5521_configure(chip->client);
-+	if (ret) {
-+		dev_dbg(&chip->client->dev, "could not configure lp5521, %d\n",
-+				ret);
-+		return;
-+	}
-+
-+	ret = lp5521_write(chip->client, LP5521_REG_B_PWM, chip->blue);
-+	if (ret)
-+		dev_dbg(&chip->client->dev, "could not set brightness, %d\n",
-+				ret);
-+}
-+
-+static void lp5521_blue_set(struct led_classdev *led,
-+		enum led_brightness value)
-+{
-+	struct lp5521_chip *chip = container_of(led, struct lp5521_chip, ledb);
-+
-+	chip->blue = value;
-+	schedule_work(&chip->blue_work);
-+}
-+
- /*--------------------------------------------------------------*/
- /*			Probe, Attach, Remove			*/
- /*--------------------------------------------------------------*/
-@@ -509,6 +603,10 @@ static int __init lp5521_probe(struct i2c_client *client,
+@@ -408,10 +402,10 @@ static void lm8323_work(struct work_struct *work)
+ 			process_keys(lm);
+ 		if (ints & INT_ROTATOR) {
+ 			/* We don't currently support the rotator. */
+-			debug(&lm->client->dev, "rotator fired\n");
++			dev_vdbg(&lm->client->dev, "rotator fired\n");
+ 		}
+ 		if (ints & INT_ERROR) {
+-			debug(&lm->client->dev, "error!\n");
++			dev_vdbg(&lm->client->dev, "error!\n");
+ 			lm8323_process_error(lm);
+ 		}
+ 		if (ints & INT_NOINIT) {
+@@ -420,15 +414,15 @@ static void lm8323_work(struct work_struct *work)
+ 			lm8323_configure(lm);
+ 		}
+ 		if (ints & INT_PWM1) {
+-			debug(&lm->client->dev, "pwm1 engine completed\n");
++			dev_vdbg(&lm->client->dev, "pwm1 engine completed\n");
+ 			pwm_done(&lm->pwm1);
+ 		}
+ 		if (ints & INT_PWM2) {
+-			debug(&lm->client->dev, "pwm2 engine completed\n");
++			dev_vdbg(&lm->client->dev, "pwm2 engine completed\n");
+ 			pwm_done(&lm->pwm2);
+ 		}
+ 		if (ints & INT_PWM3) {
+-			debug(&lm->client->dev, "pwm3 engine completed\n");
++			dev_vdbg(&lm->client->dev, "pwm3 engine completed\n");
+ 			pwm_done(&lm->pwm3);
+ 		}
+ 	}
+@@ -714,7 +708,7 @@ static int lm8323_probe(struct i2c_client *client,
+ 		lm->size_x = 12;
+ 	}
  
- 	mutex_init(&chip->lock);
+-	debug(&c->dev, "Keypad size: %d x %d\n", lm->size_x, lm->size_y);
++	dev_vdbg(&client->dev, "Keypad size: %d x %d\n", lm->size_x, lm->size_y);
  
-+	INIT_WORK(&chip->red_work, lp5521_red_work);
-+	INIT_WORK(&chip->green_work, lp5521_green_work);
-+	INIT_WORK(&chip->blue_work, lp5521_blue_work);
-+
- 	ret = lp5521_configure(client);
- 	if (ret < 0) {
- 		dev_err(&client->dev, "lp5521 error configuring chip \n");
-@@ -521,14 +619,52 @@ static int __init lp5521_probe(struct i2c_client *client,
- 	chip->green	= 1;
- 	chip->blue	= 1;
- 
-+	chip->ledr.brightness_set = lp5521_red_set;
-+	chip->ledr.default_trigger = NULL;
-+	chip->ledr.name = "lp5521:red";
-+	ret = led_classdev_register(&client->dev, &chip->ledr);
-+	if (ret < 0) {
-+		dev_dbg(&client->dev, "failed to register red led, %d\n", ret);
-+		goto fail1;
-+	}
-+
-+	chip->ledg.brightness_set = lp5521_green_set;
-+	chip->ledg.default_trigger = NULL;
-+	chip->ledg.name = "lp5521:green";
-+	ret = led_classdev_register(&client->dev, &chip->ledg);
-+	if (ret < 0) {
-+		dev_dbg(&client->dev, "failed to register green led, %d\n",
-+				ret);
-+		goto fail2;
-+	}
-+
-+	chip->ledb.brightness_set = lp5521_blue_set;
-+	chip->ledb.default_trigger = NULL;
-+	chip->ledb.name = "lp5521:blue";
-+	ret = led_classdev_register(&client->dev, &chip->ledb);
-+	if (ret < 0) {
-+		dev_dbg(&client->dev, "failed to register blue led, %d\n", ret);
-+		goto fail3;
-+	}
-+
- 	ret = lp5521_register_sysfs(client);
--	if (ret)
-+	if (ret) {
- 		dev_err(&client->dev, "lp5521 registering sysfs failed \n");
-+		goto fail4;
-+	}
- 
--	return ret;
-+	return 0;
- 
-+fail4:
-+	led_classdev_unregister(&chip->ledb);
-+fail3:
-+	led_classdev_unregister(&chip->ledg);
-+fail2:
-+	led_classdev_unregister(&chip->ledr);
- fail1:
-+	i2c_set_clientdata(client, NULL);
- 	kfree(chip);
-+
- 	return ret;
- }
- 
-@@ -537,6 +673,12 @@ static int __exit lp5521_remove(struct i2c_client *client)
- 	struct lp5521_chip *chip = i2c_get_clientdata(client);
- 
- 	lp5521_unregister_sysfs(client);
-+	i2c_set_clientdata(client, NULL);
-+
-+	led_classdev_unregister(&chip->ledb);
-+	led_classdev_unregister(&chip->ledg);
-+	led_classdev_unregister(&chip->ledr);
-+
- 	kfree(chip);
- 
- 	return 0;
+ 	lm->debounce_time = pdata->debounce_time;
+ 	if (lm->debounce_time == 0) /* Default. */
 -- 
 1.6.1.265.g9a013
 
