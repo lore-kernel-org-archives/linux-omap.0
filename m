@@ -1,149 +1,61 @@
-From: David Brownell <david-b@pacbell.net>
-Subject: Re: [patch 2.6.29-rc3-git 1/2] regulator: twl4030 regulators
-Date: Mon, 9 Feb 2009 16:24:01 -0800
-Message-ID: <200902091624.01802.david-b@pacbell.net>
-References: <200902081037.06645.david-b@pacbell.net> <200902081604.29905.david-b@pacbell.net> <20090209172714.GA17637@sirena.org.uk>
+From: Kyungmin Park <kmpark-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
+Subject: Re: omap_apollon_2420_defconfig
+Date: Tue, 10 Feb 2009 10:54:25 +0900
+Message-ID: <9c9fda240902091754q7f723bf2ha46206e52641297b@mail.gmail.com>
+References: <20090209192614.GF19453@n2100.arm.linux.org.uk>
+	 <20090209205319.GH14200@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp126.sbc.mail.sp1.yahoo.com ([69.147.65.185]:25117 "HELO
-	smtp126.sbc.mail.sp1.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1752206AbZBJAYF (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 9 Feb 2009 19:24:05 -0500
-In-Reply-To: <20090209172714.GA17637@sirena.org.uk>
-Content-Disposition: inline
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20090209205319.GH14200-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Cc: Russell King - ARM Linux <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, David Brownell <david-b-yBeKhBN/0LDR7s880joybQ@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: Mark Brown <broonie@sirena.org.uk>
-Cc: Liam Girdwood <lrg@slimlogic.co.uk>, lkml <linux-kernel@vger.kernel.org>, OMAP <linux-omap@vger.kernel.org>
 
-On Monday 09 February 2009, Mark Brown wrote:
-> On Sun, Feb 08, 2009 at 04:04:29PM -0800, David Brownell wrote:
-> > On Sunday 08 February 2009, Mark Brown wrote:
-> 
-> > > If we're going to do this I think it'd be better to push it into the
-> > > core and let the regulators pass in a set of constraints so that the
-> > > behaviour will be consistent between drivers.
-> 
-> > Maybe, but there is no such mechanism right yet.
-> > When it's created, then this could switch over.
-> 
-> Since you appear to be writing the code already... :)
+Hi,
 
-Not for the regulator core, though.  Switching from
-a simplistic constraint engine to one that starts to
-handle a more realistic "union of constraints" model
-would be doable, but is a bit more off-topic work than
-I'd want to sign up for just now.
+In the previous patch, it's only fixed host side. But apollon case, it
+only used udc, so udc configuration should select USB_OTG_UTILS also.
 
-
-> > > I'd also expect to have the registration fail or at least issue a
-> > > warning if the code kicks in since that indicates that the board
-> > > constraints have been set up incorrectly.
-> 
-> > A warning might make sense in some cases ... that's
-> > something I would expect to see from the regulator
-> > core, though.
-> 
-> That's what I'm suggesting should happen - that things like this should
-> be implemented in the core so that the behaviour of the API remains
-> consistent for users moving between platforms and everyone benefits from
-> new features.
-> 
-> >                Example, I see no "max < min" checks
-> > triggering registration errors.
-> 
-> Not a bad idea, though.  The core currently doesn't do much checking of
-> the constraints but that's as much because nobody spent the time on it
-> as anything else.  To the extent it's a deliberate design decision it's
-> because the constraints and consumer lists are where the information
-> about what's possible on a given system comes from and so the checking
-> that can be done by software is relatively minor.
-
-Or as I put it earlier:  the current constraint model is
-a bit simplistic.
-
-Such things can *EASILY* be over-done; starting under-done
-isn't a bad model.  Better to collect a few real examples of
-how/why "under-done" needs to be improved, than overdesign
-from the start.  (And I've seen some power "constraint"
-frameworks that seemed way overdone.)
-
- 
-> > > There's a reasonable chance 
-> > > that the fixed up constraints will still need to be changed for the
-> > > board to be configured properly and things may end up being driven out
-> > > of spec, potentially causing damage.
-> 
-> > I don't see that happening ... all that code does is
-> > tighten existing constraints to match what the hardware
-> > can do.  The result is just a subset of the range the
-> > board already said was OK.  If no valid subset exists,
-> 
-> The trouble is that this code should only do anything if the board code
-> provided a configuration that can't be supported by the hardware, which
-> is a bit of a red flag.  I'd expect it'd end up catching things like the
-> user typing extra digits by mistake (this has definitely happened when
-> writing consumer drivers).
-
-The model you're working with doesn't do a good job of
-component-izing things ... "board" may be "board stack",
-where notions like "the" hardware are fluid.
-
-And in particular, "can't be supported" was NOT an issue
-in the scenarios I gave.  The same mainboard could easily
-support two regulators with different selections of output
-voltages.  The problem was the model where the constraints
-from the mainboard would be specific to one regulator,
-instead of just to the mainboard.
+Signed-off-by: Kyungmin Park <kyungmin.park-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>
+---
+diff --git a/drivers/usb/gadget/Kconfig b/drivers/usb/gadget/Kconfig
+index 3219d13..b26d6e6 100644
+--- a/drivers/usb/gadget/Kconfig
++++ b/drivers/usb/gadget/Kconfig
+@@ -191,6 +191,7 @@ config USB_GADGET_OMAP
+ 	boolean "OMAP USB Device Controller"
+ 	depends on ARCH_OMAP
+ 	select ISP1301_OMAP if MACH_OMAP_H2 || MACH_OMAP_H3 || MACH_OMAP_H4_OTG
++	select USB_OTG_UTILS if ARCH_OMAP
+ 	help
+ 	   Many Texas Instruments OMAP processors have flexible full
+ 	   speed USB device controllers, with support for up to 30
 
 
-> Your current patch does also set constraints for the voltages if they
-> weren't there previously
-
-I was thinking that boards which don't need constraints
-shouldn't need to create any ... they could just pass on
-the capabilities of the underlying regulator.
-
-
-> > I can easily imagine having things partially set up, and
-> > not really caring whether, on a particular board, those
-> > initial constraints are really the most specific ones
-> > applicable.  One component tolerates a range of 1V8..3V6
-> > maybe, but on any given board it can be hooked up to any
-> > supply that's even partially in-range.
-> 
-> The pattern you're describing is very much that for consumer and
-> regulator drivers.  They should work with as wide a set of constraints
-> as possible to allow them to be used on different systems with different
-> capabilities and needs - allowing this is essential for the API to be
-> usable since so many chips are flexible about the supplies they can use.
-> 
-> It's different for the machine constraints since they are by definition
-> specific to a given system.
-
-Only when that "system" is componentized that way.
-Not all are.
-
-Modular systems can have plug-in regulator boards;
-constraints on a mainboard would necessarily overlap
-with supported regulator boards ... but the regulators
-themselves would naturally have different constraints.
-
-One way to view this:  what you're calling "regulator"
-constraints are really coming from the "machine".
-
-Those few lines of code that seem to bother you are
-only recognizing that they are, in fact, two very
-different entities.
-
-Without changing the regulator core, the only way
-to handle contstraints which come from the actual
-regulators is to force the machine constraints
-to be in-range with respect to whatever regulator
-driver ends up using them.
-
-- Dave
-
+On Tue, Feb 10, 2009 at 5:53 AM, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org> wrote:
+> * Russell King - ARM Linux <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org> [090209 11:27]:
+>> It would be nice to get the last OMAP defconfig in mainline working.
+>> It's broken since 2.6.29-rc2-git3 due to this persistent problem:
+>>
+>> drivers/built-in.o: In function `omap_udc_probe':
+>> omap.c:(.init.text+0x30cc): undefined reference to `otg_get_transceiver'
+>> omap.c:(.init.text+0x38a4): undefined reference to `otg_put_transceiver'
+>
+> Hmm, looks like 2bf5fa13fc8e34d7b86307b99f64a24cb7a83852 did not fix it.
+> Dave, do you already have a patch for this?
+>
+> Regards,
+>
+> Tony
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
