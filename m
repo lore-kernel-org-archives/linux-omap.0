@@ -1,36 +1,30 @@
-From: Gary Thomas <gary@mlbassoc.com>
-Subject: OMAP [TV] video
-Date: Tue, 10 Feb 2009 09:05:13 -0700
-Message-ID: <4991A5B9.4060308@mlbassoc.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+From: "Peter 'p2' De Schrijver" <peter.de-schrijver@nokia.com>
+Subject: [PATCH 0/1] Board specific prm timings
+Date: Tue, 10 Feb 2009 18:04:34 +0200
+Message-ID: <1234281875-19768-1-git-send-email-peter.de-schrijver@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from 137-67-76-76-skybeam.com ([76.76.67.137]:2093 "EHLO
-	mail.chez-thomas.org" rhost-flags-OK-FAIL-OK-OK) by vger.kernel.org
-	with ESMTP id S1753236AbZBJQFS (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 10 Feb 2009 11:05:18 -0500
+Received: from smtp.nokia.com ([192.100.122.233]:51683 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752960AbZBJQFI (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 10 Feb 2009 11:05:08 -0500
+Received: from vaebh106.NOE.Nokia.com (vaebh106.europe.nokia.com [10.160.244.32])
+	by mgw-mx06.nokia.com (Switch-3.2.6/Switch-3.2.6) with ESMTP id n1AG4VsR013832
+	for <linux-omap@vger.kernel.org>; Tue, 10 Feb 2009 18:05:05 +0200
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Linux OMAP <linux-omap@vger.kernel.org>
+To: linux-omap@vger.kernel.org
+Cc: Peter 'p2' De Schrijver <peter.de-schrijver@nokia.com>
 
-I'm trying to get TV [S-Video] working on my 3530 board.
-The settings in the current kernel don't seem to work very
-well on my TV (U.S. NTSC, standard).  Comparing the video
-encoder setup with the suggested values in the manual, I
-find many differences, mostly with respect to the framing
-(signal shaping).
+This is an updated version which removes a useless printk.
 
-Questions:
-* Are the settings in the kernel tree known to work [as is]?
-* Why the divergence from the recommended values?
+This patch allows for boardspecific prm timings such as voltage and clock
+setup delays. By default it will use the very conservative timings which were
+used previously.
 
-Any ideas or helpful pointers would be graciously accepted
+Peter 'p2' De Schrijver (1):
+  per board prm timings
 
-Thanks
+ arch/arm/mach-omap2/pm.h     |    9 +++++++++
+ arch/arm/mach-omap2/pm34xx.c |   31 +++++++++++++++++++++++++------
+ 2 files changed, 34 insertions(+), 6 deletions(-)
 
--- 
-------------------------------------------------------------
-Gary Thomas                 |  Consulting for the
-MLB Associates              |    Embedded world
-------------------------------------------------------------
