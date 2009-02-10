@@ -1,61 +1,55 @@
-From: Kyungmin Park <kmpark-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
-Subject: Re: omap_apollon_2420_defconfig
-Date: Tue, 10 Feb 2009 10:54:25 +0900
-Message-ID: <9c9fda240902091754q7f723bf2ha46206e52641297b@mail.gmail.com>
-References: <20090209192614.GF19453@n2100.arm.linux.org.uk>
-	 <20090209205319.GH14200@atomide.com>
+From: "Gupta, Ajay Kumar" <ajay.gupta@ti.com>
+Subject: RE: musb OTG broken in 2.6.29-rc3?
+Date: Tue, 10 Feb 2009 09:35:39 +0530
+Message-ID: <19F8576C6E063C45BE387C64729E739403FA81B5E5@dbde02.ent.ti.com>
+References: <5e088bd90902090940s3c6de0eqac55e21acd4490bc@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20090209205319.GH14200-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Cc: Russell King - ARM Linux <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, David Brownell <david-b-yBeKhBN/0LDR7s880joybQ@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:35514 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752479AbZBJEFu convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 9 Feb 2009 23:05:50 -0500
+In-Reply-To: <5e088bd90902090940s3c6de0eqac55e21acd4490bc@mail.gmail.com>
+Content-Language: en-US
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-
-Hi,
-
-In the previous patch, it's only fixed host side. But apollon case, it
-only used udc, so udc configuration should select USB_OTG_UTILS also.
-
-Signed-off-by: Kyungmin Park <kyungmin.park-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>
----
-diff --git a/drivers/usb/gadget/Kconfig b/drivers/usb/gadget/Kconfig
-index 3219d13..b26d6e6 100644
---- a/drivers/usb/gadget/Kconfig
-+++ b/drivers/usb/gadget/Kconfig
-@@ -191,6 +191,7 @@ config USB_GADGET_OMAP
- 	boolean "OMAP USB Device Controller"
- 	depends on ARCH_OMAP
- 	select ISP1301_OMAP if MACH_OMAP_H2 || MACH_OMAP_H3 || MACH_OMAP_H4_OTG
-+	select USB_OTG_UTILS if ARCH_OMAP
- 	help
- 	   Many Texas Instruments OMAP processors have flexible full
- 	   speed USB device controllers, with support for up to 30
+To: Steve Sakoman <sakoman@gmail.com>, linux-omap <linux-omap@vger.kernel.org>
 
 
-On Tue, Feb 10, 2009 at 5:53 AM, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org> wrote:
-> * Russell King - ARM Linux <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org> [090209 11:27]:
->> It would be nice to get the last OMAP defconfig in mainline working.
->> It's broken since 2.6.29-rc2-git3 due to this persistent problem:
->>
->> drivers/built-in.o: In function `omap_udc_probe':
->> omap.c:(.init.text+0x30cc): undefined reference to `otg_get_transceiver'
->> omap.c:(.init.text+0x38a4): undefined reference to `otg_put_transceiver'
->
-> Hmm, looks like 2bf5fa13fc8e34d7b86307b99f64a24cb7a83852 did not fix it.
-> Dave, do you already have a patch for this?
->
-> Regards,
->
-> Tony
+
+> -----Original Message-----
+> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Steve
+> Sakoman
+> Sent: Monday, February 09, 2009 11:11 PM
+> To: linux-omap
+> Subject: musb OTG broken in 2.6.29-rc3?
+> 
+> I've been running with musb in host mode on Overo.
+> 
+> Now that EHCI is working, I decided to try putting musb in OTG mode.
+> 
+> Last time I tried this was back in 2.6.28 and it seemed to work just fine.
+> 
+> In 2.6.29-rc3 I don't get any joy - the musb port doesn't seem to
+> switch into host mode when I plug in a miniA cable. Booting with the
+> miniA cable in place doesn't seem to help.  Compiling the kernel with
+> host mode enabled works as expected.
+> 
+> Before I spend too much time debugging, has anyone else been
+> successful with musb OTG in 2.6.29-rc3?  A quick search of this list
+> didn't turn up any discussion of issues.
+
+It works fine on OMAP35x EVM too. I had to add a proc entry for session start
+(Switching on the vBus).
+
+Ajay
+
+> 
+> Steve
 > --
 > To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> the body of a message to majordomo@vger.kernel.org
 > More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
