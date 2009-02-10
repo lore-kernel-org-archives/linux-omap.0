@@ -1,36 +1,34 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: Remaining bits for basic support of LDP
-Date: Tue, 10 Feb 2009 21:37:12 +0000
-Message-ID: <20090210213712.GB19041@n2100.arm.linux.org.uk>
-References: <20090202213953.GB16069@n2100.arm.linux.org.uk> <20090202.134530.63616213.davem@davemloft.net> <20090202222909.GC16069@n2100.arm.linux.org.uk> <20090210114855.GA9746@n2100.arm.linux.org.uk> <20090210115615.GA9869@n2100.arm.linux.org.uk> <20090210210159.GK14200@atomide.com>
+From: Mark Brown <broonie@sirena.org.uk>
+Subject: Re: [PATCH] ASoC: Replace snd_soc_machine
+	by	snd_soc_card structure in SDP3430 machine driver
+Date: Tue, 10 Feb 2009 21:50:49 +0000
+Message-ID: <20090210215049.GA8957@sirena.org.uk>
+References: <2C7D3DF36ADFFC479B44490D912B616705D6175435@dlee07.ent.ti.com>
+	<20090210114159.ed51d30d.jarkko.nikula@nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:43127 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755294AbZBJVh1 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 10 Feb 2009 16:37:27 -0500
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <alsa-devel-bounces@alsa-project.org>
 Content-Disposition: inline
-In-Reply-To: <20090210210159.GK14200@atomide.com>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <20090210114159.ed51d30d.jarkko.nikula@nokia.com>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Sender: alsa-devel-bounces@alsa-project.org
+Errors-To: alsa-devel-bounces@alsa-project.org
+To: Jarkko Nikula <jarkko.nikula@nokia.com>
+Cc: "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "ext Lopez Cruz, Misael" <x0052729@ti.com>, "Nagalla,
+	Hari" <hnagalla@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: David Miller <davem@davemloft.net>, linux-omap@vger.kernel.org, netdev@vger.kernel.org
 
-On Tue, Feb 10, 2009 at 01:02:02PM -0800, Tony Lindgren wrote:
-> Yeah, the smsc updates for omap might take a while longer to get going.
-> So here's my ack for this smc911x patch:
-> 
-> Acked-by: Tony Lindgren <tony@atomide.com>
+On Tue, Feb 10, 2009 at 11:41:59AM +0200, Jarkko Nikula wrote:
 
-Thanks.
+> > SP3430 driver. This change is needed in SDP3430 driver to reflect
+> > changes introduced by "ASoC: Rename snd_soc_card to snd_soc_machine"
+> > patch (875065491fba8eb13219f16c36e79a6fb4e15c68).
 
-> For the smsc changes, I don't have an LDP to test with. But I'll try
-> to get another board to work with smsc now that I have some MMC voltage
-> weirdness out of the way and have a proper root on MMC :) That is after
-> I have musb working on it so I can scp the module over g_ether..
-
-I've tested them both on the LDP, both work fine.
-
-That talk of MMC voltage weirdness sounds like bug fixes - do they
-need to get into mainline?
+Applied, thanks.
