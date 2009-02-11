@@ -1,61 +1,62 @@
-From: DongSoo Kim <dongsoo.kim@gmail.com>
-Subject: Re: [REVIEW PATCH 11/14] OMAP34XXCAM: Add driver
-Date: Wed, 11 Feb 2009 13:00:27 +0900
-Message-ID: <5e9665e10902102000i3433beb8jab7a70e7ac9b57e3@mail.gmail.com>
-References: <Acl1IyQQvIDQejCAQ5O/QnkHIBmt3w==>
-	 <A24693684029E5489D1D202277BE894416429FA1@dlee02.ent.ti.com>
+From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+Subject: RE: OMAP [TV] video
+Date: Wed, 11 Feb 2009 09:42:52 +0530
+Message-ID: <19F8576C6E063C45BE387C64729E739403FA81B912@dbde02.ent.ti.com>
+References: <4991A5B9.4060308@mlbassoc.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-media-owner@vger.kernel.org>
-In-Reply-To: <A24693684029E5489D1D202277BE894416429FA1@dlee02.ent.ti.com>
-Sender: linux-media-owner@vger.kernel.org
-To: "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "video4linux-list@redhat.com" <video4linux-list@redhat.com>, "Nagalla, Hari" <hnagalla@ti.com>, Sakari Ailus <sakari.ailus@nokia.com>, "Tuukka.O Toivonen" <tuukka.o.toivonen@nokia.com>, "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>, kyungmin.park@samsung.com, =?EUC-KR?B?x/zB2CCx6A==?= <riverful.kim@samsung.com>, jongse.won@samsung.com
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:59127 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753348AbZBKENJ convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 10 Feb 2009 23:13:09 -0500
+In-Reply-To: <4991A5B9.4060308@mlbassoc.com>
+Content-Language: en-US
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-
-Hello.
-
-+static int omap34xxcam_open(struct inode *inode, struct file *file)
-+{
-
-<snip>
-
-+       if (atomic_inc_return(&vdev->users) == 1) {
-+               isp_get();
-+               if (omap34xxcam_slave_power_set(vdev, V4L2_POWER_ON,
-+                                               OMAP34XXCAM_SLAVE_POWER_ALL))
-+                       goto out_slave_power_set_standby;
-+               omap34xxcam_slave_power_set(
-+                       vdev, V4L2_POWER_STANDBY,
-+                       OMAP34XXCAM_SLAVE_POWER_SENSOR);
-+               omap34xxcam_slave_power_suggest(
-+                       vdev, V4L2_POWER_STANDBY,
-+                       OMAP34XXCAM_SLAVE_POWER_LENS);
-+       }
+To: Gary Thomas <gary@mlbassoc.com>, Linux OMAP <linux-omap@vger.kernel.org>
 
 
-I'm wondering whether this V4L2_POWER_STANDBY operation for sensor
-device is really necessary.
 
-Because if that makes sensor device in standby mode, we do S_FMT and
-bunch of V4L2 APIs while the camera module is in standby mode.
+Thanks,
+Vaibhav Hiremath
+> -----Original Message-----
+> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
+> owner@vger.kernel.org] On Behalf Of Gary Thomas
+> Sent: Tuesday, February 10, 2009 9:35 PM
+> To: Linux OMAP
+> Subject: OMAP [TV] video
+> 
+> I'm trying to get TV [S-Video] working on my 3530 board.
+> The settings in the current kernel don't seem to work very
+> well on my TV (U.S. NTSC, standard).  Comparing the video
+> encoder setup with the suggested values in the manual, I
+> find many differences, mostly with respect to the framing
+> (signal shaping).
+> 
+> Questions:
+> * Are the settings in the kernel tree known to work [as is]?
+> * Why the divergence from the recommended values?
+> 
+> Any ideas or helpful pointers would be graciously accepted
+> 
+[Hiremath, Vaibhav] Can you provide some more details like,
 
-In most cases of "sensor + ISP" SOC camera modules, I2C command is not
-working while the camera module is in standby mode.
+Which kernel version are you using?
+Are you using DSS2 for TV out?
+Which board you are using, (must be EVM)?
 
-Following the camera interface source code, sensor goes down to
-standby mode until VIDIOC_STREAMON is called.
+> Thanks
+> 
+> --
+> ------------------------------------------------------------
+> Gary Thomas                 |  Consulting for the
+> MLB Associates              |    Embedded world
+> ------------------------------------------------------------
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-
+> omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
-If this power up timing depends on sensor device, then I think we need
-a conditional power on sequence.
-
-As you defined slave devices as SENSOR, LENS, FLASH, then how about
-making a new slave category like "ISP" for "sensor+ISP" SOC modules?
-
-Then we could make slave devices with conditional cases.
-Cheers.
-
-
-Regards,
-Nate
