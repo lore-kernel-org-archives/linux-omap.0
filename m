@@ -1,62 +1,51 @@
-From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Subject: RE: OMAP [TV] video
-Date: Wed, 11 Feb 2009 09:42:52 +0530
-Message-ID: <19F8576C6E063C45BE387C64729E739403FA81B912@dbde02.ent.ti.com>
-References: <4991A5B9.4060308@mlbassoc.com>
+From: Kalle Jokiniemi <kalle.jokiniemi-sMOQStClEysAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [patch 2.6.29-rc3-git 2/2] USB: disable twl4030 USB regulators
+	when cable unplugged
+Date: Wed, 11 Feb 2009 08:25:12 +0200
+Message-ID: <1234333512.17391.31.camel@ubuntu>
+References: <200902081053.00255.david-b@pacbell.net>
+	 <1234274767.17391.20.camel@ubuntu> <200902101152.59526.david-b@pacbell.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:59127 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753348AbZBKENJ convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 10 Feb 2009 23:13:09 -0500
-In-Reply-To: <4991A5B9.4060308@mlbassoc.com>
-Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <200902101152.59526.david-b-yBeKhBN/0LDR7s880joybQ@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: David Brownell <david-b-yBeKhBN/0LDR7s880joybQ@public.gmane.org>
+Cc: Liam Girdwood <lrg-kDsPt+C1G03kYMGBc/C6ZA@public.gmane.org>, Mark Brown <broonie-GFdadSzt00ze9xe1eoZjHA@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, OMAP <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, =?ISO-8859-1?Q?H=F6gander?= Jouni <jouni.hogander-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Gary Thomas <gary@mlbassoc.com>, Linux OMAP <linux-omap@vger.kernel.org>
 
-
-
-Thanks,
-Vaibhav Hiremath
-> -----Original Message-----
-> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
-> owner@vger.kernel.org] On Behalf Of Gary Thomas
-> Sent: Tuesday, February 10, 2009 9:35 PM
-> To: Linux OMAP
-> Subject: OMAP [TV] video
+On Tue, 2009-02-10 at 11:52 -0800, David Brownell wrote:
+> On Tuesday 10 February 2009, Kalle Jokiniemi wrote:
+> > > This patch disables LDO regulators VUSB1V5, VUSB1V8, and VUSB3V1
+> > > when the USB cable is unplugged, to eliminate that source of power
+> > > waste.  (Enabled LDOs consume power at all times.)
+> > 
+> > Please put this on hold for a while. This won't work if we don't have
+> > TWL regulator support enabled.
 > 
-> I'm trying to get TV [S-Video] working on my 3530 board.
-> The settings in the current kernel don't seem to work very
-> well on my TV (U.S. NTSC, standard).  Comparing the video
-> encoder setup with the suggested values in the manual, I
-> find many differences, mostly with respect to the framing
-> (signal shaping).
-> 
-> Questions:
-> * Are the settings in the kernel tree known to work [as is]?
-> * Why the divergence from the recommended values?
-> 
-> Any ideas or helpful pointers would be graciously accepted
-> 
-[Hiremath, Vaibhav] Can you provide some more details like,
+> So Kconfig should have TWL4030_USB depend on REGULATOR_TWL4030?
 
-Which kernel version are you using?
-Are you using DSS2 for TV out?
-Which board you are using, (must be EVM)?
+Yes.
 
-> Thanks
 > 
-> --
-> ------------------------------------------------------------
-> Gary Thomas                 |  Consulting for the
-> MLB Associates              |    Embedded world
-> ------------------------------------------------------------
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-
-> omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+> > Also it's missing error value checking. 
+> 
+> You mean like in the ldo_init() stuff?  Fair enough.
 
+I mean, if regulator_get fails. 
+
+- Kalle
+
+> 
+> - Dave
+> 
+> 
+> > I'll post new patch(es) soon.
+> > 
+> 
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
