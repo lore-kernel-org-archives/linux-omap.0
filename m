@@ -1,40 +1,39 @@
-From: Kalle Jokiniemi <kalle.jokiniemi@digia.com>
-Subject: [PATCH 2/2] USB: OTG: Twl4030 depends on REGULATOR_TWL4030
-Date: Wed, 11 Feb 2009 09:06:42 +0200
-Message-ID: <1234336002-26372-3-git-send-email-kalle.jokiniemi@digia.com>
-References: <>
- <1234336002-26372-1-git-send-email-kalle.jokiniemi@digia.com>
- <1234336002-26372-2-git-send-email-kalle.jokiniemi@digia.com>
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1755985AbZBKHHq@vger.kernel.org>
-In-Reply-To: <1234336002-26372-2-git-send-email-kalle.jokiniemi@digia.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: david-b@pacbell.net
-Cc: lrg@slimlogic.co.uk, linux-kernel@vger.kernel.org, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, jouni.hogander@nokia.com, broonie@sirena.org.uk, Kalle Jokiniemi <kalle.jokiniemi@digia.com>
+From: David Brownell <david-b-yBeKhBN/0LDR7s880joybQ@public.gmane.org>
+Subject: Re: [PATCH 0/2] TWL: USB: Start using twl4030/5030 regulator driver
+Date: Tue, 10 Feb 2009 23:23:30 -0800
+Message-ID: <200902102323.30395.david-b@pacbell.net>
+References: <> <1234336002-26372-1-git-send-email-kalle.jokiniemi@digia.com>
+Mime-Version: 1.0
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1234336002-26372-1-git-send-email-kalle.jokiniemi-sMOQStClEysAvxtiuMwx3w@public.gmane.org>
+Content-Disposition: inline
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Kalle Jokiniemi <kalle.jokiniemi-sMOQStClEysAvxtiuMwx3w@public.gmane.org>
+Cc: lrg-kDsPt+C1G03kYMGBc/C6ZA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, jouni.hogander-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org, broonie-GFdadSzt00ze9xe1eoZjHA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-From: Jouni Hogander <jouni.hogander@nokia.com>
+On Tuesday 10 February 2009, Kalle Jokiniemi wrote:
+> These couple of patches enable dynamic swithcing of the
+> regulators used by twl4030 usb tranceiver.
+> 
+> This set replaces the single patch "USB: disable twl4030
+> USB regulators when cable unplugged" sent previously.
+> The change to previous version is that possible errors
+> in regulator_get are now handled and the twl4030 usb
+> driver requires TWL_REGULATOR support to be compiled.
 
-Twl4030 doesn't work without twl4030-regulator so it should depend on
-that.
+It'd make more sense to me as a single patch ... :)
 
-Signed-off-by: Jouni Hogander <jouni.hogander@nokia.com>
-Signed-off-by: Kalle Jokiniemi <kalle.jokiniemi@digia.com>
----
- drivers/usb/otg/Kconfig |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+And also, instead of *continuing* after the regulators
+can't be acquired, it's better to abort.  It's not
+going to be able to do anything ... so don't finish
+probing, and don't register this "dead" transceiver.
 
-diff --git a/drivers/usb/otg/Kconfig b/drivers/usb/otg/Kconfig
-index ee55b44..5790a5b 100644
---- a/drivers/usb/otg/Kconfig
-+++ b/drivers/usb/otg/Kconfig
-@@ -43,7 +43,7 @@ config ISP1301_OMAP
- 
- config TWL4030_USB
- 	tristate "TWL4030 USB Transceiver Driver"
--	depends on TWL4030_CORE
-+	depends on TWL4030_CORE && REGULATOR_TWL4030
- 	select USB_OTG_UTILS
- 	help
- 	  Enable this to support the USB OTG transceiver on TWL4030
--- 
-1.5.4.3
+- Dave
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
