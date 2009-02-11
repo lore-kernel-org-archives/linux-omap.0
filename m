@@ -1,37 +1,61 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: Remaining bits for basic support of LDP
-Date: Tue, 10 Feb 2009 17:13:48 -0800 (PST)
-Message-ID: <20090210.171348.175525204.davem@davemloft.net>
-References: <20090210115615.GA9869@n2100.arm.linux.org.uk>
-	<20090210210159.GK14200@atomide.com>
-	<20090210213712.GB19041@n2100.arm.linux.org.uk>
+From: DongSoo Kim <dongsoo.kim@gmail.com>
+Subject: Re: [REVIEW PATCH 11/14] OMAP34XXCAM: Add driver
+Date: Wed, 11 Feb 2009 13:00:27 +0900
+Message-ID: <5e9665e10902102000i3433beb8jab7a70e7ac9b57e3@mail.gmail.com>
+References: <Acl1IyQQvIDQejCAQ5O/QnkHIBmt3w==>
+	 <A24693684029E5489D1D202277BE894416429FA1@dlee02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from 74-93-104-97-Washington.hfc.comcastbusiness.net ([74.93.104.97]:48739
-	"EHLO sunset.davemloft.net" rhost-flags-OK-FAIL-OK-OK)
-	by vger.kernel.org with ESMTP id S1753429AbZBKBNz (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Tue, 10 Feb 2009 20:13:55 -0500
-In-Reply-To: <20090210213712.GB19041@n2100.arm.linux.org.uk>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-media-owner@vger.kernel.org>
+In-Reply-To: <A24693684029E5489D1D202277BE894416429FA1@dlee02.ent.ti.com>
+Sender: linux-media-owner@vger.kernel.org
+To: "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "video4linux-list@redhat.com" <video4linux-list@redhat.com>, "Nagalla, Hari" <hnagalla@ti.com>, Sakari Ailus <sakari.ailus@nokia.com>, "Tuukka.O Toivonen" <tuukka.o.toivonen@nokia.com>, "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>, kyungmin.park@samsung.com, =?EUC-KR?B?x/zB2CCx6A==?= <riverful.kim@samsung.com>, jongse.won@samsung.com
 List-Id: linux-omap@vger.kernel.org
-To: linux@arm.linux.org.uk
-Cc: tony@atomide.com, linux-omap@vger.kernel.org, netdev@vger.kernel.org
 
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Date: Tue, 10 Feb 2009 21:37:12 +0000
+Hello.
 
-> On Tue, Feb 10, 2009 at 01:02:02PM -0800, Tony Lindgren wrote:
-> > Yeah, the smsc updates for omap might take a while longer to get going.
-> > So here's my ack for this smc911x patch:
-> > 
-> > Acked-by: Tony Lindgren <tony@atomide.com>
-> 
-> Thanks.
++static int omap34xxcam_open(struct inode *inode, struct file *file)
++{
 
-Russell if you formally resubmit this with proper changelog, signoffs,
-and acks I can merge it in quickly via the net-2.6 if you like.
+<snip>
 
-Thanks.
++       if (atomic_inc_return(&vdev->users) == 1) {
++               isp_get();
++               if (omap34xxcam_slave_power_set(vdev, V4L2_POWER_ON,
++                                               OMAP34XXCAM_SLAVE_POWER_ALL))
++                       goto out_slave_power_set_standby;
++               omap34xxcam_slave_power_set(
++                       vdev, V4L2_POWER_STANDBY,
++                       OMAP34XXCAM_SLAVE_POWER_SENSOR);
++               omap34xxcam_slave_power_suggest(
++                       vdev, V4L2_POWER_STANDBY,
++                       OMAP34XXCAM_SLAVE_POWER_LENS);
++       }
+
+
+I'm wondering whether this V4L2_POWER_STANDBY operation for sensor
+device is really necessary.
+
+Because if that makes sensor device in standby mode, we do S_FMT and
+bunch of V4L2 APIs while the camera module is in standby mode.
+
+In most cases of "sensor + ISP" SOC camera modules, I2C command is not
+working while the camera module is in standby mode.
+
+Following the camera interface source code, sensor goes down to
+standby mode until VIDIOC_STREAMON is called.
+
+If this power up timing depends on sensor device, then I think we need
+a conditional power on sequence.
+
+As you defined slave devices as SENSOR, LENS, FLASH, then how about
+making a new slave category like "ISP" for "sensor+ISP" SOC modules?
+
+Then we could make slave devices with conditional cases.
+Cheers.
+
+
+Regards,
+Nate
