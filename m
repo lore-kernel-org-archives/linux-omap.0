@@ -1,184 +1,325 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH E 10/14] OMAP clock: support "dry run" rate and parent
- changes
-Date: Wed, 11 Feb 2009 01:18:16 -0700 (MST)
-Message-ID: <alpine.DEB.2.00.0902110031260.12013@utopia.booyaka.com>
-References: <20090128192551.29333.82943.stgit@localhost.localdomain> <20090128192753.29333.56931.stgit@localhost.localdomain> <20090208155342.GA23963@n2100.arm.linux.org.uk>
+From: Jean Pihet <jpihet@mvista.com>
+Subject: Re: [PATCH] OMAP: MMC: replace infinite loops with timeouts (was Re: [PATCH] OMAP: MMC: recover from transfer failures - Resend)
+Date: Wed, 11 Feb 2009 10:41:16 +0100
+Message-ID: <200902111041.17095.jpihet@mvista.com>
+References: <20081207213617.10456.43951.stgit@localhost> <200902061653.12821.jpihet@mvista.com> <49905296.2060308@nokia.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: Multipart/Mixed;
+  boundary="Boundary-00=_90pkJ3ii6IMHtg9"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:47679 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753372AbZBKISR (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 11 Feb 2009 03:18:17 -0500
-In-Reply-To: <20090208155342.GA23963@n2100.arm.linux.org.uk>
+Received: from gateway-1237.mvista.com ([63.81.120.158]:7662 "EHLO
+	gateway-1237.mvista.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754038AbZBKJlt (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 11 Feb 2009 04:41:49 -0500
+In-Reply-To: <49905296.2060308@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: linux-arm-kernel@lists.arm.linux.org.uk, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>
+To: Adrian Hunter <ext-adrian.hunter@nokia.com>
+Cc: Pierre Ossman <drzeus-mmc@drzeus.cx>, "tony@atomide.com" <tony@atomide.com>, Paul Walmsley <paul@pwsan.com>, Andrew Morton <akpm@linux-foundation.org>, "linux-arm-kernel@lists.arm.linux.org.uk" <linux-arm-kernel@lists.arm.linux.org.uk>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Lavinen Jarkko (Nokia-D/Helsinki)" <jarkko.lavinen@nokia.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 
-Hello Russell,
+--Boundary-00=_90pkJ3ii6IMHtg9
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+Content-Disposition: inline
 
-On Sun, 8 Feb 2009, Russell King - ARM Linux wrote:
+Hi,
 
-> On Wed, Jan 28, 2009 at 12:27:56PM -0700, Paul Walmsley wrote:
-> > For upcoming notifier support, modify the rate recalculation code to
-> > take parent rate and rate storage parameters.  The goal here is to
-> > allow the clock code to determine what the clock's rate would be after
-> > a parent change or a rate change, without actually changing the
-> > hardware registers.  This is used by the upcoming notifier patches to
-> > pass a clock's current and planned rates to the notifier callbacks.
-> 
-> In addition to my previous comments, there's more reason to reject this
-> patch - it's rather buggy.
-> 
-> > Also add a new clock flag, RECALC_ON_ENABLE, which causes the clock
-> > framework code to recalculate the current clock's rate and propagate
-> > down the tree after a clk_enable() or clk_disable().  This is used by
-> > the OMAP3 DPLLs, which change rates when they enable or disable, unlike
-> > most clocks.
-> 
-> ... the reasoning for this change being?
+Here is the new version of the patch, which now uses cpu_relax in an inline=
+=20
+function. The new function can be used from an irq handler as well.
 
-For most clocks in the clock tree, there's no need to recalculate the 
-clock rate and the downstream clock rates when the clock is enabled 
-or disabled.  clk->rate is not adjusted; the rate is simply considered to 
-be 0 if the clock is disabled.
+Regards,
+Jean
 
-There is one type of OMAP clock, though, that this may not hold true for: 
-DPLLs.  Currently, the "disabled" state for DPLLs can mean one of two 
-general modes: stop (in which the DPLL output rate is zero), or bypass (in 
-which the DPLL output rate is the bypass clock rate).  RECALC_ON_ENABLE is 
-intended to fix the latter case.  
+=46rom 9d1993dcf4d217837437a1cd9f6e9c1b81533549 Mon Sep 17 00:00:00 2001
+=46rom: Jean Pihet <jpihet@mvista.com>
+Date: Fri, 6 Feb 2009 16:42:51 +0100
+Subject: [PATCH] OMAP: MMC: Change while(); loops with finite version
 
-As we've discussed before, this may be better implemented as a reparent 
-operation; but there is a twist: DPLLs can autoidle (if programmed to do 
-so).  In this case the DPLL is considered to be enabled, but is actually 
-emitting a bypass rate or is stopped.  The OMAP hardware automatically 
-restarts the DPLL when a downstream clock is enabled, with no notification 
-to the operating system.  So some type of RECALC_ON_ENABLE logic may need 
-to stay.
+Replace the infinite 'while() ;' loops
+with a finite loop version.
 
-> > diff --git a/arch/arm/mach-omap1/clock.c b/arch/arm/mach-omap1/clock.c
-> > index ae2b304..f3cf6f8 100644
-> > --- a/arch/arm/mach-omap1/clock.c
-> > +++ b/arch/arm/mach-omap1/clock.c
-> >  
-> > -static void omap1_sossi_recalc(struct clk *clk)
-> > +static void omap1_sossi_recalc(struct clk *clk, unsigned long parent_rate,
-> > +			       u8 rate_storage)
-> >  {
-> > +	unsigned long new_rate;
-> >  	u32 div = omap_readl(MOD_CONF_CTRL_1);
-> >  
-> >  	div = (div >> 17) & 0x7;
-> >  	div++;
-> > -	clk->rate = clk->parent->rate / div;
-> > +	new_rate = clk->parent->rate / div;
-> 
-> This continues to use clk->parent->rate rather than the value passed in.
+Signed-off-by: Jean Pihet <jpihet@mvista.com>
+=2D--
+ drivers/mmc/host/omap_hsmmc.c |   54 ++++++++++++++++++++++---------------=
+=2D--
+ 1 files changed, 30 insertions(+), 24 deletions(-)
 
-Indeed, this should be fixed.
+diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
+index 1ac6918..aabf28d 100644
+=2D-- a/drivers/mmc/host/omap_hsmmc.c
++++ b/drivers/mmc/host/omap_hsmmc.c
+@@ -375,6 +375,32 @@ static void mmc_omap_report_irq(struct mmc_omap_host=20
+*host, u32 status)
+ }
+ #endif  /* CONFIG_MMC_DEBUG */
 
-> > @@ -215,21 +238,32 @@ static int calc_dsor_exp(struct clk *clk, unsigned long rate)
-> >  	return dsor_exp;
-> >  }
-> >  
-> > -static void omap1_ckctl_recalc(struct clk * clk)
-> > +static void omap1_ckctl_recalc(struct clk *clk, unsigned long parent_rate,
-> > +			       u8 rate_storage)
-> >  {
-> >  	int dsor;
-> > +	unsigned long new_rate;
-> >  
-> >  	/* Calculate divisor encoded as 2-bit exponent */
-> >  	dsor = 1 << (3 & (omap_readw(ARM_CKCTL) >> clk->rate_offset));
-> >  
-> > -	if (unlikely(clk->rate == clk->parent->rate / dsor))
-> > +	new_rate = parent_rate / dsor;
-> > +
-> > +	if (unlikely(clk->rate == new_rate))
-> >  		return; /* No change, quick exit */
-> > -	clk->rate = clk->parent->rate / dsor;
-> > +
-> > +	if (rate_storage == CURRENT_RATE)
-> > +		clk->rate = new_rate;
-> > +	else if (rate_storage == TEMP_RATE)
-> > +		clk->temp_rate = new_rate;
-> 
-> The above will result in 'temp_rate' not being set if there is no change
-> in actual clock rate
++/*
++ * MMC controller internal state machines reset
++ *
++ * Used to reset command or data internal state machines, using respective=
+ly
++ *  SRC or SRD bit of SYSCTL register
++ * Can be called from interrupt context
++ */
++static inline void mmc_omap_reset_controller_fsm(struct mmc_omap_host *hos=
+t,
++               unsigned long bit)
++{
++       unsigned long i =3D 0;
++       unsigned long limit =3D (loops_per_jiffy *
++                               msecs_to_jiffies(MMC_TIMEOUT_MS));
++
++       OMAP_HSMMC_WRITE(host->base, SYSCTL,
++                        OMAP_HSMMC_READ(host->base, SYSCTL) | bit);
++
++       while ((OMAP_HSMMC_READ(host->base, SYSCTL) & bit) &&
++               (i++ < limit))
++               cpu_relax();
++
++       if (OMAP_HSMMC_READ(host->base, SYSCTL) & bit)
++               dev_err(mmc_dev(host->mmc),
++                       "Timeout waiting on controller reset in %s\n",
++                       __func__);
++}
 
-Indeed, this also needs to be fixed.
-
-> This can all be avoided by moving the assignment of clk->rate out of the
-> recalc functions and into the caller.  That also eliminates this
-> rate_storage argument as well, _and_ removes any possibility of broken
-> "caching" code surviving since it forces you to always return the rate
-> you intend from the function.
-> 
-> See the bottom of this mail for the first step to implement this.
-> 
-> > @@ -242,9 +276,15 @@ static void omap1_ckctl_recalc_dsp_domain(struct clk * clk)
-> >  	dsor = 1 << (3 & (__raw_readw(DSP_CKCTL) >> clk->rate_offset));
-> >  	omap1_clk_disable(&api_ck.clk);
-> >  
-> > -	if (unlikely(clk->rate == clk->parent->rate / dsor))
-> > +	new_rate = parent_rate / dsor;
-> > +
-> > +	if (unlikely(clk->rate == new_rate))
-> >  		return; /* No change, quick exit */
-> 
-> More buggy caching.
-
-Yep.
-
-> > diff --git a/arch/arm/mach-omap2/clock24xx.c b/arch/arm/mach-omap2/clock24xx.c
-> > index 57cd85b..cd9fa0d 100644
-> > --- a/arch/arm/mach-omap2/clock24xx.c
-> > +++ b/arch/arm/mach-omap2/clock24xx.c
-> > @@ -89,6 +91,30 @@ static u32 omap2xxx_clk_get_core_rate(struct clk *clk)
-> >  	return core_clk;
-> >  }
-> >  
-> > +static unsigned long omap2xxx_clk_find_oppset_by_mpurate(unsigned long mpu_speed,
-> > +							 struct prcm_config **prcm)
-> > +{
-> > +	unsigned long found_speed = 0;
-> > +	struct prcm_config *p;
-> > +
-> > +	p = *prcm;
-> > +
-> > +	for (p = rate_table; p->mpu_speed; p++) {
-> > +		if (!(p->flags & cpu_mask))
-> > +			continue;
-> > +
-> > +		if (p->xtal_speed != sys_ck.rate)
-> > +			continue;
-> > +
-> > +		if (p->mpu_speed <= mpu_speed) {
-> > +			found_speed = p->mpu_speed;
-> > +			break;
-> > +		}
-> > +	}
-> > +
-> > +	return found_speed;
-> > +}
-> > +
-> 
-> This looks like a change of functionality in this patch.
-
-The goal of this part of the change was to eliminate some duplicate code.  
-This rate_table walk had previously existed in several other places in the 
-code with minor variations; the intention here was to combine those into a 
-common function.
-
-> Here's the implementation of the recalc method returning the new rate.
-> As you can see, it moves the business of where we store it completely
-> out of the recalc implementation code, which would make the implementation
-> of the 'temp_rate' solution a whole lot smaller.
-
-I'm happy with this change - it looks good to me,
+ /*
+  * MMC controller IRQ handler
+@@ -403,13 +429,7 @@ static irqreturn_t mmc_omap_irq(int irq, void *dev_id)
+                        (status & CMD_CRC)) {
+                        if (host->cmd) {
+                                if (status & CMD_TIMEOUT) {
+=2D                                       OMAP_HSMMC_WRITE(host->base, SYSC=
+TL,
+=2D                                               OMAP_HSMMC_READ(host->bas=
+e,
+=2D                                                               SYSCTL) |=
+=20
+SRC);
+=2D                                       while (OMAP_HSMMC_READ(host->base,
+=2D                                                       SYSCTL) & SRC)
+=2D                                               ;
+=2D
++                                       mmc_omap_reset_controller_fsm(host,=
+=20
+SRC);
+                                        host->cmd->error =3D -ETIMEDOUT;
+                                } else {
+                                        host->cmd->error =3D -EILSEQ;
+@@ -418,12 +438,7 @@ static irqreturn_t mmc_omap_irq(int irq, void *dev_id)
+                        }
+                        if (host->data) {
+                                mmc_dma_cleanup(host);
+=2D                               OMAP_HSMMC_WRITE(host->base, SYSCTL,
+=2D                                       OMAP_HSMMC_READ(host->base,
+=2D                                                       SYSCTL) | SRD);
+=2D                               while (OMAP_HSMMC_READ(host->base,
+=2D                                               SYSCTL) & SRD)
+=2D                                       ;
++                               mmc_omap_reset_controller_fsm(host, SRD);
+                        }
+                }
+                if ((status & DATA_TIMEOUT) ||
+@@ -433,12 +448,7 @@ static irqreturn_t mmc_omap_irq(int irq, void *dev_id)
+                                        mmc_dma_cleanup(host);
+                                else
+                                        host->data->error =3D -EILSEQ;
+=2D                               OMAP_HSMMC_WRITE(host->base, SYSCTL,
+=2D                                       OMAP_HSMMC_READ(host->base,
+=2D                                                       SYSCTL) | SRD);
+=2D                               while (OMAP_HSMMC_READ(host->base,
+=2D                                               SYSCTL) & SRD)
+=2D                                       ;
++                               mmc_omap_reset_controller_fsm(host, SRD);
+                                end_trans =3D 1;
+                        }
+                }
+@@ -529,11 +539,7 @@ static void mmc_omap_detect(struct work_struct *work)
+        if (host->carddetect) {
+                mmc_detect_change(host->mmc, (HZ * 200) / 1000);
+        } else {
+=2D               OMAP_HSMMC_WRITE(host->base, SYSCTL,
+=2D                       OMAP_HSMMC_READ(host->base, SYSCTL) | SRD);
+=2D               while (OMAP_HSMMC_READ(host->base, SYSCTL) & SRD)
+=2D                       ;
+=2D
++               mmc_omap_reset_controller_fsm(host, SRD);
+                mmc_detect_change(host->mmc, (HZ * 50) / 1000);
+        }
+ }
+=2D-
+1.6.0.1.42.gf8c9c
 
 
-- Paul
+
+On Monday 09 February 2009 16:58:14 Adrian Hunter wrote:
+> Jean Pihet wrote:
+> > Hi,
+> >
+> >>>> On Thu, 5 Feb 2009, Andrew Morton wrote:
+> >>>>> An infinite loop which assumes the hardware is perfect is always a
+> >>>>> worry.  But I see the driver already does that, so we're no worse
+> >>>>> off..
+> >>>
+> >>> Do you want a finite loop with udelay in it? I located 4 places were
+> >>> this could be used. If so I can generate a new patch for that.
+> >>
+> >> Even if Andrew doesn't, I'd sure like it. (the finite bit at least) :)
+> >
+> > Ok here is a patch that replaces the infinite loops with a timeout
+> > version. This patch applies on top of the previous one I sent ('[PATCH]
+> > OMAP: MMC: recover from transfer failures - Resend'). Is that OK?
+>
+> What about making use of a function like this:
+>
+> static void reset_host_controller(struct mmc_omap_host *host, unsigned bi=
+t)
+> {
+> 	unsigned long i, limit =3D loops_per_jiffy;
+>
+> 	OMAP_HSMMC_WRITE(host->base, SYSCTL,
+> 			 OMAP_HSMMC_READ(host->base, SYSCTL) | bit);
+> 	for (i =3D 0; i < limit; i++) {
+> 		if (!(OMAP_HSMMC_READ(host->base, SYSCTL) & bit))
+> 			return;
+> 		cpu_relax();
+> 	}
+> 	dev_err(mmc_dev(host->mmc), "%s: timeout waiting on software reset\n",
+> 		mmc_hostname(host->mmc));
+> }
+>
+> And then just put:
+>
+> 	reset_host_controller(host, SRD);
+>
+> and
+>
+> 	reset_host_controller(host, SRC);
+>
+> in the right places.
+
+
+--Boundary-00=_90pkJ3ii6IMHtg9
+Content-Type: text/x-diff;
+  charset="iso 8859-15";
+  name="hsmmc_finite_timeout.patch"
+Content-Transfer-Encoding: quoted-printable
+Content-Disposition: attachment;
+	filename="hsmmc_finite_timeout.patch"
+
+=46rom 9d1993dcf4d217837437a1cd9f6e9c1b81533549 Mon Sep 17 00:00:00 2001
+=46rom: Jean Pihet <jpihet@mvista.com>
+Date: Fri, 6 Feb 2009 16:42:51 +0100
+Subject: [PATCH] OMAP: MMC: Change while(); loops with finite version
+
+Replace the infinite 'while() ;' loops
+with a finite loop version.
+
+Signed-off-by: Jean Pihet <jpihet@mvista.com>
+=2D--
+ drivers/mmc/host/omap_hsmmc.c |   54 ++++++++++++++++++++++---------------=
+=2D--
+ 1 files changed, 30 insertions(+), 24 deletions(-)
+
+diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
+index 1ac6918..aabf28d 100644
+=2D-- a/drivers/mmc/host/omap_hsmmc.c
++++ b/drivers/mmc/host/omap_hsmmc.c
+@@ -375,6 +375,32 @@ static void mmc_omap_report_irq(struct mmc_omap_host *=
+host, u32 status)
+ }
+ #endif  /* CONFIG_MMC_DEBUG */
+=20
++/*
++ * MMC controller internal state machines reset
++ *
++ * Used to reset command or data internal state machines, using respective=
+ly
++ *  SRC or SRD bit of SYSCTL register
++ * Can be called from interrupt context
++ */
++static inline void mmc_omap_reset_controller_fsm(struct mmc_omap_host *hos=
+t,
++		unsigned long bit)
++{
++	unsigned long i =3D 0;
++	unsigned long limit =3D (loops_per_jiffy *
++				msecs_to_jiffies(MMC_TIMEOUT_MS));
++
++	OMAP_HSMMC_WRITE(host->base, SYSCTL,
++			 OMAP_HSMMC_READ(host->base, SYSCTL) | bit);
++
++	while ((OMAP_HSMMC_READ(host->base, SYSCTL) & bit) &&
++		(i++ < limit))
++		cpu_relax();
++
++	if (OMAP_HSMMC_READ(host->base, SYSCTL) & bit)
++		dev_err(mmc_dev(host->mmc),
++			"Timeout waiting on controller reset in %s\n",
++			__func__);
++}
+=20
+ /*
+  * MMC controller IRQ handler
+@@ -403,13 +429,7 @@ static irqreturn_t mmc_omap_irq(int irq, void *dev_id)
+ 			(status & CMD_CRC)) {
+ 			if (host->cmd) {
+ 				if (status & CMD_TIMEOUT) {
+=2D					OMAP_HSMMC_WRITE(host->base, SYSCTL,
+=2D						OMAP_HSMMC_READ(host->base,
+=2D								SYSCTL) | SRC);
+=2D					while (OMAP_HSMMC_READ(host->base,
+=2D							SYSCTL) & SRC)
+=2D						;
+=2D
++					mmc_omap_reset_controller_fsm(host, SRC);
+ 					host->cmd->error =3D -ETIMEDOUT;
+ 				} else {
+ 					host->cmd->error =3D -EILSEQ;
+@@ -418,12 +438,7 @@ static irqreturn_t mmc_omap_irq(int irq, void *dev_id)
+ 			}
+ 			if (host->data) {
+ 				mmc_dma_cleanup(host);
+=2D				OMAP_HSMMC_WRITE(host->base, SYSCTL,
+=2D					OMAP_HSMMC_READ(host->base,
+=2D							SYSCTL) | SRD);
+=2D				while (OMAP_HSMMC_READ(host->base,
+=2D						SYSCTL) & SRD)
+=2D					;
++				mmc_omap_reset_controller_fsm(host, SRD);
+ 			}
+ 		}
+ 		if ((status & DATA_TIMEOUT) ||
+@@ -433,12 +448,7 @@ static irqreturn_t mmc_omap_irq(int irq, void *dev_id)
+ 					mmc_dma_cleanup(host);
+ 				else
+ 					host->data->error =3D -EILSEQ;
+=2D				OMAP_HSMMC_WRITE(host->base, SYSCTL,
+=2D					OMAP_HSMMC_READ(host->base,
+=2D							SYSCTL) | SRD);
+=2D				while (OMAP_HSMMC_READ(host->base,
+=2D						SYSCTL) & SRD)
+=2D					;
++				mmc_omap_reset_controller_fsm(host, SRD);
+ 				end_trans =3D 1;
+ 			}
+ 		}
+@@ -529,11 +539,7 @@ static void mmc_omap_detect(struct work_struct *work)
+ 	if (host->carddetect) {
+ 		mmc_detect_change(host->mmc, (HZ * 200) / 1000);
+ 	} else {
+=2D		OMAP_HSMMC_WRITE(host->base, SYSCTL,
+=2D			OMAP_HSMMC_READ(host->base, SYSCTL) | SRD);
+=2D		while (OMAP_HSMMC_READ(host->base, SYSCTL) & SRD)
+=2D			;
+=2D
++		mmc_omap_reset_controller_fsm(host, SRD);
+ 		mmc_detect_change(host->mmc, (HZ * 50) / 1000);
+ 	}
+ }
+=2D-=20
+1.6.0.1.42.gf8c9c
+
+
+--Boundary-00=_90pkJ3ii6IMHtg9--
