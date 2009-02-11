@@ -1,39 +1,133 @@
-From: Kalle Jokiniemi <kalle.jokiniemi@digia.com>
-Subject: [PATCH 0/2] TWL: USB: Start using twl4030/5030 regulator driver
-Date: Wed, 11 Feb 2009 09:06:40 +0200
-Message-ID: <1234336002-26372-1-git-send-email-kalle.jokiniemi@digia.com>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from harmaja.edelkey.net ([213.138.147.141]:51304 "EHLO
-	harmaja.edelkey.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752778AbZBKHHO (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 11 Feb 2009 02:07:14 -0500
-In-Reply-To: <>
+From: Kalle Jokiniemi <kalle.jokiniemi-sMOQStClEysAvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH 1/2] TWL: USB: disable VUSB regulators when cable unplugged
+Date: Wed, 11 Feb 2009 09:06:41 +0200
+Message-ID: <1234336002-26372-2-git-send-email-kalle.jokiniemi@digia.com>
 References: <>
-Sender: linux-omap-owner@vger.kernel.org
+ <1234336002-26372-1-git-send-email-kalle.jokiniemi@digia.com>
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1234336002-26372-1-git-send-email-kalle.jokiniemi-sMOQStClEysAvxtiuMwx3w@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: david-b-yBeKhBN/0LDR7s880joybQ@public.gmane.org
+Cc: lrg-kDsPt+C1G03kYMGBc/C6ZA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, jouni.hogander-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org, broonie-GFdadSzt00ze9xe1eoZjHA@public.gmane.org, Kalle Jokiniemi <kalle.jokiniemi-sMOQStClEysAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: david-b@pacbell.net
-Cc: lrg@slimlogic.co.uk, linux-kernel@vger.kernel.org, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, jouni.hogander@nokia.com, broonie@sirena.org.uk
 
-These couple of patches enable dynamic swithcing of the
-regulators used by twl4030 usb tranceiver.
+From: Jouni Hogander <jouni.hogander-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
 
-This set replaces the single patch "USB: disable twl4030
-USB regulators when cable unplugged" sent previously.
-The change to previous version is that possible errors
-in regulator_get are now handled and the twl4030 usb
-driver requires TWL_REGULATOR support to be compiled.
+This patch disables USB regulators VUSB1V5, VUSB1V8, and VUSB3V1
+when the USB cable is unplugged to reduce power consumption.
 
-Thanks to Aaro Koskinen for reporing these problems. 
-Original patch by Kalle Jokiniemi, fixes by Jouni
-Hogander.
-
-Jouni Hogander (2):
-      TWL: USB: disable VUSB regulators when cable unplugged
-      USB: OTG: Twl4030 depends on REGULATOR_TWL4030
-
- drivers/usb/otg/Kconfig       |    2 +-
+Signed-off-by: Jouni Hogander <jouni.hogander-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Kalle Jokiniemi <kalle.jokiniemi-sMOQStClEysAvxtiuMwx3w@public.gmane.org>
+---
  drivers/usb/otg/twl4030-usb.c |   45 +++++++++++++++++++++++++++++++++++-----
- 2 files changed, 40 insertions(+), 7 deletions(-)
+ 1 files changed, 39 insertions(+), 6 deletions(-)
 
+diff --git a/drivers/usb/otg/twl4030-usb.c b/drivers/usb/otg/twl4030-usb.c
+index 416e441..29df421 100644
+--- a/drivers/usb/otg/twl4030-usb.c
++++ b/drivers/usb/otg/twl4030-usb.c
+@@ -34,6 +34,8 @@
+ #include <linux/delay.h>
+ #include <linux/usb/otg.h>
+ #include <linux/i2c/twl4030.h>
++#include <linux/regulator/consumer.h>
++#include <linux/err.h>
+ 
+ 
+ /* Register defines */
+@@ -246,6 +248,11 @@ struct twl4030_usb {
+ 	struct otg_transceiver	otg;
+ 	struct device		*dev;
+ 
++	/* TWL4030 internal USB regulator supplies */
++	struct regulator	*usb1v5;
++	struct regulator	*usb1v8;
++	struct regulator	*usb3v1;
++
+ 	/* for vbus reporting with irqs disabled */
+ 	spinlock_t		lock;
+ 
+@@ -434,6 +441,12 @@ static void twl4030_phy_power(struct twl4030_usb *twl, int on)
+ 
+ 	pwr = twl4030_usb_read(twl, PHY_PWR_CTRL);
+ 	if (on) {
++		if (twl->usb1v5)
++			regulator_enable(twl->usb1v5);
++		if (twl->usb1v8)
++			regulator_enable(twl->usb1v8);
++		if (twl->usb3v1)
++			regulator_enable(twl->usb3v1);
+ 		pwr &= ~PHY_PWR_PHYPWD;
+ 		WARN_ON(twl4030_usb_write_verify(twl, PHY_PWR_CTRL, pwr) < 0);
+ 		twl4030_usb_write(twl, PHY_CLK_CTRL,
+@@ -443,6 +456,12 @@ static void twl4030_phy_power(struct twl4030_usb *twl, int on)
+ 	} else  {
+ 		pwr |= PHY_PWR_PHYPWD;
+ 		WARN_ON(twl4030_usb_write_verify(twl, PHY_PWR_CTRL, pwr) < 0);
++		if (twl->usb1v5)
++			regulator_disable(twl->usb1v5);
++		if (twl->usb1v8)
++			regulator_disable(twl->usb1v8);
++		if (twl->usb3v1)
++			regulator_disable(twl->usb3v1);
+ 	}
+ }
+ 
+@@ -470,6 +489,8 @@ static void twl4030_phy_resume(struct twl4030_usb *twl)
+ 
+ static void twl4030_usb_ldo_init(struct twl4030_usb *twl)
+ {
++	struct regulator	*reg;
++
+ 	/* Enable writing to power configuration registers */
+ 	twl4030_i2c_write_u8(TWL4030_MODULE_PM_MASTER, 0xC0, PROTECT_KEY);
+ 	twl4030_i2c_write_u8(TWL4030_MODULE_PM_MASTER, 0x0C, PROTECT_KEY);
+@@ -480,16 +501,25 @@ static void twl4030_usb_ldo_init(struct twl4030_usb *twl)
+ 	/* input to VUSB3V1 LDO is from VBAT, not VBUS */
+ 	twl4030_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER, 0x14, VUSB_DEDICATED1);
+ 
+-	/* turn on 3.1V regulator */
+-	twl4030_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER, 0x20, VUSB3V1_DEV_GRP);
++	/* Initialize 3.1V regulator */
++	twl4030_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER, 0, VUSB3V1_DEV_GRP);
++	reg = regulator_get(twl->dev, "usb3v1");
++	if (!IS_ERR(reg))
++		twl->usb3v1 = reg;
+ 	twl4030_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER, 0, VUSB3V1_TYPE);
+ 
+-	/* turn on 1.5V regulator */
+-	twl4030_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER, 0x20, VUSB1V5_DEV_GRP);
++	/* Initialize 1.5V regulator */
++	twl4030_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER, 0, VUSB1V5_DEV_GRP);
++	reg = regulator_get(twl->dev, "usb1v5");
++	if (!IS_ERR(reg))
++		twl->usb1v5 = reg;
+ 	twl4030_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER, 0, VUSB1V5_TYPE);
+ 
+-	/* turn on 1.8V regulator */
+-	twl4030_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER, 0x20, VUSB1V8_DEV_GRP);
++	/* Initialize 1.8V regulator */
++	twl4030_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER, 0, VUSB1V8_DEV_GRP);
++	reg = regulator_get(twl->dev, "usb1v8");
++	if (!IS_ERR(reg))
++		twl->usb1v8 = reg;
+ 	twl4030_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER, 0, VUSB1V8_TYPE);
+ 
+ 	/* disable access to power configuration registers */
+@@ -688,6 +718,9 @@ static int __exit twl4030_usb_remove(struct platform_device *pdev)
+ 	twl4030_usb_clear_bits(twl, POWER_CTRL, POWER_CTRL_OTG_ENAB);
+ 
+ 	twl4030_phy_power(twl, 0);
++	regulator_put(twl->usb1v5);
++	regulator_put(twl->usb1v8);
++	regulator_put(twl->usb3v1);
+ 
+ 	kfree(twl);
+ 
+-- 
+1.5.4.3
 
-
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
