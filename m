@@ -1,145 +1,70 @@
-From: Mark Brown <broonie@sirena.org.uk>
-Subject: Re: [patch 2.6.29-rc3-git 1/2] regulator: twl4030 regulators
-Date: Tue, 10 Feb 2009 22:48:52 +0000
-Message-ID: <20090210224851.GA6408@sirena.org.uk>
-References: <200902081037.06645.david-b@pacbell.net> <200902081604.29905.david-b@pacbell.net> <20090209172714.GA17637@sirena.org.uk> <200902091624.01802.david-b@pacbell.net>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: [PATCH omap-fixes] OMAP2/3: GPIO: remove recursion in IRQ wakeup path
+Date: Tue, 10 Feb 2009 16:18:01 -0800
+Message-ID: <877i3xaksm.fsf@deeprootsystems.com>
+References: <1233167723-12026-1-git-send-email-khilman@deeprootsystems.com>
+	<200902082039.32157.david-b@pacbell.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from cassiel.sirena.org.uk ([80.68.93.111]:2095 "EHLO
-	cassiel.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755732AbZBJWtE (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 10 Feb 2009 17:49:04 -0500
-Content-Disposition: inline
-In-Reply-To: <200902091624.01802.david-b@pacbell.net>
+Received: from mail-qy0-f11.google.com ([209.85.221.11]:50360 "EHLO
+	mail-qy0-f11.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755728AbZBKASM (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 10 Feb 2009 19:18:12 -0500
+Received: by qyk4 with SMTP id 4so537246qyk.13
+        for <linux-omap@vger.kernel.org>; Tue, 10 Feb 2009 16:18:10 -0800 (PST)
+In-Reply-To: <200902082039.32157.david-b@pacbell.net> (David Brownell's message of "Sun\, 8 Feb 2009 20\:39\:32 -0800")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: David Brownell <david-b@pacbell.net>
-Cc: Liam Girdwood <lrg@slimlogic.co.uk>, lkml <linux-kernel@vger.kernel.org>, OMAP <linux-omap@vger.kernel.org>
+Cc: linux-omap@vger.kernel.org
 
-On Mon, Feb 09, 2009 at 04:24:01PM -0800, David Brownell wrote:
-> On Monday 09 February 2009, Mark Brown wrote:
+David Brownell <david-b@pacbell.net> writes:
 
-> > > Maybe, but there is no such mechanism right yet.
-> > > When it's created, then this could switch over.
+> On Wednesday 28 January 2009, Kevin Hilman wrote:
+>> Now that the generic IRQ and GPIO frameworks are used for enabling and
+>> disabling GPIO IRQ wakeup sources, there is no longer a need to call
+>> [enable|disable]_irq_wake() in the low-level code.  Doing so results
+>> in recursive calls to [enable|disable]_irq_wake().
+>
+> Could you clarify what actually made that requirement go away?
+>
+> The recursion was introduced -- using the generic IRQ framework! -- as
+> a simple way to ensure the parent IRQ was properly wake-enabled.  Is
+> the issue that something changed, so that something else wake-enables
+> the parent?
+>
 
-> > Since you appear to be writing the code already... :)
+My description was not very descriptive... sorry...
 
-> Not for the regulator core, though.  Switching from
-> a simplistic constraint engine to one that starts to
+>From what I can understand here, I don't see the point in
+wake-enabling the parent IRQ since there is no wakeup glue for the
+bank IRQs, thus these calls are actually failing and causing
+'unbalanced IRQ disable' noise in the generic IRQ layer.
 
-There's nothing specific to the driver in this code - it's just doing
-basic comparisons of two sets of constraints and acting on them and
-would work just as well if it were pushed into the core.  You're going
-to need this in multiple drivers to use it in a system anyway (it'll
-need to be in at least the drivers which might be used on that system).
+Here is what is happening.  Consider the gpio-keys driver.  Upon
+suspend, it enables the IRQ wake for its GPIO.  The OMAP GPIO code
+then calls enable_wake_irq() for the parent irq (the GPIO bank IRQ).
+This call is actually failing because the bank IRQ has no 'set_wake'
+method.  Because of this failure, the generic IRQ code doesn't
+actually do anything, and sets the 'disable_depth' to zero for the
+bank IRQ.
 
-> handle a more realistic "union of constraints" model
-> would be doable, but is a bit more off-topic work than
-> I'd want to sign up for just now.
+Then, upon resume, the resume path disables IRQ wakeups for the GPIO.
+The OMAP GPIO code then tries to call disable_irq_wake() for the bank
+IRQ and you get noisy 'unbalanced IRQ disable' warnings from the
+generic IRQ layere because of the attempt to disable the IRQ wake of
+an IRQ that was never enabled.
 
-Solving all possible problems is, obviously, a bigger task but I don't
-think we need to solve everything in order to avoid having this be
-driver specific.
+So the options that I see are:
 
-What I would suggest that you do for this is submit a patch allowing the
-regulators to supply a set of constraints when they register (but not
-doing anything with them), another with a TWL4030 driver using that API
-and a third patch making the core do something with that data.  This
-would result in something which maintains consistent behaviour over all
-regulator drivers, which is my main concern here, and avoids tying up
-the TWL4030 driver merge with any debate about how to use information
-about the capabilities of the regulator.
+1) fix the OMAP GPIO code to check the return code of the parent enable, or
+2) drop the parent enable/disable
 
-I have some regulator API patches I need to test (should be sometime
-this week) so I may be inspired to do at least the first patch myself.
-I don't think there's any doubt that the core can do something useful
-with the information.
+I prefer (1) since those calls will always fail AFAICT.
 
-> The model you're working with doesn't do a good job of
-> component-izing things ... "board" may be "board stack",
-> where notions like "the" hardware are fluid.
+Does that make any sense?
 
-Most of the development work for the regulator API has been done on
-reference platforms with many pluggable boards (often including the PMIC
-board) so thought has been given as to how to handle these systems.
+If you're OK with (1), I will re-issue the patch with a better discription.
 
-For daughtercards other than the primary PMIC (which are vastly more
-common in production systems) one approach has been to represent the
-daughtercards as a device that gets whatever supplies the daughtercard
-has.  The distribution of power within the daughtercard is then be done
-by adding child regulators.
-
-> > Your current patch does also set constraints for the voltages if they
-> > weren't there previously
-
-> I was thinking that boards which don't need constraints
-> shouldn't need to create any ... they could just pass on
-> the capabilities of the underlying regulator.
-
-For safety the regulator API won't do anything without being explicitly
-told that it's OK to do so - if we were to do this we'd need to have an
-explicit flag in the constraints which says that this is what to do.
-Constraints are also permission grants.
-
-> Only when that "system" is componentized that way.
-> Not all are.
-
-> Modular systems can have plug-in regulator boards;
-> constraints on a mainboard would necessarily overlap
-> with supported regulator boards ... but the regulators
-> themselves would naturally have different constraints.
-
-Indeed.  Like I say, a very large proportion of the development of the
-regulator API has been done on reference designs which are built in this
-fashion, including both pluggable PMIC boards and other daughtercards.
-Normally the primary PMIC cards are handled with conditional code in the
-machine file (either compile time or run time) or by registering drivers
-for all the PMICs and allowing failed device probes to sort everything
-out.  So far handling things this way hasn't been a big deal - there are
-usually relatively few PMIC boards out there for a given platform and
-the PMIC itself is rarely a major restriction.
-
-This conditional code would normally do the setup that is specific to
-each PMIC board, including matching the regulators on the PMIC board
-with the rest of the system and any devices on the PMIC board itself
-that require supplies.  A lot of the time there is a one to many mapping
-between regulators on the PMIC board and power domains in the base
-system and there are often additional devices on the PMIC board in
-addition to the base board.  It's not unknown for the contraints applied
-to not be straight combinations of supply constraints (normally due to a
-lack of desire for runtime flexibility on supplies).
-
-At the end of the day board code is still always going to have to at
-some point know what regulators are fitted and how they are connected
-up.  There are some things we could do to make handling runtime
-decisions on this easier, like allowing multiple sets of constraints
-and supplies to be supplied so the machine drivers can set up the
-various combinations of supplies more easily when that's possible (which
-is I think what you were getting at above), but they don't remove the
-need for board code to know what's there.
-
-> One way to view this:  what you're calling "regulator"
-> constraints are really coming from the "machine".
-
-Yes, of course.  The constraints are applied to the regulator by the
-core, they are constraints for the regulator not constraints imposed by
-the regulator.
-
-> Those few lines of code that seem to bother you are
-> only recognizing that they are, in fact, two very
-> different entities.
-
-What's really bothering me is the *location* of the code.  As I've said,
-my primary concern is that this introduces what are effectively API
-changes which will mean that this driver behaves differently to other
-drivers.  Other concerns about precisely what we do with any information
-from the regulator driver are very much less important.
-
-> Without changing the regulator core, the only way
-> to handle contstraints which come from the actual
-> regulators is to force the machine constraints
-> to be in-range with respect to whatever regulator
-> driver ends up using them.
-
-Modifying the core is, of course, an option.
+Kevin
