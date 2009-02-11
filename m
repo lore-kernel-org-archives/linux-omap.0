@@ -1,47 +1,70 @@
-From: Kalle Jokiniemi <kalle.jokiniemi-sMOQStClEysAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH 0/2] TWL: USB: Start using twl4030/5030 regulator driver
-Date: Wed, 11 Feb 2009 12:47:15 +0200
-Message-ID: <1234349235.17391.104.camel@ubuntu>
-References: <> <1234336002-26372-1-git-send-email-kalle.jokiniemi@digia.com>
-	 <200902102323.30395.david-b@pacbell.net>
+From: Gary Thomas <gary@mlbassoc.com>
+Subject: Re: OMAP [TV] video
+Date: Wed, 11 Feb 2009 05:25:37 -0700
+Message-ID: <4992C3C1.50709@mlbassoc.com>
+References: <19F8576C6E063C45BE387C64729E739403FA81B912@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <200902102323.30395.david-b-yBeKhBN/0LDR7s880joybQ@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: David Brownell <david-b-yBeKhBN/0LDR7s880joybQ@public.gmane.org>
-Cc: lrg-kDsPt+C1G03kYMGBc/C6ZA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, jouni.hogander-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org, broonie-GFdadSzt00ze9xe1eoZjHA@public.gmane.org
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from 137-67-76-76-skybeam.com ([76.76.67.137]:2028 "EHLO
+	mail.chez-thomas.org" rhost-flags-OK-FAIL-OK-OK) by vger.kernel.org
+	with ESMTP id S1754968AbZBKMZs (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 11 Feb 2009 07:25:48 -0500
+In-Reply-To: <19F8576C6E063C45BE387C64729E739403FA81B912@dbde02.ent.ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+Cc: Linux OMAP <linux-omap@vger.kernel.org>
 
-On Tue, 2009-02-10 at 23:23 -0800, David Brownell wrote:
-> On Tuesday 10 February 2009, Kalle Jokiniemi wrote:
-> > These couple of patches enable dynamic swithcing of the
-> > regulators used by twl4030 usb tranceiver.
-> > 
-> > This set replaces the single patch "USB: disable twl4030
-> > USB regulators when cable unplugged" sent previously.
-> > The change to previous version is that possible errors
-> > in regulator_get are now handled and the twl4030 usb
-> > driver requires TWL_REGULATOR support to be compiled.
+Hiremath, Vaibhav wrote:
 > 
-> It'd make more sense to me as a single patch ... :)
-
-OK, I'll put them together.
-
+> Thanks,
+> Vaibhav Hiremath
+>> -----Original Message-----
+>> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
+>> owner@vger.kernel.org] On Behalf Of Gary Thomas
+>> Sent: Tuesday, February 10, 2009 9:35 PM
+>> To: Linux OMAP
+>> Subject: OMAP [TV] video
+>>
+>> I'm trying to get TV [S-Video] working on my 3530 board.
+>> The settings in the current kernel don't seem to work very
+>> well on my TV (U.S. NTSC, standard).  Comparing the video
+>> encoder setup with the suggested values in the manual, I
+>> find many differences, mostly with respect to the framing
+>> (signal shaping).
+>>
+>> Questions:
+>> * Are the settings in the kernel tree known to work [as is]?
+>> * Why the divergence from the recommended values?
+>>
+>> Any ideas or helpful pointers would be graciously accepted
+>>
+> [Hiremath, Vaibhav] Can you provide some more details like,
 > 
-> And also, instead of *continuing* after the regulators
-> can't be acquired, it's better to abort.  It's not
-> going to be able to do anything ... so don't finish
-> probing, and don't register this "dead" transceiver.
+> Which kernel version are you using?
 
-Makes sense. I'll fix that.
+I started with the "official" OMAP tree (git://git.omapzoom.org/repo/omapkernel.git)
 
--Kalle
+If there is a better starting point, I'd certainly like to know.
+Trying to find the correct tree to use is challenging.
 
-> 
-> - Dave
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Are you using DSS2 for TV out?
+
+Not sure exactly what that means.  Again, trying to follow this
+development is not straight forward - it seems that those who
+know the answers assume that everyone does, so why bother explaining
+anything?  (Maybe that's a bit cynical, but my experience so far)
+
+> Which board you are using, (must be EVM)?
+
+It's a new board under development, more or less like the beagle.
+
+Again, I'd appreciate any help or pointers.  Thanks
+
+-- 
+------------------------------------------------------------
+Gary Thomas                 |  Consulting for the
+MLB Associates              |    Embedded world
+------------------------------------------------------------
