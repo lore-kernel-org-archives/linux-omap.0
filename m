@@ -1,117 +1,98 @@
-From: DongSoo Kim <dongsoo.kim@gmail.com>
-Subject: Re: [REVIEW PATCH 11/14] OMAP34XXCAM: Add driver
-Date: Thu, 12 Feb 2009 16:52:31 +0900
-Message-ID: <5e9665e10902112352i57177f20r9022a7cb8a66fa0@mail.gmail.com>
-References: <A24693684029E5489D1D202277BE894416429FA1@dlee02.ent.ti.com>
-	 <5e9665e10902102000i3433beb8jab7a70e7ac9b57e3@mail.gmail.com>
-	 <4993CB1F.603@maxwell.research.nokia.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+From: Atal Shargorodsky <ext-atal.shargorodsky@nokia.com>
+Subject: [PATCH] I2C_OMAP configuration and Makefile fixes.
+Date: Thu, 12 Feb 2009 10:53:10 +0200
+Message-ID: <1234428790-6263-1-git-send-email-ext-atal.shargorodsky@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from rv-out-0506.google.com ([209.85.198.225]:9303 "EHLO
-	rv-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750850AbZBLHwf (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 12 Feb 2009 02:52:35 -0500
-In-Reply-To: <4993CB1F.603@maxwell.research.nokia.com>
+Received: from smtp.nokia.com ([192.100.105.134]:22134 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750991AbZBLIxv (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 12 Feb 2009 03:53:51 -0500
+Received: from vaebh106.NOE.Nokia.com (vaebh106.europe.nokia.com [10.160.244.32])
+	by mgw-mx09.nokia.com (Switch-3.2.6/Switch-3.2.6) with ESMTP id n1C8qxc1027762
+	for <linux-omap@vger.kernel.org>; Thu, 12 Feb 2009 02:53:48 -0600
+In-Reply-To: <>
+References: <>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
-Cc: "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Nagalla, Hari" <hnagalla@ti.com>, "Ailus Sakari (Nokia-D/Helsinki)" <Sakari.Ailus@nokia.com>, "Toivonen Tuukka.O (Nokia-D/Oulu)" <tuukka.o.toivonen@nokia.com>, "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>, "kyungmin.park@samsung.com" <kyungmin.park@samsung.com>, =?EUC-KR?B?x/zB2CCx6A==?= <riverful.kim@samsung.com>, "jongse.won@samsung.com" <jongse.won@samsung.com>
+To: core-sw@ok.research.nokia.com
+Cc: linux-omap@vger.kernel.org, Atal Shargorodsky <ext-atal.shargorodsky@nokia.com>
 
-Thank you for your comment.
+Allow I2C_OMAP to be compiled as a module,
+introduce selection of I2C_OMAP by TWL4030_CORE
+and remove doubled 'obj-$(CONFIG_I2C_OMAP)' line from makefile.
 
-BTW, what should I do if I would rather use external ISP device than
-OMAP3 internal ISP feature?
+Signed-off-by: Atal Shargorodsky <ext-atal.shargorodsky@nokia.com>
+---
+ arch/arm/plat-omap/Kconfig  |    3 +++
+ arch/arm/plat-omap/Makefile |    2 +-
+ drivers/i2c/busses/Kconfig  |    1 +
+ drivers/i2c/busses/Makefile |    1 -
+ drivers/mfd/Kconfig         |    1 +
+ 5 files changed, 6 insertions(+), 2 deletions(-)
 
-You said that you just have raw sensors by now, so you mean this patch
-is not verified working with some ISP modules?
-
-I'm testing your patch on my own omap3 target board with NEC ISP...but
-unfortunately not working yet ;(
-
-I should try more harder. more research is needed :)
-
-Cheers,
-
-
-On Thu, Feb 12, 2009 at 4:09 PM, Sakari Ailus
-<sakari.ailus@maxwell.research.nokia.com> wrote:
-> DongSoo Kim wrote:
->>
->> Hello.
->
-> Hi, and thanks for the comments!
->
->> +static int omap34xxcam_open(struct inode *inode, struct file *file)
->> +{
->>
->> <snip>
->>
->> +       if (atomic_inc_return(&vdev->users) == 1) {
->> +               isp_get();
->> +               if (omap34xxcam_slave_power_set(vdev, V4L2_POWER_ON,
->> +
->> OMAP34XXCAM_SLAVE_POWER_ALL))
->> +                       goto out_slave_power_set_standby;
->> +               omap34xxcam_slave_power_set(
->> +                       vdev, V4L2_POWER_STANDBY,
->> +                       OMAP34XXCAM_SLAVE_POWER_SENSOR);
->> +               omap34xxcam_slave_power_suggest(
->> +                       vdev, V4L2_POWER_STANDBY,
->> +                       OMAP34XXCAM_SLAVE_POWER_LENS);
->> +       }
->>
->>
->> I'm wondering whether this V4L2_POWER_STANDBY operation for sensor
->> device is really necessary.
->>
->> Because if that makes sensor device in standby mode, we do S_FMT and
->> bunch of V4L2 APIs while the camera module is in standby mode.
->>
->> In most cases of "sensor + ISP" SOC camera modules, I2C command is not
->> working while the camera module is in standby mode.
->
-> I guess that applies to most sensors.
->
->> Following the camera interface source code, sensor goes down to
->> standby mode until VIDIOC_STREAMON is called.
->>
->> If this power up timing depends on sensor device, then I think we need
->> a conditional power on sequence.
->
-> You're right, there's something wrong with the slave power handling. :)
->
-> We were thinking that the sensor (or any slave) power management (current
-> on, off and standby) could be replaced by four commands: open, close,
-> streamon and streamoff. The slave could decide by itself what its real power
-> state is. IMO direct power management doesn't belong to the camera driver
-> which doesn't drive any hardware anyway.
->
->> As you defined slave devices as SENSOR, LENS, FLASH, then how about
->> making a new slave category like "ISP" for "sensor+ISP" SOC modules?
->
-> I currently have just raw sensors. It'd be nice to keep the interface for
-> smart sensors the same, though. You still need for a receiver for the image
-> data, sometimes called the camera controller. That would be the same than
-> the ISP but without fancy features.
->
-> Cheers,
->
-> --
-> Sakari Ailus
-> sakari.ailus@maxwell.research.nokia.com
->
-
-
-
+diff --git a/arch/arm/plat-omap/Kconfig b/arch/arm/plat-omap/Kconfig
+index 5bc8e3b..4d19d6b 100644
+--- a/arch/arm/plat-omap/Kconfig
++++ b/arch/arm/plat-omap/Kconfig
+@@ -99,6 +99,9 @@ config OMAP_RESET_CLOCKS
+ 	  probably do not want this option enabled until your
+ 	  device drivers work properly.
+ 
++config I2C_OMAP_ENABLE
++	bool
++
+ config OMAP_BOOT_TAG
+ 	bool "OMAP bootloader information passing"
+         depends on ARCH_OMAP
+diff --git a/arch/arm/plat-omap/Makefile b/arch/arm/plat-omap/Makefile
+index 175bfd6..e610bc9 100644
+--- a/arch/arm/plat-omap/Makefile
++++ b/arch/arm/plat-omap/Makefile
+@@ -21,7 +21,7 @@ obj-$(CONFIG_OMAP_COMPONENT_VERSION) += component-version.o
+ obj-$(CONFIG_OMAP_GPIO_SWITCH) += gpio-switch.o
+ obj-$(CONFIG_OMAP_DEBUG_DEVICES) += debug-devices.o
+ obj-$(CONFIG_OMAP_DEBUG_LEDS) += debug-leds.o
+-obj-$(CONFIG_I2C_OMAP) += i2c.o
++obj-$(CONFIG_I2C_OMAP_ENABLE) += i2c.o
+ 
+ # OMAP MMU framework
+ obj-$(CONFIG_OMAP_MMU_FWK) += mmu.o
+diff --git a/drivers/i2c/busses/Kconfig b/drivers/i2c/busses/Kconfig
+index eb94378..176e053 100644
+--- a/drivers/i2c/busses/Kconfig
++++ b/drivers/i2c/busses/Kconfig
+@@ -400,6 +400,7 @@ config I2C_OCORES
+ config I2C_OMAP
+ 	tristate "OMAP I2C adapter"
+ 	depends on ARCH_OMAP
++	select I2C_OMAP_ENABLE
+ 	default y if MACH_OMAP_H3 || MACH_OMAP_OSK
+ 	help
+ 	  If you say yes to this option, support will be included for the
+diff --git a/drivers/i2c/busses/Makefile b/drivers/i2c/busses/Makefile
+index d4dc22d..97dbfa2 100644
+--- a/drivers/i2c/busses/Makefile
++++ b/drivers/i2c/busses/Makefile
+@@ -66,7 +66,6 @@ obj-$(CONFIG_I2C_SIBYTE)	+= i2c-sibyte.o
+ obj-$(CONFIG_I2C_STUB)		+= i2c-stub.o
+ obj-$(CONFIG_SCx200_ACB)	+= scx200_acb.o
+ obj-$(CONFIG_SCx200_I2C)	+= scx200_i2c.o
+-obj-$(CONFIG_I2C_OMAP)          += i2c-omap.o
+ 
+ ifeq ($(CONFIG_I2C_DEBUG_BUS),y)
+ EXTRA_CFLAGS += -DDEBUG
+diff --git a/drivers/mfd/Kconfig b/drivers/mfd/Kconfig
+index 91c0417..1bc03bd 100644
+--- a/drivers/mfd/Kconfig
++++ b/drivers/mfd/Kconfig
+@@ -53,6 +53,7 @@ config HTC_PASIC3
+ config TWL4030_CORE
+ 	bool "Texas Instruments TWL4030/TPS659x0 Support"
+ 	depends on I2C=y && GENERIC_HARDIRQS && (ARCH_OMAP2 || ARCH_OMAP3)
++	select I2C_OMAP
+ 	help
+ 	  Say yes here if you have TWL4030 family chip on your board.
+ 	  This core driver provides register access and IRQ handling
 -- 
-========================================================
-Dong Soo, Kim
-Engineer
-Mobile S/W Platform Lab. S/W centre
-Telecommunication R&D Centre
-Samsung Electronics CO., LTD.
-e-mail : dongsoo.kim@gmail.com
-           dongsoo45.kim@samsung.com
-========================================================
+1.5.4.3
+
