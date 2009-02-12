@@ -1,77 +1,81 @@
-From: David Brownell <david-b@pacbell.net>
-Subject: Re: omap_apollon_2420_defconfig
-Date: Wed, 11 Feb 2009 22:31:12 -0800
-Message-ID: <200902112231.12887.david-b@pacbell.net>
-References: <20090209192614.GF19453@n2100.arm.linux.org.uk> <20090209205319.GH14200@atomide.com> <9c9fda240902091754q7f723bf2ha46206e52641297b@mail.gmail.com>
+From: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+Subject: Re: [REVIEW PATCH 11/14] OMAP34XXCAM: Add driver
+Date: Thu, 12 Feb 2009 09:09:19 +0200
+Message-ID: <4993CB1F.603@maxwell.research.nokia.com>
+References: <Acl1IyQQvIDQejCAQ5O/QnkHIBmt3w==>	 <A24693684029E5489D1D202277BE894416429FA1@dlee02.ent.ti.com> <5e9665e10902102000i3433beb8jab7a70e7ac9b57e3@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
+Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp117.sbc.mail.sp1.yahoo.com ([69.147.64.90]:22268 "HELO
-	smtp117.sbc.mail.sp1.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1751110AbZBLGbP (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Thu, 12 Feb 2009 01:31:15 -0500
-In-Reply-To: <9c9fda240902091754q7f723bf2ha46206e52641297b@mail.gmail.com>
-Content-Disposition: inline
+Received: from smtp.nokia.com ([192.100.105.134]:60060 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751413AbZBLHLN (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 12 Feb 2009 02:11:13 -0500
+In-Reply-To: <5e9665e10902102000i3433beb8jab7a70e7ac9b57e3@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kyungmin Park <kmpark@infradead.org>, Greg KH <greg@kroah.com>
-Cc: Tony Lindgren <tony@atomide.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, linux-usb@vger.kernel.org
+To: DongSoo Kim <dongsoo.kim@gmail.com>
+Cc: "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "video4linux-list@redhat.com" <video4linux-list@redhat.com>, "Nagalla, Hari" <hnagalla@ti.com>, "Ailus Sakari (Nokia-D/Helsinki)" <Sakari.Ailus@nokia.com>, "Toivonen Tuukka.O (Nokia-D/Oulu)" <tuukka.o.toivonen@nokia.com>, "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>, "kyungmin.park@samsung.com" <kyungmin.park@samsung.com>, =?UTF-8?B?7ZiV7KSAIOq5gA==?= <riverful.kim@samsung.com>, "jongse.won@samsung.com" <jongse.won@samsung.com>
 
-On Monday 09 February 2009, Kyungmin Park wrote:
-> Hi,
+DongSoo Kim wrote:
+> Hello.
+
+Hi, and thanks for the comments!
+
+> +static int omap34xxcam_open(struct inode *inode, struct file *file)
+> +{
 > 
-> In the previous patch, it's only fixed host side. But apollon case, it
-> only used udc, so udc configuration should select USB_OTG_UTILS also.
+> <snip>
 > 
-> Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
-
-Acked-by: David Brownell <dbrownell@users.sourceforge.net>
-
-... Greg, this should be a 2.6.29-rc patch (buildfix).
-
-> ---
-> diff --git a/drivers/usb/gadget/Kconfig b/drivers/usb/gadget/Kconfig
-> index 3219d13..b26d6e6 100644
-> --- a/drivers/usb/gadget/Kconfig
-> +++ b/drivers/usb/gadget/Kconfig
-> @@ -191,6 +191,7 @@ config USB_GADGET_OMAP
->  	boolean "OMAP USB Device Controller"
->  	depends on ARCH_OMAP
->  	select ISP1301_OMAP if MACH_OMAP_H2 || MACH_OMAP_H3 || MACH_OMAP_H4_OTG
-> +	select USB_OTG_UTILS if ARCH_OMAP
->  	help
->  	   Many Texas Instruments OMAP processors have flexible full
->  	   speed USB device controllers, with support for up to 30
+> +       if (atomic_inc_return(&vdev->users) == 1) {
+> +               isp_get();
+> +               if (omap34xxcam_slave_power_set(vdev, V4L2_POWER_ON,
+> +                                               OMAP34XXCAM_SLAVE_POWER_ALL))
+> +                       goto out_slave_power_set_standby;
+> +               omap34xxcam_slave_power_set(
+> +                       vdev, V4L2_POWER_STANDBY,
+> +                       OMAP34XXCAM_SLAVE_POWER_SENSOR);
+> +               omap34xxcam_slave_power_suggest(
+> +                       vdev, V4L2_POWER_STANDBY,
+> +                       OMAP34XXCAM_SLAVE_POWER_LENS);
+> +       }
 > 
 > 
-> On Tue, Feb 10, 2009 at 5:53 AM, Tony Lindgren <tony@atomide.com> wrote:
-> > * Russell King - ARM Linux <linux@arm.linux.org.uk> [090209 11:27]:
-> >> It would be nice to get the last OMAP defconfig in mainline working.
-> >> It's broken since 2.6.29-rc2-git3 due to this persistent problem:
-> >>
-> >> drivers/built-in.o: In function `omap_udc_probe':
-> >> omap.c:(.init.text+0x30cc): undefined reference to `otg_get_transceiver'
-> >> omap.c:(.init.text+0x38a4): undefined reference to `otg_put_transceiver'
-> >
-> > Hmm, looks like 2bf5fa13fc8e34d7b86307b99f64a24cb7a83852 did not fix it.
-> > Dave, do you already have a patch for this?
-> >
-> > Regards,
-> >
-> > Tony
-> > --
-> > To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> > the body of a message to majordomo@vger.kernel.org
-> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> >
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> I'm wondering whether this V4L2_POWER_STANDBY operation for sensor
+> device is really necessary.
 > 
+> Because if that makes sensor device in standby mode, we do S_FMT and
+> bunch of V4L2 APIs while the camera module is in standby mode.
 > 
+> In most cases of "sensor + ISP" SOC camera modules, I2C command is not
+> working while the camera module is in standby mode.
 
+I guess that applies to most sensors.
 
+> Following the camera interface source code, sensor goes down to
+> standby mode until VIDIOC_STREAMON is called.
+> 
+> If this power up timing depends on sensor device, then I think we need
+> a conditional power on sequence.
+
+You're right, there's something wrong with the slave power handling. :)
+
+We were thinking that the sensor (or any slave) power management 
+(current on, off and standby) could be replaced by four commands: open, 
+close, streamon and streamoff. The slave could decide by itself what its 
+real power state is. IMO direct power management doesn't belong to the 
+camera driver which doesn't drive any hardware anyway.
+
+> As you defined slave devices as SENSOR, LENS, FLASH, then how about
+> making a new slave category like "ISP" for "sensor+ISP" SOC modules?
+
+I currently have just raw sensors. It'd be nice to keep the interface 
+for smart sensors the same, though. You still need for a receiver for 
+the image data, sometimes called the camera controller. That would be 
+the same than the ISP but without fancy features.
+
+Cheers,
+
+-- 
+Sakari Ailus
+sakari.ailus@maxwell.research.nokia.com
