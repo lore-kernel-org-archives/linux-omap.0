@@ -1,63 +1,74 @@
-From: Koen Kooi <k.kooi@student.utwente.nl>
-Subject: Re: ASoC audio not working on OMAP3 EVM
-Date: Thu, 12 Feb 2009 12:01:31 +0100
-Message-ID: <E25633C1-D318-4AAC-BEA0-006034B1D619@student.utwente.nl>
-References: <1234424393.13374.2.camel@eenurkka-desktop> <2ee9e08d0902120138p62b91989rbaf525d2efbbad21@mail.gmail.com> <20090212114948.5fe50dd8.jarkko.nikula@nokia.com>
-Mime-Version: 1.0 (Apple Message framework v930.3)
-Content-Type: multipart/signed; protocol="application/pgp-signature"; micalg=pgp-sha1; boundary="Apple-Mail-1-578737161"
-Content-Transfer-Encoding: 7bit
+From: Roman Tereshonkov <roman.tereshonkov@nokia.com>
+Subject: [PATCH] OMAP3: SDTI: Prevent access to sdti writing if module is not initialized.
+Date: Thu, 12 Feb 2009 13:39:28 +0200
+Message-ID: <1234438768-20697-1-git-send-email-roman.tereshonkov@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp1.utsp.utwente.nl ([130.89.2.8]:38473 "EHLO smtp.utwente.nl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752567AbZBLLCx (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 12 Feb 2009 06:02:53 -0500
-In-Reply-To: <20090212114948.5fe50dd8.jarkko.nikula@nokia.com>
+Received: from smtp.nokia.com ([192.100.122.230]:27154 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751681AbZBLLke (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 12 Feb 2009 06:40:34 -0500
+Received: from esebh106.NOE.Nokia.com (esebh106.ntc.nokia.com [172.21.138.213])
+	by mgw-mx03.nokia.com (Switch-3.2.6/Switch-3.2.6) with ESMTP id n1CBeE4c005173
+	for <linux-omap@vger.kernel.org>; Thu, 12 Feb 2009 13:40:31 +0200
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Jarkko Nikula <jarkko.nikula@nokia.com>
-Cc: ext Anuj Aggarwal <anuj.aggarwal@gmail.com>, "Nurkkala Eero.An (EXT-Offcode/Oulu)" <ext-Eero.Nurkkala@nokia.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: linux-omap@vger.kernel.org
+Cc: Roman Tereshonkov <roman.tereshonkov@nokia.com>
 
-This is an OpenPGP/MIME signed message (RFC 2440 and 3156)
---Apple-Mail-1-578737161
-Content-Type: text/plain; charset=US-ASCII; format=flowed
-Content-Transfer-Encoding: 7bit
+The function sti_channel_write_trace can be run from process and interrupt
+context. It has to be completed before other sti_channel_write_trace calls.
 
+Prevent sdti writing when SDTI module is not initialized.
 
-Op 12 feb 2009, om 10:49 heeft Jarkko Nikula het volgende geschreven:
+Signed-off-by: Roman Tereshonkov <roman.tereshonkov@nokia.com>
+---
+ drivers/misc/sti/sdti.c |   15 ++++++++++++---
+ 1 files changed, 12 insertions(+), 3 deletions(-)
 
-> On Thu, 12 Feb 2009 10:38:27 +0100
-> ext Anuj Aggarwal <anuj.aggarwal@gmail.com> wrote:
->
->> The patch doesn't help, result is same...
->>
->> Any help is welcome
->>
-> My Beagle is working fine on top of l-o head (commit
-> 70ff4a1aafd2378c9e3ff153135ba6d0bde45215) and with Steve's patch
->
-> http://git.kernel.org/?p=linux/kernel/git/tiwai/sound-2.6.git;a=commit;h=80c509fdd74f3b158267374cc55156965c8bf930
->
-> What codec OMAP3 EVM is using? If AIC3x, then Eero's patch might help
+diff --git a/drivers/misc/sti/sdti.c b/drivers/misc/sti/sdti.c
+index 8c27504..31780de 100644
+--- a/drivers/misc/sti/sdti.c
++++ b/drivers/misc/sti/sdti.c
+@@ -37,20 +37,25 @@
+ static struct clk *sdti_fck, *sdti_ick;
+ void __iomem *sti_base, *sti_channel_base;
+ static DEFINE_SPINLOCK(sdti_lock);
++static int sdti_initialized;
+ 
+ void sti_channel_write_trace(int len, int id, void *data,
+ 				unsigned int channel)
+ {
+ 	const u8 *tpntr = data;
++	unsigned long flags;
+ 
+-	spin_lock_irq(&sdti_lock);
++	spin_lock_irqsave(&sdti_lock, flags);
++
++	if (unlikely(!sdti_initialized))
++		goto skip;
+ 
+ 	sti_channel_writeb(id, channel);
+ 	while (len--)
+ 		sti_channel_writeb(*tpntr++, channel);
+ 	sti_channel_flush(channel);
+-
+-	spin_unlock_irq(&sdti_lock);
++ skip:
++	spin_unlock_irqrestore(&sdti_lock, flags);
+ }
+ EXPORT_SYMBOL(sti_channel_write_trace);
+ 
+@@ -117,6 +122,10 @@ static int __init omap_sdti_init(void)
+ 	/* Enable SDTI */
+ 	sti_writel((1 << 31) | (i & 0x3FFFFFFF), SDTI_WINCTRL);
+ 
++	spin_lock_irq(&sdti_lock);
++	sdti_initialized = 1;
++	spin_unlock_irq(&sdti_lock);
++
+ 	i = sti_readl(SDTI_REVISION);
+ 	snprintf(buf, sizeof(buf), "OMAP SDTI support loaded (HW v%u.%u)\n",
+ 		(i >> 4) & 0x0f, i & 0x0f);
+-- 
+1.5.5.1
 
-the same codec as beagle and overo (twl/tps)
-
-regards,
-
-Koen
-
---Apple-Mail-1-578737161
-content-type: application/pgp-signature; x-mac-type=70674453;
-	name=PGP.sig
-content-description: Dit deel van het bericht is digitaal ondertekend
-content-disposition: inline; filename=PGP.sig
-content-transfer-encoding: 7bit
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.5 (Darwin)
-
-iD8DBQFJlAGNMkyGM64RGpERAlLhAKCQarsQVh26GuHGc1xsNbZBw0urewCgnyjj
-jgiwICE+VOTtpv5vI01kLPU=
-=+17w
------END PGP SIGNATURE-----
-
---Apple-Mail-1-578737161--
