@@ -1,91 +1,49 @@
-From: "Alejandro Blanca G." <alex.blanca@gmail.com>
-Subject: Re: OMAP I2C question
-Date: Wed, 11 Feb 2009 13:11:29 -0600
-Message-ID: <b6ab3a160902111111s15d2143pf7a72159aeb9cdad@mail.gmail.com>
-References: <499303C3.3030101@mlbassoc.com>
-	 <b6ab3a160902110936m6f8798fbv70f5371b76594869@mail.gmail.com>
-	 <b6ab3a160902110937t3cb1f26dmb99713464a14f444@mail.gmail.com>
-	 <49930F15.4070302@mlbassoc.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: PM branch updates: 3430sdp and omap3evm results
+Date: Wed, 11 Feb 2009 16:32:27 -0800
+Message-ID: <20090212003221.GE13748@atomide.com>
+References: <3a2dabf50902010605n4f642d21p35d76f1eef8fa908@mail.gmail.com> <3a2dabf50902032134tf769d73m5fe7837e6d6c79a2@mail.gmail.com> <877i46ahcn.fsf@deeprootsystems.com> <3a2dabf50902032144i24a539a4i887b0153e81d1e9e@mail.gmail.com> <871vueag1z.fsf@deeprootsystems.com> <3a2dabf50902032224u740e0039t4f16f5aa0952d0d7@mail.gmail.com> <87eiyd6jgn.fsf@deeprootsystems.com> <3a2dabf50902050650id663062mde28de09787e2043@mail.gmail.com> <3a2dabf50902101301i3b654850maec1f6cc01b85e26@mail.gmail.com> <878woe2ah0.fsf@deeprootsystems.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from yx-out-2324.google.com ([74.125.44.29]:13150 "EHLO
-	yx-out-2324.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752010AbZBKTLa (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 11 Feb 2009 14:11:30 -0500
-Received: by yx-out-2324.google.com with SMTP id 8so177544yxm.1
-        for <linux-omap@vger.kernel.org>; Wed, 11 Feb 2009 11:11:29 -0800 (PST)
-In-Reply-To: <49930F15.4070302@mlbassoc.com>
+Received: from mho-01-bos.mailhop.org ([63.208.196.178]:60322 "EHLO
+	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755738AbZBLAca (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 11 Feb 2009 19:32:30 -0500
+Content-Disposition: inline
+In-Reply-To: <878woe2ah0.fsf@deeprootsystems.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Gary Thomas <gary@mlbassoc.com>
-Cc: linux-omap@vger.kernel.org
+To: Kevin Hilman <khilman@deeprootsystems.com>
+Cc: Ramesh Gupta Guntha <grgupta77@gmail.com>, linux-omap@vger.kernel.org
 
-My mistake.
+* Kevin Hilman <khilman@deeprootsystems.com> [090210 14:30]:
+> Ramesh Gupta Guntha <grgupta77@gmail.com> writes:
+> 
+> > Kevin,
+> > I pulled git kernel today but still I am not seeing this patch in pm
+> > branch, looks like this patch is missing in the pm branch. Can you
+> > please recheck the same?
+> 
+> Hi Ramesh,
+> 
+> It looks like Tony's tree is not sync'ing with my PM branch anymore.
+> I will check with Tony.
 
-Thought I had replied to the list, but referencing you.
+Is there still a problem? I have not changed anything on that for few
+weeks.
 
-I'm deeply deeply sorry for the trouble.
+Regards,
 
-Thanks for forwarding it to the list.
+Tony
 
-Best regards,
 
-Alex B.
 
-On Wed, Feb 11, 2009 at 11:47 AM, Gary Thomas <gary@mlbassoc.com> wrote:
-> Note: these questions should go to the mailing list, not me.  I'm not
-> an expert here, just trying to get it working as well...
->
-> Alejandro Blanca G. wrote:
->> Sorry, forgot to add that we are using the I2C tools on a Beagle, with
->> the latest kernel (2.6.29-rc4-omap1).
->>
->> Regards,
->>
->> Alex B.
->>
->> On Wed, Feb 11, 2009 at 11:36 AM, Alejandro Blanca G.
->> <alex.blanca@gmail.com> wrote:
->>> Hi Gary.
->>>
->>> Would this prevent the I2C tools
->>> (http://www.lm-sensors.org/wiki/I2CTools) from working?
->>>
->>> In the latest kernels we've built, we have been unable to use
->>> "i2cdetect" to verify the presence of I2C devices. The error we get
->>> is:
->>>
->>> "Error: Can't use SMBus Quick Write command on this bus (ISA bus?)".
->>>
->>> From the description you provide, it seems related.
->>>
->>> Best regards,
->>>
->>> Alex B.
->>>
->>> On Wed, Feb 11, 2009 at 10:58 AM, Gary Thomas <gary@mlbassoc.com> wrote:
->>>> Why is I2C_FUNC_SMBUS_QUICK functionality missing in i2c-omap.c?
->>>>
->>>> This prevents using drivers which use the generic i2c_probe()
->>>> method of finding devices.
->>>>
->>>> --
->>>> ------------------------------------------------------------
->>>> Gary Thomas                 |  Consulting for the
->>>> MLB Associates              |    Embedded world
->>>> ------------------------------------------------------------
->>>> --
->>>> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
->>>> the body of a message to majordomo@vger.kernel.org
->>>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->>>>
->
->
-> --
-> ------------------------------------------------------------
-> Gary Thomas                 |  Consulting for the
-> MLB Associates              |    Embedded world
-> ------------------------------------------------------------
->
+
+> In the mean-time, you could try to pull directly from my git repo[1]
+> 
+> Kevin
+> 
+> [1] git://git.kernel.org/pub/scm/linux/kernel/git/khilman/linux-omap-pm.git
+
+<snip>
