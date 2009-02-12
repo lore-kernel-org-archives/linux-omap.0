@@ -1,80 +1,50 @@
 From: David Brownell <david-b@pacbell.net>
-Subject: Re: [PATCH] Fix compile error in usb-musb.c
-Date: Wed, 11 Feb 2009 17:55:26 -0800
-Message-ID: <200902111755.26856.david-b@pacbell.net>
-References: <5A47E75E594F054BAF48C5E4FC4B92AB02E6815B88@dbde02.ent.ti.com> <200901261523.42769.david-b@pacbell.net> <20090212012359.GH13748@atomide.com>
-Reply-To: dbrownell@users.sourceforge.net
+Subject: Re: [PATCH] twl4030-gpio: Fix getting the value of the TWL4030 GPIO  output pin
+Date: Wed, 11 Feb 2009 18:16:41 -0800
+Message-ID: <200902111816.41569.david-b@pacbell.net>
+References: <4e1455be0902062213o769a4d15ha0c892508839dbad@mail.gmail.com> <200902070000.49089.david-b@pacbell.net> <4e1455be0902090502l554ca462m9c096e359a5b29c3@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=iso-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp115.sbc.mail.sp1.yahoo.com ([69.147.64.88]:48411 "HELO
-	smtp115.sbc.mail.sp1.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1757744AbZBLBz3 (ORCPT
+Received: from smtp128.sbc.mail.sp1.yahoo.com ([69.147.65.187]:39029 "HELO
+	smtp128.sbc.mail.sp1.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1754921AbZBLCQn (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Wed, 11 Feb 2009 20:55:29 -0500
-In-Reply-To: <20090212012359.GH13748@atomide.com>
+	Wed, 11 Feb 2009 21:16:43 -0500
+In-Reply-To: <4e1455be0902090502l554ca462m9c096e359a5b29c3@mail.gmail.com>
 Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: me@felipebalbi.com, "Gadiyar, Anand" <gadiyar@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Joonyoung Shim <dofmind@gmail.com>
+Cc: Tony Lindgren <tony@atomide.com>, linux-arm-kernel@lists.arm.linux.org.uk, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
 
-On Wednesday 11 February 2009, Tony Lindgren wrote:
-> * David Brownell <david-b@pacbell.net> [090126 15:23]:
-> > On Sunday 18 January 2009, Tony Lindgren wrote:
-> > >=20
-> > > > > #if =A0 =A0 !defined(CONFIG_ARCH_OMAP730) && \
-> > > > > =A0=A0=A0=A0!defined(CONFIG_ARCH_OMAP15XX) && \
-> > > > > =A0=A0=A0=A0!defined(CONFIG_ARCH_OMAP16XX) && \
-> > > > > =A0=A0=A0=A0!defined(CONFIG_ARCH_OMAP24XX) && \
-> > > > > =A0=A0=A0=A0!defined(CONFIG_ARCH_OMAP34XX)
-> > > > > #error "Power management for this processor not implemented y=
-et"
-> > > > > #endif
-> > > >=20
-> > > > I didn't realize anyone outside of TI had their hands
-> > > > on OMAP4 chips yet. =A0:)
-> > >=20
-> > > Might be worth looking what it would take to make dummy CONFIG_PM
-> > > compile in mainline for mach-omap2.
-> >=20
-> > This (against mainline) makes build+link work ...
+On Monday 09 February 2009, Joonyoung Shim wrote:
+> but, it doesn't return actual value of the pin if twl4030 GPIO pin is=
+ output.
+
+So it would seem that these GPIOs don't support
+bidirectional usage.  Documentation/gpio.txt includes:
+
+>>>		However, note that not all platforms can
+>>>	read the value of output pins; those that can't
+>>>	should always return zero. =20
+
+Which is exactly what's happening here, it seems...
+
+
+
+
+> For example, the GPIO13 pin of twl4030 is configured as an output
+> using gpio_direction_output() and assigns the GPIO's value to 1
+> using gpio_set_value_cansleep(), the result of "# cat /sys/kernel/deb=
+ug/gpio"
+> reports to me as follows.
 >=20
-> I'll add it to omap-fixes. Dave, can you please reply with your SOB?
-
-Special offer, today only ... take your pick:
-
-Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
-
-Sonofabitch: David Brownell <dbrownell@users.sourceforge.net>
-
-:)
-
-
+> GPIOs 192-209, platform/twl4030_gpio, twl4030, can sleep:
+> =A0gpio-205 (keyled =A0 =A0 =A0 =A0 =A0 =A0 =A0) out lo
 >=20
-> Thanks,
->=20
-> Tony
->=20
->=20
-> > ---
-> >  arch/arm/plat-omap/include/mach/pm.h |    2 +-
-> >  1 file changed, 1 insertion(+), 1 deletion(-)
-> >=20
-> > --- a/arch/arm/plat-omap/include/mach/pm.h
-> > +++ b/arch/arm/plat-omap/include/mach/pm.h
-> > @@ -108,7 +108,7 @@
-> >  	!defined(CONFIG_ARCH_OMAP15XX) && \
-> >  	!defined(CONFIG_ARCH_OMAP16XX) && \
-> >  	!defined(CONFIG_ARCH_OMAP24XX)
-> > -#error "Power management for this processor not implemented yet"
-> > +#warning "Power management for this processor not implemented yet"
-> >  #endif
-> > =20
-> >  #ifndef __ASSEMBLER__
-> >=20
->=20
+> but it should have reported "hi" instead of "lo".
 >=20
 
 
