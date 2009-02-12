@@ -1,204 +1,154 @@
 From: Felipe Balbi <me@felipebalbi.com>
-Subject: Re: [PATCH 2/3] musb_hdrc: Clean-up MUSB init code for next merge
-	window
-Date: Thu, 12 Feb 2009 21:30:14 +0200
-Message-ID: <20090212193013.GM10711@frodo>
-References: <20090212191408.19766.62874.stgit@localhost> <20090212191707.19766.23783.stgit@localhost>
+Subject: Re: [PATCH 3/3] musb_hdrc: Build usb-musb based on config entry,
+	clean-up Makefile
+Date: Thu, 12 Feb 2009 21:31:12 +0200
+Message-ID: <20090212193111.GN10711@frodo>
+References: <20090212191408.19766.62874.stgit@localhost> <20090212191719.19766.24459.stgit@localhost>
 Reply-To: me@felipebalbi.com
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ns1.siteground211.com ([209.62.36.12]:34484 "EHLO
+Received: from ns1.siteground211.com ([209.62.36.12]:34582 "EHLO
 	serv01.siteground211.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754487AbZBLTaZ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 12 Feb 2009 14:30:25 -0500
+	with ESMTP id S1757864AbZBLTbX (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 12 Feb 2009 14:31:23 -0500
 Content-Disposition: inline
-In-Reply-To: <20090212191707.19766.23783.stgit@localhost>
+In-Reply-To: <20090212191719.19766.24459.stgit@localhost>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>
 Cc: linux-omap@vger.kernel.org, Felipe Balbi <felipe.balbi@nokia.com>, David Brownell <dbrownell@users.sourceforge.net>
 
-On Thu, Feb 12, 2009 at 11:17:08AM -0800, Tony Lindgren wrote:
-> Let's just use mach/usb.h as mach/musb.h only has one entry.
+On Thu, Feb 12, 2009 at 11:17:19AM -0800, Tony Lindgren wrote:
+> Build usb-musb based on config entry, clean-up Makefile
 > 
 > Cc: Felipe Balbi <felipe.balbi@nokia.com>
 > Cc: David Brownell <dbrownell@users.sourceforge.net>
 > Signed-off-by: Tony Lindgren <tony@atomide.com>
+
+Makes sense to me
+
 > ---
->  arch/arm/mach-omap2/board-2430sdp.c        |    2 +-
->  arch/arm/mach-omap2/board-3430sdp.c        |    2 +-
->  arch/arm/mach-omap2/board-ldp.c            |    2 +-
->  arch/arm/mach-omap2/board-omap3beagle.c    |    2 +-
->  arch/arm/mach-omap2/board-omap3evm.c       |    2 +-
->  arch/arm/mach-omap2/board-omap3pandora.c   |    2 +-
->  arch/arm/mach-omap2/board-overo.c          |    2 +-
->  arch/arm/mach-omap2/board-rx51.c           |    2 +-
->  arch/arm/plat-omap/include/mach/usb-musb.h |   35 ----------------------------
->  arch/arm/plat-omap/include/mach/usb.h      |    4 ++-
->  10 files changed, 10 insertions(+), 45 deletions(-)
->  delete mode 100644 arch/arm/plat-omap/include/mach/usb-musb.h
+>  arch/arm/mach-omap2/Makefile          |   17 ++++++-----------
+>  arch/arm/mach-omap2/usb-musb.c        |    7 -------
+>  arch/arm/plat-omap/include/mach/usb.h |    7 +++++++
+>  3 files changed, 13 insertions(+), 18 deletions(-)
 > 
-> diff --git a/arch/arm/mach-omap2/board-2430sdp.c b/arch/arm/mach-omap2/board-2430sdp.c
-> index cc65b1a..aa5df72 100644
-> --- a/arch/arm/mach-omap2/board-2430sdp.c
-> +++ b/arch/arm/mach-omap2/board-2430sdp.c
-> @@ -36,7 +36,7 @@
->  #include <mach/gpio.h>
+> diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
+> index 631166d..fad8af4 100644
+> --- a/arch/arm/mach-omap2/Makefile
+> +++ b/arch/arm/mach-omap2/Makefile
+> @@ -44,27 +44,24 @@ obj-$(CONFIG_MACH_OMAP_H4)		+= board-h4.o board-h4-mmc.o
+>  obj-$(CONFIG_MACH_OMAP_2430SDP)		+= board-2430sdp.o \
+>  					   board-2430sdp-flash.o \
+>  					   mmc-twl4030.o \
+> -					   usb-musb.o \
+>  					   usb-ehci.o
+>  obj-$(CONFIG_MACH_OMAP2EVM)		+= board-omap2evm.o \
+>  					   mmc-twl4030.o
+>  obj-$(CONFIG_MACH_OMAP_3430SDP)		+= board-3430sdp.o \
+>  					   mmc-twl4030.o \
+> -					   usb-musb.o \
+>  					   usb-ehci.o \
+>  					   board-3430sdp-flash.o
+>  obj-$(CONFIG_MACH_OMAP3EVM)		+= board-omap3evm.o \
+>  					   mmc-twl4030.o \
+> -					   usb-musb.o usb-ehci.o \
+> +					   usb-ehci.o \
+>  					   board-omap3evm-flash.o \
+>  					   twl4030-generic-scripts.o
+>  obj-$(CONFIG_MACH_OMAP3_BEAGLE)		+= board-omap3beagle.o \
+> -					   usb-musb.o usb-ehci.o \
+> +					   usb-ehci.o \
+>  					   mmc-twl4030.o \
+>  					   twl4030-generic-scripts.o
+>  obj-$(CONFIG_MACH_OMAP_LDP)		+= board-ldp.o \
+> -					   mmc-twl4030.o \
+> -					   usb-musb.o
+> +					   mmc-twl4030.o
+>  obj-$(CONFIG_MACH_OMAP_APOLLON)		+= board-apollon.o \
+>  					   board-apollon-mmc.o	\
+>  					   board-apollon-keys.o
+> @@ -80,19 +77,17 @@ obj-$(CONFIG_MACH_NOKIA_RX51)		+= board-rx51.o \
+>  					   board-rx51-sdram.o \
+>  					   board-rx51-video.o \
+>  					   board-rx51-peripherals.o \
+> -					   mmc-twl4030.o \
+> -					   usb-musb.o
+> +					   mmc-twl4030.o
+>  
+>  obj-$(CONFIG_MACH_OVERO)		+= board-overo.o \
+>  					   mmc-twl4030.o \
+> -					   usb-musb.o \
+>  					   usb-ehci.o \
+>  					   twl4030-generic-scripts.o
+>  obj-$(CONFIG_MACH_OMAP3_PANDORA)	+= board-omap3pandora.o \
+>  					   mmc-twl4030.o \
+> -					   usb-musb.o \
+>  					   usb-ehci.o
+>  
+> -# TUSB 6010 chips
+> +# Platform specific device init code
+> +obj-$(CONFIG_USB_MUSB_SOC)		+= usb-musb.o
+>  obj-$(CONFIG_MACH_OMAP2_TUSB6010)	+= usb-tusb6010.o
+>  
+> diff --git a/arch/arm/mach-omap2/usb-musb.c b/arch/arm/mach-omap2/usb-musb.c
+> index 897c07d..327af7d 100644
+> --- a/arch/arm/mach-omap2/usb-musb.c
+> +++ b/arch/arm/mach-omap2/usb-musb.c
+> @@ -33,7 +33,6 @@
 >  #include <mach/mux.h>
->  #include <mach/board.h>
-> -#include <mach/usb-musb.h>
-> +#include <mach/usb.h>
->  #include <mach/common.h>
->  #include <mach/gpmc.h>
->  #include <mach/mcspi.h>
-> diff --git a/arch/arm/mach-omap2/board-3430sdp.c b/arch/arm/mach-omap2/board-3430sdp.c
-> index 8a0dba6..10be03e 100644
-> --- a/arch/arm/mach-omap2/board-3430sdp.c
-> +++ b/arch/arm/mach-omap2/board-3430sdp.c
-> @@ -34,7 +34,7 @@
->  #include <mach/gpio.h>
->  #include <mach/mux.h>
->  #include <mach/board.h>
-> -#include <mach/usb-musb.h>
-> +#include <mach/usb.h>
->  #include <mach/usb-ehci.h>
->  #include <mach/common.h>
->  #include <mach/dma.h>
-> diff --git a/arch/arm/mach-omap2/board-ldp.c b/arch/arm/mach-omap2/board-ldp.c
-> index 73c4504..1e1fd84 100644
-> --- a/arch/arm/mach-omap2/board-ldp.c
-> +++ b/arch/arm/mach-omap2/board-ldp.c
-> @@ -35,7 +35,7 @@
->  #include <mach/board.h>
->  #include <mach/common.h>
->  #include <mach/gpmc.h>
-> -#include <mach/usb-musb.h>
-> +#include <mach/usb.h>
+>  #include <mach/usb.h>
 >  
->  #include <asm/io.h>
->  #include <asm/delay.h>
-> diff --git a/arch/arm/mach-omap2/board-omap3beagle.c b/arch/arm/mach-omap2/board-omap3beagle.c
-> index 64c76bd..64fc613 100644
-> --- a/arch/arm/mach-omap2/board-omap3beagle.c
-> +++ b/arch/arm/mach-omap2/board-omap3beagle.c
-> @@ -38,7 +38,7 @@
->  #include <asm/mach/flash.h>
->  
->  #include <mach/board.h>
-> -#include <mach/usb-musb.h>
-> +#include <mach/usb.h>
->  #include <mach/usb-ehci.h>
->  #include <mach/common.h>
->  #include <mach/gpmc.h>
-> diff --git a/arch/arm/mach-omap2/board-omap3evm.c b/arch/arm/mach-omap2/board-omap3evm.c
-> index 775a1f3..4946463 100644
-> --- a/arch/arm/mach-omap2/board-omap3evm.c
-> +++ b/arch/arm/mach-omap2/board-omap3evm.c
-> @@ -31,7 +31,7 @@
->  
->  #include <mach/gpio.h>
->  #include <mach/board.h>
-> -#include <mach/usb-musb.h>
-> +#include <mach/usb.h>
->  #include <mach/usb-ehci.h>
->  #include <mach/common.h>
->  #include <mach/mcspi.h>
-> diff --git a/arch/arm/mach-omap2/board-omap3pandora.c b/arch/arm/mach-omap2/board-omap3pandora.c
-> index 2637641..cd90bf4 100644
-> --- a/arch/arm/mach-omap2/board-omap3pandora.c
-> +++ b/arch/arm/mach-omap2/board-omap3pandora.c
-> @@ -45,7 +45,7 @@
->  #include <mach/hardware.h>
->  #include <mach/nand.h>
->  #include <mach/usb-ehci.h>
-> -#include <mach/usb-musb.h>
-> +#include <mach/usb.h>
->  #include <mach/mcspi.h>
->  
->  #include "sdram-micron-mt46h32m32lf-6.h"
-> diff --git a/arch/arm/mach-omap2/board-overo.c b/arch/arm/mach-omap2/board-overo.c
-> index c95b890..f600f70 100644
-> --- a/arch/arm/mach-omap2/board-overo.c
-> +++ b/arch/arm/mach-omap2/board-overo.c
-> @@ -46,7 +46,7 @@
->  #include <mach/hardware.h>
->  #include <mach/nand.h>
->  #include <mach/usb-ehci.h>
-> -#include <mach/usb-musb.h>
-> +#include <mach/usb.h>
->  
->  #include "sdram-micron-mt46h32m32lf-6.h"
->  #include "twl4030-generic-scripts.h"
-> diff --git a/arch/arm/mach-omap2/board-rx51.c b/arch/arm/mach-omap2/board-rx51.c
-> index e845aac..98dfde1 100644
-> --- a/arch/arm/mach-omap2/board-rx51.c
-> +++ b/arch/arm/mach-omap2/board-rx51.c
-> @@ -28,7 +28,7 @@
->  #include <mach/keypad.h>
->  #include <mach/dma.h>
->  #include <mach/gpmc.h>
-> -#include <mach/usb-musb.h>
-> +#include <mach/usb.h>
->  
->  #include <asm/io.h>
->  #include <asm/delay.h>
-> diff --git a/arch/arm/plat-omap/include/mach/usb-musb.h b/arch/arm/plat-omap/include/mach/usb-musb.h
-> deleted file mode 100644
-> index b455b29..0000000
-> --- a/arch/arm/plat-omap/include/mach/usb-musb.h
-> +++ /dev/null
-> @@ -1,35 +0,0 @@
-> -/*
-> - * arch/arm/plat-omap/include/mach/usb-musb.h
-> - *
-> - * Hardware definitions for Mentor Graphics MUSBMHDRC.
-> - *
-> - * Initial creation by Felipe Balbi.
-> - *
-> - * This program is free software; you can redistribute it and/or modify it
-> - * under the terms of the GNU General Public License as published by the
-> - * Free Software Foundation; either version 2 of the License, or (at your
-> - * option) any later version.
-> - *
-> - * THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESS OR IMPLIED
-> - * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
-> - * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN
-> - * NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT,
-> - * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
-> - * NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
-> - * USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
-> - * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-> - * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
-> - * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-> - *
-> - * You should have received a copy of the GNU General Public License along
-> - * with this program; if not, write to the Free Software Foundation, Inc.,
-> - * 675 Mass Ave, Cambridge, MA 02139, USA.
-> - */
+> -#ifdef CONFIG_USB_MUSB_SOC
+>  static struct resource musb_resources[] = {
+>  	[0] = { /* start and end set dynamically */
+>  		.flags	= IORESOURCE_MEM,
+> @@ -146,13 +145,9 @@ static struct platform_device musb_device = {
+>  	.num_resources	= ARRAY_SIZE(musb_resources),
+>  	.resource	= musb_resources,
+>  };
+> -#endif
 > -
-> -#ifndef __ASM_ARCH_OMAP_USB_MUSB_H
-> -#define __ASM_ARCH_OMAP_USB_MUSB_H
+>  
+>  void __init usb_musb_init(void)
+>  {
+> -#ifdef CONFIG_USB_MUSB_SOC
 > -
-> -extern void usb_musb_init(void);
-> -
-> -#endif /* __ASM_ARCH_OMAP_USB_MUSB_H */
+>  	if (cpu_is_omap243x()) {
+>  		musb_resources[0].start = OMAP243X_HS_BASE;
+>  		musb_plat.clock = "usbhs_ick";
+> @@ -167,6 +162,4 @@ void __init usb_musb_init(void)
+>  		printk(KERN_ERR "Unable to register HS-USB (MUSB) device\n");
+>  		return;
+>  	}
+> -#endif
+>  }
 > -
 > diff --git a/arch/arm/plat-omap/include/mach/usb.h b/arch/arm/plat-omap/include/mach/usb.h
-> index e078155..7d7b2b0 100644
+> index 7d7b2b0..e69c5ad 100644
 > --- a/arch/arm/plat-omap/include/mach/usb.h
 > +++ b/arch/arm/plat-omap/include/mach/usb.h
-> @@ -27,8 +27,8 @@
+> @@ -27,7 +27,14 @@
 >  #define UDC_BASE			OMAP2_UDC_BASE
 >  #define OMAP_OHCI_BASE			OMAP2_OHCI_BASE
 >  
-> -void __init usb_musb_init(void);
-> -void __init usb_ehci_init(void);
-> +extern void usb_musb_init(void);
-> +extern void usb_ehci_init(void);
-
-This second line has nothing to with musb, right ? You should move to
-usb-ehci.h removal patch.
+> +#ifdef CONFIG_USB_MUSB_SOC
+>  extern void usb_musb_init(void);
+> +#else
+> +static inline void usb_musb_init(void)
+> +{
+> +}
+> +#endif
+> +
+>  extern void usb_ehci_init(void);
+>  
+>  #endif
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
 -- 
 balbi
