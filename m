@@ -1,40 +1,63 @@
-From: Grazvydas Ignotas <notasas@gmail.com>
-Subject: Re: omapfb: 24bpp not working?
-Date: Thu, 12 Feb 2009 12:39:13 +0200
-Message-ID: <6ed0b2680902120239s3e92d32fh5c179e1b0163220c@mail.gmail.com>
-References: <cb7bedd90902120150l609ee132rfc76f28b223e923b@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+From: Koen Kooi <k.kooi@student.utwente.nl>
+Subject: Re: ASoC audio not working on OMAP3 EVM
+Date: Thu, 12 Feb 2009 12:01:31 +0100
+Message-ID: <E25633C1-D318-4AAC-BEA0-006034B1D619@student.utwente.nl>
+References: <1234424393.13374.2.camel@eenurkka-desktop> <2ee9e08d0902120138p62b91989rbaf525d2efbbad21@mail.gmail.com> <20090212114948.5fe50dd8.jarkko.nikula@nokia.com>
+Mime-Version: 1.0 (Apple Message framework v930.3)
+Content-Type: multipart/signed; protocol="application/pgp-signature"; micalg=pgp-sha1; boundary="Apple-Mail-1-578737161"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from fk-out-0910.google.com ([209.85.128.189]:42648 "EHLO
-	fk-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757876AbZBLKjP (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 12 Feb 2009 05:39:15 -0500
-Received: by fk-out-0910.google.com with SMTP id f33so273005fkf.5
-        for <linux-omap@vger.kernel.org>; Thu, 12 Feb 2009 02:39:14 -0800 (PST)
-In-Reply-To: <cb7bedd90902120150l609ee132rfc76f28b223e923b@mail.gmail.com>
+Received: from smtp1.utsp.utwente.nl ([130.89.2.8]:38473 "EHLO smtp.utwente.nl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752567AbZBLLCx (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 12 Feb 2009 06:02:53 -0500
+In-Reply-To: <20090212114948.5fe50dd8.jarkko.nikula@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Matthias Ludwig <matthias.ludwig@gmx.net>
-Cc: linux-omap@vger.kernel.org
+To: Jarkko Nikula <jarkko.nikula@nokia.com>
+Cc: ext Anuj Aggarwal <anuj.aggarwal@gmail.com>, "Nurkkala Eero.An (EXT-Offcode/Oulu)" <ext-Eero.Nurkkala@nokia.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Thu, Feb 12, 2009 at 11:50 AM, Matthias Ludwig
-<matthias.ludwig@gmx.net> wrote:
-> Hi all,
->
-> I selected a 1024x768x24bpp in the drivers/video/omap/lcd_xxx file for
-> a new platform (very similar to OMAP3EVM) which has a display
-> connected to the CPU using a LVDS-transmitter. Everything works find,
-> but the systems does not send 888-RGB-values but 565 ones, even if i
-> select bpp = 24 and data_lines = 24 in my lcd-configuration.
->
-> The framebuffer-device has the correct size (dd if=/dev/fb0
-> of=/tmp/fb-dump gives me a file which is 1024x768x3=2359296 bytes).
-> If i fill the display up with a solid color and then run following command:
-> dd if=/dev/zero of=/dev/fb0 bs=1024 count=1
-> half a display-line is getting black (should only be 1 third)
+This is an OpenPGP/MIME signed message (RFC 2440 and 3156)
+--Apple-Mail-1-578737161
+Content-Type: text/plain; charset=US-ASCII; format=flowed
+Content-Transfer-Encoding: 7bit
 
-AFAIK current driver doesn't support 24bpp, search for
-work-in-progress driver called DSS2. It's not merged in yet, so you'll
-need to apply it manually.
+
+Op 12 feb 2009, om 10:49 heeft Jarkko Nikula het volgende geschreven:
+
+> On Thu, 12 Feb 2009 10:38:27 +0100
+> ext Anuj Aggarwal <anuj.aggarwal@gmail.com> wrote:
+>
+>> The patch doesn't help, result is same...
+>>
+>> Any help is welcome
+>>
+> My Beagle is working fine on top of l-o head (commit
+> 70ff4a1aafd2378c9e3ff153135ba6d0bde45215) and with Steve's patch
+>
+> http://git.kernel.org/?p=linux/kernel/git/tiwai/sound-2.6.git;a=commit;h=80c509fdd74f3b158267374cc55156965c8bf930
+>
+> What codec OMAP3 EVM is using? If AIC3x, then Eero's patch might help
+
+the same codec as beagle and overo (twl/tps)
+
+regards,
+
+Koen
+
+--Apple-Mail-1-578737161
+content-type: application/pgp-signature; x-mac-type=70674453;
+	name=PGP.sig
+content-description: Dit deel van het bericht is digitaal ondertekend
+content-disposition: inline; filename=PGP.sig
+content-transfer-encoding: 7bit
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.5 (Darwin)
+
+iD8DBQFJlAGNMkyGM64RGpERAlLhAKCQarsQVh26GuHGc1xsNbZBw0urewCgnyjj
+jgiwICE+VOTtpv5vI01kLPU=
+=+17w
+-----END PGP SIGNATURE-----
+
+--Apple-Mail-1-578737161--
