@@ -1,38 +1,36 @@
-From: Jarkko Nikula <jarkko.nikula@nokia.com>
-Subject: Re: ASoC audio not working on OMAP3 EVM
-Date: Thu, 12 Feb 2009 11:49:48 +0200
-Message-ID: <20090212114948.5fe50dd8.jarkko.nikula@nokia.com>
-References: <1234424393.13374.2.camel@eenurkka-desktop>
-	<2ee9e08d0902120138p62b91989rbaf525d2efbbad21@mail.gmail.com>
+From: Matthias Ludwig <matthias.ludwig@gmx.net>
+Subject: omapfb: 24bpp not working?
+Date: Thu, 12 Feb 2009 10:50:59 +0100
+Message-ID: <cb7bedd90902120150l609ee132rfc76f28b223e923b@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:28768 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754158AbZBLJuB (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 12 Feb 2009 04:50:01 -0500
-In-Reply-To: <2ee9e08d0902120138p62b91989rbaf525d2efbbad21@mail.gmail.com>
+Received: from mail-ew0-f31.google.com ([209.85.219.31]:63420 "EHLO
+	mail-ew0-f31.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756079AbZBLJvA (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 12 Feb 2009 04:51:00 -0500
+Received: by ewy12 with SMTP id 12so168360ewy.13
+        for <linux-omap@vger.kernel.org>; Thu, 12 Feb 2009 01:50:59 -0800 (PST)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: ext Anuj Aggarwal <anuj.aggarwal@gmail.com>
-Cc: "Nurkkala Eero.An (EXT-Offcode/Oulu)" <ext-Eero.Nurkkala@nokia.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: linux-omap@vger.kernel.org
 
-On Thu, 12 Feb 2009 10:38:27 +0100
-ext Anuj Aggarwal <anuj.aggarwal@gmail.com> wrote:
+Hi all,
 
-> The patch doesn't help, result is same...
-> 
-> Any help is welcome
-> 
-My Beagle is working fine on top of l-o head (commit
-70ff4a1aafd2378c9e3ff153135ba6d0bde45215) and with Steve's patch
+I selected a 1024x768x24bpp in the drivers/video/omap/lcd_xxx file for
+a new platform (very similar to OMAP3EVM) which has a display
+connected to the CPU using a LVDS-transmitter. Everything works find,
+but the systems does not send 888-RGB-values but 565 ones, even if i
+select bpp = 24 and data_lines = 24 in my lcd-configuration.
 
-http://git.kernel.org/?p=linux/kernel/git/tiwai/sound-2.6.git;a=commit;h=80c509fdd74f3b158267374cc55156965c8bf930
+The framebuffer-device has the correct size (dd if=/dev/fb0
+of=/tmp/fb-dump gives me a file which is 1024x768x3=2359296 bytes).
+If i fill the display up with a solid color and then run following command:
+dd if=/dev/zero of=/dev/fb0 bs=1024 count=1
+half a display-line is getting black (should only be 1 third)
 
-What codec OMAP3 EVM is using? If AIC3x, then Eero's patch might help
+Any ideas on that?
 
-http://git.kernel.org/?p=linux/kernel/git/tiwai/sound-2.6.git;a=commit;h=4453dba54de7e517b0cd6f5e4a3f4af3b34f9e79
-
-
-Jarkko
+Thanks,
+Matthias
