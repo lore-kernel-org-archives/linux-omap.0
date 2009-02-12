@@ -1,74 +1,40 @@
-From: Roman Tereshonkov <roman.tereshonkov@nokia.com>
-Subject: [PATCH] OMAP3: SDTI: Prevent access to sdti writing if module is not initialized.
-Date: Thu, 12 Feb 2009 13:39:28 +0200
-Message-ID: <1234438768-20697-1-git-send-email-roman.tereshonkov@nokia.com>
+From: "Gupta, Ramesh" <grgupta@ti.com>
+Subject: [PATCH 0/1] DSPBRIDGE Fix condition statement for Global Flush
+Date: Thu, 12 Feb 2009 17:58:43 +0530
+Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB02A40C11FE@dbde02.ent.ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:27154 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751681AbZBLLke (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 12 Feb 2009 06:40:34 -0500
-Received: from esebh106.NOE.Nokia.com (esebh106.ntc.nokia.com [172.21.138.213])
-	by mgw-mx03.nokia.com (Switch-3.2.6/Switch-3.2.6) with ESMTP id n1CBeE4c005173
-	for <linux-omap@vger.kernel.org>; Thu, 12 Feb 2009 13:40:31 +0200
+Received: from bear.ext.ti.com ([192.94.94.41]:41976 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756529AbZBLM3U convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 12 Feb 2009 07:29:20 -0500
+Received: from dbdp20.itg.ti.com ([172.24.170.38])
+	by bear.ext.ti.com (8.13.7/8.13.7) with ESMTP id n1CCTDj2012467
+	for <linux-omap@vger.kernel.org>; Thu, 12 Feb 2009 06:29:19 -0600
+Received: from dbde70.ent.ti.com (localhost [127.0.0.1])
+	by dbdp20.itg.ti.com (8.13.8/8.13.8) with ESMTP id n1CCTCGY023931
+	for <linux-omap@vger.kernel.org>; Thu, 12 Feb 2009 17:59:13 +0530 (IST)
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Roman Tereshonkov <roman.tereshonkov@nokia.com>
+To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-The function sti_channel_write_trace can be run from process and interrupt
-context. It has to be completed before other sti_channel_write_trace calls.
+All,
+There was a mistake in conditional statement in the previous patch set 
 
-Prevent sdti writing when SDTI module is not initialized.
+[PATCH 0/3] DSPBRIDGE DVFS and Off mode support for bridgedriver
 
-Signed-off-by: Roman Tereshonkov <roman.tereshonkov@nokia.com>
+This patch fixes that.
+
+Signed-off-by: Ramesh Gupta G <grgupta@ti.com>
 ---
- drivers/misc/sti/sdti.c |   15 ++++++++++++---
- 1 files changed, 12 insertions(+), 3 deletions(-)
+ drivers/dsp/bridge/wmd/tiomap3430.c |    3 ++-
+ 1 files changed, 2 insertions(+), 1 deletions(-)
 
-diff --git a/drivers/misc/sti/sdti.c b/drivers/misc/sti/sdti.c
-index 8c27504..31780de 100644
---- a/drivers/misc/sti/sdti.c
-+++ b/drivers/misc/sti/sdti.c
-@@ -37,20 +37,25 @@
- static struct clk *sdti_fck, *sdti_ick;
- void __iomem *sti_base, *sti_channel_base;
- static DEFINE_SPINLOCK(sdti_lock);
-+static int sdti_initialized;
- 
- void sti_channel_write_trace(int len, int id, void *data,
- 				unsigned int channel)
- {
- 	const u8 *tpntr = data;
-+	unsigned long flags;
- 
--	spin_lock_irq(&sdti_lock);
-+	spin_lock_irqsave(&sdti_lock, flags);
-+
-+	if (unlikely(!sdti_initialized))
-+		goto skip;
- 
- 	sti_channel_writeb(id, channel);
- 	while (len--)
- 		sti_channel_writeb(*tpntr++, channel);
- 	sti_channel_flush(channel);
--
--	spin_unlock_irq(&sdti_lock);
-+ skip:
-+	spin_unlock_irqrestore(&sdti_lock, flags);
- }
- EXPORT_SYMBOL(sti_channel_write_trace);
- 
-@@ -117,6 +122,10 @@ static int __init omap_sdti_init(void)
- 	/* Enable SDTI */
- 	sti_writel((1 << 31) | (i & 0x3FFFFFFF), SDTI_WINCTRL);
- 
-+	spin_lock_irq(&sdti_lock);
-+	sdti_initialized = 1;
-+	spin_unlock_irq(&sdti_lock);
-+
- 	i = sti_readl(SDTI_REVISION);
- 	snprintf(buf, sizeof(buf), "OMAP SDTI support loaded (HW v%u.%u)\n",
- 		(i >> 4) & 0x0f, i & 0x0f);
--- 
-1.5.5.1
 
+Please let me know your comments.
+
+Thanks & regards
+Ramesh Gupta G
