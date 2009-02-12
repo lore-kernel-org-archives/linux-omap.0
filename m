@@ -1,56 +1,58 @@
-From: Ramesh Gupta Guntha <grgupta77@gmail.com>
-Subject: Re: PM branch updates: 3430sdp and omap3evm results
-Date: Thu, 12 Feb 2009 18:28:24 +0530
-Message-ID: <3a2dabf50902120458x7857316en96d96d5c6bc92196@mail.gmail.com>
-References: <3a2dabf50902010605n4f642d21p35d76f1eef8fa908@mail.gmail.com>
-	 <3a2dabf50902032144i24a539a4i887b0153e81d1e9e@mail.gmail.com>
-	 <871vueag1z.fsf@deeprootsystems.com>
-	 <3a2dabf50902032224u740e0039t4f16f5aa0952d0d7@mail.gmail.com>
-	 <87eiyd6jgn.fsf@deeprootsystems.com>
-	 <3a2dabf50902050650id663062mde28de09787e2043@mail.gmail.com>
-	 <3a2dabf50902101301i3b654850maec1f6cc01b85e26@mail.gmail.com>
-	 <878woe2ah0.fsf@deeprootsystems.com>
-	 <20090212003221.GE13748@atomide.com>
-	 <3a2dabf50902111730r37bccf78y9e888eca4e4403c3@mail.gmail.com>
+From: Jarkko Nikula <jarkko.nikula@nokia.com>
+Subject: Re: [PATCH 1/1] Allow I2C_OMAP to compile as a module.
+Date: Thu, 12 Feb 2009 15:10:09 +0200
+Message-ID: <20090212151009.f1920110.jarkko.nikula@nokia.com>
+References: <cf33789c708e166cea5350a1d3c19e20c6bf0056.1234439236.git.ext-atal.shargorodsky@nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from rv-out-0506.google.com ([209.85.198.224]:30218 "EHLO
-	rv-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756102AbZBLM6Z (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 12 Feb 2009 07:58:25 -0500
-Received: by rv-out-0506.google.com with SMTP id g37so291125rvb.1
-        for <linux-omap@vger.kernel.org>; Thu, 12 Feb 2009 04:58:24 -0800 (PST)
-In-Reply-To: <3a2dabf50902111730r37bccf78y9e888eca4e4403c3@mail.gmail.com>
+Received: from smtp.nokia.com ([192.100.122.230]:45837 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757076AbZBLNKG (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 12 Feb 2009 08:10:06 -0500
+Received: from esebh106.NOE.Nokia.com (esebh106.ntc.nokia.com [172.21.138.213])
+	by mgw-mx03.nokia.com (Switch-3.2.6/Switch-3.2.6) with ESMTP id n1CD9GtP015615
+	for <linux-omap@vger.kernel.org>; Thu, 12 Feb 2009 15:10:03 +0200
+In-Reply-To: <cf33789c708e166cea5350a1d3c19e20c6bf0056.1234439236.git.ext-atal.shargorodsky@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Kevin Hilman <khilman@deeprootsystems.com>, linux-omap@vger.kernel.org
+To: "Shargorodsky Atal (EXT-Teleca/Helsinki)" <ext-atal.shargorodsky@nokia.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Hi Tony,
+On Thu, 12 Feb 2009 13:54:54 +0100
+"Shargorodsky Atal (EXT-Teleca/Helsinki)"
+<ext-atal.shargorodsky@nokia.com> wrote:
 
-On 2/12/09, Ramesh Gupta Guntha <grgupta77@gmail.com> wrote:
-> Hi Tony,
->
-> On 2/12/09, Tony Lindgren <tony@atomide.com> wrote:
-> > * Kevin Hilman <khilman@deeprootsystems.com> [090210 14:30]:
-> > > Ramesh Gupta Guntha <grgupta77@gmail.com> writes:
-> > >
-> > > > Kevin,
-> > > > I pulled git kernel today but still I am not seeing this patch in pm
-> > > > branch, looks like this patch is missing in the pm branch. Can you
-> > > > please recheck the same?
-> > >
-> > > Hi Ramesh,
-> > >
-> > > It looks like Tony's tree is not sync'ing with my PM branch anymore.
-> > > I will check with Tony.
-> >
-> > Is there still a problem? I have not changed anything on that for few
-> > weeks.
+> This patch allows I2C_OMAP to be compiled as a module.
+> Only drivers/i2c/busses/i2c-omap.c can be compiled as a module,
+> but not arch/arm/plat-omap/i2c.c , so let the contents of i2c.c
+> to compile into the kernel if I2C_OMAP was selected to compile in
+> or as a module.
+> 
+> Signed-off-by: Atal Shargorodsky <ext-atal.shargorodsky@nokia.com>
+> ---
+>  arch/arm/plat-omap/Makefile |    3 +--
+>  arch/arm/plat-omap/i2c.c    |    4 ++++
+>  2 files changed, 5 insertions(+), 2 deletions(-)
+> 
+> diff --git a/arch/arm/plat-omap/Makefile b/arch/arm/plat-omap/Makefile
+> index 175bfd6..fe4738e 100644
+> --- a/arch/arm/plat-omap/Makefile
+> +++ b/arch/arm/plat-omap/Makefile
+> @@ -4,7 +4,7 @@
+> 
+>  # Common support
+>  obj-y := common.o sram.o clock.o devices.o dma.o mux.o gpio.o \
+> -        usb.o fb.o io.o dss.o
+> +        usb.o fb.o io.o dss.o i2c.o
 
-Now I am seeing this patch in pm branch.
+Can you base this on linux-omap? There is no dss there so patch doesn't
+apply.
 
-regards
-Ramesh Gupta G
+Generally I agree the patch since it fixes linking error when
+CONFIG_I2C_OMAP=m and arch/arm/plat-omap/i2c.o cannot be compiled as a
+module because it is for board initialization code.
+
+
+Jarkko
