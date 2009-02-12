@@ -1,186 +1,91 @@
-From: David Brownell <david-b@pacbell.net>
-Subject: Re: [PATCH 1/1] MMC/SD hot plug fix for TWL based boards
-Date: Wed, 11 Feb 2009 18:23:57 -0800
-Message-ID: <200902111823.57341.david-b@pacbell.net>
-References: <1234168718-12881-1-git-send-email-mani.pillai@ti.com>
+From: "Nayak, Rajendra" <rnayak@ti.com>
+Subject: RE: [PATCH 0/3] DSPBRIDGE DVFS and Off mode support for bridgedriver
+Date: Thu, 12 Feb 2009 10:12:33 +0530
+Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB02F5550D89@dbde02.ent.ti.com>
+References: <EAF47CD23C76F840A9E7FCE10091EFAB02A40C0BEB@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp123.sbc.mail.sp1.yahoo.com ([69.147.64.96]:20563 "HELO
-	smtp123.sbc.mail.sp1.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1756644AbZBLCX7 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Wed, 11 Feb 2009 21:23:59 -0500
-In-Reply-To: <1234168718-12881-1-git-send-email-mani.pillai@ti.com>
-Content-Disposition: inline
+Received: from arroyo.ext.ti.com ([192.94.94.40]:33209 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755917AbZBLEmp convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 11 Feb 2009 23:42:45 -0500
+Received: from dbdp20.itg.ti.com ([172.24.170.38])
+	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id n1C4gbNA026145
+	for <linux-omap@vger.kernel.org>; Wed, 11 Feb 2009 22:42:44 -0600
+Received: from dbde70.ent.ti.com (localhost [127.0.0.1])
+	by dbdp20.itg.ti.com (8.13.8/8.13.8) with ESMTP id n1C4gawh026890
+	for <linux-omap@vger.kernel.org>; Thu, 12 Feb 2009 10:12:37 +0530 (IST)
+In-Reply-To: <EAF47CD23C76F840A9E7FCE10091EFAB02A40C0BEB@dbde02.ent.ti.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Manikandan Pillai <mani.pillai@ti.com>
-Cc: linux-omap@vger.kernel.org
+To: "Gupta, Ramesh" <grgupta@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Monday 09 February 2009, Manikandan Pillai wrote:
-> MMC hotplug was not functioning properly since the SYS_nIRQ
-> MUX was setup as GPIO by default in the u-boot and was not
-> being set properly in the Linux kernel.
+
+> -----Original Message-----
+> From: linux-omap-owner@vger.kernel.org 
+> [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Gupta, Ramesh
+> Sent: Thursday, February 12, 2009 6:41 AM
+> To: linux-omap@vger.kernel.org
+> Subject: [PATCH 0/3] DSPBRIDGE DVFS and Off mode support for 
+> bridgedriver
 > 
-> Signed-off-by: Manikandan Pillai <mani.pillai@ti.com>
+> All,
+> 
+> The patch set provides DVFS and offmode support for bridgedriver.
+> These patches to be applied on top of the pm branch. Currently 
+> Some times we have observed issues like MMU fault and DSP 
+> Reset on setting VDD1 to OPP1.
+> 
+> Looks like the drop in voltage to DSP core causing the issue. 
+> With a slight increase in VDD1 voltage level for OPP1 [patch 
+> 3/3] solving the issue, We are investigating further into this.
 
-Hmm, most of this looks like the patch I sent last week,
-instead of work that you did.
+Ramesh,
 
-Normal practice is to post a patch on top of what I sent
-in such cases...
+The latest operating condition addendum for 3430 specifies VDD1 OPP1 voltage
+to be .975 and OPP2 to be 1.05. Same for VDD2. Rest OPP's remain 
+the same. I will send a patch on PM branch to update this and that sould
+solve your problem.
 
-
+regards,
+Rajendra
+ 
+> 
+> [PATCH 1/3]DSPBRIDGE-Offmode-and-DVFS-Support.patch
+> [PATCH 2/3]DSPBRIDGE-DVFS-and-OFF-mode-support-with-OPP2.patch
+> [PATCH 3/3]Boosting-OPP1-voltage-level.patch
+> 
+> 
+> Signed-off-by: Ramesh Gupta G <grgupta@ti.com>
 > ---
->  arch/arm/mach-omap2/board-omap3evm.c |   32 +++++++++++++++++++++++++++++++-
->  arch/arm/mach-omap2/mmc-twl4030.c    |    2 --
->  drivers/mmc/host/omap_hsmmc.c        |    5 ++++-
->  3 files changed, 35 insertions(+), 4 deletions(-)
-> 
-> diff --git a/arch/arm/mach-omap2/board-omap3evm.c b/arch/arm/mach-omap2/board-omap3evm.c
-> index 6386c25..6e9a399 100644
-> --- a/arch/arm/mach-omap2/board-omap3evm.c
-> +++ b/arch/arm/mach-omap2/board-omap3evm.c
-> @@ -19,6 +19,7 @@
->  #include <linux/err.h>
->  #include <linux/clk.h>
->  #include <linux/input.h>
-> +#include <linux/leds.h>
->  
->  #include <linux/spi/spi.h>
->  #include <linux/spi/ads7846.h>
-> @@ -50,6 +51,11 @@
->  #endif
->  
->  
-> +#if defined(CONFIG_TWL4030_CORE)
-> +static int omap3evm_twl_gpio_setup(struct device *dev,
-> +		unsigned gpio, unsigned ngpio);
-> +#endif
-
-
-Must you have the #ifdef there?  There doesn't
-seem to be a reason not to set up that IRQ in
-its dedicated IRQ role in all cases.
-
-
-> +
->  static struct resource omap3evm_smc911x_resources[] = {
->  	[0] =	{
->  		.start  = OMAP3EVM_ETHR_START,
-> @@ -102,6 +108,9 @@ static struct twl4030_gpio_platform_data omap3evm_gpio_data = {
->  	.gpio_base	= OMAP_MAX_GPIO_LINES,
->  	.irq_base	= TWL4030_GPIO_IRQ_BASE,
->  	.irq_end	= TWL4030_GPIO_IRQ_END,
-> +	.pulldowns	= BIT(2) | BIT(6) | BIT(8) | BIT(13)
-> +				| BIT(16) | BIT(17),
-> +	.setup		= omap3evm_twl_gpio_setup,
->  };
->  
->  static struct twl4030_usb_data omap3evm_usb_data = {
-> @@ -463,6 +472,27 @@ static void omap_init_pr785(void)
->  }
->  #endif
->  
-> +#if defined(CONFIG_TWL4030_CORE)
-> +static int omap3evm_twl_gpio_setup(struct device *dev,
-> +		unsigned gpio, unsigned ngpio)
-> +{
-> +	/* gpio + 0 is "mmc0_cd" (input/IRQ) */
-> +	mmc[0].gpio_cd = gpio + 0;
-> +	twl4030_mmc_init(mmc);
-> +
-> +	return 0;
-> +}
-> +
-> +static void omap_init_twl4030(void)
-> +{
-> +	if (cpu_is_omap343x()) {
-> +		omap_cfg_reg(AF26_34XX_GPIO0);
-> +		omap_cfg_reg(L8_34XX_GPIO63);
-> +	}
-> +}
-> +#endif
-> +
-> +
->  static void __init omap3_evm_init(void)
->  {
->  	omap3_evm_i2c_init();
-> @@ -476,7 +506,7 @@ static void __init omap3_evm_init(void)
->  
->  	omap_serial_init();
->  #if defined(CONFIG_TWL4030_CORE)
-> -	twl4030_mmc_init(mmc);
-> +	omap_init_twl4030();
->  #endif
-
-Just stick the omap_cfg_reg() calls there; no need to
-create subroutine indirection.
-
-
->  #if defined(CONFIG_OMAP3EVM_PR785)
->  	omap_init_pr785();
-> diff --git a/arch/arm/mach-omap2/mmc-twl4030.c b/arch/arm/mach-omap2/mmc-twl4030.c
-> index 88ae1bf..00a200f 100644
-> --- a/arch/arm/mach-omap2/mmc-twl4030.c
-> +++ b/arch/arm/mach-omap2/mmc-twl4030.c
-> @@ -125,7 +125,6 @@ int twl_mmc_set_voltage(struct hsmmc_controller *c, int vdd)
->  	else
->  		dev_grp_val = LDO_CLR;		/* Power down */
->  
-> -#if defined(CONFIG_TWL4030_CORE)
->  	ret = twl4030_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER,
->  					dev_grp_val, c->hsmmc_dev_grp);
->  	if (ret)
-> @@ -133,7 +132,6 @@ int twl_mmc_set_voltage(struct hsmmc_controller *c, int vdd)
->  
->  	ret = twl4030_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER,
->  					vmmc, c->hsmmc_dedicated);
-> -#endif
-
-If those #ifdefs are an issue, why only for EVM?  Other TWL
-based boards haven't needed it ...
-
->  	return ret;
->  }
->  
-> diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
-> index db37490..2f16072 100644
-> --- a/drivers/mmc/host/omap_hsmmc.c
-> +++ b/drivers/mmc/host/omap_hsmmc.c
-> @@ -518,6 +518,9 @@ static void mmc_omap_detect(struct work_struct *work)
->  	struct mmc_omap_host *host = container_of(work, struct mmc_omap_host,
->  						mmc_carddetect_work);
->  
-> +	struct omap_mmc_slot_data *slot = &mmc_slot(host);
-> +	host->carddetect = slot->card_detect(slot->card_detect_irq);
-> +
-
-This should not be needed ... why wasn't it done a long time back?
-
-
->  	sysfs_notify(&host->mmc->class_dev.kobj, NULL, "cover_switch");
->  	if (host->carddetect) {
->  		mmc_detect_change(host->mmc, (HZ * 200) / 1000);
-> @@ -947,7 +950,7 @@ static int __init omap_mmc_probe(struct platform_device *pdev)
->  		goto err1;
->  	}
->  
-> -	host->dbclk = clk_get(&pdev->dev, "mmchsdb_fck");
-> +	host->dbclk = clk_get(&pdev->dev, "mmchs_fck");
-
-This is odd.  If it's needed, why don't other OMAP3 boards need it too?
-
-
->  	/*
->  	 * MMC can still work without debounce clock.
->  	 */
-> -- 
-> 1.5.6
+>  arch/arm/plat-omap/include/dspbridge/cfgdefs.h |    2 +
+>  arch/arm/plat-omap/include/dspbridge/drv.h     |    6 +
+>  drivers/dsp/bridge/Kbuild                      |    3 +-
+>  drivers/dsp/bridge/rmgr/drv.c                  |   11 +-
+>  drivers/dsp/bridge/rmgr/drv_interface.c        |    5 +-
+>  drivers/dsp/bridge/rmgr/node.c                 |   37 ++--
+>  drivers/dsp/bridge/rmgr/proc.c                 |   48 ++--
+>  drivers/dsp/bridge/wmd/_tiomap_pwr.h           |    6 +
+>  drivers/dsp/bridge/wmd/io_sm.c                 |  339 
+> +++++++++++++-----------
+>  drivers/dsp/bridge/wmd/tiomap3430.c            |  150 +++++++----
+>  drivers/dsp/bridge/wmd/tiomap3430_pwr.c        |  225 
+> +++++++++++++++--
+>  drivers/dsp/bridge/wmd/tiomap_sm.c             |   51 ++--
+>  12 files changed, 590 insertions(+), 293 deletions(-)
 > 
 > 
-
-
+> Please let me know your comments.
+> 
+> Thanks & regards
+> Ramesh Gupta G
+> --
+> To unsubscribe from this list: send the line "unsubscribe 
+> linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+> 
