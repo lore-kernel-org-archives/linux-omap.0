@@ -1,91 +1,77 @@
-From: "Nayak, Rajendra" <rnayak@ti.com>
-Subject: RE: [PATCH 0/3] DSPBRIDGE DVFS and Off mode support for bridgedriver
-Date: Thu, 12 Feb 2009 10:12:33 +0530
-Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB02F5550D89@dbde02.ent.ti.com>
-References: <EAF47CD23C76F840A9E7FCE10091EFAB02A40C0BEB@dbde02.ent.ti.com>
+From: David Brownell <david-b@pacbell.net>
+Subject: Re: omap_apollon_2420_defconfig
+Date: Wed, 11 Feb 2009 22:31:12 -0800
+Message-ID: <200902112231.12887.david-b@pacbell.net>
+References: <20090209192614.GF19453@n2100.arm.linux.org.uk> <20090209205319.GH14200@atomide.com> <9c9fda240902091754q7f723bf2ha46206e52641297b@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:33209 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755917AbZBLEmp convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 11 Feb 2009 23:42:45 -0500
-Received: from dbdp20.itg.ti.com ([172.24.170.38])
-	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id n1C4gbNA026145
-	for <linux-omap@vger.kernel.org>; Wed, 11 Feb 2009 22:42:44 -0600
-Received: from dbde70.ent.ti.com (localhost [127.0.0.1])
-	by dbdp20.itg.ti.com (8.13.8/8.13.8) with ESMTP id n1C4gawh026890
-	for <linux-omap@vger.kernel.org>; Thu, 12 Feb 2009 10:12:37 +0530 (IST)
-In-Reply-To: <EAF47CD23C76F840A9E7FCE10091EFAB02A40C0BEB@dbde02.ent.ti.com>
-Content-Language: en-US
+Received: from smtp117.sbc.mail.sp1.yahoo.com ([69.147.64.90]:22268 "HELO
+	smtp117.sbc.mail.sp1.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1751110AbZBLGbP (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Thu, 12 Feb 2009 01:31:15 -0500
+In-Reply-To: <9c9fda240902091754q7f723bf2ha46206e52641297b@mail.gmail.com>
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Gupta, Ramesh" <grgupta@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Kyungmin Park <kmpark@infradead.org>, Greg KH <greg@kroah.com>
+Cc: Tony Lindgren <tony@atomide.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, linux-usb@vger.kernel.org
 
+On Monday 09 February 2009, Kyungmin Park wrote:
+> Hi,
+> 
+> In the previous patch, it's only fixed host side. But apollon case, it
+> only used udc, so udc configuration should select USB_OTG_UTILS also.
+> 
+> Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
 
-> -----Original Message-----
-> From: linux-omap-owner@vger.kernel.org 
-> [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Gupta, Ramesh
-> Sent: Thursday, February 12, 2009 6:41 AM
-> To: linux-omap@vger.kernel.org
-> Subject: [PATCH 0/3] DSPBRIDGE DVFS and Off mode support for 
-> bridgedriver
-> 
-> All,
-> 
-> The patch set provides DVFS and offmode support for bridgedriver.
-> These patches to be applied on top of the pm branch. Currently 
-> Some times we have observed issues like MMU fault and DSP 
-> Reset on setting VDD1 to OPP1.
-> 
-> Looks like the drop in voltage to DSP core causing the issue. 
-> With a slight increase in VDD1 voltage level for OPP1 [patch 
-> 3/3] solving the issue, We are investigating further into this.
+Acked-by: David Brownell <dbrownell@users.sourceforge.net>
 
-Ramesh,
+... Greg, this should be a 2.6.29-rc patch (buildfix).
 
-The latest operating condition addendum for 3430 specifies VDD1 OPP1 voltage
-to be .975 and OPP2 to be 1.05. Same for VDD2. Rest OPP's remain 
-the same. I will send a patch on PM branch to update this and that sould
-solve your problem.
-
-regards,
-Rajendra
- 
-> 
-> [PATCH 1/3]DSPBRIDGE-Offmode-and-DVFS-Support.patch
-> [PATCH 2/3]DSPBRIDGE-DVFS-and-OFF-mode-support-with-OPP2.patch
-> [PATCH 3/3]Boosting-OPP1-voltage-level.patch
-> 
-> 
-> Signed-off-by: Ramesh Gupta G <grgupta@ti.com>
 > ---
->  arch/arm/plat-omap/include/dspbridge/cfgdefs.h |    2 +
->  arch/arm/plat-omap/include/dspbridge/drv.h     |    6 +
->  drivers/dsp/bridge/Kbuild                      |    3 +-
->  drivers/dsp/bridge/rmgr/drv.c                  |   11 +-
->  drivers/dsp/bridge/rmgr/drv_interface.c        |    5 +-
->  drivers/dsp/bridge/rmgr/node.c                 |   37 ++--
->  drivers/dsp/bridge/rmgr/proc.c                 |   48 ++--
->  drivers/dsp/bridge/wmd/_tiomap_pwr.h           |    6 +
->  drivers/dsp/bridge/wmd/io_sm.c                 |  339 
-> +++++++++++++-----------
->  drivers/dsp/bridge/wmd/tiomap3430.c            |  150 +++++++----
->  drivers/dsp/bridge/wmd/tiomap3430_pwr.c        |  225 
-> +++++++++++++++--
->  drivers/dsp/bridge/wmd/tiomap_sm.c             |   51 ++--
->  12 files changed, 590 insertions(+), 293 deletions(-)
+> diff --git a/drivers/usb/gadget/Kconfig b/drivers/usb/gadget/Kconfig
+> index 3219d13..b26d6e6 100644
+> --- a/drivers/usb/gadget/Kconfig
+> +++ b/drivers/usb/gadget/Kconfig
+> @@ -191,6 +191,7 @@ config USB_GADGET_OMAP
+>  	boolean "OMAP USB Device Controller"
+>  	depends on ARCH_OMAP
+>  	select ISP1301_OMAP if MACH_OMAP_H2 || MACH_OMAP_H3 || MACH_OMAP_H4_OTG
+> +	select USB_OTG_UTILS if ARCH_OMAP
+>  	help
+>  	   Many Texas Instruments OMAP processors have flexible full
+>  	   speed USB device controllers, with support for up to 30
 > 
 > 
-> Please let me know your comments.
-> 
-> Thanks & regards
-> Ramesh Gupta G
+> On Tue, Feb 10, 2009 at 5:53 AM, Tony Lindgren <tony@atomide.com> wrote:
+> > * Russell King - ARM Linux <linux@arm.linux.org.uk> [090209 11:27]:
+> >> It would be nice to get the last OMAP defconfig in mainline working.
+> >> It's broken since 2.6.29-rc2-git3 due to this persistent problem:
+> >>
+> >> drivers/built-in.o: In function `omap_udc_probe':
+> >> omap.c:(.init.text+0x30cc): undefined reference to `otg_get_transceiver'
+> >> omap.c:(.init.text+0x38a4): undefined reference to `otg_put_transceiver'
+> >
+> > Hmm, looks like 2bf5fa13fc8e34d7b86307b99f64a24cb7a83852 did not fix it.
+> > Dave, do you already have a patch for this?
+> >
+> > Regards,
+> >
+> > Tony
+> > --
+> > To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> > the body of a message to majordomo@vger.kernel.org
+> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> >
 > --
-> To unsubscribe from this list: send the line "unsubscribe 
-> linux-omap" in
+> To unsubscribe from this list: send the line "unsubscribe linux-usb" in
 > the body of a message to majordomo@vger.kernel.org
 > More majordomo info at  http://vger.kernel.org/majordomo-info.html
 > 
 > 
+
+
