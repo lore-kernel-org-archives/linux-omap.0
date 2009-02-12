@@ -1,52 +1,74 @@
-From: "Gupta, Ramesh" <grgupta@ti.com>
-Subject: [PATCH 1/1] DSPBRIDGE Fix condition statement for Global Flush
-Date: Thu, 12 Feb 2009 17:58:58 +0530
-Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB02A40C11FF@dbde02.ent.ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+From: Atal Shargorodsky <ext-atal.shargorodsky@nokia.com>
+Subject: [PATCH 1/1] Allow I2C_OMAP to compile as a module.
+Date: Thu, 12 Feb 2009 14:54:54 +0200
+Message-ID: <cf33789c708e166cea5350a1d3c19e20c6bf0056.1234439236.git.ext-atal.shargorodsky@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:55230 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756304AbZBLM3f convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 12 Feb 2009 07:29:35 -0500
-Received: from dbdp20.itg.ti.com ([172.24.170.38])
-	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id n1CCTSeM027667
-	for <linux-omap@vger.kernel.org>; Thu, 12 Feb 2009 06:29:34 -0600
-Received: from dbde71.ent.ti.com (localhost [127.0.0.1])
-	by dbdp20.itg.ti.com (8.13.8/8.13.8) with ESMTP id n1CCTRQ5024030
-	for <linux-omap@vger.kernel.org>; Thu, 12 Feb 2009 17:59:27 +0530 (IST)
-Content-Language: en-US
+Received: from smtp.nokia.com ([192.100.105.134]:46790 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751110AbZBLMzh (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 12 Feb 2009 07:55:37 -0500
+Received: from esebh105.NOE.Nokia.com (esebh105.ntc.nokia.com [172.21.138.211])
+	by mgw-mx09.nokia.com (Switch-3.2.6/Switch-3.2.6) with ESMTP id n1CCtF9g002016
+	for <linux-omap@vger.kernel.org>; Thu, 12 Feb 2009 06:55:34 -0600
+In-Reply-To: <>
+References: <>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: linux-omap@vger.kernel.org
+Cc: Atal Shargorodsky <ext-atal.shargorodsky@nokia.com>
 
->From c04f200032378b9b56a1ac8e66f80c953f5707a5 Mon Sep 17 00:00:00 2001
-From: Ramesh Gupta G <grgupta@ti.com>
-Date: Thu, 12 Feb 2009 17:57:21 +0530
-Subject: [PATCH 1/1] DSPBRIDGE Fix condition statement for Global Flush
+This patch allows I2C_OMAP to be compiled as a module.
+Only drivers/i2c/busses/i2c-omap.c can be compiled as a module,
+but not arch/arm/plat-omap/i2c.c , so let the contents of i2c.c
+to compile into the kernel if I2C_OMAP was selected to compile in
+or as a module.
 
-This fixes the condition statement with the original patch
-set.
-
-Signed-off-by: Ramesh Gupta G <grgupta@ti.com>
+Signed-off-by: Atal Shargorodsky <ext-atal.shargorodsky@nokia.com>
 ---
- drivers/dsp/bridge/wmd/tiomap3430.c |    3 ++-
- 1 files changed, 2 insertions(+), 1 deletions(-)
+ arch/arm/plat-omap/Makefile |    3 +--
+ arch/arm/plat-omap/i2c.c    |    4 ++++
+ 2 files changed, 5 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/dsp/bridge/wmd/tiomap3430.c b/drivers/dsp/bridge/wmd/tiomap3430.c
-index 23fefcf..b093640 100644
---- a/drivers/dsp/bridge/wmd/tiomap3430.c
-+++ b/drivers/dsp/bridge/wmd/tiomap3430.c
-@@ -1472,7 +1472,8 @@ func_cont:
-                WakeDSP(pDevContext, NULL);
-                HW_MMU_TLBFlushAll(pDevContext->dwDSPMmuBase);
-                CLK_Disable(SERVICESCLK_iva2_ck);
--       }
-+       } else
-+               HW_MMU_TLBFlushAll(pDevContext->dwDSPMmuBase);
-        DBG_Trace(DBG_ENTER, "< WMD_BRD_MemMap status %x\n", status);
-        return status;
+diff --git a/arch/arm/plat-omap/Makefile b/arch/arm/plat-omap/Makefile
+index 175bfd6..fe4738e 100644
+--- a/arch/arm/plat-omap/Makefile
++++ b/arch/arm/plat-omap/Makefile
+@@ -4,7 +4,7 @@
+ 
+ # Common support
+ obj-y := common.o sram.o clock.o devices.o dma.o mux.o gpio.o \
+-	 usb.o fb.o io.o dss.o
++	 usb.o fb.o io.o dss.o i2c.o
+ obj-m :=
+ obj-n :=
+ obj-  :=
+@@ -21,7 +21,6 @@ obj-$(CONFIG_OMAP_COMPONENT_VERSION) += component-version.o
+ obj-$(CONFIG_OMAP_GPIO_SWITCH) += gpio-switch.o
+ obj-$(CONFIG_OMAP_DEBUG_DEVICES) += debug-devices.o
+ obj-$(CONFIG_OMAP_DEBUG_LEDS) += debug-leds.o
+-obj-$(CONFIG_I2C_OMAP) += i2c.o
+ 
+ # OMAP MMU framework
+ obj-$(CONFIG_OMAP_MMU_FWK) += mmu.o
+diff --git a/arch/arm/plat-omap/i2c.c b/arch/arm/plat-omap/i2c.c
+index 89a6ab0..08b8681 100644
+--- a/arch/arm/plat-omap/i2c.c
++++ b/arch/arm/plat-omap/i2c.c
+@@ -34,6 +34,8 @@
+ #define OMAP2_I2C_BASE2		0x48072000
+ #define OMAP2_I2C_BASE3		0x48060000
+ 
++#if defined(CONFIG_I2C_OMAP) || defined(CONFIG_I2C_OMAP_MODULE)
++
+ static const char name[] = "i2c_omap";
+ 
+ #define I2C_RESOURCE_BUILDER(base, irq)			\
+@@ -162,3 +164,5 @@ int __init omap_register_i2c_bus(int bus_id, u32 clkrate,
+ 	omap_i2c_mux_pins(bus_id - 1);
+ 	return platform_device_register(pdev);
  }
---
-1.5.3.2
++
++#endif
+-- 
+1.5.4.3
+
