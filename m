@@ -1,30 +1,26 @@
-From: David Brownell <david-b@pacbell.net>
-Subject: Re: [PATCH 0/3] musb_hdrc: Clean-up init code for mainline merge
-Date: Fri, 13 Feb 2009 12:50:22 -0800
-Message-ID: <200902131250.22332.david-b@pacbell.net>
-References: <20090212191408.19766.62874.stgit@localhost> <20090212192059.GB7562@atomide.com>
+From: Dominic Curran <dcurran@ti.com>
+Subject: [OMAPZOOM][PATCH v2 0/3] LV8093: Lens driver.
+Date: Fri, 13 Feb 2009 14:53:48 -0600
+Message-ID: <200902131453.49222.dcurran@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
   charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp119.sbc.mail.sp1.yahoo.com ([69.147.64.92]:26934 "HELO
-	smtp119.sbc.mail.sp1.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1752470AbZBMUuY (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Fri, 13 Feb 2009 15:50:24 -0500
-In-Reply-To: <20090212192059.GB7562@atomide.com>
+Return-path: <linux-media-owner@vger.kernel.org>
 Content-Disposition: inline
-Sender: linux-omap-owner@vger.kernel.org
+Sender: linux-media-owner@vger.kernel.org
+To: linux-omap <linux-omap@vger.kernel.org>
+Cc: linux-media@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org
 
-On Thursday 12 February 2009, Tony Lindgren wrote:
-> And here's what the musb_init patch for the mainline. No boards are
-> calling musb_init() yet, but that's easy to append.
-> 
+From: Dominic Curran <dcurran@ti.com>
+Subject: [OMAPZOOM][PATCH v2 0/3] LV8093: Lens driver.
 
-Looks fair to me -- though I didn't try it.
+Support for the Sanyo LV8093CS piezo-actuator lens driver.
 
+Driver was first submitted couple of weeks ago to omap-linux & linux-media.
 
+Took a few comments and this is 2nd submittion.
+
+thanks
+dom
