@@ -1,77 +1,42 @@
-From: Kalle Jokiniemi <kalle.jokiniemi-sMOQStClEysAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH 0/2] TWL: USB: Start using twl4030/5030 regulator driver
-Date: Fri, 13 Feb 2009 11:57:00 +0200
-Message-ID: <1234519020.17391.167.camel@ubuntu>
-References: <> <1234336002-26372-1-git-send-email-kalle.jokiniemi@digia.com>
-	 <200902102323.30395.david-b@pacbell.net>
-	 <1234349235.17391.104.camel@ubuntu>
+From: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+Subject: Re: [REVIEW PATCH 11/14] OMAP34XXCAM: Add driver
+Date: Fri, 13 Feb 2009 12:02:26 +0200
+Message-ID: <49954532.2070502@maxwell.research.nokia.com>
+References: <A24693684029E5489D1D202277BE894416429FA1@dlee02.ent.ti.com>	 <5e9665e10902102000i3433beb8jab7a70e7ac9b57e3@mail.gmail.com>	 <4993CB1F.603@maxwell.research.nokia.com> <5e9665e10902112352i57177f20r9022a7cb8a66fa0@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1234349235.17391.104.camel@ubuntu>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: David Brownell <david-b-yBeKhBN/0LDR7s880joybQ@public.gmane.org>
-Cc: lrg-kDsPt+C1G03kYMGBc/C6ZA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, jouni.hogander-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org, broonie-GFdadSzt00ze9xe1eoZjHA@public.gmane.org
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from smtp.nokia.com ([192.100.122.233]:32157 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750855AbZBMKCk (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 13 Feb 2009 05:02:40 -0500
+In-Reply-To: <5e9665e10902112352i57177f20r9022a7cb8a66fa0@mail.gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: DongSoo Kim <dongsoo.kim@gmail.com>
+Cc: "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Nagalla, Hari" <hnagalla@ti.com>, "Ailus Sakari (Nokia-D/Helsinki)" <Sakari.Ailus@nokia.com>, "Toivonen Tuukka.O (Nokia-D/Oulu)" <tuukka.o.toivonen@nokia.com>, "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>, "kyungmin.park@samsung.com" <kyungmin.park@samsung.com>, =?UTF-8?B?7ZiV7KSA?= =?UTF-8?B?IOq5gA==?= <riverful.kim@samsung.com>, "jongse.won@samsung.com" <jongse.won@samsung.com>
 
-On Wed, 2009-02-11 at 12:47 +0200, Kalle Jokiniemi wrote:
-> On Tue, 2009-02-10 at 23:23 -0800, David Brownell wrote:
-> > On Tuesday 10 February 2009, Kalle Jokiniemi wrote:
-> > > These couple of patches enable dynamic swithcing of the
-> > > regulators used by twl4030 usb tranceiver.
-> > > 
-> > > This set replaces the single patch "USB: disable twl4030
-> > > USB regulators when cable unplugged" sent previously.
-> > > The change to previous version is that possible errors
-> > > in regulator_get are now handled and the twl4030 usb
-> > > driver requires TWL_REGULATOR support to be compiled.
-> > 
-> > It'd make more sense to me as a single patch ... :)
+DongSoo Kim wrote:
+> Thank you for your comment.
 > 
-> OK, I'll put them together.
+> BTW, what should I do if I would rather use external ISP device than
+> OMAP3 internal ISP feature?
 > 
-> > 
-> > And also, instead of *continuing* after the regulators
-> > can't be acquired, it's better to abort.  It's not
-> > going to be able to do anything ... so don't finish
-> > probing, and don't register this "dead" transceiver.
-> 
-> Makes sense. I'll fix that.
+> You said that you just have raw sensors by now, so you mean this patch
+> is not verified working with some ISP modules?
 
-I ran into some trouble with the merged fix. For some reason clearing
-the VUSB3V1_DEV_GRP register causes VUSB_DEDICATED2.VUSB3V1_SLEEP bit to
-be enabled. This means that once VUSB3V1_DEV_GRP is put back to enabled
-state (VUSB3V1 changed to be part of P1 group again), VUSB3V1 does not
-go ACTIVE, but SLEEP state instead.
+I haven't verified it myself. Others might be using it.
 
-Anyone have a clue what might cause this?
+> I'm testing your patch on my own omap3 target board with NEC ISP...but
+> unfortunately not working yet ;(
 
-The VUSB_DEDICATED2.VUSB3V1_SLEEP bit remaps ACTIVE state to SLEEP.
+NEC ISP? A sensor with NEC ISP integrated?
 
-I tested with the original patch as well and it has the same behaviour.
-But I'm quite sure that I did not see this when I was doing the original
-patch.
+> I should try more harder. more research is needed :)
 
-I can workaround this by clearing the VUSB_DEDICATED2.VUSB3V1_SLEEP
-every time we enable the VUSB3V1 regulator, but I'd rather know why it
-changes in the first place.
+Thanks for the interest. :-)
 
-Dropped LKM from the cc...
-
-- Kalle
-
-
-> 
-> -Kalle
-> 
-> > 
-> > - Dave
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-- 
+Sakari Ailus
+sakari.ailus@maxwell.research.nokia.com
