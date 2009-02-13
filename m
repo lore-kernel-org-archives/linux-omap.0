@@ -1,76 +1,40 @@
-From: "DongSoo(Nathaniel) Kim" <dongsoo.kim@gmail.com>
-Subject: Re: [REVIEW PATCH 11/14] OMAP34XXCAM: Add driver
-Date: Fri, 13 Feb 2009 19:11:13 +0900
-Message-ID: <5e9665e10902130211h3aafb095l6bb3b50bc2cbf2fe@mail.gmail.com>
-References: <A24693684029E5489D1D202277BE894416429FA1@dlee02.ent.ti.com>
-	 <5e9665e10902102000i3433beb8jab7a70e7ac9b57e3@mail.gmail.com>
-	 <4993CB1F.603@maxwell.research.nokia.com>
-	 <5e9665e10902112352i57177f20r9022a7cb8a66fa0@mail.gmail.com>
-	 <49954532.2070502@maxwell.research.nokia.com>
+From: "Peter 'p2' De Schrijver" <peter.de-schrijver@nokia.com>
+Subject: Re: [PATCH 1/1] per board prm timings
+Date: Fri, 13 Feb 2009 12:24:30 +0200
+Message-ID: <20090213102430.GA4582@codecarver.research.nokia.com>
+References: <1234281875-19768-1-git-send-email-peter.de-schrijver@nokia.com> <1234281875-19768-2-git-send-email-peter.de-schrijver@nokia.com> <87d4dnpmxq.fsf@deeprootsystems.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-media-owner@vger.kernel.org>
-In-Reply-To: <49954532.2070502@maxwell.research.nokia.com>
-Sender: linux-media-owner@vger.kernel.org
-To: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
-Cc: "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Nagalla, Hari" <hnagalla@ti.com>, "Ailus Sakari (Nokia-D/Helsinki)" <Sakari.Ailus@nokia.com>, "Toivonen Tuukka.O (Nokia-D/Oulu)" <tuukka.o.toivonen@nokia.com>, "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>, "kyungmin.park@samsung.com" <kyungmin.park@samsung.com>, =?EUC-KR?B?x/zB2CCx6A==?= <riverful.kim@samsung.com>, "jongse.won@samsung.com" <jongse.won@samsung.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from smtp.nokia.com ([192.100.105.134]:51349 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750797AbZBMKYi (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 13 Feb 2009 05:24:38 -0500
+Content-Disposition: inline
+In-Reply-To: <87d4dnpmxq.fsf@deeprootsystems.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: ext Kevin Hilman <khilman@deeprootsystems.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Hi! Sakari.
+Hi Kevin,
 
-On Fri, Feb 13, 2009 at 7:02 PM, Sakari Ailus
-<sakari.ailus@maxwell.research.nokia.com> wrote:
-> DongSoo Kim wrote:
->>
->> Thank you for your comment.
->>
->> BTW, what should I do if I would rather use external ISP device than
->> OMAP3 internal ISP feature?
->>
->> You said that you just have raw sensors by now, so you mean this patch
->> is not verified working with some ISP modules?
->
-> I haven't verified it myself. Others might be using it.
+> Peter,
+> 
+> I like this approach much better than what we currently have.  Pushing
+> to PM branch.
+> 
+> The next thing I would like to see is all the register value defines
+> removed from prm-regbits-34xx.h.  That header is supposed to be for
+> the bitfield definitions, not for values.
+> 
 
-Some people using external ISP have informed me.
-Thank you.
-
->
->> I'm testing your patch on my own omap3 target board with NEC ISP...but
->> unfortunately not working yet ;(
->
-> NEC ISP? A sensor with NEC ISP integrated?
-
-Yep. CE131 exactly.
-
->
->> I should try more harder. more research is needed :)
->
-> Thanks for the interest. :-)
-
-Thank you too :)
-I wish I could send you my work as a patch ASAP.
+True. If this patch goes in, there is no need for the register value
+defines in prm-regbits-34xx.h any more.
 
 Cheers,
 
-Nate
-
->
-> --
-> Sakari Ailus
-> sakari.ailus@maxwell.research.nokia.com
->
-
-
+Peter.
 
 -- 
-========================================================
-DongSoo(Nathaniel), Kim
-Engineer
-Mobile S/W Platform Lab. S/W centre
-Telecommunication R&D Centre
-Samsung Electronics CO., LTD.
-e-mail : dongsoo.kim@gmail.com
-          dongsoo45.kim@samsung.com
-========================================================
+goa is a state of mind
