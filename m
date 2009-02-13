@@ -1,72 +1,46 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 1/3] ARM: OMAP: Fix omap34xx revision detection for
-	ES3.1
-Date: Fri, 13 Feb 2009 15:01:56 -0800
-Message-ID: <20090213230156.GM7562@atomide.com>
-References: <20090206033847.31313.45612.stgit@localhost.localdomain> <20090206034513.31313.42445.stgit@localhost.localdomain>
+From: Mark Brown <broonie@sirena.org.uk>
+Subject: Re: [PATCH 1/2] Add support for TPS6235x support
+Date: Fri, 13 Feb 2009 23:02:02 +0000
+Message-ID: <20090213230201.GA6447@sirena.org.uk>
+References: <1233723366-13053-1-git-send-email-mani.pillai@ti.com> <20090204115110.GA29849@sirena.org.uk> <200902131415.54104.david-b@pacbell.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-bos.mailhop.org ([63.208.196.178]:50353 "EHLO
-	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753407AbZBMXCB (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 13 Feb 2009 18:02:01 -0500
+Received: from cassiel.sirena.org.uk ([80.68.93.111]:3310 "EHLO
+	cassiel.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758291AbZBMXCO (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 13 Feb 2009 18:02:14 -0500
 Content-Disposition: inline
-In-Reply-To: <20090206034513.31313.42445.stgit@localhost.localdomain>
+In-Reply-To: <200902131415.54104.david-b@pacbell.net>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: linux@arm.linux.org.uk, linux-omap@vger.kernel.org, linux-arm-kernel@lists.arm.linux.org.uk, linux-kernel@vger.kernel.org
+To: David Brownell <david-b@pacbell.net>
+Cc: Manikandan Pillai <mani.pillai@ti.com>, linux-omap@vger.kernel.org
 
-* Paul Walmsley <paul@pwsan.com> [090205 19:52]:
-> From: Tony Lindgren <tony@atomide.com>
-> 
-> Fix omap34xx revision detection for ES3.1
-> 
-> linux-omap source commit is 1bafdfd33cc7a2b053ca705cf8623e1ae6cd4c52.
+On Fri, Feb 13, 2009 at 02:15:53PM -0800, David Brownell wrote:
 
-Just for reference, this is now in the mainline kernel as 
-commit 187e688d237a6df11a2d32e8ac480b6d1fbd40b9.
+> So what's the plan for merging it then?  I suspect it
+> relates to board-specific init ... regulator_register()
+> having changed signature for the 2.6.30 merge window,
+> and this FIXME remaining un-addressed:
 
-Tony
+Yes, it'll need to be updated for mainline.  I'd expect the updated
+version to be submitted via linux-kernel to myself and Liam (it's Liam
+who'd be doing the actual merge with Linus).
 
-> Signed-off-by: Tony Lindgren <tony@atomide.com>
-> Signed-off-by: Paul Walmsley <paul@pwsan.com>
-> ---
->  arch/arm/mach-omap2/id.c              |    6 +++++-
->  arch/arm/plat-omap/include/mach/cpu.h |    1 +
->  2 files changed, 6 insertions(+), 1 deletions(-)
-> 
-> diff --git a/arch/arm/mach-omap2/id.c b/arch/arm/mach-omap2/id.c
-> index b0f8e7d..b52a02f 100644
-> --- a/arch/arm/mach-omap2/id.c
-> +++ b/arch/arm/mach-omap2/id.c
-> @@ -172,9 +172,13 @@ void __init omap34xx_check_revision(void)
->  			omap_revision = OMAP3430_REV_ES3_0;
->  			rev_name = "ES3.0";
->  			break;
-> +		case 4:
-> +			omap_revision = OMAP3430_REV_ES3_1;
-> +			rev_name = "ES3.1";
-> +			break;
->  		default:
->  			/* Use the latest known revision as default */
-> -			omap_revision = OMAP3430_REV_ES3_0;
-> +			omap_revision = OMAP3430_REV_ES3_1;
->  			rev_name = "Unknown revision\n";
->  		}
->  	}
-> diff --git a/arch/arm/plat-omap/include/mach/cpu.h b/arch/arm/plat-omap/include/mach/cpu.h
-> index b2062f1..a8e1178 100644
-> --- a/arch/arm/plat-omap/include/mach/cpu.h
-> +++ b/arch/arm/plat-omap/include/mach/cpu.h
-> @@ -339,6 +339,7 @@ IS_OMAP_TYPE(3430, 0x3430)
->  #define OMAP3430_REV_ES2_0	0x34301034
->  #define OMAP3430_REV_ES2_1	0x34302034
->  #define OMAP3430_REV_ES3_0	0x34303034
-> +#define OMAP3430_REV_ES3_1	0x34304034
->  
->  /*
->   * omap_chip bits
-> 
-> 
+> >        /* FIXME board init code should provide init_data->driver_data
+> >         * saying how to configure this regulator:  how big is the
+> >         * inductor (affects light PFM mode optimization), slew rate,
+> >         * PLL multiplier, and so forth.
+> >         */
+
+> Maybe there should be a <linux/regulator/tps6235x.h>
+> header with that board-specific data, and the framework
+> data that's now thankfully not required to be held in
+> the platform_data.  (That init_data->driver_data was
+
+I'd expect that would be done for whatever data is required - it's the
+standard thing and it's not new for regulator drivers either.  I've no
+specific knowledge of this chip so I can't really assess what's vital to
+get implemented prior to merge and what can be added in further patches
+later.
