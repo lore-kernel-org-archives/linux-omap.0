@@ -1,56 +1,43 @@
-From: Felipe Balbi <me@felipebalbi.com>
-Subject: Re: [PATCH 4/8] i2c: lp5521: move to LED framework
-Date: Thu, 12 Feb 2009 18:00:55 -0600
-Message-ID: <bdea5f5962eebe1bd420f184ebc7b32c@felipebalbi.com>
-References: <1234268165-23573-1-git-send-email-felipe.balbi@nokia.com> <1234268165-23573-4-git-send-email-felipe.balbi@nokia.com> <1234268165-23573-5-git-send-email-felipe.balbi@nokia.com> <200902121418.17837.david-b@pacbell.net>
+From: =?EUC-KR?B?tOvAzrHi?= <daeinki@gmail.com>
+Subject: Hi David Brownell. I have a question for twl4030 driver.
+Date: Fri, 13 Feb 2009 12:06:18 +0900
+Message-ID: <90b950fc0902121906kdf51637v21b90a2aba94a93f@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ns1.siteground211.com ([209.62.36.12]:53528 "EHLO
-	serv01.siteground211.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750848AbZBMABI (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 12 Feb 2009 19:01:08 -0500
-In-Reply-To: <200902121418.17837.david-b@pacbell.net>
+Received: from yx-out-2324.google.com ([74.125.44.28]:38505 "EHLO
+	yx-out-2324.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751599AbZBMDGT (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 12 Feb 2009 22:06:19 -0500
+Received: by yx-out-2324.google.com with SMTP id 8so554828yxm.1
+        for <linux-omap@vger.kernel.org>; Thu, 12 Feb 2009 19:06:18 -0800 (PST)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: David Brownell <david-b@pacbell.net>
-Cc: Felipe Balbi <felipe.balbi@nokia.com>, linux-omap@vger.kernel.org
+Cc: linux-omap@vger.kernel.org
 
+I added "struct regulator_init_data xxx_vpll2" to board-xx.c file to use VPLL2.
+but couldn't use it because you annotated codes for VPLL2 like below.
 
+in drivers/mfd/twl4030-core.c file.
+	/* maybe add LDOs that are omitted on cost-reduced parts */
+	if (twl_has_regulator() && !(features & TPS_SUBSET)) {
+		/*
+		child = add_regulator(TWL4030_REG_VPLL2, pdata->vpll2);
+		if (IS_ERR(child))
+			return PTR_ERR(child);
+		*/
 
-On Thu, 12 Feb 2009 14:18:17 -0800, David Brownell <david-b@pacbell.net=
->
-wrote:
-> On Tuesday 10 February 2009, Felipe Balbi wrote:
->> +=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0chip->ledr.name =3D "lp55=
-21:red";
->=20
-> Rule of thumb: assume there can always be multiple instances
-> of a device.  In this case that's trivially possible
->=20
-> Exception to that rule:  rare, based on system-wide concerns.
-> Like there being only one PMIC, one OTG port, and so on.  In
-> this case, not applicable.
->=20
->=20
-> I'd suggest allocating some memory in the per-lp5521 struct
-> to hold the strings, and catenating them with a label provided
-> in the platform data.   That way you won't be assuming there's
-> only a single lp5521, and the names for the LEDs can be more
-> relevant to the board ... "n810::red" and so forth.
+also in drivers/regulator/twl4030-regulator.c file.
+static struct twlreg_info twl4030_regs[] = {
+	/*
+ 	TWL_ADJUSTABLE_LDO(VPLL1, 0x2f, 7),
+ 	TWL_ADJUSTABLE_LDO(VPLL2, 0x33, 8),
+	*/
 
-makes sense to me, I'll update this patch and resend :-)
+So I could use VPLL2 after I get rid of those annotations.
+I wonder why did you annotate for VPLL2.
+Does using VPLL2 has some problems?
 
---=20
-Best Regards,
-
-=46elipe Balbi
-http://blog.felipebalbi.com
-me@felipebalbi.com
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+- InKi -
