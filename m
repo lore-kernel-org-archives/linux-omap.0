@@ -1,89 +1,75 @@
-From: Felipe Balbi <me@felipebalbi.com>
-Subject: Re: [PATCH 5/6] leds: lp5521: move to drivers/leds
-Date: Sat, 14 Feb 2009 00:36:37 +0200
-Message-ID: <20090213223636.GP10711@frodo>
-References: <bdea5f5962eebe1bd420f184ebc7b32c@felipebalbi.com> <1234529032-25354-5-git-send-email-felipe.balbi@nokia.com> <1234529032-25354-6-git-send-email-felipe.balbi@nokia.com> <200902131249.00592.david-b@pacbell.net>
-Reply-To: me@felipebalbi.com
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: Failure for IOREMAP
+Date: Fri, 13 Feb 2009 14:49:51 -0800
+Message-ID: <20090213224951.GL7562@atomide.com>
+References: <d105d8d00902070231t7d37faabwda9fb45bff5a1e43@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ns1.siteground211.com ([209.62.36.12]:57447 "EHLO
-	serv01.siteground211.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753457AbZBMWgo (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 13 Feb 2009 17:36:44 -0500
+Received: from mho-01-bos.mailhop.org ([63.208.196.178]:59892 "EHLO
+	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753460AbZBMWty (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 13 Feb 2009 17:49:54 -0500
 Content-Disposition: inline
-In-Reply-To: <200902131249.00592.david-b@pacbell.net>
+In-Reply-To: <d105d8d00902070231t7d37faabwda9fb45bff5a1e43@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: David Brownell <david-b@pacbell.net>
-Cc: Felipe Balbi <felipe.balbi@nokia.com>, linux-omap@vger.kernel.org
+To: Shreyas Mahajan <mahajan.shreyas@gmail.com>
+Cc: linux-omap@vger.kernel.org
 
-On Fri, Feb 13, 2009 at 12:49:00PM -0800, David Brownell wrote:
-> On Friday 13 February 2009, Felipe Balbi wrote:
-> > +=A0=A0=A0=A0=A0=A0=A0if (!strncmp(buf, "run", 3))
-> > +=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0lp5521_set_mode(chip,=
- LP5521_MODE_RUN);
-> > +=A0=A0=A0=A0=A0=A0=A0else if (!strncmp(buf, "load", 4))
-> > +=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0lp5521_set_mode(chip,=
- LP5521_MODE_LOAD);
-> > +=A0=A0=A0=A0=A0=A0=A0else if (!strncmp(buf, "direct", 6))
-> > +=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0lp5521_set_mode(chip,=
- LP5521_MODE_DIRECT_CONTROL);
->=20
-> Minor nit, which could be addressed by a followon patch:
-> This is an ideal use-case for using sysfs_streq().
->=20
-> And there's no terminal "else len =3D -EINVAL" to handle the
-> case of illegal modes...
+* Shreyas Mahajan <mahajan.shreyas@gmail.com> [090207 02:31]:
+> Hello,
+>         Currently I am working on OMAP LDP board. I currently have 128
+> MB of Memory, of which I am booting with 64MB with 'mem=64M' option. I
+> tried to use ioremap function to remap some memory above 64MB.
+> Function call to IOREMAP from  'omap_ldp_init' in 'board-ldp.c' works
+> fine returning a virtual address  (0xc4808000 every time). But when I
+> tried to read from that memory, it gives
+> 'Unhandled fault: external abort on non-linefetch (0x1008) at
+> 0xc4808000'. Entire Log is:
+> 
+> 'Unhandled fault: external abort on non-linefetch (0x1008) at 0xc4808000
+> Internal error: : 1008 [#1]
+> Modules linked in:
+> CPU: 0    Not tainted  (2.6.29-rc3-omap1-05417-gc00b556-dirty #80)
+> PC is at omap_ldp_init+0x134/0x1a4
+> LR is at release_console_sem+0x190/0x1a4
+> pc : [<c0011afc>]    lr : [<c004921c>]    psr: 60000013
+> sp : c3817f30  ip : c3817e60  fp : c3817f44
+> r10: 00000000  r9 : 00000000  r8 : 00000000
+> r7 : 00000000  r6 : c021c820  r5 : c021d4f0  r4 : 00000000
+> r3 : c4808000  r2 : c0207434  r1 : 0000070f  r0 : c01d3d20
+> Flags: nZCv  IRQs on  FIQs on  Mode SVC_32  ISA ARM  Segment kernel
+> Control: 10c5387f  Table: 80004019  DAC: 00000017
+> Process swapper (pid: 1, stack limit = 0xc38162e0)
+> Stack: (0xc3817f30 to 0xc3818000)
+> 7f20:                                     c001c57c c001c530 c3817f54 c3817f48
+> 7f40: c000e650 c00119d4 c3817fdc c3817f58 c0023298 c000e63c c383d0a0 c020e530
+> 7f60: c000e630 00000000 c3817f94 c3817f78 c00d3600 c00d33b0 c3817f94 c383e800
+> 7f80: c00d3740 c3817f9e c3817fc4 c3817f98 c006e7ac c00d35d0 c3817fb4 3533f9f0
+> 7fa0: 00000031 00000000 00000170 c001c530 00000000 c001c57c c001c530 00000000
+> 7fc0: 00000000 00000000 00000000 00000000 c3817ff4 c3817fe0 c00088b8 c0023244
+> 7fe0: 00000000 00000000 00000000 c3817ff8 c004b598 c0008854 00ffff00 00ffff00
+> Backtrace:
+> [<c00119c8>] (omap_ldp_init+0x0/0x1a4) from [<c000e650>]
+> (customize_machine+0x20/0x2c)
+>  r5:c001c530 r4:c001c57c
+> [<c000e630>] (customize_machine+0x0/0x2c) from [<c0023298>]
+> (__exception_text_end+0x60/0x198)
+> [<c0023238>] (__exception_text_end+0x0/0x198) from [<c00088b8>]
+> (kernel_init+0x70/0xdc)
+> [<c0008848>] (kernel_init+0x0/0xdc) from [<c004b598>] (do_exit+0x0/0x65c)
+>  r5:00000000 r4:00000000
+> Code: e3a04000 e59f503c e59f0064 e5953008 (e7d31004)
+> <4>---[ end trace 1b75b31a2719ed1c ]---
+> <0>Kernel panic - not syncing: Attempted to kill init!'
+> 
+> 
+> I tried to find cause of fault but failed. Could anyone please help me with it?
 
-Ok, here's an *untested* patch solving issues.
+This looks like you don't have the interface clock enabled for the
+device you're trying to access.
 
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D cut here =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
-=46rom 0872878daaa4a1768a3f56995ec416941758be6b Mon Sep 17 00:00:00 200=
-1
-=46rom: Felipe Balbi <felipe.balbi@nokia.com>
-Date: Sat, 14 Feb 2009 00:34:56 +0200
-Subject: [PATCH] leds: lp5521: use sysfs_streq()
+Regards,
 
-instead of using strcmp() for comparing strings,
-use sysfs_streq().
-
-Signed-off-by: Felipe Balbi <felipe.balbi@nokia.com>
----
- drivers/leds/leds-lp5521.c |    8 +++++---
- 1 files changed, 5 insertions(+), 3 deletions(-)
-
-diff --git a/drivers/leds/leds-lp5521.c b/drivers/leds/leds-lp5521.c
-index b3ba52a..3e1ca31 100644
---- a/drivers/leds/leds-lp5521.c
-+++ b/drivers/leds/leds-lp5521.c
-@@ -352,12 +352,14 @@ static ssize_t store_mode(struct device *dev,
-=20
- 	mutex_lock(&chip->lock);
-=20
--	if (!strncmp(buf, "run", 3))
-+	if (sysfs_streq(buf, "run"))
- 		lp5521_set_mode(chip, LP5521_MODE_RUN);
--	else if (!strncmp(buf, "load", 4))
-+	else if (sysfs_streq(buf, "load"))
- 		lp5521_set_mode(chip, LP5521_MODE_LOAD);
--	else if (!strncmp(buf, "direct", 6))
-+	else if (sysfs_streq(buf, "direct"))
- 		lp5521_set_mode(chip, LP5521_MODE_DIRECT_CONTROL);
-+	else
-+		len =3D -EINVAL;
-=20
- 	mutex_unlock(&chip->lock);
-=20
---=20
-1.6.2.rc0.61.g5cd12
-
-
---=20
-balbi
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Tony
