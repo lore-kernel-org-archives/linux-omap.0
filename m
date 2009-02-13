@@ -1,93 +1,42 @@
-From: Dominic Curran <dcurran@ti.com>
-Subject: [OMAPZOOM][PATCH v2 3/3] LV8093: Add support to zoom2 board file.
-Date: Fri, 13 Feb 2009 14:54:08 -0600
-Message-ID: <200902131454.08858.dcurran@ti.com>
+From: David Brownell <david-b@pacbell.net>
+Subject: Re: [PATCH 0/1] Group and resource assignments for TWL4030
+Date: Fri, 13 Feb 2009 12:55:21 -0800
+Message-ID: <200902131255.21379.david-b@pacbell.net>
+References: <1234271495-11705-1-git-send-email-peter.de-schrijver@nokia.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
   charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-media-owner@vger.kernel.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from smtp127.sbc.mail.sp1.yahoo.com ([69.147.65.186]:30755 "HELO
+	smtp127.sbc.mail.sp1.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1752996AbZBMUzX (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Fri, 13 Feb 2009 15:55:23 -0500
+In-Reply-To: <1234271495-11705-1-git-send-email-peter.de-schrijver@nokia.com>
 Content-Disposition: inline
-Sender: linux-media-owner@vger.kernel.org
-To: linux-omap <linux-omap@vger.kernel.org>
-Cc: linux-media@vger.kernel.org
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Peter 'p2' De Schrijver <peter.de-schrijver@nokia.com>
+Cc: linux-omap@vger.kernel.org
 
-From: Dominic Curran <dcurran@ti.com>
-Subject: [OMAPZOOM][PATCH v2 3/3] LV8093: Add support to zoom2 board file.
+On Tuesday 10 February 2009, Peter 'p2' De Schrijver wrote:
+> 
+> This patch introduces support for board specific group assignments of TWL4030
+> resources. The resource type and type2 fields can also be specified.
 
-Add support for the LV8093 to the OMAP3430 Zoom2 board file.
-The LV8093 is the lens driver for the Sony IMX046 camera.
+Do we have any real examples yet of needing to assign
+resources to anything other than P1 (processor)?
 
-Signed-off-by: Kraig Proehl <kraig.proehl@hp.com>
-Signed-off-by: Dominic Curran <dcurran@ti.com>
----
- arch/arm/configs/omap_zoom2_defconfig |    1 +
- arch/arm/mach-omap2/board-zoom2.c     |   28 ++++++++++++++++++++++++++++
- 2 files changed, 29 insertions(+)
+I'd sort of like to stick to simplifying assumptions,
+notably "only P1 matters", until we have a clear need
+to switch to another one.
 
-Index: omapzoom04/arch/arm/configs/omap_zoom2_defconfig
-===================================================================
---- omapzoom04.orig/arch/arm/configs/omap_zoom2_defconfig
-+++ omapzoom04/arch/arm/configs/omap_zoom2_defconfig
-@@ -995,6 +995,7 @@ CONFIG_VIDEO_CAPTURE_DRIVERS=y
- # CONFIG_VIDEO_DW9710 is not set
- # CONFIG_VIDEO_OV3640 is not set
- CONFIG_VIDEO_IMX046=y
-+CONFIG_VIDEO_LV8093=y
- # CONFIG_VIDEO_SAA711X is not set
- # CONFIG_VIDEO_SAA717X is not set
- # CONFIG_VIDEO_TVP5150 is not set
-Index: omapzoom04/arch/arm/mach-omap2/board-zoom2.c
-===================================================================
---- omapzoom04.orig/arch/arm/mach-omap2/board-zoom2.c
-+++ omapzoom04/arch/arm/mach-omap2/board-zoom2.c
-@@ -75,6 +75,10 @@
- #endif
- #endif
- 
-+#if defined(CONFIG_VIDEO_LV8093) || defined(CONFIG_VIDEO_LV8093_MODULE)
-+#include <../drivers/media/video/lv8093.h>
-+#endif
-+
- #ifdef CONFIG_TOUCHSCREEN_SYNAPTICS
- #define OMAP_SYNAPTICS_GPIO		163
- #endif
-@@ -326,6 +330,24 @@ static struct twl4030_keypad_data ldp_kp
- 	.irq		= TWL4030_MODIRQ_KEYPAD,
- };
- 
-+#if defined(CONFIG_VIDEO_LV8093) || defined(CONFIG_VIDEO_LV8093_MODULE)
-+static int lv8093_lens_set_prv_data(void *priv)
-+{
-+	struct omap34xxcam_hw_config *hwc = priv;
-+
-+	hwc->dev_index = 2;
-+	hwc->dev_minor = 5;
-+	hwc->dev_type = OMAP34XXCAM_SLAVE_LENS;
-+	hwc->interface_type = ISP_CSIA;
-+	return 0;
-+}
-+
-+static struct lv8093_platform_data zoom2_lv8093_platform_data = {
-+	.power_set      = NULL,
-+	.priv_data_set  = lv8093_lens_set_prv_data,
-+};
-+#endif
-+
- #if defined(CONFIG_VIDEO_IMX046) || defined(CONFIG_VIDEO_IMX046_MODULE)
- 
- static struct omap34xxcam_sensor_config imx046_hwc = {
-@@ -716,6 +738,12 @@ static struct i2c_board_info __initdata 
- 		.platform_data = &zoom2_imx046_platform_data,
- 	},
- #endif
-+#if defined(CONFIG_VIDEO_LV8093) || defined(CONFIG_VIDEO_LV8093_MODULE)
-+	{
-+		I2C_BOARD_INFO(LV8093_NAME,  LV8093_AF_I2C_ADDR),
-+		.platform_data = &zoom2_lv8093_platform_data,
-+	},
-+#endif
- };
- 
- static int __init omap_i2c_init(void)
+This sort of thing ties into some patches I have
+floating around, to disable regulators turned on
+inappropriately by the boot loader.  I was doing
+that in a late_initcall in the regulator driver ...
+but it's a bit messy, as the regulator framework
+has deficiencies in that area (too).
+
+- dave
