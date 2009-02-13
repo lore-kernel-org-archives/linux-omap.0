@@ -1,7 +1,7 @@
 From: Dominic Curran <dcurran@ti.com>
-Subject: [OMAPZOOM][PATCH v2 2/3] LV8093: Add to Kconfig.
-Date: Fri, 13 Feb 2009 14:54:07 -0600
-Message-ID: <200902131454.07202.dcurran@ti.com>
+Subject: [OMAPZOOM][PATCH v2 3/3] LV8093: Add support to zoom2 board file.
+Date: Fri, 13 Feb 2009 14:54:08 -0600
+Message-ID: <200902131454.08858.dcurran@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
   charset="us-ascii"
@@ -14,43 +14,80 @@ Cc: linux-media@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
 From: Dominic Curran <dcurran@ti.com>
-Subject: [OMAPZOOM][PATCH v2 2/3] LV8093: Add to Kconfig.
+Subject: [OMAPZOOM][PATCH v2 3/3] LV8093: Add support to zoom2 board file.
 
-Add LV8093 support to Kconfig and Makefile.
+Add support for the LV8093 to the OMAP3430 Zoom2 board file.
+The LV8093 is the lens driver for the Sony IMX046 camera.
 
 Signed-off-by: Kraig Proehl <kraig.proehl@hp.com>
 Signed-off-by: Dominic Curran <dcurran@ti.com>
 ---
- drivers/media/video/Kconfig  |    6 ++++++
- drivers/media/video/Makefile |    1 +
- 2 files changed, 7 insertions(+)
+ arch/arm/configs/omap_zoom2_defconfig |    1 +
+ arch/arm/mach-omap2/board-zoom2.c     |   28 ++++++++++++++++++++++++++++
+ 2 files changed, 29 insertions(+)
 
-Index: omapzoom04/drivers/media/video/Kconfig
+Index: omapzoom04/arch/arm/configs/omap_zoom2_defconfig
 ===================================================================
---- omapzoom04.orig/drivers/media/video/Kconfig
-+++ omapzoom04/drivers/media/video/Kconfig
-@@ -341,6 +341,12 @@ config VIDEO_IMX046
- 	  This is a Video4Linux2 sensor-level driver for the Sony
- 	  IMX046 camera.
+--- omapzoom04.orig/arch/arm/configs/omap_zoom2_defconfig
++++ omapzoom04/arch/arm/configs/omap_zoom2_defconfig
+@@ -995,6 +995,7 @@ CONFIG_VIDEO_CAPTURE_DRIVERS=y
+ # CONFIG_VIDEO_DW9710 is not set
+ # CONFIG_VIDEO_OV3640 is not set
+ CONFIG_VIDEO_IMX046=y
++CONFIG_VIDEO_LV8093=y
+ # CONFIG_VIDEO_SAA711X is not set
+ # CONFIG_VIDEO_SAA717X is not set
+ # CONFIG_VIDEO_TVP5150 is not set
+Index: omapzoom04/arch/arm/mach-omap2/board-zoom2.c
+===================================================================
+--- omapzoom04.orig/arch/arm/mach-omap2/board-zoom2.c
++++ omapzoom04/arch/arm/mach-omap2/board-zoom2.c
+@@ -75,6 +75,10 @@
+ #endif
+ #endif
  
-+config VIDEO_LV8093
-+	tristate "Piezo Actuator Lens driver for LV8093"
-+	depends on I2C && VIDEO_V4L2
-+	---help---
-+	  This is a Video4Linux2 lens driver for the Sanyo LV8093.
++#if defined(CONFIG_VIDEO_LV8093) || defined(CONFIG_VIDEO_LV8093_MODULE)
++#include <../drivers/media/video/lv8093.h>
++#endif
 +
- config VIDEO_SAA7110
- 	tristate "Philips SAA7110 video decoder"
- 	depends on VIDEO_V4L1 && I2C
-Index: omapzoom04/drivers/media/video/Makefile
-===================================================================
---- omapzoom04.orig/drivers/media/video/Makefile
-+++ omapzoom04/drivers/media/video/Makefile
-@@ -116,6 +116,7 @@ obj-$(CONFIG_VIDEO_MT9P012)	+= mt9p012.o
- obj-$(CONFIG_VIDEO_DW9710) += dw9710.o
- obj-$(CONFIG_VIDEO_OV3640)     += ov3640.o
- obj-$(CONFIG_VIDEO_IMX046)     += imx046.o
-+obj-$(CONFIG_VIDEO_LV8093)     += lv8093.o
+ #ifdef CONFIG_TOUCHSCREEN_SYNAPTICS
+ #define OMAP_SYNAPTICS_GPIO		163
+ #endif
+@@ -326,6 +330,24 @@ static struct twl4030_keypad_data ldp_kp
+ 	.irq		= TWL4030_MODIRQ_KEYPAD,
+ };
  
- obj-$(CONFIG_USB_DABUSB)        += dabusb.o
- obj-$(CONFIG_USB_OV511)         += ov511.o
++#if defined(CONFIG_VIDEO_LV8093) || defined(CONFIG_VIDEO_LV8093_MODULE)
++static int lv8093_lens_set_prv_data(void *priv)
++{
++	struct omap34xxcam_hw_config *hwc = priv;
++
++	hwc->dev_index = 2;
++	hwc->dev_minor = 5;
++	hwc->dev_type = OMAP34XXCAM_SLAVE_LENS;
++	hwc->interface_type = ISP_CSIA;
++	return 0;
++}
++
++static struct lv8093_platform_data zoom2_lv8093_platform_data = {
++	.power_set      = NULL,
++	.priv_data_set  = lv8093_lens_set_prv_data,
++};
++#endif
++
+ #if defined(CONFIG_VIDEO_IMX046) || defined(CONFIG_VIDEO_IMX046_MODULE)
+ 
+ static struct omap34xxcam_sensor_config imx046_hwc = {
+@@ -716,6 +738,12 @@ static struct i2c_board_info __initdata 
+ 		.platform_data = &zoom2_imx046_platform_data,
+ 	},
+ #endif
++#if defined(CONFIG_VIDEO_LV8093) || defined(CONFIG_VIDEO_LV8093_MODULE)
++	{
++		I2C_BOARD_INFO(LV8093_NAME,  LV8093_AF_I2C_ADDR),
++		.platform_data = &zoom2_lv8093_platform_data,
++	},
++#endif
+ };
+ 
+ static int __init omap_i2c_init(void)
