@@ -1,40 +1,45 @@
-From: Ameya Palande <ameya.palande@nokia.com>
-Subject: [PATCH] ARM: OMAP: Removal of duplicate cbus entry
-Date: Fri, 13 Feb 2009 16:00:45 +0200
-Message-ID: <1234533645-30120-1-git-send-email-ameya.palande@nokia.com>
-References: <20090213092300.1b9a5d38.jarkko.nikula@nokia.com>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: [PATCH 1/1] per board prm timings
+Date: Fri, 13 Feb 2009 11:08:08 -0800
+Message-ID: <87skmijgtj.fsf@deeprootsystems.com>
+References: <1234281875-19768-1-git-send-email-peter.de-schrijver@nokia.com>
+	<1234281875-19768-2-git-send-email-peter.de-schrijver@nokia.com>
+	<87d4dnpmxq.fsf@deeprootsystems.com>
+	<20090213102430.GA4582@codecarver.research.nokia.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:56301 "EHLO
-	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753085AbZBMOAt (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 13 Feb 2009 09:00:49 -0500
-Received: from esebh105.NOE.Nokia.com (esebh105.ntc.nokia.com [172.21.138.211])
-	by mgw-mx06.nokia.com (Switch-3.2.6/Switch-3.2.6) with ESMTP id n1DE0cQ4009071
-	for <linux-omap@vger.kernel.org>; Fri, 13 Feb 2009 16:00:45 +0200
-In-Reply-To: <20090213092300.1b9a5d38.jarkko.nikula@nokia.com>
+Received: from yx-out-2324.google.com ([74.125.44.30]:22675 "EHLO
+	yx-out-2324.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751427AbZBMTIN (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 13 Feb 2009 14:08:13 -0500
+Received: by yx-out-2324.google.com with SMTP id 8so679137yxm.1
+        for <linux-omap@vger.kernel.org>; Fri, 13 Feb 2009 11:08:12 -0800 (PST)
+In-Reply-To: <20090213102430.GA4582@codecarver.research.nokia.com> (Peter De Schrijver's message of "Fri\, 13 Feb 2009 12\:24\:30 +0200")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Nikula Jarkko (Nokia-D/Helsinki)" <jarkko.nikula@nokia.com>
+To: Peter 'p2' De Schrijver <peter.de-schrijver@nokia.com>
 Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Signed-off-by: Ameya Palande <ameya.palande@nokia.com>
----
- drivers/Makefile |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+"Peter 'p2' De Schrijver" <peter.de-schrijver@nokia.com> writes:
 
-diff --git a/drivers/Makefile b/drivers/Makefile
-index 67de08b..fec4d8e 100644
---- a/drivers/Makefile
-+++ b/drivers/Makefile
-@@ -39,7 +39,7 @@ obj-$(CONFIG_FB_INTEL)          += video/intelfb/
- obj-$(CONFIG_SERIO)		+= input/serio/
- obj-y				+= serial/
- obj-$(CONFIG_PARPORT)		+= parport/
--obj-y				+= base/ block/ misc/ mfd/ net/ media/ cbus/
-+obj-y				+= base/ block/ misc/ mfd/ net/ media/
- obj-y				+= i2c/
- obj-y				+= cbus/
- obj-$(CONFIG_NUBUS)		+= nubus/
--- 
-1.5.6.3
+> Hi Kevin,
+>
+>> Peter,
+>> 
+>> I like this approach much better than what we currently have.  Pushing
+>> to PM branch.
+>> 
+>> The next thing I would like to see is all the register value defines
+>> removed from prm-regbits-34xx.h.  That header is supposed to be for
+>> the bitfield definitions, not for values.
+>> 
+>
+> True. If this patch goes in, there is no need for the register value
+> defines in prm-regbits-34xx.h any more.
+>
 
+OK, I pushed a patch which removes them from regbits.h and moved some of the
+other value defines into pm34xx.c until a better place is found.
+
+Kevin
