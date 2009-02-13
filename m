@@ -1,75 +1,72 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: Failure for IOREMAP
-Date: Fri, 13 Feb 2009 14:49:51 -0800
-Message-ID: <20090213224951.GL7562@atomide.com>
-References: <d105d8d00902070231t7d37faabwda9fb45bff5a1e43@mail.gmail.com>
+Subject: Re: [PATCH 1/3] ARM: OMAP: Fix omap34xx revision detection for
+	ES3.1
+Date: Fri, 13 Feb 2009 15:01:56 -0800
+Message-ID: <20090213230156.GM7562@atomide.com>
+References: <20090206033847.31313.45612.stgit@localhost.localdomain> <20090206034513.31313.42445.stgit@localhost.localdomain>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-bos.mailhop.org ([63.208.196.178]:59892 "EHLO
+Received: from mho-01-bos.mailhop.org ([63.208.196.178]:50353 "EHLO
 	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753460AbZBMWty (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 13 Feb 2009 17:49:54 -0500
+	with ESMTP id S1753407AbZBMXCB (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 13 Feb 2009 18:02:01 -0500
 Content-Disposition: inline
-In-Reply-To: <d105d8d00902070231t7d37faabwda9fb45bff5a1e43@mail.gmail.com>
+In-Reply-To: <20090206034513.31313.42445.stgit@localhost.localdomain>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Shreyas Mahajan <mahajan.shreyas@gmail.com>
-Cc: linux-omap@vger.kernel.org
+To: Paul Walmsley <paul@pwsan.com>
+Cc: linux@arm.linux.org.uk, linux-omap@vger.kernel.org, linux-arm-kernel@lists.arm.linux.org.uk, linux-kernel@vger.kernel.org
 
-* Shreyas Mahajan <mahajan.shreyas@gmail.com> [090207 02:31]:
-> Hello,
->         Currently I am working on OMAP LDP board. I currently have 128
-> MB of Memory, of which I am booting with 64MB with 'mem=64M' option. I
-> tried to use ioremap function to remap some memory above 64MB.
-> Function call to IOREMAP from  'omap_ldp_init' in 'board-ldp.c' works
-> fine returning a virtual address  (0xc4808000 every time). But when I
-> tried to read from that memory, it gives
-> 'Unhandled fault: external abort on non-linefetch (0x1008) at
-> 0xc4808000'. Entire Log is:
+* Paul Walmsley <paul@pwsan.com> [090205 19:52]:
+> From: Tony Lindgren <tony@atomide.com>
 > 
-> 'Unhandled fault: external abort on non-linefetch (0x1008) at 0xc4808000
-> Internal error: : 1008 [#1]
-> Modules linked in:
-> CPU: 0    Not tainted  (2.6.29-rc3-omap1-05417-gc00b556-dirty #80)
-> PC is at omap_ldp_init+0x134/0x1a4
-> LR is at release_console_sem+0x190/0x1a4
-> pc : [<c0011afc>]    lr : [<c004921c>]    psr: 60000013
-> sp : c3817f30  ip : c3817e60  fp : c3817f44
-> r10: 00000000  r9 : 00000000  r8 : 00000000
-> r7 : 00000000  r6 : c021c820  r5 : c021d4f0  r4 : 00000000
-> r3 : c4808000  r2 : c0207434  r1 : 0000070f  r0 : c01d3d20
-> Flags: nZCv  IRQs on  FIQs on  Mode SVC_32  ISA ARM  Segment kernel
-> Control: 10c5387f  Table: 80004019  DAC: 00000017
-> Process swapper (pid: 1, stack limit = 0xc38162e0)
-> Stack: (0xc3817f30 to 0xc3818000)
-> 7f20:                                     c001c57c c001c530 c3817f54 c3817f48
-> 7f40: c000e650 c00119d4 c3817fdc c3817f58 c0023298 c000e63c c383d0a0 c020e530
-> 7f60: c000e630 00000000 c3817f94 c3817f78 c00d3600 c00d33b0 c3817f94 c383e800
-> 7f80: c00d3740 c3817f9e c3817fc4 c3817f98 c006e7ac c00d35d0 c3817fb4 3533f9f0
-> 7fa0: 00000031 00000000 00000170 c001c530 00000000 c001c57c c001c530 00000000
-> 7fc0: 00000000 00000000 00000000 00000000 c3817ff4 c3817fe0 c00088b8 c0023244
-> 7fe0: 00000000 00000000 00000000 c3817ff8 c004b598 c0008854 00ffff00 00ffff00
-> Backtrace:
-> [<c00119c8>] (omap_ldp_init+0x0/0x1a4) from [<c000e650>]
-> (customize_machine+0x20/0x2c)
->  r5:c001c530 r4:c001c57c
-> [<c000e630>] (customize_machine+0x0/0x2c) from [<c0023298>]
-> (__exception_text_end+0x60/0x198)
-> [<c0023238>] (__exception_text_end+0x0/0x198) from [<c00088b8>]
-> (kernel_init+0x70/0xdc)
-> [<c0008848>] (kernel_init+0x0/0xdc) from [<c004b598>] (do_exit+0x0/0x65c)
->  r5:00000000 r4:00000000
-> Code: e3a04000 e59f503c e59f0064 e5953008 (e7d31004)
-> <4>---[ end trace 1b75b31a2719ed1c ]---
-> <0>Kernel panic - not syncing: Attempted to kill init!'
+> Fix omap34xx revision detection for ES3.1
 > 
-> 
-> I tried to find cause of fault but failed. Could anyone please help me with it?
+> linux-omap source commit is 1bafdfd33cc7a2b053ca705cf8623e1ae6cd4c52.
 
-This looks like you don't have the interface clock enabled for the
-device you're trying to access.
-
-Regards,
+Just for reference, this is now in the mainline kernel as 
+commit 187e688d237a6df11a2d32e8ac480b6d1fbd40b9.
 
 Tony
+
+> Signed-off-by: Tony Lindgren <tony@atomide.com>
+> Signed-off-by: Paul Walmsley <paul@pwsan.com>
+> ---
+>  arch/arm/mach-omap2/id.c              |    6 +++++-
+>  arch/arm/plat-omap/include/mach/cpu.h |    1 +
+>  2 files changed, 6 insertions(+), 1 deletions(-)
+> 
+> diff --git a/arch/arm/mach-omap2/id.c b/arch/arm/mach-omap2/id.c
+> index b0f8e7d..b52a02f 100644
+> --- a/arch/arm/mach-omap2/id.c
+> +++ b/arch/arm/mach-omap2/id.c
+> @@ -172,9 +172,13 @@ void __init omap34xx_check_revision(void)
+>  			omap_revision = OMAP3430_REV_ES3_0;
+>  			rev_name = "ES3.0";
+>  			break;
+> +		case 4:
+> +			omap_revision = OMAP3430_REV_ES3_1;
+> +			rev_name = "ES3.1";
+> +			break;
+>  		default:
+>  			/* Use the latest known revision as default */
+> -			omap_revision = OMAP3430_REV_ES3_0;
+> +			omap_revision = OMAP3430_REV_ES3_1;
+>  			rev_name = "Unknown revision\n";
+>  		}
+>  	}
+> diff --git a/arch/arm/plat-omap/include/mach/cpu.h b/arch/arm/plat-omap/include/mach/cpu.h
+> index b2062f1..a8e1178 100644
+> --- a/arch/arm/plat-omap/include/mach/cpu.h
+> +++ b/arch/arm/plat-omap/include/mach/cpu.h
+> @@ -339,6 +339,7 @@ IS_OMAP_TYPE(3430, 0x3430)
+>  #define OMAP3430_REV_ES2_0	0x34301034
+>  #define OMAP3430_REV_ES2_1	0x34302034
+>  #define OMAP3430_REV_ES3_0	0x34303034
+> +#define OMAP3430_REV_ES3_1	0x34304034
+>  
+>  /*
+>   * omap_chip bits
+> 
+> 
