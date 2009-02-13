@@ -1,51 +1,81 @@
-From: Jarkko Nikula <jarkko.nikula@nokia.com>
-Subject: Re: [PATCH 1/1] Allow I2C_OMAP to compile as a module.
-Date: Fri, 13 Feb 2009 08:58:27 +0200
-Message-ID: <20090213085827.d516d6aa.jarkko.nikula@nokia.com>
-References: <ba2e7dbd53e76bb21bbb95fc026df11787cbd798.1234447641.git.ext-atal.shargorodsky@nokia.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH E 11/14] OMAP clock: track child clocks
+Date: Fri, 13 Feb 2009 00:01:37 -0700 (MST)
+Message-ID: <alpine.DEB.2.00.0902122345160.14667@utopia.booyaka.com>
+References: <20090128192551.29333.82943.stgit@localhost.localdomain> <20090128192756.29333.41541.stgit@localhost.localdomain> <20090129151401.GC18233@n2100.arm.linux.org.uk> <20090129220608.GJ18233@n2100.arm.linux.org.uk>
+ <20090209141156.GB16626@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:61136 "EHLO
-	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751487AbZBMG60 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 13 Feb 2009 01:58:26 -0500
-In-Reply-To: <ba2e7dbd53e76bb21bbb95fc026df11787cbd798.1234447641.git.ext-atal.shargorodsky@nokia.com>
+Received: from utopia.booyaka.com ([72.9.107.138]:33232 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751410AbZBMHBi (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 13 Feb 2009 02:01:38 -0500
+In-Reply-To: <20090209141156.GB16626@n2100.arm.linux.org.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Shargorodsky Atal (EXT-Teleca/Helsinki)" <ext-atal.shargorodsky@nokia.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, tony@atomide.com
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: linux-arm-kernel@lists.arm.linux.org.uk, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, r-woodruff2@ti.com, Tony Lindgren <tony@atomide.com>
 
-On Thu, 12 Feb 2009 15:10:29 +0100
-"Shargorodsky Atal (EXT-Teleca/Helsinki)"
-<ext-atal.shargorodsky@nokia.com> wrote:
+(cc'ing Richard Woodruff)
 
-> This patch allows I2C_OMAP to be compiled as a module.
-> Only drivers/i2c/busses/i2c-omap.c can be compiled as a module,
-> but not arch/arm/plat-omap/i2c.c , so let the contents of i2c.c
-> to compile into the kernel if either I2C_OMAP was selected to compile
-> in or as a module.
+Hello Russell,
+
+On Mon, 9 Feb 2009, Russell King - ARM Linux wrote:
+
+> On Thu, Jan 29, 2009 at 10:06:08PM +0000, Russell King - ARM Linux wrote:
+> > @@ -780,7 +780,7 @@ int omap2_clk_set_parent(struct clk *clk, struct clk *new_parent)
+> >  	if (clk->usecount > 0)
+> >  		_omap2_clk_enable(clk);
+> >  
+> > -	clk->parent = new_parent;
+> > +	clk_reparent(clk, new_parent);
 > 
-> Signed-off-by: Atal Shargorodsky <ext-atal.shargorodsky@nokia.com>
-> ---
->  arch/arm/plat-omap/Makefile |    3 +--
->  arch/arm/plat-omap/i2c.c    |    4 ++++
->  2 files changed, 5 insertions(+), 2 deletions(-)
+> While looking at the DPLL patches, I've realised that omap2_clk_set_parent()
+> is buggy, as are any other places which reparent the clock (thankfully
+> the only other place is in the initialisation code where it doesn't
+> matter.)
 > 
-Tony,
+> Consider what happens when a clock is enabled - we walk up the tree
+> enabling all parents.  If we then change the clock's parent, and
+> then disable the child, we will again walk up the tree, but since
+> we've reparented it, it will be a different clock tree.  The result
+> is that the ancestors clock usage counts, and therefore their enable
+> status, will end up getting screwed up.
 
-You can add this to your 2.6.29-rc series since the same build error is
-in mainline as well if CONFIG_I2C_OMAP=m.
+Agreed.
 
-  Building modules, stage 2.
-  GZIP    arch/arm/boot/compressed/piggy.gz
-  MODPOST 6 modules
-ERROR: "i2c_register_board_info" [arch/arm/plat-omap/i2c.ko] undefined!
-make[1]: *** [__modpost] Error 1
-make: *** [modules] Error 2
-make: *** Waiting for unfinished jobs....
+> This brings up a question: what we currently do here is:
+> 
+> - disable the child
+> - program clksel
+> - enable the child
+> - change child->parent
+> 
+> If we add in the parent handling, there are two possibilities:
+> 
+> - disable the child
+> - enable the new parent tree
+> - program clksel
+> - change child->parent
+> - disable the old parent tree
+> - enable the child
+> 
+> OR
+> 
+> - disable the child and the old parent tree
+> - program clksel
+> - change child->parent
+> - enable the new parent tree and the child
+> 
+> (note those 'and's have implied ordering).
+> 
+> Is there anything which dictates one approach over the other?
+> Obviously the latter approach results in something smaller and
+> cleaner, but might not be technically correct.
 
-Subject needs a "ARM: OMAP: " prefix, otherwise ok from me.
+I don't know of any hardware reason to prefer one approach over the other, 
+but Richard might know better.
 
-Acked-by: Jarkko Nikula <jarkko.nikula@nokia.com>
+
+- Paul
