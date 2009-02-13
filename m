@@ -1,48 +1,43 @@
 From: David Brownell <david-b@pacbell.net>
-Subject: Re: Hi David Brownell. I have a question for twl4030 driver.
-Date: Fri, 13 Feb 2009 12:35:55 -0800
-Message-ID: <200902131235.55502.david-b@pacbell.net>
-References: <90b950fc0902121906kdf51637v21b90a2aba94a93f@mail.gmail.com>
+Subject: Re: [PATCH 5/6] leds: lp5521: move to drivers/leds
+Date: Fri, 13 Feb 2009 12:49:00 -0800
+Message-ID: <200902131249.00592.david-b@pacbell.net>
+References: <bdea5f5962eebe1bd420f184ebc7b32c@felipebalbi.com> <1234529032-25354-5-git-send-email-felipe.balbi@nokia.com> <1234529032-25354-6-git-send-email-felipe.balbi@nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=iso-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp119.sbc.mail.sp1.yahoo.com ([69.147.64.92]:20931 "HELO
-	smtp119.sbc.mail.sp1.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1751339AbZBMUf6 (ORCPT
+Received: from smtp123.sbc.mail.sp1.yahoo.com ([69.147.64.96]:35676 "HELO
+	smtp123.sbc.mail.sp1.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1753233AbZBMUtE (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Fri, 13 Feb 2009 15:35:58 -0500
-In-Reply-To: <90b950fc0902121906kdf51637v21b90a2aba94a93f@mail.gmail.com>
+	Fri, 13 Feb 2009 15:49:04 -0500
+In-Reply-To: <1234529032-25354-6-git-send-email-felipe.balbi@nokia.com>
 Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: =?utf-8?q?=EB=8C=80=EC=9D=B8=EA=B8=B0?= <daeinki@gmail.com>
+To: Felipe Balbi <felipe.balbi@nokia.com>
 Cc: linux-omap@vger.kernel.org
 
-On Thursday 12 February 2009, =EB=8C=80=EC=9D=B8=EA=B8=B0 wrote:
-> I added "struct regulator_init_data xxx_vpll2" to board-xx.c file to =
-use VPLL2.
-> but couldn't use it because you annotated codes for VPLL2 like below.
->=20
-> 	...
->=20
-> So I could use VPLL2 after I get rid of those annotations.
-> I wonder why did you annotate for VPLL2.
-> Does using VPLL2 has some problems?
+On Friday 13 February 2009, Felipe Balbi wrote:
+> +=A0=A0=A0=A0=A0=A0=A0if (!strncmp(buf, "run", 3))
+> +=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0lp5521_set_mode(chip, L=
+P5521_MODE_RUN);
+> +=A0=A0=A0=A0=A0=A0=A0else if (!strncmp(buf, "load", 4))
+> +=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0lp5521_set_mode(chip, L=
+P5521_MODE_LOAD);
+> +=A0=A0=A0=A0=A0=A0=A0else if (!strncmp(buf, "direct", 6))
+> +=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0lp5521_set_mode(chip, L=
+P5521_MODE_DIRECT_CONTROL);
 
-I didn't have any use case for managing VPLL2 in Linux
-software at runtime, except maybe in conjunction with
-the power management code.
+Minor nit, which could be addressed by a followon patch:
+This is an ideal use-case for using sysfs_streq().
 
-What's your use case?
-
-Some of the supported operating points require changes
-to supplies like VDD1 and VDD2 ... I thought that if
-the power management code needed to use the regulator
-framework, we'd hear about it later and be able to deal
-with those issues at that time.
+And there's no terminal "else len =3D -EINVAL" to handle the
+case of illegal modes...
 
 - Dave
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
 n
