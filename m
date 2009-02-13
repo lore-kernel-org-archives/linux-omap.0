@@ -1,81 +1,61 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH E 11/14] OMAP clock: track child clocks
-Date: Fri, 13 Feb 2009 00:01:37 -0700 (MST)
-Message-ID: <alpine.DEB.2.00.0902122345160.14667@utopia.booyaka.com>
-References: <20090128192551.29333.82943.stgit@localhost.localdomain> <20090128192756.29333.41541.stgit@localhost.localdomain> <20090129151401.GC18233@n2100.arm.linux.org.uk> <20090129220608.GJ18233@n2100.arm.linux.org.uk>
- <20090209141156.GB16626@n2100.arm.linux.org.uk>
+From: Jarkko Nikula <jarkko.nikula@nokia.com>
+Subject: Re: [PATCH] Removal of duplicate cbus entry
+Date: Fri, 13 Feb 2009 09:23:00 +0200
+Message-ID: <20090213092300.1b9a5d38.jarkko.nikula@nokia.com>
+References: <499442C9.7030406@nokia.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:33232 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751410AbZBMHBi (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 13 Feb 2009 02:01:38 -0500
-In-Reply-To: <20090209141156.GB16626@n2100.arm.linux.org.uk>
+Received: from smtp.nokia.com ([192.100.122.230]:24907 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751326AbZBMHXx (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 13 Feb 2009 02:23:53 -0500
+Received: from vaebh106.NOE.Nokia.com (vaebh106.europe.nokia.com [10.160.244.32])
+	by mgw-mx03.nokia.com (Switch-3.2.6/Switch-3.2.6) with ESMTP id n1D7Nk9p015283
+	for <linux-omap@vger.kernel.org>; Fri, 13 Feb 2009 09:23:50 +0200
+In-Reply-To: <499442C9.7030406@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: linux-arm-kernel@lists.arm.linux.org.uk, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, r-woodruff2@ti.com, Tony Lindgren <tony@atomide.com>
+To: "Palande Ameya (Nokia-D/Helsinki)" <ameya.palande@nokia.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-(cc'ing Richard Woodruff)
+On Thu, 12 Feb 2009 16:39:53 +0100
+"Palande Ameya (Nokia-D/Helsinki)" <ameya.palande@nokia.com> wrote:
 
-Hello Russell,
+> Removal of duplicate cbus entry.
+> 
+> Signed-off-by: Ameya Palande <ameya.palande@nokia.com>
+> ---
+>   drivers/Makefile |    1 -
+>   1 files changed, 0 insertions(+), 1 deletions(-)
+> 
+> diff --git a/drivers/Makefile b/drivers/Makefile
+> index 67de08b..1eff6ed 100644
+> --- a/drivers/Makefile
+> +++ b/drivers/Makefile
+> @@ -41,7 +41,6 @@ obj-y                         += serial/
+>   obj-$(CONFIG_PARPORT)         += parport/
+>   obj-y                         += base/ block/ misc/ mfd/ net/
+> media/ cbus/ obj-y                         += i2c/
+> -obj-y                          += cbus/
+>   obj-$(CONFIG_NUBUS)           += nubus/
 
-On Mon, 9 Feb 2009, Russell King - ARM Linux wrote:
+Patch is somehow malformatted. It doesn't apply because of extra space
+in beginning of each non-changed line.
 
-> On Thu, Jan 29, 2009 at 10:06:08PM +0000, Russell King - ARM Linux wrote:
-> > @@ -780,7 +780,7 @@ int omap2_clk_set_parent(struct clk *clk, struct clk *new_parent)
-> >  	if (clk->usecount > 0)
-> >  		_omap2_clk_enable(clk);
-> >  
-> > -	clk->parent = new_parent;
-> > +	clk_reparent(clk, new_parent);
-> 
-> While looking at the DPLL patches, I've realised that omap2_clk_set_parent()
-> is buggy, as are any other places which reparent the clock (thankfully
-> the only other place is in the initialisation code where it doesn't
-> matter.)
-> 
-> Consider what happens when a clock is enabled - we walk up the tree
-> enabling all parents.  If we then change the clock's parent, and
-> then disable the child, we will again walk up the tree, but since
-> we've reparented it, it will be a different clock tree.  The result
-> is that the ancestors clock usage counts, and therefore their enable
-> status, will end up getting screwed up.
+Notes:
 
-Agreed.
+Even this is linux-omap specific only since the cbus is not in mainline,
+subject needs "ARM: OMAP " prefix so it's easy to see for what
+subsystem the patch is.
 
-> This brings up a question: what we currently do here is:
-> 
-> - disable the child
-> - program clksel
-> - enable the child
-> - change child->parent
-> 
-> If we add in the parent handling, there are two possibilities:
-> 
-> - disable the child
-> - enable the new parent tree
-> - program clksel
-> - change child->parent
-> - disable the old parent tree
-> - enable the child
-> 
-> OR
-> 
-> - disable the child and the old parent tree
-> - program clksel
-> - change child->parent
-> - enable the new parent tree and the child
-> 
-> (note those 'and's have implied ordering).
-> 
-> Is there anything which dictates one approach over the other?
-> Obviously the latter approach results in something smaller and
-> cleaner, but might not be technically correct.
+For this patch subject is descriptive enough. No need for duplicated
+comment.
 
-I don't know of any hardware reason to prefer one approach over the other, 
-but Richard might know better.
+Probably Tony would like that duplicated cbus is removed from the line
+where are those other directories and to keep cbus in it's own line for
+avoiding possible merge conflicts in the future?
 
 
-- Paul
+Jarkko
