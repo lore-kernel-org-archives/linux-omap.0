@@ -1,66 +1,77 @@
-From: Anuj Aggarwal <anuj.aggarwal@gmail.com>
-Subject: Re: ASoC audio not working on OMAP3 EVM
-Date: Fri, 13 Feb 2009 15:14:02 +0530
-Message-ID: <2ee9e08d0902130144qba6a130l331c663cfdaa574c@mail.gmail.com>
-References: <1234424393.13374.2.camel@eenurkka-desktop>
-	 <2ee9e08d0902120138p62b91989rbaf525d2efbbad21@mail.gmail.com>
-	 <20090212114948.5fe50dd8.jarkko.nikula@nokia.com>
-	 <E25633C1-D318-4AAC-BEA0-006034B1D619@student.utwente.nl>
+From: Kalle Jokiniemi <kalle.jokiniemi-sMOQStClEysAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH 0/2] TWL: USB: Start using twl4030/5030 regulator driver
+Date: Fri, 13 Feb 2009 11:57:00 +0200
+Message-ID: <1234519020.17391.167.camel@ubuntu>
+References: <> <1234336002-26372-1-git-send-email-kalle.jokiniemi@digia.com>
+	 <200902102323.30395.david-b@pacbell.net>
+	 <1234349235.17391.104.camel@ubuntu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from wf-out-1314.google.com ([209.85.200.169]:33366 "EHLO
-	wf-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751339AbZBMJoE (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 13 Feb 2009 04:44:04 -0500
-Received: by wf-out-1314.google.com with SMTP id 28so1339525wfa.4
-        for <linux-omap@vger.kernel.org>; Fri, 13 Feb 2009 01:44:02 -0800 (PST)
-In-Reply-To: <E25633C1-D318-4AAC-BEA0-006034B1D619@student.utwente.nl>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1234349235.17391.104.camel@ubuntu>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: David Brownell <david-b-yBeKhBN/0LDR7s880joybQ@public.gmane.org>
+Cc: lrg-kDsPt+C1G03kYMGBc/C6ZA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, jouni.hogander-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org, broonie-GFdadSzt00ze9xe1eoZjHA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: Koen Kooi <k.kooi@student.utwente.nl>
-Cc: Jarkko Nikula <jarkko.nikula@nokia.com>, "Nurkkala Eero.An (EXT-Offcode/Oulu)" <ext-Eero.Nurkkala@nokia.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Hi All,
+On Wed, 2009-02-11 at 12:47 +0200, Kalle Jokiniemi wrote:
+> On Tue, 2009-02-10 at 23:23 -0800, David Brownell wrote:
+> > On Tuesday 10 February 2009, Kalle Jokiniemi wrote:
+> > > These couple of patches enable dynamic swithcing of the
+> > > regulators used by twl4030 usb tranceiver.
+> > > 
+> > > This set replaces the single patch "USB: disable twl4030
+> > > USB regulators when cable unplugged" sent previously.
+> > > The change to previous version is that possible errors
+> > > in regulator_get are now handled and the twl4030 usb
+> > > driver requires TWL_REGULATOR support to be compiled.
+> > 
+> > It'd make more sense to me as a single patch ... :)
+> 
+> OK, I'll put them together.
+> 
+> > 
+> > And also, instead of *continuing* after the regulators
+> > can't be acquired, it's better to abort.  It's not
+> > going to be able to do anything ... so don't finish
+> > probing, and don't register this "dead" transceiver.
+> 
+> Makes sense. I'll fix that.
 
-Thanks for your help, it came out as a hardware issue. Same image
-worked fine when tried on a different EVM. Now the audio is playing
-fine, except that I am hearing a very light pop-noise as soon I start
-the playback.
+I ran into some trouble with the merged fix. For some reason clearing
+the VUSB3V1_DEV_GRP register causes VUSB_DEDICATED2.VUSB3V1_SLEEP bit to
+be enabled. This means that once VUSB3V1_DEV_GRP is put back to enabled
+state (VUSB3V1 changed to be part of P1 group again), VUSB3V1 does not
+go ACTIVE, but SLEEP state instead.
 
-Any suggestions on removing that? It didn't occur if I play something
-second time.
+Anyone have a clue what might cause this?
 
-Thanks,
-Anuj
+The VUSB_DEDICATED2.VUSB3V1_SLEEP bit remaps ACTIVE state to SLEEP.
 
-On Thu, Feb 12, 2009 at 4:31 PM, Koen Kooi <k.kooi@student.utwente.nl> wrote:
->
-> Op 12 feb 2009, om 10:49 heeft Jarkko Nikula het volgende geschreven:
->
->> On Thu, 12 Feb 2009 10:38:27 +0100
->> ext Anuj Aggarwal <anuj.aggarwal@gmail.com> wrote:
->>
->>> The patch doesn't help, result is same...
->>>
->>> Any help is welcome
->>>
->> My Beagle is working fine on top of l-o head (commit
->> 70ff4a1aafd2378c9e3ff153135ba6d0bde45215) and with Steve's patch
->>
->> http://git.kernel.org/?p=linux/kernel/git/tiwai/sound-2.6.git;a=commit;h=80c509fdd74f3b158267374cc55156965c8bf930
->>
->> What codec OMAP3 EVM is using? If AIC3x, then Eero's patch might help
->
-> the same codec as beagle and overo (twl/tps)
->
-> regards,
->
-> Koen
+I tested with the original patch as well and it has the same behaviour.
+But I'm quite sure that I did not see this when I was doing the original
+patch.
+
+I can workaround this by clearing the VUSB_DEDICATED2.VUSB3V1_SLEEP
+every time we enable the VUSB3V1 regulator, but I'd rather know why it
+changes in the first place.
+
+Dropped LKM from the cc...
+
+- Kalle
 
 
-
+> 
+> -Kalle
+> 
+> > 
+> > - Dave
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 --
-Best Regards,
-Anuj Aggarwal
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
