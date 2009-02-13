@@ -1,57 +1,133 @@
-From: "Gupta, Ramesh" <grgupta@ti.com>
-Subject: RE: [PATCH] OMAP3: PM: Update voltage levels for OPP1/2 on VDD1/2
-Date: Fri, 13 Feb 2009 14:25:11 +0530
-Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB02A41776E2@dbde02.ent.ti.com>
-References: <5A47E75E594F054BAF48C5E4FC4B92AB02F55511F7@dbde02.ent.ti.com>
+From: Arun KS <getarunks@gmail.com>
+Subject: Re: [REVIEW PATCH 11/14] OMAP34XXCAM: Add driver
+Date: Fri, 13 Feb 2009 15:01:43 +0530
+Message-ID: <dfeb90390902130131r7743af98ge8c9baf4856f835e@mail.gmail.com>
+References: <A24693684029E5489D1D202277BE894416429FA1@dlee02.ent.ti.com>
+	 <5e9665e10902102000i3433beb8jab7a70e7ac9b57e3@mail.gmail.com>
+	 <4993CB1F.603@maxwell.research.nokia.com>
+	 <5e9665e10902112352i57177f20r9022a7cb8a66fa0@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:41751 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1759300AbZBMIzw convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 13 Feb 2009 03:55:52 -0500
-Received: from dbdp20.itg.ti.com ([172.24.170.38])
-	by bear.ext.ti.com (8.13.7/8.13.7) with ESMTP id n1D8thSY027419
-	for <linux-omap@vger.kernel.org>; Fri, 13 Feb 2009 02:55:48 -0600
-Received: from dbde70.ent.ti.com (localhost [127.0.0.1])
-	by dbdp20.itg.ti.com (8.13.8/8.13.8) with ESMTP id n1D8tfV9013089
-	for <linux-omap@vger.kernel.org>; Fri, 13 Feb 2009 14:25:42 +0530 (IST)
-In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB02F55511F7@dbde02.ent.ti.com>
-Content-Language: en-US
+Received: from ti-out-0910.google.com ([209.85.142.190]:35494 "EHLO
+	ti-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750760AbZBMJbq (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 13 Feb 2009 04:31:46 -0500
+In-Reply-To: <5e9665e10902112352i57177f20r9022a7cb8a66fa0@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Nayak, Rajendra" <rnayak@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: DongSoo Kim <dongsoo.kim@gmail.com>
+Cc: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>, "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Nagalla, Hari" <hnagalla@ti.com>, "Ailus Sakari (Nokia-D/Helsinki)" <Sakari.Ailus@nokia.com>, "Toivonen Tuukka.O (Nokia-D/Oulu)" <tuukka.o.toivonen@nokia.com>, "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>, "kyungmin.park@samsung.com" <kyungmin.park@samsung.com>, =?EUC-KR?B?x/zB2CCx6A==?= <riverful.kim@samsung.com>, "jongse.won@samsung.com" <jongse.won@samsung.com>
 
-Hi Rajendra,
+On Thu, Feb 12, 2009 at 1:22 PM, DongSoo Kim <dongsoo.kim@gmail.com> wrote:
+> Thank you for your comment.
+>
+> BTW, what should I do if I would rather use external ISP device than
+> OMAP3 internal ISP feature?
+>
+> You said that you just have raw sensors by now, so you mean this patch
+> is not verified working with some ISP modules?
 
-> -----Original Message-----
-> From: Nayak, Rajendra 
-> Sent: Friday, February 13, 2009 11:31 AM
-> To: linux-omap@vger.kernel.org
-> Cc: Gupta, Ramesh
-> Subject: [PATCH] OMAP3: PM: Update voltage levels for OPP1/2 on VDD1/2
-> 
-> This patch updates the voltage levels for VDD1 OPP1/2 and
-> VDD2 OPP1/2 according to the latest operating condition
-> addendum for 3430.
-> 
-> The new voltage levels at various OPP's for VDD1/2 are as below
-> 
-> VDD1 OPP1 0.975v
-> VDD1 OPP2 1.050v
-> VDD1 OPP3 1.200v
-> VDD1 OPP4 1.270v
-> VDD1 OPP5 1.350v
-> 
-> VDD2 OPP1 0.975v
-> VDD2 OPP2 1.050v
-> VDD2 OPP3 1.150v
-> 
-> The patch applies on the latest pm head and is validated on 3430SDP.
-> 
+Hi DongSoo,
 
-I have tested Bridge DVFS and OFF mode with this patch, This works fine and it resolved the issues I was seeing with OPP1. 
+          The driver is tested and working with sensors which have
+inbuilt ISP modules.
 
-Thanks 
-Ramesh Gupta G
+Thanks,
+Arun
+
+>
+> I'm testing your patch on my own omap3 target board with NEC ISP...but
+> unfortunately not working yet ;(
+>
+> I should try more harder. more research is needed :)
+>
+> Cheers,
+>
+>
+> On Thu, Feb 12, 2009 at 4:09 PM, Sakari Ailus
+> <sakari.ailus@maxwell.research.nokia.com> wrote:
+>> DongSoo Kim wrote:
+>>>
+>>> Hello.
+>>
+>> Hi, and thanks for the comments!
+>>
+>>> +static int omap34xxcam_open(struct inode *inode, struct file *file)
+>>> +{
+>>>
+>>> <snip>
+>>>
+>>> +       if (atomic_inc_return(&vdev->users) == 1) {
+>>> +               isp_get();
+>>> +               if (omap34xxcam_slave_power_set(vdev, V4L2_POWER_ON,
+>>> +
+>>> OMAP34XXCAM_SLAVE_POWER_ALL))
+>>> +                       goto out_slave_power_set_standby;
+>>> +               omap34xxcam_slave_power_set(
+>>> +                       vdev, V4L2_POWER_STANDBY,
+>>> +                       OMAP34XXCAM_SLAVE_POWER_SENSOR);
+>>> +               omap34xxcam_slave_power_suggest(
+>>> +                       vdev, V4L2_POWER_STANDBY,
+>>> +                       OMAP34XXCAM_SLAVE_POWER_LENS);
+>>> +       }
+>>>
+>>>
+>>> I'm wondering whether this V4L2_POWER_STANDBY operation for sensor
+>>> device is really necessary.
+>>>
+>>> Because if that makes sensor device in standby mode, we do S_FMT and
+>>> bunch of V4L2 APIs while the camera module is in standby mode.
+>>>
+>>> In most cases of "sensor + ISP" SOC camera modules, I2C command is not
+>>> working while the camera module is in standby mode.
+>>
+>> I guess that applies to most sensors.
+>>
+>>> Following the camera interface source code, sensor goes down to
+>>> standby mode until VIDIOC_STREAMON is called.
+>>>
+>>> If this power up timing depends on sensor device, then I think we need
+>>> a conditional power on sequence.
+>>
+>> You're right, there's something wrong with the slave power handling. :)
+>>
+>> We were thinking that the sensor (or any slave) power management (current
+>> on, off and standby) could be replaced by four commands: open, close,
+>> streamon and streamoff. The slave could decide by itself what its real power
+>> state is. IMO direct power management doesn't belong to the camera driver
+>> which doesn't drive any hardware anyway.
+>>
+>>> As you defined slave devices as SENSOR, LENS, FLASH, then how about
+>>> making a new slave category like "ISP" for "sensor+ISP" SOC modules?
+>>
+>> I currently have just raw sensors. It'd be nice to keep the interface for
+>> smart sensors the same, though. You still need for a receiver for the image
+>> data, sometimes called the camera controller. That would be the same than
+>> the ISP but without fancy features.
+>>
+>> Cheers,
+>>
+>> --
+>> Sakari Ailus
+>> sakari.ailus@maxwell.research.nokia.com
+>>
+>
+>
+>
+> --
+> ========================================================
+> Dong Soo, Kim
+> Engineer
+> Mobile S/W Platform Lab. S/W centre
+> Telecommunication R&D Centre
+> Samsung Electronics CO., LTD.
+> e-mail : dongsoo.kim@gmail.com
+>           dongsoo45.kim@samsung.com
+> ========================================================
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
