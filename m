@@ -1,43 +1,111 @@
-From: =?EUC-KR?B?tOvAzrHi?= <daeinki@gmail.com>
-Subject: Hi David Brownell. I have a question for twl4030 driver.
-Date: Fri, 13 Feb 2009 12:06:18 +0900
-Message-ID: <90b950fc0902121906kdf51637v21b90a2aba94a93f@mail.gmail.com>
+From: "Nayak, Rajendra" <rnayak@ti.com>
+Subject: [PATCH] OMAP3: PM: Update voltage levels for OPP1/2 on VDD1/2
+Date: Fri, 13 Feb 2009 11:30:57 +0530
+Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB02F55511F7@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from yx-out-2324.google.com ([74.125.44.28]:38505 "EHLO
-	yx-out-2324.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751599AbZBMDGT (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 12 Feb 2009 22:06:19 -0500
-Received: by yx-out-2324.google.com with SMTP id 8so554828yxm.1
-        for <linux-omap@vger.kernel.org>; Thu, 12 Feb 2009 19:06:18 -0800 (PST)
+Received: from devils.ext.ti.com ([198.47.26.153]:40549 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750828AbZBMGBH convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 13 Feb 2009 01:01:07 -0500
+Received: from dbdp20.itg.ti.com ([172.24.170.38])
+	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id n1D60xhr030129
+	for <linux-omap@vger.kernel.org>; Fri, 13 Feb 2009 00:01:05 -0600
+Received: from dbde70.ent.ti.com (localhost [127.0.0.1])
+	by dbdp20.itg.ti.com (8.13.8/8.13.8) with ESMTP id n1D60wYg008447
+	for <linux-omap@vger.kernel.org>; Fri, 13 Feb 2009 11:30:59 +0530 (IST)
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: David Brownell <david-b@pacbell.net>
-Cc: linux-omap@vger.kernel.org
+To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Cc: "Gupta, Ramesh" <grgupta@ti.com>
 
-I added "struct regulator_init_data xxx_vpll2" to board-xx.c file to use VPLL2.
-but couldn't use it because you annotated codes for VPLL2 like below.
+This patch updates the voltage levels for VDD1 OPP1/2 and
+VDD2 OPP1/2 according to the latest operating condition
+addendum for 3430.
 
-in drivers/mfd/twl4030-core.c file.
-	/* maybe add LDOs that are omitted on cost-reduced parts */
-	if (twl_has_regulator() && !(features & TPS_SUBSET)) {
-		/*
-		child = add_regulator(TWL4030_REG_VPLL2, pdata->vpll2);
-		if (IS_ERR(child))
-			return PTR_ERR(child);
-		*/
+The new voltage levels at various OPP's for VDD1/2 are as below
 
-also in drivers/regulator/twl4030-regulator.c file.
-static struct twlreg_info twl4030_regs[] = {
-	/*
- 	TWL_ADJUSTABLE_LDO(VPLL1, 0x2f, 7),
- 	TWL_ADJUSTABLE_LDO(VPLL2, 0x33, 8),
-	*/
+VDD1 OPP1 0.975v
+VDD1 OPP2 1.050v
+VDD1 OPP3 1.200v
+VDD1 OPP4 1.270v
+VDD1 OPP5 1.350v
 
-So I could use VPLL2 after I get rid of those annotations.
-I wonder why did you annotate for VPLL2.
-Does using VPLL2 has some problems?
+VDD2 OPP1 0.975v
+VDD2 OPP2 1.050v
+VDD2 OPP3 1.150v
 
-- InKi -
+The patch applies on the latest pm head and is validated on 3430SDP.
+
+Signed-off-by: Rajendra Nayak <rnayak@ti.com>
+---
+ arch/arm/mach-omap2/omap3-opp.h        |   12 ++++++------
+ arch/arm/mach-omap2/prm-regbits-34xx.h |    8 ++++----
+ 2 files changed, 10 insertions(+), 10 deletions(-)
+
+Index: linux-omap-2.6/arch/arm/mach-omap2/omap3-opp.h
+===================================================================
+--- linux-omap-2.6.orig/arch/arm/mach-omap2/omap3-opp.h	2009-02-13 09:28:45.000000000 +0530
++++ linux-omap-2.6/arch/arm/mach-omap2/omap3-opp.h	2009-02-13 09:37:35.767125634 +0530
+@@ -24,9 +24,9 @@
+ static struct omap_opp omap3_mpu_rate_table[] = {
+ 	{0, 0, 0},
+ 	/*OPP1*/
+-	{S125M, VDD1_OPP1, 0x18},
++	{S125M, VDD1_OPP1, 0x1E},
+ 	/*OPP2*/
+-	{S250M, VDD1_OPP2, 0x20},
++	{S250M, VDD1_OPP2, 0x24},
+ 	/*OPP3*/
+ 	{S500M, VDD1_OPP3, 0x30},
+ 	/*OPP4*/
+@@ -38,9 +38,9 @@ static struct omap_opp omap3_mpu_rate_ta
+ static struct omap_opp omap3_l3_rate_table[] = {
+ 	{0, 0, 0},
+ 	/*OPP1*/
+-	{0, VDD2_OPP1, 0x18},
++	{0, VDD2_OPP1, 0x1E},
+ 	/*OPP2*/
+-	{S83M, VDD2_OPP2, 0x20},
++	{S83M, VDD2_OPP2, 0x24},
+ 	/*OPP3*/
+ 	{S166M, VDD2_OPP3, 0x2C},
+ };
+@@ -48,9 +48,9 @@ static struct omap_opp omap3_l3_rate_tab
+ static struct omap_opp omap3_dsp_rate_table[] = {
+ 	{0, 0, 0},
+ 	/*OPP1*/
+-	{S90M, VDD1_OPP1, 0x18},
++	{S90M, VDD1_OPP1, 0x1E},
+ 	/*OPP2*/
+-	{S180M, VDD1_OPP2, 0x20},
++	{S180M, VDD1_OPP2, 0x24},
+ 	/*OPP3*/
+ 	{S360M, VDD1_OPP3, 0x30},
+ 	/*OPP4*/
+Index: linux-omap-2.6/arch/arm/mach-omap2/prm-regbits-34xx.h
+===================================================================
+--- linux-omap-2.6.orig/arch/arm/mach-omap2/prm-regbits-34xx.h	2009-02-13 09:26:16.000000000 +0530
++++ linux-omap-2.6/arch/arm/mach-omap2/prm-regbits-34xx.h	2009-02-13 10:12:07.005364895 +0530
+@@ -464,14 +464,14 @@
+ 
+ /* PRM_VC_CMD_VAL_0 specific bits */
+ #define OMAP3430_VC_CMD_VAL0_ON				(0x3 << 4)
+-#define OMAP3430_VC_CMD_VAL0_ONLP			(0x3 << 3)
+-#define OMAP3430_VC_CMD_VAL0_RET			(0x3 << 3)
++#define OMAP3430_VC_CMD_VAL0_ONLP			(0xF << 1)
++#define OMAP3430_VC_CMD_VAL0_RET			(0xF << 1)
+ #define OMAP3430_VC_CMD_VAL0_OFF			(0x3 << 4)
+ 
+ /* PRM_VC_CMD_VAL_1 specific bits */
+ #define OMAP3430_VC_CMD_VAL1_ON				(0xB << 2)
+-#define OMAP3430_VC_CMD_VAL1_ONLP			(0x3 << 3)
+-#define OMAP3430_VC_CMD_VAL1_RET			(0x3 << 3)
++#define OMAP3430_VC_CMD_VAL1_ONLP			(0xF << 1)
++#define OMAP3430_VC_CMD_VAL1_RET			(0xF << 1)
+ #define OMAP3430_VC_CMD_VAL1_OFF			(0xB << 2)
+ 
+ /* PRM_VC_CH_CONF */
