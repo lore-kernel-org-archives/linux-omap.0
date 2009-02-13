@@ -1,89 +1,40 @@
-From: Felipe Balbi <felipe.balbi@nokia.com>
-Subject: [PATCH 1/6] i2c: lp5521: remove dead code
-Date: Fri, 13 Feb 2009 14:43:47 +0200
-Message-ID: <1234529032-25354-2-git-send-email-felipe.balbi@nokia.com>
-References: <bdea5f5962eebe1bd420f184ebc7b32c@felipebalbi.com>
- <1234529032-25354-1-git-send-email-felipe.balbi@nokia.com>
+From: Ameya Palande <ameya.palande@nokia.com>
+Subject: [PATCH] ARM: OMAP: Removal of duplicate cbus entry
+Date: Fri, 13 Feb 2009 16:00:45 +0200
+Message-ID: <1234533645-30120-1-git-send-email-ameya.palande@nokia.com>
+References: <20090213092300.1b9a5d38.jarkko.nikula@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:38106 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752266AbZBMNBR (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 13 Feb 2009 08:01:17 -0500
-In-Reply-To: <1234529032-25354-1-git-send-email-felipe.balbi@nokia.com>
+Received: from smtp.nokia.com ([192.100.122.233]:56301 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753085AbZBMOAt (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 13 Feb 2009 09:00:49 -0500
+Received: from esebh105.NOE.Nokia.com (esebh105.ntc.nokia.com [172.21.138.211])
+	by mgw-mx06.nokia.com (Switch-3.2.6/Switch-3.2.6) with ESMTP id n1DE0cQ4009071
+	for <linux-omap@vger.kernel.org>; Fri, 13 Feb 2009 16:00:45 +0200
+In-Reply-To: <20090213092300.1b9a5d38.jarkko.nikula@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: David Brownell <dbrownell@users.sourceforge.net>, Felipe Balbi <felipe.balbi@nokia.com>
+To: "Nikula Jarkko (Nokia-D/Helsinki)" <jarkko.nikula@nokia.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-That LED_CONNECTED_WRONG was never defined so removing.
-
-If someone needs those hooks, add back via proper
-platform_data instead of nasty ifdefery.
-
-Signed-off-by: Felipe Balbi <felipe.balbi@nokia.com>
+Signed-off-by: Ameya Palande <ameya.palande@nokia.com>
 ---
- drivers/i2c/chips/lp5521.c |   22 ----------------------
- 1 files changed, 0 insertions(+), 22 deletions(-)
+ drivers/Makefile |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-diff --git a/drivers/i2c/chips/lp5521.c b/drivers/i2c/chips/lp5521.c
-index c0862d9..7fb8091 100644
---- a/drivers/i2c/chips/lp5521.c
-+++ b/drivers/i2c/chips/lp5521.c
-@@ -28,13 +28,8 @@
- 
- #define LP5521_DRIVER_NAME		"lp5521"
- 
--#ifdef LED_CONNECTED_WRONG
--#define LP5521_REG_R_PWM		0x04
--#define LP5521_REG_B_PWM		0x02
--#else
- #define LP5521_REG_R_PWM		0x02
- #define LP5521_REG_B_PWM		0x04
--#endif
- #define LP5521_REG_ENABLE		0x00
- #define LP5521_REG_OP_MODE		0x01
- #define LP5521_REG_G_PWM		0x03
-@@ -200,22 +195,12 @@ static ssize_t show_active_channels(struct device *dev,
- 	char channels[4];
- 	int pos = 0;
- 
--#ifdef LED_CONNECTED_WRONG
--	if (chip->blue)
--		pos += sprintf(channels + pos, "r");
--	if (chip->green)
--		pos += sprintf(channels + pos, "g");
--	if (chip->red)
--		pos += sprintf(channels + pos, "b");
--
--#else
- 	if (chip->red)
- 		pos += sprintf(channels + pos, "r");
- 	if (chip->green)
- 		pos += sprintf(channels + pos, "g");
- 	if (chip->blue)
- 		pos += sprintf(channels + pos, "b");
--#endif
- 
- 	channels[pos] = '\0';
- 
-@@ -232,17 +217,10 @@ static ssize_t store_active_channels(struct device *dev,
- 	chip->green = 0;
- 	chip->blue = 0;
- 
--#ifdef LED_CONNECTED_WRONG
--	if (strchr(buf, 'r') != NULL)
--		chip->blue = 1;
--	if (strchr(buf, 'b') != NULL)
--		chip->red = 1;
--#else
- 	if (strchr(buf, 'r') != NULL)
- 		chip->red = 1;
- 	if (strchr(buf, 'b') != NULL)
- 		chip->blue = 1;
--#endif
- 	if (strchr(buf, 'g') != NULL)
- 		chip->green = 1;
- 
+diff --git a/drivers/Makefile b/drivers/Makefile
+index 67de08b..fec4d8e 100644
+--- a/drivers/Makefile
++++ b/drivers/Makefile
+@@ -39,7 +39,7 @@ obj-$(CONFIG_FB_INTEL)          += video/intelfb/
+ obj-$(CONFIG_SERIO)		+= input/serio/
+ obj-y				+= serial/
+ obj-$(CONFIG_PARPORT)		+= parport/
+-obj-y				+= base/ block/ misc/ mfd/ net/ media/ cbus/
++obj-y				+= base/ block/ misc/ mfd/ net/ media/
+ obj-y				+= i2c/
+ obj-y				+= cbus/
+ obj-$(CONFIG_NUBUS)		+= nubus/
 -- 
-1.6.1.265.g9a013
+1.5.6.3
 
