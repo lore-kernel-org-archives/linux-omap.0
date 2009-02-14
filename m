@@ -1,68 +1,161 @@
-From: Kyungmin Park <kmpark@infradead.org>
-Subject: Re: Hi David Brownell. I have a question for twl4030 driver.
-Date: Sat, 14 Feb 2009 13:29:57 +0900
-Message-ID: <9c9fda240902132029o20db190bnb289649c7d097fa3@mail.gmail.com>
-References: <90b950fc0902121906kdf51637v21b90a2aba94a93f@mail.gmail.com>
-	 <200902131235.55502.david-b@pacbell.net>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: [PATCH E 11/14] OMAP clock: track child clocks
+Date: Sat, 14 Feb 2009 11:23:25 +0000
+Message-ID: <20090214112325.GA17965@n2100.arm.linux.org.uk>
+References: <20090128192551.29333.82943.stgit@localhost.localdomain> <20090128192756.29333.41541.stgit@localhost.localdomain> <20090129151401.GC18233@n2100.arm.linux.org.uk> <20090129220608.GJ18233@n2100.arm.linux.org.uk> <20090209141156.GB16626@n2100.arm.linux.org.uk> <alpine.DEB.2.00.0902122345160.14667@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=EUC-KR
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from yx-out-2324.google.com ([74.125.44.30]:19665 "EHLO
-	yx-out-2324.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751180AbZBNEgh convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 13 Feb 2009 23:36:37 -0500
-Received: by yx-out-2324.google.com with SMTP id 8so737408yxm.1
-        for <linux-omap@vger.kernel.org>; Fri, 13 Feb 2009 20:36:35 -0800 (PST)
-In-Reply-To: <200902131235.55502.david-b@pacbell.net>
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:48218 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751410AbZBNLXj (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 14 Feb 2009 06:23:39 -0500
+Content-Disposition: inline
+In-Reply-To: <alpine.DEB.2.00.0902122345160.14667@utopia.booyaka.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: David Brownell <david-b@pacbell.net>
-Cc: =?EUC-KR?B?tOvAzrHi?= <daeinki@gmail.com>, linux-omap@vger.kernel.org
+To: Paul Walmsley <paul@pwsan.com>
+Cc: linux-arm-kernel@lists.arm.linux.org.uk, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, r-woodruff2@ti.com, Tony Lindgren <tony@atomide.com>
 
-Hi,
+On Fri, Feb 13, 2009 at 12:01:37AM -0700, Paul Walmsley wrote:
+> (cc'ing Richard Woodruff)
+> 
+> Hello Russell,
+> 
+> On Mon, 9 Feb 2009, Russell King - ARM Linux wrote:
+> 
+> > On Thu, Jan 29, 2009 at 10:06:08PM +0000, Russell King - ARM Linux wrote:
+> > > @@ -780,7 +780,7 @@ int omap2_clk_set_parent(struct clk *clk, struct clk *new_parent)
+> > >  	if (clk->usecount > 0)
+> > >  		_omap2_clk_enable(clk);
+> > >  
+> > > -	clk->parent = new_parent;
+> > > +	clk_reparent(clk, new_parent);
+> > 
+> > While looking at the DPLL patches, I've realised that omap2_clk_set_parent()
+> > is buggy, as are any other places which reparent the clock (thankfully
+> > the only other place is in the initialisation code where it doesn't
+> > matter.)
+> > 
+> > Consider what happens when a clock is enabled - we walk up the tree
+> > enabling all parents.  If we then change the clock's parent, and
+> > then disable the child, we will again walk up the tree, but since
+> > we've reparented it, it will be a different clock tree.  The result
+> > is that the ancestors clock usage counts, and therefore their enable
+> > status, will end up getting screwed up.
+> 
+> Agreed.
+> 
+> > This brings up a question: what we currently do here is:
+> > 
+> > - disable the child
+> > - program clksel
+> > - enable the child
+> > - change child->parent
+> > 
+> > If we add in the parent handling, there are two possibilities:
+> > 
+> > - disable the child
+> > - enable the new parent tree
+> > - program clksel
+> > - change child->parent
+> > - disable the old parent tree
+> > - enable the child
+> > 
+> > OR
+> > 
+> > - disable the child and the old parent tree
+> > - program clksel
+> > - change child->parent
+> > - enable the new parent tree and the child
+> > 
+> > (note those 'and's have implied ordering).
+> > 
+> > Is there anything which dictates one approach over the other?
+> > Obviously the latter approach results in something smaller and
+> > cleaner, but might not be technically correct.
+> 
+> I don't know of any hardware reason to prefer one approach over the other, 
+> but Richard might know better.
 
-Since he's in vacation, I reply it instead of him.
+I'll need an answer on this before I can commit the updated bypass clock
+support patch.
 
-On Sat, Feb 14, 2009 at 5:35 AM, David Brownell <david-b@pacbell.net> w=
-rote:
-> On Thursday 12 February 2009, =B4=EB=C0=CE=B1=E2 wrote:
->> I added "struct regulator_init_data xxx_vpll2" to board-xx.c file to=
- use VPLL2.
->> but couldn't use it because you annotated codes for VPLL2 like below=
-=2E
->>
->>       ...
->>
->> So I could use VPLL2 after I get rid of those annotations.
->> I wonder why did you annotate for VPLL2.
->> Does using VPLL2 has some problems?
->
-> I didn't have any use case for managing VPLL2 in Linux
-> software at runtime, except maybe in conjunction with
-> the power management code.
->
-> What's your use case?
+However, looking a little deeper, there's more issues in the reparenting
+area.  I don't think this code has been tested at all...  In
+_omap2_clksel_get_src_field, there is this:
 
-It's used for graphics power. Without it. we can only see the limited c=
-olors.
-Yes there's too much example related with it. so we want to know exact =
-usage.
-Now workaround we simply enable it at bootloader.
+	for (clkr = clks->rates; clkr->div; clkr++) {
+		if (clkr->flags & (cpu_mask | DEFAULT_RATE))
+			break; /* Found the default rate for this platform */
+	}
 
->
-> Some of the supported operating points require changes
-> to supplies like VDD1 and VDD2 ... I thought that if
-> the power management code needed to use the regulator
-> framework, we'd hear about it later and be able to deal
-> with those issues at that time.
+which is bogus - it will find the first entry which is _either_ marked
+as a default rate _or_ is supported by the SoC.  This means (for
+instance) that:
 
-As you know It's not easy work to change hardware. :)
+static const struct clksel_rate core_l3_core_rates[] = {
+        { .div = 1, .val = 1, .flags = RATE_IN_24XX },
+        { .div = 2, .val = 2, .flags = RATE_IN_242X },
+        { .div = 4, .val = 4, .flags = RATE_IN_24XX | DEFAULT_RATE },
 
-Thank you,
-Kyungmin Park
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+will give us divisor 1 rather than presumably the one we want, that being
+divisor 4.  I think the test above should be:
+
+	for (clkr = clks->rates; clkr->div; clkr++) {
+		if (clkr->flags & cpu_mask &&
+		    clkr->flags & DEFAULT_RATE)
+			break; /* Found the default rate for this platform */
+	}
+
+so we find an entry which is supported _and_ is the default for the SoC.
+
+There's also a second issue - the comments before omap2_divisor_to_clksel()
+indicate that this function returns 0xffffffff on error.  Unfortunately,
+this is not so, it actually returns zero on error.  Moreover, we test
+the result of the function against ~0, so we'll never deal with the error
+case.  This really should be fixed so that we return the right value for
+the error case.  (Further comments on this in a follow up.)
+
+So, below is a patch which fixes both of these issues.
+
+diff --git a/arch/arm/mach-omap2/clock.c b/arch/arm/mach-omap2/clock.c
+index 5020cb1..f87501b 100644
+--- a/arch/arm/mach-omap2/clock.c
++++ b/arch/arm/mach-omap2/clock.c
+@@ -636,7 +636,7 @@ u32 omap2_clksel_to_divisor(struct clk *clk, u32 field_val)
+  *
+  * Given a struct clk of a rate-selectable clksel clock, and a clock divisor,
+  * find the corresponding register field value.  The return register value is
+- * the value before left-shifting.  Returns 0xffffffff on error
++ * the value before left-shifting.  Returns ~0 on error
+  */
+ u32 omap2_divisor_to_clksel(struct clk *clk, u32 div)
+ {
+@@ -648,7 +648,7 @@ u32 omap2_divisor_to_clksel(struct clk *clk, u32 div)
+ 
+ 	clks = omap2_get_clksel_by_parent(clk, clk->parent);
+ 	if (!clks)
+-		return 0;
++		return ~0;
+ 
+ 	for (clkr = clks->rates; clkr->div; clkr++) {
+ 		if ((clkr->flags & cpu_mask) && (clkr->div == div))
+@@ -659,7 +659,7 @@ u32 omap2_divisor_to_clksel(struct clk *clk, u32 div)
+ 		printk(KERN_ERR "clock: Could not find divisor %d for "
+ 		       "clock %s parent %s\n", div, clk->name,
+ 		       clk->parent->name);
+-		return 0;
++		return ~0;
+ 	}
+ 
+ 	return clkr->val;
+@@ -747,7 +747,7 @@ static u32 _omap2_clksel_get_src_field(struct clk *src_clk, struct clk *clk,
+ 		return 0;
+ 
+ 	for (clkr = clks->rates; clkr->div; clkr++) {
+-		if (clkr->flags & (cpu_mask | DEFAULT_RATE))
++		if (clkr->flags & cpu_mask && clkr->flags & DEFAULT_RATE)
+ 			break; /* Found the default rate for this platform */
+ 	}
+ 
