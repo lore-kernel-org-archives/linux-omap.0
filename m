@@ -1,95 +1,222 @@
-From: Felipe Balbi <me@felipebalbi.com>
-Subject: Re: [PATCH 5/6] leds: lp5521: move to drivers/leds
-Date: Fri, 13 Feb 2009 18:07:35 -0600
-Message-ID: <6e3a378b4ae5036dbd50420a6a869012@felipebalbi.com>
-References: <bdea5f5962eebe1bd420f184ebc7b32c@felipebalbi.com> <200902131249.00592.david-b@pacbell.net> <20090213223636.GP10711@frodo> <200902131554.20869.david-b@pacbell.net>
+From: "Woodruff, Richard" <r-woodruff2@ti.com>
+Subject: [pacth] I2C bug fixes for L-O and L-Z
+Date: Fri, 13 Feb 2009 20:39:20 -0600
+Message-ID: <13B9B4C6EF24D648824FF11BE89671620377169EBF@dlee02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: multipart/mixed;
+	boundary="_003_13B9B4C6EF24D648824FF11BE89671620377169EBFdlee02enttico_"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ns1.siteground211.com ([209.62.36.12]:58419 "EHLO
-	serv01.siteground211.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751992AbZBNAHs (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 13 Feb 2009 19:07:48 -0500
-In-Reply-To: <200902131554.20869.david-b@pacbell.net>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:49881 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753410AbZBNCja (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 13 Feb 2009 21:39:30 -0500
+Received: from dlep95.itg.ti.com ([157.170.170.107])
+	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id n1E2dMld028412
+	for <linux-omap@vger.kernel.org>; Fri, 13 Feb 2009 20:39:27 -0600
+Received: from dlee73.ent.ti.com (localhost [127.0.0.1])
+	by dlep95.itg.ti.com (8.13.8/8.13.8) with ESMTP id n1E2dMfP001960
+	for <linux-omap@vger.kernel.org>; Fri, 13 Feb 2009 20:39:22 -0600 (CST)
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: David Brownell <david-b@pacbell.net>
-Cc: Felipe Balbi <felipe.balbi@nokia.com>, linux-omap@vger.kernel.org
+To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
+--_003_13B9B4C6EF24D648824FF11BE89671620377169EBFdlee02enttico_
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 
+Hi,
 
-On Fri, 13 Feb 2009 15:54:20 -0800, David Brownell <david-b@pacbell.net=
->
-wrote:
-> On Friday 13 February 2009, Felipe Balbi wrote:
->> From: Felipe Balbi <felipe.balbi@nokia.com>
->> Date: Sat, 14 Feb 2009 00:34:56 +0200
->> Subject: [PATCH] leds: lp5521: use sysfs_streq()
->>
->> instead of using strcmp() for comparing strings,
->> use sysfs_streq().
->>
->> Signed-off-by: Felipe Balbi <felipe.balbi@nokia.com>
->=20
-> Yes, just like that.
+Recently one custom board was having some I2C issues. In looking at it a co=
+uple things stood out.  I've attached a patches for l-o and l-z for anyone =
+to comment on which cares.
 
-Good, so we can apply these to l-o and I'll send the
-driver upstream after these patches are applied.
+Bug Fixes:
 
-Same for lm8323
+        -1- OMAP_I2C_WE_STC_WE should never be enabled for wake up unless I=
++F clk is cut.  Having it set like code does can mess up I2C FSM.
 
->=20
->=20
->> ---
->> =C2=A0drivers/leds/leds-lp5521.c | =C2=A0 =C2=A08 +++++---
->> =C2=A01 files changed, 5 insertions(+), 3 deletions(-)
->>
->> diff --git a/drivers/leds/leds-lp5521.c b/drivers/leds/leds-lp5521.c
->> index b3ba52a..3e1ca31 100644
->> --- a/drivers/leds/leds-lp5521.c
->> +++ b/drivers/leds/leds-lp5521.c
->> @@ -352,12 +352,14 @@ static ssize_t store_mode(struct device *dev,
->> =C2=A0
->> =C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0mutex_lock(&chip->lo=
-ck);
->> =C2=A0
->> -=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0if (!strncmp(buf, "run", =
-3))
->> +=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0if (sysfs_streq(buf, "run=
-"))
->> =C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=
-=A0=C2=A0=C2=A0=C2=A0=C2=A0lp5521_set_mode(chip, LP5521_MODE_RUN);
->> -=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0else if (!strncmp(buf, "l=
-oad", 4))
->> +=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0else if (sysfs_streq(buf,=
- "load"))
->> =C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=
-=A0=C2=A0=C2=A0=C2=A0=C2=A0lp5521_set_mode(chip, LP5521_MODE_LOAD);
->> -=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0else if (!strncmp(buf, "d=
-irect", 6))
->> +=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0else if (sysfs_streq(buf,=
- "direct"))
->> =C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=
-=A0=C2=A0=C2=A0=C2=A0=C2=A0lp5521_set_mode(chip,
-> LP5521_MODE_DIRECT_CONTROL);
->> +=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0else
->> +=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=
-=A0=C2=A0=C2=A0=C2=A0len =3D -EINVAL;
->> =C2=A0
->> =C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0mutex_unlock(&chip->=
-lock);
->> =C2=A0
->> --
---=20
-Best Regards,
+        -2- STT/STP bits are best written together.  There was a 2430-es1'i=
+sh errata which might have existed.  This is not the case in 3430.  There s=
+hould be no need to use b_hw =3D 1.
+                -a- Any write to I2C_CON is bad before ARDY.  An untimely w=
+rite can mess up I2C FSM for next write.
 
-=46elipe Balbi
-http://blog.felipebalbi.com
-me@felipebalbi.com
+        -3- There is a possible issue which a double clear of ARDY status i=
+n irq handler can make sure doesn't happen.
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Note: When using I2C with HS mode there is a target bus capacitance for pro=
+per operation.  Depending on your board the optimal pull up resister level =
+might very.  On OMAP3 there seems to be a few options which can allow you t=
+o play with effective resistance with out a hardware mod (and potential get=
+ better quality).
+        - CONTROL block has pull-up control for special internal pulls
+        - Padconf has normal pull-ups
+        - T2 has internal controllable pull-ups (default on)
+        - Your board might have an external pull up.
+
+Signed-off-by: Richard Woodruff <r-woodruff2@ti.com>
+
+Regards,
+Richard W.
+
+--_003_13B9B4C6EF24D648824FF11BE89671620377169EBFdlee02enttico_
+Content-Type: application/octet-stream; name="i2c_lo.diff"
+Content-Description: i2c_lo.diff
+Content-Disposition: attachment; filename="i2c_lo.diff"; size=3954;
+	creation-date="Fri, 13 Feb 2009 19:23:32 GMT";
+	modification-date="Fri, 13 Feb 2009 19:23:32 GMT"
+Content-Transfer-Encoding: base64
+
+ZGlmZiAtLWdpdCBhL2FyY2gvYXJtL21hY2gtaW50ZWdyYXRvci9jbG9jay5oIGIvYXJjaC9hcm0v
+bWFjaC1pbnRlZ3JhdG9yL2Nsb2NrLmgKZGVsZXRlZCBmaWxlIG1vZGUgMTAwNjQ0CmluZGV4IGU2
+OWRlMjkuLjAwMDAwMDAKZGlmZiAtLWdpdCBhL2RyaXZlcnMvaTJjL2J1c3Nlcy9pMmMtb21hcC5j
+IGIvZHJpdmVycy9pMmMvYnVzc2VzL2kyYy1vbWFwLmMKaW5kZXggYzk1MzY4Yy4uY2UzOWU3ZiAx
+MDA2NDQKLS0tIGEvZHJpdmVycy9pMmMvYnVzc2VzL2kyYy1vbWFwLmMKKysrIGIvZHJpdmVycy9p
+MmMvYnVzc2VzL2kyYy1vbWFwLmMKQEAgLTkxLDkgKzkxLDEzIEBACiAjZGVmaW5lIE9NQVBfSTJD
+X1NUQVRfTkFDSwkoMSA8PCAxKQkvKiBObyBhY2sgaW50ZXJydXB0IGVuYWJsZSAqLwogI2RlZmlu
+ZSBPTUFQX0kyQ19TVEFUX0FMCSgxIDw8IDApCS8qIEFyYml0cmF0aW9uIGxvc3QgaW50IGVuYSAq
+LwogCi0vKiBJMkMgV0Ugd2FrZXVwIGVuYWJsZSByZWdpc3RlciAqLworLyogSTJDIFdFIHdha2V1
+cCBlbmFibGUgcmVnaXN0ZXIgCisgKiBEb24ndCB1c2UgV0VfU1RDIHVubGVzcyBJK0YgY2xvY2tz
+IGFyZSBPRkYgZWxzZSBiYWQgRlNNCisgKi8KICNkZWZpbmUgT01BUF9JMkNfV0VfWERSX1dFCSgx
+IDw8IDE0KQkvKiBUWCBkcmFpbiB3YWt1cCAqLwogI2RlZmluZSBPTUFQX0kyQ19XRV9SRFJfV0UJ
+KDEgPDwgMTMpCS8qIFJYIGRyYWluIHdha2V1cCAqLworI2RlZmluZSBPTUFQX0kyQ19XRV9ST1ZS
+X1dFCSgxIDw8IDExKQkvKiBSWCBvdmVyZmxvdyB3YWtldXAgKi8KKyNkZWZpbmUgT01BUF9JMkNf
+V0VfWFVERl9XRQkoMSA8PCAxMCkJLyogVFggdW5kZXJmbG93IHdha2V1cCAqLwogI2RlZmluZSBP
+TUFQX0kyQ19XRV9BQVNfV0UJKDEgPDwgOSkJLyogQWRkcmVzcyBhcyBzbGF2ZSB3YWtldXAqLwog
+I2RlZmluZSBPTUFQX0kyQ19XRV9CRl9XRQkoMSA8PCA4KQkvKiBCdXMgZnJlZSB3YWtldXAgKi8K
+ICNkZWZpbmUgT01BUF9JMkNfV0VfU1RDX1dFCSgxIDw8IDYpCS8qIFN0YXJ0IGNvbmRpdGlvbiB3
+YWtldXAgKi8KQEAgLTEwNCwxMCArMTA4LDExIEBACiAjZGVmaW5lIE9NQVBfSTJDX1dFX0FMX1dF
+CSgxIDw8IDApCS8qIEFyYml0cmF0aW9uIGxvc3Qgd2FrZXVwICovCiAKICNkZWZpbmUgT01BUF9J
+MkNfV0VfQUxMCQkoT01BUF9JMkNfV0VfWERSX1dFIHwgT01BUF9JMkNfV0VfUkRSX1dFIHwgXAor
+CQkJCU9NQVBfSTJDX1dFX1JPVlJfV0UgfCBPTUFQX0kyQ19XRV9ST1ZSX1dFIHwgXAogCQkJCU9N
+QVBfSTJDX1dFX0FBU19XRSB8IE9NQVBfSTJDX1dFX0JGX1dFIHwgXAotCQkJCU9NQVBfSTJDX1dF
+X1NUQ19XRSB8IE9NQVBfSTJDX1dFX0dDX1dFIHwgXAotCQkJCU9NQVBfSTJDX1dFX0RSRFlfV0Ug
+fCBPTUFQX0kyQ19XRV9BUkRZX1dFIHwgXAotCQkJCU9NQVBfSTJDX1dFX05BQ0tfV0UgfCBPTUFQ
+X0kyQ19XRV9BTF9XRSkKKwkJCQlPTUFQX0kyQ19XRV9HQ19XRSB8IE9NQVBfSTJDX1dFX0RSRFlf
+V0UgfCBcCisJCQkJT01BUF9JMkNfV0VfQVJEWV9XRSB8IE9NQVBfSTJDX1dFX05BQ0tfV0UgfCBc
+CisJCQkJT01BUF9JMkNfV0VfQUxfV0UpCiAKIC8qIEkyQyBCdWZmZXIgQ29uZmlndXJhdGlvbiBS
+ZWdpc3RlciAoT01BUF9JMkNfQlVGKTogKi8KICNkZWZpbmUgT01BUF9JMkNfQlVGX1JETUFfRU4J
+KDEgPDwgMTUpCS8qIFJYIERNQSBjaGFubmVsIGVuYWJsZSAqLwpAQCAtMjY1LDYgKzI3MCw3IEBA
+IHN0YXRpYyBpbnQgb21hcF9pMmNfaW5pdChzdHJ1Y3Qgb21hcF9pMmNfZGV2ICpkZXYpCiAJdW5z
+aWduZWQgbG9uZyBmY2xrX3JhdGUgPSAxMjAwMDAwMDsKIAl1bnNpZ25lZCBsb25nIHRpbWVvdXQ7
+CiAJdW5zaWduZWQgbG9uZyBpbnRlcm5hbF9jbGsgPSAwOworCWludCBkZWxheV9jb3VudCA9IDEw
+MDsKIAogCWlmIChkZXYtPnJldiA+PSBPTUFQX0kyQ19SRVZfMikgewogCQlvbWFwX2kyY193cml0
+ZV9yZWcoZGV2LCBPTUFQX0kyQ19TWVNDX1JFRywgU1lTQ19TT0ZUUkVTRVRfTUFTSyk7CkBAIC0y
+NzksNyArMjg1LDEwIEBAIHN0YXRpYyBpbnQgb21hcF9pMmNfaW5pdChzdHJ1Y3Qgb21hcF9pMmNf
+ZGV2ICpkZXYpCiAJCQkJCQkiZm9yIGNvbnRyb2xsZXIgcmVzZXRcbiIpOwogCQkJCXJldHVybiAt
+RVRJTUVET1VUOwogCQkJfQotCQkJbXNsZWVwKDEpOworCQkJaWYoIC0tZGVsYXlfY291bnQgPiAw
+ICkKKwkJCQl1ZGVsYXkoMSk7CisJCQllbHNlICAgIAorCQkJCW1zbGVlcCgxKTsKIAkJfQogCiAJ
+CS8qIFNZU0MgcmVnaXN0ZXIgaXMgY2xlYXJlZCBieSB0aGUgcmVzZXQ7IHJld3JpdGUgaXQgKi8K
+QEAgLTQwOCwxNCArNDE3LDE4IEBAIHN0YXRpYyBpbnQgb21hcF9pMmNfaW5pdChzdHJ1Y3Qgb21h
+cF9pMmNfZGV2ICpkZXYpCiBzdGF0aWMgaW50IG9tYXBfaTJjX3dhaXRfZm9yX2JiKHN0cnVjdCBv
+bWFwX2kyY19kZXYgKmRldikKIHsKIAl1bnNpZ25lZCBsb25nIHRpbWVvdXQ7Ci0KKwlpbnQgZGVs
+YXlfY291bnQgPSAxMDA7CisJCiAJdGltZW91dCA9IGppZmZpZXMgKyBPTUFQX0kyQ19USU1FT1VU
+OwogCXdoaWxlIChvbWFwX2kyY19yZWFkX3JlZyhkZXYsIE9NQVBfSTJDX1NUQVRfUkVHKSAmIE9N
+QVBfSTJDX1NUQVRfQkIpIHsKIAkJaWYgKHRpbWVfYWZ0ZXIoamlmZmllcywgdGltZW91dCkpIHsK
+IAkJCWRldl93YXJuKGRldi0+ZGV2LCAidGltZW91dCB3YWl0aW5nIGZvciBidXMgcmVhZHlcbiIp
+OwogCQkJcmV0dXJuIC1FVElNRURPVVQ7CiAJCX0KLQkJbXNsZWVwKDEpOworCQlpZiggLS1kZWxh
+eV9jb3VudCA+IDAgKQorCQkJdWRlbGF5KDEpOworCQllbHNlICAgIAorCQkJbXNsZWVwKDEpOwog
+CX0KIAogCXJldHVybiAwOwpAQCAtNDg2LDcgKzQ5OSw3IEBAIHN0YXRpYyBpbnQgb21hcF9pMmNf
+eGZlcl9tc2coc3RydWN0IGkyY19hZGFwdGVyICphZGFwLAogCQkJfQogCQkJY3B1X3JlbGF4KCk7
+CiAJCX0KLQorCQkvKiBGSVhNRTogc2hvdWxkIGNvbnNpZGVyIEFSRFkgdmFsdWUgYmVmb3JlIHdy
+aXRpbmcgdG8gSTJDX0NPTiAqLwogCQl3IHw9IE9NQVBfSTJDX0NPTl9TVFA7CiAJCXcgJj0gfk9N
+QVBfSTJDX0NPTl9TVFQ7CiAJCW9tYXBfaTJjX3dyaXRlX3JlZyhkZXYsIE9NQVBfSTJDX0NPTl9S
+RUcsIHcpOwpAQCAtNjczLDggKzY4NiwxMSBAQCBvbWFwX2kyY19pc3IoaW50IHRoaXNfaXJxLCB2
+b2lkICpkZXZfaWQpCiAJCQllcnIgfD0gT01BUF9JMkNfU1RBVF9BTDsKIAkJfQogCQlpZiAoc3Rh
+dCAmIChPTUFQX0kyQ19TVEFUX0FSRFkgfCBPTUFQX0kyQ19TVEFUX05BQ0sgfAotCQkJCQlPTUFQ
+X0kyQ19TVEFUX0FMKSkKLQkJCW9tYXBfaTJjX2NvbXBsZXRlX2NtZChkZXYsIGVycik7CisJCQkJ
+CU9NQVBfSTJDX1NUQVRfQUwpKXsKKwkJCQkvKiBlcnJhdGE6IEFSRFkgbmVlZHMgZG91YmxlIGNs
+ZWFyIGZvciBzb21lIGhhcmR3YXJlICovCisJCQkJb21hcF9pMmNfd3JpdGVfcmVnKGRldiwgT01B
+UF9JMkNfU1RBVF9SRUcsIE9NQVBfSTJDX1NUQVRfQVJEWSk7CQorCQkJCW9tYXBfaTJjX2NvbXBs
+ZXRlX2NtZChkZXYsIGVycik7CisJCX0KIAkJaWYgKHN0YXQgJiAoT01BUF9JMkNfU1RBVF9SUkRZ
+IHwgT01BUF9JMkNfU1RBVF9SRFIpKSB7CiAJCQl1OCBudW1fYnl0ZXMgPSAxOwogCQkJaWYgKGRl
+di0+Zmlmb19zaXplKSB7CkBAIC04NDYsOSArODYyLDExIEBAIG9tYXBfaTJjX3Byb2JlKHN0cnVj
+dCBwbGF0Zm9ybV9kZXZpY2UgKnBkZXYpCiAJCSAqIGNhbGwgYmFjayBsYXRlbmNpZXMuCiAJCSAq
+LwogCQlkZXYtPmZpZm9fc2l6ZSA9IChkZXYtPmZpZm9fc2l6ZSAvIDIpOwotCQlkZXYtPmJfaHcg
+PSAxOyAvKiBFbmFibGUgaGFyZHdhcmUgZml4ZXMgKi8KIAl9CiAKKwlpZiAoY3B1X2lzX29tYXAy
+NDMwKCkpCisJCWRldi0+Yl9odyA9IDE7IC8qIEVuYWJsZSBoYXJkd2FyZSBmaXggKG1pZ2h0IGJl
+IGVzMSBvbmx5KSAqLworCiAJLyogcmVzZXQgQVNBUCwgY2xlYXJpbmcgYW55IElSUXMgKi8KIAlv
+bWFwX2kyY19pbml0KGRldik7CiAK
+
+--_003_13B9B4C6EF24D648824FF11BE89671620377169EBFdlee02enttico_
+Content-Type: application/octet-stream; name="i2c_lz.diff"
+Content-Description: i2c_lz.diff
+Content-Disposition: attachment; filename="i2c_lz.diff"; size=4044;
+	creation-date="Fri, 13 Feb 2009 19:08:26 GMT";
+	modification-date="Fri, 13 Feb 2009 19:08:26 GMT"
+Content-Transfer-Encoding: base64
+
+ZGlmZiAtLWdpdCBhL2FyY2gvYXJtL21hY2gtb21hcDIvYm9hcmQtbGRwLmMgYi9hcmNoL2FybS9t
+YWNoLW9tYXAyL2JvYXJkLWxkcC5jCmluZGV4IDcyMmQxYmMuLmM3OTk2OTUgMTAwNzU1Ci0tLSBh
+L2FyY2gvYXJtL21hY2gtb21hcDIvYm9hcmQtbGRwLmMKKysrIGIvYXJjaC9hcm0vbWFjaC1vbWFw
+Mi9ib2FyZC1sZHAuYwpAQCAtODA1LDcgKzgwNSw3IEBAIHN0YXRpYyBzdHJ1Y3QgaTJjX2JvYXJk
+X2luZm8gX19pbml0ZGF0YSBsZHBfaTJjX2JvYXJkaW5mb18yW10gPSB7CiAKIHN0YXRpYyBpbnQg
+X19pbml0IG9tYXBfaTJjX2luaXQodm9pZCkKIHsKLQlvbWFwX3JlZ2lzdGVyX2kyY19idXMoMSwg
+NDAwLCBsZHBfaTJjX2JvYXJkaW5mbywKKwlvbWFwX3JlZ2lzdGVyX2kyY19idXMoMSwgMjYwMCwg
+bGRwX2kyY19ib2FyZGluZm8sCiAJCQlBUlJBWV9TSVpFKGxkcF9pMmNfYm9hcmRpbmZvKSk7CiAJ
+b21hcF9yZWdpc3Rlcl9pMmNfYnVzKDIsIDEwMCwgbGRwX2kyY19ib2FyZGluZm9fMiwKIAkJCUFS
+UkFZX1NJWkUobGRwX2kyY19ib2FyZGluZm9fMikpOwpkaWZmIC0tZ2l0IGEvZHJpdmVycy9pMmMv
+YnVzc2VzL2kyYy1vbWFwLmMgYi9kcml2ZXJzL2kyYy9idXNzZXMvaTJjLW9tYXAuYwppbmRleCA5
+YTA1NDE5Li4wYmQ4MzMyIDEwMDY0NAotLS0gYS9kcml2ZXJzL2kyYy9idXNzZXMvaTJjLW9tYXAu
+YworKysgYi9kcml2ZXJzL2kyYy9idXNzZXMvaTJjLW9tYXAuYwpAQCAtOTEsNyArOTEsOSBAQAog
+I2RlZmluZSBPTUFQX0kyQ19TVEFUX05BQ0sJKDEgPDwgMSkJLyogTm8gYWNrIGludGVycnVwdCBl
+bmFibGUgKi8KICNkZWZpbmUgT01BUF9JMkNfU1RBVF9BTAkoMSA8PCAwKQkvKiBBcmJpdHJhdGlv
+biBsb3N0IGludCBlbmEgKi8KIAotLyogSTJDIFdFIHdha2V1cCBlbmFibGUgcmVnaXN0ZXIgKi8K
+Ky8qIEkyQyBXRSB3YWtldXAgZW5hYmxlIHJlZ2lzdGVyIAorICogRG9uJ3QgdXNlIFdFX1NUQyB1
+bmxlc3MgSStGIGNsb2NrcyBhcmUgT0ZGIGVsc2UgYmFkIEZTTQorICovCiAjZGVmaW5lIE9NQVBf
+STJDX1dFX1hEUl9XRQkoMSA8PCAxNCkJLyogVFggZHJhaW4gd2FrdXAgKi8KICNkZWZpbmUgT01B
+UF9JMkNfV0VfUkRSX1dFCSgxIDw8IDEzKQkvKiBSWCBkcmFpbiB3YWtldXAgKi8KICNkZWZpbmUg
+T01BUF9JMkNfV0VfUk9WUl9XRQkoMSA8PCAxMSkJLyogUlggb3ZlcmZsb3cgd2FrZXVwICovCkBA
+IC0xMDgsOSArMTEwLDkgQEAKICNkZWZpbmUgT01BUF9JMkNfV0VfQUxMCQkoT01BUF9JMkNfV0Vf
+WERSX1dFIHwgT01BUF9JMkNfV0VfUkRSX1dFIHwgXAogCQkJCU9NQVBfSTJDX1dFX1JPVlJfV0Ug
+fCBPTUFQX0kyQ19XRV9ST1ZSX1dFIHwgXAogCQkJCU9NQVBfSTJDX1dFX0FBU19XRSB8IE9NQVBf
+STJDX1dFX0JGX1dFIHwgXAotCQkJCU9NQVBfSTJDX1dFX1NUQ19XRSB8IE9NQVBfSTJDX1dFX0dD
+X1dFIHwgXAotCQkJCU9NQVBfSTJDX1dFX0RSRFlfV0UgfCBPTUFQX0kyQ19XRV9BUkRZX1dFIHwg
+XAotCQkJCU9NQVBfSTJDX1dFX05BQ0tfV0UgfCBPTUFQX0kyQ19XRV9BTF9XRSkKKwkJCQlPTUFQ
+X0kyQ19XRV9HQ19XRSB8IE9NQVBfSTJDX1dFX0RSRFlfV0UgfCBcCisJCQkJT01BUF9JMkNfV0Vf
+QVJEWV9XRSB8IE9NQVBfSTJDX1dFX05BQ0tfV0UgfCBcCisJCQkJT01BUF9JMkNfV0VfQUxfV0Up
+CiAKIC8qIEkyQyBCdWZmZXIgQ29uZmlndXJhdGlvbiBSZWdpc3RlciAoT01BUF9JMkNfQlVGKTog
+Ki8KICNkZWZpbmUgT01BUF9JMkNfQlVGX1JETUFfRU4JKDEgPDwgMTUpCS8qIFJYIERNQSBjaGFu
+bmVsIGVuYWJsZSAqLwpAQCAtMjg0LDYgKzI4Niw3IEBAIHN0YXRpYyBpbnQgb21hcF9pMmNfaW5p
+dChzdHJ1Y3Qgb21hcF9pMmNfZGV2ICpkZXYpCiAJdW5zaWduZWQgbG9uZyBmY2xrX3JhdGUgPSAx
+MjAwMDAwMDsKIAl1bnNpZ25lZCBsb25nIHRpbWVvdXQ7CiAJdW5zaWduZWQgbG9uZyBpbnRlcm5h
+bF9jbGsgPSAwOworCWludCBkZWxheV9jb3VudCA9IDEwMDsKIAogCWlmIChkZXYtPnJldiA+PSBP
+TUFQX0kyQ19SRVZfMikgewogCQlvbWFwX2kyY193cml0ZV9yZWcoZGV2LCBPTUFQX0kyQ19TWVND
+X1JFRywgU1lTQ19TT0ZUUkVTRVRfTUFTSyk7CkBAIC0yOTgsNyArMzAxLDEwIEBAIHN0YXRpYyBp
+bnQgb21hcF9pMmNfaW5pdChzdHJ1Y3Qgb21hcF9pMmNfZGV2ICpkZXYpCiAJCQkJCQkiZm9yIGNv
+bnRyb2xsZXIgcmVzZXRcbiIpOwogCQkJCXJldHVybiAtRVRJTUVET1VUOwogCQkJfQotCQkJbXNs
+ZWVwKDEpOworCQkJaWYoIC0tZGVsYXlfY291bnQgPiAwICkKKwkJCQl1ZGVsYXkoMSk7CisJCQll
+bHNlICAgIAorCQkJCW1zbGVlcCgxKTsKIAkJfQogCiAJCS8qIFNZU0MgcmVnaXN0ZXIgaXMgY2xl
+YXJlZCBieSB0aGUgcmVzZXQ7IHJld3JpdGUgaXQgKi8KQEAgLTQyOCwxNCArNDM0LDE4IEBAIHN0
+YXRpYyBpbnQgb21hcF9pMmNfaW5pdChzdHJ1Y3Qgb21hcF9pMmNfZGV2ICpkZXYpCiBzdGF0aWMg
+aW50IG9tYXBfaTJjX3dhaXRfZm9yX2JiKHN0cnVjdCBvbWFwX2kyY19kZXYgKmRldikKIHsKIAl1
+bnNpZ25lZCBsb25nIHRpbWVvdXQ7Ci0KKwlpbnQgZGVsYXlfY291bnQgPSAxMDA7CisJCiAJdGlt
+ZW91dCA9IGppZmZpZXMgKyBPTUFQX0kyQ19USU1FT1VUOwogCXdoaWxlIChvbWFwX2kyY19yZWFk
+X3JlZyhkZXYsIE9NQVBfSTJDX1NUQVRfUkVHKSAmIE9NQVBfSTJDX1NUQVRfQkIpIHsKIAkJaWYg
+KHRpbWVfYWZ0ZXIoamlmZmllcywgdGltZW91dCkpIHsKIAkJCWRldl93YXJuKGRldi0+ZGV2LCAi
+dGltZW91dCB3YWl0aW5nIGZvciBidXMgcmVhZHlcbiIpOwogCQkJcmV0dXJuIC1FVElNRURPVVQ7
+CiAJCX0KLQkJbXNsZWVwKDEpOworCQlpZiggLS1kZWxheV9jb3VudCA+IDAgKQorCQkJdWRlbGF5
+KDEpOworCQllbHNlICAgIAorCQkJbXNsZWVwKDEpOwogCX0KIAogCXJldHVybiAwOwpAQCAtNTA2
+LDcgKzUxNiw3IEBAIHN0YXRpYyBpbnQgb21hcF9pMmNfeGZlcl9tc2coc3RydWN0IGkyY19hZGFw
+dGVyICphZGFwLAogCQkJfQogCQkJY3B1X3JlbGF4KCk7CiAJCX0KLQorCQkvKiBGSVhNRTogc2hv
+dWxkIGNvbnNpZGVyIEFSRFkgdmFsdWUgYmVmb3JlIHdyaXRpbmcgdG8gSTJDX0NPTiAqLwogCQl3
+IHw9IE9NQVBfSTJDX0NPTl9TVFA7CiAJCXcgJj0gfk9NQVBfSTJDX0NPTl9TVFQ7CiAJCW9tYXBf
+aTJjX3dyaXRlX3JlZyhkZXYsIE9NQVBfSTJDX0NPTl9SRUcsIHcpOwpAQCAtNjkzLDggKzcwMywx
+MSBAQCBvbWFwX2kyY19pc3IoaW50IHRoaXNfaXJxLCB2b2lkICpkZXZfaWQpCiAJCQllcnIgfD0g
+T01BUF9JMkNfU1RBVF9BTDsKIAkJfQogCQlpZiAoc3RhdCAmIChPTUFQX0kyQ19TVEFUX0FSRFkg
+fCBPTUFQX0kyQ19TVEFUX05BQ0sgfAotCQkJCQlPTUFQX0kyQ19TVEFUX0FMKSkKLQkJCW9tYXBf
+aTJjX2NvbXBsZXRlX2NtZChkZXYsIGVycik7CisJCQkJCU9NQVBfSTJDX1NUQVRfQUwpKXsKKwkJ
+CQkvKiBlcnJhdGE6IEFSRFkgbmVlZHMgZG91YmxlIGNsZWFyIGZvciBzb21lIGhhcmR3YXJlICov
+CisJCQkJb21hcF9pMmNfd3JpdGVfcmVnKGRldiwgT01BUF9JMkNfU1RBVF9SRUcsIE9NQVBfSTJD
+X1NUQVRfQVJEWSk7CQorCQkJCW9tYXBfaTJjX2NvbXBsZXRlX2NtZChkZXYsIGVycik7CisJCX0K
+IAkJaWYgKHN0YXQgJiAoT01BUF9JMkNfU1RBVF9SUkRZIHwgT01BUF9JMkNfU1RBVF9SRFIpKSB7
+CiAJCQl1OCBudW1fYnl0ZXMgPSAxOwogCQkJaWYgKGRldi0+Zmlmb19zaXplKSB7CkBAIC04NjYs
+OSArODc5LDExIEBAIG9tYXBfaTJjX3Byb2JlKHN0cnVjdCBwbGF0Zm9ybV9kZXZpY2UgKnBkZXYp
+CiAJCSAqIGNhbGwgYmFjayBsYXRlbmNpZXMuCiAJCSAqLwogCQlkZXYtPmZpZm9fc2l6ZSA9IChk
+ZXYtPmZpZm9fc2l6ZSAvIDIpOwotCQlkZXYtPmJfaHcgPSAxOyAvKiBFbmFibGUgaGFyZHdhcmUg
+Zml4ZXMgKi8KIAl9CiAKKwlpZiAoY3B1X2lzX29tYXAyNDMwKCkpCisJCWRldi0+Yl9odyA9IDE7
+IC8qIEVuYWJsZSBoYXJkd2FyZSBmaXggKG1pZ2h0IGJlIGVzMSBvbmx5KSAqLworCiAJLyogcmVz
+ZXQgQVNBUCwgY2xlYXJpbmcgYW55IElSUXMgKi8KIAlvbWFwX2kyY19pbml0KGRldik7CiAK
+
+--_003_13B9B4C6EF24D648824FF11BE89671620377169EBFdlee02enttico_--
