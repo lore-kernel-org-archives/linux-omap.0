@@ -1,407 +1,206 @@
-From: Felipe Balbi <felipe.balbi@nokia.com>
-Subject: [RESEND/RFC/RFT] [PATCH] arm: omap1: get rid of OMAP_TAG_USB
-Date: Sun, 15 Feb 2009 03:30:09 +0200
-Message-ID: <1234661409-653-1-git-send-email-felipe.balbi@nokia.com>
+From: "Ramirez Luna, Omar" <x00omar@ti.com>
+Subject: [OMAPZOOM][PATCH] DSPBRIDGE Workqueue implementation for DVFS
+Date: Sat, 14 Feb 2009 20:12:34 -0600
+Message-ID: <27F9C60D11D683428E133F85D2BB4A5303F8029664@dlee03.ent.ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:27949 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751795AbZBOBpq (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 14 Feb 2009 20:45:46 -0500
+Received: from comal.ext.ti.com ([198.47.26.152]:50675 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750788AbZBOCMl convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 14 Feb 2009 21:12:41 -0500
+Received: from dlep95.itg.ti.com ([157.170.170.107])
+	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id n1F2CaZq030857
+	for <linux-omap@vger.kernel.org>; Sat, 14 Feb 2009 20:12:41 -0600
+Received: from dlee74.ent.ti.com (localhost [127.0.0.1])
+	by dlep95.itg.ti.com (8.13.8/8.13.8) with ESMTP id n1F2CZIq011776
+	for <linux-omap@vger.kernel.org>; Sat, 14 Feb 2009 20:12:36 -0600 (CST)
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, Felipe Balbi <felipe.balbi@nokia.com>
+To: "Aguilar Pena, Leed" <leed.aguilar@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-OMAP_TAGS should vanish soon since they're not generic arm tags.
-Most of them can be converted to a platform_data or parsed
-from a command line like e.g. serial tag.
+From: Nischal Varide  <nischal_@ti.com>
+Date: Thu, 12 Feb 2009 13:43:40 -0600
+Subject: [PATCH] DSPBRIDGE Workqueue implementation for DVFS
 
-For OMAP_TAG_USB we just let boards call omap_usb_init()
-passing a pointer to omap_usb_config.
+This patch will fix the BUG_ON message "Scheduling
+while atomic" that was seen when enabling DVFS.
 
-This patch is compile tested only.
-
-Signed-off-by: Felipe Balbi <felipe.balbi@nokia.com>
+Signed-off-by: Nischal Varide  <nischal_@ti.com>
 ---
- arch/arm/mach-omap1/board-ams-delta.c   |    2 +-
- arch/arm/mach-omap1/board-generic.c     |    5 ++---
- arch/arm/mach-omap1/board-h2.c          |    2 +-
- arch/arm/mach-omap1/board-h3.c          |    2 +-
- arch/arm/mach-omap1/board-innovator.c   |    5 ++---
- arch/arm/mach-omap1/board-nokia770.c    |    3 +--
- arch/arm/mach-omap1/board-osk.c         |    2 +-
- arch/arm/mach-omap1/board-palmte.c      |    2 +-
- arch/arm/mach-omap1/board-palmtt.c      |    2 +-
- arch/arm/mach-omap1/board-palmz71.c     |    2 +-
- arch/arm/mach-omap1/board-sx1.c         |    2 +-
- arch/arm/mach-omap1/board-voiceblue.c   |    2 +-
- arch/arm/mach-omap2/board-apollon.c     |    2 +-
- arch/arm/mach-omap2/board-h4.c          |    2 +-
- arch/arm/plat-omap/include/mach/board.h |    1 -
- arch/arm/plat-omap/include/mach/usb.h   |    2 ++
- arch/arm/plat-omap/usb.c                |   25 ++++---------------------
- 17 files changed, 22 insertions(+), 41 deletions(-)
+ drivers/dsp/bridge/hw/hw_mbox.c |    2 +-
+ drivers/dsp/bridge/wmd/io_sm.c  |   47 +++++++++++++++++++++++++++++++++-----
+ 2 files changed, 41 insertions(+), 8 deletions(-)
 
-diff --git a/arch/arm/mach-omap1/board-ams-delta.c b/arch/arm/mach-omap1/board-ams-delta.c
-index 2e61839..8b40aac 100644
---- a/arch/arm/mach-omap1/board-ams-delta.c
-+++ b/arch/arm/mach-omap1/board-ams-delta.c
-@@ -175,7 +175,6 @@ static struct omap_usb_config ams_delta_usb_config __initdata = {
- static struct omap_board_config_kernel ams_delta_config[] = {
- 	{ OMAP_TAG_LCD,		&ams_delta_lcd_config },
- 	{ OMAP_TAG_UART,	&ams_delta_uart_config },
--	{ OMAP_TAG_USB,		&ams_delta_usb_config },
- };
+diff --git a/drivers/dsp/bridge/hw/hw_mbox.c b/drivers/dsp/bridge/hw/hw_mbox.c
+index 2c14ade..bc61d64 100644
+--- a/drivers/dsp/bridge/hw/hw_mbox.c
++++ b/drivers/dsp/bridge/hw/hw_mbox.c
+@@ -33,7 +33,7 @@
+ /* width in bits of MBOX Id */
+ #define HW_MBOX_ID_WIDTH	   2
  
- static struct resource ams_delta_kp_resources[] = {
-@@ -232,6 +231,7 @@ static void __init ams_delta_init(void)
- 	/* Clear latch2 (NAND, LCD, modem enable) */
- 	ams_delta_latch2_write(~0, 0);
+-struct MAILBOX_CONTEXT mboxsetting = {0, 0, 0};
++struct MAILBOX_CONTEXT mboxsetting = {0x4, 0x1, 0x1};
  
-+	omap_usb_init(&ams_delta_usb_config);
- 	platform_add_devices(ams_delta_devices, ARRAY_SIZE(ams_delta_devices));
- }
+ /* Saves the mailbox context */
+ HW_STATUS HW_MBOX_saveSettings(u32 baseAddress)
+diff --git a/drivers/dsp/bridge/wmd/io_sm.c b/drivers/dsp/bridge/wmd/io_sm.c
+index ede25a3..040e87f 100644
+--- a/drivers/dsp/bridge/wmd/io_sm.c
++++ b/drivers/dsp/bridge/wmd/io_sm.c
+@@ -111,6 +111,7 @@
  
-diff --git a/arch/arm/mach-omap1/board-generic.c b/arch/arm/mach-omap1/board-generic.c
-index 7d26702..e724940 100644
---- a/arch/arm/mach-omap1/board-generic.c
-+++ b/arch/arm/mach-omap1/board-generic.c
-@@ -62,7 +62,6 @@ static struct omap_uart_config generic_uart_config __initdata = {
- };
- 
- static struct omap_board_config_kernel generic_config[] __initdata = {
--	{ OMAP_TAG_USB,		NULL },
- 	{ OMAP_TAG_UART,	&generic_uart_config },
- };
- 
-@@ -70,12 +69,12 @@ static void __init omap_generic_init(void)
- {
- #ifdef CONFIG_ARCH_OMAP15XX
- 	if (cpu_is_omap15xx()) {
--		generic_config[0].data = &generic1510_usb_config;
-+		omap_usb_init(&generic1510_usb_config);
- 	}
- #endif
- #if defined(CONFIG_ARCH_OMAP16XX)
- 	if (!cpu_is_omap1510()) {
--		generic_config[0].data = &generic1610_usb_config;
-+		omap_usb_init(&generic1610_usb_config);
- 	}
- #endif
- 
-diff --git a/arch/arm/mach-omap1/board-h2.c b/arch/arm/mach-omap1/board-h2.c
-index 0d784a7..9f3b392 100644
---- a/arch/arm/mach-omap1/board-h2.c
-+++ b/arch/arm/mach-omap1/board-h2.c
-@@ -364,7 +364,6 @@ static struct omap_lcd_config h2_lcd_config __initdata = {
- };
- 
- static struct omap_board_config_kernel h2_config[] __initdata = {
--	{ OMAP_TAG_USB,		&h2_usb_config },
- 	{ OMAP_TAG_UART,	&h2_uart_config },
- 	{ OMAP_TAG_LCD,		&h2_lcd_config },
- };
-@@ -413,6 +412,7 @@ static void __init h2_init(void)
- 	omap_serial_init();
- 	omap_register_i2c_bus(1, 100, h2_i2c_board_info,
- 			      ARRAY_SIZE(h2_i2c_board_info));
-+	omap_usb_init(&h2_usb_config);
- 	h2_mmc_init();
- }
- 
-diff --git a/arch/arm/mach-omap1/board-h3.c b/arch/arm/mach-omap1/board-h3.c
-index bf08b6a..a3c513d 100644
---- a/arch/arm/mach-omap1/board-h3.c
-+++ b/arch/arm/mach-omap1/board-h3.c
-@@ -418,7 +418,6 @@ static struct omap_lcd_config h3_lcd_config __initdata = {
- };
- 
- static struct omap_board_config_kernel h3_config[] __initdata = {
--	{ OMAP_TAG_USB,		&h3_usb_config },
- 	{ OMAP_TAG_UART,	&h3_uart_config },
- 	{ OMAP_TAG_LCD,		&h3_lcd_config },
- };
-@@ -472,6 +471,7 @@ static void __init h3_init(void)
- 	omap_serial_init();
- 	omap_register_i2c_bus(1, 100, h3_i2c_board_info,
- 			      ARRAY_SIZE(h3_i2c_board_info));
-+	omap_usb_init(&h3_usb_config);
- 	h3_mmc_init();
- }
- 
-diff --git a/arch/arm/mach-omap1/board-innovator.c b/arch/arm/mach-omap1/board-innovator.c
-index 071cd02..ed7ee07 100644
---- a/arch/arm/mach-omap1/board-innovator.c
-+++ b/arch/arm/mach-omap1/board-innovator.c
-@@ -370,7 +370,6 @@ static struct omap_uart_config innovator_uart_config __initdata = {
- };
- 
- static struct omap_board_config_kernel innovator_config[] = {
--	{ OMAP_TAG_USB,         NULL },
- 	{ OMAP_TAG_LCD,		NULL },
- 	{ OMAP_TAG_UART,	&innovator_uart_config },
- };
-@@ -392,13 +391,13 @@ static void __init innovator_init(void)
- 
- #ifdef CONFIG_ARCH_OMAP15XX
- 	if (cpu_is_omap1510()) {
--		innovator_config[0].data = &innovator1510_usb_config;
-+		omap_usb_init(&innovator1510_usb_config);
- 		innovator_config[1].data = &innovator1510_lcd_config;
- 	}
- #endif
- #ifdef CONFIG_ARCH_OMAP16XX
- 	if (cpu_is_omap1610()) {
--		innovator_config[0].data = &h2_usb_config;
-+		omap_usb_init(&h2_usb_config);
- 		innovator_config[1].data = &innovator1610_lcd_config;
- 	}
- #endif
-diff --git a/arch/arm/mach-omap1/board-nokia770.c b/arch/arm/mach-omap1/board-nokia770.c
-index af51e0b..a495455 100644
---- a/arch/arm/mach-omap1/board-nokia770.c
-+++ b/arch/arm/mach-omap1/board-nokia770.c
-@@ -371,8 +371,6 @@ static __init int omap_dsp_init(void)
- 
- static void __init omap_nokia770_init(void)
- {
--	nokia770_config[0].data = &nokia770_usb_config;
--
- 	platform_add_devices(nokia770_devices, ARRAY_SIZE(nokia770_devices));
- 	spi_register_board_info(nokia770_spi_board_info,
- 				ARRAY_SIZE(nokia770_spi_board_info));
-@@ -384,6 +382,7 @@ static void __init omap_nokia770_init(void)
- 	omap_dsp_init();
- 	ads7846_dev_init();
- 	mipid_dev_init();
-+	omap_usb_init(&nokia770_usb_config);
- 	nokia770_mmc_init();
- }
- 
-diff --git a/arch/arm/mach-omap1/board-osk.c b/arch/arm/mach-omap1/board-osk.c
-index 1a16ecb..99913ac 100644
---- a/arch/arm/mach-omap1/board-osk.c
-+++ b/arch/arm/mach-omap1/board-osk.c
-@@ -290,7 +290,6 @@ static struct omap_lcd_config osk_lcd_config __initdata = {
- #endif
- 
- static struct omap_board_config_kernel osk_config[] __initdata = {
--	{ OMAP_TAG_USB,           &osk_usb_config },
- 	{ OMAP_TAG_UART,		&osk_uart_config },
- #ifdef	CONFIG_OMAP_OSK_MISTRAL
- 	{ OMAP_TAG_LCD,			&osk_lcd_config },
-@@ -510,6 +509,7 @@ static void __init osk_mistral_init(void)
- 	i2c_register_board_info(1, mistral_i2c_board_info,
- 			ARRAY_SIZE(mistral_i2c_board_info));
- 
-+	omap_usb_init(&osk_usb_config);
- 	platform_add_devices(mistral_devices, ARRAY_SIZE(mistral_devices));
- }
- #else
-diff --git a/arch/arm/mach-omap1/board-palmte.c b/arch/arm/mach-omap1/board-palmte.c
-index 99f2b43..b2d3a36 100644
---- a/arch/arm/mach-omap1/board-palmte.c
-+++ b/arch/arm/mach-omap1/board-palmte.c
-@@ -286,7 +286,6 @@ static void palmte_get_power_status(struct apm_power_info *info, int *battery)
- #endif
- 
- static struct omap_board_config_kernel palmte_config[] __initdata = {
--	{ OMAP_TAG_USB,		&palmte_usb_config },
- 	{ OMAP_TAG_LCD,		&palmte_lcd_config },
- 	{ OMAP_TAG_UART,	&palmte_uart_config },
- };
-@@ -341,6 +340,7 @@ static void __init omap_palmte_init(void)
- 	spi_register_board_info(palmte_spi_info, ARRAY_SIZE(palmte_spi_info));
- 	palmte_misc_gpio_setup();
- 	omap_serial_init();
-+	omap_usb_init(&palmte_usb_config);
- 	omap_register_i2c_bus(1, 100, NULL, 0);
- }
- 
-diff --git a/arch/arm/mach-omap1/board-palmtt.c b/arch/arm/mach-omap1/board-palmtt.c
-index 1cbc127..90795bf 100644
---- a/arch/arm/mach-omap1/board-palmtt.c
-+++ b/arch/arm/mach-omap1/board-palmtt.c
-@@ -272,7 +272,6 @@ static struct omap_uart_config palmtt_uart_config __initdata = {
- };
- 
- static struct omap_board_config_kernel palmtt_config[] __initdata = {
--	{ OMAP_TAG_USB,		&palmtt_usb_config	},
- 	{ OMAP_TAG_LCD,		&palmtt_lcd_config	},
- 	{ OMAP_TAG_UART,	&palmtt_uart_config	},
- };
-@@ -297,6 +296,7 @@ static void __init omap_palmtt_init(void)
- 
- 	spi_register_board_info(palmtt_boardinfo,ARRAY_SIZE(palmtt_boardinfo));
- 	omap_serial_init();
-+	omap_usb_init(&palmtt_usb_config);
- 	omap_register_i2c_bus(1, 100, NULL, 0);
- }
- 
-diff --git a/arch/arm/mach-omap1/board-palmz71.c b/arch/arm/mach-omap1/board-palmz71.c
-index baf5efb..89b50e8 100644
---- a/arch/arm/mach-omap1/board-palmz71.c
-+++ b/arch/arm/mach-omap1/board-palmz71.c
-@@ -239,7 +239,6 @@ static struct omap_uart_config palmz71_uart_config __initdata = {
- };
- 
- static struct omap_board_config_kernel palmz71_config[] __initdata = {
--	{OMAP_TAG_USB,	&palmz71_usb_config},
- 	{OMAP_TAG_LCD,	&palmz71_lcd_config},
- 	{OMAP_TAG_UART,	&palmz71_uart_config},
- };
-@@ -313,6 +312,7 @@ omap_palmz71_init(void)
- 
- 	spi_register_board_info(palmz71_boardinfo,
- 				ARRAY_SIZE(palmz71_boardinfo));
-+	omap_usb_init(&palmz71_usb_config);
- 	omap_serial_init();
- 	omap_register_i2c_bus(1, 100, NULL, 0);
- 	palmz71_gpio_setup(0);
-diff --git a/arch/arm/mach-omap1/board-sx1.c b/arch/arm/mach-omap1/board-sx1.c
-index 28c76a1..7d6f0b7 100644
---- a/arch/arm/mach-omap1/board-sx1.c
-+++ b/arch/arm/mach-omap1/board-sx1.c
-@@ -373,7 +373,6 @@ static struct omap_uart_config sx1_uart_config __initdata = {
- };
- 
- static struct omap_board_config_kernel sx1_config[] __initdata = {
--	{ OMAP_TAG_USB,	&sx1_usb_config },
- 	{ OMAP_TAG_LCD,	&sx1_lcd_config },
- 	{ OMAP_TAG_UART,	&sx1_uart_config },
- };
-@@ -388,6 +387,7 @@ static void __init omap_sx1_init(void)
- 	omap_board_config_size = ARRAY_SIZE(sx1_config);
- 	omap_serial_init();
- 	omap_register_i2c_bus(1, 100, NULL, 0);
-+	omap_usb_init(&sx1_usb_config);
- 	sx1_mmc_init();
- 
- 	/* turn on USB power */
-diff --git a/arch/arm/mach-omap1/board-voiceblue.c b/arch/arm/mach-omap1/board-voiceblue.c
-index a765354..98275e0 100644
---- a/arch/arm/mach-omap1/board-voiceblue.c
-+++ b/arch/arm/mach-omap1/board-voiceblue.c
-@@ -145,7 +145,6 @@ static struct omap_uart_config voiceblue_uart_config __initdata = {
- };
- 
- static struct omap_board_config_kernel voiceblue_config[] = {
--	{ OMAP_TAG_USB,  &voiceblue_usb_config },
- 	{ OMAP_TAG_UART, &voiceblue_uart_config },
- };
- 
-@@ -185,6 +184,7 @@ static void __init voiceblue_init(void)
- 	omap_board_config = voiceblue_config;
- 	omap_board_config_size = ARRAY_SIZE(voiceblue_config);
- 	omap_serial_init();
-+	omap_usb_init(&voiceblue_usb_config);
- 	omap_register_i2c_bus(1, 100, NULL, 0);
- 
- 	/* There is a good chance board is going up, so enable power LED
-diff --git a/arch/arm/mach-omap2/board-apollon.c b/arch/arm/mach-omap2/board-apollon.c
-index 994c947..727d282 100644
---- a/arch/arm/mach-omap2/board-apollon.c
-+++ b/arch/arm/mach-omap2/board-apollon.c
-@@ -364,7 +364,6 @@ static struct omap_lcd_config apollon_lcd_config __initdata = {
- 
- static struct omap_board_config_kernel apollon_config[] __initdata = {
- 	{ OMAP_TAG_UART,	&apollon_uart_config },
--	{ OMAP_TAG_USB,		&apollon_usb_config },
- 	{ OMAP_TAG_LCD,		&apollon_lcd_config },
- };
- 
-@@ -393,6 +392,7 @@ static void __init apollon_usb_init(void)
- 	omap_cfg_reg(P21_242X_GPIO12);
- 	gpio_request(12, "USB suspend");
- 	gpio_direction_output(12, 0);
-+	omap_usb_init(&apollon_usb_config);
- }
- 
- static void __init apollon_tsc_init(void)
-diff --git a/arch/arm/mach-omap2/board-h4.c b/arch/arm/mach-omap2/board-h4.c
-index b0252c8..cb5c09b 100644
---- a/arch/arm/mach-omap2/board-h4.c
-+++ b/arch/arm/mach-omap2/board-h4.c
-@@ -429,7 +429,6 @@ static struct spi_board_info h4_spi_board_info[] __initdata = {
- static struct omap_board_config_kernel h4_config[] __initdata = {
- 	{ OMAP_TAG_UART,	&h4_uart_config },
- 	{ OMAP_TAG_LCD,		&h4_lcd_config },
--	{ OMAP_TAG_USB,		&h4_usb_config },
- };
- 
- #ifdef	CONFIG_MACH_OMAP_H4_TUSB
-@@ -748,6 +747,7 @@ static void __init omap_h4_init(void)
- 	omap_board_config = h4_config;
- 	omap_board_config_size = ARRAY_SIZE(h4_config);
- 	omap_serial_init();
-+	omap_usb_init(&h4_usb_config);
- 	h4_mmc_init();
- 	omap_register_i2c_bus(1, 100, h4_i2c_board_info,
- 			      ARRAY_SIZE(h4_i2c_board_info));
-diff --git a/arch/arm/plat-omap/include/mach/board.h b/arch/arm/plat-omap/include/mach/board.h
-index 3a329f5..ae8c2db 100644
---- a/arch/arm/plat-omap/include/mach/board.h
-+++ b/arch/arm/plat-omap/include/mach/board.h
-@@ -17,7 +17,6 @@
- /* Different peripheral ids */
- #define OMAP_TAG_CLOCK		0x4f01
- #define OMAP_TAG_SERIAL_CONSOLE 0x4f03
--#define OMAP_TAG_USB		0x4f04
- #define OMAP_TAG_LCD		0x4f05
- #define OMAP_TAG_GPIO_SWITCH	0x4f06
- #define OMAP_TAG_UART		0x4f07
-diff --git a/arch/arm/plat-omap/include/mach/usb.h b/arch/arm/plat-omap/include/mach/usb.h
-index 47aba6b..64e44c7 100644
---- a/arch/arm/plat-omap/include/mach/usb.h
-+++ b/arch/arm/plat-omap/include/mach/usb.h
-@@ -21,6 +21,8 @@
- #define UDC_BASE			OMAP1_UDC_BASE
- #define OMAP_OHCI_BASE			OMAP1_OHCI_BASE
- 
-+void omap_usb_init(struct omap_usb_config *pdata);
+ /*  ----------------------------------- Host OS */
+ #include <dspbridge/host_os.h>
++#include <linux/workqueue.h>
+ #ifndef CONFIG_DISABLE_BRIDGE_PM
+ #ifndef CONFIG_DISABLE_BRIDGE_DVFS
+ #ifndef CONFIG_OMAP3_PM
+@@ -205,6 +206,7 @@ struct IO_MGR {
+ 	/* private extnd proc info; mmu setup */
+ 	struct MGR_PROCESSOREXTINFO extProcInfo;
+ 	struct CMM_OBJECT *hCmmMgr; 	/* Shared Mem Mngr	      */
++	struct work_struct io_workq;	/* workqueue */
+ 	u32 dQuePowerMbxVal[MAX_PM_REQS];
+ 	u32 iQuePowerHead;
+ 	u32 iQuePowerTail;
+@@ -223,7 +225,7 @@ struct IO_MGR {
+ static void IO_DispatchChnl(IN struct IO_MGR *pIOMgr,
+ 			   IN OUT struct CHNL_OBJECT *pChnl, u32 iMode);
+ static void IO_DispatchMsg(IN struct IO_MGR *pIOMgr, struct MSG_MGR *hMsgMgr);
+-static void IO_DispatchPM(IN struct IO_MGR *pIOMgr);
++static void IO_DispatchPM(struct work_struct *work);
+ static void NotifyChnlComplete(struct CHNL_OBJECT *pChnl,
+ 				struct CHNL_IRP *pChirp);
+ static void InputChnl(struct IO_MGR *pIOMgr, struct CHNL_OBJECT *pChnl,
+@@ -238,6 +240,8 @@ static u32 ReadData(struct WMD_DEV_CONTEXT *hDevContext, void *pDest,
+ 			void *pSrc, u32 uSize);
+ static u32 WriteData(struct WMD_DEV_CONTEXT *hDevContext, void *pDest,
+ 			void *pSrc, u32 uSize);
++static struct workqueue_struct *bridge_workqueue;
 +
- #else
+ #ifndef DSP_TRACEBUF_DISABLED
+ void PrintDSPDebugTrace(struct IO_MGR *hIOMgr);
+ #endif
+@@ -281,6 +285,7 @@ DSP_STATUS WMD_IO_Create(OUT struct IO_MGR **phIOMgr,
+ 	struct CFG_HOSTRES hostRes;
+ 	struct CFG_DEVNODE *hDevNode;
+ 	struct CHNL_MGR *hChnlMgr;
++	static int ref_count;
+ 	u32 devType;
+ 	/* Check DBC requirements:  */
+ 	DBC_Require(phIOMgr != NULL);
+@@ -305,12 +310,32 @@ DSP_STATUS WMD_IO_Create(OUT struct IO_MGR **phIOMgr,
+ 	if (DSP_FAILED(status))
+ 		goto func_cont;
  
- #define OTG_BASE			OMAP2_OTG_BASE
-diff --git a/arch/arm/plat-omap/usb.c b/arch/arm/plat-omap/usb.c
-index e278de6..509f2ed 100644
---- a/arch/arm/plat-omap/usb.c
-+++ b/arch/arm/plat-omap/usb.c
-@@ -729,30 +729,13 @@ static inline void omap_1510_usb_init(struct omap_usb_config *config) {}
- 
- /*-------------------------------------------------------------------------*/
- 
--static struct omap_usb_config platform_data;
--
--static int __init
--omap_usb_init(void)
-+void __init omap_usb_init(struct omap_usb_config *pdata)
++	/*
++	 *  Create a Single Threaded Work Queue
++	 */
++
++	if (ref_count == 0)
++		bridge_workqueue =
++			create_singlethread_workqueue("bridge_work-queue");
++	if (bridge_workqueue <= 0)
++		printk(KERN_ALERT "Bridge workqueue create failed in function \
++			%s at line %i", __func__, __LINE__);
++
+ 	/* Allocate IO manager object: */
+ 	MEM_AllocObject(pIOMgr, struct IO_MGR, IO_MGRSIGNATURE);
+ 	if (pIOMgr == NULL) {
+ 		status = DSP_EMEMORY;
+ 		goto func_cont;
+ 	}
++
++
++	/* Intializing Work Element */
++	if (ref_count == 0) {
++		INIT_WORK(&pIOMgr->io_workq, (void *)IO_DispatchPM);
++		ref_count = 1;
++	} else
++		PREPARE_WORK(&pIOMgr->io_workq, (void *)IO_DispatchPM);
++
+ 	/* Initialize CHNL_MGR object:    */
+ #ifndef DSP_TRACEBUF_DISABLED
+ 	pIOMgr->pMsg = NULL;
+@@ -379,10 +404,12 @@ DSP_STATUS WMD_IO_Destroy(struct IO_MGR *hIOMgr)
+ 		/* Unplug IRQ:    */
+ 		/* Disable interrupts from the board:  */
+ 		if (DSP_SUCCEEDED(DEV_GetWMDContext(hIOMgr->hDevObject,
+-		   &hWmdContext))) {
++		   &hWmdContext)))
+ 			DBC_Assert(hWmdContext);
+-		}
++
+ 		(void)CHNLSM_DisableInterrupt(hWmdContext);
++
++		flush_workqueue(bridge_workqueue);
+ 		/* Linux function to uninstall ISR */
+ 		free_irq(INT_MAIL_MPU_IRQ, (void *)hIOMgr);
+ 		(void)DPC_Destroy(hIOMgr->hDPC);
+@@ -950,11 +977,14 @@ static void IO_DispatchMsg(IN struct IO_MGR *pIOMgr, struct MSG_MGR *hMsgMgr)
+  *  ======== IO_DispatchPM ========
+  *      Performs I/O dispatch on PM related messages from DSP
+  */
+-static void IO_DispatchPM(IN struct IO_MGR *pIOMgr)
++static void IO_DispatchPM(struct work_struct *work)
  {
--	const struct omap_usb_config *config;
++
++	struct IO_MGR *pIOMgr =
++				container_of(work, struct IO_MGR, io_workq);
++
+ 	DSP_STATUS status;
+ 	u32 pArg[2];
 -
--	config = omap_get_config(OMAP_TAG_USB, struct omap_usb_config);
--	if (config == NULL) {
--		printk(KERN_ERR "USB: No board-specific "
--				"platform config found\n");
--		return -ENODEV;
--	}
--	platform_data = *config;
--
- 	if (cpu_is_omap730() || cpu_is_omap16xx() || cpu_is_omap24xx())
--		omap_otg_init(&platform_data);
-+		omap_otg_init(pdata);
- 	else if (cpu_is_omap15xx())
--		omap_1510_usb_init(&platform_data);
--	else {
-+		omap_1510_usb_init(pdata);
-+	else
- 		printk(KERN_ERR "USB: No init for your chip yet\n");
--		return -ENODEV;
--	}
--	return 0;
+ 	DBC_Require(MEM_IsValidHandle(pIOMgr, IO_MGRSIGNATURE));
+ 
+ 	DBG_Trace(DBG_LEVEL7, "IO_DispatchPM: Entering IO_DispatchPM : \n");
+@@ -1005,6 +1035,7 @@ static void IO_DispatchPM(IN struct IO_MGR *pIOMgr)
+ 			pIOMgr->iQuePowerTail = 0;
+ 
+ 	}
++
  }
  
--subsys_initcall(omap_usb_init);
+ /*
+@@ -1049,7 +1080,7 @@ void IO_DPC(IN OUT void *pRefData)
+ 			PrintDSPDebugTrace(pIOMgr);
+ 	}
+ #endif
+-	IO_DispatchPM(pIOMgr);
++
+ #ifndef DSP_TRACEBUF_DISABLED
+ 	PrintDSPDebugTrace(pIOMgr);
+ #endif
+@@ -1069,6 +1100,7 @@ irqreturn_t IO_ISR(int irq, IN void *pRefData)
+ 	DBC_Require(irq == INT_MAIL_MPU_IRQ);
+ 	DBC_Require(MEM_IsValidHandle(hIOMgr, IO_MGRSIGNATURE));
+ 	DBG_Trace(DBG_LEVEL3, "Entering IO_ISR(0x%x)\n", pRefData);
++
+ 	/* Call WMD's CHNLSM_ISR() to see if interrupt is ours, and process. */
+ 	if (IO_CALLISR(hIOMgr->hWmdContext, &fSchedDPC, &hIOMgr->wIntrVal)) {
+ 		{
+@@ -1080,6 +1112,8 @@ irqreturn_t IO_ISR(int irq, IN void *pRefData)
+ 				if (hIOMgr->iQuePowerHead >= MAX_PM_REQS)
+ 					hIOMgr->iQuePowerHead = 0;
+ 
++				queue_work(bridge_workqueue,
++							 &(hIOMgr->io_workq));
+ 			}
+ 			if (hIOMgr->wIntrVal == MBX_DEH_RESET) {
+ 				DBG_Trace(DBG_LEVEL6, "*** DSP RESET ***\n");
+@@ -1139,7 +1173,6 @@ void IO_RequestChnl(struct IO_MGR *pIOMgr, struct CHNL_OBJECT *pChnl,
+ void IO_Schedule(struct IO_MGR *pIOMgr)
+ {
+ 	DBC_Require(MEM_IsValidHandle(pIOMgr, IO_MGRSIGNATURE));
+-
+ 	DPC_Schedule(pIOMgr->hDPC);
+ }
+ 
 -- 
-1.6.1.265.g9a013
+1.5.4.3
 
