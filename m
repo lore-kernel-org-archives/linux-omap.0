@@ -1,123 +1,115 @@
-From: <ext-atal.shargorodsky@nokia.com>
-Subject: RE: [PATCH] I2C_OMAP configuration and Makefile fixes.
-Date: Mon, 16 Feb 2009 10:38:13 +0100
-Message-ID: <6F45DEE63C5BB542B6A7B0C4E41467D00764C1DA1F@NOK-EUMSG-03.mgdnok.nokia.com>
-References: <1234428790-6263-1-git-send-email-ext-atal.shargorodsky@nokia.com>,<20090213221823.GI7562@atomide.com>
+From: Wang Diancheng <dcwang@redflag-linux.com>
+Subject: omap24xxvout alloc DMA page failed when using openMAX
+Date: Mon, 16 Feb 2009 17:14:34 +0800
+Message-ID: <87fxien3ph.fsf@redflag-linux.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:17516 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754143AbZBPJjP convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 16 Feb 2009 04:39:15 -0500
-In-Reply-To: <20090213221823.GI7562@atomide.com>
-Content-Language: en-US
+Received: from mail.redflag-linux.com ([219.237.229.196]:49137 "EHLO
+	mail.redflag-linux.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752541AbZBPJsx (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 16 Feb 2009 04:48:53 -0500
+Received: from localhost (localhost.localdomain [127.0.0.1])
+	by mail.redflag-linux.com (redflag-mail - by redflag-linux.com) with ESMTP id 5675D1377A2
+	for <linux-omap@vger.kernel.org>; Mon, 16 Feb 2009 17:05:51 +0800 (CST)
+Received: from mail.redflag-linux.com ([127.0.0.1])
+	by localhost (mail.redflag-linux.com [127.0.0.1]) (amavisd-new, port 10024)
+	with ESMTP id t6qAktsZ0HV7 for <linux-omap@vger.kernel.org>;
+	Mon, 16 Feb 2009 17:05:51 +0800 (CST)
+Received: from localhost (unknown [124.16.138.52])
+	by mail.redflag-linux.com (redflag-mail - by redflag-linux.com) with ESMTP id 28F2413778F
+	for <linux-omap@vger.kernel.org>; Mon, 16 Feb 2009 17:05:51 +0800 (CST)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: tony@atomide.com
-Cc: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
 
-Hi, Tony,
+Hey, I posted this independently, and someone suggested I should send
+it to this mailing list.
+I don't read the list, so I'm not sure if this is useful or on-topic
+or what.  My apologies in advance if this is noise.
+omap24xxvout alloc DMA page failed when I use openMAX on ZOOM2 board,
+following is my test command and output:
 
-I received a feedback from Jarkko Nikula and this produced another proposed fix and this thread:
-http://www.mail-archive.com/linux-omap@vger.kernel.org/msg09618.html
-So this patch is not valid anymore.
+ gst-launch videotestsrc ! goosink_pp
+Setting pipeline to PAUSED ...
+Pipeline is PREROLLING ...
+^CVIDIOC_STREAMON: Cannot allocate memory
+Caught interrupt -- handling interrupt.
 
-Best regards,
+root@omap-3430sdp:/mm/bin# gst-launch-0.10: page allocation failure. order:10, mode:0xd1
 
-Atal
+[<c0032348>] (dump_stack+0x0/0x14) from [<c009323c>] (__alloc_pages_internal+0x3ac/0x3c4)
 
-________________________________________
-From: ext Tony Lindgren [tony@atomide.com]
-Sent: Saturday, February 14, 2009 12:18 AM
-To: Shargorodsky Atal (EXT-Teleca/Helsinki)
-Cc: core-sw@ok.research.nokia.com; linux-omap@vger.kernel.org
-Subject: Re: [PATCH] I2C_OMAP configuration and Makefile fixes.
+[<c0092e90>] (__alloc_pages_internal+0x0/0x3c4) from [<c0033b58>] (__dma_alloc+0x160/0x3a0)
 
-Hi,
+[<c00339f8>] (__dma_alloc+0x0/0x3a0) from [<c0033e20>] (dma_alloc_coherent+0x58/0x64)
 
-* Atal Shargorodsky <ext-atal.shargorodsky@nokia.com> [090212 00:54]:
-> Allow I2C_OMAP to be compiled as a module,
-> introduce selection of I2C_OMAP by TWL4030_CORE
-> and remove doubled 'obj-$(CONFIG_I2C_OMAP)' line from makefile.
->
-> Signed-off-by: Atal Shargorodsky <ext-atal.shargorodsky@nokia.com>
-> ---
->  arch/arm/plat-omap/Kconfig  |    3 +++
->  arch/arm/plat-omap/Makefile |    2 +-
->  drivers/i2c/busses/Kconfig  |    1 +
->  drivers/i2c/busses/Makefile |    1 -
->  drivers/mfd/Kconfig         |    1 +
->  5 files changed, 6 insertions(+), 2 deletions(-)
->
-> diff --git a/arch/arm/plat-omap/Kconfig b/arch/arm/plat-omap/Kconfig
-> index 5bc8e3b..4d19d6b 100644
-> --- a/arch/arm/plat-omap/Kconfig
-> +++ b/arch/arm/plat-omap/Kconfig
-> @@ -99,6 +99,9 @@ config OMAP_RESET_CLOCKS
->         probably do not want this option enabled until your
->         device drivers work properly.
->
-> +config I2C_OMAP_ENABLE
-> +     bool
-> +
->  config OMAP_BOOT_TAG
->       bool "OMAP bootloader information passing"
->          depends on ARCH_OMAP
-> diff --git a/arch/arm/plat-omap/Makefile b/arch/arm/plat-omap/Makefile
-> index 175bfd6..e610bc9 100644
-> --- a/arch/arm/plat-omap/Makefile
-> +++ b/arch/arm/plat-omap/Makefile
-> @@ -21,7 +21,7 @@ obj-$(CONFIG_OMAP_COMPONENT_VERSION) += component-version.o
->  obj-$(CONFIG_OMAP_GPIO_SWITCH) += gpio-switch.o
->  obj-$(CONFIG_OMAP_DEBUG_DEVICES) += debug-devices.o
->  obj-$(CONFIG_OMAP_DEBUG_LEDS) += debug-leds.o
-> -obj-$(CONFIG_I2C_OMAP) += i2c.o
-> +obj-$(CONFIG_I2C_OMAP_ENABLE) += i2c.o
->
->  # OMAP MMU framework
->  obj-$(CONFIG_OMAP_MMU_FWK) += mmu.o
-> diff --git a/drivers/i2c/busses/Kconfig b/drivers/i2c/busses/Kconfig
-> index eb94378..176e053 100644
-> --- a/drivers/i2c/busses/Kconfig
-> +++ b/drivers/i2c/busses/Kconfig
-> @@ -400,6 +400,7 @@ config I2C_OCORES
->  config I2C_OMAP
->       tristate "OMAP I2C adapter"
->       depends on ARCH_OMAP
-> +     select I2C_OMAP_ENABLE
->       default y if MACH_OMAP_H3 || MACH_OMAP_OSK
->       help
->         If you say yes to this option, support will be included for the
-> diff --git a/drivers/i2c/busses/Makefile b/drivers/i2c/busses/Makefile
-> index d4dc22d..97dbfa2 100644
-> --- a/drivers/i2c/busses/Makefile
-> +++ b/drivers/i2c/busses/Makefile
-> @@ -66,7 +66,6 @@ obj-$(CONFIG_I2C_SIBYTE)    += i2c-sibyte.o
->  obj-$(CONFIG_I2C_STUB)               += i2c-stub.o
->  obj-$(CONFIG_SCx200_ACB)     += scx200_acb.o
->  obj-$(CONFIG_SCx200_I2C)     += scx200_i2c.o
-> -obj-$(CONFIG_I2C_OMAP)          += i2c-omap.o
->
->  ifeq ($(CONFIG_I2C_DEBUG_BUS),y)
->  EXTRA_CFLAGS += -DDEBUG
-> diff --git a/drivers/mfd/Kconfig b/drivers/mfd/Kconfig
-> index 91c0417..1bc03bd 100644
-> --- a/drivers/mfd/Kconfig
-> +++ b/drivers/mfd/Kconfig
-> @@ -53,6 +53,7 @@ config HTC_PASIC3
->  config TWL4030_CORE
->       bool "Texas Instruments TWL4030/TPS659x0 Support"
->       depends on I2C=y && GENERIC_HARDIRQS && (ARCH_OMAP2 || ARCH_OMAP3)
-> +     select I2C_OMAP
->       help
->         Say yes here if you have TWL4030 family chip on your board.
->         This core driver provides register access and IRQ handling
+[<c0033dc8>] (dma_alloc_coherent+0x0/0x64) from [<c01cf280>] (omap24xxvout_do_ioctl+0x10cc/0x1604)
 
-To avoid adding tons of extra Kconfig options, can you check if the
-following patch works for you both for built-in and module i2c-omap?
+ r7:c6465e38 r6:c7275c00 r5:c7275c00 r4:002d9000
 
-Regards,
+[<c01ce1b4>] (omap24xxvout_do_ioctl+0x0/0x1604) from [<c01c66a4>] (video_usercopy+0x1b8/0x2b8)
 
-Tony
+[<c01c64ec>] (video_usercopy+0x0/0x2b8) from [<c01cf918>] (omap24xxvout_ioctl+0xdc/0xec)
+
+[<c01cf83c>] (omap24xxvout_ioctl+0x0/0xec) from [<c00bb064>] (vfs_ioctl+0x68/0x78)
+
+[<c00baffc>] (vfs_ioctl+0x0/0x78) from [<c00bb2e4>] (do_vfs_ioctl+0x270/0x280)
+
+ r5:410bfc94 r4:c64f9440
+
+[<c00bb074>] (do_vfs_ioctl+0x0/0x280) from [<c00bb334>] (sys_ioctl+0x40/0x64)
+
+ r7:c64f9440 r6:40045612 r5:410bfc94 r4:00000010
+
+[<c00bb2f4>] (sys_ioctl+0x0/0x64) from [<c002dbe0>] (ret_fast_syscall+0x0/0x2c)
+
+ r7:00000036 r6:0009c2c0 r5:40896128 r4:410bfc94
+
+Mem-info:
+
+DMA per-cpu:
+
+CPU    0: hi:   42, btch:   7 usd:   0
+
+Active:8385 inactive:2703 dirty:0 writeback:0 unstable:0
+
+ free:13840 slab:1054 mapped:3488 pagetables:174 bounce:0
+
+DMA free:55360kB min:1440kB low:1800kB high:2160kB active:33540kB inactive:10812kB present:130048kB pages_scanned:0 al
+l_unreclaimable? no
+
+lowmem_reserve[]: 0 0 0
+
+DMA: 264*4kB 160*8kB 100*16kB 169*32kB 87*64kB 30*128kB 21*256kB 19*512kB 9*1024kB 6*2048kB 0*4096kB = 55360kB
+
+4351 total pagecache pages
+
+0 pages in swap cache
+
+Swap cache stats: add 0, delete 0, find 0/0
+
+Free swap  = 0kB
+
+Total swap = 0kB
+
+32768 pages of RAM
+
+14017 free pages
+
+5862 reserved pages
+
+1054 slab pages
+
+4522 pages shared
+
+0 pages swap cached
+
+omap24xxfb_blank: vsyn wait failed
+
+
+
+ Thanks .
+All sounds from you will really be appreciated.
+
+Best Regards.
