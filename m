@@ -1,115 +1,48 @@
-From: Wang Diancheng <dcwang@redflag-linux.com>
-Subject: omap24xxvout alloc DMA page failed when using openMAX
-Date: Mon, 16 Feb 2009 17:14:34 +0800
-Message-ID: <87fxien3ph.fsf@redflag-linux.com>
+From: Felipe Contreras <felipe.contreras@gmail.com>
+Subject: Re: omap24xxvout alloc DMA page failed when using openMAX
+Date: Mon, 16 Feb 2009 12:03:49 +0200
+Message-ID: <94a0d4530902160203m489098b2sd9bda7322a564a1a@mail.gmail.com>
+References: <87fxien3ph.fsf@redflag-linux.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail.redflag-linux.com ([219.237.229.196]:49137 "EHLO
-	mail.redflag-linux.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752541AbZBPJsx (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 16 Feb 2009 04:48:53 -0500
-Received: from localhost (localhost.localdomain [127.0.0.1])
-	by mail.redflag-linux.com (redflag-mail - by redflag-linux.com) with ESMTP id 5675D1377A2
-	for <linux-omap@vger.kernel.org>; Mon, 16 Feb 2009 17:05:51 +0800 (CST)
-Received: from mail.redflag-linux.com ([127.0.0.1])
-	by localhost (mail.redflag-linux.com [127.0.0.1]) (amavisd-new, port 10024)
-	with ESMTP id t6qAktsZ0HV7 for <linux-omap@vger.kernel.org>;
-	Mon, 16 Feb 2009 17:05:51 +0800 (CST)
-Received: from localhost (unknown [124.16.138.52])
-	by mail.redflag-linux.com (redflag-mail - by redflag-linux.com) with ESMTP id 28F2413778F
-	for <linux-omap@vger.kernel.org>; Mon, 16 Feb 2009 17:05:51 +0800 (CST)
+Received: from fg-out-1718.google.com ([72.14.220.153]:37219 "EHLO
+	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752991AbZBPKDx convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 16 Feb 2009 05:03:53 -0500
+Received: by fg-out-1718.google.com with SMTP id 16so203233fgg.17
+        for <linux-omap@vger.kernel.org>; Mon, 16 Feb 2009 02:03:49 -0800 (PST)
+In-Reply-To: <87fxien3ph.fsf@redflag-linux.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
+To: Wang Diancheng <dcwang@redflag-linux.com>
+Cc: linux-omap@vger.kernel.org, =?UTF-8?B?RGFuaWVsIETDrWF6?= <ddiaz@ti.com>
 
-Hey, I posted this independently, and someone suggested I should send
-it to this mailing list.
-I don't read the list, so I'm not sure if this is useful or on-topic
-or what.  My apologies in advance if this is noise.
-omap24xxvout alloc DMA page failed when I use openMAX on ZOOM2 board,
-following is my test command and output:
+On Mon, Feb 16, 2009 at 11:14 AM, Wang Diancheng
+<dcwang@redflag-linux.com> wrote:
+> Hey, I posted this independently, and someone suggested I should send
+> it to this mailing list.
+> I don't read the list, so I'm not sure if this is useful or on-topic
+> or what.  My apologies in advance if this is noise.
+> omap24xxvout alloc DMA page failed when I use openMAX on ZOOM2 board,
+> following is my test command and output:
+>
+>  gst-launch videotestsrc ! goosink_pp
+> Setting pipeline to PAUSED ...
+> Pipeline is PREROLLING ...
+> ^CVIDIOC_STREAMON: Cannot allocate memory
+> Caught interrupt -- handling interrupt.
 
- gst-launch videotestsrc ! goosink_pp
-Setting pipeline to PAUSED ...
-Pipeline is PREROLLING ...
-^CVIDIOC_STREAMON: Cannot allocate memory
-Caught interrupt -- handling interrupt.
+I'm cc'ing Daniel D=C3=ADaz, who should know about gst-goo.
 
-root@omap-3430sdp:/mm/bin# gst-launch-0.10: page allocation failure. order:10, mode:0xd1
+Also, you can try gst-omapfb instead:
+http://github.com/felipec/gst-omapfb
 
-[<c0032348>] (dump_stack+0x0/0x14) from [<c009323c>] (__alloc_pages_internal+0x3ac/0x3c4)
-
-[<c0092e90>] (__alloc_pages_internal+0x0/0x3c4) from [<c0033b58>] (__dma_alloc+0x160/0x3a0)
-
-[<c00339f8>] (__dma_alloc+0x0/0x3a0) from [<c0033e20>] (dma_alloc_coherent+0x58/0x64)
-
-[<c0033dc8>] (dma_alloc_coherent+0x0/0x64) from [<c01cf280>] (omap24xxvout_do_ioctl+0x10cc/0x1604)
-
- r7:c6465e38 r6:c7275c00 r5:c7275c00 r4:002d9000
-
-[<c01ce1b4>] (omap24xxvout_do_ioctl+0x0/0x1604) from [<c01c66a4>] (video_usercopy+0x1b8/0x2b8)
-
-[<c01c64ec>] (video_usercopy+0x0/0x2b8) from [<c01cf918>] (omap24xxvout_ioctl+0xdc/0xec)
-
-[<c01cf83c>] (omap24xxvout_ioctl+0x0/0xec) from [<c00bb064>] (vfs_ioctl+0x68/0x78)
-
-[<c00baffc>] (vfs_ioctl+0x0/0x78) from [<c00bb2e4>] (do_vfs_ioctl+0x270/0x280)
-
- r5:410bfc94 r4:c64f9440
-
-[<c00bb074>] (do_vfs_ioctl+0x0/0x280) from [<c00bb334>] (sys_ioctl+0x40/0x64)
-
- r7:c64f9440 r6:40045612 r5:410bfc94 r4:00000010
-
-[<c00bb2f4>] (sys_ioctl+0x0/0x64) from [<c002dbe0>] (ret_fast_syscall+0x0/0x2c)
-
- r7:00000036 r6:0009c2c0 r5:40896128 r4:410bfc94
-
-Mem-info:
-
-DMA per-cpu:
-
-CPU    0: hi:   42, btch:   7 usd:   0
-
-Active:8385 inactive:2703 dirty:0 writeback:0 unstable:0
-
- free:13840 slab:1054 mapped:3488 pagetables:174 bounce:0
-
-DMA free:55360kB min:1440kB low:1800kB high:2160kB active:33540kB inactive:10812kB present:130048kB pages_scanned:0 al
-l_unreclaimable? no
-
-lowmem_reserve[]: 0 0 0
-
-DMA: 264*4kB 160*8kB 100*16kB 169*32kB 87*64kB 30*128kB 21*256kB 19*512kB 9*1024kB 6*2048kB 0*4096kB = 55360kB
-
-4351 total pagecache pages
-
-0 pages in swap cache
-
-Swap cache stats: add 0, delete 0, find 0/0
-
-Free swap  = 0kB
-
-Total swap = 0kB
-
-32768 pages of RAM
-
-14017 free pages
-
-5862 reserved pages
-
-1054 slab pages
-
-4522 pages shared
-
-0 pages swap cached
-
-omap24xxfb_blank: vsyn wait failed
-
-
-
- Thanks .
-All sounds from you will really be appreciated.
-
-Best Regards.
+--=20
+=46elipe Contreras
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
