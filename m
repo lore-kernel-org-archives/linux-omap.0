@@ -1,65 +1,34 @@
-From: Felipe Balbi <me@felipebalbi.com>
-Subject: Re: [PATCH 1/1] Allow =?UTF-8?Q?I=32C=5FOMAP=20to=20compile=20as=20a=20mo?=
- =?UTF-8?Q?dule=2E?=
-Date: Sun, 15 Feb 2009 14:47:15 -0600
-Message-ID: <61a7513ea2a517e5866e1ca10d8f7690@felipebalbi.com>
-References: <ba2e7dbd53e76bb21bbb95fc026df11787cbd798.1234447641.git.ext-atal.shargorodsky@nokia.com> <20090213085827.d516d6aa.jarkko.nikula@nokia.com> <20090213222100.GJ7562@atomide.com> <20090215213559.0a6653a1.jhnikula@gmail.com>
+From: Eero Nurkkala <ext-eero.nurkkala@nokia.com>
+Subject: RE: [pacth] I2C bug fixes for L-O and L-Z
+Date: Mon, 16 Feb 2009 09:02:04 +0200
+Message-ID: <1234767724.16827.7.camel@eenurkka-desktop>
+Reply-To: ext-eero.nurkkala@nokia.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ns1.siteground211.com ([209.62.36.12]:55622 "EHLO
-	serv01.siteground211.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755576AbZBOUrZ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 15 Feb 2009 15:47:25 -0500
-In-Reply-To: <20090215213559.0a6653a1.jhnikula@gmail.com>
+Received: from smtp.nokia.com ([192.100.122.230]:61632 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751382AbZBPHD7 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 16 Feb 2009 02:03:59 -0500
+Received: from vaebh105.NOE.Nokia.com (vaebh105.europe.nokia.com [10.160.244.31])
+	by mgw-mx03.nokia.com (Switch-3.2.6/Switch-3.2.6) with ESMTP id n1G73bgl024995
+	for <linux-omap@vger.kernel.org>; Mon, 16 Feb 2009 09:03:55 +0200
+Received: from [172.23.118.146] (ouped118146.nmp.nokia.com [172.23.118.146])
+	by mgw-int02.ntc.nokia.com (Switch-3.2.5/Switch-3.2.5) with ESMTP id n1G73Tio024704
+	for <linux-omap@vger.kernel.org>; Mon, 16 Feb 2009 09:03:29 +0200
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Jarkko Nikula <jhnikula@gmail.com>
-Cc: Tony Lindgren <tony@atomide.com>, Jarkko Nikula <jarkko.nikula@nokia.com>, "Shargorodsky Atal (EXT-Teleca/Helsinki)" <ext-atal.shargorodsky@nokia.com>, linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
 
-Hi,
+Could you please also address the question of the load on the SCL line?
 
-On Sun, 15 Feb 2009 21:35:59 +0200, Jarkko Nikula <jhnikula@gmail.com>
-wrote:
-> On Fri, 13 Feb 2009 14:21:00 -0800
-> Tony Lindgren <tony@atomide.com> wrote:
-> 
->> > Subject needs a "ARM: OMAP: " prefix, otherwise ok from me.
->> >
->> > Acked-by: Jarkko Nikula <jarkko.nikula@nokia.com>
->>
->> Sounds like a fix, except I posted a shorter version of the patch that
->> should do the trick (untested). Attached here too for reference.
->>
-> Tony's version does not fix the issue since obj-$(CONFIG_I2C_OMAP) below
-> still tries to compile arch/arm/plat-omap/i2c.c as a module.
-> 
-> -obj-$(CONFIG_I2C_OMAP) += i2c.o
-> +
-> +ifneq ($(CONFIG_I2C_OMAP),)
-> +	obj-$(CONFIG_I2C_OMAP)		+= i2c.o
-> +endif
-> 
-> Problem was that drivers/i2c/busses/i2c-omap.c can be module but
-> arch/arm/plat-omap/i2c.c cannot since it is for early board
-> initialization code.
+In my understanding, many boards are using the experimental values
+from TRM for SCLL, SCLH, HSSCLL and HSSCLH. I have notices that those
+"default" values fail to provide a standard I2C clock for, at least,
+boards that I have tested. Should those values be board specific and
+taken off from the I2C driver? Or should a note be added there saying
+"These values are board specific and they depend on the load on the SCL
+line. Please measure and validate correct values for your board".
 
-why don't you:
-
--obj-$(CONFIG_I2C_OMAP) += i2c.o
-+obj-y			+= i2c.o
-
-It's quite possible that we will need i2c
-anyways in most boards. And for the ones who
-won't need, it's just a few extra bytes
-to kernel image. I guess it should be
-ok to always build i2c utilities.
-
--- 
-Best Regards,
-
-Felipe Balbi
-http://blog.felipebalbi.com
-me@felipebalbi.com
 
