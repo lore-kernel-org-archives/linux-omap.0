@@ -1,695 +1,393 @@
-From: Felipe Balbi <me@felipebalbi.com>
-Subject: Re: [RESEND] lp5521 patches
-Date: Wed, 18 Feb 2009 01:29:19 +0200
-Message-ID: <20090217232918.GB15077@gandalf>
-References: <bdea5f5962eebe1bd420f184ebc7b32c@felipebalbi.com> <1234529032-25354-1-git-send-email-felipe.balbi@nokia.com> <20090217213819.GI24800@guug.org> <20090217230714.GA8481@scadufax.research.nokia.com>
-Reply-To: me@felipebalbi.com
+From: Philip Balister <philip@balister.org>
+Subject: McSPI3 on the BeagleBoard
+Date: Tue, 17 Feb 2009 18:42:28 -0500
+Message-ID: <499B4B64.30109@balister.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/signed; protocol="application/x-pkcs7-signature"; micalg=sha1; boundary="------------ms050201010707030201080302"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ns1.siteground211.com ([209.62.36.12]:33382 "EHLO
-	serv01.siteground211.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752874AbZBQX3h (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 17 Feb 2009 18:29:37 -0500
-Content-Disposition: inline
-In-Reply-To: <20090217230714.GA8481@scadufax.research.nokia.com>
+Received: from mail.geekisp.com ([216.168.135.169]:20062 "EHLO
+	starfish.geekisp.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1752097AbZBQXmc (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 17 Feb 2009 18:42:32 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Balbi <felipe.balbi@nokia.com>
-Cc: ext Otto Solares <solca@guug.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, David Brownell <dbrownell@users.sourceforge.net>
+To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Wed, Feb 18, 2009 at 01:07:15AM +0200, Felipe Balbi wrote:
-> On Tue, Feb 17, 2009 at 10:38:19PM +0100, ext Otto Solares wrote:
-> > On Fri, Feb 13, 2009 at 02:43:46PM +0200, Felipe Balbi wrote:
-> > > Hi Dave, all
-> > >
-> > > could you look at the updated lp5521 patches ?
-> > >
-> > > Basically patches from 1 to 3 are the same.
-> > > Patch 4 has the fix you asked me to implement, getting
-> > > a label from pdata (then I also moved mode and the presence
-> > > of each individual led to pdata as well), patch 5 only moves
-> > > the file to drivers/leds and patch 6 is a new patch adding
-> > > pdata to board-n800.c
-> > >
-> > > After these, lp5521 should be ok for going upstream.
-> > >
-> > > Thanks for your time ;-)
-> > 
-> > Hi Felipe,
-> > 
-> > I don't see this patches on the l-o tree or am I missing something?
-> 
-> once again the didn't get applied. lp5521 is already in LED tree and
-> we're gona have two forks of the same driver :-p
-> 
-> Maybe, Tony, you could apply the attached.
+This is a cryptographically signed message in MIME format.
 
-damn this new Nokia server is converting my tabs into spaces :-(
+--------------ms050201010707030201080302
+Content-Type: multipart/mixed;
+ boundary="------------010505030102000206020804"
 
-here's again:
+This is a multi-part message in MIME format.
+--------------010505030102000206020804
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 
-==== cut here ====
->From 66bf0442f949f4da02d5b4cae584cc7148f7b63c Mon Sep 17 00:00:00 2001
-From: Felipe Balbi <me@felipebalbi.com>
-Date: Wed, 18 Feb 2009 01:17:28 +0200
-Subject: [PATCH] i2c: chips: remove lp5521 driver
+A number of people have tried using the McSPI3 interface with the spidev 
+driver. Running the spidev_test program shows data coming out of the 
+interface, but when we connect the SIMO to SOMI pins, the spidev_test 
+program shows only 0's. Someone tried wiring SOMI to +volts and still 
+only saw 0 read.
 
-It's now coming via LED tree so it should be
-safe to get rid of it here and wait till next
-mainline merge.
+I'm attaching the patch used to configure the pinmux and the spidev 
+driver. Any suggestions would be great, we are pretty confused at this 
+point.
 
-Signed-off-by: Felipe Balbi <me@felipebalbi.com>
----
- drivers/i2c/chips/Kconfig  |    7 -
- drivers/i2c/chips/Makefile |    1 -
- drivers/i2c/chips/lp5521.c |  585 --------------------------------------------
- 3 files changed, 0 insertions(+), 593 deletions(-)
- delete mode 100644 drivers/i2c/chips/lp5521.c
+Thanks,
 
-diff --git a/drivers/i2c/chips/Kconfig b/drivers/i2c/chips/Kconfig
-index bb95b3e..e4831e1 100644
---- a/drivers/i2c/chips/Kconfig
-+++ b/drivers/i2c/chips/Kconfig
-@@ -141,13 +141,6 @@ config SENSORS_TSL2563
-          This driver can also be built as a module.  If so, the module
-          will be called tsl2563.
+Philip
+
+--------------010505030102000206020804
+Content-Type: text/x-patch;
+ name="spi-test.patch"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="spi-test.patch"
+
+diff --git a/arch/arm/mach-omap2/board-omap3beagle.c b/arch/arm/mach-omap2/board-omap3beagle.c
+index fe97bab..ed7fee6 100644
+--- a/arch/arm/mach-omap2/board-omap3beagle.c
++++ b/arch/arm/mach-omap2/board-omap3beagle.c
+@@ -23,6 +23,7 @@
+ #include <linux/gpio.h>
+ #include <linux/input.h>
+ #include <linux/gpio_keys.h>
++#include <linux/spi/spi.h>
  
--config LP5521
--	tristate "LP5521 LED driver chip"
--	depends on I2C
--	help
--	  If you say yes here you get support for the National Semiconductor
--	  LP5521 LED driver.
--
- config MENELAUS
- 	bool "TWL92330/Menelaus PM chip"
- 	depends on I2C=y && ARCH_OMAP24XX
-diff --git a/drivers/i2c/chips/Makefile b/drivers/i2c/chips/Makefile
-index 32a395f..1c94712 100644
---- a/drivers/i2c/chips/Makefile
-+++ b/drivers/i2c/chips/Makefile
-@@ -21,7 +21,6 @@ obj-$(CONFIG_TWL4030_POWEROFF)	+= twl4030-poweroff.o
- obj-$(CONFIG_TWL4030_PWRBUTTON)	+= twl4030-pwrbutton.o
- obj-$(CONFIG_TWL4030_MADC)	+= twl4030-madc.o
- obj-$(CONFIG_RTC_X1205_I2C)	+= x1205.o
--obj-$(CONFIG_LP5521)		+= lp5521.o
+ #include <linux/mtd/mtd.h>
+ #include <linux/mtd/partitions.h>
+@@ -311,6 +312,27 @@ static struct platform_device *omap3_beagle_devices[] __initdata = {
+ 	&keys_gpio,
+ };
  
- ifeq ($(CONFIG_I2C_DEBUG_CHIP),y)
- EXTRA_CFLAGS += -DDEBUG
-diff --git a/drivers/i2c/chips/lp5521.c b/drivers/i2c/chips/lp5521.c
-deleted file mode 100644
-index c0862d9..0000000
---- a/drivers/i2c/chips/lp5521.c
-+++ /dev/null
-@@ -1,585 +0,0 @@
--/*
-- * drivers/i2c/chips/lp5521.c
-- *
-- * Copyright (C) 2007 Nokia Corporation
-- *
-- * Written by Mathias Nyman <mathias.nyman@nokia.com>
-- *
-- * This program is free software; you can redistribute it and/or modify
-- * it under the terms of the GNU General Public License as published by
-- * the Free Software Foundation; either version 2 of the License, or
-- * (at your option) any later version.
-- *
-- * This program is distributed in the hope that it will be useful,
-- * but WITHOUT ANY WARRANTY; without even the implied warranty of
-- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-- * GNU General Public License for more details.
-- *
-- * You should have received a copy of the GNU General Public License
-- * along with this program; if not, write to the Free Software
-- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
-- */
--
--#include <linux/module.h>
--#include <linux/init.h>
--#include <linux/i2c.h>
--#include <linux/mutex.h>
--#include <mach/gpio.h>
--
--#define LP5521_DRIVER_NAME		"lp5521"
--
--#ifdef LED_CONNECTED_WRONG
--#define LP5521_REG_R_PWM		0x04
--#define LP5521_REG_B_PWM		0x02
--#else
--#define LP5521_REG_R_PWM		0x02
--#define LP5521_REG_B_PWM		0x04
--#endif
--#define LP5521_REG_ENABLE		0x00
--#define LP5521_REG_OP_MODE		0x01
--#define LP5521_REG_G_PWM		0x03
--#define LP5521_REG_R_CNTRL		0x05
--#define LP5521_REG_G_CNTRL		0x06
--#define LP5521_REG_B_CNTRL		0x07
--#define LP5521_REG_MISC			0x08
--#define LP5521_REG_R_CHANNEL_PC		0x09
--#define LP5521_REG_G_CHANNEL_PC		0x0a
--#define LP5521_REG_B_CHANNEL_PC		0x0b
--#define LP5521_REG_STATUS		0x0c
--#define LP5521_REG_RESET		0x0d
--#define LP5521_REG_GPO			0x0e
--#define LP5521_REG_R_PROG_MEM		0x10
--#define LP5521_REG_G_PROG_MEM		0x30
--#define LP5521_REG_B_PROG_MEM		0x50
--
--#define LP5521_MODE_LOAD		"load"
--#define LP5521_MODE_RUN			"run"
--#define LP5521_MODE_DIRECT_CONTROL	"direct"
--
--#define LP5521_CURRENT_1m5		0x0f
--#define LP5521_CURRENT_3m1		0x1f
--#define LP5521_CURRENT_4m7		0x2f
--#define LP5521_CURRENT_6m3		0x3f
--#define LP5521_CURRENT_7m9		0x4f
--#define LP5521_CURRENT_9m5		0x5f
--#define LP5521_CURRENT_11m1		0x6f
--#define LP5521_CURRENT_12m7		0x7f
--#define LP5521_CURRENT_14m3		0x8f
--#define LP5521_CURRENT_15m9		0x9f
--#define LP5521_CURRENT_17m5		0xaf
--#define LP5521_CURRENT_19m1		0xbf
--#define LP5521_CURRENT_20m7		0xcf
--#define LP5521_CURRENT_22m3		0xdf
--#define LP5521_CURRENT_23m9		0xef
--#define LP5521_CURRENT_25m5		0xff
--
--#define LP5521_PROGRAM_LENGTH		32	/* in bytes */
--
--struct lp5521_chip {
--	struct mutex		lock;
--	struct i2c_client	*client;
--	char			*mode;
--	int			red;
--	int			green;
--	int			blue;
--};
--
--static int lp5521_set_mode(struct lp5521_chip *chip, char *mode);
--
--static int lp5521_write(struct i2c_client *client, u8 reg, u8 value)
--{
--	return i2c_smbus_write_byte_data(client, reg, value);
--}
--
--static int lp5521_read(struct i2c_client *client, u8 reg, u8 *buf)
--{
--	s32 ret = i2c_smbus_read_byte_data(client, reg);
--
--	if (ret < 0)
--		return -EIO;
--
--	*buf = ret;
--	return 0;
--}
--
--static int lp5521_configure(struct i2c_client *client)
--{
--	int ret = 0;
--
--	/* Enable chip and set light to logarithmic mode*/
--	ret |= lp5521_write(client, LP5521_REG_ENABLE, 0xc0);
--
--	/* setting all color pwms to direct control mode */
--	ret |= lp5521_write(client, LP5521_REG_OP_MODE, 0x3f);
--
--	/* setting current to 4.7 mA for all channels */
--	ret |= lp5521_write(client, LP5521_REG_R_CNTRL, LP5521_CURRENT_4m7);
--	ret |= lp5521_write(client, LP5521_REG_G_CNTRL, LP5521_CURRENT_4m7);
--	ret |= lp5521_write(client, LP5521_REG_B_CNTRL, LP5521_CURRENT_4m7);
--
--	/* Enable auto-powersave, set charge pump to auto, red to battery */
--	ret |= lp5521_write(client, LP5521_REG_MISC, 0x3c);
--
--	/* initialize all channels pwm to zero */
--	ret |= lp5521_write(client, LP5521_REG_R_PWM, 0);
--	ret |= lp5521_write(client, LP5521_REG_G_PWM, 0);
--	ret |= lp5521_write(client, LP5521_REG_B_PWM, 0);
--
--	/* Not much can be done about errors at this point */
--	return ret;
--}
--
--static int lp5521_load_program(struct lp5521_chip *chip, u8 *pattern)
--{
--	struct i2c_client *client = chip->client;
--	int ret = 0;
--
--	/* Enter load program mode for all led channels */
--	ret |= lp5521_write(client, LP5521_REG_OP_MODE, 0x15); /* 0001 0101 */
--	if (ret)
--		return ret;
--
--	if (chip->red)
--		ret |= i2c_smbus_write_i2c_block_data(client,
--						      LP5521_REG_R_PROG_MEM,
--						      LP5521_PROGRAM_LENGTH,
--						      pattern);
--	if (chip->green)
--		ret |= i2c_smbus_write_i2c_block_data(client,
--						      LP5521_REG_G_PROG_MEM,
--						      LP5521_PROGRAM_LENGTH,
--						      pattern);
--	if (chip->blue)
--		ret |= i2c_smbus_write_i2c_block_data(client,
--						      LP5521_REG_B_PROG_MEM,
--						      LP5521_PROGRAM_LENGTH,
--						      pattern);
--
--	return ret;
--}
--
--static int lp5521_run_program(struct lp5521_chip *chip)
--{
--	struct i2c_client *client = chip->client;
--	int ret;
--	u8 mask = 0xc0;
--	u8 exec_state = 0;
--	u8 enable_reg;
--
--	ret = lp5521_read(client, LP5521_REG_ENABLE, &enable_reg);
--	if (ret)
--		goto fail;
--
--	enable_reg &= mask;
--
--	/* set all active channels exec state to countinous run*/
--	exec_state |= (chip->red   << 5);
--	exec_state |= (chip->green << 3);
--	exec_state |= (chip->blue  << 1);
--
--	enable_reg |= exec_state;
--
--	ret |= lp5521_write(client, LP5521_REG_ENABLE, enable_reg);
--
--	/* set op-mode to run for active channels, disabled for others */
--	ret |= lp5521_write(client, LP5521_REG_OP_MODE, exec_state);
--
--fail:
--	return ret;
--}
--
--/*--------------------------------------------------------------*/
--/*			Sysfs interface				*/
--/*--------------------------------------------------------------*/
--
--static ssize_t show_active_channels(struct device *dev,
--			    struct device_attribute *attr,
--			    char *buf)
--{
--	struct lp5521_chip *chip = dev_get_drvdata(dev);
--	char channels[4];
--	int pos = 0;
--
--#ifdef LED_CONNECTED_WRONG
--	if (chip->blue)
--		pos += sprintf(channels + pos, "r");
--	if (chip->green)
--		pos += sprintf(channels + pos, "g");
--	if (chip->red)
--		pos += sprintf(channels + pos, "b");
--
--#else
--	if (chip->red)
--		pos += sprintf(channels + pos, "r");
--	if (chip->green)
--		pos += sprintf(channels + pos, "g");
--	if (chip->blue)
--		pos += sprintf(channels + pos, "b");
--#endif
--
--	channels[pos] = '\0';
--
--	return sprintf(buf, "%s\n", channels);
--}
--
--static ssize_t store_active_channels(struct device *dev,
--			     struct device_attribute *attr,
--			     const char *buf, size_t len)
--{
--	struct lp5521_chip *chip = dev_get_drvdata(dev);
--
--	chip->red = 0;
--	chip->green = 0;
--	chip->blue = 0;
--
--#ifdef LED_CONNECTED_WRONG
--	if (strchr(buf, 'r') != NULL)
--		chip->blue = 1;
--	if (strchr(buf, 'b') != NULL)
--		chip->red = 1;
--#else
--	if (strchr(buf, 'r') != NULL)
--		chip->red = 1;
--	if (strchr(buf, 'b') != NULL)
--		chip->blue = 1;
--#endif
--	if (strchr(buf, 'g') != NULL)
--		chip->green = 1;
--
--	return len;
--}
--
--static ssize_t show_color(struct device *dev,
--			    struct device_attribute *attr,
--			    char *buf)
--{
--	struct i2c_client *client = to_i2c_client(dev);
--	int ret = 0;
--	u8 r, g, b;
--
--	ret |= lp5521_read(client, LP5521_REG_R_PWM, &r);
--	ret |= lp5521_read(client, LP5521_REG_G_PWM, &g);
--	ret |= lp5521_read(client, LP5521_REG_B_PWM, &b);
--
--	if (ret)
--		return ret;
--
--	return sprintf(buf, "%.2x:%.2x:%.2x\n", r, g, b);
--}
--
--static ssize_t store_color(struct device *dev,
--			     struct device_attribute *attr,
--			     const char *buf, size_t len)
--{
--	struct i2c_client *client = to_i2c_client(dev);
--	struct lp5521_chip *chip = i2c_get_clientdata(client);
--	int ret;
--	unsigned r, g, b;
--
--
--	ret = sscanf(buf, "%2x:%2x:%2x", &r, &g, &b);
--	if (ret != 3)
--		return  -EINVAL;
--
--	mutex_lock(&chip->lock);
--
--	ret = lp5521_write(client, LP5521_REG_R_PWM, (u8)r);
--	ret = lp5521_write(client, LP5521_REG_G_PWM, (u8)g);
--	ret = lp5521_write(client, LP5521_REG_B_PWM, (u8)b);
--
--	mutex_unlock(&chip->lock);
--
--	return len;
--}
--
--static ssize_t store_load(struct device *dev,
--			     struct device_attribute *attr,
--			     const char *buf, size_t len)
--{
--	struct lp5521_chip *chip = dev_get_drvdata(dev);
--	int  ret, nrchars, offset = 0, i = 0;
--	char c[3];
--	unsigned cmd;
--	u8 pattern[LP5521_PROGRAM_LENGTH] = {0};
--
--	while ((offset < len - 1) && (i < LP5521_PROGRAM_LENGTH)) {
--
--		/* separate sscanfs because length is working only for %s */
--		ret = sscanf(buf + offset, "%2s%n ", c, &nrchars);
--		ret = sscanf(c, "%2x", &cmd);
--		if (ret != 1)
--			goto fail;
--		pattern[i] = (u8)cmd;
--
--		offset += nrchars;
--		i++;
--	}
--
--	/* pattern commands are always two bytes long */
--	if (i % 2)
--		goto fail;
--
--	mutex_lock(&chip->lock);
--
--	ret = lp5521_load_program(chip, pattern);
--	mutex_unlock(&chip->lock);
--
--	if (ret) {
--		dev_err(dev, "lp5521 failed loading pattern\n");
--		return ret;
--	}
--
--	return len;
--fail:
--	dev_err(dev, "lp5521 wrong pattern format\n");
--	return -EINVAL;
--}
--
--static ssize_t show_mode(struct device *dev,
--			 struct device_attribute *attr,
--			 char *buf)
--{
--	struct lp5521_chip *chip = dev_get_drvdata(dev);
--
--	return sprintf(buf, "%s\n", chip->mode);
--}
--
--static ssize_t store_mode(struct device *dev,
--			  struct device_attribute *attr,
--			  const char *buf, size_t len)
--{
--	struct lp5521_chip *chip = dev_get_drvdata(dev);
--
--	mutex_lock(&chip->lock);
--
--	if (!strncmp(buf, "run", 3))
--		lp5521_set_mode(chip, LP5521_MODE_RUN);
--	else if (!strncmp(buf, "load", 4))
--		lp5521_set_mode(chip, LP5521_MODE_LOAD);
--	else if (!strncmp(buf, "direct", 6))
--		lp5521_set_mode(chip, LP5521_MODE_DIRECT_CONTROL);
--
--	mutex_unlock(&chip->lock);
--
--	return len;
--}
--
--static ssize_t show_current(struct device *dev,
--			    struct device_attribute *attr,
--			    char *buf)
--{
--	struct i2c_client *client = to_i2c_client(dev);
--	int ret = 0;
--	u8 r_curr, g_curr, b_curr;
--
--	ret |= lp5521_read(client, LP5521_REG_R_CNTRL, &r_curr);
--	ret |= lp5521_read(client, LP5521_REG_G_CNTRL, &g_curr);
--	ret |= lp5521_read(client, LP5521_REG_B_CNTRL, &b_curr);
--
--	if (ret)
--		return ret;
--
--	r_curr = r_curr >> 4;
--	g_curr = g_curr >> 4;
--	b_curr = b_curr >> 4;
--
--	if (r_curr == g_curr && g_curr == b_curr)
--		return sprintf(buf, "%x\n", r_curr);
--	else
--		return sprintf(buf, "%x %x %x\n", r_curr, g_curr, b_curr);
--}
--
--static ssize_t store_current(struct device *dev,
--			     struct device_attribute *attr,
--			     const char *buf, size_t len)
--{
--	struct lp5521_chip *chip = dev_get_drvdata(dev);
--	struct i2c_client *client = chip->client;
--	int ret;
--	unsigned curr;
--
--	ret = sscanf(buf, "%1x", &curr);
--	if (ret != 1)
--		return  -EINVAL;
--
--	/* current level is determined by the 4 upper bits, rest is ones */
--	curr = (curr << 4) | 0x0f;
--
--	mutex_lock(&chip->lock);
--
--	ret |= lp5521_write(client, LP5521_REG_R_CNTRL, (u8)curr);
--	ret |= lp5521_write(client, LP5521_REG_G_CNTRL, (u8)curr);
--	ret |= lp5521_write(client, LP5521_REG_B_CNTRL, (u8)curr);
--
--	mutex_unlock(&chip->lock);
--
--	return len;
--}
--
--static DEVICE_ATTR(color, S_IRUGO | S_IWUGO, show_color, store_color);
--static DEVICE_ATTR(load, S_IWUGO, NULL, store_load);
--static DEVICE_ATTR(mode, S_IRUGO | S_IWUGO, show_mode, store_mode);
--static DEVICE_ATTR(active_channels, S_IRUGO | S_IWUGO,
--		   show_active_channels, store_active_channels);
--static DEVICE_ATTR(led_current, S_IRUGO | S_IWUGO, show_current, store_current);
--
--static int lp5521_register_sysfs(struct i2c_client *client)
--{
--	struct device *dev = &client->dev;
--	int ret;
--
--	ret = device_create_file(dev, &dev_attr_color);
--	if (ret)
--		goto fail1;
--	ret = device_create_file(dev, &dev_attr_load);
--	if (ret)
--		goto fail2;
--	ret = device_create_file(dev, &dev_attr_active_channels);
--	if (ret)
--		goto fail3;
--	ret = device_create_file(dev, &dev_attr_mode);
--	if (ret)
--		goto fail4;
--	ret = device_create_file(dev, &dev_attr_led_current);
--	if (ret)
--		goto fail5;
--	return 0;
--
--fail5:
--	device_remove_file(dev, &dev_attr_mode);
--fail4:
--	device_remove_file(dev, &dev_attr_active_channels);
--fail3:
--	device_remove_file(dev, &dev_attr_load);
--fail2:
--	device_remove_file(dev, &dev_attr_color);
--fail1:
--	return ret;
--}
--
--static void lp5521_unregister_sysfs(struct i2c_client *client)
--{
--	struct lp5521_chip *chip = i2c_get_clientdata(client);
--	struct device *dev = &client->dev;
--
--	device_remove_file(dev, &dev_attr_led_current);
--	device_remove_file(dev, &dev_attr_mode);
--	device_remove_file(dev, &dev_attr_active_channels);
--	device_remove_file(dev, &dev_attr_color);
--
--	if (!strcmp(chip->mode, LP5521_MODE_LOAD))
--		device_remove_file(dev, &dev_attr_load);
--}
--
--/*--------------------------------------------------------------*/
--/*			Set chip operating mode			*/
--/*--------------------------------------------------------------*/
--
--static int lp5521_set_mode(struct lp5521_chip *chip, char *mode)
--{
--	struct i2c_client *client = chip->client ;
--	int ret = 0;
--
--	/* if in that mode already do nothing, except for run */
--	if (!strcmp(mode, chip->mode) && strcmp(mode, LP5521_MODE_RUN))
--		return 0;
--
--	if (!strcmp(mode, LP5521_MODE_RUN))
--		ret = lp5521_run_program(chip);
--
--	if (!strcmp(mode, LP5521_MODE_LOAD))
--		ret |= lp5521_write(client, LP5521_REG_OP_MODE, 0x15);
--
--	if (!strcmp(mode, LP5521_MODE_DIRECT_CONTROL))
--		ret |= lp5521_write(client, LP5521_REG_OP_MODE, 0x3F);
--
--	chip->mode = mode;
--
--	return ret;
--}
--
--/*--------------------------------------------------------------*/
--/*			Probe, Attach, Remove			*/
--/*--------------------------------------------------------------*/
--static struct i2c_driver lp5521_driver;
--
--static int lp5521_probe(struct i2c_client *client,
--		const struct i2c_device_id *id)
--{
--	struct lp5521_chip *chip;
--	int ret = 0;
--
--	chip = kzalloc(sizeof(*chip), GFP_KERNEL);
--	if (!chip)
--		return -ENOMEM;
--
--	chip->client	= client;
--	strncpy(client->name, LP5521_DRIVER_NAME, I2C_NAME_SIZE);
--	i2c_set_clientdata(client, chip);
--
--	mutex_init(&chip->lock);
--
--	ret = lp5521_configure(client);
--	if (ret < 0) {
--		dev_err(&client->dev, "lp5521 error configuring chip \n");
--		goto fail1;
--	}
--
--	/* Set default values */
--	chip->mode	= LP5521_MODE_DIRECT_CONTROL;
--	chip->red	= 1;
--	chip->green	= 1;
--	chip->blue	= 1;
--
--	ret = lp5521_register_sysfs(client);
--	if (ret)
--		dev_err(&client->dev, "lp5521 registering sysfs failed \n");
--
--	return ret;
--
--fail1:
--	kfree(chip);
--	return ret;
--}
--
--static int lp5521_remove(struct i2c_client *client)
--{
--	struct lp5521_chip *chip = i2c_get_clientdata(client);
--
--	lp5521_unregister_sysfs(client);
--	kfree(chip);
--
--	return 0;
--}
--
--static const struct i2c_device_id lp5521_id[] = {
--	{ LP5521_DRIVER_NAME, 0},
--	{ },
--};
--MODULE_DEVICE_TABLE(i2c, lp5521_id);
--
--static struct i2c_driver lp5521_driver = {
--	.driver = {
--		.name	= LP5521_DRIVER_NAME,
--	},
--	.probe		= lp5521_probe,
--	.remove		= __devexit_p(lp5521_remove),
--	.id_table	= lp5521_id,
--};
--
--static int __init lp5521_init(void)
--{
--	return i2c_add_driver(&lp5521_driver);
--}
--
--static void __exit lp5521_exit(void)
--{
--	i2c_del_driver(&lp5521_driver);
--}
--
--MODULE_AUTHOR("Mathias Nyman <mathias.nyman@nokia.com>");
--MODULE_DESCRIPTION("lp5521 LED driver");
--MODULE_LICENSE("GPL");
--
--module_init(lp5521_init);
--module_exit(lp5521_exit);
--- 
-1.6.1.3
++static struct spi_board_info beagle_spi_board_info[] = {
++	{
++		.modalias	= "spidev",
++		.max_speed_hz	= 48000000, //48 Mbps
++		.bus_num	= 3,
++		.chip_select	= 0,	
++		.mode = SPI_MODE_1,
++	},
++};
++
++static struct spi_board_info beagle_spi_board_info2[] = {
++	{
++		.modalias	= "spidev",
++		.max_speed_hz	= 48000000, //48 Mbps
++		.bus_num	= 4,
++		.chip_select	= 0,	
++		.mode = SPI_MODE_1,
++	},
++};
++
++
+ static void __init omap3beagle_flash_init(void)
+ {
+ 	u8 cs = 0;
+@@ -358,6 +380,63 @@ static void __init omap3_beagle_init(void)
+ 	omap_board_config_size = ARRAY_SIZE(omap3_beagle_config);
+ 	omap_serial_init();
+ 
++	
++/*
++	printk("Debug ================> MMC2 >>> start\n");
++	omap_cfg_reg(XXX_3430_MMC2_CLK);
++	omap_cfg_reg(XXX_3430_MMC2_cmd);
++	omap_cfg_reg(XXX_3430_MMC2_dat0);
++	omap_cfg_reg(XXX_3430_MMC2_dat1);
++	omap_cfg_reg(XXX_3430_MMC2_dat2);
++	omap_cfg_reg(XXX_3430_MMC2_dat3);
++	omap_cfg_reg(XXX_3430_MMC2_dat4);
++	omap_cfg_reg(XXX_3430_MMC2_dat5);
++	omap_cfg_reg(XXX_3430_MMC2_dat6);
++	omap_cfg_reg(XXX_3430_MMC2_dat7);
++	printk("Debug ================> MMC2 >>> end\n");
++	printk("Debug ================> UART2 >>> start\n");
++	omap_cfg_reg(XXX_3430_UART2_cts);
++	omap_cfg_reg(XXX_3430_UART2_rts);
++	omap_cfg_reg(XXX_3430_UART2_tx);
++	omap_cfg_reg(XXX_3430_UART2_rx);
++	printk("Debug ================> UART2 >>> end\n");
++*/
++
++	printk("Debug ================> MCSPI >>> start\n");
++	
++	omap_cfg_reg(XXX_3430_MCSPI3_CLK);
++	omap_cfg_reg(XXX_3430_MCSPI3_SIMO);
++	omap_cfg_reg(XXX_3430_MCSPI3_SOMI);
++	omap_cfg_reg(XXX_3430_MCSPI3_CS0);
++	omap_cfg_reg(XXX_3430_MCSPI3_CS1);
++	//avoid other pins/balls with McSPI function
++	omap_cfg_reg(XXX_3430_gpio_88);
++	omap_cfg_reg(XXX_3430_gpio_89);
++	omap_cfg_reg(XXX_3430_gpio_90);
++	omap_cfg_reg(XXX_3430_gpio_91);
++	omap_cfg_reg(XXX_3430_gpio_92);
++	omap_cfg_reg(XXX_3430_gpio_14);
++	omap_cfg_reg(XXX_3430_gpio_15);
++	omap_cfg_reg(XXX_3430_gpio_16);
++	omap_cfg_reg(XXX_3430_gpio_17);
++	omap_cfg_reg(XXX_3430_gpio_21);
++
++	omap_cfg_reg(XXX_3430_MCSPI4_CLK);
++	omap_cfg_reg(XXX_3430_MCSPI4_SIMO);
++	omap_cfg_reg(XXX_3430_MCSPI4_SOMI);
++	omap_cfg_reg(XXX_3430_MCSPI4_CS0);
++	//avoid other pins/balls with McSPI function
++	omap_cfg_reg(XXX_3430_gpio_151);
++	printk("Debug ================> MCSPI >>> end\n");
++
++
++	printk("Debug ================> register SLAVE DEVICES using [spidev] protocol driver >>> start\n");
++	spi_register_board_info(beagle_spi_board_info, ARRAY_SIZE(beagle_spi_board_info));
++	spi_register_board_info(beagle_spi_board_info2, ARRAY_SIZE(beagle_spi_board_info2));
++	printk("Debug ================> register SLAVE DEVICES using [spidev] protocol driver >>> end\n");
++	omap_cfg_reg(XXX_3430_gpio_157); //add by yuchih
++
++
+ 	omap_cfg_reg(J25_34XX_GPIO170);
+ 	gpio_request(170, "DVI_nPD");
+ 	/* REVISIT leave DVI powered down until it's needed ... */
+diff --git a/arch/arm/mach-omap2/mux.c b/arch/arm/mach-omap2/mux.c
+index 1556688..9b55cf8 100644
+--- a/arch/arm/mach-omap2/mux.c
++++ b/arch/arm/mach-omap2/mux.c
+@@ -472,6 +472,87 @@ MUX_CFG_34XX("AF5_34XX_GPIO142", 0x170,
+ MUX_CFG_34XX("AE5_34XX_GPIO143", 0x172,
+ 		OMAP34XX_MUX_MODE4 | OMAP34XX_PIN_OUTPUT)
+ 
++/* UART2 */
++MUX_CFG_34XX("XXX_3430_UART2_cts", 0x16c,
++		OMAP34XX_MUX_MODE1 | OMAP34XX_PIN_OUTPUT)
++MUX_CFG_34XX("XXX_3430_UART2_rts", 0x16e,
++		OMAP34XX_MUX_MODE1 | OMAP34XX_PIN_OUTPUT)
++MUX_CFG_34XX("XXX_3430_UART2_tx", 0x170,
++		OMAP34XX_MUX_MODE1 | OMAP34XX_PIN_OUTPUT)
++MUX_CFG_34XX("XXX_3430_UART2_rx", 0x172,
++		OMAP34XX_MUX_MODE1 | OMAP34XX_PIN_INPUT_PULLUP)
++
++/* MMC2 */
++MUX_CFG_34XX("XXX_3430_MMC2_CLK", 0x158,
++		OMAP34XX_MUX_MODE0 | OMAP34XX_PIN_INPUT)
++MUX_CFG_34XX("XXX_3430_MMC2_cmd", 0x15a,
++		OMAP34XX_MUX_MODE0 | OMAP34XX_PIN_INPUT)
++MUX_CFG_34XX("XXX_3430_MMC2_dat0", 0x15c,
++		OMAP34XX_MUX_MODE0 | OMAP34XX_PIN_INPUT)
++MUX_CFG_34XX("XXX_3430_MMC2_dat1", 0x15e,
++		OMAP34XX_MUX_MODE0 | OMAP34XX_PIN_INPUT)
++MUX_CFG_34XX("XXX_3430_MMC2_dat2", 0x160,
++		OMAP34XX_MUX_MODE0 | OMAP34XX_PIN_INPUT)
++MUX_CFG_34XX("XXX_3430_MMC2_dat3", 0x162,
++		OMAP34XX_MUX_MODE0 | OMAP34XX_PIN_INPUT)
++MUX_CFG_34XX("XXX_3430_MMC2_dat4", 0x164,
++		OMAP34XX_MUX_MODE0 | OMAP34XX_PIN_INPUT)
++MUX_CFG_34XX("XXX_3430_MMC2_dat5", 0x166,
++		OMAP34XX_MUX_MODE0 | OMAP34XX_PIN_INPUT)
++MUX_CFG_34XX("XXX_3430_MMC2_dat6", 0x168,
++		OMAP34XX_MUX_MODE0 | OMAP34XX_PIN_INPUT)
++MUX_CFG_34XX("XXX_3430_MMC2_dat7", 0x16a,
++		OMAP34XX_MUX_MODE0 | OMAP34XX_PIN_INPUT)
++
++/* MCSPI3 */
++MUX_CFG_34XX("XXX_3430_MCSPI3_CLK", 0x158,
++		OMAP34XX_MUX_MODE1 | OMAP34XX_PIN_OUTPUT)
++MUX_CFG_34XX("XXX_3430_MCSPI3_SIMO", 0x15a,
++		OMAP34XX_MUX_MODE1 | OMAP34XX_PIN_OUTPUT)
++MUX_CFG_34XX("XXX_3430_MCSPI3_SOMI", 0x15c,
++		OMAP34XX_MUX_MODE1 | OMAP34XX_PIN_INPUT_PULLUP)
++MUX_CFG_34XX("XXX_3430_MCSPI3_CS0", 0x162,
++		OMAP34XX_MUX_MODE1 | OMAP34XX_PIN_OUTPUT)
++MUX_CFG_34XX("XXX_3430_MCSPI3_CS1", 0x160,
++		OMAP34XX_MUX_MODE1 | OMAP34XX_PIN_OUTPUT)
++
++MUX_CFG_34XX("XXX_3430_gpio_88", 0x100, //mcspi3_clk
++		OMAP34XX_MUX_MODE4 | OMAP34XX_PIN_INPUT)
++MUX_CFG_34XX("XXX_3430_gpio_89", 0x102, //mcspi3_simo
++		OMAP34XX_MUX_MODE4 | OMAP34XX_PIN_INPUT)
++MUX_CFG_34XX("XXX_3430_gpio_90", 0x104, //mcspi3_somi
++		OMAP34XX_MUX_MODE4 | OMAP34XX_PIN_INPUT)
++MUX_CFG_34XX("XXX_3430_gpio_91", 0x106, //mcspi3_cs0
++		OMAP34XX_MUX_MODE4 | OMAP34XX_PIN_INPUT)
++MUX_CFG_34XX("XXX_3430_gpio_92", 0x108, //mcspi3_cs1
++		OMAP34XX_MUX_MODE4 | OMAP34XX_PIN_INPUT)
++
++MUX_CFG_34XX("XXX_3430_gpio_14", 0x5dc, //mcspi3_simo
++		OMAP34XX_MUX_MODE4 | OMAP34XX_PIN_INPUT)
++MUX_CFG_34XX("XXX_3430_gpio_15", 0x5de, //mcspi3_somi
++		OMAP34XX_MUX_MODE4 | OMAP34XX_PIN_INPUT)
++MUX_CFG_34XX("XXX_3430_gpio_16", 0x5e0, //mcspi3_cs0
++		OMAP34XX_MUX_MODE4 | OMAP34XX_PIN_INPUT)
++MUX_CFG_34XX("XXX_3430_gpio_17", 0x5e2, //mcspi3_clk
++		OMAP34XX_MUX_MODE4 | OMAP34XX_PIN_INPUT)
++MUX_CFG_34XX("XXX_3430_gpio_21", 0x5ea, //mcspi3_cs1
++		OMAP34XX_MUX_MODE4 | OMAP34XX_PIN_INPUT)
++/* MCSPI4 */
++MUX_CFG_34XX("XXX_3430_MCSPI4_CLK", 0x18c,
++		OMAP34XX_MUX_MODE1 | OMAP34XX_PIN_OUTPUT)
++MUX_CFG_34XX("XXX_3430_MCSPI4_SIMO", 0x190,
++		OMAP34XX_MUX_MODE1 | OMAP34XX_PIN_OUTPUT)
++MUX_CFG_34XX("XXX_3430_MCSPI4_SOMI", 0x192,
++		OMAP34XX_MUX_MODE1 | OMAP34XX_PIN_INPUT_PULLUP)
++MUX_CFG_34XX("XXX_3430_MCSPI4_CS0", 0x196,
++		OMAP34XX_MUX_MODE1 | OMAP34XX_PIN_OUTPUT)
++MUX_CFG_34XX("XXX_3430_gpio_151", 0x182,
++		OMAP34XX_MUX_MODE4 | OMAP34XX_PIN_INPUT)
++
++/* GPIO */
++MUX_CFG_34XX("XXX_3430_gpio_157", 0x18e,
++		OMAP34XX_MUX_MODE4 | OMAP34XX_PIN_INPUT)
++
+ };
+ 
+ #define OMAP34XX_PINS_SZ	ARRAY_SIZE(omap34xx_pins)
+@@ -494,6 +575,7 @@ static void __init_or_module omap2_cfg_debug(const struct pin_config *cfg, u16 r
+ 
+ #ifdef	CONFIG_OMAP_MUX_DEBUG
+ 	debug = cfg->debug;
++	debug = 1; //add by yuchih
+ #endif
+ 	warn = (orig != reg);
+ 	if (debug || warn)
+@@ -540,6 +622,9 @@ static int __init_or_module omap34xx_cfg_reg(const struct pin_config *cfg)
+ 	reg |= cfg->mux_val;
+ 	omap2_cfg_debug(cfg, reg);
+ 	omap_ctrl_writew(reg, cfg->mux_reg);
++	
++	omap2_cfg_debug(cfg, reg); //add by yuchih
++	
+ 	spin_unlock_irqrestore(&mux_spin_lock, flags);
+ 
+ 	return 0;
+diff --git a/arch/arm/plat-omap/include/mach/mux.h b/arch/arm/plat-omap/include/mach/mux.h
+index 67fddec..3dea82e 100644
+--- a/arch/arm/plat-omap/include/mach/mux.h
++++ b/arch/arm/plat-omap/include/mach/mux.h
+@@ -795,7 +795,54 @@ enum omap34xx_index {
+ 	AF6_34XX_GPIO140_UP,
+ 	AE6_34XX_GPIO141,
+ 	AF5_34XX_GPIO142,
+-	AE5_34XX_GPIO143
++	AE5_34XX_GPIO143,
++
++
++	/* UART2 */
++	XXX_3430_UART2_cts,
++	XXX_3430_UART2_rts,
++	XXX_3430_UART2_tx,
++	XXX_3430_UART2_rx,
++
++	/* MMC2 */
++	XXX_3430_MMC2_CLK,
++	XXX_3430_MMC2_cmd,
++	XXX_3430_MMC2_dat0,
++	XXX_3430_MMC2_dat1,
++	XXX_3430_MMC2_dat2,
++	XXX_3430_MMC2_dat3,
++	XXX_3430_MMC2_dat4,
++	XXX_3430_MMC2_dat5,
++	XXX_3430_MMC2_dat6,
++	XXX_3430_MMC2_dat7,
++
++	/* MCSPI3 */
++	XXX_3430_MCSPI3_CLK,
++	XXX_3430_MCSPI3_SIMO,
++	XXX_3430_MCSPI3_SOMI,
++	XXX_3430_MCSPI3_CS0,
++	XXX_3430_MCSPI3_CS1,
++	XXX_3430_gpio_88,
++	XXX_3430_gpio_89,
++	XXX_3430_gpio_90,
++	XXX_3430_gpio_91,
++	XXX_3430_gpio_92,
++	XXX_3430_gpio_14,
++	XXX_3430_gpio_15,
++	XXX_3430_gpio_16,
++	XXX_3430_gpio_17,
++	XXX_3430_gpio_21,
++
++	/* MCSPI4 */
++	XXX_3430_MCSPI4_CLK,
++	XXX_3430_MCSPI4_SIMO,
++	XXX_3430_MCSPI4_SOMI,
++	XXX_3430_MCSPI4_CS0,
++	XXX_3430_gpio_151, //mcspi_clk
++	
++	/* GPIO*/
++	XXX_3430_gpio_157
++
+ };
+ 
+ struct omap_mux_cfg {
 
--- 
-balbi
+--------------010505030102000206020804--
+
+--------------ms050201010707030201080302
+Content-Type: application/x-pkcs7-signature; name="smime.p7s"
+Content-Transfer-Encoding: base64
+Content-Disposition: attachment; filename="smime.p7s"
+Content-Description: S/MIME Cryptographic Signature
+
+MIAGCSqGSIb3DQEHAqCAMIACAQExCzAJBgUrDgMCGgUAMIAGCSqGSIb3DQEHAQAAoIIJRTCC
+Av0wggJmoAMCAQICEHW4VJIUQV0u11NnfLpF2IUwDQYJKoZIhvcNAQEFBQAwYjELMAkGA1UE
+BhMCWkExJTAjBgNVBAoTHFRoYXd0ZSBDb25zdWx0aW5nIChQdHkpIEx0ZC4xLDAqBgNVBAMT
+I1RoYXd0ZSBQZXJzb25hbCBGcmVlbWFpbCBJc3N1aW5nIENBMB4XDTA4MDQxNDE5MTkzMVoX
+DTA5MDQxNDE5MTkzMVowYjERMA8GA1UEBBMIQmFsaXN0ZXIxDzANBgNVBCoTBlBoaWxpcDEY
+MBYGA1UEAxMPUGhpbGlwIEJhbGlzdGVyMSIwIAYJKoZIhvcNAQkBFhNwaGlsaXBAYmFsaXN0
+ZXIub3JnMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAxyNViPlSmMq2Kl4m7iDB
+I3gB7Pwhg+4vnXCKEF3qIoLwNDVl27CP8RY0umjENzykOR6ZhzYx4fH8arNV5+nlXsH8KNnb
+Dpd5ICTZvbUJdt1gPETmLczGy4hh8woCu7qodyy7YZcGMiUY5LxoL7vIQHysir4rbMRV/JId
+mhKfFrHb+glDe8XbfTJ3xKO+BsMgLDaSiRMelH6uFLAVv9oRoIJxHQhwKLvlrOSQj+ek2fL6
+83BzOUsM4BN/fiwvtJ/y3doVEoKUp8ippOXrwLAXFPprPAAdIydqufTxHotooFqbQzqSJv4c
+TNDTxf2fg9YfH2RAs8vTdc/wgIVlL8fJnQIDAQABozAwLjAeBgNVHREEFzAVgRNwaGlsaXBA
+YmFsaXN0ZXIub3JnMAwGA1UdEwEB/wQCMAAwDQYJKoZIhvcNAQEFBQADgYEASFC7i4DqutUT
+ifbyNtEe+e9bqgqWUScDFl0BTV5fFVBX/mFpM3RBZJfq+iM5q0L7qont3sGaXG0cdVvRk2dk
+uV2i0HwkmTLJ4HTLMyJ57BjMJWY9ydDiY+Ai1pINmjIgq/qI0aireByqNee68q+PaWE7bfW1
+XvfqZD56QunCijswggL9MIICZqADAgECAhB1uFSSFEFdLtdTZ3y6RdiFMA0GCSqGSIb3DQEB
+BQUAMGIxCzAJBgNVBAYTAlpBMSUwIwYDVQQKExxUaGF3dGUgQ29uc3VsdGluZyAoUHR5KSBM
+dGQuMSwwKgYDVQQDEyNUaGF3dGUgUGVyc29uYWwgRnJlZW1haWwgSXNzdWluZyBDQTAeFw0w
+ODA0MTQxOTE5MzFaFw0wOTA0MTQxOTE5MzFaMGIxETAPBgNVBAQTCEJhbGlzdGVyMQ8wDQYD
+VQQqEwZQaGlsaXAxGDAWBgNVBAMTD1BoaWxpcCBCYWxpc3RlcjEiMCAGCSqGSIb3DQEJARYT
+cGhpbGlwQGJhbGlzdGVyLm9yZzCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEBAMcj
+VYj5UpjKtipeJu4gwSN4Aez8IYPuL51wihBd6iKC8DQ1Zduwj/EWNLpoxDc8pDkemYc2MeHx
+/GqzVefp5V7B/CjZ2w6XeSAk2b21CXbdYDxE5i3MxsuIYfMKAru6qHcsu2GXBjIlGOS8aC+7
+yEB8rIq+K2zEVfySHZoSnxax2/oJQ3vF230yd8SjvgbDICw2kokTHpR+rhSwFb/aEaCCcR0I
+cCi75azkkI/npNny+vNwczlLDOATf34sL7Sf8t3aFRKClKfIqaTl68CwFxT6azwAHSMnarn0
+8R6LaKBam0M6kib+HEzQ08X9n4PWHx9kQLPL03XP8ICFZS/HyZ0CAwEAAaMwMC4wHgYDVR0R
+BBcwFYETcGhpbGlwQGJhbGlzdGVyLm9yZzAMBgNVHRMBAf8EAjAAMA0GCSqGSIb3DQEBBQUA
+A4GBAEhQu4uA6rrVE4n28jbRHvnvW6oKllEnAxZdAU1eXxVQV/5haTN0QWSX6vojOatC+6qJ
+7d7BmlxtHHVb0ZNnZLldotB8JJkyyeB0yzMieewYzCVmPcnQ4mPgItaSDZoyIKv6iNGoq3gc
+qjXnuvKvj2lhO231tV736mQ+ekLpwoo7MIIDPzCCAqigAwIBAgIBDTANBgkqhkiG9w0BAQUF
+ADCB0TELMAkGA1UEBhMCWkExFTATBgNVBAgTDFdlc3Rlcm4gQ2FwZTESMBAGA1UEBxMJQ2Fw
+ZSBUb3duMRowGAYDVQQKExFUaGF3dGUgQ29uc3VsdGluZzEoMCYGA1UECxMfQ2VydGlmaWNh
+dGlvbiBTZXJ2aWNlcyBEaXZpc2lvbjEkMCIGA1UEAxMbVGhhd3RlIFBlcnNvbmFsIEZyZWVt
+YWlsIENBMSswKQYJKoZIhvcNAQkBFhxwZXJzb25hbC1mcmVlbWFpbEB0aGF3dGUuY29tMB4X
+DTAzMDcxNzAwMDAwMFoXDTEzMDcxNjIzNTk1OVowYjELMAkGA1UEBhMCWkExJTAjBgNVBAoT
+HFRoYXd0ZSBDb25zdWx0aW5nIChQdHkpIEx0ZC4xLDAqBgNVBAMTI1RoYXd0ZSBQZXJzb25h
+bCBGcmVlbWFpbCBJc3N1aW5nIENBMIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDEpjxV
+c1X7TrnKmVoeaMB1BHCd3+n/ox7svc31W/Iadr1/DDph8r9RzgHU5VAKMNcCY1osiRVwjt3J
+8CuFWqo/cVbLrzwLB+fxH5E2JCoTzyvV84J3PQO+K/67GD4Hv0CAAmTXp6a7n2XRxSpUhQ9I
+BH+nttE8YQRAHmQZcmC3+wIDAQABo4GUMIGRMBIGA1UdEwEB/wQIMAYBAf8CAQAwQwYDVR0f
+BDwwOjA4oDagNIYyaHR0cDovL2NybC50aGF3dGUuY29tL1RoYXd0ZVBlcnNvbmFsRnJlZW1h
+aWxDQS5jcmwwCwYDVR0PBAQDAgEGMCkGA1UdEQQiMCCkHjAcMRowGAYDVQQDExFQcml2YXRl
+TGFiZWwyLTEzODANBgkqhkiG9w0BAQUFAAOBgQBIjNFQg+oLLswNo2asZw9/r6y+whehQ5aU
+nX9MIbj4Nh+qLZ82L8D0HFAgk3A8/a3hYWLD2ToZfoSxmRsAxRoLgnSeJVCUYsfbJ3FXJY3d
+qZw5jowgT2Vfldr394fWxghOrvbqNOUQGls1TXfjViF4gtwhGTXeJLHTHUb/XV9lTzGCA2Qw
+ggNgAgEBMHYwYjELMAkGA1UEBhMCWkExJTAjBgNVBAoTHFRoYXd0ZSBDb25zdWx0aW5nIChQ
+dHkpIEx0ZC4xLDAqBgNVBAMTI1RoYXd0ZSBQZXJzb25hbCBGcmVlbWFpbCBJc3N1aW5nIENB
+AhB1uFSSFEFdLtdTZ3y6RdiFMAkGBSsOAwIaBQCgggHDMBgGCSqGSIb3DQEJAzELBgkqhkiG
+9w0BBwEwHAYJKoZIhvcNAQkFMQ8XDTA5MDIxNzIzNDIyOFowIwYJKoZIhvcNAQkEMRYEFE/f
+WV6hzvsXsrA9qV4N3ZAXeatMMFIGCSqGSIb3DQEJDzFFMEMwCgYIKoZIhvcNAwcwDgYIKoZI
+hvcNAwICAgCAMA0GCCqGSIb3DQMCAgFAMAcGBSsOAwIHMA0GCCqGSIb3DQMCAgEoMIGFBgkr
+BgEEAYI3EAQxeDB2MGIxCzAJBgNVBAYTAlpBMSUwIwYDVQQKExxUaGF3dGUgQ29uc3VsdGlu
+ZyAoUHR5KSBMdGQuMSwwKgYDVQQDEyNUaGF3dGUgUGVyc29uYWwgRnJlZW1haWwgSXNzdWlu
+ZyBDQQIQdbhUkhRBXS7XU2d8ukXYhTCBhwYLKoZIhvcNAQkQAgsxeKB2MGIxCzAJBgNVBAYT
+AlpBMSUwIwYDVQQKExxUaGF3dGUgQ29uc3VsdGluZyAoUHR5KSBMdGQuMSwwKgYDVQQDEyNU
+aGF3dGUgUGVyc29uYWwgRnJlZW1haWwgSXNzdWluZyBDQQIQdbhUkhRBXS7XU2d8ukXYhTAN
+BgkqhkiG9w0BAQEFAASCAQB+wwY/dUp83dUETK6q53Kg36uEd/LBvnySjYfvM+QN4jRM3nck
+aGQlAfHOBRw9z3yiiIYx6vZpxHHOUnNZh6X3X1TWs1A/FV6Xcf6ZbGqKTrAbkbVwSAfO/B+5
+ukxdDL660sUeDNDoBavQ/Ucu/O4EqjkEVkdfV+90xLXJ+Jnjb6PaCZxmqMUuG9PuTfpRkC03
+tKSq+8SWUBDpom4vG5m3BjkZOv38v40x6Skza5ci2w+YxoRZILLT2d4t8RDor5iTcUeNiyzP
+U12UgIuEtyY5pyoZYN+ctQiE/4AAHXbWvObevMPq3cmhQCsl0BqM7Ku44Jhw4oj4IbLbRfAk
+jOZ4AAAAAAAA
+--------------ms050201010707030201080302--
