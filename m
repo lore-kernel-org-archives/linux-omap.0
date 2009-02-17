@@ -1,61 +1,55 @@
-From: Felipe Balbi <felipe.balbi@nokia.com>
+From: Felipe Balbi <me@felipebalbi.com>
 Subject: Re: [RESEND] lp5521 patches
-Date: Wed, 18 Feb 2009 01:07:15 +0200
-Message-ID: <20090217230714.GA8481@scadufax.research.nokia.com>
-References: <bdea5f5962eebe1bd420f184ebc7b32c@felipebalbi.com> <1234529032-25354-1-git-send-email-felipe.balbi@nokia.com> <20090217213819.GI24800@guug.org>
-Reply-To: felipe.balbi@nokia.com
+Date: Wed, 18 Feb 2009 01:29:19 +0200
+Message-ID: <20090217232918.GB15077@gandalf>
+References: <bdea5f5962eebe1bd420f184ebc7b32c@felipebalbi.com> <1234529032-25354-1-git-send-email-felipe.balbi@nokia.com> <20090217213819.GI24800@guug.org> <20090217230714.GA8481@scadufax.research.nokia.com>
+Reply-To: me@felipebalbi.com
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="X1bOJ3K7DJ5YkBrT"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:63593 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754766AbZBQXWp (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 17 Feb 2009 18:22:45 -0500
+Received: from ns1.siteground211.com ([209.62.36.12]:33382 "EHLO
+	serv01.siteground211.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752874AbZBQX3h (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 17 Feb 2009 18:29:37 -0500
 Content-Disposition: inline
-In-Reply-To: <20090217213819.GI24800@guug.org>
+In-Reply-To: <20090217230714.GA8481@scadufax.research.nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: ext Otto Solares <solca@guug.org>
-Cc: "Balbi Felipe (Nokia-D/Helsinki)" <felipe.balbi@nokia.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, David Brownell <dbrownell@users.sourceforge.net>
+To: Felipe Balbi <felipe.balbi@nokia.com>
+Cc: ext Otto Solares <solca@guug.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, David Brownell <dbrownell@users.sourceforge.net>
 
-
---X1bOJ3K7DJ5YkBrT
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-
-On Tue, Feb 17, 2009 at 10:38:19PM +0100, ext Otto Solares wrote:
-> On Fri, Feb 13, 2009 at 02:43:46PM +0200, Felipe Balbi wrote:
-> > Hi Dave, all
-> >
-> > could you look at the updated lp5521 patches ?
-> >
-> > Basically patches from 1 to 3 are the same.
-> > Patch 4 has the fix you asked me to implement, getting
-> > a label from pdata (then I also moved mode and the presence
-> > of each individual led to pdata as well), patch 5 only moves
-> > the file to drivers/leds and patch 6 is a new patch adding
-> > pdata to board-n800.c
-> >
-> > After these, lp5521 should be ok for going upstream.
-> >
-> > Thanks for your time ;-)
+On Wed, Feb 18, 2009 at 01:07:15AM +0200, Felipe Balbi wrote:
+> On Tue, Feb 17, 2009 at 10:38:19PM +0100, ext Otto Solares wrote:
+> > On Fri, Feb 13, 2009 at 02:43:46PM +0200, Felipe Balbi wrote:
+> > > Hi Dave, all
+> > >
+> > > could you look at the updated lp5521 patches ?
+> > >
+> > > Basically patches from 1 to 3 are the same.
+> > > Patch 4 has the fix you asked me to implement, getting
+> > > a label from pdata (then I also moved mode and the presence
+> > > of each individual led to pdata as well), patch 5 only moves
+> > > the file to drivers/leds and patch 6 is a new patch adding
+> > > pdata to board-n800.c
+> > >
+> > > After these, lp5521 should be ok for going upstream.
+> > >
+> > > Thanks for your time ;-)
+> > 
+> > Hi Felipe,
+> > 
+> > I don't see this patches on the l-o tree or am I missing something?
 > 
-> Hi Felipe,
+> once again the didn't get applied. lp5521 is already in LED tree and
+> we're gona have two forks of the same driver :-p
 > 
-> I don't see this patches on the l-o tree or am I missing something?
+> Maybe, Tony, you could apply the attached.
 
-once again the didn't get applied. lp5521 is already in LED tree and
-we're gona have two forks of the same driver :-p
+damn this new Nokia server is converting my tabs into spaces :-(
 
-Maybe, Tony, you could apply the attached.
+here's again:
 
--- 
-balbi
-
---X1bOJ3K7DJ5YkBrT
-Content-Type: text/x-diff; charset=us-ascii
-Content-Disposition: attachment; filename="0001-i2c-chips-remove-lp5521-driver.patch"
-
+==== cut here ====
 >From 66bf0442f949f4da02d5b4cae584cc7148f7b63c Mon Sep 17 00:00:00 2001
 From: Felipe Balbi <me@felipebalbi.com>
 Date: Wed, 18 Feb 2009 01:17:28 +0200
@@ -697,5 +691,5 @@ index c0862d9..0000000
 -- 
 1.6.1.3
 
-
---X1bOJ3K7DJ5YkBrT--
+-- 
+balbi
