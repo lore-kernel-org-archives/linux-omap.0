@@ -1,83 +1,112 @@
-From: Aaro Koskinen <Aaro.Koskinen@nokia.com>
-Subject: [PATCH] ARM: OMAP: sched_clock() corrected
-Date: Tue, 17 Feb 2009 20:21:15 +0200
-Message-ID: <1234894875-10268-1-git-send-email-Aaro.Koskinen@nokia.com>
+From: "Curran, Dominic" <dcurran@ti.com>
+Subject: RE: [OMAPZOOM][PATCH] Testing for TWL4030 in board file change.
+Date: Tue, 17 Feb 2009 13:35:08 -0600
+Message-ID: <96DA7A230D3B2F42BA3EF203A7A1B3B5012AB1624E@dlee07.ent.ti.com>
+References: <A24693684029E5489D1D202277BE894420A15D8B@dlee02.ent.ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:55225 "EHLO
-	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751733AbZBQSZw (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 17 Feb 2009 13:25:52 -0500
-Received: from esebh105.NOE.Nokia.com (esebh105.ntc.nokia.com [172.21.138.211])
-	by mgw-mx06.nokia.com (Switch-3.2.6/Switch-3.2.6) with ESMTP id n1HIPSqJ026740
-	for <linux-omap@vger.kernel.org>; Tue, 17 Feb 2009 20:25:48 +0200
-Received: from localhost.localdomain (esdhcp042201.research.nokia.com [172.21.42.201])
-	by mgw-int02.ntc.nokia.com (Switch-3.2.5/Switch-3.2.5) with ESMTP id n1HILFrP010691
-	for <linux-omap@vger.kernel.org>; Tue, 17 Feb 2009 20:21:16 +0200
-In-Reply-To: <>
-References: <>
+Received: from bear.ext.ti.com ([192.94.94.41]:55315 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751481AbZBQTfQ convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 17 Feb 2009 14:35:16 -0500
+In-Reply-To: <A24693684029E5489D1D202277BE894420A15D8B@dlee02.ent.ti.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
+To: "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>, Nishanth Menon <menon.nishanth@gmail.com>
+Cc: linux-omap <linux-omap@vger.kernel.org>
 
-After my OMAP3 board has been running for a while, I'm seeing weird
-latency traces like this:
 
-      sh-1574    0d.h2  153us : do_timer (tick_do_update_jiffies64)
-      sh-1574    0d.h2  153us : update_wall_time (do_timer)
-      sh-1574    0d.h2  153us!: omap_32k_read (update_wall_time)
-      sh-1574    0d.h2 1883us : update_xtime_cache (update_wall_time)
-      sh-1574    0d.h2 1883us : clocksource_get_next (update_wall_time)
-      sh-1574    0d.h2 1883us+: _spin_lock_irqsave (clocksource_get_next)
 
-and after a while:
+> -----Original Message-----
+> From: Aguirre Rodriguez, Sergio Alberto
+> Sent: Tuesday, February 17, 2009 10:03 AM
+> To: Nishanth Menon; Curran, Dominic
+> Cc: linux-omap
+> Subject: RE: [OMAPZOOM][PATCH] Testing for TWL4030 in board file change.
+>
+>
+>
+> > -----Original Message-----
+> > From: Nishanth Menon [mailto:menon.nishanth@gmail.com]
+> > Sent: Tuesday, February 17, 2009 9:33 AM
+> > To: Curran, Dominic
+> > Cc: linux-omap; Aguirre Rodriguez, Sergio Alberto
+> > Subject: Re: [OMAPZOOM][PATCH] Testing for TWL4030 in board file change.
+> >
+> > Curran, Dominic said the following on 02/17/2009 04:27 PM:
+> > >> -----Original Message-----
+> > >> From: Nishanth Menon [mailto:menon.nishanth@gmail.com]
+> > >> Sent: Tuesday, February 17, 2009 2:12 AM
+> > >> To: Curran, Dominic
+> > >> Cc: linux-omap; Aguirre Rodriguez, Sergio Alberto
+> > >> Subject: Re: [OMAPZOOM][PATCH] Testing for TWL4030 in board file change.
+> > >>
+> > >> Would a solution as follows be appropriate?
+> > >> in arch/arm/mach-omap2/Kconfig:
+> > >>  config MACH_OMAP_ZOOM2
+> > >>            bool "OMAP3 ZOOM2 board"
+> > >>            depends on ARCH_OMAP3 && ARCH_OMAP34XX
+> > >> +        select TWL4030_CORE if VIDEO_OMAP3
+> > >>
+> > >> A similar strategy has been implemented for N800, albeit for other
+> > >> peripherals.
+> > >>
+> > >
+> > > If 'reverse dependencies' set the symbol and its dependencies I would
+> > say this would be a good solution, but unfortunately it does not.
+> > > The documentation for reverse dependencies warns:
+> > >
+> > >  107         select should be used with care. select will force
+> > >  108         a symbol to a value without visiting the dependencies.
+> > >  109         By abusing select you are able to select a symbol FOO even
+> > >  110         if FOO depends on BAR that is not set.
+> > >  111         In general use select only for non-visible symbols
+> > >
+> > > Since TWL4030 has dependencies then I don't think this is appropriate
+> > Mach-omap && video_omap3 depends on twl4030 and twl4030 is not reverse
+> > dependent on mach-omap. twl4030 is dependent on i2c - I believe based on
+> > drivers/mfd/Kconfig how do we handle this? Maybe a select of i2c is
+> > appropriate there? or how about:
+> >
+> > +        select TWL4030_CORE if VIDEO_OMAP3
+> > +        select  I2C if TWL4030_CORE
+> >
+> >
+> > You may want to see arch/arm/mach-omap2/Kconfig -> MACH_NOKIA_N800. I
+> > think we have a similar condition there with CBUS and VIDEO_TCM825X I
+> > think..
+>
+> Honestly, I'm a bit lost about the goal of this. I don't see how this is
+> solving our problem.
+>
+> - 3430SDP and Zoom1/2 uses TWL4030 for power handling the camera sensors
+> - Current Omap3 camera driver can be used in other platforms than the above
+> that uses OMAP3x30 chip, so we cannot add dependencies on camera driver to
+> platform specific powering methods.
+> - On above platforms, there exists the need for compiling without T2 support
+> sometimes and you don't want a broken build because of this
+>
+> How is above helping for solving this out?
+>
+> >
+> > my 2cents: i like select better than #ifdef ;).. but then, that is just
+> > me :)..
+> >
+> > Regards,
+> > Nishanth Menon
 
-      sh-17818   0d.h3  153us : do_timer (tick_do_update_jiffies64)
-      sh-17818   0d.h3  153us : update_wall_time (do_timer)
-      sh-17818   0d.h3  153us!: omap_32k_read (update_wall_time)
-      sh-17818   0d.h3 1915us : update_xtime_cache (update_wall_time)
-      sh-17818   0d.h3 1915us+: clocksource_get_next (update_wall_time)
-      sh-17818   0d.h3 1945us : _spin_lock_irqsave (clocksource_get_next)
+Fyi, This didn't seem to work:
 
-Turns out that sched_clock() is using cyc2ns(), which returns NTP
-adjusted time. The sched_clock() frequency should not be adjusted. The
-patch deletes omap_32k_ticks_to_nsecs() and rewrites sched_clock()
-to do the conversion using the constant multiplier.
+$ make menuconfig
+scripts/kconfig/mconf arch/arm/Kconfig
+drivers/media/Kconfig:35:error: found recursive dependency: VIDEO_V4L2_COMMON ->
+VIDEO_V4L2 -> VIDEO_CAPTURE_DRIVERS -> VIDEO_OMAP3 -> TWL4030_CORE -> I2C -> VIDEO_V4L2_COMMON
+make[1]: *** [menuconfig] Error 1
+make: *** [menuconfig] Error 2
+[gromit@gromit omapzoom04]$
 
-Signed-off-by: Aaro Koskinen <Aaro.Koskinen@nokia.com>
----
- arch/arm/plat-omap/common.c |   14 +++++---------
- 1 files changed, 5 insertions(+), 9 deletions(-)
-
-diff --git a/arch/arm/plat-omap/common.c b/arch/arm/plat-omap/common.c
-index 8c53125..2866612 100644
---- a/arch/arm/plat-omap/common.c
-+++ b/arch/arm/plat-omap/common.c
-@@ -220,20 +220,16 @@ static struct clocksource clocksource_32k = {
- };
- 
- /*
-- * Rounds down to nearest nsec.
-- */
--unsigned long long omap_32k_ticks_to_nsecs(unsigned long ticks_32k)
--{
--	return cyc2ns(&clocksource_32k, ticks_32k);
--}
--
--/*
-  * Returns current time from boot in nsecs. It's OK for this to wrap
-  * around for now, as it's just a relative time stamp.
-  */
- unsigned long long sched_clock(void)
- {
--	return omap_32k_ticks_to_nsecs(omap_32k_read());
-+	unsigned long long ret;
-+
-+	ret = (unsigned long long)omap_32k_read();
-+	ret = (ret * clocksource_32k.mult_orig) >> clocksource_32k.shift;
-+	return ret;
- }
- 
- static int __init omap_init_clocksource_32k(void)
--- 
-1.5.4.3
+Sergio told me you had discussed a different approach anyway...
 
