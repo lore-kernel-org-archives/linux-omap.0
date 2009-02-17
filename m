@@ -1,103 +1,83 @@
-From: Richard Purdie <rpurdie@rpsys.net>
-Subject: Re: [PATCH] Backlight driver for omap3evm
-Date: Tue, 17 Feb 2009 18:20:11 +0000
-Message-ID: <1234894811.5312.59.camel@dax.rpnet.com>
-References: <19F8576C6E063C45BE387C64729E739403FA81B8D2@dbde02.ent.ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-fbdev-devel-bounces@lists.sourceforge.net>
-In-Reply-To: <19F8576C6E063C45BE387C64729E739403FA81B8D2@dbde02.ent.ti.com>
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/linux-fbdev-devel>,
-	<mailto:linux-fbdev-devel-request@lists.sourceforge.net?subject=unsubscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum_name=linux-fbdev-devel>
-List-Post: <mailto:linux-fbdev-devel@lists.sourceforge.net>
-List-Help: <mailto:linux-fbdev-devel-request@lists.sourceforge.net?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/linux-fbdev-devel>,
-	<mailto:linux-fbdev-devel-request@lists.sourceforge.net?subject=subscribe>
-Errors-To: linux-fbdev-devel-bounces@lists.sourceforge.net
-To: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Premi,
-	Sanjeev" <premi@ti.com>, "linux-fbdev-devel@lists.sourceforge.net" <linux-fbdev-devel@lists.sourceforge.net>
+From: Aaro Koskinen <Aaro.Koskinen@nokia.com>
+Subject: [PATCH] ARM: OMAP: sched_clock() corrected
+Date: Tue, 17 Feb 2009 20:21:15 +0200
+Message-ID: <1234894875-10268-1-git-send-email-Aaro.Koskinen@nokia.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from smtp.nokia.com ([192.100.122.233]:55225 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751733AbZBQSZw (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 17 Feb 2009 13:25:52 -0500
+Received: from esebh105.NOE.Nokia.com (esebh105.ntc.nokia.com [172.21.138.211])
+	by mgw-mx06.nokia.com (Switch-3.2.6/Switch-3.2.6) with ESMTP id n1HIPSqJ026740
+	for <linux-omap@vger.kernel.org>; Tue, 17 Feb 2009 20:25:48 +0200
+Received: from localhost.localdomain (esdhcp042201.research.nokia.com [172.21.42.201])
+	by mgw-int02.ntc.nokia.com (Switch-3.2.5/Switch-3.2.5) with ESMTP id n1HILFrP010691
+	for <linux-omap@vger.kernel.org>; Tue, 17 Feb 2009 20:21:16 +0200
+In-Reply-To: <>
+References: <>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
 
+After my OMAP3 board has been running for a while, I'm seeing weird
+latency traces like this:
 
-On Tue, 2009-02-10 at 22:52 +0530, Hiremath, Vaibhav wrote:
-> [Hiremath, Vaibhav] Now I will be following up for OMAP3EVM backlight
-> driver patch initiated/posted by Sanjeev. I was just referring to the
-> backlight drives currently available under Linux tree, and observed
-> that almost all drivers have been implemented in different way. I
-> could not able to get one driver to which I can refer to for adding
-> support for OMAP3EVM backlight driver.
-> 
-> Can anybody tell me the expected way of implementation for backlight driver is?
-> 
-> I have some questions here,
-> 
-> 	- If I understand correctly (and as mentioned and pointed out by
-> Richard in the mail-chain), platform_device should get added in
-> platform file where it registers the pointer to the structure "struct
-> generic_bl_info". 
-> This I believe should be standard way everybody should follow, which
-> is not the case.
-> Am I missing something here?
-> 
-> 	- The below question may sound foolish, but to is important for me to understand the framework.
-> 
-> If I have simple and straight control of backlight, do I really
-> required to have separate backlight driver for my platform? Can I make
-> use of generic-bl driver?
-> The only difference (atleast to my platform) would be the SYSFS entry,
-> the entry will get created something like
-> /sys/class/backlight/generic-bl/
-> 
-> Is it required to make driver, Power aware and differentiate from generic driver?
+      sh-1574    0d.h2  153us : do_timer (tick_do_update_jiffies64)
+      sh-1574    0d.h2  153us : update_wall_time (do_timer)
+      sh-1574    0d.h2  153us!: omap_32k_read (update_wall_time)
+      sh-1574    0d.h2 1883us : update_xtime_cache (update_wall_time)
+      sh-1574    0d.h2 1883us : clocksource_get_next (update_wall_time)
+      sh-1574    0d.h2 1883us+: _spin_lock_irqsave (clocksource_get_next)
 
-You should be able to make the driver power aware and still use the
-generic driver.
+and after a while:
 
-The basic idea is that your platform would register a platform device
-and some code to control the backlight, e.g.:
+      sh-17818   0d.h3  153us : do_timer (tick_do_update_jiffies64)
+      sh-17818   0d.h3  153us : update_wall_time (do_timer)
+      sh-17818   0d.h3  153us!: omap_32k_read (update_wall_time)
+      sh-17818   0d.h3 1915us : update_xtime_cache (update_wall_time)
+      sh-17818   0d.h3 1915us+: clocksource_get_next (update_wall_time)
+      sh-17818   0d.h3 1945us : _spin_lock_irqsave (clocksource_get_next)
 
+Turns out that sched_clock() is using cyc2ns(), which returns NTP
+adjusted time. The sched_clock() frequency should not be adjusted. The
+patch deletes omap_32k_ticks_to_nsecs() and rewrites sched_clock()
+to do the conversion using the constant multiplier.
 
-void omap_set_bl_intensity(int X)
-{
-	/* Code to set backlight intensity to X */
-}
+Signed-off-by: Aaro Koskinen <Aaro.Koskinen@nokia.com>
+---
+ arch/arm/plat-omap/common.c |   14 +++++---------
+ 1 files changed, 5 insertions(+), 9 deletions(-)
 
-static struct generic_bl_info bl_platform_data = {
-	.name			= "omap-bl",
-	.max_intensity		= 5,
-	.default_intensity	= 2,
-	.set_bl_intensity	= omap_set_bl_intensity,
-};
-
-static struct platform_device backlight_device = {
-	.name			= "generic-bl",
-	.id			= -1,
-	.dev.platform_data	= &bl_platform_data,
-};
-
-and that should be all you need as the core class and generic-bl code
-will take care of most other things for you. The code above would go
-somewhere in arch/arm/mach-omap*/.
-
-If any improvements are needed to generic-bl to make it useful, please
-let me know (set_bl_intensity could maybe do with being passed more
-information).
-
-Regards,
-
-Richard
-
+diff --git a/arch/arm/plat-omap/common.c b/arch/arm/plat-omap/common.c
+index 8c53125..2866612 100644
+--- a/arch/arm/plat-omap/common.c
++++ b/arch/arm/plat-omap/common.c
+@@ -220,20 +220,16 @@ static struct clocksource clocksource_32k = {
+ };
+ 
+ /*
+- * Rounds down to nearest nsec.
+- */
+-unsigned long long omap_32k_ticks_to_nsecs(unsigned long ticks_32k)
+-{
+-	return cyc2ns(&clocksource_32k, ticks_32k);
+-}
+-
+-/*
+  * Returns current time from boot in nsecs. It's OK for this to wrap
+  * around for now, as it's just a relative time stamp.
+  */
+ unsigned long long sched_clock(void)
+ {
+-	return omap_32k_ticks_to_nsecs(omap_32k_read());
++	unsigned long long ret;
++
++	ret = (unsigned long long)omap_32k_read();
++	ret = (ret * clocksource_32k.mult_orig) >> clocksource_32k.shift;
++	return ret;
+ }
+ 
+ static int __init omap_init_clocksource_32k(void)
 -- 
-Richard Purdie
-Intel Open Source Technology Centre
+1.5.4.3
 
-
-------------------------------------------------------------------------------
-Open Source Business Conference (OSBC), March 24-25, 2009, San Francisco, CA
--OSBC tackles the biggest issue in open source: Open Sourcing the Enterprise
--Strategies to boost innovation and cut costs with open source participation
--Receive a $600 discount off the registration fee with the source code: SFAD
-http://p.sf.net/sfu/XcvMzF8H
