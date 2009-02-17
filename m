@@ -1,40 +1,54 @@
-From: Amit Kucheria <amit.kucheria@verdurent.com>
-Subject: Re: Question regarding how to submit patches
-Date: Tue, 17 Feb 2009 02:43:27 +0200
-Message-ID: <20090217004327.GA14031@everest.verdurent.com>
-References: <1234799464.3238.460.camel@blackhole>
+From: Eero Nurkkala <ext-eero.nurkkala@nokia.com>
+Subject: RE: [pacth] I2C bug fixes for L-O and L-Z
+Date: Tue, 17 Feb 2009 08:02:40 +0200
+Message-ID: <1234850560.13109.9.camel@eenurkka-desktop>
+References: <1234767724.16827.7.camel@eenurkka-desktop>
+	 <13B9B4C6EF24D648824FF11BE896716203771DC940@dlee02.ent.ti.com>
+Reply-To: ext-eero.nurkkala@nokia.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ew0-f21.google.com ([209.85.219.21]:41954 "EHLO
-	mail-ew0-f21.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751313AbZBQAnc (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 16 Feb 2009 19:43:32 -0500
-Received: by ewy14 with SMTP id 14so2103662ewy.13
-        for <linux-omap@vger.kernel.org>; Mon, 16 Feb 2009 16:43:30 -0800 (PST)
-Content-Disposition: inline
-In-Reply-To: <1234799464.3238.460.camel@blackhole>
+Received: from smtp.nokia.com ([192.100.105.134]:40833 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750864AbZBQGFD (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 17 Feb 2009 01:05:03 -0500
+In-Reply-To: <13B9B4C6EF24D648824FF11BE896716203771DC940@dlee02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Peter Barada <peterb@logicpd.com>
-Cc: linux-omap@vger.kernel.org
+To: "ext Woodruff, Richard" <r-woodruff2@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Mon, Feb 16, 2009 at 10:51:03AM -0500, Peter Barada wrote:
-> Does anyone have a pointer on how to prepare patches for inclusion into
-> the linx-omap tree(s)?  I'm looking for something that demonstrates it
-> as I'm quite unfamiliar with git...
+On Mon, 2009-02-16 at 15:19 +0100, ext Woodruff, Richard wrote:
+> Hi,
+> 
+> > Could you please also address the question of the load on the SCL line?
+> 
+> Are you talking about rise/fall time?
+> 
 
-The kernel source has a file Documentation/SubmittingPatches that outlines the basic steps in getting your changes upstream. Kernelnewbies[1] also has a good list of dos and don'ts.
+Sorry for being unclear;
 
-You don't _have_ to use git to submit patches, unified diffs are fine.
+The I2C standard addresses also rise/fall times, but more interesting,
+the tLow and tHigh (and a number of other parameters).
 
-Regards,
-Amit
+It seems with the open source drivers, that somehow they're after a
+"balanced I2C clock" meaning tLow == tHigh, which is very, very
+dangerous.
 
-[1] http://kernelnewbies.org/UpstreamMerge
+If you look at the I2C standard, you see that actually tLow is
+about twice as large as tHigh! (that is closer to truth than
+the balanced clock)
 
--- 
--------------------------------------------------------------------------
-Amit Kucheria			amit _dot_ kucheria@<NOSPAM>verdurent.com
-Kernel Developer, Verdurent
---------------------------------------------------------------------------
+So I'm talking about the registers I2C_SCLL and I2C_SCLH. If they
+have the TRM or "open source" values, then it's very likely 
+the I2C clock is out of standard. The SCLL (tLow) is in danger
+for being far too short.
+
+The I2C chip manufacturers consider the I2C standard as basis for
+any proper operation. They're not after "balanced" I2C clock.
+
+So I wish I could get some comments on the SCLL and SCLH, TRM,
+open source and obeying I2C standard.
+
+
