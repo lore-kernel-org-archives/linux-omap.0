@@ -1,57 +1,44 @@
-From: Nishanth Menon <menon.nishanth@gmail.com>
-Subject: Re: [OMAPZOOM][PATCH] Testing for TWL4030 in board file change.
-Date: Tue, 17 Feb 2009 10:11:31 +0200
-Message-ID: <499A7133.4050803@gmail.com>
-References: <200902161815.13645.dcurran@ti.com>
+From: Jarkko Nikula <jhnikula@gmail.com>
+Subject: Re: [PATCH 1/1] Allow I2C_OMAP to compile as a module.
+Date: Tue, 17 Feb 2009 11:25:13 +0200
+Message-ID: <20090217112513.303d62e6.jhnikula@gmail.com>
+References: <ba2e7dbd53e76bb21bbb95fc026df11787cbd798.1234447641.git.ext-atal.shargorodsky@nokia.com>
+	<20090213085827.d516d6aa.jarkko.nikula@nokia.com>
+	<20090213222100.GJ7562@atomide.com>
+	<20090215213559.0a6653a1.jhnikula@gmail.com>
+	<20090215214501.c7386464.jhnikula@gmail.com>
+	<499996EC.4030108@nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-fx0-f20.google.com ([209.85.220.20]:54978 "EHLO
-	mail-fx0-f20.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753328AbZBQILg (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 17 Feb 2009 03:11:36 -0500
-Received: by fxm13 with SMTP id 13so6527710fxm.13
-        for <linux-omap@vger.kernel.org>; Tue, 17 Feb 2009 00:11:34 -0800 (PST)
-In-Reply-To: <200902161815.13645.dcurran@ti.com>
+Received: from ey-out-2122.google.com ([74.125.78.25]:20555 "EHLO
+	ey-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750828AbZBQJWk (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 17 Feb 2009 04:22:40 -0500
+Received: by ey-out-2122.google.com with SMTP id 25so356784eya.37
+        for <linux-omap@vger.kernel.org>; Tue, 17 Feb 2009 01:22:38 -0800 (PST)
+In-Reply-To: <499996EC.4030108@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Dominic Curran <dcurran@ti.com>
-Cc: linux-omap <linux-omap@vger.kernel.org>, saaguirre@ti.com
+To: Aaro Koskinen <aaro.koskinen@nokia.com>
+Cc: Tony Lindgren <tony@atomide.com>, "Nikula Jarkko (Nokia-D/Helsinki)" <jarkko.nikula@nokia.com>, "Shargorodsky Atal (EXT-Teleca/Helsinki)" <ext-atal.shargorodsky@nokia.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Dominic Curran said the following on 02/17/2009 02:15 AM:
-> From: Dominic Curran <dcurran@ti.com>
-> Subject: [OMAPZOOM][PATCH] Testing for TWL4030 in board file change.
->
-> This patch changes the method of testing for TWL4030 in the sensor portion of the 
-> board file.
-> Previously, if TWL4030 was not built into kernel then the build would be stopped 
-> by code in the board file simular to:
->  #ifndef CONFIG_TWL4030_CORE
->  #error "no power companion board defined!"
->  #endif
->
-> However for debugging purposes it maybe required to build without TWL4030.
-> Therefore this patch allows the kernel to be compiled without a build error when 
-> TWL4030 is not present.
-> In such a case the sensor power function will build, but when called immediately 
-> return a -ENODEV error (so initilization of sensor will go no further).
->
-> This change is targeted at all camera sensors within the board files for SDP, 
-> Zoom1 & Zoom2.
->
-> Alternative fixes to this problem like changes to Kconfig were considered, but 
-> rejected as inappropriate solutions.
->
->   
-Would a solution as follows be appropriate?
-in arch/arm/mach-omap2/Kconfig:
- config MACH_OMAP_ZOOM2
-           bool "OMAP3 ZOOM2 board"
-           depends on ARCH_OMAP3 && ARCH_OMAP34XX
-+        select TWL4030_CORE if VIDEO_OMAP3
- 
-A similar strategy has been implemented for N800, albeit for other
-peripherals.
-Regards,
-Nishanth Menon
+On Mon, 16 Feb 2009 18:40:12 +0200
+Aaro Koskinen <aaro.koskinen@nokia.com> wrote:
+
+> Taking example from fs/Makefile (nfsd):
+> 
+> -obj-$(CONFIG_I2C_OMAP) += i2c.o
+> +i2c-omap-$(CONFIG_I2C_OMAP) := i2c.o
+> +obj-y += $(i2c-omap-m) $(i2c-omap-y)
+> 
+This is getting shorter and shorter :-)
+
+> Also arch/arm/plat-omap/include/mach/common.h should be updated to
+> check for CONFIG_I2C_OMAP_MODULE.
+> 
+Good catch, that's true!
+
+
+Jarkko
