@@ -1,47 +1,57 @@
-From: "Woodruff, Richard" <r-woodruff2@ti.com>
-Subject: RE: [pacth] I2C bug fixes for L-O and L-Z
-Date: Tue, 17 Feb 2009 00:22:53 -0600
-Message-ID: <13B9B4C6EF24D648824FF11BE896716203771DD194@dlee02.ent.ti.com>
-References: <1234767724.16827.7.camel@eenurkka-desktop>
-	 <13B9B4C6EF24D648824FF11BE896716203771DC940@dlee02.ent.ti.com>
- <1234850560.13109.9.camel@eenurkka-desktop>
+From: Nishanth Menon <menon.nishanth@gmail.com>
+Subject: Re: [OMAPZOOM][PATCH] Testing for TWL4030 in board file change.
+Date: Tue, 17 Feb 2009 10:11:31 +0200
+Message-ID: <499A7133.4050803@gmail.com>
+References: <200902161815.13645.dcurran@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:44264 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751169AbZBQGXF convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 17 Feb 2009 01:23:05 -0500
-In-Reply-To: <1234850560.13109.9.camel@eenurkka-desktop>
-Content-Language: en-US
+Received: from mail-fx0-f20.google.com ([209.85.220.20]:54978 "EHLO
+	mail-fx0-f20.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753328AbZBQILg (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 17 Feb 2009 03:11:36 -0500
+Received: by fxm13 with SMTP id 13so6527710fxm.13
+        for <linux-omap@vger.kernel.org>; Tue, 17 Feb 2009 00:11:34 -0800 (PST)
+In-Reply-To: <200902161815.13645.dcurran@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "ext-eero.nurkkala@nokia.com" <ext-eero.nurkkala@nokia.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Dominic Curran <dcurran@ti.com>
+Cc: linux-omap <linux-omap@vger.kernel.org>, saaguirre@ti.com
 
-
-> From: Eero Nurkkala [mailto:ext-eero.nurkkala@nokia.com]
-
-> On Mon, 2009-02-16 at 15:19 +0100, ext Woodruff, Richard wrote:
-> > Hi,
-> >
-> > > Could you please also address the question of the load on the SCL line?
-> >
-> > Are you talking about rise/fall time?
-> >
-> Sorry for being unclear;
+Dominic Curran said the following on 02/17/2009 02:15 AM:
+> From: Dominic Curran <dcurran@ti.com>
+> Subject: [OMAPZOOM][PATCH] Testing for TWL4030 in board file change.
 >
-> The I2C standard addresses also rise/fall times, but more interesting,
-> the tLow and tHigh (and a number of other parameters).
+> This patch changes the method of testing for TWL4030 in the sensor portion of the 
+> board file.
+> Previously, if TWL4030 was not built into kernel then the build would be stopped 
+> by code in the board file simular to:
+>  #ifndef CONFIG_TWL4030_CORE
+>  #error "no power companion board defined!"
+>  #endif
 >
-> It seems with the open source drivers, that somehow they're after a
-> "balanced I2C clock" meaning tLow == tHigh, which is very, very
-> dangerous.
-
-Oh, I see. I didn't look at that angle. I can inquire/look.
-
-For sure wave forms on O-Scope and LA showed variable data line times, sometimes longer then one would expect (for stop/start/ack).  But yes, clocks were pretty even iirc.
-
+> However for debugging purposes it maybe required to build without TWL4030.
+> Therefore this patch allows the kernel to be compiled without a build error when 
+> TWL4030 is not present.
+> In such a case the sensor power function will build, but when called immediately 
+> return a -ENODEV error (so initilization of sensor will go no further).
+>
+> This change is targeted at all camera sensors within the board files for SDP, 
+> Zoom1 & Zoom2.
+>
+> Alternative fixes to this problem like changes to Kconfig were considered, but 
+> rejected as inappropriate solutions.
+>
+>   
+Would a solution as follows be appropriate?
+in arch/arm/mach-omap2/Kconfig:
+ config MACH_OMAP_ZOOM2
+           bool "OMAP3 ZOOM2 board"
+           depends on ARCH_OMAP3 && ARCH_OMAP34XX
++        select TWL4030_CORE if VIDEO_OMAP3
+ 
+A similar strategy has been implemented for N800, albeit for other
+peripherals.
 Regards,
-Richard W.
+Nishanth Menon
