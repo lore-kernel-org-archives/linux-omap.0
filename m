@@ -1,62 +1,34 @@
-From: Rick Bronson <rick@efn.org>
-Subject: USB on OMAP3530
-Date: Wed, 18 Feb 2009 08:46:17 -0800
-Message-ID: <E1LZpYv-0003FK-Ae@amazonia.comcast.net>
-Reply-To: rick@efn.org
+From: Felipe Balbi <me@felipebalbi.com>
+Subject: Re: OMAP 35x security accelerators
+Date: Wed, 18 Feb 2009 19:18:29 +0200
+Message-ID: <20090218171828.GC32125@frodo>
+References: <dbdb2ea60902180911u24d3e176w948677e931dd512f@mail.gmail.com>
+Reply-To: me@felipebalbi.com
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from efn.org ([206.192.230.249]:34060 "EHLO samwise.efn.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755389AbZBRRRO (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 18 Feb 2009 12:17:14 -0500
+Received: from ns1.siteground211.com ([209.62.36.12]:46627 "EHLO
+	serv01.siteground211.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753319AbZBRRSe (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 18 Feb 2009 12:18:34 -0500
+Content-Disposition: inline
+In-Reply-To: <dbdb2ea60902180911u24d3e176w948677e931dd512f@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: twebb <taliaferro62@gmail.com>
+Cc: "linux-omap@vger.kernel.org Mailing List" <linux-omap@vger.kernel.org>, dacohen@gmail.com
 
-Hello,
+On Wed, Feb 18, 2009 at 12:11:30PM -0500, twebb wrote:
+> Does anyone have any knowledge of existing code/drivers that take
+> advantage of the on-board security block of the OMAP 35xx processors?
+> I've been told that the GP part includes the hardware accelerators for
+> RNG, DES, AES, SHA, etc.  Are drivers available for this
+> functionality?
 
-  I've got a new board with a OMAP3530 that's wired to a "ULPI Hi-Speed
-USB host and peripheral transceiver" (NXP ISP1505) on UH0-D0-7,
-UH0-CLK, UH0-STP, UH0-DIR, UH0-NXT.  There is also a mux to switch
-from host to device on GPIO_140.
+david cohen had implemented for 2420, at least MD5/SHA1 driver, I guess
+it could be extended for omap3 support.
 
-  What set of kernel configs should I enable?  Here's what I have:
+Check drivers/crypto/omap-sha1-md5.c and you might be able to extend it.
 
-CONFIG_USB_HID=y
-CONFIG_USB_SUPPORT=y
-CONFIG_USB_ARCH_HAS_HCD=y
-CONFIG_USB_ARCH_HAS_OHCI=y
-CONFIG_USB_ARCH_HAS_EHCI=y
-CONFIG_USB=y
-CONFIG_USB_ANNOUNCE_NEW_DEVICES=y
-CONFIG_USB_DEVICEFS=y
-CONFIG_USB_SUSPEND=y
-CONFIG_USB_OTG=y
-CONFIG_USB_MON=y
-CONFIG_USB_MUSB_HDRC=y
-CONFIG_USB_MUSB_SOC=y
-CONFIG_USB_MUSB_OTG=y
-CONFIG_USB_GADGET_MUSB_HDRC=y
-CONFIG_USB_MUSB_HDRC_HCD=y
-CONFIG_USB_INVENTRA_DMA=y
-CONFIG_USB_STORAGE=y
-CONFIG_USB_TEST=y
-CONFIG_USB_GADGET=y
-CONFIG_USB_GADGET_SELECTED=y
-CONFIG_USB_GADGET_DUALSPEED=y
-CONFIG_USB_ETH=y
-CONFIG_USB_ETH_RNDIS=y
-CONFIG_USB_OTG_UTILS=y
-
-  Any help greatly appreciated.
-
-  Rick Bronson
-
-                                                                   _
-                                                                  | |
-                                                                  / /__
-.----------------------------------------------------------._____/ (___)
-| Rick Bronson    rick at efn dot org    Tel 541-485-7264  |       (___)
-| Amazonia Computing http://www.efn.org/~rick      __ o    |_____  (___)
-| 5050 Donald Street     "Onde esta dinheiro?"    _`\<,    |     \_(___)
-| Eugene, OR  97405       -- Gal Costa         __( )/( )__ |
-`----------------------------------------------------------'
+-- 
+balbi
