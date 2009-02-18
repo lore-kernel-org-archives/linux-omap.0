@@ -1,48 +1,45 @@
-From: David Brownell <david-b@pacbell.net>
-Subject: Re: McSPI3 on the BeagleBoard
-Date: Tue, 17 Feb 2009 19:18:44 -0800
-Message-ID: <200902171918.45146.david-b@pacbell.net>
-References: <499B4B64.30109@balister.org>
+From: Pierre Ossman <drzeus-mmc@drzeus.cx>
+Subject: Re: [patch 2.6.29-rc3] omap_hsmmc:  card detect irq bugfix
+Date: Wed, 18 Feb 2009 06:25:11 +0100
+Message-ID: <20090218062511.5f75aba9@mjolnir.ossman.eu>
+References: <200902041442.04033.david-b@pacbell.net>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp120.sbc.mail.sp1.yahoo.com ([69.147.64.93]:44356 "HELO
-	smtp120.sbc.mail.sp1.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1751992AbZBRDSs (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Tue, 17 Feb 2009 22:18:48 -0500
-In-Reply-To: <499B4B64.30109@balister.org>
-Content-Disposition: inline
+Received: from 82-117-125-11.tcdsl.calypso.net ([82.117.125.11]:34323 "EHLO
+	smtp.drzeus.cx" rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750826AbZBRFZT (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 18 Feb 2009 00:25:19 -0500
+In-Reply-To: <200902041442.04033.david-b@pacbell.net>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Philip Balister <philip@balister.org>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: David Brownell <david-b@pacbell.net>
+Cc: OMAP <linux-omap@vger.kernel.org>
 
-On Tuesday 17 February 2009, Philip Balister wrote:
+On Wed, 4 Feb 2009 14:42:03 -0800
+David Brownell <david-b@pacbell.net> wrote:
+
+> From: David Brownell <dbrownell@users.sourceforge.net>
 > 
-> A number of people have tried using the McSPI3 interface with the spidev 
-> driver. Running the spidev_test program shows data coming out of the 
-> interface, but when we connect the SIMO to SOMI pins, the spidev_test 
-> program shows only 0's. Someone tried wiring SOMI to +volts and still 
-> only saw 0 read.
+> Work around lockdep issue when card detect IRQ handlers run in
+> thread context ... it forces IRQF_DISABLED, which prevents all
+> access to twl4030 card detect signals.
+> 
+> Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
+> ---
 
-I took a quick glance, and the pinmuxing looks sort of OK if
-you ignore the names ... use the right balls, not XXX:
+An ack from eiter Tony or one of the listed authors of this driver
+would be nice.
 
-+       AE2_3430_MCSPI3_CLK,
-+       AG5_3430_MCSPI3_SIMO,
-+       AH5_3430_MCSPI3_SOMI,
-+       AF4_3430_MCSPI3_CS0,
-+       AG4_3430_MCSPI3_CS1,
+Rgds
+-- 
+     -- Pierre Ossman
 
-I suggest you start with a more focussed patch, only setting
-up McSPI3.  For one thing, the MMC2 pinmuxing will interfere
-with this set of MCSPI3 configurations.
+  Linux kernel, MMC maintainer        http://www.kernel.org
+  rdesktop, core developer          http://www.rdesktop.org
 
-Also, start with a less aggressive bit rate than 48 MHz; that
-may be OK on a well designed board, but breadboards tend to
-show flakiness at much over 10 MHz.
-
-- Dave
+  WARNING: This correspondence is being monitored by the
+  Swedish government. Make sure your server uses encryption
+  for SMTP traffic and consider using PGP for end-to-end
+  encryption.
