@@ -1,177 +1,136 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [PATCH E 11/14] OMAP clock: track child clocks
-Date: Thu, 19 Feb 2009 12:19:32 +0000
-Message-ID: <20090219121932.GL6407@n2100.arm.linux.org.uk>
-References: <20090128192551.29333.82943.stgit@localhost.localdomain> <20090128192756.29333.41541.stgit@localhost.localdomain> <20090129151401.GC18233@n2100.arm.linux.org.uk> <20090129220608.GJ18233@n2100.arm.linux.org.uk> <20090209141156.GB16626@n2100.arm.linux.org.uk> <alpine.DEB.2.00.0902122345160.14667@utopia.booyaka.com> <20090214112325.GA17965@n2100.arm.linux.org.uk>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Felipe Balbi <me@felipebalbi.com>
+Subject: [PATCH 1/5] input: lm8323: get rid of global pdata pointer
+Date: Thu, 19 Feb 2009 14:29:39 +0200
+Message-ID: <1235046583-29696-2-git-send-email-me@felipebalbi.com>
+References: <1235046583-29696-1-git-send-email-me@felipebalbi.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:39813 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758384AbZBSMTs (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 19 Feb 2009 07:19:48 -0500
-Content-Disposition: inline
-In-Reply-To: <20090214112325.GA17965@n2100.arm.linux.org.uk>
+Received: from ns1.siteground211.com ([209.62.36.12]:55977 "EHLO
+	serv01.siteground211.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751891AbZBSM37 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 19 Feb 2009 07:29:59 -0500
+In-Reply-To: <1235046583-29696-1-git-send-email-me@felipebalbi.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: linux-arm-kernel@lists.arm.linux.org.uk, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, r-woodruff2@ti.com, Tony Lindgren <tony@atomide.com>
+To: linux-omap@vger.kernel.org
+Cc: tony@atomide.com, Felipe Balbi <felipe.balbi@nokia.com>
 
-On Sat, Feb 14, 2009 at 11:23:25AM +0000, Russell King - ARM Linux wrote:
-> On Fri, Feb 13, 2009 at 12:01:37AM -0700, Paul Walmsley wrote:
-> > (cc'ing Richard Woodruff)
-> > 
-> > Hello Russell,
-> > 
-> > On Mon, 9 Feb 2009, Russell King - ARM Linux wrote:
-> > 
-> > > On Thu, Jan 29, 2009 at 10:06:08PM +0000, Russell King - ARM Linux wrote:
-> > > > @@ -780,7 +780,7 @@ int omap2_clk_set_parent(struct clk *clk, struct clk *new_parent)
-> > > >  	if (clk->usecount > 0)
-> > > >  		_omap2_clk_enable(clk);
-> > > >  
-> > > > -	clk->parent = new_parent;
-> > > > +	clk_reparent(clk, new_parent);
-> > > 
-> > > While looking at the DPLL patches, I've realised that omap2_clk_set_parent()
-> > > is buggy, as are any other places which reparent the clock (thankfully
-> > > the only other place is in the initialisation code where it doesn't
-> > > matter.)
-> > > 
-> > > Consider what happens when a clock is enabled - we walk up the tree
-> > > enabling all parents.  If we then change the clock's parent, and
-> > > then disable the child, we will again walk up the tree, but since
-> > > we've reparented it, it will be a different clock tree.  The result
-> > > is that the ancestors clock usage counts, and therefore their enable
-> > > status, will end up getting screwed up.
-> > 
-> > Agreed.
-> > 
-> > > This brings up a question: what we currently do here is:
-> > > 
-> > > - disable the child
-> > > - program clksel
-> > > - enable the child
-> > > - change child->parent
-> > > 
-> > > If we add in the parent handling, there are two possibilities:
-> > > 
-> > > - disable the child
-> > > - enable the new parent tree
-> > > - program clksel
-> > > - change child->parent
-> > > - disable the old parent tree
-> > > - enable the child
-> > > 
-> > > OR
-> > > 
-> > > - disable the child and the old parent tree
-> > > - program clksel
-> > > - change child->parent
-> > > - enable the new parent tree and the child
-> > > 
-> > > (note those 'and's have implied ordering).
-> > > 
-> > > Is there anything which dictates one approach over the other?
-> > > Obviously the latter approach results in something smaller and
-> > > cleaner, but might not be technically correct.
-> > 
-> > I don't know of any hardware reason to prefer one approach over the other, 
-> > but Richard might know better.
-> 
-> I'll need an answer on this before I can commit the updated bypass clock
-> support patch.
+From: Felipe Balbi <felipe.balbi@nokia.com>
 
-In the interests of moving things forward, and due to the total lack of
-response from TI, it's time to make a decision based upon what seems
-sensible so things can continue moving forward.
+pdata is only used during probe to initialize a few fields
+from lm8323 device structure. Moving pdata pointer to probe
+won't harm anybody.
 
-Since there are no hardware issues we know about, we might as well take
-the simplest approach, which is the latter case.
+Signed-off-by: Felipe Balbi <felipe.balbi@nokia.com>
+---
+ drivers/input/keyboard/lm8323.c |   34 ++++++++++++++++------------------
+ 1 files changed, 16 insertions(+), 18 deletions(-)
 
-> However, looking a little deeper, there's more issues in the reparenting
-> area.  I don't think this code has been tested at all...  In
-> _omap2_clksel_get_src_field, there is this:
-> 
-> 	for (clkr = clks->rates; clkr->div; clkr++) {
-> 		if (clkr->flags & (cpu_mask | DEFAULT_RATE))
-> 			break; /* Found the default rate for this platform */
-> 	}
-> 
-> which is bogus - it will find the first entry which is _either_ marked
-> as a default rate _or_ is supported by the SoC.  This means (for
-> instance) that:
-> 
-> static const struct clksel_rate core_l3_core_rates[] = {
->         { .div = 1, .val = 1, .flags = RATE_IN_24XX },
->         { .div = 2, .val = 2, .flags = RATE_IN_242X },
->         { .div = 4, .val = 4, .flags = RATE_IN_24XX | DEFAULT_RATE },
-> 
-> will give us divisor 1 rather than presumably the one we want, that being
-> divisor 4.  I think the test above should be:
-> 
-> 	for (clkr = clks->rates; clkr->div; clkr++) {
-> 		if (clkr->flags & cpu_mask &&
-> 		    clkr->flags & DEFAULT_RATE)
-> 			break; /* Found the default rate for this platform */
-> 	}
-> 
-> so we find an entry which is supported _and_ is the default for the SoC.
-> 
-> There's also a second issue - the comments before omap2_divisor_to_clksel()
-> indicate that this function returns 0xffffffff on error.  Unfortunately,
-> this is not so, it actually returns zero on error.  Moreover, we test
-> the result of the function against ~0, so we'll never deal with the error
-> case.  This really should be fixed so that we return the right value for
-> the error case.  (Further comments on this in a follow up.)
-> 
-> So, below is a patch which fixes both of these issues.
+diff --git a/drivers/input/keyboard/lm8323.c b/drivers/input/keyboard/lm8323.c
+index 342ef6a..60abe61 100644
+--- a/drivers/input/keyboard/lm8323.c
++++ b/drivers/input/keyboard/lm8323.c
+@@ -186,9 +186,6 @@ static struct lm8323_chip *pwm_to_lm8323(struct lm8323_pwm *pwm)
+ 	}
+ }
+ 
+-static struct lm8323_platform_data *lm8323_pdata;
+-
+-
+ #define LM8323_MAX_DATA 8
+ 
+ /*
+@@ -682,6 +679,7 @@ static DEVICE_ATTR(disable_kp, 0644, lm8323_show_disable, lm8323_set_disable);
+ static int lm8323_probe(struct i2c_client *client,
+ 					const struct i2c_device_id *id)
+ {
++	struct lm8323_platform_data *pdata;
+ 	struct input_dev *idev;
+ 	struct lm8323_chip *lm;
+ 	int i, err = 0;
+@@ -694,11 +692,11 @@ static int lm8323_probe(struct i2c_client *client,
+ 
+ 	i2c_set_clientdata(client, lm);
+ 	lm->client = client;
+-	lm8323_pdata = client->dev.platform_data;
+-	if (!lm8323_pdata)
++	pdata = client->dev.platform_data;
++	if (!pdata)
+ 		return -EINVAL; /* ? */
+ 
+-	lm->size_x = lm8323_pdata->size_x;
++	lm->size_x = pdata->size_x;
+ 	if (lm->size_x == 0) {
+ 		lm->size_x = 8;
+ 	} else if (lm->size_x > 8) {
+@@ -707,7 +705,7 @@ static int lm8323_probe(struct i2c_client *client,
+ 		lm->size_x = 8;
+ 	}
+ 
+-	lm->size_y = lm8323_pdata->size_y;
++	lm->size_y = pdata->size_y;
+ 	if (lm->size_y == 0) {
+ 		lm->size_y = 12;
+ 	} else if (lm->size_y > 12) {
+@@ -718,13 +716,13 @@ static int lm8323_probe(struct i2c_client *client,
+ 
+ 	debug(&c->dev, "Keypad size: %d x %d\n", lm->size_x, lm->size_y);
+ 
+-	lm->debounce_time = lm8323_pdata->debounce_time;
++	lm->debounce_time = pdata->debounce_time;
+ 	if (lm->debounce_time == 0) /* Default. */
+ 		lm->debounce_time = 12;
+ 	else if (lm->debounce_time == -1) /* Disable debounce. */
+ 		lm->debounce_time = 0;
+ 
+-	lm->active_time = lm8323_pdata->active_time;
++	lm->active_time = pdata->active_time;
+ 	if (lm->active_time == 0) /* Default. */
+ 		lm->active_time = 500;
+ 	else if (lm->active_time == -1) /* Disable sleep. */
+@@ -756,11 +754,11 @@ static int lm8323_probe(struct i2c_client *client,
+ 		goto fail2;
+ 	}
+ 
+-	if (init_pwm(lm, 1, &client->dev, lm8323_pdata->pwm1_name) < 0)
++	if (init_pwm(lm, 1, &client->dev, pdata->pwm1_name) < 0)
+ 		goto fail3;
+-	if (init_pwm(lm, 2, &client->dev, lm8323_pdata->pwm2_name) < 0)
++	if (init_pwm(lm, 2, &client->dev, pdata->pwm2_name) < 0)
+ 		goto fail4;
+-	if (init_pwm(lm, 3, &client->dev, lm8323_pdata->pwm3_name) < 0)
++	if (init_pwm(lm, 3, &client->dev, pdata->pwm3_name) < 0)
+ 		goto fail5;
+ 
+ 	mutex_init(&lm->lock);
+@@ -787,8 +785,8 @@ static int lm8323_probe(struct i2c_client *client,
+ 		goto fail8;
+ 	}
+ 
+-	if (lm8323_pdata->name)
+-		idev->name = lm8323_pdata->name;
++	if (pdata->name)
++		idev->name = pdata->name;
+ 	else
+ 		idev->name = "LM8323 keypad";
+ 	snprintf(lm->phys, sizeof(lm->phys), "%s/input-kp", client->dev.bus_id);
+@@ -797,13 +795,13 @@ static int lm8323_probe(struct i2c_client *client,
+ 	lm->keys_down = 0;
+ 	idev->evbit[0] = BIT(EV_KEY);
+ 	for (i = 0; i < LM8323_KEYMAP_SIZE; i++) {
+-		if (lm8323_pdata->keymap[i] > 0)
+-			set_bit(lm8323_pdata->keymap[i], idev->keybit);
++		if (pdata->keymap[i] > 0)
++			set_bit(pdata->keymap[i], idev->keybit);
+ 
+-		lm->keymap[i] = lm8323_pdata->keymap[i];
++		lm->keymap[i] = pdata->keymap[i];
+ 	}
+ 
+-	if (lm8323_pdata->repeat)
++	if (pdata->repeat)
+ 		set_bit(EV_REP, idev->evbit);
+ 
+ 	lm->idev = idev;
+-- 
+1.6.1.3
 
-No comments received, I'm going to assume everyone is happy with the
-patch below and it will be going to Linus today or this evening.
-
-> diff --git a/arch/arm/mach-omap2/clock.c b/arch/arm/mach-omap2/clock.c
-> index 5020cb1..f87501b 100644
-> --- a/arch/arm/mach-omap2/clock.c
-> +++ b/arch/arm/mach-omap2/clock.c
-> @@ -636,7 +636,7 @@ u32 omap2_clksel_to_divisor(struct clk *clk, u32 field_val)
->   *
->   * Given a struct clk of a rate-selectable clksel clock, and a clock divisor,
->   * find the corresponding register field value.  The return register value is
-> - * the value before left-shifting.  Returns 0xffffffff on error
-> + * the value before left-shifting.  Returns ~0 on error
->   */
->  u32 omap2_divisor_to_clksel(struct clk *clk, u32 div)
->  {
-> @@ -648,7 +648,7 @@ u32 omap2_divisor_to_clksel(struct clk *clk, u32 div)
->  
->  	clks = omap2_get_clksel_by_parent(clk, clk->parent);
->  	if (!clks)
-> -		return 0;
-> +		return ~0;
->  
->  	for (clkr = clks->rates; clkr->div; clkr++) {
->  		if ((clkr->flags & cpu_mask) && (clkr->div == div))
-> @@ -659,7 +659,7 @@ u32 omap2_divisor_to_clksel(struct clk *clk, u32 div)
->  		printk(KERN_ERR "clock: Could not find divisor %d for "
->  		       "clock %s parent %s\n", div, clk->name,
->  		       clk->parent->name);
-> -		return 0;
-> +		return ~0;
->  	}
->  
->  	return clkr->val;
-> @@ -747,7 +747,7 @@ static u32 _omap2_clksel_get_src_field(struct clk *src_clk, struct clk *clk,
->  		return 0;
->  
->  	for (clkr = clks->rates; clkr->div; clkr++) {
-> -		if (clkr->flags & (cpu_mask | DEFAULT_RATE))
-> +		if (clkr->flags & cpu_mask && clkr->flags & DEFAULT_RATE)
->  			break; /* Found the default rate for this platform */
->  	}
->  
-> 
-> -------------------------------------------------------------------
-> List admin: http://lists.arm.linux.org.uk/mailman/listinfo/linux-arm-kernel
-> FAQ:        http://www.arm.linux.org.uk/mailinglists/faq.php
-> Etiquette:  http://www.arm.linux.org.uk/mailinglists/etiquette.php
