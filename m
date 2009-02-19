@@ -1,182 +1,111 @@
-From: Felipe Balbi <me@felipebalbi.com>
-Subject: [PATCH 1/2] i2c: move twl4030-pwrbutton to child registration style
-Date: Thu, 19 Feb 2009 15:29:56 +0200
-Message-ID: <1235050197-26818-2-git-send-email-me@felipebalbi.com>
-References: <1235050197-26818-1-git-send-email-me@felipebalbi.com>
+From: Philip Balister <philip@balister.org>
+Subject: Re: McSPI3 on the BeagleBoard
+Date: Thu, 19 Feb 2009 09:14:34 -0500
+Message-ID: <499D694A.8000404@balister.org>
+References: <499B4B64.30109@balister.org>	 <200902171918.45146.david-b@pacbell.net>  <499CAA27.5020500@balister.org> <1235031747.13828.1.camel@localhost>
+Mime-Version: 1.0
+Content-Type: multipart/signed; protocol="application/x-pkcs7-signature"; micalg=sha1; boundary="------------ms000301030401090907030007"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ns1.siteground211.com ([209.62.36.12]:48178 "EHLO
-	serv01.siteground211.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753325AbZBSNaG (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 19 Feb 2009 08:30:06 -0500
-In-Reply-To: <1235050197-26818-1-git-send-email-me@felipebalbi.com>
+Received: from mail.geekisp.com ([216.168.135.169]:23816 "EHLO
+	starfish.geekisp.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1751882AbZBSOOi (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 19 Feb 2009 09:14:38 -0500
+In-Reply-To: <1235031747.13828.1.camel@localhost>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Felipe Balbi <me@felipebalbi.com>, David Brownell <dbrownell@users.sourceforge.net>, Samuel Ortiz <sameo@openedhand.com>
+To: gregoire@gentil.com
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-This patch is *compile tested only*. It moves twl4030-pwrbutton
-to a platform_driver so it can be registered as a child of
-twl4030-core.c.
+This is a cryptographically signed message in MIME format.
 
-Cc: David Brownell <dbrownell@users.sourceforge.net>
-Cc: Samuel Ortiz <sameo@openedhand.com>
-Signed-off-by: Felipe Balbi <me@felipebalbi.com>
----
- drivers/i2c/chips/twl4030-pwrbutton.c |   59 ++++++++++++++++++++++----------
- drivers/mfd/twl4030-core.c            |   12 +++++++
- 2 files changed, 52 insertions(+), 19 deletions(-)
+--------------ms000301030401090907030007
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 
-diff --git a/drivers/i2c/chips/twl4030-pwrbutton.c b/drivers/i2c/chips/twl4030-pwrbutton.c
-index 1d9cb90..b0a9c9f 100644
---- a/drivers/i2c/chips/twl4030-pwrbutton.c
-+++ b/drivers/i2c/chips/twl4030-pwrbutton.c
-@@ -27,20 +27,15 @@
- #include <linux/errno.h>
- #include <linux/input.h>
- #include <linux/interrupt.h>
-+#include <linux/platform_device.h>
- #include <linux/i2c/twl4030.h>
- 
--
--#define PWR_PWRON_IRQ (1<<0)
-+#define PWR_PWRON_IRQ (1 << 0)
- 
- #define STS_HW_CONDITIONS 0xf
- 
--
--/* FIXME have this constant delivered to us as part of the
-- * twl4030-core setup ...
-- */
--#define TWL4030_PWRIRQ_PWRBTN	(TWL4030_PWR_IRQ_BASE + 0)
--
- static struct input_dev *powerbutton_dev;
-+static struct device *dbg_dev;
- 
- static irqreturn_t powerbutton_irq(int irq, void *dev_id)
- {
-@@ -61,29 +56,32 @@ static irqreturn_t powerbutton_irq(int irq, void *dev_id)
- 		input_report_key(powerbutton_dev, KEY_POWER,
- 				 value & PWR_PWRON_IRQ);
- 	} else {
--		pr_err("twl4030: i2c error %d while reading TWL4030"
-+		dev_err(dbg_dev, "twl4030: i2c error %d while reading TWL4030"
- 			" PM_MASTER STS_HW_CONDITIONS register\n", err);
- 	}
- 
- 	return IRQ_HANDLED;
- }
- 
--static int __init twl4030_pwrbutton_init(void)
-+static int __devinit twl4030_pwrbutton_probe(struct platform_device *pdev)
- {
- 	int err = 0;
-+	int irq = platform_get_irq(pdev, 0);
-+
-+	dbg_dev = &pdev->dev;
- 
- 	/* PWRBTN == PWRON */
--	err = request_irq(TWL4030_PWRIRQ_PWRBTN, powerbutton_irq,
-+	err = request_irq(irq, powerbutton_irq,
- 			IRQF_TRIGGER_FALLING | IRQF_TRIGGER_RISING,
--			"PwrButton", NULL);
-+			"twl4030-pwrbutton", NULL);
- 	if (err < 0) {
--		pr_debug("Can't get IRQ for power button: %d\n", err);
-+		dev_dbg(&pdev->dev, "Can't get IRQ for power button: %d\n", err);
- 		goto out;
- 	}
- 
- 	powerbutton_dev = input_allocate_device();
- 	if (!powerbutton_dev) {
--		pr_debug("Can't allocate power button\n");
-+		dev_dbg(&pdev->dev, "Can't allocate power button\n");
- 		err = -ENOMEM;
- 		goto free_irq_and_out;
- 	}
-@@ -94,11 +92,11 @@ static int __init twl4030_pwrbutton_init(void)
- 
- 	err = input_register_device(powerbutton_dev);
- 	if (err) {
--		pr_debug("Can't register power button: %d\n", err);
-+		dev_dbg(&pdev->dev, "Can't register power button: %d\n", err);
- 		goto free_input_dev;
- 	}
- 
--	printk(KERN_INFO "triton2 power button driver initialized\n");
-+	dev_info(&pdev->dev, "triton2 power button driver initialized\n");
- 
- 	return 0;
- 
-@@ -110,13 +108,36 @@ free_irq_and_out:
- out:
- 	return err;
- }
--module_init(twl4030_pwrbutton_init);
- 
--static void __exit twl4030_pwrbutton_exit(void)
-+static int __devexit twl4030_pwrbutton_remove(struct platform_device *pdev)
- {
--	free_irq(TWL4030_PWRIRQ_PWRBTN, NULL);
-+	int irq = platform_get_irq(pdev, 0);
-+
-+	free_irq(irq, NULL);
- 	input_unregister_device(powerbutton_dev);
- 	input_free_device(powerbutton_dev);
-+
-+	return 0;
-+}
-+
-+struct platform_driver twl4030_pwrbutton_driver = {
-+	.probe		= twl4030_pwrbutton_probe,
-+	.remove		= twl4030_pwrbutton_remove,
-+	.driver		= {
-+		.name	= "twl4030-pwrbutton",
-+		.owner	= THIS_MODULE,
-+	},
-+};
-+
-+static int __init twl4030_pwrbutton_init(void)
-+{
-+	return platform_driver_register(&twl4030_pwrbutton_driver);
-+}
-+module_init(twl4030_pwrbutton_init);
-+
-+static void __exit twl4030_pwrbutton_exit(void)
-+{
-+	platform_driver_unregister(&twl4030_pwrbutton_driver);
- }
- module_exit(twl4030_pwrbutton_exit);
- 
-diff --git a/drivers/mfd/twl4030-core.c b/drivers/mfd/twl4030-core.c
-index 19ee29b..1552296 100644
---- a/drivers/mfd/twl4030-core.c
-+++ b/drivers/mfd/twl4030-core.c
-@@ -107,6 +107,11 @@
- #define twl_has_usb()	false
- #endif
- 
-+#if defined(CONFIG_TWL4030_PWRBUTTON) || defined(CONFIG_TWL4030_PWBUTTON_MODULE)
-+#define twl_has_pwrbutton()	true
-+#else
-+#define twl_has_pwrbutton()	false
-+#endif
- 
- /* Triton Core internal information (BEGIN) */
- 
-@@ -534,6 +539,13 @@ add_children(struct twl4030_platform_data *pdata, unsigned long features)
- 		usb_transceiver = child;
- 	}
- 
-+	if (twl_has_pwrbutton()) {
-+		child = add_child(1, "twl4030_pwrbutton",
-+				NULL, 0, true, pdata->irq_base + 8 + 0, 0);
-+		if (IS_ERR(child))
-+			return PTR_ERR(child);
-+	}
-+
- 	if (twl_has_regulator()) {
- 		/*
- 		child = add_regulator(TWL4030_REG_VPLL1, pdata->vpll1);
--- 
-1.6.1.3
+Gregoire Gentil wrote:
+> Philip,
+> 
+> Can you please post here or on the Beagleboard mailing list the u-boot
+> patch? This muxpin is very tricky and I have experienced many problems
+> when set up in the kernel while it seems to work better from u-boot -
+> don't know why,
 
+I posted it to the Beagle group. Let me know if you are having trouble 
+finding it.
+
+If we come up with a better config for the expansion port, we'll clean 
+it up and submit here. My gut feeling is having SPI interfaces on the 
+expansion connector will be more useful then the MMC interface.
+
+Philip
+
+
+--------------ms000301030401090907030007
+Content-Type: application/x-pkcs7-signature; name="smime.p7s"
+Content-Transfer-Encoding: base64
+Content-Disposition: attachment; filename="smime.p7s"
+Content-Description: S/MIME Cryptographic Signature
+
+MIAGCSqGSIb3DQEHAqCAMIACAQExCzAJBgUrDgMCGgUAMIAGCSqGSIb3DQEHAQAAoIIJRTCC
+Av0wggJmoAMCAQICEHW4VJIUQV0u11NnfLpF2IUwDQYJKoZIhvcNAQEFBQAwYjELMAkGA1UE
+BhMCWkExJTAjBgNVBAoTHFRoYXd0ZSBDb25zdWx0aW5nIChQdHkpIEx0ZC4xLDAqBgNVBAMT
+I1RoYXd0ZSBQZXJzb25hbCBGcmVlbWFpbCBJc3N1aW5nIENBMB4XDTA4MDQxNDE5MTkzMVoX
+DTA5MDQxNDE5MTkzMVowYjERMA8GA1UEBBMIQmFsaXN0ZXIxDzANBgNVBCoTBlBoaWxpcDEY
+MBYGA1UEAxMPUGhpbGlwIEJhbGlzdGVyMSIwIAYJKoZIhvcNAQkBFhNwaGlsaXBAYmFsaXN0
+ZXIub3JnMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAxyNViPlSmMq2Kl4m7iDB
+I3gB7Pwhg+4vnXCKEF3qIoLwNDVl27CP8RY0umjENzykOR6ZhzYx4fH8arNV5+nlXsH8KNnb
+Dpd5ICTZvbUJdt1gPETmLczGy4hh8woCu7qodyy7YZcGMiUY5LxoL7vIQHysir4rbMRV/JId
+mhKfFrHb+glDe8XbfTJ3xKO+BsMgLDaSiRMelH6uFLAVv9oRoIJxHQhwKLvlrOSQj+ek2fL6
+83BzOUsM4BN/fiwvtJ/y3doVEoKUp8ippOXrwLAXFPprPAAdIydqufTxHotooFqbQzqSJv4c
+TNDTxf2fg9YfH2RAs8vTdc/wgIVlL8fJnQIDAQABozAwLjAeBgNVHREEFzAVgRNwaGlsaXBA
+YmFsaXN0ZXIub3JnMAwGA1UdEwEB/wQCMAAwDQYJKoZIhvcNAQEFBQADgYEASFC7i4DqutUT
+ifbyNtEe+e9bqgqWUScDFl0BTV5fFVBX/mFpM3RBZJfq+iM5q0L7qont3sGaXG0cdVvRk2dk
+uV2i0HwkmTLJ4HTLMyJ57BjMJWY9ydDiY+Ai1pINmjIgq/qI0aireByqNee68q+PaWE7bfW1
+XvfqZD56QunCijswggL9MIICZqADAgECAhB1uFSSFEFdLtdTZ3y6RdiFMA0GCSqGSIb3DQEB
+BQUAMGIxCzAJBgNVBAYTAlpBMSUwIwYDVQQKExxUaGF3dGUgQ29uc3VsdGluZyAoUHR5KSBM
+dGQuMSwwKgYDVQQDEyNUaGF3dGUgUGVyc29uYWwgRnJlZW1haWwgSXNzdWluZyBDQTAeFw0w
+ODA0MTQxOTE5MzFaFw0wOTA0MTQxOTE5MzFaMGIxETAPBgNVBAQTCEJhbGlzdGVyMQ8wDQYD
+VQQqEwZQaGlsaXAxGDAWBgNVBAMTD1BoaWxpcCBCYWxpc3RlcjEiMCAGCSqGSIb3DQEJARYT
+cGhpbGlwQGJhbGlzdGVyLm9yZzCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEBAMcj
+VYj5UpjKtipeJu4gwSN4Aez8IYPuL51wihBd6iKC8DQ1Zduwj/EWNLpoxDc8pDkemYc2MeHx
+/GqzVefp5V7B/CjZ2w6XeSAk2b21CXbdYDxE5i3MxsuIYfMKAru6qHcsu2GXBjIlGOS8aC+7
+yEB8rIq+K2zEVfySHZoSnxax2/oJQ3vF230yd8SjvgbDICw2kokTHpR+rhSwFb/aEaCCcR0I
+cCi75azkkI/npNny+vNwczlLDOATf34sL7Sf8t3aFRKClKfIqaTl68CwFxT6azwAHSMnarn0
+8R6LaKBam0M6kib+HEzQ08X9n4PWHx9kQLPL03XP8ICFZS/HyZ0CAwEAAaMwMC4wHgYDVR0R
+BBcwFYETcGhpbGlwQGJhbGlzdGVyLm9yZzAMBgNVHRMBAf8EAjAAMA0GCSqGSIb3DQEBBQUA
+A4GBAEhQu4uA6rrVE4n28jbRHvnvW6oKllEnAxZdAU1eXxVQV/5haTN0QWSX6vojOatC+6qJ
+7d7BmlxtHHVb0ZNnZLldotB8JJkyyeB0yzMieewYzCVmPcnQ4mPgItaSDZoyIKv6iNGoq3gc
+qjXnuvKvj2lhO231tV736mQ+ekLpwoo7MIIDPzCCAqigAwIBAgIBDTANBgkqhkiG9w0BAQUF
+ADCB0TELMAkGA1UEBhMCWkExFTATBgNVBAgTDFdlc3Rlcm4gQ2FwZTESMBAGA1UEBxMJQ2Fw
+ZSBUb3duMRowGAYDVQQKExFUaGF3dGUgQ29uc3VsdGluZzEoMCYGA1UECxMfQ2VydGlmaWNh
+dGlvbiBTZXJ2aWNlcyBEaXZpc2lvbjEkMCIGA1UEAxMbVGhhd3RlIFBlcnNvbmFsIEZyZWVt
+YWlsIENBMSswKQYJKoZIhvcNAQkBFhxwZXJzb25hbC1mcmVlbWFpbEB0aGF3dGUuY29tMB4X
+DTAzMDcxNzAwMDAwMFoXDTEzMDcxNjIzNTk1OVowYjELMAkGA1UEBhMCWkExJTAjBgNVBAoT
+HFRoYXd0ZSBDb25zdWx0aW5nIChQdHkpIEx0ZC4xLDAqBgNVBAMTI1RoYXd0ZSBQZXJzb25h
+bCBGcmVlbWFpbCBJc3N1aW5nIENBMIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDEpjxV
+c1X7TrnKmVoeaMB1BHCd3+n/ox7svc31W/Iadr1/DDph8r9RzgHU5VAKMNcCY1osiRVwjt3J
+8CuFWqo/cVbLrzwLB+fxH5E2JCoTzyvV84J3PQO+K/67GD4Hv0CAAmTXp6a7n2XRxSpUhQ9I
+BH+nttE8YQRAHmQZcmC3+wIDAQABo4GUMIGRMBIGA1UdEwEB/wQIMAYBAf8CAQAwQwYDVR0f
+BDwwOjA4oDagNIYyaHR0cDovL2NybC50aGF3dGUuY29tL1RoYXd0ZVBlcnNvbmFsRnJlZW1h
+aWxDQS5jcmwwCwYDVR0PBAQDAgEGMCkGA1UdEQQiMCCkHjAcMRowGAYDVQQDExFQcml2YXRl
+TGFiZWwyLTEzODANBgkqhkiG9w0BAQUFAAOBgQBIjNFQg+oLLswNo2asZw9/r6y+whehQ5aU
+nX9MIbj4Nh+qLZ82L8D0HFAgk3A8/a3hYWLD2ToZfoSxmRsAxRoLgnSeJVCUYsfbJ3FXJY3d
+qZw5jowgT2Vfldr394fWxghOrvbqNOUQGls1TXfjViF4gtwhGTXeJLHTHUb/XV9lTzGCA2Qw
+ggNgAgEBMHYwYjELMAkGA1UEBhMCWkExJTAjBgNVBAoTHFRoYXd0ZSBDb25zdWx0aW5nIChQ
+dHkpIEx0ZC4xLDAqBgNVBAMTI1RoYXd0ZSBQZXJzb25hbCBGcmVlbWFpbCBJc3N1aW5nIENB
+AhB1uFSSFEFdLtdTZ3y6RdiFMAkGBSsOAwIaBQCgggHDMBgGCSqGSIb3DQEJAzELBgkqhkiG
+9w0BBwEwHAYJKoZIhvcNAQkFMQ8XDTA5MDIxOTE0MTQzNFowIwYJKoZIhvcNAQkEMRYEFOjm
+mGHy/tnQQhRUb168acNluqDUMFIGCSqGSIb3DQEJDzFFMEMwCgYIKoZIhvcNAwcwDgYIKoZI
+hvcNAwICAgCAMA0GCCqGSIb3DQMCAgFAMAcGBSsOAwIHMA0GCCqGSIb3DQMCAgEoMIGFBgkr
+BgEEAYI3EAQxeDB2MGIxCzAJBgNVBAYTAlpBMSUwIwYDVQQKExxUaGF3dGUgQ29uc3VsdGlu
+ZyAoUHR5KSBMdGQuMSwwKgYDVQQDEyNUaGF3dGUgUGVyc29uYWwgRnJlZW1haWwgSXNzdWlu
+ZyBDQQIQdbhUkhRBXS7XU2d8ukXYhTCBhwYLKoZIhvcNAQkQAgsxeKB2MGIxCzAJBgNVBAYT
+AlpBMSUwIwYDVQQKExxUaGF3dGUgQ29uc3VsdGluZyAoUHR5KSBMdGQuMSwwKgYDVQQDEyNU
+aGF3dGUgUGVyc29uYWwgRnJlZW1haWwgSXNzdWluZyBDQQIQdbhUkhRBXS7XU2d8ukXYhTAN
+BgkqhkiG9w0BAQEFAASCAQBElFjrJZ+/9e6N9wugAaSDMMMQqt+4m2A6XElsWHyQLeHkR+Qk
+M7vmkwJLZipk4c/VjlspgDm8Ehu2YXs+5VR1rDIj9D2Me/N/Oerc3GOR/TVMBMBljHQHUr9K
+obzehYVIdZHDUhoGYQU1Q/EEYNqQHON3gDGhGrYlvWw26z8U5mJU9rlrh4akMgfB4ffDO0Oy
+hSFV9mA5X9CrVcwYIJNqXiLvoxQhjEp6Y6dtm+Or+rUrNOACfoBF/sfn6/U8/fuBgUHsACek
++HljqKPN2EFRcG7yEItCdtzuk3Um+KncVCnPiX8R10QvMHTSZ0NE3LlTSS4NIFAu6PU4V/0+
+EdRnAAAAAAAA
+--------------ms000301030401090907030007--
