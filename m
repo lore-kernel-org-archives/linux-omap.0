@@ -1,60 +1,49 @@
-From: "Gadiyar, Anand" <gadiyar@ti.com>
-Subject: RE: USB on OMAP3530
-Date: Thu, 19 Feb 2009 20:37:39 +0530
-Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB02F565649D@dbde02.ent.ti.com>
-References: <E1LaALp-0003gl-KO@amazonia.comcast.net>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+From: Phil Carmody <ext-phil.2.carmody@nokia.com>
+Subject: [PATCH 1/1] OMAP: McSPI: Unpaired clk_{en,dis}able calls.
+Date: Thu, 19 Feb 2009 17:24:02 +0200
+Message-ID: <e1ddb08341604496c13766d174bfe055662cc917.1235046721.git.ext-phil.2.carmody@nokia.com>
+References: <>
+ <1235057042-6833-1-git-send-email-ext-phil.2.carmody@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:42106 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752296AbZBSPHv convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 19 Feb 2009 10:07:51 -0500
-In-Reply-To: <E1LaALp-0003gl-KO@amazonia.comcast.net>
-Content-Language: en-US
+Received: from smtp.nokia.com ([192.100.122.233]:35442 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751189AbZBSPY3 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 19 Feb 2009 10:24:29 -0500
+Received: from esebh106.NOE.Nokia.com (esebh106.ntc.nokia.com [172.21.138.213])
+	by mgw-mx06.nokia.com (Switch-3.2.6/Switch-3.2.6) with ESMTP id n1JFO8VT019485
+	for <linux-omap@vger.kernel.org>; Thu, 19 Feb 2009 17:24:26 +0200
+In-Reply-To: <1235057042-6833-1-git-send-email-ext-phil.2.carmody@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "rick@efn.org" <rick@efn.org>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: linux-omap@vger.kernel.org
+Cc: Phil Carmody <ext-phil.2.carmody@nokia.com>
 
->   Thanks very much for the help.
-> 
-> > so Rick, you need to load a gadget driver for musb to work, g_ether or
-> > g_zero are the simplest ones.
-> 
->   But don't I already have the g_zero enabled via:
-> 
-> CONFIG_USB_GADGET_MUSB_HDRC=y
-> 
->   But lets assume that, for the time being, I'm only interested in USB Host.
-> 
->   I had combed the mailing list looking for ISP1505 support and
-> happened across this:
-> 
-> > There's one problem here. If this is similar to isp1704, it doesn't have
-> > a control interface. And the only way to talk to the transceiver is via
-> > ULPI. I have patches that add musb_ulpi_read/write functions using the
-> > musb ulpi wrapper.
-> 
->   The ISP1704 is very similar to the ISP1505, neither one has a
-> control interface (like I2C), only straight ULPI.  Does this mean that
-> there is no "out of the box" support for straight ULPI in 2.6.29?  If
-> so, what would I need to do to support it?
-> 
->   Rick
-> 
-> 
+If the sky is always blue, and no functions fail, then the interface
+and functional clocks will always be in the same state. However,
+defensively, failure to enable the 2nd should re-disable the 1st.
 
-The ISP1505 is supposed to be pretty-much plug and play. MUSB should
-in theory work directly - no configuration required.
+Signed-off-by: Phil Carmody <ext-phil.2.carmody@nokia.com>
+---
+ drivers/spi/omap2_mcspi.c |    5 +++--
+ 1 files changed, 3 insertions(+), 2 deletions(-)
 
-The OMAP3 EVM boards also run a similar configuration. Maybe someone
-with that board can tell you if MUSB in the current kernel works out
-of the box.
-
-Looking closer at your config options, you have CONFIG_USB_MUSB_OTG
-which means you need a gadget driver loaded before you can use MUSB.
-But, you also have CONFIG_USB_ETH=y, which means your gadget driver
-is also built-in. So you won't need to insmod the module.
+diff --git a/drivers/spi/omap2_mcspi.c b/drivers/spi/omap2_mcspi.c
+index 3da8825..bdccb27 100644
+--- a/drivers/spi/omap2_mcspi.c
++++ b/drivers/spi/omap2_mcspi.c
+@@ -277,9 +277,10 @@ static int omap2_mcspi_enable_clocks(struct omap2_mcspi *mcspi)
+ {
+ 	if (clk_enable(mcspi->ick))
+ 		return -ENODEV;
+-	if (clk_enable(mcspi->fck))
++	if (clk_enable(mcspi->fck)) {
++		clk_disable(mcspi->ick);
+ 		return -ENODEV;
+-
++	}
+ 	omap2_mcspi_restore_ctx(mcspi);
+ 
+ 	return 0;
+-- 
+1.5.4.3
 
