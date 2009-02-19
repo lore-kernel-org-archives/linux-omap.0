@@ -1,41 +1,29 @@
 From: Felipe Balbi <me@felipebalbi.com>
-Subject: [PATCH 5/5] input: keyboard: removed unused lm8323_set_platform_data
-Date: Thu, 19 Feb 2009 14:29:43 +0200
-Message-ID: <1235046583-29696-6-git-send-email-me@felipebalbi.com>
-References: <1235046583-29696-1-git-send-email-me@felipebalbi.com>
- <1235046583-29696-2-git-send-email-me@felipebalbi.com>
- <1235046583-29696-3-git-send-email-me@felipebalbi.com>
- <1235046583-29696-4-git-send-email-me@felipebalbi.com>
- <1235046583-29696-5-git-send-email-me@felipebalbi.com>
+Subject: [PATCH 0/2] twl4030-pwrbutton patches
+Date: Thu, 19 Feb 2009 15:29:55 +0200
+Message-ID: <1235050197-26818-1-git-send-email-me@felipebalbi.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ns1.siteground211.com ([209.62.36.12]:56004 "EHLO
+Received: from ns1.siteground211.com ([209.62.36.12]:48175 "EHLO
 	serv01.siteground211.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753714AbZBSMaF (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 19 Feb 2009 07:30:05 -0500
-In-Reply-To: <1235046583-29696-5-git-send-email-me@felipebalbi.com>
+	with ESMTP id S1753391AbZBSNaE (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 19 Feb 2009 08:30:04 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
-Cc: tony@atomide.com, Felipe Balbi <me@felipebalbi.com>
+Cc: Felipe Balbi <me@felipebalbi.com>
 
-that's unused prototype, remove it.
+Moving out of drivers/i2c/chips
 
-Signed-off-by: Felipe Balbi <me@felipebalbi.com>
----
- include/linux/i2c/lm8323.h |    2 --
- 1 files changed, 0 insertions(+), 2 deletions(-)
+Felipe Balbi (2):
+  i2c: move twl4030-pwrbutton to child registration style
+  twl4030: move twl4030-pwrbutton to drivers/input/misc
 
-diff --git a/include/linux/i2c/lm8323.h b/include/linux/i2c/lm8323.h
-index 17d6b33..5eae5cc 100644
---- a/include/linux/i2c/lm8323.h
-+++ b/include/linux/i2c/lm8323.h
-@@ -32,6 +32,4 @@ struct lm8323_platform_data {
- 	char *name; /* Device name. */
- };
- 
--void __init lm8323_set_platform_data(struct lm8323_platform_data *pdata);
--
- #endif /* __LINUX_LM8323_H */
--- 
-1.6.1.3
+ drivers/i2c/chips/Kconfig                          |    4 -
+ drivers/i2c/chips/Makefile                         |    1 -
+ drivers/input/misc/Kconfig                         |    4 +
+ drivers/input/misc/Makefile                        |    1 +
+ .../{i2c/chips => input/misc}/twl4030-pwrbutton.c  |   59 +++++++++++++------
+ drivers/mfd/twl4030-core.c                         |   13 ++++
+ 6 files changed, 58 insertions(+), 24 deletions(-)
+ rename drivers/{i2c/chips => input/misc}/twl4030-pwrbutton.c (70%)
 
