@@ -1,90 +1,177 @@
-From: Gregoire Gentil <gregoire@gentil.com>
-Subject: Re: McSPI3 on the BeagleBoard
-Date: Thu, 19 Feb 2009 00:22:27 -0800
-Message-ID: <1235031747.13828.1.camel@localhost>
-References: <499B4B64.30109@balister.org>
-	 <200902171918.45146.david-b@pacbell.net>  <499CAA27.5020500@balister.org>
-Reply-To: gregoire@gentil.com
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: [PATCH E 11/14] OMAP clock: track child clocks
+Date: Thu, 19 Feb 2009 12:19:32 +0000
+Message-ID: <20090219121932.GL6407@n2100.arm.linux.org.uk>
+References: <20090128192551.29333.82943.stgit@localhost.localdomain> <20090128192756.29333.41541.stgit@localhost.localdomain> <20090129151401.GC18233@n2100.arm.linux.org.uk> <20090129220608.GJ18233@n2100.arm.linux.org.uk> <20090209141156.GB16626@n2100.arm.linux.org.uk> <alpine.DEB.2.00.0902122345160.14667@utopia.booyaka.com> <20090214112325.GA17965@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from wa-out-1112.google.com ([209.85.146.176]:30083 "EHLO
-	wa-out-1112.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753220AbZBSIWa (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 19 Feb 2009 03:22:30 -0500
-Received: by wa-out-1112.google.com with SMTP id v33so161514wah.21
-        for <linux-omap@vger.kernel.org>; Thu, 19 Feb 2009 00:22:30 -0800 (PST)
-In-Reply-To: <499CAA27.5020500@balister.org>
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:39813 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758384AbZBSMTs (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 19 Feb 2009 07:19:48 -0500
+Content-Disposition: inline
+In-Reply-To: <20090214112325.GA17965@n2100.arm.linux.org.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Philip Balister <philip@balister.org>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Paul Walmsley <paul@pwsan.com>
+Cc: linux-arm-kernel@lists.arm.linux.org.uk, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, r-woodruff2@ti.com, Tony Lindgren <tony@atomide.com>
 
-Philip,
+On Sat, Feb 14, 2009 at 11:23:25AM +0000, Russell King - ARM Linux wrote:
+> On Fri, Feb 13, 2009 at 12:01:37AM -0700, Paul Walmsley wrote:
+> > (cc'ing Richard Woodruff)
+> > 
+> > Hello Russell,
+> > 
+> > On Mon, 9 Feb 2009, Russell King - ARM Linux wrote:
+> > 
+> > > On Thu, Jan 29, 2009 at 10:06:08PM +0000, Russell King - ARM Linux wrote:
+> > > > @@ -780,7 +780,7 @@ int omap2_clk_set_parent(struct clk *clk, struct clk *new_parent)
+> > > >  	if (clk->usecount > 0)
+> > > >  		_omap2_clk_enable(clk);
+> > > >  
+> > > > -	clk->parent = new_parent;
+> > > > +	clk_reparent(clk, new_parent);
+> > > 
+> > > While looking at the DPLL patches, I've realised that omap2_clk_set_parent()
+> > > is buggy, as are any other places which reparent the clock (thankfully
+> > > the only other place is in the initialisation code where it doesn't
+> > > matter.)
+> > > 
+> > > Consider what happens when a clock is enabled - we walk up the tree
+> > > enabling all parents.  If we then change the clock's parent, and
+> > > then disable the child, we will again walk up the tree, but since
+> > > we've reparented it, it will be a different clock tree.  The result
+> > > is that the ancestors clock usage counts, and therefore their enable
+> > > status, will end up getting screwed up.
+> > 
+> > Agreed.
+> > 
+> > > This brings up a question: what we currently do here is:
+> > > 
+> > > - disable the child
+> > > - program clksel
+> > > - enable the child
+> > > - change child->parent
+> > > 
+> > > If we add in the parent handling, there are two possibilities:
+> > > 
+> > > - disable the child
+> > > - enable the new parent tree
+> > > - program clksel
+> > > - change child->parent
+> > > - disable the old parent tree
+> > > - enable the child
+> > > 
+> > > OR
+> > > 
+> > > - disable the child and the old parent tree
+> > > - program clksel
+> > > - change child->parent
+> > > - enable the new parent tree and the child
+> > > 
+> > > (note those 'and's have implied ordering).
+> > > 
+> > > Is there anything which dictates one approach over the other?
+> > > Obviously the latter approach results in something smaller and
+> > > cleaner, but might not be technically correct.
+> > 
+> > I don't know of any hardware reason to prefer one approach over the other, 
+> > but Richard might know better.
+> 
+> I'll need an answer on this before I can commit the updated bypass clock
+> support patch.
 
-Can you please post here or on the Beagleboard mailing list the u-boot
-patch? This muxpin is very tricky and I have experienced many problems
-when set up in the kernel while it seems to work better from u-boot -
-don't know why,
+In the interests of moving things forward, and due to the total lack of
+response from TI, it's time to make a decision based upon what seems
+sensible so things can continue moving forward.
 
-Gr=C3=A9goire
+Since there are no hardware issues we know about, we might as well take
+the simplest approach, which is the latter case.
 
+> However, looking a little deeper, there's more issues in the reparenting
+> area.  I don't think this code has been tested at all...  In
+> _omap2_clksel_get_src_field, there is this:
+> 
+> 	for (clkr = clks->rates; clkr->div; clkr++) {
+> 		if (clkr->flags & (cpu_mask | DEFAULT_RATE))
+> 			break; /* Found the default rate for this platform */
+> 	}
+> 
+> which is bogus - it will find the first entry which is _either_ marked
+> as a default rate _or_ is supported by the SoC.  This means (for
+> instance) that:
+> 
+> static const struct clksel_rate core_l3_core_rates[] = {
+>         { .div = 1, .val = 1, .flags = RATE_IN_24XX },
+>         { .div = 2, .val = 2, .flags = RATE_IN_242X },
+>         { .div = 4, .val = 4, .flags = RATE_IN_24XX | DEFAULT_RATE },
+> 
+> will give us divisor 1 rather than presumably the one we want, that being
+> divisor 4.  I think the test above should be:
+> 
+> 	for (clkr = clks->rates; clkr->div; clkr++) {
+> 		if (clkr->flags & cpu_mask &&
+> 		    clkr->flags & DEFAULT_RATE)
+> 			break; /* Found the default rate for this platform */
+> 	}
+> 
+> so we find an entry which is supported _and_ is the default for the SoC.
+> 
+> There's also a second issue - the comments before omap2_divisor_to_clksel()
+> indicate that this function returns 0xffffffff on error.  Unfortunately,
+> this is not so, it actually returns zero on error.  Moreover, we test
+> the result of the function against ~0, so we'll never deal with the error
+> case.  This really should be fixed so that we return the right value for
+> the error case.  (Further comments on this in a follow up.)
+> 
+> So, below is a patch which fixes both of these issues.
 
-On Wed, 2009-02-18 at 19:39 -0500, Philip Balister wrote:
-> David Brownell wrote:
-> > On Tuesday 17 February 2009, Philip Balister wrote:
-> >> A number of people have tried using the McSPI3 interface with the =
-spidev=20
-> >> driver. Running the spidev_test program shows data coming out of t=
-he=20
-> >> interface, but when we connect the SIMO to SOMI pins, the spidev_t=
-est=20
-> >> program shows only 0's. Someone tried wiring SOMI to +volts and st=
-ill=20
-> >> only saw 0 read.
-> >=20
-> > I took a quick glance, and the pinmuxing looks sort of OK if
-> > you ignore the names ... use the right balls, not XXX:
-> >=20
-> > +       AE2_3430_MCSPI3_CLK,
-> > +       AG5_3430_MCSPI3_SIMO,
-> > +       AH5_3430_MCSPI3_SOMI,
-> > +       AF4_3430_MCSPI3_CS0,
-> > +       AG4_3430_MCSPI3_CS1,
-> >=20
-> > I suggest you start with a more focussed patch, only setting
-> > up McSPI3.  For one thing, the MMC2 pinmuxing will interfere
-> > with this set of MCSPI3 configurations.
-> >=20
-> > Also, start with a less aggressive bit rate than 48 MHz; that
-> > may be OK on a well designed board, but breadboards tend to
-> > show flakiness at much over 10 MHz.
->=20
-> OK, more results:
->=20
-> 1) I do not intend for this to go into the kernel, well unless there =
-is=20
-> an outcry from beagle users :)
->=20
->=20
-> Steve Sakoman suggested I do the pinmux setup in u-boot and furnished=
- me=20
-> with a small u-boot patch. Using this patch and removing the pinmux=20
-> stuff from the kernel patch lead to working spidev_test.
->=20
-> The 48 MHz is the max rate, spidev_test defaults to 500 kHz. (but it=20
-> appears to work at 48 MHz also.
->=20
-> Thanks for taking a look at this!
->=20
-> Philip
->=20
-> PS: I love photos: http://www.flickr.com/photos/32615155@N00/32913048=
-54/
+No comments received, I'm going to assume everyone is happy with the
+patch below and it will be going to Linus today or this evening.
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> diff --git a/arch/arm/mach-omap2/clock.c b/arch/arm/mach-omap2/clock.c
+> index 5020cb1..f87501b 100644
+> --- a/arch/arm/mach-omap2/clock.c
+> +++ b/arch/arm/mach-omap2/clock.c
+> @@ -636,7 +636,7 @@ u32 omap2_clksel_to_divisor(struct clk *clk, u32 field_val)
+>   *
+>   * Given a struct clk of a rate-selectable clksel clock, and a clock divisor,
+>   * find the corresponding register field value.  The return register value is
+> - * the value before left-shifting.  Returns 0xffffffff on error
+> + * the value before left-shifting.  Returns ~0 on error
+>   */
+>  u32 omap2_divisor_to_clksel(struct clk *clk, u32 div)
+>  {
+> @@ -648,7 +648,7 @@ u32 omap2_divisor_to_clksel(struct clk *clk, u32 div)
+>  
+>  	clks = omap2_get_clksel_by_parent(clk, clk->parent);
+>  	if (!clks)
+> -		return 0;
+> +		return ~0;
+>  
+>  	for (clkr = clks->rates; clkr->div; clkr++) {
+>  		if ((clkr->flags & cpu_mask) && (clkr->div == div))
+> @@ -659,7 +659,7 @@ u32 omap2_divisor_to_clksel(struct clk *clk, u32 div)
+>  		printk(KERN_ERR "clock: Could not find divisor %d for "
+>  		       "clock %s parent %s\n", div, clk->name,
+>  		       clk->parent->name);
+> -		return 0;
+> +		return ~0;
+>  	}
+>  
+>  	return clkr->val;
+> @@ -747,7 +747,7 @@ static u32 _omap2_clksel_get_src_field(struct clk *src_clk, struct clk *clk,
+>  		return 0;
+>  
+>  	for (clkr = clks->rates; clkr->div; clkr++) {
+> -		if (clkr->flags & (cpu_mask | DEFAULT_RATE))
+> +		if (clkr->flags & cpu_mask && clkr->flags & DEFAULT_RATE)
+>  			break; /* Found the default rate for this platform */
+>  	}
+>  
+> 
+> -------------------------------------------------------------------
+> List admin: http://lists.arm.linux.org.uk/mailman/listinfo/linux-arm-kernel
+> FAQ:        http://www.arm.linux.org.uk/mailinglists/faq.php
+> Etiquette:  http://www.arm.linux.org.uk/mailinglists/etiquette.php
