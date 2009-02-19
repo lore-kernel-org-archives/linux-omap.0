@@ -1,124 +1,58 @@
 From: greg-U8xfFu+wG4EAvxtiuMwx3w@public.gmane.org
-Subject: [patch 12/12] usb: musb: NAK timeout scheme on bulk reserved ep
-Date: Wed, 18 Feb 2009 21:48:48 -0800
-Message-ID: <20090219054848.GM26729@kroah.com>
+Subject: [patch 10/12] USB: musb: Disable USB interrupt in the
+	musb_resume() function
+Date: Wed, 18 Feb 2009 21:48:41 -0800
+Message-ID: <20090219054841.GK26729@kroah.com>
 References: <20090219052749.125178129@blue.kroah.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline; filename="usb-musb-nak-timeout-scheme-on-bulk-reserved-ep.patch"
+Content-Disposition: inline; filename="usb-musb-disable-usb-interrupt-in-the-musb_resume-function.patch"
 In-Reply-To: <20090219054750.GA26729-U8xfFu+wG4EAvxtiuMwx3w@public.gmane.org>
 Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: David Brownell <david-b-yBeKhBN/0LDR7s880joybQ@public.gmane.org>, Sergei Shtylyov <sshtylyov-hkdhdckH98+B+jHODAdFcQ@public.gmane.org>, Felipe Balbi <felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
-Cc: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Ajay Kumar Gupta <ajay.gupta-l0cyMroinI0@public.gmane.org>, David Brownell <dbrownell-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, Greg Kroah-Hartman <gregkh-l3A5Bk7waGM@public.gmane.org>
+To: David Brownell <david-b-yBeKhBN/0LDR7s880joybQ@public.gmane.org>, Sergei Shtylyov <sshtylyov-hkdhdckH98+B+jHODAdFcQ@public.gmane.org>, Felipe Balbi <felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, me-uiRdBs8odbtmTBlB0Cgj/Q@public.gmane.org, =?iso-8859-1?B?6rk/6rc/7D8/?= <q1.kim-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>, Kim Kyuwon <chammoru-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, David Brownell <dbrownell-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, Greg Kroah-Hartman <gregkh-l3A5Bk7waGM@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-From: Ajay Kumar Gupta <ajay.gupta-l0cyMroinI0@public.gmane.org>
+From: Kim Kyuwon <chammoru-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 
+USB should be suspended with interrupt disabled[1]. If USB is suspended with
+interrupt enabled and connected to host PC, a kernel panic would occur When
+it wakes up. Because, after the arch_suspend_enable_irqs() function is called
+in the suspend_enter() function, USB Interrupt handler is called, even though
+USB controller is still not resumed! All devices are resumed after the
+device_resume() is called.
 
-Fixes endpoint starvation issue when more than one bulk qhs
-are multiplexed on reserved bulk endpoint.NAK timeout interval
-is set for such qhs and next qh is scheduled when NAK timeout
-occurs.
-This scheme doesn't work for devices which are connected to a
-high to full speed tree as there is no NAK timeout interrupt
-at musb controller from such devices.
+[1] /Documentation/power/devices.txt: 412 line
 
-Signed-off-by: Ajay Kumar Gupta <ajay.gupta-l0cyMroinI0@public.gmane.org>
+Signed-off-by: Kim Kyuwon <chammoru-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 Cc: Felipe Balbi <felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
 Cc: David Brownell <dbrownell-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 
 ---
- drivers/usb/musb/musb_host.c |   63 ++++++++++++++++++++++++++++++++++++++++---
- 1 file changed, 60 insertions(+), 3 deletions(-)
+ drivers/usb/musb/musb_core.c |    4 ++++
+ 1 file changed, 4 insertions(+)
 
---- a/drivers/usb/musb/musb_host.c
-+++ b/drivers/usb/musb/musb_host.c
-@@ -1428,6 +1428,49 @@ finish:
+--- a/drivers/usb/musb/musb_core.c
++++ b/drivers/usb/musb/musb_core.c
+@@ -2151,6 +2151,8 @@ static int musb_suspend(struct platform_
  
- #endif
+ 	spin_lock_irqsave(&musb->lock, flags);
  
-+/* Schedule next qh from musb->in_bulk and add the current qh at tail
-+ * to avoid endpoint starvation.
-+ */
-+static void musb_bulk_nak_timeout(struct musb *musb, struct musb_hw_ep *ep)
-+{
-+	struct dma_channel	*dma;
-+	struct urb	*urb;
-+	void __iomem	*mbase = musb->mregs;
-+	void __iomem	*epio = ep->regs;
-+	struct musb_qh	*cur_qh, *next_qh;
-+	u16	rx_csr;
++	disable_irq(musb->nIrq);
 +
-+	musb_ep_select(mbase, ep->epnum);
-+	dma = is_dma_capable() ? ep->rx_channel : NULL;
-+
-+	/* clear nak timeout bit */
-+	rx_csr = musb_readw(epio, MUSB_RXCSR);
-+	rx_csr &= ~MUSB_RXCSR_DATAERROR;
-+	musb_writew(epio, MUSB_RXCSR, rx_csr);
-+
-+	cur_qh = first_qh(&musb->in_bulk);
-+	if (cur_qh) {
-+		urb = next_urb(cur_qh);
-+		if (dma_channel_status(dma) == MUSB_DMA_STATUS_BUSY) {
-+			dma->status = MUSB_DMA_STATUS_CORE_ABORT;
-+			musb->dma_controller->channel_abort(dma);
-+			urb->actual_length += dma->actual_len;
-+			dma->actual_len = 0L;
-+		}
-+		musb_save_toggle(ep, 1, urb);
-+
-+		/* delete cur_qh and add to tail to musb->in_bulk */
-+		list_move_tail(&cur_qh->ring, &musb->in_bulk);
-+
-+		/* get the next qh from musb->in_bulk */
-+		next_qh = first_qh(&musb->in_bulk);
-+
-+		/* set rx_reinit and schedule the next qh */
-+		ep->rx_reinit = 1;
-+		musb_start_urb(musb, 1, next_qh);
-+	}
-+}
-+
- /*
-  * Service an RX interrupt for the given IN endpoint; docs cover bulk, iso,
-  * and high-bandwidth IN transfer cases.
-@@ -1499,10 +1542,14 @@ void musb_host_rx(struct musb *musb, u8 
- 			 * we have a candidate... NAKing is *NOT* an error
- 			 */
- 			DBG(6, "RX end %d NAK timeout\n", epnum);
-+			if (usb_pipebulk(urb->pipe) && qh->mux == 1 &&
-+				!list_is_singular(&musb->in_bulk)) {
-+				musb_bulk_nak_timeout(musb, hw_ep);
-+				return;
-+			}
- 			musb_ep_select(mbase, epnum);
--			musb_writew(epio, MUSB_RXCSR,
--					MUSB_RXCSR_H_WZC_BITS
--					| MUSB_RXCSR_H_REQPKT);
-+			rx_csr &= ~MUSB_RXCSR_DATAERROR;
-+			musb_writew(epio, MUSB_RXCSR, rx_csr);
+ 	if (is_peripheral_active(musb)) {
+ 		/* FIXME force disconnect unless we know USB will wake
+ 		 * the system up quickly enough to respond ...
+@@ -2184,6 +2186,8 @@ static int musb_resume(struct platform_d
+ 	else
+ 		clk_enable(musb->clock);
  
- 			goto finish;
- 		} else {
-@@ -1831,6 +1878,16 @@ static int musb_schedule(
- 			head = &musb->in_bulk;
- 		else
- 			head = &musb->out_bulk;
-+		/* Enable bulk NAK time out scheme when bulk requests are
-+		 * multiplxed.This scheme doen't work in high speed to full
-+		 * speed scenario as NAK interrupts are not coming from a
-+		 * full speed device connected to a high speed device.
-+		 * NAK timeout interval is 8 (128 uframe or 16ms) for HS and
-+		 * 4 (8 frame or 8ms) for FS device.
-+		 */
-+		if (is_in && qh->dev)
-+			qh->intv_reg =
-+				(USB_SPEED_HIGH == qh->dev->speed) ? 8 : 4;
- 		goto success;
- 	} else if (best_end < 0) {
- 		return -ENOSPC;
++	enable_irq(musb->nIrq);
++
+ 	/* for static cmos like DaVinci, register values were preserved
+ 	 * unless for some reason the whole soc powered down and we're
+ 	 * not treating that as a whole-system restart (e.g. swsusp)
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-usb" in
