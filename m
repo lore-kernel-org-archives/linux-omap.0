@@ -1,178 +1,126 @@
-From: greg@kroah.com
-Subject: [patch 11/12] usb: musb: adding high bandwidth support
-Date: Wed, 18 Feb 2009 21:48:45 -0800
-Message-ID: <20090219054845.GL26729@kroah.com>
+From: greg-U8xfFu+wG4EAvxtiuMwx3w@public.gmane.org
+Subject: [patch 12/12] usb: musb: NAK timeout scheme on bulk reserved ep
+Date: Wed, 18 Feb 2009 21:48:48 -0800
+Message-ID: <20090219054848.GM26729@kroah.com>
 References: <20090219052749.125178129@blue.kroah.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from kroah.org ([198.145.64.141]:54202 "EHLO coco.kroah.org"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1755692AbZBSFtO (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 19 Feb 2009 00:49:14 -0500
-Content-Disposition: inline; filename="usb-musb-adding-high-bandwidth-support.patch"
-In-Reply-To: <20090219054750.GA26729@kroah.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline; filename="usb-musb-nak-timeout-scheme-on-bulk-reserved-ep.patch"
+In-Reply-To: <20090219054750.GA26729-U8xfFu+wG4EAvxtiuMwx3w@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: David Brownell <david-b-yBeKhBN/0LDR7s880joybQ@public.gmane.org>, Sergei Shtylyov <sshtylyov-hkdhdckH98+B+jHODAdFcQ@public.gmane.org>, Felipe Balbi <felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
+Cc: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Ajay Kumar Gupta <ajay.gupta-l0cyMroinI0@public.gmane.org>, David Brownell <dbrownell-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, Greg Kroah-Hartman <gregkh-l3A5Bk7waGM@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: David Brownell <david-b@pacbell.net>, Sergei Shtylyov <sshtylyov@ru.mvista.com>, Felipe Balbi <felipe.balbi@nokia.com>, linux-usb@vger.kernel.org
-Cc: linux-omap@vger.kernel.org, Ajay Kumar Gupta <ajay.gupta@ti.com>, David Brownell <dbrownell@users.sourceforge.net>, Greg Kroah-Hartman <gregkh@suse.de>
 
-From: Ajay Kumar Gupta <ajay.gupta@ti.com>
+From: Ajay Kumar Gupta <ajay.gupta-l0cyMroinI0@public.gmane.org>
 
-Tested with Creative (Live! Cam Optia) USB camera which uses
-high bandwidth isochronous interface.FIFO table has been updated
-for Rx high bandwidth case.
 
-Signed-off-by: Ajay Kumar Gupta <ajay.gupta@ti.com>
-Cc: Felipe Balbi <felipe.balbi@nokia.com>
-Cc: David Brownell <dbrownell@users.sourceforge.net>
+Fixes endpoint starvation issue when more than one bulk qhs
+are multiplexed on reserved bulk endpoint.NAK timeout interval
+is set for such qhs and next qh is scheduled when NAK timeout
+occurs.
+This scheme doesn't work for devices which are connected to a
+high to full speed tree as there is no NAK timeout interrupt
+at musb controller from such devices.
+
+Signed-off-by: Ajay Kumar Gupta <ajay.gupta-l0cyMroinI0@public.gmane.org>
+Cc: Felipe Balbi <felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
+Cc: David Brownell <dbrownell-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 
 ---
- drivers/usb/musb/musb_core.c |   18 +++++++++---------
- drivers/usb/musb/musb_host.c |   43 +++++++++++++++++++++++++++++--------------
- drivers/usb/musb/musb_host.h |    1 +
- 3 files changed, 39 insertions(+), 23 deletions(-)
+ drivers/usb/musb/musb_host.c |   63 ++++++++++++++++++++++++++++++++++++++++---
+ 1 file changed, 60 insertions(+), 3 deletions(-)
 
---- a/drivers/usb/musb/musb_core.c
-+++ b/drivers/usb/musb/musb_core.c
-@@ -1064,17 +1064,17 @@ static struct fifo_cfg __initdata mode_4
- { .hw_ep_num =  7, .style = FIFO_TX,   .maxpacket = 512, },
- { .hw_ep_num =  7, .style = FIFO_RX,   .maxpacket = 512, },
- { .hw_ep_num =  8, .style = FIFO_TX,   .maxpacket = 512, },
--{ .hw_ep_num =  8, .style = FIFO_RX,   .maxpacket = 512, },
-+{ .hw_ep_num =  8, .style = FIFO_RX,   .maxpacket = 64, },
- { .hw_ep_num =  9, .style = FIFO_TX,   .maxpacket = 512, },
--{ .hw_ep_num =  9, .style = FIFO_RX,   .maxpacket = 512, },
-+{ .hw_ep_num =  9, .style = FIFO_RX,   .maxpacket = 64, },
- { .hw_ep_num = 10, .style = FIFO_TX,   .maxpacket = 512, },
--{ .hw_ep_num = 10, .style = FIFO_RX,   .maxpacket = 512, },
--{ .hw_ep_num = 11, .style = FIFO_TX,   .maxpacket = 512, },
--{ .hw_ep_num = 11, .style = FIFO_RX,   .maxpacket = 512, },
--{ .hw_ep_num = 12, .style = FIFO_TX,   .maxpacket = 512, },
--{ .hw_ep_num = 12, .style = FIFO_RX,   .maxpacket = 512, },
--{ .hw_ep_num = 13, .style = FIFO_TX,   .maxpacket = 512, },
--{ .hw_ep_num = 13, .style = FIFO_RX,   .maxpacket = 512, },
-+{ .hw_ep_num = 10, .style = FIFO_RX,   .maxpacket = 64, },
-+{ .hw_ep_num = 11, .style = FIFO_TX,   .maxpacket = 256, },
-+{ .hw_ep_num = 11, .style = FIFO_RX,   .maxpacket = 256, },
-+{ .hw_ep_num = 12, .style = FIFO_TX,   .maxpacket = 256, },
-+{ .hw_ep_num = 12, .style = FIFO_RX,   .maxpacket = 256, },
-+{ .hw_ep_num = 13, .style = FIFO_TX,   .maxpacket = 256, },
-+{ .hw_ep_num = 13, .style = FIFO_RX,   .maxpacket = 4096, },
- { .hw_ep_num = 14, .style = FIFO_RXTX, .maxpacket = 1024, },
- { .hw_ep_num = 15, .style = FIFO_RXTX, .maxpacket = 1024, },
- };
 --- a/drivers/usb/musb/musb_host.c
 +++ b/drivers/usb/musb/musb_host.c
-@@ -604,7 +604,8 @@ musb_rx_reinit(struct musb *musb, struct
- 	musb_writeb(ep->regs, MUSB_RXTYPE, qh->type_reg);
- 	musb_writeb(ep->regs, MUSB_RXINTERVAL, qh->intv_reg);
- 	/* NOTE: bulk combining rewrites high bits of maxpacket */
--	musb_writew(ep->regs, MUSB_RXMAXP, qh->maxpacket);
-+	musb_writew(ep->regs, MUSB_RXMAXP, qh->maxpacket |
-+				 ((qh->hb_mult - 1) << 11));
+@@ -1428,6 +1428,49 @@ finish:
  
- 	ep->rx_reinit = 0;
- }
-@@ -727,7 +728,7 @@ static void musb_ep_program(struct musb 
- 						packet_sz) - 1) << 11);
- 			else
- 				musb_writew(epio, MUSB_TXMAXP,
--					packet_sz);
-+					packet_sz | ((qh->hb_mult - 1) << 11));
- 			musb_writeb(epio, MUSB_TXINTERVAL, qh->intv_reg);
- 		} else {
- 			musb_writeb(epio, MUSB_NAKLIMIT0, qh->intv_reg);
-@@ -767,10 +768,13 @@ static void musb_ep_program(struct musb 
- 					| MUSB_TXCSR_DMAMODE);
- 				csr |= (MUSB_TXCSR_DMAENAB);
- 					/* against programming guide */
--			} else
--				csr |= (MUSB_TXCSR_AUTOSET
--					| MUSB_TXCSR_DMAENAB
-+			} else {
-+				csr |= (MUSB_TXCSR_DMAENAB
- 					| MUSB_TXCSR_DMAMODE);
-+				/* autoset shouldn't be set in high bandwidth */
-+				if (qh->hb_mult == 1)
-+					csr |= MUSB_TXCSR_AUTOSET;
+ #endif
+ 
++/* Schedule next qh from musb->in_bulk and add the current qh at tail
++ * to avoid endpoint starvation.
++ */
++static void musb_bulk_nak_timeout(struct musb *musb, struct musb_hw_ep *ep)
++{
++	struct dma_channel	*dma;
++	struct urb	*urb;
++	void __iomem	*mbase = musb->mregs;
++	void __iomem	*epio = ep->regs;
++	struct musb_qh	*cur_qh, *next_qh;
++	u16	rx_csr;
++
++	musb_ep_select(mbase, ep->epnum);
++	dma = is_dma_capable() ? ep->rx_channel : NULL;
++
++	/* clear nak timeout bit */
++	rx_csr = musb_readw(epio, MUSB_RXCSR);
++	rx_csr &= ~MUSB_RXCSR_DATAERROR;
++	musb_writew(epio, MUSB_RXCSR, rx_csr);
++
++	cur_qh = first_qh(&musb->in_bulk);
++	if (cur_qh) {
++		urb = next_urb(cur_qh);
++		if (dma_channel_status(dma) == MUSB_DMA_STATUS_BUSY) {
++			dma->status = MUSB_DMA_STATUS_CORE_ABORT;
++			musb->dma_controller->channel_abort(dma);
++			urb->actual_length += dma->actual_len;
++			dma->actual_len = 0L;
++		}
++		musb_save_toggle(ep, 1, urb);
++
++		/* delete cur_qh and add to tail to musb->in_bulk */
++		list_move_tail(&cur_qh->ring, &musb->in_bulk);
++
++		/* get the next qh from musb->in_bulk */
++		next_qh = first_qh(&musb->in_bulk);
++
++		/* set rx_reinit and schedule the next qh */
++		ep->rx_reinit = 1;
++		musb_start_urb(musb, 1, next_qh);
++	}
++}
++
+ /*
+  * Service an RX interrupt for the given IN endpoint; docs cover bulk, iso,
+  * and high-bandwidth IN transfer cases.
+@@ -1499,10 +1542,14 @@ void musb_host_rx(struct musb *musb, u8 
+ 			 * we have a candidate... NAKing is *NOT* an error
+ 			 */
+ 			DBG(6, "RX end %d NAK timeout\n", epnum);
++			if (usb_pipebulk(urb->pipe) && qh->mux == 1 &&
++				!list_is_singular(&musb->in_bulk)) {
++				musb_bulk_nak_timeout(musb, hw_ep);
++				return;
 +			}
+ 			musb_ep_select(mbase, epnum);
+-			musb_writew(epio, MUSB_RXCSR,
+-					MUSB_RXCSR_H_WZC_BITS
+-					| MUSB_RXCSR_H_REQPKT);
++			rx_csr &= ~MUSB_RXCSR_DATAERROR;
++			musb_writew(epio, MUSB_RXCSR, rx_csr);
  
- 			musb_writew(epio, MUSB_TXCSR, csr);
- 
-@@ -1506,6 +1510,10 @@ void musb_host_rx(struct musb *musb, u8 
- 			/* packet error reported later */
- 			iso_err = true;
- 		}
-+	} else if (rx_csr & MUSB_RXCSR_INCOMPRX) {
-+		DBG(3, "end %d Highbandwidth  incomplete ISO packet received\n",
-+				epnum);
-+		status = -EPROTO;
- 	}
- 
- 	/* faults abort the transfer */
-@@ -1713,7 +1721,11 @@ void musb_host_rx(struct musb *musb, u8 
- 				val &= ~MUSB_RXCSR_H_AUTOREQ;
- 			else
- 				val |= MUSB_RXCSR_H_AUTOREQ;
--			val |= MUSB_RXCSR_AUTOCLEAR | MUSB_RXCSR_DMAENAB;
-+			val |= MUSB_RXCSR_DMAENAB;
-+
-+			/* autoclear shouldn't be set in high bandwidth */
-+			if (qh->hb_mult == 1)
-+				val |= MUSB_RXCSR_AUTOCLEAR;
- 
- 			musb_writew(epio, MUSB_RXCSR,
- 				MUSB_RXCSR_H_WZC_BITS | val);
-@@ -1801,9 +1813,11 @@ static int musb_schedule(
- 			continue;
- 
- 		if (is_in)
--			diff = hw_ep->max_packet_sz_rx - qh->maxpacket;
-+			diff = hw_ep->max_packet_sz_rx -
-+				 (qh->maxpacket * qh->hb_mult);
+ 			goto finish;
+ 		} else {
+@@ -1831,6 +1878,16 @@ static int musb_schedule(
+ 			head = &musb->in_bulk;
  		else
--			diff = hw_ep->max_packet_sz_tx - qh->maxpacket;
-+			diff = hw_ep->max_packet_sz_tx -
-+				 (qh->maxpacket * qh->hb_mult);
- 
- 		if (diff >= 0 && best_diff > diff) {
- 			best_diff = diff;
-@@ -1897,11 +1911,13 @@ static int musb_urb_enqueue(
- 
- 	qh->maxpacket = le16_to_cpu(epd->wMaxPacketSize);
- 
--	/* no high bandwidth support yet */
--	if (qh->maxpacket & ~0x7ff) {
--		ret = -EMSGSIZE;
--		goto done;
--	}
-+	/* update qh->hb_mult for high bandwidth transfers.Bit 11 or 12
-+	 * of wMaxPacketSize is set for two or three transaction per microframe.
-+	 */
-+	qh->hb_mult = 1 + ((qh->maxpacket >> 11) & 0x03);
-+
-+	if (qh->hb_mult > 1)
-+		qh->maxpacket &= 0x7ff;
- 
- 	qh->epnum = usb_endpoint_num(epd);
- 	qh->type = usb_endpoint_type(epd);
-@@ -2002,7 +2018,6 @@ static int musb_urb_enqueue(
- 	}
- 	spin_unlock_irqrestore(&musb->lock, flags);
- 
--done:
- 	if (ret != 0) {
- 		spin_lock_irqsave(&musb->lock, flags);
- 		usb_hcd_unlink_urb_from_ep(hcd, urb);
---- a/drivers/usb/musb/musb_host.h
-+++ b/drivers/usb/musb/musb_host.h
-@@ -68,6 +68,7 @@ struct musb_qh {
- 	u8			type;		/* XFERTYPE_* */
- 	u8			epnum;
- 	u16			maxpacket;
-+	u8			hb_mult;	/* high bandwidth pkts per uf */
- 	u16			frame;		/* for periodic schedule */
- 	unsigned		iso_idx;	/* in urb->iso_frame_desc[] */
- };
+ 			head = &musb->out_bulk;
++		/* Enable bulk NAK time out scheme when bulk requests are
++		 * multiplxed.This scheme doen't work in high speed to full
++		 * speed scenario as NAK interrupts are not coming from a
++		 * full speed device connected to a high speed device.
++		 * NAK timeout interval is 8 (128 uframe or 16ms) for HS and
++		 * 4 (8 frame or 8ms) for FS device.
++		 */
++		if (is_in && qh->dev)
++			qh->intv_reg =
++				(USB_SPEED_HIGH == qh->dev->speed) ? 8 : 4;
+ 		goto success;
+ 	} else if (best_end < 0) {
+ 		return -ENOSPC;
 
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
