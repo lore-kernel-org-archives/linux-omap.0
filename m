@@ -1,33 +1,240 @@
-From: David Brownell <david-b@pacbell.net>
-Subject: Re: [PATCH] usb: musb: adding support for registering nop xceiv
-Date: Fri, 20 Feb 2009 14:06:18 -0800
-Message-ID: <200902201406.18739.david-b@pacbell.net>
-References: <1231412036-7371-1-git-send-email-ajay.gupta@ti.com> <19F8576C6E063C45BE387C64729E739403ECF7156B@dbde02.ent.ti.com> <20090220164139.GM7414@atomide.com>
-Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+From: Felipe Balbi <me@felipebalbi.com>
+Subject: [PATCH] input: lm8323: apply comments from mainline
+Date: Sat, 21 Feb 2009 00:21:34 +0200
+Message-ID: <1235168494-20304-1-git-send-email-me@felipebalbi.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp122.sbc.mail.sp1.yahoo.com ([69.147.64.95]:32211 "HELO
-	smtp122.sbc.mail.sp1.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1754881AbZBTWGU (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Fri, 20 Feb 2009 17:06:20 -0500
-In-Reply-To: <20090220164139.GM7414@atomide.com>
-Content-Disposition: inline
+Received: from ns1.siteground211.com ([209.62.36.12]:58177 "EHLO
+	serv01.siteground211.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753281AbZBTWVl (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 20 Feb 2009 17:21:41 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: "Gupta, Ajay Kumar" <ajay.gupta@ti.com>, "me@felipebalbi.com" <me@felipebalbi.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "felipe.balbi@nokia.com" <felipe.balbi@nokia.com>
+To: linux-omap@vger.kernel.org
+Cc: Tony Lindgren <tony@atomide.com>, Felipe Balbi <me@felipebalbi.com>
 
-On Friday 20 February 2009, Tony Lindgren wrote:
-> > 
-> > Please review this one too.
-> 
-> According to Felipe this is in Greg's queue, so I'll apply this to
-> linux-omap to wait for it to fall down from mainline.
+In order to avoid conflicts later, let's sync omap
+version with the version accepted by mainline after
+fixing a few comments.
 
-Yeah, I had some issues with it but it looks like the
-simplest approach for now is to add patches on top of this.
+Signed-off-by: Felipe Balbi <me@felipebalbi.com>
+---
+lm8323 was recently added to -mm tree, so I'm sending this patch
+to avoid conflicts with this driver later
 
-- Dave
+The patch titled
+     input: keyboard: introduce lm8323 driver
+has been added to the -mm tree.  Its filename is
+     input-keyboard-introduce-lm8323-driver.patch
+
+ drivers/input/keyboard/Kconfig  |    1 +
+ drivers/input/keyboard/lm8323.c |   47 +++++++++++++++++++++++++-------------
+ include/linux/i2c/lm8323.h      |   15 ++++++++++-
+ 3 files changed, 45 insertions(+), 18 deletions(-)
+
+diff --git a/drivers/input/keyboard/Kconfig b/drivers/input/keyboard/Kconfig
+index 4d64652..2c5b7bc 100644
+--- a/drivers/input/keyboard/Kconfig
++++ b/drivers/input/keyboard/Kconfig
+@@ -289,6 +289,7 @@ config KEYBOARD_TSC2301
+ config KEYBOARD_LM8323
+ 	tristate "LM8323 keypad chip"
+ 	depends on I2C
++	depends on LEDS
+ 	help
+ 	  If you say yes here you get support for the National Semiconductor
+ 	  LM8323 keypad controller.
+diff --git a/drivers/input/keyboard/lm8323.c b/drivers/input/keyboard/lm8323.c
+index 27da93c..a796680 100644
+--- a/drivers/input/keyboard/lm8323.c
++++ b/drivers/input/keyboard/lm8323.c
+@@ -1,11 +1,13 @@
+ /*
+  * drivers/i2c/chips/lm8323.c
+  *
+- * Copyright (C) 2007 Nokia Corporation
++ * Copyright (C) 2007-2009 Nokia Corporation
+  *
+  * Written by Daniel Stone <daniel.stone@nokia.com>
+  *            Timo O. Karjalainen <timo.o.karjalainen@nokia.com>
+  *
++ * Updated by Felipe Balbi <felipe.balbi@nokia.com>
++ *
+  * This program is free software; you can redistribute it and/or modify
+  * it under the terms of the GNU General Public License as published by
+  * the Free Software Foundation (version 2 of the License only).
+@@ -131,18 +133,20 @@ struct lm8323_pwm {
+ 	int			brightness;
+ 	int			desired_brightness;
+ 	int			running;
++	/* pwm lock */
+ 	struct mutex		lock;
+ 	struct work_struct	work;
+ 	struct led_classdev	cdev;
+ };
+ 
+ struct lm8323_chip {
++	/* device lock */
+ 	struct mutex		lock;
+ 	struct i2c_client	*client;
+ 	struct work_struct	work;
+ 	struct input_dev	*idev;
+-	unsigned		kp_enabled : 1;
+-	unsigned		pm_suspend : 1;
++	unsigned		kp_enabled:1;
++	unsigned		pm_suspend:1;
+ 	unsigned		keys_down;
+ 	char			phys[32];
+ 	s16			keymap[LM8323_KEYMAP_SIZE];
+@@ -328,9 +332,11 @@ static void lm8323_process_error(struct lm8323_chip *lm)
+ 		if (error & ERR_FIFOOVER)
+ 			dev_vdbg(&lm->client->dev, "fifo overflow!\n");
+ 		if (error & ERR_KEYOVR)
+-			dev_vdbg(&lm->client->dev, "more than two keys pressed\n");
++			dev_vdbg(&lm->client->dev,
++					"more than two keys pressed\n");
+ 		if (error & ERR_CMDUNK)
+-			dev_vdbg(&lm->client->dev, "unknown command submitted\n");
++			dev_vdbg(&lm->client->dev,
++					"unknown command submitted\n");
+ 		if (error & ERR_BADPAR)
+ 			dev_vdbg(&lm->client->dev, "bad command parameter\n");
+ 	}
+@@ -510,8 +516,7 @@ static void lm8323_pwm_work(struct work_struct *work)
+ 	if ((pwm->fade_time / steps) > (32768 / 512)) {
+ 		div512 = 1;
+ 		hz = 32768 / 512;
+-	}
+-	else {
++	} else {
+ 		div512 = 0;
+ 		hz = 32768 / 16;
+ 	}
+@@ -579,7 +584,7 @@ static ssize_t lm8323_pwm_store_time(struct device *dev,
+ 	int ret;
+ 	int time;
+ 
+-	ret = sscanf(buf, "%d", &time);
++	ret = strict_strtoul(buf, 10, &time);
+ 	/* Numbers only, please. */
+ 	if (ret)
+ 		return -EINVAL;
+@@ -655,7 +660,7 @@ static ssize_t lm8323_set_disable(struct device *dev,
+ 	int ret;
+ 	int i;
+ 
+-	i = sscanf(buf, "%d", &ret);
++	ret = strict_strtoul(buf, 10, &i);
+ 
+ 	mutex_lock(&lm->lock);
+ 	lm->kp_enabled = !i;
+@@ -704,7 +709,8 @@ static int lm8323_probe(struct i2c_client *client,
+ 		goto fail2;
+ 	}
+ 
+-	dev_vdbg(&client->dev, "Keypad size: %d x %d\n", lm->size_x, lm->size_y);
++	dev_vdbg(&client->dev, "Keypad size: %d x %d\n",
++			lm->size_x, lm->size_y);
+ 
+ 	lm->debounce_time = pdata->debounce_time;
+ 	lm->active_time = pdata->active_time;
+@@ -746,14 +752,15 @@ static int lm8323_probe(struct i2c_client *client,
+ 	INIT_WORK(&lm->work, lm8323_work);
+ 
+ 	err = request_irq(client->irq, lm8323_irq,
+-			  IRQF_TRIGGER_FALLING | IRQF_DISABLED |
+-			  IRQF_SAMPLE_RANDOM, "lm8323", lm);
++			  IRQF_TRIGGER_FALLING | IRQF_DISABLED,
++			  "lm8323", lm);
+ 	if (err) {
+ 		dev_err(&client->dev, "could not get IRQ %d\n", client->irq);
+ 		goto fail6;
+ 	}
+ 
+-	set_irq_wake(client->irq, 1);
++	device_init_wakeup(&client->dev, 1);
++	enable_irq_wake(client->irq);
+ 
+ 	lm->kp_enabled = 1;
+ 	err = device_create_file(&client->dev, &dev_attr_disable_kp);
+@@ -777,13 +784,13 @@ static int lm8323_probe(struct i2c_client *client,
+ 	idev->evbit[0] = BIT(EV_KEY);
+ 	for (i = 0; i < LM8323_KEYMAP_SIZE; i++) {
+ 		if (pdata->keymap[i] > 0)
+-			set_bit(pdata->keymap[i], idev->keybit);
++			__set_bit(pdata->keymap[i], idev->keybit);
+ 
+ 		lm->keymap[i] = pdata->keymap[i];
+ 	}
+ 
+ 	if (pdata->repeat)
+-		set_bit(EV_REP, idev->evbit);
++		__set_bit(EV_REP, idev->evbit);
+ 
+ 	lm->idev = idev;
+ 	err = input_register_device(idev);
+@@ -817,6 +824,7 @@ static int lm8323_remove(struct i2c_client *client)
+ {
+ 	struct lm8323_chip *lm = i2c_get_clientdata(client);
+ 
++	disable_irq_wake(client->irq);
+ 	free_irq(client->irq, lm);
+ 	cancel_work_sync(&lm->work);
+ 	input_unregister_device(lm->idev);
+@@ -832,6 +840,7 @@ static int lm8323_remove(struct i2c_client *client)
+ 	return 0;
+ }
+ 
++#ifdef CONFIG_PM
+ /*
+  * We don't need to explicitly suspend the chip, as it already switches off
+  * when there's no activity.
+@@ -877,6 +886,10 @@ static int lm8323_resume(struct i2c_client *client)
+ 
+ 	return 0;
+ }
++#else
++#define lm8323_suspend	NULL
++#define lm8323_resume	NULL
++#endif
+ 
+ static const struct i2c_device_id lm8323_id[] = {
+ 	{ "lm8323", 0 },
+@@ -907,7 +920,9 @@ static void __exit lm8323_exit(void)
+ }
+ module_exit(lm8323_exit);
+ 
+-MODULE_AUTHOR("Timo O. Karjalainen <timo.o.karjalainen@nokia.com>, Daniel Stone");
++MODULE_AUTHOR("Timo O. Karjalainen <timo.o.karjalainen@nokia.com>");
++MODULE_AUTHOR("Daniel Stone");
++MODULE_AUTHOR("Felipe Balbi <felipe.balbi@nokia.com>");
+ MODULE_DESCRIPTION("LM8323 keypad driver");
+ MODULE_LICENSE("GPL");
+ 
+diff --git a/include/linux/i2c/lm8323.h b/include/linux/i2c/lm8323.h
+index 5eae5cc..37f819b 100644
+--- a/include/linux/i2c/lm8323.h
++++ b/include/linux/i2c/lm8323.h
+@@ -1,7 +1,18 @@
+ /*
+- * include/lm8323.h
++ * lm8323.h - Configuration for LM8323 keypad driver.
+  *
+- * Configuration for LM8323 keypad driver.
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation (version 2 of the License only).
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
++ * GNU General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+  */
+ 
+ #ifndef __LINUX_LM8323_H
+-- 
+1.6.1.3
+
