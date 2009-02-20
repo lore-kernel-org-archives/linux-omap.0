@@ -1,161 +1,36 @@
-From: Felipe Contreras <felipe.contreras@gmail.com>
-Subject: [PATCH] dspbridge: wait less and check the mailbox more
-Date: Sat, 21 Feb 2009 01:04:17 +0200
-Message-ID: <1235171057-7859-1-git-send-email-felipe.contreras@gmail.com>
+From: Mrs Helen Anderson <info@winner.com>
+Subject: ***YOUR EMAIL ADDRESS WAS SELECTED***
+Date: Sat, 21 Feb 2009 01:21:14 +0200 (IST)
+Message-ID: <20090221012114.FQU33680__20965.192319318$1235172505$gmane$org@mas26.bezeqint.net>
+Reply-To: agtuk_ltd002@btinternet.com
+Mime-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-bw0-f161.google.com ([209.85.218.161]:37860 "EHLO
-	mail-bw0-f161.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752426AbZBTXEW (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 20 Feb 2009 18:04:22 -0500
-Received: by bwz5 with SMTP id 5so3106142bwz.13
-        for <linux-omap@vger.kernel.org>; Fri, 20 Feb 2009 15:04:19 -0800 (PST)
+Received: from omr3.bezeqint.net ([192.115.104.13]:59578 "EHLO
+	omr3.bezeqint.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754339AbZBTX02 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 20 Feb 2009 18:26:28 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>, Felipe Contreras <felipe.contrers@nokia.com>, Felipe Contreras <felipe.contreras@nokia.com>
+To: info@winner.com
 
-From: Felipe Contreras <felipe.contrers@nokia.com>
+Your E-I.D won the sum of  =A3500,000 pounds on our Annual=20
+Online Uk Promo,file your claims via email:
+(agtuk_ltd002@btinternet.com)and provide us=20
+the below informations:
+=46ull Name...
+Address...
+Country...
+Phone No...
+Occupation...
+Age...
+Sex...
 
-Profiling showed the __delay function is called a lot; checking the mbox
-more often seems to decrease the usage by 2/3 according to OProfile.
-
-The changes are based on 'arch/arm/plat-omap/mailbox.c'. Tested on OMAP3430.
-
-Also, remove HW_MBOX_IsFull since it's not used by anybody.
-
-Signed-off-by: Felipe Contreras <felipe.contreras@nokia.com>
----
- drivers/dsp/bridge/hw/hw_mbox.c    |   25 -------------------------
- drivers/dsp/bridge/hw/hw_mbox.h    |   35 -----------------------------------
- drivers/dsp/bridge/wmd/tiomap_sm.c |   17 ++++++++++-------
- 3 files changed, 10 insertions(+), 67 deletions(-)
-
-diff --git a/drivers/dsp/bridge/hw/hw_mbox.c b/drivers/dsp/bridge/hw/hw_mbox.c
-index 2c14ade..31b890a 100644
---- a/drivers/dsp/bridge/hw/hw_mbox.c
-+++ b/drivers/dsp/bridge/hw/hw_mbox.c
-@@ -104,31 +104,6 @@ HW_STATUS HW_MBOX_MsgWrite(const u32 baseAddress, const HW_MBOX_Id_t mailBoxId,
- 	return status;
- }
- 
--/* Reads the full status register for mailbox. */
--HW_STATUS HW_MBOX_IsFull(const u32 baseAddress, const HW_MBOX_Id_t mailBoxId,
--			u32 *const pIsFull)
--{
--	HW_STATUS status = RET_OK;
--	u32 fullStatus;
--
--	/* Check input parameters */
--	CHECK_INPUT_PARAM(baseAddress, 0, RET_BAD_NULL_PARAM, RES_MBOX_BASE +
--			RES_INVALID_INPUT_PARAM);
--	CHECK_INPUT_PARAM(pIsFull,  NULL, RET_BAD_NULL_PARAM, RES_MBOX_BASE +
--			RES_INVALID_INPUT_PARAM);
--	CHECK_INPUT_RANGE_MIN0(mailBoxId, HW_MBOX_ID_MAX, RET_INVALID_ID,
--			RES_MBOX_BASE + RES_INVALID_INPUT_PARAM);
--
--	/* read the is full status parameter for Mailbox */
--	fullStatus = MLBMAILBOX_FIFOSTATUS___0_15FifoFullMBmRead32(baseAddress,
--							(u32)mailBoxId);
--
--	/* fill in return parameter */
--	*pIsFull = (fullStatus & 0xFF);
--
--	return status;
--}
--
- /* Gets number of messages in a specified mailbox. */
- HW_STATUS HW_MBOX_NumMsgGet(const u32 baseAddress, const HW_MBOX_Id_t mailBoxId,
- 				u32 *const pNumMsg)
-diff --git a/drivers/dsp/bridge/hw/hw_mbox.h b/drivers/dsp/bridge/hw/hw_mbox.h
-index 225fb40..d2981d3 100644
---- a/drivers/dsp/bridge/hw/hw_mbox.h
-+++ b/drivers/dsp/bridge/hw/hw_mbox.h
-@@ -130,41 +130,6 @@ extern HW_STATUS HW_MBOX_MsgWrite(
- 		  );
- 
- /*
--* FUNCTION      : HW_MBOX_IsFull
--*
--* INPUTS:
--*
--*   Identifier  : baseAddress
--*   Type	: const u32
--*   Description : Base Address of instance of Mailbox module
--*
--*   Identifier  : mailBoxId
--*   Type	: const HW_MBOX_Id_t
--*   Description : Mail Box Sub module Id to check
--*
--* OUTPUTS:
--*
--*   Identifier  : pIsFull
--*   Type	: u32 *const
--*   Description : false means mail box not Full
--*		 true means mailbox full.
--*
--* RETURNS:
--*
--*   Type	: ReturnCode_t
--*   Description : RET_OK	      No errors occured
--*		 RET_BAD_NULL_PARAM  Address/pointer Paramater was set to 0/NULL
--*		 RET_INVALID_ID      Invalid Id used
--*
--* PURPOSE:      : this function reads the full status register for mailbox.
--*/
--extern HW_STATUS HW_MBOX_IsFull(
--		      const u32	 baseAddress,
--		      const HW_MBOX_Id_t   mailBoxId,
--		      u32 *const	pIsFull
--		  );
--
--/*
- * FUNCTION      : HW_MBOX_NumMsgGet
- *
- * INPUTS:
-diff --git a/drivers/dsp/bridge/wmd/tiomap_sm.c b/drivers/dsp/bridge/wmd/tiomap_sm.c
-index 9bc5b54..0653f40 100644
---- a/drivers/dsp/bridge/wmd/tiomap_sm.c
-+++ b/drivers/dsp/bridge/wmd/tiomap_sm.c
-@@ -156,6 +156,13 @@ DSP_STATUS CHNLSM_DisableInterrupt(struct WMD_DEV_CONTEXT *hDevContext)
- 	return status;
- }
- 
-+#define MAILBOX_FIFOSTATUS(m) (0x80 + 4 * (m))
-+
-+static inline unsigned int fifo_full(void __iomem *mbox_base, int mbox_id)
-+{
-+	return __raw_readl(mbox_base + MAILBOX_FIFOSTATUS(mbox_id)) & 0x1;
-+}
-+
- /*
-  *  ======== CHNLSM_InterruptDSP ========
-  *      Send an interrupt to the DSP processor(s).
-@@ -171,9 +178,8 @@ DSP_STATUS CHNLSM_InterruptDSP(struct WMD_DEV_CONTEXT *hDevContext)
- 	u32 opplevel = 0;
- #endif
- 	HW_STATUS hwStatus;
--	u32 mbxFull;
- 	struct CFG_HOSTRES resources;
--	u16 cnt = 10;
-+	u16 cnt = 1000;
- 	u32 temp;
- 	/* We are waiting indefinitely here. This needs to be fixed in the
- 	 * second phase */
-@@ -214,12 +220,9 @@ DSP_STATUS CHNLSM_InterruptDSP(struct WMD_DEV_CONTEXT *hDevContext)
- 		pDevContext->dwBrdState = BRD_RUNNING;
- 	}
- 	while (--cnt) {
--		hwStatus = HW_MBOX_IsFull(resources.dwMboxBase,
--					   MBOX_ARM2DSP, &mbxFull);
--		if (mbxFull)
--			UTIL_Wait(1000);	/* wait for 1 ms)      */
--		else
-+		if (!fifo_full((void __iomem *) resources.dwMboxBase, 0))
- 			break;
-+		udelay(1);
- 	}
- 	if (!cnt) {
- 		DBG_Trace(DBG_LEVEL7, "Timed out waiting for DSP mailbox \n");
--- 
-1.6.1.3
-
+Once Again Congratulations.
+Mrs Helen Anderson.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
