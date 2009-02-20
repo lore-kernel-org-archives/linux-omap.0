@@ -1,67 +1,38 @@
-From: "Gupta, Ajay Kumar" <ajay.gupta@ti.com>
-Subject: RE: USB on OMAP3530
-Date: Fri, 20 Feb 2009 14:56:15 +0530
-Message-ID: <19F8576C6E063C45BE387C64729E739403FA904548@dbde02.ent.ti.com>
-References: <E1LaALp-0003gl-KO@amazonia.comcast.net>
+From: "Marathe, Yogesh" <yogesh_marathe@ti.com>
+Subject: How to add KGDB support to OMAP uImage
+Date: Fri, 20 Feb 2009 16:06:25 +0530
+Message-ID: <B85A65D85D7EB246BE421B3FB0FBB59301C74A69C6@dbde02.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:60732 "EHLO comal.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:35418 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753565AbZBTJ00 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 20 Feb 2009 04:26:26 -0500
-In-Reply-To: <E1LaALp-0003gl-KO@amazonia.comcast.net>
+	id S1754602AbZBTKge convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 20 Feb 2009 05:36:34 -0500
+Received: from dbdp20.itg.ti.com ([172.24.170.38])
+	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id n1KAaRk3012257
+	for <linux-omap@vger.kernel.org>; Fri, 20 Feb 2009 04:36:33 -0600
+Received: from dbde70.ent.ti.com (localhost [127.0.0.1])
+	by dbdp20.itg.ti.com (8.13.8/8.13.8) with ESMTP id n1KAaQJT021416
+	for <linux-omap@vger.kernel.org>; Fri, 20 Feb 2009 16:06:26 +0530 (IST)
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "rick@efn.org" <rick@efn.org>, "Gadiyar, Anand" <gadiyar@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-> -----Original Message-----
-> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Rick
-> Bronson
-> Sent: Thursday, February 19, 2009 8:28 PM
-> To: Gadiyar, Anand
-> Cc: linux-omap@vger.kernel.org
-> Subject: Re: USB on OMAP3530
-> 
-> 
->   Thanks very much for the help.
-> 
-> > so Rick, you need to load a gadget driver for musb to work, g_ether or
-> > g_zero are the simplest ones.
-> 
->   But don't I already have the g_zero enabled via:
-> 
-> CONFIG_USB_GADGET_MUSB_HDRC=y
-> 
->   But lets assume that, for the time being, I'm only interested in USB
-> Host.
-> 
->   I had combed the mailing list looking for ISP1505 support and
-> happened across this:
-> 
-> > There's one problem here. If this is similar to isp1704, it doesn't have
-> > a control interface. And the only way to talk to the transceiver is via
-> > ULPI. I have patches that add musb_ulpi_read/write functions using the
-> > musb ulpi wrapper.
-> 
->   The ISP1704 is very similar to the ISP1505, neither one has a
-> control interface (like I2C), only straight ULPI.  Does this mean that
-> there is no "out of the box" support for straight ULPI in 2.6.29?  If
-> so, what would I need to do to support it?
 
-I am using OMAP35x EVM which has ISP1504 and it works directly. Use omap3_evm_defconfig
-which has all the required default config for MUSB. Just make sure to insert the gadget
-module after boot OR use built-in gadget driver.
+All,
+
+I'm trying to add KGDB support for OMAP3530 uImage. I did 'make menuconfig' and selected 'kernel object debugging' in 'kernel hacking section' kernel compiled properly but when I tried to boot with this uImage it hanged.
+
+I tried applying KGDBOE patches also. I applied eth, netpoll and core-lite patches. It worked successfully for eth patch but failed at compile time for other two patches.
+
+I want to add KGDB support to the uImage. Is there any different patch to be applied? Has anyone tried this before? Please help me out.
 
 Regards,
-Ajay
-> 
->   Rick
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
+Yogesh Marathe.
+DSP/BIOS LINK (PSP)
+Texas Instruments (India)
++91 80 25048703.
+ 
