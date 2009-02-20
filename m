@@ -1,66 +1,181 @@
-From: Gary Thomas <gary@mlbassoc.com>
-Subject: Re: OMAP3530 USB host problems
-Date: Fri, 20 Feb 2009 12:05:49 -0700
-Message-ID: <499EFF0D.6060602@mlbassoc.com>
-References: <499EF348.6020302@mlbassoc.com> <20090220182904.GP20723@frodo> <499EFB84.1020201@mlbassoc.com> <20090220185426.GR20723@frodo>
+From: Philip Balister <philip@balister.org>
+Subject: Re: McSPI3 on the BeagleBoard
+Date: Fri, 20 Feb 2009 14:19:01 -0500
+Message-ID: <499F0225.5020402@balister.org>
+References: <499B4B64.30109@balister.org>	 <200902171918.45146.david-b@pacbell.net>  <499CAA27.5020500@balister.org>	 <1235031747.13828.1.camel@localhost>  <499D694A.8000404@balister.org> <1235118800.6894.18.camel@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; protocol="application/x-pkcs7-signature"; micalg=sha1; boundary="------------ms030609090004070301060800"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from 137-67-76-76.skybeam.com ([76.76.67.137]:1683 "EHLO
-	mail.chez-thomas.org" rhost-flags-OK-FAIL-OK-OK) by vger.kernel.org
-	with ESMTP id S1753205AbZBTTFy (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 20 Feb 2009 14:05:54 -0500
-In-Reply-To: <20090220185426.GR20723@frodo>
+Received: from mail.geekisp.com ([216.168.135.169]:34715 "EHLO
+	starfish.geekisp.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1751861AbZBTTTH (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 20 Feb 2009 14:19:07 -0500
+In-Reply-To: <1235118800.6894.18.camel@localhost>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: me@felipebalbi.com
-Cc: Linux OMAP Mailing List <linux-omap@vger.kernel.org>
+To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Felipe Balbi wrote:
-> On Fri, Feb 20, 2009 at 11:50:44AM -0700, Gary Thomas wrote:
->> Felipe Balbi wrote:
->>> On Fri, Feb 20, 2009 at 11:15:36AM -0700, Gary Thomas wrote:
->>>> I have a 3530 board (similar to the OMAP3EVM) and I'm trying
->>>> to get the USB host working.  Sadly, this is failing, but I
->>>> don't quite see why.  From drivers/usb/host/echi-omap.c:
->>>> 	/* Wait for TLL to be Active */
->>>>         timeout = 1000;
->>>> 	while ((cm_read_mod_reg(CORE_MOD, OMAP2430_CM_IDLEST3)
->>>> 			& (1 << OMAP3430ES2_ST_USBTLL_SHIFT)))
->>>>         {
->>>>             if (--timeout <= 0) {
->>>>                 printk(KERN_ERR "USB TLL is unavailable\n");
->>>>                 return -ENODEV;
->>>>             }
->>>> 		cpu_relax();
->>>>         }
->>>>
->>>> Any clues on why this might be?  How do I solve it?
->>> could you enable CONFIG_DEBUG_LL and post the seria console output ?
+This is a cryptographically signed message in MIME format.
+
+--------------ms030609090004070301060800
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: quoted-printable
+
+Gregoire Gentil wrote:
+> Philip,
+>=20
+> I found the patch. Thanks. SPI3 is working for me too but I think that
+> there are a couple of errors:
+>=20
+> - first, in the patch you posted on the beagleboard mailing list, you
+> don't setup CS0 and CS1 pins in u-boot. I think that you should do it.
+
+Yeah. I wanted to get the info out quickly since there are a couple of=20
+longish threads on the Beagle list over the problem.
+
+> - secondly, you have added more mux configuration in the kernel for SPI=
+3
+> that should not be SPI3 but those new ones are wrong as they are
+> competing with some USB pins. It's the same error as David pointed you
+> for MMC2. Nevertheless, it's still working. Why? Because I have now a
+> strong feeling that mux configuration is not working in the kernel (at
+> least for the beagleboard). Here are a few facts that would confirm thi=
+s
+> statement:
+
+I thought I #if 0 ... #endif the kernel mux code? I'll double check. I=20
+should try it with un patched u-boot and only the specific pins set in=20
+the kernel.
+
+I'm juggling too many different things atm :(
+
+I also changed the PIN MUX config option in the flag per another question=
+=2E
+
+Philip
+
+
+>=20
+> - MUX setup for USB ehci has never worked in the kernel. It's why the
+> beagleaboard rev-C ehci patch has been transfered to u-boot.
+>=20
+> - the difference between your patch before and after it was working, is=
+
+> really the u-boot configuration. You haven't really changed anything in=
+
+> the kernel (especially in the spi driver) and as mentioned above, you
+> have even introduced some competing muxes that should have created more=
+
+> trouble if the kernel mux config were working correctly.
+>=20
+> - I had two other areas where I configured the pins in kernel and it wa=
+s
+> not working. Only when I eventually did it in u-boot, it started to
+> work.
+>=20
+> I don't know what's wrong with the pin configuration in the kernel,
+>=20
+> Gr=C3=A9goire
+> =20
+>=20
+> On Thu, 2009-02-19 at 09:14 -0500, Philip Balister wrote:
+>> Gregoire Gentil wrote:
+>>> Philip,
 >>>
->>> do you really use TLL ?? I don't really know omap3evm, but I guess it
->>> uses PHY mode (correct me if I'm wrong).
->>>
->> It's not that I _need_ TLL, the driver function omap_start_ehci()
->> tries to reset the part of the USB controller and fails.  I'm just
->> trying to understand why this part of the code falls over.
-> 
-> you have OMAP_EHCI_TLL_MODE set, you should probably use
-> OMAP_EHCI_PHY_MODE instead.
-> 
-> You can fix it via "make menuconfig"
-> 
+>>> Can you please post here or on the Beagleboard mailing list the u-boo=
+t
+>>> patch? This muxpin is very tricky and I have experienced many problem=
+s
+>>> when set up in the kernel while it seems to work better from u-boot -=
 
-I already have that; this code is still being used.
-  # CONFIG_OMAP_EHCI_TLL_MODE is not set
-  CONFIG_OMAP_EHCI_PHY_MODE=y
+>>> don't know why,
+>> I posted it to the Beagle group. Let me know if you are having trouble=
+=20
+>> finding it.
+>>
+>> If we come up with a better config for the expansion port, we'll clean=
+=20
+>> it up and submit here. My gut feeling is having SPI interfaces on the =
 
-This is not used in the function above at all.
+>> expansion connector will be more useful then the MMC interface.
+>>
+>> Philip
+>>
+>=20
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>=20
 
 
--- 
-------------------------------------------------------------
-Gary Thomas                 |  Consulting for the
-MLB Associates              |    Embedded world
-------------------------------------------------------------
+--------------ms030609090004070301060800
+Content-Type: application/x-pkcs7-signature; name="smime.p7s"
+Content-Transfer-Encoding: base64
+Content-Disposition: attachment; filename="smime.p7s"
+Content-Description: S/MIME Cryptographic Signature
+
+MIAGCSqGSIb3DQEHAqCAMIACAQExCzAJBgUrDgMCGgUAMIAGCSqGSIb3DQEHAQAAoIIJRTCC
+Av0wggJmoAMCAQICEHW4VJIUQV0u11NnfLpF2IUwDQYJKoZIhvcNAQEFBQAwYjELMAkGA1UE
+BhMCWkExJTAjBgNVBAoTHFRoYXd0ZSBDb25zdWx0aW5nIChQdHkpIEx0ZC4xLDAqBgNVBAMT
+I1RoYXd0ZSBQZXJzb25hbCBGcmVlbWFpbCBJc3N1aW5nIENBMB4XDTA4MDQxNDE5MTkzMVoX
+DTA5MDQxNDE5MTkzMVowYjERMA8GA1UEBBMIQmFsaXN0ZXIxDzANBgNVBCoTBlBoaWxpcDEY
+MBYGA1UEAxMPUGhpbGlwIEJhbGlzdGVyMSIwIAYJKoZIhvcNAQkBFhNwaGlsaXBAYmFsaXN0
+ZXIub3JnMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAxyNViPlSmMq2Kl4m7iDB
+I3gB7Pwhg+4vnXCKEF3qIoLwNDVl27CP8RY0umjENzykOR6ZhzYx4fH8arNV5+nlXsH8KNnb
+Dpd5ICTZvbUJdt1gPETmLczGy4hh8woCu7qodyy7YZcGMiUY5LxoL7vIQHysir4rbMRV/JId
+mhKfFrHb+glDe8XbfTJ3xKO+BsMgLDaSiRMelH6uFLAVv9oRoIJxHQhwKLvlrOSQj+ek2fL6
+83BzOUsM4BN/fiwvtJ/y3doVEoKUp8ippOXrwLAXFPprPAAdIydqufTxHotooFqbQzqSJv4c
+TNDTxf2fg9YfH2RAs8vTdc/wgIVlL8fJnQIDAQABozAwLjAeBgNVHREEFzAVgRNwaGlsaXBA
+YmFsaXN0ZXIub3JnMAwGA1UdEwEB/wQCMAAwDQYJKoZIhvcNAQEFBQADgYEASFC7i4DqutUT
+ifbyNtEe+e9bqgqWUScDFl0BTV5fFVBX/mFpM3RBZJfq+iM5q0L7qont3sGaXG0cdVvRk2dk
+uV2i0HwkmTLJ4HTLMyJ57BjMJWY9ydDiY+Ai1pINmjIgq/qI0aireByqNee68q+PaWE7bfW1
+XvfqZD56QunCijswggL9MIICZqADAgECAhB1uFSSFEFdLtdTZ3y6RdiFMA0GCSqGSIb3DQEB
+BQUAMGIxCzAJBgNVBAYTAlpBMSUwIwYDVQQKExxUaGF3dGUgQ29uc3VsdGluZyAoUHR5KSBM
+dGQuMSwwKgYDVQQDEyNUaGF3dGUgUGVyc29uYWwgRnJlZW1haWwgSXNzdWluZyBDQTAeFw0w
+ODA0MTQxOTE5MzFaFw0wOTA0MTQxOTE5MzFaMGIxETAPBgNVBAQTCEJhbGlzdGVyMQ8wDQYD
+VQQqEwZQaGlsaXAxGDAWBgNVBAMTD1BoaWxpcCBCYWxpc3RlcjEiMCAGCSqGSIb3DQEJARYT
+cGhpbGlwQGJhbGlzdGVyLm9yZzCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEBAMcj
+VYj5UpjKtipeJu4gwSN4Aez8IYPuL51wihBd6iKC8DQ1Zduwj/EWNLpoxDc8pDkemYc2MeHx
+/GqzVefp5V7B/CjZ2w6XeSAk2b21CXbdYDxE5i3MxsuIYfMKAru6qHcsu2GXBjIlGOS8aC+7
+yEB8rIq+K2zEVfySHZoSnxax2/oJQ3vF230yd8SjvgbDICw2kokTHpR+rhSwFb/aEaCCcR0I
+cCi75azkkI/npNny+vNwczlLDOATf34sL7Sf8t3aFRKClKfIqaTl68CwFxT6azwAHSMnarn0
+8R6LaKBam0M6kib+HEzQ08X9n4PWHx9kQLPL03XP8ICFZS/HyZ0CAwEAAaMwMC4wHgYDVR0R
+BBcwFYETcGhpbGlwQGJhbGlzdGVyLm9yZzAMBgNVHRMBAf8EAjAAMA0GCSqGSIb3DQEBBQUA
+A4GBAEhQu4uA6rrVE4n28jbRHvnvW6oKllEnAxZdAU1eXxVQV/5haTN0QWSX6vojOatC+6qJ
+7d7BmlxtHHVb0ZNnZLldotB8JJkyyeB0yzMieewYzCVmPcnQ4mPgItaSDZoyIKv6iNGoq3gc
+qjXnuvKvj2lhO231tV736mQ+ekLpwoo7MIIDPzCCAqigAwIBAgIBDTANBgkqhkiG9w0BAQUF
+ADCB0TELMAkGA1UEBhMCWkExFTATBgNVBAgTDFdlc3Rlcm4gQ2FwZTESMBAGA1UEBxMJQ2Fw
+ZSBUb3duMRowGAYDVQQKExFUaGF3dGUgQ29uc3VsdGluZzEoMCYGA1UECxMfQ2VydGlmaWNh
+dGlvbiBTZXJ2aWNlcyBEaXZpc2lvbjEkMCIGA1UEAxMbVGhhd3RlIFBlcnNvbmFsIEZyZWVt
+YWlsIENBMSswKQYJKoZIhvcNAQkBFhxwZXJzb25hbC1mcmVlbWFpbEB0aGF3dGUuY29tMB4X
+DTAzMDcxNzAwMDAwMFoXDTEzMDcxNjIzNTk1OVowYjELMAkGA1UEBhMCWkExJTAjBgNVBAoT
+HFRoYXd0ZSBDb25zdWx0aW5nIChQdHkpIEx0ZC4xLDAqBgNVBAMTI1RoYXd0ZSBQZXJzb25h
+bCBGcmVlbWFpbCBJc3N1aW5nIENBMIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDEpjxV
+c1X7TrnKmVoeaMB1BHCd3+n/ox7svc31W/Iadr1/DDph8r9RzgHU5VAKMNcCY1osiRVwjt3J
+8CuFWqo/cVbLrzwLB+fxH5E2JCoTzyvV84J3PQO+K/67GD4Hv0CAAmTXp6a7n2XRxSpUhQ9I
+BH+nttE8YQRAHmQZcmC3+wIDAQABo4GUMIGRMBIGA1UdEwEB/wQIMAYBAf8CAQAwQwYDVR0f
+BDwwOjA4oDagNIYyaHR0cDovL2NybC50aGF3dGUuY29tL1RoYXd0ZVBlcnNvbmFsRnJlZW1h
+aWxDQS5jcmwwCwYDVR0PBAQDAgEGMCkGA1UdEQQiMCCkHjAcMRowGAYDVQQDExFQcml2YXRl
+TGFiZWwyLTEzODANBgkqhkiG9w0BAQUFAAOBgQBIjNFQg+oLLswNo2asZw9/r6y+whehQ5aU
+nX9MIbj4Nh+qLZ82L8D0HFAgk3A8/a3hYWLD2ToZfoSxmRsAxRoLgnSeJVCUYsfbJ3FXJY3d
+qZw5jowgT2Vfldr394fWxghOrvbqNOUQGls1TXfjViF4gtwhGTXeJLHTHUb/XV9lTzGCA2Qw
+ggNgAgEBMHYwYjELMAkGA1UEBhMCWkExJTAjBgNVBAoTHFRoYXd0ZSBDb25zdWx0aW5nIChQ
+dHkpIEx0ZC4xLDAqBgNVBAMTI1RoYXd0ZSBQZXJzb25hbCBGcmVlbWFpbCBJc3N1aW5nIENB
+AhB1uFSSFEFdLtdTZ3y6RdiFMAkGBSsOAwIaBQCgggHDMBgGCSqGSIb3DQEJAzELBgkqhkiG
+9w0BBwEwHAYJKoZIhvcNAQkFMQ8XDTA5MDIyMDE5MTkwMVowIwYJKoZIhvcNAQkEMRYEFLCS
+x0ArC5waA2t3mHbOXVQCbZ5gMFIGCSqGSIb3DQEJDzFFMEMwCgYIKoZIhvcNAwcwDgYIKoZI
+hvcNAwICAgCAMA0GCCqGSIb3DQMCAgFAMAcGBSsOAwIHMA0GCCqGSIb3DQMCAgEoMIGFBgkr
+BgEEAYI3EAQxeDB2MGIxCzAJBgNVBAYTAlpBMSUwIwYDVQQKExxUaGF3dGUgQ29uc3VsdGlu
+ZyAoUHR5KSBMdGQuMSwwKgYDVQQDEyNUaGF3dGUgUGVyc29uYWwgRnJlZW1haWwgSXNzdWlu
+ZyBDQQIQdbhUkhRBXS7XU2d8ukXYhTCBhwYLKoZIhvcNAQkQAgsxeKB2MGIxCzAJBgNVBAYT
+AlpBMSUwIwYDVQQKExxUaGF3dGUgQ29uc3VsdGluZyAoUHR5KSBMdGQuMSwwKgYDVQQDEyNU
+aGF3dGUgUGVyc29uYWwgRnJlZW1haWwgSXNzdWluZyBDQQIQdbhUkhRBXS7XU2d8ukXYhTAN
+BgkqhkiG9w0BAQEFAASCAQCiD6R9iRtLz7mmyIU83S0yRf+FKriU/cnaxn6U4kulGv/w8S61
+l8ZOediaiQ+ZWqWcMjr0/quFRguJINMTOVuSt3DgwuuRr+NCJEKFdb/Tkz8Fmc0QbytcH1JI
+rbGL42LvghVhgla88Fq6FMQJvwx5nPs1AU86bzpKYkN/cPYITkc6rjGY8EVhVLtznD6+BGlC
+V9LztvntRYWYo12aSI3Qv/xTo+AzatDG60N7YxA76qAdQeY4qA2rwCHSmoKAf3jfdmdtztbm
+HvtTKnip2CEZq8PPDeaEzjGx/3IP5/xWvKkl3IRXdCJS06Fa8HATmftDbe2IXrrBRbvgNYYh
+ncMJAAAAAAAA
+--------------ms030609090004070301060800--
