@@ -1,52 +1,77 @@
-From: Felipe Balbi <me@felipebalbi.com>
-Subject: Re: [PATCH] usb: musb: adding support for registering nop xceiv
-Date: Fri, 20 Feb 2009 18:43:04 +0200
-Message-ID: <20090220164303.GL32564@gandalf>
-References: <1231412036-7371-1-git-send-email-ajay.gupta@ti.com> <20090112222946.GN25493@frodo> <19F8576C6E063C45BE387C64729E739403ECF7156B@dbde02.ent.ti.com> <20090220164139.GM7414@atomide.com>
-Reply-To: me@felipebalbi.com
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Koen Kooi <k.kooi@student.utwente.nl>
+Subject: Re: [PATCH v2] board-omap3beagle: set i2c-3 to 100kHz
+Date: Fri, 20 Feb 2009 17:59:57 +0100
+Message-ID: <07B4F437-A753-445C-BF8D-047B1B7BB561@student.utwente.nl>
+References: <1232873177-15531-1-git-send-email-koen@openembedded.org> <200901250404.11059.david-b@pacbell.net> <1DDF6542-7A64-44F0-9B7B-7B841D02A512@beagleboard.org> <0447C4C2-86D0-4FC4-9C33-E09CDE1D2055@student.utwente.nl> <20090206222255.GJ10721@atomide.com> <20090220162459.GL7414@atomide.com>
+Mime-Version: 1.0 (Apple Message framework v930.3)
+Content-Type: multipart/signed; protocol="application/pgp-signature"; micalg=pgp-sha1; boundary="Apple-Mail-5--856039817"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ns1.siteground211.com ([209.62.36.12]:34294 "EHLO
-	serv01.siteground211.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751800AbZBTQnM (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 20 Feb 2009 11:43:12 -0500
-Content-Disposition: inline
-In-Reply-To: <20090220164139.GM7414@atomide.com>
+Received: from smtp2.utsp.utwente.nl ([130.89.2.9]:58656 "EHLO smtp.utwente.nl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753791AbZBTRAN (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 20 Feb 2009 12:00:13 -0500
+In-Reply-To: <20090220162459.GL7414@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>
-Cc: "Gupta, Ajay Kumar" <ajay.gupta@ti.com>, "me@felipebalbi.com" <me@felipebalbi.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "david-b@pacbell.net" <david-b@pacbell.net>, "felipe.balbi@nokia.com" <felipe.balbi@nokia.com>
+Cc: "linux-omap@vger.kernel.org List" <linux-omap@vger.kernel.org>
 
-On Fri, Feb 20, 2009 at 08:41:40AM -0800, Tony Lindgren wrote:
-> * Gupta, Ajay Kumar <ajay.gupta@ti.com> [090119 02:39]:
-> > > -----Original Message-----
-> > > From: Felipe Balbi [mailto:me@felipebalbi.com]
-> > > Sent: Tuesday, January 13, 2009 4:00 AM
-> > > To: Gupta, Ajay Kumar
-> > > Cc: linux-omap@vger.kernel.org; david-b@pacbell.net; felipe.balbi@nokia.com
-> > > Subject: Re: [PATCH] usb: musb: adding support for registering nop xceiv
-> > > 
-> > > On Thu, Jan 08, 2009 at 04:23:56PM +0530, Ajay Kumar Gupta wrote:
-> > > > Adding support for registering nop usb transceiver for musb
-> > > > platforms. Tested with OMAP35xx EVM having OTG phy ISP1504
-> > > > which is autonomous and doesn't require any phy programming.
-> > > >
-> > > > Signed-off-by: Ajay Kumar Gupta <ajay.gupta@ti.com>
-> > > 
-> > > Tony, if Dave is ok with the nop-xceiv, we can apply this to l-o and
-> > > people who doesn't use twl4030/tlw5030 xceiv will have to select this
-> > > driver.
-> > 
-> > Hi David,
-> > 
-> > Please review this one too.
-> 
-> According to Felipe this is in Greg's queue, so I'll apply this to
-> linux-omap to wait for it to fall down from mainline.
+This is an OpenPGP/MIME signed message (RFC 2440 and 3156)
+--Apple-Mail-5--856039817
+Content-Type: text/plain; charset=US-ASCII; format=flowed; delsp=yes
+Content-Transfer-Encoding: 7bit
 
-well, the driver itself, not the usb-musb.c part. Well, this will help
-boards with use ispXXXX transceivers to work :-)
 
--- 
-balbi
+Op 20 feb 2009, om 17:25 heeft Tony Lindgren het volgende geschreven:
+
+> * Tony Lindgren <tony@atomide.com> [090206 14:56]:
+>> * Koen Kooi <k.kooi@student.utwente.nl> [090206 06:16]:
+>>>
+>>> Op 4 feb 2009, om 20:58 heeft Koen Kooi het volgende geschreven:
+>>>
+>>>>
+>>>> Op 25 jan 2009, om 13:04 heeft David Brownell het volgende  
+>>>> geschreven:
+>>>>
+>>>>> On Sunday 25 January 2009, Koen Kooi wrote:
+>>>>>> From: Koen Kooi <koen@beagleboard.org>
+>>>>>>
+>>>>>> Changing it do 100kHz is needed to make more devices works
+>>>>>> properly. Controlling the TI DLP Pico projector[1] doesn't work
+>>>>>> properly at 400kHz, 100kHz and lower work fine. EDID readout is
+>>>>>> unaffected by this change.
+>>>>>>
+>>>>>> [1] http://focus.ti.com/dlpdmd/docs/dlpdiscovery.tsp?sectionId=60&tabId=2234
+>>>>>>
+>>>>>> Signed-off-by: Koen Kooi <koen@beagleboard.org>
+>>>>>
+>>>>> Acked-by: David Brownell <dbrownell@users.sourceforge.net>
+>>>>
+>>>> ping
+>>>
+>>> Any more changes needed before this can go in?
+>>
+>> Just few more days, I'll need to get my upstream queues ready..
+>> Otherwise I'll forget to apply it somewhere :)
+>
+> OK, adding to omap-fixes and pushing to linux-omap.
+
+Thanks!
+
+--Apple-Mail-5--856039817
+content-type: application/pgp-signature; x-mac-type=70674453;
+	name=PGP.sig
+content-description: Dit deel van het bericht is digitaal ondertekend
+content-disposition: inline; filename=PGP.sig
+content-transfer-encoding: 7bit
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.5 (Darwin)
+
+iD8DBQFJnuGPMkyGM64RGpERAvQFAKCJrvCz5KCG1Pdl+MSoPKp7TAVnWwCgjWCX
+sX6SXt2S9ebyhPkztyHeGbs=
+=NFHb
+-----END PGP SIGNATURE-----
+
+--Apple-Mail-5--856039817--
