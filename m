@@ -1,33 +1,93 @@
-From: Mrs Sarah Wood <11111@bezeqint.net>
-Subject: WINNER  OF Compaq  PROMO
-Date: Fri, 20 Feb 2009 02:08:23 +0200 (IST)
-Message-ID: <20090220020823.FQS04003@mas26.bezeqint.net>
-Reply-To: jerry.smith700@btinternet.com
+From: "Woodruff, Richard" <r-woodruff2@ti.com>
+Subject: RE: [PATCH E 11/14] OMAP clock: track child clocks
+Date: Thu, 19 Feb 2009 18:50:52 -0600
+Message-ID: <13B9B4C6EF24D648824FF11BE896716203772C3680@dlee02.ent.ti.com>
+References: <20090128192551.29333.82943.stgit@localhost.localdomain>
+ <20090128192756.29333.41541.stgit@localhost.localdomain>
+ <20090129151401.GC18233@n2100.arm.linux.org.uk>
+ <20090129220608.GJ18233@n2100.arm.linux.org.uk>
+ <20090209141156.GB16626@n2100.arm
+ <20090219121932.GL6407@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from omr3.bezeqint.net ([192.115.104.13]:57730 "EHLO
-	omr3.bezeqint.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754785AbZBTAND convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 19 Feb 2009 19:13:03 -0500
+Received: from comal.ext.ti.com ([198.47.26.152]:42106 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751163AbZBTAvh convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 19 Feb 2009 19:51:37 -0500
+In-Reply-To: <20090219121932.GL6407@n2100.arm.linux.org.uk>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>, Paul Walmsley <paul@pwsan.com>
+Cc: "linux-arm-kernel@lists.arm.linux.org.uk" <linux-arm-kernel@lists.arm.linux.org.uk>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>
 
-Your email ID has been awarded =A3950,000,00 GBP in the=20
-Compaq  PROMO,Reply us with your info:=20
-(jerry.smith700@btinternet.com)
 
-Name:....................
-Country:.................  =20
-Sex:.....................
-Age: .....................  =20
-Addres:...................
+> From: Russell King - ARM Linux [mailto:linux@arm.linux.org.uk]
+> Sent: Thursday, February 19, 2009 6:20 AM
 
-Regards
-Mrs Sarah Wood
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> > > > Consider what happens when a clock is enabled - we walk up the tree
+> > > > enabling all parents.  If we then change the clock's parent, and
+> > > > then disable the child, we will again walk up the tree, but since
+> > > > we've reparented it, it will be a different clock tree.  The result
+> > > > is that the ancestors clock usage counts, and therefore their enable
+> > > > status, will end up getting screwed up.
+> > >
+> > > Agreed.
+
+The historic usage of this has been against single use leaf clocks (1st instance of gptimer).  When it was used it did:
+        clk_get()
+        clk_set_parent()
+        clk_enable()
+
+This usage was ok for that. Use on a disabled clock is needed.
+
+If there are multiple users on the clock or it is enabled there are problems.
+
+> > > > This brings up a question: what we currently do here is:
+> > > >
+> > > > - disable the child
+> > > > - program clksel
+> > > > - enable the child
+> > > > - change child->parent
+> > > >
+> > > > If we add in the parent handling, there are two possibilities:
+> > > >
+> > > > - disable the child
+> > > > - enable the new parent tree
+> > > > - program clksel
+> > > > - change child->parent
+> > > > - disable the old parent tree
+> > > > - enable the child
+> > > >
+> > > > OR
+> > > >
+> > > > - disable the child and the old parent tree
+> > > > - program clksel
+> > > > - change child->parent
+> > > > - enable the new parent tree and the child
+> > > >
+> > > > (note those 'and's have implied ordering).
+> > > >
+> > > > Is there anything which dictates one approach over the other?
+> > > > Obviously the latter approach results in something smaller and
+> > > > cleaner, but might not be technically correct.
+> > >
+> > > I don't know of any hardware reason to prefer one approach over the other,
+> > > but Richard might know better.
+
+I'm not aware of any hw issue. I like option #2 it keeps parent tree (likely) off when divider is set.
+
+The call can still be unfriendly if 2 different drivers are using the clock with their own clock get/enable. It might be the function should return an error if usecount != 0 to stop surprises.  It is all around better if the parenting is done when the clock is off.
+
+The end user needs to be smart also. If the module has local divider it should set it _before_ enabling the clock. Letting a clock which is too fast for you propagate in can cause badness.
+
+clk_get
+clk_set_parent
+rate = Clk_get_rate
+set local divider
+clk_enable
+
+Regards,
+Richard W.
