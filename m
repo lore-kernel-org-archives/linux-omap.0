@@ -1,250 +1,194 @@
-From: Kim Kyuwon <chammoru@gmail.com>
-Subject: [PATCH] OMAP: HSMMC: Initialize hsmmc controller registers when
-	resuming
-Date: Fri, 20 Feb 2009 21:00:16 +0900
-Message-ID: <4d34a0a70902200400s252f48ddvfd6e0d83e91fa291@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from wf-out-1314.google.com ([209.85.200.173]:39180 "EHLO
-	wf-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751975AbZBTMAR (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 20 Feb 2009 07:00:17 -0500
-Sender: linux-omap-owner@vger.kernel.org
+From: Kalle Jokiniemi <kalle.jokiniemi-sMOQStClEysAvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH 1/1] TWL: USB: disable VUSB regulators when cable unplugged
+Date: Fri, 20 Feb 2009 14:02:31 +0200
+Message-ID: <1235131351-3178-2-git-send-email-kalle.jokiniemi@digia.com>
+References: <>
+ <1235131351-3178-1-git-send-email-kalle.jokiniemi@digia.com>
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1235131351-3178-1-git-send-email-kalle.jokiniemi-sMOQStClEysAvxtiuMwx3w@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: david-b-yBeKhBN/0LDR7s880joybQ@public.gmane.org, broonie-GFdadSzt00ze9xe1eoZjHA@public.gmane.org, lrg-kDsPt+C1G03kYMGBc/C6ZA@public.gmane.org
+Cc: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, jouni.hogander-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org, Kalle Jokiniemi <kalle.jokiniemi-sMOQStClEysAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org, drzeus-mmc@drzeus.cx, dbrownell@users.sourceforge.net, =?EUC-KR?B?seix1L/4?= <q1.kim@samsung.com>, =?EUC-KR?B?udqw5rnO?= <kyungmin.park@samsung.com>
 
-Most registers lose its state when the processor wakes up from sleep state.
-Thus registers should be initialized, when the processor wakes up. However the
-current hsmmc 'resume' function doesn't consider this issue and finally makes
-deadlock. So this patch fixes this problem.
+From: Jouni Hogander <jouni.hogander-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
 
-Signed-off-by: Kim Kyuwon <chammoru@gmail.com>
+This patch disables USB regulators VUSB1V5, VUSB1V8, and VUSB3V1
+when the USB cable is unplugged to reduce power consumption.
+Added a depencency from twl4030 usb driver to TWL_REGULATOR.
+
+Signed-off-by: Jouni Hogander <jouni.hogander-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Kalle Jokiniemi <kalle.jokiniemi-sMOQStClEysAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/mmc/host/omap_hsmmc.c |  155 +++++++++++++++++++++--------------------
- 1 files changed, 79 insertions(+), 76 deletions(-)
+ drivers/usb/otg/Kconfig       |    2 +-
+ drivers/usb/otg/twl4030-usb.c |   73 ++++++++++++++++++++++++++++++++++++-----
+ 2 files changed, 65 insertions(+), 10 deletions(-)
 
-diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
-index 56363c5..5a73fa6 100644
---- a/drivers/mmc/host/omap_hsmmc.c
-+++ b/drivers/mmc/host/omap_hsmmc.c
-@@ -55,6 +55,7 @@
- #define VS30			(1 << 25)
- #define SDVS18			(0x5 << 9)
- #define SDVS30			(0x6 << 9)
-+#define SDVS_MASK		0x00000E00
- #define SDVSCLR			0xFFFFF1FF
- #define SDVSDET			0x00000400
- #define AUTOIDLE		0x1
-@@ -861,6 +862,34 @@ static int omap_hsmmc_get_ro(struct mmc_host *mmc)
- 	return pdata->slots[0].get_ro(host->dev, 0);
- }
-
-+static void omap_hsmmc_init(struct mmc_omap_host *host)
-+{
-+	u32 hctl, capa, value;
+diff --git a/drivers/usb/otg/Kconfig b/drivers/usb/otg/Kconfig
+index ee55b44..5790a5b 100644
+--- a/drivers/usb/otg/Kconfig
++++ b/drivers/usb/otg/Kconfig
+@@ -43,7 +43,7 @@ config ISP1301_OMAP
+ 
+ config TWL4030_USB
+ 	tristate "TWL4030 USB Transceiver Driver"
+-	depends on TWL4030_CORE
++	depends on TWL4030_CORE && REGULATOR_TWL4030
+ 	select USB_OTG_UTILS
+ 	help
+ 	  Enable this to support the USB OTG transceiver on TWL4030
+diff --git a/drivers/usb/otg/twl4030-usb.c b/drivers/usb/otg/twl4030-usb.c
+index 416e441..d9478d0 100644
+--- a/drivers/usb/otg/twl4030-usb.c
++++ b/drivers/usb/otg/twl4030-usb.c
+@@ -34,6 +34,8 @@
+ #include <linux/delay.h>
+ #include <linux/usb/otg.h>
+ #include <linux/i2c/twl4030.h>
++#include <linux/regulator/consumer.h>
++#include <linux/err.h>
+ 
+ 
+ /* Register defines */
+@@ -246,6 +248,11 @@ struct twl4030_usb {
+ 	struct otg_transceiver	otg;
+ 	struct device		*dev;
+ 
++	/* TWL4030 internal USB regulator supplies */
++	struct regulator	*usb1v5;
++	struct regulator	*usb1v8;
++	struct regulator	*usb3v1;
 +
-+	/* Only MMC1 supports 3.0V */
-+	if (host->id == OMAP_MMC1_DEVID) {
-+		hctl = SDVS30;
-+		capa = VS30 | VS18;
-+	} else {
-+		hctl = SDVS18;
-+		capa = VS18;
-+	}
-+
-+	value = OMAP_HSMMC_READ(host->base, HCTL) & ~SDVS_MASK;
-+	OMAP_HSMMC_WRITE(host->base, HCTL, value | hctl);
-+
-+	value = OMAP_HSMMC_READ(host->base, CAPA);
-+	OMAP_HSMMC_WRITE(host->base, CAPA, value | capa);
-+
-+	/* Set the controller to AUTO IDLE mode */
-+	value = OMAP_HSMMC_READ(host->base, SYSCONFIG);
-+	OMAP_HSMMC_WRITE(host->base, SYSCONFIG, value | AUTOIDLE);
-+
-+	/* Set SD bus power bit */
-+	value = OMAP_HSMMC_READ(host->base, HCTL);
-+	OMAP_HSMMC_WRITE(host->base, HCTL, value | SDBP);
-+}
-+
- static struct mmc_host_ops mmc_omap_ops = {
- 	.request = omap_mmc_request,
- 	.set_ios = omap_mmc_set_ios,
-@@ -876,7 +905,6 @@ static int __init omap_mmc_probe(struct
-platform_device *pdev)
- 	struct mmc_omap_host *host = NULL;
- 	struct resource *res;
- 	int ret = 0, irq;
--	u32 hctl, capa;
-
- 	if (pdata == NULL) {
- 		dev_err(&pdev->dev, "Platform Data is missing\n");
-@@ -981,28 +1009,7 @@ static int __init omap_mmc_probe(struct
-platform_device *pdev)
- 	if (pdata->slots[host->slot_id].wires >= 4)
- 		mmc->caps |= MMC_CAP_4_BIT_DATA;
-
--	/* Only MMC1 supports 3.0V */
--	if (host->id == OMAP_MMC1_DEVID) {
--		hctl = SDVS30;
--		capa = VS30 | VS18;
--	} else {
--		hctl = SDVS18;
--		capa = VS18;
--	}
--
--	OMAP_HSMMC_WRITE(host->base, HCTL,
--			OMAP_HSMMC_READ(host->base, HCTL) | hctl);
--
--	OMAP_HSMMC_WRITE(host->base, CAPA,
--			OMAP_HSMMC_READ(host->base, CAPA) | capa);
--
--	/* Set the controller to AUTO IDLE mode */
--	OMAP_HSMMC_WRITE(host->base, SYSCONFIG,
--			OMAP_HSMMC_READ(host->base, SYSCONFIG) | AUTOIDLE);
--
--	/* Set SD bus power bit */
--	OMAP_HSMMC_WRITE(host->base, HCTL,
--			OMAP_HSMMC_READ(host->base, HCTL) | SDBP);
-+	omap_hsmmc_init(host);
-
- 	/* Request IRQ for MMC operations */
- 	ret = request_irq(host->irq, mmc_omap_irq, IRQF_DISABLED,
-@@ -1127,41 +1134,38 @@ static int omap_mmc_suspend(struct
-platform_device *pdev, pm_message_t state)
- 	if (host && host->suspended)
- 		return 0;
-
--	if (host) {
--		ret = mmc_suspend_host(host->mmc, state);
--		if (ret == 0) {
--			host->suspended = 1;
--
--			OMAP_HSMMC_WRITE(host->base, ISE, 0);
--			OMAP_HSMMC_WRITE(host->base, IE, 0);
-+	ret = mmc_suspend_host(host->mmc, state);
-+	if (ret == 0) {
-+		host->suspended = 1;
-
--			if (host->pdata->suspend) {
--				ret = host->pdata->suspend(&pdev->dev,
--								host->slot_id);
--				if (ret)
--					dev_dbg(mmc_dev(host->mmc),
--						"Unable to handle MMC board"
--						" level suspend\n");
--			}
-+		OMAP_HSMMC_WRITE(host->base, ISE, 0);
-+		OMAP_HSMMC_WRITE(host->base, IE, 0);
-
--			if (!(OMAP_HSMMC_READ(host->base, HCTL) & SDVSDET)) {
--				OMAP_HSMMC_WRITE(host->base, HCTL,
--					OMAP_HSMMC_READ(host->base, HCTL)
--					& SDVSCLR);
--				OMAP_HSMMC_WRITE(host->base, HCTL,
--					OMAP_HSMMC_READ(host->base, HCTL)
--					| SDVS30);
--				OMAP_HSMMC_WRITE(host->base, HCTL,
--					OMAP_HSMMC_READ(host->base, HCTL)
--					| SDBP);
--			}
-+		if (host->pdata->suspend) {
-+			ret = host->pdata->suspend(&pdev->dev, host->slot_id);
-+			if (ret)
-+				dev_dbg(mmc_dev(host->mmc),
-+					"Unable to handle MMC board"
-+					" level suspend\n");
-+		}
-
--			clk_disable(host->fclk);
--			clk_disable(host->iclk);
--			clk_disable(host->dbclk);
-+		if (!(OMAP_HSMMC_READ(host->base, HCTL) & SDVSDET)) {
-+			OMAP_HSMMC_WRITE(host->base, HCTL,
-+				OMAP_HSMMC_READ(host->base, HCTL)
-+				& SDVSCLR);
-+			OMAP_HSMMC_WRITE(host->base, HCTL,
-+				OMAP_HSMMC_READ(host->base, HCTL)
-+				| SDVS30);
-+			OMAP_HSMMC_WRITE(host->base, HCTL,
-+				OMAP_HSMMC_READ(host->base, HCTL)
-+				| SDBP);
- 		}
-
-+		clk_disable(host->fclk);
-+		clk_disable(host->iclk);
-+		clk_disable(host->dbclk);
+ 	/* for vbus reporting with irqs disabled */
+ 	spinlock_t		lock;
+ 
+@@ -434,6 +441,18 @@ static void twl4030_phy_power(struct twl4030_usb *twl, int on)
+ 
+ 	pwr = twl4030_usb_read(twl, PHY_PWR_CTRL);
+ 	if (on) {
++		regulator_enable(twl->usb3v1);
++		regulator_enable(twl->usb1v8);
++		/*
++		 * Disabling usb3v1 regulator (= writing 0 to VUSB3V1_DEV_GRP
++		 * in twl4030) resets the VUSB_DEDICATED2 register. This reset
++		 * enables VUSB3V1_SLEEP bit that remaps usb3v1 ACTIVE state to
++		 * SLEEP. We work around this by clearing the bit after usv3v1
++		 * is re-activated. This ensures that VUSB3V1 is really active.
++		 */
++		twl4030_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER, 0,
++							VUSB_DEDICATED2);
++		regulator_enable(twl->usb1v5);
+ 		pwr &= ~PHY_PWR_PHYPWD;
+ 		WARN_ON(twl4030_usb_write_verify(twl, PHY_PWR_CTRL, pwr) < 0);
+ 		twl4030_usb_write(twl, PHY_CLK_CTRL,
+@@ -443,6 +462,9 @@ static void twl4030_phy_power(struct twl4030_usb *twl, int on)
+ 	} else  {
+ 		pwr |= PHY_PWR_PHYPWD;
+ 		WARN_ON(twl4030_usb_write_verify(twl, PHY_PWR_CTRL, pwr) < 0);
++		regulator_disable(twl->usb1v5);
++		regulator_disable(twl->usb1v8);
++		regulator_disable(twl->usb3v1);
  	}
-+
- 	return ret;
  }
-
-@@ -1174,36 +1178,35 @@ static int omap_mmc_resume(struct platform_device *pdev)
- 	if (host && !host->suspended)
- 		return 0;
-
--	if (host) {
-+	ret = clk_enable(host->fclk);
-+	if (ret)
-+		goto clk_en_err;
-
--		ret = clk_enable(host->fclk);
--		if (ret)
--			goto clk_en_err;
--
--		ret = clk_enable(host->iclk);
--		if (ret) {
--			clk_disable(host->fclk);
--			clk_put(host->fclk);
--			goto clk_en_err;
--		}
-+	ret = clk_enable(host->iclk);
-+	if (ret) {
-+		clk_disable(host->fclk);
-+		clk_put(host->fclk);
-+		goto clk_en_err;
-+	}
-
--		if (clk_enable(host->dbclk) != 0)
--			dev_dbg(mmc_dev(host->mmc),
--					"Enabling debounce clk failed\n");
-+	if (clk_enable(host->dbclk) != 0)
-+		dev_dbg(mmc_dev(host->mmc),
-+				"Enabling debounce clk failed\n");
-
--		if (host->pdata->resume) {
--			ret = host->pdata->resume(&pdev->dev, host->slot_id);
--			if (ret)
--				dev_dbg(mmc_dev(host->mmc),
--					"Unmask interrupt failed\n");
--		}
-+	omap_hsmmc_init(host);
-
--		/* Notify the core to resume the host */
--		ret = mmc_resume_host(host->mmc);
--		if (ret == 0)
--			host->suspended = 0;
-+	if (host->pdata->resume) {
-+		ret = host->pdata->resume(&pdev->dev, host->slot_id);
-+		if (ret)
-+			dev_dbg(mmc_dev(host->mmc),
-+				"Unmask interrupt failed\n");
- 	}
-
-+	/* Notify the core to resume the host */
-+	ret = mmc_resume_host(host->mmc);
-+	if (ret == 0)
-+		host->suspended = 0;
+ 
+@@ -468,7 +490,7 @@ static void twl4030_phy_resume(struct twl4030_usb *twl)
+ 	twl->asleep = 0;
+ }
+ 
+-static void twl4030_usb_ldo_init(struct twl4030_usb *twl)
++static int twl4030_usb_ldo_init(struct twl4030_usb *twl)
+ {
+ 	/* Enable writing to power configuration registers */
+ 	twl4030_i2c_write_u8(TWL4030_MODULE_PM_MASTER, 0xC0, PROTECT_KEY);
+@@ -480,20 +502,45 @@ static void twl4030_usb_ldo_init(struct twl4030_usb *twl)
+ 	/* input to VUSB3V1 LDO is from VBAT, not VBUS */
+ 	twl4030_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER, 0x14, VUSB_DEDICATED1);
+ 
+-	/* turn on 3.1V regulator */
+-	twl4030_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER, 0x20, VUSB3V1_DEV_GRP);
++	/* Initialize 3.1V regulator */
++	twl4030_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER, 0, VUSB3V1_DEV_GRP);
 +
- 	return ret;
-
- clk_en_err:
++	twl->usb3v1 = regulator_get(twl->dev, "usb3v1");
++	if (IS_ERR(twl->usb3v1))
++		return -ENODEV;
++
+ 	twl4030_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER, 0, VUSB3V1_TYPE);
+ 
+-	/* turn on 1.5V regulator */
+-	twl4030_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER, 0x20, VUSB1V5_DEV_GRP);
++	/* Initialize 1.5V regulator */
++	twl4030_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER, 0, VUSB1V5_DEV_GRP);
++
++	twl->usb1v5 = regulator_get(twl->dev, "usb1v5");
++	if (IS_ERR(twl->usb1v5))
++		goto fail1;
++
+ 	twl4030_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER, 0, VUSB1V5_TYPE);
+ 
+-	/* turn on 1.8V regulator */
+-	twl4030_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER, 0x20, VUSB1V8_DEV_GRP);
++	/* Initialize 1.8V regulator */
++	twl4030_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER, 0, VUSB1V8_DEV_GRP);
++
++	twl->usb1v8 = regulator_get(twl->dev, "usb1v8");
++	if (IS_ERR(twl->usb1v8))
++		goto fail2;
++
+ 	twl4030_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER, 0, VUSB1V8_TYPE);
+ 
+ 	/* disable access to power configuration registers */
+ 	twl4030_i2c_write_u8(TWL4030_MODULE_PM_MASTER, 0, PROTECT_KEY);
++
++	return 0;
++
++fail2:
++	regulator_put(twl->usb1v5);
++	twl->usb1v5 = NULL;
++fail1:
++	regulator_put(twl->usb3v1);
++	twl->usb3v1 = NULL;
++	return -ENODEV;
+ }
+ 
+ static ssize_t twl4030_usb_vbus_show(struct device *dev,
+@@ -598,7 +645,7 @@ static int __init twl4030_usb_probe(struct platform_device *pdev)
+ {
+ 	struct twl4030_usb_data *pdata = pdev->dev.platform_data;
+ 	struct twl4030_usb	*twl;
+-	int			status;
++	int			status, err;
+ 
+ 	if (!pdata) {
+ 		dev_dbg(&pdev->dev, "platform_data not available\n");
+@@ -622,7 +669,12 @@ static int __init twl4030_usb_probe(struct platform_device *pdev)
+ 	/* init spinlock for workqueue */
+ 	spin_lock_init(&twl->lock);
+ 
+-	twl4030_usb_ldo_init(twl);
++	err = twl4030_usb_ldo_init(twl);
++	if (err) {
++		dev_err(&pdev->dev, "ldo init failed\n");
++		kfree(twl);
++		return err;
++	}
+ 	otg_set_transceiver(&twl->otg);
+ 
+ 	platform_set_drvdata(pdev, twl);
+@@ -688,6 +740,9 @@ static int __exit twl4030_usb_remove(struct platform_device *pdev)
+ 	twl4030_usb_clear_bits(twl, POWER_CTRL, POWER_CTRL_OTG_ENAB);
+ 
+ 	twl4030_phy_power(twl, 0);
++	regulator_put(twl->usb1v5);
++	regulator_put(twl->usb1v8);
++	regulator_put(twl->usb3v1);
+ 
+ 	kfree(twl);
+ 
 -- 
-1.5.2.5
+1.5.4.3
 
-
--- 
-Kim Kyuwon
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
