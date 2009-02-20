@@ -1,59 +1,44 @@
-From: "Woodruff, Richard" <r-woodruff2@ti.com>
-Subject: RE: [pacth] I2C bug fixes for L-O and L-Z
-Date: Fri, 20 Feb 2009 14:59:25 -0600
-Message-ID: <13B9B4C6EF24D648824FF11BE896716203772C3CAF@dlee02.ent.ti.com>
-References: <1234767724.16827.7.camel@eenurkka-desktop>
-	 <13B9B4C6EF24D648824FF11BE896716203771DC940@dlee02.ent.ti.com>
- <1234850560.13109.9.camel@eenurkka-desktop>
- <13B9B4C6EF24D648824FF11BE896716203771DD194@dlee02.ent.ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: omap_apollon_2420_defconfig
+Date: Fri, 20 Feb 2009 13:06:44 -0800
+Message-ID: <20090220210644.GE7414@atomide.com>
+References: <20090209192614.GF19453@n2100.arm.linux.org.uk> <20090209205319.GH14200@atomide.com> <9c9fda240902091754q7f723bf2ha46206e52641297b@mail.gmail.com> <20090220205812.GA13961@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:48844 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751659AbZBTU7i convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 20 Feb 2009 15:59:38 -0500
-In-Reply-To: <13B9B4C6EF24D648824FF11BE896716203771DD194@dlee02.ent.ti.com>
-Content-Language: en-US
+Received: from mho-01-bos.mailhop.org ([63.208.196.178]:57336 "EHLO
+	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751967AbZBTVG4 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 20 Feb 2009 16:06:56 -0500
+Content-Disposition: inline
+In-Reply-To: <20090220205812.GA13961@n2100.arm.linux.org.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "ext-eero.nurkkala@nokia.com" <ext-eero.nurkkala@nokia.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: Kyungmin Park <kmpark@infradead.org>, David Brownell <david-b@pacbell.net>, linux-omap@vger.kernel.org, linux-usb@vger.kernel.org
 
-Eero,
+* Russell King - ARM Linux <linux@arm.linux.org.uk> [090220 12:58]:
+> On Tue, Feb 10, 2009 at 10:54:25AM +0900, Kyungmin Park wrote:
+> > In the previous patch, it's only fixed host side. But apollon case, it
+> > only used udc, so udc configuration should select USB_OTG_UTILS also.
+> 
+> So, it's 10 days later, mainline is still broken.  In fact, this is
+> now the only ARM defconfig which is failing.
+> 
+> What's happening?  Is someone going to ack this patch?  Is it going
+> to be submitted to me or is it going to be submitted via some USB
+> tree?
 
-> > From: Eero Nurkkala [mailto:ext-eero.nurkkala@nokia.com]
->
-> > On Mon, 2009-02-16 at 15:19 +0100, ext Woodruff, Richard wrote:
-> > > Hi,
-> > >
-> > > > Could you please also address the question of the load on the SCL line?
-> > >
-> > > Are you talking about rise/fall time?
-> > >
-> > Sorry for being unclear;
-> >
-> > The I2C standard addresses also rise/fall times, but more interesting,
-> > the tLow and tHigh (and a number of other parameters).
-> >
-> > It seems with the open source drivers, that somehow they're after a
-> > "balanced I2C clock" meaning tLow == tHigh, which is very, very
-> > dangerous.
->
-> Oh, I see. I didn't look at that angle. I can inquire/look.
->
-> For sure wave forms on O-Scope and LA showed variable data line times,
-> sometimes longer then one would expect (for stop/start/ack).  But yes, clocks
-> were pretty even iirc.
+Well it would be nice to get an ack from the USB people, here's mine:
 
-I received the following comment from a HW Apps person whom has dealt with this at the board level.
+Acked-by: Tony Lindgren <tony@atomide.com>
 
-<comment start>
-Attached is the I2C spec that I have.  As I understand it, the I2C only specify the minimum tLow and tHigh (which is not "balanced").  However what is more important is that the appropriate setup and hold time are followed.
+> Sick of chasing people about build errors.  People here need to get
+> off their lazy backsides, check kautobuild regularly and submit build
+> fixes.
 
-If the equal time still meets the setup/hold time then there should not be any issue from a compliance standpoint.
-<comment end>
+How about automatic notifications on the failing omap builds sent to
+to linux-omap list? The 34xx builds failing because of the compiler
+should be filtered out until the compiler is updated though.
 
-Regards,
-Richard W.
+Tony
