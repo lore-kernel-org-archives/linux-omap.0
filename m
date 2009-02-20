@@ -1,46 +1,40 @@
-From: Imre Deak <imre.deak@nokia.com>
-Subject: Re: OMAP3: PM : Timer to turn LCD off
-Date: Fri, 20 Feb 2009 15:38:48 +0200
-Message-ID: <20090220133848.GI14315@localhost>
-References: <B85A65D85D7EB246BE421B3FB0FBB59301C74A6B3D@dbde02.ent.ti.com>
+From: Felipe Balbi <felipe.balbi@nokia.com>
+Subject: Re: ehci-omap patches (Was Re: [PATCH 0/5] [RESEND] lm8323 patches)
+Date: Fri, 20 Feb 2009 15:30:05 +0200
+Message-ID: <20090220133005.GP16942@scadufax.research.nokia.com>
+References: <20090220125109.GL16942@scadufax.research.nokia.com> <5A47E75E594F054BAF48C5E4FC4B92AB02F565683F@dbde02.ent.ti.com>
+Reply-To: felipe.balbi@nokia.com
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:16762 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751131AbZBTNnE (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 20 Feb 2009 08:43:04 -0500
+Received: from smtp.nokia.com ([192.100.122.230]:42707 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751855AbZBTNqH (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 20 Feb 2009 08:46:07 -0500
 Content-Disposition: inline
-In-Reply-To: <B85A65D85D7EB246BE421B3FB0FBB59301C74A6B3D@dbde02.ent.ti.com>
+In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB02F565683F@dbde02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "ext Premi, Sanjeev" <premi@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: "ext Gadiyar, Anand" <gadiyar@ti.com>
+Cc: "Balbi Felipe (Nokia-D/Helsinki)" <felipe.balbi@nokia.com>, Grazvydas Ignotas <notasas@gmail.com>, "me@felipebalbi.com" <me@felipebalbi.com>, Steve Sakoman <sakoman@gmail.com>, Tony Lindgren <tony@atomide.com>, linux-omap <linux-omap@vger.kernel.org>
 
-On Fri, Feb 20, 2009 at 02:24:50PM +0100, ext Premi, Sanjeev wrote:
-> While testing cpuidle (from Kevin's PM beanch) with default configuration for OMAP3EVM, the c-state never transitions from C0.
+On Fri, Feb 20, 2009 at 02:23:33PM +0100, Anand Gadiyar wrote:
+> That's not true. I do care. It __is__ important to me that OMAP support goes
+> to mainline. And I do not like it that it hasn't happened yet. Sorry.
 > 
-> Even compiling with minimal drivers did not help. "fck_core1" continues to be active.
-> Also, the LCD continues to be powered on... Despite compiling out V4L and FB drivers.
-> 
-> A simple way to turn LCD off would be to implement an inactivity timer. (e.g. serial.c on the pm branch)
+> What happened with EHCI here is kind of similar to what you've done with MUSB patches recently anyway.
 
-Blanking seems to me more of a user space policy. You could turn off the
-LCD backlight from the board file if the FB driver is not configured.
+sure... but then Dave helped right... We had some discussions off list
+in order for that to happen.
 
---Imre
+> > Well, I'm not here to flood the list discussing this kinds of
+> > issues with you.
+> 
+> Standard behavior for you. That's the way you end all discussions that go
+> beyond 5 mails!
 
-> 
-> The question is - where should this timer be implemented?
-> - As part of the backlight driver?
->   OR
-> - As part of the fb driver?
->   OR
-> - Should it be tied to the board initialization?
-> 
-> Best regards,
-> Sanjeev
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+yeah... for sure. If you wanna keep discussing it, just keep sending
+your mails...
+
+-- 
+balbi
