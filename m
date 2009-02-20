@@ -1,16 +1,38 @@
 From: Felipe Balbi <me@felipebalbi.com>
-Subject: [PATCH] input: lm8323: apply comments from mainline
-Date: Sat, 21 Feb 2009 00:21:34 +0200
-Message-ID: <1235168494-20304-1-git-send-email-me@felipebalbi.com>
+Subject: Re: [PATCH] input: lm8323: apply comments from mainline
+Date: Sat, 21 Feb 2009 00:30:37 +0200
+Message-ID: <20090220223036.GW32564@gandalf>
+References: <1235168494-20304-1-git-send-email-me@felipebalbi.com>
+Reply-To: me@felipebalbi.com
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ns1.siteground211.com ([209.62.36.12]:58177 "EHLO
+Received: from ns1.siteground211.com ([209.62.36.12]:44896 "EHLO
 	serv01.siteground211.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753281AbZBTWVl (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 20 Feb 2009 17:21:41 -0500
+	with ESMTP id S1751827AbZBTWan (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 20 Feb 2009 17:30:43 -0500
+Content-Disposition: inline
+In-Reply-To: <1235168494-20304-1-git-send-email-me@felipebalbi.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Tony Lindgren <tony@atomide.com>, Felipe Balbi <me@felipebalbi.com>
+To: Felipe Balbi <me@felipebalbi.com>
+Cc: linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>
+
+On Sat, Feb 21, 2009 at 12:21:34AM +0200, Felipe Balbi wrote:
+> In order to avoid conflicts later, let's sync omap
+> version with the version accepted by mainline after
+> fixing a few comments.
+> 
+> Signed-off-by: Felipe Balbi <me@felipebalbi.com>
+
+Wait a minute, I forgot one hunk, here's an updated version:
+
+========== cut here ==========
+
+>From 370931163e963de1b3cd38d25c1233adebabd103 Mon Sep 17 00:00:00 2001
+From: Felipe Balbi <me@felipebalbi.com>
+Date: Thu, 19 Feb 2009 19:53:59 +0200
+Subject: [PATCH] input: lm8323: apply comments from mainline
 
 In order to avoid conflicts later, let's sync omap
 version with the version accepted by mainline after
@@ -18,18 +40,10 @@ fixing a few comments.
 
 Signed-off-by: Felipe Balbi <me@felipebalbi.com>
 ---
-lm8323 was recently added to -mm tree, so I'm sending this patch
-to avoid conflicts with this driver later
-
-The patch titled
-     input: keyboard: introduce lm8323 driver
-has been added to the -mm tree.  Its filename is
-     input-keyboard-introduce-lm8323-driver.patch
-
  drivers/input/keyboard/Kconfig  |    1 +
  drivers/input/keyboard/lm8323.c |   47 +++++++++++++++++++++++++-------------
- include/linux/i2c/lm8323.h      |   15 ++++++++++-
- 3 files changed, 45 insertions(+), 18 deletions(-)
+ include/linux/i2c/lm8323.h      |   17 +++++++++++--
+ 3 files changed, 46 insertions(+), 19 deletions(-)
 
 diff --git a/drivers/input/keyboard/Kconfig b/drivers/input/keyboard/Kconfig
 index 4d64652..2c5b7bc 100644
@@ -211,7 +225,7 @@ index 27da93c..a796680 100644
  MODULE_LICENSE("GPL");
  
 diff --git a/include/linux/i2c/lm8323.h b/include/linux/i2c/lm8323.h
-index 5eae5cc..37f819b 100644
+index 5eae5cc..67e82bc 100644
 --- a/include/linux/i2c/lm8323.h
 +++ b/include/linux/i2c/lm8323.h
 @@ -1,7 +1,18 @@
@@ -235,6 +249,17 @@ index 5eae5cc..37f819b 100644
   */
  
  #ifndef __LINUX_LM8323_H
+@@ -22,7 +33,7 @@ struct lm8323_platform_data {
+ 
+ 	int size_x;
+ 	int size_y;
+-	int repeat : 1;
++	int repeat:1;
+ 	const s16 *keymap;
+ 
+ 	char *pwm1_name; /* Device name for PWM1. */
 -- 
 1.6.1.3
 
+-- 
+balbi
