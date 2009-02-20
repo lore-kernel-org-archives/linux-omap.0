@@ -1,265 +1,161 @@
-From: Felipe Balbi <me@felipebalbi.com>
-Subject: Re: [PATCH] input: lm8323: apply comments from mainline
-Date: Sat, 21 Feb 2009 00:30:37 +0200
-Message-ID: <20090220223036.GW32564@gandalf>
-References: <1235168494-20304-1-git-send-email-me@felipebalbi.com>
-Reply-To: me@felipebalbi.com
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Felipe Contreras <felipe.contreras@gmail.com>
+Subject: [PATCH] dspbridge: wait less and check the mailbox more
+Date: Sat, 21 Feb 2009 01:04:17 +0200
+Message-ID: <1235171057-7859-1-git-send-email-felipe.contreras@gmail.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ns1.siteground211.com ([209.62.36.12]:44896 "EHLO
-	serv01.siteground211.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751827AbZBTWan (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 20 Feb 2009 17:30:43 -0500
-Content-Disposition: inline
-In-Reply-To: <1235168494-20304-1-git-send-email-me@felipebalbi.com>
+Received: from mail-bw0-f161.google.com ([209.85.218.161]:37860 "EHLO
+	mail-bw0-f161.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752426AbZBTXEW (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 20 Feb 2009 18:04:22 -0500
+Received: by bwz5 with SMTP id 5so3106142bwz.13
+        for <linux-omap@vger.kernel.org>; Fri, 20 Feb 2009 15:04:19 -0800 (PST)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Balbi <me@felipebalbi.com>
-Cc: linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>
+To: linux-omap@vger.kernel.org
+Cc: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>, Felipe Contreras <felipe.contrers@nokia.com>, Felipe Contreras <felipe.contreras@nokia.com>
 
-On Sat, Feb 21, 2009 at 12:21:34AM +0200, Felipe Balbi wrote:
-> In order to avoid conflicts later, let's sync omap
-> version with the version accepted by mainline after
-> fixing a few comments.
-> 
-> Signed-off-by: Felipe Balbi <me@felipebalbi.com>
+From: Felipe Contreras <felipe.contrers@nokia.com>
 
-Wait a minute, I forgot one hunk, here's an updated version:
+Profiling showed the __delay function is called a lot; checking the mbox
+more often seems to decrease the usage by 2/3 according to OProfile.
 
-========== cut here ==========
+The changes are based on 'arch/arm/plat-omap/mailbox.c'. Tested on OMAP3430.
 
->From 370931163e963de1b3cd38d25c1233adebabd103 Mon Sep 17 00:00:00 2001
-From: Felipe Balbi <me@felipebalbi.com>
-Date: Thu, 19 Feb 2009 19:53:59 +0200
-Subject: [PATCH] input: lm8323: apply comments from mainline
+Also, remove HW_MBOX_IsFull since it's not used by anybody.
 
-In order to avoid conflicts later, let's sync omap
-version with the version accepted by mainline after
-fixing a few comments.
-
-Signed-off-by: Felipe Balbi <me@felipebalbi.com>
+Signed-off-by: Felipe Contreras <felipe.contreras@nokia.com>
 ---
- drivers/input/keyboard/Kconfig  |    1 +
- drivers/input/keyboard/lm8323.c |   47 +++++++++++++++++++++++++-------------
- include/linux/i2c/lm8323.h      |   17 +++++++++++--
- 3 files changed, 46 insertions(+), 19 deletions(-)
+ drivers/dsp/bridge/hw/hw_mbox.c    |   25 -------------------------
+ drivers/dsp/bridge/hw/hw_mbox.h    |   35 -----------------------------------
+ drivers/dsp/bridge/wmd/tiomap_sm.c |   17 ++++++++++-------
+ 3 files changed, 10 insertions(+), 67 deletions(-)
 
-diff --git a/drivers/input/keyboard/Kconfig b/drivers/input/keyboard/Kconfig
-index 4d64652..2c5b7bc 100644
---- a/drivers/input/keyboard/Kconfig
-+++ b/drivers/input/keyboard/Kconfig
-@@ -289,6 +289,7 @@ config KEYBOARD_TSC2301
- config KEYBOARD_LM8323
- 	tristate "LM8323 keypad chip"
- 	depends on I2C
-+	depends on LEDS
- 	help
- 	  If you say yes here you get support for the National Semiconductor
- 	  LM8323 keypad controller.
-diff --git a/drivers/input/keyboard/lm8323.c b/drivers/input/keyboard/lm8323.c
-index 27da93c..a796680 100644
---- a/drivers/input/keyboard/lm8323.c
-+++ b/drivers/input/keyboard/lm8323.c
-@@ -1,11 +1,13 @@
- /*
-  * drivers/i2c/chips/lm8323.c
-  *
-- * Copyright (C) 2007 Nokia Corporation
-+ * Copyright (C) 2007-2009 Nokia Corporation
-  *
-  * Written by Daniel Stone <daniel.stone@nokia.com>
-  *            Timo O. Karjalainen <timo.o.karjalainen@nokia.com>
-  *
-+ * Updated by Felipe Balbi <felipe.balbi@nokia.com>
-+ *
-  * This program is free software; you can redistribute it and/or modify
-  * it under the terms of the GNU General Public License as published by
-  * the Free Software Foundation (version 2 of the License only).
-@@ -131,18 +133,20 @@ struct lm8323_pwm {
- 	int			brightness;
- 	int			desired_brightness;
- 	int			running;
-+	/* pwm lock */
- 	struct mutex		lock;
- 	struct work_struct	work;
- 	struct led_classdev	cdev;
- };
- 
- struct lm8323_chip {
-+	/* device lock */
- 	struct mutex		lock;
- 	struct i2c_client	*client;
- 	struct work_struct	work;
- 	struct input_dev	*idev;
--	unsigned		kp_enabled : 1;
--	unsigned		pm_suspend : 1;
-+	unsigned		kp_enabled:1;
-+	unsigned		pm_suspend:1;
- 	unsigned		keys_down;
- 	char			phys[32];
- 	s16			keymap[LM8323_KEYMAP_SIZE];
-@@ -328,9 +332,11 @@ static void lm8323_process_error(struct lm8323_chip *lm)
- 		if (error & ERR_FIFOOVER)
- 			dev_vdbg(&lm->client->dev, "fifo overflow!\n");
- 		if (error & ERR_KEYOVR)
--			dev_vdbg(&lm->client->dev, "more than two keys pressed\n");
-+			dev_vdbg(&lm->client->dev,
-+					"more than two keys pressed\n");
- 		if (error & ERR_CMDUNK)
--			dev_vdbg(&lm->client->dev, "unknown command submitted\n");
-+			dev_vdbg(&lm->client->dev,
-+					"unknown command submitted\n");
- 		if (error & ERR_BADPAR)
- 			dev_vdbg(&lm->client->dev, "bad command parameter\n");
- 	}
-@@ -510,8 +516,7 @@ static void lm8323_pwm_work(struct work_struct *work)
- 	if ((pwm->fade_time / steps) > (32768 / 512)) {
- 		div512 = 1;
- 		hz = 32768 / 512;
--	}
--	else {
-+	} else {
- 		div512 = 0;
- 		hz = 32768 / 16;
- 	}
-@@ -579,7 +584,7 @@ static ssize_t lm8323_pwm_store_time(struct device *dev,
- 	int ret;
- 	int time;
- 
--	ret = sscanf(buf, "%d", &time);
-+	ret = strict_strtoul(buf, 10, &time);
- 	/* Numbers only, please. */
- 	if (ret)
- 		return -EINVAL;
-@@ -655,7 +660,7 @@ static ssize_t lm8323_set_disable(struct device *dev,
- 	int ret;
- 	int i;
- 
--	i = sscanf(buf, "%d", &ret);
-+	ret = strict_strtoul(buf, 10, &i);
- 
- 	mutex_lock(&lm->lock);
- 	lm->kp_enabled = !i;
-@@ -704,7 +709,8 @@ static int lm8323_probe(struct i2c_client *client,
- 		goto fail2;
- 	}
- 
--	dev_vdbg(&client->dev, "Keypad size: %d x %d\n", lm->size_x, lm->size_y);
-+	dev_vdbg(&client->dev, "Keypad size: %d x %d\n",
-+			lm->size_x, lm->size_y);
- 
- 	lm->debounce_time = pdata->debounce_time;
- 	lm->active_time = pdata->active_time;
-@@ -746,14 +752,15 @@ static int lm8323_probe(struct i2c_client *client,
- 	INIT_WORK(&lm->work, lm8323_work);
- 
- 	err = request_irq(client->irq, lm8323_irq,
--			  IRQF_TRIGGER_FALLING | IRQF_DISABLED |
--			  IRQF_SAMPLE_RANDOM, "lm8323", lm);
-+			  IRQF_TRIGGER_FALLING | IRQF_DISABLED,
-+			  "lm8323", lm);
- 	if (err) {
- 		dev_err(&client->dev, "could not get IRQ %d\n", client->irq);
- 		goto fail6;
- 	}
- 
--	set_irq_wake(client->irq, 1);
-+	device_init_wakeup(&client->dev, 1);
-+	enable_irq_wake(client->irq);
- 
- 	lm->kp_enabled = 1;
- 	err = device_create_file(&client->dev, &dev_attr_disable_kp);
-@@ -777,13 +784,13 @@ static int lm8323_probe(struct i2c_client *client,
- 	idev->evbit[0] = BIT(EV_KEY);
- 	for (i = 0; i < LM8323_KEYMAP_SIZE; i++) {
- 		if (pdata->keymap[i] > 0)
--			set_bit(pdata->keymap[i], idev->keybit);
-+			__set_bit(pdata->keymap[i], idev->keybit);
- 
- 		lm->keymap[i] = pdata->keymap[i];
- 	}
- 
- 	if (pdata->repeat)
--		set_bit(EV_REP, idev->evbit);
-+		__set_bit(EV_REP, idev->evbit);
- 
- 	lm->idev = idev;
- 	err = input_register_device(idev);
-@@ -817,6 +824,7 @@ static int lm8323_remove(struct i2c_client *client)
- {
- 	struct lm8323_chip *lm = i2c_get_clientdata(client);
- 
-+	disable_irq_wake(client->irq);
- 	free_irq(client->irq, lm);
- 	cancel_work_sync(&lm->work);
- 	input_unregister_device(lm->idev);
-@@ -832,6 +840,7 @@ static int lm8323_remove(struct i2c_client *client)
- 	return 0;
+diff --git a/drivers/dsp/bridge/hw/hw_mbox.c b/drivers/dsp/bridge/hw/hw_mbox.c
+index 2c14ade..31b890a 100644
+--- a/drivers/dsp/bridge/hw/hw_mbox.c
++++ b/drivers/dsp/bridge/hw/hw_mbox.c
+@@ -104,31 +104,6 @@ HW_STATUS HW_MBOX_MsgWrite(const u32 baseAddress, const HW_MBOX_Id_t mailBoxId,
+ 	return status;
  }
  
-+#ifdef CONFIG_PM
+-/* Reads the full status register for mailbox. */
+-HW_STATUS HW_MBOX_IsFull(const u32 baseAddress, const HW_MBOX_Id_t mailBoxId,
+-			u32 *const pIsFull)
+-{
+-	HW_STATUS status = RET_OK;
+-	u32 fullStatus;
+-
+-	/* Check input parameters */
+-	CHECK_INPUT_PARAM(baseAddress, 0, RET_BAD_NULL_PARAM, RES_MBOX_BASE +
+-			RES_INVALID_INPUT_PARAM);
+-	CHECK_INPUT_PARAM(pIsFull,  NULL, RET_BAD_NULL_PARAM, RES_MBOX_BASE +
+-			RES_INVALID_INPUT_PARAM);
+-	CHECK_INPUT_RANGE_MIN0(mailBoxId, HW_MBOX_ID_MAX, RET_INVALID_ID,
+-			RES_MBOX_BASE + RES_INVALID_INPUT_PARAM);
+-
+-	/* read the is full status parameter for Mailbox */
+-	fullStatus = MLBMAILBOX_FIFOSTATUS___0_15FifoFullMBmRead32(baseAddress,
+-							(u32)mailBoxId);
+-
+-	/* fill in return parameter */
+-	*pIsFull = (fullStatus & 0xFF);
+-
+-	return status;
+-}
+-
+ /* Gets number of messages in a specified mailbox. */
+ HW_STATUS HW_MBOX_NumMsgGet(const u32 baseAddress, const HW_MBOX_Id_t mailBoxId,
+ 				u32 *const pNumMsg)
+diff --git a/drivers/dsp/bridge/hw/hw_mbox.h b/drivers/dsp/bridge/hw/hw_mbox.h
+index 225fb40..d2981d3 100644
+--- a/drivers/dsp/bridge/hw/hw_mbox.h
++++ b/drivers/dsp/bridge/hw/hw_mbox.h
+@@ -130,41 +130,6 @@ extern HW_STATUS HW_MBOX_MsgWrite(
+ 		  );
+ 
  /*
-  * We don't need to explicitly suspend the chip, as it already switches off
-  * when there's no activity.
-@@ -877,6 +886,10 @@ static int lm8323_resume(struct i2c_client *client)
- 
- 	return 0;
+-* FUNCTION      : HW_MBOX_IsFull
+-*
+-* INPUTS:
+-*
+-*   Identifier  : baseAddress
+-*   Type	: const u32
+-*   Description : Base Address of instance of Mailbox module
+-*
+-*   Identifier  : mailBoxId
+-*   Type	: const HW_MBOX_Id_t
+-*   Description : Mail Box Sub module Id to check
+-*
+-* OUTPUTS:
+-*
+-*   Identifier  : pIsFull
+-*   Type	: u32 *const
+-*   Description : false means mail box not Full
+-*		 true means mailbox full.
+-*
+-* RETURNS:
+-*
+-*   Type	: ReturnCode_t
+-*   Description : RET_OK	      No errors occured
+-*		 RET_BAD_NULL_PARAM  Address/pointer Paramater was set to 0/NULL
+-*		 RET_INVALID_ID      Invalid Id used
+-*
+-* PURPOSE:      : this function reads the full status register for mailbox.
+-*/
+-extern HW_STATUS HW_MBOX_IsFull(
+-		      const u32	 baseAddress,
+-		      const HW_MBOX_Id_t   mailBoxId,
+-		      u32 *const	pIsFull
+-		  );
+-
+-/*
+ * FUNCTION      : HW_MBOX_NumMsgGet
+ *
+ * INPUTS:
+diff --git a/drivers/dsp/bridge/wmd/tiomap_sm.c b/drivers/dsp/bridge/wmd/tiomap_sm.c
+index 9bc5b54..0653f40 100644
+--- a/drivers/dsp/bridge/wmd/tiomap_sm.c
++++ b/drivers/dsp/bridge/wmd/tiomap_sm.c
+@@ -156,6 +156,13 @@ DSP_STATUS CHNLSM_DisableInterrupt(struct WMD_DEV_CONTEXT *hDevContext)
+ 	return status;
  }
-+#else
-+#define lm8323_suspend	NULL
-+#define lm8323_resume	NULL
-+#endif
  
- static const struct i2c_device_id lm8323_id[] = {
- 	{ "lm8323", 0 },
-@@ -907,7 +920,9 @@ static void __exit lm8323_exit(void)
- }
- module_exit(lm8323_exit);
- 
--MODULE_AUTHOR("Timo O. Karjalainen <timo.o.karjalainen@nokia.com>, Daniel Stone");
-+MODULE_AUTHOR("Timo O. Karjalainen <timo.o.karjalainen@nokia.com>");
-+MODULE_AUTHOR("Daniel Stone");
-+MODULE_AUTHOR("Felipe Balbi <felipe.balbi@nokia.com>");
- MODULE_DESCRIPTION("LM8323 keypad driver");
- MODULE_LICENSE("GPL");
- 
-diff --git a/include/linux/i2c/lm8323.h b/include/linux/i2c/lm8323.h
-index 5eae5cc..67e82bc 100644
---- a/include/linux/i2c/lm8323.h
-+++ b/include/linux/i2c/lm8323.h
-@@ -1,7 +1,18 @@
++#define MAILBOX_FIFOSTATUS(m) (0x80 + 4 * (m))
++
++static inline unsigned int fifo_full(void __iomem *mbox_base, int mbox_id)
++{
++	return __raw_readl(mbox_base + MAILBOX_FIFOSTATUS(mbox_id)) & 0x1;
++}
++
  /*
-- * include/lm8323.h
-+ * lm8323.h - Configuration for LM8323 keypad driver.
-  *
-- * Configuration for LM8323 keypad driver.
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation (version 2 of the License only).
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-+ * GNU General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program; if not, write to the Free Software
-+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
-  */
- 
- #ifndef __LINUX_LM8323_H
-@@ -22,7 +33,7 @@ struct lm8323_platform_data {
- 
- 	int size_x;
- 	int size_y;
--	int repeat : 1;
-+	int repeat:1;
- 	const s16 *keymap;
- 
- 	char *pwm1_name; /* Device name for PWM1. */
+  *  ======== CHNLSM_InterruptDSP ========
+  *      Send an interrupt to the DSP processor(s).
+@@ -171,9 +178,8 @@ DSP_STATUS CHNLSM_InterruptDSP(struct WMD_DEV_CONTEXT *hDevContext)
+ 	u32 opplevel = 0;
+ #endif
+ 	HW_STATUS hwStatus;
+-	u32 mbxFull;
+ 	struct CFG_HOSTRES resources;
+-	u16 cnt = 10;
++	u16 cnt = 1000;
+ 	u32 temp;
+ 	/* We are waiting indefinitely here. This needs to be fixed in the
+ 	 * second phase */
+@@ -214,12 +220,9 @@ DSP_STATUS CHNLSM_InterruptDSP(struct WMD_DEV_CONTEXT *hDevContext)
+ 		pDevContext->dwBrdState = BRD_RUNNING;
+ 	}
+ 	while (--cnt) {
+-		hwStatus = HW_MBOX_IsFull(resources.dwMboxBase,
+-					   MBOX_ARM2DSP, &mbxFull);
+-		if (mbxFull)
+-			UTIL_Wait(1000);	/* wait for 1 ms)      */
+-		else
++		if (!fifo_full((void __iomem *) resources.dwMboxBase, 0))
+ 			break;
++		udelay(1);
+ 	}
+ 	if (!cnt) {
+ 		DBG_Trace(DBG_LEVEL7, "Timed out waiting for DSP mailbox \n");
 -- 
 1.6.1.3
 
--- 
-balbi
