@@ -1,49 +1,76 @@
-From: David Brownell <david-b@pacbell.net>
-Subject: Re: [PATCH] OMAP: HSMMC: Initialize hsmmc controller registers when  resuming
-Date: Fri, 20 Feb 2009 13:11:43 -0800
-Message-ID: <200902201311.44056.david-b@pacbell.net>
-References: <4d34a0a70902200400s252f48ddvfd6e0d83e91fa291@mail.gmail.com>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: [PATCH omap-fixes] OMAP2/3: GPIO: remove recursion in IRQ wakeup
+ path
+Date: Fri, 20 Feb 2009 13:21:12 -0800
+Message-ID: <499F1EC8.1030508@deeprootsystems.com>
+References: <1233167723-12026-1-git-send-email-khilman@deeprootsystems.com> <200902082039.32157.david-b@pacbell.net> <877i3xaksm.fsf@deeprootsystems.com> <20090220194636.GZ7414@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp116.sbc.mail.sp1.yahoo.com ([69.147.64.89]:31906 "HELO
-	smtp116.sbc.mail.sp1.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1752270AbZBTVLq (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Fri, 20 Feb 2009 16:11:46 -0500
-In-Reply-To: <4d34a0a70902200400s252f48ddvfd6e0d83e91fa291@mail.gmail.com>
-Content-Disposition: inline
+Received: from mu-out-0910.google.com ([209.85.134.184]:45636 "EHLO
+	mu-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752289AbZBTVVT (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 20 Feb 2009 16:21:19 -0500
+Received: by mu-out-0910.google.com with SMTP id i10so761795mue.1
+        for <linux-omap@vger.kernel.org>; Fri, 20 Feb 2009 13:21:17 -0800 (PST)
+In-Reply-To: <20090220194636.GZ7414@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kim Kyuwon <chammoru@gmail.com>
-Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, drzeus-mmc@drzeus.cx, =?utf-8?q?=EA=B9=80=EA=B7=9C=EC=9B=90?= <q1.kim@samsung.com>, =?utf-8?q?=EB=B0=95=EA=B2=BD=EB=AF=BC?= <kyungmin.park@samsung.com>
+To: Tony Lindgren <tony@atomide.com>
+Cc: David Brownell <david-b@pacbell.net>, linux-omap@vger.kernel.org
 
-On Friday 20 February 2009, Kim Kyuwon wrote:
-> +static void omap_hsmmc_init(struct mmc_omap_host *host)
-> +{
-> +=A0=A0=A0=A0=A0=A0=A0u32 hctl, capa, value;
-> +
-> +=A0=A0=A0=A0=A0=A0=A0/* Only MMC1 supports 3.0V */
-> +=A0=A0=A0=A0=A0=A0=A0if (host->id =3D=3D OMAP_MMC1_DEVID) {
-> +=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0hctl =3D SDVS30;
+Tony Lindgren wrote:
+> * Kevin Hilman <khilman@deeprootsystems.com> [090210 16:42]:
+>> David Brownell <david-b@pacbell.net> writes:
+>>
+>>> On Wednesday 28 January 2009, Kevin Hilman wrote:
+>>>> Now that the generic IRQ and GPIO frameworks are used for enabling and
+>>>> disabling GPIO IRQ wakeup sources, there is no longer a need to call
+>>>> [enable|disable]_irq_wake() in the low-level code.  Doing so results
+>>>> in recursive calls to [enable|disable]_irq_wake().
+>>> Could you clarify what actually made that requirement go away?
+>>>
+>>> The recursion was introduced -- using the generic IRQ framework! -- as
+>>> a simple way to ensure the parent IRQ was properly wake-enabled.  Is
+>>> the issue that something changed, so that something else wake-enables
+>>> the parent?
+>>>
+>> My description was not very descriptive... sorry...
+>>
+>> From what I can understand here, I don't see the point in
+>> wake-enabling the parent IRQ since there is no wakeup glue for the
+>> bank IRQs, thus these calls are actually failing and causing
+>> 'unbalanced IRQ disable' noise in the generic IRQ layer.
+>>
+>> Here is what is happening.  Consider the gpio-keys driver.  Upon
+>> suspend, it enables the IRQ wake for its GPIO.  The OMAP GPIO code
+>> then calls enable_wake_irq() for the parent irq (the GPIO bank IRQ).
+>> This call is actually failing because the bank IRQ has no 'set_wake'
+>> method.  Because of this failure, the generic IRQ code doesn't
+>> actually do anything, and sets the 'disable_depth' to zero for the
+>> bank IRQ.
+>>
+>> Then, upon resume, the resume path disables IRQ wakeups for the GPIO.
+>> The OMAP GPIO code then tries to call disable_irq_wake() for the bank
+>> IRQ and you get noisy 'unbalanced IRQ disable' warnings from the
+>> generic IRQ layere because of the attempt to disable the IRQ wake of
+>> an IRQ that was never enabled.
+>>
+>> So the options that I see are:
+>>
+>> 1) fix the OMAP GPIO code to check the return code of the parent enable, or
+>> 2) drop the parent enable/disable
+>>
+>> I prefer (1) since those calls will always fail AFAICT.
+>>
+>> Does that make any sense?
+>>
+>> If you're OK with (1), I will re-issue the patch with a better discription.
+> 
+> Ignoring this for now, please let me know if you want me to queue this
+> for omap-upstream with the updates mentioned above.
 
-Shouldn't it be remembering what voltage it was using,
-and then restore that, instead of always making MMC1
-restart at a 3.0V level?  That's pretty awkward to test
-unless you have a 1.8V-capable card in MMC1...
+OK.  I'll re-send with updated description if above is OK with Dave.
 
-Somewhat related:  I think the PBIAS register updates
-should be moved out of mach-omap2/mmc-twl4030.c into
-this driver.  They're needed no matter what flavor
-regulator is used to with MMC1 voltage over 1.8V,
-and it's a bit odd to split the state machine for
-1.8V -vs- 3.0V I/O voltages the way it's now done.
-
-- Dave
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Kevin
