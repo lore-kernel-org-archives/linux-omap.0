@@ -1,44 +1,49 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: omap_apollon_2420_defconfig
-Date: Fri, 20 Feb 2009 13:06:44 -0800
-Message-ID: <20090220210644.GE7414@atomide.com>
-References: <20090209192614.GF19453@n2100.arm.linux.org.uk> <20090209205319.GH14200@atomide.com> <9c9fda240902091754q7f723bf2ha46206e52641297b@mail.gmail.com> <20090220205812.GA13961@n2100.arm.linux.org.uk>
+From: David Brownell <david-b@pacbell.net>
+Subject: Re: [PATCH] OMAP: HSMMC: Initialize hsmmc controller registers when  resuming
+Date: Fri, 20 Feb 2009 13:11:43 -0800
+Message-ID: <200902201311.44056.david-b@pacbell.net>
+References: <4d34a0a70902200400s252f48ddvfd6e0d83e91fa291@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-bos.mailhop.org ([63.208.196.178]:57336 "EHLO
-	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751967AbZBTVG4 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 20 Feb 2009 16:06:56 -0500
+Received: from smtp116.sbc.mail.sp1.yahoo.com ([69.147.64.89]:31906 "HELO
+	smtp116.sbc.mail.sp1.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1752270AbZBTVLq (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Fri, 20 Feb 2009 16:11:46 -0500
+In-Reply-To: <4d34a0a70902200400s252f48ddvfd6e0d83e91fa291@mail.gmail.com>
 Content-Disposition: inline
-In-Reply-To: <20090220205812.GA13961@n2100.arm.linux.org.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: Kyungmin Park <kmpark@infradead.org>, David Brownell <david-b@pacbell.net>, linux-omap@vger.kernel.org, linux-usb@vger.kernel.org
+To: Kim Kyuwon <chammoru@gmail.com>
+Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, drzeus-mmc@drzeus.cx, =?utf-8?q?=EA=B9=80=EA=B7=9C=EC=9B=90?= <q1.kim@samsung.com>, =?utf-8?q?=EB=B0=95=EA=B2=BD=EB=AF=BC?= <kyungmin.park@samsung.com>
 
-* Russell King - ARM Linux <linux@arm.linux.org.uk> [090220 12:58]:
-> On Tue, Feb 10, 2009 at 10:54:25AM +0900, Kyungmin Park wrote:
-> > In the previous patch, it's only fixed host side. But apollon case, it
-> > only used udc, so udc configuration should select USB_OTG_UTILS also.
-> 
-> So, it's 10 days later, mainline is still broken.  In fact, this is
-> now the only ARM defconfig which is failing.
-> 
-> What's happening?  Is someone going to ack this patch?  Is it going
-> to be submitted to me or is it going to be submitted via some USB
-> tree?
+On Friday 20 February 2009, Kim Kyuwon wrote:
+> +static void omap_hsmmc_init(struct mmc_omap_host *host)
+> +{
+> +=A0=A0=A0=A0=A0=A0=A0u32 hctl, capa, value;
+> +
+> +=A0=A0=A0=A0=A0=A0=A0/* Only MMC1 supports 3.0V */
+> +=A0=A0=A0=A0=A0=A0=A0if (host->id =3D=3D OMAP_MMC1_DEVID) {
+> +=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0hctl =3D SDVS30;
 
-Well it would be nice to get an ack from the USB people, here's mine:
+Shouldn't it be remembering what voltage it was using,
+and then restore that, instead of always making MMC1
+restart at a 3.0V level?  That's pretty awkward to test
+unless you have a 1.8V-capable card in MMC1...
 
-Acked-by: Tony Lindgren <tony@atomide.com>
+Somewhat related:  I think the PBIAS register updates
+should be moved out of mach-omap2/mmc-twl4030.c into
+this driver.  They're needed no matter what flavor
+regulator is used to with MMC1 voltage over 1.8V,
+and it's a bit odd to split the state machine for
+1.8V -vs- 3.0V I/O voltages the way it's now done.
 
-> Sick of chasing people about build errors.  People here need to get
-> off their lazy backsides, check kautobuild regularly and submit build
-> fixes.
+- Dave
 
-How about automatic notifications on the failing omap builds sent to
-to linux-omap list? The 34xx builds failing because of the compiler
-should be filtered out until the compiler is updated though.
-
-Tony
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
