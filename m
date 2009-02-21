@@ -1,65 +1,167 @@
-From: Koen Kooi <k.kooi@student.utwente.nl>
-Subject: Re: Configuring a TWL GPIO pin as an interrupt
-Date: Sat, 21 Feb 2009 11:33:43 +0100
-Message-ID: <58B26312-2687-4BF8-AE17-D4D0D5FAA136@student.utwente.nl>
-References: <2C7D3DF36ADFFC479B44490D912B616705D6329B7D@dlee07.ent.ti.com> <20090221023924.GD6224@gandalf>
-Mime-Version: 1.0 (Apple Message framework v930.3)
-Content-Type: multipart/signed; protocol="application/pgp-signature"; micalg=pgp-sha1; boundary="Apple-Mail-10--792814210"
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Subject: Re: [RFC] How to pass camera Orientation to userspace
+Date: Sat, 21 Feb 2009 12:53:57 +0100
+Message-ID: <200902211253.58061.hverkuil@xs4all.nl>
+References: <200902180030.52729.linux@baker-net.org.uk>
+Mime-Version: 1.0
+Content-Type: text/plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp2.utsp.utwente.nl ([130.89.2.9]:33024 "EHLO smtp.utwente.nl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753189AbZBUKd6 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Sat, 21 Feb 2009 05:33:58 -0500
-In-Reply-To: <20090221023924.GD6224@gandalf>
+Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:3642 "EHLO
+	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751855AbZBULxy (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 21 Feb 2009 06:53:54 -0500
+In-Reply-To: <200902180030.52729.linux@baker-net.org.uk>
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: me@felipebalbi.com
-Cc: "Lopez Cruz, Misael" <x0052729@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Adam Baker <linux@baker-net.org.uk>
+Cc: linux-media@vger.kernel.org, Jean-Francois Moine <moinejf@free.fr>, Hans de Goede <hdegoede@redhat.com>, kilgota@banach.math.auburn.edu, Olivier Lorin <o.lorin@laposte.net>, Mauro Carvalho Chehab <mchehab@infradead.org>, Trent Piepho <xyzzy@speakeasy.org>, linux-omap@vger.kernel.org
 
-This is an OpenPGP/MIME signed message (RFC 2440 and 3156)
---Apple-Mail-10--792814210
-Content-Type: text/plain; charset=US-ASCII; format=flowed; delsp=yes
-Content-Transfer-Encoding: 7bit
+Hi Adam,
 
+Sorry for the late reply, it's been very busy.
 
-Op 21 feb 2009, om 03:39 heeft Felipe Balbi het volgende geschreven:
-
-> On Fri, Feb 20, 2009 at 08:27:54PM -0600, Lopez Cruz, Misael wrote:
->> Hi,
->>
->> I'm interested in bringing headset detection feature for audio. The  
->> detection is done through TWL GPIO_2. How can I configure a GPIO  
->> pin to generate an interrupt? Is there any API? Could you please  
->> point out another driver using that functionality so I can use as  
->> reference?
+On Wednesday 18 February 2009 01:30:52 Adam Baker wrote:
+> (linux-omap included in distribution as lots of omap systems include
+> cameras so this could be relevant there.)
 >
-> gpio_request(GPIO_NUMBER, "Headset IRQ");
-> gpio_direction_input(GPIO_NUMBER);
-> request_irq(client->irq, lm8323_irq, flags | IRQF_SHARED,  
-> DRIVER_NAME, dev);
+> Background
 >
-> that should do it :-)
+> A number of the webcams now supported by v4l have sensors that are
+> mounted upside down. Up to now this has been handled by having a table in
+> libv4l of the USB IDs of affected cameras. This approach however fails to
+> address two known cases (and probably more as yet unknown ones) where the
+> USB ID is insufficient to determine the sensor orientation.
+>
+> In one of those cases (SQ-905) USB commands must be issued to the camera 
+> at probe time) to determine what sensor is fitted and in the other case
+> (Genesys gl860) the camera can be pointed towards or away from the user
+> and it swaps orientation when it is changed.
+>
+> It is possible that there are cameras that can use gravity sensors or
+> similar to report how they are being held but such user driven
+> orientation which may be intended for creative effect should probably be
+> separated from this hardware related issue.
 
-Don't forget to use the proper API for it: http://git.kernel.org/?p=linux/kernel/git/torvalds/linux-2.6.git;a=blob;f=include/sound/jack.h;hb=master
+Yes, I strongly agree with this.
 
-regards,
+> Most if not all of the cameras affected by this problem produce video
+> formats that are not widely supported by applications. They are therefore
+> all likely to be normally used in conjunction with libv4l to perform
+> format conversion and so it makes sense to retain the actual flipping
+> operation in libv4l. libv4l provides a capability via LD_PRELOAD to
+> attach itself to unmodified binaries.
+>
+> It is likely that whatever solution is chosen there will end up being
+> cases that have to be handled in libv4l as external information (such as
+> laptop model ID) is the only mechanism to distinguish otherwise identical
+> cameras.
+>
+> So far libv4l only supports the case of data needing a 180 degree
+> rotation but there is known to exist hardware which requires a VFLIP and
+> it is possible some hardware requires just HFLIP so all of those cases
+> should be supported.
 
-Koen
+While libv4l will be the main user of this information, it should not matter 
+for the chosen API whether it is libv4l or another application, possibly a 
+custom application running on an embedded system.
 
---Apple-Mail-10--792814210
-content-type: application/pgp-signature; x-mac-type=70674453;
-	name=PGP.sig
-content-description: Dit deel van het bericht is digitaal ondertekend
-content-disposition: inline; filename=PGP.sig
-content-transfer-encoding: 7bit
+> There have been a number of inconclusive discussions on this subject on
+> the v4l / linux-media mailing lists over the last few months offering
+> many options for how to pass this information across which I will list
+> below and hopefully a preferred solution can be selected from them
+>
+> 1) Reuse the existing HFLIP and VFLIP controls, marking them as read-only
+> Pros : No change needed to videodev2.h
+> Cons: It is confusing to have controls that have a subtly different
+> meaning if they are read only. Existing apps that support those controls
+> might get confused. Would require polling to support the case of a camera
+> being turned toward / away from the user while streaming.
+>
+> 2) Introduce a new orientation control (possibly in a new
+> CAMERA_PROPERTIES class)
+> Pros: libv4l can easily tell if the driver supports the control.
+> Cons: It is really a property, not a control so calling it a control is
+> wrong. Controls add lots of overhead in terms of driver code. Would
+> require polling to support the case of a camera being turned toward /
+> away from the user while streaming.
+>
+> 3) Use an extra couple of bits in V4L2_BUF_FLAGS
+> Pros: Simple to implement. Can change per frame without needing polling.
+> Cons: Doesn't work for non libv4l apps that try to use the read()
+> interface. Can't easily identify drivers that don't support it (does 0
+> mean not rotated or just not implemented). Can only be read when
+> streaming (does that matter?)
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.5 (Darwin)
+I think that matters, yes.
 
-iD8DBQFJn9iJMkyGM64RGpERAqIbAKCb7oq7TJw3BYmuKeiQ3ZN7gTqmyACeK28G
-KjS8Z9VF59aGrAH1FVTkKhQ=
-=7hwZ
------END PGP SIGNATURE-----
+> 4) Use some reserved bits from the v4l2_capability structure
+> Pros: Less overhead than controls.
+> Cons: Would require polling to support the case of a camera being turned
+> toward / away from the user while streaming. Can't easily identify
+> drivers that don't support it.
+>
+> 5) Use some reserved bits from the v4l2_input structure (or possibly the
+> status word but that is normally only valid for current input)
+> Pros: Less overhead than controls. Could support multiple sensors in one
+> camera if such a beast exists.
 
---Apple-Mail-10--792814210--
+What does exist is devices with a video input (e.g. composite) and a camera 
+input: each input will have different flags. Since these vflip/hflip 
+properties do not change they can be enumerated in advance and you know 
+what each input supports.
+
+> Cons: Would require polling to support the case of a camera being turned
+> toward / away from the user while streaming.
+
+Polling applies only to the bits that tell the orientation of the camera. 
+See below for a discussion of this.
+
+> Can't easily identify drivers that don't support it.
+
+Not too difficult to add through the use of a capability bit. Either in 
+v4l2_input or (perhaps) v4l2_capability.
+
+Another Pro is that this approach will also work for v4l2_output in the case 
+of, say, rotated LCD displays. Using camera orientation bits in v4l2_buffer 
+while capturing will work, but using similar bits for output will fail 
+since the data is going in the wrong direction.
+
+> The interest in detecting if a driver provides this informnation is to
+> allow libv4l to know when it should use the driver provided information
+> and when it should use its internal table (which needs to be retained for
+> backward compatibility). With no detection capability the driver provided
+> info should be ignored for USB IDs in the built in table.
+>
+> Thoughts please
+
+Is polling bad in this case? It is not something that needs immediate 
+attention IMHO. The overhead for checking once every X seconds is quite 
+low. Furthermore, it is only needed on devices that cannot do v/hflipping 
+in hardware.
+
+An alternative is to put some effort in a proper event interface. There is 
+one implemented in include/linux/dvb/video.h and used by ivtv for video 
+decoding. The idea is that the application registers events it wants to 
+receive, and whenever such an event arrives the select() call will exit 
+with a high-prio event (exception). The application then checks what 
+happened.
+
+The video.h implementation is pretty crappy, but we can make something more 
+useful. Alternatively, I believe there are other event mechanisms as well 
+in the kernel. I know some work was done on that, but I don't know what the 
+end result was.
+
+Note that this does not apply to sensor mount information. I think that 
+v4l2_input is the perfect place for that. It is after all an input-specific 
+property and static property, and it maps 1-on-1 to the output case as 
+well, should we need it there as well.
+
+Regards,
+
+	Hans
+
+-- 
+Hans Verkuil - video4linux developer - sponsored by TANDBERG
