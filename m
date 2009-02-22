@@ -1,71 +1,107 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH E 11/14] OMAP clock: track child clocks
-Date: Sun, 22 Feb 2009 16:37:31 -0700 (MST)
-Message-ID: <alpine.DEB.2.00.0902221635530.16648@utopia.booyaka.com>
-References: <20090128192551.29333.82943.stgit@localhost.localdomain> <20090128192756.29333.41541.stgit@localhost.localdomain> <20090129151401.GC18233@n2100.arm.linux.org.uk> <20090129220608.GJ18233@n2100.arm.linux.org.uk> <20090209141156.GB16626@n2100.arm.linux.org.uk>
- <alpine.DEB.2.00.0902122345160.14667@utopia.booyaka.com> <20090214112325.GA17965@n2100.arm.linux.org.uk>
+From: Trent Piepho <xyzzy@speakeasy.org>
+Subject: Re: [RFC] How to pass camera Orientation to userspace
+Date: Sun, 22 Feb 2009 15:56:40 -0800 (PST)
+Message-ID: <Pine.LNX.4.58.0902221525520.24268@shell2.speakeasy.net>
+References: <200902180030.52729.linux@baker-net.org.uk>
+ <Pine.LNX.4.58.0902221419550.24268@shell2.speakeasy.net> <49A1D7B2.5070601@redhat.com>
+ <200902230024.16709.hverkuil@xs4all.nl>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:43908 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753678AbZBVXhd (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 22 Feb 2009 18:37:33 -0500
-In-Reply-To: <20090214112325.GA17965@n2100.arm.linux.org.uk>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-media-owner@vger.kernel.org>
+In-Reply-To: <200902230024.16709.hverkuil@xs4all.nl>
+Sender: linux-media-owner@vger.kernel.org
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Hans de Goede <hdegoede@redhat.com>, kilgota@banach.math.auburn.edu, Adam Baker <linux@baker-net.org.uk>, linux-media@vger.kernel.org, Jean-Francois Moine <moinejf@free.fr>, Olivier Lorin <o.lorin@laposte.net>, Mauro Carvalho Chehab <mchehab@infradead.org>, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: linux-arm-kernel@lists.arm.linux.org.uk, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, r-woodruff2@ti.com, Tony Lindgren <tony@atomide.com>
 
-Hello Russell,
+On Mon, 23 Feb 2009, Hans Verkuil wrote:
+> On Sunday 22 February 2009 23:54:42 Hans de Goede wrote:
+> > Trent Piepho wrote:
+> > > On Sun, 22 Feb 2009, Hans de Goede wrote:
+> > >> Yes that is what we are talking about, the camera having a gravity
+> > >> switch (usually nothing as advanced as a gyroscope). Also the bits we
+> > >> are talking about are in a struct which communicates information one
+> > >> way, from the camera to userspace, so there is no way to clear the
+> > >> bits to make the camera do something.
+> > >
+> > > First, I'd like to say I agree with most that the installed orientation
+> > > of the camera sensor really is a different concept than the current
+> > > value of a gravity sensor.  It's not necessary, and maybe not even
+> > > desirable, to handle them in the same way.
+> > >
+> > > I do not see the advantage of using reserved bits instead of controls.
+> > >
+> > > The are a limited number of reserved bits.  In some structures there
+> > > are only a few left.  They will run out.  Then what?  Packing
+> > > non-standard sensor attributes and camera sensor meta-data into a few
+> > > reserved bits is not a sustainable policy.
+> > >
+> > > Controls on the other card are not limited and won't run out.
+> >
+> > Yes but these things are *not* controls, end of discussion. The control
+> > API is for controls, not to stuff all kind of cruft in.
+>
+> I agree, these are not controls.
+>
+> There is an option to use the current status field. There are enough bits
+> free, that's not the problem. But the spec is explicit about the fact that
+> these bits apply to the current input only, and that's not true for these
+> new bits. We can change the spec in this regard of course, but then you
+> have to document each bit of the status field whether it is valid for the
+> current input only, or also if this isn't the current input. It's all a bit
+> messy.
+>
+> In addition, there are 4 reserved fields here and it is the first time in a
+> very long time that we actually need one. And after all, that's why they
+> are there in the first place.
 
-On Sat, 14 Feb 2009, Russell King - ARM Linux wrote:
+v4l2_capability: 5 of 32 cap bits left, 4 reserved words
+v4l2_fmtdesc: 31 flag bits, 4 reserved words
+v4l2_buffer: 22 flags bits, 1 reserved word
+v4l2_framebuffer: 25 cap bits, 26 flag bits, no reserved words
+v4l2_input: 4 reserved words
+v4l2_output: 4 reserved words
+v4l2_tuner: 27 cap bits, 4 reserved words
 
-> However, looking a little deeper, there's more issues in the reparenting
-> area.  I don't think this code has been tested at all...  In
-> _omap2_clksel_get_src_field, there is this:
-> 
-> 	for (clkr = clks->rates; clkr->div; clkr++) {
-> 		if (clkr->flags & (cpu_mask | DEFAULT_RATE))
-> 			break; /* Found the default rate for this platform */
-> 	}
-> 
-> which is bogus - it will find the first entry which is _either_ marked
-> as a default rate _or_ is supported by the SoC.  This means (for
-> instance) that:
-> 
-> static const struct clksel_rate core_l3_core_rates[] = {
->         { .div = 1, .val = 1, .flags = RATE_IN_24XX },
->         { .div = 2, .val = 2, .flags = RATE_IN_242X },
->         { .div = 4, .val = 4, .flags = RATE_IN_24XX | DEFAULT_RATE },
-> 
-> will give us divisor 1 rather than presumably the one we want, that being
-> divisor 4.  I think the test above should be:
-> 
-> 	for (clkr = clks->rates; clkr->div; clkr++) {
-> 		if (clkr->flags & cpu_mask &&
-> 		    clkr->flags & DEFAULT_RATE)
-> 			break; /* Found the default rate for this platform */
-> 	}
-> 
-> so we find an entry which is supported _and_ is the default for the SoC.
+> Trent does have a point that we need to be careful not to add fields without
+> a good reason. Choosing option 1 fits the bill, and the orientation also
+> fits the 'status' name. Only the sensor mount orientation is not really a
+> status. Although with some creative naming we might come close :-)
+>
+> Hmm, let's see:
+>
+> V4L2_IN_ST_HAS_SENSOR_INFO 	0x00000010
+> V4L2_IN_ST_SENSOR_HFLIPPED 	0x00000020
+> V4L2_IN_ST_SENSOR_VFLIPPED 	0x00000040
+>
+> V4L2_IN_ST_HAS_PIVOT_INFO	0x00001000
+> V4L2_IN_ST_PIVOT_0 		0x00000000
+> V4L2_IN_ST_PIVOT_90 		0x00002000
+> V4L2_IN_ST_PIVOT_180 		0x00004000
+> V4L2_IN_ST_PIVOT_270 		0x00006000
+> V4L2_IN_ST_PIVOT_MSK 		0x00006000
 
-Agreed.
+One of my other points what the controls include meta-data.  What happens
+when someone has an orientation sensor with 45 degree resolution?  A
+control would just change the step size from 90 to 45.  Existing software
+would already know what it means.  With this method you have to add:
 
-> There's also a second issue - the comments before omap2_divisor_to_clksel()
-> indicate that this function returns 0xffffffff on error.  Unfortunately,
-> this is not so, it actually returns zero on error.  Moreover, we test
-> the result of the function against ~0, so we'll never deal with the error
-> case.  This really should be fixed so that we return the right value for
-> the error case.  (Further comments on this in a follow up.)
+V4L2_IN_ST_HAS_PIVOT_45_INFO	0x00008000
+V4L2_IN_ST_PIVOT_45		0x00010000
+V4L2_IN_ST_PIVOT_135		0x00012000
+V4L2_IN_ST_PIVOT_225		0x00014000
+V4L2_IN_ST_PIVOT_315		0x00016000
+V4L2_IN_ST_PIVOT_45_MSK		0x00016000
 
-Agreed here also.
+Interpreting the pivot bits becomes more fun now.  Existing software
+can do nothing with these extra bits.  It can tell the user nothing.
 
-> So, below is a patch which fixes both of these issues.
+Next, add camera aperture.  f/0.7 to f/64 in both half stop and third stop
+increments.  Getting low on bits already.
 
-Looks good, thanks Russell.
-
-Acked-by: Paul Walmsley <paul@pwsan.com>
-
-
-- Paul
+Suppose I have just three or four sensors on my camera.  That's not all
+that much.  A typical digital camera has more than that.  They're probably
+connected by something slow, like I2C.  Maybe non-trivial calculations are
+needed to use the data, like most demod's SNR registers.  Each time I query
+the input the driver must query and calculate the value of ALL the sensors.
+Even though I only can about one of them.  Controls can be queried individually.
