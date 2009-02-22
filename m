@@ -1,44 +1,56 @@
-From: kilgota@banach.math.auburn.edu
+From: Trent Piepho <xyzzy@speakeasy.org>
 Subject: Re: [RFC] How to pass camera Orientation to userspace
-Date: Sun, 22 Feb 2009 16:47:31 -0600 (CST)
-Message-ID: <alpine.LNX.2.00.0902221635440.10870@banach.math.auburn.edu>
-References: <200902180030.52729.linux@baker-net.org.uk> <200902211253.58061.hverkuil@xs4all.nl> <49A13466.5080605@redhat.com> <alpine.LNX.2.00.0902221225310.10870@banach.math.auburn.edu> <49A1A03A.8080303@redhat.com> <alpine.LNX.2.00.0902221334310.10870@banach.math.auburn.edu>
+Date: Sun, 22 Feb 2009 14:51:42 -0800 (PST)
+Message-ID: <Pine.LNX.4.58.0902221419550.24268@shell2.speakeasy.net>
+References: <200902180030.52729.linux@baker-net.org.uk>
+ <200902211253.58061.hverkuil@xs4all.nl> <49A13466.5080605@redhat.com>
+ <alpine.LNX.2.00.0902221225310.10870@banach.math.auburn.edu>
+ <49A1A03A.8080303@redhat.com> <alpine.LNX.2.00.0902221334310.10870@banach.math.auburn.edu>
  <49A1CA5B.5000407@redhat.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-media-owner@vger.kernel.org>
 In-Reply-To: <49A1CA5B.5000407@redhat.com>
 Sender: linux-media-owner@vger.kernel.org
 To: Hans de Goede <hdegoede@redhat.com>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>, Adam Baker <linux@baker-net.org.uk>, linux-media@vger.kernel.org, Jean-Francois Moine <moinejf@free.fr>, Olivier Lorin <o.lorin@laposte.net>, Mauro Carvalho Chehab <mchehab@infradead.org>, Trent Piepho <xyzzy@speakeasy.org>, linux-omap@vger.kernel.org
+Cc: kilgota@banach.math.auburn.edu, Hans Verkuil <hverkuil@xs4all.nl>, Adam Baker <linux@baker-net.org.uk>, linux-media@vger.kernel.org, Jean-Francois Moine <moinejf@free.fr>, Olivier Lorin <o.lorin@laposte.net>, Mauro Carvalho Chehab <mchehab@infradead.org>, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-
-
 On Sun, 22 Feb 2009, Hans de Goede wrote:
+> Yes that is what we are talking about, the camera having a gravity switch
+> (usually nothing as advanced as a gyroscope). Also the bits we are talking
+> about are in a struct which communicates information one way, from the camera
+> to userspace, so there is no way to clear the bits to make the camera do something.
 
-<big snip>
+First, I'd like to say I agree with most that the installed orientation of
+the camera sensor really is a different concept than the current value of a
+gravity sensor.  It's not necessary, and maybe not even desirable, to
+handle them in the same way.
 
-> Yes that is what we are talking about, the camera having a gravity switch 
-> (usually nothing as advanced as a gyroscope). Also the bits we are talking 
-> about are in a struct which communicates information one way, from the camera 
-> to userspace, so there is no way to clear the bits to make the camera do 
-> something.
->
-> Regards,
->
-> Hans
+I do not see the advantage of using reserved bits instead of controls.
 
-Well, of course the bits are in a struct which is communicates information 
-one way from the camera to userspace. But userspace can do what it deems 
-appropriate with those bits. My point was that if userspace wants to turn 
-the camera upside down in software, all it has to do is to negate those 
-bits. For that purpose, it does not matter whether the bits were 
-originally set "on" (indicating that the sensor is upside down in the 
-camera) or whether they were set "off" (indicating the sensor is right 
-side up in the camera). Now, if it is a question of passing along a 
-changing camera orientation, it is obvious that has to be done with some 
-other mechanism. So, unless my not terribly profound observation about 
-the ability to negate bits was confusing, we are not in disagreement.
+The are a limited number of reserved bits.  In some structures there are
+only a few left.  They will run out.  Then what?  Packing non-standard
+sensor attributes and camera sensor meta-data into a few reserved bits is
+not a sustainable policy.
 
-Theodore Kilgore
+Controls on the other card are not limited and won't run out.
+
+Currently reserved bits and previously reserved but now in use bits
+look exactly the same.  How does an app know if the bits are valid
+or not?  More reserved bits?
+
+The control API is already designed to allow for enumeration of controls.
+
+Reserved bits have no meta-data to document them.  An app sees that some
+bits in the input struct which were reserved when it was written are now
+set.  What does this tell the app?  Nothing.  What can the app tell the
+user?  Nothing.
+
+The control API provides for control meta-data.  We have a means of
+enumeration, name, min, max, step size, and various flags to tell us about
+a control that wasn't already handled.  Does this new gravity sensor have
+45 degree resolution?  The control's step size can show this even if only
+90 degree rotations had been considered when gravity sensor support was
+first added to some other driver.  At the very least, the app (and various
+existing utilities) can provide information about the controls to the user.
