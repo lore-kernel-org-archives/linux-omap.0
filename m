@@ -1,159 +1,72 @@
-From: Hans de Goede <hdegoede@redhat.com>
-Subject: Re: [RFC] How to pass camera Orientation to userspace
-Date: Sun, 22 Feb 2009 12:17:58 +0100
-Message-ID: <49A13466.5080605@redhat.com>
-References: <200902180030.52729.linux@baker-net.org.uk> <200902211253.58061.hverkuil@xs4all.nl>
+From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+Subject: Re: [PATCH v2 1/4] dsp-bridge: remove unnecessary comments in
+ util.h
+Date: Sun, 22 Feb 2009 13:35:29 +0200 (EET)
+Message-ID: <20090222.133529.59670479.Hiroshi.DOYU@nokia.com>
+References: <94a0d4530902212246h4160ae83pf435b5c6faf88237@mail.gmail.com>
+	<1235295144-22097-1-git-send-email-felipe.contreras@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-media-owner@vger.kernel.org>
-In-Reply-To: <200902211253.58061.hverkuil@xs4all.nl>
-Sender: linux-media-owner@vger.kernel.org
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Adam Baker <linux@baker-net.org.uk>, linux-media@vger.kernel.org, Jean-Francois Moine <moinejf@free.fr>, kilgota@banach.math.auburn.edu, Olivier Lorin <o.lorin@laposte.net>, Mauro Carvalho Chehab <mchehab@infradead.org>, Trent Piepho <xyzzy@speakeasy.org>, linux-omap@vger.kernel.org
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from smtp.nokia.com ([192.100.105.134]:19089 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753653AbZBVLft (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 22 Feb 2009 06:35:49 -0500
+In-Reply-To: <1235295144-22097-1-git-send-email-felipe.contreras@gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: felipe.contreras@gmail.com
+Cc: linux-omap@vger.kernel.org, h-kanigeri2@ti.com, ameya.palande@nokia.com
 
+From: ext Felipe Contreras <felipe.contreras@gmail.com>
+Subject: [PATCH v2 1/4] dsp-bridge: remove unnecessary comments in util.h
+Date: Sun, 22 Feb 2009 10:32:21 +0100
 
-
-Hans Verkuil wrote:
-> Hi Adam,
+> For starters util.h should not exist, but for now I'm cleaning it up to
+> remove the 'history log' which is tracked by git anyway, and wrong
+> information about private functions.
 > 
-> Sorry for the late reply, it's been very busy.
+> Signed-off-by: Felipe Contreras <felipe.contreras@gmail.com>
+> ---
+>  arch/arm/plat-omap/include/dspbridge/util.h |   18 ------------------
+>  1 files changed, 0 insertions(+), 18 deletions(-)
+
+These following patches look ok to me.
+
+Hari, Please apply them to o-z as well if you think that they are ok.
+
+
 > 
-
-Same here :)
-
-> On Wednesday 18 February 2009 01:30:52 Adam Baker wrote:
->> (linux-omap included in distribution as lots of omap systems include
->> cameras so this could be relevant there.)
->>
->> Background
->>
->> A number of the webcams now supported by v4l have sensors that are
->> mounted upside down. Up to now this has been handled by having a table in
->> libv4l of the USB IDs of affected cameras. This approach however fails to
->> address two known cases (and probably more as yet unknown ones) where the
->> USB ID is insufficient to determine the sensor orientation.
->>
->> In one of those cases (SQ-905) USB commands must be issued to the camera 
->> at probe time) to determine what sensor is fitted and in the other case
->> (Genesys gl860) the camera can be pointed towards or away from the user
->> and it swaps orientation when it is changed.
->>
->> It is possible that there are cameras that can use gravity sensors or
->> similar to report how they are being held but such user driven
->> orientation which may be intended for creative effect should probably be
->> separated from this hardware related issue.
+> diff --git a/arch/arm/plat-omap/include/dspbridge/util.h b/arch/arm/plat-omap/include/dspbridge/util.h
+> index 3b3e9c0..9d8842a 100644
+> --- a/arch/arm/plat-omap/include/dspbridge/util.h
+> +++ b/arch/arm/plat-omap/include/dspbridge/util.h
+> @@ -27,24 +27,6 @@
+>   *      UTIL_GetSysInfo
+>   *      UTIL_Init
+>   *      UTIL_Wait
+> - *
+> - *  Private Functions:
+> - *      isspace
+> - *
+> - *  Notes:
+> - *
+> - *! Revision History
+> - *! ================
+> - *! 12-Aug-2000 ag: Added UTIL_GetSysInfo().
+> - *! 31-Jan-2000 rr: Comments modifed for UTIL_Wait fxn.
+> - *! 17-Jan-2000 rr: UTIL_Wait fxn added. Busy waits x number of micro seconds.
+> - *! 12-Nov-1999 kc: Modified UTIL_CmdLineToArgs for use by different tests.
+> - *! 02-Nov-1999 kc: Removed parameter from UTIL_CDTestDll.
+> - *! 29-Oct-1999 kc: Cleaned up for code review.
+> - *! 08-Oct-1999 kc: Renamed UTIL_TestDllExec to UTIL_CDTestDll; added
+> - *!                 UTIL_CmdLineToArgs(); added isspace private func.
+> - *! 26-Dec-1996 cr: Created from misc pieces of wcd95.c, ktest.c.
+> - *
+>   */
 > 
-> Yes, I strongly agree with this.
+>  #ifndef _UTIL_H
+> --
+> 1.6.1.3
 > 
-
-+1
-
->> 3) Use an extra couple of bits in V4L2_BUF_FLAGS
->> Pros: Simple to implement. Can change per frame without needing polling.
->> Cons: Doesn't work for non libv4l apps that try to use the read()
->> interface. Can't easily identify drivers that don't support it (does 0
->> mean not rotated or just not implemented). Can only be read when
->> streaming (does that matter?)
-> 
-> I think that matters, yes.
-> 
-
-I too can see it being usefull to get the orientation when not streaming.
-
->> 4) Use some reserved bits from the v4l2_capability structure
->> Pros: Less overhead than controls.
->> Cons: Would require polling to support the case of a camera being turned
->> toward / away from the user while streaming. Can't easily identify
->> drivers that don't support it.
->>
->> 5) Use some reserved bits from the v4l2_input structure (or possibly the
->> status word but that is normally only valid for current input)
->> Pros: Less overhead than controls. Could support multiple sensors in one
->> camera if such a beast exists.
-> 
-> What does exist is devices with a video input (e.g. composite) and a camera 
-> input: each input will have different flags. Since these vflip/hflip 
-> properties do not change they can be enumerated in advance and you know 
-> what each input supports.
-> 
->> Cons: Would require polling to support the case of a camera being turned
->> toward / away from the user while streaming.
-> 
-> Polling applies only to the bits that tell the orientation of the camera. 
-> See below for a discussion of this.
-> 
-
-Didn't we agree to separate orietation (as in sensor mounted upside down) and 
-the user being able to rotate the camera (which i believe we called pivotting).
-
-For the orientation case, which is the case with the sq905X, we do not need to 
-poll, as for pivotting, here is my proposal:
-
-Have both orientation and pivotting flags in the input flags. The pivotting 
-flags will indicate the pivotting state at the moment of doing the ioctl (which 
-may change later), so these indeed may need to be polled, unlike the 
-orientation flags which will never change.
-
->> Can't easily identify drivers that don't support it.
-> 
-> Not too difficult to add through the use of a capability bit. Either in 
-> v4l2_input or (perhaps) v4l2_capability.
-> 
-
-+1
-
-> Another Pro is that this approach will also work for v4l2_output in the case 
-> of, say, rotated LCD displays. Using camera orientation bits in v4l2_buffer 
-> while capturing will work, but using similar bits for output will fail 
-> since the data is going in the wrong direction.
-> 
->> The interest in detecting if a driver provides this informnation is to
->> allow libv4l to know when it should use the driver provided information
->> and when it should use its internal table (which needs to be retained for
->> backward compatibility). With no detection capability the driver provided
->> info should be ignored for USB IDs in the built in table.
->>
->> Thoughts please
-> 
-> Is polling bad in this case? It is not something that needs immediate 
-> attention IMHO.  The overhead for checking once every X seconds is quite
- > low.
-
-Agreed, but it still is something which should be avoided if possible, 
-implementing polling also means adding a lot of IMHO unneeded code on the 
-userspace side.
-
-I would prefer to make the "realtime" pivotting state available to the app by 
-adding flags containing the pivotting state at frame capture to the v4l2_buf flags.
-
-But if people dislike this, libv4l can simple poll the input now and then.
-
-> Furthermore, it is only needed on devices that cannot do v/hflipping 
-> in hardware.
-> 
-
-Erm, no, since we decided we want to differentiate between sensor orientation 
-and camera pivotting, I think the driver should not automagically do 
-v/hflipping in the pivot case, this should be left up to userspace. Maybe the 
-user actually wants to have an upside down picture ?
-
-> An alternative is to put some effort in a proper event interface. There is 
-> one implemented in include/linux/dvb/video.h and used by ivtv for video 
-> decoding. The idea is that the application registers events it wants to 
-> receive, and whenever such an event arrives the select() call will exit 
-> with a high-prio event (exception). The application then checks what 
-> happened.
-> 
-
-No not another event interface please. Once could argue that we should export 
-the pivotting info through the generic linux input system, but not a v4l 
-specific event interface please. Actually I think making the pivotting sensor 
-available through the generic input system in addition to making it available 
-through input flags would be nice to have. Just like we need to make all those 
-take a picture now buttons on webcams available through the generic input system.
-
-Regards,
-
-Hans
