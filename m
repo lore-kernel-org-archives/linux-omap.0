@@ -1,59 +1,156 @@
 From: Felipe Contreras <felipe.contreras@gmail.com>
-Subject: Re: [PATCH] dspbridge: wait less and check the mailbox more
-Date: Sun, 22 Feb 2009 08:46:47 +0200
-Message-ID: <94a0d4530902212246h4160ae83pf435b5c6faf88237@mail.gmail.com>
-References: <1235171057-7859-1-git-send-email-felipe.contreras@gmail.com>
-	 <20090222.072137.189714248.Hiroshi.DOYU@nokia.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Subject: [PATCH v2 3/4] dsp-bridge: cleanup and remove HW_MBOX_IsFull
+Date: Sun, 22 Feb 2009 11:32:23 +0200
+Message-ID: <1235295144-22097-3-git-send-email-felipe.contreras@gmail.com>
+References: <94a0d4530902212246h4160ae83pf435b5c6faf88237@mail.gmail.com>
+ <1235295144-22097-1-git-send-email-felipe.contreras@gmail.com>
+ <1235295144-22097-2-git-send-email-felipe.contreras@gmail.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from fg-out-1718.google.com ([72.14.220.159]:33180 "EHLO
-	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751969AbZBVGqt (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 22 Feb 2009 01:46:49 -0500
-Received: by fg-out-1718.google.com with SMTP id 16so2310173fgg.17
-        for <linux-omap@vger.kernel.org>; Sat, 21 Feb 2009 22:46:47 -0800 (PST)
-In-Reply-To: <20090222.072137.189714248.Hiroshi.DOYU@nokia.com>
+Received: from mail-bw0-f161.google.com ([209.85.218.161]:62287 "EHLO
+	mail-bw0-f161.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751270AbZBVJce (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 22 Feb 2009 04:32:34 -0500
+Received: by bwz5 with SMTP id 5so3877974bwz.13
+        for <linux-omap@vger.kernel.org>; Sun, 22 Feb 2009 01:32:32 -0800 (PST)
+In-Reply-To: <1235295144-22097-2-git-send-email-felipe.contreras@gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
-Cc: h-kanigeri2@ti.com, linux-omap@vger.kernel.org, felipe.contreras@nokia.com, ameya.palande@nokia.com
+To: linux-omap@vger.kernel.org
+Cc: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>, h-kanigeri2@ti.com, ameya.palande@nokia.com, Felipe Contreras <felipe.contreras@gmail.com>
 
-On Sun, Feb 22, 2009 at 7:21 AM, Hiroshi DOYU <Hiroshi.DOYU@nokia.com> wrote:
-> Hi Felipe,
->
-> From: ext Felipe Contreras <felipe.contreras@gmail.com>
-> Subject: [PATCH] dspbridge: wait less and check the mailbox more
-> Date: Sat, 21 Feb 2009 00:04:17 +0100
->
->> From: Felipe Contreras <felipe.contrers@nokia.com>
->>
->> Profiling showed the __delay function is called a lot; checking the mbox
->> more often seems to decrease the usage by 2/3 according to OProfile.
->
-> Good finding.
->
->> The changes are based on 'arch/arm/plat-omap/mailbox.c'. Tested on OMAP3430.
->>
->> Also, remove HW_MBOX_IsFull since it's not used by anybody.
->
-> Woundn't it be better to split this one into some logical parts,
-> tunning up part(decreasing delay) and cleanup part(the others)?
+HW_MBOX_IsFull has many convoluted macros and is used only once. Clean
+it up so it's easier to see what it's actually doing.
 
-I can do that, but my objective is to decrease CPU usage... increasing
-the frequency of mbox checking means more calls to HW_MBOX_IsFull. So
-the 'cleanup' part must be applied too for performance reasons.
+Signed-off-by: Felipe Contreras <felipe.contreras@gmail.com>
+---
+ drivers/dsp/bridge/hw/hw_mbox.c    |   25 -------------------------
+ drivers/dsp/bridge/hw/hw_mbox.h    |   35 -----------------------------------
+ drivers/dsp/bridge/wmd/tiomap_sm.c |   15 +++++++++------
+ 3 files changed, 9 insertions(+), 66 deletions(-)
 
-> Home brewed MACROs themselves like UTIL_Wait() are basically evil from
-> kernel source readibility perspective, but keeping consistency within
-> specific module may be more important and this kind of cleaning up
-> would be better to be done at onece over a module, in separate
-> patches.
-
-I can do that too.
-
-Note that the author is wrong: contrers -> contreras
-
+diff --git a/drivers/dsp/bridge/hw/hw_mbox.c b/drivers/dsp/bridge/hw/hw_mbox.c
+index 2c14ade..31b890a 100644
+--- a/drivers/dsp/bridge/hw/hw_mbox.c
++++ b/drivers/dsp/bridge/hw/hw_mbox.c
+@@ -104,31 +104,6 @@ HW_STATUS HW_MBOX_MsgWrite(const u32 baseAddress, const HW_MBOX_Id_t mailBoxId,
+ 	return status;
+ }
+ 
+-/* Reads the full status register for mailbox. */
+-HW_STATUS HW_MBOX_IsFull(const u32 baseAddress, const HW_MBOX_Id_t mailBoxId,
+-			u32 *const pIsFull)
+-{
+-	HW_STATUS status = RET_OK;
+-	u32 fullStatus;
+-
+-	/* Check input parameters */
+-	CHECK_INPUT_PARAM(baseAddress, 0, RET_BAD_NULL_PARAM, RES_MBOX_BASE +
+-			RES_INVALID_INPUT_PARAM);
+-	CHECK_INPUT_PARAM(pIsFull,  NULL, RET_BAD_NULL_PARAM, RES_MBOX_BASE +
+-			RES_INVALID_INPUT_PARAM);
+-	CHECK_INPUT_RANGE_MIN0(mailBoxId, HW_MBOX_ID_MAX, RET_INVALID_ID,
+-			RES_MBOX_BASE + RES_INVALID_INPUT_PARAM);
+-
+-	/* read the is full status parameter for Mailbox */
+-	fullStatus = MLBMAILBOX_FIFOSTATUS___0_15FifoFullMBmRead32(baseAddress,
+-							(u32)mailBoxId);
+-
+-	/* fill in return parameter */
+-	*pIsFull = (fullStatus & 0xFF);
+-
+-	return status;
+-}
+-
+ /* Gets number of messages in a specified mailbox. */
+ HW_STATUS HW_MBOX_NumMsgGet(const u32 baseAddress, const HW_MBOX_Id_t mailBoxId,
+ 				u32 *const pNumMsg)
+diff --git a/drivers/dsp/bridge/hw/hw_mbox.h b/drivers/dsp/bridge/hw/hw_mbox.h
+index 225fb40..d2981d3 100644
+--- a/drivers/dsp/bridge/hw/hw_mbox.h
++++ b/drivers/dsp/bridge/hw/hw_mbox.h
+@@ -130,41 +130,6 @@ extern HW_STATUS HW_MBOX_MsgWrite(
+ 		  );
+ 
+ /*
+-* FUNCTION      : HW_MBOX_IsFull
+-*
+-* INPUTS:
+-*
+-*   Identifier  : baseAddress
+-*   Type	: const u32
+-*   Description : Base Address of instance of Mailbox module
+-*
+-*   Identifier  : mailBoxId
+-*   Type	: const HW_MBOX_Id_t
+-*   Description : Mail Box Sub module Id to check
+-*
+-* OUTPUTS:
+-*
+-*   Identifier  : pIsFull
+-*   Type	: u32 *const
+-*   Description : false means mail box not Full
+-*		 true means mailbox full.
+-*
+-* RETURNS:
+-*
+-*   Type	: ReturnCode_t
+-*   Description : RET_OK	      No errors occured
+-*		 RET_BAD_NULL_PARAM  Address/pointer Paramater was set to 0/NULL
+-*		 RET_INVALID_ID      Invalid Id used
+-*
+-* PURPOSE:      : this function reads the full status register for mailbox.
+-*/
+-extern HW_STATUS HW_MBOX_IsFull(
+-		      const u32	 baseAddress,
+-		      const HW_MBOX_Id_t   mailBoxId,
+-		      u32 *const	pIsFull
+-		  );
+-
+-/*
+ * FUNCTION      : HW_MBOX_NumMsgGet
+ *
+ * INPUTS:
+diff --git a/drivers/dsp/bridge/wmd/tiomap_sm.c b/drivers/dsp/bridge/wmd/tiomap_sm.c
+index 2f381c8..4ad893b 100644
+--- a/drivers/dsp/bridge/wmd/tiomap_sm.c
++++ b/drivers/dsp/bridge/wmd/tiomap_sm.c
+@@ -156,6 +156,13 @@ DSP_STATUS CHNLSM_DisableInterrupt(struct WMD_DEV_CONTEXT *hDevContext)
+ 	return status;
+ }
+ 
++#define MAILBOX_FIFOSTATUS(m) (0x80 + 4 * (m))
++
++static inline unsigned int fifo_full(void __iomem *mbox_base, int mbox_id)
++{
++	return __raw_readl(mbox_base + MAILBOX_FIFOSTATUS(mbox_id)) & 0x1;
++}
++
+ /*
+  *  ======== CHNLSM_InterruptDSP ========
+  *      Send an interrupt to the DSP processor(s).
+@@ -171,7 +178,6 @@ DSP_STATUS CHNLSM_InterruptDSP(struct WMD_DEV_CONTEXT *hDevContext)
+ 	u32 opplevel = 0;
+ #endif
+ 	HW_STATUS hwStatus;
+-	u32 mbxFull;
+ 	struct CFG_HOSTRES resources;
+ 	u16 cnt = 10;
+ 	u32 temp;
+@@ -214,12 +220,9 @@ DSP_STATUS CHNLSM_InterruptDSP(struct WMD_DEV_CONTEXT *hDevContext)
+ 		pDevContext->dwBrdState = BRD_RUNNING;
+ 	}
+ 	while (--cnt) {
+-		hwStatus = HW_MBOX_IsFull(resources.dwMboxBase,
+-					   MBOX_ARM2DSP, &mbxFull);
+-		if (mbxFull)
+-			mdelay(1);
+-		else
++		if (!fifo_full((void __iomem *) resources.dwMboxBase, 0))
+ 			break;
++		mdelay(1);
+ 	}
+ 	if (!cnt) {
+ 		DBG_Trace(DBG_LEVEL7, "Timed out waiting for DSP mailbox \n");
 -- 
-Felipe Contreras
+1.6.1.3
+
