@@ -1,28 +1,53 @@
-From: Mark Brown <broonie@sirena.org.uk>
-Subject: Re: Configuring a TWL GPIO pin as an interrupt
-Date: Sun, 22 Feb 2009 20:35:08 +0000
-Message-ID: <20090222203507.GA28597@sirena.org.uk>
-References: <2C7D3DF36ADFFC479B44490D912B616705D6329B7D@dlee07.ent.ti.com> <20090221023924.GD6224@gandalf> <58B26312-2687-4BF8-AE17-D4D0D5FAA136@student.utwente.nl>
+From: Adam Baker <linux@baker-net.org.uk>
+Subject: Re: [RFC] How to pass camera Orientation to userspace
+Date: Sun, 22 Feb 2009 21:46:32 +0000
+Message-ID: <200902222146.33136.linux@baker-net.org.uk>
+References: <200902180030.52729.linux@baker-net.org.uk> <alpine.LNX.2.00.0902221225310.10870@banach.math.auburn.edu> <49A1A03A.8080303@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from cassiel.sirena.org.uk ([80.68.93.111]:2950 "EHLO
-	cassiel.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752462AbZBVUf2 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 22 Feb 2009 15:35:28 -0500
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-media-owner@vger.kernel.org>
+In-Reply-To: <49A1A03A.8080303@redhat.com>
 Content-Disposition: inline
-In-Reply-To: <58B26312-2687-4BF8-AE17-D4D0D5FAA136@student.utwente.nl>
-Sender: linux-omap-owner@vger.kernel.org
+Sender: linux-media-owner@vger.kernel.org
+To: Hans de Goede <hdegoede@redhat.com>
+Cc: kilgota@banach.math.auburn.edu, Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org, Jean-Francois Moine <moinejf@free.fr>, Olivier Lorin <o.lorin@laposte.net>, Mauro Carvalho Chehab <mchehab@infradead.org>, Trent Piepho <xyzzy@speakeasy.org>, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Koen Kooi <k.kooi@student.utwente.nl>
-Cc: me@felipebalbi.com, "Lopez Cruz, Misael" <x0052729@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Sat, Feb 21, 2009 at 11:33:43AM +0100, Koen Kooi wrote:
+On Sunday 22 February 2009, Hans de Goede wrote:
+> We want to be able to differentiate between a cam which has its sensor
+> mounted upside down, and a cam which can be pivotted and happens to be
+> upside down at the moment, in case of any upside down mounted sensor, we
+> will always want to compentsate, in case of a pivotting camera wether we
+> compensate or not could be a user preference.
 
-> Don't forget to use the proper API for it: http://git.kernel.org/?p=linux/kernel/git/torvalds/linux-2.6.git;a=blob;f=include/sound/jack.h;hb=master
 
-Yes, please, but note that there's an ASoC wrapper for that in sound/soc
-in -next which should be used instead of the raw jack reporting API.  It
-separates the definition of the jack from the detection mechanisms since
-the wiring is always going to be board specific - eg, headphone and
-microphone may be exposed on one physical jack or as separate jacks.
+If we take Olivier Lorin's gl-860 case though, how do we define what is the 
+normal orientation and what is pivoted, it is likely we'd just decide the 
+direction where the sensor output is the right way up is normal and the other 
+is pivoted and then what info have you got from having multiple flags.
+
+In order to explain what I mean it is probably best to refer to rotations in 
+terms of pitch, yaw and roll (as per the definitions at 
+http://en.wikipedia.org/wiki/Flight_dynamics) where the forward direction is 
+the shooting direction.
+
+When still cameras are fitted with gravity sensors they are normally set up 
+with the intention of measuring roll and will often get confused by 90 
+degrees of pitch. If a laptop is fitted with a camera that can either record 
+the user or the view looking away from the user then the camera needs to be 
+able to either pitch or yaw but not roll. If the camera yaws then no 
+correction is needed but if it pitches then the resulting image needs 
+rotating to be the correct way up (and in that scenario it is improbable that 
+the user doesn't want the correction applied). Other than the fact that one 
+needs correcting and the other doesn't these options appear identical to the 
+user and so manufacturers provide one or the other but not both.
+
+If a video camera had a roll sensor (or even, as a believe some specialist 
+tripods can manage, a full set of roll, pitch and yaw measurements) then a 
+substantially different mechanism is needed to provide access to that data 
+but in the absence of anyone having access to such equipment I don't think we 
+can design the interface now.
+
+Adam
