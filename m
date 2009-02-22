@@ -1,43 +1,46 @@
-From: Jarkko Nikula <jhnikula@gmail.com>
-Subject: [2.6.29-rc5][PATCH 1/1] ARM: OMAP: BEAGLE: Remove dead code for CONFIG_I2C2_OMAP_BEAGLE
-Date: Sun, 22 Feb 2009 18:47:28 +0200
-Message-ID: <1235321248-5844-2-git-send-email-jarkko.nikula@nokia.com>
-References: <1235321248-5844-1-git-send-email-jarkko.nikula@nokia.com>
+From: Felipe Balbi <me@felipebalbi.com>
+Subject: Re: ehci-omap patches (Was Re: [PATCH 0/5] [RESEND] lm8323 patches)
+Date: Sun, 22 Feb 2009 18:50:56 +0200
+Message-ID: <20090222165056.GA2135@frodo>
+References: <20090220125109.GL16942@scadufax.research.nokia.com> <5A47E75E594F054BAF48C5E4FC4B92AB02F565683F@dbde02.ent.ti.com> <94a0d4530902220551x62dfeb8w248528922afbcd8c@mail.gmail.com> <57969b5c0902220759n55798b71y64a5b17b7bdc7f98@mail.gmail.com>
+Reply-To: me@felipebalbi.com
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from nf-out-0910.google.com ([64.233.182.191]:58842 "EHLO
-	nf-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754050AbZBVQoa (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 22 Feb 2009 11:44:30 -0500
-Received: by nf-out-0910.google.com with SMTP id d21so354402nfb.21
-        for <linux-omap@vger.kernel.org>; Sun, 22 Feb 2009 08:44:28 -0800 (PST)
-In-Reply-To: <1235321248-5844-1-git-send-email-jarkko.nikula@nokia.com>
+Received: from ns1.siteground211.com ([209.62.36.12]:57219 "EHLO
+	serv01.siteground211.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754242AbZBVQvL (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 22 Feb 2009 11:51:11 -0500
+Content-Disposition: inline
+In-Reply-To: <57969b5c0902220759n55798b71y64a5b17b7bdc7f98@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Jarkko Nikula <jarkko.nikula@nokia.com>
+To: Anand Gadiyar <gadiyar@gmail.com>
+Cc: Felipe Contreras <felipe.contreras@gmail.com>, "felipe.balbi@nokia.com" <felipe.balbi@nokia.com>, Grazvydas Ignotas <notasas@gmail.com>, "me@felipebalbi.com" <me@felipebalbi.com>, Steve Sakoman <sakoman@gmail.com>, Tony Lindgren <tony@atomide.com>, linux-omap <linux-omap@vger.kernel.org>
 
-There is no CONFIG_I2C2_OMAP_BEAGLE in mainline and it is under removal
-in linux-omap also so remove this dead code now.
+Hi,
 
-Signed-off-by: Jarkko Nikula <jarkko.nikula@nokia.com>
----
- arch/arm/mach-omap2/board-omap3beagle.c |    3 ---
- 1 files changed, 0 insertions(+), 3 deletions(-)
+not trying to keep the thread alive, but...
 
-diff --git a/arch/arm/mach-omap2/board-omap3beagle.c b/arch/arm/mach-omap2/board-omap3beagle.c
-index e39cd2c..e3c8628 100644
---- a/arch/arm/mach-omap2/board-omap3beagle.c
-+++ b/arch/arm/mach-omap2/board-omap3beagle.c
-@@ -175,9 +175,6 @@ static int __init omap3_beagle_i2c_init(void)
- {
- 	omap_register_i2c_bus(1, 2600, beagle_i2c_boardinfo,
- 			ARRAY_SIZE(beagle_i2c_boardinfo));
--#ifdef CONFIG_I2C2_OMAP_BEAGLE
--	omap_register_i2c_bus(2, 400, NULL, 0);
--#endif
- 	/* Bus 3 is attached to the DVI port where devices like the pico DLP
- 	 * projector don't work reliably with 400kHz */
- 	omap_register_i2c_bus(3, 100, NULL, 0);
+On Sun, Feb 22, 2009 at 09:29:30PM +0530, Anand Gadiyar wrote:
+> Then I suggest you read up the history. You __are__ misinterpreting
+> this. He did not submit any patches. He had a list of some tens of
+> drivers that he was planning to send to mainline sometime last
+> September. I thought I'll save everyone some time and would take care
+
+http://marc.info/?l=linux-omap&m=122124472931396&w=2
+
+I've even mailed you and/or Vikram 4 patches on ehci for you make your patches
+on top of them.
+
+(can't really remember if you or Vikram was working on that driver at
+that time)
+
+> of sending in at least the EHCI part so he could concentrate on other
+> stuff that he was doing. Unfortunately, I got preempted more than
+> once.
+
+heh, I know how that feels...
+
 -- 
-1.5.6.5
-
+balbi
