@@ -1,50 +1,48 @@
-From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
-Subject: Re: [PATCH] dspbridge: wait less and check the mailbox more
-Date: Sun, 22 Feb 2009 07:21:37 +0200 (EET)
-Message-ID: <20090222.072137.189714248.Hiroshi.DOYU@nokia.com>
-References: <1235171057-7859-1-git-send-email-felipe.contreras@gmail.com>
+From: Steve Sakoman <sakoman@gmail.com>
+Subject: Re: SDIO broken in 2.6.29?
+Date: Sat, 21 Feb 2009 22:04:53 -0800
+Message-ID: <5e088bd90902212204y6d7bbfdi8c6ba251fbf852bd@mail.gmail.com>
+References: <5e088bd90902192235n4104d8b1r80bfa6ff2be927d6@mail.gmail.com>
+	 <20090220154910.GJ7414@atomide.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:56162 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750754AbZBVFVv (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 22 Feb 2009 00:21:51 -0500
-In-Reply-To: <1235171057-7859-1-git-send-email-felipe.contreras@gmail.com>
+Received: from fg-out-1718.google.com ([72.14.220.153]:34720 "EHLO
+	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750986AbZBVGEz (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 22 Feb 2009 01:04:55 -0500
+Received: by fg-out-1718.google.com with SMTP id 16so2307776fgg.17
+        for <linux-omap@vger.kernel.org>; Sat, 21 Feb 2009 22:04:53 -0800 (PST)
+In-Reply-To: <20090220154910.GJ7414@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: felipe.contreras@gmail.com, h-kanigeri2@ti.com
-Cc: linux-omap@vger.kernel.org, felipe.contrers@nokia.com, ameya.palande@nokia.com
+To: Tony Lindgren <tony@atomide.com>, linux-omap <linux-omap@vger.kernel.org>
 
-Hi Felipe,
+On Fri, Feb 20, 2009 at 7:49 AM, Tony Lindgren <tony@atomide.com> wrote:
+> * Steve Sakoman <sakoman@gmail.com> [090219 22:38]:
+>> Overo has a wifi chip on mmc2 that uses the libertas_sdio driver.
+>> I've had my head down working in other areas and failed to noticed
+>> that at some point in the 2.6.29 rc cycle SDIO stopped working.
+>>
+>> I'll start bisecting tomorrow morning, but thought I would ask first
+>> to see if anyone else has noticed issues in this area.
+>
+> I wonder if it happened when we switched to the mainline version of
+> omap_hsmmc.c?
+>
+> Anyways at least now most of the code is in the mainline :) So
+> hopefully we can get that fix in too during the -rc cycle.
 
-From: ext Felipe Contreras <felipe.contreras@gmail.com>
-Subject: [PATCH] dspbridge: wait less and check the mailbox more
-Date: Sat, 21 Feb 2009 00:04:17 +0100
+I've tried to reproduce Dave's reported success with recent kernels,
+but have been unable to do so.
 
-> From: Felipe Contreras <felipe.contrers@nokia.com>
-> 
-> Profiling showed the __delay function is called a lot; checking the mbox
-> more often seems to decrease the usage by 2/3 according to OProfile.
+I haven't narrowed it down to a specific commit yet, but have verified
+that the problem surfaces for me at the rc2 -> rc3 transition.
 
-Good finding.
+This is suspiciously near the time of the switch to the mainline
+version of omap_hsmmc.c . . .
 
-> The changes are based on 'arch/arm/plat-omap/mailbox.c'. Tested on OMAP3430.
-> 
-> Also, remove HW_MBOX_IsFull since it's not used by anybody.
+I'll keep digging.
 
-Woundn't it be better to split this one into some logical parts,
-tunning up part(decreasing delay) and cleanup part(the others)?
-
-Home brewed MACROs themselves like UTIL_Wait() are basically evil from
-kernel source readibility perspective, but keeping consistency within
-specific module may be more important and this kind of cleaning up
-would be better to be done at onece over a module, in separate
-patches.
-
-Hari,
-Any comment? if it's ok, please merge it or newer ones into o-z as
-well.
-
-      Hiroshi DOYU
+Steve
