@@ -1,114 +1,130 @@
 From: Felipe Balbi <me@felipebalbi.com>
-Subject: [rft/rfc/patch-v2.6.29-rc5+ 04/23] usb: host: ehci: tabify structures
-Date: Mon, 23 Feb 2009 20:52:32 +0200
-Message-ID: <1235415171-17376-5-git-send-email-me@felipebalbi.com>
+Subject: [rft/rfc/patch-v2.6.29-rc5+ 03/23] usb: host: ehci: standardize variables
+Date: Mon, 23 Feb 2009 20:52:31 +0200
+Message-ID: <1235415171-17376-4-git-send-email-me@felipebalbi.com>
 References: <1235415171-17376-1-git-send-email-me@felipebalbi.com>
  <1235415171-17376-2-git-send-email-me@felipebalbi.com>
  <1235415171-17376-3-git-send-email-me@felipebalbi.com>
- <1235415171-17376-4-git-send-email-me@felipebalbi.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ns1.siteground211.com ([209.62.36.12]:46637 "EHLO
+Received: from ns1.siteground211.com ([209.62.36.12]:46627 "EHLO
 	serv01.siteground211.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754490AbZBWSxX (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 23 Feb 2009 13:53:23 -0500
-In-Reply-To: <1235415171-17376-4-git-send-email-me@felipebalbi.com>
+	with ESMTP id S1754474AbZBWSxV (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 23 Feb 2009 13:53:21 -0500
+In-Reply-To: <1235415171-17376-3-git-send-email-me@felipebalbi.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: Steve Sakoman <steve@sakoman.com>, Anand Gadiyar <gadiyar@ti.com>, Syed Mohammed Khasim <x0khasim@ti.com>, Felipe Balbi <me@felipebalbi.com>
 
-Style only, no functional changes.
+Style only, normally we use pdev as the platform_device's
+pointer name.
 
 Signed-off-by: Felipe Balbi <me@felipebalbi.com>
 ---
- drivers/usb/host/ehci-omap.c |   46 +++++++++++++++++++++---------------------
- 1 files changed, 23 insertions(+), 23 deletions(-)
+ drivers/usb/host/ehci-omap.c |   36 ++++++++++++++++++------------------
+ 1 files changed, 18 insertions(+), 18 deletions(-)
 
 diff --git a/drivers/usb/host/ehci-omap.c b/drivers/usb/host/ehci-omap.c
-index a4f5f16..e050795 100644
+index 3dd4a68..a4f5f16 100644
 --- a/drivers/usb/host/ehci-omap.c
 +++ b/drivers/usb/host/ehci-omap.c
-@@ -518,57 +518,57 @@ static int omap_ehci_bus_resume(struct usb_hcd *hcd)
+@@ -412,39 +412,39 @@ static const struct hc_driver ehci_omap_hc_driver;
+  * through the hotplug entry's driver_data.
+  *
+  */
+-static int ehci_hcd_omap_drv_probe(struct platform_device *dev)
++static int ehci_hcd_omap_drv_probe(struct platform_device *pdev)
+ {
+ 	int retval = 0;
+ 	struct usb_hcd *hcd;
+ 	struct ehci_hcd *ehci;
  
- static const struct hc_driver ehci_omap_hc_driver = {
- 	.description = hcd_name,
--	.product_desc = "OMAP-EHCI Host Controller",
--	.hcd_priv_size = sizeof(struct ehci_hcd)
-+	.product_desc		= "OMAP-EHCI Host Controller",
-+	.hcd_priv_size		= sizeof(struct ehci_hcd)
- 				+ sizeof(struct ehci_omap_clock_defs),
+-	dev_dbg(&dev->dev, "ehci_hcd_omap_drv_probe()\n");
++	dev_dbg(&pdev->dev, "ehci_hcd_omap_drv_probe()\n");
  
- 	/*
- 	 * generic hardware linkage
- 	 */
--	.irq = ehci_irq,
--	.flags = HCD_MEMORY | HCD_USB2,
-+	.irq			= ehci_irq,
-+	.flags			= HCD_MEMORY | HCD_USB2,
+ 	if (usb_disabled())
+ 		return -ENODEV;
  
- 	/*
- 	 * basic lifecycle operations
- 	 */
--	.reset = ehci_init,
--	.start = ehci_run,
--	.stop = ehci_stop,
--	.shutdown = ehci_shutdown,
-+	.reset			= ehci_init,
-+	.start			= ehci_run,
-+	.stop			= ehci_stop,
-+	.shutdown		= ehci_shutdown,
- 
- 	/*
- 	 * managing i/o requests and associated device resources
- 	 */
--	.urb_enqueue = ehci_urb_enqueue,
--	.urb_dequeue = ehci_urb_dequeue,
--	.endpoint_disable = ehci_endpoint_disable,
-+	.urb_enqueue		= ehci_urb_enqueue,
-+	.urb_dequeue		= ehci_urb_dequeue,
-+	.endpoint_disable	= ehci_endpoint_disable,
- 
- 	/*
- 	 * scheduling support
- 	 */
--	.get_frame_number = ehci_get_frame,
-+	.get_frame_number	= ehci_get_frame,
- 
- 	/*
- 	 * root hub support
- 	 */
--	.hub_status_data = ehci_hub_status_data,
--	.hub_control = ehci_hub_control,
-+	.hub_status_data	= ehci_hub_status_data,
-+	.hub_control		= ehci_hub_control,
- #ifdef	CONFIG_PM
--	.bus_suspend = omap_ehci_bus_suspend,
--	.bus_resume = omap_ehci_bus_resume,
-+	.bus_suspend		= omap_ehci_bus_suspend,
-+	.bus_resume		= omap_ehci_bus_resume,
- #endif
- };
- 
- MODULE_ALIAS("platform:omap-ehci");
- 
- static struct platform_driver ehci_hcd_omap_driver = {
--	.probe = ehci_hcd_omap_drv_probe,
--	.remove = ehci_hcd_omap_drv_remove,
--	.shutdown = usb_hcd_platform_shutdown,
--	/*.suspend      = ehci_hcd_omap_drv_suspend, */
--	/*.resume       = ehci_hcd_omap_drv_resume, */
-+	.probe			= ehci_hcd_omap_drv_probe,
-+	.remove			= ehci_hcd_omap_drv_remove,
-+	.shutdown		= usb_hcd_platform_shutdown,
-+	/*.suspend		= ehci_hcd_omap_drv_suspend, */
-+	/*.resume		= ehci_hcd_omap_drv_resume, */
- 	.driver = {
--		.name = "ehci-omap",
--		.bus = &platform_bus_type
-+		.name		= "ehci-omap",
-+		.bus		= &platform_bus_type
+-	if (dev->resource[1].flags != IORESOURCE_IRQ) {
+-		dev_dbg(&dev->dev, "resource[1] is not IORESOURCE_IRQ\n");
++	if (pdev->resource[1].flags != IORESOURCE_IRQ) {
++		dev_dbg(&pdev->dev, "resource[1] is not IORESOURCE_IRQ\n");
+ 		retval = -ENOMEM;
  	}
- };
+ 
+-	hcd = usb_create_hcd(&ehci_omap_hc_driver, &dev->dev,
+-			dev_name(&dev->dev));
++	hcd = usb_create_hcd(&ehci_omap_hc_driver, &pdev->dev,
++			dev_name(&pdev->dev));
+ 	if (!hcd)
+ 		return -ENOMEM;
+ 
+-	retval = omap_start_ehc(dev, hcd);
++	retval = omap_start_ehc(pdev, hcd);
+ 	if (retval)
+ 		return retval;
+ 
+ 	hcd->rsrc_start = 0;
+ 	hcd->rsrc_len = 0;
+-	hcd->rsrc_start = dev->resource[0].start;
+-	hcd->rsrc_len = dev->resource[0].end - dev->resource[0].start + 1;
++	hcd->rsrc_start = pdev->resource[0].start;
++	hcd->rsrc_len = pdev->resource[0].end - pdev->resource[0].start + 1;
+ 
+ 	hcd->regs = ioremap(hcd->rsrc_start, hcd->rsrc_len);
+ 	if (!hcd->regs) {
+-		dev_err(&dev->dev, "ioremap failed\n");
++		dev_err(&pdev->dev, "ioremap failed\n");
+ 		return -ENOMEM;
+ 	}
+ 
+@@ -460,13 +460,13 @@ static int ehci_hcd_omap_drv_probe(struct platform_device *dev)
+ 	/* SET 1 micro-frame Interrupt interval */
+ 	writel(readl(&ehci->regs->command) | (1 << 16), &ehci->regs->command);
+ 
+-	retval = usb_add_hcd(hcd, dev->resource[1].start,
++	retval = usb_add_hcd(hcd, pdev->resource[1].start,
+ 				IRQF_DISABLED | IRQF_SHARED);
+ 	if (retval == 0)
+ 		return retval;
+ 
+-	dev_dbg(hcd->self.controller, "ERR: add_hcd\n");
+-	omap_stop_ehc(dev, hcd);
++	dev_dbg(&pdev->dev, "ERR: add_hcd\n");
++	omap_stop_ehc(pdev, hcd);
+ 	iounmap(hcd->regs);
+ 	usb_put_hcd(hcd);
+ 
+@@ -480,7 +480,7 @@ static int ehci_hcd_omap_drv_probe(struct platform_device *dev)
+ 
+ /**
+  * ehci_hcd_omap_drv_remove - shutdown processing for EHCI HCDs
+- * @dev: USB Host Controller being removed
++ * @pdev: USB Host Controller being removed
+  * Context: !in_interrupt()
+  *
+  * Reverses the effect of usb_ehci_hcd_omap_probe(), first invoking
+@@ -488,16 +488,16 @@ static int ehci_hcd_omap_drv_probe(struct platform_device *dev)
+  * context, normally "rmmod", "apmd", or something similar.
+  *
+  */
+-static int ehci_hcd_omap_drv_remove(struct platform_device *dev)
++static int ehci_hcd_omap_drv_remove(struct platform_device *pdev)
+ {
+-	struct usb_hcd *hcd = platform_get_drvdata(dev);
++	struct usb_hcd *hcd = platform_get_drvdata(pdev);
+ 
+-	dev_dbg(&dev->dev, "ehci_hcd_omap_drv_remove()\n");
++	dev_dbg(&pdev->dev, "ehci_hcd_omap_drv_remove()\n");
+ 
+ 	iounmap(hcd->regs);
+ 	usb_remove_hcd(hcd);
+ 	usb_put_hcd(hcd);
+-	omap_stop_ehc(dev, hcd);
++	omap_stop_ehc(pdev, hcd);
+ 
+ 	return 0;
+ }
 -- 
 1.6.1.3
 
