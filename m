@@ -1,105 +1,153 @@
-From: Felipe Balbi <felipe.balbi@nokia.com>
-Subject: Re: OMAP3530 USB host problems
-Date: Mon, 23 Feb 2009 12:21:51 +0200
-Message-ID: <20090223102151.GY16942@scadufax.research.nokia.com>
-References: <499EF348.6020302@mlbassoc.com> <20090220182904.GP20723@frodo> <499EFB84.1020201@mlbassoc.com> <20090220185426.GR20723@frodo> <499EFF0D.6060602@mlbassoc.com> <20090220192330.GN32564@gandalf> <499F0601.7080608@mlbassoc.com> <20090220194157.GP32564@gandalf>
-Reply-To: felipe.balbi@nokia.com
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: [RFC] How to pass camera Orientation to userspace
+Date: Mon, 23 Feb 2009 08:07:15 -0300
+Message-ID: <20090223080715.0c97774e@pedra.chehab.org>
+References: <200902180030.52729.linux@baker-net.org.uk>
+	<200902211253.58061.hverkuil@xs4all.nl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:58992 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752014AbZBWKlL (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 23 Feb 2009 05:41:11 -0500
-Content-Disposition: inline
-In-Reply-To: <20090220194157.GP32564@gandalf>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-media-owner@vger.kernel.org>
+In-Reply-To: <200902211253.58061.hverkuil@xs4all.nl>
+Sender: linux-media-owner@vger.kernel.org
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Adam Baker <linux@baker-net.org.uk>, linux-media@vger.kernel.org, Jean-Francois Moine <moinejf@free.fr>, Hans de Goede <hdegoede@redhat.com>, kilgota@banach.math.auburn.edu, Olivier Lorin <o.lorin@laposte.net>, Trent Piepho <xyzzy@speakeasy.org>, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: ext Felipe Balbi <me@felipebalbi.com>
-Cc: Gary Thomas <gary@mlbassoc.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>
 
-On Fri, Feb 20, 2009 at 08:41:58PM +0100, ext Felipe Balbi wrote:
-> On Fri, Feb 20, 2009 at 12:35:29PM -0700, Gary Thomas wrote:
-> > Felipe Balbi wrote:
-> > > On Fri, Feb 20, 2009 at 12:05:49PM -0700, Gary Thomas wrote:
-> > >> Felipe Balbi wrote:
-> > >>> On Fri, Feb 20, 2009 at 11:50:44AM -0700, Gary Thomas wrote:
-> > >>>> Felipe Balbi wrote:
-> > >>>>> On Fri, Feb 20, 2009 at 11:15:36AM -0700, Gary Thomas wrote:
-> > >>>>>> I have a 3530 board (similar to the OMAP3EVM) and I'm trying
-> > >>>>>> to get the USB host working.  Sadly, this is failing, but I
-> > >>>>>> don't quite see why.  From drivers/usb/host/echi-omap.c:
-> > >>>>>>        /* Wait for TLL to be Active */
-> > >>>>>>         timeout = 1000;
-> > >>>>>>        while ((cm_read_mod_reg(CORE_MOD, OMAP2430_CM_IDLEST3)
-> > >>>>>>                        & (1 << OMAP3430ES2_ST_USBTLL_SHIFT)))
-> > >>>>>>         {
-> > >>>>>>             if (--timeout <= 0) {
-> > >>>>>>                 printk(KERN_ERR "USB TLL is unavailable\n");
-> > >>>>>>                 return -ENODEV;
-> > >>>>>>             }
-> > >>>>>>                cpu_relax();
-> > >>>>>>         }
-> > >>>>>>
-> > >>>>>> Any clues on why this might be?  How do I solve it?
-> > >>>>> could you enable CONFIG_DEBUG_LL and post the seria console output ?
-> > >>>>>
-> > >>>>> do you really use TLL ?? I don't really know omap3evm, but I guess it
-> > >>>>> uses PHY mode (correct me if I'm wrong).
-> > >>>>>
-> > >>>> It's not that I _need_ TLL, the driver function omap_start_ehci()
-> > >>>> tries to reset the part of the USB controller and fails.  I'm just
-> > >>>> trying to understand why this part of the code falls over.
-> > >>> you have OMAP_EHCI_TLL_MODE set, you should probably use
-> > >>> OMAP_EHCI_PHY_MODE instead.
-> > >>>
-> > >>> You can fix it via "make menuconfig"
-> > >>>
-> > >> I already have that; this code is still being used.
-> > >>   # CONFIG_OMAP_EHCI_TLL_MODE is not set
-> > >>   CONFIG_OMAP_EHCI_PHY_MODE=y
-> > >>
-> > >> This is not used in the function above at all.
-> > >
-> > > hmm.. true, just checked the function.
-> > >
-> > > Weird, TRM says when that bit is 1, we cannot access ST_USBTLL, we
-> > > should access it when it's 0, try the following:
-> > >
-> > > diff --git a/drivers/usb/host/ehci-omap.c b/drivers/usb/host/ehci-omap.c
-> > > index 1b3266c..122e95b 100644
-> > > --- a/drivers/usb/host/ehci-omap.c
-> > > +++ b/drivers/usb/host/ehci-omap.c
-> > > @@ -250,7 +250,7 @@ static int omap_start_ehc(struct platform_device *dev, struct usb_hcd *hcd)
-> > >
-> > >         /* Wait for TLL to be Active */
-> > >         while ((cm_read_mod_reg(CORE_MOD, OMAP2430_CM_IDLEST3)
-> > > -                       & (1 << OMAP3430ES2_ST_USBTLL_SHIFT)))
-> > > +                       & (0 << OMAP3430ES2_ST_USBTLL_SHIFT)))
-> > >                 cpu_relax();
-> > >
-> > >         /* perform TLL soft reset, and wait until reset is complete */
-> > >
-> > > and tell us if it worked
-> > >
-> >
-> > Sadly, I've already tried this and things just continue to fall apart.
-> >
-> >   Unhandled fault: external abort on non-linefetch (0x1008) at 0xd8062010
-> >   Internal error: : 1008 [#1]
-> >   Modules linked in:
-> >   CPU: 0    Not tainted  (2.6.27-omap1-svn4799-dirty14 #60)
-> >   PC is at ehci_hcd_omap_drv_probe+0x370/0x5e4
-> >   LR is at release_console_sem+0x1a8/0x1d8
-> >
-> > Hence, my desired to figure out the TLL timeout...
+On Sat, 21 Feb 2009 12:53:57 +0100
+Hans Verkuil <hverkuil@xs4all.nl> wrote:
+
+> Hi Adam,
 > 
-> keep TLL as is, the problem now seems to be a clock that should be on
-> and is off. Try to figure (with printk() for example) at which line the
-> code stops, put printk() before and after register read/write operations
-> during probe and omap_start_ehc(), let's see where does it dies.
+> Sorry for the late reply, it's been very busy.
 
-any news ??
+Me too.
 
--- 
-balbi
+> > 1) Reuse the existing HFLIP and VFLIP controls, marking them as read-only
+> > Pros : No change needed to videodev2.h
+> > Cons: It is confusing to have controls that have a subtly different
+> > meaning if they are read only. Existing apps that support those controls
+> > might get confused. Would require polling to support the case of a camera
+> > being turned toward / away from the user while streaming.
+
+Reusing an existing control for a different meaning seems wrong. What happens
+when some cam has the capability of doing hardware flipping, and have the cam
+flipped?
+
+> > 2) Introduce a new orientation control (possibly in a new
+> > CAMERA_PROPERTIES class)
+> > Pros: libv4l can easily tell if the driver supports the control.
+> > Cons: It is really a property, not a control so calling it a control is
+> > wrong. Controls add lots of overhead in terms of driver code. Would
+> > require polling to support the case of a camera being turned toward /
+> > away from the user while streaming.
+
+I think this could be a good idea, but I agree with Hans Verkuil comments: since
+this is a characteristics for a given input, using a control here would mean
+that the driver will return it based on the selected input. Seems a little
+messy. Also, a mounted characteristics of the device, is not really a sensor,
+as Hans de Goede pointed.
+
+> > 3) Use an extra couple of bits in V4L2_BUF_FLAGS
+> > Pros: Simple to implement. Can change per frame without needing polling.
+> > Cons: Doesn't work for non libv4l apps that try to use the read()
+> > interface. Can't easily identify drivers that don't support it (does 0
+> > mean not rotated or just not implemented). Can only be read when
+> > streaming (does that matter?)
+> 
+> I think that matters, yes.
+
+I don't think this is a good idea. The metadata at the frame polling is meant
+to return the stream info. We shouldn't mix sensor position here.
+
+> > 4) Use some reserved bits from the v4l2_capability structure
+> > Pros: Less overhead than controls.
+> > Cons: Would require polling to support the case of a camera being turned
+> > toward / away from the user while streaming. Can't easily identify
+> > drivers that don't support it.
+> > 5) Use some reserved bits from the v4l2_input structure (or possibly the
+> > status word but that is normally only valid for current input)
+> > Pros: Less overhead than controls. Could support multiple sensors in one
+> > camera if such a beast exists.
+> What does exist is devices with a video input (e.g. composite) and a camera 
+> input: each input will have different flags. Since these vflip/hflip 
+> properties do not change they can be enumerated in advance and you know 
+> what each input supports.
+> 
+> > Cons: Would require polling to support the case of a camera being turned
+> > toward / away from the user while streaming.
+> 
+> Polling applies only to the bits that tell the orientation of the camera. 
+> See below for a discussion of this.
+
+Analog tv does polling for signal strength, since userspace apps do mute and
+stops presenting video, if the signal is too weak. IMO, a similar mechanism
+should be used by pivoting.
+
+IMO, this would be better addressed as a property of v4l2_input. So, I think
+that (5) is better than (4).
+
+> > Can't easily identify drivers that don't support it.
+> 
+> Not too difficult to add through the use of a capability bit. Either in 
+> v4l2_input or (perhaps) v4l2_capability.
+> 
+> Another Pro is that this approach will also work for v4l2_output in the case 
+> of, say, rotated LCD displays. Using camera orientation bits in v4l2_buffer 
+> while capturing will work, but using similar bits for output will fail 
+> since the data is going in the wrong direction.
+> 
+> > The interest in detecting if a driver provides this informnation is to
+> > allow libv4l to know when it should use the driver provided information
+> > and when it should use its internal table (which needs to be retained for
+> > backward compatibility). With no detection capability the driver provided
+> > info should be ignored for USB IDs in the built in table.
+> >
+> > Thoughts please
+
+There is a case that we should think: at libv4l, we may need to override the
+"default" orientation, by a custom one. For example: Surveillance systems have
+cameras mounted on a fixed position. Depending on the camera, and the desired
+position, some cameras may needed to be mounted rotated (the same case also
+applies to some embedded hardware like ATM machines, where a webcam maybe
+mounted with 180 degrees, due to hardware constraints).
+
+Ok, this is nothing that kernel needs to handle, but, at userspace, we need to
+have a file where the user could edit and store the camera position, to
+override whatever we have in kernel.
+
+> 
+> Is polling bad in this case? It is not something that needs immediate 
+> attention IMHO. The overhead for checking once every X seconds is quite 
+> low. Furthermore, it is only needed on devices that cannot do v/hflipping 
+> in hardware.
+> 
+> An alternative is to put some effort in a proper event interface. There is 
+> one implemented in include/linux/dvb/video.h and used by ivtv for video 
+> decoding. The idea is that the application registers events it wants to 
+> receive, and whenever such an event arrives the select() call will exit 
+> with a high-prio event (exception). The application then checks what 
+> happened.
+> 
+> The video.h implementation is pretty crappy, but we can make something more 
+> useful. Alternatively, I believe there are other event mechanisms as well 
+> in the kernel. I know some work was done on that, but I don't know what the 
+> end result was.
+> 
+> Note that this does not apply to sensor mount information. I think that 
+> v4l2_input is the perfect place for that. It is after all an input-specific 
+> property and static property, and it maps 1-on-1 to the output case as 
+> well, should we need it there as well.
+
+I think we will need an event interface sooner or later. I had some
+discussions in the past about servo mechanisms to control the webcam position.
+Let's consider a webcam with movement servos at vertical and horizontal, and
+that we want to follow an object, like a person face. After sending a command
+to the servo, it will start moving, but it will take some time until it reaches
+the point. An event interface seems interesting to advice userspace that the
+movement already happened.
+
+Maybe we could use this approach for the gravity sensors.
+
+Cheers,
+Mauro
