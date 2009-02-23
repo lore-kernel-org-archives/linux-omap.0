@@ -1,7 +1,7 @@
 From: Felipe Balbi <me@felipebalbi.com>
-Subject: [rft/rfc/patch-v2.6.29-rc5+ 14/23] usb: host: ehci: get rid of infinite loops
-Date: Mon, 23 Feb 2009 20:55:26 +0200
-Message-ID: <1235415335-17408-15-git-send-email-me@felipebalbi.com>
+Subject: [rft/rfc/patch-v2.6.29-rc5+ 13/23] usb: host: ehci: remove ehci-omap.h
+Date: Mon, 23 Feb 2009 20:55:25 +0200
+Message-ID: <1235415335-17408-14-git-send-email-me@felipebalbi.com>
 References: <1235415335-17408-1-git-send-email-me@felipebalbi.com>
  <1235415335-17408-2-git-send-email-me@felipebalbi.com>
  <1235415335-17408-3-git-send-email-me@felipebalbi.com>
@@ -15,208 +15,269 @@ References: <1235415335-17408-1-git-send-email-me@felipebalbi.com>
  <1235415335-17408-11-git-send-email-me@felipebalbi.com>
  <1235415335-17408-12-git-send-email-me@felipebalbi.com>
  <1235415335-17408-13-git-send-email-me@felipebalbi.com>
- <1235415335-17408-14-git-send-email-me@felipebalbi.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ns1.siteground211.com ([209.62.36.12]:43021 "EHLO
+Received: from ns1.siteground211.com ([209.62.36.12]:43013 "EHLO
 	serv01.siteground211.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755151AbZBWS7i (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 23 Feb 2009 13:59:38 -0500
-In-Reply-To: <1235415335-17408-14-git-send-email-me@felipebalbi.com>
+	with ESMTP id S1755081AbZBWS7g (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 23 Feb 2009 13:59:36 -0500
+In-Reply-To: <1235415335-17408-13-git-send-email-me@felipebalbi.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: Steve Sakoman <steve@sakoman.com>, Anand Gadiyar <gadiyar@ti.com>, Felipe Balbi <me@felipebalbi.com>
 
-Use time_after() to avoid looping forever.
+That header is only used by ehci-omap.c for register
+definitions and indirectly include some other headers.
 
 Signed-off-by: Felipe Balbi <me@felipebalbi.com>
 ---
- drivers/usb/host/ehci-omap.c |   87 +++++++++++++++++++++++++++++++++++++-----
- 1 files changed, 77 insertions(+), 10 deletions(-)
+ drivers/usb/host/ehci-omap.c |  100 +++++++++++++++++++++++++++++++++-
+ drivers/usb/host/ehci-omap.h |  125 ------------------------------------------
+ 2 files changed, 99 insertions(+), 126 deletions(-)
+ delete mode 100644 drivers/usb/host/ehci-omap.h
 
 diff --git a/drivers/usb/host/ehci-omap.c b/drivers/usb/host/ehci-omap.c
-index 2bdc978..35c645d 100644
+index 7f37b5f..2bdc978 100644
 --- a/drivers/usb/host/ehci-omap.c
 +++ b/drivers/usb/host/ehci-omap.c
-@@ -182,6 +182,7 @@ struct ehci_omap_clock_defs {
+@@ -29,7 +29,105 @@
+ #include <linux/clk.h>
+ #include <linux/gpio.h>
  
- static void omap_usb_utmi_init(struct usb_hcd *hcd, u8 tll_channel_mask)
- {
-+	unsigned long timeout = jiffies + msecs_to_jiffies(100);
- 	int i;
- 
- 	/* Use UTMI Ports of TLL */
-@@ -193,9 +194,15 @@ static void omap_usb_utmi_init(struct usb_hcd *hcd, u8 tll_channel_mask)
- 						OMAP_UHH_HOSTCONFIG);
- 	/* Enusre bit is set */
- 	while (!(omap_readl(OMAP_UHH_HOSTCONFIG)
--			& (1 << OMAP_UHH_HOSTCONFIG_ULPI_BYPASS_SHIFT)))
-+			& (1 << OMAP_UHH_HOSTCONFIG_ULPI_BYPASS_SHIFT))) {
- 		cpu_relax();
- 
-+		if (time_after(timeout, jiffies)) {
-+			dev_dbg(hcd->self.controller, "operation timed out\n");
-+			return;
-+		}
-+	}
+-#include "ehci-omap.h"
++/* FIXME remove platform-specific code */
++#include <mach/hardware.h>
++#include "../../../arch/arm/mach-omap2/cm.h"
++#include "../../../arch/arm/mach-omap2/cm-regbits-34xx.h"
 +
- 	dev_dbg(hcd->self.controller, "Entered UTMI MODE: success\n");
- 
- 	/* Program the 3 TLL channels upfront */
-@@ -254,6 +261,7 @@ static void omap_usb_utmi_init(struct usb_hcd *hcd, u8 tll_channel_mask)
- static int omap_start_ehc(struct platform_device *dev, struct usb_hcd *hcd)
- {
- 	struct ehci_omap_clock_defs *ehci_clocks;
-+	unsigned long timeout = jiffies + msecs_to_jiffies(100);
- 
- 	dev_dbg(hcd->self.controller, "starting TI EHCI USB Controller\n");
- 
-@@ -278,10 +286,16 @@ static int omap_start_ehc(struct platform_device *dev, struct usb_hcd *hcd)
- 			PLL_MOD, OMAP3430ES2_CM_CLKEN2);
- 
- 	while (!(cm_read_mod_reg(PLL_MOD, CM_IDLEST2) &
--				OMAP3430ES2_ST_PERIPH2_CLK_MASK))
-+				OMAP3430ES2_ST_PERIPH2_CLK_MASK)) {
- 		dev_dbg(hcd->self.controller,
- 			"idlest2 = 0x%x\n",
- 			cm_read_mod_reg(PLL_MOD, CM_IDLEST2));
++/*
++ * OMAP USBHOST Register addresses: PHYSICAL ADDRESSES
++ *	Use omap_readl()/omap_writel() functions
++ */
 +
-+		if (time_after(timeout, jiffies)) {
-+			dev_dbg(hcd->self.controller, "operation timed out\n");
-+			return -EINVAL;
-+		}
-+	}
- 	/* End DPLL5 programming */
- 
- 
-@@ -347,17 +361,30 @@ static int omap_start_ehc(struct platform_device *dev, struct usb_hcd *hcd)
- 
- 	/* Wait for TLL to be Active */
- 	while ((cm_read_mod_reg(CORE_MOD, OMAP2430_CM_IDLEST3)
--			& (1 << OMAP3430ES2_ST_USBTLL_SHIFT)))
-+			& (1 << OMAP3430ES2_ST_USBTLL_SHIFT))) {
- 		cpu_relax();
- 
-+		if (time_after(timeout, jiffies)) {
-+			dev_dbg(hcd->self.controller, "operation timed out\n");
-+			return -EINVAL;
-+		}
-+	}
++/* USBHOST: TLL, UUH, OHCI, EHCI */
++#define	OMAP_USBHOST_BASE	(L4_34XX_BASE + 0x60000)
 +
- 	/* perform TLL soft reset, and wait until reset is complete */
- 	omap_writel(1 << OMAP_USBTLL_SYSCONFIG_SOFTRESET_SHIFT,
- 			OMAP_USBTLL_SYSCONFIG);
++/* TLL Register Set */
++#define	OMAP_USBHOST_TLL_BASE	(OMAP_USBHOST_BASE + 0x2000)
++#define	OMAP_USBTLL_REVISION	(OMAP_USBHOST_TLL_BASE + 0x00)
++#define	OMAP_USBTLL_SYSCONFIG	(OMAP_USBHOST_TLL_BASE + 0x10)
++	#define	OMAP_USBTLL_SYSCONFIG_CACTIVITY_SHIFT	8
++	#define	OMAP_USBTLL_SYSCONFIG_SIDLEMODE_SHIFT	3
++	#define	OMAP_USBTLL_SYSCONFIG_ENAWAKEUP_SHIFT	2
++	#define	OMAP_USBTLL_SYSCONFIG_SOFTRESET_SHIFT	1
++	#define	OMAP_USBTLL_SYSCONFIG_AUTOIDLE_SHIFT	0
++#define	OMAP_USBTLL_SYSSTATUS	(OMAP_USBHOST_TLL_BASE + 0x14)
++	#define	OMAP_USBTLL_SYSSTATUS_RESETDONE_SHIFT	0
++#define	OMAP_USBTLL_IRQSTATUS	(OMAP_USBHOST_TLL_BASE + 0x18)
++#define	OMAP_USBTLL_IRQENABLE	(OMAP_USBHOST_TLL_BASE + 0x1C)
 +
- 	/* Wait for TLL reset to complete */
- 	while (!(omap_readl(OMAP_USBTLL_SYSSTATUS)
--			& (1 << OMAP_USBTLL_SYSSTATUS_RESETDONE_SHIFT)))
-+			& (1 << OMAP_USBTLL_SYSSTATUS_RESETDONE_SHIFT))) {
- 		cpu_relax();
- 
-+		if (time_after(timeout, jiffies)) {
-+			dev_dbg(hcd->self.controller, "operation timed out\n");
-+			return -EINVAL;
-+		}
-+	}
++#define	OMAP_TLL_SHARED_CONF	(OMAP_USBHOST_TLL_BASE + 0x30)
++	#define	OMAP_TLL_SHARED_CONF_USB_90D_DDR_EN_SHFT	6
++	#define	OMAP_TLL_SHARED_CONF_USB_180D_SDR_EN_SHIFT	5
++	#define	OMAP_TLL_SHARED_CONF_USB_DIVRATION_SHIFT	2
++	#define	OMAP_TLL_SHARED_CONF_FCLK_REQ_SHIFT		1
++	#define	OMAP_TLL_SHARED_CONF_FCLK_IS_ON_SHIFT		0
 +
- 	dev_dbg(hcd->self.controller, "TLL RESET DONE\n");
- 
- 	/* (1<<3) = no idle mode only for initial debugging */
-@@ -383,11 +410,18 @@ static int omap_start_ehc(struct platform_device *dev, struct usb_hcd *hcd)
- 			(1 << OMAP_UHH_HOSTCONFIG_INCR16_BURST_EN_SHIFT)|
- 			(0 << OMAP_UHH_HOSTCONFIG_INCRX_ALIGN_EN_SHIFT),
- 						OMAP_UHH_HOSTCONFIG);
++#define	OMAP_TLL_CHANNEL_CONF(num)\
++			(OMAP_USBHOST_TLL_BASE + (0x040 + 0x004 * num))
++	#define	OMAP_TLL_CHANNEL_CONF_ULPINOBITSTUFF_SHIFT	11
++	#define	OMAP_TLL_CHANNEL_CONF_ULPI_ULPIAUTOIDLE_SHIFT	10
++	#define	OMAP_TLL_CHANNEL_CONF_UTMIAUTOIDLE_SHIFT	9
++	#define	OMAP_TLL_CHANNEL_CONF_ULPIDDRMODE_SHIFT		8
++	#define	OMAP_TLL_CHANNEL_CONF_CHANEN_SHIFT		0
 +
- 	/* Ensure that BYPASS is set */
- 	while (omap_readl(OMAP_UHH_HOSTCONFIG)
--			& (1 << OMAP_UHH_HOSTCONFIG_ULPI_BYPASS_SHIFT))
-+			& (1 << OMAP_UHH_HOSTCONFIG_ULPI_BYPASS_SHIFT)) {
- 		cpu_relax();
- 
-+		if (time_after(timeout, jiffies)) {
-+			dev_dbg(hcd->self.controller, "operation timed out\n");
-+			return -EINVAL;
-+		}
-+	}
++#define	OMAP_TLL_ULPI_FUNCTION_CTRL(num)\
++			(OMAP_USBHOST_TLL_BASE + (0x804 + 0x100 * num))
++#define	OMAP_TLL_ULPI_INTERFACE_CTRL(num)\
++			(OMAP_USBHOST_TLL_BASE + (0x807 + 0x100 * num))
++#define	OMAP_TLL_ULPI_OTG_CTRL(num)\
++			(OMAP_USBHOST_TLL_BASE + (0x80A + 0x100 * num))
++#define	OMAP_TLL_ULPI_INT_EN_RISE(num)\
++			(OMAP_USBHOST_TLL_BASE + (0x80D + 0x100 * num))
++#define	OMAP_TLL_ULPI_INT_EN_FALL(num)\
++			(OMAP_USBHOST_TLL_BASE + (0x810 + 0x100 * num))
++#define	OMAP_TLL_ULPI_INT_STATUS(num)\
++			(OMAP_USBHOST_TLL_BASE + (0x813 + 0x100 * num))
++#define	OMAP_TLL_ULPI_INT_LATCH(num)\
++			(OMAP_USBHOST_TLL_BASE + (0x814 + 0x100 * num))
++#define	OMAP_TLL_ULPI_DEBUG(num)\
++			(OMAP_USBHOST_TLL_BASE + (0x815 + 0x100 * num))
++#define	OMAP_TLL_ULPI_SCRATCH_REGISTER(num)\
++			(OMAP_USBHOST_TLL_BASE + (0x816 + 0x100 * num))
 +
- 	dev_dbg(hcd->self.controller, "Entered ULPI PHY MODE: success\n");
- 
- #else
-@@ -422,9 +456,15 @@ static int omap_start_ehc(struct platform_device *dev, struct usb_hcd *hcd)
- 			EHCI_INSNREG05_ULPI);
- 
- 	while (!(omap_readl(EHCI_INSNREG05_ULPI)
--			& (1 << EHCI_INSNREG05_ULPI_CONTROL_SHIFT)))
-+			& (1 << EHCI_INSNREG05_ULPI_CONTROL_SHIFT))) {
- 		cpu_relax();
- 
-+		if (time_after(timeout, jiffies)) {
-+			dev_dbg(hcd->self.controller, "operation timed out\n");
-+			return -EINVAL;
-+		}
-+	}
++#define OMAP_TLL_CHANNEL_COUNT		3
++	#define OMAP_TLL_CHANNEL_1_EN_MASK	1
++	#define OMAP_TLL_CHANNEL_2_EN_MASK	2
++	#define OMAP_TLL_CHANNEL_3_EN_MASK	4
 +
- #endif
++/* UHH Register Set */
++#define	OMAP_USBHOST_UHH_BASE	(OMAP_USBHOST_BASE + 0x4000)
++#define	OMAP_UHH_REVISION	(OMAP_USBHOST_UHH_BASE + 0x00)
++#define	OMAP_UHH_SYSCONFIG	(OMAP_USBHOST_UHH_BASE + 0x10)
++	#define	OMAP_UHH_SYSCONFIG_MIDLEMODE_SHIFT	12
++	#define	OMAP_UHH_SYSCONFIG_CACTIVITY_SHIFT	8
++	#define	OMAP_UHH_SYSCONFIG_SIDLEMODE_SHIFT	3
++	#define	OMAP_UHH_SYSCONFIG_ENAWAKEUP_SHIFT	2
++	#define	OMAP_UHH_SYSCONFIG_SOFTRESET_SHIFT	1
++	#define	OMAP_UHH_SYSCONFIG_AUTOIDLE_SHIFT	0
++
++#define	OMAP_UHH_SYSSTATUS	(OMAP_USBHOST_UHH_BASE + 0x14)
++#define	OMAP_UHH_HOSTCONFIG	(OMAP_USBHOST_UHH_BASE + 0x40)
++	#define	OMAP_UHH_HOSTCONFIG_ULPI_BYPASS_SHIFT	0
++	#define OMAP_UHH_HOSTCONFIG_INCR4_BURST_EN_SHIFT	2
++	#define OMAP_UHH_HOSTCONFIG_INCR8_BURST_EN_SHIFT	3
++	#define OMAP_UHH_HOSTCONFIG_INCR16_BURST_EN_SHIFT	4
++	#define OMAP_UHH_HOSTCONFIG_INCRX_ALIGN_EN_SHIFT	5
++
++#define	OMAP_UHH_DEBUG_CSR	(OMAP_USBHOST_UHH_BASE + 0x44)
++
++/* EHCI Register Set */
++#define	OMAP_USBHOST_EHCI_BASE	(OMAP_USBHOST_BASE + 0x4800)
++#define	EHCI_INSNREG05_ULPI		(OMAP_USBHOST_EHCI_BASE + 0xA4)
++	#define	EHCI_INSNREG05_ULPI_CONTROL_SHIFT	31
++	#define	EHCI_INSNREG05_ULPI_PORTSEL_SHIFT	24
++	#define	EHCI_INSNREG05_ULPI_OPSEL_SHIFT		22
++	#define	EHCI_INSNREG05_ULPI_REGADD_SHIFT	16
++	#define	EHCI_INSNREG05_ULPI_EXTREGADD_SHIFT	8
++	#define	EHCI_INSNREG05_ULPI_WRDATA_SHIFT	0
++
++/* OHCI Register Set */
++#define	OMAP_USBHOST_OHCI_BASE	(OMAP_USBHOST_BASE + 0x4400)
  
- 	return 0;
-@@ -433,6 +473,7 @@ static int omap_start_ehc(struct platform_device *dev, struct usb_hcd *hcd)
- static void omap_stop_ehc(struct platform_device *dev, struct usb_hcd *hcd)
- {
- 	struct ehci_omap_clock_defs *ehci_clocks;
-+	unsigned long timeout = jiffies + msecs_to_jiffies(100);
- 
- 	ehci_clocks = (struct ehci_omap_clock_defs *)
- 			(((char *)hcd_to_ehci(hcd)) + sizeof(struct ehci_hcd));
-@@ -441,19 +482,45 @@ static void omap_stop_ehc(struct platform_device *dev, struct usb_hcd *hcd)
- 
- 	/* Reset OMAP modules for insmod/rmmod to work */
- 	omap_writel((1 << 1), OMAP_UHH_SYSCONFIG);
--	while (!(omap_readl(OMAP_UHH_SYSSTATUS) & (1 << 0)))
-+	while (!(omap_readl(OMAP_UHH_SYSSTATUS) & (1 << 0))) {
- 		cpu_relax();
--	while (!(omap_readl(OMAP_UHH_SYSSTATUS) & (1 << 1)))
-+
-+		if (time_after(timeout, jiffies)) {
-+			dev_dbg(hcd->self.controller, "operation timed out\n");
-+			return;
-+		}
-+	}
-+
-+	while (!(omap_readl(OMAP_UHH_SYSSTATUS) & (1 << 1))) {
- 		cpu_relax();
--	while (!(omap_readl(OMAP_UHH_SYSSTATUS) & (1 << 2)))
-+
-+		if (time_after(timeout, jiffies)) {
-+			dev_dbg(hcd->self.controller, "operation timed out\n");
-+			return;
-+		}
-+	}
-+
-+	while (!(omap_readl(OMAP_UHH_SYSSTATUS) & (1 << 2))) {
- 		cpu_relax();
-+
-+		if (time_after(timeout, jiffies)) {
-+			dev_dbg(hcd->self.controller, "operation timed out\n");
-+			return;
-+		}
-+	}
- 	dev_dbg(hcd->self.controller,
- 		"UHH RESET DONE OMAP_UHH_SYSSTATUS %x !!\n",
- 			omap_readl(OMAP_UHH_SYSSTATUS));
- 
- 	omap_writel((1 << 1), OMAP_USBTLL_SYSCONFIG);
--	while (!(omap_readl(OMAP_USBTLL_SYSSTATUS) & (1 << 0)))
-+	while (!(omap_readl(OMAP_USBTLL_SYSSTATUS) & (1 << 0))) {
- 		cpu_relax();
-+
-+		if (time_after(timeout, jiffies)) {
-+			dev_dbg(hcd->self.controller, "operation timed out\n");
-+			return;
-+		}
-+	}
- 	dev_dbg(hcd->self.controller, "TLL RESET DONE\n");
- 
- 	if (ehci_clocks->usbtll_fck_clk != NULL) {
+ #ifdef CONFIG_OMAP_EHCI_PHY_MODE
+ /* EHCI connected to External PHY */
+diff --git a/drivers/usb/host/ehci-omap.h b/drivers/usb/host/ehci-omap.h
+deleted file mode 100644
+index 9e4378f..0000000
+--- a/drivers/usb/host/ehci-omap.h
++++ /dev/null
+@@ -1,125 +0,0 @@
+-/*
+- * ehci-omap.h - register definitions for USBHOST in OMAP 34xx
+- *
+- * Copyright (C) 2007-2008 Texas Instruments, Inc.
+- * 	Author: Vikram Pandita <vikram.pandita@ti.com>
+- *
+- * This program is free software; you can redistribute it and/or modify
+- * it under the terms of the GNU General Public License as published by
+- * the Free Software Foundation; either version 2 of the License, or
+- * (at your option) any later version.
+- *
+- * This program is distributed in the hope that it will be useful,
+- * but WITHOUT ANY WARRANTY; without even the implied warranty of
+- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+- * GNU General Public License for more details.
+- *
+- * You should have received a copy of the GNU General Public License
+- * along with this program; if not, write to the Free Software
+- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
+- *
+- */
+-
+-#ifndef __EHCI_OMAP_H
+-#define __EHCI_OMAP_H
+-
+-#include <mach/hardware.h>
+-#include "../../../arch/arm/mach-omap2/cm.h"
+-#include "../../../arch/arm/mach-omap2/cm-regbits-34xx.h"
+-
+-/*
+- * OMAP USBHOST Register addresses: PHYSICAL ADDRESSES
+- * 	Use omap_readl()/omap_writel() functions
+- */
+-
+-/* USBHOST: TLL, UUH, OHCI, EHCI */
+-#define	OMAP_USBHOST_BASE	(L4_34XX_BASE + 0x60000)
+-
+-/* TLL Register Set */
+-#define	OMAP_USBHOST_TLL_BASE	(OMAP_USBHOST_BASE + 0x2000)
+-#define	OMAP_USBTLL_REVISION	(OMAP_USBHOST_TLL_BASE + 0x00)
+-#define	OMAP_USBTLL_SYSCONFIG	(OMAP_USBHOST_TLL_BASE + 0x10)
+-	#define	OMAP_USBTLL_SYSCONFIG_CACTIVITY_SHIFT	8
+-	#define	OMAP_USBTLL_SYSCONFIG_SIDLEMODE_SHIFT	3
+-	#define	OMAP_USBTLL_SYSCONFIG_ENAWAKEUP_SHIFT	2
+-	#define	OMAP_USBTLL_SYSCONFIG_SOFTRESET_SHIFT	1
+-	#define	OMAP_USBTLL_SYSCONFIG_AUTOIDLE_SHIFT	0
+-#define	OMAP_USBTLL_SYSSTATUS	(OMAP_USBHOST_TLL_BASE + 0x14)
+-	#define	OMAP_USBTLL_SYSSTATUS_RESETDONE_SHIFT	0
+-#define	OMAP_USBTLL_IRQSTATUS	(OMAP_USBHOST_TLL_BASE + 0x18)
+-#define	OMAP_USBTLL_IRQENABLE	(OMAP_USBHOST_TLL_BASE + 0x1C)
+-
+-#define	OMAP_TLL_SHARED_CONF	(OMAP_USBHOST_TLL_BASE + 0x30)
+-	#define	OMAP_TLL_SHARED_CONF_USB_90D_DDR_EN_SHFT	6
+-	#define	OMAP_TLL_SHARED_CONF_USB_180D_SDR_EN_SHIFT	5
+-	#define	OMAP_TLL_SHARED_CONF_USB_DIVRATION_SHIFT	2
+-	#define	OMAP_TLL_SHARED_CONF_FCLK_REQ_SHIFT		1
+-	#define	OMAP_TLL_SHARED_CONF_FCLK_IS_ON_SHIFT		0
+-
+-#define	OMAP_TLL_CHANNEL_CONF(num)\
+-			(OMAP_USBHOST_TLL_BASE + (0x040 + 0x004 * num))
+-	#define	OMAP_TLL_CHANNEL_CONF_ULPINOBITSTUFF_SHIFT	11
+-	#define	OMAP_TLL_CHANNEL_CONF_ULPI_ULPIAUTOIDLE_SHIFT	10
+-	#define	OMAP_TLL_CHANNEL_CONF_UTMIAUTOIDLE_SHIFT	9
+-	#define	OMAP_TLL_CHANNEL_CONF_ULPIDDRMODE_SHIFT		8
+-	#define	OMAP_TLL_CHANNEL_CONF_CHANEN_SHIFT		0
+-
+-#define	OMAP_TLL_ULPI_FUNCTION_CTRL(num)\
+-			(OMAP_USBHOST_TLL_BASE + (0x804 + 0x100 * num))
+-#define	OMAP_TLL_ULPI_INTERFACE_CTRL(num)\
+-			(OMAP_USBHOST_TLL_BASE + (0x807 + 0x100 * num))
+-#define	OMAP_TLL_ULPI_OTG_CTRL(num)\
+-			(OMAP_USBHOST_TLL_BASE + (0x80A + 0x100 * num))
+-#define	OMAP_TLL_ULPI_INT_EN_RISE(num)\
+-			(OMAP_USBHOST_TLL_BASE + (0x80D + 0x100 * num))
+-#define	OMAP_TLL_ULPI_INT_EN_FALL(num)\
+-			(OMAP_USBHOST_TLL_BASE + (0x810 + 0x100 * num))
+-#define	OMAP_TLL_ULPI_INT_STATUS(num)\
+-			(OMAP_USBHOST_TLL_BASE + (0x813 + 0x100 * num))
+-#define	OMAP_TLL_ULPI_INT_LATCH(num)\
+-			(OMAP_USBHOST_TLL_BASE + (0x814 + 0x100 * num))
+-#define	OMAP_TLL_ULPI_DEBUG(num)\
+-			(OMAP_USBHOST_TLL_BASE + (0x815 + 0x100 * num))
+-#define	OMAP_TLL_ULPI_SCRATCH_REGISTER(num)\
+-			(OMAP_USBHOST_TLL_BASE + (0x816 + 0x100 * num))
+-
+-#define OMAP_TLL_CHANNEL_COUNT		3
+-	#define OMAP_TLL_CHANNEL_1_EN_MASK	1
+-	#define OMAP_TLL_CHANNEL_2_EN_MASK	2
+-	#define OMAP_TLL_CHANNEL_3_EN_MASK	4
+-
+-/* UHH Register Set */
+-#define	OMAP_USBHOST_UHH_BASE	(OMAP_USBHOST_BASE + 0x4000)
+-#define	OMAP_UHH_REVISION	(OMAP_USBHOST_UHH_BASE + 0x00)
+-#define	OMAP_UHH_SYSCONFIG	(OMAP_USBHOST_UHH_BASE + 0x10)
+-	#define	OMAP_UHH_SYSCONFIG_MIDLEMODE_SHIFT	12
+-	#define	OMAP_UHH_SYSCONFIG_CACTIVITY_SHIFT	8
+-	#define	OMAP_UHH_SYSCONFIG_SIDLEMODE_SHIFT	3
+-	#define	OMAP_UHH_SYSCONFIG_ENAWAKEUP_SHIFT	2
+-	#define	OMAP_UHH_SYSCONFIG_SOFTRESET_SHIFT	1
+-	#define	OMAP_UHH_SYSCONFIG_AUTOIDLE_SHIFT	0
+-
+-#define	OMAP_UHH_SYSSTATUS	(OMAP_USBHOST_UHH_BASE + 0x14)
+-#define	OMAP_UHH_HOSTCONFIG	(OMAP_USBHOST_UHH_BASE + 0x40)
+-	#define	OMAP_UHH_HOSTCONFIG_ULPI_BYPASS_SHIFT	0
+-	#define OMAP_UHH_HOSTCONFIG_INCR4_BURST_EN_SHIFT	2
+-	#define OMAP_UHH_HOSTCONFIG_INCR8_BURST_EN_SHIFT	3
+-	#define OMAP_UHH_HOSTCONFIG_INCR16_BURST_EN_SHIFT	4
+-	#define OMAP_UHH_HOSTCONFIG_INCRX_ALIGN_EN_SHIFT	5
+-
+-#define	OMAP_UHH_DEBUG_CSR	(OMAP_USBHOST_UHH_BASE + 0x44)
+-
+-/* EHCI Register Set */
+-#define	OMAP_USBHOST_EHCI_BASE	(OMAP_USBHOST_BASE + 0x4800)
+-#define	EHCI_INSNREG05_ULPI		(OMAP_USBHOST_EHCI_BASE + 0xA4)
+-	#define	EHCI_INSNREG05_ULPI_CONTROL_SHIFT	31
+-	#define	EHCI_INSNREG05_ULPI_PORTSEL_SHIFT	24
+-	#define	EHCI_INSNREG05_ULPI_OPSEL_SHIFT		22
+-	#define	EHCI_INSNREG05_ULPI_REGADD_SHIFT	16
+-	#define	EHCI_INSNREG05_ULPI_EXTREGADD_SHIFT	8
+-	#define	EHCI_INSNREG05_ULPI_WRDATA_SHIFT	0
+-
+-/* OHCI Register Set */
+-#define	OMAP_USBHOST_OHCI_BASE	(OMAP_USBHOST_BASE + 0x4400)
+-
+-#endif/* __EHCI_OMAP_H*/
 -- 
 1.6.1.3
 
