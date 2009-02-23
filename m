@@ -1,36 +1,110 @@
-From: Nishanth Menon <menon.nishanth@gmail.com>
-Subject: Re: Help- twl4030 audio driver for linux2.6.26 + OMAP2430
-Date: Mon, 23 Feb 2009 14:34:26 +0200
-Message-ID: <49A297D2.6080903@gmail.com>
-References: <OFFFD173E7.3B237D8B-ON65257566.00433D9C-65257566.004396D1@lntinfotech.com>
+From: Gary Thomas <gary@mlbassoc.com>
+Subject: Re: OMAP3530 USB host problems
+Date: Mon, 23 Feb 2009 06:08:12 -0700
+Message-ID: <49A29FBC.2060604@mlbassoc.com>
+References: <499EF348.6020302@mlbassoc.com> <20090220182904.GP20723@frodo> <499EFB84.1020201@mlbassoc.com> <20090220185426.GR20723@frodo> <499EFF0D.6060602@mlbassoc.com> <20090220192330.GN32564@gandalf> <499F0601.7080608@mlbassoc.com> <20090220194157.GP32564@gandalf> <20090223102151.GY16942@scadufax.research.nokia.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-fx0-f167.google.com ([209.85.220.167]:40561 "EHLO
-	mail-fx0-f167.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753118AbZBWMeb (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 23 Feb 2009 07:34:31 -0500
-Received: by fxm11 with SMTP id 11so1684140fxm.13
-        for <linux-omap@vger.kernel.org>; Mon, 23 Feb 2009 04:34:29 -0800 (PST)
-In-Reply-To: <OFFFD173E7.3B237D8B-ON65257566.00433D9C-65257566.004396D1@lntinfotech.com>
+Received: from 137-67-76-76.skybeam.com ([76.76.67.137]:1047 "EHLO
+	mail.chez-thomas.org" rhost-flags-OK-FAIL-OK-OK) by vger.kernel.org
+	with ESMTP id S1752667AbZBWNI0 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 23 Feb 2009 08:08:26 -0500
+In-Reply-To: <20090223102151.GY16942@scadufax.research.nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Mathews John <Mathews.John@lntinfotech.com>
-Cc: linux-omap@vger.kernel.org
+To: felipe.balbi@nokia.com
+Cc: ext Felipe Balbi <me@felipebalbi.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>
 
-Mathews John said the following on 02/23/2009 02:18 PM:
-> I am a newbie in linux, and i am trying to make audio working on OMAP-2430 
-> board. Linux version used is linux-2.6.26. I am trying to find twl4030 
-> audio driver in net. But couldn't get it. Can anybody please help me???
->
->   
+Felipe Balbi wrote:
+> On Fri, Feb 20, 2009 at 08:41:58PM +0100, ext Felipe Balbi wrote:
+>> On Fri, Feb 20, 2009 at 12:35:29PM -0700, Gary Thomas wrote:
+>>> Felipe Balbi wrote:
+>>>> On Fri, Feb 20, 2009 at 12:05:49PM -0700, Gary Thomas wrote:
+>>>>> Felipe Balbi wrote:
+>>>>>> On Fri, Feb 20, 2009 at 11:50:44AM -0700, Gary Thomas wrote:
+>>>>>>> Felipe Balbi wrote:
+>>>>>>>> On Fri, Feb 20, 2009 at 11:15:36AM -0700, Gary Thomas wrote:
+>>>>>>>>> I have a 3530 board (similar to the OMAP3EVM) and I'm trying
+>>>>>>>>> to get the USB host working.  Sadly, this is failing, but I
+>>>>>>>>> don't quite see why.  From drivers/usb/host/echi-omap.c:
+>>>>>>>>>        /* Wait for TLL to be Active */
+>>>>>>>>>         timeout = 1000;
+>>>>>>>>>        while ((cm_read_mod_reg(CORE_MOD, OMAP2430_CM_IDLEST3)
+>>>>>>>>>                        & (1 << OMAP3430ES2_ST_USBTLL_SHIFT)))
+>>>>>>>>>         {
+>>>>>>>>>             if (--timeout <= 0) {
+>>>>>>>>>                 printk(KERN_ERR "USB TLL is unavailable\n");
+>>>>>>>>>                 return -ENODEV;
+>>>>>>>>>             }
+>>>>>>>>>                cpu_relax();
+>>>>>>>>>         }
+>>>>>>>>>
+>>>>>>>>> Any clues on why this might be?  How do I solve it?
+>>>>>>>> could you enable CONFIG_DEBUG_LL and post the seria console output ?
+>>>>>>>>
+>>>>>>>> do you really use TLL ?? I don't really know omap3evm, but I guess it
+>>>>>>>> uses PHY mode (correct me if I'm wrong).
+>>>>>>>>
+>>>>>>> It's not that I _need_ TLL, the driver function omap_start_ehci()
+>>>>>>> tries to reset the part of the USB controller and fails.  I'm just
+>>>>>>> trying to understand why this part of the code falls over.
+>>>>>> you have OMAP_EHCI_TLL_MODE set, you should probably use
+>>>>>> OMAP_EHCI_PHY_MODE instead.
+>>>>>>
+>>>>>> You can fix it via "make menuconfig"
+>>>>>>
+>>>>> I already have that; this code is still being used.
+>>>>>   # CONFIG_OMAP_EHCI_TLL_MODE is not set
+>>>>>   CONFIG_OMAP_EHCI_PHY_MODE=y
+>>>>>
+>>>>> This is not used in the function above at all.
+>>>> hmm.. true, just checked the function.
+>>>>
+>>>> Weird, TRM says when that bit is 1, we cannot access ST_USBTLL, we
+>>>> should access it when it's 0, try the following:
+>>>>
+>>>> diff --git a/drivers/usb/host/ehci-omap.c b/drivers/usb/host/ehci-omap.c
+>>>> index 1b3266c..122e95b 100644
+>>>> --- a/drivers/usb/host/ehci-omap.c
+>>>> +++ b/drivers/usb/host/ehci-omap.c
+>>>> @@ -250,7 +250,7 @@ static int omap_start_ehc(struct platform_device *dev, struct usb_hcd *hcd)
+>>>>
+>>>>         /* Wait for TLL to be Active */
+>>>>         while ((cm_read_mod_reg(CORE_MOD, OMAP2430_CM_IDLEST3)
+>>>> -                       & (1 << OMAP3430ES2_ST_USBTLL_SHIFT)))
+>>>> +                       & (0 << OMAP3430ES2_ST_USBTLL_SHIFT)))
+>>>>                 cpu_relax();
+>>>>
+>>>>         /* perform TLL soft reset, and wait until reset is complete */
+>>>>
+>>>> and tell us if it worked
+>>>>
+>>> Sadly, I've already tried this and things just continue to fall apart.
+>>>
+>>>   Unhandled fault: external abort on non-linefetch (0x1008) at 0xd8062010
+>>>   Internal error: : 1008 [#1]
+>>>   Modules linked in:
+>>>   CPU: 0    Not tainted  (2.6.27-omap1-svn4799-dirty14 #60)
+>>>   PC is at ehci_hcd_omap_drv_probe+0x370/0x5e4
+>>>   LR is at release_console_sem+0x1a8/0x1d8
+>>>
+>>> Hence, my desired to figure out the TLL timeout...
+>> keep TLL as is, the problem now seems to be a clock that should be on
+>> and is off. Try to figure (with printk() for example) at which line the
+>> code stops, put printk() before and after register read/write operations
+>> during probe and omap_start_ehc(), let's see where does it dies.
+> 
+> any news ??
+> 
 
-Just follow [1] to get the code downloaded. then look at
-sound/soc/codecs/twl4030.c (quick link - [2])
-Regards,
-Nishanth Menon
-Ref:
-[1] http://muru.com/linux/omap/README_OMAP_GIT
-[2]
-http://git.kernel.org/?p=linux/kernel/git/tmlind/linux-omap-2.6.git;a=blob;f=sound/soc/codecs/twl4030.c;h=ea370a4f86d5a2c74d97b176d977a55947ab120e;hb=HEAD
+Not really;  I'd like to figure out *why* this part of the USB
+device isn't working, not just find a way around it...
+
+
+-- 
+------------------------------------------------------------
+Gary Thomas                 |  Consulting for the
+MLB Associates              |    Embedded world
+------------------------------------------------------------
