@@ -1,44 +1,130 @@
-From: David Brownell <david-b@pacbell.net>
-Subject: Re: leds-gpio broken with current git?
-Date: Mon, 23 Feb 2009 13:04:22 -0800
-Message-ID: <200902231304.22137.david-b@pacbell.net>
-References: <7088542D-28A0-4BCA-9583-6BCDDF9E960A@student.utwente.nl> <200901150758.49601.david-b@pacbell.net> <8F7AF80515AF0D4D93307E594F3CB40E210F49EC@dlee03.ent.ti.com>
+From: Mark Brown <broonie@sirena.org.uk>
+Subject: Re: [patch 2.6.29-rc3-git 1/2] regulator: twl4030 regulators
+Date: Mon, 23 Feb 2009 22:04:06 +0000
+Message-ID: <20090223220359.GA3601@sirena.org.uk>
+References: <200902081037.06645.david-b@pacbell.net> <200902091624.01802.david-b@pacbell.net> <20090210224851.GA6408@sirena.org.uk> <200902231245.44360.david-b@pacbell.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp125.sbc.mail.sp1.yahoo.com ([69.147.65.184]:37512 "HELO
-	smtp125.sbc.mail.sp1.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1751961AbZBWVEZ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Mon, 23 Feb 2009 16:04:25 -0500
-In-Reply-To: <8F7AF80515AF0D4D93307E594F3CB40E210F49EC@dlee03.ent.ti.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1756633AbZBWWE3@vger.kernel.org>
 Content-Disposition: inline
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <200902231245.44360.david-b@pacbell.net>
+Sender: linux-kernel-owner@vger.kernel.org
+To: David Brownell <david-b@pacbell.net>
+Cc: Liam Girdwood <lrg@slimlogic.co.uk>, lkml <linux-kernel@vger.kernel.org>, OMAP <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
-To: "Kridner, Jason" <jdk@ti.com>
-Cc: Koen Kooi <k.kooi@student.utwente.nl>, "linux-omap@vger.kernel.org List" <linux-omap@vger.kernel.org>
 
-On Monday 23 February 2009, Kridner, Jason wrote:
->=20
-> > Works for me, no "-EINVAL", on 2.6.28-omap1 and no patches
-> > that should affect GPIOs or LEDs. =A0Last patch applied to
-> > GIT is 15f75b6226c2d3b82062bb721e7cb9a1d6f35efd (musbhsdma).
-> >=20
-> > OK, I'm just pulling a new batch of objects, I'm guessing
-> > Tony snuck in RC1 already ... yes, I see he just sent a
-> > post about that a few minutes ago. =A0;)
->=20
-> Perhaps something broke with Tony's RC1 merge?
-> The LEDs are broken for me as well.=20
+On Mon, Feb 23, 2009 at 12:45:44PM -0800, David Brownell wrote:
 
-Still works for me.  Did you maybe not enable the twl4030
-GPIO support in Kconfig?
+> > another with a TWL4030 driver using that API 
+> > and a third patch making the core do something with that data.
 
-- dave
+> Best IMO to switch the last two around.  Effectively
+> there'd be one patch "add new features to regulator
+> core", followed by the first of a set of "implement
+> those new features in the driver for regulator X".
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> And in fact that's what I've done with the two patches
+> I'll be sending in a moment.
+
+The reason I'm suggesting splitting things up the way I am is that it
+separates out the TWL4030 driver (which looks very mergable to me right
+now) from the behaviour changes.  Ordering things that way makes it
+clear what the dependency is.  Another way of splitting it out would be
+to remove the new API from the TWL4030, make that the first patch, then
+have further patches adding the new API and the TWL4030 code to use it.
+
+I don't see any reason why the TWL4030 regulator support needs to be
+blocked on adding the new API and it makes review easier to keep them
+separate.
+
+> > This 
+> > would result in something which maintains consistent behaviour over all
+> > regulator drivers,
+
+> It's already consistent, even without such patches!!
+
+> There is no driver which pays attention to regulator(_dev)
+> constraints that does it any differently than this one.
+
+That's because nobody's doing it at all; once we add a custom
+implementation in one driver we then need to police each driver
+individually for consistency with the new interface.  If the logic is
+factored out then that problem doesn't exist and drivers don't need to
+reimplement any of it.
+
+> > > > Your current patch does also set constraints for the voltages if they
+> > > > weren't there previously
+
+> > > I was thinking that boards which don't need constraints
+> > > shouldn't need to create any ... they could just pass on
+> > > the capabilities of the underlying regulator.
+
+> > For safety the regulator API won't do anything without being explicitly
+> > told that it's OK to do so - if we were to do this we'd need to have an
+> > explicit flag in the constraints which says that this is what to do.
+> > Constraints are also permission grants.
+
+> I like to avoid flags unless they're absolutely required.
+> In this case my initial reaction is to say that hooking up
+> the components in the first place was the permission grant.
+
+The trouble is we don't know what's connected to the regulator without
+being told - even if some of the components hanging off the supply are
+visible to software that's no guarantee that all of them are.  Keeping
+the responsibility in the hands of the machine driver helps ensure that
+users have made a concious decision that their settings are OK for their
+design.
+
+> > Indeed.  Like I say, a very large proportion of the development of the
+> > regulator API has been done on reference designs which are built in this
+> > fashion, including both pluggable PMIC boards and other daughtercards.
+
+> That doesn't seem to have escaped its development cage yet.  ;)
+
+There's a couple on their way to mainline right now, should make it in
+the next merge window hopefully.  Unfortunately they're for systems that
+aren't very completely supported in mainline right now which makes them
+less useful as examples than they might be.  There's also none of them
+where there's any immediate prospect of more than one of the PMIC board
+options going into mainline.
+
+> > Normally the primary PMIC cards are handled with conditional code in the
+> > machine file (either compile time or run time) or by registering drivers
+
+> Fair enough.  I'd de-emphasize "conditional", since that sounds
+> way too much like #ifdeffing.  The source code should just call
+> something like is_pmic_cardX(), and not care how that works.
+
+It's normally a combination of the two - normally you don't get any form
+of board ID readback and you get things like mutually exclusive options
+for I2C or SPI control due to shared multi function pin setup that can't
+be autoprobed entirely safely, for example.  Once you've decided on the
+control bus it's normally safe to do autoprobing, though.
+
+> Then what would you call constraints by/from the regulator?
+
+They're subsumed within the constraints supplied by the machine driver
+at the minute.
+
+> I suggest updating your terminology.  "machine constraints"
+> would be much more clear for what's there now:  they relate
+> to the machine.  Other constraints (regulator, consumer)
+> relate to the other components ... the ones for which they
+> are an adjective.
+
+Yeah, I kind of agree.  To avoid confusion from changing the names I'd
+be tempted to go for something like "regulator driver constraints" but
+it's not desparately nice.
+
+> I don't mind moving it ... later, after the regulator
+> core has proper support for decoupling machine-specific
+> constraints from regulator-specific ones.  I view that
+> code as a workaround for a current limitation of that
+> core, so like all such workarounds it should vanish
+> when it's no longer relevant.
+
+I'd strongly suggest that if you're adding workarounds like this it's
+worth at least calling them out in the changelog.  To be honest I'm not
+100% clear why this new feature is essential to supporting the TWL4030 -
+I can see that it could be useful but I'm not clear on what makes it
+essential for this driver.
