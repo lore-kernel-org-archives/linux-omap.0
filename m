@@ -1,95 +1,126 @@
-From: Nishanth Menon <menon.nishanth@gmail.com>
-Subject: Re: tHigh tLow discussion (was [pacth] I2C bug fixes for L-O and
- L-Z)
-Date: Mon, 23 Feb 2009 19:01:35 +0200
-Message-ID: <49A2D66F.9050809@gmail.com>
-References: <1234767724.16827.7.camel@eenurkka-desktop>	 <13B9B4C6EF24D648824FF11BE896716203771DC940@dlee02.ent.ti.com>	 <1234850560.13109.9.camel@eenurkka-desktop>	 <13B9B4C6EF24D648824FF11BE896716203771DD194@dlee02.ent.ti.com>	 <13B9B4C6EF24D648824FF11BE896716203772C3CAF@dlee02.ent.ti.com> <1235396273.12653.8.camel@eenurkka-desktop>
+From: Gary Thomas <gary@mlbassoc.com>
+Subject: Re: OMAP3530 USB host problems
+Date: Mon, 23 Feb 2009 10:21:25 -0700
+Message-ID: <49A2DB15.3040806@mlbassoc.com>
+References: <499EF348.6020302@mlbassoc.com> <20090220182904.GP20723@frodo> <499EFB84.1020201@mlbassoc.com> <20090220185426.GR20723@frodo> <499EFF0D.6060602@mlbassoc.com> <20090220192330.GN32564@gandalf> <499F0601.7080608@mlbassoc.com> <20090220194157.GP32564@gandalf> <20090223102151.GY16942@scadufax.research.nokia.com> <49A29FBC.2060604@mlbassoc.com> <20090223132745.GB16942@scadufax.research.nokia.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-bw0-f161.google.com ([209.85.218.161]:44191 "EHLO
-	mail-bw0-f161.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753753AbZBWRBm (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 23 Feb 2009 12:01:42 -0500
-Received: by bwz5 with SMTP id 5so4956485bwz.13
-        for <linux-omap@vger.kernel.org>; Mon, 23 Feb 2009 09:01:39 -0800 (PST)
-In-Reply-To: <1235396273.12653.8.camel@eenurkka-desktop>
+Received: from 137-67-76-76.skybeam.com ([76.76.67.137]:4803 "EHLO
+	mail.chez-thomas.org" rhost-flags-OK-FAIL-OK-OK) by vger.kernel.org
+	with ESMTP id S1751277AbZBWRVl (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 23 Feb 2009 12:21:41 -0500
+In-Reply-To: <20090223132745.GB16942@scadufax.research.nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: ext-eero.nurkkala@nokia.com
-Cc: "ext Woodruff, Richard" <r-woodruff2@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: felipe.balbi@nokia.com
+Cc: ext Felipe Balbi <me@felipebalbi.com>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>
 
-Eero Nurkkala said the following on 02/23/2009 03:37 PM:
-> On Fri, 2009-02-20 at 21:59 +0100, ext Woodruff, Richard wrote:
->   
->> I received the following comment from a HW Apps person whom has dealt with this at the board level.
->>
->> <comment start>
->> Attached is the I2C spec that I have.  As I understand it, the I2C only specify the minimum tLow and tHigh (which is not "balanced").  However what is more important is that the appropriate setup and hold time are followed.
->>
->> If the equal time still meets the setup/hold time then there should not be any issue from a compliance standpoint.
->> <comment end>
->>
->> Regards,
->> Richard W.
->>     
-> With out board, the tLow and tHigh values are in line with I2C standard
-> with the patch:
-> http://marc.info/?l=linux-omap&m=122770723311340&w=2
->
-> Would that risk the setup and hold times? (If I remember correctly, the
-> values (setup, hold) were within the I2C standard even with the patch.)
->
-> I think it's a risk not to meet tLow and tHigh. I'm saying, with open
-> source values with our board, the tLow was not in standard. If using
-> TRM minimum values, things get even worse. Why? because it states, for
-> example, Fast Mode SCLL = 5 and SCLH = 7. This means that the low
-> period is smaller than the high! Shouldn't it be vice versa? (scope
-> verified).
->   
-just couple of views: (Disclaimer - it might be good if someone could re
-validate my math :( )..
-a) tHigh and tLow could be device dependent. for an I2C bus with
-multiple devices, we probably need a common denominator. the question is
-- is there a min and max for the tHigh and tLow? some of the datasheets
-I have seen seem to have this.
-b) the drivers/i2c/busses/i2c-omap.c does computation based on
-dev->speed. the equation is based on:
-tHigh  = ( sclh +6 )*iclk period
-tLow  = ( scll +6 )*iclk period
-the TRM ([2] table18-12(page 2942)) instead speaks of:
-tHigh  = ( sclh +5 )*iclk period
-tLow  = ( scll +7 )*iclk period
-current i2c driver attempts to put the same value to scll and sclh reg.
-The result would be that tHigh != tLow, unless I am missing something.
+Felipe Balbi wrote:
+> On Mon, Feb 23, 2009 at 02:08:12PM +0100, ext Gary Thomas wrote:
+>> Felipe Balbi wrote:
+>>> On Fri, Feb 20, 2009 at 08:41:58PM +0100, ext Felipe Balbi wrote:
+>>>> On Fri, Feb 20, 2009 at 12:35:29PM -0700, Gary Thomas wrote:
+>>>>> Felipe Balbi wrote:
+>>>>>> On Fri, Feb 20, 2009 at 12:05:49PM -0700, Gary Thomas wrote:
+>>>>>>> Felipe Balbi wrote:
+>>>>>>>> On Fri, Feb 20, 2009 at 11:50:44AM -0700, Gary Thomas wrote:
+>>>>>>>>> Felipe Balbi wrote:
+>>>>>>>>>> On Fri, Feb 20, 2009 at 11:15:36AM -0700, Gary Thomas wrote:
+>>>>>>>>>>> I have a 3530 board (similar to the OMAP3EVM) and I'm trying
+>>>>>>>>>>> to get the USB host working.  Sadly, this is failing, but I
+>>>>>>>>>>> don't quite see why.  From drivers/usb/host/echi-omap.c:
+>>>>>>>>>>>        /* Wait for TLL to be Active */
+>>>>>>>>>>>         timeout = 1000;
+>>>>>>>>>>>        while ((cm_read_mod_reg(CORE_MOD, OMAP2430_CM_IDLEST3)
+>>>>>>>>>>>                        & (1 << OMAP3430ES2_ST_USBTLL_SHIFT)))
+>>>>>>>>>>>         {
+>>>>>>>>>>>             if (--timeout <= 0) {
+>>>>>>>>>>>                 printk(KERN_ERR "USB TLL is unavailable\n");
+>>>>>>>>>>>                 return -ENODEV;
+>>>>>>>>>>>             }
+>>>>>>>>>>>                cpu_relax();
+>>>>>>>>>>>         }
+>>>>>>>>>>>
+>>>>>>>>>>> Any clues on why this might be?  How do I solve it?
+>>>>>>>>>> could you enable CONFIG_DEBUG_LL and post the seria console output ?
+>>>>>>>>>>
+>>>>>>>>>> do you really use TLL ?? I don't really know omap3evm, but I guess it
+>>>>>>>>>> uses PHY mode (correct me if I'm wrong).
+>>>>>>>>>>
+>>>>>>>>> It's not that I _need_ TLL, the driver function omap_start_ehci()
+>>>>>>>>> tries to reset the part of the USB controller and fails.  I'm just
+>>>>>>>>> trying to understand why this part of the code falls over.
+>>>>>>>> you have OMAP_EHCI_TLL_MODE set, you should probably use
+>>>>>>>> OMAP_EHCI_PHY_MODE instead.
+>>>>>>>>
+>>>>>>>> You can fix it via "make menuconfig"
+>>>>>>>>
+>>>>>>> I already have that; this code is still being used.
+>>>>>>>   # CONFIG_OMAP_EHCI_TLL_MODE is not set
+>>>>>>>   CONFIG_OMAP_EHCI_PHY_MODE=y
+>>>>>>>
+>>>>>>> This is not used in the function above at all.
+>>>>>> hmm.. true, just checked the function.
+>>>>>>
+>>>>>> Weird, TRM says when that bit is 1, we cannot access ST_USBTLL, we
+>>>>>> should access it when it's 0, try the following:
+>>>>>>
+>>>>>> diff --git a/drivers/usb/host/ehci-omap.c b/drivers/usb/host/ehci-omap.c
+>>>>>> index 1b3266c..122e95b 100644
+>>>>>> --- a/drivers/usb/host/ehci-omap.c
+>>>>>> +++ b/drivers/usb/host/ehci-omap.c
+>>>>>> @@ -250,7 +250,7 @@ static int omap_start_ehc(struct platform_device *dev, struct usb_hcd *hcd)
+>>>>>>
+>>>>>>         /* Wait for TLL to be Active */
+>>>>>>         while ((cm_read_mod_reg(CORE_MOD, OMAP2430_CM_IDLEST3)
+>>>>>> -                       & (1 << OMAP3430ES2_ST_USBTLL_SHIFT)))
+>>>>>> +                       & (0 << OMAP3430ES2_ST_USBTLL_SHIFT)))
+>>>>>>                 cpu_relax();
+>>>>>>
+>>>>>>         /* perform TLL soft reset, and wait until reset is complete */
+>>>>>>
+>>>>>> and tell us if it worked
+>>>>>>
+>>>>> Sadly, I've already tried this and things just continue to fall apart.
+>>>>>
+>>>>>   Unhandled fault: external abort on non-linefetch (0x1008) at 0xd8062010
+>>>>>   Internal error: : 1008 [#1]
+>>>>>   Modules linked in:
+>>>>>   CPU: 0    Not tainted  (2.6.27-omap1-svn4799-dirty14 #60)
+>>>>>   PC is at ehci_hcd_omap_drv_probe+0x370/0x5e4
+>>>>>   LR is at release_console_sem+0x1a8/0x1d8
+>>>>>
+>>>>> Hence, my desired to figure out the TLL timeout...
+>>>> keep TLL as is, the problem now seems to be a clock that should be on
+>>>> and is off. Try to figure (with printk() for example) at which line the
+>>>> code stops, put printk() before and after register read/write operations
+>>>> during probe and omap_start_ehc(), let's see where does it dies.
+>>> any news ??
+>>>
+>> Not really;  I'd like to figure out *why* this part of the USB
+>> device isn't working, not just find a way around it...
+> 
+> It's not a way around it. That bit is wrong, one problem is fixed now
+> but we came to another issue which is a non-linefetch, which makes me
+> wonder that's a clock issue.
+> 
+> You should just try to fetch me for information and I might be able to
+> help you more.
+> 
 
-I am not entirely sure about the basis of Eero's equation:
+It turns out that the various USB clocks were not enabled (this is prototype
+hardware, only roughly equivalent to the OMAP3EVM and I started with a
+kernel snapshot more than a month ago, so much may have changed in the
+meantime).  I can now get through this part of the USB host initialization
+code (still doesn't work, but I think I can figure it out).
 
-scll = (scl+3) * iclk
-sclh = (scl+9) * iclk
+Thanks for the pointers
 
 
-Now computing a bit, i2c spec [1] says in table 5 for minimum for FS as
-tLow as 1.3uS and tHigh as 0.6uS. max is not mentioned :(.. OMAP3430 TRM
-([2] table 18-13 (page 2943)) says:
-psc=9, scl = 5, sch =7 - for fclk = 96Mhz.
-translating this:
-iclk =96M/(9+1) = 9.6Mhz = 0.104167uSec.
-tHigh  = ( sclh +5 )*iclk = (7+5)*0.104167 = 1.250004 uSec (spec min is
-0.6uSec)
-tLow  = ( scll +7 )*iclk =(5+7)*0.104167 = 1.250004 uSec (spec min is
-1.3uSec <== I might be missing something here - but does that look like
-some sort of violation?
-
-Now, from a s/w perspective, If we would like to have it so that we can
-configure tHigh and tLow based on devices, electrical characteristics on
-a bus, not just speed of the bus, the current implementation would
-probably need to change(I think).
-
-Regards,
-Nishanth Menon
-
-Ref:
-[1] http://www.nxp.com/acrobat_download/literature/9398/39340011.pdf
-[2] http://focus.ti.com/pdfs/wtbu/SWPU114I_PrelimFinalEPDF_06_10_2008.pdf
+-- 
+------------------------------------------------------------
+Gary Thomas                 |  Consulting for the
+MLB Associates              |    Embedded world
+------------------------------------------------------------
