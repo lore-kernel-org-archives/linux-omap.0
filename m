@@ -1,43 +1,54 @@
-From: Nishanth Menon <menon.nishanth@gmail.com>
-Subject: Re: tHigh tLow discussion (was [pacth] I2C bug fixes for L-O and L-Z)
-Date: Mon, 23 Feb 2009 20:25:56 +0200
-Message-ID: <782515bb0902231025m2e0b6febj2929313db83167f3@mail.gmail.com>
-References: <1234767724.16827.7.camel@eenurkka-desktop>
-	 <13B9B4C6EF24D648824FF11BE896716203771DC940@dlee02.ent.ti.com>
-	 <1234850560.13109.9.camel@eenurkka-desktop>
-	 <13B9B4C6EF24D648824FF11BE896716203771DD194@dlee02.ent.ti.com>
-	 <13B9B4C6EF24D648824FF11BE896716203772C3CAF@dlee02.ent.ti.com>
-	 <1235396273.12653.8.camel@eenurkka-desktop>
-	 <49A2D66F.9050809@gmail.com>
-	 <1FFEF31EBAA4F64B80D33027D4297760036DEC2F6F@NOK-EUMSG-02.mgdnok.nokia.com>
-	 <782515bb0902231019l17eaef2crfcb6426fbbbf8d04@mail.gmail.com>
-	 <1FFEF31EBAA4F64B80D33027D4297760036DEC2F71@NOK-EUMSG-02.mgdnok.nokia.com>
+From: David Brownell <david-b@pacbell.net>
+Subject: Re: [PATCH] OMAP: HSMMC: Initialize hsmmc controller registers when  resuming
+Date: Mon, 23 Feb 2009 10:30:24 -0800
+Message-ID: <200902231030.25137.david-b@pacbell.net>
+References: <4d34a0a70902200400s252f48ddvfd6e0d83e91fa291@mail.gmail.com> <49A258A2.2020408@nokia.com> <9c9fda240902230426s2003d208xebeb6630c61b3bec@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from fk-out-0910.google.com ([209.85.128.186]:14278 "EHLO
-	fk-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753362AbZBWSZ7 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 23 Feb 2009 13:25:59 -0500
-Received: by fk-out-0910.google.com with SMTP id f33so1557132fkf.5
-        for <linux-omap@vger.kernel.org>; Mon, 23 Feb 2009 10:25:56 -0800 (PST)
-In-Reply-To: <1FFEF31EBAA4F64B80D33027D4297760036DEC2F71@NOK-EUMSG-02.mgdnok.nokia.com>
+Received: from smtp121.sbc.mail.sp1.yahoo.com ([69.147.64.94]:21264 "HELO
+	smtp121.sbc.mail.sp1.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1753647AbZBWSa2 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Mon, 23 Feb 2009 13:30:28 -0500
+In-Reply-To: <9c9fda240902230426s2003d208xebeb6630c61b3bec@mail.gmail.com>
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: ext-Eero.Nurkkala@nokia.com
-Cc: r-woodruff2@ti.com, linux-omap@vger.kernel.org
+To: Kyungmin Park <kyungmin.park@samsung.com>, Adrian Hunter <ext-adrian.hunter@nokia.com>
+Cc: Kim Kyuwon <chammoru@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "drzeus-mmc@drzeus.cx" <drzeus-mmc@drzeus.cx>, =?utf-8?q?=EA=B9=80=EA=B7=9C=EC=9B=90?= <q1.kim@samsung.com>
 
-On Mon, Feb 23, 2009 at 8:20 PM,  <ext-Eero.Nurkkala@nokia.com> wrote:
->
-> Don't just blindly trust the TRM, all that matters is the real signal
-> caught in the scope. That is what you want to verify.
+On Monday 23 February 2009, Kyungmin Park wrote:
+> > Although I have not tested it, I very much doubt
+> > dual-voltage cards work. =A0That is because VMMC1_185V
+> > is zero, which has the side-effect of turning the
+> > regulator off (see arch/arm/mach-omap2/mmc-twl4030.c)
 
-;) Aye Aye.... I wonder if the equation you provided is based on
-emperical measurement? if so would it vary based on electrical
-characteristics of a platform? I mean beagleboard Vs Zoom Vs SDP
-atleast have variances of i2c trace lengths and number of devices per
-i2c bus.. wont the equation change based on board configuration?
+Right, looks like a longstanding bug in that glue.
+So IMO, no rush to fix for 2.6.29-rc ...
 
-Regards,
-Nishanth Menon
+
+> It's also to difficult to test in our H/W since it's configured only
+> support 3.0V.
+
+Easily tested with a Beagle or SDP though, if you
+have a 1.8V or dual-voltage card (maybe RS-MMC, as
+for an N770 tablet).
+
+
+> How about to separate it two phases, first fix the mmc suspend/resume
+> works again, and then verify dual voltage if there are these hardware
+
+Well, two patches for sure; I don't know that the order
+will matter.  I just sent a patch fixing that code in
+the current OMAP git tree, which has some fixes that are
+scheduled to merge for 2.6.30-rc.
+
+- Dave
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
