@@ -1,195 +1,94 @@
-From: "Kanigeri, Hari" <h-kanigeri2@ti.com>
-Subject: RE: [PATCH v2 3/4] dsp-bridge: cleanup and remove HW_MBOX_IsFull
-Date: Mon, 23 Feb 2009 16:06:59 -0600
-Message-ID: <8F7AF80515AF0D4D93307E594F3CB40E211807CE@dlee03.ent.ti.com>
-References: <94a0d4530902212246h4160ae83pf435b5c6faf88237@mail.gmail.com>
- <1235295144-22097-1-git-send-email-felipe.contreras@gmail.com>
- <1235295144-22097-2-git-send-email-felipe.contreras@gmail.com>
- <1235295144-22097-3-git-send-email-felipe.contreras@gmail.com>
+From: David Brownell <david-b@pacbell.net>
+Subject: Re: leds-gpio broken with current git?
+Date: Mon, 23 Feb 2009 14:08:14 -0800
+Message-ID: <200902231408.14387.david-b@pacbell.net>
+References: <7088542D-28A0-4BCA-9583-6BCDDF9E960A@student.utwente.nl> <8F7AF80515AF0D4D93307E594F3CB40E210F49EC@dlee03.ent.ti.com> <200902231304.22137.david-b@pacbell.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:48628 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752959AbZBWWHN convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 23 Feb 2009 17:07:13 -0500
-In-Reply-To: <1235295144-22097-3-git-send-email-felipe.contreras@gmail.com>
-Content-Language: en-US
+Received: from smtp121.sbc.mail.sp1.yahoo.com ([69.147.64.94]:35635 "HELO
+	smtp121.sbc.mail.sp1.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1753234AbZBWWIR (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Mon, 23 Feb 2009 17:08:17 -0500
+In-Reply-To: <200902231304.22137.david-b@pacbell.net>
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Contreras <felipe.contreras@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
-Cc: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>, "ameya.palande@nokia.com" <ameya.palande@nokia.com>
+To: "Kridner, Jason" <jdk@ti.com>
+Cc: Koen Kooi <k.kooi@student.utwente.nl>, "linux-omap@vger.kernel.org List" <linux-omap@vger.kernel.org>
 
-Hi Felipe,
+On Monday 23 February 2009, David Brownell wrote:
+>=20
+> > Perhaps something broke with Tony's RC1 merge?
+> > The LEDs are broken for me as well.=20
+>=20
+> Still works for me. =A0Did you maybe not enable the twl4030
+> GPIO support in Kconfig?
 
-> HW_MBOX_IsFull has many convoluted macros and is used only once. Clean
-> it up so it's easier to see what it's actually doing.
+Oh, and if you did *not*, please give this patch a try.
+I've been meaning to test it.
 
--- Is this the reason you added a new function that checks if fifo is full or is there any issue with the existing function ?
+- Dave
 
-Thank you,
-Best regards,
-Hari
 
-> -----Original Message-----
-> From: Felipe Contreras [mailto:felipe.contreras@gmail.com]
-> Sent: Sunday, February 22, 2009 3:32 AM
-> To: linux-omap@vger.kernel.org
-> Cc: Hiroshi DOYU; Kanigeri, Hari; ameya.palande@nokia.com; Felipe
-> Contreras
-> Subject: [PATCH v2 3/4] dsp-bridge: cleanup and remove HW_MBOX_IsFull
-> 
-> HW_MBOX_IsFull has many convoluted macros and is used only once. Clean
-> it up so it's easier to see what it's actually doing.
-> 
-> Signed-off-by: Felipe Contreras <felipe.contreras@gmail.com>
-> ---
->  drivers/dsp/bridge/hw/hw_mbox.c    |   25 -------------------------
->  drivers/dsp/bridge/hw/hw_mbox.h    |   35 -------------------------------
-> ----
->  drivers/dsp/bridge/wmd/tiomap_sm.c |   15 +++++++++------
->  3 files changed, 9 insertions(+), 66 deletions(-)
-> 
-> diff --git a/drivers/dsp/bridge/hw/hw_mbox.c
-> b/drivers/dsp/bridge/hw/hw_mbox.c
-> index 2c14ade..31b890a 100644
-> --- a/drivers/dsp/bridge/hw/hw_mbox.c
-> +++ b/drivers/dsp/bridge/hw/hw_mbox.c
-> @@ -104,31 +104,6 @@ HW_STATUS HW_MBOX_MsgWrite(const u32 baseAddress,
-> const HW_MBOX_Id_t mailBoxId,
->  	return status;
->  }
-> 
-> -/* Reads the full status register for mailbox. */
-> -HW_STATUS HW_MBOX_IsFull(const u32 baseAddress, const HW_MBOX_Id_t
-> mailBoxId,
-> -			u32 *const pIsFull)
-> -{
-> -	HW_STATUS status = RET_OK;
-> -	u32 fullStatus;
-> -
-> -	/* Check input parameters */
-> -	CHECK_INPUT_PARAM(baseAddress, 0, RET_BAD_NULL_PARAM, RES_MBOX_BASE
-> +
-> -			RES_INVALID_INPUT_PARAM);
-> -	CHECK_INPUT_PARAM(pIsFull,  NULL, RET_BAD_NULL_PARAM, RES_MBOX_BASE
-> +
-> -			RES_INVALID_INPUT_PARAM);
-> -	CHECK_INPUT_RANGE_MIN0(mailBoxId, HW_MBOX_ID_MAX, RET_INVALID_ID,
-> -			RES_MBOX_BASE + RES_INVALID_INPUT_PARAM);
-> -
-> -	/* read the is full status parameter for Mailbox */
-> -	fullStatus =
-> MLBMAILBOX_FIFOSTATUS___0_15FifoFullMBmRead32(baseAddress,
-> -							(u32)mailBoxId);
-> -
-> -	/* fill in return parameter */
-> -	*pIsFull = (fullStatus & 0xFF);
-> -
-> -	return status;
-> -}
-> -
->  /* Gets number of messages in a specified mailbox. */
->  HW_STATUS HW_MBOX_NumMsgGet(const u32 baseAddress, const HW_MBOX_Id_t
-> mailBoxId,
->  				u32 *const pNumMsg)
-> diff --git a/drivers/dsp/bridge/hw/hw_mbox.h
-> b/drivers/dsp/bridge/hw/hw_mbox.h
-> index 225fb40..d2981d3 100644
-> --- a/drivers/dsp/bridge/hw/hw_mbox.h
-> +++ b/drivers/dsp/bridge/hw/hw_mbox.h
-> @@ -130,41 +130,6 @@ extern HW_STATUS HW_MBOX_MsgWrite(
->  		  );
-> 
->  /*
-> -* FUNCTION      : HW_MBOX_IsFull
-> -*
-> -* INPUTS:
-> -*
-> -*   Identifier  : baseAddress
-> -*   Type	: const u32
-> -*   Description : Base Address of instance of Mailbox module
-> -*
-> -*   Identifier  : mailBoxId
-> -*   Type	: const HW_MBOX_Id_t
-> -*   Description : Mail Box Sub module Id to check
-> -*
-> -* OUTPUTS:
-> -*
-> -*   Identifier  : pIsFull
-> -*   Type	: u32 *const
-> -*   Description : false means mail box not Full
-> -*		 true means mailbox full.
-> -*
-> -* RETURNS:
-> -*
-> -*   Type	: ReturnCode_t
-> -*   Description : RET_OK	      No errors occured
-> -*		 RET_BAD_NULL_PARAM  Address/pointer Paramater was set to
-> 0/NULL
-> -*		 RET_INVALID_ID      Invalid Id used
-> -*
-> -* PURPOSE:      : this function reads the full status register for
-> mailbox.
-> -*/
-> -extern HW_STATUS HW_MBOX_IsFull(
-> -		      const u32	 baseAddress,
-> -		      const HW_MBOX_Id_t   mailBoxId,
-> -		      u32 *const	pIsFull
-> -		  );
-> -
-> -/*
->  * FUNCTION      : HW_MBOX_NumMsgGet
->  *
->  * INPUTS:
-> diff --git a/drivers/dsp/bridge/wmd/tiomap_sm.c
-> b/drivers/dsp/bridge/wmd/tiomap_sm.c
-> index 2f381c8..4ad893b 100644
-> --- a/drivers/dsp/bridge/wmd/tiomap_sm.c
-> +++ b/drivers/dsp/bridge/wmd/tiomap_sm.c
-> @@ -156,6 +156,13 @@ DSP_STATUS CHNLSM_DisableInterrupt(struct
-> WMD_DEV_CONTEXT *hDevContext)
->  	return status;
->  }
-> 
-> +#define MAILBOX_FIFOSTATUS(m) (0x80 + 4 * (m))
-> +
-> +static inline unsigned int fifo_full(void __iomem *mbox_base, int
-> mbox_id)
-> +{
-> +	return __raw_readl(mbox_base + MAILBOX_FIFOSTATUS(mbox_id)) & 0x1;
-> +}
-> +
->  /*
->   *  ======== CHNLSM_InterruptDSP ========
->   *      Send an interrupt to the DSP processor(s).
-> @@ -171,7 +178,6 @@ DSP_STATUS CHNLSM_InterruptDSP(struct WMD_DEV_CONTEXT
-> *hDevContext)
->  	u32 opplevel = 0;
->  #endif
->  	HW_STATUS hwStatus;
-> -	u32 mbxFull;
->  	struct CFG_HOSTRES resources;
->  	u16 cnt = 10;
->  	u32 temp;
-> @@ -214,12 +220,9 @@ DSP_STATUS CHNLSM_InterruptDSP(struct WMD_DEV_CONTEXT
-> *hDevContext)
->  		pDevContext->dwBrdState = BRD_RUNNING;
->  	}
->  	while (--cnt) {
-> -		hwStatus = HW_MBOX_IsFull(resources.dwMboxBase,
-> -					   MBOX_ARM2DSP, &mbxFull);
-> -		if (mbxFull)
-> -			mdelay(1);
-> -		else
-> +		if (!fifo_full((void __iomem *) resources.dwMboxBase, 0))
->  			break;
-> +		mdelay(1);
->  	}
->  	if (!cnt) {
->  		DBG_Trace(DBG_LEVEL7, "Timed out waiting for DSP mailbox \n");
-> --
-> 1.6.1.3
-> 
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+Sometimes it's awkward to make sure that the array in the
+platform_data handed to the leds-gpio driver has only valid
+data ... some leds may not be always available, and coping
+with that currently requires patching or rebuilding the array.
 
+This patch fixes that by making it be OK to pass an invalid
+GPIO (such as "-EINVAL") ... such table entries are skipped.
+
+---
+ drivers/leds/leds-gpio.c |   12 +++++++++++-
+ 1 file changed, 11 insertions(+), 1 deletion(-)
+
+--- a/drivers/leds/leds-gpio.c
++++ b/drivers/leds/leds-gpio.c
+@@ -90,13 +90,19 @@ static int gpio_led_probe(struct platfor
+ 		cur_led =3D &pdata->leds[i];
+ 		led_dat =3D &leds_data[i];
+=20
++		/* skip leds that aren't available */
++		led_dat->gpio =3D cur_led->gpio;
++		if (!gpio_is_valid(led_dat->gpio)) {
++			dev_dbg(&pdev->dev, "skipping %s\n", cur_led->name);
++			continue;
++		}
++
+ 		ret =3D gpio_request(cur_led->gpio, cur_led->name);
+ 		if (ret < 0)
+ 			goto err;
+=20
+ 		led_dat->cdev.name =3D cur_led->name;
+ 		led_dat->cdev.default_trigger =3D cur_led->default_trigger;
+-		led_dat->gpio =3D cur_led->gpio;
+ 		led_dat->can_sleep =3D gpio_cansleep(cur_led->gpio);
+ 		led_dat->active_low =3D cur_led->active_low;
+ 		if (pdata->gpio_blink_set) {
+@@ -125,6 +131,8 @@ static int gpio_led_probe(struct platfor
+ err:
+ 	if (i > 0) {
+ 		for (i =3D i - 1; i >=3D 0; i--) {
++			if (!gpio_is_valid(leds_data[i].gpio))
++				continue;
+ 			led_classdev_unregister(&leds_data[i].cdev);
+ 			cancel_work_sync(&leds_data[i].work);
+ 			gpio_free(leds_data[i].gpio);
+@@ -145,6 +153,8 @@ static int __devexit gpio_led_remove(str
+ 	leds_data =3D platform_get_drvdata(pdev);
+=20
+ 	for (i =3D 0; i < pdata->num_leds; i++) {
++		if (!gpio_is_valid(leds_data[i].gpio))
++			continue;
+ 		led_classdev_unregister(&leds_data[i].cdev);
+ 		cancel_work_sync(&leds_data[i].work);
+ 		gpio_free(leds_data[i].gpio);
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
