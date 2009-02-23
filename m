@@ -1,118 +1,208 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH] OMAP3: PM: Update voltage levels for OPP1/2 on VDD1/2
-Date: Mon, 23 Feb 2009 11:44:01 -0800
-Message-ID: <87fxi59bwe.fsf@deeprootsystems.com>
-References: <5A47E75E594F054BAF48C5E4FC4B92AB02F55511F7@dbde02.ent.ti.com>
+From: David Brownell <david-b@pacbell.net>
+Subject: [patch/rfc 2.6.29-rc6 1/2] regulator: enumerate voltages
+Date: Mon, 23 Feb 2009 12:52:01 -0800
+Message-ID: <200902231252.01980.david-b@pacbell.net>
+References: <200902081037.06645.david-b@pacbell.net> <20090210224851.GA6408@sirena.org.uk> <200902231245.44360.david-b@pacbell.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from rv-out-0506.google.com ([209.85.198.233]:33898 "EHLO
-	rv-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755241AbZBWToI (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 23 Feb 2009 14:44:08 -0500
-Received: by rv-out-0506.google.com with SMTP id g37so2074307rvb.1
-        for <linux-omap@vger.kernel.org>; Mon, 23 Feb 2009 11:44:05 -0800 (PST)
-In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB02F55511F7@dbde02.ent.ti.com> (Rajendra Nayak's message of "Fri\, 13 Feb 2009 11\:30\:57 +0530")
+Received: from smtp124.sbc.mail.sp1.yahoo.com ([69.147.64.97]:32324 "HELO
+	smtp124.sbc.mail.sp1.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1751420AbZBWVAO (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Mon, 23 Feb 2009 16:00:14 -0500
+In-Reply-To: <200902231245.44360.david-b@pacbell.net>
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Nayak, Rajendra" <rnayak@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Gupta, Ramesh" <grgupta@ti.com>
+To: Mark Brown <broonie@sirena.org.uk>, Liam Girdwood <lrg@slimlogic.co.uk>
+Cc: lkml <linux-kernel@vger.kernel.org>, OMAP <linux-omap@vger.kernel.org>
 
-"Nayak, Rajendra" <rnayak@ti.com> writes:
+From: David Brownell <dbrownell@users.sourceforge.net>
 
-> This patch updates the voltage levels for VDD1 OPP1/2 and
-> VDD2 OPP1/2 according to the latest operating condition
-> addendum for 3430.
->
-> The new voltage levels at various OPP's for VDD1/2 are as below
->
-> VDD1 OPP1 0.975v
-> VDD1 OPP2 1.050v
-> VDD1 OPP3 1.200v
-> VDD1 OPP4 1.270v
-> VDD1 OPP5 1.350v
->
-> VDD2 OPP1 0.975v
-> VDD2 OPP2 1.050v
-> VDD2 OPP3 1.150v
->
-> The patch applies on the latest pm head and is validated on 3430SDP.
->
+Add a basic mechanism for regulators to report the discrete
+voltages they support:  one method to count how many voltages
+are available, and another to enumerate them.
 
-This didn't apply to latest PM branch due to changes in the regbits
-header.  I manually fixed this up and applied to PM branch.
+Use those methods to force machine-level constraints into bounds.
+(Example:  regulator supports 1.8V, 2.4V, 2.6V, 3.3V, and board
+constraints for that rail are 2.0V to 3.6V ... so the range of
+voltages is then 2.4V to 3.3V on this board.)
 
-Thanks,
+Export those voltages to the regulator consumer interface, so for
+example regulator hooked up to an MMC/SD/SDIO slot can report the
+actual voltage options available to cards connected there.
 
-Kevin
+Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
+---
+I'm not particularly pleased with these names; suggestions?
+This could also be done with one fewer method by designating a
+special list_voltage() return value, but I like this better.
 
-> Signed-off-by: Rajendra Nayak <rnayak@ti.com>
-> ---
->  arch/arm/mach-omap2/omap3-opp.h        |   12 ++++++------
->  arch/arm/mach-omap2/prm-regbits-34xx.h |    8 ++++----
->  2 files changed, 10 insertions(+), 10 deletions(-)
->
-> Index: linux-omap-2.6/arch/arm/mach-omap2/omap3-opp.h
-> ===================================================================
-> --- linux-omap-2.6.orig/arch/arm/mach-omap2/omap3-opp.h	2009-02-13 09:28:45.000000000 +0530
-> +++ linux-omap-2.6/arch/arm/mach-omap2/omap3-opp.h	2009-02-13 09:37:35.767125634 +0530
-> @@ -24,9 +24,9 @@
->  static struct omap_opp omap3_mpu_rate_table[] = {
->  	{0, 0, 0},
->  	/*OPP1*/
-> -	{S125M, VDD1_OPP1, 0x18},
-> +	{S125M, VDD1_OPP1, 0x1E},
->  	/*OPP2*/
-> -	{S250M, VDD1_OPP2, 0x20},
-> +	{S250M, VDD1_OPP2, 0x24},
->  	/*OPP3*/
->  	{S500M, VDD1_OPP3, 0x30},
->  	/*OPP4*/
-> @@ -38,9 +38,9 @@ static struct omap_opp omap3_mpu_rate_ta
->  static struct omap_opp omap3_l3_rate_table[] = {
->  	{0, 0, 0},
->  	/*OPP1*/
-> -	{0, VDD2_OPP1, 0x18},
-> +	{0, VDD2_OPP1, 0x1E},
->  	/*OPP2*/
-> -	{S83M, VDD2_OPP2, 0x20},
-> +	{S83M, VDD2_OPP2, 0x24},
->  	/*OPP3*/
->  	{S166M, VDD2_OPP3, 0x2C},
->  };
-> @@ -48,9 +48,9 @@ static struct omap_opp omap3_l3_rate_tab
->  static struct omap_opp omap3_dsp_rate_table[] = {
->  	{0, 0, 0},
->  	/*OPP1*/
-> -	{S90M, VDD1_OPP1, 0x18},
-> +	{S90M, VDD1_OPP1, 0x1E},
->  	/*OPP2*/
-> -	{S180M, VDD1_OPP2, 0x20},
-> +	{S180M, VDD1_OPP2, 0x24},
->  	/*OPP3*/
->  	{S360M, VDD1_OPP3, 0x30},
->  	/*OPP4*/
-> Index: linux-omap-2.6/arch/arm/mach-omap2/prm-regbits-34xx.h
-> ===================================================================
-> --- linux-omap-2.6.orig/arch/arm/mach-omap2/prm-regbits-34xx.h	2009-02-13 09:26:16.000000000 +0530
-> +++ linux-omap-2.6/arch/arm/mach-omap2/prm-regbits-34xx.h	2009-02-13 10:12:07.005364895 +0530
-> @@ -464,14 +464,14 @@
->  
->  /* PRM_VC_CMD_VAL_0 specific bits */
->  #define OMAP3430_VC_CMD_VAL0_ON				(0x3 << 4)
-> -#define OMAP3430_VC_CMD_VAL0_ONLP			(0x3 << 3)
-> -#define OMAP3430_VC_CMD_VAL0_RET			(0x3 << 3)
-> +#define OMAP3430_VC_CMD_VAL0_ONLP			(0xF << 1)
-> +#define OMAP3430_VC_CMD_VAL0_RET			(0xF << 1)
->  #define OMAP3430_VC_CMD_VAL0_OFF			(0x3 << 4)
->  
->  /* PRM_VC_CMD_VAL_1 specific bits */
->  #define OMAP3430_VC_CMD_VAL1_ON				(0xB << 2)
-> -#define OMAP3430_VC_CMD_VAL1_ONLP			(0x3 << 3)
-> -#define OMAP3430_VC_CMD_VAL1_RET			(0x3 << 3)
-> +#define OMAP3430_VC_CMD_VAL1_ONLP			(0xF << 1)
-> +#define OMAP3430_VC_CMD_VAL1_RET			(0xF << 1)
->  #define OMAP3430_VC_CMD_VAL1_OFF			(0xB << 2)
->  
->  /* PRM_VC_CH_CONF */--
+ drivers/regulator/core.c           |  107 +++++++++++++++++++++++++++++++++++
+ include/linux/regulator/consumer.h |    2 
+ include/linux/regulator/driver.h   |   10 +++
+ 3 files changed, 119 insertions(+)
 
+--- a/drivers/regulator/core.c
++++ b/drivers/regulator/core.c
+@@ -719,6 +719,44 @@ static int set_machine_constraints(struc
+ 	else
+ 		name = "regulator";
+ 
++	/* maybe force machine-wide voltage constraints to match the
++	 * voltages supported by this regulator.  use the regulator's
++	 * entire range for boards with no particular constraints.
++	 */
++	if (ops->list_voltage) {
++		int	count = ops->count_voltages(rdev);
++		int	i;
++		int	min_uV = INT_MAX;
++		int	max_uV = INT_MIN;
++		int	cmin = constraints->min_uV ? : INT_MIN;
++		int	cmax = constraints->max_uV ? : INT_MAX;
++
++		/* initial: [cmin..cmax] valid, [min_uV..max_uV] not */
++		for (i = 0; i < count; i++) {
++			int	value;
++
++			value = ops->list_voltage(rdev, i);
++			if (value <= 0)
++				continue;
++
++			/* maybe adjust [min_uV..max_uV] */
++			if (value >= cmin && value < min_uV)
++				min_uV = value;
++			if (value <= cmax && value > max_uV)
++				max_uV = value;
++		}
++
++		/* final: [min_uV..max_uV] valid iff constraints valid */
++		if (max_uV < min_uV) {
++			pr_err("%s: bad '%s' voltage constraints\n",
++				       __func__, name);
++			ret = -EINVAL;
++			goto out;
++		}
++		constraints->min_uV = min_uV;
++		constraints->max_uV = max_uV;
++	}
++
+ 	rdev->constraints = constraints;
+ 
+ 	/* do we need to apply the constraint voltage */
+@@ -1245,6 +1283,75 @@ int regulator_is_enabled(struct regulato
+ EXPORT_SYMBOL_GPL(regulator_is_enabled);
+ 
+ /**
++ * regulator_count_voltages - count regulator_list_voltage() indices
++ * @regulator: regulator source
++ *
++ * Returns number of indices, or negative errno.
++ */
++int regulator_count_voltages(struct regulator *regulator)
++{
++	struct regulator_dev	*rdev = regulator->rdev;
++	struct regulator_ops	*ops;
++	int			ret = -EINVAL;
++
++	mutex_lock(&rdev->mutex);
++
++	ops = rdev->desc->ops;
++	if (ops->count_voltages)
++		ret = ops->count_voltages(rdev);
++
++	mutex_unlock(&rdev->mutex);
++
++	return ret;
++}
++EXPORT_SYMBOL_GPL(regulator_count_voltages);
++
++/**
++ * regulator_list_voltage - enumerate supported voltages
++ * @regulator: regulator source
++ * @index: identify voltage to list
++ *
++ * Returns a voltage that can be passed to @regulator_set_voltage(),
++ * or negative fault code.
++ *
++ * Faults include passing in invalid index, and using an index
++ * corresponding to a voltage that can't be used on this system.
++ */
++int regulator_list_voltage(struct regulator *regulator, unsigned index)
++{
++	struct regulator_dev	*rdev = regulator->rdev;
++	struct regulator_ops	*ops;
++	int			ret = -EINVAL;
++
++	mutex_lock(&rdev->mutex);
++
++	ops = rdev->desc->ops;
++	if (ops->count_voltages && ops->list_voltage)
++		ret = ops->count_voltages(rdev);
++
++	if (ret == 0)
++		ret = -EIO;
++	else if (ret > 0) {
++		if (index >= ret)
++			ret = -EDOM;
++		else
++			ret = ops->list_voltage(rdev, index);
++	}
++
++	if (ret >= 0) {
++		if (ret < rdev->constraints->min_uV)
++			ret = -ERANGE;
++		else if (ret > rdev->constraints->max_uV)
++			ret = -ERANGE;
++	}
++
++	mutex_unlock(&rdev->mutex);
++
++	return ret;
++}
++EXPORT_SYMBOL_GPL(regulator_list_voltage);
++
++/**
+  * regulator_set_voltage - set regulator output voltage
+  * @regulator: regulator source
+  * @min_uV: Minimum required voltage in uV
+--- a/include/linux/regulator/consumer.h
++++ b/include/linux/regulator/consumer.h
+@@ -140,6 +140,8 @@ int regulator_bulk_disable(int num_consu
+ void regulator_bulk_free(int num_consumers,
+ 			 struct regulator_bulk_data *consumers);
+ 
++int regulator_count_voltages(struct regulator *regulator);
++int regulator_list_voltage(struct regulator *regulator, unsigned index);
+ int regulator_set_voltage(struct regulator *regulator, int min_uV, int max_uV);
+ int regulator_get_voltage(struct regulator *regulator);
+ int regulator_set_current_limit(struct regulator *regulator,
+--- a/include/linux/regulator/driver.h
++++ b/include/linux/regulator/driver.h
+@@ -40,6 +40,12 @@ enum regulator_status {
+  * @set_voltage: Set the voltage for the regulator within the range specified.
+  *               The driver should select the voltage closest to min_uV.
+  * @get_voltage: Return the currently configured voltage for the regulator.
++ * @count_voltages: Return the number of supported voltage indices which
++ *	may be passed to @list_voltage().  Some indices may correspond to
++ *	voltages that are not usable on this system.
++ * @list_voltage: Return one of the supported voltages, in microvolts;
++ *	or negative errno.  Indices range from zero to one less than
++ *	@count_voltages().  Voltages may be reported in any order.
+  * @set_current_limit: Configure a limit for a current-limited regulator.
+  * @get_current_limit: Get the configured limit for a current-limited regulator.
+  * @set_mode: Set the operating mode for the regulator.
+@@ -62,6 +68,10 @@ enum regulator_status {
+  */
+ struct regulator_ops {
+ 
++	/* enumerate supported voltages */
++	int (*count_voltages) (struct regulator_dev *);
++	int (*list_voltage) (struct regulator_dev *, unsigned index);
++
+ 	/* get/set regulator voltage */
+ 	int (*set_voltage) (struct regulator_dev *, int min_uV, int max_uV);
+ 	int (*get_voltage) (struct regulator_dev *);
