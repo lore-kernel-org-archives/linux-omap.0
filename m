@@ -1,84 +1,60 @@
-From: David Brownell <david-b@pacbell.net>
-Subject: [patch 2.6.29-rc5-omap-git] mach-omap2/mmc-twl4030: fix for vmmc = 0
-Date: Mon, 23 Feb 2009 10:14:26 -0800
-Message-ID: <200902231014.26352.david-b@pacbell.net>
+From: Nishanth Menon <menon.nishanth@gmail.com>
+Subject: Re: tHigh tLow discussion (was [pacth] I2C bug fixes for L-O and L-Z)
+Date: Mon, 23 Feb 2009 20:19:50 +0200
+Message-ID: <782515bb0902231019l17eaef2crfcb6426fbbbf8d04@mail.gmail.com>
+References: <1234767724.16827.7.camel@eenurkka-desktop>
+	 <13B9B4C6EF24D648824FF11BE896716203771DC940@dlee02.ent.ti.com>
+	 <1234850560.13109.9.camel@eenurkka-desktop>
+	 <13B9B4C6EF24D648824FF11BE896716203771DD194@dlee02.ent.ti.com>
+	 <13B9B4C6EF24D648824FF11BE896716203772C3CAF@dlee02.ent.ti.com>
+	 <1235396273.12653.8.camel@eenurkka-desktop>
+	 <49A2D66F.9050809@gmail.com>
+	 <1FFEF31EBAA4F64B80D33027D4297760036DEC2F6F@NOK-EUMSG-02.mgdnok.nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from n8b.bullet.sp1.yahoo.com ([69.147.64.169]:28437 "HELO
-	n8b.bullet.sp1.yahoo.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1751629AbZBWSQH (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 23 Feb 2009 13:16:07 -0500
-Content-Disposition: inline
+Received: from mail-fx0-f167.google.com ([209.85.220.167]:64451 "EHLO
+	mail-fx0-f167.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753683AbZBWSTx (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 23 Feb 2009 13:19:53 -0500
+Received: by fxm11 with SMTP id 11so2048124fxm.13
+        for <linux-omap@vger.kernel.org>; Mon, 23 Feb 2009 10:19:50 -0800 (PST)
+In-Reply-To: <1FFEF31EBAA4F64B80D33027D4297760036DEC2F6F@NOK-EUMSG-02.mgdnok.nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: ext-Eero.Nurkkala@nokia.com
+Cc: r-woodruff2@ti.com, linux-omap@vger.kernel.org
 
-From: David Brownell <dbrownell@users.sourceforge.net>
+On Mon, Feb 23, 2009 at 8:10 PM,  <ext-Eero.Nurkkala@nokia.com> wrote:
+>> I am not entirely sure about the basis of Eero's equation:
+>>
+>> scll = (scl+3) * iclk
+>> sclh = (scl+9) * iclk
+>
+> No, no:
+>
+> Exactly the opposite,
+> +                       fsscll = internal_clk / (dev->speed * 2) - 3;
+> +                       fssclh = internal_clk / (dev->speed * 2) - 9;
+>
+> means a longer period for scll. (and shorter for sclh)
+Oops.. copy-paste typo.. :(
+tLow = (scll+3) * iclk
+tHigh = (sclh+9) * iclk
+Vs:
+TRM:
+tHigh  = ( sclh +5 )*iclk period
+tLow  = ( scll +7 )*iclk period
 
-Resolve longstanding issue noted by Adrian Hunter:  confusion
-between settting VSEL=0 (which is 1.8V on MMC1) and poweroff.
+But my question is this: why are we trying to a different equation
+here compared to the equation in the TRM? if the reason is that the
+tLow and tHigh should be a variant based on board, probably
+precomputed values or run time computed values wont work for all
+platforms. the board file probably should give it as a platform
+specific data. if this is not provided, use the run time computation..
 
-Also, leave VSEL alone if we're just powering the regulator off.
+just a thought..
 
-Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
----
-NOTE: won't apply to current mainline GIT.
-
- arch/arm/mach-omap2/mmc-twl4030.c |   18 ++++++++++--------
- 1 file changed, 10 insertions(+), 8 deletions(-)
-
---- a/arch/arm/mach-omap2/mmc-twl4030.c
-+++ b/arch/arm/mach-omap2/mmc-twl4030.c
-@@ -178,7 +178,10 @@ static int twl_mmc_resume(struct device 
- static int twl_mmc_set_voltage(struct twl_mmc_controller *c, int vdd)
- {
- 	int ret;
--	u8 vmmc, dev_grp_val;
-+	u8 vmmc = 0, dev_grp_val;
-+
-+	if (!vdd)
-+		goto doit;
- 
- 	if (c->twl_vmmc_dev_grp == VMMC1_DEV_GRP) {
- 		/* VMMC1:  max 220 mA.  And for 8-bit mode,
-@@ -203,8 +206,7 @@ static int twl_mmc_set_voltage(struct tw
- 			/* error if VSIM needed */
- 			break;
- 		default:
--			vmmc = 0;
--			break;
-+			return -EINVAL;
- 		}
- 	} else if (c->twl_vmmc_dev_grp == VMMC2_DEV_GRP) {
- 		/* VMMC2:  max 100 mA */
-@@ -230,21 +232,21 @@ static int twl_mmc_set_voltage(struct tw
- 			vmmc = VMMC2_315V;
- 			break;
- 		default:
--			vmmc = 0;
--			break;
-+			return -EINVAL;
- 		}
- 	} else {
--		return 0;
-+		return -EINVAL;
- 	}
- 
--	if (vmmc)
-+doit:
-+	if (vdd)
- 		dev_grp_val = VMMC_DEV_GRP_P1;	/* Power up */
- 	else
- 		dev_grp_val = LDO_CLR;		/* Power down */
- 
- 	ret = twl4030_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER,
- 					dev_grp_val, c->twl_vmmc_dev_grp);
--	if (ret)
-+	if (ret || !vdd)
- 		return ret;
- 
- 	ret = twl4030_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER,
-
+Regards,
+Nishanth Menon
