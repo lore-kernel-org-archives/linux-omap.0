@@ -1,95 +1,43 @@
-From: David Brownell <david-b@pacbell.net>
-Subject: Re: [patch 2.6.29-rc3-git 1/2] regulator: twl4030 regulators
-Date: Mon, 23 Feb 2009 14:43:16 -0800
-Message-ID: <200902231443.16334.david-b@pacbell.net>
-References: <200902081037.06645.david-b@pacbell.net> <200902231245.44360.david-b@pacbell.net> <20090223220359.GA3601@sirena.org.uk>
+From: Josh Karabin <gkarabin@vocollect.com>
+Subject: Re: [rft/rfc/patch-v2.6.29-rc5+ 05/23] usb: host: ehci: use resource
+ helpers
+Date: Mon, 23 Feb 2009 17:29:38 -0500
+Message-ID: <49A32352.1060009@vocollect.com>
+References: <1235415171-17376-1-git-send-email-me@felipebalbi.com> <1235415171-17376-2-git-send-email-me@felipebalbi.com> <1235415171-17376-3-git-send-email-me@felipebalbi.com> <1235415171-17376-4-git-send-email-me@felipebalbi.com> <1235415171-17376-5-git-send-email-me@felipebalbi.com> <1235415171-17376-6-git-send-email-me@felipebalbi.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp128.sbc.mail.sp1.yahoo.com ([69.147.65.187]:28910 "HELO
-	smtp128.sbc.mail.sp1.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1753715AbZBWWnT (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Mon, 23 Feb 2009 17:43:19 -0500
-In-Reply-To: <20090223220359.GA3601@sirena.org.uk>
-Content-Disposition: inline
+Received: from mx3.vocollect.com ([64.212.175.113]:4053 "EHLO
+	mx3.vocollect.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753982AbZBWW7Y (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 23 Feb 2009 17:59:24 -0500
+In-Reply-To: <1235415171-17376-6-git-send-email-me@felipebalbi.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Mark Brown <broonie@sirena.org.uk>
-Cc: Liam Girdwood <lrg@slimlogic.co.uk>, lkml <linux-kernel@vger.kernel.org>, OMAP <linux-omap@vger.kernel.org>
+To: Felipe Balbi <me@felipebalbi.com>
+Cc: linux-omap@vger.kernel.org, Steve Sakoman <steve@sakoman.com>, Anand Gadiyar <gadiyar@ti.com>, Syed Mohammed Khasim <x0khasim@ti.com>
 
-On Monday 23 February 2009, Mark Brown wrote:
-> On Mon, Feb 23, 2009 at 12:45:44PM -0800, David Brownell wrote:
+
+Felipe Balbi wrote:
+> Don't access pdev->resource[n].start directly, we
+> can use the resource helpers for that, makes the
+> code more readable.
 > 
-> > > another with a TWL4030 driver using that API 
-> > > and a third patch making the core do something with that data.
-> 
-> > Best IMO to switch the last two around.  Effectively
-> > there'd be one patch "add new features to regulator
-> > core", followed by the first of a set of "implement
-> > those new features in the driver for regulator X".
-> 
-> > And in fact that's what I've done with the two patches
-> > I'll be sending in a moment.
-> 
-> The reason I'm suggesting splitting things up the way I am is that it
-> separates out the TWL4030 driver (which looks very mergable to me right
-> now) from the behaviour changes.  Ordering things that way makes it
-> clear what the dependency is.  Another way of splitting it out would be
-> to remove the new API from the TWL4030, make that the first patch, then
-> have further patches adding the new API and the TWL4030 code to use it.
-> 
-> I don't see any reason why the TWL4030 regulator support needs to be
-> blocked on adding the new API and it makes review easier to keep them
-> separate.
 
-I think we're talking past each other.  I agree the twl4030 driver
-is very mergeable right now; that's why it was submitted.  You could
-do so, and then apply the two patches on top ... very clear what the
-dependency is, and as I understand it the result would be more or less
-to your liking.
+[...snip...]
 
-My comment was more along the lines of "avoid adding unused hooks,
-just merge the create-hook and use-hook patches".  Having "create"
-separate from "use" is often troublesome.
+>  
+> -	if (pdev->resource[1].flags != IORESOURCE_IRQ) {
+> -		dev_dbg(&pdev->dev, "resource[1] is not IORESOURCE_IRQ\n");
+> -		retval = -ENOMEM;
+> -	}
+> -
 
+Your patch description doesn't explain why you removed this code.  Was it intentional?  I didn't see that any of the helpers called below covered the case, but I didn't look too hard.
 
-> > Then what would you call constraints by/from the regulator?
-> 
-> They're subsumed within the constraints supplied by the machine driver
-> at the minute.
+Regards,
 
-That is, they are not named.  :)
+- Josh
 
-
-> > I suggest updating your terminology.  "machine constraints"
-> > would be much more clear for what's there now:  they relate
-> > to the machine.  Other constraints (regulator, consumer)
-> > relate to the other components ... the ones for which they
-> > are an adjective.
-> 
-> Yeah, I kind of agree.  To avoid confusion from changing the names I'd
-> be tempted to go for something like "regulator driver constraints" but
-> it's not desparately nice.
-
-Hence my suggestion:  {regulator,machine,consumer} constraints,
-going from bottom up.  They aren't driver constraints; they
-are hardware constraints:  regulators can't supply arbitrary
-voltages.
-
-
-> 	 To be honest I'm not
-> 100% clear why this new feature is essential to supporting the TWL4030 -
-> I can see that it could be useful but I'm not clear on what makes it
-> essential for this driver.
-
-I never said it was "essential".  However it does simplify
-the core driver code a lot by moving a lot of error checks
-to the init code; the checks need to live someplace.  You're
-the one asking for them to be packaged as a new framework
-feature.
-
-- Dave
 
