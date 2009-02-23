@@ -1,98 +1,121 @@
-From: Trent Piepho <xyzzy@speakeasy.org>
-Subject: Re: [RFC] How to pass camera Orientation to userspace
-Date: Sun, 22 Feb 2009 16:19:57 -0800 (PST)
-Message-ID: <Pine.LNX.4.58.0902221603410.24268@shell2.speakeasy.net>
-References: <200902180030.52729.linux@baker-net.org.uk>
- <200902211253.58061.hverkuil@xs4all.nl> <49A13466.5080605@redhat.com>
- <alpine.LNX.2.00.0902221225310.10870@banach.math.auburn.edu>
- <49A1A03A.8080303@redhat.com> <alpine.LNX.2.00.0902221334310.10870@banach.math.auburn.edu>
- <49A1CA5B.5000407@redhat.com> <Pine.LNX.4.58.0902221419550.24268@shell2.speakeasy.net>
- <49A1D7B2.5070601@redhat.com> <Pine.LNX.4.58.0902221504410.24268@shell2.speakeasy.net>
- <49A1DF50.1080903@redhat.com>
+From: Kim Kyuwon <chammoru@gmail.com>
+Subject: Re: [PATCH] ARM: OMAP: Disable USB interrupt in the musb_resume()
+	function
+Date: Mon, 23 Feb 2009 12:28:13 +0900
+Message-ID: <4d34a0a70902221928y2724f776j4f4558306b01e6ff@mail.gmail.com>
+References: <4d34a0a70901310021l6f42b34es24ca320e44c51ae6@mail.gmail.com>
+	 <4d34a0a70902031601r5c8c3424l4cd399193142e612@mail.gmail.com>
+	 <200902201830.08648.david-b@pacbell.net>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail3.sea5.speakeasy.net ([69.17.117.5]:52434 "EHLO
-	mail3.sea5.speakeasy.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753507AbZBWAT6 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 22 Feb 2009 19:19:58 -0500
-In-Reply-To: <49A1DF50.1080903@redhat.com>
+Received: from wf-out-1314.google.com ([209.85.200.172]:18236 "EHLO
+	wf-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751234AbZBWD2O (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 22 Feb 2009 22:28:14 -0500
+In-Reply-To: <200902201830.08648.david-b@pacbell.net>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Hans de Goede <hdegoede@redhat.com>
-Cc: kilgota@banach.math.auburn.edu, Hans Verkuil <hverkuil@xs4all.nl>, Adam Baker <linux@baker-net.org.uk>, linux-media@vger.kernel.org, Jean-Francois Moine <moinejf@free.fr>, Olivier Lorin <o.lorin@laposte.net>, Mauro Carvalho Chehab <mchehab@infradead.org>, linux-omap@vger.kernel.org
+To: David Brownell <david-b@pacbell.net>
+Cc: linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, me@felipebalbi.com, =?EUC-KR?B?seix1L/4?= <q1.kim@samsung.com>
 
-On Mon, 23 Feb 2009, Hans de Goede wrote:
-> Trent Piepho wrote:
-> > On Sun, 22 Feb 2009, Hans de Goede wrote:
-> >> Trent Piepho wrote:
-> >>> On Sun, 22 Feb 2009, Hans de Goede wrote:
-> >>>> Yes that is what we are talking about, the camera having a gravity switch
-> >>>> (usually nothing as advanced as a gyroscope). Also the bits we are talking
-> >>>> about are in a struct which communicates information one way, from the camera
-> >>>> to userspace, so there is no way to clear the bits to make the camera do something.
-> >>> First, I'd like to say I agree with most that the installed orientation of
-> >>> the camera sensor really is a different concept than the current value of a
-> >>> gravity sensor.  It's not necessary, and maybe not even desirable, to
-> >>> handle them in the same way.
-> >>>
-> >>> I do not see the advantage of using reserved bits instead of controls.
-> >>>
-> >>> The are a limited number of reserved bits.  In some structures there are
-> >>> only a few left.  They will run out.  Then what?  Packing non-standard
-> >>> sensor attributes and camera sensor meta-data into a few reserved bits is
-> >>> not a sustainable policy.
-> >>>
-> >>> Controls on the other card are not limited and won't run out.
-> >>>
-> >> Yes but these things are *not* controls, end of discussion. The control API is
-> >> for controls, not to stuff all kind of cruft in.
-> >
-> > All kind of cruft belongs in the reserved bits of whatever field it can be
-> > stuffed in?
+Hi,
+
+On Sat, Feb 21, 2009 at 11:30 AM, David Brownell <david-b@pacbell.net> wrote:
+> On Tuesday 03 February 2009, Kim Kyuwon wrote:
+>> USB should be suspended with interrupt disabled[1].
 >
-> Not whatever field, these are input properties which happen to also be pretty
-> binary so putting them in the input flags field makes plenty of sense.
+> That text means that the sysdev.suspend() method is
+> called with IRQs disabled ... just like suspend_late()
+> methods do (now) for other busses.  (There is no longer
+> any point to using a sysdev; platform_device can now do
+> everything sysdev can do.)
 >
-> > What is the difference?  Why does it matter?  Performance?  Maintenance?
-> > Is there something that's not possible?  I do not find "end of discussion"
-> > to be a very convincing argument.
+
+I thought why the '/Documentation/power/devices.txt' mentioned
+'disabling IRQs'. Let's look at the call-stack which is shown when the
+processor resumes from 'Sleep' state.
+
+suspend_devices_and_enter()
+-- suspend_enter()
+-- -- arch_suspend_disable_irqs()
+-- -- suspend_ops->enter()				// Waking up from here
+-- -- arch_suspend_enable_irqs()		// <A>
+-- -- <Do someting..>
+-- device_resume()						// <B>
+
+As I talked in the commit message, after invoking the
+arch_suspend_disable_irqs() function, some interrupt handlers would
+start to be invoked again. And most interrupt handlers access each
+peripheral controller register. However, each iclk, fclk and
+controller are disabled until the resume() functions are called in
+device_resume() function.
+
+Therefore, Not disabling IRQs can cause kernel panics. For instance,
+if an suspend function disable iclk, an IRQ handler that accesses
+controller register and invoked from <A> to <B> will make the data
+abort exception.
+
+Maybe all device driver doesn't need to disable IRQs while entering
+CPU sleep state but as you can see most devices that handle the
+peripheral controller should disable IRQs.
+
+>> If USB is suspended with
+>> interrupt enabled and connected to host PC, a kernel panic would occur When
+>> it wakes up. Because, after the arch_suspend_enable_irqs() function is called
+>> in the suspend_enter() function, USB Interrupt handler is called, even though
+>> USB controller is still not resumed! All devices are resumed after the
+>> device_resume() is called.
 >
-> Well they are not controls, that is the difference, the control interface is
-> for controls (and only for controls, end of discussion if you ask me). These
-> are not controls but properties, they do not have a default min and max value,
+> This change seems pretty wrong.  The first thing I noticed
+> is that it could prevent remote wakeup from working.
+>
+> Assuming you actually observed this oops, the bug is more
+> likely to be that it didn't enter the right kind of suspend
+> mode.  There are at least two types of suspend that a USB
+> host should be prepared to handle:
+>
+>  - OFF ... the lowest power mode, everything connected to
+>   the host gets logically disconnected.  Wakeup involves
+>   complete re-enumeration.
+>
+>  - SUSPEND ... with two variants, where remote wakeup is
+>   (a) enabled or (b) disabled, but the USB link enters
+>   the suspend state:   VBUS supplied, with low current
+>   draw, and no SOFs get sent.
+>
+> In the wakeup-enabled case, an IRQ is often used as the
+> wakeup trigger.
+>
+> I'm not entirely sure this driver handles suspend right..
+>
+> Now, the actual details of how the USB controller, its
+> transceiver, and other related hardware is configured...
+> can vary a lot.
+>
+> Are you sure you haven't broken remote wakeup by doing
+> this?
 
-Camera pivot sensor ranges from 0 to 270.  How is that not a min and max?
+Of course, this patch prevents remote wakeup, because I applied this
+patch to the 'SUSPEND' function. Suspend function is invoked to
+disable the USB from working not to enable the remote wakeup. The
+musb_suspend() function is already disabling the USB clock. That means
+that if generic_interrupt() is invoked from <A> to <B>, it also causes
+oops, so USB IRQ should be disabled.
 
-> they have only one *unchanging* value, there  is nothing the application can
+I think the 'remote wakeup' function is another issue and another
+feature. the current suspend function of musb driver doesn't consider
+the 'remote wakeup' enough. It can be added after my patch is applied.
+But there is one thing absolutely true, "If the USB clock is disabled,
+IRQ should be disabled". This patch is just for the stable musb.
 
-Camera sensors don't have an unchanging value.
+Somewhat related: USB insertion and deletion can be configured as
+wake-source too. As you know it is different from USB interrupt. so I
+don't think waking up from the USB interrupt is still not critical :)
 
-And who says scan order can't change?  Suppose the camera returns raw bayer
-format data top to bottom, but if you request yuv then an image processing
-section needs to kick in and that returns the data bottom to top.
+> - Dave
+>
 
-> control / change. It has been suggested to make them readonly, but that does
-> not fix the ugliness. A proper written v4l2 application will enumerate all the
-> controls, and then the user will see a grayed out control saying: "your cam is
-> upside down" what is there to control ? will this be a grayed out slider? or a
-> grayed out checkbox "your cam is upside down", or maybe a not grayed out
-> dropdown: where the user can select: "my sensor is upside down", "I deny my
-> sensor is upside down", "I don't care my sensor is upside down", "WTF is this
-> doing in my webcam control panel?", "nwod edispu si rosnes yM"
-
-Why is there a read-only flag for controls if the concept is so mind
-blowing to users?  Have there been complaints about it?
-
-> Do you know I have an idea, lets get rid of the S2 API for DVB and put all that
-> in controls too. Oh, and think like standards for video formats, surely that
-> can be a control too, and ... and, ...
-
-Good point.  The S2 API is much more like the control interface than the
-previous API.  Enumerated attributes which can be set one at a time or in
-groups.  More can be added.  There is some meta data about them.  The old
-API used the a limited number of fixed structs, a few reserved bits, no
-meta-data, and a query/set everything at once API.
-
-I think the camera meta-data and camera sensor API should look more like
-S2.
+-- 
+Kyuwon
