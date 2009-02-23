@@ -1,57 +1,43 @@
-From: "Kridner, Jason" <jdk@ti.com>
-Subject: RE: leds-gpio broken with current git?
-Date: Mon, 23 Feb 2009 08:30:23 -0600
-Message-ID: <8F7AF80515AF0D4D93307E594F3CB40E210F49EC@dlee03.ent.ti.com>
-References: <7088542D-28A0-4BCA-9583-6BCDDF9E960A@student.utwente.nl>
- <200901150758.49601.david-b@pacbell.net>
+From: <ext-Eero.Nurkkala@nokia.com>
+Subject: RE: tHigh tLow discussion (was [pacth] I2C bug fixes for L-O and
+ L-Z)
+Date: Mon, 23 Feb 2009 19:38:10 +0100
+Message-ID: <1FFEF31EBAA4F64B80D33027D4297760036DEC2F73@NOK-EUMSG-02.mgdnok.nokia.com>
+References: <1234767724.16827.7.camel@eenurkka-desktop>
+	 <13B9B4C6EF24D648824FF11BE896716203771DD194@dlee02.ent.ti.com>
+	 <13B9B4C6EF24D648824FF11BE896716203772C3CAF@dlee02.ent.ti.com>
+	 <1235396273.12653.8.camel@eenurkka-desktop>	 <49A2D66F.9050809@gmail.com>
+	 <1FFEF31EBAA4F64B80D33027D4297760036DEC2F6F@NOK-EUMSG-02.mgdnok.nokia.com>
+	 <782515bb0902231019l17eaef2crfcb6426fbbbf8d04@mail.gmail.com>
+	 <1FFEF31EBAA4F64B80D33027D4297760036DEC2F71@NOK-EUMSG-02.mgdnok.nokia.com>
+	 <782515bb0902231025m2e0b6febj2929313db83167f3@mail.gmail.com>
+	 <1FFEF31EBAA4F64B80D33027D4297760036DEC2F72@NOK-EUMSG-02.mgdnok.nokia.com>,<782515bb0902231034w7cd51dd0s7a954abc965ca904@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:50778 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752497AbZBWOad convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 23 Feb 2009 09:30:33 -0500
-In-Reply-To: <200901150758.49601.david-b@pacbell.net>
+Received: from smtp.nokia.com ([192.100.122.230]:33826 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753730AbZBWSkV convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 23 Feb 2009 13:40:21 -0500
+In-Reply-To: <782515bb0902231034w7cd51dd0s7a954abc965ca904@mail.gmail.com>
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: David Brownell <david-b@pacbell.net>, Koen Kooi <k.kooi@student.utwente.nl>
-Cc: "linux-omap@vger.kernel.org List" <linux-omap@vger.kernel.org>
+To: menon.nishanth@gmail.com
+Cc: r-woodruff2@ti.com, linux-omap@vger.kernel.org
 
-> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of David Brownell
-> Sent: Thursday, January 15, 2009 9:59 AM
-> To: Koen Kooi
-> Cc: linux-omap@vger.kernel.org List
-> Subject: Re: leds-gpio broken with current git?
-> 
-> On Thursday 15 January 2009, Koen Kooi wrote:
-> > I've been playing with different kernels on beagleboard lately and
-> it
-> > seems that somewhere between 2.6.28rc8 and the final release leds-
-> gpio
-> > got broken for beagleboard:
-> >
-> > Registered led device: beagleboard::usr0
-> > Registered led device: beagleboard::usr1
-> > leds-gpio: probe of leds-gpio failed with error -22
-> 
-> Works for me, no "-EINVAL", on 2.6.28-omap1 and no patches
-> that should affect GPIOs or LEDs.  Last patch applied to
-> GIT is 15f75b6226c2d3b82062bb721e7cb9a1d6f35efd (musbhsdma).
-> 
-> OK, I'm just pulling a new batch of objects, I'm guessing
-> Tony snuck in RC1 already ... yes, I see he just sent a
-> post about that a few minutes ago.  ;)
 
-Perhaps something broke with Tony's RC1 merge?  The LEDs are broken for me as well.
+> So, it might be worth considering my following proposition?"
+> Now, from a s/w perspective, If we would like to have it so that we can
+> configure tHigh and tLow based on devices, electrical characteristics on
+> a bus, not just speed of the bus, the current implementation would
+> probably need to change(I think).
+> "
+> maybe take tHigh, tLow as a platform data input to the driver? that
+> could allow scaling for all boards I wonder?
 
-> 
-> - Dave
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap"
-> in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Something like that I'd say. Something not happening soon, because
+not everybody has a scope and the time =)
 
+- Eero
