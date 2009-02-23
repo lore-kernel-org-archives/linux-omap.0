@@ -1,107 +1,98 @@
 From: Trent Piepho <xyzzy@speakeasy.org>
 Subject: Re: [RFC] How to pass camera Orientation to userspace
-Date: Sun, 22 Feb 2009 15:56:40 -0800 (PST)
-Message-ID: <Pine.LNX.4.58.0902221525520.24268@shell2.speakeasy.net>
+Date: Sun, 22 Feb 2009 16:19:57 -0800 (PST)
+Message-ID: <Pine.LNX.4.58.0902221603410.24268@shell2.speakeasy.net>
 References: <200902180030.52729.linux@baker-net.org.uk>
- <Pine.LNX.4.58.0902221419550.24268@shell2.speakeasy.net> <49A1D7B2.5070601@redhat.com>
- <200902230024.16709.hverkuil@xs4all.nl>
+ <200902211253.58061.hverkuil@xs4all.nl> <49A13466.5080605@redhat.com>
+ <alpine.LNX.2.00.0902221225310.10870@banach.math.auburn.edu>
+ <49A1A03A.8080303@redhat.com> <alpine.LNX.2.00.0902221334310.10870@banach.math.auburn.edu>
+ <49A1CA5B.5000407@redhat.com> <Pine.LNX.4.58.0902221419550.24268@shell2.speakeasy.net>
+ <49A1D7B2.5070601@redhat.com> <Pine.LNX.4.58.0902221504410.24268@shell2.speakeasy.net>
+ <49A1DF50.1080903@redhat.com>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-media-owner@vger.kernel.org>
-In-Reply-To: <200902230024.16709.hverkuil@xs4all.nl>
-Sender: linux-media-owner@vger.kernel.org
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Hans de Goede <hdegoede@redhat.com>, kilgota@banach.math.auburn.edu, Adam Baker <linux@baker-net.org.uk>, linux-media@vger.kernel.org, Jean-Francois Moine <moinejf@free.fr>, Olivier Lorin <o.lorin@laposte.net>, Mauro Carvalho Chehab <mchehab@infradead.org>, linux-omap@vger.kernel.org
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail3.sea5.speakeasy.net ([69.17.117.5]:52434 "EHLO
+	mail3.sea5.speakeasy.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753507AbZBWAT6 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 22 Feb 2009 19:19:58 -0500
+In-Reply-To: <49A1DF50.1080903@redhat.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Hans de Goede <hdegoede@redhat.com>
+Cc: kilgota@banach.math.auburn.edu, Hans Verkuil <hverkuil@xs4all.nl>, Adam Baker <linux@baker-net.org.uk>, linux-media@vger.kernel.org, Jean-Francois Moine <moinejf@free.fr>, Olivier Lorin <o.lorin@laposte.net>, Mauro Carvalho Chehab <mchehab@infradead.org>, linux-omap@vger.kernel.org
 
-On Mon, 23 Feb 2009, Hans Verkuil wrote:
-> On Sunday 22 February 2009 23:54:42 Hans de Goede wrote:
-> > Trent Piepho wrote:
-> > > On Sun, 22 Feb 2009, Hans de Goede wrote:
-> > >> Yes that is what we are talking about, the camera having a gravity
-> > >> switch (usually nothing as advanced as a gyroscope). Also the bits we
-> > >> are talking about are in a struct which communicates information one
-> > >> way, from the camera to userspace, so there is no way to clear the
-> > >> bits to make the camera do something.
-> > >
-> > > First, I'd like to say I agree with most that the installed orientation
-> > > of the camera sensor really is a different concept than the current
-> > > value of a gravity sensor.  It's not necessary, and maybe not even
-> > > desirable, to handle them in the same way.
-> > >
-> > > I do not see the advantage of using reserved bits instead of controls.
-> > >
-> > > The are a limited number of reserved bits.  In some structures there
-> > > are only a few left.  They will run out.  Then what?  Packing
-> > > non-standard sensor attributes and camera sensor meta-data into a few
-> > > reserved bits is not a sustainable policy.
-> > >
-> > > Controls on the other card are not limited and won't run out.
+On Mon, 23 Feb 2009, Hans de Goede wrote:
+> Trent Piepho wrote:
+> > On Sun, 22 Feb 2009, Hans de Goede wrote:
+> >> Trent Piepho wrote:
+> >>> On Sun, 22 Feb 2009, Hans de Goede wrote:
+> >>>> Yes that is what we are talking about, the camera having a gravity switch
+> >>>> (usually nothing as advanced as a gyroscope). Also the bits we are talking
+> >>>> about are in a struct which communicates information one way, from the camera
+> >>>> to userspace, so there is no way to clear the bits to make the camera do something.
+> >>> First, I'd like to say I agree with most that the installed orientation of
+> >>> the camera sensor really is a different concept than the current value of a
+> >>> gravity sensor.  It's not necessary, and maybe not even desirable, to
+> >>> handle them in the same way.
+> >>>
+> >>> I do not see the advantage of using reserved bits instead of controls.
+> >>>
+> >>> The are a limited number of reserved bits.  In some structures there are
+> >>> only a few left.  They will run out.  Then what?  Packing non-standard
+> >>> sensor attributes and camera sensor meta-data into a few reserved bits is
+> >>> not a sustainable policy.
+> >>>
+> >>> Controls on the other card are not limited and won't run out.
+> >>>
+> >> Yes but these things are *not* controls, end of discussion. The control API is
+> >> for controls, not to stuff all kind of cruft in.
 > >
-> > Yes but these things are *not* controls, end of discussion. The control
-> > API is for controls, not to stuff all kind of cruft in.
+> > All kind of cruft belongs in the reserved bits of whatever field it can be
+> > stuffed in?
 >
-> I agree, these are not controls.
+> Not whatever field, these are input properties which happen to also be pretty
+> binary so putting them in the input flags field makes plenty of sense.
 >
-> There is an option to use the current status field. There are enough bits
-> free, that's not the problem. But the spec is explicit about the fact that
-> these bits apply to the current input only, and that's not true for these
-> new bits. We can change the spec in this regard of course, but then you
-> have to document each bit of the status field whether it is valid for the
-> current input only, or also if this isn't the current input. It's all a bit
-> messy.
+> > What is the difference?  Why does it matter?  Performance?  Maintenance?
+> > Is there something that's not possible?  I do not find "end of discussion"
+> > to be a very convincing argument.
 >
-> In addition, there are 4 reserved fields here and it is the first time in a
-> very long time that we actually need one. And after all, that's why they
-> are there in the first place.
+> Well they are not controls, that is the difference, the control interface is
+> for controls (and only for controls, end of discussion if you ask me). These
+> are not controls but properties, they do not have a default min and max value,
 
-v4l2_capability: 5 of 32 cap bits left, 4 reserved words
-v4l2_fmtdesc: 31 flag bits, 4 reserved words
-v4l2_buffer: 22 flags bits, 1 reserved word
-v4l2_framebuffer: 25 cap bits, 26 flag bits, no reserved words
-v4l2_input: 4 reserved words
-v4l2_output: 4 reserved words
-v4l2_tuner: 27 cap bits, 4 reserved words
+Camera pivot sensor ranges from 0 to 270.  How is that not a min and max?
 
-> Trent does have a point that we need to be careful not to add fields without
-> a good reason. Choosing option 1 fits the bill, and the orientation also
-> fits the 'status' name. Only the sensor mount orientation is not really a
-> status. Although with some creative naming we might come close :-)
->
-> Hmm, let's see:
->
-> V4L2_IN_ST_HAS_SENSOR_INFO 	0x00000010
-> V4L2_IN_ST_SENSOR_HFLIPPED 	0x00000020
-> V4L2_IN_ST_SENSOR_VFLIPPED 	0x00000040
->
-> V4L2_IN_ST_HAS_PIVOT_INFO	0x00001000
-> V4L2_IN_ST_PIVOT_0 		0x00000000
-> V4L2_IN_ST_PIVOT_90 		0x00002000
-> V4L2_IN_ST_PIVOT_180 		0x00004000
-> V4L2_IN_ST_PIVOT_270 		0x00006000
-> V4L2_IN_ST_PIVOT_MSK 		0x00006000
+> they have only one *unchanging* value, there  is nothing the application can
 
-One of my other points what the controls include meta-data.  What happens
-when someone has an orientation sensor with 45 degree resolution?  A
-control would just change the step size from 90 to 45.  Existing software
-would already know what it means.  With this method you have to add:
+Camera sensors don't have an unchanging value.
 
-V4L2_IN_ST_HAS_PIVOT_45_INFO	0x00008000
-V4L2_IN_ST_PIVOT_45		0x00010000
-V4L2_IN_ST_PIVOT_135		0x00012000
-V4L2_IN_ST_PIVOT_225		0x00014000
-V4L2_IN_ST_PIVOT_315		0x00016000
-V4L2_IN_ST_PIVOT_45_MSK		0x00016000
+And who says scan order can't change?  Suppose the camera returns raw bayer
+format data top to bottom, but if you request yuv then an image processing
+section needs to kick in and that returns the data bottom to top.
 
-Interpreting the pivot bits becomes more fun now.  Existing software
-can do nothing with these extra bits.  It can tell the user nothing.
+> control / change. It has been suggested to make them readonly, but that does
+> not fix the ugliness. A proper written v4l2 application will enumerate all the
+> controls, and then the user will see a grayed out control saying: "your cam is
+> upside down" what is there to control ? will this be a grayed out slider? or a
+> grayed out checkbox "your cam is upside down", or maybe a not grayed out
+> dropdown: where the user can select: "my sensor is upside down", "I deny my
+> sensor is upside down", "I don't care my sensor is upside down", "WTF is this
+> doing in my webcam control panel?", "nwod edispu si rosnes yM"
 
-Next, add camera aperture.  f/0.7 to f/64 in both half stop and third stop
-increments.  Getting low on bits already.
+Why is there a read-only flag for controls if the concept is so mind
+blowing to users?  Have there been complaints about it?
 
-Suppose I have just three or four sensors on my camera.  That's not all
-that much.  A typical digital camera has more than that.  They're probably
-connected by something slow, like I2C.  Maybe non-trivial calculations are
-needed to use the data, like most demod's SNR registers.  Each time I query
-the input the driver must query and calculate the value of ALL the sensors.
-Even though I only can about one of them.  Controls can be queried individually.
+> Do you know I have an idea, lets get rid of the S2 API for DVB and put all that
+> in controls too. Oh, and think like standards for video formats, surely that
+> can be a control too, and ... and, ...
+
+Good point.  The S2 API is much more like the control interface than the
+previous API.  Enumerated attributes which can be set one at a time or in
+groups.  More can be added.  There is some meta data about them.  The old
+API used the a limited number of fixed structs, a few reserved bits, no
+meta-data, and a query/set everything at once API.
+
+I think the camera meta-data and camera sensor API should look more like
+S2.
