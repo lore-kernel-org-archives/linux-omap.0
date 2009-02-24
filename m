@@ -1,42 +1,56 @@
-From: Mark Brown <broonie@sirena.org.uk>
-Subject: Re: Configuring a TWL GPIO pin as an interrupt
-Date: Tue, 24 Feb 2009 18:46:14 +0000
-Message-ID: <20090224184612.GA7121@sirena.org.uk>
-References: <2C7D3DF36ADFFC479B44490D912B616705D6329B7D@dlee07.ent.ti.com>
-	<200902202112.23307.david-b@pacbell.net>
-	<2C7D3DF36ADFFC479B44490D912B616705D61AF093@dlee07.ent.ti.com>
-	<200902222326.39232.david-b@pacbell.net>
-	<2C7D3DF36ADFFC479B44490D912B616705D632A0EE@dlee07.ent.ti.com>
-	<20090223222016.GA6584@sirena.org.uk>
-	<2C7D3DF36ADFFC479B44490D912B616705EC8B10D0@dlee07.ent.ti.com>
+From: David Brownell <david-b@pacbell.net>
+Subject: Re: [patch 2.6.29-rc5-omap-git] mach-omap2/mmc-twl4030: fix for vmmc = 0
+Date: Tue, 24 Feb 2009 12:13:06 -0800
+Message-ID: <200902241213.06500.david-b@pacbell.net>
+References: <200902231014.26352.david-b@pacbell.net> <49A3DEA8.1050909@nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain;
+  charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <alsa-devel-bounces@alsa-project.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from smtp125.sbc.mail.sp1.yahoo.com ([69.147.65.184]:47127 "HELO
+	smtp125.sbc.mail.sp1.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1752340AbZBXUNK (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Tue, 24 Feb 2009 15:13:10 -0500
+In-Reply-To: <49A3DEA8.1050909@nokia.com>
 Content-Disposition: inline
-In-Reply-To: <2C7D3DF36ADFFC479B44490D912B616705EC8B10D0@dlee07.ent.ti.com>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Sender: alsa-devel-bounces@alsa-project.org
-Errors-To: alsa-devel-bounces@alsa-project.org
-To: "Lopez Cruz, Misael" <x0052729@ti.com>
-Cc: David Brownell <david-b@pacbell.net>, "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Adrian Hunter <ext-adrian.hunter@nokia.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Tue, Feb 24, 2009 at 11:37:47AM -0600, Lopez Cruz, Misael wrote:
+On Tuesday 24 February 2009, Adrian Hunter wrote:
+> David Brownell wrote:
+> > From: David Brownell <dbrownell@users.sourceforge.net>
+> > 
+> > Resolve longstanding issue noted by Adrian Hunter:  confusion
+> > between settting VSEL=0 (which is 1.8V on MMC1) and poweroff.
+> > 
+> > Also, leave VSEL alone if we're just powering the regulator off.
+> > 
+> > Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
+> > ---
+> 
+> Looks fine to me, but I wonder if you know why the regulator is
+> turned on (DEV_GRP) and then the voltage is selected (DEDICATED).
 
-> About adding GPIO functionality to jack detection, if the right
-> place to request GPIOs and set its data direction is in board files
-> (arch/*/mach-*/board-*.c), then there won't be much to do in jack
-> code, only the irq request. Unless we move request and data direction
-> setting to jack detection layer.
+History, I'd guess.  I seem to remember some sequencing
+constraint, but couldn't find it when last I sought it
+out in the reference manual.
 
-No, do that in the jack code.  The board code should only be doing
-things like putting the pins into GPIO mode (if that's not the default)
-and any other steps required to ensure that they don't do anything like
-consume a lot of power without the audio driver loaded.
+
+> Wouldn't it make more sense the other way around?
+
+I had the same thought.  Eventually I'd like this code
+to mostly wither away ... using the regulator framework
+for the hsmmc driver will eliminate most of the remaining
+bits of twl4030-specific code.  So I'd just leave it be
+for the moment.
+
+
+> Doesn't the new regulator framework do it that way?
+
+No; setting voltage and enabling are distinct operations.
+
+
