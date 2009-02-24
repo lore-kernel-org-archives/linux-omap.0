@@ -1,64 +1,72 @@
-From: "Pakaravoor, Jagadeesh" <j-pakaravoor@ti.com>
-Subject: RE: tHigh tLow discussion (was [pacth] I2C bug fixes for L-O and
- L-Z)
-Date: Tue, 24 Feb 2009 18:53:27 +0530
-Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB02A8547922@dbde02.ent.ti.com>
-References: <1234767724.16827.7.camel@eenurkka-desktop>
-	 <13B9B4C6EF24D648824FF11BE896716203771DC940@dlee02.ent.ti.com>
-	 <1234850560.13109.9.camel@eenurkka-desktop>
-	 <13B9B4C6EF24D648824FF11BE896716203771DD194@dlee02.ent.ti.com>
-	 <13B9B4C6EF24D648824FF11BE896716203772C3CAF@dlee02.ent.ti.com>
-	 <1235396273.12653.8.camel@eenurkka-desktop>	 <49A2D66F.9050809@gmail.com>
-	 <1FFEF31EBAA4F64B80D33027D4297760036DEC2F6F@NOK-EUMSG-02.mgdnok.nokia.com>
- <782515bb0902231019l17eaef2crfcb6426fbbbf8d04@mail.gmail.com>
- <49A3B92E.9030101@nokia.com> <49A3DD52.4020303@gmail.com>
- <49A3EC59.4040803@nokia.com>
-  <13B9B4C6EF24D648824FF11BE8967162037AF5D01A@dlee02.ent.ti.com>
+From: Sergei Shtylyov <sshtylyov@ru.mvista.com>
+Subject: Re: [PATCH 2/3] usb: musb: fix bug in musb_start_urb
+Date: Tue, 24 Feb 2009 18:50:27 +0300
+Message-ID: <49A41743.5090207@ru.mvista.com>
+References: <1233921146-4046-1-git-send-email-ajay.gupta@ti.com> <498C515B.20603@ru.mvista.com> <200902231405.42762.david-b@pacbell.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:49035 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754412AbZBXNXl convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 24 Feb 2009 08:23:41 -0500
-In-Reply-To: <13B9B4C6EF24D648824FF11BE8967162037AF5D01A@dlee02.ent.ti.com>
-Content-Language: en-US
+Received: from h155.mvista.com ([63.81.120.155]:60297 "EHLO imap.sh.mvista.com"
+	rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1756199AbZBXPtz (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 24 Feb 2009 10:49:55 -0500
+In-Reply-To: <200902231405.42762.david-b@pacbell.net>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Woodruff, Richard" <r-woodruff2@ti.com>, Aaro Koskinen <aaro.koskinen@nokia.com>, ext Nishanth Menon <menon.nishanth@gmail.com>
-Cc: "Nurkkala Eero.An (EXT-Offcode/Oulu)" <ext-Eero.Nurkkala@nokia.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: David Brownell <david-b@pacbell.net>
+Cc: Ajay Kumar Gupta <ajay.gupta@ti.com>, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, felipe.balbi@nokia.com
 
+Hello.
 
+David Brownell wrote:
 
-> -----Original Message-----
-> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of
-> Woodruff, Richard
-> Sent: Tuesday, February 24, 2009 6:47 PM
-> To: Aaro Koskinen; ext Nishanth Menon
-> Cc: Nurkkala Eero.An (EXT-Offcode/Oulu); linux-omap@vger.kernel.org
-> Subject: RE: tHigh tLow discussion (was [pacth] I2C bug fixes for L-O and L-Z)
-> 
-> 
-> 
-> BTW, I'll reemphasize the controller bugs I pointed out last week are real and did impact a couple
-> different boards.  Adding those fixes made what once would trip up after a few million near-back-to-
-> back read/writes work for with out error so far.
-> 
-> I've not spent enough time on low/high to know anything absolutely.  It does seem like a more board
-> friendly way to go but may not be required.
-> 
+>>Ajay Kumar Gupta wrote:
 
-Unlike SDP, LDP was giving errors when i2c-1 bus was set to 2600 (like spurious and some times missing keypad interrupts and such). I tested the patch and with this patch all those issues does go away.
+>>>urb->transfer_buffer_length and urb->transfer_buffer should be
+>>>updated based on urb->actual_length.For a fresh and first time urb,
+>>>actual_length will be zero but for urbs which has been stopped and
+>>>restarted (as bulk nak scheme does) actual_length may not be zero.
 
-This patch is essential to make i2c-1 bus work at error-free at 2600.
+>>>Signed-off-by: Ajay Kumar Gupta <ajay.gupta@ti.com>
 
-ACKing the patch.
+>>    NAK, this is not a problem for the current driver since URBs do not ever 
+>>get restarted.
 
-> Regards,
-> Richard W.
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Resolvable by changing the patch description to not say
+> this is a "fix".
 
+> However, since this is a two line change, I think I'll
+> just merge this with the patch adding the bulk RX retry
+> logic.
+
+    Yes, that's what should've been done from the start.
+
+>>Also, musb_host_tx() doesn't update urb->actual_length --  
+>>please fix it too.
+
+> That would be a good point if the retry patch touched
+> any TX paths.  But it doesn't.
+
+    If one teaches musb_start_urb() to restart, that one should at least be 
+consistent I think.
+
+>>Also, you must not clear qh->iso_idx when restarting -- you  
+>>must not start ISO transfer all over again too. Also, you should not set  
+>>musb->ep0_state to MUSB_EP0_START again in this case (I agree that control 
+>>transfers will remain not restartable from an arbitatry place even then).
+
+> But the [3/3] patch only adds NAK timeout support for
+> bulk RX.  And ISO transfers can't NAK in the first place.
+
+> Plus, as noted in a comment you could see in this patch,
+> this only touches (re)start for bulk/interrupt transfers.
+> Not ISO; not control.
+
+    All I was asking for was a bit of consistency. Note that I have already 
+done all the changes that I requested for and can post them.
+    URB restart is also going to be used for the interrupt transfers BTW.
+
+> - Dave
+
+WBR, Sergei
