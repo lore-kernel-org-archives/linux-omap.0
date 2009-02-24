@@ -1,57 +1,70 @@
-From: Aaro Koskinen <aaro.koskinen@nokia.com>
-Subject: Re: tHigh tLow discussion (was [pacth] I2C bug fixes for L-O and
- L-Z)
-Date: Tue, 24 Feb 2009 11:09:02 +0200
-Message-ID: <49A3B92E.9030101@nokia.com>
-References: <1234767724.16827.7.camel@eenurkka-desktop>	 <13B9B4C6EF24D648824FF11BE896716203771DC940@dlee02.ent.ti.com>	 <1234850560.13109.9.camel@eenurkka-desktop>	 <13B9B4C6EF24D648824FF11BE896716203771DD194@dlee02.ent.ti.com>	 <13B9B4C6EF24D648824FF11BE896716203772C3CAF@dlee02.ent.ti.com>	 <1235396273.12653.8.camel@eenurkka-desktop>	 <49A2D66F.9050809@gmail.com>	 <1FFEF31EBAA4F64B80D33027D4297760036DEC2F6F@NOK-EUMSG-02.mgdnok.nokia.com> <782515bb0902231019l17eaef2crfcb6426fbbbf8d04@mail.gmail.com>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: [PATCH E 11/14] OMAP clock: track child clocks
+Date: Tue, 24 Feb 2009 09:43:08 +0000
+Message-ID: <20090224094308.GA16262@n2100.arm.linux.org.uk>
+References: <20090128192551.29333.82943.stgit@localhost.localdomain> <20090128192756.29333.41541.stgit@localhost.localdomain> <20090129151401.GC18233@n2100.arm.linux.org.uk> <20090129220608.GJ18233@n2100.arm.linux.org.uk> <20090209141156.GB16626@n2100.arm.linux.org.uk> <alpine.DEB.2.00.0902122345160.14667@utopia.booyaka.com> <20090214112325.GA17965@n2100.arm.linux.org.uk> <alpine.DEB.2.00.0902221635530.16648@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:24131 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751801AbZBXJJY (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 24 Feb 2009 04:09:24 -0500
-In-Reply-To: <782515bb0902231019l17eaef2crfcb6426fbbbf8d04@mail.gmail.com>
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:34533 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754252AbZBXJnZ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 24 Feb 2009 04:43:25 -0500
+Content-Disposition: inline
+In-Reply-To: <alpine.DEB.2.00.0902221635530.16648@utopia.booyaka.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: ext Nishanth Menon <menon.nishanth@gmail.com>
-Cc: "Nurkkala Eero.An (EXT-Offcode/Oulu)" <ext-Eero.Nurkkala@nokia.com>, "r-woodruff2@ti.com" <r-woodruff2@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Paul Walmsley <paul@pwsan.com>
+Cc: linux-arm-kernel@lists.arm.linux.org.uk, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, r-woodruff2@ti.com, Tony Lindgren <tony@atomide.com>
 
-Hello,
-
-ext Nishanth Menon wrote:
-> Oops.. copy-paste typo.. :(
-> tLow = (scll+3) * iclk
-> tHigh = (sclh+9) * iclk
-> Vs:
-> TRM:
-> tHigh  = ( sclh +5 )*iclk period
-> tLow  = ( scll +7 )*iclk period
+On Sun, Feb 22, 2009 at 04:37:31PM -0700, Paul Walmsley wrote:
+> Hello Russell,
 > 
-> But my question is this: why are we trying to a different equation
-> here compared to the equation in the TRM?
+> On Sat, 14 Feb 2009, Russell King - ARM Linux wrote:
+> > However, looking a little deeper, there's more issues in the reparenting
+> > area.  I don't think this code has been tested at all...  In
+> > _omap2_clksel_get_src_field, there is this:
+> > 
+> > 	for (clkr = clks->rates; clkr->div; clkr++) {
+> > 		if (clkr->flags & (cpu_mask | DEFAULT_RATE))
+> > 			break; /* Found the default rate for this platform */
+> > 	}
+> > 
+> > which is bogus - it will find the first entry which is _either_ marked
+> > as a default rate _or_ is supported by the SoC.  This means (for
+> > instance) that:
+> > 
+> > static const struct clksel_rate core_l3_core_rates[] = {
+> >         { .div = 1, .val = 1, .flags = RATE_IN_24XX },
+> >         { .div = 2, .val = 2, .flags = RATE_IN_242X },
+> >         { .div = 4, .val = 4, .flags = RATE_IN_24XX | DEFAULT_RATE },
+> > 
+> > will give us divisor 1 rather than presumably the one we want, that being
+> > divisor 4.  I think the test above should be:
+> > 
+> > 	for (clkr = clks->rates; clkr->div; clkr++) {
+> > 		if (clkr->flags & cpu_mask &&
+> > 		    clkr->flags & DEFAULT_RATE)
+> > 			break; /* Found the default rate for this platform */
+> > 	}
+> > 
+> > so we find an entry which is supported _and_ is the default for the SoC.
+> 
+> Agreed.
+> 
+> > There's also a second issue - the comments before omap2_divisor_to_clksel()
+> > indicate that this function returns 0xffffffff on error.  Unfortunately,
+> > this is not so, it actually returns zero on error.  Moreover, we test
+> > the result of the function against ~0, so we'll never deal with the error
+> > case.  This really should be fixed so that we return the right value for
+> > the error case.  (Further comments on this in a follow up.)
+> 
+> Agreed here also.
+> 
+> > So, below is a patch which fixes both of these issues.
+> 
+> Looks good, thanks Russell.
+> 
+> Acked-by: Paul Walmsley <paul@pwsan.com>
 
-The problem with TRM (the table 18-13 you referred earlier) is that it 
-assumes 50% duty cycle while the correct one is more like 33%. This is 
-corrected by Eero's patch:
-
-+                       fsscll = internal_clk / (dev->speed * 2) - 3;
-+                       fssclh = internal_clk / (dev->speed * 2) - 9;
-
-this is same as (with internal_clk == 9600 and dev->speed == 400):
-
-scl = internal_clk / dev->speed;
-fsscll = scl - scl/3 - 7;
-fssclh = scl/3 - 5;
-
-If the code would be like this, then I guess the readers of both TRM 
-_and_ the I2C spec would be happy?
-
-The problem with Eero's patch is that it changes the internal clock 
-(again thanks to that confusing table). You should be able to use same 
-for all modes. Also note that the noise filter is one internel clock 
-period. Currently the driver uses 19.2 MHz which exceeds the I2C spec 
-max. So 24 MHz would be a safer choice.
-
-A.
+You're too late; it went to Linus last Thursday and is in -rc6.
