@@ -1,113 +1,55 @@
-From: Adrian Hunter <ext-adrian.hunter@nokia.com>
-Subject: Re: [PATCH] OMAP: HSMMC: Initialize hsmmc controller registers when
- resuming
-Date: Tue, 24 Feb 2009 15:01:10 +0200
-Message-ID: <49A3EF96.3090603@nokia.com>
-References: <4d34a0a70902200400s252f48ddvfd6e0d83e91fa291@mail.gmail.com> <9c9fda240902230426s2003d208xebeb6630c61b3bec@mail.gmail.com> <49A2A8ED.20208@nokia.com> <200902231023.49653.david-b@pacbell.net>
+From: "Woodruff, Richard" <r-woodruff2@ti.com>
+Subject: RE: tHigh tLow discussion (was [pacth] I2C bug fixes for L-O and
+ L-Z)
+Date: Tue, 24 Feb 2009 07:17:21 -0600
+Message-ID: <13B9B4C6EF24D648824FF11BE8967162037AF5D01A@dlee02.ent.ti.com>
+References: <1234767724.16827.7.camel@eenurkka-desktop>
+	 <13B9B4C6EF24D648824FF11BE896716203771DC940@dlee02.ent.ti.com>
+	 <1234850560.13109.9.camel@eenurkka-desktop>
+	 <13B9B4C6EF24D648824FF11BE896716203771DD194@dlee02.ent.ti.com>
+	 <13B9B4C6EF24D648824FF11BE896716203772C3CAF@dlee02.ent.ti.com>
+	 <1235396273.12653.8.camel@eenurkka-desktop>	 <49A2D66F.9050809@gmail.com>
+	 <1FFEF31EBAA4F64B80D33027D4297760036DEC2F6F@NOK-EUMSG-02.mgdnok.nokia.com>
+ <782515bb0902231019l17eaef2crfcb6426fbbbf8d04@mail.gmail.com>
+ <49A3B92E.9030101@nokia.com> <49A3DD52.4020303@gmail.com>
+ <49A3EC59.4040803@nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ks_c_5601-1987; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:34145 "EHLO
-	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754850AbZBXNBt (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 24 Feb 2009 08:01:49 -0500
-In-Reply-To: <200902231023.49653.david-b@pacbell.net>
+Received: from devils.ext.ti.com ([198.47.26.153]:48778 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754256AbZBXNRf convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 24 Feb 2009 08:17:35 -0500
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: David Brownell <david-b@pacbell.net>
-Cc: Kyungmin Park <kyungmin.park@samsung.com>, Kim Kyuwon <chammoru@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "drzeus-mmc@drzeus.cx" <drzeus-mmc@drzeus.cx>, =?x-windows-949?Q?=B1=E8=B1=D4?= =?x-windows-949?Q?=BF=F8?= <q1.kim@samsung.com>, "Lavinen Jarkko (Nokia-D/Helsinki)" <jarkko.lavinen@nokia.com>
+To: Aaro Koskinen <aaro.koskinen@nokia.com>, ext Nishanth Menon <menon.nishanth@gmail.com>
+Cc: "Nurkkala Eero.An (EXT-Offcode/Oulu)" <ext-Eero.Nurkkala@nokia.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-David Brownell wrote:
-> On Monday 23 February 2009, Adrian Hunter wrote:
->> Also, you will need the following patch if you actually want the power
->> to go off.
-> 
-> Current GIT already has a patch supporting power-off for
-> MMC2; tested on SDP and some custom hardware.  So this
-> patch won't apply.
 
-Sorry, hadn't noticed that.
+> > Well, it's implicite... Check the i2c spec table 7 for speeds 3400 and
+> > 1700. If you use TRM calculcations so that tLow == tHigh you get too
+> > tLow that's below the minimum in both cases. So you must increase tLow,
+> > and when you do that you must make tHigh shorter, otherwise you don't
+> > match the rate.
+>
+> ... I didn't take a deep study but I did just skim a couple sections.
+>
+> And it looks like it I2C spec does NOT require the clock high/low to be
+> unbalanced (or balanced).  It would seem to recommend it being unbalanced
+> because doing so should allow timing requirements to be more easily met for a
+> range of frequencies. This would allow a more general equation.
+>
+> In the end it is a question if rise/fall times and relative clock-line/data-
+> line requirements are met.
+>
+> It does seem to say in the spec that after 100pf of bus capacitance all bets
+> are off and you need to measure and degrade speed unit conditions are met.
 
-> Are you sure that's needed for MMC1?  The led showing MMC1
-> power did go off correctly (when using MMC2 for root), and
-> the MMC1 regulator entry in sysfs agreed MMC1 was off.  So
-> I thought this was only an issue for MMC2 (and presumably
-> MMC3, though I don't have a board using it.)
+BTW, I'll reemphasize the controller bugs I pointed out last week are real and did impact a couple different boards.  Adding those fixes made what once would trip up after a few million near-back-to-back read/writes work for with out error so far.
 
-Yes, if you never switch to 1.8V, then MMC1 is not affected.
+I've not spent enough time on low/high to know anything absolutely.  It does seem like a more board friendly way to go but may not be required.
 
-However, for dual-voltage cards, if the MMC1 voltage is
-switched to 1.8V, then the offending code will leave the
-power on, when it should be off i.e. omap_mmc_switch_opcond()
-turns the power on, but we are trying to power off.
-
-If you initialise correctly (as Kim Kyuwon's patch does)
-then the offending code is not necessary, so it should
-just be removed.
-
-I would still like the other two issues I raised considered.
-They were:
-	1.  'host' can be NULL in omap_mmc_suspend() / omap_mmc_resume()
-	2. wait for SDBP bit
-
-> I agree that code removed by this patch is ugly and worth
-> removing if it's not actually needed for MMC1.
-
-Here is a patch against current OMAP tree.
-
-From: Adrian Hunter <ext-adrian.hunter@nokia.com>
-Date: Tue, 24 Feb 2009 14:48:16 +0200
-Subject: [PATCH] OMAP: HSMMC: do not re-power when powering off MMC
-
-Remove code that turns MMC1 power back on after it
-has been powered off (when the voltage is 1.8V).
-
-The offending code is not necessary because the
-host controller bus voltage is initialized to
-3V when probing or resuming.  Note that MMC powers up
-with the highest voltage available (see mmc_power_up())
-which will be 3V also.
-
-Signed-off-by: Adrian Hunter <ext-adrian.hunter@nokia.com>
----
- drivers/mmc/host/omap_hsmmc.c |   17 -----------------
- 1 files changed, 0 insertions(+), 17 deletions(-)
-
-diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
-index c0d5420..43cec98 100644
---- a/drivers/mmc/host/omap_hsmmc.c
-+++ b/drivers/mmc/host/omap_hsmmc.c
-@@ -486,9 +486,6 @@ static int omap_mmc_switch_opcond(struct mmc_omap_host *host, int vdd)
- 	u32 reg_val = 0;
- 	int ret;
- 
--	if (host->id != OMAP_MMC1_DEVID)
--		return 0;
--
- 	/* Disable the clocks */
- 	clk_disable(host->fclk);
- 	clk_disable(host->iclk);
-@@ -787,20 +784,6 @@ static void omap_mmc_set_ios(struct mmc_host *mmc, struct mmc_ios *ios)
- 	switch (ios->power_mode) {
- 	case MMC_POWER_OFF:
- 		mmc_slot(host).set_power(host->dev, host->slot_id, 0, 0);
--		/*
--		 * Reset interface voltage to 3V if it's 1.8V now;
--		 * only relevant on MMC-1, the others always use 1.8V.
--		 *
--		 * REVISIT: If we are able to detect cards after unplugging
--		 * a 1.8V card, this code should not be needed.
--		 */
--		if (host->id != OMAP_MMC1_DEVID)
--			break;
--		if (!(OMAP_HSMMC_READ(host->base, HCTL) & SDVSDET)) {
--			int vdd = fls(host->mmc->ocr_avail) - 1;
--			if (omap_mmc_switch_opcond(host, vdd) != 0)
--				host->mmc->ios.vdd = vdd;
--		}
- 		break;
- 	case MMC_POWER_UP:
- 		mmc_slot(host).set_power(host->dev, host->slot_id, 1, ios->vdd);
--- 
-1.5.6.3
+Regards,
+Richard W.
