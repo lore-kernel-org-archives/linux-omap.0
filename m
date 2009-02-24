@@ -1,59 +1,42 @@
-From: Mark Brown <broonie@sirena.org.uk>
-Subject: Re: [patch/rfc 2.6.29-rc6 1/2] regulator: enumerate voltages
-Date: Tue, 24 Feb 2009 22:23:29 +0000
-Message-ID: <20090224222328.GA21553@sirena.org.uk>
-References: <200902081037.06645.david-b@pacbell.net> <20090210224851.GA6408@sirena.org.uk> <200902231245.44360.david-b@pacbell.net> <200902231252.01980.david-b@pacbell.net>
+From: "Guzman Lugo, Fernando" <x0095840@ti.com>
+Subject: RE: [PATCH 2/2][OMAPZOOM] DSPBRIDGE: Change address resources to
+ void 	__iomem *
+Date: Tue, 24 Feb 2009 16:28:48 -0600
+Message-ID: <496565EC904933469F292DDA3F1663E6028775160C@dlee06.ent.ti.com>
+References: <496565EC904933469F292DDA3F1663E602877515DC@dlee06.ent.ti.com>
+ <94a0d4530902241414v74f6ef1do378a51c55a40fbfd@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from cassiel.sirena.org.uk ([80.68.93.111]:2412 "EHLO
-	cassiel.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754005AbZBXWXj (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 24 Feb 2009 17:23:39 -0500
-Content-Disposition: inline
-In-Reply-To: <200902231252.01980.david-b@pacbell.net>
+Received: from comal.ext.ti.com ([198.47.26.152]:44249 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754005AbZBXW24 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 24 Feb 2009 17:28:56 -0500
+In-Reply-To: <94a0d4530902241414v74f6ef1do378a51c55a40fbfd@mail.gmail.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: David Brownell <david-b@pacbell.net>
-Cc: Liam Girdwood <lrg@slimlogic.co.uk>, lkml <linux-kernel@vger.kernel.org>, OMAP <linux-omap@vger.kernel.org>
+To: Felipe Contreras <felipe.contreras@gmail.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Mon, Feb 23, 2009 at 12:52:01PM -0800, David Brownell wrote:
 
-> Use those methods to force machine-level constraints into bounds.
-> (Example:  regulator supports 1.8V, 2.4V, 2.6V, 3.3V, and board
-> constraints for that rail are 2.0V to 3.6V ... so the range of
-> voltages is then 2.4V to 3.3V on this board.)
+>Why wasn't dwMemBase updated too?
+>
+><snip/>
+>
+>A step in the right direction. Thanks.
 
-Being able to support this is definitely a win, thanks for looking at
-this.
 
-> +	/* maybe force machine-wide voltage constraints to match the
-> +	 * voltages supported by this regulator.  use the regulator's
-> +	 * entire range for boards with no particular constraints.
-> +	 */
+Hi Felipe,
 
-I'd really rather the second bit weren't here.  I'd like to see a
-warning for the first part.
+	In this moment the array dwMemBase is used to store iomem addresses but also the element two stores a kernel address.
 
-> + * @count_voltages: Return the number of supported voltage indices which
-> + *	may be passed to @list_voltage().  Some indices may correspond to
-> + *	voltages that are not usable on this system.
-> + * @list_voltage: Return one of the supported voltages, in microvolts;
-> + *	or negative errno.  Indices range from zero to one less than
-> + *	@count_voltages().  Voltages may be reported in any order.
 
-I'm having a hard time loving this interface for the driver.  It feels
-fairly cumbersome to have to provide two functions to look up what I'd
-expect to be static data - I'd be fairly surprised to see it change at
-runtime.  I think I'd expect to see something more like the way ALSA
-represents dB scales where the driver supplies a list of ranges that can
-either be simple values or value ranges expressed as (start, step,
-count).  That would cover both complicated cases like the TWL4030 and
-the other common case with large regular ranges of voltages.
+MEM_FreePhysMem((void *)pResources->dwMemBase[1], pResources->dwMemPhys[1],
+					shm_size);
 
-This mostly applies to the driver interface - on the consumer side it
-feels a bit cumbersome to use but I can't think of anything that's
-particularly better.  An interface that also allows consumers to ask if
-particular ranges can be satisfied might help here - it'd be nice for
-things like MMC that want to check for a relatively small set of
-voltages or voltage ranges (which I'd expect is the common case).
+But we are seeing how to resolve this, and we will send this patch when it is ready.
+
+Regards,
+Fernando.
