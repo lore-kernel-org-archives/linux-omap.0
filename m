@@ -1,37 +1,43 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH 1/1] OMAP3: CLOCK: Remove few unnecessary clocks
-Date: Tue, 24 Feb 2009 09:21:00 -0800
-Message-ID: <87vdqzu4xv.fsf@deeprootsystems.com>
-References: <1235130767-18488-1-git-send-email-jouni.hogander@nokia.com>
-	<alpine.DEB.2.00.0902240137320.32378@utopia.booyaka.com>
+From: "Lopez Cruz, Misael" <x0052729@ti.com>
+Subject: Re: Configuring a TWL GPIO pin as an interrupt
+Date: Tue, 24 Feb 2009 11:37:47 -0600
+Message-ID: <2C7D3DF36ADFFC479B44490D912B616705EC8B10D0@dlee07.ent.ti.com>
+References: <2C7D3DF36ADFFC479B44490D912B616705D6329B7D@dlee07.ent.ti.com>
+	<200902202112.23307.david-b@pacbell.net>
+	<2C7D3DF36ADFFC479B44490D912B616705D61AF093@dlee07.ent.ti.com>
+	<200902222326.39232.david-b@pacbell.net>
+	<2C7D3DF36ADFFC479B44490D912B616705D632A0EE@dlee07.ent.ti.com>
+	<20090223222016.GA6584@sirena.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from rv-out-0506.google.com ([209.85.198.230]:14598 "EHLO
-	rv-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757374AbZBXRVJ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 24 Feb 2009 12:21:09 -0500
-Received: by rv-out-0506.google.com with SMTP id g9so2575548rvb.5
-        for <linux-omap@vger.kernel.org>; Tue, 24 Feb 2009 09:21:07 -0800 (PST)
-In-Reply-To: <alpine.DEB.2.00.0902240137320.32378@utopia.booyaka.com> (Paul Walmsley's message of "Tue\, 24 Feb 2009 01\:37\:51 -0700 \(MST\)")
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <alsa-devel-bounces@alsa-project.org>
+In-Reply-To: <20090223222016.GA6584@sirena.org.uk>
+Content-Language: en-US
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Sender: alsa-devel-bounces@alsa-project.org
+Errors-To: alsa-devel-bounces@alsa-project.org
+To: Mark Brown <broonie@sirena.org.uk>
+Cc: David Brownell <david-b@pacbell.net>, "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: Jouni Hogander <jouni.hogander@nokia.com>, linux-omap@vger.kernel.org, Carlos.Chinea@nokia.com
 
-Paul Walmsley <paul@pwsan.com> writes:
+> If these are CPU side GPIOs that you're talking about you'll 
+> also want to write the standard utility for using gpiolib for 
+> jack detection that I've not got round to doing yet :)
 
-> On Fri, 20 Feb 2009, Jouni Hogander wrote:
->
->> dpllx_m2x2_ck parent is dpllx_m2_ck. So remove few useless clocks and
->> and use right parent for dpllx_m2x2_ck.
->> 
->> Signed-off-by: Jouni Hogander <jouni.hogander@nokia.com>
->
-> Acked-by: Paul Walmsley <paul@pwsan.com>
->
+The GPIOs belong to a submodule of TWL4030, but they are configured
+using standard gpiolib.
 
-Pulling into PM branch while waiting for upstream clock sync up.
+About adding GPIO functionality to jack detection, if the right
+place to request GPIOs and set its data direction is in board files
+(arch/*/mach-*/board-*.c), then there won't be much to do in jack
+code, only the irq request. Unless we move request and data direction
+setting to jack detection layer.
 
-Kevin
-
+-Misa
