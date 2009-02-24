@@ -1,61 +1,54 @@
-From: "Woodruff, Richard" <r-woodruff2@ti.com>
-Subject: RE: [PATCH E 11/14] OMAP clock: track child clocks
-Date: Tue, 24 Feb 2009 06:35:37 -0600
-Message-ID: <13B9B4C6EF24D648824FF11BE8967162037AF5CFFF@dlee02.ent.ti.com>
-References: <20090128192551.29333.82943.stgit@localhost.localdomain>
- <20090128192756.29333.41541.stgit@localhost.localdomain>
- <20090129151401.GC18233@n2100.arm.linux.org.uk>
- <20090129220608.GJ18233@n2100.arm.linux.org.uk>
- <20090219121932.GL6407@n2100.arm.linux.org.uk>
- <13B9B4C6EF24D648824FF11BE896716203772C3680@dlee02.ent.ti.com>
- <20090223160349.GB27688@n2100.arm.linux.org.uk>
+From: Mark Brown <broonie@sirena.org.uk>
+Subject: Re: [patch 2.6.29-rc3-git 1/2] regulator: twl4030 regulators
+Date: Tue, 24 Feb 2009 12:41:56 +0000
+Message-ID: <20090224124154.GA30130@sirena.org.uk>
+References: <200902081037.06645.david-b@pacbell.net> <200902231443.16334.david-b@pacbell.net> <20090224005536.GC3601@sirena.org.uk> <200902231803.50059.david-b@pacbell.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:53407 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751720AbZBXMg2 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 24 Feb 2009 07:36:28 -0500
-In-Reply-To: <20090223160349.GB27688@n2100.arm.linux.org.uk>
-Content-Language: en-US
+Received: from cassiel.sirena.org.uk ([80.68.93.111]:3993 "EHLO
+	cassiel.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752424AbZBXMmB (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 24 Feb 2009 07:42:01 -0500
+Content-Disposition: inline
+In-Reply-To: <200902231803.50059.david-b@pacbell.net>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: Paul Walmsley <paul@pwsan.com>, "linux-arm-kernel@lists.arm.linux.org.uk" <linux-arm-kernel@lists.arm.linux.org.uk>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>
+To: David Brownell <david-b@pacbell.net>
+Cc: Liam Girdwood <lrg@slimlogic.co.uk>, lkml <linux-kernel@vger.kernel.org>, OMAP <linux-omap@vger.kernel.org>
 
+On Mon, Feb 23, 2009 at 06:03:49PM -0800, David Brownell wrote:
+> On Monday 23 February 2009, Mark Brown wrote:
 
-> From: Russell King - ARM Linux [mailto:linux@arm.linux.org.uk]
-> Sent: Monday, February 23, 2009 10:04 AM
-> To: Woodruff, Richard
+> > The change to add voltage range constraints if none were supplied is a
+> > noticable policy change from the existing framework standard - it allows
+> > machines to enable voltage changes without specifying what the valid
+> > values are. 
 
-> Ack?
+> "Whatever the hardware handles" *is* a specification.
 
-Ack.
+> And there's no more assurance it's right than any
+> other specification would be ... except that, as a
 
-> diff --git a/arch/arm/plat-omap/clock.c b/arch/arm/plat-omap/clock.c
-> index 08baa18..b2d9e1f 100644
-> --- a/arch/arm/plat-omap/clock.c
-> +++ b/arch/arm/plat-omap/clock.c
-> @@ -144,12 +144,14 @@ int clk_set_parent(struct clk *clk, struct clk *parent)
->               return ret;
->
->       spin_lock_irqsave(&clockfw_lock, flags);
-> -     if (arch_clock->clk_set_parent)
-> -             ret = arch_clock->clk_set_parent(clk, parent);
-> -     if (ret == 0) {
-> -             if (clk->recalc)
-> -                     clk->rate = clk->recalc(clk);
-> -             propagate_rate(clk);
-> +     if (clk->usecount == 0) {
-> +             if (arch_clock->clk_set_parent)
-> +                     ret = arch_clock->clk_set_parent(clk, parent);
-> +             if (ret == 0) {
-> +                     if (clk->recalc)
-> +                             clk->rate = clk->recalc(clk);
-> +                     propagate_rate(clk);
-> +             }
->       }
->       spin_unlock_irqrestore(&clockfw_lock, flags);
->
+You're right that we can't guarantee that users get everything correct,
+the goal is more to ensure that some machine specific checks have been
+done and that the regulator API won't go off by itself and start doing
+things since it has no idea at all what's supportable.
 
+> rule, hardware designers like to avoid assemblies
+> subject to trivial misconfiguration mistakes (like
+> firing up a 2.5V-max rail at 5V).
+
+The issue is what happens when software starts changing the
+configuration, for static configurations it doesn't make any difference.
+
+> > I'm not convinced that this is a good idea in the first 
+> > place and it will result in the opposite behaviour to the current core
+> > code (which should end up erroring out in constraint checking at runtime).
+
+> Well, if you really dislike it so much, that can
+> easily be removed.  Got any comments on the
+> framework patch I sent?  I'll take that as the
+> first one, even though it's a different thread.
+
+Yes, I wanted to sleep on it.  I'll reply at some point today.
