@@ -1,69 +1,100 @@
-From: David Brownell <david-b@pacbell.net>
-Subject: Re: [patch/rfc 2.6.29-rc6 1/2] regulator: enumerate voltages
-Date: Wed, 25 Feb 2009 15:47:52 -0800
-Message-ID: <200902251547.53256.david-b@pacbell.net>
-References: <200902081037.06645.david-b@pacbell.net> <200902251412.26855.david-b@pacbell.net> <20090225230123.GA5715@sirena.org.uk>
+From: Minkyu Kang <mk7.kang-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>
+Subject: [PATCH 2/2] twl: usb: Add the resume() and suspend() methods to
+ twl4030-usb.c (re)
+Date: Thu, 26 Feb 2009 08:54:38 +0900
+Message-ID: <49A5DA3E.6040608@samsung.com>
+References: <4d34a0a70902250355q4b8c54e4rc9bbc1f40539e486@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp127.sbc.mail.sp1.yahoo.com ([69.147.65.186]:38927 "HELO
-	smtp127.sbc.mail.sp1.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1755552AbZBYXr4 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Wed, 25 Feb 2009 18:47:56 -0500
-In-Reply-To: <20090225230123.GA5715@sirena.org.uk>
-Content-Disposition: inline
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7BIT
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-reply-to: <4d34a0a70902250355q4b8c54e4rc9bbc1f40539e486-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Kim Kyuwon <chammoru-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, me-uiRdBs8odbtmTBlB0Cgj/Q@public.gmane.org
+Cc: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, OMAP <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, David Brownell <david-b-yBeKhBN/0LDR7s880joybQ@public.gmane.org>, q1.kim-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: Mark Brown <broonie@sirena.org.uk>
-Cc: Liam Girdwood <lrg@slimlogic.co.uk>, lkml <linux-kernel@vger.kernel.org>, OMAP <linux-omap@vger.kernel.org>
 
-On Wednesday 25 February 2009, Mark Brown wrote:
-> > =A0=A0=A0=A0=A0=A0get_voltage() {
-> > =A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0read selector from hardwa=
-re
-> > =A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0map selector to voltage
-> > =A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0return that voltage
-> > =A0=A0=A0=A0=A0=A0}
->=20
-> > So it's trivial for similar code to take the selector as
-> > a function parameter, and do the same thing. =A0Repackage
-> > the existing code a bit; bzzt, done!
->=20
-> Yes, that's a reasonable point (though I'd still like to see the maxi=
-mum
-> turn into a static value now I think about it).
+The MPU module can be waked up by the unexpected USB
+interrupt(HSUSB_MC_NINT). For instance, if the MUSB is working as
+peripheral mode and connected to a host PC, it can never enter the low
+power mode due to interrupts from the host PC. This patch added the
+feature that a board specific file can determines that TWL4030
+supplies the USB power or not in the low power mode. Disabling the USB
+power may save the power consumption.
 
-At the regulator_desc level, that's trivial; I'll do that
-in the patch you'll see.
+Signed-off-by: Minkyu Kang <mk7.kang-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>
+Signed-off-by: Kim Kyuwon <chammoru-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+---
+ drivers/usb/otg/twl4030-usb.c |   25 +++++++++++++++++++++++++
+ include/linux/i2c/twl4030.h   |    1 +
+ 2 files changed, 26 insertions(+), 0 deletions(-)
 
-In terms of the consumer interface, not -- "struct regulator"
-is opaque to consumers, and everything is a functional accessor.
-So I'll leave that as-is.
-
-
-> > It will be fairly common for the regulator to support voltages
-> > that are disallowed by the machine constraints, though. =A0That
-> > can produce "holes" too; and not necessarily only for the lowest
-> > or highest selector codes.
->
-> At present only continous ranges are possible, though. =A0I can't thi=
-nk of
-> any systems I've seen that'd want discontinous constraints, though I'=
-m
-> sure there are some.
-
-Consider a regulator where voltage selectors 0..3 correspond to
-voltages
-
-	{ 3.3V, 1.8V, 4.2V, 5.0V }
-
-With machine constraints that say voltages go from 3V to 4.5V ...
-
-- Dave
+diff --git a/drivers/usb/otg/twl4030-usb.c b/drivers/usb/otg/twl4030-usb.c
+index 416e441..b725be2 100644
+--- a/drivers/usb/otg/twl4030-usb.c
++++ b/drivers/usb/otg/twl4030-usb.c
+@@ -256,6 +256,7 @@ struct twl4030_usb {
+ 	u8			linkstat;
+ 	u8			asleep;
+ 	bool			irq_enabled;
++	bool			suspend_enabled;
+ };
+ 
+ /* internal define on top of container_of */
+@@ -618,6 +619,7 @@ static int __init twl4030_usb_probe(struct platform_device *pdev)
+ 	twl->otg.set_suspend	= twl4030_set_suspend;
+ 	twl->usb_mode		= pdata->usb_mode;
+ 	twl->asleep		= 1;
++	twl->suspend_enabled	= pdata->suspend_enabled;
+ 
+ 	/* init spinlock for workqueue */
+ 	spin_lock_init(&twl->lock);
+@@ -694,9 +696,32 @@ static int __exit twl4030_usb_remove(struct platform_device *pdev)
+ 	return 0;
+ }
+ 
++int twl4030_usb_suspend(struct platform_device *pdev, pm_message_t state)
++{
++	struct twl4030_usb *twl = platform_get_drvdata(pdev);
++
++	if (!twl->suspend_enabled)
++		return 0;
++
++	otg_set_suspend(&twl->otg, 1);
++
++	return 0;
++}
++
++int twl4030_usb_resume(struct platform_device *pdev)
++{
++	struct twl4030_usb *twl = platform_get_drvdata(pdev);
++
++	otg_set_suspend(&twl->otg, 0);
++
++	return 0;
++}
++
+ static struct platform_driver twl4030_usb_driver = {
+ 	.probe		= twl4030_usb_probe,
+ 	.remove		= __exit_p(twl4030_usb_remove),
++	.suspend	= twl4030_usb_suspend,
++	.resume		= twl4030_usb_resume,
+ 	.driver		= {
+ 		.name	= "twl4030_usb",
+ 		.owner	= THIS_MODULE,
+diff --git a/include/linux/i2c/twl4030.h b/include/linux/i2c/twl4030.h
+index c89d33b..0b12509 100644
+--- a/include/linux/i2c/twl4030.h
++++ b/include/linux/i2c/twl4030.h
+@@ -325,6 +325,7 @@ enum twl4030_usb_mode {
+ 
+ struct twl4030_usb_data {
+ 	enum twl4030_usb_mode	usb_mode;
++	bool suspend_enabled;
+ };
+ 
+ struct twl4030_ins {
 --
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
