@@ -1,69 +1,43 @@
-From: =?iso-8859-1?Q?S=F8ren_Steen_Christensen?=
-	<sorenschristensen@stofanet.dk>
-Subject: RE: GPMC address signals gpmc_a11 to gpmc_a26
-Date: Wed, 25 Feb 2009 19:46:05 +0100
-Message-ID: <002501c99779$50d1bf10$f2753d30$@dk>
-References: <8DB4EBB8-F339-43DC-B7EF-208CB77BC8A3@mac.com>
+From: "George G. Davis" <gdavis@mvista.com>
+Subject: Re: [alsa-devel] [PATCH] ASoC: Add support for OMAP3 EVM
+Date: Wed, 25 Feb 2009 15:25:59 -0500
+Message-ID: <20090225202559.GO4368@mvista.com>
+References: <1227591577-23414-1-git-send-email-anuj.aggarwal@ti.com> <20081125132120.1d740c04.jarkko.nikula@nokia.com> <20081125145257.GD12414@sirena.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mx02.stofanet.dk ([212.10.10.12]:37258 "EHLO mx02.stofanet.dk"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754158AbZBYTGA convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 25 Feb 2009 14:06:00 -0500
-In-Reply-To: <8DB4EBB8-F339-43DC-B7EF-208CB77BC8A3@mac.com>
-Content-Language: da
+Received: from gateway-1237.mvista.com ([63.81.120.158]:4467 "EHLO
+	gateway-1237.mvista.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754893AbZBYU0E (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 25 Feb 2009 15:26:04 -0500
+Content-Disposition: inline
+In-Reply-To: <20081125145257.GD12414@sirena.org.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: 'Elvis Dowson' <elvis.dowson@mac.com>, 'Linux OMAP Users' <linux-omap@vger.kernel.org>
-Cc: =?iso-8859-1?Q?'S=F8ren_Steen_Christensen'?= <sorenschristensen@stofanet.dk>
+To: Mark Brown <broonie@sirena.org.uk>
+Cc: Jarkko Nikula <jarkko.nikula@nokia.com>, ext Anuj Aggarwal <anuj.aggarwal@ti.com>, alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, ext Misael Lopez Cruz <mesak82@gmail.com>
 
-> Hi,
-> 	Can someone tell me why gpmc_a11 to gpmc_a26 signals are
-> missing from
-> initial pages for the CBB package specification, in the OMAP3515/03
-> Applications Processor document (Rev. C)?
->=20
-> If you go down to page 91 of the same document, it lists gpmc_a11 to
-> gpmc_a26.
->=20
-> Are the address lines multiplexed somehow for the TI OMAP GPMC,
-> because if you look at the following table, the pin numbers are the
-> same for a couple of them, e.g AC16 for gpmc_a3, gpmc_a19. I can't
-> seem to find a pattern here.
->=20
-> Best regards,
->=20
-> Elvis
+Hi,
 
+On Tue, Nov 25, 2008 at 02:52:58PM +0000, Mark Brown wrote:
+> On Tue, Nov 25, 2008 at 01:21:20PM +0200, Jarkko Nikula wrote:
+> 
+> > Or if those EVM's & SDP's can route TWL4030 audio connections more
+> > flexible than Beagle but somewhat similar manner, then probably have one
+> > single machine driver for all EVM's?
+> 
+> > Otherwise it doesn't make very much sense to have n similar machine
+> > drivers where only functions and variable names differ.
+> 
+> Yes, it looks like a lot of these drivers could be redone along the
+> lines of s3c24xx_uda134x.c with platform data specifying the differences
+> between the boards.
 
-Hi Elvis,
-
-The GPMC is an address/data-multiplexed bus sharing the lower 16 addres=
-s
-lines between address and data.
-I admit, that the naming in the Datasheet might be a bit misleading, bu=
-t the
-way it should be read is like:
-
-GPMC_dxx is the 16 data lines for data
-
-GPMC_dxx is the lower 16 address lines for address
-GPMC_a1 is address line 17
-GPMC_a2 address line 18
-GPMC_a3 address line 19 - and so forth
-
-This as well explains why you though that address lines 3 and 19 could =
-be
-multiplexed :-)
-
-Best regards
-  S=F8ren
-
+Is someone working on updating ASoC drivers for OMAP TWL4030 based
+boards as recommended above?  Just curious since I already made the
+mistake of creating my own OMAP3 EVM ASoC driver w/o checking the
+list first.  : /
 
 --
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Regards,
+George
