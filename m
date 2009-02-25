@@ -1,60 +1,51 @@
-From: Thomas Kaiser <v4l@kaiser-linux.li>
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
 Subject: Re: [RFC] How to pass camera Orientation to userspace
-Date: Wed, 25 Feb 2009 04:03:24 +0100
-Message-ID: <49A4B4FC.9030209@kaiser-linux.li>
-References: <200902180030.52729.linux@baker-net.org.uk> <200902211253.58061.hverkuil@xs4all.nl> <20090223080715.0c97774e@pedra.chehab.org> <200902232237.32362.linux@baker-net.org.uk> <alpine.LNX.2.00.0902231730410.13397@banach.math.auburn.edu> <alpine.LRH.2.00.0902241723090.6831@pedra.chehab.org> <alpine.LNX.2.00.0902241449020.15189@banach.math.auburn.edu> <alpine.LRH.2.00.0902242153490.6831@pedra.chehab.org>
+Date: Wed, 25 Feb 2009 00:16:35 -0300
+Message-ID: <20090225001635.0543a2dc@pedra.chehab.org>
+References: <200902180030.52729.linux@baker-net.org.uk>
+	<200902211253.58061.hverkuil@xs4all.nl>
+	<20090223080715.0c97774e@pedra.chehab.org>
+	<200902232237.32362.linux@baker-net.org.uk>
+	<alpine.LNX.2.00.0902231730410.13397@banach.math.auburn.edu>
+	<alpine.LRH.2.00.0902241723090.6831@pedra.chehab.org>
+	<alpine.LNX.2.00.0902241449020.15189@banach.math.auburn.edu>
+	<alpine.LRH.2.00.0902242153490.6831@pedra.chehab.org>
+	<alpine.LNX.2.00.0902241914530.15651@banach.math.auburn.edu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII; format=flowed
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-media-owner@vger.kernel.org>
-In-Reply-To: <alpine.LRH.2.00.0902242153490.6831@pedra.chehab.org>
-Sender: linux-media-owner@vger.kernel.org
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: kilgota@banach.math.auburn.edu, Adam Baker <linux@baker-net.org.uk>, Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org, Jean-Francois Moine <moinejf@free.fr>, Hans de Goede <hdegoede@redhat.com>, Olivier Lorin <o.lorin@laposte.net>, Trent Piepho <xyzzy@speakeasy.org>, linux-omap@vger.kernel.org
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bombadil.infradead.org ([18.85.46.34]:47589 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754005AbZBYDRb (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 24 Feb 2009 22:17:31 -0500
+In-Reply-To: <alpine.LNX.2.00.0902241914530.15651@banach.math.auburn.edu>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: kilgota@banach.math.auburn.edu
+Cc: Adam Baker <linux@baker-net.org.uk>, Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org, Jean-Francois Moine <moinejf@free.fr>, Hans de Goede <hdegoede@redhat.com>, Olivier Lorin <o.lorin@laposte.net>, Trent Piepho <xyzzy@speakeasy.org>, linux-omap@vger.kernel.org
 
->> Also an overview is often very helpful. Also trying to visualize what 
->> might be needed in the future is helpful. All of this can be extremely 
->> helpful. But not everyone can see or imagine every possible thing. For 
->> example, it seems that some of the best minds in the business are 
->> stunned when confronted with the fact that some manufacturer of cheap 
->> electronics in Taiwan has produced a lot of mass-market cameras with 
->> the sensors turned upside down, along with some other cameras having 
->> the same USB ID with different sensors, which act a bit differently. 
->> Clearly, if such a thing happened once it can happen again. So how to 
->> deal with such a
->> problem?
+On Tue, 24 Feb 2009 20:12:00 -0600 (CST)
+kilgota@banach.math.auburn.edu wrote:
 
-Actually, this happens and is happening!
+> > For sure we need to have a way for retrieving this information for devices 
+> > like the sq905 cameras, where the information can't be currently be 
+> > determined by userspace.  
+> 
+> Yes, indeed. Except for just one word, "currently." It does not fit here. 
 
-Just step back a get an other view.
+Yes, it fits, since, after implementing the API, the userspace will have this
+information by using the agreed API.
 
-These consumer products are manly produced for the Windoz audience.
+> > If so, IMO, the 
+> > better approach is to use a flag at the v4l2_input, as already discussed in 
+> > this thread.  
+> 
+> OK.
 
-After introduction of Win XP the consumer where told that USB device 
-will run out of the box in Win XP, which is sometimes true, but .....
+As it seems to be a consensus that the better is to use a flag inside
+v4l2_input, could you please provide us an RFC patch to implement it and update
+the V4L2 spec?
 
-But on all (Windowz) Webcams (are Linux Webcams available?) I buy, I 
-find a sticker which tells me to first insert the driver CD before 
-connecting the cam to the PC. When you do, like instructed, your cam 
-works like you expected!
-
-Evan the USB ID is the same like the other webcam from the other vendor, 
-you are (more or less) forced to install the driver from this particular 
-vendor, you get a new driver! Doesn't matter if the sensor is mounted 
-upside down, the "new" driver takes care about this. So, it looks like 
-the cam in the Windowz World just works because you were forced to 
-install the driver from the CD.
-
-So I guess the Windoz diver just knows more then the USB ID.
-
-In the Linux World most of the drive are re-engineered, we don't know 
-how to detect how the sensor is mounted, do we?
-
-Actually, what I try to say, is that only the cam can know how the 
-sensor is mounted. Thus, the kernel module has to provide this 
-information to user space (by query the hardware).
-
-The "pivot" is an other thing.
-
-Thomas
+Cheers,
+Mauro
