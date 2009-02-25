@@ -1,178 +1,140 @@
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: [RFC] How to pass camera Orientation to userspace
-Date: Tue, 24 Feb 2009 21:53:55 -0300 (BRT)
-Message-ID: <alpine.LRH.2.00.0902242153490.6831@pedra.chehab.org>
-References: <200902180030.52729.linux@baker-net.org.uk> <200902211253.58061.hverkuil@xs4all.nl> <20090223080715.0c97774e@pedra.chehab.org> <200902232237.32362.linux@baker-net.org.uk> <alpine.LNX.2.00.0902231730410.13397@banach.math.auburn.edu>
- <alpine.LRH.2.00.0902241723090.6831@pedra.chehab.org> <alpine.LNX.2.00.0902241449020.15189@banach.math.auburn.edu>
+From: David Brownell <david-b@pacbell.net>
+Subject: Re: [patch/rfc 2.6.29-rc6 1/2] regulator: enumerate voltages
+Date: Tue, 24 Feb 2009 16:17:22 -0800
+Message-ID: <200902241617.22643.david-b@pacbell.net>
+References: <200902081037.06645.david-b@pacbell.net> <200902231252.01980.david-b@pacbell.net> <20090224222328.GA21553@sirena.org.uk>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([18.85.46.34]:60966 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751435AbZBYAyo (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 24 Feb 2009 19:54:44 -0500
-In-Reply-To: <alpine.LNX.2.00.0902241449020.15189@banach.math.auburn.edu>
+Received: from smtp127.sbc.mail.sp1.yahoo.com ([69.147.65.186]:47053 "HELO
+	smtp127.sbc.mail.sp1.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1754582AbZBYBM0 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Tue, 24 Feb 2009 20:12:26 -0500
+In-Reply-To: <20090224222328.GA21553@sirena.org.uk>
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: kilgota@banach.math.auburn.edu
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>, Adam Baker <linux@baker-net.org.uk>, Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org, Jean-Francois Moine <moinejf@free.fr>, Hans de Goede <hdegoede@redhat.com>, Olivier Lorin <o.lorin@laposte.net>, Trent Piepho <xyzzy@speakeasy.org>, linux-omap@vger.kernel.org
+To: Mark Brown <broonie@sirena.org.uk>
+Cc: Liam Girdwood <lrg@slimlogic.co.uk>, lkml <linux-kernel@vger.kernel.org>, OMAP <linux-omap@vger.kernel.org>
 
-On Tue, 24 Feb 2009, kilgota@banach.math.auburn.edu wrote:
+On Tuesday 24 February 2009, Mark Brown wrote:
+> On Mon, Feb 23, 2009 at 12:52:01PM -0800, David Brownell wrote:
+> 
+> > Use those methods to force machine-level constraints into bounds.
+> > (Example:  regulator supports 1.8V, 2.4V, 2.6V, 3.3V, and board
+> > constraints for that rail are 2.0V to 3.6V ... so the range of
+> > voltages is then 2.4V to 3.3V on this board.)
+> 
+> Being able to support this is definitely a win, thanks for looking at
+> this.
 
->
->
-> On Tue, 24 Feb 2009, Mauro Carvalho Chehab wrote:
->
->>  On Mon, 23 Feb 2009, kilgota@banach.math.auburn.edu wrote:
->
->
-> <big snip>
->
->
->>  Theodore,
->>
->>  You're considering just one subset of the V4L usages: notebook webcams.
->
-> Actually, the sq905 cameras are not "notebook webcams." They are cheap, 
-> consumer entry level dual-mode cameras. They can be used as hand-held still 
-> cameras, to shoot still photos, and they can also be used as webcams. When 
-> sold, they usually came with some kind of mounting device that could hold 
-> them rigidly for webcam use. There are lots of similar cameras. Mercifully, 
-> not all of those others have the problems of the sq905, which have led to 
-> the present impasse.
->
->
-> If
->>  you think about non-notebook webcams [1] or about security cams, you'll
->>  see that the only way for you to have the flipping information is inside
->>  some userspace file.
->
-> However, there are obvious differences. For those cameras the question might 
-> well come up about how to control the movement of the camera, or, at least, 
-> to be aware of which way the camera is pointing. For these, the topic is an 
-> inherent property of the particular model of the camera -- or a defect, if 
-> someone wants to say so. Since the property is not determined by USB number, 
-> it is inherently impossible outside of the module to create a table which 
-> contains the needed information.
->
-> My intention here was to re-focus attention on the original problem which 
-> brought up the current discussion, and to that end the problem must be 
-> clearly understood. To have the flipping information inside some userspace 
-> file might solve some other problem and may be a generally very good idea. 
-> But it will not, can not, and never will be able to solve this problem.
->
->>
->>  For example, I have here one video input bttv board with 16 cameras,
->>  connected on 4 bttv chips. I have also a Pelco camera, that has just one
->>  support socket. Depending on the place you mount it, the camera has to be
->>  rotated by 180 degrees. It can also be useful to mount it rotated by 90
->>  degrees.
->
-> Good. So one needs external controls and userspace tools. Did I ever say 
-> that such things should never be done? No. All I said was that there is a 
-> problem, presently on the table, and those kinds of things are not, can not 
-> be, never were, and never will be solutions for _this_ problem.
->
->>
->>  After mounting the cameras, no matter what apps you are using (a
->>  streaming video app to broadcast it via internet, a security app, etc),
->>  the rotation
->>  information for that input, on that particular PCI, bus won't change.
->>
->>  As we've standardized the VIDIOC_QUERYCAP bus_info, now, the information
->>  for the camera at input 3 of bttv hardware at PCI addres 03:00.3 is
->>  unique. It is also unique the same information for a notebook mounted
->>  webcam (since the USB bus ID won't change for that devices).
->
-> Errrm... Again, the cameras in question here are not notebook mounted 
-> webcams.
->
->>
->>  So, if we standardize where this information is stored, for example, at
->>  /etc/libv4l and/or at ~/.libv4lrc, and let libv4l handle such info, this
->>  will be something consistent for all applications using libv4l. Other
->>  apps that might not want to trust on libv4l can also read the info at the
->>  same file.
->
-> Sorry, this will not work here. It may solve some other problem, but not 
-> this problem. Or, if one wants to "store" the information there, I don't 
-> care, really, but then there needs to be a way to get the information from 
-> the module, where it is, and get written into said table, which is where you 
-> want it, and this needs to happen every time an sq905 camera gets plugged in 
-> -- without pestering the user about the matter every time that such a camera 
-> gets hooked up.
->
-> Comparison: I have tossed a coin. Is it going to come up heads? Or tails? It 
-> is possible to know which, because the coin has been tossed. It would not 
-> even be cheating to look at it, or allow someone who did look at it, to pass 
-> to us the information. But we are not going to look, and if someone tells us 
-> we will not listen because we have not agreed on what language to use for 
-> communication. Instead, we will put a guess about the outcome into a table. 
-> We will make it a nice table, which can be revised using nice GUI tools, so 
-> it is easy for the user. So if our guess is wrong let the user fix it. Then 
-> next time we toss the coin the table entry will be right because either it 
-> was right before, or now someone fixed it???
->
->>
->>  So, I really think that this should be part of the approach.
->
-> I was not even addressing what should or should not be part of the approach 
-> to some other problems. My point was that such discussion is not germane to 
-> the problem of how to pass on the correct orientation of the sensor, for the 
-> sq905 cameras. There are lots of other problems out there to solve. No 
-> denying that.
->
-> Also an overview is often very helpful. Also trying to visualize what might 
-> be needed in the future is helpful. All of this can be extremely helpful. 
-> But not everyone can see or imagine every possible thing. For example, it 
-> seems that some of the best minds in the business are stunned when 
-> confronted with the fact that some manufacturer of cheap electronics in 
-> Taiwan has produced a lot of mass-market cameras with the sensors turned 
-> upside down, along with some other cameras having the same USB ID with 
-> different sensors, which act a bit differently. Clearly, if such a thing 
-> happened once it can happen again. So how to deal with such a
-> problem? Something similar or worse will surely come up again.
->
->>
->>  I agree that we should have a way to get a hint about a camera rotation,
->>  if this is somehow provided by reading at the hardware.
->>
->>  [1] Normal webcams can be mounted on some hardware and have some
->>  orientations that would be different than expected. I've seen this before
->>  on some PC-based harware where the camera is enclosed inside the clause,
->>  like on Automatic Transfer Machines. Also, the user may want to use the
->>  camera on an inverted position, to make easy to fix it somewhere.
->
-> Again, these are in fact separate issues. The fundamental issue required for 
-> supporting the sq905 cameras is that an agreed-upon method must exist by 
-> which precisely two pieces of information can be passed along by the module. 
-> Which of the two pieces of information is relevant and needs to be sent 
-> along is, alas, only known from within the module. That is the backdrop for 
-> the entire discussion. As far as I know, this thread would not exist if that 
-> need had not come up. These two pieces of information are, precisely, "frame 
-> data requires flipping across a horizontal axis unless camera is upside 
-> down" and "frame data requires flipping across a vertical axis unless camera 
-> is held up to a mirror"
->
-> So, what do these two deep questions, which confound the assembled wisdom of 
-> an entire list of Linux video developers, have to do with tables in 
-> userspace? None that I can see, unless someone wants to provide a mechanism 
-> for the information, having been collected in the module, to be available to 
-> the table in userspace.
+Likewise consumers being able to see what voltages are available...
 
-I'm not saying that userspace tables would solve all problems. I'm just 
-saying that this should be part of the solution.
 
-For sure we need to have a way for retrieving this information for devices 
-like the sq905 cameras, where the information can't be currently be 
-determined by userspace.
+> > +	/* maybe force machine-wide voltage constraints to match the
+> > +	 * voltages supported by this regulator.  use the regulator's
+> > +	 * entire range for boards with no particular constraints.
+> > +	 */
+> 
+> I'd really rather the second bit weren't here.  I'd like to see a
+> warning for the first part.
 
-In the case of sq905, this information is static, right? If so, IMO, the 
-better approach is to use a flag at the v4l2_input, as already discussed 
-in this thread.
+Fixable in an update.  I still think it's better to require less
+manual configuration, not more ... manual configuration is by
+definition error prone; requiring more manual configuration makes
+systems be more fragile.  Which is why I wouldn't naturally want
+to see a warning:  it implies manual configuration is desirable.
 
--- 
-Cheers,
-Mauro Carvalho Chehab
-http://linuxtv.org
-mchehab@infradead.org
+
+> > + * @count_voltages: Return the number of supported voltage indices which
+> > + *	may be passed to @list_voltage().  Some indices may correspond to
+> > + *	voltages that are not usable on this system.
+> > + * @list_voltage: Return one of the supported voltages, in microvolts;
+> > + *	or negative errno.  Indices range from zero to one less than
+> > + *	@count_voltages().  Voltages may be reported in any order.
+> 
+> I'm having a hard time loving this interface for the driver.  It feels
+> fairly cumbersome to have to provide two functions to look up what I'd
+> expect to be static data - I'd be fairly surprised to see it change at
+> runtime. 
+
+It can be a function of configuration, and I didn't want to force
+such seldom-used data into wasteful standardized-format tables.
+Notice that with the twl4030 code, a functional interface takes
+less space ... and is more flexible, since it copes with the
+voltage options that are defined as "not supported".
+
+Function accessors can use static const data when that's appropriate.
+But going the other way around isn't very straightforward...
+
+Consider also the TPS6235x regulators:  the voltages they support are
+a simple linear function of an index 0..63, and that driver handles
+seven such chips.  64 values * 4 bytes * 7 chips == about 2KB of
+table data ... vs a few dozen bytes of function code.
+
+Again, the tradeoff looks to me like a clear win:  this functional
+interface is small, simple, clear, flexible.
+
+
+> I think I'd expect to see something more like the way ALSA 
+> represents dB scales where the driver supplies a list of ranges that can
+> either be simple values or value ranges expressed as (start, step,
+> count).  That would cover both complicated cases like the TWL4030 and
+> the other common case with large regular ranges of voltages.
+
+Another virtue of functional interfaces for enumeration is
+they avoid the need for callers to see and handle a variety
+of different models, like that!!
+
+Do you really think it's easier to have to write code like
+
+	if (regulator uses table model) {
+		table iteration code {
+			check(get(i))
+		}
+	else if (regulator uses start/step/count model) {
+		start/step iteration {
+			check(something)
+		}
+	else if ... another model-du-jour ... {
+		...
+	} else
+		error
+
+Instead of a one simple flexible model?
+
+	limit = get_limit();
+	for (i = 0; i < limit; i++)
+		check(get(i));
+
+ 
+> This mostly applies to the driver interface - on the consumer side it
+> feels a bit cumbersome to use but I can't think of anything that's
+> particularly better. 
+
+There's a LONG history of functional iterator models, such as
+the one I used.  I think they are clearly better, and don't
+understand why you'd prefer that more cumbersome approach.
+
+
+> An interface that also allows consumers to ask if 
+> particular ranges can be satisfied might help here - it'd be nice for
+> things like MMC that want to check for a relatively small set of
+> voltages or voltage ranges (which I'd expect is the common case).
+
+Umm, did you look at the MMC patch I sent?  It shows
+how the $SUBJECT interface fits nicely with what the
+MMC framework needs.  mmc_regulator_get_ocrmask() took
+just thirty (ARM) instructions.
+
+MMC doesn't want to "check" like that.  It wants to get
+a mask of supported voltages, then AND it with the mask
+reported by the MMC/SD/SDIO/eMMC/CE-ATA/... device to
+pick a voltage supported by both host and card.
+
+- Dave
+
+
