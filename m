@@ -1,101 +1,108 @@
-From: Kim Kyuwon <chammoru@gmail.com>
-Subject: [PATCH 1/2] usb: musb: fix the possible panic while resuming
-Date: Wed, 25 Feb 2009 20:53:00 +0900
-Message-ID: <4d34a0a70902250353i3c6e072bnd41af327bc77601b@mail.gmail.com>
+From: Kim Kyuwon <chammoru-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH 2/2] twl: usb: Add the resume() and suspend() methods to
+	twl4030-usb.c
+Date: Wed, 25 Feb 2009 20:55:41 +0900
+Message-ID: <4d34a0a70902250355q4b8c54e4rc9bbc1f40539e486@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from rv-out-0506.google.com ([209.85.198.237]:36371 "EHLO
-	rv-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752834AbZBYLxC (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 25 Feb 2009 06:53:02 -0500
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: OMAP <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, David Brownell <david-b-yBeKhBN/0LDR7s880joybQ@public.gmane.org>, me-uiRdBs8odbtmTBlB0Cgj/Q@public.gmane.org, q1.kim-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org, Minkyu Kang <mk7.kang-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: linux-usb@vger.kernel.org
-Cc: OMAP <linux-omap@vger.kernel.org>, David Brownell <david-b@pacbell.net>, me@felipebalbi.com, q1.kim@samsung.com, Minkyu Kang <mk7.kang@samsung.com>
 
-From: Kim Kyuwon <chammoru@gmail.com>
+From: Minkyu Kang <mk7.kang-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>
 
-While waking up, musb can cause a kernel panic. This patch is fixing
-it by enabling the clock in the resume_early method.
+The MPU module can be waked up by the unexpected USB
+interrupt(HSUSB_MC_NINT). For instance, if the MUSB is working as
+peripheral mode and connected to a host PC, it can never enter the low
+power mode due to interrupts from the host PC. This patch added the
+feature that a board specific file can determines that TWL4030
+supplies the USB power or not in the low power mode. Disabling the USB
+power may save the power consumption.
 
-Signed-off-by: Kim Kyuwon <chammoru@gmail.com>
+Signed-off-by: Minkyu Kang <mk7.kang-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>
+Signed-off-by: Kim Kyuwon <chammoru-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 ---
- drivers/usb/musb/musb_core.c |   21 +++++++--------------
- 1 files changed, 7 insertions(+), 14 deletions(-)
+ drivers/usb/otg/twl4030-usb.c |   25 +++++++++++++++++++++++++
+ include/linux/i2c/twl4030.h   |    1 +
+ 2 files changed, 26 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/usb/musb/musb_core.c b/drivers/usb/musb/musb_core.c
-index 2cc34fa..ae76ad7 100644
---- a/drivers/usb/musb/musb_core.c
-+++ b/drivers/usb/musb/musb_core.c
-@@ -2141,16 +2141,13 @@ static int __devexit musb_remove(struct
-platform_device *pdev)
-
- #ifdef	CONFIG_PM
-
--static int musb_suspend(struct platform_device *pdev, pm_message_t message)
-+static int musb_suspend_late(struct platform_device *pdev, pm_message_t state)
- {
--	unsigned long	flags;
--	struct musb	*musb = dev_to_musb(&pdev->dev);
-+	struct musb *musb = dev_to_musb(&pdev->dev);
-
- 	if (!musb->clock)
- 		return 0;
-
--	spin_lock_irqsave(&musb->lock, flags);
--
- 	if (is_peripheral_active(musb)) {
- 		/* FIXME force disconnect unless we know USB will wake
- 		 * the system up quickly enough to respond ...
-@@ -2165,20 +2162,17 @@ static int musb_suspend(struct platform_device
-*pdev, pm_message_t message)
- 		musb->set_clock(musb->clock, 0);
- 	else
- 		clk_disable(musb->clock);
--	spin_unlock_irqrestore(&musb->lock, flags);
-+
- 	return 0;
- }
-
--static int musb_resume(struct platform_device *pdev)
-+static int musb_resume_early(struct platform_device *pdev)
- {
--	unsigned long	flags;
--	struct musb	*musb = dev_to_musb(&pdev->dev);
-+	struct musb *musb = dev_to_musb(&pdev->dev);
-
- 	if (!musb->clock)
- 		return 0;
-
--	spin_lock_irqsave(&musb->lock, flags);
--
- 	if (musb->set_clock)
- 		musb->set_clock(musb->clock, 1);
- 	else
-@@ -2188,7 +2182,6 @@ static int musb_resume(struct platform_device *pdev)
- 	 * unless for some reason the whole soc powered down and we're
- 	 * not treating that as a whole-system restart (e.g. swsusp)
- 	 */
--	spin_unlock_irqrestore(&musb->lock, flags);
- 	return 0;
- }
-
-@@ -2205,8 +2198,8 @@ static struct platform_driver musb_driver = {
- 	},
- 	.remove		= __devexit_p(musb_remove),
- 	.shutdown	= musb_shutdown,
--	.suspend	= musb_suspend,
--	.resume		= musb_resume,
-+	.suspend_late	= musb_suspend_late,
-+	.resume_early	= musb_resume_early,
+diff --git a/drivers/usb/otg/twl4030-usb.c b/drivers/usb/otg/twl4030-usb.c
+index 416e441..0d65a8d 100644
+--- a/drivers/usb/otg/twl4030-usb.c
++++ b/drivers/usb/otg/twl4030-usb.c
+@@ -256,6 +256,7 @@ struct twl4030_usb {
+ 	u8			linkstat;
+ 	u8			asleep;
+ 	bool			irq_enabled;
++	bool			suspend_enabled;
  };
 
- /*-------------------------------------------------------------------------*/
+ /* internal define on top of container_of */
+@@ -618,6 +619,7 @@ static int __init twl4030_usb_probe(struct
+platform_device *pdev)
+ 	twl->otg.set_suspend	= twl4030_set_suspend;
+ 	twl->usb_mode		= pdata->usb_mode;
+ 	twl->asleep		= 1;
++	twl->suspend_enabled	= pdata->suspend_enabled;
+
+ 	/* init spinlock for workqueue */
+ 	spin_lock_init(&twl->lock);
+@@ -694,9 +696,32 @@ static int __exit twl4030_usb_remove(struct
+platform_device *pdev)
+ 	return 0;
+ }
+
++int twl4030_usb_suspend(struct platform_device *pdev, pm_message_t state)
++{
++	struct twl4030_usb *twl = platform_get_drvdata(pdev);
++
++	if (!twl->suspend_enabled)
++		return 0;
++
++	twl->otg.set_suspend(&twl->otg, 1);
++
++	return 0;
++}
++
++int twl4030_usb_resume(struct platform_device *pdev)
++{
++	struct twl4030_usb *twl = platform_get_drvdata(pdev);
++
++	twl->otg.set_suspend(&twl->otg, 0);
++
++	return 0;
++}
++
+ static struct platform_driver twl4030_usb_driver = {
+ 	.probe		= twl4030_usb_probe,
+ 	.remove		= __exit_p(twl4030_usb_remove),
++	.suspend	= twl4030_usb_suspend,
++	.resume		= twl4030_usb_resume,
+ 	.driver		= {
+ 		.name	= "twl4030_usb",
+ 		.owner	= THIS_MODULE,
+diff --git a/include/linux/i2c/twl4030.h b/include/linux/i2c/twl4030.h
+index c89d33b..0b12509 100644
+--- a/include/linux/i2c/twl4030.h
++++ b/include/linux/i2c/twl4030.h
+@@ -325,6 +325,7 @@ enum twl4030_usb_mode {
+
+ struct twl4030_usb_data {
+ 	enum twl4030_usb_mode	usb_mode;
++	bool suspend_enabled;
+ };
+
+ struct twl4030_ins {
 -- 
 1.5.2.5
 
 
 -- 
 Kyuwon
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
