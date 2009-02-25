@@ -1,54 +1,31 @@
-From: Roel Kluin <roel.kluin@gmail.com>
-Subject: [PATCH] omap2: off by 1
-Date: Wed, 25 Feb 2009 14:06:36 +0100
-Message-ID: <49A5425C.9050405@gmail.com>
+From: Thomas Kaiser <v4l@kaiser-linux.li>
+Subject: Re: [RFC] How to pass camera Orientation to userspace
+Date: Wed, 25 Feb 2009 14:11:11 +0100
+Message-ID: <49A5436F.8000908@kaiser-linux.li>
+References: <200902180030.52729.linux@baker-net.org.uk> <200902211253.58061.hverkuil@xs4all.nl> <20090223080715.0c97774e@pedra.chehab.org> <200902232237.32362.linux@baker-net.org.uk> <alpine.LNX.2.00.0902231730410.13397@banach.math.auburn.edu> <alpine.LRH.2.00.0902241723090.6831@pedra.chehab.org> <alpine.LNX.2.00.0902241449020.15189@banach.math.auburn.edu> <alpine.LRH.2.00.0902242153490.6831@pedra.chehab.org> <49A4B4FC.9030209@kaiser-linux.li> <alpine.LNX.2.00.0902242341070.15857@banach.math.auburn.edu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=US-ASCII; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from qw-out-2122.google.com ([74.125.92.27]:64507 "EHLO
-	qw-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752922AbZBYNGi (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 25 Feb 2009 08:06:38 -0500
-Received: by qw-out-2122.google.com with SMTP id 5so17471qwi.37
-        for <linux-omap@vger.kernel.org>; Wed, 25 Feb 2009 05:06:36 -0800 (PST)
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-media-owner@vger.kernel.org>
+In-Reply-To: <alpine.LNX.2.00.0902242341070.15857@banach.math.auburn.edu>
+Sender: linux-media-owner@vger.kernel.org
+To: kilgota@banach.math.auburn.edu
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>, Adam Baker <linux@baker-net.org.uk>, Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org, Jean-Francois Moine <moinejf@free.fr>, Hans de Goede <hdegoede@redhat.com>, Olivier Lorin <o.lorin@laposte.net>, Trent Piepho <xyzzy@speakeasy.org>, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: rmk+kernel@arm.linux.org.uk
-Cc: linux-omap@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>
 
-with while (i++ < MAX_CLOCK_ENABLE_WAIT); i can reach MAX_CLOCK_ENABLE_WAIT + 1
-after the loop, so if (i == MAX_CLOCK_ENABLE_WAIT) that's still success.
+ >> Actually, this happens and is happening!
 
-Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
----
- arch/arm/mach-omap2/clock.c       |    2 +-
- arch/arm/mach-omap2/powerdomain.c |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+I got OT. I just needed to vent!
 
-diff --git a/arch/arm/mach-omap2/clock.c b/arch/arm/mach-omap2/clock.c
-index ce4d46a..da185ff 100644
---- a/arch/arm/mach-omap2/clock.c
-+++ b/arch/arm/mach-omap2/clock.c
-@@ -202,7 +202,7 @@ int omap2_wait_clock_ready(void __iomem *reg, u32 mask, const char *name)
- 		udelay(1);
- 	}
- 
--	if (i < MAX_CLOCK_ENABLE_WAIT)
-+	if (i <= MAX_CLOCK_ENABLE_WAIT)
- 		pr_debug("Clock %s stable after %d loops\n", name, i);
- 	else
- 		printk(KERN_ERR "Clock %s didn't enable in %d tries\n",
-diff --git a/arch/arm/mach-omap2/powerdomain.c b/arch/arm/mach-omap2/powerdomain.c
-index 73e2971..983f1cb 100644
---- a/arch/arm/mach-omap2/powerdomain.c
-+++ b/arch/arm/mach-omap2/powerdomain.c
-@@ -1099,7 +1099,7 @@ int pwrdm_wait_transition(struct powerdomain *pwrdm)
- 	       (c++ < PWRDM_TRANSITION_BAILOUT))
- 		udelay(1);
- 
--	if (c >= PWRDM_TRANSITION_BAILOUT) {
-+	if (c > PWRDM_TRANSITION_BAILOUT) {
- 		printk(KERN_ERR "powerdomain: waited too long for "
- 		       "powerdomain %s to complete transition\n", pwrdm->name);
- 		return -EAGAIN;
+Sorry for the spam.
+
+For the sensor mounting, I think the cam knows how the sensor is mounted 
+and therefor the driver knows (driver -> first abstraction layer between 
+software and hardware). Therefor the drive has to report the sensor 
+orientation to user space (read only).
+
+Thomas
+
+PS: May be, I am OT all ready.
+
+
