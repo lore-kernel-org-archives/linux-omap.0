@@ -1,45 +1,53 @@
-From: Kim Kyuwon <chammoru-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH 1/2] usb: musb: fix the possible panic while resuming
-Date: Thu, 26 Feb 2009 15:57:56 +0900
-Message-ID: <4d34a0a70902252257lc8b3a1duc6cbd6de2cbd2840@mail.gmail.com>
-References: <4d34a0a70902252154p56733ae8g7a989112503251b@mail.gmail.com>
-	 <5A47E75E594F054BAF48C5E4FC4B92AB02FAA91C14@dbde02.ent.ti.com>
+From: Jarkko Nikula <jarkko.nikula@nokia.com>
+Subject: Re: [PATCH] ASoC: Add support for OMAP3 EVM
+Date: Thu, 26 Feb 2009 09:18:19 +0200
+Message-ID: <20090226091819.bd509ade.jarkko.nikula@nokia.com>
+References: <1227591577-23414-1-git-send-email-anuj.aggarwal@ti.com>
+	<20081125132120.1d740c04.jarkko.nikula@nokia.com>
+	<20081125145257.GD12414@sirena.org.uk>
+	<20090225202559.GO4368@mvista.com>
+	<20090225202744.GG31637@sirena.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB02FAA91C14-/tLxBxkBPtCIQmiDNMet8wC/G2K4zDHf@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Gadiyar, Anand" <gadiyar-l0cyMroinI0@public.gmane.org>
-Cc: "me-uiRdBs8odbtmTBlB0Cgj/Q@public.gmane.org" <me-uiRdBs8odbtmTBlB0Cgj/Q@public.gmane.org>, "linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, OMAP <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, David Brownell <david-b-yBeKhBN/0LDR7s880joybQ@public.gmane.org>, "q1.kim-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org" <q1.kim-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>, Minkyu Kang <mk7.kang-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <alsa-devel-bounces@alsa-project.org>
+In-Reply-To: <20090225202744.GG31637@sirena.org.uk>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Sender: alsa-devel-bounces@alsa-project.org
+Errors-To: alsa-devel-bounces@alsa-project.org
+To: ext Mark Brown <broonie@sirena.org.uk>
+Cc: "George G. Davis" <gdavis@mvista.com>, "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>, stanley.miao@windriver.com, ext Anuj Aggarwal <anuj.aggarwal@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, ext Misael Lopez Cruz <mesak82@gmail.com>
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
+On Wed, 25 Feb 2009 21:27:44 +0100
+ext Mark Brown <broonie@sirena.org.uk> wrote:
 
-On Thu, Feb 26, 2009 at 3:37 PM, Gadiyar, Anand <gadiyar-l0cyMroinI0@public.gmane.org> wrote:
-> <snip>
->
->> Now I know that, in addition to HSUSB_MC_NINT disabled by the previo=
-us
->> patch [ARM: OMAP: Disable USB interrupt in the musb_resume()
->> function], USBTLL_SWAKEUP and USBHOST_SWAKEUP can be also wake-up
->> source events to PRMC module. Sorry I didn't know that time. The
->> remote wake uses these two SWAKEUP. David, is my previous patch is
->> still NAK?
->
-> USBTLL_SWAKEUP and =A0USBHOST_SWAKEUP are not for MUSB.
->
+> On Wed, Feb 25, 2009 at 03:25:59PM -0500, George G. Davis wrote:
+> 
+> > Is someone working on updating ASoC drivers for OMAP TWL4030 based
+> > boards as recommended above?  Just curious since I already made the
+> > mistake of creating my own OMAP3 EVM ASoC driver w/o checking the
+> > list first.  : /
+> 
+> Not to my knowledge.
 
-But they are used to wake up request. Can I ask what they are for?
+Stanley Miao started to do some early development on this:
 
->
-> - Anand
+http://mailman.alsa-project.org/pipermail/alsa-devel/2008-November/012946.html
+http://mailman.alsa-project.org/pipermail/alsa-devel/2008-November/012995.html
+
+IRCC this work was let to aside to develop since there were some slight
+differencies between the boards and also TWL4030 didn't contain all the
+features. Stanley, do you remember better?
+
+Probably now there is a better change after tons of generic TWL4030
+patches and TWL4030 codec updates from Peter Ujfalusi.
 
 
-
---=20
-Q1
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Jarkko
