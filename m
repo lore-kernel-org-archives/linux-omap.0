@@ -1,174 +1,133 @@
-From: David Brownell <david-b@pacbell.net>
-Subject: [patch 2.6.29-rc6+misc] MMC: regulator utilities
-Date: Thu, 26 Feb 2009 13:48:30 -0800
-Message-ID: <200902261348.30617.david-b@pacbell.net>
-References: <200902081037.06645.david-b@pacbell.net> <20090226202055.GE8595@sirena.org.uk> <200902261312.42720.david-b@pacbell.net>
+From: Dominic Curran <dcurran@ti.com>
+Subject: [OMAPZOOM][PATCH 3/3] ISP: Remove unneeded Previewer offset settings.
+Date: Thu, 26 Feb 2009 16:40:02 -0600
+Message-ID: <200902261640.02952.dcurran@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
   charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp122.sbc.mail.sp1.yahoo.com ([69.147.64.95]:37728 "HELO
-	smtp122.sbc.mail.sp1.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1754982AbZBZWkH (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Thu, 26 Feb 2009 17:40:07 -0500
-In-Reply-To: <200902261312.42720.david-b@pacbell.net>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:41002 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755281AbZBZWkJ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 26 Feb 2009 17:40:09 -0500
+Received: from dlep36.itg.ti.com ([157.170.170.91])
+	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id n1QMe3aF030301
+	for <linux-omap@vger.kernel.org>; Thu, 26 Feb 2009 16:40:08 -0600
+Received: from gromit.am.dhcp.ti.com (localhost [127.0.0.1])
+	by dlep36.itg.ti.com (8.13.8/8.13.8) with ESMTP id n1QMe2WU006026
+	for <linux-omap@vger.kernel.org>; Thu, 26 Feb 2009 16:40:03 -0600 (CST)
 Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Mark Brown <broonie@sirena.org.uk>, Pierre Ossman <drzeus-mmc@drzeus.cx>
-Cc: Liam Girdwood <lrg@slimlogic.co.uk>, lkml <linux-kernel@vger.kernel.org>, OMAP <linux-omap@vger.kernel.org>
+To: linux-omap <linux-omap@vger.kernel.org>
 
-From: David Brownell <dbrownell@users.sourceforge.net>
+From: Dominic Curran <dcurran@ti.com>
+Subject: [OMAPZOOM][PATCH 3/3] ISP: Remove unneeded Previewer offset settings.
 
-Add optional glue between MMC and regulator stacks, using a new
-regulator interface to learn what voltages are available.
+Before this patch set the component order was controlled by chnaging offsets in 
+the Previewer module.
+This was rather unsatifactory because output component order from CCDC differed 
+depending on sensor.
 
-This is intended to be selected and driven by MMC host adapters.
-It only handles reusable parts of the regulator-to-MMC glue; the
-adapter drivers will have access to details that affect how this
-is used.  Examples include when to use multiple voltage rails or
-configure (internal or external) level shifters.
+The 2nd patch in this series fixes this and causes the CCDC output component 
+order to be consistent for all sensors regardless of the input order.
 
-Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
+This means that input component order is always the same for Previewer, and 
+therefore there is no need to compensate for different offsets in Previewer.
+
+This patch removed the Preveiwer offset compensation from the board file, whic is 
+now unnecessary.
+
+
+Signed-off-by: Dominic Curran <dcurran@ti.com>
 ---
-Changes from previous version:  adapter must select this, and
-callers now pass in the regulator.  mmc_regulator_set_ocr()
-is still not tested, mmc_regulator_get_ocrmask() passed sanity
-testing.
+ arch/arm/mach-omap2/board-3430sdp.c |    6 ------
+ arch/arm/mach-omap2/board-ldp.c     |    2 --
+ arch/arm/mach-omap2/board-zoom2.c   |    2 --
+ drivers/media/video/isp/isp.c       |    1 -
+ drivers/media/video/isp/isp.h       |    2 --
+ 5 files changed, 13 deletions(-)
 
-Pierre:  Mark may have a need for this soonish.  The omap_hsmmc
-code will want it at some point.
-
- drivers/mmc/core/Kconfig |    7 +++
- drivers/mmc/core/core.c  |   84 +++++++++++++++++++++++++++++++++++++++++++++
- include/linux/mmc/host.h |    5 ++
- 3 files changed, 96 insertions(+)
-
---- a/drivers/mmc/core/Kconfig
-+++ b/drivers/mmc/core/Kconfig
-@@ -14,3 +14,10 @@ config MMC_UNSAFE_RESUME
- 	  This option is usually just for embedded systems which use
- 	  a MMC/SD card for rootfs. Most people should say N here.
+Index: omapzoom04/arch/arm/mach-omap2/board-3430sdp.c
+===================================================================
+--- omapzoom04.orig/arch/arm/mach-omap2/board-3430sdp.c
++++ omapzoom04/arch/arm/mach-omap2/board-3430sdp.c
+@@ -657,8 +657,6 @@ static struct isp_interface_config mt9p0
+ 	.strobe = 0x0,
+ 	.prestrobe = 0x0,
+ 	.shutter = 0x0,
+-	.prev_sph = 2,
+-	.prev_slv = 0,
+ 	.wenlog = ISPCCDC_CFG_WENLOG_OR,
+ 	.dcsub = 42,
+ 	.raw_fmt_in = ISPCCDC_INPUT_FMT_GR_BG,
+@@ -782,8 +780,6 @@ static struct isp_interface_config ov364
+ 	.strobe = 0x0,
+ 	.prestrobe = 0x0,
+ 	.shutter = 0x0,
+-	.prev_sph = 2,
+-	.prev_slv = 0,
+ 	.wenlog = ISPCCDC_CFG_WENLOG_AND,
+ 	.dcsub = OV3640_BLACK_LEVEL_10BIT,
+ 	.raw_fmt_in = ISPCCDC_INPUT_FMT_BG_GR,
+@@ -992,8 +988,6 @@ static struct isp_interface_config imx04
+ 	.strobe 		= 0x0,
+ 	.prestrobe 		= 0x0,
+ 	.shutter 		= 0x0,
+-	.prev_sph 		= 2,
+-	.prev_slv 		= 0,
+ 	.wenlog 		= ISPCCDC_CFG_WENLOG_OR,
+ 	.dcsub 			= IMX046_BLACK_LEVEL_AVG,
+ 	.raw_fmt_in		= ISPCCDC_INPUT_FMT_RG_GB,
+Index: omapzoom04/arch/arm/mach-omap2/board-ldp.c
+===================================================================
+--- omapzoom04.orig/arch/arm/mach-omap2/board-ldp.c
++++ omapzoom04/arch/arm/mach-omap2/board-ldp.c
+@@ -622,8 +622,6 @@ static struct isp_interface_config ov364
+ 	.strobe = 0x0,
+ 	.prestrobe = 0x0,
+ 	.shutter = 0x0,
+-	.prev_sph = 2,
+-	.prev_slv = 0,
+ 	.wenlog = ISPCCDC_CFG_WENLOG_AND,
+ 	.dcsub = OV3640_BLACK_LEVEL_10BIT,
+ 	.raw_fmt_in = ISPCCDC_INPUT_FMT_BG_GR,
+Index: omapzoom04/arch/arm/mach-omap2/board-zoom2.c
+===================================================================
+--- omapzoom04.orig/arch/arm/mach-omap2/board-zoom2.c
++++ omapzoom04/arch/arm/mach-omap2/board-zoom2.c
+@@ -368,8 +368,6 @@ static struct isp_interface_config imx04
+ 	.strobe 		= 0x0,
+ 	.prestrobe 		= 0x0,
+ 	.shutter 		= 0x0,
+-	.prev_sph 		= 2,
+-	.prev_slv 		= 0,
+ 	.wenlog 		= ISPCCDC_CFG_WENLOG_OR,
+ 	.dcsub 			= IMX046_BLACK_LEVEL_AVG,
+ 	.raw_fmt_in		= ISPCCDC_INPUT_FMT_RG_GB,
+Index: omapzoom04/drivers/media/video/isp/isp.c
+===================================================================
+--- omapzoom04.orig/drivers/media/video/isp/isp.c
++++ omapzoom04/drivers/media/video/isp/isp.c
+@@ -949,7 +949,6 @@ int isp_configure_interface(struct isp_i
+ 						ISPCCDC_VDINT);
  
-+config MMC_REGULATOR
-+	bool
-+	depends on REGULATOR
-+	help
-+	  Select this if your MMC host adapter driver wants helper
-+	  utilities for accessing power rails.
-+
---- a/drivers/mmc/core/core.c
-+++ b/drivers/mmc/core/core.c
-@@ -21,6 +21,7 @@
- #include <linux/leds.h>
- #include <linux/scatterlist.h>
- #include <linux/log2.h>
-+#include <linux/regulator/consumer.h>
- 
- #include <linux/mmc/card.h>
- #include <linux/mmc/host.h>
-@@ -523,6 +524,89 @@ u32 mmc_vddrange_to_ocrmask(int vdd_min,
- }
- EXPORT_SYMBOL(mmc_vddrange_to_ocrmask);
- 
-+#ifdef CONFIG_MMC_REGULATOR
-+
-+/**
-+ * mmc_regulator_get_ocrmask - return mask of supported voltages
-+ * @host: mmc host whose supply will be consulted
-+ * @supply: regulator to use
-+ *
-+ * This returns either a negative errno, or a mask of voltages that
-+ * can be provided to MMC/SD/SDIO devices using the specified voltage
-+ * regulator.  This would normally be called before registering the
-+ * MMC host adapter.
-+ */
-+int mmc_regulator_get_ocrmask(struct mmc_host *host, struct regulator *supply)
-+{
-+	int			result = 0;
-+	int			count;
-+	int			i;
-+
-+	count = regulator_count_voltages(supply);
-+	if (count < 0)
-+		return count;
-+
-+	for (i = 0; i < count; i++) {
-+		int		vdd_uV;
-+		int		vdd_mV;
-+
-+		vdd_uV = regulator_list_voltage(supply, i);
-+		if (vdd_uV <= 0)
-+			continue;
-+
-+		vdd_mV = vdd_uV / 1000;
-+		result |= mmc_vddrange_to_ocrmask(vdd_mV, vdd_mV);
-+	}
-+
-+	return result;
-+}
-+EXPORT_SYMBOL(mmc_regulator_get_ocrmask);
-+
-+/**
-+ * mmc_regulator_set_ocr - set regulator to match host->ios voltage
-+ * @host: mmc host whose supply voltage will be changed
-+ * @supply: regulator to use
-+ *
-+ * MMC host drivers may use this to enable or disable a regulator using
-+ * a particular supply voltage.  This would normally be called from the
-+ * set_ios() method.
-+ */
-+int mmc_regulator_set_ocr(struct mmc_host *host, struct regulator *supply)
-+{
-+	int			result = 0;
-+	int			min_mV, max_mV;
-+	int			enabled;
-+
-+	enabled = regulator_is_enabled(supply);
-+	if (enabled < 0)
-+		return enabled;
-+
-+	if (host->ios.vdd) {
-+		int		tmp;
-+
-+		tmp = host->ios.vdd - ilog2(MMC_VDD_165_195);
-+		if (tmp == 0) {
-+			min_mV = 1650;
-+			max_mV = 1950;
-+		} else {
-+			min_mV = 2000 + tmp * 100;
-+			max_mV = min_mV + 100;
-+		}
-+
-+		result = regulator_set_voltage(supply,
-+				min_mV * 1000, max_mV * 1000);
-+		if (result == 0 && !enabled)
-+			result = regulator_enable(supply);
-+	} else if (enabled) {
-+		result = regulator_disable(supply);
-+	}
-+
-+	return result;
-+}
-+EXPORT_SYMBOL(mmc_regulator_set_ocr);
-+
-+#endif
-+
- /*
-  * Mask off any voltages we don't support and select
-  * the lowest voltage
---- a/include/linux/mmc/host.h
-+++ b/include/linux/mmc/host.h
-@@ -192,5 +192,10 @@ static inline void mmc_signal_sdio_irq(s
- 	wake_up_process(host->sdio_irq_thread);
- }
- 
-+struct regulator;
-+
-+int mmc_regulator_get_ocrmask(struct mmc_host *host, struct regulator *supply);
-+int mmc_regulator_set_ocr(struct mmc_host *host, struct regulator *supply);
-+
- #endif
- 
+ 	/* Set sensor specific fields in CCDC and Previewer module.*/
+-	isppreview_set_skip(config->prev_sph, config->prev_slv);
+ 	ispccdc_set_wenlog(config->wenlog);
+ 	ispccdc_set_dcsub(config->dcsub);
+ 	ispccdc_set_crop_offset(config->raw_fmt_in);
+Index: omapzoom04/drivers/media/video/isp/isp.h
+===================================================================
+--- omapzoom04.orig/drivers/media/video/isp/isp.h
++++ omapzoom04/drivers/media/video/isp/isp.h
+@@ -202,8 +202,6 @@ struct isp_interface_config {
+ 	int strobe;
+ 	int prestrobe;
+ 	int shutter;
+-	u32 prev_sph;
+-	u32 prev_slv;
+ 	u32 wenlog;
+ 	u32 dcsub;
+ 	enum ispccdc_raw_fmt raw_fmt_in;
