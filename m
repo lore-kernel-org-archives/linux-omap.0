@@ -1,59 +1,50 @@
 From: Liam Girdwood <lrg@slimlogic.co.uk>
-Subject: Re: [patch 2.6.29-rc6 1/2] regulator: enumerate voltages (v2)
-Date: Thu, 26 Feb 2009 21:58:08 +0000
-Message-ID: <1235685488.31223.104.camel@vega.slimlogic.co.uk>
+Subject: Re: [patch 2.6.29-rc3-git 1/2] regulator: twl4030 regulators
+Date: Thu, 26 Feb 2009 22:15:26 +0000
+Message-ID: <1235686526.31223.105.camel@vega.slimlogic.co.uk>
 References: <200902081037.06645.david-b@pacbell.net>
-	 <200902261148.36892.david-b@pacbell.net>
-	 <1235681638.31223.57.camel@vega.slimlogic.co.uk>
-	 <200902261328.41910.david-b@pacbell.net>
 Mime-Version: 1.0
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from slimlogic.co.uk ([89.16.172.20]:55425 "EHLO slimlogic.co.uk"
+Received: from slimlogic.co.uk ([89.16.172.20]:48557 "EHLO slimlogic.co.uk"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752126AbZBZV6M (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 26 Feb 2009 16:58:12 -0500
-In-Reply-To: <200902261328.41910.david-b@pacbell.net>
+	id S1751827AbZBZWPa (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 26 Feb 2009 17:15:30 -0500
+In-Reply-To: <200902081037.06645.david-b@pacbell.net>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: David Brownell <david-b@pacbell.net>
 Cc: Mark Brown <broonie@sirena.org.uk>, lkml <linux-kernel@vger.kernel.org>, OMAP <linux-omap@vger.kernel.org>
 
-On Thu, 2009-02-26 at 13:28 -0800, David Brownell wrote:
-> On Thursday 26 February 2009, Liam Girdwood wrote:
-> > Applied with git-am merge conflicts. It builds ok, can you check against
-> > your tree.
-> 
-> What were the conflicts -- just offsets?
-> 
-> Your "-next" regulator tree seems to be missing a doc patch
-> you had asked for, maybe that's an issue.
-> 
-> - Dave
-> 
-> =========== CUT HERE
+On Sun, 2009-02-08 at 10:37 -0800, David Brownell wrote:
 > From: David Brownell <dbrownell@users.sourceforge.net>
-> Subject: regulator: get_status() grows kerneldoc
 > 
-> Add kerneldoc for the new get_status() message.  Fix the existing
-> kerneldoc for that struct in two ways:
+> Support most of the LDO regulators in the twl4030 family chips.
+> In the case of LDOs supporting MMC/SD, the voltage controls are
+> used; but in most other cases, the regulator framework is only
+> used to enable/disable a supplies, conserving power when a given
+> voltage rail is not needed.
 > 
->  (a) Syntax, making sure parameter descriptions immediately
->      follow the one-line struct description and that the first
->      blank lines is before any more expansive description;
->  (b) Presentation for a few points, to highlight the fact that
->      the previous "get" methods exist only to report the current
->      configuration, not to display actual status.
+> The drivers/mfd/twl4030-core.c code already sets up the various
+> regulators according to board-specific configuration, and knows
+> that some chips don't provide the full set of voltage rails.
+> 
+> The omitted regulators are intended to be under hardware control,
+> such as during the hardware-mediated system powerup, powerdown,
+> and suspend states.  Unless/until software hooks are known to
+> be safe, they won't be exported here.
+> 
+> These regulators implement the new get_status() operation, but
+> can't realistically implement get_mode(); the status output is
+> effectively the result of a vote, with the relevant hardware
+> inputs not exposed.
 > 
 > Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
-> ---
->  include/linux/regulator/driver.h |   22 ++++++++++------------
->  1 file changed, 10 insertions(+), 12 deletions(-)
 
-Thanks.
+Applied.
 
-Fixed.
+Thanks
 
 Liam
 
