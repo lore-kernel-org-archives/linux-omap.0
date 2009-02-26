@@ -1,46 +1,79 @@
-From: Liam Girdwood <lrg@slimlogic.co.uk>
-Subject: Re: [patch/rfc 2.6.29-rc6 2/2] regulator: twl4030 voltage
- enumeration (v2)
-Date: Thu, 26 Feb 2009 22:16:58 +0000
-Message-ID: <1235686618.31223.107.camel@vega.slimlogic.co.uk>
-References: <200902081037.06645.david-b@pacbell.net>
-	 <200902231245.44360.david-b@pacbell.net>
-	 <200902231254.13990.david-b@pacbell.net>
-	 <200902261150.15125.david-b@pacbell.net>
+From: Dominic Curran <dcurran@ti.com>
+Subject: [OMAPZOOM][PATCH 0/3] ISP: Component order
+Date: Thu, 26 Feb 2009 16:39:38 -0600
+Message-ID: <200902261639.38890.dcurran@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain;
+  charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from slimlogic.co.uk ([89.16.172.20]:48565 "EHLO slimlogic.co.uk"
+Received: from bear.ext.ti.com ([192.94.94.41]:47967 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753678AbZBZWRD (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 26 Feb 2009 17:17:03 -0500
-In-Reply-To: <200902261150.15125.david-b@pacbell.net>
+	id S1750892AbZBZWjr (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 26 Feb 2009 17:39:47 -0500
+Received: from dlep34.itg.ti.com ([157.170.170.115])
+	by bear.ext.ti.com (8.13.7/8.13.7) with ESMTP id n1QMde95007192
+	for <linux-omap@vger.kernel.org>; Thu, 26 Feb 2009 16:39:45 -0600
+Received: from gromit.am.dhcp.ti.com (localhost [127.0.0.1])
+	by dlep34.itg.ti.com (8.13.7/8.13.7) with ESMTP id n1QMde0D021542
+	for <linux-omap@vger.kernel.org>; Thu, 26 Feb 2009 16:39:40 -0600 (CST)
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: David Brownell <david-b@pacbell.net>
-Cc: Mark Brown <broonie@sirena.org.uk>, lkml <linux-kernel@vger.kernel.org>, OMAP <linux-omap@vger.kernel.org>
+To: linux-omap <linux-omap@vger.kernel.org>
 
-On Thu, 2009-02-26 at 11:50 -0800, David Brownell wrote:
-> From: David Brownell <dbrownell@users.sourceforge.net>
-> 
-> Update previously-posted twl4030 regulator driver to export
-> supported voltages to upper layers using a new mechanism.
-> 
-> Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
-> ---
-> Updates since previous version:  match updated [1/2] interfaces.
-> 
-> Note that the twl4030 regulator patch referred to will need a
-> minor patch to work with the -next tree, because of interface
-> change in the regulator framework.
-> 
->  drivers/regulator/twl4030-regulator.c |   62 +++++++++++---------------------
->  1 file changed, 23 insertions(+), 39 deletions(-)
+From: Dominic Curran <dcurran@ti.com>
+Subject:[OMAPZOOM][PATCH 0/3] ISP: Component order
 
-Applied.
+The RAW10 component order for all three sensors I test with (MT9P012, OV3640 & 
+IMX046) is different.  This patch set uses different horz/vert offsets in CCDC 
+so that the output RAW component order is the same for all sensors.
 
-Thanks
+Currently sph and slv in the board file (for MT & OV) are used to fix component 
+order in Previewer. However this approach doesn't work for the Sony IMX046 
+sensor.
+This patch causes the component order output of CCDC to be the same for all 
+sensors.  Since the order is the same going into Previewer this means that there 
+is not need for sph and slv to change per sensor.
 
-Liam
+                     woffset    hoffset      RAW10 test     YUV test
+MT9P012    GR..BG      1          0            OK             OK
+IMX046     RG..GB      0          0            OK             OK
+OV3640     BG..GR      1          1            OK             OK
 
+Patch:
+1/3  Removes original bug introduced with IMX046 patch.
+2/3  Changes in CCDC to all easy setup of component order in board file.
+3/3  Remove no longer needed prev_sph & prev_slv from boad file. 
+
+Testing:
+The following tests have been run using this patch set [x = working]:
+(Test apps below are internal TI tools which test basic V4L2 functions)
+
+IMX046	streaming 3 YUYV QVGA 1 500             x
+	streaming 3 YUYV VGA 1 500              x
+	streaming 3 YUYV 208 154 1 500          x
+	streaming 3 YUYV 854 480 1 500          x
+	fps 3 YUYV 640 480 200                 30fps
+	fps 3 YUYV 3280 2464 100               7.5fps
+	burst_mode 3 YUYV 816 616 1 file.yuv    x
+	burst_mode 3 YUYV 3280 2464 1 file.yuv  x
+	burst_mode 3 RAW10 3280 616 1 file.raw  x (h)
+		
+MT9P012	./streaming_frame 1 15 YUYV QVGA 1 200  x
+	./streaming_frame 1 30 YUYV QVGA 1 200  x
+	./streaming_frame 1 15 YUYV VGA 1 200   x
+	./streaming_frame 1 30 YUYV VGA 1 200   x
+	burst_mode 1 YUYV 5MP 1 file.yuv        x
+	burst_mode 1 RAW10 5MP 1 file.raw       x (h)
+	streaming_zoom 1 YUYV VGA               x
+		
+		
+OV3640	streaming 2 YUYV 256 192 1 300          x
+	streaming 2 YUYV QVGA 1 300             x
+	streaming 2 YUYV VGA 1 300              x
+	burst_mode 2 YUYV XGA 1 file.yuv        x
+	burst_mode 2 YUYV QXGA 1 file.yuv       x
+	burst_mode 2 RAW10 QXGA 1 file.raw      x (h)
+	fps 2 YUYV VGA 200                      30fps
+	fps 2 YUYV QXGA 100 15                  15fps
