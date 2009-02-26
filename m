@@ -1,92 +1,126 @@
-From: "Kang, Minkyu" <mk7.kang@samsung.com>
-Subject: RE: [PATCH 2/2] twl: usb: Add the resume() and suspend() methods	to
- twl4030-usb.c (re)
-Date: Thu, 26 Feb 2009 10:33:41 +0900
-Message-ID: <001101c997b2$417613c0$c4623b40$%kang@samsung.com>
-References: <4d34a0a70902250355q4b8c54e4rc9bbc1f40539e486@mail.gmail.com>
- <49A5DA3E.6040608@samsung.com> <20090226001219.GJ4639@gandalf>
+From: "Guzman Lugo, Fernando" <x0095840@ti.com>
+Subject: [UPDATE][PATCH][OMAPZOOM] DSPBRIDGE: Remove unnecessary checks in
+ HW_MBOX_IsFull function
+Date: Wed, 25 Feb 2009 19:42:46 -0600
+Message-ID: <496565EC904933469F292DDA3F1663E60287751A02@dlee06.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mailout2.samsung.com ([203.254.224.25]:52467 "EHLO
-	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752149AbZBZBdt (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 25 Feb 2009 20:33:49 -0500
-In-reply-to: <20090226001219.GJ4639@gandalf>
-Content-language: ko
+Received: from devils.ext.ti.com ([198.47.26.153]:41359 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753121AbZBZBmy convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 25 Feb 2009 20:42:54 -0500
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: me@felipebalbi.com
-Cc: 'Kim Kyuwon' <chammoru@gmail.com>, linux-usb@vger.kernel.org, 'OMAP' <linux-omap@vger.kernel.org>, 'David Brownell' <david-b@pacbell.net>, q1.kim@samsung.com
+To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Cc: Felipe Contreras <felipe.contreras@gmail.com>
 
-> I mean, what you're doing here is that you would allow twl4030 to enter
-> low power mode even though we're connected to host side, meaning we
-> would never get awaken by the host side, right ?
 
-Yes, right.
-If usb is connected to host side, our system never sleep because of usb
-interrupts by host.
-We don't want this.
-We want to enter sleep mode quietly without any disturbance even if usb is
-connected to host side.(And we need to reduce power consumption)
-This patch gives option for these reasons.
-If you don't want this option, please set suspend_enabled = false in the
-board specific configuration.
+Hi,
+	
+	I have updated the patch base on Felipe's patches.
 
-> Is that really wanted ? I mean, how would you then wake the device ?
+>From db89674b7316d7490e71c131091758eb7ef0eca2 Mon Sep 17 00:00:00 2001
+From: Fernando Guzman Lugo <x0095840@ti.com>
+Date: Wed, 25 Feb 2009 19:27:41 -0600
+Subject: [PATCH] DSPBRIDGE: Remove unnecessary checks in HW_MBOX_IsFull function
 
-Our system is waked when get wake-up interrupts such as IO pad wake-up
-events and other wake-up events from peripheral devices.
-When it wakes up devices, usb device will be waked too.
-
+This patch removes some unnecesarry checks in HW_MBOX_IsFull
+function
+Signed-off-by: Guzman Lugo Fernando <x0095840@ti.com>
 ---
-Minkyu Kang.
+ drivers/dsp/bridge/hw/hw_mbox.c    |   22 ++--------------------
+ drivers/dsp/bridge/hw/hw_mbox.h    |    6 ++----
+ drivers/dsp/bridge/wmd/tiomap_sm.c |   14 ++++----------
+ 3 files changed, 8 insertions(+), 34 deletions(-)
 
------Original Message-----
-From: Felipe Balbi [mailto:me@felipebalbi.com] 
-Sent: Thursday, February 26, 2009 9:12 AM
-To: Minkyu Kang
-Cc: Kim Kyuwon; me@felipebalbi.com; linux-usb@vger.kernel.org; OMAP; David
-Brownell; q1.kim@samsung.com
-Subject: Re: [PATCH 2/2] twl: usb: Add the resume() and suspend() methods to
-twl4030-usb.c (re)
-
-On Thu, Feb 26, 2009 at 08:54:38AM +0900, Minkyu Kang wrote:
-> The MPU module can be waked up by the unexpected USB
-> interrupt(HSUSB_MC_NINT). For instance, if the MUSB is working as
-> peripheral mode and connected to a host PC, it can never enter the low
-> power mode due to interrupts from the host PC. This patch added the
-> feature that a board specific file can determines that TWL4030
-> supplies the USB power or not in the low power mode. Disabling the USB
-> power may save the power consumption.
-> 
-> Signed-off-by: Minkyu Kang <mk7.kang@samsung.com>
-> Signed-off-by: Kim Kyuwon <chammoru@gmail.com>
-> ---
->  drivers/usb/otg/twl4030-usb.c |   25 +++++++++++++++++++++++++
->  include/linux/i2c/twl4030.h   |    1 +
->  2 files changed, 26 insertions(+), 0 deletions(-)
-> 
-> diff --git a/drivers/usb/otg/twl4030-usb.c b/drivers/usb/otg/twl4030-usb.c
-> index 416e441..b725be2 100644
-> --- a/drivers/usb/otg/twl4030-usb.c
-> +++ b/drivers/usb/otg/twl4030-usb.c
-> @@ -256,6 +256,7 @@ struct twl4030_usb {
->  	u8			linkstat;
->  	u8			asleep;
->  	bool			irq_enabled;
-> +	bool			suspend_enabled;
-
-before we ack it and let it go through, could you please explain a bit
-more the necessity of this ?
-
-I mean, what you're doing here is that you would allow twl4030 to enter
-low power mode even though we're connected to host side, meaning we
-would never get awaken by the host side, right ?
-
-Is that really wanted ? I mean, how would you then wake the device ?
-
+diff --git a/drivers/dsp/bridge/hw/hw_mbox.c b/drivers/dsp/bridge/hw/hw_mbox.c
+index bc61d64..3a539f5
+--- a/drivers/dsp/bridge/hw/hw_mbox.c
++++ b/drivers/dsp/bridge/hw/hw_mbox.c
+@@ -105,28 +105,10 @@ HW_STATUS HW_MBOX_MsgWrite(const u32 baseAddress, const HW_MBOX_Id_t mailBoxId,
+ }
+ 
+ /* Reads the full status register for mailbox. */
+-HW_STATUS HW_MBOX_IsFull(const u32 baseAddress, const HW_MBOX_Id_t mailBoxId,
+-			u32 *const pIsFull)
++inline bool HW_MBOX_IsFull(const u32 baseAddress, const HW_MBOX_Id_t mailBoxId)
+ {
+-	HW_STATUS status = RET_OK;
+-	u32 fullStatus;
+-
+-	/* Check input parameters */
+-	CHECK_INPUT_PARAM(baseAddress, 0, RET_BAD_NULL_PARAM, RES_MBOX_BASE +
+-			RES_INVALID_INPUT_PARAM);
+-	CHECK_INPUT_PARAM(pIsFull,  NULL, RET_BAD_NULL_PARAM, RES_MBOX_BASE +
+-			RES_INVALID_INPUT_PARAM);
+-	CHECK_INPUT_RANGE_MIN0(mailBoxId, HW_MBOX_ID_MAX, RET_INVALID_ID,
+-			RES_MBOX_BASE + RES_INVALID_INPUT_PARAM);
+-
+-	/* read the is full status parameter for Mailbox */
+-	fullStatus = MLBMAILBOX_FIFOSTATUS___0_15FifoFullMBmRead32(baseAddress,
++	return MLBMAILBOX_FIFOSTATUS___0_15FifoFullMBmRead32(baseAddress,
+ 							(u32)mailBoxId);
+-
+-	/* fill in return parameter */
+-	*pIsFull = (fullStatus & 0xFF);
+-
+-	return status;
+ }
+ 
+ /* Gets number of messages in a specified mailbox. */
+diff --git a/drivers/dsp/bridge/hw/hw_mbox.h b/drivers/dsp/bridge/hw/hw_mbox.h
+index 225fb40..50a3746
+--- a/drivers/dsp/bridge/hw/hw_mbox.h
++++ b/drivers/dsp/bridge/hw/hw_mbox.h
+@@ -158,11 +158,9 @@ extern HW_STATUS HW_MBOX_MsgWrite(
+ *
+ * PURPOSE:      : this function reads the full status register for mailbox.
+ */
+-extern HW_STATUS HW_MBOX_IsFull(
++extern inline bool HW_MBOX_IsFull(
+ 		      const u32	 baseAddress,
+-		      const HW_MBOX_Id_t   mailBoxId,
+-		      u32 *const	pIsFull
+-		  );
++		      const HW_MBOX_Id_t   mailBoxId);
+ 
+ /*
+ * FUNCTION      : HW_MBOX_NumMsgGet
+diff --git a/drivers/dsp/bridge/wmd/tiomap_sm.c b/drivers/dsp/bridge/wmd/tiomap_sm.c
+index edc3bcf..2843788
+--- a/drivers/dsp/bridge/wmd/tiomap_sm.c
++++ b/drivers/dsp/bridge/wmd/tiomap_sm.c
+@@ -178,9 +178,8 @@ DSP_STATUS CHNLSM_InterruptDSP(struct WMD_DEV_CONTEXT *hDevContext)
+ #endif
+ #endif
+ 	HW_STATUS hwStatus;
+-	u32 mbxFull;
+ 	struct CFG_HOSTRES resources;
+-	u16 cnt = 10;
++	u16 cnt = 1000;
+ 	u32 temp;
+ 	/* We are waiting indefinitely here. This needs to be fixed in the
+ 	 * second phase */
+@@ -241,14 +240,9 @@ DSP_STATUS CHNLSM_InterruptDSP(struct WMD_DEV_CONTEXT *hDevContext)
+ 
+ 		pDevContext->dwBrdState = BRD_RUNNING;
+ 	}
+-	while (--cnt) {
+-		hwStatus = HW_MBOX_IsFull(resources.dwMboxBase,
+-					   MBOX_ARM2DSP, &mbxFull);
+-		if (mbxFull)
+-			UTIL_Wait(1000);	/* wait for 1 ms)      */
+-		else
+-			break;
+-	}
++	while (--cnt && HW_MBOX_IsFull(resources.dwMboxBase, MBOX_ARM2DSP))
++		udelay(1);
++
+ 	if (!cnt) {
+ 		DBG_Trace(DBG_LEVEL7, "Timed out waiting for DSP mailbox \n");
+ 		status = WMD_E_TIMEOUT;
 -- 
-balbi
-
+1.5.6.4
