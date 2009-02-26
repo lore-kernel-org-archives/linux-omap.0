@@ -1,162 +1,58 @@
-From: "Kanigeri, Hari" <h-kanigeri2@ti.com>
-Subject: RE: [PATCH][OMAPZOOM] DSPBRIDGE: Remove unnecessary checks in
- HW_MBOX_IsFull function
-Date: Wed, 25 Feb 2009 18:07:38 -0600
-Message-ID: <8F7AF80515AF0D4D93307E594F3CB40E22D737CB@dlee03.ent.ti.com>
-References: <496565EC904933469F292DDA3F1663E602877519D3@dlee06.ent.ti.com>
+From: Felipe Balbi <me-uiRdBs8odbtmTBlB0Cgj/Q@public.gmane.org>
+Subject: Re: [PATCH 2/2] twl: usb: Add the resume() and suspend() methods
+	to twl4030-usb.c (re)
+Date: Thu, 26 Feb 2009 02:12:20 +0200
+Message-ID: <20090226001219.GJ4639@gandalf>
+References: <4d34a0a70902250355q4b8c54e4rc9bbc1f40539e486@mail.gmail.com> <49A5DA3E.6040608@samsung.com>
+Reply-To: me-uiRdBs8odbtmTBlB0Cgj/Q@public.gmane.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:33763 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1763624AbZBZAHr convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 25 Feb 2009 19:07:47 -0500
-Received: from dlep95.itg.ti.com ([157.170.170.107])
-	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id n1Q07eKh004777
-	for <linux-omap@vger.kernel.org>; Wed, 25 Feb 2009 18:07:45 -0600
-Received: from dlee75.ent.ti.com (localhost [127.0.0.1])
-	by dlep95.itg.ti.com (8.13.8/8.13.8) with ESMTP id n1Q07ef9025528
-	for <linux-omap@vger.kernel.org>; Wed, 25 Feb 2009 18:07:40 -0600 (CST)
-In-Reply-To: <496565EC904933469F292DDA3F1663E602877519D3@dlee06.ent.ti.com>
-Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <49A5DA3E.6040608-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Minkyu Kang <mk7.kang-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>
+Cc: Kim Kyuwon <chammoru-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, me-uiRdBs8odbtmTBlB0Cgj/Q@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, OMAP <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, David Brownell <david-b-yBeKhBN/0LDR7s880joybQ@public.gmane.org>, q1.kim-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: "Guzman Lugo, Fernando" <x0095840@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Fernando,
-
-
-I think you are missing the CHNLSM_InterruptDSP() function changes from Felipe patch; ie. To wait less.
-
-
-Thank you,
-Best regards,
-Hari
-
-> -----Original Message-----
-> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
-> owner@vger.kernel.org] On Behalf Of Guzman Lugo, Fernando
-> Sent: Wednesday, February 25, 2009 5:58 PM
-> To: linux-omap@vger.kernel.org
-> Subject: [PATCH][OMAPZOOM] DSPBRIDGE: Remove unnecessary checks in
-> HW_MBOX_IsFull function
+On Thu, Feb 26, 2009 at 08:54:38AM +0900, Minkyu Kang wrote:
+> The MPU module can be waked up by the unexpected USB
+> interrupt(HSUSB_MC_NINT). For instance, if the MUSB is working as
+> peripheral mode and connected to a host PC, it can never enter the low
+> power mode due to interrupts from the host PC. This patch added the
+> feature that a board specific file can determines that TWL4030
+> supplies the USB power or not in the low power mode. Disabling the USB
+> power may save the power consumption.
 > 
-> 
-> Hi,
-> 
-> 	This patch removes unncessary checks in HW_MBOX_IsFull this patch is
-> base on the previous patch that Felipe Contreras sent.
-> 
-> Regards,
-> Fernando.
-> 
-> From: Fernando Guzman Lugo <x0095840@ti.com>
-> Date: Wed, 25 Feb 2009 17:48:01 -0600
-> Subject: [PATCH] DSPBRIDGE: Remove unnecessary checks in HW_MBOX_IsFull
-> function
-> 
-> This patch removes some unnecessary checks in HW_MBOX_IsFull
-> function
-> Signed-off-by: Guzman Lugo Fernando <x0095840@ti.com>
+> Signed-off-by: Minkyu Kang <mk7.kang-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>
+> Signed-off-by: Kim Kyuwon <chammoru-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 > ---
->  drivers/dsp/bridge/hw/hw_mbox.c    |   22 ++--------------------
->  drivers/dsp/bridge/hw/hw_mbox.h    |    6 ++----
->  drivers/dsp/bridge/wmd/tiomap_sm.c |    6 +++---
->  3 files changed, 7 insertions(+), 27 deletions(-)
+>  drivers/usb/otg/twl4030-usb.c |   25 +++++++++++++++++++++++++
+>  include/linux/i2c/twl4030.h   |    1 +
+>  2 files changed, 26 insertions(+), 0 deletions(-)
 > 
-> diff --git a/drivers/dsp/bridge/hw/hw_mbox.c
-> b/drivers/dsp/bridge/hw/hw_mbox.c
-> index bc61d64..0f9e5a7
-> --- a/drivers/dsp/bridge/hw/hw_mbox.c
-> +++ b/drivers/dsp/bridge/hw/hw_mbox.c
-> @@ -105,28 +105,10 @@ HW_STATUS HW_MBOX_MsgWrite(const u32 baseAddress,
-> const HW_MBOX_Id_t mailBoxId,
->  }
-> 
->  /* Reads the full status register for mailbox. */
-> -HW_STATUS HW_MBOX_IsFull(const u32 baseAddress, const HW_MBOX_Id_t
-> mailBoxId,
-> -			u32 *const pIsFull)
-> +bool HW_MBOX_IsFull(const u32 baseAddress, const HW_MBOX_Id_t mailBoxId)
->  {
-> -	HW_STATUS status = RET_OK;
-> -	u32 fullStatus;
-> -
-> -	/* Check input parameters */
-> -	CHECK_INPUT_PARAM(baseAddress, 0, RET_BAD_NULL_PARAM, RES_MBOX_BASE
-> +
-> -			RES_INVALID_INPUT_PARAM);
-> -	CHECK_INPUT_PARAM(pIsFull,  NULL, RET_BAD_NULL_PARAM, RES_MBOX_BASE
-> +
-> -			RES_INVALID_INPUT_PARAM);
-> -	CHECK_INPUT_RANGE_MIN0(mailBoxId, HW_MBOX_ID_MAX, RET_INVALID_ID,
-> -			RES_MBOX_BASE + RES_INVALID_INPUT_PARAM);
-> -
-> -	/* read the is full status parameter for Mailbox */
-> -	fullStatus =
-> MLBMAILBOX_FIFOSTATUS___0_15FifoFullMBmRead32(baseAddress,
-> +	return MLBMAILBOX_FIFOSTATUS___0_15FifoFullMBmRead32(baseAddress,
->  							(u32)mailBoxId);
-> -
-> -	/* fill in return parameter */
-> -	*pIsFull = (fullStatus & 0xFF);
-> -
-> -	return status;
->  }
-> 
->  /* Gets number of messages in a specified mailbox. */
-> diff --git a/drivers/dsp/bridge/hw/hw_mbox.h
-> b/drivers/dsp/bridge/hw/hw_mbox.h
-> index 225fb40..e70305d
-> --- a/drivers/dsp/bridge/hw/hw_mbox.h
-> +++ b/drivers/dsp/bridge/hw/hw_mbox.h
-> @@ -158,11 +158,9 @@ extern HW_STATUS HW_MBOX_MsgWrite(
->  *
->  * PURPOSE:      : this function reads the full status register for
-> mailbox.
->  */
-> -extern HW_STATUS HW_MBOX_IsFull(
-> +extern bool HW_MBOX_IsFull(
->  		      const u32	 baseAddress,
-> -		      const HW_MBOX_Id_t   mailBoxId,
-> -		      u32 *const	pIsFull
-> -		  );
-> +		      const HW_MBOX_Id_t   mailBoxId);
-> 
->  /*
->  * FUNCTION      : HW_MBOX_NumMsgGet
-> diff --git a/drivers/dsp/bridge/wmd/tiomap_sm.c
-> b/drivers/dsp/bridge/wmd/tiomap_sm.c
-> index edc3bcf..7acb4f8
-> --- a/drivers/dsp/bridge/wmd/tiomap_sm.c
-> +++ b/drivers/dsp/bridge/wmd/tiomap_sm.c
-> @@ -178,7 +178,7 @@ DSP_STATUS CHNLSM_InterruptDSP(struct WMD_DEV_CONTEXT
-> *hDevContext)
->  #endif
->  #endif
->  	HW_STATUS hwStatus;
-> -	u32 mbxFull;
-> +	bool mbxFull;
->  	struct CFG_HOSTRES resources;
->  	u16 cnt = 10;
->  	u32 temp;
-> @@ -242,8 +242,8 @@ DSP_STATUS CHNLSM_InterruptDSP(struct WMD_DEV_CONTEXT
-> *hDevContext)
->  		pDevContext->dwBrdState = BRD_RUNNING;
->  	}
->  	while (--cnt) {
-> -		hwStatus = HW_MBOX_IsFull(resources.dwMboxBase,
-> -					   MBOX_ARM2DSP, &mbxFull);
-> +		mbxFull = HW_MBOX_IsFull(resources.dwMboxBase,
-> +					   MBOX_ARM2DSP);
->  		if (mbxFull)
->  			UTIL_Wait(1000);	/* wait for 1 ms)      */
->  		else
-> --
-> 1.5.6.4
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> diff --git a/drivers/usb/otg/twl4030-usb.c b/drivers/usb/otg/twl4030-usb.c
+> index 416e441..b725be2 100644
+> --- a/drivers/usb/otg/twl4030-usb.c
+> +++ b/drivers/usb/otg/twl4030-usb.c
+> @@ -256,6 +256,7 @@ struct twl4030_usb {
+>  	u8			linkstat;
+>  	u8			asleep;
+>  	bool			irq_enabled;
+> +	bool			suspend_enabled;
 
+before we ack it and let it go through, could you please explain a bit
+more the necessity of this ?
+
+I mean, what you're doing here is that you would allow twl4030 to enter
+low power mode even though we're connected to host side, meaning we
+would never get awaken by the host side, right ?
+
+Is that really wanted ? I mean, how would you then wake the device ?
+
+-- 
+balbi
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
