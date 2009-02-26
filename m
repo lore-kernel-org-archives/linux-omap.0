@@ -1,42 +1,34 @@
-From: Mark Brown <broonie@sirena.org.uk>
-Subject: Re: [patch/rfc 2.6.29-rc6 1/2] regulator: enumerate voltages
-Date: Thu, 26 Feb 2009 11:05:10 +0000
-Message-ID: <20090226110509.GB4229@sirena.org.uk>
-References: <200902081037.06645.david-b@pacbell.net> <200902251412.26855.david-b@pacbell.net> <20090225230123.GA5715@sirena.org.uk> <200902251547.53256.david-b@pacbell.net>
+From: Girish Borse <rkborse@gmail.com>
+Subject: git link for CPU IDLE linux-omap-pm
+Date: Thu, 26 Feb 2009 17:20:21 +0530
+Message-ID: <ab5d14af0902260350w42fdd002h2947f67358fc9627@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from cassiel.sirena.org.uk ([80.68.93.111]:2087 "EHLO
-	cassiel.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751300AbZBZLFN (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 26 Feb 2009 06:05:13 -0500
-Content-Disposition: inline
-In-Reply-To: <200902251547.53256.david-b@pacbell.net>
+Received: from wf-out-1314.google.com ([209.85.200.171]:19419 "EHLO
+	wf-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751929AbZBZLuX convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 26 Feb 2009 06:50:23 -0500
+Received: by wf-out-1314.google.com with SMTP id 28so589059wfa.4
+        for <linux-omap@vger.kernel.org>; Thu, 26 Feb 2009 03:50:21 -0800 (PST)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: David Brownell <david-b@pacbell.net>
-Cc: Liam Girdwood <lrg@slimlogic.co.uk>, lkml <linux-kernel@vger.kernel.org>, OMAP <linux-omap@vger.kernel.org>
+To: linux-omap@vger.kernel.org
 
-On Wed, Feb 25, 2009 at 03:47:52PM -0800, David Brownell wrote:
-> On Wednesday 25 February 2009, Mark Brown wrote:
+Hi,
+  I searched for cpuidle patches for OMAP 3, i found many patches but
+could not find   any git link to download the omap kernel in which all
+the cpuidle patches are applied .
+Can someone please provide me the git link to download the latest
+kernel in which all cpuidle patches are applied .
 
-> In terms of the consumer interface, not -- "struct regulator"
-> is opaque to consumers, and everything is a functional accessor.
-> So I'll leave that as-is.
 
-Yes, obviously.
 
-> > At present only continous ranges are possible, though. ?I can't think of
-> > any systems I've seen that'd want discontinous constraints, though I'm
-> > sure there are some.
-
-> Consider a regulator where voltage selectors 0..3 correspond to
-> voltages
-
-> 	{ 3.3V, 1.8V, 4.2V, 5.0V }
-
-> With machine constraints that say voltages go from 3V to 4.5V ...
-
-Continuous ranges of voltages, not continous indexes.  The indexes are
-meaningless.  At the minute consumers and machines always supply
-constraints as min,max pairs.
+=A0=A0=A0 Thanks
+=A0=A0=A0 --Girish
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
