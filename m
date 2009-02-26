@@ -1,79 +1,58 @@
 From: Dominic Curran <dcurran@ti.com>
-Subject: [OMAPZOOM][PATCH 0/3] ISP: Component order
-Date: Thu, 26 Feb 2009 16:39:38 -0600
-Message-ID: <200902261639.38890.dcurran@ti.com>
+Subject: [OMAPZOOM][PATCH 1/3] ISP: Remove hardcoding of CCDC input offset.
+Date: Thu, 26 Feb 2009 16:39:45 -0600
+Message-ID: <200902261639.45623.dcurran@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
   charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:47967 "EHLO bear.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:44270 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750892AbZBZWjr (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 26 Feb 2009 17:39:47 -0500
+	id S1753844AbZBZWjw (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 26 Feb 2009 17:39:52 -0500
 Received: from dlep34.itg.ti.com ([157.170.170.115])
-	by bear.ext.ti.com (8.13.7/8.13.7) with ESMTP id n1QMde95007192
-	for <linux-omap@vger.kernel.org>; Thu, 26 Feb 2009 16:39:45 -0600
+	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id n1QMdkiT005978
+	for <linux-omap@vger.kernel.org>; Thu, 26 Feb 2009 16:39:51 -0600
 Received: from gromit.am.dhcp.ti.com (localhost [127.0.0.1])
-	by dlep34.itg.ti.com (8.13.7/8.13.7) with ESMTP id n1QMde0D021542
-	for <linux-omap@vger.kernel.org>; Thu, 26 Feb 2009 16:39:40 -0600 (CST)
+	by dlep34.itg.ti.com (8.13.7/8.13.7) with ESMTP id n1QMdjr3021564
+	for <linux-omap@vger.kernel.org>; Thu, 26 Feb 2009 16:39:45 -0600 (CST)
 Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap <linux-omap@vger.kernel.org>
 
 From: Dominic Curran <dcurran@ti.com>
-Subject:[OMAPZOOM][PATCH 0/3] ISP: Component order
+Subject: [OMAPZOOM][PATCH 1/3] ISP: Remove hardcoding of CCDC input offset.
 
-The RAW10 component order for all three sensors I test with (MT9P012, OV3640 & 
-IMX046) is different.  This patch set uses different horz/vert offsets in CCDC 
-so that the output RAW component order is the same for all sensors.
+The Sony IMX046 patch set introduced a bug when setting CCDC input offsets.
+The Sony patch set the horz & vert offsets to 0.
+This worked from the Sony IMX046, but broke settings for other sensors like 
+MT9P012 & OV3640.
+The reason is that all three sensors send their data with different component 
+orders.
 
-Currently sph and slv in the board file (for MT & OV) are used to fix component 
-order in Previewer. However this approach doesn't work for the Sony IMX046 
-sensor.
-This patch causes the component order output of CCDC to be the same for all 
-sensors.  Since the order is the same going into Previewer this means that there 
-is not need for sph and slv to change per sensor.
+The effect was to mess up colours in previewer module for MT9P012 & OV3640.
+This patch reverts that bug.
 
-                     woffset    hoffset      RAW10 test     YUV test
-MT9P012    GR..BG      1          0            OK             OK
-IMX046     RG..GB      0          0            OK             OK
-OV3640     BG..GR      1          1            OK             OK
+The other patches in this set will provide a better way of setting these offsets, 
+thus allowing easy setup for any type kind of incoming componenet order.
 
-Patch:
-1/3  Removes original bug introduced with IMX046 patch.
-2/3  Changes in CCDC to all easy setup of component order in board file.
-3/3  Remove no longer needed prev_sph & prev_slv from boad file. 
+Signed-off-by: Dominic Curran <dcurran@ti.com>
+---
+ drivers/media/video/isp/ispccdc.c |    2 --
+ 1 file changed, 2 deletions(-)
 
-Testing:
-The following tests have been run using this patch set [x = working]:
-(Test apps below are internal TI tools which test basic V4L2 functions)
-
-IMX046	streaming 3 YUYV QVGA 1 500             x
-	streaming 3 YUYV VGA 1 500              x
-	streaming 3 YUYV 208 154 1 500          x
-	streaming 3 YUYV 854 480 1 500          x
-	fps 3 YUYV 640 480 200                 30fps
-	fps 3 YUYV 3280 2464 100               7.5fps
-	burst_mode 3 YUYV 816 616 1 file.yuv    x
-	burst_mode 3 YUYV 3280 2464 1 file.yuv  x
-	burst_mode 3 RAW10 3280 616 1 file.raw  x (h)
-		
-MT9P012	./streaming_frame 1 15 YUYV QVGA 1 200  x
-	./streaming_frame 1 30 YUYV QVGA 1 200  x
-	./streaming_frame 1 15 YUYV VGA 1 200   x
-	./streaming_frame 1 30 YUYV VGA 1 200   x
-	burst_mode 1 YUYV 5MP 1 file.yuv        x
-	burst_mode 1 RAW10 5MP 1 file.raw       x (h)
-	streaming_zoom 1 YUYV VGA               x
-		
-		
-OV3640	streaming 2 YUYV 256 192 1 300          x
-	streaming 2 YUYV QVGA 1 300             x
-	streaming 2 YUYV VGA 1 300              x
-	burst_mode 2 YUYV XGA 1 file.yuv        x
-	burst_mode 2 YUYV QXGA 1 file.yuv       x
-	burst_mode 2 RAW10 QXGA 1 file.raw      x (h)
-	fps 2 YUYV VGA 200                      30fps
-	fps 2 YUYV QXGA 100 15                  15fps
+Index: omapzoom04/drivers/media/video/isp/ispccdc.c
+===================================================================
+--- omapzoom04.orig/drivers/media/video/isp/ispccdc.c
++++ omapzoom04/drivers/media/video/isp/ispccdc.c
+@@ -1265,8 +1265,6 @@ int ispccdc_config_size(u32 input_w, u32
+ 	}
+ 
+ 	if (ispccdc_obj.ccdc_outfmt == CCDC_OTHERS_VP) {
+-		ispccdc_obj.ccdcin_woffset = 0;
+-		ispccdc_obj.ccdcin_hoffset = 0;
+ 		omap_writel((ispccdc_obj.ccdcin_woffset <<
+ 					ISPCCDC_FMT_HORZ_FMTSPH_SHIFT) |
+ 					(ispccdc_obj.ccdcin_w <<
