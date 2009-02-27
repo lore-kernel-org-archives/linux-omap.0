@@ -1,16 +1,17 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 09/13] ARM: OMAP: No need to include board-h4.h from hardware.h
-Date: Thu, 26 Feb 2009 16:03:49 -0800
-Message-ID: <20090227000349.20192.48414.stgit@localhost>
+Subject: [PATCH 10/13] ARM: OMAP: No need to include board-ldp.h from
+	hardware.h
+Date: Thu, 26 Feb 2009 16:05:06 -0800
+Message-ID: <20090227000506.20192.69112.stgit@localhost>
 References: <20090226235042.20192.38338.stgit@localhost>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-bos.mailhop.org ([63.208.196.178]:57157 "EHLO
+Received: from mho-01-bos.mailhop.org ([63.208.196.178]:58318 "EHLO
 	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753623AbZB0ADx (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 26 Feb 2009 19:03:53 -0500
+	with ESMTP id S1753768AbZB0AFK (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 26 Feb 2009 19:05:10 -0500
 In-Reply-To: <20090226235042.20192.38338.stgit@localhost>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
@@ -19,50 +20,59 @@ Cc: linux-omap@vger.kernel.org
 
 Move the defines to the associated board file and remove
 the now unnecessary header file. Also rename
-OMAP24XX_ETHR_GPIO_IRQ to H4_ETHR_GPIO_IRQ.
+OMAP34XX_ETHR_START to LDP_ETHR_START.
 
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
- arch/arm/mach-omap2/board-h4.c             |    4 ++-
- arch/arm/plat-omap/include/mach/board-h4.h |   38 ----------------------------
- arch/arm/plat-omap/include/mach/hardware.h |    4 ---
- 3 files changed, 3 insertions(+), 43 deletions(-)
- delete mode 100644 arch/arm/plat-omap/include/mach/board-h4.h
+ arch/arm/mach-omap2/board-ldp.c             |   10 ++++---
+ arch/arm/plat-omap/include/mach/board-ldp.h |   39 ---------------------------
+ arch/arm/plat-omap/include/mach/hardware.h  |    4 ---
+ 3 files changed, 6 insertions(+), 47 deletions(-)
+ delete mode 100644 arch/arm/plat-omap/include/mach/board-ldp.h
 
-diff --git a/arch/arm/mach-omap2/board-h4.c b/arch/arm/mach-omap2/board-h4.c
-index 5e9b146..7122697 100644
---- a/arch/arm/mach-omap2/board-h4.c
-+++ b/arch/arm/mach-omap2/board-h4.c
-@@ -47,6 +47,8 @@
- #define H4_FLASH_CS	0
- #define H4_SMC91X_CS	1
+diff --git a/arch/arm/mach-omap2/board-ldp.c b/arch/arm/mach-omap2/board-ldp.c
+index f6a1345..33112a2 100644
+--- a/arch/arm/mach-omap2/board-ldp.c
++++ b/arch/arm/mach-omap2/board-ldp.c
+@@ -28,7 +28,6 @@
+ #include <asm/mach/arch.h>
+ #include <asm/mach/map.h>
  
-+#define H4_ETHR_GPIO_IRQ		92
-+
- static unsigned int row_gpios[6] = { 88, 89, 124, 11, 6, 96 };
- static unsigned int col_gpios[7] = { 90, 91, 100, 36, 12, 97, 98 };
+-#include <mach/board-ldp.h>
+ #include <mach/mcspi.h>
+ #include <mach/gpio.h>
+ #include <mach/board.h>
+@@ -41,12 +40,15 @@
  
-@@ -341,7 +343,7 @@ static inline void __init h4_init_debug(void)
- 	udelay(100);
+ #include "mmc-twl4030.h"
  
- 	omap_cfg_reg(M15_24XX_GPIO92);
--	if (debug_card_init(cs_mem_base, OMAP24XX_ETHR_GPIO_IRQ) < 0)
-+	if (debug_card_init(cs_mem_base, H4_ETHR_GPIO_IRQ) < 0)
- 		gpmc_cs_free(eth_cs);
+-#define SDP3430_SMC91X_CS	3
++#define LDP_SMC911X_CS		1
++#define LDP_SMC911X_GPIO	152
++#define DEBUG_BASE		0x08000000
++#define LDP_ETHR_START		DEBUG_BASE
  
- out:
-diff --git a/arch/arm/plat-omap/include/mach/board-h4.h b/arch/arm/plat-omap/include/mach/board-h4.h
+ static struct resource ldp_smc911x_resources[] = {
+ 	[0] = {
+-		.start	= OMAP34XX_ETHR_START,
+-		.end	= OMAP34XX_ETHR_START + SZ_4K,
++		.start	= LDP_ETHR_START,
++		.end	= LDP_ETHR_START + SZ_4K,
+ 		.flags	= IORESOURCE_MEM,
+ 	},
+ 	[1] = {
+diff --git a/arch/arm/plat-omap/include/mach/board-ldp.h b/arch/arm/plat-omap/include/mach/board-ldp.h
 deleted file mode 100644
-index 7c3fa0f..0000000
---- a/arch/arm/plat-omap/include/mach/board-h4.h
+index f233996..0000000
+--- a/arch/arm/plat-omap/include/mach/board-ldp.h
 +++ /dev/null
-@@ -1,38 +0,0 @@
+@@ -1,39 +0,0 @@
 -/*
-- * arch/arm/plat-omap/include/mach/board-h4.h
+- * arch/arm/plat-omap/include/mach/board-ldp.h
 - *
-- * Hardware definitions for TI OMAP2420 H4 board.
+- * Hardware definitions for TI OMAP3 LDP.
 - *
-- * Initial creation by Dirk Behme <dirk.behme@de.bosch.com>
+- * Copyright (C) 2008 Texas Instruments Inc.
 - *
 - * This program is free software; you can redistribute it and/or modify it
 - * under the terms of the GNU General Public License as published by the
@@ -85,29 +95,30 @@ index 7c3fa0f..0000000
 - * 675 Mass Ave, Cambridge, MA 02139, USA.
 - */
 -
--#ifndef __ASM_ARCH_OMAP_H4_H
--#define __ASM_ARCH_OMAP_H4_H
+-#ifndef __ASM_ARCH_OMAP_LDP_H
+-#define __ASM_ARCH_OMAP_LDP_H
 -
--/* MMC Prototypes */
--extern void h4_mmc_init(void);
+-extern void twl4030_bci_battery_init(void);
 -
--/* Placeholder for H4 specific defines */
--#define OMAP24XX_ETHR_GPIO_IRQ		92
--#endif /*  __ASM_ARCH_OMAP_H4_H */
--
+-#define TWL4030_IRQNUM		INT_34XX_SYS_NIRQ
+-#define LDP_SMC911X_CS         1
+-#define LDP_SMC911X_GPIO       152
+-#define DEBUG_BASE             0x08000000
+-#define OMAP34XX_ETHR_START    DEBUG_BASE
+-#endif /* __ASM_ARCH_OMAP_LDP_H */
 diff --git a/arch/arm/plat-omap/include/mach/hardware.h b/arch/arm/plat-omap/include/mach/hardware.h
-index 26f14f7..85f02b6 100644
+index 85f02b6..bba9498 100644
 --- a/arch/arm/plat-omap/include/mach/hardware.h
 +++ b/arch/arm/plat-omap/include/mach/hardware.h
-@@ -294,10 +294,6 @@
-  * ---------------------------------------------------------------------------
-  */
+@@ -298,10 +298,6 @@
+ #include "board-omap3beagle.h"
+ #endif
  
--#ifdef CONFIG_MACH_OMAP_H4
--#include "board-h4.h"
+-#ifdef CONFIG_MACH_OMAP_LDP
+-#include "board-ldp.h"
 -#endif
 -
- #ifdef CONFIG_MACH_OMAP3_BEAGLE
- #include "board-omap3beagle.h"
+ #ifdef CONFIG_MACH_VOICEBLUE
+ #include "board-voiceblue.h"
  #endif
 
