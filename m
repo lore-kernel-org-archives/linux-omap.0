@@ -1,40 +1,56 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 2/2] twl4030: move twl4030-pwrbutton to
-	drivers/input/misc
-Date: Fri, 27 Feb 2009 13:20:45 -0800
-Message-ID: <20090227212044.GL11594@atomide.com>
-References: <1235050197-26818-1-git-send-email-me@felipebalbi.com> <1235050197-26818-2-git-send-email-me@felipebalbi.com> <1235050197-26818-3-git-send-email-me@felipebalbi.com> <200902191208.45851.david-b@pacbell.net> <20090219203030.GF20723@frodo> <20090225210546.GC4639@gandalf> <20090227184445.GJ11594@atomide.com> <20090227193112.GJ16801@frodo> <20090227194916.GK11594@atomide.com> <20090227200034.GK16801@frodo>
+From: Liam Girdwood <lrg@slimlogic.co.uk>
+Subject: Re: [patch/rfc 2.6.29-rc6 2/2] regulator: twl4030 voltage
+ enumeration (v2)
+Date: Fri, 27 Feb 2009 21:26:33 +0000
+Message-ID: <1235769993.31223.165.camel@vega.slimlogic.co.uk>
+References: <200902081037.06645.david-b@pacbell.net>
+	 <200902261602.58832.david-b@pacbell.net>
+	 <1235737930.31223.117.camel@vega.slimlogic.co.uk>
+	 <200902271239.44558.david-b@pacbell.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-bos.mailhop.org ([63.208.196.178]:64744 "EHLO
-	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758664AbZB0VUw (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 27 Feb 2009 16:20:52 -0500
-Content-Disposition: inline
-In-Reply-To: <20090227200034.GK16801@frodo>
+Received: from slimlogic.co.uk ([89.16.172.20]:36636 "EHLO slimlogic.co.uk"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1758748AbZB0V0j (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 27 Feb 2009 16:26:39 -0500
+In-Reply-To: <200902271239.44558.david-b@pacbell.net>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Balbi <me@felipebalbi.com>
-Cc: David Brownell <david-b@pacbell.net>, linux-omap@vger.kernel.org, Samuel Ortiz <sameo@openedhand.com>
+To: David Brownell <david-b@pacbell.net>
+Cc: Mark Brown <broonie@sirena.org.uk>, lkml <linux-kernel@vger.kernel.org>, OMAP <linux-omap@vger.kernel.org>
 
-* Felipe Balbi <me@felipebalbi.com> [090227 12:00]:
-> On Fri, Feb 27, 2009 at 11:49:17AM -0800, Tony Lindgren wrote:
-> > * Felipe Balbi <me@felipebalbi.com> [090227 11:31]:
-> > > On Fri, Feb 27, 2009 at 10:44:45AM -0800, Tony Lindgren wrote:
-> > > > OK, pushed. These are currently also scheduled for getting reset to
-> > > > mainline twl code after v2.6.29-omap1 is tagged.
-> > > 
-> > > Just pushed to lkml, there will be one discrepancy with a debugging
-> > > message easily fixable in a merge if you just use mainline's version, or
-> > > I can send a fixup patch, if you wish.
-> > 
-> > Well if you can send the patch, then that would be easiest. Patching
-> > based on the description usually cause something to go wrong :)
+On Fri, 2009-02-27 at 12:39 -0800, David Brownell wrote:
+> On Friday 27 February 2009, Liam Girdwood wrote:
+
+> > Sorry, this didn't apply. It looks like I'm missing an earlier patch(s)
+> > here. Could you regenerate this and your core patch against latest
+> > for-next.
 > 
-> Let's then wait a bit longer and see if Sam or Dmitry will have anything
-> to say about the driver, after that I can send one patch only.
+> The regulator -next tree seems to be missing a bunch of stuff...
+> I generated this patch against a "twl4030-regulator.c" which I
+> extracted *from that tree* yesterday.  But today it's different.
+> 
+> In this case, the current code doesn't have the $SUBJECT patch,
+> which at that time you had applied.  But it does have a small
+> snippet from that "minor patch"...
+> 
+> 
+> Color me confused.  Are you asking for a "v3" of $SUBJECT, or
+> is the "v2" going to re-appear? 
 
-OK
+Applied the "v2".
 
-Tony
+>  And when will that -next tree
+> acquire the rest of
+> 
+>  http://marc.info/?l=linux-kernel&m=123567791402469&w=2
+> 
+
+Applied and re-based this one into original patch.
+
+Thanks
+
+Liam
+
