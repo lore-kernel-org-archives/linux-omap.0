@@ -1,31 +1,35 @@
-From: Felipe Balbi <me@felipebalbi.com>
-Subject: Re: [PATCH 2/2] twl4030: move twl4030-pwrbutton to
-	drivers/input/misc
-Date: Fri, 27 Feb 2009 21:31:12 +0200
-Message-ID: <20090227193112.GJ16801@frodo>
-References: <1235050197-26818-1-git-send-email-me@felipebalbi.com> <1235050197-26818-2-git-send-email-me@felipebalbi.com> <1235050197-26818-3-git-send-email-me@felipebalbi.com> <200902191208.45851.david-b@pacbell.net> <20090219203030.GF20723@frodo> <20090225210546.GC4639@gandalf> <20090227184445.GJ11594@atomide.com>
-Reply-To: me@felipebalbi.com
+From: Tony Lindgren <tony@atomide.com>
+Subject: [APPLIED] <span class="quote">> [PATCH] OMAP: sDMA: DMA channel reservation using bootargs</span>
+Date: Fri, 27 Feb 2009 14:37:57 -0500
+Message-ID: <notify-1235763472@atomide.com>
+References: <EAF47CD23C76F840A9E7FCE10091EFAB02A3E3D868@dbde02.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ns1.siteground211.com ([209.62.36.12]:40013 "EHLO
-	serv01.siteground211.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753868AbZB0TbU (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 27 Feb 2009 14:31:20 -0500
+Received: from mho-01-bos.mailhop.org ([63.208.196.178]:52276 "EHLO
+	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752142AbZB0Th5 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 27 Feb 2009 14:37:57 -0500
+Received: from c-69-181-40-92.hsd1.ca.comcast.net ([69.181.40.92] helo=localhost.localdomain)
+	by mho-01-bos.mailhop.org with esmtpa (Exim 4.68)
+	(envelope-from <tony@atomide.com>)
+	id 1Ld8Wv-000GJB-E4
+	for linux-omap@vger.kernel.org; Fri, 27 Feb 2009 19:37:54 +0000
+In-Reply-To: <EAF47CD23C76F840A9E7FCE10091EFAB02A3E3D868@dbde02.ent.ti.com>
 Content-Disposition: inline
-In-Reply-To: <20090227184445.GJ11594@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Felipe Balbi <me@felipebalbi.com>, David Brownell <david-b@pacbell.net>, linux-omap@vger.kernel.org, Samuel Ortiz <sameo@openedhand.com>
+To: linux-omap@vger.kernel.org
 
-On Fri, Feb 27, 2009 at 10:44:45AM -0800, Tony Lindgren wrote:
-> OK, pushed. These are currently also scheduled for getting reset to
-> mainline twl code after v2.6.29-omap1 is tagged.
+This patch has been applied to the linux-omap
+by youw fwiendly patch wobot.
 
-Just pushed to lkml, there will be one discrepancy with a debugging
-message easily fixable in a merge if you just use mainline's version, or
-I can send a fixup patch, if you wish.
+Commit: c94500eeeafe4b66c690abd96044340b2e5372e7
 
--- 
-balbi
+PatchWorks
+http://patchwork.kernel.org/patch/5360/
+
+Git
+http://git.kernel.org/?p=linux/kernel/git/tmlind/linux-omap-2.6.git;a=commit;h=c94500eeeafe4b66c690abd96044340b2e5372e7
+
+
