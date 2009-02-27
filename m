@@ -1,111 +1,128 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 08/13] ARM: OMAP: No need to include board-apollon.h from
-	hardware.h
-Date: Thu, 26 Feb 2009 16:02:32 -0800
-Message-ID: <20090227000232.20192.86136.stgit@localhost>
-References: <20090226235042.20192.38338.stgit@localhost>
+From: David Brownell <david-b@pacbell.net>
+Subject: Re: [patch/rfc 2.6.29-rc6 2/2] regulator: twl4030 voltage enumeration (v2)
+Date: Thu, 26 Feb 2009 16:02:58 -0800
+Message-ID: <200902261602.58832.david-b@pacbell.net>
+References: <200902081037.06645.david-b@pacbell.net> <200902261150.15125.david-b@pacbell.net> <1235686618.31223.107.camel@vega.slimlogic.co.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-bos.mailhop.org ([63.208.196.178]:55924 "EHLO
-	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753091AbZB0ACg (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 26 Feb 2009 19:02:36 -0500
-In-Reply-To: <20090226235042.20192.38338.stgit@localhost>
+Received: from n30.bullet.mail.mud.yahoo.com ([68.142.207.49]:41319 "HELO
+	n30.bullet.mail.mud.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1754935AbZB0ADK (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Thu, 26 Feb 2009 19:03:10 -0500
+In-Reply-To: <1235686618.31223.107.camel@vega.slimlogic.co.uk>
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-arm-kernel@lists.arm.linux.org.uk
-Cc: linux-omap@vger.kernel.org
+To: Liam Girdwood <lrg@slimlogic.co.uk>
+Cc: Mark Brown <broonie@sirena.org.uk>, lkml <linux-kernel@vger.kernel.org>, OMAP <linux-omap@vger.kernel.org>
 
-Move the defines to the associated board file and remove
-the now unnecessary header file.
+On Thursday 26 February 2009, Liam Girdwood wrote:
+> >=20
+> > Note that the twl4030 regulator patch referred to will need a
+> > minor patch to work with the -next tree, because of interface
+> > change in the regulator framework.
+> >=20
+> > =A0drivers/regulator/twl4030-regulator.c | =A0 62 +++++++++++------=
+---------------
+> > =A01 file changed, 23 insertions(+), 39 deletions(-)
+>=20
+> Applied.
 
-Signed-off-by: Tony Lindgren <tony@atomide.com>
+=2E... and here's that "minor patch".
+
+=3D=3D=3D=3D=3D=3D CUT HERE
+=46rom: David Brownell <dbrownell@users.sourceforge.net>
+
+Catch up the twl4030 regulator driver to the regulator
+interface change adding another parameter.  Also, fix
+some comments, and take this opportunity to shrink the
+associated per-regulator memory usage by a word.
+
+Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
 ---
- arch/arm/mach-omap2/board-apollon.c             |    1 +
- arch/arm/plat-omap/include/mach/board-apollon.h |   46 -----------------------
- arch/arm/plat-omap/include/mach/hardware.h      |    4 --
- 3 files changed, 1 insertions(+), 50 deletions(-)
- delete mode 100644 arch/arm/plat-omap/include/mach/board-apollon.h
+ drivers/regulator/twl4030-regulator.c |   17 +++++++++--------
+ 1 file changed, 9 insertions(+), 8 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/board-apollon.c b/arch/arm/mach-omap2/board-apollon.c
-index 0a7b24b..6456124 100644
---- a/arch/arm/mach-omap2/board-apollon.c
-+++ b/arch/arm/mach-omap2/board-apollon.c
-@@ -51,6 +51,7 @@
- 
- #define APOLLON_FLASH_CS	0
- #define APOLLON_ETH_CS		1
-+#define APOLLON_ETHR_GPIO_IRQ	74
- 
- static struct mtd_partition apollon_partitions[] = {
- 	{
-diff --git a/arch/arm/plat-omap/include/mach/board-apollon.h b/arch/arm/plat-omap/include/mach/board-apollon.h
-deleted file mode 100644
-index 61bd5e8..0000000
---- a/arch/arm/plat-omap/include/mach/board-apollon.h
-+++ /dev/null
-@@ -1,46 +0,0 @@
--/*
-- * arch/arm/plat-omap/include/mach/board-apollon.h
-- *
-- * Hardware definitions for Samsung OMAP24XX Apollon board.
-- *
-- * Initial creation by Kyungmin Park <kyungmin.park@samsung.com>
-- *
-- * This program is free software; you can redistribute it and/or modify it
-- * under the terms of the GNU General Public License as published by the
-- * Free Software Foundation; either version 2 of the License, or (at your
-- * option) any later version.
-- *
-- * THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESS OR IMPLIED
-- * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
-- * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN
-- * NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT,
-- * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
-- * NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
-- * USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
-- * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
-- * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-- *
-- * You should have received a copy of the GNU General Public License along
-- * with this program; if not, write to the Free Software Foundation, Inc.,
-- * 675 Mass Ave, Cambridge, MA 02139, USA.
-- */
+--- a/drivers/regulator/twl4030-regulator.c
++++ b/drivers/regulator/twl4030-regulator.c
+@@ -36,13 +36,13 @@ struct twlreg_info {
+ 	/* twl4030 resource ID, for resource control state machine */
+ 	u8			id;
+=20
++	/* FIXED_LDO voltage */
++	u8			deciV;
++
+ 	/* voltage in mV =3D table[VSEL]; table_len must be a power-of-two */
+ 	u8			table_len;
+ 	const u16		*table;
+=20
+-	/* chip constraints on regulator behavior */
+-	u16			min_mV;
 -
--#ifndef __ASM_ARCH_OMAP_APOLLON_H
--#define __ASM_ARCH_OMAP_APOLLON_H
--
--#include <mach/cpu.h>
--
--extern void apollon_mmc_init(void);
--
--static inline int apollon_plus(void)
--{
--	/* The apollon plus has IDCODE revision 5 */
--	return omap_rev() & 0xc0;
--}
--
--/* Placeholder for APOLLON specific defines */
--#define APOLLON_ETHR_GPIO_IRQ		74
--
--#endif /*  __ASM_ARCH_OMAP_APOLLON_H */
--
-diff --git a/arch/arm/plat-omap/include/mach/hardware.h b/arch/arm/plat-omap/include/mach/hardware.h
-index 346a5c7..26f14f7 100644
---- a/arch/arm/plat-omap/include/mach/hardware.h
-+++ b/arch/arm/plat-omap/include/mach/hardware.h
-@@ -306,10 +306,6 @@
- #include "board-ldp.h"
- #endif
- 
--#ifdef CONFIG_MACH_OMAP_APOLLON
--#include "board-apollon.h"
--#endif
--
- #ifdef CONFIG_MACH_VOICEBLUE
- #include "board-voiceblue.h"
- #endif
+ 	/* used by regulator core */
+ 	struct regulator_desc	desc;
+ };
+@@ -329,14 +329,14 @@ static int twl4030fixed_list_voltage(str
+ {
+ 	struct twlreg_info	*info =3D rdev_get_drvdata(rdev);
+=20
+-	return info->min_mV * 1000;
++	return info->deciV * 100 * 1000;
+ }
+=20
+ static int twl4030fixed_get_voltage(struct regulator_dev *rdev)
+ {
+ 	struct twlreg_info	*info =3D rdev_get_drvdata(rdev);
+=20
+-	return info->min_mV * 1000;
++	return info->deciV * 100 * 1000;
+ }
+=20
+ static struct regulator_ops twl4030fixed_ops =3D {
+@@ -373,7 +373,7 @@ static struct regulator_ops twl4030fixed
+ #define TWL_FIXED_LDO(label, offset, mVolts, num) { \
+ 	.base =3D offset, \
+ 	.id =3D num, \
+-	.min_mV =3D mVolts, \
++	.deciV =3D mVolts / 100 , \
+ 	.desc =3D { \
+ 		.name =3D #label, \
+ 		.id =3D TWL4030_REG_##label, \
+@@ -385,7 +385,7 @@ static struct regulator_ops twl4030fixed
+ 	}
+=20
+ /*
+- * We list regulators here if systems need some level of
++ * We expose regulators here if systems need some level of
+  * software control over them after boot.
+  */
+ static struct twlreg_info twl4030_regs[] =3D {
+@@ -439,6 +439,7 @@ static int twl4030reg_probe(struct platf
+=20
+ 	/* Constrain board-specific capabilities according to what
+ 	 * this driver and the chip itself can actually do.
++	 * (Regulator core now does this for voltage constraints.)
+ 	 */
+ 	c =3D &initdata->constraints;
+ 	c->valid_modes_mask &=3D REGULATOR_MODE_NORMAL | REGULATOR_MODE_STAND=
+BY;
+@@ -446,7 +447,7 @@ static int twl4030reg_probe(struct platf
+ 				| REGULATOR_CHANGE_MODE
+ 				| REGULATOR_CHANGE_STATUS;
+=20
+-	rdev =3D regulator_register(&info->desc, &pdev->dev, info);
++	rdev =3D regulator_register(&info->desc, &pdev->dev, initdata, info);
+ 	if (IS_ERR(rdev)) {
+ 		dev_err(&pdev->dev, "can't register %s, %ld\n",
+ 				info->desc.name, PTR_ERR(rdev));
 
+
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
