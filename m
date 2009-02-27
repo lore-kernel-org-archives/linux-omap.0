@@ -1,39 +1,61 @@
-From: Felipe Balbi <me@felipebalbi.com>
-Subject: Re: [PATCH 2/2] twl4030: move twl4030-pwrbutton to
-	drivers/input/misc
-Date: Fri, 27 Feb 2009 22:00:34 +0200
-Message-ID: <20090227200034.GK16801@frodo>
-References: <1235050197-26818-1-git-send-email-me@felipebalbi.com> <1235050197-26818-2-git-send-email-me@felipebalbi.com> <1235050197-26818-3-git-send-email-me@felipebalbi.com> <200902191208.45851.david-b@pacbell.net> <20090219203030.GF20723@frodo> <20090225210546.GC4639@gandalf> <20090227184445.GJ11594@atomide.com> <20090227193112.GJ16801@frodo> <20090227194916.GK11594@atomide.com>
-Reply-To: me@felipebalbi.com
+From: David Brownell <david-b@pacbell.net>
+Subject: Re: [patch/rfc 2.6.29-rc6 2/2] regulator: twl4030 voltage enumeration (v2)
+Date: Fri, 27 Feb 2009 12:39:44 -0800
+Message-ID: <200902271239.44558.david-b@pacbell.net>
+References: <200902081037.06645.david-b@pacbell.net> <200902261602.58832.david-b@pacbell.net> <1235737930.31223.117.camel@vega.slimlogic.co.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ns1.siteground211.com ([209.62.36.12]:56147 "EHLO
-	serv01.siteground211.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759160AbZB0UAo (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 27 Feb 2009 15:00:44 -0500
+Received: from n13a.bullet.mail.mud.yahoo.com ([68.142.207.51]:46947 "HELO
+	n13a.bullet.mail.mud.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1761334AbZB0Ujs (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Fri, 27 Feb 2009 15:39:48 -0500
+In-Reply-To: <1235737930.31223.117.camel@vega.slimlogic.co.uk>
 Content-Disposition: inline
-In-Reply-To: <20090227194916.GK11594@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Felipe Balbi <me@felipebalbi.com>, David Brownell <david-b@pacbell.net>, linux-omap@vger.kernel.org, Samuel Ortiz <sameo@openedhand.com>
+To: Liam Girdwood <lrg@slimlogic.co.uk>
+Cc: Mark Brown <broonie@sirena.org.uk>, lkml <linux-kernel@vger.kernel.org>, OMAP <linux-omap@vger.kernel.org>
 
-On Fri, Feb 27, 2009 at 11:49:17AM -0800, Tony Lindgren wrote:
-> * Felipe Balbi <me@felipebalbi.com> [090227 11:31]:
-> > On Fri, Feb 27, 2009 at 10:44:45AM -0800, Tony Lindgren wrote:
-> > > OK, pushed. These are currently also scheduled for getting reset to
-> > > mainline twl code after v2.6.29-omap1 is tagged.
+On Friday 27 February 2009, Liam Girdwood wrote:
+> On Thu, 2009-02-26 at 16:02 -0800, David Brownell wrote:
+> > On Thursday 26 February 2009, Liam Girdwood wrote:
+> > > > 
+> > > > Note that the twl4030 regulator patch referred to will need a
+> > > > minor patch to work with the -next tree, because of interface
+> > > > change in the regulator framework.
+> > > 
+> > > Applied.
 > > 
-> > Just pushed to lkml, there will be one discrepancy with a debugging
-> > message easily fixable in a merge if you just use mainline's version, or
-> > I can send a fixup patch, if you wish.
+> > .... and here's that "minor patch".
+> > 
+> > ...
 > 
-> Well if you can send the patch, then that would be easiest. Patching
-> based on the description usually cause something to go wrong :)
+> Sorry, this didn't apply. It looks like I'm missing an earlier patch(s)
+> here. Could you regenerate this and your core patch against latest
+> for-next.
 
-Let's then wait a bit longer and see if Sam or Dmitry will have anything
-to say about the driver, after that I can send one patch only.
+The regulator -next tree seems to be missing a bunch of stuff...
+I generated this patch against a "twl4030-regulator.c" which I
+extracted *from that tree* yesterday.  But today it's different.
 
--- 
-balbi
+In this case, the current code doesn't have the $SUBJECT patch,
+which at that time you had applied.  But it does have a small
+snippet from that "minor patch"...
+
+
+Color me confused.  Are you asking for a "v3" of $SUBJECT, or
+is the "v2" going to re-appear?  And when will that -next tree
+acquire the rest of
+
+ http://marc.info/?l=linux-kernel&m=123567791402469&w=2
+
+Having only the driver.h part of that patch breaks things
+(your 0ae0e667c8a2bacfe066b90f8f2ee3b4a83a120d).
+
+- Dave
+
+
