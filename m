@@ -1,35 +1,29 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: [APPLIED] [RESEND/RFC/RFT] [PATCH] arm: omap1: get rid of OMAP_TAG_USB
-Date: Fri, 27 Feb 2009 18:04:36 -0500
-Message-ID: <notify-1235775873@atomide.com>
-References: <1234661409-653-1-git-send-email-felipe.balbi@nokia.com>
+From: Felipe Balbi <me@felipebalbi.com>
+Subject: Re: [RESEND/RFC/RFT] [PATCH] arm: omap1: get rid of OMAP_TAG_USB
+Date: Sat, 28 Feb 2009 01:22:52 +0200
+Message-ID: <20090227232251.GO16801@frodo>
+References: <1234661409-653-1-git-send-email-felipe.balbi@nokia.com> <20090219211942.GK20723@frodo> <20090227230354.GO11594@atomide.com>
+Reply-To: me@felipebalbi.com
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-bos.mailhop.org ([63.208.196.178]:56274 "EHLO
-	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753377AbZB0XEg (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 27 Feb 2009 18:04:36 -0500
-Received: from c-69-181-40-92.hsd1.ca.comcast.net ([69.181.40.92] helo=localhost.localdomain)
-	by mho-01-bos.mailhop.org with esmtpa (Exim 4.68)
-	(envelope-from <tony@atomide.com>)
-	id 1LdBkw-000K7v-8P
-	for linux-omap@vger.kernel.org; Fri, 27 Feb 2009 23:04:34 +0000
-In-Reply-To: <1234661409-653-1-git-send-email-felipe.balbi@nokia.com>
+Received: from ns1.siteground211.com ([209.62.36.12]:37131 "EHLO
+	serv01.siteground211.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753173AbZB0XXA (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 27 Feb 2009 18:23:00 -0500
 Content-Disposition: inline
+In-Reply-To: <20090227230354.GO11594@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Felipe Balbi <me@felipebalbi.com>, Felipe Balbi <felipe.balbi@nokia.com>, linux-omap@vger.kernel.org
 
-This patch has been applied to the linux-omap
-by youw fwiendly patch wobot.
+On Fri, Feb 27, 2009 at 03:03:55PM -0800, Tony Lindgren wrote:
+> Well I got around trying this applied on mainline kernel on H2.
+> Still getting "hub 1-0:1.0: unable to enumerate USB device on port 2"
+> but the result is same as without the patch. So let's apply this.
 
-Commit: ab3c80298f3cc8caaeebd4c943c6b314b67581e4
+could be a bug in either ohci-omap.c or tps65010.c
 
-PatchWorks
-http://patchwork.kernel.org/patch/7304/
-
-Git
-http://git.kernel.org/?p=linux/kernel/git/tmlind/linux-omap-2.6.git;a=commit;h=ab3c80298f3cc8caaeebd4c943c6b314b67581e4
-
-
+-- 
+balbi
