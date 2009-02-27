@@ -1,119 +1,119 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] OMAP: HSMMC: Initialize hsmmc controller registers
-	when resuming
-Date: Fri, 27 Feb 2009 14:08:12 -0800
-Message-ID: <20090227220812.GM11594@atomide.com>
-References: <4d34a0a70902200400s252f48ddvfd6e0d83e91fa291@mail.gmail.com> <200902231023.49653.david-b@pacbell.net> <49A3EF96.3090603@nokia.com> <200902241410.19132.david-b@pacbell.net>
+Subject: Re: [patch 2.6.29-rc3-omap-git] omap3: gpio pin config bugfixes
+Date: Fri, 27 Feb 2009 14:46:08 -0800
+Message-ID: <20090227224607.GN11594@atomide.com>
+References: <200902082055.08954.david-b@pacbell.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: multipart/mixed; boundary="EuxKj2iCbKjpUGkD"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-bos.mailhop.org ([63.208.196.178]:51297 "EHLO
+Received: from mho-01-bos.mailhop.org ([63.208.196.178]:60094 "EHLO
 	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755515AbZB0WIV (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 27 Feb 2009 17:08:21 -0500
+	with ESMTP id S1753417AbZB0WqM (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 27 Feb 2009 17:46:12 -0500
 Content-Disposition: inline
-In-Reply-To: <200902241410.19132.david-b@pacbell.net>
+In-Reply-To: <200902082055.08954.david-b@pacbell.net>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: David Brownell <david-b@pacbell.net>
-Cc: Adrian Hunter <ext-adrian.hunter@nokia.com>, Kyungmin Park <kyungmin.park@samsung.com>, Kim Kyuwon <chammoru@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "drzeus-mmc@drzeus.cx" <drzeus-mmc@drzeus.cx>, =?utf-8?B?77+977+977+91L/vv70=?= <q1.kim@samsung.com>, "Lavinen Jarkko (Nokia-D/Helsinki)" <jarkko.lavinen@nokia.com>
+Cc: OMAP <linux-omap@vger.kernel.org>, Manikandan Pillai <mani.pillai@ti.com>
 
-* David Brownell <david-b@pacbell.net> [090224 14:14]:
-> On Tuesday 24 February 2009, Adrian Hunter wrote:
-> > > I agree that code removed by this patch is ugly and worth
-> > > removing if it's not actually needed for MMC1.
-> >=20
-> > Here is a patch against current OMAP tree.
-> >=20
-> > From: Adrian Hunter <ext-adrian.hunter@nokia.com>
-> > Date: Tue, 24 Feb 2009 14:48:16 +0200
-> > Subject: [PATCH] OMAP: HSMMC: do not re-power when powering off MMC
-> >=20
-> > Remove code that turns MMC1 power back on after it
-> > has been powered off (when the voltage is 1.8V).
-> >=20
-> > The offending code is not necessary because the
-> > host controller bus voltage is initialized to
-> > 3V when probing or resuming. =A0Note that MMC powers up
-> > with the highest voltage available (see mmc_power_up())
-> > which will be 3V also.
-> >=20
-> > Signed-off-by: Adrian Hunter <ext-adrian.hunter@nokia.com>
->=20
-> Looks OK to me -- ack.  Safe to merge through the MMC
-> tree right away, but it'll be a NOP until the glue
-> actually supports 1.8V correctly for MMC1 ... so IMO
-> no rush to merge for 2.6.29-final.
 
-Good to hear we get rid of that REVISIT part.. My ack here too.
+--EuxKj2iCbKjpUGkD
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-Acked-by: Tony Lindgren <tony@atomide.com>
-=20
-> > ---
-> > =A0drivers/mmc/host/omap_hsmmc.c | =A0 17 -----------------
-> > =A01 files changed, 0 insertions(+), 17 deletions(-)
-> >=20
-> > diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_=
-hsmmc.c
-> > index c0d5420..43cec98 100644
-> > --- a/drivers/mmc/host/omap_hsmmc.c
-> > +++ b/drivers/mmc/host/omap_hsmmc.c
-> > @@ -486,9 +486,6 @@ static int omap_mmc_switch_opcond(struct mmc_om=
-ap_host *host, int vdd)
-> > =A0=A0=A0=A0=A0=A0=A0=A0u32 reg_val =3D 0;
-> > =A0=A0=A0=A0=A0=A0=A0=A0int ret;
-> > =A0
-> > -=A0=A0=A0=A0=A0=A0=A0if (host->id !=3D OMAP_MMC1_DEVID)
-> > -=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0return 0;
-> > -
-> > =A0=A0=A0=A0=A0=A0=A0=A0/* Disable the clocks */
-> > =A0=A0=A0=A0=A0=A0=A0=A0clk_disable(host->fclk);
-> > =A0=A0=A0=A0=A0=A0=A0=A0clk_disable(host->iclk);
-> > @@ -787,20 +784,6 @@ static void omap_mmc_set_ios(struct mmc_host *=
-mmc, struct mmc_ios *ios)
-> > =A0=A0=A0=A0=A0=A0=A0=A0switch (ios->power_mode) {
-> > =A0=A0=A0=A0=A0=A0=A0=A0case MMC_POWER_OFF:
-> > =A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0mmc_slot(host).set_=
-power(host->dev, host->slot_id, 0, 0);
-> > -=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0/*
-> > -=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 * Reset interface vo=
-ltage to 3V if it's 1.8V now;
-> > -=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 * only relevant on M=
-MC-1, the others always use 1.8V.
-> > -=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 *
-> > -=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 * REVISIT: If we are=
- able to detect cards after unplugging
-> > -=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 * a 1.8V card, this =
-code should not be needed.
-> > -=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 */
-> > -=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0if (host->id !=3D OMA=
-P_MMC1_DEVID)
-> > -=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=
-=A0break;
-> > -=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0if (!(OMAP_HSMMC_READ=
-(host->base, HCTL) & SDVSDET)) {
-> > -=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=
-=A0int vdd =3D fls(host->mmc->ocr_avail) - 1;
-> > -=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=
-=A0if (omap_mmc_switch_opcond(host, vdd) !=3D 0)
-> > -=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=
-=A0=A0=A0=A0=A0=A0=A0=A0=A0host->mmc->ios.vdd =3D vdd;
-> > -=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0}
-> > =A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0break;
-> > =A0=A0=A0=A0=A0=A0=A0=A0case MMC_POWER_UP:
-> > =A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0mmc_slot(host).set_=
-power(host->dev, host->slot_id, 1, ios->vdd);
->=20
->=20
->=20
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap"=
- in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+* David Brownell <david-b@pacbell.net> [090208 20:55]:
+> From: David Brownell <dbrownell@users.sourceforge.net>
+> 
+> Bugfix several GPIO mux configurations which didn't enable the
+> input drivers, but weren't named as e.g. ..._GPIO141_OUT.
+> These bugs were added quite recently, for OMAP3 EVM support.
+> 
+> To help avoid such bugs in the future, update the comment to
+> clarify the rule:  always use PIN_INPUT, unless the name uses
+> that name suffix, to be crystal-clear on the signal's use as
+> output-only.
+> 
+> (Also adds GPIO-63, for the EVM's MMC-1 writeprotect switch.
+> Presumably that works right...)
+
+Here's this refreshed to apply against l-o.
+
+Tony
+
+--EuxKj2iCbKjpUGkD
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline; filename=apply
+
+From:	David Brownell <david-b@pacbell.net>
+To:	OMAP <linux-omap@vger.kernel.org>
+Subject: [patch 2.6.29-rc3-omap-git] omap3: gpio pin config bugfixes
+From: David Brownell <dbrownell@users.sourceforge.net>
+
+Bugfix several GPIO mux configurations which didn't enable the
+input drivers, but weren't named as e.g. ..._GPIO141_OUT.
+These bugs were added quite recently, for OMAP3 EVM support.
+
+To help avoid such bugs in the future, update the comment to
+clarify the rule:  always use PIN_INPUT, unless the name uses
+that name suffix, to be crystal-clear on the signal's use as
+output-only.
+
+(Also adds GPIO-63, for the EVM's MMC-1 writeprotect switch.
+Presumably that works right...)
+
+Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
+---
+
+ arch/arm/mach-omap2/mux.c             |   13 ++++++++-----
+ arch/arm/plat-omap/include/mach/mux.h |    1 +
+ 2 files changed, 9 insertions(+), 5 deletions(-)
+
+--- a/arch/arm/mach-omap2/mux.c
++++ b/arch/arm/mach-omap2/mux.c
+@@ -453,6 +453,7 @@ MUX_CFG_34XX("AC1_3430_USB3FS_PHY_MM3_TX
+ 
+ 
+ /* 34XX GPIO - bidirectional, unless the name has an "_OUT" suffix.
++ * (Always specify PIN_INPUT, except for names suffixed by "_OUT".)
+  * No internal pullup/pulldown without "_UP" or "_DOWN" suffix.
+  */
+ MUX_CFG_34XX("AH8_34XX_GPIO29", 0x5fa,
+@@ -460,17 +461,19 @@ MUX_CFG_34XX("AH8_34XX_GPIO29", 0x5fa,
+ MUX_CFG_34XX("J25_34XX_GPIO170", 0x1c6,
+ 		OMAP34XX_MUX_MODE4 | OMAP34XX_PIN_INPUT)
+ MUX_CFG_34XX("AF26_34XX_GPIO0", 0x1e0,
+-		OMAP34XX_MUX_MODE4 | OMAP34XX_PIN_OUTPUT)
++		OMAP34XX_MUX_MODE4 | OMAP34XX_PIN_INPUT)
+ MUX_CFG_34XX("AF22_34XX_GPIO9", 0xa18,
+-		OMAP34XX_MUX_MODE4 | OMAP34XX_PIN_OUTPUT)
++		OMAP34XX_MUX_MODE4 | OMAP34XX_PIN_INPUT)
++MUX_CFG_34XX("L8_34XX_GPIO63", 0x0ce,
++		OMAP34XX_MUX_MODE4 | OMAP34XX_PIN_INPUT)
+ MUX_CFG_34XX("AF6_34XX_GPIO140_UP", 0x16c,
+ 		OMAP34XX_MUX_MODE4 | OMAP34XX_PIN_INPUT_PULLUP)
+ MUX_CFG_34XX("AE6_34XX_GPIO141", 0x16e,
+-		OMAP34XX_MUX_MODE4 | OMAP34XX_PIN_OUTPUT)
++		OMAP34XX_MUX_MODE4 | OMAP34XX_PIN_INPUT)
+ MUX_CFG_34XX("AF5_34XX_GPIO142", 0x170,
+-		OMAP34XX_MUX_MODE4 | OMAP34XX_PIN_OUTPUT)
++		OMAP34XX_MUX_MODE4 | OMAP34XX_PIN_INPUT)
+ MUX_CFG_34XX("AE5_34XX_GPIO143", 0x172,
+-		OMAP34XX_MUX_MODE4 | OMAP34XX_PIN_OUTPUT)
++		OMAP34XX_MUX_MODE4 | OMAP34XX_PIN_INPUT)
+ MUX_CFG_34XX("AG4_34XX_GPIO134", 0x160,
+ 		OMAP34XX_MUX_MODE4 | OMAP34XX_PIN_OUTPUT)
+ MUX_CFG_34XX("U8_34XX_GPIO54", 0x0b4,
+--- a/arch/arm/plat-omap/include/mach/mux.h
++++ b/arch/arm/plat-omap/include/mach/mux.h
+@@ -792,6 +792,7 @@ enum omap34xx_index {
+ 	J25_34XX_GPIO170,
+ 	AF26_34XX_GPIO0,
+ 	AF22_34XX_GPIO9,
++	L8_34XX_GPIO63,
+ 	AF6_34XX_GPIO140_UP,
+ 	AE6_34XX_GPIO141,
+ 	AF5_34XX_GPIO142,
+
+
+--EuxKj2iCbKjpUGkD--
