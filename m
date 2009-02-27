@@ -1,58 +1,42 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 2/2] twl4030: move twl4030-pwrbutton to
-	drivers/input/misc
-Date: Fri, 27 Feb 2009 10:44:45 -0800
-Message-ID: <20090227184445.GJ11594@atomide.com>
-References: <1235050197-26818-1-git-send-email-me@felipebalbi.com> <1235050197-26818-2-git-send-email-me@felipebalbi.com> <1235050197-26818-3-git-send-email-me@felipebalbi.com> <200902191208.45851.david-b@pacbell.net> <20090219203030.GF20723@frodo> <20090225210546.GC4639@gandalf>
+From: Felipe Balbi <me@felipebalbi.com>
+Subject: Re: [PATCH] OMAP3: SDTI: Prevent access to sdti writing if module
+	is not initialized.
+Date: Fri, 27 Feb 2009 21:00:53 +0200
+Message-ID: <20090227190053.GH16801@frodo>
+References: <1234438768-20697-1-git-send-email-roman.tereshonkov@nokia.com> <20090216113303.GL21181@scadufax.research.nokia.com> <20090227183524.GI11594@atomide.com>
+Reply-To: me@felipebalbi.com
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-bos.mailhop.org ([63.208.196.178]:61110 "EHLO
-	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755240AbZB0Sov (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 27 Feb 2009 13:44:51 -0500
+Received: from ns1.siteground211.com ([209.62.36.12]:40441 "EHLO
+	serv01.siteground211.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755390AbZB0TBH (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 27 Feb 2009 14:01:07 -0500
 Content-Disposition: inline
-In-Reply-To: <20090225210546.GC4639@gandalf>
+In-Reply-To: <20090227183524.GI11594@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Balbi <me@felipebalbi.com>
-Cc: David Brownell <david-b@pacbell.net>, linux-omap@vger.kernel.org, Samuel Ortiz <sameo@openedhand.com>
+To: Tony Lindgren <tony@atomide.com>
+Cc: Felipe Balbi <felipe.balbi@nokia.com>, "Tereshonkov Roman (Nokia-D/Helsinki)" <roman.tereshonkov@nokia.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, juha.yrjola@solidboot.com
 
-* Felipe Balbi <me@felipebalbi.com> [090225 13:07]:
-> On Thu, Feb 19, 2009 at 10:30:30PM +0200, Felipe Balbi wrote:
-> > On Thu, Feb 19, 2009 at 12:08:45PM -0800, David Brownell wrote:
-> > > On Thursday 19 February 2009, Felipe Balbi wrote:
-> > > > Take it out of drivers/i2c/chips as requested by Jean Delvare
-> > > > that all drivers move out of there.
-> > > > 
-> > > > Cc: David Brownell <dbrownell@users.sourceforge.net>
-> > > > Cc: Samuel Ortiz <sameo@openedhand.com>
-> > > > Signed-off-by: Felipe Balbi <me@felipebalbi.com>
+On Fri, Feb 27, 2009 at 10:35:25AM -0800, Tony Lindgren wrote:
+> * Felipe Balbi <felipe.balbi@nokia.com> [090216 03:50]:
+> > On Thu, Feb 12, 2009 at 12:39:28PM +0100, Tereshonkov Roman wrote:
+> > > The function sti_channel_write_trace can be run from process and interrupt
+> > > context. It has to be completed before other sti_channel_write_trace calls.
 > > > 
-> > > You're cc'ing Sam on these patches to the OMAP tree ... are you
-> > > suggesting this code merge to mainline?
-> > 
-> > Just so he knows I'm willing to add a few more changes to
-> > twl4030-core.c, If you're ok with these patches, I'll send the final
-> > version to Sam, mainline and linux-input.
-> > 
-> > > If so, you'll need to send the input driver to the input list
-> > > as a patch against mainline, for review.  The snippet from
-> > > your patch 1/2 affecting the twl4030 MFD core might reasonably
-> > > be merged with that, assuming Sam's OK with that going though
-> > > the input tree.
-> > 
-> > I could also make them separate. Send the final
-> > drivers/input/misc/twl4030-pwrbutton.c to linux-input and the
-> > twl4030-core.c to be merged via Sam.
+> > > Prevent sdti writing when SDTI module is not initialized.
 > 
-> Does anyone have anything against this patch ? If not, I guess it should
-> be applied and I'll generate the patch against mainline for input + mfd
-> maintainers.
+> Roman, can you please create a patch against the mainline tree and send
+> this driver to LKML for integration? I think pretty much the only thing
+> you should do is get rid of the OMAP_TAG_STI_CONSOLE and use get that
+> option from kernel command line like all the other consoles do.
 
-OK, pushed. These are currently also scheduled for getting reset to
-mainline twl code after v2.6.29-omap1 is tagged.
+Adding Juha to Cc as he had some comments about the OMAP_TAG_STI_CONSOLE
+regarding our products.
 
-Regards,
+Juha could you comment again what were the problems on starting the sti
+console based on console= command line ??
 
-Tony
+-- 
+balbi
