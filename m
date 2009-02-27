@@ -1,53 +1,33 @@
-From: Felipe Balbi <me@felipebalbi.com>
-Subject: Re: OTG MUSB driver issue?
-Date: Fri, 27 Feb 2009 19:56:39 +0200
-Message-ID: <20090227175638.GE16801@frodo>
-References: <ac9c93b10902270952w37660667pece3640b0ba46ffc@mail.gmail.com>
-Reply-To: me@felipebalbi.com
+From: Tony Lindgren <tony@atomide.com>
+Subject: [APPLIED] [PATCH 1/2] twl4030-madc: Convert ioctl to unlocked
+Date: Fri, 27 Feb 2009 13:09:55 -0500
+Message-ID: <notify-1235758192@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ns1.siteground211.com ([209.62.36.12]:44601 "EHLO
-	serv01.siteground211.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752464AbZB0R4p (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 27 Feb 2009 12:56:45 -0500
+Received: from mho-01-bos.mailhop.org ([63.208.196.178]:59098 "EHLO
+	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752137AbZB0SJz (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 27 Feb 2009 13:09:55 -0500
+Received: from c-69-181-40-92.hsd1.ca.comcast.net ([69.181.40.92] helo=localhost.localdomain)
+	by mho-01-bos.mailhop.org with esmtpa (Exim 4.68)
+	(envelope-from <tony@atomide.com>)
+	id 1Ld79l-000G3K-J4
+	for linux-omap@vger.kernel.org; Fri, 27 Feb 2009 18:09:53 +0000
 Content-Disposition: inline
-In-Reply-To: <ac9c93b10902270952w37660667pece3640b0ba46ffc@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Frans Meulenbroeks <fransmeulenbroeks@gmail.com>
-Cc: linux-omap@vger.kernel.org, beagleboard@googlegroups.com
+To: linux-omap@vger.kernel.org
 
-On Fri, Feb 27, 2009 at 06:52:38PM +0100, Frans Meulenbroeks wrote:
-> Hi,
-> 
-> Several times I encountered issues with devices connected to the
-> beagle board's OTG port (through a powered hub).
-> (kernel 2.6.28-omap1).
-> Today this happened again and I was lucky enough to be able to find
-> the symptoms.
-> 
-> Scenario: I had a file on a USB hard disk. This file was copied to an
-> SD card. After copying the file was corrupted.
-> Removing the card and hard disk and connecting them to my linux box
-> allowed me to compare the SD and hard disk version (using cmp -l).
-> There were differences on four places. Each difference was 4 bytes (32
-> bits) and occurred on a 4 byte boundary.
-> 
-> I have no idea what causes it, but I strongly suspect the MUSB driver.
-> A hauppauge usb tv card also does not work when connected to the hub,
-> whereas the same card works without problem on a linksys NSLU2 (which
-> also has an arm processor).
-> 
-> Anyone suggestions? Patches ??
+This patch has been applied to the linux-omap
+by youw fwiendly patch wobot.
 
-I guess that should be already fixed with patches queued up in Greg's
-queue, but then again, let me check more. Could you:
+Commit: 172195de53c497b4650a24d13d285b9c1c3bcb3f
 
-# echo 5 > /sys/modules/musb_hdrc/parameters/debug
-# echo 8 > /proc/sysrq-trigger
+PatchWorks
+http://patchwork.kernel.org/patch/8119/
 
-then connect device and send me log output ?
+Git
+http://git.kernel.org/?p=linux/kernel/git/tmlind/linux-omap-2.6.git;a=commit;h=172195de53c497b4650a24d13d285b9c1c3bcb3f
 
--- 
-balbi
+
