@@ -1,73 +1,34 @@
-From: "George G. Davis" <gdavis@mvista.com>
-Subject: [PATCH] ARM: OMAP2: Fix missing system control module exports
-Date: Mon, 2 Mar 2009 09:47:23 -0500
-Message-ID: <20090302144723.GD18140@mvista.com>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: [PATCH 00/13] Omap header clean-up for next merge window
+Date: Fri, 27 Feb 2009 20:11:57 +0000
+Message-ID: <20090227201157.GI12653@n2100.arm.linux.org.uk>
+References: <20090226235042.20192.38338.stgit@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from gateway-1237.mvista.com ([63.81.120.158]:11834 "EHLO
-	gateway-1237.mvista.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751572AbZCBOrZ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 2 Mar 2009 09:47:25 -0500
-Received: from c-24-61-246-122.hsd1.ma.comcast.net (asshur.mvista.com [10.0.0.11])
-	by hermes.mvista.com (Postfix) with ESMTP id 74F2C18389
-	for <linux-omap@vger.kernel.org>; Mon,  2 Mar 2009 06:47:23 -0800 (PST)
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.arm.linux.org.uk>
 Content-Disposition: inline
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <20090226235042.20192.38338.stgit@localhost>
+List-Unsubscribe: <http://lists.arm.linux.org.uk/mailman/listinfo/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.arm.linux.org.uk?subject=unsubscribe>
+List-Archive: <http://lists.arm.linux.org.uk/lurker/list/linux-arm-kernel.html>
+List-Post: <mailto:linux-arm-kernel@lists.arm.linux.org.uk>
+List-Help: <mailto:linux-arm-kernel-request@lists.arm.linux.org.uk?subject=help>
+List-Subscribe: <http://lists.arm.linux.org.uk/mailman/listinfo/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.arm.linux.org.uk?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.arm.linux.org.uk
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org+linux-arm-kernel=m.gmane.org@lists.arm.linux.org.uk
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-arm-kernel@lists.arm.linux.org.uk, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
 
-When building ASoC drivers as modules for SND_OMAP_SOC_MCBSP based
-targets, the build fails because omap_ctrl_{read,write}l lack exports.
-So add the missing exports for omap_ctrl_{read,write}[bwl] to allow
-building these ASoC (and other) drivers as modules.
+On Thu, Feb 26, 2009 at 03:52:18PM -0800, Tony Lindgren wrote:
+> This series gets rid of the board-*.h includes from hardware.h
+> as suggested earlier by Russell King.
 
-Signed-off-by: George G. Davis <gdavis@mvista.com>
-Acked-by: Jarkko Nikula <jarkko.nikula@nokia.com>
----
- arch/arm/mach-omap2/control.c |    6 ++++++
- 1 files changed, 6 insertions(+), 0 deletions(-)
+Great work, thanks for doing this.
 
-diff --git a/arch/arm/mach-omap2/control.c b/arch/arm/mach-omap2/control.c
-index 5f3aad9..6b14639 100644
---- a/arch/arm/mach-omap2/control.c
-+++ b/arch/arm/mach-omap2/control.c
-@@ -36,29 +36,35 @@ u8 omap_ctrl_readb(u16 offset)
- {
- 	return __raw_readb(OMAP_CTRL_REGADDR(offset));
- }
-+EXPORT_SYMBOL(omap_ctrl_readb);
- 
- u16 omap_ctrl_readw(u16 offset)
- {
- 	return __raw_readw(OMAP_CTRL_REGADDR(offset));
- }
-+EXPORT_SYMBOL(omap_ctrl_readw);
- 
- u32 omap_ctrl_readl(u16 offset)
- {
- 	return __raw_readl(OMAP_CTRL_REGADDR(offset));
- }
-+EXPORT_SYMBOL(omap_ctrl_readl);
- 
- void omap_ctrl_writeb(u8 val, u16 offset)
- {
- 	__raw_writeb(val, OMAP_CTRL_REGADDR(offset));
- }
-+EXPORT_SYMBOL(omap_ctrl_writeb);
- 
- void omap_ctrl_writew(u16 val, u16 offset)
- {
- 	__raw_writew(val, OMAP_CTRL_REGADDR(offset));
- }
-+EXPORT_SYMBOL(omap_ctrl_writew);
- 
- void omap_ctrl_writel(u32 val, u16 offset)
- {
- 	__raw_writel(val, OMAP_CTRL_REGADDR(offset));
- }
-+EXPORT_SYMBOL(omap_ctrl_writel);
- 
--- 
-1.6.1.2.MVISTA
-
+-------------------------------------------------------------------
+List admin: http://lists.arm.linux.org.uk/mailman/listinfo/linux-arm-kernel
+FAQ:        http://www.arm.linux.org.uk/mailinglists/faq.php
+Etiquette:  http://www.arm.linux.org.uk/mailinglists/etiquette.php
