@@ -1,17 +1,17 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 07/13] ARM: OMAP: No need to include board-omap2430sdp.h from
+Subject: [PATCH 08/13] ARM: OMAP: No need to include board-apollon.h from
 	hardware.h
-Date: Thu, 26 Feb 2009 16:01:15 -0800
-Message-ID: <20090227000115.20192.14200.stgit@localhost>
+Date: Thu, 26 Feb 2009 16:02:32 -0800
+Message-ID: <20090227000232.20192.86136.stgit@localhost>
 References: <20090226235042.20192.38338.stgit@localhost>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-bos.mailhop.org ([63.208.196.178]:55002 "EHLO
+Received: from mho-01-bos.mailhop.org ([63.208.196.178]:55924 "EHLO
 	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754572AbZB0ABT (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 26 Feb 2009 19:01:19 -0500
+	with ESMTP id S1753091AbZB0ACg (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 26 Feb 2009 19:02:36 -0500
 In-Reply-To: <20090226235042.20192.38338.stgit@localhost>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
@@ -19,74 +19,40 @@ To: linux-arm-kernel@lists.arm.linux.org.uk
 Cc: linux-omap@vger.kernel.org
 
 Move the defines to the associated board file and remove
-the now unnecessary header file. Also rename
-SDP2430_ETHR_GPIO_IRQ to SDP2430_ETHR_GPIO_IRQ.
+the now unnecessary header file.
 
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
- arch/arm/mach-omap2/board-2430sdp.c             |   13 ++++---
- arch/arm/plat-omap/include/mach/board-2430sdp.h |   41 -----------------------
+ arch/arm/mach-omap2/board-apollon.c             |    1 +
+ arch/arm/plat-omap/include/mach/board-apollon.h |   46 -----------------------
  arch/arm/plat-omap/include/mach/hardware.h      |    4 --
- 3 files changed, 8 insertions(+), 50 deletions(-)
- delete mode 100644 arch/arm/plat-omap/include/mach/board-2430sdp.h
+ 3 files changed, 1 insertions(+), 50 deletions(-)
+ delete mode 100644 arch/arm/plat-omap/include/mach/board-apollon.h
 
-diff --git a/arch/arm/mach-omap2/board-2430sdp.c b/arch/arm/mach-omap2/board-2430sdp.c
-index 83fa372..c8abe6a 100644
---- a/arch/arm/mach-omap2/board-2430sdp.c
-+++ b/arch/arm/mach-omap2/board-2430sdp.c
-@@ -38,9 +38,12 @@
+diff --git a/arch/arm/mach-omap2/board-apollon.c b/arch/arm/mach-omap2/board-apollon.c
+index 0a7b24b..6456124 100644
+--- a/arch/arm/mach-omap2/board-apollon.c
++++ b/arch/arm/mach-omap2/board-apollon.c
+@@ -51,6 +51,7 @@
  
- #include "mmc-twl4030.h"
+ #define APOLLON_FLASH_CS	0
+ #define APOLLON_ETH_CS		1
++#define APOLLON_ETHR_GPIO_IRQ	74
  
-+#define SDP2430_CS0_BASE	0x04000000
- #define	SDP2430_FLASH_CS	0
- #define	SDP2430_SMC91X_CS	5
- 
-+#define SDP2430_ETHR_GPIO_IRQ		149
-+
- static struct mtd_partition sdp2430_partitions[] = {
- 	/* bootloader (U-Boot, etc) in first sector */
+ static struct mtd_partition apollon_partitions[] = {
  	{
-@@ -102,8 +105,8 @@ static struct resource sdp2430_smc91x_resources[] = {
- 		.flags	= IORESOURCE_MEM,
- 	},
- 	[1] = {
--		.start	= OMAP_GPIO_IRQ(OMAP24XX_ETHR_GPIO_IRQ),
--		.end	= OMAP_GPIO_IRQ(OMAP24XX_ETHR_GPIO_IRQ),
-+		.start	= OMAP_GPIO_IRQ(SDP2430_ETHR_GPIO_IRQ),
-+		.end	= OMAP_GPIO_IRQ(SDP2430_ETHR_GPIO_IRQ),
- 		.flags	= IORESOURCE_IRQ | IORESOURCE_IRQ_LOWLEVEL,
- 	},
- };
-@@ -170,13 +173,13 @@ static inline void __init sdp2430_init_smc91x(void)
- 	sdp2430_smc91x_resources[0].end = cs_mem_base + 0x30f;
- 	udelay(100);
- 
--	if (gpio_request(OMAP24XX_ETHR_GPIO_IRQ, "SMC91x irq") < 0) {
-+	if (gpio_request(SDP2430_ETHR_GPIO_IRQ, "SMC91x irq") < 0) {
- 		printk(KERN_ERR "Failed to request GPIO%d for smc91x IRQ\n",
--			OMAP24XX_ETHR_GPIO_IRQ);
-+			SDP2430_ETHR_GPIO_IRQ);
- 		gpmc_cs_free(eth_cs);
- 		goto out;
- 	}
--	gpio_direction_input(OMAP24XX_ETHR_GPIO_IRQ);
-+	gpio_direction_input(SDP2430_ETHR_GPIO_IRQ);
- 
- out:
- 	clk_disable(gpmc_fck);
-diff --git a/arch/arm/plat-omap/include/mach/board-2430sdp.h b/arch/arm/plat-omap/include/mach/board-2430sdp.h
+diff --git a/arch/arm/plat-omap/include/mach/board-apollon.h b/arch/arm/plat-omap/include/mach/board-apollon.h
 deleted file mode 100644
-index 10d449e..0000000
---- a/arch/arm/plat-omap/include/mach/board-2430sdp.h
+index 61bd5e8..0000000
+--- a/arch/arm/plat-omap/include/mach/board-apollon.h
 +++ /dev/null
-@@ -1,41 +0,0 @@
+@@ -1,46 +0,0 @@
 -/*
-- * arch/arm/plat-omap/include/mach/board-2430sdp.h
+- * arch/arm/plat-omap/include/mach/board-apollon.h
 - *
-- * Hardware definitions for TI OMAP2430 SDP board.
+- * Hardware definitions for Samsung OMAP24XX Apollon board.
 - *
-- * Based on board-h4.h by Dirk Behme <dirk.behme@de.bosch.com>
+- * Initial creation by Kyungmin Park <kyungmin.park@samsung.com>
 - *
 - * This program is free software; you can redistribute it and/or modify it
 - * under the terms of the GNU General Public License as published by the
@@ -109,32 +75,37 @@ index 10d449e..0000000
 - * 675 Mass Ave, Cambridge, MA 02139, USA.
 - */
 -
--#ifndef __ASM_ARCH_OMAP_2430SDP_H
--#define __ASM_ARCH_OMAP_2430SDP_H
+-#ifndef __ASM_ARCH_OMAP_APOLLON_H
+-#define __ASM_ARCH_OMAP_APOLLON_H
 -
--/* Placeholder for 2430SDP specific defines */
--#define OMAP24XX_ETHR_START		0x08000300
--#define OMAP24XX_ETHR_GPIO_IRQ		149
--#define SDP2430_CS0_BASE		0x04000000
+-#include <mach/cpu.h>
 -
--/* Function prototypes */
--extern void sdp2430_flash_init(void);
--extern void sdp2430_usb_init(void);
+-extern void apollon_mmc_init(void);
 -
--#endif /* __ASM_ARCH_OMAP_2430SDP_H */
+-static inline int apollon_plus(void)
+-{
+-	/* The apollon plus has IDCODE revision 5 */
+-	return omap_rev() & 0xc0;
+-}
+-
+-/* Placeholder for APOLLON specific defines */
+-#define APOLLON_ETHR_GPIO_IRQ		74
+-
+-#endif /*  __ASM_ARCH_OMAP_APOLLON_H */
+-
 diff --git a/arch/arm/plat-omap/include/mach/hardware.h b/arch/arm/plat-omap/include/mach/hardware.h
-index 194ed49..346a5c7 100644
+index 346a5c7..26f14f7 100644
 --- a/arch/arm/plat-omap/include/mach/hardware.h
 +++ b/arch/arm/plat-omap/include/mach/hardware.h
-@@ -298,10 +298,6 @@
- #include "board-h4.h"
+@@ -306,10 +306,6 @@
+ #include "board-ldp.h"
  #endif
  
--#ifdef CONFIG_MACH_OMAP_2430SDP
--#include "board-2430sdp.h"
+-#ifdef CONFIG_MACH_OMAP_APOLLON
+-#include "board-apollon.h"
 -#endif
 -
- #ifdef CONFIG_MACH_OMAP3_BEAGLE
- #include "board-omap3beagle.h"
+ #ifdef CONFIG_MACH_VOICEBLUE
+ #include "board-voiceblue.h"
  #endif
 
