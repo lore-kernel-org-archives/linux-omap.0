@@ -1,59 +1,76 @@
-From: Liam Girdwood <lrg@slimlogic.co.uk>
-Subject: Re: [patch/rfc 2.6.29-rc6 2/2] regulator: twl4030 voltage
- enumeration (v2)
-Date: Fri, 27 Feb 2009 12:32:10 +0000
-Message-ID: <1235737930.31223.117.camel@vega.slimlogic.co.uk>
-References: <200902081037.06645.david-b@pacbell.net>
-	 <200902261150.15125.david-b@pacbell.net>
-	 <1235686618.31223.107.camel@vega.slimlogic.co.uk>
-	 <200902261602.58832.david-b@pacbell.net>
+From: Mark Brown <broonie@sirena.org.uk>
+Subject: Re: [PATCH 1/3] ASoC: Add GPIO support for
+	jack	reporting interface
+Date: Fri, 27 Feb 2009 13:05:03 +0000
+Message-ID: <20090227130502.GA4415@sirena.org.uk>
+References: <2C7D3DF36ADFFC479B44490D912B616705EC8B1C03@dlee07.ent.ti.com>
+	<20090226115243.GC4229@sirena.org.uk>
+	<2C7D3DF36ADFFC479B44490D912B616705ECC76DF8@dlee07.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from slimlogic.co.uk ([89.16.172.20]:58516 "EHLO slimlogic.co.uk"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753020AbZB0McO (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 27 Feb 2009 07:32:14 -0500
-In-Reply-To: <200902261602.58832.david-b@pacbell.net>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <alsa-devel-bounces@alsa-project.org>
+Content-Disposition: inline
+In-Reply-To: <2C7D3DF36ADFFC479B44490D912B616705ECC76DF8@dlee07.ent.ti.com>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Sender: alsa-devel-bounces@alsa-project.org
+Errors-To: alsa-devel-bounces@alsa-project.org
+To: "Lopez Cruz, Misael" <x0052729@ti.com>
+Cc: "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
-To: David Brownell <david-b@pacbell.net>
-Cc: Mark Brown <broonie@sirena.org.uk>, lkml <linux-kernel@vger.kernel.org>, OMAP <linux-omap@vger.kernel.org>
 
-On Thu, 2009-02-26 at 16:02 -0800, David Brownell wrote:
-> On Thursday 26 February 2009, Liam Girdwood wrote:
-> > > 
-> > > Note that the twl4030 regulator patch referred to will need a
-> > > minor patch to work with the -next tree, because of interface
-> > > change in the regulator framework.
-> > > 
-> > >  drivers/regulator/twl4030-regulator.c |   62 +++++++++++---------------------
-> > >  1 file changed, 23 insertions(+), 39 deletions(-)
-> > 
-> > Applied.
-> 
-> .... and here's that "minor patch".
-> 
-> ====== CUT HERE
-> From: David Brownell <dbrownell@users.sourceforge.net>
-> 
-> Catch up the twl4030 regulator driver to the regulator
-> interface change adding another parameter.  Also, fix
-> some comments, and take this opportunity to shrink the
-> associated per-regulator memory usage by a word.
-> 
-> Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
-> ---
->  drivers/regulator/twl4030-regulator.c |   17 +++++++++--------
->  1 file changed, 9 insertions(+), 8 deletions(-)
+On Fri, Feb 27, 2009 at 04:52:35AM -0600, Lopez Cruz, Misael wrote:
 
+> * Create a new structure "snd_soc_jack_gpio" holding info specific for a
+>   gpio pin like: gpio, irq, irqflags, irqhandler, private data (to be
+>   passed to irqhandler).
 
-Sorry, this didn't apply. It looks like I'm missing an earlier patch(s)
-here. Could you regenerate this and your core patch against latest
-for-next.
+Yes, roughly.  The jack_gpio will also need to know the status bits to
+update and which jack to update.  I'd expect something along the lines
+of:
 
-Thanks
+struct snd_soc_jack_gpio {
+	struct snd_soc_jack *jack;
+	int report;         /* Value to report when jack detected */
+	int invert_report;  /* Report presence when GPIO low */
+	int gpio;           /* GPIO to read */
+};
 
-Liam
+possibly with some other data stored (eg, a debounce time).  You can use
+gpio_to_irq() to get the interrupt number.
 
+If the machine drivers need to customise the IRQ handler code itself
+then it's probably getting to the point where another detection method
+should be written, though perhaps I'm missing something?
+
+> * Create a new function "snd_soc_jack_add_gpios" to add all jack_gpios that
+>   belong to a specific jack. This function should add all gpio pin references
+>   in a linked list as it's done for dapm pins. The linked list will be
+>   useful to be able to release acquired resources in another function
+>   "snd_soc_jack_free_gpios".
+
+Since the detection mechanism will need to know the jack it's notifying
+it should be possible to set up every GPIO detector at once - they'll
+all have to know which jack to point to anyway.  Given that it'd be as
+easy to use an array and not bother with the linked list.  The reason
+the pins are added to a list is that we need to iterate over them all
+whenever the jack status changes to update the status of the pins.
+
+> * Machine driver will be responsible to call add_gpios function passing an
+>   array of gpios related to each jack.
+
+Yes, the machine driver should set up that link.
+
+> * Machine driver will tie each jack_gpio with corresponding jack in a
+>   machine specific jack_data structure, one hook per jack_gpio in the jack.
+>   A handler will also be associated to the jack_data structure. This
+>   jack_data struct will be passed to the gpio irqhandler as private data.
+
+I'd *expect* you can live without the custom handler, though I could be
+wrong.
