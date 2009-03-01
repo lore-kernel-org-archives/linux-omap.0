@@ -1,137 +1,60 @@
-From: Felipe Balbi <me@felipebalbi.com>
-Subject: [rft/rfc/patch-v2.6.29-rc5+ 06/23] usb: host: ehci: sanitize error path
-Date: Mon, 23 Feb 2009 20:52:34 +0200
-Message-ID: <1235415171-17376-7-git-send-email-me@felipebalbi.com>
-References: <1235415171-17376-1-git-send-email-me@felipebalbi.com>
- <1235415171-17376-2-git-send-email-me@felipebalbi.com>
- <1235415171-17376-3-git-send-email-me@felipebalbi.com>
- <1235415171-17376-4-git-send-email-me@felipebalbi.com>
- <1235415171-17376-5-git-send-email-me@felipebalbi.com>
- <1235415171-17376-6-git-send-email-me@felipebalbi.com>
+From: "Dasgupta, Romit" <romit@ti.com>
+Subject: RE: omap3 cpuidle interrupt latency
+Date: Sun, 1 Mar 2009 08:55:28 +0530
+Message-ID: <B85A65D85D7EB246BE421B3FB0FBB59301CBEA0787@dbde02.ent.ti.com>
+References: <B85A65D85D7EB246BE421B3FB0FBB59301CBF74DF9@dbde02.ent.ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ns1.siteground211.com ([209.62.36.12]:46655 "EHLO
-	serv01.siteground211.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754497AbZBWSx1 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 23 Feb 2009 13:53:27 -0500
-In-Reply-To: <1235415171-17376-6-git-send-email-me@felipebalbi.com>
+Received: from comal.ext.ti.com ([198.47.26.152]:56373 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755328AbZCADZj convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 28 Feb 2009 22:25:39 -0500
+Received: from dbdp20.itg.ti.com ([172.24.170.38])
+	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id n213PUL1006061
+	for <linux-omap@vger.kernel.org>; Sat, 28 Feb 2009 21:25:36 -0600
+Received: from dbde70.ent.ti.com (localhost [127.0.0.1])
+	by dbdp20.itg.ti.com (8.13.8/8.13.8) with ESMTP id n213PTcg010743
+	for <linux-omap@vger.kernel.org>; Sun, 1 Mar 2009 08:55:30 +0530 (IST)
+In-Reply-To: <B85A65D85D7EB246BE421B3FB0FBB59301CBF74DF9@dbde02.ent.ti.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "Premi, Sanjeev" <premi@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+
+I think the original code had checks in 3 places but as you say it might have changed in linux-omap. I feel the right way to do this is to add a latency (using pm_qos) so that the CPU idle driver doesn't even attempt deeper idle states. Ideally we should use PM_QOS_NETWORK_LATENCY but the menu governor seems to check only PM_QOS_CPU_DMA_LATENCY class. I am not sure why menu governor does not check the other classes of latency. But for now I think if we add to PM_QOS_CPU_DMA_LATENCY when we detect some network activity and remove latency req after a while of network inactivity. 
+
+Thanks,
+-Romit
+
+________________________________________
+From: linux-omap-owner@vger.kernel.org [linux-omap-owner@vger.kernel.org] On Behalf Of Premi, Sanjeev [premi@ti.com]
+Sent: Saturday, February 28, 2009 11:22 PM
 To: linux-omap@vger.kernel.org
-Cc: Steve Sakoman <steve@sakoman.com>, Anand Gadiyar <gadiyar@ti.com>, Syed Mohammed Khasim <x0khasim@ti.com>, Felipe Balbi <me@felipebalbi.com>
+Subject: omap3 cpuidle interrupt latency
 
-This patch:
-	- sanitizes error path in ehci_hcd_omap_drv_probe();
-	- removes two unnecessary debugging messages, we only need
-	  debugging in the failing case generally;
-	- fix a memory leak when omap_start_ehc() fails: the recently
-	  created hcd was never put in that case;
+I have noticed large interrupt latency when the cpuidle is enabled.
+e.g. response time for ping goes from avg 10-20ms to 800-1000ms.
+(I am at HEAD of the 'pm' branch)
 
-Signed-off-by: Felipe Balbi <me@felipebalbi.com>
----
- drivers/usb/host/ehci-omap.c |   53 +++++++++++++++++++++++++----------------
- 1 files changed, 32 insertions(+), 21 deletions(-)
+The IRQs and FIQs are disabled at the beginning of the function
+omap3_enter_idle() but WFI is executed much later in _omap_sram_idle().
+In between, there is only one check for pending IRQs - omap_irq_pending()
 
-diff --git a/drivers/usb/host/ehci-omap.c b/drivers/usb/host/ehci-omap.c
-index d994392..db4576d 100644
---- a/drivers/usb/host/ehci-omap.c
-+++ b/drivers/usb/host/ehci-omap.c
-@@ -418,21 +418,24 @@ static int ehci_hcd_omap_drv_probe(struct platform_device *pdev)
- 	struct usb_hcd *hcd;
- 
- 	int irq = platform_get_irq(pdev, 0);
--	int retval = 0;
--
--	dev_dbg(&pdev->dev, "ehci_hcd_omap_drv_probe()\n");
-+	int ret = -ENODEV;
- 
- 	if (usb_disabled())
--		return -ENODEV;
-+		goto err_disabled;
- 
- 	hcd = usb_create_hcd(&ehci_omap_hc_driver, &pdev->dev,
- 			dev_name(&pdev->dev));
--	if (!hcd)
--		return -ENOMEM;
-+	if (!hcd) {
-+		dev_dbg(&pdev->dev, "failed to create hcd with err %d\n", ret);
-+		ret = -ENOMEM;
-+		goto err_create_hcd;
-+	}
- 
--	retval = omap_start_ehc(pdev, hcd);
--	if (retval)
--		return retval;
-+	ret = omap_start_ehc(pdev, hcd);
-+	if (ret) {
-+		dev_dbg(&pdev->dev, "failed to start ehci\n");
-+		goto err_start;
-+	}
- 
- 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
- 
-@@ -444,12 +447,12 @@ static int ehci_hcd_omap_drv_probe(struct platform_device *pdev)
- 	hcd->regs = ioremap(hcd->rsrc_start, hcd->rsrc_len);
- 	if (!hcd->regs) {
- 		dev_err(&pdev->dev, "ioremap failed\n");
--		return -ENOMEM;
-+		ret = -ENOMEM;
-+		goto err_ioremap;
- 	}
- 
- 	ehci = hcd_to_ehci(hcd);
- 	ehci->caps = hcd->regs;
--
- 	ehci->sbrn = 0x20;
- 
- 	ehci->regs = hcd->regs + HC_LENGTH(readl(&ehci->caps->hc_capbase));
-@@ -459,16 +462,26 @@ static int ehci_hcd_omap_drv_probe(struct platform_device *pdev)
- 	/* SET 1 micro-frame Interrupt interval */
- 	writel(readl(&ehci->regs->command) | (1 << 16), &ehci->regs->command);
- 
--	retval = usb_add_hcd(hcd, irq, IRQF_DISABLED | IRQF_SHARED);
--	if (retval == 0)
--		return retval;
-+	ret = usb_add_hcd(hcd, irq, IRQF_DISABLED | IRQF_SHARED);
-+	if (ret) {
-+		dev_dbg(&pdev->dev, "failed to add hcd with err %d\n", ret);
-+		goto err_add_hcd;
-+	}
- 
--	dev_dbg(&pdev->dev, "ERR: add_hcd\n");
--	omap_stop_ehc(pdev, hcd);
-+	return 0;
-+
-+err_add_hcd:
- 	iounmap(hcd->regs);
-+
-+err_ioremap:
-+	omap_stop_ehc(pdev, hcd);
-+
-+err_start:
- 	usb_put_hcd(hcd);
- 
--	return retval;
-+err_create_hcd:
-+err_disabled:
-+	return ret;
- }
- 
- /*-------------------------------------------------------------------------*/
-@@ -490,12 +503,10 @@ static int ehci_hcd_omap_drv_remove(struct platform_device *pdev)
- {
- 	struct usb_hcd *hcd = platform_get_drvdata(pdev);
- 
--	dev_dbg(&pdev->dev, "ehci_hcd_omap_drv_remove()\n");
--
--	iounmap(hcd->regs);
- 	usb_remove_hcd(hcd);
--	usb_put_hcd(hcd);
-+	iounmap(hcd->regs);
- 	omap_stop_ehc(pdev, hcd);
-+	usb_put_hcd(hcd);
- 
- 	return 0;
- }
--- 
-1.6.1.3
+If any interrupt occurs beyond this point is it considered by the WFI?
+
+To reduce this latency, I am planning to do either/both of thse:
+- Add more checks for pending IRQs
+- Reduce the time for which the IRQs and FIQs are disabled
+
+Benefits will depend upon the behavior of WFI.
+
+Best regards,
+Sanjeev
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
