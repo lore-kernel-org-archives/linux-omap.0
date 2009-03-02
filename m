@@ -1,97 +1,71 @@
-From: "Lopez Cruz, Misael" <x0052729@ti.com>
-Subject: Re: [PATCH 1/3] ASoC: Add GPIO support for
-	jack	reporting interface
-Date: Sun, 1 Mar 2009 19:54:36 -0600
-Message-ID: <2C7D3DF36ADFFC479B44490D912B616705ECC77374@dlee07.ent.ti.com>
-References: <2C7D3DF36ADFFC479B44490D912B616705EC8B1C03@dlee07.ent.ti.com>
-	<20090226115243.GC4229@sirena.org.uk>
-	<2C7D3DF36ADFFC479B44490D912B616705ECC76DF8@dlee07.ent.ti.com>
-	<20090227130502.GA4415@sirena.org.uk>
+From: "DongSoo(Nathaniel) Kim" <dongsoo.kim@gmail.com>
+Subject: [OMAPZOOM][PATCH] CAM: Make PACK8 mode on CCDC work only with
+	CCIR-656
+Date: Mon, 2 Mar 2009 11:22:38 +0900
+Message-ID: <5e9665e10903011822i5afbf588x8e9fc9596d94519a@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Return-path: <alsa-devel-bounces@alsa-project.org>
-In-Reply-To: <20090227130502.GA4415@sirena.org.uk>
-Content-Language: en-US
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Sender: alsa-devel-bounces@alsa-project.org
-Errors-To: alsa-devel-bounces@alsa-project.org
-To: Mark Brown <broonie@sirena.org.uk>
-Cc: "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from rv-out-0506.google.com ([209.85.198.235]:1309 "EHLO
+	rv-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751913AbZCBCWk (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 1 Mar 2009 21:22:40 -0500
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Cc: svadivu@ti.com, p-kulkarni@ti.com, dongsoo45.kim@samsung.com, "kyungmin.park@samsung.com" <kyungmin.park@samsung.com>, =?EUC-KR?B?sejH/MHY?= <riverful.kim@samsung.com>, "jongse.won@samsung.com" <jongse.won@samsung.com>
 
-> > * Create a new structure "snd_soc_jack_gpio" holding info 
-> > specific for a gpio pin like: gpio, irq, irqflags,
-> > irqhandler, private data (to be passed to irqhandler).
-> 
-> Yes, roughly.  The jack_gpio will also need to know the 
-> status bits to update and which jack to update.  I'd expect 
-> something along the lines
-> of:
-> 
-> struct snd_soc_jack_gpio {
-> 	struct snd_soc_jack *jack;
-> 	int report;         /* Value to report when jack detected */
-> 	int invert_report;  /* Report presence when GPIO low */
-> 	int gpio;           /* GPIO to read */
-> };
-> 
-> possibly with some other data stored (eg, a debounce time).  
-> You can use gpio_to_irq() to get the interrupt number.
-> 
-> If the machine drivers need to customise the IRQ handler code 
-> itself then it's probably getting to the point where another 
-> detection method should be written, though perhaps I'm 
-> missing something?
+Hello,
 
-Well, customise the IRQ handler itself probably not since the
-irq handler only needs to queue a work for doing the actual
-detection/report. There can be a generic detection/report function
-for gpio, I was thinking in something like:
+Besides the patch I've posted couple of hours ago, there is one more
+thing in omap3 ispccdc.c.
+According to omap3 datasheet, PACK8 could be enabled only when
+CCDC_SYN_MODE is with CCIR-656 mode.
+If you try to use external camera module with ITU-R.601 mode without
+this patch, you could face weird data from your camera interface.
+Please find following patch, and any comments will be welcomed.
 
-void gpio_detect(struct snd_soc_jack_gpio *gpio)
-{
-        struct snd_soc_jack *jack = gpio->jack;
-        int enable;
-        int report;
+Cheers,
 
-        if (gpio->debounce_time > 0)
-                mdelay(gpio->debounce_time);
+Nate
 
-        enable = gpio_get_value(gpio->gpio);
-        if (gpio->invert)
-                enable != enable;
+>From 23425c97233c93f9b572351d8a93a13ae3cb3188 Mon Sep 17 00:00:00 2001
+From: Dongsoo Kim <dongsoo45.kim@samsung.com>
+Date: Mon, 2 Mar 2009 11:01:14 +0900
+Subject: [PATCH 2/2] CAM: Make PACK8 mode on CCDC work only with CCIR-656
+ Signed-off-by: Dongsoo Kim <dongsoo45.kim@samsung.com>
 
-        if (enable)
-                report = gpio->report;
-        else
-                report = 0;
+---
+ drivers/media/video/isp/ispccdc.c |    3 ++-
+ 1 files changed, 2 insertions(+), 1 deletions(-)
 
-        snd_soc_jack_report(jack, report, gpio->report);
-}
+diff --git a/drivers/media/video/isp/ispccdc.c
+b/drivers/media/video/isp/ispccdc.c
+index 8f7e896..2945c6f 100644
+--- a/drivers/media/video/isp/ispccdc.c
++++ b/drivers/media/video/isp/ispccdc.c
+@@ -762,7 +762,8 @@ void ispccdc_config_sync_if(struct ispccdc_syncif syncif)
+ 	switch (syncif.datsz) {
+ 	case DAT8:
+ 		syn_mode |= ISPCCDC_SYN_MODE_DATSIZ_8;
+-		syn_mode |= ISPCCDC_SYN_MODE_PACK8; /* Added by MMS */
++		if (syncif.bt_r656_en)
++			syn_mode |= ISPCCDC_SYN_MODE_PACK8; /* Added by MMS */
+ 		break;
+ 	case DAT10:
+ 		syn_mode |= ISPCCDC_SYN_MODE_DATSIZ_10;
+-- 
+1.5.4.3
 
-This way we will be updating only bits associated to that particular
-gpio. But in a previous mail you mentioned about a case:
 
-> Some systems won't be able to use their speaker output while a
-> headphone is connected and so will want to make sure to update
-> both speaker and headphone when the headphone jack status
-> changes.
-
-Having a single/generic report function like shown above (as is) we
-can't handle that case.
-
-Could we leave the actual implementation of this report function to
-the machine driver? Since the things being done in detection function
-are common (even if other status are wanted to be updated), then
-probably machine driver could define a specific function ("action")
-for doing extra tasks, it can be called from generic gpio detect
-function. Could it be a valid approach?
-
--Misa
+-- 
+========================================================
+DongSoo(Nathaniel), Kim
+Engineer
+Mobile S/W Platform Lab. S/W centre
+Telecommunication R&D Centre
+Samsung Electronics CO., LTD.
+e-mail : dongsoo.kim@gmail.com
+          dongsoo45.kim@samsung.com
+========================================================
