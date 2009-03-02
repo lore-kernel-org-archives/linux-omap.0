@@ -1,54 +1,62 @@
-From: "Lopez Cruz, Misael" <x0052729@ti.com>
-Subject: Re: [PATCH 1/3] ASoC: Add GPIO support for
-	jack	reporting interface
-Date: Mon, 2 Mar 2009 15:16:22 -0600
-Message-ID: <2C7D3DF36ADFFC479B44490D912B616705ECC77862@dlee07.ent.ti.com>
-References: <2C7D3DF36ADFFC479B44490D912B616705EC8B1C03@dlee07.ent.ti.com>
-	<20090226115243.GC4229@sirena.org.uk>
-	<2C7D3DF36ADFFC479B44490D912B616705ECC76DF8@dlee07.ent.ti.com>
-	<20090227130502.GA4415@sirena.org.uk>
-	<2C7D3DF36ADFFC479B44490D912B616705ECC77374@dlee07.ent.ti.com>
-	<20090302113845.GA19744@sirena.org.uk>
+From: Pierre Ossman <drzeus-mmc@drzeus.cx>
+Subject: Re: [PATCH] OMAP: HSMMC: Initialize hsmmc controller registers when
+ resuming
+Date: Mon, 2 Mar 2009 22:23:35 +0100
+Message-ID: <20090302222335.5776897c@mjolnir.ossman.eu>
+References: <4d34a0a70902200400s252f48ddvfd6e0d83e91fa291@mail.gmail.com>
+	<200902231023.49653.david-b@pacbell.net>
+	<49A3EF96.3090603@nokia.com>
+	<200902241410.19132.david-b@pacbell.net>
+	<20090227220812.GM11594@atomide.com>
+	<49ABD098.8080108@nokia.com>
+	<20090302164413.GB11864@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Return-path: <alsa-devel-bounces@alsa-project.org>
-In-Reply-To: <20090302113845.GA19744@sirena.org.uk>
-Content-Language: en-US
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Sender: alsa-devel-bounces@alsa-project.org
-Errors-To: alsa-devel-bounces@alsa-project.org
-To: Mark Brown <broonie@sirena.org.uk>
-Cc: "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from 82-117-125-11.tcdsl.calypso.net ([82.117.125.11]:36705 "EHLO
+	smtp.drzeus.cx" rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752165AbZCBVXj (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 2 Mar 2009 16:23:39 -0500
+In-Reply-To: <20090302164413.GB11864@atomide.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Adrian Hunter <adrian.hunter@nokia.com>, David Brownell <david-b@pacbell.net>, Kyungmin Park <kyungmin.park@samsung.com>, Kim Kyuwon <chammoru@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, =?UTF-8?B?77+977+977+91L/vv70=?= <q1.kim@samsung.com>, "Lavinen Jarkko (Nokia-D/Helsinki)" <jarkko.lavinen@nokia.com>
 
+On Mon, 2 Mar 2009 08:44:14 -0800
+Tony Lindgren <tony@atomide.com> wrote:
 
-> > Could we leave the actual implementation of this report function to
-> > the machine driver? Since the things being done in detection function
-> > are common (even if other status are wanted to be updated), then
-> > probably machine driver could define a specific function ("action")
-> > for doing extra tasks, it can be called from generic gpio detect
-> > function. Could it be a valid approach?
+> * Adrian Hunter <adrian.hunter@nokia.com> [090302 04:27]:
+> > From a2ad80abeb9550782d4962472980e47df4055434 Mon Sep 17 00:00:00 2001
+> > From: Kim Kyuwon <chammoru@gmail.com>
+> > Date: Fri, 20 Feb 2009 13:10:08 +0100
+> > Subject: [PATCH] OMAP: HSMMC: Initialize hsmmc controller registers when resuming
+> >
+> > Most registers lose its state when the processor wakes up from sleep state.
+> > Thus registers should be initialized, when the processor wakes up. However the
+> > current hsmmc 'resume' function doesn't consider this issue and finally makes
+> > deadlock. So this patch fixes this problem.
+> >
+> > Signed-off-by: Kim Kyuwon <chammoru@gmail.com>
+> > Signed-off-by: Adrian Hunter <ext-adrian.hunter@nokia.com>
+> 
+> Sounds like there's no rush to get this into mainline until during the
+> next merge window as we're still missing most of the 24xx and 34xx PM code.
+> 
+> Acked-by: Tony Lindgren <tony@atomide.com>
+> 
+> 
 
-> That sounds like adding a callback for power updates on the jack itself
-> to me (which isn't a bad idea), rather than changing the report function
-> of the jack detection method.  The need for machine-specific extra
-> actions probably isn't specific to jacks that are detected via GPIOs.
+Queued up both patches for the next merge window.
 
-In that situation, power updates should come only when the jack reporting
-bits are either all active (jack enabled) or none (jack disabled), is that
-correct?
+-- 
+     -- Pierre Ossman
 
-If so, then machine drivers can create callbacks receiving the soc_codec
-the jack belongs to and the current state of the jack. All the power updates
-(dapm_enable_pin/damp_disable_pin) will happen in the callback in machine
-driver but the dapm sync will happen in soc jack framework (i.e. when
-reporting current status of the jack).
+  Linux kernel, MMC maintainer        http://www.kernel.org
+  rdesktop, core developer          http://www.rdesktop.org
 
--Misa
+  WARNING: This correspondence is being monitored by the
+  Swedish government. Make sure your server uses encryption
+  for SMTP traffic and consider using PGP for end-to-end
+  encryption.
