@@ -1,50 +1,84 @@
-From: Mark Brown <broonie@sirena.org.uk>
-Subject: Re: [alsa-devel] [PATCH 1/3] ASoC: Add GPIO support for jack
-	reporting interface
-Date: Mon, 2 Mar 2009 11:38:47 +0000
-Message-ID: <20090302113845.GA19744@sirena.org.uk>
-References: <2C7D3DF36ADFFC479B44490D912B616705EC8B1C03@dlee07.ent.ti.com> <20090226115243.GC4229@sirena.org.uk> <2C7D3DF36ADFFC479B44490D912B616705ECC76DF8@dlee07.ent.ti.com> <20090227130502.GA4415@sirena.org.uk> <2C7D3DF36ADFFC479B44490D912B616705ECC77374@dlee07.ent.ti.com>
+From: Ameya Palande <2ameya@gmail.com>
+Subject: Re: [OMAPZOOM][PATCH] DSPBRIDGE: Remove SEEK_* redefinitions
+Date: Mon, 2 Mar 2009 14:10:25 +0200
+Message-ID: <269694c00903020410s7e1d0456td6bebba791bb50cb@mail.gmail.com>
+References: <496565EC904933469F292DDA3F1663E602854E3E50@dlee06.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from cassiel.sirena.org.uk ([80.68.93.111]:2396 "EHLO
-	cassiel.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752415AbZCBLit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 2 Mar 2009 06:38:49 -0500
-Content-Disposition: inline
-In-Reply-To: <2C7D3DF36ADFFC479B44490D912B616705ECC77374@dlee07.ent.ti.com>
+Received: from mail-ew0-f177.google.com ([209.85.219.177]:50735 "EHLO
+	mail-ew0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753982AbZCBMK2 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 2 Mar 2009 07:10:28 -0500
+Received: by ewy25 with SMTP id 25so1998343ewy.37
+        for <linux-omap@vger.kernel.org>; Mon, 02 Mar 2009 04:10:25 -0800 (PST)
+In-Reply-To: <496565EC904933469F292DDA3F1663E602854E3E50@dlee06.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Lopez Cruz, Misael" <x0052729@ti.com>
-Cc: "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: "Guzman Lugo, Fernando" <x0095840@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Sun, Mar 01, 2009 at 07:54:36PM -0600, Lopez Cruz, Misael wrote:
+Hi Lugo,
 
-> detection/report. There can be a generic detection/report function
-> for gpio, I was thinking in something like:
+On Mon, Feb 23, 2009 at 7:53 PM, Guzman Lugo, Fernando <x0095840@ti.com=
+> wrote:
+> From: Fernando Guzman Lugo <x0095840@ti.com>
+> Date: Mon, 23 Feb 2009 10:04:27 -0600
+> Subject: [PATCH] DSPBRIDGE: Remove SEEK_* redefinitions
+>
+> This patch removes the SEEK_* redefinitions in host_os.h
+>
+> Signed-off-by: Guzman Lugo Fernando <x0095840@ti.com>
+> ---
+> =C2=A0arch/arm/plat-omap/include/dspbridge/host_os.h |=C2=A0=C2=A0=C2=
+=A0 6 ------
+> =C2=A01 files changed, 0 insertions(+), 6 deletions(-)
+>
+> diff --git a/arch/arm/plat-omap/include/dspbridge/host_os.h b/arch/ar=
+m/plat-omap/include/dspbridge/host_os.h
+> index ff49e0d..9245eea
+> --- a/arch/arm/plat-omap/include/dspbridge/host_os.h
+> +++ b/arch/arm/plat-omap/include/dspbridge/host_os.h
+> @@ -60,12 +60,6 @@
+> =C2=A0#include <asm/cacheflush.h>
+> =C2=A0#include <linux/dma-mapping.h>
+>
+> -/*=C2=A0 ----------------------------------- Macros */
+> -
+> -#define SEEK_SET=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0 0=C2=A0=C2=
+=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0 /* Seek from beginning of file.=
+=C2=A0 */
+> -#define SEEK_CUR=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0 1=C2=A0=C2=
+=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0 /* Seek from current position.=C2=
+=A0 */
+> -#define SEEK_END=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0 2=C2=A0=C2=
+=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0 /* Seek from end of file.=C2=A0=
+ */
+> -
+> =C2=A0/* TODO -- Remove, once BP defines them */
+> =C2=A0#define INT_MAIL_MPU_IRQ=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=
+=A0 26
+> =C2=A0#define INT_DSP_MMU_IRQ=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=
+ 28
+> --
+> 1.5.6.4
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap"=
+ in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at =C2=A0http://vger.kernel.org/majordomo-info.ht=
+ml
+>
 
-Yes, that's more or less much what I was looking for.
+What encoding are you using for composing this patch?
+There seems to be some strange characters in the patch.
+I can see them when I select show original message from gmail.
 
-> > Some systems won't be able to use their speaker output while a
-> > headphone is connected and so will want to make sure to update
-> > both speaker and headphone when the headphone jack status
-> > changes.
-
-> Having a single/generic report function like shown above (as is) we
-> can't handle that case.
-
-Sure it can - remember that the DAPM updates are done separately to the 
-detection and can be set to invert the status reported for the power.
-The speaker won't be visible as a jack in a situation like this.
-
-> Could we leave the actual implementation of this report function to
-> the machine driver? Since the things being done in detection function
-> are common (even if other status are wanted to be updated), then
-> probably machine driver could define a specific function ("action")
-> for doing extra tasks, it can be called from generic gpio detect
-> function. Could it be a valid approach?
-
-That sounds like adding a callback for power updates on the jack itself
-to me (which isn't a bad idea), rather than changing the report function
-of the jack detection method.  The need for machine-specific extra
-actions probably isn't specific to jacks that are detected via GPIOs.
+Cheers,
+Ameya.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
