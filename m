@@ -1,49 +1,76 @@
-From: Mark Brown <broonie@sirena.org.uk>
-Subject: Re: [alsa-devel] [PATCH 1/3] ASoC: Add GPIO support for jack
-	reporting interface
-Date: Mon, 2 Mar 2009 22:55:29 +0000
-Message-ID: <20090302225527.GA6390@sirena.org.uk>
-References: <2C7D3DF36ADFFC479B44490D912B616705EC8B1C03@dlee07.ent.ti.com> <20090226115243.GC4229@sirena.org.uk> <2C7D3DF36ADFFC479B44490D912B616705ECC76DF8@dlee07.ent.ti.com> <20090227130502.GA4415@sirena.org.uk> <2C7D3DF36ADFFC479B44490D912B616705ECC77374@dlee07.ent.ti.com> <20090302113845.GA19744@sirena.org.uk> <2C7D3DF36ADFFC479B44490D912B616705ECC77862@dlee07.ent.ti.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH E 11/14] OMAP clock: track child clocks
+Date: Mon, 2 Mar 2009 16:02:14 -0700 (MST)
+Message-ID: <alpine.DEB.2.00.0903021558360.30037@utopia.booyaka.com>
+References: <20090128192551.29333.82943.stgit@localhost.localdomain> <20090128192756.29333.41541.stgit@localhost.localdomain> <20090129151401.GC18233@n2100.arm.linux.org.uk> <20090129220608.GJ18233@n2100.arm.linux.org.uk> <20090219121932.GL6407@n2100.arm.linux.org.uk>
+ <13B9B4C6EF24D648824FF11BE896716203772C3680@dlee02.ent.ti.com> <20090223160349.GB27688@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from cassiel.sirena.org.uk ([80.68.93.111]:1654 "EHLO
-	cassiel.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751803AbZCBWzi (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 2 Mar 2009 17:55:38 -0500
-Content-Disposition: inline
-In-Reply-To: <2C7D3DF36ADFFC479B44490D912B616705ECC77862@dlee07.ent.ti.com>
+Received: from utopia.booyaka.com ([72.9.107.138]:48383 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752368AbZCBXCR (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 2 Mar 2009 18:02:17 -0500
+In-Reply-To: <20090223160349.GB27688@n2100.arm.linux.org.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Lopez Cruz, Misael" <x0052729@ti.com>
-Cc: "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: "Woodruff, Richard" <r-woodruff2@ti.com>, "linux-arm-kernel@lists.arm.linux.org.uk" <linux-arm-kernel@lists.arm.linux.org.uk>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>
 
-On Mon, Mar 02, 2009 at 03:16:22PM -0600, Lopez Cruz, Misael wrote:
+Hello Russell,
 
-> > That sounds like adding a callback for power updates on the jack itself
-> > to me (which isn't a bad idea), rather than changing the report function
-> > of the jack detection method.  The need for machine-specific extra
-> > actions probably isn't specific to jacks that are detected via GPIOs.
+On Mon, 23 Feb 2009, Russell King - ARM Linux wrote:
 
-> In that situation, power updates should come only when the jack reporting
-> bits are either all active (jack enabled) or none (jack disabled), is that
-> correct?
+> On Thu, Feb 19, 2009 at 06:50:52PM -0600, Woodruff, Richard wrote:
+> > The historic usage of this has been against single use leaf clocks (1st instance of gptimer).  When it was used it did:
+> >         clk_get()
+> >         clk_set_parent()
+> >         clk_enable()
+> > 
+> > This usage was ok for that. Use on a disabled clock is needed.
+> > 
+> > If there are multiple users on the clock or it is enabled there are problems.
+> 
+> It sounds to me like clk_set_parent() needs this then to prevent enabled
+> clocks being reparented.  By doing so, we no longer need to disable/enable
+> the clock within the OMAP2/3 set_parent function since we are now
+> guaranteed that the clock will be disabled.
+> 
+> Ack?
 
-No, the jack detect bits can change independently - you won't always
-physically be able to get everything that can be detected to report at
-once (eg, something that can distinguish between headphones and line
-output) or things may not always be present together (eg, a jack could
-detect headphones but no microphone even if it's possible that both may
-be present simultaneously).
+One suggestion on the patch:
 
-> If so, then machine drivers can create callbacks receiving the soc_codec
-> the jack belongs to and the current state of the jack. All the power updates
-> (dapm_enable_pin/damp_disable_pin) will happen in the callback in machine
-> driver but the dapm sync will happen in soc jack framework (i.e. when
-> reporting current status of the jack).
+> diff --git a/arch/arm/plat-omap/clock.c b/arch/arm/plat-omap/clock.c
+> index 08baa18..b2d9e1f 100644
+> --- a/arch/arm/plat-omap/clock.c
+> +++ b/arch/arm/plat-omap/clock.c
+> @@ -144,12 +144,14 @@ int clk_set_parent(struct clk *clk, struct clk *parent)
+>  		return ret;
+>  
+>  	spin_lock_irqsave(&clockfw_lock, flags);
+> -	if (arch_clock->clk_set_parent)
+> -		ret = arch_clock->clk_set_parent(clk, parent);
+> -	if (ret == 0) {
+> -		if (clk->recalc)
+> -			clk->rate = clk->recalc(clk);
+> -		propagate_rate(clk);
+> +	if (clk->usecount == 0) {
+> +		if (arch_clock->clk_set_parent)
+> +			ret = arch_clock->clk_set_parent(clk, parent);
+> +		if (ret == 0) {
+> +			if (clk->recalc)
+> +				clk->rate = clk->recalc(clk);
+> +			propagate_rate(clk);
+> +		}
+>  	}
+>  	spin_unlock_irqrestore(&clockfw_lock, flags);
 
-No.  The framework takes care of doing the power updates already, there
-is no need to add that functionality since the machine drivers can just
-use a simple data table.  A callback could be used to do things that
-can't be coped with already or more complex updates that aren't simply
-directly mirroring the status in DAPM pins.
+Suggest returning a more specific error than -EINVAL:
+
+if (clk->usecount > 0)
+        return -EBUSY;
+
+
+
+
+- Paul
