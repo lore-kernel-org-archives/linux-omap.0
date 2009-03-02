@@ -1,56 +1,68 @@
-From: "Tuukka.O Toivonen" <tuukka.o.toivonen@nokia.com>
-Subject: [PATCH] Add TWL4030 registers
-Date: Mon, 2 Mar 2009 08:24:56 +0200
-Message-ID: <200903020824.56642.tuukka.o.toivonen@nokia.com>
-References: <200902271555.00330.tuukka.o.toivonen@nokia.com> <20090227170743.GD11594@atomide.com>
+From: "Nayak, Rajendra" <rnayak@ti.com>
+Subject: [PATCH] OMAP3: PM: Update correct ONLP/RET values
+Date: Mon, 2 Mar 2009 13:01:09 +0530
+Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB02FAD03A7B@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:53433 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750879AbZCBG0a (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 2 Mar 2009 01:26:30 -0500
-In-Reply-To: <20090227170743.GD11594@atomide.com>
-Content-Disposition: inline
+Received: from devils.ext.ti.com ([198.47.26.153]:42425 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753737AbZCBHbU convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 2 Mar 2009 02:31:20 -0500
+Received: from dbdp20.itg.ti.com ([172.24.170.38])
+	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id n227VCC4021896
+	for <linux-omap@vger.kernel.org>; Mon, 2 Mar 2009 01:31:18 -0600
+Received: from dbde70.ent.ti.com (localhost [127.0.0.1])
+	by dbdp20.itg.ti.com (8.13.8/8.13.8) with ESMTP id n227VBeO005927
+	for <linux-omap@vger.kernel.org>; Mon, 2 Mar 2009 13:01:11 +0530 (IST)
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: sameo@openedhand.com
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "sailus@maxwell.research.nokia.com" <sailus@maxwell.research.nokia.com>, linux-kernel@vger.kernel.org
+To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
+Populates the correct ONLP/RET cmd values for VDD1 and VDD2.
+Also removes the unneccesary bitshift logic.
+Applies on the latest pm branch, validated on a 3430SDP.
 
-Signed-off-by: Tuukka Toivonen <tuukka.o.toivonen@nokia.com>
+0x30 = 1.2V
+0x1E = .975V
+0x2C = 1.15V
+
+Formula used to calulate the hex values
+Value(in decimals)*12.5 + 600 mV.
+
+Signed-off-by: Rajendra Nayak <rnayak@ti.com>
 ---
- include/linux/i2c/twl4030.h |   10 ++++++++++
- 1 files changed, 10 insertions(+), 0 deletions(-)
+ arch/arm/mach-omap2/pm34xx.c |   16 ++++++++--------
+ 1 files changed, 8 insertions(+), 8 deletions(-)
 
-diff --git a/include/linux/i2c/twl4030.h b/include/linux/i2c/twl4030.h
-index c89d33b..c4fe1b6 100644
---- a/include/linux/i2c/twl4030.h
-+++ b/include/linux/i2c/twl4030.h
-@@ -379,11 +379,21 @@ int twl4030_sih_setup(int module);
- #define TWL4030_VDAC_DEV_GRP		0x3B
- #define TWL4030_VDAC_DEDICATED		0x3E
- #define TWL4030_VAUX1_DEV_GRP		0x17
-+#define TWL4030_VAUX1_TYPE		0x18
-+#define TWL4030_VAUX1_REMAP		0x19
- #define TWL4030_VAUX1_DEDICATED		0x1A
- #define TWL4030_VAUX2_DEV_GRP		0x1B
-+#define TWL4030_VAUX2_TYPE		0x1C
-+#define TWL4030_VAUX2_REMAP		0x1D
- #define TWL4030_VAUX2_DEDICATED		0x1E
- #define TWL4030_VAUX3_DEV_GRP		0x1F
-+#define TWL4030_VAUX3_TYPE		0x20
-+#define TWL4030_VAUX3_REMAP		0x21
- #define TWL4030_VAUX3_DEDICATED		0x22
-+#define TWL4030_VAUX4_DEV_GRP		0x23
-+#define TWL4030_VAUX4_TYPE		0x24
-+#define TWL4030_VAUX4_REMAP		0x25
-+#define TWL4030_VAUX4_DEDICATED		0x26
+Index: linux-omap-2.6/arch/arm/mach-omap2/pm34xx.c
+===================================================================
+--- linux-omap-2.6.orig/arch/arm/mach-omap2/pm34xx.c	2009-03-02 11:42:13.000000000 +0530
++++ linux-omap-2.6/arch/arm/mach-omap2/pm34xx.c	2009-03-02 12:07:19.653034656 +0530
+@@ -1036,16 +1036,16 @@ err2:
+ }
  
- #if defined(CONFIG_TWL4030_BCI_BATTERY) || \
- 	defined(CONFIG_TWL4030_BCI_BATTERY_MODULE)
--- 
-1.5.2.5
-
+ /* PRM_VC_CMD_VAL_0 specific bits */
+-#define OMAP3430_VC_CMD_VAL0_ON				(0x3 << 4)
+-#define OMAP3430_VC_CMD_VAL0_ONLP			(0xf << 3)
+-#define OMAP3430_VC_CMD_VAL0_RET			(0xf << 3)
+-#define OMAP3430_VC_CMD_VAL0_OFF			(0x3 << 4)
++#define OMAP3430_VC_CMD_VAL0_ON		0x30
++#define OMAP3430_VC_CMD_VAL0_ONLP	0x1E
++#define OMAP3430_VC_CMD_VAL0_RET	0x1E
++#define OMAP3430_VC_CMD_VAL0_OFF	0x30
+ 
+ /* PRM_VC_CMD_VAL_1 specific bits */
+-#define OMAP3430_VC_CMD_VAL1_ON				(0xB << 2)
+-#define OMAP3430_VC_CMD_VAL1_ONLP			(0xf << 3)
+-#define OMAP3430_VC_CMD_VAL1_RET			(0xf << 3)
+-#define OMAP3430_VC_CMD_VAL1_OFF			(0xB << 2)
++#define OMAP3430_VC_CMD_VAL1_ON		0x2C
++#define OMAP3430_VC_CMD_VAL1_ONLP	0x1E
++#define OMAP3430_VC_CMD_VAL1_RET	0x1E
++#define OMAP3430_VC_CMD_VAL1_OFF	0x2C
+ 
+ static void __init configure_vc(void)
+ {
