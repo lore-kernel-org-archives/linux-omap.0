@@ -1,62 +1,100 @@
-From: Pierre Ossman <drzeus-mmc@drzeus.cx>
-Subject: Re: [PATCH] OMAP: HSMMC: Initialize hsmmc controller registers when
- resuming
-Date: Mon, 2 Mar 2009 22:23:35 +0100
-Message-ID: <20090302222335.5776897c@mjolnir.ossman.eu>
-References: <4d34a0a70902200400s252f48ddvfd6e0d83e91fa291@mail.gmail.com>
-	<200902231023.49653.david-b@pacbell.net>
-	<49A3EF96.3090603@nokia.com>
-	<200902241410.19132.david-b@pacbell.net>
-	<20090227220812.GM11594@atomide.com>
-	<49ABD098.8080108@nokia.com>
-	<20090302164413.GB11864@atomide.com>
+From: David Brownell <david-b@pacbell.net>
+Subject: Re: [patch 2.6.29-rc6+misc] MMC: regulator utilities
+Date: Mon, 2 Mar 2009 13:27:13 -0800
+Message-ID: <200903021327.14285.david-b@pacbell.net>
+References: <200902081037.06645.david-b@pacbell.net> <200902261348.30617.david-b@pacbell.net> <20090302215956.3f355eee@mjolnir.ossman.eu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain;
+  charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from 82-117-125-11.tcdsl.calypso.net ([82.117.125.11]:36705 "EHLO
-	smtp.drzeus.cx" rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752165AbZCBVXj (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 2 Mar 2009 16:23:39 -0500
-In-Reply-To: <20090302164413.GB11864@atomide.com>
+Received: from smtp117.sbc.mail.sp1.yahoo.com ([69.147.64.90]:37737 "HELO
+	smtp117.sbc.mail.sp1.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1753268AbZCBV1R (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 2 Mar 2009 16:27:17 -0500
+In-Reply-To: <20090302215956.3f355eee@mjolnir.ossman.eu>
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Adrian Hunter <adrian.hunter@nokia.com>, David Brownell <david-b@pacbell.net>, Kyungmin Park <kyungmin.park@samsung.com>, Kim Kyuwon <chammoru@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, =?UTF-8?B?77+977+977+91L/vv70=?= <q1.kim@samsung.com>, "Lavinen Jarkko (Nokia-D/Helsinki)" <jarkko.lavinen@nokia.com>
+To: Pierre Ossman <drzeus-mmc@drzeus.cx>
+Cc: Mark Brown <broonie@sirena.org.uk>, Liam Girdwood <lrg@slimlogic.co.uk>, lkml <linux-kernel@vger.kernel.org>, OMAP <linux-omap@vger.kernel.org>
 
-On Mon, 2 Mar 2009 08:44:14 -0800
-Tony Lindgren <tony@atomide.com> wrote:
-
-> * Adrian Hunter <adrian.hunter@nokia.com> [090302 04:27]:
-> > From a2ad80abeb9550782d4962472980e47df4055434 Mon Sep 17 00:00:00 2001
-> > From: Kim Kyuwon <chammoru@gmail.com>
-> > Date: Fri, 20 Feb 2009 13:10:08 +0100
-> > Subject: [PATCH] OMAP: HSMMC: Initialize hsmmc controller registers when resuming
-> >
-> > Most registers lose its state when the processor wakes up from sleep state.
-> > Thus registers should be initialized, when the processor wakes up. However the
-> > current hsmmc 'resume' function doesn't consider this issue and finally makes
-> > deadlock. So this patch fixes this problem.
-> >
-> > Signed-off-by: Kim Kyuwon <chammoru@gmail.com>
-> > Signed-off-by: Adrian Hunter <ext-adrian.hunter@nokia.com>
+On Monday 02 March 2009, Pierre Ossman wrote:
+> On Thu, 26 Feb 2009 13:48:30 -0800
+> David Brownell <david-b@pacbell.net> wrote:
 > 
-> Sounds like there's no rush to get this into mainline until during the
-> next merge window as we're still missing most of the 24xx and 34xx PM code.
+> > From: David Brownell <dbrownell@users.sourceforge.net>
+> > 
+> > Add optional glue between MMC and regulator stacks, using a new
+> > regulator interface to learn what voltages are available.
+> > 
+> > This is intended to be selected and driven by MMC host adapters.
+> > It only handles reusable parts of the regulator-to-MMC glue; the
+> > adapter drivers will have access to details that affect how this
+> > is used.  Examples include when to use multiple voltage rails or
+> > configure (internal or external) level shifters.
+> > 
+> > Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
+> > ---
+> > Changes from previous version:  adapter must select this, and
+> > callers now pass in the regulator.  mmc_regulator_set_ocr()
+> > is still not tested, mmc_regulator_get_ocrmask() passed sanity
+> > testing.
+> > 
+> > Pierre:  Mark may have a need for this soonish.  The omap_hsmmc
+> > code will want it at some point.
+> > 
 > 
-> Acked-by: Tony Lindgren <tony@atomide.com>
+> I have no insight into the regulator stuff, so I'm going to have to
+> trust you on this. :)
+
+Works for me.  ;)
+
+
+> Some nitpicking though:
 > 
+> > --- a/drivers/mmc/core/Kconfig
+> > +++ b/drivers/mmc/core/Kconfig
+> > @@ -14,3 +14,10 @@ config MMC_UNSAFE_RESUME
+> >  	  This option is usually just for embedded systems which use
+> >  	  a MMC/SD card for rootfs. Most people should say N here.
+> >  
+> > +config MMC_REGULATOR
+> > +	bool
+> > +	depends on REGULATOR
+> > +	help
+> > +	  Select this if your MMC host adapter driver wants helper
+> > +	  utilities for accessing power rails.
+> > +
 > 
+> Is there a need for a special Kconfig for this? Can't we just build
+> these two whenever REGULATOR is defined? Or always, provided the
+> regulator API is present even when the code isn't.
 
-Queued up both patches for the next merge window.
+The first patch had a "default y" there, nobody commented.
+I'll simplify that, and use #ifdef CONFIG_REGULATOR instead.
 
--- 
-     -- Pierre Ossman
+ 
+> > +/**
+> > + * mmc_regulator_set_ocr - set regulator to match host->ios voltage
+> > + * @host: mmc host whose supply voltage will be changed
+> > + * @supply: regulator to use
+> > + *
+> > + * MMC host drivers may use this to enable or disable a regulator using
+> > + * a particular supply voltage.  This would normally be called from the
+> > + * set_ios() method.
+> > + */
+> > +int mmc_regulator_set_ocr(struct mmc_host *host, struct regulator *supply)
+> > +{
+> 
+> Why not pass the vdd directly? Saves a few dereferences if nothing else.
 
-  Linux kernel, MMC maintainer        http://www.kernel.org
-  rdesktop, core developer          http://www.rdesktop.org
+This call syntax is simpler, which is usually a win.
+Passing a third parameter would create fault paths
+of the "pass *wrong* parameter" flavor.
 
-  WARNING: This correspondence is being monitored by the
-  Swedish government. Make sure your server uses encryption
-  for SMTP traffic and consider using PGP for end-to-end
-  encryption.
+In terms of object code, when I've looked at such things
+the dereferences generally cost the same as a ref to a
+parameter, but passing an extra parameter isn't free.
+
+- Dave
