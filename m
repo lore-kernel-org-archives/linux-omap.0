@@ -1,100 +1,312 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: Remaining bits for basic support of LDP
-Date: Sun, 1 Mar 2009 17:54:32 +0000
-Message-ID: <20090301175432.GA24384@n2100.arm.linux.org.uk>
-References: <20090210115615.GA9869@n2100.arm.linux.org.uk> <20090210210159.GK14200@atomide.com> <20090210213712.GB19041@n2100.arm.linux.org.uk> <20090210.171348.175525204.davem@davemloft.net>
+From: Dmitriy Chumak <dmytro.chumak@globallogic.com>
+Subject: ZOOM1 & SDP2430: MMC/SDIO: doesn't work at all
+Date: Mon, 2 Mar 2009 19:09:40 +0200
+Message-ID: <200903021909.40731.dmytro.chumak@globallogic.com>
+Reply-To: dmytro.chumak@globallogic.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <netdev-owner@vger.kernel.org>
+Content-Type: text/plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mx-del1-1.globallogic.com ([202.174.92.25]:45836 "EHLO
+	emailsecurity-del1-1.globallogic.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754679AbZCBRa4 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 2 Mar 2009 12:30:56 -0500
+Received: from emailsecurity-del1-1.globallogic.com (127.0.0.1) by emailsecurity-del1-1.globallogic.com (MlfMTA v3.2r9) id hlgbj60171sh for <linux-omap@vger.kernel.org>; Mon, 2 Mar 2009 22:37:07 +0530 (envelope-from <Dmytro.Chumak@globallogic.com>)
 Content-Disposition: inline
-In-Reply-To: <20090210.171348.175525204.davem@davemloft.net>
-Sender: netdev-owner@vger.kernel.org
-To: David Miller <davem@davemloft.net>
-Cc: tony@atomide.com, linux-omap@vger.kernel.org, netdev@vger.kernel.org
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
 
-On Tue, Feb 10, 2009 at 05:13:48PM -0800, David Miller wrote:
-> From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-> Date: Tue, 10 Feb 2009 21:37:12 +0000
-> 
-> > On Tue, Feb 10, 2009 at 01:02:02PM -0800, Tony Lindgren wrote:
-> > > Yeah, the smsc updates for omap might take a while longer to get going.
-> > > So here's my ack for this smc911x patch:
-> > > 
-> > > Acked-by: Tony Lindgren <tony@atomide.com>
-> > 
-> > Thanks.
-> 
-> Russell if you formally resubmit this with proper changelog, signoffs,
-> and acks I can merge it in quickly via the net-2.6 if you like.
+Hi,
 
-Sorry for the delay.  Please find patch below.
+I have a Zoom1 (3430 LDP) and SDP2430 devices.
 
-OMAP: enable smc911x support for LDP platform
+I work on SDIO driver.
 
-The following patch enables SMC911x support to work on the OMAP LDP
-board.  Although the SMC911x driver will eventually be obsoleted, the
-smsc911x patches are rather invasive for the -rc kernels.
+On both devices I have problems with SDIO using community kernels:
 
-Rather than risk destablising smsc911x, this simpler patch is preferred
-to allow the network interface to work.
+Zoom1:
+--------------------------------------------------------------------------
 
-Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
-Acked-by: Tony Lindgren <tony@atomide.com>
----
- arch/arm/mach-omap2/board-ldp.c |    2 +-
- drivers/net/smc911x.h           |   12 ++++++++++++
- 2 files changed, 13 insertions(+), 1 deletion(-)
+    git://git.omapzoom.org/repo/omapkernel.git
 
-diff --git a/arch/arm/mach-omap2/board-ldp.c b/arch/arm/mach-omap2/board-ldp.c
-index 61f7c36..d544965 100644
---- a/arch/arm/mach-omap2/board-ldp.c
-+++ b/arch/arm/mach-omap2/board-ldp.c
-@@ -81,7 +87,7 @@ static inline void __init ldp_init_smc911x(void)
- 	}
+    $ uname -a
+    Linux OMAP3430LAB 2.6.27.10-omap1-00207-g26d16da #1 Mon Mar 2 15:50:14 EET 2009 armv7l unknown
+
+To build a kernel I've used omap_ldp_defconfig
+
+On kernel boot I get the following:
+
+<7>mmc0: clock 400000Hz busmode 1 powermode 2 cs 0 Vdd 21 width 0 timing 0
+<7>mmc0: clock 400000Hz busmode 1 powermode 2 cs 1 Vdd 21 width 0 timing 0
+<7>mmc0: starting CMD0 arg 00000000 flags 000000c0
+<7>mmci-omap mmci-omap.0: mmc0: CMD0, argument 0x00000000
+<7>mmci-omap mmci-omap.0: IRQ Status is 1
+<7>mmc0: req done (CMD0): 0: 00000000 00000000 00000000 00000000
+<7>mmc0: clock 400000Hz busmode 1 powermode 2 cs 0 Vdd 21 width 0 timing 0
+<7>mmc0: starting CMD8 arg 000001aa flags 000002f5
+<7>mmci-omap mmci-omap.0: mmc0: CMD8, argument 0x000001aa
+<7>mmci-omap mmci-omap.0: IRQ Status is 18000
+<7>mmci-omap mmci-omap.0: MMC IRQ 0x18000 : ERRI CTO
+<7>mmc0: req done (CMD8): -110: 00000000 00000000 00000000 00000000
+<7>mmc0: starting CMD5 arg 00000000 flags 000002e1
+<7>mmci-omap mmci-omap.0: mmc0: CMD5, argument 0x00000000
+<7>mmci-omap mmci-omap.0: IRQ Status is 18000
+<7>mmci-omap mmci-omap.0: MMC IRQ 0x18000 : ERRI CTO
+<7>mmc0: req failed (CMD5): -110, retrying...
+<7>mmci-omap mmci-omap.0: mmc0: CMD5, argument 0x00000000
+<7>mmci-omap mmci-omap.0: IRQ Status is 18000
+<7>mmci-omap mmci-omap.0: MMC IRQ 0x18000 : ERRI CTO
+<7>mmc0: req failed (CMD5): -110, retrying...
+<7>mmci-omap mmci-omap.0: mmc0: CMD5, argument 0x00000000
+<7>mmci-omap mmci-omap.0: IRQ Status is 18000
+<7>mmci-omap mmci-omap.0: MMC IRQ 0x18000 : ERRI CTO
+<7>mmc0: req failed (CMD5): -110, retrying...
+<7>mmci-omap mmci-omap.0: mmc0: CMD5, argument 0x00000000
+<7>mmci-omap mmci-omap.0: IRQ Status is 18000
+<7>mmci-omap mmci-omap.0: MMC IRQ 0x18000 : ERRI CTO
+<7>mmc0: req done (CMD5): -110: 00000000 00000000 00000000 00000000
+<7>mmc0: starting CMD55 arg 00000000 flags 000000f5
+<7>mmci-omap mmci-omap.0: mmc0: CMD55, argument 0x00000000
+<7>mmci-omap mmci-omap.0: IRQ Status is 18000
+<7>mmci-omap mmci-omap.0: MMC IRQ 0x18000 : ERRI CTO
+<7>mmc0: req done (CMD55): -110: 00000000 00000000 00000000 00000000
+<7>mmc0: starting CMD55 arg 00000000 flags 000000f5
+<7>mmci-omap mmci-omap.0: mmc0: CMD55, argument 0x00000000
+<7>mmci-omap mmci-omap.0: IRQ Status is 18000
+<7>mmci-omap mmci-omap.0: MMC IRQ 0x18000 : ERRI CTO
+<7>mmc0: req done (CMD55): -110: 00000000 00000000 00000000 00000000
+<7>mmc0: starting CMD55 arg 00000000 flags 000000f5
+<7>mmci-omap mmci-omap.0: mmc0: CMD55, argument 0x00000000
+<7>mmci-omap mmci-omap.0: IRQ Status is 18000
+<7>mmci-omap mmci-omap.0: MMC IRQ 0x18000 : ERRI CTO
+<7>mmc0: req done (CMD55): -110: 00000000 00000000 00000000 00000000
+<7>mmc0: starting CMD55 arg 00000000 flags 000000f5
+<7>mmci-omap mmci-omap.0: mmc0: CMD55, argument 0x00000000
+<7>mmci-omap mmci-omap.0: IRQ Status is 18000
+<7>mmci-omap mmci-omap.0: MMC IRQ 0x18000 : ERRI CTO
+<7>mmc0: req done (CMD55): -110: 00000000 00000000 00000000 00000000
+<7>mmc0: starting CMD1 arg 00000000 flags 000000e1
+<7>mmci-omap mmci-omap.0: mmc0: CMD1, argument 0x00000000
+<7>mmci-omap mmci-omap.0: IRQ Status is 18000
+<7>mmci-omap mmci-omap.0: MMC IRQ 0x18000 : ERRI CTO
+<7>mmc0: req done (CMD1): -110: 00000000 00000000 00000000 00000000
+<7>mmc0: clock 0Hz busmode 1 powermode 0 cs 0 Vdd 0 width 0 timing 0
+
+
+When I insert SDIO card:
+
+
+<7>mmc0: clock 0Hz busmode 1 powermode 1 cs 0 Vdd 21 width 0 timing 0
+mmc0: clock 0Hz busmode 1 powermode 1 cs 0 Vdd 21 width 0 timing 0
+<7>mmc0: clock 400000Hz busmode 1 powermode 2 cs 0 Vdd 21 width 0 timing 0
+mmc0: clock 400000Hz busmode 1 powermode 2 cs 0 Vdd 21 width 0 timing 0
+<7>mmc0: clock 400000Hz busmode 1 powermode 2 cs 1 Vdd 21 width 0 timing 0
+mmc0: clock 400000Hz busmode 1 powermode 2 cs 1 Vdd 21 width 0 timing 0
+<7>mmc0: starting CMD0 arg 00000000 flags 000000c0
+mmc0: starting CMD0 arg 00000000 flags 000000c0
+<7>mmci-omap mmci-omap.0: mmc0: CMD0, argument 0x00000000
+mmci-omap mmci-omap.0: mmc0: CMD0, argument 0x00000000
+<7>mmci-omap mmci-omap.0: IRQ Status is 1
+mmci-omap mmci-omap.0: IRQ Status is 1
+<7>mmc0: req done (CMD0): 0: 00000000 00000000 00000000 00000000
+mmc0: req done (CMD0): 0: 00000000 00000000 00000000 00000000
+<7>mmc0: clock 400000Hz busmode 1 powermode 2 cs 0 Vdd 21 width 0 timing 0
+mmc0: clock 400000Hz busmode 1 powermode 2 cs 0 Vdd 21 width 0 timing 0
+<7>mmc0: starting CMD8 arg 000001aa flags 000002f5
+mmc0: starting CMD8 arg 000001aa flags 000002f5
+<7>mmci-omap mmci-omap.0: mmc0: CMD8, argument 0x000001aa
+mmci-omap mmci-omap.0: mmc0: CMD8, argument 0x000001aa
+<7>mmci-omap mmci-omap.0: IRQ Status is 18000
+mmci-omap mmci-omap.0: IRQ Status is 18000
+<7>mmci-omap mmci-omap.0: MMC IRQ 0x18000 :mmci-omap mmci-omap.0: MMC IRQ 0x18000 : ERRI ERRI CTO CTO
+
+<7>mmc0: req done (CMD8): -110: 00000000 00000000 00000000 00000000
+mmc0: req done (CMD8): -110: 00000000 00000000 00000000 00000000
+<7>mmc0: starting CMD5 arg 00000000 flags 000002e1
+mmc0: starting CMD5 arg 00000000 flags 000002e1
+<7>mmci-omap mmci-omap.0: mmc0: CMD5, argument 0x00000000
+mmci-omap mmci-omap.0: mmc0: CMD5, argument 0x00000000
+<7>mmci-omap mmci-omap.0: IRQ Status is 18000
+mmci-omap mmci-omap.0: IRQ Status is 18000
+<7>mmci-omap mmci-omap.0: MMC IRQ 0x18000 :mmci-omap mmci-omap.0: MMC IRQ 0x18000 : ERRI ERRI CTO CTO
+
+<7>mmc0: req failed (CMD5): -110, retrying...
+mmc0: req failed (CMD5): -110, retrying...
+<7>mmci-omap mmci-omap.0: mmc0: CMD5, argument 0x00000000
+mmci-omap mmci-omap.0: mmc0: CMD5, argument 0x00000000
+<7>mmci-omap mmci-omap.0: IRQ Status is 18000
+mmci-omap mmci-omap.0: IRQ Status is 18000
+<7>mmci-omap mmci-omap.0: MMC IRQ 0x18000 :mmci-omap mmci-omap.0: MMC IRQ 0x18000 : ERRI ERRI CTO CTO
+
+<7>mmc0: req failed (CMD5): -110, retrying...
+mmc0: req failed (CMD5): -110, retrying...
+<7>mmci-omap mmci-omap.0: mmc0: CMD5, argument 0x00000000
+mmci-omap mmci-omap.0: mmc0: CMD5, argument 0x00000000
+<7>mmci-omap mmci-omap.0: IRQ Status is 18000
+mmci-omap mmci-omap.0: IRQ Status is 18000
+<7>mmci-omap mmci-omap.0: MMC IRQ 0x18000 :mmci-omap mmci-omap.0: MMC IRQ 0x18000 : ERRI ERRI CTO CTO
+
+<7>mmc0: req failed (CMD5): -110, retrying...
+mmc0: req failed (CMD5): -110, retrying...
+<7>mmci-omap mmci-omap.0: mmc0: CMD5, argument 0x00000000
+mmci-omap mmci-omap.0: mmc0: CMD5, argument 0x00000000
+<7>mmci-omap mmci-omap.0: IRQ Status is 18000
+mmci-omap mmci-omap.0: IRQ Status is 18000
+<7>mmci-omap mmci-omap.0: MMC IRQ 0x18000 :mmci-omap mmci-omap.0: MMC IRQ 0x18000 : ERRI ERRI CTO CTO
+
+<7>mmc0: req done (CMD5): -110: 00000000 00000000 00000000 00000000
+mmc0: req done (CMD5): -110: 00000000 00000000 00000000 00000000
+<7>mmc0: starting CMD55 arg 00000000 flags 000000f5
+mmc0: starting CMD55 arg 00000000 flags 000000f5
+<7>mmci-omap mmci-omap.0: mmc0: CMD55, argument 0x00000000
+mmci-omap mmci-omap.0: mmc0: CMD55, argument 0x00000000
+<7>mmci-omap mmci-omap.0: IRQ Status is 18000
+mmci-omap mmci-omap.0: IRQ Status is 18000
+<7>mmci-omap mmci-omap.0: MMC IRQ 0x18000 :mmci-omap mmci-omap.0: MMC IRQ 0x18000 : ERRI ERRI CTO CTO
+
+<7>mmc0: req done (CMD55): -110: 00000000 00000000 00000000 00000000
+mmc0: req done (CMD55): -110: 00000000 00000000 00000000 00000000
+<7>mmc0: starting CMD55 arg 00000000 flags 000000f5
+mmc0: starting CMD55 arg 00000000 flags 000000f5
+<7>mmci-omap mmci-omap.0: mmc0: CMD55, argument 0x00000000
+mmci-omap mmci-omap.0: mmc0: CMD55, argument 0x00000000
+<7>mmci-omap mmci-omap.0: IRQ Status is 18000
+mmci-omap mmci-omap.0: IRQ Status is 18000
+<7>mmci-omap mmci-omap.0: MMC IRQ 0x18000 :mmci-omap mmci-omap.0: MMC IRQ 0x18000 : ERRI ERRI CTO CTO
+
+<7>mmc0: req done (CMD55): -110: 00000000 00000000 00000000 00000000
+mmc0: req done (CMD55): -110: 00000000 00000000 00000000 00000000
+<7>mmc0: starting CMD55 arg 00000000 flags 000000f5
+mmc0: starting CMD55 arg 00000000 flags 000000f5
+<7>mmci-omap mmci-omap.0: mmc0: CMD55, argument 0x00000000
+mmci-omap mmci-omap.0: mmc0: CMD55, argument 0x00000000
+<7>mmci-omap mmci-omap.0: IRQ Status is 18000
+mmci-omap mmci-omap.0: IRQ Status is 18000
+<7>mmci-omap mmci-omap.0: MMC IRQ 0x18000 :mmci-omap mmci-omap.0: MMC IRQ 0x18000 : ERRI ERRI CTO CTO
+
+<7>mmc0: req done (CMD55): -110: 00000000 00000000 00000000 00000000
+mmc0: req done (CMD55): -110: 00000000 00000000 00000000 00000000
+<7>mmc0: starting CMD55 arg 00000000 flags 000000f5
+mmc0: starting CMD55 arg 00000000 flags 000000f5
+<7>mmci-omap mmci-omap.0: mmc0: CMD55, argument 0x00000000
+mmci-omap mmci-omap.0: mmc0: CMD55, argument 0x00000000
+<7>mmci-omap mmci-omap.0: IRQ Status is 18000
+mmci-omap mmci-omap.0: IRQ Status is 18000
+<7>mmci-omap mmci-omap.0: MMC IRQ 0x18000 :mmci-omap mmci-omap.0: MMC IRQ 0x18000 : ERRI ERRI CTO CTO
+
+<7>mmc0: req done (CMD55): -110: 00000000 00000000 00000000 00000000
+mmc0: req done (CMD55): -110: 00000000 00000000 00000000 00000000
+<7>mmc0: starting CMD1 arg 00000000 flags 000000e1
+mmc0: starting CMD1 arg 00000000 flags 000000e1
+<7>mmci-omap mmci-omap.0: mmc0: CMD1, argument 0x00000000
+mmci-omap mmci-omap.0: mmc0: CMD1, argument 0x00000000
+<7>mmci-omap mmci-omap.0: IRQ Status is 18000
+mmci-omap mmci-omap.0: IRQ Status is 18000
+<7>mmci-omap mmci-omap.0: MMC IRQ 0x18000 :mmci-omap mmci-omap.0: MMC IRQ 0x18000 : ERRI ERRI CTO CTO
+
+<7>mmc0: req done (CMD1): -110: 00000000 00000000 00000000 00000000
+mmc0: req done (CMD1): -110: 00000000 00000000 00000000 00000000
+<7>mmc0: clock 0Hz busmode 1 powermode 0 cs 0 Vdd 0 width 0 timing 0
+mmc0: clock 0Hz busmode 1 powermode 0 cs 0 Vdd 0 width 0 timing 0
+
+
+
+SDP2430:
+--------------------------------------------------------------------------
+
+    git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap-2.6.git
  
- 	ldp_smc911x_resources[0].start = cs_mem_base + 0x0;
--	ldp_smc911x_resources[0].end   = cs_mem_base + 0xf;
-+	ldp_smc911x_resources[0].end   = cs_mem_base + 0xff;
- 	udelay(100);
- 
- 	eth_gpio = LDP_SMC911X_GPIO;
-diff --git a/drivers/net/smc911x.h b/drivers/net/smc911x.h
-index 870b4c3..a45952e 100644
---- a/drivers/net/smc911x.h
-+++ b/drivers/net/smc911x.h
-@@ -42,6 +42,16 @@
-   #define SMC_USE_16BIT		0
-   #define SMC_USE_32BIT		1
-   #define SMC_IRQ_SENSE		IRQF_TRIGGER_LOW
-+#elif defined(CONFIG_ARCH_OMAP34XX)
-+  #define SMC_USE_16BIT		0
-+  #define SMC_USE_32BIT		1
-+  #define SMC_IRQ_SENSE		IRQF_TRIGGER_LOW
-+  #define SMC_MEM_RESERVED	1
-+#elif defined(CONFIG_ARCH_OMAP24XX)
-+  #define SMC_USE_16BIT		0
-+  #define SMC_USE_32BIT		1
-+  #define SMC_IRQ_SENSE		IRQF_TRIGGER_LOW
-+  #define SMC_MEM_RESERVED	1
- #else
- /*
-  * Default configuration
-@@ -675,6 +685,7 @@ smc_pxa_dma_outsl(struct smc911x_local *lp, u_long physaddr,
- #define CHIP_9116	0x0116
- #define CHIP_9117	0x0117
- #define CHIP_9118	0x0118
-+#define CHIP_9211	0x9211
- #define CHIP_9215	0x115A
- #define CHIP_9217	0x117A
- #define CHIP_9218	0x118A
-@@ -689,6 +700,7 @@ static const struct chip_id chip_ids[] =  {
- 	{ CHIP_9116, "LAN9116" },
- 	{ CHIP_9117, "LAN9117" },
- 	{ CHIP_9118, "LAN9118" },
-+	{ CHIP_9211, "LAN9211" },
- 	{ CHIP_9215, "LAN9215" },
- 	{ CHIP_9217, "LAN9217" },
- 	{ CHIP_9218, "LAN9218" },
+    $ uname -a
+    Linux omap 2.6.29-rc6-omap1-05477-gab3c802 #2 PREEMPT Mon Mar 2 14:47:42 EET 2009 armv6l GNU/Linux
+
+To build a kernel I've used omap_2430sdp_defconfig
+
+On kernel boot I get the following:
+
+kobject: 'mmcblk' (c1da3f20): kobject_add_internal: parent: 'drivers', set: 'drivers'
+kobject: 'mmcblk' (c1da3f20): kobject_uevent_env
+kobject: 'mmcblk' (c1da3f20): fill_kobj_path: path = '/bus/mmc/drivers/mmcblk'
+kobject: 'mmci-omap-hs' (c1da3ec0): kobject_add_internal: parent: 'drivers', set: 'drivers'
+kobject: 'mmc0' (c1d35c4c): kobject_add_internal: parent: 'mmc_host', set: 'devices'
+kobject: 'mmc0' (c1d35c4c): kobject_uevent_env
+kobject: 'mmc0' (c1d35c4c): fill_kobj_path: path = '/class/mmc_host/mmc0'
+kobject: 'mmci-omap-hs.0' (c1c3e24c): fill_kobj_path: path = '/devices/platform/mmci-omap-hs.0'
+mmc0: clock 0Hz busmode 1 powermode 0 cs 0 Vdd 0 width 0 timing 0
+kobject: 'mmci-omap-hs' (c1da3ec0): kobject_uevent_env
+kobject: 'mmci-omap-hs' (c1da3ec0): fill_kobj_path: path = '/bus/platform/drivers/mmci-omap-hs'
+mmc0: clock 0Hz busmode 1 powermode 1 cs 0 Vdd 19 width 0 timing 0
+mmc0: clock 400000Hz busmode 1 powermode 2 cs 0 Vdd 19 width 0 timing 0
+mmc0: clock 400000Hz busmode 1 powermode 2 cs 1 Vdd 19 width 0 timing 0
+mmc0: starting CMD0 arg 00000000 flags 000000c0
+mmci-omap-hs mmci-omap-hs.0: mmc0: CMD0, argument 0x00000000
+mmci-omap-hs mmci-omap-hs.0: IRQ Status is 1
+mmc0: req done (CMD0): 0: 00000000 00000000 00000000 00000000
+mmc0: clock 400000Hz busmode 1 powermode 2 cs 0 Vdd 19 width 0 timing 0
+mmc0: starting CMD8 arg 000001aa flags 000002f5
+mmci-omap-hs mmci-omap-hs.0: mmc0: CMD8, argument 0x000001aa
+mmci-omap-hs mmci-omap-hs.0: IRQ Status is 18000
+mmci-omap-hs mmci-omap-hs.0: MMC IRQ 0x18000 : ERRI CTO
+mmc0: req done (CMD8): -110: 00000000 00000000 00000000 00000000
+mmc0: starting CMD5 arg 00000000 flags 000002e1
+mmci-omap-hs mmci-omap-hs.0: mmc0: CMD5, argument 0x00000000
+mmci-omap-hs mmci-omap-hs.0: IRQ Status is 18000
+mmci-omap-hs mmci-omap-hs.0: MMC IRQ 0x18000 : ERRI CTO
+mmc0: req failed (CMD5): -110, retrying...
+mmci-omap-hs mmci-omap-hs.0: mmc0: CMD5, argument 0x00000000
+mmci-omap-hs mmci-omap-hs.0: IRQ Status is 18000
+mmci-omap-hs mmci-omap-hs.0: MMC IRQ 0x18000 : ERRI CTO
+mmc0: req failed (CMD5): -110, retrying...
+mmci-omap-hs mmci-omap-hs.0: mmc0: CMD5, argument 0x00000000
+mmci-omap-hs mmci-omap-hs.0: IRQ Status is 18000
+mmci-omap-hs mmci-omap-hs.0: MMC IRQ 0x18000 : ERRI CTO
+mmc0: req failed (CMD5): -110, retrying...
+mmci-omap-hs mmci-omap-hs.0: mmc0: CMD5, argument 0x00000000
+mmci-omap-hs mmci-omap-hs.0: IRQ Status is 18000
+mmci-omap-hs mmci-omap-hs.0: MMC IRQ 0x18000 : ERRI CTO
+mmc0: req done (CMD5): -110: 00000000 00000000 00000000 00000000
+mmc0: starting CMD55 arg 00000000 flags 000000f5
+mmci-omap-hs mmci-omap-hs.0: mmc0: CMD55, argument 0x00000000
+mmci-omap-hs mmci-omap-hs.0: IRQ Status is 18000
+mmci-omap-hs mmci-omap-hs.0: MMC IRQ 0x18000 : ERRI CTO
+mmc0: req done (CMD55): -110: 00000000 00000000 00000000 00000000
+mmc0: starting CMD55 arg 00000000 flags 000000f5
+mmci-omap-hs mmci-omap-hs.0: mmc0: CMD55, argument 0x00000000
+mmci-omap-hs mmci-omap-hs.0: IRQ Status is 18000
+mmci-omap-hs mmci-omap-hs.0: MMC IRQ 0x18000 : ERRI CTO
+mmc0: req done (CMD55): -110: 00000000 00000000 00000000 00000000
+mmc0: starting CMD55 arg 00000000 flags 000000f5
+mmci-omap-hs mmci-omap-hs.0: mmc0: CMD55, argument 0x00000000
+mmci-omap-hs mmci-omap-hs.0: IRQ Status is 18000
+mmci-omap-hs mmci-omap-hs.0: MMC IRQ 0x18000 : ERRI CTO
+mmc0: req done (CMD55): -110: 00000000 00000000 00000000 00000000
+mmc0: starting CMD55 arg 00000000 flags 000000f5
+mmci-omap-hs mmci-omap-hs.0: mmc0: CMD55, argument 0x00000000
+mmci-omap-hs mmci-omap-hs.0: IRQ Status is 18000
+mmci-omap-hs mmci-omap-hs.0: MMC IRQ 0x18000 : ERRI CTO
+mmc0: req done (CMD55): -110: 00000000 00000000 00000000 00000000
+mmc0: starting CMD1 arg 00000000 flags 000000e1
+mmci-omap-hs mmci-omap-hs.0: mmc0: CMD1, argument 0x00000000
+mmci-omap-hs mmci-omap-hs.0: IRQ Status is 18000
+mmci-omap-hs mmci-omap-hs.0: MMC IRQ 0x18000 : ERRI CTO
+mmc0: req done (CMD1): -110: 00000000 00000000 00000000 00000000
+mmc0: clock 0Hz busmode 1 powermode 0 cs 0 Vdd 0 width 0 timing 0
+
+Also on SDP2430 I can observe the following:
+
+    There is 2 LEDs (MMC1-1V8 and MMC1-3V0) near the MMC1 slot.  When I use
+    an "official TI kernel" for SDP2430 (package version CSSD_Linux_18.12,
+    kernel version Linux-2.6.14.7-arm1-omap2) SDIO works well and LED
+    MMC1-3V0 is always on when kernel is booted. But with latest community
+    kernel both LEDs are off and SDIO doesn't work and there are no logs
+    on SDIO card insertion.
+
+Did someone encounter a similar problem with SDIO? Or maybe someone can
+advise me to build kernel from some special branch or to use special config
+options?
 
 
+Best regards,
+
+Dmitriy
