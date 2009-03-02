@@ -1,33 +1,50 @@
-From: Juha Yrjola <juha.yrjola@solidboot.com>
-Subject: Re: [PATCH] OMAP3: SDTI: Prevent access to sdti writing if module is not initialized.
-Date: Mon, 2 Mar 2009 13:31:12 +0200
-Message-ID: <20090302113112.GA15810@mail.solidboot.com>
-References: <1234438768-20697-1-git-send-email-roman.tereshonkov@nokia.com> <20090216113303.GL21181@scadufax.research.nokia.com> <20090227183524.GI11594@atomide.com> <20090227190053.GH16801@frodo> <20090228100855.GA10606@mail.solidboot.com> <20090302082750.GC24691@pure.research.nokia.com>
+From: Mark Brown <broonie@sirena.org.uk>
+Subject: Re: [alsa-devel] [PATCH 1/3] ASoC: Add GPIO support for jack
+	reporting interface
+Date: Mon, 2 Mar 2009 11:38:47 +0000
+Message-ID: <20090302113845.GA19744@sirena.org.uk>
+References: <2C7D3DF36ADFFC479B44490D912B616705EC8B1C03@dlee07.ent.ti.com> <20090226115243.GC4229@sirena.org.uk> <2C7D3DF36ADFFC479B44490D912B616705ECC76DF8@dlee07.ent.ti.com> <20090227130502.GA4415@sirena.org.uk> <2C7D3DF36ADFFC479B44490D912B616705ECC77374@dlee07.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from solidboot.com ([92.48.122.80]:37262 "EHLO rei.solidboot.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752415AbZCBLbP (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 2 Mar 2009 06:31:15 -0500
+Received: from cassiel.sirena.org.uk ([80.68.93.111]:2396 "EHLO
+	cassiel.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752415AbZCBLit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 2 Mar 2009 06:38:49 -0500
 Content-Disposition: inline
-In-Reply-To: <20090302082750.GC24691@pure.research.nokia.com>
+In-Reply-To: <2C7D3DF36ADFFC479B44490D912B616705ECC77374@dlee07.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Lauri Leukkunen <lauri.leukkunen@nokia.com>
-Cc: Felipe Balbi <me@felipebalbi.com>, Tony Lindgren <tony@atomide.com>, "Balbi Felipe (Nokia-D/Helsinki)" <felipe.balbi@nokia.com>, "Tereshonkov Roman (Nokia-D/Helsinki)" <roman.tereshonkov@nokia.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: "Lopez Cruz, Misael" <x0052729@ti.com>
+Cc: "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Mon, Mar 02, 2009 at 10:27:50AM +0200, Lauri Leukkunen wrote:
+On Sun, Mar 01, 2009 at 07:54:36PM -0600, Lopez Cruz, Misael wrote:
 
-> > STI console is enabled based on runtime decisions by the bootloader. The
-> > kernel command line is unusable for us, because there is no way to append to
-> > the line. We don't want to remove the possibility how having the user
-> > create a custom kernel with a custom command line.
-> 
-> *I* don't have a problem with having the bootloader always define the
-> cmdline, you are the one against it :)
+> detection/report. There can be a generic detection/report function
+> for gpio, I was thinking in something like:
 
-If we did that, how would the kernel flashing process go?
+Yes, that's more or less much what I was looking for.
 
-Cheers,
-Juha
+> > Some systems won't be able to use their speaker output while a
+> > headphone is connected and so will want to make sure to update
+> > both speaker and headphone when the headphone jack status
+> > changes.
+
+> Having a single/generic report function like shown above (as is) we
+> can't handle that case.
+
+Sure it can - remember that the DAPM updates are done separately to the 
+detection and can be set to invert the status reported for the power.
+The speaker won't be visible as a jack in a situation like this.
+
+> Could we leave the actual implementation of this report function to
+> the machine driver? Since the things being done in detection function
+> are common (even if other status are wanted to be updated), then
+> probably machine driver could define a specific function ("action")
+> for doing extra tasks, it can be called from generic gpio detect
+> function. Could it be a valid approach?
+
+That sounds like adding a callback for power updates on the jack itself
+to me (which isn't a bad idea), rather than changing the report function
+of the jack detection method.  The need for machine-specific extra
+actions probably isn't specific to jacks that are detected via GPIOs.
