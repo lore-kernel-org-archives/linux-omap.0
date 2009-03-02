@@ -1,54 +1,95 @@
-From: david.hagood@gmail.com
-Subject: Anyone built the kernel drivers for the PowerVR under
-     linux-omap-2.6?
-Date: Mon, 2 Mar 2009 14:56:40 -0600 (CST)
-Message-ID: <c6ef7709f9373651496b2a32ca42f571.squirrel@localhost>
+From: Pierre Ossman <drzeus-mmc@drzeus.cx>
+Subject: Re: [patch 2.6.29-rc6+misc] MMC: regulator utilities
+Date: Mon, 2 Mar 2009 21:59:56 +0100
+Message-ID: <20090302215956.3f355eee@mjolnir.ossman.eu>
+References: <200902081037.06645.david-b@pacbell.net>
+	<20090226202055.GE8595@sirena.org.uk>
+	<200902261312.42720.david-b@pacbell.net>
+	<200902261348.30617.david-b@pacbell.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-fx0-f176.google.com ([209.85.220.176]:61859 "EHLO
-	mail-fx0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751474AbZCBU4t (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 2 Mar 2009 15:56:49 -0500
-Received: by fxm24 with SMTP id 24so2166769fxm.37
-        for <linux-omap@vger.kernel.org>; Mon, 02 Mar 2009 12:56:45 -0800 (PST)
-Received: from localhost (localhost [127.0.0.1])
-	by Deathwish.hagood.sktc.net (Postfix) with ESMTP id BB5EEC7B806F
-	for <linux-omap@vger.kernel.org>; Mon,  2 Mar 2009 14:56:40 -0600 (CST)
+Received: from 82-117-125-11.tcdsl.calypso.net ([82.117.125.11]:51396 "EHLO
+	smtp.drzeus.cx" rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750820AbZCBVAA (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 2 Mar 2009 16:00:00 -0500
+In-Reply-To: <200902261348.30617.david-b@pacbell.net>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
+To: David Brownell <david-b@pacbell.net>
+Cc: Mark Brown <broonie@sirena.org.uk>, Liam Girdwood <lrg@slimlogic.co.uk>, lkml <linux-kernel@vger.kernel.org>, OMAP <linux-omap@vger.kernel.org>
 
-I'm trying to build the TI supplied Linux kernel driver modules for the
-PowerVR accelerator chip in the OMAP3. I have a GIT tree pulled from the
-linux-omap-2.6 tree, and a set of cross-compiler tools built and
-installed.
+On Thu, 26 Feb 2009 13:48:30 -0800
+David Brownell <david-b@pacbell.net> wrote:
 
-I can build the kernel itself, but when I try to build the TI supplied code:
-1) It references "asm/semaphore.h" rather than "linux/semaphore.h" - as
-asm/semaphore no longer exists in the code the build fails. I can work
-around that by creating a symlink to linux/semaphore.h.
-2) It then references "asm/resources.h", which is ALSO gone. I'm guessing
-it needs "asm-generic/resources.h".
-3) However, at that point the compile REALLY dies, with the code looking
-for "asm/arch/resources.h". If I link "arch/arm/include/asm" to
-"asm/arch", then I get a large number of errors:
+> From: David Brownell <dbrownell@users.sourceforge.net>
+> 
+> Add optional glue between MMC and regulator stacks, using a new
+> regulator interface to learn what voltages are available.
+> 
+> This is intended to be selected and driven by MMC host adapters.
+> It only handles reusable parts of the regulator-to-MMC glue; the
+> adapter drivers will have access to details that affect how this
+> is used.  Examples include when to use multiple voltage rails or
+> configure (internal or external) level shifters.
+> 
+> Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
+> ---
+> Changes from previous version:  adapter must select this, and
+> callers now pass in the regulator.  mmc_regulator_set_ocr()
+> is still not tested, mmc_regulator_get_ocrmask() passed sanity
+> testing.
+> 
+> Pierre:  Mark may have a need for this soonish.  The omap_hsmmc
+> code will want it at some point.
+> 
 
-  CC [M] 
-/space/src/OMAP35x_Graphics_SDC_3_00_00_06/GFX_Linux_KM/services4/srvkm/env/linux/kbuild/../../../../../services4/system/omap3430/sysconfig.o
-  CC [M] 
-/space/src/OMAP35x_Graphics_SDC_3_00_00_06/GFX_Linux_KM/services4/srvkm/env/linux/kbuild/../../../../../services4/system/omap3430/sysutils.o
-In file included from
-/space/src/OMAP35x_Graphics_SDC_3_00_00_06/GFX_Linux_KM/services4/srvkm/env/linux/kbuild/../../../../../services4/system/omap3430/sysutils.c:28:
-/space/src/OMAP35x_Graphics_SDC_3_00_00_06/GFX_Linux_KM/services4/srvkm/env/linux/kbuild/../../../../../services4/system/omap3430/sysutils_linux.c:154:
-error: variable 'cnstr_id_vdd2' has initializer but incomplete type
-/space/src/OMAP35x_Graphics_SDC_3_00_00_06/GFX_Linux_KM/services4/srvkm/env/linux/kbuild/../../../../../services4/system/omap3430/sysutils_linux.c:155:
-error: unknown field 'type' specified in initializer
-/space/src/OMAP35x_Graphics_SDC_3_00_00_06/GFX_Linux_KM/services4/srvkm/env/linux/kbuild/../../../../../services4/system/omap3430/sysutils_linux.c:155:
-error: 'RES_OPP_CO' undeclared here (not in a function)
+I have no insight into the regulator stuff, so I'm going to have to
+trust you on this. :)
 
-So does anybody have an good advice on this?
+Some nitpicking though:
 
+> --- a/drivers/mmc/core/Kconfig
+> +++ b/drivers/mmc/core/Kconfig
+> @@ -14,3 +14,10 @@ config MMC_UNSAFE_RESUME
+>  	  This option is usually just for embedded systems which use
+>  	  a MMC/SD card for rootfs. Most people should say N here.
+>  
+> +config MMC_REGULATOR
+> +	bool
+> +	depends on REGULATOR
+> +	help
+> +	  Select this if your MMC host adapter driver wants helper
+> +	  utilities for accessing power rails.
+> +
 
+Is there a need for a special Kconfig for this? Can't we just build
+these two whenever REGULATOR is defined? Or always, provided the
+regulator API is present even when the code isn't.
 
+> +/**
+> + * mmc_regulator_set_ocr - set regulator to match host->ios voltage
+> + * @host: mmc host whose supply voltage will be changed
+> + * @supply: regulator to use
+> + *
+> + * MMC host drivers may use this to enable or disable a regulator using
+> + * a particular supply voltage.  This would normally be called from the
+> + * set_ios() method.
+> + */
+> +int mmc_regulator_set_ocr(struct mmc_host *host, struct regulator *supply)
+> +{
+
+Why not pass the vdd directly? Saves a few dereferences if nothing else.
+
+Rgds
+-- 
+     -- Pierre Ossman
+
+  Linux kernel, MMC maintainer        http://www.kernel.org
+  rdesktop, core developer          http://www.rdesktop.org
+
+  WARNING: This correspondence is being monitored by the
+  Swedish government. Make sure your server uses encryption
+  for SMTP traffic and consider using PGP for end-to-end
+  encryption.
