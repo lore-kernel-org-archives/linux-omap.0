@@ -1,68 +1,86 @@
-From: "Nayak, Rajendra" <rnayak@ti.com>
-Subject: [PATCH] OMAP3: PM: Update correct ONLP/RET values
-Date: Mon, 2 Mar 2009 13:01:09 +0530
-Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB02FAD03A7B@dbde02.ent.ti.com>
+From: "DongSoo(Nathaniel) Kim" <dongsoo.kim@gmail.com>
+Subject: Re: [REVIEW PATCH 09/14] OMAP: CAM: Add ISP Core
+Date: Mon, 2 Mar 2009 17:09:54 +0900
+Message-ID: <5e9665e10903020009y7fe7d0d0j356708e1c3149cac@mail.gmail.com>
+References: <Acl1IyATAKAzUiSPQiOOAI2yzi0iWQ==>
+	<A24693684029E5489D1D202277BE894416429F9F@dlee02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:42425 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753737AbZCBHbU convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 2 Mar 2009 02:31:20 -0500
-Received: from dbdp20.itg.ti.com ([172.24.170.38])
-	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id n227VCC4021896
-	for <linux-omap@vger.kernel.org>; Mon, 2 Mar 2009 01:31:18 -0600
-Received: from dbde70.ent.ti.com (localhost [127.0.0.1])
-	by dbdp20.itg.ti.com (8.13.8/8.13.8) with ESMTP id n227VBeO005927
-	for <linux-omap@vger.kernel.org>; Mon, 2 Mar 2009 13:01:11 +0530 (IST)
-Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Return-path: <video4linux-list-bounces@redhat.com>
+In-Reply-To: <A24693684029E5489D1D202277BE894416429F9F@dlee02.ent.ti.com>
+List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
+	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
+List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
+List-Post: <mailto:video4linux-list@redhat.com>
+List-Help: <mailto:video4linux-list-request@redhat.com?subject=help>
+List-Subscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
+	<mailto:video4linux-list-request@redhat.com?subject=subscribe>
+Sender: video4linux-list-bounces@redhat.com
+Errors-To: video4linux-list-bounces@redhat.com
+To: "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>
+Cc: "video4linux-list@redhat.com" <video4linux-list@redhat.com>, Sakari Ailus <sakari.ailus@nokia.com>, "Nagalla, Hari" <hnagalla@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Tuukka.O Toivonen" <tuukka.o.toivonen@nokia.com>, "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
-To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Populates the correct ONLP/RET cmd values for VDD1 and VDD2.
-Also removes the unneccesary bitshift logic.
-Applies on the latest pm branch, validated on a 3430SDP.
+Hello,
 
-0x30 = 1.2V
-0x1E = .975V
-0x2C = 1.15V
+reviewing ISP driver, I found that we've got no querymenu support in
+ISP and also omap3 camera interface driver.
 
-Formula used to calulate the hex values
-Value(in decimals)*12.5 + 600 mV.
++/**
++ * struct vcontrol - Video control structure.
++ * @qc: V4L2 Query control structure.
++ * @current_value: Current value of the control.
++ */
++static struct vcontrol {
++       struct v4l2_queryctrl qc;
++       int current_value;
++} video_control[] = {
 
-Signed-off-by: Rajendra Nayak <rnayak@ti.com>
----
- arch/arm/mach-omap2/pm34xx.c |   16 ++++++++--------
- 1 files changed, 8 insertions(+), 8 deletions(-)
+<snip>
 
-Index: linux-omap-2.6/arch/arm/mach-omap2/pm34xx.c
-===================================================================
---- linux-omap-2.6.orig/arch/arm/mach-omap2/pm34xx.c	2009-03-02 11:42:13.000000000 +0530
-+++ linux-omap-2.6/arch/arm/mach-omap2/pm34xx.c	2009-03-02 12:07:19.653034656 +0530
-@@ -1036,16 +1036,16 @@ err2:
- }
- 
- /* PRM_VC_CMD_VAL_0 specific bits */
--#define OMAP3430_VC_CMD_VAL0_ON				(0x3 << 4)
--#define OMAP3430_VC_CMD_VAL0_ONLP			(0xf << 3)
--#define OMAP3430_VC_CMD_VAL0_RET			(0xf << 3)
--#define OMAP3430_VC_CMD_VAL0_OFF			(0x3 << 4)
-+#define OMAP3430_VC_CMD_VAL0_ON		0x30
-+#define OMAP3430_VC_CMD_VAL0_ONLP	0x1E
-+#define OMAP3430_VC_CMD_VAL0_RET	0x1E
-+#define OMAP3430_VC_CMD_VAL0_OFF	0x30
- 
- /* PRM_VC_CMD_VAL_1 specific bits */
--#define OMAP3430_VC_CMD_VAL1_ON				(0xB << 2)
--#define OMAP3430_VC_CMD_VAL1_ONLP			(0xf << 3)
--#define OMAP3430_VC_CMD_VAL1_RET			(0xf << 3)
--#define OMAP3430_VC_CMD_VAL1_OFF			(0xB << 2)
-+#define OMAP3430_VC_CMD_VAL1_ON		0x2C
-+#define OMAP3430_VC_CMD_VAL1_ONLP	0x1E
-+#define OMAP3430_VC_CMD_VAL1_RET	0x1E
-+#define OMAP3430_VC_CMD_VAL1_OFF	0x2C
- 
- static void __init configure_vc(void)
- {
++       {
++               {
++                       .id = V4L2_CID_PRIVATE_ISP_COLOR_FX,
++                       .type = V4L2_CTRL_TYPE_INTEGER,
++                       .name = "Color Effects",
++                       .minimum = PREV_DEFAULT_COLOR,
++                       .maximum = PREV_BW_COLOR,
++                       .step = 1,
++                       .default_value = PREV_DEFAULT_COLOR,
++               },
++               .current_value = PREV_DEFAULT_COLOR,
++       }
++};
+
+I think we should make it menu type for this color FX control.
+If that kind of control has no menu information, user has no way to
+figure out what kind of FX supported by device.
+BTW if we make querymenu support in omap3 camera subsystem, we should
+make querymenu support for v4l2 int device also.
+I think I've seen before a patch which intent to use querymenu in v4l2
+int device, but no patch for omap3 ISP and camera interface.
+Can I make a patch and post on linux-omap, linux-media list? of course
+if you don't mind.
+Or...am I digging wrong way? I mean.. querymenu for omap3 camera subsystem.
+Please let me know :)
+
+Cheers,
+
+Nate
+
+-- 
+========================================================
+DongSoo(Nathaniel), Kim
+Engineer
+Mobile S/W Platform Lab.
+Telecommunication R&D Centre
+Samsung Electronics CO., LTD.
+e-mail : dongsoo.kim@gmail.com
+          dongsoo45.kim@samsung.com
+========================================================
+
+--
+video4linux-list mailing list
+Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
+https://www.redhat.com/mailman/listinfo/video4linux-list
