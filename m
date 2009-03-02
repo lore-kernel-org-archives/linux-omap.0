@@ -1,59 +1,54 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: omap3 cpuidle interrupt latency
-Date: Mon, 02 Mar 2009 11:46:17 -0800
-Message-ID: <873advaet2.fsf@deeprootsystems.com>
-References: <B85A65D85D7EB246BE421B3FB0FBB59301CBF74DF9@dbde02.ent.ti.com>
+From: david.hagood@gmail.com
+Subject: Anyone built the kernel drivers for the PowerVR under
+     linux-omap-2.6?
+Date: Mon, 2 Mar 2009 14:56:40 -0600 (CST)
+Message-ID: <c6ef7709f9373651496b2a32ca42f571.squirrel@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from rv-out-0506.google.com ([209.85.198.226]:20663 "EHLO
-	rv-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754088AbZCBTqW (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 2 Mar 2009 14:46:22 -0500
-Received: by rv-out-0506.google.com with SMTP id g9so5456915rvb.5
-        for <linux-omap@vger.kernel.org>; Mon, 02 Mar 2009 11:46:20 -0800 (PST)
-In-Reply-To: <B85A65D85D7EB246BE421B3FB0FBB59301CBF74DF9@dbde02.ent.ti.com> (Sanjeev Premi's message of "Sat\, 28 Feb 2009 23\:22\:48 +0530")
+Received: from mail-fx0-f176.google.com ([209.85.220.176]:61859 "EHLO
+	mail-fx0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751474AbZCBU4t (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 2 Mar 2009 15:56:49 -0500
+Received: by fxm24 with SMTP id 24so2166769fxm.37
+        for <linux-omap@vger.kernel.org>; Mon, 02 Mar 2009 12:56:45 -0800 (PST)
+Received: from localhost (localhost [127.0.0.1])
+	by Deathwish.hagood.sktc.net (Postfix) with ESMTP id BB5EEC7B806F
+	for <linux-omap@vger.kernel.org>; Mon,  2 Mar 2009 14:56:40 -0600 (CST)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Premi, Sanjeev" <premi@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: linux-omap@vger.kernel.org
 
-"Premi, Sanjeev" <premi@ti.com> writes:
+I'm trying to build the TI supplied Linux kernel driver modules for the
+PowerVR accelerator chip in the OMAP3. I have a GIT tree pulled from the
+linux-omap-2.6 tree, and a set of cross-compiler tools built and
+installed.
 
-> I have noticed large interrupt latency when the cpuidle is enabled.
-> e.g. response time for ping goes from avg 10-20ms to 800-1000ms.
-> (I am at HEAD of the 'pm' branch)
+I can build the kernel itself, but when I try to build the TI supplied code:
+1) It references "asm/semaphore.h" rather than "linux/semaphore.h" - as
+asm/semaphore no longer exists in the code the build fails. I can work
+around that by creating a symlink to linux/semaphore.h.
+2) It then references "asm/resources.h", which is ALSO gone. I'm guessing
+it needs "asm-generic/resources.h".
+3) However, at that point the compile REALLY dies, with the code looking
+for "asm/arch/resources.h". If I link "arch/arm/include/asm" to
+"asm/arch", then I get a large number of errors:
 
-Is it interrupt latency in general you are measuring?  or just the
-interrupt latency for the smc network driver.  I think what you are
-seeing is the result of the SMC IRQ not being configured as a wakeup
-source, thus a network interrupt will not wake the system, but you end
-up waiting for the next idle timer until the system wakes and handles
-the network interrupt.
+  CC [M] 
+/space/src/OMAP35x_Graphics_SDC_3_00_00_06/GFX_Linux_KM/services4/srvkm/env/linux/kbuild/../../../../../services4/system/omap3430/sysconfig.o
+  CC [M] 
+/space/src/OMAP35x_Graphics_SDC_3_00_00_06/GFX_Linux_KM/services4/srvkm/env/linux/kbuild/../../../../../services4/system/omap3430/sysutils.o
+In file included from
+/space/src/OMAP35x_Graphics_SDC_3_00_00_06/GFX_Linux_KM/services4/srvkm/env/linux/kbuild/../../../../../services4/system/omap3430/sysutils.c:28:
+/space/src/OMAP35x_Graphics_SDC_3_00_00_06/GFX_Linux_KM/services4/srvkm/env/linux/kbuild/../../../../../services4/system/omap3430/sysutils_linux.c:154:
+error: variable 'cnstr_id_vdd2' has initializer but incomplete type
+/space/src/OMAP35x_Graphics_SDC_3_00_00_06/GFX_Linux_KM/services4/srvkm/env/linux/kbuild/../../../../../services4/system/omap3430/sysutils_linux.c:155:
+error: unknown field 'type' specified in initializer
+/space/src/OMAP35x_Graphics_SDC_3_00_00_06/GFX_Linux_KM/services4/srvkm/env/linux/kbuild/../../../../../services4/system/omap3430/sysutils_linux.c:155:
+error: 'RES_OPP_CO' undeclared here (not in a function)
 
-By default, I don't believe the GPIO interrupt used by the smc is
-configured as a wakeup source.  Have you configured that GPIO as a
-wakeup source?
-
-Kevin
+So does anybody have an good advice on this?
 
 
-> The IRQs and FIQs are disabled at the beginning of the function
-> omap3_enter_idle() but WFI is executed much later in _omap_sram_idle().
-> In between, there is only one check for pending IRQs - omap_irq_pending()
->  
-> If any interrupt occurs beyond this point is it considered by the WFI?
->  
-> To reduce this latency, I am planning to do either/both of thse:
-> - Add more checks for pending IRQs
-> - Reduce the time for which the IRQs and FIQs are disabled
->  
-> Benefits will depend upon the behavior of WFI.
->  
-> Best regards,
-> Sanjeev
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
