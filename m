@@ -1,99 +1,55 @@
-From: "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>
-Subject: RE: [REVIEW PATCH 09/14] OMAP: CAM: Add ISP Core
-Date: Mon, 2 Mar 2009 13:37:18 -0600
-Message-ID: <A24693684029E5489D1D202277BE89442E0B5C1E@dlee02.ent.ti.com>
-References: <5e9665e10903020009y7fe7d0d0j356708e1c3149cac@mail.gmail.com>
+From: David Brownell <david-b@pacbell.net>
+Subject: Re: Suggestion regarding the ordering of GPIO MUX configurations
+Date: Mon, 2 Mar 2009 11:41:33 -0800
+Message-ID: <200903021141.33650.david-b@pacbell.net>
+References: <4d34a0a70903011837k2a1467b5s9c3b56e065d4b5c8@mail.gmail.com> <20090302164008.GA11864@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:38026 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753312AbZCBThu convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 2 Mar 2009 14:37:50 -0500
-In-Reply-To: <5e9665e10903020009y7fe7d0d0j356708e1c3149cac@mail.gmail.com>
-Content-Language: en-US
+Received: from n25.bullet.mail.mud.yahoo.com ([68.142.206.220]:39418 "HELO
+	n25.bullet.mail.mud.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1752479AbZCBTlh (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 2 Mar 2009 14:41:37 -0500
+In-Reply-To: <20090302164008.GA11864@atomide.com>
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "DongSoo(Nathaniel) Kim" <dongsoo.kim@gmail.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "video4linux-list@redhat.com" <video4linux-list@redhat.com>, "Nagalla, Hari" <hnagalla@ti.com>, Sakari Ailus <sakari.ailus@nokia.com>, "Tuukka.O Toivonen" <tuukka.o.toivonen@nokia.com>, "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+To: Tony Lindgren <tony@atomide.com>
+Cc: Kim Kyuwon <chammoru@gmail.com>, OMAP <linux-omap@vger.kernel.org>
 
-Hi Nate,
+On Monday 02 March 2009, Tony Lindgren wrote:
+> 
+> > I wonder if we can sort the order of GPIO MUX configurations and then
+> > insert new MUXs at right position. Can I ask your opinions?
+> 
+> Yes, I was thinking about the same. I'll combine the pending mux patches
+> and merge them into a single patch for mainline tree. While doing that
+> I'll sort them by gpio number. Will post the patch here for testing
+> probably today.
 
-> -----Original Message-----
-> From: DongSoo(Nathaniel) Kim [mailto:dongsoo.kim@gmail.com]
-> Sent: Monday, March 02, 2009 2:10 AM
-> To: Aguirre Rodriguez, Sergio Alberto
-> Cc: linux-omap@vger.kernel.org; video4linux-list@redhat.com; Nagalla,
-> Hari; Sakari Ailus; Tuukka.O Toivonen; linux-media@vger.kernel.org
-> Subject: Re: [REVIEW PATCH 09/14] OMAP: CAM: Add ISP Core
-> 
-> Hello,
-> 
-> reviewing ISP driver, I found that we've got no querymenu support in
-> ISP and also omap3 camera interface driver.
+Another thing to consider is eliminating the bugs that can
+come from having the mux.c MUX_CFG_*() entries not match the
+mux.h order; accidents happen.  The simplest fix changes
 
-Sakari is about to repost our latest progress on this driver, and exactly one of the changes we did is added this support for querymenu on both camera and ISP drivers.
+	MUX_CFG_X("string", ...)
 
-> 
-> +/**
-> + * struct vcontrol - Video control structure.
-> + * @qc: V4L2 Query control structure.
-> + * @current_value: Current value of the control.
-> + */
-> +static struct vcontrol {
-> +       struct v4l2_queryctrl qc;
-> +       int current_value;
-> +} video_control[] = {
-> 
-> <snip>
-> 
-> +       {
-> +               {
-> +                       .id = V4L2_CID_PRIVATE_ISP_COLOR_FX,
-> +                       .type = V4L2_CTRL_TYPE_INTEGER,
-> +                       .name = "Color Effects",
-> +                       .minimum = PREV_DEFAULT_COLOR,
-> +                       .maximum = PREV_BW_COLOR,
-> +                       .step = 1,
-> +                       .default_value = PREV_DEFAULT_COLOR,
-> +               },
-> +               .current_value = PREV_DEFAULT_COLOR,
-> +       }
-> +};
-> 
-> I think we should make it menu type for this color FX control.
-> If that kind of control has no menu information, user has no way to
-> figure out what kind of FX supported by device.
-> BTW if we make querymenu support in omap3 camera subsystem, we should
-> make querymenu support for v4l2 int device also.
-> I think I've seen before a patch which intent to use querymenu in v4l2
-> int device, but no patch for omap3 ISP and camera interface.
-> Can I make a patch and post on linux-omap, linux-media list? of course
-> if you don't mind.
-> Or...am I digging wrong way? I mean.. querymenu for omap3 camera subsystem.
-> Please let me know :)
+		==> {
+			.name = string,
+			...
+		},
 
-Please hold a bit, as we expect to repost the driver again this week.
+to MUX_CFG_X(enum, ...)
 
-This control is now substituted by V4L2_CID_COLORFX, with seems to be already accepted for merging into v4l:
+		==> [enum] = {
+			.name = #enum,
+			...
+		},
 
-http://osdir.com/ml/linux-media/2009-02/msg00593.html
+and adds a smidgeon of logic to verify a given mux table entry
+has been initialized before using it.
 
-Anyways, thanks for your intended help on this. Expect new patches very soon.
-> 
-> Cheers,
-> 
-> Nate
-> 
-> --
-> ========================================================
-> DongSoo(Nathaniel), Kim
-> Engineer
-> Mobile S/W Platform Lab.
-> Telecommunication R&D Centre
-> Samsung Electronics CO., LTD.
-> e-mail : dongsoo.kim@gmail.com
->           dongsoo45.kim@samsung.com
-> ========================================================
+- Dave
+
 
