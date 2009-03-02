@@ -1,71 +1,191 @@
-From: "TK, Pratheesh Gangadhar" <pratheesh@ti.com>
-Subject: RE: omap3 cpuidle interrupt latency
-Date: Mon, 2 Mar 2009 02:19:28 +0530
-Message-ID: <B85A65D85D7EB246BE421B3FB0FBB59301CBF74EE7@dbde02.ent.ti.com>
-References: <B85A65D85D7EB246BE421B3FB0FBB59301CBF74DF9@dbde02.ent.ti.com>
- <B85A65D85D7EB246BE421B3FB0FBB59301CBEA0787@dbde02.ent.ti.com>,<13B9B4C6EF24D648824FF11BE8967162037B4D1787@dlee02.ent.ti.com>
- <B85A65D85D7EB246BE421B3FB0FBB59301CBEA0788@dbde02.ent.ti.com>
- <B85A65D85D7EB246BE421B3FB0FBB59301CBF74EE4@dbde02.ent.ti.com>
+From: "DongSoo(Nathaniel) Kim" <dongsoo.kim@gmail.com>
+Subject: [OMAPZOOM][PATCH] CAM: Make omap3 camera interface driver more
+	generic for external camera devices.
+Date: Mon, 2 Mar 2009 09:19:38 +0900
+Message-ID: <5e9665e10903011619h60385bcs75e828f5017a0434@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:51053 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754777AbZCAUtk convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 1 Mar 2009 15:49:40 -0500
-Received: from dbdp20.itg.ti.com ([172.24.170.38])
-	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id n21KnWhs029072
-	for <linux-omap@vger.kernel.org>; Sun, 1 Mar 2009 14:49:38 -0600
-Received: from dbde70.ent.ti.com (localhost [127.0.0.1])
-	by dbdp20.itg.ti.com (8.13.8/8.13.8) with ESMTP id n21KnV5i011231
-	for <linux-omap@vger.kernel.org>; Mon, 2 Mar 2009 02:19:31 +0530 (IST)
-In-Reply-To: <B85A65D85D7EB246BE421B3FB0FBB59301CBF74EE4@dbde02.ent.ti.com>
-Content-Language: en-US
+Received: from wf-out-1314.google.com ([209.85.200.170]:59176 "EHLO
+	wf-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751201AbZCBATk (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 1 Mar 2009 19:19:40 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Premi, Sanjeev" <premi@ti.com>, "Dasgupta, Romit" <romit@ti.com>, "Woodruff, Richard" <r-woodruff2@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Cc: dongsoo45.kim@samsung.com, sameerv@ti.com, mjalori@ti.com, Sakari Ailus <Sakari.Ailus@nokia.com>, "Tuukka.O Toivonen" <tuukka.o.toivonen@nokia.com>, "kyungmin.park@samsung.com" <kyungmin.park@samsung.com>, =?EUC-KR?B?sejH/MHY?= <riverful.kim@samsung.com>, "jongse.won@samsung.com" <jongse.won@samsung.com>
+
+Hello.
+
+ Since I was working on omap3 and external ISP device, I found some
+hard coded thing in camera interface codes which make dependency on
+sensor or ISP device. With that code, we cannot make omap3 camera
+interface driver generic for every target board.
+It makes dependency on camera device mounted on target board, and
+therefore we need to modify omap3 camera interface driver when we do
+our porting job.
+
+ Please find following patch which I tried to make more generic for
+omap3 camera interface driver. Just designate expecting colorspace
+from external camera module in board file, then no need to modify
+try_pix_parm() function.
+Any comments will be welcomed.
+
+Cheers,
+
+Nate
 
 
+>From f8062b8678fa8f8d9e694fb796431cf340112fa3 Mon Sep 17 00:00:00 2001
+From: Dongsoo Kim <dongsoo45.kim@samsung.com>
+Date: Thu, 26 Feb 2009 20:32:18 +0900
+Subject: [PATCH] CAM: Make try_pix_parm() negotiable with board
+specific sensor config.
+ Removed hard coded pixelformat in camera interface driver
 
-> -----Original Message-----
-> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
-> owner@vger.kernel.org] On Behalf Of Premi, Sanjeev
-> Sent: Monday, March 02, 2009 1:31 AM
-> To: Dasgupta, Romit; Woodruff, Richard; linux-omap@vger.kernel.org
-> Subject: RE: omap3 cpuidle interrupt latency
-> 
-> > -----Original Message-----
-> > From: Dasgupta, Romit
-> > Sent: Sunday, March 01, 2009 12:18 PM
-> > To: Woodruff, Richard; Premi, Sanjeev; linux-omap@vger.kernel.org
-> > Subject: RE: omap3 cpuidle interrupt latency
-> >
-> > It would be nice if this device could dynamically set
-> > constraints (say by using a short kernel timer during
-> > activity or set/remove pm_qos latency) or the prediction
-> > aspect of cpuidle could be improved using rules feed from
-> > things like interrupt source.
-> 
-> Despite all constraints; the latency concern is still valid.
-> 
-> The constraints would either prevent idle state transition;
-> or in the idle processing we could still have repeat of current
-> situation - though less often.
-> 
-> I feel checking for pending interrupt before executing WFI
-> would help. Will try in the morning.
+Signed-off-by: Dongsoo Kim <dongsoo45.kim@samsung.com>
+---
+ arch/arm/mach-omap2/board-3430sdp.c |    6 ++++++
+ arch/arm/mach-omap2/board-ldp.c     |    2 ++
+ arch/arm/mach-omap2/board-zoom2.c   |    2 ++
+ drivers/media/video/omap34xxcam.c   |    5 +++--
+ drivers/media/video/omap34xxcam.h   |    1 +
+ 5 files changed, 14 insertions(+), 2 deletions(-)
 
-Moving time keeping functions out of interrupt disabled context may also help. Something like this
+diff --git a/arch/arm/mach-omap2/board-3430sdp.c
+b/arch/arm/mach-omap2/board-3430sdp.c
+index b96954f..b075568 100644
+--- a/arch/arm/mach-omap2/board-3430sdp.c
++++ b/arch/arm/mach-omap2/board-3430sdp.c
+@@ -604,6 +604,7 @@ static void __iomem *fpga_map_addr;
+ static struct omap34xxcam_sensor_config cam_hwc = {
+	.sensor_isp = 0,
+	.xclk = OMAP34XXCAM_XCLK_A,
++	.pixelformat = V4L2_PIX_FMT_SGRBG10,
+	.capture_mem = PAGE_ALIGN(2592 * 1944 * 2) * 4,
+ };
 
-return_sleep_time:
-        local_irq_enable();
-        local_fiq_enable();
-        getnstimeofday(&ts_postidle);
-        ts_idle = timespec_sub(ts_postidle, ts_preidle);
+@@ -640,6 +641,7 @@ static int mt9p012_sensor_set_prv_data(void *priv)
 
-ARM will wakeup from WFI idle on nIRQ/nFIQ signal assertion. But interrupts will be processed only after they are enabled in CPSR AFAIK.
+	hwc->u.sensor.xclk = cam_hwc.xclk;
+	hwc->u.sensor.sensor_isp = cam_hwc.sensor_isp;
++	hwc->u.sensor.pixelformat = cam_hwc.pixelformat;
+	hwc->u.sensor.capture_mem = cam_hwc.capture_mem;
+	hwc->dev_index = 0;
+	hwc->dev_minor = 0;
+@@ -769,6 +771,7 @@ static struct omap34xxcam_sensor_config ov3640_hwc = {
+ #else
+	.xclk = OMAP34XXCAM_XCLK_A,
+ #endif
++	.pixelformat = V4L2_PIX_FMT_RGB565,
+	.capture_mem = PAGE_ALIGN(2048 * 1536 * 2) * 2,
+ };
 
-Regards,
-Pratheesh
+@@ -804,6 +807,7 @@ static int ov3640_sensor_set_prv_data(void *priv)
+	hwc = priv;
+	hwc->u.sensor.xclk = ov3640_hwc.xclk;
+	hwc->u.sensor.sensor_isp = ov3640_hwc.sensor_isp;
++	hwc->u.sensor.pixelformat = ov3640_hwc.pixelformat;
+	hwc->u.sensor.capture_mem = ov3640_hwc.capture_mem;
+	hwc->dev_index = 1;
+	hwc->dev_minor = 4;
+@@ -953,6 +957,7 @@ static struct ov3640_platform_data
+sdp3430_ov3640_platform_data = {
+ static struct omap34xxcam_sensor_config imx046_hwc = {
+	.sensor_isp  = 0,
+	.xclk        = OMAP34XXCAM_XCLK_B,
++	.pixelformat = V4L2_PIX_FMT_SGRBG10,
+	.capture_mem = PAGE_ALIGN(3280 * 2464 * 2) * 2,
+ };
 
+@@ -962,6 +967,7 @@ static int imx046_sensor_set_prv_data(void *priv)
+
+	hwc->u.sensor.xclk  = imx046_hwc.xclk;
+	hwc->u.sensor.sensor_isp = imx046_hwc.sensor_isp;
++	hwc->u.sensor.pixelformat = imx046_hwc.pixelformat;
+	hwc->dev_index      = 2;
+	hwc->dev_minor      = 5;
+	hwc->dev_type       = OMAP34XXCAM_SLAVE_SENSOR;
+diff --git a/arch/arm/mach-omap2/board-ldp.c b/arch/arm/mach-omap2/board-ldp.c
+index f8a9e47..5b01e76 100755
+--- a/arch/arm/mach-omap2/board-ldp.c
++++ b/arch/arm/mach-omap2/board-ldp.c
+@@ -610,6 +610,7 @@ static struct omap34xxcam_sensor_config ov3640_hwc = {
+ #else
+	.xclk = OMAP34XXCAM_XCLK_A,
+ #endif
++	.pixelformat = V4L2_PIX_FMT_RGB565,
+	.capture_mem = 2592 * 1944 * 2 * 2,
+ };
+
+@@ -644,6 +645,7 @@ static int ov3640_sensor_set_prv_data(void *priv)
+
+	hwc = priv;
+	hwc->u.sensor.xclk = ov3640_hwc.xclk;
++	hwc->u.sensor.pixelformat = ov3640_hwc.pixelformat;
+	hwc->u.sensor.sensor_isp = ov3640_hwc.sensor_isp;
+	hwc->dev_index = 1;
+	hwc->dev_minor = 4;
+diff --git a/arch/arm/mach-omap2/board-zoom2.c
+b/arch/arm/mach-omap2/board-zoom2.c
+index 5ecc71e..806a4a5 100755
+--- a/arch/arm/mach-omap2/board-zoom2.c
++++ b/arch/arm/mach-omap2/board-zoom2.c
+@@ -331,6 +331,7 @@ static struct twl4030_keypad_data ldp_kp_twl4030_data = {
+ static struct omap34xxcam_sensor_config imx046_hwc = {
+	.sensor_isp  = 0,
+	.xclk        = OMAP34XXCAM_XCLK_B,
++	.pixelformat = V4L2_PIX_FMT_SGRBG10,
+	.capture_mem = PAGE_ALIGN(3280 * 2464 * 2) * 2,
+ };
+
+@@ -340,6 +341,7 @@ static int imx046_sensor_set_prv_data(void *priv)
+
+	hwc->u.sensor.xclk  = imx046_hwc.xclk;
+	hwc->u.sensor.sensor_isp = imx046_hwc.sensor_isp;
++	hwc->u.sensor.pixelformat = imx046_hwc.pixelformat;
+	hwc->dev_index      = 2;
+	hwc->dev_minor      = 5;
+	hwc->dev_type       = OMAP34XXCAM_SLAVE_SENSOR;
+diff --git a/drivers/media/video/omap34xxcam.c
+b/drivers/media/video/omap34xxcam.c
+index 43eeb1c..0cde1c6
+--- a/drivers/media/video/omap34xxcam.c
++++ b/drivers/media/video/omap34xxcam.c
+@@ -392,8 +392,9 @@ static int try_pix_parm(struct omap34xxcam_videodev *vdev,
+
+	best_ival->denominator = 0;
+	best_pix_in->width = 0;
+-   /* FIXME: this isn't good... */
+-   best_pix_in->pixelformat = V4L2_PIX_FMT_SGRBG10;
++
++	/* first try with default pixel format designated at sensor config */
++	best_pix_in->pixelformat = vdev->vdev_sensor_config.pixelformat;
+
+	best_pix_out.height = INT_MAX >> 1;
+	best_pix_out.width = best_pix_out.height;
+diff --git a/drivers/media/video/omap34xxcam.h
+b/drivers/media/video/omap34xxcam.h
+index 86631b7..83d43a1
+--- a/drivers/media/video/omap34xxcam.h
++++ b/drivers/media/video/omap34xxcam.h
+@@ -71,6 +71,7 @@ struct omap34xxcam_hw_csi2 {
+ struct omap34xxcam_sensor_config {
+	int xclk;
+	int sensor_isp;
++	u32 pixelformat;
+	u32 capture_mem;
+ };
+
+
+-- 
+========================================================
+DongSoo(Nathaniel), Kim
+Engineer
+Mobile S/W Platform Lab. S/W centre
+Telecommunication R&D Centre
+Samsung Electronics CO., LTD.
+e-mail : dongsoo.kim@gmail.com
+          dongsoo45.kim@samsung.com
+========================================================
