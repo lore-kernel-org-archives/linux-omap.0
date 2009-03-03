@@ -1,16 +1,14 @@
 From: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
-Subject: [PATCH 7/9] omap3isp: Add CSI2 interface support
-Date: Tue,  3 Mar 2009 12:06:54 +0200
-Message-ID: <1236074816-30018-7-git-send-email-sakari.ailus@maxwell.research.nokia.com>
+Subject: [PATCH 5/9] omap3isp: Add ISP backend (PRV and RSZ)
+Date: Tue,  3 Mar 2009 12:06:52 +0200
+Message-ID: <1236074816-30018-5-git-send-email-sakari.ailus@maxwell.research.nokia.com>
 References: <49AD0128.5090503@maxwell.research.nokia.com>
  <1236074816-30018-1-git-send-email-sakari.ailus@maxwell.research.nokia.com>
  <1236074816-30018-2-git-send-email-sakari.ailus@maxwell.research.nokia.com>
  <1236074816-30018-3-git-send-email-sakari.ailus@maxwell.research.nokia.com>
  <1236074816-30018-4-git-send-email-sakari.ailus@maxwell.research.nokia.com>
- <1236074816-30018-5-git-send-email-sakari.ailus@maxwell.research.nokia.com>
- <1236074816-30018-6-git-send-email-sakari.ailus@maxwell.research.nokia.com>
 Return-path: <linux-media-owner@vger.kernel.org>
-In-Reply-To: <1236074816-30018-6-git-send-email-sakari.ailus@maxwell.research.nokia.com>
+In-Reply-To: <1236074816-30018-4-git-send-email-sakari.ailus@maxwell.research.nokia.com>
 Sender: linux-media-owner@vger.kernel.org
 To: linux-media@vger.kernel.org
 Cc: linux-omap@vger.kernel.org, saaguirre@ti.com, tuukka.o.toivonen@nokia.com, dongsoo.kim@gmail.com
@@ -18,29 +16,33 @@ List-Id: linux-omap@vger.kernel.org
 
 Signed-off-by: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
 ---
- drivers/media/video/isp/ispcsi2.c | 2124 +++++++++++++++++++++++++++++++++++++
- drivers/media/video/isp/ispcsi2.h |  232 ++++
- 2 files changed, 2356 insertions(+), 0 deletions(-)
- create mode 100644 drivers/media/video/isp/ispcsi2.c
- create mode 100644 drivers/media/video/isp/ispcsi2.h
+ drivers/media/video/isp/isppreview.c | 1896 ++++++++++++++++++++++++++++++++++
+ drivers/media/video/isp/isppreview.h |  350 +++++++
+ drivers/media/video/isp/ispresizer.c |  897 ++++++++++++++++
+ drivers/media/video/isp/ispresizer.h |  154 +++
+ 4 files changed, 3297 insertions(+), 0 deletions(-)
+ create mode 100644 drivers/media/video/isp/isppreview.c
+ create mode 100644 drivers/media/video/isp/isppreview.h
+ create mode 100644 drivers/media/video/isp/ispresizer.c
+ create mode 100644 drivers/media/video/isp/ispresizer.h
 
-diff --git a/drivers/media/video/isp/ispcsi2.c b/drivers/media/video/isp/ispcsi2.c
+diff --git a/drivers/media/video/isp/isppreview.c b/drivers/media/video/isp/isppreview.c
 new file mode 100644
-index 0000000..b1d60a8
+index 0000000..242b578
 --- /dev/null
-+++ b/drivers/media/video/isp/ispcsi2.c
-@@ -0,0 +1,2124 @@
++++ b/drivers/media/video/isp/isppreview.c
+@@ -0,0 +1,1896 @@
 +/*
-+ * ispcsi2.c
++ * isppreview.c
 + *
-+ * Driver Library for ISP CSI Control module in TI's OMAP3 Camera ISP
-+ * ISP CSI interface and IRQ related APIs are defined here.
++ * Driver Library for Preview module in TI's OMAP3 Camera ISP
 + *
-+ * Copyright (C) 2009 Texas Instruments.
++ * Copyright (C) 2009 Texas Instruments, Inc.
 + *
 + * Contributors:
-+ * 	Sergio Aguirre <saaguirre@ti.com>
-+ * 	Dominic Curran <dcurran@ti.com>
++ *	Senthilvadivu Guruswamy <svadivu@ti.com>
++ *	Pallavi Kulkarni <p-kulkarni@ti.com>
++ *	Sergio Aguirre <saaguirre@ti.com>
 + *
 + * This package is free software; you can redistribute it and/or modify
 + * it under the terms of the GNU General Public License version 2 as
@@ -51,2123 +53,1898 @@ index 0000000..b1d60a8
 + * WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 + */
 +
-+#include <linux/delay.h>
-+#include <media/v4l2-common.h>
++#include <linux/mutex.h>
++#include <linux/module.h>
++#include <linux/uaccess.h>
 +
 +#include "isp.h"
 +#include "ispreg.h"
-+#include "ispcsi2.h"
++#include "isppreview.h"
 +
-+static struct isp_csi2_cfg current_csi2_cfg;
-+static struct isp_csi2_cfg_update current_csi2_cfg_update;
++static struct ispprev_nf prev_nf_t;
++static struct prev_params *params;
++static int rg_update, gg_update, bg_update, nf_enable, nf_update;
 +
-+static bool update_complexio_cfg1;
-+static bool update_phy_cfg0;
-+static bool update_phy_cfg1;
-+static bool update_ctx_ctrl1[8];
-+static bool update_ctx_ctrl2[8];
-+static bool update_ctx_ctrl3[8];
-+static bool update_timing;
-+static bool update_ctrl;
-+static bool uses_videoport;
++/* Structure for saving/restoring preview module registers */
++static struct isp_reg ispprev_reg_list[] = {
++	{OMAP3_ISP_IOMEM_PREV, ISPPRV_HORZ_INFO, 0x0000},
++	{OMAP3_ISP_IOMEM_PREV, ISPPRV_VERT_INFO, 0x0000},
++	{OMAP3_ISP_IOMEM_PREV, ISPPRV_RSDR_ADDR, 0x0000},
++	{OMAP3_ISP_IOMEM_PREV, ISPPRV_RADR_OFFSET, 0x0000},
++	{OMAP3_ISP_IOMEM_PREV, ISPPRV_DSDR_ADDR, 0x0000},
++	{OMAP3_ISP_IOMEM_PREV, ISPPRV_DRKF_OFFSET, 0x0000},
++	{OMAP3_ISP_IOMEM_PREV, ISPPRV_WSDR_ADDR, 0x0000},
++	{OMAP3_ISP_IOMEM_PREV, ISPPRV_WADD_OFFSET, 0x0000},
++	{OMAP3_ISP_IOMEM_PREV, ISPPRV_AVE, 0x0000},
++	{OMAP3_ISP_IOMEM_PREV, ISPPRV_HMED, 0x0000},
++	{OMAP3_ISP_IOMEM_PREV, ISPPRV_NF, 0x0000},
++	{OMAP3_ISP_IOMEM_PREV, ISPPRV_WB_DGAIN, 0x0000},
++	{OMAP3_ISP_IOMEM_PREV, ISPPRV_WBGAIN, 0x0000},
++	{OMAP3_ISP_IOMEM_PREV, ISPPRV_WBSEL, 0x0000},
++	{OMAP3_ISP_IOMEM_PREV, ISPPRV_CFA, 0x0000},
++	{OMAP3_ISP_IOMEM_PREV, ISPPRV_BLKADJOFF, 0x0000},
++	{OMAP3_ISP_IOMEM_PREV, ISPPRV_RGB_MAT1, 0x0000},
++	{OMAP3_ISP_IOMEM_PREV, ISPPRV_RGB_MAT2, 0x0000},
++	{OMAP3_ISP_IOMEM_PREV, ISPPRV_RGB_MAT3, 0x0000},
++	{OMAP3_ISP_IOMEM_PREV, ISPPRV_RGB_MAT4, 0x0000},
++	{OMAP3_ISP_IOMEM_PREV, ISPPRV_RGB_MAT5, 0x0000},
++	{OMAP3_ISP_IOMEM_PREV, ISPPRV_RGB_OFF1, 0x0000},
++	{OMAP3_ISP_IOMEM_PREV, ISPPRV_RGB_OFF2, 0x0000},
++	{OMAP3_ISP_IOMEM_PREV, ISPPRV_CSC0, 0x0000},
++	{OMAP3_ISP_IOMEM_PREV, ISPPRV_CSC1, 0x0000},
++	{OMAP3_ISP_IOMEM_PREV, ISPPRV_CSC2, 0x0000},
++	{OMAP3_ISP_IOMEM_PREV, ISPPRV_CSC_OFFSET, 0x0000},
++	{OMAP3_ISP_IOMEM_PREV, ISPPRV_CNT_BRT, 0x0000},
++	{OMAP3_ISP_IOMEM_PREV, ISPPRV_CSUP, 0x0000},
++	{OMAP3_ISP_IOMEM_PREV, ISPPRV_SETUP_YC, 0x0000},
++	{OMAP3_ISP_IOMEM_PREV, ISPPRV_CDC_THR0, 0x0000},
++	{OMAP3_ISP_IOMEM_PREV, ISPPRV_CDC_THR1, 0x0000},
++	{OMAP3_ISP_IOMEM_PREV, ISPPRV_CDC_THR2, 0x0000},
++	{OMAP3_ISP_IOMEM_PREV, ISPPRV_CDC_THR3, 0x0000},
++	{OMAP3_ISP_IOMEM_PREV, ISPPRV_PCR, 0x0000},
++	{0, ISP_TOK_TERM, 0x0000}
++};
++
++
++/* Default values in Office Flourescent Light for RGBtoRGB Blending */
++static struct ispprev_rgbtorgb flr_rgb2rgb = {
++	{	/* RGB-RGB Matrix */
++		{0x01E2, 0x0F30, 0x0FEE},
++		{0x0F9B, 0x01AC, 0x0FB9},
++		{0x0FE0, 0x0EC0, 0x0260}
++	},	/* RGB Offset */
++	{0x0000, 0x0000, 0x0000}
++};
++
++/* Default values in Office Flourescent Light for RGB to YUV Conversion*/
++static struct ispprev_csc flr_prev_csc[] = {
++	{
++		{	/* CSC Coef Matrix */
++			{66, 129, 25},
++			{-38, -75, 112},
++			{112, -94 , -18}
++		},	/* CSC Offset */
++		{0x0, 0x0, 0x0}
++	},
++	{
++		{	/* CSC Coef Matrix BW */
++			{66, 129, 25},
++			{0, 0, 0},
++			{0, 0, 0}
++		},	/* CSC Offset */
++		{0x0, 0x0, 0x0}
++	},
++	{
++		{	/* CSC Coef Matrix Sepia */
++			{19, 38, 7},
++			{0, 0, 0},
++			{0, 0, 0}
++		},	/* CSC Offset */
++		{0x0, 0xE7, 0x14}
++	}
++};
++
++
++/* Default values in Office Flourescent Light for CFA Gradient*/
++#define FLR_CFA_GRADTHRS_HORZ	0x28
++#define FLR_CFA_GRADTHRS_VERT	0x28
++
++/* Default values in Office Flourescent Light for Chroma Suppression*/
++#define FLR_CSUP_GAIN		0x0D
++#define FLR_CSUP_THRES		0xEB
++
++/* Default values in Office Flourescent Light for Noise Filter*/
++#define FLR_NF_STRGTH		0x03
++
++/* Default values in Office Flourescent Light for White Balance*/
++#define FLR_WBAL_DGAIN		0x100
++#define FLR_WBAL_COEF0		0x20
++#define FLR_WBAL_COEF1		0x29
++#define FLR_WBAL_COEF2		0x2d
++#define FLR_WBAL_COEF3		0x20
++
++#define FLR_WBAL_COEF0_ES1	0x20
++#define FLR_WBAL_COEF1_ES1	0x23
++#define FLR_WBAL_COEF2_ES1	0x39
++#define FLR_WBAL_COEF3_ES1	0x20
++
++/* Default values in Office Flourescent Light for Black Adjustment*/
++#define FLR_BLKADJ_BLUE		0x0
++#define FLR_BLKADJ_GREEN	0x0
++#define FLR_BLKADJ_RED		0x0
++
++static int update_color_matrix;
 +
 +/**
-+ * isp_csi2_complexio_lanes_config - Configuration of CSI2 ComplexIO lanes.
-+ * @reqcfg: Pointer to structure containing desired lane configuration
++ * struct isp_prev - Structure for storing ISP Preview module information
++ * @prev_inuse: Flag to determine if CCDC has been reserved or not (0 or 1).
++ * @prevout_w: Preview output width.
++ * @prevout_h: Preview output height.
++ * @previn_w: Preview input width.
++ * @previn_h: Preview input height.
++ * @prev_inpfmt: Preview input format.
++ * @prev_outfmt: Preview output format.
++ * @hmed_en: Horizontal median filter enable.
++ * @nf_en: Noise filter enable.
++ * @dcor_en: Defect correction enable.
++ * @cfa_en: Color Filter Array (CFA) interpolation enable.
++ * @csup_en: Chrominance suppression enable.
++ * @yenh_en: Luma enhancement enable.
++ * @fmtavg: Number of horizontal pixels to average in input formatter. The
++ *          input width should be a multiple of this number.
++ * @brightness: Brightness in preview module.
++ * @contrast: Contrast in preview module.
++ * @color: Color effect in preview module.
++ * @cfafmt: Color Filter Array (CFA) Format.
++ * @ispprev_mutex: Mutex for isp preview.
 + *
-+ * Validates and saves to internal driver memory the passed configuration.
-+ * Returns 0 if successful, or -EINVAL if null pointer is passed, invalid
-+ * lane position or polarity is set, and if 2 lanes try to occupy the same
-+ * position. To apply this settings, use the isp_csi2_complexio_lanes_update()
-+ * function just after calling this function.
-+ **/
-+int isp_csi2_complexio_lanes_config(struct isp_csi2_lanes_cfg *reqcfg)
-+{
-+	int i;
-+	bool pos_occupied[5] = {false, false, false, false, false};
-+	struct isp_csi2_lanes_cfg *currlanes = &current_csi2_cfg.lanes;
-+	struct isp_csi2_lanes_cfg_update *currlanes_u =
-+					&current_csi2_cfg_update.lanes;
-+
-+	/* Validating parameters sent by driver */
-+	if (reqcfg == NULL) {
-+		printk(KERN_ERR "Invalid Complex IO Configuration sent by"
-+								" sensor\n");
-+		goto err_einval;
-+	}
-+
-+	/* Data lanes verification */
-+	for (i = 0; i < 4; i++) {
-+		if ((reqcfg->data[i].pol > 1) || (reqcfg->data[i].pos > 5)) {
-+			printk(KERN_ERR "Invalid CSI-2 Complex IO configuration"
-+					" parameters for data lane #%d\n", i);
-+			goto err_einval;
-+		}
-+		if (pos_occupied[reqcfg->data[i].pos - 1] &&
-+						reqcfg->data[i].pos > 0) {
-+			printk(KERN_ERR "Lane #%d already occupied\n",
-+							reqcfg->data[i].pos);
-+			goto err_einval;
-+		} else
-+			pos_occupied[reqcfg->data[i].pos - 1] = true;
-+	}
-+
-+	/* Clock lane verification */
-+	if ((reqcfg->clk.pol > 1) || (reqcfg->clk.pos > 5) ||
-+						(reqcfg->clk.pos == 0)) {
-+		printk(KERN_ERR "Invalid CSI-2 Complex IO configuration"
-+						" parameters for clock lane\n");
-+		goto err_einval;
-+	}
-+	if (pos_occupied[reqcfg->clk.pos - 1]) {
-+		printk(KERN_ERR "Lane #%d already occupied",
-+							reqcfg->clk.pos);
-+		goto err_einval;
-+	} else
-+		pos_occupied[reqcfg->clk.pos - 1] = true;
-+
-+	for (i = 0; i < 4; i++) {
-+		if (currlanes->data[i].pos != reqcfg->data[i].pos) {
-+			currlanes->data[i].pos = reqcfg->data[i].pos;
-+			currlanes_u->data[i] = true;
-+			update_complexio_cfg1 = true;
-+		}
-+		if (currlanes->data[i].pol != reqcfg->data[i].pol) {
-+			currlanes->data[i].pol = reqcfg->data[i].pol;
-+			currlanes_u->data[i] = true;
-+			update_complexio_cfg1 = true;
-+		}
-+	}
-+
-+	if (currlanes->clk.pos != reqcfg->clk.pos) {
-+		currlanes->clk.pos = reqcfg->clk.pos;
-+		currlanes_u->clk = true;
-+		update_complexio_cfg1 = true;
-+	}
-+	if (currlanes->clk.pol != reqcfg->clk.pol) {
-+		currlanes->clk.pol = reqcfg->clk.pol;
-+		currlanes_u->clk = true;
-+		update_complexio_cfg1 = true;
-+	}
-+	return 0;
-+err_einval:
-+	return -EINVAL;
-+}
-+
-+/**
-+ * isp_csi2_complexio_lanes_update - Applies CSI2 ComplexIO lanes configuration.
-+ * @force_update: Flag to force rewrite of registers, even if they haven't been
-+ *                updated with the isp_csi2_complexio_lanes_config() function.
-+ *
-+ * It only saves settings when they were previously updated using the
-+ * isp_csi2_complexio_lanes_config() function, unless the force_update flag is
-+ * set to true.
-+ * Always returns 0.
-+ **/
-+int isp_csi2_complexio_lanes_update(bool force_update)
-+{
-+	struct isp_csi2_lanes_cfg *currlanes = &current_csi2_cfg.lanes;
-+	struct isp_csi2_lanes_cfg_update *currlanes_u =
-+					&current_csi2_cfg_update.lanes;
-+	u32 reg;
-+	int i;
-+
-+	if (!update_complexio_cfg1 && !force_update)
-+		return 0;
-+
-+	reg = isp_reg_readl(OMAP3_ISP_IOMEM_CSI2A, ISPCSI2_COMPLEXIO_CFG1);
-+	for (i = 0; i < 4; i++) {
-+		if (currlanes_u->data[i] || force_update) {
-+			reg &= ~(ISPCSI2_COMPLEXIO_CFG1_DATA_POL_MASK(i + 1) |
-+				ISPCSI2_COMPLEXIO_CFG1_DATA_POSITION_MASK(i +
-+									1));
-+			reg |= (currlanes->data[i].pol <<
-+				ISPCSI2_COMPLEXIO_CFG1_DATA_POL_SHIFT(i + 1));
-+			reg |= (currlanes->data[i].pos <<
-+				ISPCSI2_COMPLEXIO_CFG1_DATA_POSITION_SHIFT(i +
-+									1));
-+			currlanes_u->data[i] = false;
-+		}
-+	}
-+
-+	if (currlanes_u->clk || force_update) {
-+		reg &= ~(ISPCSI2_COMPLEXIO_CFG1_CLOCK_POL_MASK |
-+				ISPCSI2_COMPLEXIO_CFG1_CLOCK_POSITION_MASK);
-+		reg |= (currlanes->clk.pol <<
-+				ISPCSI2_COMPLEXIO_CFG1_CLOCK_POL_SHIFT);
-+		reg |= (currlanes->clk.pos <<
-+				ISPCSI2_COMPLEXIO_CFG1_CLOCK_POSITION_SHIFT);
-+		currlanes_u->clk = false;
-+	}
-+	isp_reg_writel(reg, OMAP3_ISP_IOMEM_CSI2A, ISPCSI2_COMPLEXIO_CFG1);
-+
-+	update_complexio_cfg1 = false;
-+	return 0;
-+}
-+
-+/**
-+ * isp_csi2_complexio_lanes_get - Gets CSI2 ComplexIO lanes configuration.
-+ *
-+ * Gets settings from HW registers and fills in the internal driver memory
-+ * Always returns 0.
-+ **/
-+int isp_csi2_complexio_lanes_get(void)
-+{
-+	struct isp_csi2_lanes_cfg *currlanes = &current_csi2_cfg.lanes;
-+	struct isp_csi2_lanes_cfg_update *currlanes_u =
-+					&current_csi2_cfg_update.lanes;
-+	u32 reg;
-+	int i;
-+
-+	reg = isp_reg_readl(OMAP3_ISP_IOMEM_CSI2A, ISPCSI2_COMPLEXIO_CFG1);
-+	for (i = 0; i < 4; i++) {
-+		currlanes->data[i].pol = (reg &
-+				ISPCSI2_COMPLEXIO_CFG1_DATA_POL_MASK(i + 1)) >>
-+				ISPCSI2_COMPLEXIO_CFG1_DATA_POL_SHIFT(i + 1);
-+		currlanes->data[i].pos = (reg &
-+			ISPCSI2_COMPLEXIO_CFG1_DATA_POSITION_MASK(i + 1)) >>
-+			ISPCSI2_COMPLEXIO_CFG1_DATA_POSITION_SHIFT(i + 1);
-+		currlanes_u->data[i] = false;
-+	}
-+	currlanes->clk.pol = (reg & ISPCSI2_COMPLEXIO_CFG1_CLOCK_POL_MASK) >>
-+					ISPCSI2_COMPLEXIO_CFG1_CLOCK_POL_SHIFT;
-+	currlanes->clk.pos = (reg &
-+				ISPCSI2_COMPLEXIO_CFG1_CLOCK_POSITION_MASK) >>
-+				ISPCSI2_COMPLEXIO_CFG1_CLOCK_POSITION_SHIFT;
-+	currlanes_u->clk = false;
-+
-+	update_complexio_cfg1 = false;
-+	return 0;
-+}
-+
-+/**
-+ * isp_csi2_complexio_power_status - Gets CSI2 ComplexIO power status.
-+ *
-+ * Returns 3 possible valid states: ISP_CSI2_POWER_OFF, ISP_CSI2_POWER_ON,
-+ * and ISP_CSI2_POWER_ULPW.
-+ **/
-+static enum isp_csi2_power_cmds isp_csi2_complexio_power_status(void)
-+{
-+	enum isp_csi2_power_cmds ret;
-+	u32 reg;
-+
-+	reg = isp_reg_readl(OMAP3_ISP_IOMEM_CSI2A, ISPCSI2_COMPLEXIO_CFG1) &
-+					ISPCSI2_COMPLEXIO_CFG1_PWR_STATUS_MASK;
-+	switch (reg) {
-+	case ISPCSI2_COMPLEXIO_CFG1_PWR_STATUS_OFF:
-+		ret = ISP_CSI2_POWER_OFF;
-+		break;
-+	case ISPCSI2_COMPLEXIO_CFG1_PWR_STATUS_ON:
-+		ret = ISP_CSI2_POWER_ON;
-+		break;
-+	case ISPCSI2_COMPLEXIO_CFG1_PWR_STATUS_ULPW:
-+		ret = ISP_CSI2_POWER_ULPW;
-+		break;
-+	default:
-+		return -EINVAL;
-+	}
-+	return ret;
-+}
-+
-+/**
-+ * isp_csi2_complexio_power_autoswitch - Sets CSI2 ComplexIO power autoswitch.
-+ * @enable: Sets or clears the autoswitch function enable flag.
-+ *
-+ * Always returns 0.
-+ **/
-+int isp_csi2_complexio_power_autoswitch(bool enable)
-+{
-+	u32 reg;
-+
-+	reg = isp_reg_readl(OMAP3_ISP_IOMEM_CSI2A, ISPCSI2_COMPLEXIO_CFG1);
-+	reg &= ~ISPCSI2_COMPLEXIO_CFG1_PWR_AUTO_MASK;
-+
-+	if (enable)
-+		reg |= ISPCSI2_COMPLEXIO_CFG1_PWR_AUTO_ENABLE;
-+	else
-+		reg |= ISPCSI2_COMPLEXIO_CFG1_PWR_AUTO_DISABLE;
-+
-+	isp_reg_writel(reg, OMAP3_ISP_IOMEM_CSI2A, ISPCSI2_COMPLEXIO_CFG1);
-+	return 0;
-+}
-+
-+/**
-+ * isp_csi2_complexio_power - Sets the desired power command for CSI2 ComplexIO.
-+ * @power_cmd: Power command to be set.
-+ *
-+ * Returns 0 if successful, or -EBUSY if the retry count is exceeded.
-+ **/
-+int isp_csi2_complexio_power(enum isp_csi2_power_cmds power_cmd)
-+{
-+	enum isp_csi2_power_cmds current_state;
-+	u32 reg;
-+	u8 retry_count;
-+
-+	reg = isp_reg_readl(OMAP3_ISP_IOMEM_CSI2A, ISPCSI2_COMPLEXIO_CFG1) &
-+					~ISPCSI2_COMPLEXIO_CFG1_PWR_CMD_MASK;
-+	switch (power_cmd) {
-+	case ISP_CSI2_POWER_OFF:
-+		reg |= ISPCSI2_COMPLEXIO_CFG1_PWR_CMD_OFF;
-+		break;
-+	case ISP_CSI2_POWER_ON:
-+		reg |= ISPCSI2_COMPLEXIO_CFG1_PWR_CMD_ON;
-+		break;
-+	case ISP_CSI2_POWER_ULPW:
-+		reg |= ISPCSI2_COMPLEXIO_CFG1_PWR_CMD_ULPW;
-+		break;
-+	default:
-+		printk(KERN_ERR "CSI2: ERROR - Wrong Power command!\n");
-+		return -EINVAL;
-+	}
-+	isp_reg_writel(reg, OMAP3_ISP_IOMEM_CSI2A, ISPCSI2_COMPLEXIO_CFG1);
-+
-+	retry_count = 0;
-+	do {
-+		udelay(50);
-+		current_state = isp_csi2_complexio_power_status();
-+
-+		if (current_state != power_cmd) {
-+			printk(KERN_DEBUG "CSI2: Complex IO power command not"
-+								" yet taken.");
-+			if (++retry_count < 100) {
-+				printk(KERN_DEBUG " Retrying...\n");
-+				udelay(50);
-+			} else {
-+				printk(KERN_DEBUG " Retry count exceeded!\n");
-+			}
-+		}
-+	} while ((current_state != power_cmd) && (retry_count < 100));
-+
-+	if (retry_count == 100)
-+		return -EBUSY;
-+
-+	return 0;
-+}
-+
-+/**
-+ * isp_csi2_ctrl_config_frame_mode - Configure if_en behaviour for CSI2
-+ * @frame_mode: Desired action for IF_EN switch off. 0 - disable IF immediately
-+ *              1 - disable after all Frame end Code is received in all
-+ *              contexts.
-+ *
-+ * Validates and saves to internal driver memory the passed configuration.
-+ * Always returns 0.
-+ **/
-+int isp_csi2_ctrl_config_frame_mode(enum isp_csi2_frame_mode frame_mode)
-+{
-+	struct isp_csi2_ctrl_cfg *currctrl = &current_csi2_cfg.ctrl;
-+	struct isp_csi2_ctrl_cfg_update *currctrl_u =
-+						&current_csi2_cfg_update.ctrl;
-+
-+	if (currctrl->frame_mode != frame_mode) {
-+		currctrl->frame_mode = frame_mode;
-+		currctrl_u->frame_mode = true;
-+		update_ctrl = true;
-+	}
-+	return 0;
-+}
-+
-+/**
-+ * isp_csi2_ctrl_config_vp_clk_enable - Enables/disables CSI2 Videoport clock.
-+ * @vp_clk_enable: Boolean value to specify the Videoport clock state.
-+ *
-+ * Validates and saves to internal driver memory the passed configuration.
-+ * Always returns 0.
-+ **/
-+int isp_csi2_ctrl_config_vp_clk_enable(bool vp_clk_enable)
-+{
-+	struct isp_csi2_ctrl_cfg *currctrl = &current_csi2_cfg.ctrl;
-+	struct isp_csi2_ctrl_cfg_update *currctrl_u =
-+						&current_csi2_cfg_update.ctrl;
-+
-+	if (currctrl->vp_clk_enable != vp_clk_enable) {
-+		currctrl->vp_clk_enable = vp_clk_enable;
-+		currctrl_u->vp_clk_enable = true;
-+		update_ctrl = true;
-+	}
-+	return 0;
-+}
-+
-+/**
-+ * isp_csi2_ctrl_config_vp_only_enable - Sets CSI2 Videoport clock as exclusive
-+ * @vp_only_enable: Boolean value to specify if the Videoport clock is
-+ *                  exclusive, setting the OCP port as disabled.
-+ *
-+ * Validates and saves to internal driver memory the passed configuration.
-+ * Always returns 0.
-+ **/
-+int isp_csi2_ctrl_config_vp_only_enable(bool vp_only_enable)
-+{
-+	struct isp_csi2_ctrl_cfg *currctrl = &current_csi2_cfg.ctrl;
-+	struct isp_csi2_ctrl_cfg_update *currctrl_u =
-+						&current_csi2_cfg_update.ctrl;
-+
-+	if (currctrl->vp_only_enable != vp_only_enable) {
-+		currctrl->vp_only_enable = vp_only_enable;
-+		currctrl_u->vp_only_enable = true;
-+		update_ctrl = true;
-+	}
-+	return 0;
-+}
-+
-+/**
-+ * isp_csi2_ctrl_config_vp_out_ctrl - Sets CSI2 Videoport clock divider
-+ * @vp_out_ctrl: Divider value for setting videoport clock frequency based on
-+ *               OCP port frequency, valid dividers are between 1 and 4.
-+ *
-+ * Validates and saves to internal driver memory the passed configuration.
-+ * Returns 0 if successful, or -EINVAL if wrong divider value is passed.
-+ **/
-+int isp_csi2_ctrl_config_vp_out_ctrl(u8 vp_out_ctrl)
-+{
-+	struct isp_csi2_ctrl_cfg *currctrl = &current_csi2_cfg.ctrl;
-+	struct isp_csi2_ctrl_cfg_update *currctrl_u =
-+						&current_csi2_cfg_update.ctrl;
-+
-+	if ((vp_out_ctrl == 0) || (vp_out_ctrl > 4)) {
-+		printk(KERN_ERR "CSI2: Wrong divisor value. Must be between"
-+								" 1 and 4");
-+		return -EINVAL;
-+	}
-+
-+	if (currctrl->vp_out_ctrl != vp_out_ctrl) {
-+		currctrl->vp_out_ctrl = vp_out_ctrl;
-+		currctrl_u->vp_out_ctrl = true;
-+		update_ctrl = true;
-+	}
-+	return 0;
-+}
-+
-+/**
-+ * isp_csi2_ctrl_config_debug_enable - Sets CSI2 debug
-+ * @debug_enable: Boolean for setting debug configuration on CSI2.
-+ *
-+ * Always returns 0.
-+ **/
-+int isp_csi2_ctrl_config_debug_enable(bool debug_enable)
-+{
-+	struct isp_csi2_ctrl_cfg *currctrl = &current_csi2_cfg.ctrl;
-+	struct isp_csi2_ctrl_cfg_update *currctrl_u =
-+						&current_csi2_cfg_update.ctrl;
-+
-+	if (currctrl->debug_enable != debug_enable) {
-+		currctrl->debug_enable = debug_enable;
-+		currctrl_u->debug_enable = true;
-+		update_ctrl = true;
-+	}
-+	return 0;
-+}
-+
-+/**
-+ * isp_csi2_ctrl_config_burst_size - Sets CSI2 burst size.
-+ * @burst_size: Burst size of the memory saving capability of receiver.
-+ *
-+ * Returns 0 if successful, or -EINVAL if burst size is wrong.
-+ **/
-+int isp_csi2_ctrl_config_burst_size(u8 burst_size)
-+{
-+	struct isp_csi2_ctrl_cfg *currctrl = &current_csi2_cfg.ctrl;
-+	struct isp_csi2_ctrl_cfg_update *currctrl_u =
-+						&current_csi2_cfg_update.ctrl;
-+	if (burst_size > 3) {
-+		printk(KERN_ERR "CSI2: Wrong burst size. Must be between"
-+								" 0 and 3");
-+		return -EINVAL;
-+	}
-+
-+	if (currctrl->burst_size != burst_size) {
-+		currctrl->burst_size = burst_size;
-+		currctrl_u->burst_size = true;
-+		update_ctrl = true;
-+	}
-+	return 0;
-+}
-+
-+/**
-+ * isp_csi2_ctrl_config_ecc_enable - Enables ECC on CSI2 Receiver
-+ * @ecc_enable: Boolean to enable/disable the CSI2 receiver ECC handling.
-+ *
-+ * Always returns 0.
-+ **/
-+int isp_csi2_ctrl_config_ecc_enable(bool ecc_enable)
-+{
-+	struct isp_csi2_ctrl_cfg *currctrl = &current_csi2_cfg.ctrl;
-+	struct isp_csi2_ctrl_cfg_update *currctrl_u =
-+						&current_csi2_cfg_update.ctrl;
-+
-+	if (currctrl->ecc_enable != ecc_enable) {
-+		currctrl->ecc_enable = ecc_enable;
-+		currctrl_u->ecc_enable = true;
-+		update_ctrl = true;
-+	}
-+	return 0;
-+}
-+
-+/**
-+ * isp_csi2_ctrl_config_ecc_enable - Enables ECC on CSI2 Receiver
-+ * @ecc_enable: Boolean to enable/disable the CSI2 receiver ECC handling.
-+ *
-+ * Always returns 0.
-+ **/
-+int isp_csi2_ctrl_config_secure_mode(bool secure_mode)
-+{
-+	struct isp_csi2_ctrl_cfg *currctrl = &current_csi2_cfg.ctrl;
-+	struct isp_csi2_ctrl_cfg_update *currctrl_u =
-+						&current_csi2_cfg_update.ctrl;
-+
-+	if (currctrl->secure_mode != secure_mode) {
-+		currctrl->secure_mode = secure_mode;
-+		currctrl_u->secure_mode = true;
-+		update_ctrl = true;
-+	}
-+	return 0;
-+}
-+
-+/**
-+ * isp_csi2_ctrl_config_if_enable - Enables CSI2 Receiver interface.
-+ * @if_enable: Boolean to enable/disable the CSI2 receiver interface.
-+ *
-+ * Always returns 0.
-+ **/
-+int isp_csi2_ctrl_config_if_enable(bool if_enable)
-+{
-+	struct isp_csi2_ctrl_cfg *currctrl = &current_csi2_cfg.ctrl;
-+	struct isp_csi2_ctrl_cfg_update *currctrl_u =
-+						&current_csi2_cfg_update.ctrl;
-+
-+	if (currctrl->if_enable != if_enable) {
-+		currctrl->if_enable = if_enable;
-+		currctrl_u->if_enable = true;
-+		update_ctrl = true;
-+	}
-+	return 0;
-+}
-+
-+/**
-+ * isp_csi2_ctrl_update - Applies CSI2 control configuration.
-+ * @force_update: Flag to force rewrite of registers, even if they haven't been
-+ *                updated with the isp_csi2_ctrl_config_*() functions.
-+ *
-+ * It only saves settings when they were previously updated using the
-+ * isp_csi2_ctrl_config_*() functions, unless the force_update flag is
-+ * set to true.
-+ * Always returns 0.
-+ **/
-+int isp_csi2_ctrl_update(bool force_update)
-+{
-+	struct isp_csi2_ctrl_cfg *currctrl = &current_csi2_cfg.ctrl;
-+	struct isp_csi2_ctrl_cfg_update *currctrl_u =
-+						&current_csi2_cfg_update.ctrl;
-+	u32 reg;
-+
-+	if (update_ctrl || force_update) {
-+		reg = isp_reg_readl(OMAP3_ISP_IOMEM_CSI2A, ISPCSI2_CTRL);
-+		if (currctrl_u->frame_mode || force_update) {
-+			reg &= ~ISPCSI2_CTRL_FRAME_MASK;
-+			if (currctrl->frame_mode)
-+				reg |= ISPCSI2_CTRL_FRAME_DISABLE_FEC;
-+			else
-+				reg |= ISPCSI2_CTRL_FRAME_DISABLE_IMM;
-+			currctrl_u->frame_mode = false;
-+		}
-+		if (currctrl_u->vp_clk_enable || force_update) {
-+			reg &= ~ISPCSI2_CTRL_VP_CLK_EN_MASK;
-+			if (currctrl->vp_clk_enable)
-+				reg |= ISPCSI2_CTRL_VP_CLK_EN_ENABLE;
-+			else
-+				reg |= ISPCSI2_CTRL_VP_CLK_EN_DISABLE;
-+			currctrl_u->vp_clk_enable = false;
-+		}
-+		if (currctrl_u->vp_only_enable || force_update) {
-+			reg &= ~ISPCSI2_CTRL_VP_ONLY_EN_MASK;
-+			uses_videoport = currctrl->vp_only_enable;
-+			if (currctrl->vp_only_enable)
-+				reg |= ISPCSI2_CTRL_VP_ONLY_EN_ENABLE;
-+			else
-+				reg |= ISPCSI2_CTRL_VP_ONLY_EN_DISABLE;
-+			currctrl_u->vp_only_enable = false;
-+		}
-+		if (currctrl_u->vp_out_ctrl || force_update) {
-+			reg &= ~ISPCSI2_CTRL_VP_OUT_CTRL_MASK;
-+			reg |= (currctrl->vp_out_ctrl - 1) <<
-+						ISPCSI2_CTRL_VP_OUT_CTRL_SHIFT;
-+			currctrl_u->vp_out_ctrl = false;
-+		}
-+		if (currctrl_u->debug_enable || force_update) {
-+			reg &= ~ISPCSI2_CTRL_DBG_EN_MASK;
-+			if (currctrl->debug_enable)
-+				reg |= ISPCSI2_CTRL_DBG_EN_ENABLE;
-+			else
-+				reg |= ISPCSI2_CTRL_DBG_EN_DISABLE;
-+			currctrl_u->debug_enable = false;
-+		}
-+		if (currctrl_u->burst_size || force_update) {
-+			reg &= ~ISPCSI2_CTRL_BURST_SIZE_MASK;
-+			reg |= currctrl->burst_size <<
-+						ISPCSI2_CTRL_BURST_SIZE_SHIFT;
-+			currctrl_u->burst_size = false;
-+		}
-+		if (currctrl_u->ecc_enable || force_update) {
-+			reg &= ~ISPCSI2_CTRL_ECC_EN_MASK;
-+			if (currctrl->ecc_enable)
-+				reg |= ISPCSI2_CTRL_ECC_EN_ENABLE;
-+			else
-+				reg |= ISPCSI2_CTRL_ECC_EN_DISABLE;
-+			currctrl_u->ecc_enable = false;
-+		}
-+		if (currctrl_u->secure_mode || force_update) {
-+			reg &= ~ISPCSI2_CTRL_SECURE_MASK;
-+			if (currctrl->secure_mode)
-+				reg |= ISPCSI2_CTRL_SECURE_ENABLE;
-+			else
-+				reg |= ISPCSI2_CTRL_SECURE_DISABLE;
-+			currctrl_u->secure_mode = false;
-+		}
-+		if (currctrl_u->if_enable || force_update) {
-+			reg &= ~ISPCSI2_CTRL_IF_EN_MASK;
-+			if (currctrl->if_enable)
-+				reg |= ISPCSI2_CTRL_IF_EN_ENABLE;
-+			else
-+				reg |= ISPCSI2_CTRL_IF_EN_DISABLE;
-+			currctrl_u->if_enable = false;
-+		}
-+		isp_reg_writel(reg, OMAP3_ISP_IOMEM_CSI2A, ISPCSI2_CTRL);
-+		update_ctrl = false;
-+	}
-+	return 0;
-+}
-+
-+/**
-+ * isp_csi2_ctrl_get - Gets CSI2 control configuration
-+ *
-+ * Always returns 0.
-+ **/
-+int isp_csi2_ctrl_get(void)
-+{
-+	struct isp_csi2_ctrl_cfg *currctrl = &current_csi2_cfg.ctrl;
-+	struct isp_csi2_ctrl_cfg_update *currctrl_u =
-+						&current_csi2_cfg_update.ctrl;
-+	u32 reg;
-+
-+	reg = isp_reg_readl(OMAP3_ISP_IOMEM_CSI2A, ISPCSI2_CTRL);
-+	currctrl->frame_mode = (reg & ISPCSI2_CTRL_FRAME_MASK) >>
-+						ISPCSI2_CTRL_FRAME_SHIFT;
-+	currctrl_u->frame_mode = false;
-+
-+	if ((reg & ISPCSI2_CTRL_VP_CLK_EN_MASK) ==
-+						ISPCSI2_CTRL_VP_CLK_EN_ENABLE)
-+		currctrl->vp_clk_enable = true;
-+	else
-+		currctrl->vp_clk_enable = false;
-+	currctrl_u->vp_clk_enable = false;
-+
-+	if ((reg & ISPCSI2_CTRL_VP_ONLY_EN_MASK) ==
-+						ISPCSI2_CTRL_VP_ONLY_EN_ENABLE)
-+		currctrl->vp_only_enable = true;
-+	else
-+		currctrl->vp_only_enable = false;
-+	uses_videoport = currctrl->vp_only_enable;
-+	currctrl_u->vp_only_enable = false;
-+
-+	currctrl->vp_out_ctrl = ((reg & ISPCSI2_CTRL_VP_OUT_CTRL_MASK) >>
-+					ISPCSI2_CTRL_VP_OUT_CTRL_SHIFT) + 1;
-+	currctrl_u->vp_out_ctrl = false;
-+
-+	if ((reg & ISPCSI2_CTRL_DBG_EN_MASK) == ISPCSI2_CTRL_DBG_EN_ENABLE)
-+		currctrl->debug_enable = true;
-+	else
-+		currctrl->debug_enable = false;
-+	currctrl_u->debug_enable = false;
-+
-+	currctrl->burst_size = (reg & ISPCSI2_CTRL_BURST_SIZE_MASK) >>
-+					ISPCSI2_CTRL_BURST_SIZE_SHIFT;
-+	currctrl_u->burst_size = false;
-+
-+	if ((reg & ISPCSI2_CTRL_ECC_EN_MASK) == ISPCSI2_CTRL_ECC_EN_ENABLE)
-+		currctrl->ecc_enable = true;
-+	else
-+		currctrl->ecc_enable = false;
-+	currctrl_u->ecc_enable = false;
-+
-+	if ((reg & ISPCSI2_CTRL_SECURE_MASK) == ISPCSI2_CTRL_SECURE_ENABLE)
-+		currctrl->secure_mode = true;
-+	else
-+		currctrl->secure_mode = false;
-+	currctrl_u->secure_mode = false;
-+
-+	if ((reg & ISPCSI2_CTRL_IF_EN_MASK) == ISPCSI2_CTRL_IF_EN_ENABLE)
-+		currctrl->if_enable = true;
-+	else
-+		currctrl->if_enable = false;
-+	currctrl_u->if_enable = false;
-+
-+	update_ctrl = false;
-+	return 0;
-+}
-+
-+/**
-+ * isp_csi2_ctx_validate - Validates the context number value
-+ * @ctxnum: Pointer to variable containing context number.
-+ *
-+ * If the value is not in range (3 bits), it is being ANDed with 0x7 to force
-+ * it to be on range.
-+ **/
-+static void isp_csi2_ctx_validate(u8 *ctxnum)
-+{
-+	if (*ctxnum > 7) {
-+		printk(KERN_ERR "Invalid context number. Forcing valid"
-+								" value...\n");
-+		*ctxnum &= ~(0x7);
-+	}
-+}
-+
-+/**
-+ * isp_csi2_ctx_config_virtual_id - Maps a virtual ID with a CSI2 Rx context
-+ * @ctxnum: Context number, valid between 0 and 7 values.
-+ * @virtual_id: CSI2 Virtual ID to associate with specified context number.
-+ *
-+ * Returns 0 if successful, or -EINVAL if Virtual ID is not in range (0-3).
-+ **/
-+int isp_csi2_ctx_config_virtual_id(u8 ctxnum, u8 virtual_id)
-+{
-+	struct isp_csi2_ctx_cfg *selected_ctx;
-+	struct isp_csi2_ctx_cfg_update *selected_ctx_u;
-+
-+	isp_csi2_ctx_validate(&ctxnum);
-+
-+	if (virtual_id > 3) {
-+		printk(KERN_ERR "Wrong requested virtual_id\n");
-+		return -EINVAL;
-+	}
-+
-+	selected_ctx = &current_csi2_cfg.contexts[ctxnum];
-+	selected_ctx_u = &current_csi2_cfg_update.contexts[ctxnum];
-+
-+	if (selected_ctx->virtual_id != virtual_id) {
-+		selected_ctx->virtual_id = virtual_id;
-+		selected_ctx_u->virtual_id = true;
-+		update_ctx_ctrl2[ctxnum] = true;
-+	}
-+
-+	return 0;
-+}
-+
-+/**
-+ * isp_csi2_ctx_config_frame_count - Sets frame count to be received in CSI2 Rx.
-+ * @ctxnum: Context number, valid between 0 and 7 values.
-+ * @frame_count: Number of frames to acquire.
-+ *
-+ * Always returns 0.
-+ **/
-+int isp_csi2_ctx_config_frame_count(u8 ctxnum, u8 frame_count)
-+{
-+	struct isp_csi2_ctx_cfg *selected_ctx;
-+	struct isp_csi2_ctx_cfg_update *selected_ctx_u;
-+
-+	isp_csi2_ctx_validate(&ctxnum);
-+
-+	selected_ctx = &current_csi2_cfg.contexts[ctxnum];
-+	selected_ctx_u = &current_csi2_cfg_update.contexts[ctxnum];
-+
-+	if (selected_ctx->frame_count != frame_count) {
-+		selected_ctx->frame_count = frame_count;
-+		selected_ctx_u->frame_count = true;
-+		update_ctx_ctrl1[ctxnum] = true;
-+	}
-+
-+	return 0;
-+}
-+
-+/**
-+ * isp_csi2_ctx_config_format - Maps a pixel format to a specified context.
-+ * @ctxnum: Context number, valid between 0 and 7 values.
-+ * @pixformat: V4L2 structure for pixel format.
-+ *
-+ * Returns 0 if successful, or -EINVAL if the format is not supported by the
-+ * receiver.
-+ **/
-+int isp_csi2_ctx_config_format(u8 ctxnum, u32 pixformat)
-+{
-+	struct isp_csi2_ctx_cfg *selected_ctx;
-+	struct isp_csi2_ctx_cfg_update *selected_ctx_u;
-+	struct v4l2_pix_format pix;
-+
-+	isp_csi2_ctx_validate(&ctxnum);
-+
-+	pix.pixelformat = pixformat;
-+	switch (pix.pixelformat) {
-+	case V4L2_PIX_FMT_RGB565:
-+	case V4L2_PIX_FMT_RGB565X:
-+	case V4L2_PIX_FMT_YUYV:
-+	case V4L2_PIX_FMT_UYVY:
-+	case V4L2_PIX_FMT_RGB555:
-+	case V4L2_PIX_FMT_RGB555X:
-+	case V4L2_PIX_FMT_SGRBG10:
-+	break;
-+	default:
-+		printk(KERN_ERR "Context config pixel format unsupported\n");
-+		return -EINVAL;
-+	}
-+
-+	selected_ctx = &current_csi2_cfg.contexts[ctxnum];
-+	selected_ctx_u = &current_csi2_cfg_update.contexts[ctxnum];
-+
-+	selected_ctx->format = pix;
-+	selected_ctx_u->format = true;
-+	update_ctx_ctrl2[ctxnum] = true;
-+
-+	return 0;
-+}
-+
-+/**
-+ * isp_csi2_ctx_config_alpha - Sets the alpha value for pixel format
-+ * @ctxnum: Context number, valid between 0 and 7 values.
-+ * @alpha: Alpha value.
-+ *
-+ * Returns 0 if successful, or -EINVAL if the alpha value is bigger than 16383.
-+ **/
-+int isp_csi2_ctx_config_alpha(u8 ctxnum, u16 alpha)
-+{
-+	struct isp_csi2_ctx_cfg *selected_ctx;
-+	struct isp_csi2_ctx_cfg_update *selected_ctx_u;
-+
-+	isp_csi2_ctx_validate(&ctxnum);
-+
-+	if (alpha > 0x3FFF) {
-+		printk(KERN_ERR "Wrong alpha value\n");
-+		return -EINVAL;
-+	}
-+
-+	selected_ctx = &current_csi2_cfg.contexts[ctxnum];
-+	selected_ctx_u = &current_csi2_cfg_update.contexts[ctxnum];
-+
-+	if (selected_ctx->alpha != alpha) {
-+		selected_ctx->alpha = alpha;
-+		selected_ctx_u->alpha = true;
-+		update_ctx_ctrl3[ctxnum] = true;
-+	}
-+	return 0;
-+}
-+
-+/**
-+ * isp_csi2_ctx_config_data_offset - Sets the offset between received lines
-+ * @ctxnum: Context number, valid between 0 and 7 values.
-+ * @data_offset: Offset between first pixel of each 2 contiguous lines.
-+ *
-+ * Returns 0 if successful, or -EINVAL if the line offset is bigger than 1023.
-+ **/
-+int isp_csi2_ctx_config_data_offset(u8 ctxnum, u16 data_offset)
-+{
-+	struct isp_csi2_ctx_cfg *selected_ctx;
-+	struct isp_csi2_ctx_cfg_update *selected_ctx_u;
-+
-+	isp_csi2_ctx_validate(&ctxnum);
-+
-+	if (data_offset > 0x3FF) {
-+		printk(KERN_ERR "Wrong line offset\n");
-+		return -EINVAL;
-+	}
-+
-+	selected_ctx = &current_csi2_cfg.contexts[ctxnum];
-+	selected_ctx_u = &current_csi2_cfg_update.contexts[ctxnum];
-+
-+	if (selected_ctx->data_offset != data_offset) {
-+		selected_ctx->data_offset = data_offset;
-+		selected_ctx_u->data_offset = true;
-+	}
-+	return 0;
-+}
-+
-+/**
-+ * isp_csi2_ctx_config_ping_addr - Sets Ping address for CSI2 Rx. buffer saving
-+ * @ctxnum: Context number, valid between 0 and 7 values.
-+ * @ping_addr: 32 bit ISP MMU mapped address.
-+ *
-+ * Always returns 0.
-+ **/
-+int isp_csi2_ctx_config_ping_addr(u8 ctxnum, u32 ping_addr)
-+{
-+	struct isp_csi2_ctx_cfg *selected_ctx;
-+	struct isp_csi2_ctx_cfg_update *selected_ctx_u;
-+
-+	isp_csi2_ctx_validate(&ctxnum);
-+
-+	ping_addr &= ~(0x1F);
-+
-+	selected_ctx = &current_csi2_cfg.contexts[ctxnum];
-+	selected_ctx_u = &current_csi2_cfg_update.contexts[ctxnum];
-+
-+	if (selected_ctx->ping_addr != ping_addr) {
-+		selected_ctx->ping_addr = ping_addr;
-+		selected_ctx_u->ping_addr = true;
-+	}
-+	return 0;
-+}
-+
-+/**
-+ * isp_csi2_ctx_config_pong_addr - Sets Pong address for CSI2 Rx. buffer saving
-+ * @ctxnum: Context number, valid between 0 and 7 values.
-+ * @pong_addr: 32 bit ISP MMU mapped address.
-+ *
-+ * Always returns 0.
-+ **/
-+int isp_csi2_ctx_config_pong_addr(u8 ctxnum, u32 pong_addr)
-+{
-+	struct isp_csi2_ctx_cfg *selected_ctx;
-+	struct isp_csi2_ctx_cfg_update *selected_ctx_u;
-+
-+	isp_csi2_ctx_validate(&ctxnum);
-+
-+	pong_addr &= ~(0x1F);
-+
-+	selected_ctx = &current_csi2_cfg.contexts[ctxnum];
-+	selected_ctx_u = &current_csi2_cfg_update.contexts[ctxnum];
-+
-+	if (selected_ctx->pong_addr != pong_addr) {
-+		selected_ctx->pong_addr = pong_addr;
-+		selected_ctx_u->pong_addr = true;
-+	}
-+	return 0;
-+}
-+
-+/**
-+ * isp_csi2_ctx_config_eof_enabled - Enables EOF signal assertion
-+ * @ctxnum: Context number, valid between 0 and 7 values.
-+ * @eof_enabled: Boolean to enable/disable EOF signal assertion on received
-+ *               packets.
-+ *
-+ * Always returns 0.
-+ **/
-+int isp_csi2_ctx_config_eof_enabled(u8 ctxnum, bool eof_enabled)
-+{
-+	struct isp_csi2_ctx_cfg *selected_ctx;
-+	struct isp_csi2_ctx_cfg_update *selected_ctx_u;
-+
-+	isp_csi2_ctx_validate(&ctxnum);
-+
-+	selected_ctx = &current_csi2_cfg.contexts[ctxnum];
-+	selected_ctx_u = &current_csi2_cfg_update.contexts[ctxnum];
-+
-+	if (selected_ctx->eof_enabled != eof_enabled) {
-+		selected_ctx->eof_enabled = eof_enabled;
-+		selected_ctx_u->eof_enabled = true;
-+		update_ctx_ctrl1[ctxnum] = true;
-+	}
-+	return 0;
-+}
-+
-+/**
-+ * isp_csi2_ctx_config_eol_enabled - Enables EOL signal assertion
-+ * @ctxnum: Context number, valid between 0 and 7 values.
-+ * @eol_enabled: Boolean to enable/disable EOL signal assertion on received
-+ *               packets.
-+ *
-+ * Always returns 0.
-+ **/
-+int isp_csi2_ctx_config_eol_enabled(u8 ctxnum, bool eol_enabled)
-+{
-+	struct isp_csi2_ctx_cfg *selected_ctx;
-+	struct isp_csi2_ctx_cfg_update *selected_ctx_u;
-+
-+	isp_csi2_ctx_validate(&ctxnum);
-+
-+	selected_ctx = &current_csi2_cfg.contexts[ctxnum];
-+	selected_ctx_u = &current_csi2_cfg_update.contexts[ctxnum];
-+
-+	if (selected_ctx->eol_enabled != eol_enabled) {
-+		selected_ctx->eol_enabled = eol_enabled;
-+		selected_ctx_u->eol_enabled = true;
-+		update_ctx_ctrl1[ctxnum] = true;
-+	}
-+	return 0;
-+}
-+
-+/**
-+ * isp_csi2_ctx_config_checksum_enabled - Enables Checksum check in rcvd packets
-+ * @ctxnum: Context number, valid between 0 and 7 values.
-+ * @checksum_enabled: Boolean to enable/disable Checksum check on received
-+ *                    packets
-+ *
-+ * Always returns 0.
-+ **/
-+int isp_csi2_ctx_config_checksum_enabled(u8 ctxnum, bool checksum_enabled)
-+{
-+	struct isp_csi2_ctx_cfg *selected_ctx;
-+	struct isp_csi2_ctx_cfg_update *selected_ctx_u;
-+
-+	isp_csi2_ctx_validate(&ctxnum);
-+
-+	selected_ctx = &current_csi2_cfg.contexts[ctxnum];
-+	selected_ctx_u = &current_csi2_cfg_update.contexts[ctxnum];
-+
-+	if (selected_ctx->checksum_enabled != checksum_enabled) {
-+		selected_ctx->checksum_enabled = checksum_enabled;
-+		selected_ctx_u->checksum_enabled = true;
-+		update_ctx_ctrl1[ctxnum] = true;
-+	}
-+	return 0;
-+}
-+
-+/**
-+ * isp_csi2_ctx_config_enabled - Enables specified CSI2 context
-+ * @ctxnum: Context number, valid between 0 and 7 values.
-+ * @enabled: Boolean to enable/disable specified context.
-+ *
-+ * Always returns 0.
-+ **/
-+int isp_csi2_ctx_config_enabled(u8 ctxnum, bool enabled)
-+{
-+	struct isp_csi2_ctx_cfg *selected_ctx;
-+	struct isp_csi2_ctx_cfg_update *selected_ctx_u;
-+
-+	isp_csi2_ctx_validate(&ctxnum);
-+
-+	selected_ctx = &current_csi2_cfg.contexts[ctxnum];
-+	selected_ctx_u = &current_csi2_cfg_update.contexts[ctxnum];
-+
-+	if (selected_ctx->enabled != enabled) {
-+		selected_ctx->enabled = enabled;
-+		selected_ctx_u->enabled = true;
-+		update_ctx_ctrl1[ctxnum] = true;
-+	}
-+	return 0;
-+}
-+
-+/**
-+ * isp_csi2_ctx_update - Applies CSI2 context configuration.
-+ * @ctxnum: Context number, valid between 0 and 7 values.
-+ * @force_update: Flag to force rewrite of registers, even if they haven't been
-+ *                updated with the isp_csi2_ctx_config_*() functions.
-+ *
-+ * It only saves settings when they were previously updated using the
-+ * isp_csi2_ctx_config_*() functions, unless the force_update flag is
-+ * set to true.
-+ * Always returns 0.
-+ **/
-+int isp_csi2_ctx_update(u8 ctxnum, bool force_update)
-+{
-+	struct isp_csi2_ctx_cfg *selected_ctx;
-+	struct isp_csi2_ctx_cfg_update *selected_ctx_u;
-+	u32 reg;
-+
-+	isp_csi2_ctx_validate(&ctxnum);
-+
-+	selected_ctx = &current_csi2_cfg.contexts[ctxnum];
-+	selected_ctx_u = &current_csi2_cfg_update.contexts[ctxnum];
-+
-+	if (update_ctx_ctrl1[ctxnum] || force_update) {
-+		reg = isp_reg_readl(OMAP3_ISP_IOMEM_CSI2A,
-+						ISPCSI2_CTX_CTRL1(ctxnum));
-+		if (selected_ctx_u->frame_count || force_update) {
-+			reg &= ~(ISPCSI2_CTX_CTRL1_COUNT_MASK);
-+			reg |= selected_ctx->frame_count <<
-+						ISPCSI2_CTX_CTRL1_COUNT_SHIFT;
-+			selected_ctx_u->frame_count = false;
-+		}
-+		if (selected_ctx_u->eof_enabled || force_update) {
-+			reg &= ~(ISPCSI2_CTX_CTRL1_EOF_EN_MASK);
-+			if (selected_ctx->eof_enabled)
-+				reg |= ISPCSI2_CTX_CTRL1_EOF_EN_ENABLE;
-+			else
-+				reg |= ISPCSI2_CTX_CTRL1_EOF_EN_DISABLE;
-+			selected_ctx_u->eof_enabled = false;
-+		}
-+		if (selected_ctx_u->eol_enabled || force_update) {
-+			reg &= ~(ISPCSI2_CTX_CTRL1_EOL_EN_MASK);
-+			if (selected_ctx->eol_enabled)
-+				reg |= ISPCSI2_CTX_CTRL1_EOL_EN_ENABLE;
-+			else
-+				reg |= ISPCSI2_CTX_CTRL1_EOL_EN_DISABLE;
-+			selected_ctx_u->eol_enabled = false;
-+		}
-+		if (selected_ctx_u->checksum_enabled || force_update) {
-+			reg &= ~(ISPCSI2_CTX_CTRL1_CS_EN_MASK);
-+			if (selected_ctx->checksum_enabled)
-+				reg |= ISPCSI2_CTX_CTRL1_CS_EN_ENABLE;
-+			else
-+				reg |= ISPCSI2_CTX_CTRL1_CS_EN_DISABLE;
-+			selected_ctx_u->checksum_enabled = false;
-+		}
-+		if (selected_ctx_u->enabled || force_update) {
-+			reg &= ~(ISPCSI2_CTX_CTRL1_CTX_EN_MASK);
-+			if (selected_ctx->enabled)
-+				reg |= ISPCSI2_CTX_CTRL1_CTX_EN_ENABLE;
-+			else
-+				reg |= ISPCSI2_CTX_CTRL1_CTX_EN_DISABLE;
-+			selected_ctx_u->enabled = false;
-+		}
-+		isp_reg_writel(reg, OMAP3_ISP_IOMEM_CSI2A,
-+						ISPCSI2_CTX_CTRL1(ctxnum));
-+		update_ctx_ctrl1[ctxnum] = false;
-+	}
-+
-+	if (update_ctx_ctrl2[ctxnum] || force_update) {
-+		reg = isp_reg_readl(OMAP3_ISP_IOMEM_CSI2A,
-+						ISPCSI2_CTX_CTRL2(ctxnum));
-+		if (selected_ctx_u->virtual_id || force_update) {
-+			reg &= ~(ISPCSI2_CTX_CTRL2_VIRTUAL_ID_MASK);
-+			reg |= selected_ctx->virtual_id <<
-+					ISPCSI2_CTX_CTRL2_VIRTUAL_ID_SHIFT;
-+			selected_ctx_u->virtual_id = false;
-+		}
-+
-+		if (selected_ctx_u->format || force_update) {
-+			struct v4l2_pix_format *pix;
-+			u16 new_format = 0;
-+
-+			reg &= ~(ISPCSI2_CTX_CTRL2_FORMAT_MASK);
-+			pix = &selected_ctx->format;
-+			switch (pix->pixelformat) {
-+			case V4L2_PIX_FMT_RGB565:
-+			case V4L2_PIX_FMT_RGB565X:
-+				new_format = 0x22;
-+				break;
-+			case V4L2_PIX_FMT_YUYV:
-+			case V4L2_PIX_FMT_UYVY:
-+				if (uses_videoport)
-+					new_format = 0x9E;
-+				else
-+					new_format = 0x1E;
-+				break;
-+			case V4L2_PIX_FMT_RGB555:
-+			case V4L2_PIX_FMT_RGB555X:
-+				new_format = 0xA1;
-+				break;
-+			case V4L2_PIX_FMT_SGRBG10:
-+				if (uses_videoport)
-+					new_format = 0x12F;
-+				else
-+					new_format = 0xAB;
-+				break;
-+			}
-+			reg |= (new_format << ISPCSI2_CTX_CTRL2_FORMAT_SHIFT);
-+			selected_ctx_u->format = false;
-+		}
-+		isp_reg_writel(reg, OMAP3_ISP_IOMEM_CSI2A,
-+						ISPCSI2_CTX_CTRL2(ctxnum));
-+		update_ctx_ctrl2[ctxnum] = false;
-+	}
-+
-+	if (update_ctx_ctrl3[ctxnum] || force_update) {
-+		reg = isp_reg_readl(OMAP3_ISP_IOMEM_CSI2A,
-+						ISPCSI2_CTX_CTRL3(ctxnum));
-+		if (selected_ctx_u->alpha || force_update) {
-+			reg &= ~(ISPCSI2_CTX_CTRL3_ALPHA_MASK);
-+			reg |= (selected_ctx->alpha <<
-+						ISPCSI2_CTX_CTRL3_ALPHA_SHIFT);
-+			selected_ctx_u->alpha = false;
-+		}
-+		isp_reg_writel(reg, OMAP3_ISP_IOMEM_CSI2A,
-+					ISPCSI2_CTX_CTRL3(ctxnum));
-+		update_ctx_ctrl3[ctxnum] = false;
-+	}
-+
-+	if (selected_ctx_u->data_offset) {
-+		reg = isp_reg_readl(OMAP3_ISP_IOMEM_CSI2A,
-+					ISPCSI2_CTX_DAT_OFST(ctxnum));
-+		reg &= ~ISPCSI2_CTX_DAT_OFST_OFST_MASK;
-+		reg |= selected_ctx->data_offset <<
-+					ISPCSI2_CTX_DAT_OFST_OFST_SHIFT;
-+		isp_reg_writel(reg, OMAP3_ISP_IOMEM_CSI2A,
-+					ISPCSI2_CTX_DAT_OFST(ctxnum));
-+		selected_ctx_u->data_offset = false;
-+	}
-+
-+	if (selected_ctx_u->ping_addr) {
-+		reg = selected_ctx->ping_addr;
-+		isp_reg_writel(reg, OMAP3_ISP_IOMEM_CSI2A,
-+					ISPCSI2_CTX_DAT_PING_ADDR(ctxnum));
-+		selected_ctx_u->ping_addr = false;
-+	}
-+
-+	if (selected_ctx_u->pong_addr) {
-+		reg = selected_ctx->pong_addr;
-+		isp_reg_writel(reg, OMAP3_ISP_IOMEM_CSI2A,
-+					ISPCSI2_CTX_DAT_PONG_ADDR(ctxnum));
-+		selected_ctx_u->pong_addr = false;
-+	}
-+	return 0;
-+}
-+
-+/**
-+ * isp_csi2_ctx_get - Gets specific CSI2 Context configuration
-+ * @ctxnum: Context number, valid between 0 and 7 values.
-+ *
-+ * Always returns 0.
-+ **/
-+int isp_csi2_ctx_get(u8 ctxnum)
-+{
-+	struct isp_csi2_ctx_cfg *selected_ctx;
-+	struct isp_csi2_ctx_cfg_update *selected_ctx_u;
-+	u32 reg;
-+
-+	isp_csi2_ctx_validate(&ctxnum);
-+
-+	selected_ctx = &current_csi2_cfg.contexts[ctxnum];
-+	selected_ctx_u = &current_csi2_cfg_update.contexts[ctxnum];
-+
-+	reg = isp_reg_readl(OMAP3_ISP_IOMEM_CSI2A, ISPCSI2_CTX_CTRL1(ctxnum));
-+	selected_ctx->frame_count = (reg & ISPCSI2_CTX_CTRL1_COUNT_MASK) >>
-+						ISPCSI2_CTX_CTRL1_COUNT_SHIFT;
-+	selected_ctx_u->frame_count = false;
-+
-+	if ((reg & ISPCSI2_CTX_CTRL1_EOF_EN_MASK) ==
-+						ISPCSI2_CTX_CTRL1_EOF_EN_ENABLE)
-+		selected_ctx->eof_enabled = true;
-+	else
-+		selected_ctx->eof_enabled = false;
-+	selected_ctx_u->eof_enabled = false;
-+
-+	if ((reg & ISPCSI2_CTX_CTRL1_EOL_EN_MASK) ==
-+						ISPCSI2_CTX_CTRL1_EOL_EN_ENABLE)
-+		selected_ctx->eol_enabled = true;
-+	else
-+		selected_ctx->eol_enabled = false;
-+	selected_ctx_u->eol_enabled = false;
-+
-+	if ((reg & ISPCSI2_CTX_CTRL1_CS_EN_MASK) ==
-+						ISPCSI2_CTX_CTRL1_CS_EN_ENABLE)
-+		selected_ctx->checksum_enabled = true;
-+	else
-+		selected_ctx->checksum_enabled = false;
-+	selected_ctx_u->checksum_enabled = false;
-+
-+	if ((reg & ISPCSI2_CTX_CTRL1_CTX_EN_MASK) ==
-+						ISPCSI2_CTX_CTRL1_CTX_EN_ENABLE)
-+		selected_ctx->enabled = true;
-+	else
-+		selected_ctx->enabled = false;
-+	selected_ctx_u->enabled = false;
-+	update_ctx_ctrl1[ctxnum] = false;
-+
-+	reg = isp_reg_readl(OMAP3_ISP_IOMEM_CSI2A, ISPCSI2_CTX_CTRL2(ctxnum));
-+
-+	selected_ctx->virtual_id = (reg & ISPCSI2_CTX_CTRL2_VIRTUAL_ID_MASK) >>
-+					ISPCSI2_CTX_CTRL2_VIRTUAL_ID_SHIFT;
-+	selected_ctx_u->virtual_id = false;
-+
-+	switch ((reg & ISPCSI2_CTX_CTRL2_FORMAT_MASK) >>
-+				ISPCSI2_CTX_CTRL2_FORMAT_SHIFT) {
-+	case 0x22:
-+		selected_ctx->format.pixelformat = V4L2_PIX_FMT_RGB565;
-+		break;
-+	case 0x9E:
-+	case 0x1E:
-+		selected_ctx->format.pixelformat = V4L2_PIX_FMT_YUYV;
-+		break;
-+	case 0xA1:
-+		selected_ctx->format.pixelformat = V4L2_PIX_FMT_RGB555;
-+		break;
-+	case 0xAB:
-+	case 0x12F:
-+		selected_ctx->format.pixelformat = V4L2_PIX_FMT_SGRBG10;
-+		break;
-+	}
-+	selected_ctx_u->format = false;
-+	update_ctx_ctrl2[ctxnum] = false;
-+
-+	selected_ctx->alpha = (isp_reg_readl(OMAP3_ISP_IOMEM_CSI2A,
-+					ISPCSI2_CTX_CTRL3(ctxnum)) &
-+					ISPCSI2_CTX_CTRL3_ALPHA_MASK) >>
-+					ISPCSI2_CTX_CTRL3_ALPHA_SHIFT;
-+	selected_ctx_u->alpha = false;
-+	update_ctx_ctrl3[ctxnum] = false;
-+
-+	selected_ctx->data_offset = (isp_reg_readl(OMAP3_ISP_IOMEM_CSI2A,
-+					ISPCSI2_CTX_DAT_OFST(ctxnum)) &
-+					ISPCSI2_CTX_DAT_OFST_OFST_MASK) >>
-+					ISPCSI2_CTX_DAT_OFST_OFST_SHIFT;
-+	selected_ctx_u->data_offset = false;
-+
-+	selected_ctx->ping_addr = isp_reg_readl(OMAP3_ISP_IOMEM_CSI2A,
-+					ISPCSI2_CTX_DAT_PING_ADDR(ctxnum));
-+	selected_ctx_u->ping_addr = false;
-+
-+	selected_ctx->pong_addr = isp_reg_readl(OMAP3_ISP_IOMEM_CSI2A,
-+					ISPCSI2_CTX_DAT_PONG_ADDR(ctxnum));
-+	selected_ctx_u->pong_addr = false;
-+	return 0;
-+}
-+
-+/**
-+ * isp_csi2_ctx_update_all - Applies all CSI2 context configuration.
-+ * @force_update: Flag to force rewrite of registers, even if they haven't been
-+ *                updated with the isp_csi2_ctx_config_*() functions.
-+ *
-+ * It only saves settings when they were previously updated using the
-+ * isp_csi2_ctx_config_*() functions, unless the force_update flag is
-+ * set to true.
-+ * Always returns 0.
-+ **/
-+int isp_csi2_ctx_update_all(bool force_update)
-+{
-+	u8 ctxnum;
-+
-+	for (ctxnum = 0; ctxnum < 8; ctxnum++)
-+		isp_csi2_ctx_update(ctxnum, force_update);
-+
-+	return 0;
-+}
-+
-+/**
-+ * isp_csi2_ctx_get_all - Gets all CSI2 Context configurations
-+ *
-+ * Always returns 0.
-+ **/
-+int isp_csi2_ctx_get_all(void)
-+{
-+	u8 ctxnum;
-+
-+	for (ctxnum = 0; ctxnum < 8; ctxnum++)
-+		isp_csi2_ctx_get(ctxnum);
-+
-+	return 0;
-+}
-+
-+int isp_csi2_phy_config(struct isp_csi2_phy_cfg *desiredphyconfig)
-+{
-+	struct isp_csi2_phy_cfg *currphy = &current_csi2_cfg.phy;
-+	struct isp_csi2_phy_cfg_update *currphy_u =
-+						&current_csi2_cfg_update.phy;
-+
-+	if ((desiredphyconfig->tclk_term > 0x7f) ||
-+				(desiredphyconfig->tclk_miss > 0x3)) {
-+		printk(KERN_ERR "Invalid PHY configuration sent by the"
-+								" driver\n");
-+		return -EINVAL;
-+	}
-+
-+	if (currphy->ths_term != desiredphyconfig->ths_term) {
-+		currphy->ths_term = desiredphyconfig->ths_term;
-+		currphy_u->ths_term = true;
-+		update_phy_cfg0 = true;
-+	}
-+	if (currphy->ths_settle != desiredphyconfig->ths_settle) {
-+		currphy->ths_settle = desiredphyconfig->ths_settle;
-+		currphy_u->ths_settle = true;
-+		update_phy_cfg0 = true;
-+	}
-+	if (currphy->tclk_term != desiredphyconfig->tclk_term) {
-+		currphy->tclk_term = desiredphyconfig->tclk_term;
-+		currphy_u->tclk_term = true;
-+		update_phy_cfg1 = true;
-+	}
-+	if (currphy->tclk_miss != desiredphyconfig->tclk_miss) {
-+		currphy->tclk_miss = desiredphyconfig->tclk_miss;
-+		currphy_u->tclk_miss = true;
-+		update_phy_cfg1 = true;
-+	}
-+	if (currphy->tclk_settle != desiredphyconfig->tclk_settle) {
-+		currphy->tclk_settle = desiredphyconfig->tclk_settle;
-+		currphy_u->tclk_settle = true;
-+		update_phy_cfg1 = true;
-+	}
-+	return 0;
-+}
-+
-+/**
-+ * isp_csi2_calc_phy_cfg0 - Calculates D-PHY config based on the MIPIClk speed.
-+ * @mipiclk: MIPI clock frequency being used with CSI2 sensor.
-+ * @lbound_hs_settle: Lower bound for CSI2 High Speed Settle transition.
-+ * @ubound_hs_settle: Upper bound for CSI2 High Speed Settle transition.
-+ *
-+ * From TRM, we have the same calculation for HS Termination signal.
-+ *  THS_TERM  = ceil( 12.5ns / DDRCLK period ) - 1
-+ * But for Settle, we use the mid value between the two passed boundaries from
-+ * sensor:
-+ *  THS_SETTLE = (Upper bound + Lower bound) / 2
-+ *
-+ * Always returns 0.
++ * This structure is used to store the OMAP ISP Preview module Information.
 + */
-+int isp_csi2_calc_phy_cfg0(u32 mipiclk, u32 lbound_hs_settle,
-+							u32 ubound_hs_settle)
-+{
-+	struct isp_csi2_phy_cfg *currphy = &current_csi2_cfg.phy;
-+	struct isp_csi2_phy_cfg_update *currphy_u =
-+						&current_csi2_cfg_update.phy;
-+	u32 tmp, ddrclk = mipiclk >> 1;
++static struct isp_prev {
++	u8 prev_inuse;
++	u32 prevout_w;
++	u32 prevout_h;
++	u32 previn_w;
++	u32 previn_h;
++	enum preview_input prev_inpfmt;
++	enum preview_output prev_outfmt;
++	u8 hmed_en;
++	u8 nf_en;
++	u8 dcor_en;
++	u8 cfa_en;
++	u8 csup_en;
++	u8 yenh_en;
++	u8 fmtavg;
++	u8 brightness;
++	u8 contrast;
++	enum v4l2_colorfx color;
++	enum cfa_fmt cfafmt;
++	struct mutex ispprev_mutex; /* For checking/modifying prev_inuse */
++	u32 sph;
++	u32 slv;
++} ispprev_obj;
 +
-+	/* Calculate THS_TERM */
-+	tmp = ddrclk / 80000000;
-+	if ((ddrclk % 80000000) > 0)
-+		tmp++;
-+	currphy->ths_term = tmp - 1;
-+	currphy_u->ths_term = true;
++/* Saved parameters */
++static struct prev_params *prev_config_params;
 +
-+	/* Calculate THS_SETTLE */
-+	currphy->ths_settle = (ubound_hs_settle + lbound_hs_settle) / 2;
++/*
++ * Coeficient Tables for the submodules in Preview.
++ * Array is initialised with the values from.the tables text file.
++ */
 +
-+	currphy_u->ths_settle = true;
-+	isp_csi2_phy_update(true);
-+	return 0;
-+}
-+EXPORT_SYMBOL(isp_csi2_calc_phy_cfg0);
++/*
++ * CFA Filter Coefficient Table
++ *
++ */
++static u32 cfa_coef_table[] = {
++#include "cfa_coef_table.h"
++};
++
++/*
++ * Gamma Correction Table - Red
++ */
++static u32 redgamma_table[] = {
++#include "redgamma_table.h"
++};
++
++/*
++ * Gamma Correction Table - Green
++ */
++static u32 greengamma_table[] = {
++#include "greengamma_table.h"
++};
++
++/*
++ * Gamma Correction Table - Blue
++ */
++static u32 bluegamma_table[] = {
++#include "bluegamma_table.h"
++};
++
++/*
++ * Noise Filter Threshold table
++ */
++static u32 noise_filter_table[] = {
++#include "noise_filter_table.h"
++};
++
++/*
++ * Luminance Enhancement Table
++ */
++static u32 luma_enhance_table[] = {
++#include "luma_enhance_table.h"
++};
 +
 +/**
-+ * isp_csi2_phy_update - Applies CSI2 D-PHY configuration.
-+ * @force_update: Flag to force rewrite of registers, even if they haven't been
-+ *                updated with the isp_csi2_phy_config_*() functions.
-+ *
-+ * It only saves settings when they were previously updated using the
-+ * isp_csi2_phy_config_*() functions, unless the force_update flag is
-+ * set to true.
-+ * Always returns 0.
++ * omap34xx_isp_preview_config - Abstraction layer Preview configuration.
++ * @userspace_add: Pointer from Userspace to structure with flags and data to
++ *                 update.
 + **/
-+int isp_csi2_phy_update(bool force_update)
++int omap34xx_isp_preview_config(void *userspace_add)
 +{
-+	struct isp_csi2_phy_cfg *currphy = &current_csi2_cfg.phy;
-+	struct isp_csi2_phy_cfg_update *currphy_u =
-+						&current_csi2_cfg_update.phy;
-+	u32 reg;
++	struct ispprev_hmed prev_hmed_t;
++	struct ispprev_cfa prev_cfa_t;
++	struct ispprev_csup csup_t;
++	struct ispprev_wbal prev_wbal_t;
++	struct ispprev_blkadj prev_blkadj_t;
++	struct ispprev_rgbtorgb rgb2rgb_t;
++	struct ispprev_csc prev_csc_t;
++	struct ispprev_yclimit yclimit_t;
++	struct ispprev_dcor prev_dcor_t;
++	struct ispprv_update_config *preview_struct;
++	struct isptables_update isp_table_update;
++	int yen_t[ISPPRV_YENH_TBL_SIZE];
 +
-+	if (update_phy_cfg0 || force_update) {
-+		reg = isp_reg_readl(OMAP3_ISP_IOMEM_CSI2PHY, ISPCSI2PHY_CFG0);
-+		if (currphy_u->ths_term || force_update) {
-+			reg &= ~ISPCSI2PHY_CFG0_THS_TERM_MASK;
-+			reg |= (currphy->ths_term <<
-+					ISPCSI2PHY_CFG0_THS_TERM_SHIFT);
-+			currphy_u->ths_term = false;
-+		}
-+		if (currphy_u->ths_settle || force_update) {
-+			reg &= ~ISPCSI2PHY_CFG0_THS_SETTLE_MASK;
-+			reg |= (currphy->ths_settle <<
-+					ISPCSI2PHY_CFG0_THS_SETTLE_SHIFT);
-+			currphy_u->ths_settle = false;
-+		}
-+		isp_reg_writel(reg, OMAP3_ISP_IOMEM_CSI2PHY, ISPCSI2PHY_CFG0);
-+		update_phy_cfg0 = false;
-+	}
-+
-+	if (update_phy_cfg1 || force_update) {
-+		reg = isp_reg_readl(OMAP3_ISP_IOMEM_CSI2PHY, ISPCSI2PHY_CFG1);
-+		if (currphy_u->tclk_term || force_update) {
-+			reg &= ~ISPCSI2PHY_CFG1_TCLK_TERM_MASK;
-+			reg |= (currphy->tclk_term <<
-+					ISPCSI2PHY_CFG1_TCLK_TERM_SHIFT);
-+			currphy_u->tclk_term = false;
-+		}
-+		if (currphy_u->tclk_miss || force_update) {
-+			reg &= ~ISPCSI2PHY_CFG1_TCLK_MISS_MASK;
-+			reg |= (currphy->tclk_miss <<
-+					ISPCSI2PHY_CFG1_TCLK_MISS_SHIFT);
-+			currphy_u->tclk_miss = false;
-+		}
-+		if (currphy_u->tclk_settle || force_update) {
-+			reg &= ~ISPCSI2PHY_CFG1_TCLK_SETTLE_MASK;
-+			reg |= (currphy->tclk_settle <<
-+					ISPCSI2PHY_CFG1_TCLK_SETTLE_SHIFT);
-+			currphy_u->tclk_settle = false;
-+		}
-+		isp_reg_writel(reg, OMAP3_ISP_IOMEM_CSI2PHY, ISPCSI2PHY_CFG1);
-+		update_phy_cfg1 = false;
-+	}
-+	return 0;
-+}
-+
-+/**
-+ * isp_csi2_phy_get - Gets CSI2 D-PHY configuration
-+ *
-+ * Gets settings from HW registers and fills in the internal driver memory
-+ * Always returns 0.
-+ **/
-+int isp_csi2_phy_get(void)
-+{
-+	struct isp_csi2_phy_cfg *currphy = &current_csi2_cfg.phy;
-+	struct isp_csi2_phy_cfg_update *currphy_u =
-+						&current_csi2_cfg_update.phy;
-+	u32 reg;
-+
-+	reg = isp_reg_readl(OMAP3_ISP_IOMEM_CSI2PHY, ISPCSI2PHY_CFG0);
-+	currphy->ths_term = (reg & ISPCSI2PHY_CFG0_THS_TERM_MASK) >>
-+						ISPCSI2PHY_CFG0_THS_TERM_SHIFT;
-+	currphy_u->ths_term = false;
-+
-+	currphy->ths_settle = (reg & ISPCSI2PHY_CFG0_THS_SETTLE_MASK) >>
-+					ISPCSI2PHY_CFG0_THS_SETTLE_SHIFT;
-+	currphy_u->ths_settle = false;
-+	update_phy_cfg0 = false;
-+
-+	reg = isp_reg_readl(OMAP3_ISP_IOMEM_CSI2PHY, ISPCSI2PHY_CFG1);
-+
-+	currphy->tclk_term = (reg & ISPCSI2PHY_CFG1_TCLK_TERM_MASK) >>
-+						ISPCSI2PHY_CFG1_TCLK_TERM_SHIFT;
-+	currphy_u->tclk_term = false;
-+
-+	currphy->tclk_miss = (reg & ISPCSI2PHY_CFG1_TCLK_MISS_MASK) >>
-+						ISPCSI2PHY_CFG1_TCLK_MISS_SHIFT;
-+	currphy_u->tclk_miss = false;
-+
-+	currphy->tclk_settle = (reg & ISPCSI2PHY_CFG1_TCLK_SETTLE_MASK) >>
-+					ISPCSI2PHY_CFG1_TCLK_SETTLE_SHIFT;
-+	currphy_u->tclk_settle = false;
-+
-+	update_phy_cfg1 = false;
-+	return 0;
-+}
-+
-+/**
-+ * isp_csi2_timings_config_forcerxmode - Sets Force Rx mode on stop state count
-+ * @force_rx_mode: Boolean to enable/disable forcing Rx mode in CSI2 receiver
-+ *
-+ * Returns 0 if successful, or -EINVAL if wrong ComplexIO number is selected.
-+ **/
-+int isp_csi2_timings_config_forcerxmode(u8 io, bool force_rx_mode)
-+{
-+	struct isp_csi2_timings_cfg *currtimings;
-+	struct isp_csi2_timings_cfg_update *currtimings_u;
-+
-+	if (io < 1 || io > 2) {
-+		printk(KERN_ERR "CSI2 - Timings config: Invalid IO number\n");
++	if (userspace_add == NULL)
 +		return -EINVAL;
-+	}
 +
-+	currtimings = &current_csi2_cfg.timings[io - 1];
-+	currtimings_u = &current_csi2_cfg_update.timings[io - 1];
-+	if (currtimings->force_rx_mode != force_rx_mode) {
-+		currtimings->force_rx_mode = force_rx_mode;
-+		currtimings_u->force_rx_mode = true;
-+		update_timing = true;
-+	}
-+	return 0;
-+}
++	preview_struct = userspace_add;
 +
-+/**
-+ * isp_csi2_timings_config_stopstate_16x - Sets 16x factor for L3 cycles
-+ * @stop_state_16x: Boolean to use or not use the 16x multiplier for stop count
-+ *
-+ * Returns 0 if successful, or -EINVAL if wrong ComplexIO number is selected.
-+ **/
-+int isp_csi2_timings_config_stopstate_16x(u8 io, bool stop_state_16x)
-+{
-+	struct isp_csi2_timings_cfg *currtimings;
-+	struct isp_csi2_timings_cfg_update *currtimings_u;
-+
-+	if (io < 1 || io > 2) {
-+		printk(KERN_ERR "CSI2 - Timings config: Invalid IO number\n");
-+		return -EINVAL;
-+	}
-+
-+	currtimings = &current_csi2_cfg.timings[io - 1];
-+	currtimings_u = &current_csi2_cfg_update.timings[io - 1];
-+	if (currtimings->stop_state_16x != stop_state_16x) {
-+		currtimings->stop_state_16x = stop_state_16x;
-+		currtimings_u->stop_state_16x = true;
-+		update_timing = true;
-+	}
-+	return 0;
-+}
-+
-+/**
-+ * isp_csi2_timings_config_stopstate_4x - Sets 4x factor for L3 cycles
-+ * @stop_state_4x: Boolean to use or not use the 4x multiplier for stop count
-+ *
-+ * Returns 0 if successful, or -EINVAL if wrong ComplexIO number is selected.
-+ **/
-+int isp_csi2_timings_config_stopstate_4x(u8 io, bool stop_state_4x)
-+{
-+	struct isp_csi2_timings_cfg *currtimings;
-+	struct isp_csi2_timings_cfg_update *currtimings_u;
-+
-+	if (io < 1 || io > 2) {
-+		printk(KERN_ERR "CSI2 - Timings config: Invalid IO number\n");
-+		return -EINVAL;
-+	}
-+
-+	currtimings = &current_csi2_cfg.timings[io - 1];
-+	currtimings_u = &current_csi2_cfg_update.timings[io - 1];
-+	if (currtimings->stop_state_4x != stop_state_4x) {
-+		currtimings->stop_state_4x = stop_state_4x;
-+		currtimings_u->stop_state_4x = true;
-+		update_timing = true;
-+	}
-+	return 0;
-+}
-+
-+/**
-+ * isp_csi2_timings_config_stopstate_cnt - Sets L3 cycles
-+ * @stop_state_counter: Stop state counter value for L3 cycles
-+ *
-+ * Returns 0 if successful, or -EINVAL if wrong ComplexIO number is selected.
-+ **/
-+int isp_csi2_timings_config_stopstate_cnt(u8 io, u16 stop_state_counter)
-+{
-+	struct isp_csi2_timings_cfg *currtimings;
-+	struct isp_csi2_timings_cfg_update *currtimings_u;
-+
-+	if (io < 1 || io > 2) {
-+		printk(KERN_ERR "CSI2 - Timings config: Invalid IO number\n");
-+		return -EINVAL;
-+	}
-+
-+	currtimings = &current_csi2_cfg.timings[io - 1];
-+	currtimings_u = &current_csi2_cfg_update.timings[io - 1];
-+	if (currtimings->stop_state_counter != stop_state_counter) {
-+		currtimings->stop_state_counter = (stop_state_counter & 0x1FFF);
-+		currtimings_u->stop_state_counter = true;
-+		update_timing = true;
-+	}
-+	return 0;
-+}
-+
-+/**
-+ * isp_csi2_timings_update - Applies specified CSI2 timing configuration.
-+ * @io: IO number (1 or 2) which specifies which ComplexIO are we updating
-+ * @force_update: Flag to force rewrite of registers, even if they haven't been
-+ *                updated with the isp_csi2_timings_config_*() functions.
-+ *
-+ * It only saves settings when they were previously updated using the
-+ * isp_csi2_timings_config_*() functions, unless the force_update flag is
-+ * set to true.
-+ * Returns 0 if successful, or -EINVAL if invalid IO number is passed.
-+ **/
-+int isp_csi2_timings_update(u8 io, bool force_update)
-+{
-+	struct isp_csi2_timings_cfg *currtimings;
-+	struct isp_csi2_timings_cfg_update *currtimings_u;
-+	u32 reg;
-+
-+	if (io < 1 || io > 2) {
-+		printk(KERN_ERR "CSI2 - Timings config: Invalid IO number\n");
-+		return -EINVAL;
-+	}
-+
-+	currtimings = &current_csi2_cfg.timings[io - 1];
-+	currtimings_u = &current_csi2_cfg_update.timings[io - 1];
-+
-+	if (update_timing || force_update) {
-+		reg = isp_reg_readl(OMAP3_ISP_IOMEM_CSI2A, ISPCSI2_TIMING);
-+		if (currtimings_u->force_rx_mode || force_update) {
-+			reg &= ~ISPCSI2_TIMING_FORCE_RX_MODE_IO_MASK(io);
-+			if (currtimings->force_rx_mode)
-+				reg |= ISPCSI2_TIMING_FORCE_RX_MODE_IO_ENABLE
-+									(io);
-+			else
-+				reg |= ISPCSI2_TIMING_FORCE_RX_MODE_IO_DISABLE
-+									(io);
-+			currtimings_u->force_rx_mode = false;
++	if (ISP_ABS_PREV_LUMAENH & preview_struct->flag) {
++		if (ISP_ABS_PREV_LUMAENH & preview_struct->update) {
++			if (copy_from_user(yen_t, preview_struct->yen,
++								sizeof(yen_t)))
++				goto err_copy_from_user;
++			isppreview_config_luma_enhancement(yen_t);
 +		}
-+		if (currtimings_u->stop_state_16x || force_update) {
-+			reg &= ~ISPCSI2_TIMING_STOP_STATE_X16_IO_MASK(io);
-+			if (currtimings->stop_state_16x)
-+				reg |= ISPCSI2_TIMING_STOP_STATE_X16_IO_ENABLE
-+									(io);
-+			else
-+				reg |= ISPCSI2_TIMING_STOP_STATE_X16_IO_DISABLE
-+									(io);
-+			currtimings_u->stop_state_16x = false;
-+		}
-+		if (currtimings_u->stop_state_4x || force_update) {
-+			reg &= ~ISPCSI2_TIMING_STOP_STATE_X4_IO_MASK(io);
-+			if (currtimings->stop_state_4x) {
-+				reg |= ISPCSI2_TIMING_STOP_STATE_X4_IO_ENABLE
-+									(io);
-+			} else {
-+				reg |= ISPCSI2_TIMING_STOP_STATE_X4_IO_DISABLE
-+									(io);
-+			}
-+			currtimings_u->stop_state_4x = false;
-+		}
-+		if (currtimings_u->stop_state_counter || force_update) {
-+			reg &= ~ISPCSI2_TIMING_STOP_STATE_COUNTER_IO_MASK(io);
-+			reg |= currtimings->stop_state_counter <<
-+				ISPCSI2_TIMING_STOP_STATE_COUNTER_IO_SHIFT(io);
-+			currtimings_u->stop_state_counter = false;
-+		}
-+		isp_reg_writel(reg, OMAP3_ISP_IOMEM_CSI2A, ISPCSI2_TIMING);
-+		update_timing = false;
-+	}
-+	return 0;
-+}
++		params->features |= PREV_LUMA_ENHANCE;
++	} else if (ISP_ABS_PREV_LUMAENH & preview_struct->update)
++			params->features &= ~PREV_LUMA_ENHANCE;
 +
-+/**
-+ * isp_csi2_timings_get - Gets specific CSI2 ComplexIO timing configuration
-+ * @io: IO number (1 or 2) which specifies which ComplexIO are we getting
-+ *
-+ * Gets settings from HW registers and fills in the internal driver memory
-+ * Returns 0 if successful, or -EINVAL if invalid IO number is passed.
-+ **/
-+int isp_csi2_timings_get(u8 io)
-+{
-+	struct isp_csi2_timings_cfg *currtimings;
-+	struct isp_csi2_timings_cfg_update *currtimings_u;
-+	u32 reg;
-+
-+	if (io < 1 || io > 2) {
-+		printk(KERN_ERR "CSI2 - Timings config: Invalid IO number\n");
-+		return -EINVAL;
-+	}
-+
-+	currtimings = &current_csi2_cfg.timings[io - 1];
-+	currtimings_u = &current_csi2_cfg_update.timings[io - 1];
-+
-+	reg = isp_reg_readl(OMAP3_ISP_IOMEM_CSI2A, ISPCSI2_TIMING);
-+	if ((reg & ISPCSI2_TIMING_FORCE_RX_MODE_IO_MASK(io)) ==
-+				ISPCSI2_TIMING_FORCE_RX_MODE_IO_ENABLE(io))
-+		currtimings->force_rx_mode = true;
-+	else
-+		currtimings->force_rx_mode = false;
-+	currtimings_u->force_rx_mode = false;
-+
-+	if ((reg & ISPCSI2_TIMING_STOP_STATE_X16_IO_MASK(io)) ==
-+				ISPCSI2_TIMING_STOP_STATE_X16_IO_ENABLE(io))
-+		currtimings->stop_state_16x = true;
-+	else
-+		currtimings->stop_state_16x = false;
-+	currtimings_u->stop_state_16x = false;
-+
-+	if ((reg & ISPCSI2_TIMING_STOP_STATE_X4_IO_MASK(io)) ==
-+				ISPCSI2_TIMING_STOP_STATE_X4_IO_ENABLE(io))
-+		currtimings->stop_state_4x = true;
-+	else
-+		currtimings->stop_state_4x = false;
-+	currtimings_u->stop_state_4x = false;
-+
-+	currtimings->stop_state_counter = (reg &
-+			ISPCSI2_TIMING_STOP_STATE_COUNTER_IO_MASK(io)) >>
-+			ISPCSI2_TIMING_STOP_STATE_COUNTER_IO_SHIFT(io);
-+	currtimings_u->stop_state_counter = false;
-+	update_timing = false;
-+	return 0;
-+}
-+
-+/**
-+ * isp_csi2_timings_update_all - Applies specified CSI2 timing configuration.
-+ * @force_update: Flag to force rewrite of registers, even if they haven't been
-+ *                updated with the isp_csi2_timings_config_*() functions.
-+ *
-+ * It only saves settings when they were previously updated using the
-+ * isp_csi2_timings_config_*() functions, unless the force_update flag is
-+ * set to true.
-+ * Always returns 0.
-+ **/
-+int isp_csi2_timings_update_all(bool force_update)
-+{
-+	int i;
-+
-+	for (i = 1; i < 3; i++)
-+		isp_csi2_timings_update(i, force_update);
-+	return 0;
-+}
-+
-+/**
-+ * isp_csi2_timings_get_all - Gets all CSI2 ComplexIO timing configurations
-+ *
-+ * Always returns 0.
-+ **/
-+int isp_csi2_timings_get_all(void)
-+{
-+	int i;
-+
-+	for (i = 1; i < 3; i++)
-+		isp_csi2_timings_get(i);
-+	return 0;
-+}
-+
-+/**
-+ * isp_csi2_isr - CSI2 interrupt handling.
-+ **/
-+void isp_csi2_isr(void)
-+{
-+	u32 csi2_irqstatus, cpxio1_irqstatus, ctxirqstatus;
-+
-+	csi2_irqstatus = isp_reg_readl(OMAP3_ISP_IOMEM_CSI2A,
-+						ISPCSI2_IRQSTATUS);
-+	isp_reg_writel(csi2_irqstatus, OMAP3_ISP_IOMEM_CSI2A,
-+						ISPCSI2_IRQSTATUS);
-+
-+	if (csi2_irqstatus & ISPCSI2_IRQSTATUS_COMPLEXIO1_ERR_IRQ) {
-+		cpxio1_irqstatus = isp_reg_readl(OMAP3_ISP_IOMEM_CSI2A,
-+						ISPCSI2_COMPLEXIO1_IRQSTATUS);
-+		isp_reg_writel(cpxio1_irqstatus, OMAP3_ISP_IOMEM_CSI2A,
-+						ISPCSI2_COMPLEXIO1_IRQSTATUS);
-+		printk(KERN_ERR "CSI2: ComplexIO Error IRQ %x\n",
-+							cpxio1_irqstatus);
-+	}
-+
-+	if (csi2_irqstatus & ISPCSI2_IRQSTATUS_CONTEXT(0)) {
-+		ctxirqstatus = isp_reg_readl(OMAP3_ISP_IOMEM_CSI2A,
-+						ISPCSI2_CTX_IRQSTATUS(0));
-+		isp_reg_writel(ctxirqstatus, OMAP3_ISP_IOMEM_CSI2A,
-+						ISPCSI2_CTX_IRQSTATUS(0));
-+	}
-+
-+	if (csi2_irqstatus & ISPCSI2_IRQSTATUS_OCP_ERR_IRQ)
-+		printk(KERN_ERR "CSI2: OCP Transmission Error\n");
-+
-+	if (csi2_irqstatus & ISPCSI2_IRQSTATUS_SHORT_PACKET_IRQ)
-+		printk(KERN_ERR "CSI2: Short packet receive error\n");
-+
-+	if (csi2_irqstatus & ISPCSI2_IRQSTATUS_ECC_CORRECTION_IRQ)
-+		printk(KERN_DEBUG "CSI2: ECC correction done\n");
-+
-+	if (csi2_irqstatus & ISPCSI2_IRQSTATUS_ECC_NO_CORRECTION_IRQ)
-+		printk(KERN_ERR "CSI2: ECC correction failed\n");
-+
-+	if (csi2_irqstatus & ISPCSI2_IRQSTATUS_COMPLEXIO2_ERR_IRQ)
-+		printk(KERN_ERR "CSI2: ComplexIO #2 failed\n");
-+
-+	if (csi2_irqstatus & ISPCSI2_IRQSTATUS_FIFO_OVF_IRQ)
-+		printk(KERN_ERR "CSI2: FIFO overflow error\n");
-+
-+	return;
-+}
-+EXPORT_SYMBOL(isp_csi2_isr);
-+
-+/**
-+ * isp_csi2_irq_complexio1_set - Enables CSI2 ComplexIO IRQs.
-+ * @enable: Enable/disable CSI2 ComplexIO #1 interrupts
-+ **/
-+void isp_csi2_irq_complexio1_set(int enable)
-+{
-+	u32 reg;
-+	reg = ISPCSI2_COMPLEXIO1_IRQENABLE_STATEALLULPMEXIT |
-+				ISPCSI2_COMPLEXIO1_IRQENABLE_STATEALLULPMENTER |
-+				ISPCSI2_COMPLEXIO1_IRQENABLE_STATEULPM5 |
-+				ISPCSI2_COMPLEXIO1_IRQENABLE_ERRCONTROL5 |
-+				ISPCSI2_COMPLEXIO1_IRQENABLE_ERRESC5 |
-+				ISPCSI2_COMPLEXIO1_IRQENABLE_ERRSOTSYNCHS5 |
-+				ISPCSI2_COMPLEXIO1_IRQENABLE_ERRSOTHS5 |
-+				ISPCSI2_COMPLEXIO1_IRQENABLE_STATEULPM4 |
-+				ISPCSI2_COMPLEXIO1_IRQENABLE_ERRCONTROL4 |
-+				ISPCSI2_COMPLEXIO1_IRQENABLE_ERRESC4 |
-+				ISPCSI2_COMPLEXIO1_IRQENABLE_ERRSOTSYNCHS4 |
-+				ISPCSI2_COMPLEXIO1_IRQENABLE_ERRSOTHS4 |
-+				ISPCSI2_COMPLEXIO1_IRQENABLE_STATEULPM3 |
-+				ISPCSI2_COMPLEXIO1_IRQENABLE_ERRCONTROL3 |
-+				ISPCSI2_COMPLEXIO1_IRQENABLE_ERRESC3 |
-+				ISPCSI2_COMPLEXIO1_IRQENABLE_ERRSOTSYNCHS3 |
-+				ISPCSI2_COMPLEXIO1_IRQENABLE_ERRSOTHS3 |
-+				ISPCSI2_COMPLEXIO1_IRQENABLE_STATEULPM2 |
-+				ISPCSI2_COMPLEXIO1_IRQENABLE_ERRCONTROL2 |
-+				ISPCSI2_COMPLEXIO1_IRQENABLE_ERRESC2 |
-+				ISPCSI2_COMPLEXIO1_IRQENABLE_ERRSOTSYNCHS2 |
-+				ISPCSI2_COMPLEXIO1_IRQENABLE_ERRSOTHS2 |
-+				ISPCSI2_COMPLEXIO1_IRQENABLE_STATEULPM1 |
-+				ISPCSI2_COMPLEXIO1_IRQENABLE_ERRCONTROL1 |
-+				ISPCSI2_COMPLEXIO1_IRQENABLE_ERRESC1 |
-+				ISPCSI2_COMPLEXIO1_IRQENABLE_ERRSOTSYNCHS1 |
-+				ISPCSI2_COMPLEXIO1_IRQENABLE_ERRSOTHS1;
-+	isp_reg_writel(reg, OMAP3_ISP_IOMEM_CSI2A,
-+						ISPCSI2_COMPLEXIO1_IRQSTATUS);
-+	if (enable) {
-+		reg |= isp_reg_readl(OMAP3_ISP_IOMEM_CSI2A,
-+						ISPCSI2_COMPLEXIO1_IRQENABLE);
-+	} else
-+		reg = 0;
-+	isp_reg_writel(reg, OMAP3_ISP_IOMEM_CSI2A,
-+						ISPCSI2_COMPLEXIO1_IRQENABLE);
-+}
-+EXPORT_SYMBOL(isp_csi2_irq_complexio1_set);
-+
-+/**
-+ * isp_csi2_irq_ctx_set - Enables CSI2 Context IRQs.
-+ * @enable: Enable/disable CSI2 Context interrupts
-+ **/
-+void isp_csi2_irq_ctx_set(int enable)
-+{
-+	u32 reg;
-+	int i;
-+
-+	reg = ISPCSI2_CTX_IRQSTATUS_FS_IRQ | ISPCSI2_CTX_IRQSTATUS_FE_IRQ;
-+	for (i = 0; i < 8; i++) {
-+		isp_reg_writel(reg, OMAP3_ISP_IOMEM_CSI2A,
-+						ISPCSI2_CTX_IRQSTATUS(i));
-+		if (enable) {
-+			isp_reg_or(OMAP3_ISP_IOMEM_CSI2A,
-+						ISPCSI2_CTX_IRQENABLE(i), reg);
-+		} else {
-+			isp_reg_writel(0, OMAP3_ISP_IOMEM_CSI2A,
-+						ISPCSI2_CTX_IRQENABLE(i));
-+		}
-+	}
-+
-+}
-+EXPORT_SYMBOL(isp_csi2_irq_ctx_set);
-+
-+/**
-+ * isp_csi2_irq_status_set - Enables CSI2 Status IRQs.
-+ * @enable: Enable/disable CSI2 Status interrupts
-+ **/
-+void isp_csi2_irq_status_set(int enable)
-+{
-+	u32 reg;
-+	reg = ISPCSI2_IRQSTATUS_OCP_ERR_IRQ |
-+				ISPCSI2_IRQSTATUS_SHORT_PACKET_IRQ |
-+				ISPCSI2_IRQSTATUS_ECC_CORRECTION_IRQ |
-+				ISPCSI2_IRQSTATUS_ECC_NO_CORRECTION_IRQ |
-+				ISPCSI2_IRQSTATUS_COMPLEXIO2_ERR_IRQ |
-+				ISPCSI2_IRQSTATUS_COMPLEXIO1_ERR_IRQ |
-+				ISPCSI2_IRQSTATUS_FIFO_OVF_IRQ |
-+				ISPCSI2_IRQSTATUS_CONTEXT(0);
-+	isp_reg_writel(reg, OMAP3_ISP_IOMEM_CSI2A, ISPCSI2_IRQSTATUS);
-+	if (enable)
-+		reg |= isp_reg_readl(OMAP3_ISP_IOMEM_CSI2A, ISPCSI2_IRQENABLE);
-+	else
-+		reg = 0;
-+
-+	isp_reg_writel(reg, OMAP3_ISP_IOMEM_CSI2A, ISPCSI2_IRQENABLE);
-+}
-+EXPORT_SYMBOL(isp_csi2_irq_status_set);
-+
-+/**
-+ * isp_csi2_irq_status_set - Enables main CSI2 IRQ.
-+ * @enable: Enable/disable main CSI2 interrupt
-+ **/
-+void isp_csi2_irq_set(int enable)
-+{
-+	isp_reg_writel(IRQ0STATUS_CSIA_IRQ, OMAP3_ISP_IOMEM_MAIN,
-+					ISP_IRQ0STATUS);
-+	isp_reg_and_or(OMAP3_ISP_IOMEM_MAIN, ISP_IRQ0ENABLE,
-+					~IRQ0ENABLE_CSIA_IRQ,
-+					(enable ? IRQ0ENABLE_CSIA_IRQ : 0));
-+}
-+EXPORT_SYMBOL(isp_csi2_irq_set);
-+
-+/**
-+ * isp_csi2_irq_all_set - Enable/disable CSI2 interrupts.
-+ * @enable: 0-Disable, 1-Enable.
-+ **/
-+void isp_csi2_irq_all_set(int enable)
-+{
-+	if (enable) {
-+		isp_csi2_irq_complexio1_set(enable);
-+		isp_csi2_irq_ctx_set(enable);
-+		isp_csi2_irq_status_set(enable);
-+		isp_csi2_irq_set(enable);
++	if (ISP_ABS_PREV_INVALAW & preview_struct->flag) {
++		isppreview_enable_invalaw(1);
++		params->features |= PREV_INVERSE_ALAW;
 +	} else {
-+		isp_csi2_irq_set(enable);
-+		isp_csi2_irq_status_set(enable);
-+		isp_csi2_irq_ctx_set(enable);
-+		isp_csi2_irq_complexio1_set(enable);
++		isppreview_enable_invalaw(0);
++		params->features &= ~PREV_INVERSE_ALAW;
 +	}
-+	return;
++
++	if (ISP_ABS_PREV_HRZ_MED & preview_struct->flag) {
++		if (ISP_ABS_PREV_HRZ_MED & preview_struct->update) {
++			if (copy_from_user(&prev_hmed_t,
++						(struct ispprev_hmed *)
++						preview_struct->prev_hmed,
++						sizeof(struct ispprev_hmed)))
++				goto err_copy_from_user;
++			isppreview_config_hmed(prev_hmed_t);
++		}
++		isppreview_enable_hmed(1);
++		params->features |= PREV_HORZ_MEDIAN_FILTER;
++	} else if (ISP_ABS_PREV_HRZ_MED & preview_struct->update) {
++		isppreview_enable_hmed(0);
++		params->features &= ~PREV_HORZ_MEDIAN_FILTER;
++	}
++
++	if (ISP_ABS_PREV_CFA & preview_struct->flag) {
++		if (ISP_ABS_PREV_CFA & preview_struct->update) {
++			if (copy_from_user(&prev_cfa_t,
++						(struct ispprev_cfa *)
++						preview_struct->prev_cfa,
++						sizeof(struct ispprev_cfa)))
++				goto err_copy_from_user;
++
++			isppreview_config_cfa(prev_cfa_t);
++		}
++		isppreview_enable_cfa(1);
++		params->features |= PREV_CFA;
++	} else if (ISP_ABS_PREV_CFA & preview_struct->update) {
++		isppreview_enable_cfa(0);
++		params->features &= ~PREV_CFA;
++	}
++
++	if (ISP_ABS_PREV_CHROMA_SUPP & preview_struct->flag) {
++		if (ISP_ABS_PREV_CHROMA_SUPP & preview_struct->update) {
++			if (copy_from_user(&csup_t,
++						(struct ispprev_csup *)
++						preview_struct->csup,
++						sizeof(struct ispprev_csup)))
++				goto err_copy_from_user;
++			isppreview_config_chroma_suppression(csup_t);
++		}
++		isppreview_enable_chroma_suppression(1);
++		params->features |= PREV_CHROMA_SUPPRESS;
++	} else if (ISP_ABS_PREV_CHROMA_SUPP & preview_struct->update) {
++		isppreview_enable_chroma_suppression(0);
++		params->features &= ~PREV_CHROMA_SUPPRESS;
++	}
++
++	if (ISP_ABS_PREV_WB & preview_struct->update) {
++		if (copy_from_user(&prev_wbal_t, (struct ispprev_wbal *)
++						preview_struct->prev_wbal,
++						sizeof(struct ispprev_wbal)))
++			goto err_copy_from_user;
++		isppreview_config_whitebalance(prev_wbal_t);
++	}
++
++	if (ISP_ABS_PREV_BLKADJ & preview_struct->update) {
++		if (copy_from_user(&prev_blkadj_t, (struct ispprev_blkadjl *)
++					preview_struct->prev_blkadj,
++					sizeof(struct ispprev_blkadj)))
++			goto err_copy_from_user;
++		isppreview_config_blkadj(prev_blkadj_t);
++	}
++
++	if (ISP_ABS_PREV_RGB2RGB & preview_struct->update) {
++		if (copy_from_user(&rgb2rgb_t, (struct ispprev_rgbtorgb *)
++					preview_struct->rgb2rgb,
++					sizeof(struct ispprev_rgbtorgb)))
++			goto err_copy_from_user;
++		isppreview_config_rgb_blending(rgb2rgb_t);
++	}
++
++	if (ISP_ABS_PREV_COLOR_CONV & preview_struct->update) {
++		if (copy_from_user(&prev_csc_t, (struct ispprev_csc *)
++						preview_struct->prev_csc,
++						sizeof(struct ispprev_csc)))
++			goto err_copy_from_user;
++		isppreview_config_rgb_to_ycbcr(prev_csc_t);
++	}
++
++	if (ISP_ABS_PREV_YC_LIMIT & preview_struct->update) {
++		if (copy_from_user(&yclimit_t, (struct ispprev_yclimit *)
++					preview_struct->yclimit,
++					sizeof(struct ispprev_yclimit)))
++			goto err_copy_from_user;
++		isppreview_config_yc_range(yclimit_t);
++	}
++
++	if (ISP_ABS_PREV_DEFECT_COR & preview_struct->flag) {
++		if (ISP_ABS_PREV_DEFECT_COR & preview_struct->update) {
++			if (copy_from_user(&prev_dcor_t,
++						(struct ispprev_dcor *)
++						preview_struct->prev_dcor,
++						sizeof(struct ispprev_dcor)))
++				goto err_copy_from_user;
++			isppreview_config_dcor(prev_dcor_t);
++		}
++		isppreview_enable_dcor(1);
++		params->features |= PREV_DEFECT_COR;
++	} else if (ISP_ABS_PREV_DEFECT_COR & preview_struct->update) {
++		isppreview_enable_dcor(0);
++		params->features &= ~PREV_DEFECT_COR;
++	}
++
++	if (ISP_ABS_PREV_GAMMABYPASS & preview_struct->flag) {
++		isppreview_enable_gammabypass(1);
++		params->features |= PREV_GAMMA_BYPASS;
++	} else {
++		isppreview_enable_gammabypass(0);
++		params->features &= ~PREV_GAMMA_BYPASS;
++	}
++
++	isp_table_update.update = preview_struct->update;
++	isp_table_update.flag = preview_struct->flag;
++	isp_table_update.prev_nf = preview_struct->prev_nf;
++	isp_table_update.red_gamma = preview_struct->red_gamma;
++	isp_table_update.green_gamma = preview_struct->green_gamma;
++	isp_table_update.blue_gamma = preview_struct->blue_gamma;
++
++	if (omap34xx_isp_tables_update(&isp_table_update))
++		goto err_copy_from_user;
++
++	return 0;
++
++err_copy_from_user:
++	printk(KERN_ERR "Preview Config: Copy From User Error");
++	return -EFAULT;
 +}
-+EXPORT_SYMBOL(isp_csi2_irq_all_set);
++EXPORT_SYMBOL_GPL(omap34xx_isp_preview_config);
 +
 +/**
-+ * isp_csi2_reset - Resets the CSI2 module.
-+ *
-+ * Returns 0 if successful, or -EBUSY if power command didn't respond.
++ * omap34xx_isp_tables_update - Abstraction layer Tables update.
++ * @isptables_struct: Pointer from Userspace to structure with flags and table
++ *                 data to update.
 + **/
-+int isp_csi2_reset(void)
++int omap34xx_isp_tables_update(struct isptables_update *isptables_struct)
 +{
-+	u32 reg;
-+	u8 soft_reset_retries = 0;
-+	int i;
 +
-+	reg = isp_reg_readl(OMAP3_ISP_IOMEM_CSI2A, ISPCSI2_SYSCONFIG);
-+	reg |= ISPCSI2_SYSCONFIG_SOFT_RESET_RESET;
-+	isp_reg_writel(reg, OMAP3_ISP_IOMEM_CSI2A, ISPCSI2_SYSCONFIG);
++	if (ISP_ABS_TBL_NF & isptables_struct->flag) {
++		nf_enable = 1;
++		params->features |= PREV_NOISE_FILTER;
++		if (ISP_ABS_TBL_NF & isptables_struct->update) {
++			if (copy_from_user(&prev_nf_t, (struct ispprev_nf *)
++						isptables_struct->prev_nf,
++						sizeof(struct ispprev_nf)))
++				goto err_copy_from_user;
 +
-+	do {
-+		reg = isp_reg_readl(OMAP3_ISP_IOMEM_CSI2A, ISPCSI2_SYSSTATUS) &
-+				ISPCSI2_SYSSTATUS_RESET_DONE_MASK;
-+		if (reg == ISPCSI2_SYSSTATUS_RESET_DONE_DONE)
-+			break;
-+		soft_reset_retries++;
-+		if (soft_reset_retries < 5)
-+			udelay(100);
-+	} while (soft_reset_retries < 5);
++			nf_update = 1;
++		} else
++			nf_update = 0;
++	} else {
++		nf_enable = 0;
++		params->features &= ~PREV_NOISE_FILTER;
++		if (ISP_ABS_TBL_NF & isptables_struct->update)
++			nf_update = 1;
++		else
++			nf_update = 0;
++	}
 +
-+	if (soft_reset_retries == 5) {
-+		printk(KERN_ERR "CSI2: Soft reset try count exceeded!\n");
++	if (ISP_ABS_TBL_REDGAMMA & isptables_struct->update) {
++		if (copy_from_user(redgamma_table, isptables_struct->red_gamma,
++						sizeof(redgamma_table))) {
++			goto err_copy_from_user;
++		}
++		rg_update = 1;
++	} else
++		rg_update = 0;
++
++	if (ISP_ABS_TBL_GREENGAMMA & isptables_struct->update) {
++		if (copy_from_user(greengamma_table,
++						isptables_struct->green_gamma,
++						sizeof(greengamma_table)))
++			goto err_copy_from_user;
++		gg_update = 1;
++	} else
++		gg_update = 0;
++
++	if (ISP_ABS_TBL_BLUEGAMMA & isptables_struct->update) {
++		if (copy_from_user(bluegamma_table,
++					isptables_struct->blue_gamma,
++					sizeof(bluegamma_table))) {
++			goto err_copy_from_user;
++		}
++		bg_update = 1;
++	} else
++		bg_update = 0;
++
++	return 0;
++
++err_copy_from_user:
++	printk(KERN_ERR "Preview Tables:Copy From User Error");
++	return -EFAULT;
++}
++
++/**
++ * isppreview_config_shadow_registers - Program shadow registers for preview.
++ *
++ * Allows user to program shadow registers associated with preview module.
++ **/
++void isppreview_config_shadow_registers()
++{
++	u8 current_brightness_contrast;
++	int ctr, prv_disabled;
++
++	isppreview_query_brightness(&current_brightness_contrast);
++	if (current_brightness_contrast !=
++			(ispprev_obj.brightness * ISPPRV_BRIGHT_UNITS)) {
++		DPRINTK_ISPPREV(" Changing Brightness level to %d\n",
++						ispprev_obj.brightness);
++		isppreview_config_brightness(ispprev_obj.brightness *
++							ISPPRV_BRIGHT_UNITS);
++	}
++
++	isppreview_query_contrast(&current_brightness_contrast);
++	if (current_brightness_contrast !=
++			(ispprev_obj.contrast * ISPPRV_CONTRAST_UNITS)) {
++		DPRINTK_ISPPREV(" Changing Contrast level to %d\n",
++							ispprev_obj.contrast);
++		isppreview_config_contrast(ispprev_obj.contrast *
++							ISPPRV_CONTRAST_UNITS);
++	}
++	if (update_color_matrix) {
++		isppreview_config_rgb_to_ycbcr(flr_prev_csc[ispprev_obj.color]);
++		update_color_matrix = 0;
++	}
++	if (gg_update || rg_update || bg_update || nf_update) {
++		isppreview_enable(0);
++		prv_disabled = 1;
++	}
++
++	if (gg_update) {
++		isp_reg_writel(ISPPRV_TBL_ADDR_GREEN_G_START,
++				OMAP3_ISP_IOMEM_PREV, ISPPRV_SET_TBL_ADDR);
++
++		for (ctr = 0; ctr < ISP_GAMMA_TABLE_SIZE; ctr++) {
++			isp_reg_writel(greengamma_table[ctr],
++				OMAP3_ISP_IOMEM_PREV, ISPPRV_SET_TBL_DATA);
++		}
++		gg_update = 0;
++	}
++
++	if (rg_update) {
++		isp_reg_writel(ISPPRV_TBL_ADDR_RED_G_START,
++				OMAP3_ISP_IOMEM_PREV, ISPPRV_SET_TBL_ADDR);
++
++		for (ctr = 0; ctr < ISP_GAMMA_TABLE_SIZE; ctr++) {
++			isp_reg_writel(redgamma_table[ctr],
++				OMAP3_ISP_IOMEM_PREV, ISPPRV_SET_TBL_DATA);
++		}
++		rg_update = 0;
++	}
++
++	if (bg_update) {
++		isp_reg_writel(ISPPRV_TBL_ADDR_BLUE_G_START,
++				OMAP3_ISP_IOMEM_PREV, ISPPRV_SET_TBL_ADDR);
++
++		for (ctr = 0; ctr < ISP_GAMMA_TABLE_SIZE; ctr++) {
++			isp_reg_writel(bluegamma_table[ctr],
++				OMAP3_ISP_IOMEM_PREV, ISPPRV_SET_TBL_DATA);
++		}
++		bg_update = 0;
++	}
++
++	if (nf_update && nf_enable) {
++		isp_reg_writel(0xC00,
++				OMAP3_ISP_IOMEM_PREV, ISPPRV_SET_TBL_ADDR);
++		isp_reg_writel(prev_nf_t.spread,
++				OMAP3_ISP_IOMEM_PREV, ISPPRV_NF);
++		for (ctr = 0; ctr < ISPPRV_NF_TBL_SIZE; ctr++) {
++			isp_reg_writel(prev_nf_t.table[ctr],
++				OMAP3_ISP_IOMEM_PREV, ISPPRV_SET_TBL_DATA);
++		}
++		isppreview_enable_noisefilter(1);
++		nf_update = 0;
++	}
++
++	if (~nf_update && nf_enable)
++		isppreview_enable_noisefilter(1);
++
++	if (nf_update && ~nf_enable)
++		isppreview_enable_noisefilter(0);
++
++	if (prv_disabled) {
++		isppreview_enable(1);
++		prv_disabled = 0;
++	}
++}
++EXPORT_SYMBOL_GPL(isppreview_config_shadow_registers);
++
++/**
++ * isppreview_request - Reserves the preview module.
++ *
++ * Returns 0 if successful, or -EBUSY if the module was already reserved.
++ **/
++int isppreview_request()
++{
++	mutex_lock(&ispprev_obj.ispprev_mutex);
++	if (ispprev_obj.prev_inuse) {
++		mutex_unlock(&ispprev_obj.ispprev_mutex);
++		printk(KERN_ERR "ISP_ERR : Preview Module Busy\n");
 +		return -EBUSY;
 +	}
++	ispprev_obj.prev_inuse = 1;
++	mutex_unlock(&ispprev_obj.ispprev_mutex);
++	isp_reg_or(OMAP3_ISP_IOMEM_MAIN, ISP_CTRL, ISPCTRL_PREV_RAM_EN |
++						ISPCTRL_PREV_CLK_EN |
++						ISPCTRL_SBL_WR1_RAM_EN);
++	return 0;
++}
++EXPORT_SYMBOL_GPL(isppreview_request);
 +
-+	reg = isp_reg_readl(OMAP3_ISP_IOMEM_CSI2A, ISPCSI2_SYSCONFIG);
-+	reg &= ~ISPCSI2_SYSCONFIG_MSTANDBY_MODE_MASK;
-+	reg |= ISPCSI2_SYSCONFIG_MSTANDBY_MODE_NO;
-+	reg &= ~ISPCSI2_SYSCONFIG_AUTO_IDLE_MASK;
-+	isp_reg_writel(reg, OMAP3_ISP_IOMEM_CSI2A, ISPCSI2_SYSCONFIG);
-+
-+	uses_videoport = false;
-+	update_complexio_cfg1 = false;
-+	update_phy_cfg0 = false;
-+	update_phy_cfg1 = false;
-+	for (i = 0; i < 8; i++) {
-+		update_ctx_ctrl1[i] = false;
-+		update_ctx_ctrl2[i] = false;
-+		update_ctx_ctrl3[i] = false;
++/**
++ * isppreview_free - Frees the preview module.
++ *
++ * Returns 0 if successful, or -EINVAL if the module was already freed.
++ **/
++int isppreview_free()
++{
++	mutex_lock(&ispprev_obj.ispprev_mutex);
++	if (ispprev_obj.prev_inuse) {
++		ispprev_obj.prev_inuse = 0;
++		mutex_unlock(&ispprev_obj.ispprev_mutex);
++		isp_reg_and(OMAP3_ISP_IOMEM_MAIN, ISP_CTRL,
++						~(ISPCTRL_PREV_CLK_EN |
++						ISPCTRL_PREV_RAM_EN |
++						ISPCTRL_SBL_WR1_RAM_EN));
++		return 0;
++	} else {
++		mutex_unlock(&ispprev_obj.ispprev_mutex);
++		DPRINTK_ISPPREV("ISP_ERR : Preview Module already freed\n");
++		return -EINVAL;
 +	}
-+	update_timing = false;
-+	update_ctrl = false;
 +
-+	isp_csi2_complexio_lanes_get();
-+	isp_csi2_ctrl_get();
-+	isp_csi2_ctx_get_all();
-+	isp_csi2_phy_get();
-+	isp_csi2_timings_get_all();
++}
++EXPORT_SYMBOL_GPL(isppreview_free);
 +
-+	isp_csi2_complexio_power_autoswitch(true);
-+	isp_csi2_complexio_power(ISP_CSI2_POWER_ON);
++/** isppreview_config_datapath - Specifies input and output modules for Preview
++ * @input: Indicates the module that gives the image to preview.
++ * @output: Indicates the module to which the preview outputs to.
++ *
++ * Configures the default configuration for the CCDC to work with.
++ *
++ * The valid values for the input are PRV_RAW_CCDC (0), PRV_RAW_MEM (1),
++ * PRV_RGBBAYERCFA (2), PRV_COMPCFA (3), PRV_CCDC_DRKF (4), PRV_OTHERS (5).
++ *
++ * The valid values for the output are PREVIEW_RSZ (0), PREVIEW_MEM (1).
++ *
++ * Returns 0 if successful, or -EINVAL if wrong input or output values are
++ * specified.
++ **/
++int isppreview_config_datapath(enum preview_input input,
++						enum preview_output output)
++{
++	u32 pcr = 0;
++	u8 enable = 0;
++	struct prev_params *params = prev_config_params;
++	struct ispprev_yclimit yclimit;
 +
-+	isp_csi2_timings_config_forcerxmode(1, true);
-+	isp_csi2_timings_config_stopstate_cnt(1, 0x1FF);
-+	isp_csi2_timings_update_all(true);
++	pcr = isp_reg_readl(OMAP3_ISP_IOMEM_PREV, ISPPRV_PCR);
++
++	switch (input) {
++	case PRV_RAW_CCDC:
++		pcr &= ~ISPPRV_PCR_SOURCE;
++		pcr &= ~ISPPRV_PCR_ONESHOT;
++		ispprev_obj.prev_inpfmt = PRV_RAW_CCDC;
++		break;
++	case PRV_RAW_MEM:
++		pcr |= ISPPRV_PCR_SOURCE;
++		pcr |= ISPPRV_PCR_ONESHOT;
++		ispprev_obj.prev_inpfmt = PRV_RAW_MEM;
++		break;
++	case PRV_CCDC_DRKF:
++		pcr |= ISPPRV_PCR_DRKFCAP;
++		pcr |= ISPPRV_PCR_ONESHOT;
++		ispprev_obj.prev_inpfmt = PRV_CCDC_DRKF;
++		break;
++	case PRV_COMPCFA:
++		ispprev_obj.prev_inpfmt = PRV_COMPCFA;
++		break;
++	case PRV_OTHERS:
++		ispprev_obj.prev_inpfmt = PRV_OTHERS;
++		break;
++	case PRV_RGBBAYERCFA:
++		ispprev_obj.prev_inpfmt = PRV_RGBBAYERCFA;
++		break;
++	default:
++		printk(KERN_ERR "ISP_ERR : Wrong Input\n");
++		return -EINVAL;
++	};
++
++	switch (output) {
++	case PREVIEW_RSZ:
++		pcr |= ISPPRV_PCR_RSZPORT;
++		pcr &= ~ISPPRV_PCR_SDRPORT;
++		break;
++	case PREVIEW_MEM:
++		pcr &= ~ISPPRV_PCR_RSZPORT;
++		pcr |= ISPPRV_PCR_SDRPORT;
++		break;
++	default:
++		printk(KERN_ERR "ISP_ERR : Wrong Output\n");
++		return -EINVAL;
++	}
++	ispprev_obj.prev_outfmt = output;
++
++	isp_reg_writel(pcr, OMAP3_ISP_IOMEM_PREV, ISPPRV_PCR);
++
++	isppreview_config_ycpos(params->pix_fmt);
++
++	if (params->cfa.cfa_table != NULL)
++		isppreview_config_cfa(params->cfa);
++	if (params->csup.hypf_en == 1)
++		isppreview_config_chroma_suppression(params->csup);
++	if (params->ytable != NULL)
++		isppreview_config_luma_enhancement(params->ytable);
++
++	if (params->gtable.redtable != NULL)
++		isppreview_config_gammacorrn(params->gtable);
++
++	enable = (params->features & PREV_CFA) ? 1 : 0;
++	isppreview_enable_cfa(enable);
++
++	enable = (params->features & PREV_CHROMA_SUPPRESS) ? 1 : 0;
++	isppreview_enable_chroma_suppression(enable);
++
++	enable = (params->features & PREV_LUMA_ENHANCE) ? 1 : 0;
++	isppreview_enable_luma_enhancement(enable);
++
++	enable = (params->features & PREV_NOISE_FILTER) ? 1 : 0;
++	if (enable)
++		isppreview_config_noisefilter(params->nf);
++	isppreview_enable_noisefilter(enable);
++
++	enable = (params->features & PREV_DEFECT_COR) ? 1 : 0;
++	if (enable)
++		isppreview_config_dcor(params->dcor);
++	isppreview_enable_dcor(enable);
++
++	enable = (params->features & PREV_GAMMA_BYPASS) ? 1 : 0;
++	isppreview_enable_gammabypass(enable);
++
++	isppreview_config_whitebalance(params->wbal);
++	isppreview_config_blkadj(params->blk_adj);
++	isppreview_config_rgb_blending(params->rgb2rgb);
++	isppreview_config_rgb_to_ycbcr(params->rgb2ycbcr);
++
++	isppreview_config_contrast(params->contrast * ISPPRV_CONTRAST_UNITS);
++	isppreview_config_brightness(params->brightness * ISPPRV_BRIGHT_UNITS);
++
++	yclimit.minC = ISPPRV_YC_MIN;
++	yclimit.maxC = ISPPRV_YC_MAX;
++	yclimit.minY = ISPPRV_YC_MIN;
++	yclimit.maxY = ISPPRV_YC_MAX;
++	isppreview_config_yc_range(yclimit);
 +
 +	return 0;
 +}
++EXPORT_SYMBOL_GPL(isppreview_config_datapath);
 +
 +/**
-+ * isp_csi2_enable - Enables the CSI2 module.
-+ * @enable: Enables/disables the CSI2 module.
++ * isppreview_set_skip - Set the number of rows/columns that should be skipped.
++ *  h - Start Pixel Horizontal.
++ *  v - Start Line Vertical.
 + **/
-+void isp_csi2_enable(int enable)
++void isppreview_set_skip(u32 h, u32 v)
++{
++	ispprev_obj.sph = h;
++	ispprev_obj.slv = v;
++}
++EXPORT_SYMBOL_GPL(isppreview_set_skip);
++
++/**
++ * isppreview_config_ycpos - Configure byte layout of YUV image.
++ * @mode: Indicates the required byte layout.
++ **/
++void isppreview_config_ycpos(enum preview_ycpos_mode mode)
++{
++	u32 pcr = isp_reg_readl(OMAP3_ISP_IOMEM_PREV, ISPPRV_PCR);
++	pcr &= ~ISPPRV_PCR_YCPOS_CrYCbY;
++	pcr |= (mode << ISPPRV_PCR_YCPOS_SHIFT);
++	isp_reg_writel(pcr, OMAP3_ISP_IOMEM_PREV, ISPPRV_PCR);
++}
++EXPORT_SYMBOL_GPL(isppreview_config_ycpos);
++
++/**
++ * isppreview_config_averager - Enable / disable / configure averager
++ * @average: Average value to be configured.
++ **/
++void isppreview_config_averager(u8 average)
++{
++	int reg = 0;
++
++	reg = AVE_ODD_PIXEL_DIST | AVE_EVEN_PIXEL_DIST | average;
++	isp_reg_writel(reg, OMAP3_ISP_IOMEM_PREV, ISPPRV_AVE);
++}
++EXPORT_SYMBOL_GPL(isppreview_config_averager);
++
++/**
++ * isppreview_enable_invalaw - Enable/Disable Inverse A-Law module in Preview.
++ * @enable: 1 - Reverse the A-Law done in CCDC.
++ **/
++void isppreview_enable_invalaw(u8 enable)
++{
++	u32 pcr_val = 0;
++	pcr_val = isp_reg_readl(OMAP3_ISP_IOMEM_PREV, ISPPRV_PCR);
++
++	if (enable) {
++		isp_reg_writel(pcr_val | ISPPRV_PCR_WIDTH | ISPPRV_PCR_INVALAW,
++				OMAP3_ISP_IOMEM_PREV, ISPPRV_PCR);
++	} else {
++		isp_reg_writel(pcr_val &
++				~(ISPPRV_PCR_WIDTH | ISPPRV_PCR_INVALAW),
++				OMAP3_ISP_IOMEM_PREV, ISPPRV_PCR);
++	}
++}
++EXPORT_SYMBOL_GPL(isppreview_enable_invalaw);
++
++/**
++ * isppreview_enable_drkframe - Enable/Disable of the darkframe subtract.
++ * @enable: 1 - Acquires memory bandwidth since the pixels in each frame is
++ *          subtracted with the pixels in the current frame.
++ *
++ * The proccess is applied for each captured frame.
++ **/
++void isppreview_enable_drkframe(u8 enable)
++{
++	if (enable)
++		isp_reg_or(OMAP3_ISP_IOMEM_PREV, ISPPRV_PCR, ISPPRV_PCR_DRKFEN);
++	else {
++		isp_reg_and(OMAP3_ISP_IOMEM_PREV, ISPPRV_PCR,
++							~ISPPRV_PCR_DRKFEN);
++	}
++}
++EXPORT_SYMBOL_GPL(isppreview_enable_drkframe);
++
++/**
++ * isppreview_enable_shadcomp - Enables/Disables the shading compensation.
++ * @enable: 1 - Enables the shading compensation.
++ *
++ * If dark frame subtract won't be used, then enable this shading
++ * compensation.
++ **/
++void isppreview_enable_shadcomp(u8 enable)
++{
++
++	if (enable) {
++		isp_reg_or(OMAP3_ISP_IOMEM_PREV, ISPPRV_PCR,
++							ISPPRV_PCR_SCOMP_EN);
++		isppreview_enable_drkframe(1);
++	} else {
++		isp_reg_and(OMAP3_ISP_IOMEM_PREV, ISPPRV_PCR,
++							~ISPPRV_PCR_SCOMP_EN);
++	}
++}
++EXPORT_SYMBOL_GPL(isppreview_enable_shadcomp);
++
++/**
++ * isppreview_config_drkf_shadcomp - Configures shift value in shading comp.
++ * @scomp_shtval: 3bit value of shift used in shading compensation.
++ **/
++void isppreview_config_drkf_shadcomp(u8 scomp_shtval)
++{
++	u32 pcr_val = isp_reg_readl(OMAP3_ISP_IOMEM_PREV, ISPPRV_PCR);
++
++	pcr_val &= ISPPRV_PCR_SCOMP_SFT_MASK;
++	isp_reg_writel(pcr_val | (scomp_shtval << ISPPRV_PCR_SCOMP_SFT_SHIFT),
++					OMAP3_ISP_IOMEM_PREV, ISPPRV_PCR);
++}
++EXPORT_SYMBOL_GPL(isppreview_config_drkf_shadcomp);
++
++/**
++ * isppreview_enable_hmed - Enables/Disables of the Horizontal Median Filter.
++ * @enable: 1 - Enables Horizontal Median Filter.
++ **/
++void isppreview_enable_hmed(u8 enable)
++{
++	if (enable)
++		isp_reg_or(OMAP3_ISP_IOMEM_PREV, ISPPRV_PCR, ISPPRV_PCR_HMEDEN);
++	else {
++		isp_reg_and(OMAP3_ISP_IOMEM_PREV, ISPPRV_PCR,
++							~ISPPRV_PCR_HMEDEN);
++	}
++	ispprev_obj.hmed_en = enable ? 1 : 0;
++}
++EXPORT_SYMBOL_GPL(isppreview_enable_hmed);
++
++/**
++ * isppreview_config_hmed - Configures the Horizontal Median Filter.
++ * @prev_hmed: Structure containing the odd and even distance between the
++ *             pixels in the image along with the filter threshold.
++ **/
++void isppreview_config_hmed(struct ispprev_hmed prev_hmed)
++{
++
++	u32 odddist = 0;
++	u32 evendist = 0;
++
++	if (prev_hmed.odddist == 1)
++		odddist = ~ISPPRV_HMED_ODDDIST;
++	else
++		odddist = ISPPRV_HMED_ODDDIST;
++
++	if (prev_hmed.evendist == 1)
++		evendist = ~ISPPRV_HMED_EVENDIST;
++	else
++		evendist = ISPPRV_HMED_EVENDIST;
++
++	isp_reg_writel(odddist | evendist | (prev_hmed.thres <<
++					ISPPRV_HMED_THRESHOLD_SHIFT),
++					OMAP3_ISP_IOMEM_PREV, ISPPRV_HMED);
++
++}
++EXPORT_SYMBOL_GPL(isppreview_config_hmed);
++
++/**
++ * isppreview_config_noisefilter - Configures the Noise Filter.
++ * @prev_nf: Structure containing the noisefilter table, strength to be used
++ *           for the noise filter and the defect correction enable flag.
++ **/
++void isppreview_config_noisefilter(struct ispprev_nf prev_nf)
++{
++	int i = 0;
++
++	isp_reg_writel(prev_nf.spread, OMAP3_ISP_IOMEM_PREV, ISPPRV_NF);
++	isp_reg_writel(ISPPRV_NF_TABLE_ADDR, OMAP3_ISP_IOMEM_PREV,
++							ISPPRV_SET_TBL_ADDR);
++	for (i = 0; i < ISPPRV_NF_TBL_SIZE; i++) {
++		isp_reg_writel(prev_nf.table[i], OMAP3_ISP_IOMEM_PREV,
++							ISPPRV_SET_TBL_DATA);
++	}
++}
++EXPORT_SYMBOL_GPL(isppreview_config_noisefilter);
++
++/**
++ * isppreview_config_dcor - Configures the defect correction
++ * @prev_nf: Structure containing the defect correction structure
++ **/
++void isppreview_config_dcor(struct ispprev_dcor prev_dcor)
++{
++	if (prev_dcor.couplet_mode_en) {
++		isp_reg_writel(prev_dcor.detect_correct[0],
++					OMAP3_ISP_IOMEM_PREV, ISPPRV_CDC_THR0);
++		isp_reg_writel(prev_dcor.detect_correct[1],
++					OMAP3_ISP_IOMEM_PREV, ISPPRV_CDC_THR1);
++		isp_reg_writel(prev_dcor.detect_correct[2],
++					OMAP3_ISP_IOMEM_PREV, ISPPRV_CDC_THR2);
++		isp_reg_writel(prev_dcor.detect_correct[3],
++					OMAP3_ISP_IOMEM_PREV, ISPPRV_CDC_THR3);
++		isp_reg_or(OMAP3_ISP_IOMEM_PREV, ISPPRV_PCR, ISPPRV_PCR_DCCOUP);
++	} else {
++		isp_reg_and(OMAP3_ISP_IOMEM_PREV, ISPPRV_PCR,
++							~ISPPRV_PCR_DCCOUP);
++	}
++}
++EXPORT_SYMBOL_GPL(isppreview_config_dcor);
++
++/**
++ * isppreview_config_cfa - Configures the CFA Interpolation parameters.
++ * @prev_cfa: Structure containing the CFA interpolation table, CFA format
++ *            in the image, vertical and horizontal gradient threshold.
++ **/
++void isppreview_config_cfa(struct ispprev_cfa prev_cfa)
++{
++	int i = 0;
++
++	ispprev_obj.cfafmt = prev_cfa.cfafmt;
++
++	isp_reg_or(OMAP3_ISP_IOMEM_PREV, ISPPRV_PCR,
++				(prev_cfa.cfafmt << ISPPRV_PCR_CFAFMT_SHIFT));
++
++	isp_reg_writel(
++		(prev_cfa.cfa_gradthrs_vert << ISPPRV_CFA_GRADTH_VER_SHIFT) |
++		(prev_cfa.cfa_gradthrs_horz << ISPPRV_CFA_GRADTH_HOR_SHIFT),
++		OMAP3_ISP_IOMEM_PREV, ISPPRV_CFA);
++
++	isp_reg_writel(ISPPRV_CFA_TABLE_ADDR, OMAP3_ISP_IOMEM_PREV,
++							ISPPRV_SET_TBL_ADDR);
++
++	for (i = 0; i < ISPPRV_CFA_TBL_SIZE; i++) {
++		isp_reg_writel(prev_cfa.cfa_table[i],
++				OMAP3_ISP_IOMEM_PREV, ISPPRV_SET_TBL_DATA);
++	}
++}
++EXPORT_SYMBOL_GPL(isppreview_config_cfa);
++
++/**
++ * isppreview_config_gammacorrn - Configures the Gamma Correction table values
++ * @gtable: Structure containing the table for red, blue, green gamma table.
++ **/
++void isppreview_config_gammacorrn(struct ispprev_gtable gtable)
++{
++	int i = 0;
++
++	isp_reg_writel(ISPPRV_REDGAMMA_TABLE_ADDR,
++				OMAP3_ISP_IOMEM_PREV, ISPPRV_SET_TBL_ADDR);
++	for (i = 0; i < ISPPRV_GAMMA_TBL_SIZE; i++) {
++		isp_reg_writel(gtable.redtable[i],
++				OMAP3_ISP_IOMEM_PREV, ISPPRV_SET_TBL_DATA);
++	}
++
++	isp_reg_writel(ISPPRV_GREENGAMMA_TABLE_ADDR,
++				OMAP3_ISP_IOMEM_PREV, ISPPRV_SET_TBL_ADDR);
++	for (i = 0; i < ISPPRV_GAMMA_TBL_SIZE; i++) {
++		isp_reg_writel(gtable.greentable[i],
++				OMAP3_ISP_IOMEM_PREV, ISPPRV_SET_TBL_DATA);
++	}
++
++	isp_reg_writel(ISPPRV_BLUEGAMMA_TABLE_ADDR,
++				OMAP3_ISP_IOMEM_PREV, ISPPRV_SET_TBL_ADDR);
++	for (i = 0; i < ISPPRV_GAMMA_TBL_SIZE; i++) {
++		isp_reg_writel(gtable.bluetable[i],
++				OMAP3_ISP_IOMEM_PREV, ISPPRV_SET_TBL_DATA);
++	}
++}
++EXPORT_SYMBOL_GPL(isppreview_config_gammacorrn);
++
++/**
++ * isppreview_config_luma_enhancement - Sets the Luminance Enhancement table.
++ * @ytable: Structure containing the table for Luminance Enhancement table.
++ **/
++void isppreview_config_luma_enhancement(u32 *ytable)
++{
++	int i = 0;
++
++	isp_reg_writel(ISPPRV_YENH_TABLE_ADDR,
++				OMAP3_ISP_IOMEM_PREV, ISPPRV_SET_TBL_ADDR);
++	for (i = 0; i < ISPPRV_YENH_TBL_SIZE; i++) {
++		isp_reg_writel(ytable[i],
++				OMAP3_ISP_IOMEM_PREV, ISPPRV_SET_TBL_DATA);
++	}
++}
++EXPORT_SYMBOL_GPL(isppreview_config_luma_enhancement);
++
++/**
++ * isppreview_config_chroma_suppression - Configures the Chroma Suppression.
++ * @csup: Structure containing the threshold value for suppression
++ *        and the hypass filter enable flag.
++ **/
++void isppreview_config_chroma_suppression(struct ispprev_csup csup)
++{
++	isp_reg_writel(csup.gain | (csup.thres << ISPPRV_CSUP_THRES_SHIFT) |
++				(csup.hypf_en << ISPPRV_CSUP_HPYF_SHIFT),
++				OMAP3_ISP_IOMEM_PREV, ISPPRV_CSUP);
++}
++EXPORT_SYMBOL_GPL(isppreview_config_chroma_suppression);
++
++/**
++ * isppreview_enable_noisefilter - Enables/Disables the Noise Filter.
++ * @enable: 1 - Enables the Noise Filter.
++ **/
++void isppreview_enable_noisefilter(u8 enable)
++{
++	if (enable)
++		isp_reg_or(OMAP3_ISP_IOMEM_PREV, ISPPRV_PCR, ISPPRV_PCR_NFEN);
++	else
++		isp_reg_and(OMAP3_ISP_IOMEM_PREV, ISPPRV_PCR, ~ISPPRV_PCR_NFEN);
++	ispprev_obj.nf_en = enable ? 1 : 0;
++}
++EXPORT_SYMBOL_GPL(isppreview_enable_noisefilter);
++
++/**
++ * isppreview_enable_dcor - Enables/Disables the defect correction.
++ * @enable: 1 - Enables the defect correction.
++ **/
++void isppreview_enable_dcor(u8 enable)
++{
++	if (enable)
++		isp_reg_or(OMAP3_ISP_IOMEM_PREV, ISPPRV_PCR, ISPPRV_PCR_DCOREN);
++	else {
++		isp_reg_and(OMAP3_ISP_IOMEM_PREV, ISPPRV_PCR,
++							~ISPPRV_PCR_DCOREN);
++	}
++	ispprev_obj.dcor_en = enable ? 1 : 0;
++}
++EXPORT_SYMBOL_GPL(isppreview_enable_dcor);
++
++/**
++ * isppreview_enable_cfa - Enable/Disable the CFA Interpolation.
++ * @enable: 1 - Enables the CFA.
++ **/
++void isppreview_enable_cfa(u8 enable)
++{
++	if (enable)
++		isp_reg_or(OMAP3_ISP_IOMEM_PREV, ISPPRV_PCR, ISPPRV_PCR_CFAEN);
++	else {
++		isp_reg_and(OMAP3_ISP_IOMEM_PREV, ISPPRV_PCR,
++							~ISPPRV_PCR_CFAEN);
++	}
++	ispprev_obj.cfa_en = enable ? 1 : 0;
++}
++EXPORT_SYMBOL_GPL(isppreview_enable_cfa);
++
++/**
++ * isppreview_enable_gammabypass - Enables/Disables the GammaByPass
++ * @enable: 1 - Bypasses Gamma - 10bit input is cropped to 8MSB.
++ *          0 - Goes through Gamma Correction. input and output is 10bit.
++ **/
++void isppreview_enable_gammabypass(u8 enable)
 +{
 +	if (enable) {
-+		isp_csi2_ctx_config_enabled(0, true);
-+		isp_csi2_ctx_config_eof_enabled(0, true);
-+		isp_csi2_ctx_config_checksum_enabled(0, true);
-+		isp_csi2_ctx_update(0, false);
-+
-+		isp_csi2_ctrl_config_ecc_enable(true);
-+		isp_csi2_ctrl_config_if_enable(true);
-+		isp_csi2_ctrl_update(false);
++		isp_reg_or(OMAP3_ISP_IOMEM_PREV, ISPPRV_PCR,
++						ISPPRV_PCR_GAMMA_BYPASS);
 +	} else {
-+		isp_csi2_ctx_config_enabled(0, false);
-+		isp_csi2_ctx_config_eof_enabled(0, false);
-+		isp_csi2_ctx_config_checksum_enabled(0, false);
-+		isp_csi2_ctx_update(0, false);
-+
-+		isp_csi2_ctrl_config_ecc_enable(false);
-+		isp_csi2_ctrl_config_if_enable(false);
-+		isp_csi2_ctrl_update(false);
++		isp_reg_and(OMAP3_ISP_IOMEM_PREV, ISPPRV_PCR,
++						~ISPPRV_PCR_GAMMA_BYPASS);
 +	}
 +}
-+EXPORT_SYMBOL(isp_csi2_enable);
++EXPORT_SYMBOL_GPL(isppreview_enable_gammabypass);
 +
 +/**
-+ * isp_csi2_regdump - Prints CSI2 debug information.
++ * isppreview_enable_luma_enhancement - Enables/Disables Luminance Enhancement
++ * @enable: 1 - Enable the Luminance Enhancement.
 + **/
-+void isp_csi2_regdump(void)
++void isppreview_enable_luma_enhancement(u8 enable)
 +{
-+	printk(KERN_DEBUG "-------------Register dump-------------\n");
-+
-+	printk(KERN_DEBUG "ISP_CTRL: %x\n",
-+			isp_reg_readl(OMAP3_ISP_IOMEM_MAIN, ISP_CTRL));
-+	printk(KERN_DEBUG "ISP_TCTRL_CTRL: %x\n",
-+			isp_reg_readl(OMAP3_ISP_IOMEM_MAIN, ISP_TCTRL_CTRL));
-+
-+	printk(KERN_DEBUG "ISPCCDC_SDR_ADDR: %x\n",
-+			isp_reg_readl(OMAP3_ISP_IOMEM_CCDC, ISPCCDC_SDR_ADDR));
-+	printk(KERN_DEBUG "ISPCCDC_SYN_MODE: %x\n",
-+			isp_reg_readl(OMAP3_ISP_IOMEM_CCDC, ISPCCDC_SYN_MODE));
-+	printk(KERN_DEBUG "ISPCCDC_CFG: %x\n",
-+			isp_reg_readl(OMAP3_ISP_IOMEM_CCDC, ISPCCDC_CFG));
-+	printk(KERN_DEBUG "ISPCCDC_FMTCFG: %x\n",
-+			isp_reg_readl(OMAP3_ISP_IOMEM_CCDC, ISPCCDC_FMTCFG));
-+	printk(KERN_DEBUG "ISPCCDC_HSIZE_OFF: %x\n",
-+			isp_reg_readl(OMAP3_ISP_IOMEM_CCDC, ISPCCDC_HSIZE_OFF));
-+	printk(KERN_DEBUG "ISPCCDC_HORZ_INFO: %x\n",
-+			isp_reg_readl(OMAP3_ISP_IOMEM_CCDC, ISPCCDC_HORZ_INFO));
-+	printk(KERN_DEBUG "ISPCCDC_VERT_START: %x\n",
-+			isp_reg_readl(OMAP3_ISP_IOMEM_CCDC,
-+				ISPCCDC_VERT_START));
-+	printk(KERN_DEBUG "ISPCCDC_VERT_LINES: %x\n",
-+			isp_reg_readl(OMAP3_ISP_IOMEM_CCDC,
-+				ISPCCDC_VERT_LINES));
-+
-+	printk(KERN_DEBUG "ISPCSI2_COMPLEXIO_CFG1: %x\n",
-+			isp_reg_readl(OMAP3_ISP_IOMEM_CSI2A,
-+				ISPCSI2_COMPLEXIO_CFG1));
-+	printk(KERN_DEBUG "ISPCSI2_SYSSTATUS: %x\n",
-+			isp_reg_readl(OMAP3_ISP_IOMEM_CSI2A,
-+				ISPCSI2_SYSSTATUS));
-+	printk(KERN_DEBUG "ISPCSI2_SYSCONFIG: %x\n",
-+			isp_reg_readl(OMAP3_ISP_IOMEM_CSI2A,
-+				ISPCSI2_SYSCONFIG));
-+	printk(KERN_DEBUG "ISPCSI2_IRQENABLE: %x\n",
-+			isp_reg_readl(OMAP3_ISP_IOMEM_CSI2A,
-+				ISPCSI2_IRQENABLE));
-+	printk(KERN_DEBUG "ISPCSI2_IRQSTATUS: %x\n",
-+			isp_reg_readl(OMAP3_ISP_IOMEM_CSI2A,
-+				ISPCSI2_IRQSTATUS));
-+
-+	printk(KERN_DEBUG "ISPCSI2_CTX_IRQENABLE(0): %x\n",
-+			isp_reg_readl(OMAP3_ISP_IOMEM_CSI2A,
-+				ISPCSI2_CTX_IRQENABLE(0)));
-+	printk(KERN_DEBUG "ISPCSI2_CTX_IRQSTATUS(0): %x\n",
-+			isp_reg_readl(OMAP3_ISP_IOMEM_CSI2A,
-+				ISPCSI2_CTX_IRQSTATUS(0)));
-+	printk(KERN_DEBUG "ISPCSI2_TIMING: %x\n",
-+			isp_reg_readl(OMAP3_ISP_IOMEM_CSI2A, ISPCSI2_TIMING));
-+	printk(KERN_DEBUG "ISPCSI2PHY_CFG0: %x\n",
-+			isp_reg_readl(OMAP3_ISP_IOMEM_CSI2PHY,
-+				ISPCSI2PHY_CFG0));
-+	printk(KERN_DEBUG "ISPCSI2PHY_CFG1: %x\n",
-+			isp_reg_readl(OMAP3_ISP_IOMEM_CSI2PHY,
-+				ISPCSI2PHY_CFG1));
-+	printk(KERN_DEBUG "ISPCSI2_CTX_CTRL1(0): %x\n",
-+			isp_reg_readl(OMAP3_ISP_IOMEM_CSI2A,
-+				ISPCSI2_CTX_CTRL1(0)));
-+	printk(KERN_DEBUG "ISPCSI2_CTX_CTRL2(0): %x\n",
-+			isp_reg_readl(OMAP3_ISP_IOMEM_CSI2A,
-+				ISPCSI2_CTX_CTRL2(0)));
-+	printk(KERN_DEBUG "ISPCSI2_CTX_CTRL3(0): %x\n",
-+			isp_reg_readl(OMAP3_ISP_IOMEM_CSI2A,
-+				ISPCSI2_CTX_CTRL3(0)));
-+	printk(KERN_DEBUG "ISPCSI2_CTX_DAT_OFST(0): %x\n",
-+			isp_reg_readl(OMAP3_ISP_IOMEM_CSI2A,
-+				ISPCSI2_CTX_DAT_OFST(0)));
-+	printk(KERN_DEBUG "ISPCSI2_CTX_DAT_PING_ADDR(0): %x\n",
-+			isp_reg_readl(OMAP3_ISP_IOMEM_CSI2A,
-+				ISPCSI2_CTX_DAT_PING_ADDR(0)));
-+	printk(KERN_DEBUG "ISPCSI2_CTX_DAT_PONG_ADDR(0): %x\n",
-+			isp_reg_readl(OMAP3_ISP_IOMEM_CSI2A,
-+				ISPCSI2_CTX_DAT_PONG_ADDR(0)));
-+	printk(KERN_DEBUG "ISPCSI2_CTRL: %x\n",
-+			isp_reg_readl(OMAP3_ISP_IOMEM_CSI2A, ISPCSI2_CTRL));
-+	printk(KERN_DEBUG "---------------------------------------\n");
-+}
-+
-+/**
-+ * isp_csi2_cleanup - Routine for module driver cleanup
-+ **/
-+void isp_csi2_cleanup(void)
-+{
-+	return;
-+}
-+
-+/**
-+ * isp_csi2_init - Routine for module driver init
-+ **/
-+int __init isp_csi2_init(void)
-+{
-+	int i;
-+
-+	update_complexio_cfg1 = false;
-+	update_phy_cfg0 = false;
-+	update_phy_cfg1 = false;
-+	for (i = 0; i < 8; i++) {
-+		update_ctx_ctrl1[i] = false;
-+		update_ctx_ctrl2[i] = false;
-+		update_ctx_ctrl3[i] = false;
++	if (enable) {
++		isp_reg_or(OMAP3_ISP_IOMEM_PREV, ISPPRV_PCR,
++							ISPPRV_PCR_YNENHEN);
++	} else {
++		isp_reg_and(OMAP3_ISP_IOMEM_PREV, ISPPRV_PCR,
++							~ISPPRV_PCR_YNENHEN);
 +	}
-+	update_timing = false;
-+	update_ctrl = false;
++	ispprev_obj.yenh_en = enable ? 1 : 0;
++}
++EXPORT_SYMBOL_GPL(isppreview_enable_luma_enhancement);
 +
-+	memset(&current_csi2_cfg, 0, sizeof(current_csi2_cfg));
-+	memset(&current_csi2_cfg_update, 0, sizeof(current_csi2_cfg_update));
++/**
++ * isppreview_enable_chroma_suppression - Enables/Disables Chrominance Suppr.
++ * @enable: 1 - Enable the Chrominance Suppression.
++ **/
++void isppreview_enable_chroma_suppression(u8 enable)
++{
++	if (enable)
++		isp_reg_or(OMAP3_ISP_IOMEM_PREV, ISPPRV_PCR, ISPPRV_PCR_SUPEN);
++	else {
++		isp_reg_and(OMAP3_ISP_IOMEM_PREV, ISPPRV_PCR,
++							~ISPPRV_PCR_SUPEN);
++	}
++	ispprev_obj.csup_en = enable ? 1 : 0;
++}
++EXPORT_SYMBOL_GPL(isppreview_enable_chroma_suppression);
++
++/**
++ * isppreview_config_whitebalance - Configures the White Balance parameters.
++ * @prev_wbal: Structure containing the digital gain and white balance
++ *             coefficient.
++ *
++ * Coefficient matrix always with default values.
++ **/
++void isppreview_config_whitebalance(struct ispprev_wbal prev_wbal)
++{
++	u32 val;
++
++	isp_reg_writel(prev_wbal.dgain, OMAP3_ISP_IOMEM_PREV, ISPPRV_WB_DGAIN);
++
++	val = (prev_wbal.coef0 << ISPPRV_WBGAIN_COEF0_SHIFT);
++	val |= (prev_wbal.coef1 << ISPPRV_WBGAIN_COEF1_SHIFT);
++	val |= (prev_wbal.coef2 << ISPPRV_WBGAIN_COEF2_SHIFT);
++	val |= (prev_wbal.coef3 << ISPPRV_WBGAIN_COEF3_SHIFT);
++	isp_reg_writel(val, OMAP3_ISP_IOMEM_PREV, ISPPRV_WBGAIN);
++
++	isp_reg_writel((ISPPRV_WBSEL_COEF0 << ISPPRV_WBSEL_N0_0_SHIFT) |
++			(ISPPRV_WBSEL_COEF1 << ISPPRV_WBSEL_N0_1_SHIFT) |
++			(ISPPRV_WBSEL_COEF0 << ISPPRV_WBSEL_N0_2_SHIFT) |
++			(ISPPRV_WBSEL_COEF1 << ISPPRV_WBSEL_N0_3_SHIFT) |
++			(ISPPRV_WBSEL_COEF2 << ISPPRV_WBSEL_N1_0_SHIFT) |
++			(ISPPRV_WBSEL_COEF3 << ISPPRV_WBSEL_N1_1_SHIFT) |
++			(ISPPRV_WBSEL_COEF2 << ISPPRV_WBSEL_N1_2_SHIFT) |
++			(ISPPRV_WBSEL_COEF3 << ISPPRV_WBSEL_N1_3_SHIFT) |
++			(ISPPRV_WBSEL_COEF0 << ISPPRV_WBSEL_N2_0_SHIFT) |
++			(ISPPRV_WBSEL_COEF1 << ISPPRV_WBSEL_N2_1_SHIFT) |
++			(ISPPRV_WBSEL_COEF0 << ISPPRV_WBSEL_N2_2_SHIFT) |
++			(ISPPRV_WBSEL_COEF1 << ISPPRV_WBSEL_N2_3_SHIFT) |
++			(ISPPRV_WBSEL_COEF2 << ISPPRV_WBSEL_N3_0_SHIFT) |
++			(ISPPRV_WBSEL_COEF3 << ISPPRV_WBSEL_N3_1_SHIFT) |
++			(ISPPRV_WBSEL_COEF2 << ISPPRV_WBSEL_N3_2_SHIFT) |
++			(ISPPRV_WBSEL_COEF3 << ISPPRV_WBSEL_N3_3_SHIFT),
++			OMAP3_ISP_IOMEM_PREV, ISPPRV_WBSEL);
++}
++EXPORT_SYMBOL_GPL(isppreview_config_whitebalance);
++
++/**
++ * isppreview_config_whitebalance2 - Configures the White Balance parameters.
++ * @prev_wbal: Structure containing the digital gain and white balance
++ *             coefficient.
++ *
++ * Coefficient matrix can be changed.
++ **/
++void isppreview_config_whitebalance2(struct prev_white_balance prev_wbal)
++{
++	isp_reg_writel(prev_wbal.wb_dgain,
++					OMAP3_ISP_IOMEM_PREV, ISPPRV_WB_DGAIN);
++	isp_reg_writel(prev_wbal.wb_gain[0] |
++			(prev_wbal.wb_gain[1] << ISPPRV_WBGAIN_COEF1_SHIFT) |
++			(prev_wbal.wb_gain[2] << ISPPRV_WBGAIN_COEF2_SHIFT) |
++			(prev_wbal.wb_gain[3] << ISPPRV_WBGAIN_COEF3_SHIFT),
++			OMAP3_ISP_IOMEM_PREV, ISPPRV_WBGAIN);
++
++	isp_reg_writel(
++		prev_wbal.wb_coefmatrix[0][0] << ISPPRV_WBSEL_N0_0_SHIFT |
++		prev_wbal.wb_coefmatrix[0][1] << ISPPRV_WBSEL_N0_1_SHIFT |
++		prev_wbal.wb_coefmatrix[0][2] << ISPPRV_WBSEL_N0_2_SHIFT |
++		prev_wbal.wb_coefmatrix[0][3] << ISPPRV_WBSEL_N0_3_SHIFT |
++		prev_wbal.wb_coefmatrix[1][0] << ISPPRV_WBSEL_N1_0_SHIFT |
++		prev_wbal.wb_coefmatrix[1][1] << ISPPRV_WBSEL_N1_1_SHIFT |
++		prev_wbal.wb_coefmatrix[1][2] << ISPPRV_WBSEL_N1_2_SHIFT |
++		prev_wbal.wb_coefmatrix[1][3] << ISPPRV_WBSEL_N1_3_SHIFT |
++		prev_wbal.wb_coefmatrix[2][0] << ISPPRV_WBSEL_N2_0_SHIFT |
++		prev_wbal.wb_coefmatrix[2][1] << ISPPRV_WBSEL_N2_1_SHIFT |
++		prev_wbal.wb_coefmatrix[2][2] << ISPPRV_WBSEL_N2_2_SHIFT |
++		prev_wbal.wb_coefmatrix[2][3] << ISPPRV_WBSEL_N2_3_SHIFT |
++		prev_wbal.wb_coefmatrix[3][0] << ISPPRV_WBSEL_N3_0_SHIFT |
++		prev_wbal.wb_coefmatrix[3][1] << ISPPRV_WBSEL_N3_1_SHIFT |
++		prev_wbal.wb_coefmatrix[3][2] << ISPPRV_WBSEL_N3_2_SHIFT |
++		prev_wbal.wb_coefmatrix[3][3] << ISPPRV_WBSEL_N3_3_SHIFT,
++		OMAP3_ISP_IOMEM_PREV, ISPPRV_WBSEL);
++}
++EXPORT_SYMBOL_GPL(isppreview_config_whitebalance2);
++
++/**
++ * isppreview_config_blkadj - Configures the Black Adjustment parameters.
++ * @prev_blkadj: Structure containing the black adjustment towards red, green,
++ *               blue.
++ **/
++void isppreview_config_blkadj(struct ispprev_blkadj prev_blkadj)
++{
++	isp_reg_writel(prev_blkadj.blue |
++			(prev_blkadj.green << ISPPRV_BLKADJOFF_G_SHIFT) |
++			(prev_blkadj.red << ISPPRV_BLKADJOFF_R_SHIFT),
++			OMAP3_ISP_IOMEM_PREV, ISPPRV_BLKADJOFF);
++}
++EXPORT_SYMBOL_GPL(isppreview_config_blkadj);
++
++/**
++ * isppreview_config_rgb_blending - Configures the RGB-RGB Blending matrix.
++ * @rgb2rgb: Structure containing the rgb to rgb blending matrix and the rgb
++ *           offset.
++ **/
++void isppreview_config_rgb_blending(struct ispprev_rgbtorgb rgb2rgb)
++{
++	u32 val = 0;
++
++	val = (rgb2rgb.matrix[0][0] & 0xfff) << ISPPRV_RGB_MAT1_MTX_RR_SHIFT;
++	val |= (rgb2rgb.matrix[0][1] & 0xfff) << ISPPRV_RGB_MAT1_MTX_GR_SHIFT;
++	isp_reg_writel(val, OMAP3_ISP_IOMEM_PREV, ISPPRV_RGB_MAT1);
++
++	val = (rgb2rgb.matrix[0][2] & 0xfff) << ISPPRV_RGB_MAT2_MTX_BR_SHIFT;
++	val |= (rgb2rgb.matrix[1][0] & 0xfff) << ISPPRV_RGB_MAT2_MTX_RG_SHIFT;
++	isp_reg_writel(val, OMAP3_ISP_IOMEM_PREV, ISPPRV_RGB_MAT2);
++
++	val = (rgb2rgb.matrix[1][1] & 0xfff) << ISPPRV_RGB_MAT3_MTX_GG_SHIFT;
++	val |= (rgb2rgb.matrix[1][2] & 0xfff) << ISPPRV_RGB_MAT3_MTX_BG_SHIFT;
++	isp_reg_writel(val, OMAP3_ISP_IOMEM_PREV, ISPPRV_RGB_MAT3);
++
++	val = (rgb2rgb.matrix[2][0] & 0xfff) << ISPPRV_RGB_MAT4_MTX_RB_SHIFT;
++	val |= (rgb2rgb.matrix[2][1] & 0xfff) << ISPPRV_RGB_MAT4_MTX_GB_SHIFT;
++	isp_reg_writel(val, OMAP3_ISP_IOMEM_PREV, ISPPRV_RGB_MAT4);
++
++	val = (rgb2rgb.matrix[2][2] & 0xfff) << ISPPRV_RGB_MAT5_MTX_BB_SHIFT;
++	isp_reg_writel(val, OMAP3_ISP_IOMEM_PREV, ISPPRV_RGB_MAT5);
++
++	val = (rgb2rgb.offset[0] & 0x3ff) << ISPPRV_RGB_OFF1_MTX_OFFG_SHIFT;
++	val |= (rgb2rgb.offset[1] & 0x3ff) << ISPPRV_RGB_OFF1_MTX_OFFR_SHIFT;
++	isp_reg_writel(val, OMAP3_ISP_IOMEM_PREV, ISPPRV_RGB_OFF1);
++
++	val = (rgb2rgb.offset[2] & 0x3ff) << ISPPRV_RGB_OFF2_MTX_OFFB_SHIFT;
++	isp_reg_writel(val, OMAP3_ISP_IOMEM_PREV, ISPPRV_RGB_OFF2);
++}
++EXPORT_SYMBOL_GPL(isppreview_config_rgb_blending);
++
++/**
++ * Configures the RGB-YCbYCr conversion matrix
++ * @prev_csc: Structure containing the RGB to YCbYCr matrix and the
++ *            YCbCr offset.
++ **/
++void isppreview_config_rgb_to_ycbcr(struct ispprev_csc prev_csc)
++{
++	u32 val = 0;
++
++	val = (prev_csc.matrix[0][0] & 0x3ff) << ISPPRV_CSC0_RY_SHIFT;
++	val |= (prev_csc.matrix[0][1] & 0x3ff) << ISPPRV_CSC0_GY_SHIFT;
++	val |= (prev_csc.matrix[0][2] & 0x3ff) << ISPPRV_CSC0_BY_SHIFT;
++	isp_reg_writel(val, OMAP3_ISP_IOMEM_PREV, ISPPRV_CSC0);
++
++	val = (prev_csc.matrix[1][0] & 0x3ff) << ISPPRV_CSC1_RCB_SHIFT;
++	val |= (prev_csc.matrix[1][1] & 0x3ff) << ISPPRV_CSC1_GCB_SHIFT;
++	val |= (prev_csc.matrix[1][2] & 0x3ff) << ISPPRV_CSC1_BCB_SHIFT;
++	isp_reg_writel(val, OMAP3_ISP_IOMEM_PREV, ISPPRV_CSC1);
++
++	val = (prev_csc.matrix[2][0] & 0x3ff) << ISPPRV_CSC2_RCR_SHIFT;
++	val |= (prev_csc.matrix[2][1] & 0x3ff) << ISPPRV_CSC2_GCR_SHIFT;
++	val |= (prev_csc.matrix[2][2] & 0x3ff) << ISPPRV_CSC2_BCR_SHIFT;
++	isp_reg_writel(val, OMAP3_ISP_IOMEM_PREV, ISPPRV_CSC2);
++
++	val = (prev_csc.offset[0] & 0xff) << ISPPRV_CSC_OFFSET_CR_SHIFT;
++	val |= (prev_csc.offset[1] & 0xff) << ISPPRV_CSC_OFFSET_CB_SHIFT;
++	val |= (prev_csc.offset[2] & 0xff) << ISPPRV_CSC_OFFSET_Y_SHIFT;
++	isp_reg_writel(val, OMAP3_ISP_IOMEM_PREV, ISPPRV_CSC_OFFSET);
++}
++EXPORT_SYMBOL_GPL(isppreview_config_rgb_to_ycbcr);
++
++/**
++ * isppreview_query_contrast - Query the contrast.
++ * @contrast: Pointer to hold the current programmed contrast value.
++ **/
++void isppreview_query_contrast(u8 *contrast)
++{
++	u32 brt_cnt_val = 0;
++
++	brt_cnt_val = isp_reg_readl(OMAP3_ISP_IOMEM_PREV, ISPPRV_CNT_BRT);
++	*contrast = (brt_cnt_val >> ISPPRV_CNT_BRT_CNT_SHIFT) & 0xFF;
++	DPRINTK_ISPPREV(" Current brt cnt value in hw is %x\n", brt_cnt_val);
++}
++EXPORT_SYMBOL_GPL(isppreview_query_contrast);
++
++/**
++ * isppreview_update_contrast - Updates the contrast.
++ * @contrast: Pointer to hold the current programmed contrast value.
++ *
++ * Value should be programmed before enabling the module.
++ **/
++void isppreview_update_contrast(u8 *contrast)
++{
++	ispprev_obj.contrast = *contrast;
++}
++EXPORT_SYMBOL_GPL(isppreview_update_contrast);
++
++/**
++ * isppreview_config_contrast - Configures the Contrast.
++ * @contrast: 8 bit value in U8Q4 format.
++ *
++ * Value should be programmed before enabling the module.
++ **/
++void isppreview_config_contrast(u8 contrast)
++{
++	u32 brt_cnt_val = 0;
++
++	brt_cnt_val = isp_reg_readl(OMAP3_ISP_IOMEM_PREV, ISPPRV_CNT_BRT);
++	brt_cnt_val &= ~(0xFF << ISPPRV_CNT_BRT_CNT_SHIFT);
++	contrast &= 0xFF;
++	isp_reg_writel(brt_cnt_val | (contrast << ISPPRV_CNT_BRT_CNT_SHIFT),
++				OMAP3_ISP_IOMEM_PREV, ISPPRV_CNT_BRT);
++}
++EXPORT_SYMBOL_GPL(isppreview_config_contrast);
++
++/**
++ * isppreview_get_contrast_range - Gets the range contrast value.
++ * @min_contrast: Pointer to hold the minimum Contrast value.
++ * @max_contrast: Pointer to hold the maximum Contrast value.
++ **/
++void isppreview_get_contrast_range(u8 *min_contrast, u8 *max_contrast)
++{
++	*min_contrast = ISPPRV_CONTRAST_MIN;
++	*max_contrast = ISPPRV_CONTRAST_MAX;
++}
++EXPORT_SYMBOL_GPL(isppreview_get_contrast_range);
++
++/**
++ * isppreview_update_brightness - Updates the brightness in preview module.
++ * @brightness: Pointer to hold the current programmed brightness value.
++ *
++ **/
++void isppreview_update_brightness(u8 *brightness)
++{
++	ispprev_obj.brightness = *brightness;
++}
++EXPORT_SYMBOL_GPL(isppreview_update_brightness);
++
++/**
++ * isppreview_config_brightness - Configures the brightness.
++ * @contrast: 8bitvalue in U8Q0 format.
++ **/
++void isppreview_config_brightness(u8 brightness)
++{
++	u32 brt_cnt_val = 0;
++
++	DPRINTK_ISPPREV("\tConfiguring brightness in ISP: %d\n", brightness);
++	brt_cnt_val = isp_reg_readl(OMAP3_ISP_IOMEM_PREV, ISPPRV_CNT_BRT);
++	brt_cnt_val &= ~(0xFF << ISPPRV_CNT_BRT_BRT_SHIFT);
++	brightness &= 0xFF;
++	isp_reg_writel(brt_cnt_val | (brightness << ISPPRV_CNT_BRT_BRT_SHIFT),
++				OMAP3_ISP_IOMEM_PREV, ISPPRV_CNT_BRT);
++}
++EXPORT_SYMBOL_GPL(isppreview_config_brightness);
++
++/**
++ * isppreview_query_brightness - Query the brightness.
++ * @brightness: Pointer to hold the current programmed brightness value.
++ **/
++void isppreview_query_brightness(u8 *brightness)
++{
++	*brightness = isp_reg_readl(OMAP3_ISP_IOMEM_PREV, ISPPRV_CNT_BRT);
++}
++EXPORT_SYMBOL_GPL(isppreview_query_brightness);
++
++/**
++ * isppreview_get_brightness_range - Gets the range brightness value
++ * @min_brightness: Pointer to hold the minimum brightness value
++ * @max_brightness: Pointer to hold the maximum brightness value
++ **/
++void isppreview_get_brightness_range(u8 *min_brightness, u8 *max_brightness)
++{
++	*min_brightness = ISPPRV_BRIGHT_MIN;
++	*max_brightness = ISPPRV_BRIGHT_MAX;
++}
++EXPORT_SYMBOL_GPL(isppreview_get_brightness_range);
++
++/**
++ * isppreview_set_color - Sets the color effect.
++ * @mode: Indicates the required color effect.
++ **/
++void isppreview_set_color(u8 *mode)
++{
++	ispprev_obj.color = *mode;
++	update_color_matrix = 1;
++}
++EXPORT_SYMBOL_GPL(isppreview_set_color);
++
++/**
++ * isppreview_get_color - Gets the current color effect.
++ * @mode: Indicates the current color effect.
++ **/
++void isppreview_get_color(u8 *mode)
++{
++	*mode = ispprev_obj.color;
++}
++EXPORT_SYMBOL_GPL(isppreview_get_color);
++
++/**
++ * isppreview_config_yc_range - Configures the max and min Y and C values.
++ * @yclimit: Structure containing the range of Y and C values.
++ **/
++void isppreview_config_yc_range(struct ispprev_yclimit yclimit)
++{
++	isp_reg_writel(((yclimit.maxC << ISPPRV_SETUP_YC_MAXC_SHIFT) |
++				(yclimit.maxY << ISPPRV_SETUP_YC_MAXY_SHIFT) |
++				(yclimit.minC << ISPPRV_SETUP_YC_MINC_SHIFT) |
++				(yclimit.minY << ISPPRV_SETUP_YC_MINY_SHIFT)),
++				OMAP3_ISP_IOMEM_PREV, ISPPRV_SETUP_YC);
++}
++EXPORT_SYMBOL_GPL(isppreview_config_yc_range);
++
++/**
++ * isppreview_try_size - Calculates output dimensions with the modules enabled.
++ * @input_w: input width for the preview in number of pixels per line
++ * @input_h: input height for the preview in number of lines
++ * @output_w: output width from the preview in number of pixels per line
++ * @output_h: output height for the preview in number of lines
++ *
++ * Calculates the number of pixels cropped in the submodules that are enabled,
++ * Fills up the output width height variables in the isp_prev structure.
++ **/
++int isppreview_try_size(u32 input_w, u32 input_h, u32 *output_w, u32 *output_h)
++{
++	u32 prevout_w = input_w;
++	u32 prevout_h = input_h;
++	u32 div = 0;
++	int max_out;
++
++	ispprev_obj.previn_w = input_w;
++	ispprev_obj.previn_h = input_h;
++
++	if (input_w < 32 || input_h < 32) {
++		printk(KERN_ERR "ISP_ERR : preview does not support "
++				"width < 16 or height < 32 \n");
++		return -EINVAL;
++	}
++	if (omap_rev() == OMAP3430_REV_ES1_0)
++		max_out = ISPPRV_MAXOUTPUT_WIDTH;
++	else
++		max_out = ISPPRV_MAXOUTPUT_WIDTH_ES2;
++
++	ispprev_obj.fmtavg = 0;
++
++	if (input_w > max_out) {
++		div = (input_w/max_out);
++		if (div >= 2 && div < 4) {
++			ispprev_obj.fmtavg = 1;
++			prevout_w /= 2;
++		} else if (div >= 4 && div < 8) {
++			ispprev_obj.fmtavg = 2;
++			prevout_w /= 4;
++		} else if (div >= 8) {
++			ispprev_obj.fmtavg = 3;
++			prevout_w /= 8;
++		}
++	}
++
++	if (ispprev_obj.hmed_en)
++		prevout_w -= 4;
++	if (ispprev_obj.nf_en) {
++		prevout_w -= 4;
++		prevout_h -= 4;
++	}
++	if (ispprev_obj.cfa_en) {
++		switch (ispprev_obj.cfafmt) {
++		case CFAFMT_BAYER:
++		case CFAFMT_SONYVGA:
++			prevout_w -= 4;
++			prevout_h -= 4;
++			break;
++		case CFAFMT_RGBFOVEON:
++		case CFAFMT_RRGGBBFOVEON:
++		case CFAFMT_DNSPL:
++		case CFAFMT_HONEYCOMB:
++			prevout_h -= 2;
++			break;
++		};
++	}
++	if (ispprev_obj.yenh_en || ispprev_obj.csup_en)
++		prevout_w -= 2;
++
++	/* Start at the correct row/column by skipping
++	 * a Sensor specific amount.
++	 */
++	prevout_w -= ispprev_obj.sph;
++	prevout_h -= ispprev_obj.slv;
++
++
++	if (prevout_w % 2)
++		prevout_w -= 1;
++
++	if (ispprev_obj.prev_outfmt == PREVIEW_MEM) {
++		if (((prevout_w * 2) & ISP_32B_BOUNDARY_OFFSET) !=
++							(prevout_w * 2)) {
++			prevout_w = ((prevout_w * 2) &
++						ISP_32B_BOUNDARY_OFFSET) / 2;
++		}
++	}
++	*output_w = prevout_w;
++	ispprev_obj.prevout_w = prevout_w;
++	*output_h = prevout_h;
++	ispprev_obj.prevout_h = prevout_h;
++	return 0;
++}
++EXPORT_SYMBOL_GPL(isppreview_try_size);
++
++/**
++ * isppreview_config_size - Sets the size of ISP preview output.
++ * @input_w: input width for the preview in number of pixels per line
++ * @input_h: input height for the preview in number of lines
++ * @output_w: output width from the preview in number of pixels per line
++ * @output_h: output height for the preview in number of lines
++ *
++ * Configures the appropriate values stored in the isp_prev structure to
++ * HORZ/VERT_INFO. Configures PRV_AVE if needed for downsampling as calculated
++ * in trysize.
++ **/
++int isppreview_config_size(u32 input_w, u32 input_h, u32 output_w, u32 output_h)
++{
++	u32 prevsdroff;
++
++	if ((output_w != ispprev_obj.prevout_w) ||
++					(output_h != ispprev_obj.prevout_h)) {
++		printk(KERN_ERR "ISP_ERR : isppreview_try_size should "
++					"be called before config size\n");
++		return -EINVAL;
++	}
++
++	isp_reg_writel((ispprev_obj.sph << ISPPRV_HORZ_INFO_SPH_SHIFT) |
++					(ispprev_obj.previn_w - 1),
++					OMAP3_ISP_IOMEM_PREV, ISPPRV_HORZ_INFO);
++	isp_reg_writel((ispprev_obj.slv << ISPPRV_VERT_INFO_SLV_SHIFT) |
++					(ispprev_obj.previn_h - 2),
++					OMAP3_ISP_IOMEM_PREV, ISPPRV_VERT_INFO);
++
++	if (ispprev_obj.cfafmt == CFAFMT_BAYER)
++		isp_reg_writel(ISPPRV_AVE_EVENDIST_2 <<
++					ISPPRV_AVE_EVENDIST_SHIFT |
++					ISPPRV_AVE_ODDDIST_2 <<
++					ISPPRV_AVE_ODDDIST_SHIFT |
++					ispprev_obj.fmtavg,
++					OMAP3_ISP_IOMEM_PREV, ISPPRV_AVE);
++
++	if (ispprev_obj.prev_outfmt == PREVIEW_MEM) {
++		prevsdroff = ispprev_obj.prevout_w * 2;
++		if ((prevsdroff & ISP_32B_BOUNDARY_OFFSET) != prevsdroff) {
++			DPRINTK_ISPPREV("ISP_WARN: Preview output buffer line"
++						" size is truncated"
++						" to 32byte boundary\n");
++			prevsdroff &= ISP_32B_BOUNDARY_BUF ;
++		}
++		isppreview_config_outlineoffset(prevsdroff);
++	}
++	return 0;
++}
++EXPORT_SYMBOL_GPL(isppreview_config_size);
++
++/**
++ * isppreview_config_inlineoffset - Configures the Read address line offset.
++ * @offset: Line Offset for the input image.
++ **/
++int isppreview_config_inlineoffset(u32 offset)
++{
++	if ((offset & ISP_32B_BOUNDARY_OFFSET) == offset) {
++		isp_reg_writel(offset & 0xFFFF,
++				OMAP3_ISP_IOMEM_PREV, ISPPRV_RADR_OFFSET);
++	} else {
++		printk(KERN_ERR "ISP_ERR : Offset should be in 32 byte "
++								"boundary\n");
++		return -EINVAL;
++	}
++	return 0;
++}
++EXPORT_SYMBOL_GPL(isppreview_config_inlineoffset);
++
++/**
++ * isppreview_set_inaddr - Sets memory address of input frame.
++ * @addr: 32bit memory address aligned on 32byte boundary.
++ *
++ * Configures the memory address from which the input frame is to be read.
++ **/
++int isppreview_set_inaddr(u32 addr)
++{
++	if ((addr & ISP_32B_BOUNDARY_BUF) == addr)
++		isp_reg_writel(addr, OMAP3_ISP_IOMEM_PREV, ISPPRV_RSDR_ADDR);
++	else {
++		printk(KERN_ERR "ISP_ERR: Address should be in 32 byte "
++								"boundary\n");
++		return -EINVAL;
++	}
++	return 0;
++}
++EXPORT_SYMBOL_GPL(isppreview_set_inaddr);
++
++/**
++ * isppreview_config_outlineoffset - Configures the Write address line offset.
++ * @offset: Line Offset for the preview output.
++ **/
++int isppreview_config_outlineoffset(u32 offset)
++{
++	if ((offset & ISP_32B_BOUNDARY_OFFSET) != offset) {
++		printk(KERN_ERR "ISP_ERR : Offset should be in 32 byte "
++								"boundary\n");
++		return -EINVAL;
++	}
++	isp_reg_writel(offset & 0xFFFF, OMAP3_ISP_IOMEM_PREV,
++							ISPPRV_WADD_OFFSET);
++	return 0;
++}
++EXPORT_SYMBOL_GPL(isppreview_config_outlineoffset);
++
++/**
++ * isppreview_set_outaddr - Sets the memory address to store output frame
++ * @addr: 32bit memory address aligned on 32byte boundary.
++ *
++ * Configures the memory address to which the output frame is written.
++ **/
++int isppreview_set_outaddr(u32 addr)
++{
++	if ((addr & ISP_32B_BOUNDARY_BUF) != addr) {
++		printk(KERN_ERR "ISP_ERR: Address should be in 32 byte "
++								"boundary\n");
++		return -EINVAL;
++	}
++	isp_reg_writel(addr, OMAP3_ISP_IOMEM_PREV, ISPPRV_WSDR_ADDR);
++	return 0;
++}
++EXPORT_SYMBOL_GPL(isppreview_set_outaddr);
++
++/**
++ * isppreview_config_darklineoffset - Sets the Dark frame address line offset.
++ * @offset: Line Offset for the Darkframe.
++ **/
++int isppreview_config_darklineoffset(u32 offset)
++{
++	if ((offset & ISP_32B_BOUNDARY_OFFSET) != offset) {
++		printk(KERN_ERR "ISP_ERR : Offset should be in 32 byte "
++								"boundary\n");
++		return -EINVAL;
++	}
++	isp_reg_writel(offset & 0xFFFF, OMAP3_ISP_IOMEM_PREV,
++							ISPPRV_DRKF_OFFSET);
++	return 0;
++}
++EXPORT_SYMBOL_GPL(isppreview_config_darklineoffset);
++
++/**
++ * isppreview_set_darkaddr - Sets the memory address to store Dark frame.
++ * @addr: 32bit memory address aligned on 32 bit boundary.
++ **/
++int isppreview_set_darkaddr(u32 addr)
++{
++	if ((addr & ISP_32B_BOUNDARY_BUF) != addr) {
++		printk(KERN_ERR "ISP_ERR : Address should be in 32 byte "
++								"boundary\n");
++		return -EINVAL;
++	}
++	isp_reg_writel(addr, OMAP3_ISP_IOMEM_PREV, ISPPRV_DSDR_ADDR);
++	return 0;
++}
++EXPORT_SYMBOL_GPL(isppreview_set_darkaddr);
++
++/**
++ * isppreview_enable - Enables the Preview module.
++ * @enable: 1 - Enables the preview module.
++ *
++ * Client should configure all the sub modules in Preview before this.
++ **/
++void isppreview_enable(u8 enable)
++{
++	if (enable)
++		isp_reg_or(OMAP3_ISP_IOMEM_PREV, ISPPRV_PCR, ISPPRV_PCR_EN);
++	else
++		isp_reg_and(OMAP3_ISP_IOMEM_PREV, ISPPRV_PCR, ~ISPPRV_PCR_EN);
++}
++EXPORT_SYMBOL_GPL(isppreview_enable);
++
++/**
++ * isppreview_busy - Gets busy state of preview module.
++ **/
++int isppreview_busy(void)
++{
++	return isp_reg_readl(OMAP3_ISP_IOMEM_PREV, ISPPRV_PCR) &
++							ISPPRV_PCR_BUSY;
++}
++EXPORT_SYMBOL_GPL(isppreview_busy);
++
++/**
++ * isppreview_get_config - Gets parameters of preview module.
++ **/
++struct prev_params *isppreview_get_config(void)
++{
++	return prev_config_params;
++}
++EXPORT_SYMBOL_GPL(isppreview_get_config);
++
++/**
++ * isppreview_save_context - Saves the values of the preview module registers.
++ **/
++void isppreview_save_context(void)
++{
++	DPRINTK_ISPPREV("Saving context\n");
++	isp_save_context(ispprev_reg_list);
++}
++EXPORT_SYMBOL_GPL(isppreview_save_context);
++
++/**
++ * isppreview_restore_context - Restores the values of preview module registers
++ **/
++void isppreview_restore_context(void)
++{
++	DPRINTK_ISPPREV("Restoring context\n");
++	isp_restore_context(ispprev_reg_list);
++}
++EXPORT_SYMBOL_GPL(isppreview_restore_context);
++
++/**
++ * isppreview_print_status - Prints the values of the Preview Module registers.
++ *
++ * Also prints other debug information stored in the preview moduel.
++ **/
++void isppreview_print_status(void)
++{
++	DPRINTK_ISPPREV("Module in use =%d\n", ispprev_obj.prev_inuse);
++	DPRINTK_ISPPREV("Preview Input format =%d, Output Format =%d\n",
++						ispprev_obj.prev_inpfmt,
++						ispprev_obj.prev_outfmt);
++	DPRINTK_ISPPREV("Accepted Preview Input (width = %d,Height = %d)\n",
++						ispprev_obj.previn_w,
++						ispprev_obj.previn_h);
++	DPRINTK_ISPPREV("Accepted Preview Output (width = %d,Height = %d)\n",
++						ispprev_obj.prevout_w,
++						ispprev_obj.prevout_h);
++	DPRINTK_ISPPREV("###ISP_CTRL in preview =0x%x\n",
++		isp_reg_readl(OMAP3_ISP_IOMEM_MAIN, ISP_CTRL));
++	DPRINTK_ISPPREV("###ISP_IRQ0ENABLE in preview =0x%x\n",
++		isp_reg_readl(OMAP3_ISP_IOMEM_MAIN, ISP_IRQ0ENABLE));
++	DPRINTK_ISPPREV("###ISP_IRQ0STATUS in preview =0x%x\n",
++		isp_reg_readl(OMAP3_ISP_IOMEM_MAIN, ISP_IRQ0STATUS));
++	DPRINTK_ISPPREV("###PRV PCR =0x%x\n",
++		isp_reg_readl(OMAP3_ISP_IOMEM_PREV, ISPPRV_PCR));
++	DPRINTK_ISPPREV("###PRV HORZ_INFO =0x%x\n",
++		isp_reg_readl(OMAP3_ISP_IOMEM_PREV, ISPPRV_HORZ_INFO));
++	DPRINTK_ISPPREV("###PRV VERT_INFO =0x%x\n",
++		isp_reg_readl(OMAP3_ISP_IOMEM_PREV, ISPPRV_VERT_INFO));
++	DPRINTK_ISPPREV("###PRV WSDR_ADDR =0x%x\n",
++		isp_reg_readl(OMAP3_ISP_IOMEM_PREV, ISPPRV_WSDR_ADDR));
++	DPRINTK_ISPPREV("###PRV WADD_OFFSET =0x%x\n",
++		isp_reg_readl(OMAP3_ISP_IOMEM_PREV, ISPPRV_WADD_OFFSET));
++	DPRINTK_ISPPREV("###PRV AVE =0x%x\n",
++		isp_reg_readl(OMAP3_ISP_IOMEM_PREV, ISPPRV_AVE));
++	DPRINTK_ISPPREV("###PRV HMED =0x%x\n",
++		isp_reg_readl(OMAP3_ISP_IOMEM_PREV, ISPPRV_HMED));
++	DPRINTK_ISPPREV("###PRV NF =0x%x\n",
++		isp_reg_readl(OMAP3_ISP_IOMEM_PREV, ISPPRV_NF));
++	DPRINTK_ISPPREV("###PRV WB_DGAIN =0x%x\n",
++		isp_reg_readl(OMAP3_ISP_IOMEM_PREV, ISPPRV_WB_DGAIN));
++	DPRINTK_ISPPREV("###PRV WBGAIN =0x%x\n",
++		isp_reg_readl(OMAP3_ISP_IOMEM_PREV, ISPPRV_WBGAIN));
++	DPRINTK_ISPPREV("###PRV WBSEL =0x%x\n",
++		isp_reg_readl(OMAP3_ISP_IOMEM_PREV, ISPPRV_WBSEL));
++	DPRINTK_ISPPREV("###PRV CFA =0x%x\n",
++		isp_reg_readl(OMAP3_ISP_IOMEM_PREV, ISPPRV_CFA));
++	DPRINTK_ISPPREV("###PRV BLKADJOFF =0x%x\n",
++		isp_reg_readl(OMAP3_ISP_IOMEM_PREV, ISPPRV_BLKADJOFF));
++	DPRINTK_ISPPREV("###PRV RGB_MAT1 =0x%x\n",
++		isp_reg_readl(OMAP3_ISP_IOMEM_PREV, ISPPRV_RGB_MAT1));
++	DPRINTK_ISPPREV("###PRV RGB_MAT2 =0x%x\n",
++		isp_reg_readl(OMAP3_ISP_IOMEM_PREV, ISPPRV_RGB_MAT2));
++	DPRINTK_ISPPREV("###PRV RGB_MAT3 =0x%x\n",
++		isp_reg_readl(OMAP3_ISP_IOMEM_PREV, ISPPRV_RGB_MAT3));
++	DPRINTK_ISPPREV("###PRV RGB_MAT4 =0x%x\n",
++		isp_reg_readl(OMAP3_ISP_IOMEM_PREV, ISPPRV_RGB_MAT4));
++	DPRINTK_ISPPREV("###PRV RGB_MAT5 =0x%x\n",
++		isp_reg_readl(OMAP3_ISP_IOMEM_PREV, ISPPRV_RGB_MAT5));
++	DPRINTK_ISPPREV("###PRV RGB_OFF1 =0x%x\n",
++		isp_reg_readl(OMAP3_ISP_IOMEM_PREV, ISPPRV_RGB_OFF1));
++	DPRINTK_ISPPREV("###PRV RGB_OFF2 =0x%x\n",
++		isp_reg_readl(OMAP3_ISP_IOMEM_PREV, ISPPRV_RGB_OFF2));
++	DPRINTK_ISPPREV("###PRV CSC0 =0x%x\n",
++		isp_reg_readl(OMAP3_ISP_IOMEM_PREV, ISPPRV_CSC0));
++	DPRINTK_ISPPREV("###PRV CSC1 =0x%x\n",
++		isp_reg_readl(OMAP3_ISP_IOMEM_PREV, ISPPRV_CSC1));
++	DPRINTK_ISPPREV("###PRV CSC2 =0x%x\n",
++		isp_reg_readl(OMAP3_ISP_IOMEM_PREV, ISPPRV_CSC2));
++	DPRINTK_ISPPREV("###PRV CSC_OFFSET =0x%x\n",
++		isp_reg_readl(OMAP3_ISP_IOMEM_PREV, ISPPRV_CSC_OFFSET));
++	DPRINTK_ISPPREV("###PRV CNT_BRT =0x%x\n",
++		isp_reg_readl(OMAP3_ISP_IOMEM_PREV, ISPPRV_CNT_BRT));
++	DPRINTK_ISPPREV("###PRV CSUP =0x%x\n",
++		isp_reg_readl(OMAP3_ISP_IOMEM_PREV, ISPPRV_CSUP));
++	DPRINTK_ISPPREV("###PRV SETUP_YC =0x%x\n",
++		isp_reg_readl(OMAP3_ISP_IOMEM_PREV, ISPPRV_SETUP_YC));
++}
++EXPORT_SYMBOL_GPL(isppreview_print_status);
++
++/**
++ * isp_preview_init - Module Initialization.
++ **/
++int __init isp_preview_init(void)
++{
++	int i = 0;
++
++	prev_config_params = kmalloc(sizeof(*prev_config_params), GFP_KERNEL);
++	if (!prev_config_params) {
++		printk(KERN_ERR "Can't get memory for isp_preview params!\n");
++		return -ENOMEM;
++	}
++	params = prev_config_params;
++
++	ispprev_obj.prev_inuse = 0;
++	mutex_init(&ispprev_obj.ispprev_mutex);
++
++	/* Init values */
++	ispprev_obj.sph = 2;
++	ispprev_obj.slv = 0;
++	ispprev_obj.color = V4L2_COLORFX_NONE;
++	ispprev_obj.contrast = ISPPRV_CONTRAST_DEF;
++	params->contrast = ISPPRV_CONTRAST_DEF;
++	ispprev_obj.brightness = ISPPRV_BRIGHT_DEF;
++	params->brightness = ISPPRV_BRIGHT_DEF;
++	params->average = NO_AVE;
++	params->lens_shading_shift = 0;
++	params->pix_fmt = YCPOS_YCrYCb;
++	params->cfa.cfafmt = CFAFMT_BAYER;
++	params->cfa.cfa_table = cfa_coef_table;
++	params->cfa.cfa_gradthrs_horz = FLR_CFA_GRADTHRS_HORZ;
++	params->cfa.cfa_gradthrs_vert = FLR_CFA_GRADTHRS_VERT;
++	params->csup.gain = FLR_CSUP_GAIN;
++	params->csup.thres = FLR_CSUP_THRES;
++	params->csup.hypf_en = 0;
++	params->ytable = luma_enhance_table;
++	params->nf.spread = FLR_NF_STRGTH;
++	memcpy(params->nf.table, noise_filter_table, sizeof(params->nf.table));
++	params->dcor.couplet_mode_en = 1;
++	for (i = 0; i < 4; i++)
++		params->dcor.detect_correct[i] = 0xE;
++	params->gtable.bluetable = bluegamma_table;
++	params->gtable.greentable = greengamma_table;
++	params->gtable.redtable = redgamma_table;
++	params->wbal.dgain = FLR_WBAL_DGAIN;
++	if (omap_rev() > OMAP3430_REV_ES1_0) {
++		params->wbal.coef0 = FLR_WBAL_COEF0_ES1;
++		params->wbal.coef1 = FLR_WBAL_COEF1_ES1;
++		params->wbal.coef2 = FLR_WBAL_COEF2_ES1;
++		params->wbal.coef3 = FLR_WBAL_COEF3_ES1;
++	} else {
++		params->wbal.coef0 = FLR_WBAL_COEF0;
++		params->wbal.coef1 = FLR_WBAL_COEF1;
++		params->wbal.coef2 = FLR_WBAL_COEF2;
++		params->wbal.coef3 = FLR_WBAL_COEF3;
++	}
++	params->blk_adj.red = FLR_BLKADJ_RED;
++	params->blk_adj.green = FLR_BLKADJ_GREEN;
++	params->blk_adj.blue = FLR_BLKADJ_BLUE;
++	params->rgb2rgb = flr_rgb2rgb;
++	params->rgb2ycbcr = flr_prev_csc[ispprev_obj.color];
++
++	params->features = PREV_CFA | PREV_DEFECT_COR | PREV_NOISE_FILTER;
++	params->features &= ~(PREV_AVERAGER | PREV_INVERSE_ALAW |
++						PREV_HORZ_MEDIAN_FILTER |
++						PREV_GAMMA_BYPASS |
++						PREV_DARK_FRAME_SUBTRACT |
++						PREV_LENS_SHADING |
++						PREV_DARK_FRAME_CAPTURE |
++						PREV_CHROMA_SUPPRESS |
++						PREV_LUMA_ENHANCE);
 +	return 0;
 +}
 +
-+MODULE_AUTHOR("Texas Instruments");
-+MODULE_DESCRIPTION("ISP CSI2 Receiver Module");
-+MODULE_LICENSE("GPL");
-diff --git a/drivers/media/video/isp/ispcsi2.h b/drivers/media/video/isp/ispcsi2.h
++/**
++ * isp_preview_cleanup - Module Cleanup.
++ **/
++void isp_preview_cleanup(void)
++{
++	kfree(prev_config_params);
++}
+diff --git a/drivers/media/video/isp/isppreview.h b/drivers/media/video/isp/isppreview.h
 new file mode 100644
-index 0000000..56e3d25
+index 0000000..f8a12d5
 --- /dev/null
-+++ b/drivers/media/video/isp/ispcsi2.h
-@@ -0,0 +1,232 @@
++++ b/drivers/media/video/isp/isppreview.h
+@@ -0,0 +1,350 @@
 +/*
-+ * ispcsi2.h
++ * isppreview.h
 + *
-+ * Copyright (C) 2009 Texas Instruments.
++ * Driver header file for Preview module in TI's OMAP3 Camera ISP
++ *
++ * Copyright (C) 2009 Texas Instruments, Inc.
 + *
 + * Contributors:
-+ * 	Sergio Aguirre <saaguirre@ti.com>
-+ * 	Dominic Curran <dcurran@ti.com>
++ *	Senthilvadivu Guruswamy <svadivu@ti.com>
++ *	Pallavi Kulkarni <p-kulkarni@ti.com>
++ *	Sergio Aguirre <saaguirre@ti.com>
 + *
 + * This package is free software; you can redistribute it and/or modify
 + * it under the terms of the GNU General Public License version 2 as
@@ -2178,220 +1955,1398 @@ index 0000000..56e3d25
 + * WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 + */
 +
-+#ifndef OMAP_ISP_CSI2_API_H
-+#define OMAP_ISP_CSI2_API_H
-+#include <linux/videodev2.h>
++#ifndef OMAP_ISP_PREVIEW_H
++#define OMAP_ISP_PREVIEW_H
 +
-+enum isp_csi2_irqevents {
-+	OCP_ERR_IRQ = 0x4000,
-+	SHORT_PACKET_IRQ = 0x2000,
-+	ECC_CORRECTION_IRQ = 0x1000,
-+	ECC_NO_CORRECTION_IRQ = 0x800,
-+	COMPLEXIO2_ERR_IRQ = 0x400,
-+	COMPLEXIO1_ERR_IRQ = 0x200,
-+	FIFO_OVF_IRQ = 0x100,
-+	CONTEXT7 = 0x80,
-+	CONTEXT6 = 0x40,
-+	CONTEXT5 = 0x20,
-+	CONTEXT4 = 0x10,
-+	CONTEXT3 = 0x8,
-+	CONTEXT2 = 0x4,
-+	CONTEXT1 = 0x2,
-+	CONTEXT0 = 0x1,
++#include <mach/isp_user.h>
++/* Isp query control structure */
++
++#define ISPPRV_BRIGHT_STEP		0x1
++#define ISPPRV_BRIGHT_DEF		0x0
++#define ISPPRV_BRIGHT_LOW		0x0
++#define ISPPRV_BRIGHT_HIGH		0xF
++#define ISPPRV_BRIGHT_UNITS		0x7
++
++#define ISPPRV_CONTRAST_STEP		0x1
++#define ISPPRV_CONTRAST_DEF		0x4
++#define ISPPRV_CONTRAST_LOW		0x0
++#define ISPPRV_CONTRAST_HIGH		0xF
++#define ISPPRV_CONTRAST_UNITS		0x4
++
++#define NO_AVE				0x0
++#define AVE_2_PIX			0x1
++#define AVE_4_PIX			0x2
++#define AVE_8_PIX			0x3
++#define AVE_ODD_PIXEL_DIST		(1 << 4) /* For Bayer Sensors */
++#define AVE_EVEN_PIXEL_DIST		(1 << 2)
++
++#define WB_GAIN_MAX			4
++
++/* Features list */
++#define PREV_AVERAGER			(1 << 0)
++#define PREV_INVERSE_ALAW 		(1 << 1)
++#define PREV_HORZ_MEDIAN_FILTER		(1 << 2)
++#define PREV_NOISE_FILTER 		(1 << 3)
++#define PREV_CFA			(1 << 4)
++#define PREV_GAMMA_BYPASS		(1 << 5)
++#define PREV_LUMA_ENHANCE		(1 << 6)
++#define PREV_CHROMA_SUPPRESS		(1 << 7)
++#define PREV_DARK_FRAME_SUBTRACT	(1 << 8)
++#define PREV_LENS_SHADING		(1 << 9)
++#define PREV_DARK_FRAME_CAPTURE		(1 << 10)
++#define PREV_DEFECT_COR			(1 << 11)
++
++
++#define ISP_NF_TABLE_SIZE 		(1 << 10)
++
++#define ISP_GAMMA_TABLE_SIZE 		(1 << 10)
++
++/* Table addresses */
++#define ISPPRV_TBL_ADDR_RED_G_START  0x00
++#define ISPPRV_TBL_ADDR_BLUE_G_START  0x800
++#define ISPPRV_TBL_ADDR_GREEN_G_START  0x400
++
++/*
++ *Enumeration Constants for input and output format
++ */
++enum preview_input {
++	PRV_RAW_CCDC,
++	PRV_RAW_MEM,
++	PRV_RGBBAYERCFA,
++	PRV_COMPCFA,
++	PRV_CCDC_DRKF,
++	PRV_OTHERS
++};
++enum preview_output {
++	PREVIEW_RSZ,
++	PREVIEW_MEM
++};
++/*
++ * Configure byte layout of YUV image
++ */
++enum preview_ycpos_mode {
++	YCPOS_YCrYCb = 0,
++	YCPOS_YCbYCr = 1,
++	YCPOS_CbYCrY = 2,
++	YCPOS_CrYCbY = 3
 +};
 +
-+enum isp_csi2_ctx_irqevents {
-+	CTX_ECC_CORRECTION = 0x100,
-+	CTX_LINE_NUMBER = 0x80,
-+	CTX_FRAME_NUMBER = 0x40,
-+	CTX_CS = 0x20,
-+	CTX_LE = 0x8,
-+	CTX_LS = 0x4,
-+	CTX_FE = 0x2,
-+	CTX_FS = 0x1,
++/**
++ * struct ispprev_gtable - Structure for Gamma Correction.
++ * @redtable: Pointer to the red gamma table.
++ * @greentable: Pointer to the green gamma table.
++ * @bluetable: Pointer to the blue gamma table.
++ */
++struct ispprev_gtable {
++	u32 *redtable;
++	u32 *greentable;
++	u32 *bluetable;
 +};
 +
-+enum isp_csi2_power_cmds {
-+	ISP_CSI2_POWER_OFF,
-+	ISP_CSI2_POWER_ON,
-+	ISP_CSI2_POWER_ULPW,
++/**
++ * struct prev_white_balance - Structure for White Balance 2.
++ * @wb_dgain: White balance common gain.
++ * @wb_gain: Individual color gains.
++ * @wb_coefmatrix: Coefficient matrix
++ */
++struct prev_white_balance {
++	u16 wb_dgain; /* white balance common gain */
++	u8 wb_gain[WB_GAIN_MAX]; /* individual color gains */
++	u8 wb_coefmatrix[WB_GAIN_MAX][WB_GAIN_MAX];
 +};
 +
-+enum isp_csi2_frame_mode {
-+	ISP_CSI2_FRAME_IMMEDIATE,
-+	ISP_CSI2_FRAME_AFTERFEC,
++/**
++ * struct prev_size_params - Structure for size parameters.
++ * @hstart: Starting pixel.
++ * @vstart: Starting line.
++ * @hsize: Width of input image.
++ * @vsize: Height of input image.
++ * @pixsize: Pixel size of the image in terms of bits.
++ * @in_pitch: Line offset of input image.
++ * @out_pitch: Line offset of output image.
++ */
++struct prev_size_params {
++	unsigned int hstart;
++	unsigned int vstart;
++	unsigned int hsize;
++	unsigned int vsize;
++	unsigned char pixsize;
++	unsigned short in_pitch;
++	unsigned short out_pitch;
 +};
 +
-+struct csi2_lanecfg {
-+	u8 pos;
-+	u8 pol;
++/**
++ * struct prev_rgb2ycbcr_coeffs - Structure RGB2YCbCr parameters.
++ * @coeff: Color conversion gains in 3x3 matrix.
++ * @offset: Color conversion offsets.
++ */
++struct prev_rgb2ycbcr_coeffs {
++	short coeff[RGB_MAX][RGB_MAX];
++	short offset[RGB_MAX];
 +};
 +
-+struct isp_csi2_lanes_cfg {
-+	struct csi2_lanecfg data[4];
-+	struct csi2_lanecfg clk;
++/**
++ * struct prev_darkfrm_params - Structure for Dark frame suppression.
++ * @addr: Memory start address.
++ * @offset: Line offset.
++ */
++struct prev_darkfrm_params {
++	u32 addr;
++	u32 offset;
 +};
 +
-+struct isp_csi2_lanes_cfg_update {
-+	bool data[4];
-+	bool clk;
++/**
++ * struct prev_params - Structure for all configuration
++ * @features: Set of features enabled.
++ * @pix_fmt: Output pixel format.
++ * @cfa: CFA coefficients.
++ * @csup: Chroma suppression coefficients.
++ * @ytable: Pointer to Luma enhancement coefficients.
++ * @nf: Noise filter coefficients.
++ * @dcor: Noise filter coefficients.
++ * @gtable: Gamma coefficients.
++ * @wbal: White Balance parameters.
++ * @blk_adj: Black adjustment parameters.
++ * @rgb2rgb: RGB blending parameters.
++ * @rgb2ycbcr: RGB to ycbcr parameters.
++ * @hmf_params: Horizontal median filter.
++ * @size_params: Size parameters.
++ * @drkf_params: Darkframe parameters.
++ * @lens_shading_shift:
++ * @average: Downsampling rate for averager.
++ * @contrast: Contrast.
++ * @brightness: Brightness.
++ */
++struct prev_params {
++	u16 features;
++	enum preview_ycpos_mode pix_fmt;
++	struct ispprev_cfa cfa;
++	struct ispprev_csup csup;
++	u32 *ytable;
++	struct ispprev_nf nf;
++	struct ispprev_dcor dcor;
++	struct ispprev_gtable gtable;
++	struct ispprev_wbal wbal;
++	struct ispprev_blkadj blk_adj;
++	struct ispprev_rgbtorgb rgb2rgb;
++	struct ispprev_csc rgb2ycbcr;
++	struct ispprev_hmed hmf_params;
++	struct prev_size_params size_params;
++	struct prev_darkfrm_params drkf_params;
++	u8 lens_shading_shift;
++	u8 average;
++	u8 contrast;
++	u8 brightness;
 +};
 +
-+struct isp_csi2_phy_cfg {
-+	u8 ths_term;
-+	u8 ths_settle;
-+	u8 tclk_term;
-+	unsigned tclk_miss:1;
-+	u8 tclk_settle;
++/**
++ * struct isptables_update - Structure for Table Configuration.
++ * @update: Specifies which tables should be updated.
++ * @flag: Specifies which tables should be enabled.
++ * @prev_nf: Pointer to structure for Noise Filter
++ * @lsc: Pointer to LSC gain table. (currently not used)
++ * @red_gamma: Pointer to red gamma correction table.
++ * @green_gamma: Pointer to green gamma correction table.
++ * @blue_gamma: Pointer to blue gamma correction table.
++ */
++struct isptables_update {
++	u16 update;
++	u16 flag;
++	struct ispprev_nf *prev_nf;
++	u32 *lsc;
++	u32 *red_gamma;
++	u32 *green_gamma;
++	u32 *blue_gamma;
 +};
 +
-+struct isp_csi2_phy_cfg_update {
-+	bool ths_term;
-+	bool ths_settle;
-+	bool tclk_term;
-+	bool tclk_miss;
-+	bool tclk_settle;
++void isppreview_config_shadow_registers(void);
++
++int isppreview_request(void);
++
++int isppreview_free(void);
++
++int isppreview_config_datapath(enum preview_input input,
++					enum preview_output output);
++
++void isppreview_config_ycpos(enum preview_ycpos_mode mode);
++
++void isppreview_config_averager(u8 average);
++
++void isppreview_enable_invalaw(u8 enable);
++
++void isppreview_enable_drkframe(u8 enable);
++
++void isppreview_enable_shadcomp(u8 enable);
++
++void isppreview_config_drkf_shadcomp(u8 scomp_shtval);
++
++void isppreview_enable_gammabypass(u8 enable);
++
++void isppreview_enable_hmed(u8 enable);
++
++void isppreview_config_hmed(struct ispprev_hmed);
++
++void isppreview_enable_noisefilter(u8 enable);
++
++void isppreview_config_noisefilter(struct ispprev_nf prev_nf);
++
++void isppreview_enable_dcor(u8 enable);
++
++void isppreview_config_dcor(struct ispprev_dcor prev_dcor);
++
++
++void isppreview_config_cfa(struct ispprev_cfa);
++
++void isppreview_config_gammacorrn(struct ispprev_gtable);
++
++void isppreview_config_chroma_suppression(struct ispprev_csup csup);
++
++void isppreview_enable_cfa(u8 enable);
++
++void isppreview_config_luma_enhancement(u32 *ytable);
++
++void isppreview_enable_luma_enhancement(u8 enable);
++
++void isppreview_enable_chroma_suppression(u8 enable);
++
++void isppreview_config_whitebalance(struct ispprev_wbal);
++
++void isppreview_config_blkadj(struct ispprev_blkadj);
++
++void isppreview_config_rgb_blending(struct ispprev_rgbtorgb);
++
++void isppreview_config_rgb_to_ycbcr(struct ispprev_csc);
++
++void isppreview_update_contrast(u8 *contrast);
++
++void isppreview_query_contrast(u8 *contrast);
++
++void isppreview_config_contrast(u8 contrast);
++
++void isppreview_get_contrast_range(u8 *min_contrast, u8 *max_contrast);
++
++void isppreview_update_brightness(u8 *brightness);
++
++void isppreview_config_brightness(u8 brightness);
++
++void isppreview_get_brightness_range(u8 *min_brightness, u8 *max_brightness);
++
++void isppreview_set_color(u8 *mode);
++
++void isppreview_get_color(u8 *mode);
++
++void isppreview_query_brightness(u8 *brightness);
++
++void isppreview_config_yc_range(struct ispprev_yclimit yclimit);
++
++int isppreview_try_size(u32 input_w, u32 input_h, u32 *output_w,
++				u32 *output_h);
++
++int isppreview_config_size(u32 input_w, u32 input_h, u32 output_w,
++			u32 output_h);
++
++int isppreview_config_inlineoffset(u32 offset);
++
++int isppreview_set_inaddr(u32 addr);
++
++int isppreview_config_outlineoffset(u32 offset);
++
++int isppreview_set_outaddr(u32 addr);
++
++int isppreview_config_darklineoffset(u32 offset);
++
++int isppreview_set_darkaddr(u32 addr);
++
++void isppreview_enable(u8 enable);
++
++int isppreview_busy(void);
++
++struct prev_params *isppreview_get_config(void);
++
++void isppreview_print_status(void);
++
++#ifndef CONFIG_ARCH_OMAP3410
++void isppreview_save_context(void);
++#else
++static inline void isppreview_save_context(void) {}
++#endif
++
++#ifndef CONFIG_ARCH_OMAP3410
++void isppreview_restore_context(void);
++#else
++static inline void isppreview_restore_context(void) {}
++#endif
++
++int omap34xx_isp_preview_config(void *userspace_add);
++
++int omap34xx_isp_tables_update(struct isptables_update *isptables_struct);
++
++void isppreview_set_skip(u32 h, u32 v);
++
++#endif/* OMAP_ISP_PREVIEW_H */
+diff --git a/drivers/media/video/isp/ispresizer.c b/drivers/media/video/isp/ispresizer.c
+new file mode 100644
+index 0000000..6fd2ba0
+--- /dev/null
++++ b/drivers/media/video/isp/ispresizer.c
+@@ -0,0 +1,897 @@
++/*
++ * ispresizer.c
++ *
++ * Driver Library for Resizer module in TI's OMAP3 Camera ISP
++ *
++ * Copyright (C)2009 Texas Instruments, Inc.
++ *
++ * Contributors:
++ * 	Sameer Venkatraman <sameerv@ti.com>
++ * 	Mohit Jalori
++ *	Sergio Aguirre <saaguirre@ti.com>
++ *
++ * This package is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ *
++ * THIS PACKAGE IS PROVIDED ``AS IS'' AND WITHOUT ANY EXPRESS OR
++ * IMPLIED WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED
++ * WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
++ */
++
++#include <linux/module.h>
++
++#include "isp.h"
++#include "ispreg.h"
++#include "ispresizer.h"
++
++/* Default configuration of resizer,filter coefficients,yenh for camera isp */
++static struct isprsz_yenh ispreszdefaultyenh = {0, 0, 0, 0};
++static struct isprsz_coef ispreszdefcoef = {
++	{
++		0x0027, 0x00B2, 0x00B2, 0x0027,
++		0x0027, 0x00B2, 0x0027, 0x00B2,
++		0x0027, 0x00B2, 0x0027, 0x00B2,
++		0x0027, 0x00B2, 0x0027, 0x00B2,
++		0x0027, 0x00B2, 0x0027, 0x00B2,
++		0x0027, 0x00B2, 0x0027, 0x00B2,
++		0x0027, 0x00B2, 0x0027, 0x00B2,
++		0x0027, 0x00B2, 0x0027, 0x00B2,
++	},
++	{
++		0x0000, 0x0100, 0x0000, 0x0000,
++		0x03FA, 0x00F6, 0x0010, 0x0000,
++		0x03F9, 0x00DB, 0x002C, 0x0000,
++		0x03FB, 0x00B3, 0x0053, 0x03FF,
++		0x03FD, 0x0082, 0x0084, 0x03FD,
++		0x03FF, 0x0053, 0x00B3, 0x03FB,
++		0x0000, 0x002C, 0x00DB, 0x03F9,
++		0x0000, 0x0010, 0x00F6, 0x03FA
++	},
++	{
++		0x0004, 0x0023, 0x0023, 0x005A,
++		0x005A, 0x0058, 0x0058, 0x0004,
++		0x0023, 0x0023, 0x005A, 0x005A,
++		0x0058, 0x0058, 0x0004, 0x0023,
++		0x0023, 0x005A, 0x005A, 0x0058,
++		0x0058, 0x0004, 0x0023, 0x0023,
++		0x005A, 0x005A, 0x0058, 0x0058
++	},
++	{
++		0x0004, 0x0023, 0x005A, 0x0058,
++		0x0023, 0x0004, 0x0000, 0x0002,
++		0x0018, 0x004d, 0x0060, 0x0031,
++		0x0008, 0x0000, 0x0001, 0x000f,
++		0x003f, 0x0062, 0x003f, 0x000f,
++		0x0001, 0x0000, 0x0008, 0x0031,
++		0x0060, 0x004d, 0x0018, 0x0002
++	}
 +};
 +
-+struct isp_csi2_ctx_cfg {
-+	u8 virtual_id;
-+	u8 frame_count;
-+	struct v4l2_pix_format format;
-+	u16 alpha;
-+	u16 data_offset;
-+	u32 ping_addr;
-+	u32 pong_addr;
-+	bool eof_enabled;
-+	bool eol_enabled;
-+	bool checksum_enabled;
-+	bool enabled;
++/**
++ * struct isp_res - Structure for the resizer module to store its information.
++ * @res_inuse: Indicates if resizer module has been reserved. 1 - Reserved,
++ *             0 - Freed.
++ * @h_startphase: Horizontal starting phase.
++ * @v_startphase: Vertical starting phase.
++ * @h_resz: Horizontal resizing value.
++ * @v_resz: Vertical resizing value.
++ * @outputwidth: Output Image Width in pixels.
++ * @outputheight: Output Image Height in pixels.
++ * @inputwidth: Input Image Width in pixels.
++ * @inputheight: Input Image Height in pixels.
++ * @algo: Algorithm select. 0 - Disable, 1 - [-1 2 -1]/2 high-pass filter,
++ *        2 - [-1 -2 6 -2 -1]/4 high-pass filter.
++ * @ipht_crop: Vertical start line for cropping.
++ * @ipwd_crop: Horizontal start pixel for cropping.
++ * @cropwidth: Crop Width.
++ * @cropheight: Crop Height.
++ * @resinput: Resizer input.
++ * @coeflist: Register configuration for Resizer.
++ * @ispres_mutex: Mutex for isp resizer.
++ */
++static struct isp_res {
++	u8 res_inuse;
++	u8 h_startphase;
++	u8 v_startphase;
++	u16 h_resz;
++	u16 v_resz;
++	u32 outputwidth;
++	u32 outputheight;
++	u32 inputwidth;
++	u32 inputheight;
++	u8 algo;
++	u32 ipht_crop;
++	u32 ipwd_crop;
++	u32 cropwidth;
++	u32 cropheight;
++	dma_addr_t tmp_buf;
++	enum ispresizer_input resinput;
++	struct isprsz_coef coeflist;
++	struct mutex ispres_mutex; /* For checking/modifying res_inuse */
++} ispres_obj;
++
++/* Structure for saving/restoring resizer module registers */
++static struct isp_reg isprsz_reg_list[] = {
++	{OMAP3_ISP_IOMEM_RESZ, ISPRSZ_CNT, 0x0000},
++	{OMAP3_ISP_IOMEM_RESZ, ISPRSZ_OUT_SIZE, 0x0000},
++	{OMAP3_ISP_IOMEM_RESZ, ISPRSZ_IN_START, 0x0000},
++	{OMAP3_ISP_IOMEM_RESZ, ISPRSZ_IN_SIZE, 0x0000},
++	{OMAP3_ISP_IOMEM_RESZ, ISPRSZ_SDR_INADD, 0x0000},
++	{OMAP3_ISP_IOMEM_RESZ, ISPRSZ_SDR_INOFF, 0x0000},
++	{OMAP3_ISP_IOMEM_RESZ, ISPRSZ_SDR_OUTADD, 0x0000},
++	{OMAP3_ISP_IOMEM_RESZ, ISPRSZ_SDR_OUTOFF, 0x0000},
++	{OMAP3_ISP_IOMEM_RESZ, ISPRSZ_HFILT10, 0x0000},
++	{OMAP3_ISP_IOMEM_RESZ, ISPRSZ_HFILT32, 0x0000},
++	{OMAP3_ISP_IOMEM_RESZ, ISPRSZ_HFILT54, 0x0000},
++	{OMAP3_ISP_IOMEM_RESZ, ISPRSZ_HFILT76, 0x0000},
++	{OMAP3_ISP_IOMEM_RESZ, ISPRSZ_HFILT98, 0x0000},
++	{OMAP3_ISP_IOMEM_RESZ, ISPRSZ_HFILT1110, 0x0000},
++	{OMAP3_ISP_IOMEM_RESZ, ISPRSZ_HFILT1312, 0x0000},
++	{OMAP3_ISP_IOMEM_RESZ, ISPRSZ_HFILT1514, 0x0000},
++	{OMAP3_ISP_IOMEM_RESZ, ISPRSZ_HFILT1716, 0x0000},
++	{OMAP3_ISP_IOMEM_RESZ, ISPRSZ_HFILT1918, 0x0000},
++	{OMAP3_ISP_IOMEM_RESZ, ISPRSZ_HFILT2120, 0x0000},
++	{OMAP3_ISP_IOMEM_RESZ, ISPRSZ_HFILT2322, 0x0000},
++	{OMAP3_ISP_IOMEM_RESZ, ISPRSZ_HFILT2524, 0x0000},
++	{OMAP3_ISP_IOMEM_RESZ, ISPRSZ_HFILT2726, 0x0000},
++	{OMAP3_ISP_IOMEM_RESZ, ISPRSZ_HFILT2928, 0x0000},
++	{OMAP3_ISP_IOMEM_RESZ, ISPRSZ_HFILT3130, 0x0000},
++	{OMAP3_ISP_IOMEM_RESZ, ISPRSZ_VFILT10, 0x0000},
++	{OMAP3_ISP_IOMEM_RESZ, ISPRSZ_VFILT32, 0x0000},
++	{OMAP3_ISP_IOMEM_RESZ, ISPRSZ_VFILT54, 0x0000},
++	{OMAP3_ISP_IOMEM_RESZ, ISPRSZ_VFILT76, 0x0000},
++	{OMAP3_ISP_IOMEM_RESZ, ISPRSZ_VFILT98, 0x0000},
++	{OMAP3_ISP_IOMEM_RESZ, ISPRSZ_VFILT1110, 0x0000},
++	{OMAP3_ISP_IOMEM_RESZ, ISPRSZ_VFILT1312, 0x0000},
++	{OMAP3_ISP_IOMEM_RESZ, ISPRSZ_VFILT1514, 0x0000},
++	{OMAP3_ISP_IOMEM_RESZ, ISPRSZ_VFILT1716, 0x0000},
++	{OMAP3_ISP_IOMEM_RESZ, ISPRSZ_VFILT1918, 0x0000},
++	{OMAP3_ISP_IOMEM_RESZ, ISPRSZ_VFILT2120, 0x0000},
++	{OMAP3_ISP_IOMEM_RESZ, ISPRSZ_VFILT2322, 0x0000},
++	{OMAP3_ISP_IOMEM_RESZ, ISPRSZ_VFILT2524, 0x0000},
++	{OMAP3_ISP_IOMEM_RESZ, ISPRSZ_VFILT2726, 0x0000},
++	{OMAP3_ISP_IOMEM_RESZ, ISPRSZ_VFILT2928, 0x0000},
++	{OMAP3_ISP_IOMEM_RESZ, ISPRSZ_VFILT3130, 0x0000},
++	{OMAP3_ISP_IOMEM_RESZ, ISPRSZ_YENH, 0x0000},
++	{0, ISP_TOK_TERM, 0x0000}
 +};
 +
-+struct isp_csi2_ctx_cfg_update {
-+	bool virtual_id;
-+	bool frame_count;
-+	bool format;
-+	bool alpha;
-+	bool data_offset;
-+	bool ping_addr;
-+	bool pong_addr;
-+	bool eof_enabled;
-+	bool eol_enabled;
-+	bool checksum_enabled;
-+	bool enabled;
++/**
++ * ispresizer_config_shadow_registers - Configure shadow registers.
++ **/
++void ispresizer_config_shadow_registers()
++{
++	return;
++}
++EXPORT_SYMBOL(ispresizer_config_shadow_registers);
++
++/**
++ * ispresizer_trycrop - Validate crop dimensions.
++ * @left: Left distance to start position of crop.
++ * @top: Top distance to start position of crop.
++ * @width: Width of input image.
++ * @height: Height of input image.
++ * @ow: Width of output image.
++ * @oh: Height of output image.
++ **/
++void ispresizer_trycrop(u32 left, u32 top, u32 width, u32 height, u32 ow,
++									u32 oh)
++{
++	ispres_obj.cropwidth = width + 6;
++	ispres_obj.cropheight = height + 6;
++	ispresizer_try_size(&ispres_obj.cropwidth, &ispres_obj.cropheight, &ow,
++									&oh);
++	ispres_obj.ipht_crop = top;
++	ispres_obj.ipwd_crop = left;
++}
++EXPORT_SYMBOL(ispresizer_trycrop);
++
++/**
++ * ispresizer_applycrop - Apply crop to input image.
++ **/
++void ispresizer_applycrop(void)
++{
++	ispresizer_config_size(ispres_obj.cropwidth, ispres_obj.cropheight,
++						ispres_obj.outputwidth,
++						ispres_obj.outputheight);
++	return;
++}
++EXPORT_SYMBOL(ispresizer_applycrop);
++
++/**
++ * ispresizer_request - Reserves the Resizer module.
++ *
++ * Allows only one user at a time.
++ *
++ * Returns 0 if successful, or -EBUSY if resizer module was already requested.
++ **/
++int ispresizer_request()
++{
++	mutex_lock(&ispres_obj.ispres_mutex);
++	if (!ispres_obj.res_inuse) {
++		ispres_obj.res_inuse = 1;
++		mutex_unlock(&ispres_obj.ispres_mutex);
++		isp_reg_writel(isp_reg_readl(OMAP3_ISP_IOMEM_MAIN, ISP_CTRL) |
++					ISPCTRL_SBL_WR0_RAM_EN |
++					ISPCTRL_RSZ_CLK_EN,
++					OMAP3_ISP_IOMEM_MAIN, ISP_CTRL);
++		return 0;
++	} else {
++		mutex_unlock(&ispres_obj.ispres_mutex);
++		printk(KERN_ERR "ISP_ERR : Resizer Module Busy\n");
++		return -EBUSY;
++	}
++}
++EXPORT_SYMBOL(ispresizer_request);
++
++/**
++ * ispresizer_free - Makes Resizer module free.
++ *
++ * Returns 0 if successful, or -EINVAL if resizer module was already freed.
++ **/
++int ispresizer_free()
++{
++	mutex_lock(&ispres_obj.ispres_mutex);
++	if (ispres_obj.res_inuse) {
++		ispres_obj.res_inuse = 0;
++		mutex_unlock(&ispres_obj.ispres_mutex);
++		isp_reg_and(OMAP3_ISP_IOMEM_MAIN, ISP_CTRL,
++			~(ISPCTRL_RSZ_CLK_EN | ISPCTRL_SBL_WR0_RAM_EN));
++		return 0;
++	} else {
++		mutex_unlock(&ispres_obj.ispres_mutex);
++		DPRINTK_ISPRESZ("ISP_ERR : Resizer Module already freed\n");
++		return -EINVAL;
++	}
++}
++EXPORT_SYMBOL(ispresizer_free);
++
++/**
++ * ispresizer_config_datapath - Specifies which input to use in resizer module
++ * @input: Indicates the module that gives the image to resizer.
++ *
++ * Sets up the default resizer configuration according to the arguments.
++ *
++ * Returns 0 if successful, or -EINVAL if an unsupported input was requested.
++ **/
++int ispresizer_config_datapath(enum ispresizer_input input)
++{
++	u32 cnt = 0;
++	DPRINTK_ISPRESZ("ispresizer_config_datapath()+\n");
++	ispres_obj.resinput = input;
++	switch (input) {
++	case RSZ_OTFLY_YUV:
++		cnt &= ~ISPRSZ_CNT_INPTYP;
++		cnt &= ~ISPRSZ_CNT_INPSRC;
++		ispresizer_set_inaddr(0);
++		ispresizer_config_inlineoffset(0);
++		break;
++	case RSZ_MEM_YUV:
++		cnt |= ISPRSZ_CNT_INPSRC;
++		cnt &= ~ISPRSZ_CNT_INPTYP;
++		break;
++	case RSZ_MEM_COL8:
++		cnt |= ISPRSZ_CNT_INPSRC;
++		cnt |= ISPRSZ_CNT_INPTYP;
++		break;
++	default:
++		printk(KERN_ERR "ISP_ERR : Wrong Input\n");
++		return -EINVAL;
++	}
++	isp_reg_or(OMAP3_ISP_IOMEM_RESZ, ISPRSZ_CNT, cnt);
++	ispresizer_config_ycpos(0);
++	ispresizer_config_filter_coef(&ispreszdefcoef);
++	ispresizer_enable_cbilin(0);
++	ispresizer_config_luma_enhance(&ispreszdefaultyenh);
++	DPRINTK_ISPRESZ("ispresizer_config_datapath()-\n");
++	return 0;
++}
++EXPORT_SYMBOL(ispresizer_config_datapath);
++
++/**
++ * ispresizer_try_size - Validates input and output images size.
++ * @input_w: input width for the resizer in number of pixels per line
++ * @input_h: input height for the resizer in number of lines
++ * @output_w: output width from the resizer in number of pixels per line
++ *            resizer when writing to memory needs this to be multiple of 16.
++ * @output_h: output height for the resizer in number of lines, must be even.
++ *
++ * Calculates the horizontal and vertical resize ratio, number of pixels to
++ * be cropped in the resizer module and checks the validity of various
++ * parameters. Formula used for calculation is:-
++ *
++ * 8-phase 4-tap mode :-
++ * inputwidth = (32 * sph + (ow - 1) * hrsz + 16) >> 8 + 7
++ * inputheight = (32 * spv + (oh - 1) * vrsz + 16) >> 8 + 4
++ * endpahse for width = ((32 * sph + (ow - 1) * hrsz + 16) >> 5) % 8
++ * endphase for height = ((32 * sph + (oh - 1) * hrsz + 16) >> 5) % 8
++ *
++ * 4-phase 7-tap mode :-
++ * inputwidth = (64 * sph + (ow - 1) * hrsz + 32) >> 8 + 7
++ * inputheight = (64 * spv + (oh - 1) * vrsz + 32) >> 8 + 7
++ * endpahse for width = ((64 * sph + (ow - 1) * hrsz + 32) >> 6) % 4
++ * endphase for height = ((64 * sph + (oh - 1) * hrsz + 32) >> 6) % 4
++ *
++ * Where:
++ * sph = Start phase horizontal
++ * spv = Start phase vertical
++ * ow = Output width
++ * oh = Output height
++ * hrsz = Horizontal resize value
++ * vrsz = Vertical resize value
++ *
++ * Fills up the output/input widht/height, horizontal/vertical resize ratio,
++ * horizontal/vertical crop variables in the isp_res structure.
++ **/
++int ispresizer_try_size(u32 *input_width, u32 *input_height, u32 *output_w,
++								u32 *output_h)
++{
++	u32 rsz, rsz_7, rsz_4;
++	u32 sph;
++	u32 input_w, input_h;
++	int max_in_otf, max_out_7tap;
++	input_w = *input_width;
++	input_h = *input_height;
++
++	if (input_w < 32 || input_h < 32) {
++		DPRINTK_ISPCCDC("ISP_ERR: RESIZER cannot handle input width"
++				" less than 32 pixels or height less than"
++				" 32\n");
++		return -EINVAL;
++	}
++	input_w -= 6;
++	input_h -= 6;
++
++	if (input_h > MAX_IN_HEIGHT)
++		return -EINVAL;
++
++	if (*output_w < 16)
++		*output_w = 16;
++
++	if (*output_h < 2)
++		*output_h = 2;
++
++	if (omap_rev() == OMAP3430_REV_ES1_0) {
++		max_in_otf = MAX_IN_WIDTH_ONTHEFLY_MODE;
++		max_out_7tap = MAX_7TAP_VRSZ_OUTWIDTH;
++	} else {
++		max_in_otf = MAX_IN_WIDTH_ONTHEFLY_MODE_ES2;
++		max_out_7tap = MAX_7TAP_VRSZ_OUTWIDTH_ES2;
++	}
++
++	if (ispres_obj.resinput == RSZ_OTFLY_YUV) {
++		if (input_w > max_in_otf)
++			return -EINVAL;
++	} else {
++		if (input_w > MAX_IN_WIDTH_MEMORY_MODE)
++			return -EINVAL;
++	}
++
++	*output_h &= 0xfffffffe;
++	sph = DEFAULTSTPHASE;
++
++	rsz_7 = ((input_h - 7) * 256) / (*output_h - 1);
++	rsz_4 = ((input_h - 4) * 256) / (*output_h - 1);
++
++	rsz = (input_h * 256) / *output_h;
++
++	if (rsz <= MID_RESIZE_VALUE) {
++		rsz = rsz_4;
++		if (rsz < MINIMUM_RESIZE_VALUE) {
++			rsz = MINIMUM_RESIZE_VALUE;
++			*output_h = (((input_h - 4) * 256) / rsz) + 1;
++			printk(KERN_INFO "%s: using output_h %d instead\n",
++							__func__, *output_h);
++		}
++	} else {
++		rsz = rsz_7;
++		if (*output_w > max_out_7tap)
++			*output_w = max_out_7tap;
++		if (rsz > MAXIMUM_RESIZE_VALUE) {
++			rsz = MAXIMUM_RESIZE_VALUE;
++			*output_h = (((input_h - 7) * 256) / rsz) + 1;
++			printk(KERN_INFO "%s: using output_h %d instead\n",
++							__func__, *output_h);
++		}
++	}
++
++	if (rsz > MID_RESIZE_VALUE) {
++		input_h =
++			(((64 * sph) + ((*output_h - 1) * rsz) + 32) / 256) + 7;
++	} else {
++		input_h =
++			(((32 * sph) + ((*output_h - 1) * rsz) + 16) / 256) + 4;
++	}
++
++	ispres_obj.outputheight = *output_h;
++	ispres_obj.v_resz = rsz;
++	ispres_obj.inputheight = input_h;
++	ispres_obj.ipht_crop = DEFAULTSTPIXEL;
++	ispres_obj.v_startphase = sph;
++
++	*output_w &= 0xfffffff0;
++	sph = DEFAULTSTPHASE;
++
++	rsz_7 = ((input_w - 7) * 256) / (*output_w - 1);
++	rsz_4 = ((input_w - 4) * 256) / (*output_w - 1);
++
++	rsz = (input_w * 256) / *output_w;
++	if (rsz > MID_RESIZE_VALUE) {
++		rsz = rsz_7;
++		if (rsz > MAXIMUM_RESIZE_VALUE) {
++			rsz = MAXIMUM_RESIZE_VALUE;
++			*output_w = (((input_w - 7) * 256) / rsz) + 1;
++			*output_w = (*output_w + 0xf) & 0xfffffff0;
++			printk(KERN_INFO "%s: using output_w %d instead\n",
++							__func__, *output_w);
++		}
++	} else {
++		rsz = rsz_4;
++		if (rsz < MINIMUM_RESIZE_VALUE) {
++			rsz = MINIMUM_RESIZE_VALUE;
++			*output_w = (((input_w - 4) * 256) / rsz) + 1;
++			*output_w = (*output_w + 0xf) & 0xfffffff0;
++			printk(KERN_INFO "%s: using output_w %d instead\n",
++							__func__, *output_w);
++		}
++	}
++
++	/* Recalculate input based on TRM equations */
++	if (rsz > MID_RESIZE_VALUE) {
++		input_w =
++			(((64 * sph) + ((*output_w - 1) * rsz) + 32) / 256) + 7;
++	} else {
++		input_w =
++			(((32 * sph) + ((*output_w - 1) * rsz) + 16) / 256) + 7;
++	}
++
++	ispres_obj.outputwidth = *output_w;
++	ispres_obj.h_resz = rsz;
++	ispres_obj.inputwidth = input_w;
++	ispres_obj.ipwd_crop = DEFAULTSTPIXEL;
++	ispres_obj.h_startphase = sph;
++
++	*input_height = input_h;
++	*input_width = input_w;
++	return 0;
++}
++EXPORT_SYMBOL(ispresizer_try_size);
++
++/**
++ * ispresizer_config_size - Configures input and output image size.
++ * @input_w: input width for the resizer in number of pixels per line.
++ * @input_h: input height for the resizer in number of lines.
++ * @output_w: output width from the resizer in number of pixels per line.
++ * @output_h: output height for the resizer in number of lines.
++ *
++ * Configures the appropriate values stored in the isp_res structure in the
++ * resizer registers.
++ *
++ * Returns 0 if successful, or -EINVAL if passed values haven't been verified
++ * with ispresizer_try_size() previously.
++ **/
++int ispresizer_config_size(u32 input_w, u32 input_h, u32 output_w,
++					u32 output_h)
++{
++	int i, j;
++	u32 res;
++	DPRINTK_ISPRESZ("ispresizer_config_size()+, input_w = %d,input_h ="
++						" %d, output_w = %d, output_h"
++						" = %d,hresz = %d,vresz = %d,"
++						" hcrop = %d, vcrop = %d,"
++						" hstph = %d, vstph = %d\n",
++						ispres_obj.inputwidth,
++						ispres_obj.inputheight,
++						ispres_obj.outputwidth,
++						ispres_obj.outputheight,
++						ispres_obj.h_resz,
++						ispres_obj.v_resz,
++						ispres_obj.ipwd_crop,
++						ispres_obj.ipht_crop,
++						ispres_obj.h_startphase,
++						ispres_obj.v_startphase);
++	if ((output_w != ispres_obj.outputwidth)
++				|| (output_h != ispres_obj.outputheight)) {
++		printk(KERN_ERR "Output parameters passed do not match the"
++						" values calculated by the"
++						" trysize passed w %d, h %d"
++						" \n", output_w , output_h);
++		return -EINVAL;
++	}
++
++	/* Set Resizer input address and offset adderss */
++	ispresizer_config_inlineoffset(isp_reg_readl(OMAP3_ISP_IOMEM_PREV,
++							ISPPRV_WADD_OFFSET));
++
++	res = isp_reg_readl(OMAP3_ISP_IOMEM_RESZ, ISPRSZ_CNT) &
++			~(ISPRSZ_CNT_HSTPH_MASK | ISPRSZ_CNT_VSTPH_MASK);
++	isp_reg_writel(res |
++			(ispres_obj.h_startphase << ISPRSZ_CNT_HSTPH_SHIFT) |
++			(ispres_obj.v_startphase << ISPRSZ_CNT_VSTPH_SHIFT),
++			OMAP3_ISP_IOMEM_RESZ,
++			ISPRSZ_CNT);
++	/* Set start address for cropping */
++	isp_reg_writel(ispres_obj.tmp_buf + 2 * (ispres_obj.ipht_crop * ispres_obj.inputwidth +
++						(ispres_obj.ipwd_crop & ~15)),
++						OMAP3_ISP_IOMEM_RESZ, ISPRSZ_SDR_INADD);
++
++	isp_reg_writel(((ispres_obj.ipwd_crop & 15) << ISPRSZ_IN_START_HORZ_ST_SHIFT) |
++			(0x00 << ISPRSZ_IN_START_VERT_ST_SHIFT),
++			OMAP3_ISP_IOMEM_RESZ, ISPRSZ_IN_START);
++
++	isp_reg_writel((0x00 << ISPRSZ_IN_START_HORZ_ST_SHIFT) |
++					(0x00 << ISPRSZ_IN_START_VERT_ST_SHIFT),
++					OMAP3_ISP_IOMEM_RESZ,
++					ISPRSZ_IN_START);
++
++	isp_reg_writel((ispres_obj.inputwidth << ISPRSZ_IN_SIZE_HORZ_SHIFT) |
++						(ispres_obj.inputheight <<
++						ISPRSZ_IN_SIZE_VERT_SHIFT),
++						OMAP3_ISP_IOMEM_RESZ,
++						ISPRSZ_IN_SIZE);
++	if (!ispres_obj.algo) {
++		isp_reg_writel((output_w << ISPRSZ_OUT_SIZE_HORZ_SHIFT) |
++				(output_h << ISPRSZ_OUT_SIZE_VERT_SHIFT),
++				OMAP3_ISP_IOMEM_RESZ,
++				ISPRSZ_OUT_SIZE);
++	} else {
++		isp_reg_writel(((output_w - 4) << ISPRSZ_OUT_SIZE_HORZ_SHIFT) |
++				(output_h << ISPRSZ_OUT_SIZE_VERT_SHIFT),
++				OMAP3_ISP_IOMEM_RESZ,
++				ISPRSZ_OUT_SIZE);
++	}
++
++	res = isp_reg_readl(OMAP3_ISP_IOMEM_RESZ, ISPRSZ_CNT) &
++			~(ISPRSZ_CNT_HRSZ_MASK | ISPRSZ_CNT_VRSZ_MASK);
++	isp_reg_writel(res |
++			((ispres_obj.h_resz - 1) << ISPRSZ_CNT_HRSZ_SHIFT) |
++			((ispres_obj.v_resz - 1) << ISPRSZ_CNT_VRSZ_SHIFT),
++			OMAP3_ISP_IOMEM_RESZ,
++			ISPRSZ_CNT);
++	if (ispres_obj.h_resz <= MID_RESIZE_VALUE) {
++		j = 0;
++		for (i = 0; i < 16; i++) {
++			isp_reg_writel(
++			    (ispres_obj.coeflist.h_filter_coef_4tap[j] <<
++				ISPRSZ_HFILT10_COEF0_SHIFT) |
++			    (ispres_obj.coeflist.h_filter_coef_4tap[j + 1] <<
++				ISPRSZ_HFILT10_COEF1_SHIFT),
++			    OMAP3_ISP_IOMEM_RESZ,
++			    ISPRSZ_HFILT10 + (i * 0x04));
++			j += 2;
++		}
++	} else {
++		j = 0;
++		for (i = 0; i < 16; i++) {
++			if ((i + 1) % 4 == 0) {
++				isp_reg_writel((ispres_obj.coeflist.
++						h_filter_coef_7tap[j] <<
++						ISPRSZ_HFILT10_COEF0_SHIFT),
++						OMAP3_ISP_IOMEM_RESZ,
++						ISPRSZ_HFILT10 + (i * 0x04));
++				j += 1;
++			} else {
++				isp_reg_writel((ispres_obj.coeflist.
++						h_filter_coef_7tap[j] <<
++						ISPRSZ_HFILT10_COEF0_SHIFT) |
++						(ispres_obj.coeflist.
++						h_filter_coef_7tap[j+1] <<
++						ISPRSZ_HFILT10_COEF1_SHIFT),
++						OMAP3_ISP_IOMEM_RESZ,
++						ISPRSZ_HFILT10 + (i * 0x04));
++				j += 2;
++			}
++		}
++	}
++	if (ispres_obj.v_resz <= MID_RESIZE_VALUE) {
++		j = 0;
++		for (i = 0; i < 16; i++) {
++			isp_reg_writel((ispres_obj.coeflist.
++						v_filter_coef_4tap[j] <<
++						ISPRSZ_VFILT10_COEF0_SHIFT) |
++						(ispres_obj.coeflist.
++						v_filter_coef_4tap[j + 1] <<
++						ISPRSZ_VFILT10_COEF1_SHIFT),
++						OMAP3_ISP_IOMEM_RESZ,
++						ISPRSZ_VFILT10 + (i * 0x04));
++			j += 2;
++		}
++	} else {
++		j = 0;
++		for (i = 0; i < 16; i++) {
++			if ((i + 1) % 4 == 0) {
++				isp_reg_writel((ispres_obj.coeflist.
++						v_filter_coef_7tap[j] <<
++						ISPRSZ_VFILT10_COEF0_SHIFT),
++						OMAP3_ISP_IOMEM_RESZ,
++						ISPRSZ_VFILT10 + (i * 0x04));
++				j += 1;
++			} else {
++				isp_reg_writel((ispres_obj.coeflist.
++						v_filter_coef_7tap[j] <<
++						ISPRSZ_VFILT10_COEF0_SHIFT) |
++						(ispres_obj.coeflist.
++						v_filter_coef_7tap[j+1] <<
++						ISPRSZ_VFILT10_COEF1_SHIFT),
++						OMAP3_ISP_IOMEM_RESZ,
++						ISPRSZ_VFILT10 + (i * 0x04));
++				j += 2;
++			}
++		}
++	}
++
++	ispresizer_config_outlineoffset(output_w*2);
++	DPRINTK_ISPRESZ("ispresizer_config_size()-\n");
++	return 0;
++}
++EXPORT_SYMBOL(ispresizer_config_size);
++
++/**
++ * ispresizer_enable - Enables the resizer module.
++ * @enable: 1 - Enable, 0 - Disable
++ *
++ * Client should configure all the sub modules in resizer before this.
++ **/
++void ispresizer_enable(u8 enable)
++{
++	int val;
++	DPRINTK_ISPRESZ("+ispresizer_enable()+\n");
++	if (enable) {
++		val = (isp_reg_readl(OMAP3_ISP_IOMEM_RESZ, ISPRSZ_PCR) & 0x2) |
++							ISPRSZ_PCR_ENABLE;
++	} else {
++		val = isp_reg_readl(OMAP3_ISP_IOMEM_RESZ, ISPRSZ_PCR) &
++							~ISPRSZ_PCR_ENABLE;
++	}
++	isp_reg_writel(val, OMAP3_ISP_IOMEM_RESZ, ISPRSZ_PCR);
++	DPRINTK_ISPRESZ("+ispresizer_enable()-\n");
++}
++EXPORT_SYMBOL(ispresizer_enable);
++
++/**
++ * ispresizer_busy - Checks if ISP resizer is busy.
++ *
++ * Returns busy field from ISPRSZ_PCR register.
++ **/
++int ispresizer_busy(void)
++{
++	return isp_reg_readl(OMAP3_ISP_IOMEM_RESZ, ISPRSZ_PCR) &
++							ISPPRV_PCR_BUSY;
++}
++EXPORT_SYMBOL(ispresizer_busy);
++
++/**
++ * ispresizer_config_startphase - Sets the horizontal and vertical start phase.
++ * @hstartphase: horizontal start phase (0 - 7).
++ * @vstartphase: vertical startphase (0 - 7).
++ *
++ * This API just updates the isp_res struct. Actual register write happens in
++ * ispresizer_config_size.
++ **/
++void ispresizer_config_startphase(u8 hstartphase, u8 vstartphase)
++{
++	DPRINTK_ISPRESZ("ispresizer_config_startphase()+\n");
++	ispres_obj.h_startphase = hstartphase;
++	ispres_obj.v_startphase = vstartphase;
++	DPRINTK_ISPRESZ("ispresizer_config_startphase()-\n");
++}
++EXPORT_SYMBOL(ispresizer_config_startphase);
++
++/**
++ * ispresizer_config_ycpos - Specifies if output should be in YC or CY format.
++ * @yc: 0 - YC format, 1 - CY format
++ **/
++void ispresizer_config_ycpos(u8 yc)
++{
++	DPRINTK_ISPRESZ("ispresizer_config_ycpos()+\n");
++	isp_reg_and_or(OMAP3_ISP_IOMEM_RESZ, ISPRSZ_CNT, ~ISPRSZ_CNT_YCPOS,
++					(yc ? ISPRSZ_CNT_YCPOS : 0));
++	DPRINTK_ISPRESZ("ispresizer_config_ycpos()-\n");
++}
++EXPORT_SYMBOL(ispresizer_config_ycpos);
++
++/**
++ * Sets the chrominance algorithm
++ * @cbilin: 0 - chrominance uses same processing as luminance,
++ *          1 - bilinear interpolation processing
++ **/
++void ispresizer_enable_cbilin(u8 enable)
++{
++	DPRINTK_ISPRESZ("ispresizer_enable_cbilin()+\n");
++	isp_reg_and_or(OMAP3_ISP_IOMEM_RESZ, ISPRSZ_CNT, ~ISPRSZ_CNT_CBILIN,
++					(enable ? ISPRSZ_CNT_CBILIN : 0));
++	DPRINTK_ISPRESZ("ispresizer_enable_cbilin()-\n");
++}
++EXPORT_SYMBOL(ispresizer_enable_cbilin);
++
++/**
++ * ispresizer_config_luma_enhance - Configures luminance enhancer parameters.
++ * @yenh: Pointer to structure containing desired values for core, slope, gain
++ *        and algo parameters.
++ **/
++void ispresizer_config_luma_enhance(struct isprsz_yenh *yenh)
++{
++	DPRINTK_ISPRESZ("ispresizer_config_luma_enhance()+\n");
++	ispres_obj.algo = yenh->algo;
++	isp_reg_writel((yenh->algo << ISPRSZ_YENH_ALGO_SHIFT) |
++				(yenh->gain << ISPRSZ_YENH_GAIN_SHIFT) |
++				(yenh->slope << ISPRSZ_YENH_SLOP_SHIFT) |
++				(yenh->coreoffset << ISPRSZ_YENH_CORE_SHIFT),
++				OMAP3_ISP_IOMEM_RESZ,
++				ISPRSZ_YENH);
++	DPRINTK_ISPRESZ("ispresizer_config_luma_enhance()-\n");
++}
++EXPORT_SYMBOL(ispresizer_config_luma_enhance);
++
++/**
++ * ispresizer_config_filter_coef - Sets filter coefficients for 4 & 7-tap mode.
++ * This API just updates the isp_res struct.Actual register write happens in
++ * ispresizer_config_size.
++ * @coef: Structure containing horizontal and vertical filter coefficients for
++ *        both 4-tap and 7-tap mode.
++ **/
++void ispresizer_config_filter_coef(struct isprsz_coef *coef)
++{
++	int i;
++	DPRINTK_ISPRESZ("ispresizer_config_filter_coef()+\n");
++	for (i = 0; i < 32; i++) {
++		ispres_obj.coeflist.h_filter_coef_4tap[i] =
++						coef->h_filter_coef_4tap[i];
++		ispres_obj.coeflist.v_filter_coef_4tap[i] =
++						coef->v_filter_coef_4tap[i];
++	}
++	for (i = 0; i < 28; i++) {
++		ispres_obj.coeflist.h_filter_coef_7tap[i] =
++						coef->h_filter_coef_7tap[i];
++		ispres_obj.coeflist.v_filter_coef_7tap[i] =
++						coef->v_filter_coef_7tap[i];
++	}
++	DPRINTK_ISPRESZ("ispresizer_config_filter_coef()-\n");
++}
++EXPORT_SYMBOL(ispresizer_config_filter_coef);
++
++/**
++ * ispresizer_config_inlineoffset - Configures the read address line offset.
++ * @offset: Line Offset for the input image.
++ *
++ * Returns 0 if successful, or -EINVAL if offset is not 32 bits aligned.
++ **/
++int ispresizer_config_inlineoffset(u32 offset)
++{
++	DPRINTK_ISPRESZ("ispresizer_config_inlineoffset()+\n");
++	if (offset % 32)
++		return -EINVAL;
++	isp_reg_writel(offset << ISPRSZ_SDR_INOFF_OFFSET_SHIFT,
++				OMAP3_ISP_IOMEM_RESZ, ISPRSZ_SDR_INOFF);
++	DPRINTK_ISPRESZ("ispresizer_config_inlineoffset()-\n");
++	return 0;
++}
++EXPORT_SYMBOL(ispresizer_config_inlineoffset);
++
++/**
++ * ispresizer_set_inaddr - Sets the memory address of the input frame.
++ * @addr: 32bit memory address aligned on 32byte boundary.
++ *
++ * Returns 0 if successful, or -EINVAL if address is not 32 bits aligned.
++ **/
++int ispresizer_set_inaddr(u32 addr)
++{
++	DPRINTK_ISPRESZ("ispresizer_set_inaddr()+\n");
++	if (addr % 32)
++		return -EINVAL;
++	isp_reg_writel(addr << ISPRSZ_SDR_INADD_ADDR_SHIFT,
++				OMAP3_ISP_IOMEM_RESZ, ISPRSZ_SDR_INADD);
++	ispres_obj.tmp_buf = addr;
++	DPRINTK_ISPRESZ("ispresizer_set_inaddr()-\n");
++	return 0;
++}
++EXPORT_SYMBOL(ispresizer_set_inaddr);
++
++/**
++ * ispresizer_config_outlineoffset - Configures the write address line offset.
++ * @offset: Line offset for the preview output.
++ *
++ * Returns 0 if successful, or -EINVAL if address is not 32 bits aligned.
++ **/
++int ispresizer_config_outlineoffset(u32 offset)
++{
++	DPRINTK_ISPRESZ("ispresizer_config_outlineoffset()+\n");
++	if (offset % 32)
++		return -EINVAL;
++	isp_reg_writel(offset << ISPRSZ_SDR_OUTOFF_OFFSET_SHIFT,
++				OMAP3_ISP_IOMEM_RESZ, ISPRSZ_SDR_OUTOFF);
++	DPRINTK_ISPRESZ("ispresizer_config_outlineoffset()-\n");
++	return 0;
++}
++EXPORT_SYMBOL(ispresizer_config_outlineoffset);
++
++/**
++ * Configures the memory address to which the output frame is written.
++ * @addr: 32bit memory address aligned on 32byte boundary.
++ **/
++int ispresizer_set_outaddr(u32 addr)
++{
++	DPRINTK_ISPRESZ("ispresizer_set_outaddr()+\n");
++	if (addr % 32)
++		return -EINVAL;
++	isp_reg_writel(addr << ISPRSZ_SDR_OUTADD_ADDR_SHIFT,
++				OMAP3_ISP_IOMEM_RESZ, ISPRSZ_SDR_OUTADD);
++	DPRINTK_ISPRESZ("ispresizer_set_outaddr()-\n");
++	return 0;
++}
++EXPORT_SYMBOL(ispresizer_set_outaddr);
++
++/**
++ * ispresizer_save_context - Saves the values of the resizer module registers.
++ **/
++void ispresizer_save_context(void)
++{
++	DPRINTK_ISPRESZ("Saving context\n");
++	isp_save_context(isprsz_reg_list);
++}
++EXPORT_SYMBOL(ispresizer_save_context);
++
++/**
++ * ispresizer_restore_context - Restores resizer module register values.
++ **/
++void ispresizer_restore_context(void)
++{
++	DPRINTK_ISPRESZ("Restoring context\n");
++	isp_restore_context(isprsz_reg_list);
++}
++EXPORT_SYMBOL(ispresizer_restore_context);
++
++/**
++ * ispresizer_print_status - Prints the values of the resizer module registers.
++ **/
++void ispresizer_print_status()
++{
++	if (!is_ispresz_debug_enabled())
++		return;
++	DPRINTK_ISPRESZ("###ISP_CTRL inresizer =0x%x\n",
++			isp_reg_readl(OMAP3_ISP_IOMEM_MAIN, ISP_CTRL));
++	DPRINTK_ISPRESZ("###ISP_IRQ0ENABLE in resizer =0x%x\n",
++			isp_reg_readl(OMAP3_ISP_IOMEM_MAIN, ISP_IRQ0ENABLE));
++	DPRINTK_ISPRESZ("###ISP_IRQ0STATUS in resizer =0x%x\n",
++			isp_reg_readl(OMAP3_ISP_IOMEM_MAIN, ISP_IRQ0STATUS));
++	DPRINTK_ISPRESZ("###RSZ PCR =0x%x\n",
++			isp_reg_readl(OMAP3_ISP_IOMEM_RESZ, ISPRSZ_PCR));
++	DPRINTK_ISPRESZ("###RSZ CNT =0x%x\n",
++			isp_reg_readl(OMAP3_ISP_IOMEM_RESZ, ISPRSZ_CNT));
++	DPRINTK_ISPRESZ("###RSZ OUT SIZE =0x%x\n",
++			isp_reg_readl(OMAP3_ISP_IOMEM_RESZ, ISPRSZ_OUT_SIZE));
++	DPRINTK_ISPRESZ("###RSZ IN START =0x%x\n",
++			isp_reg_readl(OMAP3_ISP_IOMEM_RESZ, ISPRSZ_IN_START));
++	DPRINTK_ISPRESZ("###RSZ IN SIZE =0x%x\n",
++			isp_reg_readl(OMAP3_ISP_IOMEM_RESZ, ISPRSZ_IN_SIZE));
++	DPRINTK_ISPRESZ("###RSZ SDR INADD =0x%x\n",
++			isp_reg_readl(OMAP3_ISP_IOMEM_RESZ, ISPRSZ_SDR_INADD));
++	DPRINTK_ISPRESZ("###RSZ SDR INOFF =0x%x\n",
++			isp_reg_readl(OMAP3_ISP_IOMEM_RESZ, ISPRSZ_SDR_INOFF));
++	DPRINTK_ISPRESZ("###RSZ SDR OUTADD =0x%x\n",
++			isp_reg_readl(OMAP3_ISP_IOMEM_RESZ, ISPRSZ_SDR_OUTADD));
++	DPRINTK_ISPRESZ("###RSZ SDR OTOFF =0x%x\n",
++			isp_reg_readl(OMAP3_ISP_IOMEM_RESZ, ISPRSZ_SDR_OUTOFF));
++	DPRINTK_ISPRESZ("###RSZ YENH =0x%x\n",
++			isp_reg_readl(OMAP3_ISP_IOMEM_RESZ, ISPRSZ_YENH));
++}
++EXPORT_SYMBOL(ispresizer_print_status);
++
++/**
++ * isp_resizer_init - Module Initialisation.
++ *
++ * Always returns 0.
++ **/
++int __init isp_resizer_init(void)
++{
++	mutex_init(&ispres_obj.ispres_mutex);
++	return 0;
++}
++
++/**
++ * isp_resizer_cleanup - Module Cleanup.
++ **/
++void isp_resizer_cleanup(void)
++{
++}
+diff --git a/drivers/media/video/isp/ispresizer.h b/drivers/media/video/isp/ispresizer.h
+new file mode 100644
+index 0000000..b778aa2
+--- /dev/null
++++ b/drivers/media/video/isp/ispresizer.h
+@@ -0,0 +1,154 @@
++/*
++ * ispresizer.h
++ *
++ * Driver header file for Resizer module in TI's OMAP3 Camera ISP
++ *
++ * Copyright (C) 2009 Texas Instruments, Inc.
++ *
++ * Contributors:
++ * 	Sameer Venkatraman <sameerv@ti.com>
++ * 	Mohit Jalori
++ *	Sergio Aguirre <saaguirre@ti.com>
++ *
++ * This package is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ *
++ * THIS PACKAGE IS PROVIDED ``AS IS'' AND WITHOUT ANY EXPRESS OR
++ * IMPLIED WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED
++ * WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
++ */
++
++#ifndef OMAP_ISP_RESIZER_H
++#define OMAP_ISP_RESIZER_H
++
++/*
++ * Resizer Constants
++ */
++#define MAX_IN_WIDTH_MEMORY_MODE	4095
++
++#define MAX_IN_WIDTH_ONTHEFLY_MODE	1280
++#define MAX_IN_WIDTH_ONTHEFLY_MODE_ES2	4095
++#define MAX_IN_HEIGHT			4095
++#define MINIMUM_RESIZE_VALUE		64
++#define MAXIMUM_RESIZE_VALUE		1024
++#define MID_RESIZE_VALUE		512
++
++#define MAX_7TAP_HRSZ_OUTWIDTH		1280
++#define MAX_7TAP_VRSZ_OUTWIDTH		640
++
++#define MAX_7TAP_HRSZ_OUTWIDTH_ES2	3300
++#define MAX_7TAP_VRSZ_OUTWIDTH_ES2	1650
++
++#define DEFAULTSTPIXEL			0
++#define DEFAULTSTPHASE			1
++#define DEFAULTHSTPIXEL4TAPMODE		3
++#define FOURPHASE			4
++#define EIGHTPHASE			8
++#define RESIZECONSTANT			256
++#define SHIFTER4TAPMODE			0
++#define SHIFTER7TAPMODE			1
++#define DEFAULTOFFSET			7
++#define OFFSETVERT4TAPMODE		4
++#define OPWDALIGNCONSTANT		0xFFFFFFF0
++
++/*
++ * The client is supposed to call resizer API in the following sequence:
++ * 	- request()
++ * 	- config_datatpath()
++ * 	- optionally config/enable sub modules
++ * 	- try/config size
++ * 	- setup callback
++ * 	- setup in/out memory offsets and ptrs
++ * 	- enable()
++ * 	...
++ * 	- disable()
++ * 	- free()
++ */
++
++enum ispresizer_input {
++	RSZ_OTFLY_YUV,
++	RSZ_MEM_YUV,
++	RSZ_MEM_COL8
 +};
 +
-+struct isp_csi2_timings_cfg {
-+	bool force_rx_mode;
-+	bool stop_state_16x;
-+	bool stop_state_4x;
-+	u16 stop_state_counter;
++/**
++ * struct isprsz_coef - Structure for resizer filter coeffcients.
++ * @h_filter_coef_4tap: Horizontal filter coefficients for 8-phase/4-tap
++ *			mode (.5x-4x)
++ * @v_filter_coef_4tap: Vertical filter coefficients for 8-phase/4-tap
++ *			mode (.5x-4x)
++ * @h_filter_coef_7tap: Horizontal filter coefficients for 4-phase/7-tap
++ *			mode (.25x-.5x)
++ * @v_filter_coef_7tap: Vertical filter coefficients for 4-phase/7-tap
++ *			mode (.25x-.5x)
++ */
++struct isprsz_coef {
++	u16 h_filter_coef_4tap[32];
++	u16 v_filter_coef_4tap[32];
++	u16 h_filter_coef_7tap[28];
++	u16 v_filter_coef_7tap[28];
 +};
 +
-+struct isp_csi2_timings_cfg_update {
-+	bool force_rx_mode;
-+	bool stop_state_16x;
-+	bool stop_state_4x;
-+	bool stop_state_counter;
++/**
++ * struct isprsz_yenh - Structure for resizer luminance enhancer parameters.
++ * @algo: Algorithm select.
++ * @gain: Maximum gain.
++ * @slope: Slope.
++ * @coreoffset: Coring offset.
++ */
++struct isprsz_yenh {
++	u8 algo;
++	u8 gain;
++	u8 slope;
++	u8 coreoffset;
 +};
 +
-+struct isp_csi2_ctrl_cfg {
-+	bool vp_clk_enable;
-+	bool vp_only_enable;
-+	u8 vp_out_ctrl;
-+	bool debug_enable;
-+	u8 burst_size;
-+	enum isp_csi2_frame_mode frame_mode;
-+	bool ecc_enable;
-+	bool secure_mode;
-+	bool if_enable;
-+};
++void ispresizer_config_shadow_registers(void);
 +
-+struct isp_csi2_ctrl_cfg_update {
-+	bool vp_clk_enable;
-+	bool vp_only_enable;
-+	bool vp_out_ctrl;
-+	bool debug_enable;
-+	bool burst_size;
-+	bool frame_mode;
-+	bool ecc_enable;
-+	bool secure_mode;
-+	bool if_enable;
-+};
++int ispresizer_request(void);
 +
-+struct isp_csi2_cfg {
-+	struct isp_csi2_lanes_cfg lanes;
-+	struct isp_csi2_phy_cfg phy;
-+	struct isp_csi2_ctx_cfg contexts[8];
-+	struct isp_csi2_timings_cfg timings[2];
-+	struct isp_csi2_ctrl_cfg ctrl;
-+};
++int ispresizer_free(void);
 +
-+struct isp_csi2_cfg_update {
-+	struct isp_csi2_lanes_cfg_update lanes;
-+	struct isp_csi2_phy_cfg_update phy;
-+	struct isp_csi2_ctx_cfg_update contexts[8];
-+	struct isp_csi2_timings_cfg_update timings[2];
-+	struct isp_csi2_ctrl_cfg_update ctrl;
-+};
++int ispresizer_config_datapath(enum ispresizer_input input);
 +
-+int isp_csi2_complexio_lanes_config(struct isp_csi2_lanes_cfg *reqcfg);
-+int isp_csi2_complexio_lanes_update(bool force_update);
-+int isp_csi2_complexio_lanes_get(void);
-+int isp_csi2_complexio_power_autoswitch(bool enable);
-+int isp_csi2_complexio_power(enum isp_csi2_power_cmds power_cmd);
-+int isp_csi2_ctrl_config_frame_mode(enum isp_csi2_frame_mode frame_mode);
-+int isp_csi2_ctrl_config_vp_clk_enable(bool vp_clk_enable);
-+int isp_csi2_ctrl_config_vp_only_enable(bool vp_only_enable);
-+int isp_csi2_ctrl_config_debug_enable(bool debug_enable);
-+int isp_csi2_ctrl_config_burst_size(u8 burst_size);
-+int isp_csi2_ctrl_config_ecc_enable(bool ecc_enable);
-+int isp_csi2_ctrl_config_secure_mode(bool secure_mode);
-+int isp_csi2_ctrl_config_if_enable(bool if_enable);
-+int isp_csi2_ctrl_config_vp_out_ctrl(u8 vp_out_ctrl);
-+int isp_csi2_ctrl_update(bool force_update);
-+int isp_csi2_ctrl_get(void);
-+int isp_csi2_ctx_config_virtual_id(u8 ctxnum, u8 virtual_id);
-+int isp_csi2_ctx_config_frame_count(u8 ctxnum, u8 frame_count);
-+int isp_csi2_ctx_config_format(u8 ctxnum, u32 pixformat);
-+int isp_csi2_ctx_config_alpha(u8 ctxnum, u16 alpha);
-+int isp_csi2_ctx_config_data_offset(u8 ctxnum, u16 data_offset);
-+int isp_csi2_ctx_config_ping_addr(u8 ctxnum, u32 ping_addr);
-+int isp_csi2_ctx_config_pong_addr(u8 ctxnum, u32 pong_addr);
-+int isp_csi2_ctx_config_eof_enabled(u8 ctxnum, bool eof_enabled);
-+int isp_csi2_ctx_config_eol_enabled(u8 ctxnum, bool eol_enabled);
-+int isp_csi2_ctx_config_checksum_enabled(u8 ctxnum, bool checksum_enabled);
-+int isp_csi2_ctx_config_enabled(u8 ctxnum, bool enabled);
-+int isp_csi2_ctx_update(u8 ctxnum, bool force_update);
-+int isp_csi2_ctx_get(u8 ctxnum);
-+int isp_csi2_ctx_update_all(bool force_update);
-+int isp_csi2_ctx_get_all(void);
-+int isp_csi2_phy_config(struct isp_csi2_phy_cfg *desiredphyconfig);
-+int isp_csi2_calc_phy_cfg0(u32 mipiclk, u32 lbound_hs_settle,
-+							u32 ubound_hs_settle);
-+int isp_csi2_phy_update(bool force_update);
-+int isp_csi2_phy_get(void);
-+int isp_csi2_timings_config_forcerxmode(u8 io, bool force_rx_mode);
-+int isp_csi2_timings_config_stopstate_16x(u8 io, bool stop_state_16x);
-+int isp_csi2_timings_config_stopstate_4x(u8 io, bool stop_state_4x);
-+int isp_csi2_timings_config_stopstate_cnt(u8 io, u16 stop_state_counter);
-+int isp_csi2_timings_update(u8 io, bool force_update);
-+int isp_csi2_timings_get(u8 io);
-+int isp_csi2_timings_update_all(bool force_update);
-+int isp_csi2_timings_get_all(void);
-+void isp_csi2_irq_complexio1_set(int enable);
-+void isp_csi2_irq_ctx_set(int enable);
-+void isp_csi2_irq_status_set(int enable);
-+void isp_csi2_irq_set(int enable);
-+void isp_csi2_irq_all_set(int enable);
++void ispresizer_enable_cbilin(u8 enable);
 +
-+void isp_csi2_isr(void);
-+int isp_csi2_reset(void);
-+void isp_csi2_enable(int enable);
-+void isp_csi2_regdump(void);
++void ispresizer_config_ycpos(u8 yc);
 +
-+#endif	/* OMAP_ISP_CSI2_H */
++void ispresizer_config_startphase(u8 hstartphase, u8 vstartphase);
 +
++void ispresizer_config_filter_coef(struct isprsz_coef *coef);
++
++void ispresizer_config_luma_enhance(struct isprsz_yenh *yenh);
++
++int ispresizer_try_size(u32 *input_w, u32 *input_h, u32 *output_w,
++								u32 *output_h);
++
++void ispresizer_applycrop(void);
++
++void ispresizer_trycrop(u32 left, u32 top, u32 width, u32 height, u32 ow,
++								u32 oh);
++
++int ispresizer_config_size(u32 input_w, u32 input_h, u32 output_w,
++					u32 output_h);
++
++int ispresizer_config_inlineoffset(u32 offset);
++
++int ispresizer_set_inaddr(u32 addr);
++
++int ispresizer_config_outlineoffset(u32 offset);
++
++int ispresizer_set_outaddr(u32 addr);
++
++void ispresizer_enable(u8 enable);
++
++int ispresizer_busy(void);
++
++void ispresizer_save_context(void);
++
++void ispresizer_restore_context(void);
++
++void ispresizer_print_status(void);
++
++#endif		/* OMAP_ISP_RESIZER_H */
 -- 
 1.5.6.5
 
