@@ -1,122 +1,135 @@
-From: "Guzman Lugo, Fernando" <x0095840@ti.com>
-Subject: [PATCH 5/5] DSPBRIDGE: Remove unnecessary checks in HW_MBOX_IsFull
- function
-Date: Mon, 2 Mar 2009 18:02:52 -0600
-Message-ID: <496565EC904933469F292DDA3F1663E60287B84DBA@dlee06.ent.ti.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: [2nd REPOST] [PATCH] ARM: MMU: add a Non-cacheable Normal executable
+ memory type
+Date: Mon, 2 Mar 2009 17:40:29 -0700 (MST)
+Message-ID: <alpine.DEB.2.00.0903021732510.30037@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:58764 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1759549AbZCCADA convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 2 Mar 2009 19:03:00 -0500
-Content-Language: en-US
+Received: from utopia.booyaka.com ([72.9.107.138]:41362 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753955AbZCCAkb (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 2 Mar 2009 19:40:31 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>, Ameya Palande <2ameya@gmail.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: linux-arm-kernel@lists.arm.linux.org.uk, linux-kernel@vger.kernel.org
+Cc: linux-omap@vger.kernel.org, tony@atomide.com, r-woodruff2@ti.com, catalin.marinas@arm.com
 
->From db89674b7316d7490e71c131091758eb7ef0eca2 Mon Sep 17 00:00:00 2001
-From: Fernando Guzman Lugo <x0095840@ti.com>
-Date: Wed, 25 Feb 2009 19:27:41 -0600
-Subject: [PATCH] DSPBRIDGE: Remove unnecessary checks in HW_MBOX_IsFull function
 
-This patch removes some unnecesarry checks in HW_MBOX_IsFull
-function
-Signed-off-by: Guzman Lugo Fernando <x0095840@ti.com>
+Hello,
+
+this is the second repost of this patch (the previous repost was 5 Feb 
+2009).  
+
+This patch, or one like it, is a necessary pre-requisite for merging the 
+OMAP3 CORE DVFS patches.  No comments have been received.  Any reason why 
+this patch cannot be merged?
+
+
+- Paul
+
+
+---------- Forwarded message ----------
+Date: Mon, 15 Dec 2008 14:07:07 -0700 (MST)
+From: Paul Walmsley <paul@pwsan.com>
+To: linux-arm-kernel@lists.arm.linux.org.uk
+Cc: linux-omap@vger.kernel.org, r-woodruff2@ti.com
+Subject: [PATCH] ARM: MMU: add a Non-cacheable Normal executable memory type
+
+
+This patch adds a Non-cacheable Normal ARM executable memory type, 
+MT_MEMORY_NONCACHED.
+
+On OMAP3, this is used for rapid dynamic voltage/frequency scaling in the 
+VDD2 voltage domain.  OMAP3's SDRAM controller (SDRC) is in the VDD2 
+voltage domain, and its clock frequency must change along with voltage.  
+The SDRC clock change code cannot run from SDRAM itself, since SDRAM 
+accesses are paused during the clock change.  So the current 
+implementation of the DVFS code executes from OMAP on-chip SRAM, aka "OCM 
+RAM."
+
+If the OCM RAM pages are marked as Cacheable, the ARM cache controller 
+will attempt to flush dirty cache lines to the SDRC, so it can fill those 
+lines with OCM RAM instruction code.  The problem is that the SDRC is 
+paused during DVFS, and so any SDRAM access causes the ARM MPU subsystem 
+to hang.
+
+TI's original solution to this problem was to mark the OCM RAM sections as 
+Strongly Ordered memory, thus preventing caching.  This is overkill: since 
+the memory is marked as non-bufferable, OCM RAM writes become quite 
+needlessly slow.  The idea of "Strongly Ordered SRAM" is also conceptually 
+disturbing.  Previous LAKML list discussion is here:
+
+   http://www.spinics.net/lists/arm-kernel/msg54312.html
+
+Now this memory type MT_MEMORY_NONCACHED is used by a future patch for OCM 
+RAM.
+
+Signed-off-by: Paul Walmsley <paul@pwsan.com>
+Cc: Richard Woodruff <r-woodruff2@ti.com>
 ---
- drivers/dsp/bridge/hw/hw_mbox.c    |   22 ++--------------------
- drivers/dsp/bridge/hw/hw_mbox.h    |    6 ++----
- drivers/dsp/bridge/wmd/tiomap_sm.c |   14 ++++----------
- 3 files changed, 8 insertions(+), 34 deletions(-)
+ arch/arm/include/asm/mach/map.h |    1 +
+ arch/arm/mm/mmu.c               |   23 +++++++++++++++++++++++
+ 2 files changed, 24 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/dsp/bridge/hw/hw_mbox.c b/drivers/dsp/bridge/hw/hw_mbox.c
-index bc61d64..3a539f5
---- a/drivers/dsp/bridge/hw/hw_mbox.c
-+++ b/drivers/dsp/bridge/hw/hw_mbox.c
-@@ -105,28 +105,11 @@ HW_STATUS HW_MBOX_MsgWrite(const u32 baseAddress, const HW_MBOX_Id_t mailBoxId,
- }
+diff --git a/arch/arm/include/asm/mach/map.h b/arch/arm/include/asm/mach/map.h
+index 39d949b..58cf91f 100644
+--- a/arch/arm/include/asm/mach/map.h
++++ b/arch/arm/include/asm/mach/map.h
+@@ -26,6 +26,7 @@ struct map_desc {
+ #define MT_HIGH_VECTORS		8
+ #define MT_MEMORY		9
+ #define MT_ROM			10
++#define MT_MEMORY_NONCACHED	11
  
- /* Reads the full status register for mailbox. */
--HW_STATUS HW_MBOX_IsFull(const void __iomem *baseAddress,
--	const HW_MBOX_Id_t mailBoxId, u32 *const pIsFull)
-+inline bool HW_MBOX_IsFull(const void __iomem *baseAddress,
-+	const HW_MBOX_Id_t mailBoxId)
- {
--	HW_STATUS status = RET_OK;
--	u32 fullStatus;
--
--	/* Check input parameters */
--	CHECK_INPUT_PARAM(baseAddress, 0, RET_BAD_NULL_PARAM, RES_MBOX_BASE +
--			RES_INVALID_INPUT_PARAM);
--	CHECK_INPUT_PARAM(pIsFull,  NULL, RET_BAD_NULL_PARAM, RES_MBOX_BASE +
--			RES_INVALID_INPUT_PARAM);
--	CHECK_INPUT_RANGE_MIN0(mailBoxId, HW_MBOX_ID_MAX, RET_INVALID_ID,
--			RES_MBOX_BASE + RES_INVALID_INPUT_PARAM);
--
--	/* read the is full status parameter for Mailbox */
--	fullStatus = MLBMAILBOX_FIFOSTATUS___0_15FifoFullMBmRead32(baseAddress,
-+	return MLBMAILBOX_FIFOSTATUS___0_15FifoFullMBmRead32(baseAddress,
- 							(u32)mailBoxId);
--
--	/* fill in return parameter */
--	*pIsFull = (fullStatus & 0xFF);
--
--	return status;
- }
+ #ifdef CONFIG_MMU
+ extern void iotable_init(struct map_desc *, int);
+diff --git a/arch/arm/mm/mmu.c b/arch/arm/mm/mmu.c
+index 7f36c82..9ad6413 100644
+--- a/arch/arm/mm/mmu.c
++++ b/arch/arm/mm/mmu.c
+@@ -242,6 +242,10 @@ static struct mem_type mem_types[] = {
+ 		.prot_sect = PMD_TYPE_SECT,
+ 		.domain    = DOMAIN_KERNEL,
+ 	},
++	[MT_MEMORY_NONCACHED] = {
++		.prot_sect = PMD_TYPE_SECT | PMD_SECT_AP_WRITE,
++		.domain    = DOMAIN_KERNEL,
++	},
+ };
  
- /* Gets number of messages in a specified mailbox. */
-diff --git a/drivers/dsp/bridge/hw/hw_mbox.h b/drivers/dsp/bridge/hw/hw_mbox.h
-index 225fb40..50a3746
---- a/drivers/dsp/bridge/hw/hw_mbox.h
-+++ b/drivers/dsp/bridge/hw/hw_mbox.h
-@@ -158,11 +158,9 @@ extern HW_STATUS HW_MBOX_MsgWrite(
- *
- * PURPOSE:      : this function reads the full status register for mailbox.
- */
--extern HW_STATUS HW_MBOX_IsFull(
-+extern inline bool HW_MBOX_IsFull(
- 		      const void __iomem *baseAddress,
--		      const HW_MBOX_Id_t   mailBoxId,
--		      u32 *const	pIsFull
--		  );
-+		      const HW_MBOX_Id_t   mailBoxId);
- 
- /*
- * FUNCTION      : HW_MBOX_NumMsgGet
-diff --git a/drivers/dsp/bridge/wmd/tiomap_sm.c b/drivers/dsp/bridge/wmd/tiomap_sm.c
-index edc3bcf..2843788
---- a/drivers/dsp/bridge/wmd/tiomap_sm.c
-+++ b/drivers/dsp/bridge/wmd/tiomap_sm.c
-@@ -173,8 +173,7 @@ DSP_STATUS CHNLSM_InterruptDSP(struct WMD_DEV_CONTEXT *hDevContext)
+ const struct mem_type *get_mem_type(unsigned int type)
+@@ -405,9 +409,28 @@ static void __init build_mem_type_table(void)
+ 		kern_pgprot |= L_PTE_SHARED;
+ 		vecs_pgprot |= L_PTE_SHARED;
+ 		mem_types[MT_MEMORY].prot_sect |= PMD_SECT_S;
++		mem_types[MT_MEMORY_NONCACHED].prot_sect |= PMD_SECT_S;
  #endif
- 	HW_STATUS hwStatus;
--	u32 mbxFull;
- 	struct CFG_HOSTRES resources;
--	u16 cnt = 10;
-+	u16 cnt = 1000;
- 	u32 temp;
- 
- 	status = CFG_GetHostResources(
-@@ -241,14 +240,9 @@ DSP_STATUS CHNLSM_InterruptDSP(struct WMD_DEV_CONTEXT *hDevContext)
- 
- 		pDevContext->dwBrdState = BRD_RUNNING;
  	}
--	while (--cnt) {
--		hwStatus = HW_MBOX_IsFull(resources.dwMboxBase,
--					   MBOX_ARM2DSP, &mbxFull);
--		if (mbxFull)
--			UTIL_Wait(1000);	/* wait for 1 ms)      */
--		else
--			break;
--	}
-+	while (--cnt && HW_MBOX_IsFull(resources.dwMboxBase, MBOX_ARM2DSP))
-+		udelay(1);
+ 
++	/*
++	 * Non-cacheable Normal - intended for memory areas that must
++	 * not cause dirty cache line writebacks when used
++	 */
++	if (cpu_arch >= CPU_ARCH_ARMv6) {
++		if (cpu_arch >= CPU_ARCH_ARMv7 && (cr & CR_TRE)) {
++			/* Non-cacheable Normal is XCB = 001 */
++			mem_types[MT_MEMORY_NONCACHED].prot_sect |=
++				PMD_SECT_BUFFERED;
++		} else {
++			/* For both ARMv6 and non-TEX-remapping ARMv7 */
++			mem_types[MT_MEMORY_NONCACHED].prot_sect |=
++				PMD_SECT_TEX(1);
++		}
++	} else {
++		mem_types[MT_MEMORY_NONCACHED].prot_sect |= PMD_SECT_BUFFERABLE;
++	}
 +
- 	if (!cnt) {
- 		DBG_Trace(DBG_LEVEL7, "Timed out waiting for DSP mailbox \n");
- 		status = WMD_E_TIMEOUT;
--- 
-1.5.6.4
+ 	for (i = 0; i < 16; i++) {
+ 		unsigned long v = pgprot_val(protection_map[i]);
+ 		protection_map[i] = __pgprot(v | user_pgprot);
 
+-------------------------------------------------------------------
+List admin: http://lists.arm.linux.org.uk/mailman/listinfo/linux-arm-kernel
+FAQ:        http://www.arm.linux.org.uk/mailinglists/faq.php
+Etiquette:  http://www.arm.linux.org.uk/mailinglists/etiquette.php
