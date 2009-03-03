@@ -1,78 +1,38 @@
-From: "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>
-Subject: RE: [RFC 0/5] Sensor drivers for OMAP3430SDP and LDP camera
-Date: Tue, 3 Mar 2009 17:16:47 -0600
-Message-ID: <A24693684029E5489D1D202277BE89442E1D945C@dlee02.ent.ti.com>
-References: <200903032347.19548.hverkuil@xs4all.nl>
+From: David Brownell <david-b@pacbell.net>
+Subject: Re: [PATCH 1/1] Group and resource assignments for TWL4030
+Date: Tue, 3 Mar 2009 15:28:45 -0800
+Message-ID: <200903031528.45940.david-b@pacbell.net>
+References: <1234271495-11705-1-git-send-email-peter.de-schrijver@nokia.com> <1234271495-11705-2-git-send-email-peter.de-schrijver@nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
-Return-path: <linux-media-owner@vger.kernel.org>
-In-Reply-To: <200903032347.19548.hverkuil@xs4all.nl>
-Content-Language: en-US
-Sender: linux-media-owner@vger.kernel.org
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>, "Tuukka.O Toivonen" <tuukka.o.toivonen@nokia.com>, Hiroshi DOYU <Hiroshi.DOYU@nokia.com>, "DongSoo(Nathaniel) Kim" <dongsoo.kim@gmail.com>, MiaoStanley <stanleymiao@hotmail.com>, "Nagalla, Hari" <hnagalla@ti.com>, "Hiremath, Vaibhav" <hvaibhav@ti.com>, "Lakhani, Amish" <amish@ti.com>, "Menon, Nishanth" <nm@ti.com>
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from smtp116.sbc.mail.sp1.yahoo.com ([69.147.64.89]:20603 "HELO
+	smtp116.sbc.mail.sp1.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1751945AbZCCX2t (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 3 Mar 2009 18:28:49 -0500
+In-Reply-To: <1234271495-11705-2-git-send-email-peter.de-schrijver@nokia.com>
+Content-Disposition: inline
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Peter 'p2' De Schrijver <peter.de-schrijver@nokia.com>
+Cc: linux-omap@vger.kernel.org
 
-> -----Original Message-----
-> From: Hans Verkuil [mailto:hverkuil@xs4all.nl]
-> Sent: Tuesday, March 03, 2009 4:47 PM
-> To: Aguirre Rodriguez, Sergio Alberto
-> Cc: linux-media@vger.kernel.org; linux-omap@vger.kernel.org; Sakari Ailus;
-> Tuukka.O Toivonen; Hiroshi DOYU; DongSoo(Nathaniel) Kim; MiaoStanley;
-> Nagalla, Hari; Hiremath, Vaibhav; Lakhani, Amish; Menon, Nishanth
-> Subject: Re: [RFC 0/5] Sensor drivers for OMAP3430SDP and LDP camera
-> 
-> On Tuesday 03 March 2009 21:44:12 Aguirre Rodriguez, Sergio Alberto wrote:
-> > This patch series depends on the following patches:
-> >
-> >  - "Add TWL4030 registers", posted by Tuukka Toivonen on March 2nd.
-> >  - "OMAP3 ISP and camera drivers" patch series, posted by Sakari Ailus
-> on
-> >    March 3rd. (Please follow his instructions to pull from gitorious.org
-> > server)
-> 
-> Sergio, Sakari,
-> 
-> I'm feeling quite uncomfortable about this series with regards to the use
-> of
-> the v4l2-int API instead of v4l2_subdev. I know that it is on the TODO
-> list, but every driver that is merged that uses v4l2-int will later mean
-> extra work.
-> 
-> I and others have been working very hard to get the existing ioctl-based
-> i2c
-> modules converted in time for the 2.6.30 merge window. It looks like I'll
-> be able to have it done in time (fingers crossed :-) ). So it is rather
-> sad
-> to see new modules that do not yet use it.
-> 
-> Right now the v4l2_device and v4l2_subdev framework is pretty basic and so
-> the amount of work to do the conversion is still limited, but once I've
-> finished my initial conversion I'll be adding lots more features, do
-> cleanups, and generally improve the framework substantially. Any existing
-> modules that use v4l2_device and v4l2_subdev will be updated by me. But
-> I'm
-> not going to do that for modules using v4l2-int, that will be the
-> responsibility of the module's author when he converts it to v4l2_subdev.
-> So the longer you wait, the more work that will be.
-> 
-> I *strongly* recommend that the conversion to the new framework is done
-> first. I know it might delay inclusion of some drivers, but my expectation
-> based on all the other conversions I've done until now is that it will
-> actually simplify the drivers.
-> 
-> My experiences with it have been uniformly positive and it should be
-> possible to use it as well with the ISP module or other logical
-> sub-devices. There are lots of interesting possibilities there that you do
-> not have with v4l2-int.
+On Tuesday 10 February 2009, Peter 'p2' De Schrijver wrote:
+> +struct twl4030_resconfig {
+> +=A0=A0=A0=A0=A0=A0=A0int resource;
+> +=A0=A0=A0=A0=A0=A0=A0int devgroup;
+> +=A0=A0=A0=A0=A0=A0=A0int type;
+> +=A0=A0=A0=A0=A0=A0=A0int type2;
+> +};
+> +
 
-Hans,
+Make all those "u8" ... save 28 * 3 * 4 =3D=3D 336 bytes
+on a system that configures all 28 resources.  ;)
 
-I agree that we need to head for migration asap, but we hadn't had a chance to begin on this as some other higher priority issues were (and some still are) showing up.
 
-Anyways, can you please point me to the latest version of the v4l2_subdev documentation so we can begin properly working on this?
-
-Regards,
-Sergio
-
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
