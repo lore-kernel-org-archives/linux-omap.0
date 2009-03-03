@@ -1,48 +1,60 @@
-From: Sakari Ailus <sakari.ailus@nokia.com>
-Subject: Re: [REVIEW PATCH 11/14] OMAP34XXCAM: Add driver
-Date: Tue, 03 Mar 2009 09:25:31 +0200
-Message-ID: <49ACDB6B.4000102@nokia.com>
-References: <A24693684029E5489D1D202277BE894415E6E1A1@dlee02.ent.ti.com>	 <5e9665e10902230008g62d5f3bfm56cffdfe04a3adea@mail.gmail.com>	 <200902231050.29282.tuukka.o.toivonen@nokia.com> <5e9665e10903021848u328e0cd4m5186344be15b817@mail.gmail.com>
-Reply-To: sakari.ailus@maxwell.research.nokia.com
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+From: Koen Kooi <k.kooi@student.utwente.nl>
+Subject: Re: Anyone built the kernel drivers for the PowerVR under  linux-omap-2.6?
+Date: Tue, 3 Mar 2009 08:32:12 +0100
+Message-ID: <1D24AF54-A1B5-4BFD-BBB3-09E1BB1F0A7F@student.utwente.nl>
+References: <c6ef7709f9373651496b2a32ca42f571.squirrel@localhost>
+Mime-Version: 1.0 (Apple Message framework v930.3)
+Content-Type: multipart/signed; protocol="application/pgp-signature"; micalg=pgp-sha1; boundary="Apple-Mail-3-60295212"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:28658 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753550AbZCCH0F (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 3 Mar 2009 02:26:05 -0500
-In-Reply-To: <5e9665e10903021848u328e0cd4m5186344be15b817@mail.gmail.com>
+Received: from mx1.utsp.utwente.nl ([130.89.2.12]:58356 "EHLO mx.utwente.nl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751794AbZCCHcV (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 3 Mar 2009 02:32:21 -0500
+Received: from [172.20.1.5] (vpn006010.vpn.utwente.nl [130.89.6.10])
+          by mx.utwente.nl (8.12.10/SuSE Linux 0.7) with ESMTP id n237WEV8001801
+          for <linux-omap@vger.kernel.org>; Tue, 3 Mar 2009 08:32:15 +0100
+In-Reply-To: <c6ef7709f9373651496b2a32ca42f571.squirrel@localhost>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "DongSoo(Nathaniel) Kim" <dongsoo.kim@gmail.com>
-Cc: "Toivonen Tuukka.O (Nokia-D/Oulu)" <tuukka.o.toivonen@nokia.com>, "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Nagalla, Hari" <hnagalla@ti.com>
+To: "linux-omap@vger.kernel.org List" <linux-omap@vger.kernel.org>
 
-DongSoo(Nathaniel) Kim wrote:
-> Hi Tuukka,
-> 
-> I understand that it is a huge thing to support VIDIOC_S_INPUT.
+This is an OpenPGP/MIME signed message (RFC 2440 and 3156)
+--Apple-Mail-3-60295212
+Content-Type: text/plain; charset=US-ASCII; format=flowed; delsp=yes
+Content-Transfer-Encoding: 7bit
 
-It might not be that much, in case it's supported by just one slave.
 
-> But without that, we don't have any proper "V4L2" api to get
-> information about how many devices are attached to camera interface,
-> and names of input devices...and so on. Because VIDIOC_ENUMINPUT and
-> VIDIOC_G_INPUT needs VIDIOC_S_INPUT for prior. Of course we can refer
-> to sysfs, but using only single set of APIs like V4L2 looks more
-> decent.
-> 
-> What do you think about this?
-> If you think that it is a big burden, can I make a patch for this?
+Op 2 mrt 2009, om 21:56 heeft david.hagood@gmail.com het volgende  
+geschreven:
 
-I'm just wondering the purpose --- as Tuukka explained, the ISP block 
-doesn't make a camera, but a sensor essentially does. So for every 
-sensor there's a video device, even if they are implemented by using 
-just one ISP. How does this sound like?
+> I'm trying to build the TI supplied Linux kernel driver modules for  
+> the
+> PowerVR accelerator chip in the OMAP3. I have a GIT tree pulled from  
+> the
+> linux-omap-2.6 tree, and a set of cross-compiler tools built and
+> installed.
 
-But for video decoders at least it's definitely meaningful to support 
-VIDIOC_S_INPUT.
+In OpenEmbedded we have patches to a) get it to compile b) pick up  
+symbols so they actually insert and c) build against Tomi's DSS2
 
--- 
-Sakari Ailus
-sakari.ailus@maxwell.research.nokia.com
+regards,
+
+Koen
+
+--Apple-Mail-3-60295212
+content-type: application/pgp-signature; x-mac-type=70674453;
+	name=PGP.sig
+content-description: Dit deel van het bericht is digitaal ondertekend
+content-disposition: inline; filename=PGP.sig
+content-transfer-encoding: 7bit
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.5 (Darwin)
+
+iD8DBQFJrNz+MkyGM64RGpERAsWIAKC12pfGePnfyLWweR4ha+mq5tfD/wCaA3BH
+dQqgVdA5tYnpxOwePpbgY3Q=
+=Mr7s
+-----END PGP SIGNATURE-----
+
+--Apple-Mail-3-60295212--
