@@ -1,87 +1,43 @@
 From: David Brownell <david-b@pacbell.net>
-Subject: Re: [PATCH 0/1] Group and resource assignments for TWL4030
-Date: Tue, 3 Mar 2009 15:38:16 -0800
-Message-ID: <200903031538.16757.david-b@pacbell.net>
-References: <1234271495-11705-1-git-send-email-peter.de-schrijver@nokia.com> <20090215164851.GA19407@codecarver.research.nokia.com> <20090227165949.GB11594@atomide.com>
+Subject: Re: [RFC 0/5] Sensor drivers for OMAP3430SDP and LDP camera
+Date: Tue, 3 Mar 2009 15:56:21 -0800
+Message-ID: <200903031556.22034.david-b@pacbell.net>
+References: <A24693684029E5489D1D202277BE89442E1D92A4@dlee02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp118.sbc.mail.sp1.yahoo.com ([69.147.64.91]:38814 "HELO
-	smtp118.sbc.mail.sp1.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1753743AbZCCXiU (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 3 Mar 2009 18:38:20 -0500
-In-Reply-To: <20090227165949.GB11594@atomide.com>
+Received: from n30.bullet.mail.mud.yahoo.com ([68.142.207.49]:42499 "HELO
+	n30.bullet.mail.mud.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1754156AbZCCX40 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 3 Mar 2009 18:56:26 -0500
+In-Reply-To: <A24693684029E5489D1D202277BE89442E1D92A4@dlee02.ent.ti.com>
 Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, Peter 'p2' De Schrijver <peter.de-schrijver@nokia.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>
+Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>, "Tuukka.O Toivonen" <tuukka.o.toivonen@nokia.com>, Hiroshi DOYU <Hiroshi.DOYU@nokia.com>, "DongSoo(Nathaniel) Kim" <dongsoo.kim@gmail.com>, MiaoStanley <stanleymiao@hotmail.com>, "Nagalla, Hari" <hnagalla@ti.com>, "Hiremath, Vaibhav" <hvaibhav@ti.com>, "Lakhani, Amish" <amish@ti.com>, "Menon, Nishanth" <nm@ti.com>
 
-On Friday 27 February 2009, Tony Lindgren wrote:
-> * Peter 'p2' De Schrijver <peter.de-schrijver@nokia.com> [090215 08:49]:
-> > On Fri, Feb 13, 2009 at 09:55:21PM +0100, ext David Brownell wrote:
-> > > On Tuesday 10 February 2009, Peter 'p2' De Schrijver wrote:
-> > > >
-> > > > This patch introduces support for board specific group assignments of TWL4030
-> > > > resources. The resource type and type2 fields can also be specified.
-> > > 
-> > > Do we have any real examples yet of needing to assign
-> > > resources to anything other than P1 (processor)?
-> > 
-> > Yes. On our custom hardware we use it to assign CLKEN to P3.
+On Tuesday 03 March 2009, Aguirre Rodriguez, Sergio Alberto wrote:
+>=20
+> > This patch series depends on the following patches:
+> >=20
+> > =A0- "Add TWL4030 registers", posted by Tuukka Toivonen on March 2n=
+d.
+>=20
+> http://marc.info/?l=3Dlinux-omap&m=3D123597520231668&w=3D2
 
-P3 roughly translating to "system running", with
-no regard to whether ARM(s) or DSP are active, yes?
+I'd much rather see these drivers just use the regulator
+framework to switch any sensor power rails on/off.
 
-I've seen hardware which hooks CLKEN to the enable
-line for a 2.8V regulator, and REGEN to the enable
-line for a 2.5V regulator.
-
-Table 5-8 of the chip manual tells me those, along
-with HFCLOCK and a few other resources, are already
-assigned to the P3 (and P1 and P2) groups by device
-reset.  So that use case isn't quite complete.  At
-least some of this look like normal paranoia, to
-defend against hardware and bootloader oddities.  ;)
-
-
-I'm not sure how those should be modeled within
-the regulator framework.  My first thought is to
-just let those particular resources live outside
-that framework, until there's a need for another
-solution ... the main virtue of that framework is
-to have a standard way for Linux to manage things,
-but these are resources it won't be managing.
-The secondary virtue of "visibility into hardware"
-isn't very compelling here IMO.
-
-
-> BTW, this should be discussed and integrated via the driver lists,
-> in this case that's Samuel Ortiz and LKML.
-
-Actually this is related to the twl4030-power.c
-driver which has not yet gone upstream.  I'm not
-sure there'd be much point to discussing this on
-the PM list though.
-
-
-So let me suggest a slightly different approach:
-
- - Peter updates $SUBJECT patch to address the
-   comments from me (data shrink) and Felipe
-   (use those RES_* symbols in res_config_addrs)
-
- - Tony merges that to the OMAP tree
-
- - Peter starts work on merging twl4030-power.c
-   to mainline (discuss on LKML etc)
-
-There will be a few more issues to sort with this
-driver.  There are section warnings generated by
-some of the platform code, and the generic script
-doesn't work at all on Beagle.
+As with the V4L2 interface changes, the twl4030 regulator
+support will be in mainline for the 2.6.30 kernels.
 
 - Dave
+=20
 
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
