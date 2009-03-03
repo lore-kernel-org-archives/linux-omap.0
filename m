@@ -1,726 +1,313 @@
 From: "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>
-Subject: [PATCH 2/5] DW9710: Add driver
-Date: Tue, 3 Mar 2009 14:44:17 -0600
-Message-ID: <A24693684029E5489D1D202277BE89442E1D9221@dlee02.ent.ti.com>
+Subject: [PATCH 5/5] LDP: Add support for built-in camera
+Date: Tue, 3 Mar 2009 14:44:25 -0600
+Message-ID: <A24693684029E5489D1D202277BE89442E1D9224@dlee02.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:45354 "EHLO arroyo.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:58242 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753942AbZCCUog convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 3 Mar 2009 15:44:36 -0500
+	id S1754292AbZCCUop convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 3 Mar 2009 15:44:45 -0500
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 Cc: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>, "Tuukka.O Toivonen" <tuukka.o.toivonen@nokia.com>, Hiroshi DOYU <Hiroshi.DOYU@nokia.com>, "DongSoo(Nathaniel) Kim" <dongsoo.kim@gmail.com>, MiaoStanley <stanleymiao@hotmail.com>, "Nagalla, Hari" <hnagalla@ti.com>, "Hiremath, Vaibhav" <hvaibhav@ti.com>, "Lakhani, Amish" <amish@ti.com>, "Menon, Nishanth" <nm@ti.com>
 
-This driver has been currently being tested with
-OMAP3430SDP platform, working on top of MT9P012
-sensor.
+This patch adds support for the LDP builtin camera sensor:
+ - Primary sensor (/dev/video4): OV3640 (CSI2).
+
+It introduces also a new file for storing all camera sensors board
+specific related functions, like other platforms do (N800 for example).
 
 Signed-off-by: Sergio Aguirre <saaguirre@ti.com>
 ---
- drivers/media/video/Kconfig       |    8 +
- drivers/media/video/Makefile      |    1 +
- drivers/media/video/dw9710.c      |  548 +++++++++++++++++++++++++++++++++++++
- drivers/media/video/dw9710_priv.h |   57 ++++
- include/media/dw9710.h            |   35 +++
- 5 files changed, 649 insertions(+), 0 deletions(-)
- create mode 100644 drivers/media/video/dw9710.c
- create mode 100644 drivers/media/video/dw9710_priv.h
- create mode 100644 include/media/dw9710.h
+ arch/arm/mach-omap2/Makefile                |    3 +-
+ arch/arm/mach-omap2/board-ldp-camera.c      |  203 +++++++++++++++++++++++++++
+ arch/arm/mach-omap2/board-ldp.c             |   17 +++
+ arch/arm/plat-omap/include/mach/board-ldp.h |    1 +
+ 4 files changed, 223 insertions(+), 1 deletions(-)
+ create mode 100644 arch/arm/mach-omap2/board-ldp-camera.c
 
-diff --git a/drivers/media/video/Kconfig b/drivers/media/video/Kconfig
-index 05e9fa1..225d9cf 100644
---- a/drivers/media/video/Kconfig
-+++ b/drivers/media/video/Kconfig
-@@ -313,6 +313,14 @@ config VIDEO_MT9P012
-          MT9P012 camera.  It is currently working with the TI OMAP3
-          camera controller.
-
-+config VIDEO_DW9710
-+       tristate "Lens driver for DW9710"
-+       depends on I2C && VIDEO_V4L2
-+       ---help---
-+         This is a Video4Linux2 lens driver for the Dongwoon
-+         DW9710 coil.  It is currently working with the TI OMAP3
-+         camera controller and micron MT9P012 sensor.
-+
- config VIDEO_SAA7110
-        tristate "Philips SAA7110 video decoder"
-        depends on VIDEO_V4L1 && I2C
-diff --git a/drivers/media/video/Makefile b/drivers/media/video/Makefile
-index c445099..52a34d9 100644
---- a/drivers/media/video/Makefile
-+++ b/drivers/media/video/Makefile
-@@ -112,6 +112,7 @@ obj-$(CONFIG_VIDEO_OMAP3) += omap34xxcam.o
-
- obj-$(CONFIG_VIDEO_TCM825X) += tcm825x.o
- obj-$(CONFIG_VIDEO_MT9P012)     += mt9p012.o
-+obj-$(CONFIG_VIDEO_DW9710)     += dw9710.o
-
- obj-$(CONFIG_USB_DABUSB)        += dabusb.o
- obj-$(CONFIG_USB_OV511)         += ov511.o
-diff --git a/drivers/media/video/dw9710.c b/drivers/media/video/dw9710.c
+diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
+index 8888ee6..097bc58 100644
+--- a/arch/arm/mach-omap2/Makefile
++++ b/arch/arm/mach-omap2/Makefile
+@@ -63,7 +63,8 @@ obj-$(CONFIG_MACH_OMAP3_BEAGLE)		+= board-omap3beagle.o \
+ 					   mmc-twl4030.o \
+ 					   twl4030-generic-scripts.o
+ obj-$(CONFIG_MACH_OMAP_LDP)		+= board-ldp.o \
+-					   mmc-twl4030.o
++					   mmc-twl4030.o \
++					   board-ldp-camera.o
+ obj-$(CONFIG_MACH_OMAP_APOLLON)		+= board-apollon.o \
+ 					   board-apollon-mmc.o	\
+ 					   board-apollon-keys.o
+diff --git a/arch/arm/mach-omap2/board-ldp-camera.c b/arch/arm/mach-omap2/board-ldp-camera.c
 new file mode 100644
-index 0000000..362cb0d
+index 0000000..0db085c
 --- /dev/null
-+++ b/drivers/media/video/dw9710.c
-@@ -0,0 +1,548 @@
++++ b/arch/arm/mach-omap2/board-ldp-camera.c
+@@ -0,0 +1,203 @@
 +/*
-+ * drivers/media/video/dw9710.c
++ * linux/arch/arm/mach-omap2/board-ldp0-camera.c
 + *
-+ * DW9710 Coil Motor (LENS) driver
++ * Copyright (C) 2009 Texas Instruments Inc.
++ * Sergio Aguirre <saaguirre@ti.com>
 + *
-+ * Copyright (C) 2008 Texas Instruments.
++ * Modified from mach-omap2/board-ldp.c
 + *
-+ * Contributors:
-+ *     Troy Laramy <t-laramy@ti.com>
-+ *     Mohit Jalori <mjalori@ti.com>
-+ *
-+ * This file is licensed under the terms of the GNU General Public License
-+ * version 2. This program is licensed "as is" without any warranty of any
-+ * kind, whether express or implied.
-+ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
 + */
 +
-+#include <linux/mutex.h>
-+#include <linux/i2c.h>
-+#include <linux/delay.h>
++#ifdef CONFIG_TWL4030_CORE
++
++#include <linux/clk.h>
 +#include <linux/platform_device.h>
-+#include <linux/cdev.h>
-+#include <linux/device.h>
++#include <linux/delay.h>
++
++#include <linux/i2c/twl4030.h>
++
++#include <asm/io.h>
 +
 +#include <mach/gpio.h>
 +
++static int cam_inited;
 +#include <media/v4l2-int-device.h>
-+#include <media/dw9710.h>
++#include <../drivers/media/video/omap34xxcam.h>
++#include <../drivers/media/video/isp/ispreg.h>
 +
-+#include "dw9710_priv.h"
++#define LDPCAM_USE_XCLKB	1
 +
-+static struct dw9710_device dw9710 = {
-+       .state = DW9710_LENS_NOT_DETECTED,
-+       .current_lens_posn = DW9710_DEF_LENS_POSN,
++#define VAUX_1_8_V		0x05
++#define VAUX_DEV_GRP_P1		0x20
++#define VAUX_DEV_GRP_NONE	0x00
++
++#if defined(CONFIG_VIDEO_OV3640) || defined(CONFIG_VIDEO_OV3640_MODULE)
++#define OV3640_RESET_GPIO  	98
++#define OV3640_STANDBY_GPIO	7
++#include <media/ov3640.h>
++#include <../drivers/media/video/isp/ispcsi2.h>
++static	struct omap34xxcam_hw_config *hwc;
++#define OV3640_CSI2_CLOCK_POLARITY	0	/* +/- pin order */
++#define OV3640_CSI2_DATA0_POLARITY	0	/* +/- pin order */
++#define OV3640_CSI2_DATA1_POLARITY	0	/* +/- pin order */
++#define OV3640_CSI2_CLOCK_LANE		1	 /* Clock lane position: 1 */
++#define OV3640_CSI2_DATA0_LANE		2	 /* Data0 lane position: 2 */
++#define OV3640_CSI2_DATA1_LANE		3	 /* Data1 lane position: 3 */
++#define OV3640_CSI2_PHY_THS_TERM	4
++#define OV3640_CSI2_PHY_THS_SETTLE	14
++#define OV3640_CSI2_PHY_TCLK_TERM	0
++#define OV3640_CSI2_PHY_TCLK_MISS	1
++#define OV3640_CSI2_PHY_TCLK_SETTLE	14
++
++static struct omap34xxcam_sensor_config ov3640_hwc = {
++	.sensor_isp = 0,
++	.xclk = OMAP34XXCAM_XCLK_B,
++	.capture_mem = 2592 * 1944 * 2 * 2,
++	.ival_default	= { 1, 15 },
 +};
 +
-+static struct vcontrol {
-+       struct v4l2_queryctrl qc;
-+       int current_value;
-+} video_control[] = {
-+       {
-+               {
-+                       .id = V4L2_CID_FOCUS_ABSOLUTE,
-+                       .type = V4L2_CTRL_TYPE_INTEGER,
-+                       .name = "Focus, Absolute",
-+                       .minimum = 0,
-+                       .maximum = DW9710_MAX_FOCUS_POS,
-+                       .step = DW9710_LENS_POSN_STEP,
-+                       .default_value = DW9710_DEF_LENS_POSN,
-+               },
-+               .current_value = DW9710_DEF_LENS_POSN,
-+       }
++static struct isp_interface_config ov3640_if_config = {
++	.ccdc_par_ser = ISP_CSIA,
++	.dataline_shift = 0x0,
++	.hsvs_syncdetect = ISPCTRL_SYNC_DETECT_VSRISE,
++	.strobe = 0x0,
++	.prestrobe = 0x0,
++	.shutter = 0x0,
++	.prev_sph = 2,
++	.prev_slv = 1,
++	.wenlog = ISPCCDC_CFG_WENLOG_AND,
++	.wait_hs_vs = 2,
++	.u.csi.crc = 0x0,
++	.u.csi.mode = 0x0,
++	.u.csi.edge = 0x0,
++	.u.csi.signalling = 0x0,
++	.u.csi.strobe_clock_inv = 0x0,
++	.u.csi.vs_edge = 0x0,
++	.u.csi.channel = 0x1,
++	.u.csi.vpclk = 0x1,
++	.u.csi.data_start = 0x0,
++	.u.csi.data_size = 0x0,
++	.u.csi.format = V4L2_PIX_FMT_SGRBG10,
 +};
 +
-+/**
-+ * find_vctrl - Finds the requested ID in the video control structure array
-+ * @id: ID of control to search the video control array for
-+ *
-+ * Returns the index of the requested ID from the control structure array
-+ */
-+static int find_vctrl(int id)
++static int ov3640_sensor_set_prv_data(void *priv)
 +{
-+       int i;
-+
-+       if (id < V4L2_CID_BASE)
-+               return -EDOM;
-+
-+       for (i = (ARRAY_SIZE(video_control) - 1); i >= 0; i--) {
-+               if (video_control[i].qc.id == id)
-+                       return i;
-+       }
-+
-+       return -EINVAL;
++	hwc = priv;
++	hwc->u.sensor.xclk = ov3640_hwc.xclk;
++	hwc->u.sensor.sensor_isp = ov3640_hwc.sensor_isp;
++	hwc->dev_index = 1;
++	hwc->dev_minor = 4;
++	hwc->dev_type = OMAP34XXCAM_SLAVE_SENSOR;
++	return 0;
 +}
 +
-+/**
-+ * dw9710_reg_read - Reads a value from a register in DW9710 Coil driver device.
-+ * @client: Pointer to structure of I2C client.
-+ * @value: Pointer to u16 for returning value of register to read.
-+ *
-+ * Returns zero if successful, or non-zero otherwise.
-+ **/
-+static int dw9710_reg_read(struct i2c_client *client, u16 *value)
++static int ov3640_sensor_power_set(enum v4l2_power power)
 +{
-+       int err;
-+       struct i2c_msg msg[1];
-+       unsigned char data[2];
++	struct isp_csi2_lanes_cfg lanecfg;
++	struct isp_csi2_phy_cfg phyconfig;
++	static enum v4l2_power previous_power = V4L2_POWER_OFF;
 +
-+       if (!client->adapter)
-+               return -ENODEV;
++	if (!cam_inited) {
++		printk(KERN_ERR "OV3640: Unable to control board GPIOs!\n");
++		return -EFAULT;
++	}
 +
-+       msg->addr = client->addr;
-+       msg->flags = I2C_M_RD;
-+       msg->len = 2;
-+       msg->buf = data;
++	switch (power) {
++	case V4L2_POWER_ON:
++		if (previous_power == V4L2_POWER_OFF)
++			isp_csi2_reset();
++		lanecfg.clk.pol = OV3640_CSI2_CLOCK_POLARITY;
++		lanecfg.clk.pos = OV3640_CSI2_CLOCK_LANE;
++		lanecfg.data[0].pol = OV3640_CSI2_DATA0_POLARITY;
++		lanecfg.data[0].pos = OV3640_CSI2_DATA0_LANE;
++		lanecfg.data[1].pol = OV3640_CSI2_DATA1_POLARITY;
++		lanecfg.data[1].pos = OV3640_CSI2_DATA1_LANE;
++		lanecfg.data[2].pol = 0;
++		lanecfg.data[2].pos = 0;
++		lanecfg.data[3].pol = 0;
++		lanecfg.data[3].pos = 0;
++		isp_csi2_complexio_lanes_config(&lanecfg);
++		isp_csi2_complexio_lanes_update(true);
 +
-+       data[0] = 0;
-+       data[1] = 0;
++		phyconfig.ths_term = OV3640_CSI2_PHY_THS_TERM;
++		phyconfig.ths_settle = OV3640_CSI2_PHY_THS_SETTLE;
++		phyconfig.tclk_term = OV3640_CSI2_PHY_TCLK_TERM;
++		phyconfig.tclk_miss = OV3640_CSI2_PHY_TCLK_MISS;
++		phyconfig.tclk_settle = OV3640_CSI2_PHY_TCLK_SETTLE;
++		isp_csi2_phy_config(&phyconfig);
++		isp_csi2_phy_update(true);
 +
-+       err = i2c_transfer(client->adapter, msg, 1);
++		isp_configure_interface(&ov3640_if_config);
 +
-+       if (err >= 0) {
-+               err = ((data[0] & 0xFF) << 8) | (data[1]);
-+               *value = err;
-+               return 0;
-+       }
-+       return err;
++		if (previous_power == V4L2_POWER_OFF) {
++			/* turn on analog power */
++			twl4030_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER,
++					VAUX_1_8_V, TWL4030_VAUX4_DEDICATED);
++			twl4030_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER,
++					VAUX_DEV_GRP_P1, TWL4030_VAUX4_DEV_GRP);
++			udelay(100);
++			/* Turn ON Omnivision sensor */
++			gpio_set_value(OV3640_RESET_GPIO, 1);
++			gpio_set_value(OV3640_STANDBY_GPIO, 0);
++			udelay(100);
++
++			/* RESET Omnivision sensor */
++			gpio_set_value(OV3640_RESET_GPIO, 0);
++			udelay(100);
++			gpio_set_value(OV3640_RESET_GPIO, 1);
++		}
++		break;
++	case V4L2_POWER_OFF:
++		/* Power Down Sequence */
++		isp_csi2_complexio_power(ISP_CSI2_POWER_OFF);
++		twl4030_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER,
++				VAUX_DEV_GRP_NONE, TWL4030_VAUX4_DEV_GRP);
++		break;
++	case V4L2_POWER_STANDBY:
++		break;
++	}
++	previous_power = power;
++	return 0;
 +}
 +
-+/**
-+ * dw9710_reg_write - Writes a value to a register in DW9710 Coil driver device.
-+ * @client: Pointer to structure of I2C client.
-+ * @value: Value of register to write.
-+ *
-+ * Returns zero if successful, or non-zero otherwise.
-+ **/
-+static int dw9710_reg_write(struct i2c_client *client, u16 value)
++static u32 ov3640_sensor_set_xclk(u32 xclkfreq)
 +{
-+       int err;
-+       struct i2c_msg msg[1];
-+       unsigned char data[2];
-+       int retry = 0;
-+
-+       if (!client->adapter)
-+               return -ENODEV;
-+
-+again:
-+       msg->addr = client->addr;
-+       msg->flags = 0;
-+       msg->len = 2;
-+       msg->buf = data;
-+
-+       data[0] = (u8)(value >> 8);
-+       data[1] = (u8)(value & 0xFF);
-+
-+       err = i2c_transfer(client->adapter, msg, 1);
-+
-+       if (err >= 0)
-+               return 0;
-+
-+       if (retry <= DW9710_I2C_RETRY_COUNT) {
-+               dev_dbg(&client->dev, "retry ... %d", retry);
-+               retry++;
-+               set_current_state(TASK_UNINTERRUPTIBLE);
-+               schedule_timeout(msecs_to_jiffies(20));
-+               goto again;
-+       }
-+       return err;
++	return isp_set_xclk(xclkfreq, LDPCAM_USE_XCLKB);
 +}
 +
-+/**
-+ * dw9710_detect - Detects DW9710 Coil driver device.
-+ * @client: Pointer to structure of I2C client.
-+ *
-+ * Returns 0 if successful, -1 if camera is off or if test register value
-+ * wasn't stored properly, or returned errors from either dw9710_reg_write or
-+ * dw9710_reg_read functions.
-+ **/
-+static int dw9710_detect(struct i2c_client *client)
-+{
-+       int err = 0;
-+       u16 wposn = 0, rposn = 0;
-+       u16 posn = 0x05;
-+
-+       wposn = (DW9710_POWERDN(DW9710_ENABLE) | DW9710_DATA(posn));
-+
-+       err = dw9710_reg_write(client, wposn);
-+       if (err) {
-+               dev_err(&client->dev, "Unable to write DW9710 \n");
-+               return err;
-+       }
-+
-+       err = dw9710_reg_read(client, &rposn);
-+       if (err) {
-+               dev_err(&client->dev, "Unable to read DW9710 \n");
-+               return err;
-+       }
-+
-+       if (wposn != rposn) {
-+               dev_err(&client->dev, "W/R MISMATCH!\n");
-+               return -1;
-+       }
-+       posn = 0;
-+       wposn = (DW9710_POWERDN(DW9710_ENABLE) | DW9710_DATA(posn));
-+       err = dw9710_reg_write(client, wposn);
-+
-+       return err;
-+}
-+
-+/**
-+ * dw9710_af_setfocus - Sets the desired focus.
-+ * @posn: Desired focus position, 0 (far) - 100 (close).
-+ *
-+ * Returns 0 on success, -EINVAL if camera is off or focus value is out of
-+ * bounds, or returned errors from either dw9710_reg_write or dw9710_reg_read
-+ * functions.
-+ **/
-+int dw9710_af_setfocus(u16 posn)
-+{
-+       struct dw9710_device *af_dev = &dw9710;
-+       struct i2c_client *client = af_dev->i2c_client;
-+       u16 cur_focus_value = 0;
-+       int ret = -EINVAL;
-+
-+       if (posn > DW9710_MAX_FOCUS_POS) {
-+               dev_err(&client->dev, "Bad posn params 0x%x \n", posn);
-+               return ret;
-+       }
-+
-+       if ((af_dev->power_state == V4L2_POWER_OFF) ||
-+               (af_dev->power_state == V4L2_POWER_STANDBY)) {
-+               af_dev->current_lens_posn = posn;
-+               return 0;
-+       }
-+
-+       ret = dw9710_reg_read(client, &cur_focus_value);
-+
-+       if (ret) {
-+               dev_err(&client->dev, "Read of current Lens position failed\n");
-+               return ret;
-+       }
-+
-+       if (DW9710_DATA_R(cur_focus_value) == posn) {
-+               dev_dbg(&client->dev, "Device already in requested focal point\n");
-+               return ret;
-+       }
-+
-+       ret = dw9710_reg_write(client, DW9710_POWERDN(DW9710_ENABLE) |
-+                                               DW9710_DATA(posn));
-+
-+       if (ret)
-+               dev_err(&client->dev, "Setfocus register write failed\n");
-+       dw9710.current_lens_posn = posn;
-+       return ret;
-+}
-+EXPORT_SYMBOL(dw9710_af_setfocus);
-+
-+/**
-+ * dw9710_af_getfocus - Gets the focus value from device.
-+ * @value: Pointer to u16 variable which will contain the focus value.
-+ *
-+ * Returns 0 if successful, -EINVAL if camera is off, or return value of
-+ * dw9710_reg_read if fails.
-+ **/
-+int dw9710_af_getfocus(u16 *value)
-+{
-+       struct dw9710_device *af_dev = &dw9710;
-+       struct i2c_client *client = af_dev->i2c_client;
-+       int ret;
-+       u16 posn = 0;
-+
-+       if ((af_dev->power_state == V4L2_POWER_OFF) ||
-+          (af_dev->power_state == V4L2_POWER_STANDBY))
-+               return -EINVAL;
-+
-+       ret = dw9710_reg_read(client, &posn);
-+
-+       if (ret) {
-+               dev_err(&client->dev, "Read of current Lens position failed\n");
-+               return ret;
-+       }
-+       *value = DW9710_DATA_R(posn);
-+       dw9710.current_lens_posn = DW9710_DATA_R(posn);
-+       return ret;
-+}
-+EXPORT_SYMBOL(dw9710_af_getfocus);
-+
-+/**
-+ * ioctl_queryctrl - V4L2 lens interface handler for VIDIOC_QUERYCTRL ioctl
-+ * @s: pointer to standard V4L2 device structure
-+ * @qc: standard V4L2 VIDIOC_QUERYCTRL ioctl structure
-+ *
-+ * If the requested control is supported, returns the control information
-+ * from the video_control[] array.  Otherwise, returns -EINVAL if the
-+ * control is not supported.
-+ */
-+static int ioctl_queryctrl(struct v4l2_int_device *s,
-+                               struct v4l2_queryctrl *qc)
-+{
-+       int i;
-+
-+       i = find_vctrl(qc->id);
-+       if (i == -EINVAL)
-+               qc->flags = V4L2_CTRL_FLAG_DISABLED;
-+
-+       if (i < 0)
-+               return -EINVAL;
-+
-+       *qc = video_control[i].qc;
-+       return 0;
-+}
-+
-+/**
-+ * ioctl_g_ctrl - V4L2 DW9710 lens interface handler for VIDIOC_G_CTRL ioctl
-+ * @s: pointer to standard V4L2 device structure
-+ * @vc: standard V4L2 VIDIOC_G_CTRL ioctl structure
-+ *
-+ * If the requested control is supported, returns the control's current
-+ * value from the video_control[] array.  Otherwise, returns -EINVAL
-+ * if the control is not supported.
-+ */
-+static int ioctl_g_ctrl(struct v4l2_int_device *s,
-+                            struct v4l2_control *vc)
-+{
-+       struct vcontrol *lvc;
-+       int i;
-+       u16 curr_posn;
-+
-+       i = find_vctrl(vc->id);
-+       if (i < 0)
-+               return -EINVAL;
-+       lvc = &video_control[i];
-+
-+       switch (vc->id) {
-+       case  V4L2_CID_FOCUS_ABSOLUTE:
-+               if (dw9710_af_getfocus(&curr_posn))
-+                       return -EFAULT;
-+               vc->value = curr_posn;
-+               lvc->current_value = curr_posn;
-+               break;
-+       }
-+
-+       return 0;
-+}
-+
-+/**
-+ * ioctl_s_ctrl - V4L2 DW9710 lens interface handler for VIDIOC_S_CTRL ioctl
-+ * @s: pointer to standard V4L2 device structure
-+ * @vc: standard V4L2 VIDIOC_S_CTRL ioctl structure
-+ *
-+ * If the requested control is supported, sets the control's current
-+ * value in HW (and updates the video_control[] array).  Otherwise,
-+ * returns -EINVAL if the control is not supported.
-+ */
-+static int ioctl_s_ctrl(struct v4l2_int_device *s,
-+                            struct v4l2_control *vc)
-+{
-+       int retval = -EINVAL;
-+       int i;
-+       struct vcontrol *lvc;
-+
-+       i = find_vctrl(vc->id);
-+       if (i < 0)
-+               return -EINVAL;
-+       lvc = &video_control[i];
-+
-+       switch (vc->id) {
-+       case V4L2_CID_FOCUS_ABSOLUTE:
-+               retval = dw9710_af_setfocus(vc->value);
-+               if (!retval)
-+                       lvc->current_value = vc->value;
-+               break;
-+       }
-+
-+       return retval;
-+}
-+
-+/**
-+ * ioctl_g_priv - V4L2 sensor interface handler for vidioc_int_g_priv_num
-+ * @s: pointer to standard V4L2 device structure
-+ * @p: void pointer to hold sensor's private data address
-+ *
-+ * Returns device's (sensor's) private data area address in p parameter
-+ */
-+static int ioctl_g_priv(struct v4l2_int_device *s, void *p)
-+{
-+       struct dw9710_device *lens = s->priv;
-+
-+       return lens->pdata->priv_data_set(p);
-+
-+}
-+
-+/**
-+ * ioctl_s_power - V4L2 sensor interface handler for vidioc_int_s_power_num
-+ * @s: pointer to standard V4L2 device structure
-+ * @on: power state to which device is to be set
-+ *
-+ * Sets devices power state to requrested state, if possible.
-+ */
-+static int ioctl_s_power(struct v4l2_int_device *s, enum v4l2_power on)
-+{
-+       struct dw9710_device *lens = s->priv;
-+       struct i2c_client *c = lens->i2c_client;
-+       int rval;
-+
-+       rval = lens->pdata->power_set(on);
-+       if (rval < 0) {
-+               dev_err(&c->dev, "Unable to set the power state: " DW9710_NAME
-+                                                               " lens HW\n");
-+               return rval;
-+       }
-+
-+       if ((on == V4L2_POWER_ON) &&
-+                               (lens->state == DW9710_LENS_NOT_DETECTED)) {
-+               rval = dw9710_detect(c);
-+               if (rval < 0) {
-+                       dev_err(&c->dev, "Unable to detect "
-+                               DW9710_NAME " lens HW\n");
-+                       lens->state = DW9710_LENS_NOT_DETECTED;
-+                       return rval;
-+               }
-+               lens->state = DW9710_LENS_DETECTED;
-+               pr_info(DW9710_NAME " lens HW detected\n");
-+       }
-+
-+       if ((lens->power_state == V4L2_POWER_STANDBY) && (on == V4L2_POWER_ON)
-+                               && (lens->state == DW9710_LENS_DETECTED))
-+               dw9710_af_setfocus(lens->current_lens_posn);
-+
-+       lens->power_state = on;
-+       return 0;
-+}
-+
-+static struct v4l2_int_ioctl_desc dw9710_ioctl_desc[] = {
-+       { .num = vidioc_int_s_power_num,
-+         .func = (v4l2_int_ioctl_func *)ioctl_s_power },
-+       { .num = vidioc_int_g_priv_num,
-+         .func = (v4l2_int_ioctl_func *)ioctl_g_priv },
-+       { .num = vidioc_int_queryctrl_num,
-+         .func = (v4l2_int_ioctl_func *)ioctl_queryctrl },
-+       { .num = vidioc_int_g_ctrl_num,
-+         .func = (v4l2_int_ioctl_func *)ioctl_g_ctrl },
-+       { .num = vidioc_int_s_ctrl_num,
-+         .func = (v4l2_int_ioctl_func *)ioctl_s_ctrl },
++struct ov3640_platform_data ldp_ov3640_platform_data = {
++	.power_set	 = ov3640_sensor_power_set,
++	.priv_data_set	 = ov3640_sensor_set_prv_data,
++	.set_xclk	 = ov3640_sensor_set_xclk,
 +};
 +
-+static struct v4l2_int_slave dw9710_slave = {
-+       .ioctls = dw9710_ioctl_desc,
-+       .num_ioctls = ARRAY_SIZE(dw9710_ioctl_desc),
-+};
++#endif
 +
-+static struct v4l2_int_device dw9710_int_device = {
-+       .module = THIS_MODULE,
-+       .name = DW9710_NAME,
-+       .priv = &dw9710,
-+       .type = v4l2_int_type_slave,
-+       .u = {
-+               .slave = &dw9710_slave,
-+       },
-+};
-+
-+/**
-+ * dw9710_probe - Probes the driver for valid I2C attachment.
-+ * @client: Pointer to structure of I2C client.
-+ *
-+ * Returns 0 if successful, or -EBUSY if unable to get client attached data.
-+ **/
-+static int
-+dw9710_probe(struct i2c_client *client, const struct i2c_device_id *id)
++void __init ldp_cam_init(void)
 +{
-+       struct dw9710_device *lens = &dw9710;
-+       int err;
-+
-+       dev_info(&client->dev, "dw9710 probe called....\n");
-+
-+       if (i2c_get_clientdata(client)) {
-+               dev_err(&client->dev, " DTA BUSY %s\n", client->name);
-+               return -EBUSY;
-+       }
-+
-+       lens->pdata = client->dev.platform_data;
-+
-+       if (!lens->pdata) {
-+               dev_err(&client->dev, "no platform data?\n");
-+               return -ENODEV;
-+       }
-+
-+       lens->v4l2_int_device = &dw9710_int_device;
-+
-+       lens->i2c_client = client;
-+       i2c_set_clientdata(client, lens);
-+
-+       err = v4l2_int_device_register(lens->v4l2_int_device);
-+       if (err) {
-+               dev_err(&client->dev, "Failed to Register "
-+                       DW9710_NAME " as V4L2 device.\n");
-+               i2c_set_clientdata(client, NULL);
-+       } else {
-+               dev_err(&client->dev, "Registered "
-+                       DW9710_NAME " as V4L2 device.\n");
-+       }
-+
-+       return 0;
++	cam_inited = 0;
++	/* Request and configure gpio pins */
++	if (gpio_request(OV3640_RESET_GPIO, "ov3640_reset_gpio") != 0) {
++		printk(KERN_ERR "Could not request GPIO %d",
++					OV3640_RESET_GPIO);
++		return;
++	}
++	if (gpio_request(OV3640_STANDBY_GPIO, "ov3640_standby_gpio") != 0) {
++		printk(KERN_ERR "Could not request GPIO %d",
++					OV3640_STANDBY_GPIO);
++		gpio_free(OV3640_RESET_GPIO);
++		return;
++	}
++	/* set to output mode */
++	gpio_direction_output(OV3640_RESET_GPIO, true);
++	gpio_direction_output(OV3640_STANDBY_GPIO, true);
++	cam_inited = 1;
 +}
-+
-+/**
-+ * dw9710_remove - Routine when device its unregistered from I2C
-+ * @client: Pointer to structure of I2C client.
-+ *
-+ * Returns 0 if successful, or -ENODEV if the client isn't attached.
-+ **/
-+static int __exit dw9710_remove(struct i2c_client *client)
++#else
++void __init ldp_cam_init(void)
 +{
-+       if (!client->adapter)
-+               return -ENODEV;
-+
-+       i2c_set_clientdata(client, NULL);
-+       return 0;
 +}
++#endif
+diff --git a/arch/arm/mach-omap2/board-ldp.c b/arch/arm/mach-omap2/board-ldp.c
+index 1e1fd84..513aa8f 100644
+--- a/arch/arm/mach-omap2/board-ldp.c
++++ b/arch/arm/mach-omap2/board-ldp.c
+@@ -47,6 +47,13 @@
+ #define SDP3430_SMC91X_CS	3
+ #define CONFIG_DISABLE_HFCLK 1
+ 
++#include <media/v4l2-int-device.h>
 +
-+static const struct i2c_device_id dw9710_id[] = {
-+       { DW9710_NAME, 0 },
-+       { }
-+};
-+MODULE_DEVICE_TABLE(i2c, dw9710_id);
++#if defined(CONFIG_VIDEO_OV3640) || defined(CONFIG_VIDEO_OV3640_MODULE)
++#include <media/ov3640.h>
++extern struct ov3640_platform_data ldp_ov3640_platform_data;
++#endif
 +
-+static struct i2c_driver dw9710_i2c_driver = {
-+       .driver = {
-+               .name = DW9710_NAME,
-+               .owner = THIS_MODULE,
-+       },
-+       .probe = dw9710_probe,
-+       .remove = __exit_p(dw9710_remove),
-+       .id_table = dw9710_id,
-+};
-+
-+/**
-+ * dw9710_init - Module initialisation.
-+ *
-+ * Returns 0 if successful, or -EINVAL if device couldn't be initialized, or
-+ * added as a character device.
-+ **/
-+static int __init dw9710_init(void)
-+{
-+       int err = -EINVAL;
-+
-+       err = i2c_add_driver(&dw9710_i2c_driver);
-+       if (err)
-+               goto fail;
-+       return err;
-+fail:
-+       printk(KERN_ERR "Failed to register " DW9710_NAME ".\n");
-+       return err;
-+}
-+module_init(dw9710_init);
-+
-+/**
-+ * dw9710_cleanup - Module cleanup.
-+ **/
-+static void __exit dw9710_cleanup(void)
-+{
-+       i2c_del_driver(&dw9710_i2c_driver);
-+}
-+module_exit(dw9710_cleanup);
-+
-+MODULE_AUTHOR("Texas Instruments");
-+MODULE_LICENSE("GPL");
-+MODULE_DESCRIPTION("DW9710 LENS driver");
-diff --git a/drivers/media/video/dw9710_priv.h b/drivers/media/video/dw9710_priv.h
-new file mode 100644
-index 0000000..0eb93ad
---- /dev/null
-+++ b/drivers/media/video/dw9710_priv.h
-@@ -0,0 +1,57 @@
-+/*
-+ * drivers/media/video/dw9710_priv.h
-+ *
-+ * Private defines for Auto Focus device
-+ *
-+ * Copyright (C) 2008 Texas Instruments.
-+ *
-+ * Contributors:
-+ *     Sergio Aguirre <saaguirre@ti.com>
-+ *     Troy Laramy
-+ *     Mohit Jalori
-+ *
-+ * This file is licensed under the terms of the GNU General Public License
-+ * version 2. This program is licensed "as is" without any warranty of any
-+ * kind, whether express or implied.
-+ *
-+ */
-+
-+#ifndef DW9710_REGS_H
-+#define DW9710_REGS_H
-+
-+#define DW9710_I2C_RETRY_COUNT         5
-+#define DW9710_DISABLE                 1
-+#define DW9710_ENABLE                  0
-+#define DW9710_POWERDN(ARG)            (((ARG) & 0x1) << 15)
-+#define DW9710_POWERDN_R(ARG)          (((ARG) >> 15) & 0x1)
-+#define DW9710_DATA(ARG)               (((ARG) & 0xFF) << 6)
-+#define DW9710_DATA_R(ARG)             (((ARG) >> 6) & 0xFF)
-+
-+/* State of lens */
-+#define DW9710_LENS_DETECTED           1
-+#define DW9710_LENS_NOT_DETECTED       0
-+
-+/* Focus control values */
-+#define DW9710_DEF_LENS_POSN           0       /* 0x7F */
-+#define DW9710_LENS_POSN_STEP          1
-+#define DW9710_MAX_FOCUS_POS           0xFF
-+
-+struct dw9710_device {
-+       const struct dw9710_platform_data *pdata;
-+       struct v4l2_int_device *v4l2_int_device;
-+       struct i2c_client *i2c_client;
-+       int opened;
-+       u16 current_lens_posn;
-+       u16 saved_lens_posn;
-+       int state;
-+       int power_state;
+ #define ENABLE_VAUX1_DEDICATED	0x03
+ #define ENABLE_VAUX1_DEV_GRP	0x20
+ 
+@@ -496,6 +503,15 @@ static struct i2c_board_info __initdata ldp_i2c_boardinfo[] = {
+ 	},
+ };
+ 
++static struct i2c_board_info __initdata ldp_i2c_boardinfo_2[] = {
++#if defined(CONFIG_VIDEO_OV3640) || defined(CONFIG_VIDEO_OV3640_MODULE)
++	{
++		I2C_BOARD_INFO("ov3640", OV3640_I2C_ADDR),
++		.platform_data = &ldp_ov3640_platform_data,
++	},
++#endif
 +};
 +
-+/*
-+ * Sets the specified focus value [0(far) - 100(near)]
-+ */
-+int dw9710_af_setfocus(u16 posn);
-+
-+int dw9710_af_getfocus(u16 *value);
-+
-+#endif /* End of of DW9710_REGS_H */
-diff --git a/include/media/dw9710.h b/include/media/dw9710.h
-new file mode 100644
-index 0000000..b5696e4
---- /dev/null
-+++ b/include/media/dw9710.h
-@@ -0,0 +1,35 @@
-+/*
-+ * include/media/dw9710.h
-+ *
-+ * Public defines for Auto Focus device
-+ *
-+ * Copyright (C) 2008 Texas Instruments.
-+ *
-+ * Contributors:
-+ *     Sergio Aguirre <saaguirre@ti.com>
-+ *     Troy Laramy
-+ *     Mohit Jalori
-+ *
-+ * This file is licensed under the terms of the GNU General Public License
-+ * version 2. This program is licensed "as is" without any warranty of any
-+ * kind, whether express or implied.
-+ *
-+ */
-+
-+#ifndef DW9710_H
-+#define DW9710_H
-+
-+#define DW9710_NAME                    "dw9710"
-+#define DW9710_AF_I2C_ADDR             0x0C
-+
-+/**
-+ * struct dw9710_platform_data - platform data values and access functions
-+ * @power_set: Power state access function, zero is off, non-zero is on.
-+ * @priv_data_set: device private data (pointer) access function
-+ */
-+struct dw9710_platform_data {
-+       int (*power_set)(enum v4l2_power power);
-+       int (*priv_data_set)(void *);
-+};
-+
-+#endif /* End of of DW9710_H */
---
+ static int __init omap_i2c_init(void)
+ {
+ 	omap_register_i2c_bus(1, 2600, ldp_i2c_boardinfo,
+@@ -530,6 +546,7 @@ static void __init omap_ldp_init(void)
+ 	omap_serial_init();
+ 	usb_musb_init();
+ 	twl4030_mmc_init(mmc);
++	ldp_cam_init();
+ }
+ 
+ static void __init omap_ldp_map_io(void)
+diff --git a/arch/arm/plat-omap/include/mach/board-ldp.h b/arch/arm/plat-omap/include/mach/board-ldp.h
+index f233996..8e5d90b 100644
+--- a/arch/arm/plat-omap/include/mach/board-ldp.h
++++ b/arch/arm/plat-omap/include/mach/board-ldp.h
+@@ -30,6 +30,7 @@
+ #define __ASM_ARCH_OMAP_LDP_H
+ 
+ extern void twl4030_bci_battery_init(void);
++extern void ldp_cam_init(void);
+ 
+ #define TWL4030_IRQNUM		INT_34XX_SYS_NIRQ
+ #define LDP_SMC911X_CS         1
+-- 
 1.5.6.5
 
