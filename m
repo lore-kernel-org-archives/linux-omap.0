@@ -1,74 +1,109 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH] OMAP3: PM: Update correct ONLP/RET values
-Date: Tue, 03 Mar 2009 08:41:58 -0800
-Message-ID: <87iqmq7e3t.fsf@deeprootsystems.com>
-References: <5A47E75E594F054BAF48C5E4FC4B92AB02FAD03A7B@dbde02.ent.ti.com>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: [PATCH A 09/10] OMAP2/3: Remove OMAP_PRM_REGADDR, OMAP_CM_REGADDR
+Date: Tue, 3 Mar 2009 16:45:08 +0000
+Message-ID: <20090303164508.GC11096@n2100.arm.linux.org.uk>
+References: <20090128020447.7244.80496.stgit@localhost.localdomain> <20090128021312.7244.2415.stgit@localhost.localdomain> <20090128232831.GL23301@n2100.arm.linux.org.uk> <alpine.DEB.2.00.0901290021360.32081@utopia.booyaka.com> <87zlg372rm.fsf@deeprootsystems.com> <alpine.DEB.2.00.0903021945060.30037@utopia.booyaka.com> <20090303082837.GJ25699@n2100.arm.linux.org.uk> <87prgy7ids.fsf@deeprootsystems.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from yw-out-2324.google.com ([74.125.46.30]:51858 "EHLO
-	yw-out-2324.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750725AbZCCQmF (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 3 Mar 2009 11:42:05 -0500
-Received: by yw-out-2324.google.com with SMTP id 5so1868011ywh.1
-        for <linux-omap@vger.kernel.org>; Tue, 03 Mar 2009 08:42:03 -0800 (PST)
-In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB02FAD03A7B@dbde02.ent.ti.com> (Rajendra Nayak's message of "Mon\, 2 Mar 2009 13\:01\:09 +0530")
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:32880 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756733AbZCCQpl (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 3 Mar 2009 11:45:41 -0500
+Content-Disposition: inline
+In-Reply-To: <87prgy7ids.fsf@deeprootsystems.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Nayak, Rajendra" <rnayak@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Kevin Hilman <khilman@deeprootsystems.com>
+Cc: Paul Walmsley <paul@pwsan.com>, linux-arm-kernel@lists.arm.linux.org.uk, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org
 
-"Nayak, Rajendra" <rnayak@ti.com> writes:
+On Tue, Mar 03, 2009 at 07:09:35AM -0800, Kevin Hilman wrote:
+> Russell King - ARM Linux <linux@arm.linux.org.uk> writes:
+> 
+> > On Mon, Mar 02, 2009 at 07:48:07PM -0700, Paul Walmsley wrote:
+> >> Hi Kevin,
+> >> 
+> >> On Mon, 2 Mar 2009, Kevin Hilman wrote:
+> >> 
+> >> > What about the rest of the *_PRM_REGADDR() accessor macro changes in
+> >> > this patch?
+> >> > 
+> >> > The rest of the PM core code uses these and so does not build on top
+> >> > of the Russell's omap-clks3 branch.
+> >> 
+> >> yes, all of the *_{PRM,CM}_REGADDR() work should be kept.
+> >
+> > Well, in case it wasn't clear from my previous mail, I'm not merging this.
+> 
+> It was clear why you weren't merging the couple pieces that you
+> referenced, but it wasn't clear whether you had problems with the rest
+> of the patch.
 
-> Populates the correct ONLP/RET cmd values for VDD1 and VDD2.
-> Also removes the unneccesary bitshift logic.
-> Applies on the latest pm branch, validated on a 3430SDP.
->
-> 0x30 = 1.2V
-> 0x1E = .975V
-> 0x2C = 1.15V
->
-> Formula used to calulate the hex values
-> Value(in decimals)*12.5 + 600 mV.
->
-> Signed-off-by: Rajendra Nayak <rnayak@ti.com>
+Because it's just plain wrong.  It persists in creating new instances of
+crap that I've already removed, such as using 'u32' instead of void __iomem
+pointers for register addresses.
 
-Thanks, I will merge this with your previous patch and push a new pm branch.
+It persists in the init-time fixup of addresses.  The clkdm.name->clkdm.ptr
+fixup is unreliable without having a flag to say whether it's been done or
+not.
 
-Kevin
+And so forth.
 
->  arch/arm/mach-omap2/pm34xx.c |   16 ++++++++--------
->  1 files changed, 8 insertions(+), 8 deletions(-)
->
-> Index: linux-omap-2.6/arch/arm/mach-omap2/pm34xx.c
-> ===================================================================
-> --- linux-omap-2.6.orig/arch/arm/mach-omap2/pm34xx.c	2009-03-02 11:42:13.000000000 +0530
-> +++ linux-omap-2.6/arch/arm/mach-omap2/pm34xx.c	2009-03-02 12:07:19.653034656 +0530
-> @@ -1036,16 +1036,16 @@ err2:
->  }
->  
->  /* PRM_VC_CMD_VAL_0 specific bits */
-> -#define OMAP3430_VC_CMD_VAL0_ON				(0x3 << 4)
-> -#define OMAP3430_VC_CMD_VAL0_ONLP			(0xf << 3)
-> -#define OMAP3430_VC_CMD_VAL0_RET			(0xf << 3)
-> -#define OMAP3430_VC_CMD_VAL0_OFF			(0x3 << 4)
-> +#define OMAP3430_VC_CMD_VAL0_ON		0x30
-> +#define OMAP3430_VC_CMD_VAL0_ONLP	0x1E
-> +#define OMAP3430_VC_CMD_VAL0_RET	0x1E
-> +#define OMAP3430_VC_CMD_VAL0_OFF	0x30
->  
->  /* PRM_VC_CMD_VAL_1 specific bits */
-> -#define OMAP3430_VC_CMD_VAL1_ON				(0xB << 2)
-> -#define OMAP3430_VC_CMD_VAL1_ONLP			(0xf << 3)
-> -#define OMAP3430_VC_CMD_VAL1_RET			(0xf << 3)
-> -#define OMAP3430_VC_CMD_VAL1_OFF			(0xB << 2)
-> +#define OMAP3430_VC_CMD_VAL1_ON		0x2C
-> +#define OMAP3430_VC_CMD_VAL1_ONLP	0x1E
-> +#define OMAP3430_VC_CMD_VAL1_RET	0x1E
-> +#define OMAP3430_VC_CMD_VAL1_OFF	0x2C
->  
->  static void __init configure_vc(void)
->  {--
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Basically, rewriting stuff in place from one representation to another
+representation with no way to tell whether it's been done is just plain
+silly and a recipe for madness.
+
+While the powerdomain stuff can be (and has been) failed, clocks can't be
+failed as a result of the rewrites not working - since they're referenced
+by other clocks, we'd need some way to ensure all childs of a failed parent
+also fail.
+
+Moreover, the approach taken in the series of patches introducing it
+requires some clocks to be split up just for the sake of supporting this
+alternative method - I'm referring here to the creation of the mcbsp
+src clocks.
+
+If I look at the remaining patch dependencies, then it works out as
+something like this:
+
++---[A 09] OMAP2/3: Remove OMAP_PRM_REGADDR, OMAP_CM_REGADDR
++---[D 05] OMAP2 clock: add clk.prcm_mod field; annotate OMAP2xxx clocks
++---[D 06] OMAP3 clock: add "prcm_mod" field to OMAP3xxx clocks
++---[D 07] OMAP2/3 clock: add _omap2_clk_{read,write}_reg()
++---[D 08] OMAP2/3 clock: use clk->prcm_mod for all struct clk register addres
++---[D 09] OMAP2/3 clock: encode target IDLEST bits
++---[F 05] OMAP clock: add OMAP chip family-specific clk_register() option
++---[D 04] OMAP3 clock: split mcbspX_src_fck from mcbspX_fck
+|
+| +-[B 01] OMAP2/3 clock: combine clkdm, clkdm_name into union in struct clk
+| +-[B 03] OMAP2/3 clockdomains: add CM, PRM, virt_opp_clkdm clockdomains
+| +-[B 05] OMAP2/3 clock: add clockdomains to all remaining clocks; fix clkdm
+| |
++-+-[F 12] OMAP2/3 McBSP: add temporary clockdomain fix for McBSP virtual cloc
+  |
+  +-[F 06] OMAP2/3 clock: every clock must have a clkdm
+
+where D4 is a side effect of the way register addresses are being handled
+(iow D6), and F12 is a side effect of requiring F6 and D4.  Moreover,
+the virt_opp_clkdm part of B03 is a side effect of F6.
+
+If we're having to introduce work-arounds for ways things are being done,
+that's a sure sign that the original change was not correct.
+
+Also, from what I've heard, the register access issue is going to be far
+larger and is going to require _significant_ rework when OMAP4 becomes
+available - apparantly, not only are the unit base addresses different,
+but also the offsets within each functional unit.
+
+So, rather than continuing with what is a sub-standard approach, I think
+it needs more thought and consideration, and in my opinion it is not ready
+for mainline.
+
+So, what can we do to cleanly sort this out?  I have an idea, but I need
+time to work on it... time I don't think I can spend this late in the
+kernel cycle.
+
+So at this point I'm going to say: okay, the above patches are not going
+to get merged.  I'm going to push out what I have onto the list later
+today, and if nothing comes back I'll merge the omap-clks3 branch into
+the devel branch for the next merge window.
