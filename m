@@ -1,109 +1,22 @@
 From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [PATCH A 09/10] OMAP2/3: Remove OMAP_PRM_REGADDR, OMAP_CM_REGADDR
-Date: Tue, 3 Mar 2009 16:45:08 +0000
-Message-ID: <20090303164508.GC11096@n2100.arm.linux.org.uk>
-References: <20090128020447.7244.80496.stgit@localhost.localdomain> <20090128021312.7244.2415.stgit@localhost.localdomain> <20090128232831.GL23301@n2100.arm.linux.org.uk> <alpine.DEB.2.00.0901290021360.32081@utopia.booyaka.com> <87zlg372rm.fsf@deeprootsystems.com> <alpine.DEB.2.00.0903021945060.30037@utopia.booyaka.com> <20090303082837.GJ25699@n2100.arm.linux.org.uk> <87prgy7ids.fsf@deeprootsystems.com>
+Subject: Re: [PATCH E 11/14] OMAP clock: track child clocks
+Date: Tue, 3 Mar 2009 16:45:49 +0000
+Message-ID: <20090303164548.GD11096@n2100.arm.linux.org.uk>
+References: <20090128192551.29333.82943.stgit@localhost.localdomain> <20090128192756.29333.41541.stgit@localhost.localdomain> <20090129151401.GC18233@n2100.arm.linux.org.uk> <20090129220608.GJ18233@n2100.arm.linux.org.uk> <20090219121932.GL6407@n2100.arm.linux.org.uk> <13B9B4C6EF24D648824FF11BE896716203772C3680@dlee02.ent.ti.com> <20090223160349.GB27688@n2100.arm.linux.org.uk> <alpine.DEB.2.00.0903021558360.30037@utopia.booyaka.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:32880 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756733AbZCCQpl (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 3 Mar 2009 11:45:41 -0500
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1759094AbZCCQq3@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <87prgy7ids.fsf@deeprootsystems.com>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <alpine.DEB.2.00.0903021558360.30037@utopia.booyaka.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Paul Walmsley <paul@pwsan.com>
+Cc: "Woodruff, Richard" <r-woodruff2@ti.com>, "linux-arm-kernel@lists.arm.linux.org.uk" <linux-arm-kernel@lists.arm.linux.org.uk>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@deeprootsystems.com>
-Cc: Paul Walmsley <paul@pwsan.com>, linux-arm-kernel@lists.arm.linux.org.uk, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org
 
-On Tue, Mar 03, 2009 at 07:09:35AM -0800, Kevin Hilman wrote:
-> Russell King - ARM Linux <linux@arm.linux.org.uk> writes:
+On Mon, Mar 02, 2009 at 04:02:14PM -0700, Paul Walmsley wrote:
+> Suggest returning a more specific error than -EINVAL:
 > 
-> > On Mon, Mar 02, 2009 at 07:48:07PM -0700, Paul Walmsley wrote:
-> >> Hi Kevin,
-> >> 
-> >> On Mon, 2 Mar 2009, Kevin Hilman wrote:
-> >> 
-> >> > What about the rest of the *_PRM_REGADDR() accessor macro changes in
-> >> > this patch?
-> >> > 
-> >> > The rest of the PM core code uses these and so does not build on top
-> >> > of the Russell's omap-clks3 branch.
-> >> 
-> >> yes, all of the *_{PRM,CM}_REGADDR() work should be kept.
-> >
-> > Well, in case it wasn't clear from my previous mail, I'm not merging this.
-> 
-> It was clear why you weren't merging the couple pieces that you
-> referenced, but it wasn't clear whether you had problems with the rest
-> of the patch.
+> if (clk->usecount > 0)
+>         return -EBUSY;
 
-Because it's just plain wrong.  It persists in creating new instances of
-crap that I've already removed, such as using 'u32' instead of void __iomem
-pointers for register addresses.
-
-It persists in the init-time fixup of addresses.  The clkdm.name->clkdm.ptr
-fixup is unreliable without having a flag to say whether it's been done or
-not.
-
-And so forth.
-
-Basically, rewriting stuff in place from one representation to another
-representation with no way to tell whether it's been done is just plain
-silly and a recipe for madness.
-
-While the powerdomain stuff can be (and has been) failed, clocks can't be
-failed as a result of the rewrites not working - since they're referenced
-by other clocks, we'd need some way to ensure all childs of a failed parent
-also fail.
-
-Moreover, the approach taken in the series of patches introducing it
-requires some clocks to be split up just for the sake of supporting this
-alternative method - I'm referring here to the creation of the mcbsp
-src clocks.
-
-If I look at the remaining patch dependencies, then it works out as
-something like this:
-
-+---[A 09] OMAP2/3: Remove OMAP_PRM_REGADDR, OMAP_CM_REGADDR
-+---[D 05] OMAP2 clock: add clk.prcm_mod field; annotate OMAP2xxx clocks
-+---[D 06] OMAP3 clock: add "prcm_mod" field to OMAP3xxx clocks
-+---[D 07] OMAP2/3 clock: add _omap2_clk_{read,write}_reg()
-+---[D 08] OMAP2/3 clock: use clk->prcm_mod for all struct clk register addres
-+---[D 09] OMAP2/3 clock: encode target IDLEST bits
-+---[F 05] OMAP clock: add OMAP chip family-specific clk_register() option
-+---[D 04] OMAP3 clock: split mcbspX_src_fck from mcbspX_fck
-|
-| +-[B 01] OMAP2/3 clock: combine clkdm, clkdm_name into union in struct clk
-| +-[B 03] OMAP2/3 clockdomains: add CM, PRM, virt_opp_clkdm clockdomains
-| +-[B 05] OMAP2/3 clock: add clockdomains to all remaining clocks; fix clkdm
-| |
-+-+-[F 12] OMAP2/3 McBSP: add temporary clockdomain fix for McBSP virtual cloc
-  |
-  +-[F 06] OMAP2/3 clock: every clock must have a clkdm
-
-where D4 is a side effect of the way register addresses are being handled
-(iow D6), and F12 is a side effect of requiring F6 and D4.  Moreover,
-the virt_opp_clkdm part of B03 is a side effect of F6.
-
-If we're having to introduce work-arounds for ways things are being done,
-that's a sure sign that the original change was not correct.
-
-Also, from what I've heard, the register access issue is going to be far
-larger and is going to require _significant_ rework when OMAP4 becomes
-available - apparantly, not only are the unit base addresses different,
-but also the offsets within each functional unit.
-
-So, rather than continuing with what is a sub-standard approach, I think
-it needs more thought and consideration, and in my opinion it is not ready
-for mainline.
-
-So, what can we do to cleanly sort this out?  I have an idea, but I need
-time to work on it... time I don't think I can spend this late in the
-kernel cycle.
-
-So at this point I'm going to say: okay, the above patches are not going
-to get merged.  I'm going to push out what I have onto the list later
-today, and if nothing comes back I'll merge the omap-clks3 branch into
-the devel branch for the next merge window.
+Done.
