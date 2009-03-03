@@ -1,48 +1,142 @@
-From: Kim Kyuwon <chammoru@gmail.com>
-Subject: Re: [PATCH 0/1] Regarding enable_irq_wake() and disable_irq_wake()
-	functions
-Date: Tue, 3 Mar 2009 11:22:34 +0900
-Message-ID: <4d34a0a70903021822k68c2d5d6wd6abffa54e641431@mail.gmail.com>
-References: <4d34a0a70903021802q45707e62w5c4ccb14558c731e@mail.gmail.com>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: [PATCH A 09/10] OMAP2/3: Remove OMAP_PRM_REGADDR, OMAP_CM_REGADDR
+Date: Mon, 02 Mar 2009 18:34:37 -0800
+Message-ID: <87zlg372rm.fsf@deeprootsystems.com>
+References: <20090128020447.7244.80496.stgit@localhost.localdomain>
+	<20090128021312.7244.2415.stgit@localhost.localdomain>
+	<20090128232831.GL23301@n2100.arm.linux.org.uk>
+	<alpine.DEB.2.00.0901290021360.32081@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from wf-out-1314.google.com ([209.85.200.169]:60537 "EHLO
+Received: from wf-out-1314.google.com ([209.85.200.170]:54084 "EHLO
 	wf-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756073AbZCCCWg (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 2 Mar 2009 21:22:36 -0500
-Received: by wf-out-1314.google.com with SMTP id 28so3036993wfa.4
-        for <linux-omap@vger.kernel.org>; Mon, 02 Mar 2009 18:22:34 -0800 (PST)
-In-Reply-To: <4d34a0a70903021802q45707e62w5c4ccb14558c731e@mail.gmail.com>
+	with ESMTP id S1751529AbZCCCeo (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 2 Mar 2009 21:34:44 -0500
+Received: by wf-out-1314.google.com with SMTP id 28so3042169wfa.4
+        for <linux-omap@vger.kernel.org>; Mon, 02 Mar 2009 18:34:42 -0800 (PST)
+In-Reply-To: <alpine.DEB.2.00.0901290021360.32081@utopia.booyaka.com> (Paul Walmsley's message of "Thu\, 29 Jan 2009 00\:40\:09 -0700 \(MST\)")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: OMAP <linux-omap@vger.kernel.org>
-Cc: Juha Yrjola <juha.yrjola@solidboot.com>, David Brownell <david-b@pacbell.net>
+To: Paul Walmsley <paul@pwsan.com>
+Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, linux-arm-kernel@lists.arm.linux.org.uk, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org
 
-On Tue, Mar 3, 2009 at 11:02 AM, Kim Kyuwon <chammoru@gmail.com> wrote:
-> Hi,
+Paul Walmsley <paul@pwsan.com> writes:
+
+> Hi Russell,
+>
+> On Wed, 28 Jan 2009, Russell King - ARM Linux wrote:
+>
+>> On Tue, Jan 27, 2009 at 07:13:16PM -0700, Paul Walmsley wrote:
+>> > diff --git a/arch/arm/mach-omap2/clock.c b/arch/arm/mach-omap2/clock.c
+>> > index c4b80a4..55c5d67 100644
+>> > --- a/arch/arm/mach-omap2/clock.c
+>> > +++ b/arch/arm/mach-omap2/clock.c
+>> > @@ -27,6 +27,7 @@
+>> >  #include <mach/clock.h>
+>> >  #include <mach/clockdomain.h>
+>> >  #include <mach/cpu.h>
+>> > +#include <mach/prcm.h>
+>> >  #include <asm/div64.h>
+>> >  
+>> >  #include "memory.h"
+>> > @@ -247,9 +248,9 @@ static void omap2_clk_wait_ready(struct clk *clk)
+>> >  	/* REVISIT: What are the appropriate exclusions for 34XX? */
+>> >  	/* OMAP3: ignore DSS-mod clocks */
+>> >  	if (cpu_is_omap34xx() &&
+>> > -	    (((u32)reg & ~0xff) == (u32)OMAP_CM_REGADDR(OMAP3430_DSS_MOD, 0) ||
+>> > -	     ((((u32)reg & ~0xff) == (u32)OMAP_CM_REGADDR(CORE_MOD, 0)) &&
+>> > -	     clk->enable_bit == OMAP3430_EN_SSI_SHIFT)))
+>> > +	    (((u32)reg & ~0xff) == cm_read_mod_reg(OMAP3430_DSS_MOD, 0) ||
+>> > +	     ((((u32)reg & ~0xff) == cm_read_mod_reg(CORE_MOD, 0)) &&
+>> > +	      clk->enable_bit == OMAP3430_EN_SSI_SHIFT)))
+>> >  		return;
+>> 
+>> As suggested in patch 2, I hate this approach.  It's far better to deal
+>> with this by changing the way we handle enabling and disabling clocks,
+>> hence my
+>> 
+>> "[ARM] omap: eliminate unnecessary conditionals in omap2_clk_wait_ready"
+>
+> This function is radically cleaned up in a following patch, patch D 10.  I 
+> regret that I wasn't able to compress the above patch with D 10, but the 
+> change delta between the two patches was quite large.
+>
+>> > @@ -476,6 +466,37 @@ static int __init omap2_clk_arch_init(void)
+>> >  }
+>> >  arch_initcall(omap2_clk_arch_init);
+>> >  
+>> > +static u32 prm_base;
+>> > +static u32 cm_base;
+>> > +
+>> > +/*
+>> > + * Since we share clock data for 242x and 243x, we need to rewrite some
+>> > + * some register base offsets. Assume offset is at prm_base if flagged,
+>> > + * else assume it's cm_base.
+>> > + */
+>> > +static inline void omap2_clk_check_reg(u32 flags, void __iomem **reg)
+>> > +{
+>> > +	u32 tmp = (__force u32)*reg;
+>> > +
+>> > +	if ((tmp >> 24) != 0)
+>> > +		return;
+>> > +
+>> > +	if (flags & OFFSET_GR_MOD)
+>> > +		tmp += prm_base;
+>> > +	else
+>> > +		tmp += cm_base;
+>> > +
+>> > +	*reg = (__force void __iomem *)tmp;
+>> > +}
+>> > +
+>> > +void __init omap2_clk_rewrite_base(struct clk *clk)
+>> > +{
+>> > +	omap2_clk_check_reg(clk->flags, &clk->clksel_reg);
+>> > +	omap2_clk_check_reg(clk->flags, &clk->enable_reg);
+>> > +	if (clk->dpll_data)
+>> > +		omap2_clk_check_reg(0, &clk->dpll_data->mult_div1_reg);
+>> > +}
+>> > +
+>> >  int __init omap2_clk_init(void)
+>> >  {
+>> >  	struct prcm_config *prcm;
+>> > @@ -487,6 +508,12 @@ int __init omap2_clk_init(void)
+>> >  	else if (cpu_is_omap2430())
+>> >  		cpu_mask = RATE_IN_243X;
+>> >  
+>> > +	for (clkp = onchip_24xx_clks;
+>> > +	     clkp < onchip_24xx_clks + ARRAY_SIZE(onchip_24xx_clks);
+>> > +	     clkp++) {
+>> > +			omap2_clk_rewrite_base(*clkp);
+>> > +	}
+>> > +
+>> 
+>> I'm afraid this also fails to satisfy my decency filter.  Let's summarise
+>> what's going on here.
+>> 
+>> - the structure initializers are setup to cast integer register offsets
+>>   to void __iomem *.
+>> - the code above walks all clock structures, looking for what could be
+>>   considered an offset (iow, bits 31-24 of the pointer being zero).
+>> - it looks at the OFFSET_GR_MOD flag to determine which base to add in
+>> - the base address is not 'void __iomem *' but 'u32'.
+>> - we update the void __iomem * pointers in the structure.
+>> 
+>> So, we have a base address which is an integer, and an offset which is
+>> an void __iomem *.
+>> 
+>> I can see why you want to do this, but I think it needs more thought.
+>> I'll sit on this patch for a while.
+>
+> I agree with your decency filter.  I believe that patch was written for 
+> expediency.  It turns out that all of the register rewriting code is 
+> ultimately unnecessary, and is wiped out in patch D 08.
 >
 
-> But this was not the real problem. Current enable_irq_wake and
-> disable_irq_wake isn't working correctly since the set_wake field of
-> omap_irq_chip is NULL.
->
+What about the rest of the *_PRM_REGADDR() accessor macro changes in
+this patch?
 
-Of course, thanks to Tony Lindgren's works, GPIO wake-up using
-enable_irq_wake() and disable_irq_wake() is nicely working.
+The rest of the PM core code uses these and so does not build on top
+of the Russell's omap-clks3 branch.
 
-> Is these functions for the future implementation in OMAP?
->
-> Anyway..., I removed it in the following patch, and I think this work
-> can be done in other OMAP device driver which is using
-> enable_irq_wake() and something like that.
->
-> --
-> Q1
->
-
-
-
--- 
-Q1
+Kevin
