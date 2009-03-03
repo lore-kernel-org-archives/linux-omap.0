@@ -1,160 +1,40 @@
-From: "DongSoo(Nathaniel) Kim" <dongsoo.kim@gmail.com>
-Subject: Re: [REVIEW PATCH 11/14] OMAP34XXCAM: Add driver
-Date: Tue, 3 Mar 2009 14:13:11 +0900
-Message-ID: <5e9665e10903022113r17e36afh7861fd00cd8ef0f7@mail.gmail.com>
-References: <5e9665e10903021848u328e0cd4m5186344be15b817@mail.gmail.com>
-	 <19F8576C6E063C45BE387C64729E73940427BC9B86@dbde02.ent.ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [UPDATE][PATCH 2/2][OMAPZOOM] DSPBRIDGE: Change address
+	resources to void __iomem *Hi
+Date: Mon, 2 Mar 2009 21:15:25 -0800
+Message-ID: <20090303051524.GJ11864@atomide.com>
+References: <269694c00903020500g3eaa4466x281d07a1bb7e2b7a@mail.gmail.com> <94a0d4530903020528w1e3f2d4bo56e80b572fc3e923@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-media-owner@vger.kernel.org>
-In-Reply-To: <19F8576C6E063C45BE387C64729E73940427BC9B86@dbde02.ent.ti.com>
-Sender: linux-media-owner@vger.kernel.org
-To: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Cc: "Tuukka.O Toivonen" <tuukka.o.toivonen@nokia.com>, "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Ailus Sakari (Nokia-D/Helsinki)" <Sakari.Ailus@nokia.com>, "Nagalla, Hari" <hnagalla@ti.com>, "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-01-bos.mailhop.org ([63.208.196.178]:65068 "EHLO
+	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750711AbZCCFP2 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 3 Mar 2009 00:15:28 -0500
+Content-Disposition: inline
+In-Reply-To: <94a0d4530903020528w1e3f2d4bo56e80b572fc3e923@mail.gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Felipe Contreras <felipe.contreras@gmail.com>
+Cc: Ameya Palande <2ameya@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Thank you for your reply.
+* Felipe Contreras <felipe.contreras@gmail.com> [090302 05:28]:
+> On Mon, Mar 2, 2009 at 3:00 PM, Ameya Palande <2ameya@gmail.com> wrote:
+> > I got following errors while applying this patch again the bridge patches
+> > accumulated at:
+> > http://gitorious.org/projects/tidspbridge2/repos/mainline/logs/tidspbridge
+> 
+> Tony: What happened to the dspbridge branch? IIRC you mentioned you
+> created a branch in l-o.
 
-This is quite confusing because in case of mine, I wanna make
-switchable between different cameras attached to omap camera
-interface.
-Which idea do I have to follow? Comparing with multiple video input
-devices and multiple cameras attached to single camera interface is
-giving me no answer.
+Sorry, my fault. At some point I stopped fetching from Hiroshi's repo as
+the fetch was always getting the whole pack. I still need to check that
+the unnecessary pack objects don't stay around in linux-omap tree after
+fetch. Hmm, maybe I'm running git prune and git repack -d -l before
+doing the fetch..
 
-Perhaps multiple cameras with single camera interface couldn't make
-sense at the first place because single camera interface can go with
-only one camera module at one time.
-But we are using like that. I mean dual cameras with single camera
-interface. There is no choice except that when we are using dual
-camera without stereo camera controller.
+Anyways, I've pushed the tidspbridge branch there manually now.
 
-By the way, I cannot find any API documents about
-VIDIOC_INT_S_VIDEO_ROUTING but it seems to be all about "how to route
-between input device with output device".
-What exactly I need is "how to make switchable with multiple camera as
-an input for camera interface", which means just about an input
-device. In my opinion, those are different issues each other..(Am I
-right?)
-Cheers,
+Regards,
 
-Nate
-
-
-On Tue, Mar 3, 2009 at 12:53 PM, Hiremath, Vaibhav <hvaibhav@ti.com> wr=
-ote:
->
->
-> Thanks,
-> Vaibhav Hiremath
->
->> -----Original Message-----
->> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
->> owner@vger.kernel.org] On Behalf Of DongSoo(Nathaniel) Kim
->> Sent: Tuesday, March 03, 2009 8:18 AM
->> To: Tuukka.O Toivonen
->> Cc: Aguirre Rodriguez, Sergio Alberto; linux-omap@vger.kernel.org;
->> Ailus Sakari (Nokia-D/Helsinki); Nagalla, Hari
->> Subject: Re: [REVIEW PATCH 11/14] OMAP34XXCAM: Add driver
->>
->> Hi Tuukka,
->>
->> I understand that it is a huge thing to support VIDIOC_S_INPUT.
->> But without that, we don't have any proper "V4L2" api to get
->> information about how many devices are attached to camera interface,
->> and names of input devices...and so on. Because VIDIOC_ENUMINPUT and
->> VIDIOC_G_INPUT needs VIDIOC_S_INPUT for prior. Of course we can
->> refer
->> to sysfs, but using only single set of APIs like V4L2 looks more
->> decent.
->>
->> What do you think about this?
->> If you think that it is a big burden, can I make a patch for this?
->> Cheers,
->>
-> [Hiremath, Vaibhav] You may want to refer to the thread on this subje=
-ct.
->
-> http://marc.info/?l=3Dlinux-omap&m=3D122772175002777&w=3D2
-> http://marc.info/?l=3Dlinux-omap&m=3D122823846806440&w=3D2
->
->> Nate
->>
->> On Mon, Feb 23, 2009 at 5:50 PM, Tuukka.O Toivonen
->> <tuukka.o.toivonen@nokia.com> wrote:
->> > On Monday 23 February 2009 10:08:54 ext DongSoo(Nathaniel) Kim
->> wrote:
->> >> So, logically it does not make sense with making device nodes of
->> every
->> >> single slave attached with OMAP3camera interface. Because they
->> can't
->> >> be opened at the same time,even if it is possible it should not
->> work
->> >> properly.
->> >>
->> >> So.. how about making only single device node like /dev/video0
->> for
->> >> OMAP3 camera interface and make it switchable through V4L2 API.
->> Like
->> >> VIDIOC_S_INPUT?
->> >
->> > You are right that if the OMAP3 has several camera sensors
->> attached
->> > to its camera interface, generally just one can be used at once.
->> >
->> > However, from user's perspective those are still distinct
->> > cameras. Many v4l2 applications don't support VIDIOC_S_INPUT
->> > or at least it will be more difficult to use than just pointing
->> > an app to the correct video device. Logically they are two
->> > independent cameras, which can't be used simultaneously
->> > due to HW restrictions.
->> >
->> > - Tuukka
->> >
->>
->>
->>
->> --
->> =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D
->> DongSoo(Nathaniel), Kim
->> Engineer
->> Mobile S/W Platform Lab. S/W centre
->> Telecommunication R&D Centre
->> Samsung Electronics CO., LTD.
->> e-mail : dongsoo.kim@gmail.com
->> =A0 =A0 =A0 =A0 =A0 dongsoo45.kim@samsung.com
->> =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-
->> omap" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at =A0http://vger.kernel.org/majordomo-info.html
->
->
-
-
-
---=20
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D
-DongSoo(Nathaniel), Kim
-Engineer
-Mobile S/W Platform Lab. S/W centre
-Telecommunication R&D Centre
-Samsung Electronics CO., LTD.
-e-mail : dongsoo.kim@gmail.com
-          dongsoo45.kim@samsung.com
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D
---
-To unsubscribe from this list: send the line "unsubscribe linux-media" =
-in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Tony
