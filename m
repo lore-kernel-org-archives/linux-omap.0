@@ -1,40 +1,55 @@
-From: "Lopez Cruz, Misael" <x0052729@ti.com>
-Subject: RE: [alsa-devel] [PATCH 1/3] ASoC: Add GPIO support for jack
-	reporting interface
-Date: Mon, 2 Mar 2009 18:47:50 -0600
-Message-ID: <2C7D3DF36ADFFC479B44490D912B616705ECD6D7B9@dlee07.ent.ti.com>
-References: <2C7D3DF36ADFFC479B44490D912B616705EC8B1C03@dlee07.ent.ti.com>
- <20090226115243.GC4229@sirena.org.uk>
- <2C7D3DF36ADFFC479B44490D912B616705ECC76DF8@dlee07.ent.ti.com>
- <20090227130502.GA4415@sirena.org.uk>
- <2C7D3DF36ADFFC479B44490D912B616705ECC77374@dlee07.ent.ti.com>
- <20090302113845.GA19744@sirena.org.uk>
- <2C7D3DF36ADFFC479B44490D912B616705ECC77862@dlee07.ent.ti.com>
- <20090302225527.GA6390@sirena.org.uk>
- <2C7D3DF36ADFFC479B44490D912B616705ECD6D789@dlee07.ent.ti.com>
- <20090303004319.GA10159@sirena.org.uk>
+From: "Guzman Lugo, Fernando" <x0095840@ti.com>
+Subject: [OMAPZOOM][PATCH 1/5] DSPBRIDGE: Remove SEEK_* redefinitions
+Date: Mon, 2 Mar 2009 19:31:14 -0600
+Message-ID: <496565EC904933469F292DDA3F1663E60287B84DF6@dlee06.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:60263 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751664AbZCCAsP convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 2 Mar 2009 19:48:15 -0500
-In-Reply-To: <20090303004319.GA10159@sirena.org.uk>
+Received: from devils.ext.ti.com ([198.47.26.153]:36586 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751948AbZCCBbR convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 2 Mar 2009 20:31:17 -0500
+Received: from dlep95.itg.ti.com ([157.170.170.107])
+	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id n231VBEF027498
+	for <linux-omap@vger.kernel.org>; Mon, 2 Mar 2009 19:31:16 -0600
+Received: from dlee75.ent.ti.com (localhost [127.0.0.1])
+	by dlep95.itg.ti.com (8.13.8/8.13.8) with ESMTP id n231VBb5029646
+	for <linux-omap@vger.kernel.org>; Mon, 2 Mar 2009 19:31:11 -0600 (CST)
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Mark Brown <broonie@sirena.org.uk>
-Cc: "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: "Pandita, Vikram" <vikram.pandita@ti.com>, "Kanigeri, Hari" <h-kanigeri2@ti.com>
+Cc: "Aguilar Pena, Leed" <leed.aguilar@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
+From: Fernando Guzman Lugo <x0095840@ti.com>
+Date: Mon, 23 Feb 2009 10:04:27 -0600
+Subject: [PATCH] DSPBRIDGE: Remove SEEK_* redefinitions
 
-> > Then, when to trigger the callback? Every time jack status 
-> > is going to be updated?
+This patch removes the SEEK_* redefinitions in host_os.h
 
-> Yes.  Note that if we're going to add a callback it should be 
-> done as a separate patch since it's a separate feature.  It's
-> probably as well to get the GPIO jack detection and support for
-> your system merged and then worry about any callback separately.
+Signed-off-by: Guzman Lugo Fernando <x0095840@ti.com>
+---
+ arch/arm/plat-omap/include/dspbridge/host_os.h |    6 ------
+ 1 files changed, 0 insertions(+), 6 deletions(-)
 
-Ok, then I'll post again GPIO patches. Thanks.
+diff --git a/arch/arm/plat-omap/include/dspbridge/host_os.h b/arch/arm/plat-omap/include/dspbridge/host_os.h
+index ff49e0d..9245eea
+--- a/arch/arm/plat-omap/include/dspbridge/host_os.h
++++ b/arch/arm/plat-omap/include/dspbridge/host_os.h
+@@ -60,12 +60,6 @@
+ #include <asm/cacheflush.h>
+ #include <linux/dma-mapping.h>
+ 
+-/*  ----------------------------------- Macros */
+-
+-#define SEEK_SET        0	/* Seek from beginning of file.  */
+-#define SEEK_CUR        1	/* Seek from current position.  */
+-#define SEEK_END        2	/* Seek from end of file.  */
+-
+ /* TODO -- Remove, once BP defines them */
+ #define INT_MAIL_MPU_IRQ        26
+ #define INT_DSP_MMU_IRQ        28
+-- 
+1.5.6.4
+
