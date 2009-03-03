@@ -1,40 +1,50 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [UPDATE][PATCH 2/2][OMAPZOOM] DSPBRIDGE: Change address
-	resources to void __iomem *Hi
-Date: Mon, 2 Mar 2009 21:15:25 -0800
-Message-ID: <20090303051524.GJ11864@atomide.com>
-References: <269694c00903020500g3eaa4466x281d07a1bb7e2b7a@mail.gmail.com> <94a0d4530903020528w1e3f2d4bo56e80b572fc3e923@mail.gmail.com>
+From: David Miller <davem@davemloft.net>
+Subject: Re: Remaining bits for basic support of LDP
+Date: Mon, 02 Mar 2009 22:29:47 -0800 (PST)
+Message-ID: <20090302.222947.185552333.davem@davemloft.net>
+References: <20090210213712.GB19041@n2100.arm.linux.org.uk>
+	<20090210.171348.175525204.davem@davemloft.net>
+	<20090301175432.GA24384@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-bos.mailhop.org ([63.208.196.178]:65068 "EHLO
-	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750711AbZCCFP2 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 3 Mar 2009 00:15:28 -0500
-Content-Disposition: inline
-In-Reply-To: <94a0d4530903020528w1e3f2d4bo56e80b572fc3e923@mail.gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20090301175432.GA24384@n2100.arm.linux.org.uk>
+Sender: netdev-owner@vger.kernel.org
+To: linux@arm.linux.org.uk
+Cc: tony@atomide.com, linux-omap@vger.kernel.org, netdev@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Contreras <felipe.contreras@gmail.com>
-Cc: Ameya Palande <2ameya@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-* Felipe Contreras <felipe.contreras@gmail.com> [090302 05:28]:
-> On Mon, Mar 2, 2009 at 3:00 PM, Ameya Palande <2ameya@gmail.com> wrote:
-> > I got following errors while applying this patch again the bridge patches
-> > accumulated at:
-> > http://gitorious.org/projects/tidspbridge2/repos/mainline/logs/tidspbridge
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Date: Sun, 1 Mar 2009 17:54:32 +0000
+
+> On Tue, Feb 10, 2009 at 05:13:48PM -0800, David Miller wrote:
+> > From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+> > Date: Tue, 10 Feb 2009 21:37:12 +0000
+> > 
+> > > On Tue, Feb 10, 2009 at 01:02:02PM -0800, Tony Lindgren wrote:
+> > > > Yeah, the smsc updates for omap might take a while longer to get going.
+> > > > So here's my ack for this smc911x patch:
+> > > > 
+> > > > Acked-by: Tony Lindgren <tony@atomide.com>
+> > > 
+> > > Thanks.
+> > 
+> > Russell if you formally resubmit this with proper changelog, signoffs,
+> > and acks I can merge it in quickly via the net-2.6 if you like.
 > 
-> Tony: What happened to the dspbridge branch? IIRC you mentioned you
-> created a branch in l-o.
+> Sorry for the delay.  Please find patch below.
+> 
+> OMAP: enable smc911x support for LDP platform
+> 
+> The following patch enables SMC911x support to work on the OMAP LDP
+> board.  Although the SMC911x driver will eventually be obsoleted, the
+> smsc911x patches are rather invasive for the -rc kernels.
+> 
+> Rather than risk destablising smsc911x, this simpler patch is preferred
+> to allow the network interface to work.
+> 
+> Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
+> Acked-by: Tony Lindgren <tony@atomide.com>
 
-Sorry, my fault. At some point I stopped fetching from Hiroshi's repo as
-the fetch was always getting the whole pack. I still need to check that
-the unnecessary pack objects don't stay around in linux-omap tree after
-fetch. Hmm, maybe I'm running git prune and git repack -d -l before
-doing the fetch..
-
-Anyways, I've pushed the tidspbridge branch there manually now.
-
-Regards,
-
-Tony
+Applied, thanks.
