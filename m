@@ -1,121 +1,47 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH] OMAP3: Fixed crash bug with serial + suspend
-Date: Tue, 03 Mar 2009 08:57:56 -0800
-Message-ID: <874oya7dd7.fsf@deeprootsystems.com>
-References: <1236073539-21607-1-git-send-email-tero.kristo@nokia.com>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: Queued patches
+Date: Tue, 3 Mar 2009 17:03:59 +0000
+Message-ID: <20090303170359.GA16484@n2100.arm.linux.org.uk>
+References: <20090303165224.GE11096@n2100.arm.linux.org.uk> <20090303165856.GA16357@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from an-out-0708.google.com ([209.85.132.251]:14002 "EHLO
-	an-out-0708.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753500AbZCCQ6E (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 3 Mar 2009 11:58:04 -0500
-Received: by an-out-0708.google.com with SMTP id c2so2063402anc.1
-        for <linux-omap@vger.kernel.org>; Tue, 03 Mar 2009 08:58:01 -0800 (PST)
-In-Reply-To: <1236073539-21607-1-git-send-email-tero.kristo@nokia.com> (Tero Kristo's message of "Tue\,  3 Mar 2009 11\:45\:39 +0200")
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:38043 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752420AbZCCRKk (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 3 Mar 2009 12:10:40 -0500
+Received: from n2100.arm.linux.org.uk ([2002:4e20:1eda:1:214:fdff:fe10:4f86])
+	by caramon.arm.linux.org.uk with esmtpsa (TLSv1:AES256-SHA:256)
+	(Exim 4.69)
+	(envelope-from <linux@arm.linux.org.uk>)
+	id 1LeY8Q-0005kw-Tw
+	for linux-omap@vger.kernel.org; Tue, 03 Mar 2009 17:10:27 +0000
+Received: from linux by n2100.arm.linux.org.uk with local (Exim 4.69)
+	(envelope-from <linux@n2100.arm.linux.org.uk>)
+	id 1LeY2B-0004I4-HT
+	for linux-omap@vger.kernel.org; Tue, 03 Mar 2009 17:03:59 +0000
+Content-Disposition: inline
+In-Reply-To: <20090303165856.GA16357@n2100.arm.linux.org.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tero Kristo <tero.kristo@nokia.com>
-Cc: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
 
-Tero Kristo <tero.kristo@nokia.com> writes:
+On Tue, Mar 03, 2009 at 04:58:56PM +0000, Russell King - ARM Linux wrote:
+> On Tue, Mar 03, 2009 at 04:52:24PM +0000, Russell King - ARM Linux wrote:
+> > The following patch set is what is in my omap-clks3 branch, which is
+> > essentially my cleanups and conversion to clkdev, with Paul's work
+> > cherry-picked on top.
+> > 
+> > As will be noticed from previous discussions, not all of Paul's work is
+> > included since it requires further discussion and rework.
+> 
+> Please note: that patch set was sent from the wrong address.  Please
+> send replies to this address; replies sent to my rmk@ address will
+> be ignored.
 
-> It was possible for an unhandled interrupt to occur if there was incoming
-> serial traffic during wakeup from suspend. This was caused by the code
-> in arch-arm/mach-omap2/serial.c keeping interrupt enabled all the time,
-> but not acking its interrupts. Applies on top of PM branch.
->
-> Signed-off-by: Tero Kristo <tero.kristo@nokia.com>
-> ---
->  arch/arm/mach-omap2/pm34xx.c             |   15 +++++++++++++++
->  arch/arm/mach-omap2/serial.c             |   18 ++++++++++++++++++
->  arch/arm/plat-omap/include/mach/serial.h |    1 +
->  3 files changed, 34 insertions(+), 0 deletions(-)
->
-> diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
-> index 9102cee..5a627db 100644
-> --- a/arch/arm/mach-omap2/pm34xx.c
-> +++ b/arch/arm/mach-omap2/pm34xx.c
-> @@ -629,7 +629,22 @@ static void omap3_pm_finish(void)
->  	pm_idle = saved_idle;
->  }
->  
-> +/* Hooks to enable / disable UART interrupts during suspend */
-> +static int omap3_pm_begin(suspend_state_t state)
-> +{
-> +	omap_uart_enable_irqs(0);
-> +	return 0;
-> +}
-> +
-> +static void omap3_pm_end(void)
-> +{
-> +	omap_uart_enable_irqs(1);
-> +	return;
-> +}
-> +
->  static struct platform_suspend_ops omap_pm_ops = {
-> +	.begin		= omap3_pm_begin,
-> +	.end		= omap3_pm_end,
->  	.prepare	= omap3_pm_prepare,
->  	.enter		= omap3_pm_enter,
->  	.finish		= omap3_pm_finish,
+Aborted.  I can't get this many messages through my outgoing MTA in
+one go, sorry.
 
-I think this functionality is more appropriate for the prepare/finish
-hooks than the begin/end hooks.  serial.c already has
-omap_uart_prepare_suspend() hook where the interrupt disable could be
-added., and a omap_uart_prepare_resume() call could be added to the
-omap3_pm_finish.
+For now, I need to babysit my firewall to get control back.
 
-> diff --git a/arch/arm/mach-omap2/serial.c b/arch/arm/mach-omap2/serial.c
-> index 90f1c67..952da79 100644
-> --- a/arch/arm/mach-omap2/serial.c
-> +++ b/arch/arm/mach-omap2/serial.c
-> @@ -432,6 +432,24 @@ static void omap_uart_idle_init(struct omap_uart_state *uart)
->  	WARN_ON(ret);
->  }
->  
-> +void omap_uart_enable_irqs(int enable)
-> +{
-> +	int i, ret;
-> +
-> +	for (i = 0; i < OMAP_MAX_NR_PORTS; i++) {
-> +		struct plat_serial8250_port *p = serial_platform_data + i;
-> +		struct omap_uart_state *uart = &omap_uart[i];
-> +
-
-Can you use the "list_for_each_entry(uart, &uart_list, node)"
-construct instead of a for loop?  Or was there a reason to enable/ack
-all serial interrupts, even those that have not been enabled.
-
-> +		if (!p->membase)
-> +			continue;
-> +		if (enable)
-> +			ret = request_irq(p->irq, omap_uart_interrupt,
-> +				IRQF_SHARED, "serial idle", (void *)uart);
-> +		else
-> +			free_irq(p->irq, (void *)uart);
-> +	}
-> +}
-> +
->  static ssize_t sleep_timeout_show(struct kobject *kobj,
->  				  struct kobj_attribute *attr,
->  				  char *buf)
-> diff --git a/arch/arm/plat-omap/include/mach/serial.h b/arch/arm/plat-omap/include/mach/serial.h
-> index 8e89585..7ca1f27 100644
-> --- a/arch/arm/plat-omap/include/mach/serial.h
-> +++ b/arch/arm/plat-omap/include/mach/serial.h
-> @@ -47,6 +47,7 @@ extern void omap_uart_check_wakeup(void);
->  extern void omap_uart_prepare_suspend(void);
->  extern void omap_uart_prepare_idle(int num);
->  extern void omap_uart_resume_idle(int num);
-> +extern void omap_uart_enable_irqs(int enable);
->  #endif
->  
->  #endif
-> -- 
-> 1.5.4.3
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+I'm NOT going to attempt to repost them.
