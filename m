@@ -1,343 +1,118 @@
-From: "Curran, Dominic" <dcurran@ti.com>
-Subject: RE: [PATCH 5/5] LDP: Add support for built-in camera
-Date: Tue, 3 Mar 2009 15:40:31 -0600
-Message-ID: <96DA7A230D3B2F42BA3EF203A7A1B3B5012EA393AA@dlee07.ent.ti.com>
-References: <A24693684029E5489D1D202277BE89442E1D9224@dlee02.ent.ti.com>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Subject: Re: [RFC 0/5] Sensor drivers for OMAP3430SDP and LDP camera
+Date: Tue, 3 Mar 2009 23:47:19 +0100
+Message-ID: <200903032347.19548.hverkuil@xs4all.nl>
+References: <A24693684029E5489D1D202277BE89442E1D921F@dlee02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-media-owner@vger.kernel.org>
-In-Reply-To: <A24693684029E5489D1D202277BE89442E1D9224@dlee02.ent.ti.com>
-Content-Language: en-US
-Sender: linux-media-owner@vger.kernel.org
-To: "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>, "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
-Cc: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>, "Tuukka.O Toivonen" <tuukka.o.toivonen@nokia.com>, Hiroshi DOYU <Hiroshi.DOYU@nokia.com>, "DongSoo(Nathaniel) Kim" <dongsoo.kim@gmail.com>, MiaoStanley <stanleymiao@hotmail.com>, "Nagalla, Hari" <hnagalla@ti.com>, "Hiremath, Vaibhav" <hvaibhav@ti.com>, "Lakhani, Amish" <amish@ti.com>, "Menon, Nishanth" <nm@ti.com>
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:1929 "EHLO
+	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754459AbZCCWrK (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 3 Mar 2009 17:47:10 -0500
+In-Reply-To: <A24693684029E5489D1D202277BE89442E1D921F@dlee02.ent.ti.com>
+Content-Disposition: inline
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>
+Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>, "Tuukka.O Toivonen" <tuukka.o.toivonen@nokia.com>, Hiroshi DOYU <Hiroshi.DOYU@nokia.com>, "DongSoo(Nathaniel) Kim" <dongsoo.kim@gmail.com>, MiaoStanley <stanleymiao@hotmail.com>, "Nagalla, Hari" <hnagalla@ti.com>, "Hiremath, Vaibhav" <hvaibhav@ti.com>, "Lakhani, Amish" <amish@ti.com>, "Menon, Nishanth" <nm@ti.com>
 
+On Tuesday 03 March 2009 21:44:12 Aguirre Rodriguez, Sergio Alberto wrote:
+> This patch series depends on the following patches:
+>
+>  - "Add TWL4030 registers", posted by Tuukka Toivonen on March 2nd.
+>  - "OMAP3 ISP and camera drivers" patch series, posted by Sakari Ailus on
+>    March 3rd. (Please follow his instructions to pull from gitorious.org
+> server)
 
+Sergio, Sakari,
 
-> -----Original Message-----
-> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
-> owner@vger.kernel.org] On Behalf Of Aguirre Rodriguez, Sergio Alberto
-> Sent: Tuesday, March 03, 2009 2:44 PM
-> To: linux-media@vger.kernel.org; linux-omap@vger.kernel.org
-> Cc: Sakari Ailus; Tuukka.O Toivonen; Hiroshi DOYU; DongSoo(Nathaniel) Kim;
-> MiaoStanley; Nagalla, Hari; Hiremath, Vaibhav; Lakhani, Amish; Menon, Nishanth
-> Subject: [PATCH 5/5] LDP: Add support for built-in camera
+I'm feeling quite uncomfortable about this series with regards to the use of 
+the v4l2-int API instead of v4l2_subdev. I know that it is on the TODO 
+list, but every driver that is merged that uses v4l2-int will later mean 
+extra work.
+
+I and others have been working very hard to get the existing ioctl-based i2c 
+modules converted in time for the 2.6.30 merge window. It looks like I'll 
+be able to have it done in time (fingers crossed :-) ). So it is rather sad 
+to see new modules that do not yet use it.
+
+Right now the v4l2_device and v4l2_subdev framework is pretty basic and so 
+the amount of work to do the conversion is still limited, but once I've 
+finished my initial conversion I'll be adding lots more features, do 
+cleanups, and generally improve the framework substantially. Any existing 
+modules that use v4l2_device and v4l2_subdev will be updated by me. But I'm 
+not going to do that for modules using v4l2-int, that will be the 
+responsibility of the module's author when he converts it to v4l2_subdev. 
+So the longer you wait, the more work that will be.
+
+I *strongly* recommend that the conversion to the new framework is done 
+first. I know it might delay inclusion of some drivers, but my expectation 
+based on all the other conversions I've done until now is that it will 
+actually simplify the drivers.
+
+My experiences with it have been uniformly positive and it should be 
+possible to use it as well with the ISP module or other logical 
+sub-devices. There are lots of interesting possibilities there that you do 
+not have with v4l2-int.
+
+Best regards,
+
+	Hans
+
+> This has been tested with:
+>  - SDP3430-VG5.0.1 with OMAP3430-ES3.1 daughter board upgrade.
+>  - Camkit V3.0.1 with MT9P012 and OV3640 sensors
+>  - LDP with OV3640 sensor
 >
-> This patch adds support for the LDP builtin camera sensor:
->  - Primary sensor (/dev/video4): OV3640 (CSI2).
+> Sergio Aguirre (5):
+>   MT9P012: Add driver
+>   DW9710: Add driver
+>   OV3640: Add driver
+>   OMAP3430SDP: Add support for Camera Kit v3
+>   LDP: Add support for built-in camera
 >
-> It introduces also a new file for storing all camera sensors board
-> specific related functions, like other platforms do (N800 for example).
->
-> Signed-off-by: Sergio Aguirre <saaguirre@ti.com>
-> ---
->  arch/arm/mach-omap2/Makefile                |    3 +-
->  arch/arm/mach-omap2/board-ldp-camera.c      |  203
-> +++++++++++++++++++++++++++
->  arch/arm/mach-omap2/board-ldp.c             |   17 +++
->  arch/arm/plat-omap/include/mach/board-ldp.h |    1 +
->  4 files changed, 223 insertions(+), 1 deletions(-)
+>  arch/arm/mach-omap2/Makefile                    |    6 +-
+>  arch/arm/mach-omap2/board-3430sdp-camera.c      |  490 +++++
+>  arch/arm/mach-omap2/board-3430sdp.c             |   42 +-
+>  arch/arm/mach-omap2/board-ldp-camera.c          |  203 +++
+>  arch/arm/mach-omap2/board-ldp.c                 |   17 +
+>  arch/arm/plat-omap/include/mach/board-3430sdp.h |    1 +
+>  arch/arm/plat-omap/include/mach/board-ldp.h     |    1 +
+>  drivers/media/video/Kconfig                     |   31 +
+>  drivers/media/video/Makefile                    |    3 +
+>  drivers/media/video/dw9710.c                    |  548 ++++++
+>  drivers/media/video/dw9710_priv.h               |   57 +
+>  drivers/media/video/mt9p012.c                   | 1890
+> +++++++++++++++++++ drivers/media/video/mt9p012_regs.h              |  
+> 74 +
+>  drivers/media/video/ov3640.c                    | 2202
+> +++++++++++++++++++++++ drivers/media/video/ov3640_regs.h               |
+>  600 ++++++
+>  include/media/dw9710.h                          |   35 +
+>  include/media/mt9p012.h                         |   37 +
+>  include/media/ov3640.h                          |   31 +
+>  18 files changed, 6265 insertions(+), 3 deletions(-)
+>  create mode 100644 arch/arm/mach-omap2/board-3430sdp-camera.c
 >  create mode 100644 arch/arm/mach-omap2/board-ldp-camera.c
->
-> diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
-> index 8888ee6..097bc58 100644
-> --- a/arch/arm/mach-omap2/Makefile
-> +++ b/arch/arm/mach-omap2/Makefile
-> @@ -63,7 +63,8 @@ obj-$(CONFIG_MACH_OMAP3_BEAGLE)             += board-
-> omap3beagle.o \
->                                          mmc-twl4030.o \
->                                          twl4030-generic-scripts.o
->  obj-$(CONFIG_MACH_OMAP_LDP)          += board-ldp.o \
-> -                                        mmc-twl4030.o
-> +                                        mmc-twl4030.o \
-> +                                        board-ldp-camera.o
->  obj-$(CONFIG_MACH_OMAP_APOLLON)              += board-apollon.o \
->                                          board-apollon-mmc.o  \
->                                          board-apollon-keys.o
-> diff --git a/arch/arm/mach-omap2/board-ldp-camera.c b/arch/arm/mach-
-> omap2/board-ldp-camera.c
-> new file mode 100644
-> index 0000000..0db085c
-> --- /dev/null
-> +++ b/arch/arm/mach-omap2/board-ldp-camera.c
-> @@ -0,0 +1,203 @@
-> +/*
-> + * linux/arch/arm/mach-omap2/board-ldp0-camera.c
-
-Minor typo, should be:
- linux/arch/arm/mach-omap2/board-ldp-camera.c
-
-
-> + *
-> + * Copyright (C) 2009 Texas Instruments Inc.
-> + * Sergio Aguirre <saaguirre@ti.com>
-> + *
-> + * Modified from mach-omap2/board-ldp.c
-> + *
-> + * This program is free software; you can redistribute it and/or modify
-> + * it under the terms of the GNU General Public License version 2 as
-> + * published by the Free Software Foundation.
-> + */
-> +
-> +#ifdef CONFIG_TWL4030_CORE
-> +
-> +#include <linux/clk.h>
-> +#include <linux/platform_device.h>
-> +#include <linux/delay.h>
-> +
-> +#include <linux/i2c/twl4030.h>
-> +
-> +#include <asm/io.h>
-> +
-> +#include <mach/gpio.h>
-> +
-> +static int cam_inited;
-> +#include <media/v4l2-int-device.h>
-> +#include <../drivers/media/video/omap34xxcam.h>
-> +#include <../drivers/media/video/isp/ispreg.h>
-> +
-> +#define LDPCAM_USE_XCLKB     1
-> +
-> +#define VAUX_1_8_V           0x05
-> +#define VAUX_DEV_GRP_P1              0x20
-> +#define VAUX_DEV_GRP_NONE    0x00
-> +
-> +#if defined(CONFIG_VIDEO_OV3640) || defined(CONFIG_VIDEO_OV3640_MODULE)
-> +#define OV3640_RESET_GPIO    98
-> +#define OV3640_STANDBY_GPIO  7
-> +#include <media/ov3640.h>
-> +#include <../drivers/media/video/isp/ispcsi2.h>
-> +static       struct omap34xxcam_hw_config *hwc;
-> +#define OV3640_CSI2_CLOCK_POLARITY   0       /* +/- pin order */
-> +#define OV3640_CSI2_DATA0_POLARITY   0       /* +/- pin order */
-> +#define OV3640_CSI2_DATA1_POLARITY   0       /* +/- pin order */
-> +#define OV3640_CSI2_CLOCK_LANE               1        /* Clock lane position: 1 */
-> +#define OV3640_CSI2_DATA0_LANE               2        /* Data0 lane position: 2 */
-> +#define OV3640_CSI2_DATA1_LANE               3        /* Data1 lane position: 3 */
-> +#define OV3640_CSI2_PHY_THS_TERM     4
-> +#define OV3640_CSI2_PHY_THS_SETTLE   14
-> +#define OV3640_CSI2_PHY_TCLK_TERM    0
-> +#define OV3640_CSI2_PHY_TCLK_MISS    1
-> +#define OV3640_CSI2_PHY_TCLK_SETTLE  14
-> +
-> +static struct omap34xxcam_sensor_config ov3640_hwc = {
-> +     .sensor_isp = 0,
-> +     .xclk = OMAP34XXCAM_XCLK_B,
-> +     .capture_mem = 2592 * 1944 * 2 * 2,
-
-Should this be  2048 * 1536 * 2 * 2  ?
-
-
-Ack-by: Dominic Curran <dcurran@ti.com>
-
-> +     .ival_default   = { 1, 15 },
-> +};
-> +
-> +static struct isp_interface_config ov3640_if_config = {
-> +     .ccdc_par_ser = ISP_CSIA,
-> +     .dataline_shift = 0x0,
-> +     .hsvs_syncdetect = ISPCTRL_SYNC_DETECT_VSRISE,
-> +     .strobe = 0x0,
-> +     .prestrobe = 0x0,
-> +     .shutter = 0x0,
-> +     .prev_sph = 2,
-> +     .prev_slv = 1,
-> +     .wenlog = ISPCCDC_CFG_WENLOG_AND,
-> +     .wait_hs_vs = 2,
-> +     .u.csi.crc = 0x0,
-> +     .u.csi.mode = 0x0,
-> +     .u.csi.edge = 0x0,
-> +     .u.csi.signalling = 0x0,
-> +     .u.csi.strobe_clock_inv = 0x0,
-> +     .u.csi.vs_edge = 0x0,
-> +     .u.csi.channel = 0x1,
-> +     .u.csi.vpclk = 0x1,
-> +     .u.csi.data_start = 0x0,
-> +     .u.csi.data_size = 0x0,
-> +     .u.csi.format = V4L2_PIX_FMT_SGRBG10,
-> +};
-> +
-> +static int ov3640_sensor_set_prv_data(void *priv)
-> +{
-> +     hwc = priv;
-> +     hwc->u.sensor.xclk = ov3640_hwc.xclk;
-> +     hwc->u.sensor.sensor_isp = ov3640_hwc.sensor_isp;
-> +     hwc->dev_index = 1;
-> +     hwc->dev_minor = 4;
-> +     hwc->dev_type = OMAP34XXCAM_SLAVE_SENSOR;
-> +     return 0;
-> +}
-> +
-> +static int ov3640_sensor_power_set(enum v4l2_power power)
-> +{
-> +     struct isp_csi2_lanes_cfg lanecfg;
-> +     struct isp_csi2_phy_cfg phyconfig;
-> +     static enum v4l2_power previous_power = V4L2_POWER_OFF;
-> +
-> +     if (!cam_inited) {
-> +             printk(KERN_ERR "OV3640: Unable to control board GPIOs!\n");
-> +             return -EFAULT;
-> +     }
-> +
-> +     switch (power) {
-> +     case V4L2_POWER_ON:
-> +             if (previous_power == V4L2_POWER_OFF)
-> +                     isp_csi2_reset();
-> +             lanecfg.clk.pol = OV3640_CSI2_CLOCK_POLARITY;
-> +             lanecfg.clk.pos = OV3640_CSI2_CLOCK_LANE;
-> +             lanecfg.data[0].pol = OV3640_CSI2_DATA0_POLARITY;
-> +             lanecfg.data[0].pos = OV3640_CSI2_DATA0_LANE;
-> +             lanecfg.data[1].pol = OV3640_CSI2_DATA1_POLARITY;
-> +             lanecfg.data[1].pos = OV3640_CSI2_DATA1_LANE;
-> +             lanecfg.data[2].pol = 0;
-> +             lanecfg.data[2].pos = 0;
-> +             lanecfg.data[3].pol = 0;
-> +             lanecfg.data[3].pos = 0;
-> +             isp_csi2_complexio_lanes_config(&lanecfg);
-> +             isp_csi2_complexio_lanes_update(true);
-> +
-> +             phyconfig.ths_term = OV3640_CSI2_PHY_THS_TERM;
-> +             phyconfig.ths_settle = OV3640_CSI2_PHY_THS_SETTLE;
-> +             phyconfig.tclk_term = OV3640_CSI2_PHY_TCLK_TERM;
-> +             phyconfig.tclk_miss = OV3640_CSI2_PHY_TCLK_MISS;
-> +             phyconfig.tclk_settle = OV3640_CSI2_PHY_TCLK_SETTLE;
-> +             isp_csi2_phy_config(&phyconfig);
-> +             isp_csi2_phy_update(true);
-> +
-> +             isp_configure_interface(&ov3640_if_config);
-> +
-> +             if (previous_power == V4L2_POWER_OFF) {
-> +                     /* turn on analog power */
-> +                     twl4030_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER,
-> +                                     VAUX_1_8_V, TWL4030_VAUX4_DEDICATED);
-> +                     twl4030_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER,
-> +                                     VAUX_DEV_GRP_P1, TWL4030_VAUX4_DEV_GRP);
-> +                     udelay(100);
-> +                     /* Turn ON Omnivision sensor */
-> +                     gpio_set_value(OV3640_RESET_GPIO, 1);
-> +                     gpio_set_value(OV3640_STANDBY_GPIO, 0);
-> +                     udelay(100);
-> +
-> +                     /* RESET Omnivision sensor */
-> +                     gpio_set_value(OV3640_RESET_GPIO, 0);
-> +                     udelay(100);
-> +                     gpio_set_value(OV3640_RESET_GPIO, 1);
-> +             }
-> +             break;
-> +     case V4L2_POWER_OFF:
-> +             /* Power Down Sequence */
-> +             isp_csi2_complexio_power(ISP_CSI2_POWER_OFF);
-> +             twl4030_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER,
-> +                             VAUX_DEV_GRP_NONE, TWL4030_VAUX4_DEV_GRP);
-> +             break;
-> +     case V4L2_POWER_STANDBY:
-> +             break;
-> +     }
-> +     previous_power = power;
-> +     return 0;
-> +}
-> +
-> +static u32 ov3640_sensor_set_xclk(u32 xclkfreq)
-> +{
-> +     return isp_set_xclk(xclkfreq, LDPCAM_USE_XCLKB);
-> +}
-> +
-> +struct ov3640_platform_data ldp_ov3640_platform_data = {
-> +     .power_set       = ov3640_sensor_power_set,
-> +     .priv_data_set   = ov3640_sensor_set_prv_data,
-> +     .set_xclk        = ov3640_sensor_set_xclk,
-> +};
-> +
-> +#endif
-> +
-> +void __init ldp_cam_init(void)
-> +{
-> +     cam_inited = 0;
-> +     /* Request and configure gpio pins */
-> +     if (gpio_request(OV3640_RESET_GPIO, "ov3640_reset_gpio") != 0) {
-> +             printk(KERN_ERR "Could not request GPIO %d",
-> +                                     OV3640_RESET_GPIO);
-> +             return;
-> +     }
-> +     if (gpio_request(OV3640_STANDBY_GPIO, "ov3640_standby_gpio") != 0) {
-> +             printk(KERN_ERR "Could not request GPIO %d",
-> +                                     OV3640_STANDBY_GPIO);
-> +             gpio_free(OV3640_RESET_GPIO);
-> +             return;
-> +     }
-> +     /* set to output mode */
-> +     gpio_direction_output(OV3640_RESET_GPIO, true);
-> +     gpio_direction_output(OV3640_STANDBY_GPIO, true);
-> +     cam_inited = 1;
-> +}
-> +#else
-> +void __init ldp_cam_init(void)
-> +{
-> +}
-> +#endif
-> diff --git a/arch/arm/mach-omap2/board-ldp.c b/arch/arm/mach-omap2/board-ldp.c
-> index 1e1fd84..513aa8f 100644
-> --- a/arch/arm/mach-omap2/board-ldp.c
-> +++ b/arch/arm/mach-omap2/board-ldp.c
-> @@ -47,6 +47,13 @@
->  #define SDP3430_SMC91X_CS    3
->  #define CONFIG_DISABLE_HFCLK 1
->
-> +#include <media/v4l2-int-device.h>
-> +
-> +#if defined(CONFIG_VIDEO_OV3640) || defined(CONFIG_VIDEO_OV3640_MODULE)
-> +#include <media/ov3640.h>
-> +extern struct ov3640_platform_data ldp_ov3640_platform_data;
-> +#endif
-> +
->  #define ENABLE_VAUX1_DEDICATED       0x03
->  #define ENABLE_VAUX1_DEV_GRP 0x20
->
-> @@ -496,6 +503,15 @@ static struct i2c_board_info __initdata
-> ldp_i2c_boardinfo[] = {
->       },
->  };
->
-> +static struct i2c_board_info __initdata ldp_i2c_boardinfo_2[] = {
-> +#if defined(CONFIG_VIDEO_OV3640) || defined(CONFIG_VIDEO_OV3640_MODULE)
-> +     {
-> +             I2C_BOARD_INFO("ov3640", OV3640_I2C_ADDR),
-> +             .platform_data = &ldp_ov3640_platform_data,
-> +     },
-> +#endif
-> +};
-> +
->  static int __init omap_i2c_init(void)
->  {
->       omap_register_i2c_bus(1, 2600, ldp_i2c_boardinfo,
-> @@ -530,6 +546,7 @@ static void __init omap_ldp_init(void)
->       omap_serial_init();
->       usb_musb_init();
->       twl4030_mmc_init(mmc);
-> +     ldp_cam_init();
->  }
->
->  static void __init omap_ldp_map_io(void)
-> diff --git a/arch/arm/plat-omap/include/mach/board-ldp.h b/arch/arm/plat-
-> omap/include/mach/board-ldp.h
-> index f233996..8e5d90b 100644
-> --- a/arch/arm/plat-omap/include/mach/board-ldp.h
-> +++ b/arch/arm/plat-omap/include/mach/board-ldp.h
-> @@ -30,6 +30,7 @@
->  #define __ASM_ARCH_OMAP_LDP_H
->
->  extern void twl4030_bci_battery_init(void);
-> +extern void ldp_cam_init(void);
->
->  #define TWL4030_IRQNUM               INT_34XX_SYS_NIRQ
->  #define LDP_SMC911X_CS         1
-> --
-> 1.5.6.5
+>  create mode 100644 drivers/media/video/dw9710.c
+>  create mode 100644 drivers/media/video/dw9710_priv.h
+>  create mode 100644 drivers/media/video/mt9p012.c
+>  create mode 100644 drivers/media/video/mt9p012_regs.h
+>  create mode 100644 drivers/media/video/ov3640.c
+>  create mode 100644 drivers/media/video/ov3640_regs.h
+>  create mode 100644 include/media/dw9710.h
+>  create mode 100644 include/media/mt9p012.h
+>  create mode 100644 include/media/ov3640.h
 >
 > --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
 > the body of a message to majordomo@vger.kernel.org
 > More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
+
+
+-- 
+Hans Verkuil - video4linux developer - sponsored by TANDBERG
