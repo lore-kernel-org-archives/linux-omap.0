@@ -1,22 +1,32 @@
 From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [PATCH E 11/14] OMAP clock: track child clocks
-Date: Tue, 3 Mar 2009 16:45:49 +0000
-Message-ID: <20090303164548.GD11096@n2100.arm.linux.org.uk>
-References: <20090128192551.29333.82943.stgit@localhost.localdomain> <20090128192756.29333.41541.stgit@localhost.localdomain> <20090129151401.GC18233@n2100.arm.linux.org.uk> <20090129220608.GJ18233@n2100.arm.linux.org.uk> <20090219121932.GL6407@n2100.arm.linux.org.uk> <13B9B4C6EF24D648824FF11BE896716203772C3680@dlee02.ent.ti.com> <20090223160349.GB27688@n2100.arm.linux.org.uk> <alpine.DEB.2.00.0903021558360.30037@utopia.booyaka.com>
+Subject: Queued patches
+Date: Tue, 3 Mar 2009 16:52:24 +0000
+Message-ID: <20090303165224.GE11096@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1759094AbZCCQq3@vger.kernel.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:46634 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753220AbZCCQwb (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 3 Mar 2009 11:52:31 -0500
+Received: from n2100.arm.linux.org.uk ([2002:4e20:1eda:1:214:fdff:fe10:4f86])
+	by caramon.arm.linux.org.uk with esmtpsa (TLSv1:AES256-SHA:256)
+	(Exim 4.69)
+	(envelope-from <linux@arm.linux.org.uk>)
+	id 1LeXr0-0005ha-Qz
+	for linux-omap@vger.kernel.org; Tue, 03 Mar 2009 16:52:27 +0000
+Received: from linux by n2100.arm.linux.org.uk with local (Exim 4.69)
+	(envelope-from <linux@n2100.arm.linux.org.uk>)
+	id 1LeXqz-0004EO-8D
+	for linux-omap@vger.kernel.org; Tue, 03 Mar 2009 16:52:25 +0000
 Content-Disposition: inline
-In-Reply-To: <alpine.DEB.2.00.0903021558360.30037@utopia.booyaka.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: "Woodruff, Richard" <r-woodruff2@ti.com>, "linux-arm-kernel@lists.arm.linux.org.uk" <linux-arm-kernel@lists.arm.linux.org.uk>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
 
-On Mon, Mar 02, 2009 at 04:02:14PM -0700, Paul Walmsley wrote:
-> Suggest returning a more specific error than -EINVAL:
-> 
-> if (clk->usecount > 0)
->         return -EBUSY;
+The following patch set is what is in my omap-clks3 branch, which is
+essentially my cleanups and conversion to clkdev, with Paul's work
+cherry-picked on top.
 
-Done.
+As will be noticed from previous discussions, not all of Paul's work is
+included since it requires further discussion and rework.
