@@ -1,53 +1,49 @@
-From: Felipe Contreras <felipe.contreras@gmail.com>
-Subject: Re: Anyone built the kernel drivers for the PowerVR under
-	linux-omap-2.6?
-Date: Tue, 3 Mar 2009 15:43:53 +0200
-Message-ID: <94a0d4530903030543m64db72c8ifdac66ff162f775a@mail.gmail.com>
-References: <c6ef7709f9373651496b2a32ca42f571.squirrel@localhost>
-	 <1D24AF54-A1B5-4BFD-BBB3-09E1BB1F0A7F@student.utwente.nl>
-	 <1236083245.7924.26.camel@surfer>
-	 <B3546260-AC1E-4601-BC8D-74AB9A16B144@student.utwente.nl>
-	 <1236085678.7924.48.camel@surfer>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: [PATCH A 09/10] OMAP2/3: Remove OMAP_PRM_REGADDR, OMAP_CM_REGADDR
+Date: Tue, 03 Mar 2009 07:09:35 -0800
+Message-ID: <87prgy7ids.fsf@deeprootsystems.com>
+References: <20090128020447.7244.80496.stgit@localhost.localdomain>
+	<20090128021312.7244.2415.stgit@localhost.localdomain>
+	<20090128232831.GL23301@n2100.arm.linux.org.uk>
+	<alpine.DEB.2.00.0901290021360.32081@utopia.booyaka.com>
+	<87zlg372rm.fsf@deeprootsystems.com>
+	<alpine.DEB.2.00.0903021945060.30037@utopia.booyaka.com>
+	<20090303082837.GJ25699@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-fx0-f176.google.com ([209.85.220.176]:51711 "EHLO
-	mail-fx0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750771AbZCCNn4 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 3 Mar 2009 08:43:56 -0500
-Received: by fxm24 with SMTP id 24so2439859fxm.37
-        for <linux-omap@vger.kernel.org>; Tue, 03 Mar 2009 05:43:53 -0800 (PST)
-In-Reply-To: <1236085678.7924.48.camel@surfer>
+Received: from yx-out-2324.google.com ([74.125.44.29]:46792 "EHLO
+	yx-out-2324.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753288AbZCCPJl (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 3 Mar 2009 10:09:41 -0500
+Received: by yx-out-2324.google.com with SMTP id 8so1838119yxm.1
+        for <linux-omap@vger.kernel.org>; Tue, 03 Mar 2009 07:09:39 -0800 (PST)
+In-Reply-To: <20090303082837.GJ25699@n2100.arm.linux.org.uk> (Russell King's message of "Tue\, 3 Mar 2009 08\:28\:37 +0000")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: David Hagood <david.hagood@gmail.com>
-Cc: Koen Kooi <k.kooi@student.utwente.nl>, "linux-omap@vger.kernel.org List" <linux-omap@vger.kernel.org>
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: Paul Walmsley <paul@pwsan.com>, linux-arm-kernel@lists.arm.linux.org.uk, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org
 
-On Tue, Mar 3, 2009 at 3:07 PM, David Hagood <david.hagood@gmail.com> wrote:
-> On Tue, 2009-03-03 at 13:30 +0100, Koen Kooi wrote:
+Russell King - ARM Linux <linux@arm.linux.org.uk> writes:
+
+> On Mon, Mar 02, 2009 at 07:48:07PM -0700, Paul Walmsley wrote:
+>> Hi Kevin,
+>> 
+>> On Mon, 2 Mar 2009, Kevin Hilman wrote:
+>> 
+>> > What about the rest of the *_PRM_REGADDR() accessor macro changes in
+>> > this patch?
+>> > 
+>> > The rest of the PM core code uses these and so does not build on top
+>> > of the Russell's omap-clks3 branch.
+>> 
+>> yes, all of the *_{PRM,CM}_REGADDR() work should be kept.
 >
-> OK, I apologize in advance, but that statement has pricked the festering
-> boil of my feelings about this matter, and I feel that I must address
-> it.
+> Well, in case it wasn't clear from my previous mail, I'm not merging this.
 
-<amusing OE failure story/>
+It was clear why you weren't merging the couple pieces that you
+referenced, but it wasn't clear whether you had problems with the rest
+of the patch.
 
-> Sorry, but I am NOT going to base MY project on something that I cannot
-> get working after several WEEKS of effort to get working.
+Kevin
 
-Me neither, and I *did* try hard, and I even fixed some issues in
-bitbake AFAICR, but they weren't even interested.
-
-IMHO if something works on OE and it doesn't work on upstream that
-just means somebody hasn't done their job thoroughly; things should go
-into upstream.
-
-I had that issue with ALSA, so I took the matter in my own hands and
-pushed a patch into linux-omap, even if I had no idea of what I was
-doing at least it was a start for the ones that did know.
-
-Cheers.
-
--- 
-Felipe Contreras
