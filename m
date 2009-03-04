@@ -1,50 +1,80 @@
-From: "Peter 'p2' De Schrijver" <peter.de-schrijver@nokia.com>
-Subject: Re: [PATCH 0/1] Group and resource assignments for TWL4030
-Date: Wed, 4 Mar 2009 16:41:21 +0200
-Message-ID: <20090304144121.GA2944@codecarver.research.nokia.com>
-References: <1234271495-11705-1-git-send-email-peter.de-schrijver@nokia.com> <20090215164851.GA19407@codecarver.research.nokia.com> <20090227165949.GB11594@atomide.com> <200903031538.16757.david-b@pacbell.net>
+From: Ameya Palande <2ameya@gmail.com>
+Subject: Re: [PATCH 1/5] DSPBRIDGE: Remove SEEK_* redefinitions
+Date: Wed, 4 Mar 2009 16:52:15 +0200
+Message-ID: <269694c00903040652p5c779d2eye87e592fb5404c27@mail.gmail.com>
+References: <496565EC904933469F292DDA3F1663E60287B84DB5@dlee06.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:53317 "EHLO
-	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751818AbZCDOlw (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 4 Mar 2009 09:41:52 -0500
-Content-Disposition: inline
-In-Reply-To: <200903031538.16757.david-b@pacbell.net>
+Received: from mail-ew0-f177.google.com ([209.85.219.177]:45663 "EHLO
+	mail-ew0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753201AbZCDOwS convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 4 Mar 2009 09:52:18 -0500
+Received: by ewy25 with SMTP id 25so2710500ewy.37
+        for <linux-omap@vger.kernel.org>; Wed, 04 Mar 2009 06:52:15 -0800 (PST)
+In-Reply-To: <496565EC904933469F292DDA3F1663E60287B84DB5@dlee06.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: ext David Brownell <david-b@pacbell.net>
-Cc: Tony Lindgren <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: "Guzman Lugo, Fernando" <x0095840@ti.com>
+Cc: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Wed, Mar 04, 2009 at 12:38:16AM +0100, ext David Brownell wrote:
-> On Friday 27 February 2009, Tony Lindgren wrote:
-> > * Peter 'p2' De Schrijver <peter.de-schrijver@nokia.com> [090215 08:49]:
-> > > On Fri, Feb 13, 2009 at 09:55:21PM +0100, ext David Brownell wrote:
-> > > > On Tuesday 10 February 2009, Peter 'p2' De Schrijver wrote:
-> > > > >
-> > > > > This patch introduces support for board specific group assignments of TWL4030
-> > > > > resources. The resource type and type2 fields can also be specified.
-> > > > 
-> > > > Do we have any real examples yet of needing to assign
-> > > > resources to anything other than P1 (processor)?
-> > > 
-> > > Yes. On our custom hardware we use it to assign CLKEN to P3.
-> 
-> P3 roughly translating to "system running", with
-> no regard to whether ARM(s) or DSP are active, yes?
-> 
+On Tue, Mar 3, 2009 at 2:00 AM, Guzman Lugo, Fernando <x0095840@ti.com>=
+ wrote:
+> From: Fernando Guzman Lugo <x0095840@ti.com>
+> Date: Mon, 23 Feb 2009 10:04:27 -0600
+> Subject: [PATCH] DSPBRIDGE: Remove SEEK_* redefinitions
+>
+> This patch removes the SEEK_* redefinitions in host_os.h
+>
+> Signed-off-by: Guzman Lugo Fernando <x0095840@ti.com>
+> ---
+> =C2=A0arch/arm/plat-omap/include/dspbridge/host_os.h | =C2=A0 =C2=A06=
+ ------
+> =C2=A01 files changed, 0 insertions(+), 6 deletions(-)
+>
+> diff --git a/arch/arm/plat-omap/include/dspbridge/host_os.h b/arch/ar=
+m/plat-omap/include/dspbridge/host_os.h
+> index ff49e0d..9245eea
+> --- a/arch/arm/plat-omap/include/dspbridge/host_os.h
+> +++ b/arch/arm/plat-omap/include/dspbridge/host_os.h
+> @@ -60,12 +60,6 @@
+> =C2=A0#include <asm/cacheflush.h>
+> =C2=A0#include <linux/dma-mapping.h>
+>
+> -/* =C2=A0----------------------------------- Macros */
+> -
+> -#define SEEK_SET =C2=A0 =C2=A0 =C2=A0 =C2=A00 =C2=A0 =C2=A0 =C2=A0/*=
+ Seek from beginning of file. =C2=A0*/
+> -#define SEEK_CUR =C2=A0 =C2=A0 =C2=A0 =C2=A01 =C2=A0 =C2=A0 =C2=A0/*=
+ Seek from current position. =C2=A0*/
+> -#define SEEK_END =C2=A0 =C2=A0 =C2=A0 =C2=A02 =C2=A0 =C2=A0 =C2=A0/*=
+ Seek from end of file. =C2=A0*/
+> -
+> =C2=A0/* TODO -- Remove, once BP defines them */
+> =C2=A0#define INT_MAIL_MPU_IRQ =C2=A0 =C2=A0 =C2=A0 =C2=A026
+> =C2=A0#define INT_DSP_MMU_IRQ =C2=A0 =C2=A0 =C2=A0 =C2=A028
+> --
+> 1.5.6.4
+>
 
-Depends on the board. We use P3 to control the system oscillator. The
-SYSCLK_REQ output of OMAP3 is wired to the CLKREQ input on the TWL4030.
-OMAP3 will disable SYSCLK_REQ when the system clock is no longer
-necessary. (Eg, when going to chip retention).  This obviously only works if
-CLKEN is only in P3.  (Otherwise it won't be turned off as P1 is still
-active). A similar setup is used on the TI SDP3430 board.
+Hi Fernando,
+
+I am not able to apply this as it contains some extra characters "=3D20=
+"
+Here is the location:
+
+ #include <linux/dma-mapping.h>
+=3D20
+-/*  ----------------------------------- Macros */
+
+ Can you check configuration which is used for generating these patches=
+?
 
 Cheers,
-
-Peter.
-
--- 
-goa is a state of mind
+Ameya.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
