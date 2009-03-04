@@ -1,44 +1,46 @@
-From: Fernando Guzman Lugo <x0095840@ti.com>
-Subject: [PATCH] DSPBRIDGE: Remove SEEK_* redefinitions
-Date: Wed,  4 Mar 2009 12:11:31 -0600
-Message-ID: <1236190296-21667-1-git-send-email-x0095840@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: [PATCH 0/4] Still more omap fixes for current -rc series
+Date: Wed, 04 Mar 2009 10:25:17 -0800
+Message-ID: <20090304182342.27331.35004.stgit@localhost>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:56969 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754449AbZCDSMR (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 4 Mar 2009 13:12:17 -0500
-Received: from dlep35.itg.ti.com ([157.170.170.118])
-	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id n24ICAC7005074
-	for <linux-omap@vger.kernel.org>; Wed, 4 Mar 2009 12:12:15 -0600
+Received: from mho-01-bos.mailhop.org ([63.208.196.178]:61955 "EHLO
+	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752977AbZCDSZW (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 4 Mar 2009 13:25:22 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: leed.aguilar@ti.com, vikram.pandita@ti.com, h-kanigeri2@ti.com, linux-omap@vger.kernel.org
-Cc: Fernando Guzman Lugo <x0095840@ti.com>
+To: linux-arm-kernel@lists.arm.linux.org.uk
+Cc: linux-omap@vger.kernel.org
 
-This patch removes the SEEK_* redefinitions in host_os.h
+This should be it for the omap fixes for this -rc cycle. Hopefully
+we can still get these in.
 
-Signed-off-by: Guzman Lugo Fernando <x0095840@ti.com>
+Regards,
+
+Tony
+
 ---
- arch/arm/plat-omap/include/dspbridge/host_os.h |    6 ------
- 1 files changed, 0 insertions(+), 6 deletions(-)
 
-diff --git a/arch/arm/plat-omap/include/dspbridge/host_os.h b/arch/arm/plat-omap/include/dspbridge/host_os.h
-index ff49e0d..9245eea
---- a/arch/arm/plat-omap/include/dspbridge/host_os.h
-+++ b/arch/arm/plat-omap/include/dspbridge/host_os.h
-@@ -60,12 +60,6 @@
- #include <asm/cacheflush.h>
- #include <linux/dma-mapping.h>
- 
--/*  ----------------------------------- Macros */
--
--#define SEEK_SET        0	/* Seek from beginning of file.  */
--#define SEEK_CUR        1	/* Seek from current position.  */
--#define SEEK_END        2	/* Seek from end of file.  */
--
- /* TODO -- Remove, once BP defines them */
- #define INT_MAIL_MPU_IRQ        26
- #define INT_DSP_MMU_IRQ        28
+Aaro Koskinen (2):
+      ARM: OMAP: Allow I2C bus driver to be compiled as a module
+      ARM: OMAP: sched_clock() corrected
+
+David Brownell (1):
+      ARM: OMAP: Fix compile error if pm.h is included
+
+Koen Kooi (1):
+      ARM: OMAP: board-omap3beagle: set i2c-3 to 100kHz
+
+
+ arch/arm/mach-omap2/board-omap3beagle.c  |    4 +++-
+ arch/arm/plat-omap/Makefile              |    3 ++-
+ arch/arm/plat-omap/common.c              |   14 +++++---------
+ arch/arm/plat-omap/include/mach/common.h |    2 +-
+ arch/arm/plat-omap/include/mach/pm.h     |    2 +-
+ 5 files changed, 12 insertions(+), 13 deletions(-)
+
 -- 
-1.5.6.4
-
+Signature
