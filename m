@@ -1,166 +1,94 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH] OMAP3: Fixed crash bug with serial + suspend
-Date: Wed, 04 Mar 2009 12:47:23 -0800
-Message-ID: <49AEE8DB.3070607@deeprootsystems.com>
-References: <1236073539-21607-1-git-send-email-tero.kristo@nokia.com> <874oya7dd7.fsf@deeprootsystems.com> <1F18D6510CF0474A8C9500565A7E41A2036FBE1987@NOK-EUMSG-02.mgdnok.nokia.com>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Subject: Re: [REVIEW PATCH 11/14] OMAP34XXCAM: Add driver
+Date: Wed, 4 Mar 2009 22:05:45 +0100
+Message-ID: <200903042205.45486.hverkuil@xs4all.nl>
+References: <5e9665e10903021848u328e0cd4m5186344be15b817@mail.gmail.com> <200903040839.48104.hverkuil@xs4all.nl> <49AED4DC.5050507@nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from wf-out-1314.google.com ([209.85.200.169]:63266 "EHLO
-	wf-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754343AbZCDUr3 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 4 Mar 2009 15:47:29 -0500
-Received: by wf-out-1314.google.com with SMTP id 28so4109198wfa.4
-        for <linux-omap@vger.kernel.org>; Wed, 04 Mar 2009 12:47:27 -0800 (PST)
-In-Reply-To: <1F18D6510CF0474A8C9500565A7E41A2036FBE1987@NOK-EUMSG-02.mgdnok.nokia.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-media-owner@vger.kernel.org>
+In-Reply-To: <49AED4DC.5050507@nokia.com>
+Content-Disposition: inline
+Sender: linux-media-owner@vger.kernel.org
+To: sakari.ailus@maxwell.research.nokia.com
+Cc: "DongSoo(Nathaniel) Kim" <dongsoo.kim@gmail.com>, "Hiremath, Vaibhav" <hvaibhav@ti.com>, "Toivonen Tuukka.O (Nokia-D/Oulu)" <tuukka.o.toivonen@nokia.com>, "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Nagalla, Hari" <hnagalla@ti.com>, "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
-To: Tero.Kristo@nokia.com
-Cc: linux-omap@vger.kernel.org
 
-Tero.Kristo@nokia.com wrote:
->  
-> 
->> -----Original Message-----
->> From: ext Kevin Hilman [mailto:khilman@deeprootsystems.com] 
->> Sent: 03 March, 2009 18:58
->> To: Kristo Tero (Nokia-D/Tampere)
->> Cc: linux-omap@vger.kernel.org
->> Subject: Re: [PATCH] OMAP3: Fixed crash bug with serial + suspend
->>
->> Tero Kristo <tero.kristo@nokia.com> writes:
->>
->>> It was possible for an unhandled interrupt to occur if there was 
->>> incoming serial traffic during wakeup from suspend. This was 
->> caused by 
->>> the code in arch-arm/mach-omap2/serial.c keeping interrupt 
->> enabled all 
->>> the time, but not acking its interrupts. Applies on top of PM branch.
->>>
->>> Signed-off-by: Tero Kristo <tero.kristo@nokia.com>
->>> ---
->>>  arch/arm/mach-omap2/pm34xx.c             |   15 +++++++++++++++
->>>  arch/arm/mach-omap2/serial.c             |   18 ++++++++++++++++++
->>>  arch/arm/plat-omap/include/mach/serial.h |    1 +
->>>  3 files changed, 34 insertions(+), 0 deletions(-)
->>>
->>> diff --git a/arch/arm/mach-omap2/pm34xx.c 
->>> b/arch/arm/mach-omap2/pm34xx.c index 9102cee..5a627db 100644
->>> --- a/arch/arm/mach-omap2/pm34xx.c
->>> +++ b/arch/arm/mach-omap2/pm34xx.c
->>> @@ -629,7 +629,22 @@ static void omap3_pm_finish(void)
->>>  	pm_idle = saved_idle;
->>>  }
->>>  
->>> +/* Hooks to enable / disable UART interrupts during suspend 
->> */ static 
->>> +int omap3_pm_begin(suspend_state_t state) {
->>> +	omap_uart_enable_irqs(0);
->>> +	return 0;
->>> +}
->>> +
->>> +static void omap3_pm_end(void)
->>> +{
->>> +	omap_uart_enable_irqs(1);
->>> +	return;
->>> +}
->>> +
->>>  static struct platform_suspend_ops omap_pm_ops = {
->>> +	.begin		= omap3_pm_begin,
->>> +	.end		= omap3_pm_end,
->>>  	.prepare	= omap3_pm_prepare,
->>>  	.enter		= omap3_pm_enter,
->>>  	.finish		= omap3_pm_finish,
->> I think this functionality is more appropriate for the 
->> prepare/finish hooks than the begin/end hooks.  serial.c already has
->> omap_uart_prepare_suspend() hook where the interrupt disable 
->> could be added., and a omap_uart_prepare_resume() call could 
->> be added to the omap3_pm_finish.
-> 
-> This would cause sequencing issues and it would still be possible to get unhandled interrupts if I understand the behavior of suspend correctly. I think it works (simplified) like this:
-> 
-> call begin hook
-> suspend devices [ this is where the driver interrupt gets disabled ]
-> call prepare hook
-> enter state [ Zzzz ]
-> call finish hook
-> resume devices [ this is where the driver interrupt gets enabled ]
-> call end hook
-> 
-> So, if you use prepare / finish hooks to enable the interrupt in serial.c, you will get a short time period where you have the interrupt enabled but you do not have "real" handler for the interrupt. This time is longer if you have some drivers in the system that take a long time to resume/suspend and you are unlucky with the ordering of drivers.
+On Wednesday 04 March 2009 20:22:04 Sakari Ailus wrote:
+> Hans Verkuil wrote:
+> > On Wednesday 04 March 2009 01:42:13 DongSoo(Nathaniel) Kim wrote:
+> >> Thank you for your kind explanation Hans.
+> >>
+> >> Problem is omap3 camera subsystem is making device node for every int
+> >> device attached to it.
+> >
+> > That's wrong. Multiple devices should only be created if they can all
+> > be used at the same time. Otherwise there should be just one device
+> > that uses S_INPUT et al to select between the inputs.
+>
+> There might be situations where multiple device nodes would be
+> beneficial even if they cannot be used simultaneously in all cases.
+>
+> Currently the omap34xxcam camera driver creates one device per camera. A
+> camera in this case contains an isp (or camera controller), image
+> sensor, lens and flash. The properties like maximum frame rate or
+> resolution of a camera are usually (almost) completely defined by those
+> of the sensor, lens and flash. This affects also cropping capabilities.
+>
+> Several programs can access video devices simultaneously. What happens
+> if another program switches the input when the first one doesn't expect
+> it? The original user won't notice the change, instead of getting -EBUSY
+> when trying to open the other video device.
 
-OK, makes sense.  I'm OK with the begin/end hook then.
+It is actually quite common to be able to switch inputs using one program 
+(e.g. v4l2-ctl) while another program also has the video node open. This 
+will typically be used for debugging or experimenting. Depending on the 
+hardware, switching inputs while capturing is in progress may or may not be 
+allowed (the driver might just return -EBUSY in that case).
 
-There are some other conventions when using the begin/end hook that I'll 
-probably add.  e.g., if the begin/end hooks are used then the next state
-should be set based on the state passed in from begin, and ignored in 
-the 'enter' hook.
+In addition the application can also call VIDIOC_S_PRIORITY to protect it 
+against outside interference, provided the driver supports this ioctl.
 
-Anyways, I will fix that part up.
+As an aside: many applications don't use VIDIOC_S_PRIORITY since whether a 
+driver implements it is hit-and-miss. As part of the new v4l2 framework I 
+have a struct v4l2_fh planned that will integrate support of this ioctl in 
+the framework, thus making it generic for all drivers. But this won't be 
+available any time soon.
 
->>> diff --git a/arch/arm/mach-omap2/serial.c 
->>> b/arch/arm/mach-omap2/serial.c index 90f1c67..952da79 100644
->>> --- a/arch/arm/mach-omap2/serial.c
->>> +++ b/arch/arm/mach-omap2/serial.c
->>> @@ -432,6 +432,24 @@ static void omap_uart_idle_init(struct 
->> omap_uart_state *uart)
->>>  	WARN_ON(ret);
->>>  }
->>>  
->>> +void omap_uart_enable_irqs(int enable) {
->>> +	int i, ret;
->>> +
->>> +	for (i = 0; i < OMAP_MAX_NR_PORTS; i++) {
->>> +		struct plat_serial8250_port *p = 
->> serial_platform_data + i;
->>> +		struct omap_uart_state *uart = &omap_uart[i];
->>> +
->> Can you use the "list_for_each_entry(uart, &uart_list, node)"
->> construct instead of a for loop?  Or was there a reason to 
->> enable/ack all serial interrupts, even those that have not 
->> been enabled.
-> 
-> Hmm, yea that's true. I'll fix this one.
+> In short, it's been just more clear to have one device per camera. There
+> may be other reasons but these come to mind this time.
 
-ok, thanks.
+I very much disagree here. Having multiple devices ONLY makes sense if you 
+can capture from them in parallel. This situation is really just a 
+straightforward case of multiple inputs you have to choose from.
 
-Kevin
+> > BTW, do I understand correctly that e.g. lens drivers also get their
+> > own /dev/videoX node? Please tell me I'm mistaken! Since that would be
+> > so very wrong.
+>
+> Yes, you're mistaken this time. :)
+>
+> The contents of a video devices are defined in platform data.
+>
+> > I hope that the conversion to v4l2_subdev will take place soon. You are
+> > basically stuck in a technological dead-end :-(
+>
+> Making things working properly in camera and ISP drivers has taken much
+> more time than was anticipated and v4l2_subdev framework has developed a
+> lot during that time. You're right --- we'll start thinking of how and
+> when to move to v4l2_subdev.
 
->>> +		if (!p->membase)
->>> +			continue;
->>> +		if (enable)
->>> +			ret = request_irq(p->irq, omap_uart_interrupt,
->>> +				IRQF_SHARED, "serial idle", 
->> (void *)uart);
->>> +		else
->>> +			free_irq(p->irq, (void *)uart);
->>> +	}
->>> +}
->>> +
->>>  static ssize_t sleep_timeout_show(struct kobject *kobj,
->>>  				  struct kobj_attribute *attr,
->>>  				  char *buf)
->>> diff --git a/arch/arm/plat-omap/include/mach/serial.h 
->>> b/arch/arm/plat-omap/include/mach/serial.h
->>> index 8e89585..7ca1f27 100644
->>> --- a/arch/arm/plat-omap/include/mach/serial.h
->>> +++ b/arch/arm/plat-omap/include/mach/serial.h
->>> @@ -47,6 +47,7 @@ extern void omap_uart_check_wakeup(void);  extern 
->>> void omap_uart_prepare_suspend(void);  extern void 
->>> omap_uart_prepare_idle(int num);  extern void 
->>> omap_uart_resume_idle(int num);
->>> +extern void omap_uart_enable_irqs(int enable);
->>>  #endif
->>>  
->>>  #endif
->>> --
->>> 1.5.4.3
->>>
->>> --
->>> To unsubscribe from this list: send the line "unsubscribe 
->> linux-omap" 
->>> in the body of a message to majordomo@vger.kernel.org More majordomo 
->>> info at  http://vger.kernel.org/majordomo-info.html
->>
+Just contact me if you have any questions, I'll be happy to help. If you 
+think there are missing bits in the framework, or find that you need to 
+workaround some limitation, please contact me first. It might well be that 
+I need to add something to support these devices, or that you should take a 
+different approach instead. The sooner such issues are resolved, the less 
+time you loose.
 
+Regards,
+
+	Hans
+
+-- 
+Hans Verkuil - video4linux developer - sponsored by TANDBERG
