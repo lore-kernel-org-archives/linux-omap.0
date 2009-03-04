@@ -1,69 +1,38 @@
-From: Sakari Ailus <sakari.ailus@nokia.com>
-Subject: Re: [REVIEW PATCH 11/14] OMAP34XXCAM: Add driver
-Date: Wed, 04 Mar 2009 21:22:04 +0200
-Message-ID: <49AED4DC.5050507@nokia.com>
-References: <5e9665e10903021848u328e0cd4m5186344be15b817@mail.gmail.com> <200903030836.55692.hverkuil@xs4all.nl> <5e9665e10903031642h2aa38c22o73a8db6714846031@mail.gmail.com> <200903040839.48104.hverkuil@xs4all.nl>
-Reply-To: sakari.ailus@maxwell.research.nokia.com
+From: "Lopez Cruz, Misael" <x0052729@ti.com>
+Subject: Re: [PATCH 2/2] ASoC: Add headset jack detection for
+	SDP3430	machine driver
+Date: Wed, 4 Mar 2009 14:33:45 -0600
+Message-ID: <2C7D3DF36ADFFC479B44490D912B616705ECD6E382@dlee07.ent.ti.com>
+References: <2C7D3DF36ADFFC479B44490D912B616705ECD6E1B6@dlee07.ent.ti.com>
+	<20090304190716.GB6420@sirena.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:62040 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757497AbZCDTWa (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 4 Mar 2009 14:22:30 -0500
-In-Reply-To: <200903040839.48104.hverkuil@xs4all.nl>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <alsa-devel-bounces@alsa-project.org>
+In-Reply-To: <20090304190716.GB6420@sirena.org.uk>
+Content-Language: en-US
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Sender: alsa-devel-bounces@alsa-project.org
+Errors-To: alsa-devel-bounces@alsa-project.org
+To: Mark Brown <broonie@sirena.org.uk>
+Cc: "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: "DongSoo(Nathaniel) Kim" <dongsoo.kim@gmail.com>, "Hiremath, Vaibhav" <hvaibhav@ti.com>, "Toivonen Tuukka.O (Nokia-D/Oulu)" <tuukka.o.toivonen@nokia.com>, "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Nagalla, Hari" <hnagalla@ti.com>, "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
 
-Hans Verkuil wrote:
-> On Wednesday 04 March 2009 01:42:13 DongSoo(Nathaniel) Kim wrote:
->> Thank you for your kind explanation Hans.
->>
->> Problem is omap3 camera subsystem is making device node for every int
->> device attached to it.
-> 
-> That's wrong. Multiple devices should only be created if they can all be 
-> used at the same time. Otherwise there should be just one device that uses 
-> S_INPUT et al to select between the inputs.
 
-There might be situations where multiple device nodes would be 
-beneficial even if they cannot be used simultaneously in all cases.
+> > +	ret = snd_soc_jack_new(&snd_soc_sdp3430, "SDP3430 headset jack",
+> > +				SND_JACK_HEADSET, hs_jack);
+> > +	if (ret)
+> > +		return ret;
 
-Currently the omap34xxcam camera driver creates one device per camera. A 
-camera in this case contains an isp (or camera controller), image 
-sensor, lens and flash. The properties like maximum frame rate or 
-resolution of a camera are usually (almost) completely defined by those 
-of the sensor, lens and flash. This affects also cropping capabilities.
+> This leaks the jack.
 
-Several programs can access video devices simultaneously. What happens 
-if another program switches the input when the first one doesn't expect 
-it? The original user won't notice the change, instead of getting -EBUSY 
-when trying to open the other video device.
+If hs_jack is declared as a direct static variable instead, then no mem
+leaks, isn't it? Or do you mean to clean the hs_jack if any error?
 
-In short, it's been just more clear to have one device per camera. There 
-may be other reasons but these come to mind this time.
-
-> BTW, do I understand correctly that e.g. lens drivers also get their 
-> own /dev/videoX node? Please tell me I'm mistaken! Since that would be so 
-> very wrong.
-
-Yes, you're mistaken this time. :)
-
-The contents of a video devices are defined in platform data.
-
-> I hope that the conversion to v4l2_subdev will take place soon. You are 
-> basically stuck in a technological dead-end :-(
-
-Making things working properly in camera and ISP drivers has taken much 
-more time than was anticipated and v4l2_subdev framework has developed a 
-lot during that time. You're right --- we'll start thinking of how and 
-when to move to v4l2_subdev.
-
-Thanks.
-
--- 
-Sakari Ailus
-sakari.ailus@maxwell.research.nokia.com
+-Misa
