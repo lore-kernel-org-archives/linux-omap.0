@@ -1,162 +1,30 @@
-From: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
-Subject: [PATCH] omap3: Add base address definitions and resources for OMAP 3 ISP
-Date: Wed,  4 Mar 2009 19:48:41 +0200
-Message-ID: <1236188921-13879-1-git-send-email-sakari.ailus@maxwell.research.nokia.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 00/13] Omap header clean-up for next merge window
+Date: Wed, 4 Mar 2009 09:53:08 -0800
+Message-ID: <20090304175307.GK6784@atomide.com>
+References: <20090226235042.20192.38338.stgit@localhost> <20090227201157.GI12653@n2100.arm.linux.org.uk>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:17092 "EHLO
-	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753534AbZCDRs7 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 4 Mar 2009 12:48:59 -0500
+Received: from mho-01-bos.mailhop.org ([63.208.196.178]:58360 "EHLO
+	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751639AbZCDRxS (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 4 Mar 2009 12:53:18 -0500
+Content-Disposition: inline
+In-Reply-To: <20090227201157.GI12653@n2100.arm.linux.org.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: tony@atomide.com
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: linux-arm-kernel@lists.arm.linux.org.uk, linux-omap@vger.kernel.org
 
-This replaces earlier patch from Sergio Aguirre titled "[REVIEW PATCH 03/14]
-OMAP34XX: CAM: Resources fixes".
+* Russell King - ARM Linux <linux@arm.linux.org.uk> [090302 06:51]:
+> On Thu, Feb 26, 2009 at 03:52:18PM -0800, Tony Lindgren wrote:
+> > This series gets rid of the board-*.h includes from hardware.h
+> > as suggested earlier by Russell King.
+> 
+> Great work, thanks for doing this.
 
-Signed-off-by: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
----
- arch/arm/mach-omap2/devices.c              |   66 ++++++++++++++++++++++++---
- arch/arm/plat-omap/include/mach/omap34xx.h |   28 +++++++++++-
- 2 files changed, 85 insertions(+), 9 deletions(-)
+Adding this series to my for-next branch to be pulled during the
+merge window.
 
-diff --git a/arch/arm/mach-omap2/devices.c b/arch/arm/mach-omap2/devices.c
-index dad4528..2568b0c 100644
---- a/arch/arm/mach-omap2/devices.c
-+++ b/arch/arm/mach-omap2/devices.c
-@@ -56,10 +56,60 @@ static inline void omap_init_camera(void)
- 
- #elif defined(CONFIG_VIDEO_OMAP3) || defined(CONFIG_VIDEO_OMAP3_MODULE)
- 
--static struct resource cam_resources[] = {
-+static struct resource omap3isp_resources[] = {
-+	{
-+		.start		= OMAP3430_ISP_BASE,
-+		.end		= OMAP3430_ISP_END,
-+		.flags		= IORESOURCE_MEM,
-+	},
-+	{
-+		.start		= OMAP3430_ISP_CBUFF_BASE,
-+		.end		= OMAP3430_ISP_CBUFF_END,
-+		.flags		= IORESOURCE_MEM,
-+	},
-+	{
-+		.start		= OMAP3430_ISP_CCP2_BASE,
-+		.end		= OMAP3430_ISP_CCP2_END,
-+		.flags		= IORESOURCE_MEM,
-+	},
- 	{
--		.start		= OMAP34XX_CAMERA_BASE,
--		.end		= OMAP34XX_CAMERA_BASE + 0x1B70,
-+		.start		= OMAP3430_ISP_CCDC_BASE,
-+		.end		= OMAP3430_ISP_CCDC_END,
-+		.flags		= IORESOURCE_MEM,
-+	},
-+	{
-+		.start		= OMAP3430_ISP_HIST_BASE,
-+		.end		= OMAP3430_ISP_HIST_END,
-+		.flags		= IORESOURCE_MEM,
-+	},
-+	{
-+		.start		= OMAP3430_ISP_H3A_BASE,
-+		.end		= OMAP3430_ISP_H3A_END,
-+		.flags		= IORESOURCE_MEM,
-+	},
-+	{
-+		.start		= OMAP3430_ISP_PREV_BASE,
-+		.end		= OMAP3430_ISP_PREV_END,
-+		.flags		= IORESOURCE_MEM,
-+	},
-+	{
-+		.start		= OMAP3430_ISP_RESZ_BASE,
-+		.end		= OMAP3430_ISP_RESZ_END,
-+		.flags		= IORESOURCE_MEM,
-+	},
-+	{
-+		.start		= OMAP3430_ISP_SBL_BASE,
-+		.end		= OMAP3430_ISP_SBL_END,
-+		.flags		= IORESOURCE_MEM,
-+	},
-+	{
-+		.start		= OMAP3430_ISP_CSI2A_BASE,
-+		.end		= OMAP3430_ISP_CSI2A_END,
-+		.flags		= IORESOURCE_MEM,
-+	},
-+	{
-+		.start		= OMAP3430_ISP_CSI2PHY_BASE,
-+		.end		= OMAP3430_ISP_CSI2PHY_END,
- 		.flags		= IORESOURCE_MEM,
- 	},
- 	{
-@@ -68,16 +118,16 @@ static struct resource cam_resources[] = {
- 	}
- };
- 
--static struct platform_device omap_cam_device = {
--	.name		= "omap34xxcam",
-+static struct platform_device omap3isp_device = {
-+	.name		= "omap3isp",
- 	.id		= -1,
--	.num_resources	= ARRAY_SIZE(cam_resources),
--	.resource	= cam_resources,
-+	.num_resources	= ARRAY_SIZE(omap3isp_resources),
-+	.resource	= omap3isp_resources,
- };
- 
- static inline void omap_init_camera(void)
- {
--	platform_device_register(&omap_cam_device);
-+	platform_device_register(&omap3isp_device);
- }
- #else
- static inline void omap_init_camera(void)
-diff --git a/arch/arm/plat-omap/include/mach/omap34xx.h b/arch/arm/plat-omap/include/mach/omap34xx.h
-index 27a1e45..3bfbdf7 100644
---- a/arch/arm/plat-omap/include/mach/omap34xx.h
-+++ b/arch/arm/plat-omap/include/mach/omap34xx.h
-@@ -49,6 +49,33 @@
- #define OMAP343X_CTRL_BASE	OMAP343X_SCM_BASE
- 
- #define OMAP34XX_IC_BASE	0x48200000
-+
-+#define OMAP3430_ISP_BASE		(L4_34XX_BASE + 0xBC000)
-+#define OMAP3430_ISP_CBUFF_BASE		(OMAP3430_ISP_BASE + 0x0100)
-+#define OMAP3430_ISP_CCP2_BASE		(OMAP3430_ISP_BASE + 0x0400)
-+#define OMAP3430_ISP_CCDC_BASE		(OMAP3430_ISP_BASE + 0x0600)
-+#define OMAP3430_ISP_HIST_BASE		(OMAP3430_ISP_BASE + 0x0A00)
-+#define OMAP3430_ISP_H3A_BASE		(OMAP3430_ISP_BASE + 0x0C00)
-+#define OMAP3430_ISP_PREV_BASE		(OMAP3430_ISP_BASE + 0x0E00)
-+#define OMAP3430_ISP_RESZ_BASE		(OMAP3430_ISP_BASE + 0x1000)
-+#define OMAP3430_ISP_SBL_BASE		(OMAP3430_ISP_BASE + 0x1200)
-+#define OMAP3430_ISP_MMU_BASE		(OMAP3430_ISP_BASE + 0x1400)
-+#define OMAP3430_ISP_CSI2A_BASE		(OMAP3430_ISP_BASE + 0x1800)
-+#define OMAP3430_ISP_CSI2PHY_BASE	(OMAP3430_ISP_BASE + 0x1970)
-+
-+#define OMAP3430_ISP_END		(OMAP3430_ISP_BASE         + 0x06F)
-+#define OMAP3430_ISP_CBUFF_END		(OMAP3430_ISP_CBUFF_BASE   + 0x077)
-+#define OMAP3430_ISP_CCP2_END		(OMAP3430_ISP_CCP2_BASE    + 0x1EF)
-+#define OMAP3430_ISP_CCDC_END		(OMAP3430_ISP_CCDC_BASE    + 0x0A7)
-+#define OMAP3430_ISP_HIST_END		(OMAP3430_ISP_HIST_BASE    + 0x047)
-+#define OMAP3430_ISP_H3A_END		(OMAP3430_ISP_H3A_BASE     + 0x05F)
-+#define OMAP3430_ISP_PREV_END		(OMAP3430_ISP_PREV_BASE    + 0x09F)
-+#define OMAP3430_ISP_RESZ_END		(OMAP3430_ISP_RESZ_BASE    + 0x0AB)
-+#define OMAP3430_ISP_SBL_END		(OMAP3430_ISP_SBL_BASE     + 0x0FB)
-+#define OMAP3430_ISP_MMU_END		(OMAP3430_ISP_MMU_BASE     + 0x06F)
-+#define OMAP3430_ISP_CSI2A_END		(OMAP3430_ISP_CSI2A_BASE   + 0x16F)
-+#define OMAP3430_ISP_CSI2PHY_END	(OMAP3430_ISP_CSI2PHY_BASE + 0x007)
-+
- #define OMAP34XX_IVA_INTC_BASE	0x40000000
- #define OMAP34XX_HSUSB_OTG_BASE	(L4_34XX_BASE + 0xAB000)
- #define OMAP34XX_HSUSB_HOST_BASE	(L4_34XX_BASE + 0x64000)
-@@ -56,7 +83,6 @@
- #define OMAP34XX_SR1_BASE	0x480C9000
- #define OMAP34XX_SR2_BASE	0x480CB000
- 
--#define OMAP34XX_CAMERA_BASE		(L4_34XX_BASE + 0xBC000)
- #define OMAP34XX_MAILBOX_BASE		(L4_34XX_BASE + 0x94000)
- 
- 
--- 
-1.5.6.5
-
+Tony
