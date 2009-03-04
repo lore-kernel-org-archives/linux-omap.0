@@ -1,43 +1,82 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 1/4] ARM: OMAP: Fix compile error if pm.h is included
-Date: Wed, 04 Mar 2009 10:26:36 -0800
-Message-ID: <20090304182635.27331.34439.stgit@localhost>
+Subject: [PATCH 2/4] ARM: OMAP: sched_clock() corrected
+Date: Wed, 04 Mar 2009 10:27:53 -0800
+Message-ID: <20090304182753.27331.99951.stgit@localhost>
 References: <20090304182342.27331.35004.stgit@localhost>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-bos.mailhop.org ([63.208.196.178]:63462 "EHLO
+Received: from mho-01-bos.mailhop.org ([63.208.196.178]:65058 "EHLO
 	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751231AbZCDS0k (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 4 Mar 2009 13:26:40 -0500
+	with ESMTP id S1753421AbZCDS15 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 4 Mar 2009 13:27:57 -0500
 In-Reply-To: <20090304182342.27331.35004.stgit@localhost>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-arm-kernel@lists.arm.linux.org.uk
-Cc: David Brownell <dbrownell@users.sourceforge.net>, linux-omap@vger.kernel.org
+Cc: linux-omap@vger.kernel.org, Aaro Koskinen <Aaro.Koskinen@nokia.com>
 
-From: David Brownell <dbrownell@users.sourceforge.net>
+From: Aaro Koskinen <Aaro.Koskinen@nokia.com>
 
-Change the error to a warning.
+After my OMAP3 board has been running for a while, I'm seeing weird
+latency traces like this:
 
-Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
+      sh-1574    0d.h2  153us : do_timer (tick_do_update_jiffies64)
+      sh-1574    0d.h2  153us : update_wall_time (do_timer)
+      sh-1574    0d.h2  153us!: omap_32k_read (update_wall_time)
+      sh-1574    0d.h2 1883us : update_xtime_cache (update_wall_time)
+      sh-1574    0d.h2 1883us : clocksource_get_next (update_wall_time)
+      sh-1574    0d.h2 1883us+: _spin_lock_irqsave (clocksource_get_next)
+
+and after a while:
+
+      sh-17818   0d.h3  153us : do_timer (tick_do_update_jiffies64)
+      sh-17818   0d.h3  153us : update_wall_time (do_timer)
+      sh-17818   0d.h3  153us!: omap_32k_read (update_wall_time)
+      sh-17818   0d.h3 1915us : update_xtime_cache (update_wall_time)
+      sh-17818   0d.h3 1915us+: clocksource_get_next (update_wall_time)
+      sh-17818   0d.h3 1945us : _spin_lock_irqsave (clocksource_get_next)
+
+Turns out that sched_clock() is using cyc2ns(), which returns NTP
+adjusted time. The sched_clock() frequency should not be adjusted. The
+patch deletes omap_32k_ticks_to_nsecs() and rewrites sched_clock()
+to do the conversion using the constant multiplier.
+
+Signed-off-by: Aaro Koskinen <Aaro.Koskinen@nokia.com>
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
- arch/arm/plat-omap/include/mach/pm.h |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+ arch/arm/plat-omap/common.c |   14 +++++---------
+ 1 files changed, 5 insertions(+), 9 deletions(-)
 
-diff --git a/arch/arm/plat-omap/include/mach/pm.h b/arch/arm/plat-omap/include/mach/pm.h
-index 2a9c27a..37e2f0f 100644
---- a/arch/arm/plat-omap/include/mach/pm.h
-+++ b/arch/arm/plat-omap/include/mach/pm.h
-@@ -108,7 +108,7 @@
- 	!defined(CONFIG_ARCH_OMAP15XX) && \
- 	!defined(CONFIG_ARCH_OMAP16XX) && \
- 	!defined(CONFIG_ARCH_OMAP24XX)
--#error "Power management for this processor not implemented yet"
-+#warning "Power management for this processor not implemented yet"
- #endif
+diff --git a/arch/arm/plat-omap/common.c b/arch/arm/plat-omap/common.c
+index 0843b88..6825fbb 100644
+--- a/arch/arm/plat-omap/common.c
++++ b/arch/arm/plat-omap/common.c
+@@ -200,20 +200,16 @@ static struct clocksource clocksource_32k = {
+ };
  
- #ifndef __ASSEMBLER__
+ /*
+- * Rounds down to nearest nsec.
+- */
+-unsigned long long omap_32k_ticks_to_nsecs(unsigned long ticks_32k)
+-{
+-	return cyc2ns(&clocksource_32k, ticks_32k);
+-}
+-
+-/*
+  * Returns current time from boot in nsecs. It's OK for this to wrap
+  * around for now, as it's just a relative time stamp.
+  */
+ unsigned long long sched_clock(void)
+ {
+-	return omap_32k_ticks_to_nsecs(omap_32k_read());
++	unsigned long long ret;
++
++	ret = (unsigned long long)omap_32k_read();
++	ret = (ret * clocksource_32k.mult_orig) >> clocksource_32k.shift;
++	return ret;
+ }
+ 
+ static int __init omap_init_clocksource_32k(void)
 
