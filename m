@@ -1,123 +1,162 @@
-From: "Lopez Cruz, Misael" <x0052729@ti.com>
-Subject: [PATCH 2/2] ASoC: Add headset jack detection for
- SDP3430 machine driver
-Date: Wed, 4 Mar 2009 11:39:12 -0600
-Message-ID: <2C7D3DF36ADFFC479B44490D912B616705ECD6E1B6@dlee07.ent.ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <alsa-devel-bounces@alsa-project.org>
-Content-Language: en-US
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Sender: alsa-devel-bounces@alsa-project.org
-Errors-To: alsa-devel-bounces@alsa-project.org
-To: "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
-Cc: Mark Brown <broonie@sirena.org.uk>
+From: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+Subject: [PATCH] omap3: Add base address definitions and resources for OMAP 3 ISP
+Date: Wed,  4 Mar 2009 19:48:41 +0200
+Message-ID: <1236188921-13879-1-git-send-email-sakari.ailus@maxwell.research.nokia.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from smtp.nokia.com ([192.100.122.233]:17092 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753534AbZCDRs7 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 4 Mar 2009 12:48:59 -0500
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: tony@atomide.com
 
-Add headset jack detection for SDP3430 boards using SoC jack
-reporting interface. Headset detection on SDP3430 board is
-achieved through TWL4030 GPIO_2 pin.
+This replaces earlier patch from Sergio Aguirre titled "[REVIEW PATCH 03/14]
+OMAP34XX: CAM: Resources fixes".
 
-Signed-off-by: Misael Lopez Cruz <x0052729@ti.com>
+Signed-off-by: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
 ---
- sound/soc/omap/sdp3430.c |   49 ++++++++++++++++++++++++++++++++++++++++++++-
- 1 files changed, 47 insertions(+), 2 deletions(-)
+ arch/arm/mach-omap2/devices.c              |   66 ++++++++++++++++++++++++---
+ arch/arm/plat-omap/include/mach/omap34xx.h |   28 +++++++++++-
+ 2 files changed, 85 insertions(+), 9 deletions(-)
 
-diff --git a/sound/soc/omap/sdp3430.c b/sound/soc/omap/sdp3430.c
-index 4eab4b4..b595aa4 100644
---- a/sound/soc/omap/sdp3430.c
-+++ b/sound/soc/omap/sdp3430.c
-@@ -28,6 +28,7 @@
- #include <sound/pcm.h>
- #include <sound/soc.h>
- #include <sound/soc-dapm.h>
-+#include <sound/jack.h>
+diff --git a/arch/arm/mach-omap2/devices.c b/arch/arm/mach-omap2/devices.c
+index dad4528..2568b0c 100644
+--- a/arch/arm/mach-omap2/devices.c
++++ b/arch/arm/mach-omap2/devices.c
+@@ -56,10 +56,60 @@ static inline void omap_init_camera(void)
  
- #include <asm/mach-types.h>
- #include <mach/hardware.h>
-@@ -122,7 +123,7 @@ static int sdp3430_twl4030_init(struct snd_soc_codec *codec)
- 	/* SDP3430 connected pins */
- 	snd_soc_dapm_enable_pin(codec, "Ext Mic");
- 	snd_soc_dapm_enable_pin(codec, "Ext Spk");
--	snd_soc_dapm_enable_pin(codec, "Headset Jack");
-+	snd_soc_dapm_disable_pin(codec, "Headset Jack");
+ #elif defined(CONFIG_VIDEO_OMAP3) || defined(CONFIG_VIDEO_OMAP3_MODULE)
  
- 	/* TWL4030 not connected pins */
- 	snd_soc_dapm_nc_pin(codec, "AUXL");
-@@ -144,6 +145,29 @@ static int sdp3430_twl4030_init(struct snd_soc_codec *codec)
- 	return ret;
- }
- 
-+/* Headset jack */
-+struct snd_soc_jack *hs_jack;
-+
-+/* Headset jack DAPM pins */
-+struct snd_soc_jack_pin hs_jack_pins[] = {
+-static struct resource cam_resources[] = {
++static struct resource omap3isp_resources[] = {
 +	{
-+		.pin = "Headset Jack",
-+		.mask = SND_JACK_HEADSET,
-+		.invert = 0,
++		.start		= OMAP3430_ISP_BASE,
++		.end		= OMAP3430_ISP_END,
++		.flags		= IORESOURCE_MEM,
 +	},
-+};
-+
-+/* Headset jack gpios */
-+struct snd_soc_jack_gpio hs_jack_gpios[] = {
 +	{
-+		.gpio = (OMAP_MAX_GPIO_LINES + 2),
-+		.name = "hsdet-gpio",
-+		.report = SND_JACK_HEADSET,
-+		.invert = 0,
-+		.debounce_time = 200,
++		.start		= OMAP3430_ISP_CBUFF_BASE,
++		.end		= OMAP3430_ISP_CBUFF_END,
++		.flags		= IORESOURCE_MEM,
 +	},
-+};
-+
- /* Digital audio interface glue - connects codec <--> CPU */
- static struct snd_soc_dai_link sdp3430_dai = {
- 	.name = "TWL4030",
-@@ -194,8 +218,25 @@ static int __init sdp3430_soc_init(void)
- 	if (ret)
- 		goto err1;
++	{
++		.start		= OMAP3430_ISP_CCP2_BASE,
++		.end		= OMAP3430_ISP_CCP2_END,
++		.flags		= IORESOURCE_MEM,
++	},
+ 	{
+-		.start		= OMAP34XX_CAMERA_BASE,
+-		.end		= OMAP34XX_CAMERA_BASE + 0x1B70,
++		.start		= OMAP3430_ISP_CCDC_BASE,
++		.end		= OMAP3430_ISP_CCDC_END,
++		.flags		= IORESOURCE_MEM,
++	},
++	{
++		.start		= OMAP3430_ISP_HIST_BASE,
++		.end		= OMAP3430_ISP_HIST_END,
++		.flags		= IORESOURCE_MEM,
++	},
++	{
++		.start		= OMAP3430_ISP_H3A_BASE,
++		.end		= OMAP3430_ISP_H3A_END,
++		.flags		= IORESOURCE_MEM,
++	},
++	{
++		.start		= OMAP3430_ISP_PREV_BASE,
++		.end		= OMAP3430_ISP_PREV_END,
++		.flags		= IORESOURCE_MEM,
++	},
++	{
++		.start		= OMAP3430_ISP_RESZ_BASE,
++		.end		= OMAP3430_ISP_RESZ_END,
++		.flags		= IORESOURCE_MEM,
++	},
++	{
++		.start		= OMAP3430_ISP_SBL_BASE,
++		.end		= OMAP3430_ISP_SBL_END,
++		.flags		= IORESOURCE_MEM,
++	},
++	{
++		.start		= OMAP3430_ISP_CSI2A_BASE,
++		.end		= OMAP3430_ISP_CSI2A_END,
++		.flags		= IORESOURCE_MEM,
++	},
++	{
++		.start		= OMAP3430_ISP_CSI2PHY_BASE,
++		.end		= OMAP3430_ISP_CSI2PHY_END,
+ 		.flags		= IORESOURCE_MEM,
+ 	},
+ 	{
+@@ -68,16 +118,16 @@ static struct resource cam_resources[] = {
+ 	}
+ };
  
--	return 0;
-+	/* Headset jack detection */
-+	hs_jack = kzalloc(sizeof(struct snd_soc_jack), GFP_KERNEL);
-+	if (!hs_jack)
-+		return -ENOMEM;
-+
-+	ret = snd_soc_jack_new(&snd_soc_sdp3430, "SDP3430 headset jack",
-+				SND_JACK_HEADSET, hs_jack);
-+	if (ret)
-+		return ret;
-+
-+	ret = snd_soc_jack_add_pins(hs_jack, ARRAY_SIZE(hs_jack_pins),
-+				hs_jack_pins);
-+	if (ret)
-+		return ret;
-+
-+	ret = snd_soc_jack_add_gpios(hs_jack, ARRAY_SIZE(hs_jack_gpios),
-+				hs_jack_gpios);
+-static struct platform_device omap_cam_device = {
+-	.name		= "omap34xxcam",
++static struct platform_device omap3isp_device = {
++	.name		= "omap3isp",
+ 	.id		= -1,
+-	.num_resources	= ARRAY_SIZE(cam_resources),
+-	.resource	= cam_resources,
++	.num_resources	= ARRAY_SIZE(omap3isp_resources),
++	.resource	= omap3isp_resources,
+ };
  
-+	return ret;
- err1:
- 	printk(KERN_ERR "Unable to add platform device\n");
- 	platform_device_put(sdp3430_snd_device);
-@@ -206,6 +247,10 @@ module_init(sdp3430_soc_init);
- 
- static void __exit sdp3430_soc_exit(void)
+ static inline void omap_init_camera(void)
  {
-+	snd_soc_jack_free_gpios(hs_jack, ARRAY_SIZE(hs_jack_gpios),
-+				hs_jack_gpios);
-+	kfree(hs_jack);
-+
- 	platform_device_unregister(sdp3430_snd_device);
+-	platform_device_register(&omap_cam_device);
++	platform_device_register(&omap3isp_device);
  }
- module_exit(sdp3430_soc_exit);
+ #else
+ static inline void omap_init_camera(void)
+diff --git a/arch/arm/plat-omap/include/mach/omap34xx.h b/arch/arm/plat-omap/include/mach/omap34xx.h
+index 27a1e45..3bfbdf7 100644
+--- a/arch/arm/plat-omap/include/mach/omap34xx.h
++++ b/arch/arm/plat-omap/include/mach/omap34xx.h
+@@ -49,6 +49,33 @@
+ #define OMAP343X_CTRL_BASE	OMAP343X_SCM_BASE
+ 
+ #define OMAP34XX_IC_BASE	0x48200000
++
++#define OMAP3430_ISP_BASE		(L4_34XX_BASE + 0xBC000)
++#define OMAP3430_ISP_CBUFF_BASE		(OMAP3430_ISP_BASE + 0x0100)
++#define OMAP3430_ISP_CCP2_BASE		(OMAP3430_ISP_BASE + 0x0400)
++#define OMAP3430_ISP_CCDC_BASE		(OMAP3430_ISP_BASE + 0x0600)
++#define OMAP3430_ISP_HIST_BASE		(OMAP3430_ISP_BASE + 0x0A00)
++#define OMAP3430_ISP_H3A_BASE		(OMAP3430_ISP_BASE + 0x0C00)
++#define OMAP3430_ISP_PREV_BASE		(OMAP3430_ISP_BASE + 0x0E00)
++#define OMAP3430_ISP_RESZ_BASE		(OMAP3430_ISP_BASE + 0x1000)
++#define OMAP3430_ISP_SBL_BASE		(OMAP3430_ISP_BASE + 0x1200)
++#define OMAP3430_ISP_MMU_BASE		(OMAP3430_ISP_BASE + 0x1400)
++#define OMAP3430_ISP_CSI2A_BASE		(OMAP3430_ISP_BASE + 0x1800)
++#define OMAP3430_ISP_CSI2PHY_BASE	(OMAP3430_ISP_BASE + 0x1970)
++
++#define OMAP3430_ISP_END		(OMAP3430_ISP_BASE         + 0x06F)
++#define OMAP3430_ISP_CBUFF_END		(OMAP3430_ISP_CBUFF_BASE   + 0x077)
++#define OMAP3430_ISP_CCP2_END		(OMAP3430_ISP_CCP2_BASE    + 0x1EF)
++#define OMAP3430_ISP_CCDC_END		(OMAP3430_ISP_CCDC_BASE    + 0x0A7)
++#define OMAP3430_ISP_HIST_END		(OMAP3430_ISP_HIST_BASE    + 0x047)
++#define OMAP3430_ISP_H3A_END		(OMAP3430_ISP_H3A_BASE     + 0x05F)
++#define OMAP3430_ISP_PREV_END		(OMAP3430_ISP_PREV_BASE    + 0x09F)
++#define OMAP3430_ISP_RESZ_END		(OMAP3430_ISP_RESZ_BASE    + 0x0AB)
++#define OMAP3430_ISP_SBL_END		(OMAP3430_ISP_SBL_BASE     + 0x0FB)
++#define OMAP3430_ISP_MMU_END		(OMAP3430_ISP_MMU_BASE     + 0x06F)
++#define OMAP3430_ISP_CSI2A_END		(OMAP3430_ISP_CSI2A_BASE   + 0x16F)
++#define OMAP3430_ISP_CSI2PHY_END	(OMAP3430_ISP_CSI2PHY_BASE + 0x007)
++
+ #define OMAP34XX_IVA_INTC_BASE	0x40000000
+ #define OMAP34XX_HSUSB_OTG_BASE	(L4_34XX_BASE + 0xAB000)
+ #define OMAP34XX_HSUSB_HOST_BASE	(L4_34XX_BASE + 0x64000)
+@@ -56,7 +83,6 @@
+ #define OMAP34XX_SR1_BASE	0x480C9000
+ #define OMAP34XX_SR2_BASE	0x480CB000
+ 
+-#define OMAP34XX_CAMERA_BASE		(L4_34XX_BASE + 0xBC000)
+ #define OMAP34XX_MAILBOX_BASE		(L4_34XX_BASE + 0x94000)
+ 
+ 
 -- 
-1.5.4.3
+1.5.6.5
+
