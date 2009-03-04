@@ -1,158 +1,42 @@
-From: David Brownell <david-b@pacbell.net>
-Subject: Re: [patch 2.6.29-rc6+misc] MMC: regulator utilities
-Date: Tue, 3 Mar 2009 19:18:06 -0800
-Message-ID: <200903031918.07443.david-b@pacbell.net>
-References: <200902081037.06645.david-b@pacbell.net> <20090302224040.5e7ab0b2@mjolnir.ossman.eu> <200903021400.50201.david-b@pacbell.net>
+From: "stanley.miao" <stanley.miao@windriver.com>
+Subject: Re: [RFC 0/5] Sensor drivers for OMAP3430SDP and LDP camera
+Date: Wed, 04 Mar 2009 13:43:03 +0800
+Message-ID: <49AE14E7.2010709@windriver.com>
+References: <A24693684029E5489D1D202277BE89442E1D921F@dlee02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp128.sbc.mail.sp1.yahoo.com ([69.147.65.187]:46639 "HELO
-	smtp128.sbc.mail.sp1.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1750968AbZCDDSL (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 3 Mar 2009 22:18:11 -0500
-In-Reply-To: <200903021400.50201.david-b@pacbell.net>
-Content-Disposition: inline
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-media-owner@vger.kernel.org>
+In-Reply-To: <A24693684029E5489D1D202277BE89442E1D921F@dlee02.ent.ti.com>
+Sender: linux-media-owner@vger.kernel.org
+To: "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>
+Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>, "Tuukka.O Toivonen" <tuukka.o.toivonen@nokia.com>, Hiroshi DOYU <Hiroshi.DOYU@nokia.com>, "DongSoo(Nathaniel) Kim" <dongsoo.kim@gmail.com>, MiaoStanley <stanleymiao@hotmail.com>, "Nagalla, Hari" <hnagalla@ti.com>, "Hiremath, Vaibhav" <hvaibhav@ti.com>, "Lakhani, Amish" <amish@ti.com>, "Menon, Nishanth" <nm@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: Pierre Ossman <drzeus-mmc@drzeus.cx>
-Cc: Mark Brown <broonie@sirena.org.uk>, Liam Girdwood <lrg@slimlogic.co.uk>, lkml <linux-kernel@vger.kernel.org>, OMAP <linux-omap@vger.kernel.org>
 
-From: David Brownell <dbrownell@users.sourceforge.net>
+Aguirre Rodriguez, Sergio Alberto wrote:
+> This patch series depends on the following patches:
+>
+>  - "Add TWL4030 registers", posted by Tuukka Toivonen on March 2nd.
+>  - "OMAP3 ISP and camera drivers" patch series, posted by Sakari Ailus on
+>    March 3rd. (Please follow his instructions to pull from gitorious.org server)
+>
+> This has been tested with:
+>  - SDP3430-VG5.0.1 with OMAP3430-ES3.1 daughter board upgrade.
+>  - Camkit V3.0.1 with MT9P012 and OV3640 sensors
+>  - LDP with OV3640 sensor
+>
+> Sergio Aguirre (5):
+>   MT9P012: Add driver
+>   DW9710: Add driver
+>   OV3640: Add driver
+>   
+Hi, Sergio,
 
-Glue between MMC and regulator stacks ... compiles, and
-mmc_regulator_get_ocrmask() passed sanity testing.
+You forgot to send the 3rd patch, "OV3640: Add driver".
 
-These calls are intended to be used by MMC host adapters
-using at least one regulator per host.  Examples include
-slots with regulators supporting multiple voltages and
-ones using multiple voltage rails (e.g. DAT4..DAT7 using a
-separate supply, or a split rail chip like certain SDIO
-WLAN or eMMC solutions).
+Stanley.
 
-Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
----
-Changes from previous version:  automagically available if the
-regulator calls are available; callers now pass in host->ios.vdd.
-mmc_regulator_set_ocr() still untested.
+>   OMAP3430SDP: Add support for Camera Kit v3
+>   LDP: Add support for built-in camera
+>   
 
- drivers/mmc/core/core.c  |   86 +++++++++++++++++++++++++++++++++++++++++++++
- include/linux/mmc/host.h |    5 ++
- 2 files changed, 91 insertions(+)
-
---- a/drivers/mmc/core/core.c
-+++ b/drivers/mmc/core/core.c
-@@ -21,6 +21,7 @@
- #include <linux/leds.h>
- #include <linux/scatterlist.h>
- #include <linux/log2.h>
-+#include <linux/regulator/consumer.h>
- 
- #include <linux/mmc/card.h>
- #include <linux/mmc/host.h>
-@@ -523,6 +524,91 @@ u32 mmc_vddrange_to_ocrmask(int vdd_min,
- }
- EXPORT_SYMBOL(mmc_vddrange_to_ocrmask);
- 
-+#ifdef CONFIG_REGULATOR
-+
-+/**
-+ * mmc_regulator_get_ocrmask - return mask of supported voltages
-+ * @host: mmc host whose supply will be consulted
-+ * @supply: regulator to use
-+ *
-+ * This returns either a negative errno, or a mask of voltages that
-+ * can be provided to MMC/SD/SDIO devices using the specified voltage
-+ * regulator.  This would normally be called before registering the
-+ * MMC host adapter.
-+ */
-+int mmc_regulator_get_ocrmask(struct mmc_host *host, struct regulator *supply)
-+{
-+	int			result = 0;
-+	int			count;
-+	int			i;
-+
-+	count = regulator_count_voltages(supply);
-+	if (count < 0)
-+		return count;
-+
-+	for (i = 0; i < count; i++) {
-+		int		vdd_uV;
-+		int		vdd_mV;
-+
-+		vdd_uV = regulator_list_voltage(supply, i);
-+		if (vdd_uV <= 0)
-+			continue;
-+
-+		vdd_mV = vdd_uV / 1000;
-+		result |= mmc_vddrange_to_ocrmask(vdd_mV, vdd_mV);
-+	}
-+
-+	return result;
-+}
-+EXPORT_SYMBOL(mmc_regulator_get_ocrmask);
-+
-+/**
-+ * mmc_regulator_set_ocr - set regulator to match host->ios voltage
-+ * @vdd_bit: zero for power off, else a bit number (host->ios.vdd)
-+ * @supply: regulator to use
-+ *
-+ * Returns zero on success, else negative errno.
-+ *
-+ * MMC host drivers may use this to enable or disable a regulator using
-+ * a particular supply voltage.  This would normally be called from the
-+ * set_ios() method.
-+ */
-+int mmc_regulator_set_ocr(unsigned short vdd_bit, struct regulator *supply)
-+{
-+	int			result = 0;
-+	int			min_mV, max_mV;
-+	int			enabled;
-+
-+	enabled = regulator_is_enabled(supply);
-+	if (enabled < 0)
-+		return enabled;
-+
-+	if (vdd_bit) {
-+		int		tmp;
-+
-+		tmp = vdd_bit - ilog2(MMC_VDD_165_195);
-+		if (tmp == 0) {
-+			min_mV = 1650;
-+			max_mV = 1950;
-+		} else {
-+			min_mV = 2000 + tmp * 100;
-+			max_mV = min_mV + 100;
-+		}
-+
-+		result = regulator_set_voltage(supply,
-+				min_mV * 1000, max_mV * 1000);
-+		if (result == 0 && !enabled)
-+			result = regulator_enable(supply);
-+	} else if (enabled) {
-+		result = regulator_disable(supply);
-+	}
-+
-+	return result;
-+}
-+EXPORT_SYMBOL(mmc_regulator_set_ocr);
-+
-+#endif
-+
- /*
-  * Mask off any voltages we don't support and select
-  * the lowest voltage
---- a/include/linux/mmc/host.h
-+++ b/include/linux/mmc/host.h
-@@ -192,5 +192,10 @@ static inline void mmc_signal_sdio_irq(s
- 	wake_up_process(host->sdio_irq_thread);
- }
- 
-+struct regulator;
-+
-+int mmc_regulator_get_ocrmask(struct mmc_host *host, struct regulator *supply);
-+int mmc_regulator_set_ocr(unsigned short vdd_bit, struct regulator *supply);
-+
- #endif
- 
