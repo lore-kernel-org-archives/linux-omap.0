@@ -1,82 +1,64 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 2/4] ARM: OMAP: sched_clock() corrected
-Date: Wed, 04 Mar 2009 10:27:53 -0800
-Message-ID: <20090304182753.27331.99951.stgit@localhost>
+Subject: [PATCH 3/4] ARM: OMAP: Allow I2C bus driver to be compiled as a module
+Date: Wed, 04 Mar 2009 10:29:10 -0800
+Message-ID: <20090304182910.27331.77892.stgit@localhost>
 References: <20090304182342.27331.35004.stgit@localhost>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-bos.mailhop.org ([63.208.196.178]:65058 "EHLO
+Received: from mho-01-bos.mailhop.org ([63.208.196.178]:50206 "EHLO
 	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753421AbZCDS15 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 4 Mar 2009 13:27:57 -0500
+	with ESMTP id S1753758AbZCDS3Q (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 4 Mar 2009 13:29:16 -0500
 In-Reply-To: <20090304182342.27331.35004.stgit@localhost>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-arm-kernel@lists.arm.linux.org.uk
-Cc: linux-omap@vger.kernel.org, Aaro Koskinen <Aaro.Koskinen@nokia.com>
+Cc: linux-omap@vger.kernel.org, Jarkko Nikula <jarkko.nikula@nokia.com>, Aaro Koskinen <Aaro.Koskinen@nokia.com>
 
 From: Aaro Koskinen <Aaro.Koskinen@nokia.com>
 
-After my OMAP3 board has been running for a while, I'm seeing weird
-latency traces like this:
+Fixes a linker error when OMAP I2C bus driver is compiled as a module:
 
-      sh-1574    0d.h2  153us : do_timer (tick_do_update_jiffies64)
-      sh-1574    0d.h2  153us : update_wall_time (do_timer)
-      sh-1574    0d.h2  153us!: omap_32k_read (update_wall_time)
-      sh-1574    0d.h2 1883us : update_xtime_cache (update_wall_time)
-      sh-1574    0d.h2 1883us : clocksource_get_next (update_wall_time)
-      sh-1574    0d.h2 1883us+: _spin_lock_irqsave (clocksource_get_next)
+   ERROR: "i2c_register_board_info" [arch/arm/plat-omap/i2c.ko] undefined!
 
-and after a while:
-
-      sh-17818   0d.h3  153us : do_timer (tick_do_update_jiffies64)
-      sh-17818   0d.h3  153us : update_wall_time (do_timer)
-      sh-17818   0d.h3  153us!: omap_32k_read (update_wall_time)
-      sh-17818   0d.h3 1915us : update_xtime_cache (update_wall_time)
-      sh-17818   0d.h3 1915us+: clocksource_get_next (update_wall_time)
-      sh-17818   0d.h3 1945us : _spin_lock_irqsave (clocksource_get_next)
-
-Turns out that sched_clock() is using cyc2ns(), which returns NTP
-adjusted time. The sched_clock() frequency should not be adjusted. The
-patch deletes omap_32k_ticks_to_nsecs() and rewrites sched_clock()
-to do the conversion using the constant multiplier.
+The I2C utility functions used for board initialization should be always
+built-in.
 
 Signed-off-by: Aaro Koskinen <Aaro.Koskinen@nokia.com>
+Acked-by: Jarkko Nikula  <jarkko.nikula@nokia.com>
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
- arch/arm/plat-omap/common.c |   14 +++++---------
- 1 files changed, 5 insertions(+), 9 deletions(-)
+ arch/arm/plat-omap/Makefile              |    3 ++-
+ arch/arm/plat-omap/include/mach/common.h |    2 +-
+ 2 files changed, 3 insertions(+), 2 deletions(-)
 
-diff --git a/arch/arm/plat-omap/common.c b/arch/arm/plat-omap/common.c
-index 0843b88..6825fbb 100644
---- a/arch/arm/plat-omap/common.c
-+++ b/arch/arm/plat-omap/common.c
-@@ -200,20 +200,16 @@ static struct clocksource clocksource_32k = {
- };
+diff --git a/arch/arm/plat-omap/Makefile b/arch/arm/plat-omap/Makefile
+index deaff58..04a100c 100644
+--- a/arch/arm/plat-omap/Makefile
++++ b/arch/arm/plat-omap/Makefile
+@@ -18,7 +18,8 @@ obj-$(CONFIG_CPU_FREQ) += cpu-omap.o
+ obj-$(CONFIG_OMAP_DM_TIMER) += dmtimer.o
+ obj-$(CONFIG_OMAP_DEBUG_DEVICES) += debug-devices.o
+ obj-$(CONFIG_OMAP_DEBUG_LEDS) += debug-leds.o
+-obj-$(CONFIG_I2C_OMAP) += i2c.o
++i2c-omap-$(CONFIG_I2C_OMAP) := i2c.o
++obj-y += $(i2c-omap-m) $(i2c-omap-y)
  
- /*
-- * Rounds down to nearest nsec.
-- */
--unsigned long long omap_32k_ticks_to_nsecs(unsigned long ticks_32k)
--{
--	return cyc2ns(&clocksource_32k, ticks_32k);
--}
--
--/*
-  * Returns current time from boot in nsecs. It's OK for this to wrap
-  * around for now, as it's just a relative time stamp.
-  */
- unsigned long long sched_clock(void)
- {
--	return omap_32k_ticks_to_nsecs(omap_32k_read());
-+	unsigned long long ret;
-+
-+	ret = (unsigned long long)omap_32k_read();
-+	ret = (ret * clocksource_32k.mult_orig) >> clocksource_32k.shift;
-+	return ret;
- }
- 
- static int __init omap_init_clocksource_32k(void)
+ # OMAP mailbox framework
+ obj-$(CONFIG_OMAP_MBOX_FWK) += mailbox.o
+diff --git a/arch/arm/plat-omap/include/mach/common.h b/arch/arm/plat-omap/include/mach/common.h
+index ef70e2b..e746ec7 100644
+--- a/arch/arm/plat-omap/include/mach/common.h
++++ b/arch/arm/plat-omap/include/mach/common.h
+@@ -35,7 +35,7 @@ extern void omap_map_common_io(void);
+ extern struct sys_timer omap_timer;
+ extern void omap_serial_init(void);
+ extern void omap_serial_enable_clocks(int enable);
+-#ifdef CONFIG_I2C_OMAP
++#if defined(CONFIG_I2C_OMAP) || defined(CONFIG_I2C_OMAP_MODULE)
+ extern int omap_register_i2c_bus(int bus_id, u32 clkrate,
+ 				 struct i2c_board_info const *info,
+ 				 unsigned len);
 
