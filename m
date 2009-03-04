@@ -1,53 +1,44 @@
-From: Liam Girdwood <lrg@slimlogic.co.uk>
-Subject: Re: [patch/rfc 2.6.29-rc6 2/2] regulator: twl4030 voltage
- enumeration (v2)
-Date: Wed, 04 Mar 2009 11:47:36 +0000
-Message-ID: <1236167256.6781.4.camel@vega.slimlogic.co.uk>
-References: <200902081037.06645.david-b@pacbell.net>
-	 <200902261602.58832.david-b@pacbell.net>
-	 <1235737930.31223.117.camel@vega.slimlogic.co.uk>
-	 <200903031500.00166.david-b@pacbell.net>
+From: twebb <taliaferro62@gmail.com>
+Subject: Re: omap35x mmc support
+Date: Wed, 4 Mar 2009 09:00:39 -0500
+Message-ID: <dbdb2ea60903040600k5e6464d9o9fefd8ab2796680f@mail.gmail.com>
+References: <dbdb2ea60903030751u773b8a82x1ec9b8a5886b0672@mail.gmail.com>
+	 <200903031559.26946.david-b@pacbell.net> <49AE4791.2080202@nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from slimlogic.co.uk ([89.16.172.20]:49593 "EHLO slimlogic.co.uk"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751809AbZCDLrj (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 4 Mar 2009 06:47:39 -0500
-In-Reply-To: <200903031500.00166.david-b@pacbell.net>
+Received: from qw-out-2122.google.com ([74.125.92.24]:57461 "EHLO
+	qw-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751351AbZCDOAm convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 4 Mar 2009 09:00:42 -0500
+Received: by qw-out-2122.google.com with SMTP id 5so4944770qwi.37
+        for <linux-omap@vger.kernel.org>; Wed, 04 Mar 2009 06:00:40 -0800 (PST)
+In-Reply-To: <49AE4791.2080202@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: David Brownell <david-b@pacbell.net>
-Cc: Mark Brown <broonie@sirena.org.uk>, lkml <linux-kernel@vger.kernel.org>, OMAP <linux-omap@vger.kernel.org>
+To: Adrian Hunter <adrian.hunter@nokia.com>
+Cc: David Brownell <david-b@pacbell.net>, "linux-omap@vger.kernel.org Mailing List" <linux-omap@vger.kernel.org>, Grazvydas Ignotas <notasas@gmail.com>
 
-On Tue, 2009-03-03 at 14:59 -0800, David Brownell wrote:
-> On Friday 27 February 2009, Liam Girdwood wrote:
-> > Sorry, this didn't apply. It looks like I'm missing an earlier patch(s)
-> > here. Could you regenerate this and your core patch against latest
-> > for-next.
-> 
-> Here you go.
-> 
-> - Dave
-> 
-> 
-> ========== CUT HERE
-> From: David Brownell <dbrownell@users.sourceforge.net>
-> 
-> Minor cleanups to the twl403 regulator driver, mostly enabled
-> by other recent changes:  comments, shrink memory usage, add
-> definition for one bit.
-> 
-> Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
-> ---
->  drivers/regulator/twl4030-regulator.c |   16 +++++++++-------
->  1 file changed, 9 insertions(+), 7 deletions(-)
-> 
+>
+> For MMC3 this patch:
+>
+> =A0 http://lkml.org/lkml/2009/1/27/101
+>
+> seems to be missing.
+>
 
-Applied.
+Thanks.  Would this patch be applicable whether MMC3 is functioning as
+SD or MMC or SDIO interface?
 
-Thanks
-
-Liam
-
+And on a bit of a tangent (but relevant to the link you provided),
+what's the logic behind so many OMAP24XX references being used in
+OMAP34XX (and even 35xx) code?  I'm sure there's a good reason; but
+being new to using an OMAP processor (35xx), I'm just curious what it
+is.  It gets confusing, particularly without knowing the reasoning
+behind it.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
