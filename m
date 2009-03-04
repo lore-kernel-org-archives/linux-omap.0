@@ -1,61 +1,117 @@
-From: "TK, Pratheesh Gangadhar" <pratheesh@ti.com>
-Subject: RE: Setting individual GPIO registers
-Date: Wed, 4 Mar 2009 22:32:36 +0530
-Message-ID: <B85A65D85D7EB246BE421B3FB0FBB59301CC053063@dbde02.ent.ti.com>
-References: <B85A65D85D7EB246BE421B3FB0FBB59301CC053014@dbde02.ent.ti.com>
+From: "Lopez Cruz, Misael" <x0052729@ti.com>
+Subject: [PATCH 1/2] ASoC: Add DAPM machine widgets to SDP3430
+	driver
+Date: Wed, 4 Mar 2009 11:39:07 -0600
+Message-ID: <2C7D3DF36ADFFC479B44490D912B616705ECD6E1B5@dlee07.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:54622 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753079AbZCDRCq convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 4 Mar 2009 12:02:46 -0500
-Received: from dbdp20.itg.ti.com ([172.24.170.38])
-	by bear.ext.ti.com (8.13.7/8.13.7) with ESMTP id n24H2cXd013667
-	for <linux-omap@vger.kernel.org>; Wed, 4 Mar 2009 11:02:44 -0600
-Received: from dbde70.ent.ti.com (localhost [127.0.0.1])
-	by dbdp20.itg.ti.com (8.13.8/8.13.8) with ESMTP id n24H2bSP029879
-	for <linux-omap@vger.kernel.org>; Wed, 4 Mar 2009 22:32:37 +0530 (IST)
-In-Reply-To: <B85A65D85D7EB246BE421B3FB0FBB59301CC053014@dbde02.ent.ti.com>
+Content-Transfer-Encoding: 7bit
+Return-path: <alsa-devel-bounces@alsa-project.org>
 Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Sender: alsa-devel-bounces@alsa-project.org
+Errors-To: alsa-devel-bounces@alsa-project.org
+To: "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Cc: Mark Brown <broonie@sirena.org.uk>
 List-Id: linux-omap@vger.kernel.org
-To: "Premi, Sanjeev" <premi@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
+Add DAPM machine domain widgets to SDP3430 machine driver.
+Interconnection:
+* Ext Mic: MAINMIC, SUBMIC
+* Ext Spk: HFL, HFR
+* Headset Jack: HSMIC, HSOL, HSOR
 
+Signed-off-by: Misael Lopez Cruz <x0052729@ti.com>
+---
+ sound/soc/omap/sdp3430.c |   64 ++++++++++++++++++++++++++++++++++++++++++++++
+ 1 files changed, 64 insertions(+), 0 deletions(-)
 
-> -----Original Message-----
-> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
-> owner@vger.kernel.org] On Behalf Of Premi, Sanjeev
-> Sent: Wednesday, March 04, 2009 9:12 PM
-> To: linux-omap@vger.kernel.org
-> Subject: Setting individual GPIO registers
-> 
-> I am trying to get the wakeup event from touchscreen on
-> omap3evm to bring the EVM out of suspend state.
-> 
-> For my private testing, I have been updating individual
-> registers & bits in the GPIO registers from function
-> ads7846_dev_init().
-> 
-> Ideally, I should be using standard GPIO APIs. However,
-> most of the APIs are static within gpio.c
-> 
-> How can I call functions like gpio_wake_enable(), gpio_unmask_irq()
-> OR
-> Is there a function to access interface registers for GPIO banks?
-> 
-
-Did you mean waking up OMAP3 via touch screen from CORE OFF mode ? Please note that PER domain GPIOs will be not be active during OFF mode (GPIO2-6). Wakeup capability is limited for wakeup domain GPIOs as well. 
-
->From TRM
-
-"Only gpio_1, gpio_9, gpio_10, gpio_11, gpio_30 and gpio_31 can be used to generate a direct wakeup event. The other GPIO1 pins cannot be used to generate a direct wake-up event because they are connected to the device I/O
-pad logic in the CORE power domain (VDD2). When the CORE power domain is off, the VDD2-supplied I/O pins of the GPIO1 module cannot generate a wake-up event"
-
-Enable wakeup in I/O PAD corresponding to TS_IRQ line. On wakeup you will get a PRCM interrupt.
-
-Regards,
-Pratheesh
+diff --git a/sound/soc/omap/sdp3430.c b/sound/soc/omap/sdp3430.c
+index e226fa7..4eab4b4 100644
+--- a/sound/soc/omap/sdp3430.c
++++ b/sound/soc/omap/sdp3430.c
+@@ -81,12 +81,76 @@ static struct snd_soc_ops sdp3430_ops = {
+ 	.hw_params = sdp3430_hw_params,
+ };
  
++/* SDP3430 machine DAPM */
++static const struct snd_soc_dapm_widget sdp3430_twl4030_dapm_widgets[] = {
++	SND_SOC_DAPM_MIC("Ext Mic", NULL),
++	SND_SOC_DAPM_SPK("Ext Spk", NULL),
++	SND_SOC_DAPM_HP("Headset Jack", NULL),
++};
++
++static const struct snd_soc_dapm_route audio_map[] = {
++	/* External Mics: MAINMIC, SUBMIC with bias*/
++	{"MAINMIC", NULL, "Mic Bias 1"},
++	{"SUBMIC", NULL, "Mic Bias 2"},
++	{"Mic Bias 1", NULL, "Ext Mic"},
++	{"Mic Bias 2", NULL, "Ext Mic"},
++
++	/* External Speakers: HFL, HFR */
++	{"Ext Spk", NULL, "HFL"},
++	{"Ext Spk", NULL, "HFR"},
++
++	/* Headset: HSMIC (with bias), HSOL, HSOR */
++	{"Headset Jack", NULL, "HSOL"},
++	{"Headset Jack", NULL, "HSOR"},
++	{"HSMIC", NULL, "Headset Mic Bias"},
++	{"Headset Mic Bias", NULL, "Headset Jack"},
++};
++
++static int sdp3430_twl4030_init(struct snd_soc_codec *codec)
++{
++	int ret;
++
++	/* Add SDP3430 specific widgets */
++	ret = snd_soc_dapm_new_controls(codec, sdp3430_twl4030_dapm_widgets,
++				ARRAY_SIZE(sdp3430_twl4030_dapm_widgets));
++	if (ret)
++		return ret;
++
++	/* Set up SDP3430 specific audio path audio_map */
++	snd_soc_dapm_add_routes(codec, audio_map, ARRAY_SIZE(audio_map));
++
++	/* SDP3430 connected pins */
++	snd_soc_dapm_enable_pin(codec, "Ext Mic");
++	snd_soc_dapm_enable_pin(codec, "Ext Spk");
++	snd_soc_dapm_enable_pin(codec, "Headset Jack");
++
++	/* TWL4030 not connected pins */
++	snd_soc_dapm_nc_pin(codec, "AUXL");
++	snd_soc_dapm_nc_pin(codec, "AUXR");
++	snd_soc_dapm_nc_pin(codec, "CARKITMIC");
++	snd_soc_dapm_nc_pin(codec, "DIGIMIC0");
++	snd_soc_dapm_nc_pin(codec, "DIGIMIC1");
++
++	snd_soc_dapm_nc_pin(codec, "OUTL");
++	snd_soc_dapm_nc_pin(codec, "OUTR");
++	snd_soc_dapm_nc_pin(codec, "EARPIECE");
++	snd_soc_dapm_nc_pin(codec, "PREDRIVEL");
++	snd_soc_dapm_nc_pin(codec, "PREDRIVER");
++	snd_soc_dapm_nc_pin(codec, "CARKITL");
++	snd_soc_dapm_nc_pin(codec, "CARKITR");
++
++	ret = snd_soc_dapm_sync(codec);
++
++	return ret;
++}
++
+ /* Digital audio interface glue - connects codec <--> CPU */
+ static struct snd_soc_dai_link sdp3430_dai = {
+ 	.name = "TWL4030",
+ 	.stream_name = "TWL4030",
+ 	.cpu_dai = &omap_mcbsp_dai[0],
+ 	.codec_dai = &twl4030_dai,
++	.init = sdp3430_twl4030_init,
+ 	.ops = &sdp3430_ops,
+ };
+ 
+-- 
+1.5.4.3
