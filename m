@@ -1,44 +1,128 @@
-From: twebb <taliaferro62@gmail.com>
-Subject: Re: omap35x mmc support
-Date: Wed, 4 Mar 2009 09:00:39 -0500
-Message-ID: <dbdb2ea60903040600k5e6464d9o9fefd8ab2796680f@mail.gmail.com>
-References: <dbdb2ea60903030751u773b8a82x1ec9b8a5886b0672@mail.gmail.com>
-	 <200903031559.26946.david-b@pacbell.net> <49AE4791.2080202@nokia.com>
+From: "Premi, Sanjeev" <premi@ti.com>
+Subject: RE: omap3 cpuidle interrupt latency
+Date: Wed, 4 Mar 2009 19:51:46 +0530
+Message-ID: <B85A65D85D7EB246BE421B3FB0FBB59301CC052FB3@dbde02.ent.ti.com>
+References: <B85A65D85D7EB246BE421B3FB0FBB59301CBF74DF9@dbde02.ent.ti.com>
+ <873advaet2.fsf@deeprootsystems.com>
+ <B85A65D85D7EB246BE421B3FB0FBB59301CC052561@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from qw-out-2122.google.com ([74.125.92.24]:57461 "EHLO
-	qw-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751351AbZCDOAm convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 4 Mar 2009 09:00:42 -0500
-Received: by qw-out-2122.google.com with SMTP id 5so4944770qwi.37
-        for <linux-omap@vger.kernel.org>; Wed, 04 Mar 2009 06:00:40 -0800 (PST)
-In-Reply-To: <49AE4791.2080202@nokia.com>
+Received: from comal.ext.ti.com ([198.47.26.152]:42842 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753043AbZCDOV7 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 4 Mar 2009 09:21:59 -0500
+In-Reply-To: <B85A65D85D7EB246BE421B3FB0FBB59301CC052561@dbde02.ent.ti.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Adrian Hunter <adrian.hunter@nokia.com>
-Cc: David Brownell <david-b@pacbell.net>, "linux-omap@vger.kernel.org Mailing List" <linux-omap@vger.kernel.org>, Grazvydas Ignotas <notasas@gmail.com>
+To: "Premi, Sanjeev" <premi@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
->
-> For MMC3 this patch:
->
-> =A0 http://lkml.org/lkml/2009/1/27/101
->
-> seems to be missing.
->
+> -----Original Message-----
+> From: linux-omap-owner@vger.kernel.org 
+> [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Premi, Sanjeev
+> Sent: Tuesday, March 03, 2009 3:54 PM
+> To: Kevin Hilman
+> Cc: linux-omap@vger.kernel.org
+> Subject: RE: omap3 cpuidle interrupt latency
+> 
+> > -----Original Message-----
+> > From: Kevin Hilman [mailto:khilman@deeprootsystems.com]
+> > Sent: Tuesday, March 03, 2009 1:16 AM
+> > To: Premi, Sanjeev
+> > Cc: linux-omap@vger.kernel.org
+> > Subject: Re: omap3 cpuidle interrupt latency
+> > 
+> > "Premi, Sanjeev" <premi@ti.com> writes:
+> > 
+> > > I have noticed large interrupt latency when the cpuidle 
+> is enabled.
+> > > e.g. response time for ping goes from avg 10-20ms to 800-1000ms.
+> > > (I am at HEAD of the 'pm' branch)
+> > 
+> > Is it interrupt latency in general you are measuring?  or just the 
+> > interrupt latency for the smc network driver.  I think what you are 
+> > seeing is the result of the SMC IRQ not being configured as 
+> a wakeup 
+> > source, thus a network interrupt will not wake the system, 
+> but you end 
+> > up waiting for the next idle timer until the system wakes 
+> and handles 
+> > the network interrupt.
+> 
+> I used SMC as an example. The read over USB is also slow...
+> 
+> I feel there is generic latency. Initially, I was suspecting 
+> the hrtimer functions taking long time. But that may not be the case.
+> 
+> > 
+> > By default, I don't believe the GPIO interrupt used by the smc is 
+> > configured as a wakeup source.  Have you configured that GPIO as a 
+> > wakeup source?
+> 
+> My current measurements are based with all idle related flags 
+> 'sleep_while_idle', 'clocks_off_while_idle' and 'enable_off_mode'
+> set at 0.
+> 
+> Does WFI require a wakeup event? Even when system is not in 
+> 'off' stare?
 
-Thanks.  Would this patch be applicable whether MMC3 is functioning as
-SD or MMC or SDIO interface?
+For simple debug, I replaced the _omap_sram_idle() processing with:
+	__asm__ ("dmb");
+	__asm__ ("dsb");
+	__asm__ ("wfi");
 
-And on a bit of a tangent (but relevant to the link you provided),
-what's the logic behind so many OMAP24XX references being used in
-OMAP34XX (and even 35xx) code?  I'm sure there's a good reason; but
-being new to using an OMAP processor (35xx), I'm just curious what it
-is.  It gets confusing, particularly without knowing the reasoning
-behind it.
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Here, again behavior was same for ethernet.
+
+For more simplification, I focused on keypad and touchscreen.
+1) Let the system stay idle for about 10secs
+2) Press the keypad & tap the touchscreen
+3) cat /proc/interrupts
+
+While the keypad interrupts (via SYS_NIRQ) are getting updated;
+most of the TS interrupts (via GPIO) seem to be missing; With a
+busy loop in the background OR _omap_sram_idle() commented - not
+doing WFI - changes the behavior. Each tap on the TS is registered
+in /proc/interrupts.
+
+> 
+> ~sanjeev
+> 
+> > 
+> > Kevin
+> > 
+> > 
+> > > The IRQs and FIQs are disabled at the beginning of the function
+> > > omap3_enter_idle() but WFI is executed much later in
+> > _omap_sram_idle().
+> > > In between, there is only one check for pending IRQs -
+> > > omap_irq_pending()
+> > >  
+> > > If any interrupt occurs beyond this point is it considered
+> > by the WFI?
+> > >  
+> > > To reduce this latency, I am planning to do either/both of thse:
+> > > - Add more checks for pending IRQs
+> > > - Reduce the time for which the IRQs and FIQs are disabled
+> > >  
+> > > Benefits will depend upon the behavior of WFI.
+> > >  
+> > > Best regards,
+> > > Sanjeev
+> > >
+> > > --
+> > > To unsubscribe from this list: send the line "unsubscribe
+> > linux-omap" 
+> > > in the body of a message to majordomo@vger.kernel.org More
+> > majordomo
+> > > info at  http://vger.kernel.org/majordomo-info.html
+> > 
+> > --
+> To unsubscribe from this list: send the line "unsubscribe 
+> linux-omap" in the body of a message to 
+> majordomo@vger.kernel.org More majordomo info at  
+> http://vger.kernel.org/majordomo-info.html
+> 
+> 
