@@ -1,153 +1,86 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 4/7] ARM: OMAP: Add method to register additional I2C busses
-	on the command line
-Date: Wed, 04 Mar 2009 13:52:22 -0800
-Message-ID: <20090304215222.21101.72095.stgit@localhost>
+Subject: [PATCH 5/7] ARM: OMAP: Get available DMA channels from cmdline
+Date: Wed, 04 Mar 2009 13:53:38 -0800
+Message-ID: <20090304215338.21101.39176.stgit@localhost>
 References: <20090304214540.21101.72079.stgit@localhost>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-bos.mailhop.org ([63.208.196.178]:58050 "EHLO
+Received: from mho-01-bos.mailhop.org ([63.208.196.178]:59503 "EHLO
 	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753096AbZCDVwZ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 4 Mar 2009 16:52:25 -0500
+	with ESMTP id S1754492AbZCDVxn (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 4 Mar 2009 16:53:43 -0500
 In-Reply-To: <20090304214540.21101.72079.stgit@localhost>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-arm-kernel@lists.arm.linux.org.uk
-Cc: linux-omap@vger.kernel.org, Jarkko Nikula <jarkko.nikula@nokia.com>
+Cc: Nishant Kamat <nskamat@ti.com>, linux-omap@vger.kernel.org, Santosh Shilimkar <santosh.shilimkar@ti.com>
 
-From: Jarkko Nikula <jarkko.nikula@nokia.com>
+From: Santosh Shilimkar <santosh.shilimkar@ti.com>
 
-This patch extends command line option "i2c_bus=bus_id,clkrate" so that
-it allow to register additional I2C busses that are not registered with
-omap_register_i2c_bus from board initialization code.
+This patch set up a cmdline option for omap dma for masking the
+available channels. It is needed since the OMAP DMA is a system wide
+resource and can be used by another software apart from the kernel.
 
-Purpose of this is to register additional board busses which are routed
-to external connectors only without any on board I2C devices.
+To reserve the omap SDMA channels for kernel dma usage, use cmdline
+bootarg "omap_dma_reserve_ch=". The valid range is 1 to 32.
 
-Signed-off-by: Jarkko Nikula <jarkko.nikula@nokia.com>
+Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Acked-by: Nishant Kamat <nskamat@ti.com>
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
- arch/arm/plat-omap/i2c.c |   73 +++++++++++++++++++++++++++++++++-------------
- 1 files changed, 52 insertions(+), 21 deletions(-)
+ arch/arm/plat-omap/dma.c |   20 +++++++++++++++++++-
+ 1 files changed, 19 insertions(+), 1 deletions(-)
 
-diff --git a/arch/arm/plat-omap/i2c.c b/arch/arm/plat-omap/i2c.c
-index aa70e43..a303071 100644
---- a/arch/arm/plat-omap/i2c.c
-+++ b/arch/arm/plat-omap/i2c.c
-@@ -98,6 +98,8 @@ static const int omap34xx_pins[][2] = {
- static const int omap34xx_pins[][2] = {};
- #endif
+diff --git a/arch/arm/plat-omap/dma.c b/arch/arm/plat-omap/dma.c
+index 47ec77a..eca43bb 100644
+--- a/arch/arm/plat-omap/dma.c
++++ b/arch/arm/plat-omap/dma.c
+@@ -123,6 +123,7 @@ static struct dma_link_info *dma_linked_lch;
  
-+#define OMAP_I2C_CMDLINE_SETUP	(BIT(31))
-+
- static void __init omap_i2c_mux_pins(int bus)
- {
- 	int scl, sda;
-@@ -133,6 +135,31 @@ static int __init omap_i2c_nr_ports(void)
- 	return ports;
- }
+ static int dma_lch_count;
+ static int dma_chan_count;
++static int omap_dma_reserve_channels;
  
-+static int __init omap_i2c_add_bus(int bus_id)
-+{
-+	struct platform_device *pdev;
-+	struct resource *res;
-+	resource_size_t base, irq;
-+
-+	pdev = &omap_i2c_devices[bus_id - 1];
-+	if (bus_id == 1) {
-+		res = pdev->resource;
-+		if (cpu_class_is_omap1()) {
-+			base = OMAP1_I2C_BASE;
-+			irq = INT_I2C;
-+		} else {
-+			base = OMAP2_I2C_BASE1;
-+			irq = INT_24XX_I2C1_IRQ;
-+		}
-+		res[0].start = base;
-+		res[0].end = base + OMAP_I2C_SIZE;
-+		res[1].start = irq;
-+	}
-+
-+	omap_i2c_mux_pins(bus_id - 1);
-+	return platform_device_register(pdev);
-+}
-+
- /**
-  * omap_i2c_bus_setup - Process command line options for the I2C bus speed
-  * @str: String of options
-@@ -154,11 +181,33 @@ static int __init omap_i2c_bus_setup(char *str)
- 	if (ints[0] < 2 || ints[1] < 1 || ints[1] > ports)
- 		return 0;
- 	i2c_rate[ints[1] - 1] = ints[2];
-+	i2c_rate[ints[1] - 1] |= OMAP_I2C_CMDLINE_SETUP;
- 
- 	return 1;
- }
- __setup("i2c_bus=", omap_i2c_bus_setup);
- 
-+/*
-+ * Register busses defined in command line but that are not registered with
-+ * omap_register_i2c_bus from board initialization code.
-+ */
-+static int __init omap_register_i2c_bus_cmdline(void)
-+{
-+	int i, err = 0;
-+
-+	for (i = 0; i < ARRAY_SIZE(i2c_rate); i++)
-+		if (i2c_rate[i] & OMAP_I2C_CMDLINE_SETUP) {
-+			i2c_rate[i] &= ~OMAP_I2C_CMDLINE_SETUP;
-+			err = omap_i2c_add_bus(i + 1);
-+			if (err)
-+				goto out;
-+		}
-+
-+out:
-+	return err;
-+}
-+subsys_initcall(omap_register_i2c_bus_cmdline);
-+
- /**
-  * omap_register_i2c_bus - register I2C bus with device descriptors
-  * @bus_id: bus id counting from number 1
-@@ -173,9 +222,6 @@ int __init omap_register_i2c_bus(int bus_id, u32 clkrate,
- 			  unsigned len)
- {
- 	int err;
--	struct platform_device *pdev;
--	struct resource *res;
--	resource_size_t base, irq;
- 
- 	BUG_ON(bus_id < 1 || bus_id > omap_i2c_nr_ports());
- 
-@@ -185,24 +231,9 @@ int __init omap_register_i2c_bus(int bus_id, u32 clkrate,
- 			return err;
+ static spinlock_t dma_chan_lock;
+ static struct omap_dma_lch *dma_chan;
+@@ -2321,6 +2322,10 @@ static int __init omap_init_dma(void)
+ 		return -ENODEV;
  	}
  
--	pdev = &omap_i2c_devices[bus_id - 1];
--	if (i2c_rate[bus_id - 1] == 0)
-+	if (!i2c_rate[bus_id - 1])
- 		i2c_rate[bus_id - 1] = clkrate;
-+	i2c_rate[bus_id - 1] &= ~OMAP_I2C_CMDLINE_SETUP;
++	if (cpu_class_is_omap2() && omap_dma_reserve_channels
++			&& (omap_dma_reserve_channels <= dma_lch_count))
++		dma_lch_count = omap_dma_reserve_channels;
++
+ 	dma_chan = kzalloc(sizeof(struct omap_dma_lch) * dma_lch_count,
+ 				GFP_KERNEL);
+ 	if (!dma_chan)
+@@ -2371,7 +2376,7 @@ static int __init omap_init_dma(void)
+ 		u8 revision = dma_read(REVISION) & 0xff;
+ 		printk(KERN_INFO "OMAP DMA hardware revision %d.%d\n",
+ 		       revision >> 4, revision & 0xf);
+-		dma_chan_count = OMAP_DMA4_LOGICAL_DMA_CH_COUNT;
++		dma_chan_count = dma_lch_count;
+ 	} else {
+ 		dma_chan_count = 0;
+ 		return 0;
+@@ -2437,4 +2442,17 @@ static int __init omap_init_dma(void)
  
--	if (bus_id == 1) {
--		res = pdev->resource;
--		if (cpu_class_is_omap1()) {
--			base = OMAP1_I2C_BASE;
--			irq = INT_I2C;
--		} else {
--			base = OMAP2_I2C_BASE1;
--			irq = INT_24XX_I2C1_IRQ;
--		}
--		res[0].start = base;
--		res[0].end = base + OMAP_I2C_SIZE;
--		res[1].start = irq;
--	}
--
--	omap_i2c_mux_pins(bus_id - 1);
--	return platform_device_register(pdev);
-+	return omap_i2c_add_bus(bus_id);
- }
+ arch_initcall(omap_init_dma);
+ 
++/*
++ * Reserve the omap SDMA channels using cmdline bootarg
++ * "omap_dma_reserve_ch=". The valid range is 1 to 32
++ */
++static int __init omap_dma_cmdline_reserve_ch(char *str)
++{
++	if (get_option(&str, &omap_dma_reserve_channels) != 1)
++		omap_dma_reserve_channels = 0;
++	return 1;
++}
++
++__setup("omap_dma_reserve_ch=", omap_dma_cmdline_reserve_ch);
++
+ 
 
