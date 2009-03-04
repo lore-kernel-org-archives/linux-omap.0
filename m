@@ -1,49 +1,29 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: omap35x mmc support
-Date: Wed, 4 Mar 2009 10:34:00 -0800
-Message-ID: <20090304183359.GO6784@atomide.com>
-References: <dbdb2ea60903030751u773b8a82x1ec9b8a5886b0672@mail.gmail.com> <200903031559.26946.david-b@pacbell.net> <49AE4791.2080202@nokia.com> <dbdb2ea60903040600k5e6464d9o9fefd8ab2796680f@mail.gmail.com> <49AE8EEE.6020501@nokia.com>
+From: Mark Brown <broonie@sirena.org.uk>
+Subject: Re: [PATCH 1/2] ASoC: Add DAPM machine widgets to SDP3430 driver
+Date: Wed, 4 Mar 2009 19:01:17 +0000
+Message-ID: <20090304190117.GA6420@sirena.org.uk>
+References: <2C7D3DF36ADFFC479B44490D912B616705ECD6E1B5@dlee07.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-bos.mailhop.org ([63.208.196.178]:55653 "EHLO
-	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757257AbZCDSeN (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 4 Mar 2009 13:34:13 -0500
+Received: from cassiel.sirena.org.uk ([80.68.93.111]:2681 "EHLO
+	cassiel.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754382AbZCDTBc (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 4 Mar 2009 14:01:32 -0500
 Content-Disposition: inline
-In-Reply-To: <49AE8EEE.6020501@nokia.com>
+In-Reply-To: <2C7D3DF36ADFFC479B44490D912B616705ECD6E1B5@dlee07.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Adrian Hunter <adrian.hunter@nokia.com>
-Cc: twebb <taliaferro62@gmail.com>, David Brownell <david-b@pacbell.net>, "linux-omap@vger.kernel.org Mailing List" <linux-omap@vger.kernel.org>, Grazvydas Ignotas <notasas@gmail.com>
+To: "Lopez Cruz, Misael" <x0052729@ti.com>
+Cc: "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-* Adrian Hunter <adrian.hunter@nokia.com> [090304 06:25]:
-> twebb wrote:
->>> For MMC3 this patch:
->>>
->>>   http://lkml.org/lkml/2009/1/27/101
->>>
->>> seems to be missing.
->>>
->>
->> Thanks.  Would this patch be applicable whether MMC3 is functioning as
->> SD or MMC or SDIO interface?
->
-> Yes
->
->> And on a bit of a tangent (but relevant to the link you provided),
->> what's the logic behind so many OMAP24XX references being used in
->> OMAP34XX (and even 35xx) code?  I'm sure there's a good reason; but
->> being new to using an OMAP processor (35xx), I'm just curious what it
->> is.  It gets confusing, particularly without knowing the reasoning
->> behind it.
->
-> It is just code reuse.  OMAP2 comes out so things are coded for OMAP2.
-> Then OMAP3 comes out, and anything that is the same is reused.
+On Wed, Mar 04, 2009 at 11:39:07AM -0600, Lopez Cruz, Misael wrote:
+> Add DAPM machine domain widgets to SDP3430 machine driver.
+> Interconnection:
+> * Ext Mic: MAINMIC, SUBMIC
+> * Ext Spk: HFL, HFR
+> * Headset Jack: HSMIC, HSOL, HSOR
 
-Yeah from maintenance point of view we need to recycle code. Otherwise
-we would already have something like six copies of the I2C controller,
-four copies of the DMA controller, three different clock frameworks
-and so on..
+> Signed-off-by: Misael Lopez Cruz <x0052729@ti.com>
 
-Tony
+Applied, thanks.
