@@ -1,53 +1,59 @@
-From: Trent Piepho <xyzzy@speakeasy.org>
-Subject: RE: [REVIEW PATCH 11/14] OMAP34XXCAM: Add driver
-Date: Wed, 4 Mar 2009 15:42:01 -0800 (PST)
-Message-ID: <Pine.LNX.4.58.0903041502240.24268@shell2.speakeasy.net>
-References: <A24693684029E5489D1D202277BE89442E296E09@dlee02.ent.ti.com>
+From: "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>
+Subject: RE: [RFC 0/5] Sensor drivers for OMAP3430SDP and LDP camera
+Date: Wed, 4 Mar 2009 17:52:19 -0600
+Message-ID: <A24693684029E5489D1D202277BE89442E296F97@dlee02.ent.ti.com>
+References: <200903031556.22034.david-b@pacbell.net>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-media-owner@vger.kernel.org>
-In-Reply-To: <A24693684029E5489D1D202277BE89442E296E09@dlee02.ent.ti.com>
+In-Reply-To: <200903031556.22034.david-b@pacbell.net>
+Content-Language: en-US
 Sender: linux-media-owner@vger.kernel.org
-To: "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>, "sakari.ailus@maxwell.research.nokia.com" <sakari.ailus@maxwell.research.nokia.com>, "DongSoo(Nathaniel) Kim" <dongsoo.kim@gmail.com>, "Hiremath, Vaibhav" <hvaibhav@ti.com>, "Toivonen Tuukka.O (Nokia-D/Oulu)" <tuukka.o.toivonen@nokia.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Nagalla, Hari" <hnagalla@ti.com>, "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+To: David Brownell <david-b@pacbell.net>
+Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>, "Tuukka.O Toivonen" <tuukka.o.toivonen@nokia.com>, Hiroshi DOYU <Hiroshi.DOYU@nokia.com>, "DongSoo(Nathaniel) Kim" <dongsoo.kim@gmail.com>, MiaoStanley <stanleymiao@hotmail.com>, "Nagalla, Hari" <hnagalla@ti.com>, "Hiremath, Vaibhav" <hvaibhav@ti.com>, "Lakhani, Amish" <amish@ti.com>, "Menon, Nishanth" <nm@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Wed, 4 Mar 2009, Aguirre Rodriguez, Sergio Alberto wrote:
-> As what I understand, we have 2 possible situations for multiple opens here:
->
-> Situation 1
->  - Instance1: Select sensor 1, and Do queue/dequeue of buffers.
->  - Instance2: If sensor 1 is currently selected, Begin loop requesting internally collected OMAP3ISP statistics (with V4L2 private based IOCTLs) for performing user-side Auto-exposure, Auto White Balance, Auto Focus algorithms. And Adjust gains (with S_CTRL) accordingly on sensor as a result.
->
-> Situation 2
->  - Instance1: Select sensor1 as input. Begin streaming.
->  - Instance2: Select sensor2 as input. Attempt to begin streaming.
->
-> So, if I understood right, on Situation 2, if you attempt to do a S_INPUT
-> to sensor2 while capturing from sensor1, it should return a -EBUSY,
-> right?  I mean, the app should consciously make sure the input (sensor)
-> is the correct one before performing any adjustments.
 
-It's usually perfectly legal to change inputs from one file handle while
-another file handle is capturing.
 
-If changing inputs while capturing is hard for your hardware and not
-supported, then S_INPUT could return EBUSY while capture is in progress.
-But in that case it doesn't matter which file descriptor is trying to
-change inputs.
+> -----Original Message-----
+> From: David Brownell [mailto:david-b@pacbell.net]
+> Sent: Tuesday, March 03, 2009 5:56 PM
+> To: Aguirre Rodriguez, Sergio Alberto
+> Cc: linux-media@vger.kernel.org; linux-omap@vger.kernel.org; Sakari A=
+ilus;
+> Tuukka.O Toivonen; Hiroshi DOYU; DongSoo(Nathaniel) Kim; MiaoStanley;
+> Nagalla, Hari; Hiremath, Vaibhav; Lakhani, Amish; Menon, Nishanth
+> Subject: Re: [RFC 0/5] Sensor drivers for OMAP3430SDP and LDP camera
+>=20
+> On Tuesday 03 March 2009, Aguirre Rodriguez, Sergio Alberto wrote:
+> >
+> > > This patch series depends on the following patches:
+> > >
+> > > =A0- "Add TWL4030 registers", posted by Tuukka Toivonen on March =
+2nd.
+> >
+> > http://marc.info/?l=3Dlinux-omap&m=3D123597520231668&w=3D2
+>=20
+> I'd much rather see these drivers just use the regulator
+> framework to switch any sensor power rails on/off.
 
-v4l2 is designed to allow a device to be controlled from multiple open file
-descriptors.  Just like serial ports or audio mixers can be.
+Hi,
 
-In general, an application should not worry about someone changing inputs
-or frequencies while it is running.  If using v4l2-ctl while and app is
-running leads to undesirable behavior there is a simple solution:  Don't do
-that.
+Sounds interesting.
 
-If you want exclusive access you can use a solution external to v4l2.  For
-instance most apps that use serial ports (pppd, minicom, etc.) use lock
-files in /var/lock to control access.  V4L2 also gives you
-VIDIOC_[SG]_PRIORITY to do access control within v4l2, but it's not much
-used.  It has little use because exclusive access just isn't something that
-important.  In theory it seems important, but in practice no one seems to
-care much that it's missing.
+Is there any documentation on how to use this?
+
+>=20
+> As with the V4L2 interface changes, the twl4030 regulator
+> support will be in mainline for the 2.6.30 kernels.
+>=20
+> - Dave
+>=20
+>=20
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-media" =
+in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
