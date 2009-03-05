@@ -1,212 +1,103 @@
 From: "DongSoo(Nathaniel) Kim" <dongsoo.kim@gmail.com>
 Subject: Re: [RFC 0/9] OMAP3 ISP and camera drivers
-Date: Thu, 5 Mar 2009 13:54:57 +0900
-Message-ID: <5e9665e10903042054n14edc5d0ke209e335cbe7ae9f@mail.gmail.com>
-References: <5e9665e10903041610q31385162ib39a4bc41296bdbc@mail.gmail.com>
-	 <19F8576C6E063C45BE387C64729E73940427BCA20A@dbde02.ent.ti.com>
+Date: Thu, 5 Mar 2009 14:00:04 +0900
+Message-ID: <5e9665e10903042100k2cf32aa0nbb8e488b6803a290@mail.gmail.com>
+References: <49AD0128.5090503@maxwell.research.nokia.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from rv-out-0506.google.com ([209.85.198.233]:37597 "EHLO
-	rv-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755910AbZCEEy7 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 4 Mar 2009 23:54:59 -0500
-In-Reply-To: <19F8576C6E063C45BE387C64729E73940427BCA20A@dbde02.ent.ti.com>
+Received: from wf-out-1314.google.com ([209.85.200.168]:26134 "EHLO
+	wf-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750713AbZCEFAG convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 5 Mar 2009 00:00:06 -0500
+In-Reply-To: <49AD0128.5090503@maxwell.research.nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Cc: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>, "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>, Toivonen Tuukka Olli Artturi <tuukka.o.toivonen@nokia.com>, Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+To: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>, Toivonen Tuukka Olli Artturi <tuukka.o.toivonen@nokia.com>, Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
 
-Hi,
+Hi Sakari,
 
-You are right. I checked with my JTAG debugger.
-It crashes just exactly there because of the reason you issued.
+Reviewing your driver, I couldn't find JPEG sync mode or where to make
+programme ISP_CTRL with ISPCTRL_JPEG_FLUSH.
+Is JPEG sync mode is not the coverage of this version? or I'm missing s=
+omething.
+If JPEG sync mode is not considered yet please let me know.
 Cheers,
 
 Nate
 
-On Thu, Mar 5, 2009 at 12:53 PM, Hiremath, Vaibhav <hvaibhav@ti.com> wr=
-ote:
+On Tue, Mar 3, 2009 at 7:06 PM, Sakari Ailus
+<sakari.ailus@maxwell.research.nokia.com> wrote:
+> Hi,
 >
+> So here's the patchset for OMAP 3 ISP and camera drivers plus the
+> associated V4L changes. Sergio Aguirre has been posting a related
+> patchset earlier, containing also sensor and lens driver used on SDP.=
+ This
+> patchset is agains the linux-omap tree:
 >
-> Thanks,
-> Vaibhav Hiremath
+> <URL:http://www.muru.com/linux/omap/README_OMAP_GIT>
 >
->> -----Original Message-----
->> From: DongSoo(Nathaniel) Kim [mailto:dongsoo.kim@gmail.com]
->> Sent: Thursday, March 05, 2009 5:41 AM
->> To: Sakari Ailus
->> Cc: Hiremath, Vaibhav; linux-media@vger.kernel.org; linux-
->> omap@vger.kernel.org; Aguirre Rodriguez, Sergio Alberto; Toivonen
->> Tuukka Olli Artturi; Hiroshi DOYU
->> Subject: Re: [RFC 0/9] OMAP3 ISP and camera drivers
->>
->> Hi Sakari,
->>
->> I'm also facing same issue with Hiremath.
->>
->> Here you are my kernel stack dump.
->>
-> [Hiremath, Vaibhav] I was getting same kernel crash, =A0The reason is=
- -
+> So I and Sergio have synchronised our versions of the ISP and camera
+> drivers and this is the end result. There is still a lot of work to d=
+o,
+> though. You can find some comments in individual patch descriptions. =
+If the
+> todo list for a patch is empty it doesn't mean there wouldn't be anyt=
+hing
+> left to do. ;)
 >
-> Since =A0isp_probe doesn't get called, leaving omap3isp =3D NULL. So =
-isp_get will return -EBUSY from the very beginning of function. =A0And =
-the function "omap34xxcam_device_register" which calls isp_get tries to=
- access vdev->vfd->dev where it crashes. Which is completely wrong, sin=
-ce the vfd gets initialize later part of function
+> There's at least one major change to Sergio Aguirre's earlier patches=
+ which
+> is that the ISP driver now uses the IOMMU from Hiroshi Doyu. Hiroshi =
+is away
+> for some time now so there are just some hacks on top of Hiroshi's ol=
+der
+> iommu patches to use with current linux-omap.
 >
+> This patchset does not contain the resizer or preview wrappers from T=
+I but
+> they have been left intentionally out. A proper interface (V4L) shoul=
+d be
+> used for those and the camera driver should be somehow involved --- t=
+he
+> wrappers are just duplicating much of the camera driver's functionali=
+ty.
 >
-> if (hwc.dev_type =3D=3D OMAP34XXCAM_SLAVE_SENSOR) {
-> =A0 =A0rval =3D isp_get();
-> =A0 =A0if (rval < 0) {
-> =A0 =A0 =A0 =A0dev_err(&vdev->vfd->dev, "can't get ISP, sensor init =A0=
- =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0fai=
-led\n");
-> [Vaibhav] - Here it crashes.
-> =A0 =A0 =A0 =A0 goto err;
-> =A0 =A0 }
-> }
+> I don't have any sensor or lens drivers to publish at this time.
 >
-> There are some instances where vdev->vfd is being accessed before ini=
-tializing.
+> This patchset should work with the SDP and OMAPZoom boards although y=
+ou
+> need the associated sensor drivers + the board code from Sergio Aguir=
+re to
+> use it. You'll also need the IOMMU patchset from Hiroshi Doyu. Everyt=
+hing
+> except the sensor / board stuff is available here:
 >
->> Cheers,
->>
->> Nate
->>
->> [ =A0 =A06.465606] [<c019e194>] (dev_driver_string+0x0/0x44) from
->> [<c01cc5e0>] (omap34xxcam_device_register+0x110/0x2f8)
->> [ =A0 =A06.475952] [<c01cc4d0>] (omap34xxcam_device_register+0x0/0x2=
-f8)
->> from [<c01b91a0>] (__v4l2_int_device_try_attach_all+0xb0/0x108)
->> [ =A0 =A06.487609] =A0r7:00000000 r6:c03e4fcc r5:cfbbf834 r4:c03e4f9=
-4
->> [ =A0 =A06.493347] [<c01b90f0>]
->> (__v4l2_int_device_try_attach_all+0x0/0x108) from [<c01b9258>]
->> (v4l2_int_device_register+0x60/0x7c)
->> [ =A0 =A06.504638] =A0r7:c03e4eec r6:cf9e5020 r5:c03e4f94 r4:c03e03f=
-8
->> [ =A0 =A06.510375] [<c01b91f8>] (v4l2_int_device_register+0x0/0x7c) =
-from
->> [<c00182e4>] (ce131f_probe+0x88/0xa8)
->> [ =A0 =A06.519836] =A0r5:00000000 r4:cf9e5000
->> [ =A0 =A06.523437] [<c001825c>] (ce131f_probe+0x0/0xa8) from
->> [<c01cefa4>]
->> (i2c_device_probe+0x78/0x90)
->> [ =A0 =A06.532226] =A0r5:cf9e5000 r4:c001825c
->> [ =A0 =A06.535827] [<c01cef2c>] (i2c_device_probe+0x0/0x90) from
->> [<c01a1634>] (driver_probe_device+0xd4/0x180)
->> [ =A0 =A06.545318] =A0r7:c03e4eec r6:c03e4eec r5:cf9e50a8 r4:cf9e502=
-0
->> [ =A0 =A06.551025] [<c01a1560>] (driver_probe_device+0x0/0x180) from
->> [<c01a1748>] (__driver_attach+0x68/0x8c)
->> [ =A0 =A06.560394] =A0r7:c03e4eec r6:c03e4eec r5:cf9e50a8 r4:cf9e502=
-0
->> [ =A0 =A06.566131] [<c01a16e0>] (__driver_attach+0x0/0x8c) from
->> [<c01a0a8c>] (bus_for_each_dev+0x4c/0x84)
->> [ =A0 =A06.575164] =A0r7:c03e4eec r6:c01a16e0 r5:cf821cc8 r4:0000000=
-0
->> [ =A0 =A06.580871] [<c01a0a40>] (bus_for_each_dev+0x0/0x84) from
->> [<c01a1478>] (driver_attach+0x20/0x28)
->> [ =A0 =A06.589721] =A0r7:cfb121a0 r6:c0018224 r5:c03e4eec r4:0000000=
-0
->> [ =A0 =A06.595458] [<c01a1458>] (driver_attach+0x0/0x28) from
->> [<c01a1054>]
->> (bus_add_driver+0xa8/0x214)
->> [ =A0 =A06.604217] [<c01a0fac>] (bus_add_driver+0x0/0x214) from
->> [<c01a196c>] (driver_register+0x98/0x120)
->> [ =A0 =A06.613250] =A0r8:00000000 r7:c03ef760 r6:c0018224 r5:c03e4ee=
-c
->> r4:c03e4ec0
->> [ =A0 =A06.620025] [<c01a18d4>] (driver_register+0x0/0x120) from
->> [<c01cfffc>] (i2c_register_driver+0x98/0xfc)
->> [ =A0 =A06.629425] [<c01cff64>] (i2c_register_driver+0x0/0xfc) from
->> [<c001823c>] (ce131f_isp_init+0x18/0x38)
->> [ =A0 =A06.638702] =A0r7:c03ef760 r6:c0018224 r5:c0022d78 r4:c002312=
-8
->> [ =A0 =A06.644439] [<c0018224>] (ce131f_isp_init+0x0/0x38) from
->> [<c002a2d0>] (do_one_initcall+0x78/0x1d8)
->> [ =A0 =A06.653472] =A0r5:c0022d78 r4:c0023128
->> [ =A0 =A06.657073] [<c002a258>] (do_one_initcall+0x0/0x1d8) from
->> [<c0008720>] (kernel_init+0x74/0xe0)
->> [ =A0 =A06.665740] =A0r8:00000000 r7:00000000 r6:00000000 r5:c0022d7=
-8
->> r4:c0023128
->> [ =A0 =A06.672515] [<c00086ac>] (kernel_init+0x0/0xe0) from [<c005c2=
-34>]
->> (do_exit+0x0/0x684)
->> [ =A0 =A06.680419] =A0r5:00000000 r4:00000000
->> [ =A0 =A06.684020] Code: c036e993 e1a0c00d e92dd800 e24cb004 (e59030=
-98)
->> [ =A0 =A06.690246] ---[ end trace cc13b15a4191e849 ]---
->> [ =A0 =A06.694915] Kernel panic - not syncing: Attempted to kill ini=
-t!
->>
->> On Thu, Mar 5, 2009 at 12:38 AM, Sakari Ailus
->> <sakari.ailus@maxwell.research.nokia.com> wrote:
->> > Hiremath, Vaibhav wrote:
->> >>
->> >> [Hiremath, Vaibhav] Sakari, Let me ask you basic question, have
->> you
->> >> tested/verified these patch-sets?
->> >
->> > For the ISP and camera drivers, yes. That's actually the only
->> thing that's
->> > contained in the patchset.
->> >
->> >> The reason I am asking this question is, for me it was not
->> working. I
->> >> had to debug this and found that -
->> >>
->> >> - Changes missing in devices.c file, so isp_probe function will
->> not
->> >> be called at all, keeping omap3isp =3D NULL. You will end up into
->> >> kernel crash in omap34xxcam_device_register.
->> >
->> > Anyway a crash shouldn't happen here. Could I see the kernel oops
->> if there
->> > was such?
->> >
->> >> - The patches from Hiroshi DOYU doesn't build as is, you need to
->> add
->> >> one include line #include <linux/hardirq.h> in iovmmu.c (I am
->> using
->> >> the patches submitted on 16th Jan 2009)
->> >
->> > Just pull the iommu branch, the Hiroshi's original patches are
->> missing some
->> > hacks that you need to use them now. I'd expect Hiroshi to update
->> the
->> > patchset when he comes back.
->> >
->> >> I have attached "git diff" output here with this mail for
->> reference.
->> >
->> > Please pull also the "base" branch.
->> >
->> > --
->> > Sakari Ailus
->> > sakari.ailus@maxwell.research.nokia.com
->> >
->>
->>
->>
->> --
->> =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D
->> DongSoo(Nathaniel), Kim
->> Engineer
->> Mobile S/W Platform Lab. S/W centre
->> Telecommunication R&D Centre
->> Samsung Electronics CO., LTD.
->> e-mail : dongsoo.kim@gmail.com
->> =A0 =A0 =A0 =A0 =A0 dongsoo45.kim@samsung.com
->> =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D
+> <URL:http://www.gitorious.org/projects/omap3camera>
+>
+> In short, on linux-omap:
+>
+> $ git pull http://git.gitorious.org/omap3camera/mainline.git v4l \
+> =A0iommu omap3camera base
+>
+> Hiroshi's original iommu tree is here (branch iommu):
+>
+> <URL:http://git.gitorious.org/lk/mainline.git>
+>
+> Some of the camera and ISP driver development history is available, t=
+oo. See
+> the first link.
+>
+> Any feedback is appreciated.
+>
+> Sincerely,
+>
+> --
+> Sakari Ailus
+> sakari.ailus@maxwell.research.nokia.com
 >
 >
 
