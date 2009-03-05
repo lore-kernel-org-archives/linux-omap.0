@@ -1,41 +1,92 @@
-From: Ari Kauppi <Ext-Ari.Kauppi@nokia.com>
-Subject: [PATCH] I2C: Call request_irq with IRQF_DISABLED
-Date: Thu,  5 Mar 2009 15:54:24 +0200
-Message-ID: <1236261264-16053-1-git-send-email-Ext-Ari.Kauppi@nokia.com>
+From: "Kanigeri, Hari" <h-kanigeri2@ti.com>
+Subject: RE: [PATCH 0/5] DSPBRIDGE: patches.
+Date: Thu, 5 Mar 2009 07:56:00 -0600
+Message-ID: <8F7AF80515AF0D4D93307E594F3CB40E22FE71DF@dlee03.ent.ti.com>
+References: <496565EC904933469F292DDA3F1663E60287B84DB4@dlee06.ent.ti.com>
+	 <269694c00903050226q5c9328b6t94545fc8897f0c8f@mail.gmail.com>
+	 <8F7AF80515AF0D4D93307E594F3CB40E22FE718B@dlee03.ent.ti.com>
+ <94a0d4530903050542r39af0220l1b7a4117089e37df@mail.gmail.com>
+ <7A436F7769CA33409C6B44B358BFFF0CFF3500FA@dlee02.ent.ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:54523 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751646AbZCENzF (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 5 Mar 2009 08:55:05 -0500
+Received: from devils.ext.ti.com ([198.47.26.153]:51451 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751794AbZCEN5g convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 5 Mar 2009 08:57:36 -0500
+In-Reply-To: <7A436F7769CA33409C6B44B358BFFF0CFF3500FA@dlee02.ent.ti.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-i2c@vger.kernel.org
-Cc: linux-omap@vger.kernel.org
+To: "Menon, Nishanth" <nm@ti.com>, Felipe Contreras <felipe.contreras@gmail.com>
+Cc: Ameya Palande <2ameya@gmail.com>, "Guzman Lugo, Fernando" <x0095840@ti.com>, Hiroshi DOYU <Hiroshi.DOYU@nokia.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-I have observed some Spurious IRQ's for I2C1 when all kernel hacking options
-(and thus LOCKDEP) are disabled.
+Nishant,
 
-Applying Richard Woodruff's 'I2C bug fixes for L-O and L-Z' seems to help
-but IRQF_DISABLED is needed for proper behaviour.
+> Yeah it gets real confusing. How about following the same 
+> rules for the OMAPZOOM kernel here too: any patch w.r.t 
+> OMAPZOOM comes:
+> Subj: RE: [OMAPZOOM PATCH 0/5] DSPBRIDGE: blah blah blah.
+> 
 
-Signed-off-by: Ari Kauppi <Ext-Ari.Kauppi@nokia.com>
----
- drivers/i2c/busses/i2c-omap.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+-- I agree with your suggestion. The subject should have OMAPZOOM to differentiate.
 
-diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
-index 0c3ed41..18af43f 100644
---- a/drivers/i2c/busses/i2c-omap.c
-+++ b/drivers/i2c/busses/i2c-omap.c
-@@ -847,7 +847,7 @@ omap_i2c_probe(struct platform_device *pdev)
- 	omap_i2c_init(dev);
+
+
+Thank you,
+Best regards,
+Hari
  
- 	isr = (dev->rev < OMAP_I2C_REV_2) ? omap_i2c_rev1_isr : omap_i2c_isr;
--	r = request_irq(dev->irq, isr, 0, pdev->name, dev);
-+	r = request_irq(dev->irq, isr, IRQF_DISABLED, pdev->name, dev);
- 
- 	if (r) {
- 		dev_err(dev->dev, "failure requesting irq %i\n", dev->irq);
--- 
-1.5.6.5
 
+> -----Original Message-----
+> From: Menon, Nishanth 
+> Sent: Thursday, March 05, 2009 7:52 AM
+> To: Felipe Contreras; Kanigeri, Hari
+> Cc: Ameya Palande; Guzman Lugo, Fernando; Hiroshi DOYU; 
+> linux-omap@vger.kernel.org
+> Subject: RE: [PATCH 0/5] DSPBRIDGE: patches.
+> 
+> > -----Original Message-----
+> > From: linux-omap-owner@vger.kernel.org [mailto:linux-omap- 
+> > owner@vger.kernel.org] On Behalf Of Felipe Contreras
+> > Sent: Thursday, March 05, 2009 3:42 PM
+> > To: Kanigeri, Hari
+> > Cc: Ameya Palande; Guzman Lugo, Fernando; Hiroshi DOYU; linux- 
+> > omap@vger.kernel.org
+> > Subject: Re: [PATCH 0/5] DSPBRIDGE: patches.
+> > 
+> > On Thu, Mar 5, 2009 at 3:18 PM, Kanigeri, Hari 
+> <h-kanigeri2@ti.com> wrote:
+> > > Hi Ameya,
+> > >
+> > >> Hi Fernando,
+> > >>
+> > >> Are you using tidspbridge-pm branch from 
+> > >> http://gitorious.org/projects/lk/repos/mainline ?
+> > >>
+> > >> Cheers,
+> > >> Ameya.
+> > >
+> > > -- The Bridge patches will be based on omapzoom tree.
+> > 
+> > We are in linux-omap, not omapzoom, and this is the 
+> tidspbridge branch 
+> > in linux-omap:
+> > http://git.kernel.org/?p=linux/kernel/git/tmlind/linux-omap-
+> > 2.6.git;a=shortlog;h=tidspbridge
+> > 
+> > I'm sure you don't want to increase the discrepancy between 
+> linux-omap 
+> > and omapzoom, so the patches sent to l-o should apply on top of the 
+> > l-o tidspbridge in order to be merged.
+> Yeah it gets real confusing. How about following the same 
+> rules for the OMAPZOOM kernel here too: any patch w.r.t 
+> OMAPZOOM comes:
+> Subj: RE: [OMAPZOOM PATCH 0/5] DSPBRIDGE: blah blah blah.
+> 
+> Helps to keep things in perspective..
+> Regards,
+> Nishanth Menon
+> 
+> 
