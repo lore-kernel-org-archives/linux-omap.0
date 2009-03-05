@@ -1,48 +1,137 @@
-From: Felipe Contreras <felipe.contreras@gmail.com>
-Subject: Re: [PATCH 0/5] DSPBRIDGE: patches.
-Date: Thu, 5 Mar 2009 16:05:25 +0200
-Message-ID: <94a0d4530903050605j2cdf2228g4a8c869c05ce9d84@mail.gmail.com>
-References: <496565EC904933469F292DDA3F1663E60287B84DB4@dlee06.ent.ti.com>
-	 <269694c00903050226q5c9328b6t94545fc8897f0c8f@mail.gmail.com>
-	 <8F7AF80515AF0D4D93307E594F3CB40E22FE718B@dlee03.ent.ti.com>
-	 <94a0d4530903050542r39af0220l1b7a4117089e37df@mail.gmail.com>
-	 <7A436F7769CA33409C6B44B358BFFF0CFF3500FA@dlee02.ent.ti.com>
-	 <8F7AF80515AF0D4D93307E594F3CB40E22FE71DF@dlee03.ent.ti.com>
+From: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+Subject: Re: [PATCH 9/9] omap34xxcam: Add camera driver
+Date: Thu, 05 Mar 2009 16:09:15 +0200
+Message-ID: <49AFDD0B.80804@maxwell.research.nokia.com>
+References: <49AD0128.5090503@maxwell.research.nokia.com>	 <1236074816-30018-1-git-send-email-sakari.ailus@maxwell.research.nokia.com>	 <1236074816-30018-2-git-send-email-sakari.ailus@maxwell.research.nokia.com>	 <1236074816-30018-3-git-send-email-sakari.ailus@maxwell.research.nokia.com>	 <1236074816-30018-4-git-send-email-sakari.ailus@maxwell.research.nokia.com>	 <1236074816-30018-5-git-send-email-sakari.ailus@maxwell.research.nokia.com>	 <1236074816-30018-6-git-send-email-sakari.ailus@maxwell.research.nokia.com>	 <1236074816-30018-7-git-send-email-sakari.ailus@maxwell.research.nokia.com>	 <1236074816-30018-8-git-send-email-sakari.ailus@maxwell.research.nokia.com>	 <1236074816-30018-9-git-send-email-sakari.ailus@maxwell.research.nokia.com> <1236101460.10927.109.camel@tux.localhost>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-fx0-f176.google.com ([209.85.220.176]:42607 "EHLO
-	mail-fx0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751809AbZCEOF2 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 5 Mar 2009 09:05:28 -0500
-Received: by fxm24 with SMTP id 24so3363749fxm.37
-        for <linux-omap@vger.kernel.org>; Thu, 05 Mar 2009 06:05:25 -0800 (PST)
-In-Reply-To: <8F7AF80515AF0D4D93307E594F3CB40E22FE71DF@dlee03.ent.ti.com>
+Received: from smtp.nokia.com ([192.100.122.233]:45704 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755110AbZCEOJ3 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 5 Mar 2009 09:09:29 -0500
+In-Reply-To: <1236101460.10927.109.camel@tux.localhost>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Kanigeri, Hari" <h-kanigeri2@ti.com>, Tony Lindgren <tony@atomide.com>
-Cc: "Menon, Nishanth" <nm@ti.com>, Ameya Palande <2ameya@gmail.com>, "Guzman Lugo, Fernando" <x0095840@ti.com>, Hiroshi DOYU <Hiroshi.DOYU@nokia.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Alexey Klimov <klimov.linux@gmail.com>
+Cc: linux-media@vger.kernel.org, linux-omap@vger.kernel.org, saaguirre@ti.com, tuukka.o.toivonen@nokia.com, dongsoo.kim@gmail.com
 
-On Thu, Mar 5, 2009 at 3:56 PM, Kanigeri, Hari <h-kanigeri2@ti.com> wrote:
-> Nishant,
->
->> Yeah it gets real confusing. How about following the same
->> rules for the OMAPZOOM kernel here too: any patch w.r.t
->> OMAPZOOM comes:
->> Subj: RE: [OMAPZOOM PATCH 0/5] DSPBRIDGE: blah blah blah.
->>
->
-> -- I agree with your suggestion. The subject should have OMAPZOOM to differentiate.
+Alexey Klimov wrote:
+>> +static int vidioc_g_fmt_vid_cap(struct file *file, void *fh,
+>> +				struct v4l2_format *f)
+>> +{
+>> +	struct omap34xxcam_fh *ofh = fh;
+>> +	struct omap34xxcam_videodev *vdev = ofh->vdev;
+>> +
+>> +	if (vdev->vdev_sensor == v4l2_int_device_dummy())
+>> +		return -EINVAL;
+>> +
+>> +	mutex_lock(&vdev->mutex);
+>> +	f->fmt.pix = vdev->pix;
+>> +	mutex_unlock(&vdev->mutex);
+> 
+> Hmmmm, you are using mutex_lock to lock reading from vdev structure..
+> Well, i don't if this is right approach. I am used to that mutex_lock is
+> used to prevent _changing_ of members in structure..
 
-Nishanth has kindly explained me that this patch, sent to the l-o
-mailing list, is not meant for the l-o tree.
+The vdev->mutex is acquired since we want to prevent concurrent access 
+to vdev->pix. Otherwise it might change while we are reading it, right?
 
-A better way to differentiate patches specific for o-z is to send them
-to the o-z mailing list, instead of l-o, right?
+>> +static int vidioc_s_fmt_vid_cap(struct file *file, void *fh,
+>> +				struct v4l2_format *f)
+>> +{
+>> +	struct omap34xxcam_fh *ofh = fh;
+>> +	struct omap34xxcam_videodev *vdev = ofh->vdev;
+>> +	struct v4l2_pix_format pix_tmp;
+>> +	struct v4l2_fract timeperframe;
+>> +	int rval;
+>> +
+>> +	if (vdev->vdev_sensor == v4l2_int_device_dummy())
+>> +		return -EINVAL;
+>> +
+>> +	mutex_lock(&vdev->mutex);
+>> +	if (vdev->streaming) {
+>> +		rval = -EBUSY;
+>> +		goto out;
+>> +	}
+> 
+> Well, why don't remove goto, place return -EBUSY, and move mutex after
+> if (vdev->streaming) check ?
 
-Tony: Or have you agreed with TI that these [OMAPZOOM] patches that
-don't apply on top of l-o are ok here?
+The streaming state may change in the meantime. See vidioc_streamon. 
+It's not very likely but possible as far as I understand.
+
+>> +static int vidioc_reqbufs(struct file *file, void *fh,
+>> +			  struct v4l2_requestbuffers *b)
+>> +{
+>> +	struct omap34xxcam_fh *ofh = fh;
+>> +	struct omap34xxcam_videodev *vdev = ofh->vdev;
+>> +	int rval;
+>> +
+>> +	if (vdev->vdev_sensor == v4l2_int_device_dummy())
+>> +		return -EINVAL;
+>> +
+>> +	mutex_lock(&vdev->mutex);
+>> +	if (vdev->streaming) {
+>> +		mutex_unlock(&vdev->mutex);
+>> +		return -EBUSY;
+>> +	}
+> 
+> If i'm doing this i prefer to place mutex_lock after this
+> if(vdev->streaming) check.
+
+Same here.
+
+>> +static int omap34xxcam_device_register(struct v4l2_int_device *s)
+>> +{
+>> +	struct omap34xxcam_videodev *vdev = s->u.slave->master->priv;
+>> +	struct omap34xxcam_hw_config hwc;
+>> +	int rval;
+>> +
+>> +	/* We need to check rval just once. The place is here. */
+> 
+> I didn't understand this comment. You doing nothin in next few lines
+> with int variable rval(which introduced in this function). Is comment
+> talking about struct v4l2_int_device *s ?
+
+Yes. If the g_priv() succeeds now it will succeed in future, too. This 
+comes from the platform data through the slave device.
+
+>> +	/* Are we the first slave? */
+>> +	if (vdev->slaves == 1) {
+>> +		/* initialize the video_device struct */
+>> +		vdev->vfd = video_device_alloc();
+>> +		if (!vdev->vfd) {
+>> +			dev_err(&vdev->vfd->dev,
+>> +				"could not allocate video device struct\n");
+> 
+> Do i understand you code in right way ?
+> You call video_device_alloc() to get vdev->vfd. Then if vdev->vfd is
+> null(empty) you make message dev_err which based on vdev->vfd->dev but
+> dev->vfd allocating is failed.. If i'm not wrong you message will
+> provide kernel oops.
+> One more point here is that you use dev_err(&vdev->vfd->dev before call
+> to video_device_alloc() in this function.
+
+Indeed. Others hit this already. Thanks.
+
+>> +static int __init omap34xxcam_init(void)
+>> +{
+>> +	struct omap34xxcam_device *cam;
+>> +	int i;
+>> +
+>> +	cam = kzalloc(sizeof(*cam), GFP_KERNEL);
+>> +	if (!cam) {
+>> +		printk(KERN_ERR "%s: could not allocate memory\n", __func__);
+>> +		goto err;
+> 
+> If kzalloc failed you return -ENODEV; but this is ENOMEM error.
+
+Yes. Will fix.
+
+Thanks again for the comments.
 
 -- 
-Felipe Contreras
+Sakari Ailus
+sakari.ailus@maxwell.research.nokia.com
