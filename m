@@ -1,110 +1,116 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH] OMAP3: Fixed crash bug with serial + suspend
-Date: Thu, 05 Mar 2009 09:10:17 -0800
-Message-ID: <87vdqnaoau.fsf@deeprootsystems.com>
-References: <1236263543-7085-1-git-send-email-tero.kristo@nokia.com>
+From: "Lopez Cruz, Misael" <x0052729@ti.com>
+Subject: [PATCH 2/2] ASoC: Add headset jack detection for
+ SDP3430 machine driver
+Date: Thu, 5 Mar 2009 11:32:31 -0600
+Message-ID: <2C7D3DF36ADFFC479B44490D912B616705ECE137B9@dlee07.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-gx0-f174.google.com ([209.85.217.174]:53019 "EHLO
-	mail-gx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751258AbZCERKY (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 5 Mar 2009 12:10:24 -0500
-Received: by gxk22 with SMTP id 22so66568gxk.13
-        for <linux-omap@vger.kernel.org>; Thu, 05 Mar 2009 09:10:21 -0800 (PST)
-In-Reply-To: <1236263543-7085-1-git-send-email-tero.kristo@nokia.com> (Tero Kristo's message of "Thu\,  5 Mar 2009 16\:32\:23 +0200")
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <alsa-devel-bounces@alsa-project.org>
+Content-Language: en-US
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Sender: alsa-devel-bounces@alsa-project.org
+Errors-To: alsa-devel-bounces@alsa-project.org
+To: "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Cc: Mark Brown <broonie@sirena.org.uk>
 List-Id: linux-omap@vger.kernel.org
-To: Tero Kristo <tero.kristo@nokia.com>
-Cc: linux-omap@vger.kernel.org
 
-Tero Kristo <tero.kristo@nokia.com> writes:
+Add headset jack detection for SDP3430 boards using SoC jack
+reporting interface. Headset detection on SDP3430 board is
+achieved through TWL4030 GPIO_2 pin.
 
-> It was possible for an unhandled interrupt to occur if there was incoming
-> serial traffic during wakeup from suspend. This was caused by the code
-> in arch-arm/mach-omap2/serial.c keeping interrupt enabled all the time,
-> but not acking its interrupts. Applies on top of PM branch.
->
-> Signed-off-by: Tero Kristo <tero.kristo@nokia.com>
+Signed-off-by: Misael Lopez Cruz <x0052729@ti.com>
+---
+ sound/soc/omap/sdp3430.c |   43 +++++++++++++++++++++++++++++++++++++++++--
+ 1 files changed, 41 insertions(+), 2 deletions(-)
 
-Thanks, pushed to PM branch.
-
-Kevin
-
-> ---
->  arch/arm/mach-omap2/pm34xx.c             |   15 +++++++++++++++
->  arch/arm/mach-omap2/serial.c             |   14 ++++++++++++++
->  arch/arm/plat-omap/include/mach/serial.h |    1 +
->  3 files changed, 30 insertions(+), 0 deletions(-)
->
-> diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
-> index 9102cee..5a627db 100644
-> --- a/arch/arm/mach-omap2/pm34xx.c
-> +++ b/arch/arm/mach-omap2/pm34xx.c
-> @@ -629,7 +629,22 @@ static void omap3_pm_finish(void)
->  	pm_idle = saved_idle;
->  }
->  
-> +/* Hooks to enable / disable UART interrupts during suspend */
-> +static int omap3_pm_begin(suspend_state_t state)
-> +{
-> +	omap_uart_enable_irqs(0);
-> +	return 0;
-> +}
-> +
-> +static void omap3_pm_end(void)
-> +{
-> +	omap_uart_enable_irqs(1);
-> +	return;
-> +}
-> +
->  static struct platform_suspend_ops omap_pm_ops = {
-> +	.begin		= omap3_pm_begin,
-> +	.end		= omap3_pm_end,
->  	.prepare	= omap3_pm_prepare,
->  	.enter		= omap3_pm_enter,
->  	.finish		= omap3_pm_finish,
-> diff --git a/arch/arm/mach-omap2/serial.c b/arch/arm/mach-omap2/serial.c
-> index 90f1c67..e77567a 100644
-> --- a/arch/arm/mach-omap2/serial.c
-> +++ b/arch/arm/mach-omap2/serial.c
-> @@ -432,6 +432,20 @@ static void omap_uart_idle_init(struct omap_uart_state *uart)
->  	WARN_ON(ret);
->  }
->  
-> +void omap_uart_enable_irqs(int enable)
-> +{
-> +	int ret;
-> +	struct omap_uart_state *uart;
-> +
-> +	list_for_each_entry(uart, &uart_list, node) {
-> +		if (enable)
-> +			ret = request_irq(uart->p->irq, omap_uart_interrupt,
-> +				IRQF_SHARED, "serial idle", (void *)uart);
-> +		else
-> +			free_irq(uart->p->irq, (void *)uart);
-> +	}
-> +}
-> +
->  static ssize_t sleep_timeout_show(struct kobject *kobj,
->  				  struct kobj_attribute *attr,
->  				  char *buf)
-> diff --git a/arch/arm/plat-omap/include/mach/serial.h b/arch/arm/plat-omap/include/mach/serial.h
-> index 8e89585..7ca1f27 100644
-> --- a/arch/arm/plat-omap/include/mach/serial.h
-> +++ b/arch/arm/plat-omap/include/mach/serial.h
-> @@ -47,6 +47,7 @@ extern void omap_uart_check_wakeup(void);
->  extern void omap_uart_prepare_suspend(void);
->  extern void omap_uart_prepare_idle(int num);
->  extern void omap_uart_resume_idle(int num);
-> +extern void omap_uart_enable_irqs(int enable);
->  #endif
->  
->  #endif
-> -- 
-> 1.5.4.3
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/sound/soc/omap/sdp3430.c b/sound/soc/omap/sdp3430.c
+index 4eab4b4..715c648 100644
+--- a/sound/soc/omap/sdp3430.c
++++ b/sound/soc/omap/sdp3430.c
+@@ -28,6 +28,7 @@
+ #include <sound/pcm.h>
+ #include <sound/soc.h>
+ #include <sound/soc-dapm.h>
++#include <sound/jack.h>
+ 
+ #include <asm/mach-types.h>
+ #include <mach/hardware.h>
+@@ -122,7 +123,7 @@ static int sdp3430_twl4030_init(struct snd_soc_codec *codec)
+ 	/* SDP3430 connected pins */
+ 	snd_soc_dapm_enable_pin(codec, "Ext Mic");
+ 	snd_soc_dapm_enable_pin(codec, "Ext Spk");
+-	snd_soc_dapm_enable_pin(codec, "Headset Jack");
++	snd_soc_dapm_disable_pin(codec, "Headset Jack");
+ 
+ 	/* TWL4030 not connected pins */
+ 	snd_soc_dapm_nc_pin(codec, "AUXL");
+@@ -144,6 +145,27 @@ static int sdp3430_twl4030_init(struct snd_soc_codec *codec)
+ 	return ret;
+ }
+ 
++/* Headset jack */
++static struct snd_soc_jack hs_jack;
++
++/* Headset jack detection DAPM pins */
++static struct snd_soc_jack_pin hs_jack_pins[] = {
++	{
++		.pin = "Headset Jack",
++		.mask = SND_JACK_HEADSET,
++	},
++};
++
++/* Headset jack detection gpios */
++static struct snd_soc_jack_gpio hs_jack_gpios[] = {
++	{
++		.gpio = (OMAP_MAX_GPIO_LINES + 2),
++		.name = "hsdet-gpio",
++		.report = SND_JACK_HEADSET,
++		.debounce_time = 200,
++	},
++};
++
+ /* Digital audio interface glue - connects codec <--> CPU */
+ static struct snd_soc_dai_link sdp3430_dai = {
+ 	.name = "TWL4030",
+@@ -194,7 +216,21 @@ static int __init sdp3430_soc_init(void)
+ 	if (ret)
+ 		goto err1;
+ 
+-	return 0;
++	/* Headset jack detection */
++	ret = snd_soc_jack_new(&snd_soc_sdp3430, "SDP3430 headset jack",
++				SND_JACK_HEADSET, &hs_jack);
++	if (ret)
++		return ret;
++
++	ret = snd_soc_jack_add_pins(&hs_jack, ARRAY_SIZE(hs_jack_pins),
++				hs_jack_pins);
++	if (ret)
++		return ret;
++
++	ret = snd_soc_jack_add_gpios(&hs_jack, ARRAY_SIZE(hs_jack_gpios),
++				hs_jack_gpios);
++
++	return ret;
+ 
+ err1:
+ 	printk(KERN_ERR "Unable to add platform device\n");
+@@ -206,6 +242,9 @@ module_init(sdp3430_soc_init);
+ 
+ static void __exit sdp3430_soc_exit(void)
+ {
++	snd_soc_jack_free_gpios(&hs_jack, ARRAY_SIZE(hs_jack_gpios),
++				hs_jack_gpios);
++
+ 	platform_device_unregister(sdp3430_snd_device);
+ }
+ module_exit(sdp3430_soc_exit);
+-- 
+1.5.4.3
