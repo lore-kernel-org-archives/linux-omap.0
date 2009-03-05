@@ -1,100 +1,83 @@
-From: Tero Kristo <tero.kristo@nokia.com>
-Subject: [PATCH] OMAP3: Fixed crash bug with serial + suspend
-Date: Thu,  5 Mar 2009 16:32:23 +0200
-Message-ID: <1236263543-7085-1-git-send-email-tero.kristo@nokia.com>
+From: "Kanigeri, Hari" <h-kanigeri2@ti.com>
+Subject: RE: [PATCH 0/5] DSPBRIDGE: patches.
+Date: Thu, 5 Mar 2009 09:10:16 -0600
+Message-ID: <8F7AF80515AF0D4D93307E594F3CB40E23080CE9@dlee03.ent.ti.com>
+References: <496565EC904933469F292DDA3F1663E60287B84DB4@dlee06.ent.ti.com>
+	 <269694c00903050226q5c9328b6t94545fc8897f0c8f@mail.gmail.com>
+	 <8F7AF80515AF0D4D93307E594F3CB40E22FE718B@dlee03.ent.ti.com>
+ <94a0d4530903050542r39af0220l1b7a4117089e37df@mail.gmail.com>
+ <8F7AF80515AF0D4D93307E594F3CB40E22FE71D3@dlee03.ent.ti.com>
+ <7A436F7769CA33409C6B44B358BFFF0CFF350111@dlee02.ent.ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:49212 "EHLO
-	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751445AbZCEOtn (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 5 Mar 2009 09:49:43 -0500
-Received: from vaebh106.NOE.Nokia.com (vaebh106.europe.nokia.com [10.160.244.32])
-	by mgw-mx06.nokia.com (Switch-3.2.6/Switch-3.2.6) with ESMTP id n25EnZqx023962
-	for <linux-omap@vger.kernel.org>; Thu, 5 Mar 2009 16:49:38 +0200
-Received: from localhost.localdomain (sokoban.ntc.nokia.com [172.22.144.95])
-	by mgw-int01.ntc.nokia.com (Switch-3.2.5/Switch-3.2.5) with ESMTP id n25EnVrW002594
-	for <linux-omap@vger.kernel.org>; Thu, 5 Mar 2009 16:49:31 +0200
-In-Reply-To: <>
-References: <>
+Received: from devils.ext.ti.com ([198.47.26.153]:55647 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751788AbZCEPKa convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 5 Mar 2009 10:10:30 -0500
+In-Reply-To: <7A436F7769CA33409C6B44B358BFFF0CFF350111@dlee02.ent.ti.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
+To: "Menon, Nishanth" <nm@ti.com>, Felipe Contreras <felipe.contreras@gmail.com>
+Cc: Ameya Palande <2ameya@gmail.com>, "Guzman Lugo, Fernando" <x0095840@ti.com>, Hiroshi DOYU <Hiroshi.DOYU@nokia.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-It was possible for an unhandled interrupt to occur if there was incoming
-serial traffic during wakeup from suspend. This was caused by the code
-in arch-arm/mach-omap2/serial.c keeping interrupt enabled all the time,
-but not acking its interrupts. Applies on top of PM branch.
+Hi,
 
-Signed-off-by: Tero Kristo <tero.kristo@nokia.com>
----
- arch/arm/mach-omap2/pm34xx.c             |   15 +++++++++++++++
- arch/arm/mach-omap2/serial.c             |   14 ++++++++++++++
- arch/arm/plat-omap/include/mach/serial.h |    1 +
- 3 files changed, 30 insertions(+), 0 deletions(-)
+> Ok, so we have:
+> a) omapzoom bridge
+> b) linux omap bridge
+> 
+> Impertinent question: what are our plans b/w these two?
+> 
 
-diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
-index 9102cee..5a627db 100644
---- a/arch/arm/mach-omap2/pm34xx.c
-+++ b/arch/arm/mach-omap2/pm34xx.c
-@@ -629,7 +629,22 @@ static void omap3_pm_finish(void)
- 	pm_idle = saved_idle;
- }
+A. omapzoom bridge -- As far as I know, this will be the master tree for the DSPBridge code. The Bridge patches will be based on this tree. I think it was already communicated some time ago that the linux-omap mailing list will be used for Bridge discussions and for sending the Bridge patches to OMAPZOOM. There is no separate mailing list for omapzoom.
+
+B. linux omap bridge -- I think this tree is maintained by Hiroshi by merging the patches that are sent to OMAPZOOM tree. The only difference that should be between the omapzoom tree and linux omap tree is the Power management. Omapzoom Bridge uses T.I Power management, where as the linux omap Bridge uses open source Power management. So, any patches related to open source power manaegment will be based on linux omap tree. The maintainer of linux omap Bridge tree should sync up the Bridge changes from the omapzoom tree.
+
+
+Thank you,
+Best regards,
+Hari
  
-+/* Hooks to enable / disable UART interrupts during suspend */
-+static int omap3_pm_begin(suspend_state_t state)
-+{
-+	omap_uart_enable_irqs(0);
-+	return 0;
-+}
-+
-+static void omap3_pm_end(void)
-+{
-+	omap_uart_enable_irqs(1);
-+	return;
-+}
-+
- static struct platform_suspend_ops omap_pm_ops = {
-+	.begin		= omap3_pm_begin,
-+	.end		= omap3_pm_end,
- 	.prepare	= omap3_pm_prepare,
- 	.enter		= omap3_pm_enter,
- 	.finish		= omap3_pm_finish,
-diff --git a/arch/arm/mach-omap2/serial.c b/arch/arm/mach-omap2/serial.c
-index 90f1c67..e77567a 100644
---- a/arch/arm/mach-omap2/serial.c
-+++ b/arch/arm/mach-omap2/serial.c
-@@ -432,6 +432,20 @@ static void omap_uart_idle_init(struct omap_uart_state *uart)
- 	WARN_ON(ret);
- }
- 
-+void omap_uart_enable_irqs(int enable)
-+{
-+	int ret;
-+	struct omap_uart_state *uart;
-+
-+	list_for_each_entry(uart, &uart_list, node) {
-+		if (enable)
-+			ret = request_irq(uart->p->irq, omap_uart_interrupt,
-+				IRQF_SHARED, "serial idle", (void *)uart);
-+		else
-+			free_irq(uart->p->irq, (void *)uart);
-+	}
-+}
-+
- static ssize_t sleep_timeout_show(struct kobject *kobj,
- 				  struct kobj_attribute *attr,
- 				  char *buf)
-diff --git a/arch/arm/plat-omap/include/mach/serial.h b/arch/arm/plat-omap/include/mach/serial.h
-index 8e89585..7ca1f27 100644
---- a/arch/arm/plat-omap/include/mach/serial.h
-+++ b/arch/arm/plat-omap/include/mach/serial.h
-@@ -47,6 +47,7 @@ extern void omap_uart_check_wakeup(void);
- extern void omap_uart_prepare_suspend(void);
- extern void omap_uart_prepare_idle(int num);
- extern void omap_uart_resume_idle(int num);
-+extern void omap_uart_enable_irqs(int enable);
- #endif
- 
- #endif
--- 
-1.5.4.3
 
+> -----Original Message-----
+> From: Menon, Nishanth 
+> Sent: Thursday, March 05, 2009 8:05 AM
+> To: Kanigeri, Hari; Felipe Contreras
+> Cc: Ameya Palande; Guzman Lugo, Fernando; Hiroshi DOYU; 
+> linux-omap@vger.kernel.org
+> Subject: RE: [PATCH 0/5] DSPBRIDGE: patches.
+> 
+> Hi Hari,
+> > -----Original Message-----
+> > From: linux-omap-owner@vger.kernel.org [mailto:linux-omap- 
+> > owner@vger.kernel.org] On Behalf Of Kanigeri, Hari
+> > Sent: Thursday, March 05, 2009 3:52 PM
+> > To: Felipe Contreras
+> > Cc: Ameya Palande; Guzman Lugo, Fernando; Hiroshi DOYU; linux- 
+> > omap@vger.kernel.org
+> > Subject: RE: [PATCH 0/5] DSPBRIDGE: patches.
+> > > We are in linux-omap, not omapzoom, and this is the tidspbridge 
+> > > branch in linux-omap:
+> > > http://git.kernel.org/?p=linux/kernel/git/tmlind/linux-omap-2.
+> > 6.git;a=shortlog;h=tidspbridge
+> > >
+> > > I'm sure you don't want to increase the discrepancy between 
+> > > linux-omap and omapzoom, so the patches sent to l-o 
+> should apply on 
+> > > top of the l-o tidspbridge in order to be merged.
+> > 
+> > -- I am sorry, as of now the Bridge patches will be based only on 
+> > omapzoom tree.
+> 
+> Ok, so we have:
+> a) omapzoom bridge
+> b) linux omap bridge
+> 
+> Impertinent question: what are our plans b/w these two?
+> 
+> Regards,
+> Nishanth Menon
+> 
