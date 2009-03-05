@@ -1,46 +1,29 @@
-From: Felipe Contreras <felipe.contreras@gmail.com>
-Subject: Re: [PATCH 0/5] DSPBRIDGE: patches.
-Date: Thu, 5 Mar 2009 15:42:08 +0200
-Message-ID: <94a0d4530903050542r39af0220l1b7a4117089e37df@mail.gmail.com>
-References: <496565EC904933469F292DDA3F1663E60287B84DB4@dlee06.ent.ti.com>
-	 <269694c00903050226q5c9328b6t94545fc8897f0c8f@mail.gmail.com>
-	 <8F7AF80515AF0D4D93307E594F3CB40E22FE718B@dlee03.ent.ti.com>
+From: Aaro Koskinen <aaro.koskinen@nokia.com>
+Subject: Re: [pacth] I2C bug fixes for L-O and L-Z
+Date: Thu, 05 Mar 2009 15:49:27 +0200
+Message-ID: <49AFD867.6010504@nokia.com>
+References: <13B9B4C6EF24D648824FF11BE89671620377169EBF@dlee02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-fx0-f176.google.com ([209.85.220.176]:53825 "EHLO
-	mail-fx0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757042AbZCENmL (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 5 Mar 2009 08:42:11 -0500
-Received: by fxm24 with SMTP id 24so3353468fxm.37
-        for <linux-omap@vger.kernel.org>; Thu, 05 Mar 2009 05:42:08 -0800 (PST)
-In-Reply-To: <8F7AF80515AF0D4D93307E594F3CB40E22FE718B@dlee03.ent.ti.com>
+Received: from smtp.nokia.com ([192.100.122.233]:43603 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756556AbZCENtq (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 5 Mar 2009 08:49:46 -0500
+In-Reply-To: <13B9B4C6EF24D648824FF11BE89671620377169EBF@dlee02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Kanigeri, Hari" <h-kanigeri2@ti.com>
-Cc: Ameya Palande <2ameya@gmail.com>, "Guzman Lugo, Fernando" <x0095840@ti.com>, Hiroshi DOYU <Hiroshi.DOYU@nokia.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: "ext Woodruff, Richard" <r-woodruff2@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Thu, Mar 5, 2009 at 3:18 PM, Kanigeri, Hari <h-kanigeri2@ti.com> wrote:
-> Hi Ameya,
->
->> Hi Fernando,
->>
->> Are you using tidspbridge-pm branch from
->> http://gitorious.org/projects/lk/repos/mainline ?
->>
->> Cheers,
->> Ameya.
->
-> -- The Bridge patches will be based on omapzoom tree.
+Hello,
 
-We are in linux-omap, not omapzoom, and this is the tidspbridge branch
-in linux-omap:
-http://git.kernel.org/?p=linux/kernel/git/tmlind/linux-omap-2.6.git;a=shortlog;h=tidspbridge
+Woodruff, Richard wrote:
+> Recently one custom board was having some I2C issues. In looking at it a couple things stood out.
+> I've attached a patches for l-o and l-z for anyone to comment on which cares.
 
-I'm sure you don't want to increase the discrepancy between linux-omap
-and omapzoom, so the patches sent to l-o should apply on top of the
-l-o tidspbridge in order to be merged.
+I hope these fixes are not ignored. Maybe they should be resent as they 
+are missing from patchwork and there's some formatting issues.
 
--- 
-Felipe Contreras
+A.
