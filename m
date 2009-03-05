@@ -1,52 +1,55 @@
-From: Ameya Palande <2ameya@gmail.com>
-Subject: Re: [PATCH 0/5] DSPBRIDGE: patches.
-Date: Thu, 5 Mar 2009 12:26:55 +0200
-Message-ID: <269694c00903050226q5c9328b6t94545fc8897f0c8f@mail.gmail.com>
-References: <AcmbkxdireoiOwTdTheTDDA03ZVOOQ==>
-	 <496565EC904933469F292DDA3F1663E60287B84DB4@dlee06.ent.ti.com>
+From: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+Subject: Re: [PATCH 1/9] omap3isp: Add ISP main driver and register definitions
+Date: Thu, 05 Mar 2009 13:34:59 +0200
+Message-ID: <49AFB8E3.9070909@maxwell.research.nokia.com>
+References: <49AD0128.5090503@maxwell.research.nokia.com>	 <1236074816-30018-1-git-send-email-sakari.ailus@maxwell.research.nokia.com> <1236081373.10927.15.camel@tux.localhost>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from rv-out-0506.google.com ([209.85.198.233]:63998 "EHLO
-	rv-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752301AbZCEK05 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 5 Mar 2009 05:26:57 -0500
-Received: by rv-out-0506.google.com with SMTP id g37so3806535rvb.1
-        for <linux-omap@vger.kernel.org>; Thu, 05 Mar 2009 02:26:55 -0800 (PST)
-In-Reply-To: <496565EC904933469F292DDA3F1663E60287B84DB4@dlee06.ent.ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-media-owner@vger.kernel.org>
+In-Reply-To: <1236081373.10927.15.camel@tux.localhost>
+Sender: linux-media-owner@vger.kernel.org
+To: Alexey Klimov <klimov.linux@gmail.com>
+Cc: linux-media@vger.kernel.org, linux-omap@vger.kernel.org, saaguirre@ti.com, tuukka.o.toivonen@nokia.com, dongsoo.kim@gmail.com
 List-Id: linux-omap@vger.kernel.org
-To: "Guzman Lugo, Fernando" <x0095840@ti.com>
-Cc: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Tue, Mar 3, 2009 at 2:00 AM, Guzman Lugo, Fernando <x0095840@ti.com>=
- wrote:
->
->
-> Hi,
->
-> =C2=A0 =C2=A0 =C2=A0 =C2=A0I am sending my patches again, now they ar=
-e base on this commit:
->
-> commit bacaa3dc169e11488faf17519a42c4e8641fc17e
-> Author: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
-> Date: =C2=A0 Mon Feb 16 10:43:15 2009 +0200
->
-> =C2=A0 =C2=A0TIDSPBRIDGE: fix some build warnings
->
-> I hope there will be not problems this time.
->
+Thanks for the comments, Alexey!
 
-Hi Fernando,
+Alexey Klimov wrote:
+>> +static int isp_probe(struct platform_device *pdev)
+>> +{
+>> +	struct isp_device *isp;
+>> +	int ret_err = 0;
+>> +	int i;
+>> +
+>> +	isp = kzalloc(sizeof(*isp), GFP_KERNEL);
+>> +	if (!isp) {
+>> +		dev_err(&pdev->dev, "could not allocate memory\n");
+>> +		return -ENODEV;
+> 
+> return -ENOMEM; ?
 
-Are you using tidspbridge-pm branch from
-http://gitorious.org/projects/lk/repos/mainline ?
+Done.
 
-Cheers,
-Ameya.
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>> +	}
+>> +
+>> +	platform_set_drvdata(pdev, isp);
+>> +
+>> +	isp->dev = &pdev->dev;
+>> +
+>> +	for (i = 0; i <= OMAP3_ISP_IOMEM_CSI2PHY; i++) {
+>> +		struct resource *mem;
+>> +		/* request the mem region for the camera registers */
+>> +		mem = platform_get_resource(pdev, IORESOURCE_MEM, i);
+>> +		if (!mem) {
+>> +			dev_err(isp->dev, "no mem resource?\n");
+>> +			return -ENODEV;
+> 
+> Maybe ENODEV is not apropriate here too..
+
+What else it could be? ENOENT comes to mind but I'm not sure it's 
+significantly better.
+
+-- 
+Sakari Ailus
+sakari.ailus@maxwell.research.nokia.com
