@@ -1,137 +1,100 @@
-From: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
-Subject: Re: [PATCH 9/9] omap34xxcam: Add camera driver
-Date: Thu, 05 Mar 2009 16:09:15 +0200
-Message-ID: <49AFDD0B.80804@maxwell.research.nokia.com>
-References: <49AD0128.5090503@maxwell.research.nokia.com>	 <1236074816-30018-1-git-send-email-sakari.ailus@maxwell.research.nokia.com>	 <1236074816-30018-2-git-send-email-sakari.ailus@maxwell.research.nokia.com>	 <1236074816-30018-3-git-send-email-sakari.ailus@maxwell.research.nokia.com>	 <1236074816-30018-4-git-send-email-sakari.ailus@maxwell.research.nokia.com>	 <1236074816-30018-5-git-send-email-sakari.ailus@maxwell.research.nokia.com>	 <1236074816-30018-6-git-send-email-sakari.ailus@maxwell.research.nokia.com>	 <1236074816-30018-7-git-send-email-sakari.ailus@maxwell.research.nokia.com>	 <1236074816-30018-8-git-send-email-sakari.ailus@maxwell.research.nokia.com>	 <1236074816-30018-9-git-send-email-sakari.ailus@maxwell.research.nokia.com> <1236101460.10927.109.camel@tux.localhost>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+From: Tero Kristo <tero.kristo@nokia.com>
+Subject: [PATCH] OMAP3: Fixed crash bug with serial + suspend
+Date: Thu,  5 Mar 2009 16:32:23 +0200
+Message-ID: <1236263543-7085-1-git-send-email-tero.kristo@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:45704 "EHLO
+Received: from smtp.nokia.com ([192.100.122.233]:49212 "EHLO
 	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755110AbZCEOJ3 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 5 Mar 2009 09:09:29 -0500
-In-Reply-To: <1236101460.10927.109.camel@tux.localhost>
+	with ESMTP id S1751445AbZCEOtn (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 5 Mar 2009 09:49:43 -0500
+Received: from vaebh106.NOE.Nokia.com (vaebh106.europe.nokia.com [10.160.244.32])
+	by mgw-mx06.nokia.com (Switch-3.2.6/Switch-3.2.6) with ESMTP id n25EnZqx023962
+	for <linux-omap@vger.kernel.org>; Thu, 5 Mar 2009 16:49:38 +0200
+Received: from localhost.localdomain (sokoban.ntc.nokia.com [172.22.144.95])
+	by mgw-int01.ntc.nokia.com (Switch-3.2.5/Switch-3.2.5) with ESMTP id n25EnVrW002594
+	for <linux-omap@vger.kernel.org>; Thu, 5 Mar 2009 16:49:31 +0200
+In-Reply-To: <>
+References: <>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Alexey Klimov <klimov.linux@gmail.com>
-Cc: linux-media@vger.kernel.org, linux-omap@vger.kernel.org, saaguirre@ti.com, tuukka.o.toivonen@nokia.com, dongsoo.kim@gmail.com
+To: linux-omap@vger.kernel.org
 
-Alexey Klimov wrote:
->> +static int vidioc_g_fmt_vid_cap(struct file *file, void *fh,
->> +				struct v4l2_format *f)
->> +{
->> +	struct omap34xxcam_fh *ofh = fh;
->> +	struct omap34xxcam_videodev *vdev = ofh->vdev;
->> +
->> +	if (vdev->vdev_sensor == v4l2_int_device_dummy())
->> +		return -EINVAL;
->> +
->> +	mutex_lock(&vdev->mutex);
->> +	f->fmt.pix = vdev->pix;
->> +	mutex_unlock(&vdev->mutex);
-> 
-> Hmmmm, you are using mutex_lock to lock reading from vdev structure..
-> Well, i don't if this is right approach. I am used to that mutex_lock is
-> used to prevent _changing_ of members in structure..
+It was possible for an unhandled interrupt to occur if there was incoming
+serial traffic during wakeup from suspend. This was caused by the code
+in arch-arm/mach-omap2/serial.c keeping interrupt enabled all the time,
+but not acking its interrupts. Applies on top of PM branch.
 
-The vdev->mutex is acquired since we want to prevent concurrent access 
-to vdev->pix. Otherwise it might change while we are reading it, right?
+Signed-off-by: Tero Kristo <tero.kristo@nokia.com>
+---
+ arch/arm/mach-omap2/pm34xx.c             |   15 +++++++++++++++
+ arch/arm/mach-omap2/serial.c             |   14 ++++++++++++++
+ arch/arm/plat-omap/include/mach/serial.h |    1 +
+ 3 files changed, 30 insertions(+), 0 deletions(-)
 
->> +static int vidioc_s_fmt_vid_cap(struct file *file, void *fh,
->> +				struct v4l2_format *f)
->> +{
->> +	struct omap34xxcam_fh *ofh = fh;
->> +	struct omap34xxcam_videodev *vdev = ofh->vdev;
->> +	struct v4l2_pix_format pix_tmp;
->> +	struct v4l2_fract timeperframe;
->> +	int rval;
->> +
->> +	if (vdev->vdev_sensor == v4l2_int_device_dummy())
->> +		return -EINVAL;
->> +
->> +	mutex_lock(&vdev->mutex);
->> +	if (vdev->streaming) {
->> +		rval = -EBUSY;
->> +		goto out;
->> +	}
-> 
-> Well, why don't remove goto, place return -EBUSY, and move mutex after
-> if (vdev->streaming) check ?
-
-The streaming state may change in the meantime. See vidioc_streamon. 
-It's not very likely but possible as far as I understand.
-
->> +static int vidioc_reqbufs(struct file *file, void *fh,
->> +			  struct v4l2_requestbuffers *b)
->> +{
->> +	struct omap34xxcam_fh *ofh = fh;
->> +	struct omap34xxcam_videodev *vdev = ofh->vdev;
->> +	int rval;
->> +
->> +	if (vdev->vdev_sensor == v4l2_int_device_dummy())
->> +		return -EINVAL;
->> +
->> +	mutex_lock(&vdev->mutex);
->> +	if (vdev->streaming) {
->> +		mutex_unlock(&vdev->mutex);
->> +		return -EBUSY;
->> +	}
-> 
-> If i'm doing this i prefer to place mutex_lock after this
-> if(vdev->streaming) check.
-
-Same here.
-
->> +static int omap34xxcam_device_register(struct v4l2_int_device *s)
->> +{
->> +	struct omap34xxcam_videodev *vdev = s->u.slave->master->priv;
->> +	struct omap34xxcam_hw_config hwc;
->> +	int rval;
->> +
->> +	/* We need to check rval just once. The place is here. */
-> 
-> I didn't understand this comment. You doing nothin in next few lines
-> with int variable rval(which introduced in this function). Is comment
-> talking about struct v4l2_int_device *s ?
-
-Yes. If the g_priv() succeeds now it will succeed in future, too. This 
-comes from the platform data through the slave device.
-
->> +	/* Are we the first slave? */
->> +	if (vdev->slaves == 1) {
->> +		/* initialize the video_device struct */
->> +		vdev->vfd = video_device_alloc();
->> +		if (!vdev->vfd) {
->> +			dev_err(&vdev->vfd->dev,
->> +				"could not allocate video device struct\n");
-> 
-> Do i understand you code in right way ?
-> You call video_device_alloc() to get vdev->vfd. Then if vdev->vfd is
-> null(empty) you make message dev_err which based on vdev->vfd->dev but
-> dev->vfd allocating is failed.. If i'm not wrong you message will
-> provide kernel oops.
-> One more point here is that you use dev_err(&vdev->vfd->dev before call
-> to video_device_alloc() in this function.
-
-Indeed. Others hit this already. Thanks.
-
->> +static int __init omap34xxcam_init(void)
->> +{
->> +	struct omap34xxcam_device *cam;
->> +	int i;
->> +
->> +	cam = kzalloc(sizeof(*cam), GFP_KERNEL);
->> +	if (!cam) {
->> +		printk(KERN_ERR "%s: could not allocate memory\n", __func__);
->> +		goto err;
-> 
-> If kzalloc failed you return -ENODEV; but this is ENOMEM error.
-
-Yes. Will fix.
-
-Thanks again for the comments.
-
+diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
+index 9102cee..5a627db 100644
+--- a/arch/arm/mach-omap2/pm34xx.c
++++ b/arch/arm/mach-omap2/pm34xx.c
+@@ -629,7 +629,22 @@ static void omap3_pm_finish(void)
+ 	pm_idle = saved_idle;
+ }
+ 
++/* Hooks to enable / disable UART interrupts during suspend */
++static int omap3_pm_begin(suspend_state_t state)
++{
++	omap_uart_enable_irqs(0);
++	return 0;
++}
++
++static void omap3_pm_end(void)
++{
++	omap_uart_enable_irqs(1);
++	return;
++}
++
+ static struct platform_suspend_ops omap_pm_ops = {
++	.begin		= omap3_pm_begin,
++	.end		= omap3_pm_end,
+ 	.prepare	= omap3_pm_prepare,
+ 	.enter		= omap3_pm_enter,
+ 	.finish		= omap3_pm_finish,
+diff --git a/arch/arm/mach-omap2/serial.c b/arch/arm/mach-omap2/serial.c
+index 90f1c67..e77567a 100644
+--- a/arch/arm/mach-omap2/serial.c
++++ b/arch/arm/mach-omap2/serial.c
+@@ -432,6 +432,20 @@ static void omap_uart_idle_init(struct omap_uart_state *uart)
+ 	WARN_ON(ret);
+ }
+ 
++void omap_uart_enable_irqs(int enable)
++{
++	int ret;
++	struct omap_uart_state *uart;
++
++	list_for_each_entry(uart, &uart_list, node) {
++		if (enable)
++			ret = request_irq(uart->p->irq, omap_uart_interrupt,
++				IRQF_SHARED, "serial idle", (void *)uart);
++		else
++			free_irq(uart->p->irq, (void *)uart);
++	}
++}
++
+ static ssize_t sleep_timeout_show(struct kobject *kobj,
+ 				  struct kobj_attribute *attr,
+ 				  char *buf)
+diff --git a/arch/arm/plat-omap/include/mach/serial.h b/arch/arm/plat-omap/include/mach/serial.h
+index 8e89585..7ca1f27 100644
+--- a/arch/arm/plat-omap/include/mach/serial.h
++++ b/arch/arm/plat-omap/include/mach/serial.h
+@@ -47,6 +47,7 @@ extern void omap_uart_check_wakeup(void);
+ extern void omap_uart_prepare_suspend(void);
+ extern void omap_uart_prepare_idle(int num);
+ extern void omap_uart_resume_idle(int num);
++extern void omap_uart_enable_irqs(int enable);
+ #endif
+ 
+ #endif
 -- 
-Sakari Ailus
-sakari.ailus@maxwell.research.nokia.com
+1.5.4.3
+
