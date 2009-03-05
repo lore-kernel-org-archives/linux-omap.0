@@ -1,50 +1,63 @@
-From: david.hagood@gmail.com
-Subject: where is "struct constraint_id" defined?
-Date: Thu, 5 Mar 2009 09:54:13 -0600 (CST)
-Message-ID: <6e77f93b754e8ec34333f764a6a00c43.squirrel@localhost>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 0/5] DSPBRIDGE: patches.
+Date: Thu, 5 Mar 2009 08:01:36 -0800
+Message-ID: <20090305160135.GW6784@atomide.com>
+References: <496565EC904933469F292DDA3F1663E60287B84DB4@dlee06.ent.ti.com> <269694c00903050226q5c9328b6t94545fc8897f0c8f@mail.gmail.com> <8F7AF80515AF0D4D93307E594F3CB40E22FE718B@dlee03.ent.ti.com> <94a0d4530903050542r39af0220l1b7a4117089e37df@mail.gmail.com> <7A436F7769CA33409C6B44B358BFFF0CFF3500FA@dlee02.ent.ti.com> <8F7AF80515AF0D4D93307E594F3CB40E22FE71DF@dlee03.ent.ti.com> <94a0d4530903050605j2cdf2228g4a8c869c05ce9d84@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from qw-out-2122.google.com ([74.125.92.24]:48334 "EHLO
-	qw-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752862AbZCEPyT (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 5 Mar 2009 10:54:19 -0500
-Received: by qw-out-2122.google.com with SMTP id 5so5807286qwi.37
-        for <linux-omap@vger.kernel.org>; Thu, 05 Mar 2009 07:54:16 -0800 (PST)
-Received: from localhost (localhost [127.0.0.1])
-	by Deathwish.hagood.sktc.net (Postfix) with ESMTP id 0885EC7B8014
-	for <linux-omap@vger.kernel.org>; Thu,  5 Mar 2009 09:54:13 -0600 (CST)
+Received: from mho-01-bos.mailhop.org ([63.208.196.178]:50636 "EHLO
+	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750761AbZCEQBn (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 5 Mar 2009 11:01:43 -0500
+Content-Disposition: inline
+In-Reply-To: <94a0d4530903050605j2cdf2228g4a8c869c05ce9d84@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
+To: Felipe Contreras <felipe.contreras@gmail.com>
+Cc: "Kanigeri, Hari" <h-kanigeri2@ti.com>, "Menon, Nishanth" <nm@ti.com>, Ameya Palande <2ameya@gmail.com>, "Guzman Lugo, Fernando" <x0095840@ti.com>, Hiroshi DOYU <Hiroshi.DOYU@nokia.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-I am trying to build the OMAP3 graphics kernel module against
-2.6.29-rc7-omap1 (from GIT), and have been running into problems getting
-it to build.
+* Felipe Contreras <felipe.contreras@gmail.com> [090305 06:06]:
+> On Thu, Mar 5, 2009 at 3:56 PM, Kanigeri, Hari <h-kanigeri2@ti.com> wrote:
+> > Nishant,
+> >
+> >> Yeah it gets real confusing. How about following the same
+> >> rules for the OMAPZOOM kernel here too: any patch w.r.t
+> >> OMAPZOOM comes:
+> >> Subj: RE: [OMAPZOOM PATCH 0/5] DSPBRIDGE: blah blah blah.
+> >>
+> >
+> > -- I agree with your suggestion. The subject should have OMAPZOOM to differentiate.
+> 
+> Nishanth has kindly explained me that this patch, sent to the l-o
+> mailing list, is not meant for the l-o tree.
+> 
+> A better way to differentiate patches specific for o-z is to send them
+> to the o-z mailing list, instead of l-o, right?
+> 
+> Tony: Or have you agreed with TI that these [OMAPZOOM] patches that
+> don't apply on top of l-o are ok here?
 
-Two problems were pretty easy: the TI code was including "asm/resource.h"
-and "asm/semaphore.h" rather than "linux/resource.h" and
-"linux/semaphore.h".
+Well as long as they're clearly tagged as OMAPZOOM, things don't get
+too confusing, so I'm OK with that.
 
-Having made those changes, it builds all the way through to the TI
-supplied "sysutils_linux.c", which barfs with :
+But in general I'm worried as it looks like the zoom tree is just
+piling up more and more hacks and ifdefs with no serious attempt to
+merge that code upstream.
 
-In file included from
-/space/src/OMAP35x_Graphics_SDC_3_00_00_06/GFX_Linux_KM/services4/srvkm/env/linux/kbuild/../../../../../services4/system/omap3430/sysutils.c:28:
-/space/src/OMAP35x_Graphics_SDC_3_00_00_06/GFX_Linux_KM/services4/srvkm/env/linux/kbuild/../../../../../services4/system/omap3430/sysutils_linux.c:154:
-error: variable 'cnstr_id_vdd2' has initializer but incomplete type
+Everybody, we need to get the infrastructure pieces done properly
+and into the mainline tree so we can use that for all our omap needs.
 
-(and many other errors).
+Sure some board specific hacks will be still needed here and there,
+and tons of the omap and driver patches already apply against the
+mainline kernel code.
 
-The problem line of the code is:
+It's up to each developer to submit their patches through the right
+mailing lists to the mainline kernel. Piling up code into some other
+trees only increases the diff against the mainline tree. 
 
-static struct constraint_id cnstr_id_vdd2 = {
+Everybody, when you see a piece of omap code that's not in the
+mainline kernel yet, whine and complain until the code gets
+integrated.
 
-and I cannot find a definition of "struct constraint_id" anywhere in the
-kernel.
-
-Has this been renamed, or moved, or am I looking in the wrong place?
-
-
-
+Tony
