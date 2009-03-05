@@ -1,135 +1,152 @@
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: Re: [REVIEW PATCH 11/14] OMAP34XXCAM: Add driver
-Date: Thu, 5 Mar 2009 22:24:02 +0100
-Message-ID: <200903052224.03015.hverkuil@xs4all.nl>
-References: <A24693684029E5489D1D202277BE89442E296E09@dlee02.ent.ti.com> <200903042344.32820.hverkuil@xs4all.nl> <49B031D6.1070203@maxwell.research.nokia.com>
+From: "Premi, Sanjeev" <premi@ti.com>
+Subject: RE: omap3 cpuidle interrupt latency
+Date: Fri, 6 Mar 2009 02:54:02 +0530
+Message-ID: <B85A65D85D7EB246BE421B3FB0FBB59301CC0ED873@dbde02.ent.ti.com>
+References: <B85A65D85D7EB246BE421B3FB0FBB59301CBF74DF9@dbde02.ent.ti.com>
+ <873advaet2.fsf@deeprootsystems.com>
+ <B85A65D85D7EB246BE421B3FB0FBB59301CC052561@dbde02.ent.ti.com>
+ <B85A65D85D7EB246BE421B3FB0FBB59301CC052FB3@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-media-owner@vger.kernel.org>
-In-Reply-To: <49B031D6.1070203@maxwell.research.nokia.com>
-Content-Disposition: inline
-Sender: linux-media-owner@vger.kernel.org
-To: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
-Cc: "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>, "DongSoo(Nathaniel) Kim" <dongsoo.kim@gmail.com>, "Hiremath, Vaibhav" <hvaibhav@ti.com>, "Toivonen Tuukka.O (Nokia-D/Oulu)" <tuukka.o.toivonen@nokia.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Nagalla, Hari" <hnagalla@ti.com>, "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:50313 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751128AbZCEVYR convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 5 Mar 2009 16:24:17 -0500
+In-Reply-To: <B85A65D85D7EB246BE421B3FB0FBB59301CC052FB3@dbde02.ent.ti.com>
+Content-Language: en-US
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Kevin Hilman <khilman@deeprootsystems.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Thursday 05 March 2009 21:11:02 Sakari Ailus wrote:
-> Hans Verkuil wrote:
-> >> Situation 1
-> >>  - Instance1: Select sensor 1, and Do queue/dequeue of buffers.
-> >>  - Instance2: If sensor 1 is currently selected, Begin loop requesting
-> >> internally collected OMAP3ISP statistics (with V4L2 private based
-> >> IOCTLs) for performing user-side Auto-exposure, Auto White Balance,
-> >> Auto Focus algorithms. And Adjust gains (with S_CTRL) accordingly on
-> >> sensor as a result.
-> >
-> > Question: if you have multiple sensors, and sensor 1 is selected, can
-> > you still get statistics from sensor 2? Or is all this still limited to
-> > the selected sensor? Just want to make sure I understand it all.
->
-> The ISP does have submodules and there are some ways of configuring the
-> data path inside the ISP, but in general just one sensor can be used at
-> a time in meaningful way.
->
-> Sergio, please correct me if I'm wrong: the only case I know that you
-> can do is to use the ISP normally (data flowing through pretty much all
-> the ISP modules) with one sensor and write the output of another sensor
-> directly to memory in one of the parallel/CCP2/CSI2 receivers.
->
-> I guess there's no use case for this, however. So just one user at a
-> time for the OMAP 3 ISP.
->
->
->
-> Another thing comes to my mind, though.
->
-> Sergio has posted earlier a patchset containing a driver for using the
-> ISP to process images from memory to memory. The ISP driver is used
-> roughly the same way as with the omap34xxcam and real sensors. The
-> interface towards the userspace offered by the driver, however, is
-> different, you probably saw it (preview and resizer wrappers).
->
-> My opinion has been that the memory-to-memory operation of the ISP
-> should also offer V4L2 interface. V4L2, however, doesn't support such
-> devices at the moment. The only differences that I can see is that
->
-> 1. the input is a video buffer instead of sensor and
->
-> 2. the source format needs to be specified somehow since the ISP can
-> also do format conversion. So it's output and input at the same time.
->
-> But if we had one video device per ISP, then memory-to-memory operation
-> would be just one... input or output or what? :)
->
-> Earlier we were thinking of creating one device node for it.
+> -----Original Message-----
+> From: Premi, Sanjeev 
+> Sent: Wednesday, March 04, 2009 7:52 PM
+> To: Premi, Sanjeev; Kevin Hilman
+> Cc: linux-omap@vger.kernel.org
+> Subject: RE: omap3 cpuidle interrupt latency
+> 
+> > -----Original Message-----
+> > From: linux-omap-owner@vger.kernel.org 
+> > [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of 
+> Premi, Sanjeev
+> > Sent: Tuesday, March 03, 2009 3:54 PM
+> > To: Kevin Hilman
+> > Cc: linux-omap@vger.kernel.org
+> > Subject: RE: omap3 cpuidle interrupt latency
+> > 
+> > > -----Original Message-----
+> > > From: Kevin Hilman [mailto:khilman@deeprootsystems.com]
+> > > Sent: Tuesday, March 03, 2009 1:16 AM
+> > > To: Premi, Sanjeev
+> > > Cc: linux-omap@vger.kernel.org
+> > > Subject: Re: omap3 cpuidle interrupt latency
+> > > 
+> > > "Premi, Sanjeev" <premi@ti.com> writes:
+> > > 
+> > > > I have noticed large interrupt latency when the cpuidle
+> > is enabled.
+> > > > e.g. response time for ping goes from avg 10-20ms to 800-1000ms.
+> > > > (I am at HEAD of the 'pm' branch)
+> > > 
+> > > Is it interrupt latency in general you are measuring?  or 
+> just the 
+> > > interrupt latency for the smc network driver.  I think 
+> what you are 
+> > > seeing is the result of the SMC IRQ not being configured as
+> > a wakeup
+> > > source, thus a network interrupt will not wake the system,
+> > but you end
+> > > up waiting for the next idle timer until the system wakes
+> > and handles
+> > > the network interrupt.
+> > 
+> > I used SMC as an example. The read over USB is also slow...
+> > 
+> > I feel there is generic latency. Initially, I was suspecting the 
+> > hrtimer functions taking long time. But that may not be the case.
+> > 
+> > > 
+> > > By default, I don't believe the GPIO interrupt used by the smc is 
+> > > configured as a wakeup source.  Have you configured that 
+> GPIO as a 
+> > > wakeup source?
+> > 
+> > My current measurements are based with all idle related flags 
+> > 'sleep_while_idle', 'clocks_off_while_idle' and 'enable_off_mode'
+> > set at 0.
+> > 
+> > Does WFI require a wakeup event? Even when system is not in 'off' 
+> > stare?
+> 
+> For simple debug, I replaced the _omap_sram_idle() processing with:
+> 	__asm__ ("dmb");
+> 	__asm__ ("dsb");
+> 	__asm__ ("wfi");
+> 
+> Here, again behavior was same for ethernet.
+> 
+> For more simplification, I focused on keypad and touchscreen.
+> 1) Let the system stay idle for about 10secs
+> 2) Press the keypad & tap the touchscreen
+> 3) cat /proc/interrupts
+> 
+> While the keypad interrupts (via SYS_NIRQ) are getting 
+> updated; most of the TS interrupts (via GPIO) seem to be 
+> missing; With a busy loop in the background OR 
+> _omap_sram_idle() commented - not doing WFI - changes the 
+> behavior. Each tap on the TS is registered in /proc/interrupts.
 
-This sounds like a codec interface as 'described' here:
+On Kevin's suggestion, I tried to disable cpuidle and repeat the
+experiment with omap_pm_idle () - with minor mods to ensure that
+WFI is executed.
 
-http://www.xs4all.nl/~hverkuil/spec/v4l2.html#CODEC
+Results was same. While the UART is active (via 5 sec timeout)
+all taps on the touchscreen were detected. If the system is kept
+idle for about 10 secs, the interrupts are lost.
 
-It would be a first for V4L2 to have a driver that can do this, but I agree 
-that that would be a single device that has both 'output' and 'capture'.
+~sanjeev
 
-> > That is probably what the driver should do, yes. The V4L2 spec leaves
-> > it up to the driver whether you can switch inputs while a capture is in
-> > progress. In this case I think it is perfectly reasonably for the
-> > driver to return -EBUSY.
->
-> Ok.
->
-> >> I'm not clear if this single-node idea is really helping the user to
-> >> have a simpler usage in Situation 1, which I feel will become pretty
-> >> common on this driver...
-> >
-> > The spec is pretty clear about this, and existing v4l2 applications
-> > also expect this behavior. Also, suppose you have two video nodes, what
-> > happens when you want to use the inactive node? How can you tell it is
-> > inactive?
->
-> open() succeeds.
->
-> Currently you can have just one device node using the ISP open.
-> omap34xxcam_open() calls isp_get() which fails if the ISP use count was
-> non-zero (means one).
->
-> Or did I misunderstood something?
-
-Oh dear. Please don't use 'use counts'. It is perfectly acceptable and 
-desirable to have multiple opens on the same video node. Only one file 
-handle can do reading/writing/streaming, but others should be able to 
-querying controls, set brightness, or whatever at the same time.
-
-Use counts are really bad and totally unnecessary. Only if another file 
-handle is in streaming mode (and when using VIDIOC_S_PRIORITY) does it make 
-sense to return -EBUSY for certain ioctls or read/write operations. 
-Otherwise you shouldn't limit the user from opening the same device node as 
-many times as he wants and use that to query the video device.
-
-There are unfortunately a whole bunch of existing v4l2 drivers that have 
-this same limitation. These drivers are wrong. It is sadly not very easy to 
-fix them, but I can try to prevent the same bug from appearing in new 
-drivers.
-
-BTW, I looked at omap24xxcam_open(): data like fh->pix does *not* belong to 
-the filehandle struct, it should be part of the top-level data structure. 
-You want to be able to do simple things like querying a video node for the 
-currently selected format. You can't do that if the format is stored in the 
-filehandle! E.g.: you are streaming and you want to run 
-v4l2-ctl --get-fmt-video to check what video format is being used. Things 
-like this must be supported by a well-written v4l2 driver. Again, sadly 
-quite a few v4l2 drivers do this wrong as well :-(
-
-I also see that cam->users is not decreased by one if 
-omap24xxcam_sensor_enable() fails.
-
-Note that I'm looking at the code in the v4l-dvb repository, the linux-omap 
-git tree might have fixed that already.
-
-Regards,
-
-	Hans
-
--- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG
+> 
+> > 
+> > ~sanjeev
+> > 
+> > > 
+> > > Kevin
+> > > 
+> > > 
+> > > > The IRQs and FIQs are disabled at the beginning of the function
+> > > > omap3_enter_idle() but WFI is executed much later in
+> > > _omap_sram_idle().
+> > > > In between, there is only one check for pending IRQs -
+> > > > omap_irq_pending()
+> > > >  
+> > > > If any interrupt occurs beyond this point is it considered
+> > > by the WFI?
+> > > >  
+> > > > To reduce this latency, I am planning to do either/both of thse:
+> > > > - Add more checks for pending IRQs
+> > > > - Reduce the time for which the IRQs and FIQs are disabled
+> > > >  
+> > > > Benefits will depend upon the behavior of WFI.
+> > > >  
+> > > > Best regards,
+> > > > Sanjeev
+> > > >
+> > > > --
+> > > > To unsubscribe from this list: send the line "unsubscribe
+> > > linux-omap" 
+> > > > in the body of a message to majordomo@vger.kernel.org More
+> > > majordomo
+> > > > info at  http://vger.kernel.org/majordomo-info.html
+> > > 
+> > > --
+> > To unsubscribe from this list: send the line "unsubscribe 
+> linux-omap" 
+> > in the body of a message to majordomo@vger.kernel.org More 
+> majordomo 
+> > info at http://vger.kernel.org/majordomo-info.html
+> > 
+> > 
