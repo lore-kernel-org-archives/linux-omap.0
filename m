@@ -1,63 +1,136 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 0/5] DSPBRIDGE: patches.
-Date: Thu, 5 Mar 2009 08:01:36 -0800
-Message-ID: <20090305160135.GW6784@atomide.com>
-References: <496565EC904933469F292DDA3F1663E60287B84DB4@dlee06.ent.ti.com> <269694c00903050226q5c9328b6t94545fc8897f0c8f@mail.gmail.com> <8F7AF80515AF0D4D93307E594F3CB40E22FE718B@dlee03.ent.ti.com> <94a0d4530903050542r39af0220l1b7a4117089e37df@mail.gmail.com> <7A436F7769CA33409C6B44B358BFFF0CFF3500FA@dlee02.ent.ti.com> <8F7AF80515AF0D4D93307E594F3CB40E22FE71DF@dlee03.ent.ti.com> <94a0d4530903050605j2cdf2228g4a8c869c05ce9d84@mail.gmail.com>
+Subject: Re: [PATCH 3/7] ARM: OMAP: Add command line option for I2C bus
+	speed
+Date: Thu, 5 Mar 2009 08:20:43 -0800
+Message-ID: <20090305162043.GY6784@atomide.com>
+References: <20090304214540.21101.72079.stgit@localhost> <20090304215105.21101.88365.stgit@localhost>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-bos.mailhop.org ([63.208.196.178]:50636 "EHLO
+Received: from mho-01-bos.mailhop.org ([63.208.196.178]:57936 "EHLO
 	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750761AbZCEQBn (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 5 Mar 2009 11:01:43 -0500
+	with ESMTP id S1753364AbZCEQUu (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 5 Mar 2009 11:20:50 -0500
 Content-Disposition: inline
-In-Reply-To: <94a0d4530903050605j2cdf2228g4a8c869c05ce9d84@mail.gmail.com>
+In-Reply-To: <20090304215105.21101.88365.stgit@localhost>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Contreras <felipe.contreras@gmail.com>
-Cc: "Kanigeri, Hari" <h-kanigeri2@ti.com>, "Menon, Nishanth" <nm@ti.com>, Ameya Palande <2ameya@gmail.com>, "Guzman Lugo, Fernando" <x0095840@ti.com>, Hiroshi DOYU <Hiroshi.DOYU@nokia.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: linux-arm-kernel@lists.arm.linux.org.uk
+Cc: linux-omap@vger.kernel.org, Jarkko Nikula <jarkko.nikula@nokia.com>
 
-* Felipe Contreras <felipe.contreras@gmail.com> [090305 06:06]:
-> On Thu, Mar 5, 2009 at 3:56 PM, Kanigeri, Hari <h-kanigeri2@ti.com> wrote:
-> > Nishant,
-> >
-> >> Yeah it gets real confusing. How about following the same
-> >> rules for the OMAPZOOM kernel here too: any patch w.r.t
-> >> OMAPZOOM comes:
-> >> Subj: RE: [OMAPZOOM PATCH 0/5] DSPBRIDGE: blah blah blah.
-> >>
-> >
-> > -- I agree with your suggestion. The subject should have OMAPZOOM to differentiate.
+* Tony Lindgren <tony@atomide.com> [090304 13:51]:
+> From: Jarkko Nikula <jarkko.nikula@nokia.com>
 > 
-> Nishanth has kindly explained me that this patch, sent to the l-o
-> mailing list, is not meant for the l-o tree.
+> This patch adds a new command line option "i2c_bus=bus_id,clkrate" into
+> I2C bus registration helper. Purpose of the option is to override the
+> default board specific bus speed which is supplied by the
+> omap_register_i2c_bus.
 > 
-> A better way to differentiate patches specific for o-z is to send them
-> to the o-z mailing list, instead of l-o, right?
-> 
-> Tony: Or have you agreed with TI that these [OMAPZOOM] patches that
-> don't apply on top of l-o are ok here?
+> The default bus speed is typically set to speed of slowest I2C chip on the
+> bus and overriding allow to use some experimental configurations or updated
+> chip versions without any kernel modifications.
 
-Well as long as they're clearly tagged as OMAPZOOM, things don't get
-too confusing, so I'm OK with that.
+Jarkko, this should also be in Documentation/kernel-parameters.txt. Can
+you please reply with a patch for that, and I'll fold it into this
+patch?
 
-But in general I'm worried as it looks like the zoom tree is just
-piling up more and more hacks and ifdefs with no serious attempt to
-merge that code upstream.
+Also, maybe it should be called omap_i2c_bus instead of i2c_bus?
 
-Everybody, we need to get the infrastructure pieces done properly
-and into the mainline tree so we can use that for all our omap needs.
-
-Sure some board specific hacks will be still needed here and there,
-and tons of the omap and driver patches already apply against the
-mainline kernel code.
-
-It's up to each developer to submit their patches through the right
-mailing lists to the mainline kernel. Piling up code into some other
-trees only increases the diff against the mainline tree. 
-
-Everybody, when you see a piece of omap code that's not in the
-mainline kernel yet, whine and complain until the code gets
-integrated.
+Regards,
 
 Tony
+ 
+> Signed-off-by: Jarkko Nikula <jarkko.nikula@nokia.com>
+> Signed-off-by: Tony Lindgren <tony@atomide.com>
+> ---
+>  arch/arm/plat-omap/i2c.c |   54 +++++++++++++++++++++++++++++++++++++---------
+>  1 files changed, 44 insertions(+), 10 deletions(-)
+> 
+> diff --git a/arch/arm/plat-omap/i2c.c b/arch/arm/plat-omap/i2c.c
+> index 3e95954..aa70e43 100644
+> --- a/arch/arm/plat-omap/i2c.c
+> +++ b/arch/arm/plat-omap/i2c.c
+> @@ -119,6 +119,46 @@ static void __init omap_i2c_mux_pins(int bus)
+>  	omap_cfg_reg(scl);
+>  }
+>  
+> +static int __init omap_i2c_nr_ports(void)
+> +{
+> +	int ports = 0;
+> +
+> +	if (cpu_class_is_omap1())
+> +		ports = 1;
+> +	else if (cpu_is_omap24xx())
+> +		ports = 2;
+> +	else if (cpu_is_omap34xx())
+> +		ports = 3;
+> +
+> +	return ports;
+> +}
+> +
+> +/**
+> + * omap_i2c_bus_setup - Process command line options for the I2C bus speed
+> + * @str: String of options
+> + *
+> + * This function allow to override the default I2C bus speed for given I2C
+> + * bus with a command line option.
+> + *
+> + * Format: i2c_bus=bus_id,clkrate (in kHz)
+> + *
+> + * Returns 1 on success, 0 otherwise.
+> + */
+> +static int __init omap_i2c_bus_setup(char *str)
+> +{
+> +	int ports;
+> +	int ints[3];
+> +
+> +	ports = omap_i2c_nr_ports();
+> +	get_options(str, 3, ints);
+> +	if (ints[0] < 2 || ints[1] < 1 || ints[1] > ports)
+> +		return 0;
+> +	i2c_rate[ints[1] - 1] = ints[2];
+> +
+> +	return 1;
+> +}
+> +__setup("i2c_bus=", omap_i2c_bus_setup);
+> +
+>  /**
+>   * omap_register_i2c_bus - register I2C bus with device descriptors
+>   * @bus_id: bus id counting from number 1
+> @@ -132,19 +172,12 @@ int __init omap_register_i2c_bus(int bus_id, u32 clkrate,
+>  			  struct i2c_board_info const *info,
+>  			  unsigned len)
+>  {
+> -	int ports, err;
+> +	int err;
+>  	struct platform_device *pdev;
+>  	struct resource *res;
+>  	resource_size_t base, irq;
+>  
+> -	if (cpu_class_is_omap1())
+> -		ports = 1;
+> -	else if (cpu_is_omap24xx())
+> -		ports = 2;
+> -	else if (cpu_is_omap34xx())
+> -		ports = 3;
+> -
+> -	BUG_ON(bus_id < 1 || bus_id > ports);
+> +	BUG_ON(bus_id < 1 || bus_id > omap_i2c_nr_ports());
+>  
+>  	if (info) {
+>  		err = i2c_register_board_info(bus_id, info, len);
+> @@ -153,7 +186,8 @@ int __init omap_register_i2c_bus(int bus_id, u32 clkrate,
+>  	}
+>  
+>  	pdev = &omap_i2c_devices[bus_id - 1];
+> -	*(u32 *)pdev->dev.platform_data = clkrate;
+> +	if (i2c_rate[bus_id - 1] == 0)
+> +		i2c_rate[bus_id - 1] = clkrate;
+>  
+>  	if (bus_id == 1) {
+>  		res = pdev->resource;
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
