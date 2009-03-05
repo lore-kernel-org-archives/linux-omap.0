@@ -1,46 +1,70 @@
-From: ext-eero.nurkkala@nokia.com
-Subject: [RFC] OMAP: I2C: Use correct bit for CLOCKACTIVITY
-Date: Thu,  5 Mar 2009 08:27:35 +0200
-Message-ID: <12362344552581-git-send-email-ext-eero.nurkkala@nokia.com>
+From: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+Subject: Re: [RFC 0/9] OMAP3 ISP and camera drivers
+Date: Thu, 05 Mar 2009 09:30:52 +0200
+Message-ID: <49AF7FAC.1010004@maxwell.research.nokia.com>
+References: <19F8576C6E063C45BE387C64729E73940427BCA20A@dbde02.ent.ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:58455 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751258AbZCEGa4 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 5 Mar 2009 01:30:56 -0500
-Received: from esebh105.NOE.Nokia.com (esebh105.ntc.nokia.com [172.21.138.211])
-	by mgw-mx09.nokia.com (Switch-3.2.6/Switch-3.2.6) with ESMTP id n256UKgl027508
-	for <linux-omap@vger.kernel.org>; Thu, 5 Mar 2009 00:30:51 -0600
+Received: from smtp.nokia.com ([192.100.122.230]:23031 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753096AbZCEHbT (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 5 Mar 2009 02:31:19 -0500
+In-Reply-To: <19F8576C6E063C45BE387C64729E73940427BCA20A@dbde02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Eero Nurkkala <ext-eero.nurkkala@nokia.com>
+To: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+Cc: "DongSoo(Nathaniel) Kim" <dongsoo.kim@gmail.com>, "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>, Toivonen Tuukka Olli Artturi <tuukka.o.toivonen@nokia.com>, Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
 
-From: Eero Nurkkala <ext-eero.nurkkala@nokia.com>
+Hiremath, Vaibhav wrote:
+> 
+> Thanks,
+> Vaibhav Hiremath
+> 
+>> -----Original Message-----
+>> From: DongSoo(Nathaniel) Kim [mailto:dongsoo.kim@gmail.com]
+>> Sent: Thursday, March 05, 2009 5:41 AM
+>> To: Sakari Ailus
+>> Cc: Hiremath, Vaibhav; linux-media@vger.kernel.org; linux-
+>> omap@vger.kernel.org; Aguirre Rodriguez, Sergio Alberto; Toivonen
+>> Tuukka Olli Artturi; Hiroshi DOYU
+>> Subject: Re: [RFC 0/9] OMAP3 ISP and camera drivers
+>>
+>> Hi Sakari,
+>>
+>> I'm also facing same issue with Hiremath.
+>>
+>> Here you are my kernel stack dump.
+>>
+> [Hiremath, Vaibhav] I was getting same kernel crash,  The reason is -
+> 
+> Since  isp_probe doesn't get called, leaving omap3isp = NULL. So isp_get will return -EBUSY from the very beginning of function.  And the function "omap34xxcam_device_register" which calls isp_get tries to access vdev->vfd->dev where it crashes. Which is completely wrong, since the vfd gets initialize later part of function
+> 
+> 
+> if (hwc.dev_type == OMAP34XXCAM_SLAVE_SENSOR) {
+>     rval = isp_get();
+>     if (rval < 0) {
+>         dev_err(&vdev->vfd->dev, "can't get ISP, sensor init 					failed\n");
+> [Vaibhav] - Here it crashes.
+>          goto err;
+>      }
+> }
+> 
+> There are some instances where vdev->vfd is being accessed before initializing.
 
-It is the bit 8 that is for FCLK. All other blocks in
-OMAPs use the bit 8 for denying FCLK idling.
+Ooops.
 
-This is an RFC, I'd like some discussion. Somebody
-double-check this?
+Some parts of those dev_* were just mechanically changed from something 
+else. And I think Alexey Klimov already notified me about that problem. 
+I'm surprised that it was hit it so soon. ;)
 
-Signed-off-by: Eero Nurkkala <ext-eero.nurkkala@nokia.com>
----
- drivers/i2c/busses/i2c-omap.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+Just removing the dev_err helps to resolve the crash, I guess. You could 
+use late_initcall instead of module_init in the sensor, but that's just 
+a hack, too.
 
-diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
-index 0258b55..11057eb 100644
---- a/drivers/i2c/busses/i2c-omap.c
-+++ b/drivers/i2c/busses/i2c-omap.c
-@@ -157,7 +157,7 @@
- #define SYSC_AUTOIDLE_MASK		(1 << 0)
- 
- #define SYSC_IDLEMODE_SMART		0x2
--#define SYSC_CLOCKACTIVITY_FCLK		0x2
-+#define SYSC_CLOCKACTIVITY_FCLK		0x1
- 
- 
- struct omap_i2c_dev {
+If you are using modules, please load iommu2 and omap3-iommu before isp-mod.
+
 -- 
-1.5.2
-
+Sakari Ailus
+sakari.ailus@maxwell.research.nokia.com
