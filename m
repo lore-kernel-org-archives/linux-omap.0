@@ -1,31 +1,51 @@
-From: "Woodruff, Richard" <r-woodruff2-l0cyMroinI0@public.gmane.org>
-Subject: RE: [PATCH 2/2] i2c: i2c-omap: Call request_irq with IRQF_DISABLED
-Date: Fri, 6 Mar 2009 08:54:57 -0600
-Message-ID: <13B9B4C6EF24D648824FF11BE8967162037B646058@dlee02.ent.ti.com>
-References: <cover.1236345858.git.Ext-Ari.Kauppi@nokia.com>
- <7d7e7dd1a4c64c732a21bdfcf2bd42556be708c3.1236345858.git.Ext-Ari.Kauppi@nokia.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 3/7] ARM: OMAP: Add command line option for I2C bus
+	speed
+Date: Fri, 6 Mar 2009 08:13:50 -0800
+Message-ID: <20090306161349.GC32353@atomide.com>
+References: <20090304214540.21101.72079.stgit@localhost> <20090304215105.21101.88365.stgit@localhost> <20090305162043.GY6784@atomide.com> <20090306091304.7d2d8ecd.jarkko.nikula@nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
-Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <7d7e7dd1a4c64c732a21bdfcf2bd42556be708c3.1236345858.git.Ext-Ari.Kauppi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
-Content-Language: en-US
-Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Ari Kauppi <Ext-Ari.Kauppi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
-Cc: "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org" <ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-01-bos.mailhop.org ([63.208.196.178]:52177 "EHLO
+	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754078AbZCFQOA (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 6 Mar 2009 11:14:00 -0500
+Content-Disposition: inline
+In-Reply-To: <20090306091304.7d2d8ecd.jarkko.nikula@nokia.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Jarkko Nikula <jarkko.nikula@nokia.com>
+Cc: "linux-arm-kernel@lists.arm.linux.org.uk" <linux-arm-kernel@lists.arm.linux.org.uk>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-> I have observed some Spurious IRQ's for I2C1 when all kernel hacking options
-> (and thus LOCKDEP) are disabled.
->
-> Applying Richard Woodruff's 'I2C bug fixes for L-O and L-Z' seems to help
-> but IRQF_DISABLED is needed for proper behaviour.
+* Jarkko Nikula <jarkko.nikula@nokia.com> [090305 23:12]:
+> On Thu, 5 Mar 2009 17:20:43 +0100
+> ext Tony Lindgren <tony@atomide.com> wrote:
+> 
+> > Jarkko, this should also be in Documentation/kernel-parameters.txt.
+> > Can you please reply with a patch for that, and I'll fold it into this
+> > patch?
+> > 
+> Ah, good, will do it over weekend - early next week. Probably better to
+> handle as a separate patch for easier merging with
+> kernel-parameters.txt?
 
-I only submitted on l-o list for information and comment.
+I think they should get merged as a single patch.
+ 
+> > Also, maybe it should be called omap_i2c_bus instead of i2c_bus?
+> > 
+> I had similar thought as Felipe that it looks more generic this way.
+> But don't know now immediately would multibuild will work? Was that
+> your concern? E.g.
+> 
+> __setup("i2c_bus=", arm_xxx_i2c_bus_setup);
+> __setup("i2c_bus=", omap_i2c_bus_setup);
 
-They need to be submitted on i2c list and to Ben to get added.
+Well is it generic enough to work for everybody? And if so, we should
+run it by the LKML and the linux-i2c lists.
 
-Thanks for the additional positive feed back and fix.
+Any comments from other ARM platforms?
 
 Regards,
-Richard W.
+
+Tony
