@@ -1,47 +1,20 @@
-From: Adrian Hunter <adrian.hunter@nokia.com>
-Subject: [PATCH] regulator: twl4030 VAUX3 supports 3.0V
-Date: Fri, 06 Mar 2009 15:01:36 +0200
-Message-ID: <49B11EB0.30809@nokia.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:30106 "EHLO
-	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750865AbZCFNCO (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 6 Mar 2009 08:02:14 -0500
-Sender: linux-omap-owner@vger.kernel.org
+From: Ari Kauppi <Ext-Ari.Kauppi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH 0/2] i2c: i2c-omap: Reliablity and register fixes
+Date: Fri,  6 Mar 2009 15:34:52 +0200
+Message-ID: <cover.1236345858.git.Ext-Ari.Kauppi@nokia.com>
+Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org
+Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: lrg@slimlogic.co.uk
-Cc: David Brownell <david-b@pacbell.net>, LKML <linux-kernel@vger.kernel.org>, linux-omap Mailing List <linux-omap@vger.kernel.org>
 
-TWL4030 and TWL5030 support 3.0V on VAUX3.
+Two patches for i2c-omap driver.
 
-Signed-off-by: Adrian Hunter <adrian.hunter@nokia.com>
----
+Ari Kauppi (1):
+  i2c: i2c-omap: Call request_irq with IRQF_DISABLED
 
+Eero Nurkkala (1):
+  i2c: i2c-omap: Fix BUFSTAT_REG reading
 
-
-According to TI:
-http://community.ti.com/forums/t/3777.aspx
-
-
-
- drivers/regulator/twl4030-regulator.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
-
-diff --git a/drivers/regulator/twl4030-regulator.c b/drivers/regulator/twl4030-regulator.c
-index 8655443..1755026 100644
---- a/drivers/regulator/twl4030-regulator.c
-+++ b/drivers/regulator/twl4030-regulator.c
-@@ -224,7 +224,7 @@ static const u16 VAUX2_VSEL_table[] = {
- };
- static const u16 VAUX3_VSEL_table[] = {
- 	1500, 1800, 2500, 2800,
--	UNSUP(3000), UNSUP(3000), UNSUP(3000), UNSUP(3000),
-+	3000, 3000, 3000, 3000,
- };
- static const u16 VAUX4_VSEL_table[] = {
- 	700, 1000, 1200, UNSUP(1300),
--- 
-1.5.6.3
+ drivers/i2c/busses/i2c-omap.c |   12 +++++++-----
+ 1 files changed, 7 insertions(+), 5 deletions(-)
