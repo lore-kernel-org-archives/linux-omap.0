@@ -1,108 +1,87 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [patch/rft 2.6.29-rc3-omap-git] omap3 evm: MMC switch support
-Date: Thu, 5 Mar 2009 16:13:50 -0800
-Message-ID: <20090306001350.GE6784@atomide.com>
-References: <200902041523.07767.david-b@pacbell.net> <19F8576C6E063C45BE387C64729E739403FA81AD36@dbde02.ent.ti.com> <200902081225.14286.david-b@pacbell.net>
+Subject: Re: [PATCH 0/1] Group and resource assignments for TWL4030
+Date: Thu, 5 Mar 2009 16:16:26 -0800
+Message-ID: <20090306001625.GF6784@atomide.com>
+References: <1234271495-11705-1-git-send-email-peter.de-schrijver@nokia.com> <20090215164851.GA19407@codecarver.research.nokia.com> <20090227165949.GB11594@atomide.com> <200903031538.16757.david-b@pacbell.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-bos.mailhop.org ([63.208.196.178]:56030 "EHLO
+Received: from mho-01-bos.mailhop.org ([63.208.196.178]:58132 "EHLO
 	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754885AbZCFANz (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 5 Mar 2009 19:13:55 -0500
+	with ESMTP id S1751549AbZCFAQc (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 5 Mar 2009 19:16:32 -0500
 Content-Disposition: inline
-In-Reply-To: <200902081225.14286.david-b@pacbell.net>
+In-Reply-To: <200903031538.16757.david-b@pacbell.net>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: David Brownell <david-b@pacbell.net>
-Cc: "Pillai, Manikandan" <mani.pillai@ti.com>, OMAP <linux-omap@vger.kernel.org>
+Cc: Peter 'p2' De Schrijver <peter.de-schrijver@nokia.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-* David Brownell <david-b@pacbell.net> [090208 12:25]:
-> On Wednesday 04 February 2009, Pillai, Manikandan wrote:
-> > I tested the patch on the OMAP 3 EVM. I still find that the
-> > hotplug feature does not work on the OMAP3 EVM. The issue is
-> > that if I read the gpio_cd, I am getting the correct value
-> > on the gpio pin(INSERT =3D 0, PLUGOUT =3D 1) but the interrupts
-> > are not generated. =20
-> >=20
-> > The mmc0 interrupts always shows 0.
->=20
-> Are you getting any other IRQs through the twl4030 code?
->=20
-> There's not a lot of debugging I can do with this, since
-> I don't have an EVM ... and since this seems to work OK
-> on other boards.  (Testing on SDP being easiest, since
-> it's got a slot not tied down with MMC root.)
->=20
-> This patch was basically sent as a seed, since nobody
-> else seemed to be filling in the missing MMC/SD pieces
-> on that board.
+* David Brownell <david-b@pacbell.net> [090303 15:38]:
+> On Friday 27 February 2009, Tony Lindgren wrote:
+> > * Peter 'p2' De Schrijver <peter.de-schrijver@nokia.com> [090215 08:49]:
+> > > On Fri, Feb 13, 2009 at 09:55:21PM +0100, ext David Brownell wrote:
+> > > > On Tuesday 10 February 2009, Peter 'p2' De Schrijver wrote:
+> > > > >
+> > > > > This patch introduces support for board specific group assignments of TWL4030
+> > > > > resources. The resource type and type2 fields can also be specified.
+> > > > 
+> > > > Do we have any real examples yet of needing to assign
+> > > > resources to anything other than P1 (processor)?
+> > > 
+> > > Yes. On our custom hardware we use it to assign CLKEN to P3.
+> 
+> P3 roughly translating to "system running", with
+> no regard to whether ARM(s) or DSP are active, yes?
+> 
+> I've seen hardware which hooks CLKEN to the enable
+> line for a 2.8V regulator, and REGEN to the enable
+> line for a 2.5V regulator.
+> 
+> Table 5-8 of the chip manual tells me those, along
+> with HFCLOCK and a few other resources, are already
+> assigned to the P3 (and P1 and P2) groups by device
+> reset.  So that use case isn't quite complete.  At
+> least some of this look like normal paranoia, to
+> defend against hardware and bootloader oddities.  ;)
+> 
+> 
+> I'm not sure how those should be modeled within
+> the regulator framework.  My first thought is to
+> just let those particular resources live outside
+> that framework, until there's a need for another
+> solution ... the main virtue of that framework is
+> to have a standard way for Linux to manage things,
+> but these are resources it won't be managing.
+> The secondary virtue of "visibility into hardware"
+> isn't very compelling here IMO.
+> 
+> 
+> > BTW, this should be discussed and integrated via the driver lists,
+> > in this case that's Samuel Ortiz and LKML.
+> 
+> Actually this is related to the twl4030-power.c
+> driver which has not yet gone upstream.  I'm not
+> sure there'd be much point to discussing this on
+> the PM list though.
+> 
+> 
+> So let me suggest a slightly different approach:
+> 
+>  - Peter updates $SUBJECT patch to address the
+>    comments from me (data shrink) and Felipe
+>    (use those RES_* symbols in res_config_addrs)
+> 
+>  - Tony merges that to the OMAP tree
+> 
+>  - Peter starts work on merging twl4030-power.c
+>    to mainline (discuss on LKML etc)
+> 
+> There will be a few more issues to sort with this
+> driver.  There are section warnings generated by
+> some of the platform code, and the generic script
+> doesn't work at all on Beagle.
 
-I've pushed this, looks like the mux.[ch] changes had already
-been applied in another patch.
+This sounds OK to me as long as Peter is fine with that.
 
 Tony
-=20
-> - Dave
->=20
->=20
-> > root@172.24.190.49:~# cat /proc/interrupts=20
-> > =A0 =A0 =A0 =A0 =A0 =A0CPU0
-> > =A011: =A0 =A0 =A0 =A0 =A00 =A0 =A0 =A0 =A0INTC =A0prcm
-> > =A012: =A0 =A0 =A0 =A0 =A04 =A0 =A0 =A0 =A0INTC =A0DMA
-> > =A025: =A0 =A0 =A0 =A0 =A00 =A0 =A0 =A0 =A0INTC =A0dispc
-> > =A037: =A0 =A0 =A0 1724 =A0 =A0 =A0 =A0INTC =A0gp timer
-> > =A056: =A0 =A0 =A0 =A0267 =A0 =A0 =A0 =A0INTC =A0i2c_omap
-> > =A057: =A0 =A0 =A0 =A0 =A00 =A0 =A0 =A0 =A0INTC =A0i2c_omap
-> > =A061: =A0 =A0 =A0 =A0 =A00 =A0 =A0 =A0 =A0INTC =A0i2c_omap
-> > =A072: =A0 =A0 =A0 =A0178 =A0 =A0 =A0 =A0INTC =A0serial idle, seria=
-l
-> > =A073: =A0 =A0 =A0 =A0 =A01 =A0 =A0 =A0 =A0INTC =A0serial idle
-> > =A074: =A0 =A0 =A0 =A0 =A01 =A0 =A0 =A0 =A0INTC =A0serial idle
-> > =A083: =A0 =A0 =A0 =A0 43 =A0 =A0 =A0 =A0INTC =A0mmc0
-> > =A092: =A0 =A0 =A0 =A0 =A00 =A0 =A0 =A0 =A0INTC =A0musb_hdrc
-> > =A093: =A0 =A0 =A0 =A0 =A00 =A0 =A0 =A0 =A0INTC =A0musb_hdrc
-> > 335: =A0 =A0 =A0 =A0 =A00 =A0 =A0 =A0 =A0GPIO =A0ads7846
-> > 336: =A0 =A0 =A0 3565 =A0 =A0 =A0 =A0GPIO =A0eth0
-> > 369: =A0 =A0 =A0 =A0 =A00 =A0 =A0 twl4030 =A0twl4030_keypad
-> > 378: =A0 =A0 =A0 =A0 =A00 =A0 =A0 twl4030 =A0twl4030_usb
-> > 384: =A0 =A0 =A0 =A0 =A00 =A0 =A0 twl4030 =A0mmc0
-> > Err: =A0 =A0 =A0 =A0 =A00
-> >=20
-> > Regards
-> > Mani
-> >=20
-> > > -----Original Message-----
-> > > From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
-> > > owner@vger.kernel.org] On Behalf Of David Brownell
-> > > Sent: Thursday, February 05, 2009 4:53 AM
-> > > To: OMAP
-> > > Subject: [patch/rft 2.6.29-rc3-omap-git] omap3 evm: MMC switch su=
-pport
-> > >=20
-> > > Update OMAP3 EVM board support to support the MMC/SD switches,
-> > > when used with the twl4030 based power card.
-> > >=20
-> > > Also, less usefully, LEDB as a GPIO LED ... it's on the underside
-> > > of the board, so it's probably not very useful to most folk. =A0T=
-he
-> > > LCD backlight is controlled by LEDA though; more useful, though
-> > > its PWM mode might not be practical on this board (I don't know
-> > > how that inductor will affect things).
-> > >=20
-> > > This is done from schematics, so it needs testing (and maybe some
-> > > bugfixes) from folk with an EVM board.
-> > >
->=20
->=20
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap"=
- in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
