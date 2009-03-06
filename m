@@ -1,36 +1,31 @@
-From: Nishanth Menon <menon.nishanth@gmail.com>
-Subject: Re: [RFC] OMAP: I2C: Use correct bit for CLOCKACTIVITY
-Date: Fri, 06 Mar 2009 15:51:54 +0200
-Message-ID: <49B12A7A.6060202@gmail.com>
-References: <12362344552581-git-send-email-ext-eero.nurkkala@nokia.com>	 <alpine.DEB.2.00.0903050113021.26353@utopia.booyaka.com>	 <1236242774.29572.45.camel@eenurkka-desktop>	 <7A436F7769CA33409C6B44B358BFFF0CFF3500A2@dlee02.ent.ti.com>	 <1236256350.29572.67.camel@eenurkka-desktop>	 <7A436F7769CA33409C6B44B358BFFF0CFF3500B7@dlee02.ent.ti.com> <1236346894.29572.102.camel@eenurkka-desktop>
+From: "Woodruff, Richard" <r-woodruff2-l0cyMroinI0@public.gmane.org>
+Subject: RE: [PATCH 2/2] i2c: i2c-omap: Call request_irq with IRQF_DISABLED
+Date: Fri, 6 Mar 2009 08:54:57 -0600
+Message-ID: <13B9B4C6EF24D648824FF11BE8967162037B646058@dlee02.ent.ti.com>
+References: <cover.1236345858.git.Ext-Ari.Kauppi@nokia.com>
+ <7d7e7dd1a4c64c732a21bdfcf2bd42556be708c3.1236345858.git.Ext-Ari.Kauppi@nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from nf-out-0910.google.com ([64.233.182.186]:49977 "EHLO
-	nf-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751519AbZCFNwA (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 6 Mar 2009 08:52:00 -0500
-Received: by nf-out-0910.google.com with SMTP id d21so52551nfb.21
-        for <linux-omap@vger.kernel.org>; Fri, 06 Mar 2009 05:51:57 -0800 (PST)
-In-Reply-To: <1236346894.29572.102.camel@eenurkka-desktop>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
+Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <7d7e7dd1a4c64c732a21bdfcf2bd42556be708c3.1236345858.git.Ext-Ari.Kauppi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
+Content-Language: en-US
+Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Ari Kauppi <Ext-Ari.Kauppi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
+Cc: "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org" <ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: ext-eero.nurkkala@nokia.com
-Cc: "ext Menon, Nishanth" <nm@ti.com>, ext Paul Walmsley <paul@pwsan.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Woodruff, Richard" <r-woodruff2@ti.com>
 
-Eero Nurkkala said the following on 03/06/2009 03:41 PM:
-> On Thu, 2009-03-05 at 13:54 +0100, ext Menon, Nishanth wrote:
->   
->> me? I am just a code junkie ;).. "They" wont let me write the TRM :(.. :D... 
->>     
+> I have observed some Spurious IRQ's for I2C1 when all kernel hacking options
+> (and thus LOCKDEP) are disabled.
 >
-> I was referring "you" in plural, meaning TI, not you personally =)
->
->   
-Aaaah.. for a moment you had me worried.. even had a nightmare of me
-sitting in front of a candle with a quilt pen and a parchment writing
-the 3k+page TRM as a penance for the coding mistakes I had done :P..
+> Applying Richard Woodruff's 'I2C bug fixes for L-O and L-Z' seems to help
+> but IRQF_DISABLED is needed for proper behaviour.
+
+I only submitted on l-o list for information and comment.
+
+They need to be submitted on i2c list and to Ben to get added.
+
+Thanks for the additional positive feed back and fix.
 
 Regards,
-NM
+Richard W.
