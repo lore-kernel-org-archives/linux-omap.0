@@ -1,75 +1,68 @@
-From: David Brownell <david-b@pacbell.net>
-Subject: Re: [PATCH] regulator: twl4030 VAUX3 supports 3.0V
-Date: Fri, 6 Mar 2009 11:16:20 -0800
-Message-ID: <200903061116.21544.david-b@pacbell.net>
-References: <49B11EB0.30809@nokia.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: where is "struct constraint_id" defined?
+Date: Fri, 6 Mar 2009 13:25:28 -0700 (MST)
+Message-ID: <alpine.DEB.2.00.0903061309470.24092@utopia.booyaka.com>
+References: <6e77f93b754e8ec34333f764a6a00c43.squirrel@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1756983AbZCFTQj@vger.kernel.org>
-In-Reply-To: <49B11EB0.30809@nokia.com>
-Content-Disposition: inline
-Sender: linux-kernel-owner@vger.kernel.org
-To: Adrian Hunter <adrian.hunter@nokia.com>
-Cc: lrg@slimlogic.co.uk, LKML <linux-kernel@vger.kernel.org>, linux-omap Mailing List <linux-omap@vger.kernel.org>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from utopia.booyaka.com ([72.9.107.138]:53392 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753795AbZCFUZb (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 6 Mar 2009 15:25:31 -0500
+In-Reply-To: <6e77f93b754e8ec34333f764a6a00c43.squirrel@localhost>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: david.hagood@gmail.com
+Cc: linux-omap@vger.kernel.org
 
-On Friday 06 March 2009, Adrian Hunter wrote:
-> TWL4030 and TWL5030 support 3.0V on VAUX3.
+Hi David
 
-I double checked several technical reference manuals, and they
-say otherwise.   The 3.0V settings in VAUX3_DEDICATED are very
-consistently labeled as "TI cannot support these values", for
-all current versions of chips with a VAUX3 supply:
+On Thu, 5 Mar 2009, david.hagood@gmail.com wrote:
 
-  TWL4030 ES3.1
-  TWL5030 ES1.1
-  TPS65930 ES1.0 (more or less a cost-reduced TWL5030)
-  TPS65950 ES1.0 (more or less TWL5030)
-
-So, NAK on this.
-
-Do you really need 3.0V out of that regulator?  If so,
-then I'd rather see a patch exposing that CONFIG_*
-setting to enable all the unsupported/out-of-range
-values, rather than just selectively hacking those
-tables to permit some (but not all) of them to be used
-out-of-range.
-
-
-> Signed-off-by: Adrian Hunter <adrian.hunter@nokia.com>
-> ---
+> I am trying to build the OMAP3 graphics kernel module against
+> 2.6.29-rc7-omap1 (from GIT), and have been running into problems getting
+> it to build.
 > 
-> According to TI:
-> http://community.ti.com/forums/t/3777.aspx
+> Two problems were pretty easy: the TI code was including "asm/resource.h"
+> and "asm/semaphore.h" rather than "linux/resource.h" and
+> "linux/semaphore.h".
+> 
+> Having made those changes, it builds all the way through to the TI
+> supplied "sysutils_linux.c", which barfs with :
+> 
+> In file included from
+> /space/src/OMAP35x_Graphics_SDC_3_00_00_06/GFX_Linux_KM/services4/srvkm/env/linux/kbuild/../../../../../services4/system/omap3430/sysutils.c:28:
+> /space/src/OMAP35x_Graphics_SDC_3_00_00_06/GFX_Linux_KM/services4/srvkm/env/linux/kbuild/../../../../../services4/system/omap3430/sysutils_linux.c:154:
+> error: variable 'cnstr_id_vdd2' has initializer but incomplete type
+> 
+> (and many other errors).
+> 
+> The problem line of the code is:
+> 
+> static struct constraint_id cnstr_id_vdd2 = {
+> 
+> and I cannot find a definition of "struct constraint_id" anywhere in the
+> kernel.
+> 
+> Has this been renamed, or moved, or am I looking in the wrong place?
 
-That looks to me like some random TI developer reading the
-manual and ignoring the label on those settings:  Yes if you
-set that value it'll probably work.  But no, if you rely on
-that it's working out-of-spec, and is clearly marked as such.
+Haven't seen the code in question, but it sounds like it's trying to 
+change OPP constraints on VDD2 (CORE), to allow SGX speed (and power 
+consumption) to be reduced when it is not in use.
+
+If you're not using the PM branch of l-o, you can probably just remove 
+all the references to this from the driver.  The SGX speed is fixed at 
+whatever the bootloader configured.
+
+If you're using the PM branch, you can constrain CORE OPPs directly from 
+the driver via omap_pm_set_min_bus_tput().  Pass a function pointer to 
+omap_pm_set_min_bus_tput() via the driver's platform_data structure, then 
+call pdata->set_min_bus_tput() from the driver.  The current SRF 
+implementation of this uses r > 0 to mean "high speed, high power 
+consumption" and r == 0 to mean "low speed, low power consumption". 
+arch/arm/plat-omap/include/mach/omap-pm.h and 
+Documentation/arm/OMAP/omap_pm may be useful.
 
 
- 
-> 
-> 
->  drivers/regulator/twl4030-regulator.c |    2 +-
->  1 files changed, 1 insertions(+), 1 deletions(-)
-> 
-> diff --git a/drivers/regulator/twl4030-regulator.c b/drivers/regulator/twl4030-regulator.c
-> index 8655443..1755026 100644
-> --- a/drivers/regulator/twl4030-regulator.c
-> +++ b/drivers/regulator/twl4030-regulator.c
-> @@ -224,7 +224,7 @@ static const u16 VAUX2_VSEL_table[] = {
->  };
->  static const u16 VAUX3_VSEL_table[] = {
->  	1500, 1800, 2500, 2800,
-> -	UNSUP(3000), UNSUP(3000), UNSUP(3000), UNSUP(3000),
-> +	3000, 3000, 3000, 3000,
->  };
->  static const u16 VAUX4_VSEL_table[] = {
->  	700, 1000, 1200, UNSUP(1300),
-> -- 
-> 1.5.6.3
-> 
-> 
+- Paul
