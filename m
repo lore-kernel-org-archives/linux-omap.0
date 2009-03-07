@@ -1,104 +1,79 @@
-From: "Nayak, Rajendra" <rnayak@ti.com>
-Subject: RE: where is "struct constraint_id" defined?
-Date: Sat, 7 Mar 2009 15:41:42 +0530
-Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB02FADBFBFE@dbde02.ent.ti.com>
-References: <alpine.DEB.2.00.0903061309470.24092@utopia.booyaka.com>
+From: Alexey Klimov <klimov.linux@gmail.com>
+Subject: Re: [PATCH 9/9] omap34xxcam: Add camera driver
+Date: Sat, 07 Mar 2009 17:38:17 +0300
+Message-ID: <1236436697.1863.21.camel@tux.localhost>
+References: <49AD0128.5090503@maxwell.research.nokia.com>
+	 <1236074816-30018-1-git-send-email-sakari.ailus@maxwell.research.nokia.com>
+	 <1236074816-30018-2-git-send-email-sakari.ailus@maxwell.research.nokia.com>
+	 <1236074816-30018-3-git-send-email-sakari.ailus@maxwell.research.nokia.com>
+	 <1236074816-30018-4-git-send-email-sakari.ailus@maxwell.research.nokia.com>
+	 <1236074816-30018-5-git-send-email-sakari.ailus@maxwell.research.nokia.com>
+	 <1236074816-30018-6-git-send-email-sakari.ailus@maxwell.research.nokia.com>
+	 <1236074816-30018-7-git-send-email-sakari.ailus@maxwell.research.nokia.com>
+	 <1236074816-30018-8-git-send-email-sakari.ailus@maxwell.research.nokia.com>
+	 <1236074816-30018-9-git-send-email-sakari.ailus@maxwell.research.nokia.com>
+	 <1236101460.10927.109.camel@tux.localhost>
+	 <49AFDD0B.80804@maxwell.research.nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:47144 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751323AbZCGKL7 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 7 Mar 2009 05:11:59 -0500
-In-Reply-To: <alpine.DEB.2.00.0903061309470.24092@utopia.booyaka.com>
-Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-media-owner@vger.kernel.org>
+In-Reply-To: <49AFDD0B.80804@maxwell.research.nokia.com>
+Sender: linux-media-owner@vger.kernel.org
+To: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+Cc: linux-media@vger.kernel.org, linux-omap@vger.kernel.org, saaguirre@ti.com, tuukka.o.toivonen@nokia.com, dongsoo.kim@gmail.com
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>, "david.hagood@gmail.com" <david.hagood@gmail.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+
+Hello, Sakari Ailus
+
+On Thu, 2009-03-05 at 16:09 +0200, Sakari Ailus wrote:
+> Alexey Klimov wrote:
+> >> +static int vidioc_g_fmt_vid_cap(struct file *file, void *fh,
+> >> +				struct v4l2_format *f)
+> >> +{
+> >> +	struct omap34xxcam_fh *ofh = fh;
+> >> +	struct omap34xxcam_videodev *vdev = ofh->vdev;
+> >> +
+> >> +	if (vdev->vdev_sensor == v4l2_int_device_dummy())
+> >> +		return -EINVAL;
+> >> +
+> >> +	mutex_lock(&vdev->mutex);
+> >> +	f->fmt.pix = vdev->pix;
+> >> +	mutex_unlock(&vdev->mutex);
+> > 
+> > Hmmmm, you are using mutex_lock to lock reading from vdev structure..
+> > Well, i don't if this is right approach. I am used to that mutex_lock is
+> > used to prevent _changing_ of members in structure..
+> 
+> The vdev->mutex is acquired since we want to prevent concurrent access 
+> to vdev->pix. Otherwise it might change while we are reading it, right?
+
+I thought more about this and looks like that i was wrong. You are
+right. You are reading structure, and i wasn't able to notice that first
+time. Sorry for bothering about this.
+
+<snip>
+
+> >> +static int omap34xxcam_device_register(struct v4l2_int_device *s)
+> >> +{
+> >> +	struct omap34xxcam_videodev *vdev = s->u.slave->master->priv;
+> >> +	struct omap34xxcam_hw_config hwc;
+> >> +	int rval;
+> >> +
+> >> +	/* We need to check rval just once. The place is here. */
+> > 
+> > I didn't understand this comment. You doing nothin in next few lines
+> > with int variable rval(which introduced in this function). Is comment
+> > talking about struct v4l2_int_device *s ?
+> 
+> Yes. If the g_priv() succeeds now it will succeed in future, too. This 
+> comes from the platform data through the slave device.
+
+Well, okay. I mean that for me this comment looks ambiguous. Please, if
+you don't mind it's better not to use word "rval" because it  creates
+confusion with int rval;.
 
 
-> -----Original Message-----
-> From: linux-omap-owner@vger.kernel.org 
-> [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Paul Walmsley
-> Sent: Saturday, March 07, 2009 1:55 AM
-> To: david.hagood@gmail.com
-> Cc: linux-omap@vger.kernel.org
-> Subject: Re: where is "struct constraint_id" defined?
-> 
-> Hi David
-> 
-> On Thu, 5 Mar 2009, david.hagood@gmail.com wrote:
-> 
-> > I am trying to build the OMAP3 graphics kernel module against
-> > 2.6.29-rc7-omap1 (from GIT), and have been running into 
-> problems getting
-> > it to build.
-> > 
-> > Two problems were pretty easy: the TI code was including 
-> "asm/resource.h"
-> > and "asm/semaphore.h" rather than "linux/resource.h" and
-> > "linux/semaphore.h".
-> > 
-> > Having made those changes, it builds all the way through to the TI
-> > supplied "sysutils_linux.c", which barfs with :
-> > 
-> > In file included from
-> > 
-> /space/src/OMAP35x_Graphics_SDC_3_00_00_06/GFX_Linux_KM/servic
-es4/srvkm/env/linux/kbuild/../../../../../services4/system/omap3430/sysutils.c:28:
-> > 
-> /space/src/OMAP35x_Graphics_SDC_3_00_00_06/GFX_Linux_KM/servic
-es4/srvkm/env/linux/kbuild/../../../../../services4/system/omap3430/sysutils_linux.c:154:
-> > error: variable 'cnstr_id_vdd2' has initializer but incomplete type
-> > 
-> > (and many other errors).
-> > 
-> > The problem line of the code is:
-> > 
-> > static struct constraint_id cnstr_id_vdd2 = {
-> > 
-> > and I cannot find a definition of "struct constraint_id" 
-> anywhere in the
-> > kernel.
-> > 
-> > Has this been renamed, or moved, or am I looking in the wrong place?
+-- 
+Best regards, Klimov Alexey
 
-That piece of code refers to the constraint f/w implementation which exists only
-in the TI internal tree. 
-As Paul suggested if you are using the mainline l-o remove all that code, else use the
-latest l-o pm branch with a different set of API's to achieve the same.
-
-> 
-> Haven't seen the code in question, but it sounds like it's trying to 
-> change OPP constraints on VDD2 (CORE), to allow SGX speed (and power 
-> consumption) to be reduced when it is not in use.
-> 
-> If you're not using the PM branch of l-o, you can probably 
-> just remove 
-> all the references to this from the driver.  The SGX speed is 
-> fixed at 
-> whatever the bootloader configured.
-> 
-> If you're using the PM branch, you can constrain CORE OPPs 
-> directly from 
-> the driver via omap_pm_set_min_bus_tput().  Pass a function 
-> pointer to 
-> omap_pm_set_min_bus_tput() via the driver's platform_data 
-> structure, then 
-> call pdata->set_min_bus_tput() from the driver.  The current SRF 
-> implementation of this uses r > 0 to mean "high speed, high power 
-> consumption" and r == 0 to mean "low speed, low power consumption". 
-> arch/arm/plat-omap/include/mach/omap-pm.h and 
-> Documentation/arm/OMAP/omap_pm may be useful.
-> 
-> 
-> - Paul
-> --
-> To unsubscribe from this list: send the line "unsubscribe 
-> linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
-> 
