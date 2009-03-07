@@ -1,59 +1,78 @@
-From: Mark Brown <broonie@sirena.org.uk>
-Subject: Re: Problems while designing TPS65023 regulator driver
-Date: Sat, 7 Mar 2009 16:22:36 +0000
-Message-ID: <20090307162233.GA12858@sirena.org.uk>
-References: <20090226140450.GB8595@sirena.org.uk> <5A47E75E594F054BAF48C5E4FC4B92AB02FADBF6CF@dbde02.ent.ti.com> <20090306133428.GA4327@sirena.org.uk> <200903061607.16825.david-b@pacbell.net>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Sanjeev Premi <premi@ti.com>
+Subject: [PATCH] PM : cpuidle - Update statistics for correct state
+Date: Sun,  8 Mar 2009 00:44:00 +0530
+Message-ID: <1236453240-7939-1-git-send-email-premi@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from cassiel.sirena.org.uk ([80.68.93.111]:2970 "EHLO
-	cassiel.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751499AbZCGQXJ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 7 Mar 2009 11:23:09 -0500
-Content-Disposition: inline
-In-Reply-To: <200903061607.16825.david-b@pacbell.net>
+Received: from comal.ext.ti.com ([198.47.26.152]:56251 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752244AbZCGTOL (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Sat, 7 Mar 2009 14:14:11 -0500
+Received: from dbdp31.itg.ti.com ([172.24.170.98])
+	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id n27JE2d0016616
+	for <linux-omap@vger.kernel.org>; Sat, 7 Mar 2009 13:14:08 -0600
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: David Brownell <david-b@pacbell.net>
-Cc: "Aggarwal, Anuj" <anuj.aggarwal@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: linux-omap@vger.kernel.org
+Cc: Sanjeev Premi <premi@ti.com>
 
-On Fri, Mar 06, 2009 at 04:07:16PM -0800, David Brownell wrote:
+When 'enable_off_mode' is 0, and (mpu_state < PWRDM_POWER_RET)
+the local variables mpu_state and core_state are modified; but
+the usage count for the original state selected by the governor
+are updated.
 
-> The boot_on semantics are kind of odd then ...
+This patch updates the 'last_state' in the cpuidle driver to ensure
+that statistics for the correct state are updated.
 
-> What I thought they meant:  Bootloader turned this on.
+Signed-off-by: Sanjeev Premi <premi@ti.com>
+---
+ arch/arm/mach-omap2/cpuidle34xx.c |   25 +++++++++++++++++--------
+ 1 files changed, 17 insertions(+), 8 deletions(-)
 
-That's still roughly the case, though in practice there's no actual need
-to do this for the vast majority of regulators since it is possible for
-the kernel to just read the status of the regulator back at runtime
-which is obviously more reliable.
+diff --git a/arch/arm/mach-omap2/cpuidle34xx.c b/arch/arm/mach-omap2/cpuidle34xx.c
+index 62fbb2e..5838838 100644
+--- a/arch/arm/mach-omap2/cpuidle34xx.c
++++ b/arch/arm/mach-omap2/cpuidle34xx.c
+@@ -76,23 +76,32 @@ static int omap3_enter_idle(struct cpuidle_device *dev,
+ {
+ 	struct omap3_processor_cx *cx = cpuidle_get_statedata(state);
+ 	struct timespec ts_preidle, ts_postidle, ts_idle;
+-	u32 mpu_state = cx->mpu_state, core_state = cx->core_state;
++	u32 mpu_state, core_state;
+ 
+ 	current_cx_state = *cx;
+ 
+ 	/* Used to keep track of the total time in idle */
+ 	getnstimeofday(&ts_preidle);
+ 
+-	local_irq_disable();
+-	local_fiq_disable();
+-
++	/*
++	 * Adjust the idle state (if required).
++	 * Also, ensure that usage statistics of correct state are updated.
++	 */
+ 	if (!enable_off_mode) {
+-		if (mpu_state < PWRDM_POWER_RET)
+-			mpu_state = PWRDM_POWER_RET;
+-		if (core_state < PWRDM_POWER_RET)
+-			core_state = PWRDM_POWER_RET;
++		if (cx->type > OMAP3_STATE_C4) {
++			state = &(dev->states[OMAP3_STATE_C4 - 1]);
++			dev->last_state = state ;
++
++			cx = cpuidle_get_statedata(state);
++		}
+ 	}
+ 
++	mpu_state = cx->mpu_state;
++	core_state = cx->core_state;
++
++	local_irq_disable();
++	local_fiq_disable();
++
+ 	pwrdm_set_next_pwrst(mpu_pd, mpu_state);
+ 	pwrdm_set_next_pwrst(core_pd, core_state);
+ 
+-- 
+1.5.6
 
-> What you describe above:    Kernel turn this on during startup.
-
-What's happening here is that the kernel is making sure that the
-information it was given about the state of the regulator is actually
-true in case it was important (things could drift if the bootloader or
-hardware are improved to boot up with a better default configuration,
-for example).  The kernel could warn here but we'd need to be clear why
-the constraints tell us that the regulator is on.
-
-This also has the side effect of allowing the constraints to turn the
-regulator on at startup, perhaps to aid early boot or perhaps because
-not all the drivers in the system that need it have regulator support
-yet, but that wasn't the primary purpose.
-
-> Versus normal behavior:     Consumer turns it on, as needed.
-
-That now works as normal.  Originally using boot_on would've had the
-effect of setting an always_on constraint which really wasn't desirable
-since we already have that.
-
-> I wouldn't have thought there would be a need for that
-> second case, since the board-specific init code can
-> just define a consumer that turns it on if that's what
-> it needs.
-
-Yes, it could - or it could define an always_on constraint if that were
-what's needed.  On the other hand, it's the sort of thing that more than
-one board is going to need to do so it does make sense to factor it out
-a bit.
