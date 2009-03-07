@@ -1,105 +1,63 @@
-From: Alexey Klimov <klimov.linux@gmail.com>
-Subject: Re: [PATCH 4/5] OMAP3430SDP: Add support for Camera Kit v3
-Date: Sat, 07 Mar 2009 18:41:53 +0300
-Message-ID: <1236440513.1863.33.camel@tux.localhost>
-References: <5e9665e10903041858j7d2177abjfa1193532553059c@mail.gmail.com>
-	 <96DA7A230D3B2F42BA3EF203A7A1B3B5012EAC2043@dlee07.ent.ti.com>
-	 <208cbae30903051405p7588b3a9pb17338ec99dc749a@mail.gmail.com>
-	 <5e9665e10903051754i6eea2709l5178083097807242@mail.gmail.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 0/4] Still more omap fixes for current -rc series
+Date: Sat, 7 Mar 2009 07:55:31 -0800
+Message-ID: <20090307155530.GA11078@atomide.com>
+References: <20090304182342.27331.35004.stgit@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="ikeVEW9yuYc//A+q"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-fx0-f176.google.com ([209.85.220.176]:46923 "EHLO
-	mail-fx0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751656AbZCGPlQ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 7 Mar 2009 10:41:16 -0500
-In-Reply-To: <5e9665e10903051754i6eea2709l5178083097807242@mail.gmail.com>
+Received: from mho-01-bos.mailhop.org ([63.208.196.178]:52921 "EHLO
+	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754709AbZCGPzf (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 7 Mar 2009 10:55:35 -0500
+Content-Disposition: inline
+In-Reply-To: <20090304182342.27331.35004.stgit@localhost>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "DongSoo(Nathaniel) Kim" <dongsoo.kim@gmail.com>
-Cc: "Curran, Dominic" <dcurran@ti.com>, "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>, "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>, "Tuukka.O Toivonen" <tuukka.o.toivonen@nokia.com>, Hiroshi DOYU <Hiroshi.DOYU@nokia.com>, MiaoStanley <stanleymiao@hotmail.com>, "Nagalla, Hari" <hnagalla@ti.com>, "Hiremath, Vaibhav" <hvaibhav@ti.com>, "Lakhani, Amish" <amish@ti.com>, "Menon, Nishanth" <nm@ti.com>
+To: Russell King <linux@arm.linux.org.uk>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.arm.linux.org.uk
 
-Hello, all
 
-On Fri, 2009-03-06 at 10:54 +0900, DongSoo(Nathaniel) Kim wrote:
-> Hi Alexey,
-> 
-> On Fri, Mar 6, 2009 at 7:05 AM, Alexey Klimov <klimov.linux@gmail.com> wrote:
-> > Hello, all
-> >
-> > On Thu, Mar 5, 2009 at 7:42 PM, Curran, Dominic <dcurran@ti.com> wrote:
-> >>
-> >> Hi Kim
-> >>
-> >>> -----Original Message-----
-> >>> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
-> >>> owner@vger.kernel.org] On Behalf Of DongSoo(Nathaniel) Kim
-> >>> Sent: Wednesday, March 04, 2009 8:58 PM
-> >>> To: Aguirre Rodriguez, Sergio Alberto
-> >>> Cc: linux-media@vger.kernel.org; linux-omap@vger.kernel.org; Sakari Ailus;
-> >>> Tuukka.O Toivonen; Hiroshi DOYU; MiaoStanley; Nagalla, Hari; Hiremath,
-> >>> Vaibhav; Lakhani, Amish; Menon, Nishanth
-> >>> Subject: Re: [PATCH 4/5] OMAP3430SDP: Add support for Camera Kit v3
-> >>>
-> >>> Hi Sergio,
-> >>>
-> >>>
-> >>>
-> >>> On Wed, Mar 4, 2009 at 5:44 AM, Aguirre Rodriguez, Sergio Alberto
-> >>> <saaguirre@ti.com> wrote:
-> >>> > +               /* turn on analog power */
-> >>> > +               twl4030_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER,
-> >>> > +                               VAUX_2_8_V, TWL4030_VAUX2_DEDICATED);
-> >>> > +               twl4030_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER,
-> >>> > +                               VAUX_DEV_GRP_P1, TWL4030_VAUX2_DEV_GRP);
-> >>> > +
-> >>> > +               /* out of standby */
-> >>> > +               gpio_set_value(MT9P012_STANDBY_GPIO, 0);
-> >>> > +               udelay(1000);
-> >>>
-> >>> It seems better using msleep rather than udelay for 1000us much. Just
-> >>> to be safe :)
-> >>> How about you?
-> >>>
-> >>
-> >> Why is msleep safer than udelay ?
-> >
-> > I have small guess that he is wondering why you are using big delays
-> > with help of udelay(). (It's may be obvious but as we know udelay uses
-> > cpu loops to make delay and msleep calls to scheduler) So, msleep is
-> > more flexible and "softer" but if you need precise time or you can't
-> > sleep in code you need udelay. Sometimes using udelay is reasonably
-> > required.
-> 
-> I totally agree with you.
-> But besides the "udelay and mdelay accuracy" issue, Sergio's power up
-> timing for  MT9P012 seems to delay too much. (not for lens
-> controller.)
-> I also have experience using MT9P012 sensor with other ISP, but in
-> case of mine it took 600 to 800 ms for whole power up sequence.
-> But if that delay depends on SDP board and Sergio had no options
-> without making delay for that much, then it explains everything.
-> So I'm saying if there was no other option than making long delay to
-> bring up MT9P012 sensor properly, if I were Sergio I should rather use
-> mdelay than udelay.
+--ikeVEW9yuYc//A+q
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-I agree with you. mdelay is really safer that udelay. 
+* Tony Lindgren <tony@atomide.com> [090304 10:31]:
+> This should be it for the omap fixes for this -rc cycle. Hopefully
+> we can still get these in.
 
->From file include/linux/delay.h:
+Russell, here's the pull request for you for these fixes.
 
- * Using udelay() for intervals greater than a few milliseconds can
- * risk overflow for high loops_per_jiffy (high bogomips) machines. The
- * mdelay() provides a wrapper to prevent this.  For delays greater
- * than MAX_UDELAY_MS milliseconds, the wrapper is used.  Architecture
- * specific values can be defined in asm-???/delay.h as an override.
+Tony
+ 
 
-So, let's Sergio check and decide what he needed! :)
+--ikeVEW9yuYc//A+q
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline; filename="pull.txt"
 
-> Cheers,
-> 
-> Nate
+The following changes since commit fec6c6fec3e20637bee5d276fb61dd8b49a3f9cc:
+  Linus Torvalds (1):
+        Linux 2.6.29-rc7
 
--- 
-Best regards, Klimov Alexey
+are available in the git repository at:
 
+  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap-2.6.git omap-fixes
+
+Aaro Koskinen (2):
+      ARM: OMAP: sched_clock() corrected
+      ARM: OMAP: Allow I2C bus driver to be compiled as a module
+
+David Brownell (1):
+      ARM: OMAP: Fix compile error if pm.h is included
+
+Koen Kooi (1):
+      ARM: OMAP: board-omap3beagle: set i2c-3 to 100kHz
+
+ arch/arm/mach-omap2/board-omap3beagle.c  |    4 +++-
+ arch/arm/plat-omap/Makefile              |    3 ++-
+ arch/arm/plat-omap/common.c              |   14 +++++---------
+ arch/arm/plat-omap/include/mach/common.h |    2 +-
+ arch/arm/plat-omap/include/mach/pm.h     |    2 +-
+ 5 files changed, 12 insertions(+), 13 deletions(-)
+
+--ikeVEW9yuYc//A+q--
