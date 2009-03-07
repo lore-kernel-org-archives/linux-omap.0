@@ -1,63 +1,59 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 0/4] Still more omap fixes for current -rc series
-Date: Sat, 7 Mar 2009 07:55:31 -0800
-Message-ID: <20090307155530.GA11078@atomide.com>
-References: <20090304182342.27331.35004.stgit@localhost>
+From: Mark Brown <broonie@sirena.org.uk>
+Subject: Re: Problems while designing TPS65023 regulator driver
+Date: Sat, 7 Mar 2009 16:22:36 +0000
+Message-ID: <20090307162233.GA12858@sirena.org.uk>
+References: <20090226140450.GB8595@sirena.org.uk> <5A47E75E594F054BAF48C5E4FC4B92AB02FADBF6CF@dbde02.ent.ti.com> <20090306133428.GA4327@sirena.org.uk> <200903061607.16825.david-b@pacbell.net>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="ikeVEW9yuYc//A+q"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-bos.mailhop.org ([63.208.196.178]:52921 "EHLO
-	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754709AbZCGPzf (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 7 Mar 2009 10:55:35 -0500
+Received: from cassiel.sirena.org.uk ([80.68.93.111]:2970 "EHLO
+	cassiel.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751499AbZCGQXJ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 7 Mar 2009 11:23:09 -0500
 Content-Disposition: inline
-In-Reply-To: <20090304182342.27331.35004.stgit@localhost>
+In-Reply-To: <200903061607.16825.david-b@pacbell.net>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Russell King <linux@arm.linux.org.uk>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.arm.linux.org.uk
+To: David Brownell <david-b@pacbell.net>
+Cc: "Aggarwal, Anuj" <anuj.aggarwal@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
+On Fri, Mar 06, 2009 at 04:07:16PM -0800, David Brownell wrote:
 
---ikeVEW9yuYc//A+q
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+> The boot_on semantics are kind of odd then ...
 
-* Tony Lindgren <tony@atomide.com> [090304 10:31]:
-> This should be it for the omap fixes for this -rc cycle. Hopefully
-> we can still get these in.
+> What I thought they meant:  Bootloader turned this on.
 
-Russell, here's the pull request for you for these fixes.
+That's still roughly the case, though in practice there's no actual need
+to do this for the vast majority of regulators since it is possible for
+the kernel to just read the status of the regulator back at runtime
+which is obviously more reliable.
 
-Tony
- 
+> What you describe above:    Kernel turn this on during startup.
 
---ikeVEW9yuYc//A+q
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline; filename="pull.txt"
+What's happening here is that the kernel is making sure that the
+information it was given about the state of the regulator is actually
+true in case it was important (things could drift if the bootloader or
+hardware are improved to boot up with a better default configuration,
+for example).  The kernel could warn here but we'd need to be clear why
+the constraints tell us that the regulator is on.
 
-The following changes since commit fec6c6fec3e20637bee5d276fb61dd8b49a3f9cc:
-  Linus Torvalds (1):
-        Linux 2.6.29-rc7
+This also has the side effect of allowing the constraints to turn the
+regulator on at startup, perhaps to aid early boot or perhaps because
+not all the drivers in the system that need it have regulator support
+yet, but that wasn't the primary purpose.
 
-are available in the git repository at:
+> Versus normal behavior:     Consumer turns it on, as needed.
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap-2.6.git omap-fixes
+That now works as normal.  Originally using boot_on would've had the
+effect of setting an always_on constraint which really wasn't desirable
+since we already have that.
 
-Aaro Koskinen (2):
-      ARM: OMAP: sched_clock() corrected
-      ARM: OMAP: Allow I2C bus driver to be compiled as a module
+> I wouldn't have thought there would be a need for that
+> second case, since the board-specific init code can
+> just define a consumer that turns it on if that's what
+> it needs.
 
-David Brownell (1):
-      ARM: OMAP: Fix compile error if pm.h is included
-
-Koen Kooi (1):
-      ARM: OMAP: board-omap3beagle: set i2c-3 to 100kHz
-
- arch/arm/mach-omap2/board-omap3beagle.c  |    4 +++-
- arch/arm/plat-omap/Makefile              |    3 ++-
- arch/arm/plat-omap/common.c              |   14 +++++---------
- arch/arm/plat-omap/include/mach/common.h |    2 +-
- arch/arm/plat-omap/include/mach/pm.h     |    2 +-
- 5 files changed, 12 insertions(+), 13 deletions(-)
-
---ikeVEW9yuYc//A+q--
+Yes, it could - or it could define an always_on constraint if that were
+what's needed.  On the other hand, it's the sort of thing that more than
+one board is going to need to do so it does make sense to factor it out
+a bit.
