@@ -1,146 +1,69 @@
-From: David Brownell <david-b@pacbell.net>
-Subject: Re: Problems while designing TPS65023 regulator driver
-Date: Sun, 8 Mar 2009 12:54:35 -0800
-Message-ID: <200903081354.36044.david-b@pacbell.net>
-References: <20090226140450.GB8595@sirena.org.uk> <200903061607.16825.david-b@pacbell.net> <20090307162233.GA12858@sirena.org.uk>
+From: Pierre Ossman <drzeus-mmc@drzeus.cx>
+Subject: Re: [patch 2.6.29-rc6+misc] MMC: regulator utilities
+Date: Sun, 8 Mar 2009 22:49:07 +0100
+Message-ID: <20090308224907.62e9d9d5@mjolnir.ossman.eu>
+References: <200902081037.06645.david-b@pacbell.net>
+	<200903031918.07443.david-b@pacbell.net>
+	<20090308145951.0fdd607a@mjolnir.ossman.eu>
+	<200903081334.26465.david-b@pacbell.net>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp119.sbc.mail.sp1.yahoo.com ([69.147.64.92]:21631 "HELO
-	smtp119.sbc.mail.sp1.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1753479AbZCHUyj (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 8 Mar 2009 16:54:39 -0400
-In-Reply-To: <20090307162233.GA12858@sirena.org.uk>
-Content-Disposition: inline
+Received: from 82-117-125-11.tcdsl.calypso.net ([82.117.125.11]:51847 "EHLO
+	smtp.drzeus.cx" rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753037AbZCHVtN (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Sun, 8 Mar 2009 17:49:13 -0400
+In-Reply-To: <200903081334.26465.david-b@pacbell.net>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Mark Brown <broonie@sirena.org.uk>
-Cc: "Aggarwal, Anuj" <anuj.aggarwal@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: David Brownell <david-b@pacbell.net>
+Cc: Mark Brown <broonie@sirena.org.uk>, Liam Girdwood <lrg@slimlogic.co.uk>, lkml <linux-kernel@vger.kernel.org>, OMAP <linux-omap@vger.kernel.org>
 
-On Saturday 07 March 2009, Mark Brown wrote:
-> What's happening here is that the kernel is making sure that the
-> information it was given about the state of the regulator is actually
-> true in case it was important ...
+On Sun, 8 Mar 2009 12:34:25 -0800
+David Brownell <david-b@pacbell.net> wrote:
 
-If that's a goal, then I suggest merging the appended patch,
-which addresses a similar case:  both boot_on and always_on
-are clear, so the regulator should not be enabled.
+> On Sunday 08 March 2009, Pierre Ossman wrote:
+> > Looks good. Now what should I do with it? Merge it in the next window
+> > good enough?
+> 
+> Well, after testing the previously-untested call ... here's
+> another update.
+> 
+> Since these depend on new calls in the regulator framework,
+> it can't merge until after they merge (in the next window).
+> Least hassle for you would be if this merges through the
+> regulator framework (with your ack), I suspect.
+> 
+> - Dave
+> 
+> 
+> ======== CUT HERE
+> From: David Brownell <dbrownell@users.sourceforge.net>
+> 
+> Glue between MMC and regulator stacks ... verified with
+> some OMAP3 boards using adjustable and configured-as-fixed
+> regulators on several MMC controllers.
+> 
+> These calls are intended to be used by MMC host adapters
+> using at least one regulator per host.  Examples include
+> slots with regulators supporting multiple voltages and
+> ones using multiple voltage rails (e.g. DAT4..DAT7 using a
+> separate supply, or a split rail chip like certain SDIO
+> WLAN or eMMC solutions).
+> 
+> Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
+> ---
 
-This *can* be important, as e.g. if those flags are clear
-but the bootloader turned the regulator on, then drivers
-can't disable the regulator (on penalty of a stackdump!)
-unless they issue a spurious/pointless/undesirable enable()
-beforehand ...
+Acked-by: Pierre Ossman <drzeus@drzeus.cx>
 
-- Dave
+-- 
+     -- Pierre Ossman
 
-========== CUT HERE
-From: David Brownell <dbrownell@users.sourceforge.net>
+  Linux kernel, MMC maintainer        http://www.kernel.org
+  rdesktop, core developer          http://www.rdesktop.org
 
-Make the regulator setup code simpler and more consistent:
-
- - The only difference between "boot_on" and "always_on" is
-   that an "always_on" regulator won't be disabled.  Both will
-   be active (and usecount will be 1) on return from setup.
-
- - Regulators not marked as "boot_on" or "always_on" won't
-   be active (and usecount will be 0) on return from setup.
-
-The exception to that simple policy is when there's a non-Linux
-interface to the regulator ... e.g. if either a DSP or the CPU
-running Linux can enable the regulator, and the DSP needs it to
-be on, then it will be on.
-
-Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
----
- drivers/regulator/core.c |   62 ++++++++++++++++++++++++++++++++++-----------
- 1 file changed, 47 insertions(+), 15 deletions(-)
-
---- a/drivers/regulator/core.c
-+++ b/drivers/regulator/core.c
-@@ -711,6 +711,8 @@ static int set_machine_constraints(struc
- 	int ret = 0;
- 	const char *name;
- 	struct regulator_ops *ops = rdev->desc->ops;
-+	int enable = 0;
-+	int is_enabled = -ENOSYS;
- 
- 	if (constraints->name)
- 		name = constraints->name;
-@@ -799,10 +801,6 @@ static int set_machine_constraints(struc
- 			}
- 	}
- 
--	/* are we enabled at boot time by firmware / bootloader */
--	if (rdev->constraints->boot_on)
--		rdev->use_count = 1;
--
- 	/* do we need to setup our suspend state */
- 	if (constraints->initial_state) {
- 		ret = suspend_prepare(rdev, constraints->initial_state);
-@@ -814,17 +812,51 @@ static int set_machine_constraints(struc
- 		}
- 	}
- 
--	/* if always_on is set then turn the regulator on if it's not
--	 * already on. */
--	if (constraints->always_on && ops->enable &&
--	    ((ops->is_enabled && !ops->is_enabled(rdev)) ||
--	     (!ops->is_enabled && !constraints->boot_on))) {
--		ret = ops->enable(rdev);
--		if (ret < 0) {
--			printk(KERN_ERR "%s: failed to enable %s\n",
--			       __func__, name);
--			rdev->constraints = NULL;
--			goto out;
-+	/* Should this be enabled when we return from here?  The difference
-+	 * between "boot_on" and "always_on" is that "always_on" regulators
-+	 * won't ever be disabled.
-+	 */
-+	if (constraints->boot_on || constraints->always_on)
-+		enable = 1;
-+
-+	/* Make sure the regulator isn't wrongly enabled or disabled.
-+	 * Bootloaders are often sloppy about leaving things on; and
-+	 * sometimes Linux wants to use a different model.
-+	 */
-+	if (ops->is_enabled)
-+		is_enabled = ops->is_enabled(rdev);
-+	if (enable) {
-+		if (ops->enable) {
-+			/* forcibly enable if it's off or we can't tell */
-+			if (is_enabled <= 0) {
-+				ret = ops->enable(rdev);
-+				pr_warning("%s: %s '%s' --> %d\n",
-+					       __func__, "enable", name, ret);
-+				if (ret < 0) {
-+					rdev->constraints = NULL;
-+					goto out;
-+				}
-+			}
-+		} else if (is_enabled < 0) {
-+			pr_warning("%s: hoping regulator '%s' is %sd...\n",
-+				       __func__, name, "enable");
-+		}
-+		rdev->use_count = 1;
-+	} else {
-+		if (ops->disable) {
-+			/* forcibly disable if it's on or we can't tell */
-+			if (is_enabled != 0) {
-+				ret = ops->disable(rdev);
-+				pr_warning("%s: %s '%s' --> %d\n",
-+					       __func__, "disable", name, ret);
-+				if (ret < 0) {
-+					rdev->constraints = NULL;
-+					goto out;
-+				}
-+			}
-+		} else if (is_enabled < 0) {
-+			pr_warning("%s: hoping regulator '%s' is %sd...\n",
-+				       __func__, name, "disable");
- 		}
- 	}
- 
-
+  WARNING: This correspondence is being monitored by the
+  Swedish government. Make sure your server uses encryption
+  for SMTP traffic and consider using PGP for end-to-end
+  encryption.
