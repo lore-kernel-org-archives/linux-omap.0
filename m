@@ -1,69 +1,64 @@
-From: Pierre Ossman <drzeus-mmc@drzeus.cx>
-Subject: Re: [patch 2.6.29-rc6+misc] MMC: regulator utilities
-Date: Sun, 8 Mar 2009 22:49:07 +0100
-Message-ID: <20090308224907.62e9d9d5@mjolnir.ossman.eu>
-References: <200902081037.06645.david-b@pacbell.net>
-	<200903031918.07443.david-b@pacbell.net>
-	<20090308145951.0fdd607a@mjolnir.ossman.eu>
-	<200903081334.26465.david-b@pacbell.net>
+From: Mark Brown <broonie@sirena.org.uk>
+Subject: Re: Problems while designing TPS65023 regulator driver
+Date: Sun, 8 Mar 2009 22:41:45 +0000
+Message-ID: <20090308224145.GD18035@sirena.org.uk>
+References: <20090226140450.GB8595@sirena.org.uk> <200903061607.16825.david-b@pacbell.net> <20090307162233.GA12858@sirena.org.uk> <200903081354.36044.david-b@pacbell.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from 82-117-125-11.tcdsl.calypso.net ([82.117.125.11]:51847 "EHLO
-	smtp.drzeus.cx" rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753037AbZCHVtN (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Sun, 8 Mar 2009 17:49:13 -0400
-In-Reply-To: <200903081334.26465.david-b@pacbell.net>
+Received: from cassiel.sirena.org.uk ([80.68.93.111]:1431 "EHLO
+	cassiel.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754224AbZCHWmA (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 8 Mar 2009 18:42:00 -0400
+Content-Disposition: inline
+In-Reply-To: <200903081354.36044.david-b@pacbell.net>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: David Brownell <david-b@pacbell.net>
-Cc: Mark Brown <broonie@sirena.org.uk>, Liam Girdwood <lrg@slimlogic.co.uk>, lkml <linux-kernel@vger.kernel.org>, OMAP <linux-omap@vger.kernel.org>
+Cc: "Aggarwal, Anuj" <anuj.aggarwal@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Sun, 8 Mar 2009 12:34:25 -0800
-David Brownell <david-b@pacbell.net> wrote:
+On Sun, Mar 08, 2009 at 12:54:35PM -0800, David Brownell wrote:
 
-> On Sunday 08 March 2009, Pierre Ossman wrote:
-> > Looks good. Now what should I do with it? Merge it in the next window
-> > good enough?
-> 
-> Well, after testing the previously-untested call ... here's
-> another update.
-> 
-> Since these depend on new calls in the regulator framework,
-> it can't merge until after they merge (in the next window).
-> Least hassle for you would be if this merges through the
-> regulator framework (with your ack), I suspect.
-> 
-> - Dave
-> 
-> 
-> ======== CUT HERE
-> From: David Brownell <dbrownell@users.sourceforge.net>
-> 
-> Glue between MMC and regulator stacks ... verified with
-> some OMAP3 boards using adjustable and configured-as-fixed
-> regulators on several MMC controllers.
-> 
-> These calls are intended to be used by MMC host adapters
-> using at least one regulator per host.  Examples include
-> slots with regulators supporting multiple voltages and
-> ones using multiple voltage rails (e.g. DAT4..DAT7 using a
-> separate supply, or a split rail chip like certain SDIO
-> WLAN or eMMC solutions).
-> 
-> Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
-> ---
+> but the bootloader turned the regulator on, then drivers
+> can't disable the regulator (on penalty of a stackdump!)
+> unless they issue a spurious/pointless/undesirable enable()
+> beforehand ...
 
-Acked-by: Pierre Ossman <drzeus@drzeus.cx>
+We can't easily have both reference counting and unbalanced disables,
+sadly.
 
--- 
-     -- Pierre Ossman
+>  - Regulators not marked as "boot_on" or "always_on" won't
+>    be active (and usecount will be 0) on return from setup.
 
-  Linux kernel, MMC maintainer        http://www.kernel.org
-  rdesktop, core developer          http://www.rdesktop.org
+This breaks the idea that we don't do anything unless explictly told to
+do so.  I did actually still consider adding code to power off the
+regulator but thought that there may also be situations where the state
+really is unknown (eg, it depends on what the system booted from) and
+it'd be useful to be able to punt to the consumers to figure it out.
 
-  WARNING: This correspondence is being monitored by the
-  Swedish government. Make sure your server uses encryption
-  for SMTP traffic and consider using PGP for end-to-end
-  encryption.
+I'm a bit ambivalent on this one, though - avoiding a sprawl of options
+is certainly neater.  An enum for the initial power state has an appeal
+here.
+
+> -	/* are we enabled at boot time by firmware / bootloader */
+> -	if (rdev->constraints->boot_on)
+> -		rdev->use_count = 1;
+> -
+
+That's not there with the current regulator tree (this was the bug with
+not being able to disable boot_on regulators, there's no way to drop
+that use count later on).
+
+Much of the rest of your patch will fail to apply due to similar
+changes; the logic that's there now is roughly the same as what you have
+here except we don't bother to check is_enabled() any more (no harm
+adding that back, it'd be useful if enable() can't be called for an
+already enabled regulator) and we don't disable the regulator.
+
+> +		} else if (is_enabled < 0) {
+> +			pr_warning("%s: hoping regulator '%s' is %sd...\n",
+> +				       __func__, name, "enable");
+> +		}
+
+I'm really not loving this %s for the enabled - yes, it'll save a small
+amount of memory but it hurts gepability.
