@@ -1,75 +1,69 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: [PATCH omap-fixes v2] OMAP2/3: GPIO: do not attempt to wake-enable GPIO bank IRQ
-Date: Mon,  9 Mar 2009 12:58:11 -0700
-Message-ID: <1236628691-16942-1-git-send-email-khilman@deeprootsystems.com>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from wa-out-1112.google.com ([209.85.146.180]:43505 "EHLO
-	wa-out-1112.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751101AbZCIT6Q (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 9 Mar 2009 15:58:16 -0400
-Received: by wa-out-1112.google.com with SMTP id v33so1052528wah.21
-        for <linux-omap@vger.kernel.org>; Mon, 09 Mar 2009 12:58:15 -0700 (PDT)
-Sender: linux-omap-owner@vger.kernel.org
+From: "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>
+Subject: RE: [PATCH 5/5] LDP: Add support for built-in camera
+Date: Mon, 9 Mar 2009 15:24:15 -0500
+Message-ID: <A24693684029E5489D1D202277BE89442E40F747@dlee02.ent.ti.com>
+References: <49AF451B.2040401@windriver.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
+Return-path: <linux-media-owner@vger.kernel.org>
+In-Reply-To: <49AF451B.2040401@windriver.com>
+Content-Language: en-US
+Sender: linux-media-owner@vger.kernel.org
+To: "stanley.miao" <stanley.miao@windriver.com>
+Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>, "Tuukka.O Toivonen" <tuukka.o.toivonen@nokia.com>, Hiroshi DOYU <Hiroshi.DOYU@nokia.com>, "DongSoo(Nathaniel) Kim" <dongsoo.kim@gmail.com>, MiaoStanley <stanleymiao@hotmail.com>, "Nagalla, Hari" <hnagalla@ti.com>, "Hiremath, Vaibhav" <hvaibhav@ti.com>, "Lakhani, Amish" <amish@ti.com>, "Menon, Nishanth" <nm@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
 
-The GPIO IRQ enable/disable path attempts to also enable IRQ wake
-support for the parent GPIO bank IRQ as well.  However, since there is
-no 'set_wake' hook for the bank IRQs, these calls will always fail.
-Also, since the enable will fail on the suspend path, the disable on
-the resume path will trigger unbalanced enable/disable warnings.
+Hi,
 
-This was discovered in the suspend/resume path on OMAP3/Beagle using
-the gpio-keys driver which disables/re-enables GPIO IRQ wakeups in the
-suspend/resume path.
+> -----Original Message-----
+> From: stanley.miao [mailto:stanley.miao@windriver.com]
 
-Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
----
-This patch was sent on 28 jan 2009 as:
-[PATCH omap-fixes] OMAP2/3: GPIO: remove recursion in IRQ wakeup path
+<snip>
 
-This version simply updates the description to better describe the problem
-and solution.
+> > +static struct i2c_board_info __initdata ldp_i2c_boardinfo_2[] = {
+> > +#if defined(CONFIG_VIDEO_OV3640) || defined(CONFIG_VIDEO_OV3640_MODULE)
+> > +	{
+> > +		I2C_BOARD_INFO("ov3640", OV3640_I2C_ADDR),
+> > +		.platform_data = &ldp_ov3640_platform_data,
+> > +	},
+> > +#endif
+> > +};
+> >
+> This new added i2c_board_info was not registered.
+> After I added this line,
+> 
+> omap_register_i2c_bus(2, 400, ldp_i2c_boardinfo_2,
+>                         ARRAY_SIZE(ldp_i2c_boardinfo_2));
+> 
+> the sensor was found. but the test still failed. A lot of error came out
+> when I run my test program.
+> 
+> <3>CSI2: ComplexIO Error IRQ 80
+> CSI2: ComplexIO Error IRQ 80
+> <3>CSI2: ComplexIO Error IRQ c2
+> CSI2: ComplexIO Error IRQ c2
+> <3>CSI2: ComplexIO Error IRQ c2
+> CSI2: ComplexIO Error IRQ c2
+> <3>CSI2: ComplexIO Error IRQ c6
+> CSI2: ComplexIO Error IRQ c6
+> <3>CSI2: ECC correction failed
+> CSI2: ECC correction failed
+> <3>CSI2: ComplexIO Error IRQ 6
+> CSI2: ComplexIO Error IRQ 6
+> <3>CSI2: ComplexIO Error IRQ 6
+> CSI2: ComplexIO Error IRQ 6
+> <3>CSI2: ComplexIO Error IRQ 6
+> CSI2: ComplexIO Error IRQ 6
+> <3>CSI2: ComplexIO Error IRQ 6
+> CSI2: ComplexIO Error IRQ 6
+> 
 
- arch/arm/plat-omap/gpio.c |   14 ++++----------
- 1 files changed, 4 insertions(+), 10 deletions(-)
+Oops, my mistake. Missed to add that struct there... Fixed now.
 
-diff --git a/arch/arm/plat-omap/gpio.c b/arch/arm/plat-omap/gpio.c
-index f856a90..798a8cd 100644
---- a/arch/arm/plat-omap/gpio.c
-+++ b/arch/arm/plat-omap/gpio.c
-@@ -837,13 +837,10 @@ static int _set_gpio_wakeup(struct gpio_bank *bank, int gpio, int enable)
- 	case METHOD_MPUIO:
- 	case METHOD_GPIO_1610:
- 		spin_lock_irqsave(&bank->lock, flags);
--		if (enable) {
-+		if (enable)
- 			bank->suspend_wakeup |= (1 << gpio);
--			enable_irq_wake(bank->irq);
--		} else {
--			disable_irq_wake(bank->irq);
-+		else
- 			bank->suspend_wakeup &= ~(1 << gpio);
--		}
- 		spin_unlock_irqrestore(&bank->lock, flags);
- 		return 0;
- #endif
-@@ -856,13 +853,10 @@ static int _set_gpio_wakeup(struct gpio_bank *bank, int gpio, int enable)
- 			return -EINVAL;
- 		}
- 		spin_lock_irqsave(&bank->lock, flags);
--		if (enable) {
-+		if (enable)
- 			bank->suspend_wakeup |= (1 << gpio);
--			enable_irq_wake(bank->irq);
--		} else {
--			disable_irq_wake(bank->irq);
-+		else
- 			bank->suspend_wakeup &= ~(1 << gpio);
--		}
- 		spin_unlock_irqrestore(&bank->lock, flags);
- 		return 0;
- #endif
--- 
-1.6.1.2
+About the CSI2 errors you're receiving... Which version of LDP are you using? Which Silicon revision has (ES2.1 or ES3.0)?
 
+Regards,
+Sergio
+> 
+> Stanley.
