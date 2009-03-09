@@ -1,80 +1,59 @@
-From: ext-eero.nurkkala@nokia.com
-Subject: [PATCH 2/2] OMAP: McBSP: Do not enable or disable clocks on failed path
-Date: Mon,  9 Mar 2009 09:05:12 +0200
-Message-ID: <1236582316453-git-send-email-ext-eero.nurkkala@nokia.com>
-References: <12365823123402-git-send-email-ext-eero.nurkkala@nokia.com>
- <12365823142066-git-send-email-ext-eero.nurkkala@nokia.com>
+From: jouni.hogander@nokia.com (=?utf-8?Q?H=C3=B6gander?= Jouni)
+Subject: Re: Problems in cpuidle
+Date: Mon, 09 Mar 2009 12:05:36 +0200
+Message-ID: <871vt7ko3z.fsf@trdhcp146196.ntc.nokia.com>
+References: <B85A65D85D7EB246BE421B3FB0FBB59301CC0EDF9C@dbde02.ent.ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:23315 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752897AbZCIHIo (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 9 Mar 2009 03:08:44 -0400
-Received: from esebh105.NOE.Nokia.com (esebh105.ntc.nokia.com [172.21.138.211])
-	by mgw-mx03.nokia.com (Switch-3.2.6/Switch-3.2.6) with ESMTP id n2978Tne032037
-	for <linux-omap@vger.kernel.org>; Mon, 9 Mar 2009 09:08:40 +0200
-In-Reply-To: <12365823142066-git-send-email-ext-eero.nurkkala@nokia.com>
+Received: from smtp.nokia.com ([192.100.105.134]:32410 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752689AbZCIKGQ convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 9 Mar 2009 06:06:16 -0400
+In-Reply-To: <B85A65D85D7EB246BE421B3FB0FBB59301CC0EDF9C@dbde02.ent.ti.com> (ext Premi's message of "Fri\, 6 Mar 2009 18\:32\:07 +0100")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Eero Nurkkala <ext-eero.nurkkala@nokia.com>
+To: "ext Premi, Sanjeev" <premi@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-From: Eero Nurkkala <ext-eero.nurkkala@nokia.com>
+"ext Premi, Sanjeev" <premi@ti.com> writes:
 
-McBSP clocks are being double enabled in the event the
-McBSP is already active. Also, they are unnecessarily
-disabled when there's no active McBSP in use. Fix this
-phenomenom by enabling and disabling the clocks at a
-proper location.
+> While working with cpuidle, I have come across these problems.
+> I am also working on the solutions, but would be good to hear
+> more thoughts.
+>
+> 1) The flag 'enable_dyn_sleep' is honoured only in omap3_idle_bm_chec=
+k()
+>    but in the C1 state, omap3_enter_idle() is invoked directly.
+>    So, the system can transition to deeper idle state(s)
+>
+>    Same is the case with 'sleep_block'.
+>
+>    Possible Solutions:
+>      a)  Call omap3_can_sleep() in omap3_enter_idle().
+>          This makes omap3_idle_bm_check() redundant; and can be remov=
+ed.
+>
+>      b)  Make single entry point for all idle states
+>          But would be an overkill for C1 state.
+>
+>      c)  Change omap3_can_sleep() to check for omap_uart_can_sleep()
+>          and omap3_fclks_active() only.
+>          Move check for 'enable_dyn_sleep' and 'sleep_block' into
+>          omap3_enter_idle()
+>
+>     I believe (c) would be the most optimal.
 
-Signed-off-by: Eero Nurkkala <ext-eero.nurkkala@nokia.com>
----
- arch/arm/plat-omap/mcbsp.c |   12 ++++++------
- 1 files changed, 6 insertions(+), 6 deletions(-)
+Selecting (c) will break traditional pm_idle. Current plan is to add on=
+e more C
+state (C1) which would prevent mpu/core sleep transitions. Then remove
+fclk_active check completely.
 
-diff --git a/arch/arm/plat-omap/mcbsp.c b/arch/arm/plat-omap/mcbsp.c
-index 59850c2..e7755b9 100644
---- a/arch/arm/plat-omap/mcbsp.c
-+++ b/arch/arm/plat-omap/mcbsp.c
-@@ -226,9 +226,6 @@ int omap_mcbsp_request(unsigned int id)
- 	if (mcbsp->pdata && mcbsp->pdata->ops && mcbsp->pdata->ops->request)
- 		mcbsp->pdata->ops->request(id);
- 
--	for (i = 0; i < mcbsp->num_clks; i++)
--		clk_enable(mcbsp->clks[i]);
--
- 	spin_lock(&mcbsp->lock);
- 	if (!mcbsp->free) {
- 		dev_err(mcbsp->dev, "McBSP%d is currently in use\n",
-@@ -240,6 +237,9 @@ int omap_mcbsp_request(unsigned int id)
- 	mcbsp->free = 0;
- 	spin_unlock(&mcbsp->lock);
- 
-+	for (i = 0; i < mcbsp->num_clks; i++)
-+		clk_enable(mcbsp->clks[i]);
-+
- 	/*
- 	 * Enable wakup behavior, smart idle and all wakeups
- 	 * REVISIT: some wakeups may be unnecessary
-@@ -319,9 +319,6 @@ void omap_mcbsp_free(unsigned int id)
- 	if (mcbsp->pdata && mcbsp->pdata->ops && mcbsp->pdata->ops->free)
- 		mcbsp->pdata->ops->free(id);
- 
--	for (i = mcbsp->num_clks - 1; i >= 0; i--)
--		clk_disable(mcbsp->clks[i]);
--
- 	spin_lock(&mcbsp->lock);
- 	if (mcbsp->free) {
- 		dev_err(mcbsp->dev, "McBSP%d was not reserved\n",
-@@ -333,6 +330,9 @@ void omap_mcbsp_free(unsigned int id)
- 	mcbsp->free = 1;
- 	spin_unlock(&mcbsp->lock);
- 
-+	for (i = mcbsp->num_clks - 1; i >= 0; i--)
-+		clk_disable(mcbsp->clks[i]);
-+
- 	if (mcbsp->io_type == OMAP_MCBSP_IRQ_IO) {
- 		/* Free IRQs */
- 		free_irq(mcbsp->rx_irq, (void *)mcbsp);
--- 
-1.5.2
-
+--=20
+Jouni H=C3=B6gander
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
