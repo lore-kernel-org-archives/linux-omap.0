@@ -1,54 +1,99 @@
 From: jouni.hogander@nokia.com (=?utf-8?Q?H=C3=B6gander?= Jouni)
-Subject: Re: Problems in cpuidle
-Date: Mon, 09 Mar 2009 12:05:36 +0200
-Message-ID: <871vt7ko3z.fsf@trdhcp146196.ntc.nokia.com>
-References: <B85A65D85D7EB246BE421B3FB0FBB59301CC0EDF9C@dbde02.ent.ti.com>
+Subject: Re: [PATCHv2] PM : cpuidle - Update statistics for correct state
+Date: Mon, 09 Mar 2009 12:08:14 +0200
+Message-ID: <87wsazj9f5.fsf@trdhcp146196.ntc.nokia.com>
+References: <1236455149-17017-1-git-send-email-premi@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:32410 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752689AbZCIKGQ convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 9 Mar 2009 06:06:16 -0400
-In-Reply-To: <B85A65D85D7EB246BE421B3FB0FBB59301CC0EDF9C@dbde02.ent.ti.com> (ext Premi's message of "Fri\, 6 Mar 2009 18\:32\:07 +0100")
+Received: from smtp.nokia.com ([192.100.122.230]:25024 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752549AbZCIKIe convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 9 Mar 2009 06:08:34 -0400
+In-Reply-To: <1236455149-17017-1-git-send-email-premi@ti.com> (ext Sanjeev Premi's message of "Sat\, 7 Mar 2009 20\:45\:49 +0100")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "ext Premi, Sanjeev" <premi@ti.com>
+To: ext Sanjeev Premi <premi@ti.com>
 Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-"ext Premi, Sanjeev" <premi@ti.com> writes:
+ext Sanjeev Premi <premi@ti.com> writes:
 
-> While working with cpuidle, I have come across these problems.
-> I am also working on the solutions, but would be good to hear
-> more thoughts.
+> When 'enable_off_mode' is 0, and (mpu_state < PWRDM_POWER_RET)
+> the local variables mpu_state and core_state are modified; but
+> the usage count for the original state selected by the governor
+> are updated.
 >
-> 1) The flag 'enable_dyn_sleep' is honoured only in omap3_idle_bm_chec=
-k()
->    but in the C1 state, omap3_enter_idle() is invoked directly.
->    So, the system can transition to deeper idle state(s)
+> This patch updates the 'last_state' in the cpuidle driver to ensure
+> that statistics for the correct state are updated.
 >
->    Same is the case with 'sleep_block'.
+> Signed-off-by: Sanjeev Premi <premi@ti.com>
+> ---
+>  arch/arm/mach-omap2/cpuidle34xx.c |   29 +++++++++++++++++++--------=
+--
+>  1 files changed, 19 insertions(+), 10 deletions(-)
 >
->    Possible Solutions:
->      a)  Call omap3_can_sleep() in omap3_enter_idle().
->          This makes omap3_idle_bm_check() redundant; and can be remov=
-ed.
->
->      b)  Make single entry point for all idle states
->          But would be an overkill for C1 state.
->
->      c)  Change omap3_can_sleep() to check for omap_uart_can_sleep()
->          and omap3_fclks_active() only.
->          Move check for 'enable_dyn_sleep' and 'sleep_block' into
->          omap3_enter_idle()
->
->     I believe (c) would be the most optimal.
+> diff --git a/arch/arm/mach-omap2/cpuidle34xx.c b/arch/arm/mach-omap2/=
+cpuidle34xx.c
+> index 62fbb2e..b138abd 100644
+> --- a/arch/arm/mach-omap2/cpuidle34xx.c
+> +++ b/arch/arm/mach-omap2/cpuidle34xx.c
+> @@ -76,23 +76,32 @@ static int omap3_enter_idle(struct cpuidle_device=
+ *dev,
+>  {
+>  	struct omap3_processor_cx *cx =3D cpuidle_get_statedata(state);
+>  	struct timespec ts_preidle, ts_postidle, ts_idle;
+> -	u32 mpu_state =3D cx->mpu_state, core_state =3D cx->core_state;
+> -
+> -	current_cx_state =3D *cx;
+> +	u32 mpu_state, core_state;
+> =20
+>  	/* Used to keep track of the total time in idle */
+>  	getnstimeofday(&ts_preidle);
+> =20
+> -	local_irq_disable();
+> -	local_fiq_disable();
+> -
+> +	/*
+> +	 * Adjust the idle state (if required).
+> +	 * Also, ensure that usage statistics of correct state are updated.
+> +	 */
+>  	if (!enable_off_mode) {
+> -		if (mpu_state < PWRDM_POWER_RET)
+> -			mpu_state =3D PWRDM_POWER_RET;
+> -		if (core_state < PWRDM_POWER_RET)
+> -			core_state =3D PWRDM_POWER_RET;
+> +		if (cx->type > OMAP3_STATE_C4) {
+> +			state =3D &(dev->states[OMAP3_STATE_C4 - 1]);
+> +			dev->last_state =3D state ;
+> +
+> +			cx =3D cpuidle_get_statedata(state);
 
-Selecting (c) will break traditional pm_idle. Current plan is to add on=
-e more C
-state (C1) which would prevent mpu/core sleep transitions. Then remove
-fclk_active check completely.
+There is still C3 where OFF is used for MPU. This needs to be taken
+into account.
+
+> +		}
+>  	}
+> =20
+> +	current_cx_state =3D *cx;
+> +
+> +	mpu_state =3D cx->mpu_state;
+> +	core_state =3D cx->core_state;
+> +
+> +	local_irq_disable();
+> +	local_fiq_disable();
+> +
+>  	pwrdm_set_next_pwrst(mpu_pd, mpu_state);
+>  	pwrdm_set_next_pwrst(core_pd, core_state);
+> =20
+> --=20
+> 1.5.6
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap"=
+ in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
 --=20
 Jouni H=C3=B6gander
