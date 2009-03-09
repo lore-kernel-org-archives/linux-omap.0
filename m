@@ -1,35 +1,58 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [APPLIED] [PATCH] ARM: OMAP: Sort 34xx GPIO pins, add few more pins
-Date: Mon, 9 Mar 2009 13:20:19 -0400
-Message-ID: <notify-1236619213@atomide.com>
-References: <20090307003948.GD32353@atomide.com>
+Subject: Re: [PATCH] OMAP: Store reboot mode in scratchpad on OMAP34xx
+Date: Mon, 9 Mar 2009 10:21:40 -0700
+Message-ID: <20090309172140.GF7329@atomide.com>
+References: <1236532839-3696-1-git-send-email-juha.yrjola@solidboot.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-bos.mailhop.org ([63.208.196.178]:51324 "EHLO
+Received: from mho-01-bos.mailhop.org ([63.208.196.178]:53052 "EHLO
 	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751599AbZCIRUT (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 9 Mar 2009 13:20:19 -0400
-Received: from c-69-181-40-92.hsd1.ca.comcast.net ([69.181.40.92] helo=localhost.localdomain)
-	by mho-01-bos.mailhop.org with esmtpa (Exim 4.68)
-	(envelope-from <tony@atomide.com>)
-	id 1Lgj9D-000Iqf-Ud
-	for linux-omap@vger.kernel.org; Mon, 09 Mar 2009 17:20:16 +0000
-In-Reply-To: <20090307003948.GD32353@atomide.com>
+	with ESMTP id S1751031AbZCIRVn (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 9 Mar 2009 13:21:43 -0400
 Content-Disposition: inline
+In-Reply-To: <1236532839-3696-1-git-send-email-juha.yrjola@solidboot.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
+To: Juha Yrjola <juha.yrjola@solidboot.com>
+Cc: linux-omap@vger.kernel.org, Kevin Hilman <khilman@deeprootsystems.com>, Paul Walmsley <paul@pwsan.com>
 
-This patch has been applied to the linux-omap
-by youw fwiendly patch wobot.
+* Juha Yrjola <juha.yrjola@solidboot.com> [090308 10:20]:
+> The reboot mode can be communicated to a bootloader (or the
+> kernel itself) with a scratchpad register. This functionality
+> is especially useful, if userspace is allowed to change
+> the reboot mode.
+> 
+> Signed-off-by: Juha Yrjola <juha.yrjola@solidboot.com>
+> ---
+>  arch/arm/mach-omap2/prcm.c |   10 ++++++++--
+>  1 files changed, 8 insertions(+), 2 deletions(-)
+> 
+> diff --git a/arch/arm/mach-omap2/prcm.c b/arch/arm/mach-omap2/prcm.c
+> index f945156..2bd239e 100644
+> --- a/arch/arm/mach-omap2/prcm.c
+> +++ b/arch/arm/mach-omap2/prcm.c
+> @@ -43,9 +43,15 @@ void omap_prcm_arch_reset(char mode)
+>  
+>  	if (cpu_is_omap24xx())
+>  		prcm_offs = WKUP_MOD;
+> -	else if (cpu_is_omap34xx())
+> +	else if (cpu_is_omap34xx()) {
+> +		u32 l;
+> +
+>  		prcm_offs = OMAP3430_GR_MOD;
+> -	else
+> +		l = ('B' << 24) | ('M' << 16) | mode;
+> +		/* Reserve the first word in scratchpad for communicating
+> +		 * with the boot ROM. */
+> +		omap_writel(l, OMAP343X_SCRATCHPAD + 4);
+> +	} else
+>  		WARN_ON(1);
+>  
+>  	prm_set_mod_reg_bits(OMAP_RST_DPLL3, prcm_offs, RM_RSTCTRL);
 
-Commit: 375061a4c5eddf64de40ef2d5dc775b2f586cc12
+Looks OK to me, any comments from Kevin or Paul?
 
-PatchWorks
-http://patchwork.kernel.org/patch/10435/
+Regards,
 
-Git
-http://git.kernel.org/?p=linux/kernel/git/tmlind/linux-omap-2.6.git;a=commit;h=375061a4c5eddf64de40ef2d5dc775b2f586cc12
-
-
+Tony
