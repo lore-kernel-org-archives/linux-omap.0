@@ -1,90 +1,101 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 02/12] ARM: OMAP3: Store reboot mode in scratchpad on OMAP34xx
-Date: Tue, 10 Mar 2009 14:03:33 -0700
-Message-ID: <20090310210333.16425.80205.stgit@localhost>
+Subject: [PATCH 03/12] ARM: OMAP3: Add more GPIO mux options
+Date: Tue, 10 Mar 2009 14:04:50 -0700
+Message-ID: <20090310210450.16425.65743.stgit@localhost>
 References: <20090310205824.16425.97745.stgit@localhost>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-bos.mailhop.org ([63.208.196.178]:49361 "EHLO
+Received: from mho-01-bos.mailhop.org ([63.208.196.178]:50647 "EHLO
 	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753982AbZCJVDf (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 10 Mar 2009 17:03:35 -0400
+	with ESMTP id S1753495AbZCJVEx (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 10 Mar 2009 17:04:53 -0400
 In-Reply-To: <20090310205824.16425.97745.stgit@localhost>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-arm-kernel@lists.arm.linux.org.uk
-Cc: Juha Yrjola <juha.yrjola@solidboot.com>, Kevin Hilman <khilman@deeprootsystems.com>, linux-omap@vger.kernel.org
+Cc: linux-omap@vger.kernel.org
 
-From: Juha Yrjola <juha.yrjola@solidboot.com>
+This patch adds several new GPIO pins and updates
+the pin naming comments.
 
-The reboot mode can be communicated to a bootloader (or the
-kernel itself) with a scratchpad register. This functionality
-is especially useful, if userspace is allowed to change
-the reboot mode.
+The patch is based on earlier patches on linux-omap
+list by Manikandan Pillai <mani.pillai@ti.com>,
+Vaibhav Hiremath <hvaibhav@ti.com> and
+David Brownell <dbrownell@users.sourceforge.net>.
 
-Patch updated by Tony to also define the BOODMOD registers.
-
-Signed-off-by: Juha Yrjola <juha.yrjola@solidboot.com>
-Acked-by: Kevin Hilman <khilman@deeprootsystems.com>
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
- arch/arm/mach-omap2/prcm.c                |   14 ++++++++++++--
- arch/arm/plat-omap/include/mach/control.h |    9 +++++++++
- 2 files changed, 21 insertions(+), 2 deletions(-)
+ arch/arm/mach-omap2/mux.c             |   27 +++++++++++++++++++++++++++
+ arch/arm/plat-omap/include/mach/mux.h |   13 +++++++++++++
+ 2 files changed, 40 insertions(+), 0 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/prcm.c b/arch/arm/mach-omap2/prcm.c
-index f945156..12c0e03 100644
---- a/arch/arm/mach-omap2/prcm.c
-+++ b/arch/arm/mach-omap2/prcm.c
-@@ -19,6 +19,7 @@
- #include <linux/io.h>
+diff --git a/arch/arm/mach-omap2/mux.c b/arch/arm/mach-omap2/mux.c
+index dacb41f..026c4fc 100644
+--- a/arch/arm/mach-omap2/mux.c
++++ b/arch/arm/mach-omap2/mux.c
+@@ -453,10 +453,37 @@ MUX_CFG_34XX("AC1_3430_USB3FS_PHY_MM3_TXEN_N", 0x18a,
  
- #include <mach/common.h>
-+#include <mach/control.h>
- #include <mach/prcm.h>
  
- #include "clock.h"
-@@ -43,9 +44,18 @@ void omap_prcm_arch_reset(char mode)
+ /* 34XX GPIO - bidirectional, unless the name has an "_OUT" suffix.
++ * (Always specify PIN_INPUT, except for names suffixed by "_OUT".)
+  * No internal pullup/pulldown without "_UP" or "_DOWN" suffix.
+  */
++MUX_CFG_34XX("AF26_34XX_GPIO0", 0x1e0,
++		OMAP34XX_MUX_MODE4 | OMAP34XX_PIN_INPUT)
++MUX_CFG_34XX("AF22_34XX_GPIO9", 0xa18,
++		OMAP34XX_MUX_MODE4 | OMAP34XX_PIN_INPUT)
+ MUX_CFG_34XX("AH8_34XX_GPIO29", 0x5fa,
+ 		OMAP34XX_MUX_MODE4 | OMAP34XX_PIN_INPUT)
++MUX_CFG_34XX("U8_34XX_GPIO54_OUT", 0x0b4,
++		OMAP34XX_MUX_MODE4 | OMAP34XX_PIN_OUTPUT)
++MUX_CFG_34XX("U8_34XX_GPIO54_DOWN", 0x0b4,
++		OMAP34XX_MUX_MODE4 | OMAP34XX_PIN_INPUT_PULLDOWN)
++MUX_CFG_34XX("L8_34XX_GPIO63", 0x0ce,
++		OMAP34XX_MUX_MODE4 | OMAP34XX_PIN_INPUT)
++MUX_CFG_34XX("G25_34XX_GPIO86_OUT", 0x0fc,
++		OMAP34XX_MUX_MODE4 | OMAP34XX_PIN_OUTPUT)
++MUX_CFG_34XX("AG4_34XX_GPIO134_OUT", 0x160,
++		OMAP34XX_MUX_MODE4 | OMAP34XX_PIN_OUTPUT)
++MUX_CFG_34XX("AE4_34XX_GPIO136_OUT", 0x164,
++		OMAP34XX_MUX_MODE4 | OMAP34XX_PIN_OUTPUT)
++MUX_CFG_34XX("AF6_34XX_GPIO140_UP", 0x16c,
++		OMAP34XX_MUX_MODE4 | OMAP34XX_PIN_INPUT_PULLUP)
++MUX_CFG_34XX("AE6_34XX_GPIO141", 0x16e,
++		OMAP34XX_MUX_MODE4 | OMAP34XX_PIN_INPUT)
++MUX_CFG_34XX("AF5_34XX_GPIO142", 0x170,
++		OMAP34XX_MUX_MODE4 | OMAP34XX_PIN_INPUT)
++MUX_CFG_34XX("AE5_34XX_GPIO143", 0x172,
++		OMAP34XX_MUX_MODE4 | OMAP34XX_PIN_INPUT)
++MUX_CFG_34XX("H19_34XX_GPIO164_OUT", 0x19c,
++		OMAP34XX_MUX_MODE4 | OMAP34XX_PIN_OUTPUT)
+ MUX_CFG_34XX("J25_34XX_GPIO170", 0x1c6,
+ 		OMAP34XX_MUX_MODE4 | OMAP34XX_PIN_INPUT)
+ };
+diff --git a/arch/arm/plat-omap/include/mach/mux.h b/arch/arm/plat-omap/include/mach/mux.h
+index f4362b8..f7e298a 100644
+--- a/arch/arm/plat-omap/include/mach/mux.h
++++ b/arch/arm/plat-omap/include/mach/mux.h
+@@ -788,7 +788,20 @@ enum omap34xx_index {
+ 	 *  - "_DOWN" suffix (GPIO3_DOWN) with internal pulldown
+ 	 *  - "_OUT" suffix (GPIO3_OUT) for output-only pins (unlike 24xx)
+ 	 */
++	AF26_34XX_GPIO0,
++	AF22_34XX_GPIO9,
+ 	AH8_34XX_GPIO29,
++	U8_34XX_GPIO54_OUT,
++	U8_34XX_GPIO54_DOWN,
++	L8_34XX_GPIO63,
++	G25_34XX_GPIO86_OUT,
++	AG4_34XX_GPIO134_OUT,
++	AE4_34XX_GPIO136_OUT,
++	AF6_34XX_GPIO140_UP,
++	AE6_34XX_GPIO141,
++	AF5_34XX_GPIO142,
++	AE5_34XX_GPIO143,
++	H19_34XX_GPIO164_OUT,
+ 	J25_34XX_GPIO170,
+ };
  
- 	if (cpu_is_omap24xx())
- 		prcm_offs = WKUP_MOD;
--	else if (cpu_is_omap34xx())
-+	else if (cpu_is_omap34xx()) {
-+		u32 l;
-+
- 		prcm_offs = OMAP3430_GR_MOD;
--	else
-+		l = ('B' << 24) | ('M' << 16) | mode;
-+		/* Reserve the first word in scratchpad for communicating
-+		 * with the boot ROM. A pointer to a data structure
-+		 * describing the boot process can be stored there,
-+		 * cf. OMAP34xx TRM, Initialization / Software Booting
-+		 * Configuration. */
-+		omap_writel(l, OMAP343X_SCRATCHPAD + 4);
-+	} else
- 		WARN_ON(1);
- 
- 	prm_set_mod_reg_bits(OMAP_RST_DPLL3, prcm_offs, RM_RSTCTRL);
-diff --git a/arch/arm/plat-omap/include/mach/control.h b/arch/arm/plat-omap/include/mach/control.h
-index 269147f..1e1bcff 100644
---- a/arch/arm/plat-omap/include/mach/control.h
-+++ b/arch/arm/plat-omap/include/mach/control.h
-@@ -189,6 +189,15 @@
- #define OMAP2_PBIASLITEPWRDNZ0		(1 << 1)
- #define OMAP2_PBIASLITEVMODE0		(1 << 0)
- 
-+/* CONTROL_IVA2_BOOTMOD bits */
-+#define OMAP3_IVA2_BOOTMOD_SHIFT	0
-+#define OMAP3_IVA2_BOOTMOD_MASK		(0xf << 0)
-+#define OMAP3_IVA2_BOOTMOD_IDLE		(0x1 << 0)
-+
-+#define OMAP343X_SCRATCHPAD_ROM		(OMAP343X_CTRL_BASE + 0x860)
-+#define OMAP343X_SCRATCHPAD		(OMAP343X_CTRL_BASE + 0x910)
-+#define OMAP343X_SCRATCHPAD_ROM_OFFSET	0x19C
-+
- #ifndef __ASSEMBLY__
- #if defined(CONFIG_ARCH_OMAP2) || defined(CONFIG_ARCH_OMAP3)
- extern void __iomem *omap_ctrl_base_get(void);
 
