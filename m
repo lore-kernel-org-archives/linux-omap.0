@@ -1,94 +1,76 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 3/6] OMAP: mmc-twl4030 add cover switch
-Date: Tue, 10 Mar 2009 12:29:31 -0700
-Message-ID: <20090310192931.GA19229@atomide.com>
-References: <20090310093255.16889.30509.sendpatchset@ahunter-laptop> <20090310093316.16889.58719.sendpatchset@ahunter-laptop> <200903101050.57677.david-b@pacbell.net>
+Subject: Re: [PATCH 5/6] RX51: adjust hsmmc info
+Date: Tue, 10 Mar 2009 12:30:24 -0700
+Message-ID: <20090310193023.GB19229@atomide.com>
+References: <20090310093255.16889.30509.sendpatchset@ahunter-laptop> <20090310093329.16889.76098.sendpatchset@ahunter-laptop> <200903101058.12980.david-b@pacbell.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-bos.mailhop.org ([63.208.196.178]:50165 "EHLO
+Received: from mho-01-bos.mailhop.org ([63.208.196.178]:51084 "EHLO
 	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752075AbZCJT3g (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 10 Mar 2009 15:29:36 -0400
+	with ESMTP id S1753761AbZCJTa2 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 10 Mar 2009 15:30:28 -0400
 Content-Disposition: inline
-In-Reply-To: <200903101050.57677.david-b@pacbell.net>
+In-Reply-To: <200903101058.12980.david-b@pacbell.net>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: David Brownell <david-b@pacbell.net>
 Cc: Adrian Hunter <adrian.hunter@nokia.com>, Jarkko Lavinen <jarkko.lavinen@nokia.com>, linux-omap Mailing List <linux-omap@vger.kernel.org>
 
-* David Brownell <david-b@pacbell.net> [090310 10:51]:
+* David Brownell <david-b@pacbell.net> [090310 10:58]:
 > On Tuesday 10 March 2009, Adrian Hunter wrote:
-> > >From 1667cd29afa90d041c0782223253835e6bc25b18 Mon Sep 17 00:00:00 2001
-> > From: Adrian Hunter <adrian.hunter@nokia.com>
-> > Date: Mon, 26 Jan 2009 13:14:28 +0200
-> > Subject: [PATCH] OMAP: mmc-twl4030 add cover switch
-> > 
-> > Allow a cover switch to be used to cause a rescan of the
-> > MMC slot.
-> > 
-> > Signed-off-by: Adrian Hunter <adrian.hunter@nokia.com>
-> 
-> Acked-by: David Brownell <dbrownell@users.sourceforge.net>
-> 
-> Because a cover switch is not the same as a card detect switch...
+> > @@ -52,16 +52,20 @@ static struct platform_device *rx51_flash_devic=
+es[] =3D {
+> > =A0
+> > =A0static struct twl4030_hsmmc_info mmc[] __initdata =3D {
+> > =A0=A0=A0=A0=A0=A0=A0=A0{
+> > +=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0.name=A0=A0=A0=A0=A0=A0=
+=A0=A0=A0=A0=A0=3D "external",
+> > =A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0.mmc=A0=A0=A0=A0=A0=
+=A0=A0=A0=A0=A0=A0=A0=3D 1,
+> > -=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0.wires=A0=A0=A0=A0=A0=
+=A0=A0=A0=A0=A0=3D 8,
+> > +=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0.wires=A0=A0=A0=A0=A0=
+=A0=A0=A0=A0=A0=3D 4,
+> > +=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0.cover_only=A0=A0=A0=A0=
+=A0=3D true,
+> > =A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0.gpio_cd=A0=A0=A0=A0=
+=A0=A0=A0=A0=3D 160,
+> > =A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0.gpio_wp=A0=A0=A0=A0=
+=A0=A0=A0=A0=3D -EINVAL,
+> > =A0=A0=A0=A0=A0=A0=A0=A0},
+> > =A0=A0=A0=A0=A0=A0=A0=A0{
+> > +=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0.name=A0=A0=A0=A0=A0=A0=
+=A0=A0=A0=A0=A0=3D "internal",
+> > =A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0.mmc=A0=A0=A0=A0=A0=
+=A0=A0=A0=A0=A0=A0=A0=3D 2,
+> > =A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0.wires=A0=A0=A0=A0=A0=
+=A0=A0=A0=A0=A0=3D 8,
+>=20
+> Ack on all the changes above ...
+>=20
+>=20
+> > =A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0.gpio_cd=A0=A0=A0=A0=
+=A0=A0=A0=A0=3D -EINVAL,
+> > =A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0.gpio_wp=A0=A0=A0=A0=
+=A0=A0=A0=A0=3D -EINVAL,
+> > +=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0.vsim_18v=A0=A0=A0=A0=
+=A0=A0=A0=3D true,
+>=20
+> ... but not that one.
+>=20
+> > =A0=A0=A0=A0=A0=A0=A0=A0},
+> > =A0=A0=A0=A0=A0=A0=A0=A0{}=A0=A0=A0=A0=A0=A0/* Terminator */
+> > =A0};
+>=20
+>=20
 
-Pushed this too after after editing the header change to apply.
+Applied this too except for the vsim_18v.
 
-Tony 
- 
-> > ---
-> >  arch/arm/mach-omap2/mmc-twl4030.c |   13 ++++++++++++-
-> >  arch/arm/mach-omap2/mmc-twl4030.h |    1 +
-> >  2 files changed, 13 insertions(+), 1 deletions(-)
-> > 
-> > diff --git a/arch/arm/mach-omap2/mmc-twl4030.c b/arch/arm/mach-omap2/mmc-twl4030.c
-> > index 736b039..a58deba 100644
-> > --- a/arch/arm/mach-omap2/mmc-twl4030.c
-> > +++ b/arch/arm/mach-omap2/mmc-twl4030.c
-> > @@ -105,6 +105,14 @@ static int twl_mmc_get_ro(struct device *dev, int slot)
-> >  	return gpio_get_value_cansleep(mmc->slots[0].gpio_wp);
-> >  }
-> >  
-> > +static int twl_mmc_get_cover_state(struct device *dev, int slot)
-> > +{
-> > +	struct omap_mmc_platform_data *mmc = dev->platform_data;
-> > +
-> > +	/* NOTE: assumes card detect signal is active-low */
-> > +	return !gpio_get_value_cansleep(mmc->slots[0].switch_pin);
-> > +}
-> > +
-> >  /*
-> >   * MMC Slot Initialization.
-> >   */
-> > @@ -427,7 +435,10 @@ void __init twl4030_mmc_init(struct twl4030_hsmmc_info *controllers)
-> >  
-> >  			mmc->slots[0].switch_pin = c->gpio_cd;
-> >  			mmc->slots[0].card_detect_irq = gpio_to_irq(c->gpio_cd);
-> > -			mmc->slots[0].card_detect = twl_mmc_card_detect;
-> > +			if (c->cover_only)
-> > +				mmc->slots[0].get_cover_state = twl_mmc_get_cover_state;
-> > +			else
-> > +				mmc->slots[0].card_detect = twl_mmc_card_detect;
-> >  		} else
-> >  			mmc->slots[0].switch_pin = -EINVAL;
-> >  
-> > diff --git a/arch/arm/mach-omap2/mmc-twl4030.h b/arch/arm/mach-omap2/mmc-twl4030.h
-> > index 087a969..e87bc8d 100644
-> > --- a/arch/arm/mach-omap2/mmc-twl4030.h
-> > +++ b/arch/arm/mach-omap2/mmc-twl4030.h
-> > @@ -12,6 +12,7 @@ struct twl4030_hsmmc_info {
-> >  	bool	transceiver;	/* MMC-2 option */
-> >  	bool	ext_clock;	/* use external pin for input clock */
-> >  	bool	vsim_18v;	/* MMC-2 option */
-> > +	bool	cover_only;	/* No card detect - just cover switch */
-> >  	int	gpio_cd;	/* or -EINVAL */
-> >  	int	gpio_wp;	/* or -EINVAL */
-> >  	struct device *dev;	/* returned: pointer to mmc adapter */
-> > -- 
-> > 1.5.6.3
-> > 
-> > 
-> 
-> 
-> 
+Tony
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
