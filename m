@@ -1,72 +1,41 @@
-From: David Brownell <david-b@pacbell.net>
-Subject: Re: [PATCH 5/6] RX51: adjust hsmmc info
-Date: Tue, 10 Mar 2009 09:58:12 -0800
-Message-ID: <200903101058.12980.david-b@pacbell.net>
-References: <20090310093255.16889.30509.sendpatchset@ahunter-laptop> <20090310093329.16889.76098.sendpatchset@ahunter-laptop>
+From: <ext-Eero.Nurkkala@nokia.com>
+Subject: RE: [PATCH 2/2] OMAP: McBSP: Do not enable or disable clocks on
+ failed path
+Date: Tue, 10 Mar 2009 19:43:40 +0100
+Message-ID: <1FFEF31EBAA4F64B80D33027D4297760037BE5F663@NOK-EUMSG-02.mgdnok.nokia.com>
+References: <12365823123402-git-send-email-ext-eero.nurkkala@nokia.com>
+	<12365823142066-git-send-email-ext-eero.nurkkala@nokia.com>
+	<1236582316453-git-send-email-ext-eero.nurkkala@nokia.com>,<20090310163027.5444259e.jarkko.nikula@nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp115.sbc.mail.sp1.yahoo.com ([69.147.64.88]:33381 "HELO
-	smtp115.sbc.mail.sp1.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1753590AbZCJR6P (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Tue, 10 Mar 2009 13:58:15 -0400
-In-Reply-To: <20090310093329.16889.76098.sendpatchset@ahunter-laptop>
-Content-Disposition: inline
+Received: from smtp.nokia.com ([192.100.122.230]:37280 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752378AbZCJSpb convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 10 Mar 2009 14:45:31 -0400
+Received: from vaebh106.NOE.Nokia.com (vaebh106.europe.nokia.com [10.160.244.32])
+	by mgw-mx03.nokia.com (Switch-3.2.6/Switch-3.2.6) with ESMTP id n2AIjN5I006184
+	for <linux-omap@vger.kernel.org>; Tue, 10 Mar 2009 20:45:26 +0200
+In-Reply-To: <20090310163027.5444259e.jarkko.nikula@nokia.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Adrian Hunter <adrian.hunter@nokia.com>
-Cc: Tony Lindgren <tony@atomide.com>, Jarkko Lavinen <jarkko.lavinen@nokia.com>, linux-omap Mailing List <linux-omap@vger.kernel.org>
-
-On Tuesday 10 March 2009, Adrian Hunter wrote:
-> @@ -52,16 +52,20 @@ static struct platform_device *rx51_flash_devices=
-[] =3D {
-> =A0
-> =A0static struct twl4030_hsmmc_info mmc[] __initdata =3D {
-> =A0=A0=A0=A0=A0=A0=A0=A0{
-> +=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0.name=A0=A0=A0=A0=A0=A0=
-=A0=A0=A0=A0=A0=3D "external",
-> =A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0.mmc=A0=A0=A0=A0=A0=A0=
-=A0=A0=A0=A0=A0=A0=3D 1,
-> -=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0.wires=A0=A0=A0=A0=A0=A0=
-=A0=A0=A0=A0=3D 8,
-> +=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0.wires=A0=A0=A0=A0=A0=A0=
-=A0=A0=A0=A0=3D 4,
-> +=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0.cover_only=A0=A0=A0=A0=
-=A0=3D true,
-> =A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0.gpio_cd=A0=A0=A0=A0=A0=
-=A0=A0=A0=3D 160,
-> =A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0.gpio_wp=A0=A0=A0=A0=A0=
-=A0=A0=A0=3D -EINVAL,
-> =A0=A0=A0=A0=A0=A0=A0=A0},
-> =A0=A0=A0=A0=A0=A0=A0=A0{
-> +=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0.name=A0=A0=A0=A0=A0=A0=
-=A0=A0=A0=A0=A0=3D "internal",
-> =A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0.mmc=A0=A0=A0=A0=A0=A0=
-=A0=A0=A0=A0=A0=A0=3D 2,
-> =A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0.wires=A0=A0=A0=A0=A0=
-=A0=A0=A0=A0=A0=3D 8,
-
-Ack on all the changes above ...
+To: jarkko.nikula@nokia.com
+Cc: linux-omap@vger.kernel.org
 
 
-> =A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0.gpio_cd=A0=A0=A0=A0=A0=
-=A0=A0=A0=3D -EINVAL,
-> =A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0.gpio_wp=A0=A0=A0=A0=A0=
-=A0=A0=A0=3D -EINVAL,
-> +=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0.vsim_18v=A0=A0=A0=A0=A0=
-=A0=A0=3D true,
+> Race here? See, McBSP is marked free before disabling the clocks and
+> thus omap_mcbsp_request can start enabling them. So should you keep
+> clock disabling after test for mcbsp->free as here now but mark McBSP
+> free only after clocks are disabled?
+> 
+> I think you should send this as an separate fix since this should go to
+> the upstream also.
 
-=2E.. but not that one.
+Good comment... why do I always do everything in such a hurry, without
+thinking any =) 
+Either that or leave clock disabling within the spin_lock covered code?
+(probably risky business)
 
-> =A0=A0=A0=A0=A0=A0=A0=A0},
-> =A0=A0=A0=A0=A0=A0=A0=A0{}=A0=A0=A0=A0=A0=A0/* Terminator */
-> =A0};
-
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+- Eero
