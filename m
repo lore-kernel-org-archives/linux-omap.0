@@ -1,45 +1,90 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 01/12] ARM: OMAP3: Remove unused CONFIG_I2C2_OMAP_BEAGLE
-Date: Tue, 10 Mar 2009 14:02:16 -0700
-Message-ID: <20090310210216.16425.72806.stgit@localhost>
+Subject: [PATCH 02/12] ARM: OMAP3: Store reboot mode in scratchpad on OMAP34xx
+Date: Tue, 10 Mar 2009 14:03:33 -0700
+Message-ID: <20090310210333.16425.80205.stgit@localhost>
 References: <20090310205824.16425.97745.stgit@localhost>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-bos.mailhop.org ([63.208.196.178]:64295 "EHLO
+Received: from mho-01-bos.mailhop.org ([63.208.196.178]:49361 "EHLO
 	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753805AbZCJVCR (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 10 Mar 2009 17:02:17 -0400
+	with ESMTP id S1753982AbZCJVDf (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 10 Mar 2009 17:03:35 -0400
 In-Reply-To: <20090310205824.16425.97745.stgit@localhost>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-arm-kernel@lists.arm.linux.org.uk
-Cc: linux-omap@vger.kernel.org, Jarkko Nikula <jarkko.nikula@nokia.com>
+Cc: Juha Yrjola <juha.yrjola@solidboot.com>, Kevin Hilman <khilman@deeprootsystems.com>, linux-omap@vger.kernel.org
 
-From: Jarkko Nikula <jhnikula@gmail.com>
+From: Juha Yrjola <juha.yrjola@solidboot.com>
 
-There is no CONFIG_I2C2_OMAP_BEAGLE in mainline and it is under
-removal in linux-omap also so remove this dead code now.
+The reboot mode can be communicated to a bootloader (or the
+kernel itself) with a scratchpad register. This functionality
+is especially useful, if userspace is allowed to change
+the reboot mode.
 
-Signed-off-by: Jarkko Nikula <jarkko.nikula@nokia.com>
+Patch updated by Tony to also define the BOODMOD registers.
+
+Signed-off-by: Juha Yrjola <juha.yrjola@solidboot.com>
+Acked-by: Kevin Hilman <khilman@deeprootsystems.com>
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
- arch/arm/mach-omap2/board-omap3beagle.c |    3 ---
- 1 files changed, 0 insertions(+), 3 deletions(-)
+ arch/arm/mach-omap2/prcm.c                |   14 ++++++++++++--
+ arch/arm/plat-omap/include/mach/control.h |    9 +++++++++
+ 2 files changed, 21 insertions(+), 2 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/board-omap3beagle.c b/arch/arm/mach-omap2/board-omap3beagle.c
-index e39cd2c..e3c8628 100644
---- a/arch/arm/mach-omap2/board-omap3beagle.c
-+++ b/arch/arm/mach-omap2/board-omap3beagle.c
-@@ -175,9 +175,6 @@ static int __init omap3_beagle_i2c_init(void)
- {
- 	omap_register_i2c_bus(1, 2600, beagle_i2c_boardinfo,
- 			ARRAY_SIZE(beagle_i2c_boardinfo));
--#ifdef CONFIG_I2C2_OMAP_BEAGLE
--	omap_register_i2c_bus(2, 400, NULL, 0);
--#endif
- 	/* Bus 3 is attached to the DVI port where devices like the pico DLP
- 	 * projector don't work reliably with 400kHz */
- 	omap_register_i2c_bus(3, 100, NULL, 0);
+diff --git a/arch/arm/mach-omap2/prcm.c b/arch/arm/mach-omap2/prcm.c
+index f945156..12c0e03 100644
+--- a/arch/arm/mach-omap2/prcm.c
++++ b/arch/arm/mach-omap2/prcm.c
+@@ -19,6 +19,7 @@
+ #include <linux/io.h>
+ 
+ #include <mach/common.h>
++#include <mach/control.h>
+ #include <mach/prcm.h>
+ 
+ #include "clock.h"
+@@ -43,9 +44,18 @@ void omap_prcm_arch_reset(char mode)
+ 
+ 	if (cpu_is_omap24xx())
+ 		prcm_offs = WKUP_MOD;
+-	else if (cpu_is_omap34xx())
++	else if (cpu_is_omap34xx()) {
++		u32 l;
++
+ 		prcm_offs = OMAP3430_GR_MOD;
+-	else
++		l = ('B' << 24) | ('M' << 16) | mode;
++		/* Reserve the first word in scratchpad for communicating
++		 * with the boot ROM. A pointer to a data structure
++		 * describing the boot process can be stored there,
++		 * cf. OMAP34xx TRM, Initialization / Software Booting
++		 * Configuration. */
++		omap_writel(l, OMAP343X_SCRATCHPAD + 4);
++	} else
+ 		WARN_ON(1);
+ 
+ 	prm_set_mod_reg_bits(OMAP_RST_DPLL3, prcm_offs, RM_RSTCTRL);
+diff --git a/arch/arm/plat-omap/include/mach/control.h b/arch/arm/plat-omap/include/mach/control.h
+index 269147f..1e1bcff 100644
+--- a/arch/arm/plat-omap/include/mach/control.h
++++ b/arch/arm/plat-omap/include/mach/control.h
+@@ -189,6 +189,15 @@
+ #define OMAP2_PBIASLITEPWRDNZ0		(1 << 1)
+ #define OMAP2_PBIASLITEVMODE0		(1 << 0)
+ 
++/* CONTROL_IVA2_BOOTMOD bits */
++#define OMAP3_IVA2_BOOTMOD_SHIFT	0
++#define OMAP3_IVA2_BOOTMOD_MASK		(0xf << 0)
++#define OMAP3_IVA2_BOOTMOD_IDLE		(0x1 << 0)
++
++#define OMAP343X_SCRATCHPAD_ROM		(OMAP343X_CTRL_BASE + 0x860)
++#define OMAP343X_SCRATCHPAD		(OMAP343X_CTRL_BASE + 0x910)
++#define OMAP343X_SCRATCHPAD_ROM_OFFSET	0x19C
++
+ #ifndef __ASSEMBLY__
+ #if defined(CONFIG_ARCH_OMAP2) || defined(CONFIG_ARCH_OMAP3)
+ extern void __iomem *omap_ctrl_base_get(void);
 
