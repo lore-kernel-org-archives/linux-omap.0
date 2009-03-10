@@ -1,44 +1,29 @@
-From: David Brownell <david-b@pacbell.net>
-Subject: [patch 2.6.29-rc7-omap] twl4030-regulator: list more VAUX4 voltages
-Date: Tue, 10 Mar 2009 11:51:15 -0800
-Message-ID: <200903101251.15700.david-b@pacbell.net>
+From: david.hagood@gmail.com
+Subject: What did omap2_disp_get_dss morph into?
+Date: Tue, 10 Mar 2009 15:32:19 -0500 (CDT)
+Message-ID: <94550a837462d3a60453cb4c0ba075e3.squirrel@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp125.sbc.mail.sp1.yahoo.com ([69.147.65.184]:30868 "HELO
-	smtp125.sbc.mail.sp1.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1754480AbZCJTvT (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Tue, 10 Mar 2009 15:51:19 -0400
-Content-Disposition: inline
+Received: from mail-ew0-f177.google.com ([209.85.219.177]:45397 "EHLO
+	mail-ew0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753629AbZCJUc0 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 10 Mar 2009 16:32:26 -0400
+Received: by ewy25 with SMTP id 25so1419513ewy.37
+        for <linux-omap@vger.kernel.org>; Tue, 10 Mar 2009 13:32:24 -0700 (PDT)
+Received: from localhost (localhost [127.0.0.1])
+	by Deathwish.hagood.sktc.net (Postfix) with ESMTP id D54DFC7B8014
+	for <linux-omap@vger.kernel.org>; Tue, 10 Mar 2009 15:32:19 -0500 (CDT)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Liam Girdwood <lrg@slimlogic.co.uk>
-Cc: Mark Brown <broonie@sirena.org.uk>, OMAP <linux-omap@vger.kernel.org>
+To: linux-omap@vger.kernel.org
 
-From: David Brownell <dbrownell@users.sourceforge.net>
+I am trying to get the TI accelerated video driver to build against the
+current DSS2 kernel image, and I think I am this close || to getting it to
+go, but I am missing a pair of functions: omap2_disp_get_dss and
+omap2_disp_put_dss.
 
-The VAUX4 voltage table scrolls onto a second page in many versions
-of the TWL4030 family manuals.  This doesn't mean we should ignore
-those values!  Some boards use the (fully supported) 2.8V setting.
+Obviously, they've changed into something else - what did they morph into?
 
-Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
----
-Please apply to both the regulator-next and OMAP trees.
 
- drivers/regulator/twl4030-regulator.c |    2 ++
- 1 file changed, 2 insertions(+)
-
---- a/drivers/regulator/twl4030-regulator.c
-+++ b/drivers/regulator/twl4030-regulator.c
-@@ -229,6 +229,8 @@ static const u16 VAUX3_VSEL_table[] = {
- static const u16 VAUX4_VSEL_table[] = {
- 	700, 1000, 1200, UNSUP(1300),
- 	1500, 1800, UNSUP(1850), 2500,
-+	UNSUP(2600), 2800, UNSUP(2850), UNSUP(3000),
-+	UNSUP(3150), UNSUP(3150), UNSUP(3150), UNSUP(3150),
- };
- static const u16 VMMC1_VSEL_table[] = {
- 	1850, 2850, 3000, 3150,
