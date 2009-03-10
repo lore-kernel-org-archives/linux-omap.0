@@ -1,86 +1,46 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 08/12] ARM: OMAP3: mmc-twl4030 fix for vmmc = 0
-Date: Tue, 10 Mar 2009 14:11:17 -0700
-Message-ID: <20090310211117.16425.39829.stgit@localhost>
-References: <20090310205824.16425.97745.stgit@localhost>
+From: David Brownell <david-b@pacbell.net>
+Subject: Re: [APPLIED] [PATCH v2] OMAP: Store reboot mode in scratchpad on OMAP34xx
+Date: Tue, 10 Mar 2009 13:05:45 -0800
+Message-ID: <200903101405.46229.david-b@pacbell.net>
+References: <notify-1236713705@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+Content-Type: text/plain;
+  charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-bos.mailhop.org ([63.208.196.178]:57200 "EHLO
-	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755008AbZCJVLW (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 10 Mar 2009 17:11:22 -0400
-In-Reply-To: <20090310205824.16425.97745.stgit@localhost>
+Received: from n12b.bullet.mail.mud.yahoo.com ([209.191.125.179]:43929 "HELO
+	n12b.bullet.mail.mud.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1755008AbZCJVLk (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Tue, 10 Mar 2009 17:11:40 -0400
+In-Reply-To: <notify-1236713705@atomide.com>
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-arm-kernel@lists.arm.linux.org.uk
-Cc: David Brownell <dbrownell@users.sourceforge.net>, linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org, Juha Yrjola <juha.yrjola@solidboot.com>
 
-From: David Brownell <dbrownell@users.sourceforge.net>
+On Tuesday 10 March 2009, Tony Lindgren wrote:
+> This patch has been applied to the linux-omap
+> by youw fwiendly patch wobot.
 
-Resolve longstanding issue noted by Adrian Hunter:  confusion
-between settting VSEL=0 (which is 1.8V on MMC1) and poweroff.
+  CC      arch/arm/mach-omap2/prcm.o
+arch/arm/mach-omap2/prcm.c: In function 'omap_prcm_arch_reset':
+arch/arm/mach-omap2/prcm.c:56: error: 'OMAP343X_SCRATCHPAD' undeclared (first use in this function)
+arch/arm/mach-omap2/prcm.c:56: error: (Each undeclared identifier is reported only once
+arch/arm/mach-omap2/prcm.c:56: error: for each function it appears in.)
+make[1]: *** [arch/arm/mach-omap2/prcm.o] Error 1
+make: *** [arch/arm/mach-omap2] Error 2
 
-Also, leave VSEL alone if we're just powering the regulator off.
-
-Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
-Signed-off-by: Tony Lindgren <tony@atomide.com>
----
- arch/arm/mach-omap2/mmc-twl4030.c |   18 ++++++++++--------
- 1 files changed, 10 insertions(+), 8 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/mmc-twl4030.c b/arch/arm/mach-omap2/mmc-twl4030.c
-index 042035c..2becaf3 100644
---- a/arch/arm/mach-omap2/mmc-twl4030.c
-+++ b/arch/arm/mach-omap2/mmc-twl4030.c
-@@ -178,7 +178,10 @@ static int twl_mmc_resume(struct device *dev, int slot)
- static int twl_mmc_set_voltage(struct twl_mmc_controller *c, int vdd)
- {
- 	int ret;
--	u8 vmmc, dev_grp_val;
-+	u8 vmmc = 0, dev_grp_val;
-+
-+	if (!vdd)
-+		goto doit;
- 
- 	if (c->twl_vmmc_dev_grp == VMMC1_DEV_GRP) {
- 		/* VMMC1:  max 220 mA.  And for 8-bit mode,
-@@ -203,8 +206,7 @@ static int twl_mmc_set_voltage(struct twl_mmc_controller *c, int vdd)
- 			/* error if VSIM needed */
- 			break;
- 		default:
--			vmmc = 0;
--			break;
-+			return -EINVAL;
- 		}
- 	} else if (c->twl_vmmc_dev_grp == VMMC2_DEV_GRP) {
- 		/* VMMC2:  max 100 mA */
-@@ -230,21 +232,21 @@ static int twl_mmc_set_voltage(struct twl_mmc_controller *c, int vdd)
- 			vmmc = VMMC2_315V;
- 			break;
- 		default:
--			vmmc = 0;
--			break;
-+			return -EINVAL;
- 		}
- 	} else {
--		return 0;
-+		return -EINVAL;
- 	}
- 
--	if (vmmc)
-+doit:
-+	if (vdd)
- 		dev_grp_val = VMMC_DEV_GRP_P1;	/* Power up */
- 	else
- 		dev_grp_val = LDO_CLR;		/* Power down */
- 
- 	ret = twl4030_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER,
- 					dev_grp_val, c->twl_vmmc_dev_grp);
--	if (ret)
-+	if (ret || !vdd)
- 		return ret;
- 
- 	ret = twl4030_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER,
+> 
+> Commit: 73b65cde9647508313b3d686dff0f3d1d92482d1
+> 
+> PatchWorks
+> http://patchwork.kernel.org/patch/10718/
+> 
+> Git
+> http://git.kernel.org/?p=linux/kernel/git/tmlind/linux-omap-2.6.git;a=commit;h=73b65cde9647508313b3d686dff0f3d1d92482d1
+> 
+> 
+> 
 
