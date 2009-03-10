@@ -1,41 +1,35 @@
-From: <ext-Eero.Nurkkala@nokia.com>
-Subject: RE: [PATCH 2/2] OMAP: McBSP: Do not enable or disable clocks on
- failed path
-Date: Tue, 10 Mar 2009 19:43:40 +0100
-Message-ID: <1FFEF31EBAA4F64B80D33027D4297760037BE5F663@NOK-EUMSG-02.mgdnok.nokia.com>
-References: <12365823123402-git-send-email-ext-eero.nurkkala@nokia.com>
-	<12365823142066-git-send-email-ext-eero.nurkkala@nokia.com>
-	<1236582316453-git-send-email-ext-eero.nurkkala@nokia.com>,<20090310163027.5444259e.jarkko.nikula@nokia.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: [APPLIED] <span class="quote">> [PATCH] OMAP: mmc-twl4030 fix name buffer length</span>
+Date: Tue, 10 Mar 2009 15:17:42 -0400
+Message-ID: <notify-1236712660@atomide.com>
+References: <20090310093302.16889.4535.sendpatchset@ahunter-laptop>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:37280 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752378AbZCJSpb convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 10 Mar 2009 14:45:31 -0400
-Received: from vaebh106.NOE.Nokia.com (vaebh106.europe.nokia.com [10.160.244.32])
-	by mgw-mx03.nokia.com (Switch-3.2.6/Switch-3.2.6) with ESMTP id n2AIjN5I006184
-	for <linux-omap@vger.kernel.org>; Tue, 10 Mar 2009 20:45:26 +0200
-In-Reply-To: <20090310163027.5444259e.jarkko.nikula@nokia.com>
-Content-Language: en-US
+Received: from mho-01-bos.mailhop.org ([63.208.196.178]:54337 "EHLO
+	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752743AbZCJTRm (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 10 Mar 2009 15:17:42 -0400
+Received: from c-69-181-40-92.hsd1.ca.comcast.net ([69.181.40.92] helo=localhost.localdomain)
+	by mho-01-bos.mailhop.org with esmtpa (Exim 4.68)
+	(envelope-from <tony@atomide.com>)
+	id 1Lh7SO-000Kti-DV
+	for linux-omap@vger.kernel.org; Tue, 10 Mar 2009 19:17:40 +0000
+In-Reply-To: <20090310093302.16889.4535.sendpatchset@ahunter-laptop>
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: jarkko.nikula@nokia.com
-Cc: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
+
+This patch has been applied to the linux-omap
+by youw fwiendly patch wobot.
+
+Commit: 9ed678812ff0a8c42884ce5179b0ac34e3d0c995
+
+PatchWorks
+http://patchwork.kernel.org/patch/10840/
+
+Git
+http://git.kernel.org/?p=linux/kernel/git/tmlind/linux-omap-2.6.git;a=commit;h=9ed678812ff0a8c42884ce5179b0ac34e3d0c995
 
 
-> Race here? See, McBSP is marked free before disabling the clocks and
-> thus omap_mcbsp_request can start enabling them. So should you keep
-> clock disabling after test for mcbsp->free as here now but mark McBSP
-> free only after clocks are disabled?
-> 
-> I think you should send this as an separate fix since this should go to
-> the upstream also.
-
-Good comment... why do I always do everything in such a hurry, without
-thinking any =) 
-Either that or leave clock disabling within the spin_lock covered code?
-(probably risky business)
-
-- Eero
