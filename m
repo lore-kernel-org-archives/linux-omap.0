@@ -1,64 +1,31 @@
-From: "Gupta, Ramesh" <grgupta@ti.com>
-Subject: RE: [PATCH 3/3] Boosting OPP1 voltage level
-Date: Tue, 10 Mar 2009 09:17:53 +0530
-Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB02A8E83885@dbde02.ent.ti.com>
-References: <87sklmwlyi.fsf@deeprootsystems.com>
+From: "Tuukka.O Toivonen" <tuukka.o.toivonen@nokia.com>
+Subject: Re: [PATCH 3/5] OV3640: Add driver
+Date: Tue, 10 Mar 2009 09:29:49 +0200
+Message-ID: <200903100929.50049.tuukka.o.toivonen@nokia.com>
+References: <1236212613.8608.19.camel@tux.localhost> <A24693684029E5489D1D202277BE89442E40F7EF@dlee02.ent.ti.com> <7A436F7769CA33409C6B44B358BFFF0CFF3E86F7@dlee02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:53653 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752247AbZCJDsl convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 9 Mar 2009 23:48:41 -0400
-In-Reply-To: <87sklmwlyi.fsf@deeprootsystems.com>
-Content-Language: en-US
+Received: from smtp.nokia.com ([192.100.122.230]:27540 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752992AbZCJHaD (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 10 Mar 2009 03:30:03 -0400
+In-Reply-To: <7A436F7769CA33409C6B44B358BFFF0CFF3E86F7@dlee02.ent.ti.com>
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@deeprootsystems.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Kanigeri, Hari" <h-kanigeri2@ti.com>
+To: "ext Menon, Nishanth" <nm@ti.com>
+Cc: "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>, Alexey Klimov <klimov.linux@gmail.com>, "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>, "Doyu Hiroshi (Nokia-D/Helsinki)" <hiroshi.doyu@nokia.com>, "DongSoo(Nathaniel) Kim" <dongsoo.kim@gmail.com>, MiaoStanley <stanleymiao@hotmail.com>, "Nagalla, Hari" <hnagalla@ti.com>, "Hiremath, Vaibhav" <hvaibhav@ti.com>, "Lakhani, Amish" <amish@ti.com>
 
-Hi Kevin,
- 
+On Monday 09 March 2009 23:29:27 ext Menon, Nishanth wrote:
+> Further, we have multiple sensors following CCI[1] - why not have a driver
+> for the same, it will simplify the entire process - ov3640, mt9p012 both
+> follow the spec at least.. dependency would be sensor -> cci dev->i2c
+> framework.   
 
-> -----Original Message-----
-> From: Kevin Hilman [mailto:khilman@deeprootsystems.com] 
-> Sent: Tuesday, March 10, 2009 12:41 AM
-> To: Gupta, Ramesh
-> Cc: linux-omap@vger.kernel.org
-> Subject: Re: [PATCH 3/3] Boosting OPP1 voltage level
-> 
-> "Gupta, Ramesh" <grgupta@ti.com> writes:
-> 
-> > From a0b8d146249e05465ff30cfd72592418c7a5da8d Mon Sep 17 
-> 00:00:00 2001
-> > From: Ramesh Gupta G <grgupta@ti.com>
-> > Date: Thu, 12 Feb 2009 03:03:18 +0530
-> > Subject: [PATCH 3/3] Boosting OPP1 voltage level
-> >
-> > some issues are observed like DSP sending SYS_ERROR MMU Fault if 
-> > operated in OPP1, Looks like drop in voltage making DSP to 
-> crash, this 
-> > patch boosts voltage level slightly for stable DSP.
-> >
-> 
-> Ramesh,
-> 
-> Have you retested DSPBRIDGE with the current PM branch HEAD?  
-> Rajendra submitted some patches that update VDD1 that are now 
-> included.  I'm guessing that will fix the problems you've 
-> been seeing as well.
+Sakari has written smiaregs.c pretty much exactly for this
+purpose. You should check it out.
 
-I had tested with Rajendra patches with latest VDD1 voltage levels that resolved 
-the issues I was seeing, I sent an updated patch set for DSP bridge DVFS and OFF mode support.
-
-[PATCH 0/1] DSPBRIDGE DVFS and offmode support updated
-
-Ref: http://www.mail-archive.com/linux-omap@vger.kernel.org/msg09655.html
-
-This patch "[PATCH 3/3] Boosting OPP1 voltage level" is not required any more.
-
-Please let me know your comments.
-
-Regards
-Ramesh Gupta G
+- Tuukka
