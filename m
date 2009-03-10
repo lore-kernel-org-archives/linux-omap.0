@@ -1,40 +1,160 @@
 From: Jarkko Nikula <jarkko.nikula-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
-Subject: [2.6.29-rc7][take #2][PATCH 0/3] ARM: OMAP: Add command line option for I2C bus speed
-Date: Tue, 10 Mar 2009 10:47:08 +0200
-Message-ID: <1236674831-3637-1-git-send-email-jarkko.nikula@nokia.com>
+Subject: [2.6.29-rc7][take #2][PATCH 3/3] ARM: OMAP: Add method to register additional I2C busses on the command line
+Date: Tue, 10 Mar 2009 10:47:11 +0200
+Message-ID: <1236674831-3637-4-git-send-email-jarkko.nikula@nokia.com>
 References: <20090306161349.GC32353@atomide.com>
+ <1236674831-3637-1-git-send-email-jarkko.nikula@nokia.com>
+ <1236674831-3637-2-git-send-email-jarkko.nikula@nokia.com>
+ <1236674831-3637-3-git-send-email-jarkko.nikula@nokia.com>
 Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20090306161349.GC32353-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+In-Reply-To: <1236674831-3637-3-git-send-email-jarkko.nikula-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
 Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Jarkko Nikula <jarkko.nikula-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-Hi
+This patch extends command line option "i2c_bus=bus_id,clkrate" so that
+it allow to register additional I2C busses that are not registered with
+omap_register_i2c_bus from board initialization code.
 
-These patches are for linux-omap but we want to wide discussion also to
-linux-i2c is the new command line option "i2c_bus=bus_id,clkrate" generic
-enough to be used for other architectures as well in the future. Patches
-are generated on top of mainline 2.6.29-rc7.
+Purpose of this is to register additional board busses which are routed
+to external connectors only without any on board I2C devices.
 
-Purpose of this command line option is to both allow to override the default
-board specific bus speed (patch 2) and register additional busses that
-are not registered from board initialization code (patch 3).
+Signed-off-by: Jarkko Nikula <jarkko.nikula-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
+---
+ Documentation/kernel-parameters.txt |    2 +
+ arch/arm/plat-omap/i2c.c            |   73 +++++++++++++++++++++++++----------
+ 2 files changed, 54 insertions(+), 21 deletions(-)
 
-Example for patch 2 would be the case where some on board component is upgraded
-and which allows to use e.g. higher clock rate on the bus without other major
-board changes.
-
-Patch 3 can have more practical use however. E.g. second I2C bus on TI
-BeagleBoard doesn't have on board components and thus it is not registered
-by default with omap_register_i2c_bus. This bus is routed to expansion pin
-header so with this patch it is able to register dynamically when needed.
-
-These patches are previously discussed in these threads:
-
-http://marc.info/?l=linux-omap&m=123635604511892&w=2
-http://marc.info/?l=linux-omap&m=123661915517228&w=2
-
-
+diff --git a/Documentation/kernel-parameters.txt b/Documentation/kernel-parameters.txt
+index d775076..ef9827f 100644
+--- a/Documentation/kernel-parameters.txt
++++ b/Documentation/kernel-parameters.txt
+@@ -831,6 +831,8 @@ and is between 256 and 4096 characters. It is defined in the file
+ 			       terminal devices. Valid values: 0..8
+ 
+ 	i2c_bus=	[HW] Override the default board specific I2C bus speed
++			     or register an additional I2C bus that is not
++			     registered from board initialization code.
+ 			     Format:
+ 			     <bus_id>,<clkrate>
+ 
+diff --git a/arch/arm/plat-omap/i2c.c b/arch/arm/plat-omap/i2c.c
+index aa70e43..a303071 100644
+--- a/arch/arm/plat-omap/i2c.c
++++ b/arch/arm/plat-omap/i2c.c
+@@ -98,6 +98,8 @@ static const int omap34xx_pins[][2] = {
+ static const int omap34xx_pins[][2] = {};
+ #endif
+ 
++#define OMAP_I2C_CMDLINE_SETUP	(BIT(31))
++
+ static void __init omap_i2c_mux_pins(int bus)
+ {
+ 	int scl, sda;
+@@ -133,6 +135,31 @@ static int __init omap_i2c_nr_ports(void)
+ 	return ports;
+ }
+ 
++static int __init omap_i2c_add_bus(int bus_id)
++{
++	struct platform_device *pdev;
++	struct resource *res;
++	resource_size_t base, irq;
++
++	pdev = &omap_i2c_devices[bus_id - 1];
++	if (bus_id == 1) {
++		res = pdev->resource;
++		if (cpu_class_is_omap1()) {
++			base = OMAP1_I2C_BASE;
++			irq = INT_I2C;
++		} else {
++			base = OMAP2_I2C_BASE1;
++			irq = INT_24XX_I2C1_IRQ;
++		}
++		res[0].start = base;
++		res[0].end = base + OMAP_I2C_SIZE;
++		res[1].start = irq;
++	}
++
++	omap_i2c_mux_pins(bus_id - 1);
++	return platform_device_register(pdev);
++}
++
+ /**
+  * omap_i2c_bus_setup - Process command line options for the I2C bus speed
+  * @str: String of options
+@@ -154,11 +181,33 @@ static int __init omap_i2c_bus_setup(char *str)
+ 	if (ints[0] < 2 || ints[1] < 1 || ints[1] > ports)
+ 		return 0;
+ 	i2c_rate[ints[1] - 1] = ints[2];
++	i2c_rate[ints[1] - 1] |= OMAP_I2C_CMDLINE_SETUP;
+ 
+ 	return 1;
+ }
+ __setup("i2c_bus=", omap_i2c_bus_setup);
+ 
++/*
++ * Register busses defined in command line but that are not registered with
++ * omap_register_i2c_bus from board initialization code.
++ */
++static int __init omap_register_i2c_bus_cmdline(void)
++{
++	int i, err = 0;
++
++	for (i = 0; i < ARRAY_SIZE(i2c_rate); i++)
++		if (i2c_rate[i] & OMAP_I2C_CMDLINE_SETUP) {
++			i2c_rate[i] &= ~OMAP_I2C_CMDLINE_SETUP;
++			err = omap_i2c_add_bus(i + 1);
++			if (err)
++				goto out;
++		}
++
++out:
++	return err;
++}
++subsys_initcall(omap_register_i2c_bus_cmdline);
++
+ /**
+  * omap_register_i2c_bus - register I2C bus with device descriptors
+  * @bus_id: bus id counting from number 1
+@@ -173,9 +222,6 @@ int __init omap_register_i2c_bus(int bus_id, u32 clkrate,
+ 			  unsigned len)
+ {
+ 	int err;
+-	struct platform_device *pdev;
+-	struct resource *res;
+-	resource_size_t base, irq;
+ 
+ 	BUG_ON(bus_id < 1 || bus_id > omap_i2c_nr_ports());
+ 
+@@ -185,24 +231,9 @@ int __init omap_register_i2c_bus(int bus_id, u32 clkrate,
+ 			return err;
+ 	}
+ 
+-	pdev = &omap_i2c_devices[bus_id - 1];
+-	if (i2c_rate[bus_id - 1] == 0)
++	if (!i2c_rate[bus_id - 1])
+ 		i2c_rate[bus_id - 1] = clkrate;
++	i2c_rate[bus_id - 1] &= ~OMAP_I2C_CMDLINE_SETUP;
+ 
+-	if (bus_id == 1) {
+-		res = pdev->resource;
+-		if (cpu_class_is_omap1()) {
+-			base = OMAP1_I2C_BASE;
+-			irq = INT_I2C;
+-		} else {
+-			base = OMAP2_I2C_BASE1;
+-			irq = INT_24XX_I2C1_IRQ;
+-		}
+-		res[0].start = base;
+-		res[0].end = base + OMAP_I2C_SIZE;
+-		res[1].start = irq;
+-	}
+-
+-	omap_i2c_mux_pins(bus_id - 1);
+-	return platform_device_register(pdev);
++	return omap_i2c_add_bus(bus_id);
+ }
 -- 
-Jarkko
+1.6.1.3
