@@ -1,107 +1,86 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 07/12] ARM: OMAP3: mmc-twl4030 add MMC3 support
-Date: Tue, 10 Mar 2009 14:10:00 -0700
-Message-ID: <20090310211000.16425.62205.stgit@localhost>
+Subject: [PATCH 08/12] ARM: OMAP3: mmc-twl4030 fix for vmmc = 0
+Date: Tue, 10 Mar 2009 14:11:17 -0700
+Message-ID: <20090310211117.16425.39829.stgit@localhost>
 References: <20090310205824.16425.97745.stgit@localhost>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-bos.mailhop.org ([63.208.196.178]:55804 "EHLO
+Received: from mho-01-bos.mailhop.org ([63.208.196.178]:57200 "EHLO
 	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754233AbZCJVKC (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 10 Mar 2009 17:10:02 -0400
+	with ESMTP id S1755008AbZCJVLW (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 10 Mar 2009 17:11:22 -0400
 In-Reply-To: <20090310205824.16425.97745.stgit@localhost>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-arm-kernel@lists.arm.linux.org.uk
-Cc: linux-omap@vger.kernel.org, Grazvydas Ignotas <notasas@gmail.com>
+Cc: David Brownell <dbrownell@users.sourceforge.net>, linux-omap@vger.kernel.org
 
-From: Grazvydas Ignotas <notasas@gmail.com>
+From: David Brownell <dbrownell@users.sourceforge.net>
 
-Device connected to MMC3 is assumed to be self-powered, so
-set_power() function is empty. It can't be omited because
-host driver requires it. Array size for hsmmc[] is specified
-because hsmmc[2].name is needed for MMC3 name.
+Resolve longstanding issue noted by Adrian Hunter:  confusion
+between settting VSEL=0 (which is 1.8V on MMC1) and poweroff.
 
-Also fix a leak which happens if invalid controller id
-is passed.
+Also, leave VSEL alone if we're just powering the regulator off.
 
-Signed-off-by: Grazvydas Ignotas <notasas@gmail.com>
+Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
- arch/arm/mach-omap2/board-omap3pandora.c |    6 ++++++
- arch/arm/mach-omap2/mmc-twl4030.c        |   19 +++++++++++++++++--
- 2 files changed, 23 insertions(+), 2 deletions(-)
+ arch/arm/mach-omap2/mmc-twl4030.c |   18 ++++++++++--------
+ 1 files changed, 10 insertions(+), 8 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/board-omap3pandora.c b/arch/arm/mach-omap2/board-omap3pandora.c
-index 7a46a65..6e17180 100644
---- a/arch/arm/mach-omap2/board-omap3pandora.c
-+++ b/arch/arm/mach-omap2/board-omap3pandora.c
-@@ -55,6 +55,12 @@ static struct twl4030_hsmmc_info omap3pandora_mmc[] = {
- 		.ext_clock	= 1,
- 		.transceiver	= true,
- 	},
-+	{
-+		.mmc		= 3,
-+		.wires		= 4,
-+		.gpio_cd	= -EINVAL,
-+		.gpio_wp	= -EINVAL,
-+	},
- 	{}	/* Terminator */
- };
- 
 diff --git a/arch/arm/mach-omap2/mmc-twl4030.c b/arch/arm/mach-omap2/mmc-twl4030.c
-index 6399874..042035c 100644
+index 042035c..2becaf3 100644
 --- a/arch/arm/mach-omap2/mmc-twl4030.c
 +++ b/arch/arm/mach-omap2/mmc-twl4030.c
-@@ -62,7 +62,7 @@ static struct twl_mmc_controller {
- 	u8		twl_vmmc_dev_grp;
- 	u8		twl_mmc_dedicated;
- 	char		name[HSMMC_NAME_LEN + 1];
--} hsmmc[] = {
-+} hsmmc[OMAP34XX_NR_MMC] = {
- 	{
- 		.twl_vmmc_dev_grp		= VMMC1_DEV_GRP,
- 		.twl_mmc_dedicated		= VMMC1_DEDICATED,
-@@ -347,6 +347,16 @@ static int twl_mmc2_set_power(struct device *dev, int slot, int power_on, int vd
- 	return ret;
- }
- 
-+static int twl_mmc3_set_power(struct device *dev, int slot, int power_on,
-+		int vdd)
-+{
-+	/*
-+	 * Assume MMC3 has self-powered device connected, for example on-board
-+	 * chip with external power source.
-+	 */
-+	return 0;
-+}
+@@ -178,7 +178,10 @@ static int twl_mmc_resume(struct device *dev, int slot)
+ static int twl_mmc_set_voltage(struct twl_mmc_controller *c, int vdd)
+ {
+ 	int ret;
+-	u8 vmmc, dev_grp_val;
++	u8 vmmc = 0, dev_grp_val;
 +
- static struct omap_mmc_platform_data *hsmmc_data[OMAP34XX_NR_MMC] __initdata;
++	if (!vdd)
++		goto doit;
  
- void __init twl4030_mmc_init(struct twl4030_hsmmc_info *controllers)
-@@ -414,7 +424,7 @@ void __init twl4030_mmc_init(struct twl4030_hsmmc_info *controllers)
- 
- 		/* NOTE:  we assume OMAP's MMC1 and MMC2 use
- 		 * the TWL4030's VMMC1 and VMMC2, respectively;
--		 * and that OMAP's MMC3 isn't used.
-+		 * and that MMC3 device has it's own power source.
- 		 */
- 
- 		switch (c->mmc) {
-@@ -429,8 +439,13 @@ void __init twl4030_mmc_init(struct twl4030_hsmmc_info *controllers)
- 			else
- 				mmc->slots[0].ocr_mask = MMC_VDD_165_195;
+ 	if (c->twl_vmmc_dev_grp == VMMC1_DEV_GRP) {
+ 		/* VMMC1:  max 220 mA.  And for 8-bit mode,
+@@ -203,8 +206,7 @@ static int twl_mmc_set_voltage(struct twl_mmc_controller *c, int vdd)
+ 			/* error if VSIM needed */
  			break;
-+		case 3:
-+			mmc->slots[0].set_power = twl_mmc3_set_power;
-+			mmc->slots[0].ocr_mask = MMC_VDD_165_195;
-+			break;
  		default:
- 			pr_err("MMC%d configuration not supported!\n", c->mmc);
-+			kfree(mmc);
- 			continue;
+-			vmmc = 0;
+-			break;
++			return -EINVAL;
  		}
- 		hsmmc_data[c->mmc - 1] = mmc;
+ 	} else if (c->twl_vmmc_dev_grp == VMMC2_DEV_GRP) {
+ 		/* VMMC2:  max 100 mA */
+@@ -230,21 +232,21 @@ static int twl_mmc_set_voltage(struct twl_mmc_controller *c, int vdd)
+ 			vmmc = VMMC2_315V;
+ 			break;
+ 		default:
+-			vmmc = 0;
+-			break;
++			return -EINVAL;
+ 		}
+ 	} else {
+-		return 0;
++		return -EINVAL;
+ 	}
+ 
+-	if (vmmc)
++doit:
++	if (vdd)
+ 		dev_grp_val = VMMC_DEV_GRP_P1;	/* Power up */
+ 	else
+ 		dev_grp_val = LDO_CLR;		/* Power down */
+ 
+ 	ret = twl4030_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER,
+ 					dev_grp_val, c->twl_vmmc_dev_grp);
+-	if (ret)
++	if (ret || !vdd)
+ 		return ret;
+ 
+ 	ret = twl4030_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER,
 
