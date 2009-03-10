@@ -1,85 +1,135 @@
-From: Jarkko Nikula <jarkko.nikula@nokia.com>
-Subject: Re: [PATCH 2/2] OMAP: McBSP: Do not enable or disable clocks on
- failed path
-Date: Tue, 10 Mar 2009 16:30:27 +0200
-Message-ID: <20090310163027.5444259e.jarkko.nikula@nokia.com>
-References: <12365823123402-git-send-email-ext-eero.nurkkala@nokia.com>
-	<12365823142066-git-send-email-ext-eero.nurkkala@nokia.com>
-	<1236582316453-git-send-email-ext-eero.nurkkala@nokia.com>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: Problems in cpuidle
+Date: Tue, 10 Mar 2009 08:14:53 -0700
+Message-ID: <87d4cpv28i.fsf@deeprootsystems.com>
+References: <B85A65D85D7EB246BE421B3FB0FBB59301CC0EDF9C@dbde02.ent.ti.com>
+	<871vt7ko3z.fsf@trdhcp146196.ntc.nokia.com>
+	<B85A65D85D7EB246BE421B3FB0FBB59301CC1855E0@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:34415 "EHLO
-	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753864AbZCJObW (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 10 Mar 2009 10:31:22 -0400
-Received: from vaebh105.NOE.Nokia.com (vaebh105.europe.nokia.com [10.160.244.31])
-	by mgw-mx06.nokia.com (Switch-3.2.6/Switch-3.2.6) with ESMTP id n2AEVA89014138
-	for <linux-omap@vger.kernel.org>; Tue, 10 Mar 2009 16:31:17 +0200
-In-Reply-To: <1236582316453-git-send-email-ext-eero.nurkkala@nokia.com>
+Received: from wf-out-1314.google.com ([209.85.200.173]:55909 "EHLO
+	wf-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753623AbZCJPPA convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 10 Mar 2009 11:15:00 -0400
+Received: by wf-out-1314.google.com with SMTP id 28so2642851wfa.4
+        for <linux-omap@vger.kernel.org>; Tue, 10 Mar 2009 08:14:58 -0700 (PDT)
+In-Reply-To: <B85A65D85D7EB246BE421B3FB0FBB59301CC1855E0@dbde02.ent.ti.com> (Sanjeev Premi's message of "Tue\, 10 Mar 2009 07\:12\:25 +0530")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Nurkkala Eero.An (EXT-Offcode/Oulu)" <ext-Eero.Nurkkala@nokia.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: "Premi, Sanjeev" <premi@ti.com>
+Cc: =?iso-8859-1?Q?H=F6gander?= Jouni <jouni.hogander@nokia.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Mon, 9 Mar 2009 08:05:12 +0100
-"Nurkkala Eero.An (EXT-Offcode/Oulu)" <ext-Eero.Nurkkala@nokia.com>
-wrote:
+"Premi, Sanjeev" <premi@ti.com> writes:
 
-> From: Eero Nurkkala <ext-eero.nurkkala@nokia.com>
-> 
-> McBSP clocks are being double enabled in the event the
-> McBSP is already active. Also, they are unnecessarily
-> disabled when there's no active McBSP in use. Fix this
-> phenomenom by enabling and disabling the clocks at a
-> proper location.
-> 
-> @@ -226,9 +226,6 @@ int omap_mcbsp_request(unsigned int id)
->  	if (mcbsp->pdata && mcbsp->pdata->ops &&
-> mcbsp->pdata->ops->request) mcbsp->pdata->ops->request(id);
->  
-> -	for (i = 0; i < mcbsp->num_clks; i++)
-> -		clk_enable(mcbsp->clks[i]);
-> -
->  	spin_lock(&mcbsp->lock);
->  	if (!mcbsp->free) {
->  		dev_err(mcbsp->dev, "McBSP%d is currently in use\n",
-> @@ -240,6 +237,9 @@ int omap_mcbsp_request(unsigned int id)
->  	mcbsp->free = 0;
->  	spin_unlock(&mcbsp->lock);
->  
-> +	for (i = 0; i < mcbsp->num_clks; i++)
-> +		clk_enable(mcbsp->clks[i]);
+>> -----Original Message-----
+>> From: H=F6gander Jouni [mailto:jouni.hogander@nokia.com]=20
+>> Sent: Monday, March 09, 2009 3:36 PM
+>> To: Premi, Sanjeev
+>> Cc: linux-omap@vger.kernel.org
+>> Subject: Re: Problems in cpuidle
+>>=20
+>> "ext Premi, Sanjeev" <premi@ti.com> writes:
+>>=20
+>> > While working with cpuidle, I have come across these problems.
+>> > I am also working on the solutions, but would be good to hear more=
+=20
+>> > thoughts.
+>> >
+>> > 1) The flag 'enable_dyn_sleep' is honoured only in=20
+>> omap3_idle_bm_check()
+>> >    but in the C1 state, omap3_enter_idle() is invoked directly.
+>> >    So, the system can transition to deeper idle state(s)
+>> >
+>> >    Same is the case with 'sleep_block'.
+>> >
+>> >    Possible Solutions:
+>> >      a)  Call omap3_can_sleep() in omap3_enter_idle().
+>> >          This makes omap3_idle_bm_check() redundant; and=20
+>> can be removed.
+>> >
+>> >      b)  Make single entry point for all idle states
+>> >          But would be an overkill for C1 state.
+>> >
+>> >      c)  Change omap3_can_sleep() to check for omap_uart_can_sleep=
+()
+>> >          and omap3_fclks_active() only.
+>> >          Move check for 'enable_dyn_sleep' and 'sleep_block' into
+>> >          omap3_enter_idle()
+>> >
+>> >     I believe (c) would be the most optimal.
+>>=20
+>> Selecting (c) will break traditional pm_idle. Current plan is=20
+>> to add one more C state (C1) which would prevent mpu/core=20
+>> sleep transitions. Then remove fclk_active check completely.
+>
+> [sp] I meant doing the same for pm_idle as well.
+>      Also, the new cstate will not help with 'sleep' block.
+>
+>      The proposed change look like:
+>
+> diff --git a/arch/arm/mach-omap2/cpuidle34xx.c b/arch/arm/mach-omap2/=
+cpuidle34xx
+> index 7fc3cb3..c25158c 100644
+> --- a/arch/arm/mach-omap2/cpuidle34xx.c
+> +++ b/arch/arm/mach-omap2/cpuidle34xx.c
+> @@ -82,6 +82,11 @@ static int omap3_enter_idle(struct cpuidle_device =
+*dev,
+>         /* Used to keep track of the total time in idle */
+>         getnstimeofday(&ts_preidle);
+>
+> +       if (!enable_dyn_sleep)
+> +               goto return_sleep_time;
+> +       if (atomic_read(&sleep_block) > 0)
+> +               goto return_sleep_time;
 > +
-
-Valid fix.
-
-> @@ -319,9 +319,6 @@ void omap_mcbsp_free(unsigned int id)
->  	if (mcbsp->pdata && mcbsp->pdata->ops &&
-> mcbsp->pdata->ops->free) mcbsp->pdata->ops->free(id);
->  
-> -	for (i = mcbsp->num_clks - 1; i >= 0; i--)
-> -		clk_disable(mcbsp->clks[i]);
-> -
->  	spin_lock(&mcbsp->lock);
->  	if (mcbsp->free) {
->  		dev_err(mcbsp->dev, "McBSP%d was not reserved\n",
-> @@ -333,6 +330,9 @@ void omap_mcbsp_free(unsigned int id)
->  	mcbsp->free = 1;
->  	spin_unlock(&mcbsp->lock);
->  
-> +	for (i = mcbsp->num_clks - 1; i >= 0; i--)
-> +		clk_disable(mcbsp->clks[i]);
+>         /*
+>          * Adjust the idle state (if required).
+>          * Also, ensure that usage statistics of correct state are up=
+dated.
+> diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34x=
+x.c
+> index 0716d60..5c7819a 100644
+> --- a/arch/arm/mach-omap2/pm34xx.c
+> +++ b/arch/arm/mach-omap2/pm34xx.c
+> @@ -476,14 +476,10 @@ static int omap3_fclks_active(void)
+>
+>  int omap3_can_sleep(void)
+>  {
+> -       if (!enable_dyn_sleep)
+> -               return 0;
+>         if (!omap_uart_can_sleep())
+>                 return 0;
+>         if (omap3_fclks_active())
+>                 return 0;
+> -       if (atomic_read(&sleep_block) > 0)
+> -               return 0;
+>         return 1;
+>  }
+>
+> @@ -534,6 +530,11 @@ err:
+>
+>  static void omap3_pm_idle(void)
+>  {
+> +       if (!enable_dyn_sleep)
+> +               return;
+> +       if (atomic_read(&sleep_block) > 0)
+> +               return;
 > +
+>         local_irq_disable();
+>         local_fiq_disable();
+>
 
-Race here? See, McBSP is marked free before disabling the clocks and
-thus omap_mcbsp_request can start enabling them. So should you keep
-clock disabling after test for mcbsp->free as here now but mark McBSP
-free only after clocks are disabled?
+Sanjeev,
 
-I think you should send this as an separate fix since this should go to
-the upstream also.
+I think it's cleaner to just make all the states go through the 'bm_che=
+ck',
+so the standard PM idle and CPUidle use the same paths.
 
-
-Jarkko
+Kevin
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
