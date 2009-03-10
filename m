@@ -1,91 +1,61 @@
-From: "Peter 'p2' De Schrijver" <peter.de-schrijver@nokia.com>
-Subject: [PATCH] Remove fclk check for cpuidle
-Date: Tue, 10 Mar 2009 18:05:19 +0200
-Message-ID: <1236701119-30992-1-git-send-email-peter.de-schrijver@nokia.com>
+From: David Brownell <david-b@pacbell.net>
+Subject: Re: [PATCH 1/6] OMAP: mmc-twl4030 fix name buffer length
+Date: Tue, 10 Mar 2009 09:28:25 -0800
+Message-ID: <200903101028.25844.david-b@pacbell.net>
+References: <20090310093255.16889.30509.sendpatchset@ahunter-laptop> <20090310093302.16889.4535.sendpatchset@ahunter-laptop>
+Mime-Version: 1.0
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:28501 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756930AbZCJQGL (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 10 Mar 2009 12:06:11 -0400
-Received: from vaebh105.NOE.Nokia.com (vaebh105.europe.nokia.com [10.160.244.31])
-	by mgw-mx09.nokia.com (Switch-3.2.6/Switch-3.2.6) with ESMTP id n2AG5cj3004030
-	for <linux-omap@vger.kernel.org>; Tue, 10 Mar 2009 11:06:08 -0500
+Received: from n30.bullet.mail.mud.yahoo.com ([68.142.207.49]:39853 "HELO
+	n30.bullet.mail.mud.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1754974AbZCJR2a (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Tue, 10 Mar 2009 13:28:30 -0400
+In-Reply-To: <20090310093302.16889.4535.sendpatchset@ahunter-laptop>
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Peter 'p2' De Schrijver <peter.de-schrijver@nokia.com>
+To: Adrian Hunter <adrian.hunter@nokia.com>
+Cc: Tony Lindgren <tony@atomide.com>, Jarkko Lavinen <jarkko.lavinen@nokia.com>, linux-omap Mailing List <linux-omap@vger.kernel.org>
 
-This patch removes the check to see if some functional clocks are still
-enabled before entering sleep. 
+On Tuesday 10 March 2009, Adrian Hunter wrote:
+> >From 60238a3a80b5be3e1843a049b39eabf729c315aa Mon Sep 17 00:00:00 2001
+> From: Adrian Hunter <adrian.hunter@nokia.com>
+> Date: Thu, 22 Jan 2009 17:58:04 +0200
+> Subject: [PATCH] OMAP: mmc-twl4030 fix name buffer length
+> 
+> Add 1 to buffer length for null terminator.
+> 
+> Signed-off-by: Adrian Hunter <adrian.hunter@nokia.com>
 
-Signed-off-by: Peter 'p2' De Schrijver <peter.de-schrijver@nokia.com>
----
- arch/arm/mach-omap2/pm34xx.c |   46 ------------------------------------------
- 1 files changed, 0 insertions(+), 46 deletions(-)
+Acked-by: David Brownell <dbrownell@users.sourceforge.net>
 
-diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
-index e12ff2a..008a4d2 100644
---- a/arch/arm/mach-omap2/pm34xx.c
-+++ b/arch/arm/mach-omap2/pm34xx.c
-@@ -453,58 +453,12 @@ void omap_sram_idle(void)
- 	omap2_clkdm_allow_idle(mpu_pwrdm->pwrdm_clkdms[0]);
- }
- 
--/*
-- * Check if functional clocks are enabled before entering
-- * sleep. This function could be behind CONFIG_PM_DEBUG
-- * when all drivers are configuring their sysconfig registers
-- * properly and using their clocks properly.
-- */
--static int omap3_fclks_active(void)
--{
--	u32 fck_core1 = 0, fck_core3 = 0, fck_sgx = 0, fck_dss = 0,
--		fck_cam = 0, fck_per = 0, fck_usbhost = 0;
--
--	fck_core1 = cm_read_mod_reg(CORE_MOD,
--				    CM_FCLKEN1);
--	if (omap_rev() > OMAP3430_REV_ES1_0) {
--		fck_core3 = cm_read_mod_reg(CORE_MOD,
--					    OMAP3430ES2_CM_FCLKEN3);
--		fck_sgx = cm_read_mod_reg(OMAP3430ES2_SGX_MOD,
--					  CM_FCLKEN);
--		fck_usbhost = cm_read_mod_reg(OMAP3430ES2_USBHOST_MOD,
--					      CM_FCLKEN);
--	} else
--		fck_sgx = cm_read_mod_reg(GFX_MOD,
--					  OMAP3430ES2_CM_FCLKEN3);
--	fck_dss = cm_read_mod_reg(OMAP3430_DSS_MOD,
--				  CM_FCLKEN);
--	fck_cam = cm_read_mod_reg(OMAP3430_CAM_MOD,
--				  CM_FCLKEN);
--	fck_per = cm_read_mod_reg(OMAP3430_PER_MOD,
--				  CM_FCLKEN);
--
--	/* Ignore UART clocks.  These are handled by UART core (serial.c) */
--	fck_core1 &= ~(OMAP3430_EN_UART1 | OMAP3430_EN_UART2);
--	fck_per &= ~OMAP3430_EN_UART3;
--
--	/* Ignore GPIO clocks.  Handled by GPIO prepare-idle hooks */
--	fck_per &= ~(OMAP3430_EN_GPIO2 | OMAP3430_EN_GPIO3 |
--		     OMAP3430_EN_GPIO4 | OMAP3430_EN_GPIO5 | OMAP3430_EN_GPIO6);
--
--	if (fck_core1 | fck_core3 | fck_sgx | fck_dss |
--	    fck_cam | fck_per | fck_usbhost)
--		return 1;
--	return 0;
--}
--
- int omap3_can_sleep(void)
- {
- 	if (!enable_dyn_sleep)
- 		return 0;
- 	if (!omap_uart_can_sleep())
- 		return 0;
--	if (omap3_fclks_active())
--		return 0;
- 	if (atomic_read(&sleep_block) > 0)
- 		return 0;
- 	return 1;
--- 
-1.5.6.3
+An endless off-by-one bug ...
+
+
+> ---
+>  arch/arm/mach-omap2/mmc-twl4030.c |    2 +-
+>  1 files changed, 1 insertions(+), 1 deletions(-)
+> 
+> diff --git a/arch/arm/mach-omap2/mmc-twl4030.c b/arch/arm/mach-omap2/mmc-twl4030.c
+> index 33e5b9b..aeaab5a 100644
+> --- a/arch/arm/mach-omap2/mmc-twl4030.c
+> +++ b/arch/arm/mach-omap2/mmc-twl4030.c
+> @@ -61,7 +61,7 @@ static struct twl_mmc_controller {
+>  	struct omap_mmc_platform_data	*mmc;
+>  	u8		twl_vmmc_dev_grp;
+>  	u8		twl_mmc_dedicated;
+> -	char		name[HSMMC_NAME_LEN];
+> +	char		name[HSMMC_NAME_LEN + 1];
+>  } hsmmc[OMAP34XX_NR_MMC] = {
+>  	{
+>  		.twl_vmmc_dev_grp		= VMMC1_DEV_GRP,
+> -- 
+> 1.5.6.3
+> 
+> 
+
+
 
