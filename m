@@ -1,129 +1,97 @@
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-Subject: Re: [REVIEW PATCH 11/14] OMAP34XXCAM: Add driver
-Date: Tue, 10 Mar 2009 14:34:57 +0100 (CET)
-Message-ID: <7153.62.70.2.252.1236692097.squirrel@webmail.xs4all.nl>
+From: Kainan Cha <thezha@gmail.com>
+Subject: Re: [PATCH] ARM: OMAP: Fix GPIO switch initial output state handling
+Date: Tue, 10 Mar 2009 09:25:55 -0500
+Message-ID: <c236f0530903100725jf214fa3m7f4063e727366eb4@mail.gmail.com>
+References: <1236677181-16601-1-git-send-email-ext-jani.1.nikula@nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
-Return-path: <linux-media-owner@vger.kernel.org>
-Sender: linux-media-owner@vger.kernel.org
-To: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
-Cc: "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>, DongSoo Kim <dongsoo.kim@gmail.com>, "Hiremath, Vaibhav" <hvaibhav@ti.com>, "Toivonen Tuukka.O" <tuukka.o.toivonen@nokia.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Nagalla, Hari" <hnagalla@ti.com>, "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from rv-out-0506.google.com ([209.85.198.235]:3665 "EHLO
+	rv-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751512AbZCJOZ6 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 10 Mar 2009 10:25:58 -0400
+Received: by rv-out-0506.google.com with SMTP id g37so2241519rvb.1
+        for <linux-omap@vger.kernel.org>; Tue, 10 Mar 2009 07:25:55 -0700 (PDT)
+In-Reply-To: <1236677181-16601-1-git-send-email-ext-jani.1.nikula@nokia.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Jani Nikula <ext-jani.1.nikula@nokia.com>
+Cc: linux-omap@vger.kernel.org
 
+Jani,
 
-> Hans Verkuil wrote:
->>> Sergio has posted earlier a patchset containing a driver for using the
->>> ISP to process images from memory to memory. The ISP driver is used
->>> roughly the same way as with the omap34xxcam and real sensors. The
->>> interface towards the userspace offered by the driver, however, is
->>> different, you probably saw it (preview and resizer wrappers).
->>>
->>> My opinion has been that the memory-to-memory operation of the ISP
->>> should also offer V4L2 interface. V4L2, however, doesn't support such
->>> devices at the moment. The only differences that I can see is that
->>>
->>> 1. the input is a video buffer instead of sensor and
->>>
->>> 2. the source format needs to be specified somehow since the ISP can
->>> also do format conversion. So it's output and input at the same time.
->>>
->>> But if we had one video device per ISP, then memory-to-memory operation
->>> would be just one... input or output or what? :)
->>>
->>> Earlier we were thinking of creating one device node for it.
->>
->> This sounds like a codec interface as 'described' here:
->>
->> http://www.xs4all.nl/~hverkuil/spec/v4l2.html#CODEC
->>
->> It would be a first for V4L2 to have a driver that can do this, but I
->> agree
->> that that would be a single device that has both 'output' and 'capture'.
+Please see my comments below.
+
+On Tue, Mar 10, 2009 at 4:26 AM, Jani Nikula
+<ext-jani.1.nikula@nokia.com> wrote:
+> The switchover to cross-platform GPIO interface unexpectedly caused all
+> output GPIO switches to be set to high state by default, unlike the
+> original OMAP code. Introduce a new GPIO switch flag to define the
+> initial state. Unless the flag is set, the default is now low state.
 >
-> Ok. Although this work most probably will be left for future at this
-> point.
+> Also store the state of output switches directly into the switch struct
+> instead of trying to read an output GPIO.
 >
->>> Currently you can have just one device node using the ISP open.
->>> omap34xxcam_open() calls isp_get() which fails if the ISP use count was
->>> non-zero (means one).
->>>
->>> Or did I misunderstood something?
->>
->> Oh dear. Please don't use 'use counts'. It is perfectly acceptable and
->> desirable to have multiple opens on the same video node. Only one file
+> Signed-off-by: Jani Nikula <ext-jani.1.nikula@nokia.com>
+> ---
+>  arch/arm/plat-omap/gpio-switch.c              |   13 +++++++++----
+>  arch/arm/plat-omap/include/mach/gpio-switch.h |    1 +
+>  2 files changed, 10 insertions(+), 4 deletions(-)
 >
->> Use counts are really bad and totally unnecessary. Only if another file
->> handle is in streaming mode (and when using VIDIOC_S_PRIORITY) does it
->> make
->> sense to return -EBUSY for certain ioctls or read/write operations.
->> Otherwise you shouldn't limit the user from opening the same device node
->> as
->> many times as he wants and use that to query the video device.
+> diff --git a/arch/arm/plat-omap/gpio-switch.c b/arch/arm/plat-omap/gpio-switch.c
+> index 2b5665d..b278024 100644
+> --- a/arch/arm/plat-omap/gpio-switch.c
+> +++ b/arch/arm/plat-omap/gpio-switch.c
+> @@ -286,12 +286,17 @@ static int __init new_switch(struct gpio_switch *sw)
 >
-> ?
+>        /* input: 1, output: 0 */
+>        direction = !(sw->flags & OMAP_GPIO_SWITCH_FLAG_OUTPUT);
+> -       if (direction)
+> +       if (direction) {
+>                gpio_direction_input(sw->gpio);
+> -       else
+> -               gpio_direction_output(sw->gpio, true);
+> +               sw->state = gpio_sw_get_state(sw);
+> +       } else {
+> +               int state = sw->state =
+> +                       !!(sw->flags & OMAP_GPIO_SWITCH_FLAG_OUTPUT_INIT_HIGH);
 >
-> Having a use count doesn't prevent multiple file handles nor otherwise
-> artificially limit functionality. We need to be able to shut down the
-> slaves when they are no longer needed. IMO having an use count to do
-> this is fine (unless otherwise proven).
+> -       sw->state = gpio_sw_get_state(sw);
+> +               if (sw->flags & OMAP_GPIO_SWITCH_FLAG_INVERTED)
+> +                       state = !state;
 
-Yes, it is fine for such purposes. As long as it isn't abused to restrict
-functionality on subsequent opens. Several drivers use it for that, and
-that is NOT right. But it's OK for powersaving implementations. I should
-have mentioned that.
+Using OMAP_GPIO_SWITCH_FLAG_INVERTED along with
+OMAP_GPIO_SWITCH_FLAG_OUTPUT_INIT_HIGH here is somewhat confusing to
+me.
 
-> Also the camera driver does try_module_get() to the slaves when it's
-> opened by the first user. module_put() is called on those when the last
-> user goes away.
+INIT_HIGH indicates the state of the gpio, not the state of the
+switch. Why not ignore the OMAP_GPIO_SWITCH_FLAG_INVERTED all together
+when setting up the switch. This way, the user does not have to think
+twice. :)
 
-This is to allow those modules to be unloaded?
-
-> We'd also like to get rid of the current way of directly telling the
-> slaves what their power state should be. Rather we'd like to tell the
-> slaves what's expected from them. This could translate to
-> open/release/streamon/streamoff commands. To be able to do this, the use
-> count is required --- unless this task is given to the slaves
-> (v4l2_subdevs).
-
-Sounds interesting. I would have to see a proposal or proof-of-concept
-code to determine how useful it is. It's however better to do this after
-the v4l2-subdev conversion.
-
->> BTW, I looked at omap24xxcam_open(): data like fh->pix does *not* belong
->> to
->> the filehandle struct, it should be part of the top-level data
->> structure.
+> +               gpio_direction_output(sw->gpio, state);
+> +       }
 >
-> That's fixed in the omap34xxcam.c. :)
-
-Yay!
-
->> You want to be able to do simple things like querying a video node for
->> the
->> currently selected format. You can't do that if the format is stored in
->> the
->> filehandle! E.g.: you are streaming and you want to run
->> v4l2-ctl --get-fmt-video to check what video format is being used.
->> Things
->> like this must be supported by a well-written v4l2 driver. Again, sadly
->> quite a few v4l2 drivers do this wrong as well :-(
->>
->> I also see that cam->users is not decreased by one if
->> omap24xxcam_sensor_enable() fails.
->>
->> Note that I'm looking at the code in the v4l-dvb repository, the
->> linux-omap
->> git tree might have fixed that already.
+>        r = 0;
+>        r |= device_create_file(&sw->pdev.dev, &dev_attr_state);
+> diff --git a/arch/arm/plat-omap/include/mach/gpio-switch.h b/arch/arm/plat-omap/include/mach/gpio-switch.h
+> index a143253..107d23f 100644
+> --- a/arch/arm/plat-omap/include/mach/gpio-switch.h
+> +++ b/arch/arm/plat-omap/include/mach/gpio-switch.h
+> @@ -29,6 +29,7 @@
+>  #define OMAP_GPIO_SWITCH_TYPE_ACTIVITY         0x0002
+>  #define OMAP_GPIO_SWITCH_FLAG_INVERTED         0x0001
+>  #define OMAP_GPIO_SWITCH_FLAG_OUTPUT           0x0002
+> +#define OMAP_GPIO_SWITCH_FLAG_OUTPUT_INIT_HIGH 0x0004
 >
-> I'm afraid it's still there. Will fix that.
-
-OK.
-
-Thanks,
-
-       Hans
-
--- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG
-
+>  struct omap_gpio_switch {
+>        const char *name;
+> --
+> 1.6.0.4
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
