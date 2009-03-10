@@ -1,364 +1,95 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 12/12] ARM: OMAP3: MUSB initialization for omap hw
-Date: Tue, 10 Mar 2009 14:16:28 -0700
-Message-ID: <20090310211628.16425.55120.stgit@localhost>
-References: <20090310205824.16425.97745.stgit@localhost>
+From: Mark Brown <broonie@sirena.org.uk>
+Subject: Re: Problems while designing TPS65023 regulator driver
+Date: Tue, 10 Mar 2009 23:33:12 +0000
+Message-ID: <20090310233310.GB8189@sirena.org.uk>
+References: <20090226140450.GB8595@sirena.org.uk> <200903081354.36044.david-b@pacbell.net> <20090308224145.GD18035@sirena.org.uk> <200903091745.28071.david-b@pacbell.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-bos.mailhop.org ([63.208.196.178]:62705 "EHLO
-	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753942AbZCJVQc (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 10 Mar 2009 17:16:32 -0400
-In-Reply-To: <20090310205824.16425.97745.stgit@localhost>
+Received: from cassiel.sirena.org.uk ([80.68.93.111]:2524 "EHLO
+	cassiel.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754443AbZCJXde (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 10 Mar 2009 19:33:34 -0400
+Content-Disposition: inline
+In-Reply-To: <200903091745.28071.david-b@pacbell.net>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-arm-kernel@lists.arm.linux.org.uk
-Cc: Ajay Kumar Gupta <ajay.gupta@ti.com>, Felipe Balbi <felipe.balbi@nokia.com>, linux-omap@vger.kernel.org
+To: David Brownell <david-b@pacbell.net>
+Cc: "Aggarwal, Anuj" <anuj.aggarwal@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-From: Felipe Balbi <felipe.balbi@nokia.com>
+On Mon, Mar 09, 2009 at 04:45:26PM -0800, David Brownell wrote:
+> On Sunday 08 March 2009, Mark Brown wrote:
 
-Create a generic board-file for initializing usb
-on omap2430 and omap3 boards.
+> > >  - Regulators not marked as "boot_on" or "always_on" won't
+> > >    be active (and usecount will be 0) on return from setup.
 
-Patch modified by Tony to build the module based on
-CONFIG_USB_MUSB_SOC. Also merged in a patch adding
-the nop xceiv from Ajay Kumar Gupta <ajay.gupta@ti.com>.
+> > This breaks the idea that we don't do anything unless explictly told to
+> > do so.
 
-Signed-off-by: Ajay Kumar Gupta <ajay.gupta@ti.com>
-Signed-off-by: Felipe Balbi <felipe.balbi@nokia.com>
-Signed-off-by: Tony Lindgren <tony@atomide.com>
----
- arch/arm/mach-omap2/Makefile             |    2 
- arch/arm/mach-omap2/board-2430sdp.c      |    2 
- arch/arm/mach-omap2/board-ldp.c          |    2 
- arch/arm/mach-omap2/board-omap3beagle.c  |    2 
- arch/arm/mach-omap2/board-omap3pandora.c |    2 
- arch/arm/mach-omap2/board-overo.c        |    2 
- arch/arm/mach-omap2/usb-musb.c           |  185 ++++++++++++++++++++++++++++++
- arch/arm/plat-omap/include/mach/usb.h    |    8 +
- 8 files changed, 205 insertions(+), 0 deletions(-)
- create mode 100644 arch/arm/mach-omap2/usb-musb.c
+> I'm not sure where you're drawing this "explicitly" line, but
+> clearly it's not where I would draw it!  The board init code
+> explicitly said "here's a regulator, with these settings for
+> the boot_on and always_on flags".  If neither was set, they
+> are obviously clear ... so the regulator shouldn't be enabled.
 
-diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
-index bbd12bc..53403a0 100644
---- a/arch/arm/mach-omap2/Makefile
-+++ b/arch/arm/mach-omap2/Makefile
-@@ -39,3 +39,5 @@ obj-$(CONFIG_MACH_OVERO)		+= board-overo.o \
- obj-$(CONFIG_MACH_OMAP3_PANDORA)	+= board-omap3pandora.o \
- 					   mmc-twl4030.o
- 
-+# Platform specific device init code
-+obj-$(CONFIG_USB_MUSB_SOC)		+= usb-musb.o
-diff --git a/arch/arm/mach-omap2/board-2430sdp.c b/arch/arm/mach-omap2/board-2430sdp.c
-index 83fa372..9619e25 100644
---- a/arch/arm/mach-omap2/board-2430sdp.c
-+++ b/arch/arm/mach-omap2/board-2430sdp.c
-@@ -35,6 +35,7 @@
- #include <mach/board.h>
- #include <mach/common.h>
- #include <mach/gpmc.h>
-+#include <mach/usb.h>
- 
- #include "mmc-twl4030.h"
- 
-@@ -251,6 +252,7 @@ static void __init omap_2430sdp_init(void)
- 	omap_board_config_size = ARRAY_SIZE(sdp2430_config);
- 	omap_serial_init();
- 	twl4030_mmc_init(mmc);
-+	usb_musb_init();
- }
- 
- static void __init omap_2430sdp_map_io(void)
-diff --git a/arch/arm/mach-omap2/board-ldp.c b/arch/arm/mach-omap2/board-ldp.c
-index f6a1345..b7dbc6c 100644
---- a/arch/arm/mach-omap2/board-ldp.c
-+++ b/arch/arm/mach-omap2/board-ldp.c
-@@ -38,6 +38,7 @@
- #include <asm/io.h>
- #include <asm/delay.h>
- #include <mach/control.h>
-+#include <mach/usb.h>
- 
- #include "mmc-twl4030.h"
- 
-@@ -162,6 +163,7 @@ static void __init omap_ldp_init(void)
- 	omap_board_config_size = ARRAY_SIZE(ldp_config);
- 	omap_serial_init();
- 	twl4030_mmc_init(mmc);
-+	usb_musb_init();
- }
- 
- static void __init omap_ldp_map_io(void)
-diff --git a/arch/arm/mach-omap2/board-omap3beagle.c b/arch/arm/mach-omap2/board-omap3beagle.c
-index e3c8628..2f3d821 100644
---- a/arch/arm/mach-omap2/board-omap3beagle.c
-+++ b/arch/arm/mach-omap2/board-omap3beagle.c
-@@ -41,6 +41,7 @@
- #include <mach/gpmc.h>
- #include <mach/nand.h>
- #include <mach/mux.h>
-+#include <mach/usb.h>
- 
- #include "mmc-twl4030.h"
- 
-@@ -313,6 +314,7 @@ static void __init omap3_beagle_init(void)
- 	/* REVISIT leave DVI powered down until it's needed ... */
- 	gpio_direction_output(170, true);
- 
-+	usb_musb_init();
- 	omap3beagle_flash_init();
- }
- 
-diff --git a/arch/arm/mach-omap2/board-omap3pandora.c b/arch/arm/mach-omap2/board-omap3pandora.c
-index 6e17180..16e2128 100644
---- a/arch/arm/mach-omap2/board-omap3pandora.c
-+++ b/arch/arm/mach-omap2/board-omap3pandora.c
-@@ -34,6 +34,7 @@
- #include <mach/gpio.h>
- #include <mach/hardware.h>
- #include <mach/mcspi.h>
-+#include <mach/usb.h>
- 
- #include "mmc-twl4030.h"
- 
-@@ -200,6 +201,7 @@ static void __init omap3pandora_init(void)
- 	spi_register_board_info(omap3pandora_spi_board_info,
- 			ARRAY_SIZE(omap3pandora_spi_board_info));
- 	omap3pandora_ads7846_init();
-+	usb_musb_init();
- }
- 
- static void __init omap3pandora_map_io(void)
-diff --git a/arch/arm/mach-omap2/board-overo.c b/arch/arm/mach-omap2/board-overo.c
-index 61f8e23..d785aa8 100644
---- a/arch/arm/mach-omap2/board-overo.c
-+++ b/arch/arm/mach-omap2/board-overo.c
-@@ -44,6 +44,7 @@
- #include <mach/gpmc.h>
- #include <mach/hardware.h>
- #include <mach/nand.h>
-+#include <mach/usb.h>
- 
- #include "mmc-twl4030.h"
- 
-@@ -223,6 +224,7 @@ static void __init overo_init(void)
- 	omap_serial_init();
- 	twl4030_mmc_init(mmc);
- 	overo_flash_init();
-+	usb_musb_init();
- 
- 	if ((gpio_request(OVERO_GPIO_W2W_NRESET,
- 			  "OVERO_GPIO_W2W_NRESET") == 0) &&
-diff --git a/arch/arm/mach-omap2/usb-musb.c b/arch/arm/mach-omap2/usb-musb.c
-new file mode 100644
-index 0000000..927c2d9
---- /dev/null
-+++ b/arch/arm/mach-omap2/usb-musb.c
-@@ -0,0 +1,185 @@
-+/*
-+ * linux/arch/arm/mach-omap2/usb-musb.c
-+ *
-+ * This file will contain the board specific details for the
-+ * MENTOR USB OTG controller on OMAP3430
-+ *
-+ * Copyright (C) 2007-2008 Texas Instruments
-+ * Copyright (C) 2008 Nokia Corporation
-+ * Author: Vikram Pandita
-+ *
-+ * Generalization by:
-+ * Felipe Balbi <felipe.balbi@nokia.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
-+
-+#include <linux/types.h>
-+#include <linux/errno.h>
-+#include <linux/delay.h>
-+#include <linux/platform_device.h>
-+#include <linux/clk.h>
-+#include <linux/dma-mapping.h>
-+#include <linux/io.h>
-+
-+#include <linux/usb/musb.h>
-+
-+#include <mach/hardware.h>
-+#include <mach/irqs.h>
-+#include <mach/pm.h>
-+#include <mach/mux.h>
-+#include <mach/usb.h>
-+
-+static struct resource musb_resources[] = {
-+	[0] = { /* start and end set dynamically */
-+		.flags	= IORESOURCE_MEM,
-+	},
-+	[1] = {	/* general IRQ */
-+		.start	= INT_243X_HS_USB_MC,
-+		.flags	= IORESOURCE_IRQ,
-+	},
-+	[2] = {	/* DMA IRQ */
-+		.start	= INT_243X_HS_USB_DMA,
-+		.flags	= IORESOURCE_IRQ,
-+	},
-+};
-+
-+static int clk_on;
-+
-+static int musb_set_clock(struct clk *clk, int state)
-+{
-+	if (state) {
-+		if (clk_on > 0)
-+			return -ENODEV;
-+
-+		clk_enable(clk);
-+		clk_on = 1;
-+	} else {
-+		if (clk_on == 0)
-+			return -ENODEV;
-+
-+		clk_disable(clk);
-+		clk_on = 0;
-+	}
-+
-+	return 0;
-+}
-+
-+static struct musb_hdrc_eps_bits musb_eps[] = {
-+	{	"ep1_tx", 10,	},
-+	{	"ep1_rx", 10,	},
-+	{	"ep2_tx", 9,	},
-+	{	"ep2_rx", 9,	},
-+	{	"ep3_tx", 3,	},
-+	{	"ep3_rx", 3,	},
-+	{	"ep4_tx", 3,	},
-+	{	"ep4_rx", 3,	},
-+	{	"ep5_tx", 3,	},
-+	{	"ep5_rx", 3,	},
-+	{	"ep6_tx", 3,	},
-+	{	"ep6_rx", 3,	},
-+	{	"ep7_tx", 3,	},
-+	{	"ep7_rx", 3,	},
-+	{	"ep8_tx", 2,	},
-+	{	"ep8_rx", 2,	},
-+	{	"ep9_tx", 2,	},
-+	{	"ep9_rx", 2,	},
-+	{	"ep10_tx", 2,	},
-+	{	"ep10_rx", 2,	},
-+	{	"ep11_tx", 2,	},
-+	{	"ep11_rx", 2,	},
-+	{	"ep12_tx", 2,	},
-+	{	"ep12_rx", 2,	},
-+	{	"ep13_tx", 2,	},
-+	{	"ep13_rx", 2,	},
-+	{	"ep14_tx", 2,	},
-+	{	"ep14_rx", 2,	},
-+	{	"ep15_tx", 2,	},
-+	{	"ep15_rx", 2,	},
-+};
-+
-+static struct musb_hdrc_config musb_config = {
-+	.multipoint	= 1,
-+	.dyn_fifo	= 1,
-+	.soft_con	= 1,
-+	.dma		= 1,
-+	.num_eps	= 16,
-+	.dma_channels	= 7,
-+	.dma_req_chan	= (1 << 0) | (1 << 1) | (1 << 2) | (1 << 3),
-+	.ram_bits	= 12,
-+	.eps_bits	= musb_eps,
-+};
-+
-+static struct musb_hdrc_platform_data musb_plat = {
-+#ifdef CONFIG_USB_MUSB_OTG
-+	.mode		= MUSB_OTG,
-+#elif defined(CONFIG_USB_MUSB_HDRC_HCD)
-+	.mode		= MUSB_HOST,
-+#elif defined(CONFIG_USB_GADGET_MUSB_HDRC)
-+	.mode		= MUSB_PERIPHERAL,
-+#endif
-+	/* .clock is set dynamically */
-+	.set_clock	= musb_set_clock,
-+	.config		= &musb_config,
-+
-+	/* REVISIT charge pump on TWL4030 can supply up to
-+	 * 100 mA ... but this value is board-specific, like
-+	 * "mode", and should be passed to usb_musb_init().
-+	 */
-+	.power		= 50,			/* up to 100 mA */
-+};
-+
-+static u64 musb_dmamask = DMA_32BIT_MASK;
-+
-+static struct platform_device musb_device = {
-+	.name		= "musb_hdrc",
-+	.id		= -1,
-+	.dev = {
-+		.dma_mask		= &musb_dmamask,
-+		.coherent_dma_mask	= DMA_32BIT_MASK,
-+		.platform_data		= &musb_plat,
-+	},
-+	.num_resources	= ARRAY_SIZE(musb_resources),
-+	.resource	= musb_resources,
-+};
-+
-+#ifdef CONFIG_NOP_USB_XCEIV
-+static u64 nop_xceiv_dmamask = DMA_32BIT_MASK;
-+
-+static struct platform_device nop_xceiv_device = {
-+	.name		= "nop_usb_xceiv",
-+	.id		= -1,
-+	.dev = {
-+		.dma_mask		= &nop_xceiv_dmamask,
-+		.coherent_dma_mask	= DMA_32BIT_MASK,
-+		.platform_data		= NULL,
-+	},
-+};
-+#endif
-+
-+void __init usb_musb_init(void)
-+{
-+	if (cpu_is_omap243x()) {
-+		musb_resources[0].start = OMAP243X_HS_BASE;
-+		musb_plat.clock = "usbhs_ick";
-+	} else {
-+		musb_resources[0].start = OMAP34XX_HSUSB_OTG_BASE;
-+		musb_plat.clock = "hsotgusb_ick";
-+	}
-+
-+	musb_resources[0].end = musb_resources[0].start + SZ_8K - 1;
-+
-+#ifdef CONFIG_NOP_USB_XCEIV
-+	if (platform_device_register(&nop_xceiv_device) < 0) {
-+		printk(KERN_ERR "Unable to register NOP-XCEIV device\n");
-+		return;
-+	}
-+#endif
-+
-+	if (platform_device_register(&musb_device) < 0) {
-+		printk(KERN_ERR "Unable to register HS-USB (MUSB) device\n");
-+		return;
-+	}
-+}
-diff --git a/arch/arm/plat-omap/include/mach/usb.h b/arch/arm/plat-omap/include/mach/usb.h
-index e033e51..69f0cee 100644
---- a/arch/arm/plat-omap/include/mach/usb.h
-+++ b/arch/arm/plat-omap/include/mach/usb.h
-@@ -27,6 +27,14 @@
- #define UDC_BASE			OMAP2_UDC_BASE
- #define OMAP_OHCI_BASE			OMAP2_OHCI_BASE
- 
-+#ifdef CONFIG_USB_MUSB_SOC
-+extern void usb_musb_init(void);
-+#else
-+static inline void usb_musb_init(void)
-+{
-+}
-+#endif
-+
- #endif
- 
- void omap_usb_init(struct omap_usb_config *pdata);
+At the minute a zero initialised set of constraints means "don't touch
+anything" - it doesn't grant any permissions to do anything, all that
+can actually be done is inspect the state.  Some of the drivers use this
+currently, having a block of regulator constraint data in a larger block
+of platform data and registering all regulators on the chip
+unconditionally.  Requiring boot_on or always_on to be set would mean
+that these drivers would start powering everything off once the change
+is merged unless the drivers are changed first.
 
+If we are going to make this change it might be best to first spend a
+release printing a big fat warning so it's harder for people to get
+surprised by it, especially with stuff getting merged via platform
+trees.
+
+> > I did actually still consider adding code to power off the 
+> > regulator but thought that there may also be situations where the state
+> > really is unknown (eg, it depends on what the system booted from) and
+> > it'd be useful to be able to punt to the consumers to figure it out.
+
+The other use case I should've mentioned is for people who are reverse
+engineering systems and initially want to fire things up and inspect the
+state they get left with before they go figuring out what (if anything)
+they want to do with it.  Even if you do know the design this can be
+quite handy for testing that everything came up as expected, the kernel
+provides a fairly convenient UI.
+
+> The core problem with that thought is that if you try doing that,
+> then consumers have exactly zero ways to fix the issue.  It's the
+> scenario I listed above:  regulator is enabled, but refcount is
+> zero.  So they're not allowed to disable.
+
+It can do it by enabling (which is a noop) and then disabling - it's not
+nice and wasn't really intentional but it gets the job done.
+
+> That's in addition to the fact that "unknown" states are
+> extremely error prone.  The state after initialization should
+> fully known, without having to play such guessing games.
+
+Yes, doing it via constriants is clearly better - I'm more thinking
+about this in terms of "if you really want to do it this is how" than as
+something I'd recommend people use.
+
+> defined values.  Adding a second "always_on" flag makes for
+> some confusion, since it only defines a third state, not a
+> pair of states (it's not orthogonal).
+
+We should just be able to remove always_on; it's equivalent to setting
+boot_on and not enabling REGULATOR_CHANGE_STATUS.  I'll look into that
+but it's got cross tree issues too.
+
+> always have the consumer ops delegate to the real regulator.
+> And have that real regulator's usecount set to one when it's
+> enabled at boot time, so regulator_disable() will work then.
+
+Clearly.  I'm wondering how that plays with multiple consumers, though.
+Consumers will be able to disable regulators that were left on but
+they'll need something to let them figure out why the device was left
+on.  Or just not worry about supporting such users too strongly suggest
+that they should be using something that gets added to the constraints.
+
+Fancy kicking off a couple of new discussions on lkml?
