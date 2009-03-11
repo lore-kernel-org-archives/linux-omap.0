@@ -1,40 +1,26 @@
-From: Juha Yrjola <juha.yrjola@solidboot.com>
-Subject: Re: [PATCH] ARM: OMAP: Fix GPIO switch initial output state	handling
-Date: Wed, 11 Mar 2009 13:35:01 +0200
-Message-ID: <49B7A1E5.9060403@solidboot.com>
-References: <1236677181-16601-1-git-send-email-ext-jani.1.nikula@nokia.com>	 <c236f0530903100725jf214fa3m7f4063e727366eb4@mail.gmail.com> <1236762213.2365.64.camel@jani-desktop>
+From: Mark Brown <broonie@sirena.org.uk>
+Subject: Re: [patch 2.6.29-rc7-omap] OMAP1:  ASoC buildfix for OSK
+Date: Wed, 11 Mar 2009 12:01:11 +0000
+Message-ID: <20090311120110.GC20230@sirena.org.uk>
+References: <200903110337.25789.david-b@pacbell.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from solidboot.com ([92.48.122.80]:48341 "EHLO rei.solidboot.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753946AbZCKLeX (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 11 Mar 2009 07:34:23 -0400
-In-Reply-To: <1236762213.2365.64.camel@jani-desktop>
+Received: from cassiel.sirena.org.uk ([80.68.93.111]:1695 "EHLO
+	cassiel.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752075AbZCKMBO (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 11 Mar 2009 08:01:14 -0400
+Content-Disposition: inline
+In-Reply-To: <200903110337.25789.david-b@pacbell.net>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Jani Nikula <ext-jani.1.nikula@nokia.com>
-Cc: ext Kainan Cha <thezha@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: David Brownell <david-b@pacbell.net>
+Cc: OMAP <linux-omap@vger.kernel.org>, lrg@slimlogic.co.uk
 
-Jani Nikula wrote:
+On Wed, Mar 11, 2009 at 02:37:25AM -0800, David Brownell wrote:
 
->> INIT_HIGH indicates the state of the gpio, not the state of the
->> switch. Why not ignore the OMAP_GPIO_SWITCH_FLAG_INVERTED all together
->> when setting up the switch. This way, the user does not have to think
->> twice. :)
-> 
-> The INVERTED flag can't be ignored, since sw->state must be the opposite
-> of the GPIO if the flag is set. The only question is, should INIT_HIGH
-> flag refer to the GPIO or the switch.
-> 
-> I did think about this, and the patch is as I intended it to be, i.e.
-> INIT_HIGH refers to the switch. I thought this would be less confusing.
-> If INVERTED is set, it's inverted *everywhere* - why not also when
-> setting the initial value?
+> There is currently such an interface in mainline; but there shouldn't
+> be ... which is why I'm sending this to the ASoC folk too (I think
+> those clock updates will hit in the 2.6.30 window).
 
-How about INIT_ACTIVE to reduce possible confusion? HIGH does imply an 
-electrical level, as opposed to a more abstract activation level.
-
-Cheers,
-Juha
+I've applied this, thanks.
