@@ -1,169 +1,112 @@
-From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Subject: RE: Suspend/Resume support with Omap2fb
-Date: Wed, 11 Mar 2009 14:16:32 +0530
-Message-ID: <19F8576C6E063C45BE387C64729E73940427C519CE@dbde02.ent.ti.com>
-References: <1236757990.12797.20.camel@tubuntu>
+From: Jani Nikula <ext-jani.1.nikula@nokia.com>
+Subject: Re: [PATCH] ARM: OMAP: Fix GPIO switch initial output state
+	handling
+Date: Wed, 11 Mar 2009 11:03:33 +0200
+Message-ID: <1236762213.2365.64.camel@jani-desktop>
+References: <1236677181-16601-1-git-send-email-ext-jani.1.nikula@nokia.com>
+	 <c236f0530903100725jf214fa3m7f4063e727366eb4@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:45271 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753747AbZCKIqs convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 11 Mar 2009 04:46:48 -0400
-In-Reply-To: <1236757990.12797.20.camel@tubuntu>
-Content-Language: en-US
+Received: from smtp.nokia.com ([192.100.122.230]:27199 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752346AbZCKJEc (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 11 Mar 2009 05:04:32 -0400
+In-Reply-To: <c236f0530903100725jf214fa3m7f4063e727366eb4@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "tomi.valkeinen@nokia.com" <tomi.valkeinen@nokia.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: ext Kainan Cha <thezha@gmail.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, juha.yrjola@solidboot.com
 
-
-
-Thanks,
-Vaibhav Hiremath
-
-> -----Original Message-----
-> From: Tomi Valkeinen [mailto:tomi.valkeinen@nokia.com]
-> Sent: Wednesday, March 11, 2009 1:23 PM
-> To: Hiremath, Vaibhav
-> Cc: linux-omap@vger.kernel.org
-> Subject: Re: Suspend/Resume support with Omap2fb
+On Tue, 2009-03-10 at 15:25 +0100, ext Kainan Cha wrote:
+> Jani,
 > 
-> Hi,
+> Please see my comments below.
 > 
-> On Wed, 2009-03-11 at 07:55 +0100, ext Hiremath, Vaibhav wrote:
-> > Hi,
+> On Tue, Mar 10, 2009 at 4:26 AM, Jani Nikula
+> <ext-jani.1.nikula@nokia.com> wrote:
+> > The switchover to cross-platform GPIO interface unexpectedly caused all
+> > output GPIO switches to be set to high state by default, unlike the
+> > original OMAP code. Introduce a new GPIO switch flag to define the
+> > initial state. Unless the flag is set, the default is now low state.
 > >
-> > I am using New Frame-Buffer driver which is based on DSS2 library
-> submitted by Tomi, and I am trying to add full power management
-> support. But things are not working out as expected, every time when
-> I am issuing command "echo mem > /sys/power/state" the system
-> doesn't go into off state. It always points to dss_prwdm, below are
-> the steps I am following -
+> > Also store the state of output switches directly into the switch struct
+> > instead of trying to read an output GPIO.
+> >
+> > Signed-off-by: Jani Nikula <ext-jani.1.nikula@nokia.com>
+> > ---
+> >  arch/arm/plat-omap/gpio-switch.c              |   13 +++++++++----
+> >  arch/arm/plat-omap/include/mach/gpio-switch.h |    1 +
+> >  2 files changed, 10 insertions(+), 4 deletions(-)
+> >
+> > diff --git a/arch/arm/plat-omap/gpio-switch.c b/arch/arm/plat-omap/gpio-switch.c
+> > index 2b5665d..b278024 100644
+> > --- a/arch/arm/plat-omap/gpio-switch.c
+> > +++ b/arch/arm/plat-omap/gpio-switch.c
+> > @@ -286,12 +286,17 @@ static int __init new_switch(struct gpio_switch *sw)
+> >
+> >        /* input: 1, output: 0 */
+> >        direction = !(sw->flags & OMAP_GPIO_SWITCH_FLAG_OUTPUT);
+> > -       if (direction)
+> > +       if (direction) {
+> >                gpio_direction_input(sw->gpio);
+> > -       else
+> > -               gpio_direction_output(sw->gpio, true);
+> > +               sw->state = gpio_sw_get_state(sw);
+> > +       } else {
+> > +               int state = sw->state =
+> > +                       !!(sw->flags & OMAP_GPIO_SWITCH_FLAG_OUTPUT_INIT_HIGH);
+> >
+> > -       sw->state = gpio_sw_get_state(sw);
+> > +               if (sw->flags & OMAP_GPIO_SWITCH_FLAG_INVERTED)
+> > +                       state = !state;
 > 
-> OFF mode should work. I have verified it with DSI, DPI and SDI.
-> However,
-> it needs passing the get_last_off_on_transaction_id pointer in
-> omap_dss_platform_data.
+> Using OMAP_GPIO_SWITCH_FLAG_INVERTED along with
+> OMAP_GPIO_SWITCH_FLAG_OUTPUT_INIT_HIGH here is somewhat confusing to
+> me.
 > 
-> Also, see below.
+> INIT_HIGH indicates the state of the gpio, not the state of the
+> switch. Why not ignore the OMAP_GPIO_SWITCH_FLAG_INVERTED all together
+> when setting up the switch. This way, the user does not have to think
+> twice. :)
+
+The INVERTED flag can't be ignored, since sw->state must be the opposite
+of the GPIO if the flag is set. The only question is, should INIT_HIGH
+flag refer to the GPIO or the switch.
+
+I did think about this, and the patch is as I intended it to be, i.e.
+INIT_HIGH refers to the switch. I thought this would be less confusing.
+If INVERTED is set, it's inverted *everywhere* - why not also when
+setting the initial value?
+
+BR,
+Jani.
+
 > 
-[Hiremath, Vaibhav] I believe this is only required when you do save and restore context right?
-Actually I have modified that part of code where it doesn't expect this pointer and save/restore happens perfectly fine, which I am very will sure about, since I am hitting state5 of CPU_IDLE (Full OFF state) and it resumes back with the same state.
-
-Again one more data point which I missed in last mail is, I am following clk->usecount which shows me 0. That means clocks are already disabled.
-
-root@arago:~# cat /sys/devices/platform/omap-dss/clk
-- dss -
-internal clk count      0
-dss_ick         83000000        0
-dss1_alwon_fck  96000000        0
-dss2_alwon_fck  13000000        0
-dss_tv_fck      54000000        0
-dss_96m_fck     96000000        0
-- dispc -
-dispc fclk source = dss1_alwon_fclk
-pixel clk = 96000000 / 1 / 5 = 19200000
-root@arago:~#
-
-
-> > 	- Build the kernel with CPU_IDLE
-> > 	- Enable all the PM flags
+> > +               gpio_direction_output(sw->gpio, state);
+> > +       }
 > >
-> > 		# echo 1 > /sys/power/sleep_while_idle
-> > 		# echo 1 > /sys/power/clocks_off_while_idle
-> > 		# echo 1 > /sys/power/enable_off_mode
+> >        r = 0;
+> >        r |= device_create_file(&sw->pdev.dev, &dev_attr_state);
+> > diff --git a/arch/arm/plat-omap/include/mach/gpio-switch.h b/arch/arm/plat-omap/include/mach/gpio-switch.h
+> > index a143253..107d23f 100644
+> > --- a/arch/arm/plat-omap/include/mach/gpio-switch.h
+> > +++ b/arch/arm/plat-omap/include/mach/gpio-switch.h
+> > @@ -29,6 +29,7 @@
+> >  #define OMAP_GPIO_SWITCH_TYPE_ACTIVITY         0x0002
+> >  #define OMAP_GPIO_SWITCH_FLAG_INVERTED         0x0001
+> >  #define OMAP_GPIO_SWITCH_FLAG_OUTPUT           0x0002
+> > +#define OMAP_GPIO_SWITCH_FLAG_OUTPUT_INIT_HIGH 0x0004
 > >
-> >  	- From Linux prompt issue command
-> >
-> > 		# echo mem > /sys/power/state
-> >
-> > The log is -
-> > ------------
-> >
-> > root@arago:~# echo mem > /sys/power/state
-> > <6>PM: Syncing filesystems ... PM: Syncing filesystems ... done.
-> > done.
-> > Freezing user space processes ... Freezing user space processes
-> ... (elapsed 0.00 seconds) (elapsed 0.00 seconds) done.
-> > done.
-> > Freezing remaining freezable tasks ... Freezing remaining
-> freezable tasks ... (elapsed 0.06 seconds) (elapsed 0.06 seconds)
-> done.done.
-> > Suspending console(s) (use no_console_suspend to debug)
-> > Suspending console(s) (use no_console_suspend to debug)
-> > <6>omap-backlight: suspending...
-> > omapfb_suspend
-> >
-> > omapfb_resume
-> > <6>omap-backlight: resuming...
-> > omap-backlight: suspending...
-> > omapfb_suspend
-> > Powerdomain (core_pwrdm) didn't enter target state 0
-> > Powerdomain (dss_pwrdm) didn't enter target state 0
-> > Powerdomain (per_pwrdm) didn't enter target state 0
-> > Could not enter target state in pm_suspend
-> > eth0: link down
-> > omapfb_resume
-> > omap-backlight: resuming...
-> > Restarting tasks ... Restarting tasks ... done.
-> > done.
-> >
-> > root@arago:~#
-> >
-> >
-> > Some analysis which I observed during debugging this issue -
-> >
-> > 	- The root-cause is, DSS PowerDomain always shows it is in ON
-> state (PWRDM_POWER_ON), and if I understand correctly this is only
-> dependent on clocks. But I am making sure that DSS clocks are
-> disabled. And with CPU_IDLE enabled I am going to complete OFF
-> state. (/sys/devices/system/cpu/cpu0/cpuidle/state5/usage is
-> incrementing).
-> >
-> > 	- If I compile out framebuffer driver and include DSS2 and
-> V4L2 driver, everything works fine. I am not sure how "omapfb" is
-> being tied with PowerDomain. Again I have seen references in
-> arch/arm/mach-omap2/omapdev3xxx.h to the pdev_name = "omapfb", not
-> sure how this is being used.
-> 
-> You have to change it to omapdss (or omap-dss in earlier DSS2
-> versions).
-> 
-[Hiremath, Vaibhav] I have tried this option also, didn't work out.
-Tomi,
-
-Do you have summary or list of changes required in clock and PowerDomain related files to make it work?
-
-How have you tested this? 
-Have you also tested with "echo mem > /sys/power/state"?
-Are you using Kevin's power management tree? What is default configuration of your kernel during this test?
-
->  Tomi
-> 
-> >
-> > I believe if system is hitting OFF state, then my enable/disable
-> paths are proper, but really not sure about why "mem" is causing
-> problem here.
-> >
-> > Thanks,
-> > Vaibhav Hiremath
-> > Platform Support Products
-> > Texas Instruments Inc
-> > Ph: +91-80-25099927
-> >
-> >
-> > Thanks,
-> > Vaibhav Hiremath
-> > Platform Support Products
-> > Texas Instruments Inc
-> > Ph: +91-80-25099927
+> >  struct omap_gpio_switch {
+> >        const char *name;
+> > --
+> > 1.6.0.4
 > >
 > > --
-> > To unsubscribe from this list: send the line "unsubscribe linux-
-> omap" in
+> > To unsubscribe from this list: send the line "unsubscribe linux-omap" in
 > > the body of a message to majordomo@vger.kernel.org
 > > More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+> >
 
