@@ -1,34 +1,51 @@
-From: Felipe Balbi <me@felipebalbi.com>
-Subject: Re: [patch 2.6.29-rc7-omap-git] Overo: MMC regulator configuration
-Date: Wed, 11 Mar 2009 22:59:45 +0200
-Message-ID: <20090311205944.GA19038@gandalf>
-References: <200903111158.29860.david-b@pacbell.net> <20090311193347.GC19730@gandalf> <200903111334.59499.david-b@pacbell.net>
-Reply-To: me@felipebalbi.com
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: [PATCH 0/2] OMAP3: GPIO off-mode fixes
+Date: Wed, 11 Mar 2009 15:11:52 -0700
+Message-ID: <87wsavogk7.fsf@deeprootsystems.com>
+References: <1236339986-29506-1-git-send-email-tero.kristo@nokia.com>
+	<87mybuy1ky.fsf@deeprootsystems.com>
+	<1F18D6510CF0474A8C9500565A7E41A20378951294@NOK-EUMSG-02.mgdnok.nokia.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ns1.siteground211.com ([209.62.36.12]:51531 "EHLO
-	serv01.siteground211.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751306AbZCKU74 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 11 Mar 2009 16:59:56 -0400
-Content-Disposition: inline
-In-Reply-To: <200903111334.59499.david-b@pacbell.net>
+Received: from wf-out-1314.google.com ([209.85.200.169]:62547 "EHLO
+	wf-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754200AbZCKWL5 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 11 Mar 2009 18:11:57 -0400
+Received: by wf-out-1314.google.com with SMTP id 28so247059wfa.4
+        for <linux-omap@vger.kernel.org>; Wed, 11 Mar 2009 15:11:55 -0700 (PDT)
+In-Reply-To: <1F18D6510CF0474A8C9500565A7E41A20378951294@NOK-EUMSG-02.mgdnok.nokia.com> (Tero Kristo's message of "Wed\, 11 Mar 2009 11\:04\:34 +0100")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: David Brownell <david-b@pacbell.net>
-Cc: me@felipebalbi.com, OMAP <linux-omap@vger.kernel.org>, Steve Sakoman <steve@sakoman.com>, Mark Brown <broonie@sirena.org.uk>
+To: Tero.Kristo@nokia.com
+Cc: linux-omap@vger.kernel.org
 
-On Wed, Mar 11, 2009 at 12:34:59PM -0800, David Brownell wrote:
-> On Wednesday 11 March 2009, Felipe Balbi wrote:
-> > with this patch I get:
-> > 
-> > regulator: Unable to get requested regulator: vmmc_aux
-> 
-> That's completely safe; annoying and useless noise from
-> the regulator core, that's all.
+<Tero.Kristo@nokia.com> writes:
 
-You're right. And the appended patch should probably get merged via
-Mark as it really makes sense when bootloader keeps the regulator on.
+> The first patch in this set contains a small bug, missing kfree() for one of the dynamically reserved arrays during init in error path. Sending a fixed patch now.
+>
 
--- 
-balbi
+Thanks Tero.  I will undo the first version and re-push with this version.
+
+Kevin
+
+>
+>>-----Original Message-----
+>>From: ext Kevin Hilman [mailto:khilman@deeprootsystems.com] 
+>>Sent: 09 March, 2009 20:48
+>>To: Kristo Tero (Nokia-D/Tampere)
+>>Cc: linux-omap@vger.kernel.org
+>>Subject: Re: [PATCH 0/2] OMAP3: GPIO off-mode fixes
+>>
+>>Tero Kristo <tero.kristo@nokia.com> writes:
+>>
+>>> These two patches add fixes to GPIO off-mode handling. First 
+>>patch is 
+>>> more important as it fixes a HW bug, second one just optimizes 
+>>> off-mode code a bit by removing a couple of unnecessary 
+>>registers from the context save.
+>>
+>>Thanks, pushing both patches to PM branch.
+>>
+>>Kevin
+>>
