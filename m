@@ -1,143 +1,108 @@
 From: Atal Shargorodsky <ext-atal.shargorodsky@nokia.com>
-Subject: [PATCH 1/6] OMAP: omap_wdt: Remove armwdt_ck field from omap_wdt_dev structure.
-Date: Wed, 11 Mar 2009 17:29:33 +0200
-Message-ID: <cbbca1e42421e2ada459f0c0881f087977e34eed.1236609434.git.ext-atal.shargorodsky__8105.59658934853$1236785571$gmane$org@nokia.com>
-References: <>
- <1236785378-14640-1-git-send-email-ext-atal.shargorodsky@nokia.com>
+Subject: [PATCH 0/6]  OMAP: omap_wdt: clocks and NOWAYOUT fixes.
+Date: Wed, 11 Mar 2009 17:29:32 +0200
+Message-ID: <1236785378-14640-1-git-send-email-ext-atal.shargorodsky@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:45616 "EHLO
+Received: from smtp.nokia.com ([192.100.122.230]:45605 "EHLO
 	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753533AbZCKPbD (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 11 Mar 2009 11:31:03 -0400
-In-Reply-To: <1236785378-14640-1-git-send-email-ext-atal.shargorodsky@nokia.com>
+	with ESMTP id S1753533AbZCKPa6 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 11 Mar 2009 11:30:58 -0400
+In-Reply-To: <>
+References: <>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
-Cc: linux-arm-kernel@lists.arm.linux.org.uk, Atal Shargorodsky <ext-atal.shargorodsky@nokia.com>
+Cc: linux-arm-kernel@lists.arm.linux.org.uk, Felipe Balbi <felipe.balbi@nokia.com>
 
-No need to hold three clocks, when for each paricular platform only
-two are used - finctional and interface.
+This patchset reorganizes slightly the code of omap_wdt driver,
+introduces proper management of clocks and
+CONFIG_WATCHDOG_NOWAYOUT + PM support, which was broken.
+Also, inspired by numerous watchdog drivers using this technique, 
+this patchset makes the NOWAYOUT behavior not to be restricted by kernel
+configuration, but to be controlled by a module parameter.
 
-Signed-off-by: Atal Shargorodsky <ext-atal.shargorodsky@nokia.com>
+
+It's not expected to be applied as is, as it's not utilizing the clkdev,
+so part of it is obsolete. So I'm posting it because of the other changes
+it introduced to be discussed.
+
+Also the first patch in the patch set cannot apply because of the
+current driver in linux-omap git tree being broken.
+It will apply after applying the inlined patch provided by Felipe Balbi:
+
+
+Signed-off-by: Felipe Balbi <felipe.balbi@nokia.com>
 ---
- drivers/watchdog/omap_wdt.c |   51 ++++++++++++------------------------------
- 1 files changed, 15 insertions(+), 36 deletions(-)
+ drivers/watchdog/omap_wdt.c |   22 ++++++++++++++++++++--
+ 1 files changed, 20 insertions(+), 2 deletions(-)
 
 diff --git a/drivers/watchdog/omap_wdt.c b/drivers/watchdog/omap_wdt.c
-index b04f650..5b72c7c 100644
+index 7bcbb7f..0fb9fd7 100644
 --- a/drivers/watchdog/omap_wdt.c
 +++ b/drivers/watchdog/omap_wdt.c
-@@ -60,7 +60,6 @@ struct omap_wdt_dev {
- 	void __iomem    *base;          /* physical */
- 	struct device   *dev;
- 	int             omap_wdt_users;
--	struct clk      *armwdt_ck;
- 	struct clk      *mpu_wdt_ick;
- 	struct clk      *mpu_wdt_fck;
- 	struct resource *mem;
-@@ -146,13 +145,10 @@ static int omap_wdt_open(struct inode *inode, struct file *file)
- 	if (test_and_set_bit(1, (unsigned long *)&(wdev->omap_wdt_users)))
- 		return -EBUSY;
+@@ -294,7 +294,7 @@ static int __init omap_wdt_probe(struct platform_device *pdev)
+                goto err_busy;
+        }
  
--	if (cpu_is_omap16xx())
--		clk_enable(wdev->armwdt_ck);	/* Enable the clock */
--
--	if (cpu_is_omap24xx() || cpu_is_omap34xx()) {
-+	if (cpu_is_omap24xx() || cpu_is_omap34xx())
- 		clk_enable(wdev->mpu_wdt_ick);    /* Enable the interface clock */
--		clk_enable(wdev->mpu_wdt_fck);    /* Enable the functional clock */
--	}
+-       wdev = kzalloc(sizeof(struct omap_wdt_dev), GFP_KERNEL);
++       wdev = kzalloc(sizeof(*wdev), GFP_KERNEL);
+        if (!wdev) {
+                ret = -ENOMEM;
+                goto err_kzalloc;
+@@ -347,8 +347,18 @@ static int __init omap_wdt_probe(struct platform_device *pdev)
+                goto err_ioremap;
+        }
+ 
++       spin_lock_init(&wdt_lock);
+        platform_set_drvdata(pdev, wdev);
+ 
++       /* enable clocks for register access */
++       if (cpu_is_omap16xx())
++               clk_enable(wdev->armwdt_ck);    /* Enable the clock */
 +
-+	clk_enable(wdev->mpu_wdt_fck);    /* Enable the functional clock */
- 
- 	/* initialize prescaler */
- 	while (__raw_readl(base + OMAP_WATCHDOG_WPS) & 0x01)
-@@ -181,13 +177,10 @@ static int omap_wdt_release(struct inode *inode, struct file *file)
- 
- 	omap_wdt_disable(wdev);
- 
--	if (cpu_is_omap16xx())
--		clk_disable(wdev->armwdt_ck);	/* Disable the clock */
--
--	if (cpu_is_omap24xx() || cpu_is_omap34xx()) {
-+	if (cpu_is_omap24xx() || cpu_is_omap34xx())
- 		clk_disable(wdev->mpu_wdt_ick);	/* Disable the clock */
--		clk_disable(wdev->mpu_wdt_fck);	/* Disable the clock */
--	}
++       if (cpu_is_omap24xx() || cpu_is_omap34xx()) {
++               clk_enable(wdev->mpu_wdt_ick);    /* Enable the interface clock */
++               clk_enable(wdev->mpu_wdt_fck);    /* Enable the functional clock */
++       }
 +
-+	clk_disable(wdev->mpu_wdt_fck);	/* Disable the clock */
- #else
- 	printk(KERN_CRIT "omap_wdt: Unexpected close, not stopping!\n");
- #endif
-@@ -304,10 +297,10 @@ static int __init omap_wdt_probe(struct platform_device *pdev)
- 	wdev->mem = mem;
+        omap_wdt_disable(wdev);
+        omap_wdt_adjust_timeout(timer_margin);
  
- 	if (cpu_is_omap16xx()) {
--		wdev->armwdt_ck = clk_get(&pdev->dev, "armwdt_ck");
--		if (IS_ERR(wdev->armwdt_ck)) {
--			ret = PTR_ERR(wdev->armwdt_ck);
--			wdev->armwdt_ck = NULL;
-+		wdev->mpu_wdt_fck = clk_get(&pdev->dev, "armwdt_ck");
-+		if (IS_ERR(wdev->mpu_wdt_fck)) {
-+			ret = PTR_ERR(wdev->mpu_wdt_fck);
-+			wdev->mpu_wdt_fck = NULL;
- 			goto err_clk;
- 		}
- 	}
-@@ -351,13 +344,10 @@ static int __init omap_wdt_probe(struct platform_device *pdev)
- 	platform_set_drvdata(pdev, wdev);
+@@ -368,6 +378,15 @@ static int __init omap_wdt_probe(struct platform_device *pdev)
+        /* autogate OCP interface clock */
+        __raw_writel(0x01, wdev->base + OMAP_WATCHDOG_SYS_CONFIG);
  
- 	/* enable clocks for register access */
--	if (cpu_is_omap16xx())
--		clk_enable(wdev->armwdt_ck);	/* Enable the clock */
--
--	if (cpu_is_omap24xx() || cpu_is_omap34xx()) {
-+	if (cpu_is_omap24xx() || cpu_is_omap34xx())
- 		clk_enable(wdev->mpu_wdt_ick);    /* Enable the interface clock */
--		clk_enable(wdev->mpu_wdt_fck);    /* Enable the functional clock */
--	}
++       /* disable clocks since we don't need them now */
++       if (cpu_is_omap16xx())
++               clk_disable(wdev->armwdt_ck);   /* Disable the clock */
 +
-+	clk_enable(wdev->mpu_wdt_fck);    /* Enable the functional clock */
++       if (cpu_is_omap24xx() || cpu_is_omap34xx()) {
++               clk_disable(wdev->mpu_wdt_ick); /* Disable the clock */
++               clk_disable(wdev->mpu_wdt_fck); /* Disable the clock */
++       }
++
+        omap_wdt_dev = pdev;
  
- 	omap_wdt_disable(wdev);
- 	omap_wdt_adjust_timeout(timer_margin);
-@@ -379,13 +369,9 @@ static int __init omap_wdt_probe(struct platform_device *pdev)
- 	__raw_writel(0x01, wdev->base + OMAP_WATCHDOG_SYS_CONFIG);
+        return 0;
+@@ -488,7 +507,6 @@ static struct platform_driver omap_wdt_driver = {
  
- 	/* disable clocks since we don't need them now */
--	if (cpu_is_omap16xx())
--		clk_disable(wdev->armwdt_ck);	/* Disable the clock */
--
--	if (cpu_is_omap24xx() || cpu_is_omap34xx()) {
-+	if (cpu_is_omap24xx() || cpu_is_omap34xx())
- 		clk_disable(wdev->mpu_wdt_ick);	/* Disable the clock */
--		clk_disable(wdev->mpu_wdt_fck);	/* Disable the clock */
--	}
-+	clk_disable(wdev->mpu_wdt_fck);	/* Disable the clock */
+ static int __init omap_wdt_init(void)
+ {
+-       spin_lock_init(&wdt_lock);
+        return platform_driver_register(&omap_wdt_driver);
+ }
  
- 	omap_wdt_dev = pdev;
- 
-@@ -399,8 +385,6 @@ err_ioremap:
- 	wdev->base = NULL;
- 
- err_clk:
--	if (wdev->armwdt_ck)
--		clk_put(wdev->armwdt_ck);
- 	if (wdev->mpu_wdt_ick)
- 		clk_put(wdev->mpu_wdt_ick);
- 	if (wdev->mpu_wdt_fck)
-@@ -436,11 +420,6 @@ static int omap_wdt_remove(struct platform_device *pdev)
- 	release_mem_region(res->start, res->end - res->start + 1);
- 	platform_set_drvdata(pdev, NULL);
- 
--	if (wdev->armwdt_ck) {
--		clk_put(wdev->armwdt_ck);
--		wdev->armwdt_ck = NULL;
--	}
--
- 	if (wdev->mpu_wdt_ick) {
- 		clk_put(wdev->mpu_wdt_ick);
- 		wdev->mpu_wdt_ick = NULL;
 -- 
-1.5.4.3
+
+
+
+And another thing to be noted: Imre Deak proposed to stay with
+cpu_is_* macros for a better optimization.
+Or to use a (!cpu_class_is_omap1()) instead of 
+        (cpu_is_omap24xx() || cpu_is_omap34xx()).
+I think it's the right thing to do, but it's not included in the patchset,
+as this patchset is not expected to be applied as is anyway, 
+but rather to be discussed.
+
+
 
