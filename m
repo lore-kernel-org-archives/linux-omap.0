@@ -1,45 +1,124 @@
-From: <ext-Eero.Nurkkala@nokia.com>
-Subject: RE: [PATCH 2/2] OMAP: McBSP: Do not enable or disable clocks on
- failed path
-Date: Wed, 11 Mar 2009 19:28:04 +0100
-Message-ID: <1FFEF31EBAA4F64B80D33027D4297760037BE5F679@NOK-EUMSG-02.mgdnok.nokia.com>
-References: <12365823123402-git-send-email-ext-eero.nurkkala@nokia.com>
-	<12365823142066-git-send-email-ext-eero.nurkkala@nokia.com>
-	<1236582316453-git-send-email-ext-eero.nurkkala@nokia.com>
-	<20090310163027.5444259e.jarkko.nikula@nokia.com>
-	<1FFEF31EBAA4F64B80D33027D4297760037BE5F663@NOK-EUMSG-02.mgdnok.nokia.com>,<20090311130316.fb9ef9c1.jarkko.nikula@nokia.com>
+From: David Brownell <david-b@pacbell.net>
+Subject: [patch 2.6.29-rc7-omap-git] Overo: MMC regulator configuration
+Date: Wed, 11 Mar 2009 10:58:29 -0800
+Message-ID: <200903111158.29860.david-b@pacbell.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:41333 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755011AbZCKS2P convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 11 Mar 2009 14:28:15 -0400
-Received: from esebh106.NOE.Nokia.com (esebh106.ntc.nokia.com [172.21.138.213])
-	by mgw-mx09.nokia.com (Switch-3.2.6/Switch-3.2.6) with ESMTP id n2BISBxe020862
-	for <linux-omap@vger.kernel.org>; Wed, 11 Mar 2009 13:28:12 -0500
-In-Reply-To: <20090311130316.fb9ef9c1.jarkko.nikula@nokia.com>
-Content-Language: en-US
+Received: from n15b.bullet.mail.mud.yahoo.com ([68.142.207.236]:38108 "HELO
+	n15b.bullet.mail.mud.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1752574AbZCKS6e (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Wed, 11 Mar 2009 14:58:34 -0400
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: jarkko.nikula@nokia.com
-Cc: linux-omap@vger.kernel.org
+To: OMAP <linux-omap@vger.kernel.org>
+Cc: Steve Sakoman <steve@sakoman.com>
 
+From: David Brownell <dbrownell@users.sourceforge.net>
 
-> Didn't check any deeply can clk_disable sleep in any case but anyway
-> there is no need to cover it with spinlock so better to not hold the
-> lock while disabling.
-> 
-> 
-> Jarkko
+This patch hooks up the twl4030 MMC1 regulator on Overo,
+as well as the MMC1 card detect signal.  The WLAN chip
+connected to MMC2 on some board versions has a dedicated
+regulator.
 
-Actually, is there any room for the race? I remember someone saying
-the clk:s have counters, so:
+Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
+---
+Patches still needed for LDP/Zoom and Pandora...
 
-1. If mcbsp is "taken", clks on;
-- and at the same time, the previous mcbsp has been released, leaving clks off
-, clk counter decrements, nothing bad happens..
+ arch/arm/mach-omap2/board-overo.c |   55 ++++++++++++++++++++++++------------
+ 1 file changed, 37 insertions(+), 18 deletions(-)
 
+--- a/arch/arm/mach-omap2/board-overo.c
++++ b/arch/arm/mach-omap2/board-overo.c
+@@ -267,10 +267,45 @@ static struct omap_uart_config overo_uar
+ 	.enabled_uarts	= ((1 << 0) | (1 << 1) | (1 << 2)),
+ };
+ 
++static struct twl4030_hsmmc_info mmc[] = {
++	{
++		.mmc		= 1,
++		.wires		= 4,
++		.gpio_cd	= -EINVAL,
++		.gpio_wp	= -EINVAL,
++	},
++	{
++		.mmc		= 2,
++		.wires		= 4,
++		.gpio_cd	= -EINVAL,
++		.gpio_wp	= -EINVAL,
++		.transceiver	= true,
++		.ocr_mask	= 0x00100000,	/* 3.3V */
++	},
++	{}	/* Terminator */
++};
++
++static struct regulator_consumer_supply overo_vmmc1_supply = {
++	.supply			= "vmmc",
++};
++
++static int overo_twl_gpio_setup(struct device *dev,
++		unsigned gpio, unsigned ngpio)
++{
++	/* gpio + 0 is "mmc0_cd" (input/IRQ) */
++	mmc[0].gpio_cd = gpio + 0;
++	twl4030_mmc_init(mmc);
++
++	overo_vmmc1_supply.dev = mmc[0].dev;
++
++	return 0;
++}
++
+ static struct twl4030_gpio_platform_data overo_gpio_data = {
+ 	.gpio_base	= OMAP_MAX_GPIO_LINES,
+ 	.irq_base	= TWL4030_GPIO_IRQ_BASE,
+ 	.irq_end	= TWL4030_GPIO_IRQ_END,
++	.setup		= overo_twl_gpio_setup,
+ };
+ 
+ static struct twl4030_usb_data overo_usb_data = {
+@@ -287,6 +322,8 @@ static struct regulator_init_data overo_
+ 					| REGULATOR_CHANGE_MODE
+ 					| REGULATOR_CHANGE_STATUS,
+ 	},
++	.num_consumer_supplies	= 1,
++	.consumer_supplies	= &overo_vmmc1_supply,
+ };
+ 
+ /* mmc2 (WLAN) and Bluetooth don't use twl4030 regulators */
+@@ -343,23 +380,6 @@ static struct platform_device *overo_dev
+ 	&overo_lcd_device,
+ };
+ 
+-static struct twl4030_hsmmc_info mmc[] __initdata = {
+-	{
+-		.mmc		= 1,
+-		.wires		= 4,
+-		.gpio_cd	= -EINVAL,
+-		.gpio_wp	= -EINVAL,
+-	},
+-	{
+-		.mmc		= 2,
+-		.wires		= 4,
+-		.gpio_cd	= -EINVAL,
+-		.gpio_wp	= -EINVAL,
+-		.transceiver	= true,
+-	},
+-	{}	/* Terminator */
+-};
+-
+ static void __init overo_init(void)
+ {
+ 	overo_i2c_init();
+@@ -367,7 +387,6 @@ static void __init overo_init(void)
+ 	omap_board_config = overo_config;
+ 	omap_board_config_size = ARRAY_SIZE(overo_config);
+ 	omap_serial_init();
+-	twl4030_mmc_init(mmc);
+ 	usb_musb_init();
+ 	usb_ehci_init();
+ 	overo_flash_init();
 
-- Eero
