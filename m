@@ -1,148 +1,181 @@
-From: "Gupta, Ramesh" <grgupta@ti.com>
-Subject: RE: DSPBRIDGE+BRIDGE_DVFS: Crashes on multiple reload
-Date: Wed, 11 Mar 2009 21:28:27 +0530
-Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB02A8F2BC34@dbde02.ent.ti.com>
-References: <5A47E75E594F054BAF48C5E4FC4B92AB02FAE596C2@dbde02.ent.ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 1/6] OMAP: omap_wdt: Remove armwdt_ck field from
+	omap_wdt_dev structure.
+Date: Wed, 11 Mar 2009 09:02:25 -0700
+Message-ID: <20090311160223.GH19229@atomide.com>
+References: <1236785378-14640-1-git-send-email-ext-atal.shargorodsky@nokia.com> <cbbca1e42421e2ada459f0c0881f087977e34eed.1236609434.git.ext-atal.shargorodsky@nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:48718 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751331AbZCKP7P convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 11 Mar 2009 11:59:15 -0400
-In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB02FAE596C2@dbde02.ent.ti.com>
-Content-Language: en-US
+Received: from mho-01-bos.mailhop.org ([63.208.196.178]:60532 "EHLO
+	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750843AbZCKQC2 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 11 Mar 2009 12:02:28 -0400
+Content-Disposition: inline
+In-Reply-To: <cbbca1e42421e2ada459f0c0881f087977e34eed.1236609434.git.ext-atal.shargorodsky@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Nayak, Rajendra" <rnayak@ti.com>, "Menon, Nishanth" <nm@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
-Cc: ext Paul Walmsley <paul@pwsan.com>
+To: Atal Shargorodsky <ext-atal.shargorodsky@nokia.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.arm.linux.org.uk
 
-Rajendra,
- 
+Hi,
 
-> -----Original Message-----
-> From: Nayak, Rajendra 
-> Sent: Wednesday, March 11, 2009 9:25 PM
-> To: Menon, Nishanth; linux-omap@vger.kernel.org
-> Cc: ext Paul Walmsley; Gupta, Ramesh
-> Subject: RE: DSPBRIDGE+BRIDGE_DVFS: Crashes on multiple reload
+* Atal Shargorodsky <ext-atal.shargorodsky@nokia.com> [090311 08:31]:
+> No need to hold three clocks, when for each paricular platform only
+> two are used - finctional and interface.
 > 
-> Does the bridge driver call a clk_notifier_unregister on the 
-> exit path?
-
-Yes, it is called.
-
+> Signed-off-by: Atal Shargorodsky <ext-atal.shargorodsky@nokia.com>
+> ---
+>  drivers/watchdog/omap_wdt.c |   51 ++++++++++++------------------------------
+>  1 files changed, 15 insertions(+), 36 deletions(-)
 > 
-> > CPU: 0    Not tainted  (2.6.28-omap1-00211-gcb75442 #1)
-> > PC is at clk_notifier_register+0x68/0x108 LR is at 
-> > kmem_cache_alloc+0x7c/0x84
-> 
-> Taking an objdump of clock.o shows me it probably is crashing 
-> some place while trying to traverse through the existing list 
-> of registered notifiers. It could very well be that one of 
-> these is an old function pointer registered by the previous 
-> insmod of the bridge driver.
+> diff --git a/drivers/watchdog/omap_wdt.c b/drivers/watchdog/omap_wdt.c
+> index b04f650..5b72c7c 100644
+> --- a/drivers/watchdog/omap_wdt.c
+> +++ b/drivers/watchdog/omap_wdt.c
+> @@ -60,7 +60,6 @@ struct omap_wdt_dev {
+>  	void __iomem    *base;          /* physical */
+>  	struct device   *dev;
+>  	int             omap_wdt_users;
+> -	struct clk      *armwdt_ck;
+>  	struct clk      *mpu_wdt_ick;
+>  	struct clk      *mpu_wdt_fck;
+>  	struct resource *mem;
+> @@ -146,13 +145,10 @@ static int omap_wdt_open(struct inode *inode, struct file *file)
+>  	if (test_and_set_bit(1, (unsigned long *)&(wdev->omap_wdt_users)))
+>  		return -EBUSY;
+>  
+> -	if (cpu_is_omap16xx())
+> -		clk_enable(wdev->armwdt_ck);	/* Enable the clock */
+> -
+> -	if (cpu_is_omap24xx() || cpu_is_omap34xx()) {
+> +	if (cpu_is_omap24xx() || cpu_is_omap34xx())
+>  		clk_enable(wdev->mpu_wdt_ick);    /* Enable the interface clock */
+> -		clk_enable(wdev->mpu_wdt_fck);    /* Enable the functional clock */
+> -	}
+> +
+> +	clk_enable(wdev->mpu_wdt_fck);    /* Enable the functional clock */
+>  
+>  	/* initialize prescaler */
+>  	while (__raw_readl(base + OMAP_WATCHDOG_WPS) & 0x01)
 
- 
-> 
-> > -----Original Message-----
-> > From: Menon, Nishanth
-> > Sent: Wednesday, March 11, 2009 8:21 PM
-> > To: linux-omap@vger.kernel.org
-> > Cc: ext Paul Walmsley; Nayak, Rajendra; Gupta, Ramesh
-> > Subject: DSPBRIDGE+BRIDGE_DVFS: Crashes on multiple reload
-> > 
-> > Hi Folks,
-> > 
-> > With the latest linux-omap pm + gitorious bridge changes on 
-> SDP3430, 
-> > enabling BRIDGE_DVFS and SRF seems to cause an issue with clock 
-> > notifier.. I am not entirely of the cause of the issue(don't have a 
-> > debugger handy at the moment :( ): The condition is reproducible on 
-> > exactly the third insmod of the driver as explained below. 
-> Looking for 
-> > any advice to fix this issue :(
-> > 
-> > 
-> > Codebase:
-> > git clone
-> > git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-oma
-> > p-2.6.git
-> > git checkout -b pm --track origin/pm
-> > git fetch git://gitorious.org/lk/mainline.git
-> > tidspbridge-pm:tidspbridge-pm
-> > git checkout tidspbridge-pm
-> > git merge pm
-> > 
-> > defconfig:
-> > essentially omap_3430sdp_defconfig, enable SRF and
-> > bridge+bridge_dvfs. (diff b/w defconfig and .config attached).
-> > 
-> > Bootargs:
-> > console=ttyS0,115200n8 noinitrd ip=dhcp root=/dev/nfs rw
-> > nfsroot=<myIP>:<myFS>,nolock,wsize=1024,rsize=1024 mem=64M
-> > 
-> > The error:
-> > insmod  ./bridgedriver.ko phys_mempool_base=0x87000000 
-> > phys_mempool_size=0x600000 rmmod bridgedriver insmod  
-> > ./bridgedriver.ko phys_mempool_base=0x87000000 
-> > phys_mempool_size=0x600000 rmmod bridgedriver insmod  
-> > ./bridgedriver.ko phys_mempool_base=0x87000000 
-> > phys_mempool_size=0x600000
-> > 
-> > Unable to handle kernel paging request at virtual address 
-> 756e696c pgd 
-> > = c3e0c000 *pgd=00000000[756e696c]
-> > 
-> > Internal error: Oops: 5 [#1]
-> > Modules linked in:Modules linked in: bridgedriver(+)
-> > bridgedriver(+) [last unloaded: bridgedriver] [last unloaded: 
-> > bridgedriver]
-> > 
-> > CPU: 0    Not tainted  (2.6.28-omap1-00211-gcb75442 #1)
-> > PC is at clk_notifier_register+0x68/0x108 LR is at 
-> > kmem_cache_alloc+0x7c/0x84
-> > pc : [<c003f684>]    lr : [<c009f574>]    psr: 00000093
-> > sp : c3e05da0  ip : c3e0b3e0  fp : c3e05dbc <snip>
-> > 
-> > Backtrace: Backtrace:
-> > 
-> > [<c003f61c>] [<c003f61c>] (clk_notifier_register+0x0/0x108)
-> > (clk_notifier_register+0x0/0x108) from [<bf08d394>] from 
-> [<bf08d394>] 
-> > (bridge_init+0x394/0x3ec [bridgedriver]) (bridge_init+0x394/0x3ec 
-> > [bridgedriver])  r7:00000000 r7:00000000 r6:bf08ab88 r6:bf08ab88 
-> > r5:1dcd6500 r5:1dcd6500 r4:0ee6b280 r4:0ee6b280
-> > 
-> > [<bf08d000>] [<bf08d000>] (bridge_init+0x0/0x3ec
-> > [bridgedriver]) (bridge_init+0x0/0x3ec [bridgedriver]) from 
-> > [<c002d2d4>] from [<c002d2d4>] (do_one_initcall+0x64/0x198)
-> > (do_one_initcall+0x64/0x198)
-> >  r8:c002df28 r8:c002df28 r7:00000000 r7:00000000 r6:4023a000 
-> > r6:4023a000 r5:bf08a520 r5:bf08a520 r4:c03aa340 r4:c03aa340
-> > 
-> > [<c002d270>] [<c002d270>] (do_one_initcall+0x0/0x198)
-> > (do_one_initcall+0x0/0x198) from [<c0078cac>] from [<c0078cac>] 
-> > (sys_init_module+0x98/0x188)
-> > (sys_init_module+0x98/0x188)
-> > [<c0078c14>] [<c0078c14>] (sys_init_module+0x0/0x188)
-> > (sys_init_module+0x0/0x188) from [<c002dd80>] from [<c002dd80>] 
-> > (ret_fast_syscall+0x0/0x2c)
-> > (ret_fast_syscall+0x0/0x2c)
-> >  r7:00000080 r7:00000080 r6:00000000 r6:00000000 r5:0000000b 
-> > r5:0000000b r4:00000000 r4:00000000
-> > 
-> > Code: Code: e5943000 e5943000 e1530006 e1530006 0a000005
-> > 0a000005 e2424008 e2424008 (e5942008) (e5942008)
-> > 
-> > <4>---[ end trace c53b9e94a29571d4 ]--- ---[ end trace 
-> > c53b9e94a29571d4 ]--- Segmentation fault
-> > 
-> > 
-> > Regards,
-> > Nishanth Menon
-> > 
+Some extra work required.. You will need to rebase at least this patch as
+the big pile of clock changes by Paul and Russell will go in this coming
+merge window.
 
-Regards
-Ramesh Gupta G
+Basically the code above will be cleaner with no need for cpu_is_ stuff:
+
+clk_enable(wdev->ick);    /* Enable the interface clock */
+clk_enable(wdev->fck);    /* Enable the functional clock */
+
+I'm mirroring Russell's omap-clks3 branch in the linux-omap tree as
+clks-testing branch, so please take a look at that branch.
+
+Then see the MAINTAINERS file for "WATCHDOG DEVICE DRIVERS", so you
+can find the address for Wim. Please send the series to Wim with
+LKML, LAKML, and linux-omap mailing lists Cc'd. Please also mention
+that these patches depend on some pending clock changes.
+
+Or even better, maybe you can leave out the clock part from your patch
+so your series applies to both the mainline kernel and clks-testing
+branch with some offset warnings ;)
+
+Regards,
+
+Tony
+
+
+
+> @@ -181,13 +177,10 @@ static int omap_wdt_release(struct inode *inode, struct file *file)
+>  
+>  	omap_wdt_disable(wdev);
+>  
+> -	if (cpu_is_omap16xx())
+> -		clk_disable(wdev->armwdt_ck);	/* Disable the clock */
+> -
+> -	if (cpu_is_omap24xx() || cpu_is_omap34xx()) {
+> +	if (cpu_is_omap24xx() || cpu_is_omap34xx())
+>  		clk_disable(wdev->mpu_wdt_ick);	/* Disable the clock */
+> -		clk_disable(wdev->mpu_wdt_fck);	/* Disable the clock */
+> -	}
+> +
+> +	clk_disable(wdev->mpu_wdt_fck);	/* Disable the clock */
+>  #else
+>  	printk(KERN_CRIT "omap_wdt: Unexpected close, not stopping!\n");
+>  #endif
+> @@ -304,10 +297,10 @@ static int __init omap_wdt_probe(struct platform_device *pdev)
+>  	wdev->mem = mem;
+>  
+>  	if (cpu_is_omap16xx()) {
+> -		wdev->armwdt_ck = clk_get(&pdev->dev, "armwdt_ck");
+> -		if (IS_ERR(wdev->armwdt_ck)) {
+> -			ret = PTR_ERR(wdev->armwdt_ck);
+> -			wdev->armwdt_ck = NULL;
+> +		wdev->mpu_wdt_fck = clk_get(&pdev->dev, "armwdt_ck");
+> +		if (IS_ERR(wdev->mpu_wdt_fck)) {
+> +			ret = PTR_ERR(wdev->mpu_wdt_fck);
+> +			wdev->mpu_wdt_fck = NULL;
+>  			goto err_clk;
+>  		}
+>  	}
+> @@ -351,13 +344,10 @@ static int __init omap_wdt_probe(struct platform_device *pdev)
+>  	platform_set_drvdata(pdev, wdev);
+>  
+>  	/* enable clocks for register access */
+> -	if (cpu_is_omap16xx())
+> -		clk_enable(wdev->armwdt_ck);	/* Enable the clock */
+> -
+> -	if (cpu_is_omap24xx() || cpu_is_omap34xx()) {
+> +	if (cpu_is_omap24xx() || cpu_is_omap34xx())
+>  		clk_enable(wdev->mpu_wdt_ick);    /* Enable the interface clock */
+> -		clk_enable(wdev->mpu_wdt_fck);    /* Enable the functional clock */
+> -	}
+> +
+> +	clk_enable(wdev->mpu_wdt_fck);    /* Enable the functional clock */
+>  
+>  	omap_wdt_disable(wdev);
+>  	omap_wdt_adjust_timeout(timer_margin);
+> @@ -379,13 +369,9 @@ static int __init omap_wdt_probe(struct platform_device *pdev)
+>  	__raw_writel(0x01, wdev->base + OMAP_WATCHDOG_SYS_CONFIG);
+>  
+>  	/* disable clocks since we don't need them now */
+> -	if (cpu_is_omap16xx())
+> -		clk_disable(wdev->armwdt_ck);	/* Disable the clock */
+> -
+> -	if (cpu_is_omap24xx() || cpu_is_omap34xx()) {
+> +	if (cpu_is_omap24xx() || cpu_is_omap34xx())
+>  		clk_disable(wdev->mpu_wdt_ick);	/* Disable the clock */
+> -		clk_disable(wdev->mpu_wdt_fck);	/* Disable the clock */
+> -	}
+> +	clk_disable(wdev->mpu_wdt_fck);	/* Disable the clock */
+>  
+>  	omap_wdt_dev = pdev;
+>  
+> @@ -399,8 +385,6 @@ err_ioremap:
+>  	wdev->base = NULL;
+>  
+>  err_clk:
+> -	if (wdev->armwdt_ck)
+> -		clk_put(wdev->armwdt_ck);
+>  	if (wdev->mpu_wdt_ick)
+>  		clk_put(wdev->mpu_wdt_ick);
+>  	if (wdev->mpu_wdt_fck)
+> @@ -436,11 +420,6 @@ static int omap_wdt_remove(struct platform_device *pdev)
+>  	release_mem_region(res->start, res->end - res->start + 1);
+>  	platform_set_drvdata(pdev, NULL);
+>  
+> -	if (wdev->armwdt_ck) {
+> -		clk_put(wdev->armwdt_ck);
+> -		wdev->armwdt_ck = NULL;
+> -	}
+> -
+>  	if (wdev->mpu_wdt_ick) {
+>  		clk_put(wdev->mpu_wdt_ick);
+>  		wdev->mpu_wdt_ick = NULL;
+> -- 
+> 1.5.4.3
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
