@@ -1,18 +1,18 @@
 From: David Brownell <david-b@pacbell.net>
-Subject: [patch 2.6.29-rc7-omap 5/5] mmc-twl4030 uses regulator framework
-Date: Wed, 11 Mar 2009 04:24:16 -0800
-Message-ID: <200903110524.16644.david-b@pacbell.net>
+Subject: [patch 2.6.29-rc7-omap 1/5] regulator: enumerate voltages
+Date: Wed, 11 Mar 2009 04:20:51 -0800
+Message-ID: <200903110520.51688.david-b@pacbell.net>
 References: <200903110518.34945.david-b@pacbell.net>
 Mime-Version: 1.0
 Content-Type: text/plain;
   charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp120.sbc.mail.sp1.yahoo.com ([69.147.64.93]:44265 "HELO
+Received: from smtp120.sbc.mail.sp1.yahoo.com ([69.147.64.93]:44241 "HELO
 	smtp120.sbc.mail.sp1.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1752348AbZCKMcw (ORCPT
+	by vger.kernel.org with SMTP id S1752031AbZCKMcs (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Wed, 11 Mar 2009 08:32:52 -0400
+	Wed, 11 Mar 2009 08:32:48 -0400
 In-Reply-To: <200903110518.34945.david-b@pacbell.net>
 Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
@@ -20,453 +20,206 @@ List-Id: linux-omap@vger.kernel.org
 To: OMAP <linux-omap@vger.kernel.org>
 
 From: David Brownell <dbrownell@users.sourceforge.net>
-Subject: mmc-twl4030 uses regulator framework
+Subject: regulator: enumerate voltages (v2)
 
-Finish decoupling the HSMMC glue from the twl4030 as the only
-regulator provider, using the regulator framework instead.
-This makes the glue's "mmc-twl4030" name become a complete
-misnomer ... this code could probably all migrate into the
-HSMMC driver now.
+Add a basic mechanism for regulators to report the discrete
+voltages they support:  list_voltage() enumerates them using
+selectors numbered from 0 to an upper bound.
 
-Tested on 3430SDP (SD and low-voltage MMC) and Beagle (SD),
-plus some other boards (including Overo) after they were
-converted to set up MMC regulators properly.
+Use those methods to force machine-level constraints into bounds.
+(Example:  regulator supports 1.8V, 2.4V, 2.6V, 3.3V, and board
+constraints for that rail are 2.0V to 3.6V ... so the range of
+voltages is then 2.4V to 3.3V on this board.)
 
-Eventually all boards should just associate a regulator with
-each MMC controller they use.  In some cases (Overo MMC2 and
-Pandora MMC3, at least) that would be a fixed-voltage regulator
-with no real software control.  As a temporary hack (pending
-regulator-next updates to make the "fixed.c" regulator become
-usable) there's a new ocr_mask field for those boards.
+Export those voltages to the regulator consumer interface, so for
+example regulator hooked up to an MMC/SD/SDIO slot can report the
+actual voltage options available to cards connected there.
 
 Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
+Acked-by: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Signed-off-by: Liam Girdwood <lrg@slimlogic.co.uk>
 ---
- arch/arm/mach-omap2/mmc-twl4030.c |  262 +++++++++++++-----------------------
- arch/arm/mach-omap2/mmc-twl4030.h |    3 
- drivers/mmc/host/omap_hsmmc.c     |    6 
- 3 files changed, 100 insertions(+), 171 deletions(-)
+ drivers/regulator/core.c           |  113 +++++++++++++++++++++++++++++++++++
+ include/linux/regulator/consumer.h |    2 
+ include/linux/regulator/driver.h   |    9 ++
+ 3 files changed, 124 insertions(+)
 
---- a/arch/arm/mach-omap2/mmc-twl4030.c
-+++ b/arch/arm/mach-omap2/mmc-twl4030.c
-@@ -16,8 +16,8 @@
- #include <linux/interrupt.h>
- #include <linux/delay.h>
- #include <linux/gpio.h>
--#include <linux/i2c/twl4030.h>
--#include <linux/regulator/machine.h>
-+#include <linux/mmc/host.h>
-+#include <linux/regulator/consumer.h>
+--- a/drivers/regulator/core.c
++++ b/drivers/regulator/core.c
+@@ -719,6 +719,69 @@ static int set_machine_constraints(struc
+ 	else
+ 		name = "regulator";
  
- #include <mach/hardware.h>
- #include <mach/control.h>
-@@ -26,31 +26,9 @@
- 
- #include "mmc-twl4030.h"
- 
--#if defined(CONFIG_TWL4030_CORE) && \
--	(defined(CONFIG_MMC_OMAP_HS) || defined(CONFIG_MMC_OMAP_HS_MODULE))
--
--#define LDO_CLR			0x00
--#define VSEL_S2_CLR		0x40
--
--#define VMMC1_DEV_GRP		0x27
--#define VMMC1_CLR		0x00
--#define VMMC1_315V		0x03
--#define VMMC1_300V		0x02
--#define VMMC1_285V		0x01
--#define VMMC1_185V		0x00
--#define VMMC1_DEDICATED		0x2A
- 
--#define VMMC2_DEV_GRP		0x2B
--#define VMMC2_CLR		0x40
--#define VMMC2_315V		0x0c
--#define VMMC2_300V		0x0b
--#define VMMC2_285V		0x0a
--#define VMMC2_280V		0x09
--#define VMMC2_260V		0x08
--#define VMMC2_185V		0x06
--#define VMMC2_DEDICATED		0x2E
--
--#define VMMC_DEV_GRP_P1		0x20
-+#if defined(CONFIG_REGULATOR) && \
-+	(defined(CONFIG_MMC_OMAP_HS) || defined(CONFIG_MMC_OMAP_HS_MODULE))
- 
- static u16 control_pbias_offset;
- static u16 control_devconf1_offset;
-@@ -59,19 +37,16 @@ static u16 control_devconf1_offset;
- 
- static struct twl_mmc_controller {
- 	struct omap_mmc_platform_data	*mmc;
--	u8		twl_vmmc_dev_grp;
--	u8		twl_mmc_dedicated;
--	char		name[HSMMC_NAME_LEN + 1];
--} hsmmc[OMAP34XX_NR_MMC] = {
--	{
--		.twl_vmmc_dev_grp		= VMMC1_DEV_GRP,
--		.twl_mmc_dedicated		= VMMC1_DEDICATED,
--	},
--	{
--		.twl_vmmc_dev_grp		= VMMC2_DEV_GRP,
--		.twl_mmc_dedicated		= VMMC2_DEDICATED,
--	},
--};
-+	/* Vcc == configured supply
-+	 * Vcc_alt == optional
-+	 *   -	MMC1, supply for DAT4..DAT7
-+	 *   -	MMC2/MMC2, external level shifter voltage supply, for
-+	 *	chip (SDIO, eMMC, etc) or transceiver (MMC2 only)
++	/* constrain machine-level voltage specs to fit
++	 * the actual range supported by this regulator.
 +	 */
-+	struct regulator		*vcc;
-+	struct regulator		*vcc_aux;
-+	char				name[HSMMC_NAME_LEN + 1];
-+} hsmmc[OMAP34XX_NR_MMC];
- 
- static int twl_mmc_card_detect(int irq)
- {
-@@ -117,16 +92,42 @@ static int twl_mmc_late_init(struct devi
- 	int ret = 0;
- 	int i;
- 
--	ret = gpio_request(mmc->slots[0].switch_pin, "mmc_cd");
--	if (ret)
--		goto done;
--	ret = gpio_direction_input(mmc->slots[0].switch_pin);
--	if (ret)
--		goto err;
-+	/* MMC/SD/SDIO doesn't require a card detect switch */
-+	if (gpio_is_valid(mmc->slots[0].switch_pin)) {
-+		ret = gpio_request(mmc->slots[0].switch_pin, "mmc_cd");
-+		if (ret)
-+			goto done;
-+		ret = gpio_direction_input(mmc->slots[0].switch_pin);
-+		if (ret)
-+			goto err;
-+	}
- 
-+	/* require at least main regulator */
- 	for (i = 0; i < ARRAY_SIZE(hsmmc); i++) {
- 		if (hsmmc[i].name == mmc->slots[0].name) {
-+			struct regulator *reg;
++	if (ops->list_voltage && rdev->desc->n_voltages) {
++		int	count = rdev->desc->n_voltages;
++		int	i;
++		int	min_uV = INT_MAX;
++		int	max_uV = INT_MIN;
++		int	cmin = constraints->min_uV;
++		int	cmax = constraints->max_uV;
 +
- 			hsmmc[i].mmc = mmc;
-+
-+			reg = regulator_get(dev, "vmmc");
-+			if (IS_ERR(reg)) {
-+				dev_dbg(dev, "vmmc regulator missing\n");
-+				/* HACK: until fixed.c regulator is usable,
-+				 * we don't require a main regulator
-+				 * for MMC2 or MMC3
-+				 */
-+				if (i != 0)
-+					break;
-+				ret = PTR_ERR(reg);
-+				goto err;
-+			}
-+			hsmmc[i].vcc = reg;
-+			mmc->slots[0].ocr_mask = mmc_regulator_get_ocrmask(reg);
-+
-+			/* allow an aux regulator */
-+			reg = regulator_get(dev, "vmmc_aux");
-+			hsmmc[i].vcc_aux = IS_ERR(reg) ? NULL : reg;
-+
- 			break;
- 		}
- 	}
-@@ -173,96 +174,6 @@ static int twl_mmc_resume(struct device 
- #define twl_mmc_resume	NULL
- #endif
- 
--/*
-- * Sets the MMC voltage in twl4030
-- */
--
--#define MMC1_OCR	(MMC_VDD_165_195 \
--		|MMC_VDD_28_29|MMC_VDD_29_30|MMC_VDD_30_31|MMC_VDD_31_32)
--#define MMC2_OCR	(MMC_VDD_165_195 \
--		|MMC_VDD_25_26|MMC_VDD_26_27|MMC_VDD_27_28 \
--		|MMC_VDD_28_29|MMC_VDD_29_30|MMC_VDD_30_31|MMC_VDD_31_32)
--
--static int twl_mmc_set_voltage(struct twl_mmc_controller *c, int vdd)
--{
--	int ret;
--	u8 vmmc = 0, dev_grp_val;
--
--	if (!vdd)
--		goto doit;
--
--	if (c->twl_vmmc_dev_grp == VMMC1_DEV_GRP) {
--		/* VMMC1:  max 220 mA.  And for 8-bit mode,
--		 * VSIM:  max 50 mA
--		 */
--		switch (1 << vdd) {
--		case MMC_VDD_165_195:
--			vmmc = VMMC1_185V;
--			/* and VSIM_180V */
--			break;
--		case MMC_VDD_28_29:
--			vmmc = VMMC1_285V;
--			/* and VSIM_280V */
--			break;
--		case MMC_VDD_29_30:
--		case MMC_VDD_30_31:
--			vmmc = VMMC1_300V;
--			/* and VSIM_300V */
--			break;
--		case MMC_VDD_31_32:
--			vmmc = VMMC1_315V;
--			/* error if VSIM needed */
--			break;
--		default:
--			return -EINVAL;
--		}
--	} else if (c->twl_vmmc_dev_grp == VMMC2_DEV_GRP) {
--		/* VMMC2:  max 100 mA */
--		switch (1 << vdd) {
--		case MMC_VDD_165_195:
--			vmmc = VMMC2_185V;
--			break;
--		case MMC_VDD_25_26:
--		case MMC_VDD_26_27:
--			vmmc = VMMC2_260V;
--			break;
--		case MMC_VDD_27_28:
--			vmmc = VMMC2_280V;
--			break;
--		case MMC_VDD_28_29:
--			vmmc = VMMC2_285V;
--			break;
--		case MMC_VDD_29_30:
--		case MMC_VDD_30_31:
--			vmmc = VMMC2_300V;
--			break;
--		case MMC_VDD_31_32:
--			vmmc = VMMC2_315V;
--			break;
--		default:
--			return -EINVAL;
--		}
--	} else {
--		return -EINVAL;
--	}
--
--doit:
--	if (vdd)
--		dev_grp_val = VMMC_DEV_GRP_P1;	/* Power up */
--	else
--		dev_grp_val = LDO_CLR;		/* Power down */
--
--	ret = twl4030_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER,
--					dev_grp_val, c->twl_vmmc_dev_grp);
--	if (ret || !vdd)
--		return ret;
--
--	ret = twl4030_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER,
--					vmmc, c->twl_mmc_dedicated);
--
--	return ret;
--}
--
- static int twl_mmc1_set_power(struct device *dev, int slot, int power_on,
- 				int vdd)
- {
-@@ -273,11 +184,13 @@ static int twl_mmc1_set_power(struct dev
- 
- 	/*
- 	 * Assume we power both OMAP VMMC1 (for CMD, CLK, DAT0..3) and the
--	 * card using the same TWL VMMC1 supply (hsmmc[0]); OMAP has both
-+	 * card with Vcc regulator (from twl4030 or whatever).  OMAP has both
- 	 * 1.8V and 3.0V modes, controlled by the PBIAS register.
- 	 *
- 	 * In 8-bit modes, OMAP VMMC1A (for DAT4..7) needs a supply, which
- 	 * is most naturally TWL VSIM; those pins also use PBIAS.
-+	 *
-+	 * FIXME handle VMMC1A as needed ...
- 	 */
- 	if (power_on) {
- 		if (cpu_is_omap2430()) {
-@@ -300,7 +213,7 @@ static int twl_mmc1_set_power(struct dev
- 		reg &= ~OMAP2_PBIASLITEPWRDNZ0;
- 		omap_ctrl_writel(reg, control_pbias_offset);
- 
--		ret = twl_mmc_set_voltage(c, vdd);
-+		ret = mmc_regulator_set_ocr(c->vcc, vdd);
- 
- 		/* 100ms delay required for PBIAS configuration */
- 		msleep(100);
-@@ -316,7 +229,7 @@ static int twl_mmc1_set_power(struct dev
- 		reg &= ~OMAP2_PBIASLITEPWRDNZ0;
- 		omap_ctrl_writel(reg, control_pbias_offset);
- 
--		ret = twl_mmc_set_voltage(c, 0);
-+		ret = mmc_regulator_set_ocr(c->vcc, 0);
- 
- 		/* 100ms delay required for PBIAS configuration */
- 		msleep(100);
-@@ -329,19 +242,33 @@ static int twl_mmc1_set_power(struct dev
- 	return ret;
- }
- 
--static int twl_mmc2_set_power(struct device *dev, int slot, int power_on, int vdd)
-+static int twl_mmc23_set_power(struct device *dev, int slot, int power_on, int vdd)
- {
--	int ret;
-+	int ret = 0;
- 	struct twl_mmc_controller *c = &hsmmc[1];
- 	struct omap_mmc_platform_data *mmc = dev->platform_data;
- 
-+	/* If we don't see a Vcc regulator, assume it's a fixed
-+	 * voltage always-on regulator.
-+	 */
-+	if (!c->vcc)
-+		return 0;
-+
- 	/*
--	 * Assume TWL VMMC2 (hsmmc[1]) is used only to power the card ... OMAP
-+	 * Assume Vcc regulator is used only to power the card ... OMAP
- 	 * VDDS is used to power the pins, optionally with a transceiver to
- 	 * support cards using voltages other than VDDS (1.8V nominal).  When a
- 	 * transceiver is used, DAT3..7 are muxed as transceiver control pins.
-+	 *
-+	 * In some cases this regulator won't support enable/disable;
-+	 * e.g. it's a fixed rail for a WLAN chip.
-+	 *
-+	 * In other cases vcc_aux switches interface power.  Example, for
-+	 * eMMC cards it represents VccQ.  Sometimes transceivers or SDIO
-+	 * chips/cards need an interface voltage rail too.
- 	 */
- 	if (power_on) {
-+		/* only MMC2 supports a CLKIN */
- 		if (mmc->slots[0].internal_clock) {
- 			u32 reg;
- 
-@@ -349,24 +276,23 @@ static int twl_mmc2_set_power(struct dev
- 			reg |= OMAP2_MMCSDIO2ADPCLKISEL;
- 			omap_ctrl_writel(reg, control_devconf1_offset);
- 		}
--		ret = twl_mmc_set_voltage(c, vdd);
-+		ret = mmc_regulator_set_ocr(c->vcc, vdd);
-+		/* enable interface voltage rail, if needed */
-+		if (ret == 0 && c->vcc_aux) {
-+			ret = regulator_enable(c->vcc_aux);
-+			if (ret < 0)
-+				ret = mmc_regulator_set_ocr(c->vcc, 0);
++		/* it's safe to autoconfigure fixed-voltage supplies */
++		if (count == 1 && !cmin) {
++			cmin = INT_MIN;
++			cmax = INT_MAX;
 +		}
- 	} else {
--		ret = twl_mmc_set_voltage(c, 0);
-+		if (c->vcc_aux)
-+			ret = regulator_enable(c->vcc_aux);
-+		if (ret == 0)
-+			ret = mmc_regulator_set_ocr(c->vcc, 0);
- 	}
++
++		/* else require explicit machine-level constraints */
++		else if (cmin <= 0 || cmax <= 0 || cmax < cmin) {
++			pr_err("%s: %s '%s' voltage constraints\n",
++				       __func__, "invalid", name);
++			ret = -EINVAL;
++			goto out;
++		}
++
++		/* initial: [cmin..cmax] valid, [min_uV..max_uV] not */
++		for (i = 0; i < count; i++) {
++			int	value;
++
++			value = ops->list_voltage(rdev, i);
++			if (value <= 0)
++				continue;
++
++			/* maybe adjust [min_uV..max_uV] */
++			if (value >= cmin && value < min_uV)
++				min_uV = value;
++			if (value <= cmax && value > max_uV)
++				max_uV = value;
++		}
++
++		/* final: [min_uV..max_uV] valid iff constraints valid */
++		if (max_uV < min_uV) {
++			pr_err("%s: %s '%s' voltage constraints\n",
++				       __func__, "unsupportable", name);
++			ret = -EINVAL;
++			goto out;
++		}
++
++		/* use regulator's subset of machine constraints */
++		if (constraints->min_uV < min_uV) {
++			pr_debug("%s: override '%s' %s, %d -> %d\n",
++				       __func__, name, "min_uV",
++					constraints->min_uV, min_uV);
++			constraints->min_uV = min_uV;
++		}
++		if (constraints->max_uV > max_uV) {
++			pr_debug("%s: override '%s' %s, %d -> %d\n",
++				       __func__, name, "max_uV",
++					constraints->max_uV, max_uV);
++			constraints->max_uV = max_uV;
++		}
++	}
++
+ 	rdev->constraints = constraints;
  
- 	return ret;
- }
+ 	/* do we need to apply the constraint voltage */
+@@ -1245,6 +1308,56 @@ int regulator_is_enabled(struct regulato
+ EXPORT_SYMBOL_GPL(regulator_is_enabled);
  
--static int twl_mmc3_set_power(struct device *dev, int slot, int power_on,
--		int vdd)
--{
--	/*
--	 * Assume MMC3 has self-powered device connected, for example on-board
--	 * chip with external power source.
--	 */
--	return 0;
--}
--
- static struct omap_mmc_platform_data *hsmmc_data[OMAP34XX_NR_MMC] __initdata;
+ /**
++ * regulator_count_voltages - count regulator_list_voltage() selectors
++ * @regulator: regulator source
++ *
++ * Returns number of selectors, or negative errno.  Selectors are
++ * numbered starting at zero, and typically correspond to bitfields
++ * in hardware registers.
++ */
++int regulator_count_voltages(struct regulator *regulator)
++{
++	struct regulator_dev	*rdev = regulator->rdev;
++
++	return rdev->desc->n_voltages ? : -EINVAL;
++}
++EXPORT_SYMBOL_GPL(regulator_count_voltages);
++
++/**
++ * regulator_list_voltage - enumerate supported voltages
++ * @regulator: regulator source
++ * @selector: identify voltage to list
++ * Context: can sleep
++ *
++ * Returns a voltage that can be passed to @regulator_set_voltage(),
++ * zero if this selector code can't be used on this sytem, or a
++ * negative errno.
++ */
++int regulator_list_voltage(struct regulator *regulator, unsigned selector)
++{
++	struct regulator_dev	*rdev = regulator->rdev;
++	struct regulator_ops	*ops = rdev->desc->ops;
++	int			ret;
++
++	if (!ops->list_voltage || selector >= rdev->desc->n_voltages)
++		return -EINVAL;
++
++	mutex_lock(&rdev->mutex);
++	ret = ops->list_voltage(rdev, selector);
++	mutex_unlock(&rdev->mutex);
++
++	if (ret > 0) {
++		if (ret < rdev->constraints->min_uV)
++			ret = 0;
++		else if (ret > rdev->constraints->max_uV)
++			ret = 0;
++	}
++
++	return ret;
++}
++EXPORT_SYMBOL_GPL(regulator_list_voltage);
++
++/**
+  * regulator_set_voltage - set regulator output voltage
+  * @regulator: regulator source
+  * @min_uV: Minimum required voltage in uV
+--- a/include/linux/regulator/consumer.h
++++ b/include/linux/regulator/consumer.h
+@@ -140,6 +140,8 @@ int regulator_bulk_disable(int num_consu
+ void regulator_bulk_free(int num_consumers,
+ 			 struct regulator_bulk_data *consumers);
  
- void __init twl4030_mmc_init(struct twl4030_hsmmc_info *controllers)
-@@ -411,10 +337,10 @@ void __init twl4030_mmc_init(struct twl4
- 		mmc->slots[0].wires = c->wires;
- 		mmc->slots[0].internal_clock = !c->ext_clock;
- 		mmc->dma_mask = 0xffffffff;
-+		mmc->init = twl_mmc_late_init;
++int regulator_count_voltages(struct regulator *regulator);
++int regulator_list_voltage(struct regulator *regulator, unsigned selector);
+ int regulator_set_voltage(struct regulator *regulator, int min_uV, int max_uV);
+ int regulator_get_voltage(struct regulator *regulator);
+ int regulator_set_current_limit(struct regulator *regulator,
+--- a/include/linux/regulator/driver.h
++++ b/include/linux/regulator/driver.h
+@@ -45,6 +45,10 @@ enum regulator_status {
+  * @set_voltage: Set the voltage for the regulator within the range specified.
+  *               The driver should select the voltage closest to min_uV.
+  * @get_voltage: Return the currently configured voltage for the regulator.
++ * @list_voltage: Return one of the supported voltages, in microvolts; zero
++ *	if the selector indicates a voltage that is unusable on this system;
++ *	or negative errno.  Selectors range from zero to one less than
++ *	regulator_desc.n_voltages.  Voltages may be reported in any order.
+  *
+  * @set_current_limit: Configure a limit for a current-limited regulator.
+  * @get_current_limit: Get the limit for a current-limited regulator.
+@@ -65,6 +69,9 @@ enum regulator_status {
+  */
+ struct regulator_ops {
  
--		/* note: twl4030 card detect GPIOs normally switch VMMCx ... */
-+		/* note: twl4030 card detect GPIOs can disable VMMCx ... */
- 		if (gpio_is_valid(c->gpio_cd)) {
--			mmc->init = twl_mmc_late_init;
- 			mmc->cleanup = twl_mmc_cleanup;
- 			mmc->suspend = twl_mmc_suspend;
- 			mmc->resume = twl_mmc_resume;
-@@ -438,26 +364,28 @@ void __init twl4030_mmc_init(struct twl4
- 		} else
- 			mmc->slots[0].gpio_wp = -EINVAL;
- 
--		/* NOTE:  we assume OMAP's MMC1 and MMC2 use
--		 * the TWL4030's VMMC1 and VMMC2, respectively;
--		 * and that MMC3 device has it's own power source.
-+		/* NOTE:  MMC slots should have a Vcc regulator set up.
-+		 * This may be from a TWL4030-family chip, another
-+		 * controllable regulator, or a fixed supply.
-+		 *
-+		 * temporary HACK: ocr_mask instead of fixed supply
- 		 */
-+		mmc->slots[0].ocr_mask = c->ocr_mask;
- 
- 		switch (c->mmc) {
- 		case 1:
-+			/* on-chip level shifting via PBIAS0/PBIAS1 */
- 			mmc->slots[0].set_power = twl_mmc1_set_power;
--			mmc->slots[0].ocr_mask = MMC1_OCR;
- 			break;
- 		case 2:
--			mmc->slots[0].set_power = twl_mmc2_set_power;
--			if (c->transceiver)
--				mmc->slots[0].ocr_mask = MMC2_OCR;
--			else
--				mmc->slots[0].ocr_mask = MMC_VDD_165_195;
--			break;
-+			if (c->ext_clock)
-+				c->transceiver = 1;
-+			if (c->transceiver && c->wires > 4)
-+				c->wires = 4;
-+			/* FALLTHROUGH */
- 		case 3:
--			mmc->slots[0].set_power = twl_mmc3_set_power;
--			mmc->slots[0].ocr_mask = MMC_VDD_165_195;
-+			/* off-chip level shifting, or none */
-+			mmc->slots[0].set_power = twl_mmc23_set_power;
- 			break;
- 		default:
- 			pr_err("MMC%d configuration not supported!\n", c->mmc);
---- a/arch/arm/mach-omap2/mmc-twl4030.h
-+++ b/arch/arm/mach-omap2/mmc-twl4030.h
-@@ -16,9 +16,10 @@ struct twl4030_hsmmc_info {
- 	int	gpio_wp;	/* or -EINVAL */
- 	char	*name;		/* or NULL for default */
- 	struct device *dev;	/* returned: pointer to mmc adapter */
-+	int	ocr_mask;	/* temporary HACK */
- };
- 
--#if	defined(CONFIG_TWL4030_CORE) && \
-+#if defined(CONFIG_REGULATOR) && \
- 	(defined(CONFIG_MMC_OMAP) || defined(CONFIG_MMC_OMAP_MODULE) || \
- 	 defined(CONFIG_MMC_OMAP_HS) || defined(CONFIG_MMC_OMAP_HS_MODULE))
- 
---- a/drivers/mmc/host/omap_hsmmc.c
-+++ b/drivers/mmc/host/omap_hsmmc.c
-@@ -1005,7 +1005,6 @@ static int __init omap_mmc_probe(struct 
- 	mmc->max_req_size = mmc->max_blk_size * mmc->max_blk_count;
- 	mmc->max_seg_size = mmc->max_req_size;
- 
--	mmc->ocr_avail = mmc_slot(host).ocr_mask;
- 	mmc->caps |= MMC_CAP_MMC_HIGHSPEED | MMC_CAP_SD_HIGHSPEED;
- 
- 	if (pdata->slots[host->slot_id].wires >= 4)
-@@ -1042,13 +1041,14 @@ static int __init omap_mmc_probe(struct 
- 		goto err_irq;
- 	}
- 
-+	/* initialize power supplies, gpios, etc */
- 	if (pdata->init != NULL) {
- 		if (pdata->init(&pdev->dev) != 0) {
--			dev_dbg(mmc_dev(host->mmc),
--				"Unable to configure MMC IRQs\n");
-+			dev_dbg(mmc_dev(host->mmc), "late init error\n");
- 			goto err_irq_cd_init;
- 		}
- 	}
-+	mmc->ocr_avail = mmc_slot(host).ocr_mask;
- 
- 	/* Request IRQ for card detect */
- 	if ((mmc_slot(host).card_detect_irq) && (mmc_slot(host).card_detect)) {
++	/* enumerate supported voltages */
++	int (*list_voltage) (struct regulator_dev *, unsigned selector);
++
+ 	/* get/set regulator voltage */
+ 	int (*set_voltage) (struct regulator_dev *, int min_uV, int max_uV);
+ 	int (*get_voltage) (struct regulator_dev *);
+@@ -123,6 +130,7 @@ enum regulator_type {
+  *
+  * @name: Identifying name for the regulator.
+  * @id: Numerical identifier for the regulator.
++ * @n_voltages: Number of selectors available for ops.list_voltage().
+  * @ops: Regulator operations table.
+  * @irq: Interrupt number for the regulator.
+  * @type: Indicates if the regulator is a voltage or current regulator.
+@@ -131,6 +139,7 @@ enum regulator_type {
+ struct regulator_desc {
+ 	const char *name;
+ 	int id;
++	unsigned n_voltages;
+ 	struct regulator_ops *ops;
+ 	int irq;
+ 	enum regulator_type type;
