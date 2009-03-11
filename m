@@ -1,73 +1,132 @@
-From: Atal Shargorodsky <ext-atal.shargorodsky@nokia.com>
-Subject: [PATCH 2/6] OMAP: omap_wdt: Fix interface clock existence check.
-Date: Wed, 11 Mar 2009 17:29:34 +0200
-Message-ID: <0fe7f2934f8416e9b5f05e2f18766362560116ee.1236609434.git.ext-atal.shargorodsky__32022.73656284$1236785582$gmane$org@nokia.com>
-References: <>
- <1236785378-14640-1-git-send-email-ext-atal.shargorodsky@nokia.com>
- <cbbca1e42421e2ada459f0c0881f087977e34eed.1236609434.git.ext-atal.shargorodsky@nokia.com>
+From: "Nayak, Rajendra" <rnayak@ti.com>
+Subject: RE: DSPBRIDGE+BRIDGE_DVFS: Crashes on multiple reload
+Date: Wed, 11 Mar 2009 21:24:46 +0530
+Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB02FAE596C2@dbde02.ent.ti.com>
+References: <7A436F7769CA33409C6B44B358BFFF0CFF48FEA4@dlee02.ent.ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:45622 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753517AbZCKPbF (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 11 Mar 2009 11:31:05 -0400
-In-Reply-To: <cbbca1e42421e2ada459f0c0881f087977e34eed.1236609434.git.ext-atal.shargorodsky@nokia.com>
-In-Reply-To: <cbbca1e42421e2ada459f0c0881f087977e34eed.1236609434.git.ext-atal.shargorodsky@nokia.com>
-References: <cbbca1e42421e2ada459f0c0881f087977e34eed.1236609434.git.ext-atal.shargorodsky@nokia.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:40097 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751569AbZCKPy6 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 11 Mar 2009 11:54:58 -0400
+In-Reply-To: <7A436F7769CA33409C6B44B358BFFF0CFF48FEA4@dlee02.ent.ti.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: linux-arm-kernel@lists.arm.linux.org.uk, Atal Shargorodsky <ext-atal.shargorodsky@nokia.com>
+To: "Menon, Nishanth" <nm@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Cc: ext Paul Walmsley <paul@pwsan.com>, "Gupta, Ramesh" <grgupta@ti.com>
 
-When enabling/disabling the iterface clock, the question
-to be asked is if this clock exists rather than to
-decide about it's existance by retrieving the chip version.
-It can be done only once at init time.
+Does the bridge driver call a clk_notifier_unregister on the exit path?
 
-Signed-off-by: Atal Shargorodsky <ext-atal.shargorodsky@nokia.com>
----
- drivers/watchdog/omap_wdt.c |    8 ++++----
- 1 files changed, 4 insertions(+), 4 deletions(-)
+> CPU: 0    Not tainted  (2.6.28-omap1-00211-gcb75442 #1)
+> PC is at clk_notifier_register+0x68/0x108
+> LR is at kmem_cache_alloc+0x7c/0x84
 
-diff --git a/drivers/watchdog/omap_wdt.c b/drivers/watchdog/omap_wdt.c
-index 5b72c7c..05dc55a 100644
---- a/drivers/watchdog/omap_wdt.c
-+++ b/drivers/watchdog/omap_wdt.c
-@@ -145,7 +145,7 @@ static int omap_wdt_open(struct inode *inode, struct file *file)
- 	if (test_and_set_bit(1, (unsigned long *)&(wdev->omap_wdt_users)))
- 		return -EBUSY;
- 
--	if (cpu_is_omap24xx() || cpu_is_omap34xx())
-+	if (wdev->mpu_wdt_ick)
- 		clk_enable(wdev->mpu_wdt_ick);    /* Enable the interface clock */
- 
- 	clk_enable(wdev->mpu_wdt_fck);    /* Enable the functional clock */
-@@ -177,7 +177,7 @@ static int omap_wdt_release(struct inode *inode, struct file *file)
- 
- 	omap_wdt_disable(wdev);
- 
--	if (cpu_is_omap24xx() || cpu_is_omap34xx())
-+	if (wdev->mpu_wdt_ick)
- 		clk_disable(wdev->mpu_wdt_ick);	/* Disable the clock */
- 
- 	clk_disable(wdev->mpu_wdt_fck);	/* Disable the clock */
-@@ -344,7 +344,7 @@ static int __init omap_wdt_probe(struct platform_device *pdev)
- 	platform_set_drvdata(pdev, wdev);
- 
- 	/* enable clocks for register access */
--	if (cpu_is_omap24xx() || cpu_is_omap34xx())
-+	if (wdev->mpu_wdt_ick)
- 		clk_enable(wdev->mpu_wdt_ick);    /* Enable the interface clock */
- 
- 	clk_enable(wdev->mpu_wdt_fck);    /* Enable the functional clock */
-@@ -369,7 +369,7 @@ static int __init omap_wdt_probe(struct platform_device *pdev)
- 	__raw_writel(0x01, wdev->base + OMAP_WATCHDOG_SYS_CONFIG);
- 
- 	/* disable clocks since we don't need them now */
--	if (cpu_is_omap24xx() || cpu_is_omap34xx())
-+	if (wdev->mpu_wdt_ick)
- 		clk_disable(wdev->mpu_wdt_ick);	/* Disable the clock */
- 	clk_disable(wdev->mpu_wdt_fck);	/* Disable the clock */
- 
--- 
-1.5.4.3
+Taking an objdump of clock.o shows me it probably is crashing
+some place while trying to traverse through the existing list of
+registered notifiers. It could very well be that one of these
+is an old function pointer registered by the previous insmod of the
+bridge driver.
 
+
+> -----Original Message-----
+> From: Menon, Nishanth 
+> Sent: Wednesday, March 11, 2009 8:21 PM
+> To: linux-omap@vger.kernel.org
+> Cc: ext Paul Walmsley; Nayak, Rajendra; Gupta, Ramesh
+> Subject: DSPBRIDGE+BRIDGE_DVFS: Crashes on multiple reload
+> 
+> Hi Folks,
+> 
+> With the latest linux-omap pm + gitorious bridge changes on 
+> SDP3430, enabling BRIDGE_DVFS and SRF seems to cause an issue 
+> with clock notifier.. I am not entirely of the cause of the 
+> issue(don't have a debugger handy at the moment :( ): The 
+> condition is reproducible on exactly the third insmod of the 
+> driver as explained below. Looking for any advice to fix this issue :(
+> 
+> 
+> Codebase:
+> git clone 
+> git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-oma
+> p-2.6.git
+> git checkout -b pm --track origin/pm
+> git fetch git://gitorious.org/lk/mainline.git 
+> tidspbridge-pm:tidspbridge-pm
+> git checkout tidspbridge-pm
+> git merge pm
+> 
+> defconfig:
+> essentially omap_3430sdp_defconfig, enable SRF and 
+> bridge+bridge_dvfs. (diff b/w defconfig and .config attached).
+> 
+> Bootargs:
+> console=ttyS0,115200n8 noinitrd ip=dhcp root=/dev/nfs rw 
+> nfsroot=<myIP>:<myFS>,nolock,wsize=1024,rsize=1024 mem=64M
+> 
+> The error:
+> insmod  ./bridgedriver.ko phys_mempool_base=0x87000000  
+> phys_mempool_size=0x600000
+> rmmod bridgedriver
+> insmod  ./bridgedriver.ko phys_mempool_base=0x87000000  
+> phys_mempool_size=0x600000
+> rmmod bridgedriver
+> insmod  ./bridgedriver.ko phys_mempool_base=0x87000000  
+> phys_mempool_size=0x600000
+> 
+> Unable to handle kernel paging request at virtual address 756e696c
+> pgd = c3e0c000
+> *pgd=00000000[756e696c] 
+> 
+> Internal error: Oops: 5 [#1]
+> Modules linked in:Modules linked in: bridgedriver(+) 
+> bridgedriver(+) [last unloaded: bridgedriver] [last unloaded: 
+> bridgedriver]
+> 
+> CPU: 0    Not tainted  (2.6.28-omap1-00211-gcb75442 #1)
+> PC is at clk_notifier_register+0x68/0x108
+> LR is at kmem_cache_alloc+0x7c/0x84
+> pc : [<c003f684>]    lr : [<c009f574>]    psr: 00000093
+> sp : c3e05da0  ip : c3e0b3e0  fp : c3e05dbc
+> <snip>
+> 
+> Backtrace: Backtrace:
+> 
+> [<c003f61c>] [<c003f61c>] (clk_notifier_register+0x0/0x108) 
+> (clk_notifier_register+0x0/0x108) from [<bf08d394>] from 
+> [<bf08d394>] (bridge_init+0x394/0x3ec [bridgedriver])
+> (bridge_init+0x394/0x3ec [bridgedriver])
+>  r7:00000000 r7:00000000 r6:bf08ab88 r6:bf08ab88 r5:1dcd6500 
+> r5:1dcd6500 r4:0ee6b280 r4:0ee6b280
+> 
+> [<bf08d000>] [<bf08d000>] (bridge_init+0x0/0x3ec 
+> [bridgedriver]) (bridge_init+0x0/0x3ec [bridgedriver]) from 
+> [<c002d2d4>] from [<c002d2d4>] (do_one_initcall+0x64/0x198)
+> (do_one_initcall+0x64/0x198)
+>  r8:c002df28 r8:c002df28 r7:00000000 r7:00000000 r6:4023a000 
+> r6:4023a000 r5:bf08a520 r5:bf08a520 r4:c03aa340 r4:c03aa340
+> 
+> [<c002d270>] [<c002d270>] (do_one_initcall+0x0/0x198) 
+> (do_one_initcall+0x0/0x198) from [<c0078cac>] from 
+> [<c0078cac>] (sys_init_module+0x98/0x188)
+> (sys_init_module+0x98/0x188)
+> [<c0078c14>] [<c0078c14>] (sys_init_module+0x0/0x188) 
+> (sys_init_module+0x0/0x188) from [<c002dd80>] from 
+> [<c002dd80>] (ret_fast_syscall+0x0/0x2c)
+> (ret_fast_syscall+0x0/0x2c)
+>  r7:00000080 r7:00000080 r6:00000000 r6:00000000 r5:0000000b 
+> r5:0000000b r4:00000000 r4:00000000
+> 
+> Code: Code: e5943000 e5943000 e1530006 e1530006 0a000005 
+> 0a000005 e2424008 e2424008 (e5942008) (e5942008)
+> 
+> <4>---[ end trace c53b9e94a29571d4 ]---
+> ---[ end trace c53b9e94a29571d4 ]---
+> Segmentation fault
+> 
+> 
+> Regards,
+> Nishanth Menon
+> 
