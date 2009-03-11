@@ -1,51 +1,48 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH 0/2] OMAP3: GPIO off-mode fixes
-Date: Wed, 11 Mar 2009 15:11:52 -0700
-Message-ID: <87wsavogk7.fsf@deeprootsystems.com>
-References: <1236339986-29506-1-git-send-email-tero.kristo@nokia.com>
-	<87mybuy1ky.fsf@deeprootsystems.com>
-	<1F18D6510CF0474A8C9500565A7E41A20378951294@NOK-EUMSG-02.mgdnok.nokia.com>
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: Re: [Linux-fbdev-devel] [PATCH] omapfb: Fix argument of blank
+ operation.
+Date: Wed, 11 Mar 2009 15:20:00 -0700
+Message-ID: <20090311152000.8a3db19c.akpm@linux-foundation.org>
+References: <1228430755-4221-1-git-send-email-felipe.contreras@gmail.com>
+	<5d5443650903111017n9c818b0y2119d06ea84c3abf@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from wf-out-1314.google.com ([209.85.200.169]:62547 "EHLO
-	wf-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754200AbZCKWL5 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 11 Mar 2009 18:11:57 -0400
-Received: by wf-out-1314.google.com with SMTP id 28so247059wfa.4
-        for <linux-omap@vger.kernel.org>; Wed, 11 Mar 2009 15:11:55 -0700 (PDT)
-In-Reply-To: <1F18D6510CF0474A8C9500565A7E41A20378951294@NOK-EUMSG-02.mgdnok.nokia.com> (Tero Kristo's message of "Wed\, 11 Mar 2009 11\:04\:34 +0100")
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48684 "EHLO
+	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752270AbZCKWXb (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Wed, 11 Mar 2009 18:23:31 -0400
+In-Reply-To: <5d5443650903111017n9c818b0y2119d06ea84c3abf@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tero.Kristo@nokia.com
-Cc: linux-omap@vger.kernel.org
+To: Trilok Soni <soni.trilok@gmail.com>
+Cc: felipe.contreras@gmail.com, linux-fbdev-devel@lists.sourceforge.net, linux-omap@vger.kernel.org, felipe.contreras@nokia.com, linux-kernel@vger.kernel.org
 
-<Tero.Kristo@nokia.com> writes:
+On Wed, 11 Mar 2009 22:47:41 +0530
+Trilok Soni <soni.trilok@gmail.com> wrote:
 
-> The first patch in this set contains a small bug, missing kfree() for one of the dynamically reserved arrays during init in error path. Sending a fixed patch now.
->
+> Hi Felipe,
+> 
+> On Fri, Dec 5, 2008 at 4:15 AM, Felipe Contreras
 
-Thanks Tero.  I will undo the first version and re-push with this version.
+I bet he thought we'd forgotten.
 
-Kevin
+> <felipe.contreras@gmail.com> wrote:
+> > From: Felipe Contreras <felipe.contreras@nokia.com>
+> >
+> > The blank operation should receive FB_BLANK_POWERDOWN, not
+> > VESA_POWERDOWN.
+> >
+> 
+> Thanks. Looks good.
+> 
+> Signed-off-by: Trilok Soni <soni.trilok@gmail.com>
+> 
 
->
->>-----Original Message-----
->>From: ext Kevin Hilman [mailto:khilman@deeprootsystems.com] 
->>Sent: 09 March, 2009 20:48
->>To: Kristo Tero (Nokia-D/Tampere)
->>Cc: linux-omap@vger.kernel.org
->>Subject: Re: [PATCH 0/2] OMAP3: GPIO off-mode fixes
->>
->>Tero Kristo <tero.kristo@nokia.com> writes:
->>
->>> These two patches add fixes to GPIO off-mode handling. First 
->>patch is 
->>> more important as it fixes a HW bug, second one just optimizes 
->>> off-mode code a bit by removing a couple of unnecessary 
->>registers from the context save.
->>
->>Thanks, pushing both patches to PM branch.
->>
->>Kevin
->>
+Unfortunately the changelog didn't give me any hint as to the
+seriousness of the problem which was fixed.  So I queued it for 2.6.30,
+perhaps inappropriately.
+
+
