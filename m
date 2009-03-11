@@ -1,72 +1,106 @@
 From: Tomi Valkeinen <tomi.valkeinen@nokia.com>
-Subject: Re: Hello Tomi Valkeinen, I have some questions about dss2 driver.
-Date: Wed, 11 Mar 2009 09:47:21 +0200
-Message-ID: <1236757641.12797.16.camel@tubuntu>
-References: <90b950fc0903102157q21dec037m65edee4afe104d6a@mail.gmail.com>
+Subject: Re: Suspend/Resume support with Omap2fb
+Date: Wed, 11 Mar 2009 09:53:10 +0200
+Message-ID: <1236757990.12797.20.camel@tubuntu>
+References: <19F8576C6E063C45BE387C64729E73940427C51975@dbde02.ent.ti.com>
 Reply-To: tomi.valkeinen@nokia.com
 Mime-Version: 1.0
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:61855 "EHLO
+Received: from smtp.nokia.com ([192.100.122.230]:62764 "EHLO
 	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751002AbZCKHrf (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 11 Mar 2009 03:47:35 -0400
-In-Reply-To: <90b950fc0903102157q21dec037m65edee4afe104d6a@mail.gmail.com>
+	with ESMTP id S1750835AbZCKHx1 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 11 Mar 2009 03:53:27 -0400
+In-Reply-To: <19F8576C6E063C45BE387C64729E73940427C51975@dbde02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: ext InKi Dae <daeinki@gmail.com>
+To: "ext Hiremath, Vaibhav" <hvaibhav@ti.com>
 Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
 Hi,
 
-On Wed, 2009-03-11 at 05:57 +0100, ext InKi Dae wrote:
-> I am using your dss2 driver downloaded from your git server and tried
-> to rotate an image(RGB24U and YUV2 format) using OMAPFB_ROT_DMA
-> command.
-> but I can't see rotated image on screen. I added variables for
-> rotating like below. as the result, LCD Panel is stoped.
+On Wed, 2009-03-11 at 07:55 +0100, ext Hiremath, Vaibhav wrote:
+> Hi,
 > 
-> omapfb.rotate=2
-> omapfb.vrfb=n
-> 
-> 
-> and then I tried again using OMAPFB_ROT_VRFB command like below.
-> 
-> omapfb.rotate=2
-> omapfb.vrfb=y
-> 
-> In this case, I can see rotated image(only RGB24U format) on screen.
-> You asid "Rotation and mirroring currently only supports RGB565 and
-> RGB8888 modes. VRFB does not support mirroring" through
-> /Documentation/arm/OMAP/DSS file.
-> 
-> Doesn't your dss2 driver support DMA rotation?
+> I am using New Frame-Buffer driver which is based on DSS2 library submitted by Tomi, and I am trying to add full power management support. But things are not working out as expected, every time when I am issuing command "echo mem > /sys/power/state" the system doesn't go into off state. It always points to dss_prwdm, below are the steps I am following - 
 
-It does. However, you should use DMA rotation only with OMAP2 when the
-framebuffer is in SRAM. It seems to work somewhat on OMAP3 and SDRAM,
-but I've noticed it doesn't always work. I don't know if lowering pixel
-clock, increasing dss fck or fiddling with fifo sizes could affect it.
+OFF mode should work. I have verified it with DSI, DPI and SDI. However,
+it needs passing the get_last_off_on_transaction_id pointer in
+omap_dss_platform_data.
 
-> I am trying to add rotation feature for YUV2 image using VRFB to your
-> dss2 driver.
-> 
-> for this, I think that it have to change rot and mirror become 0 if
-> rotation_type is OMAPFB_ROT_VRFB to be rot=ofbi->rotation and mirror =
-> ofbi->mirror (in omapfb-main.c file) and
-> add codes for calculating offset0, offset1, pixel increment and row
-> increment value for YUV2 format also pixel size becomes 4 in YUV2 case
-> (in dispc.c fild).
-> omap_vrfb_setup function must be modifed also (in vrfb.c file)?
-> 
-> Do you have any idea?
+Also, see below.
 
-No, I haven't really looked at YUV rotations.
+> 	- Build the kernel with CPU_IDLE
+> 	- Enable all the PM flags 
+> 
+> 		# echo 1 > /sys/power/sleep_while_idle
+> 		# echo 1 > /sys/power/clocks_off_while_idle
+> 		# echo 1 > /sys/power/enable_off_mode
+> 
+>  	- From Linux prompt issue command 
+> 
+> 		# echo mem > /sys/power/state
+> 
+> The log is - 
+> ------------
+> 
+> root@arago:~# echo mem > /sys/power/state
+> <6>PM: Syncing filesystems ... PM: Syncing filesystems ... done.
+> done.
+> Freezing user space processes ... Freezing user space processes ... (elapsed 0.00 seconds) (elapsed 0.00 seconds) done.
+> done.
+> Freezing remaining freezable tasks ... Freezing remaining freezable tasks ... (elapsed 0.06 seconds) (elapsed 0.06 seconds) done.done.
+> Suspending console(s) (use no_console_suspend to debug)
+> Suspending console(s) (use no_console_suspend to debug)
+> <6>omap-backlight: suspending...
+> omapfb_suspend
+> 
+> omapfb_resume
+> <6>omap-backlight: resuming...
+> omap-backlight: suspending...
+> omapfb_suspend
+> Powerdomain (core_pwrdm) didn't enter target state 0
+> Powerdomain (dss_pwrdm) didn't enter target state 0
+> Powerdomain (per_pwrdm) didn't enter target state 0
+> Could not enter target state in pm_suspend
+> eth0: link down
+> omapfb_resume
+> omap-backlight: resuming...
+> Restarting tasks ... Restarting tasks ... done.
+> done.
+> 
+> root@arago:~#
+> 
+> 
+> Some analysis which I observed during debugging this issue - 
+> 
+> 	- The root-cause is, DSS PowerDomain always shows it is in ON state (PWRDM_POWER_ON), and if I understand correctly this is only dependent on clocks. But I am making sure that DSS clocks are disabled. And with CPU_IDLE enabled I am going to complete OFF state. (/sys/devices/system/cpu/cpu0/cpuidle/state5/usage is incrementing).
+> 
+> 	- If I compile out framebuffer driver and include DSS2 and V4L2 driver, everything works fine. I am not sure how "omapfb" is being tied with PowerDomain. Again I have seen references in arch/arm/mach-omap2/omapdev3xxx.h to the pdev_name = "omapfb", not sure how this is being used. 
+
+You have to change it to omapdss (or omap-dss in earlier DSS2 versions).
 
  Tomi
 
-> I need your help and advice.
+>  
+> I believe if system is hitting OFF state, then my enable/disable paths are proper, but really not sure about why "mem" is causing problem here.
 > 
-> Thank you.
-> - InKi-
+> Thanks,
+> Vaibhav Hiremath
+> Platform Support Products
+> Texas Instruments Inc
+> Ph: +91-80-25099927
+> 
+> 
+> Thanks,
+> Vaibhav Hiremath
+> Platform Support Products
+> Texas Instruments Inc
+> Ph: +91-80-25099927
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
