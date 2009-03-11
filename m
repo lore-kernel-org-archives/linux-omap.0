@@ -1,156 +1,342 @@
-From: Tomi Valkeinen <tomi.valkeinen@nokia.com>
-Subject: RE: Suspend/Resume support with Omap2fb
-Date: Wed, 11 Mar 2009 11:31:01 +0200
-Message-ID: <1236763861.12797.29.camel@tubuntu>
-References: <19F8576C6E063C45BE387C64729E73940427C519CE@dbde02.ent.ti.com>
-Reply-To: tomi.valkeinen@nokia.com
-Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+From: Tero Kristo <tero.kristo@nokia.com>
+Subject: [PATCH 1/2] OMAP3: PM: Fixed glitches in GPIO outputs during off-mode transitions
+Date: Wed, 11 Mar 2009 11:47:11 +0200
+Message-ID: <1236764831-8444-1-git-send-email-tero.kristo@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:44614 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753335AbZCKJbu (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 11 Mar 2009 05:31:50 -0400
-In-Reply-To: <19F8576C6E063C45BE387C64729E73940427C519CE@dbde02.ent.ti.com>
+Received: from smtp.nokia.com ([192.100.122.233]:46143 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753473AbZCKKFe (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 11 Mar 2009 06:05:34 -0400
+Received: from esebh106.NOE.Nokia.com (esebh106.ntc.nokia.com [172.21.138.213])
+	by mgw-mx06.nokia.com (Switch-3.2.6/Switch-3.2.6) with ESMTP id n2BA59ng031926
+	for <linux-omap@vger.kernel.org>; Wed, 11 Mar 2009 12:05:29 +0200
+Received: from localhost.localdomain (sokoban.ntc.nokia.com [172.22.144.95])
+	by mgw-int01.ntc.nokia.com (Switch-3.2.5/Switch-3.2.5) with ESMTP id n2BA5503028465
+	for <linux-omap@vger.kernel.org>; Wed, 11 Mar 2009 12:05:05 +0200
+In-Reply-To: <>
+References: <>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "ext Hiremath, Vaibhav" <hvaibhav@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: linux-omap@vger.kernel.org
 
-On Wed, 2009-03-11 at 09:46 +0100, ext Hiremath, Vaibhav wrote:
-> 
-> Thanks,
-> Vaibhav Hiremath
-> 
-> > -----Original Message-----
-> > From: Tomi Valkeinen [mailto:tomi.valkeinen@nokia.com]
-> > Sent: Wednesday, March 11, 2009 1:23 PM
-> > To: Hiremath, Vaibhav
-> > Cc: linux-omap@vger.kernel.org
-> > Subject: Re: Suspend/Resume support with Omap2fb
-> > 
-> > Hi,
-> > 
-> > On Wed, 2009-03-11 at 07:55 +0100, ext Hiremath, Vaibhav wrote:
-> > > Hi,
-> > >
-> > > I am using New Frame-Buffer driver which is based on DSS2 library
-> > submitted by Tomi, and I am trying to add full power management
-> > support. But things are not working out as expected, every time when
-> > I am issuing command "echo mem > /sys/power/state" the system
-> > doesn't go into off state. It always points to dss_prwdm, below are
-> > the steps I am following -
-> > 
-> > OFF mode should work. I have verified it with DSI, DPI and SDI.
-> > However,
-> > it needs passing the get_last_off_on_transaction_id pointer in
-> > omap_dss_platform_data.
-> > 
-> > Also, see below.
-> > 
-> [Hiremath, Vaibhav] I believe this is only required when you do save and restore context right?
+Output GPIOs will lose their context during wakeup from off-mode, causing
+a short glitch in the output level until the GPIO context can be restored.
+Pad configuration must be used to set corresponding pins into safe_mode
+and pull-up / pull-down control is used to select the level of the signal.
+Also, GPIO signals themselves must be set to INPUT mode before switching
+pad configuration to safe mode, otherwise this will generate a glitch also.
 
-Well, yes. But you need to save and restore context if you want OFF
-mode.
+See OMAP3 errata section 1.158 for more details.
 
-> Actually I have modified that part of code where it doesn't expect this pointer and save/restore happens perfectly fine, which I am very will sure about, since I am hitting state5 of CPU_IDLE (Full OFF state) and it resumes back with the same state.
-> 
-> Again one more data point which I missed in last mail is, I am following clk->usecount which shows me 0. That means clocks are already disabled.
-> 
-> root@arago:~# cat /sys/devices/platform/omap-dss/clk
-> - dss -
-> internal clk count      0
-> dss_ick         83000000        0
-> dss1_alwon_fck  96000000        0
-> dss2_alwon_fck  13000000        0
-> dss_tv_fck      54000000        0
-> dss_96m_fck     96000000        0
-> - dispc -
-> dispc fclk source = dss1_alwon_fclk
-> pixel clk = 96000000 / 1 / 5 = 19200000
-> root@arago:~#
-> 
-> 
-> > > 	- Build the kernel with CPU_IDLE
-> > > 	- Enable all the PM flags
-> > >
-> > > 		# echo 1 > /sys/power/sleep_while_idle
-> > > 		# echo 1 > /sys/power/clocks_off_while_idle
-> > > 		# echo 1 > /sys/power/enable_off_mode
-> > >
-> > >  	- From Linux prompt issue command
-> > >
-> > > 		# echo mem > /sys/power/state
-> > >
-> > > The log is -
-> > > ------------
-> > >
-> > > root@arago:~# echo mem > /sys/power/state
-> > > <6>PM: Syncing filesystems ... PM: Syncing filesystems ... done.
-> > > done.
-> > > Freezing user space processes ... Freezing user space processes
-> > ... (elapsed 0.00 seconds) (elapsed 0.00 seconds) done.
-> > > done.
-> > > Freezing remaining freezable tasks ... Freezing remaining
-> > freezable tasks ... (elapsed 0.06 seconds) (elapsed 0.06 seconds)
-> > done.done.
-> > > Suspending console(s) (use no_console_suspend to debug)
-> > > Suspending console(s) (use no_console_suspend to debug)
-> > > <6>omap-backlight: suspending...
-> > > omapfb_suspend
-> > >
-> > > omapfb_resume
-> > > <6>omap-backlight: resuming...
-> > > omap-backlight: suspending...
-> > > omapfb_suspend
-> > > Powerdomain (core_pwrdm) didn't enter target state 0
-> > > Powerdomain (dss_pwrdm) didn't enter target state 0
-> > > Powerdomain (per_pwrdm) didn't enter target state 0
-> > > Could not enter target state in pm_suspend
-> > > eth0: link down
-> > > omapfb_resume
-> > > omap-backlight: resuming...
-> > > Restarting tasks ... Restarting tasks ... done.
-> > > done.
-> > >
-> > > root@arago:~#
-> > >
-> > >
-> > > Some analysis which I observed during debugging this issue -
-> > >
-> > > 	- The root-cause is, DSS PowerDomain always shows it is in ON
-> > state (PWRDM_POWER_ON), and if I understand correctly this is only
-> > dependent on clocks. But I am making sure that DSS clocks are
-> > disabled. And with CPU_IDLE enabled I am going to complete OFF
-> > state. (/sys/devices/system/cpu/cpu0/cpuidle/state5/usage is
-> > incrementing).
-> > >
-> > > 	- If I compile out framebuffer driver and include DSS2 and
-> > V4L2 driver, everything works fine. I am not sure how "omapfb" is
-> > being tied with PowerDomain. Again I have seen references in
-> > arch/arm/mach-omap2/omapdev3xxx.h to the pdev_name = "omapfb", not
-> > sure how this is being used.
-> > 
-> > You have to change it to omapdss (or omap-dss in earlier DSS2
-> > versions).
-> > 
-> [Hiremath, Vaibhav] I have tried this option also, didn't work out.
-> Tomi,
-> 
-> Do you have summary or list of changes required in clock and PowerDomain related files to make it work?
-> 
-> How have you tested this? 
-> Have you also tested with "echo mem > /sys/power/state"?
-> Are you using Kevin's power management tree? What is default configuration of your kernel during this test?
+Signed-off-by: Tero Kristo <tero.kristo@nokia.com>
+---
+ arch/arm/mach-omap2/pm34xx.c           |    7 +-
+ arch/arm/plat-omap/gpio.c              |  194 +++++++++++++++++++++++++++++++-
+ arch/arm/plat-omap/include/mach/gpio.h |    1 +
+ 3 files changed, 197 insertions(+), 5 deletions(-)
 
-It's been some time since I tested it, but it did work on OMAP3 SDP with
-the pm-branch. Only changed needed were the
-get_last_off_on_transaction_id and omapfb -> omapdss. I also tested echo
-mem > ....
-
-I'll try to find time to test it again with latest trees.
-
- Tomi
-
+diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
+index 7eefbb5..8ee6fa0 100644
+--- a/arch/arm/mach-omap2/pm34xx.c
++++ b/arch/arm/mach-omap2/pm34xx.c
+@@ -417,9 +417,12 @@ void omap_sram_idle(void)
+ 	/* PER */
+ 	if (per_next_state < PWRDM_POWER_ON) {
+ 		per_prev_state = pwrdm_read_prev_pwrst(per_pwrdm);
+-		omap2_gpio_resume_after_idle();
+-		if (per_prev_state == PWRDM_POWER_OFF)
++		if (per_prev_state == PWRDM_POWER_OFF) {
+ 			omap3_per_restore_context();
++			omap3_gpio_restore_pad_context(0);
++		} else if (per_next_state == PWRDM_POWER_OFF)
++			omap3_gpio_restore_pad_context(1);
++		omap2_gpio_resume_after_idle();
+ 		omap_uart_resume_idle(2);
+ 		if (per_state_modified)
+ 			pwrdm_set_next_pwrst(per_pwrdm, PWRDM_POWER_OFF);
+diff --git a/arch/arm/plat-omap/gpio.c b/arch/arm/plat-omap/gpio.c
+index f18a191..438c137 100644
+--- a/arch/arm/plat-omap/gpio.c
++++ b/arch/arm/plat-omap/gpio.c
+@@ -20,11 +20,13 @@
+ #include <linux/io.h>
+ 
+ #include <mach/hardware.h>
++#include <mach/control.h>
+ #include <asm/irq.h>
+ #include <mach/irqs.h>
+ #include <mach/gpio.h>
+ #include <asm/mach/irq.h>
+ #include <mach/powerdomain.h>
++#include <mach/mux.h>
+ 
+ /*
+  * OMAP1510 GPIO registers
+@@ -221,6 +223,10 @@ static struct gpio_bank gpio_bank_34xx[6] = {
+ 	{ OMAP34XX_GPIO6_BASE, INT_34XX_GPIO_BANK6, IH_GPIO_BASE + 160, METHOD_GPIO_24XX },
+ };
+ 
++#define OMAP34XX_PAD_SAFE_MODE 0x7
++#define OMAP34XX_PAD_IN_PU_GPIO 0x11c
++#define OMAP34XX_PAD_IN_PD_GPIO 0x10c
++
+ struct omap3_gpio_regs {
+ 	u32 sysconfig;
+ 	u32 irqenable1;
+@@ -238,6 +244,54 @@ struct omap3_gpio_regs {
+ };
+ 
+ static struct omap3_gpio_regs gpio_context[OMAP34XX_NR_GPIOS];
++
++/* GPIO -> PAD init configuration struct */
++struct gpio_pad_range {
++	/* Range start GPIO # */
++	u16 min;
++	/* Range end GPIO # */
++	u16 max;
++	/* Start pad config offset */
++	u16 offset;
++};
++
++/*
++ * Defines GPIO to padconfig mapping. For example first definition tells
++ * us that there is a range of GPIOs 34...43 which have their padconfigs
++ * starting from offset 0x7a, i.e. gpio 34->0x7a, 35->0x7c, 36->0x7e ... etc.
++ */
++static const struct gpio_pad_range gpio_pads_config[] = {
++	{ 34, 43, 0x7a },
++	{ 44, 51, 0x9e },
++	{ 52, 59, 0xb0 },
++	{ 60, 62, 0xc6 },
++	{ 63, 111, 0xce },
++	{ 167, 167, 0x130 },
++	{ 126, 126, 0x132 },
++	{ 112, 166, 0x134 },
++	{ 120, 122, 0x1a2 },
++	{ 124, 125, 0x1a8 },
++	{ 130, 131, 0x1ac },
++	{ 169, 169, 0x1b0 },
++	{ 188, 191, 0x1b2 },
++	{ 168, 168, 0x1be },
++	{ 183, 185, 0x1c0 },
++	{ 170, 182, 0x1c6 },
++	{ 0, 0, 0x1e0 },
++	{ 186, 186, 0x1e2 },
++	{ 12, 29, 0x5d8 },
++};
++
++/* GPIO -> PAD config mapping for OMAP3 */
++struct gpio_pad {
++	s16 gpio;
++	u16 offset;
++	u16 save;
++};
++
++#define OMAP34XX_GPIO_AMT	(32 * OMAP34XX_NR_GPIOS)
++
++struct gpio_pad *gpio_pads;
+ #endif
+ 
+ static struct gpio_bank *gpio_bank;
+@@ -1291,6 +1345,68 @@ static struct clk * gpio5_fck;
+ 
+ #if defined(CONFIG_ARCH_OMAP3)
+ static struct clk *gpio_iclks[OMAP34XX_NR_GPIOS];
++
++/*
++ * Following pad init code in addition to the context / restore hooks are
++ * needed to fix glitches in GPIO outputs during off-mode. See OMAP3
++ * errate section 1.158
++ */
++static int __init omap3_gpio_pads_init(void)
++{
++	int i, j, min, max, gpio_amt;
++	u16 offset;
++	u16 *gpio_pad_map;
++
++	gpio_amt = 0;
++
++	gpio_pad_map = kzalloc(sizeof(u16) * OMAP34XX_GPIO_AMT, GFP_KERNEL);
++	if (gpio_pad_map == NULL) {
++		printk(KERN_ERR "FATAL: Failed to allocate gpio_pad_map\n");
++		return -ENOMEM;
++	}
++
++	for (i = 0; i < ARRAY_SIZE(gpio_pads_config); i++) {
++		min = gpio_pads_config[i].min;
++		max = gpio_pads_config[i].max;
++		offset = gpio_pads_config[i].offset;
++
++		for (j = min; j <= max; j++) {
++			/*
++			 * Check if pad has been configured as GPIO.
++			 * First module (gpio 0...31) is ignored as it is
++			 * in wakeup domain and does not need special
++			 * handling during off mode.
++			 */
++			if (j > 31 && (omap_ctrl_readw(offset) &
++				OMAP34XX_MUX_MODE7) == OMAP34XX_MUX_MODE4) {
++				gpio_pad_map[j] = offset;
++				gpio_amt++;
++			}
++			offset += 2;
++		}
++	}
++	gpio_pads = kmalloc(sizeof(struct gpio_pad) * (gpio_amt + 1),
++		GFP_KERNEL);
++
++	if (gpio_pads == NULL) {
++		printk(KERN_ERR "FATAL: Failed to allocate gpio_pads\n");
++		kfree(gpio_pad_map);
++		return -ENOMEM;
++	}
++
++	gpio_amt = 0;
++	for (i = 0; i < OMAP34XX_GPIO_AMT; i++) {
++		if (gpio_pad_map[i] != 0) {
++			gpio_pads[gpio_amt].gpio = i;
++			gpio_pads[gpio_amt].offset = gpio_pad_map[i];
++			gpio_amt++;
++		}
++	}
++	gpio_pads[gpio_amt].gpio = -1;
++	kfree(gpio_pad_map);
++	return 0;
++}
++late_initcall(omap3_gpio_pads_init);
+ #endif
+ 
+ /* This lock class tells lockdep that GPIO irqs are in a different
+@@ -1726,9 +1842,15 @@ void omap2_gpio_resume_after_idle(void)
+ void omap3_gpio_save_context(void)
+ {
+ 	int i;
++	struct gpio_bank *bank;
++	int n;
++	u16 offset, conf;
++	u32 out, pin;
++	struct gpio_pad *pad;
++	u32 tmp_oe[OMAP34XX_NR_GPIOS];
+ 	/* saving banks from 2-6 only */
+ 	for (i = 1; i < gpio_bank_count; i++) {
+-		struct gpio_bank *bank = &gpio_bank[i];
++		bank = &gpio_bank[i];
+ 		gpio_context[i].sysconfig =
+ 			__raw_readl(bank->base + OMAP24XX_GPIO_SYSCONFIG);
+ 		gpio_context[i].irqenable1 =
+@@ -1741,6 +1863,7 @@ void omap3_gpio_save_context(void)
+ 			__raw_readl(bank->base + OMAP24XX_GPIO_CTRL);
+ 		gpio_context[i].oe =
+ 			__raw_readl(bank->base + OMAP24XX_GPIO_OE);
++		tmp_oe[i] = gpio_context[i].oe;
+ 		gpio_context[i].leveldetect0 =
+ 			__raw_readl(bank->base + OMAP24XX_GPIO_LEVELDETECT0);
+ 		gpio_context[i].leveldetect1 =
+@@ -1756,6 +1879,45 @@ void omap3_gpio_save_context(void)
+ 		gpio_context[i].setdataout =
+ 			__raw_readl(bank->base + OMAP24XX_GPIO_SETDATAOUT);
+ 	}
++	pad = gpio_pads;
++
++	if (pad == NULL)
++		return;
++
++	while (pad->gpio >= 0) {
++		/* n = gpio number, 0..191 */
++		n = pad->gpio;
++		/* i = gpio bank, 0..5 */
++		i = n >> 5;
++		/* offset of padconf register */
++		offset = pad->offset;
++		bank = &gpio_bank[i];
++		/* bit position of gpio in the bank 0..31 */
++		pin = 1 << (n & 0x1f);
++
++		/* check if gpio is configured as output => need hack */
++		if (!(tmp_oe[i] & pin)) {
++			/* save current padconf setting */
++			pad->save = omap_ctrl_readw(offset);
++			out = gpio_context[i].dataout;
++			if (out & pin)
++				/* High: PU + input */
++				conf = OMAP34XX_PAD_IN_PU_GPIO;
++			else
++				/* Low: PD + input */
++				conf = OMAP34XX_PAD_IN_PD_GPIO;
++			/* Set PAD to GPIO + input */
++			omap_ctrl_writew(conf, offset);
++			/* Set GPIO to input */
++			tmp_oe[i] |= pin;
++			__raw_writel(tmp_oe[i],
++					bank->base + OMAP24XX_GPIO_OE);
++			/* Set PAD to safe mode */
++			omap_ctrl_writew(conf | OMAP34XX_PAD_SAFE_MODE, offset);
++		} else
++			pad->save = 0;
++		pad++;
++	}
+ }
+ EXPORT_SYMBOL(omap3_gpio_save_context);
+ 
+@@ -1775,8 +1937,6 @@ void omap3_gpio_restore_context(void)
+ 				bank->base + OMAP24XX_GPIO_WAKE_EN);
+ 		__raw_writel(gpio_context[i].ctrl,
+ 				bank->base + OMAP24XX_GPIO_CTRL);
+-		__raw_writel(gpio_context[i].oe,
+-				bank->base + OMAP24XX_GPIO_OE);
+ 		__raw_writel(gpio_context[i].leveldetect0,
+ 				bank->base + OMAP24XX_GPIO_LEVELDETECT0);
+ 		__raw_writel(gpio_context[i].leveldetect1,
+@@ -1791,9 +1951,37 @@ void omap3_gpio_restore_context(void)
+ 				bank->base + OMAP24XX_GPIO_SETWKUENA);
+ 		__raw_writel(gpio_context[i].setdataout,
+ 				bank->base + OMAP24XX_GPIO_SETDATAOUT);
++		__raw_writel(gpio_context[i].oe,
++				bank->base + OMAP24XX_GPIO_OE);
+ 	}
+ }
+ EXPORT_SYMBOL(omap3_gpio_restore_context);
++
++void omap3_gpio_restore_pad_context(int restore_oe)
++{
++	struct gpio_pad *pad;
++	int i;
++
++	pad = gpio_pads;
++
++	if (restore_oe) {
++		for (i = 1; i < gpio_bank_count; i++) {
++			struct gpio_bank *bank = &gpio_bank[i];
++			__raw_writel(gpio_context[i].oe,
++				bank->base + OMAP24XX_GPIO_OE);
++		}
++	}
++
++	if (pad == NULL)
++		return;
++
++	while (pad->gpio >= 0) {
++		if (pad->save)
++			omap_ctrl_writew(pad->save, pad->offset);
++		pad++;
++	}
++}
++EXPORT_SYMBOL(omap3_gpio_restore_pad_context);
+ #endif
+ 
+ /*
+diff --git a/arch/arm/plat-omap/include/mach/gpio.h b/arch/arm/plat-omap/include/mach/gpio.h
+index fb4fb4e..895f9aa 100644
+--- a/arch/arm/plat-omap/include/mach/gpio.h
++++ b/arch/arm/plat-omap/include/mach/gpio.h
+@@ -77,6 +77,7 @@ extern void omap_set_gpio_debounce(int gpio, int enable);
+ extern void omap_set_gpio_debounce_time(int gpio, int enable);
+ extern void omap3_gpio_save_context(void);
+ extern void omap3_gpio_restore_context(void);
++extern void omap3_gpio_restore_pad_context(int restore_oe);
+ /*-------------------------------------------------------------------------*/
+ 
+ /* Wrappers for "new style" GPIO calls, using the new infrastructure
+-- 
+1.5.4.3
 
