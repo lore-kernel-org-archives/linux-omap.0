@@ -1,53 +1,45 @@
-From: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
-Subject: [PATCH] omap24xxcam: Fix use count handling if sensor enable fails in open()
-Date: Wed, 11 Mar 2009 15:49:14 +0200
-Message-ID: <1236779354-862-1-git-send-email-sakari.ailus@maxwell.research.nokia.com>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:28751 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754311AbZCKNtc (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 11 Mar 2009 09:49:32 -0400
-Sender: linux-omap-owner@vger.kernel.org
+From: Steve Sakoman <sakoman@gmail.com>
+Subject: Re: [PATCH] ASoC: Complete Beagleboard support
+Date: Wed, 11 Mar 2009 06:50:18 -0700
+Message-ID: <5e088bd90903110650y62dc21caobed1d577b4c90844@mail.gmail.com>
+References: <5e088bd90901202305m26900888jcaa2b0ec57d3fab1@mail.gmail.com>
+	<20090121100946.cef76a2a.jarkko.nikula@nokia.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <alsa-devel-bounces@alsa-project.org>
+In-Reply-To: <20090121100946.cef76a2a.jarkko.nikula@nokia.com>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Sender: alsa-devel-bounces@alsa-project.org
+Errors-To: alsa-devel-bounces@alsa-project.org
+To: alsa-devel@alsa-project.org, linux-omap <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
-To: linux-media@vger.kernel.org
-Cc: linux-omap@vger.kernel.org, hverkuil@xs4all.nl
 
-Decrease use count back if omap24xxcam_sensor_enable() fails in
-omap24xxcam_open(). Thanks to Hans Verkuil for pointing this out.
+On Wed, Jan 21, 2009 at 1:09 AM, Jarkko Nikula <jarkko.nikula@nokia.com> wr=
+ote:
+> On Tue, 20 Jan 2009 23:05:27 -0800
+> "ext Steve Sakoman" <sakoman@gmail.com> wrote:
+>
+>> Commit dc06102a0c8b5aa0dd7f9a40ce241e793c252a87 in the asoc tree
+>> did not include the necessary Kconfig and Makefile changes. =A0This patch
+>> completes the support for Beagleboard
+>>
+>> Signed-off-by: Steve Sakoman <steve@sakoman.com>
+>>
+> Acked-by: Jarkko Nikula <jarkko.nikula@nokia.com>
+>
+> Not tested but definitely a way to go forward :-)
 
-Compile tested only.
+Any updates on the status of this patch?  Doesn't seem to have been applied=
+ yet.
 
-Signed-off-by: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
----
- drivers/media/video/omap24xxcam.c |    6 +++---
- 1 files changed, 3 insertions(+), 3 deletions(-)
+I've seen lot's of folks on the Beagle mailing list and IRC channels
+who are getting bitten by this issue.
 
-diff --git a/drivers/media/video/omap24xxcam.c b/drivers/media/video/omap24xxcam.c
-index 73eb656..3002051 100644
---- a/drivers/media/video/omap24xxcam.c
-+++ b/drivers/media/video/omap24xxcam.c
-@@ -1476,10 +1476,8 @@ static int omap24xxcam_open(struct file *file)
- 
- 	if (atomic_inc_return(&cam->users) == 1) {
- 		omap24xxcam_hwinit(cam);
--		if (omap24xxcam_sensor_enable(cam)) {
--			mutex_unlock(&cam->mutex);
-+		if (omap24xxcam_sensor_enable(cam))
- 			goto out_omap24xxcam_sensor_enable;
--		}
- 	}
- 	mutex_unlock(&cam->mutex);
- 
-@@ -1502,7 +1500,9 @@ static int omap24xxcam_open(struct file *file)
- 	return 0;
- 
- out_omap24xxcam_sensor_enable:
-+	atomic_dec(&cam->users);
- 	omap24xxcam_poweron_reset(cam);
-+	mutex_unlock(&cam->mutex);
- 	module_put(cam->sdev->module);
- 
- out_try_module_get:
--- 
-1.5.6.5
-
+Steve
