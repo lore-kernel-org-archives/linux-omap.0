@@ -1,67 +1,68 @@
-From: Felipe Contreras <felipe.contreras@gmail.com>
-Subject: Re: [Linux-fbdev-devel] [PATCH] omapfb: Fix argument of blank
-	operation.
-Date: Thu, 12 Mar 2009 00:43:18 +0200
-Message-ID: <94a0d4530903111543y4745ade0ofac867ef43e7ab1b@mail.gmail.com>
-References: <1228430755-4221-1-git-send-email-felipe.contreras@gmail.com>
-	 <5d5443650903111017n9c818b0y2119d06ea84c3abf@mail.gmail.com>
-	 <20090311152000.8a3db19c.akpm@linux-foundation.org>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH 2/2] i2c: i2c-omap: Call request_irq with IRQF_DISABLED
+Date: Wed, 11 Mar 2009 17:55:50 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.0903111741270.26959@utopia.booyaka.com>
+References: <cover.1236345858.git.Ext-Ari.Kauppi@nokia.com> <7d7e7dd1a4c64c732a21bdfcf2bd42556be708c3.1236345858.git.Ext-Ari.Kauppi@nokia.com> <20090310005222.GE19758@fluff.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-fx0-f176.google.com ([209.85.220.176]:59379 "EHLO
-	mail-fx0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753045AbZCKWnW convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 11 Mar 2009 18:43:22 -0400
-In-Reply-To: <20090311152000.8a3db19c.akpm@linux-foundation.org>
+Received: from utopia.booyaka.com ([72.9.107.138]:52341 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752155AbZCKXzx (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 11 Mar 2009 19:55:53 -0400
+In-Reply-To: <20090310005222.GE19758@fluff.org.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: Trilok Soni <soni.trilok@gmail.com>, linux-fbdev-devel@lists.sourceforge.net, linux-omap@vger.kernel.org, felipe.contreras@nokia.com, linux-kernel@vger.kernel.org
+To: Ari Kauppi <Ext-Ari.Kauppi@nokia.com>
+Cc: Ben Dooks <ben@fluff.org.uk>, ben-linux@fluff.org, linux-omap@vger.kernel.org, linux-i2c@vger.kernel.org
 
-On Thu, Mar 12, 2009 at 12:20 AM, Andrew Morton
-<akpm@linux-foundation.org> wrote:
-> On Wed, 11 Mar 2009 22:47:41 +0530
-> Trilok Soni <soni.trilok@gmail.com> wrote:
->
->> Hi Felipe,
->>
->> On Fri, Dec 5, 2008 at 4:15 AM, Felipe Contreras
->
-> I bet he thought we'd forgotten.
+Hello Ari et al.,
 
-You bet correctly :)
+On Tue, 10 Mar 2009, Ben Dooks wrote:
 
->> <felipe.contreras@gmail.com> wrote:
->> > From: Felipe Contreras <felipe.contreras@nokia.com>
->> >
->> > The blank operation should receive FB_BLANK_POWERDOWN, not
->> > VESA_POWERDOWN.
->> >
->>
->> Thanks. Looks good.
->>
->> Signed-off-by: Trilok Soni <soni.trilok@gmail.com>
->>
->
-> Unfortunately the changelog didn't give me any hint as to the
-> seriousness of the problem which was fixed. =C2=A0So I queued it for =
-2.6.30,
-> perhaps inappropriately.
+> On Fri, Mar 06, 2009 at 03:34:54PM +0200, Ari Kauppi wrote:
+> > I have observed some Spurious IRQ's for I2C1 when all kernel hacking options
+> > (and thus LOCKDEP) are disabled.
+> > 
+> > Applying Richard Woodruff's 'I2C bug fixes for L-O and L-Z' seems to help
+> > but IRQF_DISABLED is needed for proper behaviour.
+> > 
+> > Signed-off-by: Ari Kauppi <Ext-Ari.Kauppi@nokia.com>
+> > Acked-by: Felipe Balbi <felipe.balbi@nokia.com>
+> > ---
+> >  drivers/i2c/busses/i2c-omap.c |    2 +-
+> >  1 files changed, 1 insertions(+), 1 deletions(-)
+> > 
+> > diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
+> > index 0c3ed41..18af43f 100644
+> > --- a/drivers/i2c/busses/i2c-omap.c
+> > +++ b/drivers/i2c/busses/i2c-omap.c
+> > @@ -847,7 +847,7 @@ omap_i2c_probe(struct platform_device *pdev)
+> >  	omap_i2c_init(dev);
+> >  
+> >  	isr = (dev->rev < OMAP_I2C_REV_2) ? omap_i2c_rev1_isr : omap_i2c_isr;
+> > -	r = request_irq(dev->irq, isr, 0, pdev->name, dev);
+> > +	r = request_irq(dev->irq, isr, IRQF_DISABLED, pdev->name, dev);
+> 
+> Is disabling all IRQs on the system the right thing to do?
 
-I noticed because of another bug in omapfb which required blanking in
-order to actually see something (PM stuff?). If user-space tries to
-blank the usual way, it wouldn't work.
+Ben's right, there shouldn't be any need for this.  This patch could cause 
+some unnecessary interrupt service latency.
 
-My guess is that it's not a big issue, in part because nobody has
-noticed, but perhaps I'm wrong. I was hoping the fbdev guys would know
-better.
+Ari, are you seeing "Spurious irq XX: XXXXXXXX, please flush posted write 
+for irq" messages?  If so, the correct fix for this is to read from the 
+device interrupt status register immediately after writing to it.  This 
+forces the ARM to wait until the write to the device is complete.  Ari, 
+could you make this change to i2c-omap.c:omap_i2c_isr() instead, and test 
+whether this fixes the problem?
 
---=20
-=46elipe Contreras
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
++ u32 tmp;
+
+...
+
+  omap_i2c_write_reg(dev, OMAP_I2C_STAT_REG, stat);
++ tmp = omap_i2c_read_reg(dev, OMAP_I2C_STAT_REG); /* OCP barrier */
+
+
+
+- Paul
