@@ -1,54 +1,56 @@
-From: "Woodruff, Richard" <r-woodruff2@ti.com>
-Subject: RE: [RFC] OMAP: I2C: Use correct bit for CLOCKACTIVITY
-Date: Tue, 10 Mar 2009 22:55:10 -0500
-Message-ID: <13B9B4C6EF24D648824FF11BE8967162037B76377A@dlee02.ent.ti.com>
-References: <12362344552581-git-send-email-ext-eero.nurkkala@nokia.com>
-	 <alpine.DEB.2.00.0903050113021.26353@utopia.booyaka.com>
-	 <1236242774.29572.45.camel@eenurkka-desktop>
- <1236243270.29572.49.camel@eenurkka-desktop>
+From: InKi Dae <daeinki@gmail.com>
+Subject: Hello Tomi Valkeinen, I have some questions about dss2 driver.
+Date: Wed, 11 Mar 2009 13:57:30 +0900
+Message-ID: <90b950fc0903102157q21dec037m65edee4afe104d6a@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:47160 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753872AbZCKDzX convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 10 Mar 2009 23:55:23 -0400
-In-Reply-To: <1236243270.29572.49.camel@eenurkka-desktop>
-Content-Language: en-US
+Received: from wa-out-1112.google.com ([209.85.146.179]:65098 "EHLO
+	wa-out-1112.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751281AbZCKE5d (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 11 Mar 2009 00:57:33 -0400
+Received: by wa-out-1112.google.com with SMTP id v33so1494364wah.21
+        for <linux-omap@vger.kernel.org>; Tue, 10 Mar 2009 21:57:30 -0700 (PDT)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "ext-eero.nurkkala@nokia.com" <ext-eero.nurkkala@nokia.com>, ext Paul Walmsley <paul@pwsan.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Tomi Valkeinen <tomi.valkeinen@nokia.com>
+Cc: linux-omap@vger.kernel.org
 
-> > How about McBSP? Same TRM.. I2C, Table 18-5 tells exactly the opposite
-> > for I2C than what's said in Table 18-44: I2C_SYSC!!
-> >
-> > Please, Richard?
-> >
-> > - Eero
->
-> To answer to myself, I am 100% certain the McBSP FCLK is the
-> bit 8. I should have sent a patch about that already..
->
-> Kind of worried as could they really change that much?
-> >From page to page and block to block and within a block...=)
+I am using your dss2 driver downloaded from your git server and tried
+to rotate an image(RGB24U and YUV2 format) using OMAPFB_ROT_DMA
+command.
+but I can't see rotated image on screen. I added variables for
+rotating like below. as the result, LCD Panel is stoped.
 
-I think Nishant already said this but TRM is going to be updated to correct McBSP.
+omapfb.rotate=2
+omapfb.vrfb=n
 
-CBSPLP_SYSCONFIG_REG[9:8] CLOCKACTIVITY field description will be updated in next TRM version: OMAP34XX v-R
 
-0x0: McBSPi_ICLK clock can be switched-off
-PRCM Functional clock can be switched-off
+and then I tried again using OMAPFB_ROT_VRFB command like below.
 
-0x1: McBSPi_ICLK clock must be maintained during wake up period
-PRCM Functional clock can be switched-off
+omapfb.rotate=2
+omapfb.vrfb=y
 
-0x2: McBSPi_ICLK clock can be switched-off
-PRCM Functional clock must be maintained during wake up period
+In this case, I can see rotated image(only RGB24U format) on screen.
+You asid "Rotation and mirroring currently only supports RGB565 and
+RGB8888 modes. VRFB does not support mirroring" through
+/Documentation/arm/OMAP/DSS file.
 
-0x3: McBSPi_ICLK clock must be maintained during wake up period
-PRCM Functional clock must be maintained during wakeup period
+Doesn't your dss2 driver support DMA rotation?
+I am trying to add rotation feature for YUV2 image using VRFB to your
+dss2 driver.
 
-Regards,
-Richard W.
+for this, I think that it have to change rot and mirror become 0 if
+rotation_type is OMAPFB_ROT_VRFB to be rot=ofbi->rotation and mirror =
+ofbi->mirror (in omapfb-main.c file) and
+add codes for calculating offset0, offset1, pixel increment and row
+increment value for YUV2 format also pixel size becomes 4 in YUV2 case
+(in dispc.c fild).
+omap_vrfb_setup function must be modifed also (in vrfb.c file)?
+
+Do you have any idea?
+I need your help and advice.
+
+Thank you.
+- InKi-
