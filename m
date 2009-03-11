@@ -1,45 +1,90 @@
-From: Pierre Ossman <drzeus-mmc@drzeus.cx>
-Subject: Re: [PATCH] OMAP: HSMMC: Initialize hsmmc controller registers when
- resuming
-Date: Wed, 11 Mar 2009 07:50:24 +0100
-Message-ID: <20090311075024.5b5fa28a@mjolnir.ossman.eu>
-References: <4d34a0a70902200400s252f48ddvfd6e0d83e91fa291@mail.gmail.com>
-	<4d34a0a70902222141y345a7bc3g314e6de5df156f2d@mail.gmail.com>
-	<49A258A2.2020408@nokia.com>
-	<200903102033.51026.david-b@pacbell.net>
+From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+Subject: Suspend/Resume support with Omap2fb
+Date: Wed, 11 Mar 2009 12:25:14 +0530
+Message-ID: <19F8576C6E063C45BE387C64729E73940427C51975@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from 82-117-125-11.tcdsl.calypso.net ([82.117.125.11]:41714 "EHLO
-	smtp.drzeus.cx" rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751567AbZCKGua (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 11 Mar 2009 02:50:30 -0400
-In-Reply-To: <200903102033.51026.david-b@pacbell.net>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:52978 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751120AbZCKGzY convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 11 Mar 2009 02:55:24 -0400
+Received: from dbdp20.itg.ti.com ([172.24.170.38])
+	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id n2B6tGid016278
+	for <linux-omap@vger.kernel.org>; Wed, 11 Mar 2009 01:55:21 -0500
+Received: from dbde70.ent.ti.com (localhost [127.0.0.1])
+	by dbdp20.itg.ti.com (8.13.8/8.13.8) with ESMTP id n2B6tFTe012844
+	for <linux-omap@vger.kernel.org>; Wed, 11 Mar 2009 12:25:15 +0530 (IST)
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: David Brownell <david-b@pacbell.net>
-Cc: Adrian Hunter <ext-adrian.hunter@nokia.com>, Kim Kyuwon <chammoru@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, =?UTF-8?B?6rmA6rec7JuQ?= <q1.kim@samsung.com>, =?UTF-8?B?67CV6rK966+8?= <kyungmin.park@samsung.com>
+To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Tue, 10 Mar 2009 19:33:50 -0800
-David Brownell <david-b@pacbell.net> wrote:
+Hi,
 
-> 
-> It'd be nice to have a nice unambiguous set_voltage()
-> request from the MMC core.  The set_ios() thing has
-> always been confusing.
-> 
+I am using New Frame-Buffer driver which is based on DSS2 library submitted by Tomi, and I am trying to add full power management support. But things are not working out as expected, every time when I am issuing command "echo mem > /sys/power/state" the system doesn't go into off state. It always points to dss_prwdm, below are the steps I am following - 
 
-set_ios() should be taken out back. But someone has to have the time to
-reimplement things. :/
+	- Build the kernel with CPU_IDLE
+	- Enable all the PM flags 
 
--- 
-     -- Pierre Ossman
+		# echo 1 > /sys/power/sleep_while_idle
+		# echo 1 > /sys/power/clocks_off_while_idle
+		# echo 1 > /sys/power/enable_off_mode
 
-  Linux kernel, MMC maintainer        http://www.kernel.org
-  rdesktop, core developer          http://www.rdesktop.org
+ 	- From Linux prompt issue command 
 
-  WARNING: This correspondence is being monitored by the
-  Swedish government. Make sure your server uses encryption
-  for SMTP traffic and consider using PGP for end-to-end
-  encryption.
+		# echo mem > /sys/power/state
+
+The log is - 
+------------
+
+root@arago:~# echo mem > /sys/power/state
+<6>PM: Syncing filesystems ... PM: Syncing filesystems ... done.
+done.
+Freezing user space processes ... Freezing user space processes ... (elapsed 0.00 seconds) (elapsed 0.00 seconds) done.
+done.
+Freezing remaining freezable tasks ... Freezing remaining freezable tasks ... (elapsed 0.06 seconds) (elapsed 0.06 seconds) done.done.
+Suspending console(s) (use no_console_suspend to debug)
+Suspending console(s) (use no_console_suspend to debug)
+<6>omap-backlight: suspending...
+omapfb_suspend
+
+omapfb_resume
+<6>omap-backlight: resuming...
+omap-backlight: suspending...
+omapfb_suspend
+Powerdomain (core_pwrdm) didn't enter target state 0
+Powerdomain (dss_pwrdm) didn't enter target state 0
+Powerdomain (per_pwrdm) didn't enter target state 0
+Could not enter target state in pm_suspend
+eth0: link down
+omapfb_resume
+omap-backlight: resuming...
+Restarting tasks ... Restarting tasks ... done.
+done.
+
+root@arago:~#
+
+
+Some analysis which I observed during debugging this issue - 
+
+	- The root-cause is, DSS PowerDomain always shows it is in ON state (PWRDM_POWER_ON), and if I understand correctly this is only dependent on clocks. But I am making sure that DSS clocks are disabled. And with CPU_IDLE enabled I am going to complete OFF state. (/sys/devices/system/cpu/cpu0/cpuidle/state5/usage is incrementing).
+
+	- If I compile out framebuffer driver and include DSS2 and V4L2 driver, everything works fine. I am not sure how "omapfb" is being tied with PowerDomain. Again I have seen references in arch/arm/mach-omap2/omapdev3xxx.h to the pdev_name = "omapfb", not sure how this is being used. 
+ 
+I believe if system is hitting OFF state, then my enable/disable paths are proper, but really not sure about why "mem" is causing problem here.
+
+Thanks,
+Vaibhav Hiremath
+Platform Support Products
+Texas Instruments Inc
+Ph: +91-80-25099927
+
+
+Thanks,
+Vaibhav Hiremath
+Platform Support Products
+Texas Instruments Inc
+Ph: +91-80-25099927
+
