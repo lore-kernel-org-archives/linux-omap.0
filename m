@@ -1,7 +1,7 @@
 From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: [PATCH 65/86] [ARM] OMAP2 SDRC: move mach-omap2/memory.h into mach/sdrc.h
-Date: Thu, 12 Mar 2009 11:28:15 -0700
-Message-ID: <1236882516-29403-66-git-send-email-khilman@deeprootsystems.com>
+Subject: [PATCH 59/86] [ARM] OMAP3 clock: avoid invalid FREQSEL values during DPLL rate rounding
+Date: Thu, 12 Mar 2009 11:28:09 -0700
+Message-ID: <1236882516-29403-60-git-send-email-khilman@deeprootsystems.com>
 References: <1236882516-29403-1-git-send-email-khilman@deeprootsystems.com>
  <1236882516-29403-2-git-send-email-khilman@deeprootsystems.com>
  <1236882516-29403-3-git-send-email-khilman@deeprootsystems.com>
@@ -61,214 +61,216 @@ References: <1236882516-29403-1-git-send-email-khilman@deeprootsystems.com>
  <1236882516-29403-57-git-send-email-khilman@deeprootsystems.com>
  <1236882516-29403-58-git-send-email-khilman@deeprootsystems.com>
  <1236882516-29403-59-git-send-email-khilman@deeprootsystems.com>
- <1236882516-29403-60-git-send-email-khilman@deeprootsystems.com>
- <1236882516-29403-61-git-send-email-khilman@deeprootsystems.com>
- <1236882516-29403-62-git-send-email-khilman@deeprootsystems.com>
- <1236882516-29403-63-git-send-email-khilman@deeprootsystems.com>
- <1236882516-29403-64-git-send-email-khilman@deeprootsystems.com>
- <1236882516-29403-65-git-send-email-khilman@deeprootsystems.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-gx0-f163.google.com ([209.85.217.163]:60567 "EHLO
-	mail-gx0-f163.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757176AbZCLSdV (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 12 Mar 2009 14:33:21 -0400
-Received: by mail-gx0-f163.google.com with SMTP id 7so458514gxk.13
-        for <linux-omap@vger.kernel.org>; Thu, 12 Mar 2009 11:33:20 -0700 (PDT)
-In-Reply-To: <1236882516-29403-65-git-send-email-khilman@deeprootsystems.com>
+Received: from ag-out-0708.google.com ([72.14.246.250]:55744 "EHLO
+	ag-out-0708.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753497AbZCLScx (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 12 Mar 2009 14:32:53 -0400
+Received: by ag-out-0708.google.com with SMTP id 26so1107479agb.10
+        for <linux-omap@vger.kernel.org>; Thu, 12 Mar 2009 11:32:52 -0700 (PDT)
+In-Reply-To: <1236882516-29403-59-git-send-email-khilman@deeprootsystems.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 
 From: Paul Walmsley <paul@pwsan.com>
 
-Move the contents of the arch/arm/mach-omap2/memory.h file to the
-existing mach/sdrc.h file, and remove memory.h.  Modify files which
-include memory.h to include asm/arch/sdrc.h instead.
+The DPLL FREQSEL jitter correction bits are set based on a table in
+the 34xx TRM, Table 4-38, according to the DPLL's internal clock
+frequency "Fint."  Several Fint frequency ranges are missing from this
+table.  Previously, we allowed these Fint frequency ranges to be
+selected in the rate rounding code, but did not change the FREQSEL bits.
+Correspondence with the OMAP hardware team indicates that Fint values
+not in the table should not be used.  So, prevent them from being
+selected during DPLL rate rounding.  This removes warnings and also
+can prevent the chip from locking up.
 
-linux-omap source commit is e7ae2d89921372fc4b9712a32cc401d645597807.
+The first pass through the rate rounding code will update the DPLL max
+and min dividers appropriately, so later rate rounding passes will run
+faster than the first.
+
+Peter de Schrijver <peter.de-schrijver@nokia.com> put up with several
+test cycles of this patch - thanks Peter.
+
+linux-omap source commit is f9c1b82f55b60fc39eaa6e7aa1fbe380c0ffe2e9.
 
 Signed-off-by: Paul Walmsley <paul@pwsan.com>
+Cc: Peter de Schrijver <peter.de-schrijver@nokia.com>
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
 ---
- arch/arm/mach-omap2/clock.c            |    2 +-
- arch/arm/mach-omap2/clock24xx.c        |    2 +-
- arch/arm/mach-omap2/clock34xx.c        |    2 +-
- arch/arm/mach-omap2/io.c               |    4 +-
- arch/arm/mach-omap2/memory.c           |    9 ++++++-
- arch/arm/mach-omap2/memory.h           |   43 --------------------------------
- arch/arm/plat-omap/include/mach/gpmc.h |    2 +-
- arch/arm/plat-omap/include/mach/sdrc.h |   21 +++++++++++++++
- 8 files changed, 35 insertions(+), 50 deletions(-)
- delete mode 100644 arch/arm/mach-omap2/memory.h
+ arch/arm/mach-omap2/clock.c             |   67 ++++++++++++++++++++++++++++++-
+ arch/arm/mach-omap2/clock24xx.h         |    1 +
+ arch/arm/mach-omap2/clock34xx.h         |    5 ++
+ arch/arm/plat-omap/include/mach/clock.h |    1 +
+ 4 files changed, 72 insertions(+), 2 deletions(-)
 
 diff --git a/arch/arm/mach-omap2/clock.c b/arch/arm/mach-omap2/clock.c
-index 5d7d4c5..18fddb6 100644
+index 76e20bc..752e347 100644
 --- a/arch/arm/mach-omap2/clock.c
 +++ b/arch/arm/mach-omap2/clock.c
-@@ -29,7 +29,7 @@
- #include <mach/cpu.h>
- #include <asm/div64.h>
+@@ -58,12 +58,68 @@
+ #define DPLL_ROUNDING_VAL		((DPLL_SCALE_BASE / 2) * \
+ 					 (DPLL_SCALE_FACTOR / DPLL_SCALE_BASE))
  
--#include "memory.h"
-+#include <mach/sdrc.h>
- #include "sdrc.h"
- #include "clock.h"
- #include "prm.h"
-diff --git a/arch/arm/mach-omap2/clock24xx.c b/arch/arm/mach-omap2/clock24xx.c
-index b990266..83911ad 100644
---- a/arch/arm/mach-omap2/clock24xx.c
-+++ b/arch/arm/mach-omap2/clock24xx.c
-@@ -33,7 +33,7 @@
- #include <asm/div64.h>
- #include <asm/clkdev.h>
- 
--#include "memory.h"
-+#include <mach/sdrc.h>
- #include "clock.h"
- #include "prm.h"
- #include "prm-regbits-24xx.h"
-diff --git a/arch/arm/mach-omap2/clock34xx.c b/arch/arm/mach-omap2/clock34xx.c
-index 3d756ba..52385b1 100644
---- a/arch/arm/mach-omap2/clock34xx.c
-+++ b/arch/arm/mach-omap2/clock34xx.c
-@@ -32,7 +32,7 @@
- #include <asm/div64.h>
- #include <asm/clkdev.h>
- 
--#include "memory.h"
-+#include <mach/sdrc.h>
- #include "clock.h"
- #include "prm.h"
- #include "prm-regbits-34xx.h"
-diff --git a/arch/arm/mach-omap2/io.c b/arch/arm/mach-omap2/io.c
-index 5ea64f9..2b5f28a 100644
---- a/arch/arm/mach-omap2/io.c
-+++ b/arch/arm/mach-omap2/io.c
-@@ -27,8 +27,8 @@
- #include <mach/mux.h>
- #include <mach/omapfb.h>
- #include <mach/sram.h>
--
--#include "memory.h"
-+#include <mach/sdrc.h>
-+#include <mach/gpmc.h>
- 
- #include "clock.h"
- 
-diff --git a/arch/arm/mach-omap2/memory.c b/arch/arm/mach-omap2/memory.c
-index 882c702..93cb257 100644
---- a/arch/arm/mach-omap2/memory.c
-+++ b/arch/arm/mach-omap2/memory.c
-@@ -29,9 +29,16 @@
- 
- #include "prm.h"
- 
--#include "memory.h"
-+#include <mach/sdrc.h>
- #include "sdrc.h"
- 
-+/* Memory timing, DLL mode flags */
-+#define M_DDR		1
-+#define M_LOCK_CTRL	(1 << 2)
-+#define M_UNLOCK	0
-+#define M_LOCK		1
++/* DPLL valid Fint frequency band limits - from 34xx TRM Section 4.7.6.2 */
++#define DPLL_FINT_BAND1_MIN		750000
++#define DPLL_FINT_BAND1_MAX		2100000
++#define DPLL_FINT_BAND2_MIN		7500000
++#define DPLL_FINT_BAND2_MAX		21000000
 +
++/* _dpll_test_fint() return codes */
++#define DPLL_FINT_UNDERFLOW		-1
++#define DPLL_FINT_INVALID		-2
 +
- void __iomem *omap2_sdrc_base;
- void __iomem *omap2_sms_base;
+ u8 cpu_mask;
  
-diff --git a/arch/arm/mach-omap2/memory.h b/arch/arm/mach-omap2/memory.h
-deleted file mode 100644
-index bb3db80..0000000
---- a/arch/arm/mach-omap2/memory.h
-+++ /dev/null
-@@ -1,43 +0,0 @@
--/*
-- * linux/arch/arm/mach-omap2/memory.h
-- *
-- * Interface for memory timing related functions for OMAP24XX
-- *
-- * Copyright (C) 2005 Texas Instruments Inc.
-- * Richard Woodruff <r-woodruff2@ti.com>
-- *
-- * Copyright (C) 2005 Nokia Corporation
-- * Tony Lindgren <tony@atomide.com>
-- *
-- * This program is free software; you can redistribute it and/or modify
-- * it under the terms of the GNU General Public License version 2 as
-- * published by the Free Software Foundation.
-- */
--
--#ifndef ARCH_ARM_MACH_OMAP2_MEMORY_H
--#define ARCH_ARM_MACH_OMAP2_MEMORY_H
--
--/* Memory timings */
--#define M_DDR		1
--#define M_LOCK_CTRL	(1 << 2)
--#define M_UNLOCK	0
--#define M_LOCK		1
--
--struct memory_timings {
--	u32 m_type;		/* ddr = 1, sdr = 0 */
--	u32 dll_mode;		/* use lock mode = 1, unlock mode = 0 */
--	u32 slow_dll_ctrl;	/* unlock mode, dll value for slow speed */
--	u32 fast_dll_ctrl;	/* unlock mode, dll value for fast speed */
--	u32 base_cs;		/* base chip select to use for calculations */
--};
--
--extern void omap2_init_memory_params(u32 force_lock_to_unlock_mode);
--extern u32 omap2_memory_get_slow_dll_ctrl(void);
--extern u32 omap2_memory_get_fast_dll_ctrl(void);
--extern u32 omap2_memory_get_type(void);
--u32 omap2_dll_force_needed(void);
--u32 omap2_reprogram_sdrc(u32 level, u32 force);
--void __init omap2_init_memory(void);
--void __init gpmc_init(void);
--
--#endif
-diff --git a/arch/arm/plat-omap/include/mach/gpmc.h b/arch/arm/plat-omap/include/mach/gpmc.h
-index 45b6784..921b165 100644
---- a/arch/arm/plat-omap/include/mach/gpmc.h
-+++ b/arch/arm/plat-omap/include/mach/gpmc.h
-@@ -103,6 +103,6 @@ extern int gpmc_cs_request(int cs, unsigned long size, unsigned long *base);
- extern void gpmc_cs_free(int cs);
- extern int gpmc_cs_set_reserved(int cs, int reserved);
- extern int gpmc_cs_reserved(int cs);
--extern void gpmc_init(void);
-+extern void __init gpmc_init(void);
+ /*-------------------------------------------------------------------------
+  * OMAP2/3 specific clock functions
+  *-------------------------------------------------------------------------*/
  
- #endif
-diff --git a/arch/arm/plat-omap/include/mach/sdrc.h b/arch/arm/plat-omap/include/mach/sdrc.h
-index a98c6c3..c905b52 100644
---- a/arch/arm/plat-omap/include/mach/sdrc.h
-+++ b/arch/arm/plat-omap/include/mach/sdrc.h
-@@ -74,4 +74,25 @@
- #define SMS_SYSCONFIG		0x010
- /* REVISIT: fill in other SMS registers here */
++/*
++ * _dpll_test_fint - test whether an Fint value is valid for the DPLL
++ * @clk: DPLL struct clk to test
++ * @n: divider value (N) to test
++ *
++ * Tests whether a particular divider @n will result in a valid DPLL
++ * internal clock frequency Fint. See the 34xx TRM 4.7.6.2 "DPLL Jitter
++ * Correction".  Returns 0 if OK, -1 if the enclosing loop can terminate
++ * (assuming that it is counting N upwards), or -2 if the enclosing loop
++ * should skip to the next iteration (again assuming N is increasing).
++ */
++static int _dpll_test_fint(struct clk *clk, u8 n)
++{
++	struct dpll_data *dd;
++	long fint;
++	int ret = 0;
++
++	dd = clk->dpll_data;
++
++	/* DPLL divider must result in a valid jitter correction val */
++	fint = clk->parent->rate / (n + 1);
++	if (fint < DPLL_FINT_BAND1_MIN) {
++
++		pr_debug("rejecting n=%d due to Fint failure, "
++			 "lowering max_divider\n", n);
++		dd->max_divider = n;
++		ret = DPLL_FINT_UNDERFLOW;
++
++	} else if (fint > DPLL_FINT_BAND1_MAX &&
++		   fint < DPLL_FINT_BAND2_MIN) {
++
++		pr_debug("rejecting n=%d due to Fint failure\n", n);
++		ret = DPLL_FINT_INVALID;
++
++	} else if (fint > DPLL_FINT_BAND2_MAX) {
++
++		pr_debug("rejecting n=%d due to Fint failure, "
++			 "boosting min_divider\n", n);
++		dd->min_divider = n;
++		ret = DPLL_FINT_INVALID;
++
++	}
++
++	return ret;
++}
++
+ /**
+  * omap2_init_clk_clkdm - look up a clockdomain name, store pointer in clk
+  * @clk: OMAP clock struct ptr to use
+@@ -892,7 +948,14 @@ long omap2_dpll_round_rate(struct clk *clk, unsigned long target_rate)
  
-+#ifndef __ASSEMBLER__
+ 	dd->last_rounded_rate = 0;
+ 
+-	for (n = DPLL_MIN_DIVIDER; n <= dd->max_divider; n++) {
++	for (n = dd->min_divider; n <= dd->max_divider; n++) {
 +
-+struct memory_timings {
-+	u32 m_type;		/* ddr = 1, sdr = 0 */
-+	u32 dll_mode;		/* use lock mode = 1, unlock mode = 0 */
-+	u32 slow_dll_ctrl;	/* unlock mode, dll value for slow speed */
-+	u32 fast_dll_ctrl;	/* unlock mode, dll value for fast speed */
-+	u32 base_cs;		/* base chip select to use for calculations */
-+};
-+
-+extern void omap2_init_memory_params(u32 force_lock_to_unlock_mode);
-+extern u32 omap2_memory_get_slow_dll_ctrl(void);
-+extern u32 omap2_memory_get_fast_dll_ctrl(void);
-+extern u32 omap2_memory_get_type(void);
-+u32 omap2_dll_force_needed(void);
-+u32 omap2_reprogram_sdrc(u32 level, u32 force);
-+void __init omap2_init_memory(void);
-+
-+#endif
-+
-+
- #endif
++		/* Is the (input clk, divider) pair valid for the DPLL? */
++		r = _dpll_test_fint(clk, n);
++		if (r == DPLL_FINT_UNDERFLOW)
++			break;
++		else if (r == DPLL_FINT_INVALID)
++			continue;
+ 
+ 		/* Compute the scaled DPLL multiplier, based on the divider */
+ 		m = scaled_rt_rp * n;
+@@ -926,7 +989,7 @@ long omap2_dpll_round_rate(struct clk *clk, unsigned long target_rate)
+ 			pr_debug("clock: found new least error %d\n", min_e);
+ 
+ 			/* We found good settings -- bail out now */
+-			if (min_e <= clk->dpll_data->rate_tolerance)
++			if (min_e <= dd->rate_tolerance)
+ 				break;
+ 		}
+ 	}
+diff --git a/arch/arm/mach-omap2/clock24xx.h b/arch/arm/mach-omap2/clock24xx.h
+index 32dd857..7731ab6 100644
+--- a/arch/arm/mach-omap2/clock24xx.h
++++ b/arch/arm/mach-omap2/clock24xx.h
+@@ -666,6 +666,7 @@ static struct dpll_data dpll_dd = {
+ 	.mult_mask		= OMAP24XX_DPLL_MULT_MASK,
+ 	.div1_mask		= OMAP24XX_DPLL_DIV_MASK,
+ 	.max_multiplier		= 1024,
++	.min_divider		= 1,
+ 	.max_divider		= 16,
+ 	.rate_tolerance		= DEFAULT_DPLL_RATE_TOLERANCE
+ };
+diff --git a/arch/arm/mach-omap2/clock34xx.h b/arch/arm/mach-omap2/clock34xx.h
+index 7ee1312..aadd296 100644
+--- a/arch/arm/mach-omap2/clock34xx.h
++++ b/arch/arm/mach-omap2/clock34xx.h
+@@ -268,6 +268,7 @@ static struct dpll_data dpll1_dd = {
+ 	.idlest_reg	= OMAP_CM_REGADDR(MPU_MOD, OMAP3430_CM_IDLEST_PLL),
+ 	.idlest_mask	= OMAP3430_ST_MPU_CLK_MASK,
+ 	.max_multiplier = OMAP3_MAX_DPLL_MULT,
++	.min_divider	= 1,
+ 	.max_divider	= OMAP3_MAX_DPLL_DIV,
+ 	.rate_tolerance = DEFAULT_DPLL_RATE_TOLERANCE
+ };
+@@ -341,6 +342,7 @@ static struct dpll_data dpll2_dd = {
+ 	.idlest_reg	= OMAP_CM_REGADDR(OMAP3430_IVA2_MOD, OMAP3430_CM_IDLEST_PLL),
+ 	.idlest_mask	= OMAP3430_ST_IVA2_CLK_MASK,
+ 	.max_multiplier = OMAP3_MAX_DPLL_MULT,
++	.min_divider	= 1,
+ 	.max_divider	= OMAP3_MAX_DPLL_DIV,
+ 	.rate_tolerance = DEFAULT_DPLL_RATE_TOLERANCE
+ };
+@@ -400,6 +402,7 @@ static struct dpll_data dpll3_dd = {
+ 	.idlest_reg	= OMAP_CM_REGADDR(PLL_MOD, CM_IDLEST),
+ 	.idlest_mask	= OMAP3430_ST_CORE_CLK_MASK,
+ 	.max_multiplier = OMAP3_MAX_DPLL_MULT,
++	.min_divider	= 1,
+ 	.max_divider	= OMAP3_MAX_DPLL_DIV,
+ 	.rate_tolerance = DEFAULT_DPLL_RATE_TOLERANCE
+ };
+@@ -591,6 +594,7 @@ static struct dpll_data dpll4_dd = {
+ 	.idlest_reg	= OMAP_CM_REGADDR(PLL_MOD, CM_IDLEST),
+ 	.idlest_mask	= OMAP3430_ST_PERIPH_CLK_MASK,
+ 	.max_multiplier = OMAP3_MAX_DPLL_MULT,
++	.min_divider	= 1,
+ 	.max_divider	= OMAP3_MAX_DPLL_DIV,
+ 	.rate_tolerance = DEFAULT_DPLL_RATE_TOLERANCE
+ };
+@@ -930,6 +934,7 @@ static struct dpll_data dpll5_dd = {
+ 	.idlest_reg	= OMAP_CM_REGADDR(PLL_MOD, CM_IDLEST2),
+ 	.idlest_mask	= OMAP3430ES2_ST_PERIPH2_CLK_MASK,
+ 	.max_multiplier = OMAP3_MAX_DPLL_MULT,
++	.min_divider	= 1,
+ 	.max_divider	= OMAP3_MAX_DPLL_DIV,
+ 	.rate_tolerance = DEFAULT_DPLL_RATE_TOLERANCE
+ };
+diff --git a/arch/arm/plat-omap/include/mach/clock.h b/arch/arm/plat-omap/include/mach/clock.h
+index 611df52..cd69111 100644
+--- a/arch/arm/plat-omap/include/mach/clock.h
++++ b/arch/arm/plat-omap/include/mach/clock.h
+@@ -43,6 +43,7 @@ struct dpll_data {
+ 	unsigned long		last_rounded_rate;
+ 	u16			last_rounded_m;
+ 	u8			last_rounded_n;
++	u8			min_divider;
+ 	u8			max_divider;
+ 	u32			max_tolerance;
+ 	u16			max_multiplier;
 -- 
 1.6.1.2
 
