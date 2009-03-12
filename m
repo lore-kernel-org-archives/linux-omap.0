@@ -1,54 +1,112 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: RFD: OMAP PRCM register access holding up PM branch submissions
-Date: Thu, 12 Mar 2009 08:25:55 -0700
-Message-ID: <87hc1y930c.fsf@deeprootsystems.com>
+From: "Gupta, Ramesh" <grgupta@ti.com>
+Subject: [PATCH] DSPBRIDGE Fix for auto image load updated
+Date: Thu, 12 Mar 2009 20:54:38 +0530
+Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB02A8FD0BFD@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-gx0-f167.google.com ([209.85.217.167]:42582 "EHLO
-	mail-gx0-f167.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753293AbZCLP0p (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 12 Mar 2009 11:26:45 -0400
-Received: by gxk11 with SMTP id 11so1110312gxk.13
-        for <linux-omap@vger.kernel.org>; Thu, 12 Mar 2009 08:26:42 -0700 (PDT)
+Received: from bear.ext.ti.com ([192.94.94.41]:45178 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753583AbZCLPZ1 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 12 Mar 2009 11:25:27 -0400
+Received: from dbdp20.itg.ti.com ([172.24.170.38])
+	by bear.ext.ti.com (8.13.7/8.13.7) with ESMTP id n2CFPJft026122
+	for <linux-omap@vger.kernel.org>; Thu, 12 Mar 2009 10:25:25 -0500
+Received: from dbde70.ent.ti.com (localhost [127.0.0.1])
+	by dbdp20.itg.ti.com (8.13.8/8.13.8) with ESMTP id n2CFPHRY024117
+	for <linux-omap@vger.kernel.org>; Thu, 12 Mar 2009 20:55:18 +0530 (IST)
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Russell King <rmk@arm.linux.org.uk>, Paul Walmsley <paul@pwsan.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.arm.linux.org.uk
+To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Cc: "Menon, Nishanth" <nm@ti.com>, "Kanigeri, Hari" <h-kanigeri2@ti.com>
 
-Russell, Paul,
+>From 757beb63e8e66c168231dd990440816fc5789d6c Mon Sep 17 00:00:00 2001
+From: Ramesh Gupta <grgupta@ti.com>
+Date: Thu, 12 Mar 2009 09:32:31 -0500
+Subject: [PATCH] DSPBRIDGE Fix for auto image load updated
+Resending as the previous patch was not applyng cleanly.
+This is updated patch to fix the auto image loading while bridgedriver initialization.
 
-As we discussed a bit in the OMAP clocks thread, there is not yet a
-decision on the best way to access the PRCM registers.  I'd like to
-get some discussion going so I can begin submissions of the rest of
-the OMAP PM core code.
+Signed-off-by: Ramesh Gupta G <grgupta@ti.com>
+---
+ drivers/dsp/bridge/rmgr/drv_interface.c |   32 +++++++++++++++---------------
+ 1 files changed, 16 insertions(+), 16 deletions(-)
 
-We currently have two methods for PRCM register access
-
-1) direct access using __raw_[read|write] and OMAP_PRM_REGADDR() #defines
-
-2) "MOD + offset" access using prm_[read|write|rmw]_*
-
-The current code (in Russell's omap-clks3) branch is kind of a hybrid
-with lots of usages of both methods, and Paul's patch (A 09) which
-converted everything to (2) has been rejected.  However, I'm still not
-entirely clear whether the objection was because you're opposed to the
-'MOD + offset' approach in general, or just the way it was done in
-this patch.
-
-So, what is the path forward?  If you are not opposed to moving to the
-'MOD + offset' approach in principle, I propose we just make a new
-attempt at converting to it.  If you're opposed to it all together, we
-need to start some discussion.  Russell, you seem to have suggested
-you had some ideas[1].  Would you mind posting your ideas for
-discussion, not necessarily patches, but just rough ideas to start
-discussions.
-
-Until we get some decision on this, it is impossible to move forward
-with submissions of the rest of the OMAP PM code.
-
-Thanks,
-
-Kevin
-
-[1] http://marc.info/?l=linux-omap&m=123609877205834&w=2
+diff --git a/drivers/dsp/bridge/rmgr/drv_interface.c b/drivers/dsp/bridge/rmgr/drv_interface.c
+index 3ad7a43..80edc4d 100755
+--- a/drivers/dsp/bridge/rmgr/drv_interface.c
++++ b/drivers/dsp/bridge/rmgr/drv_interface.c
+@@ -400,7 +400,7 @@ static int __init bridge_init(void)
+ 		REG_SetValue(NULL, NULL, AUTOSTART, REG_DWORD, (u8 *)&temp,
+ 			    sizeof(temp));
+ 		REG_SetValue(NULL, NULL, DEFEXEC, REG_SZ, (u8 *)base_img,
+-                           strlen(base_img) + 1);
++						strlen(base_img) + 1);
+ 	} else {
+ 		temp = false;
+ 		REG_SetValue(NULL, NULL, AUTOSTART, REG_DWORD, (u8 *)&temp,
+@@ -408,7 +408,7 @@ static int __init bridge_init(void)
+ 		REG_SetValue(NULL, NULL, DEFEXEC, REG_SZ, (u8 *) "\0", (u32)2);
+ 	}
+ 	REG_SetValue(NULL, NULL, NUMPROCS, REG_SZ, (u8 *) num_procs,
+-                   strlen(num_procs) + 1);
++						strlen(num_procs) + 1);
+ 
+ 	if (shm_size >= 0x10000) {	/* 64 KB */
+ 		initStatus = REG_SetValue(NULL, NULL, SHMSIZE, REG_DWORD,
+@@ -450,18 +450,9 @@ static int __init bridge_init(void)
+ 			    sizeof(tc_wordswapon));
+ 	}
+ 	if (DSP_SUCCEEDED(initStatus)) {
+-		driverContext = DSP_Init(&initStatus);
+-		if (DSP_FAILED(initStatus)) {
+-			status = -1;
+-			GT_0trace(driverTrace, GT_7CLASS,
+-				 "DSP/BIOS Bridge initialization Failed\n");
+-		} else {
+-			GT_0trace(driverTrace, GT_5CLASS,
+-					"DSP/BIOS Bridge driver loaded\n");
+-		}
+ #ifdef CONFIG_BRIDGE_DVFS
+-		for (i = 0; i < 5; i++)
+-                       pdata->mpu_speed[i] = vdd1_rate_table_bridge[i].rate;
++		for (i = 0; i < 6; i++)
++			pdata->mpu_speed[i] = vdd1_rate_table_bridge[i].rate;
+ 
+ 		clk_handle = clk_get(NULL, "iva2_ck");
+ 		if (!clk_handle) {
+@@ -479,6 +470,15 @@ static int __init bridge_init(void)
+ 			"clk_notifier_register FAIL for iva2_ck \n");
+ 		}
+ #endif
++		driverContext = DSP_Init(&initStatus);
++		if (DSP_FAILED(initStatus)) {
++			status = -1;
++			GT_0trace(driverTrace, GT_7CLASS,
++				 "DSP/BIOS Bridge initialization Failed\n");
++		} else {
++			GT_0trace(driverTrace, GT_5CLASS,
++					"DSP/BIOS Bridge driver loaded\n");
++		}
+ 	}
+ 
+ 	DBC_Assert(status == 0);
+@@ -655,11 +655,11 @@ func_cont:
+ 				(struct DRV_OBJECT *)hDrvObject, &pPctxt);
+ 
+ 	if (pPctxt != NULL) {
+-               /* Return PID instead of process handle */
+-               hProcess = current->pid;
++			/* Return PID instead of process handle */
++			hProcess = current->pid;
+ 
+ 		DRV_ProcUpdatestate(pPctxt, PROC_RES_ALLOCATED);
+-               DRV_ProcSetPID(pPctxt, hProcess);
++			DRV_ProcSetPID(pPctxt, hProcess);
+ 	}
+ #endif
+ 
+-- 
+1.5.4.2
