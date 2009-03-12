@@ -1,7 +1,7 @@
 From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: [PATCH 75/86] [ARM] OMAP2xxx clock: consolidate DELAYED_APP clock commits; fix barrier
-Date: Thu, 12 Mar 2009 11:28:25 -0700
-Message-ID: <1236882516-29403-76-git-send-email-khilman@deeprootsystems.com>
+Subject: [PATCH 66/86] [ARM] OMAP2 SDRC: rename memory.c to sdrc2xxx.c
+Date: Thu, 12 Mar 2009 11:28:16 -0700
+Message-ID: <1236882516-29403-67-git-send-email-khilman@deeprootsystems.com>
 References: <1236882516-29403-1-git-send-email-khilman@deeprootsystems.com>
  <1236882516-29403-2-git-send-email-khilman@deeprootsystems.com>
  <1236882516-29403-3-git-send-email-khilman@deeprootsystems.com>
@@ -68,101 +68,459 @@ References: <1236882516-29403-1-git-send-email-khilman@deeprootsystems.com>
  <1236882516-29403-64-git-send-email-khilman@deeprootsystems.com>
  <1236882516-29403-65-git-send-email-khilman@deeprootsystems.com>
  <1236882516-29403-66-git-send-email-khilman@deeprootsystems.com>
- <1236882516-29403-67-git-send-email-khilman@deeprootsystems.com>
- <1236882516-29403-68-git-send-email-khilman@deeprootsystems.com>
- <1236882516-29403-69-git-send-email-khilman@deeprootsystems.com>
- <1236882516-29403-70-git-send-email-khilman@deeprootsystems.com>
- <1236882516-29403-71-git-send-email-khilman@deeprootsystems.com>
- <1236882516-29403-72-git-send-email-khilman@deeprootsystems.com>
- <1236882516-29403-73-git-send-email-khilman@deeprootsystems.com>
- <1236882516-29403-74-git-send-email-khilman@deeprootsystems.com>
- <1236882516-29403-75-git-send-email-khilman@deeprootsystems.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-gx0-f163.google.com ([209.85.217.163]:60567 "EHLO
-	mail-gx0-f163.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754863AbZCLSeG (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 12 Mar 2009 14:34:06 -0400
-Received: by mail-gx0-f163.google.com with SMTP id 7so458514gxk.13
-        for <linux-omap@vger.kernel.org>; Thu, 12 Mar 2009 11:34:05 -0700 (PDT)
-In-Reply-To: <1236882516-29403-75-git-send-email-khilman@deeprootsystems.com>
+Received: from ag-out-0708.google.com ([72.14.246.250]:55744 "EHLO
+	ag-out-0708.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756707AbZCLSd2 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 12 Mar 2009 14:33:28 -0400
+Received: by ag-out-0708.google.com with SMTP id 26so1107479agb.10
+        for <linux-omap@vger.kernel.org>; Thu, 12 Mar 2009 11:33:27 -0700 (PDT)
+In-Reply-To: <1236882516-29403-66-git-send-email-khilman@deeprootsystems.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 
 From: Paul Walmsley <paul@pwsan.com>
 
-Consolidate the commit code for DELAYED_APP clocks into a subroutine,
-_omap2xxx_clk_commit().  Also convert the MPU barrier wmb() into an
-OCP barrier, since with an MPU barrier, we have no guarantee that the
-write actually reached the endpoint device.
+Rename arch/arm/mach-omap2/memory.c to arch/arm/mach-omap2/sdrc2xxx.c, since
+it contains exclusively SDRAM-related functions.  Most of the functions
+are also OMAP2xxx-specific - those which are common will be separated out
+in a following patch.
 
-linux-omap source commit is 0f5bdb736515801b296125d16937a21ff7b3cfdc.
+linux-omap source commit is fe212f797e2efef9dc88bcb5db7cf9db3f9f562e.
 
 Signed-off-by: Paul Walmsley <paul@pwsan.com>
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
 ---
- arch/arm/mach-omap2/clock.c |   33 ++++++++++++++++++++++++---------
- 1 files changed, 24 insertions(+), 9 deletions(-)
+ arch/arm/mach-omap2/Makefile   |    2 +-
+ arch/arm/mach-omap2/memory.c   |  198 ----------------------------------------
+ arch/arm/mach-omap2/sdrc2xxx.c |  198 ++++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 199 insertions(+), 199 deletions(-)
+ delete mode 100644 arch/arm/mach-omap2/memory.c
+ create mode 100644 arch/arm/mach-omap2/sdrc2xxx.c
 
-diff --git a/arch/arm/mach-omap2/clock.c b/arch/arm/mach-omap2/clock.c
-index 0803c8c..7f12230 100644
---- a/arch/arm/mach-omap2/clock.c
-+++ b/arch/arm/mach-omap2/clock.c
-@@ -74,6 +74,28 @@ u8 cpu_mask;
-  * OMAP2/3 specific clock functions
-  *-------------------------------------------------------------------------*/
+diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
+index bbd12bc..bb47d43 100644
+--- a/arch/arm/mach-omap2/Makefile
++++ b/arch/arm/mach-omap2/Makefile
+@@ -3,7 +3,7 @@
+ #
  
-+/**
-+ * _omap2xxx_clk_commit - commit clock parent/rate changes in hardware
-+ * @clk: struct clk *
+ # Common support
+-obj-y := irq.o id.o io.o memory.o control.o prcm.o clock.o mux.o \
++obj-y := irq.o id.o io.o sdrc2xxx.o control.o prcm.o clock.o mux.o \
+ 		devices.o serial.o gpmc.o timer-gp.o powerdomain.o \
+ 		clockdomain.o
+ 
+diff --git a/arch/arm/mach-omap2/memory.c b/arch/arm/mach-omap2/memory.c
+deleted file mode 100644
+index 93cb257..0000000
+--- a/arch/arm/mach-omap2/memory.c
++++ /dev/null
+@@ -1,198 +0,0 @@
+-/*
+- * linux/arch/arm/mach-omap2/memory.c
+- *
+- * Memory timing related functions for OMAP24XX
+- *
+- * Copyright (C) 2005 Texas Instruments Inc.
+- * Richard Woodruff <r-woodruff2@ti.com>
+- *
+- * Copyright (C) 2005 Nokia Corporation
+- * Tony Lindgren <tony@atomide.com>
+- *
+- * This program is free software; you can redistribute it and/or modify
+- * it under the terms of the GNU General Public License version 2 as
+- * published by the Free Software Foundation.
+- */
+-
+-#include <linux/module.h>
+-#include <linux/kernel.h>
+-#include <linux/device.h>
+-#include <linux/list.h>
+-#include <linux/errno.h>
+-#include <linux/delay.h>
+-#include <linux/clk.h>
+-#include <linux/io.h>
+-
+-#include <mach/common.h>
+-#include <mach/clock.h>
+-#include <mach/sram.h>
+-
+-#include "prm.h"
+-
+-#include <mach/sdrc.h>
+-#include "sdrc.h"
+-
+-/* Memory timing, DLL mode flags */
+-#define M_DDR		1
+-#define M_LOCK_CTRL	(1 << 2)
+-#define M_UNLOCK	0
+-#define M_LOCK		1
+-
+-
+-void __iomem *omap2_sdrc_base;
+-void __iomem *omap2_sms_base;
+-
+-static struct memory_timings mem_timings;
+-static u32 curr_perf_level = CORE_CLK_SRC_DPLL_X2;
+-
+-u32 omap2_memory_get_slow_dll_ctrl(void)
+-{
+-	return mem_timings.slow_dll_ctrl;
+-}
+-
+-u32 omap2_memory_get_fast_dll_ctrl(void)
+-{
+-	return mem_timings.fast_dll_ctrl;
+-}
+-
+-u32 omap2_memory_get_type(void)
+-{
+-	return mem_timings.m_type;
+-}
+-
+-/*
+- * Check the DLL lock state, and return tue if running in unlock mode.
+- * This is needed to compensate for the shifted DLL value in unlock mode.
+- */
+-u32 omap2_dll_force_needed(void)
+-{
+-	/* dlla and dllb are a set */
+-	u32 dll_state = sdrc_read_reg(SDRC_DLLA_CTRL);
+-
+-	if ((dll_state & (1 << 2)) == (1 << 2))
+-		return 1;
+-	else
+-		return 0;
+-}
+-
+-/*
+- * 'level' is the value to store to CM_CLKSEL2_PLL.CORE_CLK_SRC.
+- * Practical values are CORE_CLK_SRC_DPLL (for CORE_CLK = DPLL_CLK) or
+- * CORE_CLK_SRC_DPLL_X2 (for CORE_CLK = * DPLL_CLK * 2)
+- */
+-u32 omap2_reprogram_sdrc(u32 level, u32 force)
+-{
+-	u32 dll_ctrl, m_type;
+-	u32 prev = curr_perf_level;
+-	unsigned long flags;
+-
+-	if ((curr_perf_level == level) && !force)
+-		return prev;
+-
+-	if (level == CORE_CLK_SRC_DPLL) {
+-		dll_ctrl = omap2_memory_get_slow_dll_ctrl();
+-	} else if (level == CORE_CLK_SRC_DPLL_X2) {
+-		dll_ctrl = omap2_memory_get_fast_dll_ctrl();
+-	} else {
+-		return prev;
+-	}
+-
+-	m_type = omap2_memory_get_type();
+-
+-	local_irq_save(flags);
+-	__raw_writel(0xffff, OMAP24XX_PRCM_VOLTSETUP);
+-	omap2_sram_reprogram_sdrc(level, dll_ctrl, m_type);
+-	curr_perf_level = level;
+-	local_irq_restore(flags);
+-
+-	return prev;
+-}
+-
+-#if !defined(CONFIG_ARCH_OMAP2)
+-void omap2_sram_ddr_init(u32 *slow_dll_ctrl, u32 fast_dll_ctrl,
+-				u32 base_cs, u32 force_unlock)
+-{
+-}
+-void omap2_sram_reprogram_sdrc(u32 perf_level, u32 dll_val,
+-				      u32 mem_type)
+-{
+-}
+-#endif
+-
+-void omap2_init_memory_params(u32 force_lock_to_unlock_mode)
+-{
+-	unsigned long dll_cnt;
+-	u32 fast_dll = 0;
+-
+-	mem_timings.m_type = !((sdrc_read_reg(SDRC_MR_0) & 0x3) == 0x1); /* DDR = 1, SDR = 0 */
+-
+-	/* 2422 es2.05 and beyond has a single SIP DDR instead of 2 like others.
+-	 * In the case of 2422, its ok to use CS1 instead of CS0.
+-	 */
+-	if (cpu_is_omap2422())
+-		mem_timings.base_cs = 1;
+-	else
+-		mem_timings.base_cs = 0;
+-
+-	if (mem_timings.m_type != M_DDR)
+-		return;
+-
+-	/* With DDR we need to determine the low frequency DLL value */
+-	if (((mem_timings.fast_dll_ctrl & (1 << 2)) == M_LOCK_CTRL))
+-		mem_timings.dll_mode = M_UNLOCK;
+-	else
+-		mem_timings.dll_mode = M_LOCK;
+-
+-	if (mem_timings.base_cs == 0) {
+-		fast_dll = sdrc_read_reg(SDRC_DLLA_CTRL);
+-		dll_cnt = sdrc_read_reg(SDRC_DLLA_STATUS) & 0xff00;
+-	} else {
+-		fast_dll = sdrc_read_reg(SDRC_DLLB_CTRL);
+-		dll_cnt = sdrc_read_reg(SDRC_DLLB_STATUS) & 0xff00;
+-	}
+-	if (force_lock_to_unlock_mode) {
+-		fast_dll &= ~0xff00;
+-		fast_dll |= dll_cnt;		/* Current lock mode */
+-	}
+-	/* set fast timings with DLL filter disabled */
+-	mem_timings.fast_dll_ctrl = (fast_dll | (3 << 8));
+-
+-	/* No disruptions, DDR will be offline & C-ABI not followed */
+-	omap2_sram_ddr_init(&mem_timings.slow_dll_ctrl,
+-			    mem_timings.fast_dll_ctrl,
+-			    mem_timings.base_cs,
+-			    force_lock_to_unlock_mode);
+-	mem_timings.slow_dll_ctrl &= 0xff00;	/* Keep lock value */
+-
+-	/* Turn status into unlock ctrl */
+-	mem_timings.slow_dll_ctrl |=
+-		((mem_timings.fast_dll_ctrl & 0xF) | (1 << 2));
+-
+-	/* 90 degree phase for anything below 133Mhz + disable DLL filter */
+-	mem_timings.slow_dll_ctrl |= ((1 << 1) | (3 << 8));
+-}
+-
+-void __init omap2_set_globals_memory(struct omap_globals *omap2_globals)
+-{
+-	omap2_sdrc_base = omap2_globals->sdrc;
+-	omap2_sms_base = omap2_globals->sms;
+-}
+-
+-/* turn on smart idle modes for SDRAM scheduler and controller */
+-void __init omap2_init_memory(void)
+-{
+-	u32 l;
+-
+-	if (!cpu_is_omap2420())
+-		return;
+-
+-	l = sms_read_reg(SMS_SYSCONFIG);
+-	l &= ~(0x3 << 3);
+-	l |= (0x2 << 3);
+-	sms_write_reg(l, SMS_SYSCONFIG);
+-
+-	l = sdrc_read_reg(SDRC_SYSCONFIG);
+-	l &= ~(0x3 << 3);
+-	l |= (0x2 << 3);
+-	sdrc_write_reg(l, SDRC_SYSCONFIG);
+-}
+diff --git a/arch/arm/mach-omap2/sdrc2xxx.c b/arch/arm/mach-omap2/sdrc2xxx.c
+new file mode 100644
+index 0000000..3e38aa4
+--- /dev/null
++++ b/arch/arm/mach-omap2/sdrc2xxx.c
+@@ -0,0 +1,198 @@
++/*
++ * linux/arch/arm/mach-omap2/sdrc2xxx.c
 + *
-+ * If @clk has the DELAYED_APP flag set, meaning that parent/rate changes
-+ * don't take effect until the VALID_CONFIG bit is written, write the
-+ * VALID_CONFIG bit and wait for the write to complete.  No return value.
++ * SDRAM timing related functions for OMAP2xxx
++ *
++ * Copyright (C) 2005 Texas Instruments Inc.
++ * Richard Woodruff <r-woodruff2@ti.com>
++ *
++ * Copyright (C) 2005 Nokia Corporation
++ * Tony Lindgren <tony@atomide.com>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
 + */
-+static void _omap2xxx_clk_commit(struct clk *clk)
++
++#include <linux/module.h>
++#include <linux/kernel.h>
++#include <linux/device.h>
++#include <linux/list.h>
++#include <linux/errno.h>
++#include <linux/delay.h>
++#include <linux/clk.h>
++#include <linux/io.h>
++
++#include <mach/common.h>
++#include <mach/clock.h>
++#include <mach/sram.h>
++
++#include "prm.h"
++
++#include <mach/sdrc.h>
++#include "sdrc.h"
++
++/* Memory timing, DLL mode flags */
++#define M_DDR		1
++#define M_LOCK_CTRL	(1 << 2)
++#define M_UNLOCK	0
++#define M_LOCK		1
++
++
++void __iomem *omap2_sdrc_base;
++void __iomem *omap2_sms_base;
++
++static struct memory_timings mem_timings;
++static u32 curr_perf_level = CORE_CLK_SRC_DPLL_X2;
++
++u32 omap2_memory_get_slow_dll_ctrl(void)
 +{
-+	if (!cpu_is_omap24xx())
-+		return;
-+
-+	if (!(clk->flags & DELAYED_APP))
-+		return;
-+
-+	prm_write_mod_reg(OMAP24XX_VALID_CONFIG, OMAP24XX_GR_MOD,
-+		OMAP24XX_PRCM_CLKCFG_CTRL_OFFSET);
-+	/* OCP barrier */
-+	prm_read_mod_reg(OMAP24XX_GR_MOD, OMAP24XX_PRCM_CLKCFG_CTRL_OFFSET);
++	return mem_timings.slow_dll_ctrl;
 +}
 +
- /*
-  * _dpll_test_fint - test whether an Fint value is valid for the DPLL
-  * @clk: DPLL struct clk to test
-@@ -685,11 +707,7 @@ int omap2_clksel_set_rate(struct clk *clk, unsigned long rate)
- 
- 	clk->rate = clk->parent->rate / new_div;
- 
--	if (clk->flags & DELAYED_APP && cpu_is_omap24xx()) {
--		prm_write_mod_reg(OMAP24XX_VALID_CONFIG,
--			OMAP24XX_GR_MOD, OMAP24XX_PRCM_CLKCFG_CTRL_OFFSET);
--		wmb();
--	}
-+	_omap2xxx_clk_commit(clk);
- 
- 	return 0;
- }
-@@ -772,10 +790,7 @@ int omap2_clk_set_parent(struct clk *clk, struct clk *new_parent)
- 	__raw_writel(v, clk->clksel_reg);
- 	wmb();
- 
--	if (clk->flags & DELAYED_APP && cpu_is_omap24xx()) {
--		__raw_writel(OMAP24XX_VALID_CONFIG, OMAP24XX_PRCM_CLKCFG_CTRL);
--		wmb();
--	}
-+	_omap2xxx_clk_commit(clk);
- 
- 	if (clk->usecount > 0)
- 		_omap2_clk_enable(clk);
++u32 omap2_memory_get_fast_dll_ctrl(void)
++{
++	return mem_timings.fast_dll_ctrl;
++}
++
++u32 omap2_memory_get_type(void)
++{
++	return mem_timings.m_type;
++}
++
++/*
++ * Check the DLL lock state, and return tue if running in unlock mode.
++ * This is needed to compensate for the shifted DLL value in unlock mode.
++ */
++u32 omap2_dll_force_needed(void)
++{
++	/* dlla and dllb are a set */
++	u32 dll_state = sdrc_read_reg(SDRC_DLLA_CTRL);
++
++	if ((dll_state & (1 << 2)) == (1 << 2))
++		return 1;
++	else
++		return 0;
++}
++
++/*
++ * 'level' is the value to store to CM_CLKSEL2_PLL.CORE_CLK_SRC.
++ * Practical values are CORE_CLK_SRC_DPLL (for CORE_CLK = DPLL_CLK) or
++ * CORE_CLK_SRC_DPLL_X2 (for CORE_CLK = * DPLL_CLK * 2)
++ */
++u32 omap2_reprogram_sdrc(u32 level, u32 force)
++{
++	u32 dll_ctrl, m_type;
++	u32 prev = curr_perf_level;
++	unsigned long flags;
++
++	if ((curr_perf_level == level) && !force)
++		return prev;
++
++	if (level == CORE_CLK_SRC_DPLL)
++		dll_ctrl = omap2_memory_get_slow_dll_ctrl();
++	else if (level == CORE_CLK_SRC_DPLL_X2)
++		dll_ctrl = omap2_memory_get_fast_dll_ctrl();
++	else
++		return prev;
++
++	m_type = omap2_memory_get_type();
++
++	local_irq_save(flags);
++	__raw_writel(0xffff, OMAP24XX_PRCM_VOLTSETUP);
++	omap2_sram_reprogram_sdrc(level, dll_ctrl, m_type);
++	curr_perf_level = level;
++	local_irq_restore(flags);
++
++	return prev;
++}
++
++#if !defined(CONFIG_ARCH_OMAP2)
++void omap2_sram_ddr_init(u32 *slow_dll_ctrl, u32 fast_dll_ctrl,
++				u32 base_cs, u32 force_unlock)
++{
++}
++void omap2_sram_reprogram_sdrc(u32 perf_level, u32 dll_val,
++				      u32 mem_type)
++{
++}
++#endif
++
++void omap2_init_memory_params(u32 force_lock_to_unlock_mode)
++{
++	unsigned long dll_cnt;
++	u32 fast_dll = 0;
++
++	/* DDR = 1, SDR = 0 */
++	mem_timings.m_type = !((sdrc_read_reg(SDRC_MR_0) & 0x3) == 0x1);
++
++	/* 2422 es2.05 and beyond has a single SIP DDR instead of 2 like others.
++	 * In the case of 2422, its ok to use CS1 instead of CS0.
++	 */
++	if (cpu_is_omap2422())
++		mem_timings.base_cs = 1;
++	else
++		mem_timings.base_cs = 0;
++
++	if (mem_timings.m_type != M_DDR)
++		return;
++
++	/* With DDR we need to determine the low frequency DLL value */
++	if (((mem_timings.fast_dll_ctrl & (1 << 2)) == M_LOCK_CTRL))
++		mem_timings.dll_mode = M_UNLOCK;
++	else
++		mem_timings.dll_mode = M_LOCK;
++
++	if (mem_timings.base_cs == 0) {
++		fast_dll = sdrc_read_reg(SDRC_DLLA_CTRL);
++		dll_cnt = sdrc_read_reg(SDRC_DLLA_STATUS) & 0xff00;
++	} else {
++		fast_dll = sdrc_read_reg(SDRC_DLLB_CTRL);
++		dll_cnt = sdrc_read_reg(SDRC_DLLB_STATUS) & 0xff00;
++	}
++	if (force_lock_to_unlock_mode) {
++		fast_dll &= ~0xff00;
++		fast_dll |= dll_cnt;		/* Current lock mode */
++	}
++	/* set fast timings with DLL filter disabled */
++	mem_timings.fast_dll_ctrl = (fast_dll | (3 << 8));
++
++	/* No disruptions, DDR will be offline & C-ABI not followed */
++	omap2_sram_ddr_init(&mem_timings.slow_dll_ctrl,
++			    mem_timings.fast_dll_ctrl,
++			    mem_timings.base_cs,
++			    force_lock_to_unlock_mode);
++	mem_timings.slow_dll_ctrl &= 0xff00;	/* Keep lock value */
++
++	/* Turn status into unlock ctrl */
++	mem_timings.slow_dll_ctrl |=
++		((mem_timings.fast_dll_ctrl & 0xF) | (1 << 2));
++
++	/* 90 degree phase for anything below 133Mhz + disable DLL filter */
++	mem_timings.slow_dll_ctrl |= ((1 << 1) | (3 << 8));
++}
++
++void __init omap2_set_globals_memory(struct omap_globals *omap2_globals)
++{
++	omap2_sdrc_base = omap2_globals->sdrc;
++	omap2_sms_base = omap2_globals->sms;
++}
++
++/* turn on smart idle modes for SDRAM scheduler and controller */
++void __init omap2_init_memory(void)
++{
++	u32 l;
++
++	if (!cpu_is_omap2420())
++		return;
++
++	l = sms_read_reg(SMS_SYSCONFIG);
++	l &= ~(0x3 << 3);
++	l |= (0x2 << 3);
++	sms_write_reg(l, SMS_SYSCONFIG);
++
++	l = sdrc_read_reg(SDRC_SYSCONFIG);
++	l &= ~(0x3 << 3);
++	l |= (0x2 << 3);
++	sdrc_write_reg(l, SDRC_SYSCONFIG);
++}
 -- 
 1.6.1.2
 
