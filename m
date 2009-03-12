@@ -1,72 +1,63 @@
-From: Adrian Hunter <adrian.hunter@nokia.com>
-Subject: [PATCH 10/10] OMAP: HSMMC: Wait for SDBP
-Date: Thu, 12 Mar 2009 18:24:00 +0200
-Message-ID: <20090312162400.19421.13764.sendpatchset@ahunter-laptop>
-References: <20090312162252.19421.34019.sendpatchset@ahunter-laptop>
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1758024AbZCLQ1G@vger.kernel.org>
-In-Reply-To: <20090312162252.19421.34019.sendpatchset@ahunter-laptop>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Pierre Ossman <drzeus-mmc@drzeus.cx>
-Cc: Jarkko Lavinen <jarkko.lavinen@nokia.com>, Adrian Hunter <adrian.hunter@nokia.com>, Grazvydas Ignotas <notasas@gmail.com>, David Brownell <david-b@pacbell.net>, linux-omap Mailing List <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, lkml <linux-kernel@vger.kernel.org>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: [PM PATCH] OMAP3: PM: Fix INTC context save/restore
+Date: Thu, 12 Mar 2009 09:33:59 -0700
+Message-ID: <878wna8zuw.fsf@deeprootsystems.com>
+References: <1236874349-31261-1-git-send-email-Aaro.Koskinen@nokia.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from wf-out-1314.google.com ([209.85.200.174]:34403 "EHLO
+	wf-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755067AbZCLQeF (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 12 Mar 2009 12:34:05 -0400
+Received: by wf-out-1314.google.com with SMTP id 28so962793wfa.4
+        for <linux-omap@vger.kernel.org>; Thu, 12 Mar 2009 09:34:02 -0700 (PDT)
+In-Reply-To: <1236874349-31261-1-git-send-email-Aaro.Koskinen@nokia.com> (Aaro Koskinen's message of "Thu\, 12 Mar 2009 18\:12\:29 +0200")
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Aaro Koskinen <Aaro.Koskinen@nokia.com>
+Cc: linux-omap@vger.kernel.org
 
->From e543f7849ab668fa0cbabc048e37e090e7b6f167 Mon Sep 17 00:00:00 2001
-From: Adrian Hunter <adrian.hunter@nokia.com>
-Date: Thu, 12 Mar 2009 17:08:26 +0200
-Subject: [PATCH] OMAP: HSMMC: Wait for SDBP
+Aaro Koskinen <Aaro.Koskinen@nokia.com> writes:
 
-It is necessary to wait for bus power before sending
-any commands.
+> Wrong index was used for ILR.
+>
+> Signed-off-by: Aaro Koskinen <Aaro.Koskinen@nokia.com>
 
-Signed-off-by: Adrian Hunter <adrian.hunter@nokia.com>
----
- drivers/mmc/host/omap_hsmmc.c |   20 +++++++++++++++-----
- 1 files changed, 15 insertions(+), 5 deletions(-)
+Thanks, pushed to PM brach.
 
-diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
-index 91381f4..2f444c8 100644
---- a/drivers/mmc/host/omap_hsmmc.c
-+++ b/drivers/mmc/host/omap_hsmmc.c
-@@ -546,6 +546,19 @@ static irqreturn_t mmc_omap_irq(int irq, void *dev_id)
- 	return IRQ_HANDLED;
- }
- 
-+static void set_sd_bus_power(struct mmc_omap_host *host)
-+{
-+	unsigned long i;
-+
-+	OMAP_HSMMC_WRITE(host->base, HCTL,
-+			 OMAP_HSMMC_READ(host->base, HCTL) | SDBP);
-+	for (i = 0; i < loops_per_jiffy; i++) {
-+		if (OMAP_HSMMC_READ(host->base, HCTL) & SDBP)
-+			break;
-+		cpu_relax();
-+	}
-+}
-+
- /*
-  * Switch MMC interface voltage ... only relevant for MMC1.
-  *
-@@ -602,9 +615,7 @@ static int omap_mmc_switch_opcond(struct mmc_omap_host *host, int vdd)
- 		reg_val |= SDVS30;
- 
- 	OMAP_HSMMC_WRITE(host->base, HCTL, reg_val);
--
--	OMAP_HSMMC_WRITE(host->base, HCTL,
--		OMAP_HSMMC_READ(host->base, HCTL) | SDBP);
-+	set_sd_bus_power(host);
- 
- 	return 0;
- err:
-@@ -997,8 +1008,7 @@ static void omap_hsmmc_init(struct mmc_omap_host *host)
- 	OMAP_HSMMC_WRITE(host->base, SYSCONFIG, value | AUTOIDLE);
- 
- 	/* Set SD bus power bit */
--	value = OMAP_HSMMC_READ(host->base, HCTL);
--	OMAP_HSMMC_WRITE(host->base, HCTL, value | SDBP);
-+	set_sd_bus_power(host);
- }
- 
- static struct mmc_host_ops mmc_omap_ops = {
--- 
-1.5.6.3
+Kevin
+
+> ---
+>  arch/arm/mach-omap2/irq.c |    4 ++--
+>  1 files changed, 2 insertions(+), 2 deletions(-)
+>
+> diff --git a/arch/arm/mach-omap2/irq.c b/arch/arm/mach-omap2/irq.c
+> index 6cc5757..f813916 100644
+> --- a/arch/arm/mach-omap2/irq.c
+> +++ b/arch/arm/mach-omap2/irq.c
+> @@ -244,7 +244,7 @@ void omap3_intc_save_context(void)
+>  			intc_bank_read_reg(bank, INTC_THRESHOLD);
+>  		for (i = 0; i < INTCPS_NR_IRQS; i++)
+>  			intc_context[ind].ilr[i] =
+> -				intc_bank_read_reg(bank, (0x100 + 0x4*ind));
+> +				intc_bank_read_reg(bank, (0x100 + 0x4*i));
+>  		for (i = 0; i < INTCPS_NR_MIR_REGS; i++)
+>  			intc_context[ind].mir[i] =
+>  				intc_bank_read_reg(&irq_banks[0], INTC_MIR0 +
+> @@ -270,7 +270,7 @@ void omap3_intc_restore_context(void)
+>  					bank, INTC_THRESHOLD);
+>  		for (i = 0; i < INTCPS_NR_IRQS; i++)
+>  			intc_bank_write_reg(intc_context[ind].ilr[i],
+> -				bank, (0x100 + 0x4*ind));
+> +				bank, (0x100 + 0x4*i));
+>  		for (i = 0; i < INTCPS_NR_MIR_REGS; i++)
+>  			intc_bank_write_reg(intc_context[ind].mir[i],
+>  				 &irq_banks[0], INTC_MIR0 + (0x20 * i));
+> -- 
+> 1.5.4.3
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
