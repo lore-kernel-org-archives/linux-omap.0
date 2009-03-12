@@ -1,7 +1,7 @@
 From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: [PATCH 13/86] [ARM] omap: remove unnecessary calls to propagate_rate()
-Date: Thu, 12 Mar 2009 11:27:23 -0700
-Message-ID: <1236882516-29403-14-git-send-email-khilman@deeprootsystems.com>
+Subject: [PATCH 08/86] [ARM] omap: remove clk->owner
+Date: Thu, 12 Mar 2009 11:27:18 -0700
+Message-ID: <1236882516-29403-9-git-send-email-khilman@deeprootsystems.com>
 References: <1236882516-29403-1-git-send-email-khilman@deeprootsystems.com>
  <1236882516-29403-2-git-send-email-khilman@deeprootsystems.com>
  <1236882516-29403-3-git-send-email-khilman@deeprootsystems.com>
@@ -10,85 +10,72 @@ References: <1236882516-29403-1-git-send-email-khilman@deeprootsystems.com>
  <1236882516-29403-6-git-send-email-khilman@deeprootsystems.com>
  <1236882516-29403-7-git-send-email-khilman@deeprootsystems.com>
  <1236882516-29403-8-git-send-email-khilman@deeprootsystems.com>
- <1236882516-29403-9-git-send-email-khilman@deeprootsystems.com>
- <1236882516-29403-10-git-send-email-khilman@deeprootsystems.com>
- <1236882516-29403-11-git-send-email-khilman@deeprootsystems.com>
- <1236882516-29403-12-git-send-email-khilman@deeprootsystems.com>
- <1236882516-29403-13-git-send-email-khilman@deeprootsystems.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ag-out-0708.google.com ([72.14.246.250]:55744 "EHLO
-	ag-out-0708.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755741AbZCLS3q (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 12 Mar 2009 14:29:46 -0400
-Received: by ag-out-0708.google.com with SMTP id 26so1107479agb.10
-        for <linux-omap@vger.kernel.org>; Thu, 12 Mar 2009 11:29:45 -0700 (PDT)
-In-Reply-To: <1236882516-29403-13-git-send-email-khilman@deeprootsystems.com>
+Received: from mail-gx0-f163.google.com ([209.85.217.163]:60567 "EHLO
+	mail-gx0-f163.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755261AbZCLS3c (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 12 Mar 2009 14:29:32 -0400
+Received: by mail-gx0-f163.google.com with SMTP id 7so458514gxk.13
+        for <linux-omap@vger.kernel.org>; Thu, 12 Mar 2009 11:29:30 -0700 (PDT)
+In-Reply-To: <1236882516-29403-8-git-send-email-khilman@deeprootsystems.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 
 From: Russell King <rmk@dyn-67.arm.linux.org.uk>
 
-We've always called propagate_rate() in the parent function to
-the .set_rate methods, so there's no point having the .set_rate
-methods also call this heavy-weight function - it's mere
-duplication of what's happening elsewhere.
+clk->owner is always NULL, so its existence doesn't serve any useful
+function other than bloating the kernel by 992 bytes.  Remove it.
 
 Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
 ---
- arch/arm/mach-omap1/clock.c |    9 +--------
- 1 files changed, 1 insertions(+), 8 deletions(-)
+ arch/arm/plat-omap/clock.c              |    7 ++-----
+ arch/arm/plat-omap/include/mach/clock.h |    1 -
+ 2 files changed, 2 insertions(+), 6 deletions(-)
 
-diff --git a/arch/arm/mach-omap1/clock.c b/arch/arm/mach-omap1/clock.c
-index ee1b9f2..80a58e9 100644
---- a/arch/arm/mach-omap1/clock.c
-+++ b/arch/arm/mach-omap1/clock.c
-@@ -308,7 +308,6 @@ static int omap1_select_table_rate(struct clk * clk, unsigned long rate)
- 		omap_sram_reprogram_clock(ptr->dpllctl_val, ptr->ckctl_val);
+diff --git a/arch/arm/plat-omap/clock.c b/arch/arm/plat-omap/clock.c
+index 529c4a9..c53205c 100644
+--- a/arch/arm/plat-omap/clock.c
++++ b/arch/arm/plat-omap/clock.c
+@@ -53,15 +53,14 @@ struct clk * clk_get(struct device *dev, const char *id)
+ 	mutex_lock(&clocks_mutex);
  
- 	ck_dpll1.rate = ptr->pll_rate;
--	propagate_rate(&ck_dpll1);
- 	return 0;
- }
- 
-@@ -333,9 +332,6 @@ static int omap1_clk_set_rate_dsp_domain(struct clk *clk, unsigned long rate)
- 		ret = 0;
- 	}
- 
--	if (unlikely(ret == 0 && (clk->flags & RATE_PROPAGATES)))
--		propagate_rate(clk);
--
- 	return ret;
- }
- 
-@@ -442,8 +438,6 @@ static int omap1_set_sossi_rate(struct clk *clk, unsigned long rate)
- 	omap_writel(l, MOD_CONF_CTRL_1);
- 
- 	clk->rate = p_rate / (div + 1);
--	if (unlikely(clk->flags & RATE_PROPAGATES))
--		propagate_rate(clk);
- 
- 	return 0;
- }
-@@ -787,7 +781,6 @@ int __init omap1_clk_init(void)
- 			}
+ 	list_for_each_entry(p, &clocks, node) {
+-		if (p->id == idno &&
+-		    strcmp(id, p->name) == 0 && try_module_get(p->owner)) {
++		if (p->id == idno && strcmp(id, p->name) == 0) {
+ 			clk = p;
+ 			goto found;
  		}
  	}
--	propagate_rate(&ck_dpll1);
- #else
- 	/* Find the highest supported frequency and enable it */
- 	if (omap1_select_table_rate(&virtual_ck_mpu, ~0)) {
-@@ -796,9 +789,9 @@ int __init omap1_clk_init(void)
- 		omap_writew(0x2290, DPLL_CTL);
- 		omap_writew(cpu_is_omap730() ? 0x3005 : 0x1005, ARM_CKCTL);
- 		ck_dpll1.rate = 60000000;
--		propagate_rate(&ck_dpll1);
- 	}
- #endif
-+	propagate_rate(&ck_dpll1);
- 	/* Cache rates for clocks connected to ck_ref (not dpll1) */
- 	propagate_rate(&ck_ref);
- 	printk(KERN_INFO "Clocking rate (xtal/DPLL1/MPU): "
+ 
+ 	list_for_each_entry(p, &clocks, node) {
+-		if (strcmp(id, p->name) == 0 && try_module_get(p->owner)) {
++		if (strcmp(id, p->name) == 0) {
+ 			clk = p;
+ 			break;
+ 		}
+@@ -148,8 +147,6 @@ EXPORT_SYMBOL(clk_get_rate);
+ 
+ void clk_put(struct clk *clk)
+ {
+-	if (clk && !IS_ERR(clk))
+-		module_put(clk->owner);
+ }
+ EXPORT_SYMBOL(clk_put);
+ 
+diff --git a/arch/arm/plat-omap/include/mach/clock.h b/arch/arm/plat-omap/include/mach/clock.h
+index 40a2ac3..547619f 100644
+--- a/arch/arm/plat-omap/include/mach/clock.h
++++ b/arch/arm/plat-omap/include/mach/clock.h
+@@ -65,7 +65,6 @@ struct dpll_data {
+ struct clk {
+ 	struct list_head	node;
+ 	const struct clkops	*ops;
+-	struct module		*owner;
+ 	const char		*name;
+ 	int			id;
+ 	struct clk		*parent;
 -- 
 1.6.1.2
 
