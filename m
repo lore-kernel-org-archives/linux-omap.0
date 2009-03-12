@@ -1,40 +1,103 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: RFD: OMAP PRCM register access holding up PM branch submissions
-Date: Thu, 12 Mar 2009 16:28:04 +0000
-Message-ID: <20090312162804.GA7179@n2100.arm.linux.org.uk>
-References: <87hc1y930c.fsf@deeprootsystems.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Adrian Hunter <adrian.hunter@nokia.com>
+Subject: [PATCH 9/10] OMAP: HSMMC: Fix MMC3 dma
+Date: Thu, 12 Mar 2009 18:23:53 +0200
+Message-ID: <20090312162353.19421.55941.sendpatchset@ahunter-laptop>
+References: <20090312162252.19421.34019.sendpatchset@ahunter-laptop>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:49445 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758108AbZCLQ2U (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 12 Mar 2009 12:28:20 -0400
-Content-Disposition: inline
-In-Reply-To: <87hc1y930c.fsf@deeprootsystems.com>
+Received: from smtp.nokia.com ([192.100.122.233]:17388 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757568AbZCLQYA (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 12 Mar 2009 12:24:00 -0400
+In-Reply-To: <20090312162252.19421.34019.sendpatchset@ahunter-laptop>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@deeprootsystems.com>
-Cc: Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.arm.linux.org.uk
+To: Pierre Ossman <drzeus-mmc@drzeus.cx>
+Cc: Jarkko Lavinen <jarkko.lavinen@nokia.com>, Adrian Hunter <adrian.hunter@nokia.com>, Grazvydas Ignotas <notasas@gmail.com>, David Brownell <david-b@pacbell.net>, linux-omap Mailing List <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, lkml <linux-kernel@vger.kernel.org>
 
-On Thu, Mar 12, 2009 at 08:25:55AM -0700, Kevin Hilman wrote:
-> So, what is the path forward?  If you are not opposed to moving to the
-> 'MOD + offset' approach in principle, I propose we just make a new
-> attempt at converting to it.
+>From 6cdb22ab764bf852097674c26d521d3e8a1e5581 Mon Sep 17 00:00:00 2001
+From: Grazvydas Ignotas <notasas at>
+Date: Sat, 3 Jan 2009 10:36:13 +0000
+Subject: [PATCH] OMAP: HSMMC: Fix MMC3 dma
 
-The path forward is that I'm not going to do anything further on this
-until after the next merge window[*].  I only officially spend one day
-a week on TI stuff, and I've spent rather more than that over the course
-of the last cycle at the expense of other work.
+Data transfers on third OMAP3 MMC controller don't work
+because DMA line numbers are only defined for MMC1 and MMC2.
+Fix that and store line numbers in mmc_omap_host structure
+to reduce code size.
+Tested on OMAP3 pandora board.
 
-So it's now time that these other people who had been squeezed out get
-my attention up until the next merge window.  I'm thinking of things
-like highmem, MXC, and so forth.
+Signed-off-by: Grazvydas Ignotas <notasas <at> gmail.com>
+---
+ drivers/mmc/host/omap_hsmmc.c |   36 +++++++++++++++++++++++++-----------
+ 1 files changed, 25 insertions(+), 11 deletions(-)
 
+diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
+index 0e47073..91381f4 100644
+--- a/drivers/mmc/host/omap_hsmmc.c
++++ b/drivers/mmc/host/omap_hsmmc.c
+@@ -100,6 +100,7 @@
+  */
+ #define OMAP_MMC1_DEVID		0
+ #define OMAP_MMC2_DEVID		1
++#define OMAP_MMC3_DEVID		2
+ 
+ #define MMC_TIMEOUT_MS		20
+ #define OMAP_MMC_MASTER_CLOCK	96000000
+@@ -147,6 +148,7 @@ struct mmc_omap_host {
+ 	int			irq;
+ 	int			carddetect;
+ 	int			use_dma, dma_ch;
++	int			dma_line_tx, dma_line_rx;
+ 	int			slot_id;
+ 	int			dbclk_enabled;
+ 	int			response_busy;
+@@ -652,17 +654,10 @@ static int mmc_omap_get_dma_sync_dev(struct mmc_omap_host *host,
+ {
+ 	int sync_dev;
+ 
+-	if (data->flags & MMC_DATA_WRITE) {
+-		if (host->id == OMAP_MMC1_DEVID)
+-			sync_dev = OMAP24XX_DMA_MMC1_TX;
+-		else
+-			sync_dev = OMAP24XX_DMA_MMC2_TX;
+-	} else {
+-		if (host->id == OMAP_MMC1_DEVID)
+-			sync_dev = OMAP24XX_DMA_MMC1_RX;
+-		else
+-			sync_dev = OMAP24XX_DMA_MMC2_RX;
+-	}
++	if (data->flags & MMC_DATA_WRITE)
++		sync_dev = host->dma_line_tx;
++	else
++		sync_dev = host->dma_line_rx;
+ 	return sync_dev;
+ }
+ 
+@@ -1134,6 +1129,25 @@ static int __init omap_mmc_probe(struct platform_device *pdev)
+ 
+ 	omap_hsmmc_init(host);
+ 
++	/* Select DMA lines */
++	switch (host->id) {
++	case OMAP_MMC1_DEVID:
++		host->dma_line_tx = OMAP24XX_DMA_MMC1_TX;
++		host->dma_line_rx = OMAP24XX_DMA_MMC1_RX;
++		break;
++	case OMAP_MMC2_DEVID:
++		host->dma_line_tx = OMAP24XX_DMA_MMC2_TX;
++		host->dma_line_rx = OMAP24XX_DMA_MMC2_RX;
++		break;
++	case OMAP_MMC3_DEVID:
++		host->dma_line_tx = OMAP34XX_DMA_MMC3_TX;
++		host->dma_line_rx = OMAP34XX_DMA_MMC3_RX;
++		break;
++	default:
++		dev_err(mmc_dev(host->mmc), "Invalid MMC id\n");
++		goto err_irq;
++	}
++
+ 	/* Request IRQ for MMC operations */
+ 	ret = request_irq(host->irq, mmc_omap_irq, IRQF_DISABLED,
+ 			mmc_hostname(mmc), host);
+-- 
+1.5.6.3
 
-* - I was hoping to get the entire queued contents of my omap-clks3
-branch out on to linux-omap, but having encountered problems with the
-shere amount of email causing the load to sky rocket resulting in the
-OOM killer going crazy on my firewall, I'm not going to be able to do
-that.  So, the omap-clks3 branch is currently in limbo and as such might
-*not* get merged during the next window.
