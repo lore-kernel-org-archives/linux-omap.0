@@ -1,48 +1,46 @@
 From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: ioremap bug?
-Date: Thu, 12 Mar 2009 14:27:55 -0700
-Message-ID: <87fxhi5t44.fsf@deeprootsystems.com>
-References: <496565EC904933469F292DDA3F1663E60287CA6EC4@dlee06.ent.ti.com>
-	<7A436F7769CA33409C6B44B358BFFF0CFF51DF41@dlee02.ent.ti.com>
-	<87zlfq6497.fsf@deeprootsystems.com>
-	<7A436F7769CA33409C6B44B358BFFF0CFF51E139@dlee02.ent.ti.com>
-	<13B9B4C6EF24D648824FF11BE8967162037B7D2E7E@dlee02.ent.ti.com>
+Subject: Re: [PATCH 38/86] [ARM] OMAP: Fix sparse, checkpatch warnings in OMAP2/3 PRCM/PM code
+Date: Thu, 12 Mar 2009 14:32:51 -0700
+Message-ID: <871vt25svw.fsf@deeprootsystems.com>
+References: <1236882516-29403-38-git-send-email-khilman@deeprootsystems.com>
+	<1236882516-29403-39-git-send-email-khilman@deeprootsystems.com>
+	<FCCFB4CDC6E5564B9182F639FC35608702EA75D2CB@dbde02.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ag-out-0708.google.com ([72.14.246.248]:4990 "EHLO
-	ag-out-0708.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752383AbZCLV2C (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 12 Mar 2009 17:28:02 -0400
-Received: by ag-out-0708.google.com with SMTP id 26so1222290agb.10
-        for <linux-omap@vger.kernel.org>; Thu, 12 Mar 2009 14:27:59 -0700 (PDT)
-In-Reply-To: <13B9B4C6EF24D648824FF11BE8967162037B7D2E7E@dlee02.ent.ti.com> (Richard Woodruff's message of "Thu\, 12 Mar 2009 14\:32\:53 -0500")
+Received: from wf-out-1314.google.com ([209.85.200.169]:48401 "EHLO
+	wf-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753032AbZCLVc5 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 12 Mar 2009 17:32:57 -0400
+Received: by wf-out-1314.google.com with SMTP id 28so1377561wfa.4
+        for <linux-omap@vger.kernel.org>; Thu, 12 Mar 2009 14:32:54 -0700 (PDT)
+In-Reply-To: <FCCFB4CDC6E5564B9182F639FC35608702EA75D2CB@dbde02.ent.ti.com> (Vikram Pandita's message of "Fri\, 13 Mar 2009 02\:09\:19 +0530")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Woodruff, Richard" <r-woodruff2@ti.com>
-Cc: "Menon, Nishanth" <nm@ti.com>, "Guzman Lugo, Fernando" <x0095840@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Kanigeri, Hari" <h-kanigeri2@ti.com>, "Lakhani, Amish" <amish@ti.com>, "Gupta, Ramesh" <grgupta@ti.com>, Ameya Palande <ameya.palande@nokia.com>
+To: "Pandita, Vikram" <vikram.pandita@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-"Woodruff, Richard" <r-woodruff2@ti.com> writes:
+"Pandita, Vikram" <vikram.pandita@ti.com> writes:
 
->> Kevin,
->> Some more isolation:
->> The l-o master branch does not have an issue, only the pm branch seems to have
->> the problem - probably some commit(s?) missing in pm branch. Since bridge is
->> based off the pm branch, wont make sense to regress on it :(.
+>>From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Kevin
+>>Hilman
+>>Sent: Thursday, March 12, 2009 1:28 PM
+>>To: linux-omap@vger.kernel.org
+>>Subject: [PATCH 38/86] [ARM] OMAP: Fix sparse, checkpatch warnings in OMAP2/3 PRCM/PM code
 >
-> This rings a bell from a couple months back.  I've not followed the thread but recall a recent fix to ioremap.
+> Patch fails apply to kernel.org master: 0038
 >
-> http://www.mail-archive.com/linux-omap@vger.kernel.org/msg08836.html
+> Applying: OMAP: Fix sparse, checkpatch warnings in OMAP2/3 PRCM/PM code
+> error: patch failed: arch/arm/mach-omap2/clock.c:571
+> error: arch/arm/mach-omap2/clock.c: patch does not apply
 >
 
-Yes, I was trying to remember why this sounded familiar, thanks
-Richard.
+Sorry, I forgot to mention this in PATCH 00/86.
 
-The reason it works on l-o and not PM branch is because PM branch is
-still 2.6.8 based, and l-o is on 2.6.29-rc which has a fix for this.
+This series is not against vanilla kernel.org.  It is against one of
+Tony's 'omap-fixes' branches that Russell had already pulled in.
 
-Nishant, can you try to cherry-pick commit
-24f11ec001920f1cfaeeed8e8b55725d900bbb56 from Linus' tree into your PM
-branch and see if that helps.
+If you want to build/boot test, I suggest using Russell's branch
+directly.
 
 Kevin
