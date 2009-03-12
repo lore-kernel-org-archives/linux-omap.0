@@ -1,7 +1,7 @@
 From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: [PATCH 44/86] [ARM] OMAP: Make dpll4_m4_ck programmable with clk_set_rate()
-Date: Thu, 12 Mar 2009 11:27:54 -0700
-Message-ID: <1236882516-29403-45-git-send-email-khilman@deeprootsystems.com>
+Subject: [PATCH 42/86] [ARM] OMAP2: Fix definition of SGX clock register bits
+Date: Thu, 12 Mar 2009 11:27:52 -0700
+Message-ID: <1236882516-29403-43-git-send-email-khilman@deeprootsystems.com>
 References: <1236882516-29403-1-git-send-email-khilman@deeprootsystems.com>
  <1236882516-29403-2-git-send-email-khilman@deeprootsystems.com>
  <1236882516-29403-3-git-send-email-khilman@deeprootsystems.com>
@@ -44,64 +44,78 @@ References: <1236882516-29403-1-git-send-email-khilman@deeprootsystems.com>
  <1236882516-29403-40-git-send-email-khilman@deeprootsystems.com>
  <1236882516-29403-41-git-send-email-khilman@deeprootsystems.com>
  <1236882516-29403-42-git-send-email-khilman@deeprootsystems.com>
- <1236882516-29403-43-git-send-email-khilman@deeprootsystems.com>
- <1236882516-29403-44-git-send-email-khilman@deeprootsystems.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-gx0-f163.google.com ([209.85.217.163]:60567 "EHLO
-	mail-gx0-f163.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756694AbZCLSby (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 12 Mar 2009 14:31:54 -0400
-Received: by mail-gx0-f163.google.com with SMTP id 7so458514gxk.13
-        for <linux-omap@vger.kernel.org>; Thu, 12 Mar 2009 11:31:53 -0700 (PDT)
-In-Reply-To: <1236882516-29403-44-git-send-email-khilman@deeprootsystems.com>
+Received: from mail-qy0-f122.google.com ([209.85.221.122]:33493 "EHLO
+	mail-qy0-f122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756689AbZCLSbt (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 12 Mar 2009 14:31:49 -0400
+Received: by qyk28 with SMTP id 28so2233977qyk.33
+        for <linux-omap@vger.kernel.org>; Thu, 12 Mar 2009 11:31:46 -0700 (PDT)
+In-Reply-To: <1236882516-29403-42-git-send-email-khilman@deeprootsystems.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 
-=46rom: Paul Walmsley <paul@pwsan.com>
+From: Daniel Stone <daniel.stone@nokia.com>
 
-=46illing the set_rate and round_rate fields of dpll4_m4_ck makes
-this clock programmable through clk_set_rate().  This is needed
-to give omapfb control over the dss1_alwon_fck rate.
+The GFX/SGX functional and interface clocks have different masks, for
+some unknown reason, so split EN_SGX_SHIFT into one each for fclk and
+iclk.
 
-This patch includes a fix from Tomi Valkeinen <tomi.valkeinen@nokia.com=
->.
+Correct according to the TRM and the far more important 'does this
+actually work at all?' metric.
 
-linux-omap source commits are e42218d45afbc3e654e289e021e6b80c657b16c2 =
-and
-9d211b761b3cdf7736602ecf7e68f8a298c13278.
+linux-omap source commit is de1121fdb899f762b9e717f44eaf3fae7c00cd3e.
 
-Signed-off-by: M=C3=A5ns Rullg=C3=A5rd <mans@mansr.com>
-Signed-off-by: Tomi Valkeinen <tomi.valkeinen@nokia.com>
-Signed-off-by: Paul Walmsley <paul@pwsan.com>
+Signed-off-by: Daniel Stone <daniel.stone@nokia.com>
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
 ---
- arch/arm/mach-omap2/clock34xx.h |    2 ++
- 1 files changed, 2 insertions(+), 0 deletions(-)
+ arch/arm/mach-omap2/clock34xx.h       |    4 ++--
+ arch/arm/mach-omap2/cm-regbits-34xx.h |    8 ++++++--
+ 2 files changed, 8 insertions(+), 4 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/clock34xx.h b/arch/arm/mach-omap2/cloc=
-k34xx.h
-index c265cdc..65929cc 100644
+diff --git a/arch/arm/mach-omap2/clock34xx.h b/arch/arm/mach-omap2/clock34xx.h
+index 2c84717..6b39ad4 100644
 --- a/arch/arm/mach-omap2/clock34xx.h
 +++ b/arch/arm/mach-omap2/clock34xx.h
-@@ -811,6 +811,8 @@ static struct clk dpll4_m4_ck =3D {
- 	.clksel		=3D div16_dpll4_clksel,
- 	.flags		=3D RATE_PROPAGATES,
- 	.recalc		=3D &omap2_clksel_recalc,
-+	.set_rate	=3D &omap2_clksel_set_rate,
-+	.round_rate	=3D &omap2_clksel_round_rate,
+@@ -1293,7 +1293,7 @@ static struct clk sgx_fck = {
+ 	.ops		= &clkops_omap2_dflt_wait,
+ 	.init		= &omap2_init_clksel_parent,
+ 	.enable_reg	= OMAP_CM_REGADDR(OMAP3430ES2_SGX_MOD, CM_FCLKEN),
+-	.enable_bit	= OMAP3430ES2_EN_SGX_SHIFT,
++	.enable_bit	= OMAP3430ES2_CM_FCLKEN_SGX_EN_SGX_SHIFT,
+ 	.clksel_reg	= OMAP_CM_REGADDR(OMAP3430ES2_SGX_MOD, CM_CLKSEL),
+ 	.clksel_mask	= OMAP3430ES2_CLKSEL_SGX_MASK,
+ 	.clksel		= sgx_clksel,
+@@ -1307,7 +1307,7 @@ static struct clk sgx_ick = {
+ 	.parent		= &l3_ick,
+ 	.init		= &omap2_init_clk_clkdm,
+ 	.enable_reg	= OMAP_CM_REGADDR(OMAP3430ES2_SGX_MOD, CM_ICLKEN),
+-	.enable_bit	= OMAP3430ES2_EN_SGX_SHIFT,
++	.enable_bit	= OMAP3430ES2_CM_ICLKEN_SGX_EN_SGX_SHIFT,
+ 	.clkdm_name	= "sgx_clkdm",
+ 	.recalc		= &followparent_recalc,
  };
-=20
- /* The PWRDN bit is apparently only available on 3430ES2 and above */
---=20
+diff --git a/arch/arm/mach-omap2/cm-regbits-34xx.h b/arch/arm/mach-omap2/cm-regbits-34xx.h
+index a46f93c..f3c327b 100644
+--- a/arch/arm/mach-omap2/cm-regbits-34xx.h
++++ b/arch/arm/mach-omap2/cm-regbits-34xx.h
+@@ -332,8 +332,12 @@
+ #define OMAP3430ES1_CLKACTIVITY_GFX_MASK		(1 << 0)
+ 
+ /* CM_FCLKEN_SGX */
+-#define OMAP3430ES2_EN_SGX_SHIFT			1
+-#define OMAP3430ES2_EN_SGX_MASK				(1 << 1)
++#define OMAP3430ES2_CM_FCLKEN_SGX_EN_SGX_SHIFT		1
++#define OMAP3430ES2_CM_FCLKEN_SGX_EN_SGX_MASK		(1 << 1)
++
++/* CM_ICLKEN_SGX */
++#define OMAP3430ES2_CM_ICLKEN_SGX_EN_SGX_SHIFT		0
++#define OMAP3430ES2_CM_ICLKEN_SGX_EN_SGX_MASK		(1 << 0)
+ 
+ /* CM_CLKSEL_SGX */
+ #define OMAP3430ES2_CLKSEL_SGX_SHIFT			0
+-- 
 1.6.1.2
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
