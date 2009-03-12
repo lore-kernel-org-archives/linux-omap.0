@@ -1,112 +1,53 @@
-From: "Gupta, Ramesh" <grgupta@ti.com>
-Subject: [PATCH] DSPBRIDGE Fix for auto image load updated
-Date: Thu, 12 Mar 2009 20:54:38 +0530
-Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB02A8FD0BFD@dbde02.ent.ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+From: Aaro Koskinen <Aaro.Koskinen@nokia.com>
+Subject: [PM PATCH] OMAP3: PM: Fix INTC context save/restore
+Date: Thu, 12 Mar 2009 18:12:29 +0200
+Message-ID: <1236874349-31261-1-git-send-email-Aaro.Koskinen@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:45178 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753583AbZCLPZ1 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 12 Mar 2009 11:25:27 -0400
-Received: from dbdp20.itg.ti.com ([172.24.170.38])
-	by bear.ext.ti.com (8.13.7/8.13.7) with ESMTP id n2CFPJft026122
-	for <linux-omap@vger.kernel.org>; Thu, 12 Mar 2009 10:25:25 -0500
-Received: from dbde70.ent.ti.com (localhost [127.0.0.1])
-	by dbdp20.itg.ti.com (8.13.8/8.13.8) with ESMTP id n2CFPHRY024117
-	for <linux-omap@vger.kernel.org>; Thu, 12 Mar 2009 20:55:18 +0530 (IST)
-Content-Language: en-US
+Received: from smtp.nokia.com ([192.100.122.230]:23895 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753633AbZCLQMn (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 12 Mar 2009 12:12:43 -0400
+Received: from esebh105.NOE.Nokia.com (esebh105.ntc.nokia.com [172.21.138.211])
+	by mgw-mx03.nokia.com (Switch-3.2.6/Switch-3.2.6) with ESMTP id n2CGCOev021540
+	for <linux-omap@vger.kernel.org>; Thu, 12 Mar 2009 18:12:37 +0200
+Received: from localhost.localdomain (esdhcp043221.research.nokia.com [172.21.43.221])
+	by mgw-int01.ntc.nokia.com (Switch-3.2.5/Switch-3.2.5) with ESMTP id n2CGCTWk019644
+	for <linux-omap@vger.kernel.org>; Thu, 12 Mar 2009 18:12:29 +0200
+In-Reply-To: <>
+References: <>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
-Cc: "Menon, Nishanth" <nm@ti.com>, "Kanigeri, Hari" <h-kanigeri2@ti.com>
+To: linux-omap@vger.kernel.org
 
->From 757beb63e8e66c168231dd990440816fc5789d6c Mon Sep 17 00:00:00 2001
-From: Ramesh Gupta <grgupta@ti.com>
-Date: Thu, 12 Mar 2009 09:32:31 -0500
-Subject: [PATCH] DSPBRIDGE Fix for auto image load updated
-Resending as the previous patch was not applyng cleanly.
-This is updated patch to fix the auto image loading while bridgedriver initialization.
+Wrong index was used for ILR.
 
-Signed-off-by: Ramesh Gupta G <grgupta@ti.com>
+Signed-off-by: Aaro Koskinen <Aaro.Koskinen@nokia.com>
 ---
- drivers/dsp/bridge/rmgr/drv_interface.c |   32 +++++++++++++++---------------
- 1 files changed, 16 insertions(+), 16 deletions(-)
+ arch/arm/mach-omap2/irq.c |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/dsp/bridge/rmgr/drv_interface.c b/drivers/dsp/bridge/rmgr/drv_interface.c
-index 3ad7a43..80edc4d 100755
---- a/drivers/dsp/bridge/rmgr/drv_interface.c
-+++ b/drivers/dsp/bridge/rmgr/drv_interface.c
-@@ -400,7 +400,7 @@ static int __init bridge_init(void)
- 		REG_SetValue(NULL, NULL, AUTOSTART, REG_DWORD, (u8 *)&temp,
- 			    sizeof(temp));
- 		REG_SetValue(NULL, NULL, DEFEXEC, REG_SZ, (u8 *)base_img,
--                           strlen(base_img) + 1);
-+						strlen(base_img) + 1);
- 	} else {
- 		temp = false;
- 		REG_SetValue(NULL, NULL, AUTOSTART, REG_DWORD, (u8 *)&temp,
-@@ -408,7 +408,7 @@ static int __init bridge_init(void)
- 		REG_SetValue(NULL, NULL, DEFEXEC, REG_SZ, (u8 *) "\0", (u32)2);
- 	}
- 	REG_SetValue(NULL, NULL, NUMPROCS, REG_SZ, (u8 *) num_procs,
--                   strlen(num_procs) + 1);
-+						strlen(num_procs) + 1);
- 
- 	if (shm_size >= 0x10000) {	/* 64 KB */
- 		initStatus = REG_SetValue(NULL, NULL, SHMSIZE, REG_DWORD,
-@@ -450,18 +450,9 @@ static int __init bridge_init(void)
- 			    sizeof(tc_wordswapon));
- 	}
- 	if (DSP_SUCCEEDED(initStatus)) {
--		driverContext = DSP_Init(&initStatus);
--		if (DSP_FAILED(initStatus)) {
--			status = -1;
--			GT_0trace(driverTrace, GT_7CLASS,
--				 "DSP/BIOS Bridge initialization Failed\n");
--		} else {
--			GT_0trace(driverTrace, GT_5CLASS,
--					"DSP/BIOS Bridge driver loaded\n");
--		}
- #ifdef CONFIG_BRIDGE_DVFS
--		for (i = 0; i < 5; i++)
--                       pdata->mpu_speed[i] = vdd1_rate_table_bridge[i].rate;
-+		for (i = 0; i < 6; i++)
-+			pdata->mpu_speed[i] = vdd1_rate_table_bridge[i].rate;
- 
- 		clk_handle = clk_get(NULL, "iva2_ck");
- 		if (!clk_handle) {
-@@ -479,6 +470,15 @@ static int __init bridge_init(void)
- 			"clk_notifier_register FAIL for iva2_ck \n");
- 		}
- #endif
-+		driverContext = DSP_Init(&initStatus);
-+		if (DSP_FAILED(initStatus)) {
-+			status = -1;
-+			GT_0trace(driverTrace, GT_7CLASS,
-+				 "DSP/BIOS Bridge initialization Failed\n");
-+		} else {
-+			GT_0trace(driverTrace, GT_5CLASS,
-+					"DSP/BIOS Bridge driver loaded\n");
-+		}
- 	}
- 
- 	DBC_Assert(status == 0);
-@@ -655,11 +655,11 @@ func_cont:
- 				(struct DRV_OBJECT *)hDrvObject, &pPctxt);
- 
- 	if (pPctxt != NULL) {
--               /* Return PID instead of process handle */
--               hProcess = current->pid;
-+			/* Return PID instead of process handle */
-+			hProcess = current->pid;
- 
- 		DRV_ProcUpdatestate(pPctxt, PROC_RES_ALLOCATED);
--               DRV_ProcSetPID(pPctxt, hProcess);
-+			DRV_ProcSetPID(pPctxt, hProcess);
- 	}
- #endif
- 
+diff --git a/arch/arm/mach-omap2/irq.c b/arch/arm/mach-omap2/irq.c
+index 6cc5757..f813916 100644
+--- a/arch/arm/mach-omap2/irq.c
++++ b/arch/arm/mach-omap2/irq.c
+@@ -244,7 +244,7 @@ void omap3_intc_save_context(void)
+ 			intc_bank_read_reg(bank, INTC_THRESHOLD);
+ 		for (i = 0; i < INTCPS_NR_IRQS; i++)
+ 			intc_context[ind].ilr[i] =
+-				intc_bank_read_reg(bank, (0x100 + 0x4*ind));
++				intc_bank_read_reg(bank, (0x100 + 0x4*i));
+ 		for (i = 0; i < INTCPS_NR_MIR_REGS; i++)
+ 			intc_context[ind].mir[i] =
+ 				intc_bank_read_reg(&irq_banks[0], INTC_MIR0 +
+@@ -270,7 +270,7 @@ void omap3_intc_restore_context(void)
+ 					bank, INTC_THRESHOLD);
+ 		for (i = 0; i < INTCPS_NR_IRQS; i++)
+ 			intc_bank_write_reg(intc_context[ind].ilr[i],
+-				bank, (0x100 + 0x4*ind));
++				bank, (0x100 + 0x4*i));
+ 		for (i = 0; i < INTCPS_NR_MIR_REGS; i++)
+ 			intc_bank_write_reg(intc_context[ind].mir[i],
+ 				 &irq_banks[0], INTC_MIR0 + (0x20 * i));
 -- 
-1.5.4.2
+1.5.4.3
+
