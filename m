@@ -1,18 +1,18 @@
 From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH] Start C-state definitions from base 0
-Date: Thu, 12 Mar 2009 14:52:56 -0700
-Message-ID: <87ocw64ddz.fsf@deeprootsystems.com>
-References: <1236889769-32587-1-git-send-email-premi@ti.com>
+Subject: Re: [PATCH] PM: Fix compile warnings with !CONFIG_OMAP_PM_SRF
+Date: Thu, 12 Mar 2009 15:00:14 -0700
+Message-ID: <87hc1y4d1t.fsf@deeprootsystems.com>
+References: <1236891507-5687-1-git-send-email-premi@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-gx0-f163.google.com ([209.85.217.163]:36656 "EHLO
-	mail-gx0-f163.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752118AbZCLVxL (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 12 Mar 2009 17:53:11 -0400
-Received: by gxk7 with SMTP id 7so532442gxk.13
-        for <linux-omap@vger.kernel.org>; Thu, 12 Mar 2009 14:53:08 -0700 (PDT)
-In-Reply-To: <1236889769-32587-1-git-send-email-premi@ti.com> (Sanjeev Premi's message of "Fri\, 13 Mar 2009 01\:59\:29 +0530")
+Received: from ag-out-0708.google.com ([72.14.246.241]:1839 "EHLO
+	ag-out-0708.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751678AbZCLWAU (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 12 Mar 2009 18:00:20 -0400
+Received: by ag-out-0708.google.com with SMTP id 26so1240241agb.10
+        for <linux-omap@vger.kernel.org>; Thu, 12 Mar 2009 15:00:18 -0700 (PDT)
+In-Reply-To: <1236891507-5687-1-git-send-email-premi@ti.com> (Sanjeev Premi's message of "Fri\, 13 Mar 2009 02\:28\:27 +0530")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Sanjeev Premi <premi@ti.com>
@@ -20,77 +20,43 @@ Cc: linux-omap@vger.kernel.org
 
 Sanjeev Premi <premi@ti.com> writes:
 
-> From:	Sanjeev Premi <premi@ti.com>
-> Subject: [PATCH] Start C-state definitions from base 0
-> To:	linux-omap@vger.kernel.org
-> Cc:	Sanjeev Premi <premi@ti.com>
-> Date:	Fri, 13 Mar 2009 01:59:29 +0530
+> Fixes the compile warnings:
 >
-> The current definition of C-states starts from base 1.
-> Whereas, the cpuidle driver uses base 0. This patch
-> eliminates need for explicit mapping due to different
-> base values.
-
-Thanks!
-
+>   CC      arch/arm/mach-omap2/pm.o
+> arch/arm/mach-omap2/pm.c:47: warning: 'vdd1_locked' defined but not used
+> arch/arm/mach-omap2/pm.c:48: warning: 'vdd2_locked' defined but not used
+>
 > Signed-off-by: Sanjeev Premi <premi@ti.com>
-> ---
->  arch/arm/mach-omap2/cpuidle34xx.c |   21 ++++++++++-----------
->  1 files changed, 10 insertions(+), 11 deletions(-)
->
-> diff --git a/arch/arm/mach-omap2/cpuidle34xx.c b/arch/arm/mach-omap2/cpuidle34xx.c
-> index 62fbb2e..d7208f3 100644
-> --- a/arch/arm/mach-omap2/cpuidle34xx.c
-> +++ b/arch/arm/mach-omap2/cpuidle34xx.c
-> @@ -33,13 +33,13 @@
->  
->  #ifdef CONFIG_CPU_IDLE
->  
-> -#define OMAP3_MAX_STATES 7
-> -#define OMAP3_STATE_C1 1 /* C1 - MPU WFI + Core active */
-> -#define OMAP3_STATE_C2 2 /* C2 - MPU CSWR + Core active */
-> -#define OMAP3_STATE_C3 3 /* C3 - MPU OFF + Core active */
-> -#define OMAP3_STATE_C4 4 /* C4 - MPU RET + Core RET */
-> -#define OMAP3_STATE_C5 5 /* C5 - MPU OFF + Core RET */
-> -#define OMAP3_STATE_C6 6 /* C6 - MPU OFF + Core OFF */
-> +#define OMAP3_MAX_STATES 6
-> +#define OMAP3_STATE_C1 0 /* C1 - MPU WFI + Core active */
-> +#define OMAP3_STATE_C2 1 /* C2 - MPU CSWR + Core active */
-> +#define OMAP3_STATE_C3 2 /* C3 - MPU OFF + Core active */
-> +#define OMAP3_STATE_C4 3 /* C4 - MPU RET + Core RET */
-> +#define OMAP3_STATE_C5 4 /* C5 - MPU OFF + Core RET */
-> +#define OMAP3_STATE_C6 5 /* C6 - MPU OFF + Core OFF */
->  
->  struct omap3_processor_cx {
->  	u8 valid;
-> @@ -228,7 +228,7 @@ struct cpuidle_driver omap3_idle_driver = {
->   */
->  int omap3_idle_init(void)
->  {
-> -	int i, count = 0;
-> +	int count = 0;
->  	struct omap3_processor_cx *cx;
->  	struct cpuidle_state *state;
->  	struct cpuidle_device *dev;
-> @@ -244,8 +244,8 @@ int omap3_idle_init(void)
->  
->  	dev = &per_cpu(omap3_idle_dev, smp_processor_id());
->  
-> -	for (i = 1; i < OMAP3_MAX_STATES; i++) {
-> -		cx = &omap3_power_states[i];
-> +	for (count = 1; count < OMAP3_MAX_STATES; count++) {
-> +		cx = &omap3_power_states[count];
->  		state = &dev->states[count];
 
-If you're going to drop the separation of the iterator and 'count'
-then you should drop the 'if (cx->valid) continue' part as well.
-Otherwise, states that are not valid at boot time will never be
-visible to CPUidle.
-
-This way, all the states, valid or not, are registered with CPUidle,
-and the enter hook will sort out the difference.
-
-This change may be more appropriate for for your patch which adds
-support for checking the valid field.
+Thanks, pushing to PM, with a slight change.  I moved the definitions
+down into another #ifdef CONFIG_OMAP_PM_SRF instead of adding a new
+one.
 
 Kevin
+
+> ---
+>  arch/arm/mach-omap2/pm.c |    2 ++
+>  1 files changed, 2 insertions(+), 0 deletions(-)
+>
+> diff --git a/arch/arm/mach-omap2/pm.c b/arch/arm/mach-omap2/pm.c
+> index 61c6dfb..0fe6f1a 100644
+> --- a/arch/arm/mach-omap2/pm.c
+> +++ b/arch/arm/mach-omap2/pm.c
+> @@ -44,8 +44,10 @@ unsigned short clocks_off_while_idle;
+>  unsigned short enable_off_mode;
+>  unsigned short voltage_off_while_idle;
+>  atomic_t sleep_block = ATOMIC_INIT(0);
+> +#ifdef CONFIG_OMAP_PM_SRF
+>  static int vdd1_locked;
+>  static int vdd2_locked;
+> +#endif
+>  
+>  static ssize_t idle_show(struct kobject *, struct kobj_attribute *, char *);
+>  static ssize_t idle_store(struct kobject *k, struct kobj_attribute *,
+> -- 
+> 1.5.6
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
