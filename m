@@ -1,7 +1,7 @@
 From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: [PATCH 85/86] [ARM] omap: ensure that failing power domain lookups produce errors
-Date: Thu, 12 Mar 2009 11:28:35 -0700
-Message-ID: <1236882516-29403-86-git-send-email-khilman@deeprootsystems.com>
+Subject: [PATCH 86/86] [ARM] omap: clk_set_parent: deny changing parent if clock is enabled
+Date: Thu, 12 Mar 2009 11:28:36 -0700
+Message-ID: <1236882516-29403-87-git-send-email-khilman@deeprootsystems.com>
 References: <1236882516-29403-1-git-send-email-khilman@deeprootsystems.com>
  <1236882516-29403-2-git-send-email-khilman@deeprootsystems.com>
  <1236882516-29403-3-git-send-email-khilman@deeprootsystems.com>
@@ -87,69 +87,100 @@ References: <1236882516-29403-1-git-send-email-khilman@deeprootsystems.com>
  <1236882516-29403-83-git-send-email-khilman@deeprootsystems.com>
  <1236882516-29403-84-git-send-email-khilman@deeprootsystems.com>
  <1236882516-29403-85-git-send-email-khilman@deeprootsystems.com>
+ <1236882516-29403-86-git-send-email-khilman@deeprootsystems.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-gx0-f163.google.com ([209.85.217.163]:57846 "EHLO
-	mail-gx0-f163.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757272AbZCLSeu (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 12 Mar 2009 14:34:50 -0400
-Received: by gxk7 with SMTP id 7so461445gxk.13
-        for <linux-omap@vger.kernel.org>; Thu, 12 Mar 2009 11:34:48 -0700 (PDT)
-In-Reply-To: <1236882516-29403-85-git-send-email-khilman@deeprootsystems.com>
+Received: from wf-out-1314.google.com ([209.85.200.172]:64521 "EHLO
+	wf-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757273AbZCLSew (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 12 Mar 2009 14:34:52 -0400
+Received: by wf-out-1314.google.com with SMTP id 28so1250318wfa.4
+        for <linux-omap@vger.kernel.org>; Thu, 12 Mar 2009 11:34:50 -0700 (PDT)
+In-Reply-To: <1236882516-29403-86-git-send-email-khilman@deeprootsystems.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 
 From: Russell King <rmk@dyn-67.arm.linux.org.uk>
 
-Use pr_err() for errors rather than pr_debug().  pr_debug() are
-compiled away unless -DDEBUG is used.
+Richard Woodruff writes:
+| The historic usage of this has been against single use leaf clocks
+| (1st instance of gptimer).  When it was used it did:
+|       clk_get()
+|       clk_set_parent()
+|       clk_enable()
+|
+| This usage was ok for that. Use on a disabled clock is needed.
+|
+| If there are multiple users on the clock or it is enabled there are
+| problems.
+|
+| The call can still be unfriendly if 2 different drivers are using the
+| clock with their own clock get/enable. It might be the function should
+| return an error if usecount != 0 to stop surprises.  It is all around
+| better if the parenting is done when the clock is off.
 
+This is a good reason to ensure that the clock is not enabled when
+clk_set_parent() is called.
+
+Acked-by: Richard Woodruff <r-woodruff2@ti.com>
 Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
 ---
- arch/arm/mach-omap2/clockdomain.c |   13 +++++--------
- 1 files changed, 5 insertions(+), 8 deletions(-)
+ arch/arm/mach-omap2/clock.c |    6 ------
+ arch/arm/plat-omap/clock.c  |   17 ++++++++++-------
+ 2 files changed, 10 insertions(+), 13 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/clockdomain.c b/arch/arm/mach-omap2/clockdomain.c
-index ae0c53a..0e7d501 100644
---- a/arch/arm/mach-omap2/clockdomain.c
-+++ b/arch/arm/mach-omap2/clockdomain.c
-@@ -74,14 +74,11 @@ static void _autodep_lookup(struct clkdm_pwrdm_autodep *autodep)
- 
- 	pwrdm = pwrdm_lookup(autodep->pwrdm.name);
- 	if (!pwrdm) {
--		pr_debug("clockdomain: _autodep_lookup: powerdomain %s "
--			 "does not exist\n", autodep->pwrdm.name);
--		WARN_ON(1);
-+		pr_err("clockdomain: autodeps: powerdomain %s does not exist\n",
-+			 autodep->pwrdm.name);
- 		pwrdm = ERR_PTR(-ENOENT);
- 	}
- 	autodep->pwrdm.ptr = pwrdm;
--
--	return;
- }
- 
- /*
-@@ -211,8 +208,8 @@ int clkdm_register(struct clockdomain *clkdm)
- 
- 	pwrdm = pwrdm_lookup(clkdm->pwrdm.name);
- 	if (!pwrdm) {
--		pr_debug("clockdomain: clkdm_register %s: powerdomain %s "
--			 "does not exist\n", clkdm->name, clkdm->pwrdm.name);
-+		pr_err("clockdomain: %s: powerdomain %s does not exist\n",
-+			clkdm->name, clkdm->pwrdm.name);
+diff --git a/arch/arm/mach-omap2/clock.c b/arch/arm/mach-omap2/clock.c
+index 40cb65b..f49bce9 100644
+--- a/arch/arm/mach-omap2/clock.c
++++ b/arch/arm/mach-omap2/clock.c
+@@ -807,9 +807,6 @@ int omap2_clk_set_parent(struct clk *clk, struct clk *new_parent)
+ 	if (!parent_div)
  		return -EINVAL;
- 	}
- 	clkdm->pwrdm.ptr = pwrdm;
-@@ -222,7 +219,7 @@ int clkdm_register(struct clockdomain *clkdm)
- 	if (_clkdm_lookup(clkdm->name)) {
- 		ret = -EEXIST;
- 		goto cr_unlock;
--	};
-+	}
  
- 	list_add(&clkdm->node, &clkdm_list);
+-	if (clk->usecount > 0)
+-		_omap2_clk_disable(clk);
+-
+ 	/* Set new source value (previous dividers if any in effect) */
+ 	v = __raw_readl(clk->clksel_reg);
+ 	v &= ~clk->clksel_mask;
+@@ -819,9 +816,6 @@ int omap2_clk_set_parent(struct clk *clk, struct clk *new_parent)
  
+ 	_omap2xxx_clk_commit(clk);
+ 
+-	if (clk->usecount > 0)
+-		_omap2_clk_enable(clk);
+-
+ 	clk_reparent(clk, new_parent);
+ 
+ 	/* CLKSEL clocks follow their parents' rates, divided by a divisor */
+diff --git a/arch/arm/plat-omap/clock.c b/arch/arm/plat-omap/clock.c
+index 08baa18..2e06145 100644
+--- a/arch/arm/plat-omap/clock.c
++++ b/arch/arm/plat-omap/clock.c
+@@ -144,13 +144,16 @@ int clk_set_parent(struct clk *clk, struct clk *parent)
+ 		return ret;
+ 
+ 	spin_lock_irqsave(&clockfw_lock, flags);
+-	if (arch_clock->clk_set_parent)
+-		ret = arch_clock->clk_set_parent(clk, parent);
+-	if (ret == 0) {
+-		if (clk->recalc)
+-			clk->rate = clk->recalc(clk);
+-		propagate_rate(clk);
+-	}
++	if (clk->usecount == 0) {
++		if (arch_clock->clk_set_parent)
++			ret = arch_clock->clk_set_parent(clk, parent);
++		if (ret == 0) {
++			if (clk->recalc)
++				clk->rate = clk->recalc(clk);
++			propagate_rate(clk);
++		}
++	} else
++		ret = -EBUSY;
+ 	spin_unlock_irqrestore(&clockfw_lock, flags);
+ 
+ 	return ret;
 -- 
 1.6.1.2
 
