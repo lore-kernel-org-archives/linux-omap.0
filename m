@@ -1,84 +1,35 @@
-From: Mark Brown <broonie@sirena.org.uk>
-Subject: Re: [patch 2.6.29-rc7 regulator-next] regulator: init fixes
-Date: Thu, 12 Mar 2009 12:01:21 +0000
-Message-ID: <20090312120119.GB24376@sirena.org.uk>
-References: <200903111743.34708.david-b@pacbell.net> <200903111932.16317.david-b@pacbell.net>
+From: "Gupta, Ramesh" <grgupta@ti.com>
+Subject: [PATCH 0/1] DSPBRIDGE Fix for auto image load updated
+Date: Thu, 12 Mar 2009 17:32:55 +0530
+Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB02A8F2C339@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from cassiel.sirena.org.uk ([80.68.93.111]:2213 "EHLO
-	cassiel.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752004AbZCLMBZ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 12 Mar 2009 08:01:25 -0400
-Content-Disposition: inline
-In-Reply-To: <200903111932.16317.david-b@pacbell.net>
+Received: from devils.ext.ti.com ([198.47.26.153]:35057 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751156AbZCLMDx convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 12 Mar 2009 08:03:53 -0400
+Received: from dbdp20.itg.ti.com ([172.24.170.38])
+	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id n2CC3aZW029117
+	for <linux-omap@vger.kernel.org>; Thu, 12 Mar 2009 07:03:44 -0500
+Received: from dbde71.ent.ti.com (localhost [127.0.0.1])
+	by dbdp20.itg.ti.com (8.13.8/8.13.8) with ESMTP id n2CC3Yhj016588
+	for <linux-omap@vger.kernel.org>; Thu, 12 Mar 2009 17:33:34 +0530 (IST)
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: David Brownell <david-b@pacbell.net>
-Cc: Liam Girdwood <lrg@slimlogic.co.uk>, lkml <linux-kernel@vger.kernel.org>, OMAP <linux-omap@vger.kernel.org>
+To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Cc: "Menon, Nishanth" <nm@ti.com>
 
-On Wed, Mar 11, 2009 at 06:32:15PM -0800, David Brownell wrote:
+All,
+There was a typo in the previous patch set to fix dsp image autoloading, 
+This is an updated patch set to fix issues observed with dsp image autoloading.
+Can be applied along with the other DSPBRIDGE patches, validated on OMAP3430 SDP.
 
-> Make the regulator setup code cope more consistently with
-> regulators undesirably left enabled by the bootloader.
 
-First up I'd just like to make it absolutely clear that I agree that
-this is a feature we should have - it's obviously useful.
+ drivers/dsp/bridge/rmgr/drv_interface.c |   30 +++++++++++++++---------------
+ 1 files changed, 15 insertions(+), 15 deletions(-)
 
->  * Unless the "boot_on" or "always_on" machine constraints
->    were set, disable() the regulator.  This gives drivers
->    a clean start state:  enable state matches usecount,
->    regardless of boot_on/always_on flag state.
-
-At the minute the regulator constraints have the property that if you
-pass a zero-initialised set of constraints the regulator API will not do
-anything other than allow you to read the state of the regulator - any
-action taken by the regulator API must be explicitly permitted by code.
-This change will mean that users will have to explicitly mark any
-regulators that are needed as enabled or we'll do unfortunate things.  
-
-It is a particular problem for multi-function devices like pcf50633
-which not only register all their regulators by default but also embed
-constraints within the general pcf50633 platform data.  If the user
-simply turns on the regulator driver in their config they'll get this
-behavior if they don't edit the code.  Even with regulator code I'd not
-be surprised if people were bitten by this for things like the memory or
-a CPU core without regulator based DVFS.
-
-You've addressed some of the use cases for this by providing devmode but
-it's still a big incompatible change, especially at this point in the
-development cycle where we've got at most a couple of weeks to the merge
-window.  We could do this without introducing the incompatibility by
-adding a new flag (eg, boot_off) which machine constraints need to
-explicitly set to enforce this behaviour or by having something machine
-drivers can call to say "now power off any regulators that look idle".
-
-I'm not 100% agaist doing things the way you suggest since there is 
-appeal in having boot_on be more of a boolean but I do feel that if
-we're going to go this way we should do it more gently.  For example, we
-could merge a patch now which warns loudly that this will happen and
-then after the 2.6.30 merge window actually implement it.  This would
-reduce merge issues for machine support coming in via other trees; we're
-rather late in the development cycle to be putting this in right now.
-Not everyone will read a warning but there is some chance they might and
-there's also a chance they'll test in -next.  We should also provide a
-temporary Kconfig which actually enables the behaviour if people request
-it.
-
->  * To help make some integration stages easier, add a new
->    "devmode" machine constraint where state the bootloader
->    left isn't touched, but enable state and usecount may
->    not match.  (System boots but some drivers act odd ...
->    debuggable.  System dies part way through booting ...
->    often painful.)
-
-This also addresses things like the reverse engineering use case where
-people genuinely don't know what's going on and want to use the API to
-inspect the state of the regulators.
-
-I do wonder if we can't come up with a different way of expressing
-devmode - a different name like dont_disable that more directly
-expresses what the constraint does might be more obvious.  Something
-that can enable this globally may also be convenient.
-
-The code itself is OK.
+Regards
+Ramesh Gupta G
