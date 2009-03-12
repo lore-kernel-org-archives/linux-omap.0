@@ -1,44 +1,34 @@
-From: Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH 2/2] i2c: i2c-omap: Call request_irq with IRQF_DISABLED
-Date: Wed, 11 Mar 2009 21:30:50 -0600 (MDT)
-Message-ID: <alpine.DEB.2.00.0903112118140.26959@utopia.booyaka.com>
-References: <cover.1236345858.git.Ext-Ari.Kauppi@nokia.com> <7d7e7dd1a4c64c732a21bdfcf2bd42556be708c3.1236345858.git.Ext-Ari.Kauppi@nokia.com> <20090310005222.GE19758@fluff.org.uk> <alpine.DEB.2.00.0903111741270.26959@utopia.booyaka.com> <20090311235908.GC19038@gandalf>
- <alpine.DEB.2.00.0903111804510.26959@utopia.booyaka.com> <20090312002353.GD19038@gandalf>
+From: "Gupta, Ramesh" <grgupta@ti.com>
+Subject: [PATCH 0/1] DSPBRIDGE Fix for image autoload
+Date: Thu, 12 Mar 2009 11:01:31 +0530
+Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB02A8F2BED2@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20090312002353.GD19038@gandalf>
-Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Felipe Balbi <me-uiRdBs8odbtmTBlB0Cgj/Q@public.gmane.org>
-Cc: Ari Kauppi <Ext-Ari.Kauppi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>, Ben Dooks <ben-elnMNo+KYs3pIgCt6eIbzw@public.gmane.org>, ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:54618 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751142AbZCLFcU convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 12 Mar 2009 01:32:20 -0400
+Received: from dbdp20.itg.ti.com ([172.24.170.38])
+	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id n2C5WCTJ007464
+	for <linux-omap@vger.kernel.org>; Thu, 12 Mar 2009 00:32:18 -0500
+Received: from dbde71.ent.ti.com (localhost [127.0.0.1])
+	by dbdp20.itg.ti.com (8.13.8/8.13.8) with ESMTP id n2C5WBSv021166
+	for <linux-omap@vger.kernel.org>; Thu, 12 Mar 2009 11:02:12 +0530 (IST)
+Content-Language: en-US
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Cc: "Menon, Nishanth" <nm@ti.com>, "Kanigeri, Hari" <h-kanigeri2@ti.com>, "Guzman Lugo, Fernando" <x0095840@ti.com>
 
-Hi Felipe,
+All,
+This patch set fixes an issue with dsp image autoloading while bridgedriver module
+intialization.
+This can be applied along with the other DSPBRIDGE patches, validated on OMAP3430 SDP.
 
-On Thu, 12 Mar 2009, Felipe Balbi wrote:
+ drivers/dsp/bridge/rmgr/drv_interface.c |   28 ++++++++++++++--------------
+ 1 files changed, 14 insertions(+), 14 deletions(-)
 
-> This is the link where Ingo discusses why !IRQF_DISABLED could cause
-> stack overflow:
-> 
-> http://lkml.org/lkml/2009/3/3/71
-> 
-> You probably wanna take a look at the whole thread to figure out the
-> discussion, but basically Ingo and Peter (Zijlstra) believe
-> !IRQF_DISABLED is a bug and drivers needing that probably should be
-> using threaded irqs (which is not yet merged) or the hw is broken, and
-> for those an IRQF_ENABLED flag will be created and a TAINT will also be
-> placed.
-> 
-> Once that gets merged, all drivers will be forced (at some point) to
-> IRQF_DISABLED and those which don't want that will be moved gradually to
-> threaded irq.
-> 
-> This patch is also interesting:
-> 
-> http://lkml.org/lkml/2009/3/2/33
-
-Thanks for the links.  Those issues are indeed distinct from the spurious 
-IRQ problem that Ari is reporting.
-
-
-- Paul
+Regards
+Ramesh Gupta G
