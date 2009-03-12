@@ -1,83 +1,66 @@
-From: Sanjeev Premi <premi@ti.com>
-Subject: [PATCH] Start C-state definitions from base 0
-Date: Fri, 13 Mar 2009 01:59:29 +0530
-Message-ID: <1236889769-32587-1-git-send-email-premi@ti.com>
+From: David Brownell <david-b@pacbell.net>
+Subject: Re: [patch 2.6.29-rc7 regulator-next] regulator: refcount fixes
+Date: Thu, 12 Mar 2009 12:35:24 -0800
+Message-ID: <200903121335.25368.david-b@pacbell.net>
+References: <200903111743.34708.david-b@pacbell.net> <20090312103744.GA24376@sirena.org.uk>
+Reply-To: dbrownell@users.sourceforge.net
+Mime-Version: 1.0
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:60869 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752029AbZCLU3j (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 12 Mar 2009 16:29:39 -0400
-Received: from dbdp31.itg.ti.com ([172.24.170.98])
-	by bear.ext.ti.com (8.13.7/8.13.7) with ESMTP id n2CKTVPl009678
-	for <linux-omap@vger.kernel.org>; Thu, 12 Mar 2009 15:29:37 -0500
+Received: from n26.bullet.mail.mud.yahoo.com ([68.142.206.221]:41790 "HELO
+	n26.bullet.mail.mud.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1752118AbZCLUg7 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Thu, 12 Mar 2009 16:36:59 -0400
+In-Reply-To: <20090312103744.GA24376@sirena.org.uk>
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Sanjeev Premi <premi@ti.com>
+To: Mark Brown <broonie@sirena.org.uk>
+Cc: Liam Girdwood <lrg@slimlogic.co.uk>, lkml <linux-kernel@vger.kernel.org>, OMAP <linux-omap@vger.kernel.org>
 
-The current definition of C-states starts from base 1.
-Whereas, the cpuidle driver uses base 0. This patch
-eliminates need for explicit mapping due to different
-base values.
+On Thursday 12 March 2009, Mark Brown wrote:
+> On Wed, Mar 11, 2009 at 04:43:34PM -0800, David Brownell wrote:
+> 
+> > Buggy consumers could notice different bug symptoms.  The main
+> > example would be refcounting bugs; also, any (out-of-tree) users
+> > of the experimental regulator_set_optimum_mode() stuff which
+> > don't call it when they're done using a regulator.
+> 
+> I'm OK with this from a code point of view so
+> 
+> Acked-by: Mark Brown <broonie@opensource.wolfsonmicro.com>
+> 
+> However any consumers that take advantage of this won't be able to
+> safely share a regulator without extra work since they have no way of
+> telling why a regulator is in the state that it's in without extra
+> stuff.
 
-Signed-off-by: Sanjeev Premi <premi@ti.com>
----
- arch/arm/mach-omap2/cpuidle34xx.c |   21 ++++++++++-----------
- 1 files changed, 10 insertions(+), 11 deletions(-)
+Depends what you mean by "safely".  If they weren't buggy
+already, I don't see how they'd notice any difference.
+Having buggy consumers become non-buggy isn't exactly a
+job for the framework itself.
 
-diff --git a/arch/arm/mach-omap2/cpuidle34xx.c b/arch/arm/mach-omap2/cpuidle34xx.c
-index 62fbb2e..d7208f3 100644
---- a/arch/arm/mach-omap2/cpuidle34xx.c
-+++ b/arch/arm/mach-omap2/cpuidle34xx.c
-@@ -33,13 +33,13 @@
+
+> We should probably have something along the lines of a 
+> regulator_get_exclusive() for them.  Previously the consumer counting
+> would have stopped them interfering with enables done by other
+> consumers.
+
+I'd like to see get()/put() match the design pattern used
+elsewhere in the kernel:  those calls signify refcount
+operations.
+
+Agreed that the "consumer" access model probably needs a few
+interface updates.  I'm not sure what they would be though;
+one notion would be to focus on the constraints they apply
+(including "enabled") instead of what they do now.
+
  
- #ifdef CONFIG_CPU_IDLE
- 
--#define OMAP3_MAX_STATES 7
--#define OMAP3_STATE_C1 1 /* C1 - MPU WFI + Core active */
--#define OMAP3_STATE_C2 2 /* C2 - MPU CSWR + Core active */
--#define OMAP3_STATE_C3 3 /* C3 - MPU OFF + Core active */
--#define OMAP3_STATE_C4 4 /* C4 - MPU RET + Core RET */
--#define OMAP3_STATE_C5 5 /* C5 - MPU OFF + Core RET */
--#define OMAP3_STATE_C6 6 /* C6 - MPU OFF + Core OFF */
-+#define OMAP3_MAX_STATES 6
-+#define OMAP3_STATE_C1 0 /* C1 - MPU WFI + Core active */
-+#define OMAP3_STATE_C2 1 /* C2 - MPU CSWR + Core active */
-+#define OMAP3_STATE_C3 2 /* C3 - MPU OFF + Core active */
-+#define OMAP3_STATE_C4 3 /* C4 - MPU RET + Core RET */
-+#define OMAP3_STATE_C5 4 /* C5 - MPU OFF + Core RET */
-+#define OMAP3_STATE_C6 5 /* C6 - MPU OFF + Core OFF */
- 
- struct omap3_processor_cx {
- 	u8 valid;
-@@ -228,7 +228,7 @@ struct cpuidle_driver omap3_idle_driver = {
-  */
- int omap3_idle_init(void)
- {
--	int i, count = 0;
-+	int count = 0;
- 	struct omap3_processor_cx *cx;
- 	struct cpuidle_state *state;
- 	struct cpuidle_device *dev;
-@@ -244,8 +244,8 @@ int omap3_idle_init(void)
- 
- 	dev = &per_cpu(omap3_idle_dev, smp_processor_id());
- 
--	for (i = 1; i < OMAP3_MAX_STATES; i++) {
--		cx = &omap3_power_states[i];
-+	for (count = 1; count < OMAP3_MAX_STATES; count++) {
-+		cx = &omap3_power_states[count];
- 		state = &dev->states[count];
- 
- 		if (!cx->valid)
-@@ -259,7 +259,6 @@ int omap3_idle_init(void)
- 		if (cx->type == OMAP3_STATE_C1)
- 			dev->safe_state = state;
- 		sprintf(state->name, "C%d", count+1);
--		count++;
- 	}
- 
- 	if (!count)
--- 
-1.5.6
+> There will be other consumers that can't safely share a regulator anyway
+> (eg, requiring additional code to notice and handle voltage changes) so
+> it'd be a good thing to have.
+
 
