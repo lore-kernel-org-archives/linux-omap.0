@@ -1,67 +1,54 @@
-From: "Woodruff, Richard" <r-woodruff2@ti.com>
-Subject: RE: [PATCH 2/2] i2c: i2c-omap: Call request_irq with IRQF_DISABLED
-Date: Thu, 12 Mar 2009 10:04:49 -0500
-Message-ID: <13B9B4C6EF24D648824FF11BE8967162037B7642CC@dlee02.ent.ti.com>
-References: <cover.1236345858.git.Ext-Ari.Kauppi@nokia.com>
-	 <7d7e7dd1a4c64c732a21bdfcf2bd42556be708c3.1236345858.git.Ext-Ari.Kauppi@nokia.com>
-	 <20090310005222.GE19758@fluff.org.uk>
-	 <alpine.DEB.2.00.0903111741270.26959@utopia.booyaka.com>
-	 <alpine.DEB.2.00.0903111803170.26959@utopia.booyaka.com>
-	 <1236839178.6478.40.camel@kauppi-desktop>
-	 <alpine.DEB.2.00.0903120041020.26959@utopia.booyaka.com>
-	 <1236844467.6478.103.camel@kauppi-desktop>
-	 <alpine.DEB.2.00.0903120356230.26959@utopia.booyaka.com>
- <1236857625.6478.163.camel@kauppi-desktop>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: RFD: OMAP PRCM register access holding up PM branch submissions
+Date: Thu, 12 Mar 2009 08:25:55 -0700
+Message-ID: <87hc1y930c.fsf@deeprootsystems.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:45146 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753135AbZCLPFd convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 12 Mar 2009 11:05:33 -0400
-In-Reply-To: <1236857625.6478.163.camel@kauppi-desktop>
-Content-Language: en-US
+Received: from mail-gx0-f167.google.com ([209.85.217.167]:42582 "EHLO
+	mail-gx0-f167.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753293AbZCLP0p (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 12 Mar 2009 11:26:45 -0400
+Received: by gxk11 with SMTP id 11so1110312gxk.13
+        for <linux-omap@vger.kernel.org>; Thu, 12 Mar 2009 08:26:42 -0700 (PDT)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Kauppi Ari (EXT-Ixonos/Oulu)" <ext-ari.kauppi@nokia.com>, ext Paul Walmsley <paul@pwsan.com>
-Cc: Ben Dooks <ben@fluff.org.uk>, "ben-linux@fluff.org" <ben-linux@fluff.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-i2c@vger.kernel.org" <linux-i2c@vger.kernel.org>
+To: Russell King <rmk@arm.linux.org.uk>, Paul Walmsley <paul@pwsan.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.arm.linux.org.uk
 
+Russell, Paul,
 
-> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
-> owner@vger.kernel.org] On Behalf Of Kauppi Ari (EXT-Ixonos/Oulu)
-> Sent: Thursday, March 12, 2009 6:34 AM
+As we discussed a bit in the OMAP clocks thread, there is not yet a
+decision on the best way to access the PRCM registers.  I'd like to
+get some discussion going so I can begin submissions of the rest of
+the OMAP PM core code.
 
-> > > 3) Apply Richard's patch. All spurious interrupts for IRQ 56 are gone
-> > > but frequency of others increase.
+We currently have two methods for PRCM register access
 
-The bugs fixed in my patch are function violation bugs. The TRM clearly requires the changes I made. In of themselves they don't have anything to do with spurious interrupts. Though if the FSM is messed up, there is no telling what will happen for interrupts.
+1) direct access using __raw_[read|write] and OMAP_PRM_REGADDR() #defines
 
-In our reference code and code other customers are using. Applying fixes resulted in I2C flakiness going away.
+2) "MOD + offset" access using prm_[read|write|rmw]_*
 
-> Boot count: 6628
->       1 write for irq 12
->       1 write for irq 25
->       1 write for irq 33
->      10 write for irq 37
->   29532 write for irq 56
->      12 write for irq 67
->       1 write for irq 71
->     281 write for irq 73
->     114 write for irq 83
->     407 write for irq 86
->
-> I have also heard that with other use cases irq 17 and 21 should be in
-> the list, too. The single ones from 12,25,33,71 are probably just
-> one-offs and should not be taken too seriously, 37/67 are corner cases
-> but 73/83/86 are definitely valid measurements.
+The current code (in Russell's omap-clks3) branch is kind of a hybrid
+with lots of usages of both methods, and Paul's patch (A 09) which
+converted everything to (2) has been rejected.  However, I'm still not
+entirely clear whether the objection was because you're opposed to the
+'MOD + offset' approach in general, or just the way it was done in
+this patch.
 
-If you apply the bus posting patch I sent a while back they will likely all go away. There are a number of subtle effects posting and resulting bursting will have on register ranges.
+So, what is the path forward?  If you are not opposed to moving to the
+'MOD + offset' approach in principle, I propose we just make a new
+attempt at converting to it.  If you're opposed to it all together, we
+need to start some discussion.  Russell, you seem to have suggested
+you had some ideas[1].  Would you mind posting your ideas for
+discussion, not necessarily patches, but just rough ideas to start
+discussions.
 
-http://www.mail-archive.com/linux-omap@vger.kernel.org/msg08363.html
+Until we get some decision on this, it is impossible to move forward
+with submissions of the rest of the OMAP PM code.
 
-It is quite noble that people want to experience and hunt down subtle system wide errors for a potential small performance gain. I'm tired of the weeks if not months of cumulative time wasted here. It would be more fun to play with a broken alpha version of gcc and look for subtle errors. I might eventually get some benefit.
+Thanks,
 
-Regards,
-Richard W.
+Kevin
 
+[1] http://marc.info/?l=linux-omap&m=123609877205834&w=2
