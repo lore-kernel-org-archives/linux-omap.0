@@ -1,59 +1,71 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: RFD: OMAP PRCM register access holding up PM branch submissions
-Date: Thu, 12 Mar 2009 10:55:01 -0700
-Message-ID: <87mybq62yy.fsf@deeprootsystems.com>
-References: <87hc1y930c.fsf@deeprootsystems.com>
-	<20090312162804.GA7179@n2100.arm.linux.org.uk>
-	<87bps67kby.fsf@deeprootsystems.com>
-	<20090312170151.GB7854@n2100.arm.linux.org.uk>
-	<20090312172646.GL19229@atomide.com>
+From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+Subject: RE: Suspend/Resume support with Omap2fb
+Date: Thu, 12 Mar 2009 23:56:11 +0530
+Message-ID: <19F8576C6E063C45BE387C64729E73940427C51EBA@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ag-out-0708.google.com ([72.14.246.244]:50252 "EHLO
-	ag-out-0708.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752669AbZCLRzI (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 12 Mar 2009 13:55:08 -0400
-Received: by ag-out-0708.google.com with SMTP id 26so1080379agb.10
-        for <linux-omap@vger.kernel.org>; Thu, 12 Mar 2009 10:55:05 -0700 (PDT)
-In-Reply-To: <20090312172646.GL19229@atomide.com> (Tony Lindgren's message of "Thu\, 12 Mar 2009 10\:26\:46 -0700")
+Received: from devils.ext.ti.com ([198.47.26.153]:56316 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753955AbZCLS03 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 12 Mar 2009 14:26:29 -0400
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.arm.linux.org.uk
+To: "Hiremath, Vaibhav" <hvaibhav@ti.com>, "tomi.valkeinen@nokia.com" <tomi.valkeinen@nokia.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Tony Lindgren <tony@atomide.com> writes:
 
-> * Russell King - ARM Linux <linux@arm.linux.org.uk> [090312 10:03]:
->> On Thu, Mar 12, 2009 at 09:54:41AM -0700, Kevin Hilman wrote:
->> > If you can share your opinions on the two register access approaches I
->> > described, I will work on coordinating development in that direction.
->> 
->> If I had a path forwards, then I would say so.  At the moment, I have
->> a vague idea about what I'd like to see, but it isn't in a workable
->> state at the present time.
->> 
->> I need to put further thought and time into coming up with a solution.
->> For the time being, I am not going to apply the outstanding patches to
->> put in place a solution which is totally confused about iomem and u32
->> types with lots of casts to make it work.  Even one which passes u32
->> types to the IO accessors (which don't produce a warning but shouldn't
->> be allowed in any case.)
->
-> Well let's get the current omap clock patches in omap-clks3 merged.
-> It is already way closer to what we need than the current mainline code.
->
-> Paul, maybe you can post that series to linux-omap for final review
-> and testing because of the mail/OOM issues Russell is having?
+Hi,
 
-I will post this series to linux-omap for final review.
+Finally I could able to find the root-cause, actually some of the previous observations miss-led me to dig into power management, suspend/resume path and clock structure. But after bit debugging and with the help of Sanjeev, we got the rid of it.
 
-I don't think there are any major objections that should prevent this
-from going into this merge window.  
+The issue is with DSS2 library, inside function "dpi_display_suspend". It calls dispc_enable_lcd_out(0), but doesn't wait till the frame-done interrupt. And due to this I was getting some abrupt behavior in suspend/resume path. 
+Actually in the beginning I overlooked legacy frame-buffer driver, which handles this scenario perfectly.
+ 
+For Display sub-system we have 2 interface clocks coming, L3_ICLK and L4_ICLK. Out of these, L4_ICLK goes to Display register access and L3_ICLK goes to DMA register. In our suspend call we are disabling clocks for L3_ICLK (we don't control L4_ICLK), and due to this L4_ICLK stays attached with GFX. You will only be able to find out this by looking to CM_CLKSTST_DSS.CLKACTIVITY_DSS, which is set 1 and indicates some interface clock is still active in DSS domain.
 
-> Then we'll come up with a proper solution for the remaining patches
-> after this merge window.
+Below is the patch which will explain the change 
 
-Agreed, this PRCM issue does not need to be resolved for this merge window.
 
-Kevin
++#include <linux/completion.h>
++#include <linux/jiffies.h>
+
++static void dpi_display_isr(void *arg, unsigned int irqstatus)
++{
++       struct omap_display *display = (struct omap_display *)arg;
++
++       complete(&display->frame_done);
++}
+
+static int dpi_display_suspend(struct omap_display *display)
+ {
++       void *handle = NULL;
++
+        if (display->state != OMAP_DSS_DISPLAY_ACTIVE)
+                return -EINVAL;
+
+        if (display->panel->suspend)
+                display->panel->suspend(display);
+
++       /*
++        * Wait for frame done interrupt
++        */
++       handle = omap_dispc_register_isr(dpi_display_isr, display,
++                       DISPC_IRQ_FRAMEDONE);
++       if (!handle)
++               return -EINVAL;
++
++       init_completion(&display->frame_done);
++
+        dispc_enable_lcd_out(0);
++       if (!wait_for_completion_timeout(&display->frame_done,
++                               msecs_to_jiffies(500))) {
++               printk("timeout waiting for FRAME DONE\n");
++       }
+
+Still I need to test this thoroughly, I may hit some another issue (Already I am seeing some crashes also when off state is enabled). I will create consolidated patch for this and will submit to list.
+
+Thanks,
+Vaibhav Hiremath
