@@ -1,73 +1,50 @@
-From: Adrian Hunter <adrian.hunter@nokia.com>
+From: David Brownell <david-b@pacbell.net>
 Subject: Re: [patch 2.6.29-rc7-omap 5/5] mmc-twl4030 uses regulator framework
-Date: Thu, 12 Mar 2009 10:57:45 +0200
-Message-ID: <49B8CE89.2000608@nokia.com>
-References: <200903110518.34945.david-b@pacbell.net> <200903110524.16644.david-b@pacbell.net>
+Date: Thu, 12 Mar 2009 01:22:02 -0800
+Message-ID: <200903120222.02972.david-b@pacbell.net>
+References: <200903110518.34945.david-b@pacbell.net> <200903110524.16644.david-b@pacbell.net> <49B8CE89.2000608@nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:25911 "EHLO
-	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750928AbZCLI6N (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 12 Mar 2009 04:58:13 -0400
-In-Reply-To: <200903110524.16644.david-b@pacbell.net>
+Received: from smtp127.sbc.mail.sp1.yahoo.com ([69.147.65.186]:45737 "HELO
+	smtp127.sbc.mail.sp1.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1750845AbZCLJWG (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Thu, 12 Mar 2009 05:22:06 -0400
+In-Reply-To: <49B8CE89.2000608@nokia.com>
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: David Brownell <david-b@pacbell.net>
+To: Adrian Hunter <adrian.hunter@nokia.com>
 Cc: OMAP <linux-omap@vger.kernel.org>
 
-David Brownell wrote:
-> From: David Brownell <dbrownell@users.sourceforge.net>
-> Subject: mmc-twl4030 uses regulator framework
-> 
-> Finish decoupling the HSMMC glue from the twl4030 as the only
-> regulator provider, using the regulator framework instead.
-> This makes the glue's "mmc-twl4030" name become a complete
-> misnomer ... this code could probably all migrate into the
-> HSMMC driver now.
-> 
-> Tested on 3430SDP (SD and low-voltage MMC) and Beagle (SD),
-> plus some other boards (including Overo) after they were
-> converted to set up MMC regulators properly.
-> 
-> Eventually all boards should just associate a regulator with
-> each MMC controller they use.  In some cases (Overo MMC2 and
-> Pandora MMC3, at least) that would be a fixed-voltage regulator
-> with no real software control.  As a temporary hack (pending
-> regulator-next updates to make the "fixed.c" regulator become
-> usable) there's a new ocr_mask field for those boards.
-> 
-> Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
-> ---
+On Thursday 12 March 2009, Adrian Hunter wrote:
+> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 }
+> > =A0 =A0 =A0 =A0 } else {
+> > - =A0 =A0 =A0 =A0 =A0 =A0 =A0 ret =3D twl_mmc_set_voltage(c, 0);
+> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (c->vcc_aux)
+> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 ret =3D regulator_ena=
+ble(c->vcc_aux);
+>=20
+> Sorry for slow reply. =A0Shouldn't that be regulator_disable() ?
 
-snip
+Indeed it should be.  In fact I think this probably explains
+the failure I saw the other day, trying to go from 3.3V on one
+chip down to 1.8V, where it failed (reasons unknown so far)
+but the cleanup left vcc_aux active.  Got patch?  :)
 
-> @@ -349,24 +276,23 @@ static int twl_mmc2_set_power(struct dev
->                         reg |= OMAP2_MMCSDIO2ADPCLKISEL;
->                         omap_ctrl_writel(reg, control_devconf1_offset);
->                 }
-> -               ret = twl_mmc_set_voltage(c, vdd);
-> +               ret = mmc_regulator_set_ocr(c->vcc, vdd);
-> +               /* enable interface voltage rail, if needed */
-> +               if (ret == 0 && c->vcc_aux) {
-> +                       ret = regulator_enable(c->vcc_aux);
-> +                       if (ret < 0)
-> +                               ret = mmc_regulator_set_ocr(c->vcc, 0);
-> +               }
->         } else {
-> -               ret = twl_mmc_set_voltage(c, 0);
-> +               if (c->vcc_aux)
-> +                       ret = regulator_enable(c->vcc_aux);
+I meant this one to be a patch/RFC ... so you could see how I
+thought those issues should be addressed, vs the less general
+patches you sent the other day.  Actually merging this one
+runs into that annoying regulator framework isssue on most
+systems.
 
-Sorry for slow reply.  Shouldn't that be regulator_disable() ?
+- Dave
 
-> +               if (ret == 0)
-> +                       ret = mmc_regulator_set_ocr(c->vcc, 0);
->         }
-> 
->         return ret;
->  }
-> 
 
-snip
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
