@@ -1,99 +1,84 @@
-From: "Gupta, Ramesh" <grgupta@ti.com>
-Subject: RE: [PATCH 1/1] DSPBRIDGE Fix for image autoload
-Date: Thu, 12 Mar 2009 17:18:49 +0530
-Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB02A8F2C315@dbde02.ent.ti.com>
-References: <EAF47CD23C76F840A9E7FCE10091EFAB02A8F2C078@dbde02.ent.ti.com>
+From: Mark Brown <broonie@sirena.org.uk>
+Subject: Re: [patch 2.6.29-rc7 regulator-next] regulator: init fixes
+Date: Thu, 12 Mar 2009 12:01:21 +0000
+Message-ID: <20090312120119.GB24376@sirena.org.uk>
+References: <200903111743.34708.david-b@pacbell.net> <200903111932.16317.david-b@pacbell.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:59404 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754032AbZCLLti convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 12 Mar 2009 07:49:38 -0400
-Received: from dbdp20.itg.ti.com ([172.24.170.38])
-	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id n2CBnU4c031201
-	for <linux-omap@vger.kernel.org>; Thu, 12 Mar 2009 06:49:36 -0500
-Received: from dbde71.ent.ti.com (localhost [127.0.0.1])
-	by dbdp20.itg.ti.com (8.13.8/8.13.8) with ESMTP id n2CBnU3F013433
-	for <linux-omap@vger.kernel.org>; Thu, 12 Mar 2009 17:19:30 +0530 (IST)
-In-Reply-To: <EAF47CD23C76F840A9E7FCE10091EFAB02A8F2C078@dbde02.ent.ti.com>
-Content-Language: en-US
+Received: from cassiel.sirena.org.uk ([80.68.93.111]:2213 "EHLO
+	cassiel.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752004AbZCLMBZ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 12 Mar 2009 08:01:25 -0400
+Content-Disposition: inline
+In-Reply-To: <200903111932.16317.david-b@pacbell.net>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Gupta, Ramesh" <grgupta@ti.com>, "Menon, Nishanth" <nm@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
-Cc: "Kanigeri, Hari" <h-kanigeri2@ti.com>, "Guzman Lugo, Fernando" <x0095840@ti.com>
+To: David Brownell <david-b@pacbell.net>
+Cc: Liam Girdwood <lrg@slimlogic.co.uk>, lkml <linux-kernel@vger.kernel.org>, OMAP <linux-omap@vger.kernel.org>
 
-Nishant,
- 
+On Wed, Mar 11, 2009 at 06:32:15PM -0800, David Brownell wrote:
 
-> -----Original Message-----
-> From: linux-omap-owner@vger.kernel.org 
-> [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Gupta, Ramesh
-> Sent: Thursday, March 12, 2009 2:01 PM
-> To: Menon, Nishanth; linux-omap@vger.kernel.org
-> Cc: Kanigeri, Hari; Guzman Lugo, Fernando
-> Subject: RE: [PATCH 1/1] DSPBRIDGE Fix for image autoload
-> 
-> Nishant,
->  
-> 
-> > -----Original Message-----
-> > From: Menon, Nishanth
-> > Sent: Thursday, March 12, 2009 1:22 PM
-> > To: Gupta, Ramesh; linux-omap@vger.kernel.org
-> > Cc: Kanigeri, Hari; Guzman Lugo, Fernando
-> > Subject: RE: [PATCH 1/1] DSPBRIDGE Fix for image autoload
-> > 
-> > > -----Original Message-----
-> > > From: Menon, Nishanth
-> > > Sent: Thursday, March 12, 2009 9:39 AM
-> > > To: Gupta, Ramesh; linux-omap@vger.kernel.org
-> > > Cc: Kanigeri, Hari; Guzman Lugo, Fernando
-> > > Subject: RE: [PATCH 1/1] DSPBRIDGE Fix for image autoload
-> > > 
-> > > > -----Original Message-----
-> > > > From: Gupta, Ramesh
-> > > > Sent: Thursday, March 12, 2009 8:01 AM
-> > > > To: Menon, Nishanth; linux-omap@vger.kernel.org
-> > > > Cc: Kanigeri, Hari; Guzman Lugo, Fernando
-> > > > Subject: RE: [PATCH 1/1] DSPBRIDGE Fix for image autoload
-> > > >
-> > > > I have tried this on linux-omap pm branch . This can be
-> > applied on
-> > > > top
-> > > of
-> > > > my DVFS
-> > > > Patches earlier.
-> > > >
-> > > Your patch does not apply clean :(
-> > > $ wget -O ramesh.auto.patch "http://marc.info/?l=linux- 
-> > > omap&m=123683598308417&q=raw"
-> > > $ vim ramesh.auto.patch (edited to remove the linux-omap 
-> trailer) $ 
-> > > patch -p1<./ramesh.auto.patch --dry-run patching file 
-> > > drivers/dsp/bridge/rmgr/drv_interface.c
-> > > Hunk #1 succeeded at 400 (offset -5 lines).
-> > > Hunk #2 succeeded at 408 (offset -5 lines).
-> > > Hunk #3 succeeded at 450 with fuzz 1 (offset -5 lines).
-> > > Hunk #4 succeeded at 470 (offset -5 lines).
-> > > Hunk #5 succeeded at 655 (offset -5 lines).
-> > > 
-> > > Could you rebase your patch against the following:
-> > > git clone
-> > > git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap-
-> > > 2.6.git
-> > > cd linux-omap-2.6.git
-> > > git checkout -b pm --track origin/pm git fetch 
-> > > git://gitorious.org/lk/mainline.git
-> > > tidspbridge-pm:tidspbridge- pm git checkout tidspbridge-pm
-> > git merge
-> > > pm
-> > 
-> > 
-> > And the patch does not work :(
+> Make the regulator setup code cope more consistently with
+> regulators undesirably left enabled by the bootloader.
 
-There was a typo in previous patch I am sending an updated patch.
+First up I'd just like to make it absolutely clear that I agree that
+this is a feature we should have - it's obviously useful.
 
-Thanks
-Ramesh Gupta G 
+>  * Unless the "boot_on" or "always_on" machine constraints
+>    were set, disable() the regulator.  This gives drivers
+>    a clean start state:  enable state matches usecount,
+>    regardless of boot_on/always_on flag state.
+
+At the minute the regulator constraints have the property that if you
+pass a zero-initialised set of constraints the regulator API will not do
+anything other than allow you to read the state of the regulator - any
+action taken by the regulator API must be explicitly permitted by code.
+This change will mean that users will have to explicitly mark any
+regulators that are needed as enabled or we'll do unfortunate things.  
+
+It is a particular problem for multi-function devices like pcf50633
+which not only register all their regulators by default but also embed
+constraints within the general pcf50633 platform data.  If the user
+simply turns on the regulator driver in their config they'll get this
+behavior if they don't edit the code.  Even with regulator code I'd not
+be surprised if people were bitten by this for things like the memory or
+a CPU core without regulator based DVFS.
+
+You've addressed some of the use cases for this by providing devmode but
+it's still a big incompatible change, especially at this point in the
+development cycle where we've got at most a couple of weeks to the merge
+window.  We could do this without introducing the incompatibility by
+adding a new flag (eg, boot_off) which machine constraints need to
+explicitly set to enforce this behaviour or by having something machine
+drivers can call to say "now power off any regulators that look idle".
+
+I'm not 100% agaist doing things the way you suggest since there is 
+appeal in having boot_on be more of a boolean but I do feel that if
+we're going to go this way we should do it more gently.  For example, we
+could merge a patch now which warns loudly that this will happen and
+then after the 2.6.30 merge window actually implement it.  This would
+reduce merge issues for machine support coming in via other trees; we're
+rather late in the development cycle to be putting this in right now.
+Not everyone will read a warning but there is some chance they might and
+there's also a chance they'll test in -next.  We should also provide a
+temporary Kconfig which actually enables the behaviour if people request
+it.
+
+>  * To help make some integration stages easier, add a new
+>    "devmode" machine constraint where state the bootloader
+>    left isn't touched, but enable state and usecount may
+>    not match.  (System boots but some drivers act odd ...
+>    debuggable.  System dies part way through booting ...
+>    often painful.)
+
+This also addresses things like the reverse engineering use case where
+people genuinely don't know what's going on and want to use the API to
+inspect the state of the regulators.
+
+I do wonder if we can't come up with a different way of expressing
+devmode - a different name like dont_disable that more directly
+expresses what the constraint does might be more obvious.  Something
+that can enable this globally may also be convenient.
+
+The code itself is OK.
