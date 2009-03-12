@@ -1,152 +1,178 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCHv2] PM : cpuidle - Update statistics for correct state
-Date: Wed, 11 Mar 2009 17:00:30 -0700
-Message-ID: <87r613k3tt.fsf@deeprootsystems.com>
-References: <1236455149-17017-1-git-send-email-premi@ti.com>
-	<87wsazj9f5.fsf@trdhcp146196.ntc.nokia.com>
-	<B85A65D85D7EB246BE421B3FB0FBB59301CC185222@dbde02.ent.ti.com>
-	<87ocwbj82x.fsf@trdhcp146196.ntc.nokia.com>
-	<B85A65D85D7EB246BE421B3FB0FBB59301CC18526D@dbde02.ent.ti.com>
-	<87zlfuy3sb.fsf@deeprootsystems.com>
-	<B85A65D85D7EB246BE421B3FB0FBB59301CC1F6C1F@dbde02.ent.ti.com>
+From: "Guzman Lugo, Fernando" <x0095840@ti.com>
+Subject: DSPBRIDGE: segmentation fault after reloading dspbridge several
+ times due to a memory leak.
+Date: Wed, 11 Mar 2009 19:03:40 -0500
+Message-ID: <496565EC904933469F292DDA3F1663E60287CA6EC4@dlee06.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from wf-out-1314.google.com ([209.85.200.173]:13848 "EHLO
-	wf-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751603AbZCLAAf (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 11 Mar 2009 20:00:35 -0400
-Received: by wf-out-1314.google.com with SMTP id 28so295660wfa.4
-        for <linux-omap@vger.kernel.org>; Wed, 11 Mar 2009 17:00:33 -0700 (PDT)
-In-Reply-To: <B85A65D85D7EB246BE421B3FB0FBB59301CC1F6C1F@dbde02.ent.ti.com> (Sanjeev Premi's message of "Wed\, 11 Mar 2009 20\:04\:07 +0530")
+Received: from devils.ext.ti.com ([198.47.26.153]:33675 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752557AbZCLADr convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 11 Mar 2009 20:03:47 -0400
+Received: from dlep95.itg.ti.com ([157.170.170.107])
+	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id n2C03fNM012919
+	for <linux-omap@vger.kernel.org>; Wed, 11 Mar 2009 19:03:46 -0500
+Received: from dlee75.ent.ti.com (localhost [127.0.0.1])
+	by dlep95.itg.ti.com (8.13.8/8.13.8) with ESMTP id n2C03epG024803
+	for <linux-omap@vger.kernel.org>; Wed, 11 Mar 2009 19:03:40 -0500 (CDT)
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Premi, Sanjeev" <premi@ti.com>
-Cc: =?iso-8859-1?Q?H=F6gander?= Jouni <jouni.hogander@nokia.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-"Premi, Sanjeev" <premi@ti.com> writes:
 
->> 
->> I would gladly take a patch which uses the 'valid' field for 
->> this and then the enter hook whould drop to the next lower 
->> valid state if the state requested is not valid.
->> 
->> Kevin
->
-> [sp] I have not yet tested it (working offline for sometime).
->      But, wanted to share the changes for an early review.
+Hi All,
+=A0
+=A0=A0=A0=A0=A0=A0=A0 Reloading the dspbridge several times I am gettin=
+g a Segmentation fault. Seeing the log it seems that the memory was exh=
+austed=20
+=A0
+The error happens when ioremap is called
 
-Thanks, some comments below.
+void MEM_ExtPhysPoolInit(u32 poolPhysBase, u32 poolSize)
+{
+=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 u32 poolVirtBase;
 
->      Initially, I was trying see if the CPUIDLE framework could
->      use ".valid" as an additional argument in cpuidle_state.
->      But, may be that's for later...
+=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 /* get the virtual address for the ph=
+ysical memory pool passed */
+=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 poolVirtBase =3D (u32)ioremap(poolPhy=
+sBase, poolSize);
+=2E
 
-Yeah, I looked at that too, but it currently doesn't have a concept
-of valid states, so for now I recommend we implement that in the
-OMAP-specific code as you have done.
+Putting some printk's and printing the address returned by ioremap, I r=
+ealized that address returned by ioremap each time I reload the dspbrid=
+ge is different, in fact the address is increasing. I also put a printk=
+ where iounmap is called to make sure it is called and yes it is actual=
+ly called. However testing with a kernel + bridge for linux 23x I alway=
+s get the same address for pool memory. Any idea what the problem is? I=
+ have included the console output where you can see the address increas=
+ing.
 
-> diff --git a/arch/arm/mach-omap2/cpuidle34xx.c b/arch/arm/mach-omap2/cpuidle34xx
-> index c25158c..9493553 100644
-> --- a/arch/arm/mach-omap2/cpuidle34xx.c
-> +++ b/arch/arm/mach-omap2/cpuidle34xx.c
-> @@ -88,16 +88,19 @@ static int omap3_enter_idle(struct cpuidle_device *dev,
->                 goto return_sleep_time;
->
->         /*
-> +        * Check if the chosen idle state is valid.
-> +        * If no, drop down to a lower valid state. Expects the lowest
-> +        * state will always be active.
->          */
-> +       if (!cx->valid) {
-> +               for (idx = (cx->type - 1); idx == 1; idx--) {
-                                             ^^^^^^^^
+Regards,
+=46ernando.
 
-I think you mean idx >= 1 here.
 
-Also, while you're working on this, could you fix this up so the
-omap3_power_states[] array is zero based insted of 1-based, it would
-make this code and the other code walking this array easier to follow.
+=A0
+The first 15 loads and unloads=20
+INFO: For help run script as ./install_bridge help
+INFO:Installed Bridgedriver from current directory:/dspbridge_os
+[PHYS_POOL]Mapping External, address =3D c8000000
+Releasing External memory pool, address =3D c8000000
+interation 2
+INFO: For help run script as ./install_bridge help
+INFO:Installed Bridgedriver from current directory:/dspbridge_os
+[PHYS_POOL]Mapping External, address =3D c9000000
+Releasing External memory pool, address =3D c9000000
+interation 3
+INFO: For help run script as ./install_bridge help
+INFO:Installed Bridgedriver from current directory:/dspbridge_os
+[PHYS_POOL]Mapping External, address =3D c9800000
+Releasing External memory pool, address =3D c9800000
+interation 4
+INFO: For help run script as ./install_bridge help
+INFO:Installed Bridgedriver from current directory:/dspbridge_os
+[PHYS_POOL]Mapping External, address =3D ca800000
+Releasing External memory pool, address =3D ca800000
+interation 5
+INFO: For help run script as ./install_bridge help
+INFO:Installed Bridgedriver from current directory:/dspbridge_os
+[PHYS_POOL]Mapping External, address =3D cb000000
+Releasing External memory pool, address =3D cb000000
+interation 6
+INFO: For help run script as ./install_bridge help
+INFO:Installed Bridgedriver from current directory:/dspbridge_os
+[PHYS_POOL]Mapping External, address =3D cc000000
+Releasing External memory pool, address =3D cc000000
+interation 7
+INFO: For help run script as ./install_bridge help
+INFO:Installed Bridgedriver from current directory:/dspbridge_os
+[PHYS_POOL]Mapping External, address =3D cc800000
+Releasing External memory pool, address =3D cc800000
+interation 8
+INFO: For help run script as ./install_bridge help
+INFO:Installed Bridgedriver from current directory:/dspbridge_os
+[PHYS_POOL]Mapping External, address =3D c8800000
+Releasing External memory pool, address =3D c8800000
+interation 9
+INFO: For help run script as ./install_bridge help
+INFO:Installed Bridgedriver from current directory:/dspbridge_os
+[PHYS_POOL]Mapping External, address =3D ca000000
+Releasing External memory pool, address =3D ca000000
+interation 10
+INFO: For help run script as ./install_bridge help
+INFO:Installed Bridgedriver from current directory:/dspbridge_os
+[PHYS_POOL]Mapping External, address =3D cd000000
+Releasing External memory pool, address =3D cd000000
+interation 11
+INFO: For help run script as ./install_bridge help
+INFO:Installed Bridgedriver from current directory:/dspbridge_os
+[PHYS_POOL]Mapping External, address =3D cd800000
+Releasing External memory pool, address =3D cd800000
+interation 12
+INFO: For help run script as ./install_bridge help
+INFO:Installed Bridgedriver from current directory:/dspbridge_os
+[PHYS_POOL]Mapping External, address =3D ce800000
+Releasing External memory pool, address =3D ce800000
+interation 13
+INFO: For help run script as ./install_bridge help
+INFO:Installed Bridgedriver from current directory:/dspbridge_os
+[PHYS_POOL]Mapping External, address =3D cf000000
+Releasing External memory pool, address =3D cf000000
+interation 14
+INFO: For help run script as ./install_bridge help
+INFO:Installed Bridgedriver from current directory:/dspbridge_os
+[PHYS_POOL]Mapping External, address =3D d0000000
+Releasing External memory pool, address =3D d0000000
+interation 15
+INFO: For help run script as ./install_bridge help
+INFO:Installed Bridgedriver from current directory:/dspbridge_os
+[PHYS_POOL]Mapping External, address =3D d0800000
+Releasing External memory pool, address =3D d0800000
+=2E..
+=A0
+and It crashes in the 33rd reload.
+=A0
+=A0
+interation 32
+INFO: For help run script as ./install_bridge help
+INFO:Installed Bridgedriver from current directory:/dspbridge_os
+[PHYS_POOL]Mapping External, address =3D d7800000
+Releasing External memory pool, address =3D d7800000
+interation 33
+INFO: For help run script as ./install_bridge help
+INFO:Installed Bridgedriver from current directory:/dspbridge_os
+<4>vmap allocation failed: use vmalloc=3D<size> to increase size.
+vmap allocation failed: use vmalloc=3D<size> to increase size.
+[PHYS_POOL]Mapping External, address =3D 0
+<4>coherent allocation too big (requested 0x400000 mask 0xffffffff)
+coherent allocation too big (requested 0x400000 mask 0xffffffff)
+drivers/dsp/bridge/rmgr/drv.c, line 1546: Assertion ((DSP_SUCCEEDED(sta=
+tus) && p
+DevNodeString !=3D NULL && !LST_IsEmpty(pDRVObject->devNodeString)) || =
+(DSP_FAILED
+(status) && *pDevNodeString =3D=3D 0)) failed.
+drivers/dsp/bridge/rmgr/drv.c, line 1546: Assertion ((DSP_SUCCEEDED(sta=
+tus) && p
+DevNodeString !=3D NULL && !LST_IsEmpty(pDRVObject->devNodeString)) || =
+(DSP_FAILED
+(status) && *pDevNodeString =3D=3D 0)) failed.
+drivers/dsp/bridge/rmgr/drv_interface.c, line 484: Assertion (status =3D=
+=3D 0) faile
+d.
+drivers/dsp/bridge/rmgr/drv_interface.c, line 484: Assertion (status =3D=
+=3D 0) faile
+d.
+drivers/dsp/bridge/rmgr/drv_interface.c, line 485: Assertion (DSP_SUCCE=
+EDED(init
+Status)) failed.
+drivers/dsp/bridge/rmgr/drv_interface.c, line 485: Assertion (DSP_SUCCE=
+EDED(init
+Status)) failed.
 
-That means defining OMAP_STATE_C1 = 0 and so on.
-
-> +                       if (omap3_power_states[idx].valid)
-> +                               break;
->                 }
-> +               state = &(dev->states[idx]);
-> +               dev->last_state = state ;
-> +
-> +               cx = cpuidle_get_statedata(state);
->         }
->
->         current_cx_state = *cx;
-> @@ -150,6 +153,26 @@ static int omap3_enter_idle_bm(struct cpuidle_device *dev,
->         return omap3_enter_idle(dev, new_state);
->  }
->
-> +/**
-> + * omap3_toggle_off_states - Enable / Disable validity of idle states
-> + * @flag: Enable/ Disable support for OFF mode
-> + *
-> + * Called as result of change to "enable_off_mode".
-> + */
-> +void omap3_toggle_off_states(unsigned short flag)
-> +{
-
-How about calling this omap3_cpuidle_update_states() and taking
-no arguments.  Rather than the 'flag' argument, internally it
-just checks the global 'enable_off_mode.'
-
-This allows for potential further expansion down the road of other
-reasons to update CPUidle valid states.  For example, we've talked
-about updating the CPUidle state latencies on the fly depending on
-various other chip settings.
-
-> +       if (flag) {
-> +               omap3_power_states[OMAP3_STATE_C3].valid = 1;
-> +               omap3_power_states[OMAP3_STATE_C5].valid = 1;
-> +               omap3_power_states[OMAP3_STATE_C6].valid = 1;
-> +       }
-> +       else {
-> +               omap3_power_states[OMAP3_STATE_C3].valid = 0;
-> +               omap3_power_states[OMAP3_STATE_C5].valid = 0;
-> +               omap3_power_states[OMAP3_STATE_C6].valid = 0;
-> +       }
-> +}
-> +
-
-Rather than set set specific OMAP3_STATE_Cx values, it would be better
-to just walk the array, and check for [mpu|core]_state = PWRDM_POWER_OFF.
-If the state has either set, then update the valid flag.
-
->  DEFINE_PER_CPU(struct cpuidle_device, omap3_idle_dev);
->
->  /* omap3_init_power_states - Initialises the OMAP3 specific C states.
-> diff --git a/arch/arm/mach-omap2/pm.c b/arch/arm/mach-omap2/pm.c
-> index 61c6dfb..6785850 100644
-> --- a/arch/arm/mach-omap2/pm.c
-> +++ b/arch/arm/mach-omap2/pm.c
-> @@ -47,6 +47,8 @@ atomic_t sleep_block = ATOMIC_INIT(0);
->  static int vdd1_locked;
->  static int vdd2_locked;
->
-> +extern void omap3_toggle_off_states(unsigned short);
-> +
-
-Move the definition into pm.h as omap3_cpuidle_update_states(void) as
-described above.
-
->  static ssize_t idle_show(struct kobject *, struct kobj_attribute *, char *);
->  static ssize_t idle_store(struct kobject *k, struct kobj_attribute *,
->                           const char *buf, size_t n);
-> @@ -112,6 +114,8 @@ static ssize_t idle_store(struct kobject *kobj, struct kobj_
->         } else if (attr == &enable_off_mode_attr) {
->                 enable_off_mode = value;
->                 omap3_pm_off_mode_enable(enable_off_mode);
-> +               if (cpu_is_omap34xx())
-> +                       omap3_toggle_off_states(value);
-
-Then, don't modify pm.c, rather just call omap3_cpuidle_update_states() from
-omap3_pm_off_mode_enable().
-
-Kevin
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
