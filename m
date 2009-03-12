@@ -1,7 +1,7 @@
 From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: [PATCH 63/86] [ARM] OMAP2 PRCM: clean up CM_IDLEST bits
-Date: Thu, 12 Mar 2009 11:28:13 -0700
-Message-ID: <1236882516-29403-64-git-send-email-khilman@deeprootsystems.com>
+Subject: [PATCH 67/86] [ARM] OMAP2 SDRC: separate common OMAP2/3 code from OMAP2xxx code
+Date: Thu, 12 Mar 2009 11:28:17 -0700
+Message-ID: <1236882516-29403-68-git-send-email-khilman@deeprootsystems.com>
 References: <1236882516-29403-1-git-send-email-khilman@deeprootsystems.com>
  <1236882516-29403-2-git-send-email-khilman@deeprootsystems.com>
  <1236882516-29403-3-git-send-email-khilman@deeprootsystems.com>
@@ -65,549 +65,446 @@ References: <1236882516-29403-1-git-send-email-khilman@deeprootsystems.com>
  <1236882516-29403-61-git-send-email-khilman@deeprootsystems.com>
  <1236882516-29403-62-git-send-email-khilman@deeprootsystems.com>
  <1236882516-29403-63-git-send-email-khilman@deeprootsystems.com>
+ <1236882516-29403-64-git-send-email-khilman@deeprootsystems.com>
+ <1236882516-29403-65-git-send-email-khilman@deeprootsystems.com>
+ <1236882516-29403-66-git-send-email-khilman@deeprootsystems.com>
+ <1236882516-29403-67-git-send-email-khilman@deeprootsystems.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ag-out-0708.google.com ([72.14.246.250]:55744 "EHLO
-	ag-out-0708.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755296AbZCLSdK (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 12 Mar 2009 14:33:10 -0400
-Received: by ag-out-0708.google.com with SMTP id 26so1107479agb.10
-        for <linux-omap@vger.kernel.org>; Thu, 12 Mar 2009 11:33:08 -0700 (PDT)
-In-Reply-To: <1236882516-29403-63-git-send-email-khilman@deeprootsystems.com>
+Received: from mail-gx0-f163.google.com ([209.85.217.163]:60567 "EHLO
+	mail-gx0-f163.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756846AbZCLSdd (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 12 Mar 2009 14:33:33 -0400
+Received: by mail-gx0-f163.google.com with SMTP id 7so458514gxk.13
+        for <linux-omap@vger.kernel.org>; Thu, 12 Mar 2009 11:33:32 -0700 (PDT)
+In-Reply-To: <1236882516-29403-67-git-send-email-khilman@deeprootsystems.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 
 From: Paul Walmsley <paul@pwsan.com>
 
-This patch fixes a few OMAP2xxx CM_IDLEST bits that were incorrectly
-marked as being OMAP2xxx-wide, when they were actually 2420-specific.
+Separate SDRC code common to OMAP2/3 from mach-omap2/sdrc2xxx.c to
+mach-omap2/sdrc.c.  Rename the OMAP2xxx-specific functions to use an
+'omap2xxx' prefix rather than an 'omap2' prefix, and use "sdrc" in the
+function names rather than "memory."  Mark several functions
+as static that should not be used outside the sdrc2xxx.c file.
 
-Also, originally when the PRCM register macros were defined, bit shift
-macros used a "_SHIFT" suffix, and mask macros used none.  This became
-a source of bugs and confusion, as the mask macros were mistakenly
-used for shift values.  Gradually, the mask macros have been updated,
-piece by piece, to add a "_MASK" suffix on the end to clarify.  This
-patch applies this change to the CM_IDLEST_* register bits.
-
-The patch also adds a few bits that were missing, mostly from the 3430ES1
-to ES2 revisions.
-
-linux-omap source commits are d18eff5b5fa15e170794397a6a94486d1f774f77,
-e1f1a5cc24615fb790cc763c96d1c5cfe6296f5b, and part of
-9fe6b6cf8d9e0cbb429fd64553a4b3160a9e99e1
+linux-omap source commit is bf1612b9d8d29379558500cd5de9ae0367c41fc4.
 
 Signed-off-by: Paul Walmsley <paul@pwsan.com>
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
 ---
- arch/arm/mach-omap2/cm-regbits-24xx.h |   80 +++++++++-----
- arch/arm/mach-omap2/cm-regbits-34xx.h |   96 ++++++++++++----
- arch/arm/mach-omap2/prcm-common.h     |  198 ++++++++++++++++++++++-----------
- 3 files changed, 257 insertions(+), 117 deletions(-)
+ arch/arm/mach-omap2/Makefile             |    6 ++-
+ arch/arm/mach-omap2/clock24xx.c          |   23 +++++-----
+ arch/arm/mach-omap2/io.c                 |    2 +-
+ arch/arm/mach-omap2/sdrc.c               |   57 +++++++++++++++++++++++++
+ arch/arm/mach-omap2/sdrc2xxx.c           |   67 +++++++----------------------
+ arch/arm/plat-omap/common.c              |    2 +-
+ arch/arm/plat-omap/include/mach/common.h |    2 +-
+ arch/arm/plat-omap/include/mach/sdrc.h   |   37 ++++++++++-------
+ 8 files changed, 115 insertions(+), 81 deletions(-)
+ create mode 100644 arch/arm/mach-omap2/sdrc.c
 
-diff --git a/arch/arm/mach-omap2/cm-regbits-24xx.h b/arch/arm/mach-omap2/cm-regbits-24xx.h
-index 1098ecf..297a2fe 100644
---- a/arch/arm/mach-omap2/cm-regbits-24xx.h
-+++ b/arch/arm/mach-omap2/cm-regbits-24xx.h
-@@ -110,35 +110,56 @@
- #define OMAP24XX_EN_DES					(1 << 0)
+diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
+index bb47d43..9717afc 100644
+--- a/arch/arm/mach-omap2/Makefile
++++ b/arch/arm/mach-omap2/Makefile
+@@ -3,7 +3,7 @@
+ #
  
- /* CM_IDLEST1_CORE specific bits */
--#define OMAP24XX_ST_MAILBOXES				(1 << 30)
--#define OMAP24XX_ST_WDT4				(1 << 29)
--#define OMAP2420_ST_WDT3				(1 << 28)
--#define OMAP24XX_ST_MSPRO				(1 << 27)
--#define OMAP24XX_ST_FAC					(1 << 25)
--#define OMAP2420_ST_EAC					(1 << 24)
--#define OMAP24XX_ST_HDQ					(1 << 23)
--#define OMAP24XX_ST_I2C2				(1 << 20)
--#define OMAP24XX_ST_I2C1				(1 << 19)
--#define OMAP24XX_ST_MCBSP2				(1 << 16)
--#define OMAP24XX_ST_MCBSP1				(1 << 15)
--#define OMAP24XX_ST_DSS					(1 << 0)
-+#define OMAP24XX_ST_MAILBOXES_SHIFT			30
-+#define OMAP24XX_ST_MAILBOXES_MASK			(1 << 30)
-+#define OMAP24XX_ST_WDT4_SHIFT				29
-+#define OMAP24XX_ST_WDT4_MASK				(1 << 29)
-+#define OMAP2420_ST_WDT3_SHIFT				28
-+#define OMAP2420_ST_WDT3_MASK				(1 << 28)
-+#define OMAP24XX_ST_MSPRO_SHIFT				27
-+#define OMAP24XX_ST_MSPRO_MASK				(1 << 27)
-+#define OMAP24XX_ST_FAC_SHIFT				25
-+#define OMAP24XX_ST_FAC_MASK				(1 << 25)
-+#define OMAP2420_ST_EAC_SHIFT				24
-+#define OMAP2420_ST_EAC_MASK				(1 << 24)
-+#define OMAP24XX_ST_HDQ_SHIFT				23
-+#define OMAP24XX_ST_HDQ_MASK				(1 << 23)
-+#define OMAP2420_ST_I2C2_SHIFT				20
-+#define OMAP2420_ST_I2C2_MASK				(1 << 20)
-+#define OMAP2420_ST_I2C1_SHIFT				19
-+#define OMAP2420_ST_I2C1_MASK				(1 << 19)
-+#define OMAP24XX_ST_MCBSP2_SHIFT			16
-+#define OMAP24XX_ST_MCBSP2_MASK				(1 << 16)
-+#define OMAP24XX_ST_MCBSP1_SHIFT			15
-+#define OMAP24XX_ST_MCBSP1_MASK				(1 << 15)
-+#define OMAP24XX_ST_DSS_SHIFT				0
-+#define OMAP24XX_ST_DSS_MASK				(1 << 0)
+ # Common support
+-obj-y := irq.o id.o io.o sdrc2xxx.o control.o prcm.o clock.o mux.o \
++obj-y := irq.o id.o io.o sdrc.o control.o prcm.o clock.o mux.o \
+ 		devices.o serial.o gpmc.o timer-gp.o powerdomain.o \
+ 		clockdomain.o
  
- /* CM_IDLEST2_CORE */
--#define OMAP2430_ST_MCBSP5				(1 << 5)
--#define OMAP2430_ST_MCBSP4				(1 << 4)
--#define OMAP2430_ST_MCBSP3				(1 << 3)
--#define OMAP24XX_ST_SSI					(1 << 1)
-+#define OMAP2430_ST_MCBSP5_SHIFT			5
-+#define OMAP2430_ST_MCBSP5_MASK				(1 << 5)
-+#define OMAP2430_ST_MCBSP4_SHIFT				4
-+#define OMAP2430_ST_MCBSP4_MASK				(1 << 4)
-+#define OMAP2430_ST_MCBSP3_SHIFT				3
-+#define OMAP2430_ST_MCBSP3_MASK				(1 << 3)
-+#define OMAP24XX_ST_SSI_SHIFT				1
-+#define OMAP24XX_ST_SSI_MASK				(1 << 1)
+@@ -14,6 +14,10 @@ obj-$(CONFIG_ARCH_OMAP2420)		+= sram242x.o
+ obj-$(CONFIG_ARCH_OMAP2430)		+= sram243x.o
+ obj-$(CONFIG_ARCH_OMAP3)		+= sram34xx.o
  
- /* CM_IDLEST3_CORE */
- /* 2430 only */
--#define OMAP2430_ST_SDRC				(1 << 2)
-+#define OMAP2430_ST_SDRC_MASK				(1 << 2)
++# SMS/SDRC
++obj-$(CONFIG_ARCH_OMAP2)		+= sdrc2xxx.o
++# obj-$(CONFIG_ARCH_OMAP3)		+= sdrc3xxx.o
++
+ # Power Management
+ ifeq ($(CONFIG_PM),y)
+ obj-y					+= pm.o
+diff --git a/arch/arm/mach-omap2/clock24xx.c b/arch/arm/mach-omap2/clock24xx.c
+index 83911ad..a11e7c7 100644
+--- a/arch/arm/mach-omap2/clock24xx.c
++++ b/arch/arm/mach-omap2/clock24xx.c
+@@ -389,9 +389,9 @@ static int omap2_reprogram_dpllcore(struct clk *clk, unsigned long rate)
+ 	mult &= OMAP24XX_CORE_CLK_SRC_MASK;
  
- /* CM_IDLEST4_CORE */
--#define OMAP24XX_ST_PKA					(1 << 4)
--#define OMAP24XX_ST_AES					(1 << 3)
--#define OMAP24XX_ST_RNG					(1 << 2)
--#define OMAP24XX_ST_SHA					(1 << 1)
--#define OMAP24XX_ST_DES					(1 << 0)
-+#define OMAP24XX_ST_PKA_SHIFT				4
-+#define OMAP24XX_ST_PKA_MASK				(1 << 4)
-+#define OMAP24XX_ST_AES_SHIFT				3
-+#define OMAP24XX_ST_AES_MASK				(1 << 3)
-+#define OMAP24XX_ST_RNG_SHIFT				2
-+#define OMAP24XX_ST_RNG_MASK				(1 << 2)
-+#define OMAP24XX_ST_SHA_SHIFT				1
-+#define OMAP24XX_ST_SHA_MASK				(1 << 1)
-+#define OMAP24XX_ST_DES_SHIFT				0
-+#define OMAP24XX_ST_DES_MASK				(1 << 0)
+ 	if ((rate == (cur_rate / 2)) && (mult == 2)) {
+-		omap2_reprogram_sdrc(CORE_CLK_SRC_DPLL, 1);
++		omap2xxx_sdrc_reprogram(CORE_CLK_SRC_DPLL, 1);
+ 	} else if ((rate == (cur_rate * 2)) && (mult == 1)) {
+-		omap2_reprogram_sdrc(CORE_CLK_SRC_DPLL_X2, 1);
++		omap2xxx_sdrc_reprogram(CORE_CLK_SRC_DPLL_X2, 1);
+ 	} else if (rate != cur_rate) {
+ 		valid_rate = omap2_dpllcore_round_rate(rate);
+ 		if (valid_rate != rate)
+@@ -430,15 +430,16 @@ static int omap2_reprogram_dpllcore(struct clk *clk, unsigned long rate)
+ 		if (rate == curr_prcm_set->xtal_speed)	/* If asking for 1-1 */
+ 			bypass = 1;
  
- /* CM_AUTOIDLE1_CORE */
- #define OMAP24XX_AUTO_CAM				(1 << 31)
-@@ -275,11 +296,16 @@
- #define OMAP24XX_EN_32KSYNC				(1 << 1)
+-		omap2_reprogram_sdrc(CORE_CLK_SRC_DPLL_X2, 1); /* For init_mem */
++		/* For omap2xxx_sdrc_init_params() */
++		omap2xxx_sdrc_reprogram(CORE_CLK_SRC_DPLL_X2, 1);
  
- /* CM_IDLEST_WKUP specific bits */
--#define OMAP2430_ST_ICR					(1 << 6)
--#define OMAP24XX_ST_OMAPCTRL				(1 << 5)
--#define OMAP24XX_ST_WDT1				(1 << 4)
--#define OMAP24XX_ST_MPU_WDT				(1 << 3)
--#define OMAP24XX_ST_32KSYNC				(1 << 1)
-+#define OMAP2430_ST_ICR_SHIFT				6
-+#define OMAP2430_ST_ICR_MASK				(1 << 6)
-+#define OMAP24XX_ST_OMAPCTRL_SHIFT			5
-+#define OMAP24XX_ST_OMAPCTRL_MASK			(1 << 5)
-+#define OMAP24XX_ST_WDT1_SHIFT				4
-+#define OMAP24XX_ST_WDT1_MASK				(1 << 4)
-+#define OMAP24XX_ST_MPU_WDT_SHIFT			3
-+#define OMAP24XX_ST_MPU_WDT_MASK			(1 << 3)
-+#define OMAP24XX_ST_32KSYNC_SHIFT			1
-+#define OMAP24XX_ST_32KSYNC_MASK			(1 << 1)
+ 		/* Force dll lock mode */
+ 		omap2_set_prcm(tmpset.cm_clksel1_pll, tmpset.base_sdrc_rfr,
+ 			       bypass);
  
- /* CM_AUTOIDLE_WKUP */
- #define OMAP24XX_AUTO_OMAPCTRL				(1 << 5)
-diff --git a/arch/arm/mach-omap2/cm-regbits-34xx.h b/arch/arm/mach-omap2/cm-regbits-34xx.h
-index 844356c..6f3f5a3 100644
---- a/arch/arm/mach-omap2/cm-regbits-34xx.h
-+++ b/arch/arm/mach-omap2/cm-regbits-34xx.h
-@@ -183,29 +183,52 @@
- #define OMAP3430ES2_EN_CPEFUSE_MASK			(1 << 0)
+ 		/* Errata: ret dll entry state */
+-		omap2_init_memory_params(omap2_dll_force_needed());
+-		omap2_reprogram_sdrc(done_rate, 0);
++		omap2xxx_sdrc_init_params(omap2xxx_sdrc_dll_is_unlocked());
++		omap2xxx_sdrc_reprogram(done_rate, 0);
+ 	}
+ 	omap2_dpllcore_recalc(&dpll_ck);
+ 	ret = 0;
+@@ -525,9 +526,9 @@ static int omap2_select_table_rate(struct clk *clk, unsigned long rate)
+ 	cur_rate = omap2_get_dpll_rate_24xx(&dpll_ck);
  
- /* CM_IDLEST1_CORE specific bits */
--#define OMAP3430_ST_ICR					(1 << 29)
--#define OMAP3430_ST_AES2				(1 << 28)
--#define OMAP3430_ST_SHA12				(1 << 27)
--#define OMAP3430_ST_DES2				(1 << 26)
--#define OMAP3430_ST_MSPRO				(1 << 23)
--#define OMAP3430_ST_HDQ					(1 << 22)
--#define OMAP3430ES1_ST_FAC				(1 << 8)
--#define OMAP3430ES1_ST_MAILBOXES			(1 << 7)
--#define OMAP3430_ST_OMAPCTRL				(1 << 6)
--#define OMAP3430_ST_SDMA				(1 << 2)
--#define OMAP3430_ST_SDRC				(1 << 1)
--#define OMAP3430_ST_SSI					(1 << 0)
-+#define OMAP3430ES2_ST_MMC3_SHIFT			30
-+#define OMAP3430ES2_ST_MMC3_MASK			(1 << 30)
-+#define OMAP3430_ST_ICR_SHIFT				29
-+#define OMAP3430_ST_ICR_MASK				(1 << 29)
-+#define OMAP3430_ST_AES2_SHIFT				28
-+#define OMAP3430_ST_AES2_MASK				(1 << 28)
-+#define OMAP3430_ST_SHA12_SHIFT				27
-+#define OMAP3430_ST_SHA12_MASK				(1 << 27)
-+#define OMAP3430_ST_DES2_SHIFT				26
-+#define OMAP3430_ST_DES2_MASK				(1 << 26)
-+#define OMAP3430_ST_MSPRO_SHIFT				23
-+#define OMAP3430_ST_MSPRO_MASK				(1 << 23)
-+#define OMAP3430_ST_HDQ_SHIFT				22
-+#define OMAP3430_ST_HDQ_MASK				(1 << 22)
-+#define OMAP3430ES1_ST_FAC_SHIFT			8
-+#define OMAP3430ES1_ST_FAC_MASK				(1 << 8)
-+#define OMAP3430ES2_ST_SSI_IDLE_SHIFT			8
-+#define OMAP3430ES2_ST_SSI_IDLE_MASK			(1 << 8)
-+#define OMAP3430_ST_MAILBOXES_SHIFT			7
-+#define OMAP3430_ST_MAILBOXES_MASK			(1 << 7)
-+#define OMAP3430_ST_OMAPCTRL_SHIFT			6
-+#define OMAP3430_ST_OMAPCTRL_MASK			(1 << 6)
-+#define OMAP3430_ST_SDMA_SHIFT				2
-+#define OMAP3430_ST_SDMA_MASK				(1 << 2)
-+#define OMAP3430_ST_SDRC_SHIFT				1
-+#define OMAP3430_ST_SDRC_MASK				(1 << 1)
-+#define OMAP3430_ST_SSI_STDBY_SHIFT			0
-+#define OMAP3430_ST_SSI_STDBY_MASK			(1 << 0)
+ 	if (prcm->dpll_speed == cur_rate / 2) {
+-		omap2_reprogram_sdrc(CORE_CLK_SRC_DPLL, 1);
++		omap2xxx_sdrc_reprogram(CORE_CLK_SRC_DPLL, 1);
+ 	} else if (prcm->dpll_speed == cur_rate * 2) {
+-		omap2_reprogram_sdrc(CORE_CLK_SRC_DPLL_X2, 1);
++		omap2xxx_sdrc_reprogram(CORE_CLK_SRC_DPLL_X2, 1);
+ 	} else if (prcm->dpll_speed != cur_rate) {
+ 		local_irq_save(flags);
  
- /* CM_IDLEST2_CORE */
--#define OMAP3430_ST_PKA					(1 << 4)
--#define OMAP3430_ST_AES1				(1 << 3)
--#define OMAP3430_ST_RNG					(1 << 2)
--#define OMAP3430_ST_SHA11				(1 << 1)
--#define OMAP3430_ST_DES1				(1 << 0)
-+#define OMAP3430_ST_PKA_SHIFT				4
-+#define OMAP3430_ST_PKA_MASK				(1 << 4)
-+#define OMAP3430_ST_AES1_SHIFT				3
-+#define OMAP3430_ST_AES1_MASK				(1 << 3)
-+#define OMAP3430_ST_RNG_SHIFT				2
-+#define OMAP3430_ST_RNG_MASK				(1 << 2)
-+#define OMAP3430_ST_SHA11_SHIFT				1
-+#define OMAP3430_ST_SHA11_MASK				(1 << 1)
-+#define OMAP3430_ST_DES1_SHIFT				0
-+#define OMAP3430_ST_DES1_MASK				(1 << 0)
+@@ -558,14 +559,14 @@ static int omap2_select_table_rate(struct clk *clk, unsigned long rate)
+ 			cm_write_mod_reg(prcm->cm_clksel_mdm,
+ 					 OMAP2430_MDM_MOD, CM_CLKSEL);
  
- /* CM_IDLEST3_CORE */
- #define OMAP3430ES2_ST_USBTLL_SHIFT			2
- #define OMAP3430ES2_ST_USBTLL_MASK			(1 << 2)
-+#define OMAP3430ES2_ST_CPEFUSE_SHIFT			0
-+#define OMAP3430ES2_ST_CPEFUSE_MASK			(1 << 0)
+-		/* x2 to enter init_mem */
+-		omap2_reprogram_sdrc(CORE_CLK_SRC_DPLL_X2, 1);
++		/* x2 to enter omap2xxx_sdrc_init_params() */
++		omap2xxx_sdrc_reprogram(CORE_CLK_SRC_DPLL_X2, 1);
  
- /* CM_AUTOIDLE1_CORE */
- #define OMAP3430ES2_AUTO_MMC3				(1 << 30)
-@@ -360,6 +383,7 @@
+ 		omap2_set_prcm(prcm->cm_clksel1_pll, prcm->base_sdrc_rfr,
+ 			       bypass);
  
- /* CM_FCLKEN_WKUP specific bits */
- #define OMAP3430ES2_EN_USIMOCP_SHIFT			9
-+#define OMAP3430ES2_EN_USIMOCP_MASK			(1 << 9)
+-		omap2_init_memory_params(omap2_dll_force_needed());
+-		omap2_reprogram_sdrc(done_rate, 0);
++		omap2xxx_sdrc_init_params(omap2xxx_sdrc_dll_is_unlocked());
++		omap2xxx_sdrc_reprogram(done_rate, 0);
  
- /* CM_ICLKEN_WKUP specific bits */
- #define OMAP3430_EN_WDT1				(1 << 4)
-@@ -368,11 +392,18 @@
- #define OMAP3430_EN_32KSYNC_SHIFT			2
- 
- /* CM_IDLEST_WKUP specific bits */
--#define OMAP3430_ST_WDT2				(1 << 5)
--#define OMAP3430_ST_WDT1				(1 << 4)
--#define OMAP3430_ST_32KSYNC				(1 << 2)
-+#define OMAP3430ES2_ST_USIMOCP_SHIFT			9
-+#define OMAP3430ES2_ST_USIMOCP_MASK			(1 << 9)
-+#define OMAP3430_ST_WDT2_SHIFT				5
-+#define OMAP3430_ST_WDT2_MASK				(1 << 5)
-+#define OMAP3430_ST_WDT1_SHIFT				4
-+#define OMAP3430_ST_WDT1_MASK				(1 << 4)
-+#define OMAP3430_ST_32KSYNC_SHIFT			2
-+#define OMAP3430_ST_32KSYNC_MASK			(1 << 2)
- 
- /* CM_AUTOIDLE_WKUP */
-+#define OMAP3430ES2_AUTO_USIMOCP				(1 << 9)
-+#define OMAP3430ES2_AUTO_USIMOCP_SHIFT			9
- #define OMAP3430_AUTO_WDT2				(1 << 5)
- #define OMAP3430_AUTO_WDT2_SHIFT			5
- #define OMAP3430_AUTO_WDT1				(1 << 4)
-@@ -437,6 +468,8 @@
- #define OMAP3430_ST_CORE_CLK_MASK			(1 << 0)
- 
- /* CM_IDLEST2_CKGEN */
-+#define OMAP3430ES2_ST_USIM_CLK_SHIFT			2
-+#define OMAP3430ES2_ST_USIM_CLK_MASK			(1 << 2)
- #define OMAP3430ES2_ST_120M_CLK_SHIFT			1
- #define OMAP3430ES2_ST_120M_CLK_MASK			(1 << 1)
- #define OMAP3430ES2_ST_PERIPH2_CLK_SHIFT		0
-@@ -508,7 +541,12 @@
- #define OMAP3430_CM_ICLKEN_DSS_EN_DSS_SHIFT		0
- 
- /* CM_IDLEST_DSS */
--#define OMAP3430_ST_DSS					(1 << 0)
-+#define OMAP3430ES2_ST_DSS_IDLE_SHIFT			1
-+#define OMAP3430ES2_ST_DSS_IDLE_MASK			(1 << 1)
-+#define OMAP3430ES2_ST_DSS_STDBY_SHIFT			0
-+#define OMAP3430ES2_ST_DSS_STDBY_MASK			(1 << 0)
-+#define OMAP3430ES1_ST_DSS_SHIFT			0
-+#define OMAP3430ES1_ST_DSS_MASK				(1 << 0)
- 
- /* CM_AUTOIDLE_DSS */
- #define OMAP3430_AUTO_DSS				(1 << 0)
-@@ -562,10 +600,14 @@
- /* CM_ICLKEN_PER specific bits */
- 
- /* CM_IDLEST_PER */
--#define OMAP3430_ST_WDT3				(1 << 12)
--#define OMAP3430_ST_MCBSP4				(1 << 2)
--#define OMAP3430_ST_MCBSP3				(1 << 1)
--#define OMAP3430_ST_MCBSP2				(1 << 0)
-+#define OMAP3430_ST_WDT3_SHIFT				12
-+#define OMAP3430_ST_WDT3_MASK				(1 << 12)
-+#define OMAP3430_ST_MCBSP4_SHIFT			2
-+#define OMAP3430_ST_MCBSP4_MASK				(1 << 2)
-+#define OMAP3430_ST_MCBSP3_SHIFT			1
-+#define OMAP3430_ST_MCBSP3_MASK				(1 << 1)
-+#define OMAP3430_ST_MCBSP2_SHIFT			0
-+#define OMAP3430_ST_MCBSP2_MASK				(1 << 0)
- 
- /* CM_AUTOIDLE_PER */
- #define OMAP3430_AUTO_GPIO6				(1 << 17)
-@@ -693,6 +735,10 @@
- #define OMAP3430ES2_EN_USBHOST_MASK			(1 << 0)
- 
- /* CM_IDLEST_USBHOST */
-+#define OMAP3430ES2_ST_USBHOST_IDLE_SHIFT		1
-+#define OMAP3430ES2_ST_USBHOST_IDLE_MASK		(1 << 1)
-+#define OMAP3430ES2_ST_USBHOST_STDBY_SHIFT		0
-+#define OMAP3430ES2_ST_USBHOST_STDBY_MASK		(1 << 0)
- 
- /* CM_AUTOIDLE_USBHOST */
- #define OMAP3430ES2_AUTO_USBHOST_SHIFT			0
-diff --git a/arch/arm/mach-omap2/prcm-common.h b/arch/arm/mach-omap2/prcm-common.h
-index 4a32822..812d50e 100644
---- a/arch/arm/mach-omap2/prcm-common.h
-+++ b/arch/arm/mach-omap2/prcm-common.h
-@@ -113,33 +113,58 @@
- #define OMAP2430_EN_USBHS				(1 << 6)
- 
- /* CM_IDLEST1_CORE, PM_WKST1_CORE shared bits */
--#define OMAP2420_ST_MMC					(1 << 26)
--#define OMAP24XX_ST_UART2				(1 << 22)
--#define OMAP24XX_ST_UART1				(1 << 21)
--#define OMAP24XX_ST_MCSPI2				(1 << 18)
--#define OMAP24XX_ST_MCSPI1				(1 << 17)
--#define OMAP24XX_ST_GPT12				(1 << 14)
--#define OMAP24XX_ST_GPT11				(1 << 13)
--#define OMAP24XX_ST_GPT10				(1 << 12)
--#define OMAP24XX_ST_GPT9				(1 << 11)
--#define OMAP24XX_ST_GPT8				(1 << 10)
--#define OMAP24XX_ST_GPT7				(1 << 9)
--#define OMAP24XX_ST_GPT6				(1 << 8)
--#define OMAP24XX_ST_GPT5				(1 << 7)
--#define OMAP24XX_ST_GPT4				(1 << 6)
--#define OMAP24XX_ST_GPT3				(1 << 5)
--#define OMAP24XX_ST_GPT2				(1 << 4)
--#define OMAP2420_ST_VLYNQ				(1 << 3)
-+#define OMAP2420_ST_MMC_SHIFT				26
-+#define OMAP2420_ST_MMC_MASK				(1 << 26)
-+#define OMAP24XX_ST_UART2_SHIFT				22
-+#define OMAP24XX_ST_UART2_MASK				(1 << 22)
-+#define OMAP24XX_ST_UART1_SHIFT				21
-+#define OMAP24XX_ST_UART1_MASK				(1 << 21)
-+#define OMAP24XX_ST_MCSPI2_SHIFT			18
-+#define OMAP24XX_ST_MCSPI2_MASK				(1 << 18)
-+#define OMAP24XX_ST_MCSPI1_SHIFT			17
-+#define OMAP24XX_ST_MCSPI1_MASK				(1 << 17)
-+#define OMAP24XX_ST_GPT12_SHIFT				14
-+#define OMAP24XX_ST_GPT12_MASK				(1 << 14)
-+#define OMAP24XX_ST_GPT11_SHIFT				13
-+#define OMAP24XX_ST_GPT11_MASK				(1 << 13)
-+#define OMAP24XX_ST_GPT10_SHIFT				12
-+#define OMAP24XX_ST_GPT10_MASK				(1 << 12)
-+#define OMAP24XX_ST_GPT9_SHIFT				11
-+#define OMAP24XX_ST_GPT9_MASK				(1 << 11)
-+#define OMAP24XX_ST_GPT8_SHIFT				10
-+#define OMAP24XX_ST_GPT8_MASK				(1 << 10)
-+#define OMAP24XX_ST_GPT7_SHIFT				9
-+#define OMAP24XX_ST_GPT7_MASK				(1 << 9)
-+#define OMAP24XX_ST_GPT6_SHIFT				8
-+#define OMAP24XX_ST_GPT6_MASK				(1 << 8)
-+#define OMAP24XX_ST_GPT5_SHIFT				7
-+#define OMAP24XX_ST_GPT5_MASK				(1 << 7)
-+#define OMAP24XX_ST_GPT4_SHIFT				6
-+#define OMAP24XX_ST_GPT4_MASK				(1 << 6)
-+#define OMAP24XX_ST_GPT3_SHIFT				5
-+#define OMAP24XX_ST_GPT3_MASK				(1 << 5)
-+#define OMAP24XX_ST_GPT2_SHIFT				4
-+#define OMAP24XX_ST_GPT2_MASK				(1 << 4)
-+#define OMAP2420_ST_VLYNQ_SHIFT				3
-+#define OMAP2420_ST_VLYNQ_MASK				(1 << 3)
- 
- /* CM_IDLEST2_CORE, PM_WKST2_CORE shared bits */
--#define OMAP2430_ST_MDM_INTC				(1 << 11)
--#define OMAP2430_ST_GPIO5				(1 << 10)
--#define OMAP2430_ST_MCSPI3				(1 << 9)
--#define OMAP2430_ST_MMCHS2				(1 << 8)
--#define OMAP2430_ST_MMCHS1				(1 << 7)
--#define OMAP2430_ST_USBHS				(1 << 6)
--#define OMAP24XX_ST_UART3				(1 << 2)
--#define OMAP24XX_ST_USB					(1 << 0)
-+#define OMAP2430_ST_MDM_INTC_SHIFT			11
-+#define OMAP2430_ST_MDM_INTC_MASK			(1 << 11)
-+#define OMAP2430_ST_GPIO5_SHIFT				10
-+#define OMAP2430_ST_GPIO5_MASK				(1 << 10)
-+#define OMAP2430_ST_MCSPI3_SHIFT			9
-+#define OMAP2430_ST_MCSPI3_MASK				(1 << 9)
-+#define OMAP2430_ST_MMCHS2_SHIFT			8
-+#define OMAP2430_ST_MMCHS2_MASK				(1 << 8)
-+#define OMAP2430_ST_MMCHS1_SHIFT			7
-+#define OMAP2430_ST_MMCHS1_MASK				(1 << 7)
-+#define OMAP2430_ST_USBHS_SHIFT				6
-+#define OMAP2430_ST_USBHS_MASK				(1 << 6)
-+#define OMAP24XX_ST_UART3_SHIFT				2
-+#define OMAP24XX_ST_UART3_MASK				(1 << 2)
-+#define OMAP24XX_ST_USB_SHIFT				0
-+#define OMAP24XX_ST_USB_MASK				(1 << 0)
- 
- /* CM_FCLKEN_WKUP, CM_ICLKEN_WKUP, PM_WKEN_WKUP shared bits */
- #define OMAP24XX_EN_GPIOS_SHIFT				2
-@@ -148,11 +173,13 @@
- #define OMAP24XX_EN_GPT1				(1 << 0)
- 
- /* PM_WKST_WKUP, CM_IDLEST_WKUP shared bits */
--#define OMAP24XX_ST_GPIOS				(1 << 2)
--#define OMAP24XX_ST_GPT1				(1 << 0)
-+#define OMAP24XX_ST_GPIOS_SHIFT				(1 << 2)
-+#define OMAP24XX_ST_GPIOS_MASK				2
-+#define OMAP24XX_ST_GPT1_SHIFT				(1 << 0)
-+#define OMAP24XX_ST_GPT1_MASK				0
- 
- /* CM_IDLEST_MDM and PM_WKST_MDM shared bits */
--#define OMAP2430_ST_MDM					(1 << 0)
-+#define OMAP2430_ST_MDM_SHIFT				(1 << 0)
+ 		local_irq_restore(flags);
+ 	}
+diff --git a/arch/arm/mach-omap2/io.c b/arch/arm/mach-omap2/io.c
+index 2b5f28a..3c1de36 100644
+--- a/arch/arm/mach-omap2/io.c
++++ b/arch/arm/mach-omap2/io.c
+@@ -201,6 +201,6 @@ void __init omap2_init_common_hw(void)
+ 	pwrdm_init(powerdomains_omap);
+ 	clkdm_init(clockdomains_omap, clkdm_pwrdm_autodeps);
+ 	omap2_clk_init();
+-	omap2_init_memory();
++	omap2_sdrc_init();
+ 	gpmc_init();
+ }
+diff --git a/arch/arm/mach-omap2/sdrc.c b/arch/arm/mach-omap2/sdrc.c
+new file mode 100644
+index 0000000..24b54d5
+--- /dev/null
++++ b/arch/arm/mach-omap2/sdrc.c
+@@ -0,0 +1,57 @@
++/*
++ * SMS/SDRC (SDRAM controller) common code for OMAP2/3
++ *
++ * Copyright (C) 2005, 2008 Texas Instruments Inc.
++ * Copyright (C) 2005, 2008 Nokia Corporation
++ *
++ * Tony Lindgren <tony@atomide.com>
++ * Paul Walmsley
++ * Richard Woodruff <r-woodruff2@ti.com>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++
++#include <linux/module.h>
++#include <linux/kernel.h>
++#include <linux/device.h>
++#include <linux/list.h>
++#include <linux/errno.h>
++#include <linux/delay.h>
++#include <linux/clk.h>
++#include <linux/io.h>
++
++#include <mach/common.h>
++#include <mach/clock.h>
++#include <mach/sram.h>
++
++#include "prm.h"
++
++#include <mach/sdrc.h>
++#include "sdrc.h"
++
++void __iomem *omap2_sdrc_base;
++void __iomem *omap2_sms_base;
++
++void __init omap2_set_globals_sdrc(struct omap_globals *omap2_globals)
++{
++	omap2_sdrc_base = omap2_globals->sdrc;
++	omap2_sms_base = omap2_globals->sms;
++}
++
++/* turn on smart idle modes for SDRAM scheduler and controller */
++void __init omap2_sdrc_init(void)
++{
++	u32 l;
++
++	l = sms_read_reg(SMS_SYSCONFIG);
++	l &= ~(0x3 << 3);
++	l |= (0x2 << 3);
++	sms_write_reg(l, SMS_SYSCONFIG);
++
++	l = sdrc_read_reg(SDRC_SYSCONFIG);
++	l &= ~(0x3 << 3);
++	l |= (0x2 << 3);
++	sdrc_write_reg(l, SDRC_SYSCONFIG);
++}
+diff --git a/arch/arm/mach-omap2/sdrc2xxx.c b/arch/arm/mach-omap2/sdrc2xxx.c
+index 3e38aa4..3a47aba 100644
+--- a/arch/arm/mach-omap2/sdrc2xxx.c
++++ b/arch/arm/mach-omap2/sdrc2xxx.c
+@@ -3,11 +3,12 @@
+  *
+  * SDRAM timing related functions for OMAP2xxx
+  *
+- * Copyright (C) 2005 Texas Instruments Inc.
+- * Richard Woodruff <r-woodruff2@ti.com>
++ * Copyright (C) 2005, 2008 Texas Instruments Inc.
++ * Copyright (C) 2005, 2008 Nokia Corporation
+  *
+- * Copyright (C) 2005 Nokia Corporation
+  * Tony Lindgren <tony@atomide.com>
++ * Paul Walmsley
++ * Richard Woodruff <r-woodruff2@ti.com>
+  *
+  * This program is free software; you can redistribute it and/or modify
+  * it under the terms of the GNU General Public License version 2 as
+@@ -39,23 +40,20 @@
+ #define M_LOCK		1
  
  
- /* 3430 register bits shared between CM & PRM registers */
-@@ -205,24 +232,46 @@
- #define OMAP3430_EN_HSOTGUSB_SHIFT				4
+-void __iomem *omap2_sdrc_base;
+-void __iomem *omap2_sms_base;
+-
+ static struct memory_timings mem_timings;
+ static u32 curr_perf_level = CORE_CLK_SRC_DPLL_X2;
  
- /* PM_WKST1_CORE, CM_IDLEST1_CORE shared bits */
--#define OMAP3430_ST_MMC2				(1 << 25)
--#define OMAP3430_ST_MMC1				(1 << 24)
--#define OMAP3430_ST_MCSPI4				(1 << 21)
--#define OMAP3430_ST_MCSPI3				(1 << 20)
--#define OMAP3430_ST_MCSPI2				(1 << 19)
--#define OMAP3430_ST_MCSPI1				(1 << 18)
--#define OMAP3430_ST_I2C3				(1 << 17)
--#define OMAP3430_ST_I2C2				(1 << 16)
--#define OMAP3430_ST_I2C1				(1 << 15)
--#define OMAP3430_ST_UART2				(1 << 14)
--#define OMAP3430_ST_UART1				(1 << 13)
--#define OMAP3430_ST_GPT11				(1 << 12)
--#define OMAP3430_ST_GPT10				(1 << 11)
--#define OMAP3430_ST_MCBSP5				(1 << 10)
--#define OMAP3430_ST_MCBSP1				(1 << 9)
--#define OMAP3430_ST_FSHOSTUSB				(1 << 5)
--#define OMAP3430_ST_HSOTGUSB				(1 << 4)
--#define OMAP3430_ST_D2D					(1 << 3)
-+#define OMAP3430_ST_MMC2_SHIFT				25
-+#define OMAP3430_ST_MMC2_MASK				(1 << 25)
-+#define OMAP3430_ST_MMC1_SHIFT				24
-+#define OMAP3430_ST_MMC1_MASK				(1 << 24)
-+#define OMAP3430_ST_MCSPI4_SHIFT			21
-+#define OMAP3430_ST_MCSPI4_MASK				(1 << 21)
-+#define OMAP3430_ST_MCSPI3_SHIFT			20
-+#define OMAP3430_ST_MCSPI3_MASK				(1 << 20)
-+#define OMAP3430_ST_MCSPI2_SHIFT			19
-+#define OMAP3430_ST_MCSPI2_MASK				(1 << 19)
-+#define OMAP3430_ST_MCSPI1_SHIFT			18
-+#define OMAP3430_ST_MCSPI1_MASK				(1 << 18)
-+#define OMAP3430_ST_I2C3_SHIFT				17
-+#define OMAP3430_ST_I2C3_MASK				(1 << 17)
-+#define OMAP3430_ST_I2C2_SHIFT				16
-+#define OMAP3430_ST_I2C2_MASK				(1 << 16)
-+#define OMAP3430_ST_I2C1_SHIFT				15
-+#define OMAP3430_ST_I2C1_MASK				(1 << 15)
-+#define OMAP3430_ST_UART2_SHIFT				14
-+#define OMAP3430_ST_UART2_MASK				(1 << 14)
-+#define OMAP3430_ST_UART1_SHIFT				13
-+#define OMAP3430_ST_UART1_MASK				(1 << 13)
-+#define OMAP3430_ST_GPT11_SHIFT				12
-+#define OMAP3430_ST_GPT11_MASK				(1 << 12)
-+#define OMAP3430_ST_GPT10_SHIFT				11
-+#define OMAP3430_ST_GPT10_MASK				(1 << 11)
-+#define OMAP3430_ST_MCBSP5_SHIFT			10
-+#define OMAP3430_ST_MCBSP5_MASK				(1 << 10)
-+#define OMAP3430_ST_MCBSP1_SHIFT			9
-+#define OMAP3430_ST_MCBSP1_MASK				(1 << 9)
-+#define OMAP3430ES1_ST_FSHOSTUSB_SHIFT			5
-+#define OMAP3430ES1_ST_FSHOSTUSB_MASK			(1 << 5)
-+#define OMAP3430ES1_ST_HSOTGUSB_SHIFT			4
-+#define OMAP3430ES1_ST_HSOTGUSB_MASK			(1 << 4)
-+#define OMAP3430ES2_ST_HSOTGUSB_IDLE_SHIFT		5
-+#define OMAP3430ES2_ST_HSOTGUSB_IDLE_MASK		(1 << 5)
-+#define OMAP3430ES2_ST_HSOTGUSB_STDBY_SHIFT		4
-+#define OMAP3430ES2_ST_HSOTGUSB_STDBY_MASK		(1 << 4)
-+#define OMAP3430_ST_D2D_SHIFT				3
-+#define OMAP3430_ST_D2D_MASK				(1 << 3)
+-u32 omap2_memory_get_slow_dll_ctrl(void)
++static u32 omap2xxx_sdrc_get_slow_dll_ctrl(void)
+ {
+ 	return mem_timings.slow_dll_ctrl;
+ }
  
- /* CM_FCLKEN_WKUP, CM_ICLKEN_WKUP, PM_WKEN_WKUP shared bits */
- #define OMAP3430_EN_GPIO1				(1 << 3)
-@@ -241,11 +290,16 @@
- #define OMAP3430_EN_GPT12_SHIFT				1
+-u32 omap2_memory_get_fast_dll_ctrl(void)
++static u32 omap2xxx_sdrc_get_fast_dll_ctrl(void)
+ {
+ 	return mem_timings.fast_dll_ctrl;
+ }
  
- /* CM_IDLEST_WKUP, PM_WKST_WKUP shared bits */
--#define OMAP3430_ST_SR2					(1 << 7)
--#define OMAP3430_ST_SR1					(1 << 6)
--#define OMAP3430_ST_GPIO1				(1 << 3)
--#define OMAP3430_ST_GPT12				(1 << 1)
--#define OMAP3430_ST_GPT1				(1 << 0)
-+#define OMAP3430_ST_SR2_SHIFT				7
-+#define OMAP3430_ST_SR2_MASK				(1 << 7)
-+#define OMAP3430_ST_SR1_SHIFT				6
-+#define OMAP3430_ST_SR1_MASK				(1 << 6)
-+#define OMAP3430_ST_GPIO1_SHIFT				3
-+#define OMAP3430_ST_GPIO1_MASK				(1 << 3)
-+#define OMAP3430_ST_GPT12_SHIFT				1
-+#define OMAP3430_ST_GPT12_MASK				(1 << 1)
-+#define OMAP3430_ST_GPT1_SHIFT				0
-+#define OMAP3430_ST_GPT1_MASK				(1 << 0)
+-u32 omap2_memory_get_type(void)
++static u32 omap2xxx_sdrc_get_type(void)
+ {
+ 	return mem_timings.m_type;
+ }
+@@ -64,7 +62,7 @@ u32 omap2_memory_get_type(void)
+  * Check the DLL lock state, and return tue if running in unlock mode.
+  * This is needed to compensate for the shifted DLL value in unlock mode.
+  */
+-u32 omap2_dll_force_needed(void)
++u32 omap2xxx_sdrc_dll_is_unlocked(void)
+ {
+ 	/* dlla and dllb are a set */
+ 	u32 dll_state = sdrc_read_reg(SDRC_DLLA_CTRL);
+@@ -79,8 +77,10 @@ u32 omap2_dll_force_needed(void)
+  * 'level' is the value to store to CM_CLKSEL2_PLL.CORE_CLK_SRC.
+  * Practical values are CORE_CLK_SRC_DPLL (for CORE_CLK = DPLL_CLK) or
+  * CORE_CLK_SRC_DPLL_X2 (for CORE_CLK = * DPLL_CLK * 2)
++ *
++ * Used by the clock framework during CORE DPLL changes
+  */
+-u32 omap2_reprogram_sdrc(u32 level, u32 force)
++u32 omap2xxx_sdrc_reprogram(u32 level, u32 force)
+ {
+ 	u32 dll_ctrl, m_type;
+ 	u32 prev = curr_perf_level;
+@@ -90,13 +90,13 @@ u32 omap2_reprogram_sdrc(u32 level, u32 force)
+ 		return prev;
  
+ 	if (level == CORE_CLK_SRC_DPLL)
+-		dll_ctrl = omap2_memory_get_slow_dll_ctrl();
++		dll_ctrl = omap2xxx_sdrc_get_slow_dll_ctrl();
+ 	else if (level == CORE_CLK_SRC_DPLL_X2)
+-		dll_ctrl = omap2_memory_get_fast_dll_ctrl();
++		dll_ctrl = omap2xxx_sdrc_get_fast_dll_ctrl();
+ 	else
+ 		return prev;
+ 
+-	m_type = omap2_memory_get_type();
++	m_type = omap2xxx_sdrc_get_type();
+ 
+ 	local_irq_save(flags);
+ 	__raw_writel(0xffff, OMAP24XX_PRCM_VOLTSETUP);
+@@ -107,18 +107,8 @@ u32 omap2_reprogram_sdrc(u32 level, u32 force)
+ 	return prev;
+ }
+ 
+-#if !defined(CONFIG_ARCH_OMAP2)
+-void omap2_sram_ddr_init(u32 *slow_dll_ctrl, u32 fast_dll_ctrl,
+-				u32 base_cs, u32 force_unlock)
+-{
+-}
+-void omap2_sram_reprogram_sdrc(u32 perf_level, u32 dll_val,
+-				      u32 mem_type)
+-{
+-}
+-#endif
+-
+-void omap2_init_memory_params(u32 force_lock_to_unlock_mode)
++/* Used by the clock framework during CORE DPLL changes */
++void omap2xxx_sdrc_init_params(u32 force_lock_to_unlock_mode)
+ {
+ 	unsigned long dll_cnt;
+ 	u32 fast_dll = 0;
+@@ -171,28 +161,3 @@ void omap2_init_memory_params(u32 force_lock_to_unlock_mode)
+ 	/* 90 degree phase for anything below 133Mhz + disable DLL filter */
+ 	mem_timings.slow_dll_ctrl |= ((1 << 1) | (3 << 8));
+ }
+-
+-void __init omap2_set_globals_memory(struct omap_globals *omap2_globals)
+-{
+-	omap2_sdrc_base = omap2_globals->sdrc;
+-	omap2_sms_base = omap2_globals->sms;
+-}
+-
+-/* turn on smart idle modes for SDRAM scheduler and controller */
+-void __init omap2_init_memory(void)
+-{
+-	u32 l;
+-
+-	if (!cpu_is_omap2420())
+-		return;
+-
+-	l = sms_read_reg(SMS_SYSCONFIG);
+-	l &= ~(0x3 << 3);
+-	l |= (0x2 << 3);
+-	sms_write_reg(l, SMS_SYSCONFIG);
+-
+-	l = sdrc_read_reg(SDRC_SYSCONFIG);
+-	l &= ~(0x3 << 3);
+-	l |= (0x2 << 3);
+-	sdrc_write_reg(l, SDRC_SYSCONFIG);
+-}
+diff --git a/arch/arm/plat-omap/common.c b/arch/arm/plat-omap/common.c
+index 0843b88..187239c 100644
+--- a/arch/arm/plat-omap/common.c
++++ b/arch/arm/plat-omap/common.c
+@@ -249,7 +249,7 @@ static struct omap_globals *omap2_globals;
+ static void __init __omap2_set_globals(void)
+ {
+ 	omap2_set_globals_tap(omap2_globals);
+-	omap2_set_globals_memory(omap2_globals);
++	omap2_set_globals_sdrc(omap2_globals);
+ 	omap2_set_globals_control(omap2_globals);
+ 	omap2_set_globals_prcm(omap2_globals);
+ }
+diff --git a/arch/arm/plat-omap/include/mach/common.h b/arch/arm/plat-omap/include/mach/common.h
+index ef70e2b..f3444a6 100644
+--- a/arch/arm/plat-omap/include/mach/common.h
++++ b/arch/arm/plat-omap/include/mach/common.h
+@@ -65,7 +65,7 @@ void omap2_set_globals_343x(void);
+ 
+ /* These get called from omap2_set_globals_xxxx(), do not call these */
+ void omap2_set_globals_tap(struct omap_globals *);
+-void omap2_set_globals_memory(struct omap_globals *);
++void omap2_set_globals_sdrc(struct omap_globals *);
+ void omap2_set_globals_control(struct omap_globals *);
+ void omap2_set_globals_prcm(struct omap_globals *);
+ 
+diff --git a/arch/arm/plat-omap/include/mach/sdrc.h b/arch/arm/plat-omap/include/mach/sdrc.h
+index c905b52..8e0740e 100644
+--- a/arch/arm/plat-omap/include/mach/sdrc.h
++++ b/arch/arm/plat-omap/include/mach/sdrc.h
+@@ -4,10 +4,12 @@
  /*
-  * CM_SLEEPDEP_GFX, CM_SLEEPDEP_DSS, CM_SLEEPDEP_CAM,
-@@ -296,20 +350,34 @@
- #define OMAP3430_EN_MCBSP2_SHIFT			0
+  * OMAP2/3 SDRC/SMS register definitions
+  *
+- * Copyright (C) 2007 Texas Instruments, Inc.
+- * Copyright (C) 2007 Nokia Corporation
++ * Copyright (C) 2007-2008 Texas Instruments, Inc.
++ * Copyright (C) 2007-2008 Nokia Corporation
+  *
+- * Written by Paul Walmsley
++ * Tony Lindgren
++ * Paul Walmsley
++ * Richard Woodruff
+  *
+  * This program is free software; you can redistribute it and/or modify
+  * it under the terms of the GNU General Public License version 2 as
+@@ -64,18 +66,25 @@
+  * SMS register access
+  */
  
- /* CM_IDLEST_PER, PM_WKST_PER shared bits */
--#define OMAP3430_ST_GPIO6				(1 << 17)
--#define OMAP3430_ST_GPIO5				(1 << 16)
--#define OMAP3430_ST_GPIO4				(1 << 15)
--#define OMAP3430_ST_GPIO3				(1 << 14)
--#define OMAP3430_ST_GPIO2				(1 << 13)
--#define OMAP3430_ST_UART3				(1 << 11)
--#define OMAP3430_ST_GPT9				(1 << 10)
--#define OMAP3430_ST_GPT8				(1 << 9)
--#define OMAP3430_ST_GPT7				(1 << 8)
--#define OMAP3430_ST_GPT6				(1 << 7)
--#define OMAP3430_ST_GPT5				(1 << 6)
--#define OMAP3430_ST_GPT4				(1 << 5)
--#define OMAP3430_ST_GPT3				(1 << 4)
--#define OMAP3430_ST_GPT2				(1 << 3)
-+#define OMAP3430_ST_GPIO6_SHIFT				17
-+#define OMAP3430_ST_GPIO6_MASK				(1 << 17)
-+#define OMAP3430_ST_GPIO5_SHIFT				16
-+#define OMAP3430_ST_GPIO5_MASK				(1 << 16)
-+#define OMAP3430_ST_GPIO4_SHIFT				15
-+#define OMAP3430_ST_GPIO4_MASK				(1 << 15)
-+#define OMAP3430_ST_GPIO3_SHIFT				14
-+#define OMAP3430_ST_GPIO3_MASK				(1 << 14)
-+#define OMAP3430_ST_GPIO2_SHIFT				13
-+#define OMAP3430_ST_GPIO2_MASK				(1 << 13)
-+#define OMAP3430_ST_UART3_SHIFT				11
-+#define OMAP3430_ST_UART3_MASK				(1 << 11)
-+#define OMAP3430_ST_GPT9_SHIFT				10
-+#define OMAP3430_ST_GPT9_MASK				(1 << 10)
-+#define OMAP3430_ST_GPT8_SHIFT				9
-+#define OMAP3430_ST_GPT8_MASK				(1 << 9)
-+#define OMAP3430_ST_GPT7_SHIFT				8
-+#define OMAP3430_ST_GPT7_MASK				(1 << 8)
-+#define OMAP3430_ST_GPT6_SHIFT				7
-+#define OMAP3430_ST_GPT6_MASK				(1 << 7)
-+#define OMAP3430_ST_GPT5_SHIFT				6
-+#define OMAP3430_ST_GPT5_MASK				(1 << 6)
-+#define OMAP3430_ST_GPT4_SHIFT				5
-+#define OMAP3430_ST_GPT4_MASK				(1 << 5)
-+#define OMAP3430_ST_GPT3_SHIFT				4
-+#define OMAP3430_ST_GPT3_MASK				(1 << 4)
-+#define OMAP3430_ST_GPT2_SHIFT				3
-+#define OMAP3430_ST_GPT2_MASK				(1 << 3)
+-
+-#define OMAP242X_SMS_REGADDR(reg)	IO_ADDRESS(OMAP2420_SMS_BASE + reg)
+-#define OMAP243X_SMS_REGADDR(reg)	IO_ADDRESS(OMAP243X_SMS_BASE + reg)
+-#define OMAP343X_SMS_REGADDR(reg)	IO_ADDRESS(OMAP343X_SMS_BASE + reg)
++#define OMAP242X_SMS_REGADDR(reg)					\
++			(void __iomem *)IO_ADDRESS(OMAP2420_SMS_BASE + reg)
++#define OMAP243X_SMS_REGADDR(reg)					\
++			(void __iomem *)IO_ADDRESS(OMAP243X_SMS_BASE + reg)
++#define OMAP343X_SMS_REGADDR(reg)					\
++			(void __iomem *)IO_ADDRESS(OMAP343X_SMS_BASE + reg)
  
- /* CM_SLEEPDEP_PER, PM_WKDEP_IVA2, PM_WKDEP_MPU, PM_WKDEP_PER shared bits */
- #define OMAP3430_EN_CORE_SHIFT				0
+ /* SMS register offsets - read/write with sms_{read,write}_reg() */
+ 
+ #define SMS_SYSCONFIG		0x010
+ /* REVISIT: fill in other SMS registers here */
+ 
++
+ #ifndef __ASSEMBLER__
+ 
++void __init omap2_sdrc_init(void);
++
++#ifdef CONFIG_ARCH_OMAP2
++
+ struct memory_timings {
+ 	u32 m_type;		/* ddr = 1, sdr = 0 */
+ 	u32 dll_mode;		/* use lock mode = 1, unlock mode = 0 */
+@@ -84,15 +93,13 @@ struct memory_timings {
+ 	u32 base_cs;		/* base chip select to use for calculations */
+ };
+ 
+-extern void omap2_init_memory_params(u32 force_lock_to_unlock_mode);
+-extern u32 omap2_memory_get_slow_dll_ctrl(void);
+-extern u32 omap2_memory_get_fast_dll_ctrl(void);
+-extern u32 omap2_memory_get_type(void);
+-u32 omap2_dll_force_needed(void);
+-u32 omap2_reprogram_sdrc(u32 level, u32 force);
+-void __init omap2_init_memory(void);
++extern void omap2xxx_sdrc_init_params(u32 force_lock_to_unlock_mode);
+ 
+-#endif
++u32 omap2xxx_sdrc_dll_is_unlocked(void);
++u32 omap2xxx_sdrc_reprogram(u32 level, u32 force);
++
++#endif  /* CONFIG_ARCH_OMAP2 */
+ 
++#endif  /* __ASSEMBLER__ */
+ 
+ #endif
 -- 
 1.6.1.2
 
