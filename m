@@ -1,7 +1,7 @@
 From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: [PATCH 80/86] [ARM] OMAP2/3 clock: don't tinker with hardirqs when they are supposed to be disabled
-Date: Thu, 12 Mar 2009 11:28:30 -0700
-Message-ID: <1236882516-29403-81-git-send-email-khilman@deeprootsystems.com>
+Subject: [PATCH 84/86] [ARM] OMAP3 powerdomains: make USBTLL SAR only available on ES3.1 and beyond
+Date: Thu, 12 Mar 2009 11:28:34 -0700
+Message-ID: <1236882516-29403-85-git-send-email-khilman@deeprootsystems.com>
 References: <1236882516-29403-1-git-send-email-khilman@deeprootsystems.com>
  <1236882516-29403-2-git-send-email-khilman@deeprootsystems.com>
  <1236882516-29403-3-git-send-email-khilman@deeprootsystems.com>
@@ -82,97 +82,93 @@ References: <1236882516-29403-1-git-send-email-khilman@deeprootsystems.com>
  <1236882516-29403-78-git-send-email-khilman@deeprootsystems.com>
  <1236882516-29403-79-git-send-email-khilman@deeprootsystems.com>
  <1236882516-29403-80-git-send-email-khilman@deeprootsystems.com>
+ <1236882516-29403-81-git-send-email-khilman@deeprootsystems.com>
+ <1236882516-29403-82-git-send-email-khilman@deeprootsystems.com>
+ <1236882516-29403-83-git-send-email-khilman@deeprootsystems.com>
+ <1236882516-29403-84-git-send-email-khilman@deeprootsystems.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
 Received: from ag-out-0708.google.com ([72.14.246.250]:55744 "EHLO
 	ag-out-0708.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757264AbZCLSeX (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 12 Mar 2009 14:34:23 -0400
+	with ESMTP id S1757270AbZCLSep (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 12 Mar 2009 14:34:45 -0400
 Received: by ag-out-0708.google.com with SMTP id 26so1107479agb.10
-        for <linux-omap@vger.kernel.org>; Thu, 12 Mar 2009 11:34:22 -0700 (PDT)
-In-Reply-To: <1236882516-29403-80-git-send-email-khilman@deeprootsystems.com>
+        for <linux-omap@vger.kernel.org>; Thu, 12 Mar 2009 11:34:44 -0700 (PDT)
+In-Reply-To: <1236882516-29403-84-git-send-email-khilman@deeprootsystems.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 
 From: Paul Walmsley <paul@pwsan.com>
 
-Clock rate change code executes inside a spinlock with hardirqs
-disabled.  The only code that should be messing around with the
-hardirq state should be the plat-omap/clock.c code.  In the
-omap2_reprogram_dpllcore() case, this probably just wastes cycles, but
-in the omap3_core_dpll_m2_set_rate() case, this is a nasty bug.
+Richard Woodruff writes that chip errata prevent USBTLL SAR from working
+on OMAP3 ES levels before ES3.1:
 
-linux-omap source commit is b9b6208dadb5e0d8b290900a3ffa911673ca97ed.
+http://marc.info/?l=linux-arm-kernel&m=123319614808833&w=2
+
+Update the OMAP3 powerdomain structures appropriately.
 
 Signed-off-by: Paul Walmsley <paul@pwsan.com>
-Signed-off-by: Tony Lindgren <tony@atomide.com>
+Cc: Richard Woodruff <r-woodruff2@ti.com>
 Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
 ---
- arch/arm/mach-omap2/clock24xx.c |   12 +++---------
- arch/arm/mach-omap2/clock34xx.c |    2 --
- 2 files changed, 3 insertions(+), 11 deletions(-)
+ arch/arm/mach-omap2/powerdomains.h     |    3 ++-
+ arch/arm/mach-omap2/powerdomains34xx.h |   25 +++++++++++++++++++++++--
+ 2 files changed, 25 insertions(+), 3 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/clock24xx.c b/arch/arm/mach-omap2/clock24xx.c
-index 1a88597..069f3e1 100644
---- a/arch/arm/mach-omap2/clock24xx.c
-+++ b/arch/arm/mach-omap2/clock24xx.c
-@@ -380,10 +380,7 @@ static int omap2_reprogram_dpllcore(struct clk *clk, unsigned long rate)
- 	u32 bypass = 0;
- 	struct prcm_config tmpset;
- 	const struct dpll_data *dd;
--	unsigned long flags;
--	int ret = -EINVAL;
+diff --git a/arch/arm/mach-omap2/powerdomains.h b/arch/arm/mach-omap2/powerdomains.h
+index 1329443..691470e 100644
+--- a/arch/arm/mach-omap2/powerdomains.h
++++ b/arch/arm/mach-omap2/powerdomains.h
+@@ -171,7 +171,8 @@ static struct powerdomain *powerdomains_omap[] __initdata = {
+ 	&iva2_pwrdm,
+ 	&mpu_34xx_pwrdm,
+ 	&neon_pwrdm,
+-	&core_34xx_pwrdm,
++	&core_34xx_pre_es3_1_pwrdm,
++	&core_34xx_es3_1_pwrdm,
+ 	&cam_pwrdm,
+ 	&dss_pwrdm,
+ 	&per_pwrdm,
+diff --git a/arch/arm/mach-omap2/powerdomains34xx.h b/arch/arm/mach-omap2/powerdomains34xx.h
+index 78acfce..4dcf94b 100644
+--- a/arch/arm/mach-omap2/powerdomains34xx.h
++++ b/arch/arm/mach-omap2/powerdomains34xx.h
+@@ -200,12 +200,33 @@ static struct powerdomain mpu_34xx_pwrdm = {
+ };
  
--	local_irq_save(flags);
- 	cur_rate = omap2_get_dpll_rate_24xx(&dpll_ck);
- 	mult = cm_read_mod_reg(PLL_MOD, CM_CLKSEL2);
- 	mult &= OMAP24XX_CORE_CLK_SRC_MASK;
-@@ -395,7 +392,7 @@ static int omap2_reprogram_dpllcore(struct clk *clk, unsigned long rate)
- 	} else if (rate != cur_rate) {
- 		valid_rate = omap2_dpllcore_round_rate(rate);
- 		if (valid_rate != rate)
--			goto dpll_exit;
-+			return -EINVAL;
- 
- 		if (mult == 1)
- 			low = curr_prcm_set->dpll_speed;
-@@ -404,7 +401,7 @@ static int omap2_reprogram_dpllcore(struct clk *clk, unsigned long rate)
- 
- 		dd = clk->dpll_data;
- 		if (!dd)
--			goto dpll_exit;
-+			return -EINVAL;
- 
- 		tmpset.cm_clksel1_pll = __raw_readl(dd->mult_div1_reg);
- 		tmpset.cm_clksel1_pll &= ~(dd->mult_mask |
-@@ -441,11 +438,8 @@ static int omap2_reprogram_dpllcore(struct clk *clk, unsigned long rate)
- 		omap2xxx_sdrc_init_params(omap2xxx_sdrc_dll_is_unlocked());
- 		omap2xxx_sdrc_reprogram(done_rate, 0);
- 	}
--	ret = 0;
- 
--dpll_exit:
--	local_irq_restore(flags);
--	return(ret);
-+	return 0;
- }
- 
- /**
-diff --git a/arch/arm/mach-omap2/clock34xx.c b/arch/arm/mach-omap2/clock34xx.c
-index a853b1e..3b6e27b 100644
---- a/arch/arm/mach-omap2/clock34xx.c
-+++ b/arch/arm/mach-omap2/clock34xx.c
-@@ -686,10 +686,8 @@ static int omap3_core_dpll_m2_set_rate(struct clk *clk, unsigned long rate)
- 	WARN_ON(new_div != 1 && new_div != 2);
- 
- 	/* REVISIT: Add SDRC_MR changing to this code also */
--	local_irq_disable();
- 	omap3_configure_core_dpll(sp->rfr_ctrl, sp->actim_ctrla,
- 				  sp->actim_ctrlb, new_div);
--	local_irq_enable();
- 
- 	return 0;
- }
+ /* No wkdeps or sleepdeps for 34xx core apparently */
+-static struct powerdomain core_34xx_pwrdm = {
++static struct powerdomain core_34xx_pre_es3_1_pwrdm = {
+ 	.name		  = "core_pwrdm",
+ 	.prcm_offs	  = CORE_MOD,
+-	.omap_chip	  = OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
++	.omap_chip	  = OMAP_CHIP_INIT(CHIP_IS_OMAP3430ES1 |
++					   CHIP_IS_OMAP3430ES2 |
++					   CHIP_IS_OMAP3430ES3_0),
++	.pwrsts		  = PWRSTS_OFF_RET_ON,
++	.dep_bit	  = OMAP3430_EN_CORE_SHIFT,
++	.banks		  = 2,
++	.pwrsts_mem_ret	  = {
++		[0] = PWRSTS_OFF_RET,	 /* MEM1RETSTATE */
++		[1] = PWRSTS_OFF_RET,	 /* MEM2RETSTATE */
++	},
++	.pwrsts_mem_on	  = {
++		[0] = PWRSTS_OFF_RET_ON, /* MEM1ONSTATE */
++		[1] = PWRSTS_OFF_RET_ON, /* MEM2ONSTATE */
++	},
++};
++
++/* No wkdeps or sleepdeps for 34xx core apparently */
++static struct powerdomain core_34xx_es3_1_pwrdm = {
++	.name		  = "core_pwrdm",
++	.prcm_offs	  = CORE_MOD,
++	.omap_chip	  = OMAP_CHIP_INIT(CHIP_GE_OMAP3430ES3_1),
+ 	.pwrsts		  = PWRSTS_OFF_RET_ON,
+ 	.dep_bit	  = OMAP3430_EN_CORE_SHIFT,
++	.flags		  = PWRDM_HAS_HDWR_SAR, /* for USBTLL only */
+ 	.banks		  = 2,
+ 	.pwrsts_mem_ret	  = {
+ 		[0] = PWRSTS_OFF_RET,	 /* MEM1RETSTATE */
 -- 
 1.6.1.2
 
