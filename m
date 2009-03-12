@@ -1,7 +1,7 @@
 From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: [PATCH 31/86] [ARM] omap: i2c: remove conditional ick clocks
-Date: Thu, 12 Mar 2009 11:27:41 -0700
-Message-ID: <1236882516-29403-32-git-send-email-khilman@deeprootsystems.com>
+Subject: [PATCH 32/86] [ARM] omap: w1: convert omap HDQ clocks to match by devid and conid
+Date: Thu, 12 Mar 2009 11:27:42 -0700
+Message-ID: <1236882516-29403-33-git-send-email-khilman@deeprootsystems.com>
 References: <1236882516-29403-1-git-send-email-khilman@deeprootsystems.com>
  <1236882516-29403-2-git-send-email-khilman@deeprootsystems.com>
  <1236882516-29403-3-git-send-email-khilman@deeprootsystems.com>
@@ -33,111 +33,80 @@ References: <1236882516-29403-1-git-send-email-khilman@deeprootsystems.com>
  <1236882516-29403-29-git-send-email-khilman@deeprootsystems.com>
  <1236882516-29403-30-git-send-email-khilman@deeprootsystems.com>
  <1236882516-29403-31-git-send-email-khilman@deeprootsystems.com>
+ <1236882516-29403-32-git-send-email-khilman@deeprootsystems.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-gx0-f163.google.com ([209.85.217.163]:60567 "EHLO
-	mail-gx0-f163.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756570AbZCLSbI (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 12 Mar 2009 14:31:08 -0400
-Received: by mail-gx0-f163.google.com with SMTP id 7so458514gxk.13
-        for <linux-omap@vger.kernel.org>; Thu, 12 Mar 2009 11:31:07 -0700 (PDT)
-In-Reply-To: <1236882516-29403-31-git-send-email-khilman@deeprootsystems.com>
+Received: from ag-out-0708.google.com ([72.14.246.250]:55744 "EHLO
+	ag-out-0708.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756581AbZCLSbM (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 12 Mar 2009 14:31:12 -0400
+Received: by ag-out-0708.google.com with SMTP id 26so1107479agb.10
+        for <linux-omap@vger.kernel.org>; Thu, 12 Mar 2009 11:31:11 -0700 (PDT)
+In-Reply-To: <1236882516-29403-32-git-send-email-khilman@deeprootsystems.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 
 From: Russell King <rmk@dyn-67.arm.linux.org.uk>
 
-By providing a dummy ick for OMAP1510 and OMAP310, we avoid having
-SoC conditional clock information in i2c-omap.c.  Also, fix the
-error handling by making sure we propagate the error returned via
-clk_get().
-
 Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
 ---
- arch/arm/mach-omap1/clock.c   |    1 +
- drivers/i2c/busses/i2c-omap.c |   28 +++++++++++++---------------
- 2 files changed, 14 insertions(+), 15 deletions(-)
+ arch/arm/mach-omap2/clock24xx.c |    4 ++--
+ arch/arm/mach-omap2/clock34xx.c |    4 ++--
+ drivers/w1/masters/omap_hdq.c   |    4 ++--
+ 3 files changed, 6 insertions(+), 6 deletions(-)
 
-diff --git a/arch/arm/mach-omap1/clock.c b/arch/arm/mach-omap1/clock.c
-index 382e09a..d2c6139 100644
---- a/arch/arm/mach-omap1/clock.c
-+++ b/arch/arm/mach-omap1/clock.c
-@@ -132,6 +132,7 @@ static struct omap_clk omap_clks[] = {
- 	CLK(NULL,	"mpu",		&virtual_ck_mpu, CK_16XX | CK_1510 | CK_310),
- 	CLK("i2c_omap.1", "fck",	&i2c_fck,	CK_16XX | CK_1510 | CK_310),
- 	CLK("i2c_omap.1", "ick",	&i2c_ick,	CK_16XX),
-+	CLK("i2c_omap.1", "ick",	&dummy_ck,	CK_1510 | CK_310),
- 	CLK("omap-mcbsp.1", "ick",	&dspper_ck,	CK_16XX),
- 	CLK("omap-mcbsp.1", "ick",	&dummy_ck,	CK_1510 | CK_310),
- 	CLK("omap-mcbsp.2", "ick",	&armper_ck.clk,	CK_16XX),
-diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
-index 96814fb..ece0125 100644
---- a/drivers/i2c/busses/i2c-omap.c
-+++ b/drivers/i2c/busses/i2c-omap.c
-@@ -193,22 +193,24 @@ static inline u16 omap_i2c_read_reg(struct omap_i2c_dev *i2c_dev, int reg)
- 
- static int __init omap_i2c_get_clocks(struct omap_i2c_dev *dev)
- {
--	if (cpu_is_omap16xx() || cpu_class_is_omap2()) {
--		dev->iclk = clk_get(dev->dev, "ick");
--		if (IS_ERR(dev->iclk)) {
--			dev->iclk = NULL;
--			return -ENODEV;
--		}
-+	int ret;
-+
-+	dev->iclk = clk_get(dev->dev, "ick");
-+	if (IS_ERR(dev->iclk)) {
-+		ret = PTR_ERR(dev->iclk);
-+		dev->iclk = NULL;
-+		return ret;
+diff --git a/arch/arm/mach-omap2/clock24xx.c b/arch/arm/mach-omap2/clock24xx.c
+index 81c7b70..f835880 100644
+--- a/arch/arm/mach-omap2/clock24xx.c
++++ b/arch/arm/mach-omap2/clock24xx.c
+@@ -184,8 +184,8 @@ static struct omap_clk omap24xx_clks[] = {
+ 	CLK(NULL,	"fac_fck",	&fac_fck,	CK_243X | CK_242X),
+ 	CLK(NULL,	"eac_ick",	&eac_ick,	CK_242X),
+ 	CLK(NULL,	"eac_fck",	&eac_fck,	CK_242X),
+-	CLK(NULL,	"hdq_ick",	&hdq_ick,	CK_243X | CK_242X),
+-	CLK(NULL,	"hdq_fck",	&hdq_fck,	CK_243X | CK_242X),
++	CLK("omap_hdq.0", "ick",	&hdq_ick,	CK_243X | CK_242X),
++	CLK("omap_hdq.1", "fck",	&hdq_fck,	CK_243X | CK_242X),
+ 	CLK("i2c_omap.1", "ick",	&i2c1_ick,	CK_243X | CK_242X),
+ 	CLK("i2c_omap.1", "fck",	&i2c1_fck,	CK_242X),
+ 	CLK("i2c_omap.1", "fck",	&i2chs1_fck,	CK_243X),
+diff --git a/arch/arm/mach-omap2/clock34xx.c b/arch/arm/mach-omap2/clock34xx.c
+index 859ad1d..1a4bc33 100644
+--- a/arch/arm/mach-omap2/clock34xx.c
++++ b/arch/arm/mach-omap2/clock34xx.c
+@@ -155,7 +155,7 @@ static struct omap_clk omap34xx_clks[] = {
+ 	CLK(NULL,	"uart1_fck",	&uart1_fck,	CK_343X),
+ 	CLK(NULL,	"fshostusb_fck", &fshostusb_fck, CK_3430ES1),
+ 	CLK(NULL,	"core_12m_fck",	&core_12m_fck,	CK_343X),
+-	CLK(NULL,	"hdq_fck",	&hdq_fck,	CK_343X),
++	CLK("omap_hdq.0", "fck",	&hdq_fck,	CK_343X),
+ 	CLK(NULL,	"ssi_ssr_fck",	&ssi_ssr_fck,	CK_343X),
+ 	CLK(NULL,	"ssi_sst_fck",	&ssi_sst_fck,	CK_343X),
+ 	CLK(NULL,	"core_l3_ick",	&core_l3_ick,	CK_343X),
+@@ -174,7 +174,7 @@ static struct omap_clk omap34xx_clks[] = {
+ 	CLK("mmci-omap-hs.1",	"mmchs_ick",	&mmchs2_ick,	CK_343X),
+ 	CLK("mmci-omap-hs.0",	"mmchs_ick",	&mmchs1_ick,	CK_343X),
+ 	CLK(NULL,	"mspro_ick",	&mspro_ick,	CK_343X),
+-	CLK(NULL,	"hdq_ick",	&hdq_ick,	CK_343X),
++	CLK("omap_hdq.0", "ick",	&hdq_ick,	CK_343X),
+ 	CLK("omap2_mcspi.4", "ick",	&mcspi4_ick,	CK_343X),
+ 	CLK("omap2_mcspi.3", "ick",	&mcspi3_ick,	CK_343X),
+ 	CLK("omap2_mcspi.2", "ick",	&mcspi2_ick,	CK_343X),
+diff --git a/drivers/w1/masters/omap_hdq.c b/drivers/w1/masters/omap_hdq.c
+index c973889..a7e3b70 100644
+--- a/drivers/w1/masters/omap_hdq.c
++++ b/drivers/w1/masters/omap_hdq.c
+@@ -590,8 +590,8 @@ static int __init omap_hdq_probe(struct platform_device *pdev)
  	}
  
- 	dev->fclk = clk_get(dev->dev, "fck");
- 	if (IS_ERR(dev->fclk)) {
-+		ret = PTR_ERR(dev->fclk);
- 		if (dev->iclk != NULL) {
- 			clk_put(dev->iclk);
- 			dev->iclk = NULL;
- 		}
- 		dev->fclk = NULL;
--		return -ENODEV;
-+		return ret;
- 	}
+ 	/* get interface & functional clock objects */
+-	hdq_data->hdq_ick = clk_get(&pdev->dev, "hdq_ick");
+-	hdq_data->hdq_fck = clk_get(&pdev->dev, "hdq_fck");
++	hdq_data->hdq_ick = clk_get(&pdev->dev, "ick");
++	hdq_data->hdq_fck = clk_get(&pdev->dev, "fck");
  
- 	return 0;
-@@ -218,18 +220,15 @@ static void omap_i2c_put_clocks(struct omap_i2c_dev *dev)
- {
- 	clk_put(dev->fclk);
- 	dev->fclk = NULL;
--	if (dev->iclk != NULL) {
--		clk_put(dev->iclk);
--		dev->iclk = NULL;
--	}
-+	clk_put(dev->iclk);
-+	dev->iclk = NULL;
- }
- 
- static void omap_i2c_unidle(struct omap_i2c_dev *dev)
- {
- 	WARN_ON(!dev->idle);
- 
--	if (dev->iclk != NULL)
--		clk_enable(dev->iclk);
-+	clk_enable(dev->iclk);
- 	clk_enable(dev->fclk);
- 	dev->idle = 0;
- 	if (dev->iestate)
-@@ -254,8 +253,7 @@ static void omap_i2c_idle(struct omap_i2c_dev *dev)
- 	}
- 	dev->idle = 1;
- 	clk_disable(dev->fclk);
--	if (dev->iclk != NULL)
--		clk_disable(dev->iclk);
-+	clk_disable(dev->iclk);
- }
- 
- static int omap_i2c_init(struct omap_i2c_dev *dev)
+ 	if (IS_ERR(hdq_data->hdq_ick) || IS_ERR(hdq_data->hdq_fck)) {
+ 		dev_dbg(&pdev->dev, "Can't get HDQ clock objects\n");
 -- 
 1.6.1.2
 
