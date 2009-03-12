@@ -1,7 +1,7 @@
 From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: [PATCH 84/86] [ARM] OMAP3 powerdomains: make USBTLL SAR only available on ES3.1 and beyond
-Date: Thu, 12 Mar 2009 11:28:34 -0700
-Message-ID: <1236882516-29403-85-git-send-email-khilman@deeprootsystems.com>
+Subject: [PATCH 58/86] [ARM] OMAP3 clock: optimize DPLL rate rounding algorithm
+Date: Thu, 12 Mar 2009 11:28:08 -0700
+Message-ID: <1236882516-29403-59-git-send-email-khilman@deeprootsystems.com>
 References: <1236882516-29403-1-git-send-email-khilman@deeprootsystems.com>
  <1236882516-29403-2-git-send-email-khilman@deeprootsystems.com>
  <1236882516-29403-3-git-send-email-khilman@deeprootsystems.com>
@@ -60,115 +60,130 @@ References: <1236882516-29403-1-git-send-email-khilman@deeprootsystems.com>
  <1236882516-29403-56-git-send-email-khilman@deeprootsystems.com>
  <1236882516-29403-57-git-send-email-khilman@deeprootsystems.com>
  <1236882516-29403-58-git-send-email-khilman@deeprootsystems.com>
- <1236882516-29403-59-git-send-email-khilman@deeprootsystems.com>
- <1236882516-29403-60-git-send-email-khilman@deeprootsystems.com>
- <1236882516-29403-61-git-send-email-khilman@deeprootsystems.com>
- <1236882516-29403-62-git-send-email-khilman@deeprootsystems.com>
- <1236882516-29403-63-git-send-email-khilman@deeprootsystems.com>
- <1236882516-29403-64-git-send-email-khilman@deeprootsystems.com>
- <1236882516-29403-65-git-send-email-khilman@deeprootsystems.com>
- <1236882516-29403-66-git-send-email-khilman@deeprootsystems.com>
- <1236882516-29403-67-git-send-email-khilman@deeprootsystems.com>
- <1236882516-29403-68-git-send-email-khilman@deeprootsystems.com>
- <1236882516-29403-69-git-send-email-khilman@deeprootsystems.com>
- <1236882516-29403-70-git-send-email-khilman@deeprootsystems.com>
- <1236882516-29403-71-git-send-email-khilman@deeprootsystems.com>
- <1236882516-29403-72-git-send-email-khilman@deeprootsystems.com>
- <1236882516-29403-73-git-send-email-khilman@deeprootsystems.com>
- <1236882516-29403-74-git-send-email-khilman@deeprootsystems.com>
- <1236882516-29403-75-git-send-email-khilman@deeprootsystems.com>
- <1236882516-29403-76-git-send-email-khilman@deeprootsystems.com>
- <1236882516-29403-77-git-send-email-khilman@deeprootsystems.com>
- <1236882516-29403-78-git-send-email-khilman@deeprootsystems.com>
- <1236882516-29403-79-git-send-email-khilman@deeprootsystems.com>
- <1236882516-29403-80-git-send-email-khilman@deeprootsystems.com>
- <1236882516-29403-81-git-send-email-khilman@deeprootsystems.com>
- <1236882516-29403-82-git-send-email-khilman@deeprootsystems.com>
- <1236882516-29403-83-git-send-email-khilman@deeprootsystems.com>
- <1236882516-29403-84-git-send-email-khilman@deeprootsystems.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ag-out-0708.google.com ([72.14.246.250]:55744 "EHLO
-	ag-out-0708.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757270AbZCLSep (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 12 Mar 2009 14:34:45 -0400
-Received: by ag-out-0708.google.com with SMTP id 26so1107479agb.10
-        for <linux-omap@vger.kernel.org>; Thu, 12 Mar 2009 11:34:44 -0700 (PDT)
-In-Reply-To: <1236882516-29403-84-git-send-email-khilman@deeprootsystems.com>
+Received: from mail-gx0-f163.google.com ([209.85.217.163]:60567 "EHLO
+	mail-gx0-f163.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757255AbZCLScs (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 12 Mar 2009 14:32:48 -0400
+Received: by mail-gx0-f163.google.com with SMTP id 7so458514gxk.13
+        for <linux-omap@vger.kernel.org>; Thu, 12 Mar 2009 11:32:46 -0700 (PDT)
+In-Reply-To: <1236882516-29403-58-git-send-email-khilman@deeprootsystems.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 
 From: Paul Walmsley <paul@pwsan.com>
 
-Richard Woodruff writes that chip errata prevent USBTLL SAR from working
-on OMAP3 ES levels before ES3.1:
+The previous DPLL rate rounding algorithm counted the divider (N) down
+from the maximum to 1.  Since we currently use a broad DPLL rate
+tolerance, and lower N values are more power-efficient, we can often
+bypass several iterations through the loop by counting N upwards from
+1.
 
-http://marc.info/?l=linux-arm-kernel&m=123319614808833&w=2
+Peter de Schrijver <peter.de-schrijver@nokia.com> put up with several
+test cycles of this patch - thanks Peter.
 
-Update the OMAP3 powerdomain structures appropriately.
+linux-omap source commit is 6f6d82bb2f80fa20a841ac3e95a6f44a5a156188.
 
 Signed-off-by: Paul Walmsley <paul@pwsan.com>
-Cc: Richard Woodruff <r-woodruff2@ti.com>
+Cc: Peter de Schrijver <peter.de-schrijver@nokia.com>
+Signed-off-by: Tony Lindgren <tony@atomide.com>
 Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
 ---
- arch/arm/mach-omap2/powerdomains.h     |    3 ++-
- arch/arm/mach-omap2/powerdomains34xx.h |   25 +++++++++++++++++++++++--
- 2 files changed, 25 insertions(+), 3 deletions(-)
+ arch/arm/mach-omap2/clock.c |   35 ++++++++++++++++++-----------------
+ 1 files changed, 18 insertions(+), 17 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/powerdomains.h b/arch/arm/mach-omap2/powerdomains.h
-index 1329443..691470e 100644
---- a/arch/arm/mach-omap2/powerdomains.h
-+++ b/arch/arm/mach-omap2/powerdomains.h
-@@ -171,7 +171,8 @@ static struct powerdomain *powerdomains_omap[] __initdata = {
- 	&iva2_pwrdm,
- 	&mpu_34xx_pwrdm,
- 	&neon_pwrdm,
--	&core_34xx_pwrdm,
-+	&core_34xx_pre_es3_1_pwrdm,
-+	&core_34xx_es3_1_pwrdm,
- 	&cam_pwrdm,
- 	&dss_pwrdm,
- 	&per_pwrdm,
-diff --git a/arch/arm/mach-omap2/powerdomains34xx.h b/arch/arm/mach-omap2/powerdomains34xx.h
-index 78acfce..4dcf94b 100644
---- a/arch/arm/mach-omap2/powerdomains34xx.h
-+++ b/arch/arm/mach-omap2/powerdomains34xx.h
-@@ -200,12 +200,33 @@ static struct powerdomain mpu_34xx_pwrdm = {
- };
+diff --git a/arch/arm/mach-omap2/clock.c b/arch/arm/mach-omap2/clock.c
+index 2f0eaaa..76e20bc 100644
+--- a/arch/arm/mach-omap2/clock.c
++++ b/arch/arm/mach-omap2/clock.c
+@@ -45,7 +45,7 @@
+ #define DPLL_MIN_DIVIDER		1
  
- /* No wkdeps or sleepdeps for 34xx core apparently */
--static struct powerdomain core_34xx_pwrdm = {
-+static struct powerdomain core_34xx_pre_es3_1_pwrdm = {
- 	.name		  = "core_pwrdm",
- 	.prcm_offs	  = CORE_MOD,
--	.omap_chip	  = OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
-+	.omap_chip	  = OMAP_CHIP_INIT(CHIP_IS_OMAP3430ES1 |
-+					   CHIP_IS_OMAP3430ES2 |
-+					   CHIP_IS_OMAP3430ES3_0),
-+	.pwrsts		  = PWRSTS_OFF_RET_ON,
-+	.dep_bit	  = OMAP3430_EN_CORE_SHIFT,
-+	.banks		  = 2,
-+	.pwrsts_mem_ret	  = {
-+		[0] = PWRSTS_OFF_RET,	 /* MEM1RETSTATE */
-+		[1] = PWRSTS_OFF_RET,	 /* MEM2RETSTATE */
-+	},
-+	.pwrsts_mem_on	  = {
-+		[0] = PWRSTS_OFF_RET_ON, /* MEM1ONSTATE */
-+		[1] = PWRSTS_OFF_RET_ON, /* MEM2ONSTATE */
-+	},
-+};
+ /* Possible error results from _dpll_test_mult */
+-#define DPLL_MULT_UNDERFLOW		(1 << 0)
++#define DPLL_MULT_UNDERFLOW		-1
+ 
+ /*
+  * Scale factor to mitigate roundoff errors in DPLL rate rounding.
+@@ -826,7 +826,7 @@ static int _dpll_test_mult(int *m, int n, unsigned long *new_rate,
+ 			   unsigned long target_rate,
+ 			   unsigned long parent_rate)
+ {
+-	int flags = 0, carry = 0;
++	int r = 0, carry = 0;
+ 
+ 	/* Unscale m and round if necessary */
+ 	if (*m % DPLL_SCALE_FACTOR >= DPLL_ROUNDING_VAL)
+@@ -847,13 +847,13 @@ static int _dpll_test_mult(int *m, int n, unsigned long *new_rate,
+ 	if (*m < DPLL_MIN_MULTIPLIER) {
+ 		*m = DPLL_MIN_MULTIPLIER;
+ 		*new_rate = 0;
+-		flags = DPLL_MULT_UNDERFLOW;
++		r = DPLL_MULT_UNDERFLOW;
+ 	}
+ 
+ 	if (*new_rate == 0)
+ 		*new_rate = _dpll_compute_new_rate(parent_rate, *m, n);
+ 
+-	return flags;
++	return r;
+ }
+ 
+ /**
+@@ -892,21 +892,27 @@ long omap2_dpll_round_rate(struct clk *clk, unsigned long target_rate)
+ 
+ 	dd->last_rounded_rate = 0;
+ 
+-	for (n = dd->max_divider; n >= DPLL_MIN_DIVIDER; n--) {
++	for (n = DPLL_MIN_DIVIDER; n <= dd->max_divider; n++) {
+ 
+ 		/* Compute the scaled DPLL multiplier, based on the divider */
+ 		m = scaled_rt_rp * n;
+ 
+ 		/*
+-		 * Since we're counting n down, a m overflow means we can
+-		 * can immediately skip to the next n
++		 * Since we're counting n up, a m overflow means we
++		 * can bail out completely (since as n increases in
++		 * the next iteration, there's no way that m can
++		 * increase beyond the current m)
+ 		 */
+ 		if (m > scaled_max_m)
+-			continue;
++			break;
+ 
+ 		r = _dpll_test_mult(&m, n, &new_rate, target_rate,
+ 				    clk->parent->rate);
+ 
++		/* m can't be set low enough for this n - try with a larger n */
++		if (r == DPLL_MULT_UNDERFLOW)
++			continue;
 +
-+/* No wkdeps or sleepdeps for 34xx core apparently */
-+static struct powerdomain core_34xx_es3_1_pwrdm = {
-+	.name		  = "core_pwrdm",
-+	.prcm_offs	  = CORE_MOD,
-+	.omap_chip	  = OMAP_CHIP_INIT(CHIP_GE_OMAP3430ES3_1),
- 	.pwrsts		  = PWRSTS_OFF_RET_ON,
- 	.dep_bit	  = OMAP3430_EN_CORE_SHIFT,
-+	.flags		  = PWRDM_HAS_HDWR_SAR, /* for USBTLL only */
- 	.banks		  = 2,
- 	.pwrsts_mem_ret	  = {
- 		[0] = PWRSTS_OFF_RET,	 /* MEM1RETSTATE */
+ 		e = target_rate - new_rate;
+ 		pr_debug("clock: n = %d: m = %d: rate error is %d "
+ 			 "(new_rate = %ld)\n", n, m, e, new_rate);
+@@ -918,16 +924,11 @@ long omap2_dpll_round_rate(struct clk *clk, unsigned long target_rate)
+ 			min_e_n = n;
+ 
+ 			pr_debug("clock: found new least error %d\n", min_e);
+-		}
+ 
+-		/*
+-		 * Since we're counting n down, a m underflow means we
+-		 * can bail out completely (since as n decreases in
+-		 * the next iteration, there's no way that m can
+-		 * increase beyond the current m)
+-		 */
+-		if (r & DPLL_MULT_UNDERFLOW)
+-			break;
++			/* We found good settings -- bail out now */
++			if (min_e <= clk->dpll_data->rate_tolerance)
++				break;
++		}
+ 	}
+ 
+ 	if (min_e < 0) {
 -- 
 1.6.1.2
 
