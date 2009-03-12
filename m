@@ -1,65 +1,39 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH] OMAP:clock: missing list_del for
- clk_notifier_unregister
-Date: Thu, 12 Mar 2009 01:30:48 -0600 (MDT)
-Message-ID: <alpine.DEB.2.00.0903120128570.26959@utopia.booyaka.com>
+From: "Menon, Nishanth" <nm@ti.com>
+Subject: RE: [PATCH] OMAP:clock: missing list_del for clk_notifier_unregister
+Date: Thu, 12 Mar 2009 02:33:19 -0500
+Message-ID: <7A436F7769CA33409C6B44B358BFFF0CFF51DBC4@dlee02.ent.ti.com>
 References: <1236790153-9324-1-git-send-email-nm@ti.com>
+ <alpine.DEB.2.00.0903120128570.26959@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:50106 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750777AbZCLHau (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 12 Mar 2009 03:30:50 -0400
-In-Reply-To: <1236790153-9324-1-git-send-email-nm@ti.com>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:33528 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751025AbZCLHdd convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 12 Mar 2009 03:33:33 -0400
+In-Reply-To: <alpine.DEB.2.00.0903120128570.26959@utopia.booyaka.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Nishanth Menon <nm@ti.com>
-Cc: linux-omap@vger.kernel.org, Richard Woodruff <r-woodruff2@ti.com>, Rajendra Nayak <rnayak@ti.com>, Ramesh Gupta <grgupta@ti.com>, Palande Ameya <ameya.palande@nokia.com>
+To: Paul Walmsley <paul@pwsan.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Woodruff, Richard" <r-woodruff2@ti.com>, "Nayak, Rajendra" <rnayak@ti.com>, "Gupta, Ramesh" <grgupta@ti.com>, Palande Ameya <ameya.palande@nokia.com>
 
-Hi,
-
-On Wed, 11 Mar 2009, Nishanth Menon wrote:
-
-> clk_notifier_unregister should clean the list before
-> freeing clock notifier, else clk_notifier_list is
-> filled with dangling pointers
+> -----Original Message-----
+> From: Paul Walmsley [mailto:paul@pwsan.com]
+> Sent: Thursday, March 12, 2009 9:31 AM
+> To: Menon, Nishanth
+> Cc: linux-omap@vger.kernel.org; Woodruff, Richard; Nayak, Rajendra; Gupta,
+> Ramesh; Palande Ameya
+> Subject: Re: [PATCH] OMAP:clock: missing list_del for
+> clk_notifier_unregister
+ 
+> Just to clarify, this is currently against the PM branch.  There's a new
+Yes. This is against the PM branch
+> version of the clock notifier patch coming out soon against l-o; will roll
+> this fix in.
 > 
-> Issue seen while repetative loading/unloading of bridgedriver
-> 
-> Ref: http://marc.info/?t=123678326300002&r=1&w=2
-> 
-> Signed-off-by: Nishanth Menon <nm@ti.com>
-> ---
->  arch/arm/plat-omap/clock.c |    5 ++++-
->  1 files changed, 4 insertions(+), 1 deletions(-)
-> 
-> diff --git a/arch/arm/plat-omap/clock.c b/arch/arm/plat-omap/clock.c
-> index c8d9e96..523d1b0 100644
-> --- a/arch/arm/plat-omap/clock.c
-> +++ b/arch/arm/plat-omap/clock.c
-> @@ -725,8 +725,11 @@ int clk_notifier_unregister(struct clk *clk, struct notifier_block *nb)
->  		 * XXX ugh, layering violation.  there should be some
->  		 * support in the notifier code for this.
->  		 */
-> -		if (!cn->notifier_head.head)
-> +		if (!cn->notifier_head.head) {
-> +			/* Free up my clock node too */
-> +			list_del(&cn->node);
->  			kfree(cn);
-> +		}
->  
->  	} else {
->  		r = -ENOENT;
-> -- 
-> 1.5.4.3
-> 
+Thanks.
+Regards,
+Nishanth Menon
 
-Thanks, this looks good.
-
-Just to clarify, this is currently against the PM branch.  There's a new 
-version of the clock notifier patch coming out soon against l-o; will roll 
-this fix in.
-
-
-- Paul
