@@ -1,39 +1,59 @@
 From: "Menon, Nishanth" <nm@ti.com>
-Subject: RE: [PATCH] OMAP:clock: missing list_del for clk_notifier_unregister
-Date: Thu, 12 Mar 2009 02:33:19 -0500
-Message-ID: <7A436F7769CA33409C6B44B358BFFF0CFF51DBC4@dlee02.ent.ti.com>
-References: <1236790153-9324-1-git-send-email-nm@ti.com>
- <alpine.DEB.2.00.0903120128570.26959@utopia.booyaka.com>
+Subject: RE: [PATCH 1/1] DSPBRIDGE Fix for image autoload
+Date: Thu, 12 Mar 2009 02:39:22 -0500
+Message-ID: <7A436F7769CA33409C6B44B358BFFF0CFF51DBC6@dlee02.ent.ti.com>
+References: <7A436F7769CA33409C6B44B358BFFF0CFF51DBBC@dlee02.ent.ti.com>
+ <EAF47CD23C76F840A9E7FCE10091EFAB02A8F2BF1D@dbde02.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:33528 "EHLO arroyo.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:50471 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751025AbZCLHdd convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 12 Mar 2009 03:33:33 -0400
-In-Reply-To: <alpine.DEB.2.00.0903120128570.26959@utopia.booyaka.com>
+	id S1753892AbZCLHja convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 12 Mar 2009 03:39:30 -0400
+Received: from dlep95.itg.ti.com ([157.170.170.107])
+	by bear.ext.ti.com (8.13.7/8.13.7) with ESMTP id n2C7dOBa017194
+	for <linux-omap@vger.kernel.org>; Thu, 12 Mar 2009 02:39:29 -0500
+Received: from dlee74.ent.ti.com (localhost [127.0.0.1])
+	by dlep95.itg.ti.com (8.13.8/8.13.8) with ESMTP id n2C7dOk8023902
+	for <linux-omap@vger.kernel.org>; Thu, 12 Mar 2009 02:39:24 -0500 (CDT)
+In-Reply-To: <EAF47CD23C76F840A9E7FCE10091EFAB02A8F2BF1D@dbde02.ent.ti.com>
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Woodruff, Richard" <r-woodruff2@ti.com>, "Nayak, Rajendra" <rnayak@ti.com>, "Gupta, Ramesh" <grgupta@ti.com>, Palande Ameya <ameya.palande@nokia.com>
+To: "Gupta, Ramesh" <grgupta@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Cc: "Kanigeri, Hari" <h-kanigeri2@ti.com>, "Guzman Lugo, Fernando" <x0095840@ti.com>
 
 > -----Original Message-----
-> From: Paul Walmsley [mailto:paul@pwsan.com]
-> Sent: Thursday, March 12, 2009 9:31 AM
-> To: Menon, Nishanth
-> Cc: linux-omap@vger.kernel.org; Woodruff, Richard; Nayak, Rajendra; Gupta,
-> Ramesh; Palande Ameya
-> Subject: Re: [PATCH] OMAP:clock: missing list_del for
-> clk_notifier_unregister
- 
-> Just to clarify, this is currently against the PM branch.  There's a new
-Yes. This is against the PM branch
-> version of the clock notifier patch coming out soon against l-o; will roll
-> this fix in.
+> From: Gupta, Ramesh
+> Sent: Thursday, March 12, 2009 8:01 AM
+> To: Menon, Nishanth; linux-omap@vger.kernel.org
+> Cc: Kanigeri, Hari; Guzman Lugo, Fernando
+> Subject: RE: [PATCH 1/1] DSPBRIDGE Fix for image autoload
 > 
-Thanks.
+> I have tried this on linux-omap pm branch . This can be applied on top of
+> my DVFS
+> Patches earlier.
+> 
+Your patch does not apply clean :(
+$ wget -O ramesh.auto.patch "http://marc.info/?l=linux-omap&m=123683598308417&q=raw"
+$ vim ramesh.auto.patch (edited to remove the linux-omap trailer)
+$ patch -p1<./ramesh.auto.patch --dry-run
+patching file drivers/dsp/bridge/rmgr/drv_interface.c
+Hunk #1 succeeded at 400 (offset -5 lines).
+Hunk #2 succeeded at 408 (offset -5 lines).
+Hunk #3 succeeded at 450 with fuzz 1 (offset -5 lines).
+Hunk #4 succeeded at 470 (offset -5 lines).
+Hunk #5 succeeded at 655 (offset -5 lines).
+
+Could you rebase your patch against the following:
+git clone git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap-2.6.git
+cd linux-omap-2.6.git
+git checkout -b pm --track origin/pm
+git fetch git://gitorious.org/lk/mainline.git tidspbridge-pm:tidspbridge-pm
+git checkout tidspbridge-pm
+git merge pm
+
 Regards,
 Nishanth Menon
-
