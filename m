@@ -1,7 +1,7 @@
 From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: [PATCH 25/86] [ARM] omap: MMC: convert clocks to match by devid and conid
-Date: Thu, 12 Mar 2009 11:27:35 -0700
-Message-ID: <1236882516-29403-26-git-send-email-khilman@deeprootsystems.com>
+Subject: [PATCH 36/86] [ARM] omap: hsmmc: new short connection id names
+Date: Thu, 12 Mar 2009 11:27:46 -0700
+Message-ID: <1236882516-29403-37-git-send-email-khilman@deeprootsystems.com>
 References: <1236882516-29403-1-git-send-email-khilman@deeprootsystems.com>
  <1236882516-29403-2-git-send-email-khilman@deeprootsystems.com>
  <1236882516-29403-3-git-send-email-khilman@deeprootsystems.com>
@@ -27,84 +27,133 @@ References: <1236882516-29403-1-git-send-email-khilman@deeprootsystems.com>
  <1236882516-29403-23-git-send-email-khilman@deeprootsystems.com>
  <1236882516-29403-24-git-send-email-khilman@deeprootsystems.com>
  <1236882516-29403-25-git-send-email-khilman@deeprootsystems.com>
+ <1236882516-29403-26-git-send-email-khilman@deeprootsystems.com>
+ <1236882516-29403-27-git-send-email-khilman@deeprootsystems.com>
+ <1236882516-29403-28-git-send-email-khilman@deeprootsystems.com>
+ <1236882516-29403-29-git-send-email-khilman@deeprootsystems.com>
+ <1236882516-29403-30-git-send-email-khilman@deeprootsystems.com>
+ <1236882516-29403-31-git-send-email-khilman@deeprootsystems.com>
+ <1236882516-29403-32-git-send-email-khilman@deeprootsystems.com>
+ <1236882516-29403-33-git-send-email-khilman@deeprootsystems.com>
+ <1236882516-29403-34-git-send-email-khilman@deeprootsystems.com>
+ <1236882516-29403-35-git-send-email-khilman@deeprootsystems.com>
+ <1236882516-29403-36-git-send-email-khilman@deeprootsystems.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
 Received: from mail-gx0-f163.google.com ([209.85.217.163]:60567 "EHLO
 	mail-gx0-f163.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756277AbZCLSar (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 12 Mar 2009 14:30:47 -0400
+	with ESMTP id S1756632AbZCLSbY (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 12 Mar 2009 14:31:24 -0400
 Received: by mail-gx0-f163.google.com with SMTP id 7so458514gxk.13
-        for <linux-omap@vger.kernel.org>; Thu, 12 Mar 2009 11:30:46 -0700 (PDT)
-In-Reply-To: <1236882516-29403-25-git-send-email-khilman@deeprootsystems.com>
+        for <linux-omap@vger.kernel.org>; Thu, 12 Mar 2009 11:31:22 -0700 (PDT)
+In-Reply-To: <1236882516-29403-36-git-send-email-khilman@deeprootsystems.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 
 From: Russell King <rmk@dyn-67.arm.linux.org.uk>
 
-Convert OMAP MMC driver to match clocks using the device ID and a
-connection ID rather than a clock name.  This allows us to eliminate
-the OMAP1/OMAP2 differences for the function clock.
+... rather than the clock names themselves.
 
 Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
 ---
- arch/arm/mach-omap1/clock.c     |    4 ++--
- arch/arm/mach-omap2/clock24xx.c |    4 ++--
- drivers/mmc/host/omap.c         |    7 ++-----
- 3 files changed, 6 insertions(+), 9 deletions(-)
+ arch/arm/mach-omap2/clock24xx.c |    8 ++++----
+ arch/arm/mach-omap2/clock34xx.c |   12 ++++++------
+ arch/arm/mach-omap2/devices.c   |    4 ++--
+ drivers/mmc/host/omap_hsmmc.c   |    4 ++--
+ 4 files changed, 14 insertions(+), 14 deletions(-)
 
-diff --git a/arch/arm/mach-omap1/clock.c b/arch/arm/mach-omap1/clock.c
-index 758abaa..3015e85 100644
---- a/arch/arm/mach-omap1/clock.c
-+++ b/arch/arm/mach-omap1/clock.c
-@@ -124,8 +124,8 @@ static struct omap_clk omap_clks[] = {
- 	CLK(NULL,	"mclk",		&mclk_16xx,	CK_16XX),
- 	CLK(NULL,	"bclk",		&bclk_1510,	CK_1510 | CK_310),
- 	CLK(NULL,	"bclk",		&bclk_16xx,	CK_16XX),
--	CLK("mmci-omap.0", "mmc_ck",	&mmc1_ck,	CK_16XX | CK_1510 | CK_310),
--	CLK("mmci-omap.1", "mmc_ck",	&mmc2_ck,	CK_16XX),
-+	CLK("mmci-omap.0", "fck",	&mmc1_ck,	CK_16XX | CK_1510 | CK_310),
-+	CLK("mmci-omap.1", "fck",	&mmc2_ck,	CK_16XX),
- 	/* Virtual clocks */
- 	CLK(NULL,	"mpu",		&virtual_ck_mpu, CK_16XX | CK_1510 | CK_310),
- 	CLK("i2c_omap.1", "i2c_fck",	&i2c_fck,	CK_16XX | CK_1510 | CK_310),
 diff --git a/arch/arm/mach-omap2/clock24xx.c b/arch/arm/mach-omap2/clock24xx.c
-index 6a6278e..aca4ca4 100644
+index d190b6a..bd77ef2 100644
 --- a/arch/arm/mach-omap2/clock24xx.c
 +++ b/arch/arm/mach-omap2/clock24xx.c
-@@ -178,8 +178,8 @@ static struct omap_clk omap24xx_clks[] = {
- 	CLK(NULL,	"wdt3_fck",	&wdt3_fck,	CK_242X),
- 	CLK(NULL,	"mspro_ick",	&mspro_ick,	CK_243X | CK_242X),
- 	CLK(NULL,	"mspro_fck",	&mspro_fck,	CK_243X | CK_242X),
--	CLK(NULL,	"mmc_ick",	&mmc_ick,	CK_242X),
--	CLK(NULL,	"mmc_fck",	&mmc_fck,	CK_242X),
-+	CLK("mmci-omap.0", "ick",	&mmc_ick,	CK_242X),
-+	CLK("mmci-omap.0", "fck",	&mmc_fck,	CK_242X),
- 	CLK(NULL,	"fac_ick",	&fac_ick,	CK_243X | CK_242X),
- 	CLK(NULL,	"fac_fck",	&fac_fck,	CK_243X | CK_242X),
- 	CLK(NULL,	"eac_ick",	&eac_ick,	CK_242X),
-diff --git a/drivers/mmc/host/omap.c b/drivers/mmc/host/omap.c
-index 67d7b7f..15eb883 100644
---- a/drivers/mmc/host/omap.c
-+++ b/drivers/mmc/host/omap.c
-@@ -1461,16 +1461,13 @@ static int __init mmc_omap_probe(struct platform_device *pdev)
- 		goto err_ioremap;
+@@ -205,10 +205,10 @@ static struct omap_clk omap24xx_clks[] = {
+ 	CLK(NULL,	"pka_ick",	&pka_ick,	CK_243X | CK_242X),
+ 	CLK(NULL,	"usb_fck",	&usb_fck,	CK_243X | CK_242X),
+ 	CLK(NULL,	"usbhs_ick",	&usbhs_ick,	CK_243X),
+-	CLK("mmci-omap-hs.0", "mmchs_ick",	&mmchs1_ick,	CK_243X),
+-	CLK("mmci-omap-hs.0", "mmchs_fck",	&mmchs1_fck,	CK_243X),
+-	CLK("mmci-omap-hs.1", "mmchs_ick",	&mmchs2_ick,	CK_243X),
+-	CLK("mmci-omap-hs.1", "mmchs_fck",	&mmchs2_fck,	CK_243X),
++	CLK("mmci-omap-hs.0", "ick",	&mmchs1_ick,	CK_243X),
++	CLK("mmci-omap-hs.0", "fck",	&mmchs1_fck,	CK_243X),
++	CLK("mmci-omap-hs.1", "ick",	&mmchs2_ick,	CK_243X),
++	CLK("mmci-omap-hs.1", "fck",	&mmchs2_fck,	CK_243X),
+ 	CLK(NULL,	"gpio5_ick",	&gpio5_ick,	CK_243X),
+ 	CLK(NULL,	"gpio5_fck",	&gpio5_fck,	CK_243X),
+ 	CLK(NULL,	"mdm_intc_ick",	&mdm_intc_ick,	CK_243X),
+diff --git a/arch/arm/mach-omap2/clock34xx.c b/arch/arm/mach-omap2/clock34xx.c
+index 07e3308..245a7b9 100644
+--- a/arch/arm/mach-omap2/clock34xx.c
++++ b/arch/arm/mach-omap2/clock34xx.c
+@@ -137,10 +137,10 @@ static struct omap_clk omap34xx_clks[] = {
+ 	CLK(NULL,	"ts_fck",	&ts_fck,	CK_3430ES2),
+ 	CLK(NULL,	"usbtll_fck",	&usbtll_fck,	CK_3430ES2),
+ 	CLK(NULL,	"core_96m_fck",	&core_96m_fck,	CK_343X),
+-	CLK("mmci-omap-hs.2",	"mmchs_fck",	&mmchs3_fck,	CK_3430ES2),
+-	CLK("mmci-omap-hs.1",	"mmchs_fck",	&mmchs2_fck,	CK_343X),
++	CLK("mmci-omap-hs.2",	"fck",	&mmchs3_fck,	CK_3430ES2),
++	CLK("mmci-omap-hs.1",	"fck",	&mmchs2_fck,	CK_343X),
+ 	CLK(NULL,	"mspro_fck",	&mspro_fck,	CK_343X),
+-	CLK("mmci-omap-hs.0",	"mmchs_fck",	&mmchs1_fck,	CK_343X),
++	CLK("mmci-omap-hs.0",	"fck",	&mmchs1_fck,	CK_343X),
+ 	CLK("i2c_omap.3", "fck",	&i2c3_fck,	CK_343X),
+ 	CLK("i2c_omap.2", "fck",	&i2c2_fck,	CK_343X),
+ 	CLK("i2c_omap.1", "fck",	&i2c1_fck,	CK_343X),
+@@ -166,13 +166,13 @@ static struct omap_clk omap34xx_clks[] = {
+ 	CLK(NULL,	"pka_ick",	&pka_ick,	CK_343X),
+ 	CLK(NULL,	"core_l4_ick",	&core_l4_ick,	CK_343X),
+ 	CLK(NULL,	"usbtll_ick",	&usbtll_ick,	CK_3430ES2),
+-	CLK("mmci-omap-hs.2",	"mmchs_ick",	&mmchs3_ick,	CK_3430ES2),
++	CLK("mmci-omap-hs.2",	"ick",	&mmchs3_ick,	CK_3430ES2),
+ 	CLK(NULL,	"icr_ick",	&icr_ick,	CK_343X),
+ 	CLK(NULL,	"aes2_ick",	&aes2_ick,	CK_343X),
+ 	CLK(NULL,	"sha12_ick",	&sha12_ick,	CK_343X),
+ 	CLK(NULL,	"des2_ick",	&des2_ick,	CK_343X),
+-	CLK("mmci-omap-hs.1",	"mmchs_ick",	&mmchs2_ick,	CK_343X),
+-	CLK("mmci-omap-hs.0",	"mmchs_ick",	&mmchs1_ick,	CK_343X),
++	CLK("mmci-omap-hs.1",	"ick",	&mmchs2_ick,	CK_343X),
++	CLK("mmci-omap-hs.0",	"ick",	&mmchs1_ick,	CK_343X),
+ 	CLK(NULL,	"mspro_ick",	&mspro_ick,	CK_343X),
+ 	CLK("omap_hdq.0", "ick",	&hdq_ick,	CK_343X),
+ 	CLK("omap2_mcspi.4", "ick",	&mcspi4_ick,	CK_343X),
+diff --git a/arch/arm/mach-omap2/devices.c b/arch/arm/mach-omap2/devices.c
+index 9730404..8075f58 100644
+--- a/arch/arm/mach-omap2/devices.c
++++ b/arch/arm/mach-omap2/devices.c
+@@ -349,11 +349,11 @@ static void __init omap_hsmmc_reset(void)
  
- 	if (cpu_is_omap24xx()) {
--		host->iclk = clk_get(&pdev->dev, "mmc_ick");
-+		host->iclk = clk_get(&pdev->dev, "ick");
- 		if (IS_ERR(host->iclk))
- 			goto err_free_mmc_host;
- 		clk_enable(host->iclk);
+ 		dummy_pdev.id = i;
+ 		dev_set_name(&dummy_pdev.dev, "mmci-omap-hs.%d", i);
+-		iclk = clk_get(dev, "mmchs_ick");
++		iclk = clk_get(dev, "ick");
+ 		if (iclk && clk_enable(iclk))
+ 			iclk = NULL;
+ 
+-		fclk = clk_get(dev, "mmchs_fck");
++		fclk = clk_get(dev, "fck");
+ 		if (fclk && clk_enable(fclk))
+ 			fclk = NULL;
+ 
+diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
+index db37490..65e0743 100644
+--- a/drivers/mmc/host/omap_hsmmc.c
++++ b/drivers/mmc/host/omap_hsmmc.c
+@@ -920,13 +920,13 @@ static int __init omap_mmc_probe(struct platform_device *pdev)
+ 
+ 	sema_init(&host->sem, 1);
+ 
+-	host->iclk = clk_get(&pdev->dev, "mmchs_ick");
++	host->iclk = clk_get(&pdev->dev, "ick");
+ 	if (IS_ERR(host->iclk)) {
+ 		ret = PTR_ERR(host->iclk);
+ 		host->iclk = NULL;
+ 		goto err1;
  	}
- 
--	if (!cpu_is_omap24xx())
--		host->fclk = clk_get(&pdev->dev, "mmc_ck");
--	else
--		host->fclk = clk_get(&pdev->dev, "mmc_fck");
+-	host->fclk = clk_get(&pdev->dev, "mmchs_fck");
 +	host->fclk = clk_get(&pdev->dev, "fck");
- 
  	if (IS_ERR(host->fclk)) {
  		ret = PTR_ERR(host->fclk);
+ 		host->fclk = NULL;
 -- 
 1.6.1.2
 
