@@ -1,7 +1,7 @@
 From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: [PATCH 59/86] [ARM] OMAP3 clock: avoid invalid FREQSEL values during DPLL rate rounding
-Date: Thu, 12 Mar 2009 11:28:09 -0700
-Message-ID: <1236882516-29403-60-git-send-email-khilman@deeprootsystems.com>
+Subject: [PATCH 64/86] [ARM] omap: Fix omap1 clock issues
+Date: Thu, 12 Mar 2009 11:28:14 -0700
+Message-ID: <1236882516-29403-65-git-send-email-khilman@deeprootsystems.com>
 References: <1236882516-29403-1-git-send-email-khilman@deeprootsystems.com>
  <1236882516-29403-2-git-send-email-khilman@deeprootsystems.com>
  <1236882516-29403-3-git-send-email-khilman@deeprootsystems.com>
@@ -61,216 +61,486 @@ References: <1236882516-29403-1-git-send-email-khilman@deeprootsystems.com>
  <1236882516-29403-57-git-send-email-khilman@deeprootsystems.com>
  <1236882516-29403-58-git-send-email-khilman@deeprootsystems.com>
  <1236882516-29403-59-git-send-email-khilman@deeprootsystems.com>
+ <1236882516-29403-60-git-send-email-khilman@deeprootsystems.com>
+ <1236882516-29403-61-git-send-email-khilman@deeprootsystems.com>
+ <1236882516-29403-62-git-send-email-khilman@deeprootsystems.com>
+ <1236882516-29403-63-git-send-email-khilman@deeprootsystems.com>
+ <1236882516-29403-64-git-send-email-khilman@deeprootsystems.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ag-out-0708.google.com ([72.14.246.250]:55744 "EHLO
-	ag-out-0708.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753497AbZCLScx (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 12 Mar 2009 14:32:53 -0400
-Received: by ag-out-0708.google.com with SMTP id 26so1107479agb.10
-        for <linux-omap@vger.kernel.org>; Thu, 12 Mar 2009 11:32:52 -0700 (PDT)
-In-Reply-To: <1236882516-29403-59-git-send-email-khilman@deeprootsystems.com>
+Received: from wf-out-1314.google.com ([209.85.200.169]:9569 "EHLO
+	wf-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757069AbZCLSdR (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 12 Mar 2009 14:33:17 -0400
+Received: by wf-out-1314.google.com with SMTP id 28so1248839wfa.4
+        for <linux-omap@vger.kernel.org>; Thu, 12 Mar 2009 11:33:15 -0700 (PDT)
+In-Reply-To: <1236882516-29403-64-git-send-email-khilman@deeprootsystems.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 
-From: Paul Walmsley <paul@pwsan.com>
+From: Tony Lindgren <tony@atomide.com>
 
-The DPLL FREQSEL jitter correction bits are set based on a table in
-the 34xx TRM, Table 4-38, according to the DPLL's internal clock
-frequency "Fint."  Several Fint frequency ranges are missing from this
-table.  Previously, we allowed these Fint frequency ranges to be
-selected in the rate rounding code, but did not change the FREQSEL bits.
-Correspondence with the OMAP hardware team indicates that Fint values
-not in the table should not be used.  So, prevent them from being
-selected during DPLL rate rounding.  This removes warnings and also
-can prevent the chip from locking up.
+This fixes booting, and is a step toward fixing things properly:
 
-The first pass through the rate rounding code will update the DPLL max
-and min dividers appropriately, so later rate rounding passes will run
-faster than the first.
+- Make enable_reg u32 instead of u16
+  [rmk: virtual addresses are void __iomem *, not u32]
+- Get rid of VIRTUAL_IO_ADDRESS for clocks
+- Use __raw_read/write instead of omap_read/write for clock registers
 
-Peter de Schrijver <peter.de-schrijver@nokia.com> put up with several
-test cycles of this patch - thanks Peter.
+This patch adds a bunch of compile warnings until omap1 clock
+also uses offsets.
 
-linux-omap source commit is f9c1b82f55b60fc39eaa6e7aa1fbe380c0ffe2e9.
+linux-omap source commit is 9d1dff8638c9e96a401e1885f9948662e9ff9636.
 
-Signed-off-by: Paul Walmsley <paul@pwsan.com>
-Cc: Peter de Schrijver <peter.de-schrijver@nokia.com>
 Signed-off-by: Tony Lindgren <tony@atomide.com>
+Signed-off-by: Paul Walmsley <paul@pwsan.com>
 Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
 ---
- arch/arm/mach-omap2/clock.c             |   67 ++++++++++++++++++++++++++++++-
- arch/arm/mach-omap2/clock24xx.h         |    1 +
- arch/arm/mach-omap2/clock34xx.h         |    5 ++
- arch/arm/plat-omap/include/mach/clock.h |    1 +
- 4 files changed, 72 insertions(+), 2 deletions(-)
+ arch/arm/mach-omap1/clock.c             |   77 +++++++++---------------------
+ arch/arm/mach-omap1/clock.h             |   63 ++++++++++++-------------
+ arch/arm/plat-omap/include/mach/clock.h |    1 -
+ 3 files changed, 53 insertions(+), 88 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/clock.c b/arch/arm/mach-omap2/clock.c
-index 76e20bc..752e347 100644
---- a/arch/arm/mach-omap2/clock.c
-+++ b/arch/arm/mach-omap2/clock.c
-@@ -58,12 +58,68 @@
- #define DPLL_ROUNDING_VAL		((DPLL_SCALE_BASE / 2) * \
- 					 (DPLL_SCALE_FACTOR / DPLL_SCALE_BASE))
+diff --git a/arch/arm/mach-omap1/clock.c b/arch/arm/mach-omap1/clock.c
+index 7c45543..1e477af 100644
+--- a/arch/arm/mach-omap1/clock.c
++++ b/arch/arm/mach-omap1/clock.c
+@@ -163,7 +163,7 @@ static void omap1_watchdog_recalc(struct clk * clk)
  
-+/* DPLL valid Fint frequency band limits - from 34xx TRM Section 4.7.6.2 */
-+#define DPLL_FINT_BAND1_MIN		750000
-+#define DPLL_FINT_BAND1_MAX		2100000
-+#define DPLL_FINT_BAND2_MIN		7500000
-+#define DPLL_FINT_BAND2_MAX		21000000
-+
-+/* _dpll_test_fint() return codes */
-+#define DPLL_FINT_UNDERFLOW		-1
-+#define DPLL_FINT_INVALID		-2
-+
- u8 cpu_mask;
+ static void omap1_uart_recalc(struct clk * clk)
+ {
+-	unsigned int val = omap_readl(clk->enable_reg);
++	unsigned int val = __raw_readl(clk->enable_reg);
+ 	if (val & clk->enable_bit)
+ 		clk->rate = 48000000;
+ 	else
+@@ -517,14 +517,14 @@ static int omap1_set_uart_rate(struct clk * clk, unsigned long rate)
+ {
+ 	unsigned int val;
  
- /*-------------------------------------------------------------------------
-  * OMAP2/3 specific clock functions
-  *-------------------------------------------------------------------------*/
+-	val = omap_readl(clk->enable_reg);
++	val = __raw_readl(clk->enable_reg);
+ 	if (rate == 12000000)
+ 		val &= ~(1 << clk->enable_bit);
+ 	else if (rate == 48000000)
+ 		val |= (1 << clk->enable_bit);
+ 	else
+ 		return -EINVAL;
+-	omap_writel(val, clk->enable_reg);
++	__raw_writel(val, clk->enable_reg);
+ 	clk->rate = rate;
  
-+/*
-+ * _dpll_test_fint - test whether an Fint value is valid for the DPLL
-+ * @clk: DPLL struct clk to test
-+ * @n: divider value (N) to test
-+ *
-+ * Tests whether a particular divider @n will result in a valid DPLL
-+ * internal clock frequency Fint. See the 34xx TRM 4.7.6.2 "DPLL Jitter
-+ * Correction".  Returns 0 if OK, -1 if the enclosing loop can terminate
-+ * (assuming that it is counting N upwards), or -2 if the enclosing loop
-+ * should skip to the next iteration (again assuming N is increasing).
-+ */
-+static int _dpll_test_fint(struct clk *clk, u8 n)
-+{
-+	struct dpll_data *dd;
-+	long fint;
-+	int ret = 0;
-+
-+	dd = clk->dpll_data;
-+
-+	/* DPLL divider must result in a valid jitter correction val */
-+	fint = clk->parent->rate / (n + 1);
-+	if (fint < DPLL_FINT_BAND1_MIN) {
-+
-+		pr_debug("rejecting n=%d due to Fint failure, "
-+			 "lowering max_divider\n", n);
-+		dd->max_divider = n;
-+		ret = DPLL_FINT_UNDERFLOW;
-+
-+	} else if (fint > DPLL_FINT_BAND1_MAX &&
-+		   fint < DPLL_FINT_BAND2_MIN) {
-+
-+		pr_debug("rejecting n=%d due to Fint failure\n", n);
-+		ret = DPLL_FINT_INVALID;
-+
-+	} else if (fint > DPLL_FINT_BAND2_MAX) {
-+
-+		pr_debug("rejecting n=%d due to Fint failure, "
-+			 "boosting min_divider\n", n);
-+		dd->min_divider = n;
-+		ret = DPLL_FINT_INVALID;
-+
-+	}
-+
-+	return ret;
-+}
-+
- /**
-  * omap2_init_clk_clkdm - look up a clockdomain name, store pointer in clk
-  * @clk: OMAP clock struct ptr to use
-@@ -892,7 +948,14 @@ long omap2_dpll_round_rate(struct clk *clk, unsigned long target_rate)
+ 	return 0;
+@@ -543,8 +543,8 @@ static int omap1_set_ext_clk_rate(struct clk * clk, unsigned long rate)
+ 	else
+ 		ratio_bits = (dsor - 2) << 2;
  
- 	dd->last_rounded_rate = 0;
+-	ratio_bits |= omap_readw(clk->enable_reg) & ~0xfd;
+-	omap_writew(ratio_bits, clk->enable_reg);
++	ratio_bits |= __raw_readw(clk->enable_reg) & ~0xfd;
++	__raw_writew(ratio_bits, clk->enable_reg);
  
--	for (n = DPLL_MIN_DIVIDER; n <= dd->max_divider; n++) {
-+	for (n = dd->min_divider; n <= dd->max_divider; n++) {
-+
-+		/* Is the (input clk, divider) pair valid for the DPLL? */
-+		r = _dpll_test_fint(clk, n);
-+		if (r == DPLL_FINT_UNDERFLOW)
-+			break;
-+		else if (r == DPLL_FINT_INVALID)
-+			continue;
+ 	return 0;
+ }
+@@ -583,8 +583,8 @@ static void omap1_init_ext_clk(struct clk * clk)
+ 	__u16 ratio_bits;
  
- 		/* Compute the scaled DPLL multiplier, based on the divider */
- 		m = scaled_rt_rp * n;
-@@ -926,7 +989,7 @@ long omap2_dpll_round_rate(struct clk *clk, unsigned long target_rate)
- 			pr_debug("clock: found new least error %d\n", min_e);
+ 	/* Determine current rate and ensure clock is based on 96MHz APLL */
+-	ratio_bits = omap_readw(clk->enable_reg) & ~1;
+-	omap_writew(ratio_bits, clk->enable_reg);
++	ratio_bits = __raw_readw(clk->enable_reg) & ~1;
++	__raw_writew(ratio_bits, clk->enable_reg);
  
- 			/* We found good settings -- bail out now */
--			if (min_e <= clk->dpll_data->rate_tolerance)
-+			if (min_e <= dd->rate_tolerance)
- 				break;
- 		}
+ 	ratio_bits = (ratio_bits & 0xfc) >> 2;
+ 	if (ratio_bits > 6)
+@@ -646,25 +646,13 @@ static int omap1_clk_enable_generic(struct clk *clk)
  	}
-diff --git a/arch/arm/mach-omap2/clock24xx.h b/arch/arm/mach-omap2/clock24xx.h
-index 32dd857..7731ab6 100644
---- a/arch/arm/mach-omap2/clock24xx.h
-+++ b/arch/arm/mach-omap2/clock24xx.h
-@@ -666,6 +666,7 @@ static struct dpll_data dpll_dd = {
- 	.mult_mask		= OMAP24XX_DPLL_MULT_MASK,
- 	.div1_mask		= OMAP24XX_DPLL_DIV_MASK,
- 	.max_multiplier		= 1024,
-+	.min_divider		= 1,
- 	.max_divider		= 16,
- 	.rate_tolerance		= DEFAULT_DPLL_RATE_TOLERANCE
+ 
+ 	if (clk->flags & ENABLE_REG_32BIT) {
+-		if (clk->flags & VIRTUAL_IO_ADDRESS) {
+-			regval32 = __raw_readl(clk->enable_reg);
+-			regval32 |= (1 << clk->enable_bit);
+-			__raw_writel(regval32, clk->enable_reg);
+-		} else {
+-			regval32 = omap_readl(clk->enable_reg);
+-			regval32 |= (1 << clk->enable_bit);
+-			omap_writel(regval32, clk->enable_reg);
+-		}
++		regval32 = __raw_readl(clk->enable_reg);
++		regval32 |= (1 << clk->enable_bit);
++		__raw_writel(regval32, clk->enable_reg);
+ 	} else {
+-		if (clk->flags & VIRTUAL_IO_ADDRESS) {
+-			regval16 = __raw_readw(clk->enable_reg);
+-			regval16 |= (1 << clk->enable_bit);
+-			__raw_writew(regval16, clk->enable_reg);
+-		} else {
+-			regval16 = omap_readw(clk->enable_reg);
+-			regval16 |= (1 << clk->enable_bit);
+-			omap_writew(regval16, clk->enable_reg);
+-		}
++		regval16 = __raw_readw(clk->enable_reg);
++		regval16 |= (1 << clk->enable_bit);
++		__raw_writew(regval16, clk->enable_reg);
+ 	}
+ 
+ 	return 0;
+@@ -679,25 +667,13 @@ static void omap1_clk_disable_generic(struct clk *clk)
+ 		return;
+ 
+ 	if (clk->flags & ENABLE_REG_32BIT) {
+-		if (clk->flags & VIRTUAL_IO_ADDRESS) {
+-			regval32 = __raw_readl(clk->enable_reg);
+-			regval32 &= ~(1 << clk->enable_bit);
+-			__raw_writel(regval32, clk->enable_reg);
+-		} else {
+-			regval32 = omap_readl(clk->enable_reg);
+-			regval32 &= ~(1 << clk->enable_bit);
+-			omap_writel(regval32, clk->enable_reg);
+-		}
++		regval32 = __raw_readl(clk->enable_reg);
++		regval32 &= ~(1 << clk->enable_bit);
++		__raw_writel(regval32, clk->enable_reg);
+ 	} else {
+-		if (clk->flags & VIRTUAL_IO_ADDRESS) {
+-			regval16 = __raw_readw(clk->enable_reg);
+-			regval16 &= ~(1 << clk->enable_bit);
+-			__raw_writew(regval16, clk->enable_reg);
+-		} else {
+-			regval16 = omap_readw(clk->enable_reg);
+-			regval16 &= ~(1 << clk->enable_bit);
+-			omap_writew(regval16, clk->enable_reg);
+-		}
++		regval16 = __raw_readw(clk->enable_reg);
++		regval16 &= ~(1 << clk->enable_bit);
++		__raw_writew(regval16, clk->enable_reg);
+ 	}
+ }
+ 
+@@ -745,17 +721,10 @@ static void __init omap1_clk_disable_unused(struct clk *clk)
+ 	}
+ 
+ 	/* Is the clock already disabled? */
+-	if (clk->flags & ENABLE_REG_32BIT) {
+-		if (clk->flags & VIRTUAL_IO_ADDRESS)
+-			regval32 = __raw_readl(clk->enable_reg);
+-			else
+-				regval32 = omap_readl(clk->enable_reg);
+-	} else {
+-		if (clk->flags & VIRTUAL_IO_ADDRESS)
+-			regval32 = __raw_readw(clk->enable_reg);
+-		else
+-			regval32 = omap_readw(clk->enable_reg);
+-	}
++	if (clk->flags & ENABLE_REG_32BIT)
++		regval32 = __raw_readl(clk->enable_reg);
++	else
++		regval32 = __raw_readw(clk->enable_reg);
+ 
+ 	if ((regval32 & (1 << clk->enable_bit)) == 0)
+ 		return;
+diff --git a/arch/arm/mach-omap1/clock.h b/arch/arm/mach-omap1/clock.h
+index ed343af..1b4dd05 100644
+--- a/arch/arm/mach-omap1/clock.h
++++ b/arch/arm/mach-omap1/clock.h
+@@ -165,7 +165,7 @@ static struct arm_idlect1_clk ck_dpll1out = {
+ 		.parent		= &ck_dpll1,
+ 		.flags		= CLOCK_IDLE_CONTROL |
+ 				  ENABLE_REG_32BIT | RATE_PROPAGATES,
+-		.enable_reg	= (void __iomem *)ARM_IDLECT2,
++		.enable_reg	= OMAP1_IO_ADDRESS(ARM_IDLECT2),
+ 		.enable_bit	= EN_CKOUT_ARM,
+ 		.recalc		= &followparent_recalc,
+ 	},
+@@ -177,7 +177,7 @@ static struct clk sossi_ck = {
+ 	.ops		= &clkops_generic,
+ 	.parent		= &ck_dpll1out.clk,
+ 	.flags		= CLOCK_NO_IDLE_PARENT | ENABLE_REG_32BIT,
+-	.enable_reg	= (void __iomem *)MOD_CONF_CTRL_1,
++	.enable_reg	= OMAP1_IO_ADDRESS(MOD_CONF_CTRL_1),
+ 	.enable_bit	= 16,
+ 	.recalc		= &omap1_sossi_recalc,
+ 	.set_rate	= &omap1_set_sossi_rate,
+@@ -200,7 +200,7 @@ static struct arm_idlect1_clk armper_ck = {
+ 		.ops		= &clkops_generic,
+ 		.parent		= &ck_dpll1,
+ 		.flags		= CLOCK_IDLE_CONTROL,
+-		.enable_reg	= (void __iomem *)ARM_IDLECT2,
++		.enable_reg	= OMAP1_IO_ADDRESS(ARM_IDLECT2),
+ 		.enable_bit	= EN_PERCK,
+ 		.rate_offset	= CKCTL_PERDIV_OFFSET,
+ 		.recalc		= &omap1_ckctl_recalc,
+@@ -214,7 +214,7 @@ static struct clk arm_gpio_ck = {
+ 	.name		= "arm_gpio_ck",
+ 	.ops		= &clkops_generic,
+ 	.parent		= &ck_dpll1,
+-	.enable_reg	= (void __iomem *)ARM_IDLECT2,
++	.enable_reg	= OMAP1_IO_ADDRESS(ARM_IDLECT2),
+ 	.enable_bit	= EN_GPIOCK,
+ 	.recalc		= &followparent_recalc,
  };
-diff --git a/arch/arm/mach-omap2/clock34xx.h b/arch/arm/mach-omap2/clock34xx.h
-index 7ee1312..aadd296 100644
---- a/arch/arm/mach-omap2/clock34xx.h
-+++ b/arch/arm/mach-omap2/clock34xx.h
-@@ -268,6 +268,7 @@ static struct dpll_data dpll1_dd = {
- 	.idlest_reg	= OMAP_CM_REGADDR(MPU_MOD, OMAP3430_CM_IDLEST_PLL),
- 	.idlest_mask	= OMAP3430_ST_MPU_CLK_MASK,
- 	.max_multiplier = OMAP3_MAX_DPLL_MULT,
-+	.min_divider	= 1,
- 	.max_divider	= OMAP3_MAX_DPLL_DIV,
- 	.rate_tolerance = DEFAULT_DPLL_RATE_TOLERANCE
+@@ -225,7 +225,7 @@ static struct arm_idlect1_clk armxor_ck = {
+ 		.ops		= &clkops_generic,
+ 		.parent		= &ck_ref,
+ 		.flags		= CLOCK_IDLE_CONTROL,
+-		.enable_reg	= (void __iomem *)ARM_IDLECT2,
++		.enable_reg	= OMAP1_IO_ADDRESS(ARM_IDLECT2),
+ 		.enable_bit	= EN_XORPCK,
+ 		.recalc		= &followparent_recalc,
+ 	},
+@@ -238,7 +238,7 @@ static struct arm_idlect1_clk armtim_ck = {
+ 		.ops		= &clkops_generic,
+ 		.parent		= &ck_ref,
+ 		.flags		= CLOCK_IDLE_CONTROL,
+-		.enable_reg	= (void __iomem *)ARM_IDLECT2,
++		.enable_reg	= OMAP1_IO_ADDRESS(ARM_IDLECT2),
+ 		.enable_bit	= EN_TIMCK,
+ 		.recalc		= &followparent_recalc,
+ 	},
+@@ -251,7 +251,7 @@ static struct arm_idlect1_clk armwdt_ck = {
+ 		.ops		= &clkops_generic,
+ 		.parent		= &ck_ref,
+ 		.flags		= CLOCK_IDLE_CONTROL,
+-		.enable_reg	= (void __iomem *)ARM_IDLECT2,
++		.enable_reg	= OMAP1_IO_ADDRESS(ARM_IDLECT2),
+ 		.enable_bit	= EN_WDTCK,
+ 		.recalc		= &omap1_watchdog_recalc,
+ 	},
+@@ -274,7 +274,7 @@ static struct clk dsp_ck = {
+ 	.name		= "dsp_ck",
+ 	.ops		= &clkops_generic,
+ 	.parent		= &ck_dpll1,
+-	.enable_reg	= (void __iomem *)ARM_CKCTL,
++	.enable_reg	= OMAP1_IO_ADDRESS(ARM_CKCTL),
+ 	.enable_bit	= EN_DSPCK,
+ 	.rate_offset	= CKCTL_DSPDIV_OFFSET,
+ 	.recalc		= &omap1_ckctl_recalc,
+@@ -296,7 +296,6 @@ static struct clk dspper_ck = {
+ 	.name		= "dspper_ck",
+ 	.ops		= &clkops_dspck,
+ 	.parent		= &ck_dpll1,
+-	.flags		= VIRTUAL_IO_ADDRESS,
+ 	.enable_reg	= DSP_IDLECT2,
+ 	.enable_bit	= EN_PERCK,
+ 	.rate_offset	= CKCTL_PERDIV_OFFSET,
+@@ -309,7 +308,6 @@ static struct clk dspxor_ck = {
+ 	.name		= "dspxor_ck",
+ 	.ops		= &clkops_dspck,
+ 	.parent		= &ck_ref,
+-	.flags		= VIRTUAL_IO_ADDRESS,
+ 	.enable_reg	= DSP_IDLECT2,
+ 	.enable_bit	= EN_XORPCK,
+ 	.recalc		= &followparent_recalc,
+@@ -319,7 +317,6 @@ static struct clk dsptim_ck = {
+ 	.name		= "dsptim_ck",
+ 	.ops		= &clkops_dspck,
+ 	.parent		= &ck_ref,
+-	.flags		= VIRTUAL_IO_ADDRESS,
+ 	.enable_reg	= DSP_IDLECT2,
+ 	.enable_bit	= EN_DSPTIMCK,
+ 	.recalc		= &followparent_recalc,
+@@ -364,7 +361,7 @@ static struct clk l3_ocpi_ck = {
+ 	.name		= "l3_ocpi_ck",
+ 	.ops		= &clkops_generic,
+ 	.parent		= &tc_ck.clk,
+-	.enable_reg	= (void __iomem *)ARM_IDLECT3,
++	.enable_reg	= OMAP1_IO_ADDRESS(ARM_IDLECT3),
+ 	.enable_bit	= EN_OCPI_CK,
+ 	.recalc		= &followparent_recalc,
  };
-@@ -341,6 +342,7 @@ static struct dpll_data dpll2_dd = {
- 	.idlest_reg	= OMAP_CM_REGADDR(OMAP3430_IVA2_MOD, OMAP3430_CM_IDLEST_PLL),
- 	.idlest_mask	= OMAP3430_ST_IVA2_CLK_MASK,
- 	.max_multiplier = OMAP3_MAX_DPLL_MULT,
-+	.min_divider	= 1,
- 	.max_divider	= OMAP3_MAX_DPLL_DIV,
- 	.rate_tolerance = DEFAULT_DPLL_RATE_TOLERANCE
+@@ -373,7 +370,7 @@ static struct clk tc1_ck = {
+ 	.name		= "tc1_ck",
+ 	.ops		= &clkops_generic,
+ 	.parent		= &tc_ck.clk,
+-	.enable_reg	= (void __iomem *)ARM_IDLECT3,
++	.enable_reg	= OMAP1_IO_ADDRESS(ARM_IDLECT3),
+ 	.enable_bit	= EN_TC1_CK,
+ 	.recalc		= &followparent_recalc,
  };
-@@ -400,6 +402,7 @@ static struct dpll_data dpll3_dd = {
- 	.idlest_reg	= OMAP_CM_REGADDR(PLL_MOD, CM_IDLEST),
- 	.idlest_mask	= OMAP3430_ST_CORE_CLK_MASK,
- 	.max_multiplier = OMAP3_MAX_DPLL_MULT,
-+	.min_divider	= 1,
- 	.max_divider	= OMAP3_MAX_DPLL_DIV,
- 	.rate_tolerance = DEFAULT_DPLL_RATE_TOLERANCE
+@@ -382,7 +379,7 @@ static struct clk tc2_ck = {
+ 	.name		= "tc2_ck",
+ 	.ops		= &clkops_generic,
+ 	.parent		= &tc_ck.clk,
+-	.enable_reg	= (void __iomem *)ARM_IDLECT3,
++	.enable_reg	= OMAP1_IO_ADDRESS(ARM_IDLECT3),
+ 	.enable_bit	= EN_TC2_CK,
+ 	.recalc		= &followparent_recalc,
  };
-@@ -591,6 +594,7 @@ static struct dpll_data dpll4_dd = {
- 	.idlest_reg	= OMAP_CM_REGADDR(PLL_MOD, CM_IDLEST),
- 	.idlest_mask	= OMAP3430_ST_PERIPH_CLK_MASK,
- 	.max_multiplier = OMAP3_MAX_DPLL_MULT,
-+	.min_divider	= 1,
- 	.max_divider	= OMAP3_MAX_DPLL_DIV,
- 	.rate_tolerance = DEFAULT_DPLL_RATE_TOLERANCE
+@@ -408,7 +405,7 @@ static struct arm_idlect1_clk api_ck = {
+ 		.ops		= &clkops_generic,
+ 		.parent		= &tc_ck.clk,
+ 		.flags		= CLOCK_IDLE_CONTROL,
+-		.enable_reg	= (void __iomem *)ARM_IDLECT2,
++		.enable_reg	= OMAP1_IO_ADDRESS(ARM_IDLECT2),
+ 		.enable_bit	= EN_APICK,
+ 		.recalc		= &followparent_recalc,
+ 	},
+@@ -421,7 +418,7 @@ static struct arm_idlect1_clk lb_ck = {
+ 		.ops		= &clkops_generic,
+ 		.parent		= &tc_ck.clk,
+ 		.flags		= CLOCK_IDLE_CONTROL,
+-		.enable_reg	= (void __iomem *)ARM_IDLECT2,
++		.enable_reg	= OMAP1_IO_ADDRESS(ARM_IDLECT2),
+ 		.enable_bit	= EN_LBCK,
+ 		.recalc		= &followparent_recalc,
+ 	},
+@@ -446,7 +443,7 @@ static struct clk lcd_ck_16xx = {
+ 	.name		= "lcd_ck",
+ 	.ops		= &clkops_generic,
+ 	.parent		= &ck_dpll1,
+-	.enable_reg	= (void __iomem *)ARM_IDLECT2,
++	.enable_reg	= OMAP1_IO_ADDRESS(ARM_IDLECT2),
+ 	.enable_bit	= EN_LCDCK,
+ 	.rate_offset	= CKCTL_LCDDIV_OFFSET,
+ 	.recalc		= &omap1_ckctl_recalc,
+@@ -460,7 +457,7 @@ static struct arm_idlect1_clk lcd_ck_1510 = {
+ 		.ops		= &clkops_generic,
+ 		.parent		= &ck_dpll1,
+ 		.flags		= CLOCK_IDLE_CONTROL,
+-		.enable_reg	= (void __iomem *)ARM_IDLECT2,
++		.enable_reg	= OMAP1_IO_ADDRESS(ARM_IDLECT2),
+ 		.enable_bit	= EN_LCDCK,
+ 		.rate_offset	= CKCTL_LCDDIV_OFFSET,
+ 		.recalc		= &omap1_ckctl_recalc,
+@@ -477,7 +474,7 @@ static struct clk uart1_1510 = {
+ 	.parent		= &armper_ck.clk,
+ 	.rate		= 12000000,
+ 	.flags		= ENABLE_REG_32BIT | CLOCK_NO_IDLE_PARENT,
+-	.enable_reg	= (void __iomem *)MOD_CONF_CTRL_0,
++	.enable_reg	= OMAP1_IO_ADDRESS(MOD_CONF_CTRL_0),
+ 	.enable_bit	= 29,	/* Chooses between 12MHz and 48MHz */
+ 	.set_rate	= &omap1_set_uart_rate,
+ 	.recalc		= &omap1_uart_recalc,
+@@ -492,7 +489,7 @@ static struct uart_clk uart1_16xx = {
+ 		.rate		= 48000000,
+ 		.flags		= RATE_FIXED | ENABLE_REG_32BIT |
+ 				  CLOCK_NO_IDLE_PARENT,
+-		.enable_reg	= (void __iomem *)MOD_CONF_CTRL_0,
++		.enable_reg	= OMAP1_IO_ADDRESS(MOD_CONF_CTRL_0),
+ 		.enable_bit	= 29,
+ 	},
+ 	.sysc_addr	= 0xfffb0054,
+@@ -505,7 +502,7 @@ static struct clk uart2_ck = {
+ 	.parent		= &armper_ck.clk,
+ 	.rate		= 12000000,
+ 	.flags		= ENABLE_REG_32BIT | CLOCK_NO_IDLE_PARENT,
+-	.enable_reg	= (void __iomem *)MOD_CONF_CTRL_0,
++	.enable_reg	= OMAP1_IO_ADDRESS(MOD_CONF_CTRL_0),
+ 	.enable_bit	= 30,	/* Chooses between 12MHz and 48MHz */
+ 	.set_rate	= &omap1_set_uart_rate,
+ 	.recalc		= &omap1_uart_recalc,
+@@ -518,7 +515,7 @@ static struct clk uart3_1510 = {
+ 	.parent		= &armper_ck.clk,
+ 	.rate		= 12000000,
+ 	.flags		= ENABLE_REG_32BIT | CLOCK_NO_IDLE_PARENT,
+-	.enable_reg	= (void __iomem *)MOD_CONF_CTRL_0,
++	.enable_reg	= OMAP1_IO_ADDRESS(MOD_CONF_CTRL_0),
+ 	.enable_bit	= 31,	/* Chooses between 12MHz and 48MHz */
+ 	.set_rate	= &omap1_set_uart_rate,
+ 	.recalc		= &omap1_uart_recalc,
+@@ -533,7 +530,7 @@ static struct uart_clk uart3_16xx = {
+ 		.rate		= 48000000,
+ 		.flags		= RATE_FIXED | ENABLE_REG_32BIT |
+ 				  CLOCK_NO_IDLE_PARENT,
+-		.enable_reg	= (void __iomem *)MOD_CONF_CTRL_0,
++		.enable_reg	= OMAP1_IO_ADDRESS(MOD_CONF_CTRL_0),
+ 		.enable_bit	= 31,
+ 	},
+ 	.sysc_addr	= 0xfffb9854,
+@@ -545,7 +542,7 @@ static struct clk usb_clko = {	/* 6 MHz output on W4_USB_CLKO */
+ 	/* Direct from ULPD, no parent */
+ 	.rate		= 6000000,
+ 	.flags		= RATE_FIXED | ENABLE_REG_32BIT,
+-	.enable_reg	= (void __iomem *)ULPD_CLOCK_CTRL,
++	.enable_reg	= OMAP1_IO_ADDRESS(ULPD_CLOCK_CTRL),
+ 	.enable_bit	= USB_MCLK_EN_BIT,
  };
-@@ -930,6 +934,7 @@ static struct dpll_data dpll5_dd = {
- 	.idlest_reg	= OMAP_CM_REGADDR(PLL_MOD, CM_IDLEST2),
- 	.idlest_mask	= OMAP3430ES2_ST_PERIPH2_CLK_MASK,
- 	.max_multiplier = OMAP3_MAX_DPLL_MULT,
-+	.min_divider	= 1,
- 	.max_divider	= OMAP3_MAX_DPLL_DIV,
- 	.rate_tolerance = DEFAULT_DPLL_RATE_TOLERANCE
+ 
+@@ -555,7 +552,7 @@ static struct clk usb_hhc_ck1510 = {
+ 	/* Direct from ULPD, no parent */
+ 	.rate		= 48000000, /* Actually 2 clocks, 12MHz and 48MHz */
+ 	.flags		= RATE_FIXED | ENABLE_REG_32BIT,
+-	.enable_reg	= (void __iomem *)MOD_CONF_CTRL_0,
++	.enable_reg	= OMAP1_IO_ADDRESS(MOD_CONF_CTRL_0),
+ 	.enable_bit	= USB_HOST_HHC_UHOST_EN,
  };
+ 
+@@ -566,7 +563,7 @@ static struct clk usb_hhc_ck16xx = {
+ 	.rate		= 48000000,
+ 	/* OTG_SYSCON_2.OTG_PADEN == 0 (not 1510-compatible) */
+ 	.flags		= RATE_FIXED | ENABLE_REG_32BIT,
+-	.enable_reg	= (void __iomem *)OTG_BASE + 0x08 /* OTG_SYSCON_2 */,
++	.enable_reg	= OMAP1_IO_ADDRESS(OTG_BASE + 0x08), /* OTG_SYSCON_2 */
+ 	.enable_bit	= 8 /* UHOST_EN */,
+ };
+ 
+@@ -576,7 +573,7 @@ static struct clk usb_dc_ck = {
+ 	/* Direct from ULPD, no parent */
+ 	.rate		= 48000000,
+ 	.flags		= RATE_FIXED,
+-	.enable_reg	= (void __iomem *)SOFT_REQ_REG,
++	.enable_reg	= OMAP1_IO_ADDRESS(SOFT_REQ_REG),
+ 	.enable_bit	= 4,
+ };
+ 
+@@ -586,15 +583,15 @@ static struct clk mclk_1510 = {
+ 	/* Direct from ULPD, no parent. May be enabled by ext hardware. */
+ 	.rate		= 12000000,
+ 	.flags		= RATE_FIXED,
+- 	.enable_reg	= (void __iomem *)SOFT_REQ_REG,
+- 	.enable_bit	= 6,
++	.enable_reg	= OMAP1_IO_ADDRESS(SOFT_REQ_REG),
++	.enable_bit	= 6,
+ };
+ 
+ static struct clk mclk_16xx = {
+ 	.name		= "mclk",
+ 	.ops		= &clkops_generic,
+ 	/* Direct from ULPD, no parent. May be enabled by ext hardware. */
+-	.enable_reg	= (void __iomem *)COM_CLK_DIV_CTRL_SEL,
++	.enable_reg	= OMAP1_IO_ADDRESS(COM_CLK_DIV_CTRL_SEL),
+ 	.enable_bit	= COM_ULPD_PLL_CLK_REQ,
+ 	.set_rate	= &omap1_set_ext_clk_rate,
+ 	.round_rate	= &omap1_round_ext_clk_rate,
+@@ -613,7 +610,7 @@ static struct clk bclk_16xx = {
+ 	.name		= "bclk",
+ 	.ops		= &clkops_generic,
+ 	/* Direct from ULPD, no parent. May be enabled by ext hardware. */
+-	.enable_reg	= (void __iomem *)SWD_CLK_DIV_CTRL_SEL,
++	.enable_reg	= OMAP1_IO_ADDRESS(SWD_CLK_DIV_CTRL_SEL),
+ 	.enable_bit	= SWD_ULPD_PLL_CLK_REQ,
+ 	.set_rate	= &omap1_set_ext_clk_rate,
+ 	.round_rate	= &omap1_round_ext_clk_rate,
+@@ -627,7 +624,7 @@ static struct clk mmc1_ck = {
+ 	.parent		= &armper_ck.clk,
+ 	.rate		= 48000000,
+ 	.flags		= RATE_FIXED | ENABLE_REG_32BIT | CLOCK_NO_IDLE_PARENT,
+-	.enable_reg	= (void __iomem *)MOD_CONF_CTRL_0,
++	.enable_reg	= OMAP1_IO_ADDRESS(MOD_CONF_CTRL_0),
+ 	.enable_bit	= 23,
+ };
+ 
+@@ -639,7 +636,7 @@ static struct clk mmc2_ck = {
+ 	.parent		= &armper_ck.clk,
+ 	.rate		= 48000000,
+ 	.flags		= RATE_FIXED | ENABLE_REG_32BIT | CLOCK_NO_IDLE_PARENT,
+-	.enable_reg	= (void __iomem *)MOD_CONF_CTRL_0,
++	.enable_reg	= OMAP1_IO_ADDRESS(MOD_CONF_CTRL_0),
+ 	.enable_bit	= 20,
+ };
+ 
 diff --git a/arch/arm/plat-omap/include/mach/clock.h b/arch/arm/plat-omap/include/mach/clock.h
-index 611df52..cd69111 100644
+index cd69111..8705902 100644
 --- a/arch/arm/plat-omap/include/mach/clock.h
 +++ b/arch/arm/plat-omap/include/mach/clock.h
-@@ -43,6 +43,7 @@ struct dpll_data {
- 	unsigned long		last_rounded_rate;
- 	u16			last_rounded_m;
- 	u8			last_rounded_n;
-+	u8			min_divider;
- 	u8			max_divider;
- 	u32			max_tolerance;
- 	u16			max_multiplier;
+@@ -134,7 +134,6 @@ extern const struct clkops clkops_null;
+ #define RATE_PROPAGATES		(1 << 2)	/* Program children too */
+ /* bits 3-4 are free */
+ #define ENABLE_REG_32BIT	(1 << 5)	/* Use 32-bit access */
+-#define VIRTUAL_IO_ADDRESS	(1 << 6)	/* Clock in virtual address */
+ #define CLOCK_IDLE_CONTROL	(1 << 7)
+ #define CLOCK_NO_IDLE_PARENT	(1 << 8)
+ #define DELAYED_APP		(1 << 9)	/* Delay application of clock */
 -- 
 1.6.1.2
 
