@@ -1,7 +1,7 @@
 From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: [PATCH 38/86] [ARM] OMAP: Fix sparse, checkpatch warnings in OMAP2/3 PRCM/PM code
-Date: Thu, 12 Mar 2009 11:27:48 -0700
-Message-ID: <1236882516-29403-39-git-send-email-khilman@deeprootsystems.com>
+Subject: [PATCH 49/86] [ARM] OMAP3 PRCM: add DPLL1-5 powerdomains, clockdomains; mark clocks
+Date: Thu, 12 Mar 2009 11:27:59 -0700
+Message-ID: <1236882516-29403-50-git-send-email-khilman@deeprootsystems.com>
 References: <1236882516-29403-1-git-send-email-khilman@deeprootsystems.com>
  <1236882516-29403-2-git-send-email-khilman@deeprootsystems.com>
  <1236882516-29403-3-git-send-email-khilman@deeprootsystems.com>
@@ -40,419 +40,380 @@ References: <1236882516-29403-1-git-send-email-khilman@deeprootsystems.com>
  <1236882516-29403-36-git-send-email-khilman@deeprootsystems.com>
  <1236882516-29403-37-git-send-email-khilman@deeprootsystems.com>
  <1236882516-29403-38-git-send-email-khilman@deeprootsystems.com>
+ <1236882516-29403-39-git-send-email-khilman@deeprootsystems.com>
+ <1236882516-29403-40-git-send-email-khilman@deeprootsystems.com>
+ <1236882516-29403-41-git-send-email-khilman@deeprootsystems.com>
+ <1236882516-29403-42-git-send-email-khilman@deeprootsystems.com>
+ <1236882516-29403-43-git-send-email-khilman@deeprootsystems.com>
+ <1236882516-29403-44-git-send-email-khilman@deeprootsystems.com>
+ <1236882516-29403-45-git-send-email-khilman@deeprootsystems.com>
+ <1236882516-29403-46-git-send-email-khilman@deeprootsystems.com>
+ <1236882516-29403-47-git-send-email-khilman@deeprootsystems.com>
+ <1236882516-29403-48-git-send-email-khilman@deeprootsystems.com>
+ <1236882516-29403-49-git-send-email-khilman@deeprootsystems.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-gx0-f163.google.com ([209.85.217.163]:60567 "EHLO
-	mail-gx0-f163.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756647AbZCLSbf (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 12 Mar 2009 14:31:35 -0400
-Received: by mail-gx0-f163.google.com with SMTP id 7so458514gxk.13
-        for <linux-omap@vger.kernel.org>; Thu, 12 Mar 2009 11:31:34 -0700 (PDT)
-In-Reply-To: <1236882516-29403-38-git-send-email-khilman@deeprootsystems.com>
+Received: from ag-out-0708.google.com ([72.14.246.250]:55744 "EHLO
+	ag-out-0708.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756739AbZCLScR (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 12 Mar 2009 14:32:17 -0400
+Received: by ag-out-0708.google.com with SMTP id 26so1107479agb.10
+        for <linux-omap@vger.kernel.org>; Thu, 12 Mar 2009 11:32:16 -0700 (PDT)
+In-Reply-To: <1236882516-29403-49-git-send-email-khilman@deeprootsystems.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 
 From: Paul Walmsley <paul@pwsan.com>
 
-Fix sparse & checkpatch warnings in OMAP2/3 PRCM & PM code.  This mostly
-consists of:
+Each DPLL exists in its own powerdomain (cf 34xx TRM figure 4-18) and
+clockdomain; so, create powerdomain and clockdomain structures for them.
+Mark each DPLL clock as belonging to their respective DPLL clockdomain.
+cf. 34xx TRM Table 4-27 (among other references).
 
-- converting pointer comparisons to integers in form similar to
-  (ptr == 0) to the standard idiom (!ptr)
-
-- labeling a few non-static private functions as static
-
-- adding prototypes for *_init() functions in the appropriate header
-  files, and getting rid of the corresponding open-coded extern
-  prototypes in other C files
-
-- renaming the variable 'sclk' in mach-omap2/clock.c:omap2_get_apll_clkin
-  to avoid shadowing an earlier declaration
-
-Clean up checkpatch issues.  This mostly involves:
-
-- converting some asm/ includes to linux/ includes
-
-- cleaning up some whitespace
-
-- getting rid of braces for conditionals with single following statements
-
-Also take care of a few odds and ends, including:
-
-- getting rid of unlikely() and likely() - none of this code is particularly
-  fast-path code, so the performance impact seems slim; and some of those
-  likely() and unlikely() indicators are probably not as accurate as the
-  ARM's branch predictor
-
-- removing some superfluous casts
-
-linux-omap source commit is 347df59f5d20fdf905afbc26b1328b0e28a8a01b.
+linux-omap source commits are acdb615850b9b4f7d1ab68133a16be8c8c0e7419 and
+a8798a48f33e9268dcc7f30a4b4a3ce4220fe0c9.
 
 Signed-off-by: Paul Walmsley <paul@pwsan.com>
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
 ---
- arch/arm/mach-omap2/clock.c                   |   51 ++++++++++++-------------
- arch/arm/mach-omap2/clock.h                   |    2 +-
- arch/arm/mach-omap2/clock24xx.c               |   16 ++++---
- arch/arm/mach-omap2/pm.c                      |    2 +-
- arch/arm/plat-omap/include/mach/clock.h       |    4 +-
- arch/arm/plat-omap/include/mach/powerdomain.h |    1 +
- arch/arm/plat-omap/include/mach/prcm.h        |    5 +-
- arch/arm/plat-omap/include/mach/system.h      |    4 +-
- 8 files changed, 44 insertions(+), 41 deletions(-)
+ arch/arm/mach-omap2/clock34xx.h        |   27 ++++++++++++++++++++++++
+ arch/arm/mach-omap2/clockdomains.h     |   35 ++++++++++++++++++++++++++++++++
+ arch/arm/mach-omap2/powerdomains.h     |    5 ++++
+ arch/arm/mach-omap2/powerdomains34xx.h |   31 ++++++++++++++++++++++++++++
+ 4 files changed, 98 insertions(+), 0 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/clock.c b/arch/arm/mach-omap2/clock.c
-index 53fda99..886f73f 100644
---- a/arch/arm/mach-omap2/clock.c
-+++ b/arch/arm/mach-omap2/clock.c
-@@ -26,7 +26,6 @@
- 
- #include <mach/clock.h>
- #include <mach/clockdomain.h>
--#include <mach/sram.h>
- #include <mach/cpu.h>
- #include <asm/div64.h>
- 
-@@ -187,11 +186,10 @@ int omap2_wait_clock_ready(void __iomem *reg, u32 mask, const char *name)
- 	 * 24xx uses 0 to indicate not ready, and 1 to indicate ready.
- 	 * 34xx reverses this, just to keep us on our toes
- 	 */
--	if (cpu_mask & (RATE_IN_242X | RATE_IN_243X)) {
-+	if (cpu_mask & (RATE_IN_242X | RATE_IN_243X))
- 		ena = mask;
--	} else if (cpu_mask & RATE_IN_343X) {
-+	else if (cpu_mask & RATE_IN_343X)
- 		ena = 0;
--	}
- 
- 	/* Wait for lock */
- 	while (((__raw_readl(reg) & mask) != ena) &&
-@@ -267,7 +265,7 @@ static int omap2_dflt_clk_enable_wait(struct clk *clk)
- {
- 	int ret;
- 
--	if (unlikely(clk->enable_reg == NULL)) {
-+	if (!clk->enable_reg) {
- 		printk(KERN_ERR "clock.c: Enable for %s without enable code\n",
- 		       clk->name);
- 		return 0; /* REVISIT: -EINVAL */
-@@ -283,7 +281,7 @@ static void omap2_dflt_clk_disable(struct clk *clk)
- {
- 	u32 regval32;
- 
--	if (clk->enable_reg == NULL) {
-+	if (!clk->enable_reg) {
- 		/*
- 		 * 'Independent' here refers to a clock which is not
- 		 * controlled by its parent.
-@@ -330,7 +328,7 @@ void omap2_clk_disable(struct clk *clk)
- {
- 	if (clk->usecount > 0 && !(--clk->usecount)) {
- 		_omap2_clk_disable(clk);
--		if (likely((u32)clk->parent))
-+		if (clk->parent)
- 			omap2_clk_disable(clk->parent);
- 		if (clk->clkdm)
- 			omap2_clkdm_clk_disable(clk->clkdm, clk);
-@@ -343,10 +341,10 @@ int omap2_clk_enable(struct clk *clk)
- 	int ret = 0;
- 
- 	if (clk->usecount++ == 0) {
--		if (likely((u32)clk->parent))
-+		if (clk->parent)
- 			ret = omap2_clk_enable(clk->parent);
- 
--		if (unlikely(ret != 0)) {
-+		if (ret != 0) {
- 			clk->usecount--;
- 			return ret;
- 		}
-@@ -356,7 +354,7 @@ int omap2_clk_enable(struct clk *clk)
- 
- 		ret = _omap2_clk_enable(clk);
- 
--		if (unlikely(ret != 0)) {
-+		if (ret != 0) {
- 			if (clk->clkdm)
- 				omap2_clkdm_clk_disable(clk->clkdm, clk);
- 
-@@ -384,7 +382,7 @@ void omap2_clksel_recalc(struct clk *clk)
- 	if (div == 0)
- 		return;
- 
--	if (unlikely(clk->rate == clk->parent->rate / div))
-+	if (clk->rate == (clk->parent->rate / div))
- 		return;
- 	clk->rate = clk->parent->rate / div;
- 
-@@ -400,8 +398,8 @@ void omap2_clksel_recalc(struct clk *clk)
-  * the element associated with the supplied parent clock address.
-  * Returns a pointer to the struct clksel on success or NULL on error.
-  */
--const struct clksel *omap2_get_clksel_by_parent(struct clk *clk,
--						struct clk *src_clk)
-+static const struct clksel *omap2_get_clksel_by_parent(struct clk *clk,
-+						       struct clk *src_clk)
- {
- 	const struct clksel *clks;
- 
-@@ -450,7 +448,7 @@ u32 omap2_clksel_round_rate_div(struct clk *clk, unsigned long target_rate,
- 	*new_div = 1;
- 
- 	clks = omap2_get_clksel_by_parent(clk, clk->parent);
--	if (clks == NULL)
-+	if (!clks)
- 		return ~0;
- 
- 	for (clkr = clks->rates; clkr->div; clkr++) {
-@@ -509,7 +507,7 @@ long omap2_clksel_round_rate(struct clk *clk, unsigned long target_rate)
- /* Given a clock and a rate apply a clock specific rounding function */
- long omap2_clk_round_rate(struct clk *clk, unsigned long rate)
- {
--	if (clk->round_rate != NULL)
-+	if (clk->round_rate)
- 		return clk->round_rate(clk, rate);
- 
- 	if (clk->flags & RATE_FIXED)
-@@ -535,7 +533,7 @@ u32 omap2_clksel_to_divisor(struct clk *clk, u32 field_val)
- 	const struct clksel_rate *clkr;
- 
- 	clks = omap2_get_clksel_by_parent(clk, clk->parent);
--	if (clks == NULL)
-+	if (!clks)
- 		return 0;
- 
- 	for (clkr = clks->rates; clkr->div; clkr++) {
-@@ -571,7 +569,7 @@ u32 omap2_divisor_to_clksel(struct clk *clk, u32 div)
- 	WARN_ON(div == 0);
- 
- 	clks = omap2_get_clksel_by_parent(clk, clk->parent);
--	if (clks == NULL)
-+	if (!clks)
- 		return 0;
- 
- 	for (clkr = clks->rates; clkr->div; clkr++) {
-@@ -596,9 +594,9 @@ u32 omap2_divisor_to_clksel(struct clk *clk, u32 div)
-  *
-  * Returns the address of the clksel register upon success or NULL on error.
-  */
--void __iomem *omap2_get_clksel(struct clk *clk, u32 *field_mask)
-+static void __iomem *omap2_get_clksel(struct clk *clk, u32 *field_mask)
- {
--	if (unlikely((clk->clksel_reg == NULL) || (clk->clksel_mask == NULL)))
-+	if (!clk->clksel_reg || (clk->clksel_mask == 0))
- 		return NULL;
- 
- 	*field_mask = clk->clksel_mask;
-@@ -618,7 +616,7 @@ u32 omap2_clksel_get_divisor(struct clk *clk)
- 	void __iomem *div_addr;
- 
- 	div_addr = omap2_get_clksel(clk, &field_mask);
--	if (div_addr == NULL)
-+	if (!div_addr)
- 		return 0;
- 
- 	field_val = __raw_readl(div_addr) & field_mask;
-@@ -637,7 +635,7 @@ int omap2_clksel_set_rate(struct clk *clk, unsigned long rate)
- 		return -EINVAL;
- 
- 	div_addr = omap2_get_clksel(clk, &field_mask);
--	if (div_addr == NULL)
-+	if (!div_addr)
- 		return -EINVAL;
- 
- 	field_val = omap2_divisor_to_clksel(clk, new_div);
-@@ -675,7 +673,7 @@ int omap2_clk_set_rate(struct clk *clk, unsigned long rate)
- 		return -EINVAL;
- 
- 	/* dpll_ck, core_ck, virt_prcm_set; plus all clksel clocks */
--	if (clk->set_rate != NULL)
-+	if (clk->set_rate)
- 		ret = clk->set_rate(clk, rate);
- 
- 	return ret;
-@@ -696,7 +694,7 @@ static u32 omap2_clksel_get_src_field(void __iomem **src_addr,
- 	*src_addr = NULL;
- 
- 	clks = omap2_get_clksel_by_parent(clk, src_clk);
--	if (clks == NULL)
-+	if (!clks)
- 		return 0;
- 
- 	for (clkr = clks->rates; clkr->div; clkr++) {
-@@ -726,7 +724,7 @@ int omap2_clk_set_parent(struct clk *clk, struct clk *new_parent)
- 	void __iomem *src_addr;
- 	u32 field_val, field_mask, reg_val, parent_div;
- 
--	if (unlikely(clk->flags & CONFIG_PARTICIPANT))
-+	if (clk->flags & CONFIG_PARTICIPANT)
- 		return -EINVAL;
- 
- 	if (!clk->clksel)
-@@ -734,7 +732,7 @@ int omap2_clk_set_parent(struct clk *clk, struct clk *new_parent)
- 
- 	field_val = omap2_clksel_get_src_field(&src_addr, new_parent,
- 					       &field_mask, clk, &parent_div);
--	if (src_addr == NULL)
-+	if (!src_addr)
- 		return -EINVAL;
- 
- 	if (clk->usecount > 0)
-@@ -794,7 +792,8 @@ int omap2_dpll_set_rate_tolerance(struct clk *clk, unsigned int tolerance)
- 	return 0;
- }
- 
--static unsigned long _dpll_compute_new_rate(unsigned long parent_rate, unsigned int m, unsigned int n)
-+static unsigned long _dpll_compute_new_rate(unsigned long parent_rate,
-+					    unsigned int m, unsigned int n)
- {
- 	unsigned long long num;
- 
-diff --git a/arch/arm/mach-omap2/clock.h b/arch/arm/mach-omap2/clock.h
-index b0358b6..90077f0 100644
---- a/arch/arm/mach-omap2/clock.h
-+++ b/arch/arm/mach-omap2/clock.h
-@@ -27,7 +27,7 @@ void omap2_clk_disable(struct clk *clk);
- long omap2_clk_round_rate(struct clk *clk, unsigned long rate);
- int omap2_clk_set_rate(struct clk *clk, unsigned long rate);
- int omap2_clk_set_parent(struct clk *clk, struct clk *new_parent);
--int omap2_dpll_rate_tolerance_set(struct clk *clk, unsigned int tolerance);
-+int omap2_dpll_set_rate_tolerance(struct clk *clk, unsigned int tolerance);
- long omap2_dpll_round_rate(struct clk *clk, unsigned long target_rate);
- 
- #ifdef CONFIG_OMAP_RESET_CLOCKS
-diff --git a/arch/arm/mach-omap2/clock24xx.c b/arch/arm/mach-omap2/clock24xx.c
-index bd77ef2..91ad207 100644
---- a/arch/arm/mach-omap2/clock24xx.c
-+++ b/arch/arm/mach-omap2/clock24xx.c
-@@ -339,7 +339,7 @@ static const struct clkops clkops_fixed = {
-  * Uses the current prcm set to tell if a rate is valid.
-  * You can go slower, but not faster within a given rate set.
-  */
--long omap2_dpllcore_round_rate(unsigned long target_rate)
-+static long omap2_dpllcore_round_rate(unsigned long target_rate)
- {
- 	u32 high, low, core_clk_src;
- 
-@@ -550,7 +550,9 @@ static int omap2_select_table_rate(struct clk *clk, unsigned long rate)
- 
- 		/* Major subsystem dividers */
- 		tmp = cm_read_mod_reg(CORE_MOD, CM_CLKSEL1) & OMAP24XX_CLKSEL_DSS2_MASK;
--		cm_write_mod_reg(prcm->cm_clksel1_core | tmp, CORE_MOD, CM_CLKSEL1);
-+		cm_write_mod_reg(prcm->cm_clksel1_core | tmp, CORE_MOD,
-+				 CM_CLKSEL1);
-+
- 		if (cpu_is_omap2430())
- 			cm_write_mod_reg(prcm->cm_clksel_mdm,
- 					 OMAP2430_MDM_MOD, CM_CLKSEL);
-@@ -582,20 +584,20 @@ static struct clk_functions omap2_clk_functions = {
- 
- static u32 omap2_get_apll_clkin(void)
- {
--	u32 aplls, sclk = 0;
-+	u32 aplls, srate = 0;
- 
- 	aplls = cm_read_mod_reg(PLL_MOD, CM_CLKSEL1);
- 	aplls &= OMAP24XX_APLLS_CLKIN_MASK;
- 	aplls >>= OMAP24XX_APLLS_CLKIN_SHIFT;
- 
- 	if (aplls == APLLS_CLKIN_19_2MHZ)
--		sclk = 19200000;
-+		srate = 19200000;
- 	else if (aplls == APLLS_CLKIN_13MHZ)
--		sclk = 13000000;
-+		srate = 13000000;
- 	else if (aplls == APLLS_CLKIN_12MHZ)
--		sclk = 12000000;
-+		srate = 12000000;
- 
--	return sclk;
-+	return srate;
- }
- 
- static u32 omap2_get_sysclkdiv(void)
-diff --git a/arch/arm/mach-omap2/pm.c b/arch/arm/mach-omap2/pm.c
-index 55361c1..ea8ceae 100644
---- a/arch/arm/mach-omap2/pm.c
-+++ b/arch/arm/mach-omap2/pm.c
-@@ -103,7 +103,7 @@ static struct platform_suspend_ops omap_pm_ops = {
- 	.valid		= suspend_valid_only_mem,
+diff --git a/arch/arm/mach-omap2/clock34xx.h b/arch/arm/mach-omap2/clock34xx.h
+index baed53f..9dec698 100644
+--- a/arch/arm/mach-omap2/clock34xx.h
++++ b/arch/arm/mach-omap2/clock34xx.h
+@@ -280,6 +280,7 @@ static struct clk dpll1_ck = {
+ 	.flags		= RATE_PROPAGATES,
+ 	.round_rate	= &omap2_dpll_round_rate,
+ 	.set_rate	= &omap3_noncore_dpll_set_rate,
++	.clkdm_name	= "dpll1_clkdm",
+ 	.recalc		= &omap3_dpll_recalc,
  };
  
--int __init omap2_pm_init(void)
-+static int __init omap2_pm_init(void)
- {
- 	return 0;
- }
-diff --git a/arch/arm/plat-omap/include/mach/clock.h b/arch/arm/plat-omap/include/mach/clock.h
-index f147aec..6f49a33 100644
---- a/arch/arm/plat-omap/include/mach/clock.h
-+++ b/arch/arm/plat-omap/include/mach/clock.h
-@@ -113,12 +113,12 @@ struct clk_functions {
+@@ -292,6 +293,7 @@ static struct clk dpll1_x2_ck = {
+ 	.ops		= &clkops_null,
+ 	.parent		= &dpll1_ck,
+ 	.flags		= RATE_PROPAGATES,
++	.clkdm_name	= "dpll1_clkdm",
+ 	.recalc		= &omap3_clkoutx2_recalc,
+ };
  
- extern unsigned int mpurate;
+@@ -314,6 +316,7 @@ static struct clk dpll1_x2m2_ck = {
+ 	.clksel_mask	= OMAP3430_MPU_DPLL_CLKOUT_DIV_MASK,
+ 	.clksel		= div16_dpll1_x2m2_clksel,
+ 	.flags		= RATE_PROPAGATES,
++	.clkdm_name	= "dpll1_clkdm",
+ 	.recalc		= &omap2_clksel_recalc,
+ };
  
--extern int clk_init(struct clk_functions * custom_clocks);
-+extern int clk_init(struct clk_functions *custom_clocks);
- extern int clk_register(struct clk *clk);
- extern void clk_unregister(struct clk *clk);
- extern void propagate_rate(struct clk *clk);
- extern void recalculate_root_clocks(void);
--extern void followparent_recalc(struct clk * clk);
-+extern void followparent_recalc(struct clk *clk);
- extern int clk_get_usecount(struct clk *clk);
- extern void clk_enable_init_clocks(void);
+@@ -350,6 +353,7 @@ static struct clk dpll2_ck = {
+ 	.flags		= RATE_PROPAGATES,
+ 	.round_rate	= &omap2_dpll_round_rate,
+ 	.set_rate	= &omap3_noncore_dpll_set_rate,
++	.clkdm_name	= "dpll2_clkdm",
+ 	.recalc		= &omap3_dpll_recalc,
+ };
  
-diff --git a/arch/arm/plat-omap/include/mach/powerdomain.h b/arch/arm/plat-omap/include/mach/powerdomain.h
-index 2806a9c..4948cb7 100644
---- a/arch/arm/plat-omap/include/mach/powerdomain.h
-+++ b/arch/arm/plat-omap/include/mach/powerdomain.h
-@@ -145,6 +145,7 @@ int pwrdm_get_mem_bank_count(struct powerdomain *pwrdm);
+@@ -372,6 +376,7 @@ static struct clk dpll2_m2_ck = {
+ 	.clksel_mask	= OMAP3430_IVA2_DPLL_CLKOUT_DIV_MASK,
+ 	.clksel		= div16_dpll2_m2x2_clksel,
+ 	.flags		= RATE_PROPAGATES,
++	.clkdm_name	= "dpll2_clkdm",
+ 	.recalc		= &omap2_clksel_recalc,
+ };
  
- int pwrdm_set_next_pwrst(struct powerdomain *pwrdm, u8 pwrst);
- int pwrdm_read_next_pwrst(struct powerdomain *pwrdm);
-+int pwrdm_read_pwrst(struct powerdomain *pwrdm);
- int pwrdm_read_prev_pwrst(struct powerdomain *pwrdm);
- int pwrdm_clear_all_prev_pwrst(struct powerdomain *pwrdm);
+@@ -404,6 +409,7 @@ static struct clk dpll3_ck = {
+ 	.dpll_data	= &dpll3_dd,
+ 	.flags		= RATE_PROPAGATES,
+ 	.round_rate	= &omap2_dpll_round_rate,
++	.clkdm_name	= "dpll3_clkdm",
+ 	.recalc		= &omap3_dpll_recalc,
+ };
  
-diff --git a/arch/arm/plat-omap/include/mach/prcm.h b/arch/arm/plat-omap/include/mach/prcm.h
-index 56eba0f..24ac3c7 100644
---- a/arch/arm/plat-omap/include/mach/prcm.h
-+++ b/arch/arm/plat-omap/include/mach/prcm.h
-@@ -20,10 +20,11 @@
-  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
-  */
+@@ -416,6 +422,7 @@ static struct clk dpll3_x2_ck = {
+ 	.ops		= &clkops_null,
+ 	.parent		= &dpll3_ck,
+ 	.flags		= RATE_PROPAGATES,
++	.clkdm_name	= "dpll3_clkdm",
+ 	.recalc		= &omap3_clkoutx2_recalc,
+ };
  
--#ifndef __ASM_ARM_ARCH_DPM_PRCM_H
--#define __ASM_ARM_ARCH_DPM_PRCM_H
-+#ifndef __ASM_ARM_ARCH_OMAP_PRCM_H
-+#define __ASM_ARM_ARCH_OMAP_PRCM_H
+@@ -473,6 +480,7 @@ static struct clk dpll3_m2_ck = {
+ 	.clksel_mask	= OMAP3430_CORE_DPLL_CLKOUT_DIV_MASK,
+ 	.clksel		= div31_dpll3m2_clksel,
+ 	.flags		= RATE_PROPAGATES,
++	.clkdm_name	= "dpll3_clkdm",
+ 	.recalc		= &omap2_clksel_recalc,
+ };
  
- u32 omap_prcm_get_reset_sources(void);
-+void omap_prcm_arch_reset(char mode);
+@@ -507,6 +515,7 @@ static struct clk dpll3_m2x2_ck = {
+ 	.clksel_mask	= OMAP3430_ST_CORE_CLK_MASK,
+ 	.clksel		= dpll3_m2x2_ck_clksel,
+ 	.flags		= RATE_PROPAGATES,
++	.clkdm_name	= "dpll3_clkdm",
+ 	.recalc		= &omap2_clksel_recalc,
+ };
  
- #endif
+@@ -526,6 +535,7 @@ static struct clk dpll3_m3_ck = {
+ 	.clksel_mask	= OMAP3430_DIV_DPLL3_MASK,
+ 	.clksel		= div16_dpll3_clksel,
+ 	.flags		= RATE_PROPAGATES,
++	.clkdm_name	= "dpll3_clkdm",
+ 	.recalc		= &omap2_clksel_recalc,
+ };
  
-diff --git a/arch/arm/plat-omap/include/mach/system.h b/arch/arm/plat-omap/include/mach/system.h
-index 06923f2..e9b9563 100644
---- a/arch/arm/plat-omap/include/mach/system.h
-+++ b/arch/arm/plat-omap/include/mach/system.h
-@@ -9,12 +9,12 @@
- #include <asm/mach-types.h>
- #include <mach/hardware.h>
+@@ -537,6 +547,7 @@ static struct clk dpll3_m3x2_ck = {
+ 	.enable_reg	= OMAP_CM_REGADDR(PLL_MOD, CM_CLKEN),
+ 	.enable_bit	= OMAP3430_PWRDN_EMU_CORE_SHIFT,
+ 	.flags		= RATE_PROPAGATES | INVERT_ENABLE,
++	.clkdm_name	= "dpll3_clkdm",
+ 	.recalc		= &omap3_clkoutx2_recalc,
+ };
  
-+#include <mach/prcm.h>
+@@ -555,6 +566,7 @@ static struct clk emu_core_alwon_ck = {
+ 	.clksel_mask	= OMAP3430_ST_CORE_CLK_MASK,
+ 	.clksel		= emu_core_alwon_ck_clksel,
+ 	.flags		= RATE_PROPAGATES,
++	.clkdm_name	= "dpll3_clkdm",
+ 	.recalc		= &omap2_clksel_recalc,
+ };
+ 
+@@ -589,6 +601,7 @@ static struct clk dpll4_ck = {
+ 	.flags		= RATE_PROPAGATES,
+ 	.round_rate	= &omap2_dpll_round_rate,
+ 	.set_rate	= &omap3_dpll4_set_rate,
++	.clkdm_name	= "dpll4_clkdm",
+ 	.recalc		= &omap3_dpll_recalc,
+ };
+ 
+@@ -602,6 +615,7 @@ static struct clk dpll4_x2_ck = {
+ 	.ops		= &clkops_null,
+ 	.parent		= &dpll4_ck,
+ 	.flags		= RATE_PROPAGATES,
++	.clkdm_name	= "dpll4_clkdm",
+ 	.recalc		= &omap3_clkoutx2_recalc,
+ };
+ 
+@@ -620,6 +634,7 @@ static struct clk dpll4_m2_ck = {
+ 	.clksel_mask	= OMAP3430_DIV_96M_MASK,
+ 	.clksel		= div16_dpll4_clksel,
+ 	.flags		= RATE_PROPAGATES,
++	.clkdm_name	= "dpll4_clkdm",
+ 	.recalc		= &omap2_clksel_recalc,
+ };
+ 
+@@ -631,6 +646,7 @@ static struct clk dpll4_m2x2_ck = {
+ 	.enable_reg	= OMAP_CM_REGADDR(PLL_MOD, CM_CLKEN),
+ 	.enable_bit	= OMAP3430_PWRDN_96M_SHIFT,
+ 	.flags		= RATE_PROPAGATES | INVERT_ENABLE,
++	.clkdm_name	= "dpll4_clkdm",
+ 	.recalc		= &omap3_clkoutx2_recalc,
+ };
+ 
+@@ -704,6 +720,7 @@ static struct clk dpll4_m3_ck = {
+ 	.clksel_mask	= OMAP3430_CLKSEL_TV_MASK,
+ 	.clksel		= div16_dpll4_clksel,
+ 	.flags		= RATE_PROPAGATES,
++	.clkdm_name	= "dpll4_clkdm",
+ 	.recalc		= &omap2_clksel_recalc,
+ };
+ 
+@@ -716,6 +733,7 @@ static struct clk dpll4_m3x2_ck = {
+ 	.enable_reg	= OMAP_CM_REGADDR(PLL_MOD, CM_CLKEN),
+ 	.enable_bit	= OMAP3430_PWRDN_TV_SHIFT,
+ 	.flags		= RATE_PROPAGATES | INVERT_ENABLE,
++	.clkdm_name	= "dpll4_clkdm",
+ 	.recalc		= &omap3_clkoutx2_recalc,
+ };
+ 
+@@ -810,6 +828,7 @@ static struct clk dpll4_m4_ck = {
+ 	.clksel_mask	= OMAP3430_CLKSEL_DSS1_MASK,
+ 	.clksel		= div16_dpll4_clksel,
+ 	.flags		= RATE_PROPAGATES,
++	.clkdm_name	= "dpll4_clkdm",
+ 	.recalc		= &omap2_clksel_recalc,
+ 	.set_rate	= &omap2_clksel_set_rate,
+ 	.round_rate	= &omap2_clksel_round_rate,
+@@ -823,6 +842,7 @@ static struct clk dpll4_m4x2_ck = {
+ 	.enable_reg	= OMAP_CM_REGADDR(PLL_MOD, CM_CLKEN),
+ 	.enable_bit	= OMAP3430_PWRDN_CAM_SHIFT,
+ 	.flags		= RATE_PROPAGATES | INVERT_ENABLE,
++	.clkdm_name	= "dpll4_clkdm",
+ 	.recalc		= &omap3_clkoutx2_recalc,
+ };
+ 
+@@ -836,6 +856,7 @@ static struct clk dpll4_m5_ck = {
+ 	.clksel_mask	= OMAP3430_CLKSEL_CAM_MASK,
+ 	.clksel		= div16_dpll4_clksel,
+ 	.flags		= RATE_PROPAGATES,
++	.clkdm_name	= "dpll4_clkdm",
+ 	.recalc		= &omap2_clksel_recalc,
+ };
+ 
+@@ -847,6 +868,7 @@ static struct clk dpll4_m5x2_ck = {
+ 	.enable_reg	= OMAP_CM_REGADDR(PLL_MOD, CM_CLKEN),
+ 	.enable_bit	= OMAP3430_PWRDN_CAM_SHIFT,
+ 	.flags		= RATE_PROPAGATES | INVERT_ENABLE,
++	.clkdm_name	= "dpll4_clkdm",
+ 	.recalc		= &omap3_clkoutx2_recalc,
+ };
+ 
+@@ -860,6 +882,7 @@ static struct clk dpll4_m6_ck = {
+ 	.clksel_mask	= OMAP3430_DIV_DPLL4_MASK,
+ 	.clksel		= div16_dpll4_clksel,
+ 	.flags		= RATE_PROPAGATES,
++	.clkdm_name	= "dpll4_clkdm",
+ 	.recalc		= &omap2_clksel_recalc,
+ };
+ 
+@@ -872,6 +895,7 @@ static struct clk dpll4_m6x2_ck = {
+ 	.enable_reg	= OMAP_CM_REGADDR(PLL_MOD, CM_CLKEN),
+ 	.enable_bit	= OMAP3430_PWRDN_EMU_PERIPH_SHIFT,
+ 	.flags		= RATE_PROPAGATES | INVERT_ENABLE,
++	.clkdm_name	= "dpll4_clkdm",
+ 	.recalc		= &omap3_clkoutx2_recalc,
+ };
+ 
+@@ -880,6 +904,7 @@ static struct clk emu_per_alwon_ck = {
+ 	.ops		= &clkops_null,
+ 	.parent		= &dpll4_m6x2_ck,
+ 	.flags		= RATE_PROPAGATES,
++	.clkdm_name	= "dpll4_clkdm",
+ 	.recalc		= &followparent_recalc,
+ };
+ 
+@@ -915,6 +940,7 @@ static struct clk dpll5_ck = {
+ 	.flags		= RATE_PROPAGATES,
+ 	.round_rate	= &omap2_dpll_round_rate,
+ 	.set_rate	= &omap3_noncore_dpll_set_rate,
++	.clkdm_name	= "dpll5_clkdm",
+ 	.recalc		= &omap3_dpll_recalc,
+ };
+ 
+@@ -932,6 +958,7 @@ static struct clk dpll5_m2_ck = {
+ 	.clksel_mask	= OMAP3430ES2_DIV_120M_MASK,
+ 	.clksel		= div16_dpll5_clksel,
+ 	.flags		= RATE_PROPAGATES,
++	.clkdm_name	= "dpll5_clkdm",
+ 	.recalc		= &omap2_clksel_recalc,
+ };
+ 
+diff --git a/arch/arm/mach-omap2/clockdomains.h b/arch/arm/mach-omap2/clockdomains.h
+index ec5a720..9eb7343 100644
+--- a/arch/arm/mach-omap2/clockdomains.h
++++ b/arch/arm/mach-omap2/clockdomains.h
+@@ -256,6 +256,36 @@ static struct clockdomain emu_clkdm = {
+ 	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
+ };
+ 
++static struct clockdomain dpll1_clkdm = {
++	.name		= "dpll1_clkdm",
++	.pwrdm		= { .name = "dpll1_pwrdm" },
++	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
++};
 +
- #ifndef CONFIG_MACH_VOICEBLUE
- #define voiceblue_reset()		do {} while (0)
++static struct clockdomain dpll2_clkdm = {
++	.name		= "dpll2_clkdm",
++	.pwrdm		= { .name = "dpll2_pwrdm" },
++	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
++};
++
++static struct clockdomain dpll3_clkdm = {
++	.name		= "dpll3_clkdm",
++	.pwrdm		= { .name = "dpll3_pwrdm" },
++	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
++};
++
++static struct clockdomain dpll4_clkdm = {
++	.name		= "dpll4_clkdm",
++	.pwrdm		= { .name = "dpll4_pwrdm" },
++	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
++};
++
++static struct clockdomain dpll5_clkdm = {
++	.name		= "dpll5_clkdm",
++	.pwrdm		= { .name = "dpll5_pwrdm" },
++	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430ES2),
++};
++
+ #endif   /* CONFIG_ARCH_OMAP34XX */
+ 
+ /*
+@@ -318,6 +348,11 @@ static struct clockdomain *clockdomains_omap[] = {
+ 	&usbhost_clkdm,
+ 	&per_clkdm,
+ 	&emu_clkdm,
++	&dpll1_clkdm,
++	&dpll2_clkdm,
++	&dpll3_clkdm,
++	&dpll4_clkdm,
++	&dpll5_clkdm,
  #endif
  
--extern void omap_prcm_arch_reset(char mode);
--
- static inline void arch_idle(void)
- {
- 	cpu_do_idle();
+ 	NULL,
+diff --git a/arch/arm/mach-omap2/powerdomains.h b/arch/arm/mach-omap2/powerdomains.h
+index 1e151fa..1329443 100644
+--- a/arch/arm/mach-omap2/powerdomains.h
++++ b/arch/arm/mach-omap2/powerdomains.h
+@@ -178,6 +178,11 @@ static struct powerdomain *powerdomains_omap[] __initdata = {
+ 	&emu_pwrdm,
+ 	&sgx_pwrdm,
+ 	&usbhost_pwrdm,
++	&dpll1_pwrdm,
++	&dpll2_pwrdm,
++	&dpll3_pwrdm,
++	&dpll4_pwrdm,
++	&dpll5_pwrdm,
+ #endif
+ 
+ 	NULL
+diff --git a/arch/arm/mach-omap2/powerdomains34xx.h b/arch/arm/mach-omap2/powerdomains34xx.h
+index 3a8e4fb..7b63fa0 100644
+--- a/arch/arm/mach-omap2/powerdomains34xx.h
++++ b/arch/arm/mach-omap2/powerdomains34xx.h
+@@ -322,6 +322,37 @@ static struct powerdomain usbhost_pwrdm = {
+ 	},
+ };
+ 
++static struct powerdomain dpll1_pwrdm = {
++	.name		= "dpll1_pwrdm",
++	.prcm_offs	= MPU_MOD,
++	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
++};
++
++static struct powerdomain dpll2_pwrdm = {
++	.name		= "dpll2_pwrdm",
++	.prcm_offs	= OMAP3430_IVA2_MOD,
++	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
++};
++
++static struct powerdomain dpll3_pwrdm = {
++	.name		= "dpll3_pwrdm",
++	.prcm_offs	= PLL_MOD,
++	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
++};
++
++static struct powerdomain dpll4_pwrdm = {
++	.name		= "dpll4_pwrdm",
++	.prcm_offs	= PLL_MOD,
++	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
++};
++
++static struct powerdomain dpll5_pwrdm = {
++	.name		= "dpll5_pwrdm",
++	.prcm_offs	= PLL_MOD,
++	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430ES2),
++};
++
++
+ #endif    /* CONFIG_ARCH_OMAP34XX */
+ 
+ 
 -- 
 1.6.1.2
 
