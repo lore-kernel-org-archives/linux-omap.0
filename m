@@ -1,52 +1,93 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: RFD: OMAP PRCM register access holding up PM branch submissions
-Date: Thu, 12 Mar 2009 17:01:51 +0000
-Message-ID: <20090312170151.GB7854@n2100.arm.linux.org.uk>
-References: <87hc1y930c.fsf@deeprootsystems.com>
-	<20090312162804.GA7179@n2100.arm.linux.org.uk>
-	<87bps67kby.fsf@deeprootsystems.com>
+From: "Guzman Lugo, Fernando" <x0095840@ti.com>
+Subject: RE: ioremap bug? (was RE: DSPBRIDGE: segmentation fault after
+ reloading dspbridge several times due to a memory leak.)
+Date: Thu, 12 Mar 2009 12:20:29 -0500
+Message-ID: <496565EC904933469F292DDA3F1663E60287CA7070@dlee06.ent.ti.com>
+References: <496565EC904933469F292DDA3F1663E60287CA6EC4@dlee06.ent.ti.com>
+ <7A436F7769CA33409C6B44B358BFFF0CFF51DF41@dlee02.ent.ti.com>
+  <7A436F7769CA33409C6B44B358BFFF0CFF51DF75@dlee02.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.arm.linux.org.uk>
-Content-Disposition: inline
-In-Reply-To: <87bps67kby.fsf@deeprootsystems.com>
-List-Unsubscribe: <http://lists.arm.linux.org.uk/mailman/listinfo/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.arm.linux.org.uk?subject=unsubscribe>
-List-Archive: <http://lists.arm.linux.org.uk/lurker/list/linux-arm-kernel.html>
-List-Post: <mailto:linux-arm-kernel@lists.arm.linux.org.uk>
-List-Help: <mailto:linux-arm-kernel-request@lists.arm.linux.org.uk?subject=help>
-List-Subscribe: <http://lists.arm.linux.org.uk/mailman/listinfo/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.arm.linux.org.uk?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.arm.linux.org.uk
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org+linux-arm-kernel=m.gmane.org@lists.arm.linux.org.uk
-To: Kevin Hilman <khilman@deeprootsystems.com>
-Cc: Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.arm.linux.org.uk
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:53138 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752954AbZCLRUm convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 12 Mar 2009 13:20:42 -0400
+In-Reply-To: <7A436F7769CA33409C6B44B358BFFF0CFF51DF75@dlee02.ent.ti.com>
+Content-Language: en-US
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "Menon, Nishanth" <nm@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Cc: "Kanigeri, Hari" <h-kanigeri2@ti.com>, "Woodruff, Richard" <r-woodruff2@ti.com>, "Lakhani, Amish" <amish@ti.com>, "Gupta, Ramesh" <grgupta@ti.com>, Ameya Palande <ameya.palande@nokia.com>
 
-On Thu, Mar 12, 2009 at 09:54:41AM -0700, Kevin Hilman wrote:
-> If you can share your opinions on the two register access approaches I
-> described, I will work on coordinating development in that direction.
 
-If I had a path forwards, then I would say so.  At the moment, I have
-a vague idea about what I'd like to see, but it isn't in a workable
-state at the present time.
+>> Just an update (thanks to Fernando in pointing this out)
+>> 0x87000000, 0x600000, fails with same error
+>> 0x88000000, 0x600000, fails with same error
+>Wrong attempt!!
+>Should have tried:
+>0x87100000, 0x600000 - this worked
+>> 0x87000000, 0x700000 - went thru 300 odd iterations without error!!
+>This means that if I keep end address constant, it is fine.. with this >hypothesis, I tried
+>0x87200000, 0x500000 - this also worked
 
-I need to put further thought and time into coming up with a solution.
-For the time being, I am not going to apply the outstanding patches to
-put in place a solution which is totally confused about iomem and u32
-types with lots of casts to make it work.  Even one which passes u32
-types to the IO accessors (which don't produce a warning but shouldn't
-be allowed in any case.)
+However 0x87100000, 0x500000 also works that is the same end address than 0x87000000, 0x600000. so maybe the hypothesis is no right. 
 
-I'm sorry, but I have no further time that I can spend on this, not even
-proposing solutions, not even commenting back on the patches.  That's
-the way it is.  I'm _WAY_ over time on OMAP stuff this cycle and that's
-just going to have to be accepted by the community.
+Regards,
+Fernando.
 
-Sorry.
+-----Original Message-----
+From: Menon, Nishanth 
+Sent: Thursday, March 12, 2009 10:58 AM
+To: Menon, Nishanth; Guzman Lugo, Fernando; linux-omap@vger.kernel.org
+Cc: Kanigeri, Hari; Woodruff, Richard; Lakhani, Amish; Gupta, Ramesh; Ameya Palande
+Subject: RE: ioremap bug? (was RE: DSPBRIDGE: segmentation fault after reloading dspbridge several times due to a memory leak.)
 
--------------------------------------------------------------------
-List admin: http://lists.arm.linux.org.uk/mailman/listinfo/linux-arm-kernel
-FAQ:        http://www.arm.linux.org.uk/mailinglists/faq.php
-Etiquette:  http://www.arm.linux.org.uk/mailinglists/etiquette.php
+> -----Original Message-----
+> From: Menon, Nishanth
+> Sent: Thursday, March 12, 2009 6:53 PM
+> To: Menon, Nishanth; Guzman Lugo, Fernando; linux-omap@vger.kernel.org
+> Cc: Kanigeri, Hari; Woodruff, Richard; Lakhani, Amish; Gupta, Ramesh;
+> Ameya Palande
+> Subject: RE: ioremap bug? (was RE: DSPBRIDGE: segmentation fault after
+> reloading dspbridge several times due to a memory leak.)
+> 
+> 
+> > -----Original Message-----
+> > From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
+> > owner@vger.kernel.org] On Behalf Of Menon, Nishanth
+> > Sent: Thursday, March 12, 2009 6:40 PM
+> > To: Guzman Lugo, Fernando; linux-omap@vger.kernel.org
+> > Cc: Kanigeri, Hari; Woodruff, Richard; Lakhani, Amish; Gupta, Ramesh;
+> > Ameya Palande
+> > Subject: ioremap bug? (was RE: DSPBRIDGE: segmentation fault after
+> > reloading dspbridge several times due to a memory leak.)
+> > > console output where you can see the address increasing.
+> >
+> > I duplicated this with the following dummy driver which ioremaps as per
+> > the same allocations that the bridge driver would have done:
+> >
+> > #include <linux/kernel.h>
+> > #include <linux/module.h>
+> > #include <linux/slab.h>
+> > #include <linux/mm.h>
+> > #include <linux/dma-mapping.h>
+> >
+> > #define BASE 0x87000000
+> > #define SIZE 0x600000
+> >
+> Just an update (thanks to Fernando in pointing this out)
+> 0x87000000, 0x600000, fails with same error
+> 0x88000000, 0x600000, fails with same error
+Wrong attempt!!
+Should have tried:
+0x87100000, 0x600000 - this worked
+> 0x87000000, 0x700000 - went thru 300 odd iterations without error!!
+This means that if I keep end address constant, it is fine.. with this hypothesis, I tried
+0x87200000, 0x500000 - this also worked
+
+Implying the start address and size of the first allocation in my dummy driver did not have a factor in the test failure, but just the end address of the ioremap!
+
+Regards,
+Nishanth Menon
