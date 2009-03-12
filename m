@@ -1,7 +1,7 @@
 From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: [PATCH 78/86] [ARM] omap: fix usecount decrement bug
-Date: Thu, 12 Mar 2009 11:28:28 -0700
-Message-ID: <1236882516-29403-79-git-send-email-khilman@deeprootsystems.com>
+Subject: [PATCH 76/86] [ARM] OMAP2/3 clock: convert remaining MPU barriers into OCP barriers
+Date: Thu, 12 Mar 2009 11:28:26 -0700
+Message-ID: <1236882516-29403-77-git-send-email-khilman@deeprootsystems.com>
 References: <1236882516-29403-1-git-send-email-khilman@deeprootsystems.com>
  <1236882516-29403-2-git-send-email-khilman@deeprootsystems.com>
  <1236882516-29403-3-git-send-email-khilman@deeprootsystems.com>
@@ -78,78 +78,76 @@ References: <1236882516-29403-1-git-send-email-khilman@deeprootsystems.com>
  <1236882516-29403-74-git-send-email-khilman@deeprootsystems.com>
  <1236882516-29403-75-git-send-email-khilman@deeprootsystems.com>
  <1236882516-29403-76-git-send-email-khilman@deeprootsystems.com>
- <1236882516-29403-77-git-send-email-khilman@deeprootsystems.com>
- <1236882516-29403-78-git-send-email-khilman@deeprootsystems.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ag-out-0708.google.com ([72.14.246.250]:55744 "EHLO
-	ag-out-0708.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757264AbZCLSeR (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 12 Mar 2009 14:34:17 -0400
-Received: by ag-out-0708.google.com with SMTP id 26so1107479agb.10
-        for <linux-omap@vger.kernel.org>; Thu, 12 Mar 2009 11:34:15 -0700 (PDT)
-In-Reply-To: <1236882516-29403-78-git-send-email-khilman@deeprootsystems.com>
+Received: from mail-gx0-f163.google.com ([209.85.217.163]:60567 "EHLO
+	mail-gx0-f163.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757259AbZCLSeK (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 12 Mar 2009 14:34:10 -0400
+Received: by mail-gx0-f163.google.com with SMTP id 7so458514gxk.13
+        for <linux-omap@vger.kernel.org>; Thu, 12 Mar 2009 11:34:08 -0700 (PDT)
+In-Reply-To: <1236882516-29403-76-git-send-email-khilman@deeprootsystems.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 
-From: Russell King <rmk@dyn-67.arm.linux.org.uk>
+From: Paul Walmsley <paul@pwsan.com>
 
-Based upon a patch from Paul Walmsley <paul@pwsan.com>:
+Several parts of the OMAP2/3 clock code use wmb() to try to ensure
+that the hardware write completes before continuing.  This approach is
+problematic: wmb() only ensures that the write leaves the ARM.  It
+does not ensure that the write actually reaches the endpoint device.
+The endpoint device in this case - either the PRM, CM, or SCM - is
+three interconnects away from the ARM - and the final interconnect is
+low-speed.  And the OCP interconnects will post the write, and who
+knows how long that will take to complete.  So the wmb() is not what
+we want.  Worse, the wmb() is indiscriminate; it causes the ARM to
+flush any other unrelated buffered writes and wait for the local
+interconnect to acknowledge them - potentially very expensive.
 
- If _omap2_clk_enable() fails, the clock's usecount must be decremented
- by one no matter whether the clock has a parent or not.
+Fix this by converting the wmb()s into readbacks of the same PRM/CM/SCM
+register.  Since the PRM/CM/SCM devices use a single OCP thread, this
+will cause the MPU to block while waiting for posted writes to that device
+to complete.
 
-but reorganised a bit.
+linux-omap source commit is 260f5487848681b4d8ea7430a709a601bbcb21d1.
 
+Signed-off-by: Paul Walmsley <paul@pwsan.com>
+Signed-off-by: Tony Lindgren <tony@atomide.com>
 Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
 ---
- arch/arm/mach-omap2/clock.c |   20 ++++++++++----------
- 1 files changed, 10 insertions(+), 10 deletions(-)
+ arch/arm/mach-omap2/clock.c |    6 +++---
+ 1 files changed, 3 insertions(+), 3 deletions(-)
 
 diff --git a/arch/arm/mach-omap2/clock.c b/arch/arm/mach-omap2/clock.c
-index 666274a..222c2c0 100644
+index 7f12230..666274a 100644
 --- a/arch/arm/mach-omap2/clock.c
 +++ b/arch/arm/mach-omap2/clock.c
-@@ -419,30 +419,30 @@ int omap2_clk_enable(struct clk *clk)
- 	int ret = 0;
+@@ -334,7 +334,7 @@ static int omap2_dflt_clk_enable(struct clk *clk)
+ 	else
+ 		v |= (1 << clk->enable_bit);
+ 	__raw_writel(v, clk->enable_reg);
+-	wmb();
++	v = __raw_readl(clk->enable_reg); /* OCP barrier */
  
- 	if (clk->usecount++ == 0) {
--		if (clk->parent)
-+		if (clk->parent) {
- 			ret = omap2_clk_enable(clk->parent);
--
--		if (ret != 0) {
--			clk->usecount--;
--			return ret;
-+			if (ret)
-+				goto err;
- 		}
- 
- 		if (clk->clkdm)
- 			omap2_clkdm_clk_enable(clk->clkdm, clk);
- 
- 		ret = _omap2_clk_enable(clk);
--
--		if (ret != 0) {
-+		if (ret) {
- 			if (clk->clkdm)
- 				omap2_clkdm_clk_disable(clk->clkdm, clk);
- 
--			if (clk->parent) {
-+			if (clk->parent)
- 				omap2_clk_disable(clk->parent);
--				clk->usecount--;
--			}
-+
-+			goto err;
- 		}
- 	}
-+	return ret;
- 
-+err:
-+	clk->usecount--;
- 	return ret;
+ 	return 0;
  }
+@@ -703,7 +703,7 @@ int omap2_clksel_set_rate(struct clk *clk, unsigned long rate)
+ 	v &= ~clk->clksel_mask;
+ 	v |= field_val << __ffs(clk->clksel_mask);
+ 	__raw_writel(v, clk->clksel_reg);
+-	wmb();
++	v = __raw_readl(clk->clksel_reg); /* OCP barrier */
+ 
+ 	clk->rate = clk->parent->rate / new_div;
+ 
+@@ -788,7 +788,7 @@ int omap2_clk_set_parent(struct clk *clk, struct clk *new_parent)
+ 	v &= ~clk->clksel_mask;
+ 	v |= field_val << __ffs(clk->clksel_mask);
+ 	__raw_writel(v, clk->clksel_reg);
+-	wmb();
++	v = __raw_readl(clk->clksel_reg);    /* OCP barrier */
+ 
+ 	_omap2xxx_clk_commit(clk);
  
 -- 
 1.6.1.2
