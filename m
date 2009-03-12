@@ -1,7 +1,7 @@
 From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: [PATCH 70/86] [ARM] OMAP3: PM: Make sure clk_disable_unused() order is correct
-Date: Thu, 12 Mar 2009 11:28:20 -0700
-Message-ID: <1236882516-29403-71-git-send-email-khilman@deeprootsystems.com>
+Subject: [PATCH 74/86] [ARM] OMAP2/3 clock: don't use a barrier after clk_disable()
+Date: Thu, 12 Mar 2009 11:28:24 -0700
+Message-ID: <1236882516-29403-75-git-send-email-khilman@deeprootsystems.com>
 References: <1236882516-29403-1-git-send-email-khilman@deeprootsystems.com>
  <1236882516-29403-2-git-send-email-khilman@deeprootsystems.com>
  <1236882516-29403-3-git-send-email-khilman@deeprootsystems.com>
@@ -72,50 +72,75 @@ References: <1236882516-29403-1-git-send-email-khilman@deeprootsystems.com>
  <1236882516-29403-68-git-send-email-khilman@deeprootsystems.com>
  <1236882516-29403-69-git-send-email-khilman@deeprootsystems.com>
  <1236882516-29403-70-git-send-email-khilman@deeprootsystems.com>
+ <1236882516-29403-71-git-send-email-khilman@deeprootsystems.com>
+ <1236882516-29403-72-git-send-email-khilman@deeprootsystems.com>
+ <1236882516-29403-73-git-send-email-khilman@deeprootsystems.com>
+ <1236882516-29403-74-git-send-email-khilman@deeprootsystems.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-gx0-f163.google.com ([209.85.217.163]:60567 "EHLO
-	mail-gx0-f163.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757254AbZCLSdo (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 12 Mar 2009 14:33:44 -0400
-Received: by mail-gx0-f163.google.com with SMTP id 7so458514gxk.13
-        for <linux-omap@vger.kernel.org>; Thu, 12 Mar 2009 11:33:42 -0700 (PDT)
-In-Reply-To: <1236882516-29403-70-git-send-email-khilman@deeprootsystems.com>
+Received: from ag-out-0708.google.com ([72.14.246.250]:55744 "EHLO
+	ag-out-0708.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754515AbZCLSeD (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 12 Mar 2009 14:34:03 -0400
+Received: by ag-out-0708.google.com with SMTP id 26so1107479agb.10
+        for <linux-omap@vger.kernel.org>; Thu, 12 Mar 2009 11:34:01 -0700 (PDT)
+In-Reply-To: <1236882516-29403-74-git-send-email-khilman@deeprootsystems.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 
-From: Tero Kristo <tero.kristo@nokia.com>
+From: Paul Walmsley <paul@pwsan.com>
 
-Current implementation will disable clocks in the order defined in clock34xx.h,
-at least DPLL4_M2X2 will hang in certain cases (and prevent retention / off)
-if clocks are not disabled in correct order. This patch makes sure the parent
-clocks will be active when disabling a clock.
+clk_disable() previously used an ARM barrier, wmb(), to try to ensure
+that the hardware write completed before continuing.  There are some
+problems with this approach.
 
-linux-omap source commit is 672680063420ef8c8c4e7271984bb9cc08171d29.
+The first problem is that wmb() only ensures that the write leaves the
+ARM -- not that it actually reaches the endpoint device.  In this
+case, the endpoint device - either the PRM, CM, or SCM - is three
+interconnects away from the ARM, and the final interconnect is
+low-speed.  And the OCP interconnects will post the write, who knows
+how long that will take to complete.  So the wmb() is not really what
+we want.
 
-Signed-off-by: Tero Kristo <tero.kristo@nokia.com>
-Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
+Worse, the wmb() is indiscriminate; it will cause the ARM to flush any
+other unrelated buffered writes and wait for the local interconnect to
+acknowledge them - potentially very expensive.
+
+This first problem could be fixed by doing a readback of the same PRM/CM/SCM
+register.  Since these devices use a single OCP thread, this will cause the
+MPU to wait for the write to complete.
+
+But the primary problem is a conceptual one: clk_disable() should not
+need any kind of barrier.  clk_enable() needs one since device driver
+code must not access a device until its clocks are known to be
+enabled.  But clk_disable() has no such restriction.
+
+Since blocking the MPU on a PRM/CM/SCM write can be a very
+high-latency operation - several hundred MPU cycles - it's worth
+avoiding this barrier if possible.
+
+linux-omap source commit is f4aacad2c0ed1055622d5c1e910befece24ef0e2.
+
+Signed-off-by: Paul Walmsley <paul@pwsan.com>
+Signed-off-by: Tony Lindgren <tony@atomide.com>
 Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
 ---
- arch/arm/mach-omap2/clock.c |    6 +++++-
- 1 files changed, 5 insertions(+), 1 deletions(-)
+ arch/arm/mach-omap2/clock.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
 diff --git a/arch/arm/mach-omap2/clock.c b/arch/arm/mach-omap2/clock.c
-index 18fddb6..478ca66 100644
+index 38a7898..0803c8c 100644
 --- a/arch/arm/mach-omap2/clock.c
 +++ b/arch/arm/mach-omap2/clock.c
-@@ -1000,6 +1000,10 @@ void omap2_clk_disable_unused(struct clk *clk)
- 		return;
- 
- 	printk(KERN_INFO "Disabling unused clock \"%s\"\n", clk->name);
--	_omap2_clk_disable(clk);
-+	if (cpu_is_omap34xx()) {
-+		omap2_clk_enable(clk);
-+		omap2_clk_disable(clk);
-+	} else
-+		_omap2_clk_disable(clk);
+@@ -353,7 +353,7 @@ static void omap2_dflt_clk_disable(struct clk *clk)
+ 	else
+ 		v &= ~(1 << clk->enable_bit);
+ 	__raw_writel(v, clk->enable_reg);
+-	wmb();
++	/* No OCP barrier needed here since it is a disable operation */
  }
- #endif
+ 
+ const struct clkops clkops_omap2_dflt_wait = {
 -- 
 1.6.1.2
 
