@@ -1,7 +1,7 @@
 From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: [PATCH 41/86] [ARM] OMAP3 clock: fix 96MHz clocks
-Date: Thu, 12 Mar 2009 11:27:51 -0700
-Message-ID: <1236882516-29403-42-git-send-email-khilman@deeprootsystems.com>
+Subject: [PATCH 40/86] [ARM] OMAP3: move USBHOST SAR handling from clock framework to powerdomain layer
+Date: Thu, 12 Mar 2009 11:27:50 -0700
+Message-ID: <1236882516-29403-41-git-send-email-khilman@deeprootsystems.com>
 References: <1236882516-29403-1-git-send-email-khilman@deeprootsystems.com>
  <1236882516-29403-2-git-send-email-khilman@deeprootsystems.com>
  <1236882516-29403-3-git-send-email-khilman@deeprootsystems.com>
@@ -42,185 +42,87 @@ References: <1236882516-29403-1-git-send-email-khilman@deeprootsystems.com>
  <1236882516-29403-38-git-send-email-khilman@deeprootsystems.com>
  <1236882516-29403-39-git-send-email-khilman@deeprootsystems.com>
  <1236882516-29403-40-git-send-email-khilman@deeprootsystems.com>
- <1236882516-29403-41-git-send-email-khilman@deeprootsystems.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from wf-out-1314.google.com ([209.85.200.173]:2971 "EHLO
-	wf-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756685AbZCLSbp (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 12 Mar 2009 14:31:45 -0400
-Received: by wf-out-1314.google.com with SMTP id 28so1247397wfa.4
-        for <linux-omap@vger.kernel.org>; Thu, 12 Mar 2009 11:31:43 -0700 (PDT)
-In-Reply-To: <1236882516-29403-41-git-send-email-khilman@deeprootsystems.com>
+Received: from ag-out-0708.google.com ([72.14.246.250]:55744 "EHLO
+	ag-out-0708.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756666AbZCLSbm (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 12 Mar 2009 14:31:42 -0400
+Received: by ag-out-0708.google.com with SMTP id 26so1107479agb.10
+        for <linux-omap@vger.kernel.org>; Thu, 12 Mar 2009 11:31:40 -0700 (PDT)
+In-Reply-To: <1236882516-29403-40-git-send-email-khilman@deeprootsystems.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 
 From: Paul Walmsley <paul@pwsan.com>
 
-Fix some bugs in the OMAP3 clock tree pertaining to the 96MHz clocks.
-The 96MHz portion of the clock tree should now have reasonable
-fidelity to the 34xx TRM Rev I.
+Remove usbhost_sar_fclk from the OMAP3 clock framework.  The bit that
+the clock was tweaking doesn't actually enable or disable a clock; it
+controls whether the hardware will save and restore USBHOST state
+when the powerdomain changes state.  (That happens to coincidentally
+enable a clock for the duration of the operation, hence the earlier
+confusion.)
 
-One remaining question mark: it's not clear exactly which 96MHz source
-clock the USIM uses.  This patch sticks with the previous setting, which
-seems reasonable.
+In place of the clock, mark the USBHOST powerdomain as supporting
+hardware save-and-restore functionality.
 
-linux-omap source commit is 15c706e8179ce238c3ba70a25846a36b73bd2359.
+linux-omap source commit is f3ceac86a9d425d101d606d87a5af44afef27179.
 
 Signed-off-by: Paul Walmsley <paul@pwsan.com>
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
 ---
- arch/arm/mach-omap2/clock34xx.h       |   58 +++++++++++++++++++++------------
- arch/arm/mach-omap2/cm-regbits-34xx.h |    8 +++-
- 2 files changed, 43 insertions(+), 23 deletions(-)
+ arch/arm/mach-omap2/clock34xx.c        |    1 -
+ arch/arm/mach-omap2/clock34xx.h        |   11 -----------
+ arch/arm/mach-omap2/powerdomains34xx.h |    1 +
+ 3 files changed, 1 insertions(+), 12 deletions(-)
 
+diff --git a/arch/arm/mach-omap2/clock34xx.c b/arch/arm/mach-omap2/clock34xx.c
+index 943ac63..439a669 100644
+--- a/arch/arm/mach-omap2/clock34xx.c
++++ b/arch/arm/mach-omap2/clock34xx.c
+@@ -209,7 +209,6 @@ static struct omap_clk omap34xx_clks[] = {
+ 	CLK(NULL,	"usbhost_120m_fck", &usbhost_120m_fck, CK_3430ES2),
+ 	CLK(NULL,	"usbhost_48m_fck", &usbhost_48m_fck, CK_3430ES2),
+ 	CLK(NULL,	"usbhost_ick",	&usbhost_ick,	CK_3430ES2),
+-	CLK(NULL,	"usbhost_sar_fck", &usbhost_sar_fck, CK_3430ES2),
+ 	CLK(NULL,	"usim_fck",	&usim_fck,	CK_3430ES2),
+ 	CLK(NULL,	"gpt1_fck",	&gpt1_fck,	CK_343X),
+ 	CLK(NULL,	"wkup_32k_fck",	&wkup_32k_fck,	CK_343X),
 diff --git a/arch/arm/mach-omap2/clock34xx.h b/arch/arm/mach-omap2/clock34xx.h
-index a2dcf57..2c84717 100644
+index f811a09..a2dcf57 100644
 --- a/arch/arm/mach-omap2/clock34xx.h
 +++ b/arch/arm/mach-omap2/clock34xx.h
-@@ -640,6 +640,12 @@ static const struct clksel omap_96m_alwon_fck_clksel[] = {
- 	{ .parent = NULL }
- };
- 
-+/*
-+ * DPLL4 generates DPLL4_M2X2_CLK which is then routed into the PRM as
-+ * PRM_96M_ALWON_(F)CLK.  Two clocks then emerge from the PRM:
-+ * 96M_ALWON_FCLK (called "omap_96m_alwon_fck" below) and
-+ * CM_96K_(F)CLK.
-+ */
- static struct clk omap_96m_alwon_fck = {
- 	.name		= "omap_96m_alwon_fck",
- 	.ops		= &clkops_null,
-@@ -652,28 +658,38 @@ static struct clk omap_96m_alwon_fck = {
- 	.recalc		= &omap2_clksel_recalc,
- };
- 
--static struct clk omap_96m_fck = {
--	.name		= "omap_96m_fck",
-+static struct clk cm_96m_fck = {
-+	.name		= "cm_96m_fck",
- 	.ops		= &clkops_null,
- 	.parent		= &omap_96m_alwon_fck,
- 	.flags		= RATE_PROPAGATES,
+@@ -2218,17 +2218,6 @@ static struct clk usbhost_ick = {
  	.recalc		= &followparent_recalc,
  };
  
--static const struct clksel cm_96m_fck_clksel[] = {
--	{ .parent = &sys_ck,	    .rates = dpll_bypass_rates },
--	{ .parent = &dpll4_m2x2_ck, .rates = dpll_locked_rates },
-+static const struct clksel_rate omap_96m_dpll_rates[] = {
-+	{ .div = 1, .val = 0, .flags = RATE_IN_343X | DEFAULT_RATE },
-+	{ .div = 0 }
-+};
-+
-+static const struct clksel_rate omap_96m_sys_rates[] = {
-+	{ .div = 1, .val = 1, .flags = RATE_IN_343X | DEFAULT_RATE },
-+	{ .div = 0 }
-+};
-+
-+static const struct clksel omap_96m_fck_clksel[] = {
-+	{ .parent = &cm_96m_fck, .rates = omap_96m_dpll_rates },
-+	{ .parent = &sys_ck,	 .rates = omap_96m_sys_rates },
- 	{ .parent = NULL }
- };
+-static struct clk usbhost_sar_fck = {
+-	.name		= "usbhost_sar_fck",
+-	.ops		= &clkops_omap2_dflt,
+-	.parent		= &osc_sys_ck,
+-	.init		= &omap2_init_clk_clkdm,
+-	.enable_reg	= OMAP_PRM_REGADDR(OMAP3430ES2_USBHOST_MOD, PM_PWSTCTRL),
+-	.enable_bit	= OMAP3430ES2_SAVEANDRESTORE_SHIFT,
+-	.clkdm_name	= "usbhost_clkdm",
+-	.recalc		= &followparent_recalc,
+-};
+-
+ /* WKUP */
  
--static struct clk cm_96m_fck = {
--	.name		= "cm_96m_fck",
-+static struct clk omap_96m_fck = {
-+	.name		= "omap_96m_fck",
- 	.ops		= &clkops_null,
--	.parent		= &dpll4_m2x2_ck,
-+	.parent		= &sys_ck,
- 	.init		= &omap2_init_clksel_parent,
--	.clksel_reg	= OMAP_CM_REGADDR(PLL_MOD, CM_IDLEST),
--	.clksel_mask	= OMAP3430_ST_PERIPH_CLK_MASK,
--	.clksel		= cm_96m_fck_clksel,
-+	.clksel_reg	= OMAP_CM_REGADDR(PLL_MOD, CM_CLKSEL1),
-+	.clksel_mask	= OMAP3430_SOURCE_96M_MASK,
-+	.clksel		= omap_96m_fck_clksel,
- 	.flags		= RATE_PROPAGATES,
- 	.recalc		= &omap2_clksel_recalc,
- };
-@@ -742,13 +758,13 @@ static struct clk omap_54m_fck = {
- 	.ops		= &clkops_null,
- 	.init		= &omap2_init_clksel_parent,
- 	.clksel_reg	= OMAP_CM_REGADDR(PLL_MOD, CM_CLKSEL1),
--	.clksel_mask	= OMAP3430_SOURCE_54M,
-+	.clksel_mask	= OMAP3430_SOURCE_54M_MASK,
- 	.clksel		= omap_54m_clksel,
- 	.flags		= RATE_PROPAGATES,
- 	.recalc		= &omap2_clksel_recalc,
- };
- 
--static const struct clksel_rate omap_48m_96md2_rates[] = {
-+static const struct clksel_rate omap_48m_cm96m_rates[] = {
- 	{ .div = 2, .val = 0, .flags = RATE_IN_343X | DEFAULT_RATE },
- 	{ .div = 0 }
- };
-@@ -759,7 +775,7 @@ static const struct clksel_rate omap_48m_alt_rates[] = {
- };
- 
- static const struct clksel omap_48m_clksel[] = {
--	{ .parent = &cm_96m_fck, .rates = omap_48m_96md2_rates },
-+	{ .parent = &cm_96m_fck, .rates = omap_48m_cm96m_rates },
- 	{ .parent = &sys_altclk, .rates = omap_48m_alt_rates },
- 	{ .parent = NULL }
- };
-@@ -769,7 +785,7 @@ static struct clk omap_48m_fck = {
- 	.ops		= &clkops_null,
- 	.init		= &omap2_init_clksel_parent,
- 	.clksel_reg	= OMAP_CM_REGADDR(PLL_MOD, CM_CLKSEL1),
--	.clksel_mask	= OMAP3430_SOURCE_48M,
-+	.clksel_mask	= OMAP3430_SOURCE_48M_MASK,
- 	.clksel		= omap_48m_clksel,
- 	.flags		= RATE_PROPAGATES,
- 	.recalc		= &omap2_clksel_recalc,
-@@ -958,10 +974,10 @@ static const struct clksel_rate clkout2_src_54m_rates[] = {
- };
- 
- static const struct clksel clkout2_src_clksel[] = {
--	{ .parent = &core_ck,		  .rates = clkout2_src_core_rates },
--	{ .parent = &sys_ck,		  .rates = clkout2_src_sys_rates },
--	{ .parent = &omap_96m_alwon_fck,  .rates = clkout2_src_96m_rates },
--	{ .parent = &omap_54m_fck,	  .rates = clkout2_src_54m_rates },
-+	{ .parent = &core_ck,		.rates = clkout2_src_core_rates },
-+	{ .parent = &sys_ck,		.rates = clkout2_src_sys_rates },
-+	{ .parent = &cm_96m_fck,	.rates = clkout2_src_96m_rates },
-+	{ .parent = &omap_54m_fck,	.rates = clkout2_src_54m_rates },
- 	{ .parent = NULL }
- };
- 
-@@ -2782,8 +2798,8 @@ static struct clk mcbsp4_ick = {
- };
- 
- static const struct clksel mcbsp_234_clksel[] = {
--	{ .parent = &per_96m_fck, .rates = common_mcbsp_96m_rates },
--	{ .parent = &mcbsp_clks,  .rates = common_mcbsp_mcbsp_rates },
-+	{ .parent = &core_96m_fck, .rates = common_mcbsp_96m_rates },
-+	{ .parent = &mcbsp_clks,   .rates = common_mcbsp_mcbsp_rates },
- 	{ .parent = NULL }
- };
- 
-diff --git a/arch/arm/mach-omap2/cm-regbits-34xx.h b/arch/arm/mach-omap2/cm-regbits-34xx.h
-index 219f5c8..a46f93c 100644
---- a/arch/arm/mach-omap2/cm-regbits-34xx.h
-+++ b/arch/arm/mach-omap2/cm-regbits-34xx.h
-@@ -449,8 +449,12 @@
- #define OMAP3430_CORE_DPLL_MULT_MASK			(0x7ff << 16)
- #define OMAP3430_CORE_DPLL_DIV_SHIFT			8
- #define OMAP3430_CORE_DPLL_DIV_MASK			(0x7f << 8)
--#define OMAP3430_SOURCE_54M				(1 << 5)
--#define OMAP3430_SOURCE_48M				(1 << 3)
-+#define OMAP3430_SOURCE_96M_SHIFT			6
-+#define OMAP3430_SOURCE_96M_MASK			(1 << 6)
-+#define OMAP3430_SOURCE_54M_SHIFT			5
-+#define OMAP3430_SOURCE_54M_MASK			(1 << 5)
-+#define OMAP3430_SOURCE_48M_SHIFT			3
-+#define OMAP3430_SOURCE_48M_MASK			(1 << 3)
- 
- /* CM_CLKSEL2_PLL */
- #define OMAP3430_PERIPH_DPLL_MULT_SHIFT			8
+ static const struct clksel_rate usim_96m_rates[] = {
+diff --git a/arch/arm/mach-omap2/powerdomains34xx.h b/arch/arm/mach-omap2/powerdomains34xx.h
+index f573f71..3a8e4fb 100644
+--- a/arch/arm/mach-omap2/powerdomains34xx.h
++++ b/arch/arm/mach-omap2/powerdomains34xx.h
+@@ -312,6 +312,7 @@ static struct powerdomain usbhost_pwrdm = {
+ 	.sleepdep_srcs	  = dss_per_usbhost_sleepdeps,
+ 	.pwrsts		  = PWRSTS_OFF_RET_ON,
+ 	.pwrsts_logic_ret = PWRDM_POWER_RET,
++	.flags		  = PWRDM_HAS_HDWR_SAR, /* for USBHOST ctrlr only */
+ 	.banks		  = 1,
+ 	.pwrsts_mem_ret	  = {
+ 		[0] = PWRDM_POWER_RET, /* MEMRETSTATE */
 -- 
 1.6.1.2
 
