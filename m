@@ -1,93 +1,73 @@
-From: "Menon, Nishanth" <nm@ti.com>
-Subject: RE: [PATCH 1/1] DSPBRIDGE Fix for image autoload
-Date: Thu, 12 Mar 2009 03:42:56 -0500
-Message-ID: <7A436F7769CA33409C6B44B358BFFF0CFF51DBCE@dlee02.ent.ti.com>
-References: <7A436F7769CA33409C6B44B358BFFF0CFF51DBC9@dlee02.ent.ti.com>
- <EAF47CD23C76F840A9E7FCE10091EFAB02A8F2C078@dbde02.ent.ti.com>
+From: Adrian Hunter <adrian.hunter@nokia.com>
+Subject: Re: [patch 2.6.29-rc7-omap 5/5] mmc-twl4030 uses regulator framework
+Date: Thu, 12 Mar 2009 10:57:45 +0200
+Message-ID: <49B8CE89.2000608@nokia.com>
+References: <200903110518.34945.david-b@pacbell.net> <200903110524.16644.david-b@pacbell.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:51583 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751962AbZCLInF convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 12 Mar 2009 04:43:05 -0400
-Received: from dlep95.itg.ti.com ([157.170.170.107])
-	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id n2C8gx05017532
-	for <linux-omap@vger.kernel.org>; Thu, 12 Mar 2009 03:43:04 -0500
-Received: from dlee75.ent.ti.com (localhost [127.0.0.1])
-	by dlep95.itg.ti.com (8.13.8/8.13.8) with ESMTP id n2C8gxvW024795
-	for <linux-omap@vger.kernel.org>; Thu, 12 Mar 2009 03:42:59 -0500 (CDT)
-In-Reply-To: <EAF47CD23C76F840A9E7FCE10091EFAB02A8F2C078@dbde02.ent.ti.com>
-Content-Language: en-US
+Received: from smtp.nokia.com ([192.100.122.233]:25911 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750928AbZCLI6N (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 12 Mar 2009 04:58:13 -0400
+In-Reply-To: <200903110524.16644.david-b@pacbell.net>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Gupta, Ramesh" <grgupta@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
-Cc: "Kanigeri, Hari" <h-kanigeri2@ti.com>, "Guzman Lugo, Fernando" <x0095840@ti.com>
+To: David Brownell <david-b@pacbell.net>
+Cc: OMAP <linux-omap@vger.kernel.org>
 
-> -----Original Message-----
-> From: Gupta, Ramesh
-> Sent: Thursday, March 12, 2009 10:31 AM
-> To: Menon, Nishanth; linux-omap@vger.kernel.org
-> Cc: Kanigeri, Hari; Guzman Lugo, Fernando
-> Subject: RE: [PATCH 1/1] DSPBRIDGE Fix for image autoload
+David Brownell wrote:
+> From: David Brownell <dbrownell@users.sourceforge.net>
+> Subject: mmc-twl4030 uses regulator framework
 > 
-> >
-> > > -----Original Message-----
-> > > From: Menon, Nishanth
-> > > Sent: Thursday, March 12, 2009 9:39 AM
-> > > To: Gupta, Ramesh; linux-omap@vger.kernel.org
-> > > Cc: Kanigeri, Hari; Guzman Lugo, Fernando
-> > > Subject: RE: [PATCH 1/1] DSPBRIDGE Fix for image autoload
-> > >
-> > > > -----Original Message-----
-> > > > From: Gupta, Ramesh
-> > > > Sent: Thursday, March 12, 2009 8:01 AM
-> > > > To: Menon, Nishanth; linux-omap@vger.kernel.org
-> > > > Cc: Kanigeri, Hari; Guzman Lugo, Fernando
-> > > > Subject: RE: [PATCH 1/1] DSPBRIDGE Fix for image autoload
-> > > >
-> > > > I have tried this on linux-omap pm branch . This can be
-> > applied on
-> > > > top
-> > > of
-> > > > my DVFS
-> > > > Patches earlier.
-> > > >
-> > > Your patch does not apply clean :(
-> > > $ wget -O ramesh.auto.patch "http://marc.info/?l=linux-
-> > > omap&m=123683598308417&q=raw"
-> > > $ vim ramesh.auto.patch (edited to remove the linux-omap trailer) $
-> > > patch -p1<./ramesh.auto.patch --dry-run patching file
-> > > drivers/dsp/bridge/rmgr/drv_interface.c
-> > > Hunk #1 succeeded at 400 (offset -5 lines).
-> > > Hunk #2 succeeded at 408 (offset -5 lines).
-> > > Hunk #3 succeeded at 450 with fuzz 1 (offset -5 lines).
-> > > Hunk #4 succeeded at 470 (offset -5 lines).
-> > > Hunk #5 succeeded at 655 (offset -5 lines).
-> > >
-> > > Could you rebase your patch against the following:
-> > > git clone
-> > > git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap-
-> > > 2.6.git
-> > > cd linux-omap-2.6.git
-> > > git checkout -b pm --track origin/pm
-> > > git fetch git://gitorious.org/lk/mainline.git
-> > > tidspbridge-pm:tidspbridge- pm git checkout tidspbridge-pm
-> > git merge
-> > > pm
-> >
-> >
-> > And the patch does not work :(
+> Finish decoupling the HSMMC glue from the twl4030 as the only
+> regulator provider, using the regulator framework instead.
+> This makes the glue's "mmc-twl4030" name become a complete
+> misnomer ... this code could probably all migrate into the
+> HSMMC driver now.
 > 
-> What is your code base? It does work for me.
+> Tested on 3430SDP (SD and low-voltage MMC) and Beagle (SD),
+> plus some other boards (including Overo) after they were
+> converted to set up MMC regulators properly.
+> 
+> Eventually all boards should just associate a regulator with
+> each MMC controller they use.  In some cases (Overo MMC2 and
+> Pandora MMC3, at least) that would be a fixed-voltage regulator
+> with no real software control.  As a temporary hack (pending
+> regulator-next updates to make the "fixed.c" regulator become
+> usable) there's a new ocr_mask field for those boards.
+> 
+> Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
+> ---
 
-As stated above:
-git clone git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap-2.6.git
-cd linux-omap-2.6.git
-git checkout -b pm --track origin/pm
-git fetch git://gitorious.org/lk/mainline.gittidspbridge-pm:tidspbridge- pm git checkout tidspbridge-pm
-git merge pm
+snip
 
-Regards,
-Nishanth Menon
+> @@ -349,24 +276,23 @@ static int twl_mmc2_set_power(struct dev
+>                         reg |= OMAP2_MMCSDIO2ADPCLKISEL;
+>                         omap_ctrl_writel(reg, control_devconf1_offset);
+>                 }
+> -               ret = twl_mmc_set_voltage(c, vdd);
+> +               ret = mmc_regulator_set_ocr(c->vcc, vdd);
+> +               /* enable interface voltage rail, if needed */
+> +               if (ret == 0 && c->vcc_aux) {
+> +                       ret = regulator_enable(c->vcc_aux);
+> +                       if (ret < 0)
+> +                               ret = mmc_regulator_set_ocr(c->vcc, 0);
+> +               }
+>         } else {
+> -               ret = twl_mmc_set_voltage(c, 0);
+> +               if (c->vcc_aux)
+> +                       ret = regulator_enable(c->vcc_aux);
+
+Sorry for slow reply.  Shouldn't that be regulator_disable() ?
+
+> +               if (ret == 0)
+> +                       ret = mmc_regulator_set_ocr(c->vcc, 0);
+>         }
+> 
+>         return ret;
+>  }
+> 
+
+snip
