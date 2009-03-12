@@ -1,7 +1,7 @@
 From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: [PATCH 30/86] [ARM] omap: i2c: remove armxor_ck
-Date: Thu, 12 Mar 2009 11:27:40 -0700
-Message-ID: <1236882516-29403-31-git-send-email-khilman@deeprootsystems.com>
+Subject: [PATCH 21/86] [ARM] omap: remove pre-CLKDEV clk_get/clk_put
+Date: Thu, 12 Mar 2009 11:27:31 -0700
+Message-ID: <1236882516-29403-22-git-send-email-khilman@deeprootsystems.com>
 References: <1236882516-29403-1-git-send-email-khilman@deeprootsystems.com>
  <1236882516-29403-2-git-send-email-khilman@deeprootsystems.com>
  <1236882516-29403-3-git-send-email-khilman@deeprootsystems.com>
@@ -23,65 +23,89 @@ References: <1236882516-29403-1-git-send-email-khilman@deeprootsystems.com>
  <1236882516-29403-19-git-send-email-khilman@deeprootsystems.com>
  <1236882516-29403-20-git-send-email-khilman@deeprootsystems.com>
  <1236882516-29403-21-git-send-email-khilman@deeprootsystems.com>
- <1236882516-29403-22-git-send-email-khilman@deeprootsystems.com>
- <1236882516-29403-23-git-send-email-khilman@deeprootsystems.com>
- <1236882516-29403-24-git-send-email-khilman@deeprootsystems.com>
- <1236882516-29403-25-git-send-email-khilman@deeprootsystems.com>
- <1236882516-29403-26-git-send-email-khilman@deeprootsystems.com>
- <1236882516-29403-27-git-send-email-khilman@deeprootsystems.com>
- <1236882516-29403-28-git-send-email-khilman@deeprootsystems.com>
- <1236882516-29403-29-git-send-email-khilman@deeprootsystems.com>
- <1236882516-29403-30-git-send-email-khilman@deeprootsystems.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ag-out-0708.google.com ([72.14.246.250]:55744 "EHLO
-	ag-out-0708.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756517AbZCLSbF (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 12 Mar 2009 14:31:05 -0400
-Received: by ag-out-0708.google.com with SMTP id 26so1107479agb.10
-        for <linux-omap@vger.kernel.org>; Thu, 12 Mar 2009 11:31:03 -0700 (PDT)
-In-Reply-To: <1236882516-29403-30-git-send-email-khilman@deeprootsystems.com>
+Received: from mail-gx0-f163.google.com ([209.85.217.163]:60567 "EHLO
+	mail-gx0-f163.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756227AbZCLSag (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 12 Mar 2009 14:30:36 -0400
+Received: by mail-gx0-f163.google.com with SMTP id 7so458514gxk.13
+        for <linux-omap@vger.kernel.org>; Thu, 12 Mar 2009 11:30:34 -0700 (PDT)
+In-Reply-To: <1236882516-29403-21-git-send-email-khilman@deeprootsystems.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 
 From: Russell King <rmk@dyn-67.arm.linux.org.uk>
 
-On OMAP1, the I2C functional clock (fck) is the armxor_ck, so there's
-no need to get "armxor_ck" separately.
-
 Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
 ---
- drivers/i2c/busses/i2c-omap.c |   17 ++++++++---------
- 1 files changed, 8 insertions(+), 9 deletions(-)
+ arch/arm/plat-omap/clock.c |   46 --------------------------------------------
+ 1 files changed, 0 insertions(+), 46 deletions(-)
 
-diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
-index 19f86e1..96814fb 100644
---- a/drivers/i2c/busses/i2c-omap.c
-+++ b/drivers/i2c/busses/i2c-omap.c
-@@ -312,15 +312,14 @@ static int omap_i2c_init(struct omap_i2c_dev *dev)
- 	omap_i2c_write_reg(dev, OMAP_I2C_CON_REG, 0);
+diff --git a/arch/arm/plat-omap/clock.c b/arch/arm/plat-omap/clock.c
+index 6b88f78..5272a22 100644
+--- a/arch/arm/plat-omap/clock.c
++++ b/arch/arm/plat-omap/clock.c
+@@ -36,45 +36,6 @@ static struct clk_functions *arch_clock;
+  * Standard clock functions defined in include/linux/clk.h
+  *-------------------------------------------------------------------------*/
  
- 	if (cpu_class_is_omap1()) {
--		struct clk *armxor_ck;
+-#ifndef CONFIG_COMMON_CLKDEV
+-/*
+- * Returns a clock. Note that we first try to use device id on the bus
+- * and clock name. If this fails, we try to use clock name only.
+- */
+-struct clk * clk_get(struct device *dev, const char *id)
+-{
+-	struct clk *p, *clk = ERR_PTR(-ENOENT);
+-	int idno;
 -
--		armxor_ck = clk_get(NULL, "armxor_ck");
--		if (IS_ERR(armxor_ck))
--			dev_warn(dev->dev, "Could not get armxor_ck\n");
--		else {
--			fclk_rate = clk_get_rate(armxor_ck);
--			clk_put(armxor_ck);
+-	if (dev == NULL || dev->bus != &platform_bus_type)
+-		idno = -1;
+-	else
+-		idno = to_platform_device(dev)->id;
+-
+-	mutex_lock(&clocks_mutex);
+-
+-	list_for_each_entry(p, &clocks, node) {
+-		if (p->id == idno && strcmp(id, p->name) == 0) {
+-			clk = p;
+-			goto found;
 -		}
-+		/*
-+		 * The I2C functional clock is the armxor_ck, so there's
-+		 * no need to get "armxor_ck" separately.  Now, if OMAP2420
-+		 * always returns 12MHz for the functional clock, we can
-+		 * do this bit unconditionally.
-+		 */
-+		fclk_rate = clk_get_rate(dev->fclk);
-+
- 		/* TRM for 5912 says the I2C clock must be prescaled to be
- 		 * between 7 - 12 MHz. The XOR input clock is typically
- 		 * 12, 13 or 19.2 MHz. So we should have code that produces:
+-	}
+-
+-	list_for_each_entry(p, &clocks, node) {
+-		if (strcmp(id, p->name) == 0) {
+-			clk = p;
+-			break;
+-		}
+-	}
+-
+-found:
+-	mutex_unlock(&clocks_mutex);
+-
+-	return clk;
+-}
+-EXPORT_SYMBOL(clk_get);
+-#endif
+-
+ int clk_enable(struct clk *clk)
+ {
+ 	unsigned long flags;
+@@ -147,13 +108,6 @@ unsigned long clk_get_rate(struct clk *clk)
+ }
+ EXPORT_SYMBOL(clk_get_rate);
+ 
+-#ifndef CONFIG_COMMON_CLKDEV
+-void clk_put(struct clk *clk)
+-{
+-}
+-EXPORT_SYMBOL(clk_put);
+-#endif
+-
+ /*-------------------------------------------------------------------------
+  * Optional clock functions defined in include/linux/clk.h
+  *-------------------------------------------------------------------------*/
 -- 
 1.6.1.2
 
