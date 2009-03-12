@@ -1,59 +1,72 @@
 From: Adrian Hunter <adrian.hunter@nokia.com>
-Subject: [PATCH 7/10] OMAP: HSMMC: Disable SDBP at suspend
-Date: Thu, 12 Mar 2009 18:23:39 +0200
-Message-ID: <20090312162339.19421.84592.sendpatchset@ahunter-laptop>
+Subject: [PATCH 10/10] OMAP: HSMMC: Wait for SDBP
+Date: Thu, 12 Mar 2009 18:24:00 +0200
+Message-ID: <20090312162400.19421.13764.sendpatchset@ahunter-laptop>
 References: <20090312162252.19421.34019.sendpatchset@ahunter-laptop>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:17390 "EHLO
-	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757528AbZCLQYB (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 12 Mar 2009 12:24:01 -0400
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1758024AbZCLQ1G@vger.kernel.org>
 In-Reply-To: <20090312162252.19421.34019.sendpatchset@ahunter-laptop>
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: Pierre Ossman <drzeus-mmc@drzeus.cx>
 Cc: Jarkko Lavinen <jarkko.lavinen@nokia.com>, Adrian Hunter <adrian.hunter@nokia.com>, Grazvydas Ignotas <notasas@gmail.com>, David Brownell <david-b@pacbell.net>, linux-omap Mailing List <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, lkml <linux-kernel@vger.kernel.org>
+List-Id: linux-omap@vger.kernel.org
 
->From 999afd472603ec1d572c34525e01d5215304addb Mon Sep 17 00:00:00 2001
-From: Jarkko Lavinen <jarkko.lavinen@nokia.com>
-Date: Thu, 12 Mar 2009 15:30:58 +0200
-Subject: [PATCH] OMAP: HSMMC: Disable SDBP at suspend
+>From e543f7849ab668fa0cbabc048e37e090e7b6f167 Mon Sep 17 00:00:00 2001
+From: Adrian Hunter <adrian.hunter@nokia.com>
+Date: Thu, 12 Mar 2009 17:08:26 +0200
+Subject: [PATCH] OMAP: HSMMC: Wait for SDBP
 
-Turn off the bus power at suspend.
+It is necessary to wait for bus power before sending
+any commands.
 
-Signed-off-by: Jarkko Lavinen <jarkko.lavinen@nokia.com>
 Signed-off-by: Adrian Hunter <adrian.hunter@nokia.com>
 ---
- drivers/mmc/host/omap_hsmmc.c |   16 ++--------------
- 1 files changed, 2 insertions(+), 14 deletions(-)
+ drivers/mmc/host/omap_hsmmc.c |   20 +++++++++++++++-----
+ 1 files changed, 15 insertions(+), 5 deletions(-)
 
 diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
-index 7a9ca4f..2832651 100644
+index 91381f4..2f444c8 100644
 --- a/drivers/mmc/host/omap_hsmmc.c
 +++ b/drivers/mmc/host/omap_hsmmc.c
-@@ -1214,20 +1214,8 @@ static int omap_mmc_suspend(struct platform_device *pdev, pm_message_t state)
- 						" level suspend\n");
- 			}
+@@ -546,6 +546,19 @@ static irqreturn_t mmc_omap_irq(int irq, void *dev_id)
+ 	return IRQ_HANDLED;
+ }
  
--			if (host->id == OMAP_MMC1_DEVID
--					&& !(OMAP_HSMMC_READ(host->base, HCTL)
--							& SDVSDET)) {
--				OMAP_HSMMC_WRITE(host->base, HCTL,
--					OMAP_HSMMC_READ(host->base, HCTL)
--					& SDVSCLR);
--				OMAP_HSMMC_WRITE(host->base, HCTL,
--					OMAP_HSMMC_READ(host->base, HCTL)
--					| SDVS30);
--				OMAP_HSMMC_WRITE(host->base, HCTL,
--					OMAP_HSMMC_READ(host->base, HCTL)
--					| SDBP);
--			}
++static void set_sd_bus_power(struct mmc_omap_host *host)
++{
++	unsigned long i;
++
++	OMAP_HSMMC_WRITE(host->base, HCTL,
++			 OMAP_HSMMC_READ(host->base, HCTL) | SDBP);
++	for (i = 0; i < loops_per_jiffy; i++) {
++		if (OMAP_HSMMC_READ(host->base, HCTL) & SDBP)
++			break;
++		cpu_relax();
++	}
++}
++
+ /*
+  * Switch MMC interface voltage ... only relevant for MMC1.
+  *
+@@ -602,9 +615,7 @@ static int omap_mmc_switch_opcond(struct mmc_omap_host *host, int vdd)
+ 		reg_val |= SDVS30;
+ 
+ 	OMAP_HSMMC_WRITE(host->base, HCTL, reg_val);
 -
-+			OMAP_HSMMC_WRITE(host->base, HCTL,
-+					 OMAP_HSMMC_READ(host->base, HCTL) & ~SDBP);
- 			clk_disable(host->fclk);
- 			clk_disable(host->iclk);
- 			clk_disable(host->dbclk);
+-	OMAP_HSMMC_WRITE(host->base, HCTL,
+-		OMAP_HSMMC_READ(host->base, HCTL) | SDBP);
++	set_sd_bus_power(host);
+ 
+ 	return 0;
+ err:
+@@ -997,8 +1008,7 @@ static void omap_hsmmc_init(struct mmc_omap_host *host)
+ 	OMAP_HSMMC_WRITE(host->base, SYSCONFIG, value | AUTOIDLE);
+ 
+ 	/* Set SD bus power bit */
+-	value = OMAP_HSMMC_READ(host->base, HCTL);
+-	OMAP_HSMMC_WRITE(host->base, HCTL, value | SDBP);
++	set_sd_bus_power(host);
+ }
+ 
+ static struct mmc_host_ops mmc_omap_ops = {
 -- 
 1.5.6.3
-
