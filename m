@@ -1,7 +1,7 @@
 From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: [PATCH 52/86] [ARM] OMAP2/3 clockdomains: autodeps should respect platform flags
-Date: Thu, 12 Mar 2009 11:28:02 -0700
-Message-ID: <1236882516-29403-53-git-send-email-khilman@deeprootsystems.com>
+Subject: [PATCH 47/86] [ARM] OMAP2/3 clockdomains: add CM and PRM clkdms
+Date: Thu, 12 Mar 2009 11:27:57 -0700
+Message-ID: <1236882516-29403-48-git-send-email-khilman@deeprootsystems.com>
 References: <1236882516-29403-1-git-send-email-khilman@deeprootsystems.com>
  <1236882516-29403-2-git-send-email-khilman@deeprootsystems.com>
  <1236882516-29403-3-git-send-email-khilman@deeprootsystems.com>
@@ -49,61 +49,91 @@ References: <1236882516-29403-1-git-send-email-khilman@deeprootsystems.com>
  <1236882516-29403-45-git-send-email-khilman@deeprootsystems.com>
  <1236882516-29403-46-git-send-email-khilman@deeprootsystems.com>
  <1236882516-29403-47-git-send-email-khilman@deeprootsystems.com>
- <1236882516-29403-48-git-send-email-khilman@deeprootsystems.com>
- <1236882516-29403-49-git-send-email-khilman@deeprootsystems.com>
- <1236882516-29403-50-git-send-email-khilman@deeprootsystems.com>
- <1236882516-29403-51-git-send-email-khilman@deeprootsystems.com>
- <1236882516-29403-52-git-send-email-khilman@deeprootsystems.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ag-out-0708.google.com ([72.14.246.250]:55744 "EHLO
-	ag-out-0708.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757079AbZCLSc1 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 12 Mar 2009 14:32:27 -0400
-Received: by ag-out-0708.google.com with SMTP id 26so1107479agb.10
-        for <linux-omap@vger.kernel.org>; Thu, 12 Mar 2009 11:32:25 -0700 (PDT)
-In-Reply-To: <1236882516-29403-52-git-send-email-khilman@deeprootsystems.com>
+Received: from mail-qy0-f122.google.com ([209.85.221.122]:33493 "EHLO
+	mail-qy0-f122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756805AbZCLScI (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 12 Mar 2009 14:32:08 -0400
+Received: by mail-qy0-f122.google.com with SMTP id 28so2233977qyk.33
+        for <linux-omap@vger.kernel.org>; Thu, 12 Mar 2009 11:32:07 -0700 (PDT)
+In-Reply-To: <1236882516-29403-47-git-send-email-khilman@deeprootsystems.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 
 From: Paul Walmsley <paul@pwsan.com>
 
-Fix the clockdomain autodep code to respect omap_chip platform flags.
-
-Resolves "Unable to handle kernel paging request at virtual address
-5f75706d" panic during power management initialization on OMAP2.
+Add clockdomains for the CM and PRM.  These will ultimately replace the
+"wkup_clkdm", which appears to not actually exist on the hardware.
 
 Signed-off-by: Paul Walmsley <paul@pwsan.com>
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
 ---
- arch/arm/mach-omap2/clockdomain.c |    6 ++++++
- 1 files changed, 6 insertions(+), 0 deletions(-)
+ arch/arm/mach-omap2/clockdomains.h            |   19 +++++++++++++++++++
+ arch/arm/plat-omap/include/mach/powerdomain.h |    4 ++--
+ 2 files changed, 21 insertions(+), 2 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/clockdomain.c b/arch/arm/mach-omap2/clockdomain.c
-index c9c367c..ae0c53a 100644
---- a/arch/arm/mach-omap2/clockdomain.c
-+++ b/arch/arm/mach-omap2/clockdomain.c
-@@ -100,6 +100,9 @@ static void _clkdm_add_autodeps(struct clockdomain *clkdm)
- 		if (IS_ERR(autodep->pwrdm.ptr))
- 			continue;
+diff --git a/arch/arm/mach-omap2/clockdomains.h b/arch/arm/mach-omap2/clockdomains.h
+index e17c369..ec5a720 100644
+--- a/arch/arm/mach-omap2/clockdomains.h
++++ b/arch/arm/mach-omap2/clockdomains.h
+@@ -14,6 +14,11 @@
  
-+		if (!omap_chip_is(autodep->omap_chip))
-+			continue;
-+
- 		pr_debug("clockdomain: adding %s sleepdep/wkdep for "
- 			 "pwrdm %s\n", autodep->pwrdm.ptr->name,
- 			 clkdm->pwrdm.ptr->name);
-@@ -125,6 +128,9 @@ static void _clkdm_del_autodeps(struct clockdomain *clkdm)
- 		if (IS_ERR(autodep->pwrdm.ptr))
- 			continue;
+ /*
+  * OMAP2/3-common clockdomains
++ *
++ * Even though the 2420 has a single PRCM module from the
++ * interconnect's perspective, internally it does appear to have
++ * separate PRM and CM clockdomains.  The usual test case is
++ * sys_clkout/sys_clkout2.
+  */
  
-+		if (!omap_chip_is(autodep->omap_chip))
-+			continue;
+ /* This is an implicit clockdomain - it is never defined as such in TRM */
+@@ -23,6 +28,18 @@ static struct clockdomain wkup_clkdm = {
+ 	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP24XX | CHIP_IS_OMAP3430),
+ };
+ 
++static struct clockdomain prm_clkdm = {
++	.name		= "prm_clkdm",
++	.pwrdm		= { .name = "wkup_pwrdm" },
++	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP24XX | CHIP_IS_OMAP3430),
++};
 +
- 		pr_debug("clockdomain: removing %s sleepdep/wkdep for "
- 			 "pwrdm %s\n", autodep->pwrdm.ptr->name,
- 			 clkdm->pwrdm.ptr->name);
++static struct clockdomain cm_clkdm = {
++	.name		= "cm_clkdm",
++	.pwrdm		= { .name = "core_pwrdm" },
++	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP24XX | CHIP_IS_OMAP3430),
++};
++
+ /*
+  * 2420-only clockdomains
+  */
+@@ -266,6 +283,8 @@ static struct clkdm_pwrdm_autodep clkdm_pwrdm_autodeps[] = {
+ static struct clockdomain *clockdomains_omap[] = {
+ 
+ 	&wkup_clkdm,
++	&cm_clkdm,
++	&prm_clkdm,
+ 
+ #ifdef CONFIG_ARCH_OMAP2420
+ 	&mpu_2420_clkdm,
+diff --git a/arch/arm/plat-omap/include/mach/powerdomain.h b/arch/arm/plat-omap/include/mach/powerdomain.h
+index 4948cb7..69c9e67 100644
+--- a/arch/arm/plat-omap/include/mach/powerdomain.h
++++ b/arch/arm/plat-omap/include/mach/powerdomain.h
+@@ -50,9 +50,9 @@
+ 
+ /*
+  * Maximum number of clockdomains that can be associated with a powerdomain.
+- * CORE powerdomain is probably the worst case.
++ * CORE powerdomain on OMAP3 is the worst case
+  */
+-#define PWRDM_MAX_CLKDMS	3
++#define PWRDM_MAX_CLKDMS	4
+ 
+ /* XXX A completely arbitrary number. What is reasonable here? */
+ #define PWRDM_TRANSITION_BAILOUT 100000
 -- 
 1.6.1.2
 
