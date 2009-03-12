@@ -1,7 +1,7 @@
 From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: [PATCH 62/86] [ARM] OMAP34XX: Add miscellaneous definitions related to 34xx
-Date: Thu, 12 Mar 2009 11:28:12 -0700
-Message-ID: <1236882516-29403-63-git-send-email-khilman@deeprootsystems.com>
+Subject: [PATCH 79/86] [ARM] omap: fix clockdomain enable/disable ordering
+Date: Thu, 12 Mar 2009 11:28:29 -0700
+Message-ID: <1236882516-29403-80-git-send-email-khilman@deeprootsystems.com>
 References: <1236882516-29403-1-git-send-email-khilman@deeprootsystems.com>
  <1236882516-29403-2-git-send-email-khilman@deeprootsystems.com>
  <1236882516-29403-3-git-send-email-khilman@deeprootsystems.com>
@@ -64,130 +64,88 @@ References: <1236882516-29403-1-git-send-email-khilman@deeprootsystems.com>
  <1236882516-29403-60-git-send-email-khilman@deeprootsystems.com>
  <1236882516-29403-61-git-send-email-khilman@deeprootsystems.com>
  <1236882516-29403-62-git-send-email-khilman@deeprootsystems.com>
+ <1236882516-29403-63-git-send-email-khilman@deeprootsystems.com>
+ <1236882516-29403-64-git-send-email-khilman@deeprootsystems.com>
+ <1236882516-29403-65-git-send-email-khilman@deeprootsystems.com>
+ <1236882516-29403-66-git-send-email-khilman@deeprootsystems.com>
+ <1236882516-29403-67-git-send-email-khilman@deeprootsystems.com>
+ <1236882516-29403-68-git-send-email-khilman@deeprootsystems.com>
+ <1236882516-29403-69-git-send-email-khilman@deeprootsystems.com>
+ <1236882516-29403-70-git-send-email-khilman@deeprootsystems.com>
+ <1236882516-29403-71-git-send-email-khilman@deeprootsystems.com>
+ <1236882516-29403-72-git-send-email-khilman@deeprootsystems.com>
+ <1236882516-29403-73-git-send-email-khilman@deeprootsystems.com>
+ <1236882516-29403-74-git-send-email-khilman@deeprootsystems.com>
+ <1236882516-29403-75-git-send-email-khilman@deeprootsystems.com>
+ <1236882516-29403-76-git-send-email-khilman@deeprootsystems.com>
+ <1236882516-29403-77-git-send-email-khilman@deeprootsystems.com>
+ <1236882516-29403-78-git-send-email-khilman@deeprootsystems.com>
+ <1236882516-29403-79-git-send-email-khilman@deeprootsystems.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
 Received: from ag-out-0708.google.com ([72.14.246.250]:55744 "EHLO
 	ag-out-0708.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756904AbZCLSdF (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 12 Mar 2009 14:33:05 -0400
+	with ESMTP id S1757224AbZCLSeU (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 12 Mar 2009 14:34:20 -0400
 Received: by ag-out-0708.google.com with SMTP id 26so1107479agb.10
-        for <linux-omap@vger.kernel.org>; Thu, 12 Mar 2009 11:33:03 -0700 (PDT)
-In-Reply-To: <1236882516-29403-62-git-send-email-khilman@deeprootsystems.com>
+        for <linux-omap@vger.kernel.org>; Thu, 12 Mar 2009 11:34:19 -0700 (PDT)
+In-Reply-To: <1236882516-29403-79-git-send-email-khilman@deeprootsystems.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 
-From: Jouni Hogander <jouni.hogander@nokia.com>
+From: Russell King <rmk@dyn-67.arm.linux.org.uk>
 
-Signed-off-by: Jouni Hogander <jouni.hogander@nokia.com>
-Signed-off-by: Tony Lindgren <tony@atomide.com>
+Based on a patch from Paul Walmsley <paul@pwsan.com>:
+
+ omap2_clk_enable() should enable a clock's clockdomain before
+ attempting to enable its parent clock's clockdomain.  Similarly, in
+ the unlikely event that the parent clock enable fails, the clockdomain
+ should be disabled.
+
+ linux-omap source commit is 6d6e285e5a7912b1ea68fadac387304c914aaba8.
+
 Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
 ---
- arch/arm/mach-omap2/cm-regbits-34xx.h  |    7 +++++++
- arch/arm/mach-omap2/prm-regbits-34xx.h |    9 +++++++++
- arch/arm/mach-omap2/prm.h              |   24 +++++++++++++-----------
- 3 files changed, 29 insertions(+), 11 deletions(-)
+ arch/arm/mach-omap2/clock.c |   11 +++++------
+ 1 files changed, 5 insertions(+), 6 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/cm-regbits-34xx.h b/arch/arm/mach-omap2/cm-regbits-34xx.h
-index aaf68a5..844356c 100644
---- a/arch/arm/mach-omap2/cm-regbits-34xx.h
-+++ b/arch/arm/mach-omap2/cm-regbits-34xx.h
-@@ -208,6 +208,10 @@
- #define OMAP3430ES2_ST_USBTLL_MASK			(1 << 2)
+diff --git a/arch/arm/mach-omap2/clock.c b/arch/arm/mach-omap2/clock.c
+index 222c2c0..1b40d75 100644
+--- a/arch/arm/mach-omap2/clock.c
++++ b/arch/arm/mach-omap2/clock.c
+@@ -419,20 +419,17 @@ int omap2_clk_enable(struct clk *clk)
+ 	int ret = 0;
  
- /* CM_AUTOIDLE1_CORE */
-+#define OMAP3430ES2_AUTO_MMC3				(1 << 30)
-+#define OMAP3430ES2_AUTO_MMC3_SHIFT			30
-+#define OMAP3430ES2_AUTO_ICR				(1 << 29)
-+#define OMAP3430ES2_AUTO_ICR_SHIFT			29
- #define OMAP3430_AUTO_AES2				(1 << 28)
- #define OMAP3430_AUTO_AES2_SHIFT			28
- #define OMAP3430_AUTO_SHA12				(1 << 27)
-@@ -276,6 +280,9 @@
- #define OMAP3430_AUTO_DES1_SHIFT			0
- 
- /* CM_AUTOIDLE3_CORE */
-+#define	OMAP3430ES2_AUTO_USBHOST			(1 << 0)
-+#define	OMAP3430ES2_AUTO_USBHOST_SHIFT			0
-+#define	OMAP3430ES2_AUTO_USBTLL				(1 << 2)
- #define OMAP3430ES2_AUTO_USBTLL_SHIFT			2
- #define OMAP3430ES2_AUTO_USBTLL_MASK			(1 << 2)
- 
-diff --git a/arch/arm/mach-omap2/prm-regbits-34xx.h b/arch/arm/mach-omap2/prm-regbits-34xx.h
-index 5b5ecfe..c6a7940 100644
---- a/arch/arm/mach-omap2/prm-regbits-34xx.h
-+++ b/arch/arm/mach-omap2/prm-regbits-34xx.h
-@@ -366,6 +366,7 @@
- 
- /* PM_WKEN_WKUP specific bits */
- #define OMAP3430_EN_IO					(1 << 8)
-+#define OMAP3430_EN_GPIO1				(1 << 3)
- 
- /* PM_MPUGRPSEL_WKUP specific bits */
- 
-@@ -452,6 +453,14 @@
- #define OMAP3430_CMDRA0_MASK				(0xff << 0)
- 
- /* PRM_VC_CMD_VAL_0 specific bits */
-+#define OMAP3430_VC_CMD_ON_SHIFT			24
-+#define OMAP3430_VC_CMD_ON_MASK				(0xFF << 24)
-+#define OMAP3430_VC_CMD_ONLP_SHIFT			16
-+#define OMAP3430_VC_CMD_ONLP_MASK			(0xFF << 16)
-+#define OMAP3430_VC_CMD_RET_SHIFT			8
-+#define OMAP3430_VC_CMD_RET_MASK			(0xFF << 8)
-+#define OMAP3430_VC_CMD_OFF_SHIFT			0
-+#define OMAP3430_VC_CMD_OFF_MASK			(0xFF << 0)
- 
- /* PRM_VC_CMD_VAL_1 specific bits */
- 
-diff --git a/arch/arm/mach-omap2/prm.h b/arch/arm/mach-omap2/prm.h
-index e4dc4b1..826d326 100644
---- a/arch/arm/mach-omap2/prm.h
-+++ b/arch/arm/mach-omap2/prm.h
-@@ -141,6 +141,19 @@
- #define PM_PWSTCTRL					0x00e0
- #define PM_PWSTST					0x00e4
- 
-+/* Omap2 specific registers */
-+#define OMAP24XX_PM_WKEN2				0x00a4
-+#define OMAP24XX_PM_WKST2				0x00b4
+ 	if (clk->usecount++ == 0) {
++		if (clk->clkdm)
++			omap2_clkdm_clk_enable(clk->clkdm, clk);
 +
-+#define OMAP24XX_PRCM_IRQSTATUS_DSP			0x00f0	/* IVA mod */
-+#define OMAP24XX_PRCM_IRQENABLE_DSP			0x00f4	/* IVA mod */
-+#define OMAP24XX_PRCM_IRQSTATUS_IVA			0x00f8
-+#define OMAP24XX_PRCM_IRQENABLE_IVA			0x00fc
-+
-+/* Omap3 specific registers */
-+#define OMAP3430ES2_PM_WKEN3				0x00f0
-+#define OMAP3430ES2_PM_WKST3				0x00b8
-+
- #define OMAP3430_PM_MPUGRPSEL				0x00a4
- #define OMAP3430_PM_MPUGRPSEL1				OMAP3430_PM_MPUGRPSEL
+ 		if (clk->parent) {
+ 			ret = omap2_clk_enable(clk->parent);
+ 			if (ret)
+ 				goto err;
+ 		}
  
-@@ -153,16 +166,6 @@
- #define OMAP3430_PRM_IRQENABLE_IVA2			0x00fc
- 
- 
--/* Architecture-specific registers */
+-		if (clk->clkdm)
+-			omap2_clkdm_clk_enable(clk->clkdm, clk);
 -
--#define OMAP24XX_PM_WKEN2				0x00a4
--#define OMAP24XX_PM_WKST2				0x00b4
+ 		ret = _omap2_clk_enable(clk);
+ 		if (ret) {
+-			if (clk->clkdm)
+-				omap2_clkdm_clk_disable(clk->clkdm, clk);
 -
--#define OMAP24XX_PRCM_IRQSTATUS_DSP			0x00f0	/* IVA mod */
--#define OMAP24XX_PRCM_IRQENABLE_DSP			0x00f4	/* IVA mod */
--#define OMAP24XX_PRCM_IRQSTATUS_IVA			0x00f8
--#define OMAP24XX_PRCM_IRQENABLE_IVA			0x00fc
--
- #ifndef __ASSEMBLER__
+ 			if (clk->parent)
+ 				omap2_clk_disable(clk->parent);
  
- /* Power/reset management domain register get/set */
-@@ -228,7 +231,6 @@ static inline u32 prm_clear_mod_reg_bits(u32 bits, s16 module, s16 idx)
- #define OMAP_RSTTIME1_SHIFT				0
- #define OMAP_RSTTIME1_MASK				(0xff << 0)
+@@ -442,6 +439,8 @@ int omap2_clk_enable(struct clk *clk)
+ 	return ret;
  
--
- /* PRM_RSTCTRL */
- /* Named RM_RSTCTRL_WKUP on the 24xx */
- /* 2420 calls RST_DPLL3 'RST_DPLL' */
+ err:
++	if (clk->clkdm)
++		omap2_clkdm_clk_disable(clk->clkdm, clk);
+ 	clk->usecount--;
+ 	return ret;
+ }
 -- 
 1.6.1.2
 
