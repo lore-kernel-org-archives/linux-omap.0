@@ -1,7 +1,7 @@
 From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: [PATCH 58/86] [ARM] OMAP3 clock: optimize DPLL rate rounding algorithm
-Date: Thu, 12 Mar 2009 11:28:08 -0700
-Message-ID: <1236882516-29403-59-git-send-email-khilman@deeprootsystems.com>
+Subject: [PATCH 60/86] [ARM] OMAP3 clock: disable DPLL autoidle while waiting for DPLL to lock
+Date: Thu, 12 Mar 2009 11:28:10 -0700
+Message-ID: <1236882516-29403-61-git-send-email-khilman@deeprootsystems.com>
 References: <1236882516-29403-1-git-send-email-khilman@deeprootsystems.com>
  <1236882516-29403-2-git-send-email-khilman@deeprootsystems.com>
  <1236882516-29403-3-git-send-email-khilman@deeprootsystems.com>
@@ -60,130 +60,73 @@ References: <1236882516-29403-1-git-send-email-khilman@deeprootsystems.com>
  <1236882516-29403-56-git-send-email-khilman@deeprootsystems.com>
  <1236882516-29403-57-git-send-email-khilman@deeprootsystems.com>
  <1236882516-29403-58-git-send-email-khilman@deeprootsystems.com>
+ <1236882516-29403-59-git-send-email-khilman@deeprootsystems.com>
+ <1236882516-29403-60-git-send-email-khilman@deeprootsystems.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-gx0-f163.google.com ([209.85.217.163]:60567 "EHLO
-	mail-gx0-f163.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757255AbZCLScs (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 12 Mar 2009 14:32:48 -0400
-Received: by mail-gx0-f163.google.com with SMTP id 7so458514gxk.13
-        for <linux-omap@vger.kernel.org>; Thu, 12 Mar 2009 11:32:46 -0700 (PDT)
-In-Reply-To: <1236882516-29403-58-git-send-email-khilman@deeprootsystems.com>
+Received: from ag-out-0708.google.com ([72.14.246.250]:55744 "EHLO
+	ag-out-0708.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753497AbZCLSc4 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 12 Mar 2009 14:32:56 -0400
+Received: by ag-out-0708.google.com with SMTP id 26so1107479agb.10
+        for <linux-omap@vger.kernel.org>; Thu, 12 Mar 2009 11:32:55 -0700 (PDT)
+In-Reply-To: <1236882516-29403-60-git-send-email-khilman@deeprootsystems.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 
 From: Paul Walmsley <paul@pwsan.com>
 
-The previous DPLL rate rounding algorithm counted the divider (N) down
-from the maximum to 1.  Since we currently use a broad DPLL rate
-tolerance, and lower N values are more power-efficient, we can often
-bypass several iterations through the loop by counting N upwards from
-1.
+During _omap3_noncore_dpll_lock(), if a DPLL has no active downstream
+clocks and DPLL autoidle is enabled, the DPLL may never lock, since it
+will enter autoidle immediately.  To resolve this, disable DPLL
+autoidle while locking the DPLL, and unconditionally wait for the DPLL
+to lock.  This fixes some bugs where the kernel would hang when returning
+from retention or return the wrong rate for the DPLL.
 
-Peter de Schrijver <peter.de-schrijver@nokia.com> put up with several
-test cycles of this patch - thanks Peter.
+This patch is a collaboration with Peter de Schrijver
+<peter.de-schrijver@nokia.com> and Kevin Hilman
+<khilman@deeprootsystems.com>.
 
-linux-omap source commit is 6f6d82bb2f80fa20a841ac3e95a6f44a5a156188.
+linux-omap source commit is 3b7de4be879f1f4f55ae59882a5cbd80f6dcf0f0.
 
 Signed-off-by: Paul Walmsley <paul@pwsan.com>
 Cc: Peter de Schrijver <peter.de-schrijver@nokia.com>
+Cc: Kevin Hilman <khilman@deeprootsystems.com>
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
 ---
- arch/arm/mach-omap2/clock.c |   35 ++++++++++++++++++-----------------
- 1 files changed, 18 insertions(+), 17 deletions(-)
+ arch/arm/mach-omap2/clock34xx.c |   15 +++++----------
+ 1 files changed, 5 insertions(+), 10 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/clock.c b/arch/arm/mach-omap2/clock.c
-index 2f0eaaa..76e20bc 100644
---- a/arch/arm/mach-omap2/clock.c
-+++ b/arch/arm/mach-omap2/clock.c
-@@ -45,7 +45,7 @@
- #define DPLL_MIN_DIVIDER		1
+diff --git a/arch/arm/mach-omap2/clock34xx.c b/arch/arm/mach-omap2/clock34xx.c
+index aad77e0..3d756ba 100644
+--- a/arch/arm/mach-omap2/clock34xx.c
++++ b/arch/arm/mach-omap2/clock34xx.c
+@@ -398,19 +398,14 @@ static int _omap3_noncore_dpll_lock(struct clk *clk)
  
- /* Possible error results from _dpll_test_mult */
--#define DPLL_MULT_UNDERFLOW		(1 << 0)
-+#define DPLL_MULT_UNDERFLOW		-1
+ 	ai = omap3_dpll_autoidle_read(clk);
  
- /*
-  * Scale factor to mitigate roundoff errors in DPLL rate rounding.
-@@ -826,7 +826,7 @@ static int _dpll_test_mult(int *m, int n, unsigned long *new_rate,
- 			   unsigned long target_rate,
- 			   unsigned long parent_rate)
- {
--	int flags = 0, carry = 0;
-+	int r = 0, carry = 0;
- 
- 	/* Unscale m and round if necessary */
- 	if (*m % DPLL_SCALE_FACTOR >= DPLL_ROUNDING_VAL)
-@@ -847,13 +847,13 @@ static int _dpll_test_mult(int *m, int n, unsigned long *new_rate,
- 	if (*m < DPLL_MIN_MULTIPLIER) {
- 		*m = DPLL_MIN_MULTIPLIER;
- 		*new_rate = 0;
--		flags = DPLL_MULT_UNDERFLOW;
-+		r = DPLL_MULT_UNDERFLOW;
- 	}
- 
- 	if (*new_rate == 0)
- 		*new_rate = _dpll_compute_new_rate(parent_rate, *m, n);
- 
--	return flags;
-+	return r;
- }
- 
- /**
-@@ -892,21 +892,27 @@ long omap2_dpll_round_rate(struct clk *clk, unsigned long target_rate)
- 
- 	dd->last_rounded_rate = 0;
- 
--	for (n = dd->max_divider; n >= DPLL_MIN_DIVIDER; n--) {
-+	for (n = DPLL_MIN_DIVIDER; n <= dd->max_divider; n++) {
- 
- 		/* Compute the scaled DPLL multiplier, based on the divider */
- 		m = scaled_rt_rp * n;
- 
- 		/*
--		 * Since we're counting n down, a m overflow means we can
--		 * can immediately skip to the next n
-+		 * Since we're counting n up, a m overflow means we
-+		 * can bail out completely (since as n increases in
-+		 * the next iteration, there's no way that m can
-+		 * increase beyond the current m)
- 		 */
- 		if (m > scaled_max_m)
--			continue;
-+			break;
- 
- 		r = _dpll_test_mult(&m, n, &new_rate, target_rate,
- 				    clk->parent->rate);
- 
-+		/* m can't be set low enough for this n - try with a larger n */
-+		if (r == DPLL_MULT_UNDERFLOW)
-+			continue;
++	omap3_dpll_deny_idle(clk);
 +
- 		e = target_rate - new_rate;
- 		pr_debug("clock: n = %d: m = %d: rate error is %d "
- 			 "(new_rate = %ld)\n", n, m, e, new_rate);
-@@ -918,16 +924,11 @@ long omap2_dpll_round_rate(struct clk *clk, unsigned long target_rate)
- 			min_e_n = n;
+ 	_omap3_dpll_write_clken(clk, DPLL_LOCKED);
  
- 			pr_debug("clock: found new least error %d\n", min_e);
--		}
- 
+-	if (ai) {
 -		/*
--		 * Since we're counting n down, a m underflow means we
--		 * can bail out completely (since as n decreases in
--		 * the next iteration, there's no way that m can
--		 * increase beyond the current m)
+-		 * If no downstream clocks are enabled, CM_IDLEST bit
+-		 * may never become active, so don't wait for DPLL to lock.
 -		 */
--		if (r & DPLL_MULT_UNDERFLOW)
--			break;
-+			/* We found good settings -- bail out now */
-+			if (min_e <= clk->dpll_data->rate_tolerance)
-+				break;
-+		}
- 	}
+-		r = 0;
++	r = _omap3_wait_dpll_status(clk, 1);
++
++	if (ai)
+ 		omap3_dpll_allow_idle(clk);
+-	} else {
+-		r = _omap3_wait_dpll_status(clk, 1);
+-		omap3_dpll_deny_idle(clk);
+-	};
  
- 	if (min_e < 0) {
+ 	return r;
+ }
 -- 
 1.6.1.2
 
