@@ -1,113 +1,74 @@
-From: Adrian Hunter <adrian.hunter@nokia.com>
-Subject: Re: [PATCH 9/10] OMAP: HSMMC: Fix MMC3 dma
-Date: Fri, 13 Mar 2009 12:16:11 +0200
-Message-ID: <49BA326B.8030305@nokia.com>
-References: <20090312162252.19421.34019.sendpatchset@ahunter-laptop> <20090312162353.19421.55941.sendpatchset@ahunter-laptop>
+From: Grazvydas Ignotas <notasas@gmail.com>
+Subject: Re: [PATCH] Add new C state
+Date: Fri, 13 Mar 2009 13:39:42 +0200
+Message-ID: <6ed0b2680903130439g2c9570cfm410f5b3ad04f1948@mail.gmail.com>
+References: <1236700866-30760-1-git-send-email-peter.de-schrijver@nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:20517 "EHLO
-	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750842AbZCMKQE (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 13 Mar 2009 06:16:04 -0400
-In-Reply-To: <20090312162353.19421.55941.sendpatchset@ahunter-laptop>
+Received: from mail-fx0-f176.google.com ([209.85.220.176]:50198 "EHLO
+	mail-fx0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751240AbZCMLqR convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 13 Mar 2009 07:46:17 -0400
+Received: by fxm24 with SMTP id 24so2610510fxm.37
+        for <linux-omap@vger.kernel.org>; Fri, 13 Mar 2009 04:46:14 -0700 (PDT)
+In-Reply-To: <1236700866-30760-1-git-send-email-peter.de-schrijver@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Hunter Adrian (Nokia-D/Helsinki)" <adrian.hunter@nokia.com>
-Cc: Pierre Ossman <drzeus-mmc@drzeus.cx>, "Lavinen Jarkko (Nokia-D/Helsinki)" <jarkko.lavinen@nokia.com>, Grazvydas Ignotas <notasas@gmail.com>, David Brownell <david-b@pacbell.net>, linux-omap Mailing List <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, lkml <linux-kernel@vger.kernel.org>
+To: Peter 'p2' De Schrijver <peter.de-schrijver@nokia.com>
+Cc: linux-omap@vger.kernel.org, Kevin Hilman <khilman@deeprootsystems.com>
 
->From 6cdb22ab764bf852097674c26d521d3e8a1e5581 Mon Sep 17 00:00:00 2001
-From: Grazvydas Ignotas <notasas@gmail.com>
-Date: Sat, 3 Jan 2009 10:36:13 +0000
-Subject: [PATCH] OMAP: HSMMC: Fix MMC3 dma
+On Tue, Mar 10, 2009 at 6:01 PM, Peter 'p2' De Schrijver
+<peter.de-schrijver@nokia.com> wrote:
+> This patch introduces a new C state which allows MPU to go to WFI but=
+ keeps
+> the core domain active. This offers a much better wakeup latency (3us=
+ vs
+> 10s of us for the current C1) at the cost of a higher power consumpti=
+on.
+>
+> Signed-off-by: Peter 'p2' De Schrijver <peter.de-schrijver@nokia.com>
+> ---
+> =A0arch/arm/mach-omap2/cpuidle34xx.c | =A0119 +++++++++++++++++++++++=
+-------------
+> =A01 files changed, 76 insertions(+), 43 deletions(-)
+>
+> diff --git a/arch/arm/mach-omap2/cpuidle34xx.c b/arch/arm/mach-omap2/=
+cpuidle34xx.c
+> index 62fbb2e..5565aa7 100644
+> --- a/arch/arm/mach-omap2/cpuidle34xx.c
+> +++ b/arch/arm/mach-omap2/cpuidle34xx.c
+> @@ -26,6 +26,7 @@
+> =A0#include <mach/pm.h>
+> =A0#include <mach/prcm.h>
+> =A0#include <mach/powerdomain.h>
+> +#include <mach/clockdomain.h>
+> =A0#include <mach/control.h>
+> =A0#include <mach/serial.h>
+>
+> @@ -33,13 +34,14 @@
+>
+> =A0#ifdef CONFIG_CPU_IDLE
+>
+> -#define OMAP3_MAX_STATES 7
+> +#define OMAP3_MAX_STATES 8
+> =A0#define OMAP3_STATE_C1 1 /* C1 - MPU WFI + Core active */
+> -#define OMAP3_STATE_C2 2 /* C2 - MPU CSWR + Core active */
+> -#define OMAP3_STATE_C3 3 /* C3 - MPU OFF + Core active */
+> -#define OMAP3_STATE_C4 4 /* C4 - MPU RET + Core RET */
+> -#define OMAP3_STATE_C5 5 /* C5 - MPU OFF + Core RET */
+> -#define OMAP3_STATE_C6 6 /* C6 - MPU OFF + Core OFF */
+> +#define OMAP3_STATE_C2 2 /* C2 - MPU WFI + Core inactive */
+> +#define OMAP3_STATE_C3 3 /* C2 - MPU CSWR + Core inactive */
+> +#define OMAP3_STATE_C4 4 /* C3 - MPU OFF + Core iactive */
+> +#define OMAP3_STATE_C5 5 /* C4 - MPU RET + Core RET */
+> +#define OMAP3_STATE_C6 6 /* C5 - MPU OFF + Core RET */
+> +#define OMAP3_STATE_C7 7 /* C6 - MPU OFF + Core OFF */
 
-Data transfers on third OMAP3 MMC controller don't work
-because DMA line numbers are only defined for MMC1 and MMC2.
-Fix that and store line numbers in mmc_omap_host structure
-to reduce code size.
-Tested on OMAP3 pandora board.
-
-Signed-off-by: Grazvydas Ignotas <notasas@gmail.com>
----
-
-
-
-This time with Grazvydas Ignotas email address fixed.
-
-
-
- drivers/mmc/host/omap_hsmmc.c |   36 +++++++++++++++++++++++++-----------
- 1 files changed, 25 insertions(+), 11 deletions(-)
-
-diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
-index 0e47073..91381f4 100644
---- a/drivers/mmc/host/omap_hsmmc.c
-+++ b/drivers/mmc/host/omap_hsmmc.c
-@@ -100,6 +100,7 @@
-  */
- #define OMAP_MMC1_DEVID		0
- #define OMAP_MMC2_DEVID		1
-+#define OMAP_MMC3_DEVID		2
- 
- #define MMC_TIMEOUT_MS		20
- #define OMAP_MMC_MASTER_CLOCK	96000000
-@@ -147,6 +148,7 @@ struct mmc_omap_host {
- 	int			irq;
- 	int			carddetect;
- 	int			use_dma, dma_ch;
-+	int			dma_line_tx, dma_line_rx;
- 	int			slot_id;
- 	int			dbclk_enabled;
- 	int			response_busy;
-@@ -652,17 +654,10 @@ static int mmc_omap_get_dma_sync_dev(struct mmc_omap_host *host,
- {
- 	int sync_dev;
- 
--	if (data->flags & MMC_DATA_WRITE) {
--		if (host->id == OMAP_MMC1_DEVID)
--			sync_dev = OMAP24XX_DMA_MMC1_TX;
--		else
--			sync_dev = OMAP24XX_DMA_MMC2_TX;
--	} else {
--		if (host->id == OMAP_MMC1_DEVID)
--			sync_dev = OMAP24XX_DMA_MMC1_RX;
--		else
--			sync_dev = OMAP24XX_DMA_MMC2_RX;
--	}
-+	if (data->flags & MMC_DATA_WRITE)
-+		sync_dev = host->dma_line_tx;
-+	else
-+		sync_dev = host->dma_line_rx;
- 	return sync_dev;
- }
- 
-@@ -1134,6 +1129,25 @@ static int __init omap_mmc_probe(struct platform_device *pdev)
- 
- 	omap_hsmmc_init(host);
- 
-+	/* Select DMA lines */
-+	switch (host->id) {
-+	case OMAP_MMC1_DEVID:
-+		host->dma_line_tx = OMAP24XX_DMA_MMC1_TX;
-+		host->dma_line_rx = OMAP24XX_DMA_MMC1_RX;
-+		break;
-+	case OMAP_MMC2_DEVID:
-+		host->dma_line_tx = OMAP24XX_DMA_MMC2_TX;
-+		host->dma_line_rx = OMAP24XX_DMA_MMC2_RX;
-+		break;
-+	case OMAP_MMC3_DEVID:
-+		host->dma_line_tx = OMAP34XX_DMA_MMC3_TX;
-+		host->dma_line_rx = OMAP34XX_DMA_MMC3_RX;
-+		break;
-+	default:
-+		dev_err(mmc_dev(host->mmc), "Invalid MMC id\n");
-+		goto err_irq;
-+	}
-+
- 	/* Request IRQ for MMC operations */
- 	ret = request_irq(host->irq, mmc_omap_irq, IRQF_DISABLED,
- 			mmc_hostname(mmc), host);
--- 
-1.5.6.3
-
+Comments don't match the defines here.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
