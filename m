@@ -1,83 +1,149 @@
-From: Mark Brown <broonie@sirena.org.uk>
-Subject: Re: [patch 2.6.29-rc7 regulator-next] regulator: refcount fixes
-Date: Fri, 13 Mar 2009 01:38:15 +0000
-Message-ID: <20090313013813.GK24376@sirena.org.uk>
-References: <200903111743.34708.david-b@pacbell.net> <200903121335.25368.david-b@pacbell.net> <20090312210545.GJ24376@sirena.org.uk> <200903121602.55570.david-b@pacbell.net>
+From: "Lopez Cruz, Misael" <x0052729@ti.com>
+Subject: [PATCH] SoC: Move headset jack registration to device
+ initialization for SDP3430
+Date: Thu, 12 Mar 2009 21:45:27 -0500
+Message-ID: <2C7D3DF36ADFFC479B44490D912B616705ECF129A3@dlee07.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from cassiel.sirena.org.uk ([80.68.93.111]:3946 "EHLO
-	cassiel.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750852AbZCMBiV (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 12 Mar 2009 21:38:21 -0400
-Content-Disposition: inline
-In-Reply-To: <200903121602.55570.david-b@pacbell.net>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <alsa-devel-bounces@alsa-project.org>
+Content-Language: en-US
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Sender: alsa-devel-bounces@alsa-project.org
+Errors-To: alsa-devel-bounces@alsa-project.org
+To: "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Mark Brown <broonie@sirena.org.uk>
 List-Id: linux-omap@vger.kernel.org
-To: David Brownell <david-b@pacbell.net>
-Cc: Liam Girdwood <lrg@slimlogic.co.uk>, lkml <linux-kernel@vger.kernel.org>, OMAP <linux-omap@vger.kernel.org>
 
-On Thu, Mar 12, 2009 at 03:02:55PM -0800, David Brownell wrote:
-> On Thursday 12 March 2009, Mark Brown wrote:
+Move headset jack registration to the codec/machine specific
+initialization. Having the jack registration in machine init
+causes that the jack device gets initialized but not registered
+since the sound card is registered before the jack. Moving jack
+registration to device initialization will register the jack
+device along with all other devices associated to the card when
+the card is registed. As a consequence of jack device registered
+properly, the jack is detected as an input device.
 
-> > Previously the per-consumer reference count would've meant that they
-> > couldn't interfere with other consumers - they could set their own
-> > state but not reverse an enable something else had done.
+Signed-off-by: Misael Lopez Cruz <x0052729@ti.com>
+---
+ sound/soc/omap/sdp3430.c |   74 ++++++++++++++++++++++++---------------------
+ 1 files changed, 39 insertions(+), 35 deletions(-)
 
-> They still can't ... *unless* they're already buggy.
-
-As previously noted they could've worked happily via bouncing their
-state to match the physical state first; it's not nice or a good idea
-(which is why I am happy with your patch) but, well, not everyone pays
-attention to warnings and errors :(
-
-> And, as a new thing not currently addressed well in code, you
-> are talking about "non-shared" handles.
-
-You are missing my point here; this is mostly about documentation.  The
-exclusive access issue is with devices that can't tolerate any
-arbitration and need the regulator to go into the state they're
-requesting - if the consumer is finding itself doing something like turn
-off a regulator which it did not enable itself then it's clearly not
-able to play nicely with other drivers sharing the same resource without
-extra communication.  This may be because the driver is doing things
-that aren't really appropriate and perhaps ought to be done via
-constraints if at all; it may also be because the hardware that's being
-controlled demands it.
-
-If everyone is nice and careful about what they're doing it'll not make
-any difference at all either way.  Especially in the hardware
-requirements case I'd hope it never even comes up that it'd make a
-difference.
-
-> One could as easily have "handle" and "regulator" be the
-> same ... so the get/put idioms could work like they do
-> elsewhere in the kernel.
-
-I really don't see that there is any meaningful difference here; from
-the point of view of the consumer the fact that the thing it gets back
-is a handle to a structure the core uses to keep track of the consumer
-rather than the underlying hardware object is an implementation detail
-that shouldn't make any difference to them.  In terms of the programming
-model it seems like a layering violation to know the difference between
-one opaque structure and another.
-
-> See above.  Currently constraints are hidden for "consumers",
-> behind functional accessors like regulator_set_voltage().
-> There are no explicit constraint objects, as there are for
-> the machines.
-
-The current interface has been driven by the needs of the users: the
-majority of consumers want to do one operation on a regular basis -
-normally that's enable/disable, most devices are just powering
-themselves up and down, though for some things voltage changes are much
-more common (DVFS being the prime example).  Overall it's been fairly
-similar to the clock API in terms of usage pattern.
-
-In terms of looking at redesigning the API I feel we're getting ahead of
-ourselves here and should be working more for stability until we run
-into problems that force us to make big changes.  Right now it seems
-better to focus on improving the support for real systems in mainline
-and addressing any issues that they see so that we've got something to
-learn from when doing any redesign and can minimise the amount of
-integration churn that is created.
+diff --git a/sound/soc/omap/sdp3430.c b/sound/soc/omap/sdp3430.c
+index 715c648..0a41de6 100644
+--- a/sound/soc/omap/sdp3430.c
++++ b/sound/soc/omap/sdp3430.c
+@@ -39,6 +39,8 @@
+ #include "omap-pcm.h"
+ #include "../codecs/twl4030.h"
+ 
++static struct snd_soc_card snd_soc_sdp3430;
++
+ static int sdp3430_hw_params(struct snd_pcm_substream *substream,
+ 	struct snd_pcm_hw_params *params)
+ {
+@@ -82,6 +84,27 @@ static struct snd_soc_ops sdp3430_ops = {
+ 	.hw_params = sdp3430_hw_params,
+ };
+ 
++/* Headset jack */
++static struct snd_soc_jack hs_jack;
++
++/* Headset jack detection DAPM pins */
++static struct snd_soc_jack_pin hs_jack_pins[] = {
++	{
++		.pin = "Headset Jack",
++		.mask = SND_JACK_HEADSET,
++	},
++};
++
++/* Headset jack detection gpios */
++static struct snd_soc_jack_gpio hs_jack_gpios[] = {
++	{
++		.gpio = (OMAP_MAX_GPIO_LINES + 2),
++		.name = "hsdet-gpio",
++		.report = SND_JACK_HEADSET,
++		.debounce_time = 200,
++	},
++};
++
+ /* SDP3430 machine DAPM */
+ static const struct snd_soc_dapm_widget sdp3430_twl4030_dapm_widgets[] = {
+ 	SND_SOC_DAPM_MIC("Ext Mic", NULL),
+@@ -141,30 +164,25 @@ static int sdp3430_twl4030_init(struct snd_soc_codec *codec)
+ 	snd_soc_dapm_nc_pin(codec, "CARKITR");
+ 
+ 	ret = snd_soc_dapm_sync(codec);
++	if (ret)
++		return ret;
+ 
+-	return ret;
+-}
++	/* Headset jack detection */
++	ret = snd_soc_jack_new(&snd_soc_sdp3430, "Headset Jack",
++				SND_JACK_HEADSET, &hs_jack);
++	if (ret)
++		return ret;
+ 
+-/* Headset jack */
+-static struct snd_soc_jack hs_jack;
++	ret = snd_soc_jack_add_pins(&hs_jack, ARRAY_SIZE(hs_jack_pins),
++				hs_jack_pins);
++	if (ret)
++		return ret;
+ 
+-/* Headset jack detection DAPM pins */
+-static struct snd_soc_jack_pin hs_jack_pins[] = {
+-	{
+-		.pin = "Headset Jack",
+-		.mask = SND_JACK_HEADSET,
+-	},
+-};
++	ret = snd_soc_jack_add_gpios(&hs_jack, ARRAY_SIZE(hs_jack_gpios),
++				hs_jack_gpios);
+ 
+-/* Headset jack detection gpios */
+-static struct snd_soc_jack_gpio hs_jack_gpios[] = {
+-	{
+-		.gpio = (OMAP_MAX_GPIO_LINES + 2),
+-		.name = "hsdet-gpio",
+-		.report = SND_JACK_HEADSET,
+-		.debounce_time = 200,
+-	},
+-};
++	return ret;
++}
+ 
+ /* Digital audio interface glue - connects codec <--> CPU */
+ static struct snd_soc_dai_link sdp3430_dai = {
+@@ -216,21 +234,7 @@ static int __init sdp3430_soc_init(void)
+ 	if (ret)
+ 		goto err1;
+ 
+-	/* Headset jack detection */
+-	ret = snd_soc_jack_new(&snd_soc_sdp3430, "SDP3430 headset jack",
+-				SND_JACK_HEADSET, &hs_jack);
+-	if (ret)
+-		return ret;
+-
+-	ret = snd_soc_jack_add_pins(&hs_jack, ARRAY_SIZE(hs_jack_pins),
+-				hs_jack_pins);
+-	if (ret)
+-		return ret;
+-
+-	ret = snd_soc_jack_add_gpios(&hs_jack, ARRAY_SIZE(hs_jack_gpios),
+-				hs_jack_gpios);
+-
+-	return ret;
++	return 0;
+ 
+ err1:
+ 	printk(KERN_ERR "Unable to add platform device\n");
+-- 
+1.5.4.3
