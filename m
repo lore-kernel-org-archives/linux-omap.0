@@ -1,74 +1,56 @@
-From: Grazvydas Ignotas <notasas@gmail.com>
-Subject: Re: [PATCH] Add new C state
-Date: Fri, 13 Mar 2009 13:39:42 +0200
-Message-ID: <6ed0b2680903130439g2c9570cfm410f5b3ad04f1948@mail.gmail.com>
-References: <1236700866-30760-1-git-send-email-peter.de-schrijver@nokia.com>
+From: Sabine =?utf-8?b?S8Okw58=?= <s.kaess@sirrix.com>
+Subject: Re: Regarding OMAP-3430 LCD Display
+Date: Fri, 13 Mar 2009 11:49:58 +0000 (UTC)
+Message-ID: <loom.20090313T114416-257@post.gmane.org>
+References: <OFE995526B.6C7D9C0D-ON652573CA.001F4F4C-652573CA.001FD3E7@aricent.com> <5D8B5EC1EB6ED845B1EB216F00C71B650285B670@dlee12.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-fx0-f176.google.com ([209.85.220.176]:50198 "EHLO
-	mail-fx0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751240AbZCMLqR convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 13 Mar 2009 07:46:17 -0400
-Received: by fxm24 with SMTP id 24so2610510fxm.37
-        for <linux-omap@vger.kernel.org>; Fri, 13 Mar 2009 04:46:14 -0700 (PDT)
-In-Reply-To: <1236700866-30760-1-git-send-email-peter.de-schrijver@nokia.com>
+Received: from main.gmane.org ([80.91.229.2]:44534 "EHLO ciao.gmane.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752428AbZCMLzJ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 13 Mar 2009 07:55:09 -0400
+Received: from root by ciao.gmane.org with local (Exim 4.43)
+	id 1Li5yg-0000Sl-8T
+	for linux-omap@vger.kernel.org; Fri, 13 Mar 2009 11:55:02 +0000
+Received: from ip-62-133.emscb.ruhr-uni-bochum.de ([134.147.62.133])
+        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-omap@vger.kernel.org>; Fri, 13 Mar 2009 11:55:02 +0000
+Received: from s.kaess by ip-62-133.emscb.ruhr-uni-bochum.de with local (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-omap@vger.kernel.org>; Fri, 13 Mar 2009 11:55:02 +0000
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Peter 'p2' De Schrijver <peter.de-schrijver@nokia.com>
-Cc: linux-omap@vger.kernel.org, Kevin Hilman <khilman@deeprootsystems.com>
+To: linux-omap@vger.kernel.org
 
-On Tue, Mar 10, 2009 at 6:01 PM, Peter 'p2' De Schrijver
-<peter.de-schrijver@nokia.com> wrote:
-> This patch introduces a new C state which allows MPU to go to WFI but=
- keeps
-> the core domain active. This offers a much better wakeup latency (3us=
- vs
-> 10s of us for the current C1) at the cost of a higher power consumpti=
-on.
->
-> Signed-off-by: Peter 'p2' De Schrijver <peter.de-schrijver@nokia.com>
-> ---
-> =A0arch/arm/mach-omap2/cpuidle34xx.c | =A0119 +++++++++++++++++++++++=
--------------
-> =A01 files changed, 76 insertions(+), 43 deletions(-)
->
-> diff --git a/arch/arm/mach-omap2/cpuidle34xx.c b/arch/arm/mach-omap2/=
-cpuidle34xx.c
-> index 62fbb2e..5565aa7 100644
-> --- a/arch/arm/mach-omap2/cpuidle34xx.c
-> +++ b/arch/arm/mach-omap2/cpuidle34xx.c
-> @@ -26,6 +26,7 @@
-> =A0#include <mach/pm.h>
-> =A0#include <mach/prcm.h>
-> =A0#include <mach/powerdomain.h>
-> +#include <mach/clockdomain.h>
-> =A0#include <mach/control.h>
-> =A0#include <mach/serial.h>
->
-> @@ -33,13 +34,14 @@
->
-> =A0#ifdef CONFIG_CPU_IDLE
->
-> -#define OMAP3_MAX_STATES 7
-> +#define OMAP3_MAX_STATES 8
-> =A0#define OMAP3_STATE_C1 1 /* C1 - MPU WFI + Core active */
-> -#define OMAP3_STATE_C2 2 /* C2 - MPU CSWR + Core active */
-> -#define OMAP3_STATE_C3 3 /* C3 - MPU OFF + Core active */
-> -#define OMAP3_STATE_C4 4 /* C4 - MPU RET + Core RET */
-> -#define OMAP3_STATE_C5 5 /* C5 - MPU OFF + Core RET */
-> -#define OMAP3_STATE_C6 6 /* C6 - MPU OFF + Core OFF */
-> +#define OMAP3_STATE_C2 2 /* C2 - MPU WFI + Core inactive */
-> +#define OMAP3_STATE_C3 3 /* C2 - MPU CSWR + Core inactive */
-> +#define OMAP3_STATE_C4 4 /* C3 - MPU OFF + Core iactive */
-> +#define OMAP3_STATE_C5 5 /* C4 - MPU RET + Core RET */
-> +#define OMAP3_STATE_C6 6 /* C5 - MPU OFF + Core RET */
-> +#define OMAP3_STATE_C7 7 /* C6 - MPU OFF + Core OFF */
+Iqbal <iqbal <at> ti.com> writes:
 
-Comments don't match the defines here.
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+> 
+> Debadatta.Mishra <at> aricent.com
+> > 
+> > Hi All, 
+> > 
+> > I am having a OMAP-3430 board.I want to test that the LCD is 
+> > working or not. It doesn't have any OS ported on it. Please 
+> > Guide me to display a JPEG image on that LCD. 
+> 
+> This list is only  for linux OS on OMAP, may be you will have talk to a 
+different team with in TI.
+> 
+> > Regards,
+> > Deba 
+
+
+Hello,
+
+I have a similar problem which I won't explicate here because this list is for 
+Linux on OMAP ;-) ... but can you tell me, WHO I may ask something about 
+programming the OMAP without operating system??
+
+Thanks & Best regards,
+Sabine
+
+
