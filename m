@@ -1,115 +1,105 @@
-From: "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>
-Subject: RE: [PATCH 5/5] LDP: Add support for built-in camera
-Date: Fri, 13 Mar 2009 16:01:47 -0500
-Message-ID: <A24693684029E5489D1D202277BE89442E53A3CC@dlee02.ent.ti.com>
-References: <1236675821.6759.33.camel@localhost>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: [PATCH] Remove fclk check for cpuidle
+Date: Fri, 13 Mar 2009 15:07:51 -0700
+Message-ID: <878wn9vzyg.fsf@deeprootsystems.com>
+References: <1236701119-30992-1-git-send-email-peter.de-schrijver@nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:39582 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751917AbZCMVCC convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 13 Mar 2009 17:02:02 -0400
-In-Reply-To: <1236675821.6759.33.camel@localhost>
-Content-Language: en-US
+Received: from wf-out-1314.google.com ([209.85.200.170]:23536 "EHLO
+	wf-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751956AbZCMWH5 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 13 Mar 2009 18:07:57 -0400
+Received: by wf-out-1314.google.com with SMTP id 28so677255wfa.4
+        for <linux-omap@vger.kernel.org>; Fri, 13 Mar 2009 15:07:54 -0700 (PDT)
+In-Reply-To: <1236701119-30992-1-git-send-email-peter.de-schrijver@nokia.com> (Peter De Schrijver's message of "Tue\, 10 Mar 2009 18\:05\:19 +0200")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "stanley.miao@windriver.com" <stanley.miao@windriver.com>
-Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>, "Tuukka.O Toivonen" <tuukka.o.toivonen@nokia.com>, Hiroshi DOYU <Hiroshi.DOYU@nokia.com>, "DongSoo(Nathaniel) Kim" <dongsoo.kim@gmail.com>, MiaoStanley <stanleymiao@hotmail.com>, "Nagalla, Hari" <hnagalla@ti.com>, "Hiremath, Vaibhav" <hvaibhav@ti.com>, "Lakhani, Amish" <amish@ti.com>, "Menon, Nishanth" <nm@ti.com>
+To: Peter 'p2' De Schrijver <peter.de-schrijver@nokia.com>
+Cc: linux-omap@vger.kernel.org
 
+"Peter 'p2' De Schrijver" <peter.de-schrijver@nokia.com> writes:
 
+> This patch removes the check to see if some functional clocks are still
+> enabled before entering sleep. 
+>
+> Signed-off-by: Peter 'p2' De Schrijver <peter.de-schrijver@nokia.com>
 
-> -----Original Message-----
-> From: stanley.miao [mailto:stanley.miao@windriver.com]
-> Sent: Tuesday, March 10, 2009 3:04 AM
-> To: Aguirre Rodriguez, Sergio Alberto
-> Cc: linux-media@vger.kernel.org; linux-omap@vger.kernel.org; Sakari Ailus;
-> Tuukka.O Toivonen; Hiroshi DOYU; DongSoo(Nathaniel) Kim; MiaoStanley;
-> Nagalla, Hari; Hiremath, Vaibhav; Lakhani, Amish; Menon, Nishanth
-> Subject: RE: [PATCH 5/5] LDP: Add support for built-in camera
-> 
-> On Mon, 2009-03-09 at 15:24 -0500, Aguirre Rodriguez, Sergio Alberto
-> wrote:
-> > Hi,
-> >
-> > > -----Original Message-----
-> > > From: stanley.miao [mailto:stanley.miao@windriver.com]
-> >
-> > <snip>
-> >
-> > > > +static struct i2c_board_info __initdata ldp_i2c_boardinfo_2[] = {
-> > > > +#if defined(CONFIG_VIDEO_OV3640) ||
-> defined(CONFIG_VIDEO_OV3640_MODULE)
-> > > > +	{
-> > > > +		I2C_BOARD_INFO("ov3640", OV3640_I2C_ADDR),
-> > > > +		.platform_data = &ldp_ov3640_platform_data,
-> > > > +	},
-> > > > +#endif
-> > > > +};
-> > > >
-> > > This new added i2c_board_info was not registered.
-> > > After I added this line,
-> > >
-> > > omap_register_i2c_bus(2, 400, ldp_i2c_boardinfo_2,
-> > >                         ARRAY_SIZE(ldp_i2c_boardinfo_2));
-> > >
-> > > the sensor was found. but the test still failed. A lot of error came
-> out
-> > > when I run my test program.
-> > >
-> > > <3>CSI2: ComplexIO Error IRQ 80
-> > > CSI2: ComplexIO Error IRQ 80
-> > > <3>CSI2: ComplexIO Error IRQ c2
-> > > CSI2: ComplexIO Error IRQ c2
-> > > <3>CSI2: ComplexIO Error IRQ c2
-> > > CSI2: ComplexIO Error IRQ c2
-> > > <3>CSI2: ComplexIO Error IRQ c6
-> > > CSI2: ComplexIO Error IRQ c6
-> > > <3>CSI2: ECC correction failed
-> > > CSI2: ECC correction failed
-> > > <3>CSI2: ComplexIO Error IRQ 6
-> > > CSI2: ComplexIO Error IRQ 6
-> > > <3>CSI2: ComplexIO Error IRQ 6
-> > > CSI2: ComplexIO Error IRQ 6
-> > > <3>CSI2: ComplexIO Error IRQ 6
-> > > CSI2: ComplexIO Error IRQ 6
-> > > <3>CSI2: ComplexIO Error IRQ 6
-> > > CSI2: ComplexIO Error IRQ 6
-> > >
-> >
-> > Oops, my mistake. Missed to add that struct there... Fixed now.
-> >
-> > About the CSI2 errors you're receiving... Which version of LDP are you
-> using? Which Silicon revision has (ES2.1 or ES3.0)?
-> 
-> ZOOM1 board(LDP3430-VG1.0.0-1), omap3430 ES2.1.
-> 
-> When I use your old version patch, sometimes the test succeed, sometimes
-> failed(no data was generated and no error). This version, always failed.
+Thanks, pushing along with updated C1 patch.
 
-Stanley,
+Kevin
 
-I'm working on some CSI2 fixes that could help you with this..
-
-I'll keep you updated on this.
-
-Also, about your board version, it is possible that you'll need a HW modfix because of a redundant resistor in CSI2 datalanes. I'm in talks with some people at TI to prepare a ready to publish document about this rework.
-
-Zoom1 with ES3 silicon doesn't need this HW fix.
-
-I'll hope to get back to you about this next week.
-
-Regards,
-Sergio
-
-> 
-> Thanks.
-> Stanley.
-> 
-> >
-> > Regards,
-> > Sergio
-> > >
-> > > Stanley.
-
+> ---
+>  arch/arm/mach-omap2/pm34xx.c |   46 ------------------------------------------
+>  1 files changed, 0 insertions(+), 46 deletions(-)
+>
+> diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
+> index e12ff2a..008a4d2 100644
+> --- a/arch/arm/mach-omap2/pm34xx.c
+> +++ b/arch/arm/mach-omap2/pm34xx.c
+> @@ -453,58 +453,12 @@ void omap_sram_idle(void)
+>  	omap2_clkdm_allow_idle(mpu_pwrdm->pwrdm_clkdms[0]);
+>  }
+>  
+> -/*
+> - * Check if functional clocks are enabled before entering
+> - * sleep. This function could be behind CONFIG_PM_DEBUG
+> - * when all drivers are configuring their sysconfig registers
+> - * properly and using their clocks properly.
+> - */
+> -static int omap3_fclks_active(void)
+> -{
+> -	u32 fck_core1 = 0, fck_core3 = 0, fck_sgx = 0, fck_dss = 0,
+> -		fck_cam = 0, fck_per = 0, fck_usbhost = 0;
+> -
+> -	fck_core1 = cm_read_mod_reg(CORE_MOD,
+> -				    CM_FCLKEN1);
+> -	if (omap_rev() > OMAP3430_REV_ES1_0) {
+> -		fck_core3 = cm_read_mod_reg(CORE_MOD,
+> -					    OMAP3430ES2_CM_FCLKEN3);
+> -		fck_sgx = cm_read_mod_reg(OMAP3430ES2_SGX_MOD,
+> -					  CM_FCLKEN);
+> -		fck_usbhost = cm_read_mod_reg(OMAP3430ES2_USBHOST_MOD,
+> -					      CM_FCLKEN);
+> -	} else
+> -		fck_sgx = cm_read_mod_reg(GFX_MOD,
+> -					  OMAP3430ES2_CM_FCLKEN3);
+> -	fck_dss = cm_read_mod_reg(OMAP3430_DSS_MOD,
+> -				  CM_FCLKEN);
+> -	fck_cam = cm_read_mod_reg(OMAP3430_CAM_MOD,
+> -				  CM_FCLKEN);
+> -	fck_per = cm_read_mod_reg(OMAP3430_PER_MOD,
+> -				  CM_FCLKEN);
+> -
+> -	/* Ignore UART clocks.  These are handled by UART core (serial.c) */
+> -	fck_core1 &= ~(OMAP3430_EN_UART1 | OMAP3430_EN_UART2);
+> -	fck_per &= ~OMAP3430_EN_UART3;
+> -
+> -	/* Ignore GPIO clocks.  Handled by GPIO prepare-idle hooks */
+> -	fck_per &= ~(OMAP3430_EN_GPIO2 | OMAP3430_EN_GPIO3 |
+> -		     OMAP3430_EN_GPIO4 | OMAP3430_EN_GPIO5 | OMAP3430_EN_GPIO6);
+> -
+> -	if (fck_core1 | fck_core3 | fck_sgx | fck_dss |
+> -	    fck_cam | fck_per | fck_usbhost)
+> -		return 1;
+> -	return 0;
+> -}
+> -
+>  int omap3_can_sleep(void)
+>  {
+>  	if (!enable_dyn_sleep)
+>  		return 0;
+>  	if (!omap_uart_can_sleep())
+>  		return 0;
+> -	if (omap3_fclks_active())
+> -		return 0;
+>  	if (atomic_read(&sleep_block) > 0)
+>  		return 0;
+>  	return 1;
+> -- 
+> 1.5.6.3
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
