@@ -1,35 +1,115 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: [APPLIED] [patch 2.6.29-rc7-omap] twl4030-regulator: list more VAUX4 voltages
-Date: Fri, 13 Mar 2009 16:22:00 -0400
-Message-ID: <notify-1236975721@atomide.com>
-References: <200903101251.15700.david-b@pacbell.net>
+From: "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>
+Subject: RE: [PATCH 5/5] LDP: Add support for built-in camera
+Date: Fri, 13 Mar 2009 16:01:47 -0500
+Message-ID: <A24693684029E5489D1D202277BE89442E53A3CC@dlee02.ent.ti.com>
+References: <1236675821.6759.33.camel@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-bos.mailhop.org ([63.208.196.178]:49984 "EHLO
-	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751354AbZCMUWA (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 13 Mar 2009 16:22:00 -0400
-Received: from c-69-181-40-92.hsd1.ca.comcast.net ([69.181.40.92] helo=localhost.localdomain)
-	by mho-01-bos.mailhop.org with esmtpa (Exim 4.68)
-	(envelope-from <tony@atomide.com>)
-	id 1LiDtG-000J5C-8b
-	for linux-omap@vger.kernel.org; Fri, 13 Mar 2009 20:21:58 +0000
-In-Reply-To: <200903101251.15700.david-b@pacbell.net>
-Content-Disposition: inline
+Received: from devils.ext.ti.com ([198.47.26.153]:39582 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751917AbZCMVCC convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 13 Mar 2009 17:02:02 -0400
+In-Reply-To: <1236675821.6759.33.camel@localhost>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
+To: "stanley.miao@windriver.com" <stanley.miao@windriver.com>
+Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>, "Tuukka.O Toivonen" <tuukka.o.toivonen@nokia.com>, Hiroshi DOYU <Hiroshi.DOYU@nokia.com>, "DongSoo(Nathaniel) Kim" <dongsoo.kim@gmail.com>, MiaoStanley <stanleymiao@hotmail.com>, "Nagalla, Hari" <hnagalla@ti.com>, "Hiremath, Vaibhav" <hvaibhav@ti.com>, "Lakhani, Amish" <amish@ti.com>, "Menon, Nishanth" <nm@ti.com>
 
-This patch has been applied to the linux-omap
-by youw fwiendly patch wobot.
 
-Commit: ad41b8dce8761b94dbef01e252f4f87a7c1e19ec
 
-PatchWorks
-http://patchwork.kernel.org/patch/10952/
+> -----Original Message-----
+> From: stanley.miao [mailto:stanley.miao@windriver.com]
+> Sent: Tuesday, March 10, 2009 3:04 AM
+> To: Aguirre Rodriguez, Sergio Alberto
+> Cc: linux-media@vger.kernel.org; linux-omap@vger.kernel.org; Sakari Ailus;
+> Tuukka.O Toivonen; Hiroshi DOYU; DongSoo(Nathaniel) Kim; MiaoStanley;
+> Nagalla, Hari; Hiremath, Vaibhav; Lakhani, Amish; Menon, Nishanth
+> Subject: RE: [PATCH 5/5] LDP: Add support for built-in camera
+> 
+> On Mon, 2009-03-09 at 15:24 -0500, Aguirre Rodriguez, Sergio Alberto
+> wrote:
+> > Hi,
+> >
+> > > -----Original Message-----
+> > > From: stanley.miao [mailto:stanley.miao@windriver.com]
+> >
+> > <snip>
+> >
+> > > > +static struct i2c_board_info __initdata ldp_i2c_boardinfo_2[] = {
+> > > > +#if defined(CONFIG_VIDEO_OV3640) ||
+> defined(CONFIG_VIDEO_OV3640_MODULE)
+> > > > +	{
+> > > > +		I2C_BOARD_INFO("ov3640", OV3640_I2C_ADDR),
+> > > > +		.platform_data = &ldp_ov3640_platform_data,
+> > > > +	},
+> > > > +#endif
+> > > > +};
+> > > >
+> > > This new added i2c_board_info was not registered.
+> > > After I added this line,
+> > >
+> > > omap_register_i2c_bus(2, 400, ldp_i2c_boardinfo_2,
+> > >                         ARRAY_SIZE(ldp_i2c_boardinfo_2));
+> > >
+> > > the sensor was found. but the test still failed. A lot of error came
+> out
+> > > when I run my test program.
+> > >
+> > > <3>CSI2: ComplexIO Error IRQ 80
+> > > CSI2: ComplexIO Error IRQ 80
+> > > <3>CSI2: ComplexIO Error IRQ c2
+> > > CSI2: ComplexIO Error IRQ c2
+> > > <3>CSI2: ComplexIO Error IRQ c2
+> > > CSI2: ComplexIO Error IRQ c2
+> > > <3>CSI2: ComplexIO Error IRQ c6
+> > > CSI2: ComplexIO Error IRQ c6
+> > > <3>CSI2: ECC correction failed
+> > > CSI2: ECC correction failed
+> > > <3>CSI2: ComplexIO Error IRQ 6
+> > > CSI2: ComplexIO Error IRQ 6
+> > > <3>CSI2: ComplexIO Error IRQ 6
+> > > CSI2: ComplexIO Error IRQ 6
+> > > <3>CSI2: ComplexIO Error IRQ 6
+> > > CSI2: ComplexIO Error IRQ 6
+> > > <3>CSI2: ComplexIO Error IRQ 6
+> > > CSI2: ComplexIO Error IRQ 6
+> > >
+> >
+> > Oops, my mistake. Missed to add that struct there... Fixed now.
+> >
+> > About the CSI2 errors you're receiving... Which version of LDP are you
+> using? Which Silicon revision has (ES2.1 or ES3.0)?
+> 
+> ZOOM1 board(LDP3430-VG1.0.0-1), omap3430 ES2.1.
+> 
+> When I use your old version patch, sometimes the test succeed, sometimes
+> failed(no data was generated and no error). This version, always failed.
 
-Git
-http://git.kernel.org/?p=linux/kernel/git/tmlind/linux-omap-2.6.git;a=commit;h=ad41b8dce8761b94dbef01e252f4f87a7c1e19ec
+Stanley,
 
+I'm working on some CSI2 fixes that could help you with this..
+
+I'll keep you updated on this.
+
+Also, about your board version, it is possible that you'll need a HW modfix because of a redundant resistor in CSI2 datalanes. I'm in talks with some people at TI to prepare a ready to publish document about this rework.
+
+Zoom1 with ES3 silicon doesn't need this HW fix.
+
+I'll hope to get back to you about this next week.
+
+Regards,
+Sergio
+
+> 
+> Thanks.
+> Stanley.
+> 
+> >
+> > Regards,
+> > Sergio
+> > >
+> > > Stanley.
 
