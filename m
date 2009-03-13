@@ -1,59 +1,113 @@
-From: "Gupta, Ramesh" <grgupta@ti.com>
-Subject: RE: Bridge issue #3! dma_alloc_coherent causing crash - pm branch
-Date: Fri, 13 Mar 2009 15:18:12 +0530
-Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB02A8FD10D6@dbde02.ent.ti.com>
-References: <7A436F7769CA33409C6B44B358BFFF0CFF51E3F6@dlee02.ent.ti.com>
+From: Adrian Hunter <adrian.hunter@nokia.com>
+Subject: Re: [PATCH 9/10] OMAP: HSMMC: Fix MMC3 dma
+Date: Fri, 13 Mar 2009 12:16:11 +0200
+Message-ID: <49BA326B.8030305@nokia.com>
+References: <20090312162252.19421.34019.sendpatchset@ahunter-laptop> <20090312162353.19421.55941.sendpatchset@ahunter-laptop>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:33781 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757412AbZCMJtD convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 13 Mar 2009 05:49:03 -0400
-In-Reply-To: <7A436F7769CA33409C6B44B358BFFF0CFF51E3F6@dlee02.ent.ti.com>
-Content-Language: en-US
+Received: from smtp.nokia.com ([192.100.122.233]:20517 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750842AbZCMKQE (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 13 Mar 2009 06:16:04 -0400
+In-Reply-To: <20090312162353.19421.55941.sendpatchset@ahunter-laptop>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Menon, Nishanth" <nm@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: "Hunter Adrian (Nokia-D/Helsinki)" <adrian.hunter@nokia.com>
+Cc: Pierre Ossman <drzeus-mmc@drzeus.cx>, "Lavinen Jarkko (Nokia-D/Helsinki)" <jarkko.lavinen@nokia.com>, Grazvydas Ignotas <notasas@gmail.com>, David Brownell <david-b@pacbell.net>, linux-omap Mailing List <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, lkml <linux-kernel@vger.kernel.org>
 
-Kevin,
+>From 6cdb22ab764bf852097674c26d521d3e8a1e5581 Mon Sep 17 00:00:00 2001
+From: Grazvydas Ignotas <notasas@gmail.com>
+Date: Sat, 3 Jan 2009 10:36:13 +0000
+Subject: [PATCH] OMAP: HSMMC: Fix MMC3 dma
+
+Data transfers on third OMAP3 MMC controller don't work
+because DMA line numbers are only defined for MMC1 and MMC2.
+Fix that and store line numbers in mmc_omap_host structure
+to reduce code size.
+Tested on OMAP3 pandora board.
+
+Signed-off-by: Grazvydas Ignotas <notasas@gmail.com>
+---
+
+
+
+This time with Grazvydas Ignotas email address fixed.
+
+
+
+ drivers/mmc/host/omap_hsmmc.c |   36 +++++++++++++++++++++++++-----------
+ 1 files changed, 25 insertions(+), 11 deletions(-)
+
+diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
+index 0e47073..91381f4 100644
+--- a/drivers/mmc/host/omap_hsmmc.c
++++ b/drivers/mmc/host/omap_hsmmc.c
+@@ -100,6 +100,7 @@
+  */
+ #define OMAP_MMC1_DEVID		0
+ #define OMAP_MMC2_DEVID		1
++#define OMAP_MMC3_DEVID		2
  
+ #define MMC_TIMEOUT_MS		20
+ #define OMAP_MMC_MASTER_CLOCK	96000000
+@@ -147,6 +148,7 @@ struct mmc_omap_host {
+ 	int			irq;
+ 	int			carddetect;
+ 	int			use_dma, dma_ch;
++	int			dma_line_tx, dma_line_rx;
+ 	int			slot_id;
+ 	int			dbclk_enabled;
+ 	int			response_busy;
+@@ -652,17 +654,10 @@ static int mmc_omap_get_dma_sync_dev(struct mmc_omap_host *host,
+ {
+ 	int sync_dev;
+ 
+-	if (data->flags & MMC_DATA_WRITE) {
+-		if (host->id == OMAP_MMC1_DEVID)
+-			sync_dev = OMAP24XX_DMA_MMC1_TX;
+-		else
+-			sync_dev = OMAP24XX_DMA_MMC2_TX;
+-	} else {
+-		if (host->id == OMAP_MMC1_DEVID)
+-			sync_dev = OMAP24XX_DMA_MMC1_RX;
+-		else
+-			sync_dev = OMAP24XX_DMA_MMC2_RX;
+-	}
++	if (data->flags & MMC_DATA_WRITE)
++		sync_dev = host->dma_line_tx;
++	else
++		sync_dev = host->dma_line_rx;
+ 	return sync_dev;
+ }
+ 
+@@ -1134,6 +1129,25 @@ static int __init omap_mmc_probe(struct platform_device *pdev)
+ 
+ 	omap_hsmmc_init(host);
+ 
++	/* Select DMA lines */
++	switch (host->id) {
++	case OMAP_MMC1_DEVID:
++		host->dma_line_tx = OMAP24XX_DMA_MMC1_TX;
++		host->dma_line_rx = OMAP24XX_DMA_MMC1_RX;
++		break;
++	case OMAP_MMC2_DEVID:
++		host->dma_line_tx = OMAP24XX_DMA_MMC2_TX;
++		host->dma_line_rx = OMAP24XX_DMA_MMC2_RX;
++		break;
++	case OMAP_MMC3_DEVID:
++		host->dma_line_tx = OMAP34XX_DMA_MMC3_TX;
++		host->dma_line_rx = OMAP34XX_DMA_MMC3_RX;
++		break;
++	default:
++		dev_err(mmc_dev(host->mmc), "Invalid MMC id\n");
++		goto err_irq;
++	}
++
+ 	/* Request IRQ for MMC operations */
+ 	ret = request_irq(host->irq, mmc_omap_irq, IRQF_DISABLED,
+ 			mmc_hostname(mmc), host);
+-- 
+1.5.6.3
 
-> -----Original Message-----
-> From: Menon, Nishanth 
-> Sent: Friday, March 13, 2009 1:35 PM
-> To: Kevin Hilman
-> Cc: linux-omap@vger.kernel.org; Gupta, Ramesh
-> Subject: RE: Bridge issue #3! dma_alloc_coherent causing 
-> crash - pm branch
-> 
-> > -----Original Message-----
-> > From: Kevin Hilman [mailto:khilman@deeprootsystems.com]
-> > Sent: Friday, March 13, 2009 2:35 AM
-> 
-> 
-> > Sounds like a memory leak in the bridge driver to me.  I 
-> suggest you 
-> > enable memory leak debugging.  In Kconfig
-> > 
-> >    Kernel Hacking -->  Kernel debugging
-> > 
-> > Enable 'Debug slab memory allocations' and its child 'Memory leak 
-> > debugging'.
-> > 
-> > Or, you could switch to the SLUB allocator which has some more 
-> > flexible debug options which can be controlled at boot-time 
-> from the cmdline.
-> > 
-> > While you are in the Kernel debugging menu, make sure you enable 
-> > 'Verbose BUG()' and 'Verbose kernel errors'.  This will ensure that 
-> > any memory leaks will be dumped with some extra debug output.
-
-I enabled all the above options, do I need to add some boot options to enable 
-Debug messages? I am not seeing any debug information displayed in the cosole by default.
-Looks like I am mising some thing :( . Any comments?
-
-Thanks
-Ramesh Gupta G
