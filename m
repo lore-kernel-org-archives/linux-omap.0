@@ -1,51 +1,64 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: Bridge issue #3! dma_alloc_coherent causing crash - pm branch
-Date: Fri, 13 Mar 2009 08:59:46 -0700
-Message-ID: <87sklh1ki5.fsf@deeprootsystems.com>
-References: <EAF47CD23C76F840A9E7FCE10091EFAB02A8FD10D6@dbde02.ent.ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Sanjeev Premi <premi@ti.com>
+Subject: [PATCHv3] PM: Start C-state definitions from base 0
+Date: Fri, 13 Mar 2009 21:34:25 +0530
+Message-ID: <1236960265-19734-1-git-send-email-premi@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-gx0-f163.google.com ([209.85.217.163]:37789 "EHLO
-	mail-gx0-f163.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750843AbZCMP7w (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 13 Mar 2009 11:59:52 -0400
-Received: by gxk7 with SMTP id 7so914646gxk.13
-        for <linux-omap@vger.kernel.org>; Fri, 13 Mar 2009 08:59:49 -0700 (PDT)
-In-Reply-To: <EAF47CD23C76F840A9E7FCE10091EFAB02A8FD10D6@dbde02.ent.ti.com> (Ramesh Gupta's message of "Fri\, 13 Mar 2009 15\:18\:12 +0530")
+Received: from bear.ext.ti.com ([192.94.94.41]:51633 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751757AbZCMQEg (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 13 Mar 2009 12:04:36 -0400
+Received: from dbdp31.itg.ti.com ([172.24.170.98])
+	by bear.ext.ti.com (8.13.7/8.13.7) with ESMTP id n2DG4SQN020818
+	for <linux-omap@vger.kernel.org>; Fri, 13 Mar 2009 11:04:34 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Gupta, Ramesh" <grgupta@ti.com>
-Cc: "Menon, Nishanth" <nm@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: linux-omap@vger.kernel.org
+Cc: Sanjeev Premi <premi@ti.com>
 
-"Gupta, Ramesh" <grgupta@ti.com> writes:
+The current definition of C-states starts from base 1.
+Whereas, the cpuidle driver uses base 0. This patch
+eliminates need for explicit mapping (add/ sbutract)
+due to different base values.
 
-[...]
+Signed-off-by: Sanjeev Premi <premi@ti.com>
+---
+ arch/arm/mach-omap2/cpuidle34xx.c |   16 ++++++++--------
+ 1 files changed, 8 insertions(+), 8 deletions(-)
 
->> > Sounds like a memory leak in the bridge driver to me.  I 
->> suggest you 
->> > enable memory leak debugging.  In Kconfig
->> > 
->> >    Kernel Hacking -->  Kernel debugging
->> > 
->> > Enable 'Debug slab memory allocations' and its child 'Memory leak 
->> > debugging'.
->> > 
->> > Or, you could switch to the SLUB allocator which has some more 
->> > flexible debug options which can be controlled at boot-time 
->> from the cmdline.
->> > 
->> > While you are in the Kernel debugging menu, make sure you enable 
->> > 'Verbose BUG()' and 'Verbose kernel errors'.  This will ensure that 
->> > any memory leaks will be dumped with some extra debug output.
->
-> I enabled all the above options, do I need to add some boot options to enable 
-> Debug messages? I am not seeing any debug information displayed in the cosole by default.
-> Looks like I am mising some thing :( . Any comments?
->
+diff --git a/arch/arm/mach-omap2/cpuidle34xx.c b/arch/arm/mach-omap2/cpuidle34xx.c
+index 62fbb2e..04119e4 100644
+--- a/arch/arm/mach-omap2/cpuidle34xx.c
++++ b/arch/arm/mach-omap2/cpuidle34xx.c
+@@ -33,13 +33,13 @@
+ 
+ #ifdef CONFIG_CPU_IDLE
+ 
+-#define OMAP3_MAX_STATES 7
+-#define OMAP3_STATE_C1 1 /* C1 - MPU WFI + Core active */
+-#define OMAP3_STATE_C2 2 /* C2 - MPU CSWR + Core active */
+-#define OMAP3_STATE_C3 3 /* C3 - MPU OFF + Core active */
+-#define OMAP3_STATE_C4 4 /* C4 - MPU RET + Core RET */
+-#define OMAP3_STATE_C5 5 /* C5 - MPU OFF + Core RET */
+-#define OMAP3_STATE_C6 6 /* C6 - MPU OFF + Core OFF */
++#define OMAP3_MAX_STATES 6
++#define OMAP3_STATE_C1 0 /* C1 - MPU WFI + Core active */
++#define OMAP3_STATE_C2 1 /* C2 - MPU CSWR + Core active */
++#define OMAP3_STATE_C3 2 /* C3 - MPU OFF + Core active */
++#define OMAP3_STATE_C4 3 /* C4 - MPU RET + Core RET */
++#define OMAP3_STATE_C5 4 /* C5 - MPU OFF + Core RET */
++#define OMAP3_STATE_C6 5 /* C6 - MPU OFF + Core OFF */
+ 
+ struct omap3_processor_cx {
+ 	u8 valid;
+@@ -244,7 +244,7 @@ int omap3_idle_init(void)
+ 
+ 	dev = &per_cpu(omap3_idle_dev, smp_processor_id());
+ 
+-	for (i = 1; i < OMAP3_MAX_STATES; i++) {
++	for (i = OMAP3_STATE_C1; i < OMAP3_MAX_STATES; i++) {
+ 		cx = &omap3_power_states[i];
+ 		state = &dev->states[count];
+ 
+-- 
+1.5.6
 
-You'll only see extra messages when the kerel hits a BUG() or a WARN().  If
-you don't see anything more verbose with all these options enabled, then
-the kernel is not detecting any problems.
-
-Kevin
