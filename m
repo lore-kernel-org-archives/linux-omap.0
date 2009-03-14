@@ -1,45 +1,57 @@
 From: David Brownell <david-b@pacbell.net>
-Subject: Re: Hi David Brownell. I have a question for twl4030 driver.
-Date: Fri, 13 Mar 2009 17:51:49 -0700
-Message-ID: <200903131751.49733.david-b@pacbell.net>
-References: <90b950fc0902121906kdf51637v21b90a2aba94a93f@mail.gmail.com> <200902131235.55502.david-b@pacbell.net> <9c9fda240902132029o20db190bnb289649c7d097fa3@mail.gmail.com>
+Subject: [patch] twl4030-regulator: expose VPLL2
+Date: Fri, 13 Mar 2009 17:54:54 -0700
+Message-ID: <200903131754.54997.david-b@pacbell.net>
+Reply-To: dbrownell@users.sourceforge.net
 Mime-Version: 1.0
 Content-Type: text/plain;
   charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp128.sbc.mail.sp1.yahoo.com ([69.147.65.187]:45015 "HELO
-	smtp128.sbc.mail.sp1.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1762912AbZCNAwE (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Fri, 13 Mar 2009 20:52:04 -0400
-In-Reply-To: <9c9fda240902132029o20db190bnb289649c7d097fa3@mail.gmail.com>
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1761566AbZCNAzl@vger.kernel.org>
 Content-Disposition: inline
-Sender: linux-omap-owner@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
+To: Liam Girdwood <lrg@slimlogic.co.uk>
+Cc: Mark Brown <broonie@sirena.org.uk>, OMAP <linux-omap@vger.kernel.org>, lkml <linux-kernel@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
-To: Kyungmin Park <kmpark@infradead.org>
-Cc: =?utf-8?q?=EB=8C=80=EC=9D=B8=EA=B8=B0?= <daeinki@gmail.com>, linux-omap@vger.kernel.org
 
-On Friday 13 February 2009, Kyungmin Park wrote:
-> >> So I could use VPLL2 after I get rid of those annotations.
-> >> I wonder why did you annotate for VPLL2.
-> >> Does using VPLL2 has some problems?
-> >
-> > I didn't have any use case for managing VPLL2 in Linux
-> > software at runtime, except maybe in conjunction with
-> > the power management code.
-> >
-> > What's your use case?
-> 
-> It's used for graphics power. Without it. we can only see the limited colors.
-> Yes there's too much example related with it. so we want to know exact usage.
-> Now workaround we simply enable it at bootloader.
+From: David Brownell <dbrownell@users.sourceforge.net>
 
-Right, I seem to have overlooked that.  Even Beagle boards
-use VPLL2 to power the digital video (LCD, DVI) output.
+Add VPLL2 to the set of twl4030-family regulators exposed for
+use by various drivers.  It's commonly used to power the digital
+video outputs (e.g. LCD or DVI displays) on OMAP3 systems.
 
-So I'm sending a patch to let it be manipulated using the
-regulator framework.
+Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
+---
+Please apply to regulator-next and linux-omap ... I'll send
+some patches configuring various OMAP boards to use this.
 
-- Dave
+ drivers/mfd/twl4030-core.c            |    2 --
+ drivers/regulator/twl4030-regulator.c |    2 +-
+ 2 files changed, 1 insertion(+), 3 deletions(-)
 
+--- a/drivers/mfd/twl4030-core.c
++++ b/drivers/mfd/twl4030-core.c
+@@ -613,11 +613,9 @@ add_children(struct twl4030_platform_dat
+ 
+ 	/* maybe add LDOs that are omitted on cost-reduced parts */
+ 	if (twl_has_regulator() && !(features & TPS_SUBSET)) {
+-		/*
+ 		child = add_regulator(TWL4030_REG_VPLL2, pdata->vpll2);
+ 		if (IS_ERR(child))
+ 			return PTR_ERR(child);
+-		*/
+ 
+ 		child = add_regulator(TWL4030_REG_VMMC2, pdata->vmmc2);
+ 		if (IS_ERR(child))
+--- a/drivers/regulator/twl4030-regulator.c
++++ b/drivers/regulator/twl4030-regulator.c
+@@ -404,8 +404,8 @@ static struct twlreg_info twl4030_regs[]
+ 	TWL_ADJUSTABLE_LDO(VMMC2, 0x2b, 6),
+ 	/*
+ 	TWL_ADJUSTABLE_LDO(VPLL1, 0x2f, 7),
+-	TWL_ADJUSTABLE_LDO(VPLL2, 0x33, 8),
+ 	*/
++	TWL_ADJUSTABLE_LDO(VPLL2, 0x33, 8),
+ 	TWL_ADJUSTABLE_LDO(VSIM, 0x37, 9),
+ 	TWL_ADJUSTABLE_LDO(VDAC, 0x3b, 10),
+ 	/*
