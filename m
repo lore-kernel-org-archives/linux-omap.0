@@ -1,71 +1,82 @@
 From: David Brownell <david-b@pacbell.net>
-Subject: Re: Overo broken after recent mainline merge
-Date: Sat, 14 Mar 2009 14:14:05 -0700
-Message-ID: <200903141414.06045.david-b@pacbell.net>
-References: <5e088bd90903140624u5b5098f4vd9b1afa937325779@mail.gmail.com> <200903141208.30413.david-b@pacbell.net> <20090314202250.GA17554@sirena.org.uk>
+Subject: Re: [patch 2.6.29-rc7 regulator-next] regulator: refcount fixes
+Date: Sat, 14 Mar 2009 14:29:24 -0700
+Message-ID: <200903141429.24534.david-b@pacbell.net>
+References: <200903111743.34708.david-b@pacbell.net> <200903121602.55570.david-b@pacbell.net> <20090313013813.GK24376@sirena.org.uk>
 Mime-Version: 1.0
 Content-Type: text/plain;
   charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp119.sbc.mail.sp1.yahoo.com ([69.147.64.92]:28449 "HELO
-	smtp119.sbc.mail.sp1.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1751198AbZCNVOJ (ORCPT
+Received: from smtp127.sbc.mail.sp1.yahoo.com ([69.147.65.186]:22199 "HELO
+	smtp127.sbc.mail.sp1.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1751242AbZCNV31 (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Sat, 14 Mar 2009 17:14:09 -0400
-In-Reply-To: <20090314202250.GA17554@sirena.org.uk>
+	Sat, 14 Mar 2009 17:29:27 -0400
+In-Reply-To: <20090313013813.GK24376@sirena.org.uk>
 Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Mark Brown <broonie@sirena.org.uk>
-Cc: Tony Lindgren <tony@atomide.com>, Steve Sakoman <sakoman@gmail.com>, linux-omap <linux-omap@vger.kernel.org>
+Cc: Liam Girdwood <lrg@slimlogic.co.uk>, lkml <linux-kernel@vger.kernel.org>, OMAP <linux-omap@vger.kernel.org>
 
-On Saturday 14 March 2009, Mark Brown wrote:
-> On Sat, Mar 14, 2009 at 12:08:30PM -0700, David Brownell wrote:
+On Thursday 12 March 2009, Mark Brown wrote:
+> On Thu, Mar 12, 2009 at 03:02:55PM -0800, David Brownell wrote:
+>
+> > One could as easily have "handle" and "regulator" be the
+> > same ... so the get/put idioms could work like they do
+> > elsewhere in the kernel.
 > 
-> > The basic problem is that still-unfixed goofage in the regulator
-> > framework:  it seriously mis-handles regulators that bootloaders
-> > leave enabled.  This can be teased apart into at least two bugs,
-> > possibly as many as four.  The fix for one of them is queued in
-> > the regulator-next tree.
+> I really don't see that there is any meaningful difference here; from
+> the point of view of the consumer the fact that the thing it gets back
+> is a handle to a structure the core uses to keep track of the consumer
+> rather than the underlying hardware object is an implementation detail
+> that shouldn't make any difference to them.  In terms of the programming
+> model it seems like a layering violation to know the difference between
+> one opaque structure and another.
+
+You're not stepping back from the current interface, which is
+a prerequisite to understanding the points I was making:
+
+ * Almost everywhere else in the kernel, there's only one
+   handle (no per-client facet idiom), for which get/put
+   works.
+
+   Having the handle alloc/free methods be called get/put
+   is a kind of problem.  We want models and idioms to
+   converge, not diverge, in almost all cases ... using
+   the same names to mean different things isn't good.
+
+ * The thing that *is* per-client is basically a constraint
+   set ... but it's called a "regulator", which again is
+   confusing.
+
+In the regulator-next tree you've now moved regulator_dev
+into the public interface ... that's the handle to the
+real hardware.  Sort of a hint that it can't really be
+hidden in the way you originally thought.
+
+
+> > See above.  Currently constraints are hidden for "consumers",
+> > behind functional accessors like regulator_set_voltage().
+> > There are no explicit constraint objects, as there are for
+> > the machines.
 > 
-> For clarity, what David is referring to here is that it's not currently
-> possible for the machine constraints to turn off a regulator that has
-> been left enabled when the kernel starts.
+> The current interface has been driven by the needs of the users: the
+> majority of consumers want to do one operation on a regular basis -
+> normally that's enable/disable, most devices are just powering
+> themselves up and down, though for some things voltage changes are much
+> more common (DVFS being the prime example).  Overall it's been fairly
+> similar to the clock API in terms of usage pattern.
 
-Not quite -- that would be one solution, for the first
-several cases I had to deal with.
-
-But thinking about how to handle the video support makes
-it clear that's not always the best solution.  One needs
-bootloaders to be able to throw a splash screen which
-stays active until the window system kicks in ... but
-turning off video regulators would clearly blacken the
-screen, which is the wrong model.  (And marking them as
-"always on" or "boot_on" is wrong for other reasons.)
-
-The way clocks handle that is with a late disable,
-so drivers have a chance to start up.  You rejected
-the REGULATOR_DISABLE_UNUSED patch I sent, applying
-that model ... and that's why I started to think about
-other approaches, as in the "early disable" patch I
-sent earlier in this thread.
-
-A third approach (after applying that one patch that's
-in the regulator-next tree) would be
-
-	if (rdev->is_enabled() > 0)
-		rdev->use_count = 1;
-
-when initializing regulators.  I updated the TWL4030
-code so is_enabled() checks only the Linux enables,
-while get_status() reports the true state, so maybe
-that would be a solution you'd accept.
-
-Of course that makes use_count be even more of a
-misnomer, but that's a separate issue ... refcounts
-should be handled by the driver model.
-
-- Dave
+Except that the clock interface uses put/get in the normal way;
+they are not alloc/free calls, just lookup/refcount calls.
 
 
+> In terms of looking at redesigning the API
+
+You were the one suggesting the need for a new call, formalizing
+a model that didn't previously exist ... not me!  :)
+
+Which is why I suggested taht if you were going to add calls,
+it'd be worth thinking a bit more about some existing glitches.
