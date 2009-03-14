@@ -1,31 +1,38 @@
-From: Mrs Helen Anderson <laquinta@yuma.twcbc.com>
-Subject: claims of =?iso-8859-1?B?ozUwMCwwMDA=?= pounds
-Date: Fri, 13 Mar 2009 21:51:12 -0500
-Message-ID: <7h9gbp$ceuiuc@rrcs-agw-01b.hrndva.rr.com>
-Reply-To: agtuk_ltd003@ymail.com
+From: "Gupta, Ramesh" <grgupta@ti.com>
+Subject: RE: Bridge issue #3! dma_alloc_coherent causing crash - pm branch
+Date: Sat, 14 Mar 2009 09:56:12 +0530
+Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB02A8FD141D@dbde02.ent.ti.com>
+References: <87sklh1ki5.fsf@deeprootsystems.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from hrndva-commlb.mail.rr.com ([71.74.57.8]:51077 "EHLO
-	hrndva-commlb.mail.rr.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751541AbZCNCvP (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 13 Mar 2009 22:51:15 -0400
-Received: from rrcs-agw-01.hrndva.rr.com ([24.28.200.151])
-          by hrndva-comm-mta03.mail.rr.com with ESMTP
-          id <20090314025112.SBXA9006.hrndva-comm-mta03.mail.rr.com@rrcs-agw-01.hrndva.rr.com>
-          for <linux-omap@vger.kernel.org>; Sat, 14 Mar 2009 02:51:12 +0000
+Received: from bear.ext.ti.com ([192.94.94.41]:48851 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754155AbZCNE1H convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 14 Mar 2009 00:27:07 -0400
+In-Reply-To: <87sklh1ki5.fsf@deeprootsystems.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: info@winner.com
+To: Kevin Hilman <khilman@deeprootsystems.com>
+Cc: "Menon, Nishanth" <nm@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-You have just been awarded,the sum of  =A3500,000 GBP in UK Promo, Clai=
-ms email your details to:agtuk_ltd003@ymail.com
+Kevin,
 
+> >
+> > I enabled all the above options, do I need to add some boot 
+> options to 
+> > enable Debug messages? I am not seeing any debug 
+> information displayed in the cosole by default.
+> > Looks like I am mising some thing :( . Any comments?
+> >
+> 
+> You'll only see extra messages when the kerel hits a BUG() or 
+> a WARN().  If you don't see anything more verbose with all 
+> these options enabled, then the kernel is not detecting any problems.
 
-Names.......Address.....Country....Age...Sex.....
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Thank you.
+
+Regards
+Ramesh
