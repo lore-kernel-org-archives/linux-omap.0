@@ -1,297 +1,157 @@
-From: "Premi, Sanjeev" <premi@ti.com>
-Subject: RE: [PATCH] Add new lower-latency C1 state take #2
-Date: Sun, 15 Mar 2009 21:46:10 +0530
-Message-ID: <B85A65D85D7EB246BE421B3FB0FBB59301CC281856@dbde02.ent.ti.com>
-References: <1236952954-5769-1-git-send-email-peter.de-schrijver@nokia.com>
-	<1236961156-19262-1-git-send-email-peter.de-schrijver@nokia.com>
- <874oxxvzxu.fsf@deeprootsystems.com>
+From: Steve Sakoman <sakoman@gmail.com>
+Subject: Re: [PATCH 1/4] ARM: OMAP3: Add SMSC911X support to Overo platform
+	(V2)
+Date: Sun, 15 Mar 2009 09:36:25 -0700
+Message-ID: <5e088bd90903150936w45e68b63k1252cea38b48a5fc@mail.gmail.com>
+References: <20090313224259.8810.3283.stgit@localhost>
+	 <20090313224453.8810.41743.stgit@localhost>
+	 <20090315153827.GA10541@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:42690 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752651AbZCOQQ1 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 15 Mar 2009 12:16:27 -0400
-In-Reply-To: <874oxxvzxu.fsf@deeprootsystems.com>
-Content-Language: en-US
+Received: from wf-out-1314.google.com ([209.85.200.168]:25461 "EHLO
+	wf-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751982AbZCOQg1 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 15 Mar 2009 12:36:27 -0400
+Received: by wf-out-1314.google.com with SMTP id 28so1451142wfa.4
+        for <linux-omap@vger.kernel.org>; Sun, 15 Mar 2009 09:36:25 -0700 (PDT)
+In-Reply-To: <20090315153827.GA10541@n2100.arm.linux.org.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@deeprootsystems.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: Tony Lindgren <tony@atomide.com>, linux-arm-kernel@lists.arm.linux.org.uk, linux-omap@vger.kernel.org
 
-> -----Original Message-----
-> From: linux-omap-owner@vger.kernel.org 
-> [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Kevin Hilman
-> Sent: Saturday, March 14, 2009 3:38 AM
-> To: Peter 'p2' De Schrijver
-> Cc: linux-omap@vger.kernel.org
-> Subject: Re: [PATCH] Add new lower-latency C1 state take #2
-> 
-> "Peter 'p2' De Schrijver" <peter.de-schrijver@nokia.com> writes:
-> 
-> > This patch introduces a new C state which allows MPU to go 
-> to WFI but 
-> > keeps the core domain active. This offers a much better 
-> wakeup latency 
-> > (3us vs 10s of us for the current C1) at the cost of a 
-> higher power consumption.
-> > Fixed the comments.
-> >
-> > Signed-off-by: Peter 'p2' De Schrijver 
-> <peter.de-schrijver@nokia.com>
-> 
-> Thanks, pushing to PM branch.
-> 
-> Kevin
-> 
-> > ---
-> >  arch/arm/mach-omap2/cpuidle34xx.c |  121 
-> > ++++++++++++++++++++++++-------------
-> >  1 files changed, 78 insertions(+), 43 deletions(-)
-> >
-> > diff --git a/arch/arm/mach-omap2/cpuidle34xx.c 
-> > b/arch/arm/mach-omap2/cpuidle34xx.c
-> > index 62fbb2e..7da2fd8 100644
-> > --- a/arch/arm/mach-omap2/cpuidle34xx.c
-> > +++ b/arch/arm/mach-omap2/cpuidle34xx.c
-> > @@ -26,6 +26,7 @@
-> >  #include <mach/pm.h>
-> >  #include <mach/prcm.h>
-> >  #include <mach/powerdomain.h>
-> > +#include <mach/clockdomain.h>
-> >  #include <mach/control.h>
-> >  #include <mach/serial.h>
-> >  
-> > @@ -33,13 +34,14 @@
-> >  
-> >  #ifdef CONFIG_CPU_IDLE
-> >  
-> > -#define OMAP3_MAX_STATES 7
-> > +#define OMAP3_MAX_STATES 8
-> >  #define OMAP3_STATE_C1 1 /* C1 - MPU WFI + Core active */ -#define 
-> > OMAP3_STATE_C2 2 /* C2 - MPU CSWR + Core active */ -#define 
-> > OMAP3_STATE_C3 3 /* C3 - MPU OFF + Core active */ -#define 
-> > OMAP3_STATE_C4 4 /* C4 - MPU RET + Core RET */ -#define 
-> OMAP3_STATE_C5 
-> > 5 /* C5 - MPU OFF + Core RET */ -#define OMAP3_STATE_C6 6 
-> /* C6 - MPU 
-> > OFF + Core OFF */
-> > +#define OMAP3_STATE_C2 2 /* C2 - MPU WFI + Core inactive 
-> */ #define 
-> > +OMAP3_STATE_C3 3 /* C3 - MPU CSWR + Core inactive */ #define 
-> > +OMAP3_STATE_C4 4 /* C4 - MPU OFF + Core iactive */ #define 
-> > +OMAP3_STATE_C5 5 /* C5 - MPU RET + Core RET */ #define 
-> OMAP3_STATE_C6 
-> > +6 /* C6 - MPU OFF + Core RET */ #define OMAP3_STATE_C7 7 
-> /* C7 - MPU 
-> > +OFF + Core OFF */
-> >  
-> >  struct omap3_processor_cx {
-> >  	u8 valid;
-> > @@ -63,6 +65,18 @@ static int omap3_idle_bm_check(void)
-> >  	return 0;
-> >  }
-> >  
-> > +static int _cpuidle_allow_idle(struct powerdomain *pwrdm,
-> > +				struct clockdomain *clkdm)
-> > +{
-> > +	omap2_clkdm_allow_idle(clkdm);
-> > +}
-> > +
-> > +static int _cpuidle_deny_idle(struct powerdomain *pwrdm,
-> > +				struct clockdomain *clkdm)
-> > +{
-> > +	omap2_clkdm_deny_idle(clkdm);
-> > +}
-> > +
+On Sun, Mar 15, 2009 at 8:38 AM, Russell King - ARM Linux
+<linux@arm.linux.org.uk> wrote:
+> On Fri, Mar 13, 2009 at 03:44:53PM -0700, Tony Lindgren wrote:
+>> Gumstix will soon be shipping a variant of their Summit board that
+>> includes an SMSC LAN9221 ethernet interface. =A0This patch provides
+>> support via the smsc911x driver when enabled in kernel config.
+>
+> Does this actually work with the smsc911x driver which is in mainline=
+,
+> or is it dependent on the smsc911x patches from Steve Glendinning?
 
-These functions don't return any value. Even the functions 
-omap2_clkdm_allow_idle() and omap2_clkdm_deny_idle() are
-void.
+=46or the shipping Overo kernel, I build with 2 of Steve's patches, cop=
+ied below.
 
-So, the return type should be changed to void. Else complier
-would throw warnings like:
+Steve
 
-warning: no return statement in function returning non-void
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D
 
-~sanjeev
+=46rom: Steve Glendinning <steve.glendinning@smsc.com>
 
-> >  /**
-> >   * omap3_enter_idle - Programs OMAP3 to enter the specified state
-> >   * @dev: cpuidle device
-> > @@ -99,9 +113,19 @@ static int omap3_enter_idle(struct 
-> cpuidle_device *dev,
-> >  	if (omap_irq_pending())
-> >  		goto return_sleep_time;
-> >  
-> > +	if (cx->type == OMAP3_STATE_C1) {
-> > +		pwrdm_for_each_clkdm(mpu_pd, _cpuidle_deny_idle);
-> > +		pwrdm_for_each_clkdm(core_pd, _cpuidle_deny_idle);
-> > +	}
-> > +
-> >  	/* Execute ARM wfi */
-> >  	omap_sram_idle();
-> >  
-> > +	if (cx->type == OMAP3_STATE_C1) {
-> > +		pwrdm_for_each_clkdm(mpu_pd, _cpuidle_allow_idle);
-> > +		pwrdm_for_each_clkdm(core_pd, _cpuidle_allow_idle);
-> > +	}
-> > +
-> >  return_sleep_time:
-> >  	getnstimeofday(&ts_postidle);
-> >  	ts_idle = timespec_sub(ts_postidle, ts_preidle); @@ 
-> -140,79 +164,90 
-> > @@ DEFINE_PER_CPU(struct cpuidle_device, omap3_idle_dev);
-> >  /* omap3_init_power_states - Initialises the OMAP3 
-> specific C states.
-> >   *
-> >   * Below is the desciption of each C state.
-> > - *	C1 . MPU WFI + Core active
-> > - *	C2 . MPU CSWR + Core active
-> > - *	C3 . MPU OFF + Core active
-> > - *	C4 . MPU CSWR + Core CSWR
-> > - *	C5 . MPU OFF + Core CSWR
-> > - *	C6 . MPU OFF + Core OFF
-> > + * 	C1 . MPU WFI + Core active
-> > + *	C2 . MPU WFI + Core inactive
-> > + *	C3 . MPU CSWR + Core inactive
-> > + *	C4 . MPU OFF + Core inactive
-> > + *	C5 . MPU CSWR + Core CSWR
-> > + *	C6 . MPU OFF + Core CSWR
-> > + *	C7 . MPU OFF + Core OFF
-> >   */
-> >  void omap_init_power_states(void)
-> >  {
-> >  	/* C1 . MPU WFI + Core active */
-> >  	omap3_power_states[OMAP3_STATE_C1].valid = 1;
-> >  	omap3_power_states[OMAP3_STATE_C1].type = OMAP3_STATE_C1;
-> > -	omap3_power_states[OMAP3_STATE_C1].sleep_latency = 10;
-> > -	omap3_power_states[OMAP3_STATE_C1].wakeup_latency = 10;
-> > -	omap3_power_states[OMAP3_STATE_C1].threshold = 30;
-> > +	omap3_power_states[OMAP3_STATE_C1].sleep_latency = 2;
-> > +	omap3_power_states[OMAP3_STATE_C1].wakeup_latency = 2;
-> > +	omap3_power_states[OMAP3_STATE_C1].threshold = 5;
-> >  	omap3_power_states[OMAP3_STATE_C1].mpu_state = PWRDM_POWER_ON;
-> >  	omap3_power_states[OMAP3_STATE_C1].core_state = PWRDM_POWER_ON;
-> >  	omap3_power_states[OMAP3_STATE_C1].flags = 
-> CPUIDLE_FLAG_TIME_VALID;
-> >  
-> > -	/* C2 . MPU CSWR + Core active */
-> > +	/* C2 . MPU WFI + Core inactive */
-> >  	omap3_power_states[OMAP3_STATE_C2].valid = 1;
-> >  	omap3_power_states[OMAP3_STATE_C2].type = OMAP3_STATE_C2;
-> > -	omap3_power_states[OMAP3_STATE_C2].sleep_latency = 50;
-> > -	omap3_power_states[OMAP3_STATE_C2].wakeup_latency = 50;
-> > -	omap3_power_states[OMAP3_STATE_C2].threshold = 300;
-> > -	omap3_power_states[OMAP3_STATE_C2].mpu_state = PWRDM_POWER_RET;
-> > +	omap3_power_states[OMAP3_STATE_C2].sleep_latency = 10;
-> > +	omap3_power_states[OMAP3_STATE_C2].wakeup_latency = 10;
-> > +	omap3_power_states[OMAP3_STATE_C2].threshold = 30;
-> > +	omap3_power_states[OMAP3_STATE_C2].mpu_state = PWRDM_POWER_ON;
-> >  	omap3_power_states[OMAP3_STATE_C2].core_state = PWRDM_POWER_ON;
-> > -	omap3_power_states[OMAP3_STATE_C2].flags = 
-> CPUIDLE_FLAG_TIME_VALID |
-> > -				CPUIDLE_FLAG_CHECK_BM;
-> > +	omap3_power_states[OMAP3_STATE_C2].flags = 
-> CPUIDLE_FLAG_TIME_VALID;
-> >  
-> > -	/* C3 . MPU OFF + Core active */
-> > +	/* C3 . MPU CSWR + Core inactive */
-> >  	omap3_power_states[OMAP3_STATE_C3].valid = 1;
-> >  	omap3_power_states[OMAP3_STATE_C3].type = OMAP3_STATE_C3;
-> > -	omap3_power_states[OMAP3_STATE_C3].sleep_latency = 1500;
-> > -	omap3_power_states[OMAP3_STATE_C3].wakeup_latency = 1800;
-> > -	omap3_power_states[OMAP3_STATE_C3].threshold = 4000;
-> > -	omap3_power_states[OMAP3_STATE_C3].mpu_state = PWRDM_POWER_OFF;
-> > +	omap3_power_states[OMAP3_STATE_C3].sleep_latency = 50;
-> > +	omap3_power_states[OMAP3_STATE_C3].wakeup_latency = 50;
-> > +	omap3_power_states[OMAP3_STATE_C3].threshold = 300;
-> > +	omap3_power_states[OMAP3_STATE_C3].mpu_state = PWRDM_POWER_RET;
-> >  	omap3_power_states[OMAP3_STATE_C3].core_state = PWRDM_POWER_ON;
-> >  	omap3_power_states[OMAP3_STATE_C3].flags = 
-> CPUIDLE_FLAG_TIME_VALID |
-> >  				CPUIDLE_FLAG_CHECK_BM;
-> >  
-> > -	/* C4 . MPU CSWR + Core CSWR*/
-> > +	/* C4 . MPU OFF + Core inactive */
-> >  	omap3_power_states[OMAP3_STATE_C4].valid = 1;
-> >  	omap3_power_states[OMAP3_STATE_C4].type = OMAP3_STATE_C4;
-> > -	omap3_power_states[OMAP3_STATE_C4].sleep_latency = 2500;
-> > -	omap3_power_states[OMAP3_STATE_C4].wakeup_latency = 7500;
-> > -	omap3_power_states[OMAP3_STATE_C4].threshold = 12000;
-> > -	omap3_power_states[OMAP3_STATE_C4].mpu_state = PWRDM_POWER_RET;
-> > -	omap3_power_states[OMAP3_STATE_C4].core_state = PWRDM_POWER_RET;
-> > +	omap3_power_states[OMAP3_STATE_C4].sleep_latency = 1500;
-> > +	omap3_power_states[OMAP3_STATE_C4].wakeup_latency = 1800;
-> > +	omap3_power_states[OMAP3_STATE_C4].threshold = 4000;
-> > +	omap3_power_states[OMAP3_STATE_C4].mpu_state = PWRDM_POWER_OFF;
-> > +	omap3_power_states[OMAP3_STATE_C4].core_state = PWRDM_POWER_ON;
-> >  	omap3_power_states[OMAP3_STATE_C4].flags = 
-> CPUIDLE_FLAG_TIME_VALID |
-> >  				CPUIDLE_FLAG_CHECK_BM;
-> >  
-> > -	/* C5 . MPU OFF + Core CSWR */
-> > +	/* C5 . MPU CSWR + Core CSWR*/
-> >  	omap3_power_states[OMAP3_STATE_C5].valid = 1;
-> >  	omap3_power_states[OMAP3_STATE_C5].type = OMAP3_STATE_C5;
-> > -	omap3_power_states[OMAP3_STATE_C5].sleep_latency = 3000;
-> > -	omap3_power_states[OMAP3_STATE_C5].wakeup_latency = 8500;
-> > -	omap3_power_states[OMAP3_STATE_C5].threshold = 15000;
-> > -	omap3_power_states[OMAP3_STATE_C5].mpu_state = PWRDM_POWER_OFF;
-> > +	omap3_power_states[OMAP3_STATE_C5].sleep_latency = 2500;
-> > +	omap3_power_states[OMAP3_STATE_C5].wakeup_latency = 7500;
-> > +	omap3_power_states[OMAP3_STATE_C5].threshold = 12000;
-> > +	omap3_power_states[OMAP3_STATE_C5].mpu_state = PWRDM_POWER_RET;
-> >  	omap3_power_states[OMAP3_STATE_C5].core_state = PWRDM_POWER_RET;
-> >  	omap3_power_states[OMAP3_STATE_C5].flags = 
-> CPUIDLE_FLAG_TIME_VALID |
-> >  				CPUIDLE_FLAG_CHECK_BM;
-> >  
-> > -	/* C6 . MPU OFF + Core OFF */
-> > +	/* C6 . MPU OFF + Core CSWR */
-> >  	omap3_power_states[OMAP3_STATE_C6].valid = 1;
-> >  	omap3_power_states[OMAP3_STATE_C6].type = OMAP3_STATE_C6;
-> > -	omap3_power_states[OMAP3_STATE_C6].sleep_latency = 10000;
-> > -	omap3_power_states[OMAP3_STATE_C6].wakeup_latency = 30000;
-> > -	omap3_power_states[OMAP3_STATE_C6].threshold = 300000;
-> > +	omap3_power_states[OMAP3_STATE_C6].sleep_latency = 3000;
-> > +	omap3_power_states[OMAP3_STATE_C6].wakeup_latency = 8500;
-> > +	omap3_power_states[OMAP3_STATE_C6].threshold = 15000;
-> >  	omap3_power_states[OMAP3_STATE_C6].mpu_state = PWRDM_POWER_OFF;
-> > -	omap3_power_states[OMAP3_STATE_C6].core_state = PWRDM_POWER_OFF;
-> > +	omap3_power_states[OMAP3_STATE_C6].core_state = PWRDM_POWER_RET;
-> >  	omap3_power_states[OMAP3_STATE_C6].flags = 
-> CPUIDLE_FLAG_TIME_VALID |
-> >  				CPUIDLE_FLAG_CHECK_BM;
-> > +
-> > +	/* C7 . MPU OFF + Core OFF */
-> > +	omap3_power_states[OMAP3_STATE_C7].valid = 1;
-> > +	omap3_power_states[OMAP3_STATE_C7].type = OMAP3_STATE_C7;
-> > +	omap3_power_states[OMAP3_STATE_C7].sleep_latency = 10000;
-> > +	omap3_power_states[OMAP3_STATE_C7].wakeup_latency = 30000;
-> > +	omap3_power_states[OMAP3_STATE_C7].threshold = 300000;
-> > +	omap3_power_states[OMAP3_STATE_C7].mpu_state = PWRDM_POWER_OFF;
-> > +	omap3_power_states[OMAP3_STATE_C7].core_state = PWRDM_POWER_OFF;
-> > +	omap3_power_states[OMAP3_STATE_C7].flags = 
-> CPUIDLE_FLAG_TIME_VALID |
-> > +				CPUIDLE_FLAG_CHECK_BM;
-> >  }
-> >  
-> >  struct cpuidle_driver omap3_idle_driver = {
-> > --
-> > 1.5.6.3
-> >
-> > --
-> > To unsubscribe from this list: send the line "unsubscribe 
-> linux-omap" 
-> > in the body of a message to majordomo@vger.kernel.org More 
-> majordomo 
-> > info at  http://vger.kernel.org/majordomo-info.html
-> --
-> To unsubscribe from this list: send the line "unsubscribe 
-> linux-omap" in the body of a message to 
-> majordomo@vger.kernel.org More majordomo info at  
-> http://vger.kernel.org/majordomo-info.html
-> 
-> 
+This patch adds support for the platform_device's resources to indicate
+additional flags to use when registering the irq, for example
+IORESOURCE_IRQ_LOWLEVEL (which corresponds to IRQF_TRIGGER_LOW).  These
+should be set in the irq resource flags field.
+
+Signed-off-by: Steve Glendinning <steve.glendinning@smsc.com>
+---
+ drivers/net/smsc911x.c |   19 ++++++++++++++-----
+ 1 files changed, 14 insertions(+), 5 deletions(-)
+
+diff --git a/drivers/net/smsc911x.c b/drivers/net/smsc911x.c
+index f513bdf..3565df1 100644
+--- a/drivers/net/smsc911x.c
++++ b/drivers/net/smsc911x.c
+@@ -1892,9 +1892,9 @@ static int __devinit smsc911x_drv_probe(struct
+platform_device *pdev)
+ 	struct net_device *dev;
+ 	struct smsc911x_data *pdata;
+ 	struct smsc911x_platform_config *config =3D pdev->dev.platform_data;
+-	struct resource *res;
++	struct resource *res, *irq_res;
+ 	unsigned int intcfg =3D 0;
+-	int res_size;
++	int res_size, irq_flags;
+ 	int retval;
+ 	DECLARE_MAC_BUF(mac);
+
+@@ -1919,6 +1919,14 @@ static int __devinit smsc911x_drv_probe(struct
+platform_device *pdev)
+ 	}
+ 	res_size =3D res->end - res->start;
+
++	irq_res =3D platform_get_resource(pdev, IORESOURCE_IRQ, 0);
++	if (!irq_res) {
++		pr_warning("%s: Could not allocate irq resource.\n",
++			SMSC_CHIPNAME);
++		retval =3D -ENODEV;
++		goto out_0;
++	}
++
+ 	if (!request_mem_region(res->start, res_size, SMSC_CHIPNAME)) {
+ 		retval =3D -EBUSY;
+ 		goto out_0;
+@@ -1935,7 +1943,8 @@ static int __devinit smsc911x_drv_probe(struct
+platform_device *pdev)
+
+ 	pdata =3D netdev_priv(dev);
+
+-	dev->irq =3D platform_get_irq(pdev, 0);
++	dev->irq =3D irq_res->start;
++	irq_flags =3D irq_res->flags & IRQF_TRIGGER_MASK;
+ 	pdata->ioaddr =3D ioremap_nocache(res->start, res_size);
+
+ 	/* copy config parameters across to pdata */
+@@ -1968,8 +1977,8 @@ static int __devinit smsc911x_drv_probe(struct
+platform_device *pdev)
+ 	smsc911x_reg_write(pdata, INT_EN, 0);
+ 	smsc911x_reg_write(pdata, INT_STS, 0xFFFFFFFF);
+
+-	retval =3D request_irq(dev->irq, smsc911x_irqhandler, IRQF_DISABLED,
+-			     dev->name, dev);
++	retval =3D request_irq(dev->irq, smsc911x_irqhandler,
++			     irq_flags | IRQF_DISABLED, dev->name, dev);
+ 	if (retval) {
+ 		SMSC_WARNING(PROBE,
+ 			"Unable to claim requested irq: %d", dev->irq);
+
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D
+
+=46rom: Steve Glendinning <steve.glendinning@smsc.com>
+
+The isr supports shared operation, so register it with the IRQF_SHARED
+flag to indicate this.
+
+This patch also removes the IRQF_DISABLED flag.  This driver doesn't
+need it, and IRQF_DISABLED isn't guaranteed when using shared interrupt=
+s.
+
+Signed-off-by: Steve Glendinning <steve.glendinning@smsc.com>
+---
+ drivers/net/smsc911x.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
+
+diff --git a/drivers/net/smsc911x.c b/drivers/net/smsc911x.c
+index 3565df1..f882fd5 100644
+--- a/drivers/net/smsc911x.c
++++ b/drivers/net/smsc911x.c
+@@ -1978,7 +1978,7 @@ static int __devinit smsc911x_drv_probe(struct
+platform_device *pdev)
+ 	smsc911x_reg_write(pdata, INT_STS, 0xFFFFFFFF);
+
+ 	retval =3D request_irq(dev->irq, smsc911x_irqhandler,
+-			     irq_flags | IRQF_DISABLED, dev->name, dev);
++			     irq_flags | IRQF_SHARED, dev->name, dev);
+ 	if (retval) {
+ 		SMSC_WARNING(PROBE,
+ 			"Unable to claim requested irq: %d", dev->irq);
+--=20
+1.6.0.6
+
+--
+To unsubscribe from this list: send the line "unsubscribe netdev" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
