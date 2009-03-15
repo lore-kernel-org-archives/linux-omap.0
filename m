@@ -1,65 +1,87 @@
 From: David Brownell <david-b@pacbell.net>
-Subject: Re: [patch 2.6.29-rc8 regulator-next] regulator: init fixes (v4)
-Date: Sat, 14 Mar 2009 21:05:29 -0700
-Message-ID: <200903142105.29382.david-b@pacbell.net>
-References: <200903111743.34708.david-b@pacbell.net> <200903141725.35541.david-b@pacbell.net> <20090315003743.GB11052@sirena.org.uk>
+Subject: Re: [patch 2.6.29-rc7 regulator-next] regulator: init fixes
+Date: Sat, 14 Mar 2009 21:16:03 -0700
+Message-ID: <200903142116.03901.david-b@pacbell.net>
+References: <200903111743.34708.david-b@pacbell.net> <200903111932.16317.david-b@pacbell.net> <20090312120119.GB24376@sirena.org.uk>
 Mime-Version: 1.0
 Content-Type: text/plain;
   charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from n29.bullet.mail.mud.yahoo.com ([68.142.207.48]:43647 "HELO
-	n29.bullet.mail.mud.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1757349AbZCOEFd (ORCPT
+Received: from smtp124.sbc.mail.sp1.yahoo.com ([69.147.64.97]:45017 "HELO
+	smtp124.sbc.mail.sp1.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1751751AbZCOEQI (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Sun, 15 Mar 2009 00:05:33 -0400
-In-Reply-To: <20090315003743.GB11052@sirena.org.uk>
+	Sun, 15 Mar 2009 00:16:08 -0400
+In-Reply-To: <20090312120119.GB24376@sirena.org.uk>
 Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Mark Brown <broonie@sirena.org.uk>
 Cc: Liam Girdwood <lrg@slimlogic.co.uk>, lkml <linux-kernel@vger.kernel.org>, OMAP <linux-omap@vger.kernel.org>
 
-On Saturday 14 March 2009, Mark Brown wrote:
-> On Sat, Mar 14, 2009 at 05:25:35PM -0700, David Brownell wrote:
+On Thursday 12 March 2009, Mark Brown wrote:
+> On Wed, Mar 11, 2009 at 06:32:15PM -0800, David Brownell wrote:
 > 
-> > +	} else if (ops->is_enabled) {
-> > +		/* ... if the bootloader left it on, drivers need a
-> > +		 * nonzero enable count else it can't be disabled.
-> > +		 */
-> > +		ret = ops->is_enabled(rdev);
-> > +		if (ret > 0)
-> > +			rdev->use_count = 1;
-> > +		ret = 0;
+> > Make the regulator setup code cope more consistently with
+> > regulators undesirably left enabled by the bootloader.
 > 
-> This means that drivers that do balanced enables and disables will never
-> be able to cause the regulator to actually be disabled since there will
-> always be this extra reference count there. 
+> First up I'd just like to make it absolutely clear that I agree that
+> this is a feature we should have - it's obviously useful.
 
-That's already true for every regulator for which the "boot_on"
-flag was set ... nothing changes.  Except that things act the
-same now regardless of whether Linux or the bootloader enabled
-the regulator in the first place; win!  :)
+Feature being "consistency".  I'd say "essential", not
+merely "useful" ... this is bugfix territory.
 
-On the other hand, every driver using a regulator for which that
-flag could have be set (== ALL of them) needs to be able to cope
-with the regulator having been enabled when the device probe()
-was called.  It's not exactly hard to check if it was enabled, then
-act accordingly, in the typical "single consumer of the regulator"
-case.
+There are things that just can't work with the current
+regulator framework, because its handling of this routine
+scenario is so inconsistent.  It's not necessarily going
+to be safe to force every (!!) driver into that dance you
+had described (enable-it-then-disable-it), just to force
+all regulators into the kind of self-consistent state that
+framework users always expect to start with.
 
+Especially:  RIGHT AFTER INITIALIZATION!!!  There's no
+excluse to be self-inconsistent that early, even if
+there were an excuse later on.
 
-> Without this patch what'll 
-> happen with those drivers is that they'll do an enable then later on
-> when the last one disables its supply the reference count will fall to
-> zero and the regulator will be disabled.
-
-If they're prepared to work with a regulator enabled at boot time
-by either the bootloader or (as its proxy) Linux, they'll first look
-to see if the regulator is enabled.
-
-Of course, trying to share a regulator that's set up like that can
-bring its own joys.  This patch doesn't change that issue, but it
-does get rid of one nasty initialization problem.
+The "v4" patch I posted resolves that inconsistency in
+about the simplest way I can find; but unlike this patch
+it doesn't solve the "force this regulator off" problem.
 
 
+> It is a particular problem for multi-function devices like pcf50633
+> which not only register all their regulators by default but also embed
+> constraints within the general pcf50633 platform data.
+
+The pcf50633 driver didn't *need* to register all regulators;
+and I don't see what the issue would be with platform_data.
+Its MFD core could easily check the regulator init data and
+skip regulators that didn't initialize a key field.
+
+
+> If the user 
+> simply turns on the regulator driver in their config they'll get this
+> behavior if they don't edit the code.  Even with regulator code I'd not
+> be surprised if people were bitten by this for things like the memory or
+> a CPU core without regulator based DVFS.
+
+That would be part of why the twl4030 regulators are only
+registered on request!  Not only will a given board tend to
+not use all those regulators, but a number of them really
+aren't intended to be managed by Linux.  (And then there
+are board options, like what various control signals do.)
+
+Similar things could happen with a system using pcf50633.
+There's no reason one of the LDOs or switching regulators
+shouldn't be managed exclusively by another I2C master on
+that bus ... they each have dedicated registers, and its
+not uncommon to dedicate a microcontroller to managing just
+one part of a system (and its resources).
+
+
+> You've addressed some of the use cases for this by providing devmode but
+
+I think it's pretty ugly myself, but you did say something about
+wanting explicit support for reverse engineering.  The "v4" patch
+which I just sent uses a simpler approach; such support doesn't
+need to be explicit in order to work.
