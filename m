@@ -1,39 +1,29 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [PATCH 07/12] ARM: OMAP3: mmc-twl4030 add MMC3 support
-Date: Sun, 15 Mar 2009 17:40:39 +0000
-Message-ID: <20090315174039.GB13220@n2100.arm.linux.org.uk>
-References: <20090310205824.16425.97745.stgit@localhost> <20090310211000.16425.62205.stgit@localhost> <20090315160426.GE10786@n2100.arm.linux.org.uk> <6ed0b2680903151027q10a0717fvf73234b2836b0064@mail.gmail.com>
+From: David Brownell <david-b@pacbell.net>
+Subject: Re: [PATCH 12/12] ARM: OMAP3: MUSB initialization for omap hw
+Date: Sun, 15 Mar 2009 11:46:01 -0700
+Message-ID: <200903151146.02132.david-b@pacbell.net>
+References: <20090310205824.16425.97745.stgit@localhost> <20090310211628.16425.55120.stgit@localhost> <20090315161446.GG10786@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:47646 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752747AbZCORku (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 15 Mar 2009 13:40:50 -0400
+Received: from n26.bullet.mail.mud.yahoo.com ([68.142.206.221]:32977 "HELO
+	n26.bullet.mail.mud.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1751935AbZCOSqH (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Sun, 15 Mar 2009 14:46:07 -0400
+In-Reply-To: <20090315161446.GG10786@n2100.arm.linux.org.uk>
 Content-Disposition: inline
-In-Reply-To: <6ed0b2680903151027q10a0717fvf73234b2836b0064@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Grazvydas Ignotas <notasas@gmail.com>
-Cc: Tony Lindgren <tony@atomide.com>, linux-arm-kernel@lists.arm.linux.org.uk, linux-omap@vger.kernel.org
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: Tony Lindgren <tony@atomide.com>, linux-arm-kernel@lists.arm.linux.org.uk, Ajay Kumar Gupta <ajay.gupta@ti.com>, Felipe Balbi <felipe.balbi@nokia.com>, linux-omap@vger.kernel.org
 
-On Sun, Mar 15, 2009 at 07:27:32PM +0200, Grazvydas Ignotas wrote:
-> On Sun, Mar 15, 2009 at 6:04 PM, Russell King - ARM Linux
-> <linux@arm.linux.org.uk> wrote:
-> > On Tue, Mar 10, 2009 at 02:10:00PM -0700, Tony Lindgren wrote:
-> >> ... Array size for hsmmc[] is specified
-> >> because hsmmc[2].name is needed for MMC3 name.
-> >
-> > I see nothing in this patch which requires that.
-> 
-> Right, but there is already some code in twl4030_mmc_init() of mmc-twl4030.c:
-> 
->   struct twl_mmc_controller *twl = hsmmc + c->mmc - 1;
-> <snip>
->   sprintf(twl->name, "mmc%islot%i", c->mmc, 1);
-> 
-> .. which basically writes to hsmmc[2].name for MMC3.
+On Sunday 15 March 2009, Russell King - ARM Linux wrote:
+> clkdev removes the need for this sort of crap.
 
-So, it's nothing really to do with hsmmc[2].name being required, it's
-more a case of needing to have the 3rd MMC interface included.  The
-comment in the commit is *really* misleading.
+And once it, or its equivalent, works on all the platforms
+supportihg the musb_hdrc driver, then the driver can switch.
+
+
