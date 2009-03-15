@@ -1,58 +1,56 @@
-From: Grazvydas Ignotas <notasas@gmail.com>
-Subject: Re: [PATCH 07/12] ARM: OMAP3: mmc-twl4030 add MMC3 support
-Date: Sun, 15 Mar 2009 19:27:32 +0200
-Message-ID: <6ed0b2680903151027q10a0717fvf73234b2836b0064@mail.gmail.com>
-References: <20090310205824.16425.97745.stgit@localhost>
-	 <20090310211000.16425.62205.stgit@localhost>
-	 <20090315160426.GE10786@n2100.arm.linux.org.uk>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: [PATCH 1/4] ARM: OMAP3: Add SMSC911X support to Overo platform
+	(V2)
+Date: Sun, 15 Mar 2009 17:37:39 +0000
+Message-ID: <20090315173739.GA13220@n2100.arm.linux.org.uk>
+References: <20090313224259.8810.3283.stgit@localhost> <20090313224453.8810.41743.stgit@localhost> <20090315153827.GA10541@n2100.arm.linux.org.uk> <5e088bd90903150936w45e68b63k1252cea38b48a5fc@mail.gmail.com> <20090315170054.GA12265@n2100.arm.linux.org.uk> <5e088bd90903151013i1b0e57d3hfe37353540b235e1@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=iso-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-bw0-f175.google.com ([209.85.218.175]:49250 "EHLO
-	mail-bw0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751037AbZCOR1f convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 15 Mar 2009 13:27:35 -0400
-Received: by bwz23 with SMTP id 23so691996bwz.37
-        for <linux-omap@vger.kernel.org>; Sun, 15 Mar 2009 10:27:32 -0700 (PDT)
-In-Reply-To: <20090315160426.GE10786@n2100.arm.linux.org.uk>
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:47642 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752529AbZCORhv (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 15 Mar 2009 13:37:51 -0400
+Content-Disposition: inline
+In-Reply-To: <5e088bd90903151013i1b0e57d3hfe37353540b235e1@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+To: Steve Sakoman <sakoman@gmail.com>
 Cc: Tony Lindgren <tony@atomide.com>, linux-arm-kernel@lists.arm.linux.org.uk, linux-omap@vger.kernel.org
 
-On Sun, Mar 15, 2009 at 6:04 PM, Russell King - ARM Linux
-<linux@arm.linux.org.uk> wrote:
-> On Tue, Mar 10, 2009 at 02:10:00PM -0700, Tony Lindgren wrote:
->> ... Array size for hsmmc[] is specified
->> because hsmmc[2].name is needed for MMC3 name.
->
-> I see nothing in this patch which requires that.
+On Sun, Mar 15, 2009 at 10:13:47AM -0700, Steve Sakoman wrote:
+> On Sun, Mar 15, 2009 at 10:00 AM, Russell King - ARM Linux
+> <linux@arm.linux.org.uk> wrote:
+> > On Sun, Mar 15, 2009 at 09:36:25AM -0700, Steve Sakoman wrote:
+> >> On Sun, Mar 15, 2009 at 8:38 AM, Russell King - ARM Linux
+> >> <linux@arm.linux.org.uk> wrote:
+> >> > On Fri, Mar 13, 2009 at 03:44:53PM -0700, Tony Lindgren wrote:
+> >> >> Gumstix will soon be shipping a variant of their Summit board t=
+hat
+> >> >> includes an SMSC LAN9221 ethernet interface. =A0This patch prov=
+ides
+> >> >> support via the smsc911x driver when enabled in kernel config.
+> >> >
+> >> > Does this actually work with the smsc911x driver which is in mai=
+nline,
+> >> > or is it dependent on the smsc911x patches from Steve Glendinnin=
+g?
+> >>
+> >> For the shipping Overo kernel, I build with 2 of Steve's patches, =
+copied below.
+> >
+> > That doesn't help answer the question. =A0What we need to know is w=
+hether
+> > this patch works alone? =A0If not, do we know for sure that Steve's=
+ patches
+> > are going in during the next merge window?
+>=20
+> It does not work without the 2 mentioned patches (IRQ's never get han=
+dled).
 
-Right, but there is already some code in twl4030_mmc_init() of mmc-twl4=
-030.c:
-
-  struct twl_mmc_controller *twl =3D hsmmc + c->mmc - 1;
-<snip>
-  sprintf(twl->name, "mmc%islot%i", c->mmc, 1);
-
-=2E. which basically writes to hsmmc[2].name for MMC3.
-
->> diff --git a/arch/arm/mach-omap2/mmc-twl4030.c b/arch/arm/mach-omap2=
-/mmc-twl4030.c
->> index 6399874..042035c 100644
->> --- a/arch/arm/mach-omap2/mmc-twl4030.c
->> +++ b/arch/arm/mach-omap2/mmc-twl4030.c
->> @@ -62,7 +62,7 @@ static struct twl_mmc_controller {
->> =A0 =A0 =A0 u8 =A0 =A0 =A0 =A0 =A0 =A0 =A0twl_vmmc_dev_grp;
->> =A0 =A0 =A0 u8 =A0 =A0 =A0 =A0 =A0 =A0 =A0twl_mmc_dedicated;
->> =A0 =A0 =A0 char =A0 =A0 =A0 =A0 =A0 =A0name[HSMMC_NAME_LEN + 1];
->> -} hsmmc[] =3D {
->> +} hsmmc[OMAP34XX_NR_MMC] =3D {
->
-> so this change looks like it can be omitted.
-
-No, that would bring some painful memory corruption issues.
+So I suggest that this patch is handed over to Steve to submit with his
+set of patches.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
 n
