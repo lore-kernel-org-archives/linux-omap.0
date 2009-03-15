@@ -1,65 +1,79 @@
-From: David Brownell <david-b@pacbell.net>
-Subject: [patch 2.6.29-rc8 regulator-next] regulator: init fixes (v4)
-Date: Sat, 14 Mar 2009 17:25:35 -0700
-Message-ID: <200903141725.35541.david-b@pacbell.net>
-References: <200903111743.34708.david-b@pacbell.net> <200903111932.16317.david-b@pacbell.net> <20090312120119.GB24376@sirena.org.uk>
+From: Mark Brown <broonie@sirena.org.uk>
+Subject: Re: [patch 2.6.29-rc7 regulator-next] regulator: refcount fixes
+Date: Sun, 15 Mar 2009 00:30:43 +0000
+Message-ID: <20090315003039.GA11052@sirena.org.uk>
+References: <200903111743.34708.david-b@pacbell.net> <200903121602.55570.david-b@pacbell.net> <20090313013813.GK24376@sirena.org.uk> <200903141429.24534.david-b@pacbell.net>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from n27.bullet.mail.mud.yahoo.com ([68.142.206.222]:44312 "HELO
-	n27.bullet.mail.mud.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1751723AbZCOAZk (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Sat, 14 Mar 2009 20:25:40 -0400
-In-Reply-To: <20090312120119.GB24376@sirena.org.uk>
+Received: from cassiel.sirena.org.uk ([80.68.93.111]:1930 "EHLO
+	cassiel.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751723AbZCOAaw (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 14 Mar 2009 20:30:52 -0400
 Content-Disposition: inline
+In-Reply-To: <200903141429.24534.david-b@pacbell.net>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Mark Brown <broonie@sirena.org.uk>, Liam Girdwood <lrg@slimlogic.co.uk>
-Cc: lkml <linux-kernel@vger.kernel.org>, OMAP <linux-omap@vger.kernel.org>
+To: David Brownell <david-b@pacbell.net>
+Cc: Liam Girdwood <lrg@slimlogic.co.uk>, lkml <linux-kernel@vger.kernel.org>, OMAP <linux-omap@vger.kernel.org>
 
-From: David Brownell <dbrownell@users.sourceforge.net>
+On Sat, Mar 14, 2009 at 02:29:24PM -0700, David Brownell wrote:
 
-Make the regulator setup code cope more consistently with
-regulators left enabled by the bootloader ... making it act
-as if the "boot_on" flag were being set by the boot loader
-(as needed) instead of by Linux board init code (always).
+> You're not stepping back from the current interface, which is
+> a prerequisite to understanding the points I was making:
 
-This eliminates the other half of the bug whereby regulators
-that were enabled during the boot sequence would be enabled
-with enable count of zero ... preventing regulator_disable()
-from working when called from drivers.  (The first half was
-fixed by the "regulator: refcount fixes" patch, and related
-specifically to the "boot_on" flag.)
+I'm pretty sure I understand exactly what you're saying but we just
+disagree on this one.  Probably best that we agree to disagree.
 
-One open issue involves systems that need to force a regulator
-off at boot time -- the converse of today's "boot_on" flag. 
-There can be arbitrarily long delays between system startup
-and when a driver can be loaded to turn off the regulator,
-during which power is being wasted.
+>  * Almost everywhere else in the kernel, there's only one
+>    handle (no per-client facet idiom), for which get/put
+>    works.
 
-Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
----
- drivers/regulator/core.c |    8 ++++++++
- 1 file changed, 8 insertions(+)
+Looking at things from the point of view of the consumer I just don't
+find that it makes any difference since as far as the consumer is
+concerned it's all opaque objects manipulated via an API.  I certainly
+don't experience any conceptual jar switching between this and things
+like the clock API, the patterns in clients the same especially for a
+basic consumer doing something along the lines of:
 
---- a/drivers/regulator/core.c
-+++ b/drivers/regulator/core.c
-@@ -815,6 +815,14 @@ static int set_machine_constraints(struc
- 			goto out;
- 		}
- 		rdev->use_count = 1;
-+	} else if (ops->is_enabled) {
-+		/* ... if the bootloader left it on, drivers need a
-+		 * nonzero enable count else it can't be disabled.
-+		 */
-+		ret = ops->is_enabled(rdev);
-+		if (ret > 0)
-+			rdev->use_count = 1;
-+		ret = 0;
- 	}
- 
- 	print_constraints(rdev);
+	foo = foo_get(dev, name);
+	foo_enable(foo);
+	foo_disable(foo);
+	foo_put(foo);
 
+Even once you start setting more properties in there I'm struggling to
+see the difference being visible.
+
+I feel that you are focusing too much on the implementation here, not
+the interface, but like I say I think we're just going to have to agree
+to disagree on this one.
+
+>  * The thing that *is* per-client is basically a constraint
+>    set ... but it's called a "regulator", which again is
+>    confusing.
+
+You could go for regulated_supply or something.  I think that at this
+point it's just not worth the trouble to try to change the name, though.
+
+If it helps think of the per client object as representing the
+particular physical supply to the physical device.  We could represent
+them internally as pass through regulators but since the implementation
+should still be opaque to the consumers I don't think that it's worth
+doing that unless it buys us something in the implementation.
+
+I'm not overly concerned about the implementation right now since it's
+not causing any problems and the opacity we have now for the consumers
+supports later refactoring.  Things like the issues with working with
+struct device for I2C and SPI devices seem to be causing far more
+pressing problems in actual use.
+
+> In the regulator-next tree you've now moved regulator_dev
+> into the public interface ... that's the handle to the
+> real hardware.  Sort of a hint that it can't really be
+> hidden in the way you originally thought.
+
+It's only exposed to the drivers for the regulator hardware; it's not
+visible to consumers unless they go peering into the driver API.  The
+drivers for the regulators have always had a direct handle on themselves
+for obvious reasons - the only change here is that they now know a bit
+more about the implementation.
