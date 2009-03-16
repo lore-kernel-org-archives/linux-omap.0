@@ -1,61 +1,38 @@
-From: Adrian Hunter <adrian.hunter@nokia.com>
-Subject: Re: [patch 2.6.29-rc7-omap 5/5] mmc-twl4030 uses regulator framework
-Date: Mon, 16 Mar 2009 16:44:46 +0200
-Message-ID: <49BE65DE.90205@nokia.com>
-References: <200903110518.34945.david-b@pacbell.net> <200903110524.16644.david-b@pacbell.net> <49B8CE89.2000608@nokia.com> <200903120222.02972.david-b@pacbell.net>
+From: david.hagood@gmail.com
+Subject: OpenGL ES 2.0 support under DSS2 kernel?
+Date: Mon, 16 Mar 2009 10:05:02 -0500 (CDT)
+Message-ID: <1fbf6fafac32c58f505001ce87cf0f35.squirrel@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:19592 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752270AbZCPOpS (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 16 Mar 2009 10:45:18 -0400
-In-Reply-To: <200903120222.02972.david-b@pacbell.net>
+Received: from wa-out-1112.google.com ([209.85.146.176]:63062 "EHLO
+	wa-out-1112.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752702AbZCPPFI (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 16 Mar 2009 11:05:08 -0400
+Received: by wa-out-1112.google.com with SMTP id v33so1801370wah.21
+        for <linux-omap@vger.kernel.org>; Mon, 16 Mar 2009 08:05:05 -0700 (PDT)
+Received: from localhost (localhost [127.0.0.1])
+	by Deathwish.hagood.sktc.net (Postfix) with ESMTP id 0EACEC7B8015
+	for <linux-omap@vger.kernel.org>; Mon, 16 Mar 2009 10:05:02 -0500 (CDT)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: David Brownell <david-b@pacbell.net>
-Cc: OMAP <linux-omap@vger.kernel.org>
+To: linux-omap@vger.kernel.org
 
-ext David Brownell wrote:
-> On Thursday 12 March 2009, Adrian Hunter wrote:
->>> +               }
->>>         } else {
->>> -               ret = twl_mmc_set_voltage(c, 0);
->>> +               if (c->vcc_aux)
->>> +                       ret = regulator_enable(c->vcc_aux);
->> Sorry for slow reply.  Shouldn't that be regulator_disable() ?
-> 
-> Indeed it should be.  In fact I think this probably explains
-> the failure I saw the other day, trying to go from 3.3V on one
-> chip down to 1.8V, where it failed (reasons unknown so far)
-> but the cleanup left vcc_aux active.  Got patch?  :)
-> 
-> I meant this one to be a patch/RFC ... so you could see how I
-> thought those issues should be addressed, vs the less general
-> patches you sent the other day.  Actually merging this one
-> runs into that annoying regulator framework isssue on most
-> systems.
-> 
-> - Dave
-> 
-> 
-> 
+Does anybody have any pointers on getting the kernel driver for the
+PowerVR OpenGL ES2.0 hardware working under the current Linux kernel with
+the DSS2 patches?
 
+I am trying to get accelerated X working in order to test if it will be
+able to do what I need to do.
 
-I have another problem:
+Currently the Xsgx X server won't work, as the drivers for the PowerVR
+graphics acceleration are missing from the DSS2 kernel, so that leaves me
+dead in the water.
 
+Just to be clear: I am *not* talking about power management, I am talking
+about the PowerVR graphic accelerator core for OpenGL support (yes, I am
+repeating my self redundantly, but I have had some people contact me who I
+think are confusing the two).
 
-arch/arm/mach-omap2/built-in.o: In function `twl_mmc23_set_power':
-/home/ahunter/git/lo-on-rover/arch/arm/mach-omap2/mmc-twl4030.c:282: undefined reference to `mmc_regulator_set_ocr'
-/home/ahunter/git/lo-on-rover/arch/arm/mach-omap2/mmc-twl4030.c:293: undefined reference to `mmc_regulator_set_ocr'
-arch/arm/mach-omap2/built-in.o: In function `twl_mmc1_set_power':
-/home/ahunter/git/lo-on-rover/arch/arm/mach-omap2/mmc-twl4030.c:219: undefined reference to `mmc_regulator_set_ocr'
-/home/ahunter/git/lo-on-rover/arch/arm/mach-omap2/mmc-twl4030.c:235: undefined reference to `mmc_regulator_set_ocr'
-arch/arm/mach-omap2/built-in.o: In function `twl_mmc_late_init':
-/home/ahunter/git/lo-on-rover/arch/arm/mach-omap2/mmc-twl4030.c:128: undefined reference to `mmc_regulator_get_ocrmask'
-make: *** [.tmp_vmlinux1] Error 1
-
-
-The linker is not happy with built-in code trying to call functions in a module directly.
 
