@@ -1,53 +1,45 @@
-From: Diego Dompe <diego.dompe@ridgerun.com>
-Subject: Re: OpenGL ES 2.0 support under DSS2 kernel?
-Date: Mon, 16 Mar 2009 09:09:47 -0600
-Message-ID: <96E483A8-91F2-48DE-9748-3A4F928D488E@ridgerun.com>
-References: <1fbf6fafac32c58f505001ce87cf0f35.squirrel@localhost>
-Mime-Version: 1.0 (Apple Message framework v930.3)
-Content-Type: text/plain; charset=US-ASCII; format=flowed; delsp=yes
+From: Juha Yrjola <juha.yrjola@solidboot.com>
+Subject: Re: [PATCH 02/12] ARM: OMAP3: Store reboot mode in scratchpad on
+ OMAP34xx
+Date: Mon, 16 Mar 2009 18:07:07 +0200
+Message-ID: <49BE792B.1090901@solidboot.com>
+References: <20090310205824.16425.97745.stgit@localhost> <20090310210333.16425.80205.stgit@localhost> <20090315155105.GB10786@n2100.arm.linux.org.uk>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail.navvo.net ([74.208.67.6]:52135 "EHLO mail.navvo.net"
+Received: from solidboot.com ([92.48.122.80]:48392 "EHLO rei.solidboot.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751239AbZCPQAG (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 16 Mar 2009 12:00:06 -0400
-In-Reply-To: <1fbf6fafac32c58f505001ce87cf0f35.squirrel@localhost>
+	id S1751391AbZCPQGP (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 16 Mar 2009 12:06:15 -0400
+In-Reply-To: <20090315155105.GB10786@n2100.arm.linux.org.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: david.hagood@gmail.com
-Cc: linux-omap@vger.kernel.org
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: Tony Lindgren <tony@atomide.com>, linux-arm-kernel@lists.arm.linux.org.uk, Kevin Hilman <khilman@deeprootsystems.com>, linux-omap@vger.kernel.org
 
-Take a look at the OpenEmbedded kernel for Beagleboard. It has working  
-PowerVR drivers for recent kernel.
+Russell King - ARM Linux wrote:
 
-On Mar 16, 2009, at 9:05 AM, david.hagood@gmail.com wrote:
+>> The reboot mode can be communicated to a bootloader (or the
+>> kernel itself) with a scratchpad register. This functionality
+>> is especially useful, if userspace is allowed to change
+>> the reboot mode.
+> 
+> The reason for this being...
 
-> Does anybody have any pointers on getting the kernel driver for the
-> PowerVR OpenGL ES2.0 hardware working under the current Linux kernel  
-> with
-> the DSS2 patches?
->
-> I am trying to get accelerated X working in order to test if it will  
-> be
-> able to do what I need to do.
->
-> Currently the Xsgx X server won't work, as the drivers for the PowerVR
-> graphics acceleration are missing from the DSS2 kernel, so that  
-> leaves me
-> dead in the water.
->
-> Just to be clear: I am *not* talking about power management, I am  
-> talking
-> about the PowerVR graphic accelerator core for OpenGL support (yes,  
-> I am
-> repeating my self redundantly, but I have had some people contact me  
-> who I
-> think are confusing the two).
->
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux- 
-> omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+If my other patch [1] is applied, we are able to let user space tell the 
+bootloader which mode to boot to.
 
+On the Nokia Linux mobile devices, flashing is done mostly by the 
+bootloader. If a USB host is connected at bootup, we enter a USB loop 
+with a certain timeout. The timeout is disabled when the first flashing 
+command arrives. This is no problem for Linux, but some unluckier 
+operating systems are not able to even load their drivers quickly enough.
+
+Hence, we need a way to let the bootloader know when to safely disable 
+the timeout (when the user explicitly wants to perform flashing, that is).
+
+Cheers,
+Juha
+
+[1] http://article.gmane.org/gmane.linux.ports.arm.kernel/53837
