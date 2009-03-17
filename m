@@ -1,29 +1,31 @@
-From: Adrian Hunter <adrian.hunter@nokia.com>
-Subject: Re: [patch 2.6.29-rc7-omap 5/5] mmc-twl4030 uses regulator framework
-Date: Tue, 17 Mar 2009 09:12:22 +0200
-Message-ID: <49BF4D56.2070704@nokia.com>
-References: <200903110518.34945.david-b@pacbell.net> <200903161233.06166.david-b@pacbell.net> <49BF4554.601@nokia.com> <200903170007.18908.david-b@pacbell.net>
+From: Kim Kyuwon <chammoru@gmail.com>
+Subject: [PATCH 0/3] OMAP3: PM: three fixes for OMAP3 CPU IDLE in PM branch
+Date: Tue, 17 Mar 2009 16:18:41 +0900
+Message-ID: <4d34a0a70903170018w41d02873v208ca8f3a5c48ab6@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:31725 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752493AbZCQHMH (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 17 Mar 2009 03:12:07 -0400
-In-Reply-To: <200903170007.18908.david-b@pacbell.net>
+Received: from wf-out-1314.google.com ([209.85.200.169]:55852 "EHLO
+	wf-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753766AbZCQHSn (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 17 Mar 2009 03:18:43 -0400
+Received: by wf-out-1314.google.com with SMTP id 28so2376476wfa.4
+        for <linux-omap@vger.kernel.org>; Tue, 17 Mar 2009 00:18:41 -0700 (PDT)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: David Brownell <david-b@pacbell.net>
-Cc: OMAP <linux-omap@vger.kernel.org>
+To: OMAP <linux-omap@vger.kernel.org>
+Cc: Kevin Hilman <khilman@deeprootsystems.com>, Jouni Hogander <jouni.hogander@nokia.com>, kyungmin.park@samsung.com
 
-David Brownell wrote:
-> On Monday 16 March 2009, Adrian Hunter wrote:
->> Also vsim (vmmc_aux) is not being found.
-> 
-> Elaborate please?  The regulator framework complains
-> if it's not there, even when that's not a bug.
+Hi, all
 
-Sorry, I am at home but I realise now that I did record the message:
+I'm sending three small patches for OMAP3 CPU IDLE
 
-regulator: Unable to get requested regulator: vmmc_aux
+ arch/arm/mach-omap2/cpuidle34xx.c |    6 ++++--
+ arch/arm/mach-omap2/pm34xx.c      |    5 +++--
+ 2 files changed, 7 insertions(+), 4 deletions(-)
+
+Your comments appreciated.
+
+Regards,
+Kim Kyuwon
