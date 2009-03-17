@@ -1,56 +1,55 @@
-From: Liam Girdwood <lrg@slimlogic.co.uk>
-Subject: Re: [PATCH] regulator: twl4030 VAUX3 supports 3.0V
-Date: Tue, 17 Mar 2009 11:43:09 +0000
-Message-ID: <1237290190.6781.313.camel@vega.slimlogic.co.uk>
-References: <49B11EB0.30809@nokia.com>
-	 <200903061116.21544.david-b@pacbell.net>
-	 <20090306221842.GB15728@sirena.org.uk>
-	 <200903061448.43749.david-b@pacbell.net>
-	 <1236599245.6781.86.camel@vega.slimlogic.co.uk>
-	 <49BF52F9.2030708@nokia.com>
+From: Roel Kluin <roel.kluin@gmail.com>
+Subject: [PATCH] ARM: OMAP2: possible division by 0
+Date: Tue, 17 Mar 2009 12:43:40 +0100
+Message-ID: <49BF8CEC.1000901@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from slimlogic.co.uk ([89.16.172.20]:51324 "EHLO slimlogic.co.uk"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753181AbZCQLnP (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 17 Mar 2009 07:43:15 -0400
-In-Reply-To: <49BF52F9.2030708@nokia.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.arm.linux.org.uk>
+List-Unsubscribe: <http://lists.arm.linux.org.uk/mailman/listinfo/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.arm.linux.org.uk?subject=unsubscribe>
+List-Archive: <http://lists.arm.linux.org.uk/lurker/list/linux-arm-kernel.html>
+List-Post: <mailto:linux-arm-kernel@lists.arm.linux.org.uk>
+List-Help: <mailto:linux-arm-kernel-request@lists.arm.linux.org.uk?subject=help>
+List-Subscribe: <http://lists.arm.linux.org.uk/mailman/listinfo/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.arm.linux.org.uk?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.arm.linux.org.uk
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org+linux-arm-kernel=m.gmane.org@lists.arm.linux.org.uk
+To: rmk+kernel@arm.linux.org.uk
+Cc: linux-omap@vger.kernel.org, Linux-arm <linux-arm-kernel@lists.arm.linux.org.uk>
 List-Id: linux-omap@vger.kernel.org
-To: Adrian Hunter <adrian.hunter@nokia.com>
-Cc: David Brownell <david-b@pacbell.net>, Mark Brown <broonie@sirena.org.uk>, LKML <linux-kernel@vger.kernel.org>, linux-omap Mailing List <linux-omap@vger.kernel.org>
 
-On Tue, 2009-03-17 at 09:36 +0200, Adrian Hunter wrote:
-> Liam Girdwood wrote:
-> > On Fri, 2009-03-06 at 14:48 -0800, David Brownell wrote:
-> >> On Friday 06 March 2009, Mark Brown wrote:
-> >>> Would it make sense to make this platform data so that if a given board
-> >>> requires running the chip like this it can be enabled for those boards
-> >>> but it's not something people might turn on because it seems useful?
-> >> Let's hear if it's actually needed, first.  :)
-> >>
-> >> I coded those tables so that it would be easy to kick in the
-> >> support for out-of-spec operation if it's really needed.  But
-> >> so far we don't know that it's needed, and I'd rather it not
-> >> be too easy to run like that.
-> >>
-> > 
-> > I've now reverted this patch. 
-> 
-> TI say we can use VAUX3 at 3V and expect no problems:
-> 
-> http://community.ti.com/forums/p/3777/14574.aspx
-> 
-> So how do we do it?
+In linus' git tree the functions can be found at:
+vi arch/arm/mach-omap2/usb-tusb6010.c +200	- tusb6010_platform_retime()
+vi arch/arm/mach-omap2/gpmc.c +94		- gpmc_get_fclk_period()
+vi arch/arm/mach-omap2/usb-tusb6010.c +53	- tusb_set_async_mode()
+vi arch/arm/mach-omap2/usb-tusb6010.c +111	- tusb_set_sync_mode()
 
-I'd prefer seeing the reply from Ghandar to David's last question before
-accepting this patch again. It's still not 100% clear from TI, things
-seem a little bit muddled as to whether 3V will be guaranteed to work on
-*all* shipped devices.
+is -ENODEV appropriate when sysclk_ps == 0?
 
-Thanks
+This was found by code analysis, please review.
+------------------------------>8-------------8<---------------------------------
+gpmc_get_fclk_period() may return 0 when gpmc_l3_clk is not enabled. This is
+not checked in tusb6010_platform_retime() nor in tusb_set_async_mode() it
+seems. In tusb_set_sync_mode() this may result in a division by zero.
 
-Liam
+Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
+---
+diff --git a/arch/arm/mach-omap2/usb-tusb6010.c b/arch/arm/mach-omap2/usb-tusb6010.c
+index 15e5090..8df55f4 100644
+--- a/arch/arm/mach-omap2/usb-tusb6010.c
++++ b/arch/arm/mach-omap2/usb-tusb6010.c
+@@ -187,7 +187,7 @@ int tusb6010_platform_retime(unsigned is_refclk)
+ 	unsigned	sysclk_ps;
+ 	int		status;
+ 
+-	if (!refclk_psec)
++	if (!refclk_psec || sysclk_ps == 0)
+ 		return -ENODEV;
+ 
+ 	sysclk_ps = is_refclk ? refclk_psec : TUSB6010_OSCCLK_60;
 
+-------------------------------------------------------------------
+List admin: http://lists.arm.linux.org.uk/mailman/listinfo/linux-arm-kernel
+FAQ:        http://www.arm.linux.org.uk/mailinglists/faq.php
+Etiquette:  http://www.arm.linux.org.uk/mailinglists/etiquette.php
