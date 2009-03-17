@@ -1,76 +1,128 @@
-From: "Menon, Nishanth" <nm@ti.com>
-Subject: RE: [PATCH] tidspbridge: remove revision history
-Date: Tue, 17 Mar 2009 04:40:42 -0500
-Message-ID: <7A436F7769CA33409C6B44B358BFFF0CFF5A49BC@dlee02.ent.ti.com>
+From: Felipe Contreras <felipe.contreras@gmail.com>
+Subject: Re: [PATCH] tidspbridge: remove revision history
+Date: Tue, 17 Mar 2009 12:20:44 +0200
+Message-ID: <94a0d4530903170320g7fc8eef5t4b8da6ab7e768a56@mail.gmail.com>
 References: <1237241138-4516-1-git-send-email-felipe.contreras@gmail.com>
 	 <7A436F7769CA33409C6B44B358BFFF0CFF5A499A@dlee02.ent.ti.com>
- <94a0d4530903170216x4253ee07r6fdfb38cfccce78d@mail.gmail.com>
+	 <94a0d4530903170216x4253ee07r6fdfb38cfccce78d@mail.gmail.com>
+	 <7A436F7769CA33409C6B44B358BFFF0CFF5A49BC@dlee02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:36293 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756882AbZCQJkz (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 17 Mar 2009 05:40:55 -0400
-In-Reply-To: <94a0d4530903170216x4253ee07r6fdfb38cfccce78d@mail.gmail.com>
-Content-Language: en-US
+Received: from mail-fx0-f176.google.com ([209.85.220.176]:64690 "EHLO
+	mail-fx0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753535AbZCQKUr convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 17 Mar 2009 06:20:47 -0400
+Received: by fxm24 with SMTP id 24so3855399fxm.37
+        for <linux-omap@vger.kernel.org>; Tue, 17 Mar 2009 03:20:44 -0700 (PDT)
+In-Reply-To: <7A436F7769CA33409C6B44B358BFFF0CFF5A49BC@dlee02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Contreras <felipe.contreras@gmail.com>
+To: "Menon, Nishanth" <nm@ti.com>
 Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Kanigeri, Hari" <h-kanigeri2@ti.com>, Hiroshi DOYU <hiroshi.doyu@nokia.com>, Ameya Palande <ameya.palande@nokia.com>, "Guzman Lugo, Fernando" <x0095840@ti.com>
 
-SGkgRmVsaXBlLA0KPiAtLS0tLU9yaWdpbmFsIE1lc3NhZ2UtLS0tLQ0KPiBGcm9tOiBGZWxpcGUg
-Q29udHJlcmFzIFttYWlsdG86ZmVsaXBlLmNvbnRyZXJhc0BnbWFpbC5jb21dDQo+IFNlbnQ6IFR1
-ZXNkYXksIE1hcmNoIDE3LCAyMDA5IDExOjE3IEFNDQo+IFRvOiBNZW5vbiwgTmlzaGFudGgNCj4g
-Q2M6IGxpbnV4LW9tYXBAdmdlci5rZXJuZWwub3JnOyBLYW5pZ2VyaSwgSGFyaTsgSGlyb3NoaSBE
-T1lVOyBBbWV5YQ0KPiBQYWxhbmRlOyBHdXptYW4gTHVnbywgRmVybmFuZG8NCj4gU3ViamVjdDog
-UmU6IFtQQVRDSF0gdGlkc3BicmlkZ2U6IHJlbW92ZSByZXZpc2lvbiBoaXN0b3J5DQo+IA0KPiA+
-PiAtICohIFJldmlzaW9uIEhpc3Rvcnk6DQo+ID4+IC0gKiEgPT09PT09PT09PT09PT09PQ0KPiA+
-PiAtICohIDI0LUZlYi0yMDAzIHZwOiBDb2RlIFJldmlldyBVcGRhdGVzLg0KPiA+PiAtICohIDE4
-LU9jdC0yMDAyIHNiOiBQb3J0ZWQgdG8gTGludXggcGxhdGZvcm0uDQo+ID4+IC0gKiEgMDMtSnVs
-LTIwMDEgcnI6IFJlbW92ZWQga2Z1bmNzLmggYmVjYXVzZSBvZiBidWlsZCBlcnJvcnMuDQo+ID4+
-IC0gKiEgMDctRGVjLTE5OTkgYWc6IEZ4biBlcnJvciBub3cgY2F1c2VzIGEgV2luQ0UgRGVidWdC
-cmVhazsNCj4gPj4gLSAqISAzMC1BdWctMTk5OSBhZzogTm93IHVzZXMgR1BfcHJpbnRmIGZvciBw
-cmludGYgYW5kIGVycm9yLg0KPiA+PiAtICohDQo+ID4gQnV0IHdlIGRpZCBub3QgaGF2ZSBnaXQg
-aGlzdG9yeSAxOTk5LTIwMDMuIHdlIHBsYW5uaW5nIG9uIGxvb3NpbmcgdGhlc2UNCj4gY29udHJp
-YnM/DQo+IA0KPiBPbmx5IGlmIHlvdSB3YW50IGRzcGJyaWRnZSB0byBiZSBtZXJnZWQgd2hpY2gg
-YXMgdGltZSBwYXNzZXMgaXQncw0KPiBiZWNvbWluZyBtb3JlIGNsZWFyIHRoYXQgeW91IGRvbid0
-LiBJJ20gbm90IGEga2VybmVsIGRldmVsb3BlciwgYnV0IEkNCkVycnIuLiBOb3QgbXkgYXR0ZW1w
-dCBhdCBhIGZsYW1lIHdhciA7KS4uIEJ1dCB0aGVuLCBJIGFtIG5vdCBzdXJlIGlmIG15IGNvbW1l
-bnQgbWVhbnQgYW55dGhpbmcgb2YgdGhlIHNvcnQgOikuLi4NCg0KPiB3b3VsZCBjaGFsbGVuZ2Ug
-eW91IHRvIGZpbmQgYSBkaXZlciB0aGF0IGhhcyAxMDAwIGxpbmVzIG9mIHJldmlzaW9uDQo+IGhp
-c3RvcnkgaW4gdGhlIHNvdXJjZSBjb2RlLg0KPHNuaXA+DQo+IA0KPiA+PiAtICohIDMwLUF1Zy0x
-OTk5IGFnOiBOb3cgdXNlcyBHUF9wcmludGYgZm9yIHByaW50ZiBhbmQgZXJyb3IuDQo+IA0KPiBO
-b3QgcHJpbnRrPyBJIGFzc3VtZSB0aGlzIGlzIG5vdCByZWxhdGVkIHRvIExpbnV4IHRoZW4uDQo+
-IA0KPiANCj4gQXJlIHdlIGdvaW5nIHRvIGZpbmQgYW4gaXNzdWUgYXQgc29tZSBwb2ludCBpbiB0
-aW1lIHRoYXQgd2UnbGwgc2F5OiBvaA0KPiBjcmFwISBpZiBvbmx5IHdlIGhhZCB0aGUgcmV2aXNp
-b24gaGlzdG9yeSBsb2cgd2UgY291bGQgc29sdmUgaXQhDQpFcnJyLi4uIGluIHRoZSBvbGQgdGlt
-ZXMgb2YgY3ZzIGtlcm5lbCwgYmVmb3JlIHdlIHNoaWZ0ZWQgdG8gYml0a2VlcGVyIGFuZCBsYXRl
-ciB0byBnaXQsIHJldiBoaXN0b3J5IHdhcyB1bmZvcnR1bmF0ZWx5IG5lY2Vzc2FyeSB0byBtYWlu
-dGFpbiBzb21lIHNvcnQgb2YgYWNrbm93bGVkZ2VtZW50IG9mIGNvbnRyaWJ1dGlvbnMuIEp1c3Qg
-Z3JlcGluZyBsaW51eC1vbWFwIG1hc3RlciBicmFuY2ggIiBncmVwIC1SaSAiUmV2aXNpb24gSGlz
-dG9yeSIgZHJpdmVycy98Y3V0IC1kICI6IiAtZjF8d2MgLWwiIHNob3dzIG1lIDIyNyBmaWxlcyBv
-ZiBzaW1pbGFyIGRyaXZlcnMtIGxlZ2FjeSAgLSBhZ3JlZWQuIEkgdGhpbmsgYnJpZGdlIGlzIGlu
-IHN1Y2ggYSBsZWdhY3kgZHJpdmVyLg0KDQpJZiBhbnkgbmV3IGNoYW5nZXMgYXJlIGRvbmUsIGl0
-IG1ha2VzIG5vIHNlbnNlIHRvIGludHJvZHVjZSBhbiBlbnRyeSBpbiB0aGUgcmV2aXNpb24gaGlz
-dG9yeSAtIGFncmVlZC4gVGhlc2UgZHJpdmVyIGZpbGVzIGhhdmUgYSBoaXN0b3J5IGFuZCBmb2xr
-cyBoYXZlIGRvbmUgc29tZSB3b3JrIHRvIG1ha2UgaXQgdXNlZnVsLCB0byByZW1vdmUgdGhlaXIg
-Y29udHJpYnV0aW9ucyB3b3VsZCBiZSwgSU1ITywgb3VyIGRpc3JlZ2FyZCBmb3Igd2hhdCBldmVy
-IHRoZXkgZGlkIChnb29kIG9yIGJhZCkuLiA7KSBCdXQgdGhlbiwgdGhhdCBpcyBqdXN0IG15IG9w
-aW5pb24uLg0KDQpOb3RlOiBUaGVyZSBhcmUgZm9sa3Mgd2hvc2UgY29udHJpYnV0aW9ucyBhcmUg
-cmVkdWNlZCB0byAidnAiICJyciIgInNwIiBldGMuLiBJIHBlcnNvbmFsbHkgaGF2ZSBubyBjbHVl
-IHdobyB0aGV5IGFyZSBidXQgSSBndWVzcyB0aGV5IHdvdWxkIHJhdGhlciBiZSBpbiBnaXQgbG9n
-IHRoYW4gaW4gYW5vbnltb3VzIGluaXRpYWxzIGlmIGdpdmVuIGEgY2hvaWNlIHRvZGF5Li4NCg0K
-PiANCj4gSSBkb3VidCB0aGF0LCB0aGUgcmV2aXNpb24gaGlzdG9yeSBpcyB1c2VsZXNzIHdpdGhv
-dXQgdGhlIGFjdHVhbA0KPiBjaGFuZ2VzLiBUaGVzZSBsaW5lcyBhcmUganVzdCBpbnRyb2R1Y2lu
-ZyBub2lzZS4NCj4gDQoNCkRTUEJyaWRnZSBoYXMgZGVmaW5pdGVseSBhIGxvbmcgd2F5IHRvIGdv
-IGJlZm9yZSBiZWluZyBtZXJnZWQgaW50byBtYWlubGluZSBrZXJuZWwuIENvZGluZyBzdGFuZGFy
-ZCBpcyBvbmUgcGFydCBvZiB0aGUgc3RvcnkuIElzIHRoaXMgcGFydCBvZiBhIGNvZGUgY2xlYW51
-cCBlZmZvcnQgdG8gcHJlcCB0aGUgY29kZSBmb3IgbWVyZ2UgdG8ga2VybmVsPyBJIHRoaW5rIEkg
-aGF2ZSBzZWVuIHRvbnMgb2YgZGlzY3Vzc2lvbiBvbiB0aGlzIHByZXZpb3VzbHkuLiBJZiB3ZSBh
-cmUgcGxhbm5pbmcgb24gcHJlcHBpbmcgdGhpcyBkcml2ZXIgZm9yIG1haW5saW5lIGludGVncmF0
-aW9uIHRoYXQgaXMgYW5vdGhlciBkaXNjdXNzaW9uIGFuZCB0aGlzIHBhdGNoIHByb2JhYmx5IGlz
-IGEgdGlueSBmcmFnbWVudCB0byB0aGF0LiBUaGUgYnVuY2ggb2YgaGlzdG9yeSBzdGFydHMgYXQg
-WzFdIHRob3VnaC4uDQoNClJlZ2FyZHMsDQpOaXNoYW50aCBNZW5vbg0KDQpSZWY6DQpbMV0gaHR0
-cDovL21hcmMuaW5mby8/bD1saW51eC1vbWFwJnc9NCZyPTEwJnM9ZHNwYnJpZGdlJnE9Yg0K
+On Tue, Mar 17, 2009 at 11:40 AM, Menon, Nishanth <nm@ti.com> wrote:
+> Hi Felipe,
+>> -----Original Message-----
+>> From: Felipe Contreras [mailto:felipe.contreras@gmail.com]
+>> Sent: Tuesday, March 17, 2009 11:17 AM
+>> To: Menon, Nishanth
+>> Cc: linux-omap@vger.kernel.org; Kanigeri, Hari; Hiroshi DOYU; Ameya
+>> Palande; Guzman Lugo, Fernando
+>> Subject: Re: [PATCH] tidspbridge: remove revision history
+>>
+>> >> - *! Revision History:
+>> >> - *! =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+>> >> - *! 24-Feb-2003 vp: Code Review Updates.
+>> >> - *! 18-Oct-2002 sb: Ported to Linux platform.
+>> >> - *! 03-Jul-2001 rr: Removed kfuncs.h because of build errors.
+>> >> - *! 07-Dec-1999 ag: Fxn error now causes a WinCE DebugBreak;
+>> >> - *! 30-Aug-1999 ag: Now uses GP_printf for printf and error.
+>> >> - *!
+>> > But we did not have git history 1999-2003. we planning on loosing =
+these
+>> contribs?
+>>
+>> Only if you want dspbridge to be merged which as time passes it's
+>> becoming more clear that you don't. I'm not a kernel developer, but =
+I
+> Errr.. Not my attempt at a flame war ;).. But then, I am not sure if =
+my comment meant anything of the sort :)...
+
+Contrary to what it might seem I'm not attempting a flame war either.
+
+It's not because of your comment, it's because TI has been very slow
+cleaning up the driver and reluctant of integrating clean-up patches.
+
+It seems to me as if TI thinks this driver is just fine, which is
+clearly not the case.
+
+>> would challenge you to find a diver that has 1000 lines of revision
+>> history in the source code.
+> <snip>
+>>
+>> >> - *! 30-Aug-1999 ag: Now uses GP_printf for printf and error.
+>>
+>> Not printk? I assume this is not related to Linux then.
+>>
+>>
+>> Are we going to find an issue at some point in time that we'll say: =
+oh
+>> crap! if only we had the revision history log we could solve it!
+> Errr... in the old times of cvs kernel, before we shifted to bitkeepe=
+r and later to git, rev history was unfortunately necessary to maintain=
+ some sort of acknowledgement of contributions. Just greping linux-omap=
+ master branch " grep -Ri "Revision History" drivers/|cut -d ":" -f1|wc=
+ -l" shows me 227 files of similar drivers- legacy =C2=A0- agreed. I th=
+ink bridge is in such a legacy driver.
+
+That shows me 31 files, none of which have more than a couple hundred
+lines, that is of course on linux mainline.
+
+BTW this is faster:
+git grep -i -l "Revision History" -- drivers/ | wc -l
+
+> If any new changes are done, it makes no sense to introduce an entry =
+in the revision history - agreed. These driver files have a history and=
+ folks have done some work to make it useful, to remove their contribut=
+ions would be, IMHO, our disregard for what ever they did (good or bad)=
+=2E. ;) But then, that is just my opinion..
+>
+> Note: There are folks whose contributions are reduced to "vp" "rr" "s=
+p" etc.. I personally have no clue who they are but I guess they would =
+rather be in git log than in anonymous initials if given a choice today=
+=2E.
+
+Contributors can be specified as such: a contributors section at the
+top. No need to keep the revision history just for that.
+
+>> I doubt that, the revision history is useless without the actual
+>> changes. These lines are just introducing noise.
+>>
+>
+> DSPBridge has definitely a long way to go before being merged into ma=
+inline kernel. Coding standard is one part of the story. Is this part o=
+f a code cleanup effort to prep the code for merge to kernel? I think I=
+ have seen tons of discussion on this previously.. If we are planning o=
+n prepping this driver for mainline integration that is another discuss=
+ion and this patch probably is a tiny fragment to that. The bunch of hi=
+story starts at [1] though..
+
+I'm interested on getting this into the mainline so I took the
+simplest of my cleanup patches and the one I thought would be less
+controversial.
+
+If TI does not intend to submit this to mainline it would be nice to
+say so, that way the people interested can stop waiting and take
+action.
+
+I myself am tired of waiting.
+
+--=20
+=46elipe Contreras
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
