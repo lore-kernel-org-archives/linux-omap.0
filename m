@@ -1,52 +1,45 @@
 From: "Menon, Nishanth" <nm@ti.com>
-Subject: RE: [PATCH] tidspbridge: remove revision history
-Date: Mon, 16 Mar 2009 23:50:10 -0500
-Message-ID: <7A436F7769CA33409C6B44B358BFFF0CFF5A499A@dlee02.ent.ti.com>
-References: <1237241138-4516-1-git-send-email-felipe.contreras@gmail.com>
+Subject: dma_alloc_coherent fragmentation
+Date: Tue, 17 Mar 2009 01:16:55 -0500
+Message-ID: <7A436F7769CA33409C6B44B358BFFF0CFF5A49A8@dlee02.ent.ti.com>
+References: <87sklh1ki5.fsf@deeprootsystems.com>
+	 <EAF47CD23C76F840A9E7FCE10091EFAB02A8FD141D@dbde02.ent.ti.com>
+	 <7A436F7769CA33409C6B44B358BFFF0CFF5A4274@dlee02.ent.ti.com>
+ <269694c00903161029x37c44fe8q9e550b7b81b01913@mail.gmail.com>
+ <7A436F7769CA33409C6B44B358BFFF0CFF5A46E5@dlee02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:52663 "EHLO arroyo.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:46955 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753217AbZCQEuZ convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 17 Mar 2009 00:50:25 -0400
-In-Reply-To: <1237241138-4516-1-git-send-email-felipe.contreras@gmail.com>
+	id S1752090AbZCQGRO (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 17 Mar 2009 02:17:14 -0400
+In-Reply-To: <7A436F7769CA33409C6B44B358BFFF0CFF5A46E5@dlee02.ent.ti.com>
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Contreras <felipe.contreras@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
-Cc: "Kanigeri, Hari" <h-kanigeri2@ti.com>, Hiroshi DOYU <hiroshi.doyu@nokia.com>, Ameya Palande <ameya.palande@nokia.com>, "Guzman Lugo, Fernando" <x0095840@ti.com>
+To: "linux-arm-kernel@lists.arm.linux.org.uk" <linux-arm-kernel@lists.arm.linux.org.uk>
+Cc: "Gupta, Ramesh" <grgupta@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Ramirez Luna, Omar" <x00omar@ti.com>, "Kanigeri, Hari" <h-kanigeri2@ti.com>, Ameya Palande <ameya.palande@nokia.com>, "Guzman Lugo, Fernando" <x0095840@ti.com>, Ameya Palande <2ameya@gmail.com>
 
-> -----Original Message-----
-> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
-> owner@vger.kernel.org] On Behalf Of Felipe Contreras
-> Sent: Tuesday, March 17, 2009 12:06 AM
-> To: linux-omap@vger.kernel.org
-> Cc: Kanigeri, Hari; Hiroshi DOYU; Ameya Palande; Guzman Lugo, Fernando;
-> Felipe Contreras
-> Subject: [PATCH] tidspbridge: remove revision history
-> 
-> No need for that with git.
-> diff --git a/drivers/dsp/bridge/gen/_gt_para.c
-> b/drivers/dsp/bridge/gen/_gt_para.c
-> index 181fe41..b363590 100644
-> --- a/drivers/dsp/bridge/gen/_gt_para.c
-> +++ b/drivers/dsp/bridge/gen/_gt_para.c
-> @@ -24,14 +24,6 @@
->   *      etc. into a fully bound image.  Thus, GT_assert() can be retained
-> in
->   *      a program for which GT_?trace() has been compiled out.
->   *
-> - *! Revision History:
-> - *! ================
-> - *! 24-Feb-2003 vp: Code Review Updates.
-> - *! 18-Oct-2002 sb: Ported to Linux platform.
-> - *! 03-Jul-2001 rr: Removed kfuncs.h because of build errors.
-> - *! 07-Dec-1999 ag: Fxn error now causes a WinCE DebugBreak;
-> - *! 30-Aug-1999 ag: Now uses GP_printf for printf and error.
-> - *!
-But we did not have git history 1999-2003. we planning on loosing these contribs?
-
-Regards,
-Nishanth Menon
+TG9vcGluZyBpbiBsaW51eC1hcm0gTUw6DQoNCkRpc2N1c3Npb24gUmVmOiBbMV0obGludXgtb21h
+cCBtYWlsaW5nIGxpc3QpDQpXaGlsZSB3b3JraW5nIHdpdGggTGludXggT01BUCBrZXJuZWxbMl0g
+d2UgZm91bmQgdGhhdCBvbiBhbGxvY2F0aW5nIDQgbWVnIGNodW5rcyB1c2luZyBkbWFfYWxsb2Nf
+Y29oZXJlbnQgYW5kIGRlLWFsbG9jYXRpbmcgd2l0aCBkbWFfZnJlZV9jb2hlcmVudCBpbiBhIGxv
+b3AgdXNpbmcgYSB0ZXN0IGRyaXZlcls3XSwgdGhlIG1lbW9yeSBpcyBnZXR0aW5nIGZyYWdtZW50
+ZWQgYXMgc2hvd24gYnkgQW1leWEncyBvYnNlcnZhdGlvbiBbM10gZmluYWxseSByZXN1bHRpbmcg
+aW4gZHVtcF9zdGFjayBkdWUgdG8gbGFjayBvZiBwYWdlcy4NCg0KU2VhcmNoaW5nIHRocm91Z2gg
+cHJldmlvdXMgYXJjaGl2ZXMsIGZvdW5kIFs0XSB3aGljaCBzZWVtIHRvIGltcGx5IHRoYXQgYWxs
+b2NhdGluZyBjaHVua3MgZ3JlYXRlciB0aGFuIDEgcGFnZSBjb3VsZCBjYXVzZSBmcmFnbWVudGF0
+aW9uLg0KDQpJIHdvbmRlciB3aHkgd2Ugc2VlIHRoaXMgZXZlbiBpZiB3ZSBhbGxvY2F0ZSBhbmQg
+ZnJlZSB0aGUgbWVtb3J5IGluIHNlcXVlbmNlIGFzIGluIFs1XS4gVGhpcyBzZWVtcyB0byBoYXBw
+ZW4gb24gMi42LjI4IGFuZCAyLjYuMjkgYnV0IG5vdCBvbiB0aGUgMi42LjI3IGJhc2VkIGtlcm5l
+bFs2XS4NCg0KUmVnYXJkcywNCk5pc2hhbnRoIE1lbm9uDQoNClJlZjoNClsxXSBodHRwOi8vbWFy
+Yy5pbmZvLz90PTEyMzcxOTc3OTEwMDAwMiZyPTEmdz0yDQpbMl0gaHR0cDovL2dpdC5rZXJuZWwu
+b3JnLz9wPWxpbnV4L2tlcm5lbC9naXQvdG1saW5kL2xpbnV4LW9tYXAtMi42LmdpdA0KWzNdIGh0
+dHA6Ly9tYXJjLmluZm8vP2w9bGludXgtb21hcCZtPTEyMzcyMjQ2MDAyMjMzNiZ3PTINCls0XSBo
+dHRwOi8vbGttbC5pbmRpYW5hLmVkdS9oeXBlcm1haWwvbGludXgva2VybmVsLzA3MDYuMC8wMzcw
+Lmh0bWwgDQpbNV0gaHR0cDovL21hcmMuaW5mby8/bD1saW51eC1vbWFwJm09MTIzNzE5NzcyODEx
+NzQ2Jnc9Mg0KWzZdIGh0dHA6Ly9naXQub21hcHpvb20uY29tLz9wPXJlcG8vb21hcGtlcm5lbC5n
+aXQ7DQpbN10gaHR0cDovL21hcmMuaW5mby8/bD1saW51eC1vbWFwJm09MTIzNzE5NzcyODExNzQ2
+JnE9cDMgDQo=
