@@ -1,43 +1,60 @@
-From: "Menon, Nishanth" <nm@ti.com>
-Subject: RE: [PATCH] tidspbridge: remove revision history
-Date: Tue, 17 Mar 2009 08:43:59 -0500
-Message-ID: <7A436F7769CA33409C6B44B358BFFF0CFF5A4AB6@dlee02.ent.ti.com>
-References: <1237241138-4516-1-git-send-email-felipe.contreras@gmail.com>
-	 <7A436F7769CA33409C6B44B358BFFF0CFF5A499A@dlee02.ent.ti.com>
-	 <94a0d4530903170216x4253ee07r6fdfb38cfccce78d@mail.gmail.com>
-	 <7A436F7769CA33409C6B44B358BFFF0CFF5A49BC@dlee02.ent.ti.com>
- <94a0d4530903170320g7fc8eef5t4b8da6ab7e768a56@mail.gmail.com>
- <8F7AF80515AF0D4D93307E594F3CB40E233202C9@dlee03.ent.ti.com>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: Embedded Linux Conference
+Date: Tue, 17 Mar 2009 07:50:16 -0700
+Message-ID: <49BFB8A8.3080201@deeprootsystems.com>
+References: <200903051749.13016.hverkuil@xs4all.nl> <20090316225653.GP19229@atomide.com> <5e088bd90903161714y45918d6cn9e81cd73db1ebbac@mail.gmail.com> <200903170809.10467.hverkuil@xs4all.nl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:57041 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751493AbZCQNoM convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 17 Mar 2009 09:44:12 -0400
-In-Reply-To: <8F7AF80515AF0D4D93307E594F3CB40E233202C9@dlee03.ent.ti.com>
-Content-Language: en-US
+Received: from yw-out-2324.google.com ([74.125.46.28]:14757 "EHLO
+	yw-out-2324.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751700AbZCQOuX (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 17 Mar 2009 10:50:23 -0400
+In-Reply-To: <200903170809.10467.hverkuil@xs4all.nl>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Kanigeri, Hari" <h-kanigeri2@ti.com>, Felipe Contreras <felipe.contreras@gmail.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Hiroshi DOYU <hiroshi.doyu@nokia.com>, Ameya Palande <ameya.palande@nokia.com>, "Guzman Lugo, Fernando" <x0095840@ti.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Steve Sakoman <sakoman@gmail.com>, Tony Lindgren <tony@atomide.com>, linux-media@vger.kernel.org, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Manjunath Hadli <mrh@ti.com>, "DongSoo(Nathaniel) Kim" <dongsoo.kim@gmail.com>, "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>, "Hiremath, Vaibhav" <hvaibhav@ti.com>
 
+Hans Verkuil wrote:
+> On Tuesday 17 March 2009 01:14:28 Steve Sakoman wrote:
+>> On Mon, Mar 16, 2009 at 3:56 PM, Tony Lindgren <tony@atomide.com> wrote:
+>>> * Kevin Hilman <khilman@deeprootsystems.com> [090316 15:52]:
+>>>> Hans Verkuil <hverkuil@xs4all.nl> writes:
+>>>>> Just FYI:
+>>>>>
+>>>>> I'll be attending the Embedded Linux Conference in San Francisco,
+>>>>> April 6th-8th (http://www.embeddedlinuxconference.com/elc_2009).
+>>>>>
+>>>>> This might be a good opportunity to discuss omap and davinci V4L2
+>>>>> issues face-to-face. Let me know if you are interested.
+>>>> I will be there as well, and while not directly involved with V4L2,
+>>>> I'm involved in various parts of getting OMAP and DaVinci devices
+>>>> supported in mainline kernels.
+>>> Yeah I'll be in town too and will be dropping by at the conf
+>>> here and there.
+>>>
+>>> Maybe let's arrange something to get some beers one night during
+>>> the conf?
+>> I'll be there too.  How about Wednesday evening for beers?
+>>
+>> Steve
+> 
+> On Wednesday evening there is the 'social event', which means free food and 
+> beer :-). So I'd say that evening is covered.
+> 
+> However, I'd welcome dinner on Sunday evening. Having arrived that day from 
+> Europe I won't be a sparkling conversationalist but it beats having dinner 
+> by your own and gives us a chance to meet one another.
+> 
 
-> -----Original Message-----
-> From: Kanigeri, Hari
-> Sent: Tuesday, March 17, 2009 3:32 PM
-> To: Felipe Contreras; Menon, Nishanth
-> Cc: linux-omap@vger.kernel.org; Hiroshi DOYU; Ameya Palande; Guzman Lugo,
-> Fernando
-> Subject: RE: [PATCH] tidspbridge: remove revision history
-> 
-> 
-> > Contributors can be specified as such: a contributors section
-> > at the top. No need to keep the revision history just for that.
-> 
-> -- This looks like the way to go.
-Ack, I think we could collate those in revision history to Contributor's section?
+I won't be arriving until late Sunday night, and I imagine others may be 
+arrving Monday morning.
 
-Regards,
-Nishanth Menon
+How about Monday night after the Dinner (ends at 7pm [1]) we meet for 
+beers.  I'll let someone local (Tony) pick the venue.
+
+Kevin
+
+[1] http://www.embeddedlinuxconference.com/elc_2009/program.html
