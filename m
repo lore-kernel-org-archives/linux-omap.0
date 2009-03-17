@@ -1,60 +1,55 @@
 From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: Embedded Linux Conference
-Date: Tue, 17 Mar 2009 07:50:16 -0700
-Message-ID: <49BFB8A8.3080201@deeprootsystems.com>
-References: <200903051749.13016.hverkuil@xs4all.nl> <20090316225653.GP19229@atomide.com> <5e088bd90903161714y45918d6cn9e81cd73db1ebbac@mail.gmail.com> <200903170809.10467.hverkuil@xs4all.nl>
+Subject: Re: [PATCH 2/3] OMAP3: PM: Remove double assignments of mpu_pd, core_pd
+Date: Tue, 17 Mar 2009 07:53:35 -0700
+Message-ID: <87zlfkfbf4.fsf@deeprootsystems.com>
+References: <4d34a0a70903170025y9256732xff9b811fa803f2b0@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from yw-out-2324.google.com ([74.125.46.28]:14757 "EHLO
+Received: from yw-out-2324.google.com ([74.125.46.31]:24240 "EHLO
 	yw-out-2324.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751700AbZCQOuX (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 17 Mar 2009 10:50:23 -0400
-In-Reply-To: <200903170809.10467.hverkuil@xs4all.nl>
+	with ESMTP id S1752100AbZCQOxl (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 17 Mar 2009 10:53:41 -0400
+Received: by yw-out-2324.google.com with SMTP id 3so19716ywj.1
+        for <linux-omap@vger.kernel.org>; Tue, 17 Mar 2009 07:53:38 -0700 (PDT)
+In-Reply-To: <4d34a0a70903170025y9256732xff9b811fa803f2b0@mail.gmail.com> (Kim Kyuwon's message of "Tue\, 17 Mar 2009 16\:25\:44 +0900")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Steve Sakoman <sakoman@gmail.com>, Tony Lindgren <tony@atomide.com>, linux-media@vger.kernel.org, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Manjunath Hadli <mrh@ti.com>, "DongSoo(Nathaniel) Kim" <dongsoo.kim@gmail.com>, "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>, "Hiremath, Vaibhav" <hvaibhav@ti.com>
+To: Kim Kyuwon <chammoru@gmail.com>
+Cc: OMAP <linux-omap@vger.kernel.org>, q1.kim@samsung.com, Jouni Hogander <jouni.hogander@nokia.com>, kyungmin.park@samsung.com
 
-Hans Verkuil wrote:
-> On Tuesday 17 March 2009 01:14:28 Steve Sakoman wrote:
->> On Mon, Mar 16, 2009 at 3:56 PM, Tony Lindgren <tony@atomide.com> wrote:
->>> * Kevin Hilman <khilman@deeprootsystems.com> [090316 15:52]:
->>>> Hans Verkuil <hverkuil@xs4all.nl> writes:
->>>>> Just FYI:
->>>>>
->>>>> I'll be attending the Embedded Linux Conference in San Francisco,
->>>>> April 6th-8th (http://www.embeddedlinuxconference.com/elc_2009).
->>>>>
->>>>> This might be a good opportunity to discuss omap and davinci V4L2
->>>>> issues face-to-face. Let me know if you are interested.
->>>> I will be there as well, and while not directly involved with V4L2,
->>>> I'm involved in various parts of getting OMAP and DaVinci devices
->>>> supported in mainline kernels.
->>> Yeah I'll be in town too and will be dropping by at the conf
->>> here and there.
->>>
->>> Maybe let's arrange something to get some beers one night during
->>> the conf?
->> I'll be there too.  How about Wednesday evening for beers?
->>
->> Steve
-> 
-> On Wednesday evening there is the 'social event', which means free food and 
-> beer :-). So I'd say that evening is covered.
-> 
-> However, I'd welcome dinner on Sunday evening. Having arrived that day from 
-> Europe I won't be a sparkling conversationalist but it beats having dinner 
-> by your own and gives us a chance to meet one another.
-> 
+Kim Kyuwon <chammoru@gmail.com> writes:
 
-I won't be arriving until late Sunday night, and I imagine others may be 
-arrving Monday morning.
+> mpu_pd, core_pd is already assigned at the beginning of the
+> omap3_idle_init() function.
+>
+> Signed-off-by: Kim Kyuwon <q1.kim@samsung.com>
 
-How about Monday night after the Dinner (ends at 7pm [1]) we meet for 
-beers.  I'll let someone local (Tony) pick the venue.
+Thanks, pushing to PM branch.
 
 Kevin
 
-[1] http://www.embeddedlinuxconference.com/elc_2009/program.html
+> ---
+>  arch/arm/mach-omap2/cpuidle34xx.c |    2 --
+>  1 files changed, 0 insertions(+), 2 deletions(-)
+>
+> diff --git a/arch/arm/mach-omap2/cpuidle34xx.c
+> b/arch/arm/mach-omap2/cpuidle34xx.c
+> index 5e50c46..630108c 100644
+> --- a/arch/arm/mach-omap2/cpuidle34xx.c
+> +++ b/arch/arm/mach-omap2/cpuidle34xx.c
+> @@ -272,8 +272,6 @@ int omap3_idle_init(void)
+>  		       __func__);
+>  		return -EIO;
+>  	}
+> -	mpu_pd = pwrdm_lookup("mpu_pwrdm");
+> -	core_pd = pwrdm_lookup("core_pwrdm");
+>  	return 0;
+>  }
+>  #endif /* CONFIG_CPU_IDLE */
+> -- 
+> 1.5.2.5
+>
+>
+> -- 
+> Kyuwon
