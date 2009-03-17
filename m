@@ -1,50 +1,52 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: Embedded Linux Conference
-Date: Mon, 16 Mar 2009 18:00:55 -0700
-Message-ID: <20090317010055.GQ19229@atomide.com>
-References: <200903051749.13016.hverkuil@xs4all.nl> <87myblgjye.fsf@deeprootsystems.com> <20090316225653.GP19229@atomide.com> <5e088bd90903161714y45918d6cn9e81cd73db1ebbac@mail.gmail.com>
+From: "Menon, Nishanth" <nm@ti.com>
+Subject: RE: [PATCH] tidspbridge: remove revision history
+Date: Mon, 16 Mar 2009 23:50:10 -0500
+Message-ID: <7A436F7769CA33409C6B44B358BFFF0CFF5A499A@dlee02.ent.ti.com>
+References: <1237241138-4516-1-git-send-email-felipe.contreras@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-bos.mailhop.org ([63.208.196.178]:52448 "EHLO
-	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751339AbZCQBA5 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 16 Mar 2009 21:00:57 -0400
-Content-Disposition: inline
-In-Reply-To: <5e088bd90903161714y45918d6cn9e81cd73db1ebbac@mail.gmail.com>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:52663 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753217AbZCQEuZ convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 17 Mar 2009 00:50:25 -0400
+In-Reply-To: <1237241138-4516-1-git-send-email-felipe.contreras@gmail.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Steve Sakoman <sakoman@gmail.com>
-Cc: Kevin Hilman <khilman@deeprootsystems.com>, Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Manjunath Hadli <mrh@ti.com>, "DongSoo(Nathaniel) Kim" <dongsoo.kim@gmail.com>, "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>, "Hiremath, Vaibhav" <hvaibhav@ti.com>
+To: Felipe Contreras <felipe.contreras@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Cc: "Kanigeri, Hari" <h-kanigeri2@ti.com>, Hiroshi DOYU <hiroshi.doyu@nokia.com>, Ameya Palande <ameya.palande@nokia.com>, "Guzman Lugo, Fernando" <x0095840@ti.com>
 
-* Steve Sakoman <sakoman@gmail.com> [090316 17:14]:
-> On Mon, Mar 16, 2009 at 3:56 PM, Tony Lindgren <tony@atomide.com> wrote:
-> > * Kevin Hilman <khilman@deeprootsystems.com> [090316 15:52]:
-> >> Hans Verkuil <hverkuil@xs4all.nl> writes:
-> >>
-> >> > Just FYI:
-> >> >
-> >> > I'll be attending the Embedded Linux Conference in San Francisco, April
-> >> > 6th-8th (http://www.embeddedlinuxconference.com/elc_2009).
-> >> >
-> >> > This might be a good opportunity to discuss omap and davinci V4L2 issues
-> >> > face-to-face. Let me know if you are interested.
-> >> >
-> >>
-> >> I will be there as well, and while not directly involved with V4L2,
-> >> I'm involved in various parts of getting OMAP and DaVinci devices
-> >> supported in mainline kernels.
-> >
-> > Yeah I'll be in town too and will be dropping by at the conf
-> > here and there.
-> >
-> > Maybe let's arrange something to get some beers one night during
-> > the conf?
+> -----Original Message-----
+> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
+> owner@vger.kernel.org] On Behalf Of Felipe Contreras
+> Sent: Tuesday, March 17, 2009 12:06 AM
+> To: linux-omap@vger.kernel.org
+> Cc: Kanigeri, Hari; Hiroshi DOYU; Ameya Palande; Guzman Lugo, Fernando;
+> Felipe Contreras
+> Subject: [PATCH] tidspbridge: remove revision history
 > 
-> I'll be there too.  How about Wednesday evening for beers?
+> No need for that with git.
+> diff --git a/drivers/dsp/bridge/gen/_gt_para.c
+> b/drivers/dsp/bridge/gen/_gt_para.c
+> index 181fe41..b363590 100644
+> --- a/drivers/dsp/bridge/gen/_gt_para.c
+> +++ b/drivers/dsp/bridge/gen/_gt_para.c
+> @@ -24,14 +24,6 @@
+>   *      etc. into a fully bound image.  Thus, GT_assert() can be retained
+> in
+>   *      a program for which GT_?trace() has been compiled out.
+>   *
+> - *! Revision History:
+> - *! ================
+> - *! 24-Feb-2003 vp: Code Review Updates.
+> - *! 18-Oct-2002 sb: Ported to Linux platform.
+> - *! 03-Jul-2001 rr: Removed kfuncs.h because of build errors.
+> - *! 07-Dec-1999 ag: Fxn error now causes a WinCE DebugBreak;
+> - *! 30-Aug-1999 ag: Now uses GP_printf for printf and error.
+> - *!
+But we did not have git history 1999-2003. we planning on loosing these contribs?
 
-OK, I'll figure out some place where we can go hang out and get
-some beers and food for Wednesday night. How about 7pm on
-Wednesday?
-
-Tony
+Regards,
+Nishanth Menon
