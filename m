@@ -1,57 +1,35 @@
-From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Subject: RE: Embedded Linux Conference
-Date: Tue, 17 Mar 2009 21:42:13 +0530
-Message-ID: <19F8576C6E063C45BE387C64729E73940427CBF6AB@dbde02.ent.ti.com>
-References: <87myblgjye.fsf@deeprootsystems.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: [APPLIED] [PATCH 1/4] Clean-up rx51 a bit and set the regulators.
+Date: Tue, 17 Mar 2009 12:14:16 -0400
+Message-ID: <notify-1237306455@atomide.com>
+References: <20090313180335.1548.94607.stgit@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:57102 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754947AbZCQQMX convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 17 Mar 2009 12:12:23 -0400
-In-Reply-To: <87myblgjye.fsf@deeprootsystems.com>
-Content-Language: en-US
+Received: from mho-01-bos.mailhop.org ([63.208.196.178]:55248 "EHLO
+	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756556AbZCQQOQ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 17 Mar 2009 12:14:16 -0400
+Received: from c-69-181-40-92.hsd1.ca.comcast.net ([69.181.40.92] helo=localhost.localdomain)
+	by mho-01-bos.mailhop.org with esmtpa (Exim 4.68)
+	(envelope-from <tony@atomide.com>)
+	id 1Ljbvf-000CEM-OJ
+	for linux-omap@vger.kernel.org; Tue, 17 Mar 2009 16:14:11 +0000
+In-Reply-To: <20090313180335.1548.94607.stgit@localhost>
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@deeprootsystems.com>, Hans Verkuil <hverkuil@xs4all.nl>
-Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Hadli, Manjunath" <mrh@ti.com>, "DongSoo(Nathaniel) Kim" <dongsoo.kim@gmail.com>, "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>
+To: linux-omap@vger.kernel.org
 
+This patch has been applied to the linux-omap
+by youw fwiendly patch wobot.
 
+Commit: 2134f6cd63a8126f6b1f23e906c912dc1bd30645
 
+PatchWorks
+http://patchwork.kernel.org/patch/11831/
 
-> -----Original Message-----
-> From: Kevin Hilman [mailto:khilman@deeprootsystems.com]
-> Sent: Tuesday, March 17, 2009 4:22 AM
-> To: Hans Verkuil
-> Cc: linux-media@vger.kernel.org; linux-omap@vger.kernel.org; Hadli,
-> Manjunath; DongSoo(Nathaniel) Kim; Aguirre Rodriguez, Sergio
-> Alberto; Hiremath, Vaibhav
-> Subject: Re: Embedded Linux Conference
-> 
-> Hans Verkuil <hverkuil@xs4all.nl> writes:
-> 
-> > Just FYI:
-> >
-> > I'll be attending the Embedded Linux Conference in San Francisco,
-> April
-> > 6th-8th (http://www.embeddedlinuxconference.com/elc_2009).
-> >
-> > This might be a good opportunity to discuss omap and davinci V4L2
-> issues
-> > face-to-face. Let me know if you are interested.
-> >
+Git
+http://git.kernel.org/?p=linux/kernel/git/tmlind/linux-omap-2.6.git;a=commit;h=2134f6cd63a8126f6b1f23e906c912dc1bd30645
 
-[Hiremath, Vaibhav] Unfortunately I will not be able to attend :)
-
-Thanks,
-Vaibhav Hiremath
-
-> 
-> I will be there as well, and while not directly involved with V4L2,
-> I'm involved in various parts of getting OMAP and DaVinci devices
-> supported in mainline kernels.
-> 
-> Kevin
 
