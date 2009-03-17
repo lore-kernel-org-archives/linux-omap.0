@@ -1,60 +1,29 @@
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: Re: Embedded Linux Conference
-Date: Tue, 17 Mar 2009 08:09:10 +0100
-Message-ID: <200903170809.10467.hverkuil@xs4all.nl>
-References: <200903051749.13016.hverkuil@xs4all.nl> <20090316225653.GP19229@atomide.com> <5e088bd90903161714y45918d6cn9e81cd73db1ebbac@mail.gmail.com>
+From: Adrian Hunter <adrian.hunter@nokia.com>
+Subject: Re: [patch 2.6.29-rc7-omap 5/5] mmc-twl4030 uses regulator framework
+Date: Tue, 17 Mar 2009 09:12:22 +0200
+Message-ID: <49BF4D56.2070704@nokia.com>
+References: <200903110518.34945.david-b@pacbell.net> <200903161233.06166.david-b@pacbell.net> <49BF4554.601@nokia.com> <200903170007.18908.david-b@pacbell.net>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp-vbr17.xs4all.nl ([194.109.24.37]:2307 "EHLO
-	smtp-vbr17.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753854AbZCQHI7 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 17 Mar 2009 03:08:59 -0400
-In-Reply-To: <5e088bd90903161714y45918d6cn9e81cd73db1ebbac@mail.gmail.com>
-Content-Disposition: inline
+Received: from smtp.nokia.com ([192.100.105.134]:31725 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752493AbZCQHMH (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 17 Mar 2009 03:12:07 -0400
+In-Reply-To: <200903170007.18908.david-b@pacbell.net>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Steve Sakoman <sakoman@gmail.com>
-Cc: Tony Lindgren <tony@atomide.com>, Kevin Hilman <khilman@deeprootsystems.com>, linux-media@vger.kernel.org, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Manjunath Hadli <mrh@ti.com>, "DongSoo(Nathaniel) Kim" <dongsoo.kim@gmail.com>, "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>, "Hiremath, Vaibhav" <hvaibhav@ti.com>
+To: David Brownell <david-b@pacbell.net>
+Cc: OMAP <linux-omap@vger.kernel.org>
 
-On Tuesday 17 March 2009 01:14:28 Steve Sakoman wrote:
-> On Mon, Mar 16, 2009 at 3:56 PM, Tony Lindgren <tony@atomide.com> wrote:
-> > * Kevin Hilman <khilman@deeprootsystems.com> [090316 15:52]:
-> >> Hans Verkuil <hverkuil@xs4all.nl> writes:
-> >> > Just FYI:
-> >> >
-> >> > I'll be attending the Embedded Linux Conference in San Francisco,
-> >> > April 6th-8th (http://www.embeddedlinuxconference.com/elc_2009).
-> >> >
-> >> > This might be a good opportunity to discuss omap and davinci V4L2
-> >> > issues face-to-face. Let me know if you are interested.
-> >>
-> >> I will be there as well, and while not directly involved with V4L2,
-> >> I'm involved in various parts of getting OMAP and DaVinci devices
-> >> supported in mainline kernels.
-> >
-> > Yeah I'll be in town too and will be dropping by at the conf
-> > here and there.
-> >
-> > Maybe let's arrange something to get some beers one night during
-> > the conf?
->
-> I'll be there too.  How about Wednesday evening for beers?
->
-> Steve
+David Brownell wrote:
+> On Monday 16 March 2009, Adrian Hunter wrote:
+>> Also vsim (vmmc_aux) is not being found.
+> 
+> Elaborate please?  The regulator framework complains
+> if it's not there, even when that's not a bug.
 
-On Wednesday evening there is the 'social event', which means free food and 
-beer :-). So I'd say that evening is covered.
+Sorry, I am at home but I realise now that I did record the message:
 
-However, I'd welcome dinner on Sunday evening. Having arrived that day from 
-Europe I won't be a sparkling conversationalist but it beats having dinner 
-by your own and gives us a chance to meet one another.
-
-Regards,
-
-	Hans
-
--- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG
+regulator: Unable to get requested regulator: vmmc_aux
