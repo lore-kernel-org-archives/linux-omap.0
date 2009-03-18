@@ -1,80 +1,77 @@
-From: ext-eero.nurkkala@nokia.com
-Subject: [PATCHv2] OMAP: McBSP: Do not enable or disable clocks on failed path
-Date: Wed, 18 Mar 2009 13:41:25 +0200
-Message-ID: <1237376485324-git-send-email-ext-eero.nurkkala@nokia.com>
+From: "Kanigeri, Hari" <h-kanigeri2@ti.com>
+Subject: RE: [PATCH A 00/15] tidspbridge: general cleanups
+Date: Wed, 18 Mar 2009 07:55:55 -0500
+Message-ID: <8F7AF80515AF0D4D93307E594F3CB40E23320B36@dlee03.ent.ti.com>
+References: <1237339391-20543-1-git-send-email-felipe.contreras@gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:54914 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750979AbZCRLpp (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 18 Mar 2009 07:45:45 -0400
-Received: from esebh106.NOE.Nokia.com (esebh106.ntc.nokia.com [172.21.138.213])
-	by mgw-mx09.nokia.com (Switch-3.2.6/Switch-3.2.6) with ESMTP id n2IBjPpd014508
-	for <linux-omap@vger.kernel.org>; Wed, 18 Mar 2009 06:45:43 -0500
+Received: from arroyo.ext.ti.com ([192.94.94.40]:53589 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750869AbZCRM4I convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 18 Mar 2009 08:56:08 -0400
+In-Reply-To: <1237339391-20543-1-git-send-email-felipe.contreras@gmail.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Eero Nurkkala <ext-eero.nurkkala@nokia.com>
+To: Felipe Contreras <felipe.contreras@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Cc: Hiroshi DOYU <hiroshi.doyu@nokia.com>, Ameya Palande <ameya.palande@nokia.com>, "Guzman Lugo, Fernando" <x0095840@ti.com>
 
-From: Eero Nurkkala <ext-eero.nurkkala@nokia.com>
+Felipe,
 
-McBSP clocks are being double enabled in the event the
-McBSP is already active. Also, they are unnecessarily
-disabled when there's no active McBSP in use. Fix this
-phenomenom by enabling and disabling the clocks at the
-proper location.
+Thanks for your contributions. We will push these changes to OZ tree as soon as possible.
 
-Signed-off-by: Eero Nurkkala <ext-eero.nurkkala@nokia.com>
----
- arch/arm/plat-omap/mcbsp.c |   14 ++++++++------
- 1 files changed, 8 insertions(+), 6 deletions(-)
+Thank you,
+Best
 
-diff --git a/arch/arm/plat-omap/mcbsp.c b/arch/arm/plat-omap/mcbsp.c
-index 02b3f2d..e2e8b76 100644
---- a/arch/arm/plat-omap/mcbsp.c
-+++ b/arch/arm/plat-omap/mcbsp.c
-@@ -226,9 +226,6 @@ int omap_mcbsp_request(unsigned int id)
- 	if (mcbsp->pdata && mcbsp->pdata->ops && mcbsp->pdata->ops->request)
- 		mcbsp->pdata->ops->request(id);
- 
--	for (i = 0; i < mcbsp->num_clks; i++)
--		clk_enable(mcbsp->clks[i]);
--
- 	spin_lock(&mcbsp->lock);
- 	if (!mcbsp->free) {
- 		dev_err(mcbsp->dev, "McBSP%d is currently in use\n",
-@@ -240,6 +237,9 @@ int omap_mcbsp_request(unsigned int id)
- 	mcbsp->free = 0;
- 	spin_unlock(&mcbsp->lock);
- 
-+	for (i = 0; i < mcbsp->num_clks; i++)
-+		clk_enable(mcbsp->clks[i]);
-+
- 	/*
- 	 * Enable wakup behavior, smart idle and all wakeups
- 	 * REVISIT: some wakeups may be unnecessary
-@@ -319,9 +319,6 @@ void omap_mcbsp_free(unsigned int id)
- 	if (mcbsp->pdata && mcbsp->pdata->ops && mcbsp->pdata->ops->free)
- 		mcbsp->pdata->ops->free(id);
- 
--	for (i = mcbsp->num_clks - 1; i >= 0; i--)
--		clk_disable(mcbsp->clks[i]);
--
- 	spin_lock(&mcbsp->lock);
- 	if (mcbsp->free) {
- 		dev_err(mcbsp->dev, "McBSP%d was not reserved\n",
-@@ -329,7 +326,12 @@ void omap_mcbsp_free(unsigned int id)
- 		spin_unlock(&mcbsp->lock);
- 		return;
- 	}
-+	spin_unlock(&mcbsp->lock);
- 
-+	for (i = mcbsp->num_clks - 1; i >= 0; i--)
-+		clk_disable(mcbsp->clks[i]);
-+
-+	spin_lock(&mcbsp->lock);
- 	mcbsp->free = 1;
- 	spin_unlock(&mcbsp->lock);
- 
--- 
-1.5.2
+
+> -----Original Message-----
+> From: Felipe Contreras [mailto:felipe.contreras@gmail.com]
+> Sent: Tuesday, March 17, 2009 8:23 PM
+> To: linux-omap@vger.kernel.org
+> Cc: Kanigeri, Hari; Hiroshi DOYU; Ameya Palande; Guzman Lugo, Fernando;
+> Felipe Contreras
+> Subject: [PATCH A 00/15] tidspbridge: general cleanups
+> 
+> This patch series is not doing much, just cleaning up the irq mailbox
+> functions
+> and related stuff.
+> 
+> Among the sem-functional changes are:
+>  * 0010: avoid udelay and use time_after
+>  * 0015: print an error when timing out
+> 
+> Felipe Contreras (15):
+>   tidspbridge: remove revision history
+>   tidspbridge: trivial cleanup
+>   tidspbridge: remove unused stuff
+>   tidspbridge: remove IO_CALLDPC
+>   tidspbridge: whitespace cleanups
+>   tidspbridge: trivial cleanups
+>   tidspbridge: hDevContext == pDevContext
+>   tidspbridge: remove UTIL_Wait wrapper
+>   tidspbridge: cleanup and remove HW_MBOX_IsFull
+>   tidspbridge: remove udelay and use time_after instead
+>   tidspbridge: Remove IO_InterruptDSP
+>   tidspbridge: remove IO_InterruptDSP2
+>   tidspbridge: remove CHNLSM_InterruptDSP
+>   tidspbridge: remove wIntrVal2Dsp
+>   tidspbridge: print an error when timing out
+> 
+>  arch/arm/plat-omap/include/dspbridge/chnl_sm.h |   42 ----
+>  arch/arm/plat-omap/include/dspbridge/io_sm.h   |    3 -
+>  arch/arm/plat-omap/include/dspbridge/util.h    |   51 -----
+>  drivers/dsp/bridge/hw/hw_mbox.c                |   25 ---
+>  drivers/dsp/bridge/hw/hw_mbox.h                |   35 ----
+>  drivers/dsp/bridge/wmd/_tiomap.h               |   23 --
+>  drivers/dsp/bridge/wmd/_tiomap_pwr.h           |    4 -
+>  drivers/dsp/bridge/wmd/_tiomap_util.h          |    1 -
+>  drivers/dsp/bridge/wmd/io_sm.c                 |   78 +-------
+>  drivers/dsp/bridge/wmd/tiomap3430.c            |   18 +-
+>  drivers/dsp/bridge/wmd/tiomap3430_pwr.c        |   22 +-
+>  drivers/dsp/bridge/wmd/tiomap_sm.c             |  260 +++++++------------
+> -----
+>  12 files changed, 101 insertions(+), 461 deletions(-)
+> 
 
