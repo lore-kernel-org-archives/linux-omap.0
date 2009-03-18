@@ -1,49 +1,49 @@
-From: Nicholas Chen <nchen@cs.umd.edu>
-Subject: Re: new PM branch available
-Date: Wed, 18 Mar 2009 14:56:33 -0400
-Message-ID: <794F9949-C366-41CE-BC4C-AB9AAA95FFD2@cs.umd.edu>
-Mime-Version: 1.0 (Apple Message framework v930.3)
-Content-Type: text/plain; charset=US-ASCII; format=flowed; delsp=yes
-Content-Transfer-Encoding: 7bit
+From: "Menon, Nishanth" <nm@ti.com>
+Subject: RE: dma_alloc_coherent fragmentation
+Date: Wed, 18 Mar 2009 15:08:19 -0500
+Message-ID: <7A436F7769CA33409C6B44B358BFFF0CFF643729@dlee02.ent.ti.com>
+References: <DFEF307E035C8647B119E6A60DB62D4A01793E6773@dlee02.ent.ti.com>
+ <20090318192442.GB30132@n2100.arm.linux.org.uk>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from server-nat-4.cs.umd.edu ([128.8.127.147]:1104 "EHLO
-	bacon.cs.umd.edu" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751670AbZCRTcz (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 18 Mar 2009 15:32:55 -0400
+Received: from arroyo.ext.ti.com ([192.94.94.40]:49469 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751035AbZCRUIr convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 18 Mar 2009 16:08:47 -0400
+In-Reply-To: <20090318192442.GB30132@n2100.arm.linux.org.uk>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: khilman@deeprootsystems.com
-Cc: linux-omap@vger.kernel.org
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>, "Kamat, Nishant" <nskamat@ti.com>
+Cc: "linux-arm-kernel@lists.arm.linux.org.uk" <linux-arm-kernel@lists.arm.linux.org.uk>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Ramirez Luna, Omar" <x00omar@ti.com>, "Kanigeri, Hari" <h-kanigeri2@ti.com>, "Guzman Lugo, Fernando" <x0095840@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>, "2ameya@gmail.com" <2ameya@gmail.com>
 
-Dear Kevin,
+> -----Original Message-----
+> From: Russell King - ARM Linux [mailto:linux@arm.linux.org.uk]
+> Sent: Wednesday, March 18, 2009 9:25 PM
+> To: Kamat, Nishant
+> Cc: linux-arm-kernel@lists.arm.linux.org.uk; Menon, Nishanth; linux-
+> omap@vger.kernel.org; Ramirez Luna, Omar; Kanigeri, Hari; Guzman Lugo,
+> Fernando; Kevin Hilman; 2ameya@gmail.com
+> Subject: Re: dma_alloc_coherent fragmentation
 
-I recently checked out the latest PM branch from your git repository  
-and put it on the Beagleboard (B5). I have been largely able to  
-reproduce the results others have reported on this PM thread, but I  
-believe my CORE and PER powerdomains are not hitting RET or OFF.
+> Make sure you're up to date with fixes to the ioremap code, specifically
+> 24f11ec001920f1cfaeeed8e8b55725d900bbb56.  This is not in 2.6.28,
+> 2.6.29-rc1, 2.6.29-rc2, but is in -rc3 and later.  2.6.29 itself hasn't
+> been released yet so I don't know what "seems to happen on 2.6.28 and
+> 2.6.29" actually means because its nonsense.
 
-I think this based on the following:
-after I
-echo 1 > enable_off_mode
-echo 1 > sleep_while_idle
-echo mem > state
+Apologies on the confusion.
 
-Suspending starts but upon resume I see the following:
-...
-Powerdomain (core_pwrdm) didn't enter target state 0
-Powerdomain (per_pwrdm) didn't enter target state 0
-Could not enter target state in pm_suspend
+For this issue, the pertinent tree would be the master branch of [1] linux-omap tree which is synced to 2.6.29-rc8. And yes, the mentioned commit ID is part of the git log.
 
-looking at debug/pm_debug/count/
-I see that only the core_pwrdm and per_pwrdm have 0's next to OFF: and  
-RET:
+Relevant test code and report of the crash is in [2]. Additional observation in [3]
 
-Based on the thread, the resolution seems  to be to disable USB and  
-upgrade u-boot. I think I have done both. My u-boot is 2009.03-rc2  
-from Steve Sakoman's tree, and I have disabled USB support in my  
-Kernel build. Is there something that I am overlooking? Also, I'm  
-curious if the two powerdomains linked (i.e. I need to fix PER before  
-CORE will shut off or vice versa).
+Regards,
+Nishanth Menon
 
-Nick
-
+Ref:
+[1] http://git.kernel.org/?p=linux/kernel/git/tmlind/linux-omap-2.6.git
+[2] http://marc.info/?l=linux-omap&m=123719772811746&w=2
+[3] http://marc.info/?l=linux-omap&m=123722460022336&w=2
