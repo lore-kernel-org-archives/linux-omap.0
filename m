@@ -1,70 +1,112 @@
 From: Felipe Contreras <felipe.contreras@gmail.com>
-Subject: Re: [PATCH] tidspbridge: remove revision history
-Date: Wed, 18 Mar 2009 09:05:13 +0200
-Message-ID: <94a0d4530903180005m402a732do2c413226ff4a0dbd@mail.gmail.com>
-References: <1237241138-4516-1-git-send-email-felipe.contreras@gmail.com>
-	 <7A436F7769CA33409C6B44B358BFFF0CFF5A4AB6@dlee02.ent.ti.com>
-	 <94a0d4530903171626u7c29165brebbed6f2e46d9093@mail.gmail.com>
-	 <200903172015.44982.david-b@pacbell.net>
-	 <5d5443650903172323x66adbf16kdba3db9b276f2779@mail.gmail.com>
-	 <5d5443650903172326q6443d15ey7fd692da98e5856d@mail.gmail.com>
-	 <7A436F7769CA33409C6B44B358BFFF0CFF6431E5@dlee02.ent.ti.com>
+Subject: Re: [PATCH A 09/15] tidspbridge: cleanup and remove HW_MBOX_IsFull
+Date: Wed, 18 Mar 2009 09:29:03 +0200
+Message-ID: <20090318072903.GA27135@annwn>
+References: <1237339391-20543-1-git-send-email-felipe.contreras@gmail.com> <1237339391-20543-2-git-send-email-felipe.contreras@gmail.com> <1237339391-20543-3-git-send-email-felipe.contreras@gmail.com> <1237339391-20543-4-git-send-email-felipe.contreras@gmail.com> <1237339391-20543-5-git-send-email-felipe.contreras@gmail.com> <1237339391-20543-6-git-send-email-felipe.contreras@gmail.com> <1237339391-20543-7-git-send-email-felipe.contreras@gmail.com> <1237339391-20543-8-git-send-email-felipe.contreras@gmail.com> <1237339391-20543-9-git-send-email-felipe.contreras@gmail.com> <1237339391-20543-10-git-send-email-felipe.contreras@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from fg-out-1718.google.com ([72.14.220.156]:54276 "EHLO
-	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752137AbZCRHFQ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 18 Mar 2009 03:05:16 -0400
-Received: by fg-out-1718.google.com with SMTP id 13so52849fge.17
-        for <linux-omap@vger.kernel.org>; Wed, 18 Mar 2009 00:05:13 -0700 (PDT)
-In-Reply-To: <7A436F7769CA33409C6B44B358BFFF0CFF6431E5@dlee02.ent.ti.com>
+Received: from mail-bw0-f169.google.com ([209.85.218.169]:54653 "EHLO
+	mail-bw0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752630AbZCRH3T (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 18 Mar 2009 03:29:19 -0400
+Received: by bwz17 with SMTP id 17so380037bwz.37
+        for <linux-omap@vger.kernel.org>; Wed, 18 Mar 2009 00:29:16 -0700 (PDT)
+Content-Disposition: inline
+In-Reply-To: <1237339391-20543-10-git-send-email-felipe.contreras@gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Menon, Nishanth" <nm@ti.com>
-Cc: Trilok Soni <soni.trilok@gmail.com>, David Brownell <david-b@pacbell.net>, "Kanigeri, Hari" <h-kanigeri2@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Hiroshi DOYU <hiroshi.doyu@nokia.com>, Ameya Palande <ameya.palande@nokia.com>, "Guzman Lugo, Fernando" <x0095840@ti.com>
+To: linux-omap@vger.kernel.org
+Cc: Hari Kanigeri <h-kanigeri2@ti.com>, Hiroshi DOYU <hiroshi.doyu@nokia.com>, Ameya Palande <ameya.palande@nokia.com>, Fernando Guzman Lugo <x0095840@ti.com>, Felipe Contreras <felipe.contreras@nokia.com>
 
-On Wed, Mar 18, 2009 at 8:36 AM, Menon, Nishanth <nm@ti.com> wrote:
->> -----Original Message-----
->> From: Trilok Soni [mailto:soni.trilok@gmail.com]
->> Sent: Wednesday, March 18, 2009 8:26 AM
->> To: David Brownell
->> Cc: Felipe Contreras; Menon, Nishanth; Kanigeri, Hari; linux-
->> omap@vger.kernel.org; Hiroshi DOYU; Ameya Palande; Guzman Lugo, Fernando
->> Subject: Re: [PATCH] tidspbridge: remove revision history
->>
->> >>
->> >> I have no idea why I'm in that list.
->> >>
->> >
->> > These short names looks like are given to TI internal developers not
->> > the open-source contributors to this code. So, "ag" can mean "Amit
->> > Agrawal" or "Andy Grover" or anything else...
->> >
->> > Better to remove these short names from the revision history, it
->> > doesn't have any meaning.
->> >
->>
->> Nishanth probably can put some points here.
->>
-> Cards on table: I have never been involved personally on DSPBridge :(..
-> It is just this: as a developer we all contribute to something so that our legacy remains in some form.. Agreed various other motivations exist ;)..
->
-> But personally, it feels good to see a tiny contribution being part of something else and being acknowledged for it.. do we as a community say:
-> a) Lets kick all those oldies out.. They were yesteryear material, we can afford to forget them now.
-> OR do we say
-> b) Lets find who those guys are and ask them how they want to acknowledged here..
->
-> I mean, we all hate dirty code.. and I personally agree to Felipe's point that much of the old time revision history is eating bytespace and eyespace :(.. At the same time, I guess we still retain the old courtesy b/w one code hack to another :D..
+On Wed, Mar 18, 2009 at 03:23:05AM +0200, Felipe Contreras wrote:
+> From: Felipe Contreras <felipe.contreras@nokia.com>
+> 
+> HW_MBOX_IsFull has many convoluted macros and is used only once. Clean
+> it up so it's easier to see what it's actually doing.
 
-I thought b) was kind of agreed.
+I probably should have integrated this too:
 
-In any case, after cleaning up the dsp-bridge I don't think many files
-will stay alive, many already have been removed (e.g. [1]), but let's
-see how it goes.
+---
+ drivers/dsp/bridge/hw/MLBAccInt.h |   18 ------------------
+ drivers/dsp/bridge/hw/MLBRegAcM.h |   20 --------------------
+ 2 files changed, 0 insertions(+), 38 deletions(-)
 
-[1] http://github.com/felipec/linux-omap/commit/8ab33fe0a83058d2f9be906c89842ff4486ce68b
+diff --git a/drivers/dsp/bridge/hw/MLBAccInt.h b/drivers/dsp/bridge/hw/MLBAccInt.h
+index 7a03c6a..1cc5fdd 100644
+--- a/drivers/dsp/bridge/hw/MLBAccInt.h
++++ b/drivers/dsp/bridge/hw/MLBAccInt.h
+@@ -33,10 +33,6 @@
+ 						(MLB_BASE_EASIL1 + 50)
+ #define EASIL1_MLBMAILBOX_MESSAGE___0_15WriteRegister32  \
+ 						(MLB_BASE_EASIL1 + 51)
+-#define EASIL1_MLBMAILBOX_FIFOSTATUS___0_15ReadRegister32  \
+-						(MLB_BASE_EASIL1 + 56)
+-#define EASIL1_MLBMAILBOX_FIFOSTATUS___0_15FifoFullMBmRead32 \
+-						(MLB_BASE_EASIL1 + 57)
+ #define EASIL1_MLBMAILBOX_MSGSTATUS___0_15NbOfMsgMBmRead32  \
+ 						(MLB_BASE_EASIL1 + 60)
+ #define EASIL1_MLBMAILBOX_IRQSTATUS___0_3ReadRegister32  \
+@@ -60,18 +56,6 @@
+ #define MLB_MAILBOX_MESSAGE___0_15_OFFSET   (u32)(0x0)
+ 
+ 
+-/* Register set MAILBOX_FIFOSTATUS___REGSET_0_15 address offset, bank address
+- * increment and number of banks */
+-
+-#define MLB_MAILBOX_FIFOSTATUS___REGSET_0_15_OFFSET  (u32)(0x0080)
+-#define MLB_MAILBOX_FIFOSTATUS___REGSET_0_15_STEP   (u32)(0x0004)
+-
+-/* Register offset address definitions relative to register set
+- * MAILBOX_FIFOSTATUS___REGSET_0_15 */
+-
+-#define MLB_MAILBOX_FIFOSTATUS___0_15_OFFSET    (u32)(0x0)
+-
+-
+ /* Register set MAILBOX_MSGSTATUS___REGSET_0_15 address offset, bank address
+  * increment and number of banks */
+ 
+@@ -124,8 +108,6 @@
+ #define MLB_MAILBOX_SYSCONFIG_AutoIdle_OFFSET        (u32)(0)
+ #define MLB_MAILBOX_SYSSTATUS_ResetDone_MASK         (u32)(0x1)
+ #define MLB_MAILBOX_SYSSTATUS_ResetDone_OFFSET         (u32)(0)
+-#define MLB_MAILBOX_FIFOSTATUS___0_15_FifoFullMBm_MASK   (u32)(0x1)
+-#define MLB_MAILBOX_FIFOSTATUS___0_15_FifoFullMBm_OFFSET  (u32)(0)
+ #define MLB_MAILBOX_MSGSTATUS___0_15_NbOfMsgMBm_MASK    (u32)(0x7f)
+ #define MLB_MAILBOX_MSGSTATUS___0_15_NbOfMsgMBm_OFFSET    (u32)(0)
+ 
+diff --git a/drivers/dsp/bridge/hw/MLBRegAcM.h b/drivers/dsp/bridge/hw/MLBRegAcM.h
+index 747a2e1..004e10b 100644
+--- a/drivers/dsp/bridge/hw/MLBRegAcM.h
++++ b/drivers/dsp/bridge/hw/MLBRegAcM.h
+@@ -126,26 +126,6 @@
+ }
+ 
+ 
+-#define MLBMAILBOX_FIFOSTATUS___0_15ReadRegister32(baseAddress, bank)\
+-    (_DEBUG_LEVEL_1_EASI(\
+-      EASIL1_MLBMAILBOX_FIFOSTATUS___0_15ReadRegister32),\
+-      RD_MEM_32_VOLATILE(((u32)(baseAddress))+\
+-      (MLB_MAILBOX_FIFOSTATUS___REGSET_0_15_OFFSET +\
+-      MLB_MAILBOX_FIFOSTATUS___0_15_OFFSET+\
+-      ((bank)*MLB_MAILBOX_FIFOSTATUS___REGSET_0_15_STEP))))
+-
+-
+-#define MLBMAILBOX_FIFOSTATUS___0_15FifoFullMBmRead32(baseAddress, bank)\
+-    (_DEBUG_LEVEL_1_EASI(\
+-      EASIL1_MLBMAILBOX_FIFOSTATUS___0_15FifoFullMBmRead32),\
+-      (((RD_MEM_32_VOLATILE(((u32)(baseAddress))+\
+-      (MLB_MAILBOX_FIFOSTATUS___REGSET_0_15_OFFSET +\
+-      MLB_MAILBOX_FIFOSTATUS___0_15_OFFSET+\
+-      ((bank)*MLB_MAILBOX_FIFOSTATUS___REGSET_0_15_STEP)))) &\
+-      MLB_MAILBOX_FIFOSTATUS___0_15_FifoFullMBm_MASK) >>\
+-      MLB_MAILBOX_FIFOSTATUS___0_15_FifoFullMBm_OFFSET))
+-
+-
+ #define MLBMAILBOX_MSGSTATUS___0_15NbOfMsgMBmRead32(baseAddress, bank)\
+     (_DEBUG_LEVEL_1_EASI(\
+       EASIL1_MLBMAILBOX_MSGSTATUS___0_15NbOfMsgMBmRead32),\
+-- 
 
 -- 
 Felipe Contreras
