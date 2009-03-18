@@ -1,46 +1,70 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH 00/05] OMAP3: SR: Fixes in Smartreflex driver
-Date: Wed, 18 Mar 2009 09:29:19 -0700
-Message-ID: <8763i6pzfk.fsf@deeprootsystems.com>
-References: <5A47E75E594F054BAF48C5E4FC4B92AB02FAEDE846@dbde02.ent.ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 02/12] ARM: OMAP3: Store reboot mode in scratchpad on
+	OMAP34xx
+Date: Wed, 18 Mar 2009 11:28:06 -0700
+Message-ID: <20090318182805.GA29546@atomide.com>
+References: <20090310205824.16425.97745.stgit@localhost> <20090310210333.16425.80205.stgit@localhost> <20090315155105.GB10786@n2100.arm.linux.org.uk> <49BE792B.1090901@solidboot.com> <20090316171008.GF31868@n2100.arm.linux.org.uk> <49BE8F08.3000100@solidboot.com> <20090316222146.GA8150@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from qw-out-2122.google.com ([74.125.92.24]:41123 "EHLO
-	qw-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758395AbZCRQ3Z (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 18 Mar 2009 12:29:25 -0400
-Received: by qw-out-2122.google.com with SMTP id 8so117105qwh.37
-        for <linux-omap@vger.kernel.org>; Wed, 18 Mar 2009 09:29:23 -0700 (PDT)
-In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB02FAEDE846@dbde02.ent.ti.com> (Rajendra Nayak's message of "Wed\, 18 Mar 2009 15\:25\:10 +0530")
+Received: from mho-01-bos.mailhop.org ([63.208.196.178]:62442 "EHLO
+	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756244AbZCRS2S (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 18 Mar 2009 14:28:18 -0400
+Content-Disposition: inline
+In-Reply-To: <20090316222146.GA8150@n2100.arm.linux.org.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Nayak, Rajendra" <rnayak@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: Juha Yrjola <juha.yrjola@solidboot.com>, linux-arm-kernel@lists.arm.linux.org.uk, Kevin Hilman <khilman@deeprootsystems.com>, linux-omap@vger.kernel.org
 
-"Nayak, Rajendra" <rnayak@ti.com> writes:
+* Russell King - ARM Linux <linux@arm.linux.org.uk> [090316 15:22]:
+> On Mon, Mar 16, 2009 at 07:40:24PM +0200, Juha Yrjola wrote:
+> > Russell King - ARM Linux wrote:
+> >
+> >> Right.  You are aware that there is already a mechanism for doing this
+> >> in the generic kernel (obviously not)?
+> >
+> > I am. Unfortunately, glibc fails to support this mechanism, as you say.  
+> > I didn't want to start making such intrusive changes for our trivial 
+> > need.
+> 
+> Yes, glibc sucks with that - they hide the Linux reboot syscall.
+> Luckily, it is accessible via the syscall() interface:
+> 
+> #include <linux/reboot.h>
+> 
+> int sys_reboot(const char *cmd)
+> {
+> 	return syscall(SYS_reboot, LINUX_REBOOT_MAGIC1, LINUX_REBOOT_MAGIC2C,
+> 			LINUX_REBOOT_CMD_RESTART2, cmd);
+> }
+> 
+> >> sys_reboot() with LINUX_REBOOT_CMD_RESTART2 takes a string in addition
+> >> to the standard parameters.  This string is passed into machine_restart()
+> >> which we currently ignore.  If LINUX_REBOOT_CMD_RESTART is used, this
+> >> string is NULL.
+> >>
+> >> We could change machine_restart() to pass this parameter through to
+> >> arm_pm_restart() and ultimately down to arch_reset().
+> >
+> > Sure. With RESTART2, I could've even used the reboot notifier chain with  
+> > an OMAP3-specific driver to store the string.
+> 
+> The notifier chain is called in any case.
+> 
+> > Are you suggesting to get rid of reboot_mode altogether? If not, could  
+> > we still have the sysfs mechanism? A one-character reboot_mode would be  
+> > plenty enough for us.
+> 
+> No, reboot mode tells _how_ to perform the reboot - whether that be
+> by hardware reset, gpio reset or a soft call via the reset address.
+> It's not supposed to tell the boot loader what to do.
 
-> Hi,
->
-> This series fixes a set of defects/issues in Smartreflex driver. SR autocompensation is now
-> functional and is validated with these patches on a ES3.1 based SDP with the
-> N values in Efuse.
-> Patches apply and are validated on the latest pm branch (2.6.28).
->
+So if the reboot mode can't be used for this.. Should we change Juha's
+sysfs interface patch to store something else like bootloader_mode?
 
-Hi Rajendra,
+I guess we cannot use kexec for this either?
 
-Thanks for this series of SR fixes.  I send a couple very minor
-comments to a couple of the patches.  Also, this series does not apply
-cleanly to pm-2.6.28, I'm not sure why.  Applying manually with
-'patch' allows them to apply with "fuzz" suggesting that they were not
-generated against the current tree.
-
-Also, while you are in there cleaing up, could you add one more patch
-which converts the printk(KERN_* ...) into pr_debug, pr_err, pr_info,
-etc.
-
-Thanks,
-
-Kevin
+Tony
 
