@@ -1,77 +1,45 @@
-From: "Kanigeri, Hari" <h-kanigeri2@ti.com>
-Subject: RE: [PATCH A 00/15] tidspbridge: general cleanups
-Date: Wed, 18 Mar 2009 07:55:55 -0500
-Message-ID: <8F7AF80515AF0D4D93307E594F3CB40E23320B36@dlee03.ent.ti.com>
-References: <1237339391-20543-1-git-send-email-felipe.contreras@gmail.com>
+From: "Kamat, Nishant" <nskamat@ti.com>
+Subject: dma_alloc_coherent fragmentation
+Date: Wed, 18 Mar 2009 08:03:45 -0500
+Message-ID: <DFEF307E035C8647B119E6A60DB62D4A01793E6773@dlee02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:53589 "EHLO arroyo.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:53980 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750869AbZCRM4I convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 18 Mar 2009 08:56:08 -0400
-In-Reply-To: <1237339391-20543-1-git-send-email-felipe.contreras@gmail.com>
+	id S1753399AbZCRNEP (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 18 Mar 2009 09:04:15 -0400
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Contreras <felipe.contreras@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
-Cc: Hiroshi DOYU <hiroshi.doyu@nokia.com>, Ameya Palande <ameya.palande@nokia.com>, "Guzman Lugo, Fernando" <x0095840@ti.com>
+To: "linux-arm-kernel@lists.arm.linux.org.uk" <linux-arm-kernel@lists.arm.linux.org.uk>, "Menon, Nishanth" <nm@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Ramirez Luna, Omar" <x00omar@ti.com>, "Kanigeri, Hari" <h-kanigeri2@ti.com>, "Guzman Lugo, Fernando" <x0095840@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>, "2ameya@gmail.com" <2ameya@gmail.com>
 
-Felipe,
-
-Thanks for your contributions. We will push these changes to OZ tree as soon as possible.
-
-Thank you,
-Best
-
-
-> -----Original Message-----
-> From: Felipe Contreras [mailto:felipe.contreras@gmail.com]
-> Sent: Tuesday, March 17, 2009 8:23 PM
-> To: linux-omap@vger.kernel.org
-> Cc: Kanigeri, Hari; Hiroshi DOYU; Ameya Palande; Guzman Lugo, Fernando;
-> Felipe Contreras
-> Subject: [PATCH A 00/15] tidspbridge: general cleanups
-> 
-> This patch series is not doing much, just cleaning up the irq mailbox
-> functions
-> and related stuff.
-> 
-> Among the sem-functional changes are:
->  * 0010: avoid udelay and use time_after
->  * 0015: print an error when timing out
-> 
-> Felipe Contreras (15):
->   tidspbridge: remove revision history
->   tidspbridge: trivial cleanup
->   tidspbridge: remove unused stuff
->   tidspbridge: remove IO_CALLDPC
->   tidspbridge: whitespace cleanups
->   tidspbridge: trivial cleanups
->   tidspbridge: hDevContext == pDevContext
->   tidspbridge: remove UTIL_Wait wrapper
->   tidspbridge: cleanup and remove HW_MBOX_IsFull
->   tidspbridge: remove udelay and use time_after instead
->   tidspbridge: Remove IO_InterruptDSP
->   tidspbridge: remove IO_InterruptDSP2
->   tidspbridge: remove CHNLSM_InterruptDSP
->   tidspbridge: remove wIntrVal2Dsp
->   tidspbridge: print an error when timing out
-> 
->  arch/arm/plat-omap/include/dspbridge/chnl_sm.h |   42 ----
->  arch/arm/plat-omap/include/dspbridge/io_sm.h   |    3 -
->  arch/arm/plat-omap/include/dspbridge/util.h    |   51 -----
->  drivers/dsp/bridge/hw/hw_mbox.c                |   25 ---
->  drivers/dsp/bridge/hw/hw_mbox.h                |   35 ----
->  drivers/dsp/bridge/wmd/_tiomap.h               |   23 --
->  drivers/dsp/bridge/wmd/_tiomap_pwr.h           |    4 -
->  drivers/dsp/bridge/wmd/_tiomap_util.h          |    1 -
->  drivers/dsp/bridge/wmd/io_sm.c                 |   78 +-------
->  drivers/dsp/bridge/wmd/tiomap3430.c            |   18 +-
->  drivers/dsp/bridge/wmd/tiomap3430_pwr.c        |   22 +-
->  drivers/dsp/bridge/wmd/tiomap_sm.c             |  260 +++++++------------
-> -----
->  12 files changed, 101 insertions(+), 461 deletions(-)
-> 
-
+Rm9yd2FyZGluZyBvbiBiZWhhbGYgb2YgTmlzaGFudGggTWVub246DQoNCi0tLS0tT3JpZ2luYWwg
+TWVzc2FnZS0tLS0tDQpGcm9tOiBNZW5vbiwgTmlzaGFudGggDQpTZW50OiBUdWVzZGF5LCBNYXJj
+aCAxNywgMjAwOSA4OjE3IEFNDQpUbzogJ2xpbnV4LWFybS1rZXJuZWxAbGlzdHMuYXJtLmxpbnV4
+Lm9yZy51aycNCkNjOiBHdXB0YSwgUmFtZXNoOyBLZXZpbiBIaWxtYW47IGxpbnV4LW9tYXBAdmdl
+ci5rZXJuZWwub3JnOyBSYW1pcmV6IEx1bmEsIE9tYXI7IEthbmlnZXJpLCBIYXJpOyBBbWV5YSBQ
+YWxhbmRlOyBHdXptYW4gTHVnbywgRmVybmFuZG87IEFtZXlhIFBhbGFuZGUNClN1YmplY3Q6IGRt
+YV9hbGxvY19jb2hlcmVudCBmcmFnbWVudGF0aW9uDQoNCkxvb3BpbmcgaW4gbGludXgtYXJtIE1M
+Og0KDQpEaXNjdXNzaW9uIFJlZjogWzFdKGxpbnV4LW9tYXAgbWFpbGluZyBsaXN0KQ0KV2hpbGUg
+d29ya2luZyB3aXRoIExpbnV4IE9NQVAga2VybmVsWzJdIHdlIGZvdW5kIHRoYXQgb24gYWxsb2Nh
+dGluZyA0IG1lZyBjaHVua3MgdXNpbmcgZG1hX2FsbG9jX2NvaGVyZW50IGFuZCBkZS1hbGxvY2F0
+aW5nIHdpdGggZG1hX2ZyZWVfY29oZXJlbnQgaW4gYSBsb29wIHVzaW5nIGEgdGVzdCBkcml2ZXJb
+N10sIHRoZSBtZW1vcnkgaXMgZ2V0dGluZyBmcmFnbWVudGVkIGFzIHNob3duIGJ5IEFtZXlhJ3Mg
+b2JzZXJ2YXRpb24gWzNdIGZpbmFsbHkgcmVzdWx0aW5nIGluIGR1bXBfc3RhY2sgZHVlIHRvIGxh
+Y2sgb2YgcGFnZXMuDQoNClNlYXJjaGluZyB0aHJvdWdoIHByZXZpb3VzIGFyY2hpdmVzLCBmb3Vu
+ZCBbNF0gd2hpY2ggc2VlbSB0byBpbXBseSB0aGF0IGFsbG9jYXRpbmcgY2h1bmtzIGdyZWF0ZXIg
+dGhhbiAxIHBhZ2UgY291bGQgY2F1c2UgZnJhZ21lbnRhdGlvbi4NCg0KSSB3b25kZXIgd2h5IHdl
+IHNlZSB0aGlzIGV2ZW4gaWYgd2UgYWxsb2NhdGUgYW5kIGZyZWUgdGhlIG1lbW9yeSBpbiBzZXF1
+ZW5jZSBhcyBpbiBbNV0uIFRoaXMgc2VlbXMgdG8gaGFwcGVuIG9uIDIuNi4yOCBhbmQgMi42LjI5
+IGJ1dCBub3Qgb24gdGhlIDIuNi4yNyBiYXNlZCBrZXJuZWxbNl0uDQoNClJlZ2FyZHMsDQpOaXNo
+YW50aCBNZW5vbg0KDQpSZWY6DQpbMV0gaHR0cDovL21hcmMuaW5mby8/dD0xMjM3MTk3NzkxMDAw
+MDImcj0xJnc9Mg0KWzJdIGh0dHA6Ly9naXQua2VybmVsLm9yZy8/cD1saW51eC9rZXJuZWwvZ2l0
+L3RtbGluZC9saW51eC1vbWFwLTIuNi5naXQNClszXSBodHRwOi8vbWFyYy5pbmZvLz9sPWxpbnV4
+LW9tYXAmbT0xMjM3MjI0NjAwMjIzMzYmdz0yDQpbNF0gaHR0cDovL2xrbWwuaW5kaWFuYS5lZHUv
+aHlwZXJtYWlsL2xpbnV4L2tlcm5lbC8wNzA2LjAvMDM3MC5odG1sIA0KWzVdIGh0dHA6Ly9tYXJj
+LmluZm8vP2w9bGludXgtb21hcCZtPTEyMzcxOTc3MjgxMTc0NiZ3PTINCls2XSBodHRwOi8vZ2l0
+Lm9tYXB6b29tLmNvbS8/cD1yZXBvL29tYXBrZXJuZWwuZ2l0Ow0KWzddIGh0dHA6Ly9tYXJjLmlu
+Zm8vP2w9bGludXgtb21hcCZtPTEyMzcxOTc3MjgxMTc0NiZxPXAzIA0K
