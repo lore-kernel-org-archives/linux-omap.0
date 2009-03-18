@@ -1,33 +1,39 @@
-From: "Kanigeri, Hari" <h-kanigeri2@ti.com>
-Subject: RE: [PATCH A 00/15] tidspbridge: general cleanups
-Date: Wed, 18 Mar 2009 09:11:54 -0500
-Message-ID: <8F7AF80515AF0D4D93307E594F3CB40E23320BDB@dlee03.ent.ti.com>
-References: <1237339391-20543-1-git-send-email-felipe.contreras@gmail.com>
-	 <8F7AF80515AF0D4D93307E594F3CB40E23320B36@dlee03.ent.ti.com>
- <94a0d4530903180630l57315332h242cb5feebb2da@mail.gmail.com>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: PM branch rebased to 2.6.29
+Date: Wed, 18 Mar 2009 08:51:21 -0700
+Message-ID: <87vdq6q16u.fsf@deeprootsystems.com>
+References: <87bprz9zju.fsf@deeprootsystems.com> <49C0A5AB.5070308@yandex.ru>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:57434 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754905AbZCROMJ convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 18 Mar 2009 10:12:09 -0400
-In-Reply-To: <94a0d4530903180630l57315332h242cb5feebb2da@mail.gmail.com>
-Content-Language: en-US
+Received: from mail-qy0-f118.google.com ([209.85.221.118]:47265 "EHLO
+	mail-qy0-f118.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752099AbZCRP5Z (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 18 Mar 2009 11:57:25 -0400
+Received: by qyk16 with SMTP id 16so115660qyk.33
+        for <linux-omap@vger.kernel.org>; Wed, 18 Mar 2009 08:57:23 -0700 (PDT)
+In-Reply-To: <49C0A5AB.5070308@yandex.ru> (Artem Bityutskiy's message of "Wed\, 18 Mar 2009 09\:41\:31 +0200")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Contreras <felipe.contreras@gmail.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Hiroshi DOYU <hiroshi.doyu@nokia.com>, Ameya Palande <ameya.palande@nokia.com>, "Guzman Lugo, Fernando" <x0095840@ti.com>
+To: Artem Bityutskiy <dedekind@yandex.ru>
+Cc: linux-omap@vger.kernel.org
 
-Felipe,
+Artem Bityutskiy <dedekind@yandex.ru> writes:
 
-> Would that be an ack for l-o?
+> Kevin Hilman wrote:
+>> FYI... 
+>>
+>> The PM branch has now been rebased to today's linux-omap HEAD which is
+>> based on v2.6.29-rc8.  The previous PM branch has been renamed to
+>> pm-2.6.28.  Depending on when you look, Tony's linux-omap tree may not
+>> (yet) have the latest PM branch.  If not, you can use my PM tree[1]
+>> directly.  Also, pm-2.6.28 will only be available on my tree.
+>
+> Sorry for ignorance, but in your PM tree the latest stuff is in
+> the pm branch, right?
+>
 
-- Yes. 
+Yes.  The master branch of my tree just tracks linux-omap.
 
-Thank you,
-Best regards,
-Hari
-
+Kevin
 
