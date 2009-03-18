@@ -1,47 +1,54 @@
-From: Kim Kyuwon <chammoru@gmail.com>
-Subject: Re: [PATCH 3/3] OMAP3: PM: invoke omap_sram_idle() only when
-	sleep_while_idle is enabled
-Date: Wed, 18 Mar 2009 09:28:50 +0900
-Message-ID: <4d34a0a70903171728w4bdee3bal4582f73a5b6d1c8f@mail.gmail.com>
-References: <4d34a0a70903170028t1722d565i35ec12b476427ae6@mail.gmail.com>
-	 <878wn4gq0g.fsf@deeprootsystems.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+From: Felipe Contreras <felipe.contreras@gmail.com>
+Subject: [PATCH A 00/15] tidspbridge: general cleanups
+Date: Wed, 18 Mar 2009 03:22:56 +0200
+Message-ID: <1237339391-20543-1-git-send-email-felipe.contreras@gmail.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from yw-out-2324.google.com ([74.125.46.29]:61914 "EHLO
-	yw-out-2324.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752489AbZCRA2x (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 17 Mar 2009 20:28:53 -0400
-Received: by yw-out-2324.google.com with SMTP id 3so259529ywj.1
-        for <linux-omap@vger.kernel.org>; Tue, 17 Mar 2009 17:28:51 -0700 (PDT)
-In-Reply-To: <878wn4gq0g.fsf@deeprootsystems.com>
+Received: from mail-bw0-f169.google.com ([209.85.218.169]:56149 "EHLO
+	mail-bw0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755070AbZCRBXb (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 17 Mar 2009 21:23:31 -0400
+Received: by bwz17 with SMTP id 17so321490bwz.37
+        for <linux-omap@vger.kernel.org>; Tue, 17 Mar 2009 18:23:28 -0700 (PDT)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@deeprootsystems.com>
-Cc: OMAP <linux-omap@vger.kernel.org>, q1.kim@samsung.com, Jouni Hogander <jouni.hogander@nokia.com>, kyungmin.park@samsung.com, Peter 'p2' De Schrijver <peter.de-schrijver@nokia.com>
+To: linux-omap@vger.kernel.org
+Cc: Hari Kanigeri <h-kanigeri2@ti.com>, Hiroshi DOYU <hiroshi.doyu@nokia.com>, Ameya Palande <ameya.palande@nokia.com>, Fernando Guzman Lugo <x0095840@ti.com>, Felipe Contreras <felipe.contreras@gmail.com>
 
-On Tue, Mar 17, 2009 at 11:53 PM, Kevin Hilman
-<khilman@deeprootsystems.com> wrote:
-> Kim Kyuwon <chammoru@gmail.com> writes:
->
->> If MPU goes to WFI in the idle thread, execution time becomes a bit
->> slow and the JTAG Debugger doesn't work. This patch is needed for
->> urgent works(e.g. booting and launching application) and debugging.
->
-> Kim,
->
-> Do you still need this patch when using the new lower-latency C1-state
-> patch from Peter which I recently applied to the PM branch?
->
-> With that patch, MPU and CORE stay ON, and the clkdomain is not allowed
-> to idle so that the latency for C1 is on the order of a few usecs.
->
+This patch series is not doing much, just cleaning up the irq mailbox functions
+and related stuff.
 
-No, I don't need this patch.
-I confirmed that JTAG debugger works with peter's patch, even though
-MPU goes to WFI.
+Among the sem-functional changes are:
+ * 0010: avoid udelay and use time_after
+ * 0015: print an error when timing out
 
-Thanks Keven, Peter!
+Felipe Contreras (15):
+  tidspbridge: remove revision history
+  tidspbridge: trivial cleanup
+  tidspbridge: remove unused stuff
+  tidspbridge: remove IO_CALLDPC
+  tidspbridge: whitespace cleanups
+  tidspbridge: trivial cleanups
+  tidspbridge: hDevContext == pDevContext
+  tidspbridge: remove UTIL_Wait wrapper
+  tidspbridge: cleanup and remove HW_MBOX_IsFull
+  tidspbridge: remove udelay and use time_after instead
+  tidspbridge: Remove IO_InterruptDSP
+  tidspbridge: remove IO_InterruptDSP2
+  tidspbridge: remove CHNLSM_InterruptDSP
+  tidspbridge: remove wIntrVal2Dsp
+  tidspbridge: print an error when timing out
 
-Kyuwon
+ arch/arm/plat-omap/include/dspbridge/chnl_sm.h |   42 ----
+ arch/arm/plat-omap/include/dspbridge/io_sm.h   |    3 -
+ arch/arm/plat-omap/include/dspbridge/util.h    |   51 -----
+ drivers/dsp/bridge/hw/hw_mbox.c                |   25 ---
+ drivers/dsp/bridge/hw/hw_mbox.h                |   35 ----
+ drivers/dsp/bridge/wmd/_tiomap.h               |   23 --
+ drivers/dsp/bridge/wmd/_tiomap_pwr.h           |    4 -
+ drivers/dsp/bridge/wmd/_tiomap_util.h          |    1 -
+ drivers/dsp/bridge/wmd/io_sm.c                 |   78 +-------
+ drivers/dsp/bridge/wmd/tiomap3430.c            |   18 +-
+ drivers/dsp/bridge/wmd/tiomap3430_pwr.c        |   22 +-
+ drivers/dsp/bridge/wmd/tiomap_sm.c             |  260 +++++++-----------------
+ 12 files changed, 101 insertions(+), 461 deletions(-)
+
