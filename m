@@ -1,72 +1,47 @@
-From: Felipe Contreras <felipe.contreras@gmail.com>
-Subject: Re: [PATCH] tidspbridge: remove revision history
-Date: Wed, 18 Mar 2009 01:26:59 +0200
-Message-ID: <94a0d4530903171626u7c29165brebbed6f2e46d9093@mail.gmail.com>
-References: <1237241138-4516-1-git-send-email-felipe.contreras@gmail.com>
-	 <7A436F7769CA33409C6B44B358BFFF0CFF5A499A@dlee02.ent.ti.com>
-	 <94a0d4530903170216x4253ee07r6fdfb38cfccce78d@mail.gmail.com>
-	 <7A436F7769CA33409C6B44B358BFFF0CFF5A49BC@dlee02.ent.ti.com>
-	 <94a0d4530903170320g7fc8eef5t4b8da6ab7e768a56@mail.gmail.com>
-	 <8F7AF80515AF0D4D93307E594F3CB40E233202C9@dlee03.ent.ti.com>
-	 <7A436F7769CA33409C6B44B358BFFF0CFF5A4AB6@dlee02.ent.ti.com>
+From: Kim Kyuwon <chammoru@gmail.com>
+Subject: Re: [PATCH 3/3] OMAP3: PM: invoke omap_sram_idle() only when
+	sleep_while_idle is enabled
+Date: Wed, 18 Mar 2009 09:28:50 +0900
+Message-ID: <4d34a0a70903171728w4bdee3bal4582f73a5b6d1c8f@mail.gmail.com>
+References: <4d34a0a70903170028t1722d565i35ec12b476427ae6@mail.gmail.com>
+	 <878wn4gq0g.fsf@deeprootsystems.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from fg-out-1718.google.com ([72.14.220.155]:46440 "EHLO
-	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751426AbZCQX1D (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 17 Mar 2009 19:27:03 -0400
-Received: by fg-out-1718.google.com with SMTP id 16so29944fgg.17
-        for <linux-omap@vger.kernel.org>; Tue, 17 Mar 2009 16:27:00 -0700 (PDT)
-In-Reply-To: <7A436F7769CA33409C6B44B358BFFF0CFF5A4AB6@dlee02.ent.ti.com>
+Received: from yw-out-2324.google.com ([74.125.46.29]:61914 "EHLO
+	yw-out-2324.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752489AbZCRA2x (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 17 Mar 2009 20:28:53 -0400
+Received: by yw-out-2324.google.com with SMTP id 3so259529ywj.1
+        for <linux-omap@vger.kernel.org>; Tue, 17 Mar 2009 17:28:51 -0700 (PDT)
+In-Reply-To: <878wn4gq0g.fsf@deeprootsystems.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Menon, Nishanth" <nm@ti.com>
-Cc: "Kanigeri, Hari" <h-kanigeri2@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Hiroshi DOYU <hiroshi.doyu@nokia.com>, Ameya Palande <ameya.palande@nokia.com>, "Guzman Lugo, Fernando" <x0095840@ti.com>
+To: Kevin Hilman <khilman@deeprootsystems.com>
+Cc: OMAP <linux-omap@vger.kernel.org>, q1.kim@samsung.com, Jouni Hogander <jouni.hogander@nokia.com>, kyungmin.park@samsung.com, Peter 'p2' De Schrijver <peter.de-schrijver@nokia.com>
 
-On Tue, Mar 17, 2009 at 3:43 PM, Menon, Nishanth <nm@ti.com> wrote:
+On Tue, Mar 17, 2009 at 11:53 PM, Kevin Hilman
+<khilman@deeprootsystems.com> wrote:
+> Kim Kyuwon <chammoru@gmail.com> writes:
 >
->> -----Original Message-----
->> From: Kanigeri, Hari
->> Sent: Tuesday, March 17, 2009 3:32 PM
->> To: Felipe Contreras; Menon, Nishanth
->> Cc: linux-omap@vger.kernel.org; Hiroshi DOYU; Ameya Palande; Guzman Lugo,
->> Fernando
->> Subject: RE: [PATCH] tidspbridge: remove revision history
->>
->>
->> > Contributors can be specified as such: a contributors section
->> > at the top. No need to keep the revision history just for that.
->>
->> -- This looks like the way to go.
-> Ack, I think we could collate those in revision history to Contributor's section?
+>> If MPU goes to WFI in the idle thread, execution time becomes a bit
+>> slow and the JTAG Debugger doesn't work. This patch is needed for
+>> urgent works(e.g. booting and launching application) and debugging.
+>
+> Kim,
+>
+> Do you still need this patch when using the new lower-latency C1-state
+> patch from Peter which I recently applied to the PM branch?
+>
+> With that patch, MPU and CORE stay ON, and the clkdomain is not allowed
+> to idle so that the latency for C1 is on the order of a few usecs.
+>
 
-Here's the list:
-a0216266
-ag
-AL
-ap
-cr
-cring
-db
-dr
-ge
-gp
-HK
-hn
-hp
-jeh
-kc
-map
-mg
-rg
-rr
-sb
-sg
-sh
-swa
-vp
+No, I don't need this patch.
+I confirmed that JTAG debugger works with peter's patch, even though
+MPU goes to WFI.
 
--- 
-Felipe Contreras
+Thanks Keven, Peter!
+
+Kyuwon
