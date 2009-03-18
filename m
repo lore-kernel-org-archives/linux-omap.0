@@ -1,70 +1,67 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 02/12] ARM: OMAP3: Store reboot mode in scratchpad on
-	OMAP34xx
-Date: Wed, 18 Mar 2009 11:28:06 -0700
-Message-ID: <20090318182805.GA29546@atomide.com>
-References: <20090310205824.16425.97745.stgit@localhost> <20090310210333.16425.80205.stgit@localhost> <20090315155105.GB10786@n2100.arm.linux.org.uk> <49BE792B.1090901@solidboot.com> <20090316171008.GF31868@n2100.arm.linux.org.uk> <49BE8F08.3000100@solidboot.com> <20090316222146.GA8150@n2100.arm.linux.org.uk>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: new PM branch available
+Date: Wed, 18 Mar 2009 12:01:54 -0700
+Message-ID: <87hc1qodst.fsf@deeprootsystems.com>
+References: <794F9949-C366-41CE-BC4C-AB9AAA95FFD2@cs.umd.edu>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-bos.mailhop.org ([63.208.196.178]:62442 "EHLO
-	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756244AbZCRS2S (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 18 Mar 2009 14:28:18 -0400
-Content-Disposition: inline
-In-Reply-To: <20090316222146.GA8150@n2100.arm.linux.org.uk>
+Received: from wf-out-1314.google.com ([209.85.200.172]:26658 "EHLO
+	wf-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751048AbZCRTB7 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 18 Mar 2009 15:01:59 -0400
+Received: by wf-out-1314.google.com with SMTP id 29so205430wff.4
+        for <linux-omap@vger.kernel.org>; Wed, 18 Mar 2009 12:01:57 -0700 (PDT)
+In-Reply-To: <794F9949-C366-41CE-BC4C-AB9AAA95FFD2@cs.umd.edu> (Nicholas Chen's message of "Wed\, 18 Mar 2009 14\:56\:33 -0400")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: Juha Yrjola <juha.yrjola@solidboot.com>, linux-arm-kernel@lists.arm.linux.org.uk, Kevin Hilman <khilman@deeprootsystems.com>, linux-omap@vger.kernel.org
+To: Nicholas Chen <nchen@cs.umd.edu>
+Cc: linux-omap@vger.kernel.org
 
-* Russell King - ARM Linux <linux@arm.linux.org.uk> [090316 15:22]:
-> On Mon, Mar 16, 2009 at 07:40:24PM +0200, Juha Yrjola wrote:
-> > Russell King - ARM Linux wrote:
-> >
-> >> Right.  You are aware that there is already a mechanism for doing this
-> >> in the generic kernel (obviously not)?
-> >
-> > I am. Unfortunately, glibc fails to support this mechanism, as you say.  
-> > I didn't want to start making such intrusive changes for our trivial 
-> > need.
-> 
-> Yes, glibc sucks with that - they hide the Linux reboot syscall.
-> Luckily, it is accessible via the syscall() interface:
-> 
-> #include <linux/reboot.h>
-> 
-> int sys_reboot(const char *cmd)
-> {
-> 	return syscall(SYS_reboot, LINUX_REBOOT_MAGIC1, LINUX_REBOOT_MAGIC2C,
-> 			LINUX_REBOOT_CMD_RESTART2, cmd);
-> }
-> 
-> >> sys_reboot() with LINUX_REBOOT_CMD_RESTART2 takes a string in addition
-> >> to the standard parameters.  This string is passed into machine_restart()
-> >> which we currently ignore.  If LINUX_REBOOT_CMD_RESTART is used, this
-> >> string is NULL.
-> >>
-> >> We could change machine_restart() to pass this parameter through to
-> >> arm_pm_restart() and ultimately down to arch_reset().
-> >
-> > Sure. With RESTART2, I could've even used the reboot notifier chain with  
-> > an OMAP3-specific driver to store the string.
-> 
-> The notifier chain is called in any case.
-> 
-> > Are you suggesting to get rid of reboot_mode altogether? If not, could  
-> > we still have the sysfs mechanism? A one-character reboot_mode would be  
-> > plenty enough for us.
-> 
-> No, reboot mode tells _how_ to perform the reboot - whether that be
-> by hardware reset, gpio reset or a soft call via the reset address.
-> It's not supposed to tell the boot loader what to do.
+Nicholas Chen <nchen@cs.umd.edu> writes:
 
-So if the reboot mode can't be used for this.. Should we change Juha's
-sysfs interface patch to store something else like bootloader_mode?
+> I recently checked out the latest PM branch from your git repository
+> and put it on the Beagleboard (B5). I have been largely able to
+> reproduce the results others have reported on this PM thread, 
 
-I guess we cannot use kexec for this either?
+...not sure what "this PM thread" you are referring to?
 
-Tony
+> but I believe my CORE and PER powerdomains are not hitting RET or
+> OFF.
 
+> I think this based on the following:
+> after I
+> echo 1 > enable_off_mode
+> echo 1 > sleep_while_idle
+> echo mem > state
+
+CORE and PER are still on because UART clocks are not being cut in
+idle:
+
+  # echo 1 > /sys/power/clocks_off_when_idle
+
+And see if that works.  Also at least on my Beagle, I am not able
+to resume from full-chip OFF, so for starters I suggest just testing
+retention: echo 0 > /sys/power/enable_off_mode
+
+> Suspending starts but upon resume I see the following:
+> ...
+> Powerdomain (core_pwrdm) didn't enter target state 0
+> Powerdomain (per_pwrdm) didn't enter target state 0
+> Could not enter target state in pm_suspend
+>
+> looking at debug/pm_debug/count/
+> I see that only the core_pwrdm and per_pwrdm have 0's next to OFF: and
+> RET:
+>
+> Based on the thread, the resolution seems  to be to disable USB and
+> upgrade u-boot. I think I have done both. My u-boot is 2009.03-rc2
+> from Steve Sakoman's tree, and I have disabled USB support in my
+> Kernel build. Is there something that I am overlooking? Also, I'm
+> curious if the two powerdomains linked (i.e. I need to fix PER before
+> CORE will shut off or vice versa).
+
+For your problem, they're linked in that they both contain a UART
+block.  UART1,2 are in CORE and UART3 is in PER.
+
+Kevin
