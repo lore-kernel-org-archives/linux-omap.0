@@ -1,45 +1,182 @@
-From: "Kamat, Nishant" <nskamat@ti.com>
-Subject: dma_alloc_coherent fragmentation
-Date: Wed, 18 Mar 2009 08:03:45 -0500
-Message-ID: <DFEF307E035C8647B119E6A60DB62D4A01793E6773@dlee02.ent.ti.com>
+From: "Kanigeri, Hari" <h-kanigeri2@ti.com>
+Subject: RE: [PATCH B 1/3] tidspbridge: don't flood the mailbox on MemUnMap
+Date: Wed, 18 Mar 2009 08:06:55 -0500
+Message-ID: <8F7AF80515AF0D4D93307E594F3CB40E23320B48@dlee03.ent.ti.com>
+References: <1237339605-20697-1-git-send-email-felipe.contreras@gmail.com>
+ <1237339605-20697-2-git-send-email-felipe.contreras@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:53980 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753399AbZCRNEP (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 18 Mar 2009 09:04:15 -0400
+Received: from devils.ext.ti.com ([198.47.26.153]:35612 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752196AbZCRNHK convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 18 Mar 2009 09:07:10 -0400
+In-Reply-To: <1237339605-20697-2-git-send-email-felipe.contreras@gmail.com>
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "linux-arm-kernel@lists.arm.linux.org.uk" <linux-arm-kernel@lists.arm.linux.org.uk>, "Menon, Nishanth" <nm@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Ramirez Luna, Omar" <x00omar@ti.com>, "Kanigeri, Hari" <h-kanigeri2@ti.com>, "Guzman Lugo, Fernando" <x0095840@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>, "2ameya@gmail.com" <2ameya@gmail.com>
+To: Felipe Contreras <felipe.contreras@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Cc: Hiroshi DOYU <hiroshi.doyu@nokia.com>, Ameya Palande <ameya.palande@nokia.com>, "Guzman Lugo, Fernando" <x0095840@ti.com>, Felipe Contreras <felipe.contreras@nokia.com>
 
-Rm9yd2FyZGluZyBvbiBiZWhhbGYgb2YgTmlzaGFudGggTWVub246DQoNCi0tLS0tT3JpZ2luYWwg
-TWVzc2FnZS0tLS0tDQpGcm9tOiBNZW5vbiwgTmlzaGFudGggDQpTZW50OiBUdWVzZGF5LCBNYXJj
-aCAxNywgMjAwOSA4OjE3IEFNDQpUbzogJ2xpbnV4LWFybS1rZXJuZWxAbGlzdHMuYXJtLmxpbnV4
-Lm9yZy51aycNCkNjOiBHdXB0YSwgUmFtZXNoOyBLZXZpbiBIaWxtYW47IGxpbnV4LW9tYXBAdmdl
-ci5rZXJuZWwub3JnOyBSYW1pcmV6IEx1bmEsIE9tYXI7IEthbmlnZXJpLCBIYXJpOyBBbWV5YSBQ
-YWxhbmRlOyBHdXptYW4gTHVnbywgRmVybmFuZG87IEFtZXlhIFBhbGFuZGUNClN1YmplY3Q6IGRt
-YV9hbGxvY19jb2hlcmVudCBmcmFnbWVudGF0aW9uDQoNCkxvb3BpbmcgaW4gbGludXgtYXJtIE1M
-Og0KDQpEaXNjdXNzaW9uIFJlZjogWzFdKGxpbnV4LW9tYXAgbWFpbGluZyBsaXN0KQ0KV2hpbGUg
-d29ya2luZyB3aXRoIExpbnV4IE9NQVAga2VybmVsWzJdIHdlIGZvdW5kIHRoYXQgb24gYWxsb2Nh
-dGluZyA0IG1lZyBjaHVua3MgdXNpbmcgZG1hX2FsbG9jX2NvaGVyZW50IGFuZCBkZS1hbGxvY2F0
-aW5nIHdpdGggZG1hX2ZyZWVfY29oZXJlbnQgaW4gYSBsb29wIHVzaW5nIGEgdGVzdCBkcml2ZXJb
-N10sIHRoZSBtZW1vcnkgaXMgZ2V0dGluZyBmcmFnbWVudGVkIGFzIHNob3duIGJ5IEFtZXlhJ3Mg
-b2JzZXJ2YXRpb24gWzNdIGZpbmFsbHkgcmVzdWx0aW5nIGluIGR1bXBfc3RhY2sgZHVlIHRvIGxh
-Y2sgb2YgcGFnZXMuDQoNClNlYXJjaGluZyB0aHJvdWdoIHByZXZpb3VzIGFyY2hpdmVzLCBmb3Vu
-ZCBbNF0gd2hpY2ggc2VlbSB0byBpbXBseSB0aGF0IGFsbG9jYXRpbmcgY2h1bmtzIGdyZWF0ZXIg
-dGhhbiAxIHBhZ2UgY291bGQgY2F1c2UgZnJhZ21lbnRhdGlvbi4NCg0KSSB3b25kZXIgd2h5IHdl
-IHNlZSB0aGlzIGV2ZW4gaWYgd2UgYWxsb2NhdGUgYW5kIGZyZWUgdGhlIG1lbW9yeSBpbiBzZXF1
-ZW5jZSBhcyBpbiBbNV0uIFRoaXMgc2VlbXMgdG8gaGFwcGVuIG9uIDIuNi4yOCBhbmQgMi42LjI5
-IGJ1dCBub3Qgb24gdGhlIDIuNi4yNyBiYXNlZCBrZXJuZWxbNl0uDQoNClJlZ2FyZHMsDQpOaXNo
-YW50aCBNZW5vbg0KDQpSZWY6DQpbMV0gaHR0cDovL21hcmMuaW5mby8/dD0xMjM3MTk3NzkxMDAw
-MDImcj0xJnc9Mg0KWzJdIGh0dHA6Ly9naXQua2VybmVsLm9yZy8/cD1saW51eC9rZXJuZWwvZ2l0
-L3RtbGluZC9saW51eC1vbWFwLTIuNi5naXQNClszXSBodHRwOi8vbWFyYy5pbmZvLz9sPWxpbnV4
-LW9tYXAmbT0xMjM3MjI0NjAwMjIzMzYmdz0yDQpbNF0gaHR0cDovL2xrbWwuaW5kaWFuYS5lZHUv
-aHlwZXJtYWlsL2xpbnV4L2tlcm5lbC8wNzA2LjAvMDM3MC5odG1sIA0KWzVdIGh0dHA6Ly9tYXJj
-LmluZm8vP2w9bGludXgtb21hcCZtPTEyMzcxOTc3MjgxMTc0NiZ3PTINCls2XSBodHRwOi8vZ2l0
-Lm9tYXB6b29tLmNvbS8/cD1yZXBvL29tYXBrZXJuZWwuZ2l0Ow0KWzddIGh0dHA6Ly9tYXJjLmlu
-Zm8vP2w9bGludXgtb21hcCZtPTEyMzcxOTc3MjgxMTc0NiZxPXAzIA0K
+Felipe,
+
+> Check the hardware state of the DSP before sending the command to wake
+> it up thus avoiding to flood the mailbox unnecessarily.
+>
+-- So this check was missing in Unmap part. Good catch.
+
+
+> -	u32 temp = 0;
+> -	struct CFG_HOSTRES resources;
+>  	u32 *pPhysAddrPageTbl = NULL;
+>  	struct vm_area_struct *vma;
+>  	struct mm_struct *mm = current->mm;
+> +	u32 temp = 0;
+>
+
+-- Is temp variable needed ?
+
+Thank you,
+Best regards,
+Hari
+
+> -----Original Message-----
+> From: Felipe Contreras [mailto:felipe.contreras@gmail.com]
+> Sent: Tuesday, March 17, 2009 8:27 PM
+> To: linux-omap@vger.kernel.org
+> Cc: Kanigeri, Hari; Hiroshi DOYU; Ameya Palande; Guzman Lugo, Fernando;
+> Felipe Contreras
+> Subject: [PATCH B 1/3] tidspbridge: don't flood the mailbox on MemUnMap
+> 
+> From: Felipe Contreras <felipe.contreras@nokia.com>
+> 
+> Impact: improves performance and reliability
+> 
+> Check the hardware state of the DSP before sending the command to wake
+> it up thus avoiding to flood the mailbox unnecessarily.
+> 
+> By doing that the mailbox is free most of the time which dramatically
+> decreases CPU usage since the check for empty slots is done in a busy
+> loop.
+> 
+> Also, a free mailbox means less timeouts, so now most messages are
+> posted which improves reliability.
+> 
+> MemMap is doing the flush properly, so this patch also refactors the
+> code into a common flush_all function.
+> 
+> The problem can be triggered by doing many memmap/unmaps, just like TI's
+> OpenMAX IL implementation.
+> 
+> Signed-off-by: Felipe Contreras <felipe.contreras@nokia.com>
+> ---
+>  drivers/dsp/bridge/wmd/tiomap3430.c |   42 +++++++++++++++++++-----------
+> ----
+>  1 files changed, 23 insertions(+), 19 deletions(-)
+> 
+> diff --git a/drivers/dsp/bridge/wmd/tiomap3430.c
+> b/drivers/dsp/bridge/wmd/tiomap3430.c
+> index c0f4ffc..b538ef7 100644
+> --- a/drivers/dsp/bridge/wmd/tiomap3430.c
+> +++ b/drivers/dsp/bridge/wmd/tiomap3430.c
+> @@ -235,6 +235,25 @@ static struct WMD_DRV_INTERFACE drvInterfaceFxns = {
+>  	WMD_MSG_SetQueueId,
+>  };
+> 
+> +static inline void flush_all(struct WMD_DEV_CONTEXT *pDevContext)
+> +{
+> +	struct CFG_HOSTRES resources;
+> +	u32 temp = 0;
+> +
+> +	CFG_GetHostResources((struct CFG_DEVNODE
+> *)DRV_GetFirstDevExtension(), &resources);
+> +	HW_PWRST_IVA2RegGet(resources.dwPrmBase, &temp);
+> +
+> +	if ((temp & HW_PWR_STATE_ON) == HW_PWR_STATE_OFF) {
+> +		/* IVA domain is not in ON state*/
+> +		DBG_Trace(DBG_LEVEL7, "temp value is 0x%x\n", temp);
+> +		CLK_Enable(SERVICESCLK_iva2_ck);
+> +		WakeDSP(pDevContext, NULL);
+> +		HW_MMU_TLBFlushAll(pDevContext->dwDSPMmuBase);
+> +		CLK_Disable(SERVICESCLK_iva2_ck);
+> +	} else
+> +		HW_MMU_TLBFlushAll(pDevContext->dwDSPMmuBase);
+> +}
+> +
+>  /*
+>   *  ======== WMD_DRV_Entry ========
+>   *  purpose:
+> @@ -1283,17 +1302,14 @@ static DSP_STATUS WMD_BRD_MemMap(struct
+> WMD_DEV_CONTEXT *hDevContext,
+>  	struct WMD_DEV_CONTEXT *pDevContext = hDevContext;
+>  	struct HW_MMUMapAttrs_t hwAttrs;
+>  	u32 numOfActualTabEntries = 0;
+> -	u32 temp = 0;
+> -	struct CFG_HOSTRES resources;
+>  	u32 *pPhysAddrPageTbl = NULL;
+>  	struct vm_area_struct *vma;
+>  	struct mm_struct *mm = current->mm;
+> +	u32 temp = 0;
+> 
+>  	DBG_Trace(DBG_ENTER, "> WMD_BRD_MemMap hDevContext %x, pa %x, va %x,
+> "
+>  		 "size %x, ulMapAttr %x\n", hDevContext, ulMpuAddr,
+> ulVirtAddr,
+>  		 ulNumBytes, ulMapAttr);
+> -	status = CFG_GetHostResources(
+> -		 (struct CFG_DEVNODE *)DRV_GetFirstDevExtension(),
+> &resources);
+>  	if (ulNumBytes == 0)
+>  		return DSP_EINVALIDARG;
+> 
+> @@ -1421,16 +1437,7 @@ func_cont:
+>  	 * This is called from here instead from PteUpdate to avoid
+> unnecessary
+>  	 * repetition while mapping non-contiguous physical regions of a
+> virtual
+>  	 * region */
+> -	HW_PWRST_IVA2RegGet(resources.dwPrmBase, &temp);
+> -	if ((temp & HW_PWR_STATE_ON) == HW_PWR_STATE_OFF) {
+> -		/* IVA domain is not in ON state*/
+> -		DBG_Trace(DBG_LEVEL7, "temp value is 0x%x\n", temp);
+> -		CLK_Enable(SERVICESCLK_iva2_ck);
+> -		WakeDSP(pDevContext, NULL);
+> -		HW_MMU_TLBFlushAll(pDevContext->dwDSPMmuBase);
+> -		CLK_Disable(SERVICESCLK_iva2_ck);
+> -	} else
+> -		HW_MMU_TLBFlushAll(pDevContext->dwDSPMmuBase);
+> +	flush_all(pDevContext);
+>  	DBG_Trace(DBG_ENTER, "< WMD_BRD_MemMap status %x\n", status);
+>  	return status;
+>  }
+> @@ -1571,8 +1578,7 @@ static DSP_STATUS WMD_BRD_MemUnMap(struct
+> WMD_DEV_CONTEXT *hDevContext,
+>  	 /* It is better to flush the TLB here, so that any stale old
+> entries
+>  	 * get flushed */
+>  EXIT_LOOP:
+> -	CHNLSM_InterruptDSP2(pDevContext, MBX_PM_DSPWAKEUP);
+> -	HW_MMU_TLBFlushAll(pDevContext->dwDSPMmuBase);
+> +	flush_all(pDevContext);
+>  	DBG_Trace(DBG_LEVEL1, "WMD_BRD_MemUnMap vaCurr %x, pteAddrL1 %x "
+>  		  "pteAddrL2 %x\n", vaCurr, pteAddrL1, pteAddrL2);
+>  	DBG_Trace(DBG_ENTER, "< WMD_BRD_MemUnMap status %x remBytes %x, "
+> @@ -2055,9 +2061,7 @@ func_cont:
+>  	 * This is called from here instead from PteUpdate to avoid
+> unnecessary
+>  	 * repetition while mapping non-contiguous physical regions of a
+> virtual
+>  	 * region */
+> -	/* Waking up DSP before calling TLB Flush */
+> -	CHNLSM_InterruptDSP2(pDevContext, MBX_PM_DSPWAKEUP);
+> -	HW_MMU_TLBFlushAll(pDevContext->dwDSPMmuBase);
+> +	flush_all(pDevContext);
+>  	DBG_Trace(DBG_LEVEL7, "< WMD_BRD_MemMap  at end status %x\n",
+> status);
+>  	return status;
+>  }
+> --
+> 1.6.2.1.287.g9a8be
+> 
+
