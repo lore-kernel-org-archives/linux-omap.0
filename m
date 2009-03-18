@@ -1,7 +1,7 @@
 From: Felipe Contreras <felipe.contreras@gmail.com>
-Subject: [PATCH A 08/15] tidspbridge: remove UTIL_Wait wrapper
-Date: Wed, 18 Mar 2009 03:23:04 +0200
-Message-ID: <1237339391-20543-9-git-send-email-felipe.contreras@gmail.com>
+Subject: [PATCH A 12/15] tidspbridge: remove IO_InterruptDSP2
+Date: Wed, 18 Mar 2009 03:23:08 +0200
+Message-ID: <1237339391-20543-13-git-send-email-felipe.contreras@gmail.com>
 References: <1237339391-20543-1-git-send-email-felipe.contreras@gmail.com>
  <1237339391-20543-2-git-send-email-felipe.contreras@gmail.com>
  <1237339391-20543-3-git-send-email-felipe.contreras@gmail.com>
@@ -10,197 +10,197 @@ References: <1237339391-20543-1-git-send-email-felipe.contreras@gmail.com>
  <1237339391-20543-6-git-send-email-felipe.contreras@gmail.com>
  <1237339391-20543-7-git-send-email-felipe.contreras@gmail.com>
  <1237339391-20543-8-git-send-email-felipe.contreras@gmail.com>
+ <1237339391-20543-9-git-send-email-felipe.contreras@gmail.com>
+ <1237339391-20543-10-git-send-email-felipe.contreras@gmail.com>
+ <1237339391-20543-11-git-send-email-felipe.contreras@gmail.com>
+ <1237339391-20543-12-git-send-email-felipe.contreras@gmail.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-bw0-f169.google.com ([209.85.218.169]:56149 "EHLO
-	mail-bw0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756265AbZCRBYX (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 17 Mar 2009 21:24:23 -0400
-Received: by mail-bw0-f169.google.com with SMTP id 17so321490bwz.37
-        for <linux-omap@vger.kernel.org>; Tue, 17 Mar 2009 18:24:21 -0700 (PDT)
-In-Reply-To: <1237339391-20543-8-git-send-email-felipe.contreras@gmail.com>
+Received: from mail-fx0-f158.google.com ([209.85.220.158]:63018 "EHLO
+	mail-fx0-f158.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756301AbZCRBYb (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 17 Mar 2009 21:24:31 -0400
+Received: by mail-fx0-f158.google.com with SMTP id 2so304246fxm.37
+        for <linux-omap@vger.kernel.org>; Tue, 17 Mar 2009 18:24:28 -0700 (PDT)
+In-Reply-To: <1237339391-20543-12-git-send-email-felipe.contreras@gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
-Cc: Hari Kanigeri <h-kanigeri2@ti.com>, Hiroshi DOYU <hiroshi.doyu@nokia.com>, Ameya Palande <ameya.palande@nokia.com>, Fernando Guzman Lugo <x0095840@ti.com>, Felipe Contreras <felipe.contreras@gmail.com>
+Cc: Hari Kanigeri <h-kanigeri2@ti.com>, Hiroshi DOYU <hiroshi.doyu@nokia.com>, Ameya Palande <ameya.palande@nokia.com>, Fernando Guzman Lugo <x0095840@ti.com>, Felipe Contreras <felipe.contreras@nokia.com>
 
-Wrappers only hurt readability, use native kernel functions instead
-(udelay, mdelay).
+From: Felipe Contreras <felipe.contreras@nokia.com>
 
-Also remove useless defines.
+It's just wrapping CHNLSM_InterruptDSP2.
 
-Signed-off-by: Felipe Contreras <felipe.contreras@gmail.com>
+Signed-off-by: Felipe Contreras <felipe.contreras@nokia.com>
 ---
- arch/arm/plat-omap/include/dspbridge/util.h |   33 ---------------------------
- drivers/dsp/bridge/wmd/_tiomap_pwr.h        |    4 ---
- drivers/dsp/bridge/wmd/_tiomap_util.h       |    1 -
- drivers/dsp/bridge/wmd/tiomap3430.c         |   10 ++++----
- drivers/dsp/bridge/wmd/tiomap3430_pwr.c     |    4 +-
- drivers/dsp/bridge/wmd/tiomap_sm.c          |    4 +-
- 6 files changed, 9 insertions(+), 47 deletions(-)
+ arch/arm/plat-omap/include/dspbridge/io_sm.h |    1 -
+ drivers/dsp/bridge/wmd/io_sm.c               |   12 ++++++------
+ drivers/dsp/bridge/wmd/tiomap3430.c          |    6 +++---
+ drivers/dsp/bridge/wmd/tiomap3430_pwr.c      |   18 +++++++++---------
+ 4 files changed, 18 insertions(+), 19 deletions(-)
 
-diff --git a/arch/arm/plat-omap/include/dspbridge/util.h b/arch/arm/plat-omap/include/dspbridge/util.h
-index 9d8842a..e6815ca 100644
---- a/arch/arm/plat-omap/include/dspbridge/util.h
-+++ b/arch/arm/plat-omap/include/dspbridge/util.h
-@@ -26,7 +26,6 @@
-  *      UTIL_Exit
-  *      UTIL_GetSysInfo
-  *      UTIL_Init
-- *      UTIL_Wait
-  */
+diff --git a/arch/arm/plat-omap/include/dspbridge/io_sm.h b/arch/arm/plat-omap/include/dspbridge/io_sm.h
+index 02010d0..3dcbf74 100644
+--- a/arch/arm/plat-omap/include/dspbridge/io_sm.h
++++ b/arch/arm/plat-omap/include/dspbridge/io_sm.h
+@@ -77,7 +77,6 @@
  
- #ifndef _UTIL_H
-@@ -120,36 +119,4 @@
- 		return true;
- 	}
+ #define IO_DisableInterrupt(h)  CHNLSM_DisableInterrupt(h)
+ #define IO_EnableInterrupt(h)   CHNLSM_EnableInterrupt(h)
+-#define IO_InterruptDSP2(h, v)  CHNLSM_InterruptDSP2(h, v)
+ #define IO_CALLISR(h, pFlag, pwMBRegVal)   CHNLSM_ISR(h, pFlag, pwMBRegVal)
  
--/*
-- *  ======== UTIL_Wait ========
-- *  Purpose:
-- *      This fucntion busy waits given a certain number of micro seconds
-- *      independent of the processor speed. This is acheived by the
-- *      OEM functions QueryPerformanceCounter and QueryPerformanceFrequency.
-- *  Parameters:
-- *      u32   Number of Micro seconds to busy wait
-- *  Returns:
-- *          Nothing
-- *  Requires:
-- *          UTIL_Initalized.
-- *  Ensures:
-- *      Busy waits x Micro seconds or Sleeps X milli seconds; in that
-- *      case, it is a blocking call there will be a context switching
-- *      hence it may not represent the absolute busy wait time.
-- */
--	static inline void UTIL_Wait(IN u32 dwMicroSeconds)
--	{
--		if (dwMicroSeconds / 1000 <= 1) {
--			/* <= 1 millisecond delay */
--			udelay(dwMicroSeconds);
--		} else if (dwMicroSeconds * HZ / 1000000 <= 1) {
--			/* <= 10 millisecond delay */
--			mdelay(dwMicroSeconds / 1000);
--		} else {
--			/* > 10 millisecond delay */
--			set_current_state(TASK_INTERRUPTIBLE);
--			schedule_timeout(dwMicroSeconds * HZ / 1000000);
--		}
--	}
--
- #endif				/* _UTIL_H */
-diff --git a/drivers/dsp/bridge/wmd/_tiomap_pwr.h b/drivers/dsp/bridge/wmd/_tiomap_pwr.h
-index 15ff2d3..8a7cf1b 100644
---- a/drivers/dsp/bridge/wmd/_tiomap_pwr.h
-+++ b/drivers/dsp/bridge/wmd/_tiomap_pwr.h
-@@ -28,10 +28,6 @@
- #ifndef _TIOMAP_PWR_
- #define _TIOMAP_PWR_
- 
--/* Wait time between MBX and IDLE checks for PWR */
--#define PWR_WAIT_USECS          500
--#define PWR_WAIT_MSECS          50
--
  /*
-  * ======== WakeDSP =========
-  * Wakes up the DSP from DeepSleep
-diff --git a/drivers/dsp/bridge/wmd/_tiomap_util.h b/drivers/dsp/bridge/wmd/_tiomap_util.h
-index b655409..47e1e5d 100644
---- a/drivers/dsp/bridge/wmd/_tiomap_util.h
-+++ b/drivers/dsp/bridge/wmd/_tiomap_util.h
-@@ -30,7 +30,6 @@
+diff --git a/drivers/dsp/bridge/wmd/io_sm.c b/drivers/dsp/bridge/wmd/io_sm.c
+index e4d8528..40062cb 100644
+--- a/drivers/dsp/bridge/wmd/io_sm.c
++++ b/drivers/dsp/bridge/wmd/io_sm.c
+@@ -831,7 +831,7 @@ void IO_CancelChnl(struct IO_MGR *hIOMgr, u32 ulChnl)
+ 	IO_AndValue(pIOMgr->hWmdContext, struct SHM, sm, hostFreeMask,
+ 		   (~(1 << ulChnl)));
  
- /* Time out Values in uSeconds*/
- #define TIHELEN_ACKTIMEOUT  10000
--#define TIHELEN_WRITE_DELAY 10
+-	IO_InterruptDSP2(pIOMgr->hWmdContext, MBX_PCPY_CLASS);
++	CHNLSM_InterruptDSP2(pIOMgr->hWmdContext, MBX_PCPY_CLASS);
+ }
  
- /*  Time delay for HOM->SAM transition. */
- #define  WAIT_SAM   1000000	/* in usec (1000 millisec) */
+ /*
+@@ -1201,7 +1201,7 @@ static void InputChnl(struct IO_MGR *pIOMgr, struct CHNL_OBJECT *pChnl,
+ 	if (fClearChnl) {
+ 		/* Indicate to the DSP we have read the input: */
+ 		IO_SetValue(pIOMgr->hWmdContext, struct SHM, sm, inputFull, 0);
+-		IO_InterruptDSP2(pIOMgr->hWmdContext, MBX_PCPY_CLASS);
++		CHNLSM_InterruptDSP2(pIOMgr->hWmdContext, MBX_PCPY_CLASS);
+ 	}
+ 	if (fNotifyClient) {
+ 		/* Notify client with IO completion record:  */
+@@ -1303,7 +1303,7 @@ static void InputMsg(struct IO_MGR *pIOMgr, struct MSG_MGR *hMsgMgr)
+ 			   true);
+ 		IO_SetValue(pIOMgr->hWmdContext, struct MSG, pCtrl, postSWI,
+ 			   true);
+-		IO_InterruptDSP2(pIOMgr->hWmdContext, MBX_PCPY_CLASS);
++		CHNLSM_InterruptDSP2(pIOMgr->hWmdContext, MBX_PCPY_CLASS);
+ 	}
+ }
+ 
+@@ -1406,7 +1406,7 @@ static void OutputChnl(struct IO_MGR *pIOMgr, struct CHNL_OBJECT *pChnl,
+ #endif
+ 	IO_SetValue(pIOMgr->hWmdContext, struct SHM, sm, outputFull, 1);
+ 	/* Indicate to the DSP we have written the output: */
+-	IO_InterruptDSP2(pIOMgr->hWmdContext, MBX_PCPY_CLASS);
++	CHNLSM_InterruptDSP2(pIOMgr->hWmdContext, MBX_PCPY_CLASS);
+ 	/* Notify client with IO completion record (keep EOS) */
+ 	pChirp->status &= CHNL_IOCSTATEOS;
+ 	NotifyChnlComplete(pChnl, pChirp);
+@@ -1493,7 +1493,7 @@ static void OutputMsg(struct IO_MGR *pIOMgr, struct MSG_MGR *hMsgMgr)
+ 			IO_SetValue(pIOMgr->hWmdContext, struct MSG, pCtrl,
+ 				   postSWI, true);
+ 			/* Tell the DSP we have written the output. */
+-			IO_InterruptDSP2(pIOMgr->hWmdContext, MBX_PCPY_CLASS);
++			CHNLSM_InterruptDSP2(pIOMgr->hWmdContext, MBX_PCPY_CLASS);
+ 		}
+ 	}
+ }
+@@ -1624,7 +1624,7 @@ static u32 WriteData(struct WMD_DEV_CONTEXT *hDevContext, void *pDest,
+ /* ZCPY IO routines. */
+ void IO_IntrDSP2(IN struct IO_MGR *pIOMgr, IN u16 wMbVal)
+ {
+-	IO_InterruptDSP2(pIOMgr->hWmdContext, wMbVal);
++	CHNLSM_InterruptDSP2(pIOMgr->hWmdContext, wMbVal);
+ }
+ 
+ /*
 diff --git a/drivers/dsp/bridge/wmd/tiomap3430.c b/drivers/dsp/bridge/wmd/tiomap3430.c
-index a6e695a..2ce7295 100644
+index 2ce7295..e2b590f 100644
 --- a/drivers/dsp/bridge/wmd/tiomap3430.c
 +++ b/drivers/dsp/bridge/wmd/tiomap3430.c
-@@ -460,9 +460,9 @@ static DSP_STATUS WMD_BRD_Start(struct WMD_DEV_CONTEXT *hDevContext,
- 		/* Reset and Unreset the RST2, so that BOOTADDR is copied to
- 		 * IVA2 SYSC register */
- 		HW_RST_Reset(resources.dwPrmBase, HW_RST2_IVA2);
--		UTIL_Wait(100);
-+		udelay(100);
- 		HW_RST_UnReset(resources.dwPrmBase, HW_RST2_IVA2);
--		UTIL_Wait(100);
-+		udelay(100);
- 		DBG_Trace(DBG_LEVEL6, "WMD_BRD_Start 0 ****** \n");
- 		GetHWRegs(resources.dwPrmBase, resources.dwCmBase);
- 		/* Disbale the DSP MMU */
-@@ -737,7 +737,7 @@ static DSP_STATUS WMD_BRD_Stop(struct WMD_DEV_CONTEXT *hDevContext)
+@@ -735,7 +735,7 @@ static DSP_STATUS WMD_BRD_Stop(struct WMD_DEV_CONTEXT *hDevContext)
+ 	HW_PWRST_IVA2RegGet(resources.dwPrmBase, &dspPwrState);
+ 	if (dspPwrState != HW_PWR_STATE_OFF) {
  
- 			IO_InterruptDSP2(pDevContext, MBX_PM_DSPIDLE);
+-			IO_InterruptDSP2(pDevContext, MBX_PM_DSPIDLE);
++			CHNLSM_InterruptDSP2(pDevContext, MBX_PM_DSPIDLE);
  
--			UTIL_Wait(10000);	/* 10 msec */
-+			mdelay(10);
+ 			mdelay(10);
  
- 			GetHWRegs(resources.dwPrmBase, resources.dwCmBase);
- 
-@@ -1053,7 +1053,7 @@ static DSP_STATUS WMD_DEV_Create(OUT struct WMD_DEV_CONTEXT **ppDevContext,
- 				 "WMD_DEV_create:Reset mail box and "
- 				 "enable the clock Fail\n");
- 		}
--		UTIL_Wait(5);
-+		udelay(5);
- 		/* 24xx-Linux MMU address is obtained from the host
- 		 * resources struct */
- 		pDevContext->dwDSPMmuBase = resources.dwDmmuBase;
-@@ -2174,7 +2174,7 @@ bool WaitForStart(struct WMD_DEV_CONTEXT *pDevContext, u32 dwSyncAddr)
- 
- 	/*  Wait for response from board */
- 	while (*((volatile u16 *)dwSyncAddr) && --usCount)
--		UTIL_Wait(TIHELEN_WRITE_DELAY);
-+		udelay(10);
- 
- 	/*  If timed out: return FALSE */
- 	if (!usCount) {
+@@ -1573,7 +1573,7 @@ static DSP_STATUS WMD_BRD_MemUnMap(struct WMD_DEV_CONTEXT *hDevContext,
+ 	 /* It is better to flush the TLB here, so that any stale old entries
+ 	 * get flushed */
+ EXIT_LOOP:
+-	IO_InterruptDSP2(pDevContext, MBX_PM_DSPWAKEUP);
++	CHNLSM_InterruptDSP2(pDevContext, MBX_PM_DSPWAKEUP);
+ 	HW_MMU_TLBFlushAll(pDevContext->dwDSPMmuBase);
+ 	DBG_Trace(DBG_LEVEL1, "WMD_BRD_MemUnMap vaCurr %x, pteAddrL1 %x "
+ 		  "pteAddrL2 %x\n", vaCurr, pteAddrL1, pteAddrL2);
+@@ -2058,7 +2058,7 @@ func_cont:
+ 	 * repetition while mapping non-contiguous physical regions of a virtual
+ 	 * region */
+ 	/* Waking up DSP before calling TLB Flush */
+-	IO_InterruptDSP2(pDevContext, MBX_PM_DSPWAKEUP);
++	CHNLSM_InterruptDSP2(pDevContext, MBX_PM_DSPWAKEUP);
+ 	HW_MMU_TLBFlushAll(pDevContext->dwDSPMmuBase);
+ 	DBG_Trace(DBG_LEVEL7, "< WMD_BRD_MemMap  at end status %x\n", status);
+ 	return status;
 diff --git a/drivers/dsp/bridge/wmd/tiomap3430_pwr.c b/drivers/dsp/bridge/wmd/tiomap3430_pwr.c
-index f3e7645..95a89b3 100644
+index 95a89b3..5fac79e 100644
 --- a/drivers/dsp/bridge/wmd/tiomap3430_pwr.c
 +++ b/drivers/dsp/bridge/wmd/tiomap3430_pwr.c
-@@ -122,7 +122,7 @@ DSP_STATUS handle_hibernation_fromDSP(struct WMD_DEV_CONTEXT *pDevContext)
- 	/* Wait for DSP to move into Off state,  how much time should
- 	 * we wait? */
- 	while ((pwrState != HW_PWR_STATE_OFF) && --usCount) {
--		UTIL_Wait(PWR_WAIT_USECS);
-+		udelay(500);
+@@ -201,23 +201,23 @@ DSP_STATUS SleepDSP(struct WMD_DEV_CONTEXT *pDevContext, IN u32 dwCmd,
+ 	case BRD_RUNNING:
+ 		status = HW_MBOX_saveSettings(resources.dwMboxBase);
+ 		if (dsp_test_sleepstate == HW_PWR_STATE_OFF) {
+-			IO_InterruptDSP2(pDevContext,
+-					 MBX_PM_DSPHIBERNATE);
++			CHNLSM_InterruptDSP2(pDevContext,
++					     MBX_PM_DSPHIBERNATE);
+ 			DBG_Trace(DBG_LEVEL7,
+ 				 "SleepDSP - Sent hibernate "
+ 				 "command to DSP\n");
+ 			targetPwrState = HW_PWR_STATE_OFF;
+ 		} else {
+-			IO_InterruptDSP2(pDevContext,
+-					 MBX_PM_DSPRETENTION);
++			CHNLSM_InterruptDSP2(pDevContext,
++					     MBX_PM_DSPRETENTION);
+ 			targetPwrState = HW_PWR_STATE_RET;
+ 		}
+ 		break;
+ 	case BRD_RETENTION:
+ 		status = HW_MBOX_saveSettings(resources.dwMboxBase);
+ 		if (dsp_test_sleepstate == HW_PWR_STATE_OFF) {
+-			IO_InterruptDSP2(pDevContext,
+-					 MBX_PM_DSPHIBERNATE);
++			CHNLSM_InterruptDSP2(pDevContext,
++					     MBX_PM_DSPHIBERNATE);
+ 			targetPwrState = HW_PWR_STATE_OFF;
+ 		} else
+ 			return DSP_SOK;
+@@ -301,7 +301,7 @@ DSP_STATUS WakeDSP(struct WMD_DEV_CONTEXT *pDevContext, IN void *pArgs)
+ 	udelay(10);
+ 	if (DSP_SUCCEEDED(status)) {
+ 		/* Send a message to DSP to wake up */
+-		IO_InterruptDSP2(pDevContext, MBX_PM_DSPWAKEUP);
++		CHNLSM_InterruptDSP2(pDevContext, MBX_PM_DSPWAKEUP);
  		HW_PWR_IVA2StateGet(resources.dwPrmBase, HW_PWR_DOMAIN_DSP,
  				    &pwrState);
- 	}
-@@ -243,7 +243,7 @@ DSP_STATUS SleepDSP(struct WMD_DEV_CONTEXT *pDevContext, IN u32 dwCmd,
- 	/* Wait for DSP to move into Standby state,  how much time
- 	 * should we wait?*/
- 	while ((pwrState != targetPwrState) && --usCount) {
--		UTIL_Wait(PWR_WAIT_USECS);
-+		udelay(500);
- 		HW_PWR_IVA2StateGet(resources.dwPrmBase, HW_PWR_DOMAIN_DSP,
- 				    &pwrState);
- 	}
-diff --git a/drivers/dsp/bridge/wmd/tiomap_sm.c b/drivers/dsp/bridge/wmd/tiomap_sm.c
-index 0e18613..574cf28 100644
---- a/drivers/dsp/bridge/wmd/tiomap_sm.c
-+++ b/drivers/dsp/bridge/wmd/tiomap_sm.c
-@@ -61,7 +61,7 @@ DSP_STATUS CHNLSM_EnableInterrupt(struct WMD_DEV_CONTEXT *pDevContext)
- 			HW_MBOX_MsgRead(resources.dwMboxBase,
- 					MBOX_ARM2DSP, &mbxValue);
- 			numMbxMsg--;
--			UTIL_Wait(10);
-+			udelay(10);
- 
- 			HW_MBOX_EventAck(resources.dwMboxBase, MBOX_ARM2DSP,
- 					 HW_MBOX_U1_DSP1,
-@@ -141,7 +141,7 @@ DSP_STATUS CHNLSM_InterruptDSP(struct WMD_DEV_CONTEXT *pDevContext)
- 		HW_MBOX_IsFull(resources.dwMboxBase,
- 			       MBOX_ARM2DSP, &mbxFull);
- 		if (mbxFull)
--			UTIL_Wait(1000);	/* wait for 1 ms)      */
-+			mdelay(1);
- 		else
- 			break;
- 	}
+ 		DBG_Trace(DBG_LEVEL7,
+@@ -425,7 +425,7 @@ DSP_STATUS PreScale_DSP(struct WMD_DEV_CONTEXT *pDevContext, IN void *pArgs)
+ 		/* Send a prenotificatio to DSP */
+ 		DBG_Trace(DBG_LEVEL7,
+ 			 "PreScale_DSP: Sent notification to DSP\n");
+-		IO_InterruptDSP2(pDevContext, MBX_PM_SETPOINT_PRENOTIFY);
++		CHNLSM_InterruptDSP2(pDevContext, MBX_PM_SETPOINT_PRENOTIFY);
+ 		return DSP_SOK;
+ 	} else {
+ 		DBG_Trace(DBG_LEVEL7, "PreScale_DSP: Failed - DSP BRD"
+@@ -469,7 +469,7 @@ DSP_STATUS PostScale_DSP(struct WMD_DEV_CONTEXT *pDevContext, IN void *pArgs)
+ 		/* Update the OPP value in shared memory */
+ 		IO_SHMsetting(hIOMgr, SHM_CURROPP, &level);
+ 		/* Send a post notification to DSP */
+-		IO_InterruptDSP2(pDevContext, MBX_PM_SETPOINT_POSTNOTIFY);
++		CHNLSM_InterruptDSP2(pDevContext, MBX_PM_SETPOINT_POSTNOTIFY);
+ 		DBG_Trace(DBG_LEVEL7,
+ 			 "PostScale_DSP: Wrote to shared memory Sent post"
+ 			 " notification to DSP\n");
 -- 
 1.6.2.1.287.g9a8be
 
