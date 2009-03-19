@@ -1,34 +1,34 @@
-From: Liam Girdwood <lrg@slimlogic.co.uk>
-Subject: Re: [patch] twl4030-regulator: expose VPLL2
-Date: Thu, 19 Mar 2009 18:13:46 +0000
-Message-ID: <1237486426.6781.345.camel@vega.slimlogic.co.uk>
-References: <200903131754.54997.david-b@pacbell.net>
-	 <20090316155103.GJ16539@sirena.org.uk>
+From: Mark Brown <broonie@sirena.org.uk>
+Subject: Re: [patch 2.6.29-rc8 regulator-next] regulator: init fixes (v4)
+Date: Thu, 19 Mar 2009 19:27:11 +0000
+Message-ID: <20090319192711.GC8966@sirena.org.uk>
+References: <200903111743.34708.david-b@pacbell.net> <200903181225.11444.david-b@pacbell.net> <20090318203317.GA6299@sirena.org.uk> <200903181402.14384.david-b@pacbell.net>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1760673AbZCSSOJ@vger.kernel.org>
-In-Reply-To: <20090316155103.GJ16539@sirena.org.uk>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Samuel Ortiz <sameo@openedhand.com>
-Cc: dbrownell@users.sourceforge.net, OMAP <linux-omap@vger.kernel.org>, lkml <linux-kernel@vger.kernel.org>, Mark Brown <broonie@sirena.org.uk>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from cassiel.sirena.org.uk ([80.68.93.111]:39280 "EHLO
+	cassiel.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752182AbZCST1T (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 19 Mar 2009 15:27:19 -0400
+Content-Disposition: inline
+In-Reply-To: <200903181402.14384.david-b@pacbell.net>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: David Brownell <david-b@pacbell.net>
+Cc: Liam Girdwood <lrg@slimlogic.co.uk>, lkml <linux-kernel@vger.kernel.org>, OMAP <linux-omap@vger.kernel.org>
 
-On Mon, 2009-03-16 at 15:51 +0000, Mark Brown wrote:
-> On Fri, Mar 13, 2009 at 05:54:54PM -0700, David Brownell wrote:
-> > From: David Brownell <dbrownell@users.sourceforge.net>
-> > 
-> > Add VPLL2 to the set of twl4030-family regulators exposed for
-> > use by various drivers.  It's commonly used to power the digital
-> > video outputs (e.g. LCD or DVI displays) on OMAP3 systems.
-> > 
-> > Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
-> 
-> Acked-by: Mark Brown <broonie@opensource.wolfsonmicro.com>
+On Wed, Mar 18, 2009 at 02:02:14PM -0700, David Brownell wrote:
 
-Samuel, I've applied this to the regulator tree as the part that touches
-mfd is relatively minor and twl4030 specific (doesn't touch core).
+> Huh?  $SUBJECT patch hasn't merged.  How could you
+> have backed it out??
 
-Thanks
+Sorry - another patch introducing a version of the same issue.  Your
+patch:
 
-Liam
+http://git.kernel.org/?p=linux/kernel/git/lrg/voltage-2.6.git;a=commit;h=67130ef073299cc7299d3ffa344122959e97753c
+
+bumped the refcount for boot_on regulators.  This patch:
+
+http://git.kernel.org/?p=linux/kernel/git/lrg/voltage-2.6.git;a=commit;h=504e7d7e42fb3a58809946770ff5e07cc9d52dbf
+
+backs out that change only.  This was my bad on the review.
