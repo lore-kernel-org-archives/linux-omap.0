@@ -1,44 +1,54 @@
-From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
-Subject: Re: dma_alloc_coherent fragmentation
-Date: Thu, 19 Mar 2009 08:42:48 +0200 (EET)
-Message-ID: <20090319.084248.183029086.Hiroshi.DOYU@nokia.com>
-References: <DFEF307E035C8647B119E6A60DB62D4A01793E6773@dlee02.ent.ti.com>
+From: Felipe Contreras <felipe.contreras@gmail.com>
+Subject: Re: [PATCH B 2/3] tidspbridge: cleanup and remove HW_MMU_TLBFlushAll
+Date: Thu, 19 Mar 2009 10:49:00 +0200
+Message-ID: <94a0d4530903190149g3b9b7dbav2abb95c953ee9929@mail.gmail.com>
+References: <1237339605-20697-1-git-send-email-felipe.contreras@gmail.com>
+	 <1237339605-20697-2-git-send-email-felipe.contreras@gmail.com>
+	 <1237339605-20697-3-git-send-email-felipe.contreras@gmail.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:20561 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751715AbZCSGnM (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 19 Mar 2009 02:43:12 -0400
-In-Reply-To: <DFEF307E035C8647B119E6A60DB62D4A01793E6773@dlee02.ent.ti.com>
+Received: from mail-fx0-f158.google.com ([209.85.220.158]:63946 "EHLO
+	mail-fx0-f158.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752102AbZCSItE convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 19 Mar 2009 04:49:04 -0400
+Received: by fxm2 with SMTP id 2so392170fxm.37
+        for <linux-omap@vger.kernel.org>; Thu, 19 Mar 2009 01:49:00 -0700 (PDT)
+In-Reply-To: <1237339605-20697-3-git-send-email-felipe.contreras@gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: nm@ti.com
-Cc: linux-arm-kernel@lists.arm.linux.org.uk, nskamat@ti.com, linux-omap@vger.kernel.org, x00omar@ti.com, h-kanigeri2@ti.com, x0095840@ti.com, khilman@deeprootsystems.com, 2ameya@gmail.com
+To: linux-omap@vger.kernel.org
+Cc: Hari Kanigeri <h-kanigeri2@ti.com>, Hiroshi DOYU <hiroshi.doyu@nokia.com>, Ameya Palande <ameya.palande@nokia.com>, Fernando Guzman Lugo <x0095840@ti.com>, Felipe Contreras <felipe.contreras@nokia.com>
 
-Hi Nishant,
+On Wed, Mar 18, 2009 at 3:26 AM, Felipe Contreras
+<felipe.contreras@gmail.com> wrote:
+> From: Felipe Contreras <felipe.contreras@nokia.com>
+>
+> It doesn't make sense to have layers and layers of constants and defi=
+nes
+> to turn one bit on.
+>
+> Signed-off-by: Felipe Contreras <felipe.contreras@nokia.com>
+> ---
 
-From: "ext Kamat, Nishant" <nskamat@ti.com>
-Subject: dma_alloc_coherent fragmentation
-Date: Wed, 18 Mar 2009 14:03:45 +0100
+I thought a bit more about this:
 
-> Forwarding on behalf of Nishanth Menon:
-> 
-> -----Original Message-----
-> From: Menon, Nishanth 
-> Sent: Tuesday, March 17, 2009 8:17 AM
-> To: 'linux-arm-kernel@lists.arm.linux.org.uk'
-> Cc: Gupta, Ramesh; Kevin Hilman; linux-omap@vger.kernel.org; Ramirez Luna, Omar; Kanigeri, Hari; Ameya Palande; Guzman Lugo, Fernando; Ameya Palande
-> Subject: dma_alloc_coherent fragmentation
-> 
-> Looping in linux-arm ML:
-> 
-> Discussion Ref: [1](linux-omap mailing list)
-> While working with Linux OMAP kernel[2] we found that on allocating
-> 4 meg chunks using dma_alloc_coherent and de-allocating with
-> dma_free_coherent in a loop using a test driver[7], the memory is
-> getting fragmented as shown by Ameya's observation [3] finally
-> resulting in dump_stack due to lack of pages.
+> +static inline void tlb_flush_all(const u32 base)
+> +{
+> + =C2=A0 =C2=A0__raw_writeb(__raw_readb(base + MMU_GFLUSH) | 1, base =
++ MMU_GFLUSH);
+> +}
+> +
 
-What would happen with __GFP_RECLAIMABLE for dma_alloc_coherent()?
+Originally it was the equivalent of __raw_writel(__raw_readl but since
+we are dealing only with one bit I chose 'b' instead of 'l'. Is that
+correct?
+
+--=20
+=46elipe Contreras
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
