@@ -1,55 +1,41 @@
-From: "Menon, Nishanth" <nm@ti.com>
-Subject: RE: [PATCH 1/1] DSPBRIDGE Fix flush_workque
-Date: Thu, 19 Mar 2009 07:40:52 -0500
-Message-ID: <7A436F7769CA33409C6B44B358BFFF0CFF6439E2@dlee02.ent.ti.com>
-References: <EAF47CD23C76F840A9E7FCE10091EFAB02A91ACA75@dbde02.ent.ti.com>
+From: Jarkko Nikula <jarkko.nikula@nokia.com>
+Subject: Re: [PATCHv2] OMAP: McBSP: Do not enable or disable clocks on
+ failed path
+Date: Thu, 19 Mar 2009 14:45:45 +0200
+Message-ID: <20090319144545.fb9d20e3.jarkko.nikula@nokia.com>
+References: <1237376485324-git-send-email-ext-eero.nurkkala@nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:34084 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755303AbZCSMlF convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 19 Mar 2009 08:41:05 -0400
-Received: from dlep95.itg.ti.com ([157.170.170.107])
-	by bear.ext.ti.com (8.13.7/8.13.7) with ESMTP id n2JCewFl017509
-	for <linux-omap@vger.kernel.org>; Thu, 19 Mar 2009 07:41:03 -0500
-In-Reply-To: <EAF47CD23C76F840A9E7FCE10091EFAB02A91ACA75@dbde02.ent.ti.com>
-Content-Language: en-US
+Received: from smtp.nokia.com ([192.100.122.230]:30664 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752976AbZCSMp3 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 19 Mar 2009 08:45:29 -0400
+Received: from vaebh105.NOE.Nokia.com (vaebh105.europe.nokia.com [10.160.244.31])
+	by mgw-mx03.nokia.com (Switch-3.2.6/Switch-3.2.6) with ESMTP id n2JCjEI1018967
+	for <linux-omap@vger.kernel.org>; Thu, 19 Mar 2009 14:45:25 +0200
+In-Reply-To: <1237376485324-git-send-email-ext-eero.nurkkala@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Gupta, Ramesh" <grgupta@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
-Cc: "Kanigeri, Hari" <h-kanigeri2@ti.com>, "Varide, Nischal" <nischal.varide@ti.com>, "Guzman Lugo, Fernando" <x0095840@ti.com>
+To: "Nurkkala Eero.An (EXT-Offcode/Oulu)" <ext-Eero.Nurkkala@nokia.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-> -----Original Message-----
-> From: Gupta, Ramesh
-> Sent: Thursday, March 19, 2009 6:25 AM
-> To: linux-omap@vger.kernel.org
-> Cc: Menon, Nishanth; Kanigeri, Hari; Varide, Nischal; Guzman Lugo,
-> Fernando
-> Subject: [PATCH 1/1] DSPBRIDGE Fix flush_workque
+On Wed, 18 Mar 2009 12:41:25 +0100
+"Nurkkala Eero.An (EXT-Offcode/Oulu)" <ext-Eero.Nurkkala@nokia.com>
+wrote:
+
+> From: Eero Nurkkala <ext-eero.nurkkala@nokia.com>
 > 
-> From a8aabc6233329998d0ac62be42ade5a77f03ef2a Mon Sep 17 00:00:00 2001
-> From: Ramesh Gupta <x0023949@ti.com>
-> Date: Thu, 19 Mar 2009 09:56:30 +0530
-> Subject: [PATCH 1/1] DSPBRIDGE Fix flush_workque
+> McBSP clocks are being double enabled in the event the
+> McBSP is already active. Also, they are unnecessarily
+> disabled when there's no active McBSP in use. Fix this
+> phenomenom by enabling and disabling the clocks at the
+> proper location.
 > 
-> Observed some crash with flush_workque after
-> multiple load and unload.
-> Replaced flush_workque with destroy_workque
+> Signed-off-by: Eero Nurkkala <ext-eero.nurkkala@nokia.com>
+> ---
+>  arch/arm/plat-omap/mcbsp.c |   14 ++++++++------
+>  1 files changed, 8 insertions(+), 6 deletions(-)
 > 
-> Signed-off-by: Varide Nischal <x0102224@ti.com>
-Thanks Ramesh.
-Tested-by: Nishanth Menon <nm@ti.com>
-
-Test h/w: SDP3430. - OMAP3430 ES3.0 
-
-Test iteration: (bootargs mem=122M)
-./bridgedriver.ko phys_mempool_base=0x87A00000 phys_mempool_size=0x00600000  base_img=dsp/baseimage.dof
-rmmod bridgedriver
---
-
-Num iterations: 30K
-
-Regards,
-Nishanth Menon
+Acked-by: Jarkko Nikula <jarkko.nikula@nokia.com>
