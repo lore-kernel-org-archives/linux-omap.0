@@ -1,42 +1,61 @@
-From: "Menon, Nishanth" <nm@ti.com>
-Subject: RE: test
-Date: Thu, 19 Mar 2009 09:58:10 -0500
-Message-ID: <7A436F7769CA33409C6B44B358BFFF0CFF643B0C@dlee02.ent.ti.com>
-References: <A24693684029E5489D1D202277BE89442E6B18B4@dlee02.ent.ti.com>
+From: "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>
+Subject: RE: CAM / V4L2: OMAP3 camera issues
+Date: Thu, 19 Mar 2009 10:02:48 -0500
+Message-ID: <A24693684029E5489D1D202277BE89442E6B18D6@dlee02.ent.ti.com>
+References: <341895.54098.qm@web24704.mail.ird.yahoo.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:37945 "EHLO arroyo.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:58347 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753575AbZCSO6T convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 19 Mar 2009 10:58:19 -0400
-Received: from dlep95.itg.ti.com ([157.170.170.107])
-	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id n2JEwDer009309
-	for <linux-omap@vger.kernel.org>; Thu, 19 Mar 2009 09:58:18 -0500
-Received: from dlee75.ent.ti.com (localhost [127.0.0.1])
-	by dlep95.itg.ti.com (8.13.8/8.13.8) with ESMTP id n2JEwDbu024500
-	for <linux-omap@vger.kernel.org>; Thu, 19 Mar 2009 09:58:13 -0500 (CDT)
-In-Reply-To: <A24693684029E5489D1D202277BE89442E6B18B4@dlee02.ent.ti.com>
+	id S1753942AbZCSPCz (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 19 Mar 2009 11:02:55 -0400
+In-Reply-To: <341895.54098.qm@web24704.mail.ird.yahoo.com>
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Opel Fahrer <opelfahrer79@yahoo.de>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-> -----Original Message-----
-> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
-> owner@vger.kernel.org] On Behalf Of Aguirre Rodriguez, Sergio Alberto
-> Sent: Thursday, March 19, 2009 4:51 PM
-> To: linux-omap@vger.kernel.org
-> Subject: test
-Aaah,
-Few folks hitting:
-Generating server: <snip>
-
-linux-omap@vger.kernel.org
-vger.kernel.org #<vger.kernel.org #5.7.1 SMTP; 550 5.7.1 Content-Policy accept-into-freezer-1 msg: Bayes Statistical Bogofilter considers this message SPAM. BF:<S 1> In case you disagree, send the ENTIRE message plus this error message to <postmaster@vger.kernel.org> ; S1758343AbZCRQ3X> #SMTP#
-
-Anyone seen similar issues recently?
-
-Regards,
-Nishanth Menon
+SGkgQ2xlbWVucywNCg0KSSdtIHRoZSBvbmUgcmVzcG9uc2libGUgZm9yIHRoaXMgZHJpdmVyLCBh
+bmQgdGhlIGZlYXR1cmVzIHRoYXQgYXJlIGFkZGVkIGJ5IG5vdyBhcmUgcHJldHR5IGJhc2ljYWwu
+DQoNCkN1cnJlbnRseSBJJ20gYSBiaXQgYWJzb3JiZWQgYnkgb3RoZXIgaGlnaGVyIHByaW9yaXR5
+IHRhc2tzLCBzbyBJIGhhdmVu4oCZdCBiZWVuIGFibGUgdG8gdXBkYXRlIHRoZSBkcml2ZXIgYXMg
+ZmFzdCBhcyBJIHdvdWxkIHdhbnQuDQoNCldlIGFyZSB3b3JraW5nIHRvd2FyZHMgZW5oYW5jaW5n
+IHRoZSBkcml2ZXIgc28gbW9zdCBvZiB0aGUgZmVhdHVyZXMgYmUgYXZhaWxhYmxlLCBidXQgaWYg
+eW91IGhhdmUgc29tZSBlbmhhbmNlbWVudCBzdWdnZXN0aW9uLCBJJ2xsIGludml0ZSB5b3UgdG8g
+ZG8gc28uDQoNCkkgYXBwcmVjaWF0ZSB5b3VyIHRpbWUuDQoNClJlZ2FyZHMsDQpTZXJnaW8NCg0K
+PiAtLS0tLU9yaWdpbmFsIE1lc3NhZ2UtLS0tLQ0KPiBGcm9tOiBsaW51eC1vbWFwLW93bmVyQHZn
+ZXIua2VybmVsLm9yZyBbbWFpbHRvOmxpbnV4LW9tYXAtDQo+IG93bmVyQHZnZXIua2VybmVsLm9y
+Z10gT24gQmVoYWxmIE9mIE9wZWwgRmFocmVyDQo+IFNlbnQ6IFRodXJzZGF5LCBNYXJjaCAxOSwg
+MjAwOSA4OjI0IEFNDQo+IFRvOiBsaW51eC1vbWFwQHZnZXIua2VybmVsLm9yZw0KPiBTdWJqZWN0
+OiBDQU0gLyBWNEwyOiBPTUFQMyBjYW1lcmEgaXNzdWVzDQo+IA0KPiANCj4gSGkgZXZlcnlib2R5
+LA0KPiANCj4gSSBqdXN0IHdhbnRlZCB0byBhc2sgaWYgc29tZW9uZSBvZiB5b3UgcmVjZW50bHkg
+aGFkIGEgbG9vayBhdCB0aGUgIGNhbWVyYQ0KPiBkcml2ZXIgZm9yIHRoZSBvdjM2NDAgc2Vuc29y
+IGluY2x1ZGVkIGluIHRoZSBvbWFwIHpvb20gMSBwbGF0Zm9ybS4gQXMgSSdtDQo+IGEgdG90YWwg
+bm9vYiBpbiB3cml0aW5nIGRyaXZlcnMgSSdtIHNlYXJjaGluZyBmb3Igc29tZW9uZSB0byBoZWxw
+IG1lIHRvDQo+IGdldCB0aGlzIGRldmljZSB0byB3b3JrIHRoZSByaWdodCB3YXkgYmVjYXVzZSBj
+dXJyZW50bHkgaXQncyByZWFsbHkgYSBtZXNzLg0KPiBVbmZvcnR1bmF0ZWx5IG91ciBmdXR1cmUg
+d29yayB3aXRoIHRoZSBvbWFwIHpvb20gaGVhdmlseSByZWxpZXMgb24gaGF2aW5nDQo+IGNhbWVy
+YSBpbWFnZXMgaW4gcmVhc29uYWJsZSByZXNvbHV0aW9ucyBhbmQgcmVhc29uYWJsZSBxdWFsaXR5
+LCBzbyBmb3IgdXMNCj4gdGhlcmUgaXMgbm8gd2F5IGFyb3VuZCBmaXhpbmcgYXQgbGVhc3Qgc29t
+ZSBvZiB0aGVzZSBwb2ludHM6DQo+IA0KPiBBcyBmYXIgYXMgSSBoYXZlIHNlZW4gdGhlcmUgYXJl
+IHNldmVyYWwgaXNzdWVzLiBUaGUgbWFpbiBwcm9ibGVtIGlzIHRoYXQNCj4gaXQgaXMgb25seSBw
+b3NzaWJsZSB0byB1c2UgYSB2ZXJ5IHJlc3RyaWN0ZWQgbnVtYmVyIG9mIGltYWdlIGZvcm1hdHMu
+IE9uZQ0KPiBjYW4gdXNlIEJheWVyIGltYWdlcyBpbiAxMDI0eDc2OCB1cCB0byAyMDQ4eDE1MzYg
+cGl4ZWxzLCBhbmQgdXNpbmcgdGhlDQo+IEJheWVyIGZvcm1hdCBpcyB0aGUgb25seSB3YXkgdG8g
+Z2V0IFJHQiBpbWFnZXMgYWN0dWFsbHkuIFRoZSBtdWNoIG1vcmUNCj4gYXBwcmVjaWF0ZWQgWVVZ
+ViBhbmQgWVZZVSBmb3JtYXRzIHNlZW0gdG8gYmUgYnJva2VuIHNvbWVob3csIHNvIG5vYm9keSBp
+cw0KPiBrbm93biB0byBtZSB3aG8gd2FzIGFibGUgdG8gZGVjb2RlIHN1Y2ggYW4gaW1hZ2UgaW50
+byBhIHJlYXNvbmFibGUgY29sb3INCj4gaW1hZ2UgeWV0LiBMYXN0bHksIGEgcHJvYmxlbSBpcyB0
+aGF0IHRoZXJlIGlzIG5vIHdheSB0byBjb250cm9sIHRoZQ0KPiBleHBvc3VyZSBvZiB0aGUgc2Vu
+c29yLCBzdWNoIHRoYXQgdGhlIGltYWdlcyBhcmUgYWxsIGhlYXZpbHkgb3Zlci1leHBvc2VkDQo+
+IGFuZCB0aGVyZSBpcyBubyB3YXkga25vd24gdG8gbWUgdG8gY2hhbmdlIGFueSBzZXR0aW5nIHRv
+IHVzZSBhdXRvLWV4cG9zdXJlDQo+ICh0aGUgZmVhdHVyZSBpcyByZXBvcnRlZCB0byBiZSBub3Qg
+YXZhaWxhYmxlIGJ5IHY0bDIpLg0KPiANCj4gSSdkIGJlIGhhcHB5IGlmIHNvbWVvbmUgY291bGQg
+aGVscCBtZSBpbiBmaXhpbmcgc29tZSBvZiB0aGVzZSBwcm9ibGVtcy4NCj4gUmVnYXJkcw0KPiBD
+bGVtZW5zDQo+IA0KPiANCj4gDQo+IA0KPiANCj4gLS0NCj4gVG8gdW5zdWJzY3JpYmUgZnJvbSB0
+aGlzIGxpc3Q6IHNlbmQgdGhlIGxpbmUgInVuc3Vic2NyaWJlIGxpbnV4LW9tYXAiIGluDQo+IHRo
+ZSBib2R5IG9mIGEgbWVzc2FnZSB0byBtYWpvcmRvbW9Admdlci5rZXJuZWwub3JnDQo+IE1vcmUg
+bWFqb3Jkb21vIGluZm8gYXQgIGh0dHA6Ly92Z2VyLmtlcm5lbC5vcmcvbWFqb3Jkb21vLWluZm8u
+aHRtbA0KDQo=
