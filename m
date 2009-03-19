@@ -1,43 +1,41 @@
-From: Felipe Contreras <felipe.contreras@gmail.com>
-Subject: Re: [PATCH B 3/3] tidspbridge: decreate timeout to a saner value
-Date: Thu, 19 Mar 2009 23:35:17 +0200
-Message-ID: <94a0d4530903191435g7785a334v6e0a6988f344bbc@mail.gmail.com>
-References: <1237339605-20697-1-git-send-email-felipe.contreras@gmail.com>
-	 <1237339605-20697-2-git-send-email-felipe.contreras@gmail.com>
-	 <1237339605-20697-3-git-send-email-felipe.contreras@gmail.com>
-	 <1237339605-20697-4-git-send-email-felipe.contreras@gmail.com>
-	 <496565EC904933469F292DDA3F1663E60287D6286E@dlee06.ent.ti.com>
-	 <94a0d4530903191404y14b5331eoaccb3f11c1846f9d@mail.gmail.com>
-	 <496565EC904933469F292DDA3F1663E60287D62895@dlee06.ent.ti.com>
+From: David Brownell <david-b@pacbell.net>
+Subject: Re: [PATCH 1/1] Back-light class driver support for OMAP
+Date: Thu, 19 Mar 2009 15:00:33 -0700
+Message-ID: <200903191500.33977.david-b@pacbell.net>
+References: <hvaibhav@ti.com> <1237385410-29124-1-git-send-email-hvaibhav@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from fg-out-1718.google.com ([72.14.220.156]:33963 "EHLO
-	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751870AbZCSVfV convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 19 Mar 2009 17:35:21 -0400
-Received: by fg-out-1718.google.com with SMTP id 16so139254fgg.17
-        for <linux-omap@vger.kernel.org>; Thu, 19 Mar 2009 14:35:17 -0700 (PDT)
-In-Reply-To: <496565EC904933469F292DDA3F1663E60287D62895@dlee06.ent.ti.com>
+Received: from smtp124.sbc.mail.sp1.yahoo.com ([69.147.64.97]:37822 "HELO
+	smtp124.sbc.mail.sp1.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1752541AbZCSWAh (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Thu, 19 Mar 2009 18:00:37 -0400
+In-Reply-To: <1237385410-29124-1-git-send-email-hvaibhav@ti.com>
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Guzman Lugo, Fernando" <x0095840@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Kanigeri, Hari" <h-kanigeri2@ti.com>, Hiroshi DOYU <hiroshi.doyu@nokia.com>, Ameya Palande <ameya.palande@nokia.com>, Felipe Contreras <felipe.contreras@nokia.com>
+To: hvaibhav@ti.com
+Cc: linux-fbdev-devel@lists.sourceforge.net, linux-omap@vger.kernel.org, premi@ti.com, Brijesh Jadav <brijesh.j@ti.com>, Hardik Shah <hardik.shah@ti.com>
 
-On Thu, Mar 19, 2009 at 11:19 PM, Guzman Lugo, Fernando <x0095840@ti.com> wrote:
->
-> Yes, I applied this; in fact I have applied all the patches. If I increase the timeout there are no problems. The test I run creates 4 process and each one does several a lot of calls to InputChnl and OutputChnl, so I think this test is using the mailbox a lot and would be better a bigger timeout. What do you think?
+On Wednesday 18 March 2009, hvaibhav@ti.com wrote:
+> +
+> +#if defined(CONFIG_TWL4030_CORE)
+> +=A0=A0=A0=A0=A0=A0=A0twl4030_i2c_write_u8(TWL4030_MODULE_LED, 0x11, =
+TWL4030_LED_EN);
+> +=A0=A0=A0=A0=A0=A0=A0twl4030_i2c_write_u8(TWL4030_MODULE_PWMA, c, TW=
+L_PWMA_PWMAOFF);
+> +#endif
 
-How fast are these messages sent? Can you track down which functions
-are calling CHNLSM_InterruptDSP2 and making these timeouts happen.
+Hmm, I think I'm going to have to get off my butt and
+send in the PWM patches I have ... they work for the
+PWMs on the two LED outputs, but not yet for the two
+other PWM-equipped pins (GPIO-6, GPIO-7)
 
-I think it's safe to leave the timeout at 10, but that means it's
-possible the code will be busy-looping up to 10 ms which will increase
-the CPU load. Somebody from Nokia (Siarhei?) suggested to idle-wait
-for the mbox empty irq, I think that's the best way to implement this,
-but at least for the use cases I'm interested in (video
-encoding/decoding) timeouts don't seem to be an issue anymore.
-
--- 
-Felipe Contreras
+- Dave
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
