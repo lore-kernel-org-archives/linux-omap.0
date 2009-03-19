@@ -1,54 +1,44 @@
-From: Felipe Contreras <felipe.contreras@gmail.com>
-Subject: Re: [PATCH B 2/3] tidspbridge: cleanup and remove HW_MMU_TLBFlushAll
-Date: Thu, 19 Mar 2009 10:49:00 +0200
-Message-ID: <94a0d4530903190149g3b9b7dbav2abb95c953ee9929@mail.gmail.com>
-References: <1237339605-20697-1-git-send-email-felipe.contreras@gmail.com>
-	 <1237339605-20697-2-git-send-email-felipe.contreras@gmail.com>
-	 <1237339605-20697-3-git-send-email-felipe.contreras@gmail.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH 00/86] OMAP2/3: clock sync with linux-omap
+Date: Thu, 19 Mar 2009 02:57:50 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.0903190243560.3086@utopia.booyaka.com>
+References: <1236882516-29403-1-git-send-email-khilman@deeprootsystems.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-fx0-f158.google.com ([209.85.220.158]:63946 "EHLO
-	mail-fx0-f158.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752102AbZCSItE convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 19 Mar 2009 04:49:04 -0400
-Received: by fxm2 with SMTP id 2so392170fxm.37
-        for <linux-omap@vger.kernel.org>; Thu, 19 Mar 2009 01:49:00 -0700 (PDT)
-In-Reply-To: <1237339605-20697-3-git-send-email-felipe.contreras@gmail.com>
+Received: from utopia.booyaka.com ([72.9.107.138]:35162 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755827AbZCSI5x (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 19 Mar 2009 04:57:53 -0400
+In-Reply-To: <1236882516-29403-1-git-send-email-khilman@deeprootsystems.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Hari Kanigeri <h-kanigeri2@ti.com>, Hiroshi DOYU <hiroshi.doyu@nokia.com>, Ameya Palande <ameya.palande@nokia.com>, Fernando Guzman Lugo <x0095840@ti.com>, Felipe Contreras <felipe.contreras@nokia.com>
+To: Russell King <linux@arm.linux.org.uk>
+Cc: linux-omap@vger.kernel.org, khilman@deeprootsystems.com, tony@atomide.com
 
-On Wed, Mar 18, 2009 at 3:26 AM, Felipe Contreras
-<felipe.contreras@gmail.com> wrote:
-> From: Felipe Contreras <felipe.contreras@nokia.com>
->
-> It doesn't make sense to have layers and layers of constants and defi=
-nes
-> to turn one bit on.
->
-> Signed-off-by: Felipe Contreras <felipe.contreras@nokia.com>
-> ---
+Hello Russell,
 
-I thought a bit more about this:
+On Thu, 12 Mar 2009, Kevin Hilman wrote:
 
-> +static inline void tlb_flush_all(const u32 base)
-> +{
-> + =C2=A0 =C2=A0__raw_writeb(__raw_readb(base + MMU_GFLUSH) | 1, base =
-+ MMU_GFLUSH);
-> +}
-> +
+> This is the series of patches contained in the 'omap-clks3' branch of
+> Russell King's git repository[1].  Posted on behalf of Russell who
+> had some mail issues in first attempt, and then ran of out time.
+> 
+> This series is proposed to be merged into the next merge window.
+> 
+> Comments to the list appreciated.
 
-Originally it was the equivalent of __raw_writel(__raw_readl but since
-we are dealing only with one bit I chose 'b' instead of 'l'. Is that
-correct?
+I've spent some time reviewing these patches.
 
---=20
-=46elipe Contreras
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Many of the changes you've implemented are an improvement over the 
+previous code.  Some of the patches would ordinarily prompt further 
+comments and revision, but the benefit of merging these patches upstream 
+in this merge window exceeds the benefit of further revision.
+
+So my preference would be to see this current set sent upstream for this 
+merge window.
+
+
+regards,
+
+- Paul
