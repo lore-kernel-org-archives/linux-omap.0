@@ -1,869 +1,882 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [PATCH 02/12] ARM: OMAP3: Store reboot mode in scratchpad on
-	OMAP34xx
-Date: Thu, 19 Mar 2009 00:08:33 +0000
-Message-ID: <20090319000833.GE30132@n2100.arm.linux.org.uk>
-References: <20090310205824.16425.97745.stgit@localhost> <20090310210333.16425.80205.stgit@localhost> <20090315155105.GB10786@n2100.arm.linux.org.uk> <49BE792B.1090901@solidboot.com> <20090316171008.GF31868@n2100.arm.linux.org.uk> <49BE8F08.3000100@solidboot.com> <20090316222146.GA8150@n2100.arm.linux.org.uk> <20090318182805.GA29546@atomide.com> <20090318192626.GC30132@n2100.arm.linux.org.uk> <20090318201003.GB29546@atomide.com>
+From: Kim Kyuwon <chammoru@gmail.com>
+Subject: Re: [PATCH 1/1] OMAP3: PM: Add the wakeup source driver
+Date: Thu, 19 Mar 2009 13:19:28 +0900
+Message-ID: <4d34a0a70903182119u7d2b747bpf2fef63fc605523c@mail.gmail.com>
+References: <4d34a0a70903030237i6e43461ei986266cdfb72b416@mail.gmail.com>
+	 <87k56nbz3w.fsf@deeprootsystems.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:54941 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751729AbZCSAIy (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 18 Mar 2009 20:08:54 -0400
-Content-Disposition: inline
-In-Reply-To: <20090318201003.GB29546@atomide.com>
+Received: from wf-out-1314.google.com ([209.85.200.169]:11681 "EHLO
+	wf-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751311AbZCSETb (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 19 Mar 2009 00:19:31 -0400
+Received: by wf-out-1314.google.com with SMTP id 29so443454wff.4
+        for <linux-omap@vger.kernel.org>; Wed, 18 Mar 2009 21:19:29 -0700 (PDT)
+In-Reply-To: <87k56nbz3w.fsf@deeprootsystems.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Juha Yrjola <juha.yrjola@solidboot.com>, linux-arm-kernel@lists.arm.linux.org.uk, Kevin Hilman <khilman@deeprootsystems.com>, linux-omap@vger.kernel.org
+To: Kevin Hilman <khilman@deeprootsystems.com>
+Cc: OMAP <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, =?EUC-KR?B?udqw5rnO?= <kyungmin.park@samsung.com>
 
-On Wed, Mar 18, 2009 at 01:10:04PM -0700, Tony Lindgren wrote:
-> * Russell King - ARM Linux <linux@arm.linux.org.uk> [090318 12:26]:
-> > On Wed, Mar 18, 2009 at 11:28:06AM -0700, Tony Lindgren wrote:
-> > > * Russell King - ARM Linux <linux@arm.linux.org.uk> [090316 15:22]:
-> > > > On Mon, Mar 16, 2009 at 07:40:24PM +0200, Juha Yrjola wrote:
-> > > > > Russell King - ARM Linux wrote:
-> > > > >
-> > > > >> Right.  You are aware that there is already a mechanism for doing this
-> > > > >> in the generic kernel (obviously not)?
-> > > > >
-> > > > > I am. Unfortunately, glibc fails to support this mechanism, as you say.  
-> > > > > I didn't want to start making such intrusive changes for our trivial 
-> > > > > need.
-> > > > 
-> > > > Yes, glibc sucks with that - they hide the Linux reboot syscall.
-> > > > Luckily, it is accessible via the syscall() interface:
-> > > > 
-> > > > #include <linux/reboot.h>
-> > > > 
-> > > > int sys_reboot(const char *cmd)
-> > > > {
-> > > > 	return syscall(SYS_reboot, LINUX_REBOOT_MAGIC1, LINUX_REBOOT_MAGIC2C,
-> > > > 			LINUX_REBOOT_CMD_RESTART2, cmd);
-> > > > }
-> > > > 
-> > > > >> sys_reboot() with LINUX_REBOOT_CMD_RESTART2 takes a string in addition
-> > > > >> to the standard parameters.  This string is passed into machine_restart()
-> > > > >> which we currently ignore.  If LINUX_REBOOT_CMD_RESTART is used, this
-> > > > >> string is NULL.
-> > > > >>
-> > > > >> We could change machine_restart() to pass this parameter through to
-> > > > >> arm_pm_restart() and ultimately down to arch_reset().
-> > > > >
-> > > > > Sure. With RESTART2, I could've even used the reboot notifier chain with  
-> > > > > an OMAP3-specific driver to store the string.
-> > > > 
-> > > > The notifier chain is called in any case.
-> > > > 
-> > > > > Are you suggesting to get rid of reboot_mode altogether? If not, could  
-> > > > > we still have the sysfs mechanism? A one-character reboot_mode would be  
-> > > > > plenty enough for us.
-> > > > 
-> > > > No, reboot mode tells _how_ to perform the reboot - whether that be
-> > > > by hardware reset, gpio reset or a soft call via the reset address.
-> > > > It's not supposed to tell the boot loader what to do.
-> > > 
-> > > So if the reboot mode can't be used for this.. Should we change Juha's
-> > > sysfs interface patch to store something else like bootloader_mode?
-> > > 
-> > > I guess we cannot use kexec for this either?
-> > 
-> > Why not use the mechanism that's already there as I've already pointed
-> > out?
-> 
-> Sorry I misunderstood, I thought you did not want to use reboot_mode
-> for this at all..
+On Wed, Mar 18, 2009 at 6:47 AM, Kevin Hilman
+<khilman@deeprootsystems.com> wrote:
+> Kim Kyuwon <chammoru@gmail.com> writes:
+>
+>> Sometimes, it is necessary to find out "what does wake up my board?".
+>> Notifying wake-up source feature may be used to blame unexpected
+>> wake-up events which increase power consumption. And user mode
+>> applications can act smartly according to the wake-up event to
+>> minimize power consumption.
+>
+> Hi Kim,
+>
+> This is a very useful feature, and something that's is lacking in the
+> current PM code.  Thank you so much for this contribution.
 
-I don't want to use reboot_mode for this.  machine_restart() and the
-reboot syscall has a way of passing a string to the platform specific
-code, and I'm suggesting that if you want the boot loader to do some
-magic, that's the way to do it.  Use the 'cmd' argument provided to
-arch_reset() by the patch below - this will either be NULL if the
-standard reboot call is used, or a string if the alternative version
-is used.
+Hi Kevin,
 
-> To recap, so we change machine_restart() like you described above, and then
-> this patch is still valid, except to update the description.
+Thank you very much for your encouragement, comments and suggestions.
+I tried to follow most of your suggestions, but I can miss something.
+Please check my new patch again.
+My answers are below and I'll send the new patch right away.
 
-No, you've still got the wrong end of the stick.
+> Currently this driver only works for wakeups from suspend.  I think
+> the description should be updated to specify that this only affects
+> wakeups from susupend, and not wakeups from idle.
 
- arch/arm/include/asm/system.h                     |    4 ++--
- arch/arm/kernel/process.c                         |   10 +++++-----
- arch/arm/mach-aaec2000/include/mach/system.h      |    2 +-
- arch/arm/mach-at91/include/mach/system.h          |    2 +-
- arch/arm/mach-clps711x/include/mach/system.h      |    2 +-
- arch/arm/mach-davinci/include/mach/system.h       |    2 +-
- arch/arm/mach-ebsa110/include/mach/system.h       |    2 +-
- arch/arm/mach-ep93xx/include/mach/system.h        |    2 +-
- arch/arm/mach-footbridge/include/mach/system.h    |    2 +-
- arch/arm/mach-h720x/include/mach/system.h         |    2 +-
- arch/arm/mach-imx/include/mach/system.h           |    2 +-
- arch/arm/mach-integrator/include/mach/system.h    |    2 +-
- arch/arm/mach-iop13xx/include/mach/system.h       |    2 +-
- arch/arm/mach-iop32x/include/mach/system.h        |    2 +-
- arch/arm/mach-iop33x/include/mach/system.h        |    2 +-
- arch/arm/mach-ixp2000/include/mach/system.h       |    2 +-
- arch/arm/mach-ixp23xx/include/mach/system.h       |    2 +-
- arch/arm/mach-ixp4xx/include/mach/system.h        |    2 +-
- arch/arm/mach-kirkwood/include/mach/system.h      |    2 +-
- arch/arm/mach-ks8695/include/mach/system.h        |    2 +-
- arch/arm/mach-l7200/include/mach/system.h         |    2 +-
- arch/arm/mach-lh7a40x/include/mach/system.h       |    2 +-
- arch/arm/mach-loki/include/mach/system.h          |    2 +-
- arch/arm/mach-msm/include/mach/system.h           |    2 +-
- arch/arm/mach-mv78xx0/include/mach/system.h       |    2 +-
- arch/arm/mach-mx2/system.c                        |    2 +-
- arch/arm/mach-netx/include/mach/system.h          |    2 +-
- arch/arm/mach-ns9xxx/include/mach/system.h        |    2 +-
- arch/arm/mach-orion5x/include/mach/system.h       |    2 +-
- arch/arm/mach-orion5x/lsmini-setup.c              |    2 +-
- arch/arm/mach-pnx4008/include/mach/system.h       |    2 +-
- arch/arm/mach-pxa/corgi.c                         |    6 +++---
- arch/arm/mach-pxa/include/mach/system.h           |    2 +-
- arch/arm/mach-pxa/mioa701.c                       |    6 +++---
- arch/arm/mach-pxa/poodle.c                        |    6 +++---
- arch/arm/mach-pxa/reset.c                         |    2 +-
- arch/arm/mach-pxa/spitz.c                         |    4 ++--
- arch/arm/mach-pxa/tosa.c                          |    4 ++--
- arch/arm/mach-realview/include/mach/system.h      |    2 +-
- arch/arm/mach-rpc/include/mach/system.h           |    2 +-
- arch/arm/mach-s3c2410/include/mach/system-reset.h |    2 +-
- arch/arm/mach-s3c6400/include/mach/system.h       |    2 +-
- arch/arm/mach-sa1100/include/mach/system.h        |    2 +-
- arch/arm/mach-shark/core.c                        |    2 +-
- arch/arm/mach-shark/include/mach/system.h         |    2 +-
- arch/arm/mach-versatile/include/mach/system.h     |    2 +-
- arch/arm/mach-w90x900/include/mach/system.h       |    2 +-
- arch/arm/plat-mxc/include/mach/system.h           |    2 +-
- arch/arm/plat-omap/include/mach/system.h          |    2 +-
- arch/arm/plat-s3c24xx/cpu.c                       |    6 +++---
- 50 files changed, 65 insertions(+), 65 deletions(-)
+OK, I fixed it.
 
-diff --git a/arch/arm/include/asm/system.h b/arch/arm/include/asm/system.h
-index 811be55..0a0d49a 100644
---- a/arch/arm/include/asm/system.h
-+++ b/arch/arm/include/asm/system.h
-@@ -97,8 +97,8 @@ extern void __show_regs(struct pt_regs *);
- extern int cpu_architecture(void);
- extern void cpu_init(void);
- 
--void arm_machine_restart(char mode);
--extern void (*arm_pm_restart)(char str);
-+void arm_machine_restart(char mode, const char *cmd);
-+extern void (*arm_pm_restart)(char str, const char *cmd);
- 
- #define UDBG_UNDEFINED	(1 << 0)
- #define UDBG_SYSCALL	(1 << 1)
-diff --git a/arch/arm/kernel/process.c b/arch/arm/kernel/process.c
-index af377c7..2de14e2 100644
---- a/arch/arm/kernel/process.c
-+++ b/arch/arm/kernel/process.c
-@@ -83,7 +83,7 @@ static int __init hlt_setup(char *__unused)
- __setup("nohlt", nohlt_setup);
- __setup("hlt", hlt_setup);
- 
--void arm_machine_restart(char mode)
-+void arm_machine_restart(char mode, const char *cmd)
- {
- 	/*
- 	 * Clean and disable cache, and turn off interrupts
-@@ -100,7 +100,7 @@ void arm_machine_restart(char mode)
- 	/*
- 	 * Now call the architecture specific reboot code.
- 	 */
--	arch_reset(mode);
-+	arch_reset(mode, cmd);
- 
- 	/*
- 	 * Whoops - the architecture was unable to reboot.
-@@ -120,7 +120,7 @@ EXPORT_SYMBOL(pm_idle);
- void (*pm_power_off)(void);
- EXPORT_SYMBOL(pm_power_off);
- 
--void (*arm_pm_restart)(char str) = arm_machine_restart;
-+void (*arm_pm_restart)(char str, const char *cmd) = arm_machine_restart;
- EXPORT_SYMBOL_GPL(arm_pm_restart);
- 
- 
-@@ -195,9 +195,9 @@ void machine_power_off(void)
- 		pm_power_off();
- }
- 
--void machine_restart(char * __unused)
-+void machine_restart(char *cmd)
- {
--	arm_pm_restart(reboot_mode);
-+	arm_pm_restart(reboot_mode, cmd);
- }
- 
- void __show_regs(struct pt_regs *regs)
-diff --git a/arch/arm/mach-aaec2000/include/mach/system.h b/arch/arm/mach-aaec2000/include/mach/system.h
-index 8f4115d..fe08ca1 100644
---- a/arch/arm/mach-aaec2000/include/mach/system.h
-+++ b/arch/arm/mach-aaec2000/include/mach/system.h
-@@ -16,7 +16,7 @@ static inline void arch_idle(void)
- 	cpu_do_idle();
- }
- 
--static inline void arch_reset(char mode)
-+static inline void arch_reset(char mode, const char *cmd)
- {
- 	cpu_reset(0);
- }
-diff --git a/arch/arm/mach-at91/include/mach/system.h b/arch/arm/mach-at91/include/mach/system.h
-index e712658..5268af3 100644
---- a/arch/arm/mach-at91/include/mach/system.h
-+++ b/arch/arm/mach-at91/include/mach/system.h
-@@ -43,7 +43,7 @@ static inline void arch_idle(void)
- 
- void (*at91_arch_reset)(void);
- 
--static inline void arch_reset(char mode)
-+static inline void arch_reset(char mode, const char *cmd)
- {
- 	/* call the CPU-specific reset function */
- 	if (at91_arch_reset)
-diff --git a/arch/arm/mach-clps711x/include/mach/system.h b/arch/arm/mach-clps711x/include/mach/system.h
-index 24e9615..f916cd7 100644
---- a/arch/arm/mach-clps711x/include/mach/system.h
-+++ b/arch/arm/mach-clps711x/include/mach/system.h
-@@ -32,7 +32,7 @@ static inline void arch_idle(void)
- 	mov	r0, r0");
- }
- 
--static inline void arch_reset(char mode)
-+static inline void arch_reset(char mode, const char *cmd)
- {
- 	cpu_reset(0);
- }
-diff --git a/arch/arm/mach-davinci/include/mach/system.h b/arch/arm/mach-davinci/include/mach/system.h
-index 17ca41d..b7e7036 100644
---- a/arch/arm/mach-davinci/include/mach/system.h
-+++ b/arch/arm/mach-davinci/include/mach/system.h
-@@ -21,7 +21,7 @@ static void arch_idle(void)
- 	cpu_do_idle();
- }
- 
--static void arch_reset(char mode)
-+static void arch_reset(char mode, const char *cmd)
- {
- 	davinci_watchdog_reset();
- }
-diff --git a/arch/arm/mach-ebsa110/include/mach/system.h b/arch/arm/mach-ebsa110/include/mach/system.h
-index 350a028..9a26245 100644
---- a/arch/arm/mach-ebsa110/include/mach/system.h
-+++ b/arch/arm/mach-ebsa110/include/mach/system.h
-@@ -34,6 +34,6 @@ static inline void arch_idle(void)
- 	asm volatile ("mcr p15, 0, ip, c15, c1, 2" : : : "cc");
- }
- 
--#define arch_reset(mode)	cpu_reset(0x80000000)
-+#define arch_reset(mode, cmd)	cpu_reset(0x80000000)
- 
- #endif
-diff --git a/arch/arm/mach-ep93xx/include/mach/system.h b/arch/arm/mach-ep93xx/include/mach/system.h
-index 67789d0..ed8f35e 100644
---- a/arch/arm/mach-ep93xx/include/mach/system.h
-+++ b/arch/arm/mach-ep93xx/include/mach/system.h
-@@ -9,7 +9,7 @@ static inline void arch_idle(void)
- 	cpu_do_idle();
- }
- 
--static inline void arch_reset(char mode)
-+static inline void arch_reset(char mode, const char *cmd)
- {
- 	u32 devicecfg;
- 
-diff --git a/arch/arm/mach-footbridge/include/mach/system.h b/arch/arm/mach-footbridge/include/mach/system.h
-index 2db7f36..0b29315 100644
---- a/arch/arm/mach-footbridge/include/mach/system.h
-+++ b/arch/arm/mach-footbridge/include/mach/system.h
-@@ -18,7 +18,7 @@ static inline void arch_idle(void)
- 	cpu_do_idle();
- }
- 
--static inline void arch_reset(char mode)
-+static inline void arch_reset(char mode, const char *cmd)
- {
- 	if (mode == 's') {
- 		/*
-diff --git a/arch/arm/mach-h720x/include/mach/system.h b/arch/arm/mach-h720x/include/mach/system.h
-index e4a7c76..a708d24 100644
---- a/arch/arm/mach-h720x/include/mach/system.h
-+++ b/arch/arm/mach-h720x/include/mach/system.h
-@@ -25,7 +25,7 @@ static void arch_idle(void)
- }
- 
- 
--static __inline__ void arch_reset(char mode)
-+static __inline__ void arch_reset(char mode, const char *cmd)
- {
- 	CPU_REG (PMU_BASE, PMU_STAT) |= PMU_WARMRESET;
- }
-diff --git a/arch/arm/mach-imx/include/mach/system.h b/arch/arm/mach-imx/include/mach/system.h
-index adee7e5..46d4ca9 100644
---- a/arch/arm/mach-imx/include/mach/system.h
-+++ b/arch/arm/mach-imx/include/mach/system.h
-@@ -32,7 +32,7 @@ arch_idle(void)
- }
- 
- static inline void
--arch_reset(char mode)
-+arch_reset(char mode, const char *cmd)
- {
- 	cpu_reset(0);
- }
-diff --git a/arch/arm/mach-integrator/include/mach/system.h b/arch/arm/mach-integrator/include/mach/system.h
-index c485345..e1551b8 100644
---- a/arch/arm/mach-integrator/include/mach/system.h
-+++ b/arch/arm/mach-integrator/include/mach/system.h
-@@ -32,7 +32,7 @@ static inline void arch_idle(void)
- 	cpu_do_idle();
- }
- 
--static inline void arch_reset(char mode)
-+static inline void arch_reset(char mode, const char *cmd)
- {
- 	/*
- 	 * To reset, we hit the on-board reset register
-diff --git a/arch/arm/mach-iop13xx/include/mach/system.h b/arch/arm/mach-iop13xx/include/mach/system.h
-index c7127f4..d0c66ef 100644
---- a/arch/arm/mach-iop13xx/include/mach/system.h
-+++ b/arch/arm/mach-iop13xx/include/mach/system.h
-@@ -13,7 +13,7 @@ static inline void arch_idle(void)
- 	cpu_do_idle();
- }
- 
--static inline void arch_reset(char mode)
-+static inline void arch_reset(char mode, const char *cmd)
- {
- 	/*
- 	 * Reset the internal bus (warning both cores are reset)
-diff --git a/arch/arm/mach-iop32x/include/mach/system.h b/arch/arm/mach-iop32x/include/mach/system.h
-index 32d9e5b..a4b808f 100644
---- a/arch/arm/mach-iop32x/include/mach/system.h
-+++ b/arch/arm/mach-iop32x/include/mach/system.h
-@@ -16,7 +16,7 @@ static inline void arch_idle(void)
- 	cpu_do_idle();
- }
- 
--static inline void arch_reset(char mode)
-+static inline void arch_reset(char mode, const char *cmd)
- {
- 	local_irq_disable();
- 
-diff --git a/arch/arm/mach-iop33x/include/mach/system.h b/arch/arm/mach-iop33x/include/mach/system.h
-index 0cb3ad8..f192a34 100644
---- a/arch/arm/mach-iop33x/include/mach/system.h
-+++ b/arch/arm/mach-iop33x/include/mach/system.h
-@@ -14,7 +14,7 @@ static inline void arch_idle(void)
- 	cpu_do_idle();
- }
- 
--static inline void arch_reset(char mode)
-+static inline void arch_reset(char mode, const char *cmd)
- {
- 	*IOP3XX_PCSR = 0x30;
- 
-diff --git a/arch/arm/mach-ixp2000/include/mach/system.h b/arch/arm/mach-ixp2000/include/mach/system.h
-index 2e9c68f..de37099 100644
---- a/arch/arm/mach-ixp2000/include/mach/system.h
-+++ b/arch/arm/mach-ixp2000/include/mach/system.h
-@@ -17,7 +17,7 @@ static inline void arch_idle(void)
- 	cpu_do_idle();
- }
- 
--static inline void arch_reset(char mode)
-+static inline void arch_reset(char mode, const char *cmd)
- {
- 	local_irq_disable();
- 
-diff --git a/arch/arm/mach-ixp23xx/include/mach/system.h b/arch/arm/mach-ixp23xx/include/mach/system.h
-index d57c3fc..8920ff2 100644
---- a/arch/arm/mach-ixp23xx/include/mach/system.h
-+++ b/arch/arm/mach-ixp23xx/include/mach/system.h
-@@ -19,7 +19,7 @@ static inline void arch_idle(void)
- #endif
- }
- 
--static inline void arch_reset(char mode)
-+static inline void arch_reset(char mode, const char *cmd)
- {
- 	/* First try machine specific support */
- 	if (machine_is_ixdp2351()) {
-diff --git a/arch/arm/mach-ixp4xx/include/mach/system.h b/arch/arm/mach-ixp4xx/include/mach/system.h
-index 92a7e8d..d2aa26f 100644
---- a/arch/arm/mach-ixp4xx/include/mach/system.h
-+++ b/arch/arm/mach-ixp4xx/include/mach/system.h
-@@ -20,7 +20,7 @@ static inline void arch_idle(void)
- }
- 
- 
--static inline void arch_reset(char mode)
-+static inline void arch_reset(char mode, const char *cmd)
- {
- 	if ( 1 && mode == 's') {
- 		/* Jump into ROM at address 0 */
-diff --git a/arch/arm/mach-kirkwood/include/mach/system.h b/arch/arm/mach-kirkwood/include/mach/system.h
-index 8510f6c..23a1914 100644
---- a/arch/arm/mach-kirkwood/include/mach/system.h
-+++ b/arch/arm/mach-kirkwood/include/mach/system.h
-@@ -17,7 +17,7 @@ static inline void arch_idle(void)
- 	cpu_do_idle();
- }
- 
--static inline void arch_reset(char mode)
-+static inline void arch_reset(char mode, const char *cmd)
- {
- 	/*
- 	 * Enable soft reset to assert RSTOUTn.
-diff --git a/arch/arm/mach-ks8695/include/mach/system.h b/arch/arm/mach-ks8695/include/mach/system.h
-index 5a9b032..fb1dda9 100644
---- a/arch/arm/mach-ks8695/include/mach/system.h
-+++ b/arch/arm/mach-ks8695/include/mach/system.h
-@@ -27,7 +27,7 @@ static void arch_idle(void)
- 
- }
- 
--static void arch_reset(char mode)
-+static void arch_reset(char mode, const char *cmd)
- {
- 	unsigned int reg;
- 
-diff --git a/arch/arm/mach-l7200/include/mach/system.h b/arch/arm/mach-l7200/include/mach/system.h
-index 5272abe..e0dd3b6 100644
---- a/arch/arm/mach-l7200/include/mach/system.h
-+++ b/arch/arm/mach-l7200/include/mach/system.h
-@@ -19,7 +19,7 @@ static inline void arch_idle(void)
- 	*(unsigned long *)(IO_BASE + 0x50004) = 1;	/* idle mode */
- }
- 
--static inline void arch_reset(char mode)
-+static inline void arch_reset(char mode, const char *cmd)
- {
- 	if (mode == 's') {
- 		cpu_reset(0);
-diff --git a/arch/arm/mach-lh7a40x/include/mach/system.h b/arch/arm/mach-lh7a40x/include/mach/system.h
-index fa46bb1..45a56d3 100644
---- a/arch/arm/mach-lh7a40x/include/mach/system.h
-+++ b/arch/arm/mach-lh7a40x/include/mach/system.h
-@@ -13,7 +13,7 @@ static inline void arch_idle(void)
- 	cpu_do_idle ();
- }
- 
--static inline void arch_reset(char mode)
-+static inline void arch_reset(char mode, const char *cmd)
- {
- 	cpu_reset (0);
- }
-diff --git a/arch/arm/mach-loki/include/mach/system.h b/arch/arm/mach-loki/include/mach/system.h
-index 8db1147..c1de36f 100644
---- a/arch/arm/mach-loki/include/mach/system.h
-+++ b/arch/arm/mach-loki/include/mach/system.h
-@@ -17,7 +17,7 @@ static inline void arch_idle(void)
- 	cpu_do_idle();
- }
- 
--static inline void arch_reset(char mode)
-+static inline void arch_reset(char mode, const char *cmd)
- {
- 	/*
- 	 * Enable soft reset to assert RSTOUTn.
-diff --git a/arch/arm/mach-msm/include/mach/system.h b/arch/arm/mach-msm/include/mach/system.h
-index f05ad2e..574ccc4 100644
---- a/arch/arm/mach-msm/include/mach/system.h
-+++ b/arch/arm/mach-msm/include/mach/system.h
-@@ -17,7 +17,7 @@
- 
- void arch_idle(void);
- 
--static inline void arch_reset(char mode)
-+static inline void arch_reset(char mode, const char *cmd)
- {
- 	for (;;) ;  /* depends on IPC w/ other core */
- }
-diff --git a/arch/arm/mach-mv78xx0/include/mach/system.h b/arch/arm/mach-mv78xx0/include/mach/system.h
-index 7d51794..1d6350b 100644
---- a/arch/arm/mach-mv78xx0/include/mach/system.h
-+++ b/arch/arm/mach-mv78xx0/include/mach/system.h
-@@ -17,7 +17,7 @@ static inline void arch_idle(void)
- 	cpu_do_idle();
- }
- 
--static inline void arch_reset(char mode)
-+static inline void arch_reset(char mode, const char *cmd)
- {
- 	/*
- 	 * Enable soft reset to assert RSTOUTn.
-diff --git a/arch/arm/mach-mx2/system.c b/arch/arm/mach-mx2/system.c
-index 7b82697..92c79d4 100644
---- a/arch/arm/mach-mx2/system.c
-+++ b/arch/arm/mach-mx2/system.c
-@@ -46,7 +46,7 @@ void arch_idle(void)
- /*
-  * Reset the system. It is called by machine_restart().
-  */
--void arch_reset(char mode)
-+void arch_reset(char mode, const char *cmd)
- {
- 	struct clk *clk;
- 
-diff --git a/arch/arm/mach-netx/include/mach/system.h b/arch/arm/mach-netx/include/mach/system.h
-index 6c1023b..dc7b4bc 100644
---- a/arch/arm/mach-netx/include/mach/system.h
-+++ b/arch/arm/mach-netx/include/mach/system.h
-@@ -28,7 +28,7 @@ static inline void arch_idle(void)
- 	cpu_do_idle();
- }
- 
--static inline void arch_reset(char mode)
-+static inline void arch_reset(char mode, const char *cmd)
- {
- 	writel(NETX_SYSTEM_RES_CR_FIRMW_RES_EN | NETX_SYSTEM_RES_CR_FIRMW_RES,
- 	       NETX_SYSTEM_RES_CR);
-diff --git a/arch/arm/mach-ns9xxx/include/mach/system.h b/arch/arm/mach-ns9xxx/include/mach/system.h
-index e2068c5..1561588 100644
---- a/arch/arm/mach-ns9xxx/include/mach/system.h
-+++ b/arch/arm/mach-ns9xxx/include/mach/system.h
-@@ -20,7 +20,7 @@ static inline void arch_idle(void)
- 	cpu_do_idle();
- }
- 
--static inline void arch_reset(char mode)
-+static inline void arch_reset(char mode, const char *cmd)
- {
- #ifdef CONFIG_PROCESSOR_NS9360
- 	if (processor_is_ns9360())
-diff --git a/arch/arm/mach-orion5x/include/mach/system.h b/arch/arm/mach-orion5x/include/mach/system.h
-index 08e4307..9b8db1d 100644
---- a/arch/arm/mach-orion5x/include/mach/system.h
-+++ b/arch/arm/mach-orion5x/include/mach/system.h
-@@ -19,7 +19,7 @@ static inline void arch_idle(void)
- 	cpu_do_idle();
- }
- 
--static inline void arch_reset(char mode)
-+static inline void arch_reset(char mode, const char *cmd)
- {
- 	/*
- 	 * Enable and issue soft reset
-diff --git a/arch/arm/mach-orion5x/lsmini-setup.c b/arch/arm/mach-orion5x/lsmini-setup.c
-index e0c43b8..c9bf6b8 100644
---- a/arch/arm/mach-orion5x/lsmini-setup.c
-+++ b/arch/arm/mach-orion5x/lsmini-setup.c
-@@ -186,7 +186,7 @@ static struct mv_sata_platform_data lsmini_sata_data = {
- 
- static void lsmini_power_off(void)
- {
--	arch_reset(0);
-+	arch_reset(0, NULL);
- }
- 
- 
-diff --git a/arch/arm/mach-pnx4008/include/mach/system.h b/arch/arm/mach-pnx4008/include/mach/system.h
-index e12e7ab..5dda2bb 100644
---- a/arch/arm/mach-pnx4008/include/mach/system.h
-+++ b/arch/arm/mach-pnx4008/include/mach/system.h
-@@ -30,7 +30,7 @@ static void arch_idle(void)
- 	cpu_do_idle();
- }
- 
--static inline void arch_reset(char mode)
-+static inline void arch_reset(char mode, const char *cmd)
- {
- 	cpu_reset(0);
- }
-diff --git a/arch/arm/mach-pxa/corgi.c b/arch/arm/mach-pxa/corgi.c
-index 3b89e50..cdf21dd 100644
---- a/arch/arm/mach-pxa/corgi.c
-+++ b/arch/arm/mach-pxa/corgi.c
-@@ -635,16 +635,16 @@ static void corgi_poweroff(void)
- 		/* Green LED off tells the bootloader to halt */
- 		gpio_set_value(CORGI_GPIO_LED_GREEN, 0);
- 
--	arm_machine_restart('h');
-+	arm_machine_restart('h', NULL);
- }
- 
--static void corgi_restart(char mode)
-+static void corgi_restart(char mode, const char *cmd)
- {
- 	if (!machine_is_corgi())
- 		/* Green LED on tells the bootloader to reboot */
- 		gpio_set_value(CORGI_GPIO_LED_GREEN, 1);
- 
--	arm_machine_restart('h');
-+	arm_machine_restart('h', cmd);
- }
- 
- static void __init corgi_init(void)
-diff --git a/arch/arm/mach-pxa/include/mach/system.h b/arch/arm/mach-pxa/include/mach/system.h
-index 0a587c4..d1fce8b 100644
---- a/arch/arm/mach-pxa/include/mach/system.h
-+++ b/arch/arm/mach-pxa/include/mach/system.h
-@@ -20,4 +20,4 @@ static inline void arch_idle(void)
- }
- 
- 
--void arch_reset(char mode);
-+void arch_reset(char mode, const char *cmd);
-diff --git a/arch/arm/mach-pxa/mioa701.c b/arch/arm/mach-pxa/mioa701.c
-index 0257727..97c93a7 100644
---- a/arch/arm/mach-pxa/mioa701.c
-+++ b/arch/arm/mach-pxa/mioa701.c
-@@ -788,13 +788,13 @@ static void mioa701_machine_exit(void);
- static void mioa701_poweroff(void)
- {
- 	mioa701_machine_exit();
--	arm_machine_restart('s');
-+	arm_machine_restart('s', NULL);
- }
- 
--static void mioa701_restart(char c)
-+static void mioa701_restart(char c, const char *cmd)
- {
- 	mioa701_machine_exit();
--	arm_machine_restart('s');
-+	arm_machine_restart('s', cmd);
- }
- 
- struct gpio_ress global_gpios[] = {
-diff --git a/arch/arm/mach-pxa/poodle.c b/arch/arm/mach-pxa/poodle.c
-index 572ddec..036bbde 100644
---- a/arch/arm/mach-pxa/poodle.c
-+++ b/arch/arm/mach-pxa/poodle.c
-@@ -501,12 +501,12 @@ static struct platform_device *devices[] __initdata = {
- 
- static void poodle_poweroff(void)
- {
--	arm_machine_restart('h');
-+	arm_machine_restart('h', NULL);
- }
- 
--static void poodle_restart(char mode)
-+static void poodle_restart(char mode, const char *cmd)
- {
--	arm_machine_restart('h');
-+	arm_machine_restart('h', cmd);
- }
- 
- static void __init poodle_init(void)
-diff --git a/arch/arm/mach-pxa/reset.c b/arch/arm/mach-pxa/reset.c
-index 867c95c..df29d45 100644
---- a/arch/arm/mach-pxa/reset.c
-+++ b/arch/arm/mach-pxa/reset.c
-@@ -81,7 +81,7 @@ static void do_hw_reset(void)
- 	OSMR3 = OSCR + 368640;	/* ... in 100 ms */
- }
- 
--void arch_reset(char mode)
-+void arch_reset(char mode, const char *cmd)
- {
- 	clear_reset_status(RESET_STATUS_ALL);
- 
-diff --git a/arch/arm/mach-pxa/spitz.c b/arch/arm/mach-pxa/spitz.c
-index f697c49..7a0a430 100644
---- a/arch/arm/mach-pxa/spitz.c
-+++ b/arch/arm/mach-pxa/spitz.c
-@@ -701,10 +701,10 @@ static struct platform_device *devices[] __initdata = {
- 
- static void spitz_poweroff(void)
- {
--	arm_machine_restart('g');
-+	arm_machine_restart('g', NULL);
- }
- 
--static void spitz_restart(char mode)
-+static void spitz_restart(char mode, const char *cmd)
- {
- 	/* Bootloader magic for a reboot */
- 	if((MSC0 & 0xffff0000) == 0x7ff00000)
-diff --git a/arch/arm/mach-pxa/tosa.c b/arch/arm/mach-pxa/tosa.c
-index 66b1380..4f6f502 100644
---- a/arch/arm/mach-pxa/tosa.c
-+++ b/arch/arm/mach-pxa/tosa.c
-@@ -876,10 +876,10 @@ static struct platform_device *devices[] __initdata = {
- 
- static void tosa_poweroff(void)
- {
--	arm_machine_restart('g');
-+	arm_machine_restart('g', NULL);
- }
- 
--static void tosa_restart(char mode)
-+static void tosa_restart(char mode, const char *cmd)
- {
- 	/* Bootloader magic for a reboot */
- 	if((MSC0 & 0xffff0000) == 0x7ff00000)
-diff --git a/arch/arm/mach-realview/include/mach/system.h b/arch/arm/mach-realview/include/mach/system.h
-index a2f61c7..1a15a44 100644
---- a/arch/arm/mach-realview/include/mach/system.h
-+++ b/arch/arm/mach-realview/include/mach/system.h
-@@ -34,7 +34,7 @@ static inline void arch_idle(void)
- 	cpu_do_idle();
- }
- 
--static inline void arch_reset(char mode)
-+static inline void arch_reset(char mode, const char *cmd)
- {
- 	void __iomem *hdr_ctrl = __io_address(REALVIEW_SYS_BASE) + REALVIEW_SYS_RESETCTL_OFFSET;
- 	unsigned int val;
-diff --git a/arch/arm/mach-rpc/include/mach/system.h b/arch/arm/mach-rpc/include/mach/system.h
-index bd7268b..45c7b93 100644
---- a/arch/arm/mach-rpc/include/mach/system.h
-+++ b/arch/arm/mach-rpc/include/mach/system.h
-@@ -16,7 +16,7 @@ static inline void arch_idle(void)
- 	cpu_do_idle();
- }
- 
--static inline void arch_reset(char mode)
-+static inline void arch_reset(char mode, const char *cmd)
- {
- 	iomd_writeb(0, IOMD_ROMCR0);
- 
-diff --git a/arch/arm/mach-s3c2410/include/mach/system-reset.h b/arch/arm/mach-s3c2410/include/mach/system-reset.h
-index 7613d0a..b8687f7 100644
---- a/arch/arm/mach-s3c2410/include/mach/system-reset.h
-+++ b/arch/arm/mach-s3c2410/include/mach/system-reset.h
-@@ -22,7 +22,7 @@
- extern void (*s3c24xx_reset_hook)(void);
- 
- static void
--arch_reset(char mode)
-+arch_reset(char mode, const char *cmd)
- {
- 	struct clk *wdtclk;
- 
-diff --git a/arch/arm/mach-s3c6400/include/mach/system.h b/arch/arm/mach-s3c6400/include/mach/system.h
-index 652bbc4..090cfd9 100644
---- a/arch/arm/mach-s3c6400/include/mach/system.h
-+++ b/arch/arm/mach-s3c6400/include/mach/system.h
-@@ -16,7 +16,7 @@ static void arch_idle(void)
- 	/* nothing here yet */
- }
- 
--static void arch_reset(char mode)
-+static void arch_reset(char mode, const char *cmd)
- {
- 	/* nothing here yet */
- }
-diff --git a/arch/arm/mach-sa1100/include/mach/system.h b/arch/arm/mach-sa1100/include/mach/system.h
-index 63755ca..942b153 100644
---- a/arch/arm/mach-sa1100/include/mach/system.h
-+++ b/arch/arm/mach-sa1100/include/mach/system.h
-@@ -10,7 +10,7 @@ static inline void arch_idle(void)
- 	cpu_do_idle();
- }
- 
--static inline void arch_reset(char mode)
-+static inline void arch_reset(char mode, const char *cmd)
- {
- 	if (mode == 's') {
- 		/* Jump into ROM at address 0 */
-diff --git a/arch/arm/mach-shark/core.c b/arch/arm/mach-shark/core.c
-index 4f3a265..358d875 100644
---- a/arch/arm/mach-shark/core.c
-+++ b/arch/arm/mach-shark/core.c
-@@ -26,7 +26,7 @@
- #define ROMCARD_SIZE            0x08000000
- #define ROMCARD_START           0x10000000
- 
--void arch_reset(char mode)
-+void arch_reset(char mode, const char *cmd)
- {
-         short temp;
-         local_irq_disable();
-diff --git a/arch/arm/mach-shark/include/mach/system.h b/arch/arm/mach-shark/include/mach/system.h
-index 0752ca2..21c373b 100644
---- a/arch/arm/mach-shark/include/mach/system.h
-+++ b/arch/arm/mach-shark/include/mach/system.h
-@@ -7,7 +7,7 @@
- #define __ASM_ARCH_SYSTEM_H
- 
- /* Found in arch/mach-shark/core.c */
--extern void arch_reset(char mode);
-+extern void arch_reset(char mode, const char *cmd);
- 
- static inline void arch_idle(void)
- {
-diff --git a/arch/arm/mach-versatile/include/mach/system.h b/arch/arm/mach-versatile/include/mach/system.h
-index c59e610..8ffc12a 100644
---- a/arch/arm/mach-versatile/include/mach/system.h
-+++ b/arch/arm/mach-versatile/include/mach/system.h
-@@ -34,7 +34,7 @@ static inline void arch_idle(void)
- 	cpu_do_idle();
- }
- 
--static inline void arch_reset(char mode)
-+static inline void arch_reset(char mode, const char *cmd)
- {
- 	u32 val;
- 
-diff --git a/arch/arm/mach-w90x900/include/mach/system.h b/arch/arm/mach-w90x900/include/mach/system.h
-index 93753f9..9406400 100644
---- a/arch/arm/mach-w90x900/include/mach/system.h
-+++ b/arch/arm/mach-w90x900/include/mach/system.h
-@@ -21,7 +21,7 @@ static void arch_idle(void)
- {
- }
- 
--static void arch_reset(char mode)
-+static void arch_reset(char mode, const char *cmd)
- {
- 	cpu_reset(0);
- }
-diff --git a/arch/arm/plat-mxc/include/mach/system.h b/arch/arm/plat-mxc/include/mach/system.h
-index bbfc374..cd03eba 100644
---- a/arch/arm/plat-mxc/include/mach/system.h
-+++ b/arch/arm/plat-mxc/include/mach/system.h
-@@ -26,7 +26,7 @@ static inline void arch_idle(void)
- 	cpu_do_idle();
- }
- 
--static inline void arch_reset(char mode)
-+static inline void arch_reset(char mode, const char *cmd)
- {
- 	cpu_reset(0);
- }
-diff --git a/arch/arm/plat-omap/include/mach/system.h b/arch/arm/plat-omap/include/mach/system.h
-index 06923f2..145e402 100644
---- a/arch/arm/plat-omap/include/mach/system.h
-+++ b/arch/arm/plat-omap/include/mach/system.h
-@@ -38,7 +38,7 @@ static inline void omap1_arch_reset(char mode)
- 		omap_writew(1, ARM_RSTCT1);
- }
- 
--static inline void arch_reset(char mode)
-+static inline void arch_reset(char mode, const char *cmd)
- {
- 	if (!cpu_class_is_omap2())
- 		omap1_arch_reset(mode);
-diff --git a/arch/arm/plat-s3c24xx/cpu.c b/arch/arm/plat-s3c24xx/cpu.c
-index 542062f..1932b7e 100644
---- a/arch/arm/plat-s3c24xx/cpu.c
-+++ b/arch/arm/plat-s3c24xx/cpu.c
-@@ -182,7 +182,7 @@ static unsigned long s3c24xx_read_idcode_v4(void)
-  * with the caches enabled. It seems at least the S3C2440 has a problem
-  * resetting if there is bus activity interrupted by the reset.
-  */
--static void s3c24xx_pm_restart(char mode)
-+static void s3c24xx_pm_restart(char mode, const char *cmd)
- {
- 	if (mode != 's') {
- 		unsigned long flags;
-@@ -191,12 +191,12 @@ static void s3c24xx_pm_restart(char mode)
- 		__cpuc_flush_kern_all();
- 		__cpuc_flush_user_all();
- 
--		arch_reset(mode);
-+		arch_reset(mode, cmd);
- 		local_irq_restore(flags);
- 	}
- 
- 	/* fallback, or unhandled */
--	arm_machine_restart(mode);
-+	arm_machine_restart(mode, cmd);
- }
- 
- void __init s3c24xx_init_io(struct map_desc *mach_desc, int size)
+> Speaking of which, have you considered extending it to handle wakeups
+> from idle?  Currently tools like powertop give a pretty good idea as
+> to why the system is coming out of idle, so this may not be necessary,
+> but was just wondering if you had considered it.
+
+I designed this driver only for wakeups from suspend, but thanks for
+letting me know that.
+
+> More comments and suggestions on general organization below.
+>
+>> This driver uses sysfs interface to give
+>> information to user mode applications like:
+>>
+>> cat /sys/power/wakeup_irq
+>> cat /sys/power/wakeup_event
+>
+> If only suspend/resume is being handled, maybe 'resume' is a better
+> name than 'wakeup'.  These would be better named:
+>
+>  /sys/power/omap_resume_irq
+>  /sys/power/omap_resume_event
+
+OK, I changed those. But I wish not to replace 'wake' or 'wakeup'
+strings with 'resume' in other symbols and filenames.
+
+>> This driver also privides the unified GPIO wake-up source
+>> configuration. specific GPIO settings in the board files are:
+>>
+>> /* Wakeup source configuration */
+>> static struct gpio_wake boardname_gpio_wake[] = {
+>>       { 23,   IRQF_TRIGGER_RISING | IRQF_SHARED,      "BT_WAKEUP",    1},
+>>       { 24,   IRQF_TRIGGER_RISING | IRQF_SHARED,      "USB_DETECT",   1},
+>> };
+>
+> Based on the way this works, I think the board code should not
+> be requird to set IRQF_SHARED.  I think this should be explicitly
+> ORed in in the wake_suspend hook which requests the IRQ since this will
+> not work correctly without using IRQF_SHARED.
+
+Thanks, I fixed it.
+
+>> static struct omap_wake_platform_data boardname_wake_data = {
+>>       .qpio_wakes             = boardname_gpio_wake,
+>>       .gpio_wake_num          = ARRAY_SIZE(boardname_gpio_wake),
+>> };
+>
+> I assume that 'qpio' is a typo and should be gpio?
+
+Oops, thanks, I fixed it.
+
+> Also, I'm not sure I agree with adding a generic GPIO wakeup
+> interface.  I believe this should be done by the driver using the GPIO
+> itself.  However, I can see this being useful to test external
+> wakeup events when no driver is present.
+
+I agree with you that it's better that each driver configure GPIO
+wakeup. But, as you said, GPIO wakeup interface in this driver is
+useful when the specific driver doesn't exist.
+
+Somewhat different topic: All OMAP boards on which l-o tree kernel is
+running have the same wake-up source setup as written in the
+prcm_setup_regs() and omap3_pm_init(). But I think this wake-up policy
+is a board specific feature, so I wish this driver can take charge of
+board specific wake-up configurations in the future. [So... I think
+GPIO wakeup interface would become a part of it :)]
+
+>> static struct platform_device boardname_wakeup = {
+>>       .name                   = "omap-wake",
+>>       .id                     = -1,
+>>       .dev                    = {
+>>               .platform_data  = &boardname_wake_data,
+>>       },
+>> };
+>>
+>> Signed-off-by: Kim Kyuwon <q1.kim@samsung.com>
+>> ---
+>>  arch/arm/mach-omap2/Makefile           |    1 +
+>>  arch/arm/mach-omap2/irq.c              |   41 +++
+>>  arch/arm/mach-omap2/prcm-common.h      |    4 +
+>>  arch/arm/mach-omap2/prm-regbits-34xx.h |    6 +
+>>  arch/arm/mach-omap2/wake34xx.c         |  470 ++++++++++++++++++++++++++++++++
+>>  arch/arm/plat-omap/Kconfig             |    9 +
+>>  arch/arm/plat-omap/include/mach/irqs.h |    1 +
+>>  arch/arm/plat-omap/include/mach/wake.h |   29 ++
+>>  8 files changed, 561 insertions(+), 0 deletions(-)
+>>  create mode 100644 arch/arm/mach-omap2/wake34xx.c
+>>  create mode 100644 arch/arm/plat-omap/include/mach/wake.h
+>>
+>> diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
+>> index ba65cab..1ab87e7 100644
+>> --- a/arch/arm/mach-omap2/Makefile
+>> +++ b/arch/arm/mach-omap2/Makefile
+>> @@ -25,6 +25,7 @@ obj-$(CONFIG_ARCH_OMAP2)            += pm24xx.o
+>>  obj-$(CONFIG_ARCH_OMAP24XX)          += sleep24xx.o
+>>  obj-$(CONFIG_ARCH_OMAP3)             += pm34xx.o sleep34xx.o
+>>  obj-$(CONFIG_PM_DEBUG)                       += pm-debug.o
+>> +obj-$(CONFIG_OMAP_WAKE)                      += wake34xx.o
+>>  endif
+>>
+>>  # SmartReflex driver
+>> diff --git a/arch/arm/mach-omap2/irq.c b/arch/arm/mach-omap2/irq.c
+>> index 2842fe8..21f3d83 100644
+>> --- a/arch/arm/mach-omap2/irq.c
+>> +++ b/arch/arm/mach-omap2/irq.c
+>> @@ -177,6 +177,47 @@ int omap_irq_pending(void)
+>>       return 0;
+>>  }
+>>
+>> +/*
+>> + * Get the first pending MPU IRQ number from 'irq_start'.
+>> + * If none, return -1.
+>> + */
+>> +int omap_get_pending_mpu_irq(unsigned int irq_start)
+>> +{
+>> +     struct omap_irq_bank *bank = irq_banks;
+>> +     int irq, bits_skip, bit_start;
+>> +
+>> +     if (irq_start >= bank->nr_irqs)
+>> +             return -1;
+>
+> return -EINVAL;
+
+OK, I fixed it.
+
+>> +     bits_skip = irq_start % IRQ_BITS_PER_REG;
+>> +     bit_start = irq_start - bits_skip;
+>> +
+>> +     for (irq = bit_start; irq < bank->nr_irqs; irq += IRQ_BITS_PER_REG) {
+>> +             int ret, i, limit, offset = irq & (~(IRQ_BITS_PER_REG - 1));
+>
+> The name 'ret' is normally used for a return value, and you're not using it
+> that way.
+
+OK, I changed it.
+
+>> +             ret = intc_bank_read_reg(bank, (INTC_PENDING_IRQ0 + offset));
+>> +             if (!ret)
+>> +                     continue;
+>> +
+>> +             limit = IRQ_BITS_PER_REG;
+>> +
+>> +             if (bit_start == irq) {
+>> +                     ret >>= bits_skip;
+>> +                     limit -= bits_skip;
+>> +             } else
+>> +                     bits_skip = 0;
+>> +
+>> +             for (i = 0; i < limit; i++) {
+>> +                     if (ret & 0x1)
+>> +                             return irq + i + bits_skip;
+>> +                     else
+>> +                             ret >>= 1;
+>> +             }
+>> +     }
+>
+> I think you could do this more efficiently using find_first_bit() and
+> find_next_bit().  See <linux/bitops.h>
+
+Oh, It becomes beautiful. thanks.
+
+>> +     return -1;
+>
+> return -EINVAL;
+>
+
+Ok.
+
+>> +}
+>> +
+>
+> In general, I think I would like to see the actual suspend/resume path code
+> optimizied a little more.  Leave the string processing and printing to
+> the sysfs code or CONFIG_PM_DEBUG code in the resume path.
+>
+> Here's my idea:  in irq.c, just have a get_pending_irqs() function which
+> returns the IRQ_PENDINGx registers (only 1 for OMAP2 but 3 for OMAP3.)
+> The suspend/resume path just saves these away for use by printing code
+> in the resume path (CONFIG_PM_DEBUG) and the sysfs path.
+
+That's good idea. I modified as what you said.
+
+>>  void __init omap_init_irq(void)
+>>  {
+>>       unsigned long nr_of_irqs = 0;
+>> diff --git a/arch/arm/mach-omap2/prcm-common.h
+>> b/arch/arm/mach-omap2/prcm-common.h
+>> index cb1ae84..1f340aa 100644
+>> --- a/arch/arm/mach-omap2/prcm-common.h
+>> +++ b/arch/arm/mach-omap2/prcm-common.h
+>> @@ -273,6 +273,10 @@
+>>  #define OMAP3430_ST_D2D_SHIFT                                3
+>>  #define OMAP3430_ST_D2D_MASK                         (1 << 3)
+>>
+>> +/* PM_WKST3_CORE, CM_IDLEST3_CORE shared bits */
+>> +#define OMAP3430_ST_USBTLL_SHIFT                     2
+>> +#define OMAP3430_ST_USBTLL_MASK                              (1 << 2)
+>> +
+>>  /* CM_FCLKEN_WKUP, CM_ICLKEN_WKUP, PM_WKEN_WKUP shared bits */
+>>  #define OMAP3430_EN_GPIO1                            (1 << 3)
+>>  #define OMAP3430_EN_GPIO1_SHIFT                              3
+>> diff --git a/arch/arm/mach-omap2/prm-regbits-34xx.h
+>> b/arch/arm/mach-omap2/prm-regbits-34xx.h
+>> index d73eee8..661d37d 100644
+>> --- a/arch/arm/mach-omap2/prm-regbits-34xx.h
+>> +++ b/arch/arm/mach-omap2/prm-regbits-34xx.h
+>> @@ -332,6 +332,8 @@
+>>  /* PM_IVA2GRPSEL1_CORE specific bits */
+>>
+>>  /* PM_WKST1_CORE specific bits */
+>> +#define OMAP3430_ST_MMC3_SHIFT                               30
+>> +#define OMAP3430_ST_MMC3_MASK                                (1 << 30)
+>>
+>>  /* PM_PWSTCTRL_CORE specific bits */
+>>  #define OMAP3430_MEM2ONSTATE_SHIFT                   18
+>> @@ -373,6 +375,7 @@
+>>  /* PM_IVA2GRPSEL_WKUP specific bits */
+>>
+>>  /* PM_WKST_WKUP specific bits */
+>> +#define OMAP3430_ST_IO_CHAIN                         (1 << 16)
+>>  #define OMAP3430_ST_IO                                       (1 << 8)
+>>
+>>  /* PRM_CLKSEL */
+>> @@ -430,6 +433,9 @@
+>>
+>>  /* PM_PREPWSTST_PER specific bits */
+>>
+>> +/* PM_WKST_USBHOST specific bits */
+>> +#define OMAP3430_ST_USBHOST                          (1 << 0)
+>> +
+>>  /* RM_RSTST_EMU specific bits */
+>>
+>>  /* PM_PWSTST_EMU specific bits */
+>> diff --git a/arch/arm/mach-omap2/wake34xx.c b/arch/arm/mach-omap2/wake34xx.c
+>> new file mode 100644
+>> index 0000000..2390bca
+>> --- /dev/null
+>> +++ b/arch/arm/mach-omap2/wake34xx.c
+>> @@ -0,0 +1,466 @@
+>> +/*
+>> + * wake34xx.c
+>> + *
+>> + * Copyright (c) 2009 Samsung Eletronics
+>> + *
+>> + * Author: Kim Kyuwon <q1.kim@samsung.com>
+>> + *
+>> + * This program is free software; you can redistribute it and/or modify
+>> + * it under the terms of the GNU General Public License version 2 as
+>> + * published by the Free Software Foundation.
+>> + *
+>> + */
+>> +
+>> +#include <linux/kernel.h>
+>> +#include <linux/init.h>
+>> +#include <linux/platform_device.h>
+>> +#include <linux/interrupt.h>
+>> +
+>> +#include <mach/gpio.h>
+>> +#include <mach/wake.h>
+>> +
+>> +#include "prm-regbits-34xx.h"
+>> +
+>> +/*
+>> + * Sometimes, it is necessary to find out "what does wake up my board?"
+>> + * Notifying wake-up source feature may be used to blame unexpected wake-up
+>> + * events which increase power consumption. And user mode applications can
+>> + * act smartly according to the wake-up event to minimize power consumption.
+>> + * This driver uses sysfs interface to give information to user mode
+>> + * applications.
+>> + */
+>> +
+>> +#define WAKE_STR_LEN 64
+>> +
+>> +char wakeup_irq[WAKE_STR_LEN] = "None";
+>> +char wakeup_event[WAKE_STR_LEN] = "None";
+>> +
+>> +struct wake_event {
+>> +     int             index;
+>> +     const char      *name;
+>> +};
+>
+> The name 'index' isn't quite right here.  This is a bitmask
+> used compare against the PM_WKST_<domain> register.  I suggest
+> 'u32 mask' or something.
+
+I like 'u32 mask', thanks.
+
+>> +static struct wake_event omap3_wkup_events[] = {
+>> +     { OMAP3430_ST_IO_CHAIN,                 "ST_IO" },
+>> +     { OMAP3430_ST_IO,                       "ST_SR2" },
+>> +     { OMAP3430_ST_SR2_MASK,                 "ST_SR2" },
+>> +     { OMAP3430_ST_SR1_MASK,                 "ST_SR1" },
+>> +     { OMAP3430_ST_GPIO1_MASK,               "ST_GPIO1" },
+>> +     { OMAP3430_ST_GPT12_MASK,               "ST_GPT12" },
+>> +     { OMAP3430_ST_GPT1_MASK,                "ST_GPT1" },
+>> +};
+>> +
+>> +static struct wake_event omap3_per_events[] = {
+>> +     { OMAP3430_ST_GPIO6_MASK,               "ST_GPIO6" },
+>> +     { OMAP3430_ST_GPIO5_MASK,               "ST_GPIO5" },
+>> +     { OMAP3430_ST_GPIO4_MASK,               "ST_GPIO4" },
+>> +     { OMAP3430_ST_GPIO3_MASK,               "ST_GPIO3" },
+>> +     { OMAP3430_ST_GPIO2_MASK,               "ST_GPIO2" },
+>> +     { OMAP3430_ST_UART3_MASK,               "ST_UART3" },
+>> +     { OMAP3430_ST_GPT9_MASK,                "ST_GPT9" },
+>> +     { OMAP3430_ST_GPT8_MASK,                "ST_GPT8" },
+>> +     { OMAP3430_ST_GPT7_MASK,                "ST_GPT7" },
+>> +     { OMAP3430_ST_GPT6_MASK,                "ST_GPT6" },
+>> +     { OMAP3430_ST_GPT5_MASK,                "ST_GPT5" },
+>> +     { OMAP3430_ST_GPT4_MASK,                "ST_GPT4" },
+>> +     { OMAP3430_ST_GPT3_MASK,                "ST_GPT3" },
+>> +     { OMAP3430_ST_GPT2_MASK,                "ST_GPT2" },
+>> +     { OMAP3430_EN_MCBSP4,                   "EN_MCBSP4" },
+>> +     { OMAP3430_EN_MCBSP3,                   "EN_MCBSP3" },
+>> +     { OMAP3430_EN_MCBSP2,                   "EN_MCBSP2" },
+>> +};
+>> +
+>> +static struct wake_event omap3_core1_events[] = {
+>> +     { OMAP3430_ST_MMC3_MASK,                "ST_MMC3" },
+>> +     { OMAP3430_ST_MMC2_MASK,                "ST_MMC2" },
+>> +     { OMAP3430_ST_MMC1_MASK,                "ST_MMC1" },
+>> +     { OMAP3430_ST_MCSPI4_MASK,              "ST_MCSPI4" },
+>> +     { OMAP3430_ST_MCSPI3_MASK,              "ST_MCSPI3" },
+>> +     { OMAP3430_ST_MCSPI2_MASK,              "ST_MCSPI2" },
+>> +     { OMAP3430_ST_MCSPI1_MASK,              "ST_MCSPI1" },
+>> +     { OMAP3430_ST_I2C3_MASK,                "ST_I2C3" },
+>> +     { OMAP3430_ST_I2C2_MASK,                "ST_I2C2" },
+>> +     { OMAP3430_ST_I2C1_MASK,                "ST_I2C1" },
+>> +     { OMAP3430_ST_UART1_MASK,               "ST_UART1" },
+>> +     { OMAP3430_ST_GPT11_MASK,               "ST_GPT11" },
+>> +     { OMAP3430_ST_GPT10_MASK,               "ST_GPT10" },
+>> +     { OMAP3430_ST_MCBSP5_MASK,              "ST_MCBSP5" },
+>> +     { OMAP3430_ST_MCBSP1_MASK,              "ST_MCBSP1" },
+>> +};
+>> +
+>> +static struct wake_event omap3es1_core1_events[] = {
+>> +     { OMAP3430ES1_ST_FSHOSTUSB_MASK,        "ST_FSHOSTUSB" },
+>> +     { OMAP3430ES1_ST_HSOTGUSB_MASK,         "ST_HSOTGUSB" },
+>> +     { OMAP3430_ST_D2D_MASK,                 "ST_D2D" },
+>> +};
+>> +
+>> +static struct wake_event omap3es2_core1_events[] = {
+>> +     { OMAP3430ES2_ST_HSOTGUSB_STDBY_MASK,   "ST_HSOTGUSB" },
+>> +};
+>> +
+>> +static struct wake_event omap3_core2_events[] = {
+>> +     { OMAP3430_ST_USBTLL_MASK,              "ST_USBTLL" },
+>> +};
+>> +
+>> +static struct wake_event omap3_usbhost_events[] = {
+>> +     { OMAP3430_ST_USBHOST,                  "ST_USBHOST" },
+>> +};
+>> +
+>> +static ssize_t wakeup_source_show(struct kobject *kobj,
+>> +                             struct kobj_attribute *attr, char *buf);
+>> +
+>> +static void omap_wake_update_event(char *event)
+>> +{
+>> +     int len;
+>> +
+>> +     if (wakeup_event[0])
+>> +             len = strlen(wakeup_event) + strlen(event) + 2;
+>> +     else
+>> +             len = strlen(wakeup_event) + strlen(event);
+>> +
+>> +     if (len > WAKE_STR_LEN - 1) {
+>> +             printk(KERN_ERR "Can't record the wakeup event: %s\n", event);
+>> +             return;
+>> +     }
+>> +
+>> +     if (wakeup_event[0])
+>> +             strcat(wakeup_event, ", ");
+>> +     strcat(wakeup_event, event);
+>> +}
+>> +
+>> +static void omap_wake_detect_wkup(u32 wkst, char *event)
+>> +{
+>> +     int i;
+>> +
+>> +     for (i = 0; i < ARRAY_SIZE(omap3_wkup_events); i++)
+>> +             if (wkst & omap3_wkup_events[i].index) {
+>> +                     sprintf(event, "%s",
+>> +                                     omap3_wkup_events[i].name);
+>> +                     return;
+>> +             }
+>> +
+>> +     sprintf(event, "WKUP:0x%08x", wkst);
+>> +}
+>
+> I don't think the string processing should be done in the actual
+> wakeup path.  Rather, do the string processing only when the /sys
+> entries are used.  We want to keep the suspend and resume path fast
+> wherever possible.
+>
+> Also, this (re)reading of the WKST registers could probably be saved
+> as this is done in the PRCM interrupt handler in pm34xx.c after each
+> wakeup.
+>
+> Maybe what should be done is for the PRCM interrupt handler to save
+> the last values of the WKST registers for each domain, and then we add
+> a function to prcm34xx.c which returns these registers.  Then in your
+> wakeup code, you call that func to get the WKST values.  Any non-zero
+> WKST values could be parsed and displayed, but the parsing and
+> printing of these should probably be conditional on CONFIG_PM_DEBUG=y
+> so the default path stays fast.
+
+I modified it as you said.
+
+>> +static void omap_wake_detect_per(u32 wkst, char *event) { int i;
+>> +
+>> +     for (i = 0; i < ARRAY_SIZE(omap3_per_events); i++)
+>> +             if (wkst & omap3_per_events[i].index) {
+>> +                     sprintf(event, "%s",
+>> +                                     omap3_per_events[i].name);
+>> +                     return;
+>> +             }
+>> +
+>> +     sprintf(event, "PER:0x%08x", wkst);
+>> +}
+>> +
+>> +static void omap_wake_detect_core1(u32 wkst, char *event)
+>> +{
+>> +     int i;
+>> +
+>> +     for (i = 0; i < ARRAY_SIZE(omap3_core1_events); i++)
+>> +             if (wkst & omap3_core1_events[i].index) {
+>> +                     sprintf(event, "%s",
+>> +                                     omap3_core1_events[i].name);
+>> +                     return;
+>> +             }
+>> +
+>> +     if (omap_rev() == OMAP3430_REV_ES1_0) {
+>> +             for (i = 0; i < ARRAY_SIZE(omap3es1_core1_events); i++) {
+>> +                     if (wkst & omap3es1_core1_events[i].index) {
+>> +                             sprintf(event, "%s",
+>> +                                     omap3es1_core1_events[i].name);
+>> +                             return;
+>> +                     }
+>> +             }
+>> +     } else {
+>> +             for (i = 0; i < ARRAY_SIZE(omap3es2_core1_events); i++) {
+>> +                     if (wkst & omap3es2_core1_events[i].index) {
+>> +                             sprintf(event, "%s",
+>> +                                     omap3es2_core1_events[i].name);
+>> +                             return;
+>> +                     }
+>> +             }
+>> +     }
+>> +
+>> +     sprintf(event, "CORE1:0x%08x", wkst);
+>> +}
+>> +
+>> +static void omap_wake_detect_core2(u32 wkst, char *event)
+>> +{
+>> +     int i;
+>> +
+>> +     for (i = 0; i < ARRAY_SIZE(omap3_core2_events); i++)
+>> +             if (wkst & omap3_core2_events[i].index) {
+>> +                     sprintf(event, "%s",
+>> +                                     omap3_core2_events[i].name);
+>> +                     return;
+>> +             }
+>> +
+>> +     sprintf(event, "CORE2:0x%08x", wkst);
+>> +}
+>> +
+>> +static void omap_wake_detect_usbhost(u32 wkst, char *event)
+>> +{
+>> +     int i;
+>> +
+>> +     for (i = 0; i < ARRAY_SIZE(omap3_usbhost_events); i++)
+>> +             if (wkst & omap3_usbhost_events[i].index) {
+>> +                     sprintf(event, "%s",
+>> +                                     omap3_usbhost_events[i].name);
+>> +                     return;
+>> +             }
+>> +
+>> +     sprintf(event, "USBHOST:0x%08x", wkst);
+>> +}
+>
+> These omap_wake_detect_* functions are all basically the same function
+> but for a different powerdomain.  Can you convert all these to a single
+> function which gets passed the powerdomain and the events array?
+
+Sure, I can. But omap_wake_detect_core1() function is a little bit
+different from others, because it checks OMAP3430 revision. So I will
+just add a helper function which gets passed the the powerdomain and
+the events array, but only do 'for' loop. If you are not comfortable
+with this, please tell me again.
+
+>> +/* Detect wake-up events */
+>> +static void omap_wake_detect_wakeup(void)
+>> +{
+>> +     u32 wkst;
+>> +     char buf[32] = {0, };
+>> +     int irq, len;
+>> +
+>> +     /* Initialize global string variables */
+>> +     memset(wakeup_irq, 0x0, WAKE_STR_LEN);
+>> +     memset(wakeup_event, 0x0, WAKE_STR_LEN);
+>
+> Is this needed every time?  Isn't there already a default case
+> which sets it to 'None'?
+
+I did strcat operation, so it was needed. But I removed in new version.
+
+>> +     /* IRQ */
+>> +     irq = omap_get_pending_mpu_irq(0);
+>> +     while (irq >= 0) {
+>> +             if (irq == INT_34XX_SYS_NIRQ)
+>> +                     omap_wake_update_event("sys_nirq");
+>> +
+>> +             len = strlen(wakeup_irq) + sprintf(buf, "%d", irq);
+>> +             if (len > WAKE_STR_LEN - 1)
+>> +                     break;
+>> +
+>> +             strcat(wakeup_irq, buf);
+>> +
+>> +             irq = omap_get_pending_mpu_irq(irq + 1);
+>> +             if (irq >= 0) {
+>> +                     len = strlen(wakeup_irq) + 2;
+>> +                     if (len > WAKE_STR_LEN - 1)
+>> +                             break;
+>> +
+>> +                     strcat(wakeup_irq, ", ");
+>> +             }
+>> +     }
+>> +     if (!wakeup_irq[0])
+>> +             strncpy(wakeup_irq, "Unknown", WAKE_STR_LEN - 1);
+>> +     printk(KERN_INFO "Wake-up IRQ: %s\n", wakeup_irq);
+>> +
+>
+> Here is where you could just call into pm34xx.c to get the WKST
+> registers from the last PRCM interrupt.
+
+I see.
+
+>> +     /* WKUP */
+>> +     wkst = prm_read_mod_reg(WKUP_MOD, PM_WKST);
+>> +     if (wkst) {
+>> +             omap_wake_detect_wkup(wkst, buf);
+>> +             omap_wake_update_event(buf);
+>> +     }
+>>
+>> +     /* PER */
+>> +     wkst = prm_read_mod_reg(OMAP3430_PER_MOD, PM_WKST);
+>> +     if (wkst) {
+>> +             omap_wake_detect_per(wkst, buf);
+>> +             omap_wake_update_event(buf);
+>> +     }
+>> +
+>> +     /* CORE */
+>> +     wkst = prm_read_mod_reg(CORE_MOD, PM_WKST1);
+>> +     if (wkst) {
+>> +             omap_wake_detect_core1(wkst, buf);
+>> +             omap_wake_update_event(buf);
+>> +     }
+>> +     wkst = prm_read_mod_reg(CORE_MOD, OMAP3430ES2_PM_WKST3);
+>> +     if (wkst) {
+>> +             omap_wake_detect_core2(wkst, buf);
+>> +             omap_wake_update_event(buf);
+>> +     }
+>> +
+>> +     /* USBHOST */
+>> +     wkst = prm_read_mod_reg(OMAP3430ES2_USBHOST_MOD, PM_WKST);
+>> +     if (wkst) {
+>> +             omap_wake_detect_usbhost(wkst, buf);
+>> +             omap_wake_update_event(buf);
+>> +     }
+>>
+>> +     if (!wakeup_event[0])
+>> +             strncpy(wakeup_event, "Unknown", WAKE_STR_LEN - 1);
+>> +}
+>> +
+>> +static struct kobj_attribute wakeup_irq_attr =
+>> +     __ATTR(wakeup_irq, 0644, wakeup_source_show, NULL);
+>> +
+>> +static struct kobj_attribute wakeup_event_attr =
+>> +     __ATTR(wakeup_event, 0644, wakeup_source_show, NULL);
+>> +
+>> +static ssize_t wakeup_source_show(struct kobject *kobj,
+>> +                             struct kobj_attribute *attr, char *buf)
+>> +{
+>> +     if (attr == &wakeup_irq_attr)
+>> +             return sprintf(buf, "%s\n", wakeup_irq);
+>> +     else if (attr == &wakeup_event_attr)
+>> +             return sprintf(buf, "%s\n", wakeup_event);
+>> +     else
+>> +             return -EINVAL;
+>> +}
+>> +
+>> +static irqreturn_t omap_wake_detect_gpio(int irq, void *dev_id)
+>> +{
+>> +     if (!strncmp(wakeup_event, "Unknown", WAKE_STR_LEN - 1))
+>> +             strncpy(wakeup_event, dev_id, WAKE_STR_LEN - 1);
+>> +     else
+>> +             omap_wake_update_event(dev_id);
+>> +
+>> +     return IRQ_HANDLED;
+>> +}
+>> +
+>> +static int __devinit omap_wake_probe(struct platform_device *pdev)
+>> +{
+>> +     struct omap_wake_platform_data *pdata = pdev->dev.platform_data;
+>> +     struct gpio_wake *gw;
+>> +     int i, ret;
+>> +
+>> +     /*
+>> +      * It may be good to configure GPIO wake-up sources in each driver.
+>> +      * Buf if the specific device driver doesn't exist, you can use
+>> +      * omap-wake driver to configure gpio wake-up sources.
+>> +      */
+>> +     for (i = 0; i < pdata->gpio_wake_num; i++) {
+>> +             gw = pdata->qpio_wakes + i;
+>> +
+>> +             if (gw->request) {
+>> +                     ret = gpio_request(gw->gpio, gw->name);
+>> +                     if (ret) {
+>> +                             dev_err(&pdev->dev, "can't request gpio%d"
+>> +                                     ", return %d\n", gw->gpio, ret);
+>> +                             goto failed_free_gpio;
+>> +                     }
+>> +             }
+>> +             gpio_direction_input(gw->gpio);
+>> +             enable_irq_wake(gpio_to_irq(gw->gpio));
+>> +     }
+>> +
+>> +     ret = sysfs_create_file(power_kobj, &wakeup_irq_attr.attr);
+>> +     if (ret)
+>> +             dev_err(&pdev->dev, "sysfs_create_file %s failed: %d\n",
+>> +                                     wakeup_irq_attr.attr.name, ret);
+>> +
+>> +     ret = sysfs_create_file(power_kobj, &wakeup_event_attr.attr);
+>> +     if (ret)
+>> +             dev_err(&pdev->dev, "sysfs_create_file %s failed: %d\n",
+>> +                                     wakeup_event_attr.attr.name, ret);
+>> +
+>> +     return 0;
+>> +
+>> +failed_free_gpio:
+>> +     for (i--; i >= 0; i--) {
+>> +             gw = pdata->qpio_wakes + i;
+>> +
+>> +             if (gw->request)
+>> +                     gpio_free(gw->gpio);
+>> +     }
+>> +
+>> +     return ret;
+>> +}
+>> +
+>> +static int __devexit omap_wake_remove(struct platform_device *pdev)
+>> +{
+>> +     struct omap_wake_platform_data *pdata = pdev->dev.platform_data;
+>> +     struct gpio_wake *gw;
+>> +     int i;
+>> +
+>> +     for (i = 0; i < pdata->gpio_wake_num; i++) {
+>> +             gw = pdata->qpio_wakes + i;
+>> +
+>> +             if (gw->request)
+>> +                     gpio_free(gw->gpio);
+>> +
+>> +             disable_irq_wake(gpio_to_irq(gw->gpio));
+>> +     }
+>> +
+>> +     return 0;
+>> +}
+>> +
+>> +static int omap_wake_suspend(struct platform_device *pdev, pm_message_t state)
+>> +{
+>> +     struct omap_wake_platform_data *pdata = pdev->dev.platform_data;
+>> +     struct gpio_wake *gw;
+>> +     int i, ret;
+>> +
+>> +     for (i = 0; i < pdata->gpio_wake_num; i++) {
+>> +             gw = pdata->qpio_wakes + i;
+>> +
+>> +             ret = request_irq(gpio_to_irq(gw->gpio), omap_wake_detect_gpio,
+>> +                             gw->irqflag, gw->name, (void *)gw->name);
+>> +             if (ret) {
+>> +                     dev_err(&pdev->dev, "can't get IRQ%d, return %d\n",
+>> +                                     gpio_to_irq(gw->gpio), ret);
+>> +                     goto failed_free_irq;
+>> +             }
+>> +     }
+>> +
+>> +     return 0;
+>> +
+>> +failed_free_irq:
+>> +     for (i--; i >= 0; i--) {
+>> +             gw = pdata->qpio_wakes + i;
+>> +             free_irq(gpio_to_irq(gw->gpio),  (void *)gw->name);
+>> +     }
+>> +
+>> +     return ret;
+>> +}
+>> +
+>> +static int omap_wake_resume_early(struct platform_device *pdev)
+>> +{
+>> +     omap_wake_detect_wakeup();
+>> +
+>> +     return 0;
+>> +}
+>> +
+>> +static int omap_wake_resume(struct platform_device *pdev)
+>> +{
+>> +     struct omap_wake_platform_data *pdata = pdev->dev.platform_data;
+>> +     struct gpio_wake *gw;
+>> +     int i;
+>> +
+>> +     for (i = 0; i < pdata->gpio_wake_num; i++) {
+>> +             gw = pdata->qpio_wakes + i;
+>> +
+>> +             free_irq(gpio_to_irq(gw->gpio), (void *)gw->name);
+>> +     }
+>> +
+>> +     printk(KERN_INFO "Wake-up event: %s\n", wakeup_event);
+>> +
+>> +     return 0;
+>> +}
+>> +
+>> +static struct platform_driver omap_wake_driver = {
+>> +     .probe          = omap_wake_probe,
+>> +     .remove         = __devexit_p(omap_wake_remove),
+>> +     .suspend        = omap_wake_suspend,
+>> +     .resume_early   = omap_wake_resume_early,
+>> +     .resume         = omap_wake_resume,
+>> +     .driver         = {
+>> +             .name   = "omap-wake",
+>> +             .owner  = THIS_MODULE,
+>> +     },
+>> +};
+>> +
+>> +static int __init omap_wake_init(void)
+>> +{
+>> +     return platform_driver_register(&omap_wake_driver);
+>> +}
+>> +
+>> +module_init(omap_wake_init);
+>> +
+>> +static void __exit omap_wake_exit(void)
+>> +{
+>> +     platform_driver_unregister(&omap_wake_driver);
+>> +}
+>> +module_exit(omap_wake_exit);
+>> +
+>> +MODULE_AUTHOR("Kim Kyuwon <q1.kim@samsung.com>");
+>> +MODULE_DESCRIPTION("OMAP34xx wakeup driver");
+>> +MODULE_LICENSE("GPL v2");
+>> diff --git a/arch/arm/plat-omap/Kconfig b/arch/arm/plat-omap/Kconfig
+>> index 407bd32..7a73c95 100644
+>> --- a/arch/arm/plat-omap/Kconfig
+>> +++ b/arch/arm/plat-omap/Kconfig
+>> @@ -176,6 +176,15 @@ config OMAP_MBOX_FWK
+>>         Say Y here if you want to use OMAP Mailbox framework support for
+>>         DSP, IVA1.0 and IVA2 in OMAP1/2/3.
+>>
+>> +config OMAP_WAKE
+>> +     tristate "OMAP34xx wakeup source support"
+>> +     depends on ARCH_OMAP34XX && PM
+>> +     default n
+>> +     help
+>> +       Select this option if you want to know what kind of wake-up event
+>> +       wakes up your board from the low power mode. And this option
+>> +       provides the unified GPIO wake-up source configuration.
+>> +
+>>  choice
+>>          prompt "System timer"
+>>       default OMAP_MPU_TIMER
+>> diff --git a/arch/arm/plat-omap/include/mach/irqs.h
+>> b/arch/arm/plat-omap/include/mach/irqs.h
+>> index d12c39f..656cc04 100644
+>> --- a/arch/arm/plat-omap/include/mach/irqs.h
+>> +++ b/arch/arm/plat-omap/include/mach/irqs.h
+>> @@ -385,6 +385,7 @@
+>>  #ifndef __ASSEMBLY__
+>>  extern void omap_init_irq(void);
+>>  extern int omap_irq_pending(void);
+>> +extern int omap_get_pending_mpu_irq(unsigned int irq_start);
+>>  #endif
+>>
+>>  #include <mach/hardware.h>
+>> diff --git a/arch/arm/plat-omap/include/mach/wake.h
+>> b/arch/arm/plat-omap/include/mach/wake.h
+>> new file mode 100644
+>> index 0000000..213b263
+>> --- /dev/null
+>> +++ b/arch/arm/plat-omap/include/mach/wake.h
+>> @@ -0,0 +1,30 @@
+>> +/*
+>> + * wake.h
+>> + *
+>> + * Copyright (c) 2009 Samsung Eletronics
+>> + *
+>> + * Author: Kim Kyuwon <q1.kim@samsung.com>
+>> + *
+>> + * This program is free software; you can redistribute it and/or modify
+>> + * it under the terms of the GNU General Public License version 2 as
+>> + * published by the Free Software Foundation.
+>> + *
+>> + */
+>> +
+>> +#ifndef _WAKE_H_
+>> +#define _WAKE_H_
+>> +
+>> +struct gpio_wake {
+>> +     unsigned int    gpio;
+>> +     unsigned long   irqflag;
+>> +     const char      *name;
+>> +     int             request;
+>> +};
+>> +
+>> +struct omap_wake_platform_data{
+>> +     struct gpio_wake        *qpio_wakes;
+>> +     int                     gpio_wake_num;
+>> +};
+>> +
+>> +#endif /* _WAKE_H_ */
+>> +
+>> --
+>> 1.5.2.5
+>>
+>>
+>> --
+>> Q1
+>
+> Kevin
+>
+
+
+
+-- 
+Kim Kyuwon
