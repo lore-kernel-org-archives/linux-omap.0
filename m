@@ -1,34 +1,82 @@
-From: Mark Brown <broonie@sirena.org.uk>
-Subject: Re: [patch 2.6.29-rc8 regulator-next] regulator: init fixes (v4)
-Date: Thu, 19 Mar 2009 19:27:11 +0000
-Message-ID: <20090319192711.GC8966@sirena.org.uk>
-References: <200903111743.34708.david-b@pacbell.net> <200903181225.11444.david-b@pacbell.net> <20090318203317.GA6299@sirena.org.uk> <200903181402.14384.david-b@pacbell.net>
+From: "Guzman Lugo, Fernando" <x0095840@ti.com>
+Subject: RE: [PATCH B 3/3] tidspbridge: decreate timeout to a saner value
+Date: Thu, 19 Mar 2009 15:42:14 -0500
+Message-ID: <496565EC904933469F292DDA3F1663E60287D6286E@dlee06.ent.ti.com>
+References: <1237339605-20697-1-git-send-email-felipe.contreras@gmail.com>
+ <1237339605-20697-2-git-send-email-felipe.contreras@gmail.com>
+ <1237339605-20697-3-git-send-email-felipe.contreras@gmail.com>
+ <1237339605-20697-4-git-send-email-felipe.contreras@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from cassiel.sirena.org.uk ([80.68.93.111]:39280 "EHLO
-	cassiel.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752182AbZCST1T (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 19 Mar 2009 15:27:19 -0400
-Content-Disposition: inline
-In-Reply-To: <200903181402.14384.david-b@pacbell.net>
+Received: from comal.ext.ti.com ([198.47.26.152]:49025 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1761434AbZCSUma convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 19 Mar 2009 16:42:30 -0400
+In-Reply-To: <1237339605-20697-4-git-send-email-felipe.contreras@gmail.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: David Brownell <david-b@pacbell.net>
-Cc: Liam Girdwood <lrg@slimlogic.co.uk>, lkml <linux-kernel@vger.kernel.org>, OMAP <linux-omap@vger.kernel.org>
+To: Felipe Contreras <felipe.contreras@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Cc: "Kanigeri, Hari" <h-kanigeri2@ti.com>, Hiroshi DOYU <hiroshi.doyu@nokia.com>, Ameya Palande <ameya.palande@nokia.com>, Felipe Contreras <felipe.contreras@nokia.com>
 
-On Wed, Mar 18, 2009 at 02:02:14PM -0700, David Brownell wrote:
 
-> Huh?  $SUBJECT patch hasn't merged.  How could you
-> have backed it out??
 
-Sorry - another patch introducing a version of the same issue.  Your
-patch:
+Hi Felipe,
 
-http://git.kernel.org/?p=linux/kernel/git/lrg/voltage-2.6.git;a=commit;h=67130ef073299cc7299d3ffa344122959e97753c
+	I am seeing with this patch because of the timeout:
 
-bumped the refcount for boot_on regulators.  This patch:
+DSP device detected !!
+DSPProcessor_Attach succeeded.
+dspbridge: timed out waiting for mailbox
+dspbridge: timed out waiting for mailbox
+dspbridge: timed out waiting for mailbox
+dspbridge: timed out waiting for mailbox
+dspbridge: timed out waiting for mailbox
+dspbridge: timed out waiting for mailbox
+dspbridge: timed out waiting for mailbox
+dspbridge: timed out waiting for mailbox
+dspbridge: timed out waiting for mailbox
+dspbridge: timed out waiting for mailbox
+dspbridge: timed out waiting for mailbox
+...
 
-http://git.kernel.org/?p=linux/kernel/git/lrg/voltage-2.6.git;a=commit;h=504e7d7e42fb3a58809946770ff5e07cc9d52dbf
+Did you see any issue when you change to 1ms? Maybe we can use a bigger timeout.
 
-backs out that change only.  This was my bad on the review.
+Please let me know your comments.
+
+Regards,
+Fernando.
+
+-----Original Message-----
+From: Felipe Contreras [mailto:felipe.contreras@gmail.com] 
+Sent: Tuesday, March 17, 2009 7:27 PM
+To: linux-omap@vger.kernel.org
+Cc: Kanigeri, Hari; Hiroshi DOYU; Ameya Palande; Guzman Lugo, Fernando; Felipe Contreras
+Subject: [PATCH B 3/3] tidspbridge: decreate timeout to a saner value
+
+From: Felipe Contreras <felipe.contreras@nokia.com>
+
+Signed-off-by: Felipe Contreras <felipe.contreras@nokia.com>
+---
+ drivers/dsp/bridge/wmd/tiomap_sm.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
+
+diff --git a/drivers/dsp/bridge/wmd/tiomap_sm.c b/drivers/dsp/bridge/wmd/tiomap_sm.c
+index 1b31162..535dc13 100644
+--- a/drivers/dsp/bridge/wmd/tiomap_sm.c
++++ b/drivers/dsp/bridge/wmd/tiomap_sm.c
+@@ -144,7 +144,7 @@ DSP_STATUS CHNLSM_InterruptDSP2(struct WMD_DEV_CONTEXT *pDevContext,
+ 
+ 		pDevContext->dwBrdState = BRD_RUNNING;
+ 	}
+-	timeout = jiffies + msecs_to_jiffies(10);
++	timeout = jiffies + msecs_to_jiffies(1);
+ 	while (fifo_full((void __iomem *) resources.dwMboxBase, 0)) {
+ 		if (time_after(jiffies, timeout)) {
+ 			printk(KERN_ERR "dspbridge: timed out waiting for mailbox\n");
+-- 
+1.6.2.1.287.g9a8be
+
+
