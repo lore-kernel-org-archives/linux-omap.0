@@ -1,73 +1,47 @@
-From: "Nayak, Rajendra" <rnayak@ti.com>
-Subject: RE: [PATCH 00/05] OMAP3: SR: Fixes in Smartreflex driver
-Date: Thu, 19 Mar 2009 15:27:24 +0530
-Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB02FAF6E934@dbde02.ent.ti.com>
-References: <8763i6pzfk.fsf@deeprootsystems.com>
+From: Jarkko Nikula <jarkko.nikula@nokia.com>
+Subject: Re: [PATCH 3/7] ARM: OMAP: Add command line option for I2C bus
+ speed
+Date: Thu, 19 Mar 2009 13:22:20 +0200
+Message-ID: <20090319132220.bffc5cee.jarkko.nikula@nokia.com>
+References: <20090304214540.21101.72079.stgit@localhost>
+	<20090304215105.21101.88365.stgit@localhost>
+	<20090305162043.GY6784@atomide.com>
+	<20090306091304.7d2d8ecd.jarkko.nikula@nokia.com>
+	<20090306161349.GC32353@atomide.com>
+	<20090318193045.GD30132@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:56244 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750945AbZCSJ5g convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 19 Mar 2009 05:57:36 -0400
-In-Reply-To: <8763i6pzfk.fsf@deeprootsystems.com>
-Content-Language: en-US
+Received: from smtp.nokia.com ([192.100.122.233]:62555 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752165AbZCSLWW (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 19 Mar 2009 07:22:22 -0400
+In-Reply-To: <20090318193045.GD30132@n2100.arm.linux.org.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@deeprootsystems.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: ext Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: Tony Lindgren <tony@atomide.com>, "linux-arm-kernel@lists.arm.linux.org.uk" <linux-arm-kernel@lists.arm.linux.org.uk>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-> -----Original Message-----
-> From: Kevin Hilman [mailto:khilman@deeprootsystems.com] 
-> Sent: Wednesday, March 18, 2009 9:59 PM
-> To: Nayak, Rajendra
-> Cc: linux-omap@vger.kernel.org
-> Subject: Re: [PATCH 00/05] OMAP3: SR: Fixes in Smartreflex driver
-> 
-> "Nayak, Rajendra" <rnayak@ti.com> writes:
-> 
-> > Hi,
-> >
-> > This series fixes a set of defects/issues in Smartreflex 
-> driver. SR autocompensation is now
-> > functional and is validated with these patches on a ES3.1 
-> based SDP with the
-> > N values in Efuse.
-> > Patches apply and are validated on the latest pm branch (2.6.28).
-> >
-> 
-> Hi Rajendra,
-> 
-> Thanks for this series of SR fixes.  I send a couple very minor
-> comments to a couple of the patches.  Also, this series does not apply
-> cleanly to pm-2.6.28, I'm not sure why.  Applying manually with
-> 'patch' allows them to apply with "fuzz" suggesting that they were not
-> generated against the current tree.
+On Wed, 18 Mar 2009 20:30:45 +0100
+ext Russell King - ARM Linux <linux@arm.linux.org.uk> wrote:
 
-I usually pull from kernel.org. The latest commit on pm branch that's pulled
-from it shows me this.. 
-
-commit 4f422d583e2e233c19eb20754b8cfad6ed9e460a
-Author: Nayak, Rajendra <rnayak@ti.com>
-Date:   Fri Feb 13 11:30:57 2009 +0530
-
-    OMAP3: PM: Update voltage levels for OPP1/2 on VDD1/2
-
-..which does look quite old. But so does gitweb.
-Is there some delta between kernel.org and your internal tree?
-
+> > > I had similar thought as Felipe that it looks more generic this
+> > > way. But don't know now immediately would multibuild will work?
+> > > Was that your concern? E.g.
+> > > 
+> > > __setup("i2c_bus=", arm_xxx_i2c_bus_setup);
+> > > __setup("i2c_bus=", omap_i2c_bus_setup);
+> > 
+> > Well is it generic enough to work for everybody? And if so, we
+> > should run it by the LKML and the linux-i2c lists.
 > 
-> Also, while you are in there cleaing up, could you add one more patch
-> which converts the printk(KERN_* ...) into pr_debug, pr_err, pr_info,
-> etc.
+> Any comments from the I2C list?
+>
+Unfortunately not. Are there some conference or why the list have been
+so idle recently?
 
-Yes, I can add a patch to clean that up.
+http://marc.info/?l=linux-i2c&r=1&b=200903&w=2
 
-> 
-> Thanks,
-> 
-> Kevin
-> 
-> 
-> 
+
+Jarkko
