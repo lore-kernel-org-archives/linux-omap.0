@@ -1,25 +1,24 @@
-From: Felipe Balbi <felipe.balbi@nokia.com>
+From: Tony Lindgren <tony@atomide.com>
 Subject: Re: [APPLIED] [PATCH omap-fixes v2] OMAP2/3: GPIO: do not attempt
 	to wake-enable
-Date: Thu, 19 Mar 2009 18:48:46 +0200
-Message-ID: <20090319164846.GA30655@scadufax.research.nokia.com>
+Date: Thu, 19 Mar 2009 10:16:33 -0700
+Message-ID: <20090319171632.GL29546@atomide.com>
 References: <notify-1237414046@atomide.com> <87skl9mpio.fsf@deeprootsystems.com> <20090319165334.GK29546@atomide.com>
-Reply-To: felipe.balbi@nokia.com
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:47282 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757018AbZCSRGG (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 19 Mar 2009 13:06:06 -0400
+Received: from mho-01-bos.mailhop.org ([63.208.196.178]:52234 "EHLO
+	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751283AbZCSRQa (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 19 Mar 2009 13:16:30 -0400
 Content-Disposition: inline
 In-Reply-To: <20090319165334.GK29546@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: ext Tony Lindgren <tony@atomide.com>
-Cc: Kevin Hilman <khilman@deeprootsystems.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Kevin Hilman <khilman@deeprootsystems.com>
+Cc: linux-omap@vger.kernel.org
 
-On Thu, Mar 19, 2009 at 05:53:35PM +0100, Tony Lindgren wrote:
+* Tony Lindgren <tony@atomide.com> [090319 09:54]:
 > * Kevin Hilman <khilman@deeprootsystems.com> [090319 09:44]:
 > > Tony Lindgren <tony@atomide.com> writes:
 > > 
@@ -41,10 +40,13 @@ On Thu, Mar 19, 2009 at 05:53:35PM +0100, Tony Lindgren wrote:
 > 
 > Heh looks like bad html parsing :) I'll revert and re-apply.
 
-why do you even try to parse the html ?? patchworks hold it in mbox
-format:
+Seems like a bug in pwclient..
 
-http://patchwork.kernel.org/patch/10719/mbox/
+$ pwclient get 10719
 
--- 
-balbi
+Shows the subject in the patch as:
+
+Subject: [omap-fixes,
+        v2] OMAP2/3: GPIO: do not attempt to wake-enable GPIO bank IRQ
+
+Tony
