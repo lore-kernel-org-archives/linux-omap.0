@@ -1,54 +1,86 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH B 3/3] tidspbridge: decreate timeout to a saner value
-Date: Fri, 20 Mar 2009 08:28:55 -0700
-Message-ID: <20090320152854.GP29546@atomide.com>
-References: <94a0d4530903200317h403210f2u622b837be1e5d9a8@mail.gmail.com> <EAF47CD23C76F840A9E7FCE10091EFAB02A925775D@dbde02.ent.ti.com> <94a0d4530903200325s2fd43525ub4d9e6cabb8fbe00@mail.gmail.com>
+From: Frans Meulenbroeks <fransmeulenbroeks@gmail.com>
+Subject: strange usb errors
+Date: Fri, 20 Mar 2009 19:09:34 +0100
+Message-ID: <ac9c93b10903201109x79589487w13a74b2901d4f067@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-bos.mailhop.org ([63.208.196.178]:64598 "EHLO
-	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754731AbZCTP2y (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 20 Mar 2009 11:28:54 -0400
-Content-Disposition: inline
-In-Reply-To: <94a0d4530903200325s2fd43525ub4d9e6cabb8fbe00@mail.gmail.com>
+Received: from mail-bw0-f169.google.com ([209.85.218.169]:55430 "EHLO
+	mail-bw0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757371AbZCTSJh (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 20 Mar 2009 14:09:37 -0400
+Received: by bwz17 with SMTP id 17so992904bwz.37
+        for <linux-omap@vger.kernel.org>; Fri, 20 Mar 2009 11:09:34 -0700 (PDT)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Contreras <felipe.contreras@gmail.com>
-Cc: "Gupta, Ramesh" <grgupta@ti.com>, Hiroshi DOYU <Hiroshi.DOYU@nokia.com>, "Kanigeri, Hari" <h-kanigeri2@ti.com>, "Guzman Lugo, Fernando" <x0095840@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "ameya.palande@nokia.com" <ameya.palande@nokia.com>, "Varide, Nischal" <nischal.varide@ti.com>
+To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "beagleboard@googlegroups.com" <beagleboard@googlegroups.com>
 
-* Felipe Contreras <felipe.contreras@gmail.com> [090320 03:37]:
-> On Fri, Mar 20, 2009 at 12:22 PM, Gupta, Ramesh <grgupta@ti.com> wrote:
-> > Felipe,
-> >
-> >
-> >> -----Original Message-----
-> >> From: Felipe Contreras [mailto:felipe.contreras@gmail.com]
-> >> Sent: Friday, March 20, 2009 3:48 PM
-> >> To: Hiroshi DOYU
-> >> Cc: Gupta, Ramesh; Kanigeri, Hari; Guzman Lugo, Fernando;
-> >> linux-omap@vger.kernel.org; ameya.palande@nokia.com
-> >> Subject: Re: [PATCH B 3/3] tidspbridge: decreate timeout to a
-> >> saner value
-> >>
-> >> On Fri, Mar 20, 2009 at 9:36 AM, Hiroshi DOYU
-> >> <Hiroshi.DOYU@nokia.com> wrote:
-> >> > From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
-> >> > Migrating to the existing mailbox driver("plat-omap/mailbox.c") is
-> >> > also another option to support multiple OMAP architectures
-> >> at the same
-> >> > time. That mailbox driver has already had a message queuing feature
-> >> > inside and it's buildable on OMAP3.
-> >>
-> >> Yeap, I have it in my to-do list, so if somebody doesn't beat
-> >> me to it I play with that.
-> >
-> > We already started looking into this :), made some progress,
-> > will provide more updates in a day or two.
-> 
-> Sweet! :)
+Hi,
 
-Good to hear. For the common features, we need to have code that
-can be shared among all the DSP implementations.
+I have a few weird USB related errors.
 
-Tony
+Hardware: beagleboard rev C2.
+OS: 2.6.28 (angstrom, r15 version)
+
+If I connect my pvrusb2 controller directly to the usb host port the
+device works as expected.
+
+However if I connect the device through a (powered) usb hub, the
+device does not work.
+dmesg says:
+
+usb 1-2.2: new high speed USB device using ehci-omap and address 5
+usb 1-2.2: configuration #1 chosen from 1 choice
+usb 1-2.2: firmware: requesting v4l-pvrusb2-29xxx-01.fw
+pvrusb2: Device microcontroller firmware (re)loaded; it should now
+reset and reconnect.
+
+but it does not reconnect.
+I would not expect a usb hub to have such an effect. Note that the hub
+is working and that devices like an ethernet dongle and a bluetooth
+dongle work like a charm with the hub.
+
+I also saw a fw load problem with the hardware (same system).
+At that point dmesg said:
+
+usb 1-2.2: new high speed USB device using ehci-omap and address 4
+usb 1-2.2: configuration #1 chosen from 1 choice
+Linux video capture interface: v2.00
+usbcore: registered new interface driver pvrusb2
+pvrusb2: V4L in-tree version:Hauppauge WinTV-PVR-USB2 MPEG2 Encoder/Tuner
+pvrusb2: Debug mask is 31 (0x1f)
+usb 1-2.2: firmware: requesting v4l-pvrusb2-29xxx-01.fw
+pvrusb2: ***WARNING*** Device fx2 controller firmware seems to be missing.
+pvrusb2: Did you install the pvrusb2 firmware files in their proper location?
+pvrusb2: request_firmware unable to locate fx2 controller file
+v4l-pvrusb2-29xxx-01.fw
+pvrusb2: Failure uploading firmware1
+pvrusb2: Device initialization was not successful.
+pvrusb2: Giving up since device microcontroller firmware appears to be missing.
+
+If I then unplug and replug I get the first message (about reset and reconnect).
+
+
+The other problem I have is with my wireless zd1211 based wifi dongle.
+If I connect it I get:
+
+usb 1-2.2: new high speed USB device using ehci-omap and address 6
+usb 1-2.2: configuration #1 chosen from 1 choice
+usb 1-2.2: reset high speed USB device using ehci-omap and address 6
+phy0: Selected rate control algorithm 'pid'
+zd1211rw 1-2.2:1.0: phy0
+usb 1-2.2: firmware: requesting zd1211/zd1211_ub
+usb 1-2.2: firmware: requesting zd1211/zd1211_uphr
+usb 1-2.2: Could not load firmware file zd1211/zd1211_uphr. Error number -2
+zd1211rw 1-2.2:1.0: couldn't load firmware. Error number -2
+
+Whether the dongle is directly connected or through a hub does not
+make a dfifference
+
+However the firmware is there and the very same firmware works under
+opensuse and used to work under 2.6.27
+
+Anyone an idea ?
+
+Frans
