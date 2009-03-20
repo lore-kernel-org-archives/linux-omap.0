@@ -1,51 +1,45 @@
-From: "Nayak, Rajendra" <rnayak@ti.com>
-Subject: [PATCH 03/03] OMAP3 clock: Fix locking in notifier register
-Date: Fri, 20 Mar 2009 19:20:58 +0530
-Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB02FAF6EF3A@dbde02.ent.ti.com>
+From: Ashwin Bihari <abihari@gmail.com>
+Subject: Re: mmc0 detection timing at kernel startup, linux-omap-2.6.27-omap1
+Date: Fri, 20 Mar 2009 09:53:51 -0400
+Message-ID: <1f11a5490903200653y4c53d047j9f54f6eec0aef64d@mail.gmail.com>
+References: <dbdb2ea60903200606y51d3fba0ia5c116a3c452c21a@mail.gmail.com>
+	 <1f11a5490903200634y57f91639r3aad815aa2ce5e92@mail.gmail.com>
+	 <C8CB7D0E-5690-4368-B2BB-60B09B37575D@student.utwente.nl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:34694 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753949AbZCTNvJ convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 20 Mar 2009 09:51:09 -0400
-Received: from dbdp20.itg.ti.com ([172.24.170.38])
-	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id n2KDp0Yi018081
-	for <linux-omap@vger.kernel.org>; Fri, 20 Mar 2009 08:51:07 -0500
-Received: from dbde71.ent.ti.com (localhost [127.0.0.1])
-	by dbdp20.itg.ti.com (8.13.8/8.13.8) with ESMTP id n2KDp0tb006897
-	for <linux-omap@vger.kernel.org>; Fri, 20 Mar 2009 19:21:00 +0530 (IST)
-Content-Language: en-US
+Received: from yx-out-2324.google.com ([74.125.44.28]:52826 "EHLO
+	yx-out-2324.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753537AbZCTNxy (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 20 Mar 2009 09:53:54 -0400
+Received: by yx-out-2324.google.com with SMTP id 31so985472yxl.1
+        for <linux-omap@vger.kernel.org>; Fri, 20 Mar 2009 06:53:52 -0700 (PDT)
+In-Reply-To: <C8CB7D0E-5690-4368-B2BB-60B09B37575D@student.utwente.nl>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
-Cc: "Nayak, Rajendra" <rnayak@ti.com>
+To: Koen Kooi <k.kooi@student.utwente.nl>
+Cc: twebb <taliaferro62@gmail.com>, "linux-omap@vger.kernel.org Mailing List" <linux-omap@vger.kernel.org>
 
-From: Rajendra Nayak <rnayak@ti.com>
+On Fri, Mar 20, 2009 at 9:44 AM, Koen Kooi <k.kooi@student.utwente.nl> wrote:
+>
+> Op 20 mrt 2009, om 14:34 heeft Ashwin Bihari het volgende geschreven:
+>
+>> You need to add the Kernel option "rootdelay=1" to basically delay the
+>> Kernel for a moment while attempting to using the SDcard as the RFS
+>> mount point.
+>
+> Since kernel 2.6.24 you can use 'rootwait', which will wait till it becomes
+> available so you don't need to keep futzing the value for different SD
+> cards.
+>
+> regards,
+>
+> Koen
+>
 
-This patch avoids spinlocks being held when calling
-blocking_notifier_chain_register().
+Koen,
 
-Signed-off-by: Rajendra Nayak <rnayak@ti.com>
-Signed-off-by: Tero Kristo <tero.kristo@nokia.com>
----
- arch/arm/plat-omap/clock.c |    4 ++++
- 1 files changed, 4 insertions(+)
+I wasn't aware of that option, it definitely beats futzing with wait delays!
 
-Index: linux-omap-pm/arch/arm/plat-omap/clock.c
-===================================================================
---- linux-omap-pm.orig/arch/arm/plat-omap/clock.c	2009-03-20 17:11:54.000000000 +0530
-+++ linux-omap-pm/arch/arm/plat-omap/clock.c	2009-03-20 19:14:35.387298482 +0530
-@@ -673,7 +673,11 @@ int clk_notifier_register(struct clk *cl
- 		kfree(cn_new); /* didn't need it after all */
- 	}
- 
-+	spin_unlock_irqrestore(&clockfw_lock, flags);
-+
- 	r = blocking_notifier_chain_register(&cn->notifier_head, nb);
-+
-+	spin_lock_irqsave(&clockfw_lock, flags);
- 	if (!r) {
- 		clkp = clk;
- 		do {
+-- Ashwin
