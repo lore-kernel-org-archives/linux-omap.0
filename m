@@ -1,85 +1,101 @@
-From: "Shah, Hardik" <hardik.shah@ti.com>
-Subject: [PATCH 0/3] V4L2 driver for OMAP2/3 with new CIDs.
-Date: Fri, 20 Mar 2009 10:48:44 +0530
-Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB02FAF6EC42@dbde02.ent.ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-media-owner@vger.kernel.org>
-Content-Language: en-US
-Sender: linux-media-owner@vger.kernel.org
-To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+From: Hardik Shah <hardik.shah@ti.com>
+Subject: [PATCH 1/3] Documentation for new V4L2 CIDs added.
+Date: Fri, 20 Mar 2009 10:49:49 +0530
+Message-ID: <1237526389-13835-1-git-send-email-hardik.shah@ti.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:55447 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752115AbZCTFT7 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 20 Mar 2009 01:19:59 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-media@vger.kernel.org
+Cc: linux-omap@vger.kernel.org, Hardik Shah <hardik.shah@ti.com>, Brijesh Jadav <brijesh.j@ti.com>, Vaibhav Hiremath <hvaibhav@ti.com>
 
-Hi All,
-I will be posting series of three patches for the V4L2 driver on the OM=
-AP2/3 DSS.
+1. Updated for V4L2_CID_BG_COLOR
+2. Updated for V4L2_CID_ROTATION
+Both of the above are discussed in length with community
+3. Updated for new flags and capability field added
+to v4l2_frame buffer structure.
 
-Patch 1 -
-This is the second revision of the patch. =20
-Documentation added for the following new CIDs and bit fields added in =
-V4L2 framework.
+Signed-off-by: Brijesh Jadav <brijesh.j@ti.com>
+Signed-off-by: Hardik Shah <hardik.shah@ti.com>
+Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
+---
+ v4l2-spec/controls.sgml      |   19 ++++++++++++++++++-
+ v4l2-spec/vidioc-g-fbuf.sgml |   19 +++++++++++++++++++
+ 2 files changed, 37 insertions(+), 1 deletions(-)
 
-V4L2_CID_BG_COLOR: Added new CID for setting of the back ground color o=
-n the output device.
-V4L2_CID_ROTATION: Added new CID for setting up of the rotation on the =
-device.
-Both of the above ioctls are discussed in detail. =20
-
-V4L2_FBUF_FLAG_SRC_CHROMAKEY: Added the flags bit field to the flags fi=
-eld of the v4l2_framebuffer structure for supporting the source chroma =
-keying.  It's exactly opposite of the chroma keying supported with the =
-flag V4L2_FBUF_FLAG_CHROMAKEY.
-
-V4L2_FBUF_CAP_SRC_CHROMAKEY:  Added the capability bit field for the ca=
-pability field of the v4l2_framebuffer structure.
-
-Documentation change related to the new bit field for the source chroma=
- keying is new from the previous version.
-
-Patch 2 -=20
-Added New Control IDs for OMAP class of Devices as discussed above.  Th=
-is is the third revision of the patch of adding the new control IDs and=
- bit fields.
-
-V4L2_FBUF_CAP_SRC_CHROMAKEY and V4L2_FBUF_FLAG_SRC_CHROMAKEY are newly =
-added compared to previous revision of patch.
-
-New Ioctl for programming the color space conversion matrix is dropped =
-from this patch as the accompanying driver with this patch is not still=
- having implementation for the same.  Related documentation is also rem=
-oved.=20
-
-I will submit a separate patch for that with the necessary changes in d=
-river to support the programming of the color space conversion. Some ch=
-anges are required in DSS2 library also for doing the same.
-
-Patch 3 -
-This is a review patch since the DSS2 library is still to be accepted i=
-n community=20
-This is the third revision of the patch.=20
-This patch contains the V4L2 driver on the OMAP3 DSS2 using all of the =
-above newly implemented CIDS and bit fields.  Following are the changes=
- in the driver compared to the previous version.
-
-1.  Added the chroma keying support.
-2.  Added alpha blending support.
-3.  Minor community comment fixed.
-4.  Ported to work with Tomi's latest DSS2 library with minor modificat=
-ion in DSS2 library.  Path to Tomi's DSS2 library is http://www.bat.org=
-/~tomba/git/linux-omap-dss.git/ commit id bc6dc4c7fabb8ba3bfe637a6c5dc2=
-71595a1bef6
-
-All the comments and inputs are welcomed.
-
-Thanks and Regards
-Hardik Shah
-
-=A0
-
+diff --git a/v4l2-spec/controls.sgml b/v4l2-spec/controls.sgml
+index 477a970..79e2c28 100644
+--- a/v4l2-spec/controls.sgml
++++ b/v4l2-spec/controls.sgml
+@@ -281,10 +281,27 @@ minimum value disables backlight compensation.</entry>
+ <constant>V4L2_COLORFX_SEPIA</constant> (2).</entry>
+ 	  </row>
+ 	  <row>
++ 	    <entry><constant>V4L2_CID_ROTATION</constant></entry>
++ 	    <entry>integer</entry>
++ 	    <entry>Rotates the image by specified angle. Common angles are 90, 270,
++and 180. Rotating the image to 90 and 270 will reverse the height and width of
++the display window.  Its is necessary to set the new height and width of the picture
++using S_FMT ioctl see <xref linkend="vidioc-g-fmt"> according to the rotation angle selected</entry>
++ 	  </row>
++ 	  <row>
++ 	    <entry><constant>V4L2_CID_BG_COLOR</constant></entry>
++ 	    <entry>integer</entry>
++ 	    <entry>Sets the background color on the current output device.
++Background color needs to be specified in the RGB24 format.  The supplied 32
++bit value is intepreted as Bits 0-7 Red color information, Bits 8-15 Green color
++information, Bits 16-23 Blue color information and Bits 24-31 must be
++zero.</entry>
++	  </row>
++	  <row>
+ 	    <entry><constant>V4L2_CID_LASTP1</constant></entry>
+ 	    <entry></entry>
+ 	    <entry>End of the predefined control IDs (currently
+-<constant>V4L2_CID_COLORFX</constant> + 1).</entry>
++<constant>V4L2_CID_BG_COLOR</constant> + 1).</entry>
+ 	  </row>
+ 	  <row>
+ 	    <entry><constant>V4L2_CID_PRIVATE_BASE</constant></entry>
+diff --git a/v4l2-spec/vidioc-g-fbuf.sgml b/v4l2-spec/vidioc-g-fbuf.sgml
+index 6781b53..27d1e29 100644
+--- a/v4l2-spec/vidioc-g-fbuf.sgml
++++ b/v4l2-spec/vidioc-g-fbuf.sgml
+@@ -336,6 +336,13 @@ alpha value. Alpha blending makes no sense for destructive overlays.</entry>
+ inverted alpha channel of the framebuffer or VGA signal. Alpha
+ blending makes no sense for destructive overlays.</entry>
+ 	  </row>
++	  <row>
++	    <entry><constant>V4L2_FBUF_CAP_SRC_CHROMAKEY</constant></entry>
++	    <entry>0x0080</entry>
++	    <entry>The device supports source chorma keying. Framebuffer
++images will be replaced by the video images.  Exactly
++opposite of <constant>V4L2_FBUF_CAP_CHROMAKEY</constant></entry>
++	  </row>
+ 	</tbody>
+       </tgroup>
+     </table>
+@@ -411,6 +418,18 @@ images, but with an inverted alpha value. The blend function is:
+ output = framebuffer pixel * (1 - alpha) + video pixel * alpha. The
+ actual alpha depth depends on the framebuffer pixel format.</entry>
+ 	  </row>
++	  <row>
++	    <entry><constant>V4L2_FBUF_FLAG_SRC_CHROMAKEY</constant></entry>
++	    <entry>0x0040</entry>
++	    <entry>Use chroma-keying. The chroma-key color is
++determined by the <structfield>chromakey</structfield> field of
++&v4l2-window; and negotiated with the &VIDIOC-S-FMT; ioctl, see <xref
++linkend="overlay"> and <xref linkend="osd">.
++Since any one of the chorma keying can be active at a time as both
++of them are exactly opposite same <structfield>chromakey</structfield>
++field of &v4l2-window; can be used to set the chroma key for source
++keying also.</entry>
++	  </row>
+ 	</tbody>
+       </tgroup>
+     </table>
 --
-To unsubscribe from this list: send the line "unsubscribe linux-media" =
-in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+1.5.6
+
