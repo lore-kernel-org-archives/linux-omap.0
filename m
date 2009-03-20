@@ -1,71 +1,108 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: PM branch rebased to 2.6.29
-Date: Fri, 20 Mar 2009 14:27:03 -0700
-Message-ID: <20090320212703.GY29546@atomide.com>
-References: <87bprz9zju.fsf@deeprootsystems.com> <200903191520.55565.david-b@pacbell.net> <20090320185927.GR29546@atomide.com> <200903201246.51202.david-b@pacbell.net> <20090320195702.GW29546@atomide.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH] OMAP3 clock: Access only available clock bits
+Date: Fri, 20 Mar 2009 15:48:02 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.0903201523220.4676@utopia.booyaka.com>
+References: <4d34a0a70903192015j4ea44b1fn4f7bb045da32d218@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-bos.mailhop.org ([63.208.196.178]:54501 "EHLO
-	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752490AbZCTV1A (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 20 Mar 2009 17:27:00 -0400
-Content-Disposition: inline
-In-Reply-To: <20090320195702.GW29546@atomide.com>
+Received: from utopia.booyaka.com ([72.9.107.138]:54156 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752402AbZCTVsF (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 20 Mar 2009 17:48:05 -0400
+In-Reply-To: <4d34a0a70903192015j4ea44b1fn4f7bb045da32d218@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: David Brownell <david-b@pacbell.net>
-Cc: Kevin Hilman <khilman@deeprootsystems.com>, linux-omap@vger.kernel.org
+To: Kim Kyuwon <chammoru@gmail.com>
+Cc: OMAP <linux-omap@vger.kernel.org>, Kevin Hilman <khilman@deeprootsystems.com>, kyungmin.park@samsung.com, Tony Lindgren <tony@atomide.com>, bhmin@samsung.com
 
-* Tony Lindgren <tony@atomide.com> [090320 12:56]:
-> * David Brownell <david-b@pacbell.net> [090320 12:46]:
-> > On Friday 20 March 2009, Tony Lindgren wrote:
-> > > * David Brownell <david-b@pacbell.net> [090319 15:27]:
-> > > > 
-> > > >  * Least hassle ... I think all these should merge to the
-> > > >    linux-omap tree in any case (and thence linux-pm):
-> > > > 
-> > > >     http://marc.info/?l=linux-omap&m=123699264117846&w=2
-> > > >     http://marc.info/?l=linux-omap&m=123699340818395&w=2
-> > > >     http://marc.info/?l=linux-omap&m=123705919713239&w=2
-> > > 
-> > > Pushed these. That way we'll end up with a working
-> > > 2.6.29-omap1 :)
-> > 
-> > I approve that message.  ;)
-> > 
-> > 
-> > > Dave, got a version of the third patch above against the
-> > > mainline kernel? That could be added to the omap3-boards
-> > > queue for the upcoming merge window.
-> > 
-> > That patch was a bit messy ... combined the VPLL2 bits,
-> > and the twl4030-power bits.  The former can go to mainline,
-> > but only after the regulator framework updates for VPLL2;
-> > I'll make such a patch.  The latter needs twl4030-power to
-> > get to mainline ...
+Hello Kyuwon,
+
+On Fri, 20 Mar 2009, Kim Kyuwon wrote:
+
+> I found a problem on PM Branch with OMAP3430 ES3.1 Board when enabling
+> OMAP_RESET_CLOCKS feature.
+> In clk_disable_unsed() function, as soon as sad2d_ick is disabled,
+> prcm interrupt is generated and its handler can't exit loop at next
+> statement!
 > 
-> OK & thanks. 
->  
-> > > > The second fix -- in some flavor -- is IMO still needed,
-> > > > since the first fix is just avoiding regulator framework
-> > > > bugs.  
-> > > 
-> > > To me it sounds like the regulator framework should eventually
-> > > handle the regulators left on by the bootloader. Just let me
-> > > know if some other patches are needed to l-o tree meanwhile.
-> > 
-> > I may just prepare an mmc-twl4030 patch with ugly workarounds,
-> > since I'm getting the strong feeling that it'll take forever
-> > to get the regulator framework fixed in that area.
-> > 
-> > Meanwhile, I suggest merging the updated version of the Overo
-> > patch, as sent by Steve.
+> while (prm_read_mod_reg(OCP_MOD, OMAP2_PRM_IRQSTATUS_MPU_OFFSET));
+
+We encountered a similar problem a few months ago.  The problem is 
+probably the pad mux settings on the d2d_mstdby and d2d_swakeup pads.  
+These are usually configured by the bootloader.  My recollection is that 
+they should be pulled up, but I don't recall for sure.  Yes, we should 
+have a patch in the PM branch to at least detect whether these pads are 
+configured incorrectly...
+
+> I also found that sad2d_ick is available only OMAP3430 ES1. I fixed
+> this problem with below patch.
+
+Thanks for your patch, but, sad2d_ick is indeed present on ES2+. TI 
+removed the documenation from the main TRM and moved it to the "OMAP34xx 
+Stacked Mode Addendum" (SWCU048).  Ill-advised, in my opinion!
+
+
+- Paul
+
 > 
-> That should be now applied, looks like the MMC is still not
-> working though.
+> Your better solutions or comments appreciated.
+> 
+> Sincerely,
+> Kyuwon
+> --
+> This patch prevents setting or clearing reserved bits of 'Clock Enable
+> Register', in the clk_disable_unused() function. Especially, this
+> patch prevents using the sad2d_ick which doesn't exist in OMAP3430
+> ES2+.
+> 
+> Signed-off-by: Kim Kyuwon <q1.kim@samsung.com>
+> ---
+>  arch/arm/mach-omap2/clock34xx.h |    2 +-
+>  arch/arm/plat-omap/clock.c      |   10 ++++++++++
+>  2 files changed, 11 insertions(+), 1 deletions(-)
+> 
+> diff --git a/arch/arm/mach-omap2/clock34xx.h b/arch/arm/mach-omap2/clock34xx.h
+> index e0dd7f3..039f7dd 100644
+> --- a/arch/arm/mach-omap2/clock34xx.h
+> +++ b/arch/arm/mach-omap2/clock34xx.h
+> @@ -1279,7 +1279,7 @@ static struct clk sad2d_ick = {
+>  	.prcm_mod	= CORE_MOD,
+>  	.enable_reg	= CM_ICLKEN1,
+>  	.enable_bit	= OMAP3430_EN_SAD2D_SHIFT,
+> -	.flags		= CLOCK_IN_OMAP343X,
+> +	.flags		= CLOCK_IN_OMAP3430ES1,
+>  	.clkdm		= { .name = "d2d_clkdm" },
+>  	.recalc		= &followparent_recalc,
+>  };
+> diff --git a/arch/arm/plat-omap/clock.c b/arch/arm/plat-omap/clock.c
+> index 2eed047..b16c6c3 100644
+> --- a/arch/arm/plat-omap/clock.c
+> +++ b/arch/arm/plat-omap/clock.c
+> @@ -775,6 +775,16 @@ static int __init clk_disable_unused(void)
+>  		if (cpu_class_is_omap1() && ck->enable_reg == 0)
+>  			continue;
+> 
+> +		if (cpu_is_omap34xx()) {
+> +			if ((omap_rev() == OMAP3430_REV_ES1_0) &&
+> +					(ck->flags & CLOCK_IN_OMAP3430ES2))
+> +				continue;
+> +
+> +			/* In this case, board Rev. is greater then ES1 */
+> +			if (ck->flags & CLOCK_IN_OMAP3430ES1)
+> +				continue;
+> +		}
+> +
+>  		spin_lock_irqsave(&clockfw_lock, flags);
+>  		if (arch_clock->clk_disable_unused)
+>  			arch_clock->clk_disable_unused(ck);
+> -- 
+> 1.5.2.5
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
 
-Heh, user error.. I was missing CONFIG_REGULATOR in my .config.
-Works now.
 
-Tony
+- Paul
