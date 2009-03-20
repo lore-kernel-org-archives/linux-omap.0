@@ -1,73 +1,74 @@
-From: Kim Kyuwon <chammoru@gmail.com>
-Subject: [PATCH 2/2] OMAP3: PM: Invoke omap3_save_scratchpad_contents() only
-	once at boot time
-Date: Fri, 20 Mar 2009 17:09:50 +0900
-Message-ID: <4d34a0a70903200109j66153e9ej4f49b98a9a3d2c85@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+From: Koen Kooi <k.kooi@student.utwente.nl>
+Subject: Re: [PATCH 3/3] V4L2 Driver for OMAP3/3 DSS.
+Date: Fri, 20 Mar 2009 10:04:09 +0100
+Message-ID: <6EDD6EAA-E1DC-4F71-BB6E-01574AC2D968@student.utwente.nl>
+References: <1237526408-14249-1-git-send-email-hardik.shah@ti.com>
+Mime-Version: 1.0 (Apple Message framework v930.3)
+Content-Type: multipart/signed; protocol="application/pgp-signature"; micalg=pgp-sha1; boundary="Apple-Mail-1--612872052"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from rv-out-0506.google.com ([209.85.198.228]:50789 "EHLO
-	rv-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751711AbZCTIJw (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 20 Mar 2009 04:09:52 -0400
-Received: by rv-out-0506.google.com with SMTP id f9so975643rvb.1
-        for <linux-omap@vger.kernel.org>; Fri, 20 Mar 2009 01:09:50 -0700 (PDT)
+Received: from mx3.utsp.utwente.nl ([130.89.2.14]:33220 "EHLO mx.utwente.nl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755046AbZCTJFG (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 20 Mar 2009 05:05:06 -0400
+In-Reply-To: <1237526408-14249-1-git-send-email-hardik.shah@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: OMAP <linux-omap@vger.kernel.org>
-Cc: Kevin Hilman <khilman@deeprootsystems.com>, =?EUC-KR?B?udqw5rnO?= <kyungmin.park@samsung.com>
+To: Hardik Shah <hardik.shah@ti.com>
+Cc: linux-media@vger.kernel.org, linux-omap@vger.kernel.org, Brijesh Jadav <brijesh.j@ti.com>, Vaibhav Hiremath <hvaibhav@ti.com>
 
-If CONFIG_CPU_IDLE is y, omap3_save_scratchpad_contents() is called
-twice at boot time. This patch let it be invoked only once.
-
-Signed-off-by: Kim Kyuwon <q1.kim@samsung.com>
----
- arch/arm/mach-omap2/cpuidle34xx.c |    2 --
- arch/arm/mach-omap2/pm34xx.c      |    5 ++---
- 2 files changed, 2 insertions(+), 5 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/cpuidle34xx.c
-b/arch/arm/mach-omap2/cpuidle34xx.c
-index a5eba31..056fb5f 100644
---- a/arch/arm/mach-omap2/cpuidle34xx.c
-+++ b/arch/arm/mach-omap2/cpuidle34xx.c
-@@ -271,8 +271,6 @@ int omap3_idle_init(void)
- 	struct cpuidle_state *state;
- 	struct cpuidle_device *dev;
-
--	omap3_save_scratchpad_contents();
--
- 	mpu_pd = pwrdm_lookup("mpu_pwrdm");
- 	core_pd = pwrdm_lookup("core_pwrdm");
- 	per_pd = pwrdm_lookup("per_pwrdm");
-diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
-index ff9f28d..001baa9 100644
---- a/arch/arm/mach-omap2/pm34xx.c
-+++ b/arch/arm/mach-omap2/pm34xx.c
-@@ -967,6 +967,8 @@ int __init omap3_pm_init(void)
- #endif /* CONFIG_SUSPEND */
-
- 	pm_idle = omap3_pm_idle;
-+
-+	omap3_save_scratchpad_contents();
- 	omap3_idle_init();
-
- 	pwrdm_add_wkdep(neon_pwrdm, mpu_pwrdm);
-@@ -984,10 +986,7 @@ int __init omap3_pm_init(void)
- 		if (!omap3_secure_ram_storage)
- 			printk(KERN_ERR "Memory allocation failed when"
- 					"allocating for secure sram context\n");
--	}
--	omap3_save_scratchpad_contents();
-
--	if (omap_type() != OMAP2_DEVICE_TYPE_GP) {
- 		local_irq_disable();
- 		local_fiq_disable();
-
--- 
-1.5.2.5
+This is an OpenPGP/MIME signed message (RFC 2440 and 3156)
+--Apple-Mail-1--612872052
+Content-Type: text/plain; charset=US-ASCII; format=flowed
+Content-Transfer-Encoding: 7bit
 
 
--- 
-Kim Kyuwon
+Op 20 mrt 2009, om 06:20 heeft Hardik Shah het volgende geschreven:
+>
+> --- a/drivers/media/video/Kconfig
+> +++ b/drivers/media/video/Kconfig
+> @@ -711,6 +711,26 @@ config VIDEO_CAFE_CCIC
+> 	  CMOS camera controller.  This is the controller found on first-
+> 	  generation OLPC systems.
+>
+> +#config VIDEO_OMAP3
+> +#        tristate "OMAP 3 Camera support"
+> +#	select VIDEOBUF_GEN
+> +#	select VIDEOBUF_DMA_SG
+> +#	depends on VIDEO_V4L2 && ARCH_OMAP34XX
+> +#	---help---
+> +#	  Driver for an OMAP 3 camera controller.
+> +
+> +config VIDEO_OMAP3
+> +	bool "OMAP2/OMAP3 Camera and V4L2-DSS drivers"
+> +	select VIDEOBUF_GEN
+> +	select VIDEOBUF_DMA_SG
+> +	select OMAP2_DSS
+> +	depends on VIDEO_DEV && (ARCH_OMAP24XX || ARCH_OMAP34XX)
+> +	default y
+> +	---help---
+> +        V4L2 DSS and Camera driver support for OMAP2/3 based boards.
+
+
+Copy/paste error?
+
+regards,
+
+Koen
+
+--Apple-Mail-1--612872052
+content-type: application/pgp-signature; x-mac-type=70674453;
+	name=PGP.sig
+content-description: Dit deel van het bericht is digitaal ondertekend
+content-disposition: inline; filename=PGP.sig
+content-transfer-encoding: 7bit
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.5 (Darwin)
+
+iD8DBQFJw1wsMkyGM64RGpERAlwNAJoDzeCXNmE0Iw9F4YJgOP93oijB/QCbBW/u
+E052eL1WVVentwBVT1YhAKw=
+=VKTM
+-----END PGP SIGNATURE-----
+
+--Apple-Mail-1--612872052--
