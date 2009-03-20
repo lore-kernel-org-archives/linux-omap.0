@@ -1,47 +1,116 @@
 From: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: Re: Some possible missing v4l2_subdev IOCTLs.
-Date: Fri, 20 Mar 2009 08:19:17 +0100
-Message-ID: <200903200819.18011.hverkuil@xs4all.nl>
-References: <A24693684029E5489D1D202277BE89442E6B1E33@dlee02.ent.ti.com>
+Subject: Re: [PATCH 0/3] V4L2 driver for OMAP2/3 with new CIDs.
+Date: Fri, 20 Mar 2009 08:26:19 +0100
+Message-ID: <200903200826.19558.hverkuil@xs4all.nl>
+References: <5A47E75E594F054BAF48C5E4FC4B92AB02FAF6EC42@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-media-owner@vger.kernel.org>
-In-Reply-To: <A24693684029E5489D1D202277BE89442E6B1E33@dlee02.ent.ti.com>
+In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB02FAF6EC42@dbde02.ent.ti.com>
 Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
-To: "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>
-Cc: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>, "camera@ok.research.nokia.com" <camera@ok.research.nokia.com>, "Menon, Nishanth" <nm@ti.com>, "Lakhani, Amish" <amish@ti.com>, "Nagalla, Hari" <hnagalla@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+To: "Shah, Hardik" <hardik.shah@ti.com>
+Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Friday 20 March 2009 03:24:49 Aguirre Rodriguez, Sergio Alberto wrote:
-> Hi Hans,
->
-> I did a quick analysis of the subdev, and noticed that some video ioctls
-> for the subdevices aren't there...
->
-> [gs]_crop
-> [gs]_parm
-> enum_frameintervals
-> enum_framesizes
-> enum_fmt_cap
->
-> I noticed this because we currently use them for a "best sensor output"
-> selection before sending the image to the OMAP3 ISP.
->
-> Any particular reason why these aren't there?
+On Friday 20 March 2009 06:18:44 Shah, Hardik wrote:
+> Hi All,
+> I will be posting series of three patches for the V4L2 driver on the
+> OMAP2/3 DSS.
 
-Because no other i2c drivers needed them until now. I try to avoid adding 
-code that nobody is using. 
-
-Note that gs_parm was just added. And in video_ops there is already an 
-enum_fmt. Feel free to add crop and the enum_frame* ops. If you mail me a 
-patch, then I'll commit it.
+Thanks! I'll review this within the week.
 
 Regards,
 
 	Hans
 
--- 
+> Patch 1 -
+> This is the second revision of the patch.
+> Documentation added for the following new CIDs and bit fields added i=
+n
+> V4L2 framework.
+>
+> V4L2_CID_BG_COLOR: Added new CID for setting of the back ground color=
+ on
+> the output device. V4L2_CID_ROTATION: Added new CID for setting up of=
+ the
+> rotation on the device. Both of the above ioctls are discussed in det=
+ail.
+>
+> V4L2_FBUF_FLAG_SRC_CHROMAKEY: Added the flags bit field to the flags
+> field of the v4l2_framebuffer structure for supporting the source chr=
+oma
+> keying.  It's exactly opposite of the chroma keying supported with th=
+e
+> flag V4L2_FBUF_FLAG_CHROMAKEY.
+>
+> V4L2_FBUF_CAP_SRC_CHROMAKEY:  Added the capability bit field for the
+> capability field of the v4l2_framebuffer structure.
+>
+> Documentation change related to the new bit field for the source chro=
+ma
+> keying is new from the previous version.
+>
+> Patch 2 -
+> Added New Control IDs for OMAP class of Devices as discussed above.  =
+This
+> is the third revision of the patch of adding the new control IDs and =
+bit
+> fields.
+>
+> V4L2_FBUF_CAP_SRC_CHROMAKEY and V4L2_FBUF_FLAG_SRC_CHROMAKEY are newl=
+y
+> added compared to previous revision of patch.
+>
+> New Ioctl for programming the color space conversion matrix is droppe=
+d
+> from this patch as the accompanying driver with this patch is not sti=
+ll
+> having implementation for the same.  Related documentation is also
+> removed.
+>
+> I will submit a separate patch for that with the necessary changes in
+> driver to support the programming of the color space conversion. Some
+> changes are required in DSS2 library also for doing the same.
+>
+> Patch 3 -
+> This is a review patch since the DSS2 library is still to be accepted=
+ in
+> community This is the third revision of the patch.
+> This patch contains the V4L2 driver on the OMAP3 DSS2 using all of th=
+e
+> above newly implemented CIDS and bit fields.  Following are the chang=
+es
+> in the driver compared to the previous version.
+>
+> 1.  Added the chroma keying support.
+> 2.  Added alpha blending support.
+> 3.  Minor community comment fixed.
+> 4.  Ported to work with Tomi's latest DSS2 library with minor
+> modification in DSS2 library.  Path to Tomi's DSS2 library is
+> http://www.bat.org/~tomba/git/linux-omap-dss.git/ commit id
+> bc6dc4c7fabb8ba3bfe637a6c5dc271595a1bef6
+>
+> All the comments and inputs are welcomed.
+>
+> Thanks and Regards
+> Hardik Shah
+>
+> =A0
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media=
+" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+
+
+--=20
 Hans Verkuil - video4linux developer - sponsored by TANDBERG
+--
+To unsubscribe from this list: send the line "unsubscribe linux-media" =
+in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
