@@ -1,40 +1,67 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH] OMAP3 clock: Access only available clock bits
-Date: Fri, 20 Mar 2009 15:56:51 -0600 (MDT)
-Message-ID: <alpine.DEB.2.00.0903201556070.4676@utopia.booyaka.com>
-References: <4d34a0a70903192015j4ea44b1fn4f7bb045da32d218@mail.gmail.com> <alpine.DEB.2.00.0903201523220.4676@utopia.booyaka.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Things to do after 2.6.29 gets released
+Date: Fri, 20 Mar 2009 15:12:31 -0700
+Message-ID: <20090320221230.GA29546@atomide.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:44404 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751060AbZCTV4x (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 20 Mar 2009 17:56:53 -0400
-In-Reply-To: <alpine.DEB.2.00.0903201523220.4676@utopia.booyaka.com>
+Received: from mho-01-bos.mailhop.org ([63.208.196.178]:56907 "EHLO
+	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751435AbZCTWM1 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 20 Mar 2009 18:12:27 -0400
+Received: from c-67-160-239-110.hsd1.ca.comcast.net ([67.160.239.110] helo=localhost.localdomain)
+	by mho-01-bos.mailhop.org with esmtpa (Exim 4.68)
+	(envelope-from <tony@atomide.com>)
+	id 1Lkmwz-0004g9-7Z
+	for linux-omap@vger.kernel.org; Fri, 20 Mar 2009 22:12:25 +0000
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kim Kyuwon <chammoru@gmail.com>
-Cc: OMAP <linux-omap@vger.kernel.org>, Kevin Hilman <khilman@deeprootsystems.com>, kyungmin.park@samsung.com, Tony Lindgren <tony@atomide.com>, bhmin@samsung.com
+To: linux-omap@vger.kernel.org
 
-On Fri, 20 Mar 2009, Paul Walmsley wrote:
+Hi all,
 
-> On Fri, 20 Mar 2009, Kim Kyuwon wrote:
-> 
-> > I found a problem on PM Branch with OMAP3430 ES3.1 Board when enabling
-> > OMAP_RESET_CLOCKS feature.
-> > In clk_disable_unsed() function, as soon as sad2d_ick is disabled,
-> > prcm interrupt is generated and its handler can't exit loop at next
-> > statement!
-> > 
-> > while (prm_read_mod_reg(OCP_MOD, OMAP2_PRM_IRQSTATUS_MPU_OFFSET));
-> 
-> We encountered a similar problem a few months ago.  The problem is 
-> probably the pad mux settings on the d2d_mstdby and d2d_swakeup pads.  
-> These are usually configured by the bootloader.  My recollection is that 
-> they should be pulled up, but I don't recall for sure.
+As there are quite a few omap patches going upstream this coming
+merge window, here are some notes on where we should go after
+2.6.29 gets released.
 
-On second thought, I believe swakeup should be pulled down and mstdby 
-should be pulled up.
+The goal of course is still to get all the important omap code
+merged into the mainline kernel, and then just keep linux-omap
+around to queue up patches for the upcoming merge windows.
 
+After 2.6.29, we'll have to make few changes to rebase more
+branches against the mainline. So I suggest following:
 
-- Paul
+- We'll branch 2.6.29-omap to have something stable for next
+  few weeks
+
+- We'll merge with mainline to start using the mainline clock code,
+  and Paul will maintain omap-clocks branch against the mainline
+  where we'll add the further patches needed. The omap-clocks branch
+  will get merged to linux-omap master branch on regular basis.
+
+- We'll reset the PM code to mainline, and Kevin will maintain
+  the pm branch against the mainline. The pm branch will get merged
+  to l-o master branch on regular basis.
+
+This way we will have the remaining clock patches and PM patches
+ready to go to mainline without any extra effort needed. And Paul
+and Kevin can rebase the omap-clocks and pm branches as needed.
+
+Also, after 2.6.29, mach-omap1 should be completely in sync with
+the mainline. For mach-omap2, we still need to get some more
+board-*.c files merged after the clock and PM code. And there's
+still some code under plat-omap that needs to be cleaned up.
+And the drivers should keep getting integrated via the appropriate
+driver mailings lists.
+
+Luckily lots of patches patches should already apply against the
+mainline kernel. So please everybody, try to make patches against
+the mainline where possible. This should cover almost all the
+board-*.c files and device drivers. I'll keep adding the core
+omap patches to the various omap-upstream* queues so they're
+ready to go to mainline kernel too.
+
+Cheers,
+
+Tony
