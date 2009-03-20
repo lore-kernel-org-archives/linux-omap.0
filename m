@@ -1,63 +1,55 @@
-From: Tero Kristo <tero.kristo@nokia.com>
-Subject: [PATCH] OMAP3: PM: Added resched check into idle calls
-Date: Fri, 20 Mar 2009 15:21:02 +0200
-Message-ID: <1237555262-13678-2-git-send-email-tero.kristo@nokia.com>
-References: <>
- <1237555262-13678-1-git-send-email-tero.kristo@nokia.com>
+From: Koen Kooi <k.kooi@student.utwente.nl>
+Subject: Re: mmc0 detection timing at kernel startup, linux-omap-2.6.27-omap1
+Date: Fri, 20 Mar 2009 14:44:56 +0100
+Message-ID: <C8CB7D0E-5690-4368-B2BB-60B09B37575D@student.utwente.nl>
+References: <dbdb2ea60903200606y51d3fba0ia5c116a3c452c21a@mail.gmail.com> <1f11a5490903200634y57f91639r3aad815aa2ce5e92@mail.gmail.com>
+Mime-Version: 1.0 (Apple Message framework v930.3)
+Content-Type: multipart/signed; protocol="application/pgp-signature"; micalg=pgp-sha1; boundary="Apple-Mail-1--596024462"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:46784 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751508AbZCTNln (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 20 Mar 2009 09:41:43 -0400
-Received: from esebh105.NOE.Nokia.com (esebh105.ntc.nokia.com [172.21.138.211])
-	by mgw-mx03.nokia.com (Switch-3.2.6/Switch-3.2.6) with ESMTP id n2KDfbm0026307
-	for <linux-omap@vger.kernel.org>; Fri, 20 Mar 2009 15:41:39 +0200
-Received: from localhost.localdomain (sokoban.ntc.nokia.com [172.22.144.95])
-	by mgw-int02.ntc.nokia.com (Switch-3.2.5/Switch-3.2.5) with ESMTP id n2KDe9RU020548
-	for <linux-omap@vger.kernel.org>; Fri, 20 Mar 2009 15:40:11 +0200
-In-Reply-To: <1237555262-13678-1-git-send-email-tero.kristo@nokia.com>
+Received: from smtp2.utsp.utwente.nl ([130.89.2.9]:36536 "EHLO smtp.utwente.nl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753921AbZCTNpd (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 20 Mar 2009 09:45:33 -0400
+In-Reply-To: <1f11a5490903200634y57f91639r3aad815aa2ce5e92@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
+To: Ashwin Bihari <abihari@gmail.com>
+Cc: twebb <taliaferro62@gmail.com>, "linux-omap@vger.kernel.org Mailing List" <linux-omap@vger.kernel.org>
 
-From: Tero Kristo <tero.kristo@nokia.com>
+This is an OpenPGP/MIME signed message (RFC 2440 and 3156)
+--Apple-Mail-1--596024462
+Content-Type: text/plain; charset=US-ASCII; format=flowed; delsp=yes
+Content-Transfer-Encoding: 7bit
 
-Fixes a bug where scheduling is delayed until next wakeup due to race
-condition (e.g. interrupt requests scheduling just before omap_sram_idle
-is entered.)
 
-Signed-off-by: Tero Kristo <tero.kristo@nokia.com>
----
- arch/arm/mach-omap2/cpuidle34xx.c |    2 +-
- arch/arm/mach-omap2/pm34xx.c      |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+Op 20 mrt 2009, om 14:34 heeft Ashwin Bihari het volgende geschreven:
 
-diff --git a/arch/arm/mach-omap2/cpuidle34xx.c b/arch/arm/mach-omap2/cpuidle34xx.c
-index 62fbb2e..037c02e 100644
---- a/arch/arm/mach-omap2/cpuidle34xx.c
-+++ b/arch/arm/mach-omap2/cpuidle34xx.c
-@@ -96,7 +96,7 @@ static int omap3_enter_idle(struct cpuidle_device *dev,
- 	pwrdm_set_next_pwrst(mpu_pd, mpu_state);
- 	pwrdm_set_next_pwrst(core_pd, core_state);
- 
--	if (omap_irq_pending())
-+	if (omap_irq_pending() || need_resched())
- 		goto return_sleep_time;
- 
- 	/* Execute ARM wfi */
-diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
-index d39cfa4..6b13076 100644
---- a/arch/arm/mach-omap2/pm34xx.c
-+++ b/arch/arm/mach-omap2/pm34xx.c
-@@ -585,7 +585,7 @@ static void omap3_pm_idle(void)
- 	if (!omap3_can_sleep())
- 		goto out;
- 
--	if (omap_irq_pending())
-+	if (omap_irq_pending() || need_resched())
- 		goto out;
- 
- 	omap_sram_idle();
--- 
-1.5.4.3
+> You need to add the Kernel option "rootdelay=1" to basically delay the
+> Kernel for a moment while attempting to using the SDcard as the RFS
+> mount point.
 
+Since kernel 2.6.24 you can use 'rootwait', which will wait till it  
+becomes available so you don't need to keep futzing the value for  
+different SD cards.
+
+regards,
+
+Koen
+
+--Apple-Mail-1--596024462
+content-type: application/pgp-signature; x-mac-type=70674453;
+	name=PGP.sig
+content-description: Dit deel van het bericht is digitaal ondertekend
+content-disposition: inline; filename=PGP.sig
+content-transfer-encoding: 7bit
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.5 (Darwin)
+
+iD8DBQFJw53aMkyGM64RGpERAobrAKC3RVYHohI2v1YLVT5kRR/Y5OipiwCbB7dX
+rTwh/dQgS72NH+J6r/AROBU=
+=WZ3M
+-----END PGP SIGNATURE-----
+
+--Apple-Mail-1--596024462--
