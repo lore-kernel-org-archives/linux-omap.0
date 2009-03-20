@@ -1,67 +1,105 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Things to do after 2.6.29 gets released
-Date: Fri, 20 Mar 2009 15:12:31 -0700
-Message-ID: <20090320221230.GA29546@atomide.com>
+From: David Brownell <david-b@pacbell.net>
+Subject: Re: [APPLIED] Overo broken after recent mainline merge
+Date: Fri, 20 Mar 2009 15:33:24 -0700
+Message-ID: <200903201533.24620.david-b@pacbell.net>
+References: <notify-1237576717@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-bos.mailhop.org ([63.208.196.178]:56907 "EHLO
-	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751435AbZCTWM1 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 20 Mar 2009 18:12:27 -0400
-Received: from c-67-160-239-110.hsd1.ca.comcast.net ([67.160.239.110] helo=localhost.localdomain)
-	by mho-01-bos.mailhop.org with esmtpa (Exim 4.68)
-	(envelope-from <tony@atomide.com>)
-	id 1Lkmwz-0004g9-7Z
-	for linux-omap@vger.kernel.org; Fri, 20 Mar 2009 22:12:25 +0000
+Received: from smtp120.sbc.mail.sp1.yahoo.com ([69.147.64.93]:29015 "HELO
+	smtp120.sbc.mail.sp1.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1752947AbZCTWd1 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Fri, 20 Mar 2009 18:33:27 -0400
+In-Reply-To: <notify-1237576717@atomide.com>
 Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org
 
-Hi all,
+On Friday 20 March 2009, Tony Lindgren wrote:
+> This patch has been applied to the linux-omap
+> by youw fwiendly patch wobot.
+> 
+> Commit: f4223ec219313d631c3f620220ed23670c158a34
+> 
+> PatchWorks
+> http://patchwork.kernel.org/patch/12140/
+> 
 
-As there are quite a few omap patches going upstream this coming
-merge window, here are some notes on where we should go after
-2.6.29 gets released.
+To avoid needless divergence from mainline, the appended
+patch would probably work better ... it doesn't actually
+fix the bug in the regulator core, but it's a workaround
+that could go to mainline until that core gets fixed.
 
-The goal of course is still to get all the important omap code
-merged into the mainline kernel, and then just keep linux-omap
-around to queue up patches for the upcoming merge windows.
+(Oh, and it includes a real, albeit minor, bugfix.)
 
-After 2.6.29, we'll have to make few changes to rebase more
-branches against the mainline. So I suggest following:
+- Dave
 
-- We'll branch 2.6.29-omap to have something stable for next
-  few weeks
+=============
+From: David Brownell <dbrownell@users.sourceforge.net>
 
-- We'll merge with mainline to start using the mainline clock code,
-  and Paul will maintain omap-clocks branch against the mainline
-  where we'll add the further patches needed. The omap-clocks branch
-  will get merged to linux-omap master branch on regular basis.
+Updates to the mmc-twl4030 code:
 
-- We'll reset the PM code to mainline, and Kevin will maintain
-  the pm branch against the mainline. The pm branch will get merged
-  to l-o master branch on regular basis.
+ - Partial workaround for the bug fixed more comprehensively
+   by f4223ec219313d631c3f620220ed23670c158a34 ... workaround
+   applies only to MMC devs using this code.
 
-This way we will have the remaining clock patches and PM patches
-ready to go to mainline without any extra effort needed. And Paul
-and Kevin can rebase the omap-clocks and pm branches as needed.
+ - Fix a cut'n'paste bug as noted by Adrian Hunter:  the intent
+   was to "disable" not (re)"enable".
 
-Also, after 2.6.29, mach-omap1 should be completely in sync with
-the mainline. For mach-omap2, we still need to get some more
-board-*.c files merged after the clock and PM code. And there's
-still some code under plat-omap that needs to be cleaned up.
-And the drivers should keep getting integrated via the appropriate
-driver mailings lists.
+The reason to want this workaround is lack of faith that any
+sane fix for that regulator framework bug will ever merge,
+while still wanting to see things work in mainline.
 
-Luckily lots of patches patches should already apply against the
-mainline kernel. So please everybody, try to make patches against
-the mainline where possible. This should cover almost all the
-board-*.c files and device drivers. I'll keep adding the core
-omap patches to the various omap-upstream* queues so they're
-ready to go to mainline kernel too.
+Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
+---
+I suggest reverting f4223ec219313d631c3f620220ed23670c158a34
+after applying this ...
 
-Cheers,
+ arch/arm/mach-omap2/mmc-twl4030.c |   23 ++++++++++++++++++++++-
+ 1 file changed, 22 insertions(+), 1 deletion(-)
 
-Tony
+--- a/arch/arm/mach-omap2/mmc-twl4030.c
++++ b/arch/arm/mach-omap2/mmc-twl4030.c
+@@ -128,6 +128,27 @@ static int twl_mmc_late_init(struct devi
+ 			reg = regulator_get(dev, "vmmc_aux");
+ 			hsmmc[i].vcc_aux = IS_ERR(reg) ? NULL : reg;
+ 
++			/* UGLY HACK:  workaround regulator framework bugs.
++			 * When the bootloader leaves a supply active, it's
++			 * initialized with zero usecount ... and we can't
++			 * disable it without first disabling it.  Until the
++			 * framework is fixed, we need a workaround like this
++			 * (which is safe for MMC, but not in general).
++			 */
++			if (regulator_is_enabled(hsmmc[i].vcc) > 0) {
++				dev_warn(dev, "APPLY REGULATOR HACK for vmmc\n");
++				regulator_enable(hsmmc[i].vcc);
++				regulator_disable(hsmmc[i].vcc);
++			}
++			if (hsmmc[i].vcc_aux) {
++				if (regulator_is_enabled(reg) > 0) {
++					dev_warn(dev, "APPLY REGULATOR HACK "
++						"for vmmc_aux\n");
++					regulator_enable(reg);
++					regulator_disable(reg);
++				}
++			}
++
+ 			break;
+ 		}
+ 	}
+@@ -285,7 +306,7 @@ static int twl_mmc23_set_power(struct de
+ 		}
+ 	} else {
+ 		if (c->vcc_aux)
+-			ret = regulator_enable(c->vcc_aux);
++			ret = regulator_disable(c->vcc_aux);
+ 		if (ret == 0)
+ 			ret = mmc_regulator_set_ocr(c->vcc, 0);
+ 	}
+
