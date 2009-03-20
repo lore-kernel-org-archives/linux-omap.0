@@ -1,84 +1,75 @@
-From: Kim Kyuwon <chammoru@gmail.com>
-Subject: [PATCH] OMAP3 clock: Access only available clock bits
-Date: Fri, 20 Mar 2009 12:15:24 +0900
-Message-ID: <4d34a0a70903192015j4ea44b1fn4f7bb045da32d218@mail.gmail.com>
+From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+Subject: Re: [PATCH B 3/3] tidspbridge: decreate timeout to a saner value
+Date: Fri, 20 Mar 2009 06:54:04 +0200 (EET)
+Message-ID: <20090320.065404.91322906.Hiroshi.DOYU@nokia.com>
+References: <94a0d4530903191435g7785a334v6e0a6988f344bbc@mail.gmail.com>
+	<496565EC904933469F292DDA3F1663E60287D628DC@dlee06.ent.ti.com>
+	<94a0d4530903191706t40fc9b8ctb90583f620d7509d@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: Text/Plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from wf-out-1314.google.com ([209.85.200.172]:51866 "EHLO
-	wf-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751756AbZCTDP0 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 19 Mar 2009 23:15:26 -0400
-Received: by wf-out-1314.google.com with SMTP id 29so987660wff.4
-        for <linux-omap@vger.kernel.org>; Thu, 19 Mar 2009 20:15:24 -0700 (PDT)
+Received: from smtp.nokia.com ([192.100.122.230]:21746 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750703AbZCTEyQ convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 20 Mar 2009 00:54:16 -0400
+In-Reply-To: <94a0d4530903191706t40fc9b8ctb90583f620d7509d@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: OMAP <linux-omap@vger.kernel.org>
-Cc: Kevin Hilman <khilman@deeprootsystems.com>, kyungmin.park@samsung.com, Tony Lindgren <tony@atomide.com>, bhmin@samsung.com
+To: felipe.contreras@gmail.com
+Cc: x0095840@ti.com, linux-omap@vger.kernel.org, h-kanigeri2@ti.com, ameya.palande@nokia.com, felipe.contreras@nokia.com
 
-Hi All,
+=46rom: ext Felipe Contreras <felipe.contreras@gmail.com>
+Subject: Re: [PATCH B 3/3] tidspbridge: decreate timeout to a saner val=
+ue
+Date: Fri, 20 Mar 2009 01:06:16 +0100
 
-I found a problem on PM Branch with OMAP3430 ES3.1 Board when enabling
-OMAP_RESET_CLOCKS feature.
-In clk_disable_unsed() function, as soon as sad2d_ick is disabled,
-prcm interrupt is generated and its handler can't exit loop at next
-statement!
+> On Fri, Mar 20, 2009 at 2:00 AM, Guzman Lugo, Fernando <x0095840@ti.c=
+om> wrote:
+> >
+> >
+> >
+> > This is a stress test, it creates 4 processes and each process will=
+ do 1000 transfers using streams, so the trace is:
+> >
+> > STRM_Issue -> =A0WMD_CHNL_AddIOReq =A0-> IO_Schedule
+> >
+> > IO_Schedule schedules a call to IO_DPC using task let.
+> >
+> > IO_DPC -> IO_DispatchChnl -> InputChnl -> CHNLSM_InterruptDSP2
+> >
+> > Also =A0 =A0 =A0IO_DispatchChnl -> OutputChnl -> CHNLSM_InterruptDS=
+P2.
+> >
+> >
+> > As we can call a lot CHNLSM_InterruptDSP2 in this test, there is a =
+problem with the timeout. However running other tests, videos and mp3 t=
+here no problems. I think we should change to 10ms, only to make sure t=
+here is no problem when CHNLSM_InterruptDSP2 is called a lot.
+> >
+> > Let me know if you are agreed. Or have some comments about it.
+>=20
+> Well again, the best way to implement the wait for a slot in the
+> mailbox is with interrupts, not busy-looping. If we busy-loop too muc=
+h
+> that would increase the CPU usage, and that would be bad.
 
-while (prm_read_mod_reg(OCP_MOD, OMAP2_PRM_IRQSTATUS_MPU_OFFSET));
+I think that s/w queuing of messages would be more efficient to allow
+multiple senders to continue thier work anyway, especially in the case
+of having these streamings.
 
-I also found that sad2d_ick is available only OMAP3430 ES1. I fixed
-this problem with below patch.
-
-Your better solutions or comments appreciated.
-
-Sincerely,
-Kyuwon
+>=20
+> That's why I want to use the 1ms timeout; to find issues that cause
+> increase in CPU load.
+>=20
+> But for now I think 10ms is the safest, as it's the current value. If
+> somebody wants to pin-point issues, then the timeout should be
+> decreased.
+>=20
+> --=20
+> Felipe Contreras
 --
-This patch prevents setting or clearing reserved bits of 'Clock Enable
-Register', in the clk_disable_unused() function. Especially, this
-patch prevents using the sad2d_ick which doesn't exist in OMAP3430
-ES2+.
-
-Signed-off-by: Kim Kyuwon <q1.kim@samsung.com>
----
- arch/arm/mach-omap2/clock34xx.h |    2 +-
- arch/arm/plat-omap/clock.c      |   10 ++++++++++
- 2 files changed, 11 insertions(+), 1 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/clock34xx.h b/arch/arm/mach-omap2/clock34xx.h
-index e0dd7f3..039f7dd 100644
---- a/arch/arm/mach-omap2/clock34xx.h
-+++ b/arch/arm/mach-omap2/clock34xx.h
-@@ -1279,7 +1279,7 @@ static struct clk sad2d_ick = {
- 	.prcm_mod	= CORE_MOD,
- 	.enable_reg	= CM_ICLKEN1,
- 	.enable_bit	= OMAP3430_EN_SAD2D_SHIFT,
--	.flags		= CLOCK_IN_OMAP343X,
-+	.flags		= CLOCK_IN_OMAP3430ES1,
- 	.clkdm		= { .name = "d2d_clkdm" },
- 	.recalc		= &followparent_recalc,
- };
-diff --git a/arch/arm/plat-omap/clock.c b/arch/arm/plat-omap/clock.c
-index 2eed047..b16c6c3 100644
---- a/arch/arm/plat-omap/clock.c
-+++ b/arch/arm/plat-omap/clock.c
-@@ -775,6 +775,16 @@ static int __init clk_disable_unused(void)
- 		if (cpu_class_is_omap1() && ck->enable_reg == 0)
- 			continue;
-
-+		if (cpu_is_omap34xx()) {
-+			if ((omap_rev() == OMAP3430_REV_ES1_0) &&
-+					(ck->flags & CLOCK_IN_OMAP3430ES2))
-+				continue;
-+
-+			/* In this case, board Rev. is greater then ES1 */
-+			if (ck->flags & CLOCK_IN_OMAP3430ES1)
-+				continue;
-+		}
-+
- 		spin_lock_irqsave(&clockfw_lock, flags);
- 		if (arch_clock->clk_disable_unused)
- 			arch_clock->clk_disable_unused(ck);
--- 
-1.5.2.5
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
