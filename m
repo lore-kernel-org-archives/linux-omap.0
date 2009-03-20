@@ -1,281 +1,393 @@
-From: "Nayak, Rajendra" <rnayak@ti.com>
-Subject: [PATCH 09/09] OMAP clock: add pre/post/abort clk rate change
- notifiers
-Date: Fri, 20 Mar 2009 18:56:41 +0530
-Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB02FAF6EF27@dbde02.ent.ti.com>
+From: Ashwin Bihari <abihari@gmail.com>
+Subject: Re: mmc0 detection timing at kernel startup, linux-omap-2.6.27-omap1
+Date: Fri, 20 Mar 2009 09:34:06 -0400
+Message-ID: <1f11a5490903200634y57f91639r3aad815aa2ce5e92@mail.gmail.com>
+References: <dbdb2ea60903200606y51d3fba0ia5c116a3c452c21a@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:41111 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753184AbZCTN0w convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 20 Mar 2009 09:26:52 -0400
-Received: from dbdp20.itg.ti.com ([172.24.170.38])
-	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id n2KDQhJq021609
-	for <linux-omap@vger.kernel.org>; Fri, 20 Mar 2009 08:26:50 -0500
-Received: from dbde70.ent.ti.com (localhost [127.0.0.1])
-	by dbdp20.itg.ti.com (8.13.8/8.13.8) with ESMTP id n2KDQhlu003140
-	for <linux-omap@vger.kernel.org>; Fri, 20 Mar 2009 18:56:43 +0530 (IST)
-Content-Language: en-US
+Received: from yw-out-2324.google.com ([74.125.46.30]:34084 "EHLO
+	yw-out-2324.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752582AbZCTNeJ convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 20 Mar 2009 09:34:09 -0400
+Received: by yw-out-2324.google.com with SMTP id 5so973646ywb.1
+        for <linux-omap@vger.kernel.org>; Fri, 20 Mar 2009 06:34:06 -0700 (PDT)
+In-Reply-To: <dbdb2ea60903200606y51d3fba0ia5c116a3c452c21a@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
-Cc: "Nayak, Rajendra" <rnayak@ti.com>
+To: twebb <taliaferro62@gmail.com>
+Cc: "linux-omap@vger.kernel.org Mailing List" <linux-omap@vger.kernel.org>
 
-From: Paul Walmsley <paul@pwsan.com>
+You need to add the Kernel option "rootdelay=3D1" to basically delay th=
+e
+Kernel for a moment while attempting to using the SDcard as the RFS
+mount point.
 
-Call clock notifier blocks before and after rate and parent changes.
-If the rate change fails for any reason after the notifier is called with
-a pre-rate-change message, call the notifier again with an abort message.
+-- Ashwin
 
-Pre-rate-change notifiers are passed the current clock rate and the
-desired clock rate.  For this to work with parent changes, additional
-architecture-specific support was needed to predict the clock rate
-after the parent change, so a "clk_round_rate_parent" function pointer
-was added to struct clk_functions for this purpose, and this was
-defined for the OMAP2/3 architecture.
 
-(To minimize performance and code impact, post-rate-change notifiers,
-however, are passed only the desired clock rate, i.e., the clock rate
-after the rate change.)
 
-The notifiers are called even if the clock rate does not change.  This
-is because reprogramming a clock's parent or rate may briefly disrupt
-the clock.
-
-Signed-off-by: Paul Walmsley <paul@pwsan.com>
----
- arch/arm/mach-omap2/clock.c             |   20 +++++++
- arch/arm/mach-omap2/clock.h             |    1 +
- arch/arm/mach-omap2/clock24xx.c         |    1 +
- arch/arm/mach-omap2/clock34xx.c         |    1 +
- arch/arm/plat-omap/clock.c              |   89 +++++++++++++++++++++++++++++++
- arch/arm/plat-omap/include/mach/clock.h |    2 +
- 6 files changed, 114 insertions(+), 0 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/clock.c b/arch/arm/mach-omap2/clock.c
-index 612db25..7f8cd82 100644
---- a/arch/arm/mach-omap2/clock.c
-+++ b/arch/arm/mach-omap2/clock.c
-@@ -826,6 +826,26 @@ static u32 _omap2_clksel_get_src_field(struct clk *src_clk, struct clk *clk,
- 	return clkr->div;
- }
- 
-+long omap2_clk_round_rate_parent(struct clk *clk, struct clk *new_parent)
-+{
-+	u32 field_val, parent_div;
-+	long rate;
-+
-+	if (!clk->clksel || !new_parent)
-+		return -EINVAL;
-+
-+	parent_div = _omap2_clksel_get_src_field(new_parent, clk, &field_val);
-+	if (!parent_div)
-+		return -EINVAL;
-+
-+	/* CLKSEL clocks follow their parents' rates, divided by a divisor */
-+	rate = new_parent->rate;
-+	if (parent_div > 0)
-+		rate /= parent_div;
-+
-+	return rate;
-+}
-+
- int omap2_clk_set_parent(struct clk *clk, struct clk *new_parent)
- {
- 	u32 field_val, v, parent_div;
-diff --git a/arch/arm/mach-omap2/clock.h b/arch/arm/mach-omap2/clock.h
-index f4d489f..9813eca 100644
---- a/arch/arm/mach-omap2/clock.h
-+++ b/arch/arm/mach-omap2/clock.h
-@@ -41,6 +41,7 @@ int omap2_clk_register(struct clk *clk);
- int omap2_clk_enable(struct clk *clk);
- void omap2_clk_disable(struct clk *clk);
- long omap2_clk_round_rate(struct clk *clk, unsigned long rate);
-+long omap2_clk_round_rate_parent(struct clk *clk, struct clk *parent);
- int omap2_clk_set_rate(struct clk *clk, unsigned long rate);
- int omap2_clk_set_parent(struct clk *clk, struct clk *new_parent);
- int omap2_dpll_set_rate_tolerance(struct clk *clk, unsigned int tolerance);
-diff --git a/arch/arm/mach-omap2/clock24xx.c b/arch/arm/mach-omap2/clock24xx.c
-index 53864c0..3f75524 100644
---- a/arch/arm/mach-omap2/clock24xx.c
-+++ b/arch/arm/mach-omap2/clock24xx.c
-@@ -448,6 +448,7 @@ static struct clk_functions omap2_clk_functions = {
- 	.clk_enable		= omap2_clk_enable,
- 	.clk_disable		= omap2_clk_disable,
- 	.clk_round_rate		= omap2_clk_round_rate,
-+	.clk_round_rate_parent	= omap2_clk_round_rate_parent,
- 	.clk_set_rate		= omap2_clk_set_rate,
- 	.clk_set_parent		= omap2_clk_set_parent,
- 	.clk_get_parent		= omap2_clk_get_parent,
-diff --git a/arch/arm/mach-omap2/clock34xx.c b/arch/arm/mach-omap2/clock34xx.c
-index 596230a..6d4d4fe 100644
---- a/arch/arm/mach-omap2/clock34xx.c
-+++ b/arch/arm/mach-omap2/clock34xx.c
-@@ -725,6 +725,7 @@ static struct clk_functions omap2_clk_functions = {
- 	.clk_enable		= omap2_clk_enable,
- 	.clk_disable		= omap2_clk_disable,
- 	.clk_round_rate		= omap2_clk_round_rate,
-+	.clk_round_rate_parent	= omap2_clk_round_rate_parent,
- 	.clk_set_rate		= omap2_clk_set_rate,
- 	.clk_set_parent		= omap2_clk_set_parent,
- 	.clk_get_parent		= omap2_clk_get_parent,
-diff --git a/arch/arm/plat-omap/clock.c b/arch/arm/plat-omap/clock.c
-index d76964a..05ceb9c 100644
---- a/arch/arm/plat-omap/clock.c
-+++ b/arch/arm/plat-omap/clock.c
-@@ -173,6 +173,61 @@ void omap_clk_del_child(struct clk *clk, struct clk *clk2)
- 	}
- }
- 
-+/**
-+ * omap_clk_notify - call clk notifier chain
-+ * @clk: struct clk * that is changing rate
-+ * @msg: clk notifier type (i.e., CLK_POST_RATE_CHANGE; see mach/clock.h)
-+ * @old_rate: old rate
-+ * @new_rate: new rate
-+ *
-+ * Triggers a notifier call chain on the post-clk-rate-change notifier
-+ * for clock 'clk'.  Passes a pointer to the struct clk and the
-+ * previous and current rates to the notifier callback.  Intended to be
-+ * called by internal clock code only.  No return value.
-+ */
-+static void omap_clk_notify(struct clk *clk, unsigned long msg,
-+			    unsigned long old_rate, unsigned long new_rate)
-+{
-+	struct clk_notifier *cn;
-+	struct clk_notifier_data cnd;
-+
-+	cnd.clk = clk;
-+	cnd.old_rate = old_rate;
-+	cnd.new_rate = new_rate;
-+
-+	list_for_each_entry(cn, &clk_notifier_list, node) {
-+		if (cn->clk == clk) {
-+			blocking_notifier_call_chain(&cn->notifier_head, msg,
-+						     &cnd);
-+			break;
-+		}
-+	}
-+}
-+
-+/**
-+ * omap_clk_notify_downstream - trigger clock change notifications
-+ * @clk: struct clk * to start the notifications with
-+ * @msg: notifier msg - see "Clk notifier callback types"
-+ * @param2: (not used - any u8 will do)
-+ *
-+ * Call clock change notifiers on clocks starting with @clk and including
-+ * all of @clk's downstream children clocks.  Returns NOTIFY_DONE.
-+ */
-+static int omap_clk_notify_downstream(struct clk *clk, unsigned long msg,
-+				      u8 param2)
-+{
-+	if (!clk->notifier_count)
-+		return NOTIFY_DONE;
-+
-+	omap_clk_notify(clk, msg, clk->rate, clk->temp_rate);
-+
-+	if (!omap_clk_has_children(clk))
-+		return NOTIFY_DONE;
-+
-+	return omap_clk_for_each_child(clk, msg, 0, omap_clk_notify_downstream);
-+}
-+
-+
- /*-------------------------------------------------------------------------
-  * Standard clock functions defined in include/linux/clk.h
-  *-------------------------------------------------------------------------*/
-@@ -309,10 +364,20 @@ int clk_set_rate(struct clk *clk, unsigned long rate)
- {
- 	unsigned long flags;
- 	int ret = -EINVAL;
-+	int msg;
- 
- 	if (clk == NULL || IS_ERR(clk))
- 		return ret;
- 
-+	mutex_lock(&clocks_mutex);
-+
-+	if (clk->notifier_count) {
-+		clk->temp_rate = rate;
-+		propagate_rate(clk, TEMP_RATE);
-+
-+		omap_clk_notify_downstream(clk, CLK_PRE_RATE_CHANGE, 0);
-+	}
-+
- 	spin_lock_irqsave(&clockfw_lock, flags);
- 
- 	if (arch_clock->clk_set_rate) {
-@@ -324,6 +389,12 @@ int clk_set_rate(struct clk *clk, unsigned long rate)
- 
- 	spin_unlock_irqrestore(&clockfw_lock, flags);
- 
-+	msg = (ret) ? CLK_ABORT_RATE_CHANGE : CLK_POST_RATE_CHANGE;
-+
-+	omap_clk_notify_downstream(clk, msg, 0);
-+
-+	mutex_unlock(&clocks_mutex);
-+
- 	return ret;
- }
- EXPORT_SYMBOL(clk_set_rate);
-@@ -333,10 +404,20 @@ int clk_set_parent(struct clk *clk, struct clk *parent)
- 	unsigned long flags;
- 	struct clk *prev_parent;
- 	int ret = -EINVAL;
-+	int msg;
- 
- 	if (clk == NULL || IS_ERR(clk) || parent == NULL || IS_ERR(parent))
- 		return ret;
- 
-+	mutex_lock(&clocks_mutex);
-+
-+	if (clk->notifier_count && arch_clock->clk_round_rate_parent) {
-+		clk->temp_rate = arch_clock->clk_round_rate_parent(clk, parent);
-+		propagate_rate(clk, TEMP_RATE);
-+
-+		omap_clk_notify_downstream(clk, CLK_PRE_RATE_CHANGE, 0);
-+	}
-+
- 	spin_lock_irqsave(&clockfw_lock, flags);
- 
- 	if (arch_clock->clk_set_parent) {
-@@ -352,6 +433,12 @@ int clk_set_parent(struct clk *clk, struct clk *parent)
- 
- 	spin_unlock_irqrestore(&clockfw_lock, flags);
- 
-+	msg = (ret) ? CLK_ABORT_RATE_CHANGE : CLK_POST_RATE_CHANGE;
-+
-+	omap_clk_notify_downstream(clk, msg, 0);
-+
-+	mutex_unlock(&clocks_mutex);
-+
- 	return ret;
- }
- EXPORT_SYMBOL(clk_set_parent);
-@@ -538,6 +625,8 @@ void clk_init_cpufreq_table(struct cpufreq_frequency_table **table)
- EXPORT_SYMBOL(clk_init_cpufreq_table);
- #endif
- 
-+/* Clk notifier implementations */
-+
- /**
-  * clk_notifier_register - add a clock parameter change notifier
-  * @clk: struct clk * to watch
-diff --git a/arch/arm/plat-omap/include/mach/clock.h b/arch/arm/plat-omap/include/mach/clock.h
-index 41faba8..9c75f97 100644
---- a/arch/arm/plat-omap/include/mach/clock.h
-+++ b/arch/arm/plat-omap/include/mach/clock.h
-@@ -158,6 +158,8 @@ struct clk_functions {
- 	int		(*clk_enable)(struct clk *clk);
- 	void		(*clk_disable)(struct clk *clk);
- 	long		(*clk_round_rate)(struct clk *clk, unsigned long rate);
-+	long		(*clk_round_rate_parent)(struct clk *clk,
-+						 struct clk *parent);
- 	int		(*clk_set_rate)(struct clk *clk, unsigned long rate);
- 	int		(*clk_set_parent)(struct clk *clk, struct clk *parent);
- 	struct clk *	(*clk_get_parent)(struct clk *clk);
--- 
-1.5.4.3
+On Fri, Mar 20, 2009 at 9:06 AM, twebb <taliaferro62@gmail.com> wrote:
+> I'm using linux-omap-2.6.27-omap1 and am seeing an apparent timing
+> issue at kernel startup. =A0The board is an OMAP 35x EVM and is
+> configured to boot from the SDcard. =A0Everything works find IF a
+> keyboard is connected to the USB port of the EVM - the kernel detects
+> the mmcblk0 device (SDcard) and all it's partitions, and mounts
+> mmcblk0p1 appropriately as root. =A0However, if the keyboard is not
+> installed the SDcard is not recognized and the kernel panics. =A0Same
+> kernel, same kernel args, save everything - just different response
+> based on whether keyboard is attached or not. =A0Any ideas? =A0I'm
+> including the good and bad kernel startup logs below...
+>
+> Thanks,
+> twebb
+>
+> ***** Good *****
+> Linux version 2.6.27-omap1 (jb@jb) (gcc version 4.2.1 (CodeSourcery S=
+ource
+> ry G++ Lite 2007q3-51)) #16 Thu Mar 19 16:59:31 EDT 2009
+> CPU: ARMv7 Processor [411fc082] revision 2 (ARMv7), cr=3D00c5387f
+> Machine: OMAP3 EVM
+> Memory policy: ECC disabled, Data cache writeback
+> OMAP3430 ES2.1
+> SRAM: Mapped pa 0x40200000 to va 0xd7000000 size: 0x100000
+> CPU0: L1 I VIPT cache. Caches unified at level 2, coherent at level 3
+> CPU0: Level 1 cache is separate instruction and data
+> CPU0: I cache: 16384 bytes, associativity 4, 64 byte lines, 64 sets,
+> =A0 =A0 =A0supports RA
+> CPU0: D cache: 16384 bytes, associativity 4, 64 byte lines, 64 sets,
+> =A0 =A0 =A0supports RA WB WT
+> CPU0: Level 2 cache is unified
+> CPU0: unified cache: 262144 bytes, associativity 8, 64 byte lines, 51=
+2 sets,
+> =A0 =A0 =A0supports WA RA WB WT
+> Built 1 zonelists in Zone order, mobility grouping on. =A0Total pages=
+: 32512
+> Kernel command line: mem=3D128M console=3DttyS2,115200e8 noinitrd ini=
+t=3Dinit root=3D/de
+> v/mmcblk0p2 rw rootfstype=3Dext3
+> Clocking rate (Crystal/DPLL/ARM core): 26.0/166/500 MHz
+> GPMC revision 5.0
+> IRQ: Found an INTC at 0xd8200000 (revision 4.0) with 96 interrupts
+> Total of 96 interrupts on 1 active controller
+> OMAP34xx GPIO hardware version 2.5
+> PID hash table entries: 512 (order: 9, 2048 bytes)
+> OMAP clockevent source: GPTIMER1 at 32768 Hz
+> Console: colour dummy device 80x30
+> Dentry cache hash table entries: 16384 (order: 4, 65536 bytes)
+> Inode-cache hash table entries: 8192 (order: 3, 32768 bytes)
+> Memory: 128MB =3D 128MB total
+> Memory: 126108KB available (3048K code, 447K data, 148K init)
+> Calibrating delay loop... 499.92 BogoMIPS (lpj=3D1949696)
+> Mount-cache hash table entries: 512
+> CPU: Testing write buffer coherency: ok
+> net_namespace: 288 bytes
+> android_power_init
+> android_power_init done
+> NET: Registered protocol family 16
+> MUX: setup J21_34XX_I2C1_SDA (0xd80021bc): 0x1718 -> 0x0118
+> MUX: setup K21_34XX_I2C1_SCL (0xd80021ba): 0x1718 -> 0x0118
+> MUX: setup AE15_34XX_I2C2_SDA (0xd80021c0): 0x1718 -> 0x0118
+> MUX: setup AF15_34XX_I2C2_SCL (0xd80021be): 0x1718 -> 0x0118
+> MUX: setup AG14_34XX_I2C3_SDA (0xd80021c4): 0x1718 -> 0x0118
+> MUX: setup AF14_34XX_I2C3_SCL (0xd80021c2): 0x1718 -> 0x0118
+> OMAP DMA hardware revision 4.0
+> USB: No board-specific platform config found
+> i2c_omap i2c_omap.1: bus 1 rev3.12 at 2600 kHz
+> twl4030: PIH (irq 7) chaining IRQs 368..375
+> twl4030: power (irq 373) chaining IRQs 376..383
+> twl4030: gpio (irq 368) chaining IRQs 384..401
+> i2c_omap i2c_omap.2: bus 2 rev3.12 at 400 kHz
+> i2c_omap i2c_omap.3: bus 3 rev3.12 at 400 kHz
+> twl4030_usb twl4030_usb: Initialized TWL4030 USB module
+> SCSI subsystem initialized
+> usbcore: registered new interface driver usbfs
+> usbcore: registered new interface driver hub
+> usbcore: registered new device driver usb
+> musb_hdrc: version 6.0, musb-dma, otg (peripheral+host), debug=3D0
+> musb_hdrc: USB OTG mode controller at d80ab000 using DMA, IRQ 92
+> NET: Registered protocol family 2
+> IP route cache hash table entries: 1024 (order: 0, 4096 bytes)
+> TCP established hash table entries: 4096 (order: 3, 32768 bytes)
+> TCP bind hash table entries: 4096 (order: 2, 16384 bytes)
+> TCP: Hash tables configured (established 4096 bind 4096)
+> TCP reno registered
+> NET: Registered protocol family 1
+> NetWinder Floating Point Emulator V0.97 (double precision)
+> ashmem: initialized
+> VFS: Disk quotas dquot_6.5.1
+> Dquot-cache hash table entries: 1024 (order 0, 4096 bytes)
+> msgmni has been set to 246
+> io scheduler noop registered
+> io scheduler anticipatory registered (default)
+> io scheduler deadline registered
+> io scheduler cfq registered
+> omapfb: configured for panel omap3edge
+> omapfb: DISPC version 3.0 initialized
+> Console: switching to colour frame buffer device 60x40
+> omapfb: Framebuffer initialized. Total vram 1228800 planes 1
+> omapfb: Pixclock 24000 kHz hfreq 45.2 kHz vfreq 70.3 Hz
+> Serial: 8250/16550 driver4 ports, IRQ sharing enabled
+> serial8250.0: ttyS0 at MMIO 0x4806a000 (irq =3D 72) is a ST16654
+> serial8250.0: ttyS1 at MMIO 0x4806c000 (irq =3D 73) is a ST16654
+> serial8250.0: ttyS2 at MMIO 0x49020000 (irq =3D 74) is a ST16654
+> console [ttyS2] enabled
+> brd: module loaded
+> loop: module loaded
+> i2c /dev entries driver
+> Driver 'sd' needs updating - please use bus_type methods
+> usbmon: debugfs is not available
+> Initializing USB Mass Storage driver...
+> usbcore: registered new interface driver usb-storage
+> USB Mass Storage support registered.
+> usbcore: registered new interface driver usbtest
+> zero gadget: Gadget Zero, version: Cinco de Mayo 2008
+> zero gadget: zero ready
+> musb_hdrc musb_hdrc: MUSB HDRC host driver
+> musb_hdrc musb_hdrc: new USB bus registered, assigned bus number 1
+> usb usb1: configuration #1 chosen from 1 choice
+> hub 1-0:1.0: USB hub found
+> hub 1-0:1.0: 1 port detected
+> usb usb1: New USB device found, idVendor=3D1d6b, idProduct=3D0002
+> usb usb1: New USB device strings: Mfr=3D3, Product=3D2, SerialNumber=3D=
+1
+> usb usb1: Product: MUSB HDRC host driver
+> usb usb1: Manufacturer: Linux 2.6.27-omap1-svn71 musb-hcd
+> usb usb1: SerialNumber: musb_hdrc
+> input: omap_twl4030keypad as /class/input/input0
+> ads7846 spi1.0: touchscreen, irq 335
+> input: ADS784x Touchscreen as /class/input/input1
+> OMAP Watchdog Timer Rev 0x31: initial timeout 60 sec
+> usb 1-1: new low speed USB device using musb_hdrc and address 2
+> usb 1-1: device v04b4 p0101 is not supported
+> usb 1-1: configuration #1 chosen from 1 choice
+> usb 1-1: New USB device found, idVendor=3D04b4, idProduct=3D0101
+> usb 1-1: New USB device strings: Mfr=3D1, Product=3D2, SerialNumber=3D=
+0
+> usb 1-1: Product: USB Portable Keyboard
+> usb 1-1: Manufacturer: HOLTEK
+> mmc0: host does not support reading read-only switch. assuming write-=
+enable.
+> mmc0: new SDHC card at address 8fe4
+> mmcblk0: mmc0:8fe4 SD04G 3872256KiB
+> =A0mmcblk0:<6>input: HOLTEK USB Portable Keyboard as /class/input/inp=
+ut2
+> =A0p1 p2 p3 p4 < p5 p6 >
+> input: USB HID v1.10 Keyboard [HOLTEK USB Portable Keyboard] on usb-m=
+usb_hdrc-1
+> usbcore: registered new interface driver usbhid
+> usbhid: v2.6:USB HID core driver
+> logger: created 64K log 'log_main'
+> logger: created 64K log 'log_events'
+> logger: created 64K log 'log_radio'
+> TCP cubic registered
+> NET: Registered protocol family 17
+> NET: Registered protocol family 15
+> RPC: Registered udp transport module.
+> RPC: Registered tcp transport module.
+> Power Management for TI OMAP3.
+> SmartReflex driver initialized
+> Disabling unused clock "gpt2_ick"
+> Disabling unused clock "gpt2_fck"
+> Disabling unused clock "wdt2_ick"
+> Disabling unused clock "wdt2_fck"
+> Disabling unused clock "mmchs_ick"
+> Disabling unused clock "mmchs_fck"
+> Disabling unused clock "dpll5_ck"
+> Disabling unused clock "dpll4_m6x2_ck"
+> Disabling unused clock "dpll4_m5x2_ck"
+> Disabling unused clock "dpll3_m3x2_ck"
+> Disabling unused clock "sys_clkout1"
+> VFP support v0.3: implementor 41 architecture 3 part 30 variant c rev=
+ 1
+> drivers/rtc/hctosys.c: unable to open rtc device (rtc0)
+> kjournald starting. =A0Commit interval 5 seconds
+> EXT3 FS on mmcblk0p2, internal journal
+> EXT3-fs: mounted filesystem with ordered data mode.
+> VFS: Mounted root (ext3 filesystem).
+> Freeing init memory: 148K
+> kjournald starting. =A0Commit interval 5 seconds
+> EXT3 FS on mmcblk0p3, internal journal
+> EXT3-fs: recovery complete.
+> EXT3-fs: mounted filesystem with ordered data mode.
+> kjournald starting. =A0Commit interval 5 seconds
+> EXT3 FS on mmcblk0p5, internal journal
+> EXT3-fs: recovery complete.
+> EXT3-fs: mounted filesystem with ordered data mode.
+> kjournald starting. =A0Commit interval 5 seconds
+> EXT3 FS on mmcblk0p6, internal journal
+> EXT3-fs: recovery complete.
+> EXT3-fs: mounted filesystem with ordered data mode.
+>
+> ***** Bad *****
+> Linux version 2.6.27-omap1 (jb@jb) (gcc version 4.2.1 (CodeSourcery S=
+ource
+> ry G++ Lite 2007q3-51)) #16 Thu Mar 19 16:59:31 EDT 2009
+> CPU: ARMv7 Processor [411fc082] revision 2 (ARMv7), cr=3D00c5387f
+> Machine: OMAP3 EVM
+> Memory policy: ECC disabled, Data cache writeback
+> OMAP3430 ES2.1
+> SRAM: Mapped pa 0x40200000 to va 0xd7000000 size: 0x100000
+> CPU0: L1 I VIPT cache. Caches unified at level 2, coherent at level 3
+> CPU0: Level 1 cache is separate instruction and data
+> CPU0: I cache: 16384 bytes, associativity 4, 64 byte lines, 64 sets,
+> =A0 =A0 =A0supports RA
+> CPU0: D cache: 16384 bytes, associativity 4, 64 byte lines, 64 sets,
+> =A0 =A0 =A0supports RA WB WT
+> CPU0: Level 2 cache is unified
+> CPU0: unified cache: 262144 bytes, associativity 8, 64 byte lines, 51=
+2 sets,
+> =A0 =A0 =A0supports WA RA WB WT
+> Built 1 zonelists in Zone order, mobility grouping on. =A0Total pages=
+: 32512
+> Kernel command line: mem=3D128M console=3DttyS2,115200e8 noinitrd ini=
+t=3Dinit root=3D/de
+> v/mmcblk0p2 rw rootfstype=3Dext3
+> Clocking rate (Crystal/DPLL/ARM core): 26.0/166/500 MHz
+> GPMC revision 5.0
+> IRQ: Found an INTC at 0xd8200000 (revision 4.0) with 96 interrupts
+> Total of 96 interrupts on 1 active controller
+> OMAP34xx GPIO hardware version 2.5
+> PID hash table entries: 512 (order: 9, 2048 bytes)
+> OMAP clockevent source: GPTIMER1 at 32768 Hz
+> Console: colour dummy device 80x30
+> Dentry cache hash table entries: 16384 (order: 4, 65536 bytes)
+> Inode-cache hash table entries: 8192 (order: 3, 32768 bytes)
+> Memory: 128MB =3D 128MB total
+> Memory: 126108KB available (3048K code, 447K data, 148K init)
+> Calibrating delay loop... 499.92 BogoMIPS (lpj=3D1949696)
+> Mount-cache hash table entries: 512
+> CPU: Testing write buffer coherency: ok
+> net_namespace: 288 bytes
+> android_power_init
+> android_power_init done
+> NET: Registered protocol family 16
+> MUX: setup J21_34XX_I2C1_SDA (0xd80021bc): 0x1718 -> 0x0118
+> MUX: setup K21_34XX_I2C1_SCL (0xd80021ba): 0x1718 -> 0x0118
+> MUX: setup AE15_34XX_I2C2_SDA (0xd80021c0): 0x1718 -> 0x0118
+> MUX: setup AF15_34XX_I2C2_SCL (0xd80021be): 0x1718 -> 0x0118
+> MUX: setup AG14_34XX_I2C3_SDA (0xd80021c4): 0x1718 -> 0x0118
+> MUX: setup AF14_34XX_I2C3_SCL (0xd80021c2): 0x1718 -> 0x0118
+> OMAP DMA hardware revision 4.0
+> USB: No board-specific platform config found
+> i2c_omap i2c_omap.1: bus 1 rev3.12 at 2600 kHz
+> twl4030: PIH (irq 7) chaining IRQs 368..375
+> twl4030: power (irq 373) chaining IRQs 376..383
+> twl4030: gpio (irq 368) chaining IRQs 384..401
+> i2c_omap i2c_omap.2: bus 2 rev3.12 at 400 kHz
+> i2c_omap i2c_omap.3: bus 3 rev3.12 at 400 kHz
+> twl4030_usb twl4030_usb: Initialized TWL4030 USB module
+> SCSI subsystem initialized
+> usbcore: registered new interface driver usbfs
+> usbcore: registered new interface driver hub
+> usbcore: registered new device driver usb
+> musb_hdrc: version 6.0, musb-dma, otg (peripheral+host), debug=3D0
+> musb_hdrc: USB OTG mode controller at d80ab000 using DMA, IRQ 92
+> NET: Registered protocol family 2
+> IP route cache hash table entries: 1024 (order: 0, 4096 bytes)
+> TCP established hash table entries: 4096 (order: 3, 32768 bytes)
+> TCP bind hash table entries: 4096 (order: 2, 16384 bytes)
+> TCP: Hash tables configured (established 4096 bind 4096)
+> TCP reno registered
+> NET: Registered protocol family 1
+> NetWinder Floating Point Emulator V0.97 (double precision)
+> ashmem: initialized
+> VFS: Disk quotas dquot_6.5.1
+> Dquot-cache hash table entries: 1024 (order 0, 4096 bytes)
+> msgmni has been set to 246
+> io scheduler noop registered
+> io scheduler anticipatory registered (default)
+> io scheduler deadline registered
+> io scheduler cfq registered
+> omapfb: configured for panel omap3edge
+> omapfb: DISPC version 3.0 initialized
+> Console: switching to colour frame buffer device 60x40
+> omapfb: Framebuffer initialized. Total vram 1228800 planes 1
+> omapfb: Pixclock 24000 kHz hfreq 45.2 kHz vfreq 70.3 Hz
+> Serial: 8250/16550 driver4 ports, IRQ sharing enabled
+> serial8250.0: ttyS0 at MMIO 0x4806a000 (irq =3D 72) is a ST16654
+> serial8250.0: ttyS1 at MMIO 0x4806c000 (irq =3D 73) is a ST16654
+> serial8250.0: ttyS2 at MMIO 0x49020000 (irq =3D 74) is a ST16654
+> console [ttyS2] enabled
+> brd: module loaded
+> loop: module loaded
+> i2c /dev entries driver
+> Driver 'sd' needs updating - please use bus_type methods
+> usbmon: debugfs is not available
+> Initializing USB Mass Storage driver...
+> usbcore: registered new interface driver usb-storage
+> USB Mass Storage support registered.
+> usbcore: registered new interface driver usbtest
+> zero gadget: Gadget Zero, version: Cinco de Mayo 2008
+> zero gadget: zero ready
+> musb_hdrc musb_hdrc: MUSB HDRC host driver
+> musb_hdrc musb_hdrc: new USB bus registered, assigned bus number 1
+> usb usb1: configuration #1 chosen from 1 choice
+> hub 1-0:1.0: USB hub found
+> hub 1-0:1.0: 1 port detected
+> usb usb1: New USB device found, idVendor=3D1d6b, idProduct=3D0002
+> usb usb1: New USB device strings: Mfr=3D3, Product=3D2, SerialNumber=3D=
+1
+> usb usb1: Product: MUSB HDRC host driver
+> usb usb1: Manufacturer: Linux 2.6.27-omap1-svn71 musb-hcd
+> usb usb1: SerialNumber: musb_hdrc
+> input: omap_twl4030keypad as /class/input/input0
+> ads7846 spi1.0: touchscreen, irq 335
+> input: ADS784x Touchscreen as /class/input/input1
+> OMAP Watchdog Timer Rev 0x31: initial timeout 60 sec
+> usb 1-1: new low speed USB device using musb_hdrc and address 2
+> usb 1-1: device v04b4 p0101 is not supported
+> usb 1-1: configuration #1 chosen from 1 choice
+> usb 1-1: New USB device found, idVendor=3D04b4, idProduct=3D0101
+> usb 1-1: New USB device strings: Mfr=3D1, Product=3D2, SerialNumber=3D=
+0
+> usb 1-1: Product: USB Portable Keyboard
+> usb 1-1: Manufacturer: HOLTEK
+> input: HOLTEK USB Portable Keyboard as /class/input/input2
+> input: USB HID v1.10 Keyboard [HOLTEK USB Portable Keyboard] on usb-m=
+usb_hdrc-1
+> usbcore: registered new interface driver usbhid
+> usbhid: v2.6:USB HID core driver
+> logger: created 64K log 'log_main'
+> logger: created 64K log 'log_events'
+> logger: created 64K log 'log_radio'
+> TCP cubic registered
+> NET: Registered protocol family 17
+> NET: Registered protocol family 15
+> RPC: Registered udp transport module.
+> RPC: Registered tcp transport module.
+> Power Management for TI OMAP3.
+> SmartReflex driver initialized
+> Disabling unused clock "gpt2_ick"
+> Disabling unused clock "gpt2_fck"
+> Disabling unused clock "wdt2_ick"
+> Disabling unused clock "wdt2_fck"
+> Disabling unused clock "mmchs_ick"
+> Disabling unused clock "mmchs_fck"
+> Disabling unused clock "dpll5_ck"
+> Disabling unused clock "dpll4_m6x2_ck"
+> Disabling unused clock "dpll4_m5x2_ck"
+> Disabling unused clock "dpll3_m3x2_ck"
+> Disabling unused clock "sys_clkout1"
+> VFP support v0.3: implementor 41 architecture 3 part 30 variant c rev=
+ 1
+> drivers/rtc/hctosys.c: unable to open rtc device (rtc0)
+> Root-NFS: No NFS server available, giving up.
+> VFS: Unable to mount root fs via NFS, trying floppy.
+> VFS: Cannot open root device "mmcblk0p2" or unknown-block(2,0)
+> Please append a correct "root=3D" boot option; here are the available=
+ partitions:
+> Kernel panic - not syncing: VFS: Unable to mount root fs on unknown-b=
+lock(2,0)
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap"=
+ in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at =A0http://vger.kernel.org/majordomo-info.html
+>
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
