@@ -1,105 +1,93 @@
 From: David Brownell <david-b@pacbell.net>
-Subject: Re: [APPLIED] Overo broken after recent mainline merge
-Date: Fri, 20 Mar 2009 15:33:24 -0700
-Message-ID: <200903201533.24620.david-b@pacbell.net>
-References: <notify-1237576717@atomide.com>
+Subject: [patch 2.6.28-rc8-omap git] sdp regulator init updates
+Date: Fri, 20 Mar 2009 15:33:11 -0700
+Message-ID: <200903201533.11456.david-b@pacbell.net>
 Mime-Version: 1.0
 Content-Type: text/plain;
   charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp120.sbc.mail.sp1.yahoo.com ([69.147.64.93]:29015 "HELO
-	smtp120.sbc.mail.sp1.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1752947AbZCTWd1 (ORCPT
+Received: from n17.bullet.mail.mud.yahoo.com ([68.142.206.144]:23581 "HELO
+	n17.bullet.mail.mud.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1752265AbZCTWdQ (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Fri, 20 Mar 2009 18:33:27 -0400
-In-Reply-To: <notify-1237576717@atomide.com>
+	Fri, 20 Mar 2009 18:33:16 -0400
 Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org
+To: OMAP <linux-omap@vger.kernel.org>
 
-On Friday 20 March 2009, Tony Lindgren wrote:
-> This patch has been applied to the linux-omap
-> by youw fwiendly patch wobot.
-> 
-> Commit: f4223ec219313d631c3f620220ed23670c158a34
-> 
-> PatchWorks
-> http://patchwork.kernel.org/patch/12140/
-> 
-
-To avoid needless divergence from mainline, the appended
-patch would probably work better ... it doesn't actually
-fix the bug in the regulator core, but it's a workaround
-that could go to mainline until that core gets fixed.
-
-(Oh, and it includes a real, albeit minor, bugfix.)
-
-- Dave
-
-=============
 From: David Brownell <dbrownell@users.sourceforge.net>
 
-Updates to the mmc-twl4030 code:
-
- - Partial workaround for the bug fixed more comprehensively
-   by f4223ec219313d631c3f620220ed23670c158a34 ... workaround
-   applies only to MMC devs using this code.
-
- - Fix a cut'n'paste bug as noted by Adrian Hunter:  the intent
-   was to "disable" not (re)"enable".
-
-The reason to want this workaround is lack of faith that any
-sane fix for that regulator framework bug will ever merge,
-while still wanting to see things work in mainline.
+Hook up VPLL2 regulator on 3430 SDP.  Link that and VDAC to the
+framebuffer device, supporting eventual conversion to use the
+regulator framework.
 
 Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
 ---
-I suggest reverting f4223ec219313d631c3f620220ed23670c158a34
-after applying this ...
+Try also to merge this into the mainline queue ...
 
- arch/arm/mach-omap2/mmc-twl4030.c |   23 ++++++++++++++++++++++-
- 1 file changed, 22 insertions(+), 1 deletion(-)
+ arch/arm/mach-omap2/board-3430sdp.c |   30 ++++++++++++++++++++++++++++++
+ 1 file changed, 30 insertions(+)
 
---- a/arch/arm/mach-omap2/mmc-twl4030.c
-+++ b/arch/arm/mach-omap2/mmc-twl4030.c
-@@ -128,6 +128,27 @@ static int twl_mmc_late_init(struct devi
- 			reg = regulator_get(dev, "vmmc_aux");
- 			hsmmc[i].vcc_aux = IS_ERR(reg) ? NULL : reg;
+--- a/arch/arm/mach-omap2/board-3430sdp.c
++++ b/arch/arm/mach-omap2/board-3430sdp.c
+@@ -189,6 +189,8 @@ static int ads7846_vaux_control(int vaux
+ {
+ 	int ret = 0;
  
-+			/* UGLY HACK:  workaround regulator framework bugs.
-+			 * When the bootloader leaves a supply active, it's
-+			 * initialized with zero usecount ... and we can't
-+			 * disable it without first disabling it.  Until the
-+			 * framework is fixed, we need a workaround like this
-+			 * (which is safe for MMC, but not in general).
-+			 */
-+			if (regulator_is_enabled(hsmmc[i].vcc) > 0) {
-+				dev_warn(dev, "APPLY REGULATOR HACK for vmmc\n");
-+				regulator_enable(hsmmc[i].vcc);
-+				regulator_disable(hsmmc[i].vcc);
-+			}
-+			if (hsmmc[i].vcc_aux) {
-+				if (regulator_is_enabled(reg) > 0) {
-+					dev_warn(dev, "APPLY REGULATOR HACK "
-+						"for vmmc_aux\n");
-+					regulator_enable(reg);
-+					regulator_disable(reg);
-+				}
-+			}
++	/* FIXME use regulator calls */
 +
- 			break;
- 		}
- 	}
-@@ -285,7 +306,7 @@ static int twl_mmc23_set_power(struct de
- 		}
- 	} else {
- 		if (c->vcc_aux)
--			ret = regulator_enable(c->vcc_aux);
-+			ret = regulator_disable(c->vcc_aux);
- 		if (ret == 0)
- 			ret = mmc_regulator_set_ocr(c->vcc, 0);
- 	}
+ #ifdef CONFIG_TWL4030_CORE
+ 	/* check for return value of ldo_use: if success it returns 0 */
+ 	if (vaux_cntrl == VAUX_ENABLE) {
+@@ -245,6 +247,16 @@ static struct platform_device sdp3430_lc
+ 	.id		= -1,
+ };
+ 
++static struct regulator_consumer_supply sdp3430_vdac_supply = {
++	.supply		= "vdac",
++	.dev		= &sdp3430_lcd_device.dev,
++};
++
++static struct regulator_consumer_supply sdp3430_vdvi_supply = {
++	.supply		= "vdvi",
++	.dev		= &sdp3430_lcd_device.dev,
++};
++
+ static struct platform_device *sdp3430_devices[] __initdata = {
+ 	&sdp3430_smc91x_device,
+ 	&sdp3430_lcd_device,
+@@ -587,6 +599,23 @@ static struct regulator_init_data sdp343
+ 		.valid_ops_mask		= REGULATOR_CHANGE_MODE
+ 					| REGULATOR_CHANGE_STATUS,
+ 	},
++	.num_consumer_supplies	= 1,
++	.consumer_supplies	= &sdp3430_vdac_supply,
++};
++
++/* VPLL2 for digital video outputs */
++static struct regulator_init_data sdp3430_vpll2 = {
++	.constraints = {
++		.name			= "VDVI",
++		.min_uV			= 1800000,
++		.max_uV			= 1800000,
++		.valid_modes_mask	= REGULATOR_MODE_NORMAL
++					| REGULATOR_MODE_STANDBY,
++		.valid_ops_mask		= REGULATOR_CHANGE_MODE
++					| REGULATOR_CHANGE_STATUS,
++	},
++	.num_consumer_supplies	= 1,
++	.consumer_supplies	= &sdp3430_vdvi_supply,
+ };
+ 
+ static struct twl4030_platform_data sdp3430_twldata = {
+@@ -609,6 +638,7 @@ static struct twl4030_platform_data sdp3
+ 	.vmmc2		= &sdp3430_vmmc2,
+ 	.vsim		= &sdp3430_vsim,
+ 	.vdac		= &sdp3430_vdac,
++	.vpll2		= &sdp3430_vpll2,
+ };
+ 
+ static struct i2c_board_info __initdata sdp3430_i2c_boardinfo[] = {
 
