@@ -1,116 +1,75 @@
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: Re: [PATCH 0/3] V4L2 driver for OMAP2/3 with new CIDs.
-Date: Fri, 20 Mar 2009 08:26:19 +0100
-Message-ID: <200903200826.19558.hverkuil@xs4all.nl>
-References: <5A47E75E594F054BAF48C5E4FC4B92AB02FAF6EC42@dbde02.ent.ti.com>
+From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+Subject: Re: [PATCH B 3/3] tidspbridge: decreate timeout to a saner value
+Date: Fri, 20 Mar 2009 09:36:05 +0200 (EET)
+Message-ID: <20090320.093605.42784990.Hiroshi.DOYU@nokia.com>
+References: <496565EC904933469F292DDA3F1663E60287D628DC@dlee06.ent.ti.com>
+	<94a0d4530903191706t40fc9b8ctb90583f620d7509d@mail.gmail.com>
+	<20090320.065404.91322906.Hiroshi.DOYU@nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
+Content-Type: Text/Plain; charset=iso-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-media-owner@vger.kernel.org>
-In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB02FAF6EC42@dbde02.ent.ti.com>
-Content-Disposition: inline
-Sender: linux-media-owner@vger.kernel.org
-To: "Shah, Hardik" <hardik.shah@ti.com>
-Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from smtp.nokia.com ([192.100.105.134]:54736 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753075AbZCTHga convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 20 Mar 2009 03:36:30 -0400
+In-Reply-To: <20090320.065404.91322906.Hiroshi.DOYU@nokia.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: grgupta@ti.com, h-kanigeri2@ti.com, felipe.contreras@gmail.com
+Cc: x0095840@ti.com, linux-omap@vger.kernel.org, ameya.palande@nokia.com
 
-On Friday 20 March 2009 06:18:44 Shah, Hardik wrote:
-> Hi All,
-> I will be posting series of three patches for the V4L2 driver on the
-> OMAP2/3 DSS.
+=46rom: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+Subject: Re: [PATCH B 3/3] tidspbridge: decreate timeout to a saner val=
+ue
+Date: Fri, 20 Mar 2009 06:54:04 +0200 (EET)
 
-Thanks! I'll review this within the week.
-
-Regards,
-
-	Hans
-
-> Patch 1 -
-> This is the second revision of the patch.
-> Documentation added for the following new CIDs and bit fields added i=
-n
-> V4L2 framework.
->
-> V4L2_CID_BG_COLOR: Added new CID for setting of the back ground color=
- on
-> the output device. V4L2_CID_ROTATION: Added new CID for setting up of=
- the
-> rotation on the device. Both of the above ioctls are discussed in det=
-ail.
->
-> V4L2_FBUF_FLAG_SRC_CHROMAKEY: Added the flags bit field to the flags
-> field of the v4l2_framebuffer structure for supporting the source chr=
-oma
-> keying.  It's exactly opposite of the chroma keying supported with th=
+> From: ext Felipe Contreras <felipe.contreras@gmail.com>
+> Subject: Re: [PATCH B 3/3] tidspbridge: decreate timeout to a saner v=
+alue
+> Date: Fri, 20 Mar 2009 01:06:16 +0100
+>=20
+> > On Fri, Mar 20, 2009 at 2:00 AM, Guzman Lugo, Fernando <x0095840@ti=
+=2Ecom> wrote:
+> > >
+> > >
+> > >
+> > > This is a stress test, it creates 4 processes and each process wi=
+ll do 1000 transfers using streams, so the trace is:
+> > >
+> > > STRM_Issue -> =A0WMD_CHNL_AddIOReq =A0-> IO_Schedule
+> > >
+> > > IO_Schedule schedules a call to IO_DPC using task let.
+> > >
+> > > IO_DPC -> IO_DispatchChnl -> InputChnl -> CHNLSM_InterruptDSP2
+> > >
+> > > Also =A0 =A0 =A0IO_DispatchChnl -> OutputChnl -> CHNLSM_Interrupt=
+DSP2.
+> > >
+> > >
+> > > As we can call a lot CHNLSM_InterruptDSP2 in this test, there is =
+a problem with the timeout. However running other tests, videos and mp3=
+ there no problems. I think we should change to 10ms, only to make sure=
+ there is no problem when CHNLSM_InterruptDSP2 is called a lot.
+> > >
+> > > Let me know if you are agreed. Or have some comments about it.
+> >=20
+> > Well again, the best way to implement the wait for a slot in the
+> > mailbox is with interrupts, not busy-looping. If we busy-loop too m=
+uch
+> > that would increase the CPU usage, and that would be bad.
+>=20
+> I think that s/w queuing of messages would be more efficient to allow
+> multiple senders to continue thier work anyway, especially in the cas=
 e
-> flag V4L2_FBUF_FLAG_CHROMAKEY.
->
-> V4L2_FBUF_CAP_SRC_CHROMAKEY:  Added the capability bit field for the
-> capability field of the v4l2_framebuffer structure.
->
-> Documentation change related to the new bit field for the source chro=
-ma
-> keying is new from the previous version.
->
-> Patch 2 -
-> Added New Control IDs for OMAP class of Devices as discussed above.  =
-This
-> is the third revision of the patch of adding the new control IDs and =
-bit
-> fields.
->
-> V4L2_FBUF_CAP_SRC_CHROMAKEY and V4L2_FBUF_FLAG_SRC_CHROMAKEY are newl=
-y
-> added compared to previous revision of patch.
->
-> New Ioctl for programming the color space conversion matrix is droppe=
-d
-> from this patch as the accompanying driver with this patch is not sti=
-ll
-> having implementation for the same.  Related documentation is also
-> removed.
->
-> I will submit a separate patch for that with the necessary changes in
-> driver to support the programming of the color space conversion. Some
-> changes are required in DSS2 library also for doing the same.
->
-> Patch 3 -
-> This is a review patch since the DSS2 library is still to be accepted=
- in
-> community This is the third revision of the patch.
-> This patch contains the V4L2 driver on the OMAP3 DSS2 using all of th=
-e
-> above newly implemented CIDS and bit fields.  Following are the chang=
-es
-> in the driver compared to the previous version.
->
-> 1.  Added the chroma keying support.
-> 2.  Added alpha blending support.
-> 3.  Minor community comment fixed.
-> 4.  Ported to work with Tomi's latest DSS2 library with minor
-> modification in DSS2 library.  Path to Tomi's DSS2 library is
-> http://www.bat.org/~tomba/git/linux-omap-dss.git/ commit id
-> bc6dc4c7fabb8ba3bfe637a6c5dc271595a1bef6
->
-> All the comments and inputs are welcomed.
->
-> Thanks and Regards
-> Hardik Shah
->
-> =A0
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media=
-" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> of having these streamings.
 
-
-
---=20
-Hans Verkuil - video4linux developer - sponsored by TANDBERG
+Migrating to the existing mailbox driver("plat-omap/mailbox.c") is
+also another option to support multiple OMAP architectures at the same
+time. That mailbox driver has already had a message queuing feature
+inside and it's buildable on OMAP3.
 --
-To unsubscribe from this list: send the line "unsubscribe linux-media" =
-in
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
 the body of a message to majordomo@vger.kernel.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
