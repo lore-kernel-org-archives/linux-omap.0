@@ -1,44 +1,58 @@
-From: Trilok Soni <soni.trilok@gmail.com>
-Subject: Re: Things to do after 2.6.29 gets released
-Date: Sat, 21 Mar 2009 15:40:03 +0530
-Message-ID: <5d5443650903210310o4210ae79t8f1056d680d6b336@mail.gmail.com>
-References: <20090320221230.GA29546@atomide.com>
-	 <20090320223858.GA1864@gandalf>
+From: green <greenfreedom10@gmail.com>
+Subject: Re: n810 internal mmc boot
+Date: Sat, 21 Mar 2009 13:33:55 -0600
+Message-ID: <20090321193355.GG20072@swansys>
+References: <20090228012717.GB4366@swansys>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="WIIRZ1HQ6FgrlPgb"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from wf-out-1314.google.com ([209.85.200.170]:36581 "EHLO
-	wf-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755962AbZCUKKF convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 21 Mar 2009 06:10:05 -0400
-Received: by wf-out-1314.google.com with SMTP id 29so1740963wff.4
-        for <linux-omap@vger.kernel.org>; Sat, 21 Mar 2009 03:10:03 -0700 (PDT)
-In-Reply-To: <20090320223858.GA1864@gandalf>
+Received: from mail-bw0-f169.google.com ([209.85.218.169]:38317 "EHLO
+	mail-bw0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752284AbZCUTeJ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 21 Mar 2009 15:34:09 -0400
+Received: by bwz17 with SMTP id 17so1258698bwz.37
+        for <linux-omap@vger.kernel.org>; Sat, 21 Mar 2009 12:34:06 -0700 (PDT)
+Content-Disposition: inline
+In-Reply-To: <20090228012717.GB4366@swansys>
+Content-Language: en
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: me@felipebalbi.com
-Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org
-
-Hi Felipe,
-
-> =A0drivers/input/touchscreen/tsc2005.c =A0 =A0 =A0 | =A0728 +++++++++=
-++++++
-
-We did a one round of review with mainline for this driver. Then after
-some one from Nokia sent couple of patches to linux-omap mailing list
-addressing some of the mainline comments and new features. I don't
-have time right now to test those on n810. This driver is very much
-clean and there won't be much effort to mainline this if someone is
-ready to takeup task of mainlining this.
+To: Linux-OMAP List <linux-omap@vger.kernel.org>
 
 
---=20
----Trilok Soni
-http://triloksoni.wordpress.com
-http://www.linkedin.com/in/triloksoni
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--WIIRZ1HQ6FgrlPgb
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
+
+green wrote at 2009-02-27 18:27 -0700:
+> Any news on booting n810 from internal mmc?  It hasn't worked for a while.
+
+The kernel detects the external mmc fine (for root=3D), but not the interna=
+l...=20
+I'm just wondering whether any progress is being made or expected.  Sorry i=
+f=20
+I'm being a nuisance.
+
+> I've been trying to figure out which commit to blame between=20
+> v2.6.28-omap1..cb4befa9201 but no luck: git is still rather new to me.
+>=20
+> Any tips how to successfully perform a bisect with these crazy-big merges=
+? =20
+> Commits in the linux merge won't build/work.
+
+--WIIRZ1HQ6FgrlPgb
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.9 (GNU/Linux)
+
+iEYEARECAAYFAknFQSIACgkQ682C+dBP+oTffQCfU/lQfgNmxVq9SH2cCmQtnktT
+0aMAn2I2ILaSLD6bfXFfMDHKqjjZsxEY
+=0Ooo
+-----END PGP SIGNATURE-----
+
+--WIIRZ1HQ6FgrlPgb--
