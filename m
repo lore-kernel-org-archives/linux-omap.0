@@ -1,58 +1,53 @@
-From: green <greenfreedom10@gmail.com>
-Subject: Re: n810 internal mmc boot
-Date: Sat, 21 Mar 2009 13:33:55 -0600
-Message-ID: <20090321193355.GG20072@swansys>
-References: <20090228012717.GB4366@swansys>
+From: Pierre Ossman <drzeus-mmc@drzeus.cx>
+Subject: Re: [PATCH 8/10] OMAP: HSMMC: Make driver support dynamic idle
+Date: Sun, 22 Mar 2009 15:30:19 +0100
+Message-ID: <20090322153019.2ae32458@mjolnir.ossman.eu>
+References: <20090312162252.19421.34019.sendpatchset@ahunter-laptop>
+	<20090312162346.19421.90213.sendpatchset@ahunter-laptop>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="WIIRZ1HQ6FgrlPgb"
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-bw0-f169.google.com ([209.85.218.169]:38317 "EHLO
-	mail-bw0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752284AbZCUTeJ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 21 Mar 2009 15:34:09 -0400
-Received: by bwz17 with SMTP id 17so1258698bwz.37
-        for <linux-omap@vger.kernel.org>; Sat, 21 Mar 2009 12:34:06 -0700 (PDT)
-Content-Disposition: inline
-In-Reply-To: <20090228012717.GB4366@swansys>
-Content-Language: en
+Received: from 82-117-125-11.tcdsl.calypso.net ([82.117.125.11]:39312 "EHLO
+	smtp.ossman.eu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752032AbZCVOa0 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Sun, 22 Mar 2009 10:30:26 -0400
+In-Reply-To: <20090312162346.19421.90213.sendpatchset@ahunter-laptop>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Linux-OMAP List <linux-omap@vger.kernel.org>
+Cc: Jarkko Lavinen <jarkko.lavinen@nokia.com>, Adrian Hunter <adrian.hunter@nokia.com>, Grazvydas Ignotas <notasas@gmail.com>, David Brownell <david-b@pacbell.net>, linux-omap Mailing List <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, lkml <linux-kernel@vger.kernel.org>
 
+On Thu, 12 Mar 2009 18:23:46 +0200
+Adrian Hunter <adrian.hunter@nokia.com> wrote:
 
---WIIRZ1HQ6FgrlPgb
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+> From 47b6de0fcfeb5948199dbed941847580bedc5315 Mon Sep 17 00:00:00 2001
+> From: Amit Kucheria <amit.kucheria@verdurent.com>
+> Date: Thu, 12 Mar 2009 15:47:39 +0200
+> Subject: [PATCH] OMAP: HSMMC: Make driver support dynamic idle
+> 
+> Add a timer that is kept active by MMC requests. FCLK is disabled on
+> timeout.
+> 
+> Signed-off-by: Amit Kucheria <amit.kucheria@verdurent.com>
+> Signed-off-by: Jarkko Lavinen <jarkko.lavinen@nokia.com>
+> Signed-off-by: Adrian Hunter <adrian.hunter@nokia.com>
+> ---
 
-green wrote at 2009-02-27 18:27 -0700:
-> Any news on booting n810 from internal mmc?  It hasn't worked for a while.
+NAK. This should be implemented in the core where we get a consistent
+behaviour across all hosts. The principle with a timeout is sound
+though.
 
-The kernel detects the external mmc fine (for root=3D), but not the interna=
-l...=20
-I'm just wondering whether any progress is being made or expected.  Sorry i=
-f=20
-I'm being a nuisance.
+As for the current state of the driver, stop fiddling with the clock
+when it isn't necessary.
 
-> I've been trying to figure out which commit to blame between=20
-> v2.6.28-omap1..cb4befa9201 but no luck: git is still rather new to me.
->=20
-> Any tips how to successfully perform a bisect with these crazy-big merges=
-? =20
-> Commits in the linux merge won't build/work.
+Rgds
+-- 
+     -- Pierre Ossman
 
---WIIRZ1HQ6FgrlPgb
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-Content-Disposition: inline
+  Linux kernel, MMC maintainer        http://www.kernel.org
+  rdesktop, core developer          http://www.rdesktop.org
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.9 (GNU/Linux)
-
-iEYEARECAAYFAknFQSIACgkQ682C+dBP+oTffQCfU/lQfgNmxVq9SH2cCmQtnktT
-0aMAn2I2ILaSLD6bfXFfMDHKqjjZsxEY
-=0Ooo
------END PGP SIGNATURE-----
-
---WIIRZ1HQ6FgrlPgb--
+  WARNING: This correspondence is being monitored by the
+  Swedish government. Make sure your server uses encryption
+  for SMTP traffic and consider using PGP for end-to-end
+  encryption.
