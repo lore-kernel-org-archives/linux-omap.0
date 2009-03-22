@@ -1,37 +1,50 @@
-From: Peter Barada <peterb@logicpd.com>
-Subject: Problems with 2.6.29-rc8 and SDRAM on LDP
-Date: Sun, 22 Mar 2009 12:41:21 -0400
-Message-ID: <1237740082.23022.9.camel@blackhole>
+From: Samuel Ortiz <sameo@openedhand.com>
+Subject: Re: [patch] twl4030-regulator: expose VPLL2
+Date: Sun, 22 Mar 2009 20:19:35 +0100
+Message-ID: <20090322191935.GB2832@sortiz.org>
+References: <200903131754.54997.david-b@pacbell.net> <20090316155103.GJ16539@sirena.org.uk> <1237486426.6781.345.camel@vega.slimlogic.co.uk>
+Reply-To: Samuel Ortiz <sameo@openedhand.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail.logicpd.com ([66.162.60.3]:56992 "EHLO smtp.logicpd.com"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1752844AbZCVQlY (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Sun, 22 Mar 2009 12:41:24 -0400
+Received: from mga05.intel.com ([192.55.52.89]:30386 "EHLO
+	fmsmga101.fm.intel.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1754587AbZCVTR0 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 22 Mar 2009 15:17:26 -0400
+Content-Disposition: inline
+In-Reply-To: <1237486426.6781.345.camel@vega.slimlogic.co.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Liam Girdwood <lrg@slimlogic.co.uk>
+Cc: dbrownell@users.sourceforge.net, OMAP <linux-omap@vger.kernel.org>, lkml <linux-kernel@vger.kernel.org>, Mark Brown <broonie@sirena.org.uk>
 
-I'm basing a port of 2.6.29-rc8 (khilmans's PM branch) off of the LDP
-configuration, and in arch/arm/mach-omap2/board-ldp, the call to
-init_common_hw passes in four NULLs which cause the kernel to oops on
-startup in omap2_sdrc_get_params, most likely because there is no
-sdrc_params for it to sift through.
+On Thu, Mar 19, 2009 at 06:13:46PM +0000, Liam Girdwood wrote:
+> On Mon, 2009-03-16 at 15:51 +0000, Mark Brown wrote:
+> > On Fri, Mar 13, 2009 at 05:54:54PM -0700, David Brownell wrote:
+> > > From: David Brownell <dbrownell@users.sourceforge.net>
+> > > 
+> > > Add VPLL2 to the set of twl4030-family regulators exposed for
+> > > use by various drivers.  It's commonly used to power the digital
+> > > video outputs (e.g. LCD or DVI displays) on OMAP3 systems.
+> > > 
+> > > Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
+> > 
+> > Acked-by: Mark Brown <broonie@opensource.wolfsonmicro.com>
+> 
+> Samuel, I've applied this to the regulator tree as the part that touches
+> mfd is relatively minor and twl4030 specific (doesn't touch core).
+Thanks a lot, and sorry for the late reply...
+Feel free to add my Acked-by: if needed.
 
-I tried to use the mt46j32m32lfc_sdrc_params(as in omap3beagle.c), but
-that dies after the message "Reprogramming the SDRC" with a unhandled
-fault, but no traceback.  I think this may be due to the OMAP2520LV SOM
-board I'm using has a MT29C2G24MAKLAJG-6 IT instead of the MT46J32M32LFC
-part, and SDRAM is all mucked up.
+Cheers,
+Samuel.
 
-I assume that I have to create a sdram-mt29c262maklajg.h file that
-contains the sdrc_params to use, but can anyone explain the differences
-between the 5 entries in the array it would contain?  I know they are
-tied to OPP levels, but "rate" seems to go down as the OPP level goes
-up.  This doesn't make sense to me as I'd expect the rate to go up with
-OPP level.  What am I missing?
+ 
+> Thanks
+> 
+> Liam
+> 
 
 -- 
-Peter Barada <peterb@logicpd.com>
+Intel Open Source Technology Centre
+http://oss.intel.com/
