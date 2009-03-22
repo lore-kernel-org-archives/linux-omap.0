@@ -1,38 +1,37 @@
-From: Pierre Ossman <drzeus-mmc@drzeus.cx>
-Subject: Re: [PATCH 0/10] omap_hsmmc patches
-Date: Sun, 22 Mar 2009 15:31:44 +0100
-Message-ID: <20090322153144.7c710ea7@mjolnir.ossman.eu>
-References: <20090312162252.19421.34019.sendpatchset@ahunter-laptop>
+From: Peter Barada <peterb@logicpd.com>
+Subject: Problems with 2.6.29-rc8 and SDRAM on LDP
+Date: Sun, 22 Mar 2009 12:41:21 -0400
+Message-ID: <1237740082.23022.9.camel@blackhole>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from 82-117-125-11.tcdsl.calypso.net ([82.117.125.11]:35126 "EHLO
-	smtp.ossman.eu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751752AbZCVObv (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Sun, 22 Mar 2009 10:31:51 -0400
-In-Reply-To: <20090312162252.19421.34019.sendpatchset@ahunter-laptop>
+Received: from mail.logicpd.com ([66.162.60.3]:56992 "EHLO smtp.logicpd.com"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1752844AbZCVQlY (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Sun, 22 Mar 2009 12:41:24 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-Cc: Jarkko Lavinen <jarkko.lavinen@nokia.com>, Adrian Hunter <adrian.hunter@nokia.com>, Grazvydas Ignotas <notasas@gmail.com>, David Brownell <david-b@pacbell.net>, linux-omap Mailing List <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, lkml <linux-kernel@vger.kernel.org>
+To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Thu, 12 Mar 2009 18:22:52 +0200
-Adrian Hunter <adrian.hunter@nokia.com> wrote:
+I'm basing a port of 2.6.29-rc8 (khilmans's PM branch) off of the LDP
+configuration, and in arch/arm/mach-omap2/board-ldp, the call to
+init_common_hw passes in four NULLs which cause the kernel to oops on
+startup in omap2_sdrc_get_params, most likely because there is no
+sdrc_params for it to sift through.
 
-> Here are 10 patches for omap_hsmmc.
-> 
-> They apply to the 'next' branch of Pierre Ossman's mmc tree.
+I tried to use the mt46j32m32lfc_sdrc_params(as in omap3beagle.c), but
+that dies after the message "Reprogramming the SDRC" with a unhandled
+fault, but no traceback.  I think this may be due to the OMAP2520LV SOM
+board I'm using has a MT29C2G24MAKLAJG-6 IT instead of the MT46J32M32LFC
+part, and SDRAM is all mucked up.
 
-Queued everything except patch 8, thanks.
+I assume that I have to create a sdram-mt29c262maklajg.h file that
+contains the sdrc_params to use, but can anyone explain the differences
+between the 5 entries in the array it would contain?  I know they are
+tied to OPP levels, but "rate" seems to go down as the OPP level goes
+up.  This doesn't make sense to me as I'd expect the rate to go up with
+OPP level.  What am I missing?
 
-Rgds
 -- 
-     -- Pierre Ossman
-
-  Linux kernel, MMC maintainer        http://www.kernel.org
-  rdesktop, core developer          http://www.rdesktop.org
-
-  WARNING: This correspondence is being monitored by the
-  Swedish government. Make sure your server uses encryption
-  for SMTP traffic and consider using PGP for end-to-end
-  encryption.
+Peter Barada <peterb@logicpd.com>
