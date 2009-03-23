@@ -1,50 +1,63 @@
-From: Samuel Ortiz <sameo@openedhand.com>
-Subject: Re: [patch] twl4030-regulator: expose VPLL2
-Date: Sun, 22 Mar 2009 20:19:35 +0100
-Message-ID: <20090322191935.GB2832@sortiz.org>
-References: <200903131754.54997.david-b@pacbell.net> <20090316155103.GJ16539@sirena.org.uk> <1237486426.6781.345.camel@vega.slimlogic.co.uk>
-Reply-To: Samuel Ortiz <sameo@openedhand.com>
+From: Kim Kyuwon <chammoru@gmail.com>
+Subject: Re: [PATCH] OMAP3 clock: Access only available clock bits
+Date: Mon, 23 Mar 2009 10:23:31 +0900
+Message-ID: <4d34a0a70903221823o40bcc347y433447664571c2c6@mail.gmail.com>
+References: <4d34a0a70903192015j4ea44b1fn4f7bb045da32d218@mail.gmail.com>
+	<alpine.DEB.2.00.0903201523220.4676@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mga05.intel.com ([192.55.52.89]:30386 "EHLO
-	fmsmga101.fm.intel.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1754587AbZCVTR0 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 22 Mar 2009 15:17:26 -0400
-Content-Disposition: inline
-In-Reply-To: <1237486426.6781.345.camel@vega.slimlogic.co.uk>
+Received: from mail-gx0-f163.google.com ([209.85.217.163]:44117 "EHLO
+	mail-gx0-f163.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753553AbZCWBXv (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 22 Mar 2009 21:23:51 -0400
+Received: by gxk7 with SMTP id 7so1925822gxk.13
+        for <linux-omap@vger.kernel.org>; Sun, 22 Mar 2009 18:23:47 -0700 (PDT)
+In-Reply-To: <alpine.DEB.2.00.0903201523220.4676@utopia.booyaka.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Liam Girdwood <lrg@slimlogic.co.uk>
-Cc: dbrownell@users.sourceforge.net, OMAP <linux-omap@vger.kernel.org>, lkml <linux-kernel@vger.kernel.org>, Mark Brown <broonie@sirena.org.uk>
+To: Paul Walmsley <paul@pwsan.com>
+Cc: OMAP <linux-omap@vger.kernel.org>, Kevin Hilman <khilman@deeprootsystems.com>, kyungmin.park@samsung.com, Tony Lindgren <tony@atomide.com>, bhmin@samsung.com
 
-On Thu, Mar 19, 2009 at 06:13:46PM +0000, Liam Girdwood wrote:
-> On Mon, 2009-03-16 at 15:51 +0000, Mark Brown wrote:
-> > On Fri, Mar 13, 2009 at 05:54:54PM -0700, David Brownell wrote:
-> > > From: David Brownell <dbrownell@users.sourceforge.net>
-> > > 
-> > > Add VPLL2 to the set of twl4030-family regulators exposed for
-> > > use by various drivers.  It's commonly used to power the digital
-> > > video outputs (e.g. LCD or DVI displays) on OMAP3 systems.
-> > > 
-> > > Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
-> > 
-> > Acked-by: Mark Brown <broonie@opensource.wolfsonmicro.com>
-> 
-> Samuel, I've applied this to the regulator tree as the part that touches
-> mfd is relatively minor and twl4030 specific (doesn't touch core).
-Thanks a lot, and sorry for the late reply...
-Feel free to add my Acked-by: if needed.
+Hi Paul,
 
-Cheers,
-Samuel.
+On Sat, Mar 21, 2009 at 6:48 AM, Paul Walmsley <paul@pwsan.com> wrote:
+> Hello Kyuwon,
+>
+> On Fri, 20 Mar 2009, Kim Kyuwon wrote:
+>
+>> I found a problem on PM Branch with OMAP3430 ES3.1 Board when enabling
+>> OMAP_RESET_CLOCKS feature.
+>> In clk_disable_unsed() function, as soon as sad2d_ick is disabled,
+>> prcm interrupt is generated and its handler can't exit loop at next
+>> statement!
+>>
+>> while (prm_read_mod_reg(OCP_MOD, OMAP2_PRM_IRQSTATUS_MPU_OFFSET));
+>
+> We encountered a similar problem a few months ago.  The problem is
+> probably the pad mux settings on the d2d_mstdby and d2d_swakeup pads.
+> These are usually configured by the bootloader.  My recollection is that
+> they should be pulled up, but I don't recall for sure.  Yes, we should
+> have a patch in the PM branch to at least detect whether these pads are
+> configured incorrectly...
 
- 
-> Thanks
-> 
-> Liam
-> 
+Thank you for letting me know the better solution. I confirmed that
+this problem can be fixed by configuring the d2d_mstdby and
+d2d_swakeup pads. (As you said, swakeup -> pulled down & mstdby ->
+pulled up.)
 
--- 
-Intel Open Source Technology Centre
-http://oss.intel.com/
+>> I also found that sad2d_ick is available only OMAP3430 ES1. I fixed
+>> this problem with below patch.
+>
+> Thanks for your patch, but, sad2d_ick is indeed present on ES2+. TI
+> removed the documenation from the main TRM and moved it to the "OMAP34xx
+> Stacked Mode Addendum" (SWCU048).  Ill-advised, in my opinion!
+>
+
+I have only the "OMAP34xx ES3.0 Stacked Mode Addendum" and I can see
+EN_SAD2D is available in this document. ES3.1 is maybe same.
+I think this patch is not needed anymore. Thank you so much for your help!
+
+Regards,
+Kyuwon
