@@ -1,73 +1,35 @@
-From: Ameya Palande <2ameya@gmail.com>
-Subject: Re: tidspbridge git repository
-Date: Mon, 23 Mar 2009 09:58:05 +0200
-Message-ID: <269694c00903230058j1f25d94btb95101890ba286c3@mail.gmail.com>
+From: "Menon, Nishanth" <nm@ti.com>
+Subject: RE: tidspbridge git repository
+Date: Mon, 23 Mar 2009 03:55:41 -0500
+Message-ID: <7A436F7769CA33409C6B44B358BFFF0CFF6C9BA1@dlee02.ent.ti.com>
 References: <DDE834F1D8D96540B7373DFF675BF56C110F2E19F0@NOK-EUMSG-03.mgdnok.nokia.com>
 	 <7A436F7769CA33409C6B44B358BFFF0CFF6C9B99@dlee02.ent.ti.com>
+ <269694c00903230058j1f25d94btb95101890ba286c3@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-bw0-f169.google.com ([209.85.218.169]:53674 "EHLO
-	mail-bw0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752043AbZCWH6I convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 23 Mar 2009 03:58:08 -0400
-Received: by bwz17 with SMTP id 17so1625040bwz.37
-        for <linux-omap@vger.kernel.org>; Mon, 23 Mar 2009 00:58:05 -0700 (PDT)
-In-Reply-To: <7A436F7769CA33409C6B44B358BFFF0CFF6C9B99@dlee02.ent.ti.com>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:59842 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756833AbZCWI4A (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 23 Mar 2009 04:56:00 -0400
+In-Reply-To: <269694c00903230058j1f25d94btb95101890ba286c3@mail.gmail.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Menon, Nishanth" <nm@ti.com>
+To: Ameya Palande <2ameya@gmail.com>
 Cc: "ameya.palande@nokia.com" <ameya.palande@nokia.com>, "tony@atomide.com" <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "hiroshi.doyu@nokia.com" <hiroshi.doyu@nokia.com>, Kevin Hilman <khilman@deeprootsystems.com>
 
-On Mon, Mar 23, 2009 at 9:44 AM, Menon, Nishanth <nm@ti.com> wrote:
->> -----Original Message-----
->> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
->> owner@vger.kernel.org] On Behalf Of ameya.palande@nokia.com
->> Sent: Monday, March 23, 2009 9:42 AM
->> To: tony@atomide.com
->> Cc: linux-omap@vger.kernel.org; hiroshi.doyu@nokia.com
->> Subject: tidspbridge git repository
->>
->> I have collected latest patches for tidspbridge at:
->> git://gitorious.org/tidspbridge/mainline.git
->>
->> Branch is: tidspbridge
->>
->> It is based on your pm branch.
-> Is'nt the old PM branch moved to Kevin's tree[1]?
-> Regards,
-> Nishanth Menon
-> Ref:
-> [1] http://git.kernel.org/?p=3Dlinux/kernel/git/khilman/linux-omap-pm=
-=2Egit;a=3Dshortlog;h=3Dpm-2.6.28
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap"=
- in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at =C2=A0http://vger.kernel.org/majordomo-info.ht=
-ml
->
-
-When I try to fetch pm-2.6.28 from Kevin's tree I always get
-following error:
-
-error: Unable to find 58d4e18530da1ca4020c1046709b7d8cdadc639c under
-http://www.kernel.org/pub/scm/linux/kernel/git/khilman/linux-omap-pm.gi=
-t
-Cannot obtain needed blob 58d4e18530da1ca4020c1046709b7d8cdadc639c
-while processing commit a0c296df7fc41bd1e3f209c1bece0ba2ec30bc81.
-fatal: Fetch failed.
-
-Command string:
-git fetch http://www.kernel.org/pub/scm/linux/kernel/git/khilman/linux-=
-omap-pm.git
-pm-2.6.28:pm-2.6.28
-
-Cheers,
-Ameya.
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+DQo+IC0tLS0tT3JpZ2luYWwgTWVzc2FnZS0tLS0tDQo+IEZyb206IEFtZXlhIFBhbGFuZGUgW21h
+aWx0bzoyYW1leWFAZ21haWwuY29tXQ0KPiBTZW50OiBNb25kYXksIE1hcmNoIDIzLCAyMDA5IDk6
+NTggQU0NCj4gDQo+IFdoZW4gSSB0cnkgdG8gZmV0Y2ggcG0tMi42LjI4IGZyb20gS2V2aW4ncyB0
+cmVlIEkgYWx3YXlzIGdldA0KPiBmb2xsb3dpbmcgZXJyb3I6DQo+IA0KPiBlcnJvcjogVW5hYmxl
+IHRvIGZpbmQgNThkNGUxODUzMGRhMWNhNDAyMGMxMDQ2NzA5YjdkOGNkYWRjNjM5YyB1bmRlcg0K
+PiBodHRwOi8vd3d3Lmtlcm5lbC5vcmcvcHViL3NjbS9saW51eC9rZXJuZWwvZ2l0L2toaWxtYW4v
+bGludXgtb21hcC1wbS5naXQNCj4gQ2Fubm90IG9idGFpbiBuZWVkZWQgYmxvYiA1OGQ0ZTE4NTMw
+ZGExY2E0MDIwYzEwNDY3MDliN2Q4Y2RhZGM2MzljDQo+IHdoaWxlIHByb2Nlc3NpbmcgY29tbWl0
+IGEwYzI5NmRmN2ZjNDFiZDFlM2YyMDljMWJlY2UwYmEyZWMzMGJjODEuDQo+IGZhdGFsOiBGZXRj
+aCBmYWlsZWQuDQo+IA0KPiBDb21tYW5kIHN0cmluZzoNCj4gZ2l0IGZldGNoIGh0dHA6Ly93d3cu
+a2VybmVsLm9yZy9wdWIvc2NtL2xpbnV4L2tlcm5lbC9naXQva2hpbG1hbi9saW51eC0NCj4gb21h
+cC1wbS5naXQNCj4gcG0tMi42LjI4OnBtLTIuNi4yOA0KPiANCkdpdCBwcm90b2NvbCB3b3Jrcy4u
+LiBodHRwIHNlZW1zIGJyb2tlbi4uDQoNCg0KUmVnYXJkcywNCk5pc2hhbnRoIE1lbm9uDQo=
