@@ -1,43 +1,46 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: RE: [PATCH 1/1] Export notifier register functions for kernel module
- building
-Date: Tue, 24 Mar 2009 03:48:36 -0600 (MDT)
-Message-ID: <alpine.DEB.2.00.0903240347180.8255@utopia.booyaka.com>
-References: <EAF47CD23C76F840A9E7FCE10091EFAB02A9315C6F@dbde02.ent.ti.com>
+From: Ameya Palande <2ameya@gmail.com>
+Subject: Re: [PATCH] [OMAPZOOM]DSPBRIDGE bug in Bridge exit cleanup
+Date: Tue, 24 Mar 2009 12:04:54 +0200
+Message-ID: <269694c00903240304y69f43451lb260951167fe64af@mail.gmail.com>
+References: <Acmr6BM18BJBh1pxS8i5e+utnLzXGw==>
+	 <8F7AF80515AF0D4D93307E594F3CB40E2342BE9F@dlee03.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:54750 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758840AbZCXJsj (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 24 Mar 2009 05:48:39 -0400
-In-Reply-To: <EAF47CD23C76F840A9E7FCE10091EFAB02A9315C6F@dbde02.ent.ti.com>
+Received: from mail-fx0-f158.google.com ([209.85.220.158]:48070 "EHLO
+	mail-fx0-f158.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754434AbZCXKE5 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 24 Mar 2009 06:04:57 -0400
+Received: by fxm2 with SMTP id 2so2182867fxm.37
+        for <linux-omap@vger.kernel.org>; Tue, 24 Mar 2009 03:04:54 -0700 (PDT)
+In-Reply-To: <8F7AF80515AF0D4D93307E594F3CB40E2342BE9F@dlee03.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Gupta, Ramesh" <grgupta@ti.com>
-Cc: Kevin Hilman <khilman@deeprootsystems.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Kanigeri, Hari" <h-kanigeri2@ti.com>
+To: "Kanigeri, Hari" <h-kanigeri2@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Tue, 24 Mar 2009, Gupta, Ramesh wrote:
+Hi Hari,
 
-> > -----Original Message-----
-> > From: Paul Walmsley [mailto:paul@pwsan.com] 
-> > 
-> > DSPBridge and 
-> > other drivers needing clock notifiers should pass function pointers to
-> > clk_notifier_{register,unregister}() in their struct 
-> > platform_data, rather than exporting those symbols.  This 
-> > will keep the drivers platform-agnostic, since system-wide 
-> > clock notifiers are not yet upstream.
-> 
-> I agree on this, I think the latest patch set from Rajendra Naik([1]) 
-> removes the EXPORT_SYMBOL for the clk notifier functions.
-> 
-> We will send a patch to dspbridge sources to adopt these changes.
-> 
-> Please let me know your comments.
+On Mon, Mar 23, 2009 at 8:49 PM, Kanigeri, Hari <h-kanigeri2@ti.com> wr=
+ote:
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0DRV_RemoveProc=
+Context((struct DRV_OBJECT *)hDrvObject,
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
+ =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 pCtxtclosed, (=
+void *)pCtxtclosed->pid);
 
-Sounds good to me.
+I am trying to understand this patch.
+I see that pCtxtclosed is passed to DRV_RemoveProcContext() function
+but it is not used anywhere inside it. I was expecting to see a
+statement there which should free its memory.
 
-regards,
+Any pointers?
 
-- Paul
+Cheers,
+Ameya.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
