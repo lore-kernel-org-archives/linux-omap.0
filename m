@@ -1,63 +1,73 @@
-From: "Aggarwal, Anuj" <anuj.aggarwal@ti.com>
-Subject: RE: How to test regulator driver?
-Date: Tue, 24 Mar 2009 17:14:58 +0530
-Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB02FAFEEA01@dbde02.ent.ti.com>
-References: <20090309153250.GF13593@sirena.org.uk>
+From: "Kanigeri, Hari" <h-kanigeri2@ti.com>
+Subject: RE: [PATCH] [OMAPZOOM]DSPBRIDGE bug in Bridge exit cleanup
+Date: Tue, 24 Mar 2009 06:48:11 -0500
+Message-ID: <8F7AF80515AF0D4D93307E594F3CB40E2349A31B@dlee03.ent.ti.com>
+References: <Acmr6BM18BJBh1pxS8i5e+utnLzXGw==>
+	 <8F7AF80515AF0D4D93307E594F3CB40E2342BE9F@dlee03.ent.ti.com>
+ <269694c00903240304y69f43451lb260951167fe64af@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:54369 "EHLO bear.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:60491 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1759262AbZCXLpS convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 24 Mar 2009 07:45:18 -0400
-In-Reply-To: <20090309153250.GF13593@sirena.org.uk>
+	id S1752821AbZCXLsU convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 24 Mar 2009 07:48:20 -0400
+In-Reply-To: <269694c00903240304y69f43451lb260951167fe64af@mail.gmail.com>
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Mark Brown <broonie@sirena.org.uk>
-Cc: Linux OMAP List <linux-omap@vger.kernel.org>, "Pillai, Manikandan" <mani.pillai@ti.com>
+To: Ameya Palande <2ameya@gmail.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-I am seriously confused on how to fetch the struct device * in my consumer driver, for an already registered regulator. I am planning to use this consumer driver as a part of my CPU freq/CPU idle framework but I don't know what to pass in regulator_get.
+Hi Amey,
 
-Should I register my regulator device as a platform_device as against an i2c_client device what I am having now? Other regulator drivers (drivers/regulator/twl4030-regulator.c, wm8400.c etc) are doing the same thing in their code. Using the current approach, I am facing difficulty in getting the struct device * for invoking the regulator_get()?
+> I am trying to understand this patch.
+> I see that pCtxtclosed is passed to DRV_RemoveProcContext() function
+> but it is not used anywhere inside it. I was expecting to see a
+> statement there which should free its memory.
 
-Otherwise, can I expose one function in my regulator driver which will return the appropriate struct device * when user calls it with a supply name string? This device pointer then will be used in my consumer driver while calling the regulator_get API?
+This pointer is getting freed indirectly through the pCtxt2 pointer. Th=
+e call to the function "DRV_GetProcContext((u32)hProcess, hDRVObject, &=
+pCtxt2, NULL, 0)" returns pCtxt2, which is same as pCtxtclosed that is =
+passed to this function.
+In a way, the call to DRV_GetProcContext is kind of redundant, but I th=
+ink it is present here to provide the support to extract the Process Co=
+ntext when only the PID is passed in.=20
 
-Thanks and Regards,
-Anuj Aggarwal
- 
-Platform Support Products
-Texas Instruments Inc
-Ph: +91-80-2509-9542
-TI IP Ph: 509-9542
-PSP Products RSS Feed PSP Product Announcements
- 
+Thank you,
+Best regards,
+Hari
+
 > -----Original Message-----
-> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
-> owner@vger.kernel.org] On Behalf Of Mark Brown
-> Sent: Monday, March 09, 2009 9:03 PM
-> To: Anuj Aggarwal
-> Cc: Linux OMAP List
-> Subject: Re: How to test regulator driver?
-> 
-> On Mon, Mar 09, 2009 at 08:32:55PM +0530, Anuj Aggarwal wrote:
-> 
-> > I want to test my regulator driver by writing a small kernel module.
-> > But I am a little confused as what should be passed as the first
-> > argument of regulator_get(). How would the kernel module know about
-> > the device pointer that needs to be passed to the _get function?
-> 
-> regulator_get() takes the struct device for the consumer as an argument
-> so it depends on what your consumer is.  For test purposes there's an
-> existing virtual consumer driver in the tree which should hopefully save
-> you having to write your own - it allows you to poke the settings from
-> sysfs.  drivers/regulator/virtual.c
-> 
-> Questions like this that aren't OMAP-specific should really be asked on
-> the relevant general list (in this case linux-kernel).
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> From: Ameya Palande [mailto:2ameya@gmail.com]
+> Sent: Tuesday, March 24, 2009 5:05 AM
+> To: Kanigeri, Hari
+> Cc: linux-omap@vger.kernel.org
+> Subject: Re: [PATCH] [OMAPZOOM]DSPBRIDGE bug in Bridge exit cleanup
+>=20
+> Hi Hari,
+>=20
+> On Mon, Mar 23, 2009 at 8:49 PM, Kanigeri, Hari <h-kanigeri2@ti.com>
+> wrote:
+> > =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0DRV_RemoveProcContext((struct DRV_OB=
+JECT *)hDrvObject,
+> > =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 pCtxtclosed, (void *)pCtxtclosed-
+> >pid);
+>=20
+> I am trying to understand this patch.
+> I see that pCtxtclosed is passed to DRV_RemoveProcContext() function
+> but it is not used anywhere inside it. I was expecting to see a
+> statement there which should free its memory.
+>=20
+> Any pointers?
+>=20
+> Cheers,
+> Ameya.
 
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
