@@ -1,46 +1,182 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH 00/08] OMAP3: SR: Fixes in Smartreflex driver - Resending
-Date: Tue, 24 Mar 2009 09:13:16 -0700
-Message-ID: <87ab7a292b.fsf@deeprootsystems.com>
-References: <5A47E75E594F054BAF48C5E4FC4B92AB02FAFEE9A9@dbde02.ent.ti.com>
+From: Peter Barada <peterb@logicpd.com>
+Subject: Re: PM branch rebased to 2.6.29
+Date: Tue, 24 Mar 2009 13:10:11 -0400
+Message-ID: <1237914611.23022.124.camel@blackhole>
+References: <87bprz9zju.fsf@deeprootsystems.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-qy0-f118.google.com ([209.85.221.118]:60987 "EHLO
-	mail-qy0-f118.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1762758AbZCXQNY (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 24 Mar 2009 12:13:24 -0400
-Received: by qyk16 with SMTP id 16so3394775qyk.33
-        for <linux-omap@vger.kernel.org>; Tue, 24 Mar 2009 09:13:19 -0700 (PDT)
-In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB02FAFEE9A9@dbde02.ent.ti.com> (Teerth Reddy's message of "Tue\, 24 Mar 2009 16\:22\:05 +0530")
+Received: from mail.logicpd.com ([66.162.60.3]:19999 "EHLO smtp.logicpd.com"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1757126AbZCXRKO (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 24 Mar 2009 13:10:14 -0400
+In-Reply-To: <87bprz9zju.fsf@deeprootsystems.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Reddy, Teerth" <teerth@ti.com>, Rajendra Nayak <rnayak@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Kevin Hilman <khilman@deeprootsystems.com>
+Cc: linux-omap@vger.kernel.org
 
-"Reddy, Teerth" <teerth@ti.com> writes:
+On Tue, 2009-03-17 at 22:21 -0700, Kevin Hilman wrote:
+> FYI... 
+> 
+> The PM branch has now been rebased to today's linux-omap HEAD which is
+> based on v2.6.29-rc8.  The previous PM branch has been renamed to
+> pm-2.6.28.  Depending on when you look, Tony's linux-omap tree may not
+> (yet) have the latest PM branch.  If not, you can use my PM tree[1]
+> directly.  Also, pm-2.6.28 will only be available on my tree.
+> 
+> Tested on OMAP3 Beagle and RX51 and was able to hit RET and OFF in
+> suspend and in PM idle with minimal kernel.  No testing yet done for
+> CPUidle or DVFS.  Please test on your hardware and submit results to
+> the list.  Thanks.
 
-> Resending the patches sent by Rajendra after fixing Kevin's comments and cleanup.
->
-> This series fixes a set of defects/issues in Smartreflex driver. SR autocompensation is now functional and is validated with these patches on a ES3.1 based SDP with the N values in Efuse.
->
-> Patches apply on top of the pm-2.6.28 branch from Kevin's pm tree.
-> git://git.kernel.org/pub/scm/linux/kernel/git/khilman/linux-omap-pm.git 
->
+Kevin,  did you build/test with
+the /arc/arm/config/omap3_beagle_defconfig, and
+arc/arm/configs/rx51_defconfig or some other config(could you send it to
+me if it isn't in the PM tree)?  I'm trying to bring up your PM branch
+on my OMAP3530_LV_SOM, using LDP as a starting point, and it goes into
+retention but doesn't come back out, and rather than thrash on the LDP
+defconfig, start with a config/code that is known to work.  I'm also
+resnapping to commit c3127068... to jump to the latest from your tree
+and start my port over.  I have to get suspend/resume working first
+before I start working in all the drivers, and check that suspend/resume
+works for each functional addition...
 
-This series doesn't compile unless SRF is enabled which after a little
-more digging makes me see that SmartReflex is not pretty tightly
-coupled to SRF. 
+Thanks in advance!
 
-I don't think SmartReflex support need to be dependent on SRF?  It
-seems like the resource_get_level() calls should be replaced by OMAP
-PM layer calls.  In particular, resource_get_level("vdd_opp1") could
-be replaced by omap_pm_dsp_get_opp() etc.
-
-Also, one more nitpick about cleanup while we're at it:
-
-Can you convert all the bit defines (0x1 << n) into BIT(n)
-
-Kevin
-
-
+> Kevin
+> 
+> --
+> 
+> Misc. conflicts/issues resolved after rebase:
+> 
+> - no longer safe to use getnstimeofday() in suspend path since timekeeping
+>   subsystem is also suspended in the suspend path.  PM debug timing has
+>   been converted to use sched_clock() which is 32k sync-timer based.
+> 
+> - Update board-rx51.c to use common OMAP3 OPPs
+> 
+> Known issues:
+> 
+> - Beagle: MMC: off-mode needs work in MMC driver, so if you hit off
+>   and have a rootfs on MMC, you're dead.
+> 
+> - Beagle: MMC regulator: unbalanced disables.  This happens on boot
+>   and during suspend/resume. I don't think this is related to the PM
+>   branch, but is probably in linux-omap HEAD also, but didn't test.
+> 
+> Linux version 2.6.29-rc8-omap1-arm-omap3beagle-default-05653-gd803372-dirty (khilman@vence) (gcc version 4.3.2 (Sourcery G++ Lite 2008q3-66) ) #4 PREEMPT Tue Mar 17 21:38:09 PDT 2009
+> [...]
+> i2c_omap i2c_omap.1: bus 1 rev3.12 at 2600 kHz
+> twl4030: PIH (irq 7) chaining IRQs 368..375
+> twl4030: power (irq 373) chaining IRQs 376..383
+> twl4030: gpio (irq 368) chaining IRQs 384..401
+> beagle_twl_gpio_setup:145
+> twl4030_mmc_init:303
+> twl4030_mmc_init:318
+> regulator: VMMC1: 1850 <--> 3150 mV normal standby
+> regulator: VDAC: 1800 mV normal standby
+> regulator: VUSB1V5: 1500 <--> 0 mV normal standby
+> regulator: VUSB1V8: 1800 <--> 0 mV normal standby
+> regulator: VUSB3V1: 3100 <--> 0 mV normal standby
+> regulator: VSIM: 1800 <--> 3000 mV normal standby
+> [...]
+> mmci-omap-hs mmci-omap-hs.0: Failed to get debounce clock
+> ------------[ cut here ]------------
+> WARNING: at /net/home/khilman/work/kernel/omap/pm/drivers/regulator/core.c:1216 regulator_disable+0x64/0x90()
+> unbalanced disables for supply mmci-omap-hs.0-vmmc
+> Modules linked in:
+> [<c02a0830>] (dump_stack+0x0/0x14) from [<c0053af0>] (warn_slowpath+0x6c/0x88)
+> [<c0053a84>] (warn_slowpath+0x0/0x88) from [<c01b8bdc>] (regulator_disable+0x64/0x90)
+>  r3:c79dc2a0 r2:c03390cb
+>  r7:c78e8c20 r6:c78aac38 r5:c78e8c20 r4:fffffffb
+> [<c01b8b78>] (regulator_disable+0x0/0x90) from [<c0209400>] (mmc_regulator_set_ocr+0xb0/0xcc)
+>  r7:c78e8c20 r6:00000001 r5:00000000 r4:00000000
+> [<c0209350>] (mmc_regulator_set_ocr+0x0/0xcc) from [<c003abe8>] (twl_mmc1_set_power+0xc0/0xec)
+>  r7:c784f538 r6:00000000 r5:00000000 r4:c039185c
+> [<c003ab28>] (twl_mmc1_set_power+0x0/0xec) from [<c0210aa8>] (omap_mmc_set_ios+0x54/0x2b0)
+>  r7:c784f538 r6:c784f5c0 r5:c784f400 r4:c7844380
+> [<c0210a54>] (omap_mmc_set_ios+0x0/0x2b0) from [<c0208dc8>] (mmc_power_off+0x54/0x58)
+>  r7:c784f400 r6:c7910400 r5:00000000 r4:c784f400
+> [<c0208d74>] (mmc_power_off+0x0/0x58) from [<c0209074>] (mmc_start_host+0x14/0x24)
+> [<c0209060>] (mmc_start_host+0x0/0x24) from [<c020a2a0>] (mmc_add_host+0x58/0x64)
+>  r5:00000000 r4:c784f400
+> [<c020a248>] (mmc_add_host+0x0/0x64) from [<c001ec00>] (omap_mmc_probe+0x3d0/0x548)
+>  r5:c784f5c0 r4:00000000
+> [<c001e830>] (omap_mmc_probe+0x0/0x548) from [<c01dd554>] (platform_drv_probe+0x20/0x24)
+> [<c01dd534>] (platform_drv_probe+0x0/0x24) from [<c01dc740>] (driver_probe_device+0xd4/0x180)
+> [<c01dc66c>] (driver_probe_device+0x0/0x180) from [<c01dc854>] (__driver_attach+0x68/0x8c)
+>  r7:c789d140 r6:c038ada4 r5:c7910490 r4:c7910408
+> [<c01dc7ec>] (__driver_attach+0x0/0x8c) from [<c01dbf8c>] (bus_for_each_dev+0x4c/0x80)
+>  r7:c789d140 r6:c038ada4 r5:c01dc7ec r4:00000000
+> [<c01dbf40>] (bus_for_each_dev+0x0/0x80) from [<c01dc584>] (driver_attach+0x20/0x28)
+>  r6:c038ada4 r5:00000000 r4:00000000
+> [<c01dc564>] (driver_attach+0x0/0x28) from [<c01db868>] (bus_add_driver+0xa8/0x210)
+> [<c01db7c0>] (bus_add_driver+0x0/0x210) from [<c01dca78>] (driver_register+0x98/0x120)
+>  r8:00000001 r7:c001e814 r6:c038ada4 r5:00000000 r4:c0024a44
+> [<c01dc9e0>] (driver_register+0x0/0x120) from [<c01dd9fc>] (platform_driver_register+0x6c/0x88)
+>  r9:00000000 r8:00000001 r7:c001e814 r6:00000000 r5:00000000
+> r4:c0024a44
+> [<c01dd990>] (platform_driver_register+0x0/0x88) from [<c001e828>] (omap_mmc_init+0x14/0x1c)
+> [<c001e814>] (omap_mmc_init+0x0/0x1c) from [<c00292ec>] (do_one_initcall+0x5c/0x19c)
+> [<c0029290>] (do_one_initcall+0x0/0x19c) from [<c0008404>] (kernel_init+0x84/0xf8)
+>  r8:00000000 r7:00000000 r6:00000000 r5:00000000 r4:c0024a44
+> [<c0008380>] (kernel_init+0x0/0xf8) from [<c0056ea0>] (do_exit+0x0/0x764)
+>  r4:00000000
+> ---[ end trace e339700732a37a4d ]---
+> [.../
+> (none):~# echo 1 > /sys/power/clocks_off_while_idle 
+> (none):~# echo mem > /sys/power/state
+> PM: Syncing filesystems ... done.
+> Freezing user space processes ... (elapsed 0.00 seconds) done.
+> Freezing remaining freezable tasks ... (elapsed 0.00 seconds) done.
+> Suspending console(s) (use no_console_suspend to debug)
+> ------------[ cut here ]------------
+> WARNING: at /net/home/khilman/work/kernel/omap/pm/drivers/regulator/core.c:1216 regulator_disable+0x64/0x90()
+> unbalanced disables for supply mmci-omap-hs.0-vmmc
+> Modules linked in:
+> [<c02a0830>] (dump_stack+0x0/0x14) from [<c0053af0>] (warn_slowpath+0x6c/0x88)
+> [<c0053a84>] (warn_slowpath+0x0/0x88) from [<c01b8bdc>] (regulator_disable+0x64/0x90)
+>  r3:c79dc2a0 r2:c03390cb
+>  r7:c78e8c20 r6:c78aac38 r5:c78e8c20 r4:fffffffb
+> [<c01b8b78>] (regulator_disable+0x0/0x90) from [<c0209400>] (mmc_regulator_set_ocr+0xb0/0xcc)
+>  r7:c78e8c20 r6:00000001 r5:00000000 r4:00000000
+> [<c0209350>] (mmc_regulator_set_ocr+0x0/0xcc) from [<c003abe8>] (twl_mmc1_set_power+0xc0/0xec)
+>  r7:c784f538 r6:00000000 r5:00000000 r4:c039185c
+> [<c003ab28>] (twl_mmc1_set_power+0x0/0xec) from [<c0210aa8>] (omap_mmc_set_ios+0x54/0x2b0)
+>  r7:c784f538 r6:c784f5c0 r5:c784f400 r4:c7844380
+> [<c0210a54>] (omap_mmc_set_ios+0x0/0x2b0) from [<c0208dc8>] (mmc_power_off+0x54/0x58)
+>  r7:c7910490 r6:c7910400 r5:a0000013 r4:c784f400
+> [<c0208d74>] (mmc_power_off+0x0/0x58) from [<c02097e0>] (mmc_suspend_host+0x14c/0x154)
+> [<c0209694>] (mmc_suspend_host+0x0/0x154) from [<c02107e0>] (omap_mmc_suspend+0x30/0xe0)
+>  r5:c0388a74 r4:c784f5c0
+> [<c02107b0>] (omap_mmc_suspend+0x0/0xe0) from [<c01dd5d4>] (platform_drv_suspend+0x20/0x24)
+>  r7:c7910490 r6:c79104b8 r5:c0388a74 r4:c0388ba4
+> [<c01dd5b4>] (platform_drv_suspend+0x0/0x24) from [<c01dd6c4>] (platform_pm_suspend+0x50/0x5c)
+> [<c01dd674>] (platform_pm_suspend+0x0/0x5c) from [<c01df9ec>] (pm_op+0x38/0x7c)
+> [<c01df9b4>] (pm_op+0x0/0x7c) from [<c01e0150>] (device_suspend+0x350/0x480)
+>  r5:c7910408 r4:c0388ba4
+> [<c01dfe00>] (device_suspend+0x0/0x480) from [<c007d4b8>] (suspend_devices_and_enter+0x44/0x1c4)
+> [<c007d474>] (suspend_devices_and_enter+0x0/0x1c4) from [<c007d7a0>] (enter_state+0x134/0x1b8)
+>  r7:c02a5bf4 r6:00000003 r5:c031de6b r4:000072ab
+> [<c007d66c>] (enter_state+0x0/0x1b8) from [<c007d8c0>] (state_store+0x9c/0xc4)
+>  r7:c02a5bf4 r6:00000003 r5:00000003 r4:c031de6b
+> [<c007d824>] (state_store+0x0/0xc4) from [<c019329c>] (kobj_attr_store+0x20/0x24)
+> [<c019327c>] (kobj_attr_store+0x0/0x24) from [<c00f7010>] (sysfs_write_file+0x110/0x144)
+> [<c00f6f00>] (sysfs_write_file+0x0/0x144) from [<c00ac7b4>] (vfs_write+0xb8/0x148)
+> [<c00ac6fc>] (vfs_write+0x0/0x148) from [<c00ac908>] (sys_write+0x44/0x70)
+>  r7:00000004 r6:c78d3ae0 r5:00000000 r4:00000000
+> [<c00ac8c4>] (sys_write+0x0/0x70) from [<c0029e20>] (ret_fast_syscall+0x0/0x2c)
+>  r8:c0029fc8 r7:00000004 r6:401ab5e0 r5:000c3408 r4:00000004
+> ---[ end trace e339700732a37a4f ]---
+> Successfully put all powerdomains to target state
+> Restarting tasks ... done.
+> 
+> [1] http://git.kernel.org/?p=linux/kernel/git/khilman/linux-omap-pm.git;a=summary
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-- 
+Peter Barada <peterb@logicpd.com>
