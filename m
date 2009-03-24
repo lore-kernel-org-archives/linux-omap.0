@@ -1,137 +1,51 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: [PATCH] OMAP3: MMC needs CONFIG_REGULATOR{,_TWL4030} now in
- defconfigs
-Date: Tue, 24 Mar 2009 17:22:18 -0600 (MDT)
-Message-ID: <alpine.DEB.2.00.0903241716030.9924@utopia.booyaka.com>
+From: Felipe Contreras <felipe.contreras@gmail.com>
+Subject: Re: tidspbridge git repository
+Date: Wed, 25 Mar 2009 01:27:21 +0200
+Message-ID: <94a0d4530903241627w2e3a2cb5ibad2bdeee21e5a86@mail.gmail.com>
+References: <DDE834F1D8D96540B7373DFF675BF56C110F2E19F0@NOK-EUMSG-03.mgdnok.nokia.com>
+	 <20090323194711.GI29546@atomide.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:37730 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753994AbZCXXWV (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 24 Mar 2009 19:22:21 -0400
+Received: from fg-out-1718.google.com ([72.14.220.157]:37210 "EHLO
+	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751993AbZCXX1Y (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 24 Mar 2009 19:27:24 -0400
+Received: by fg-out-1718.google.com with SMTP id 16so639409fgg.17
+        for <linux-omap@vger.kernel.org>; Tue, 24 Mar 2009 16:27:21 -0700 (PDT)
+In-Reply-To: <20090323194711.GI29546@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: David Brownell <david-b@pacbell.net>
+To: Tony Lindgren <tony@atomide.com>
+Cc: ameya.palande@nokia.com, linux-omap@vger.kernel.org, hiroshi.doyu@nokia.com
 
-    
-MMC doesn't work after 3fe326511c66ab842ef0a09a1f4c564b1a8beecf unless 
-CONFIG_REGULATOR, CONFIG_REGULATOR_TWL4030 are present in the .config.  
-Add those in for all OMAP3 defconfigs.  Tested on BeagleBoard, but this is 
-presumably needed for anything with MMC and TWL4030.
-    
-Signed-off-by: Paul Walmsley <paul@pwsan.com>
-Cc: David Brownell <david-b@pacbell.net>
+On Mon, Mar 23, 2009 at 9:47 PM, Tony Lindgren <tony@atomide.com> wrote:
+> * ameya.palande@nokia.com <ameya.palande@nokia.com> [090323 00:42]:
+>> Hi Tony,
+>>
+>> I have collected latest patches for tidspbridge at:
+>> git://gitorious.org/tidspbridge/mainline.git
+>>
+>> Branch is: tidspbridge
+>>
+>> It is based on your pm branch.
+>> Can you pull it to your tidspbridge branch?
+>
+> What dependencies are there to the PM branch?
+>
+> To me it sounds like you should rebase your tidspbridge branch
+> against the mainline kernel as the drivers should be arch
+> independent.
+>
+> If something is missing from the mainline kernel to rebase and
+> compile tidspbridge against the mainline, we need to fix those
+> issues.
 
----
- arch/arm/configs/omap3_beagle_defconfig  |    3 ++-
- arch/arm/configs/omap3_evm_defconfig     |    3 ++-
- arch/arm/configs/omap3_pandora_defconfig |    3 ++-
- arch/arm/configs/omap_3430sdp_defconfig  |    3 ++-
- arch/arm/configs/omap_ldp_defconfig      |    3 ++-
- arch/arm/configs/overo_defconfig         |    2 ++
- 6 files changed, 12 insertions(+), 5 deletions(-)
+Last time I tried it worked fine, with one minor issue:
+http://github.com/felipec/linux-omap/commit/1ae534c0ab22e57dd986c50adddc83e2ec42f970
 
+Btw, it seems the 2.6.28-omap1 tag didn't have the defconfig updated.
 
-diff --git a/arch/arm/configs/omap3_beagle_defconfig b/arch/arm/configs/omap3_beagle_defconfig
-index 194eafa..aeeac33 100644
---- a/arch/arm/configs/omap3_beagle_defconfig
-+++ b/arch/arm/configs/omap3_beagle_defconfig
-@@ -1040,10 +1040,11 @@ CONFIG_RTC_DRV_TWL4030=y
- #
- # Voltage and Current regulators
- #
--# CONFIG_REGULATOR is not set
-+CONFIG_REGULATOR=y
- # CONFIG_REGULATOR_FIXED_VOLTAGE is not set
- # CONFIG_REGULATOR_VIRTUAL_CONSUMER is not set
- # CONFIG_REGULATOR_BQ24022 is not set
-+CONFIG_REGULATOR_TWL4030=y
- # CONFIG_UIO is not set
- 
- #
-diff --git a/arch/arm/configs/omap3_evm_defconfig b/arch/arm/configs/omap3_evm_defconfig
-index f276c3a..018c9e1 100644
---- a/arch/arm/configs/omap3_evm_defconfig
-+++ b/arch/arm/configs/omap3_evm_defconfig
-@@ -1098,10 +1098,11 @@ CONFIG_RTC_LIB=y
- #
- # Voltage and Current regulators
- #
--# CONFIG_REGULATOR is not set
-+CONFIG_REGULATOR=y
- # CONFIG_REGULATOR_FIXED_VOLTAGE is not set
- # CONFIG_REGULATOR_VIRTUAL_CONSUMER is not set
- # CONFIG_REGULATOR_BQ24022 is not set
-+CONFIG_REGULATOR_TWL4030=y
- # CONFIG_UIO is not set
- 
- #
-diff --git a/arch/arm/configs/omap3_pandora_defconfig b/arch/arm/configs/omap3_pandora_defconfig
-index 1c2b7a2..3c467fc 100644
---- a/arch/arm/configs/omap3_pandora_defconfig
-+++ b/arch/arm/configs/omap3_pandora_defconfig
-@@ -1156,10 +1156,11 @@ CONFIG_RTC_DRV_TWL4030=y
- #
- # Voltage and Current regulators
- #
--# CONFIG_REGULATOR is not set
-+CONFIG_REGULATOR=y
- # CONFIG_REGULATOR_FIXED_VOLTAGE is not set
- # CONFIG_REGULATOR_VIRTUAL_CONSUMER is not set
- # CONFIG_REGULATOR_BQ24022 is not set
-+CONFIG_REGULATOR_TWL4030=y
- # CONFIG_UIO is not set
- 
- #
-diff --git a/arch/arm/configs/omap_3430sdp_defconfig b/arch/arm/configs/omap_3430sdp_defconfig
-index f7b1bd6..b686f34 100644
---- a/arch/arm/configs/omap_3430sdp_defconfig
-+++ b/arch/arm/configs/omap_3430sdp_defconfig
-@@ -1165,10 +1165,11 @@ CONFIG_RTC_DRV_TWL4030=y
- #
- # Voltage and Current regulators
- #
--# CONFIG_REGULATOR is not set
-+CONFIG_REGULATOR=y
- # CONFIG_REGULATOR_FIXED_VOLTAGE is not set
- # CONFIG_REGULATOR_VIRTUAL_CONSUMER is not set
- # CONFIG_REGULATOR_BQ24022 is not set
-+CONFIG_REGULATOR_TWL4030=y
- # CONFIG_UIO is not set
- 
- #
-diff --git a/arch/arm/configs/omap_ldp_defconfig b/arch/arm/configs/omap_ldp_defconfig
-index d88e6d7..a41b844 100644
---- a/arch/arm/configs/omap_ldp_defconfig
-+++ b/arch/arm/configs/omap_ldp_defconfig
-@@ -1104,10 +1104,11 @@ CONFIG_RTC_DRV_TWL4030=y
- #
- # Voltage and Current regulators
- #
--# CONFIG_REGULATOR is not set
-+CONFIG_REGULATOR=y
- # CONFIG_REGULATOR_FIXED_VOLTAGE is not set
- # CONFIG_REGULATOR_VIRTUAL_CONSUMER is not set
- # CONFIG_REGULATOR_BQ24022 is not set
-+CONFIG_REGULATOR_TWL4030=y
- # CONFIG_UIO is not set
- 
- #
-diff --git a/arch/arm/configs/overo_defconfig b/arch/arm/configs/overo_defconfig
-index 3bdbf94..dcca647 100644
---- a/arch/arm/configs/overo_defconfig
-+++ b/arch/arm/configs/overo_defconfig
-@@ -1601,9 +1601,11 @@ CONFIG_RTC_DRV_TWL4030=y
- # Voltage and Current regulators
- #
- # CONFIG_REGULATOR is not set
-+CONFIG_REGULATOR=y
- # CONFIG_REGULATOR_FIXED_VOLTAGE is not set
- # CONFIG_REGULATOR_VIRTUAL_CONSUMER is not set
- # CONFIG_REGULATOR_BQ24022 is not set
-+CONFIG_REGULATOR_TWL4030=y
- # CONFIG_UIO is not set
- 
- #
+-- 
+Felipe Contreras
