@@ -1,117 +1,108 @@
 From: "Reddy, Teerth" <teerth@ti.com>
-Subject: [PATCH 07/08] OMAP3: SR: Remove redundunt defines
-Date: Tue, 24 Mar 2009 16:25:58 +0530
-Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB02FAFEE9B4@dbde02.ent.ti.com>
+Subject: [PATCH 08/08] OMAP3: SR: Replace SR_PASS/FAIL,SR_TRUE/FALSE with
+ standard kernel values
+Date: Tue, 24 Mar 2009 16:26:19 +0530
+Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB02FAFEE9B6@dbde02.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:52291 "EHLO bear.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:58085 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757353AbZCXK4H convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 24 Mar 2009 06:56:07 -0400
+	id S1752233AbZCXK43 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 24 Mar 2009 06:56:29 -0400
 Received: from dbdp20.itg.ti.com ([172.24.170.38])
-	by bear.ext.ti.com (8.13.7/8.13.7) with ESMTP id n2OAtxh9013286
-	for <linux-omap@vger.kernel.org>; Tue, 24 Mar 2009 05:56:05 -0500
+	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id n2OAuLJp026902
+	for <linux-omap@vger.kernel.org>; Tue, 24 Mar 2009 05:56:27 -0500
 Received: from dbde71.ent.ti.com (localhost [127.0.0.1])
-	by dbdp20.itg.ti.com (8.13.8/8.13.8) with ESMTP id n2OAtxin026632
-	for <linux-omap@vger.kernel.org>; Tue, 24 Mar 2009 16:25:59 +0530 (IST)
+	by dbdp20.itg.ti.com (8.13.8/8.13.8) with ESMTP id n2OAuLDq026714
+	for <linux-omap@vger.kernel.org>; Tue, 24 Mar 2009 16:26:21 +0530 (IST)
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
 
-From: Rajendra Nayak <rnayak@ti.com>
+From: Teerth Reddy <teerth@ti.com>
 
-This patch removes the local defines (PRCM_VDD1/2) in smartreflex
-driver and uses the already existing global definitions (VDD1_OPP/VDD2_OPP)
-from omap34xx.h file.
+This patch has some cleanup , replacing SR_PASS/FAIL,SR_TRUE/FALSE
+with standard kernel values.
 
-Signed-off-by: Rajendra Nayak <rnayak@ti.com>
-Signed-off-by: Tero Kristo <tero.kristo@nokia.com>
+Signed-off-by: Teerth Reddy <teerth@ti.com>
+
 ---
- arch/arm/mach-omap2/resource34xx.c |    6 +++---
- arch/arm/mach-omap2/smartreflex.c  |    8 ++++----
- arch/arm/mach-omap2/smartreflex.h  |    3 ---
- 3 files changed, 7 insertions(+), 10 deletions(-)
+ arch/arm/mach-omap2/smartreflex.c |   16 ++++++++--------
+ 1 files changed, 8 insertions(+), 8 deletions(-)
 
-Index: linux-omap-pm/arch/arm/mach-omap2/resource34xx.c
-===================================================================
---- linux-omap-pm.orig/arch/arm/mach-omap2/resource34xx.c	2009-03-24 14:25:28.045987206 +0530
-+++ linux-omap-pm/arch/arm/mach-omap2/resource34xx.c	2009-03-24 14:41:36.122985549 +0530
-@@ -217,7 +217,7 @@
- 		/* Send pre notification to CPUFreq */
- 		cpufreq_notify_transition(&freqs_notify, CPUFREQ_PRECHANGE);
- #endif
--		t_opp = ID_VDD(PRCM_VDD1) |
-+		t_opp = ID_VDD(VDD1_OPP) |
- 			ID_OPP_NO(mpu_opps[target_level].opp_id);
- 
- 		/* For VDD1 OPP3 and above, make sure the interconnect
-@@ -257,7 +257,7 @@
- 			return 0;
- 		l3_freq = get_freq(l3_opps + MAX_VDD2_OPP,
- 					target_level);
--		t_opp = ID_VDD(PRCM_VDD2) |
-+		t_opp = ID_VDD(VDD2_OPP) |
- 			ID_OPP_NO(l3_opps[target_level].opp_id);
- 		if (resp->curr_level > target_level) {
- 			/* Scale Frequency and then voltage */
-@@ -278,7 +278,7 @@
- 			if (ret) {
- #ifdef CONFIG_OMAP_SMARTREFLEX
- 				/* Setting clock failed, revert voltage */
--				t_opp = ID_VDD(PRCM_VDD2) |
-+				t_opp = ID_VDD(VDD2_OPP) |
- 					ID_OPP_NO(l3_opps[resp->curr_level].
- 							opp_id);
- 				sr_voltagescale_vcbypass(t_opp,
 Index: linux-omap-pm/arch/arm/mach-omap2/smartreflex.c
 ===================================================================
---- linux-omap-pm.orig/arch/arm/mach-omap2/smartreflex.c	2009-03-24 14:41:21.798416209 +0530
-+++ linux-omap-pm/arch/arm/mach-omap2/smartreflex.c	2009-03-24 14:41:36.123985519 +0530
-@@ -677,7 +677,7 @@
- 	vdd = get_vdd(target_opp);
- 	target_opp_no = get_opp_no(target_opp);
+--- linux-omap-pm.orig/arch/arm/mach-omap2/smartreflex.c	2009-03-24 14:42:33.000000000 +0530
++++ linux-omap-pm/arch/arm/mach-omap2/smartreflex.c	2009-03-24 14:45:59.336965640 +0530
+@@ -411,7 +411,7 @@
+ 		if (retries_cnt > 10) {
+ 			pr_info("Loop count exceeded in check SR I2C"
+ 								"write\n");
+-			return SR_FAIL;
++			return 1;
+ 		}
+ 		if (loop_cnt > 50) {
+ 			retries_cnt++;
+@@ -421,7 +421,7 @@
+ 		vc_bypass_value = prm_read_mod_reg(OMAP3430_GR_MOD,
+ 					OMAP3_PRM_VC_BYPASS_VAL_OFFSET);
+ 	}
+-	return SR_PASS;
++	return 0;
+ }
  
--	if (vdd == PRCM_VDD1) {
-+	if (vdd == VDD1_OPP) {
- 		sr_status = sr_stop_vddautocomap(SR1);
+ static int sr_enable(struct omap_sr *sr, u32 target_opp_no)
+@@ -476,7 +476,7 @@
+ 	if (nvalue_reciprocal == 0) {
+ 		pr_notice("OPP%d doesn't support SmartReflex\n",
+ 								target_opp_no);
+-		return SR_FALSE;
++		return false;
+ 	}
  
- 		prm_rmw_mod_reg_bits(OMAP3430_VC_CMD_ON_MASK,
-@@ -686,7 +686,7 @@
- 					OMAP3_PRM_VC_CMD_VAL_0_OFFSET);
- 		reg_addr = R_VDD1_SR_CONTROL;
+ 	sr_write_reg(sr, NVALUERECIPROCAL, nvalue_reciprocal);
+@@ -526,7 +526,7 @@
  
--	} else if (vdd == PRCM_VDD2) {
-+	} else if (vdd == VDD2_OPP) {
- 		sr_status = sr_stop_vddautocomap(SR2);
+ 	/* SRCONFIG - enable SR */
+ 	sr_modify_reg(sr, SRCONFIG, SRCONFIG_SRENABLE, SRCONFIG_SRENABLE);
+-	return SR_TRUE;
++	return true;
+ }
  
- 		prm_rmw_mod_reg_bits(OMAP3430_VC_CMD_ON_MASK,
-@@ -725,9 +725,9 @@
- 	udelay(T2_SMPS_UPDATE_DELAY);
+ static void sr_disable(struct omap_sr *sr)
+@@ -591,11 +591,11 @@
+ 		sr->is_autocomp_active = 0;
+ 		/* Reset the volatage for current OPP */
+ 		sr_reset_voltage(srid);
+-		return SR_TRUE;
++		return true;
+ 	} else {
+ 		pr_warning("SR%d: VDD autocomp is not active\n",
+ 								srid);
+-		return SR_FALSE;
++		return false;
+ 	}
  
- 	if (sr_status) {
--		if (vdd == PRCM_VDD1)
-+		if (vdd == VDD1_OPP)
- 			sr_start_vddautocomap(SR1, target_opp_no);
--		else if (vdd == PRCM_VDD2)
-+		else if (vdd == VDD2_OPP)
+ }
+@@ -711,7 +711,7 @@
+ 		if (retries_cnt > 10) {
+ 			pr_info("Loop count exceeded in check SR I2C"
+ 								"write\n");
+-			return SR_FAIL;
++			return 1;
+ 		}
+ 		if (loop_cnt > 50) {
+ 			retries_cnt++;
+@@ -731,7 +731,7 @@
  			sr_start_vddautocomap(SR2, target_opp_no);
  	}
  
-Index: linux-omap-pm/arch/arm/mach-omap2/smartreflex.h
-===================================================================
---- linux-omap-pm.orig/arch/arm/mach-omap2/smartreflex.h	2009-03-24 14:25:28.046987177 +0530
-+++ linux-omap-pm/arch/arm/mach-omap2/smartreflex.h	2009-03-24 14:41:36.123985519 +0530
-@@ -171,9 +171,6 @@
- /* R_DCDC_GLOBAL_CFG register, SMARTREFLEX_ENABLE values */
- #define DCDC_GLOBAL_CFG_ENABLE_SRFLX	0x08
+-	return SR_PASS;
++	return 0;
+ }
  
--/* VDDs*/
--#define PRCM_VDD1	1
--#define PRCM_VDD2	2
- #define PRCM_MAX_SYSC_REGS 30
- 
- /*
+ /* Sysfs interface to select SR VDD1 auto compensation */
