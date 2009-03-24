@@ -1,46 +1,84 @@
-From: Ameya Palande <2ameya@gmail.com>
-Subject: Re: [PATCH] [OMAPZOOM]DSPBRIDGE bug in Bridge exit cleanup
-Date: Tue, 24 Mar 2009 12:04:54 +0200
-Message-ID: <269694c00903240304y69f43451lb260951167fe64af@mail.gmail.com>
-References: <Acmr6BM18BJBh1pxS8i5e+utnLzXGw==>
-	 <8F7AF80515AF0D4D93307E594F3CB40E2342BE9F@dlee03.ent.ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+From: ext-eero.nurkkala@nokia.com
+Subject: [PATCH] OMAP: McBSP: Fix legacy interrupts to clear their status
+Date: Tue, 24 Mar 2009 12:24:35 +0200
+Message-ID: <12378902752710-git-send-email-ext-eero.nurkkala@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-fx0-f158.google.com ([209.85.220.158]:48070 "EHLO
-	mail-fx0-f158.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754434AbZCXKE5 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 24 Mar 2009 06:04:57 -0400
-Received: by fxm2 with SMTP id 2so2182867fxm.37
-        for <linux-omap@vger.kernel.org>; Tue, 24 Mar 2009 03:04:54 -0700 (PDT)
-In-Reply-To: <8F7AF80515AF0D4D93307E594F3CB40E2342BE9F@dlee03.ent.ti.com>
+Received: from smtp.nokia.com ([192.100.105.134]:23624 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752465AbZCXKZp (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 24 Mar 2009 06:25:45 -0400
+Received: from vaebh105.NOE.Nokia.com (vaebh105.europe.nokia.com [10.160.244.31])
+	by mgw-mx09.nokia.com (Switch-3.2.6/Switch-3.2.6) with ESMTP id n2OAPZY5021511
+	for <linux-omap@vger.kernel.org>; Tue, 24 Mar 2009 05:25:44 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Kanigeri, Hari" <h-kanigeri2@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: linux-omap@vger.kernel.org
+Cc: Eero Nurkkala <ext-eero.nurkkala@nokia.com>
 
-Hi Hari,
+From: Eero Nurkkala <ext-eero.nurkkala@nokia.com>
 
-On Mon, Mar 23, 2009 at 8:49 PM, Kanigeri, Hari <h-kanigeri2@ti.com> wr=
-ote:
-> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0DRV_RemoveProc=
-Context((struct DRV_OBJECT *)hDrvObject,
-> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
- =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 pCtxtclosed, (=
-void *)pCtxtclosed->pid);
+If XSYNCERR or RSYNCERR interrupts are enabled, they are never
+cleared causing the IRQ handler to be continuously called.
+This patch clears the IRQs in question in the event they are
+enabled and taken.
 
-I am trying to understand this patch.
-I see that pCtxtclosed is passed to DRV_RemoveProcContext() function
-but it is not used anywhere inside it. I was expecting to see a
-statement there which should free its memory.
+Signed-off-by: Eero Nurkkala <ext-eero.nurkkala@nokia.com>
+---
+ arch/arm/plat-omap/mcbsp.c |   30 ++++++++++++++++++++++++------
+ 1 files changed, 24 insertions(+), 6 deletions(-)
 
-Any pointers?
+diff --git a/arch/arm/plat-omap/mcbsp.c b/arch/arm/plat-omap/mcbsp.c
+index e2e8b76..6a10f65 100644
+--- a/arch/arm/plat-omap/mcbsp.c
++++ b/arch/arm/plat-omap/mcbsp.c
+@@ -91,11 +91,20 @@ static void omap_mcbsp_dump_reg(u8 id)
+ static irqreturn_t omap_mcbsp_tx_irq_handler(int irq, void *dev_id)
+ {
+ 	struct omap_mcbsp *mcbsp_tx = dev_id;
++	u16 irqst_spcr2;
+ 
+-	dev_dbg(mcbsp_tx->dev, "TX IRQ callback : 0x%x\n",
+-		OMAP_MCBSP_READ(mcbsp_tx->io_base, SPCR2));
++	irqst_spcr2 = OMAP_MCBSP_READ(mcbsp_tx->io_base, SPCR2);
++	dev_dbg(mcbsp_tx->dev, "TX IRQ callback : 0x%x\n", irqst_spcr2);
+ 
+-	complete(&mcbsp_tx->tx_irq_completion);
++	if (irqst_spcr2 & XSYNC_ERR) {
++		dev_err(mcbsp_tx->dev, "TX Frame Sync Error! : 0x%x\n",
++			irqst_spcr2);
++		/* Writing zero to XSYNC_ERR clears the IRQ */
++		OMAP_MCBSP_WRITE(mcbsp_tx->io_base, SPCR2,
++			irqst_spcr2 & ~(XSYNC_ERR));
++	} else {
++		complete(&mcbsp_tx->tx_irq_completion);
++	}
+ 
+ 	return IRQ_HANDLED;
+ }
+@@ -103,11 +112,20 @@ static irqreturn_t omap_mcbsp_tx_irq_handler(int irq, void *dev_id)
+ static irqreturn_t omap_mcbsp_rx_irq_handler(int irq, void *dev_id)
+ {
+ 	struct omap_mcbsp *mcbsp_rx = dev_id;
++	u16 irqst_spcr1;
+ 
+-	dev_dbg(mcbsp_rx->dev, "RX IRQ callback : 0x%x\n",
+-		OMAP_MCBSP_READ(mcbsp_rx->io_base, SPCR2));
++	irqst_spcr1 = OMAP_MCBSP_READ(mcbsp_rx->io_base, SPCR1);
++	dev_dbg(mcbsp_rx->dev, "RX IRQ callback : 0x%x\n", irqst_spcr1);
+ 
+-	complete(&mcbsp_rx->rx_irq_completion);
++	if (irqst_spcr1 & RSYNC_ERR) {
++		dev_err(mcbsp_rx->dev, "RX Frame Sync Error! : 0x%x\n",
++			irqst_spcr1);
++		/* Writing zero to RSYNC_ERR clears the IRQ */
++		OMAP_MCBSP_WRITE(mcbsp_rx->io_base, SPCR1,
++			irqst_spcr1 & ~(RSYNC_ERR));
++	} else {
++		complete(&mcbsp_rx->tx_irq_completion);
++	}
+ 
+ 	return IRQ_HANDLED;
+ }
+-- 
+1.5.2
 
-Cheers,
-Ameya.
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
