@@ -1,35 +1,46 @@
-From: Mark Brown <broonie@sirena.org.uk>
-Subject: Re: How to test regulator driver?
-Date: Tue, 24 Mar 2009 15:35:54 +0000
-Message-ID: <20090324153554.GC5990@sirena.org.uk>
-References: <20090309153250.GF13593@sirena.org.uk> <5A47E75E594F054BAF48C5E4FC4B92AB02FAFEEA01@dbde02.ent.ti.com>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: [PATCH 00/08] OMAP3: SR: Fixes in Smartreflex driver - Resending
+Date: Tue, 24 Mar 2009 09:13:16 -0700
+Message-ID: <87ab7a292b.fsf@deeprootsystems.com>
+References: <5A47E75E594F054BAF48C5E4FC4B92AB02FAFEE9A9@dbde02.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from cassiel.sirena.org.uk ([80.68.93.111]:34909 "EHLO
-	cassiel.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757273AbZCXPf5 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 24 Mar 2009 11:35:57 -0400
-Content-Disposition: inline
-In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB02FAFEEA01@dbde02.ent.ti.com>
+Received: from mail-qy0-f118.google.com ([209.85.221.118]:60987 "EHLO
+	mail-qy0-f118.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1762758AbZCXQNY (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 24 Mar 2009 12:13:24 -0400
+Received: by qyk16 with SMTP id 16so3394775qyk.33
+        for <linux-omap@vger.kernel.org>; Tue, 24 Mar 2009 09:13:19 -0700 (PDT)
+In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB02FAFEE9A9@dbde02.ent.ti.com> (Teerth Reddy's message of "Tue\, 24 Mar 2009 16\:22\:05 +0530")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Aggarwal, Anuj" <anuj.aggarwal@ti.com>
-Cc: Linux OMAP List <linux-omap@vger.kernel.org>, "Pillai, Manikandan" <mani.pillai@ti.com>
+To: "Reddy, Teerth" <teerth@ti.com>, Rajendra Nayak <rnayak@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Tue, Mar 24, 2009 at 05:14:58PM +0530, Aggarwal, Anuj wrote:
+"Reddy, Teerth" <teerth@ti.com> writes:
 
-> I am seriously confused on how to fetch the struct device * in my
-> consumer driver, for an already registered regulator. I am planning to
-> use this consumer driver as a part of my CPU freq/CPU idle framework
-> but I don't know what to pass in regulator_get.
+> Resending the patches sent by Rajendra after fixing Kevin's comments and cleanup.
+>
+> This series fixes a set of defects/issues in Smartreflex driver. SR autocompensation is now functional and is validated with these patches on a ES3.1 based SDP with the N values in Efuse.
+>
+> Patches apply on top of the pm-2.6.28 branch from Kevin's pm tree.
+> git://git.kernel.org/pub/scm/linux/kernel/git/khilman/linux-omap-pm.git 
+>
 
-Your consumer driver should not be using the struct device for the
-regulator when calling regulator_get().  They should never need to know
-anything about the struct device of the regulator that is providing a
-supply to them.  The consumer should use a fixed device name and the
-struct device for itself, these will then be resolved to an actual
-regulator by the core based on the machine constraints.
+This series doesn't compile unless SRF is enabled which after a little
+more digging makes me see that SmartReflex is not pretty tightly
+coupled to SRF. 
 
-In the specific case of cpufreq where there is no struct device for the
-consumer use NULL when calling regulator_get().
+I don't think SmartReflex support need to be dependent on SRF?  It
+seems like the resource_get_level() calls should be replaced by OMAP
+PM layer calls.  In particular, resource_get_level("vdd_opp1") could
+be replaced by omap_pm_dsp_get_opp() etc.
+
+Also, one more nitpick about cleanup while we're at it:
+
+Can you convert all the bit defines (0x1 << n) into BIT(n)
+
+Kevin
+
+
