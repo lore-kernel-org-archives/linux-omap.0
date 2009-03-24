@@ -1,68 +1,44 @@
-From: "Kanigeri, Hari" <h-kanigeri2@ti.com>
-Subject: RE: [PATCH] [OMAPZOOM]DSPBRIDGE bug in Bridge exit cleanup
-Date: Tue, 24 Mar 2009 06:58:24 -0500
-Message-ID: <8F7AF80515AF0D4D93307E594F3CB40E2349A329@dlee03.ent.ti.com>
-References: <Acmr6BM18BJBh1pxS8i5e+utnLzXGw==>
-	 <8F7AF80515AF0D4D93307E594F3CB40E2342BE9F@dlee03.ent.ti.com>
- <269694c00903240304y69f43451lb260951167fe64af@mail.gmail.com>
- <8F7AF80515AF0D4D93307E594F3CB40E2349A31B@dlee03.ent.ti.com>
- <49C8CA41.6050002@nokia.com>
+From: Adrian Hunter <adrian.hunter@nokia.com>
+Subject: [PATCH] OMAP: mmc_twl4030 nicely disable vmmc_aux
+Date: Tue, 24 Mar 2009 14:15:54 +0200
+Message-ID: <49C8CEFA.6020407@nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:60976 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756625AbZCXL6h convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 24 Mar 2009 07:58:37 -0400
-In-Reply-To: <49C8CA41.6050002@nokia.com>
-Content-Language: en-US
+Received: from smtp.nokia.com ([192.100.122.233]:58681 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758466AbZCXMP2 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 24 Mar 2009 08:15:28 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Ameya Palande <ameya.palande@nokia.com>
-Cc: Ameya Palande <2ameya@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap Mailing List <linux-omap@vger.kernel.org>, David Brownell <david-b@pacbell.net>
 
-Ameya,
+>From 1a3f939d95122d8e58a3750cf5bce09247357203 Mon Sep 17 00:00:00 2001
+From: Adrian Hunter <adrian.hunter@nokia.com>
 
-> Is there any need to pass "HANDLE hPCtxt" to DRV_RemoveProcContext()
-> function?
->
+The MMC driver turns the power off before it turns it
+on. To avoid regulator warnings, vmmc_aux must only be
+disabled if it has previously been enabled.
 
--- It should work even if you don't pass the hPCtxt. This function requires some rework to avoid this confusion. Thanks for bringing up this question.
+Signed-off-by: Adrian Hunter <adrian.hunter@nokia.com>
+---
+ arch/arm/mach-omap2/mmc-twl4030.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-Thank you,
-Best regards,
-Hari
-
-> -----Original Message-----
-> From: Ameya Palande [mailto:ameya.palande@nokia.com]
-> Sent: Tuesday, March 24, 2009 6:56 AM
-> To: Kanigeri, Hari
-> Cc: Ameya Palande; linux-omap@vger.kernel.org
-> Subject: Re: [PATCH] [OMAPZOOM]DSPBRIDGE bug in Bridge exit cleanup
-> 
-> Hi Hari,
-> 
-> ext Kanigeri, Hari wrote:
-> > Hi Amey,
-> >
-> >> I am trying to understand this patch.
-> >> I see that pCtxtclosed is passed to DRV_RemoveProcContext() function
-> >> but it is not used anywhere inside it. I was expecting to see a
-> >> statement there which should free its memory.
-> >
-> > This pointer is getting freed indirectly through the pCtxt2 pointer. The
-> call to the function "DRV_GetProcContext((u32)hProcess, hDRVObject,
-> &pCtxt2, NULL, 0)" returns pCtxt2, which is same as pCtxtclosed that is
-> passed to this function.
-> > In a way, the call to DRV_GetProcContext is kind of redundant, but I
-> think it is present here to provide the support to extract the Process
-> Context when only the PID is passed in.
-> 
-> Thanks for the explanation :)
-> Is there any need to pass "HANDLE hPCtxt" to DRV_RemoveProcContext()
-> function?
-> 
-> Cheers,
-> Ameya.
-
+diff --git a/arch/arm/mach-omap2/mmc-twl4030.c b/arch/arm/mach-omap2/mmc-twl4030.c
+index 2ff50f0..cb56fe2 100644
+--- a/arch/arm/mach-omap2/mmc-twl4030.c
++++ b/arch/arm/mach-omap2/mmc-twl4030.c
+@@ -305,7 +305,7 @@ static int twl_mmc23_set_power(struct device *dev, int slot, int power_on, int v
+ 				ret = mmc_regulator_set_ocr(c->vcc, 0);
+ 		}
+ 	} else {
+-		if (c->vcc_aux)
++		if (c->vcc_aux && (ret = regulator_is_enabled(c->vcc_aux)) > 0)
+ 			ret = regulator_disable(c->vcc_aux);
+ 		if (ret == 0)
+ 			ret = mmc_regulator_set_ocr(c->vcc, 0);
+-- 
+1.5.6.3
