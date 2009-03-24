@@ -1,84 +1,116 @@
-From: ext-eero.nurkkala@nokia.com
-Subject: [PATCH] OMAP: McBSP: Fix legacy interrupts to clear their status
-Date: Tue, 24 Mar 2009 12:24:35 +0200
-Message-ID: <12378902752710-git-send-email-ext-eero.nurkkala@nokia.com>
+From: "Reddy, Teerth" <teerth@ti.com>
+Subject: [PATCH 07/08] OMAP3: SR: Remove redundunt defines
+Date: Tue, 24 Mar 2009 16:18:39 +0530
+Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB02FAFEE9A4@dbde02.ent.ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:23624 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752465AbZCXKZp (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 24 Mar 2009 06:25:45 -0400
-Received: from vaebh105.NOE.Nokia.com (vaebh105.europe.nokia.com [10.160.244.31])
-	by mgw-mx09.nokia.com (Switch-3.2.6/Switch-3.2.6) with ESMTP id n2OAPZY5021511
-	for <linux-omap@vger.kernel.org>; Tue, 24 Mar 2009 05:25:44 -0500
+Received: from arroyo.ext.ti.com ([192.94.94.40]:57499 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755109AbZCXKst convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 24 Mar 2009 06:48:49 -0400
+Received: from dbdp20.itg.ti.com ([172.24.170.38])
+	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id n2OAmfmF022158
+	for <linux-omap@vger.kernel.org>; Tue, 24 Mar 2009 05:48:47 -0500
+Received: from dbde70.ent.ti.com (localhost [127.0.0.1])
+	by dbdp20.itg.ti.com (8.13.8/8.13.8) with ESMTP id n2OAmfHV025278
+	for <linux-omap@vger.kernel.org>; Tue, 24 Mar 2009 16:18:41 +0530 (IST)
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Eero Nurkkala <ext-eero.nurkkala@nokia.com>
+To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-From: Eero Nurkkala <ext-eero.nurkkala@nokia.com>
+From: Rajendra Nayak <rnayak@ti.com>
 
-If XSYNCERR or RSYNCERR interrupts are enabled, they are never
-cleared causing the IRQ handler to be continuously called.
-This patch clears the IRQs in question in the event they are
-enabled and taken.
+This patch removes the local defines (PRCM_VDD1/2) in smartreflex
+driver and uses the already existing global definitions (VDD1_OPP/VDD2_OPP)
+from omap34xx.h file.
 
-Signed-off-by: Eero Nurkkala <ext-eero.nurkkala@nokia.com>
+Signed-off-by: Rajendra Nayak <rnayak@ti.com>
+Signed-off-by: Tero Kristo <tero.kristo@nokia.com>
 ---
- arch/arm/plat-omap/mcbsp.c |   30 ++++++++++++++++++++++++------
- 1 files changed, 24 insertions(+), 6 deletions(-)
+ arch/arm/mach-omap2/resource34xx.c |    6 +++---
+ arch/arm/mach-omap2/smartreflex.c  |    8 ++++----
+ arch/arm/mach-omap2/smartreflex.h  |    3 ---
+ 3 files changed, 7 insertions(+), 10 deletions(-)
 
-diff --git a/arch/arm/plat-omap/mcbsp.c b/arch/arm/plat-omap/mcbsp.c
-index e2e8b76..6a10f65 100644
---- a/arch/arm/plat-omap/mcbsp.c
-+++ b/arch/arm/plat-omap/mcbsp.c
-@@ -91,11 +91,20 @@ static void omap_mcbsp_dump_reg(u8 id)
- static irqreturn_t omap_mcbsp_tx_irq_handler(int irq, void *dev_id)
- {
- 	struct omap_mcbsp *mcbsp_tx = dev_id;
-+	u16 irqst_spcr2;
+Index: linux-omap-pm/arch/arm/mach-omap2/resource34xx.c
+===================================================================
+--- linux-omap-pm.orig/arch/arm/mach-omap2/resource34xx.c	2009-03-24 14:25:28.045987206 +0530
++++ linux-omap-pm/arch/arm/mach-omap2/resource34xx.c	2009-03-24 14:41:36.122985549 +0530
+@@ -217,7 +217,7 @@
+ 		/* Send pre notification to CPUFreq */
+ 		cpufreq_notify_transition(&freqs_notify, CPUFREQ_PRECHANGE);
+ #endif
+-		t_opp = ID_VDD(PRCM_VDD1) |
++		t_opp = ID_VDD(VDD1_OPP) |
+ 			ID_OPP_NO(mpu_opps[target_level].opp_id);
  
--	dev_dbg(mcbsp_tx->dev, "TX IRQ callback : 0x%x\n",
--		OMAP_MCBSP_READ(mcbsp_tx->io_base, SPCR2));
-+	irqst_spcr2 = OMAP_MCBSP_READ(mcbsp_tx->io_base, SPCR2);
-+	dev_dbg(mcbsp_tx->dev, "TX IRQ callback : 0x%x\n", irqst_spcr2);
+ 		/* For VDD1 OPP3 and above, make sure the interconnect
+@@ -257,7 +257,7 @@
+ 			return 0;
+ 		l3_freq = get_freq(l3_opps + MAX_VDD2_OPP,
+ 					target_level);
+-		t_opp = ID_VDD(PRCM_VDD2) |
++		t_opp = ID_VDD(VDD2_OPP) |
+ 			ID_OPP_NO(l3_opps[target_level].opp_id);
+ 		if (resp->curr_level > target_level) {
+ 			/* Scale Frequency and then voltage */
+@@ -278,7 +278,7 @@
+ 			if (ret) {
+ #ifdef CONFIG_OMAP_SMARTREFLEX
+ 				/* Setting clock failed, revert voltage */
+-				t_opp = ID_VDD(PRCM_VDD2) |
++				t_opp = ID_VDD(VDD2_OPP) |
+ 					ID_OPP_NO(l3_opps[resp->curr_level].
+ 							opp_id);
+ 				sr_voltagescale_vcbypass(t_opp,
+Index: linux-omap-pm/arch/arm/mach-omap2/smartreflex.c
+===================================================================
+--- linux-omap-pm.orig/arch/arm/mach-omap2/smartreflex.c	2009-03-24 14:41:21.798416209 +0530
++++ linux-omap-pm/arch/arm/mach-omap2/smartreflex.c	2009-03-24 14:41:36.123985519 +0530
+@@ -677,7 +677,7 @@
+ 	vdd = get_vdd(target_opp);
+ 	target_opp_no = get_opp_no(target_opp);
  
--	complete(&mcbsp_tx->tx_irq_completion);
-+	if (irqst_spcr2 & XSYNC_ERR) {
-+		dev_err(mcbsp_tx->dev, "TX Frame Sync Error! : 0x%x\n",
-+			irqst_spcr2);
-+		/* Writing zero to XSYNC_ERR clears the IRQ */
-+		OMAP_MCBSP_WRITE(mcbsp_tx->io_base, SPCR2,
-+			irqst_spcr2 & ~(XSYNC_ERR));
-+	} else {
-+		complete(&mcbsp_tx->tx_irq_completion);
-+	}
+-	if (vdd == PRCM_VDD1) {
++	if (vdd == VDD1_OPP) {
+ 		sr_status = sr_stop_vddautocomap(SR1);
  
- 	return IRQ_HANDLED;
- }
-@@ -103,11 +112,20 @@ static irqreturn_t omap_mcbsp_tx_irq_handler(int irq, void *dev_id)
- static irqreturn_t omap_mcbsp_rx_irq_handler(int irq, void *dev_id)
- {
- 	struct omap_mcbsp *mcbsp_rx = dev_id;
-+	u16 irqst_spcr1;
+ 		prm_rmw_mod_reg_bits(OMAP3430_VC_CMD_ON_MASK,
+@@ -686,7 +686,7 @@
+ 					OMAP3_PRM_VC_CMD_VAL_0_OFFSET);
+ 		reg_addr = R_VDD1_SR_CONTROL;
  
--	dev_dbg(mcbsp_rx->dev, "RX IRQ callback : 0x%x\n",
--		OMAP_MCBSP_READ(mcbsp_rx->io_base, SPCR2));
-+	irqst_spcr1 = OMAP_MCBSP_READ(mcbsp_rx->io_base, SPCR1);
-+	dev_dbg(mcbsp_rx->dev, "RX IRQ callback : 0x%x\n", irqst_spcr1);
+-	} else if (vdd == PRCM_VDD2) {
++	} else if (vdd == VDD2_OPP) {
+ 		sr_status = sr_stop_vddautocomap(SR2);
  
--	complete(&mcbsp_rx->rx_irq_completion);
-+	if (irqst_spcr1 & RSYNC_ERR) {
-+		dev_err(mcbsp_rx->dev, "RX Frame Sync Error! : 0x%x\n",
-+			irqst_spcr1);
-+		/* Writing zero to RSYNC_ERR clears the IRQ */
-+		OMAP_MCBSP_WRITE(mcbsp_rx->io_base, SPCR1,
-+			irqst_spcr1 & ~(RSYNC_ERR));
-+	} else {
-+		complete(&mcbsp_rx->tx_irq_completion);
-+	}
+ 		prm_rmw_mod_reg_bits(OMAP3430_VC_CMD_ON_MASK,
+@@ -725,9 +725,9 @@
+ 	udelay(T2_SMPS_UPDATE_DELAY);
  
- 	return IRQ_HANDLED;
- }
--- 
-1.5.2
-
+ 	if (sr_status) {
+-		if (vdd == PRCM_VDD1)
++		if (vdd == VDD1_OPP)
+ 			sr_start_vddautocomap(SR1, target_opp_no);
+-		else if (vdd == PRCM_VDD2)
++		else if (vdd == VDD2_OPP)
+ 			sr_start_vddautocomap(SR2, target_opp_no);
+ 	}
+ 
+Index: linux-omap-pm/arch/arm/mach-omap2/smartreflex.h
+===================================================================
+--- linux-omap-pm.orig/arch/arm/mach-omap2/smartreflex.h	2009-03-24 14:25:28.046987177 +0530
++++ linux-omap-pm/arch/arm/mach-omap2/smartreflex.h	2009-03-24 14:41:36.123985519 +0530
+@@ -171,9 +171,6 @@
+ /* R_DCDC_GLOBAL_CFG register, SMARTREFLEX_ENABLE values */
+ #define DCDC_GLOBAL_CFG_ENABLE_SRFLX	0x08
+ 
+-/* VDDs*/
+-#define PRCM_VDD1	1
+-#define PRCM_VDD2	2
+ #define PRCM_MAX_SYSC_REGS 30
+ 
+ /*
