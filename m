@@ -1,297 +1,88 @@
-From: Peter Barada <peterb@logicpd.com>
+From: Kevin Hilman <khilman@deeprootsystems.com>
 Subject: Re: PM branch rebased to 2.6.29
-Date: Tue, 24 Mar 2009 16:11:23 -0400
-Message-ID: <1237925484.23022.133.camel@blackhole>
-References: <87bprz9zju.fsf@deeprootsystems.com>
-	 <1237914611.23022.124.camel@blackhole> <87zlfaztcd.fsf@deeprootsystems.com>
+Date: Tue, 24 Mar 2009 13:21:30 -0700
+Message-ID: <49C940CA.9070805@deeprootsystems.com>
+References: <87bprz9zju.fsf@deeprootsystems.com>	 <1237914611.23022.124.camel@blackhole> <87zlfaztcd.fsf@deeprootsystems.com> <1237925484.23022.133.camel@blackhole>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="=-/vP4Vvqm5AVsP9a2P+qT"
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail.logicpd.com ([66.162.60.3]:36610 "EHLO smtp.logicpd.com"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1760779AbZCXUL1 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 24 Mar 2009 16:11:27 -0400
-In-Reply-To: <87zlfaztcd.fsf@deeprootsystems.com>
+Received: from mail-qy0-f118.google.com ([209.85.221.118]:39042 "EHLO
+	mail-qy0-f118.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753298AbZCXUVg (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 24 Mar 2009 16:21:36 -0400
+Received: by qyk16 with SMTP id 16so3649302qyk.33
+        for <linux-omap@vger.kernel.org>; Tue, 24 Mar 2009 13:21:34 -0700 (PDT)
+In-Reply-To: <1237925484.23022.133.camel@blackhole>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@deeprootsystems.com>
+To: Peter Barada <peterb@logicpd.com>
 Cc: linux-omap@vger.kernel.org
 
-
---=-/vP4Vvqm5AVsP9a2P+qT
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
-
-On Tue, 2009-03-24 at 11:08 -0700, Kevin Hilman wrote:
-> Peter Barada <peterb@logicpd.com> writes:
+Peter Barada wrote:
+> On Tue, 2009-03-24 at 11:08 -0700, Kevin Hilman wrote:
+>> Peter Barada <peterb@logicpd.com> writes:
+>>
+>>> On Tue, 2009-03-17 at 22:21 -0700, Kevin Hilman wrote:
+>>>> FYI... 
+>>>>
+>>>> The PM branch has now been rebased to today's linux-omap HEAD which is
+>>>> based on v2.6.29-rc8.  The previous PM branch has been renamed to
+>>>> pm-2.6.28.  Depending on when you look, Tony's linux-omap tree may not
+>>>> (yet) have the latest PM branch.  If not, you can use my PM tree[1]
+>>>> directly.  Also, pm-2.6.28 will only be available on my tree.
+>>>>
+>>>> Tested on OMAP3 Beagle and RX51 and was able to hit RET and OFF in
+>>>> suspend and in PM idle with minimal kernel.  No testing yet done for
+>>>> CPUidle or DVFS.  Please test on your hardware and submit results to
+>>>> the list.  Thanks.
+>>> Kevin,  did you build/test with
+>>> the /arc/arm/config/omap3_beagle_defconfig, and
+>>> arc/arm/configs/rx51_defconfig or some other config(could you send it to
+>>> me if it isn't in the PM tree)?  
+>> I started with the ones in the tree, but I disable most of the drivers
+>> and turn on some debugging features.  Attached is the one I used for
+>> beagle.
+>> [...]
 > 
-> > On Tue, 2009-03-17 at 22:21 -0700, Kevin Hilman wrote:
-> >> FYI... 
-> >> 
-> >> The PM branch has now been rebased to today's linux-omap HEAD which is
-> >> based on v2.6.29-rc8.  The previous PM branch has been renamed to
-> >> pm-2.6.28.  Depending on when you look, Tony's linux-omap tree may not
-> >> (yet) have the latest PM branch.  If not, you can use my PM tree[1]
-> >> directly.  Also, pm-2.6.28 will only be available on my tree.
-> >> 
-> >> Tested on OMAP3 Beagle and RX51 and was able to hit RET and OFF in
-> >> suspend and in PM idle with minimal kernel.  No testing yet done for
-> >> CPUidle or DVFS.  Please test on your hardware and submit results to
-> >> the list.  Thanks.
-> >
-> > Kevin,  did you build/test with
-> > the /arc/arm/config/omap3_beagle_defconfig, and
-> > arc/arm/configs/rx51_defconfig or some other config(could you send it to
-> > me if it isn't in the PM tree)?  
+> Hmm, I modified your config to add smc911x support so I can have an
+> nfsroot, added selector/code for my board(based on omap3beagle.c) and
+> brought it up on my hardware, but I'm not sure if its working correctly.
+> It does look to pause in the suspend sate, and comes out when I hit a
+> key on the console, but the messages don't look quite right as
+> core_pwrdm and per_pwrdm state they didn't go into state 1 (full log
+> attached):
 > 
-> I started with the ones in the tree, but I disable most of the drivers
-> and turn on some debugging features.  Attached is the one I used for
-> beagle.
-> [...]
+> omap3530# echo mem > /sys/power/state
+> PM: Syncing filesystems ... done.
+> PM: Preparing system for mem sleep
+> Freezing user space processes ... (elapsed 0.00 seconds) done.
+> Freezing remaining freezable tasks ... (elapsed 0.00 seconds) done.
+> PM: Entering mem sleep
+> Powerdomain (core_pwrdm) didn't enter target state 1
+> Powerdomain (per_pwrdm) didn't enter target state 1
+> Could not enter target state in pm_suspend
+> eth0: smc911x_reset timeout waiting for PM restore
+> 
+> eth0: link down
+> PM: Finishing wakeup.
+> Restarting tasks ... done.
+> omap3530# 
+> omap3530# eth0: link up, 100Mbps, full-duplex, lpa 0x45E1
+> 
+> 
+> Is this expected?
+> 
 
-Hmm, I modified your config to add smc911x support so I can have an
-nfsroot, added selector/code for my board(based on omap3beagle.c) and
-brought it up on my hardware, but I'm not sure if its working correctly.
-It does look to pause in the suspend sate, and comes out when I hit a
-key on the console, but the messages don't look quite right as
-core_pwrdm and per_pwrdm state they didn't go into state 1 (full log
-attached):
+Yes, you haven't allowed the UART clocks to go off during idle/suspend 
+and there are UARTs in both CORE and PER.
 
-omap3530# echo mem > /sys/power/state
-PM: Syncing filesystems ... done.
-PM: Preparing system for mem sleep
-Freezing user space processes ... (elapsed 0.00 seconds) done.
-Freezing remaining freezable tasks ... (elapsed 0.00 seconds) done.
-PM: Entering mem sleep
-Powerdomain (core_pwrdm) didn't enter target state 1
-Powerdomain (per_pwrdm) didn't enter target state 1
-Could not enter target state in pm_suspend
-eth0: smc911x_reset timeout waiting for PM restore
+Try this before going into suspend:
 
-eth0: link down
-PM: Finishing wakeup.
-Restarting tasks ... done.
-omap3530# 
-omap3530# eth0: link up, 100Mbps, full-duplex, lpa 0x45E1
+   echo 1 > /sys/power/clocks_off_while_idle
 
+This will allow UART clocks to be disabled on suspend, and also allow 
+them to be disabled after 5 seconds of UART inactivity allowing 
+retention in idle as well.
 
-Is this expected?
-
--- 
-Peter Barada <peterb@logicpd.com>
-
---=-/vP4Vvqm5AVsP9a2P+qT
-Content-Disposition: attachment; filename=log189
-Content-Type: text/plain; name=log189; charset=utf-8
-Content-Transfer-Encoding: base64
-
-DQpOb0xvIFZlcnNpb24gOiAyLjQuNi1PTUFQMzUwMyAwMDAxDQpOb0xvIEJ1aWxkICAgOiBMUEQz
-ODYgVHVlIE5vdiAyNSAxNTowMDoxOSBDU1QgMjAwOA0KTm9MbyBDb21waWxlcjogZ2NjIHZlcnNp
-b24gNC4yLjENCkltYWdlIHR5cGUgICA6IEVsZg0KQm9vdCBEZXZpY2UgIDogTkFORA0KDQoNCg0K
-KioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioq
-KioqKioqKioNCg0KICAgICAgICAgICAgICAgICAgICAgICAgIExvZ2ljTG9hZGVyDQoNCiAoYykg
-Q29weXJpZ2h0IDIwMDItMjAwOCwgTG9naWMgUHJvZHVjdCBEZXZlbG9wbWVudCwgSW5jLg0KIEFs
-bCBSaWdodHMgUmVzZXJ2ZWQuDQogVmVyc2lvbiAyLjQuNi1PTUFQMzUwMyAwMDAxDQoqKioqKioq
-KioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioq
-Kg0KDQpsb3NoPiBpZmNvbmZpZyBzbTAgL2Rldi9jb25maWcNCmxvc2g+IGxvYWQgZWxmIC90ZnRw
-LzE5Mi4xNjguMy41OnUtYm9vdA0KbG9hZGluZyBmcm9tIC90ZnRwLzE5Mi4xNjguMy41OnUtYm9v
-dDoNCi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4u
-Li4uLi4uLi4uLi4uDQpFTEYgc2VjdGlvbiAwOiBkb3dubG9hZCBhZGRyZXNzOiAweDgwMjA4MDAw
-IGxvYWQgYWRkcmVzczogMHg4MGU4MDAwMA0KbG9hZGVkIDE0MDEwOCBAIDB4ODBlODAwMDAgUmFt
-DQouLi5kb25lDQpmaWxlIGxvYWRlZA0KbG9zaD4gZXhlYw0KDQoNClUtQm9vdCAxLjEuNCAoTWFy
-IDEzIDIwMDkgLSAxNjozMjo0MikNCg0KT01BUDM0MzAtR1AgcmV2IDIsIENQVS1PUFAyIEwzLTEz
-M01Ieg0KT01BUDM0MzBMVl9TT00gMC4xIFZlcnNpb24gKyBtRERSIChCb290IE5BTkQpDQpEUkFN
-OiAgMTI4IE1CDQpGTEFTSDogaW5pdGlhbGl6ZSBpbiBzeW5jIG1vZGUNCk5BTkQ6ICAyNTYgTWlC
-DQpSZWFkIHByb2R1Y3Rpb24gZGF0YTogZG9uZQ0KUGFydCBOdW1iZXIgIDogMTAxMDE5NA0KTW9k
-ZWwgTmFtZSAgIDogU09NT01BUDM1MzAtMTAtMTY3MklGQ1ItQQ0KU2VyaWFsIE51bWJlcjogMzQw
-OE0wMzMwNQ0KSW46ICAgIHNlcmlhbA0KT3V0OiAgIHNlcmlhbA0KRXJyOiAgIHNlcmlhbA0KSGl0
-IGFueSBrZXkgdG8gc3RvcCBhdXRvYm9vdDogIDYgCAgIIDAgDQo9PiBib290DQpEUklWRVJfVkVS
-U0lPTiA6IDEwMSwgREFURUNPREUgOiAwOTI3MDYNCkxBTjl4MTggKDB4OTIxMTAwMDApIGRldGVj
-dGVkLg0Kc3RhcnQgQXV0byBuZWdvdGlhdGlvbi4uLiAodGFrZSB+MnNlYykNCkF1dG8gbmVnb3Rp
-YXRpb24gY29tcGxldGUsIDEwMEJhc2VUWCwgZnVsbCBkdXBsZXgNClRGVFAgZnJvbSBzZXJ2ZXIg
-MTkyLjE2OC4zLjU7IG91ciBJUCBhZGRyZXNzIGlzIDE5Mi4xNjguMy4xMQ0KRmlsZW5hbWUgJ3VJ
-bWFnZScuDQpMb2FkIGFkZHJlc3M6IDB4ODEwMDAwMDANCkxvYWRpbmc6ICoIIyMjIyMjIyMjIyMj
-IyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMNCgkg
-IyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMj
-IyMjIyMjIyMNCgkgIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMj
-IyMjIyMjIyMjIyMjIyMjIyMjIyMNCgkgIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMj
-IyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMNCgkgIyMjIyMjIyMjIyMjIyMjIyMjIyMj
-IyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMNCgkgIyMjIyMjIyMj
-IyMjIyMjIyMjIyMjIyMjIyMjIw0KZG9uZQ0KQnl0ZXMgdHJhbnNmZXJyZWQgPSAxODA2NDA4ICgx
-YjkwNDggaGV4KQ0KIyMgQm9vdGluZyBpbWFnZSBhdCA4MTAwMDAwMCAuLi4NCiAgIEltYWdlIE5h
-bWU6ICAgTGludXgtMi42LjI5LXJjOC1vbWFwMQ0KICAgSW1hZ2UgVHlwZTogICBBUk0gTGludXgg
-S2VybmVsIEltYWdlICh1bmNvbXByZXNzZWQpDQogICBEYXRhIFNpemU6ICAgIDE4MDYzNDQgQnl0
-ZXMgPSAgMS43IE1CDQogICBMb2FkIEFkZHJlc3M6IDgwMDA4MDAwDQogICBFbnRyeSBQb2ludDog
-IDgwMDA4MDAwDQogICBWZXJpZnlpbmcgQ2hlY2tzdW0gLi4uIE9LDQpPSw0KDQpTdGFydGluZyBr
-ZXJuZWwgLi4uDQoNClVuY29tcHJlc3NpbmcgTGludXguLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4u
-Li4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4u
-Li4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLiBkb25lLCBib290aW5nIHRoZSBrZXJu
-ZWwuDQpMaW51eCB2ZXJzaW9uIDIuNi4yOS1yYzgtb21hcDEgKHBldGVyQGJsYWNraG9sZSkgKGdj
-YyB2ZXJzaW9uIDQuMS4yKSAjNSBQUkVFTVBUIFR1ZSBNYXIgMjQgMTU6NDk6MzQgRURUIDIwMDkN
-CkNQVTogQVJNdjcgUHJvY2Vzc29yIFs0MTFmYzA4Ml0gcmV2aXNpb24gMiAoQVJNdjcpLCBjcj0x
-MGM1Mzg3Zg0KQ1BVOiBWSVBUIG5vbmFsaWFzaW5nIGRhdGEgY2FjaGUsIFZJUFQgbm9uYWxpYXNp
-bmcgaW5zdHJ1Y3Rpb24gY2FjaGUNCk1hY2hpbmU6IE9NQVAgT01BUDM1MzBMVl9TT00gYm9hcmQN
-Ck1lbW9yeSBwb2xpY3k6IEVDQyBkaXNhYmxlZCwgRGF0YSBjYWNoZSB3cml0ZWJhY2sNCk9uIG5v
-ZGUgMCB0b3RhbHBhZ2VzOiAzMjc2OA0KZnJlZV9hcmVhX2luaXRfbm9kZTogbm9kZSAwLCBwZ2Rh
-dCBjMDM4ZjVkYywgbm9kZV9tZW1fbWFwIGMwM2I5MDAwDQogIE5vcm1hbCB6b25lOiAyNTYgcGFn
-ZXMgdXNlZCBmb3IgbWVtbWFwDQogIE5vcm1hbCB6b25lOiAwIHBhZ2VzIHJlc2VydmVkDQogIE5v
-cm1hbCB6b25lOiAzMjUxMiBwYWdlcywgTElGTyBiYXRjaDo3DQpPTUFQMzQzMCBFUzIuMQ0KU1JB
-TTogTWFwcGVkIHBhIDB4NDAyMDAwMDAgdG8gdmEgMHhkNzAwMDAwMCBzaXplOiAweDEwMDAwMA0K
-QnVpbHQgMSB6b25lbGlzdHMgaW4gWm9uZSBvcmRlciwgbW9iaWxpdHkgZ3JvdXBpbmcgb24uICBU
-b3RhbCBwYWdlczogMzI1MTINCktlcm5lbCBjb21tYW5kIGxpbmU6IGRpc3BsYXk9MyBjb25zb2xl
-PXR0eVMwLDExNTIwMCByb290PS9kZXYvbmZzIHJ3IG5mc3Jvb3Q9MTkyLjE2OC4zLjU6L29wdC9u
-ZnMtZXhwb3J0cy9sdGliLW9tYXAsd3NpemU9MTUwMCxyc2l6ZT0xNTAwIGlwPWRoY3AgaWdub3Jl
-X2xvZ2xldmVsIG5vX2NvbnNvbGVfc3VzcGVuZA0KZGVidWc6IGlnbm9yaW5nIGxvZ2xldmVsIHNl
-dHRpbmcuDQpDbG9ja2luZyByYXRlIChDcnlzdGFsL0RQTEwvQVJNIGNvcmUpOiAyNi4wLzE2Ni81
-MDAgTUh6DQpHUE1DIHJldmlzaW9uIDUuMA0KSVJROiBGb3VuZCBhbiBJTlRDIGF0IDB4ZDgyMDAw
-MDAgKHJldmlzaW9uIDQuMCkgd2l0aCA5NiBpbnRlcnJ1cHRzDQpUb3RhbCBvZiA5NiBpbnRlcnJ1
-cHRzIG9uIDEgYWN0aXZlIGNvbnRyb2xsZXINCk9NQVAzNHh4IEdQSU8gaGFyZHdhcmUgdmVyc2lv
-biAyLjUNClBJRCBoYXNoIHRhYmxlIGVudHJpZXM6IDUxMiAob3JkZXI6IDksIDIwNDggYnl0ZXMp
-DQpPTUFQIGNsb2NrZXZlbnQgc291cmNlOiBHUFRJTUVSMTIgYXQgMzI3NjggSHoNCkNvbnNvbGU6
-IGNvbG91ciBkdW1teSBkZXZpY2UgODB4MzANCkRlbnRyeSBjYWNoZSBoYXNoIHRhYmxlIGVudHJp
-ZXM6IDE2Mzg0IChvcmRlcjogNCwgNjU1MzYgYnl0ZXMpDQpJbm9kZS1jYWNoZSBoYXNoIHRhYmxl
-IGVudHJpZXM6IDgxOTIgKG9yZGVyOiAzLCAzMjc2OCBieXRlcykNCk1lbW9yeTogMTI4TUIgPSAx
-MjhNQiB0b3RhbA0KTWVtb3J5OiAxMjU5ODBLQiBhdmFpbGFibGUgKDMzMDhLIGNvZGUsIDMyNksg
-ZGF0YSwgMTM2SyBpbml0KQ0KQ2FsaWJyYXRpbmcgZGVsYXkgbG9vcC4uLiA0ODMuMTYgQm9nb01J
-UFMgKGxwaj0xODg4MjU2KQ0KTW91bnQtY2FjaGUgaGFzaCB0YWJsZSBlbnRyaWVzOiA1MTINCkNQ
-VTogVGVzdGluZyB3cml0ZSBidWZmZXIgY29oZXJlbmN5OiBvaw0KbmV0X25hbWVzcGFjZTogNTQ0
-IGJ5dGVzDQpORVQ6IFJlZ2lzdGVyZWQgcHJvdG9jb2wgZmFtaWx5IDE2DQpPTUFQIERNQSBoYXJk
-d2FyZSByZXZpc2lvbiA0LjANCmJpbzogY3JlYXRlIHNsYWIgPGJpby0wPiBhdCAwDQppMmNfb21h
-cCBpMmNfb21hcC4xOiBidXMgMSByZXYzLjEyIGF0IDI2MDAga0h6DQp0d2w0MDMwOiBQSUggKGly
-cSA3KSBjaGFpbmluZyBJUlFzIDM2OC4uMzc1DQp0d2w0MDMwOiBwb3dlciAoaXJxIDM3MykgY2hh
-aW5pbmcgSVJRcyAzNzYuLjM4Mw0KdHdsNDAzMDogZ3BpbyAoaXJxIDM2OCkgY2hhaW5pbmcgSVJR
-cyAzODQuLjQwMQ0KaTJjX29tYXAgaTJjX29tYXAuMzogYnVzIDMgcmV2My4xMiBhdCAxMDAga0h6
-DQpTQ1NJIHN1YnN5c3RlbSBpbml0aWFsaXplZA0KdHdsNDAzMF91c2IgdHdsNDAzMF91c2I6IElu
-aXRpYWxpemVkIFRXTDQwMzAgVVNCIG1vZHVsZQ0KU3dpdGNoZWQgdG8gaGlnaCByZXNvbHV0aW9u
-IG1vZGUgb24gQ1BVIDANCk5FVDogUmVnaXN0ZXJlZCBwcm90b2NvbCBmYW1pbHkgMg0KSVAgcm91
-dGUgY2FjaGUgaGFzaCB0YWJsZSBlbnRyaWVzOiAxMDI0IChvcmRlcjogMCwgNDA5NiBieXRlcykN
-ClRDUCBlc3RhYmxpc2hlZCBoYXNoIHRhYmxlIGVudHJpZXM6IDQwOTYgKG9yZGVyOiAzLCAzMjc2
-OCBieXRlcykNClRDUCBiaW5kIGhhc2ggdGFibGUgZW50cmllczogNDA5NiAob3JkZXI6IDIsIDE2
-Mzg0IGJ5dGVzKQ0KVENQOiBIYXNoIHRhYmxlcyBjb25maWd1cmVkIChlc3RhYmxpc2hlZCA0MDk2
-IGJpbmQgNDA5NikNClRDUCByZW5vIHJlZ2lzdGVyZWQNCk5FVDogUmVnaXN0ZXJlZCBwcm90b2Nv
-bCBmYW1pbHkgMQ0KTmV0V2luZGVyIEZsb2F0aW5nIFBvaW50IEVtdWxhdG9yIFYwLjk3IChkb3Vi
-bGUgcHJlY2lzaW9uKQ0KVkZTOiBEaXNrIHF1b3RhcyBkcXVvdF82LjUuMg0KRHF1b3QtY2FjaGUg
-aGFzaCB0YWJsZSBlbnRyaWVzOiAxMDI0IChvcmRlciAwLCA0MDk2IGJ5dGVzKQ0KSkZGUzIgdmVy
-c2lvbiAyLjIuIChOQU5EKSDCqSAyMDAxLTIwMDYgUmVkIEhhdCwgSW5jLg0KbXNnbW5pIGhhcyBi
-ZWVuIHNldCB0byAyNDYNCmFsZzogTm8gdGVzdCBmb3Igc3Rkcm5nIChrcm5nKQ0KaW8gc2NoZWR1
-bGVyIG5vb3AgcmVnaXN0ZXJlZA0KaW8gc2NoZWR1bGVyIGFudGljaXBhdG9yeSByZWdpc3RlcmVk
-IChkZWZhdWx0KQ0KaW8gc2NoZWR1bGVyIGRlYWRsaW5lIHJlZ2lzdGVyZWQNCmlvIHNjaGVkdWxl
-ciBjZnEgcmVnaXN0ZXJlZA0KU2VyaWFsOiA4MjUwLzE2NTUwIGRyaXZlciwgNCBwb3J0cywgSVJR
-IHNoYXJpbmcgZW5hYmxlZA0Kc2VyaWFsODI1MC4wOiB0dHlTMCBhdCBNTUlPIDB4NDgwNmEwMDAg
-KGlycSA9IDcyKSBpcyBhIFNUMTY2NTQNCmNvbnNvbGUgW3R0eVMwXSBlbmFibGVkDQpzZXJpYWw4
-MjUwLjA6IHR0eVMxIGF0IE1NSU8gMHg0ODA2YzAwMCAoaXJxID0gNzMpIGlzIGEgU1QxNjY1NA0K
-c2VyaWFsODI1MC4wOiB0dHlTMiBhdCBNTUlPIDB4NDkwMjAwMDAgKGlycSA9IDc0KSBpcyBhIFNU
-MTY2NTQNCmJyZDogbW9kdWxlIGxvYWRlZA0KbG9vcDogbW9kdWxlIGxvYWRlZA0KZXRoMCAoc21j
-OTExeCk6IG5vdCB1c2luZyBuZXRfZGV2aWNlX29wcyB5ZXQNCmV0aDA6IExBTjkyMTEgKHJldiAw
-KSBhdCAweDgwMDAwMDAgSVJRIDMxMg0KZXRoMDogRXRoZXJuZXQgYWRkcjogMDA6MDg6ZWU6MDI6
-ODI6MjINCmV0aDA6IExBTjkxMXggSW50ZXJuYWwgUEhZDQppMmMgL2RldiBlbnRyaWVzIGRyaXZl
-cg0KRHJpdmVyICdzZCcgbmVlZHMgdXBkYXRpbmcgLSBwbGVhc2UgdXNlIGJ1c190eXBlIG1ldGhv
-ZHMNCm9tYXAyLW5hbmQgZHJpdmVyIGluaXRpYWxpemluZw0KdHdsNDAzMF9ydGMgdHdsNDAzMF9y
-dGM6IHJ0YyBjb3JlOiByZWdpc3RlcmVkIHR3bDQwMzBfcnRjIGFzIHJ0YzANCmNwdWlkbGU6IHVz
-aW5nIGdvdmVybm9yIGxhZGRlcg0KY3B1aWRsZTogdXNpbmcgZ292ZXJub3IgbWVudQ0KVENQIGN1
-YmljIHJlZ2lzdGVyZWQNCk5FVDogUmVnaXN0ZXJlZCBwcm90b2NvbCBmYW1pbHkgMTcNCk5FVDog
-UmVnaXN0ZXJlZCBwcm90b2NvbCBmYW1pbHkgMTUNClJQQzogUmVnaXN0ZXJlZCB1ZHAgdHJhbnNw
-b3J0IG1vZHVsZS4NClJQQzogUmVnaXN0ZXJlZCB0Y3AgdHJhbnNwb3J0IG1vZHVsZS4NClBvd2Vy
-IE1hbmFnZW1lbnQgZm9yIFRJIE9NQVAzLg0KU21hcnRSZWZsZXggZHJpdmVyIGluaXRpYWxpemVk
-DQpEaXNhYmxpbmcgdW51c2VkIGNsb2NrICJzcjJfZmNrIg0KRGlzYWJsaW5nIHVudXNlZCBjbG9j
-ayAic3IxX2ZjayINCkRpc2FibGluZyB1bnVzZWQgY2xvY2sgIm1jYnNwX2ZjayINCkRpc2FibGlu
-ZyB1bnVzZWQgY2xvY2sgIm1jYnNwX2ZjayINCkRpc2FibGluZyB1bnVzZWQgY2xvY2sgIm1jYnNw
-X2ZjayINCkRpc2FibGluZyB1bnVzZWQgY2xvY2sgIm1jYnNwX2ljayINCkRpc2FibGluZyB1bnVz
-ZWQgY2xvY2sgIm1jYnNwX2ljayINCkRpc2FibGluZyB1bnVzZWQgY2xvY2sgIm1jYnNwX2ljayIN
-CkRpc2FibGluZyB1bnVzZWQgY2xvY2sgImdwdDJfaWNrIg0KRGlzYWJsaW5nIHVudXNlZCBjbG9j
-ayAiZ3B0M19pY2siDQpEaXNhYmxpbmcgdW51c2VkIGNsb2NrICJncHQ0X2ljayINCkRpc2FibGlu
-ZyB1bnVzZWQgY2xvY2sgImdwdDVfaWNrIg0KRGlzYWJsaW5nIHVudXNlZCBjbG9jayAiZ3B0Nl9p
-Y2siDQpEaXNhYmxpbmcgdW51c2VkIGNsb2NrICJncHQ3X2ljayINCkRpc2FibGluZyB1bnVzZWQg
-Y2xvY2sgImdwdDhfaWNrIg0KRGlzYWJsaW5nIHVudXNlZCBjbG9jayAiZ3B0OV9pY2siDQpEaXNh
-YmxpbmcgdW51c2VkIGNsb2NrICJ3ZHQzX2ljayINCkRpc2FibGluZyB1bnVzZWQgY2xvY2sgIndk
-dDNfZmNrIg0KRGlzYWJsaW5nIHVudXNlZCBjbG9jayAiZ3BpbzJfZGJjayINCkRpc2FibGluZyB1
-bnVzZWQgY2xvY2sgImdwaW8zX2RiY2siDQpEaXNhYmxpbmcgdW51c2VkIGNsb2NrICJncGlvNF9k
-YmNrIg0KRGlzYWJsaW5nIHVudXNlZCBjbG9jayAiZ3BpbzVfZGJjayINCkRpc2FibGluZyB1bnVz
-ZWQgY2xvY2sgImdwaW82X2RiY2siDQpEaXNhYmxpbmcgdW51c2VkIGNsb2NrICJncHQ5X2ZjayIN
-CkRpc2FibGluZyB1bnVzZWQgY2xvY2sgImdwdDhfZmNrIg0KRGlzYWJsaW5nIHVudXNlZCBjbG9j
-ayAiZ3B0N19mY2siDQpEaXNhYmxpbmcgdW51c2VkIGNsb2NrICJncHQ2X2ZjayINCkRpc2FibGlu
-ZyB1bnVzZWQgY2xvY2sgImdwdDVfZmNrIg0KRGlzYWJsaW5nIHVudXNlZCBjbG9jayAiZ3B0NF9m
-Y2siDQpEaXNhYmxpbmcgdW51c2VkIGNsb2NrICJncHQzX2ZjayINCkRpc2FibGluZyB1bnVzZWQg
-Y2xvY2sgImdwdDJfZmNrIg0KRGlzYWJsaW5nIHVudXNlZCBjbG9jayAiZ3B0MV9pY2siDQpEaXNh
-YmxpbmcgdW51c2VkIGNsb2NrICJ3ZHQxX2ljayINCkRpc2FibGluZyB1bnVzZWQgY2xvY2sgIndk
-dDJfaWNrIg0KRGlzYWJsaW5nIHVudXNlZCBjbG9jayAidXNpbV9pY2siDQpEaXNhYmxpbmcgdW51
-c2VkIGNsb2NrICJ3ZHQyX2ZjayINCkRpc2FibGluZyB1bnVzZWQgY2xvY2sgImdwaW8xX2RiY2si
-DQpEaXNhYmxpbmcgdW51c2VkIGNsb2NrICJncHQxX2ZjayINCkRpc2FibGluZyB1bnVzZWQgY2xv
-Y2sgInVzaW1fZmNrIg0KRGlzYWJsaW5nIHVudXNlZCBjbG9jayAiZHNzX2ljayINCkRpc2FibGlu
-ZyB1bnVzZWQgY2xvY2sgImRzczJfYWx3b25fZmNrIg0KRGlzYWJsaW5nIHVudXNlZCBjbG9jayAi
-ZHNzXzk2bV9mY2siDQpEaXNhYmxpbmcgdW51c2VkIGNsb2NrICJkc3MxX2Fsd29uX2ZjayINCkRp
-c2FibGluZyB1bnVzZWQgY2xvY2sgImRlczFfaWNrIg0KRGlzYWJsaW5nIHVudXNlZCBjbG9jayAi
-c2hhMTFfaWNrIg0KRGlzYWJsaW5nIHVudXNlZCBjbG9jayAicm5nX2ljayINCkRpc2FibGluZyB1
-bnVzZWQgY2xvY2sgImFlczFfaWNrIg0KRGlzYWJsaW5nIHVudXNlZCBjbG9jayAic3NpX2ljayIN
-CkRpc2FibGluZyB1bnVzZWQgY2xvY2sgIm1haWxib3hlc19pY2siDQpEaXNhYmxpbmcgdW51c2Vk
-IGNsb2NrICJtY2JzcF9pY2siDQpEaXNhYmxpbmcgdW51c2VkIGNsb2NrICJtY2JzcF9pY2siDQpE
-aXNhYmxpbmcgdW51c2VkIGNsb2NrICJncHQxMF9pY2siDQpEaXNhYmxpbmcgdW51c2VkIGNsb2Nr
-ICJncHQxMV9pY2siDQpEaXNhYmxpbmcgdW51c2VkIGNsb2NrICJpMmNfaWNrIg0KRGlzYWJsaW5n
-IHVudXNlZCBjbG9jayAibWNzcGlfaWNrIg0KRGlzYWJsaW5nIHVudXNlZCBjbG9jayAibWNzcGlf
-aWNrIg0KRGlzYWJsaW5nIHVudXNlZCBjbG9jayAibWNzcGlfaWNrIg0KRGlzYWJsaW5nIHVudXNl
-ZCBjbG9jayAibWNzcGlfaWNrIg0KRGlzYWJsaW5nIHVudXNlZCBjbG9jayAiaGRxX2ljayINCkRp
-c2FibGluZyB1bnVzZWQgY2xvY2sgIm1zcHJvX2ljayINCkRpc2FibGluZyB1bnVzZWQgY2xvY2sg
-ImRlczJfaWNrIg0KRGlzYWJsaW5nIHVudXNlZCBjbG9jayAic2hhMTJfaWNrIg0KRGlzYWJsaW5n
-IHVudXNlZCBjbG9jayAiYWVzMl9pY2siDQpEaXNhYmxpbmcgdW51c2VkIGNsb2NrICJpY3JfaWNr
-Ig0KRGlzYWJsaW5nIHVudXNlZCBjbG9jayAicGthX2ljayINCkRpc2FibGluZyB1bnVzZWQgY2xv
-Y2sgImhzb3RndXNiX2ljayINCkRpc2FibGluZyB1bnVzZWQgY2xvY2sgInNzaV9zc3JfZmNrIg0K
-RGlzYWJsaW5nIHVudXNlZCBjbG9jayAiaGRxX2ZjayINCkRpc2FibGluZyB1bnVzZWQgY2xvY2sg
-Im1jc3BpX2ZjayINCkRpc2FibGluZyB1bnVzZWQgY2xvY2sgIm1jc3BpX2ZjayINCkRpc2FibGlu
-ZyB1bnVzZWQgY2xvY2sgIm1jc3BpX2ZjayINCkRpc2FibGluZyB1bnVzZWQgY2xvY2sgIm1jc3Bp
-X2ZjayINCkRpc2FibGluZyB1bnVzZWQgY2xvY2sgIm1jYnNwX2ZjayINCkRpc2FibGluZyB1bnVz
-ZWQgY2xvY2sgIm1jYnNwX2ZjayINCkRpc2FibGluZyB1bnVzZWQgY2xvY2sgImkyY19mY2siDQpE
-aXNhYmxpbmcgdW51c2VkIGNsb2NrICJtc3Byb19mY2siDQpEaXNhYmxpbmcgdW51c2VkIGNsb2Nr
-ICJncHQxMV9mY2siDQpEaXNhYmxpbmcgdW51c2VkIGNsb2NrICJncHQxMF9mY2siDQpEaXNhYmxp
-bmcgdW51c2VkIGNsb2NrICJjbGtvdXQyX3NyY19jayINCkRpc2FibGluZyB1bnVzZWQgY2xvY2sg
-ImRwbGw1X2NrIg0KY2xvY2s6IGRwbGw1X2NrIGZhaWxlZCB0cmFuc2l0aW9uIHRvICdsb2NrZWQn
-DQpEaXNhYmxpbmcgdW51c2VkIGNsb2NrICJkcGxsNF9tNngyX2NrIg0KRGlzYWJsaW5nIHVudXNl
-ZCBjbG9jayAiZHBsbDRfbTV4Ml9jayINCkRpc2FibGluZyB1bnVzZWQgY2xvY2sgImRwbGwzX20z
-eDJfY2siDQpEaXNhYmxpbmcgdW51c2VkIGNsb2NrICJzeXNfY2xrb3V0MSINClZGUCBzdXBwb3J0
-IHYwLjM6IGltcGxlbWVudG9yIDQxIGFyY2hpdGVjdHVyZSAzIHBhcnQgMzAgdmFyaWFudCBjIHJl
-diAxDQp0d2w0MDMwX3J0YyB0d2w0MDMwX3J0Yzogc2V0dGluZyBzeXN0ZW0gY2xvY2sgdG8gMjAw
-MC0wMS0wMiAwNTowODowMSBVVEMgKDk0Njc4OTY4MSkNCmV0aDA6IGxpbmsgZG93bg0KU2VuZGlu
-ZyBESENQIHJlcXVlc3RzIC48Nj5ldGgwOiBsaW5rIHVwLCAxMDBNYnBzLCBmdWxsLWR1cGxleCwg
-bHBhIDB4NDVFMQ0KLiwgT0sNCklQLUNvbmZpZzogR290IERIQ1AgYW5zd2VyIGZyb20gMC4wLjAu
-MCwgbXkgYWRkcmVzcyBpcyAxOTIuMTY4LjMuMTA1DQpJUC1Db25maWc6IENvbXBsZXRlOg0KICAg
-ICBkZXZpY2U9ZXRoMCwgYWRkcj0xOTIuMTY4LjMuMTA1LCBtYXNrPTI1NS4yNTUuMjU1LjAsIGd3
-PTE5Mi4xNjguMy4xLA0KICAgICBob3N0PTE5Mi4xNjguMy4xMDUsIGRvbWFpbj0sIG5pcy1kb21h
-aW49KG5vbmUpLA0KICAgICBib290c2VydmVyPTAuMC4wLjAsIHJvb3RzZXJ2ZXI9MTkyLjE2OC4z
-LjUsIHJvb3RwYXRoPQ0KTG9va2luZyB1cCBwb3J0IG9mIFJQQyAxMDAwMDMvMiBvbiAxOTIuMTY4
-LjMuNQ0KTG9va2luZyB1cCBwb3J0IG9mIFJQQyAxMDAwMDUvMSBvbiAxOTIuMTY4LjMuNQ0KVkZT
-OiBNb3VudGVkIHJvb3QgKG5mcyBmaWxlc3lzdGVtKSBvbiBkZXZpY2UgMDoxMi4NCkZyZWVpbmcg
-aW5pdCBtZW1vcnk6IDEzNksNCmluaXQgc3RhcnRlZDogQnVzeUJveCB2MS4xMS4yICgpDQpzdGFy
-dGluZyBwaWQgMjg1LCB0dHkgJyc6ICcvZXRjL3JjLmQvcmNTJw0KU2V0dGluZyB0aGUgaG9zdG5h
-bWUgdG8gT01BUC0zNXgNCk1vdW50aW5nIC9wcm9jIGFuZCAvc3lzIA0KU3RhcnRpbmcgdGhlIGhv
-dHBsdWcgZXZlbnRzIGRpc3BhdGNoZXIgdWRldmQNClN5bnRoZXNpemluZyBpbml0aWFsIGhvdHBs
-dWcgZXZlbnRzDQpNb3VudGluZyBmaWxlc3lzdGVtcw0KbW91bnQ6IG1vdW50aW5nIHVzYmZzIG9u
-IC9wcm9jL2J1cy91c2IgZmFpbGVkOiBObyBzdWNoIGZpbGUgb3IgZGlyZWN0b3J5DQpTdGFydGlu
-ZyBzeXNsb2dkIGFuZCBrbG9nZA0KUnVubmluZyBkZXBtb2QNCldBUk5JTkc6IENvdWxkbid0IG9w
-ZW4gZGlyZWN0b3J5IC9saWIvbW9kdWxlcy8yLjYuMjktcmM4LW9tYXAxOiBObyBzdWNoIGZpbGUg
-b3IgZGlyZWN0b3J5DQpGQVRBTDogQ291bGQgbm90IG9wZW4gL2xpYi9tb2R1bGVzLzIuNi4yOS1y
-Yzgtb21hcDEvbW9kdWxlcy5kZXAudGVtcCBmb3Igd3JpdGluZzogTm8gc3VjaCBmaWxlIG9yIGRp
-cmVjdG9yeQ0KbG9hZCB1bmlmaV9zZGlvLmtvIGZvciA4MDIuMTEgYWNjZXNzDQp1bmlmaV9zZGlv
-OiBkaXNhZ3JlZXMgYWJvdXQgdmVyc2lvbiBvZiBzeW1ib2wgc3RydWN0X21vZHVsZQ0KaW5zbW9k
-OiBlcnJvciBpbnNlcnRpbmcgJy9saWIvZmlybXdhcmUvdW5pZmktc2Rpby0xL3VuaWZpX3NkaW8u
-a28nOiAtMSBJbnZhbGlkIG1vZHVsZSBmb3JtYXQNClN0YXJ0aW5nIGluZXRkOiANClN0YXJ0aW5n
-IHRoZSBkcm9wYmVhciBzc2ggc2VydmVyOiANCkxDRCBwYW5lbCBmaWxlIGlzIG5vdCBmb3VuZA0K
-c3RhcnRpbmcgcGlkIDUyMSwgdHR5ICcnOiAnL3NiaW4vZ2V0dHkgLUwgdHR5UzAgMTE1MjAwIHZ0
-MTAwJw0KDQoNCiAgICAgICAgV2VsY29tZSB0byBMb2dpYydzIE9NQVAzNXggRW1iZWRkZWQgTGlu
-dXggRW52aXJvbm1lbnQNCg0KISEhISEgV0FSTklORyAhISEhISEhDQoNClRoZSBkZWZhdWx0IHBh
-c3N3b3JkIGZvciB0aGUgcm9vdCBhY2NvdW50IGlzOiByb290DQpwbGVhc2UgY2hhbmdlIHRoaXMg
-cGFzc3dvcmQgdXNpbmcgdGhlICdwYXNzd2QnIGNvbW1hbmQNCmFuZCB0aGVuIGVkaXQgdGhpcyBt
-ZXNzYWdlICgvZXRjL2lzc3VlKSB0byByZW1vdmUgdGhpcyBtZXNzYWdlDQoNCk9NQVAtMzV4IGxv
-Z2luOiByb290DQpQYXNzd29yZDogDQpvbWFwMzUzMCMgDQpvbWFwMzUzMCMgDQpvbWFwMzUzMCMg
-ZWNobyBtZW0gPiAvc3lzL3Bvd2VyL3N0YXRlDQpQTTogU3luY2luZyBmaWxlc3lzdGVtcyAuLi4g
-ZG9uZS4NClBNOiBQcmVwYXJpbmcgc3lzdGVtIGZvciBtZW0gc2xlZXANCkZyZWV6aW5nIHVzZXIg
-c3BhY2UgcHJvY2Vzc2VzIC4uLiAoZWxhcHNlZCAwLjAwIHNlY29uZHMpIGRvbmUuDQpGcmVlemlu
-ZyByZW1haW5pbmcgZnJlZXphYmxlIHRhc2tzIC4uLiAoZWxhcHNlZCAwLjAwIHNlY29uZHMpIGRv
-bmUuDQpQTTogRW50ZXJpbmcgbWVtIHNsZWVwDQpQb3dlcmRvbWFpbiAoY29yZV9wd3JkbSkgZGlk
-bid0IGVudGVyIHRhcmdldCBzdGF0ZSAxDQpQb3dlcmRvbWFpbiAocGVyX3B3cmRtKSBkaWRuJ3Qg
-ZW50ZXIgdGFyZ2V0IHN0YXRlIDENCkNvdWxkIG5vdCBlbnRlciB0YXJnZXQgc3RhdGUgaW4gcG1f
-c3VzcGVuZA0KZXRoMDogc21jOTExeF9yZXNldCB0aW1lb3V0IHdhaXRpbmcgZm9yIFBNIHJlc3Rv
-cmUNCg0KZXRoMDogbGluayBkb3duDQpQTTogRmluaXNoaW5nIHdha2V1cC4NClJlc3RhcnRpbmcg
-dGFza3MgLi4uIGRvbmUuDQpvbWFwMzUzMCMgDQpvbWFwMzUzMCMgZXRoMDogbGluayB1cCwgMTAw
-TWJwcywgZnVsbC1kdXBsZXgsIGxwYSAweDQ1RTENCg0Kb21hcDM1MzAjIA==
-
-
---=-/vP4Vvqm5AVsP9a2P+qT--
+Kevin
