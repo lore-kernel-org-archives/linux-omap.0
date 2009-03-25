@@ -1,51 +1,35 @@
-From: Felipe Contreras <felipe.contreras@gmail.com>
-Subject: Re: tidspbridge git repository
-Date: Wed, 25 Mar 2009 01:27:21 +0200
-Message-ID: <94a0d4530903241627w2e3a2cb5ibad2bdeee21e5a86@mail.gmail.com>
-References: <DDE834F1D8D96540B7373DFF675BF56C110F2E19F0@NOK-EUMSG-03.mgdnok.nokia.com>
-	 <20090323194711.GI29546@atomide.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: [APPLIED] [PATCH] OMAP: mmc_twl4030 nicely disable vmmc_aux
+Date: Tue, 24 Mar 2009 20:29:30 -0400
+Message-ID: <notify-1237940966@atomide.com>
+References: <49C8CEFA.6020407@nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from fg-out-1718.google.com ([72.14.220.157]:37210 "EHLO
-	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751993AbZCXX1Y (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 24 Mar 2009 19:27:24 -0400
-Received: by fg-out-1718.google.com with SMTP id 16so639409fgg.17
-        for <linux-omap@vger.kernel.org>; Tue, 24 Mar 2009 16:27:21 -0700 (PDT)
-In-Reply-To: <20090323194711.GI29546@atomide.com>
+Received: from mho-01-bos.mailhop.org ([63.208.196.178]:52208 "EHLO
+	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752011AbZCYA3a (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 24 Mar 2009 20:29:30 -0400
+Received: from c-67-160-239-110.hsd1.ca.comcast.net ([67.160.239.110] helo=localhost.localdomain)
+	by mho-01-bos.mailhop.org with esmtpa (Exim 4.68)
+	(envelope-from <tony@atomide.com>)
+	id 1LmGzn-000HCq-JG
+	for linux-omap@vger.kernel.org; Wed, 25 Mar 2009 00:29:28 +0000
+In-Reply-To: <49C8CEFA.6020407@nokia.com>
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: ameya.palande@nokia.com, linux-omap@vger.kernel.org, hiroshi.doyu@nokia.com
+To: linux-omap@vger.kernel.org
 
-On Mon, Mar 23, 2009 at 9:47 PM, Tony Lindgren <tony@atomide.com> wrote:
-> * ameya.palande@nokia.com <ameya.palande@nokia.com> [090323 00:42]:
->> Hi Tony,
->>
->> I have collected latest patches for tidspbridge at:
->> git://gitorious.org/tidspbridge/mainline.git
->>
->> Branch is: tidspbridge
->>
->> It is based on your pm branch.
->> Can you pull it to your tidspbridge branch?
->
-> What dependencies are there to the PM branch?
->
-> To me it sounds like you should rebase your tidspbridge branch
-> against the mainline kernel as the drivers should be arch
-> independent.
->
-> If something is missing from the mainline kernel to rebase and
-> compile tidspbridge against the mainline, we need to fix those
-> issues.
+This patch has been applied to the linux-omap
+by youw fwiendly patch wobot.
 
-Last time I tried it worked fine, with one minor issue:
-http://github.com/felipec/linux-omap/commit/1ae534c0ab22e57dd986c50adddc83e2ec42f970
+Commit: 0268abf95f935c2fe45f778b2a223685e68c7823
 
-Btw, it seems the 2.6.28-omap1 tag didn't have the defconfig updated.
+PatchWorks
+http://patchwork.kernel.org/patch/13958/
 
--- 
-Felipe Contreras
+Git
+http://git.kernel.org/?p=linux/kernel/git/tmlind/linux-omap-2.6.git;a=commit;h=0268abf95f935c2fe45f778b2a223685e68c7823
+
+
