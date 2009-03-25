@@ -1,57 +1,35 @@
-From: Frans Meulenbroeks <fransmeulenbroeks@gmail.com>
-Subject: [PATCH] drivers/mmc/core/core.c: extend limit
-Date: Wed, 25 Mar 2009 23:03:28 +0100 (CET)
-Message-ID: <alpine.LNX.2.00.0903252248430.32070@linux-suse.site>
+From: Tony Lindgren <tony@atomide.com>
+Subject: [APPLIED] [PATCH 1/2] ARM: OMAP: N8x0: Add retu-headset platform data
+Date: Wed, 25 Mar 2009 18:28:24 -0400
+Message-ID: <notify-1238020101@atomide.com>
+References: <1237976781-3252-1-git-send-email-jarkko.nikula@nokia.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1757421AbZCYWD5@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: drzeus-mmc@drzeus.cx
-Cc: linux-kernel@vger.kernel.org, beagleboard@googlegroups.com, openembedded-devel@lists.openembedded.org, linux-omap@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-01-bos.mailhop.org ([63.208.196.178]:63279 "EHLO
+	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752598AbZCYW2Y (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 25 Mar 2009 18:28:24 -0400
+Received: from c-67-160-239-110.hsd1.ca.comcast.net ([67.160.239.110] helo=localhost.localdomain)
+	by mho-01-bos.mailhop.org with esmtpa (Exim 4.68)
+	(envelope-from <tony@atomide.com>)
+	id 1LmbaA-000I61-4F
+	for linux-omap@vger.kernel.org; Wed, 25 Mar 2009 22:28:22 +0000
+In-Reply-To: <1237976781-3252-1-git-send-email-jarkko.nikula@nokia.com>
+Content-Disposition: inline
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
 
-Hi,
+This patch has been applied to the linux-omap
+by youw fwiendly patch wobot.
 
-For some reason my 4GB Kingston SDHC class 6 cards stopped functioning 
-properly with 2.6.28 on my beagleboard (arm based). The very same cards (I 
-have two of them) worked properly with 2.6.27. What happened was that if I 
-booted from the card I would get errors -110.
-They are similar to the ones reported at lkml last sept in 
-http://lkml.org/lkml/2008/9/23/390
+Commit: bfed43659b0ffedf70d3dd41fc5658750f73890a
 
-Fortunately later on in this thread was a fix:
-http://lkml.org/lkml/2008/10/20/124
+PatchWorks
+http://patchwork.kernel.org/patch/14293/
 
-This did not help me as the limit was already at 300000. However, I 
-decided to raise the limit to 500000. Still no go so I also doubled the 
-read limit from 100000 to 200000. After that the cards work without 
-problem. Changing the write timing back to 300000 brought the problem back 
-so apparently both timings need to be extended. Attached is the patch I 
-used for this. As it is a timeout limit value, it should not harm anyone, 
-and a longer timeout at least allows more cards to be used.
+Git
+http://git.kernel.org/?p=linux/kernel/git/tmlind/linux-omap-2.6.git;a=commit;h=bfed43659b0ffedf70d3dd41fc5658750f73890a
 
-Signed-off-by: Frans Meulenbroeks <fransmeulenbroeks@gmail.com>
----
 
-What somewhat troubles me is that this worked in .27, so it might be this 
-patch does not address the root cause. Then again this is the best I can 
-do. If someone has a better solution, I am more than happy to test it.
-
-Frans.
-
-Index: git/drivers/mmc/core/core.c
-===================================================================
---- git.orig/drivers/mmc/core/core.c
-+++ git/drivers/mmc/core/core.c
-@@ -284,9 +284,9 @@ void mmc_set_data_timeout(struct mmc_dat
- 			 * The limit is really 250 ms, but that is
- 			 * insufficient for some crappy cards.
- 			 */
--			limit_us = 300000;
-+			limit_us = 500000;
- 		else
--			limit_us = 100000;
-+			limit_us = 200000;
-
- 		/*
- 		 * SDHC cards always use these fixed values.
