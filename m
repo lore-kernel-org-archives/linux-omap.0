@@ -1,35 +1,26 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: [APPLIED] [PATCH 2/2] ARM: OMAP: N8x0: Remove board-n800-audio.c
-Date: Wed, 25 Mar 2009 18:28:39 -0400
-Message-ID: <notify-1238020115@atomide.com>
-References: <1237976781-3252-2-git-send-email-jarkko.nikula@nokia.com>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: PM branch rebased to 2.6.29... for real this time
+Date: Wed, 25 Mar 2009 15:55:51 -0700
+Message-ID: <87k56dp5zc.fsf@deeprootsystems.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-bos.mailhop.org ([63.208.196.178]:63493 "EHLO
-	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752849AbZCYW2j (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 25 Mar 2009 18:28:39 -0400
-Received: from c-67-160-239-110.hsd1.ca.comcast.net ([67.160.239.110] helo=localhost.localdomain)
-	by mho-01-bos.mailhop.org with esmtpa (Exim 4.68)
-	(envelope-from <tony@atomide.com>)
-	id 1LmbaO-000IAB-PN
-	for linux-omap@vger.kernel.org; Wed, 25 Mar 2009 22:28:37 +0000
-In-Reply-To: <1237976781-3252-2-git-send-email-jarkko.nikula@nokia.com>
-Content-Disposition: inline
+Received: from wf-out-1314.google.com ([209.85.200.172]:27269 "EHLO
+	wf-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753161AbZCYWz5 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 25 Mar 2009 18:55:57 -0400
+Received: by wf-out-1314.google.com with SMTP id 29so294988wff.4
+        for <linux-omap@vger.kernel.org>; Wed, 25 Mar 2009 15:55:56 -0700 (PDT)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 
-This patch has been applied to the linux-omap
-by youw fwiendly patch wobot.
+Hello,
 
-Commit: a1ba945ac6df37a30bac1e8a7b5bf705cc0d7147
+The previous rebase was actually to 2.6.29-rc8.  Now that 2.6.29 is
+out, I've rebased the PM brach onto linux-omap HEAD just after the
+2.6.29 merge.
 
-PatchWorks
-http://patchwork.kernel.org/patch/14294/
+Minimal retention and off-mode on Beagle and RX51.
 
-Git
-http://git.kernel.org/?p=linux/kernel/git/tmlind/linux-omap-2.6.git;a=commit;h=a1ba945ac6df37a30bac1e8a7b5bf705cc0d7147
-
-
+Kevin
