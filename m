@@ -1,53 +1,42 @@
 From: Jarkko Nikula <jarkko.nikula@nokia.com>
-Subject: [PATCH 1/2] ARM: OMAP: N8x0: Add retu-headset platform data
-Date: Wed, 25 Mar 2009 12:26:20 +0200
-Message-ID: <1237976781-3252-1-git-send-email-jarkko.nikula@nokia.com>
+Subject: Re: n810 internal mmc boot
+Date: Wed, 25 Mar 2009 13:26:10 +0200
+Message-ID: <20090325132610.a859abaf.jarkko.nikula@nokia.com>
+References: <20090228012717.GB4366@swansys>
+	<20090321193355.GG20072@swansys>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:44830 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754341AbZCYK0F (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 25 Mar 2009 06:26:05 -0400
-Received: from vaebh105.NOE.Nokia.com (vaebh105.europe.nokia.com [10.160.244.31])
-	by mgw-mx03.nokia.com (Switch-3.2.6/Switch-3.2.6) with ESMTP id n2PAPakS021977
-	for <linux-omap@vger.kernel.org>; Wed, 25 Mar 2009 12:25:58 +0200
+Received: from smtp.nokia.com ([192.100.122.233]:53857 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753548AbZCYLZv (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 25 Mar 2009 07:25:51 -0400
+In-Reply-To: <20090321193355.GG20072@swansys>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Jarkko Nikula <jarkko.nikula@nokia.com>
+To: ext green <greenfreedom10@gmail.com>
+Cc: Linux-OMAP List <linux-omap@vger.kernel.org>
 
-This was earlier in board-n800-audio.c but got removed by the commit
-c65c733e1af5eac5681233309fed38538c9e06d2.
+On Sat, 21 Mar 2009 20:33:55 +0100
+ext green <greenfreedom10@gmail.com> wrote:
 
-Signed-off-by: Jarkko Nikula <jarkko.nikula@nokia.com>
----
- arch/arm/mach-omap2/board-n800.c |   10 ++++++++++
- 1 files changed, 10 insertions(+), 0 deletions(-)
+> green wrote at 2009-02-27 18:27 -0700:
+> > Any news on booting n810 from internal mmc?  It hasn't worked for a
+> > while.
+> 
+> The kernel detects the external mmc fine (for root=), but not the
+> internal... I'm just wondering whether any progress is being made or
+> expected.  Sorry if I'm being a nuisance.
+> 
+So it has been working at least sometime in linux-omap? I've been using
+prototype version of N810 with slightly different internal mmc and I
+have never noticed that internal mmc is working in linux-omap.
 
-diff --git a/arch/arm/mach-omap2/board-n800.c b/arch/arm/mach-omap2/board-n800.c
-index 60a414c..b90d153 100644
---- a/arch/arm/mach-omap2/board-n800.c
-+++ b/arch/arm/mach-omap2/board-n800.c
-@@ -568,10 +568,20 @@ static struct omap_gpio_switch n800_gpio_switches[] __initdata = {
- 	},
- };
- 
-+#if defined(CONFIG_CBUS_RETU_HEADSET)
-+static struct platform_device retu_headset_device = {
-+	.name	= "retu-headset",
-+	.id	= -1,
-+};
-+#endif
-+
- static struct platform_device *n800_devices[] __initdata = {
- #if defined(CONFIG_CBUS_RETU) && defined(CONFIG_LEDS_OMAP_PWM)
- 	&n800_keypad_led_device,
- #endif
-+#if defined(CONFIG_CBUS_RETU_HEADSET)
-+	&retu_headset_device,
-+#endif
- };
- 
- #ifdef CONFIG_MENELAUS
--- 
-1.6.2
+I thought that reason was that different HW since I didn't find any
+remarkable differences between our 2.6.21 kernel and linux-omap when I
+diffed it shortly long time ago. At least powering sequencing looked
+very much the same in board file.
 
+
+Jarkko
