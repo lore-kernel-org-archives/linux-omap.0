@@ -1,66 +1,122 @@
-From: Ashwin Bihari <abihari@gmail.com>
-Subject: Re: Kernel support of the Zoom OMAP35X Development kit
-Date: Wed, 25 Mar 2009 13:53:45 -0400
-Message-ID: <1f11a5490903251053v7f797a45i5509d1c965683e36@mail.gmail.com>
-References: <49CA662B.6000104@balister.org>
-	 <1f11a5490903251020o40ec542dyd44a2098c273a211@mail.gmail.com>
-	 <20090325173341.GP8057@atomide.com>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: [PATCH 0/2] OMAP clock: implement clock rate/parent change notifiers
+Date: Wed, 25 Mar 2009 10:54:15 -0700
+Message-ID: <87tz5hwks8.fsf@deeprootsystems.com>
+References: <20090325160759.31866.49722.stgit@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from yw-out-2324.google.com ([74.125.46.31]:29029 "EHLO
-	yw-out-2324.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753966AbZCYRxr (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 25 Mar 2009 13:53:47 -0400
-Received: by yw-out-2324.google.com with SMTP id 5so139673ywb.1
-        for <linux-omap@vger.kernel.org>; Wed, 25 Mar 2009 10:53:45 -0700 (PDT)
-In-Reply-To: <20090325173341.GP8057@atomide.com>
+Received: from mail-qy0-f118.google.com ([209.85.221.118]:48325 "EHLO
+	mail-qy0-f118.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752819AbZCYRyV convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 25 Mar 2009 13:54:21 -0400
+Received: by qyk16 with SMTP id 16so314151qyk.33
+        for <linux-omap@vger.kernel.org>; Wed, 25 Mar 2009 10:54:18 -0700 (PDT)
+In-Reply-To: <20090325160759.31866.49722.stgit@localhost.localdomain> (Paul Walmsley's message of "Wed\, 25 Mar 2009 10\:09\:19 -0600")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Philip Balister <philip@balister.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Paul Walmsley <paul@pwsan.com>
+Cc: linux-omap@vger.kernel.org
 
-On Wed, Mar 25, 2009 at 1:33 PM, Tony Lindgren <tony@atomide.com> wrote:
-> * Ashwin Bihari <abihari@gmail.com> [090325 10:21]:
->> On Wed, Mar 25, 2009 at 1:13 PM, Philip Balister <philip@balister.org> wrote:
->> > I looked at the kit kernel and didn't see support for this board:
->> >
->> > http://www.logicpd.com/products/devkit/ti/zoom_omap3_development_kit
->> >
->> > What are my chances getting this board going with the Linux-omap git kernel?
->> >
->> > If that doesn't work, what boards give easy access to the GPMC pins and work
->> > with the linux-omap kernel?
->> >
->> > Philip
->> >
->>
->> Philip,
->>
->> We have support for the OMAP3530LV_SOM (the LogicPD DevKit in the
->> link) on 2.6.28-rc8. We have patches available against that particular
->> release of the Linux OMAP tree and that'll get you up to speed on the
->> SOM to do your work. Register yourself on the website and you should
->> get access to the patches there.
->
-> How about send the board-*.c and other patches you have against the
-> mainline kernel to this list so we can review them?
->
-> Then let's queue them up for integration to the mainline kernel for
-> the next merge window!
->
-> Cheers,
->
-> Tony
->
+Paul Walmsley <paul@pwsan.com> writes:
 
-Tony,
+> Hello,
+>
+> This series allows core code and driver code to register for
+> notification when a clock's rate or parent changes.  This is currentl=
+y
+> used by driver code that must be notified whenever power management
+> code (e.g., CPUFreq) causes system rate changes that affect the drive=
+r's
+> clock.
 
-We're trying to  move our stuff forward to the 2.6.29 tree and there's
-probably more value in submitting patches against that as opposed to
-2.6.28..
+I will be re-basing the PM branch onto today's linux-omap HEAD which
+is v2.6.29 based.  As I do this, I'll be dropping all the previous
+notifier patches and replacing them with this series.
 
-Regards
+Kevin
 
--- Ashwin
+> There are three notifier messages:=20
+>
+> 1. a pre-change notifier, called before the change;=20
+>
+> 2. a post-change notifier, called after the change; and
+>
+> 3. an abort notifier, called if the change fails for any reason after
+>    the pre-change notifier callbacks have run.
+>
+> Since the implementation uses a blocking notifier, notifier code may
+> block waiting for devices to quiesce; but long delays here will reduc=
+e
+> the effectiveness of DVFS.  Since notifier callbacks are called with
+> clocks_mutex held, callback code must not re-enter the clock framewor=
+k.
+>
+> Pre-change notifiers are passed the current clock rate and the desire=
+d
+> clock rate, so drivers can adjust any internal dividers appropriately=
+=2E
+> (To minimize performance and memory usage impact, post-change
+> notifiers are passed only the desired clock rate, i.e., the clock rat=
+e
+> after the rate change.)  The notifiers are called even if the clock
+> rate is the same before and after the change.  This is because
+> reprogramming a clock's parent or rate may briefly disrupt the clock.
+>
+> The interface to the notifiers is via:
+>
+> int clk_notifier_register(struct clk *clk, struct notifier_block *nb)=
+;
+> int clk_notifier_unregister(struct clk *clk, struct notifier_block *n=
+b);
+>
+> Until prototypes for these functions are made available in
+> include/linux/clk.h, drivers should pass function pointers to
+> clk_notifier_register() and clk_notifier_unregister() via their
+> platform_data struct.
+>
+> This series is a collaboration between Tero Kristo
+> <tero.kristo@nokia.com> and Paul Walmsley <paul@pwsan.com> and severa=
+l
+> others. Hiroshi Doyu <Hiroshi.DOYU@nokia.com> tracked down and fixed =
+a
+> bug where blocking_notifier_chain_*() were called while interrupts
+> were disabled.  Nishanth Menon <nm@ti.com> found and fixed a bug in
+> the clk_notifier_unregister() path, where a list_del() was missing.
+> And thanks to Jouni H=F6gander <jouni.hogander@nokia.com> for comment=
+s
+> and review during the evolution of these patches.
+>
+> Registration and callbacks on rate change and parent change tested on
+> BeagleBoard (OMAP3530 ES2.1).
+>
+> Comments welcomed.
+>
+> ---
+>
+>    text    data     bss     dec     hex filename
+> 3439981  175136  111800 3726917  38de45 vmlinux.beagle.orig
+> 3441545  176000  111800 3729345  38e7c1 vmlinux.beagle
+>
+>
+>  arch/arm/mach-omap2/clock.c             |   30 ++++
+>  arch/arm/mach-omap2/clock.h             |    1=20
+>  arch/arm/mach-omap2/clock24xx.c         |    1=20
+>  arch/arm/mach-omap2/clock34xx.c         |    1=20
+>  arch/arm/plat-omap/clock.c              |  256 +++++++++++++++++++++=
+++++++++++
+>  arch/arm/plat-omap/include/mach/clock.h |   68 ++++++++
+>  6 files changed, 357 insertions(+), 0 deletions(-)
+>
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap"=
+ in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
