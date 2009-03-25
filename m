@@ -1,49 +1,57 @@
-From: twebb <taliaferro62@gmail.com>
-Subject: Re: MMC2 support in linux-omap-2.6.27 (omap1)
-Date: Wed, 25 Mar 2009 17:49:37 -0400
-Message-ID: <dbdb2ea60903251449u5d8e3edfvd58291923ecf6693@mail.gmail.com>
-References: <dbdb2ea60903250713s2eba347aib5758cf5157979da@mail.gmail.com>
+From: Frans Meulenbroeks <fransmeulenbroeks@gmail.com>
+Subject: [PATCH] drivers/mmc/core/core.c: extend limit
+Date: Wed, 25 Mar 2009 23:03:28 +0100 (CET)
+Message-ID: <alpine.LNX.2.00.0903252248430.32070@linux-suse.site>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from qw-out-2122.google.com ([74.125.92.27]:55761 "EHLO
-	qw-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751756AbZCYVtk convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 25 Mar 2009 17:49:40 -0400
-Received: by qw-out-2122.google.com with SMTP id 8so284496qwh.37
-        for <linux-omap@vger.kernel.org>; Wed, 25 Mar 2009 14:49:38 -0700 (PDT)
-In-Reply-To: <dbdb2ea60903250713s2eba347aib5758cf5157979da@mail.gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1757421AbZCYWD5@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: drzeus-mmc@drzeus.cx
+Cc: linux-kernel@vger.kernel.org, beagleboard@googlegroups.com, openembedded-devel@lists.openembedded.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "linux-omap@vger.kernel.org Mailing List" <linux-omap@vger.kernel.org>
 
-On Wed, Mar 25, 2009 at 10:13 AM, twebb <taliaferro62@gmail.com> wrote:
-> I'm currently using linux-omap-2.6.27 (tag=3Domap1) and trying to add
-> MMC2 support. =A0I've back ported what I think I need from various fi=
-les
-> inn l-o-2.6.28-omap1. =A0I will eventually move to 2.6.28-omap1 but f=
-or
-> now am trying to get it working on 2.6.27.
->
-> Traces show that all looks good up until first command is issued, the=
-n
-> nothing seems to happen. =A0STAT reg shows 0, don't see clock or cmd
-> activity. =A0MMC1 is working fine with an SD card; MMC2 is connected =
-to
-> eMMC flash. =A0Seems like I'm missing something basic like a clock or
-> enable, though I've confirmed ICLK and FCLK are enabled. =A0Any ideas=
-?
->
-> Thanks,
-> twebb
->
+Hi,
 
-I found at least part of my problem.  SDVS field of HCTL was being set
-to 0x7 (3.3V) instead of 0x5 (1.8V), and apparently MMC2 must be set
-for 0x5.
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+For some reason my 4GB Kingston SDHC class 6 cards stopped functioning 
+properly with 2.6.28 on my beagleboard (arm based). The very same cards (I 
+have two of them) worked properly with 2.6.27. What happened was that if I 
+booted from the card I would get errors -110.
+They are similar to the ones reported at lkml last sept in 
+http://lkml.org/lkml/2008/9/23/390
+
+Fortunately later on in this thread was a fix:
+http://lkml.org/lkml/2008/10/20/124
+
+This did not help me as the limit was already at 300000. However, I 
+decided to raise the limit to 500000. Still no go so I also doubled the 
+read limit from 100000 to 200000. After that the cards work without 
+problem. Changing the write timing back to 300000 brought the problem back 
+so apparently both timings need to be extended. Attached is the patch I 
+used for this. As it is a timeout limit value, it should not harm anyone, 
+and a longer timeout at least allows more cards to be used.
+
+Signed-off-by: Frans Meulenbroeks <fransmeulenbroeks@gmail.com>
+---
+
+What somewhat troubles me is that this worked in .27, so it might be this 
+patch does not address the root cause. Then again this is the best I can 
+do. If someone has a better solution, I am more than happy to test it.
+
+Frans.
+
+Index: git/drivers/mmc/core/core.c
+===================================================================
+--- git.orig/drivers/mmc/core/core.c
++++ git/drivers/mmc/core/core.c
+@@ -284,9 +284,9 @@ void mmc_set_data_timeout(struct mmc_dat
+ 			 * The limit is really 250 ms, but that is
+ 			 * insufficient for some crappy cards.
+ 			 */
+-			limit_us = 300000;
++			limit_us = 500000;
+ 		else
+-			limit_us = 100000;
++			limit_us = 200000;
+
+ 		/*
+ 		 * SDHC cards always use these fixed values.
