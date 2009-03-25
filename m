@@ -1,35 +1,47 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: [APPLIED] [PATCH] OMAP: mmc_twl4030 nicely disable vmmc_aux
-Date: Tue, 24 Mar 2009 20:29:30 -0400
-Message-ID: <notify-1237940966@atomide.com>
-References: <49C8CEFA.6020407@nokia.com>
+From: David Brownell <david-b@pacbell.net>
+Subject: Re: [PATCH] OMAP3: MMC needs CONFIG_REGULATOR{,_TWL4030} now in defconfigs
+Date: Tue, 24 Mar 2009 17:30:41 -0700
+Message-ID: <200903241730.41404.david-b@pacbell.net>
+References: <alpine.DEB.2.00.0903241716030.9924@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-bos.mailhop.org ([63.208.196.178]:52208 "EHLO
-	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752011AbZCYA3a (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 24 Mar 2009 20:29:30 -0400
-Received: from c-67-160-239-110.hsd1.ca.comcast.net ([67.160.239.110] helo=localhost.localdomain)
-	by mho-01-bos.mailhop.org with esmtpa (Exim 4.68)
-	(envelope-from <tony@atomide.com>)
-	id 1LmGzn-000HCq-JG
-	for linux-omap@vger.kernel.org; Wed, 25 Mar 2009 00:29:28 +0000
-In-Reply-To: <49C8CEFA.6020407@nokia.com>
+Received: from smtp116.sbc.mail.sp1.yahoo.com ([69.147.64.89]:25445 "HELO
+	smtp116.sbc.mail.sp1.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1754783AbZCYAbE (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Tue, 24 Mar 2009 20:31:04 -0400
+In-Reply-To: <alpine.DEB.2.00.0903241716030.9924@utopia.booyaka.com>
 Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
+To: Paul Walmsley <paul@pwsan.com>
+Cc: linux-omap@vger.kernel.org
 
-This patch has been applied to the linux-omap
-by youw fwiendly patch wobot.
+On Tuesday 24 March 2009, Paul Walmsley wrote:
+> MMC doesn't work after 3fe326511c66ab842ef0a09a1f4c564b1a8beecf unles=
+s=20
+> CONFIG_REGULATOR, CONFIG_REGULATOR_TWL4030 are present in the .config=
+=2E =A0
+> Add those in for all OMAP3 defconfigs. =A0Tested on BeagleBoard, but =
+this is=20
+> presumably needed for anything with MMC and TWL4030.
+> =A0 =A0=20
+> Signed-off-by: Paul Walmsley <paul@pwsan.com>
+> Cc: David Brownell <david-b@pacbell.net>
 
-Commit: 0268abf95f935c2fe45f778b2a223685e68c7823
+Acked-by: David Brownell <dbrownell@users.sourceforge.net>
 
-PatchWorks
-http://patchwork.kernel.org/patch/13958/
+I seem to have given up on updating defconfigs, but
+that doesn't mean it's not a good thing to do!
 
-Git
-http://git.kernel.org/?p=linux/kernel/git/tmlind/linux-omap-2.6.git;a=commit;h=0268abf95f935c2fe45f778b2a223685e68c7823
+Same thing with twl4030 GPIO support, on most of those
+platforms.
 
 
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
