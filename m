@@ -1,95 +1,129 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: [PATCH 0/2] OMAP clock: implement clock rate/parent change notifiers
-Date: Wed, 25 Mar 2009 10:09:19 -0600
-Message-ID: <20090325160759.31866.49722.stgit@localhost.localdomain>
+Subject: [PATCH 1/2] OMAP clock: add clk_round_rate_parent (with OMAP2/3
+	implementation)
+Date: Wed, 25 Mar 2009 10:09:21 -0600
+Message-ID: <20090325160920.31866.22103.stgit@localhost.localdomain>
+References: <20090325160759.31866.49722.stgit@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:41119 "EHLO
+Received: from utopia.booyaka.com ([72.9.107.138]:41120 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757208AbZCYQK7 (ORCPT
+	with ESMTP id S1757474AbZCYQK7 (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>); Wed, 25 Mar 2009 12:10:59 -0400
+In-Reply-To: <20090325160759.31866.49722.stgit@localhost.localdomain>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
+Cc: Paul Walmsley <paul@pwsan.com>
 
-Hello,
+This patch adds clk_round_rate_parent(), a means for internal clock
+code to determine what a clock's rate would be if its parent changed.
+This is needed by the pre-change clock notifier, which passes the
+current clock rate and the desired clock rate to its callbacks.
 
-This series allows core code and driver code to register for
-notification when a clock's rate or parent changes.  This is currently
-used by driver code that must be notified whenever power management
-code (e.g., CPUFreq) causes system rate changes that affect the driver'=
-s
-clock.
+An implementation is provided for the OMAP2/3 architecture
+(omap2_clk_round_rate_parent)..
 
-There are three notifier messages:=20
-
-1. a pre-change notifier, called before the change;=20
-
-2. a post-change notifier, called after the change; and
-
-3. an abort notifier, called if the change fails for any reason after
-   the pre-change notifier callbacks have run.
-
-Since the implementation uses a blocking notifier, notifier code may
-block waiting for devices to quiesce; but long delays here will reduce
-the effectiveness of DVFS.  Since notifier callbacks are called with
-clocks_mutex held, callback code must not re-enter the clock framework.
-
-Pre-change notifiers are passed the current clock rate and the desired
-clock rate, so drivers can adjust any internal dividers appropriately.
-(To minimize performance and memory usage impact, post-change
-notifiers are passed only the desired clock rate, i.e., the clock rate
-after the rate change.)  The notifiers are called even if the clock
-rate is the same before and after the change.  This is because
-reprogramming a clock's parent or rate may briefly disrupt the clock.
-
-The interface to the notifiers is via:
-
-int clk_notifier_register(struct clk *clk, struct notifier_block *nb);
-int clk_notifier_unregister(struct clk *clk, struct notifier_block *nb)=
-;
-
-Until prototypes for these functions are made available in
-include/linux/clk.h, drivers should pass function pointers to
-clk_notifier_register() and clk_notifier_unregister() via their
-platform_data struct.
-
-This series is a collaboration between Tero Kristo
-<tero.kristo@nokia.com> and Paul Walmsley <paul@pwsan.com> and several
-others. Hiroshi Doyu <Hiroshi.DOYU@nokia.com> tracked down and fixed a
-bug where blocking_notifier_chain_*() were called while interrupts
-were disabled.  Nishanth Menon <nm@ti.com> found and fixed a bug in
-the clk_notifier_unregister() path, where a list_del() was missing.
-And thanks to Jouni H=C3=B6gander <jouni.hogander@nokia.com> for commen=
-ts
-and review during the evolution of these patches.
-
-Registration and callbacks on rate change and parent change tested on
-BeagleBoard (OMAP3530 ES2.1).
-
-Comments welcomed.
-
+Signed-off-by: Paul Walmsley <paul@pwsan.com>
 ---
+ arch/arm/mach-omap2/clock.c             |   30 ++++++++++++++++++++++++++++++
+ arch/arm/mach-omap2/clock.h             |    1 +
+ arch/arm/mach-omap2/clock24xx.c         |    1 +
+ arch/arm/mach-omap2/clock34xx.c         |    1 +
+ arch/arm/plat-omap/include/mach/clock.h |    2 ++
+ 5 files changed, 35 insertions(+), 0 deletions(-)
 
-   text    data     bss     dec     hex filename
-3439981  175136  111800 3726917  38de45 vmlinux.beagle.orig
-3441545  176000  111800 3729345  38e7c1 vmlinux.beagle
+diff --git a/arch/arm/mach-omap2/clock.c b/arch/arm/mach-omap2/clock.c
+index 41662fd..65391ba 100644
+--- a/arch/arm/mach-omap2/clock.c
++++ b/arch/arm/mach-omap2/clock.c
+@@ -871,6 +871,36 @@ struct clk *omap2_clk_get_parent(struct clk *clk)
+ 	return clk->parent;
+ }
+ 
++/**
++ * omap2_clk_round_rate_parent - return the rate for @clk if parent were changed
++ * @clk: struct clk that may change parents
++ * @new_parent: the struct clk that @clk may be reparented under
++ *
++ * Given a struct clk @clk and a new parent struct clk @new_parent,
++ * determine what @clk's rate would be after the reparent operation.
++ * Returns the new clock rate or -EINVAL upon error.
++ */
++long omap2_clk_round_rate_parent(struct clk *clk, struct clk *new_parent)
++{
++	u32 field_val, parent_div;
++	long rate;
++
++	if (!clk->clksel || !new_parent)
++		return -EINVAL;
++
++	parent_div = _omap2_clksel_get_src_field(new_parent, clk, &field_val);
++	if (!parent_div)
++		return -EINVAL;
++
++	/* CLKSEL clocks follow their parents' rates, divided by a divisor */
++	rate = new_parent->rate;
++	if (parent_div > 0)
++		rate /= parent_div;
++
++	return rate;
++}
++
++
+ /* DPLL rate rounding code */
+ 
+ /**
+diff --git a/arch/arm/mach-omap2/clock.h b/arch/arm/mach-omap2/clock.h
+index f4d489f..af350ed 100644
+--- a/arch/arm/mach-omap2/clock.h
++++ b/arch/arm/mach-omap2/clock.h
+@@ -41,6 +41,7 @@ int omap2_clk_register(struct clk *clk);
+ int omap2_clk_enable(struct clk *clk);
+ void omap2_clk_disable(struct clk *clk);
+ long omap2_clk_round_rate(struct clk *clk, unsigned long rate);
++long omap2_clk_round_rate_parent(struct clk *clk, struct clk *new_parent);
+ int omap2_clk_set_rate(struct clk *clk, unsigned long rate);
+ int omap2_clk_set_parent(struct clk *clk, struct clk *new_parent);
+ int omap2_dpll_set_rate_tolerance(struct clk *clk, unsigned int tolerance);
+diff --git a/arch/arm/mach-omap2/clock24xx.c b/arch/arm/mach-omap2/clock24xx.c
+index 53864c0..3f75524 100644
+--- a/arch/arm/mach-omap2/clock24xx.c
++++ b/arch/arm/mach-omap2/clock24xx.c
+@@ -448,6 +448,7 @@ static struct clk_functions omap2_clk_functions = {
+ 	.clk_enable		= omap2_clk_enable,
+ 	.clk_disable		= omap2_clk_disable,
+ 	.clk_round_rate		= omap2_clk_round_rate,
++	.clk_round_rate_parent	= omap2_clk_round_rate_parent,
+ 	.clk_set_rate		= omap2_clk_set_rate,
+ 	.clk_set_parent		= omap2_clk_set_parent,
+ 	.clk_get_parent		= omap2_clk_get_parent,
+diff --git a/arch/arm/mach-omap2/clock34xx.c b/arch/arm/mach-omap2/clock34xx.c
+index f7ac5c1..12ff39f 100644
+--- a/arch/arm/mach-omap2/clock34xx.c
++++ b/arch/arm/mach-omap2/clock34xx.c
+@@ -635,6 +635,7 @@ static struct clk_functions omap2_clk_functions = {
+ 	.clk_enable		= omap2_clk_enable,
+ 	.clk_disable		= omap2_clk_disable,
+ 	.clk_round_rate		= omap2_clk_round_rate,
++	.clk_round_rate_parent	= omap2_clk_round_rate_parent,
+ 	.clk_set_rate		= omap2_clk_set_rate,
+ 	.clk_set_parent		= omap2_clk_set_parent,
+ 	.clk_get_parent		= omap2_clk_get_parent,
+diff --git a/arch/arm/plat-omap/include/mach/clock.h b/arch/arm/plat-omap/include/mach/clock.h
+index db57b71..89a2662 100644
+--- a/arch/arm/plat-omap/include/mach/clock.h
++++ b/arch/arm/plat-omap/include/mach/clock.h
+@@ -121,6 +121,8 @@ struct clk_functions {
+ 	int		(*clk_enable)(struct clk *clk);
+ 	void		(*clk_disable)(struct clk *clk);
+ 	long		(*clk_round_rate)(struct clk *clk, unsigned long rate);
++	long		(*clk_round_rate_parent)(struct clk *clk,
++						 struct clk *parent);
+ 	int		(*clk_set_rate)(struct clk *clk, unsigned long rate);
+ 	int		(*clk_set_parent)(struct clk *clk, struct clk *parent);
+ 	struct clk *	(*clk_get_parent)(struct clk *clk);
 
 
- arch/arm/mach-omap2/clock.c             |   30 ++++
- arch/arm/mach-omap2/clock.h             |    1=20
- arch/arm/mach-omap2/clock24xx.c         |    1=20
- arch/arm/mach-omap2/clock34xx.c         |    1=20
- arch/arm/plat-omap/clock.c              |  256 +++++++++++++++++++++++=
-++++++++
- arch/arm/plat-omap/include/mach/clock.h |   68 ++++++++
- 6 files changed, 357 insertions(+), 0 deletions(-)
-
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
