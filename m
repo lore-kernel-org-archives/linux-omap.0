@@ -1,45 +1,39 @@
-From: Ashwin Bihari <abihari@gmail.com>
-Subject: Re: Kernel support of the Zoom OMAP35X Development kit
-Date: Wed, 25 Mar 2009 13:20:42 -0400
-Message-ID: <1f11a5490903251020o40ec542dyd44a2098c273a211@mail.gmail.com>
-References: <49CA662B.6000104@balister.org>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: omap3evm mmc problem
+Date: Wed, 25 Mar 2009 10:22:55 -0700
+Message-ID: <20090325172254.GO8057@atomide.com>
+References: <gq1s6e$ssu$1@ger.gmane.org> <200903210234.03670.david-b@pacbell.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from an-out-0708.google.com ([209.85.132.246]:22560 "EHLO
-	an-out-0708.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751060AbZCYRUq (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 25 Mar 2009 13:20:46 -0400
-Received: by an-out-0708.google.com with SMTP id d14so113516and.1
-        for <linux-omap@vger.kernel.org>; Wed, 25 Mar 2009 10:20:44 -0700 (PDT)
-In-Reply-To: <49CA662B.6000104@balister.org>
+Received: from mho-01-bos.mailhop.org ([63.208.196.178]:54018 "EHLO
+	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753949AbZCYRW7 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 25 Mar 2009 13:22:59 -0400
+Content-Disposition: inline
+In-Reply-To: <200903210234.03670.david-b@pacbell.net>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Philip Balister <philip@balister.org>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: David Brownell <david-b@pacbell.net>
+Cc: dfoley <dfoley@telus.net>, linux-omap@vger.kernel.org
 
-On Wed, Mar 25, 2009 at 1:13 PM, Philip Balister <philip@balister.org> wrote:
-> I looked at the kit kernel and didn't see support for this board:
->
-> http://www.logicpd.com/products/devkit/ti/zoom_omap3_development_kit
->
-> What are my chances getting this board going with the Linux-omap git kernel?
->
-> If that doesn't work, what boards give easy access to the GPMC pins and work
-> with the linux-omap kernel?
->
-> Philip
->
+* David Brownell <david-b@pacbell.net> [090321 02:34]:
+> On Friday 20 March 2009, dfoley wrote:
+> > Does anyone else get these mmc errors or know why on the OMAP 3530 Development board ?
+> 
+> Which dev board?  LDP?  EVM?
+> 
+> 
+> > mmci-omap-hs mmci-omap-hs.0: Failed to get debounce clock
+> > regulator: Unable to get requested regulator: vmmc
+> 
+> Needs patches to setup whichever regulator is used
+> with the MMC1 controller.  Look at Beagle, Overo,
+> or SDP for examples...
+> 
+> 
+> > mmci-omap-hs mmci-omap-hs.0: err -19 configuring card detect
 
-Philip,
+Is this again the CONFIG_REGULATOR missing in .config?
 
-We have support for the OMAP3530LV_SOM (the LogicPD DevKit in the
-link) on 2.6.28-rc8. We have patches available against that particular
-release of the Linux OMAP tree and that'll get you up to speed on the
-SOM to do your work. Register yourself on the website and you should
-get access to the patches there.
-
-Regards
-
--- Ashwin
+Tony
