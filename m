@@ -1,34 +1,35 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: Problems bringing up new PM 2.6.29 tree on Logic 35x LV SOM
-Date: Thu, 26 Mar 2009 15:13:30 -0600 (MDT)
-Message-ID: <alpine.DEB.2.00.0903261500350.12079@utopia.booyaka.com>
-References: <1238099752.8002.84.camel@blackhole>
+From: Tony Lindgren <tony@atomide.com>
+Subject: [APPLIED] [PATCHv2] OMAP: McBSP: Always maintain McBSP fclk while active
+Date: Thu, 26 Mar 2009 18:47:09 -0400
+Message-ID: <notify-1238107625@atomide.com>
+References: <12373758621770-git-send-email-ext-eero.nurkkala@nokia.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:39222 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755094AbZCZVNd (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 26 Mar 2009 17:13:33 -0400
-In-Reply-To: <1238099752.8002.84.camel@blackhole>
+Received: from mho-01-bos.mailhop.org ([63.208.196.178]:54629 "EHLO
+	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753427AbZCZWrJ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 26 Mar 2009 18:47:09 -0400
+Received: from c-67-160-239-110.hsd1.ca.comcast.net ([67.160.239.110] helo=localhost.localdomain)
+	by mho-01-bos.mailhop.org with esmtpa (Exim 4.68)
+	(envelope-from <tony@atomide.com>)
+	id 1LmyLq-000Iul-JW
+	for linux-omap@vger.kernel.org; Thu, 26 Mar 2009 22:47:06 +0000
+In-Reply-To: <12373758621770-git-send-email-ext-eero.nurkkala@nokia.com>
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Peter Barada <peterb@logicpd.com>
-Cc: linux-omap <linux-omap@vger.kernel.org>
+To: linux-omap@vger.kernel.org
 
-On Thu, 26 Mar 2009, Peter Barada wrote:
+This patch has been applied to the linux-omap
+by youw fwiendly patch wobot.
 
-> I changed the call to omap_init_common_hw to pass in four NULLs (as I
-> think the sdrc params for mt46h32m32lf6 (somehow?) don't match the
-> mt29c2g24maklajg-75 used on our board. 
-                   ^^
+Commit: bd0d1794e9897e65d9443b8b7ba897d93f3deab8
 
-This is why you can't use the MT46H32M32LF-6 parameters.  The -75 part is 
-slower.  You'll need to plug in the -75 timings from the Micron datasheet 
-1gb_ddr_mobile_sdram_t48m.pdf into calc-sdrc-params.c.  Using those 
-values, create a new file, sdram-micron-mt46h32m32lf-75.h, for that part, 
-and pass in the new SDRAM register structure via omap_init_common_hw() in 
-your board-*.c file.
+PatchWorks
+http://patchwork.kernel.org/patch/12818/
+
+Git
+http://git.kernel.org/?p=linux/kernel/git/tmlind/linux-omap-2.6.git;a=commit;h=bd0d1794e9897e65d9443b8b7ba897d93f3deab8
 
 
-- Paul
