@@ -1,144 +1,361 @@
-From: Philip Balister <philip@balister.org>
-Subject: Re: Problem in Flashing uboot on OSK5912c
-Date: Fri, 27 Mar 2009 10:39:34 -0400
-Message-ID: <49CCE526.9050700@balister.org>
-References: <1237981895-9269-1-git-send-email-Hiroshi.DOYU@nokia.com><8F7AF8	0515AF0D4D93307E594F3CB40E2349AE08@dlee03.ent.ti.com><20090325.151129.02294	438.Hiroshi.DOYU@nokia.com><20090326.142359.186318746.Hiroshi.DOYU@nokia.com> <1264B6775E17104A8413A429BBA3A4A96570813E66@SINPUNMBX001.TechMahindra.com>
-Mime-Version: 1.0
-Content-Type: multipart/signed; protocol="application/x-pkcs7-signature"; micalg=sha1; boundary="------------ms090708080508090606030300"
+From: Atal Shargorodsky <ext-atal.shargorodsky@nokia.com>
+Subject: [PATCH 1/2] omap: twl4030_wdt: twl4030 watchdog driver
+Date: Fri, 27 Mar 2009 16:42:17 +0200
+Message-ID: <b207c8283f0172e6b64c06fe6ac2e4bf9eedf875.1238163923.git.ext-atal.shargorodsky@nokia.com>
+References: <>
+ <1238164938-11932-1-git-send-email-ext-atal.shargorodsky@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail.geekisp.com ([216.168.135.169]:35398 "EHLO
-	starfish.geekisp.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1756334AbZC0Ojj (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 27 Mar 2009 10:39:39 -0400
-In-Reply-To: <1264B6775E17104A8413A429BBA3A4A96570813E66@SINPUNMBX001.TechMahindra.com>
+Received: from smtp.nokia.com ([192.100.105.134]:37144 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751201AbZC0OnP (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 27 Mar 2009 10:43:15 -0400
+In-Reply-To: <1238164938-11932-1-git-send-email-ext-atal.shargorodsky@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: wim@iguana.be
+Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Timo Kokkonen <timo.t.kokkonen@nokia.com>, Atal Shargorodsky <ext-atal.shargorodsky@nokia.com>
 
-This is a cryptographically signed message in MIME format.
+From: Timo Kokkonen <timo.t.kokkonen@nokia.com>
 
---------------ms090708080508090606030300
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+From: Timo Kokkonen <timo.t.kokkonen@nokia.com>
 
-Manoj Kotnala wrote:
-> Hi Experts,
-> 
-> Sorry this query is not specific to the kernel but to the OMAP/OSK so am posting it here.
-> 
-> I am having OSK5912 board (rev C).
-> I am not getting any boot messages on it.
-> I tried the Flash Recovery Utility for OMAP from http://www.celinuxforum.org/CelfPubWiki/FlashRecoveryUtility
-> But I am not able to install the respective driver in WinXP.
-> I also tried OSTBoot ver 2.5 from
-> http://focus.ti.com/download/wtbu/OSTTools_NoSource_v2_5.zip
-> but couldn't succeed.
-> It is waiting at "Waiting for USB device to connect" message.
-> 
-> Next I tried the (Open source) OMAP Flash Loader  omapfl from
-> http://www.celinuxforum.org/CelfPubWiki/FlashRecoveryUtility?action=AttachFile&do=view&target=omapfl-1.0.tar.gz
-> 
-> Again Failed.
-> 
-> I inserted debug messages in omapfl source
-> It seems that OSK Board is not even throwing/publishing VendorID and Product ID from the board.
-> 
-> Could anyone tell me how recover the board from this stage?
+Implementation of twl4030 watchdog driver.
 
-It's been a while, but I think you need to remove the serial cable from 
-the OSK while you do this.
+Signed-off-by: Atal Shargorodsky <ext-atal.shargorodsky@nokia.com>
+---
+ drivers/mfd/twl4030-core.c     |   13 ++
+ drivers/watchdog/Kconfig       |    7 +
+ drivers/watchdog/Makefile      |    1 +
+ drivers/watchdog/twl4030_wdt.c |  259 ++++++++++++++++++++++++++++++++++++++++
+ 4 files changed, 280 insertions(+), 0 deletions(-)
+ create mode 100644 drivers/watchdog/twl4030_wdt.c
 
-I'll no more this weekend, I need to go through the process also :(
+diff --git a/drivers/mfd/twl4030-core.c b/drivers/mfd/twl4030-core.c
+index 1e67713..fe70190 100644
+--- a/drivers/mfd/twl4030-core.c
++++ b/drivers/mfd/twl4030-core.c
+@@ -111,6 +111,13 @@
+ #define twl_has_vibra()        false
+ #endif
+ 
++#if defined(CONFIG_TWL4030_WATCHDOG) || \
++	defined(CONFIG_TWL4030_WATCHDOG_MODULE)
++#define twl_has_watchdog()        true
++#else
++#define twl_has_watchdog()        false
++#endif
++
+ /* Triton Core internal information (BEGIN) */
+ 
+ /* Last - for index max*/
+@@ -543,6 +550,12 @@ add_children(struct twl4030_platform_data *pdata, unsigned long features)
+ 			return PTR_ERR(child);
+ 	}
+ 
++	if (twl_has_watchdog()) {
++		child = add_child(0, "twl4030_wdt", NULL, 0, false, 0, 0);
++		if (IS_ERR(child))
++			return PTR_ERR(child);
++	}
++
+ 	if (twl_has_regulator()) {
+ 		/*
+ 		child = add_regulator(TWL4030_REG_VPLL1, pdata->vpll1);
+diff --git a/drivers/watchdog/Kconfig b/drivers/watchdog/Kconfig
+index 0926dd4..3d02565 100644
+--- a/drivers/watchdog/Kconfig
++++ b/drivers/watchdog/Kconfig
+@@ -233,6 +233,13 @@ config ORION5X_WATCHDOG
+ 	  To compile this driver as a module, choose M here: the
+ 	  module will be called orion5x_wdt.
+ 
++config TWL4030_WATCHDOG
++       tristate "TWL4030 Watchdog"
++       depends on TWL4030_CORE
++       help
++         Support for TI TWL4030 watchdog.  Say 'Y' here to enable the
++         watchdog timer support for TWL4030 chips.
++
+ # ARM26 Architecture
+ 
+ # AVR32 Architecture
+diff --git a/drivers/watchdog/Makefile b/drivers/watchdog/Makefile
+index e352bbb..2aaf4d2 100644
+--- a/drivers/watchdog/Makefile
++++ b/drivers/watchdog/Makefile
+@@ -28,6 +28,7 @@ obj-$(CONFIG_USBPCWATCHDOG) += pcwd_usb.o
+ obj-$(CONFIG_AT91RM9200_WATCHDOG) += at91rm9200_wdt.o
+ obj-$(CONFIG_AT91SAM9X_WATCHDOG) += at91sam9_wdt.o
+ obj-$(CONFIG_OMAP_WATCHDOG) += omap_wdt.o
++obj-$(CONFIG_TWL4030_WATCHDOG) += twl4030_wdt.o
+ obj-$(CONFIG_21285_WATCHDOG) += wdt285.o
+ obj-$(CONFIG_977_WATCHDOG) += wdt977.o
+ obj-$(CONFIG_IXP2000_WATCHDOG) += ixp2000_wdt.o
+diff --git a/drivers/watchdog/twl4030_wdt.c b/drivers/watchdog/twl4030_wdt.c
+new file mode 100644
+index 0000000..2f4809e
+--- /dev/null
++++ b/drivers/watchdog/twl4030_wdt.c
+@@ -0,0 +1,259 @@
++/*
++ * Copyright (C) Nokia Corporation
++ *
++ * Written by Timo Kokkonen <timo.t.kokkonen at nokia.com>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 2 of the License, or
++ * (at your option) any later version.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
++ * GNU General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
++ */
++
++#include <linux/module.h>
++#include <linux/types.h>
++#include <linux/kernel.h>
++#include <linux/fs.h>
++#include <linux/watchdog.h>
++#include <linux/platform_device.h>
++#include <linux/miscdevice.h>
++#include <linux/uaccess.h>
++#include <linux/i2c/twl4030.h>
++
++#define TWL4030_WATCHDOG_CFG_REG_OFFS	0x3
++
++static int nowayout = WATCHDOG_NOWAYOUT;
++module_param(nowayout, int, 0);
++MODULE_PARM_DESC(nowayout, "Watchdog cannot be stopped once started "
++	"(default=" __MODULE_STRING(WATCHDOG_NOWAYOUT) ")");
++
++#define TWL4030_WDT_STATE_OPEN		0x1
++#define TWL4030_WDT_STATE_ACTIVE	0x8
++
++static struct platform_device *twl4030_wdt_dev;
++
++struct twl4030_wdt {
++	struct miscdevice	miscdev;
++	int			timer_margin;
++	unsigned long		state;
++};
++
++static int twl4030_wdt_write(unsigned char val)
++{
++	return twl4030_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER, val,
++			   TWL4030_WATCHDOG_CFG_REG_OFFS);
++}
++
++static int twl4030_wdt_ping(struct twl4030_wdt *wdt)
++{
++	return twl4030_wdt_write(wdt->timer_margin + 1);
++}
++
++static int twl4030_wdt_enable(struct twl4030_wdt *wdt)
++{
++	return twl4030_wdt_ping(wdt);
++}
++
++static int twl4030_wdt_disable(struct twl4030_wdt *wdt)
++{
++	return twl4030_wdt_write(0);
++}
++
++static int twl4030_wdt_set_timeout(struct twl4030_wdt *wdt, int timeout)
++{
++	if (timeout < 0 || timeout > 30) {
++		dev_warn(wdt->miscdev.parent,
++			"Timeout can only be in the range [0-30] seconds");
++		return -EINVAL;
++	}
++	wdt->timer_margin = timeout;
++	return twl4030_wdt_ping(wdt);
++}
++
++static ssize_t twl4030_wdt_write_fop(struct file *file,
++		const char __user *data, size_t len, loff_t *ppos)
++{
++	struct twl4030_wdt *wdt = file->private_data;
++	if (twl4030_wdt_ping(wdt))
++		return -EAGAIN;
++	return len;
++}
++
++static long twl4030_wdt_ioctl(struct file *file,
++		unsigned int cmd, unsigned long arg)
++{
++	int new_margin;
++	struct twl4030_wdt *wdt = file->private_data;
++
++	static const struct watchdog_info twl4030_wd_ident = {
++		.identity = "TWL4030 Watchdog",
++		.options = WDIOF_SETTIMEOUT,
++		.firmware_version = 0
++	};
++
++	switch (cmd) {
++	case WDIOC_GETSUPPORT:
++		return copy_to_user((struct watchdog_info __user *) arg,
++				&twl4030_wd_ident, sizeof(twl4030_wd_ident));
++	case WDIOC_SETTIMEOUT:
++		if (get_user(new_margin, (int __user *) arg))
++			return -EFAULT;
++		if (twl4030_wdt_set_timeout(wdt, new_margin))
++			return -EINVAL;
++		if (put_user(wdt->timer_margin, (int __user *) arg))
++			return -EFAULT;
++		break;
++
++	case WDIOC_GETTIMEOUT:
++		return put_user(wdt->timer_margin, (int __user *) arg);
++
++	case WDIOC_KEEPALIVE:
++		twl4030_wdt_ping(wdt);
++		break;
++
++	default:
++		return -ENOTTY;
++	}
++
++	return 0;
++}
++
++static int twl4030_wdt_open(struct inode *inode, struct file *file)
++{
++	struct twl4030_wdt *wdt = platform_get_drvdata(twl4030_wdt_dev);
++
++	if (test_and_set_bit(1, &wdt->state))
++		return -EBUSY;
++
++	wdt->state |= TWL4030_WDT_STATE_ACTIVE;
++
++	twl4030_wdt_ping(wdt);
++	file->private_data = (void *) wdt;
++	return nonseekable_open(inode, file);
++}
++
++static int twl4030_wdt_release(struct inode *inode, struct file *file)
++{
++	struct twl4030_wdt *wdt = file->private_data;
++	if (nowayout) {
++		dev_alert(wdt->miscdev.parent,
++		       "Unexpected close, watchdog still running!\n");
++	} else {
++		if (twl4030_wdt_disable(wdt))
++			return -EFAULT;
++		wdt->state &= ~TWL4030_WDT_STATE_ACTIVE;
++	}
++
++	wdt->state &= ~TWL4030_WDT_STATE_OPEN;
++
++	return 0;
++}
++
++static int twl4030_wdt_suspend(struct platform_device *pdev, pm_message_t state)
++{
++	struct twl4030_wdt *wdt = platform_get_drvdata(pdev);
++	if (wdt->state & TWL4030_WDT_STATE_ACTIVE)
++		return twl4030_wdt_disable(wdt);
++
++	return 0;
++}
++
++static int twl4030_wdt_resume(struct platform_device *pdev)
++{
++	struct twl4030_wdt *wdt = platform_get_drvdata(pdev);
++	if (wdt->state & TWL4030_WDT_STATE_ACTIVE)
++		return twl4030_wdt_enable(wdt);
++
++	return 0;
++}
++
++static const struct file_operations twl4030_wdt_fops = {
++	.owner		= THIS_MODULE,
++	.open		= twl4030_wdt_open,
++	.release	= twl4030_wdt_release,
++	.unlocked_ioctl	= twl4030_wdt_ioctl,
++	.write		= twl4030_wdt_write_fop,
++};
++
++static int __devinit twl4030_wdt_probe(struct platform_device *pdev)
++{
++	int ret = 0;
++	struct twl4030_wdt *wdt;
++
++	wdt = kzalloc(sizeof(struct twl4030_wdt), GFP_KERNEL);
++	if (!wdt)
++		return -ENOMEM;
++
++	wdt->state		= 0;
++	wdt->timer_margin	= 30;
++	wdt->miscdev.parent	= &pdev->dev;
++	wdt->miscdev.fops	= &twl4030_wdt_fops;
++	wdt->miscdev.minor	= WATCHDOG_MINOR;
++	wdt->miscdev.name	= "watchdog";
++
++	ret = misc_register(&wdt->miscdev);
++	if (ret) {
++		dev_err(wdt->miscdev.parent,
++			"Failed to register misc device\n");
++		kfree(wdt);
++		return ret;
++	}
++
++	platform_set_drvdata(pdev, wdt);
++
++	twl4030_wdt_dev = pdev;
++	return 0;
++}
++
++static int __devexit twl4030_wdt_remove(struct platform_device *pdev)
++{
++	struct twl4030_wdt *wdt = platform_get_drvdata(pdev);
++
++	if (wdt->state & TWL4030_WDT_STATE_ACTIVE)
++		if (twl4030_wdt_disable(wdt))
++			return -EFAULT;
++
++	wdt->state &= ~TWL4030_WDT_STATE_ACTIVE;
++	misc_deregister(&wdt->miscdev);
++
++	platform_set_drvdata(pdev, NULL);
++	kfree(wdt);
++	twl4030_wdt_dev = NULL;
++
++	return 0;
++}
++
++static struct platform_driver twl4030_wdt_driver = {
++	.probe		= twl4030_wdt_probe,
++	.remove		= __devexit_p(twl4030_wdt_remove),
++	.suspend	= twl4030_wdt_suspend,
++	.resume		= twl4030_wdt_resume,
++	.driver		= {
++		.name	= "twl4030_wdt",
++	},
++};
++
++static int __devinit twl4030_wdt_init(void)
++{
++	return platform_driver_register(&twl4030_wdt_driver);
++}
++module_init(twl4030_wdt_init);
++
++static void __devexit twl4030_wdt_exit(void)
++{
++	platform_driver_unregister(&twl4030_wdt_driver);
++}
++module_exit(twl4030_wdt_exit);
++
++MODULE_AUTHOR("Nokia Corporation");
++MODULE_LICENSE("GPL");
++MODULE_ALIAS("platform:twl4030_wdt");
++
+-- 
+1.5.4.3
 
-Philip
-
-
-> 
-> Thanks in Advance,
-> 
-> Manoj Kotnala
-> 
-> 
-> ============================================================================================================================
-> 
->  
-> Disclaimer:
-> 
-> This message and the information contained herein is proprietary and confidential and subject to the Tech Mahindra policy statement, you may review the policy at <a href="http://www.techmahindra.com/Disclaimer.html">http://www.techmahindra.com/Disclaimer.html</a> externally and <a href="http://tim.techmahindra.com/Disclaimer.html">http://tim.techmahindra.com/Disclaimer.html</a> internally within Tech Mahindra.
-> 
-> ============================================================================================================================
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
-
---------------ms090708080508090606030300
-Content-Type: application/x-pkcs7-signature; name="smime.p7s"
-Content-Transfer-Encoding: base64
-Content-Disposition: attachment; filename="smime.p7s"
-Content-Description: S/MIME Cryptographic Signature
-
-MIAGCSqGSIb3DQEHAqCAMIACAQExCzAJBgUrDgMCGgUAMIAGCSqGSIb3DQEHAQAAoIIJRTCC
-Av0wggJmoAMCAQICEHW4VJIUQV0u11NnfLpF2IUwDQYJKoZIhvcNAQEFBQAwYjELMAkGA1UE
-BhMCWkExJTAjBgNVBAoTHFRoYXd0ZSBDb25zdWx0aW5nIChQdHkpIEx0ZC4xLDAqBgNVBAMT
-I1RoYXd0ZSBQZXJzb25hbCBGcmVlbWFpbCBJc3N1aW5nIENBMB4XDTA4MDQxNDE5MTkzMVoX
-DTA5MDQxNDE5MTkzMVowYjERMA8GA1UEBBMIQmFsaXN0ZXIxDzANBgNVBCoTBlBoaWxpcDEY
-MBYGA1UEAxMPUGhpbGlwIEJhbGlzdGVyMSIwIAYJKoZIhvcNAQkBFhNwaGlsaXBAYmFsaXN0
-ZXIub3JnMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAxyNViPlSmMq2Kl4m7iDB
-I3gB7Pwhg+4vnXCKEF3qIoLwNDVl27CP8RY0umjENzykOR6ZhzYx4fH8arNV5+nlXsH8KNnb
-Dpd5ICTZvbUJdt1gPETmLczGy4hh8woCu7qodyy7YZcGMiUY5LxoL7vIQHysir4rbMRV/JId
-mhKfFrHb+glDe8XbfTJ3xKO+BsMgLDaSiRMelH6uFLAVv9oRoIJxHQhwKLvlrOSQj+ek2fL6
-83BzOUsM4BN/fiwvtJ/y3doVEoKUp8ippOXrwLAXFPprPAAdIydqufTxHotooFqbQzqSJv4c
-TNDTxf2fg9YfH2RAs8vTdc/wgIVlL8fJnQIDAQABozAwLjAeBgNVHREEFzAVgRNwaGlsaXBA
-YmFsaXN0ZXIub3JnMAwGA1UdEwEB/wQCMAAwDQYJKoZIhvcNAQEFBQADgYEASFC7i4DqutUT
-ifbyNtEe+e9bqgqWUScDFl0BTV5fFVBX/mFpM3RBZJfq+iM5q0L7qont3sGaXG0cdVvRk2dk
-uV2i0HwkmTLJ4HTLMyJ57BjMJWY9ydDiY+Ai1pINmjIgq/qI0aireByqNee68q+PaWE7bfW1
-XvfqZD56QunCijswggL9MIICZqADAgECAhB1uFSSFEFdLtdTZ3y6RdiFMA0GCSqGSIb3DQEB
-BQUAMGIxCzAJBgNVBAYTAlpBMSUwIwYDVQQKExxUaGF3dGUgQ29uc3VsdGluZyAoUHR5KSBM
-dGQuMSwwKgYDVQQDEyNUaGF3dGUgUGVyc29uYWwgRnJlZW1haWwgSXNzdWluZyBDQTAeFw0w
-ODA0MTQxOTE5MzFaFw0wOTA0MTQxOTE5MzFaMGIxETAPBgNVBAQTCEJhbGlzdGVyMQ8wDQYD
-VQQqEwZQaGlsaXAxGDAWBgNVBAMTD1BoaWxpcCBCYWxpc3RlcjEiMCAGCSqGSIb3DQEJARYT
-cGhpbGlwQGJhbGlzdGVyLm9yZzCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEBAMcj
-VYj5UpjKtipeJu4gwSN4Aez8IYPuL51wihBd6iKC8DQ1Zduwj/EWNLpoxDc8pDkemYc2MeHx
-/GqzVefp5V7B/CjZ2w6XeSAk2b21CXbdYDxE5i3MxsuIYfMKAru6qHcsu2GXBjIlGOS8aC+7
-yEB8rIq+K2zEVfySHZoSnxax2/oJQ3vF230yd8SjvgbDICw2kokTHpR+rhSwFb/aEaCCcR0I
-cCi75azkkI/npNny+vNwczlLDOATf34sL7Sf8t3aFRKClKfIqaTl68CwFxT6azwAHSMnarn0
-8R6LaKBam0M6kib+HEzQ08X9n4PWHx9kQLPL03XP8ICFZS/HyZ0CAwEAAaMwMC4wHgYDVR0R
-BBcwFYETcGhpbGlwQGJhbGlzdGVyLm9yZzAMBgNVHRMBAf8EAjAAMA0GCSqGSIb3DQEBBQUA
-A4GBAEhQu4uA6rrVE4n28jbRHvnvW6oKllEnAxZdAU1eXxVQV/5haTN0QWSX6vojOatC+6qJ
-7d7BmlxtHHVb0ZNnZLldotB8JJkyyeB0yzMieewYzCVmPcnQ4mPgItaSDZoyIKv6iNGoq3gc
-qjXnuvKvj2lhO231tV736mQ+ekLpwoo7MIIDPzCCAqigAwIBAgIBDTANBgkqhkiG9w0BAQUF
-ADCB0TELMAkGA1UEBhMCWkExFTATBgNVBAgTDFdlc3Rlcm4gQ2FwZTESMBAGA1UEBxMJQ2Fw
-ZSBUb3duMRowGAYDVQQKExFUaGF3dGUgQ29uc3VsdGluZzEoMCYGA1UECxMfQ2VydGlmaWNh
-dGlvbiBTZXJ2aWNlcyBEaXZpc2lvbjEkMCIGA1UEAxMbVGhhd3RlIFBlcnNvbmFsIEZyZWVt
-YWlsIENBMSswKQYJKoZIhvcNAQkBFhxwZXJzb25hbC1mcmVlbWFpbEB0aGF3dGUuY29tMB4X
-DTAzMDcxNzAwMDAwMFoXDTEzMDcxNjIzNTk1OVowYjELMAkGA1UEBhMCWkExJTAjBgNVBAoT
-HFRoYXd0ZSBDb25zdWx0aW5nIChQdHkpIEx0ZC4xLDAqBgNVBAMTI1RoYXd0ZSBQZXJzb25h
-bCBGcmVlbWFpbCBJc3N1aW5nIENBMIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDEpjxV
-c1X7TrnKmVoeaMB1BHCd3+n/ox7svc31W/Iadr1/DDph8r9RzgHU5VAKMNcCY1osiRVwjt3J
-8CuFWqo/cVbLrzwLB+fxH5E2JCoTzyvV84J3PQO+K/67GD4Hv0CAAmTXp6a7n2XRxSpUhQ9I
-BH+nttE8YQRAHmQZcmC3+wIDAQABo4GUMIGRMBIGA1UdEwEB/wQIMAYBAf8CAQAwQwYDVR0f
-BDwwOjA4oDagNIYyaHR0cDovL2NybC50aGF3dGUuY29tL1RoYXd0ZVBlcnNvbmFsRnJlZW1h
-aWxDQS5jcmwwCwYDVR0PBAQDAgEGMCkGA1UdEQQiMCCkHjAcMRowGAYDVQQDExFQcml2YXRl
-TGFiZWwyLTEzODANBgkqhkiG9w0BAQUFAAOBgQBIjNFQg+oLLswNo2asZw9/r6y+whehQ5aU
-nX9MIbj4Nh+qLZ82L8D0HFAgk3A8/a3hYWLD2ToZfoSxmRsAxRoLgnSeJVCUYsfbJ3FXJY3d
-qZw5jowgT2Vfldr394fWxghOrvbqNOUQGls1TXfjViF4gtwhGTXeJLHTHUb/XV9lTzGCA2Qw
-ggNgAgEBMHYwYjELMAkGA1UEBhMCWkExJTAjBgNVBAoTHFRoYXd0ZSBDb25zdWx0aW5nIChQ
-dHkpIEx0ZC4xLDAqBgNVBAMTI1RoYXd0ZSBQZXJzb25hbCBGcmVlbWFpbCBJc3N1aW5nIENB
-AhB1uFSSFEFdLtdTZ3y6RdiFMAkGBSsOAwIaBQCgggHDMBgGCSqGSIb3DQEJAzELBgkqhkiG
-9w0BBwEwHAYJKoZIhvcNAQkFMQ8XDTA5MDMyNzE0MzkzNFowIwYJKoZIhvcNAQkEMRYEFPQl
-dhD7+nLvuhM1kYeK6ZVWCyukMFIGCSqGSIb3DQEJDzFFMEMwCgYIKoZIhvcNAwcwDgYIKoZI
-hvcNAwICAgCAMA0GCCqGSIb3DQMCAgFAMAcGBSsOAwIHMA0GCCqGSIb3DQMCAgEoMIGFBgkr
-BgEEAYI3EAQxeDB2MGIxCzAJBgNVBAYTAlpBMSUwIwYDVQQKExxUaGF3dGUgQ29uc3VsdGlu
-ZyAoUHR5KSBMdGQuMSwwKgYDVQQDEyNUaGF3dGUgUGVyc29uYWwgRnJlZW1haWwgSXNzdWlu
-ZyBDQQIQdbhUkhRBXS7XU2d8ukXYhTCBhwYLKoZIhvcNAQkQAgsxeKB2MGIxCzAJBgNVBAYT
-AlpBMSUwIwYDVQQKExxUaGF3dGUgQ29uc3VsdGluZyAoUHR5KSBMdGQuMSwwKgYDVQQDEyNU
-aGF3dGUgUGVyc29uYWwgRnJlZW1haWwgSXNzdWluZyBDQQIQdbhUkhRBXS7XU2d8ukXYhTAN
-BgkqhkiG9w0BAQEFAASCAQAHl6oCCkui76yLJ5XJ96G60RouTItViGx2I89JIHS/ISkJ1IYm
-uWvOdvLCyEvKZTdtwUn135aJxTpDLisSv6mvFQEo3M9rzucp0RIUf8O8v45EU+0r+QYBdyHn
-dW5+iuBDdz5XAgE7uZu0ARYh+IRx8VT2lUniXUW7Bz4x/t33Fyf7/D0MtekyrFMo3ues/fW1
-I0os6YBVq8LD9RmEfobxIVWUTp9QUBW2YhXYf2zRjPVSZviaY9n6Q3yLB4+Lj1MHo3Tof3i5
-Cc2mowFXdnUvRra5m78jC+al+9q1i4ukuHKmXsFFx0HobkZ7YhB+VGBlTfTtnDr7N/F6ief3
-sIApAAAAAAAA
---------------ms090708080508090606030300--
