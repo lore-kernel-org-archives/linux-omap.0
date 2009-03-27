@@ -1,112 +1,95 @@
-From: twebb <taliaferro62@gmail.com>
-Subject: Re: MMC2 support in linux-omap-2.6.27 (omap1)
-Date: Fri, 27 Mar 2009 10:09:50 -0400
-Message-ID: <dbdb2ea60903270709s4aaf932aybfbb473d198a3e81@mail.gmail.com>
-References: <dbdb2ea60903250713s2eba347aib5758cf5157979da@mail.gmail.com>
-	 <dbdb2ea60903251449u5d8e3edfvd58291923ecf6693@mail.gmail.com>
-	 <49CB40FC.5070907@nokia.com>
-	 <e1a3109c0903260313k54fb0a85kad478258c22958e6@mail.gmail.com>
+From: Philip Balister <philip@balister.org>
+Subject: U-boot 2009.03 for OSK (OMAP5912)
+Date: Fri, 27 Mar 2009 10:32:11 -0400
+Message-ID: <49CCE36B.2060106@balister.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: multipart/signed; protocol="application/x-pkcs7-signature"; micalg=sha1; boundary="------------ms040201000200080707060709"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from qw-out-2122.google.com ([74.125.92.24]:43838 "EHLO
-	qw-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753756AbZC0OJx convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 27 Mar 2009 10:09:53 -0400
-Received: by qw-out-2122.google.com with SMTP id 8so1243734qwh.37
-        for <linux-omap@vger.kernel.org>; Fri, 27 Mar 2009 07:09:51 -0700 (PDT)
-In-Reply-To: <e1a3109c0903260313k54fb0a85kad478258c22958e6@mail.gmail.com>
+Received: from mail.geekisp.com ([216.168.135.169]:18545 "EHLO
+	starfish.geekisp.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1750880AbZC0OcR (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 27 Mar 2009 10:32:17 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Shankar Ganesh <shankarganeshk@gmail.com>
-Cc: Adrian Hunter <adrian.hunter@nokia.com>, "linux-omap@vger.kernel.org Mailing List" <linux-omap@vger.kernel.org>
+To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Thu, Mar 26, 2009 at 6:13 AM, Shankar Ganesh
-<shankarganeshk@gmail.com> wrote:
->
-> On Thu, Mar 26, 2009 at 2:16 PM, Adrian Hunter <adrian.hunter@nokia.c=
-om>
-> wrote:
->>
->> twebb wrote:
->>>
->>> On Wed, Mar 25, 2009 at 10:13 AM, twebb <taliaferro62@gmail.com> wr=
-ote:
->>>>
->>>> I'm currently using linux-omap-2.6.27 (tag=3Domap1) and trying to =
-add
->>>> MMC2 support. =A0I've back ported what I think I need from various=
- files
->>>> inn l-o-2.6.28-omap1. =A0I will eventually move to 2.6.28-omap1 bu=
-t for
->>>> now am trying to get it working on 2.6.27.
->>>>
->>>> Traces show that all looks good up until first command is issued, =
-then
->>>> nothing seems to happen. =A0STAT reg shows 0, don't see clock or c=
-md
->>>> activity. =A0MMC1 is working fine with an SD card; MMC2 is connect=
-ed to
->>>> eMMC flash. =A0Seems like I'm missing something basic like a clock=
- or
->>>> enable, though I've confirmed ICLK and FCLK are enabled. =A0Any id=
-eas?
->>>>
->>>> Thanks,
->>>> twebb
->>>>
->>>
->>> I found at least part of my problem. =A0SDVS field of HCTL was bein=
-g set
->>> to 0x7 (3.3V) instead of 0x5 (1.8V), and apparently MMC2 must be se=
-t
->>> for 0x5.
->>> --
->>> To unsubscribe from this list: send the line "unsubscribe linux-oma=
-p" in
->>> the body of a message to majordomo@vger.kernel.org
->>> More majordomo info at =A0http://vger.kernel.org/majordomo-info.htm=
-l
->>>
->>
->> The most up to date omap_hsmmc.c is here:
->>
->>
->> http://git.kernel.org/?p=3Dlinux/kernel/git/drzeus/mmc.git;a=3Dblob;=
-f=3Ddrivers/mmc/host/omap_hsmmc.c;h=3D488f222054f8a1493142d02da526c951d=
-ef5ddfe;hb=3Dnext
->>
->> That includes the 10 patches on LKML except number 8
->>
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-omap=
-" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at =A0http://vger.kernel.org/majordomo-info.html
->
->
-> Refer=A0 http://git.omapzoom.com/?p=3Drepo/omapkernel.git;a=3Dsummary=
-=A0 has working
-> MMC2 code. Also this version detects eMMC on MMC2
->
+This is a cryptographically signed message in MIME format.
 
-I'm having difficulty detecting eMMC flash on MMC2.  I ported in the
-code from the git, and most everything looks good.  However, it always
-fails detecting the eMMC with a timeout.  If I handpoke commands to
-the eMMC I see the same thing - even with the most basic commands.  I
-see CLK and CMDs going to the eMMC, but never see any responses on the
-CMD line from the eMMC.  Any ideas what I might be doing wrong?  (I do
-have an SD card working fine on MMC1.  Also, the eMMC flash is
-hardwired with power and has no CardDetect or WriteProtect logic - so
-none of that should be an issue.)
+--------------ms040201000200080707060709
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 
-Help,
-twebb
+Has anyone tried u-boot-2009.03 on the OSK? I just did and it looks like 
+I bricked it. Time to find my de-bricking usb cable again ....
 
-(sorry for double posting)
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Philip
+
+--------------ms040201000200080707060709
+Content-Type: application/x-pkcs7-signature; name="smime.p7s"
+Content-Transfer-Encoding: base64
+Content-Disposition: attachment; filename="smime.p7s"
+Content-Description: S/MIME Cryptographic Signature
+
+MIAGCSqGSIb3DQEHAqCAMIACAQExCzAJBgUrDgMCGgUAMIAGCSqGSIb3DQEHAQAAoIIJRTCC
+Av0wggJmoAMCAQICEHW4VJIUQV0u11NnfLpF2IUwDQYJKoZIhvcNAQEFBQAwYjELMAkGA1UE
+BhMCWkExJTAjBgNVBAoTHFRoYXd0ZSBDb25zdWx0aW5nIChQdHkpIEx0ZC4xLDAqBgNVBAMT
+I1RoYXd0ZSBQZXJzb25hbCBGcmVlbWFpbCBJc3N1aW5nIENBMB4XDTA4MDQxNDE5MTkzMVoX
+DTA5MDQxNDE5MTkzMVowYjERMA8GA1UEBBMIQmFsaXN0ZXIxDzANBgNVBCoTBlBoaWxpcDEY
+MBYGA1UEAxMPUGhpbGlwIEJhbGlzdGVyMSIwIAYJKoZIhvcNAQkBFhNwaGlsaXBAYmFsaXN0
+ZXIub3JnMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAxyNViPlSmMq2Kl4m7iDB
+I3gB7Pwhg+4vnXCKEF3qIoLwNDVl27CP8RY0umjENzykOR6ZhzYx4fH8arNV5+nlXsH8KNnb
+Dpd5ICTZvbUJdt1gPETmLczGy4hh8woCu7qodyy7YZcGMiUY5LxoL7vIQHysir4rbMRV/JId
+mhKfFrHb+glDe8XbfTJ3xKO+BsMgLDaSiRMelH6uFLAVv9oRoIJxHQhwKLvlrOSQj+ek2fL6
+83BzOUsM4BN/fiwvtJ/y3doVEoKUp8ippOXrwLAXFPprPAAdIydqufTxHotooFqbQzqSJv4c
+TNDTxf2fg9YfH2RAs8vTdc/wgIVlL8fJnQIDAQABozAwLjAeBgNVHREEFzAVgRNwaGlsaXBA
+YmFsaXN0ZXIub3JnMAwGA1UdEwEB/wQCMAAwDQYJKoZIhvcNAQEFBQADgYEASFC7i4DqutUT
+ifbyNtEe+e9bqgqWUScDFl0BTV5fFVBX/mFpM3RBZJfq+iM5q0L7qont3sGaXG0cdVvRk2dk
+uV2i0HwkmTLJ4HTLMyJ57BjMJWY9ydDiY+Ai1pINmjIgq/qI0aireByqNee68q+PaWE7bfW1
+XvfqZD56QunCijswggL9MIICZqADAgECAhB1uFSSFEFdLtdTZ3y6RdiFMA0GCSqGSIb3DQEB
+BQUAMGIxCzAJBgNVBAYTAlpBMSUwIwYDVQQKExxUaGF3dGUgQ29uc3VsdGluZyAoUHR5KSBM
+dGQuMSwwKgYDVQQDEyNUaGF3dGUgUGVyc29uYWwgRnJlZW1haWwgSXNzdWluZyBDQTAeFw0w
+ODA0MTQxOTE5MzFaFw0wOTA0MTQxOTE5MzFaMGIxETAPBgNVBAQTCEJhbGlzdGVyMQ8wDQYD
+VQQqEwZQaGlsaXAxGDAWBgNVBAMTD1BoaWxpcCBCYWxpc3RlcjEiMCAGCSqGSIb3DQEJARYT
+cGhpbGlwQGJhbGlzdGVyLm9yZzCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEBAMcj
+VYj5UpjKtipeJu4gwSN4Aez8IYPuL51wihBd6iKC8DQ1Zduwj/EWNLpoxDc8pDkemYc2MeHx
+/GqzVefp5V7B/CjZ2w6XeSAk2b21CXbdYDxE5i3MxsuIYfMKAru6qHcsu2GXBjIlGOS8aC+7
+yEB8rIq+K2zEVfySHZoSnxax2/oJQ3vF230yd8SjvgbDICw2kokTHpR+rhSwFb/aEaCCcR0I
+cCi75azkkI/npNny+vNwczlLDOATf34sL7Sf8t3aFRKClKfIqaTl68CwFxT6azwAHSMnarn0
+8R6LaKBam0M6kib+HEzQ08X9n4PWHx9kQLPL03XP8ICFZS/HyZ0CAwEAAaMwMC4wHgYDVR0R
+BBcwFYETcGhpbGlwQGJhbGlzdGVyLm9yZzAMBgNVHRMBAf8EAjAAMA0GCSqGSIb3DQEBBQUA
+A4GBAEhQu4uA6rrVE4n28jbRHvnvW6oKllEnAxZdAU1eXxVQV/5haTN0QWSX6vojOatC+6qJ
+7d7BmlxtHHVb0ZNnZLldotB8JJkyyeB0yzMieewYzCVmPcnQ4mPgItaSDZoyIKv6iNGoq3gc
+qjXnuvKvj2lhO231tV736mQ+ekLpwoo7MIIDPzCCAqigAwIBAgIBDTANBgkqhkiG9w0BAQUF
+ADCB0TELMAkGA1UEBhMCWkExFTATBgNVBAgTDFdlc3Rlcm4gQ2FwZTESMBAGA1UEBxMJQ2Fw
+ZSBUb3duMRowGAYDVQQKExFUaGF3dGUgQ29uc3VsdGluZzEoMCYGA1UECxMfQ2VydGlmaWNh
+dGlvbiBTZXJ2aWNlcyBEaXZpc2lvbjEkMCIGA1UEAxMbVGhhd3RlIFBlcnNvbmFsIEZyZWVt
+YWlsIENBMSswKQYJKoZIhvcNAQkBFhxwZXJzb25hbC1mcmVlbWFpbEB0aGF3dGUuY29tMB4X
+DTAzMDcxNzAwMDAwMFoXDTEzMDcxNjIzNTk1OVowYjELMAkGA1UEBhMCWkExJTAjBgNVBAoT
+HFRoYXd0ZSBDb25zdWx0aW5nIChQdHkpIEx0ZC4xLDAqBgNVBAMTI1RoYXd0ZSBQZXJzb25h
+bCBGcmVlbWFpbCBJc3N1aW5nIENBMIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDEpjxV
+c1X7TrnKmVoeaMB1BHCd3+n/ox7svc31W/Iadr1/DDph8r9RzgHU5VAKMNcCY1osiRVwjt3J
+8CuFWqo/cVbLrzwLB+fxH5E2JCoTzyvV84J3PQO+K/67GD4Hv0CAAmTXp6a7n2XRxSpUhQ9I
+BH+nttE8YQRAHmQZcmC3+wIDAQABo4GUMIGRMBIGA1UdEwEB/wQIMAYBAf8CAQAwQwYDVR0f
+BDwwOjA4oDagNIYyaHR0cDovL2NybC50aGF3dGUuY29tL1RoYXd0ZVBlcnNvbmFsRnJlZW1h
+aWxDQS5jcmwwCwYDVR0PBAQDAgEGMCkGA1UdEQQiMCCkHjAcMRowGAYDVQQDExFQcml2YXRl
+TGFiZWwyLTEzODANBgkqhkiG9w0BAQUFAAOBgQBIjNFQg+oLLswNo2asZw9/r6y+whehQ5aU
+nX9MIbj4Nh+qLZ82L8D0HFAgk3A8/a3hYWLD2ToZfoSxmRsAxRoLgnSeJVCUYsfbJ3FXJY3d
+qZw5jowgT2Vfldr394fWxghOrvbqNOUQGls1TXfjViF4gtwhGTXeJLHTHUb/XV9lTzGCA2Qw
+ggNgAgEBMHYwYjELMAkGA1UEBhMCWkExJTAjBgNVBAoTHFRoYXd0ZSBDb25zdWx0aW5nIChQ
+dHkpIEx0ZC4xLDAqBgNVBAMTI1RoYXd0ZSBQZXJzb25hbCBGcmVlbWFpbCBJc3N1aW5nIENB
+AhB1uFSSFEFdLtdTZ3y6RdiFMAkGBSsOAwIaBQCgggHDMBgGCSqGSIb3DQEJAzELBgkqhkiG
+9w0BBwEwHAYJKoZIhvcNAQkFMQ8XDTA5MDMyNzE0MzIxMVowIwYJKoZIhvcNAQkEMRYEFFT+
+6j4J1jVhE4dv3r0P+6KWMyVkMFIGCSqGSIb3DQEJDzFFMEMwCgYIKoZIhvcNAwcwDgYIKoZI
+hvcNAwICAgCAMA0GCCqGSIb3DQMCAgFAMAcGBSsOAwIHMA0GCCqGSIb3DQMCAgEoMIGFBgkr
+BgEEAYI3EAQxeDB2MGIxCzAJBgNVBAYTAlpBMSUwIwYDVQQKExxUaGF3dGUgQ29uc3VsdGlu
+ZyAoUHR5KSBMdGQuMSwwKgYDVQQDEyNUaGF3dGUgUGVyc29uYWwgRnJlZW1haWwgSXNzdWlu
+ZyBDQQIQdbhUkhRBXS7XU2d8ukXYhTCBhwYLKoZIhvcNAQkQAgsxeKB2MGIxCzAJBgNVBAYT
+AlpBMSUwIwYDVQQKExxUaGF3dGUgQ29uc3VsdGluZyAoUHR5KSBMdGQuMSwwKgYDVQQDEyNU
+aGF3dGUgUGVyc29uYWwgRnJlZW1haWwgSXNzdWluZyBDQQIQdbhUkhRBXS7XU2d8ukXYhTAN
+BgkqhkiG9w0BAQEFAASCAQC+6LtkkQ4wX73d1X7F+39wy3dlRmGhKh3+n7ir17yjzcI1xSUr
+5zKS9cQ9kaGM0rgt4OtG2p0W3G6A0ApTQ0RIMSdlml6lQilDnkQ5stukOTNj/3mTl3q30Ea8
+GvVSo3Skj1nBJOr4fWjwv0Jb3PJSieAiOLFaQbex7w2z34n+9MLHUHTVVyonPUKrdUD7jWXl
+7RMDNA6y9kbZ7/v7Exau74kdlXcJAVtg6j/LGAjRhQmMV7cKQJszZHyOIMef3ycnJACB/Uq8
+dPRcG0VIOBs5oRmeGX8UMGTxn1VJL0/i03u5Mf2h7e9enKIs1r7y7x0Y25ExjymMqwKFnP8g
+TnxKAAAAAAAA
+--------------ms040201000200080707060709--
