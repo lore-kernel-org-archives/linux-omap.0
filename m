@@ -1,21 +1,22 @@
 From: "Guzman Lugo, Fernando" <x0095840@ti.com>
-Subject: RE: [PATCH 1/4] [OMAPZOOM] DSPBRIDGE: Memory lock for DMM.
-Date: Thu, 26 Mar 2009 21:04:39 -0500
-Message-ID: <496565EC904933469F292DDA3F1663E60287E2BC72@dlee06.ent.ti.com>
+Subject: RE: [PATCH 2/4] [OMAPZOOM] DSPBRIDGE: Added checks for valid
+ handles in critical places.
+Date: Thu, 26 Mar 2009 21:38:47 -0500
+Message-ID: <496565EC904933469F292DDA3F1663E60287E2BC77@dlee06.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:37502 "EHLO comal.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:39894 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756216AbZC0CEu convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 26 Mar 2009 22:04:50 -0400
+	id S1752737AbZC0Ciz convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 26 Mar 2009 22:38:55 -0400
 Received: from dlep95.itg.ti.com ([157.170.170.107])
-	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id n2R24fQZ018341
-	for <linux-omap@vger.kernel.org>; Thu, 26 Mar 2009 21:04:46 -0500
-Received: from dlee74.ent.ti.com (localhost [127.0.0.1])
-	by dlep95.itg.ti.com (8.13.8/8.13.8) with ESMTP id n2R24f50002937
-	for <linux-omap@vger.kernel.org>; Thu, 26 Mar 2009 21:04:41 -0500 (CDT)
+	by bear.ext.ti.com (8.13.7/8.13.7) with ESMTP id n2R2cn03029829
+	for <linux-omap@vger.kernel.org>; Thu, 26 Mar 2009 21:38:54 -0500
+Received: from dlee75.ent.ti.com (localhost [127.0.0.1])
+	by dlep95.itg.ti.com (8.13.8/8.13.8) with ESMTP id n2R2cnCW018162
+	for <linux-omap@vger.kernel.org>; Thu, 26 Mar 2009 21:38:49 -0500 (CDT)
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
@@ -24,346 +25,553 @@ Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
 
 Hi,
-	I am resending this patch because the previous one has an error.
 
+        Reseding this patch the previous one has some warnings.
 
->From 81c5b93ad42c40179c2b271f61814f0b4035440c Mon Sep 17 00:00:00 2001
-From: Hari Kanigeri <h-kanigeri2@ti.com>
-Date: Thu, 26 Mar 2009 15:47:50 -0500
-Subject: [PATCH] DSPBRIDGE: Memory lock for DMM.
+>From f9bbaeaef757b913eb1e50738f796259fa4d9237 Mon Sep 17 00:00:00 2001
+From: Omar Ramirez Luna <x00omar@ti.com>
+Date: Thu, 26 Mar 2009 16:21:07 -0500
+Subject: [PATCH] DSPBRIDGE: Added checks for valid handles in critical places.
 
-Lock down the pages that are mapped to DSP virtual memory to prevent from
-getting swapped out
+This patch adds checks for valid handles in critical places.
 
-Signed-off-by: Hari Kanigeri <h-kanigeri2@ti.com>
+Signed-off-by: Omar Ramirez Luna <x00omar@ti.com>
+Acked-by: Hari Kanigeri <h-kanigeri2@ti.com>
 ---
- arch/arm/plat-omap/include/dspbridge/dbdefs.h |    3 +
- drivers/dsp/bridge/hw/hw_mmu.h                |    1 +
- drivers/dsp/bridge/wmd/io_sm.c                |   24 +++--
- drivers/dsp/bridge/wmd/tiomap3430.c           |  133 +++++++++++++++++++++++-
- 4 files changed, 144 insertions(+), 17 deletions(-)
+ drivers/dsp/bridge/rmgr/node.c  |   84 ++++++++++++++++++++++++++++----------
+ drivers/dsp/bridge/wmd/io_sm.c  |   55 ++++++++++++++++++-------
+ drivers/dsp/bridge/wmd/msg_sm.c |   73 ++++++++++++++++++++++++++++------
+ 3 files changed, 163 insertions(+), 49 deletions(-)
 
-diff --git a/arch/arm/plat-omap/include/dspbridge/dbdefs.h b/arch/arm/plat-omap/include/dspbridge/dbdefs.h
-index 7f5a2bf..9782693
---- a/arch/arm/plat-omap/include/dspbridge/dbdefs.h
-+++ b/arch/arm/plat-omap/include/dspbridge/dbdefs.h
-@@ -571,6 +571,9 @@ bit 6 - MMU element size = 64bit (valid only for non mixed page entries)
- 
- #define DSP_MAPVMALLOCADDR         0x00000080
- 
-+#define DSP_MAPDONOTLOCK	   0x00000100
+diff --git a/drivers/dsp/bridge/rmgr/node.c b/drivers/dsp/bridge/rmgr/node.c
+index 887fd49..2a6590e
+--- a/drivers/dsp/bridge/rmgr/node.c
++++ b/drivers/dsp/bridge/rmgr/node.c
+@@ -384,8 +384,14 @@ extern struct constraint_handle *mpu_constraint_handle;
+
+ enum NODE_STATE NODE_GetState(HANDLE hNode)
+ {
+-   struct NODE_OBJECT *pNode = (struct NODE_OBJECT *)hNode;
+-   return pNode->nState;
++       struct NODE_OBJECT *pNode = (struct NODE_OBJECT *)hNode;
++       if (!MEM_IsValidHandle(pNode, NODE_SIGNATURE)) {
++               GT_1trace(NODE_debugMask, GT_5CLASS,
++                "NODE_GetState:hNode 0x%x\n", pNode);
++               return  -1;
++       } else
++               return pNode->nState;
 +
+ }
+
+ /*
+@@ -1335,10 +1341,6 @@ DSP_STATUS NODE_Create(struct NODE_OBJECT *hNode)
+                status = DSP_EFAIL;
+                goto func_end;
+        }
+-       if (!MEM_IsValidHandle(hNode, NODE_SIGNATURE)) {
+-               status = DSP_EHANDLE;
+-               goto func_end;
+-       }
+        /* create struct DSP_CBDATA struct for PWR calls */
+        cbData.cbData = PWR_TIMEOUT;
+        nodeType = NODE_GetType(hNode);
+@@ -2185,8 +2187,13 @@ enum NLDR_LOADTYPE NODE_GetLoadType(struct NODE_OBJECT *hNode)
+
+        DBC_Require(cRefs > 0);
+        DBC_Require(MEM_IsValidHandle(hNode, NODE_SIGNATURE));
+-
+-       return hNode->dcdProps.objData.nodeObj.usLoadType;
++       if (!MEM_IsValidHandle(hNode, NODE_SIGNATURE)) {
++               GT_1trace(NODE_debugMask, GT_5CLASS,
++                        "NODE_GetLoadType: Failed. hNode:"
++                         " 0x%x\n", hNode);
++               return -1;
++       } else
++               return hNode->dcdProps.objData.nodeObj.usLoadType;
+ }
+
+ /*
+@@ -2198,8 +2205,13 @@ u32 NODE_GetTimeout(struct NODE_OBJECT *hNode)
+ {
+        DBC_Require(cRefs > 0);
+        DBC_Require(MEM_IsValidHandle(hNode, NODE_SIGNATURE));
+-
+-       return hNode->uTimeout;
++       if (!MEM_IsValidHandle(hNode, NODE_SIGNATURE)) {
++               GT_1trace(NODE_debugMask, GT_5CLASS,
++                        "NODE_GetTimeout: Failed. hNode:"
++                         " 0x%x\n", hNode);
++               return 0;
++       } else
++               return hNode->uTimeout;
+ }
+
+ /*
+@@ -2214,8 +2226,10 @@ enum NODE_TYPE NODE_GetType(struct NODE_OBJECT *hNode)
+        if (hNode == (struct NODE_OBJECT *) DSP_HGPPNODE)
+                nodeType = NODE_GPP;
+        else {
+-               DBC_Require(MEM_IsValidHandle(hNode, NODE_SIGNATURE));
+-               nodeType = hNode->nType;
++               if (!MEM_IsValidHandle(hNode, NODE_SIGNATURE))
++                       nodeType = -1;
++               else
++                       nodeType = hNode->nType;
+        }
+        return nodeType;
+ }
+@@ -2813,6 +2827,8 @@ static void DeleteNode(struct NODE_OBJECT *hNode)
+        DSP_STATUS status;
+        DBC_Require(MEM_IsValidHandle(hNode, NODE_SIGNATURE));
+        hNodeMgr = hNode->hNodeMgr;
++       if (!MEM_IsValidHandle(hNodeMgr, NODEMGR_SIGNATURE))
++               return;
+        hXlator = hNode->hXlator;
+        nodeType = NODE_GetType(hNode);
+        if (nodeType != NODE_DEVICE) {
+@@ -2824,6 +2840,8 @@ static void DeleteNode(struct NODE_OBJECT *hNode)
+                if (hNode->hMsgQueue) {
+                        pIntfFxns = hNodeMgr->pIntfFxns;
+                        (*pIntfFxns->pfnMsgDeleteQueue) (hNode->hMsgQueue);
++                       hNode->hMsgQueue = NULL;
 +
- #define GEM_CACHE_LINE_SIZE     128
- #define GEM_L1P_PREFETCH_SIZE   128
- 
-diff --git a/drivers/dsp/bridge/hw/hw_mmu.h b/drivers/dsp/bridge/hw/hw_mmu.h
-index 065f0dd..b1e2458
---- a/drivers/dsp/bridge/hw/hw_mmu.h
-+++ b/drivers/dsp/bridge/hw/hw_mmu.h
-@@ -51,6 +51,7 @@ struct HW_MMUMapAttrs_t {
- 	enum HW_Endianism_t     endianism;
- 	enum HW_ElementSize_t   elementSize;
- 	enum HW_MMUMixedSize_t  mixedSize;
-+	bool donotlockmpupage;
- } ;
- 
- extern HW_STATUS HW_MMU_Enable(const void __iomem *baseAddress);
+                }
+                if (hNode->hSyncDone)
+                        (void) SYNC_CloseEvent(hNode->hSyncDone);
+@@ -2835,6 +2853,7 @@ static void DeleteNode(struct NODE_OBJECT *hNode)
+                                FreeStream(hNodeMgr, stream);
+                        }
+                        MEM_Free(hNode->inputs);
++                       hNode->inputs = NULL;
+                }
+                if (hNode->outputs) {
+                        for (i = 0; i < MaxOutputs(hNode); i++) {
+@@ -2842,6 +2861,7 @@ static void DeleteNode(struct NODE_OBJECT *hNode)
+                                FreeStream(hNodeMgr, stream);
+                        }
+                        MEM_Free(hNode->outputs);
++                       hNode->outputs = NULL;
+                }
+                taskArgs = hNode->createArgs.asa.taskArgs;
+                if (taskArgs.strmInDef) {
+@@ -2849,6 +2869,7 @@ static void DeleteNode(struct NODE_OBJECT *hNode)
+                                if (taskArgs.strmInDef[i].szDevice) {
+                                        MEM_Free(taskArgs.strmInDef[i].
+                                                szDevice);
++                                       taskArgs.strmInDef[i].szDevice = NULL;
+                                }
+                        }
+                        MEM_Free(taskArgs.strmInDef);
+@@ -2859,6 +2880,7 @@ static void DeleteNode(struct NODE_OBJECT *hNode)
+                                if (taskArgs.strmOutDef[i].szDevice) {
+                                        MEM_Free(taskArgs.strmOutDef[i].
+                                                szDevice);
++                                       taskArgs.strmOutDef[i].szDevice = NULL;
+                                }
+                        }
+                        MEM_Free(taskArgs.strmOutDef);
+@@ -2890,37 +2912,55 @@ static void DeleteNode(struct NODE_OBJECT *hNode)
+                }
+        }
+        if (nodeType != NODE_MESSAGE) {
+-               if (hNode->streamConnect)
++               if (hNode->streamConnect) {
+                        MEM_Free(hNode->streamConnect);
+-
++                       hNode->streamConnect = NULL;
++               }
+        }
+-       if (hNode->pstrDevName)
++       if (hNode->pstrDevName) {
+                MEM_Free(hNode->pstrDevName);
++               hNode->pstrDevName = NULL;
++       }
+
+-       if (hNode->hNtfy)
++       if (hNode->hNtfy) {
+                NTFY_Delete(hNode->hNtfy);
++               hNode->hNtfy = NULL;
++       }
+
+        /* These were allocated in DCD_GetObjectDef (via NODE_Allocate) */
+-       if (hNode->dcdProps.objData.nodeObj.pstrCreatePhaseFxn)
++       if (hNode->dcdProps.objData.nodeObj.pstrCreatePhaseFxn) {
+                MEM_Free(hNode->dcdProps.objData.nodeObj.pstrCreatePhaseFxn);
++               hNode->dcdProps.objData.nodeObj.pstrCreatePhaseFxn = NULL;
++       }
+
+-       if (hNode->dcdProps.objData.nodeObj.pstrExecutePhaseFxn)
++       if (hNode->dcdProps.objData.nodeObj.pstrExecutePhaseFxn) {
+                MEM_Free(hNode->dcdProps.objData.nodeObj.pstrExecutePhaseFxn);
++               hNode->dcdProps.objData.nodeObj.pstrExecutePhaseFxn = NULL;
++       }
+
+-       if (hNode->dcdProps.objData.nodeObj.pstrDeletePhaseFxn)
++       if (hNode->dcdProps.objData.nodeObj.pstrDeletePhaseFxn) {
+                MEM_Free(hNode->dcdProps.objData.nodeObj.pstrDeletePhaseFxn);
++               hNode->dcdProps.objData.nodeObj.pstrDeletePhaseFxn = NULL;
++       }
+
+-       if (hNode->dcdProps.objData.nodeObj.pstrIAlgName)
++       if (hNode->dcdProps.objData.nodeObj.pstrIAlgName) {
+                MEM_Free(hNode->dcdProps.objData.nodeObj.pstrIAlgName);
++               hNode->dcdProps.objData.nodeObj.pstrIAlgName = NULL;
++       }
+
+        /* Free all SM address translator resources */
+-       if (hXlator)
++       if (hXlator) {
+                (void) CMM_XlatorDelete(hXlator, TRUE); /* force free */
++               hXlator = NULL;
++       }
+
+-       if (hNode->hNldrNode)
++       if (hNode->hNldrNode) {
+                hNodeMgr->nldrFxns.pfnFree(hNode->hNldrNode);
++               hNode->hNldrNode = NULL;
++       }
+
+        MEM_FreeObject(hNode);
++       hNode = NULL;
+ }
+
+ /*
 diff --git a/drivers/dsp/bridge/wmd/io_sm.c b/drivers/dsp/bridge/wmd/io_sm.c
-index bd936eb..301bd72 100755
+index 301bd72..2613bd1 100755
 --- a/drivers/dsp/bridge/wmd/io_sm.c
 +++ b/drivers/dsp/bridge/wmd/io_sm.c
-@@ -553,6 +553,8 @@ func_cont1:
- 	mapAttrs = DSP_MAPLITTLEENDIAN;
- 	mapAttrs |= DSP_MAPPHYSICALADDR;
- 	mapAttrs |= DSP_MAPELEMSIZE32;
-+	mapAttrs |= DSP_MAPDONOTLOCK;
+@@ -339,16 +339,16 @@ DSP_STATUS WMD_IO_Destroy(struct IO_MGR *hIOMgr)
+        if (MEM_IsValidHandle(hIOMgr, IO_MGRSIGNATURE)) {
+                /* Unplug IRQ:    */
+                /* Disable interrupts from the board:  */
+-               if (DSP_SUCCEEDED(DEV_GetWMDContext(hIOMgr->hDevObject,
+-                  &hWmdContext)))
+-                       DBC_Assert(hWmdContext);
+-
++               status = DEV_GetWMDContext(hIOMgr->hDevObject,
++                               &hWmdContext);
++               if (DSP_SUCCEEDED(status))
++                       (void)CHNLSM_DisableInterrupt(hWmdContext);
+                (void)CHNLSM_DisableInterrupt(hWmdContext);
+-
+                flush_workqueue(bridge_workqueue);
+                /* Linux function to uninstall ISR */
+                free_irq(INT_MAIL_MPU_IRQ, (void *)hIOMgr);
+-               (void)DPC_Destroy(hIOMgr->hDPC);
++               if (hIOMgr->hDPC)
++                       (void)DPC_Destroy(hIOMgr->hDPC);
+ #ifndef DSP_TRACEBUF_DISABLED
+                if (hIOMgr->pMsg)
+                        MEM_Free(hIOMgr->pMsg);
+@@ -1186,6 +1186,8 @@ static void InputChnl(struct IO_MGR *pIOMgr, struct CHNL_OBJECT *pChnl,
+        pChnl = pChnlMgr->apChannel[chnlId];
+        if ((pChnl != NULL) && CHNL_IsInput(pChnl->uMode)) {
+                if ((pChnl->dwState & ~CHNL_STATEEOS) == CHNL_STATEREADY) {
++                       if (!pChnl->pIORequests)
++                               goto func_end;
+                        /* Get the I/O request, and attempt a transfer:  */
+                        pChirp = (struct CHNL_IRP *)LST_GetHead(pChnl->
+                                 pIORequests);
+@@ -1225,6 +1227,8 @@ static void InputChnl(struct IO_MGR *pIOMgr, struct CHNL_OBJECT *pChnl,
+                                                 "chnl = 0x%x\n", pChnl);
+                                }
+                                /* Tell DSP if no more I/O buffers available: */
++                               if (!pChnl->pIORequests)
++                                       goto func_end;
+                                if (LST_IsEmpty(pChnl->pIORequests)) {
+                                        IO_AndValue(pIOMgr->hWmdContext,
+                                                   struct SHM, sm, hostFreeMask,
+@@ -1296,6 +1300,9 @@ static void InputMsg(struct IO_MGR *pIOMgr, struct MSG_MGR *hMsgMgr)
+                addr = (u32)&(((struct MSG_DSPMSG *)pMsgInput)->dwId);
+                msg.dwId = ReadExt32BitDspData(pIOMgr->hWmdContext, addr);
+                pMsgInput += sizeof(struct MSG_DSPMSG);
++               if (!hMsgMgr->queueList)
++                       goto func_end;
 +
- 	while (numBytes && DSP_SUCCEEDED(status)) {
- 		/* To find the max. page size with which both PA & VA are
- 		 * aligned */
-@@ -690,18 +692,18 @@ func_cont:
- 	mapAttrs = DSP_MAPLITTLEENDIAN;
- 	mapAttrs |= DSP_MAPPHYSICALADDR;
- 	mapAttrs |= DSP_MAPELEMSIZE32;
-+	mapAttrs |= DSP_MAPDONOTLOCK;
+                /* Determine which queue to put the message in */
+                hMsgQueue = (struct MSG_QUEUE *)LST_First(hMsgMgr->queueList);
+                DBG_Trace(DBG_LEVEL7, "InputMsg RECVD: dwCmd=0x%x dwArg1=0x%x "
+@@ -1304,8 +1311,8 @@ static void InputMsg(struct IO_MGR *pIOMgr, struct MSG_MGR *hMsgMgr)
+                 /*  Interrupt may occur before shared memory and message
+                 *  input locations have been set up. If all nodes were
+                 *  cleaned up, hMsgMgr->uMaxMsgs should be 0.  */
+-               if (hMsgQueue)
+-                       DBC_Assert(uMsgs <= hMsgMgr->uMaxMsgs);
++               if (hMsgQueue && uMsgs > hMsgMgr->uMaxMsgs)
++                       goto func_end;
+
+                while (hMsgQueue != NULL) {
+                        if (msg.dwId == hMsgQueue->dwId) {
+@@ -1320,9 +1327,11 @@ static void InputMsg(struct IO_MGR *pIOMgr, struct MSG_MGR *hMsgMgr)
+                                } else {
+                                        /* Not an exit acknowledgement, queue
+                                         * the message */
++                                       if (!hMsgQueue->msgFreeList)
++                                               goto func_end;
+                                        pMsg = (struct MSG_FRAME *)LST_GetHead
+                                                (hMsgQueue->msgFreeList);
+-                                       if (pMsg) {
++                                       if (hMsgQueue->msgUsedList && pMsg) {
+                                                pMsg->msgData = msg;
+                                                LST_PutTail(hMsgQueue->
+                                                      msgUsedList,
+@@ -1341,6 +1350,9 @@ static void InputMsg(struct IO_MGR *pIOMgr, struct MSG_MGR *hMsgMgr)
+                                }
+                                break;
+                        }
 +
- 	/* Map the L4 peripherals */
--	{
--		i = 0;
--		while (L4PeripheralTable[i].physAddr && DSP_SUCCEEDED(status)) {
--				status = hIOMgr->pIntfFxns->pfnBrdMemMap
--					(hIOMgr->hWmdContext,
--					L4PeripheralTable[i].physAddr,
--					L4PeripheralTable[i].dspVirtAddr,
--					HW_PAGE_SIZE_4KB, mapAttrs);
--				DBC_Assert(DSP_SUCCEEDED(status));
--				i++;
--		}
-+	i = 0;
-+	while (L4PeripheralTable[i].physAddr && DSP_SUCCEEDED(status)) {
-+		status = hIOMgr->pIntfFxns->pfnBrdMemMap
-+			(hIOMgr->hWmdContext, L4PeripheralTable[i].physAddr,
-+			L4PeripheralTable[i].dspVirtAddr, HW_PAGE_SIZE_4KB,
-+			mapAttrs);
-+		if (DSP_FAILED(status))
-+			break;
-+		i++;
- 	}
- 
- 	if (DSP_SUCCEEDED(status)) {
-diff --git a/drivers/dsp/bridge/wmd/tiomap3430.c b/drivers/dsp/bridge/wmd/tiomap3430.c
-index 7f20574..1a97305 100755
---- a/drivers/dsp/bridge/wmd/tiomap3430.c
-+++ b/drivers/dsp/bridge/wmd/tiomap3430.c
-@@ -28,6 +28,8 @@
- 
- /*  ----------------------------------- Host OS */
- #include <dspbridge/host_os.h>
-+#include <linux/mm.h>
-+#include <linux/mmzone.h>
- #include "../arch/arm/mach-omap2/prcm-regs.h"
- #include "../arch/arm/mach-omap2/cm-regbits-34xx.h"
- #include "../arch/arm/mach-omap2/ti-compat.h"
-@@ -90,6 +92,7 @@
- #define MMU_LARGE_PAGE_MASK      0xFFFF0000
- #define MMU_SMALL_PAGE_MASK      0xFFFFF000
- #define PAGES_II_LVL_TABLE   512
-+#define phys_to_page(phys)      pfn_to_page((phys) >> PAGE_SHIFT)
- 
- #define MMU_GFLUSH 0x60
- 
-@@ -1372,6 +1375,11 @@ static DSP_STATUS WMD_BRD_MemMap(struct WMD_DEV_CONTEXT *hDevContext,
- 			return DSP_EINVALIDARG;
- 		}
- 	}
-+	if (attrs & DSP_MAPDONOTLOCK)
-+		hwAttrs.donotlockmpupage = 1;
-+	else
-+		hwAttrs.donotlockmpupage = 0;
++                       if (!hMsgMgr->queueList || !hMsgQueue)
++                               goto func_end;
+                        hMsgQueue = (struct MSG_QUEUE *)LST_Next(hMsgMgr->
+                                    queueList, (struct LST_ELEM *)hMsgQueue);
+                }
+@@ -1354,6 +1366,9 @@ static void InputMsg(struct IO_MGR *pIOMgr, struct MSG_MGR *hMsgMgr)
+                           true);
+                CHNLSM_InterruptDSP2(pIOMgr->hWmdContext, MBX_PCPY_CLASS);
+        }
++func_end:
++       return;
 +
- 	if (attrs & DSP_MAPVMALLOCADDR) {
- 		status = MemMapVmalloc(hDevContext, ulMpuAddr, ulVirtAddr,
- 				       ulNumBytes, ulMapAttr);
-@@ -1488,12 +1496,20 @@ static DSP_STATUS WMD_BRD_MemUnMap(struct WMD_DEV_CONTEXT *hDevContext,
- 	u32 remBytes;
- 	u32 remBytesL2;
- 	u32 vaCurr;
-+	struct page *pg;
- 	DSP_STATUS status = DSP_SOK;
- 	struct WMD_DEV_CONTEXT *pDevContext = hDevContext;
- 	struct PgTableAttrs *pt = pDevContext->pPtAttrs;
-+	u32 pacount = 0;
-+	u32 *pPhysAddrPageTbl = NULL;
-+	u32 temp;
-+	u32 patemp = 0;
-+	u32 pAddr;
-+	u32 numof4KPages = 0;
- 
- 	DBG_Trace(DBG_ENTER, "> WMD_BRD_MemUnMap hDevContext %x, va %x, "
- 		  "NumBytes %x\n", hDevContext, ulVirtAddr, ulNumBytes);
-+	pPhysAddrPageTbl = DMM_GetPhysicalAddrTable();
- 	vaCurr = ulVirtAddr;
- 	remBytes = ulNumBytes;
- 	remBytesL2 = 0;
-@@ -1542,6 +1558,19 @@ static DSP_STATUS WMD_BRD_MemUnMap(struct WMD_DEV_CONTEXT *hDevContext,
- 				/* vaCurr aligned to pteSize? */
- 				if ((pteSize != 0) && (remBytesL2 >= pteSize) &&
- 				   !(vaCurr & (pteSize - 1))) {
-+					/* Collect Physical addresses from VA */
-+					pAddr = (pteVal & ~(pteSize - 1));
-+					if (pteSize == HW_PAGE_SIZE_64KB)
-+						numof4KPages = 16;
-+					else
-+						numof4KPages = 1;
-+					temp = 0;
-+					while (temp++ < numof4KPages) {
-+						pPhysAddrPageTbl[pacount++] =
-+									pAddr;
-+						pAddr += HW_PAGE_SIZE_4KB;
-+					}
+ }
+
+ /*
+@@ -1418,9 +1433,8 @@ static void OutputChnl(struct IO_MGR *pIOMgr, struct CHNL_OBJECT *pChnl,
+                goto func_end;
+
+        pChnl = pChnlMgr->apChannel[chnlId];
+-       if (!pChnl) {
++       if (!pChnl || !pChnl->pIORequests) {
+                /* Shouldn't get here: */
+-               DBC_Assert(pChnl == NULL);
+                goto func_end;
+        }
+        /* Get the I/O request, and attempt a transfer:  */
+@@ -1429,7 +1443,9 @@ static void OutputChnl(struct IO_MGR *pIOMgr, struct CHNL_OBJECT *pChnl,
+                goto func_end;
+
+        pChnl->cIOReqs--;
+-       DBC_Assert(pChnl->cIOReqs >= 0);
++       if (pChnl->cIOReqs < 0 || !pChnl->pIORequests)
++               goto func_end;
 +
- 					if (HW_MMU_PteClear(pteAddrL2,
- 						vaCurr, pteSize) == RET_OK) {
- 						status = DSP_SOK;
-@@ -1602,6 +1631,20 @@ static DSP_STATUS WMD_BRD_MemUnMap(struct WMD_DEV_CONTEXT *hDevContext,
- 	 * get flushed */
- EXIT_LOOP:
- 	flush_all(pDevContext);
-+	temp = 0;
-+	while (temp < pacount) {
-+		patemp = pPhysAddrPageTbl[temp];
-+		if (pfn_valid(__phys_to_pfn(patemp))) {
-+			pg = phys_to_page(patemp);
-+			if (page_count(pg) <= 0)
-+				printk(KERN_INFO "DSPBRIDGE:UNMAP function: "
-+					"COUNT 0 FOR PA 0x%x, size = 0x%x\n",
-+					patemp, ulNumBytes);
-+			SetPageDirty(pg);
-+			page_cache_release(pg);
-+		}
-+		temp++;
-+	}
- 	DBG_Trace(DBG_LEVEL1, "WMD_BRD_MemUnMap vaCurr %x, pteAddrL1 %x "
- 		  "pteAddrL2 %x\n", vaCurr, pteAddrL1, pteAddrL2);
- 	DBG_Trace(DBG_ENTER, "< WMD_BRD_MemUnMap status %x remBytes %x, "
-@@ -1633,11 +1676,20 @@ static DSP_STATUS TIOMAP_VirtToPhysical(struct mm_struct *mm, u32 ulMpuAddr,
- 	u32 temp = 0;
- 	u32 numUsrPgs;
- 	struct task_struct *curr_task = current;
-+	struct vm_area_struct *vma;
-+	u32  write = 0;
+        /* Record fact that no more I/O buffers available:  */
+        if (LST_IsEmpty(pChnl->pIORequests))
+                pChnlMgr->dwOutputMask &= ~(1 << chnlId);
+@@ -1492,9 +1508,13 @@ static void OutputMsg(struct IO_MGR *pIOMgr, struct MSG_MGR *hMsgMgr)
+                pMsgOutput = pIOMgr->pMsgOutput;
+                /* Copy uMsgs messages into shared memory */
+                for (i = 0; i < uMsgs; i++) {
+-                       pMsg = (struct MSG_FRAME *)LST_GetHead(hMsgMgr->
+-                               msgUsedList);
+-                       DBC_Assert(pMsg != NULL);
++                       if (!hMsgMgr->msgUsedList) {
++                               DBG_Trace(DBG_LEVEL3, "msgUsedList is NULL\n");
++                               pMsg = NULL;
++                               goto func_end;
++                       } else
++                               pMsg = (struct MSG_FRAME *)LST_GetHead(
++                                       hMsgMgr->msgUsedList);
+                        if (pMsg != NULL) {
+                                val = (pMsg->msgData).dwId;
+                                addr = (u32)&(((struct MSG_DSPMSG *)
+@@ -1519,6 +1539,8 @@ static void OutputMsg(struct IO_MGR *pIOMgr, struct MSG_MGR *hMsgMgr)
+                                WriteExt32BitDspData(pIOMgr->hWmdContext, addr,
+                                                    val);
+                                pMsgOutput += sizeof(struct MSG_DSPMSG);
++                               if (!hMsgMgr->msgFreeList)
++                                       goto func_end;
+                                LST_PutTail(hMsgMgr->msgFreeList,
+                                           (struct LST_ELEM *) pMsg);
+                                SYNC_SetEvent(hMsgMgr->hSyncEvent);
+@@ -1546,6 +1568,9 @@ static void OutputMsg(struct IO_MGR *pIOMgr, struct MSG_MGR *hMsgMgr)
+                                        MBX_PCPY_CLASS);
+                }
+        }
++func_end:
++       return;
 +
- 
- 	DBG_Trace(DBG_ENTER, "TIOMAP_VirtToPhysical: START:ulMpuAddr=%x, "
- 		  "ulNumBytes=%x\n", ulMpuAddr, ulNumBytes);
- 	if (physicalAddrTable == NULL)
- 		return DSP_EMEMORY;
-+	down_read(&mm->mmap_sem);
-+	vma = find_vma(mm, ulMpuAddr);
-+	up_read(&mm->mmap_sem);
+ }
+
+ /*
+diff --git a/drivers/dsp/bridge/wmd/msg_sm.c b/drivers/dsp/bridge/wmd/msg_sm.c
+index 19fa135..53d34d9
+--- a/drivers/dsp/bridge/wmd/msg_sm.c
++++ b/drivers/dsp/bridge/wmd/msg_sm.c
+@@ -184,6 +184,10 @@ DSP_STATUS WMD_MSG_CreateQueue(struct MSG_MGR *hMsgMgr,
+                status = SYNC_OpenEvent(&pMsgQ->hSyncDoneAck, NULL);
+
+        if (DSP_SUCCEEDED(status)) {
++               if (!hMsgMgr->msgFreeList) {
++                       status = DSP_EHANDLE;
++                       goto func_end;
++               }
+                /* Enter critical section */
+                (void)SYNC_EnterCS(hMsgMgr->hSyncCS);
+                /* Initialize message frames and put in appropriate queues */
+@@ -252,10 +256,12 @@ void WMD_MSG_DeleteQueue(struct MSG_QUEUE *hMsgQueue)
+        LST_RemoveElem(hMsgMgr->queueList, (struct LST_ELEM *)hMsgQueue);
+        /* Free the message queue object */
+        DeleteMsgQueue(hMsgQueue, hMsgQueue->uMaxMsgs);
++       if (!hMsgMgr->msgFreeList)
++               goto func_cont;
+        if (LST_IsEmpty(hMsgMgr->msgFreeList))
+                SYNC_ResetEvent(hMsgMgr->hSyncEvent);
+-
++func_cont:
+        (void)SYNC_LeaveCS(hMsgMgr->hSyncCS);
+ }
+
+ /*
+@@ -276,6 +285,11 @@ DSP_STATUS WMD_MSG_Get(struct MSG_QUEUE *hMsgQueue,
+        DBC_Require(pMsg != NULL);
+
+        hMsgMgr = hMsgQueue->hMsgMgr;
++       if (!hMsgQueue->msgUsedList) {
++               status = DSP_EHANDLE;
++               goto func_end;
++       }
 +
-+	if (vma->vm_flags & (VM_WRITE | VM_MAYWRITE))
-+		write = 1;
- 	while (ulNumBytes) {
- 		DBG_Trace(DBG_LEVEL4, "TIOMAP_VirtToPhysical:Read the next PGD "
- 			  "and PMD entry\n");
-@@ -1660,7 +1712,7 @@ static DSP_STATUS TIOMAP_VirtToPhysical(struct mm_struct *mm, u32 ulMpuAddr,
- 			 * page tables
- 			 */
- 			numUsrPgs = get_user_pages(curr_task, mm, ulMpuAddr, 1,
--							true, 0, NULL, NULL);
-+							write, 1, NULL, NULL);
- 			up_read(&mm->mmap_sem);
- 			/* Get the first level page table entry information */
- 			/* Read the pointer to first level page table entry */
-@@ -1704,7 +1756,7 @@ static DSP_STATUS TIOMAP_VirtToPhysical(struct mm_struct *mm, u32 ulMpuAddr,
- 					 * the page tables */
- 					if (numUsrPgs <= PAGES_II_LVL_TABLE) {
- 						get_user_pages(curr_task, mm,
--						ulMpuAddr, numUsrPgs, true,  0,
-+						ulMpuAddr, numUsrPgs, write,  1,
- 						NULL, NULL);
- 						DBG_Trace(DBG_LEVEL4,
- 						"get_user_pages, numUsrPgs"
-@@ -1712,7 +1764,7 @@ static DSP_STATUS TIOMAP_VirtToPhysical(struct mm_struct *mm, u32 ulMpuAddr,
- 					} else {
- 						get_user_pages(curr_task, mm,
- 						ulMpuAddr, PAGES_II_LVL_TABLE,
--						true, 0, NULL, NULL);
-+						write, 1, NULL, NULL);
- 						DBG_Trace(DBG_LEVEL4,
- 						"get_user_pages, numUsrPgs"
- 						"= %d\n", PAGES_II_LVL_TABLE);
-@@ -1737,7 +1789,12 @@ static DSP_STATUS TIOMAP_VirtToPhysical(struct mm_struct *mm, u32 ulMpuAddr,
- 					pAddr = pteVal & MMU_LARGE_PAGE_MASK;
- 					chunkSz = HW_PAGE_SIZE_64KB;
- 					numEntries = 16;
--					numof4KPages = 16;
-+					if (ulNumBytes >= HW_PAGE_SIZE_64KB)
-+						numof4KPages = 16;
-+					else {
-+						numof4KPages = ulNumBytes /
-+							HW_PAGE_SIZE_4KB;
-+					}
- 					break;
- 				case HW_PAGE_SIZE_4KB:
- 					pAddr = pteVal & MMU_SMALL_PAGE_MASK;
-@@ -1769,7 +1826,10 @@ static DSP_STATUS TIOMAP_VirtToPhysical(struct mm_struct *mm, u32 ulMpuAddr,
- 					ulMpuAddr += chunkSz;
- 					/* Update the number of bytes that
- 					 * are copied */
--					ulNumBytes -= chunkSz;
-+					if (chunkSz > ulNumBytes)
-+						ulNumBytes = 0;
-+					else
-+						ulNumBytes -= chunkSz;
- 					DBG_Trace(DBG_LEVEL4,
- 						"TIOMAP_VirtToPhysical: mpuCurr"
- 						" = %x, pagesize = %x, "
-@@ -1792,10 +1852,16 @@ static DSP_STATUS TIOMAP_VirtToPhysical(struct mm_struct *mm, u32 ulMpuAddr,
- 			switch (pteSize) {
- 			case HW_PAGE_SIZE_16MB:
- 				pAddr = pteVal & MMU_SSECTION_ADDR_MASK;
-+				if (ulNumBytes >= HW_PAGE_SIZE_16MB) {
- 					chunkSz = HW_PAGE_SIZE_16MB;
- 					numEntries = 16;
- 					numof4KPages = 4096;
--					break;
-+				} else {
-+					chunkSz = HW_PAGE_SIZE_1MB;
-+					numEntries = 1;
-+					numof4KPages = 256;
-+				}
-+				break;
- 			case HW_PAGE_SIZE_1MB:
- 				pAddr = pteVal & MMU_SECTION_ADDR_MASK;
- 					chunkSz = HW_PAGE_SIZE_1MB;
-@@ -1909,9 +1975,64 @@ static DSP_STATUS PteSet(struct PgTableAttrs *pt, u32 pa, u32 va,
- 	u32 L2BaseVa = 0;
- 	u32 L2BasePa = 0;
- 	u32 L2PageNum = 0;
-+	u32 num4KEntries = 0;
-+	u32 temp = 0;
-+	struct page *pg;
-+	u32 patemp;
+        /* Enter critical section */
+        (void)SYNC_EnterCS(hMsgMgr->hSyncCS);
+        /* If a message is already there, get it */
+@@ -342,6 +356,7 @@ DSP_STATUS WMD_MSG_Get(struct MSG_QUEUE *hMsgQueue,
+                        (void)SYNC_LeaveCS(hMsgMgr->hSyncCS);
+                }
+        }
++func_end:
+        return status;
+ }
+
+@@ -364,6 +379,12 @@ DSP_STATUS WMD_MSG_Put(struct MSG_QUEUE *hMsgQueue,
+
+        hMsgMgr = hMsgQueue->hMsgMgr;
+
++       if (!hMsgMgr->msgFreeList) {
++               status = DSP_EHANDLE;
++               goto func_end;
++       }
 +
- 	DSP_STATUS status = DSP_SOK;
- 	DBG_Trace(DBG_ENTER, "> PteSet pPgTableAttrs %x, pa %x, va %x, "
- 		 "size %x, attrs %x\n", pt, pa, va, size, attrs);
-+	/* Lock the MPU pages that are getting mapped if this
-+	 * attribute is set */
-+	if (attrs->donotlockmpupage == 0) {
-+		switch (size) {
-+		case HW_PAGE_SIZE_64KB:
-+			num4KEntries = 16;
-+			break;
-+		case HW_PAGE_SIZE_4KB:
-+			num4KEntries = 1;
-+			break;
-+		case HW_PAGE_SIZE_16MB:
-+			num4KEntries = 4096;
-+			break;
-+		case HW_PAGE_SIZE_1MB:
-+			num4KEntries = 256;
-+			break;
-+		default:
-+			return DSP_EFAIL;
-+		}
-+		patemp = pa;
-+		while (temp++ < num4KEntries) {
-+			/* FIXME: This is a hack to avoid getting pages for
-+			 *  video overlay		*/
-+			if (pfn_valid(__phys_to_pfn(patemp))) {
-+				pg = phys_to_page(patemp);
-+				get_page(pg);
-+			}
-+			if (page_count(pg) <= 1) {
-+				printk(KERN_EMERG "DSPBRIDGE:MAP  function: "
-+					"COUNT 0 FOR PA 0x%x\n", patemp);
-+				printk(KERN_EMERG "Bad page state"
-+					KERN_EMERG "in process '%s'\n"
-+					KERN_EMERG "page:%p flags:0x%0*lx "
-+					KERN_EMERG "mapping:%p mapcount:%d "
-+					KERN_EMERG "count:%d\n"
-+					KERN_EMERG "Trying to fix it up, but "
-+					KERN_EMERG "a reboot is needed\n"
-+					KERN_EMERG "Backtrace:\n",
-+					current->comm, pg,
-+					(int)(2*sizeof(unsigned long)),
-+					(unsigned long)pg->flags, pg->mapping,
-+					page_mapcount(pg), page_count(pg));
-+				dump_stack();
-+				BUG_ON(1);
-+			}
 +
-+			patemp += HW_PAGE_SIZE_4KB;
-+		}
-+	}
-+	attrs->donotlockmpupage = 0;
- 	L1BaseVa = pt->L1BaseVa;
- 	pgTblVa = L1BaseVa;
- 	if ((size == HW_PAGE_SIZE_64KB) || (size == HW_PAGE_SIZE_4KB)) {
--- 
+        (void) SYNC_EnterCS(hMsgMgr->hSyncCS);
+
+        /* If a message frame is available, use it */
+@@ -412,7 +433,10 @@ DSP_STATUS WMD_MSG_Put(struct MSG_QUEUE *hMsgQueue,
+                        status = DSP_EFAIL;
+                } else {
+                        if (DSP_SUCCEEDED(status)) {
+-                               DBC_Assert(!LST_IsEmpty(hMsgMgr->msgFreeList));
++                               if (LST_IsEmpty(hMsgMgr->msgFreeList)) {
++                                       status = DSP_EPOINTER;
++                                       goto func_cont;
++                               }
+                                /* Get msg from free list */
+                                pMsgFrame = (struct MSG_FRAME *)
+                                            LST_GetHead(hMsgMgr->msgFreeList);
+@@ -435,11 +459,12 @@ DSP_STATUS WMD_MSG_Put(struct MSG_QUEUE *hMsgQueue,
+                        /* Reset event if there are still frames available */
+                        if (!LST_IsEmpty(hMsgMgr->msgFreeList))
+                                SYNC_SetEvent(hMsgMgr->hSyncEvent);
+-
++func_cont:
+                        /* Exit critical section */
+                        (void) SYNC_LeaveCS(hMsgMgr->hSyncCS);
+                }
+        }
++func_end:
+        return status;
+ }
+
+@@ -517,15 +542,21 @@ static void DeleteMsgMgr(struct MSG_MGR *hMsgMgr)
+        DBC_Require(MEM_IsValidHandle(hMsgMgr, MSGMGR_SIGNATURE));
+
+        if (hMsgMgr->queueList) {
+-               DBC_Assert(LST_IsEmpty(hMsgMgr->queueList));
+-               LST_Delete(hMsgMgr->queueList);
++               if (LST_IsEmpty(hMsgMgr->queueList)) {
++                       LST_Delete(hMsgMgr->queueList);
++                       hMsgMgr->queueList = NULL;
++               }
+        }
+
+-       if (hMsgMgr->msgFreeList)
++       if (hMsgMgr->msgFreeList) {
+                FreeMsgList(hMsgMgr->msgFreeList);
++               hMsgMgr->msgFreeList = NULL;
++       }
+
+-       if (hMsgMgr->msgUsedList)
++       if (hMsgMgr->msgUsedList) {
+                FreeMsgList(hMsgMgr->msgUsedList);
++               hMsgMgr->msgUsedList = NULL;
++       }
+
+        if (hMsgMgr->hSyncEvent)
+                SYNC_CloseEvent(hMsgMgr->hSyncEvent);
+@@ -541,11 +575,15 @@ static void DeleteMsgMgr(struct MSG_MGR *hMsgMgr)
+  */
+ static void DeleteMsgQueue(struct MSG_QUEUE *hMsgQueue, u32 uNumToDSP)
+ {
+-       struct MSG_MGR *hMsgMgr = hMsgQueue->hMsgMgr;
++       struct MSG_MGR *hMsgMgr;
+        struct MSG_FRAME *pMsg;
+        u32 i;
+
+-       DBC_Require(MEM_IsValidHandle(hMsgQueue, MSGQ_SIGNATURE));
++       if (!MEM_IsValidHandle(hMsgQueue, MSGQ_SIGNATURE)
++               || !hMsgQueue->hMsgMgr || !hMsgQueue->hMsgMgr->msgFreeList)
++               goto func_end;
++       hMsgMgr = hMsgQueue->hMsgMgr;
++
+
+        /* Pull off uNumToDSP message frames from Msg manager and free */
+        for (i = 0; i < uNumToDSP; i++) {
+@@ -560,11 +598,16 @@ static void DeleteMsgQueue(struct MSG_QUEUE *hMsgQueue, u32 uNumToDSP)
+                }
+        }
+
+-       if (hMsgQueue->msgFreeList)
++       if (hMsgQueue->msgFreeList) {
+                FreeMsgList(hMsgQueue->msgFreeList);
++               hMsgQueue->msgFreeList = NULL;
++       }
+
+-       if (hMsgQueue->msgUsedList)
++       if (hMsgQueue->msgUsedList) {
+                FreeMsgList(hMsgQueue->msgUsedList);
++               hMsgQueue->msgUsedList = NULL;
++       }
++
+
+        if (hMsgQueue->hNtfy)
+                NTFY_Delete(hMsgQueue->hNtfy);
+@@ -579,6 +622,9 @@ static void DeleteMsgQueue(struct MSG_QUEUE *hMsgQueue, u32 uNumToDSP)
+                SYNC_CloseEvent(hMsgQueue->hSyncDoneAck);
+
+        MEM_FreeObject(hMsgQueue);
++func_end:
++       return;
++
+ }
+
+ /*
+@@ -588,7 +634,8 @@ static void FreeMsgList(struct LST_LIST *msgList)
+ {
+        struct MSG_FRAME *pMsg;
+
+-       DBC_Require(msgList != NULL);
++       if (!msgList)
++               goto func_end;
+
+        while ((pMsg = (struct MSG_FRAME *)LST_GetHead(msgList)) != NULL)
+                MEM_Free(pMsg);
+@@ -596,5 +643,7 @@ static void FreeMsgList(struct LST_LIST *msgList)
+        DBC_Assert(LST_IsEmpty(msgList));
+
+        LST_Delete(msgList);
++func_end:
++       return;
+ }
+
+--
 1.5.6.4
 
