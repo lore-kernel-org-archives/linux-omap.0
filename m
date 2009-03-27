@@ -1,175 +1,136 @@
 From: "Guzman Lugo, Fernando" <x0095840@ti.com>
-Subject: RE: [PATCH 3/4] [OMAPZOOM] DSPBRIDGE: Add DSP_MMU_DEBUG
-Date: Thu, 26 Mar 2009 20:16:04 -0500
-Message-ID: <496565EC904933469F292DDA3F1663E60287E2BC65@dlee06.ent.ti.com>
+Subject: [PATCH 4/4] [OMAPZOOM] DSPBRIDGE: Handle Node operations when DSP
+ is in error state
+Date: Thu, 26 Mar 2009 20:17:42 -0500
+Message-ID: <496565EC904933469F292DDA3F1663E60287E2BC66@dlee06.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:35878 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S934411AbZC0BQM convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 26 Mar 2009 21:16:12 -0400
+Received: from devils.ext.ti.com ([198.47.26.153]:48487 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S934464AbZC0BRu convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 26 Mar 2009 21:17:50 -0400
 Received: from dlep95.itg.ti.com ([157.170.170.107])
-	by bear.ext.ti.com (8.13.7/8.13.7) with ESMTP id n2R1G6ea015366
-	for <linux-omap@vger.kernel.org>; Thu, 26 Mar 2009 20:16:11 -0500
-Received: from dlee75.ent.ti.com (localhost [127.0.0.1])
-	by dlep95.itg.ti.com (8.13.8/8.13.8) with ESMTP id n2R1G65X005408
-	for <linux-omap@vger.kernel.org>; Thu, 26 Mar 2009 20:16:06 -0500 (CDT)
+	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id n2R1Hiuc028783
+	for <linux-omap@vger.kernel.org>; Thu, 26 Mar 2009 20:17:49 -0500
+Received: from dlee73.ent.ti.com (localhost [127.0.0.1])
+	by dlep95.itg.ti.com (8.13.8/8.13.8) with ESMTP id n2R1HiG6006543
+	for <linux-omap@vger.kernel.org>; Thu, 26 Mar 2009 20:17:44 -0500 (CDT)
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: "Pandita, Vikram" <vikram.pandita@ti.com>
 Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-
-This is the PATCH 3/4
-
------Original Message-----
-From: Guzman Lugo, Fernando 
-Sent: Thursday, March 26, 2009 7:12 PM
-To: Pandita, Vikram
-Cc: 'linux-omap@vger.kernel.org'
-Subject: [PATCH] [OMAPZOOM] DSPBRIDGE: Add DSP_MMU_DEBUG
-
->From 1e8c0757f37656273772ef0e53914c99ace9a5d0 Mon Sep 17 00:00:00 2001
+>From 65f3a829ceb76793e2fd067758878aa82985ecb7 Mon Sep 17 00:00:00 2001
 From: Hari Kanigeri <h-kanigeri2@ti.com>
-Date: Thu, 26 Mar 2009 16:38:10 -0500
-Subject: [PATCH] DSPBRIDGE: Add DSP_MMU_DEBUG
+Date: Thu, 26 Mar 2009 16:50:04 -0500
+Subject: [PATCH] DSPBRIDGE: Handle Node operations when DSP is in error state
 
-This patch enables to monitor the usage of DSP Virtual memory by printing the
-used memory region, free memory region, and the largest contiguous memory
-region.
+Handle Node operations when DSP is in error state.
 
 Signed-off-by: Hari Kanigeri <h-kanigeri2@ti.com>
 ---
- drivers/dsp/bridge/pmgr/dmm.c  |   46 ++++++++++++++++++++++++++++++++++++++++
- drivers/dsp/bridge/rmgr/node.c |   23 ++++++++++++++++++++
- 2 files changed, 69 insertions(+), 0 deletions(-)
+ drivers/dsp/bridge/rmgr/node.c |   45 ++++++++++++++++++++++++++++++++++++---
+ 1 files changed, 41 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/dsp/bridge/pmgr/dmm.c b/drivers/dsp/bridge/pmgr/dmm.c
-index be1567a..803de93
---- a/drivers/dsp/bridge/pmgr/dmm.c
-+++ b/drivers/dsp/bridge/pmgr/dmm.c
-@@ -121,6 +121,9 @@ static u32  TableSize;/* The size of virtual and physical pages tables */
- static struct MapPage *GetRegion(u32 addr);
- static struct MapPage *GetFreeRegion(u32 aSize);
- static struct MapPage *GetMappedRegion(u32 aAddr);
-+#ifdef DSP_DMM_DEBUG
-+u32 DMM_MemMapDump(struct DMM_OBJECT *hDmmMgr);
-+#endif
- 
- /*  ======== DMM_CreateTables ========
-  *  Purpose:
-@@ -644,3 +647,46 @@ u32 *DMM_GetPhysicalAddrTable(void)
- 			pPhysicalAddrTable);
- 	return pPhysicalAddrTable;
- }
-+
-+#ifdef DSP_DMM_DEBUG
-+u32 DMM_MemMapDump(struct DMM_OBJECT *hDmmMgr)
-+{
-+	struct MapPage *curNode = NULL;
-+	u32 i;
-+	u32 freemem = 0;
-+	u32 bigsize = 0;
-+
-+	SYNC_EnterCS(hDmmMgr->hDmmLock);
-+
-+	if (pVirtualMappingTable != NULL) {
-+		for (i = 0; i < TableSize; i +=
-+				pVirtualMappingTable[i].RegionSize) {
-+			curNode = pVirtualMappingTable + i;
-+			if (curNode->bReserved == TRUE)	{
-+				/*printk("RESERVED size = 0x%x, "
-+					"Map size = 0x%x\n",
-+					(curNode->RegionSize * PG_SIZE_4K),
-+					(curNode->bMapped == false) ? 0 :
-+					(curNode->MappedSize * PG_SIZE_4K));
-+*/
-+			} else {
-+/*				printk("UNRESERVED size = 0x%x\n",
-+					(curNode->RegionSize * PG_SIZE_4K));
-+*/
-+				freemem += (curNode->RegionSize * PG_SIZE_4K);
-+				if (curNode->RegionSize > bigsize)
-+					bigsize = curNode->RegionSize;
-+			}
-+		}
-+	}
-+	printk(KERN_INFO "Total DSP VA FREE memory = %d Mbytes\n",
-+			freemem/(1024*1024));
-+	printk(KERN_INFO "Total DSP VA USED memory= %d Mbytes \n",
-+			(((TableSize * PG_SIZE_4K)-freemem))/(1024*1024));
-+	printk(KERN_INFO "DSP VA - Biggest FREE block = %d Mbytes \n\n",
-+			(bigsize*PG_SIZE_4K/(1024*1024)));
-+	SYNC_LeaveCS(hDmmMgr->hDmmLock);
-+
-+	return 0;
-+}
-+#endif
 diff --git a/drivers/dsp/bridge/rmgr/node.c b/drivers/dsp/bridge/rmgr/node.c
-index 2a6590e..1fae5d9 100755
+index 1fae5d9..5d58e68 100755
 --- a/drivers/dsp/bridge/rmgr/node.c
 +++ b/drivers/dsp/bridge/rmgr/node.c
-@@ -359,6 +359,10 @@ static u32 Write(void *pPrivRef, u32 ulDspAddr, void *pBuf,
- static struct GT_Mask NODE_debugMask = { NULL, NULL };  /* GT trace variable */
- #endif
- 
-+#ifdef DSP_DMM_DEBUG
-+extern u32 DMM_MemMapDump(struct DMM_OBJECT *hDmmMgr);
-+#endif
-+
- static u32 cRefs;		/* module reference count */
- 
- /* Dynamic loader functions. */
-@@ -425,6 +429,10 @@ DSP_STATUS NODE_Allocate(struct PROC_OBJECT *hProcessor,
+@@ -429,6 +429,7 @@ DSP_STATUS NODE_Allocate(struct PROC_OBJECT *hProcessor,
  	struct CFG_HOSTRES hostRes;
  	u32 pMappedAddr = 0;
  	u32 mapAttrs = 0x0;
-+#ifdef DSP_DMM_DEBUG
-+	struct DMM_OBJECT *hDmmMgr;
-+	struct PROC_OBJECT *pProcObject = (struct PROC_OBJECT *)hProcessor;
-+#endif
- 
- #ifndef RES_CLEANUP_DISABLE
- 
-@@ -547,6 +555,11 @@ func_cont:
- 			 "NODE_Allocate: DSPProcessor_Reserve"
- 			 " Memory successful: 0x%x\n", status);
- 	}
-+#ifdef DSP_DMM_DEBUG
-+	status = DMM_GetHandle(pProcObject, &hDmmMgr);
-+	if (DSP_SUCCEEDED(status))
-+		DMM_MemMapDump(hDmmMgr);
-+#endif
++	struct DSP_PROCESSORSTATE procStatus;
+ #ifdef DSP_DMM_DEBUG
+ 	struct DMM_OBJECT *hDmmMgr;
+ 	struct PROC_OBJECT *pProcObject = (struct PROC_OBJECT *)hProcessor;
+@@ -471,6 +472,20 @@ DSP_STATUS NODE_Allocate(struct PROC_OBJECT *hProcessor,
  	if (DSP_FAILED(status))
- 		goto func_cont3;
+ 		goto func_cont;
  
-@@ -2824,6 +2837,11 @@ static void DeleteNode(struct NODE_OBJECT *hNode)
- 	struct STREAM stream;
- 	struct NODE_MSGARGS msgArgs;
- 	struct NODE_TASKARGS taskArgs;
-+#ifdef DSP_DMM_DEBUG
-+	struct DMM_OBJECT *hDmmMgr;
-+	struct PROC_OBJECT *pProcObject =
-+			(struct PROC_OBJECT *)hNode->hProcessor;
-+#endif
- 	DSP_STATUS status;
- 	DBC_Require(MEM_IsValidHandle(hNode, NODE_SIGNATURE));
- 	hNodeMgr = hNode->hNodeMgr;
-@@ -2909,6 +2927,11 @@ static void DeleteNode(struct NODE_OBJECT *hNode)
- 					 "failed. Status = 0x%x\n",
- 					 (u32)status);
- 			}
-+#ifdef DSP_DMM_DEBUG
-+			status = DMM_GetHandle(pProcObject, &hDmmMgr);
-+			if (DSP_SUCCEEDED(status))
-+				DMM_MemMapDump(hDmmMgr);
-+#endif
- 		}
++	status = PROC_GetState(hProcessor, &procStatus,
++			sizeof(struct DSP_PROCESSORSTATE));
++	if (DSP_FAILED(status))
++		goto func_end;
++	/* If processor is in error state then don't attempt
++	    to send the message */
++	if (procStatus.iState == PROC_ERROR) {
++		GT_1trace(NODE_debugMask, GT_5CLASS,
++			"NODE_Allocate: proc Status 0x%x\n",
++			procStatus.iState);
++		status = DSP_EFAIL;
++		goto func_end;
++	}
++
+ 	/* Assuming that 0 is not a valid function address */
+ 	if (hNodeMgr->ulFxnAddrs[0] == 0) {
+ 		/* No RMS on target - we currently can't handle this */
+@@ -839,6 +854,7 @@ func_cont2:
+ 	DBC_Ensure((DSP_FAILED(status) && (*phNode == NULL)) ||
+ 		  (DSP_SUCCEEDED(status)
+ 		    && MEM_IsValidHandle((*phNode), NODE_SIGNATURE)));
++func_end:
+ 	return status;
+ }
+ 
+@@ -3374,21 +3390,42 @@ DSP_STATUS NODE_GetUUIDProps(DSP_HPROCESSOR hProcessor,
+ 	struct DEV_OBJECT *hDevObject;
+ 	DSP_STATUS status = DSP_SOK;
+ 	struct DCD_NODEPROPS   dcdNodeProps;
++	struct DSP_PROCESSORSTATE procStatus;
+ 
+ 	DBC_Require(cRefs > 0);
+ 	DBC_Require(hProcessor != NULL);
+ 	DBC_Require(pNodeId != NULL);
+ 
++	if (hProcessor == NULL || pNodeId == NULL) {
++		status = DSP_EHANDLE;
++		goto func_end;
++	}
++	status = PROC_GetState(hProcessor, &procStatus,
++			sizeof(struct DSP_PROCESSORSTATE));
++	if (DSP_FAILED(status))
++		goto func_end;
++	/* If processor is in error state then don't attempt
++	    to send the message */
++	if (procStatus.iState == PROC_ERROR) {
++		GT_1trace(NODE_debugMask, GT_5CLASS,
++			"NODE_GetUUIDProps: proc Status 0x%x\n",
++			procStatus.iState);
++		status = DSP_EFAIL;
++		goto func_end;
++	}
++
+ 	GT_3trace(NODE_debugMask, GT_ENTER,
+ 		 "NODE_GetUUIDProps: " "\thProcessor: "
+ 		 "0x%x\tpNodeId: 0x%x" "\tpNodeProps: 0x%x\n", hProcessor,
+ 		 pNodeId, pNodeProps);
+ 
+ 	status = PROC_GetDevObject(hProcessor, &hDevObject);
+-	if (DSP_SUCCEEDED(status)) {
++	if (DSP_SUCCEEDED(status) && hDevObject != NULL) {
+ 		status = DEV_GetNodeManager(hDevObject, &hNodeMgr);
+-		if (hNodeMgr == NULL)
+-			status = DSP_EFAIL;
++		if (hNodeMgr == NULL) {
++			status = DSP_EHANDLE;
++			goto func_end;
++		}
  	}
- 	if (nodeType != NODE_MESSAGE) {
+ 
+ 	/*  Enter the critical section.  This is needed because
+@@ -3425,7 +3462,7 @@ DSP_STATUS NODE_GetUUIDProps(DSP_HPROCESSOR hProcessor,
+ 		(void)SYNC_LeaveCS(hNodeMgr->hSync);
+ 
+ 	}
+-
++func_end:
+ 	return status;
+ }
+ 
 -- 
 1.5.6.4
 
