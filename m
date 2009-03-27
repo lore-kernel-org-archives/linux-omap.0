@@ -1,67 +1,68 @@
-From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
-Subject: Re: [PATCH 1/1] DSPBRIDGE: move platform_device_register under
- mach-omap2
-Date: Fri, 27 Mar 2009 17:30:14 +0200 (EET)
-Message-ID: <20090327.173014.190372579.Hiroshi.DOYU@nokia.com>
-References: <8F7AF80515AF0D4D93307E594F3CB40E2349AE08@dlee03.ent.ti.com>
-	<20090325.151129.02294438.Hiroshi.DOYU@nokia.com>
-	<8F7AF80515AF0D4D93307E594F3CB40E2357E193@dlee03.ent.ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: tidspbridge git repository
+Date: Fri, 27 Mar 2009 09:50:44 -0700
+Message-ID: <20090327165043.GB18109@atomide.com>
+References: <DDE834F1D8D96540B7373DFF675BF56C110F2E19F0@NOK-EUMSG-03.mgdnok.nokia.com> <20090323194711.GI29546@atomide.com> <49CCCF4E.2010708@nokia.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:41088 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753774AbZC0Pao (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 27 Mar 2009 11:30:44 -0400
-In-Reply-To: <8F7AF80515AF0D4D93307E594F3CB40E2357E193@dlee03.ent.ti.com>
+Received: from mho-01-bos.mailhop.org ([63.208.196.178]:64290 "EHLO
+	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755613AbZC0Quq (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 27 Mar 2009 12:50:46 -0400
+Content-Disposition: inline
+In-Reply-To: <49CCCF4E.2010708@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: h-kanigeri2@ti.com
-Cc: linux-omap@vger.kernel.org, 2ameya@gmail.com
+To: Ameya Palande <ameya.palande@nokia.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Doyu Hiroshi (Nokia-D/Helsinki)" <hiroshi.doyu@nokia.com>, Nishanth Menon <nm@ti.com>
 
-Hi Hari,
-
-From: "ext Kanigeri, Hari" <h-kanigeri2@ti.com>
-Subject: RE: [PATCH 1/1] DSPBRIDGE: move platform_device_register under mach-omap2
-Date: Fri, 27 Mar 2009 14:42:18 +0100
-
-> Hi Doyu-San,
+* Ameya Palande <ameya.palande@nokia.com> [090327 06:06]:
+> Hi Tony,
 > 
-> > > I am still going through the patch, but one quick question regarding
-> > > this. One of the requirements of DSP memory pool is that it should
-> > > be physically contiguous and non-cacheable. I hope the below patch
-> > > is taking care of this requirement.
+> ext Tony Lindgren wrote:
+> > * ameya.palande@nokia.com <ameya.palande@nokia.com> [090323 00:42]:
+> >> Hi Tony,
+> >>
+> >> I have collected latest patches for tidspbridge at:
+> >> git://gitorious.org/tidspbridge/mainline.git 
+> >>
+> >> Branch is: tidspbridge
+> >>
+> >> It is based on your pm branch.
+> >> Can you pull it to your tidspbridge branch?
 > > 
-> > This patch reserves a *contigious* physical memory area and passes
-> > this physical address to the bridge driver through
-> > ldm(platform_data). Then this area is ioremap()'ed in
-> > "MEM_ExtPhysPoolInit()". So it should be non-cachable and contigious.
+> > What dependencies are there to the PM branch?
+> > 
+> > To me it sounds like you should rebase your tidspbridge branch
+> > against the mainline kernel as the drivers should be arch
+> > independent.
+> > 
+> > If something is missing from the mainline kernel to rebase and
+> > compile tidspbridge against the mainline, we need to fix those
+> > issues.
+> > 
+> > Regards,
+> > 
+> > Tony
 > 
-> -- We validated your patch with TI's internal test suite and it looks good.
+> I have rebased tidspbridge patches on top of current pm branch.
+> Currently bridge depends on some pm features which are not yet in
+> mainline.
 
-Thank you for your effort.
-
-> The only comment I have is with this patch now we would require 2
-> modules to insert for DSP Bridge to work. I think it would be nice
-> if we compile these 2 modules into 1 module so that we have only
-> DSPBridge module. 
-
-Hm..then, how about the following?
-
-diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
-index 1ed6621..d427c90 100644
---- a/arch/arm/mach-omap2/Makefile
-+++ b/arch/arm/mach-omap2/Makefile
-@@ -35,7 +35,9 @@ obj-$(CONFIG_ARCH_OMAP2)		+= clock24xx.o
- obj-$(CONFIG_ARCH_OMAP3)		+= clock34xx.o
- obj-$(CONFIG_OMAP_PM_SRF)		+=  resource34xx.o
+Can you please describe what those dependencies are? We should fix
+those so we don't have dependencies.
  
--obj-$(CONFIG_MPU_BRIDGE)		+= dspbridge.o
-+
-+dspbridge-$(CONFIG_MPU_BRIDGE)		:= dspbridge.o
-+obj-y					+= $(dspbridge-m) $(drpbridge-y)
- 
- # DSP
- obj-$(CONFIG_OMAP_MMU_FWK)	+= mmu_mach.o
+> But at least now it can be compiled for your latest pm branch which
+> I guess is in turn based on 2.6.29
+> 
+> Here is the git URL:
+> git://gitorious.org/tidspbridge/mainline.git
+> 
+> Branch is: tidspbridge-2.6.29-pm
 
+The thing is that in order to do the development in parallel, we want
+to base all the branches against the mainline kernel. Otherwise we'll
+have unnecessary dependencies between the branches.
+
+Tony
