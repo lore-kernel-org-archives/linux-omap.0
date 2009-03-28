@@ -1,37 +1,65 @@
-From: Jarkko Nikula <jhnikula@gmail.com>
-Subject: Re: Latest l-o and usb gadget + NFS root problems
-Date: Sat, 28 Mar 2009 16:06:05 +0200
-Message-ID: <20090328160605.cd4e6325.jhnikula@gmail.com>
-References: <1238146821.28118.36.camel@tubuntu>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: OMAP2 build errors
+Date: Sat, 28 Mar 2009 10:35:53 -0700
+Message-ID: <20090328173552.GB5291@atomide.com>
+References: <20090328124823.GB4550@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ew0-f165.google.com ([209.85.219.165]:47397 "EHLO
-	mail-ew0-f165.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752496AbZC1OGd (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 28 Mar 2009 10:06:33 -0400
-Received: by ewy9 with SMTP id 9so1434380ewy.37
-        for <linux-omap@vger.kernel.org>; Sat, 28 Mar 2009 07:06:30 -0700 (PDT)
-In-Reply-To: <1238146821.28118.36.camel@tubuntu>
+Received: from mho-01-bos.mailhop.org ([63.208.196.178]:49668 "EHLO
+	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752317AbZC1RgB (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 28 Mar 2009 13:36:01 -0400
+Content-Disposition: inline
+In-Reply-To: <20090328124823.GB4550@n2100.arm.linux.org.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: tomi.valkeinen@nokia.com
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: linux-arm-kernel@lists.arm.linux.org.uk, linux-omap@vger.kernel.org
 
-On Fri, 27 Mar 2009 11:40:21 +0200
-Tomi Valkeinen <tomi.valkeinen@nokia.com> wrote:
+* Russell King - ARM Linux <linux@arm.linux.org.uk> [090328 05:48]:
+> The result of building an OMAP2 configuration for merged mainline, ma=
+ster
+> and devel branches is:
+>=20
+>   CC      arch/arm/mach-omap2/devices.o
+> arch/arm/mach-omap2/devices.c:160: error: =E2=96=A0OMAP34XX_MAILBOX_B=
+ASE=E2=96=A0 undeclared here (not in a function)
+>=20
+> Please resolve ASAP - if I don't have a patch by this evening, I will
+> commit the work-around below:
+>=20
+> diff --git a/arch/arm/mach-omap2/devices.c b/arch/arm/mach-omap2/devi=
+ces.c
+> index d6b4b2f..d16d880 100644
+> --- a/arch/arm/mach-omap2/devices.c
+> +++ b/arch/arm/mach-omap2/devices.c
+> @@ -156,6 +156,7 @@ static struct resource omap2_mbox_resources[] =3D=
+ {
+>  };
+> =20
+>  static struct resource omap3_mbox_resources[] =3D {
+> +#ifdef CONFIG_ARCH_OMAP3
+>  	{
+>  		.start		=3D OMAP34XX_MAILBOX_BASE,
+>  		.end		=3D OMAP34XX_MAILBOX_BASE + MBOX_REG_SIZE - 1,
+> @@ -165,6 +166,7 @@ static struct resource omap3_mbox_resources[] =3D=
+ {
+>  		.start		=3D INT_24XX_MAIL_U0_MPU,
+>  		.flags		=3D IORESOURCE_IRQ,
+>  	},
+> +#endif
+>  };
+> =20
+>  static struct platform_device mbox_device =3D {
 
-> Hi,
-> 
-> There seems to be something wrong with latest l-o, usb gadget ethernet
-> and nfsroot. I'm not sure when it broke, but 2.6.29-rc3 worked fine.
-> This happens to me with beagleboard and a non-public omap3 board:
-> 
-I saw something very similar couple days ago on N810 and ethernet
-gadget. What was weird that when connection jammed, then also localhost
-stopped working. Unfortunately I didn't debug any further would it
-happen e.g. using BT PAN connection.
+Hmm, I thought I compiled all boards both against mainline and
+omap-clks3. I'll check it and send a patch ASAP.
 
-
-Jarkko
+Tony=20
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
