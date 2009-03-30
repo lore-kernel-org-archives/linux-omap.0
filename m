@@ -1,75 +1,37 @@
-From: Peter Barada <peterb@logicpd.com>
-Subject: Re: PM branch rebased to 2.6.29
-Date: Mon, 30 Mar 2009 14:18:06 -0400
-Message-ID: <1238437086.8002.137.camel@blackhole>
-References: <87bprz9zju.fsf@deeprootsystems.com>
-	 <1237914611.23022.124.camel@blackhole> <87zlfaztcd.fsf@deeprootsystems.com>
-	 <1237925484.23022.133.camel@blackhole>
-	 <49C940CA.9070805@deeprootsystems.com>
-	 <f9d2a5e10903271350x2d534c76nc55c492b8acd1d4e@mail.gmail.com>
-	 <B85A65D85D7EB246BE421B3FB0FBB59301CC5699A0@dbde02.ent.ti.com>
-	 <f9d2a5e10903301044u775edfdo7ac540b3e1bdc597@mail.gmail.com>
-	 <878wmm3nbx.fsf@deeprootsystems.com>
+From: Felipe Contreras <felipe.contreras@gmail.com>
+Subject: Re: Query about DSP_Close() function
+Date: Mon, 30 Mar 2009 21:44:21 +0300
+Message-ID: <94a0d4530903301144i38928c13wd9f802550ef8aa9b@mail.gmail.com>
+References: <49D0F8DA.4060900@nokia.com>
+	 <8F7AF80515AF0D4D93307E594F3CB40E2357EF0E@dlee03.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail.logicpd.com ([66.162.60.3]:20194 "EHLO smtp.logicpd.com"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1756841AbZC3SSJ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 30 Mar 2009 14:18:09 -0400
-In-Reply-To: <878wmm3nbx.fsf@deeprootsystems.com>
+Received: from fg-out-1718.google.com ([72.14.220.156]:7682 "EHLO
+	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753305AbZC3SoY (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 30 Mar 2009 14:44:24 -0400
+Received: by fg-out-1718.google.com with SMTP id 16so381962fgg.17
+        for <linux-omap@vger.kernel.org>; Mon, 30 Mar 2009 11:44:21 -0700 (PDT)
+In-Reply-To: <8F7AF80515AF0D4D93307E594F3CB40E2357EF0E@dlee03.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@deeprootsystems.com>
-Cc: Russ Dill <russ.dill@gmail.com>, "Premi, Sanjeev" <premi@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: "Kanigeri, Hari" <h-kanigeri2@ti.com>
+Cc: Ameya Palande <ameya.palande@nokia.com>, Doyu Hiroshi <hiroshi.doyu@nokia.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Mon, 2009-03-30 at 10:57 -0700, Kevin Hilman wrote:
-> Russ Dill <russ.dill@gmail.com> writes:
-> 
-> > On Mon, Mar 30, 2009 at 3:08 AM, Premi, Sanjeev <premi@ti.com> wrote:
-> [...]
-> 
-> >> I had found that two drivers that could prevent clocks_off are
-> >> USB and DSS because of the way they use clk_enable().
-> >>
-> >> Can you try building without theses drivers just for verification?
-> >>
-> >
-> > Building without dss makes things worse:
-> >
-> > Powerdomain (dss_pwrdm) didn't enter target state 0
-> >
-> > Maybe by looking at what the dss driver is doing I can get core and
-> > per to turn off.
-> 
-> Peter,
-> 
-> Have you tried with the debug patch I sent?  If you can test with that
-> patch, and send the output, I can tell you what is preventing you from
-> hitting RET.
+On Mon, Mar 30, 2009 at 9:16 PM, Kanigeri, Hari <h-kanigeri2@ti.com> wrote:
+> Hi Ameya,
+>
+>> I am trying to make sure that when an application closes a file handle
+>> all the resources are freed properly.
+>>
+>
+> -- The current Bridge resource cleanup design is handling the resource cleanup in the Bridge open as opposed to do Bridge close.
+> The Bridge Open function loops through cleaning up the resources (that weren't freed by the User applications) of all the processes that were killed.
 
-No, not yet.  After comments by Kevin and others regarding my DPLL
-setting being wrong from u-boot, I'm currently trying to bring up u-boot
-from the Beagle on the LV SOM.  Then I can get the timings for the SDRC
-correct, and then work on getting the lates PM rebase (2.6.29) to boot.
-When I tried it with my current u-boot (based on 1.1.4 labrador), it
-would sporadically hang in rtc_hctosys and other functions that tried to
-talk to the twl4030 via i2c...
+Why? Wouldn't it make more sense to cleanup at close, exactly when the
+file descriptor is closed?
 
-I'm running into problems with u-boot (cloned the Beagle config) where
-I2C to setup power domains fails after the first write (bus gets stuck
-busy).
-
-> FWIW, the latest HEAD of the PM branch has that debug patch included.
-> 
-> After doing the suspend/resume, just
-> 
-> # cat /debug/pm_debug/registers/1
-> 
-> and attach the output.
-> 
-> Kevin
-> 
 -- 
-Peter Barada <peterb@logicpd.com>
+Felipe Contreras
