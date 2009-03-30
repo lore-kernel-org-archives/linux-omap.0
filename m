@@ -1,65 +1,34 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: PM branch rebased to 2.6.29
-Date: Mon, 30 Mar 2009 11:43:55 -0700
-Message-ID: <873acu26ms.fsf@deeprootsystems.com>
-References: <87bprz9zju.fsf@deeprootsystems.com>
-	<1237914611.23022.124.camel@blackhole>
-	<87zlfaztcd.fsf@deeprootsystems.com>
-	<1237925484.23022.133.camel@blackhole>
-	<49C940CA.9070805@deeprootsystems.com>
-	<f9d2a5e10903271350x2d534c76nc55c492b8acd1d4e@mail.gmail.com>
-	<B85A65D85D7EB246BE421B3FB0FBB59301CC5699A0@dbde02.ent.ti.com>
-	<f9d2a5e10903301044u775edfdo7ac540b3e1bdc597@mail.gmail.com>
+From: "Kanigeri, Hari" <h-kanigeri2@ti.com>
+Subject: RE: Query about DSP_Close() function
+Date: Mon, 30 Mar 2009 13:55:02 -0500
+Message-ID: <8F7AF80515AF0D4D93307E594F3CB40E2357EFA4@dlee03.ent.ti.com>
+References: <49D0F8DA.4060900@nokia.com>
+	 <8F7AF80515AF0D4D93307E594F3CB40E2357EF0E@dlee03.ent.ti.com>
+ <94a0d4530903301144i38928c13wd9f802550ef8aa9b@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from wf-out-1314.google.com ([209.85.200.174]:23475 "EHLO
-	wf-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752689AbZC3SoE (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 30 Mar 2009 14:44:04 -0400
-Received: by wf-out-1314.google.com with SMTP id 29so2719896wff.4
-        for <linux-omap@vger.kernel.org>; Mon, 30 Mar 2009 11:44:03 -0700 (PDT)
-In-Reply-To: <f9d2a5e10903301044u775edfdo7ac540b3e1bdc597@mail.gmail.com> (Russ Dill's message of "Mon\, 30 Mar 2009 10\:44\:19 -0700")
+Received: from comal.ext.ti.com ([198.47.26.152]:43422 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755247AbZC3SzO convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 30 Mar 2009 14:55:14 -0400
+In-Reply-To: <94a0d4530903301144i38928c13wd9f802550ef8aa9b@mail.gmail.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Russ Dill <russ.dill@gmail.com>
-Cc: "Premi, Sanjeev" <premi@ti.com>, Peter Barada <peterb@logicpd.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Felipe Contreras <felipe.contreras@gmail.com>
+Cc: Ameya Palande <ameya.palande@nokia.com>, Doyu Hiroshi <hiroshi.doyu@nokia.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Russ Dill <russ.dill@gmail.com> writes:
+Felipe,
 
-> On Mon, Mar 30, 2009 at 3:08 AM, Premi, Sanjeev <premi@ti.com> wrote:
-[...]
->>
->> I had found that two drivers that could prevent clocks_off are
->> USB and DSS because of the way they use clk_enable().
->>
->> Can you try building without theses drivers just for verification?
->>
+> 
+> Why? Wouldn't it make more sense to cleanup at close, exactly when the
+> file descriptor is closed?
 >
-> Building without dss makes things worse:
->
-> Powerdomain (dss_pwrdm) didn't enter target state 0
->
-> Maybe by looking at what the dss driver is doing I can get core and
-> per to turn off.
 
-Russ,
+-- Yes, I agree with you that it does make more sense and looks cleaner to cleanup the resources at closeup and this is in our TODO list. This change requires some modification to the existing resource cleanup design though.
 
-Can you try with the latest HEAD of PM branch.  After suspend/resume,
-do
-
-# cat /debug/pm_debug/registers/1
-
-and post results to list.  We can then see the exact state of PM
-registers before going into WFI.
-
-Also, post dump of
-
-# cat /debug/pm_debug/count
-
-Thanks,
-
-Kevin
-
-
-
+Thank you,
+Best regards,
+Hari
