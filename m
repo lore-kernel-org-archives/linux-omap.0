@@ -1,136 +1,129 @@
 From: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: Re: [PATCH 1/3] Documentation for new V4L2 CIDs added.
-Date: Mon, 30 Mar 2009 13:52:57 +0200
-Message-ID: <200903301352.58079.hverkuil@xs4all.nl>
-References: <1237526389-13835-1-git-send-email-hardik.shah@ti.com>
+Subject: Re: [PATCH 2/3] New V4L2 CIDs for OMAP class of Devices.
+Date: Mon, 30 Mar 2009 13:58:40 +0200
+Message-ID: <200903301358.40555.hverkuil@xs4all.nl>
+References: <1237526397-14101-1-git-send-email-hardik.shah@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
   charset="iso-8859-15"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-media-owner@vger.kernel.org>
-In-Reply-To: <1237526389-13835-1-git-send-email-hardik.shah@ti.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from smtp-vbr1.xs4all.nl ([194.109.24.21]:4570 "EHLO
+	smtp-vbr1.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751245AbZC3L6q (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 30 Mar 2009 07:58:46 -0400
+In-Reply-To: <1237526397-14101-1-git-send-email-hardik.shah@ti.com>
 Content-Disposition: inline
-Sender: linux-media-owner@vger.kernel.org
+Sender: linux-omap-owner@vger.kernel.org
+List-Id: linux-omap@vger.kernel.org
 To: Hardik Shah <hardik.shah@ti.com>
 Cc: linux-media@vger.kernel.org, linux-omap@vger.kernel.org, Brijesh Jadav <brijesh.j@ti.com>, Vaibhav Hiremath <hvaibhav@ti.com>
-List-Id: linux-omap@vger.kernel.org
 
-Hi Hardik,
-
-OK, so it took a little longer than a week. So sue me :-)
-
-Here is the review:On Friday 20 March 2009 06:19:49 Hardik Shah wrote:
-> 1. Updated for V4L2_CID_BG_COLOR
-> 2. Updated for V4L2_CID_ROTATION
-> Both of the above are discussed in length with community
-> 3. Updated for new flags and capability field added
-> to v4l2_frame buffer structure.
+On Friday 20 March 2009 06:19:57 Hardik Shah wrote:
+> Added V4L2_CID_BG_COLOR for background color setting.
+> Added V4L2_CID_ROTATION for rotation setting.
+> Above two ioclts are indepth discussed. Posting
+> again with the driver usage.
+> 
+> V4L2 supports chroma keying added new flags for the
+> source chroma keying which is exactly opposite of the
+> chorma keying supported by V4L2.  In current implementation
+> video data is replaced by the graphics buffer data for some
+> specific color.  While for the source chroma keying grahics
+> data is replaced by the video data for some specific color.
+> Both are exactly opposite so are mutually exclusive
 > 
 > Signed-off-by: Brijesh Jadav <brijesh.j@ti.com>
 > Signed-off-by: Hardik Shah <hardik.shah@ti.com>
 > Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
 > ---
->  v4l2-spec/controls.sgml      |   19 ++++++++++++++++++-
->  v4l2-spec/vidioc-g-fbuf.sgml |   19 +++++++++++++++++++
->  2 files changed, 37 insertions(+), 1 deletions(-)
+>  linux/drivers/media/video/v4l2-common.c |    7 +++++++
+>  linux/include/linux/videodev2.h         |    6 +++++-
+>  2 files changed, 12 insertions(+), 1 deletions(-)
 > 
-> diff --git a/v4l2-spec/controls.sgml b/v4l2-spec/controls.sgml
-> index 477a970..79e2c28 100644
-> --- a/v4l2-spec/controls.sgml
-> +++ b/v4l2-spec/controls.sgml
-> @@ -281,10 +281,27 @@ minimum value disables backlight compensation.</entry>
->  <constant>V4L2_COLORFX_SEPIA</constant> (2).</entry>
->  	  </row>
->  	  <row>
-> + 	    <entry><constant>V4L2_CID_ROTATION</constant></entry>
-> + 	    <entry>integer</entry>
-> + 	    <entry>Rotates the image by specified angle. Common angles are 90, 270,
-> +and 180. Rotating the image to 90 and 270 will reverse the height and width of
-> +the display window.  Its is necessary to set the new height and width of the picture
+> diff --git a/linux/drivers/media/video/v4l2-common.c b/linux/drivers/media/video/v4l2-common.c
+> index 3c42316..fa408f0 100644
+> --- a/linux/drivers/media/video/v4l2-common.c
+> +++ b/linux/drivers/media/video/v4l2-common.c
+> @@ -422,6 +422,8 @@ const char *v4l2_ctrl_get_name(u32 id)
+>  	case V4L2_CID_CHROMA_AGC:		return "Chroma AGC";
+>  	case V4L2_CID_COLOR_KILLER:		return "Color Killer";
+>  	case V4L2_CID_COLORFX:			return "Color Effects";
+> +	case V4L2_CID_ROTATION:                 return "Rotation";
 
-Typo: 'Its' -> 'It'
+I'm having second thoughts about this name. I think V4L2_CID_ROTATE is better,
+since it is an action ('you rotate an image') rather than a status ('what is
+the rotation of an image').
 
-> +using S_FMT ioctl see <xref linkend="vidioc-g-fmt"> according to the rotation angle selected</entry>
-> + 	  </row>
-> + 	  <row>
-> + 	    <entry><constant>V4L2_CID_BG_COLOR</constant></entry>
-> + 	    <entry>integer</entry>
-> + 	    <entry>Sets the background color on the current output device.
+What do you think?
 
-Typo: 'on' -> 'of'
+> +	case V4L2_CID_BG_COLOR:                 return "Background color";
+> 
+>  	/* MPEG controls */
+>  	case V4L2_CID_MPEG_CLASS: 		return "MPEG Encoder Controls";
+> @@ -547,6 +549,10 @@ int v4l2_ctrl_query_fill(struct v4l2_queryctrl *qctrl, s32 min, s32 max, s32 ste
+>  		qctrl->flags |= V4L2_CTRL_FLAG_READ_ONLY;
+>  		min = max = step = def = 0;
+>  		break;
+> +	case V4L2_CID_BG_COLOR:
+> +		 qctrl->type = V4L2_CTRL_TYPE_INTEGER;
+> +		 step = 1;
+> +		 break;
 
-> +Background color needs to be specified in the RGB24 format.  The supplied 32
-> +bit value is intepreted as Bits 0-7 Red color information, Bits 8-15 Green color
-> +information, Bits 16-23 Blue color information and Bits 24-31 must be
-> +zero.</entry>
-> +	  </row>
-> +	  <row>
->  	    <entry><constant>V4L2_CID_LASTP1</constant></entry>
->  	    <entry></entry>
->  	    <entry>End of the predefined control IDs (currently
-> -<constant>V4L2_CID_COLORFX</constant> + 1).</entry>
-> +<constant>V4L2_CID_BG_COLOR</constant> + 1).</entry>
->  	  </row>
->  	  <row>
->  	    <entry><constant>V4L2_CID_PRIVATE_BASE</constant></entry>
-> diff --git a/v4l2-spec/vidioc-g-fbuf.sgml b/v4l2-spec/vidioc-g-fbuf.sgml
-> index 6781b53..27d1e29 100644
-> --- a/v4l2-spec/vidioc-g-fbuf.sgml
-> +++ b/v4l2-spec/vidioc-g-fbuf.sgml
-> @@ -336,6 +336,13 @@ alpha value. Alpha blending makes no sense for destructive overlays.</entry>
->  inverted alpha channel of the framebuffer or VGA signal. Alpha
->  blending makes no sense for destructive overlays.</entry>
->  	  </row>
-> +	  <row>
-> +	    <entry><constant>V4L2_FBUF_CAP_SRC_CHROMAKEY</constant></entry>
-> +	    <entry>0x0080</entry>
-> +	    <entry>The device supports source chorma keying. Framebuffer
+Set the min to 0 and max to 0xffffff.
 
-Typo: chorma -> chroma
+>  	default:
+>  		qctrl->type = V4L2_CTRL_TYPE_INTEGER;
+>  		break;
+> @@ -571,6 +577,7 @@ int v4l2_ctrl_query_fill(struct v4l2_queryctrl *qctrl, s32 min, s32 max, s32 ste
+>  	case V4L2_CID_BLUE_BALANCE:
+>  	case V4L2_CID_GAMMA:
+>  	case V4L2_CID_SHARPNESS:
+> +	case V4L2_CID_BG_COLOR:
 
-> +images will be replaced by the video images.  Exactly
-> +opposite of <constant>V4L2_FBUF_CAP_CHROMAKEY</constant></entry>
+This definitely isn't a slider control.
 
-Hmm. This is a bit obscure. CAP_CHROMAKEY means that framebuffer pixels with
-the chromakey color are replaced by video pixels. CAP_SRC_CHROMAKEY means
-that video pixels with the chromakey color are replaced by the framebuffer
-pixels. At least the way I read it this is the opposite of what you wrote.
-
-It pays to be very precise here since it can get confusing very quickly.
-
-> +	  </row>
->  	</tbody>
->        </tgroup>
->      </table>
-> @@ -411,6 +418,18 @@ images, but with an inverted alpha value. The blend function is:
->  output = framebuffer pixel * (1 - alpha) + video pixel * alpha. The
->  actual alpha depth depends on the framebuffer pixel format.</entry>
->  	  </row>
-> +	  <row>
-> +	    <entry><constant>V4L2_FBUF_FLAG_SRC_CHROMAKEY</constant></entry>
-> +	    <entry>0x0040</entry>
-> +	    <entry>Use chroma-keying. The chroma-key color is
-
-Write: 'Use source chroma-keying.' to prevent confusion with
-V4L2_FBUF_FLAG_CHROMAKEY.
-
-> +determined by the <structfield>chromakey</structfield> field of
-> +&v4l2-window; and negotiated with the &VIDIOC-S-FMT; ioctl, see <xref
-> +linkend="overlay"> and <xref linkend="osd">.
-> +Since any one of the chorma keying can be active at a time as both
-
-Typo: chorma -> chroma
-
-> +of them are exactly opposite same <structfield>chromakey</structfield>
-
-Typo: 'opposite same' -> 'opposite the same'
-
-> +field of &v4l2-window; can be used to set the chroma key for source
-> +keying also.</entry>
-> +	  </row>
->  	</tbody>
->        </tgroup>
->      </table>
+>  		qctrl->flags |= V4L2_CTRL_FLAG_SLIDER;
+>  		break;
+>  	case V4L2_CID_PAN_RELATIVE:
+> diff --git a/linux/include/linux/videodev2.h b/linux/include/linux/videodev2.h
+> index 2c83935..592d1c8 100644
+> --- a/linux/include/linux/videodev2.h
+> +++ b/linux/include/linux/videodev2.h
+> @@ -548,6 +548,7 @@ struct v4l2_framebuffer {
+>  #define V4L2_FBUF_CAP_LOCAL_ALPHA	0x0010
+>  #define V4L2_FBUF_CAP_GLOBAL_ALPHA	0x0020
+>  #define V4L2_FBUF_CAP_LOCAL_INV_ALPHA	0x0040
+> +#define V4L2_FBUF_CAP_SRC_CHROMAKEY	0x0080
+>  /*  Flags for the 'flags' field. */
+>  #define V4L2_FBUF_FLAG_PRIMARY		0x0001
+>  #define V4L2_FBUF_FLAG_OVERLAY		0x0002
+> @@ -555,6 +556,7 @@ struct v4l2_framebuffer {
+>  #define V4L2_FBUF_FLAG_LOCAL_ALPHA	0x0008
+>  #define V4L2_FBUF_FLAG_GLOBAL_ALPHA	0x0010
+>  #define V4L2_FBUF_FLAG_LOCAL_INV_ALPHA	0x0020
+> +#define V4L2_FBUF_FLAG_SRC_CHROMAKEY	0x0040
+> 
+>  struct v4l2_clip {
+>  	struct v4l2_rect        c;
+> @@ -882,6 +884,8 @@ enum v4l2_power_line_frequency {
+>  #define V4L2_CID_CHROMA_AGC                     (V4L2_CID_BASE+29)
+>  #define V4L2_CID_COLOR_KILLER                   (V4L2_CID_BASE+30)
+>  #define V4L2_CID_COLORFX			(V4L2_CID_BASE+31)
+> +#define V4L2_CID_ROTATION                     	(V4L2_CID_BASE+32)
+> +#define V4L2_CID_BG_COLOR                       (V4L2_CID_BASE+33)
+>  enum v4l2_colorfx {
+>  	V4L2_COLORFX_NONE	= 0,
+>  	V4L2_COLORFX_BW		= 1,
+> @@ -889,7 +893,7 @@ enum v4l2_colorfx {
+>  };
+> 
+>  /* last CID + 1 */
+> -#define V4L2_CID_LASTP1                         (V4L2_CID_BASE+32)
+> +#define V4L2_CID_LASTP1                         (V4L2_CID_BASE+34)
+> 
+>  /*  MPEG-class control IDs defined by V4L2 */
+>  #define V4L2_CID_MPEG_BASE 			(V4L2_CTRL_CLASS_MPEG | 0x900)
 > --
 > 1.5.6
 
