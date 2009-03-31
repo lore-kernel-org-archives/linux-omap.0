@@ -1,354 +1,222 @@
-From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Subject: RE: [RFC] Stand-alone Resizer/Previewer Driver support under V4L2
- framework
-Date: Tue, 31 Mar 2009 10:40:26 +0530
-Message-ID: <19F8576C6E063C45BE387C64729E73940427E3F7E8@dbde02.ent.ti.com>
-References: <19F8576C6E063C45BE387C64729E73940427E3F70B@dbde02.ent.ti.com>
- <A24693684029E5489D1D202277BE89442E9030C0@dlee02.ent.ti.com>
+From: Russ Dill <russ.dill@gmail.com>
+Subject: Re: PM branch rebased to 2.6.29
+Date: Tue, 31 Mar 2009 00:01:40 -0700
+Message-ID: <f9d2a5e10903310001q7875927x261c8bf5ffb964ee@mail.gmail.com>
+References: <87bprz9zju.fsf@deeprootsystems.com>
+	 <1237914611.23022.124.camel@blackhole>
+	 <87zlfaztcd.fsf@deeprootsystems.com>
+	 <1237925484.23022.133.camel@blackhole>
+	 <49C940CA.9070805@deeprootsystems.com>
+	 <f9d2a5e10903271350x2d534c76nc55c492b8acd1d4e@mail.gmail.com>
+	 <B85A65D85D7EB246BE421B3FB0FBB59301CC5699A0@dbde02.ent.ti.com>
+	 <f9d2a5e10903301044u775edfdo7ac540b3e1bdc597@mail.gmail.com>
+	 <873acu26ms.fsf@deeprootsystems.com>
+	 <f9d2a5e10903301601q5fcd331bs44c81d854ad0082f@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-media-owner@vger.kernel.org>
-In-Reply-To: <A24693684029E5489D1D202277BE89442E9030C0@dlee02.ent.ti.com>
-Content-Language: en-US
-Sender: linux-media-owner@vger.kernel.org
-To: "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>, "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Cc: "DongSoo(Nathaniel) Kim" <dongsoo.kim@gmail.com>, "Toivonen Tuukka.O (Nokia-D/Oulu)" <tuukka.o.toivonen@nokia.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Nagalla, Hari" <hnagalla@ti.com>, Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>, Hans Verkuil <hverkuil@xs4all.nl>, "Jadav, Brijesh R" <brijesh.j@ti.com>, "R, Sivaraj" <sivaraj@ti.com>, "Hadli, Manjunath" <mrh@ti.com>, "Shah, Hardik" <hardik.shah@ti.com>, "Kumar, Purushotam" <purushotam@ti.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from rv-out-0506.google.com ([209.85.198.236]:51054 "EHLO
+	rv-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754206AbZCaHBm convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 31 Mar 2009 03:01:42 -0400
+Received: by rv-out-0506.google.com with SMTP id f9so2870310rvb.1
+        for <linux-omap@vger.kernel.org>; Tue, 31 Mar 2009 00:01:40 -0700 (PDT)
+In-Reply-To: <f9d2a5e10903301601q5fcd331bs44c81d854ad0082f@mail.gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Kevin Hilman <khilman@deeprootsystems.com>
+Cc: "Premi, Sanjeev" <premi@ti.com>, Peter Barada <peterb@logicpd.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
+BTW, the 9 clocks active on per are:
 
+gpio{2-6}_ick
+per_l4_ick
+uart3_ick
+uart3_fck
+per_48m_fck
 
-Thanks,
-Vaibhav Hiremath
+During sleep, I get (for the per_clkdm only):
 
-> -----Original Message-----
-> From: Aguirre Rodriguez, Sergio Alberto
-> Sent: Monday, March 30, 2009 9:10 PM
-> To: Hiremath, Vaibhav; linux-media@vger.kernel.org
-> Cc: DongSoo(Nathaniel) Kim; Toivonen Tuukka.O (Nokia-D/Oulu); linux-
-> omap@vger.kernel.org; Nagalla, Hari; Sakari Ailus; Hans Verkuil;
-> Jadav, Brijesh R; R, Sivaraj; Hadli, Manjunath; Shah, Hardik; Kumar,
-> Purushotam
-> Subject: RE: [RFC] Stand-alone Resizer/Previewer Driver support
-> under V4L2 framework
-> 
-> Hi Vaibhav,
-> 
-> Please find some comments below
-> 
-> > -----Original Message-----
-> > From: Hiremath, Vaibhav
-> > Sent: Monday, March 30, 2009 8:35 AM
-> > To: linux-media@vger.kernel.org
-> > Cc: Aguirre Rodriguez, Sergio Alberto; DongSoo(Nathaniel) Kim;
-> Toivonen
-> > Tuukka.O (Nokia-D/Oulu); linux-omap@vger.kernel.org; Nagalla,
-> Hari; Sakari
-> > Ailus; Hans Verkuil; Jadav, Brijesh R; R, Sivaraj; Hadli,
-> Manjunath; Shah,
-> > Hardik; Kumar, Purushotam
-> > Subject: [RFC] Stand-alone Resizer/Previewer Driver support under
-> V4L2
-> > framework
-> >
-> > Hi,
-> >
-> > With reference to the mail-thread started by Sakari on Resizer
-> driver
-> > interface,
-> >
-> > http://marc.info/?l=linux-omap&m=123628392325716&w=2
-> >
-> > I would like to bring some issues and propose changes to adapt
-> such
-> > devices under V4L2 framework. Sorry for delayed response on this
-> mail-
-> > thread, actually I was on vacation.
-> >
-> > As proposed by Sakari, I do agree with the approach of having V4L2
-> > interface for memory-to-memory operation of the ISP (like resizer
-> and
-> > previewer), but I would like to bring some important
-> aspects/issues here -
-> >
-> > 	- Some drawbacks of V4L2-buf layer framework for such kind of
-> > devices
-> > 	- Need for backward compatibility.
-> >
-> > Drawbacks for V4L2-Buf layer -
-> > -----------------------------
-> >
-> > 1} In case of resizer driver, the input buffer will always be
-> different
-> > than output buffer.
-> >
-> > In case of Mmapped buffer there is no issue, since driver
-> allocates
-> > maximum of input and output. User doesn't have control on this,
-> although
-> > there is loss of memory from system point of view.
-> >
-> > In case of User Pointer Exchange, User would expect and may
-> allocate
-> > different sizes of buffers for input and output which V4L2-buf
-> layer
-> > doesn't support with single queue. And to address this, I think
-> here we
-> > need to have either of following approaches -
-> >
-> > 	- Use two separate buffer queues, one for input and another
-> for
-> > output.
-> > 	- Or hack the driver for v4l2_buffer, internally using
-> different
-> > buffer params for input and output. [Not recommended]
-> >
-> > Please note that sometimes application receives buffers from
-> another
-> > driver or from some codecs engine that's why input and output
-> buffer will
-> > never be of same size.
-> >
-> > 2) V4L2-buf layer doesn't support IOMEM coming from user
-> application. Just
-> > to give low level details about this -
-> >
-> > When application tries to configure for 'V4L2_MEMORY_USERPTR' with
-> buffer
-> > coming from another driver (which is iomampped), then QUEUEBUF
-> ioctl will
-> > fail from 'videobuf_iolock' --> videobuf_dma_init_user_locked -->
-> > get_user_pages.
-> >
-> > In 'get_user_pages' it checks for IOMEM flag and returns error,
-> which is
-> > expected behavior from Kernel point of view. We are trying to map
-> buffer
-> > which is already mapped to kernel by another driver.
-> 
-> I'm not sure if I understood the problem right... Can you please
-> help me clarify?
-> 
-> So, basically the problem is that both drivers needs to associate a
-> single buffer with 2 different DMA transfers at the same time (one
-> from other driver, and other from ISP) Is that correct?
-> 
-[Hiremath, Vaibhav] No, 
+clockdomain: clkdm per_clkdm: removing clk uart3_ick
+clockdomain: clkdm per_clkdm: removing clk per_48m_fck
+clockdomain: clkdm per_clkdm: removing clk uart3_fck
+clockdomain: clkdm per_clkdm: adding clk uart3_ick
+clockdomain: clkdm per_clkdm: adding clk uart3_fck
+clockdomain: clkdm per_clkdm: adding clk per_48m_fck
 
-Let's take real-time example here, say you have 128 Mb DDR available with you and you have asked linux to use only say 80Mb. And rest of the memory you are mapping to kernel from some another driver using ioremap.
+So it looks like to me that the per_clkdm isn't shutting down because
+of per_l4_ick and the gpio interface clocks.
 
-This is valid use-case, since most of application does this due to memory fragmentation.
-
-Now you want to use this ioremapped buffer for your capture driver as a use pointer exchange mechanism. And here it fails due to issues as I explained before.
-
-> >
-> > One thing I am not able to understand, how nobody came across such
-> use-
-> > case which is very common. And to address this issue we need to
-> add
-> > support for IOMEM in V4L2-buf layer.
-> >
-> > NOTE: Currently both of these issues have been addressed as a
-> custom
-> > implementation for our internal use case.
-> >
-> > Backward Compatibility -
-> > -----------------------
-> >
-> > This is an important aspect, since similar hardware modules are
-> available
-> > on Davinci as well as on OMAP and their driver interface is
-> completely
-> > different.
-> >
-> > On Davinci, resizer driver is supported through plane char driver
-> > interface which handles all data/buffer processing and control
-> paths. It
-> > maintains internal queue for priority of resizing tasks and stuff.
-> >
-> > The driver is present under /drivers/char/Davinci.
-> >
-> > Here I feel, V4L2 way is better, since all image processing
-> drivers should
-> > go under "drivers/media/video/". And again we can make use of
-> readily
-> > available V4L2 framework interface for data and control path to
-> manage
-> > buffers. We should enhance V4L2 framework to support such devices.
-> >
-> >
-> > Proposed Required Changes -
-> > --------------------------
-> >
-> > I am putting some high level changes required to be done for
-> supporting
-> > such devices -
-> >
-> > 	- Enhancement in V4L2-buf layer for above issues
-> >
-> > 	- Will be directly using sub-device frame-work and have to
-> enhance
-> > it to support such devices.
-> >
-> > 	- Below are the parameters we need to configure for Resizer
-> from
-> > user application -
-> >
-> >   __s32 in_hsize;    /* input frame horizontal size.*/
-> >   __s32 in_vsize;    /* input frame vertical size */
-> >   __s32 in_pitch;    /* offset between 2 rows of input frame.*/
-> >   __s32 inptyp;      /* for determining 16 bit or 8 bit data.*/
-> >   __s32 vert_starting_pixel; /* vertical starting pixel in
-> input.*/
-> >   __s32 horz_starting_pixel; /* horizontal starting pixel in
-> input.*/
-> >   __s32 cbilin;      /* filter with luma or bi-linear
-> interpolation.*/
-> >   __s32 pix_fmt;     /* UYVY or YUYV */
-> >   __s32 out_hsize;   /* output frame horizontal size. */
-> >   __s32 out_vsize;   /* output frame vertical size.*/
-> >   __s32 out_pitch;   /* offset between 2 rows of output frame.*/
-> >   __s32 hstph;       /* for specifying horizontal starting
-> phase.*/
-> >   __s32 vstph;       /* for specifying vertical starting phase.*/
-> >   __u16 tap4filt_coeffs[32]; /* horizontal filtercoefficients.*/
-> >   __u16 tap7filt_coeffs[32]; /* vertical filter coefficients. */
-> >   struct rsz_yenh yenh_params;
-> >
-> > (Pasted from previous patches posted by Sergio)
-> >
-> >
-> > Putting one sample proposal using VIDIOC_S_FMT -
-> >
-> > APPROACH 1 -
-> > ----------
-> >
-> > Either we can add this under "struct v4l2_format" or need to
-> enhance
-> > "stuct v4l2_crop" to support such device.
-> >
-> > We can use 'VIDIOC_S_FMT' ioctl to configure the resizer
-> parameters. From
-> > top level it will look something like -
-> >
-> > struct v4l2_buffer buf;
-> > struct v4l2_format fmt;
-> > struct rsz_parm parm;	/*Contains custom configuration specific to
-> module
-> > other than input and output params*/
-> >
-> > <Fill the "rsz_parm" structure>
-> 
-> I think this should be managed through different controls (mostly
-> private ones), since this looks really hardware specific to me.
-> 
-[Hiremath, Vaibhav] Yes this could be hardware specific, as of now we can live-up with "priv" field but we need to understand some more such devices to get standard interface.
-
-> >
-> > fmt.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-> > fmt.fmt.pix.width = IN_WIDTH;
-> > fmt.fmt.pix.height = IN_HEIGHT;
-> > fmt.fmt.pix.bytesperline= IN_WIDTH*2;
-> > fmt.fmt.pix.pixelformat= V4L2_PIX_FMT_YUYV/V4L2_PIX_FMT_UYVY
-> > fmt.fmt.pix.priv = &parm;
-> >
-> > ret = ioctl(rsz_fd, VIDIOC_S_FMT, &fmt);
-> > if(ret<0) {
-> > 	perror("Set Format failed\n");
-> > 	return -1;
-> > }
-> >
-> > To set output buffer we can use VIDIOC_S_FMT
-> >
-> > fmt.type = V4L2_BUF_TYPE_VIDEO_OUTPUT;
-> > fmt.fmt.pix.width = OUT_WIDTH;
-> > fmt.fmt.pix.height = OUT_HEIGHT;
-> > fmt.fmt.pix.bytesperline= OUT_WIDTH*2;
-> >
-> > ret = ioctl(rsz_fd, VIDIOC_S_FMT, &fmt);
-> > if(ret<0) {
-> > 	perror("Set Format failed\n");
-> > 	return -1;
-> > }
-> >
-> > In case of resizer driver we would need to call VIDIOC_S_FMT
-> twice, one
-> > for input params and second for output params. And in case of
-> Previewer we
-> > need to call VIDIOC_S_FMT only once, with all required params as a
-> part of
-> > custom struct (priv).
-> >
-> >
-> > APPROACH 2 -
-> > ----------
-> >
-> > Instead of using "priv" variable, we can make it capability based
-> > interface. For this we have to create separate class of devices,
-> called
-> > "V4L2_BUF_TYPE_VIDEO_RESIZE" with "struct v4l2_fmt_resize" and
-> "struct
-> > v4l2_fmt_previewer".
-> >
-> > And depending on the capability application will configure params
-> using
-> > VIDIOC_S_FMT.
-> >
-> > In both the cases we need to add one IOCTL to trigger the
-> operation and
-> > this should be standard, should be common for all such memory-to-
-> memory
-> > device operations.
-> >
-> >
-> > APPROACH 3 -
-> > ----------
-> >
-> > .....
-> >
-> > (Any other approach which I could not think of would be
-> appreciated)
-> >
-> >
-> > I would prefer second approach, since this will provide standard
-> interface
-> > to applications independent on underneath hardware.
-> >
-> > There may be many number of such configuration parameters required
-> for
-> > different such devices, we need to work on this and come up with
-> some
-> > standard capability fields covering most of available devices.
-> >
-> > Does anybody have some other opinions on this?
-> > Any suggestions will be helpful here,
-> 
-> 
-> I found this really old link (1999) about a CODEC type of device:
-> 	http://www.thedirks.org/v4l2/v4l2cod.htm
-> 
-> But in the V4L2 API spec, I see that the Codec interface is
-> suspended, saying:
-> 
-> "This interface has been be suspended from the V4L2 API implemented
-> in Linux 2.6 until we have more experience with codec device
-> interfaces."
-> 
-> I guess this usecase could awake its usage again, what do you think?
-> 
-> I'll be interested on what's the current stand from v4l2 community
-> about the future on this codec interface.
-> 
-[Hiremath, Vaibhav] Thanks Sergio for pointing me to this. I will go through this and provide comments. I just had cursory look and it looks like this could be the way to go for such devices.
-
-> Regards,
-> Sergio
-> 
-> >
-> >
-> > Thanks,
-> > Vaibhav Hiremath
-> > Platform Support Products
-> > Texas Instruments Inc
-> > Ph: +91-80-25099927
-
+On Mon, Mar 30, 2009 at 4:01 PM, Russ Dill <russ.dill@gmail.com> wrote:
+> On Mon, Mar 30, 2009 at 11:43 AM, Kevin Hilman
+> <khilman@deeprootsystems.com> wrote:
+>> Russ Dill <russ.dill@gmail.com> writes:
+>>
+>>> On Mon, Mar 30, 2009 at 3:08 AM, Premi, Sanjeev <premi@ti.com> wrot=
+e:
+>> [...]
+>>>>
+>>>> I had found that two drivers that could prevent clocks_off are
+>>>> USB and DSS because of the way they use clk_enable().
+>>>>
+>>>> Can you try building without theses drivers just for verification?
+>>>>
+>>>
+>>> Building without dss makes things worse:
+>>>
+>>> Powerdomain (dss_pwrdm) didn't enter target state 0
+>>>
+>>> Maybe by looking at what the dss driver is doing I can get core and
+>>> per to turn off.
+>>
+>> Russ,
+>>
+>> Can you try with the latest HEAD of PM branch. =C2=A0After suspend/r=
+esume,
+>> do
+>>
+>> # cat /debug/pm_debug/registers/1
+>>
+>> and post results to list. =C2=A0We can then see the exact state of P=
+M
+>> registers before going into WFI.
+>
+> root@beagleboard:/sys# cat /debug/pm_debug/registers/1
+> MOD: CM_IVA2 (48014000)
+> =C2=A004 =3D> 00000037 =C2=A020 =3D> 00000001 =C2=A034 =3D> 00000001 =
+=C2=A040 =3D> 0009680c
+> =C2=A044 =3D> 00000001 =C2=A048 =3D> 00000003
+> MOD: CM_OCP (48004800)
+> =C2=A000 =3D> 00000010 =C2=A010 =3D> 00000001
+> MOD: CM_MPU (48004900)
+> =C2=A004 =3D> 00000037 =C2=A024 =3D> 00000001 =C2=A034 =3D> 00000001 =
+=C2=A040 =3D> 0011f40c
+> =C2=A044 =3D> 00000001 =C2=A048 =3D> 00000003 =C2=A04c =3D> 00000001
+> MOD: CM_CORE (48004a00)
+> =C2=A010 =3D> 00000042 =C2=A020 =3D> ffffffbd =C2=A024 =3D> 0000001f =
+=C2=A028 =3D> 0000000d
+> =C2=A030 =3D> fffffed9 =C2=A034 =3D> 0000001f =C2=A038 =3D> 0000000c =
+=C2=A040 =3D> 0000030a
+> =C2=A048 =3D> 0000003f =C2=A04c =3D> 00000003
+> MOD: CM_SGX (48004b00)
+> =C2=A020 =3D> 00000001 =C2=A048 =3D> 00000003
+> MOD: CM_WKUP (48004c00)
+> =C2=A010 =3D> 0000000e =C2=A020 =3D> 000002f1 =C2=A030 =3D> 0000003f =
+=C2=A040 =3D> 00000015
+> MOD: CM_CCR (48004d00)
+> =C2=A000 =3D> f8311037 =C2=A004 =3D> 00000017 =C2=A020 =3D> 00000201 =
+=C2=A030 =3D> 00000009
+> =C2=A034 =3D> 00000001 =C2=A040 =3D> 094c0c00 =C2=A044 =3D> 0001b00c =
+=C2=A048 =3D> 00000009
+> =C2=A050 =3D> 00000001 =C2=A070 =3D> 00000003
+> MOD: CM_DSS (48004e00)
+> =C2=A020 =3D> 00000003 =C2=A030 =3D> 00000001 =C2=A040 =3D> 00001006 =
+=C2=A048 =3D> 00000003
+> MOD: CM_CAM (48004f00)
+> =C2=A020 =3D> 00000001 =C2=A030 =3D> 00000001 =C2=A040 =3D> 00000004 =
+=C2=A048 =3D> 00000003
+> MOD: CM_PER (48005000)
+> =C2=A010 =3D> 0003e000 =C2=A020 =3D> 00001fff =C2=A030 =3D> 0003ffff =
+=C2=A040 =3D> 000000ff
+> =C2=A044 =3D> 00000006 =C2=A048 =3D> 00000003 =C2=A04c =3D> 00000001
+> MOD: CM_EMU (48005100)
+> =C2=A040 =3D> 03020a50 =C2=A048 =3D> 00000002 =C2=A04c =3D> 00000001
+> MOD: CM_NEON (48005300)
+> =C2=A048 =3D> 00000003
+> MOD: CM_USB (48005400)
+> =C2=A020 =3D> 00000003 =C2=A030 =3D> 00000001 =C2=A048 =3D> 00000003
+> MOD: PRM_IVA2 (48316000)
+> =C2=A050 =3D> 00000007 =C2=A0e0 =3D> 00ff0f04 =C2=A0f8 =3D> 00000007
+> MOD: PRM_OCP (48306800)
+> =C2=A004 =3D> 00000010 =C2=A014 =3D> 00000001 =C2=A01c =3D> 00000201
+> MOD: PRM_MPU (48306900)
+> =C2=A058 =3D> 00000005 =C2=A0d4 =3D> 00000012 =C2=A0e0 =3D> 00030104 =
+=C2=A0e4 =3D> 000000c7
+> =C2=A0e8 =3D> 000000c7
+> MOD: PRM_CORE (48306a00)
+> =C2=A058 =3D> 00000301 =C2=A0a0 =3D> c33ffe18 =C2=A0a4 =3D> c33ffe18 =
+=C2=A0a8 =3D> c33ffe18
+> =C2=A0e0 =3D> 000f0304 =C2=A0e4 =3D> 000000f7 =C2=A0e8 =3D> 000000f7 =
+=C2=A0f0 =3D> 00000004
+> =C2=A0f4 =3D> 00000004 =C2=A0f8 =3D> 00000004
+> MOD: PRM_SGX (48306b00)
+> =C2=A0e0 =3D> 00030104
+> MOD: PRM_WKUP (48306c00)
+> =C2=A0a0 =3D> 0000010b =C2=A0a4 =3D> 0000010b
+> MOD: PRM_CCR (48306d00)
+> =C2=A040 =3D> 00000003
+> MOD: PRM_DSS (48306e00)
+> =C2=A058 =3D> 00000005 =C2=A0a0 =3D> 00000001 =C2=A0e0 =3D> 00030104
+> MOD: PRM_CAM (48306f00)
+> =C2=A058 =3D> 00000001 =C2=A0e0 =3D> 00030104
+> MOD: PRM_PER (48307000)
+> =C2=A058 =3D> 00000001 =C2=A0a0 =3D> 0003efff =C2=A0a4 =3D> 0003efff =
+=C2=A0a8 =3D> 0003efff
+> =C2=A0c8 =3D> 00000007 =C2=A0e0 =3D> 00030104 =C2=A0e4 =3D> 00000007 =
+=C2=A0e8 =3D> 00000007
+> MOD: PRM_EMU (48307100)
+> =C2=A058 =3D> 00000005 =C2=A0e4 =3D> 00000103
+> MOD: PRM_GLBL (48307200)
+> =C2=A020 =3D> 00120012 =C2=A024 =3D> 00010000 =C2=A02c =3D> 301e1e30 =
+=C2=A030 =3D> 2c1e1e2c
+> =C2=A034 =3D> 00120000 =C2=A038 =3D> 00000018 =C2=A054 =3D> 00001006 =
+=C2=A058 =3D> 00000001
+> =C2=A060 =3D> 0000000e =C2=A064 =3D> 00000050 =C2=A070 =3D> 00000088 =
+=C2=A090 =3D> 0fff0fff
+> =C2=A094 =3D> 000000ff =C2=A098 =3D> 000000ff =C2=A09c =3D> 00000002 =
+=C2=A0a0 =3D> 000000ff
+> =C2=A0c4 =3D> 00000001 =C2=A0e4 =3D> 00000001
+> MOD: PRM_NEON (48307300)
+> =C2=A058 =3D> 00000005 =C2=A0c8 =3D> 00000002 =C2=A0e0 =3D> 00000004 =
+=C2=A0e4 =3D> 00000003
+> =C2=A0e8 =3D> 00000003
+> MOD: PRM_USB (48307400)
+> =C2=A058 =3D> 00000001 =C2=A0a0 =3D> 00000001 =C2=A0a4 =3D> 00000001 =
+=C2=A0a8 =3D> 00000001
+> =C2=A0e0 =3D> 00030104
+>
+>
+>> Also, post dump of
+>>
+>
+> root@beagleboard:/sys# cat /debug/pm_debug/count
+> usbhost_pwrdm (OFF),OFF:1,RET:1,INA:0,ON:1
+> sgx_pwrdm (OFF),OFF:1,RET:0,INA:0,ON:1
+> per_pwrdm (ON),OFF:0,RET:0,INA:0,ON:1
+> dss_pwrdm (ON),OFF:2,RET:0,INA:0,ON:3
+> cam_pwrdm (OFF),OFF:1,RET:1,INA:0,ON:1
+> core_pwrdm (ON),OFF:0,RET:0,INA:0,ON:1
+> neon_pwrdm (ON),OFF:2,RET:0,INA:14100,ON:14103
+> mpu_pwrdm (ON),OFF:2,RET:0,INA:14100,ON:14103
+> iva2_pwrdm (OFF),OFF:1,RET:1,INA:0,ON:1
+> per_clkdm->per_pwrdm (9)
+> usbhost_clkdm->usbhost_pwrdm (0)
+> cam_clkdm->cam_pwrdm (0)
+> dss_clkdm->dss_pwrdm (2)
+> core_l4_clkdm->core_pwrdm (8)
+> core_l3_clkdm->core_pwrdm (4)
+> d2d_clkdm->core_pwrdm (0)
+> sgx_clkdm->sgx_pwrdm (0)
+> iva2_clkdm->iva2_pwrdm (0)
+> neon_clkdm->neon_pwrdm (0)
+> mpu_clkdm->mpu_pwrdm (0)
+> virt_opp_clkdm->wkup_pwrdm (0)
+> prm_clkdm->wkup_pwrdm (10)
+> cm_clkdm->core_pwrdm (3)
+>
+>
+>
+>> Thanks,
+>>
+>> Kevin
+>>
+>>
+>>
+>>
+>
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
