@@ -1,102 +1,92 @@
-From: Koen Kooi <koen@beagleboard.org>
-Subject: [PATCH v3] ARM: OMAP: board-ldp: add regulator info to get the microSD slot working again
-Date: Tue, 31 Mar 2009 10:53:09 +0200
-Message-ID: <1238489589-12216-1-git-send-email-koen@beagleboard.org>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from [80.81.242.146] ([80.81.242.146]:35243 "EHLO
-	amethyst.openembedded.net" rhost-flags-FAIL-FAIL-OK-OK)
-	by vger.kernel.org with ESMTP id S1752162AbZCaIuv (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Tue, 31 Mar 2009 04:50:51 -0400
-Sender: linux-omap-owner@vger.kernel.org
+From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+Subject: RE: [RFC] Stand-alone Resizer/Previewer Driver support under V4L2
+ framework
+Date: Tue, 31 Mar 2009 14:23:02 +0530
+Message-ID: <19F8576C6E063C45BE387C64729E73940427E3F8F1@dbde02.ent.ti.com>
+References: <19F8576C6E063C45BE387C64729E73940427E3F70B@dbde02.ent.ti.com>
+ <200903301902.21783.hverkuil@xs4all.nl>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-media-owner@vger.kernel.org>
+In-Reply-To: <200903301902.21783.hverkuil@xs4all.nl>
+Content-Language: en-US
+Sender: linux-media-owner@vger.kernel.org
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>, "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>, "DongSoo(Nathaniel) Kim" <dongsoo.kim@gmail.com>, "Toivonen Tuukka.O (Nokia-D/Oulu)" <tuukka.o.toivonen@nokia.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Nagalla, Hari" <hnagalla@ti.com>, Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>, "Jadav, Brijesh R" <brijesh.j@ti.com>, "R, Sivaraj" <sivaraj@ti.com>, "Hadli, Manjunath" <mrh@ti.com>, "Shah, Hardik" <hardik.shah@ti.com>, "Kumar, Purushotam" <purushotam@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Koen Kooi <koen@beagleboard.org>
 
-The ldp board was left behind when other boards got updated. The ldp info was copied from the beagleboard board file and s/beagle/ldp/g
 
-Changes since v2:
- * fixed email address
-Changes since v1:
- * dropped vsim portion since only 4 pins are hooked up
 
-Signed-off-by: Koen Kooi <koen@beagleboard.org>
----
- arch/arm/mach-omap2/board-ldp.c |   32 ++++++++++++++++++++++++++++++++
- 1 files changed, 32 insertions(+), 0 deletions(-)
+Thanks,
+Vaibhav Hiremath
 
-diff --git a/arch/arm/mach-omap2/board-ldp.c b/arch/arm/mach-omap2/board-ldp.c
-index 30926b0..19a5c15 100644
---- a/arch/arm/mach-omap2/board-ldp.c
-+++ b/arch/arm/mach-omap2/board-ldp.c
-@@ -22,6 +22,7 @@
- #include <linux/clk.h>
- #include <linux/spi/spi.h>
- #include <linux/spi/ads7846.h>
-+#include <linux/regulator/machine.h>
- #include <linux/i2c/twl4030.h>
- 
- #include <mach/hardware.h>
-@@ -450,7 +451,16 @@ static struct twl4030_script *twl4030_scripts[] __initdata = {
- 	&wrst_script,
- };
- 
-+static const struct twl4030_resconfig ldp_resconfig[] = {
-+	/* disable regulators that u-boot left enabled; the
-+	 * devices' drivers should be managing these.
-+	 */
-+	{ .resource = RES_VMMC1, },
-+	{ 0, },
-+};
-+
- static struct twl4030_power_data sdp3430_t2scripts_data __initdata = {
-+	.resource_config	= ldp_resconfig,
- 	.scripts	= twl4030_scripts,
- 	.size		= ARRAY_SIZE(twl4030_scripts),
- };
-@@ -474,6 +484,25 @@ static struct twl4030_madc_platform_data ldp_madc_data = {
- 	.irq_line	= 1,
- };
- 
-+static struct regulator_consumer_supply ldp_vmmc1_supply = {
-+	.supply			= "vmmc",
-+};
-+
-+/* VMMC1 for MMC1 pins CMD, CLK, DAT0..DAT3 (20 mA, plus card == max 220 mA) */
-+static struct regulator_init_data ldp_vmmc1 = {
-+	.constraints = {
-+		.min_uV			= 1850000,
-+		.max_uV			= 3150000,
-+		.valid_modes_mask	= REGULATOR_MODE_NORMAL
-+					| REGULATOR_MODE_STANDBY,
-+		.valid_ops_mask		= REGULATOR_CHANGE_VOLTAGE
-+					| REGULATOR_CHANGE_MODE
-+					| REGULATOR_CHANGE_STATUS,
-+	},
-+	.num_consumer_supplies	= 1,
-+	.consumer_supplies	= &ldp_vmmc1_supply,
-+};
-+
- static struct twl4030_platform_data ldp_twldata = {
- 	.irq_base	= TWL4030_IRQ_BASE,
- 	.irq_end	= TWL4030_IRQ_END,
-@@ -483,6 +512,7 @@ static struct twl4030_platform_data ldp_twldata = {
- 	.madc		= &ldp_madc_data,
- 	.usb		= &ldp_usb_data,
- 	.power		= &sdp3430_t2scripts_data,
-+	.vmmc1		= &ldp_vmmc1,
- 	.gpio		= &ldp_gpio_data,
- 	.keypad		= &ldp_kp_twl4030_data,
- };
-@@ -530,6 +560,8 @@ static void __init omap_ldp_init(void)
- 	omap_serial_init();
- 	usb_musb_init();
- 	twl4030_mmc_init(mmc);
-+	/* link regulators to MMC adapters */
-+	ldp_vmmc1_supply.dev = mmc[0].dev;
- }
- 
- static void __init omap_ldp_map_io(void)
--- 
-1.6.2
+> >
+> > APPROACH 3 -
+> > ----------
+> >
+> > .....
+> >
+> > (Any other approach which I could not think of would be
+> appreciated)
+> >
+> >
+> > I would prefer second approach, since this will provide standard
+> > interface to applications independent on underneath hardware.
+> >
+> > There may be many number of such configuration parameters required
+> for
+> > different such devices, we need to work on this and come up with
+> some
+> > standard capability fields covering most of available devices.
+> >
+> > Does anybody have some other opinions on this?
+> > Any suggestions will be helpful here,
+> 
+> FYI: I have very little time to look at this for the next 2-3 weeks.
+> As you
+> know I'm working on the last pieces of the v4l2_subdev conversion
+> for 2.6.30
+> that should be finished this week. After that I'm attending the
+> Embedded
+> Linux Conference in San Francisco.
+> 
+> But I always thought that something like this would be just a
+> regular video
+> device that can do both 'output' and 'capture'. For a resizer I
+> would
+> expect that you set the 'output' size (the size of your source
+> image) and
+> the 'capture' size (the size of the resized image), then just send
+> the
+> frames to the device (== resizer) and get them back on the capture
+> side.
+> 
+[Hiremath, Vaibhav] Yes, it is possible to do that.
+
+Hans,
+
+I went through the link referred by Sergio and I think we should inherit some implementation for CODECs here for such devices.
+
+V4L2_BUF_TYPE_CODECIN - To access the input format. V4L2_BUF_TYPE_CODECOUT - To access the output format.
+
+It makes sense, since such memory-to-memory devices will mostly being used from codecs context. And this would be more clear from user application.
+
+And as acknowledged by you, we can use VIDIOC_S_FMT for setting parameters.
+
+One thing I am not able to convince myself is that, using "priv" field for custom configuration. I would prefer and recommend capability based interface, where application will query the capability of the device for luma enhancement, filter coefficients (number of coeff and depth), interpolation type, etc...
+
+This way we can make sure that, any such future devices can be adapted by this framework.
+
+
+
+Hans,
+Have you get a chance to look at Video-Buf layer issues I mentioned in original draft?
+
+> Regards,
+> 
+> 	Hans
+> 
+> --
+> Hans Verkuil - video4linux developer - sponsored by TANDBERG
 
