@@ -1,92 +1,41 @@
-From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Subject: RE: [RFC] Stand-alone Resizer/Previewer Driver support under V4L2
- framework
-Date: Tue, 31 Mar 2009 14:23:02 +0530
-Message-ID: <19F8576C6E063C45BE387C64729E73940427E3F8F1@dbde02.ent.ti.com>
-References: <19F8576C6E063C45BE387C64729E73940427E3F70B@dbde02.ent.ti.com>
- <200903301902.21783.hverkuil@xs4all.nl>
+From: Liam Girdwood <lrg@slimlogic.co.uk>
+Subject: Re: [PATCH] regulator: twl4030 VAUX3 supports 3.0V
+Date: Tue, 31 Mar 2009 11:43:00 +0100
+Message-ID: <1238496180.12172.0.camel@vega.slimlogic.co.uk>
+References: <49B11EB0.30809@nokia.com>
+	 <1237290190.6781.313.camel@vega.slimlogic.co.uk>
+	 <49C9EB17.2020408@nokia.com> <200903251003.29340.david-b@pacbell.net>
+	 <49CB8F5A.4030400@nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-media-owner@vger.kernel.org>
-In-Reply-To: <200903301902.21783.hverkuil@xs4all.nl>
-Content-Language: en-US
-Sender: linux-media-owner@vger.kernel.org
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>, "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>, "DongSoo(Nathaniel) Kim" <dongsoo.kim@gmail.com>, "Toivonen Tuukka.O (Nokia-D/Oulu)" <tuukka.o.toivonen@nokia.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Nagalla, Hari" <hnagalla@ti.com>, Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>, "Jadav, Brijesh R" <brijesh.j@ti.com>, "R, Sivaraj" <sivaraj@ti.com>, "Hadli, Manjunath" <mrh@ti.com>, "Shah, Hardik" <hardik.shah@ti.com>, "Kumar, Purushotam" <purushotam@ti.com>
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from slimlogic.co.uk ([89.16.172.20]:45845 "EHLO slimlogic.co.uk"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750695AbZCaKnH (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 31 Mar 2009 06:43:07 -0400
+In-Reply-To: <49CB8F5A.4030400@nokia.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Adrian Hunter <adrian.hunter@nokia.com>
+Cc: David Brownell <david-b@pacbell.net>, Mark Brown <broonie@sirena.org.uk>, LKML <linux-kernel@vger.kernel.org>, linux-omap Mailing List <linux-omap@vger.kernel.org>
 
-
-
-Thanks,
-Vaibhav Hiremath
-
-> >
-> > APPROACH 3 -
-> > ----------
-> >
-> > .....
-> >
-> > (Any other approach which I could not think of would be
-> appreciated)
-> >
-> >
-> > I would prefer second approach, since this will provide standard
-> > interface to applications independent on underneath hardware.
-> >
-> > There may be many number of such configuration parameters required
-> for
-> > different such devices, we need to work on this and come up with
-> some
-> > standard capability fields covering most of available devices.
-> >
-> > Does anybody have some other opinions on this?
-> > Any suggestions will be helpful here,
+On Thu, 2009-03-26 at 16:21 +0200, Adrian Hunter wrote:
+> >From 51f946af56a5de9c25b2eb6e6a33660283f84195 Mon Sep 17 00:00:00 2001
+> From: Adrian Hunter <adrian.hunter@nokia.com>
+> Date: Fri, 6 Mar 2009 14:51:30 +0200
+> Subject: [PATCH] regulator: twl4030 VAUX3 supports 3.0V
 > 
-> FYI: I have very little time to look at this for the next 2-3 weeks.
-> As you
-> know I'm working on the last pieces of the v4l2_subdev conversion
-> for 2.6.30
-> that should be finished this week. After that I'm attending the
-> Embedded
-> Linux Conference in San Francisco.
+> TWL4030 and TWL5030 support 3.0V on VAUX3.
 > 
-> But I always thought that something like this would be just a
-> regular video
-> device that can do both 'output' and 'capture'. For a resizer I
-> would
-> expect that you set the 'output' size (the size of your source
-> image) and
-> the 'capture' size (the size of the resized image), then just send
-> the
-> frames to the device (== resizer) and get them back on the capture
-> side.
-> 
-[Hiremath, Vaibhav] Yes, it is possible to do that.
+> Signed-off-by: Adrian Hunter <adrian.hunter@nokia.com>
+> ---
+>  drivers/regulator/twl4030-regulator.c |    5 ++++-
+>  1 files changed, 4 insertions(+), 1 deletions(-)
 
-Hans,
+Applied.
 
-I went through the link referred by Sergio and I think we should inherit some implementation for CODECs here for such devices.
+Thanks
 
-V4L2_BUF_TYPE_CODECIN - To access the input format. V4L2_BUF_TYPE_CODECOUT - To access the output format.
-
-It makes sense, since such memory-to-memory devices will mostly being used from codecs context. And this would be more clear from user application.
-
-And as acknowledged by you, we can use VIDIOC_S_FMT for setting parameters.
-
-One thing I am not able to convince myself is that, using "priv" field for custom configuration. I would prefer and recommend capability based interface, where application will query the capability of the device for luma enhancement, filter coefficients (number of coeff and depth), interpolation type, etc...
-
-This way we can make sure that, any such future devices can be adapted by this framework.
-
-
-
-Hans,
-Have you get a chance to look at Video-Buf layer issues I mentioned in original draft?
-
-> Regards,
-> 
-> 	Hans
-> 
-> --
-> Hans Verkuil - video4linux developer - sponsored by TANDBERG
+Liam
 
