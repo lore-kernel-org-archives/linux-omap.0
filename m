@@ -1,22 +1,22 @@
 From: Koen Kooi <koen@beagleboard.org>
-Subject: [PATCH v2] ARM: OMAP: board-ldp: add regulator info to get the microSD slot working again
-Date: Tue, 31 Mar 2009 10:45:02 +0200
-Message-ID: <1238489102-11652-1-git-send-email-koen@beagleboard.org>
+Subject: [PATCH v3] ARM: OMAP: board-ldp: add regulator info to get the microSD slot working again
+Date: Tue, 31 Mar 2009 10:53:09 +0200
+Message-ID: <1238489589-12216-1-git-send-email-koen@beagleboard.org>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from [80.81.242.146] ([80.81.242.146]:60833 "EHLO
+Received: from [80.81.242.146] ([80.81.242.146]:35243 "EHLO
 	amethyst.openembedded.net" rhost-flags-FAIL-FAIL-OK-OK)
-	by vger.kernel.org with ESMTP id S1750801AbZCaImq (ORCPT
+	by vger.kernel.org with ESMTP id S1752162AbZCaIuv (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>);
-	Tue, 31 Mar 2009 04:42:46 -0400
+	Tue, 31 Mar 2009 04:50:51 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
-Cc: Koen Kooi <koen@openembedded.org>, Koen Kooi <koen@beagleboard.org>
-
-From: Koen Kooi <koen@openembedded.org>
+Cc: Koen Kooi <koen@beagleboard.org>
 
 The ldp board was left behind when other boards got updated. The ldp info was copied from the beagleboard board file and s/beagle/ldp/g
 
+Changes since v2:
+ * fixed email address
 Changes since v1:
  * dropped vsim portion since only 4 pins are hooked up
 
