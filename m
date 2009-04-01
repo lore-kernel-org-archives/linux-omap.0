@@ -1,54 +1,69 @@
-From: Kalle Jokiniemi <kalle.jokiniemi@digia.com>
-Subject: [PATCH] ARM: OMAP3: Fix HW SAVEANDRESTORE shift define
-Date: Wed, 1 Apr 2009 09:42:54 +0300
-Message-ID: <1238568174-28291-2-git-send-email-kalle.jokiniemi@digia.com>
-References: <>
- <1238568174-28291-1-git-send-email-kalle.jokiniemi@digia.com>
+From: Artem Bityutskiy <dedekind@yandex.ru>
+Subject: Re: [PATCH] DSPBRIDGE: Fix module build warnings
+Date: Wed, 01 Apr 2009 10:00:46 +0300
+Message-ID: <49D3111E.2060304@yandex.ru>
+References: <1238516811-11401-1-git-send-email-ameya.palande@nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=UTF-8;
+	format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp1.digia.com ([82.118.214.156]:31727 "EHLO smtp1.digia.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751009AbZDAGm5 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 1 Apr 2009 02:42:57 -0400
-In-Reply-To: <1238568174-28291-1-git-send-email-kalle.jokiniemi@digia.com>
+Received: from smtp.nokia.com ([192.100.122.230]:38750 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757493AbZDAHBD (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 1 Apr 2009 03:01:03 -0400
+In-Reply-To: <1238516811-11401-1-git-send-email-ameya.palande@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: tony@atomide.com, linux-omap@vger.kernel.org
-Cc: khilman@deeprootsystems.com, Kalle Jokiniemi <kalle.jokiniemi@digia.com>
+To: Ameya Palande <ameya.palande@nokia.com>
+Cc: h-kanigeri2@ti.com, linux-omap@vger.kernel.org
 
-The OMAP3430ES2_SAVEANDRESTORE_SHIFT macro is used
-by powerdomain code in
-"1 << OMAP3430ES2_SAVEANDRESTORE_SHIFT" manner, but
-the definition was also (1 << 4), meaning we actually
-modified bit 16. So the definition needs to be 4.
+Ameya Palande wrote:
+> diff --git a/drivers/dsp/bridge/wmd/tiomap3430.c b/drivers/dsp/bridge=
+/wmd/tiomap3430.c
+> index 1fca3e5..b489da1 100644
+> --- a/drivers/dsp/bridge/wmd/tiomap3430.c
+> +++ b/drivers/dsp/bridge/wmd/tiomap3430.c
+> @@ -2034,26 +2034,27 @@ static DSP_STATUS PteSet(struct PgTableAttrs =
+*pt, u32 pa, u32 va,
+>  			if (pfn_valid(__phys_to_pfn(patemp))) {
+>  				pg =3D phys_to_page(patemp);
+>  				get_page(pg);
+> +				if (page_count(pg) <=3D 1) {
+> +					printk(KERN_EMERG "DSPBRIDGE:MAP  "
+> +						"function: COUNT 0 FOR PA "
+> +						"0x%x\n", patemp);
+> +					printk(KERN_EMERG "Bad page state"
+> +						"in process '%s'\n"
+> +						"page:%p flags:0x%0*lx "
+> +						"mapping:%p mapcount:%d "
+> +						"count:%d\n"
+> +						"Trying to fix it up, but "
+> +						"a reboot is needed\n"
+> +						"Backtrace:\n",
+> +						current->comm, pg,
+> +						(int)(2*sizeof(unsigned long)),
+> +						(unsigned long)pg->flags,
+> +						pg->mapping, page_mapcount(pg),
+> +						page_count(pg));
+> +					dump_stack();
+> +					BUG_ON(1);
+> +				}
 
-This fixes also a cold reset HW bug in OMAP3430 ES3.x
-where some of the efuse bits are not isolated during
-wake-up from off mode. This can cause randomish
-cold resets with off mode. Enabling the USBTLL hardware
-SAVEANDRESTORE causes the core power up assert to be
-delayed in a way that we will not get faulty values
-when boot ROM is reading the unisolated registers.
+Is it possible to clean up this print? How much should
+I drink to read this code?
 
-Signed-off-by: Kalle Jokiniemi <kalle.jokiniemi@digia.com>
----
- arch/arm/mach-omap2/prm-regbits-34xx.h |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+Why you guys don't create dump finctions which dump
+whatever you need. E.g., create a
+"dump_page_state(struct page *pg)" function and call
+it.
 
-diff --git a/arch/arm/mach-omap2/prm-regbits-34xx.h b/arch/arm/mach-omap2/prm-regbits-34xx.h
-index d73eee8..d792c29 100644
---- a/arch/arm/mach-omap2/prm-regbits-34xx.h
-+++ b/arch/arm/mach-omap2/prm-regbits-34xx.h
-@@ -409,7 +409,7 @@
- /* PM_PREPWSTST_CAM specific bits */
- 
- /* PM_PWSTCTRL_USBHOST specific bits */
--#define OMAP3430ES2_SAVEANDRESTORE_SHIFT		(1 << 4)
-+#define OMAP3430ES2_SAVEANDRESTORE_SHIFT		4
- 
- /* RM_RSTST_PER specific bits */
- 
--- 
-1.5.4.3
-
+--=20
+Best Regards,
+Artem Bityutskiy (=D0=90=D1=80=D1=82=D1=91=D0=BC =D0=91=D0=B8=D1=82=D1=8E=
+=D1=86=D0=BA=D0=B8=D0=B9)
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
