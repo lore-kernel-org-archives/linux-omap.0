@@ -1,26 +1,28 @@
 From: "Guzman Lugo, Fernando" <x0095840@ti.com>
-Subject: [PATH] [OMAPZOOM] DSPBRIDGE: move platform_device_register under
+Subject: [PATCH] [OMAPZOOM] DSPBRIDGE: move platform_device_register under
  mach-omap2
-Date: Wed, 1 Apr 2009 15:42:30 -0500
-Message-ID: <496565EC904933469F292DDA3F1663E60287EF2BC1@dlee06.ent.ti.com>
+Date: Wed, 1 Apr 2009 15:50:08 -0500
+Message-ID: <496565EC904933469F292DDA3F1663E60287EF2BD7@dlee06.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:50348 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1760529AbZDAUmo convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 1 Apr 2009 16:42:44 -0400
-Received: from dlep95.itg.ti.com ([157.170.170.107])
-	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id n31KgXXM030457
-	for <linux-omap@vger.kernel.org>; Wed, 1 Apr 2009 15:42:40 -0500
-Received: from dlee74.ent.ti.com (localhost [127.0.0.1])
-	by dlep95.itg.ti.com (8.13.8/8.13.8) with ESMTP id n31KgXiL014166
-	for <linux-omap@vger.kernel.org>; Wed, 1 Apr 2009 15:42:33 -0500 (CDT)
+Received: from devils.ext.ti.com ([198.47.26.153]:37155 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752024AbZDAUuR convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 1 Apr 2009 16:50:17 -0400
+Received: from dlep33.itg.ti.com ([157.170.170.112])
+	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id n31KoB9N008318
+	for <linux-omap@vger.kernel.org>; Wed, 1 Apr 2009 15:50:16 -0500
+Received: from dsbe71.ent.ti.com (localhost [127.0.0.1])
+	by dlep33.itg.ti.com (8.13.7/8.13.7) with ESMTP id n31KoAao015966
+	for <linux-omap@vger.kernel.org>; Wed, 1 Apr 2009 15:50:10 -0500 (CDT)
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Pandita, Vikram" <vikram.pandita@ti.com>
+To: "Pandita, Vikram" <vikram.pandita@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Cc: "Kanigeri, Hari" <h-kanigeri2@ti.com>
+
 
 
 This is the previous patch from Hiroshi (http://marc.info/?l=linux-omap&m=123798191710417&w=2) rebase to apply on top of the previous patches for OMAPZOOM.
