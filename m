@@ -1,49 +1,124 @@
-From: "Kanigeri, Hari" <h-kanigeri2@ti.com>
-Subject: RE: [PATCH 1/4] [OMAPZOOM] DSPBRIDGE: Memory lock for DMM.
-Date: Wed, 1 Apr 2009 08:01:29 -0500
-Message-ID: <8F7AF80515AF0D4D93307E594F3CB40E236180C9@dlee03.ent.ti.com>
-References: <496565EC904933469F292DDA3F1663E60287E2BC72@dlee06.ent.ti.com>
- <20090401.104135.02295366.Hiroshi.DOYU@nokia.com>
+From: Ameya Palande <2ameya@gmail.com>
+Subject: Re: [PATCH] DSPBRIDGE: Fix module build warnings
+Date: Wed, 1 Apr 2009 16:14:54 +0300
+Message-ID: <269694c00904010614k4a2897e6p8c5c5fad120738d9@mail.gmail.com>
+References: <1238516811-11401-1-git-send-email-ameya.palande@nokia.com>
+	 <49D3111E.2060304@yandex.ru> <49D31218.8050200@yandex.ru>
+	 <269694c00904010613g70a5de8eo5cac92865675ad0f@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: multipart/mixed; boundary=001636c5b447ff4f2e04667e1934
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:38808 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753636AbZDANBm convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 1 Apr 2009 09:01:42 -0400
-In-Reply-To: <20090401.104135.02295366.Hiroshi.DOYU@nokia.com>
-Content-Language: en-US
+Received: from mail-bw0-f169.google.com ([209.85.218.169]:55232 "EHLO
+	mail-bw0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757933AbZDANO7 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 1 Apr 2009 09:14:59 -0400
+Received: by bwz17 with SMTP id 17so22817bwz.37
+        for <linux-omap@vger.kernel.org>; Wed, 01 Apr 2009 06:14:54 -0700 (PDT)
+In-Reply-To: <269694c00904010613g70a5de8eo5cac92865675ad0f@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
-Cc: "Pandita, Vikram" <vikram.pandita@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Guzman Lugo, Fernando" <x0095840@ti.com>, "Menon, Nishanth" <nm@ti.com>
+To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Hi Doyu-san,
+--001636c5b447ff4f2e04667e1934
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: base64
 
-> 
-> Hm....for this page swapping case, I think that handling this issue in
-> kernel may cause more complexity and this can be avoided by "mlock()"
-> for that buffer in userland? This looks more sipmpler?
-> 
-> >
+T24gV2VkLCBBcHIgMSwgMjAwOSBhdCA0OjEzIFBNLCBBbWV5YSBQYWxhbmRlIDwyYW1leWFAZ21h
+aWwuY29tPiB3cm90ZToKPgo+IEhpIEFydGVtLAo+Cj4gT24gV2VkLCBBcHIgMSwgMjAwOSBhdCAx
+MDowNCBBTSwgQXJ0ZW0gQml0eXV0c2tpeSA8ZGVkZWtpbmRAeWFuZGV4LnJ1PiB3cm90ZToKPj4K
+Pj4gQXJ0ZW0gQml0eXV0c2tpeSB3cm90ZToKPj4+Cj4+PiBBbWV5YSBQYWxhbmRlIHdyb3RlOgo+
+Pj4+Cj4+Pj4gZGlmZiAtLWdpdCBhL2RyaXZlcnMvZHNwL2JyaWRnZS93bWQvdGlvbWFwMzQzMC5j
+IGIvZHJpdmVycy9kc3AvYnJpZGdlL3dtZC90aW9tYXAzNDMwLmMKPj4+PiBpbmRleCAxZmNhM2U1
+Li5iNDg5ZGExIDEwMDY0NAo+Pj4+IC0tLSBhL2RyaXZlcnMvZHNwL2JyaWRnZS93bWQvdGlvbWFw
+MzQzMC5jCj4+Pj4gKysrIGIvZHJpdmVycy9kc3AvYnJpZGdlL3dtZC90aW9tYXAzNDMwLmMKPj4+
+PiBAQCAtMjAzNCwyNiArMjAzNCwyNyBAQCBzdGF0aWMgRFNQX1NUQVRVUyBQdGVTZXQoc3RydWN0
+IFBnVGFibGVBdHRycyAqcHQsIHUzMiBwYSwgdTMyIHZhLAo+Pj4+IMKgIMKgIMKgIMKgIMKgIMKg
+IGlmIChwZm5fdmFsaWQoX19waHlzX3RvX3BmbihwYXRlbXApKSkgewo+Pj4+IMKgIMKgIMKgIMKg
+IMKgIMKgIMKgIMKgIHBnID0gcGh5c190b19wYWdlKHBhdGVtcCk7Cj4+Pj4gwqAgwqAgwqAgwqAg
+wqAgwqAgwqAgwqAgZ2V0X3BhZ2UocGcpOwo+Pj4+ICsgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqBp
+ZiAocGFnZV9jb3VudChwZykgPD0gMSkgewo+Pj4+ICsgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAg
+wqAgwqBwcmludGsoS0VSTl9FTUVSRyAiRFNQQlJJREdFOk1BUCDCoCIKPj4+PiArIMKgIMKgIMKg
+IMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgImZ1bmN0aW9uOiBDT1VOVCAwIEZPUiBQQSAiCj4+
+Pj4gKyDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCIweCV4XG4iLCBwYXRlbXAp
+Owo+Pj4+ICsgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqBwcmludGsoS0VSTl9FTUVSRyAi
+QmFkIHBhZ2Ugc3RhdGUiCj4+Pj4gKyDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDC
+oCJpbiBwcm9jZXNzICclcydcbiIKPj4+PiArIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKg
+IMKgIMKgInBhZ2U6JXAgZmxhZ3M6MHglMCpseCAiCj4+Pj4gKyDCoCDCoCDCoCDCoCDCoCDCoCDC
+oCDCoCDCoCDCoCDCoCDCoCJtYXBwaW5nOiVwIG1hcGNvdW50OiVkICIKPj4+PiArIMKgIMKgIMKg
+IMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgImNvdW50OiVkXG4iCj4+Pj4gKyDCoCDCoCDCoCDC
+oCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCJUcnlpbmcgdG8gZml4IGl0IHVwLCBidXQgIgo+Pj4+
+ICsgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAiYSByZWJvb3QgaXMgbmVlZGVk
+XG4iCj4+Pj4gKyDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCJCYWNrdHJhY2U6
+XG4iLAo+Pj4+ICsgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqBjdXJyZW50LT5j
+b21tLCBwZywKPj4+PiArIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgKGludCko
+MipzaXplb2YodW5zaWduZWQgbG9uZykpLAo+Pgo+PiBXaHkgZG8geW91IG5lZWQgdGhpcyAoaW50
+KSBjYXN0PyBUaGllcmUgaXMgYSAlemQgbW9kaWZ5ZXIuCj4+Pj4KPj4+PiArIMKgIMKgIMKgIMKg
+IMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgKHVuc2lnbmVkIGxvbmcpcGctPmZsYWdzLAo+Pgo+PiBX
+aGF0IGZvciBkbyB5b3UgaGF2ZSB0byBjYXN0IGhlcmU/Cj4KPiBJIGhhdmUgYXR0YWNoZWQgYSBu
+ZXcgcGF0Y2ggd2hpY2ggc2hvdWxkIHRha2UgY2FyZSBvZiB0aGUgdWdseSBjb2RlLgo+Cj4gQ2hl
+ZXJzLAo+IEFtZXlhLgoKU29ycnkgYWJvdXQgdGhlIGxhc3QgbWVzc2FnZS4gVGhpcyBvbmUgaXMg
+aW4gcGxhaW4gdGV4dC4KCkNoZWVycywKQW1leWEuCg==
+--001636c5b447ff4f2e04667e1934
+Content-Type: text/x-patch; charset=US-ASCII;
+	name="0001--DSPBRIDGE-Fix-module-build-warnings.patch"
+Content-Disposition: attachment;
+	filename="0001--DSPBRIDGE-Fix-module-build-warnings.patch"
+Content-Transfer-Encoding: base64
+X-Attachment-Id: f_ft01hqmv1
 
--- I see your point of handling the locking from user-space itself. This can be done in normal Page swapping scenarios, but in the case of abnormal termination of the user-space Process that mapped the buffers we still have an issue.
-
-This is what I think the problem might be if we move the locking to user-land.
-	- User process mapped and locked the buffer using mlock.
-	- The Physical address mapped to DSP VA by DSPBridge.
-	- The User process got terminated abnormally. I think this will cause the Kernel to reclaim the User buffers that were mapped.
-	- Now the DSP is not aware of this cleanup and it might be still trying to access the Mapped address, but since the Pages are removed we will end up with MMU fault or DSP corrupting the memory of other Processes as the reclaimed Pages might be allocated to other Processes. 
-
-By moving the locking to Kernel space, we are guaranteed that these Pages are locked even when an application that mapped the buffers is terminated. These Pages will be unlocked only during Bridge's resource cleanup of this Process after Bridge informing the DSP s/w not to access this buffer.
-
-I think if the resource cleanup is moved to bridge_release instead of bridge_open, then it might be possible to move the locking mechanism to User land. Here I am assuming that on abnormal termination of a Process, the Kernel first calls the bridge_release on behalf of the Process before reclaiming the buffers that were allocated by this Process otherwise there is a narrow Window when DSP might try to access the memory that is no longer valid.
-
-Please share your thoughts.
-
-
-Thank you,
-Best regards,
-Hari
-
+RnJvbSA1Yjg4OWY4YzQzYzBkM2FmNDdjZDRlZDUzMmExMGJlZWM4NjNlMzcwIE1vbiBTZXAgMTcg
+MDA6MDA6MDAgMjAwMQpGcm9tOiBBbWV5YSBQYWxhbmRlIDxhbWV5YS5wYWxhbmRlQG5va2lhLmNv
+bT4KRGF0ZTogV2VkLCAxIEFwciAyMDA5IDE2OjA1OjEzICswMzAwClN1YmplY3Q6IFtQQVRDSF0g
+W1BBVENIXSBEU1BCUklER0U6IEZpeCBtb2R1bGUgYnVpbGQgd2FybmluZ3MKCkZyb206IEFtZXlh
+IFBhbGFuZGUgPGFtZXlhLnBhbGFuZGVAbm9raWEuY29tPgoKU2lnbmVkLW9mZi1ieTogQW1leWEg
+UGFsYW5kZSA8YW1leWEucGFsYW5kZUBub2tpYS5jb20+Ci0tLQogZHJpdmVycy9kc3AvYnJpZGdl
+L3JtZ3IvZHJ2X2ludGVyZmFjZS5jIHwgICAgNiAtLS0tLS0KIGRyaXZlcnMvZHNwL2JyaWRnZS9y
+bWdyL25vZGUuYyAgICAgICAgICB8ICAgIDIgKy0KIGRyaXZlcnMvZHNwL2JyaWRnZS93bWQvdGlv
+bWFwMzQzMC5jICAgICB8ICAgMzAgKysrKysrKysrKysrLS0tLS0tLS0tLS0tLS0tLS0tCiAzIGZp
+bGVzIGNoYW5nZWQsIDEzIGluc2VydGlvbnMoKyksIDI1IGRlbGV0aW9ucygtKQoKZGlmZiAtLWdp
+dCBhL2RyaXZlcnMvZHNwL2JyaWRnZS9ybWdyL2Rydl9pbnRlcmZhY2UuYyBiL2RyaXZlcnMvZHNw
+L2JyaWRnZS9ybWdyL2Rydl9pbnRlcmZhY2UuYwppbmRleCAzNTBlMWI1Li45ODEzNTRhIDEwMDc1
+NQotLS0gYS9kcml2ZXJzL2RzcC9icmlkZ2Uvcm1nci9kcnZfaW50ZXJmYWNlLmMKKysrIGIvZHJp
+dmVycy9kc3AvYnJpZGdlL3JtZ3IvZHJ2X2ludGVyZmFjZS5jCkBAIC02ODUsMTIgKzY4NSw2IEBA
+IHN0YXRpYyBpbnQgYnJpZGdlX3JlbGVhc2Uoc3RydWN0IGlub2RlICppcCwgc3RydWN0IGZpbGUg
+KmZpbHApCiAJcmV0dXJuIHN0YXR1czsKIH0KIAotc3RhdGljIHZvaWQgYnJpZGdlX2ZyZWUoc3Ry
+dWN0IGRldmljZSAqZGV2KQotewotCS8qIG5vdGhpbmcgdG8gRnJlZSAqLwotfQotCi0KIC8qIFRo
+aXMgZnVuY3Rpb24gcHJvdmlkZXMgSU8gaW50ZXJmYWNlIHRvIHRoZSBicmlkZ2UgZHJpdmVyLiAq
+Lwogc3RhdGljIGludCBicmlkZ2VfaW9jdGwoc3RydWN0IGlub2RlICppcCwgc3RydWN0IGZpbGUg
+KmZpbHAsIHVuc2lnbmVkIGludCBjb2RlLAogCQl1bnNpZ25lZCBsb25nIGFyZ3MpCmRpZmYgLS1n
+aXQgYS9kcml2ZXJzL2RzcC9icmlkZ2Uvcm1nci9ub2RlLmMgYi9kcml2ZXJzL2RzcC9icmlkZ2Uv
+cm1nci9ub2RlLmMKaW5kZXggNTFiNGIxMi4uMTc4YjgwMiAxMDA2NDQKLS0tIGEvZHJpdmVycy9k
+c3AvYnJpZGdlL3JtZ3Ivbm9kZS5jCisrKyBiL2RyaXZlcnMvZHNwL2JyaWRnZS9ybWdyL25vZGUu
+YwpAQCAtMzQ3MSw3ICszNDcxLDcgQEAgc3RhdGljIERTUF9TVEFUVVMgR2V0Uk1TRnhucyhzdHJ1
+Y3QgTk9ERV9NR1IgKmhOb2RlTWdyKQogCQkJfQogCQl9CiAJfQotZnVuY19lbmQ6CisKIAlyZXR1
+cm4gc3RhdHVzOwogfQogCmRpZmYgLS1naXQgYS9kcml2ZXJzL2RzcC9icmlkZ2Uvd21kL3Rpb21h
+cDM0MzAuYyBiL2RyaXZlcnMvZHNwL2JyaWRnZS93bWQvdGlvbWFwMzQzMC5jCmluZGV4IDFmY2Ez
+ZTUuLjlhNTM1ZDAgMTAwNjQ0Ci0tLSBhL2RyaXZlcnMvZHNwL2JyaWRnZS93bWQvdGlvbWFwMzQz
+MC5jCisrKyBiL2RyaXZlcnMvZHNwL2JyaWRnZS93bWQvdGlvbWFwMzQzMC5jCkBAIC0yMDM0LDI0
+ICsyMDM0LDggQEAgc3RhdGljIERTUF9TVEFUVVMgUHRlU2V0KHN0cnVjdCBQZ1RhYmxlQXR0cnMg
+KnB0LCB1MzIgcGEsIHUzMiB2YSwKIAkJCWlmIChwZm5fdmFsaWQoX19waHlzX3RvX3BmbihwYXRl
+bXApKSkgewogCQkJCXBnID0gcGh5c190b19wYWdlKHBhdGVtcCk7CiAJCQkJZ2V0X3BhZ2UocGcp
+OwotCQkJfQotCQkJaWYgKHBhZ2VfY291bnQocGcpIDw9IDEpIHsKLQkJCQlwcmludGsoS0VSTl9F
+TUVSRyAiRFNQQlJJREdFOk1BUCAgZnVuY3Rpb246ICIKLQkJCQkJIkNPVU5UIDAgRk9SIFBBIDB4
+JXhcbiIsIHBhdGVtcCk7Ci0JCQkJcHJpbnRrKEtFUk5fRU1FUkcgIkJhZCBwYWdlIHN0YXRlIgot
+CQkJCQlLRVJOX0VNRVJHICJpbiBwcm9jZXNzICclcydcbiIKLQkJCQkJS0VSTl9FTUVSRyAicGFn
+ZTolcCBmbGFnczoweCUwKmx4ICIKLQkJCQkJS0VSTl9FTUVSRyAibWFwcGluZzolcCBtYXBjb3Vu
+dDolZCAiCi0JCQkJCUtFUk5fRU1FUkcgImNvdW50OiVkXG4iCi0JCQkJCUtFUk5fRU1FUkcgIlRy
+eWluZyB0byBmaXggaXQgdXAsIGJ1dCAiCi0JCQkJCUtFUk5fRU1FUkcgImEgcmVib290IGlzIG5l
+ZWRlZFxuIgotCQkJCQlLRVJOX0VNRVJHICJCYWNrdHJhY2U6XG4iLAotCQkJCQljdXJyZW50LT5j
+b21tLCBwZywKLQkJCQkJKGludCkoMipzaXplb2YodW5zaWduZWQgbG9uZykpLAotCQkJCQkodW5z
+aWduZWQgbG9uZylwZy0+ZmxhZ3MsIHBnLT5tYXBwaW5nLAotCQkJCQlwYWdlX21hcGNvdW50KHBn
+KSwgcGFnZV9jb3VudChwZykpOwotCQkJCWR1bXBfc3RhY2soKTsKLQkJCQlCVUdfT04oMSk7CisJ
+CQkJaWYgKHBhZ2VfY291bnQocGcpIDw9IDEpCisJCQkJCWdvdG8gcGdfY250X2Vycl9vdXQ7CiAJ
+CQl9CiAKIAkJCXBhdGVtcCArPSBIV19QQUdFX1NJWkVfNEtCOwpAQCAtMjEyNiw2ICsyMTEwLDE2
+IEBAIHN0YXRpYyBEU1BfU1RBVFVTIFB0ZVNldChzdHJ1Y3QgUGdUYWJsZUF0dHJzICpwdCwgdTMy
+IHBhLCB1MzIgdmEsCiAJfQogCURCR19UcmFjZShEQkdfRU5URVIsICI8IFB0ZVNldCBzdGF0dXMg
+JXhcbiIsIHN0YXR1cyk7CiAJcmV0dXJuIHN0YXR1czsKKworcGdfY250X2Vycl9vdXQ6CisJcHJf
+ZW1lcmcoIkRTUEJSSURHRTpNQVAgZnVuY3Rpb246IENPVU5UIDAgRk9SIFBBIDB4JXhcbiIsIHBh
+dGVtcCk7CisJcHJfZW1lcmcoIkJhZCBwYWdlIHN0YXRlIGluIHByb2Nlc3MgJyVzJ1xuIHBhZ2U6
+JXAgZmxhZ3M6JWx4ICIKKwkJCSJtYXBwaW5nOiVwIG1hcGNvdW50OiVkIGNvdW50OiVkXG4iLAor
+CQkJY3VycmVudC0+Y29tbSwgcGcsIHBnLT5mbGFncywKKwkJCXBnLT5tYXBwaW5nLCBwYWdlX21h
+cGNvdW50KHBnKSwgcGFnZV9jb3VudChwZykpOworCXByX2VtZXJnKCJCYWNrdHJhY2U6XG4iKTsK
+KwlkdW1wX3N0YWNrKCk7CisJQlVHX09OKDEpOwogfQogCiAvKiBNZW1vcnkgbWFwIGtlcm5lbCBW
+QSAtLSBtZW1vcnkgYWxsb2NhdGVkIHdpdGggdm1hbGxvYyAqLwotLSAKMS42LjIuMQoK
+--001636c5b447ff4f2e04667e1934--
