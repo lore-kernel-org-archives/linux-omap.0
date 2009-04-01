@@ -1,574 +1,929 @@
 From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: PM branch rebased to 2.6.29
-Date: Tue, 31 Mar 2009 16:33:51 -0700
-Message-ID: <87iqlpuv1c.fsf@deeprootsystems.com>
-References: <87bprz9zju.fsf@deeprootsystems.com>
-	<87zlfaztcd.fsf@deeprootsystems.com>
-	<1237925484.23022.133.camel@blackhole>
-	<49C940CA.9070805@deeprootsystems.com>
-	<f9d2a5e10903271350x2d534c76nc55c492b8acd1d4e@mail.gmail.com>
-	<B85A65D85D7EB246BE421B3FB0FBB59301CC5699A0@dbde02.ent.ti.com>
-	<f9d2a5e10903301044u775edfdo7ac540b3e1bdc597@mail.gmail.com>
-	<873acu26ms.fsf@deeprootsystems.com>
-	<f9d2a5e10903301601q5fcd331bs44c81d854ad0082f@mail.gmail.com>
-	<87myb1wnvc.fsf@deeprootsystems.com>
-	<f9d2a5e10903311431r6f053f02l25aba8183233c2b9@mail.gmail.com>
+Subject: Re: [PATCH] OMAP3: PM: Add the wakeup source driver, v2
+Date: Tue, 31 Mar 2009 17:09:50 -0700
+Message-ID: <87ocvhtesx.fsf@deeprootsystems.com>
+References: <4d34a0a70903182125l77b0adc3rc0c672f0aa348ab@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from rv-out-0506.google.com ([209.85.198.226]:9463 "EHLO
+Received: from rv-out-0506.google.com ([209.85.198.234]:10495 "EHLO
 	rv-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1765037AbZCaXeB convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 31 Mar 2009 19:34:01 -0400
-Received: by rv-out-0506.google.com with SMTP id f9so3275673rvb.1
-        for <linux-omap@vger.kernel.org>; Tue, 31 Mar 2009 16:33:59 -0700 (PDT)
-In-Reply-To: <f9d2a5e10903311431r6f053f02l25aba8183233c2b9@mail.gmail.com> (Russ Dill's message of "Tue\, 31 Mar 2009 14\:31\:15 -0700")
+	with ESMTP id S1758305AbZDAAJ7 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 31 Mar 2009 20:09:59 -0400
+Received: by rv-out-0506.google.com with SMTP id f9so3288302rvb.1
+        for <linux-omap@vger.kernel.org>; Tue, 31 Mar 2009 17:09:57 -0700 (PDT)
+In-Reply-To: <4d34a0a70903182125l77b0adc3rc0c672f0aa348ab@mail.gmail.com> (Kim Kyuwon's message of "Thu\, 19 Mar 2009 13\:25\:23 +0900")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Russ Dill <russ.dill@gmail.com>
-Cc: "Premi, Sanjeev" <premi@ti.com>, Peter Barada <peterb@logicpd.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Kim Kyuwon <chammoru@gmail.com>
+Cc: OMAP <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, =?utf-8?B?67CV6rK966+8?= <kyungmin.park@samsung.com>
 
-Russ Dill <russ.dill@gmail.com> writes:
+Kim Kyuwon <chammoru@gmail.com> writes:
 
->> Russ,
->>
->> With the dump below, what was the output after you resumed? =A0Which
->> powerdomains did not hit their target state? =A0It looks like PER an=
-d
->> CORE did not hit target state.
+> Sometimes, it is necessary to find out "what does wake up my board
+> from suspend?". Notifying wake-up source feature may be used to blame
+> unexpected wake-up events which increase power consumption. And user
+> mode applications can act smartly according to the wake-up event from
+> Suspend-to-RAM state to minimize power consumption. Note that this
+> driver can't inform wake-up events from idle state. This driver uses
+> sysfs interface to give information to user mode applications like:
+
+Hi Kim,
+
+Thanks for addressing my comments.  This is now more streamlined
+during the wakeup/resume path as I suggested.  Thanks.  A few more
+minor comments below...
+
+> cat /sys/power/omap_resume_irq
+> cat /sys/power/omap_resume_event
 >
-> yes, yes, and yes.
+> This driver also privides the unified GPIO wake-up source
+> configuration. specific GPIO settings in the board files are:
 >
->> Also, you didn't mention what hardware you're using or your .config =
-or
->> your bootloader etc. =A0All of these play an important role.
+> /* Wakeup source configuration */
+> static struct gpio_wake boardname_gpio_wake[] = {
+> 	{ 23,	IRQF_TRIGGER_RISING,	"BT_WAKEUP",	1},
+> 	{ 24,	IRQF_TRIGGER_RISING,	"USB_DETECT",	1},
+> };
 >
-> Beagleboard B7, X-Loader 1.41, U-Boot 1.3.3
-
-Not familiar with the all u-boot versions for this board, but is this
-u-boot out of Steve Sakoman's tree?  I had lots of problems with the
-TI bootloader leaving Beagle in a strange state and switched to using
-the one from Steve's tree.  I have X-Loader 1.41 and:
-
-  U-Boot 2009.01-rc1-00067-g8c6db17 (Jan 15 2009 - 16:31:00)           =
-          =20
-
->>
->> Here is at least one problem.
->>
->> Offset 0x40 is CM_CLKSEL_WKUP, and bit 0 shows which clock is the
->> source clock for GPTIMER1. =A0Here, bit 0 is 1 which means SYS_CLK
->> is used as the timer source.
->>
->> Based on this, you must have:
->>
->> =A0 System Type --> TI OMAP Implementations --> System Timer
->>
->> set to 'MPU timer'. =A0Please change to 32k timer. =A0Using MPU time=
-r will
->> keep timers not in WKUP powerdomain (which is all of them except GPT=
-1)
->> running across suspend, preventing PER from hitting RET.
->>
->> Using the 32k timer only uses GPT1 and sources it from the 32k clock=
-, both
->> of which are in the WKUP powerdomain.
+> static struct omap_wake_platform_data boardname_wake_data = {
+> 	.gpio_wakes		= boardname_gpio_wake,
+> 	.gpio_wake_num		= ARRAY_SIZE(boardname_gpio_wake),
+> };
 >
-> Nope, I have the following kernel message:
+> static struct platform_device boardname_wakeup = {
+> 	.name			= "omap-wake",
+> 	.id			= -1,
+> 	.dev			= {
+> 		.platform_data	= &boardname_wake_data,
+> 	},
+> };
 >
-> OMAP clockevent source: GPTIMER12 at 32768 Hz
+> The patch adds Kconfig options "OMAP34xx wakeup source support" under
+> "System type"->"TI OMAP implementations" menu.
 >
-> and the following Kconfig options (also see the attached .config)
-
-Right, I forgot Beagle is using GPT12, not GPT1.  nevermind.
-
-> Texas Instruments X-Loader 1.41
-> Starting OS Bootloader...
+> Signed-off-by: Kim Kyuwon <q1.kim@samsung.com>
+> ---
+>  arch/arm/mach-omap2/Makefile           |    1 +
+>  arch/arm/mach-omap2/irq.c              |   21 +-
+>  arch/arm/mach-omap2/pm34xx.c           |   12 +
+>  arch/arm/mach-omap2/prcm-common.h      |    4 +
+>  arch/arm/mach-omap2/prm-regbits-34xx.h |    6 +
+>  arch/arm/mach-omap2/wake34xx.c         |  539 ++++++++++++++++++++++++++++++++
+>  arch/arm/plat-omap/Kconfig             |    9 +
+>  arch/arm/plat-omap/include/mach/irqs.h |    4 +
+>  arch/arm/plat-omap/include/mach/pm.h   |   10 +
+>  arch/arm/plat-omap/include/mach/wake.h |   30 ++
+>  10 files changed, 633 insertions(+), 3 deletions(-)
+>  create mode 100644 arch/arm/mach-omap2/wake34xx.c
+>  create mode 100644 arch/arm/plat-omap/include/mach/wake.h
 >
+> diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
+> index 16c6fb8..29ad0f1 100644
+> --- a/arch/arm/mach-omap2/Makefile
+> +++ b/arch/arm/mach-omap2/Makefile
+> @@ -25,6 +25,7 @@ obj-$(CONFIG_ARCH_OMAP2)		+= pm24xx.o
+>  obj-$(CONFIG_ARCH_OMAP24XX)		+= sleep24xx.o
+>  obj-$(CONFIG_ARCH_OMAP3)		+= pm34xx.o sleep34xx.o cpuidle34xx.o
+>  obj-$(CONFIG_PM_DEBUG)			+= pm-debug.o
+> +obj-$(CONFIG_OMAP_WAKE)			+= wake34xx.o
+>  endif
 >
-> U-Boot 1.3.3 (Jul 10 2008 - 16:33:09)
-
-=46irst recommendation is to upgrade your bootloder:
-
-  http://elinux.org/BeagleBoard#U-Boot
-
-The earlier bootloaders seem to be blindly enabling reserved bits in
-some of the PM registers which can leave the chip in an undefined
-state.
-
-> OMAP3530-GP rev 2, CPU-OPP2 L3-165MHz
-> OMAP3 Beagle Board + LPDDR/NAND
-> DRAM:  128 MB
-> NAND:  256 MiB
-> In:    serial
-> Out:   serial
-> Err:   serial
-> Audio Tone on Speakers  ... complete
-> Hit any key to stop autoboot:  0
+>  # SmartReflex driver
+> diff --git a/arch/arm/mach-omap2/irq.c b/arch/arm/mach-omap2/irq.c
+> index be4b596..6da285e 100644
+> --- a/arch/arm/mach-omap2/irq.c
+> +++ b/arch/arm/mach-omap2/irq.c
+> @@ -33,9 +33,6 @@
+>  #define INTC_MIR_SET0		0x008c
+>  #define INTC_PENDING_IRQ0	0x0098
 >
-> NAND read: device 0 offset 0x280000, size 0x400000
->  4194304 bytes read: OK
-> ## Booting kernel from Legacy Image at 80000000 ...
->    Image Name:   Linux-2.6.29-omap1-pm
->    Image Type:   ARM Linux Kernel Image (uncompressed)
->    Data Size:    1476992 Bytes =3D  1.4 MB
->    Load Address: 80008000
->    Entry Point:  80008000
->    Verifying Checksum ... OK
->    Loading Kernel Image ... OK
-> OK
+> -/* Number of IRQ state bits in each MIR register */
+> -#define IRQ_BITS_PER_REG	32
+> -
+>  /*
+>   * OMAP2 has a number of different interrupt controllers, each interrupt
+>   * controller is identified as its own "bank". Register definitions are
+> @@ -193,6 +190,24 @@ int omap_irq_pending(void)
+>  	return 0;
+>  }
 >
-> Starting kernel ...
->
-> Uncompressing Linux..................................................=
-=2E.............................................
-> done, booting the kern.
-> Linux version 2.6.29-omap1-pm (russ@russ-laptop) (gcc version 4.3.1
-> (GCC) ) #47 PREEMPT Tue Mar 31 14:13:51 MST 2009
-> CPU: ARMv7 Processor [411fc083] revision 3 (ARMv7), cr=3D10c5387f
-> CPU: VIPT nonaliasing data cache, VIPT nonaliasing instruction cache
-> Machine: OMAP3 Beagle Board
-> Memory policy: ECC disabled, Data cache writeback
-> OMAP3430 ES3.0
-> SRAM: Mapped pa 0x40200000 to va 0xd7000000 size: 0x100000
-> Built 1 zonelists in Zone order, mobility grouping on.  Total pages: =
-32512
-> Kernel command line: console=3DttyS2,115200n8 root=3D/dev/mtdblock4
-> rootfstype=3Djffs2 rw g_ether.host_addr=3DB6:A3:A1:7D:8F:F0
-> omapfb.mode=3Ddvi:126
-> Unknown boot option `g_ether.host_addr=3DB6:A3:A1:7D:8F:F0': ignoring
-> Unknown boot option `omapfb.mode=3Ddvi:1280x720M-16': ignoring
-> Clocking rate (Crystal/DPLL/ARM core): 26.0/332/500 MHz
-> Reprogramming SDRC
-> GPMC revision 5.0
-> IRQ: Found an INTC at 0xd8200000 (revision 4.0) with 96 interrupts
-> Total of 96 interrupts on 1 active controller
-> OMAP34xx GPIO hardware version 2.5
-> PID hash table entries: 512 (order: 9, 2048 bytes)
-> OMAP clockevent source: GPTIMER12 at 32768 Hz
-> Console: colour dummy device 80x30
-> Dentry cache hash table entries: 16384 (order: 4, 65536 bytes)
-> Inode-cache hash table entries: 8192 (order: 3, 32768 bytes)
-> Memory: 128MB =3D 128MB total
-> Memory: 126648KB available (2692K code, 299K data, 96K init)
-> Calibrating delay loop... 491.57 BogoMIPS (lpj=3D1921024)
-> Mount-cache hash table entries: 512
-> CPU: Testing write buffer coherency: ok
-> net_namespace: 544 bytes
-> regulator: core version 0.5
-> NET: Registered protocol family 16
-> Found NAND on CS0
-> Registering NAND on CS0
-> OMAP DMA hardware revision 4.0
-> bio: create slab <bio-0> at 0
-> i2c_omap i2c_omap.1: bus 1 rev3.12 at 2600 kHz
-> twl4030: PIH (irq 7) chaining IRQs 368..375
-> twl4030: power (irq 373) chaining IRQs 376..383
-> twl4030: gpio (irq 368) chaining IRQs 384..401
-> beagle_twl_gpio_setup:145
-> twl4030_mmc_init:324
-> twl4030_mmc_init:339
-> regulator: VMMC1: 1850 <--> 3150 mV normal standby
-> regulator: VDAC: 1800 mV normal standby
-> regulator: VUSB1V5: 1500 <--> 0 mV normal standby
-> regulator: VUSB1V8: 1800 <--> 0 mV normal standby
-> regulator: VUSB3V1: 3100 <--> 0 mV normal standby
-> regulator: VPLL2: 1800 mV normal standby
-> regulator: VSIM: 1800 <--> 3000 mV normal standby
-> i2c_omap i2c_omap.3: bus 3 rev3.12 at 100 kHz
-> SCSI subsystem initialized
-> twl4030_usb twl4030_usb: Initialized TWL4030 USB module
-> NET: Registered protocol family 2
-> IP route cache hash table entries: 1024 (order: 0, 4096 bytes)
-> TCP established hash table entries: 4096 (order: 3, 32768 bytes)
-> TCP bind hash table entries: 4096 (order: 2, 16384 bytes)
-> TCP: Hash tables configured (established 4096 bind 4096)
-> TCP reno registered
-> NET: Registered protocol family 1
-> VFS: Disk quotas dquot_6.5.2
-> Dquot-cache hash table entries: 1024 (order 0, 4096 bytes)
-> JFFS2 version 2.2. (NAND) =A9 2001-2006 Red Hat, Inc.
-> msgmni has been set to 247
-> alg: No test for stdrng (krng)
-> io scheduler noop registered (default)
-> omapfb: configured for panel omap3beagle
-> omapfb: skipping hardware initialization
-> omapfb: DISPC version 3.0 initialized
-> Console: switching to colour frame buffer device 128x48
-> omapfb: Framebuffer initialized. Total vram 1572864 planes 1
-> omapfb: Pixclock 64000 kHz hfreq 59.0 kHz vfreq 76.9 Hz
-> Serial: 8250/16550 driver, 4 ports, IRQ sharing enabled
-> serial8250.0: ttyS0 at MMIO 0x4806a000 (irq =3D 72) is a ST16654
-> serial8250.0: ttyS1 at MMIO 0x4806c000 (irq =3D 73) is a ST16654
-> serial8250.0: ttyS2 at MMIO 0x49020000 (irq =3D 74) is a ST16654
-> console [ttyS2] enabled
-> i2c /dev entries driver
-> Driver 'sd' needs updating - please use bus_type methods
-> omap2-nand driver initializing
-> NAND device: Manufacturer ID: 0x2c, Chip ID: 0xba (Micron NAND 256MiB
-> 1,8V 16-bit)
-> cmdlinepart partition parsing not available
-> Creating 5 MTD partitions on "omap2-nand":
-> 0x000000000000-0x000000080000 : "X-Loader"
-> 0x000000080000-0x000000260000 : "U-Boot"
-> 0x000000260000-0x000000280000 : "U-Boot Env"
-> 0x000000280000-0x000000680000 : "Kernel"
-> 0x000000680000-0x000010000000 : "File System"
-> twl4030_rtc twl4030_rtc: rtc core: registered twl4030_rtc as rtc0
-> cpuidle: using governor ladder
-> cpuidle: using governor menu
-> mmci-omap-hs mmci-omap-hs.0: Failed to get debounce clock
-> TCP cubic registered
-> NET: Registered protocol family 17
-> NET: Registered protocol family 15
-> Power Management for TI OMAP3.
-> pm_dbg_init()
-> Disabling unused clock "sr2_fck"
-> Disabling unused clock "sr1_fck"
-> Disabling unused clock "mcbsp_fck"
-> Disabling unused clock "mcbsp_fck"
-> Disabling unused clock "mcbsp_fck"
-> Disabling unused clock "mcbsp_ick"
-> Disabling unused clock "mcbsp_ick"
-> Disabling unused clock "mcbsp_ick"
-> Disabling unused clock "gpt2_ick"
-> Disabling unused clock "gpt3_ick"
-> Disabling unused clock "gpt4_ick"
-> Disabling unused clock "gpt5_ick"
-> Disabling unused clock "gpt6_ick"
-> Disabling unused clock "gpt7_ick"
-> Disabling unused clock "gpt8_ick"
-> Disabling unused clock "gpt9_ick"
-> Disabling unused clock "wdt3_ick"
-> Disabling unused clock "wdt3_fck"
-> Disabling unused clock "gpio2_dbck"
-> Disabling unused clock "gpio3_dbck"
-> Disabling unused clock "gpio4_dbck"
-> Disabling unused clock "gpio5_dbck"
-> Disabling unused clock "gpio6_dbck"
-> Disabling unused clock "gpt9_fck"
-> Disabling unused clock "gpt8_fck"
-> Disabling unused clock "gpt7_fck"
-> Disabling unused clock "gpt6_fck"
-> Disabling unused clock "gpt5_fck"
-> Disabling unused clock "gpt4_fck"
-> Disabling unused clock "gpt3_fck"
-> Disabling unused clock "gpt2_fck"
-> Disabling unused clock "gpt1_ick"
-> Disabling unused clock "wdt1_ick"
-> Disabling unused clock "wdt2_ick"
-> Disabling unused clock "wdt2_fck"
-> Disabling unused clock "gpio1_dbck"
-> Disabling unused clock "gpt1_fck"
-> Disabling unused clock "cam_ick"
-> Disabling unused clock "cam_mclk"
-> Disabling unused clock "dss_96m_fck"
-> Disabling unused clock "des1_ick"
-> Disabling unused clock "sha11_ick"
-> Disabling unused clock "rng_ick"
-> Disabling unused clock "aes1_ick"
-> Disabling unused clock "ssi_ick"
-> Disabling unused clock "mailboxes_ick"
-> Disabling unused clock "mcbsp_ick"
-> Disabling unused clock "mcbsp_ick"
-> Disabling unused clock "gpt10_ick"
-> Disabling unused clock "gpt11_ick"
-> Disabling unused clock "i2c_ick"
-> Disabling unused clock "mcspi_ick"
-> Disabling unused clock "mcspi_ick"
-> Disabling unused clock "mcspi_ick"
-> Disabling unused clock "mcspi_ick"
-> Disabling unused clock "hdq_ick"
-> Disabling unused clock "mspro_ick"
-> Disabling unused clock "des2_ick"
-> Disabling unused clock "sha12_ick"
-> Disabling unused clock "aes2_ick"
-> Disabling unused clock "icr_ick"
-> Disabling unused clock "pka_ick"
-> Disabling unused clock "hsotgusb_ick"
-> Disabling unused clock "ssi_ssr_fck"
-> Disabling unused clock "hdq_fck"
-> Disabling unused clock "mcspi_fck"
-> Disabling unused clock "mcspi_fck"
-> Disabling unused clock "mcspi_fck"
-> Disabling unused clock "mcspi_fck"
-> Disabling unused clock "mcbsp_fck"
-> Disabling unused clock "mcbsp_fck"
-> Disabling unused clock "i2c_fck"
-> Disabling unused clock "mspro_fck"
-> Disabling unused clock "gpt11_fck"
-> Disabling unused clock "gpt10_fck"
-> Disabling unused clock "sad2d_ick"
-> Disabling unused clock "dpll5_ck"
-> clock: dpll5_ck failed transition to 'locked'
-> Disabling unused clock "dpll4_m6x2_ck"
-> Disabling unused clock "dpll4_m3x2_ck"
-> Disabling unused clock "dpll3_m3x2_ck"
-> Disabling unused clock "sys_clkout1"
-> VFP support v0.3: implementor 41 architecture 3 part 30 variant c rev=
- 1
-> twl4030_rtc twl4030_rtc: setting system clock to 2009-02-28 14:45:54
-> UTC (1235832354)
-> Empty flash at 0x014d884c ends at 0x014d9000
-> Empty flash at 0x0365d678 ends at 0x0365d800
-> Empty flash at 0x03d4b128 ends at 0x03d4b800
-> Empty flash at 0x065f2240 ends at 0x065f2800
-> Empty flash at 0x081d3c08 ends at 0x081d4000
-> jffs2_scan_dirent_node(): Node CRC failed on node at 0x082bdfe4: Read
-> 0xffffffff, calculated 0x8bd04d99
-> Empty flash at 0x082be01c ends at 0x082be800
-> Empty flash at 0x0ee1e7cc ends at 0x0ee1e800
-> JFFS2 error: (1) jffs2_build_inode_pass1: child dir "players" (ino
-> #35930) of dir ino #35929 appears to be a hard link
-> VFS: Mounted root (jffs2 filesystem) on device 31:4.
-> Freeing init memory: 96K
-> INIT: version 2.86 booting
+> +void omap_get_pending_irqs(u32 *pending_irqs, unsigned len)
+> +{
+> +	int i, idx = 0;
+> +
 
-Hmm, you have rootfs on NAND.  I haven't tested NAND to know if that
-driver might prevent RET.  It "should" be fine, but I am not sure. I
-know that OneNAND doesn't, and MMC doesn't.  Any chance you could try
-with rootfs on MMC?
+minor detail, but how about the more common 'j' instead of idx.
 
-I also recommend you boot with minimal rootfs by appending 'init=3D/bin=
-/sh'
-to the commandline.   That elminates any userspace stuff for now that m=
-ight
-be interfering as well.
+> +	for (i = 0; i < ARRAY_SIZE(irq_banks); i++) {
+> +		struct omap_irq_bank *bank = irq_banks + i;
+> +		int irq;
+> +
+> +		for (irq = 0; irq < bank->nr_irqs && idx < len;
+> +						irq += IRQ_BITS_PER_REG) {
+> +			int offset = irq & (~(IRQ_BITS_PER_REG - 1));
+> +
+> +			pending_irqs[idx++] = intc_bank_read_reg(bank,
+> +					(INTC_PENDING_IRQ0 + offset));
+> +		}
+> +	}
+> +}
+> +
+>  void __init omap_init_irq(void)
+>  {
+>  	unsigned long nr_of_irqs = 0;
+> diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
+> index 9102cee..2d17906 100644
+> --- a/arch/arm/mach-omap2/pm34xx.c
+> +++ b/arch/arm/mach-omap2/pm34xx.c
+> @@ -91,6 +91,13 @@ static struct prm_setup_times prm_setup = {
+>  	.voltsetup2 = 0xff,
+>  };
+>
+> +static struct pm_wakeup_status omap3_pm_wkst;
+> +
+> +void omap3_get_wakeup_status(struct pm_wakeup_status **pm_wkst)
+> +{
+> +	*pm_wkst = &omap3_pm_wkst;
+> +}
+> +
 
-> Please wait: booting...
-> Starting udevudevd version 124 started
->
-> Remounting root file system...
-> uncorrectable error : <3>uncorrectable error : <3>end_request: I/O
-> error, dev mtdblock0, sector 0
-> Buffer I/O error on device mtdblock0, logical block 0
-> uncorrectable error : <3>end_request: I/O error, dev mtdblock0, secto=
-r 8
-> Buffer I/O error on device mtdblock0, logical block 1
-> uncorrectable error : <3>end_request: I/O error, dev mtdblock0, secto=
-r 16
-> Buffer I/O error on device mtdblock0, logical block 2
-> uncorrectable error : <3>end_request: I/O error, dev mtdblock0, secto=
-r 24
-> Buffer I/O error on device mtdblock0, logical block 3
-> uncorrectable error : <3>uncorrectable error : <3>end_request: I/O
-> error, dev mtdblock0, sector 0
-> Buffer I/O error on device mtdblock0, logical block 0
-> logger: mount: mount point /proc/bus/usb does not exist
-> ALSA: Restoring mixer settings...
-> Configuring network interfaces... done.
-> Starting portmap daemon: portmap.
-> net.ipv4.conf.default.rp_filter =3D 1
-> net.ipv4.conf.all.rp_filter =3D 1
-> /usr/sbin/alsactl: load_state:1616: No soundcards found...
-> INIT: Entering runlevel: 5
-> No LEDs detected
-> Starting Dropbear SSH server: dropbear.
-> Starting advanced power management daemon: No APM support in kernel
-> (failed.)
-> Starting system message bus: dbus.
-> Starting Hardware abstraction layer hald
-> Starting syslogd/klogd: done
->  * Starting Avahi mDNS/DNS-SD Daemon: avahi-daemon
-> [ ok ]
-> Starting Bluetooth subsystem: hcid hid2hci.
-> Starting hidd...
-> Can't open HIDP control socket: Address family not supported by proto=
-col
-> Starting pand...
-> Failed to open control socket: Address family not supported by protoc=
-ol
-> Running ntpdate to synchronize clockError : Temporary failure in name=
- resolution
-> .
-> ERROR: Module omaplfb does not exist in /proc/modules
-> ERROR: Module pvrsrvkm does not exist in /proc/modules
-> Usage: insmod filename [args]
-> FATAL: Module omaplfb not found.
-> mknod: missing operand after `0'
-> Try `mknod --help' for more information.
-> chmod: cannot access `/dev/pvrsrvkm': No such file or directory
-> /dev/mem opened.
-> Memory mapped at address 0x4001f000.
-> Value at address 0x48004B40 (0x4001fb40): 0x2
-> Written 0x0; readback 0x0
-> Starting GPE display manager: gpe-dm
->
-> .-------.
-> |       |                  .-.
-> |   |   |-----.-----.-----.| |   .----..-----.-----.
-> |       |     | __  |  ---'| '--.|  .-'|     |     |
-> |   |   |  |  |     |---  ||  --'|  |  |  '  | | | |
-> '---'---'--'--'--.  |-----''----''--'  '-----'-'-'-'
->                 -'  |
->                 '---'
->
-> The Angstrom Distribution beagleboard ttyS2
->
-> Angstrom 2009.X-test-20090309 beagleboard ttyS2
->
-> beagleboard login: root
-> root@beagleboard:~# mount /debug/
-> root@beagleboard:~# cd /sys/power/
-> root@beagleboard:/sys/power# echo 1 > clocks_off_while_idle
-> root@beagleboard:/sys/power# dmesg -n 8
-> root@beagleboard:/sys/power# echo mem > state
-> PM: Syncing filesystems ... done.
-> PM: Preparing system for mem sleep
-> Freezing user space processes ... (elapsed 0.00 seconds) done.
-> Freezing remaining freezable tasks ... (elapsed 0.00 seconds) done.
-> PM: Entering mem sleep
-> Suspending console(s) (use no_console_suspend to debug)
-> omapfb omapfb: timeout waiting for FRAME DONE
-> clockdomain: clkdm per_clkdm: removing clk uart3_ick
-> clockdomain: clkdm per_clkdm: removing clk per_48m_fck
-> clockdomain: clkdm per_clkdm: removing clk uart3_fck
-> clockdomain: clkdm per_clkdm: adding clk uart3_ick
-> clockdomain: clkdm per_clkdm: adding clk uart3_fck
-> clockdomain: clkdm per_clkdm: adding clk per_48m_fck
-> Powerdomain (core_pwrdm) didn't enter target state 1
-> Powerdomain (per_pwrdm) didn't enter target state 1
-> Could not enter target state in pm_suspend
-> PM: Finishing wakeup.
-> Restarting tasks ... done.
-> root@beagleboard:/sys/power# cat /debug/pm_debug/count
-> usbhost_pwrdm (RET),OFF:0,RET:1,INA:0,ON:1
-> sgx_pwrdm (OFF),OFF:1,RET:0,INA:0,ON:1
-> per_pwrdm (ON),OFF:0,RET:0,INA:0,ON:1
-> dss_pwrdm (ON),OFF:0,RET:1,INA:0,ON:2
-> cam_pwrdm (RET),OFF:0,RET:1,INA:0,ON:1
-> core_pwrdm (ON),OFF:0,RET:0,INA:0,ON:1
-> neon_pwrdm (ON),OFF:0,RET:1,INA:958,ON:960
-> mpu_pwrdm (ON),OFF:0,RET:1,INA:958,ON:960
-> iva2_pwrdm (RET),OFF:0,RET:1,INA:0,ON:1
-> per_clkdm->per_pwrdm (9)
-> usbhost_clkdm->usbhost_pwrdm (0)
-> cam_clkdm->cam_pwrdm (0)
-> dss_clkdm->dss_pwrdm (2)
-> core_l4_clkdm->core_pwrdm (11)
-> core_l3_clkdm->core_pwrdm (4)
-> d2d_clkdm->core_pwrdm (0)
-> sgx_clkdm->sgx_pwrdm (0)
-> iva2_clkdm->iva2_pwrdm (0)
-> neon_clkdm->neon_pwrdm (0)
-> mpu_clkdm->mpu_pwrdm (0)
-> virt_opp_clkdm->wkup_pwrdm (0)
-> prm_clkdm->wkup_pwrdm (10)
-> cm_clkdm->core_pwrdm (4)
-> root@beagleboard:/sys/power# cat /debug/pm_debug/registers/1
-> MOD: CM_IVA2 (48014000)
->   04 =3D> 00000037  20 =3D> 00000001  34 =3D> 00000001  40 =3D> 00096=
-80c
->   44 =3D> 00000001  48 =3D> 00000003
-> MOD: CM_OCP (48004800)
->   00 =3D> 00000010  10 =3D> 00000001
-> MOD: CM_MPU (48004900)
->   04 =3D> 00000037  24 =3D> 00000001  34 =3D> 00000001  40 =3D> 0011f=
-40c
->   44 =3D> 00000001  48 =3D> 00000003  4c =3D> 00000001
-> MOD: CM_CORE (48004a00)
->   10 =3D> 00000042  20 =3D> ffffffbd  24 =3D> 0000001f  28 =3D> 00000=
-00d
->   30 =3D> fffffed9  34 =3D> 0000001f  38 =3D> 0000000c  40 =3D> 00000=
-30a
->   48 =3D> 0000003f  4c =3D> 00000003
-> MOD: CM_SGX (48004b00)
->   20 =3D> 00000001  48 =3D> 00000003
-> MOD: CM_WKUP (48004c00)
->   10 =3D> 0000000e  20 =3D> 000002f1  30 =3D> 0000003f  40 =3D> 00000=
-015
-> MOD: CM_CCR (48004d00)
->   00 =3D> f8311037  04 =3D> 00000017  20 =3D> 00000201  30 =3D> 00000=
-009
->   34 =3D> 00000001  40 =3D> 094c0c00  44 =3D> 0001b00c  48 =3D> 00000=
-009
->   50 =3D> 00000001  70 =3D> 00000003
-> MOD: CM_DSS (48004e00)
->   20 =3D> 00000003  30 =3D> 00000001  40 =3D> 00001006  48 =3D> 00000=
-003
-> MOD: CM_CAM (48004f00)
->   20 =3D> 00000001  30 =3D> 00000001  40 =3D> 00000004  48 =3D> 00000=
-003
-> MOD: CM_PER (48005000)
->   10 =3D> 0003e000  20 =3D> 00001fff  30 =3D> 0003ffff  40 =3D> 00000=
-0ff
->   44 =3D> 00000006  48 =3D> 00000003  4c =3D> 00000001
-> MOD: CM_EMU (48005100)
->   40 =3D> 03020a50  48 =3D> 00000001
-> MOD: CM_NEON (48005300)
->   48 =3D> 00000003
-> MOD: CM_USB (48005400)
->   20 =3D> 00000003  30 =3D> 00000001  48 =3D> 00000003
-> MOD: PRM_IVA2 (48316000)
->   50 =3D> 00000007  e0 =3D> 00ff0f05  e4 =3D> 00000555  e8 =3D> 00000=
-555
->   f8 =3D> 00000005
-> MOD: PRM_OCP (48306800)
->   04 =3D> 00000010  14 =3D> 00000001  1c =3D> 00000201
-> MOD: PRM_MPU (48306900)
->   58 =3D> 00000001  d4 =3D> 00000012  e0 =3D> 00030105  e4 =3D> 00000=
-0c7
->   e8 =3D> 000000c7
-> MOD: PRM_CORE (48306a00)
->   58 =3D> 00000301  a0 =3D> c33ffe18  a4 =3D> c33ffe18  a8 =3D> c33ff=
-e18
->   e0 =3D> 000f0305  e4 =3D> 000000f7  e8 =3D> 000000f7  f0 =3D> 00000=
-004
->   f4 =3D> 00000004  f8 =3D> 00000004
-> MOD: PRM_SGX (48306b00)
->   e0 =3D> 00030104
-> MOD: PRM_WKUP (48306c00)
->   a0 =3D> 0000010b  a4 =3D> 0000010b
-> MOD: PRM_CCR (48306d00)
->   40 =3D> 00000003
-> MOD: PRM_DSS (48306e00)
->   58 =3D> 00000001  a0 =3D> 00000001  e0 =3D> 00030105  e4 =3D> 00000=
-001
->   e8 =3D> 00000001
-> MOD: PRM_CAM (48306f00)
->   58 =3D> 00000001  e0 =3D> 00030105  e4 =3D> 00000001  e8 =3D> 00000=
-001
-> MOD: PRM_PER (48307000)
->   58 =3D> 00000001  a0 =3D> 0003efff  a4 =3D> 0003efff  a8 =3D> 0003e=
-fff
->   c8 =3D> 00000007  e0 =3D> 00030105  e4 =3D> 00000007  e8 =3D> 00000=
-007
-> MOD: PRM_EMU (48307100)
->   58 =3D> 00000001  e4 =3D> 00000100
-> MOD: PRM_GLBL (48307200)
->   20 =3D> 00120012  24 =3D> 00010000  2c =3D> 301e1e30  30 =3D> 2c1e1=
-e2c
->   34 =3D> 00120000  38 =3D> 00000018  54 =3D> 00001006  58 =3D> 00000=
-001
->   60 =3D> 00000002  64 =3D> 00000050  70 =3D> 00000088  90 =3D> 0fff0=
-fff
->   94 =3D> 000000ff  98 =3D> 000000ff  9c =3D> 00000002  a0 =3D> 00000=
-0ff
->   c4 =3D> 00000001  e4 =3D> 00000001
-> MOD: PRM_NEON (48307300)
->   58 =3D> 00000001  c8 =3D> 00000002  e0 =3D> 00000005  e4 =3D> 00000=
-003
->   e8 =3D> 00000003
-> MOD: PRM_USB (48307400)
->   58 =3D> 00000001  a0 =3D> 00000001  a4 =3D> 00000001  a8 =3D> 00000=
-001
->   e0 =3D> 00030105  e4 =3D> 00000001  e8 =3D> 00000001
-> root@beagleboard:/sys/power#
+Can you rename this to omap3_get_last_wake_state()
 
-The main thing that I see in this dump is that some of the bits marked
-reserved in the TRM (such as SSI, SDMA etc.) are not auto-idled.  The
-kernel isn't currently taking care of these corner cases and relies on
-the bootloader not to blindly enable things.
+>  static inline void omap3_per_save_context(void)
+>  {
+>  	omap3_gpio_save_context();
+> @@ -174,6 +181,7 @@ static irqreturn_t prcm_interrupt_handler (int
+> irq, void *dev_id)
+>
+>  	/* WKUP */
+>  	wkst = prm_read_mod_reg(WKUP_MOD, PM_WKST);
+> +	omap3_pm_wkst.wkup = wkst;
+>  	if (wkst) {
+>  		iclk = cm_read_mod_reg(WKUP_MOD, CM_ICLKEN);
+>  		fclk = cm_read_mod_reg(WKUP_MOD, CM_FCLKEN);
+> @@ -187,6 +195,7 @@ static irqreturn_t prcm_interrupt_handler (int
+> irq, void *dev_id)
+>
+>  	/* CORE */
+>  	wkst = prm_read_mod_reg(CORE_MOD, PM_WKST1);
+> +	omap3_pm_wkst.core1 = wkst;
+>  	if (wkst) {
+>  		iclk = cm_read_mod_reg(CORE_MOD, CM_ICLKEN1);
+>  		fclk = cm_read_mod_reg(CORE_MOD, CM_FCLKEN1);
+> @@ -198,6 +207,7 @@ static irqreturn_t prcm_interrupt_handler (int
+> irq, void *dev_id)
+>  		cm_write_mod_reg(fclk, CORE_MOD, CM_FCLKEN1);
+>  	}
+>  	wkst = prm_read_mod_reg(CORE_MOD, OMAP3430ES2_PM_WKST3);
+> +	omap3_pm_wkst.core3 = wkst;
+>  	if (wkst) {
+>  		iclk = cm_read_mod_reg(CORE_MOD, CM_ICLKEN3);
+>  		fclk = cm_read_mod_reg(CORE_MOD, OMAP3430ES2_CM_FCLKEN3);
+> @@ -211,6 +221,7 @@ static irqreturn_t prcm_interrupt_handler (int
+> irq, void *dev_id)
+>
+>  	/* PER */
+>  	wkst = prm_read_mod_reg(OMAP3430_PER_MOD, PM_WKST);
+> +	omap3_pm_wkst.per = wkst;
+>  	if (wkst) {
+>  		iclk = cm_read_mod_reg(OMAP3430_PER_MOD, CM_ICLKEN);
+>  		fclk = cm_read_mod_reg(OMAP3430_PER_MOD, CM_FCLKEN);
+> @@ -225,6 +236,7 @@ static irqreturn_t prcm_interrupt_handler (int
+> irq, void *dev_id)
+>  	if (omap_rev() > OMAP3430_REV_ES1_0) {
+>  		/* USBHOST */
+>  		wkst = prm_read_mod_reg(OMAP3430ES2_USBHOST_MOD, PM_WKST);
+> +		omap3_pm_wkst.usbhost = wkst;
+>  		if (wkst) {
+>  			iclk = cm_read_mod_reg(OMAP3430ES2_USBHOST_MOD,
+>  					       CM_ICLKEN);
 
-After you update bootloaders, could you post the same results?
+I like this is much better.
 
-Thanks,
+> diff --git a/arch/arm/mach-omap2/prcm-common.h
+> b/arch/arm/mach-omap2/prcm-common.h
+> index cb1ae84..1f340aa 100644
+> --- a/arch/arm/mach-omap2/prcm-common.h
+> +++ b/arch/arm/mach-omap2/prcm-common.h
+> @@ -273,6 +273,10 @@
+>  #define OMAP3430_ST_D2D_SHIFT				3
+>  #define OMAP3430_ST_D2D_MASK				(1 << 3)
+>
+> +/* PM_WKST3_CORE, CM_IDLEST3_CORE shared bits */
+> +#define OMAP3430_ST_USBTLL_SHIFT			2
+> +#define OMAP3430_ST_USBTLL_MASK				(1 << 2)
+> +
+>  /* CM_FCLKEN_WKUP, CM_ICLKEN_WKUP, PM_WKEN_WKUP shared bits */
+>  #define OMAP3430_EN_GPIO1				(1 << 3)
+>  #define OMAP3430_EN_GPIO1_SHIFT				3
+> diff --git a/arch/arm/mach-omap2/prm-regbits-34xx.h
+> b/arch/arm/mach-omap2/prm-regbits-34xx.h
+> index cb648f9..6066032 100644
+> --- a/arch/arm/mach-omap2/prm-regbits-34xx.h
+> +++ b/arch/arm/mach-omap2/prm-regbits-34xx.h
+> @@ -332,6 +332,8 @@
+>  /* PM_IVA2GRPSEL1_CORE specific bits */
+>
+>  /* PM_WKST1_CORE specific bits */
+> +#define OMAP3430_ST_MMC3_SHIFT				30
+> +#define OMAP3430_ST_MMC3_MASK				(1 << 30)
+>
+>  /* PM_PWSTCTRL_CORE specific bits */
+>  #define OMAP3430_MEM2ONSTATE_SHIFT			18
+> @@ -373,6 +375,7 @@
+>  /* PM_IVA2GRPSEL_WKUP specific bits */
+>
+>  /* PM_WKST_WKUP specific bits */
+> +#define OMAP3430_ST_IO_CHAIN				(1 << 16)
+>  #define OMAP3430_ST_IO					(1 << 8)
+>
+>  /* PRM_CLKSEL */
+> @@ -430,6 +433,9 @@
+>
+>  /* PM_PREPWSTST_PER specific bits */
+>
+> +/* PM_WKST_USBHOST specific bits */
+> +#define OMAP3430_ST_USBHOST				(1 << 0)
+> +
+>  /* RM_RSTST_EMU specific bits */
+>
+>  /* PM_PWSTST_EMU specific bits */
+> diff --git a/arch/arm/mach-omap2/wake34xx.c b/arch/arm/mach-omap2/wake34xx.c
+> new file mode 100644
+> index 0000000..de21f97
+> --- /dev/null
+> +++ b/arch/arm/mach-omap2/wake34xx.c
+> @@ -0,0 +1,539 @@
+> +/*
+> + * wake34xx.c
+> + *
+> + * Copyright (c) 2009 Samsung Eletronics
+> + *
+> + * Author: Kim Kyuwon <q1.kim@samsung.com>
+> + *
+> + * This program is free software; you can redistribute it and/or modify
+> + * it under the terms of the GNU General Public License version 2 as
+> + * published by the Free Software Foundation.
+> + *
+> + */
+> +
+> +#include <linux/kernel.h>
+> +#include <linux/init.h>
+> +#include <linux/platform_device.h>
+> +#include <linux/interrupt.h>
+> +
+> +#include <mach/pm.h>
+> +#include <mach/gpio.h>
+> +#include <mach/wake.h>
+> +
+> +#include "prm-regbits-34xx.h"
+> +
+> +/*
+> + * Sometimes, it is necessary to find out "what does wake up my board from
+> + * suspend?". Notifying wake-up source feature may be used to blame
+> + * unexpected wake-up events which increase power consumption. And user
+> + * mode applications can act smartly according to the wake-up event from
+> + * Suspend-to-RAM state to minimize power consumption. Note that this
+> + * driver can't inform wake-up events from idle state. This driver uses
+> + * sysfs interface to give information to user mode applications.
+> + */
+> +
+> +#define WAKE_STR_LEN	64
+> +#define WAKE_BUF_LEN	32
+> +
+> +/* Note: Allowed to use Only in the wakeup_source_show() function */
+> +static struct omap_wake *g_wake;
+> +
+> +static char wakeup_gpio[WAKE_STR_LEN];
+> +
+> +struct omap_wake {
+> +	u32 pending_irqs[INTCPS_NR_MIR_REGS];
+> +};
+> +
+> +struct wake_event {
+> +	u32 		mask;
+> +	const char 	*name;
+> +};
+> +
+> +static struct wake_event omap3_wkup_events[] = {
+> +	{ OMAP3430_ST_IO_CHAIN,			"ST_IO" },
+> +	{ OMAP3430_ST_IO,			"ST_SR2" },
+> +	{ OMAP3430_ST_SR2_MASK,			"ST_SR2" },
+> +	{ OMAP3430_ST_SR1_MASK,			"ST_SR1" },
+> +	{ OMAP3430_ST_GPIO1_MASK,		"ST_GPIO1" },
+> +	{ OMAP3430_ST_GPT12_MASK,		"ST_GPT12" },
+> +	{ OMAP3430_ST_GPT1_MASK,		"ST_GPT1" },
+> +};
+> +
+> +static struct wake_event omap3_per_events[] = {
+> +	{ OMAP3430_ST_GPIO6_MASK,		"ST_GPIO6" },
+> +	{ OMAP3430_ST_GPIO5_MASK,		"ST_GPIO5" },
+> +	{ OMAP3430_ST_GPIO4_MASK,		"ST_GPIO4" },
+> +	{ OMAP3430_ST_GPIO3_MASK,		"ST_GPIO3" },
+> +	{ OMAP3430_ST_GPIO2_MASK,		"ST_GPIO2" },
+> +	{ OMAP3430_ST_UART3_MASK,		"ST_UART3" },
+> +	{ OMAP3430_ST_GPT9_MASK,		"ST_GPT9" },
+> +	{ OMAP3430_ST_GPT8_MASK,		"ST_GPT8" },
+> +	{ OMAP3430_ST_GPT7_MASK,		"ST_GPT7" },
+> +	{ OMAP3430_ST_GPT6_MASK,		"ST_GPT6" },
+> +	{ OMAP3430_ST_GPT5_MASK,		"ST_GPT5" },
+> +	{ OMAP3430_ST_GPT4_MASK,		"ST_GPT4" },
+> +	{ OMAP3430_ST_GPT3_MASK,		"ST_GPT3" },
+> +	{ OMAP3430_ST_GPT2_MASK,		"ST_GPT2" },
+> +	{ OMAP3430_EN_MCBSP4,			"EN_MCBSP4" },
+> +	{ OMAP3430_EN_MCBSP3,			"EN_MCBSP3" },
+> +	{ OMAP3430_EN_MCBSP2,			"EN_MCBSP2" },
+> +};
+> +
+> +static struct wake_event omap3_core1_events[] = {
+> +	{ OMAP3430_ST_MMC3_MASK,		"ST_MMC3" },
+> +	{ OMAP3430_ST_MMC2_MASK,		"ST_MMC2" },
+> +	{ OMAP3430_ST_MMC1_MASK,		"ST_MMC1" },
+> +	{ OMAP3430_ST_MCSPI4_MASK,		"ST_MCSPI4" },
+> +	{ OMAP3430_ST_MCSPI3_MASK,		"ST_MCSPI3" },
+> +	{ OMAP3430_ST_MCSPI2_MASK,		"ST_MCSPI2" },
+> +	{ OMAP3430_ST_MCSPI1_MASK,		"ST_MCSPI1" },
+> +	{ OMAP3430_ST_I2C3_MASK,		"ST_I2C3" },
+> +	{ OMAP3430_ST_I2C2_MASK,		"ST_I2C2" },
+> +	{ OMAP3430_ST_I2C1_MASK,		"ST_I2C1" },
+> +	{ OMAP3430_ST_UART1_MASK,		"ST_UART1" },
+> +	{ OMAP3430_ST_GPT11_MASK,		"ST_GPT11" },
+> +	{ OMAP3430_ST_GPT10_MASK,		"ST_GPT10" },
+> +	{ OMAP3430_ST_MCBSP5_MASK,		"ST_MCBSP5" },
+> +	{ OMAP3430_ST_MCBSP1_MASK,		"ST_MCBSP1" },
+> +};
+> +
+> +static struct wake_event omap3es1_core1_events[] = {
+> +	{ OMAP3430ES1_ST_FSHOSTUSB_MASK,	"ST_FSHOSTUSB" },
+> +	{ OMAP3430ES1_ST_HSOTGUSB_MASK,		"ST_HSOTGUSB" },
+> +	{ OMAP3430_ST_D2D_MASK,			"ST_D2D" },
+> +};
+> +
+> +static struct wake_event omap3es2_core1_events[] = {
+> +	{ OMAP3430ES2_ST_HSOTGUSB_STDBY_MASK,	"ST_HSOTGUSB" },
+> +};
+> +
+> +static struct wake_event omap3_core3_events[] = {
+> +	{ OMAP3430_ST_USBTLL_MASK,		"ST_USBTLL" },
+> +};
+> +
+> +static struct wake_event omap3_usbhost_events[] = {
+> +	{ OMAP3430_ST_USBHOST,			"ST_USBHOST" },
+> +};
+> +
+> +static ssize_t wakeup_source_show(struct kobject *kobj,
+> +				struct kobj_attribute *attr, char *buf);
+> +
+> +/*
+> + * Get the first pending MPU IRQ number from 'irq_start'.
+> + * If none, return -EINVAL.
+> + */
+> +int omap_wake_get_pending_irq(struct omap_wake *wake, unsigned int irq_start)
+> +{
+> +	int i, bits_skip, idx_start;
+> +
+> +	if (irq_start >= INTCPS_NR_IRQS)
+> +		return -EINVAL;
+> +
+> +	bits_skip = irq_start % IRQ_BITS_PER_REG;
+> +	idx_start = irq_start / IRQ_BITS_PER_REG;
+> +
+> +	for (i = idx_start; i < ARRAY_SIZE(wake->pending_irqs); i++) {
+> +		unsigned long val, bit;
+> +
+> +		val = wake->pending_irqs[i];
+> +		if (!val)
+> +			continue;
+> +
+> +		if (idx_start == i)
+> +			bit = find_next_bit(&val, IRQ_BITS_PER_REG, bits_skip);
+> +		else
+> +			bit = find_first_bit(&val, IRQ_BITS_PER_REG);
+> +
+> +		if (bit < IRQ_BITS_PER_REG)
+> +			return i * IRQ_BITS_PER_REG + bit;
+> +	}
+> +
+> +	return -EINVAL;
+> +}
+> +
+> +static void omap_wake_strncat(char *dest, char *src, size_t count)
+> +{
+> +	int len;
+> +
+> +	if (!src[0])
+> +		return;
+> +
+> +	if (dest[0])
+> +		len = strlen(dest) + strlen(src) + 2;
+> +	else
+> +		len = strlen(dest) + strlen(src);
+> +
+> +	if (len > count) {
+> +		printk(KERN_ERR "Can't strncat: %s\n", src);
+
+pr_err(...)
+
+> +		return;
+> +	}
+> +
+> +	if (dest[0])
+> +		strcat(dest, ", ");
+> +	strcat(dest, src);
+> +}
+> +
+> +static int omap_wake_lookup_event(u32 wkst, char *event,
+> +				struct wake_event *events, unsigned len)
+> +{
+> +	int i;
+> +
+> +	for (i = 0; i < len; i++)
+> +		if (wkst & events[i].mask) {
+> +			strncpy(event, events[i].name, WAKE_BUF_LEN - 1);
+> +			return 0;
+> +		}
+> +
+> +	return -EINVAL;
+> +}
+> +
+> +static void omap_wake_detect_wkup(u32 wkst, char *event)
+> +{
+> +	int error = omap_wake_lookup_event(wkst, event,
+> +		omap3_wkup_events, ARRAY_SIZE(omap3_wkup_events));
+> +	if (error)
+> +		snprintf(event, WAKE_BUF_LEN, "WKUP:0x%08x", wkst);
+> +}
+> +
+> +static void omap_wake_detect_per(u32 wkst, char *event)
+> +{
+> +	int error = omap_wake_lookup_event(wkst, event,
+> +		omap3_per_events, ARRAY_SIZE(omap3_per_events));
+> +	if (error)
+> +		snprintf(event, WAKE_BUF_LEN, "PER:0x%08x", wkst);
+> +}
+> +
+> +static void omap_wake_detect_core1(u32 wkst, char *event)
+> +{
+> +	int error;
+> +
+> +	error = omap_wake_lookup_event(wkst, event,
+> +		omap3_core1_events, ARRAY_SIZE(omap3_core1_events));
+> +	if (!error)
+> +		return;
+> +
+> +	if (omap_rev() == OMAP3430_REV_ES1_0) {
+> +		error = omap_wake_lookup_event(wkst, event,
+> +					omap3es1_core1_events,
+> +					ARRAY_SIZE(omap3es1_core1_events));
+> +	} else {
+> +		error = omap_wake_lookup_event(wkst, event,
+> +					omap3es2_core1_events,
+> +					ARRAY_SIZE(omap3es2_core1_events));
+> +	}
+> +	if (!error)
+> +		return;
+> +
+> +	snprintf(event, WAKE_BUF_LEN, "CORE1:0x%08x", wkst);
+> +}
+> +
+> +static void omap_wake_detect_core3(u32 wkst, char *event)
+> +{
+> +	int error = omap_wake_lookup_event(wkst, event,
+> +		omap3_core3_events, ARRAY_SIZE(omap3_core3_events));
+> +	if (error)
+> +		snprintf(event, WAKE_BUF_LEN, "CORE3:0x%08x", wkst);
+> +}
+> +
+> +static void omap_wake_detect_usbhost(u32 wkst, char *event)
+> +{
+> +	int error = omap_wake_lookup_event(wkst, event,
+> +		omap3_usbhost_events, ARRAY_SIZE(omap3_usbhost_events));
+> +	if (error)
+> +		snprintf(event, WAKE_BUF_LEN, "USBHOST:0x%08x", wkst);
+> +}
+
+I'm still not liking this method of multiple functions that are
+basically the same.   The only thing different is CORE1 which has some
+conditional code based on cpu_rev.
+
+To make this a little cleaner, you could have an array that contains
+the WKST, powerdomain name, and CPU rev flags, then have a common
+function that walks that array and dumps all.
+
+> +/* Detect wake-up events */
+> +static void omap_wake_detect_wakeup(struct omap_wake *wake,
+> +					char *wake_irq, char *wake_event,
+> +					size_t irq_size, size_t event_size)
+> +{
+
+None of these functions really "detect" wakeups.  They are merely
+converting the wakeup into a string.  Maybe "show" or "dump" is a
+better word than detect.
+
+> +	struct pm_wakeup_status *pm_wkst;
+> +	char buf[WAKE_BUF_LEN] = {0, };
+> +	int irq, len, gpio_irq = 0, prcm_irq = 0;
+> +
+> +	/* IRQ */
+> +	irq = omap_wake_get_pending_irq(wake, 0);
+> +	while (irq >= 0) {
+> +		if (irq == INT_34XX_SYS_NIRQ)
+> +			omap_wake_strncat(wake_event, "sys_nirq",
+> +							event_size - 1);
+> +		else if (irq == INT_34XX_PRCM_MPU_IRQ)
+> +			prcm_irq = 1;
+> +		else if (irq >= INT_34XX_GPIO_BANK1 &&
+> +					irq <= INT_34XX_GPIO_BANK6)
+> +			gpio_irq = 1;
+> +
+> +		len = strlen(wake_irq) +
+> +			snprintf(buf, WAKE_BUF_LEN, "%d", irq);
+> +		if (len > irq_size - 1)
+> +			break;
+> +
+> +		strcat(wake_irq, buf);
+> +
+> +		irq = omap_wake_get_pending_irq(wake, irq + 1);
+> +		if (irq >= 0) {
+> +			len = strlen(wake_irq) + 2;
+> +			if (len > irq_size - 1)
+> +				break;
+> +
+> +			strcat(wake_irq, ", ");
+> +		}
+> +	}
+> +	if (!wake_irq[0])
+> +		strncpy(wake_irq, "Unknown", irq_size - 1);
+> +
+> +	if (gpio_irq)
+> +		omap_wake_strncat(wake_event, wakeup_gpio, event_size - 1);
+> +
+> +	if (!prcm_irq)
+> +		goto end_detect;
+> +
+> +	omap3_get_wakeup_status(&pm_wkst);
+> +
+> +	/* WKUP */
+> +	if (pm_wkst->wkup) {
+> +		omap_wake_detect_wkup(pm_wkst->wkup, buf);
+> +		omap_wake_strncat(wake_event, buf, event_size - 1);
+> +	}
+> +
+> +	/* PER */
+> +	if (pm_wkst->per) {
+> +		omap_wake_detect_per(pm_wkst->per, buf);
+> +		omap_wake_strncat(wake_event, buf, event_size - 1);
+> +	}
+> +
+> +	/* CORE */
+> +	if (pm_wkst->core1) {
+> +		omap_wake_detect_core1(pm_wkst->core1, buf);
+> +		omap_wake_strncat(wake_event, buf, event_size - 1);
+> +	}
+> +	if (pm_wkst->core3) {
+> +		omap_wake_detect_core3(pm_wkst->core3, buf);
+> +		omap_wake_strncat(wake_event, buf, event_size - 1);
+> +	}
+> +
+> +	/* USBHOST */
+> +	if ((omap_rev() > OMAP3430_REV_ES1_0) && (pm_wkst->usbhost)) {
+> +		omap_wake_detect_usbhost(pm_wkst->usbhost, buf);
+> +		omap_wake_strncat(wake_event, buf, event_size - 1);
+> +	}
+
+Here is where you would just walk the array of WKST/domain tuples.
+
+> +end_detect:
+> +	if (!wake_event[0])
+> +		strncpy(wake_event, "Unknown", event_size - 1);
+> +}
+> +
+> +static struct kobj_attribute wakeup_irq_attr =
+> +	__ATTR(omap_resume_irq, 0644, wakeup_source_show, NULL);
+> +
+> +static struct kobj_attribute wakeup_event_attr =
+> +	__ATTR(omap_resume_event, 0644, wakeup_source_show, NULL);
+> +
+> +static ssize_t wakeup_source_show(struct kobject *kobj,
+> +				struct kobj_attribute *attr, char *buf)
+> +{
+> +	char wakeup_irq[WAKE_STR_LEN] = {0, };
+> +	char wakeup_event[WAKE_STR_LEN] = {0, };
+> +
+> +	if (!g_wake)
+> +		return -EINVAL;
+> +
+> +	omap_wake_detect_wakeup(g_wake, wakeup_irq, wakeup_event,
+> +				sizeof(wakeup_irq), sizeof(wakeup_event));
+> +
+> +	if (attr == &wakeup_irq_attr)
+> +		return sprintf(buf, "%s\n", wakeup_irq);
+> +	else if (attr == &wakeup_event_attr)
+> +		return sprintf(buf, "%s\n", wakeup_event);
+> +	else
+> +		return -EINVAL;
+> +}
+> +
+> +static irqreturn_t omap_wake_detect_gpio(int irq, void *dev_id)
+> +{
+> +	omap_wake_strncat(wakeup_gpio, dev_id, sizeof(wakeup_gpio) - 1);
+> +
+> +	return IRQ_HANDLED;
+> +}
+
+Again this is not a "detect".  How about omap_wake_gpio_interrupt()
+
+> +static int __devinit omap_wake_probe(struct platform_device *pdev)
+> +{
+> +	struct omap_wake *wake;
+> +	struct omap_wake_platform_data *pdata = pdev->dev.platform_data;
+> +	struct gpio_wake *gw;
+> +	int i, ret;
+> +
+> +	wake = kzalloc(sizeof(struct omap_wake), GFP_KERNEL);
+> +	if (wake == NULL) {
+> +		dev_err(&pdev->dev, "failed to allocate driver data\n");
+> +		return -ENOMEM;
+> +	}
+> +
+> +	platform_set_drvdata(pdev, wake);
+> +
+> +	/*
+> +	 * It may be good to configure GPIO wake-up sources in each driver.
+> +	 * Buf if the specific device driver doesn't exist, you can use
+> +	 * omap-wake driver to configure gpio wake-up sources.
+> +	 */
+> +	for (i = 0; i < pdata->gpio_wake_num; i++) {
+> +		gw = pdata->gpio_wakes + i;
+> +
+> +		if (gw->request) {
+> +			ret = gpio_request(gw->gpio, gw->name);
+> +			if (ret) {
+> +				dev_err(&pdev->dev, "can't request gpio%d"
+> +					", return %d\n", gw->gpio, ret);
+> +				goto failed_free_gpio;
+> +			}
+> +		}
+> +		gpio_direction_input(gw->gpio);
+> +		enable_irq_wake(gpio_to_irq(gw->gpio));
+> +	}
+> +
+> +	/*
+> +	 * In wakeup_source_show(), we can't access platform_device
+> +	 * or omap_wake structure without a global variable. so 'g_wake' is
+> +	 * needed, but please use it carefully.
+> +	 */
+> +	g_wake = wake;
+> +
+> +	ret = sysfs_create_file(power_kobj, &wakeup_irq_attr.attr);
+> +	if (ret)
+> +		dev_err(&pdev->dev, "sysfs_create_file %s failed: %d\n",
+> +					wakeup_irq_attr.attr.name, ret);
+> +
+> +	ret = sysfs_create_file(power_kobj, &wakeup_event_attr.attr);
+> +	if (ret)
+> +		dev_err(&pdev->dev, "sysfs_create_file %s failed: %d\n",
+> +					wakeup_event_attr.attr.name, ret);
+> +
+> +	return 0;
+> +
+> +failed_free_gpio:
+> +	for (i--; i >= 0; i--) {
+> +		gw = pdata->gpio_wakes + i;
+> +
+> +		if (gw->request)
+> +			gpio_free(gw->gpio);
+> +	}
+> +	kfree(wake);
+> +
+> +	return ret;
+> +}
+> +
+> +static int __devexit omap_wake_remove(struct platform_device *pdev)
+> +{
+> +	struct omap_wake *wake = platform_get_drvdata(pdev);
+> +	struct omap_wake_platform_data *pdata = pdev->dev.platform_data;
+> +	struct gpio_wake *gw;
+> +	int i;
+> +
+> +	for (i = 0; i < pdata->gpio_wake_num; i++) {
+> +		gw = pdata->gpio_wakes + i;
+> +
+> +		if (gw->request)
+> +			gpio_free(gw->gpio);
+> +
+> +		disable_irq_wake(gpio_to_irq(gw->gpio));
+> +	}
+> +	kfree(wake);
+> +
+> +	return 0;
+> +}
+> +
+> +static int omap_wake_suspend(struct platform_device *pdev, pm_message_t state)
+> +{
+> +	struct omap_wake_platform_data *pdata = pdev->dev.platform_data;
+> +	struct gpio_wake *gw;
+> +	int i, ret;
+> +
+> +	for (i = 0; i < pdata->gpio_wake_num; i++) {
+> +		gw = pdata->gpio_wakes + i;
+> +
+> +		ret = request_irq(gpio_to_irq(gw->gpio), omap_wake_detect_gpio,
+> +			gw->irqflag | IRQF_SHARED, gw->name, (void *)gw->name);
+> +		if (ret) {
+> +			dev_err(&pdev->dev, "can't get IRQ%d, return %d\n",
+> +					gpio_to_irq(gw->gpio), ret);
+> +			goto failed_free_irq;
+> +		}
+> +	}
+> +
+> +	memset(wakeup_gpio, 0x0, WAKE_STR_LEN);
+> +
+> +	return 0;
+> +
+> +failed_free_irq:
+> +	for (i--; i >= 0; i--) {
+> +		gw = pdata->gpio_wakes + i;
+> +		free_irq(gpio_to_irq(gw->gpio),  (void *)gw->name);
+> +	}
+> +
+> +	return ret;
+> +}
+> +
+> +static int omap_wake_resume_early(struct platform_device *pdev)
+> +{
+> +	struct omap_wake *wake = platform_get_drvdata(pdev);
+> +
+> +	omap_get_pending_irqs(wake->pending_irqs,
+> +					ARRAY_SIZE(wake->pending_irqs));
+> +
+> +	return 0;
+> +}
+> +
+> +static int omap_wake_resume(struct platform_device *pdev)
+> +{
+> +	struct omap_wake_platform_data *pdata = pdev->dev.platform_data;
+> +	struct gpio_wake *gw;
+> +	int i;
+> +
+> +#ifdef CONFIG_PM_DEBUG
+> +	struct omap_wake *wake = platform_get_drvdata(pdev);
+> +	char wakeup_irq[WAKE_STR_LEN] = {0, };
+> +	char wakeup_event[WAKE_STR_LEN] = {0, };
+> +
+> +	omap_wake_detect_wakeup(wake, wakeup_irq, wakeup_event,
+> +				sizeof(wakeup_irq), sizeof(wakeup_event));
+> +	printk(KERN_INFO "OMAP resume IRQ: %s\n", wakeup_irq);
+> +	printk(KERN_INFO "OMAP resume event: %s\n", wakeup_event);
+
+pr_info(...)
+
+> +#endif
+> +
+> +	for (i = 0; i < pdata->gpio_wake_num; i++) {
+> +		gw = pdata->gpio_wakes + i;
+> +		free_irq(gpio_to_irq(gw->gpio), (void *)gw->name);
+> +	}
+> +
+> +	return 0;
+> +}
+> +
+> +static struct platform_driver omap_wake_driver = {
+> +	.probe          = omap_wake_probe,
+> +	.remove		= __devexit_p(omap_wake_remove),
+> +	.suspend	= omap_wake_suspend,
+> +	.resume_early	= omap_wake_resume_early,
+> +	.resume		= omap_wake_resume,
+> +	.driver         = {
+> +		.name   = "omap-wake",
+> +		.owner  = THIS_MODULE,
+> +	},
+> +};
+> +
+> +static int __init omap_wake_init(void)
+> +{
+> +	return platform_driver_register(&omap_wake_driver);
+> +}
+> +
+> +module_init(omap_wake_init);
+> +
+> +static void __exit omap_wake_exit(void)
+> +{
+> +	platform_driver_unregister(&omap_wake_driver);
+> +}
+> +module_exit(omap_wake_exit);
+> +
+> +MODULE_AUTHOR("Kim Kyuwon <q1.kim@samsung.com>");
+> +MODULE_DESCRIPTION("OMAP34xx wakeup driver");
+> +MODULE_LICENSE("GPL v2");
+> diff --git a/arch/arm/plat-omap/Kconfig b/arch/arm/plat-omap/Kconfig
+> index b8f1298..f89efaa 100644
+> --- a/arch/arm/plat-omap/Kconfig
+> +++ b/arch/arm/plat-omap/Kconfig
+> @@ -184,6 +184,15 @@ config OMAP_IOMMU
+>  	  Say Y here if you want to use OMAP IOMMU support for IVA2 and
+>  	  Camera in OMAP3.
+>
+> +config OMAP_WAKE
+> +	tristate "OMAP34xx wakeup source support"
+> +	depends on ARCH_OMAP34XX && PM
+> +	default n
+> +	help
+> +	  Select this option if you want to know what kind of wake-up event
+> +	  wakes up your board from the low power mode. And this option
+> +	  provides the unified GPIO wake-up source configuration.
+> +
+
+Update this as well to say that it only affects wakeup from suspend.
+
+>  choice
+>          prompt "System timer"
+>  	default OMAP_MPU_TIMER
+> diff --git a/arch/arm/plat-omap/include/mach/irqs.h
+> b/arch/arm/plat-omap/include/mach/irqs.h
+> index c9a5b19..ee15402 100644
+> --- a/arch/arm/plat-omap/include/mach/irqs.h
+> +++ b/arch/arm/plat-omap/include/mach/irqs.h
+> @@ -385,9 +385,13 @@
+>  #define INTCPS_NR_MIR_REGS	3
+>  #define INTCPS_NR_IRQS		96
+>
+> +/* Number of IRQ state bits in each MIR register */
+> +#define IRQ_BITS_PER_REG	32
+> +
+>  #ifndef __ASSEMBLY__
+>  extern void omap_init_irq(void);
+>  extern int omap_irq_pending(void);
+> +extern void omap_get_pending_irqs(u32 *pending_irqs, unsigned len);
+>  void omap3_intc_save_context(void);
+>  void omap3_intc_restore_context(void);
+>  #endif
+> diff --git a/arch/arm/plat-omap/include/mach/pm.h
+> b/arch/arm/plat-omap/include/mach/pm.h
+> index 9df0175..b10f5b0 100644
+> --- a/arch/arm/plat-omap/include/mach/pm.h
+> +++ b/arch/arm/plat-omap/include/mach/pm.h
+> @@ -175,6 +175,16 @@ extern void omap_serial_wake_trigger(int enable);
+>  #define omap_serial_wake_trigger(x)	{}
+>  #endif	/* CONFIG_OMAP_SERIAL_WAKE */
+>
+> +struct pm_wakeup_status {
+> +	u32 wkup;
+> +	u32 core1;
+> +	u32 core3;
+> +	u32 per;
+> +	u32 usbhost;
+> +};
+> +
+> +extern void omap3_get_wakeup_status(struct pm_wakeup_status **pm_wkst);
+> +
+
+This should probably just go in wake34xx.h since this is all very
+OMAP3 specific.  pm.h is for OMAP1/2/3 common code.
+
+>  #define ARM_SAVE(x) arm_sleep_save[ARM_SLEEP_SAVE_##x] = omap_readl(x)
+>  #define ARM_RESTORE(x) omap_writel((arm_sleep_save[ARM_SLEEP_SAVE_##x]), (x))
+>  #define ARM_SHOW(x) arm_sleep_save[ARM_SLEEP_SAVE_##x]
+> diff --git a/arch/arm/plat-omap/include/mach/wake.h
+> b/arch/arm/plat-omap/include/mach/wake.h
+> new file mode 100644
+> index 0000000..7da8ec8
+> --- /dev/null
+> +++ b/arch/arm/plat-omap/include/mach/wake.h
+> @@ -0,0 +1,30 @@
+> +/*
+> + * wake.h
+> + *
+> + * Copyright (c) 2009 Samsung Eletronics
+> + *
+> + * Author: Kim Kyuwon <q1.kim@samsung.com>
+> + *
+> + * This program is free software; you can redistribute it and/or modify
+> + * it under the terms of the GNU General Public License version 2 as
+> + * published by the Free Software Foundation.
+> + *
+> + */
+> +
+> +#ifndef _WAKE_H_
+> +#define _WAKE_H_
+> +
+> +struct gpio_wake {
+> +	unsigned int 	gpio;
+> +	unsigned long	irqflag;
+> +	const char 	*name;
+> +	int		request;
+> +};
+> +
+> +struct omap_wake_platform_data{
+> +	struct gpio_wake	*gpio_wakes;
+> +	int			gpio_wake_num;
+> +};
+> +
+> +#endif /* _WAKE_H_ */
+> +
+
+Do you need this common wake.h here?  Again, this dir is for common
+code accoss OMAP1/2/3 and this code is pretty OMAP3 specific.
 
 Kevin
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
