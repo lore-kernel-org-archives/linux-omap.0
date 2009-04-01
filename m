@@ -1,498 +1,92 @@
-From: "Guzman Lugo, Fernando" <x0095840@ti.com>
-Subject: [PATCH] [OMAPZOOM] DSPBRIDGE: move platform_device_register under
- mach-omap2
-Date: Wed, 1 Apr 2009 15:50:08 -0500
-Message-ID: <496565EC904933469F292DDA3F1663E60287EF2BD7@dlee06.ent.ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 3/4] ARM: OMAP3: Add support for 3430 SDP, v3
+Date: Wed, 1 Apr 2009 15:07:45 -0700
+Message-ID: <20090401220745.GJ32530@atomide.com>
+References: <20090331184802.GA27745@n2100.arm.linux.org.uk> <5A47E75E594F054BAF48C5E4FC4B92AB02FB086086@dbde02.ent.ti.com> <0680EC522D0CC943BC586913CF3768C0036E7EF891@dbde02.ent.ti.com> <alpine.DEB.2.00.0904011301320.9879@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:37155 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752024AbZDAUuR convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 1 Apr 2009 16:50:17 -0400
-Received: from dlep33.itg.ti.com ([157.170.170.112])
-	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id n31KoB9N008318
-	for <linux-omap@vger.kernel.org>; Wed, 1 Apr 2009 15:50:16 -0500
-Received: from dsbe71.ent.ti.com (localhost [127.0.0.1])
-	by dlep33.itg.ti.com (8.13.7/8.13.7) with ESMTP id n31KoAao015966
-	for <linux-omap@vger.kernel.org>; Wed, 1 Apr 2009 15:50:10 -0500 (CDT)
-Content-Language: en-US
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:59761 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751573AbZDAWHz (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 1 Apr 2009 18:07:55 -0400
+Content-Disposition: inline
+In-Reply-To: <alpine.DEB.2.00.0904011301320.9879@utopia.booyaka.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Pandita, Vikram" <vikram.pandita@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
-Cc: "Kanigeri, Hari" <h-kanigeri2@ti.com>
+To: Paul Walmsley <paul@pwsan.com>
+Cc: "Syed Mohammed, Khasim" <khasim@ti.com>, "Gadiyar, Anand" <gadiyar@ti.com>, "linux-arm-kernel@lists.arm.linux.org.uk" <linux-arm-kernel@lists.arm.linux.org.uk>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Russell King - ARM Linux <linux@arm.linux.org.uk>
 
+* Paul Walmsley <paul@pwsan.com> [090401 12:04]:
+> On Wed, 1 Apr 2009, Syed Mohammed, Khasim wrote:
+> 
+> > > -----Original Message-----
+> > > From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of
+> > > Gadiyar, Anand
+> > > Sent: Wednesday, April 01, 2009 1:55 PM
+> > > To: Russell King - ARM Linux
+> > > Cc: Tony Lindgren; linux-arm-kernel@lists.arm.linux.org.uk; linux-omap@vger.kernel.org
+> > > Subject: RE: [PATCH 3/4] ARM: OMAP3: Add support for 3430 SDP, v3
+> > > 
+> > > On Wed, Apr 01, 2009 at 12:18 AM, Russell King - ARM Linux wrote:
+> > > > On Tue, Mar 31, 2009 at 05:12:18PM +0530, Gadiyar, Anand wrote:
+> > > > > I could not run the 3430 SDP defconfig from mainline. The image hangs at
+> > > > > "Starting kernel ...". Enabling CONFIG_DEBUG_LL does not help.
+> > > >
+> > > > Did you add the necessary patch to kernel/printk.c ?
+> > > >
+> > > 
+> > > Silly me, I had not done this (despite having read this so many times on this list).
+> > > 
+> > > Here's what I get now after adding the patch.
+> > > 
+> > > - Anand
+> > > 
+> > > Uncompressing
+> > > Linux................................................................................................
+> > > .................... done, booting the kernel.
+> > > <5>Linux version 2.6.29-06608-g15f7176-dirty (a0393673@omaplbp.india.ti.com) (gcc version 4.2.1
+> > > (CodeSourcery Sourcery G++ Lite 2007q3-51)) #4 Wed Apr 1 13:26:59 IST 2009
+> > > CPU: ARMv7 Processor [411fc083] revision 3 (ARMv7), cr=10c5387f
+> > > CPU: VIPT nonaliasing data cache, VIPT nonaliasing instruction cache
+> > > Machine: OMAP3430 3430SDP board
+> > > Memory policy: ECC disabled, Data cache writeback
+> > > <7>On node 0 totalpages: 32768
+> > > <7>free_area_init_node: node 0, pgdat c038c8a4, node_mem_map c03a6000
+> > > <7>  Normal zone: 256 pages used for memmap
+> > > <7>  Normal zone: 0 pages reserved
+> > > <7>  Normal zone: 32512 pages, LIFO batch:7
+> > > <6>OMAP3430 ES3.0
+> > > <6>SRAM: Mapped pa 0x40200000 to va 0xd7000000 size: 0x100000
+> > > Built 1 zonelists in Zone order, mobility grouping on.  Total pages: 32512
+> > > <5>Kernel command line: mem=128M console=ttyS0,115200n8 noinitrd root=/dev/nfs rw
+> > > nfsroot=172.24.162.66:/vol/vol2/swcoe_omapsw_linux1/anand/target,nolock,tcp
+> > > ip=172.24.190.229:172.24.162.66:172.24.188.1:255.255.252.0:myomap::off
+> > > <6>NR_IRQS:402
+> > > <6>Clocking rate (Crystal/DPLL/ARM core): 26.0/332/500 MHz
+> > > <6>GPMC revision 5.0
+> > > <6>IRQ: Found an INTC at 0xd8200000 (revision 4.0) with 96 interrupts
+> > > <6>Total of 96 interrupts on 1 active controller
+> > > <6>OMAP34xx GPIO hardware version 2.5
+> > > PID hash table entries: 512 (order: 9, 2048 bytes)
+> > > Console: colour dummy device 80x30
+> > > <6>Dentry cache hash table entries: 16384 (order: 4, 65536 bytes)
+> > > <6>Inode-cache hash table entries: 8192 (order: 3, 32768 bytes)
+> > > <6>Memory: 128MB = 128MB total
+> > > <5>Memory: 126064KB available (3188K code, 289K data, 112K init, 0K highmem)
+> > > <6>Calibrating delay loop...
+> > > 
+> > Anand,
+> > 
+> > It looks like the timers are not configured properly or the timer selection has gone wrong. Can you just compare your previous working defconfig with this and correct the GPTIMER selection?
+> 
+> As an aside, I'm seeing the same thing with mainline and Beagle.  It does 
+> not seem to matter whether the 32k timer or sys_clk is used as the GPTIMER 
+> source.  Also it does not seem to matter whether GPTIMER1 or GPTIMER12 is 
+> configured.  Looks like some kind of GPTIMER or GPTIMER-related interrupt 
+> problem.  Have not had the chance to isolate the exact problem yet, so, 
+> other comments welcome.
 
+Not seeing this on overo at least.
 
-This is the previous patch from Hiroshi (http://marc.info/?l=linux-omap&m=123798191710417&w=2) rebase to apply on top of the previous patches for OMAPZOOM.
-
->From 18cf4f8463013936fda13434ef65beba8df62487 Mon Sep 17 00:00:00 2001
-From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
-Date: Tue, 31 Mar 2009 16:21:18 -0500
-Subject: [PATCH] DSPBRIDGE: move platform_device_register under mach-omap2
-
-To pass some architecture specific info to drvier.
-
-This can be used to pass the address of relatively bigger
-preallocated bootmem to driver if its size is configured by kernel config.
-
-This patch is rebasing a previous Hiroshi's patch, here is the link to the patch
-http://marc.info/?l=linux-omap&m=123798191710417&w=2
-
-Signed-off-by: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
----
- arch/arm/mach-omap2/Makefile                   |    2 +
- arch/arm/mach-omap2/dspbridge.c                |   65 ++++++++++
- arch/arm/mach-omap2/io.c                       |    3 +
- arch/arm/plat-omap/devices.c                   |   30 +++++
- arch/arm/plat-omap/include/dspbridge/host_os.h |   12 ++
- drivers/dsp/bridge/Kconfig                     |    8 ++
- drivers/dsp/bridge/rmgr/drv_interface.c        |  160 ++++++++++--------------
- 7 files changed, 186 insertions(+), 94 deletions(-)
- create mode 100644 arch/arm/mach-omap2/dspbridge.c
-
-diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
-index 9d4236f..91685dc
---- a/arch/arm/mach-omap2/Makefile
-+++ b/arch/arm/mach-omap2/Makefile
-@@ -45,6 +45,8 @@ else
-        # Power Management
- endif
- 
-+dspbridge-$(CONFIG_MPU_BRIDGE)		:= dspbridge.o
-+obj-y					+= $(dspbridge-m) $(dspbridge-y)
- 
- # DSP
- obj-$(CONFIG_OMAP_MMU_FWK)	+= mmu_mach.o
-diff --git a/arch/arm/mach-omap2/dspbridge.c b/arch/arm/mach-omap2/dspbridge.c
-new file mode
-index 0000000..16c0937
---- /dev/null
-+++ b/arch/arm/mach-omap2/dspbridge.c
-@@ -0,0 +1,65 @@
-+/*
-+ * TI's dspbridge platform device registration
-+ *
-+ * Copyright (C) 2005-2006 Texas Instruments, Inc.
-+ * Copyright (C) 2009 Nokia Corporation
-+ *
-+ * Written by Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
-+
-+#include <linux/platform_device.h>
-+
-+#include <dspbridge/host_os.h>
-+
-+static struct platform_device *dspbridge_pdev;
-+
-+static struct dspbridge_platform_data dspbridge_pdata;
-+
-+static int __init dspbridge_init(void)
-+{
-+	struct platform_device *pdev;
-+	int err = -ENOMEM;
-+	struct dspbridge_platform_data *pdata = &dspbridge_pdata;
-+
-+	pdata->phys_mempool_base = dspbridge_get_mempool_base();
-+
-+	if (pdata->phys_mempool_base) {
-+		pdata->phys_mempool_size = CONFIG_BRIDGE_MEMPOOL_SIZE;
-+		pr_info("%s: %x bytes @ %x\n", __func__,
-+			pdata->phys_mempool_size, pdata->phys_mempool_base);
-+	}
-+
-+	pdev = platform_device_alloc("C6410", -1);
-+	if (!pdev)
-+		goto err_out;
-+
-+	err = platform_device_add_data(pdev, pdata, sizeof(*pdata));
-+	if (err)
-+		goto err_out;
-+
-+	err = platform_device_add(pdev);
-+	if (err)
-+		goto err_out;
-+
-+	dspbridge_pdev = pdev;
-+	return 0;
-+
-+err_out:
-+	platform_device_put(pdev);
-+	return err;
-+}
-+module_init(dspbridge_init);
-+
-+static void __exit dspbridge_exit(void)
-+{
-+	platform_device_unregister(dspbridge_pdev);
-+}
-+module_exit(dspbridge_exit);
-+
-+MODULE_AUTHOR("Hiroshi DOYU");
-+MODULE_DESCRIPTION("TI's dspbridge platform device registration");
-+MODULE_LICENSE("GPL v2");
-diff --git a/arch/arm/mach-omap2/io.c b/arch/arm/mach-omap2/io.c
-index b051ce3..95c106d
---- a/arch/arm/mach-omap2/io.c
-+++ b/arch/arm/mach-omap2/io.c
-@@ -29,6 +29,8 @@
- #include <mach/sdrc.h>
- #include <mach/gpmc.h>
- 
-+#include <dspbridge/host_os.h>
-+
- #include "clock.h"
- 
- #include <mach/powerdomain.h>
-@@ -202,6 +204,7 @@ void __init omap2_map_common_io(void)
- 	omap2_check_revision();
- 	omap_sram_init();
- 	omapfb_reserve_sdram();
-+	dspbridge_reserve_sdram();
- }
- 
- void __init omap2_init_common_hw(struct omap_sdrc_params *sp)
-diff --git a/arch/arm/plat-omap/devices.c b/arch/arm/plat-omap/devices.c
-index c22bd5f..72dd34e
---- a/arch/arm/plat-omap/devices.c
-+++ b/arch/arm/plat-omap/devices.c
-@@ -15,6 +15,7 @@
- #include <linux/platform_device.h>
- #include <linux/io.h>
- #include <linux/i2c/menelaus.h>
-+#include <linux/bootmem.h>
- 
- #include <mach/hardware.h>
- #include <asm/mach-types.h>
-@@ -85,6 +86,35 @@ int dsp_kfunc_device_register(struct dsp_kfunc_device *kdev)
- }
- EXPORT_SYMBOL(dsp_kfunc_device_register);
- 
-+#elif defined(CONFIG_MPU_BRIDGE) ||  defined(CONFIG_MPU_BRIDGE_MODULE)
-+
-+static unsigned long dspbridge_phys_mempool_base;
-+
-+void dspbridge_reserve_sdram(void)
-+{
-+	void *va;
-+	unsigned long size = CONFIG_BRIDGE_MEMPOOL_SIZE;
-+
-+	if (!size)
-+		return;
-+
-+	va = __alloc_bootmem_nopanic(size, SZ_1M, 0);
-+	if (!va) {
-+		pr_err("%s: Failed to bootmem allocation(%lu bytes)\n",
-+		       __func__, size);
-+		return;
-+	}
-+	dspbridge_phys_mempool_base = virt_to_phys(va);
-+}
-+
-+unsigned long dspbridge_get_mempool_base(void)
-+{
-+	return dspbridge_phys_mempool_base;
-+}
-+EXPORT_SYMBOL(dspbridge_get_mempool_base);
-+
-+static inline void omap_init_dsp(void) { }
-+
- #else
- static inline void omap_init_dsp(void) { }
- #endif	/* CONFIG_OMAP_DSP */
-diff --git a/arch/arm/plat-omap/include/dspbridge/host_os.h b/arch/arm/plat-omap/include/dspbridge/host_os.h
-index 9245eea..ffdb7b4
---- a/arch/arm/plat-omap/include/dspbridge/host_os.h
-+++ b/arch/arm/plat-omap/include/dspbridge/host_os.h
-@@ -64,4 +64,16 @@
- #define INT_MAIL_MPU_IRQ        26
- #define INT_DSP_MMU_IRQ        28
- 
-+struct dspbridge_platform_data {
-+	u32 phys_mempool_base;
-+	u32 phys_mempool_size;
-+};
-+
-+#define PRCM_VDD1 1
-+
-+extern struct platform_device *omap_dspbridge_dev;
-+
-+extern void dspbridge_reserve_sdram(void);
-+extern unsigned long dspbridge_get_mempool_base(void);
-+
- #endif
-diff --git a/drivers/dsp/bridge/Kconfig b/drivers/dsp/bridge/Kconfig
-index 727f268..6669993
---- a/drivers/dsp/bridge/Kconfig
-+++ b/drivers/dsp/bridge/Kconfig
-@@ -29,6 +29,14 @@ config DISABLE_BRIDGE_PM
- 	  DSP Bridge employs power management techniques to save dynamic and
- 	  static power consumption of the IVA sub system.
- 
-+config BRIDGE_MEMPOOL_SIZE
-+	hex "Physical memory pool size (Byte)"
-+	depends on MPU_BRIDGE
-+	default 0x600000
-+	help
-+	  Allocate specified size of memory at booting time to avoid allocation
-+	  failure under heavy memory fragmentation after some use time.
-+
- config BRIDGE_DEBUG
- 	bool "DSP Bridge Debug Support"
- 	depends on MPU_BRIDGE
-diff --git a/drivers/dsp/bridge/rmgr/drv_interface.c b/drivers/dsp/bridge/rmgr/drv_interface.c
-index 21e9757..60d4b46
---- a/drivers/dsp/bridge/rmgr/drv_interface.c
-+++ b/drivers/dsp/bridge/rmgr/drv_interface.c
-@@ -125,6 +125,7 @@ struct clk *clk_handle;
- #define DRIVER_MINOR 0		/* Linux assigns our Major device number */
- s32 dsp_debug;
- 
-+struct platform_device *omap_dspbridge_dev;
- /* This is a test variable used by Bridge to test different sleep states */
- s32 dsp_test_sleepstate;
- struct bridge_dev {
-@@ -221,30 +222,9 @@ static struct file_operations bridge_fops = {
- 
- #ifndef CONFIG_DISABLE_BRIDGE_PM
- static u32 timeOut = 1000;
--
--static int bridge_suspend(struct platform_device *pdev, pm_message_t state);
--static int bridge_resume(struct platform_device *pdev);
- #endif
- 
--static void bridge_free(struct device *dev);
--
--static int omap34xx_bridge_probe(struct platform_device *dev);
--
--static int omap34xx_bridge_probe(struct platform_device *dev)
--{
--	return 0;
--}
--
--static struct platform_device omap_dspbridge_dev = {
--		.name = BRIDGE_NAME,
--		.id = -1,
--		.num_resources = 0,
--		.dev = {
--		.release = bridge_free,
--		},
--		.resource = NULL,
--};
--
-+struct dspbridge_platform_data *omap_dspbridge_pdata;
- 
- #ifndef CONFIG_DISABLE_BRIDGE_PM
- #ifndef CONFIG_DISABLE_BRIDGE_DVFS
-@@ -315,29 +295,7 @@ static struct constraint_id cnstr_id_vdd1 = {
- #endif
- #endif
- 
--static struct platform_driver bridge_driver_ldm = {
--      .driver = {
--	      .owner	= THIS_MODULE,
--	      .name     = BRIDGE_NAME,
--	 },
--      .probe = omap34xx_bridge_probe,
--#ifndef CONFIG_DISABLE_BRIDGE_PM
--      .suspend = bridge_suspend,
--      .resume = bridge_resume,
--#endif
--      .shutdown = NULL,
--      .remove = NULL,
--
--};
--
--struct device dspbridge_device = {
--	.driver = &bridge_driver_ldm.driver,
--};
--
--/* Initialization routine. Executed when the driver is loaded (as a kernel
-- * module), or when the system is booted (when included as part of the kernel
-- * image). */
--static int __init bridge_init(void)
-+static int __devinit omap34xx_bridge_probe(struct platform_device *pdev)
- {
- 	int status;
- 	u32 initStatus;
-@@ -345,6 +303,10 @@ static int __init bridge_init(void)
- 	dev_t   dev = 0 ;
- 	int     result;
- 
-+	struct dspbridge_platform_data *pdata = pdev->dev.platform_data;
-+
-+	omap_dspbridge_dev = pdev;
-+
- 	/* use 2.6 device model */
- 	if (driver_major) {
- 		dev = MKDEV(driver_major, driver_minor);
-@@ -405,9 +367,6 @@ static int __init bridge_init(void)
- 
- 
- 	GT_0trace(driverTrace, GT_ENTER, "-> driver_init\n");
--	status = platform_driver_register(&bridge_driver_ldm);
--	if (!status)
--		status = platform_device_register(&omap_dspbridge_dev);
- 
- #ifndef CONFIG_DISABLE_BRIDGE_PM
- 	/* Initialize the wait queue */
-@@ -449,12 +408,17 @@ static int __init bridge_init(void)
- 	GT_1trace(driverTrace, GT_7CLASS,
- 		 "requested shm_size = 0x%x\n", shm_size);
- 
-+	if (pdata->phys_mempool_base && pdata->phys_mempool_size) {
-+		phys_mempool_base = pdata->phys_mempool_base;
-+		phys_mempool_size = pdata->phys_mempool_size;
-+	}
-+
- 	if (phys_mempool_base > 0x0) {
- 		initStatus = REG_SetValue(NULL, NULL, PHYSMEMPOOLBASE,
- 					 REG_DWORD, (u8 *)&phys_mempool_base,
- 					 sizeof(phys_mempool_base));
- 	}
--	GT_1trace(driverTrace, GT_7CLASS, "phys_mempool_base = 0x%x \n",
-+	GT_1trace(driverTrace, GT_7CLASS, "phys_mempool_base = 0x%x\n",
- 		 phys_mempool_base);
- 
- 	if (phys_mempool_size > 0x0) {
-@@ -528,9 +492,7 @@ static int __init bridge_init(void)
- 	return status;
- }
- 
--/*  This function is invoked during unlinking of the bridge module from the
-- *  kernel. Bridge resources are freed in this function. */
--static void __exit bridge_exit(void)
-+static int __devexit omap34xx_bridge_remove(struct platform_device *pdev)
- {
- 	dev_t devno;
- 	bool ret;
-@@ -601,9 +563,6 @@ func_cont:
- #endif /*#ifndef CONFIG_OMAP3_PM*/
- #endif /*#ifndef CONFIG_DISABLE_BRIDGE_DVFS*/
- #endif /*#ifndef CONFIG_DISABLE_BRIDGE_PM*/
--	/* unregister bridge driver */
--	platform_device_unregister(&omap_dspbridge_dev);
--	platform_driver_unregister(&bridge_driver_ldm);
- 
- 	if (driverContext) {
- 		ret = DSP_Deinit(driverContext);
-@@ -626,6 +585,58 @@ func_cont:
- 		class_destroy(bridge_class);
- 
- 	}
-+	return 0;
-+}
-+
-+#ifndef CONFIG_DISABLE_BRIDGE_PM
-+static int bridge_suspend(struct platform_device *pdev, pm_message_t state)
-+{
-+	u32 status;
-+	u32 command = PWR_EMERGENCYDEEPSLEEP;
-+
-+	status = PWR_SleepDSP(command, timeOut);
-+	if (DSP_FAILED(status))
-+		return -1;
-+
-+	bridge_suspend_data.suspended = 1;
-+	return 0;
-+}
-+
-+static int bridge_resume(struct platform_device *pdev)
-+{
-+	u32 status;
-+
-+	status = PWR_WakeDSP(timeOut);
-+	if (DSP_FAILED(status))
-+		return -1;
-+
-+	bridge_suspend_data.suspended = 0;
-+	wake_up(&bridge_suspend_data.suspend_wq);
-+	return 0;
-+}
-+#else
-+#define bridge_suspend NULL
-+#define bridge_resume NULL
-+#endif
-+
-+static struct platform_driver bridge_driver_ldm = {
-+	.driver = {
-+		.name = BRIDGE_NAME,
-+	},
-+	.probe	 = omap34xx_bridge_probe,
-+	.remove	 = omap34xx_bridge_remove,
-+	.suspend = bridge_suspend,
-+	.resume	 = bridge_resume,
-+};
-+
-+static int __init bridge_init(void)
-+{
-+	return platform_driver_register(&bridge_driver_ldm);
-+}
-+
-+static void __exit bridge_exit(void)
-+{
-+	platform_driver_unregister(&bridge_driver_ldm);
- }
- 
- /* This function is called when an application opens handle to the
-@@ -741,12 +752,6 @@ static int bridge_release(struct inode *ip, struct file *filp)
- 	return status;
- }
- 
--static void bridge_free(struct device *dev)
--{
--	/* nothing to Free */
--}
--
--
- /* This function provides IO interface to the bridge driver. */
- static int bridge_ioctl(struct inode *ip, struct file *filp, unsigned int code,
- 		unsigned long args)
-@@ -832,39 +837,6 @@ DSP_STATUS DRV_RemoveAllResources(HANDLE hPCtxt)
- }
- #endif
- 
--#ifndef CONFIG_DISABLE_BRIDGE_PM
--
--static int bridge_suspend(struct platform_device *pdev, pm_message_t state)
--{
--	u32 status = DSP_EFAIL;
--	u32 command = PWR_EMERGENCYDEEPSLEEP;
--
--	status = PWR_SleepDSP(command, timeOut);
--	if (DSP_SUCCEEDED(status)) {
--		bridge_suspend_data.suspended = 1;
--		return 0;
--	} else {
--		return -1;
--	}
--}
--
--static int bridge_resume(struct platform_device *pdev)
--{
--	u32 status = DSP_EFAIL;
--
--	status = PWR_WakeDSP(timeOut);
--
--	if (DSP_SUCCEEDED(status)) {
--		bridge_suspend_data.suspended = 0;
--		wake_up(&bridge_suspend_data.suspend_wq);
--
--		return 0;
--	} else {
--		return -1;
--	}
--}
--
--#endif
- /* Bridge driver initialization and de-initialization functions */
- module_init(bridge_init);
- module_exit(bridge_exit);
--- 
-1.5.6.4
-
+Tony
