@@ -1,62 +1,79 @@
 From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: PM branch rebased to 2.6.29
-Date: Tue, 31 Mar 2009 21:11:46 -0700
-Message-ID: <873actrp19.fsf@deeprootsystems.com>
-References: <87bprz9zju.fsf@deeprootsystems.com>
-	<49C940CA.9070805@deeprootsystems.com>
-	<f9d2a5e10903271350x2d534c76nc55c492b8acd1d4e@mail.gmail.com>
-	<B85A65D85D7EB246BE421B3FB0FBB59301CC5699A0@dbde02.ent.ti.com>
-	<f9d2a5e10903301044u775edfdo7ac540b3e1bdc597@mail.gmail.com>
-	<873acu26ms.fsf@deeprootsystems.com>
-	<f9d2a5e10903301601q5fcd331bs44c81d854ad0082f@mail.gmail.com>
-	<87myb1wnvc.fsf@deeprootsystems.com>
-	<f9d2a5e10903311431r6f053f02l25aba8183233c2b9@mail.gmail.com>
-	<87iqlpuv1c.fsf@deeprootsystems.com>
-	<f9d2a5e10903311830u1ea8b5dgb485a19c523f845f@mail.gmail.com>
+Subject: Re: PM branch rebased to 2.6.29... for real this time
+Date: Tue, 31 Mar 2009 22:11:54 -0700
+Message-ID: <87ljqllzz9.fsf@deeprootsystems.com>
+References: <87k56dp5zc.fsf@deeprootsystems.com>
+	<B85A65D85D7EB246BE421B3FB0FBB59301CC5F02C1@dbde02.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from rv-out-0506.google.com ([209.85.198.227]:31201 "EHLO
-	rv-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752002AbZDAELv (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 1 Apr 2009 00:11:51 -0400
-Received: by rv-out-0506.google.com with SMTP id f9so3386292rvb.1
-        for <linux-omap@vger.kernel.org>; Tue, 31 Mar 2009 21:11:49 -0700 (PDT)
-In-Reply-To: <f9d2a5e10903311830u1ea8b5dgb485a19c523f845f@mail.gmail.com> (Russ Dill's message of "Tue\, 31 Mar 2009 18\:30\:33 -0700")
+Received: from wf-out-1314.google.com ([209.85.200.168]:50089 "EHLO
+	wf-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751524AbZDAFMA (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 1 Apr 2009 01:12:00 -0400
+Received: by wf-out-1314.google.com with SMTP id 29so3581122wff.4
+        for <linux-omap@vger.kernel.org>; Tue, 31 Mar 2009 22:11:58 -0700 (PDT)
+In-Reply-To: <B85A65D85D7EB246BE421B3FB0FBB59301CC5F02C1@dbde02.ent.ti.com> (Sanjeev Premi's message of "Tue\, 31 Mar 2009 20\:25\:55 +0530")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Russ Dill <russ.dill@gmail.com>
-Cc: "Premi, Sanjeev" <premi@ti.com>, Peter Barada <peterb@logicpd.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: "Premi, Sanjeev" <premi@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Rajendra Nayak <rnayak@ti.com>
 
-Russ Dill <russ.dill@gmail.com> writes:
+"Premi, Sanjeev" <premi@ti.com> writes:
 
-[...]
-
+>> -----Original Message-----
+>> From: linux-omap-owner@vger.kernel.org 
+>> [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Kevin Hilman
+>> Sent: Thursday, March 26, 2009 4:26 AM
+>> To: linux-omap@vger.kernel.org
+>> Subject: PM branch rebased to 2.6.29... for real this time
+>> 
+>> Hello,
+>> 
+>> The previous rebase was actually to 2.6.29-rc8.  Now that 2.6.29 is
+>> out, I've rebased the PM brach onto linux-omap HEAD just after the
+>> 2.6.29 merge.
+>> 
+>> Minimal retention and off-mode on Beagle and RX51.
 >
-> root@beagleboard:/sys/power# echo 1 > clocks_off_while_idle
-> root@beagleboard:/sys/power# echo 1 > enable_off_mode
-> root@beagleboard:/sys/power# echo 1 > voltage_off_while_idle
-> root@beagleboard:/sys/power# echo mem > state
-> PM: Syncing filesystems ... done.
-> Freezing user space processes ... (elapsed 0.00 seconds) done.
-> Freezing remaining freezable tasks ... (elapsed 0.00 seconds) done.
-> Suspending console(s) (use no_console_suspend to debug)
-> omapfb omapfb: timeout waiting for FRAME DONE
-> Successfully put all powerdomains to target state
-> Restarting tasks ... done.
+> Another problem that I found on OMAP3EVM:
 >
-> Neato :) This is still with all the user processes running an with a
-> NAND filesystem. I'm still getting rather high ~80mA@5V power
-> consumption, so I'll need to further investigate what rails the
-> twl4030 is actually turning off.
+> When I compiled in CPUidle and CPUfreq (over omap3_evm_defconfig),
+> the kernel did not boot-up. The last few statements are:
 
-Great!  glad it worked for you.
+There are known problems with CPUfreq on top of the new clock
+notifiers series.
 
-The kernel has some work to do to be sure that *everything* is
-properly init'd to allow proper idle states.  Until then,
-unfortunately we have to rely on more gentle bootloaders.
+I am waiting for Rajendra to re-send his series which removes the virt
+clocks on top of the latest PM branch.
 
-And FWIW, on my Beagle, I've never seen < 80mA either, but I haven't
-done any further digging.
+> <3>clock: dpll5_ck failed transition to 'locked'
+> clock: dpll5_ck failed transition to 'locked'
+> <6>Disabling unused clock "dpll4_m6x2_ck"
+> Disabling unused clock "dpll4_m6x2_ck"
+> <6>Disabling unused clock "dpll3_m3x2_ck"
+> Disabling unused clock "dpll3_m3x2_ck"
+> <6>Disabling unused clock "sys_clkout1"
+> Disabling unused clock "sys_clkout1"
+>
+> The PC is at the WFI statement.
+>
+> Tried other combinations as well:
+>
+> 1) only CPUidle enabled - okay.
+> 2) only CPUfreq enabled - not okay.
+>
+
+Sounds to me like CPUfreq is changing frequencies during bootup.  Did
+you select ondemand as the default CPUfreq governor?  If so, can you
+try with performance as the default governor.
+
+If you're already using performance, then u-boot is setting a slower
+speed and CPUfreq may decide to change it during boot.  If so, can you
+try the userspace governor as the default governor.  This should
+prevent any automatic CPUFreq changes during bootup.
 
 Kevin
+
+
+
