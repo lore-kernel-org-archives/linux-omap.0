@@ -1,74 +1,47 @@
-From: Trilok Soni <soni.trilok@gmail.com>
-Subject: Re: lowmemory android driver not needed?
-Date: Thu, 2 Apr 2009 00:08:36 +0530
-Message-ID: <5d5443650904011138p78686bf7oc040762cd3536387@mail.gmail.com>
-References: <2f11576a0901160316u20030f4u51c9e4c059398b70@mail.gmail.com>
-	 <20090116152338.GB9357@kroah.com>
-	 <20090122114955.32F3.KOSAKI.MOTOHIRO@jp.fujitsu.com>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: PM branch rebased to 2.6.29... for real this time
+Date: Wed, 01 Apr 2009 11:46:31 -0700
+Message-ID: <87bprgjjp4.fsf@deeprootsystems.com>
+References: <87k56dp5zc.fsf@deeprootsystems.com>
+	<B85A65D85D7EB246BE421B3FB0FBB59301CC5F02C1@dbde02.ent.ti.com>
+	<87ljqllzz9.fsf@deeprootsystems.com>
+	<B85A65D85D7EB246BE421B3FB0FBB59301CC5F069A@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from rv-out-0506.google.com ([209.85.198.237]:39634 "EHLO
-	rv-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1760865AbZDASik convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 1 Apr 2009 14:38:40 -0400
-In-Reply-To: <20090122114955.32F3.KOSAKI.MOTOHIRO@jp.fujitsu.com>
+Received: from wf-out-1314.google.com ([209.85.200.172]:58527 "EHLO
+	wf-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933671AbZDASqf (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 1 Apr 2009 14:46:35 -0400
+Received: by wf-out-1314.google.com with SMTP id 29so183556wff.4
+        for <linux-omap@vger.kernel.org>; Wed, 01 Apr 2009 11:46:34 -0700 (PDT)
+In-Reply-To: <B85A65D85D7EB246BE421B3FB0FBB59301CC5F069A@dbde02.ent.ti.com> (Sanjeev Premi's message of "Wed\, 1 Apr 2009 12\:48\:29 +0530")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: Greg KH <greg@kroah.com>, Paul Mundt <lethal@linux-sh.org>, Arve Hj?nnev?g <arve@android.com>, Alan Cox <alan@lxorguk.ukuu.org.uk>, Pavel Machek <pavel@suse.cz>, Brian Swetland <swetland@google.com>, arve@google.com, San Mehat <san@android.com>, Robert Love <rlove@google.com>, linux-kernel@vger.kernel.org, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, ext Juha Yrj?l? <juha.yrjola@solidboot.com>, viktor.rosendahl@nokia.com
+To: "Premi, Sanjeev" <premi@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Nayak, Rajendra" <rnayak@ti.com>
 
-Hi
+"Premi, Sanjeev" <premi@ti.com> writes:
 
-On Wed, Jan 21, 2009 at 8:20 AM, KOSAKI Motohiro
-<kosaki.motohiro@jp.fujitsu.com> wrote:
+[...]
 
->>
->> Care to work on your mem_notify patch again and bring it up to date?
->> That would be a good place to start working from, right?
+>> Sounds to me like CPUfreq is changing frequencies during bootup.  Did
+>> you select ondemand as the default CPUfreq governor?
 >
-> Unfortunately No ;)
+> [sp] Yes. This is what I feel too. Only I was not clear why the process
+> gets stuck at WFI. Haven't been able to debug further. So far...
 >
-> I should rewrite memory notification patchset from scratch.
-> the new version will construct on memcg infrastrcture.
+>> If so, can you try with performance as the default governor.
 >
-> Why?
+> [sp] It was performance governor only.
 >
-> last year, I received many feedback from lkml folks and my article re=
-ader.
-> (I monthly write kernel patch introduction article to japanese web
-> =A0magazine and receive some feedback periodically)
+>> If you're already using performance, then u-boot is setting a slower
+>> speed and CPUfreq may decide to change it during boot.
 >
-> I learned many people want flexibility notification.
-> (per workload, per user, et al)
-> eg. nokia lowmem driver have exception process defined by uid.
+> [sp] That is the case.
 >
-> at top of last year, I thought memcg don't provide good infrastructur=
-e.
-> the first version memcg is just pretty funny joke. if its config turn=
- on,
-> memory workload performance decrease ~30% although the user don't use
-> memcg at runtime. then nobody use it.
-> but recently, KAMEZAWA hiroyuki (and Li zefan, Daisuke Nishimura et a=
-l)
-> dramatically improvement memcg performance.
-> now, memcg overhead become less than 1%.
->
-> Then, I think any memory accounting activity should use this infrastr=
-ucture.
-> That's my homework.
 
-Any updates on top of  mem_notify v6 patches?  Is there any WIP for
-mem_notify with memcg infrastructure as you have pointed out above?
+Can you try setting the default governor to userspace so that no DVFS
+changes will happen during boot?
 
-
---=20
----Trilok Soni
-http://triloksoni.wordpress.com
-http://www.linkedin.com/in/triloksoni
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Kevin
