@@ -1,66 +1,51 @@
-From: "Pandita, Vikram" <vikram.pandita@ti.com>
-Subject: RE: [PATCH 3/4] ARM: OMAP3: Add support for 3430 SDP, v3
-Date: Thu, 2 Apr 2009 10:03:45 +0530
-Message-ID: <FCCFB4CDC6E5564B9182F639FC35608702EA9669B3@dbde02.ent.ti.com>
-References: <20090331184802.GA27745@n2100.arm.linux.org.uk>
-	<5A47E75E594F054BAF48C5E4FC4B92AB02FB086086@dbde02.ent.ti.com>
-	<0680EC522D0CC943BC586913CF3768C0036E7EF891@dbde02.ent.ti.com>
-	<alpine.DEB.2.00.0904011301320.9879@utopia.booyaka.com>
-	<20090401220745.GJ32530@atomide.com> <87ocvghsk7.fsf@deeprootsystems.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+From: Koen Kooi <k.kooi@student.utwente.nl>
+Subject: Noisy, unusable touchscreen on LDP with 2.6.29
+Date: Thu, 2 Apr 2009 08:52:20 +0200
+Message-ID: <CB9290F9-8DEE-4B4E-BEFC-8A9CC5724B8F@student.utwente.nl>
+Mime-Version: 1.0 (Apple Message framework v930.3)
+Content-Type: multipart/signed; protocol="application/pgp-signature"; micalg=pgp-sha1; boundary="Apple-Mail-8-502419617"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:41685 "EHLO arroyo.ext.ti.com"
+Received: from mx1.utsp.utwente.nl ([130.89.2.12]:58693 "EHLO mx.utwente.nl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751010AbZDBEeH convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 2 Apr 2009 00:34:07 -0400
-In-Reply-To: <87ocvghsk7.fsf@deeprootsystems.com>
-Content-Language: en-US
+	id S934903AbZDBGwe (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 2 Apr 2009 02:52:34 -0400
+Received: from [172.20.1.5] (vpn006010.vpn.utwente.nl [130.89.6.10])
+          by mx.utwente.nl (8.12.10/SuSE Linux 0.7) with ESMTP id n326qNV8027440
+          for <linux-omap@vger.kernel.org>; Thu, 2 Apr 2009 08:52:25 +0200
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@deeprootsystems.com>, Tony Lindgren <tony@atomide.com>, "Gadiyar, Anand" <gadiyar@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: "linux-omap@vger.kernel.org List" <linux-omap@vger.kernel.org>
 
+This is an OpenPGP/MIME signed message (RFC 2440 and 3156)
+--Apple-Mail-8-502419617
+Content-Type: text/plain; charset=US-ASCII; format=flowed; delsp=yes
+Content-Transfer-Encoding: 7bit
 
->-----Original Message-----
->From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Kevin
->Hilman
->> > >
->>> > Anand,
->>> >
->>> > It looks like the timers are not configured properly or the timer selection has gone wrong. Can
->you just compare your previous working defconfig with this and correct the GPTIMER selection?
->>>
->>> As an aside, I'm seeing the same thing with mainline and Beagle.  It does
->>> not seem to matter whether the 32k timer or sys_clk is used as the GPTIMER
->>> source.  Also it does not seem to matter whether GPTIMER1 or GPTIMER12 is
->>> configured.  Looks like some kind of GPTIMER or GPTIMER-related interrupt
->>> problem.  Have not had the chance to isolate the exact problem yet, so,
->>> other comments welcome.
->>
->> Not seeing this on overo at least.
->>
->
->And my Beagle is booting fine with mainline and attached .config.
+Hi,
 
-Got many choices to choose for .config if I use SDP or LDP defconfigs - 
-omap_3430sdp_defconfig
-omap_ldp_defconfig
+I recently move my zoom1 board over to the linux-omap tree, which was  
+a great improvement over the omapzoom tree (serial and ethernet don't  
+die after a few seconds), but the touchscreen has become unusable. Are  
+more people seeing this?
 
-Looks like these have not been up-to-date. Not sure which options to choose for these boards.
+regards,
 
-Eg:
-System V IPC (SYSVIPC) [Y/n/?] y
-POSIX Message Queues (POSIX_MQUEUE) [N/y/?] (NEW) ???
+Koen
 
-OMAP PM layer selection
-  1. No PM layer (OMAP_PM_NONE) (NEW)
-> 2. No-op/debug PM layer (OMAP_PM_NOOP) (NEW)
-  3. PM layer implemented using SRF (OMAP_PM_SRF) (NEW)
-choice[1-3]:
+--Apple-Mail-8-502419617
+content-type: application/pgp-signature; x-mac-type=70674453;
+	name=PGP.sig
+content-description: Dit deel van het bericht is digitaal ondertekend
+content-disposition: inline; filename=PGP.sig
+content-transfer-encoding: 7bit
 
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.5 (Darwin)
 
->
->Kevin
+iD8DBQFJ1GCmMkyGM64RGpERApgXAJ4g6ZjZAmhIyp+tUjH5snkbKCoeJwCfU8H0
+vZmvxXyaoUt6pkcl4GgJMrQ=
+=ZdPA
+-----END PGP SIGNATURE-----
 
+--Apple-Mail-8-502419617--
