@@ -1,79 +1,63 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: PM branch rebased to 2.6.29... for real this time
-Date: Thu, 02 Apr 2009 09:06:37 -0700
-Message-ID: <49D4E28D.50601@deeprootsystems.com>
-References: <87k56dp5zc.fsf@deeprootsystems.com> <B85A65D85D7EB246BE421B3FB0FBB59301CC5F02C1@dbde02.ent.ti.com> 	<87ljqllzz9.fsf@deeprootsystems.com> <B85A65D85D7EB246BE421B3FB0FBB59301CC5F069A@dbde02.ent.ti.com> 	<87bprgjjp4.fsf@deeprootsystems.com> <4d34a0a70904012058h62914304k3318720685b9513@mail.gmail.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] ARM: OMAP3: Clean up spurious interrupt check logic
+Date: Thu, 2 Apr 2009 09:25:29 -0700
+Message-ID: <20090402162529.GO32530@atomide.com>
+References: <49D4C9B8.10806@nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from wf-out-1314.google.com ([209.85.200.174]:33921 "EHLO
-	wf-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1762636AbZDBQGq (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 2 Apr 2009 12:06:46 -0400
-Received: by wf-out-1314.google.com with SMTP id 29so710151wff.4
-        for <linux-omap@vger.kernel.org>; Thu, 02 Apr 2009 09:06:44 -0700 (PDT)
-In-Reply-To: <4d34a0a70904012058h62914304k3318720685b9513@mail.gmail.com>
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:56628 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751805AbZDBQZe (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 2 Apr 2009 12:25:34 -0400
+Content-Disposition: inline
+In-Reply-To: <49D4C9B8.10806@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kim Kyuwon <chammoru@gmail.com>
-Cc: "Premi, Sanjeev" <premi@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Nayak, Rajendra" <rnayak@ti.com>
+To: Roger Quadros <ext-roger.quadros@nokia.com>
+Cc: linux-omap@vger.kernel.org, Artem Bityutskiy <Artem.Bityutskiy@nokia.com>
 
-Yes, this locking problem requires Rajendra's patchset which needs to be 
-updated for the PM branch.
+* Roger Quadros <ext-roger.quadros@nokia.com> [090402 07:21]:
+> From: Roger Quadros <ext-roger.quadros@nokia.com>
+> Date: Thu, 2 Apr 2009 16:41:00 +0300
+> Subject: [PATCH] ARM: OMAP3: Clean up spurious interrupt check logic
+>
+> SPURIOUSIRQ is contained in bits 31:7 of INTC_SIR, so
+> INTC_SIR must be right shifted by 7, not 6.
+>
+> No change in logic, only changes for better readability.
+> Refer to register definition of INTCPS_SIR_IRQ in OMAP3 Manual.
 
-Kevin
+Argh, that bug explains why I could not figure out the meaning
+of the first spurious bit.. :)
 
-Kim Kyuwon wrote:
-> Hi Kevin, Sanjeev,
-> 
-> I'm having the same problem.
-> 
-> when clk_set_rate() is invoked in omap_cpu_init() as shown below:
-> 
-> 	clk_set_rate(mpu_clk, policy->cpuinfo.max_freq * 1000);
-> 
-> It acquires the clocks mutex by the next statement.
-> 
-> 	mutex_lock(&clocks_mutex);
-> 
-> But after invoking arch_clock->clk_set_rate() in the middle of
-> clk_set_rate(), clock_set_rate() is invoked again. So deadlock occurs
-> due to mutex_lock() in clock_set_rate().
-> 
-> I think setting the default governor can not help this deadlock.
-> 
-> Regards,
-> Kyuwon
-> 
-> On Thu, Apr 2, 2009 at 3:46 AM, Kevin Hilman
-> <khilman@deeprootsystems.com> wrote:
->> "Premi, Sanjeev" <premi@ti.com> writes:
->>
->> [...]
->>
->>>> Sounds to me like CPUfreq is changing frequencies during bootup.  Did
->>>> you select ondemand as the default CPUfreq governor?
->>> [sp] Yes. This is what I feel too. Only I was not clear why the process
->>> gets stuck at WFI. Haven't been able to debug further. So far...
->>>
->>>> If so, can you try with performance as the default governor.
->>> [sp] It was performance governor only.
->>>
->>>> If you're already using performance, then u-boot is setting a slower
->>>> speed and CPUfreq may decide to change it during boot.
->>> [sp] That is the case.
->>>
->> Can you try setting the default governor to userspace so that no DVFS
->> changes will happen during boot?
->>
->> Kevin
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->>
-> 
-> 
-> 
+I guess the spurious bit value is still on or off instead of
+actually telling the previous spurious irq number though.
 
+Tony
+
+> Signed-off-by: Roger Quadros <ext-roger.quadros@nokia.com>
+> ---
+> arch/arm/mach-omap2/irq.c |    4 ++--
+> 1 files changed, 2 insertions(+), 2 deletions(-)
+>
+> diff --git a/arch/arm/mach-omap2/irq.c b/arch/arm/mach-omap2/irq.c
+> index 2842fe8..296ab86 100644
+> --- a/arch/arm/mach-omap2/irq.c
+> +++ b/arch/arm/mach-omap2/irq.c
+> @@ -73,9 +73,9 @@ static int omap_check_spurious(unsigned int irq)
+> 	u32 sir, spurious;
+>
+> 	sir = intc_bank_read_reg(&irq_banks[0], INTC_SIR);
+> -	spurious = sir >> 6;
+> +	spurious = sir >> 7;
+>
+> -	if (spurious > 1) {
+> +	if (spurious) {
+> 		printk(KERN_WARNING "Spurious irq %i: 0x%08x, please flush "
+> 					"posted write for irq %i\n",
+> 					irq, sir, previous_irq);
+> -- 
+> 1.5.6.5
+>
+>
