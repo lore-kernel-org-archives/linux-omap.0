@@ -1,99 +1,80 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH] ARM: Do early I/O mapping if spinlock debugging is enabled
-	(Re: [PATCH 3/4] ARM: OMAP3: Add support for 3430 SDP, v3)
-Date: Wed, 1 Apr 2009 17:00:56 -0700
-Message-ID: <20090402000055.GK32530@atomide.com>
-References: <20090331184802.GA27745@n2100.arm.linux.org.uk> <5A47E75E594F054BAF48C5E4FC4B92AB02FB086086@dbde02.ent.ti.com> <0680EC522D0CC943BC586913CF3768C0036E7EF891@dbde02.ent.ti.com> <alpine.DEB.2.00.0904011301320.9879@utopia.booyaka.com> <20090401220745.GJ32530@atomide.com> <87ocvghsk7.fsf@deeprootsystems.com>
+From: Kim Kyuwon <chammoru@gmail.com>
+Subject: Re: PM branch rebased to 2.6.29... for real this time
+Date: Thu, 2 Apr 2009 12:58:55 +0900
+Message-ID: <4d34a0a70904012058h62914304k3318720685b9513@mail.gmail.com>
+References: <87k56dp5zc.fsf@deeprootsystems.com> <B85A65D85D7EB246BE421B3FB0FBB59301CC5F02C1@dbde02.ent.ti.com>
+	<87ljqllzz9.fsf@deeprootsystems.com> <B85A65D85D7EB246BE421B3FB0FBB59301CC5F069A@dbde02.ent.ti.com>
+	<87bprgjjp4.fsf@deeprootsystems.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="6sX45UoQRIJXqkqR"
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:55232 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755540AbZDBABK (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 1 Apr 2009 20:01:10 -0400
-Content-Disposition: inline
-In-Reply-To: <87ocvghsk7.fsf@deeprootsystems.com>
+Received: from rv-out-0506.google.com ([209.85.198.235]:28910 "EHLO
+	rv-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754606AbZDBD7L (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 1 Apr 2009 23:59:11 -0400
+Received: by rv-out-0506.google.com with SMTP id f9so391235rvb.1
+        for <linux-omap@vger.kernel.org>; Wed, 01 Apr 2009 20:59:10 -0700 (PDT)
+In-Reply-To: <87bprgjjp4.fsf@deeprootsystems.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Kevin Hilman <khilman@deeprootsystems.com>
-Cc: Paul Walmsley <paul@pwsan.com>, "Syed Mohammed, Khasim" <khasim@ti.com>, "Gadiyar, Anand" <gadiyar@ti.com>, "linux-arm-kernel@lists.arm.linux.org.uk" <linux-arm-kernel@lists.arm.linux.org.uk>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Juha Yrjola <juha.yrjola@solidboot.com>
+Cc: "Premi, Sanjeev" <premi@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Nayak, Rajendra" <rnayak@ti.com>
+
+Hi Kevin, Sanjeev,
+
+I'm having the same problem.
+
+when clk_set_rate() is invoked in omap_cpu_init() as shown below:
+
+	clk_set_rate(mpu_clk, policy->cpuinfo.max_freq * 1000);
+
+It acquires the clocks mutex by the next statement.
+
+	mutex_lock(&clocks_mutex);
+
+But after invoking arch_clock->clk_set_rate() in the middle of
+clk_set_rate(), clock_set_rate() is invoked again. So deadlock occurs
+due to mutex_lock() in clock_set_rate().
+
+I think setting the default governor can not help this deadlock.
+
+Regards,
+Kyuwon
+
+On Thu, Apr 2, 2009 at 3:46 AM, Kevin Hilman
+<khilman@deeprootsystems.com> wrote:
+> "Premi, Sanjeev" <premi@ti.com> writes:
+>
+> [...]
+>
+>>> Sounds to me like CPUfreq is changing frequencies during bootup.  Did
+>>> you select ondemand as the default CPUfreq governor?
+>>
+>> [sp] Yes. This is what I feel too. Only I was not clear why the process
+>> gets stuck at WFI. Haven't been able to debug further. So far...
+>>
+>>> If so, can you try with performance as the default governor.
+>>
+>> [sp] It was performance governor only.
+>>
+>>> If you're already using performance, then u-boot is setting a slower
+>>> speed and CPUfreq may decide to change it during boot.
+>>
+>> [sp] That is the case.
+>>
+>
+> Can you try setting the default governor to userspace so that no DVFS
+> changes will happen during boot?
+>
+> Kevin
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
 
 
---6sX45UoQRIJXqkqR
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
 
-* Kevin Hilman <khilman@deeprootsystems.com> [090401 16:18]:
-> Tony Lindgren <tony@atomide.com> writes:
-> 
-> > * Paul Walmsley <paul@pwsan.com> [090401 12:04]:
-> >> On Wed, 1 Apr 2009, Syed Mohammed, Khasim wrote:
-> >> 
-> >> > > -----Original Message-----
-> >> > > From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of
-> >> > > Gadiyar, Anand
-> >> > > Sent: Wednesday, April 01, 2009 1:55 PM
-> >> > > To: Russell King - ARM Linux
-> >> > > Cc: Tony Lindgren; linux-arm-kernel@lists.arm.linux.org.uk; linux-omap@vger.kernel.org
-> >> > > Subject: RE: [PATCH 3/4] ARM: OMAP3: Add support for 3430 SDP, v3
-> >> > > 
-> >> > > On Wed, Apr 01, 2009 at 12:18 AM, Russell King - ARM Linux wrote:
-> >> > > > On Tue, Mar 31, 2009 at 05:12:18PM +0530, Gadiyar, Anand wrote:
-> >> > > > > I could not run the 3430 SDP defconfig from mainline. The image hangs at
-> >> > > > > "Starting kernel ...". Enabling CONFIG_DEBUG_LL does not help.
-> >> > > >
-> >> > > > Did you add the necessary patch to kernel/printk.c ?
-> >> > > >
-> >> > > 
-> >> > > Silly me, I had not done this (despite having read this so many times on this list).
-> >> > > 
-> >> > > Here's what I get now after adding the patch.
-
-<snip>
-
-> > Not seeing this on overo at least.
-> >
-> 
-> And my Beagle is booting fine with mainline and attached .config.
-
-<snip>
-
-Well turns out it's the same old bug again Juha tracked down earlier..
-
-If CONFIG_DEBUG_SPINLOCK is set, and CONFIG_DEBUG_LL is not set, the IO
-does not get mapped. Juha's earlier patch is attached.
-
-Russell, got any better fixes in mind for this?
-
-Tony
-
---6sX45UoQRIJXqkqR
-Content-Type: text/x-diff; charset=us-ascii
-Content-Disposition: inline; filename="spinlock-debug.patch"
-
->From c699464bd92629fda1062223467588fcb0e97bca Mon Sep 17 00:00:00 2001
-From: Juha Yrjola <juha.yrjola@solidboot.com>
-Date: Fri, 16 Jan 2009 16:00:50 +0200
-Subject: [PATCH] ARM: Do early I/O mapping if spinlock debugging is enabled
-
-At least on OMAP, sched_clock() requires the I/O maps to be initialized.
-Spinlock debugging invokes sched_clock() very early.
-
-Signed-off-by: Juha Yrjola <juha.yrjola@solidboot.com>
-Signed-off-by: Tony Lindgren <tony@atomide.com>
-
-diff --git a/arch/arm/kernel/head.S b/arch/arm/kernel/head.S
-index 21e17dc..1bc918c 100644
---- a/arch/arm/kernel/head.S
-+++ b/arch/arm/kernel/head.S
-@@ -282,7 +282,7 @@ __create_page_tables:
- 	.endif
- 	str	r6, [r0]
- 
--#ifdef CONFIG_DEBUG_LL
-+#if defined(CONFIG_DEBUG_LL) || defined(CONFIG_DEBUG_SPINLOCK)
- 	ldr	r7, [r10, #PROCINFO_IO_MMUFLAGS] @ io_mmuflags
- 	/*
- 	 * Map in IO space for serial debugging.
-
---6sX45UoQRIJXqkqR--
+-- 
+Kyuwon
