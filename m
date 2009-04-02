@@ -1,40 +1,79 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] ARM: Do early I/O mapping if spinlock debugging is
-	enabled (Re: [PATCH 3/4] ARM: OMAP3: Add support for 3430 SDP, v3)
-Date: Thu, 2 Apr 2009 07:54:32 -0700
-Message-ID: <20090402145431.GL32530@atomide.com>
-References: <20090331184802.GA27745@n2100.arm.linux.org.uk> <5A47E75E594F054BAF48C5E4FC4B92AB02FB086086@dbde02.ent.ti.com> <0680EC522D0CC943BC586913CF3768C0036E7EF891@dbde02.ent.ti.com> <alpine.DEB.2.00.0904011301320.9879@utopia.booyaka.com> <20090401220745.GJ32530@atomide.com> <87ocvghsk7.fsf@deeprootsystems.com> <20090402000055.GK32530@atomide.com> <20090402073819.GA4337@n2100.arm.linux.org.uk>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: PM branch rebased to 2.6.29... for real this time
+Date: Thu, 02 Apr 2009 09:06:37 -0700
+Message-ID: <49D4E28D.50601@deeprootsystems.com>
+References: <87k56dp5zc.fsf@deeprootsystems.com> <B85A65D85D7EB246BE421B3FB0FBB59301CC5F02C1@dbde02.ent.ti.com> 	<87ljqllzz9.fsf@deeprootsystems.com> <B85A65D85D7EB246BE421B3FB0FBB59301CC5F069A@dbde02.ent.ti.com> 	<87bprgjjp4.fsf@deeprootsystems.com> <4d34a0a70904012058h62914304k3318720685b9513@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:49530 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759967AbZDBOyu (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 2 Apr 2009 10:54:50 -0400
-Content-Disposition: inline
-In-Reply-To: <20090402073819.GA4337@n2100.arm.linux.org.uk>
+Received: from wf-out-1314.google.com ([209.85.200.174]:33921 "EHLO
+	wf-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1762636AbZDBQGq (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 2 Apr 2009 12:06:46 -0400
+Received: by wf-out-1314.google.com with SMTP id 29so710151wff.4
+        for <linux-omap@vger.kernel.org>; Thu, 02 Apr 2009 09:06:44 -0700 (PDT)
+In-Reply-To: <4d34a0a70904012058h62914304k3318720685b9513@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: Kevin Hilman <khilman@deeprootsystems.com>, Paul Walmsley <paul@pwsan.com>, "Syed Mohammed, Khasim" <khasim@ti.com>, "Gadiyar, Anand" <gadiyar@ti.com>, "linux-arm-kernel@lists.arm.linux.org.uk" <linux-arm-kernel@lists.arm.linux.org.uk>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Juha Yrjola <juha.yrjola@solidboot.com>
+To: Kim Kyuwon <chammoru@gmail.com>
+Cc: "Premi, Sanjeev" <premi@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Nayak, Rajendra" <rnayak@ti.com>
 
-* Russell King - ARM Linux <linux@arm.linux.org.uk> [090402 00:38]:
-> On Wed, Apr 01, 2009 at 05:00:56PM -0700, Tony Lindgren wrote:
-> > Well turns out it's the same old bug again Juha tracked down earlier..
-> > 
-> > If CONFIG_DEBUG_SPINLOCK is set, and CONFIG_DEBUG_LL is not set, the IO
-> > does not get mapped. Juha's earlier patch is attached.
-> > 
-> > Russell, got any better fixes in mind for this?
-> 
-> No, and as I've said previously, the kernel assuming that sched_clock
-> is usable before stuff has been initialized is a bug plain and simple.
-> 
-> Your patch may fix OMAP, but it won't fix everything.
-> 
-> It's just not going to be possible to make this work.  spinlock debugging
-> needs to stop using sched_clock.
+Yes, this locking problem requires Rajendra's patchset which needs to be 
+updated for the PM branch.
 
-Or maybe enable it later on like CONFIG_PRINTK_TIME was changed.
+Kevin
 
-Tony
+Kim Kyuwon wrote:
+> Hi Kevin, Sanjeev,
+> 
+> I'm having the same problem.
+> 
+> when clk_set_rate() is invoked in omap_cpu_init() as shown below:
+> 
+> 	clk_set_rate(mpu_clk, policy->cpuinfo.max_freq * 1000);
+> 
+> It acquires the clocks mutex by the next statement.
+> 
+> 	mutex_lock(&clocks_mutex);
+> 
+> But after invoking arch_clock->clk_set_rate() in the middle of
+> clk_set_rate(), clock_set_rate() is invoked again. So deadlock occurs
+> due to mutex_lock() in clock_set_rate().
+> 
+> I think setting the default governor can not help this deadlock.
+> 
+> Regards,
+> Kyuwon
+> 
+> On Thu, Apr 2, 2009 at 3:46 AM, Kevin Hilman
+> <khilman@deeprootsystems.com> wrote:
+>> "Premi, Sanjeev" <premi@ti.com> writes:
+>>
+>> [...]
+>>
+>>>> Sounds to me like CPUfreq is changing frequencies during bootup.  Did
+>>>> you select ondemand as the default CPUfreq governor?
+>>> [sp] Yes. This is what I feel too. Only I was not clear why the process
+>>> gets stuck at WFI. Haven't been able to debug further. So far...
+>>>
+>>>> If so, can you try with performance as the default governor.
+>>> [sp] It was performance governor only.
+>>>
+>>>> If you're already using performance, then u-boot is setting a slower
+>>>> speed and CPUfreq may decide to change it during boot.
+>>> [sp] That is the case.
+>>>
+>> Can you try setting the default governor to userspace so that no DVFS
+>> changes will happen during boot?
+>>
+>> Kevin
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>>
+> 
+> 
+> 
+
