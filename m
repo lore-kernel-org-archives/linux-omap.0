@@ -1,97 +1,190 @@
-From: "Nayak, Rajendra" <rnayak@ti.com>
-Subject: RE: PM branch rebased to 2.6.29... for real this time
-Date: Fri, 3 Apr 2009 10:51:20 +0530
-Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB02FB08687C@dbde02.ent.ti.com>
-References: <49D4E28D.50601@deeprootsystems.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+From: Jarkko Nikula <jarkko.nikula@nokia.com>
+Subject: [mainline 2.6.29][PATCH] ARM: OMAP: Remove defines and resource init for OMAP24XX EAC
+Date: Fri,  3 Apr 2009 08:37:04 +0300
+Message-ID: <1238737024-14647-2-git-send-email-jarkko.nikula@nokia.com>
+References: <1238737024-14647-1-git-send-email-jarkko.nikula@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:38425 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752309AbZDCFVd convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 3 Apr 2009 01:21:33 -0400
-In-Reply-To: <49D4E28D.50601@deeprootsystems.com>
-Content-Language: en-US
+Received: from smtp.nokia.com ([192.100.105.134]:45418 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751500AbZDCFgn (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 3 Apr 2009 01:36:43 -0400
+Received: from vaebh105.NOE.Nokia.com (vaebh105.europe.nokia.com [10.160.244.31])
+	by mgw-mx09.nokia.com (Switch-3.2.6/Switch-3.2.6) with ESMTP id n335aLL2002162
+	for <linux-omap@vger.kernel.org>; Fri, 3 Apr 2009 00:36:41 -0500
+In-Reply-To: <1238737024-14647-1-git-send-email-jarkko.nikula@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@deeprootsystems.com>, Kim Kyuwon <chammoru@gmail.com>
-Cc: "Premi, Sanjeev" <premi@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: linux-omap@vger.kernel.org
+Cc: Jarkko Nikula <jarkko.nikula@nokia.com>
 
-> -----Original Message-----
-> From: Kevin Hilman [mailto:khilman@deeprootsystems.com] 
-> Sent: Thursday, April 02, 2009 9:37 PM
-> To: Kim Kyuwon
-> Cc: Premi, Sanjeev; linux-omap@vger.kernel.org; Nayak, Rajendra
-> Subject: Re: PM branch rebased to 2.6.29... for real this time
-> 
-> Yes, this locking problem requires Rajendra's patchset which 
-> needs to be 
-> updated for the PM branch.
+There is no anymore legacy driver for OMAP24XX Enhanced Audio Controller
+in linux-omap and it was newer in mainline so cleanup these unneeded
+defines and initialization code.
 
-I will send the updated patch set on the latest PM branch maybe later today.
+Signed-off-by: Jarkko Nikula <jarkko.nikula@nokia.com>
+---
+ arch/arm/mach-omap2/devices.c         |   33 -----------
+ arch/arm/plat-omap/include/mach/eac.h |  100 ---------------------------------
+ 2 files changed, 0 insertions(+), 133 deletions(-)
+ delete mode 100644 arch/arm/plat-omap/include/mach/eac.h
 
-> 
-> Kevin
-> 
-> Kim Kyuwon wrote:
-> > Hi Kevin, Sanjeev,
-> > 
-> > I'm having the same problem.
-> > 
-> > when clk_set_rate() is invoked in omap_cpu_init() as shown below:
-> > 
-> > 	clk_set_rate(mpu_clk, policy->cpuinfo.max_freq * 1000);
-> > 
-> > It acquires the clocks mutex by the next statement.
-> > 
-> > 	mutex_lock(&clocks_mutex);
-> > 
-> > But after invoking arch_clock->clk_set_rate() in the middle of
-> > clk_set_rate(), clock_set_rate() is invoked again. So 
-> deadlock occurs
-> > due to mutex_lock() in clock_set_rate().
-> > 
-> > I think setting the default governor can not help this deadlock.
-> > 
-> > Regards,
-> > Kyuwon
-> > 
-> > On Thu, Apr 2, 2009 at 3:46 AM, Kevin Hilman
-> > <khilman@deeprootsystems.com> wrote:
-> >> "Premi, Sanjeev" <premi@ti.com> writes:
-> >>
-> >> [...]
-> >>
-> >>>> Sounds to me like CPUfreq is changing frequencies during 
-> bootup.  Did
-> >>>> you select ondemand as the default CPUfreq governor?
-> >>> [sp] Yes. This is what I feel too. Only I was not clear 
-> why the process
-> >>> gets stuck at WFI. Haven't been able to debug further. So far...
-> >>>
-> >>>> If so, can you try with performance as the default governor.
-> >>> [sp] It was performance governor only.
-> >>>
-> >>>> If you're already using performance, then u-boot is 
-> setting a slower
-> >>>> speed and CPUfreq may decide to change it during boot.
-> >>> [sp] That is the case.
-> >>>
-> >> Can you try setting the default governor to userspace so 
-> that no DVFS
-> >> changes will happen during boot?
-> >>
-> >> Kevin
-> >> --
-> >> To unsubscribe from this list: send the line "unsubscribe 
-> linux-omap" in
-> >> the body of a message to majordomo@vger.kernel.org
-> >> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> >>
-> > 
-> > 
-> > 
-> 
-> 
-> 
+diff --git a/arch/arm/mach-omap2/devices.c b/arch/arm/mach-omap2/devices.c
+index d6b4b2f..496983a 100644
+--- a/arch/arm/mach-omap2/devices.c
++++ b/arch/arm/mach-omap2/devices.c
+@@ -25,7 +25,6 @@
+ #include <mach/board.h>
+ #include <mach/mux.h>
+ #include <mach/gpio.h>
+-#include <mach/eac.h>
+ #include <mach/mmc.h>
+ 
+ #if defined(CONFIG_VIDEO_OMAP2) || defined(CONFIG_VIDEO_OMAP2_MODULE)
+@@ -366,38 +365,6 @@ static void omap_init_mcspi(void)
+ static inline void omap_init_mcspi(void) {}
+ #endif
+ 
+-#ifdef CONFIG_SND_OMAP24XX_EAC
+-
+-#define OMAP2_EAC_BASE			0x48090000
+-
+-static struct resource omap2_eac_resources[] = {
+-	{
+-		.start		= OMAP2_EAC_BASE,
+-		.end		= OMAP2_EAC_BASE + 0x109,
+-		.flags		= IORESOURCE_MEM,
+-	},
+-};
+-
+-static struct platform_device omap2_eac_device = {
+-	.name		= "omap24xx-eac",
+-	.id		= -1,
+-	.num_resources	= ARRAY_SIZE(omap2_eac_resources),
+-	.resource	= omap2_eac_resources,
+-	.dev = {
+-		.platform_data = NULL,
+-	},
+-};
+-
+-void omap_init_eac(struct eac_platform_data *pdata)
+-{
+-	omap2_eac_device.dev.platform_data = pdata;
+-	platform_device_register(&omap2_eac_device);
+-}
+-
+-#else
+-void omap_init_eac(struct eac_platform_data *pdata) {}
+-#endif
+-
+ #ifdef CONFIG_OMAP_SHA1_MD5
+ static struct resource sha1_md5_resources[] = {
+ 	{
+diff --git a/arch/arm/plat-omap/include/mach/eac.h b/arch/arm/plat-omap/include/mach/eac.h
+deleted file mode 100644
+index 9e62cf0..0000000
+--- a/arch/arm/plat-omap/include/mach/eac.h
++++ /dev/null
+@@ -1,100 +0,0 @@
+-/*
+- * arch/arm/plat-omap/include/mach2/eac.h
+- *
+- * Defines for Enhanced Audio Controller
+- *
+- * Contact: Jarkko Nikula <jarkko.nikula@nokia.com>
+- *
+- * Copyright (C) 2006 Nokia Corporation
+- * Copyright (C) 2004 Texas Instruments, Inc.
+- *
+- * This program is free software; you can redistribute it and/or
+- * modify it under the terms of the GNU General Public License
+- * version 2 as published by the Free Software Foundation.
+- *
+- * This program is distributed in the hope that it will be useful, but
+- * WITHOUT ANY WARRANTY; without even the implied warranty of
+- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+- * General Public License for more details.
+- *
+- * You should have received a copy of the GNU General Public License
+- * along with this program; if not, write to the Free Software
+- * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+- * 02110-1301 USA
+- *
+- */
+-
+-#ifndef __ASM_ARM_ARCH_OMAP2_EAC_H
+-#define __ASM_ARM_ARCH_OMAP2_EAC_H
+-
+-#include <mach/io.h>
+-#include <mach/hardware.h>
+-#include <asm/irq.h>
+-
+-#include <sound/core.h>
+-
+-/* master codec clock source */
+-#define EAC_MCLK_EXT_MASK	0x100
+-enum eac_mclk_src {
+-	EAC_MCLK_INT_11290000, /* internal 96 MHz / 8.5 = 11.29 Mhz */
+-	EAC_MCLK_EXT_11289600 = EAC_MCLK_EXT_MASK,
+-	EAC_MCLK_EXT_12288000,
+-	EAC_MCLK_EXT_2x11289600,
+-	EAC_MCLK_EXT_2x12288000,
+-};
+-
+-/* codec port interface mode */
+-enum eac_codec_mode {
+-	EAC_CODEC_PCM,
+-	EAC_CODEC_AC97,
+-	EAC_CODEC_I2S_MASTER, /* codec port, I.e. EAC is the master */
+-	EAC_CODEC_I2S_SLAVE,
+-};
+-
+-/* configuration structure for I2S mode */
+-struct eac_i2s_conf {
+-	/* if enabled, then first data slot (left channel) is signaled as
+-	 * positive level of frame sync EAC.AC_FS */
+-	unsigned	polarity_changed_mode:1;
+-	/* if enabled, then serial data starts one clock cycle after the
+-	 * of EAC.AC_FS for first audio slot */
+-	unsigned	sync_delay_enable:1;
+-};
+-
+-/* configuration structure for EAC codec port */
+-struct eac_codec {
+-	enum eac_mclk_src	mclk_src;
+-
+-	enum eac_codec_mode	codec_mode;
+-	union {
+-		struct eac_i2s_conf	i2s;
+-	} codec_conf;
+-
+-	int		default_rate; /* audio sampling rate */
+-
+-	int		(* set_power)(void *private_data, int dac, int adc);
+-	int		(* register_controls)(void *private_data,
+-					      struct snd_card *card);
+-	const char 	*short_name;
+-
+-	void		*private_data;
+-};
+-
+-/* structure for passing platform dependent data to the EAC driver */
+-struct eac_platform_data {
+-        int	(* init)(struct device *eac_dev);
+-	void	(* cleanup)(struct device *eac_dev);
+-	/* these callbacks are used to configure & control external MCLK
+-	 * source. NULL if not used */
+-	int	(* enable_ext_clocks)(struct device *eac_dev);
+-	void	(* disable_ext_clocks)(struct device *eac_dev);
+-};
+-
+-extern void omap_init_eac(struct eac_platform_data *pdata);
+-
+-extern int eac_register_codec(struct device *eac_dev, struct eac_codec *codec);
+-extern void eac_unregister_codec(struct device *eac_dev);
+-
+-extern int eac_set_mode(struct device *eac_dev, int play, int rec);
+-
+-#endif /* __ASM_ARM_ARCH_OMAP2_EAC_H */
+-- 
+1.6.2.1
+
