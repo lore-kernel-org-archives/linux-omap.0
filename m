@@ -1,28 +1,35 @@
-From: david.hagood@gmail.com
-Subject: Benchmarking: POP flash vs. MMC?
-Date: Fri, 3 Apr 2009 16:24:45 -0500 (CDT)
-Message-ID: <6541c55b1b4ad133498add734c9eecc8.squirrel@localhost>
+From: Tony Lindgren <tony@atomide.com>
+Subject: [APPLIED] [linux-omap only][PATCH] ARM: OMAP: Partial revert for EAC IO
+Date: Fri, 3 Apr 2009 18:12:22 -0400
+Message-ID: <notify-1238796739@atomide.com>
+References: <1238737024-14647-1-git-send-email-jarkko.nikula@nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from rv-out-0506.google.com ([209.85.198.226]:1313 "EHLO
-	rv-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754638AbZDCVYu (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 3 Apr 2009 17:24:50 -0400
-Received: by rv-out-0506.google.com with SMTP id g37so437388rvb.5
-        for <linux-omap@vger.kernel.org>; Fri, 03 Apr 2009 14:24:48 -0700 (PDT)
-Received: from localhost (localhost [127.0.0.1])
-	by Deathwish.hagood.sktc.net (Postfix) with ESMTP id 2224BC7B8235
-	for <linux-omap@vger.kernel.org>; Fri,  3 Apr 2009 16:24:45 -0500 (CDT)
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:63368 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751028AbZDCWMW (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 3 Apr 2009 18:12:22 -0400
+Received: from c-67-160-239-110.hsd1.ca.comcast.net ([67.160.239.110] helo=localhost.localdomain)
+	by mho-01-ewr.mailhop.org with esmtpa (Exim 4.68)
+	(envelope-from <tony@atomide.com>)
+	id 1Lprca-000362-OM
+	for linux-omap@vger.kernel.org; Fri, 03 Apr 2009 22:12:20 +0000
+In-Reply-To: <1238737024-14647-1-git-send-email-jarkko.nikula@nokia.com>
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 
-Has anybody done any benchmarking on POP flash read/write speeds (using
-JFFS2) vs. MMC/SDHC card access (using ext[234])? Or for that matter, has
-anybody done any playing around with using the execute in place function
-of JFFS2 to see if there is any over-all speed advantage (due to reduced
-pressure on the RAM) vs. loading into RAM?
+This patch has been applied to the linux-omap
+by youw fwiendly patch wobot.
+
+Commit: 7b4c6760b933f3209747b3d158ac4d78dcfb19d9
+
+PatchWorks
+http://patchwork.kernel.org/patch/16030/
+
+Git
+http://git.kernel.org/?p=linux/kernel/git/tmlind/linux-omap-2.6.git;a=commit;h=7b4c6760b933f3209747b3d158ac4d78dcfb19d9
 
 
