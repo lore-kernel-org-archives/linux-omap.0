@@ -1,35 +1,117 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: [APPLIED] [linux-omap only][PATCH] ARM: OMAP: Partial revert for EAC IO
-Date: Fri, 3 Apr 2009 18:12:22 -0400
-Message-ID: <notify-1238796739@atomide.com>
-References: <1238737024-14647-1-git-send-email-jarkko.nikula@nokia.com>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: [PATCH 3/4] ARM: OMAP3: Add support for 3430 SDP, v3
+Date: Fri, 03 Apr 2009 16:12:32 -0700
+Message-ID: <87tz55xrfj.fsf@deeprootsystems.com>
+References: <20090331184802.GA27745@n2100.arm.linux.org.uk>
+	<5A47E75E594F054BAF48C5E4FC4B92AB02FB086086@dbde02.ent.ti.com>
+	<0680EC522D0CC943BC586913CF3768C0036E7EF891@dbde02.ent.ti.com>
+	<alpine.DEB.2.00.0904011301320.9879@utopia.booyaka.com>
+	<alpine.DEB.2.00.0904031308340.2134@utopia.booyaka.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:63368 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751028AbZDCWMW (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 3 Apr 2009 18:12:22 -0400
-Received: from c-67-160-239-110.hsd1.ca.comcast.net ([67.160.239.110] helo=localhost.localdomain)
-	by mho-01-ewr.mailhop.org with esmtpa (Exim 4.68)
-	(envelope-from <tony@atomide.com>)
-	id 1Lprca-000362-OM
-	for linux-omap@vger.kernel.org; Fri, 03 Apr 2009 22:12:20 +0000
-In-Reply-To: <1238737024-14647-1-git-send-email-jarkko.nikula@nokia.com>
-Content-Disposition: inline
+Received: from wf-out-1314.google.com ([209.85.200.171]:64718 "EHLO
+	wf-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752813AbZDCXMh (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 3 Apr 2009 19:12:37 -0400
+Received: by wf-out-1314.google.com with SMTP id 29so1412831wff.4
+        for <linux-omap@vger.kernel.org>; Fri, 03 Apr 2009 16:12:35 -0700 (PDT)
+In-Reply-To: <alpine.DEB.2.00.0904031308340.2134@utopia.booyaka.com> (Paul Walmsley's message of "Fri\, 3 Apr 2009 13\:14\:00 -0600 \(MDT\)")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
+To: Paul Walmsley <paul@pwsan.com>
+Cc: "Syed Mohammed, Khasim" <khasim@ti.com>, "Gadiyar, Anand" <gadiyar@ti.com>, Tony Lindgren <tony@atomide.com>, "linux-arm-kernel@lists.arm.linux.org.uk" <linux-arm-kernel@lists.arm.linux.org.uk>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Russell King - ARM Linux <linux@arm.linux.org.uk>
 
-This patch has been applied to the linux-omap
-by youw fwiendly patch wobot.
+Paul Walmsley <paul@pwsan.com> writes:
 
-Commit: 7b4c6760b933f3209747b3d158ac4d78dcfb19d9
+> On Wed, 1 Apr 2009, Paul Walmsley wrote:
+>
+>> On Wed, 1 Apr 2009, Syed Mohammed, Khasim wrote:
+>> 
+>> > > -----Original Message-----
+>> > > From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of
+>> > > Gadiyar, Anand
+>> > > Sent: Wednesday, April 01, 2009 1:55 PM
+>> > > To: Russell King - ARM Linux
+>> > > Cc: Tony Lindgren; linux-arm-kernel@lists.arm.linux.org.uk; linux-omap@vger.kernel.org
+>> > > Subject: RE: [PATCH 3/4] ARM: OMAP3: Add support for 3430 SDP, v3
+>> > > 
+>> > > On Wed, Apr 01, 2009 at 12:18 AM, Russell King - ARM Linux wrote:
+>> > > > On Tue, Mar 31, 2009 at 05:12:18PM +0530, Gadiyar, Anand wrote:
+>> > > > > I could not run the 3430 SDP defconfig from mainline. The image hangs at
+>> > > > > "Starting kernel ...". Enabling CONFIG_DEBUG_LL does not help.
+>> > > >
+>> > > > Did you add the necessary patch to kernel/printk.c ?
+>> > > >
+>> > > 
+>> > > Silly me, I had not done this (despite having read this so many times on this list).
+>> > > 
+>> > > Here's what I get now after adding the patch.
+>> > > 
+>> > > - Anand
+>> > > 
+>> > > Uncompressing
+>> > > Linux................................................................................................
+>> > > .................... done, booting the kernel.
+>> > > <5>Linux version 2.6.29-06608-g15f7176-dirty (a0393673@omaplbp.india.ti.com) (gcc version 4.2.1
+>> > > (CodeSourcery Sourcery G++ Lite 2007q3-51)) #4 Wed Apr 1 13:26:59 IST 2009
+>> > > CPU: ARMv7 Processor [411fc083] revision 3 (ARMv7), cr=10c5387f
+>> > > CPU: VIPT nonaliasing data cache, VIPT nonaliasing instruction cache
+>> > > Machine: OMAP3430 3430SDP board
+>> > > Memory policy: ECC disabled, Data cache writeback
+>> > > <7>On node 0 totalpages: 32768
+>> > > <7>free_area_init_node: node 0, pgdat c038c8a4, node_mem_map c03a6000
+>> > > <7>  Normal zone: 256 pages used for memmap
+>> > > <7>  Normal zone: 0 pages reserved
+>> > > <7>  Normal zone: 32512 pages, LIFO batch:7
+>> > > <6>OMAP3430 ES3.0
+>> > > <6>SRAM: Mapped pa 0x40200000 to va 0xd7000000 size: 0x100000
+>> > > Built 1 zonelists in Zone order, mobility grouping on.  Total pages: 32512
+>> > > <5>Kernel command line: mem=128M console=ttyS0,115200n8 noinitrd root=/dev/nfs rw
+>> > > nfsroot=172.24.162.66:/vol/vol2/swcoe_omapsw_linux1/anand/target,nolock,tcp
+>> > > ip=172.24.190.229:172.24.162.66:172.24.188.1:255.255.252.0:myomap::off
+>> > > <6>NR_IRQS:402
+>> > > <6>Clocking rate (Crystal/DPLL/ARM core): 26.0/332/500 MHz
+>> > > <6>GPMC revision 5.0
+>> > > <6>IRQ: Found an INTC at 0xd8200000 (revision 4.0) with 96 interrupts
+>> > > <6>Total of 96 interrupts on 1 active controller
+>> > > <6>OMAP34xx GPIO hardware version 2.5
+>> > > PID hash table entries: 512 (order: 9, 2048 bytes)
+>> > > Console: colour dummy device 80x30
+>> > > <6>Dentry cache hash table entries: 16384 (order: 4, 65536 bytes)
+>> > > <6>Inode-cache hash table entries: 8192 (order: 3, 32768 bytes)
+>> > > <6>Memory: 128MB = 128MB total
+>> > > <5>Memory: 126064KB available (3188K code, 289K data, 112K init, 0K highmem)
+>> > > <6>Calibrating delay loop...
+>> > > 
+>> > Anand,
+>> > 
+>> > It looks like the timers are not configured properly or the timer selection has gone wrong. Can you just compare your previous working defconfig with this and correct the GPTIMER selection?
+>> 
+>> As an aside, I'm seeing the same thing with mainline and Beagle.  It does 
+>> not seem to matter whether the 32k timer or sys_clk is used as the GPTIMER 
+>> source.  Also it does not seem to matter whether GPTIMER1 or GPTIMER12 is 
+>> configured.  Looks like some kind of GPTIMER or GPTIMER-related interrupt 
+>> problem.  Have not had the chance to isolate the exact problem yet, so, 
+>> other comments welcome.
+>
+> Just to follow up on this, Kevin, Tony, and I spent some time tracking 
+> this down.  We've observed that Beagle and 3430SDP fail to boot when the 
+> mainline kernel is compiled with CodeSourcery gcc 2007q3, hanging in 
+> 'Calibrating delay loop'.  When CSL gcc 2008q3 is used, the machines boot.
+>
+> There's also another problem for BeagleBoards Rev B4 and earlier: the 
+> GPTIMER12 patches are not upstream, which can cause these BeagleBoards
+> to intermittently freeze.  Will repost those shortly.
 
-PatchWorks
-http://patchwork.kernel.org/patch/16030/
+Paul,
 
-Git
-http://git.kernel.org/?p=linux/kernel/git/tmlind/linux-omap-2.6.git;a=commit;h=7b4c6760b933f3209747b3d158ac4d78dcfb19d9
+Could you also include the GPT12 updates that were recently merged
+from the PM branch that allow GPT12 to be a wakeup source.
+ 
+$ git log --reverse --pretty=oneline 0c8eba8051eb4fd4228e459c0575d6adfe53d13b..743a413f3e8f8df4cd51f9e4059c7478e927506e
+20752c3fd65bc6e84faebc7341c8495d75c171bc OMAP: move GP timer selection alongside
+65b630a097e1d181336c67b2a3b8631e572c93bb OMAP: dmtimer: enable all timers to be 
+743a413f3e8f8df4cd51f9e4059c7478e927506e OMAP3: PM: enable gptimer12 as a wakeup
 
-
+Kevin
