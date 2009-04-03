@@ -1,59 +1,71 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH] OMAP3: PM: Add the wakeup source driver, v2
-Date: Fri, 03 Apr 2009 09:12:54 -0700
-Message-ID: <87y6uh1zsp.fsf@deeprootsystems.com>
-References: <4d34a0a70903182125l77b0adc3rc0c672f0aa348ab@mail.gmail.com>
-	<87ocvhtesx.fsf@deeprootsystems.com>
-	<4d34a0a70904030320g197f836cld9c94b113a9fdffd@mail.gmail.com>
+From: "Nayak, Rajendra" <rnayak@ti.com>
+Subject: [PATCH 02/02] OMAP3 clock: Update cpufreq driver
+Date: Fri, 3 Apr 2009 21:50:26 +0530
+Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB02FB102C29@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from wf-out-1314.google.com ([209.85.200.170]:12384 "EHLO
-	wf-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S936350AbZDCQNF (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 3 Apr 2009 12:13:05 -0400
-Received: by wf-out-1314.google.com with SMTP id 29so1260553wff.4
-        for <linux-omap@vger.kernel.org>; Fri, 03 Apr 2009 09:13:02 -0700 (PDT)
-In-Reply-To: <4d34a0a70904030320g197f836cld9c94b113a9fdffd@mail.gmail.com> (Kim Kyuwon's message of "Fri\, 3 Apr 2009 19\:20\:19 +0900")
+Received: from devils.ext.ti.com ([198.47.26.153]:42787 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S935730AbZDCQUh convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 3 Apr 2009 12:20:37 -0400
+Received: from dbdp20.itg.ti.com ([172.24.170.38])
+	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id n33GKScT009230
+	for <linux-omap@vger.kernel.org>; Fri, 3 Apr 2009 11:20:34 -0500
+Received: from dbde70.ent.ti.com (localhost [127.0.0.1])
+	by dbdp20.itg.ti.com (8.13.8/8.13.8) with ESMTP id n33GKRkg016505
+	for <linux-omap@vger.kernel.org>; Fri, 3 Apr 2009 21:50:27 +0530 (IST)
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kim Kyuwon <chammoru@gmail.com>
-Cc: OMAP <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, =?utf-8?B?67CV6rK966+8?= <kyungmin.park@samsung.com>
+To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Kim Kyuwon <chammoru@gmail.com> writes:
+From: Rajendra Nayak <rnayak@ti.com>
 
->>> +
->>> +void omap3_get_wakeup_status(struct pm_wakeup_status **pm_wkst)
->>> +{
->>> +     *pm_wkst = &omap3_pm_wkst;
->>> +}
->>> +
->>
->> Can you rename this to omap3_get_last_wake_state()
->
-> Actually, I removed this function and I didn't get the WKST registers
-> from the last PRCM interrupt in the new patch. Sorry that I don't
-> address your suggestion. But I found that the PRCM interrupt is being
-> generated in normal state on the latest PM branch and, from OMAP34XX
-> TRM (4.9 PRCM Interrupts), PRCM Interrupts can be generated in many
-> cases in addition to wake-up from suspend. So if my wakeup code gets
-> the WSKT values from PRCM interrupt, I think it could show the wrong
-> information.
->
+This patch removes all refrences to virtual clock
+nodes in CPUFreq driver.
 
-What type of wrong information do you think you would get?
+Signed-off-by: Rajendra Nayak <rnayak@ti.com>
+Signed-off-by: Tero Kristo <tero.kristo@nokia.com>
+---
+ arch/arm/plat-omap/cpu-omap.c |    6 +++---
+ 1 files changed, 3 insertions(+), 3 deletions(-)
 
-After looking again, you are probably querying the WKST registers
-too late.  This version was not querying until someone dumped
-the sysfs regs.  In that case, some other idle event could have
-changed the WKST regs.
-
-What you should do is query the WKST regs in your early_resume hook
-(the same place you query the pending IRQs.)  This way you know
-exactly when the WKST regs are taken.
-
-Kevin
-
-
-
-
+Index: linux-omap-pm/arch/arm/plat-omap/cpu-omap.c
+===================================================================
+--- linux-omap-pm.orig/arch/arm/plat-omap/cpu-omap.c	2009-03-20 16:55:21.967545328 +0530
++++ linux-omap-pm/arch/arm/plat-omap/cpu-omap.c	2009-03-20 16:55:37.038096798 +0530
+@@ -40,7 +40,7 @@ static struct cpufreq_frequency_table *f
+ #ifdef CONFIG_ARCH_OMAP1
+ #define MPU_CLK		"mpu"
+ #elif CONFIG_ARCH_OMAP3
+-#define MPU_CLK		"virt_vdd1_prcm_set"
++#define MPU_CLK		"arm_fck"
+ #else
+ #define MPU_CLK		"virt_prcm_set"
+ #endif
+@@ -92,13 +92,13 @@ static int omap_target(struct cpufreq_po
+ 	if (target_freq > policy->cpuinfo.max_freq)
+ 		target_freq = policy->cpuinfo.max_freq;
+ 
++#ifdef CONFIG_ARCH_OMAP1
+ 	freqs.old = omap_getspeed(0);
+ 	freqs.new = clk_round_rate(mpu_clk, target_freq * 1000) / 1000;
+ 	freqs.cpu = 0;
+ 
+ 	if (freqs.old == freqs.new)
+ 		return ret;
+-#ifdef CONFIG_ARCH_OMAP1
+ 	cpufreq_notify_transition(&freqs, CPUFREQ_PRECHANGE);
+ #ifdef CONFIG_CPU_FREQ_DEBUG
+ 	printk(KERN_DEBUG "cpufreq-omap: transition: %u --> %u\n",
+@@ -110,7 +110,7 @@ static int omap_target(struct cpufreq_po
+ 	if (mpu_opps) {
+ 		int ind;
+ 		for (ind = 1; ind <= MAX_VDD1_OPP; ind++) {
+-			if (mpu_opps[ind].rate/1000 >= freqs.new) {
++			if (mpu_opps[ind].rate/1000 >= target_freq) {
+ 				omap_pm_cpu_set_freq
+ 					(mpu_opps[ind].rate);
+ 				break;
