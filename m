@@ -1,75 +1,53 @@
 From: Roger Quadros <ext-roger.quadros@nokia.com>
-Subject: Re: [PATCH] ARM: OMAP3: Clean up spurious interrupt check logic
-Date: Fri, 03 Apr 2009 09:18:52 +0300
-Message-ID: <49D5AA4C.6020109@nokia.com>
-References: <49D4C9B8.10806@nokia.com> <20090402162529.GO32530@atomide.com>
+Subject: [PATCH] GPIO: OMAP: Fixed spurious IRQ issue for GPIO interrupts
+Date: Fri, 03 Apr 2009 10:58:32 +0300
+Message-ID: <49D5C1A8.5090606@nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:42654 "EHLO
-	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751375AbZDCGTh (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 3 Apr 2009 02:19:37 -0400
-In-Reply-To: <20090402162529.GO32530@atomide.com>
+Received: from smtp.nokia.com ([192.100.122.230]:60902 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759522AbZDCH7P (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 3 Apr 2009 03:59:15 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: ext Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, Artem Bityutskiy <Artem.Bityutskiy@nokia.com>
+Cc: linux-omap@vger.kernel.org
 
-ext Tony Lindgren wrote:
-> * Roger Quadros <ext-roger.quadros@nokia.com> [090402 07:21]:
->   
->> From: Roger Quadros <ext-roger.quadros@nokia.com>
->> Date: Thu, 2 Apr 2009 16:41:00 +0300
->> Subject: [PATCH] ARM: OMAP3: Clean up spurious interrupt check logic
->>
->> SPURIOUSIRQ is contained in bits 31:7 of INTC_SIR, so
->> INTC_SIR must be right shifted by 7, not 6.
->>
->> No change in logic, only changes for better readability.
->> Refer to register definition of INTCPS_SIR_IRQ in OMAP3 Manual.
->>     
->
-> Argh, that bug explains why I could not figure out the meaning
-> of the first spurious bit.. :)
->
-> I guess the spurious bit value is still on or off instead of
-> actually telling the previous spurious irq number though.
->
-> Tony
->
->   
-Yes Tony you are right.
+From: Roger Quadros <ext-roger.quadros@nokia.com>
+Date: Fri, 3 Apr 2009 10:32:20 +0300
+Subject: [PATCH] GPIO: OMAP: Fixed spurious IRQ issue for GPIO interrupts
 
--roger
+Flush posted write to IRQSTATUS register in GPIO IRQ handler.
+This eliminates the below error for all peripherals that use GPIO interrupts.
 
->> Signed-off-by: Roger Quadros <ext-roger.quadros@nokia.com>
->> ---
->> arch/arm/mach-omap2/irq.c |    4 ++--
->> 1 files changed, 2 insertions(+), 2 deletions(-)
->>
->> diff --git a/arch/arm/mach-omap2/irq.c b/arch/arm/mach-omap2/irq.c
->> index 2842fe8..296ab86 100644
->> --- a/arch/arm/mach-omap2/irq.c
->> +++ b/arch/arm/mach-omap2/irq.c
->> @@ -73,9 +73,9 @@ static int omap_check_spurious(unsigned int irq)
->> 	u32 sir, spurious;
->>
->> 	sir = intc_bank_read_reg(&irq_banks[0], INTC_SIR);
->> -	spurious = sir >> 6;
->> +	spurious = sir >> 7;
->>
->> -	if (spurious > 1) {
->> +	if (spurious) {
->> 		printk(KERN_WARNING "Spurious irq %i: 0x%08x, please flush "
->> 					"posted write for irq %i\n",
->> 					irq, sir, previous_irq);
->> -- 
->> 1.5.6.5
->>
->>
->>     
->
->   
+<4>Spurious irq 95: 0xffffffdf, please flush posted write for irq 31
+
+Signed-off-by: Roger Quadros <ext-roger.quadros@nokia.com>
+---
+ arch/arm/plat-omap/gpio.c |    6 +++++-
+ 1 files changed, 5 insertions(+), 1 deletions(-)
+
+diff --git a/arch/arm/plat-omap/gpio.c b/arch/arm/plat-omap/gpio.c
+index 210a1c0..17d7afe 100644
+--- a/arch/arm/plat-omap/gpio.c
++++ b/arch/arm/plat-omap/gpio.c
+@@ -758,8 +758,12 @@ static void _clear_gpio_irqbank(struct gpio_bank *bank, int gpio_mask)
+ 
+ 	/* Workaround for clearing DSP GPIO interrupts to allow retention */
+ #if defined(CONFIG_ARCH_OMAP24XX) || defined(CONFIG_ARCH_OMAP34XX)
++	reg = bank->base + OMAP24XX_GPIO_IRQSTATUS2;
+ 	if (cpu_is_omap24xx() || cpu_is_omap34xx())
+-		__raw_writel(gpio_mask, bank->base + OMAP24XX_GPIO_IRQSTATUS2);
++		__raw_writel(gpio_mask, reg);
++
++	/* Flush posted write for the irq status to avoid spurious interrupts */
++	__raw_readl(reg);
+ #endif
+ }
+ 
+-- 
+1.5.6.5
+
 
