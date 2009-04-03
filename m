@@ -1,21 +1,21 @@
 From: "Nayak, Rajendra" <rnayak@ti.com>
-Subject: [PATCH 07/10] OMAP3: SR: Replace printk's with pr_* calls
-Date: Fri, 3 Apr 2009 21:39:12 +0530
-Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB02FB102C23@dbde02.ent.ti.com>
+Subject: [PATCH 08/10] OMAP3: SR: Remove redundunt defines
+Date: Fri, 3 Apr 2009 21:39:18 +0530
+Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB02FB102C24@dbde02.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:55868 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S935936AbZDCQJW convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 3 Apr 2009 12:09:22 -0400
+Received: from devils.ext.ti.com ([198.47.26.153]:41341 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S936097AbZDCQJ2 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 3 Apr 2009 12:09:28 -0400
 Received: from dbdp20.itg.ti.com ([172.24.170.38])
-	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id n33G9EZP023340
-	for <linux-omap@vger.kernel.org>; Fri, 3 Apr 2009 11:09:20 -0500
-Received: from dbde71.ent.ti.com (localhost [127.0.0.1])
-	by dbdp20.itg.ti.com (8.13.8/8.13.8) with ESMTP id n33G9DNW014935
-	for <linux-omap@vger.kernel.org>; Fri, 3 Apr 2009 21:39:13 +0530 (IST)
+	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id n33G9KLO001635
+	for <linux-omap@vger.kernel.org>; Fri, 3 Apr 2009 11:09:26 -0500
+Received: from dbde70.ent.ti.com (localhost [127.0.0.1])
+	by dbdp20.itg.ti.com (8.13.8/8.13.8) with ESMTP id n33G9Jnx014950
+	for <linux-omap@vger.kernel.org>; Fri, 3 Apr 2009 21:39:19 +0530 (IST)
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
@@ -23,120 +23,94 @@ To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
 From: Rajendra Nayak <rnayak@ti.com>
 
-This patch replaces all the printk(KERN_* with pr_* calls.
+This patch removes the local defines (PRCM_VDD1/2) in smartreflex
+driver and uses the already existing global definitions (VDD1_OPP/VDD2_OPP)
+from omap34xx.h file.
 
 Signed-off-by: Rajendra Nayak <rnayak@ti.com>
+Signed-off-by: Tero Kristo <tero.kristo@nokia.com>
 ---
- arch/arm/mach-omap2/smartreflex.c |   26 +++++++++++++-------------
- 1 files changed, 13 insertions(+), 13 deletions(-)
+ arch/arm/mach-omap2/resource34xx.c |    6 +++---
+ arch/arm/mach-omap2/smartreflex.c  |    8 ++++----
+ arch/arm/mach-omap2/smartreflex.h  |    3 ---
+ 3 files changed, 7 insertions(+), 10 deletions(-)
 
+Index: linux-omap-pm/arch/arm/mach-omap2/resource34xx.c
+===================================================================
+--- linux-omap-pm.orig/arch/arm/mach-omap2/resource34xx.c
++++ linux-omap-pm/arch/arm/mach-omap2/resource34xx.c
+@@ -218,7 +218,7 @@ int resource_set_opp_level(int res, u32 
+ 		/* Send pre notification to CPUFreq */
+ 		cpufreq_notify_transition(&freqs_notify, CPUFREQ_PRECHANGE);
+ #endif
+-		t_opp = ID_VDD(PRCM_VDD1) |
++		t_opp = ID_VDD(VDD1_OPP) |
+ 			ID_OPP_NO(mpu_opps[target_level].opp_id);
+ 		if (resp->curr_level > target_level) {
+ 			/* Scale Frequency and then voltage */
+@@ -245,7 +245,7 @@ int resource_set_opp_level(int res, u32 
+ 			return 0;
+ 		l3_freq = get_freq(l3_opps + MAX_VDD2_OPP,
+ 					target_level);
+-		t_opp = ID_VDD(PRCM_VDD2) |
++		t_opp = ID_VDD(VDD2_OPP) |
+ 			ID_OPP_NO(l3_opps[target_level].opp_id);
+ 		if (resp->curr_level > target_level) {
+ 			/* Scale Frequency and then voltage */
+@@ -266,7 +266,7 @@ int resource_set_opp_level(int res, u32 
+ 			if (ret) {
+ #ifdef CONFIG_OMAP_SMARTREFLEX
+ 				/* Setting clock failed, revert voltage */
+-				t_opp = ID_VDD(PRCM_VDD2) |
++				t_opp = ID_VDD(VDD2_OPP) |
+ 					ID_OPP_NO(l3_opps[resp->curr_level].
+ 							opp_id);
+ 				sr_voltagescale_vcbypass(t_opp,
 Index: linux-omap-pm/arch/arm/mach-omap2/smartreflex.c
 ===================================================================
 --- linux-omap-pm.orig/arch/arm/mach-omap2/smartreflex.c
 +++ linux-omap-pm/arch/arm/mach-omap2/smartreflex.c
-@@ -77,7 +77,7 @@ static inline u32 sr_read_reg(struct oma
- static int sr_clk_enable(struct omap_sr *sr)
- {
- 	if (clk_enable(sr->clk) != 0) {
--		printk(KERN_ERR "Could not enable %s\n", sr->clk->name);
-+		pr_err("Could not enable %s\n", sr->clk->name);
- 		return -1;
+@@ -676,7 +676,7 @@ int sr_voltagescale_vcbypass(u32 target_
+ 	vdd = get_vdd(target_opp);
+ 	target_opp_no = get_opp_no(target_opp);
+ 
+-	if (vdd == PRCM_VDD1) {
++	if (vdd == VDD1_OPP) {
+ 		sr_status = sr_stop_vddautocomap(SR1);
+ 
+ 		prm_rmw_mod_reg_bits(OMAP3430_VC_CMD_ON_MASK,
+@@ -685,7 +685,7 @@ int sr_voltagescale_vcbypass(u32 target_
+ 					OMAP3_PRM_VC_CMD_VAL_0_OFFSET);
+ 		reg_addr = R_VDD1_SR_CONTROL;
+ 
+-	} else if (vdd == PRCM_VDD2) {
++	} else if (vdd == VDD2_OPP) {
+ 		sr_status = sr_stop_vddautocomap(SR2);
+ 
+ 		prm_rmw_mod_reg_bits(OMAP3430_VC_CMD_ON_MASK,
+@@ -724,9 +724,9 @@ int sr_voltagescale_vcbypass(u32 target_
+ 	udelay(T2_SMPS_UPDATE_DELAY);
+ 
+ 	if (sr_status) {
+-		if (vdd == PRCM_VDD1)
++		if (vdd == VDD1_OPP)
+ 			sr_start_vddautocomap(SR1, target_opp_no);
+-		else if (vdd == PRCM_VDD2)
++		else if (vdd == VDD2_OPP)
+ 			sr_start_vddautocomap(SR2, target_opp_no);
  	}
  
-@@ -169,7 +169,7 @@ static void sr_set_clk_length(struct oma
- 		sr->clk_length = SRCLKLENGTH_38MHZ_SYSCLK;
- 		break;
- 	default :
--		printk(KERN_ERR "Invalid sysclk value: %d\n", sys_clk_speed);
-+		pr_err("Invalid sysclk value: %d\n", sys_clk_speed);
- 		break;
- 	}
- }
-@@ -408,7 +408,7 @@ static int sr_reset_voltage(int srid)
- 	while ((vc_bypass_value & OMAP3430_VALID) != 0x0) {
- 		loop_cnt++;
- 		if (retries_cnt > 10) {
--			printk(KERN_INFO "Loop count exceeded in check SR I2C"
-+			pr_info("Loop count exceeded in check SR I2C"
- 								"write\n");
- 			return SR_FAIL;
- 		}
-@@ -473,7 +473,7 @@ static int sr_enable(struct omap_sr *sr,
- 	}
+Index: linux-omap-pm/arch/arm/mach-omap2/smartreflex.h
+===================================================================
+--- linux-omap-pm.orig/arch/arm/mach-omap2/smartreflex.h
++++ linux-omap-pm/arch/arm/mach-omap2/smartreflex.h
+@@ -171,9 +171,6 @@
+ /* R_DCDC_GLOBAL_CFG register, SMARTREFLEX_ENABLE values */
+ #define DCDC_GLOBAL_CFG_ENABLE_SRFLX	0x08
  
- 	if (nvalue_reciprocal == 0) {
--		printk(KERN_NOTICE "OPP%d doesn't support SmartReflex\n",
-+		pr_notice("OPP%d doesn't support SmartReflex\n",
- 								target_opp_no);
- 		return SR_FALSE;
- 	}
-@@ -562,12 +562,12 @@ void sr_start_vddautocomap(int srid, u32
- 	}
+-/* VDDs*/
+-#define PRCM_VDD1	1
+-#define PRCM_VDD2	2
+ #define PRCM_MAX_SYSC_REGS 30
  
- 	if (sr->is_autocomp_active == 1)
--		printk(KERN_WARNING "SR%d: VDD autocomp is already active\n",
-+		pr_warning("SR%d: VDD autocomp is already active\n",
- 									srid);
- 
- 	sr->is_autocomp_active = 1;
- 	if (!sr_enable(sr, target_opp_no)) {
--		printk(KERN_WARNING "SR%d: VDD autocomp not activated\n", srid);
-+		pr_warning("SR%d: VDD autocomp not activated\n", srid);
- 		sr->is_autocomp_active = 0;
- 		if (sr->is_sr_reset == 1)
- 			sr_clk_disable(sr);
-@@ -592,7 +592,7 @@ int sr_stop_vddautocomap(int srid)
- 		sr_reset_voltage(srid);
- 		return SR_TRUE;
- 	} else {
--		printk(KERN_WARNING "SR%d: VDD autocomp is not active\n",
-+		pr_warning("SR%d: VDD autocomp is not active\n",
- 								srid);
- 		return SR_FALSE;
- 	}
-@@ -708,7 +708,7 @@ int sr_voltagescale_vcbypass(u32 target_
- 	while ((vc_bypass_value & OMAP3430_VALID) != 0x0) {
- 		loop_cnt++;
- 		if (retries_cnt > 10) {
--			printk(KERN_INFO "Loop count exceeded in check SR I2C"
-+			pr_info("Loop count exceeded in check SR I2C"
- 								"write\n");
- 			return SR_FAIL;
- 		}
-@@ -748,7 +748,7 @@ static ssize_t omap_sr_vdd1_autocomp_sto
- 	unsigned short value;
- 
- 	if (sscanf(buf, "%hu", &value) != 1 || (value > 1)) {
--		printk(KERN_ERR "sr_vdd1_autocomp: Invalid value\n");
-+		pr_err("sr_vdd1_autocomp: Invalid value\n");
- 		return -EINVAL;
- 	}
- 
-@@ -786,7 +786,7 @@ static ssize_t omap_sr_vdd2_autocomp_sto
- 	unsigned short value;
- 
- 	if (sscanf(buf, "%hu", &value) != 1 || (value > 1)) {
--		printk(KERN_ERR "sr_vdd2_autocomp: Invalid value\n");
-+		pr_err("sr_vdd2_autocomp: Invalid value\n");
- 		return -EINVAL;
- 	}
- 
-@@ -838,15 +838,15 @@ static int __init omap3_sr_init(void)
- 	sr_set_nvalues(&sr2);
- 	sr_configure_vp(SR2);
- 
--	printk(KERN_INFO "SmartReflex driver initialized\n");
-+	pr_info("SmartReflex driver initialized\n");
- 
- 	ret = sysfs_create_file(power_kobj, &sr_vdd1_autocomp.attr);
- 	if (ret)
--		printk(KERN_ERR "sysfs_create_file failed: %d\n", ret);
-+		pr_err("sysfs_create_file failed: %d\n", ret);
- 
- 	ret = sysfs_create_file(power_kobj, &sr_vdd2_autocomp.attr);
- 	if (ret)
--		printk(KERN_ERR "sysfs_create_file failed: %d\n", ret);
-+		pr_err("sysfs_create_file failed: %d\n", ret);
- 
- 	return 0;
- }
+ /*
