@@ -1,121 +1,28 @@
-From: "Gadiyar, Anand" <gadiyar@ti.com>
-Subject: RE: [PATCH 3/4] ARM: OMAP3: Add support for 3430 SDP, v3
-Date: Sat, 4 Apr 2009 00:55:34 +0530
-Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB02FAC076CA@dbde02.ent.ti.com>
-References: <20090331184802.GA27745@n2100.arm.linux.org.uk>
- <5A47E75E594F054BAF48C5E4FC4B92AB02FB086086@dbde02.ent.ti.com>
- <0680EC522D0CC943BC586913CF3768C0036E7EF891@dbde02.ent.ti.com>
- <alpine.DEB.2.00.0904011301320.9879@utopia.booyaka.com>,<alpine.DEB.2.00.0904031308340.2134@utopia.booyaka.com>
+From: david.hagood@gmail.com
+Subject: Benchmarking: POP flash vs. MMC?
+Date: Fri, 3 Apr 2009 16:24:45 -0500 (CDT)
+Message-ID: <6541c55b1b4ad133498add734c9eecc8.squirrel@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:60606 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1761905AbZDCT3o convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 3 Apr 2009 15:29:44 -0400
-In-Reply-To: <alpine.DEB.2.00.0904031308340.2134@utopia.booyaka.com>
-Content-Language: en-US
+Received: from rv-out-0506.google.com ([209.85.198.226]:1313 "EHLO
+	rv-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754638AbZDCVYu (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 3 Apr 2009 17:24:50 -0400
+Received: by rv-out-0506.google.com with SMTP id g37so437388rvb.5
+        for <linux-omap@vger.kernel.org>; Fri, 03 Apr 2009 14:24:48 -0700 (PDT)
+Received: from localhost (localhost [127.0.0.1])
+	by Deathwish.hagood.sktc.net (Postfix) with ESMTP id 2224BC7B8235
+	for <linux-omap@vger.kernel.org>; Fri,  3 Apr 2009 16:24:45 -0500 (CDT)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>, "Syed Mohammed, Khasim" <khasim@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, "linux-arm-kernel@lists.arm.linux.org.uk" <linux-arm-kernel@lists.arm.linux.org.uk>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Russell King - ARM Linux <linux@arm.linux.org.uk>
+To: linux-omap@vger.kernel.org
+
+Has anybody done any benchmarking on POP flash read/write speeds (using
+JFFS2) vs. MMC/SDHC card access (using ext[234])? Or for that matter, has
+anybody done any playing around with using the execute in place function
+of JFFS2 to see if there is any over-all speed advantage (due to reduced
+pressure on the RAM) vs. loading into RAM?
 
 
-> Paul Walmsley wrote:
-> 
-> On Wed, 1 Apr 2009, Paul Walmsley wrote:
-> 
-> > On Wed, 1 Apr 2009, Syed Mohammed, Khasim wrote:
-> >
-> > > > -----Original Message-----
-> > > > From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of
-> > > > Gadiyar, Anand
-> > > > Sent: Wednesday, April 01, 2009 1:55 PM
-> > > > To: Russell King - ARM Linux
-> > > > Cc: Tony Lindgren; linux-arm-kernel@lists.arm.linux.org.uk; linux-omap@vger.kernel.org
-> > > > Subject: RE: [PATCH 3/4] ARM: OMAP3: Add support for 3430 SDP, v3
-> > > >
-> > > > On Wed, Apr 01, 2009 at 12:18 AM, Russell King - ARM Linux wrote:
-> > > > > On Tue, Mar 31, 2009 at 05:12:18PM +0530, Gadiyar, Anand wrote:
-> > > > > > I could not run the 3430 SDP defconfig from mainline. The image hangs at
-> > > > > > "Starting kernel ...". Enabling CONFIG_DEBUG_LL does not help.
-> > > > >
-> > > > > Did you add the necessary patch to kernel/printk.c ?
-> > > > >
-> > > >
-> > > > Silly me, I had not done this (despite having read this so many times on this list).
-> > > >
-> > > > Here's what I get now after adding the patch.
-> > > >
-> > > > - Anand
-> > > >
-> > > > Uncompressing
-> > > > Linux................................................................................................
-> > > > .................... done, booting the kernel.
-> > > > <5>Linux version 2.6.29-06608-g15f7176-dirty (a0393673@omaplbp.india.ti.com) (gcc version 4.2.1
-> > > > (CodeSourcery Sourcery G++ Lite 2007q3-51)) #4 Wed Apr 1 13:26:59 IST 2009
-> > > > CPU: ARMv7 Processor [411fc083] revision 3 (ARMv7), cr=10c5387f
-> > > > CPU: VIPT nonaliasing data cache, VIPT nonaliasing instruction cache
-> > > > Machine: OMAP3430 3430SDP board
-> > > > Memory policy: ECC disabled, Data cache writeback
-> > > > <7>On node 0 totalpages: 32768
-> > > > <7>free_area_init_node: node 0, pgdat c038c8a4, node_mem_map c03a6000
-> > > > <7>  Normal zone: 256 pages used for memmap
-> > > > <7>  Normal zone: 0 pages reserved
-> > > > <7>  Normal zone: 32512 pages, LIFO batch:7
-> > > > <6>OMAP3430 ES3.0
-> > > > <6>SRAM: Mapped pa 0x40200000 to va 0xd7000000 size: 0x100000
-> > > > Built 1 zonelists in Zone order, mobility grouping on.  Total pages: 32512
-> > > > <5>Kernel command line: mem=128M console=ttyS0,115200n8 noinitrd root=/dev/nfs rw
-> > > > nfsroot=172.24.162.66:/vol/vol2/swcoe_omapsw_linux1/anand/target,nolock,tcp
-> > > > ip=172.24.190.229:172.24.162.66:172.24.188.1:255.255.252.0:myomap::off
-> > > > <6>NR_IRQS:402
-> > > > <6>Clocking rate (Crystal/DPLL/ARM core): 26.0/332/500 MHz
-> > > > <6>GPMC revision 5.0
-> > > > <6>IRQ: Found an INTC at 0xd8200000 (revision 4.0) with 96 interrupts
-> > > > <6>Total of 96 interrupts on 1 active controller
-> > > > <6>OMAP34xx GPIO hardware version 2.5
-> > > > PID hash table entries: 512 (order: 9, 2048 bytes)
-> > > > Console: colour dummy device 80x30
-> > > > <6>Dentry cache hash table entries: 16384 (order: 4, 65536 bytes)
-> > > > <6>Inode-cache hash table entries: 8192 (order: 3, 32768 bytes)
-> > > > <6>Memory: 128MB = 128MB total
-> > > > <5>Memory: 126064KB available (3188K code, 289K data, 112K init, 0K highmem)
-> > > > <6>Calibrating delay loop...
-> > > >
-> > > Anand,
-> > >
-> > > It looks like the timers are not configured properly or the timer selection has gone wrong. Can you just compare your previous working defconfig with this and correct the GPTIMER selection?
-> >
-> > As an aside, I'm seeing the same thing with mainline and Beagle.  It does
-> > not seem to matter whether the 32k timer or sys_clk is used as the GPTIMER
-> > source.  Also it does not seem to matter whether GPTIMER1 or GPTIMER12 is
-> > configured.  Looks like some kind of GPTIMER or GPTIMER-related interrupt
-> > problem.  Have not had the chance to isolate the exact problem yet, so,
-> > other comments welcome.
-> 
-> Just to follow up on this, Kevin, Tony, and I spent some time tracking
-> this down.  We've observed that Beagle and 3430SDP fail to boot when the
-> mainline kernel is compiled with CodeSourcery gcc 2007q3, hanging in
-> 'Calibrating delay loop'.  When CSL gcc 2008q3 is used, the machines boot.
-> 
-
-Hey, good catch guys! I checked the log I had for the one working case and
-do see that it was compiled with the 2008q3 toolchain. I did switch toolchains
-sometime the previous day and forgot all about it.
-
-Uncompressing Linux.................................................................................................................... done, booting the kernel.
-Linux version 2.6.29-06608-g15f7176-dirty (a0393673@omaplbp.india.ti.com) (gcc version 4.3.2 (Sourcery G++ Lite 2008q3-72) ) #3 Tue Mar 31 16:43:50 IST 2009
-
-Thanks,
-Anand
-
-> There's also another problem for BeagleBoards Rev B4 and earlier: the
-> GPTIMER12 patches are not upstream, which can cause these BeagleBoards
-> to intermittently freeze.  Will repost those shortly.
-> 
-> 
-> - Paul
-> 
-> 
