@@ -1,42 +1,35 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH 3/4] ARM: OMAP3: Add support for 3430 SDP, v3
-Date: Fri, 3 Apr 2009 17:29:16 -0600 (MDT)
-Message-ID: <alpine.DEB.2.00.0904031725450.14281@utopia.booyaka.com>
-References: <20090331184802.GA27745@n2100.arm.linux.org.uk> <5A47E75E594F054BAF48C5E4FC4B92AB02FB086086@dbde02.ent.ti.com> <0680EC522D0CC943BC586913CF3768C0036E7EF891@dbde02.ent.ti.com> <alpine.DEB.2.00.0904011301320.9879@utopia.booyaka.com>
- <alpine.DEB.2.00.0904031308340.2134@utopia.booyaka.com> <87tz55xrfj.fsf@deeprootsystems.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: [APPLIED] [mainline 2.6.29][PATCH] ARM: OMAP: Remove defines and resource
+Date: Fri, 3 Apr 2009 19:42:01 -0400
+Message-ID: <notify-1238802117@atomide.com>
+References: <1238737024-14647-2-git-send-email-jarkko.nikula@nokia.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:57460 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759795AbZDCX3S (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 3 Apr 2009 19:29:18 -0400
-In-Reply-To: <87tz55xrfj.fsf@deeprootsystems.com>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:58667 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756193AbZDCXmB (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 3 Apr 2009 19:42:01 -0400
+Received: from c-67-160-239-110.hsd1.ca.comcast.net ([67.160.239.110] helo=localhost.localdomain)
+	by mho-02-ewr.mailhop.org with esmtpa (Exim 4.68)
+	(envelope-from <tony@atomide.com>)
+	id 1Lpt1L-000Oul-2L
+	for linux-omap@vger.kernel.org; Fri, 03 Apr 2009 23:41:59 +0000
+In-Reply-To: <1238737024-14647-2-git-send-email-jarkko.nikula@nokia.com>
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@deeprootsystems.com>
-Cc: "Syed Mohammed\\, Khasim" <khasim@ti.com>, "Gadiyar\\, Anand" <gadiyar@ti.com>, Tony Lindgren <tony@atomide.com>, "linux-arm-kernel\\@lists.arm.linux.org.uk" <linux-arm-kernel@lists.arm.linux.org.uk>, "linux-omap\\@vger.kernel.org" <linux-omap@vger.kernel.org>, Russell King - ARM Linux <linux@arm.linux.org.uk>
+To: linux-omap@vger.kernel.org
 
-Hello Kevin
+This patch has been applied to the linux-omap
+by youw fwiendly patch wobot.
 
-> Could you also include the GPT12 updates that were recently merged
-> from the PM branch that allow GPT12 to be a wakeup source.
+Commit: b1a91a303b74b29396ec7c28c7d70a7571f70a9d
 
-The GPT12 patches are targeted for a -fixes branch to be sent upstream 
-quickly.  
+PatchWorks
+http://patchwork.kernel.org/patch/16031/
 
-On Fri, 3 Apr 2009, Kevin Hilman wrote:
-
-> $ git log --reverse --pretty=oneline 0c8eba8051eb4fd4228e459c0575d6adfe53d13b..743a413f3e8f8df4cd51f9e4059c7478e927506e
-> 20752c3fd65bc6e84faebc7341c8495d75c171bc OMAP: move GP timer selection alongside
-> 65b630a097e1d181336c67b2a3b8631e572c93bb OMAP: dmtimer: enable all timers to be 
-> 743a413f3e8f8df4cd51f9e4059c7478e927506e OMAP3: PM: enable gptimer12 as a wakeup
-
-Commit 20752c3fd65bc6e84faebc7341c8495d75c171bc no longer applies to the 
-current version of the patch set.  I'll include commit 
-65b630a097e1d181336c67b2a3b8631e572c93bb.  Commit 
-743a413f3e8f8df4cd51f9e4059c7478e927506e has a PM dependency that doesn't 
-exist in mainline, so I won't include that one.
+Git
+http://git.kernel.org/?p=linux/kernel/git/tmlind/linux-omap-2.6.git;a=commit;h=b1a91a303b74b29396ec7c28c7d70a7571f70a9d
 
 
-- Paul
