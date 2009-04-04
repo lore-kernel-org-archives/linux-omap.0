@@ -1,35 +1,36 @@
-From: Joan <wrobinson@rrbiznet.com>
-Subject: Dear Sir/Madam
-Date: Fri, 3 Apr 2009 18:58:31 -0500
-Message-ID: <7hp5m9$cm6fsb@rrcs-agw-02b.hrndva.rr.com>
-Reply-To: jerry.smith333@googlemail.com
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: Problems while designing TPS65023 regulator driver
+Date: Fri, 3 Apr 2009 17:05:31 -0700
+Message-ID: <20090404000531.GE8840@atomide.com>
+References: <5A47E75E594F054BAF48C5E4FC4B92AB02FAA91D06@dbde02.ent.ti.com> <20090226140450.GB8595@sirena.org.uk> <5A47E75E594F054BAF48C5E4FC4B92AB02FB102A76@dbde02.ent.ti.com> <20090403085335.GA3759@sirena.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from hrndva-commlb.mail.rr.com ([71.74.57.9]:33987 "EHLO
-	hrndva-commlb.mail.rr.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758878AbZDCX6d (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 3 Apr 2009 19:58:33 -0400
-Received: from rrcs-agw-02.hrndva.rr.com ([24.28.200.152])
-          by hrndva-comm-mta02.mail.rr.com with ESMTP
-          id <20090403235831.IHCQ4673.hrndva-comm-mta02.mail.rr.com@rrcs-agw-02.hrndva.rr.com>
-          for <linux-omap@vger.kernel.org>; Fri, 3 Apr 2009 23:58:31 +0000
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:54940 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759893AbZDDAFh (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 3 Apr 2009 20:05:37 -0400
+Content-Disposition: inline
+In-Reply-To: <20090403085335.GA3759@sirena.org.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: info@Global.org
+To: Mark Brown <broonie@sirena.org.uk>
+Cc: "Aggarwal, Anuj" <anuj.aggarwal@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Contact Mr Jerry Smith for the claims of =A3950,000.00 Pounds which was=
- won by your email ID in our Global award 2009. send your details=20
+* Mark Brown <broonie@sirena.org.uk> [090403 01:53]:
+> On Fri, Apr 03, 2009 at 01:33:58PM +0530, Aggarwal, Anuj wrote:
+> 
+> > I could not find the commit in linux-OMAP git where the init data is 
+> > passed as a parameter to the regulator_register(). I am dependent 
+> > on this commit for my TPS65023 regulator driver and could not push 
+> > my patch without the commit being in l-o.
+> 
+> > Any idea when this would be available in l-o?
+> 
+> I can't speak for the OMAP tree but the patch should appear in
+> 2.6.30-rc1 so presumably it'll get merged into OMAP some time after that
+> is released.
 
-Names:............
-Address:..............
-Country:.................
-Age:..........
-Sex:..............
-Phone/cellphone........
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Sounds good to me.
+
+Tony
