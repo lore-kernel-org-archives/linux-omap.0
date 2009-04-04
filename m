@@ -1,112 +1,49 @@
-From: Kim Kyuwon <chammoru@gmail.com>
-Subject: Re: [PATCH] OMAP3: PM: Add the wakeup source driver, v2
-Date: Sat, 4 Apr 2009 09:26:20 +0900
-Message-ID: <4d34a0a70904031726h504d2722xb8032c8573fb1c15@mail.gmail.com>
-References: <4d34a0a70903182125l77b0adc3rc0c672f0aa348ab@mail.gmail.com>
-	<87ocvhtesx.fsf@deeprootsystems.com> <4d34a0a70904030320g197f836cld9c94b113a9fdffd@mail.gmail.com>
-	<87y6uh1zsp.fsf@deeprootsystems.com> <4d34a0a70904031647n6ae7c175w96b1610bf553ebda@mail.gmail.com>
-	<877i21w9pg.fsf@deeprootsystems.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] OMAP: Don't warn user about expected behaviour in
+	mmc-twl4030
+Date: Fri, 3 Apr 2009 17:26:52 -0700
+Message-ID: <20090404002652.GF8840@atomide.com>
+References: <1238440539-2394-1-git-send-email-broonie@sirena.org.uk> <200903301353.44087.david-b@pacbell.net> <20090331210019.GA12304@sirena.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from wf-out-1314.google.com ([209.85.200.172]:17051 "EHLO
-	wf-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1760033AbZDDA0h convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 3 Apr 2009 20:26:37 -0400
-Received: by wf-out-1314.google.com with SMTP id 29so1434141wff.4
-        for <linux-omap@vger.kernel.org>; Fri, 03 Apr 2009 17:26:35 -0700 (PDT)
-In-Reply-To: <877i21w9pg.fsf@deeprootsystems.com>
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:56277 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1762168AbZDDA07 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 3 Apr 2009 20:26:59 -0400
+Content-Disposition: inline
+In-Reply-To: <20090331210019.GA12304@sirena.org.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@deeprootsystems.com>
-Cc: OMAP <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, =?EUC-KR?B?udqw5rnO?= <kyungmin.park@samsung.com>
+To: Mark Brown <broonie@sirena.org.uk>
+Cc: David Brownell <david-b@pacbell.net>, linux-omap@vger.kernel.org
 
-On Sat, Apr 4, 2009 at 9:20 AM, Kevin Hilman
-<khilman@deeprootsystems.com> wrote:
-> Kim Kyuwon <chammoru@gmail.com> writes:
->
->> Hi Kevin,
->> Thanks for your prompt answer.
->>
->> On Sat, Apr 4, 2009 at 1:12 AM, Kevin Hilman
->> <khilman@deeprootsystems.com> wrote:
->>> Kim Kyuwon <chammoru@gmail.com> writes:
->>>
->>>>>> +
->>>>>> +void omap3_get_wakeup_status(struct pm_wakeup_status **pm_wkst)
->>>>>> +{
->>>>>> + =A0 =A0 *pm_wkst =3D &omap3_pm_wkst;
->>>>>> +}
->>>>>> +
->>>>>
->>>>> Can you rename this to omap3_get_last_wake_state()
->>>>
->>>> Actually, I removed this function and I didn't get the WKST regist=
-ers
->>>> from the last PRCM interrupt in the new patch. Sorry that I don't
->>>> address your suggestion. But I found that the PRCM interrupt is be=
-ing
->>>> generated in normal state on the latest PM branch and, from OMAP34=
-XX
->>>> TRM (4.9 PRCM Interrupts), PRCM Interrupts can be generated in man=
-y
->>>> cases in addition to wake-up from suspend. So if my wakeup code ge=
-ts
->>>> the WSKT values from PRCM interrupt, I think it could show the wro=
-ng
->>>> information.
->>>>
->>>
->>> What type of wrong information do you think you would get?
->>
->> On our custom OMAP3430 ES3.1 board on which the latest PM branch
->> kernel is running, the PRCM interrupt is being generated about every
->> 0.5 sec.(not exact) and 'OMAP3430_ST_GPT12_MASK' is set in the
->> PM_WKST_WKUP register.
->
-> Hmm, have you configured GPTIMER12 as the system timer?
+* Mark Brown <broonie@sirena.org.uk> [090331 14:00]:
+> On Mon, Mar 30, 2009 at 01:53:43PM -0700, David Brownell wrote:
+> 
+> > So when are you going to fix the regulator docs to report that:
+> 
+> > 	ALL regulator consumers must start by enabling and
+> > 	then disabling the regulator.
+> 
+> The documention should not be changed to say that since only consumers
+> that need the regulator to be off at startup should do this, and then
+> probably only if they find that it is already enabled.
+> 
+> Other consumers do not need to do this.  Consumers that want to enable a
+> regulator at startup can do so directly.  Consumers that don't need a
+> specific state (for example, because they are able to share the
+> regulator and don't need it enabling) should just leave it alone.
 
-No, I haven't configured GPTIMER12. And actually
-OMAP3430_ST_GPT12_MASK bit is reserved on OMAP3430 ES.1.
-This is another problem that I have to fix.....
+Maybe you guys have gone back and forth on this option too.. But what
+if we have something in regulator_init_data that would tell the
+regulator to reset the regulator on init? That could be then be
+then disabled with some cmdline option if needed for debugging or
+while booting from other operating systems etc.
 
->> FYI: When I wrongly configured the d2d_mstdby and d2d_swakeup pads,
->> PRCM interrupts was also generated (Refer to
->> http://markmail.org/thread/juardvjdvsrrqwuj)
->>
->>> After looking again, you are probably querying the WKST registers
->>> too late. =A0This version was not querying until someone dumped
->>> the sysfs regs. =A0In that case, some other idle event could have
->>> changed the WKST regs.
->>>
->>> What you should do is query the WKST regs in your early_resume hook
->>> (the same place you query the pending IRQs.) =A0This way you know
->>> exactly when the WKST regs are taken.
->>
->> However, my 'early_resume' hook is invoked before generating any
->> interrupt including PRCM interrupts, because IRQs are disabled by
->> arch_suspend_disablel_irqs() in that context.
->
-> Ah, yes. =A0You're right.
->
->> But if I query the WKST regs in the 'resume' hook, I think another
->> PRCM interrupts can be generated.
->
-> OK, I haven't yet looked closely at your latest version, but reading
-> the regs directly in the early_resume hook looks OK.
+I've applied Mark's patch to l-o, I guess now I need to start sorting
+out what we need to mainline for twl4030-mmc.c for this -rc :)
 
-Thanks!
+Regards,
 
-> Kevin
->
-
-
-
---=20
-Kyuwon
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Tony
