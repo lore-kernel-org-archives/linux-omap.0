@@ -1,35 +1,39 @@
-From: Kalle Valo <kalle.valo@iki.fi>
-Subject: controlling CPU speed on N800/N810
-Date: Sat, 04 Apr 2009 10:58:40 +0300
-Message-ID: <8763hkvoi7.fsf@litku.valot.fi>
+From: Igor Stoppa <igor.stoppa@nokia.com>
+Subject: Re: controlling CPU speed on N800/N810
+Date: Sat, 04 Apr 2009 11:01:06 +0300
+Message-ID: <1238832066.8488.184.camel@localhost>
+References: <8763hkvoi7.fsf@litku.valot.fi>
+Reply-To: igor.stoppa@nokia.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from fk-out-0910.google.com ([209.85.128.191]:10520 "EHLO
-	fk-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751203AbZDDH6p (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 4 Apr 2009 03:58:45 -0400
-Received: by fk-out-0910.google.com with SMTP id 18so565876fkq.5
-        for <linux-omap@vger.kernel.org>; Sat, 04 Apr 2009 00:58:42 -0700 (PDT)
+Received: from smtp.nokia.com ([192.100.122.233]:18046 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751745AbZDDIBY (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 4 Apr 2009 04:01:24 -0400
+In-Reply-To: <8763hkvoi7.fsf@litku.valot.fi>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
+To: ext Kalle Valo <kalle.valo@iki.fi>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Hello,
+Hi,
+On Sat, 2009-04-04 at 09:58 +0200, ext Kalle Valo wrote:
 
-I'm about to do some throughput measurements with stlc45xx (the open
-wi-fi driver) on Nokia N800. Now I would like see the current CPU
-speed. I also liked to change it, because I believe it will have an
-affect on throughput.
+> Is it possible to change CPU speed in latest linux-omap kernels?
 
-I tried cpufreq but it wasn't very helpful:
+afaik, no, but that makes your job easier, the ARM clock should be
+330MHz - at least that's what TI supports and recommends when also the
+DSP is in use
 
-/sys/devices/system/cpu/cpu0/cpufreq# cat cpuinfo_cur_freq 
-<unknown>/sys/devices/system/cpu/cpu0/cpufreq# 
-
-Is it possible to change CPU speed in latest linux-omap kernels?
-
-I'm using N800 and omap-2.6.29 branch from linux-omap tree.
 
 -- 
-Kalle Valo
+
+Cheers, Igor
+
+---
+
+Igor Stoppa
+Maemo Software - Nokia Devices R&D - Helsinki
+
