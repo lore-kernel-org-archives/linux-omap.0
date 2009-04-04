@@ -1,44 +1,49 @@
-From: Kalle Valo <kalle.valo@iki.fi>
-Subject: Re: controlling CPU speed on N800/N810
-Date: Sat, 04 Apr 2009 11:09:15 +0300
-Message-ID: <871vs8vo0k.fsf@litku.valot.fi>
-References: <8763hkvoi7.fsf@litku.valot.fi>
-	<1238832066.8488.184.camel@localhost>
+From: "Gadiyar, Anand" <gadiyar@ti.com>
+Subject: RE: [PATCH 3/4] ARM: OMAP3: Add support for 3430 SDP, v3
+Date: Sat, 4 Apr 2009 16:48:55 +0530
+Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB02FB102CA6@dbde02.ent.ti.com>
+References: <5A47E75E594F054BAF48C5E4FC4B92AB02FAC076CA@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-bw0-f169.google.com ([209.85.218.169]:52049 "EHLO
-	mail-bw0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752974AbZDDIJU (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 4 Apr 2009 04:09:20 -0400
-Received: by bwz17 with SMTP id 17so1231465bwz.37
-        for <linux-omap@vger.kernel.org>; Sat, 04 Apr 2009 01:09:17 -0700 (PDT)
-In-Reply-To: <1238832066.8488.184.camel@localhost> (Igor Stoppa's message of "Sat\, 04 Apr 2009 11\:01\:06 +0300")
+Received: from arroyo.ext.ti.com ([192.94.94.40]:34363 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751177AbZDDLTZ convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 4 Apr 2009 07:19:25 -0400
+In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB02FAC076CA@dbde02.ent.ti.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: igor.stoppa@nokia.com
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: "Gadiyar, Anand" <gadiyar@ti.com>, Paul Walmsley <paul@pwsan.com>, "Syed Mohammed, Khasim" <khasim@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, "linux-arm-kernel@lists.arm.linux.org.uk" <linux-arm-kernel@lists.arm.linux.org.uk>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Russell King - ARM Linux <linux@arm.linux.org.uk>
 
-Igor Stoppa <igor.stoppa@nokia.com> writes:
+<snip>
 
-> Hi,
-> On Sat, 2009-04-04 at 09:58 +0200, ext Kalle Valo wrote:
->
->> Is it possible to change CPU speed in latest linux-omap kernels?
->
-> afaik, no, but that makes your job easier, the ARM clock should be
-> 330MHz - at least that's what TI supports and recommends when also the
-> DSP is in use
+> > Just to follow up on this, Kevin, Tony, and I spent some time tracking
+> > this down.  We've observed that Beagle and 3430SDP fail to boot when the
+> > mainline kernel is compiled with CodeSourcery gcc 2007q3, hanging in
+> > 'Calibrating delay loop'.  When CSL gcc 2008q3 is used, the machines boot.
+> > 
+> 
+> Hey, good catch guys! I checked the log I had for the one working case and
+> do see that it was compiled with the 2008q3 toolchain. I did switch toolchains
+> sometime the previous day and forgot all about it.
+> 
 
-Ok, thanks for the info. 
+I tried mainline with the 2008q3 toolchain now, and it still doesn't boot.
+This time, I was careful enough to patch kernel/printk.c correctly and compile
+with CONFIG_DEBUG_LL enabled, and it still does not work.
 
-I got better wi-fi throughput with nokia 2.6.21 kernel compared to
-linux-omap kernels, but the CPU speed difference will most likely
-explain that. I'm assuming that DVFS increased the CPU speed over 400
-MHz when running throughtput tests on nokia 2.6.21 kernel.
+The patch I sent earlier (replacing the defconfig) does let me boot if I
+compile with 2008q3. So does it make sense to take this in?
 
-If anyone have hints or pointers how to overclock linux-omap kernels,
-I'm all ears :)
+Also, here's the error if I simply take the defconfig from the linux-omap tree
+and don't turn off CONFIG_FB_OMAP.
 
--- 
-Kalle Valo
+- Anand
+
+  LD      .tmp_vmlinux1
+drivers/built-in.o: In function `omapfb_do_probe':
+/share/anand/linux-2.6/drivers/video/omap/omapfb_main.c:1724: undefined reference to `omap2_int_ctrl'
+make: *** [.tmp_vmlinux1] Error 1
