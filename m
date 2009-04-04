@@ -1,55 +1,101 @@
-From: Mike Auty <mike.auty@gmail.com>
-Subject: [PATCH] ARM: OMAP: Fix path for omap-sha1-md5 import of irqs.h
-Date: Sat, 04 Apr 2009 22:40:11 +0100
-Message-ID: <49D7D3BB.30500@gmail.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: Git tree updated, clocks and PM code reset to mainline
+Date: Sat, 4 Apr 2009 16:33:25 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.0904041630170.8305@utopia.booyaka.com>
+References: <20090403001333.GR32530@atomide.com> <20090403091553.82ceacf8.jarkko.nikula@nokia.com> <87k561htu0.fsf@litku.valot.fi>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from out2.smtp.messagingengine.com ([66.111.4.26]:34190 "EHLO
-	out2.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752622AbZDDVkO (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 4 Apr 2009 17:40:14 -0400
-Received: from compute2.internal (compute2.internal [10.202.2.42])
-	by out1.messagingengine.com (Postfix) with ESMTP id A74863113E0
-	for <linux-omap@vger.kernel.org>; Sat,  4 Apr 2009 17:40:12 -0400 (EDT)
-Received: from [192.168.188.1] (82-71-33-97.dsl.in-addr.zen.co.uk [82.71.33.97])
-	by mail.messagingengine.com (Postfix) with ESMTPSA id 358E1553B9
-	for <linux-omap@vger.kernel.org>; Sat,  4 Apr 2009 17:40:12 -0400 (EDT)
+Received: from utopia.booyaka.com ([72.9.107.138]:54900 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752999AbZDDWd1 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 4 Apr 2009 18:33:27 -0400
+In-Reply-To: <87k561htu0.fsf@litku.valot.fi>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
+To: Kalle Valo <kalle.valo@iki.fi>
+Cc: Jarkko Nikula <jarkko.nikula@nokia.com>, ext Tony Lindgren <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Hi there,
+Hello Kalle, Jarkko,
 
-This is my first kernel-type patch, so please go easy on me if I've made
-any mistakes.  I recently tried building the master kernel from master
-(commit e75343a207ef24490176abe3503743d7a006e299) and it failed at
-omap-sha1-md5.c with a file not found issue (asm/arch-omap/irqs.h).    I
-looked for a similar file, and figured that it meant
-asm/plat-omap/include/mach/irqs.h, so I produced the patch below.
-Hopefully that's the correct solution, but I'd appreciate it if someone
-else could look it over too.  Thanks very much,
+On Sat, 4 Apr 2009, Kalle Valo wrote:
 
-Mike  5:)
+> Jarkko Nikula <jarkko.nikula@nokia.com> writes:
+> 
+> > Just a test report. N810 is not booting anymore due an oops and Beagle
+> > hangs when calibrating the delay loop.
+> >
+> > Both using their defconfigs + CONFIG_DEBUG_LL=y. N810 boot log below.
+> 
+> I see the same with N800, same configs as Jarkko had:
+
+Evidently the 24xx clock code/data was never actually tested.  Does this 
+patch work for you?
+
+
+regards,
+
+- Paul
+
+
+From: Paul Walmsley <paul@pwsan.com>
+Date: Sat, 4 Apr 2009 16:26:39 -0600
+
+OMAP2 clock fixes rollup: test
+
+This test patch includes three fixes to the OMAP2 clock code and data to 
+get N8x0 booting again.
 
 ---
- drivers/crypto/omap-sha1-md5.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+ arch/arm/mach-omap2/clock24xx.c |   14 +++++---------
+ 1 files changed, 5 insertions(+), 9 deletions(-)
 
-diff --git a/drivers/crypto/omap-sha1-md5.c b/drivers/crypto/omap-sha1-md5.c
-index 6d77703..90ad56f 100644
---- a/drivers/crypto/omap-sha1-md5.c
-+++ b/drivers/crypto/omap-sha1-md5.c
-@@ -13,7 +13,7 @@
-  * This driver is based on padlock-sha.c driver.
-  */
-
--#include <asm/arch-omap/irqs.h>
-+#include <mach/irqs.h>
- #include <crypto/algapi.h>
- #include <crypto/sha.h>
- #include <linux/err.h>
+diff --git a/arch/arm/mach-omap2/clock24xx.c b/arch/arm/mach-omap2/clock24xx.c
+index 1e839c5..7625d06 100644
+--- a/arch/arm/mach-omap2/clock24xx.c
++++ b/arch/arm/mach-omap2/clock24xx.c
+@@ -60,8 +60,8 @@ struct omap_clk {
+ 		},			\
+ 	}
+ 
+-#define CK_243X	(1 << 0)
+-#define CK_242X	(1 << 1)
++#define CK_243X		RATE_IN_243X
++#define CK_242X		RATE_IN_242X
+ 
+ static struct omap_clk omap24xx_clks[] = {
+ 	/* external root sources */
+@@ -711,7 +711,7 @@ int __init omap2_clk_init(void)
+ {
+ 	struct prcm_config *prcm;
+ 	struct omap_clk *c;
+-	u32 clkrate, cpu_mask;
++	u32 clkrate;
+ 
+ 	if (cpu_is_omap242x())
+ 		cpu_mask = RATE_IN_242X;
+@@ -720,6 +720,8 @@ int __init omap2_clk_init(void)
+ 
+ 	clk_init(&omap2_clk_functions);
+ 
++	clk_init_one(&osc_ck);
++	clk_init_one(&sys_ck);
+ 	osc_ck.rate = omap2_osc_clk_recalc(&osc_ck);
+ 	propagate_rate(&osc_ck);
+ 	sys_ck.rate = omap2_sys_clk_recalc(&sys_ck);
+@@ -728,12 +730,6 @@ int __init omap2_clk_init(void)
+ 	for (c = omap24xx_clks; c < omap24xx_clks + ARRAY_SIZE(omap24xx_clks); c++)
+ 		clk_init_one(c->lk.clk);
+ 
+-	cpu_mask = 0;
+-	if (cpu_is_omap2420())
+-		cpu_mask |= CK_242X;
+-	if (cpu_is_omap2430())
+-		cpu_mask |= CK_243X;
+-
+ 	for (c = omap24xx_clks; c < omap24xx_clks + ARRAY_SIZE(omap24xx_clks); c++)
+ 		if (c->cpu & cpu_mask) {
+ 			clkdev_add(&c->lk);
 -- 
-1.6.2.2
+1.6.2.1.307.g91408
 
