@@ -1,61 +1,64 @@
-From: Russ Dill <russ.dill@gmail.com>
-Subject: Re: Benchmarking: POP flash vs. MMC?
-Date: Fri, 3 Apr 2009 17:57:17 -0700
-Message-ID: <f9d2a5e10904031757m5f4fe968mb50b9d58e17501dc@mail.gmail.com>
-References: <6541c55b1b4ad133498add734c9eecc8.squirrel@localhost>
+From: David Brownell <david-b@pacbell.net>
+Subject: Re: [PATCH] OMAP: Don't warn user about expected behaviour in mmc-twl4030
+Date: Fri, 3 Apr 2009 18:03:33 -0700
+Message-ID: <200904031803.33648.david-b@pacbell.net>
+References: <1238440539-2394-1-git-send-email-broonie@sirena.org.uk> <200903301353.44087.david-b@pacbell.net> <20090331210019.GA12304@sirena.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain;
+  charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from rv-out-0506.google.com ([209.85.198.228]:11624 "EHLO
-	rv-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756495AbZDDA5T (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 3 Apr 2009 20:57:19 -0400
-Received: by rv-out-0506.google.com with SMTP id f9so1409419rvb.1
-        for <linux-omap@vger.kernel.org>; Fri, 03 Apr 2009 17:57:17 -0700 (PDT)
-In-Reply-To: <6541c55b1b4ad133498add734c9eecc8.squirrel@localhost>
+Received: from n25.bullet.mail.mud.yahoo.com ([68.142.206.220]:43563 "HELO
+	n25.bullet.mail.mud.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S937257AbZDDBDi (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 3 Apr 2009 21:03:38 -0400
+In-Reply-To: <20090331210019.GA12304@sirena.org.uk>
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: david.hagood@gmail.com
+To: Mark Brown <broonie@sirena.org.uk>, Tony Lindgren <tony@atomide.com>
 Cc: linux-omap@vger.kernel.org
 
-On Fri, Apr 3, 2009 at 2:24 PM,  <david.hagood@gmail.com> wrote:
-> Has anybody done any benchmarking on POP flash read/write speeds (using
-> JFFS2) vs. MMC/SDHC card access (using ext[234])? Or for that matter, has
-> anybody done any playing around with using the execute in place function
-> of JFFS2 to see if there is any over-all speed advantage (due to reduced
-> pressure on the RAM) vs. loading into RAM?
->
+On Tuesday 31 March 2009, Mark Brown wrote:
+> On Mon, Mar 30, 2009 at 01:53:43PM -0700, David Brownell wrote:
+> 
+> > So when are you going to fix the regulator docs to report that:
+> 
+> > 	ALL regulator consumers must start by enabling and
+> > 	then disabling the regulator.
+> 
+> The documention should not be changed to say that since only consumers
+> that need the regulator to be off at startup should do this, and then
+> probably only if they find that it is already enabled.
 
-UBIFS on POP NAND
-Version 1.03c       ------Sequential Output------ --Sequential Input- --Random-
-                    -Per Chr- --Block-- -Rewrite- -Per Chr- --Block-- --Seeks--
-Machine        Size K/sec %CP K/sec %CP K/sec %CP K/sec %CP K/sec %CP  /sec %CP
-beagleboard    300M  2333  86 19899  45 10420  59  2289  95 17719  93  2060  93
-                    ------Sequential Create------ --------Random Create--------
-                    -Create-- --Read--- -Delete-- -Create-- --Read--- -Delete--
-              files  /sec %CP  /sec %CP  /sec %CP  /sec %CP  /sec %CP  /sec %CP
-                 16  5310  94  7931  96  4439  87  4734  85 +++++ +++  3082  95
-beagleboard,300M,2333,86,19899,45,10420,59,2289,95,17719,93,2060.1,93,16,5310,94,7931,96,4439,87,4734,85,+++++,+++,3082,95
+"Probably" shows you still don't have a good answer...
 
-ext3 (noatime,async,data=ordered) on MMC (4GB class 6)
-Version 1.03c       ------Sequential Output------ --Sequential Input- --Random-
-                    -Per Chr- --Block-- -Rewrite- -Per Chr- --Block-- --Seeks--
-Machine        Size K/sec %CP K/sec %CP K/sec %CP K/sec %CP K/sec %CP  /sec %CP
-beagleboard    300M  2026  81  4553  11  4281   6  2502  92 16079  14  1672  23
-                    ------Sequential Create------ --------Random Create--------
-                    -Create-- --Read--- -Delete-- -Create-- --Read--- -Delete--
-              files  /sec %CP  /sec %CP  /sec %CP  /sec %CP  /sec %CP  /sec %CP
-                 16  7135  95 +++++ +++ 12173  95  5040  67 +++++ +++ 11766  96
-beagleboard,300M,2026,81,4553,11,4281,6,2502,92,16079,14,1672.3,23,16,7135,95,+++++,+++,12173,95,5040,67,+++++,+++,11766,96
+I see that mainline now has ca7255614e0861e36480103f4a402a115803d7b5
+which is a variant of the first late-fixup patch I sent.  The isssue
+with that approach is that it leaves a huge window between regulator
+init and its late fixup ... during which driver probe() calls suffer
+the bad effects of the current self-inconsistent initialization.  So
+it doesn't really address the MMC cases.
 
-ext3 (noatime,async,data=writeback) on MMC (4GB class 6)
-Version 1.03c       ------Sequential Output------ --Sequential Input- --Random-
-                    -Per Chr- --Block-- -Rewrite- -Per Chr- --Block-- --Seeks--
-Machine        Size K/sec %CP K/sec %CP K/sec %CP K/sec %CP K/sec %CP  /sec %CP
-beagleboard    300M  2343  85 19370  40 10937  61  2312  95 19176  94  3122  93
-                    ------Sequential Create------ --------Random Create--------
-                    -Create-- --Read--- -Delete-- -Create-- --Read--- -Delete--
-              files  /sec %CP  /sec %CP  /sec %CP  /sec %CP  /sec %CP  /sec %CP
-                 16  5194  93  7863  95  4511  87  4970  89 +++++ +++  3076  95
-beagleboard,300M,2343,85,19370,40,10937,61,2312,95,19176,94,3122.3,93,16,5194,93,7863,95,4511,87,4970,89,+++++,+++,3076,95
+
+On Friday 03 April 2009, Tony Lindgren wrote:
+> 			... what
+> if we have something in regulator_init_data that would tell the
+> regulator to reset the regulator on init?
+
+That would address the MMC scenario, where the stack always wants to
+start with regulator "off" if it's possible.
+
+And in fact, that's exactly what I think folk should be doing with
+the recent additions to twl4030-power supporting explicit init of
+all the power resources ... as done with e.g. Beagle.  The benefit
+of doing it that way is that it can cover the regulators which are
+not actually used on the board (like VAUX3 on Beagle, which u-boot
+enables but is not wired to anything) plus non-regulator resources
+like CLKREQ etc.
+
+So there's an OMAP-specific workaround now in place, albeit not
+yet headed towards mainline.
+
+- Dave
+
