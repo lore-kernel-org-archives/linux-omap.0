@@ -1,49 +1,30 @@
-From: "Gadiyar, Anand" <gadiyar@ti.com>
-Subject: RE: [PATCH 3/4] ARM: OMAP3: Add support for 3430 SDP, v3
-Date: Sat, 4 Apr 2009 16:48:55 +0530
-Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB02FB102CA6@dbde02.ent.ti.com>
-References: <5A47E75E594F054BAF48C5E4FC4B92AB02FAC076CA@dbde02.ent.ti.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH] OMAP3: PM: Add the wakeup source driver, v2
+Date: Sat, 4 Apr 2009 14:22:16 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.0904041421210.8305@utopia.booyaka.com>
+References: <4d34a0a70903182125l77b0adc3rc0c672f0aa348ab@mail.gmail.com>  <87ocvhtesx.fsf@deeprootsystems.com> <4d34a0a70904030320g197f836cld9c94b113a9fdffd@mail.gmail.com>  <87y6uh1zsp.fsf@deeprootsystems.com> <4d34a0a70904031647n6ae7c175w96b1610bf553ebda@mail.gmail.com>
+  <877i21w9pg.fsf@deeprootsystems.com> <4d34a0a70904031726h504d2722xb8032c8573fb1c15@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:34363 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751177AbZDDLTZ convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 4 Apr 2009 07:19:25 -0400
-In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB02FAC076CA@dbde02.ent.ti.com>
-Content-Language: en-US
+Received: from utopia.booyaka.com ([72.9.107.138]:38212 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753532AbZDDUWS (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 4 Apr 2009 16:22:18 -0400
+In-Reply-To: <4d34a0a70904031726h504d2722xb8032c8573fb1c15@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Gadiyar, Anand" <gadiyar@ti.com>, Paul Walmsley <paul@pwsan.com>, "Syed Mohammed, Khasim" <khasim@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, "linux-arm-kernel@lists.arm.linux.org.uk" <linux-arm-kernel@lists.arm.linux.org.uk>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Russell King - ARM Linux <linux@arm.linux.org.uk>
+To: Kim Kyuwon <chammoru@gmail.com>
+Cc: Kevin Hilman <khilman@deeprootsystems.com>, OMAP <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, =?EUC-KR?B?udqw5rnO?= <kyungmin.park@samsung.com>
 
-<snip>
+On Sat, 4 Apr 2009, Kim Kyuwon wrote:
 
-> > Just to follow up on this, Kevin, Tony, and I spent some time tracking
-> > this down.  We've observed that Beagle and 3430SDP fail to boot when the
-> > mainline kernel is compiled with CodeSourcery gcc 2007q3, hanging in
-> > 'Calibrating delay loop'.  When CSL gcc 2008q3 is used, the machines boot.
-> > 
-> 
-> Hey, good catch guys! I checked the log I had for the one working case and
-> do see that it was compiled with the 2008q3 toolchain. I did switch toolchains
-> sometime the previous day and forgot all about it.
-> 
+> No, I haven't configured GPTIMER12. And actually
+> OMAP3430_ST_GPT12_MASK bit is reserved on OMAP3430 ES.1.
+> This is another problem that I have to fix.....
 
-I tried mainline with the 2008q3 toolchain now, and it still doesn't boot.
-This time, I was careful enough to patch kernel/printk.c correctly and compile
-with CONFIG_DEBUG_LL enabled, and it still does not work.
+Please see the OMAP34xx Multimedia High Security (HS) Device Silicon 
+Revision 3.0 Security Addendum (SWPU119B) Table 3-244.
 
-The patch I sent earlier (replacing the defconfig) does let me boot if I
-compile with 2008q3. So does it make sense to take this in?
 
-Also, here's the error if I simply take the defconfig from the linux-omap tree
-and don't turn off CONFIG_FB_OMAP.
-
-- Anand
-
-  LD      .tmp_vmlinux1
-drivers/built-in.o: In function `omapfb_do_probe':
-/share/anand/linux-2.6/drivers/video/omap/omapfb_main.c:1724: undefined reference to `omap2_int_ctrl'
-make: *** [.tmp_vmlinux1] Error 1
+- Paul
