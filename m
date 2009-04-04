@@ -1,52 +1,55 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: [PATCH 0/3] OMAP2/3: GPTIMER12 fixes
-Date: Sat, 04 Apr 2009 14:54:07 -0600
-Message-ID: <20090404205333.12269.76287.stgit@localhost.localdomain>
+From: Mike Auty <mike.auty@gmail.com>
+Subject: [PATCH] ARM: OMAP: Fix path for omap-sha1-md5 import of irqs.h
+Date: Sat, 04 Apr 2009 22:40:11 +0100
+Message-ID: <49D7D3BB.30500@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:38002 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755980AbZDDUzH (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 4 Apr 2009 16:55:07 -0400
+Received: from out2.smtp.messagingengine.com ([66.111.4.26]:34190 "EHLO
+	out2.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752622AbZDDVkO (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 4 Apr 2009 17:40:14 -0400
+Received: from compute2.internal (compute2.internal [10.202.2.42])
+	by out1.messagingengine.com (Postfix) with ESMTP id A74863113E0
+	for <linux-omap@vger.kernel.org>; Sat,  4 Apr 2009 17:40:12 -0400 (EDT)
+Received: from [192.168.188.1] (82-71-33-97.dsl.in-addr.zen.co.uk [82.71.33.97])
+	by mail.messagingengine.com (Postfix) with ESMTPSA id 358E1553B9
+	for <linux-omap@vger.kernel.org>; Sat,  4 Apr 2009 17:40:12 -0400 (EDT)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 
+Hi there,
 
-Hello,
+This is my first kernel-type patch, so please go easy on me if I've made
+any mistakes.  I recently tried building the master kernel from master
+(commit e75343a207ef24490176abe3503743d7a006e299) and it failed at
+omap-sha1-md5.c with a file not found issue (asm/arch-omap/irqs.h).    I
+looked for a similar file, and figured that it meant
+asm/plat-omap/include/mach/irqs.h, so I produced the patch below.
+Hopefully that's the correct solution, but I'd appreciate it if someone
+else could look it over too.  Thanks very much,
 
-This following series of fixes implements support in mainline for
-using GPTIMER12 as the system tick timer.  Currently this is only
-needed for some BeagleBoards.  Detailed comments are in the patch
-descriptions.
-
-This is being posted for any brief comments before submitting upstream
-as part of a fix series.
-
-
-- Paul
+Mike  5:)
 
 ---
+ drivers/crypto/omap-sha1-md5.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-Kevin Hilman (1):
-      OMAP: dmtimer: enable all timers to be wakeup events
+diff --git a/drivers/crypto/omap-sha1-md5.c b/drivers/crypto/omap-sha1-md5.c
+index 6d77703..90ad56f 100644
+--- a/drivers/crypto/omap-sha1-md5.c
++++ b/drivers/crypto/omap-sha1-md5.c
+@@ -13,7 +13,7 @@
+  * This driver is based on padlock-sha.c driver.
+  */
 
-Paul Walmsley (2):
-      OMAP2/3 GPTIMER: allow system tick GPTIMER to be changed in board-*.c files
-      OMAP3 GPTIMER: fix GPTIMER12 IRQ
-
-
- arch/arm/mach-omap2/board-omap3beagle.c    |    4 ++
- arch/arm/mach-omap2/clock24xx.c            |    1 +
- arch/arm/mach-omap2/clock24xx.h            |   10 +++++-
- arch/arm/mach-omap2/clock34xx.h            |    1 -
- arch/arm/mach-omap2/timer-gp.c             |   48 ++++++++++++++++++++++++++--
- arch/arm/plat-omap/dmtimer.c               |   28 ++++++++++------
- arch/arm/plat-omap/include/mach/dmtimer.h  |    2 +
- arch/arm/plat-omap/include/mach/timer-gp.h |   17 ++++++++++
- 8 files changed, 94 insertions(+), 17 deletions(-)
- create mode 100644 arch/arm/plat-omap/include/mach/timer-gp.h
-
+-#include <asm/arch-omap/irqs.h>
++#include <mach/irqs.h>
+ #include <crypto/algapi.h>
+ #include <crypto/sha.h>
+ #include <linux/err.h>
+-- 
+1.6.2.2
 
