@@ -1,56 +1,55 @@
-From: Pierre Ossman <drzeus-mmc@drzeus.cx>
-Subject: Re: [PATCH] drivers/mmc/core/core.c: extend limit
-Date: Sun, 5 Apr 2009 20:57:27 +0200
-Message-ID: <20090405205727.7a86d61b@mjolnir.ossman.eu>
-References: <alpine.LNX.2.00.0903252248430.32070@linux-suse.site>
+From: David Brownell <david-b@pacbell.net>
+Subject: Re: Benchmarking: POP flash vs. MMC?
+Date: Sun, 5 Apr 2009 15:53:38 -0700
+Message-ID: <200904051553.38586.david-b@pacbell.net>
+References: <6541c55b1b4ad133498add734c9eecc8.squirrel@localhost> <1238813563.12072.4.camel@surfer> <f9d2a5e10904032116p4087be51o14efd360114d3d9f@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain;
+  charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from 82-117-125-11.tcdsl.calypso.net ([82.117.125.11]:50426 "EHLO
-	smtp.ossman.eu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751968AbZDES5b (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Sun, 5 Apr 2009 14:57:31 -0400
-In-Reply-To: <alpine.LNX.2.00.0903252248430.32070@linux-suse.site>
+Received: from n27.bullet.mail.mud.yahoo.com ([68.142.206.222]:25153 "HELO
+	n27.bullet.mail.mud.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1752550AbZDEWxm (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 5 Apr 2009 18:53:42 -0400
+In-Reply-To: <f9d2a5e10904032116p4087be51o14efd360114d3d9f@mail.gmail.com>
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Frans Meulenbroeks <fransmeulenbroeks@gmail.com>
-Cc: linux-kernel@vger.kernel.org, beagleboard@googlegroups.com, openembedded-devel@lists.openembedded.org, linux-omap@vger.kernel.org
+To: Russ Dill <russ.dill@gmail.com>
+Cc: David Hagood <david.hagood@gmail.com>, linux-omap@vger.kernel.org
 
-On Wed, 25 Mar 2009 23:03:28 +0100 (CET)
-Frans Meulenbroeks <fransmeulenbroeks@gmail.com> wrote:
-
+On Friday 03 April 2009, Russ Dill wrote:
+> On Fri, Apr 3, 2009 at 7:52 PM, David Hagood <david.hagood@gmail.com> wrote:
+> > Well, that's not what I would have expected - I would have thought
+> > reads on POP would have been faster than that, and cheaper - the SD
+> > being the same speed but less CPU is surprising.  
 > 
-> This did not help me as the limit was already at 300000. However, I 
-> decided to raise the limit to 500000. Still no go so I also doubled the 
-> read limit from 100000 to 200000. After that the cards work without 
-> problem. Changing the write timing back to 300000 brought the problem back 
-> so apparently both timings need to be extended. Attached is the patch I 
-> used for this. As it is a timeout limit value, it should not harm anyone, 
-> and a longer timeout at least allows more cards to be used.
-> 
+> The POP flash may not have a DMA ability.
 
-Unfortunately some controllers cannot cope with huge timeouts and will
-complain. And such a huge timeout shouldn't be needed (and they weren't
-any larger in .27).
+ISTR it does, but it's not used.  There are other speedups possible;
+the NAND driver in the OMAP tree is pretty simplistic.  It doesn't
+use the "Prefetch and Write-Posting Engine" (we don't know if that
+really helps though); or the more aggressive ECC support (4-bit and
+8-bit modes both work).
 
-> 
-> What somewhat troubles me is that this worked in .27, so it might be this 
-> patch does not address the root cause. Then again this is the best I can 
-> do. If someone has a better solution, I am more than happy to test it.
-> 
+Of course using DMA in the MTD stack can be a bit problematic in
+general.  It assumes that DMA is not used ... to the extent of not
+guaranteeing to provide DMA-mappable I/O buffers.
 
-Indeed. Have you enabled MMC_DEBUG and checked that the controller
-actually follows the configured timeouts?
+That said, it's hard to achieve speedups through DMA for such small
+blocks of memory ... an issue which is not unique to NAND.
 
-Rgds
--- 
-     -- Pierre Ossman
 
-  Linux kernel, MMC maintainer        http://www.kernel.org
-  rdesktop, core developer          http://www.rdesktop.org
+> Also, the POP flash contents 
+> are compressed and ECC corrected, so its a lot of extra work for the
+> CPU.
 
-  WARNING: This correspondence is being monitored by the
-  Swedish government. Make sure your server uses encryption
-  for SMTP traffic and consider using PGP for end-to-end
-  encryption.
+ECC is done in hardware for the native NAND stack on OMAP;
+but you're right about compression.
+
+Another point is that "managed NAND" (like MMC and eMMC, and
+various SSD flavors) is there to offload some complicated
+and error-prone tasks like wear-leveling.
+
+
