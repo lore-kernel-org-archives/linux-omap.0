@@ -1,94 +1,107 @@
-From: Russ Dill <russ.dill@gmail.com>
-Subject: voltage_off_while_idle confusing in tmlind/linux-omap-2.6/pm.git
-Date: Mon, 6 Apr 2009 04:40:13 -0700
-Message-ID: <f9d2a5e10904060440n62159ce6kd7827e4f8c231f1c@mail.gmail.com>
+From: "Shah, Hardik" <hardik.shah@ti.com>
+Subject: RE: [PATCH 0/3] V4L2 driver for OMAP2/3 with new CIDs.
+Date: Mon, 6 Apr 2009 17:20:25 +0530
+Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB02FB102FD2@dbde02.ent.ti.com>
+References: <200903200826.19558.hverkuil@xs4all.nl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from rv-out-0506.google.com ([209.85.198.233]:29180 "EHLO
-	rv-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755526AbZDFLkP convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 6 Apr 2009 07:40:15 -0400
-Received: by rv-out-0506.google.com with SMTP id f9so2160547rvb.1
-        for <linux-omap@vger.kernel.org>; Mon, 06 Apr 2009 04:40:14 -0700 (PDT)
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
+Return-path: <linux-media-owner@vger.kernel.org>
+In-Reply-To: <200903200826.19558.hverkuil@xs4all.nl>
+Content-Language: en-US
+Sender: linux-media-owner@vger.kernel.org
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
-To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
-Cc: Kevin Hilman <khilman@deeprootsystems.com>, Kalle Jokiniemi <ext-kalle.jokiniemi@nokia.com>
 
-The following patch:
+Hi All,
 
-Author: Kalle Jokiniemi <ext-kalle.jokiniemi@nokia.com>  2008-08-26 02:=
-56:02
-Committer: Kevin Hilman <khilman@deeprootsystems.com>  2009-03-25 10:11=
-:41
 
-    OMAP: PM: sysfs interface for enabling voltage off in idle
+> -----Original Message-----
+> From: Hans Verkuil [mailto:hverkuil@xs4all.nl]
+> Sent: Friday, March 20, 2009 12:56 PM
+> To: Shah, Hardik
+> Cc: linux-media@vger.kernel.org; linux-omap@vger.kernel.org
+> Subject: Re: [PATCH 0/3] V4L2 driver for OMAP2/3 with new CIDs.
+> 
+> On Friday 20 March 2009 06:18:44 Shah, Hardik wrote:
+> > Hi All,
+> > I will be posting series of three patches for the V4L2 driver on the
+> > OMAP2/3 DSS.
+> 
+> Thanks! I'll review this within the week.
+[Shah, Hardik] I have fixed most of the comments and re-posting the patches.
+> 
+> Regards,
+> 
+> 	Hans
+> 
+> > Patch 1 -
+> > This is the second revision of the patch.
+> > Documentation added for the following new CIDs and bit fields added in
+> > V4L2 framework.
+> >
+> > V4L2_CID_BG_COLOR: Added new CID for setting of the back ground color on
+> > the output device. V4L2_CID_ROTATION: Added new CID for setting up of the
+> > rotation on the device. Both of the above ioctls are discussed in detail.
+> >
+> > V4L2_FBUF_FLAG_SRC_CHROMAKEY: Added the flags bit field to the flags
+> > field of the v4l2_framebuffer structure for supporting the source chroma
+> > keying.  It's exactly opposite of the chroma keying supported with the
+> > flag V4L2_FBUF_FLAG_CHROMAKEY.
+> >
+> > V4L2_FBUF_CAP_SRC_CHROMAKEY:  Added the capability bit field for the
+> > capability field of the v4l2_framebuffer structure.
+> >
+> > Documentation change related to the new bit field for the source chroma
+> > keying is new from the previous version.
+> >
+> > Patch 2 -
+> > Added New Control IDs for OMAP class of Devices as discussed above.  This
+> > is the third revision of the patch of adding the new control IDs and bit
+> > fields.
+> >
+> > V4L2_FBUF_CAP_SRC_CHROMAKEY and V4L2_FBUF_FLAG_SRC_CHROMAKEY are newly
+> > added compared to previous revision of patch.
+> >
+> > New Ioctl for programming the color space conversion matrix is dropped
+> > from this patch as the accompanying driver with this patch is not still
+> > having implementation for the same.  Related documentation is also
+> > removed.
+> >
+> > I will submit a separate patch for that with the necessary changes in
+> > driver to support the programming of the color space conversion. Some
+> > changes are required in DSS2 library also for doing the same.
+> >
+> > Patch 3 -
+> > This is a review patch since the DSS2 library is still to be accepted in
+> > community This is the third revision of the patch.
+> > This patch contains the V4L2 driver on the OMAP3 DSS2 using all of the
+> > above newly implemented CIDS and bit fields.  Following are the changes
+> > in the driver compared to the previous version.
+> >
+> > 1.  Added the chroma keying support.
+> > 2.  Added alpha blending support.
+> > 3.  Minor community comment fixed.
+> > 4.  Ported to work with Tomi's latest DSS2 library with minor
+> > modification in DSS2 library.  Path to Tomi's DSS2 library is
+> > http://www.bat.org/~tomba/git/linux-omap-dss.git/ commit id
+> > bc6dc4c7fabb8ba3bfe637a6c5dc271595a1bef6
+> >
+> > All the comments and inputs are welcomed.
+> >
+> > Thanks and Regards
+> > Hardik Shah
+> >
+> >
+> >
+> > --
+> > To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> > the body of a message to majordomo@vger.kernel.org
+> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+> 
+> 
+> --
+> Hans Verkuil - video4linux developer - sponsored by TANDBERG
 
-    This patch creates a sysfs interface (/sys/power/voltage_off_while_=
-idle) to
-    set or clear a variable which can be used in determining wether vol=
-tage
-    regulators should be shut down in idle.
-
-    Signed-off-by: Kalle Jokiniemi <ext-kalle.jokiniemi@nokia.com>
-
-Modifies the PM_VOLTCTRL register of the omap3. It sets AUTO_SLEEP by
-default, sets AUTO_OFF when powering off the CORE domain, and sets
-SEL_OFF based on the voltage_off_while_idle sysfs file. Several bits
-are incomplete.
-
-1.12.5.1.4 PRM_VOLTCTRL (Voltage Source Control Register)
-       This register allows control of the power IC. The following are
-the register bit fields:
-       =E2=80=A2 AUTO_SLEEP: Automatically sends the sleep command when=
- the
-voltage domain is in the appropriate
-          standby mode
-       =E2=80=A2 AUTO_RET: Automatically sends the retention command wh=
-en the
-voltage domain is in the
-          appropriate standby mode
-       =E2=80=A2 AUTO_OFF: Automatically sends the off command when the
-voltage domain is in the appropriate
-          standby mode
-       =E2=80=A2 SEL_OFF: Controls whether the off command is sent thro=
-ugh the
-voltage controller I2C interface or the
-          signal sys_off_mode is asserted when entering off mode
-       =E2=80=A2 SEL_VMODE: Allows control of the power IC through eith=
-er the
-voltage controller I2C interface or the
-          VMODE interface
-
-The voltage_off_while idle flag thus does not do what it says it does.
-It merely selects the action by which the AUTO_OFF functionality
-works.
-
-The patch does set AUTO_OFF to true when sleeping if the core domain
-is to be shut off, so in that sense it works. However, on my platform
-(Beagleboard), the regulators for VDD1 and/or VDD2 do not shut off
-with SEL_OFF=3D1 or SEL_OFF=3D0 (further investigation required).
-
-The AUTO_SLEEP flag has been removed by e1c76c42 in order to reduce C
-state latency:
-
-Author: Peter 'p2' De Schrijver <peter.de-schrijver@nokia.com>
-2009-01-14 09:32:35
-Committer: Kevin Hilman <khilman@deeprootsystems.com>  2009-03-25 10:13=
-:25
-
-    OMAP3: PM: Don't scale voltage in C1 state
-
-    This patch prevents VDD1 and VDD2 to go to the lowest OPP when ente=
-ring C1.
-    It improves wakeup latency from 600us to about 50us.
-
-    Signed-off-by: Peter 'p2' De Schrijver <peter.de-schrijver@nokia.co=
-m>
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
