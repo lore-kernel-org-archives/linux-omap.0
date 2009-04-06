@@ -1,36 +1,34 @@
-From: David Brownell <david-b@pacbell.net>
-Subject: Re: Preempt-RT on OMAP3?
-Date: Mon, 6 Apr 2009 03:25:45 -0700
-Message-ID: <200904060325.45758.david-b@pacbell.net>
-References: <5a7b8b7b0904052025g74325484h66335606bebea5a3@mail.gmail.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: Benchmarking: POP flash vs. MMC?
+Date: Mon, 6 Apr 2009 04:34:11 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.0904060433000.22223@utopia.booyaka.com>
+References: <6541c55b1b4ad133498add734c9eecc8.squirrel@localhost> <200904060259.00439.david-b@pacbell.net> <alpine.DEB.2.00.0904060402140.22223@utopia.booyaka.com> <200904060323.21127.david-b@pacbell.net>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp125.sbc.mail.sp1.yahoo.com ([69.147.65.184]:45551 "HELO
-	smtp125.sbc.mail.sp1.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1754826AbZDFKZs (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 6 Apr 2009 06:25:48 -0400
-In-Reply-To: <5a7b8b7b0904052025g74325484h66335606bebea5a3@mail.gmail.com>
-Content-Disposition: inline
+Received: from utopia.booyaka.com ([72.9.107.138]:33633 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754112AbZDFKeO (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 6 Apr 2009 06:34:14 -0400
+In-Reply-To: <200904060323.21127.david-b@pacbell.net>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Hugo Vincent <hugo.vincent@gmail.com>
-Cc: linux-omap@vger.kernel.org
+To: David Brownell <david-b@pacbell.net>
+Cc: Russ Dill <russ.dill@gmail.com>, Artem Bityutskiy <dedekind@yandex.ru>, David Hagood <david.hagood@gmail.com>, linux-omap@vger.kernel.org
 
-On Sunday 05 April 2009, Hugo Vincent wrote:
-> I'm trying to get the realtime patch set to work on OMAP3 (Gumstix
-> Overo). Linux-omap 2.6.29 with the RT patches -rt1 or -rt2 work mostly
-> as is (MUSB and the usb-gadget layer have quite a few problems, and
+On Mon, 6 Apr 2009, David Brownell wrote:
 
-Like what?  Way back in 2.6.10 MUSB behaved relatively sanely.
-But that's a while back.  ;)
+> I'd think the first thing to check is two linux-omap PIO flavors:
+> with vs without the prefetch/postwrite engine.  Benchmarking DMA
+> would be a separate issue.  Ditto comparing kernels with/without
+> write posting.
+
+Makes sense to me.  FIFO-less GPMC PIO should be full of fail.
+
+> Puzzle:  get a dma_copypage() to work faster than copy_page().
+> Or a dma_clear_page() faster than clear_page().  Not easy...
+
+Doing it via the DMA engine may save power, since MPU can sleep.
 
 
-> the realtime self-test stuff picks up a few problems to do with
-> spinlock usage etc, but most things seem to mostly work correctly for
-> my needs). Running cyclictest with various types of loads gives an
-> average latency of ~30-50 usec and worst case up around 300 usec.
-
-
+- Paul
