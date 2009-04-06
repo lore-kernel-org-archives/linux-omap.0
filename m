@@ -1,37 +1,29 @@
 From: David Brownell <david-b@pacbell.net>
-Subject: [patch omap-git] ehci-omap buildfix
-Date: Mon, 6 Apr 2009 02:36:51 -0700
-Message-ID: <200904060236.51534.david-b@pacbell.net>
+Subject: Re: Benchmarking: POP flash vs. MMC?
+Date: Mon, 6 Apr 2009 02:59:00 -0700
+Message-ID: <200904060259.00439.david-b@pacbell.net>
+References: <6541c55b1b4ad133498add734c9eecc8.squirrel@localhost> <49D9B21A.2000002@yandex.ru> <f9d2a5e10904060113g37c3dd7fk5be6d3a12ab169c4@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
   charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp119.sbc.mail.sp1.yahoo.com ([69.147.64.92]:37228 "HELO
-	smtp119.sbc.mail.sp1.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1752141AbZDFJgy (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 6 Apr 2009 05:36:54 -0400
+Received: from n21.bullet.mail.mud.yahoo.com ([68.142.206.160]:29736 "HELO
+	n21.bullet.mail.mud.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1753276AbZDFJ7F (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 6 Apr 2009 05:59:05 -0400
+In-Reply-To: <f9d2a5e10904060113g37c3dd7fk5be6d3a12ab169c4@mail.gmail.com>
 Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: OMAP <linux-omap@vger.kernel.org>
+To: Russ Dill <russ.dill@gmail.com>
+Cc: Artem Bityutskiy <dedekind@yandex.ru>, David Hagood <david.hagood@gmail.com>, linux-omap@vger.kernel.org
 
-device.bus_id doesn't exist any more
+On Monday 06 April 2009, Russ Dill wrote:
+> Also, it appears from looking an the openzoom git, there are some
+> patches to add DMA support in, but I'm not sure what effect they have.
 
-Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
----
- drivers/usb/host/ehci-omap.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+We had asked for some benchmark data -- anything! -- to get a
+handle on that, and the prefetch/etc engine; nothing forthcoming,
+so far.
 
---- a/drivers/usb/host/ehci-omap.c
-+++ b/drivers/usb/host/ehci-omap.c
-@@ -432,7 +432,8 @@ static int ehci_hcd_omap_drv_probe(struc
- 		retval = -ENOMEM;
- 	}
- 
--	hcd = usb_create_hcd(&ehci_omap_hc_driver, &dev->dev, dev->dev.bus_id);
-+	hcd = usb_create_hcd(&ehci_omap_hc_driver, &dev->dev,
-+			dev_name(&dev->dev));
- 	if (!hcd)
- 		return -ENOMEM;
- 
