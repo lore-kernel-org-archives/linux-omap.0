@@ -1,61 +1,74 @@
-From: Mark Brown <broonie@sirena.org.uk>
-Subject: Re: [PATCH] OMAP: Don't warn user about expected behaviour in
-	mmc-twl4030
-Date: Mon, 6 Apr 2009 16:56:10 +0100
-Message-ID: <20090406155609.GD4057@sirena.org.uk>
-References: <1238440539-2394-1-git-send-email-broonie@sirena.org.uk> <200903301353.44087.david-b@pacbell.net> <20090331210019.GA12304@sirena.org.uk> <200904031803.33648.david-b@pacbell.net>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] omap_hsmmc: Flush posted write to IRQ
+Date: Mon, 6 Apr 2009 09:49:18 -0700
+Message-ID: <20090406164917.GA30724@atomide.com>
+References: <49D9EF0F.9090808@nokia.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from cassiel.sirena.org.uk ([80.68.93.111]:55675 "EHLO
-	cassiel.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752985AbZDFP4O (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 6 Apr 2009 11:56:14 -0400
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:59885 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751461AbZDFQt3 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 6 Apr 2009 12:49:29 -0400
 Content-Disposition: inline
-In-Reply-To: <200904031803.33648.david-b@pacbell.net>
+In-Reply-To: <49D9EF0F.9090808@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: David Brownell <david-b@pacbell.net>
-Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, lrg@slimlogic.co.uk
+To: Adrian Hunter <adrian.hunter@nokia.com>
+Cc: Pierre Ossman <drzeus-mmc@drzeus.cx>, LKML <linux-kernel@vger.kernel.org>, Kevin Hilman <khilman@deeprootsystems.com>, linux-omap Mailing List <linux-omap@vger.kernel.org>
 
-On Fri, Apr 03, 2009 at 06:03:33PM -0700, David Brownell wrote:
-> On Tuesday 31 March 2009, Mark Brown wrote:
+* Adrian Hunter <adrian.hunter@nokia.com> [090406 05:00]:
+> From: Kevin Hilman <khilman@deeprootsystems.com>
+>
+> Spurious IRQs seen on MMC after 2.6.29.  Flush posted write in IRQ
+> handler.
+>
+> The interrupt line is released by clearing the error status bits
+> in the MMCHS_STAT register, which must occur before the interrupt
+> handler returns to avoid unwanted irqs.  Hence the need to flush
+> the posted write.
+>
+> Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
+> Signed-off-by: Adrian Hunter <adrian.hunter@nokia.com>
 
-> > The documention should not be changed to say that since only consumers
-> > that need the regulator to be off at startup should do this, and then
-> > probably only if they find that it is already enabled.
+Acked-by: Tony Lindgen <tony@atomide.com>
 
-> "Probably" shows you still don't have a good answer...
-
-No, it means that I can't think of any reason why they'd want to bounce
-the supply but I'm open to the possibility that there could be one.
-
-> I see that mainline now has ca7255614e0861e36480103f4a402a115803d7b5
-> which is a variant of the first late-fixup patch I sent.  The isssue
-> with that approach is that it leaves a huge window between regulator
-> init and its late fixup ... during which driver probe() calls suffer
-> the bad effects of the current self-inconsistent initialization.  So
-> it doesn't really address the MMC cases.
-
-That change was not intended to do anything for MMC, it's there for
-other users like shared regulators and situations where no consumer
-driver instantiates.
-
-It is really important that you engage with the feedback you are
-getting.  At this point we are all quite familiar with your views and we
-do understand them, restating them is not what's needed.  Changes have
-to be made with an understanding of the existing interface and how it
-supports the use cases the API has, including users other than MMC.
-Changes also need to be made with consideration given to merge issues.
-
-> And in fact, that's exactly what I think folk should be doing with
-> the recent additions to twl4030-power supporting explicit init of
-> all the power resources ... as done with e.g. Beagle.  The benefit
-
-...
-
-> So there's an OMAP-specific workaround now in place, albeit not
-> yet headed towards mainline.
-
-With Jonathan's patch there will be support in the regulator API for
-doing this with all regulators.
+> ---
+>
+>
+>
+>
+> This patch is slightly modified from Kevin's original, which is
+> here:
+>
+> 	http://marc.info/?l=linux-omap&m=123862814815052&w=2
+>
+>
+>
+> drivers/mmc/host/omap_hsmmc.c |    4 ++++
+> 1 files changed, 4 insertions(+), 0 deletions(-)
+>
+> diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
+> index 04e5a0c..2ae6049 100644
+> --- a/drivers/mmc/host/omap_hsmmc.c
+> +++ b/drivers/mmc/host/omap_hsmmc.c
+> @@ -452,6 +452,8 @@ static irqreturn_t mmc_omap_irq(int irq, void *dev_id)
+> 	if (host->mrq == NULL) {
+> 		OMAP_HSMMC_WRITE(host->base, STAT,
+> 			OMAP_HSMMC_READ(host->base, STAT));
+> +		/* Flush posted write */
+> +		OMAP_HSMMC_READ(host->base, STAT);
+> 		return IRQ_HANDLED;
+> 	}
+>
+> @@ -523,6 +525,8 @@ static irqreturn_t mmc_omap_irq(int irq, void *dev_id)
+> 	}
+>
+> 	OMAP_HSMMC_WRITE(host->base, STAT, status);
+> +	/* Flush posted write */
+> +	OMAP_HSMMC_READ(host->base, STAT);
+>
+> 	if (end_cmd || (status & CC))
+> 		mmc_omap_cmd_done(host, host->cmd);
+> -- 
+> 1.5.6.3
