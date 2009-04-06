@@ -1,34 +1,38 @@
-From: Hugo Vincent <hugo.vincent@gmail.com>
-Subject: Preempt-RT on OMAP3?
-Date: Mon, 6 Apr 2009 15:25:25 +1200
-Message-ID: <5a7b8b7b0904052025g74325484h66335606bebea5a3@mail.gmail.com>
+From: Jarkko Nikula <jarkko.nikula@nokia.com>
+Subject: Re: Git tree updated, clocks and PM code reset to mainline
+Date: Mon, 6 Apr 2009 09:29:14 +0300
+Message-ID: <20090406092914.5af65751.jarkko.nikula@nokia.com>
+References: <20090403001333.GR32530@atomide.com>
+	<20090403091553.82ceacf8.jarkko.nikula@nokia.com>
+	<87k561htu0.fsf@litku.valot.fi>
+	<alpine.DEB.2.00.0904041630170.8305@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from yx-out-2324.google.com ([74.125.44.29]:50858 "EHLO
-	yx-out-2324.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752137AbZDFDZ2 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 5 Apr 2009 23:25:28 -0400
-Received: by yx-out-2324.google.com with SMTP id 31so1961386yxl.1
-        for <linux-omap@vger.kernel.org>; Sun, 05 Apr 2009 20:25:25 -0700 (PDT)
+Received: from smtp.nokia.com ([192.100.122.233]:57961 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754118AbZDFG2y (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 6 Apr 2009 02:28:54 -0400
+In-Reply-To: <alpine.DEB.2.00.0904041630170.8305@utopia.booyaka.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
+To: ext Paul Walmsley <paul@pwsan.com>
+Cc: Kalle Valo <kalle.valo@iki.fi>, ext Tony Lindgren <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Hi everyone,
+On Sun, 5 Apr 2009 00:33:25 +0200
+ext Paul Walmsley <paul@pwsan.com> wrote:
 
-I'm trying to get the realtime patch set to work on OMAP3 (Gumstix
-Overo). Linux-omap 2.6.29 with the RT patches -rt1 or -rt2 work mostly
-as is (MUSB and the usb-gadget layer have quite a few problems, and
-the realtime self-test stuff picks up a few problems to do with
-spinlock usage etc, but most things seem to mostly work correctly for
-my needs). Running cyclictest with various types of loads gives an
-average latency of ~30-50 usec and worst case up around 300 usec.
+> Evidently the 24xx clock code/data was never actually tested.  Does
+> this patch work for you?
+> 
+Thanks Paul! Your patch makes N810 booting up to retu initialization
+(kernel BUG at drivers/cbus/retu.c:90!) but I don't think so this has
+anything to do with the clock changes.
 
-Is anyone working on RT on omap3? Is there a more suitable mailing
-list for this? Is there a git repo somewhere tracking the work on
-2.6.39-rtX for OMAP?
+I noticed also that N810 hangs like Beagle in delay loop calibration
+when compiled with 2007q3-53. For <= ARM11 I still use good old
+2005q3 :-)
 
-Thanks,
-Hugo Vincent
+
+Jarkko
