@@ -1,45 +1,43 @@
-From: David Brownell <david-b@pacbell.net>
-Subject: Re: Benchmarking: POP flash vs. MMC?
-Date: Mon, 6 Apr 2009 03:48:34 -0700
-Message-ID: <200904060348.34996.david-b@pacbell.net>
-References: <6541c55b1b4ad133498add734c9eecc8.squirrel@localhost> <200904060323.21127.david-b@pacbell.net> <alpine.DEB.2.00.0904060433000.22223@utopia.booyaka.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: Git tree updated, clocks and PM code reset to mainline
+Date: Mon, 6 Apr 2009 04:49:38 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.0904060446130.22223@utopia.booyaka.com>
+References: <20090403001333.GR32530@atomide.com> <20090403091553.82ceacf8.jarkko.nikula@nokia.com> <87k561htu0.fsf@litku.valot.fi> <alpine.DEB.2.00.0904041630170.8305@utopia.booyaka.com> <20090406092914.5af65751.jarkko.nikula@nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from n25.bullet.mail.mud.yahoo.com ([68.142.206.220]:42045 "HELO
-	n25.bullet.mail.mud.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1754419AbZDFKsj (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 6 Apr 2009 06:48:39 -0400
-In-Reply-To: <alpine.DEB.2.00.0904060433000.22223@utopia.booyaka.com>
-Content-Disposition: inline
+Received: from utopia.booyaka.com ([72.9.107.138]:53021 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754863AbZDFKtk (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 6 Apr 2009 06:49:40 -0400
+In-Reply-To: <20090406092914.5af65751.jarkko.nikula@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: Russ Dill <russ.dill@gmail.com>, Artem Bityutskiy <dedekind@yandex.ru>, David Hagood <david.hagood@gmail.com>, linux-omap@vger.kernel.org
+To: Jarkko Nikula <jarkko.nikula@nokia.com>
+Cc: Kalle Valo <kalle.valo@iki.fi>, ext Tony Lindgren <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Monday 06 April 2009, Paul Walmsley wrote:
-> > Puzzle: =A0get a dma_copypage() to work faster than copy_page().
-> > Or a dma_clear_page() faster than clear_page(). =A0Not easy...
->=20
-> Doing it via the DMA engine may save power, since MPU can sleep.
+On Mon, 6 Apr 2009, Jarkko Nikula wrote:
 
-But the CPU overhead of calling the DMA engine can exceed
-that of the memcpy()/memset() ... ;)
+> On Sun, 5 Apr 2009 00:33:25 +0200
+> ext Paul Walmsley <paul@pwsan.com> wrote:
+> 
+> > Evidently the 24xx clock code/data was never actually tested.  Does
+> > this patch work for you?
+> > 
+> Thanks Paul! Your patch makes N810 booting up to retu initialization
+> (kernel BUG at drivers/cbus/retu.c:90!) but I don't think so this has
+> anything to do with the clock changes.
 
-Another concern is cache impact.  In some cases, having the
-dirty data in dcache is a big win.  With DMA, the cache will
-have been purged.
+Cool, thanks for testing, Jarkko.  Will queue cleaned-up versions of these 
+fixes into the omap-clock-test branch.  I test-booted them on the N800 
+here and didn't see the retu bug, but maybe N800 interacts with it 
+differently?
 
-It'd be nice to see DMA versions of this stuff winning;
-all I'm saying is that such wins are hard to achieve.
+> I noticed also that N810 hangs like Beagle in delay loop calibration
+> when compiled with 2007q3-53. For <= ARM11 I still use good old
+> 2005q3 :-)
 
-- Dave
+Hehe.
 
 
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+- Paul
