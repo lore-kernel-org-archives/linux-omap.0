@@ -1,95 +1,68 @@
-From: "Shah, Hardik" <hardik.shah@ti.com>
-Subject: RE: [PATCH 1/3] Documentation for new V4L2 CIDs added.
-Date: Mon, 6 Apr 2009 17:21:14 +0530
-Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB02FB102FD5@dbde02.ent.ti.com>
-References: <200903301352.58079.hverkuil@xs4all.nl>
+From: Adrian Hunter <adrian.hunter@nokia.com>
+Subject: [PATCH] omap_hsmmc: Flush posted write to IRQ
+Date: Mon, 06 Apr 2009 15:01:19 +0300
+Message-ID: <49D9EF0F.9090808@nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
-Return-path: <linux-media-owner@vger.kernel.org>
-In-Reply-To: <200903301352.58079.hverkuil@xs4all.nl>
-Content-Language: en-US
-Sender: linux-media-owner@vger.kernel.org
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Jadav, Brijesh R" <brijesh.j@ti.com>, "Hiremath, Vaibhav" <hvaibhav@ti.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from smtp.nokia.com ([192.100.105.134]:47091 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755481AbZDFMBG (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 6 Apr 2009 08:01:06 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Pierre Ossman <drzeus-mmc@drzeus.cx>
+Cc: LKML <linux-kernel@vger.kernel.org>, Kevin Hilman <khilman@deeprootsystems.com>, Tony Lindgren <tony@atomide.com>, linux-omap Mailing List <linux-omap@vger.kernel.org>
 
-Hi Hans,
-Please find my comments inline.
+From: Kevin Hilman <khilman@deeprootsystems.com>
 
-Regards,
-Hardik 
+Spurious IRQs seen on MMC after 2.6.29.  Flush posted write in IRQ
+handler.
 
-> -----Original Message-----
-> From: Hans Verkuil [mailto:hverkuil@xs4all.nl]
-> Sent: Monday, March 30, 2009 5:23 PM
-> To: Shah, Hardik
-> Cc: linux-media@vger.kernel.org; linux-omap@vger.kernel.org; Jadav, Brijesh R;
-> Hiremath, Vaibhav
-> Subject: Re: [PATCH 1/3] Documentation for new V4L2 CIDs added.
-> 
-> Hi Hardik,
-> 
-> OK, so it took a little longer than a week. So sue me :-)
-> 
-> Typo: chorma -> chroma
-[Shah, Hardik] Done in next post
-> 
-> > +images will be replaced by the video images.  Exactly
-> > +opposite of <constant>V4L2_FBUF_CAP_CHROMAKEY</constant></entry>
-> 
-> Hmm. This is a bit obscure. CAP_CHROMAKEY means that framebuffer pixels with
-> the chromakey color are replaced by video pixels. CAP_SRC_CHROMAKEY means
-> that video pixels with the chromakey color are replaced by the framebuffer
-> pixels. At least the way I read it this is the opposite of what you wrote.
-> 
-> It pays to be very precise here since it can get confusing very quickly.
-[Shah, Hardik] Done in next post
-> 
-> > +	  </row>
-> >  	</tbody>
-> >        </tgroup>
-> >      </table>
-> > @@ -411,6 +418,18 @@ images, but with an inverted alpha value. The blend
-> function is:
-> >  output = framebuffer pixel * (1 - alpha) + video pixel * alpha. The
-> >  actual alpha depth depends on the framebuffer pixel format.</entry>
-> >  	  </row>
-> > +	  <row>
-> > +	    <entry><constant>V4L2_FBUF_FLAG_SRC_CHROMAKEY</constant></entry>
-> > +	    <entry>0x0040</entry>
-> > +	    <entry>Use chroma-keying. The chroma-key color is
-> 
-> Write: 'Use source chroma-keying.' to prevent confusion with
-> V4L2_FBUF_FLAG_CHROMAKEY.
-> 
-[Shah, Hardik] Done in next post
-> > +determined by the <structfield>chromakey</structfield> field of
-> > +&v4l2-window; and negotiated with the &VIDIOC-S-FMT; ioctl, see <xref
-> > +linkend="overlay"> and <xref linkend="osd">.
-> > +Since any one of the chorma keying can be active at a time as both
-> 
-> Typo: chorma -> chroma
-[Shah, Hardik] Done in next post
-> 
-> > +of them are exactly opposite same <structfield>chromakey</structfield>
-> 
-> Typo: 'opposite same' -> 'opposite the same'
-[Shah, Hardik] Done in next post
-> 
-> > +field of &v4l2-window; can be used to set the chroma key for source
-> > +keying also.</entry>
-> > +	  </row>
-> >  	</tbody>
-> >        </tgroup>
-> >      </table>
-> > --
-> > 1.5.6
-> 
-> Regards,
-> 
-> 	Hans
-> 
-> --
-> Hans Verkuil - video4linux developer - sponsored by TANDBERG
+The interrupt line is released by clearing the error status bits
+in the MMCHS_STAT register, which must occur before the interrupt
+handler returns to avoid unwanted irqs.  Hence the need to flush
+the posted write.
 
+Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
+Signed-off-by: Adrian Hunter <adrian.hunter@nokia.com>
+---
+
+
+
+
+This patch is slightly modified from Kevin's original, which is
+here:
+
+	http://marc.info/?l=linux-omap&m=123862814815052&w=2
+
+
+
+ drivers/mmc/host/omap_hsmmc.c |    4 ++++
+ 1 files changed, 4 insertions(+), 0 deletions(-)
+
+diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
+index 04e5a0c..2ae6049 100644
+--- a/drivers/mmc/host/omap_hsmmc.c
++++ b/drivers/mmc/host/omap_hsmmc.c
+@@ -452,6 +452,8 @@ static irqreturn_t mmc_omap_irq(int irq, void *dev_id)
+ 	if (host->mrq == NULL) {
+ 		OMAP_HSMMC_WRITE(host->base, STAT,
+ 			OMAP_HSMMC_READ(host->base, STAT));
++		/* Flush posted write */
++		OMAP_HSMMC_READ(host->base, STAT);
+ 		return IRQ_HANDLED;
+ 	}
+ 
+@@ -523,6 +525,8 @@ static irqreturn_t mmc_omap_irq(int irq, void *dev_id)
+ 	}
+ 
+ 	OMAP_HSMMC_WRITE(host->base, STAT, status);
++	/* Flush posted write */
++	OMAP_HSMMC_READ(host->base, STAT);
+ 
+ 	if (end_cmd || (status & CC))
+ 		mmc_omap_cmd_done(host, host->cmd);
+-- 
+1.5.6.3
