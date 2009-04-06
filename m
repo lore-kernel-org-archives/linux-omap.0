@@ -1,58 +1,56 @@
-From: "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>
-Subject: RE: i2c_omap: arbitration lost
-Date: Mon, 6 Apr 2009 17:52:53 -0500
-Message-ID: <A24693684029E5489D1D202277BE89442EB826FE@dlee02.ent.ti.com>
-References: <A24693684029E5489D1D202277BE89442EB826D3@dlee02.ent.ti.com>
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+Subject: Re: Embedded Linux Conference
+Date: Tue, 7 Apr 2009 01:18:05 +0200 (CEST)
+Message-ID: <63374.207.214.87.58.1239059885.squirrel@webmail.xs4all.nl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:56331 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753186AbZDFWxB convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 6 Apr 2009 18:53:01 -0400
-Received: from dlep95.itg.ti.com ([157.170.170.107])
-	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id n36MqtCI008880
-	for <linux-omap@vger.kernel.org>; Mon, 6 Apr 2009 17:53:00 -0500
-Received: from dlee75.ent.ti.com (localhost [127.0.0.1])
-	by dlep95.itg.ti.com (8.13.8/8.13.8) with ESMTP id n36MqtKB001949
-	for <linux-omap@vger.kernel.org>; Mon, 6 Apr 2009 17:52:55 -0500 (CDT)
-In-Reply-To: <A24693684029E5489D1D202277BE89442EB826D3@dlee02.ent.ti.com>
-Content-Language: en-US
+Received: from smtp-vbr8.xs4all.nl ([194.109.24.28]:2500 "EHLO
+	smtp-vbr8.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752141AbZDFXSI (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 6 Apr 2009 19:18:08 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Tony Lindgren <tony@atomide.com>
+Cc: Dongsoo Kim <dongsoo.kim@gmail.com>, Kevin Hilman <khilman@deeprootsystems.com>, Steve Sakoman <sakoman@gmail.com>, linux-media@vger.kernel.org, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Manjunath Hadli <mrh@ti.com>, "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>, "Hiremath, Vaibhav" <hvaibhav@ti.com>
 
 
+> * Dongsoo Kim <dongsoo.kim@gmail.com> [090317 10:36]:
+>
+> <snip snip>
+>
+>>>> How about Monday night after the Dinner (ends at 7pm [1]) we meet for
+>>>> beers.  I'll let someone local (Tony) pick the venue.
+>>>
+>>> OK, let's plan for Monday night then. I'll find some place with
+>>> drinks easily available, and within walking distance from the
+>>> conference.
+>>>
+>>> I've added a placeholder for the event where I'll post the details
+>>> later on:
+>>>
+>>> http://www.muru.com/linux/omap/events/
+>
+> OK, let's meet at Harry's bar 7pm at 2020 Fillmore St
+> between Pine and California St. They're closed until 4pm,
+> so there's no reservation. But as it's Monday night, I'd
+> assume there's plenty of space. In case of last minute
+> changes, please check the page above.
 
-> -----Original Message-----
-> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
-> owner@vger.kernel.org] On Behalf Of Aguirre Rodriguez, Sergio Alberto
-> Sent: Monday, April 06, 2009 5:34 PM
-> To: linux-omap@vger.kernel.org
-> Subject: i2c_omap: arbitration lost
-> 
-> Hi,
-> 
-> While attempting to rebase my patches against latest l-o commit, I got
-> this message during bootup:
-> 
-> <3>i2c_omap i2c_omap.2: Arbitration lost
-> i2c_omap i2c_omap.2: Arbitration lost
-> <3>ov3640 2-003c: read from offset 0x300b error -5
-> ov3640 2-003c: read from offset 0x300b error -5
-> <3>ov3640 2-003c: Unable to detect sensor, err -19
-> ov3640 2-003c: Unable to detect sensor, err -19
-> 
-> Is anybody else having the same problem?
+Not sure whether it will be as quiet as you hope:
 
-BTW, I forgot to mention I'm testing with a SDP3430-VG9.0.0 board with ES3.1 silicon and TWL5030 power chip.
+http://www.harrysbarsf.com/
 
-> 
-> Regards,
-> Sergio
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+There's apparently some championship game going on today.
+
+Note that I and a few others will meet up in the hotel's lobby at 6pm to
+go to have dinner somewhere. Whoever is interested is free to join us.
+
+Regards,
+
+      Hans
+
+-- 
+Hans Verkuil - video4linux developer - sponsored by TANDBERG
 
