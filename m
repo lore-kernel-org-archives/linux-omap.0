@@ -1,96 +1,88 @@
 From: "Shah, Hardik" <hardik.shah@ti.com>
-Subject: RE: [PATCH 2/3] New V4L2 CIDs for OMAP class of Devices.
-Date: Mon, 6 Apr 2009 17:21:10 +0530
-Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB02FB102FD4@dbde02.ent.ti.com>
-References: <200903301358.40555.hverkuil@xs4all.nl>
+Subject: RE: [PATCH 1/3] Documentation for new V4L2 CIDs added.
+Date: Mon, 6 Apr 2009 17:21:14 +0530
+Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB02FB102FD5@dbde02.ent.ti.com>
+References: <200903301352.58079.hverkuil@xs4all.nl>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:58066 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755834AbZDFLvq convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 6 Apr 2009 07:51:46 -0400
-In-Reply-To: <200903301358.40555.hverkuil@xs4all.nl>
+Return-path: <linux-media-owner@vger.kernel.org>
+In-Reply-To: <200903301352.58079.hverkuil@xs4all.nl>
 Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
+Sender: linux-media-owner@vger.kernel.org
 To: Hans Verkuil <hverkuil@xs4all.nl>
 Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Jadav, Brijesh R" <brijesh.j@ti.com>, "Hiremath, Vaibhav" <hvaibhav@ti.com>
+List-Id: linux-omap@vger.kernel.org
 
 Hi Hans,
 Please find my comments inline.
 
 Regards,
-Hardik Shah
+Hardik 
 
 > -----Original Message-----
 > From: Hans Verkuil [mailto:hverkuil@xs4all.nl]
-> Sent: Monday, March 30, 2009 5:29 PM
+> Sent: Monday, March 30, 2009 5:23 PM
 > To: Shah, Hardik
 > Cc: linux-media@vger.kernel.org; linux-omap@vger.kernel.org; Jadav, Brijesh R;
 > Hiremath, Vaibhav
-> Subject: Re: [PATCH 2/3] New V4L2 CIDs for OMAP class of Devices.
+> Subject: Re: [PATCH 1/3] Documentation for new V4L2 CIDs added.
 > 
-> On Friday 20 March 2009 06:19:57 Hardik Shah wrote:
-> > Added V4L2_CID_BG_COLOR for background color setting.
-> > Added V4L2_CID_ROTATION for rotation setting.
-> > Above two ioclts are indepth discussed. Posting
-> > again with the driver usage.
-> >
-> > ---
-> >  linux/drivers/media/video/v4l2-common.c |    7 +++++++
-> >  linux/include/linux/videodev2.h         |    6 +++++-
-> >  2 files changed, 12 insertions(+), 1 deletions(-)
-> >
-> > diff --git a/linux/drivers/media/video/v4l2-common.c
-> b/linux/drivers/media/video/v4l2-common.c
-> > index 3c42316..fa408f0 100644
-> > --- a/linux/drivers/media/video/v4l2-common.c
-> > +++ b/linux/drivers/media/video/v4l2-common.c
-> > @@ -422,6 +422,8 @@ const char *v4l2_ctrl_get_name(u32 id)
-> >  	case V4L2_CID_CHROMA_AGC:		return "Chroma AGC";
-> >  	case V4L2_CID_COLOR_KILLER:		return "Color Killer";
-> >  	case V4L2_CID_COLORFX:			return "Color Effects";
-> > +	case V4L2_CID_ROTATION:                 return "Rotation";
+> Hi Hardik,
 > 
-> I'm having second thoughts about this name. I think V4L2_CID_ROTATE is better,
-> since it is an action ('you rotate an image') rather than a status ('what is
-> the rotation of an image').
+> OK, so it took a little longer than a week. So sue me :-)
 > 
-> What do you think?
-[Shah, Hardik] Yes, it should be V4L2_CID_ROTATE as V4L2_CID_HFLIP.
+> Typo: chorma -> chroma
+[Shah, Hardik] Done in next post
 > 
-> > +	case V4L2_CID_BG_COLOR:                 return "Background color";
-> >
-> >  	/* MPEG controls */
-> >  	case V4L2_CID_MPEG_CLASS: 		return "MPEG Encoder Controls";
-> > @@ -547,6 +549,10 @@ int v4l2_ctrl_query_fill(struct v4l2_queryctrl *qctrl,
-> s32 min, s32 max, s32 ste
-> >  		qctrl->flags |= V4L2_CTRL_FLAG_READ_ONLY;
-> >  		min = max = step = def = 0;
-> >  		break;
-> > +	case V4L2_CID_BG_COLOR:
-> > +		 qctrl->type = V4L2_CTRL_TYPE_INTEGER;
-> > +		 step = 1;
-> > +		 break;
+> > +images will be replaced by the video images.  Exactly
+> > +opposite of <constant>V4L2_FBUF_CAP_CHROMAKEY</constant></entry>
 > 
-> Set the min to 0 and max to 0xffffff.
-[Shah, Hardik] Added
+> Hmm. This is a bit obscure. CAP_CHROMAKEY means that framebuffer pixels with
+> the chromakey color are replaced by video pixels. CAP_SRC_CHROMAKEY means
+> that video pixels with the chromakey color are replaced by the framebuffer
+> pixels. At least the way I read it this is the opposite of what you wrote.
 > 
-> >  	default:
-> >  		qctrl->type = V4L2_CTRL_TYPE_INTEGER;
-> >  		break;
-> > @@ -571,6 +577,7 @@ int v4l2_ctrl_query_fill(struct v4l2_queryctrl *qctrl,
-> s32 min, s32 max, s32 ste
-> >  	case V4L2_CID_BLUE_BALANCE:
-> >  	case V4L2_CID_GAMMA:
-> >  	case V4L2_CID_SHARPNESS:
-> > +	case V4L2_CID_BG_COLOR:
+> It pays to be very precise here since it can get confusing very quickly.
+[Shah, Hardik] Done in next post
 > 
-> This definitely isn't a slider control.
-[Shah, Hardik] Removed
+> > +	  </row>
+> >  	</tbody>
+> >        </tgroup>
+> >      </table>
+> > @@ -411,6 +418,18 @@ images, but with an inverted alpha value. The blend
+> function is:
+> >  output = framebuffer pixel * (1 - alpha) + video pixel * alpha. The
+> >  actual alpha depth depends on the framebuffer pixel format.</entry>
+> >  	  </row>
+> > +	  <row>
+> > +	    <entry><constant>V4L2_FBUF_FLAG_SRC_CHROMAKEY</constant></entry>
+> > +	    <entry>0x0040</entry>
+> > +	    <entry>Use chroma-keying. The chroma-key color is
 > 
+> Write: 'Use source chroma-keying.' to prevent confusion with
+> V4L2_FBUF_FLAG_CHROMAKEY.
+> 
+[Shah, Hardik] Done in next post
+> > +determined by the <structfield>chromakey</structfield> field of
+> > +&v4l2-window; and negotiated with the &VIDIOC-S-FMT; ioctl, see <xref
+> > +linkend="overlay"> and <xref linkend="osd">.
+> > +Since any one of the chorma keying can be active at a time as both
+> 
+> Typo: chorma -> chroma
+[Shah, Hardik] Done in next post
+> 
+> > +of them are exactly opposite same <structfield>chromakey</structfield>
+> 
+> Typo: 'opposite same' -> 'opposite the same'
+[Shah, Hardik] Done in next post
+> 
+> > +field of &v4l2-window; can be used to set the chroma key for source
+> > +keying also.</entry>
+> > +	  </row>
+> >  	</tbody>
+> >        </tgroup>
+> >      </table>
 > > --
 > > 1.5.6
 > 
