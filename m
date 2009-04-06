@@ -1,38 +1,69 @@
 From: "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>
-Subject: i2c_omap: arbitration lost
-Date: Mon, 6 Apr 2009 17:34:00 -0500
-Message-ID: <A24693684029E5489D1D202277BE89442EB826D3@dlee02.ent.ti.com>
+Subject: [RFC][PATCH] OMAP3: Clock FW: Camera module doesn't have IDLEST bit
+Date: Mon, 6 Apr 2009 17:48:51 -0500
+Message-ID: <A24693684029E5489D1D202277BE89442EB826F5@dlee02.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:32811 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754267AbZDFWeI convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 6 Apr 2009 18:34:08 -0400
-Received: from dlep95.itg.ti.com ([157.170.170.107])
-	by bear.ext.ti.com (8.13.7/8.13.7) with ESMTP id n36MY1vL007950
-	for <linux-omap@vger.kernel.org>; Mon, 6 Apr 2009 17:34:06 -0500
-Received: from dlee73.ent.ti.com (localhost [127.0.0.1])
-	by dlep95.itg.ti.com (8.13.8/8.13.8) with ESMTP id n36MY1oS023573
-	for <linux-omap@vger.kernel.org>; Mon, 6 Apr 2009 17:34:01 -0500 (CDT)
+Received: from devils.ext.ti.com ([198.47.26.153]:56146 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753403AbZDFWtA convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 6 Apr 2009 18:49:00 -0400
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Cc: "paul@pwsan.com" <paul@pwsan.com>
 
-Hi,
+>From 8ea977337f4bd6121e9410bfd7f02fbd7f9cb762 Mon Sep 17 00:00:00 2001
+From: Sergio Aguirre <saaguirre@ti.com>
+Date: Mon, 6 Apr 2009 17:44:32 -0500
+Subject: [PATCH] OMAP3: Clock FW: Camera module doesn't have IDLEST bit
 
-While attempting to rebase my patches against latest l-o commit, I got this message during bootup:
+This patch avoids waiting for the camera module to become ready,
+since it doesn't have IDLEST bit.
 
-<3>i2c_omap i2c_omap.2: Arbitration lost
-i2c_omap i2c_omap.2: Arbitration lost
-<3>ov3640 2-003c: read from offset 0x300b error -5
-ov3640 2-003c: read from offset 0x300b error -5
-<3>ov3640 2-003c: Unable to detect sensor, err -19
-ov3640 2-003c: Unable to detect sensor, err -19
+Based on a earlier hack done by Paul Walmsley on Sep 9 2008 on
+linux-omap tree.
 
-Is anybody else having the same problem?
+Signed-off-by: Sergio Aguirre <saaguirre@ti.com>
+CC: Paul Walmsley <paul@pwsan.com>
+---
+ arch/arm/mach-omap2/clock34xx.h |    6 +++---
+ 1 files changed, 3 insertions(+), 3 deletions(-)
 
-Regards,
-Sergio
+diff --git a/arch/arm/mach-omap2/clock34xx.h b/arch/arm/mach-omap2/clock34xx.h
+index 70ec10d..f009017 100644
+--- a/arch/arm/mach-omap2/clock34xx.h
++++ b/arch/arm/mach-omap2/clock34xx.h
+@@ -2052,7 +2052,7 @@ static struct clk dss_ick = {
+ 
+ static struct clk cam_mclk = {
+ 	.name		= "cam_mclk",
+-	.ops		= &clkops_omap2_dflt_wait,
++	.ops		= &clkops_omap2_dflt,
+ 	.parent		= &dpll4_m5x2_ck,
+ 	.enable_reg	= OMAP_CM_REGADDR(OMAP3430_CAM_MOD, CM_FCLKEN),
+ 	.enable_bit	= OMAP3430_EN_CAM_SHIFT,
+@@ -2063,7 +2063,7 @@ static struct clk cam_mclk = {
+ static struct clk cam_ick = {
+ 	/* Handles both L3 and L4 clocks */
+ 	.name		= "cam_ick",
+-	.ops		= &clkops_omap2_dflt_wait,
++	.ops		= &clkops_omap2_dflt,
+ 	.parent		= &l4_ick,
+ 	.init		= &omap2_init_clk_clkdm,
+ 	.enable_reg	= OMAP_CM_REGADDR(OMAP3430_CAM_MOD, CM_ICLKEN),
+@@ -2074,7 +2074,7 @@ static struct clk cam_ick = {
+ 
+ static struct clk csi2_96m_fck = {
+ 	.name		= "csi2_96m_fck",
+-	.ops		= &clkops_omap2_dflt_wait,
++	.ops		= &clkops_omap2_dflt,
+ 	.parent		= &core_96m_fck,
+ 	.init		= &omap2_init_clk_clkdm,
+ 	.enable_reg	= OMAP_CM_REGADDR(OMAP3430_CAM_MOD, CM_FCLKEN),
+-- 
+1.5.6.5
+
