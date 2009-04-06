@@ -1,55 +1,45 @@
-From: David Brownell <david-b@pacbell.net>
-Subject: Re: Benchmarking: POP flash vs. MMC?
-Date: Sun, 5 Apr 2009 15:53:38 -0700
-Message-ID: <200904051553.38586.david-b@pacbell.net>
-References: <6541c55b1b4ad133498add734c9eecc8.squirrel@localhost> <1238813563.12072.4.camel@surfer> <f9d2a5e10904032116p4087be51o14efd360114d3d9f@mail.gmail.com>
+From: Kim Kyuwon <chammoru@gmail.com>
+Subject: Re: [PATCH] OMAP3: PM: Add the wakeup source driver, v2
+Date: Mon, 6 Apr 2009 11:30:41 +0900
+Message-ID: <4d34a0a70904051930h6d103df9j76e190b5288756f5@mail.gmail.com>
+References: <4d34a0a70903182125l77b0adc3rc0c672f0aa348ab@mail.gmail.com>
+	<87ocvhtesx.fsf@deeprootsystems.com> <4d34a0a70904030320g197f836cld9c94b113a9fdffd@mail.gmail.com>
+	<87y6uh1zsp.fsf@deeprootsystems.com> <4d34a0a70904031647n6ae7c175w96b1610bf553ebda@mail.gmail.com>
+	<877i21w9pg.fsf@deeprootsystems.com> <4d34a0a70904031726h504d2722xb8032c8573fb1c15@mail.gmail.com>
+	<alpine.DEB.2.00.0904041421210.8305@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from n27.bullet.mail.mud.yahoo.com ([68.142.206.222]:25153 "HELO
-	n27.bullet.mail.mud.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1752550AbZDEWxm (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 5 Apr 2009 18:53:42 -0400
-In-Reply-To: <f9d2a5e10904032116p4087be51o14efd360114d3d9f@mail.gmail.com>
-Content-Disposition: inline
+Received: from wf-out-1314.google.com ([209.85.200.168]:13114 "EHLO
+	wf-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753705AbZDFCa6 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 5 Apr 2009 22:30:58 -0400
+Received: by wf-out-1314.google.com with SMTP id 29so2039029wff.4
+        for <linux-omap@vger.kernel.org>; Sun, 05 Apr 2009 19:30:56 -0700 (PDT)
+In-Reply-To: <alpine.DEB.2.00.0904041421210.8305@utopia.booyaka.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Russ Dill <russ.dill@gmail.com>
-Cc: David Hagood <david.hagood@gmail.com>, linux-omap@vger.kernel.org
+To: Paul Walmsley <paul@pwsan.com>
+Cc: Kevin Hilman <khilman@deeprootsystems.com>, OMAP <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, =?EUC-KR?B?udqw5rnO?= <kyungmin.park@samsung.com>
 
-On Friday 03 April 2009, Russ Dill wrote:
-> On Fri, Apr 3, 2009 at 7:52 PM, David Hagood <david.hagood@gmail.com> wrote:
-> > Well, that's not what I would have expected - I would have thought
-> > reads on POP would have been faster than that, and cheaper - the SD
-> > being the same speed but less CPU is surprising.  
-> 
-> The POP flash may not have a DMA ability.
+On Sun, Apr 5, 2009 at 5:22 AM, Paul Walmsley <paul@pwsan.com> wrote:
+> On Sat, 4 Apr 2009, Kim Kyuwon wrote:
+>
+>> No, I haven't configured GPTIMER12. And actually
+>> OMAP3430_ST_GPT12_MASK bit is reserved on OMAP3430 ES.1.
+>> This is another problem that I have to fix.....
+>
+> Please see the OMAP34xx Multimedia High Security (HS) Device Silicon
+> Revision 3.0 Security Addendum (SWPU119B) Table 3-244.
 
-ISTR it does, but it's not used.  There are other speedups possible;
-the NAND driver in the OMAP tree is pretty simplistic.  It doesn't
-use the "Prefetch and Write-Posting Engine" (we don't know if that
-really helps though); or the more aggressive ECC support (4-bit and
-8-bit modes both work).
+Thanks again, Paul!
+Now I understand.
 
-Of course using DMA in the MTD stack can be a bit problematic in
-general.  It assumes that DMA is not used ... to the extent of not
-guaranteeing to provide DMA-mappable I/O buffers.
-
-That said, it's hard to achieve speedups through DMA for such small
-blocks of memory ... an issue which is not unique to NAND.
+>
+> - Paul
+>
 
 
-> Also, the POP flash contents 
-> are compressed and ECC corrected, so its a lot of extra work for the
-> CPU.
-
-ECC is done in hardware for the native NAND stack on OMAP;
-but you're right about compression.
-
-Another point is that "managed NAND" (like MMC and eMMC, and
-various SSD flavors) is there to offload some complicated
-and error-prone tasks like wear-leveling.
-
-
+Sincerely,
+Kyuwon
