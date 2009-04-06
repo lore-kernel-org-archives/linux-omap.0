@@ -1,51 +1,61 @@
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-Subject: RE: [PATCH 3/3] V4L2 Driver for OMAP3/3 DSS.
-Date: Mon, 6 Apr 2009 16:57:12 +0200 (CEST)
-Message-ID: <60676.207.214.87.58.1239029832.squirrel@webmail.xs4all.nl>
+From: Mark Brown <broonie@sirena.org.uk>
+Subject: Re: [PATCH] OMAP: Don't warn user about expected behaviour in
+	mmc-twl4030
+Date: Mon, 6 Apr 2009 16:56:10 +0100
+Message-ID: <20090406155609.GD4057@sirena.org.uk>
+References: <1238440539-2394-1-git-send-email-broonie@sirena.org.uk> <200903301353.44087.david-b@pacbell.net> <20090331210019.GA12304@sirena.org.uk> <200904031803.33648.david-b@pacbell.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp-vbr17.xs4all.nl ([194.109.24.37]:1971 "EHLO
-	smtp-vbr17.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750909AbZDFO5S (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 6 Apr 2009 10:57:18 -0400
+Received: from cassiel.sirena.org.uk ([80.68.93.111]:55675 "EHLO
+	cassiel.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752985AbZDFP4O (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 6 Apr 2009 11:56:14 -0400
+Content-Disposition: inline
+In-Reply-To: <200904031803.33648.david-b@pacbell.net>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Shah, Hardik" <hardik.shah@ti.com>
-Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Jadav, Brijesh R" <brijesh.j@ti.com>, "Hiremath, Vaibhav" <hvaibhav@ti.com>
+To: David Brownell <david-b@pacbell.net>
+Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, lrg@slimlogic.co.uk
 
+On Fri, Apr 03, 2009 at 06:03:33PM -0700, David Brownell wrote:
+> On Tuesday 31 March 2009, Mark Brown wrote:
 
-> Hi Hans,
-> Please find my comments inline. Most of the comments are taken care of.
+> > The documention should not be changed to say that since only consumers
+> > that need the regulator to be off at startup should do this, and then
+> > probably only if they find that it is already enabled.
 
-> 2.  In DSS rotation is accomplished by some memory algorithm but its quite
-> costly so -1 is essentially same as 0 degree but with out the overhead.
-> But if mirroring is on then we have to do the 0 degree rotation with
-> overhead using some memory techniques.  So from user point of view he will
-> only be setting 0 but internally driver will take it as -1 or 0 depending
-> upon the mirroring selected.
+> "Probably" shows you still don't have a good answer...
 
-Hi Hardik,
+No, it means that I can't think of any reason why they'd want to bounce
+the supply but I'm open to the possibility that there could be one.
 
-I just looked over these comments and I'll do a full review in the weekend
-when I'm back from San Francisco. But just one quick remark regarding this
-magic -1 number: wouldn't it be better to write a small inline function
-like this:
+> I see that mainline now has ca7255614e0861e36480103f4a402a115803d7b5
+> which is a variant of the first late-fixup patch I sent.  The isssue
+> with that approach is that it leaves a huge window between regulator
+> init and its late fixup ... during which driver probe() calls suffer
+> the bad effects of the current self-inconsistent initialization.  So
+> it doesn't really address the MMC cases.
 
-/* return true if we need to rotate or mirror, return false if we
-   don't have to do anything here. */
-static inline int needs_rotate(struct foo *foo)
-{
-    return foo->rotate != 0 || foo->mirror;
-}
+That change was not intended to do anything for MMC, it's there for
+other users like shared regulators and situations where no consumer
+driver instantiates.
 
-I think this is much more understandable. It's up to you, though.
+It is really important that you engage with the feedback you are
+getting.  At this point we are all quite familiar with your views and we
+do understand them, restating them is not what's needed.  Changes have
+to be made with an understanding of the existing interface and how it
+supports the use cases the API has, including users other than MMC.
+Changes also need to be made with consideration given to merge issues.
 
-Regards,
+> And in fact, that's exactly what I think folk should be doing with
+> the recent additions to twl4030-power supporting explicit init of
+> all the power resources ... as done with e.g. Beagle.  The benefit
 
-        Hans
+...
 
--- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG
+> So there's an OMAP-specific workaround now in place, albeit not
+> yet headed towards mainline.
 
+With Jonathan's patch there will be support in the regulator API for
+doing this with all regulators.
