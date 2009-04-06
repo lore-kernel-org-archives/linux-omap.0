@@ -1,48 +1,38 @@
-From: David Brownell <david-b@pacbell.net>
-Subject: Re: Preempt-RT on OMAP3?
-Date: Mon, 6 Apr 2009 15:20:40 -0700
-Message-ID: <200904061520.59391.david-b@pacbell.net>
-References: <5a7b8b7b0904052025g74325484h66335606bebea5a3@mail.gmail.com> <200904060325.45758.david-b@pacbell.net> <5a7b8b7b0904061453m725eee67m4b74c73bbffeb994@mail.gmail.com>
+From: "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>
+Subject: i2c_omap: arbitration lost
+Date: Mon, 6 Apr 2009 17:34:00 -0500
+Message-ID: <A24693684029E5489D1D202277BE89442EB826D3@dlee02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp125.sbc.mail.sp1.yahoo.com ([69.147.65.184]:33557 "HELO
-	smtp125.sbc.mail.sp1.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1759892AbZDFWVV (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 6 Apr 2009 18:21:21 -0400
-In-Reply-To: <5a7b8b7b0904061453m725eee67m4b74c73bbffeb994@mail.gmail.com>
-Content-Disposition: inline
+Received: from bear.ext.ti.com ([192.94.94.41]:32811 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754267AbZDFWeI convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 6 Apr 2009 18:34:08 -0400
+Received: from dlep95.itg.ti.com ([157.170.170.107])
+	by bear.ext.ti.com (8.13.7/8.13.7) with ESMTP id n36MY1vL007950
+	for <linux-omap@vger.kernel.org>; Mon, 6 Apr 2009 17:34:06 -0500
+Received: from dlee73.ent.ti.com (localhost [127.0.0.1])
+	by dlep95.itg.ti.com (8.13.8/8.13.8) with ESMTP id n36MY1oS023573
+	for <linux-omap@vger.kernel.org>; Mon, 6 Apr 2009 17:34:01 -0500 (CDT)
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Hugo Vincent <hugo.vincent@gmail.com>
-Cc: linux-omap@vger.kernel.org
+To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Monday 06 April 2009, Hugo Vincent wrote:
-> 
-> Here are some of the crashes I've seen. Warning - I'm new to -rt and
-> to the linux-omap tree, so I'll apologize in advance if these are just
-> a result of me missing something obvious.
+Hi,
 
-Thanks, I'll take a look.
+While attempting to rebase my patches against latest l-o commit, I got this message during bootup:
 
+<3>i2c_omap i2c_omap.2: Arbitration lost
+i2c_omap i2c_omap.2: Arbitration lost
+<3>ov3640 2-003c: read from offset 0x300b error -5
+ov3640 2-003c: read from offset 0x300b error -5
+<3>ov3640 2-003c: Unable to detect sensor, err -19
+ov3640 2-003c: Unable to detect sensor, err -19
 
-> Context: using USB-gadget ethernet (g_ether) over musb (configured as
-> just peripheral, not OTG). Most of the time it works, but after a
-> while, or when it encounters a large packet (e.g fping -b30000) it
-> crashes like so (apparently something to do with receive DMA usage).
-> Although the fping -b case is kindof pathological, I've seen the same
-> crash when ssh/scping files across to the board, so it does occur in
-> real usage.
+Is anybody else having the same problem?
 
-RX DMA is troublesome with the MUSB code, and there are some bugfixes
-pending which should affect it.  (Posted to linux-usb over the last
-week or two.)
-
-Do these problems show up with DMA disabled?
-
-- Dave
- 
-
-
+Regards,
+Sergio
