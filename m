@@ -1,107 +1,54 @@
-From: "Dongsoo, Nathaniel Kim" <dongsoo.kim@gmail.com>
-Subject: Re: Embedded Linux Conference
-Date: Wed, 8 Apr 2009 02:05:58 +0900
-Message-ID: <5e9665e10904071005sebbcda5x9805d7cbbc9f48c5@mail.gmail.com>
-References: <63374.207.214.87.58.1239059885.squirrel@webmail.xs4all.nl>
-	 <20090406234539.GA18715@muru.com> <20090407014529.GB18715@muru.com>
-	 <20090407155347.GA23823@atomide.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: Benchmarking: POP flash vs. MMC?
+Date: Tue, 7 Apr 2009 10:22:19 -0700
+Message-ID: <20090407172219.GB23823@atomide.com>
+References: <6541c55b1b4ad133498add734c9eecc8.squirrel@localhost> <200904060323.21127.david-b@pacbell.net> <alpine.DEB.2.00.0904060433000.22223@utopia.booyaka.com> <200904060348.34996.david-b@pacbell.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=iso-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from wf-out-1314.google.com ([209.85.200.170]:12408 "EHLO
-	wf-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751407AbZDGRGA convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 7 Apr 2009 13:06:00 -0400
-In-Reply-To: <20090407155347.GA23823@atomide.com>
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:64450 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752523AbZDGRW0 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 7 Apr 2009 13:22:26 -0400
+Content-Disposition: inline
+In-Reply-To: <200904060348.34996.david-b@pacbell.net>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>, Kevin Hilman <khilman@deeprootsystems.com>, Steve Sakoman <sakoman@gmail.com>, linux-media@vger.kernel.org, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Manjunath Hadli <mrh@ti.com>, "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>, "Hiremath, Vaibhav" <hvaibhav@ti.com>
+To: David Brownell <david-b@pacbell.net>
+Cc: Paul Walmsley <paul@pwsan.com>, Russ Dill <russ.dill@gmail.com>, Artem Bityutskiy <dedekind@yandex.ru>, David Hagood <david.hagood@gmail.com>, linux-omap@vger.kernel.org
 
-Oh! I can see my laptop!
+* David Brownell <david-b@pacbell.net> [090406 03:48]:
+> On Monday 06 April 2009, Paul Walmsley wrote:
+> > > Puzzle: =A0get a dma_copypage() to work faster than copy_page().
+> > > Or a dma_clear_page() faster than clear_page(). =A0Not easy...
+> >=20
+> > Doing it via the DMA engine may save power, since MPU can sleep.
+>=20
+> But the CPU overhead of calling the DMA engine can exceed
+> that of the memcpy()/memset() ... ;)
+>=20
+> Another concern is cache impact.  In some cases, having the
+> dirty data in dcache is a big win.  With DMA, the cache will
+> have been purged.
+>=20
+> It'd be nice to see DMA versions of this stuff winning;
+> all I'm saying is that such wins are hard to achieve.
 
-It was nice to meet you everyone.
+If the DMA transfer can loop over the small FIFO by and transfer
+larger chunks of data, the setup overhead is small. Currently
+at least tusb and ASoC loop the DMA over the FIFO.
 
-Sorry for not be talking with you much. I had to review my work with
-Hans before today's presentation.
+This way you can let the hardware trigger huge reads or
+writes from the small FIFO. To loop over the FIFO, set
+dst_fi or src_fi to a _negative_ number.
 
-I appreciate for the beer. Cheers.
+Maybe onenand could use this too? If you can tell onenand to
+read or write multiple FIFOs, and there is a hardware DMA
+request line, the DMA request line can tell onenand to reload
+the FIFO.
 
-Nate
-
-On Wed, Apr 8, 2009 at 12:53 AM, Tony Lindgren <tony@atomide.com> wrote=
-:
-> * Tony Lindgren <tony@atomide.com> [090406 18:45]:
->> On Mon, Apr 06, 2009 at 11:45:39PM +0000, Tony Lindgren wrote:
->> > On Tue, Apr 07, 2009 at 01:18:05AM +0200, Hans Verkuil wrote:
->> > >
->> > > > * Dongsoo Kim <dongsoo.kim@gmail.com> [090317 10:36]:
->> > > >
->> > > > <snip snip>
->> > > >
->> > > >>>> How about Monday night after the Dinner (ends at 7pm [1]) w=
-e meet for
->> > > >>>> beers. =A0I'll let someone local (Tony) pick the venue.
->> > > >>>
->> > > >>> OK, let's plan for Monday night then. I'll find some place w=
-ith
->> > > >>> drinks easily available, and within walking distance from th=
-e
->> > > >>> conference.
->> > > >>>
->> > > >>> I've added a placeholder for the event where I'll post the d=
-etails
->> > > >>> later on:
->> > > >>>
->> > > >>> http://www.muru.com/linux/omap/events/
->> > > >
->> > > > OK, let's meet at Harry's bar 7pm at 2020 Fillmore St
->> > > > between Pine and California St. They're closed until 4pm,
->> > > > so there's no reservation. But as it's Monday night, I'd
->> > > > assume there's plenty of space. In case of last minute
->> > > > changes, please check the page above.
->> > >
->> > > Not sure whether it will be as quiet as you hope:
->> > >
->> > > http://www.harrysbarsf.com/
->> > >
->> > > There's apparently some championship game going on today.
->> >
->> > Just spoke withem on the phone, they'll just have some
->> > basketball on tv. So let's meet there and if it's too loud
->> > we can go somewhere else.
->>
->> Oops, Harry's bar is completely packed, let's meet at the
->> bar next door to Haary's, it's called The Grove.
->
-> So six people showed up last night for beers, we took few
-> photos of this historic event :)
->
-> http://www.muru.com/linux/omap/events/
->
-> Cheers,
->
-> Tony
->
->
-
-
-
---=20
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D
-DongSoo, Nathaniel Kim
-Engineer
-Mobile S/W Platform Lab.
-Digital Media & Communications R&D Centre
-Samsung Electronics CO., LTD.
-e-mail : dongsoo.kim@gmail.com
-          dongsoo45.kim@samsung.com
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D
+Tony
 --
 To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
 n
