@@ -1,87 +1,44 @@
-From: Roger Quadros <ext-roger.quadros@nokia.com>
-Subject: [PATCH] PM: OMAP: Fix build with CONFIG_OMAP_PM_NONE set
-Date: Tue, 07 Apr 2009 11:57:04 +0300
-Message-ID: <49DB1560.4050609@nokia.com>
+From: "Menon, Nishanth" <nm@ti.com>
+Subject: RE: i2c_omap: arbitration lost
+Date: Tue, 7 Apr 2009 06:02:03 -0500
+Message-ID: <7A436F7769CA33409C6B44B358BFFF0CFED9AE34@dlee02.ent.ti.com>
+References: <A24693684029E5489D1D202277BE89442EB826D3@dlee02.ent.ti.com>,<A24693684029E5489D1D202277BE89442EB826FE@dlee02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:56538 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751202AbZDGI6H (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 7 Apr 2009 04:58:07 -0400
+Received: from bear.ext.ti.com ([192.94.94.41]:33664 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750731AbZDGLEX convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 7 Apr 2009 07:04:23 -0400
+Received: from dlep35.itg.ti.com ([157.170.170.118])
+	by bear.ext.ti.com (8.13.7/8.13.7) with ESMTP id n37B4H9B007716
+	for <linux-omap@vger.kernel.org>; Tue, 7 Apr 2009 06:04:22 -0500
+Received: from dsbe71.ent.ti.com (localhost [127.0.0.1])
+	by dlep35.itg.ti.com (8.13.7/8.13.7) with ESMTP id n37B4GJn014325
+	for <linux-omap@vger.kernel.org>; Tue, 7 Apr 2009 06:04:16 -0500 (CDT)
+In-Reply-To: <A24693684029E5489D1D202277BE89442EB826FE@dlee02.ent.ti.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@deeprootsystems.com>
-Cc: linux-omap@vger.kernel.org
+To: "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-From: Roger Quadros <ext-roger.quadros@nokia.com>
-Date: Tue, 7 Apr 2009 11:10:29 +0300
-Subject: [PATCH] PM: OMAP: Fix build with CONFIG_OMAP_PM_NONE set
 
-Removes undefined symbol link errors. Required symbols are defined in
-common.c and omap-pm.h
-
-Signed-off-by: Roger Quadros <ext-roger.quadros@nokia.com>
----
-  arch/arm/plat-omap/common.c               |    6 ++++++
-  arch/arm/plat-omap/include/mach/omap-pm.h |   15 +++++++++++++++
-  2 files changed, 21 insertions(+), 0 deletions(-)
-
-diff --git a/arch/arm/plat-omap/common.c b/arch/arm/plat-omap/common.c
-index 2866612..634ca39 100644
---- a/arch/arm/plat-omap/common.c
-+++ b/arch/arm/plat-omap/common.c
-@@ -46,6 +46,12 @@ int omap_bootloader_tag_len;
-  struct omap_board_config_kernel *omap_board_config;
-  int omap_board_config_size;
-
-+#ifdef CONFIG_OMAP_PM_NONE
-+struct omap_opp *mpu_opps;
-+struct omap_opp *dsp_opps;
-+struct omap_opp *l3_opps;
-+#endif
-+
-  #ifdef CONFIG_OMAP_BOOT_TAG
-
-  static int __init parse_tag_omap(const struct tag *tag)
-diff --git a/arch/arm/plat-omap/include/mach/omap-pm.h 
-b/arch/arm/plat-omap/include/mach/omap-pm.h
-index f0bbd36..6a8499a 100644
---- a/arch/arm/plat-omap/include/mach/omap-pm.h
-+++ b/arch/arm/plat-omap/include/mach/omap-pm.h
-@@ -58,9 +58,20 @@ extern struct omap_opp *l3_opps;
-   * framework starts.  The "_if_" is to avoid name collisions with the
-   * PM idle-loop code.
-   */
-+#ifdef CONFIG_OMAP_PM_NONE
-+static inline int __init omap_pm_if_early_init(struct omap_opp *mpu_opp_table,
-+				 struct omap_opp *dsp_opp_table,
-+				 struct omap_opp *l3_opp_table) {
-+	mpu_opps = 0;
-+	dsp_opps = 0;
-+	l3_opps = 0;
-+	return 0;
-+}
-+#else
-  int __init omap_pm_if_early_init(struct omap_opp *mpu_opp_table,
-  				 struct omap_opp *dsp_opp_table,
-  				 struct omap_opp *l3_opp_table);
-+#endif
-
-  /**
-   * omap_pm_if_init - OMAP PM init code called after clock fw init
-@@ -68,7 +79,11 @@ int __init omap_pm_if_early_init(struct omap_opp *mpu_opp_table,
-   * The main initialization code.  OPP tables are passed in here.  The
-   * "_if_" is to avoid name collisions with the PM idle-loop code.
-   */
-+#ifdef CONFIG_OMAP_PM_NONE
-+static inline int __init omap_pm_if_init(void) { return 0; }
-+#else
-  int __init omap_pm_if_init(void);
-+#endif
-
-  /**
-   * omap_pm_if_exit - OMAP PM exit code
--- 
-1.5.6.3
+> -----Original Message-----
+> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
+> owner@vger.kernel.org] On Behalf Of Aguirre Rodriguez, Sergio Alberto
+> Sent: Monday, April 06, 2009 5:34 PM
+> To: linux-omap@vger.kernel.org
+> Subject: i2c_omap: arbitration lost
+>
+> <3>i2c_omap i2c_omap.2: Arbitration lost
+> i2c_omap i2c_omap.2: Arbitration lost
+> <3>ov3640 2-003c: read from offset 0x300b error -5
+> ov3640 2-003c: read from offset 0x300b error -5
+> <3>ov3640 2-003c: Unable to detect sensor, err -19
+> ov3640 2-003c: Unable to detect sensor, err -19
+>
+> Is anybody else having the same problem?
+Do you see i2c errors during twl5030 operations? did you try enable i2c-dev and try some i2cdev access to other devices? Arbitration Lost happens only in a multi-master scenario -> two masters (OMAP and someone else) trying to talk on the bus at the same time - so did you try some platform like SDP3430-VG5.0 or so..
+Regards,
+Nishanth Menon
