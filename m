@@ -1,73 +1,74 @@
-From: Hugo Vincent <hugo.vincent@gmail.com>
+From: David Brownell <david-b@pacbell.net>
 Subject: Re: Preempt-RT on OMAP3?
-Date: Tue, 7 Apr 2009 14:12:59 +1200
-Message-ID: <5a7b8b7b0904061912i47d9f87fr507816fe3f189ecc@mail.gmail.com>
-References: <5a7b8b7b0904052025g74325484h66335606bebea5a3@mail.gmail.com>
-	 <200904060325.45758.david-b@pacbell.net>
-	 <5a7b8b7b0904061453m725eee67m4b74c73bbffeb994@mail.gmail.com>
-	 <200904061520.59391.david-b@pacbell.net>
+Date: Mon, 6 Apr 2009 19:27:09 -0700
+Message-ID: <200904061927.09627.david-b@pacbell.net>
+References: <5a7b8b7b0904052025g74325484h66335606bebea5a3@mail.gmail.com> <200904061520.59391.david-b@pacbell.net> <5a7b8b7b0904061912i47d9f87fr507816fe3f189ecc@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=iso-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-gx0-f160.google.com ([209.85.217.160]:62252 "EHLO
-	mail-gx0-f160.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759580AbZDGCNC convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 6 Apr 2009 22:13:02 -0400
-Received: by gxk4 with SMTP id 4so5384527gxk.13
-        for <linux-omap@vger.kernel.org>; Mon, 06 Apr 2009 19:13:00 -0700 (PDT)
-In-Reply-To: <200904061520.59391.david-b@pacbell.net>
+Received: from n30.bullet.mail.mud.yahoo.com ([68.142.207.49]:35235 "HELO
+	n30.bullet.mail.mud.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1751590AbZDGC1N (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 6 Apr 2009 22:27:13 -0400
+In-Reply-To: <5a7b8b7b0904061912i47d9f87fr507816fe3f189ecc@mail.gmail.com>
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: David Brownell <david-b@pacbell.net>
+To: Hugo Vincent <hugo.vincent@gmail.com>
 Cc: linux-omap@vger.kernel.org
 
-On Tue, Apr 7, 2009 at 10:20 AM, David Brownell <david-b@pacbell.net> w=
-rote:
-> On Monday 06 April 2009, Hugo Vincent wrote:
->>
->> Here are some of the crashes I've seen. Warning - I'm new to -rt and
->> to the linux-omap tree, so I'll apologize in advance if these are ju=
+
+> > RX DMA is troublesome with the MUSB code, and there are some bugfix=
+es
+> > pending which should affect it. =A0(Posted to linux-usb over the la=
 st
->> a result of me missing something obvious.
->
-> Thanks, I'll take a look.
+> > week or two.)
+> >
+> > Do these problems show up with DMA disabled?
+>=20
+> I guess you mean with CONFIG_MUSB_PIO_ONLY - yes, I've tried that. I
+> don't observe the Rx DMA problems as described previously in that
+> configuration, no ........=20
 
-Excellent, thank you!
+Good...
 
->> Context: using USB-gadget ethernet (g_ether) over musb (configured a=
-s
->> just peripheral, not OTG). Most of the time it works, but after a
->> while, or when it encounters a large packet (e.g fping -b30000) it
->> crashes like so (apparently something to do with receive DMA usage).
->> Although the fping -b case is kindof pathological, I've seen the sam=
-e
->> crash when ssh/scping files across to the board, so it does occur in
->> real usage.
->
-> RX DMA is troublesome with the MUSB code, and there are some bugfixes
-> pending which should affect it. =A0(Posted to linux-usb over the last
-> week or two.)
->
-> Do these problems show up with DMA disabled?
 
-I guess you mean with CONFIG_MUSB_PIO_ONLY - yes, I've tried that. I
-don't observe the Rx DMA problems as described previously in that
-configuration, no ........ However I instead I see hard-lockups with
-no obvious cause and no messages printed to the console. (The only
-repeatable one I've found so far is exiting cyclictest with ^C. Not
-good). These lockups could well be and probably are unrelated, but
-none-the-less, it's very troubling!
+> However I instead I see hard-lockups with=20
+> no obvious cause and no messages printed to the console. (The only
+> repeatable one I've found so far is exiting cyclictest with ^C. Not
+> good). These lockups could well be and probably are unrelated, but
+> none-the-less, it's very troubling!
 
-I've uploaded my defconfig here:
-http://hugovincent.com/files/lkml-20090407/
-along with a log of the bootup process. I've enabled a bunch of debug
-options and self-tests. You can see the rather verbose output of some
-spinlock tests (I think) failing early in the bootup process,
-somewhere in timer initialization (I think?).
+Given the bootlog excerpt you posted, I'm thinking there are
+still some basic goofy things with the RT patches you're using
+even outside the scope of MUSB.  Basic as in timer tick and
+kernel thread setup; lots of things look goofy.
 
-Regards,
-Hugo
+
+=20
+> I've uploaded my defconfig here:
+> http://hugovincent.com/files/lkml-20090407/
+> along with a log of the bootup process. I've enabled a bunch of debug
+> options and self-tests. You can see the rather verbose output of some
+> spinlock tests (I think) failing early in the bootup process,
+> somewhere in timer initialization (I think?).
+
+Those look like lockdep things.  Get a more complete boot log
+and maybe someone will be able to sort out what's up.
+
+- Dave
+
+
+
+>=20
+> Regards,
+> Hugo
+>=20
+>=20
+
+
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
 n
