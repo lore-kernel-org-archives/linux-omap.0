@@ -1,93 +1,55 @@
-From: "Kanigeri, Hari" <h-kanigeri2@ti.com>
-Subject: RE: [PATCH 1/4] [OMAPZOOM] [UPDATE] DSPBRIDGE: Memory lock for DMM.
-Date: Tue, 7 Apr 2009 15:27:30 -0500
-Message-ID: <8F7AF80515AF0D4D93307E594F3CB40E23781F34@dlee03.ent.ti.com>
+From: Ameya Palande <2ameya@gmail.com>
+Subject: Re: [PATCH 1/4] [OMAPZOOM] [UPDATE] DSPBRIDGE: Memory lock for DMM.
+Date: Tue, 7 Apr 2009 23:49:13 +0300
+Message-ID: <269694c00904071349w141e1b7cjae10e70f8ac994af@mail.gmail.com>
 References: <496565EC904933469F292DDA3F1663E60287FB05ED@dlee06.ent.ti.com>
- <269694c00904071319i1ba7f00cie08d9ecf9ffe2ce2@mail.gmail.com>
+	 <269694c00904071319i1ba7f00cie08d9ecf9ffe2ce2@mail.gmail.com>
+	 <8F7AF80515AF0D4D93307E594F3CB40E23781F34@dlee03.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:35094 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1760792AbZDGU1i (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 7 Apr 2009 16:27:38 -0400
-In-Reply-To: <269694c00904071319i1ba7f00cie08d9ecf9ffe2ce2@mail.gmail.com>
-Content-Language: en-US
+Received: from mail-bw0-f169.google.com ([209.85.218.169]:50469 "EHLO
+	mail-bw0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1761077AbZDGUtP convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 7 Apr 2009 16:49:15 -0400
+Received: by bwz17 with SMTP id 17so2487713bwz.37
+        for <linux-omap@vger.kernel.org>; Tue, 07 Apr 2009 13:49:13 -0700 (PDT)
+In-Reply-To: <8F7AF80515AF0D4D93307E594F3CB40E23781F34@dlee03.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Ameya Palande <2ameya@gmail.com>, "Guzman Lugo, Fernando" <x0095840@ti.com>
-Cc: "Pandita, Vikram" <vikram.pandita@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: "Kanigeri, Hari" <h-kanigeri2@ti.com>
+Cc: "Guzman Lugo, Fernando" <x0095840@ti.com>, "Pandita, Vikram" <vikram.pandita@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-QW1leWEsDQoNCj4gSWYgdGhpcyBpcyB0aGUgY2FzZSB0aGVuIHdoYXQgaXMgdGhlIHBvaW50IG9m
-IGhhdmluZyBmb2xsb3dpbmcgY29kZT8NCj4gaWYgKHBhZ2VfY291bnQocGcpIDwgMSkgIDwtLSBU
-aGlzIHdpbGwgYWx3YXlzIGV2YWx1YXRlIHRvIEZBTFNFLg0KDQotLSBBcyB5b3UgbWVudGlvbmVk
-IHRoaXMgY2FzZSBzaG91bGRuJ3QgYmUgaGl0LiBUaGlzIGNoZWNrIGlzIHRvIG9ubHkgdG8gZW5z
-dXJlIHRoYXQgdGhlIHRyYW5zbGF0aW9ucyBmcm9tIHVzZXIgc3BhY2UgVkEgdG8gUGh5c2ljYWwg
-YWRkcmVzcyBpcyB0YWtpbmcgcGxhY2UgY29ycmVjdGx5IGFuZCBmbGFnIHRoZSB1c2VyIGlmIHNv
-bWV0aGluZyB3ZW50IGJhZC4NCg0KDQpUaGFuayB5b3UsDQpCZXN0IHJlZ2FyZHMsDQpIYXJpDQoN
-Cj4gLS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0NCj4gRnJvbTogbGludXgtb21hcC1vd25lckB2
-Z2VyLmtlcm5lbC5vcmcgW21haWx0bzpsaW51eC1vbWFwLQ0KPiBvd25lckB2Z2VyLmtlcm5lbC5v
-cmddIE9uIEJlaGFsZiBPZiBBbWV5YSBQYWxhbmRlDQo+IFNlbnQ6IFR1ZXNkYXksIEFwcmlsIDA3
-LCAyMDA5IDM6MjAgUE0NCj4gVG86IEd1em1hbiBMdWdvLCBGZXJuYW5kbw0KPiBDYzogUGFuZGl0
-YSwgVmlrcmFtOyBsaW51eC1vbWFwQHZnZXIua2VybmVsLm9yZw0KPiBTdWJqZWN0OiBSZTogW1BB
-VENIIDEvNF0gW09NQVBaT09NXSBbVVBEQVRFXSBEU1BCUklER0U6IE1lbW9yeSBsb2NrIGZvcg0K
-PiBETU0uDQo+IA0KPiBIaSBGZXJuYW5kbywNCj4gDQo+IE9uIFR1ZSwgQXByIDcsIDIwMDkgYXQg
-MTA6MjYgUE0sIEd1em1hbiBMdWdvLCBGZXJuYW5kbyA8eDAwOTU4NDBAdGkuY29tPg0KPiB3cm90
-ZToNCj4gPg0KPiA+IEhpLA0KPiA+DQo+ID4gwqAgwqAgwqAgwqBQYXRjaCB1cGRhdGVkIHdpdCB0
-aGUgZml4IGluIHBhZ2VfY291bnQocGcpLg0KPiA+DQo+ID4NCj4gPiBGcm9tIGE1YWI3ZTAzOGI3
-MmU2MjM1ODI3OWVmM2M0ZTY0YjJmMjYwY2VlZWUgTW9uIFNlcCAxNyAwMDowMDowMCAyMDAxDQo+
-ID4gRnJvbTogSGFyaSBLYW5pZ2VyaSA8aC1rYW5pZ2VyaTJAdGkuY29tPg0KPiA+IERhdGU6IFRo
-dSwgMjYgTWFyIDIwMDkgMTU6NDc6NTAgLTA1MDANCj4gPiBTdWJqZWN0OiBbUEFUQ0hdIERTUEJS
-SURHRTogTWVtb3J5IGxvY2sgZm9yIERNTS4NCj4gPg0KPiA+IExvY2sgZG93biB0aGUgcGFnZXMg
-dGhhdCBhcmUgbWFwcGVkIHRvIERTUCB2aXJ0dWFsIG1lbW9yeSB0byBwcmV2ZW50DQo+IGZyb20N
-Cj4gPiBnZXR0aW5nIHN3YXBwZWQgb3V0DQo+ID4NCj4gPiBTaWduZWQtb2ZmLWJ5OiBIYXJpIEth
-bmlnZXJpIDxoLWthbmlnZXJpMkB0aS5jb20+DQo+ID4gLS0tDQo+ID4gKyDCoCDCoCDCoCDCoCDC
-oCDCoCDCoCDCoCDCoCDCoCDCoCBpZiAocGZuX3ZhbGlkKF9fcGh5c190b19wZm4ocGF0ZW1wKSkp
-IHsNCj4gPiArIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIHBn
-ID0gcGh5c190b19wYWdlKHBhdGVtcCk7DQo+ID4gKyDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDC
-oCDCoCDCoCDCoCDCoCDCoCDCoCBnZXRfcGFnZShwZyk7DQo+IA0KPiBnZXRfcGFnZSgpIG1ha2Vz
-IHN1cmUgdGhhdCBwYWdlLT5jb3VudCBpcyBub3QgemVybyBhbmQgYXRvbWljYWxseQ0KPiBpbmNy
-ZW1lbnRzIGl0Lg0KPiBUaGF0IG1lYW5zIGFmdGVyIGV4ZWN1dGlvbiBvZiBnZXRfcGFnZSgpOyBw
-YWdlLT5jb3VudCB3aWxsIGJlIGFsd2F5cyAxDQo+IG9yIGdyZWF0ZXINCj4gdGhhbiAxLg0KPiAN
-Cj4gSWYgdGhpcyBpcyB0aGUgY2FzZSB0aGVuIHdoYXQgaXMgdGhlIHBvaW50IG9mIGhhdmluZyBm
-b2xsb3dpbmcgY29kZT8NCj4gaWYgKHBhZ2VfY291bnQocGcpIDwgMSkgIDwtLSBUaGlzIHdpbGwg
-YWx3YXlzIGV2YWx1YXRlIHRvIEZBTFNFLg0KPiANCj4gPiArIMKgIMKgIMKgIMKgIMKgIMKgIMKg
-IMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIGlmIChwYWdlX2NvdW50KHBnKSA8IDEpIHsNCj4gPiAr
-IMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKg
-IHByaW50ayhLRVJOX0VNRVJHICJEU1BCUklER0U6TUFQDQo+IMKgIg0KPiA+ICsgwqAgwqAgwqAg
-wqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAg
-wqAgImZ1bmN0aW9uOiBDT1VOVCAwIEZPUg0KPiBQQSAiDQo+ID4gKyDCoCDCoCDCoCDCoCDCoCDC
-oCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCAiMHgl
-eFxuIiwgcGF0ZW1wKTsNCj4gPiArIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKg
-IMKgIMKgIMKgIMKgIMKgIMKgIMKgIHByaW50ayhLRVJOX0VNRVJHICJCYWQgcGFnZQ0KPiBzdGF0
-ZSINCj4gPiArIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKg
-IMKgIMKgIMKgIMKgIMKgIMKgIMKgICJpbiBwcm9jZXNzICclcydcbiINCj4gPiArIMKgIMKgIMKg
-IMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKg
-IMKgICJwYWdlOiVwIGZsYWdzOjB4JTAqbHggIg0KPiA+ICsgwqAgwqAgwqAgwqAgwqAgwqAgwqAg
-wqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgIm1hcHBpbmc6
-JXAgbWFwY291bnQ6JWQNCj4gIg0KPiA+ICsgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAg
-wqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgImNvdW50OiVkXG4iDQo+ID4g
-KyDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDC
-oCDCoCDCoCDCoCDCoCAiVHJ5aW5nIHRvIGZpeCBpdCB1cCwNCj4gYnV0ICINCj4gPiArIMKgIMKg
-IMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKg
-IMKgIMKgICJhIHJlYm9vdCBpcyBuZWVkZWRcbiINCj4gPiArIMKgIMKgIMKgIMKgIMKgIMKgIMKg
-IMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgICJCYWNrdHJh
-Y2U6XG4iLA0KPiA+ICsgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAg
-wqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgY3VycmVudC0+Y29tbSwgcGcsDQo+ID4gKyDCoCDC
-oCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDC
-oCDCoCDCoCAoaW50KSgyKnNpemVvZih1bnNpZ25lZA0KPiBsb25nKSksDQo+ID4gKyDCoCDCoCDC
-oCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDC
-oCDCoCAodW5zaWduZWQgbG9uZylwZy0NCj4gPmZsYWdzLA0KPiA+ICsgwqAgwqAgwqAgwqAgwqAg
-wqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgcGct
-Pm1hcHBpbmcsDQo+IHBhZ2VfbWFwY291bnQocGcpLA0KPiA+ICsgwqAgwqAgwqAgwqAgwqAgwqAg
-wqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgcGFnZV9j
-b3VudChwZykpOw0KPiA+ICsgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAg
-wqAgwqAgwqAgwqAgwqAgwqAgZHVtcF9zdGFjaygpOw0KPiA+ICsgwqAgwqAgwqAgwqAgwqAgwqAg
-wqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgQlVHX09OKDEpOw0KPiA+ICsg
-wqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgfQ0KPiANCj4gQ2hl
-ZXJzLA0KPiBBbWV5YS4NCj4gTu+/ve+/ve+/ve+/ve+/vXLvv73vv71577+977+977+9Yu+/vVjv
-v73vv73Hp3bvv71e77+9Kd66ey5u77+9K++/ve+/ve+/ve+/vXvvv73vv71m77+977+9e2F577+9
-HcqH2pnvv70sag3vv73vv71m77+977+977+9aO+/ve+/ve+/vXrvv70e77+9d++/ve+/ve+/vQ0K
-PiANCj4g77+977+977+9ajordu+/ve+/ve+/vXfvv71q77+9be+/ve+/ve+/ve+/vQ3vv73vv73v
-v73vv716Wivvv73vv73vv73vv73vv73domoi77+977+9Ie+/vWkNCg==
+Hi Hari,
+
+On Tue, Apr 7, 2009 at 11:27 PM, Kanigeri, Hari <h-kanigeri2@ti.com> wr=
+ote:
+> Ameya,
+>
+>> If this is the case then what is the point of having following code?
+>> if (page_count(pg) < 1) =C2=A0<-- This will always evaluate to FALSE=
+=2E
+>
+> -- As you mentioned this case shouldn't be hit. This check is to only=
+ to ensure that the >translations from user space VA to Physical addres=
+s is taking place correctly and flag the >user if something went bad.
+
+get_page() function has following check inside it:
+VM_BUG_ON(atomic_read(&page->_count) =3D=3D 0);
+
+Why we need to repeat it again?
+I guess we can completely remove following check which is in my
+opinion completely
+redundant:
+
+if (page_count(pg) < 1) {
+}
+
+Cheers,
+Ameya.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
