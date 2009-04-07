@@ -1,70 +1,107 @@
-From: Remith Ravi <remithmailinglist@gmail.com>
-Subject: USB EHCI Issue
-Date: Tue, 7 Apr 2009 22:00:40 +0530
-Message-ID: <814dfab70904070930h3444bd59vfd569bb8f0b4c515@mail.gmail.com>
+From: "Dongsoo, Nathaniel Kim" <dongsoo.kim@gmail.com>
+Subject: Re: Embedded Linux Conference
+Date: Wed, 8 Apr 2009 02:05:58 +0900
+Message-ID: <5e9665e10904071005sebbcda5x9805d7cbbc9f48c5@mail.gmail.com>
+References: <63374.207.214.87.58.1239059885.squirrel@webmail.xs4all.nl>
+	 <20090406234539.GA18715@muru.com> <20090407014529.GB18715@muru.com>
+	 <20090407155347.GA23823@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ti-out-0910.google.com ([209.85.142.188]:20193 "EHLO
-	ti-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757298AbZDGQao convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 7 Apr 2009 12:30:44 -0400
-Received: by ti-out-0910.google.com with SMTP id i7so2487715tid.23
-        for <linux-omap@vger.kernel.org>; Tue, 07 Apr 2009 09:30:42 -0700 (PDT)
+Received: from wf-out-1314.google.com ([209.85.200.170]:12408 "EHLO
+	wf-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751407AbZDGRGA convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 7 Apr 2009 13:06:00 -0400
+In-Reply-To: <20090407155347.GA23823@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Tony Lindgren <tony@atomide.com>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>, Kevin Hilman <khilman@deeprootsystems.com>, Steve Sakoman <sakoman@gmail.com>, linux-media@vger.kernel.org, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Manjunath Hadli <mrh@ti.com>, "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>, "Hiremath, Vaibhav" <hvaibhav@ti.com>
 
-Hello,
+Oh! I can see my laptop!
 
-I am working on a new board which uses USB EHCI Host Controller. It is
-connected to HS USB Port 2 of OMAP3530.
-The transceiver used is SMSC USB3320.
+It was nice to meet you everyone.
 
-I am able to boot the GIT kernel on my board. But when I enable the
-USB EHCI option in menuconfig, the kernel hangs while booting and
-shows some stray characters in UART console.
+Sorry for not be talking with you much. I had to review my work with
+Hans before today's presentation.
 
-The UART log is given below
------------------------------------------------------------------------=
---------------------
-Creating 5 MTD partitions on "omap2-nand.0":
-0x000000000000-0x000000080000 : "xloader-nand"
-0x000000080000-0x000000240000 : "uboot-nand"
-0x000000240000-0x000000280000 : "params-nand"
-0x000000280000-0x000000780000 : "linux-nand"
-0x000000780000-0x000001b80000 : "jffs2-nand"
-OneNAND driver initializing
-usbmon: debugfs is not available
-ehci_hcd: USB 2.0 'Enhanced' Host Controller (EHCI) Driver
-B       =B2=FA=FB=FE"=F5=FF
-               =FF=FF@hU=A5=E1=FF=FF
-                        =EE`=A6=FF
-                            =FE
-                             =EA=E0=A9=FE=FF
------------------------------------------------------------------------=
-----------------------
+I appreciate for the beer. Cheers.
 
-The point of failure is
+Nate
 
-  File:  drivers/usb/host/ehci-omap.c
-  Function:  omap_start_ehc()
-  code:
-        /* perform TLL soft reset, and wait until reset is complete */
-        omap_writel(1 << OMAP_USBTLL_SYSCONFIG_SOFTRESET_SHIFT,
-                        OMAP_USBTLL_SYSCONFIG);
+On Wed, Apr 8, 2009 at 12:53 AM, Tony Lindgren <tony@atomide.com> wrote=
+:
+> * Tony Lindgren <tony@atomide.com> [090406 18:45]:
+>> On Mon, Apr 06, 2009 at 11:45:39PM +0000, Tony Lindgren wrote:
+>> > On Tue, Apr 07, 2009 at 01:18:05AM +0200, Hans Verkuil wrote:
+>> > >
+>> > > > * Dongsoo Kim <dongsoo.kim@gmail.com> [090317 10:36]:
+>> > > >
+>> > > > <snip snip>
+>> > > >
+>> > > >>>> How about Monday night after the Dinner (ends at 7pm [1]) w=
+e meet for
+>> > > >>>> beers. =A0I'll let someone local (Tony) pick the venue.
+>> > > >>>
+>> > > >>> OK, let's plan for Monday night then. I'll find some place w=
+ith
+>> > > >>> drinks easily available, and within walking distance from th=
+e
+>> > > >>> conference.
+>> > > >>>
+>> > > >>> I've added a placeholder for the event where I'll post the d=
+etails
+>> > > >>> later on:
+>> > > >>>
+>> > > >>> http://www.muru.com/linux/omap/events/
+>> > > >
+>> > > > OK, let's meet at Harry's bar 7pm at 2020 Fillmore St
+>> > > > between Pine and California St. They're closed until 4pm,
+>> > > > so there's no reservation. But as it's Monday night, I'd
+>> > > > assume there's plenty of space. In case of last minute
+>> > > > changes, please check the page above.
+>> > >
+>> > > Not sure whether it will be as quiet as you hope:
+>> > >
+>> > > http://www.harrysbarsf.com/
+>> > >
+>> > > There's apparently some championship game going on today.
+>> >
+>> > Just spoke withem on the phone, they'll just have some
+>> > basketball on tv. So let's meet there and if it's too loud
+>> > we can go somewhere else.
+>>
+>> Oops, Harry's bar is completely packed, let's meet at the
+>> bar next door to Haary's, it's called The Grove.
+>
+> So six people showed up last night for beers, we took few
+> photos of this historic event :)
+>
+> http://www.muru.com/linux/omap/events/
+>
+> Cheers,
+>
+> Tony
+>
+>
 
-I am able to boot the kernel by commenting out this line. But then the
-USB EHCI driver displays a message that It is unable to enumerate the
-device.
-I probed using USB Analyzer and there is no data transfer happening
-over the port.
 
-Please provide your suggestions towards solving this issue.
 
-Regards,
-Remith
+--=20
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D
+DongSoo, Nathaniel Kim
+Engineer
+Mobile S/W Platform Lab.
+Digital Media & Communications R&D Centre
+Samsung Electronics CO., LTD.
+e-mail : dongsoo.kim@gmail.com
+          dongsoo45.kim@samsung.com
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D
 --
 To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
 n
