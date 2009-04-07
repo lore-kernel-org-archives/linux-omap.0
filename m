@@ -1,131 +1,72 @@
-From: "Ramirez Luna, Omar" <x00omar@ti.com>
-Subject: [PATCH] DSPBRIDGE: Unused pointer causing Memory Leaks
-Date: Tue, 7 Apr 2009 11:22:43 -0500
-Message-ID: <27F9C60D11D683428E133F85D2BB4A53040492B51D@dlee03.ent.ti.com>
+From: Remith Ravi <remithmailinglist@gmail.com>
+Subject: USB EHCI Issue
+Date: Tue, 7 Apr 2009 22:00:40 +0530
+Message-ID: <814dfab70904070930h3444bd59vfd569bb8f0b4c515@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:33375 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751792AbZDGQXR convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 7 Apr 2009 12:23:17 -0400
-Content-Language: en-US
+Received: from ti-out-0910.google.com ([209.85.142.188]:20193 "EHLO
+	ti-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757298AbZDGQao convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 7 Apr 2009 12:30:44 -0400
+Received: by ti-out-0910.google.com with SMTP id i7so2487715tid.23
+        for <linux-omap@vger.kernel.org>; Tue, 07 Apr 2009 09:30:42 -0700 (PDT)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>, "felipe.contreras@gmail.com" <felipe.contreras@gmail.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-From: Omar Ramirez Luna <x00omar@ti.com>
-Date: Tue, 7 Apr 2009 09:51:23 -0500
-Subject: [PATCH] DSPBRIDGE: Unused pointer causing Memory Leaks
+Hello,
 
-There are some memory leaks whenever a dsp library is loaded.
+I am working on a new board which uses USB EHCI Host Controller. It is
+connected to HS USB Port 2 of OMAP3530.
+The transceiver used is SMSC USB3320.
 
->From my testing I have seen ~160bytes for Audio,
-~280 bytes for Audio+Video are being leaked.
+I am able to boot the GIT kernel on my board. But when I enable the
+USB EHCI option in menuconfig, the kernel hangs while booting and
+shows some stray characters in UART console.
 
-Also removed the same name pointer in other functions as
-it is not used anyway.
+The UART log is given below
+-----------------------------------------------------------------------=
+--------------------
+Creating 5 MTD partitions on "omap2-nand.0":
+0x000000000000-0x000000080000 : "xloader-nand"
+0x000000080000-0x000000240000 : "uboot-nand"
+0x000000240000-0x000000280000 : "params-nand"
+0x000000280000-0x000000780000 : "linux-nand"
+0x000000780000-0x000001b80000 : "jffs2-nand"
+OneNAND driver initializing
+usbmon: debugfs is not available
+ehci_hcd: USB 2.0 'Enhanced' Host Controller (EHCI) Driver
+B       =B2=FA=FB=FE"=F5=FF
+               =FF=FF@hU=A5=E1=FF=FF
+                        =EE`=A6=FF
+                            =FE
+                             =EA=E0=A9=FE=FF
+-----------------------------------------------------------------------=
+----------------------
 
-Signed-off-by Omar Ramirez Luna <x00omar@ti.com>
-Acked-by: Hari Kanigeri <h-kanigeri2@ti.com>
----
- drivers/dsp/bridge/rmgr/dbdcd.c |   26 ++------------------------
- 1 files changed, 2 insertions(+), 24 deletions(-)
+The point of failure is
 
-diff --git a/drivers/dsp/bridge/rmgr/dbdcd.c b/drivers/dsp/bridge/rmgr/dbdcd.c
-index ae7e641..c5ec8f9 100644
---- a/drivers/dsp/bridge/rmgr/dbdcd.c
-+++ b/drivers/dsp/bridge/rmgr/dbdcd.c
-@@ -478,9 +478,7 @@ DSP_STATUS DCD_GetObjectDef(IN struct DCD_MANAGER *hDcdMgr,
- 	char *pszCoffBuf;
- 	u32 dwKeyLen;		/* Len of REG key. */
- 	char szObjType[MAX_INT2CHAR_LENGTH];	/* str. rep. of objType. */
--#ifdef _DB_TIOMAP
--	char *pTempCoffBuf;
--#endif
-+
- 	DBC_Require(cRefs > 0);
- 	DBC_Require(pObjDef != NULL);
- 	DBC_Require(pObjUuid != NULL);
-@@ -570,8 +568,6 @@ DSP_STATUS DCD_GetObjectDef(IN struct DCD_MANAGER *hDcdMgr,
- 	/* Allocate zeroed buffer. */
- 	pszCoffBuf = MEM_Calloc(ulLen + 4, MEM_PAGED);
- #ifdef _DB_TIOMAP
--	pTempCoffBuf = MEM_Calloc(ulLen + 4, MEM_PAGED);
--
-        if (strstr(szRegData, "iva") == NULL) {
- 		/* Locate section by objectID and read its content. */
- 		status = COD_ReadSection(lib, szSectName, pszCoffBuf, ulLen);
-@@ -606,9 +602,6 @@ DSP_STATUS DCD_GetObjectDef(IN struct DCD_MANAGER *hDcdMgr,
- 	}
- 	/* Free the previously allocated dynamic buffer. */
- 	MEM_Free(pszCoffBuf);
--#ifdef _DB_TIOMAP
--	MEM_Free(pTempCoffBuf);
--#endif
- func_end:
- 	if (lib)
- 		COD_Close(lib);
-@@ -628,9 +621,6 @@ DSP_STATUS DCD_GetObjects(IN struct DCD_MANAGER *hDcdMgr, IN char *pszCoffPath,
- 	DSP_STATUS status = DSP_SOK;
- 	char *pszCoffBuf;
- 	char *pszCur;
--#ifdef _DB_TIOMAP
--	char *pTempCoffBuf;
--#endif
- 	struct COD_LIBRARYOBJ *lib = NULL;
- 	u32 ulAddr = 0;	/* Used by COD_GetSection */
- 	u32 ulLen = 0;	/* Used by COD_GetSection */
-@@ -638,6 +628,7 @@ DSP_STATUS DCD_GetObjects(IN struct DCD_MANAGER *hDcdMgr, IN char *pszCoffPath,
- 	char *pToken = NULL;
- 	struct DSP_UUID dspUuid;
- 	s32 cObjectType;
-+
- 	DBC_Require(cRefs > 0);
- 	GT_1trace(curTrace, GT_ENTER,
- 		 "DCD_GetObjects: hDcdMgr 0x%x\n", hDcdMgr);
-@@ -667,7 +658,6 @@ DSP_STATUS DCD_GetObjects(IN struct DCD_MANAGER *hDcdMgr, IN char *pszCoffPath,
- 	/* Allocate zeroed buffer. */
- 	pszCoffBuf = MEM_Calloc(ulLen + 4, MEM_PAGED);
- #ifdef _DB_TIOMAP
--	pTempCoffBuf = MEM_Calloc(ulLen + 4, MEM_PAGED);
- 	if (strstr(pszCoffPath, "iva") == NULL) {
- 		/* Locate section by objectID and read its content. */
- 		status = COD_ReadSection(lib, DCD_REGISTER_SECTION,
-@@ -730,9 +720,6 @@ DSP_STATUS DCD_GetObjects(IN struct DCD_MANAGER *hDcdMgr, IN char *pszCoffPath,
- 	}
- 	/* Free the previously allocated dynamic buffer. */
- 	MEM_Free(pszCoffBuf);
--#ifdef _DB_TIOMAP
--	MEM_Free(pTempCoffBuf);
--#endif
- func_cont:
- 	if (lib)
- 		COD_Close(lib);
-@@ -1479,9 +1466,6 @@ static DSP_STATUS GetDepLibInfo(IN struct DCD_MANAGER *hDcdMgr,
- 	char *pszCur;
- 	char *pszFileName = NULL;
- 	struct COD_LIBRARYOBJ *lib = NULL;
--#ifdef _DB_TIOMAP
--	char *pTempCoffBuf;
--#endif
- 	u32 ulAddr = 0;	/* Used by COD_GetSection */
- 	u32 ulLen = 0;	/* Used by COD_GetSection */
- 	u32 dwDataSize = COD_MAXPATHLENGTH;
-@@ -1540,12 +1524,6 @@ static DSP_STATUS GetDepLibInfo(IN struct DCD_MANAGER *hDcdMgr,
- 	if (pszCoffBuf == NULL)
- 		status = DSP_EMEMORY;
- 
--#ifdef _DB_TIOMAP
--	pTempCoffBuf = MEM_Calloc(ulLen, MEM_PAGED);
--	if (pTempCoffBuf == NULL)
--		status = DSP_EMEMORY;
--
--#endif
- 	/* Read section contents. */
- 	status = COD_ReadSection(lib, DEPLIBSECT, pszCoffBuf, ulLen);
- 	if (DSP_FAILED(status))
--- 
-1.5.4.3
+  File:  drivers/usb/host/ehci-omap.c
+  Function:  omap_start_ehc()
+  code:
+        /* perform TLL soft reset, and wait until reset is complete */
+        omap_writel(1 << OMAP_USBTLL_SYSCONFIG_SOFTRESET_SHIFT,
+                        OMAP_USBTLL_SYSCONFIG);
+
+I am able to boot the kernel by commenting out this line. But then the
+USB EHCI driver displays a message that It is unable to enumerate the
+device.
+I probed using USB Analyzer and there is no data transfer happening
+over the port.
+
+Please provide your suggestions towards solving this issue.
+
+Regards,
+Remith
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
