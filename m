@@ -1,27 +1,72 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: New build error?
-Date: Tue, 7 Apr 2009 20:55:24 +0100
-Message-ID: <20090407195524.GA10619@n2100.arm.linux.org.uk>
+From: Ameya Palande <2ameya@gmail.com>
+Subject: Re: [PATCH 1/4] [OMAPZOOM] [UPDATE] DSPBRIDGE: Memory lock for DMM.
+Date: Tue, 7 Apr 2009 23:19:53 +0300
+Message-ID: <269694c00904071319i1ba7f00cie08d9ecf9ffe2ce2@mail.gmail.com>
+References: <496565EC904933469F292DDA3F1663E60287FB05ED@dlee06.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: base64
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:40142 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752293AbZDGTzh (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 7 Apr 2009 15:55:37 -0400
-Content-Disposition: inline
+Received: from fk-out-0910.google.com ([209.85.128.188]:64531 "EHLO
+	fk-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754804AbZDGUTz (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 7 Apr 2009 16:19:55 -0400
+Received: by fk-out-0910.google.com with SMTP id 18so1134268fkq.5
+        for <linux-omap@vger.kernel.org>; Tue, 07 Apr 2009 13:19:53 -0700 (PDT)
+In-Reply-To: <496565EC904933469F292DDA3F1663E60287FB05ED@dlee06.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-arm-kernel@lists.arm.linux.org.uk, linux-omap@vger.kernel.org
-Cc: Adrian Hunter <adrian.hunter@nokia.com>, Pierre Ossman <drzeus@drzeus.cx>
+To: "Guzman Lugo, Fernando" <x0095840@ti.com>
+Cc: "Pandita, Vikram" <vikram.pandita@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Caused by: 4a694dc915c9a223044ce21fc0d99e63facd1d64
-
-    omap_hsmmc: Fix response type for busy after response
-
-Error:
-
-drivers/mmc/host/omap_hsmmc.c: In function 'mmc_omap_xfer_done':
-drivers/mmc/host/omap_hsmmc.c:301: error: implicit declaration of function 'mmc_omap_fclk_lazy_disable'
-
-Please submit a fix to Pierre for this, thanks.
+SGkgRmVybmFuZG8sCgpPbiBUdWUsIEFwciA3LCAyMDA5IGF0IDEwOjI2IFBNLCBHdXptYW4gTHVn
+bywgRmVybmFuZG8gPHgwMDk1ODQwQHRpLmNvbT4gd3JvdGU6Cj4KPiBIaSwKPgo+IMKgIMKgIMKg
+IMKgUGF0Y2ggdXBkYXRlZCB3aXQgdGhlIGZpeCBpbiBwYWdlX2NvdW50KHBnKS4KPgo+Cj4gRnJv
+bSBhNWFiN2UwMzhiNzJlNjIzNTgyNzllZjNjNGU2NGIyZjI2MGNlZWVlIE1vbiBTZXAgMTcgMDA6
+MDA6MDAgMjAwMQo+IEZyb206IEhhcmkgS2FuaWdlcmkgPGgta2FuaWdlcmkyQHRpLmNvbT4KPiBE
+YXRlOiBUaHUsIDI2IE1hciAyMDA5IDE1OjQ3OjUwIC0wNTAwCj4gU3ViamVjdDogW1BBVENIXSBE
+U1BCUklER0U6IE1lbW9yeSBsb2NrIGZvciBETU0uCj4KPiBMb2NrIGRvd24gdGhlIHBhZ2VzIHRo
+YXQgYXJlIG1hcHBlZCB0byBEU1AgdmlydHVhbCBtZW1vcnkgdG8gcHJldmVudCBmcm9tCj4gZ2V0
+dGluZyBzd2FwcGVkIG91dAo+Cj4gU2lnbmVkLW9mZi1ieTogSGFyaSBLYW5pZ2VyaSA8aC1rYW5p
+Z2VyaTJAdGkuY29tPgo+IC0tLQo+ICsgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAg
+aWYgKHBmbl92YWxpZChfX3BoeXNfdG9fcGZuKHBhdGVtcCkpKSB7Cj4gKyDCoCDCoCDCoCDCoCDC
+oCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCBwZyA9IHBoeXNfdG9fcGFnZShwYXRlbXAp
+Owo+ICsgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgZ2V0X3Bh
+Z2UocGcpOwoKZ2V0X3BhZ2UoKSBtYWtlcyBzdXJlIHRoYXQgcGFnZS0+Y291bnQgaXMgbm90IHpl
+cm8gYW5kIGF0b21pY2FsbHkgaW5jcmVtZW50cyBpdC4KVGhhdCBtZWFucyBhZnRlciBleGVjdXRp
+b24gb2YgZ2V0X3BhZ2UoKTsgcGFnZS0+Y291bnQgd2lsbCBiZSBhbHdheXMgMQpvciBncmVhdGVy
+CnRoYW4gMS4KCklmIHRoaXMgaXMgdGhlIGNhc2UgdGhlbiB3aGF0IGlzIHRoZSBwb2ludCBvZiBo
+YXZpbmcgZm9sbG93aW5nIGNvZGU/CmlmIChwYWdlX2NvdW50KHBnKSA8IDEpICA8LS0gVGhpcyB3
+aWxsIGFsd2F5cyBldmFsdWF0ZSB0byBGQUxTRS4KCj4gKyDCoCDCoCDCoCDCoCDCoCDCoCDCoCDC
+oCDCoCDCoCDCoCDCoCDCoCDCoCDCoCBpZiAocGFnZV9jb3VudChwZykgPCAxKSB7Cj4gKyDCoCDC
+oCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCBwcmlu
+dGsoS0VSTl9FTUVSRyAiRFNQQlJJREdFOk1BUCDCoCIKPiArIMKgIMKgIMKgIMKgIMKgIMKgIMKg
+IMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgICJmdW5jdGlv
+bjogQ09VTlQgMCBGT1IgUEEgIgo+ICsgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAg
+wqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgIjB4JXhcbiIsIHBhdGVtcCk7Cj4g
+KyDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDC
+oCBwcmludGsoS0VSTl9FTUVSRyAiQmFkIHBhZ2Ugc3RhdGUiCj4gKyDCoCDCoCDCoCDCoCDCoCDC
+oCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCAiaW4g
+cHJvY2VzcyAnJXMnXG4iCj4gKyDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDC
+oCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCAicGFnZTolcCBmbGFnczoweCUwKmx4ICIK
+PiArIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKg
+IMKgIMKgIMKgIMKgIMKgICJtYXBwaW5nOiVwIG1hcGNvdW50OiVkICIKPiArIMKgIMKgIMKgIMKg
+IMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKg
+ICJjb3VudDolZFxuIgo+ICsgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAg
+wqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgIlRyeWluZyB0byBmaXggaXQgdXAsIGJ1dCAi
+Cj4gKyDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDC
+oCDCoCDCoCDCoCDCoCDCoCAiYSByZWJvb3QgaXMgbmVlZGVkXG4iCj4gKyDCoCDCoCDCoCDCoCDC
+oCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCAi
+QmFja3RyYWNlOlxuIiwKPiArIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKg
+IMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIGN1cnJlbnQtPmNvbW0sIHBnLAo+ICsgwqAg
+wqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAg
+wqAgwqAgwqAgKGludCkoMipzaXplb2YodW5zaWduZWQgbG9uZykpLAo+ICsgwqAgwqAgwqAgwqAg
+wqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAg
+KHVuc2lnbmVkIGxvbmcpcGctPmZsYWdzLAo+ICsgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAg
+wqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgcGctPm1hcHBpbmcsIHBh
+Z2VfbWFwY291bnQocGcpLAo+ICsgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAg
+wqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgcGFnZV9jb3VudChwZykpOwo+ICsgwqAg
+wqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgZHVt
+cF9zdGFjaygpOwo+ICsgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAg
+wqAgwqAgwqAgwqAgwqAgQlVHX09OKDEpOwo+ICsgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAg
+wqAgwqAgwqAgwqAgwqAgwqAgfQoKQ2hlZXJzLApBbWV5YS4K
