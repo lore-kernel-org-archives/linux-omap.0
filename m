@@ -1,329 +1,374 @@
-From: Tim Yamin <plasm@roo.me.uk>
-Subject: Re: YUV rotation support for DSS2 - 2.6.29 [WAS Re: Hello Tomi
-	Valkeinen, I have some questions about dss2 driver.]
-Date: Tue, 7 Apr 2009 12:00:44 -0700
-Message-ID: <792f5f410904071200h1dae9024v1f2d9cbd4f1bbebc@mail.gmail.com>
-References: <1239078602.16520.59.camel@localhost>
-	 <5A47E75E594F054BAF48C5E4FC4B92AB02FB10317D@dbde02.ent.ti.com>
+From: "Guzman Lugo, Fernando" <x0095840@ti.com>
+Subject: RE: [PATCH 1/4] [OMAPZOOM] [UPDATE] DSPBRIDGE: Memory lock for DMM.
+Date: Tue, 7 Apr 2009 14:26:53 -0500
+Message-ID: <496565EC904933469F292DDA3F1663E60287FB05ED@dlee06.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary=001636c5a7e8d806df0466fba170
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-bw0-f169.google.com ([209.85.218.169]:50234 "EHLO
-	mail-bw0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754030AbZDGTAr (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 7 Apr 2009 15:00:47 -0400
-Received: by bwz17 with SMTP id 17so2445787bwz.37
-        for <linux-omap@vger.kernel.org>; Tue, 07 Apr 2009 12:00:45 -0700 (PDT)
-In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB02FB10317D@dbde02.ent.ti.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:59959 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754070AbZDGT07 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 7 Apr 2009 15:26:59 -0400
+Received: from dlep36.itg.ti.com ([157.170.170.91])
+	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id n37JQrtZ004214
+	for <linux-omap@vger.kernel.org>; Tue, 7 Apr 2009 14:26:58 -0500
+Received: from dlep20.itg.ti.com (localhost [127.0.0.1])
+	by dlep36.itg.ti.com (8.13.8/8.13.8) with ESMTP id n37JQrEC009225
+	for <linux-omap@vger.kernel.org>; Tue, 7 Apr 2009 14:26:53 -0500 (CDT)
+Received: from dlee73.ent.ti.com (localhost [127.0.0.1])
+	by dlep20.itg.ti.com (8.12.11/8.12.11) with ESMTP id n37JQrTK009614
+	for <linux-omap@vger.kernel.org>; Tue, 7 Apr 2009 14:26:53 -0500 (CDT)
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Shah, Hardik" <hardik.shah@ti.com>
-Cc: "gregoire@gentil.com" <gregoire@gentil.com>, "tomi.valkeinen@nokia.com" <tomi.valkeinen@nokia.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "beagleboard@googlegroups.com" <beagleboard@googlegroups.com>
+To: "Pandita, Vikram" <vikram.pandita@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
---001636c5a7e8d806df0466fba170
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
 
-Hi Hardik / Tomi,
+Hi,
 
-> [Shah, Hardik] I have also patched the DSS to support the DSS YUV rotatio=
-n. =A0Here the rotation type is passed to know the type of rotation require=
-d by driver. =A0I have also modified the FBDEV driver to use this patch. =
-=A0Please find the both patches. =A0I have tested it on the old master of t=
-omi. Commit id is 4261fafc4fdc0730b3d4dd83c036d8be09ec8575. =A0I am plannin=
-g to rebase it on the latest master soon. I have tested the FBDEV driver wi=
-th different rotation and resolution settings.
+	Patch updated wit the fix in page_count(pg).
 
-I've merged my changes with your patches and rebased against master,
-please find the new patch attached.
 
-> [Shah, Hardik] In past I saw setting the FIFO size eliminates this proble=
-m. =A0I have some FIFO setting can you please try this out and let me know =
-the result.
-> FIFO_HIGH_THRES =3D 0x3FC and GFX_FIFO_LOW_THRES =3D 0x3BC. =A0This I tri=
-ed in on OMAP3.
+>From a5ab7e038b72e62358279ef3c4e64b2f260ceeee Mon Sep 17 00:00:00 2001
+From: Hari Kanigeri <h-kanigeri2@ti.com>
+Date: Thu, 26 Mar 2009 15:47:50 -0500
+Subject: [PATCH] DSPBRIDGE: Memory lock for DMM.
 
-Tried this (see attached patch) but does not help -- still getting
-these errors as soon as I try to play a video:
+Lock down the pages that are mapped to DSP virtual memory to prevent from
+getting swapped out
 
-omapdss DISPC error: VID1_FIFO_UNDERFLOW, disabling VID1
-omapdss DISPC error: SYNC_LOST, disabling LCD
+Signed-off-by: Hari Kanigeri <h-kanigeri2@ti.com>
+---
+ arch/arm/plat-omap/include/dspbridge/dbdefs.h |    3 +
+ drivers/dsp/bridge/hw/hw_mmu.h                |    1 +
+ drivers/dsp/bridge/wmd/io_sm.c                |   24 +++--
+ drivers/dsp/bridge/wmd/tiomap3430.c           |  133 +++++++++++++++++++++++-
+ 4 files changed, 144 insertions(+), 17 deletions(-)
 
-The FIFOs are configured as follows:
+diff --git a/arch/arm/plat-omap/include/dspbridge/dbdefs.h b/arch/arm/plat-omap/include/dspbridge/dbdefs.h
+index 7f5a2bf..9782693 100644
+--- a/arch/arm/plat-omap/include/dspbridge/dbdefs.h
++++ b/arch/arm/plat-omap/include/dspbridge/dbdefs.h
+@@ -571,6 +571,9 @@ bit 6 - MMU element size = 64bit (valid only for non mixed page entries)
+ 
+ #define DSP_MAPVMALLOCADDR         0x00000080
+ 
++#define DSP_MAPDONOTLOCK	   0x00000100
++
++
+ #define GEM_CACHE_LINE_SIZE     128
+ #define GEM_L1P_PREFETCH_SIZE   128
+ 
+diff --git a/drivers/dsp/bridge/hw/hw_mmu.h b/drivers/dsp/bridge/hw/hw_mmu.h
+index 065f0dd..b1e2458 100644
+--- a/drivers/dsp/bridge/hw/hw_mmu.h
++++ b/drivers/dsp/bridge/hw/hw_mmu.h
+@@ -51,6 +51,7 @@ struct HW_MMUMapAttrs_t {
+ 	enum HW_Endianism_t     endianism;
+ 	enum HW_ElementSize_t   elementSize;
+ 	enum HW_MMUMixedSize_t  mixedSize;
++	bool donotlockmpupage;
+ } ;
+ 
+ extern HW_STATUS HW_MMU_Enable(const void __iomem *baseAddress);
+diff --git a/drivers/dsp/bridge/wmd/io_sm.c b/drivers/dsp/bridge/wmd/io_sm.c
+index bd936eb..301bd72 100755
+--- a/drivers/dsp/bridge/wmd/io_sm.c
++++ b/drivers/dsp/bridge/wmd/io_sm.c
+@@ -553,6 +553,8 @@ func_cont1:
+ 	mapAttrs = DSP_MAPLITTLEENDIAN;
+ 	mapAttrs |= DSP_MAPPHYSICALADDR;
+ 	mapAttrs |= DSP_MAPELEMSIZE32;
++	mapAttrs |= DSP_MAPDONOTLOCK;
++
+ 	while (numBytes && DSP_SUCCEEDED(status)) {
+ 		/* To find the max. page size with which both PA & VA are
+ 		 * aligned */
+@@ -690,18 +692,18 @@ func_cont:
+ 	mapAttrs = DSP_MAPLITTLEENDIAN;
+ 	mapAttrs |= DSP_MAPPHYSICALADDR;
+ 	mapAttrs |= DSP_MAPELEMSIZE32;
++	mapAttrs |= DSP_MAPDONOTLOCK;
++
+ 	/* Map the L4 peripherals */
+-	{
+-		i = 0;
+-		while (L4PeripheralTable[i].physAddr && DSP_SUCCEEDED(status)) {
+-				status = hIOMgr->pIntfFxns->pfnBrdMemMap
+-					(hIOMgr->hWmdContext,
+-					L4PeripheralTable[i].physAddr,
+-					L4PeripheralTable[i].dspVirtAddr,
+-					HW_PAGE_SIZE_4KB, mapAttrs);
+-				DBC_Assert(DSP_SUCCEEDED(status));
+-				i++;
+-		}
++	i = 0;
++	while (L4PeripheralTable[i].physAddr && DSP_SUCCEEDED(status)) {
++		status = hIOMgr->pIntfFxns->pfnBrdMemMap
++			(hIOMgr->hWmdContext, L4PeripheralTable[i].physAddr,
++			L4PeripheralTable[i].dspVirtAddr, HW_PAGE_SIZE_4KB,
++			mapAttrs);
++		if (DSP_FAILED(status))
++			break;
++		i++;
+ 	}
+ 
+ 	if (DSP_SUCCEEDED(status)) {
+diff --git a/drivers/dsp/bridge/wmd/tiomap3430.c b/drivers/dsp/bridge/wmd/tiomap3430.c
+index 983465a..c9849e3 100755
+--- a/drivers/dsp/bridge/wmd/tiomap3430.c
++++ b/drivers/dsp/bridge/wmd/tiomap3430.c
+@@ -28,6 +28,8 @@
+ 
+ /*  ----------------------------------- Host OS */
+ #include <dspbridge/host_os.h>
++#include <linux/mm.h>
++#include <linux/mmzone.h>
+ #include "../arch/arm/mach-omap2/prcm-regs.h"
+ #include "../arch/arm/mach-omap2/cm-regbits-34xx.h"
+ #include "../arch/arm/mach-omap2/ti-compat.h"
+@@ -90,6 +92,7 @@
+ #define MMU_LARGE_PAGE_MASK      0xFFFF0000
+ #define MMU_SMALL_PAGE_MASK      0xFFFFF000
+ #define PAGES_II_LVL_TABLE   512
++#define phys_to_page(phys)      pfn_to_page((phys) >> PAGE_SHIFT)
+ 
+ #define MMU_GFLUSH 0x60
+ 
+@@ -1372,6 +1375,11 @@ static DSP_STATUS WMD_BRD_MemMap(struct WMD_DEV_CONTEXT *hDevContext,
+ 			return DSP_EINVALIDARG;
+ 		}
+ 	}
++	if (attrs & DSP_MAPDONOTLOCK)
++		hwAttrs.donotlockmpupage = 1;
++	else
++		hwAttrs.donotlockmpupage = 0;
++
+ 	if (attrs & DSP_MAPVMALLOCADDR) {
+ 		status = MemMapVmalloc(hDevContext, ulMpuAddr, ulVirtAddr,
+ 				       ulNumBytes, ulMapAttr);
+@@ -1488,12 +1496,20 @@ static DSP_STATUS WMD_BRD_MemUnMap(struct WMD_DEV_CONTEXT *hDevContext,
+ 	u32 remBytes;
+ 	u32 remBytesL2;
+ 	u32 vaCurr;
++	struct page *pg = NULL;
+ 	DSP_STATUS status = DSP_SOK;
+ 	struct WMD_DEV_CONTEXT *pDevContext = hDevContext;
+ 	struct PgTableAttrs *pt = pDevContext->pPtAttrs;
++	u32 pacount = 0;
++	u32 *pPhysAddrPageTbl = NULL;
++	u32 temp;
++	u32 patemp = 0;
++	u32 pAddr;
++	u32 numof4KPages = 0;
+ 
+ 	DBG_Trace(DBG_ENTER, "> WMD_BRD_MemUnMap hDevContext %x, va %x, "
+ 		  "NumBytes %x\n", hDevContext, ulVirtAddr, ulNumBytes);
++	pPhysAddrPageTbl = DMM_GetPhysicalAddrTable();
+ 	vaCurr = ulVirtAddr;
+ 	remBytes = ulNumBytes;
+ 	remBytesL2 = 0;
+@@ -1542,6 +1558,19 @@ static DSP_STATUS WMD_BRD_MemUnMap(struct WMD_DEV_CONTEXT *hDevContext,
+ 				/* vaCurr aligned to pteSize? */
+ 				if ((pteSize != 0) && (remBytesL2 >= pteSize) &&
+ 				   !(vaCurr & (pteSize - 1))) {
++					/* Collect Physical addresses from VA */
++					pAddr = (pteVal & ~(pteSize - 1));
++					if (pteSize == HW_PAGE_SIZE_64KB)
++						numof4KPages = 16;
++					else
++						numof4KPages = 1;
++					temp = 0;
++					while (temp++ < numof4KPages) {
++						pPhysAddrPageTbl[pacount++] =
++									pAddr;
++						pAddr += HW_PAGE_SIZE_4KB;
++					}
++
+ 					if (HW_MMU_PteClear(pteAddrL2,
+ 						vaCurr, pteSize) == RET_OK) {
+ 						status = DSP_SOK;
+@@ -1602,6 +1631,20 @@ static DSP_STATUS WMD_BRD_MemUnMap(struct WMD_DEV_CONTEXT *hDevContext,
+ 	 * get flushed */
+ EXIT_LOOP:
+ 	flush_all(pDevContext);
++	temp = 0;
++	while (temp < pacount) {
++		patemp = pPhysAddrPageTbl[temp];
++		if (pfn_valid(__phys_to_pfn(patemp))) {
++			pg = phys_to_page(patemp);
++			if (page_count(pg) < 1)
++				printk(KERN_INFO "DSPBRIDGE:UNMAP function: "
++					"COUNT 0 FOR PA 0x%x, size = 0x%x\n",
++					patemp, ulNumBytes);
++			SetPageDirty(pg);
++			page_cache_release(pg);
++		}
++		temp++;
++	}
+ 	DBG_Trace(DBG_LEVEL1, "WMD_BRD_MemUnMap vaCurr %x, pteAddrL1 %x "
+ 		  "pteAddrL2 %x\n", vaCurr, pteAddrL1, pteAddrL2);
+ 	DBG_Trace(DBG_ENTER, "< WMD_BRD_MemUnMap status %x remBytes %x, "
+@@ -1633,11 +1676,20 @@ static DSP_STATUS TIOMAP_VirtToPhysical(struct mm_struct *mm, u32 ulMpuAddr,
+ 	u32 temp = 0;
+ 	u32 numUsrPgs;
+ 	struct task_struct *curr_task = current;
++	struct vm_area_struct *vma;
++	u32  write = 0;
++
+ 
+ 	DBG_Trace(DBG_ENTER, "TIOMAP_VirtToPhysical: START:ulMpuAddr=%x, "
+ 		  "ulNumBytes=%x\n", ulMpuAddr, ulNumBytes);
+ 	if (physicalAddrTable == NULL)
+ 		return DSP_EMEMORY;
++	down_read(&mm->mmap_sem);
++	vma = find_vma(mm, ulMpuAddr);
++	up_read(&mm->mmap_sem);
++
++	if (vma->vm_flags & (VM_WRITE | VM_MAYWRITE))
++		write = 1;
+ 	while (ulNumBytes) {
+ 		DBG_Trace(DBG_LEVEL4, "TIOMAP_VirtToPhysical:Read the next PGD "
+ 			  "and PMD entry\n");
+@@ -1660,7 +1712,7 @@ static DSP_STATUS TIOMAP_VirtToPhysical(struct mm_struct *mm, u32 ulMpuAddr,
+ 			 * page tables
+ 			 */
+ 			numUsrPgs = get_user_pages(curr_task, mm, ulMpuAddr, 1,
+-							true, 0, NULL, NULL);
++							write, 1, NULL, NULL);
+ 			up_read(&mm->mmap_sem);
+ 			/* Get the first level page table entry information */
+ 			/* Read the pointer to first level page table entry */
+@@ -1704,7 +1756,7 @@ static DSP_STATUS TIOMAP_VirtToPhysical(struct mm_struct *mm, u32 ulMpuAddr,
+ 					 * the page tables */
+ 					if (numUsrPgs <= PAGES_II_LVL_TABLE) {
+ 						get_user_pages(curr_task, mm,
+-						ulMpuAddr, numUsrPgs, true,  0,
++						ulMpuAddr, numUsrPgs, write,  1,
+ 						NULL, NULL);
+ 						DBG_Trace(DBG_LEVEL4,
+ 						"get_user_pages, numUsrPgs"
+@@ -1712,7 +1764,7 @@ static DSP_STATUS TIOMAP_VirtToPhysical(struct mm_struct *mm, u32 ulMpuAddr,
+ 					} else {
+ 						get_user_pages(curr_task, mm,
+ 						ulMpuAddr, PAGES_II_LVL_TABLE,
+-						true, 0, NULL, NULL);
++						write, 1, NULL, NULL);
+ 						DBG_Trace(DBG_LEVEL4,
+ 						"get_user_pages, numUsrPgs"
+ 						"= %d\n", PAGES_II_LVL_TABLE);
+@@ -1737,7 +1789,12 @@ static DSP_STATUS TIOMAP_VirtToPhysical(struct mm_struct *mm, u32 ulMpuAddr,
+ 					pAddr = pteVal & MMU_LARGE_PAGE_MASK;
+ 					chunkSz = HW_PAGE_SIZE_64KB;
+ 					numEntries = 16;
+-					numof4KPages = 16;
++					if (ulNumBytes >= HW_PAGE_SIZE_64KB)
++						numof4KPages = 16;
++					else {
++						numof4KPages = ulNumBytes /
++							HW_PAGE_SIZE_4KB;
++					}
+ 					break;
+ 				case HW_PAGE_SIZE_4KB:
+ 					pAddr = pteVal & MMU_SMALL_PAGE_MASK;
+@@ -1769,7 +1826,10 @@ static DSP_STATUS TIOMAP_VirtToPhysical(struct mm_struct *mm, u32 ulMpuAddr,
+ 					ulMpuAddr += chunkSz;
+ 					/* Update the number of bytes that
+ 					 * are copied */
+-					ulNumBytes -= chunkSz;
++					if (chunkSz > ulNumBytes)
++						ulNumBytes = 0;
++					else
++						ulNumBytes -= chunkSz;
+ 					DBG_Trace(DBG_LEVEL4,
+ 						"TIOMAP_VirtToPhysical: mpuCurr"
+ 						" = %x, pagesize = %x, "
+@@ -1792,10 +1852,16 @@ static DSP_STATUS TIOMAP_VirtToPhysical(struct mm_struct *mm, u32 ulMpuAddr,
+ 			switch (pteSize) {
+ 			case HW_PAGE_SIZE_16MB:
+ 				pAddr = pteVal & MMU_SSECTION_ADDR_MASK;
++				if (ulNumBytes >= HW_PAGE_SIZE_16MB) {
+ 					chunkSz = HW_PAGE_SIZE_16MB;
+ 					numEntries = 16;
+ 					numof4KPages = 4096;
+-					break;
++				} else {
++					chunkSz = HW_PAGE_SIZE_1MB;
++					numEntries = 1;
++					numof4KPages = 256;
++				}
++				break;
+ 			case HW_PAGE_SIZE_1MB:
+ 				pAddr = pteVal & MMU_SECTION_ADDR_MASK;
+ 					chunkSz = HW_PAGE_SIZE_1MB;
+@@ -1909,9 +1975,65 @@ static DSP_STATUS PteSet(struct PgTableAttrs *pt, u32 pa, u32 va,
+ 	u32 L2BaseVa = 0;
+ 	u32 L2BasePa = 0;
+ 	u32 L2PageNum = 0;
++	u32 num4KEntries = 0;
++	u32 temp = 0;
++	struct page *pg = NULL;
++	u32 patemp;
++
+ 	DSP_STATUS status = DSP_SOK;
+ 	DBG_Trace(DBG_ENTER, "> PteSet pPgTableAttrs %x, pa %x, va %x, "
+ 		 "size %x, attrs %x\n", pt, pa, va, size, attrs);
++	/* Lock the MPU pages that are getting mapped if this
++	 * attribute is set */
++	if (attrs->donotlockmpupage == 0) {
++		switch (size) {
++		case HW_PAGE_SIZE_64KB:
++			num4KEntries = 16;
++			break;
++		case HW_PAGE_SIZE_4KB:
++			num4KEntries = 1;
++			break;
++		case HW_PAGE_SIZE_16MB:
++			num4KEntries = 4096;
++			break;
++		case HW_PAGE_SIZE_1MB:
++			num4KEntries = 256;
++			break;
++		default:
++			return DSP_EFAIL;
++		}
++		patemp = pa;
++		while (temp++ < num4KEntries) {
++			/* FIXME: This is a hack to avoid getting pages for
++			 *  video overlay		*/
++			if (pfn_valid(__phys_to_pfn(patemp))) {
++				pg = phys_to_page(patemp);
++				get_page(pg);
++				if (page_count(pg) < 1) {
++					printk(KERN_EMERG "DSPBRIDGE:MAP  "
++						"function: COUNT 0 FOR PA "
++						"0x%x\n", patemp);
++					printk(KERN_EMERG "Bad page state"
++						"in process '%s'\n"
++						"page:%p flags:0x%0*lx "
++						"mapping:%p mapcount:%d "
++						"count:%d\n"
++						"Trying to fix it up, but "
++						"a reboot is needed\n"
++						"Backtrace:\n",
++						current->comm, pg,
++						(int)(2*sizeof(unsigned long)),
++						(unsigned long)pg->flags,
++						pg->mapping, page_mapcount(pg),
++						page_count(pg));
++					dump_stack();
++					BUG_ON(1);
++				}
++			}
++			patemp += HW_PAGE_SIZE_4KB;
++		}
++	}
++	attrs->donotlockmpupage = 0;
+ 	L1BaseVa = pt->L1BaseVa;
+ 	pgTblVa = L1BaseVa;
+ 	if ((size == HW_PAGE_SIZE_64KB) || (size == HW_PAGE_SIZE_4KB)) {
+-- 
+1.5.6.4
 
-omapdss DISPC: fifo(0) size 1024, low/high old 3008/3071, new 956/1020
-omapdss DISPC: fifo(1) size 1024, low/high old 956/1020, new 956/1020
-
-Cheers,
-
-Tim
-
---001636c5a7e8d806df0466fba170
-Content-Type: text/x-patch; charset=US-ASCII;
-	name="0002-Change-FIFO-settings-as-suggested-by-Hardik.patch"
-Content-Disposition: attachment;
-	filename="0002-Change-FIFO-settings-as-suggested-by-Hardik.patch"
-Content-Transfer-Encoding: base64
-X-Attachment-Id: f_ft8yflvy0
-
-RnJvbSA1YzU3NWZkNTIyNjE2NGM3NWUwYmM5OGE1ZWFkODBlZTY5MDBmZGMxIE1vbiBTZXAgMTcg
-MDA6MDA6MDAgMjAwMQpGcm9tOiBUaW0gWWFtaW4gPHBsYXNtQHJvby5tZS51az4KRGF0ZTogVHVl
-LCA3IEFwciAyMDA5IDExOjI3OjU0IC0wNzAwClN1YmplY3Q6IFtQQVRDSF0gQ2hhbmdlIEZJRk8g
-c2V0dGluZ3MgYXMgc3VnZ2VzdGVkIGJ5IEhhcmRpay4KCi0tLQogZHJpdmVycy92aWRlby9vbWFw
-Mi9kc3MvZGlzcGMuYyB8ICAgIDggKysrKysrKysKIDEgZmlsZXMgY2hhbmdlZCwgOCBpbnNlcnRp
-b25zKCspLCAwIGRlbGV0aW9ucygtKQoKZGlmZiAtLWdpdCBhL2RyaXZlcnMvdmlkZW8vb21hcDIv
-ZHNzL2Rpc3BjLmMgYi9kcml2ZXJzL3ZpZGVvL29tYXAyL2Rzcy9kaXNwYy5jCmluZGV4IDU1MGEy
-YTAuLjYxNzg1ZTMgMTAwNjQ0Ci0tLSBhL2RyaXZlcnMvdmlkZW8vb21hcDIvZHNzL2Rpc3BjLmMK
-KysrIGIvZHJpdmVycy92aWRlby9vbWFwMi9kc3MvZGlzcGMuYwpAQCAtOTYwLDYgKzk2MCwxMiBA
-QCB2b2lkIGRpc3BjX3NldHVwX3BsYW5lX2ZpZm8oZW51bSBvbWFwX3BsYW5lIHBsYW5lLCB1MzIg
-bG93LCB1MzIgaGlnaCkKIAogCUJVR19PTihsb3cgPiBzaXplIHx8IGhpZ2ggPiBzaXplKTsKIAor
-CWlmKHNpemUgPT0gMTAyNCkKKwl7CisJCWhpZ2ggPSAweDNGQzsKKwkJbG93ID0gMHgzQkM7CisJ
-fQorCiAJRFNTREJHKCJmaWZvKCVkKSBzaXplICVkLCBsb3cvaGlnaCBvbGQgJXUvJXUsIG5ldyAl
-dS8ldVxuIiwKIAkJCXBsYW5lLCBzaXplLAogCQkJUkVHX0dFVChmdHJzX3JlZ1twbGFuZV0sIDEx
-LCAwKSwKQEAgLTE0NjMsNiArMTQ2OSw4IEBAIHN0YXRpYyBpbnQgX2Rpc3BjX3NldHVwX3BsYW5l
-KGVudW0gb21hcF9wbGFuZSBwbGFuZSwKIAkJCW91dF93aWR0aCwgb3V0X2hlaWdodCk7CiAKIAlf
-ZGlzcGNfc2V0X3BsYW5lX3BvcyhwbGFuZSwgcG9zX3gsIHBvc195KTsKKwlpZiAocGxhbmUgIT0g
-T01BUF9EU1NfR0ZYKQorCQlfZGlzcGNfc2V0X3BsYW5lX3BvcyhwbGFuZSwgNSwgNSk7CiAKIAlf
-ZGlzcGNfc2V0X3BpY19zaXplKHBsYW5lLCB3aWR0aCwgaGVpZ2h0KTsKIAotLSAKMS41LjYuMwoK
---001636c5a7e8d806df0466fba170
-Content-Type: text/x-patch; charset=US-ASCII;
-	name="0001-DSS2-Add-YUV-VRFB-rotation-support.patch"
-Content-Disposition: attachment;
-	filename="0001-DSS2-Add-YUV-VRFB-rotation-support.patch"
-Content-Transfer-Encoding: base64
-X-Attachment-Id: f_ft8yfrla1
-
-RnJvbSA4MjZlZGY5YjJiOWFmN2I5YmMzMmY0MzYzNzI0YWYxNzQ5MTExNzVjIE1vbiBTZXAgMTcg
-MDA6MDA6MDAgMjAwMQpGcm9tOiBUaW0gWWFtaW4gPHBsYXNtQHJvby5tZS51az4KRGF0ZTogVHVl
-LCA3IEFwciAyMDA5IDExOjUyOjM1IC0wNzAwClN1YmplY3Q6IFtQQVRDSF0gRFNTMjogQWRkIFlV
-ViBWUkZCIHJvdGF0aW9uIHN1cHBvcnQKClRoaXMgaXMgYSByZWJhc2VkIHZlcnNpb24gb2YgSGFy
-ZGlrIFNoYWgncyBwYXRjaCB3aXRoIGEgZmV3IGFkZGl0aW9uYWwKdHdlYWtzIGZyb20gbWUuCgpT
-aWduZWQtb2ZmLWJ5OiBUaW0gWWFtaW4gPHBsYXNtQHJvby5tZS51az4KLS0tCiBhcmNoL2FybS9w
-bGF0LW9tYXAvaW5jbHVkZS9tYWNoL2Rpc3BsYXkuaCB8ICAgIDYgKysKIGFyY2gvYXJtL3BsYXQt
-b21hcC92cmZiLmMgICAgICAgICAgICAgICAgIHwgICAgNCArLQogZHJpdmVycy92aWRlby9vbWFw
-Mi9kc3MvZGlzcGMuYyAgICAgICAgICAgfCAgIDg3ICsrKysrKysrKysrKysrKysrKysrKysrKysr
-LS0KIGRyaXZlcnMvdmlkZW8vb21hcDIvZHNzL2Rzcy5oICAgICAgICAgICAgIHwgICAgMSArCiBk
-cml2ZXJzL3ZpZGVvL29tYXAyL2Rzcy9tYW5hZ2VyLmMgICAgICAgICB8ICAgIDEgKwogZHJpdmVy
-cy92aWRlby9vbWFwMi9vbWFwZmIvb21hcGZiLW1haW4uYyAgfCAgIDY2ICsrKysrKysrKysrLS0t
-LS0tLS0tLS0KIGRyaXZlcnMvdmlkZW8vb21hcDIvb21hcGZiL29tYXBmYi5oICAgICAgIHwgICAg
-NyArLS0KIDcgZmlsZXMgY2hhbmdlZCwgMTI2IGluc2VydGlvbnMoKyksIDQ2IGRlbGV0aW9ucygt
-KQoKZGlmZiAtLWdpdCBhL2FyY2gvYXJtL3BsYXQtb21hcC9pbmNsdWRlL21hY2gvZGlzcGxheS5o
-IGIvYXJjaC9hcm0vcGxhdC1vbWFwL2luY2x1ZGUvbWFjaC9kaXNwbGF5LmgKaW5kZXggNmI3MDJj
-Ny4uYjBhNjI3MiAxMDA2NDQKLS0tIGEvYXJjaC9hcm0vcGxhdC1vbWFwL2luY2x1ZGUvbWFjaC9k
-aXNwbGF5LmgKKysrIGIvYXJjaC9hcm0vcGxhdC1vbWFwL2luY2x1ZGUvbWFjaC9kaXNwbGF5LmgK
-QEAgLTM0MSw2ICszNDEsMTEgQEAgZW51bSBvbWFwX2Rzc19vdmVybGF5X21hbmFnZXJzIHsKIAog
-c3RydWN0IG9tYXBfb3ZlcmxheV9tYW5hZ2VyOwogCitlbnVtIG9tYXBfZHNzX3JvdGF0aW9uX3R5
-cGUgeworCU9NQVBfRFNTX1JPVF9ETUEgPSAwLAorCU9NQVBfRFNTX1JPVF9WUkZCID0gMSwKK307
-CisKIHN0cnVjdCBvbWFwX292ZXJsYXlfaW5mbyB7CiAJYm9vbCBlbmFibGVkOwogCkBAIC0zNTEs
-NiArMzU2LDcgQEAgc3RydWN0IG9tYXBfb3ZlcmxheV9pbmZvIHsKIAl1MTYgaGVpZ2h0OwogCWVu
-dW0gb21hcF9jb2xvcl9tb2RlIGNvbG9yX21vZGU7CiAJdTggcm90YXRpb247CisJZW51bSBvbWFw
-X2Rzc19yb3RhdGlvbl90eXBlIHJvdGF0aW9uX3R5cGU7CiAJYm9vbCBtaXJyb3I7CiAKIAl1MTYg
-cG9zX3g7CmRpZmYgLS1naXQgYS9hcmNoL2FybS9wbGF0LW9tYXAvdnJmYi5jIGIvYXJjaC9hcm0v
-cGxhdC1vbWFwL3ZyZmIuYwppbmRleCA3ZTBmOGZjLi43N2FhOWE3IDEwMDY0NAotLS0gYS9hcmNo
-L2FybS9wbGF0LW9tYXAvdnJmYi5jCisrKyBiL2FyY2gvYXJtL3BsYXQtb21hcC92cmZiLmMKQEAg
-LTYxLDggKzYxLDEwIEBAIHZvaWQgb21hcF92cmZiX3NldHVwKHN0cnVjdCB2cmZiICp2cmZiLCB1
-bnNpZ25lZCBsb25nIHBhZGRyLAogCQkJd2lkdGgsIGhlaWdodCwgYnl0ZXNwcCk7CiAKIAlpZiAo
-Ynl0ZXNwcCA9PSA0KQorCXsKIAkJcGl4ZWxfc2l6ZV9leHAgPSAyOwotCWVsc2UgaWYgKGJ5dGVz
-cHAgPT0gMikKKwkJd2lkdGggPj49IDE7CisJfSBlbHNlIGlmIChieXRlc3BwID09IDIpCiAJCXBp
-eGVsX3NpemVfZXhwID0gMTsKIAllbHNlCiAJCUJVRygpOwpkaWZmIC0tZ2l0IGEvZHJpdmVycy92
-aWRlby9vbWFwMi9kc3MvZGlzcGMuYyBiL2RyaXZlcnMvdmlkZW8vb21hcDIvZHNzL2Rpc3BjLmMK
-aW5kZXggYWU3YmUzZC4uYjFkYmI3OSAxMDA2NDQKLS0tIGEvZHJpdmVycy92aWRlby9vbWFwMi9k
-c3MvZGlzcGMuYworKysgYi9kcml2ZXJzL3ZpZGVvL29tYXAyL2Rzcy9kaXNwYy5jCkBAIC0xMTA2
-LDcgKzExMDYsNyBAQCBzdGF0aWMgdm9pZCBfZGlzcGNfc2V0X3JvdGF0aW9uX2F0dHJzKGVudW0g
-b21hcF9wbGFuZSBwbGFuZSwgdTggcm90YXRpb24sCiAJCQljYXNlIDA6IHZpZHJvdCA9IDA7IGJy
-ZWFrOwogCQkJY2FzZSAxOiB2aWRyb3QgPSAxOyBicmVhazsKIAkJCWNhc2UgMjogdmlkcm90ID0g
-MjsgYnJlYWs7Ci0JCQljYXNlIDM6IHZpZHJvdCA9IDE7IGJyZWFrOworCQkJY2FzZSAzOiB2aWRy
-b3QgPSAzOyBicmVhazsKIAkJCX0KIAkJfQogCkBAIC0xMTM0LDcgKzExMzQsNzAgQEAgc3RhdGlj
-IHMzMiBwaXhpbmMoaW50IHBpeGVscywgdTggcHMpCiAJCUJVRygpOwogfQogCi1zdGF0aWMgdm9p
-ZCBjYWxjX3JvdGF0aW9uX29mZnNldCh1OCByb3RhdGlvbiwgYm9vbCBtaXJyb3IsCitzdGF0aWMg
-dm9pZCBjYWxjX3ZyZmJfcm90YXRpb25fb2Zmc2V0KHU4IHJvdGF0aW9uLCBib29sIG1pcnJvciwK
-KwkJdTE2IHNjcmVlbl93aWR0aCwKKwkJdTE2IHdpZHRoLCB1MTYgaGVpZ2h0LAorCQllbnVtIG9t
-YXBfY29sb3JfbW9kZSBjb2xvcl9tb2RlLCBib29sIGZpZWxkbW9kZSwKKwkJdW5zaWduZWQgKm9m
-ZnNldDAsIHVuc2lnbmVkICpvZmZzZXQxLAorCQlzMzIgKnJvd19pbmMsIHMzMiAqcGl4X2luYykK
-K3sKKwl1OCBwczsKKworCXN3aXRjaCAoY29sb3JfbW9kZSkgeworCWNhc2UgT01BUF9EU1NfQ09M
-T1JfUkdCMTY6CisJY2FzZSBPTUFQX0RTU19DT0xPUl9BUkdCMTY6CisJCXBzID0gMjsKKwkJYnJl
-YWs7CisKKwljYXNlIE9NQVBfRFNTX0NPTE9SX1JHQjI0UDoKKwkJcHMgPSAzOworCQlicmVhazsK
-KworCWNhc2UgT01BUF9EU1NfQ09MT1JfUkdCMjRVOgorCWNhc2UgT01BUF9EU1NfQ09MT1JfQVJH
-QjMyOgorCWNhc2UgT01BUF9EU1NfQ09MT1JfUkdCQTMyOgorCWNhc2UgT01BUF9EU1NfQ09MT1Jf
-UkdCWDMyOgorCWNhc2UgT01BUF9EU1NfQ09MT1JfWVVWMjoKKwljYXNlIE9NQVBfRFNTX0NPTE9S
-X1VZVlk6CisJCXBzID0gNDsKKwkJYnJlYWs7CisKKwlkZWZhdWx0OgorCQlCVUcoKTsKKwkJcmV0
-dXJuOworCX0KKworCURTU0RCRygiY2FsY19yb3QoJWQpOiBzY3J3ICVkLCAlZHglZFxuIiwgcm90
-YXRpb24sIHNjcmVlbl93aWR0aCwKKwkJCXdpZHRoLCBoZWlnaHQpOworCXN3aXRjaCAocm90YXRp
-b24gKyBtaXJyb3IgKiA0KSB7CisJY2FzZSAwOgorCWNhc2UgMjoKKwkJLyoKKwkJICogSWYgdGhl
-IHBpeGVsIGZvcm1hdCBpcyBZVVYgb3IgVVlWWSBkaXZpZGUgdGhlIHdpZHRoCisJCSAqIG9mIHRo
-ZSBpbWFnZSBieSAyLgorCQkgKi8KKwkJaWYgKGNvbG9yX21vZGUgPT0gT01BUF9EU1NfQ09MT1Jf
-WVVWMiB8fAorCQkJY29sb3JfbW9kZSA9PSBPTUFQX0RTU19DT0xPUl9VWVZZKQorCQkJd2lkdGgg
-PSB3aWR0aCA+PiAxOworCWNhc2UgMToKKwljYXNlIDM6CisJCSpvZmZzZXQwID0gMDsKKwkJaWYg
-KGZpZWxkbW9kZSkKKwkJCSpvZmZzZXQxID0gc2NyZWVuX3dpZHRoICogcHM7CisJCWVsc2UKKwkJ
-CSpvZmZzZXQxID0gMDsKKworCQkqcm93X2luYyA9IHBpeGluYygxICsgKHNjcmVlbl93aWR0aCAt
-IHdpZHRoKSArCisJCQkJKGZpZWxkbW9kZSA/IHNjcmVlbl93aWR0aCA6IDApLAorCQkJCXBzKTsK
-KwkJKnBpeF9pbmMgPSBwaXhpbmMoMSwgcHMpOworCQlicmVhazsKKwlkZWZhdWx0OgorCQlCVUco
-KTsKKwl9Cit9CisKK3N0YXRpYyB2b2lkIGNhbGNfZG1hX3JvdGF0aW9uX29mZnNldCh1OCByb3Rh
-dGlvbiwgYm9vbCBtaXJyb3IsCiAJCXUxNiBzY3JlZW5fd2lkdGgsCiAJCXUxNiB3aWR0aCwgdTE2
-IGhlaWdodCwKIAkJZW51bSBvbWFwX2NvbG9yX21vZGUgY29sb3JfbW9kZSwgYm9vbCBmaWVsZG1v
-ZGUsCkBAIC0xMzU3LDYgKzE0MjAsNyBAQCBzdGF0aWMgaW50IF9kaXNwY19zZXR1cF9wbGFuZShl
-bnVtIG9tYXBfcGxhbmUgcGxhbmUsCiAJCXUxNiBvdXRfd2lkdGgsIHUxNiBvdXRfaGVpZ2h0LAog
-CQllbnVtIG9tYXBfY29sb3JfbW9kZSBjb2xvcl9tb2RlLAogCQlib29sIGlsYWNlLAorCQllbnVt
-IG9tYXBfZHNzX3JvdGF0aW9uX3R5cGUgcm90YXRpb25fdHlwZSwKIAkJdTggcm90YXRpb24sIGlu
-dCBtaXJyb3IpCiB7CiAJY29uc3QgaW50IG1heGRvd25zY2FsZSA9IGNwdV9pc19vbWFwMzR4eCgp
-ID8gNCA6IDI7CkBAIC0xNDYzLDEwICsxNTI3LDE2IEBAIHN0YXRpYyBpbnQgX2Rpc3BjX3NldHVw
-X3BsYW5lKGVudW0gb21hcF9wbGFuZSBwbGFuZSwKIAkJCXJldHVybiAtRUlOVkFMOwogCX0KIAot
-CWNhbGNfcm90YXRpb25fb2Zmc2V0KHJvdGF0aW9uLCBtaXJyb3IsCi0JCQlzY3JlZW5fd2lkdGgs
-IHdpZHRoLCBmcmFtZV9oZWlnaHQsIGNvbG9yX21vZGUsCi0JCQlmaWVsZG1vZGUsCi0JCQkmb2Zm
-c2V0MCwgJm9mZnNldDEsICZyb3dfaW5jLCAmcGl4X2luYyk7CisJaWYgKHJvdGF0aW9uX3R5cGUg
-PT0gT01BUF9EU1NfUk9UX0RNQSkKKwkJY2FsY19kbWFfcm90YXRpb25fb2Zmc2V0KHJvdGF0aW9u
-LCBtaXJyb3IsCisJCQkJc2NyZWVuX3dpZHRoLCB3aWR0aCwgaGVpZ2h0LCBjb2xvcl9tb2RlLAor
-CQkJCWZpZWxkbW9kZSwKKwkJCQkmb2Zmc2V0MCwgJm9mZnNldDEsICZyb3dfaW5jLCAmcGl4X2lu
-Yyk7CisJZWxzZQorCQljYWxjX3ZyZmJfcm90YXRpb25fb2Zmc2V0KHJvdGF0aW9uLCBtaXJyb3Is
-CisJCQkJc2NyZWVuX3dpZHRoLCB3aWR0aCwgaGVpZ2h0LCBjb2xvcl9tb2RlLAorCQkJCWZpZWxk
-bW9kZSwKKwkJCQkmb2Zmc2V0MCwgJm9mZnNldDEsICZyb3dfaW5jLCAmcGl4X2luYyk7CiAKIAlE
-U1NEQkcoIm9mZnNldDAgJXUsIG9mZnNldDEgJXUsIHJvd19pbmMgJWQsIHBpeF9pbmMgJWRcbiIs
-CiAJCQlvZmZzZXQwLCBvZmZzZXQxLCByb3dfaW5jLCBwaXhfaW5jKTsKQEAgLTI4NzksNiArMjk0
-OSw3IEBAIGludCBkaXNwY19zZXR1cF9wbGFuZShlbnVtIG9tYXBfcGxhbmUgcGxhbmUsIGVudW0g
-b21hcF9jaGFubmVsIGNoYW5uZWxfb3V0LAogCQkgICAgICAgdTE2IG91dF93aWR0aCwgdTE2IG91
-dF9oZWlnaHQsCiAJCSAgICAgICBlbnVtIG9tYXBfY29sb3JfbW9kZSBjb2xvcl9tb2RlLAogCQkg
-ICAgICAgYm9vbCBpbGFjZSwKKwkJICAgICAgIGVudW0gb21hcF9kc3Nfcm90YXRpb25fdHlwZSBy
-b3RhdGlvbl90eXBlLAogCQkgICAgICAgdTggcm90YXRpb24sIGJvb2wgbWlycm9yKQogewogCWlu
-dCByID0gMDsKQEAgLTI4OTksNiArMjk3MCw3IEBAIGludCBkaXNwY19zZXR1cF9wbGFuZShlbnVt
-IG9tYXBfcGxhbmUgcGxhbmUsIGVudW0gb21hcF9jaGFubmVsIGNoYW5uZWxfb3V0LAogCQkJICAg
-d2lkdGgsIGhlaWdodCwKIAkJCSAgIG91dF93aWR0aCwgb3V0X2hlaWdodCwKIAkJCSAgIGNvbG9y
-X21vZGUsIGlsYWNlLAorCQkJICAgcm90YXRpb25fdHlwZSwKIAkJCSAgIHJvdGF0aW9uLCBtaXJy
-b3IpOwogCiAJZW5hYmxlX2Nsb2NrcygwKTsKQEAgLTMxMTIsNyArMzE4NCw4IEBAIHZvaWQgZGlz
-cGNfc2V0dXBfcGFydGlhbF9wbGFuZXMoc3RydWN0IG9tYXBfZGlzcGxheSAqZGlzcGxheSwKIAkJ
-CQlwdywgcGgsCiAJCQkJcG93LCBwb2gsCiAJCQkJcGktPmNvbG9yX21vZGUsIDAsCi0JCQkJcGkt
-PnJvdGF0aW9uLCAvLyBYWFggcm90YXRpb24gcHJvYmFibHkgd3JvbmcKKwkJCQlwaS0+cm90YXRp
-b25fdHlwZSwKKwkJCQlwaS0+cm90YXRpb24sCiAJCQkJcGktPm1pcnJvcik7CiAKIAkJZGlzcGNf
-ZW5hYmxlX3BsYW5lKG92bC0+aWQsIDEpOwpkaWZmIC0tZ2l0IGEvZHJpdmVycy92aWRlby9vbWFw
-Mi9kc3MvZHNzLmggYi9kcml2ZXJzL3ZpZGVvL29tYXAyL2Rzcy9kc3MuaAppbmRleCAwYmU0MmI2
-Li5jNzIyZWVlIDEwMDY0NAotLS0gYS9kcml2ZXJzL3ZpZGVvL29tYXAyL2Rzcy9kc3MuaAorKysg
-Yi9kcml2ZXJzL3ZpZGVvL29tYXAyL2Rzcy9kc3MuaApAQCAtMjY5LDYgKzI2OSw3IEBAIGludCBk
-aXNwY19zZXR1cF9wbGFuZShlbnVtIG9tYXBfcGxhbmUgcGxhbmUsIGVudW0gb21hcF9jaGFubmVs
-IGNoYW5uZWxfb3V0LAogCQkgICAgICB1MTYgb3V0X3dpZHRoLCB1MTYgb3V0X2hlaWdodCwKIAkJ
-ICAgICAgZW51bSBvbWFwX2NvbG9yX21vZGUgY29sb3JfbW9kZSwKIAkJICAgICAgYm9vbCBpbGFj
-ZSwKKwkJICAgICAgZW51bSBvbWFwX2Rzc19yb3RhdGlvbl90eXBlIHJvdGF0aW9uX3R5cGUsCiAJ
-CSAgICAgIHU4IHJvdGF0aW9uLCBib29sIG1pcnJvcik7CiAKIHZvaWQgZGlzcGNfZ28oZW51bSBv
-bWFwX2NoYW5uZWwgY2hhbm5lbCk7CmRpZmYgLS1naXQgYS9kcml2ZXJzL3ZpZGVvL29tYXAyL2Rz
-cy9tYW5hZ2VyLmMgYi9kcml2ZXJzL3ZpZGVvL29tYXAyL2Rzcy9tYW5hZ2VyLmMKaW5kZXggYjBm
-ZWU4MC4uOGNhMGJiYiAxMDA2NDQKLS0tIGEvZHJpdmVycy92aWRlby9vbWFwMi9kc3MvbWFuYWdl
-ci5jCisrKyBiL2RyaXZlcnMvdmlkZW8vb21hcDIvZHNzL21hbmFnZXIuYwpAQCAtMzk1LDYgKzM5
-NSw3IEBAIHN0YXRpYyBpbnQgb21hcF9kc3NfbWdyX2FwcGx5KHN0cnVjdCBvbWFwX292ZXJsYXlf
-bWFuYWdlciAqbWdyKQogCQkJCW91dGgsCiAJCQkJb3ZsLT5pbmZvLmNvbG9yX21vZGUsCiAJCQkJ
-aWxhY2UsCisJCQkJb3ZsLT5pbmZvLnJvdGF0aW9uX3R5cGUsCiAJCQkJb3ZsLT5pbmZvLnJvdGF0
-aW9uLAogCQkJCW92bC0+aW5mby5taXJyb3IpOwogCmRpZmYgLS1naXQgYS9kcml2ZXJzL3ZpZGVv
-L29tYXAyL29tYXBmYi9vbWFwZmItbWFpbi5jIGIvZHJpdmVycy92aWRlby9vbWFwMi9vbWFwZmIv
-b21hcGZiLW1haW4uYwppbmRleCAxMmNlMGMzLi44MzI3NjgxIDEwMDY0NAotLS0gYS9kcml2ZXJz
-L3ZpZGVvL29tYXAyL29tYXBmYi9vbWFwZmItbWFpbi5jCisrKyBiL2RyaXZlcnMvdmlkZW8vb21h
-cDIvb21hcGZiL29tYXBmYi1tYWluLmMKQEAgLTE3NiwxNSArMTc2LDkgQEAgc3RhdGljIHVuc2ln
-bmVkIG9tYXBmYl9nZXRfdnJmYl9vZmZzZXQoc3RydWN0IG9tYXBmYl9pbmZvICpvZmJpLCBpbnQg
-cm90KQogCiBzdGF0aWMgdTMyIG9tYXBmYl9nZXRfcmVnaW9uX3JvdF9wYWRkcihzdHJ1Y3Qgb21h
-cGZiX2luZm8gKm9mYmkpCiB7Ci0JaWYgKG9mYmktPnJvdGF0aW9uX3R5cGUgPT0gT01BUEZCX1JP
-VF9WUkZCKSB7Ci0JCXVuc2lnbmVkIG9mZnNldDsKLQkJaW50IHJvdDsKLQotCQlyb3QgPSBvZmJp
-LT5yb3RhdGlvbjsKLQotCQlvZmZzZXQgPSBvbWFwZmJfZ2V0X3ZyZmJfb2Zmc2V0KG9mYmksIHJv
-dCk7Ci0KLQkJcmV0dXJuIG9mYmktPnJlZ2lvbi52cmZiLnBhZGRyW3JvdF0gKyBvZmZzZXQ7CisJ
-aWYgKG9mYmktPnJvdGF0aW9uX3R5cGUgPT0gT01BUF9EU1NfUk9UX1ZSRkIpIHsKKwkJcmV0dXJu
-IG9mYmktPnJlZ2lvbi52cmZiLnBhZGRyW29mYmktPnJvdGF0aW9uXQorCQkJKyBvbWFwZmJfZ2V0
-X3ZyZmJfb2Zmc2V0KG9mYmksIG9mYmktPnJvdGF0aW9uKTsKIAl9IGVsc2UgewogCQlyZXR1cm4g
-b2ZiaS0+cmVnaW9uLnBhZGRyOwogCX0KQEAgLTE5Miw3ICsxODYsNyBAQCBzdGF0aWMgdTMyIG9t
-YXBmYl9nZXRfcmVnaW9uX3JvdF9wYWRkcihzdHJ1Y3Qgb21hcGZiX2luZm8gKm9mYmkpCiAKIHUz
-MiBvbWFwZmJfZ2V0X3JlZ2lvbl9wYWRkcihzdHJ1Y3Qgb21hcGZiX2luZm8gKm9mYmkpCiB7Ci0J
-aWYgKG9mYmktPnJvdGF0aW9uX3R5cGUgPT0gT01BUEZCX1JPVF9WUkZCKQorCWlmIChvZmJpLT5y
-b3RhdGlvbl90eXBlID09IE9NQVBfRFNTX1JPVF9WUkZCKQogCQlyZXR1cm4gb2ZiaS0+cmVnaW9u
-LnZyZmIucGFkZHJbMF07CiAJZWxzZQogCQlyZXR1cm4gb2ZiaS0+cmVnaW9uLnBhZGRyOwpAQCAt
-MjAwLDcgKzE5NCw3IEBAIHUzMiBvbWFwZmJfZ2V0X3JlZ2lvbl9wYWRkcihzdHJ1Y3Qgb21hcGZi
-X2luZm8gKm9mYmkpCiAKIHZvaWQgX19pb21lbSAqb21hcGZiX2dldF9yZWdpb25fdmFkZHIoc3Ry
-dWN0IG9tYXBmYl9pbmZvICpvZmJpKQogewotCWlmIChvZmJpLT5yb3RhdGlvbl90eXBlID09IE9N
-QVBGQl9ST1RfVlJGQikKKwlpZiAob2ZiaS0+cm90YXRpb25fdHlwZSA9PSBPTUFQX0RTU19ST1Rf
-VlJGQikKIAkJcmV0dXJuIG9mYmktPnJlZ2lvbi52cmZiLnZhZGRyWzBdOwogCWVsc2UKIAkJcmV0
-dXJuIG9mYmktPnJlZ2lvbi52YWRkcjsKQEAgLTM4Myw3ICszNzcsNyBAQCB2b2lkIHNldF9mYl9m
-aXgoc3RydWN0IGZiX2luZm8gKmZiaSkKIAlmYmktPnNjcmVlbl9iYXNlID0gKGNoYXIgX19pb21l
-bSAqKW9tYXBmYl9nZXRfcmVnaW9uX3ZhZGRyKG9mYmkpOwogCiAJLyogdXNlZCBieSBtbWFwIGlu
-IGZibWVtLmMgKi8KLQlpZiAob2ZiaS0+cm90YXRpb25fdHlwZSA9PSBPTUFQRkJfUk9UX1ZSRkIp
-CisJaWYgKG9mYmktPnJvdGF0aW9uX3R5cGUgPT0gT01BUF9EU1NfUk9UX1ZSRkIpCiAJCWZpeC0+
-bGluZV9sZW5ndGggPQogCQkJKE9NQVBfVlJGQl9MSU5FX0xFTiAqIHZhci0+Yml0c19wZXJfcGl4
-ZWwpID4+IDM7CiAJZWxzZQpAQCAtNDE5LDExICs0MTMsMjEgQEAgdm9pZCBzZXRfZmJfZml4KHN0
-cnVjdCBmYl9pbmZvICpmYmkpCiAJZml4LT54cGFuc3RlcCA9IDE7CiAJZml4LT55cGFuc3RlcCA9
-IDE7CiAKLQlpZiAocmctPnNpemUpIHsKLQkJaWYgKG9mYmktPnJvdGF0aW9uX3R5cGUgPT0gT01B
-UEZCX1JPVF9WUkZCKQotCQkJb21hcF92cmZiX3NldHVwKCZyZy0+dnJmYiwgcmctPnBhZGRyLAot
-CQkJCQl2YXItPnhyZXNfdmlydHVhbCwgdmFyLT55cmVzX3ZpcnR1YWwsCi0JCQkJCXZhci0+Yml0
-c19wZXJfcGl4ZWwgPj4gMyk7CisJaWYgKHJnLT5zaXplICYmIG9mYmktPnJvdGF0aW9uX3R5cGUg
-PT0gT01BUF9EU1NfUk9UX1ZSRkIpIHsKKwkJc3dpdGNoKHZhci0+bm9uc3RkKQorCQl7CisJCQlj
-YXNlIE9NQVBGQl9DT0xPUl9ZVVY0MjI6CisJCQljYXNlIE9NQVBGQl9DT0xPUl9ZVVY0MjA6CisJ
-CQljYXNlIE9NQVBGQl9DT0xPUl9ZVVk0MjI6CisJCQkJb21hcF92cmZiX3NldHVwKCZyZy0+dnJm
-YiwgcmctPnBhZGRyLAorCQkJCQkJdmFyLT54cmVzX3ZpcnR1YWwsIHZhci0+eXJlc192aXJ0dWFs
-LAorCQkJCQkJdmFyLT5iaXRzX3Blcl9waXhlbCA+PiAyKTsKKwkJCQlicmVhazsKKwkJCWRlZmF1
-bHQ6CisJCQkJb21hcF92cmZiX3NldHVwKCZyZy0+dnJmYiwgcmctPnBhZGRyLAorCQkJCQkJdmFy
-LT54cmVzX3ZpcnR1YWwsIHZhci0+eXJlc192aXJ0dWFsLAorCQkJCQkJdmFyLT5iaXRzX3Blcl9w
-aXhlbCA+PiAzKTsKKwkJfQogCX0KIH0KIApAQCAtNTEyLDcgKzUxNiw3IEBAIGludCBjaGVja19m
-Yl92YXIoc3RydWN0IGZiX2luZm8gKmZiaSwgc3RydWN0IGZiX3Zhcl9zY3JlZW5pbmZvICp2YXIp
-CiAJaWYgKHZhci0+eXJlcyA+IHZhci0+eXJlc192aXJ0dWFsKQogCQl2YXItPnlyZXMgPSB2YXIt
-PnlyZXNfdmlydHVhbDsKIAotCWlmIChvZmJpLT5yb3RhdGlvbl90eXBlID09IE9NQVBGQl9ST1Rf
-VlJGQikKKwlpZiAob2ZiaS0+cm90YXRpb25fdHlwZSA9PSBPTUFQX0RTU19ST1RfVlJGQikKIAkJ
-bGluZV9zaXplID0gT01BUF9WUkZCX0xJTkVfTEVOICogYnl0ZXNwcDsKIAllbHNlCiAJCWxpbmVf
-c2l6ZSA9IHZhci0+eHJlc192aXJ0dWFsICogYnl0ZXNwcDsKQEAgLTUzNCw3ICs1MzgsNyBAQCBp
-bnQgY2hlY2tfZmJfdmFyKHN0cnVjdCBmYl9pbmZvICpmYmksIHN0cnVjdCBmYl92YXJfc2NyZWVu
-aW5mbyAqdmFyKQogCiAJaWYgKGxpbmVfc2l6ZSAqIHZhci0+eXJlc192aXJ0dWFsID4gbWF4X2Zy
-YW1lX3NpemUpIHsKIAkJREJHKCJjYW4ndCBmaXQgRkIgaW50byBtZW1vcnksIHJlZHVjaW5nIHhc
-biIpOwotCQlpZiAob2ZiaS0+cm90YXRpb25fdHlwZSA9PSBPTUFQRkJfUk9UX1ZSRkIpCisJCWlm
-IChvZmJpLT5yb3RhdGlvbl90eXBlID09IE9NQVBfRFNTX1JPVF9WUkZCKQogCQkJcmV0dXJuIC1F
-SU5WQUw7CiAKIAkJdmFyLT54cmVzX3ZpcnR1YWwgPSBtYXhfZnJhbWVfc2l6ZSAvIHZhci0+eXJl
-c192aXJ0dWFsIC8KQEAgLTY1Nyw3ICs2NjEsNyBAQCBzdGF0aWMgaW50IG9tYXBmYl9zZXR1cF9v
-dmVybGF5KHN0cnVjdCBmYl9pbmZvICpmYmksIHN0cnVjdCBvbWFwX292ZXJsYXkgKm92bCwKIAlz
-dHJ1Y3Qgb21hcF9vdmVybGF5X2luZm8gaW5mbzsKIAlpbnQgeHJlcywgeXJlczsKIAlpbnQgc2Ny
-ZWVuX3dpZHRoOwotCWludCByb3QsIG1pcnJvcjsKKwlpbnQgbWlycm9yOwogCiAJREJHKCJzZXR1
-cF9vdmVybGF5ICVkLCBwb3N4ICVkLCBwb3N5ICVkLCBvdXR3ICVkLCBvdXRoICVkXG4iLCBvZmJp
-LT5pZCwKIAkJCXBvc3gsIHBvc3ksIG91dHcsIG91dGgpOwpAQCAtNjczLDcgKzY3Nyw3IEBAIHN0
-YXRpYyBpbnQgb21hcGZiX3NldHVwX292ZXJsYXkoc3RydWN0IGZiX2luZm8gKmZiaSwgc3RydWN0
-IG9tYXBfb3ZlcmxheSAqb3ZsLAogCW9mZnNldCA9ICgodmFyLT55b2Zmc2V0ICogdmFyLT54cmVz
-X3ZpcnR1YWwgKwogCQkJCXZhci0+eG9mZnNldCkgKiB2YXItPmJpdHNfcGVyX3BpeGVsKSA+PiAz
-OwogCi0JaWYgKG9mYmktPnJvdGF0aW9uX3R5cGUgPT0gT01BUEZCX1JPVF9WUkZCKSB7CisJaWYg
-KG9mYmktPnJvdGF0aW9uX3R5cGUgPT0gT01BUF9EU1NfUk9UX1ZSRkIpIHsKIAkJZGF0YV9zdGFy
-dF9wID0gb21hcGZiX2dldF9yZWdpb25fcm90X3BhZGRyKG9mYmkpOwogCQlkYXRhX3N0YXJ0X3Yg
-PSBOVUxMOwogCX0gZWxzZSB7CkBAIC02OTYsMTMgKzcwMCwxMCBAQCBzdGF0aWMgaW50IG9tYXBm
-Yl9zZXR1cF9vdmVybGF5KHN0cnVjdCBmYl9pbmZvICpmYmksIHN0cnVjdCBvbWFwX292ZXJsYXkg
-Km92bCwKIAogCW92bC0+Z2V0X292ZXJsYXlfaW5mbyhvdmwsICZpbmZvKTsKIAotCWlmIChvZmJp
-LT5yb3RhdGlvbl90eXBlID09IE9NQVBGQl9ST1RfVlJGQikgewotCQlyb3QgPSAwOworCWlmIChv
-ZmJpLT5yb3RhdGlvbl90eXBlID09IE9NQVBfRFNTX1JPVF9WUkZCKQogCQltaXJyb3IgPSAwOwot
-CX0gZWxzZSB7Ci0JCXJvdCA9IG9mYmktPnJvdGF0aW9uOworCWVsc2UKIAkJbWlycm9yID0gb2Zi
-aS0+bWlycm9yOwotCX0KIAogCWluZm8ucGFkZHIgPSBkYXRhX3N0YXJ0X3A7CiAJaW5mby52YWRk
-ciA9IGRhdGFfc3RhcnRfdjsKQEAgLTcxMCw3ICs3MTEsOCBAQCBzdGF0aWMgaW50IG9tYXBmYl9z
-ZXR1cF9vdmVybGF5KHN0cnVjdCBmYl9pbmZvICpmYmksIHN0cnVjdCBvbWFwX292ZXJsYXkgKm92
-bCwKIAlpbmZvLndpZHRoID0geHJlczsKIAlpbmZvLmhlaWdodCA9IHlyZXM7CiAJaW5mby5jb2xv
-cl9tb2RlID0gbW9kZTsKLQlpbmZvLnJvdGF0aW9uID0gcm90OworCWluZm8ucm90YXRpb25fdHlw
-ZSA9IG9mYmktPnJvdGF0aW9uX3R5cGU7CisJaW5mby5yb3RhdGlvbiA9IG9mYmktPnJvdGF0aW9u
-OwogCWluZm8ubWlycm9yID0gbWlycm9yOwogCiAJaW5mby5wb3NfeCA9IHBvc3g7CkBAIC0xMTA2
-LDcgKzExMDgsNyBAQCBzdGF0aWMgdm9pZCBvbWFwZmJfZnJlZV9mYm1lbShzdHJ1Y3QgZmJfaW5m
-byAqZmJpKQogCWlmIChyZy0+dmFkZHIpCiAJCWlvdW5tYXAocmctPnZhZGRyKTsKIAotCWlmIChv
-ZmJpLT5yb3RhdGlvbl90eXBlID09IE9NQVBGQl9ST1RfVlJGQikgeworCWlmIChvZmJpLT5yb3Rh
-dGlvbl90eXBlID09IE9NQVBfRFNTX1JPVF9WUkZCKSB7CiAJCS8qIHVubWFwIHRoZSAwIGFuZ2xl
-IHJvdGF0aW9uICovCiAJCWlmIChyZy0+dnJmYi52YWRkclswXSkgewogCQkJaW91bm1hcChyZy0+
-dnJmYi52YWRkclswXSk7CkBAIC0xMTY2LDcgKzExNjgsNyBAQCBzdGF0aWMgaW50IG9tYXBmYl9h
-bGxvY19mYm1lbShzdHJ1Y3QgZmJfaW5mbyAqZmJpLCB1bnNpZ25lZCBsb25nIHNpemUsCiAJCXJl
-dHVybiAtRU5PTUVNOwogCX0KIAotCWlmIChvZmJpLT5yb3RhdGlvbl90eXBlICE9IE9NQVBGQl9S
-T1RfVlJGQikgeworCWlmIChvZmJpLT5yb3RhdGlvbl90eXBlICE9IE9NQVBfRFNTX1JPVF9WUkZC
-KSB7CiAJCXZhZGRyID0gaW9yZW1hcF93YyhwYWRkciwgc2l6ZSk7CiAKIAkJaWYgKCF2YWRkcikg
-ewpAQCAtMTI0NSw3ICsxMjQ3LDcgQEAgc3RhdGljIGludCBvbWFwZmJfYWxsb2NfZmJtZW1fZGlz
-cGxheShzdHJ1Y3QgZmJfaW5mbyAqZmJpLCB1bnNpZ25lZCBsb25nIHNpemUsCiAKIAkJZGlzcGxh
-eS0+Z2V0X3Jlc29sdXRpb24oZGlzcGxheSwgJncsICZoKTsKIAotCQlpZiAob2ZiaS0+cm90YXRp
-b25fdHlwZSA9PSBPTUFQRkJfUk9UX1ZSRkIpIHsKKwkJaWYgKG9mYmktPnJvdGF0aW9uX3R5cGUg
-PT0gT01BUF9EU1NfUk9UX1ZSRkIpIHsKICNpZmRlZiBERUJVRwogCQkJaW50IG9sZHcgPSB3LCBv
-bGRoID0gaDsKICNlbmRpZgpAQCAtMTYwMiw4ICsxNjA0LDggQEAgc3RhdGljIGludCBvbWFwZmJf
-Y3JlYXRlX2ZyYW1lYnVmZmVycyhzdHJ1Y3Qgb21hcGZiMl9kZXZpY2UgKmZiZGV2KQogCQlvZmJp
-LT5pZCA9IGk7CiAKIAkJLyogYXNzaWduIHRoZXNlIGVhcmx5LCBzbyB0aGF0IGZiIGFsbG9jIGNh
-biB1c2UgdGhlbSAqLwotCQlvZmJpLT5yb3RhdGlvbl90eXBlID0gZGVmX3ZyZmIgPyBPTUFQRkJf
-Uk9UX1ZSRkIgOgotCQkJT01BUEZCX1JPVF9ETUE7CisJCW9mYmktPnJvdGF0aW9uX3R5cGUgPSBk
-ZWZfdnJmYiA/IE9NQVBfRFNTX1JPVF9WUkZCIDoKKwkJCU9NQVBfRFNTX1JPVF9ETUE7CiAJCW9m
-YmktPnJvdGF0aW9uID0gZGVmX3JvdGF0ZTsKIAkJb2ZiaS0+bWlycm9yID0gZGVmX21pcnJvcjsK
-IApkaWZmIC0tZ2l0IGEvZHJpdmVycy92aWRlby9vbWFwMi9vbWFwZmIvb21hcGZiLmggYi9kcml2
-ZXJzL3ZpZGVvL29tYXAyL29tYXBmYi9vbWFwZmIuaAppbmRleCA2NWU5ZTZlLi44OGU3Njc1IDEw
-MDY0NAotLS0gYS9kcml2ZXJzL3ZpZGVvL29tYXAyL29tYXBmYi9vbWFwZmIuaAorKysgYi9kcml2
-ZXJzL3ZpZGVvL29tYXAyL29tYXBmYi9vbWFwZmIuaApAQCAtNTEsMTEgKzUxLDYgQEAgc3RydWN0
-IG9tYXBmYjJfbWVtX3JlZ2lvbiB7CiAJYm9vbAkJbWFwOwkJLyoga2VybmVsIG1hcHBlZCBieSB0
-aGUgZHJpdmVyICovCiB9OwogCi1lbnVtIG9tYXBmYl9yb3RhdGlvbl90eXBlIHsKLQlPTUFQRkJf
-Uk9UX0RNQSA9IDAsCi0JT01BUEZCX1JPVF9WUkZCID0gMSwKLX07Ci0KIC8qIGFwcGVuZGVkIHRv
-IGZiX2luZm8gKi8KIHN0cnVjdCBvbWFwZmJfaW5mbyB7CiAJaW50IGlkOwpAQCAtNjQsNyArNTks
-NyBAQCBzdHJ1Y3Qgb21hcGZiX2luZm8gewogCWludCBudW1fb3ZlcmxheXM7CiAJc3RydWN0IG9t
-YXBfb3ZlcmxheSAqb3ZlcmxheXNbT01BUEZCX01BWF9PVkxfUEVSX0ZCXTsKIAlzdHJ1Y3Qgb21h
-cGZiMl9kZXZpY2UgKmZiZGV2OwotCWVudW0gb21hcGZiX3JvdGF0aW9uX3R5cGUgcm90YXRpb25f
-dHlwZTsKKwllbnVtIG9tYXBfZHNzX3JvdGF0aW9uX3R5cGUgcm90YXRpb25fdHlwZTsKIAl1OCBy
-b3RhdGlvbjsKIAlib29sIG1pcnJvcjsKIH07Ci0tIAoxLjUuNi4zCgo=
---001636c5a7e8d806df0466fba170--
