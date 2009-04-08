@@ -1,72 +1,57 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH] mmc: Fix compile for omap_hsmmc.c (Re: New build error?)
-Date: Tue, 7 Apr 2009 17:13:27 -0700
-Message-ID: <20090408001325.GG23823@atomide.com>
-References: <20090407195524.GA10619@n2100.arm.linux.org.uk>
+From: Hugo Vincent <hugo.vincent@gmail.com>
+Subject: Re: Preempt-RT on OMAP3?
+Date: Wed, 8 Apr 2009 13:22:28 +1200
+Message-ID: <5a7b8b7b0904071822r52e910aat2454a63b0edadb69@mail.gmail.com>
+References: <5a7b8b7b0904052025g74325484h66335606bebea5a3@mail.gmail.com>
+	 <200904061927.09627.david-b@pacbell.net>
+	 <5a7b8b7b0904061944h65f7b36cja70681d6a512693b@mail.gmail.com>
+	 <200904062036.57982.david-b@pacbell.net>
+	 <5a7b8b7b0904062119w42209eedp8645d096acb8c4dd@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="X1bOJ3K7DJ5YkBrT"
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:56323 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1760403AbZDHANn (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 7 Apr 2009 20:13:43 -0400
-Content-Disposition: inline
-In-Reply-To: <20090407195524.GA10619@n2100.arm.linux.org.uk>
+Received: from yw-out-2324.google.com ([74.125.46.28]:24518 "EHLO
+	yw-out-2324.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754798AbZDHBWa convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 7 Apr 2009 21:22:30 -0400
+Received: by yw-out-2324.google.com with SMTP id 5so2822452ywb.1
+        for <linux-omap@vger.kernel.org>; Tue, 07 Apr 2009 18:22:28 -0700 (PDT)
+In-Reply-To: <5a7b8b7b0904062119w42209eedp8645d096acb8c4dd@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: linux-arm-kernel@lists.arm.linux.org.uk, linux-omap@vger.kernel.org, Adrian Hunter <adrian.hunter@nokia.com>, Pierre Ossman <drzeus@drzeus.cx>
+To: David Brownell <david-b@pacbell.net>
+Cc: linux-omap@vger.kernel.org
 
+On Tue, Apr 7, 2009 at 4:19 PM, Hugo Vincent <hugo.vincent@gmail.com> w=
+rote:
+> On Tue, Apr 7, 2009 at 3:36 PM, David Brownell <david-b@pacbell.net> =
+wrote:
+>> On Monday 06 April 2009, Hugo Vincent wrote:
+>>> Here is a complete boot log + config:
+>>> http://hugovincent.com/files/lkml-20090407/boot2.log
+>>
+>> Erm, not very complete actually. =A0Enable DEBUG_LL to see
+>> more early messages ... like the ones starting right
+>> after the kernel decompression messages.
+>
+> How's this?
+> http://hugovincent.com/files/lkml-20090407/boot3.log
+>
+> (In case it isn't clear, we get messages twice because console and
+> debug_LL are on the same serial port. I also had to increase
+> CONFIG_LOG_BUF_SHIFT to get a complete log in dmesg.)
 
---X1bOJ3K7DJ5YkBrT
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Can anyone give me any pointers on where to start for fixing the
+problems shown in the above boot log?
 
-* Russell King - ARM Linux <linux@arm.linux.org.uk> [090407 12:55]:
-> Caused by: 4a694dc915c9a223044ce21fc0d99e63facd1d64
-> 
->     omap_hsmmc: Fix response type for busy after response
-> 
-> Error:
-> 
-> drivers/mmc/host/omap_hsmmc.c: In function 'mmc_omap_xfer_done':
-> drivers/mmc/host/omap_hsmmc.c:301: error: implicit declaration of function 'mmc_omap_fclk_lazy_disable'
-> 
-> Please submit a fix to Pierre for this, thanks.
+It looks like some fairly low level locking bugs (spinlock vs
+raw_spinlock maybe?) in twl4030 IRQ handling and GP timer/clock event
+source setup.
 
-Thanks for notifying about this. Pierre, here's a fix for this.
-
-Tony
-
---X1bOJ3K7DJ5YkBrT
-Content-Type: text/x-diff; charset=us-ascii
-Content-Disposition: inline; filename="hsmmc-fix-compile.patch"
-
->From 880d2674e036b566f5596bef1b45911508cd37a1 Mon Sep 17 00:00:00 2001
-From: Tony Lindgren <tony@atomide.com>
-Date: Tue, 7 Apr 2009 17:04:33 -0700
-Subject: [PATCH] mmc: Fix compile for omap_hsmmc.c
-
-This fixes the issue noted by Russell King:
-
-drivers/mmc/host/omap_hsmmc.c: In function 'mmc_omap_xfer_done':
-drivers/mmc/host/omap_hsmmc.c:301: error: implicit declaration of function 'mmc_omap_fclk_lazy_disable'
-
-This got broken by 4a694dc915c9a223044ce21fc0d99e63facd1d64.
-
-Signed-off-by: Tony Lindgren <tony@atomide.com>
-
-diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
-index a752788..d765df2 100644
---- a/drivers/mmc/host/omap_hsmmc.c
-+++ b/drivers/mmc/host/omap_hsmmc.c
-@@ -298,7 +298,6 @@ mmc_omap_xfer_done(struct mmc_omap_host *host, struct mmc_data *data)
- 		struct mmc_request *mrq = host->mrq;
- 
- 		host->mrq = NULL;
--		mmc_omap_fclk_lazy_disable(host);
- 		mmc_request_done(host->mmc, mrq);
- 		return;
- 	}
-
---X1bOJ3K7DJ5YkBrT--
+Hugo
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
