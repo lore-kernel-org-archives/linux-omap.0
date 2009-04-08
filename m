@@ -1,47 +1,34 @@
-From: Pierre Ossman <drzeus-mmc@drzeus.cx>
-Subject: Re: [PATCH] HSMMC: mmc_omap_irq: Do not expect cmd/data to be
- non-null when CC/TC occurs
-Date: Wed, 8 Apr 2009 20:43:50 +0200
-Message-ID: <20090408204350.3b675823@mjolnir.ossman.eu>
-References: <49DC5DD8.2070208@nokia.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [RFC][PATCH] OMAP3: Clock FW: Camera module doesn't have IDLEST
+ bit
+Date: Wed, 8 Apr 2009 15:37:47 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.0904081536100.2803@utopia.booyaka.com>
+References: <A24693684029E5489D1D202277BE89442EB826F5@dlee02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from 82-117-125-11.tcdsl.calypso.net ([82.117.125.11]:47288 "EHLO
-	smtp.ossman.eu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753357AbZDHSnz (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 8 Apr 2009 14:43:55 -0400
-In-Reply-To: <49DC5DD8.2070208@nokia.com>
+Received: from utopia.booyaka.com ([72.9.107.138]:39349 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755393AbZDHVhs (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 8 Apr 2009 17:37:48 -0400
+In-Reply-To: <A24693684029E5489D1D202277BE89442EB826F5@dlee02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Adrian Hunter <adrian.hunter@nokia.com>
-Cc: "Lavinen Jarkko (Nokia-M/Helsinki)" <jarkko.lavinen@nokia.com>, LKML <linux-kernel@vger.kernel.org>, linux-omap Mailing List <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>
+To: "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Wed, 08 Apr 2009 11:18:32 +0300
-Adrian Hunter <adrian.hunter@nokia.com> wrote:
 
-> From: Jarkko Lavinen <jarkko.lavinen@nokia.com>
+On Mon, 6 Apr 2009, Aguirre Rodriguez, Sergio Alberto wrote:
+
+> >From 8ea977337f4bd6121e9410bfd7f02fbd7f9cb762 Mon Sep 17 00:00:00 2001
+> From: Sergio Aguirre <saaguirre@ti.com>
+> Date: Mon, 6 Apr 2009 17:44:32 -0500
+> Subject: [PATCH] OMAP3: Clock FW: Camera module doesn't have IDLEST bit
 > 
-> With spurious interrupt cmd can be null even when we have CC
-> set in irq status.
-> 
-> Fixes: NB#106295 - prevent potential kernel crash in the MMC driver
-> 
-> Signed-off-by: Jarkko Lavinen <jarkko.lavinen@nokia.com>
-> Signed-off-by: Adrian Hunter <adrian.hunter@nokia.com>
-> ---
+> This patch avoids waiting for the camera module to become ready,
+> since it doesn't have IDLEST bit.
 
-Queued.
+Thanks Sergio, will queue this for the omap-clock-fixes branch.
 
--- 
-     -- Pierre Ossman
 
-  Linux kernel, MMC maintainer        http://www.kernel.org
-  rdesktop, core developer          http://www.rdesktop.org
-  TigerVNC, core developer          http://www.tigervnc.org
-
-  WARNING: This correspondence is being monitored by the
-  Swedish government. Make sure your server uses encryption
-  for SMTP traffic and consider using PGP for end-to-end
-  encryption.
+- Paul
