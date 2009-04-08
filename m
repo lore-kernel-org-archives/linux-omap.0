@@ -1,70 +1,47 @@
-From: Pierre Ossman <pierre@ossman.eu>
-Subject: Re: [PATCH] mmc: Fix compile for omap_hsmmc.c (Re: New build
- error?)
-Date: Wed, 8 Apr 2009 20:41:30 +0200
-Message-ID: <20090408204130.296ca789@mjolnir.ossman.eu>
-References: <20090407195524.GA10619@n2100.arm.linux.org.uk>
-	<20090408001325.GG23823@atomide.com>
+From: Pierre Ossman <drzeus-mmc@drzeus.cx>
+Subject: Re: [PATCH] HSMMC: mmc_omap_irq: Do not expect cmd/data to be
+ non-null when CC/TC occurs
+Date: Wed, 8 Apr 2009 20:43:50 +0200
+Message-ID: <20090408204350.3b675823@mjolnir.ossman.eu>
+References: <49DC5DD8.2070208@nokia.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=PGP-SHA1; protocol="application/pgp-signature"; boundary="=_freyr.ossman.eu-25998-1239216093-0001-2"
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from 82-117-125-11.tcdsl.calypso.net ([82.117.125.11]:57344 "EHLO
+Received: from 82-117-125-11.tcdsl.calypso.net ([82.117.125.11]:47288 "EHLO
 	smtp.ossman.eu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S934840AbZDHSlh (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 8 Apr 2009 14:41:37 -0400
-In-Reply-To: <20090408001325.GG23823@atomide.com>
+	id S1753357AbZDHSnz (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 8 Apr 2009 14:43:55 -0400
+In-Reply-To: <49DC5DD8.2070208@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, linux-arm-kernel@lists.arm.linux.org.uk, linux-omap@vger.kernel.org, Adrian Hunter <adrian.hunter@nokia.com>
+To: Adrian Hunter <adrian.hunter@nokia.com>
+Cc: "Lavinen Jarkko (Nokia-M/Helsinki)" <jarkko.lavinen@nokia.com>, LKML <linux-kernel@vger.kernel.org>, linux-omap Mailing List <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>
 
-This is a MIME-formatted message.  If you see this text it means that your
-E-mail software does not support MIME-formatted messages.
+On Wed, 08 Apr 2009 11:18:32 +0300
+Adrian Hunter <adrian.hunter@nokia.com> wrote:
 
---=_freyr.ossman.eu-25998-1239216093-0001-2
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: quoted-printable
-
-On Tue, 7 Apr 2009 17:13:27 -0700
-Tony Lindgren <tony@atomide.com> wrote:
-
-> * Russell King - ARM Linux <linux@arm.linux.org.uk> [090407 12:55]:
-> > Caused by: 4a694dc915c9a223044ce21fc0d99e63facd1d64
-> >=20
-> >     omap_hsmmc: Fix response type for busy after response
-> >=20
-> > Error:
-> >=20
-> > drivers/mmc/host/omap_hsmmc.c: In function 'mmc_omap_xfer_done':
-> > drivers/mmc/host/omap_hsmmc.c:301: error: implicit declaration of funct=
-ion 'mmc_omap_fclk_lazy_disable'
-> >=20
-> > Please submit a fix to Pierre for this, thanks.
->=20
-> Thanks for notifying about this. Pierre, here's a fix for this.
->=20
+> From: Jarkko Lavinen <jarkko.lavinen@nokia.com>
+> 
+> With spurious interrupt cmd can be null even when we have CC
+> set in irq status.
+> 
+> Fixes: NB#106295 - prevent potential kernel crash in the MMC driver
+> 
+> Signed-off-by: Jarkko Lavinen <jarkko.lavinen@nokia.com>
+> Signed-off-by: Adrian Hunter <adrian.hunter@nokia.com>
+> ---
 
 Queued.
 
---=20
+-- 
      -- Pierre Ossman
+
+  Linux kernel, MMC maintainer        http://www.kernel.org
+  rdesktop, core developer          http://www.rdesktop.org
+  TigerVNC, core developer          http://www.tigervnc.org
 
   WARNING: This correspondence is being monitored by the
   Swedish government. Make sure your server uses encryption
   for SMTP traffic and consider using PGP for end-to-end
   encryption.
-
---=_freyr.ossman.eu-25998-1239216093-0001-2
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment; filename=signature.asc
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2.0.11 (GNU/Linux)
-
-iEYEARECAAYFAknc790ACgkQ7b8eESbyJLjLsQCfV4WCmSVMuluqAgjRWhaEGMJl
-eMMAniuRu3H0kcn8CKBONTIBxDFc7QKK
-=oc/H
------END PGP SIGNATURE-----
-
---=_freyr.ossman.eu-25998-1239216093-0001-2--
