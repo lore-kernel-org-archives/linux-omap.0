@@ -1,47 +1,27 @@
-From: Nishanth Menon <menon.nishanth@gmail.com>
-Subject: [PATCH] OMAP3: Rename configuration files
-Date: Thu, 9 Apr 2009 13:54:29 -0500
-Message-ID: <782515bb0904091154n57a95249kad76565d2945d325@mail.gmail.com>
+From: Mark Brown <broonie@sirena.org.uk>
+Subject: Re: 2.6.29 and SDP3430
+Date: Thu, 9 Apr 2009 22:34:20 +0100
+Message-ID: <20090409213420.GA7042@sirena.org.uk>
+References: <782515bb0904082345j2a44da65s909a6834bab07330@mail.gmail.com> <20090409100343.71d34c16.jarkko.nikula@nokia.com> <13B9B4C6EF24D648824FF11BE8967162037BCF18A5@dlee02.ent.ti.com> <7A436F7769CA33409C6B44B358BFFF0CFFB1EEE1@dlee02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-fx0-f158.google.com ([209.85.220.158]:43166 "EHLO
-	mail-fx0-f158.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1760313AbZDISyc (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 9 Apr 2009 14:54:32 -0400
-Received: by fxm2 with SMTP id 2so730789fxm.37
-        for <linux-omap@vger.kernel.org>; Thu, 09 Apr 2009 11:54:30 -0700 (PDT)
+Received: from cassiel.sirena.org.uk ([80.68.93.111]:44542 "EHLO
+	cassiel.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751541AbZDIVec (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 9 Apr 2009 17:34:32 -0400
+Content-Disposition: inline
+In-Reply-To: <7A436F7769CA33409C6B44B358BFFF0CFFB1EEE1@dlee02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap <linux-omap@vger.kernel.org>
+To: "Menon, Nishanth" <nm@ti.com>
+Cc: "Woodruff, Richard" <r-woodruff2@ti.com>, Jarkko Nikula <jarkko.nikula@nokia.com>, linux-omap <linux-omap@vger.kernel.org>
 
->From fdc5cc07b1e674ae081e331a62d0771124c3910f Mon Sep 17 00:00:00 2001
-From: Nishanth Menon <nm@ti.com>
-Date: Thu, 9 Apr 2009 13:12:31 -0500
-Subject: [PATCH] OMAP3: Rename configuration files
+On Thu, Apr 09, 2009 at 01:32:27PM -0500, Menon, Nishanth wrote:
 
-Rename 3430sdp and ldp with omap3 prefix
-This allows for all omap3 configurations to be listed together
+> implementor 41 architecture 3 part 30 variant c rev 1
+> regulator_init_complete: incomplete constraints, leaving VAUX3 on
 
-Signed-off-by: Nishanth Menon <nm@ti.com>
----
- ...p_3430sdp_defconfig => omap3_3430sdp_defconfig} |    0
- .../{omap_ldp_defconfig => omap3_zoom1_defconfig}  |    0
- 2 files changed, 0 insertions(+), 0 deletions(-)
- rename arch/arm/configs/{omap_3430sdp_defconfig =>
-omap3_3430sdp_defconfig} (100%)
- rename arch/arm/configs/{omap_ldp_defconfig => omap3_zoom1_defconfig} (100%)
-
-diff --git a/arch/arm/configs/omap_3430sdp_defconfig
-b/arch/arm/configs/omap3_3430sdp_defconfig
-similarity index 100%
-rename from arch/arm/configs/omap_3430sdp_defconfig
-rename to arch/arm/configs/omap3_3430sdp_defconfig
-diff --git a/arch/arm/configs/omap_ldp_defconfig
-b/arch/arm/configs/omap3_zoom1_defconfig
-similarity index 100%
-rename from arch/arm/configs/omap_ldp_defconfig
-rename to arch/arm/configs/omap3_zoom1_defconfig
--- 
-1.5.4.3
+That last message shouldn't be a problem - it means that if the machine
+init code had requested it the regulator core would've powered off the
+VAUX3 regulator since it has no users.
