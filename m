@@ -1,38 +1,47 @@
-From: "Woodruff, Richard" <r-woodruff2@ti.com>
-Subject: RE: 2.6.29 and SDP3430
-Date: Thu, 9 Apr 2009 13:35:27 -0500
-Message-ID: <13B9B4C6EF24D648824FF11BE8967162037BCF1CFB@dlee02.ent.ti.com>
-References: <782515bb0904082345j2a44da65s909a6834bab07330@mail.gmail.com>
- <20090409100343.71d34c16.jarkko.nikula@nokia.com>
- <13B9B4C6EF24D648824FF11BE8967162037BCF18A5@dlee02.ent.ti.com>
- <7A436F7769CA33409C6B44B358BFFF0CFFB1EEE1@dlee02.ent.ti.com>
+From: Nishanth Menon <menon.nishanth@gmail.com>
+Subject: [PATCH] OMAP3: Rename configuration files
+Date: Thu, 9 Apr 2009 13:54:29 -0500
+Message-ID: <782515bb0904091154n57a95249kad76565d2945d325@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:34161 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932190AbZDISfj convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 9 Apr 2009 14:35:39 -0400
-In-Reply-To: <7A436F7769CA33409C6B44B358BFFF0CFFB1EEE1@dlee02.ent.ti.com>
-Content-Language: en-US
+Received: from mail-fx0-f158.google.com ([209.85.220.158]:43166 "EHLO
+	mail-fx0-f158.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1760313AbZDISyc (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 9 Apr 2009 14:54:32 -0400
+Received: by fxm2 with SMTP id 2so730789fxm.37
+        for <linux-omap@vger.kernel.org>; Thu, 09 Apr 2009 11:54:30 -0700 (PDT)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Menon, Nishanth" <nm@ti.com>, Jarkko Nikula <jarkko.nikula@nokia.com>
-Cc: linux-omap <linux-omap@vger.kernel.org>
+To: linux-omap <linux-omap@vger.kernel.org>
 
+>From fdc5cc07b1e674ae081e331a62d0771124c3910f Mon Sep 17 00:00:00 2001
+From: Nishanth Menon <nm@ti.com>
+Date: Thu, 9 Apr 2009 13:12:31 -0500
+Subject: [PATCH] OMAP3: Rename configuration files
 
-> > I wonder if the timer stopped ticking.  If you connect with emulator take
-> > a look at GPT1 registers and see if time base is moving.
-> >
-> > Another quick test is to shut off tickles, nohz=off.
-> nohz=off did not work with either 2007q3 or 2008q3.. have'nt looked at the GPT
-> regs though..
+Rename 3430sdp and ldp with omap3 prefix
+This allows for all omap3 configurations to be listed together
 
-Hmm, something is broke.
+Signed-off-by: Nishanth Menon <nm@ti.com>
+---
+ ...p_3430sdp_defconfig => omap3_3430sdp_defconfig} |    0
+ .../{omap_ldp_defconfig => omap3_zoom1_defconfig}  |    0
+ 2 files changed, 0 insertions(+), 0 deletions(-)
+ rename arch/arm/configs/{omap_3430sdp_defconfig =>
+omap3_3430sdp_defconfig} (100%)
+ rename arch/arm/configs/{omap_ldp_defconfig => omap3_zoom1_defconfig} (100%)
 
-Can put bad SDP kernel and vmlinux on a share and send me link?  I'm feeling lazy, but could take a quick peek as it's curious :)
-
-Thanks,
-Richard W.
-
+diff --git a/arch/arm/configs/omap_3430sdp_defconfig
+b/arch/arm/configs/omap3_3430sdp_defconfig
+similarity index 100%
+rename from arch/arm/configs/omap_3430sdp_defconfig
+rename to arch/arm/configs/omap3_3430sdp_defconfig
+diff --git a/arch/arm/configs/omap_ldp_defconfig
+b/arch/arm/configs/omap3_zoom1_defconfig
+similarity index 100%
+rename from arch/arm/configs/omap_ldp_defconfig
+rename to arch/arm/configs/omap3_zoom1_defconfig
+-- 
+1.5.4.3
