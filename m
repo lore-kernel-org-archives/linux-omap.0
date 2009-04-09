@@ -1,108 +1,65 @@
-From: Artem Bityutskiy <dedekind@infradead.org>
-Subject: [PATCH] OMAP3: lessen amount of noisy messages
-Date: Thu, 09 Apr 2009 17:41:12 +0300
-Message-ID: <1239288072.3390.8.camel@localhost.localdomain>
-Reply-To: dedekind@infradead.org
+From: "Menon, Nishanth" <nm@ti.com>
+Subject: RE: 2.6.29 and SDP3430
+Date: Thu, 9 Apr 2009 13:32:27 -0500
+Message-ID: <7A436F7769CA33409C6B44B358BFFF0CFFB1EEE1@dlee02.ent.ti.com>
+References: <782515bb0904082345j2a44da65s909a6834bab07330@mail.gmail.com>
+ <20090409100343.71d34c16.jarkko.nikula@nokia.com>
+ <13B9B4C6EF24D648824FF11BE8967162037BCF18A5@dlee02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:17838 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752709AbZDIOlV (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 9 Apr 2009 10:41:21 -0400
+Received: from arroyo.ext.ti.com ([192.94.94.40]:54478 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756165AbZDISck convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 9 Apr 2009 14:32:40 -0400
+In-Reply-To: <13B9B4C6EF24D648824FF11BE8967162037BCF18A5@dlee02.ent.ti.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgen <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org
+To: "Woodruff, Richard" <r-woodruff2@ti.com>, Jarkko Nikula <jarkko.nikula@nokia.com>
+Cc: linux-omap <linux-omap@vger.kernel.org>
 
-=46rom: Artem Bityutskiy <Artem.Bityutskiy@nokia.com>
-Date: Thu, 9 Apr 2009 17:15:47 +0300
-Subject: [PATCH] OMAP3: lessen amount of noisy messages
+> -----Original Message-----
+> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
+> owner@vger.kernel.org] On Behalf Of Woodruff, Richard
+> Sent: Thursday, April 09, 2009 8:00 AM
+> > From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
+> > owner@vger.kernel.org] On Behalf Of Jarkko Nikula
+> > Sent: Thursday, April 09, 2009 2:04 AM
+> 
+> > > just messing around with tony's master branch on SDP3430, just did a
+> > > defconfig and a build with  2007q3-51 codesourcery compiler, I see it
+> > > hang around:
+> > >
+> > Kernels built with this compiler stuck into delay loop calibration.
+> > No idea why, but 2008q3-66 was working for me.
+Using the following:
+arm-none-linux-gnueabi-gcc (Sourcery G++ Lite 2008q3-72) 4.3.2
 
-On our system we see the following messages:
-
+I am past the lockup on calibration, but it now gets stuck as follows:
+NET: Registered protocol family 15
+RPC: Registered udp transport module.
+RPC: Registered tcp transport module.
 Disabling unused clock "gpt2_ick"
-Disabling unused clock "gpt3_ick"
-Disabling unused clock "gpt4_ick"
-Disabling unused clock "gpt5_ick"
-Disabling unused clock "gpt6_ick"
-Disabling unused clock "gpt7_ick"
-Disabling unused clock "gpt8_ick"
-Disabling unused clock "gpt9_ick"
-Disabling unused clock "gpio2_dbck"
-Disabling unused clock "gpio3_dbck"
-Disabling unused clock "gpio4_dbck"
-Disabling unused clock "gpio5_dbck"
-Disabling unused clock "gpio6_dbck"
-Disabling unused clock "gpt9_fck"
-Disabling unused clock "gpt8_fck"
-Disabling unused clock "gpt7_fck"
-Disabling unused clock "gpt6_fck"
-Disabling unused clock "gpt5_fck"
-Disabling unused clock "gpt4_fck"
-Disabling unused clock "gpt3_fck"
 Disabling unused clock "gpt2_fck"
 Disabling unused clock "wdt2_ick"
 Disabling unused clock "wdt2_fck"
-Disabling unused clock "gpio1_dbck"
-Disabling unused clock "rng_ick"
-Disabling unused clock "ssi_ick"
-Disabling unused clock "gpt10_ick"
-Disabling unused clock "gpt11_ick"
-Disabling unused clock "uart1_ick"
-Disabling unused clock "uart2_ick"
-Disabling unused clock "usbtll_ick"
-Disabling unused clock "ssi_ssr_fck"
-Disabling unused clock "uart1_fck"
-Disabling unused clock "uart2_fck"
-Disabling unused clock "usbtll_fck"
-Disabling unused clock "ts_fck"
-Disabling unused clock "cpefuse_fck"
-Disabling unused clock "gpt11_fck"
-Disabling unused clock "gpt10_fck"
-Disabling unused clock "dpll5_ck"
 Disabling unused clock "dpll4_m6x2_ck"
 Disabling unused clock "dpll4_m5x2_ck"
 Disabling unused clock "dpll3_m3x2_ck"
 Disabling unused clock "sys_clkout1"
+variant c rev 1
+implementor 41 architecture 3 part 30 variant c rev 1
+regulator_init_complete: incomplete constraints, leaving VAUX3 on
 
-The messages have KERN_INFO level and if you have serial
-console, they normally go there. I do not think it is good
-idea to print that much stuff there. Moreover, messages
-are not properly prefixed and for mortals it is not
-immeadietly clear where they come from.
 
-Let's give them debugging level instead.
+> 
+> I wonder if the timer stopped ticking.  If you connect with emulator take
+> a look at GPT1 registers and see if time base is moving.
+> 
+> Another quick test is to shut off tickles, nohz=off.
+nohz=off did not work with either 2007q3 or 2008q3.. have'nt looked at the GPT regs though..
 
-Signed-off-by: Artem Bityutskiy <Artem.Bityutskiy@nokia.com>
----
- arch/arm/mach-omap2/clock.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/clock.c b/arch/arm/mach-omap2/clock.c
-index 4247a15..2f254bf 100644
---- a/arch/arm/mach-omap2/clock.c
-+++ b/arch/arm/mach-omap2/clock.c
-@@ -1035,7 +1035,7 @@ void omap2_clk_disable_unused(struct clk *clk)
- 	if ((regval32 & (1 << clk->enable_bit)) =3D=3D v)
- 		return;
-=20
--	printk(KERN_INFO "Disabling unused clock \"%s\"\n", clk->name);
-+	pr_debug("Disabling unused clock \"%s\"\n", clk->name);
- 	if (cpu_is_omap34xx()) {
- 		omap2_clk_enable(clk);
- 		omap2_clk_disable(clk);
---=20
-1.6.0.6
-
---=20
-Best regards,
-Artem Bityutskiy (=D0=91=D0=B8=D1=82=D1=8E=D1=86=D0=BA=D0=B8=D0=B9 =D0=90=
-=D1=80=D1=82=D1=91=D0=BC)
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Regards,
+Nishanth Menon
