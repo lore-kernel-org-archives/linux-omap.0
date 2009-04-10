@@ -1,65 +1,71 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: omap-clock-fixes branch available
-Date: Fri, 10 Apr 2009 12:22:00 -0700
-Message-ID: <20090410192200.GB8345@atomide.com>
-References: <alpine.DEB.2.00.0904092111240.15126@utopia.booyaka.com>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: 2.6.29 PM and CPUIDLE
+Date: Fri, 10 Apr 2009 16:11:35 -0700
+Message-ID: <8763hc2jfc.fsf@deeprootsystems.com>
+References: <200904101654.58917.jpihet@mvista.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:61978 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756502AbZDJTWF (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 10 Apr 2009 15:22:05 -0400
-Content-Disposition: inline
-In-Reply-To: <alpine.DEB.2.00.0904092111240.15126@utopia.booyaka.com>
+Received: from wf-out-1314.google.com ([209.85.200.171]:40444 "EHLO
+	wf-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754901AbZDJXLi (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 10 Apr 2009 19:11:38 -0400
+Received: by wf-out-1314.google.com with SMTP id 29so1255328wff.4
+        for <linux-omap@vger.kernel.org>; Fri, 10 Apr 2009 16:11:38 -0700 (PDT)
+In-Reply-To: <200904101654.58917.jpihet@mvista.com> (Jean Pihet's message of "Fri\, 10 Apr 2009 16\:54\:58 +0200")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: linux-omap@vger.kernel.org
+To: Jean Pihet <jpihet@mvista.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-* Paul Walmsley <paul@pwsan.com> [090409 20:12]:
-> 
-> Hello Tony et al.,
-> 
-> Please pull this omap-clock-fixes branch.  Once rmk gets back from his 
-> holiday, these will be posted to linux-arm-kernel.
+Jean Pihet <jpihet@mvista.com> writes:
 
-Thanks, I've pulled it into l-o master.
+> I am having problems using CPUIDLE PM_SLEEP on Beagleboard with the
+> latest pm tree.  It looks like CPUIDLE prevents the system to go
+> into retention mode, while it works fine without CPUIDLE enabled:
 
-Tony
+It's a feature. ;)
 
-> 
-> 
-> - Paul
-> 
-> 
-> The following changes since commit 15f7176eb1cccec0a332541285ee752b935c1c85:
->   Linus Torvalds (1):
->         Merge git://git.kernel.org/.../davem/net-2.6
-> 
-> are available in the git repository at:
-> 
->   git://git.pwsan.com/linux-2.6 omap-clock-fixes
-> 
-> Kevin Hilman (1):
->       OMAP: dmtimer: enable all timers to be wakeup events
-> 
-> Paul Walmsley (4):
->       OMAP2xxx clock: init osc_ck, sys_ck internal lists early
->       OMAP2xxx clock: fix broken cpu_mask code
->       OMAP3 GPTIMER: fix GPTIMER12 IRQ
->       OMAP2/3 GPTIMER: allow system tick GPTIMER to be changed in board-*.c files
-> 
-> Sergio Aguirre (1):
->       OMAP3: clock: Camera module doesn't have IDLEST bit
-> 
->  arch/arm/mach-omap2/board-omap3beagle.c    |    4 ++
->  arch/arm/mach-omap2/clock24xx.c            |   15 +++-----
->  arch/arm/mach-omap2/clock24xx.h            |   10 +++++-
->  arch/arm/mach-omap2/clock34xx.h            |    7 ++--
->  arch/arm/mach-omap2/timer-gp.c             |   48 ++++++++++++++++++++++++++--
->  arch/arm/plat-omap/dmtimer.c               |   28 ++++++++++------
->  arch/arm/plat-omap/include/mach/dmtimer.h  |    2 +-
->  arch/arm/plat-omap/include/mach/timer-gp.h |   17 ++++++++++
->  8 files changed, 102 insertions(+), 29 deletions(-)
->  create mode 100644 arch/arm/plat-omap/include/mach/timer-gp.h
+> root@beagleboard:~# echo 1 > /sys/power/clocks_off_while_idle
+> root@beagleboard:~# echo mem > /sys/power/state
+
+Try this:
+
+# echo 1 > /sys/power/sleep_while_idle
+
+And then try to suspend.  I think this should work (you may have to
+wait a little just so you hit the idle loop before trying suspend.)
+
+What's happening is that without sleep_while_idle set, CPUidle will
+not go into any other state than C1 (see the omap3_can_sleep() check.)
+Recently, C1 was changed to keep the MPU and CORE ON to have the a
+very fast wakeup latency.  So, with CPUidle running, the next power
+states are set to ON in the idle path and never tested/changed in the
+suspend path.
+
+The bug is that the suspend path should always ensure that either RET
+or OFF is set in the next states (depending on enable_off_mode.)  This
+was not necessary before the new C1 was added because all of the idle
+states at least tried for RET.
+
+Kevin
+
+> PM: Syncing filesystems ... done.
+> Freezing user space processes ... (elapsed 0.02 seconds) done.
+> Freezing remaining freezable tasks ... (elapsed 0.00 seconds) done.
+> Suspending console(s) (use no_console_suspend to debug)
+> omapfb omapfb: timeout waiting for FRAME DONE
+> Powerdomain (core_pwrdm) didn't enter target state 1
+> Powerdomain (dss_pwrdm) didn't enter target state 1
+> Could not enter target state in pm_suspend
+> Restarting tasks ... done.
+>
+> The registers dump shows the next power state in PM_PWSTCTRL is set to ON 
+> instead of RET for MPU and CORE. Furthermore DSS is not reaching RET (stays 
+> ON).
+>
+> Are the CPUIDLE and suspend/resume features compatible with each other? Am I 
+> missing something, e.g. a way to change the behavior from /sys?
+>
+> Regards,
+> Jean
