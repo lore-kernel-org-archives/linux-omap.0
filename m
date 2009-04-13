@@ -1,81 +1,52 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [RFC] Save HSMMC registers if core is powered off
-Date: Sun, 12 Apr 2009 16:54:51 -0600 (MDT)
-Message-ID: <alpine.DEB.2.00.0904121630580.32081@utopia.booyaka.com>
-References: <1239435130-30784-1-git-send-email-Russ.Dill@gmail.com> <f9d2a5e10904110204x30662644se51ac24c7f94fbcf@mail.gmail.com>
+From: Steve Sakoman <sakoman@gmail.com>
+Subject: [PATCH] ARM: OMAP: Fix merge errors in board-overo.c
+Date: Sun, 12 Apr 2009 21:43:14 -0700
+Message-ID: <5e088bd90904122143ud805e3vdc937f5263fd6be5@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:60226 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751769AbZDLWyx (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 12 Apr 2009 18:54:53 -0400
-In-Reply-To: <f9d2a5e10904110204x30662644se51ac24c7f94fbcf@mail.gmail.com>
+Received: from wf-out-1314.google.com ([209.85.200.174]:3207 "EHLO
+	wf-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752495AbZDMEnP (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 13 Apr 2009 00:43:15 -0400
+Received: by wf-out-1314.google.com with SMTP id 29so1931293wff.4
+        for <linux-omap@vger.kernel.org>; Sun, 12 Apr 2009 21:43:14 -0700 (PDT)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Russ Dill <russ.dill@gmail.com>
-Cc: beagleboard@googlegroups.com, linux-omap@vger.kernel.org
+To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Hello Russ,
+One line was omitted when moving definitions from board-overo.h to
+board-overo.c, and a duplicate overo_init_smsc911x call was added to
+overo_init.
 
-On Sat, 11 Apr 2009, Russ Dill wrote:
+The former results in a compiler error.
 
-> On Sat, Apr 11, 2009 at 12:32 AM, Russ Dill <russ.dill@gmail.com> wrote:
-> > I've noticed that if the core power domain gets powered off during
-> > suspend, the MMC registers get reset. Which, among other things causes
-> > the MMC host controller code to turn on VMMC1 even if no MMC card is
-> > present.
-> >
-> > I'm not sure if this is the right place to put this code. It also
-> > doesn't work. If any of the __raw_readl commands execute, the board will
-> > hang on a suspend attempt (assuming the core domain will be powered
-> > off.) Strangely, the __raw_writel commands don't cause problems (other
-> > than writing 0s to all the MMC registers.)
-> 
-> That would be because omap_mmc_suspend disables the interface clock.
-> The suspend method is a more logical place to save these registers,
-> but I'm not sure how to tell from the suspend method if the domain is
-> going to be turned off or not.
+Signed-off-by: Steve Sakoman <steve@sakoman.com>
+---
+ arch/arm/mach-omap2/board-overo.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-Generally speaking, the device driver doesn't know this.  The powerdomain 
-target state decision may change after the device goes idle.  So the best 
-thing to do is to save context unconditionally before disabling clocks.
+diff --git a/arch/arm/mach-omap2/board-overo.c
+b/arch/arm/mach-omap2/board-overo.c
+index f357de9..3a9c519 100644
+--- a/arch/arm/mach-omap2/board-overo.c
++++ b/arch/arm/mach-omap2/board-overo.c
+@@ -52,6 +52,7 @@
 
-Another approach to saving device context that should work for most 
-registers is to save the register contents when the device registers are 
-written -- the "shadow register" approach.  That approach avoids 
-unnecessary latency in the device idle path and avoids some register 
-reads.
+ #define OVERO_GPIO_BT_XGATE	15
+ #define OVERO_GPIO_W2W_NRESET	16
++#define OVERO_GPIO_PENDOWN	114
+ #define OVERO_GPIO_BT_NRESET	164
+ #define OVERO_GPIO_USBH_CPEN	168
+ #define OVERO_GPIO_USBH_NRESET	183
+@@ -397,7 +398,6 @@ static void __init overo_init(void)
+ 	usb_musb_init();
+ 	usb_ehci_init();
+ 	overo_flash_init();
+-	overo_init_smsc911x();
+ 	overo_ads7846_init();
+ 	overo_init_smsc911x();
 
-One other possible optimization.  In the event that the device context is 
-not lost, an unnecessary context restore can be avoided by using the 
-omap_pm_get_dev_context_loss_count() function.  (This is documented in 
-plat-omap/include/mach/omap-pm.h)  This function should be used by passing 
-a function pointer to the driver code in struct omap_mmc_platform_data, 
-called 'get_dev_context_loss_count' -- this should look something like the 
-example at the end of this E-mail.
-
-Hope this helps,
-
-
-- Paul
-
-
-... In driver idle path, before clk_disable() ...
-
-int loss_count;
-if (pdata->get_dev_context_loss_count)
-	loss_count = pdata->get_dev_context_loss_count();
-
-
-... In driver resume path, after clk_enable() ...
-int restore_needed = 1;
-if (pdata->get_dev_context_loss_count)
-	if (pdata->get_dev_context_loss_count() == loss_count)
-		restore_needed = 0;
-
-if (restore_needed)
-	/* restore device registers here */
-
-
-
+-- 
+1.5.6.3
