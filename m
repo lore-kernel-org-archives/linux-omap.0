@@ -1,68 +1,66 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: [PATCH 0/7] OMAP clock fixes for v2.6.30-rc1
-Date: Tue, 14 Apr 2009 12:23:24 -0600
-Message-ID: <20090414182039.22344.49790.stgit@localhost.localdomain>
+Subject: [PATCH 3/7] OMAP3: clock: Camera module doesn't have IDLEST bit
+Date: Tue, 14 Apr 2009 12:23:30 -0600
+Message-ID: <20090414182328.22344.52886.stgit@localhost.localdomain>
+References: <20090414182039.22344.49790.stgit@localhost.localdomain>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:45700 "EHLO
+Received: from utopia.booyaka.com ([72.9.107.138]:45717 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754667AbZDNS1M (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 14 Apr 2009 14:27:12 -0400
+	with ESMTP id S1756561AbZDNS1N (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 14 Apr 2009 14:27:13 -0400
+In-Reply-To: <20090414182039.22344.49790.stgit@localhost.localdomain>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-arm-kernel@lists.arm.linux.org.uk
-Cc: linux-omap@vger.kernel.org
+Cc: Sergio Aguirre <saaguirre@ti.com>, Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org
 
-Hi Russell,
+From: Sergio Aguirre <saaguirre@ti.com>
 
-Here are some OMAP clock-related fixes against v2.6.30-rc1.  If you
-are happy with these, Tony will merge them into his omap-fixes branch
-for you to pull.
+This patch avoids waiting for the camera module to become ready,
+since it doesn't have IDLEST bit.
 
-You might consider the last patch to be too big to be a fix; if so,
-please let me know and it will be moved to a feature series.
+Based on a earlier hack done by Paul Walmsley on Sep 9 2008 on
+linux-omap tree.
 
-
-regards
-
-- Paul
-
+Signed-off-by: Sergio Aguirre <saaguirre@ti.com>
+Signed-off-by: Paul Walmsley <paul@pwsan.com>
 ---
+ arch/arm/mach-omap2/clock34xx.h |    6 +++---
+ 1 files changed, 3 insertions(+), 3 deletions(-)
 
-Arun KS (1):
-      OMAP1: clock: Typo fix for clock in omap1
-
-Kevin Hilman (1):
-      OMAP: dmtimer: enable all timers to be wakeup events
-
-Paul Walmsley (4):
-      OMAP2/3 GPTIMER: allow system tick GPTIMER to be changed in board-*.c files
-      OMAP3 GPTIMER: fix GPTIMER12 IRQ
-      OMAP2xxx clock: fix broken cpu_mask code
-      OMAP2xxx clock: init osc_ck, sys_ck internal lists early
-
-Sergio Aguirre (1):
-      OMAP3: clock: Camera module doesn't have IDLEST bit
-
-
- arch/arm/mach-omap1/mcbsp.c                |    4 +-
- arch/arm/mach-omap2/board-omap3beagle.c    |    4 ++
- arch/arm/mach-omap2/clock24xx.c            |   15 ++++-----
- arch/arm/mach-omap2/clock24xx.h            |   10 +++++-
- arch/arm/mach-omap2/clock34xx.h            |    7 ++--
- arch/arm/mach-omap2/timer-gp.c             |   48 ++++++++++++++++++++++++++--
- arch/arm/plat-omap/dmtimer.c               |   28 ++++++++++------
- arch/arm/plat-omap/include/mach/dmtimer.h  |    2 +
- arch/arm/plat-omap/include/mach/timer-gp.h |   17 ++++++++++
- 9 files changed, 104 insertions(+), 31 deletions(-)
- create mode 100644 arch/arm/plat-omap/include/mach/timer-gp.h
-
-
-omap-clock-fixes
-   text	   data	    bss	    dec	    hex	filename
-4601895	 249952	 304788	5156635	 4eaf1b	vmlinux.3430sdp.orig
-4602055	 249952	 304788	5156795	 4eafbb	vmlinux.3430sdp
+diff --git a/arch/arm/mach-omap2/clock34xx.h b/arch/arm/mach-omap2/clock34xx.h
+index 70ec10d..f009017 100644
+--- a/arch/arm/mach-omap2/clock34xx.h
++++ b/arch/arm/mach-omap2/clock34xx.h
+@@ -2052,7 +2052,7 @@ static struct clk dss_ick = {
+ 
+ static struct clk cam_mclk = {
+ 	.name		= "cam_mclk",
+-	.ops		= &clkops_omap2_dflt_wait,
++	.ops		= &clkops_omap2_dflt,
+ 	.parent		= &dpll4_m5x2_ck,
+ 	.enable_reg	= OMAP_CM_REGADDR(OMAP3430_CAM_MOD, CM_FCLKEN),
+ 	.enable_bit	= OMAP3430_EN_CAM_SHIFT,
+@@ -2063,7 +2063,7 @@ static struct clk cam_mclk = {
+ static struct clk cam_ick = {
+ 	/* Handles both L3 and L4 clocks */
+ 	.name		= "cam_ick",
+-	.ops		= &clkops_omap2_dflt_wait,
++	.ops		= &clkops_omap2_dflt,
+ 	.parent		= &l4_ick,
+ 	.init		= &omap2_init_clk_clkdm,
+ 	.enable_reg	= OMAP_CM_REGADDR(OMAP3430_CAM_MOD, CM_ICLKEN),
+@@ -2074,7 +2074,7 @@ static struct clk cam_ick = {
+ 
+ static struct clk csi2_96m_fck = {
+ 	.name		= "csi2_96m_fck",
+-	.ops		= &clkops_omap2_dflt_wait,
++	.ops		= &clkops_omap2_dflt,
+ 	.parent		= &core_96m_fck,
+ 	.init		= &omap2_init_clk_clkdm,
+ 	.enable_reg	= OMAP_CM_REGADDR(OMAP3430_CAM_MOD, CM_FCLKEN),
 
 
