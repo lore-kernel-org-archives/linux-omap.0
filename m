@@ -1,21 +1,21 @@
 From: "Nayak, Rajendra" <rnayak@ti.com>
-Subject: [PATCH 03/10] OMAP3: SR: Update VDD1/2 voltages at boot
-Date: Wed, 15 Apr 2009 18:25:34 +0530
-Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB02FB25180E@dbde02.ent.ti.com>
+Subject: [PATCH 10/10] OMAP3: SR: Replace (0x1 << n) with BIT(n)
+Date: Wed, 15 Apr 2009 18:25:49 +0530
+Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB02FB251816@dbde02.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:59078 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758378AbZDOMzn convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 15 Apr 2009 08:55:43 -0400
+Received: from devils.ext.ti.com ([198.47.26.153]:55321 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759227AbZDOMz7 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 15 Apr 2009 08:55:59 -0400
 Received: from dbdp20.itg.ti.com ([172.24.170.38])
-	by bear.ext.ti.com (8.13.7/8.13.7) with ESMTP id n3FCta1m017587
-	for <linux-omap@vger.kernel.org>; Wed, 15 Apr 2009 07:55:42 -0500
+	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id n3FCtqAm013959
+	for <linux-omap@vger.kernel.org>; Wed, 15 Apr 2009 07:55:58 -0500
 Received: from dbde71.ent.ti.com (localhost [127.0.0.1])
-	by dbdp20.itg.ti.com (8.13.8/8.13.8) with ESMTP id n3FCtZxq021688
-	for <linux-omap@vger.kernel.org>; Wed, 15 Apr 2009 18:25:35 +0530 (IST)
+	by dbdp20.itg.ti.com (8.13.8/8.13.8) with ESMTP id n3FCtp2B021760
+	for <linux-omap@vger.kernel.org>; Wed, 15 Apr 2009 18:25:51 +0530 (IST)
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
@@ -23,165 +23,104 @@ To: linux-omap <linux-omap@vger.kernel.org>
 
 From: Rajendra Nayak <rnayak@ti.com>
 
-Currently vdd1 and vdd2 voltages are updated only after OMAP wakes up
-from RET/OFF. This patch forces update according to boot OPP on boot.
+This patch converts all the bit defines from (0x1 << n)
+to BIT(n) in smartreflex driver
 
 Signed-off-by: Rajendra Nayak <rnayak@ti.com>
-Signed-off-by: Jouni Hogander <jouni.hogander@nokia.com>
 ---
- arch/arm/mach-omap2/smartreflex.c |   81 +++++++++++++++++++++-----------------
- 1 files changed, 45 insertions(+), 36 deletions(-)
+ arch/arm/mach-omap2/smartreflex.h |   42 +++++++++++++++++++-------------------
+ 1 files changed, 21 insertions(+), 21 deletions(-)
 
-Index: linux-omap-2.6/arch/arm/mach-omap2/smartreflex.c
+Index: linux-omap-2.6/arch/arm/mach-omap2/smartreflex.h
 ===================================================================
---- linux-omap-2.6.orig/arch/arm/mach-omap2/smartreflex.c	2009-04-15 11:45:57.000000000 +0530
-+++ linux-omap-2.6/arch/arm/mach-omap2/smartreflex.c	2009-04-15 11:46:12.000000000 +0530
-@@ -36,10 +36,6 @@
- #include "smartreflex.h"
- #include "prm-regbits-34xx.h"
+--- linux-omap-2.6.orig/arch/arm/mach-omap2/smartreflex.h	2009-04-15 11:46:15.000000000 +0530
++++ linux-omap-2.6/arch/arm/mach-omap2/smartreflex.h	2009-04-15 11:46:15.000000000 +0530
+@@ -43,22 +43,22 @@
+ #define GAIN_MAXLIMIT	16
+ #define R_MAXLIMIT	256
  
--/* XXX: These should be relocated where-ever the OPP implementation will be */
--u32 current_vdd1_opp;
--u32 current_vdd2_opp;
--
- struct omap_sr {
- 	int		srid;
- 	int		is_sr_reset;
-@@ -253,9 +249,11 @@ static void sr_configure_vp(int srid)
- 	u32 vpconfig;
+-#define SR1_CLK_ENABLE	(0x1 << 6)
+-#define SR2_CLK_ENABLE	(0x1 << 7)
++#define SR1_CLK_ENABLE	BIT(6)
++#define SR2_CLK_ENABLE	BIT(7)
  
- 	if (srid == SR1) {
--		vpconfig = PRM_VP1_CONFIG_ERROROFFSET | PRM_VP1_CONFIG_ERRORGAIN
--					| PRM_VP1_CONFIG_INITVOLTAGE
--					| PRM_VP1_CONFIG_TIMEOUTEN;
-+		vpconfig = PRM_VP1_CONFIG_ERROROFFSET |
-+			PRM_VP1_CONFIG_ERRORGAIN |
-+			PRM_VP1_CONFIG_TIMEOUTEN |
-+			mpu_opps[omap_pm_vdd1_get_opp()].vsel <<
-+			OMAP3430_INITVOLTAGE_SHIFT;
+ /* PRM_VP1_CONFIG */
+ #define PRM_VP1_CONFIG_ERROROFFSET	(0x00 << 24)
+ #define PRM_VP1_CONFIG_ERRORGAIN	(0x20 << 16)
  
- 		prm_write_mod_reg(vpconfig, OMAP3430_GR_MOD,
- 					OMAP3_PRM_VP1_CONFIG_OFFSET);
-@@ -277,15 +275,25 @@ static void sr_configure_vp(int srid)
+ #define PRM_VP1_CONFIG_INITVOLTAGE	(0x30 << 8) /* 1.2 volt */
+-#define PRM_VP1_CONFIG_TIMEOUTEN	(0x1 << 3)
+-#define PRM_VP1_CONFIG_INITVDD		(0x1 << 2)
+-#define PRM_VP1_CONFIG_FORCEUPDATE	(0x1 << 1)
+-#define PRM_VP1_CONFIG_VPENABLE		(0x1 << 0)
++#define PRM_VP1_CONFIG_TIMEOUTEN	BIT(3)
++#define PRM_VP1_CONFIG_INITVDD		BIT(2)
++#define PRM_VP1_CONFIG_FORCEUPDATE	BIT(1)
++#define PRM_VP1_CONFIG_VPENABLE		BIT(0)
  
- 		/* Trigger initVDD value copy to voltage processor */
- 		prm_set_mod_reg_bits(PRM_VP1_CONFIG_INITVDD, OMAP3430_GR_MOD,
--					OMAP3_PRM_VP1_CONFIG_OFFSET);
-+				     OMAP3_PRM_VP1_CONFIG_OFFSET);
-+
- 		/* Clear initVDD copy trigger bit */
- 		prm_clear_mod_reg_bits(PRM_VP1_CONFIG_INITVDD, OMAP3430_GR_MOD,
--					OMAP3_PRM_VP1_CONFIG_OFFSET);
-+				       OMAP3_PRM_VP1_CONFIG_OFFSET);
-+
-+		/* Force update of voltage */
-+		prm_set_mod_reg_bits(OMAP3430_FORCEUPDATE, OMAP3430_GR_MOD,
-+				     OMAP3_PRM_VP1_CONFIG_OFFSET);
-+		/* Clear force bit */
-+		prm_clear_mod_reg_bits(OMAP3430_FORCEUPDATE, OMAP3430_GR_MOD,
-+				       OMAP3_PRM_VP1_CONFIG_OFFSET);
+ /* PRM_VP1_VSTEPMIN */
+ #define PRM_VP1_VSTEPMIN_SMPSWAITTIMEMIN	(0x01F4 << 8)
+-#define PRM_VP1_VSTEPMIN_VSTEPMIN		(0x01 << 0)
++#define PRM_VP1_VSTEPMIN_VSTEPMIN		BIT(0)
  
- 	} else if (srid == SR2) {
--		vpconfig = PRM_VP2_CONFIG_ERROROFFSET | PRM_VP2_CONFIG_ERRORGAIN
--					| PRM_VP2_CONFIG_INITVOLTAGE
--					| PRM_VP2_CONFIG_TIMEOUTEN;
-+		vpconfig = PRM_VP2_CONFIG_ERROROFFSET |
-+			PRM_VP2_CONFIG_ERRORGAIN |
-+			PRM_VP2_CONFIG_TIMEOUTEN |
-+			l3_opps[omap_pm_vdd2_get_opp()].vsel <<
-+			OMAP3430_INITVOLTAGE_SHIFT;
+ /* PRM_VP1_VSTEPMAX */
+ #define PRM_VP1_VSTEPMAX_SMPSWAITTIMEMAX	(0x01F4 << 8)
+@@ -74,14 +74,14 @@
+ #define PRM_VP2_CONFIG_ERRORGAIN	(0x20 << 16)
  
- 		prm_write_mod_reg(vpconfig, OMAP3430_GR_MOD,
- 					OMAP3_PRM_VP2_CONFIG_OFFSET);
-@@ -306,11 +314,19 @@ static void sr_configure_vp(int srid)
- 					OMAP3_PRM_VP2_VLIMITTO_OFFSET);
+ #define PRM_VP2_CONFIG_INITVOLTAGE	(0x30 << 8) /* 1.2 volt */
+-#define PRM_VP2_CONFIG_TIMEOUTEN	(0x1 << 3)
+-#define PRM_VP2_CONFIG_INITVDD		(0x1 << 2)
+-#define PRM_VP2_CONFIG_FORCEUPDATE	(0x1 << 1)
+-#define PRM_VP2_CONFIG_VPENABLE		(0x1 << 0)
++#define PRM_VP2_CONFIG_TIMEOUTEN	BIT(3)
++#define PRM_VP2_CONFIG_INITVDD		BIT(2)
++#define PRM_VP2_CONFIG_FORCEUPDATE	BIT(1)
++#define PRM_VP2_CONFIG_VPENABLE		BIT(0)
  
- 		/* Trigger initVDD value copy to voltage processor */
--		prm_set_mod_reg_bits(PRM_VP2_CONFIG_INITVDD, OMAP3430_GR_MOD,
--					OMAP3_PRM_VP2_CONFIG_OFFSET);
--		/* Reset initVDD copy trigger bit */
--		prm_clear_mod_reg_bits(PRM_VP2_CONFIG_INITVDD, OMAP3430_GR_MOD,
--					OMAP3_PRM_VP2_CONFIG_OFFSET);
-+		prm_set_mod_reg_bits(PRM_VP1_CONFIG_INITVDD, OMAP3430_GR_MOD,
-+				     OMAP3_PRM_VP2_CONFIG_OFFSET);
-+
-+		/* Clear initVDD copy trigger bit */
-+		prm_clear_mod_reg_bits(PRM_VP1_CONFIG_INITVDD, OMAP3430_GR_MOD,
-+				       OMAP3_PRM_VP2_CONFIG_OFFSET);
-+
-+		/* Force update of voltage */
-+		prm_set_mod_reg_bits(OMAP3430_FORCEUPDATE, OMAP3430_GR_MOD,
-+				     OMAP3_PRM_VP2_CONFIG_OFFSET);
-+		/* Clear force bit */
-+		prm_clear_mod_reg_bits(OMAP3430_FORCEUPDATE, OMAP3430_GR_MOD,
-+				       OMAP3_PRM_VP2_CONFIG_OFFSET);
+ /* PRM_VP2_VSTEPMIN */
+ #define PRM_VP2_VSTEPMIN_SMPSWAITTIMEMIN	(0x01F4 << 8)
+-#define PRM_VP2_VSTEPMIN_VSTEPMIN		(0x01 << 0)
++#define PRM_VP2_VSTEPMIN_VSTEPMIN		BIT(0)
  
- 	}
- }
-@@ -553,9 +569,9 @@ void enable_smartreflex(int srid)
- 			sr_clk_enable(sr);
+ /* PRM_VP2_VSTEPMAX */
+ #define PRM_VP2_VSTEPMAX_SMPSWAITTIMEMAX	(0x01F4 << 8)
+@@ -106,20 +106,20 @@
+ #define SRCONFIG_SENNENABLE_SHIFT	5
+ #define SRCONFIG_SENPENABLE_SHIFT	3
  
- 			if (srid == SR1)
--				target_opp_no = get_opp_no(current_vdd1_opp);
-+				target_opp_no = omap_pm_vdd1_get_opp();
- 			else if (srid == SR2)
--				target_opp_no = get_opp_no(current_vdd2_opp);
-+				target_opp_no = omap_pm_vdd2_get_opp();
+-#define SRCONFIG_SRENABLE		(0x01 << 11)
+-#define SRCONFIG_SENENABLE		(0x01 << 10)
+-#define SRCONFIG_ERRGEN_EN		(0x01 << 9)
+-#define SRCONFIG_MINMAXAVG_EN		(0x01 << 8)
++#define SRCONFIG_SRENABLE		BIT(11)
++#define SRCONFIG_SENENABLE		BIT(10)
++#define SRCONFIG_ERRGEN_EN		BIT(9)
++#define SRCONFIG_MINMAXAVG_EN		BIT(8)
  
- 			sr_configure(sr);
+-#define SRCONFIG_DELAYCTRL		(0x01 << 2)
++#define SRCONFIG_DELAYCTRL		BIT(2)
+ #define SRCONFIG_CLKCTRL		(0x00 << 0)
  
-@@ -687,7 +703,7 @@ static ssize_t omap_sr_vdd1_autocomp_sto
- 		return -EINVAL;
- 	}
+ /* AVGWEIGHT */
+ #define SR1_AVGWEIGHT_SENPAVGWEIGHT	(0x03 << 2)
+ #define SR1_AVGWEIGHT_SENNAVGWEIGHT	(0x03 << 0)
  
--	current_vdd1opp_no = get_opp_no(current_vdd1_opp);
-+	current_vdd1opp_no = omap_pm_vdd1_get_opp();
+-#define SR2_AVGWEIGHT_SENPAVGWEIGHT	(0x01 << 2)
+-#define SR2_AVGWEIGHT_SENNAVGWEIGHT	(0x01 << 0)
++#define SR2_AVGWEIGHT_SENPAVGWEIGHT	BIT(2)
++#define SR2_AVGWEIGHT_SENNAVGWEIGHT	BIT(0)
  
- 	if (value == 0)
- 		sr_stop_vddautocomap(SR1);
-@@ -725,7 +741,7 @@ static ssize_t omap_sr_vdd2_autocomp_sto
- 		return -EINVAL;
- 	}
+ /* NVALUERECIPROCAL */
+ #define NVALUERECIPROCAL_SENPGAIN_SHIFT	20
+@@ -136,8 +136,8 @@
+ #define SR_CLKACTIVITY_IOFF_FOFF	(0x00 << 20)
+ #define SR_CLKACTIVITY_IOFF_FON		(0x02 << 20)
  
--	current_vdd2opp_no = get_opp_no(current_vdd2_opp);
-+	current_vdd2opp_no = omap_pm_vdd2_get_opp();
+-#define ERRCONFIG_VPBOUNDINTEN		(0x1 << 31)
+-#define ERRCONFIG_VPBOUNDINTST		(0x1 << 30)
++#define ERRCONFIG_VPBOUNDINTEN		BIT(31)
++#define ERRCONFIG_VPBOUNDINTST		BIT(30)
  
- 	if (value == 0)
- 		sr_stop_vddautocomap(SR2);
-@@ -751,13 +767,14 @@ static int __init omap3_sr_init(void)
- 	int ret = 0;
- 	u8 RdReg;
- 
--	if (omap_rev() > OMAP3430_REV_ES1_0) {
--		current_vdd1_opp = PRCM_VDD1_OPP3;
--		current_vdd2_opp = PRCM_VDD2_OPP3;
--	} else {
--		current_vdd1_opp = PRCM_VDD1_OPP1;
--		current_vdd2_opp = PRCM_VDD1_OPP1;
--	}
-+	/* Enable SR on T2 */
-+	ret = twl4030_i2c_read_u8(TWL4030_MODULE_PM_RECEIVER, &RdReg,
-+					R_DCDC_GLOBAL_CFG);
-+
-+	RdReg |= DCDC_GLOBAL_CFG_ENABLE_SRFLX;
-+	ret |= twl4030_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER, RdReg,
-+					R_DCDC_GLOBAL_CFG);
-+
- 	if (cpu_is_omap34xx()) {
- 		sr1.clk = clk_get(NULL, "sr1_fck");
- 		sr2.clk = clk_get(NULL, "sr2_fck");
-@@ -772,14 +789,6 @@ static int __init omap3_sr_init(void)
- 	sr_set_nvalues(&sr2);
- 	sr_configure_vp(SR2);
- 
--	/* Enable SR on T2 */
--	ret = twl4030_i2c_read_u8(TWL4030_MODULE_PM_RECEIVER, &RdReg,
--					R_DCDC_GLOBAL_CFG);
--
--	RdReg |= DCDC_GLOBAL_CFG_ENABLE_SRFLX;
--	ret |= twl4030_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER, RdReg,
--					R_DCDC_GLOBAL_CFG);
--
- 	printk(KERN_INFO "SmartReflex driver initialized\n");
- 
- 	ret = sysfs_create_file(power_kobj, &sr_vdd1_autocomp.attr);
+ #define SR1_ERRWEIGHT			(0x07 << 16)
+ #define SR1_ERRMAXLIMIT			(0x02 << 8)
