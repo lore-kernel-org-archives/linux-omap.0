@@ -1,50 +1,57 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 11/11] ARM: OMAP3: Clean up spurious interrupt check logic
-Date: Tue, 14 Apr 2009 15:02:27 -0700
-Message-ID: <20090414220227.9878.31321.stgit@localhost>
-References: <20090414214638.9878.17987.stgit@localhost>
+From: "Shah, Hardik" <hardik.shah@ti.com>
+Subject: RE: YUV rotation support for DSS2 - 2.6.29 [WAS Re: Hello Tomi
+ 	Valkeinen, I have some questions about dss2 driver.]
+Date: Wed, 15 Apr 2009 15:05:16 +0530
+Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB02FB1A2058@dbde02.ent.ti.com>
+References: <792f5f410904131400v3199fa09w14c24f01f468d1c2@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:51256 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750713AbZDNWC3 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 14 Apr 2009 18:02:29 -0400
-In-Reply-To: <20090414214638.9878.17987.stgit@localhost>
+Received: from bear.ext.ti.com ([192.94.94.41]:51730 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756143AbZDOJfo convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 15 Apr 2009 05:35:44 -0400
+In-Reply-To: <792f5f410904131400v3199fa09w14c24f01f468d1c2@mail.gmail.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-arm-kernel@lists.arm.linux.org.uk
-Cc: linux-omap@vger.kernel.org, Roger Quadros <ext-roger.quadros@nokia.com>
+To: Tim Yamin <plasm@roo.me.uk>, "tomi.valkeinen@nokia.com" <tomi.valkeinen@nokia.com>
+Cc: "gregoire@gentil.com" <gregoire@gentil.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "beagleboard@googlegroups.com" <beagleboard@googlegroups.com>
 
-From: Roger Quadros <ext-roger.quadros@nokia.com>
+Hi Tomi,
+Can you please merge the YUV rotation patches with your latest?
 
-SPURIOUSIRQ is contained in bits 31:7 of INTC_SIR, so
-INTC_SIR must be right shifted by 7, not 6.
+Thanks and Regards,
+Haardik
 
-No change in logic, only changes for better readability.
-Refer to register definition of INTCPS_SIR_IRQ in OMAP3 Manual.
-
-Signed-off-by: Roger Quadros <ext-roger.quadros@nokia.com>
-Signed-off-by: Tony Lindgren <tony@atomide.com>
----
- arch/arm/mach-omap2/irq.c |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/irq.c b/arch/arm/mach-omap2/irq.c
-index 9ba20d9..998c5c4 100644
---- a/arch/arm/mach-omap2/irq.c
-+++ b/arch/arm/mach-omap2/irq.c
-@@ -73,9 +73,9 @@ static int omap_check_spurious(unsigned int irq)
- 	u32 sir, spurious;
- 
- 	sir = intc_bank_read_reg(&irq_banks[0], INTC_SIR);
--	spurious = sir >> 6;
-+	spurious = sir >> 7;
- 
--	if (spurious > 1) {
-+	if (spurious) {
- 		printk(KERN_WARNING "Spurious irq %i: 0x%08x, please flush "
- 					"posted write for irq %i\n",
- 					irq, sir, previous_irq);
-
+> -----Original Message-----
+> From: plasmaroo@gmail.com [mailto:plasmaroo@gmail.com] On Behalf Of Tim Yamin
+> Sent: Tuesday, April 14, 2009 2:30 AM
+> To: Shah, Hardik
+> Cc: gregoire@gentil.com; tomi.valkeinen@nokia.com; linux-omap@vger.kernel.org;
+> beagleboard@googlegroups.com
+> Subject: Re: YUV rotation support for DSS2 - 2.6.29 [WAS Re: Hello Tomi
+> Valkeinen, I have some questions about dss2 driver.]
+> 
+> Hi Hardik,
+> 
+> Thanks for fixing up the patch. I can confirm that YUV rotation is
+> fine and patches are ready to be merged -- although the attached fix
+> is needed as well for the userspace layer to know the correct row
+> strides when writing YUV to the framebuffer.
+> 
+> I'm still having VID1_FIFO_UNDERFLOW errors when I try to play rotated
+> video on plane 1 and plane 0 is rotated as well. Do you have any ideas
+> how to debug this further?
+> 
+> Thanks,
+> 
+> Tim
+> 
+> > Hi Tomi,
+> > If YUV rotation with frame buffer passes can you please review the patch and
+> merge it to your latest.
+> >
+> > Regards,
+> > Hardik
