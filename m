@@ -1,126 +1,106 @@
 From: "Nayak, Rajendra" <rnayak@ti.com>
-Subject: [PATCH 10/10] OMAP3: SR: Replace (0x1 << n) with BIT(n)
-Date: Wed, 15 Apr 2009 18:25:49 +0530
-Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB02FB251816@dbde02.ent.ti.com>
+Subject: [PATCH 09/10] OMAP3: SR: Replace SR_PASS/FAIL,SR_TRUE/FALSE
+Date: Wed, 15 Apr 2009 18:25:47 +0530
+Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB02FB251815@dbde02.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:55321 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759227AbZDOMz7 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 15 Apr 2009 08:55:59 -0400
+Received: from arroyo.ext.ti.com ([192.94.94.40]:39291 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1758914AbZDOMz5 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 15 Apr 2009 08:55:57 -0400
 Received: from dbdp20.itg.ti.com ([172.24.170.38])
-	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id n3FCtqAm013959
-	for <linux-omap@vger.kernel.org>; Wed, 15 Apr 2009 07:55:58 -0500
-Received: from dbde71.ent.ti.com (localhost [127.0.0.1])
-	by dbdp20.itg.ti.com (8.13.8/8.13.8) with ESMTP id n3FCtp2B021760
-	for <linux-omap@vger.kernel.org>; Wed, 15 Apr 2009 18:25:51 +0530 (IST)
+	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id n3FCtoYM008101
+	for <linux-omap@vger.kernel.org>; Wed, 15 Apr 2009 07:55:56 -0500
+Received: from dbde70.ent.ti.com (localhost [127.0.0.1])
+	by dbdp20.itg.ti.com (8.13.8/8.13.8) with ESMTP id n3FCtn1E021755
+	for <linux-omap@vger.kernel.org>; Wed, 15 Apr 2009 18:25:49 +0530 (IST)
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap <linux-omap@vger.kernel.org>
 
-From: Rajendra Nayak <rnayak@ti.com>
+From: Teerth Reddy <teerth@ti.com>
 
-This patch converts all the bit defines from (0x1 << n)
-to BIT(n) in smartreflex driver
+This patch has some cleanup , replacing SR_PASS/FAIL,SR_TRUE/FALSE
+with standard kernel values.
 
-Signed-off-by: Rajendra Nayak <rnayak@ti.com>
+Signed-off-by: Teerth Reddy <teerth@ti.com>
+
 ---
- arch/arm/mach-omap2/smartreflex.h |   42 +++++++++++++++++++-------------------
- 1 files changed, 21 insertions(+), 21 deletions(-)
+ arch/arm/mach-omap2/smartreflex.c |   16 ++++++++--------
+ 1 files changed, 8 insertions(+), 8 deletions(-)
 
-Index: linux-omap-2.6/arch/arm/mach-omap2/smartreflex.h
+Index: linux-omap-2.6/arch/arm/mach-omap2/smartreflex.c
 ===================================================================
---- linux-omap-2.6.orig/arch/arm/mach-omap2/smartreflex.h	2009-04-15 11:46:15.000000000 +0530
-+++ linux-omap-2.6/arch/arm/mach-omap2/smartreflex.h	2009-04-15 11:46:15.000000000 +0530
-@@ -43,22 +43,22 @@
- #define GAIN_MAXLIMIT	16
- #define R_MAXLIMIT	256
+--- linux-omap-2.6.orig/arch/arm/mach-omap2/smartreflex.c	2009-04-15 11:46:15.000000000 +0530
++++ linux-omap-2.6/arch/arm/mach-omap2/smartreflex.c	2009-04-15 11:46:15.000000000 +0530
+@@ -410,7 +410,7 @@ static int sr_reset_voltage(int srid)
+ 		if (retries_cnt > 10) {
+ 			pr_info("Loop count exceeded in check SR I2C"
+ 								"write\n");
+-			return SR_FAIL;
++			return 1;
+ 		}
+ 		if (loop_cnt > 50) {
+ 			retries_cnt++;
+@@ -420,7 +420,7 @@ static int sr_reset_voltage(int srid)
+ 		vc_bypass_value = prm_read_mod_reg(OMAP3430_GR_MOD,
+ 					OMAP3_PRM_VC_BYPASS_VAL_OFFSET);
+ 	}
+-	return SR_PASS;
++	return 0;
+ }
  
--#define SR1_CLK_ENABLE	(0x1 << 6)
--#define SR2_CLK_ENABLE	(0x1 << 7)
-+#define SR1_CLK_ENABLE	BIT(6)
-+#define SR2_CLK_ENABLE	BIT(7)
+ static int sr_enable(struct omap_sr *sr, u32 target_opp_no)
+@@ -475,7 +475,7 @@ static int sr_enable(struct omap_sr *sr,
+ 	if (nvalue_reciprocal == 0) {
+ 		pr_notice("OPP%d doesn't support SmartReflex\n",
+ 								target_opp_no);
+-		return SR_FALSE;
++		return false;
+ 	}
  
- /* PRM_VP1_CONFIG */
- #define PRM_VP1_CONFIG_ERROROFFSET	(0x00 << 24)
- #define PRM_VP1_CONFIG_ERRORGAIN	(0x20 << 16)
+ 	sr_write_reg(sr, NVALUERECIPROCAL, nvalue_reciprocal);
+@@ -525,7 +525,7 @@ static int sr_enable(struct omap_sr *sr,
  
- #define PRM_VP1_CONFIG_INITVOLTAGE	(0x30 << 8) /* 1.2 volt */
--#define PRM_VP1_CONFIG_TIMEOUTEN	(0x1 << 3)
--#define PRM_VP1_CONFIG_INITVDD		(0x1 << 2)
--#define PRM_VP1_CONFIG_FORCEUPDATE	(0x1 << 1)
--#define PRM_VP1_CONFIG_VPENABLE		(0x1 << 0)
-+#define PRM_VP1_CONFIG_TIMEOUTEN	BIT(3)
-+#define PRM_VP1_CONFIG_INITVDD		BIT(2)
-+#define PRM_VP1_CONFIG_FORCEUPDATE	BIT(1)
-+#define PRM_VP1_CONFIG_VPENABLE		BIT(0)
+ 	/* SRCONFIG - enable SR */
+ 	sr_modify_reg(sr, SRCONFIG, SRCONFIG_SRENABLE, SRCONFIG_SRENABLE);
+-	return SR_TRUE;
++	return true;
+ }
  
- /* PRM_VP1_VSTEPMIN */
- #define PRM_VP1_VSTEPMIN_SMPSWAITTIMEMIN	(0x01F4 << 8)
--#define PRM_VP1_VSTEPMIN_VSTEPMIN		(0x01 << 0)
-+#define PRM_VP1_VSTEPMIN_VSTEPMIN		BIT(0)
+ static void sr_disable(struct omap_sr *sr)
+@@ -590,11 +590,11 @@ int sr_stop_vddautocomap(int srid)
+ 		sr->is_autocomp_active = 0;
+ 		/* Reset the volatage for current OPP */
+ 		sr_reset_voltage(srid);
+-		return SR_TRUE;
++		return true;
+ 	} else {
+ 		pr_warning("SR%d: VDD autocomp is not active\n",
+ 								srid);
+-		return SR_FALSE;
++		return false;
+ 	}
  
- /* PRM_VP1_VSTEPMAX */
- #define PRM_VP1_VSTEPMAX_SMPSWAITTIMEMAX	(0x01F4 << 8)
-@@ -74,14 +74,14 @@
- #define PRM_VP2_CONFIG_ERRORGAIN	(0x20 << 16)
+ }
+@@ -710,7 +710,7 @@ int sr_voltagescale_vcbypass(u32 target_
+ 		if (retries_cnt > 10) {
+ 			pr_info("Loop count exceeded in check SR I2C"
+ 								"write\n");
+-			return SR_FAIL;
++			return 1;
+ 		}
+ 		if (loop_cnt > 50) {
+ 			retries_cnt++;
+@@ -730,7 +730,7 @@ int sr_voltagescale_vcbypass(u32 target_
+ 			sr_start_vddautocomap(SR2, target_opp_no);
+ 	}
  
- #define PRM_VP2_CONFIG_INITVOLTAGE	(0x30 << 8) /* 1.2 volt */
--#define PRM_VP2_CONFIG_TIMEOUTEN	(0x1 << 3)
--#define PRM_VP2_CONFIG_INITVDD		(0x1 << 2)
--#define PRM_VP2_CONFIG_FORCEUPDATE	(0x1 << 1)
--#define PRM_VP2_CONFIG_VPENABLE		(0x1 << 0)
-+#define PRM_VP2_CONFIG_TIMEOUTEN	BIT(3)
-+#define PRM_VP2_CONFIG_INITVDD		BIT(2)
-+#define PRM_VP2_CONFIG_FORCEUPDATE	BIT(1)
-+#define PRM_VP2_CONFIG_VPENABLE		BIT(0)
+-	return SR_PASS;
++	return 0;
+ }
  
- /* PRM_VP2_VSTEPMIN */
- #define PRM_VP2_VSTEPMIN_SMPSWAITTIMEMIN	(0x01F4 << 8)
--#define PRM_VP2_VSTEPMIN_VSTEPMIN		(0x01 << 0)
-+#define PRM_VP2_VSTEPMIN_VSTEPMIN		BIT(0)
- 
- /* PRM_VP2_VSTEPMAX */
- #define PRM_VP2_VSTEPMAX_SMPSWAITTIMEMAX	(0x01F4 << 8)
-@@ -106,20 +106,20 @@
- #define SRCONFIG_SENNENABLE_SHIFT	5
- #define SRCONFIG_SENPENABLE_SHIFT	3
- 
--#define SRCONFIG_SRENABLE		(0x01 << 11)
--#define SRCONFIG_SENENABLE		(0x01 << 10)
--#define SRCONFIG_ERRGEN_EN		(0x01 << 9)
--#define SRCONFIG_MINMAXAVG_EN		(0x01 << 8)
-+#define SRCONFIG_SRENABLE		BIT(11)
-+#define SRCONFIG_SENENABLE		BIT(10)
-+#define SRCONFIG_ERRGEN_EN		BIT(9)
-+#define SRCONFIG_MINMAXAVG_EN		BIT(8)
- 
--#define SRCONFIG_DELAYCTRL		(0x01 << 2)
-+#define SRCONFIG_DELAYCTRL		BIT(2)
- #define SRCONFIG_CLKCTRL		(0x00 << 0)
- 
- /* AVGWEIGHT */
- #define SR1_AVGWEIGHT_SENPAVGWEIGHT	(0x03 << 2)
- #define SR1_AVGWEIGHT_SENNAVGWEIGHT	(0x03 << 0)
- 
--#define SR2_AVGWEIGHT_SENPAVGWEIGHT	(0x01 << 2)
--#define SR2_AVGWEIGHT_SENNAVGWEIGHT	(0x01 << 0)
-+#define SR2_AVGWEIGHT_SENPAVGWEIGHT	BIT(2)
-+#define SR2_AVGWEIGHT_SENNAVGWEIGHT	BIT(0)
- 
- /* NVALUERECIPROCAL */
- #define NVALUERECIPROCAL_SENPGAIN_SHIFT	20
-@@ -136,8 +136,8 @@
- #define SR_CLKACTIVITY_IOFF_FOFF	(0x00 << 20)
- #define SR_CLKACTIVITY_IOFF_FON		(0x02 << 20)
- 
--#define ERRCONFIG_VPBOUNDINTEN		(0x1 << 31)
--#define ERRCONFIG_VPBOUNDINTST		(0x1 << 30)
-+#define ERRCONFIG_VPBOUNDINTEN		BIT(31)
-+#define ERRCONFIG_VPBOUNDINTST		BIT(30)
- 
- #define SR1_ERRWEIGHT			(0x07 << 16)
- #define SR1_ERRMAXLIMIT			(0x02 << 8)
+ /* Sysfs interface to select SR VDD1 auto compensation */
