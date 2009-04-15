@@ -1,40 +1,112 @@
-From: twebb <taliaferro62@gmail.com>
-Subject: ehci problem on OMAP35xx
-Date: Wed, 15 Apr 2009 12:04:37 -0400
-Message-ID: <dbdb2ea60904150904j232e2803wb1dc973d727b941c@mail.gmail.com>
+From: Artem Bityutskiy <dedekind@yandex.ru>
+Subject: Re: [PATCH] OMAP3: lessen amount of noisy messages
+Date: Wed, 15 Apr 2009 19:06:21 +0300
+Message-ID: <49E605FD.2020509@yandex.ru>
+References: <1239288072.3390.8.camel@localhost.localdomain>	 <49E5D188.8060508@yandex.ru>	 <alpine.DEB.2.00.0904150917520.3313@utopia.booyaka.com> <1239810161.3390.190.camel@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8;
+	format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from yw-out-2324.google.com ([74.125.46.28]:64707 "EHLO
-	yw-out-2324.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750966AbZDOQEj (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 15 Apr 2009 12:04:39 -0400
-Received: by yw-out-2324.google.com with SMTP id 5so3160781ywb.1
-        for <linux-omap@vger.kernel.org>; Wed, 15 Apr 2009 09:04:38 -0700 (PDT)
+Received: from smtp.nokia.com ([192.100.122.233]:27427 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752916AbZDOQGq (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 15 Apr 2009 12:06:46 -0400
+In-Reply-To: <1239810161.3390.190.camel@localhost.localdomain>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "linux-omap@vger.kernel.org Mailing List" <linux-omap@vger.kernel.org>
+To: Paul Walmsley <paul@pwsan.com>
+Cc: Tony Lindgen <tony@atomide.com>, linux-omap@vger.kernel.org
 
-I'm having issues getting USB up and going on HSUSB2/EHCI on
-OMAP35xx-based hardware (very similar to beagle board).  We're using
-an SMSC3317 connected to HSUSB2, and in turn, the 3317 is connected to
-an onboard hub - a SMSC USB2513.  When the hub is removed from reset,
-it appears that handshaking/chirping starts to happen between xcvr and
-hub, but ends with the code announcing that it is "unable to enumerate
-USB device on port 2".  I'm guessing it's failing because we never see
-PED set in the PORTSC_1 reg (and we are seeing PO=1 which doesn't make
-any sense).
+Artem Bityutskiy wrote:
+> Disabling unused clock "gpt2_ick"
+> Disabling unused clock "gpt3_ick"
+> Disabling unused clock "gpt4_ick"
+> Disabling unused clock "gpt5_ick"
+> Disabling unused clock "gpt6_ick"
+> Disabling unused clock "gpt7_ick"
+> Disabling unused clock "gpt8_ick"
+> Disabling unused clock "gpt9_ick"
+> Disabling unused clock "gpio2_dbck"
+> Disabling unused clock "gpio3_dbck"
+> Disabling unused clock "gpio4_dbck"
+> Disabling unused clock "gpio5_dbck"
+> Disabling unused clock "gpio6_dbck"
+> Disabling unused clock "gpt9_fck"
+> Disabling unused clock "gpt8_fck"
+> Disabling unused clock "gpt7_fck"
+> Disabling unused clock "gpt6_fck"
+> Disabling unused clock "gpt5_fck"
+> Disabling unused clock "gpt4_fck"
+> Disabling unused clock "gpt3_fck"
+> Disabling unused clock "gpt2_fck"
+> Disabling unused clock "wdt2_ick"
+> Disabling unused clock "wdt2_fck"
+> Disabling unused clock "gpio1_dbck"
+> Disabling unused clock "rng_ick"
+> Disabling unused clock "ssi_ick"
+> Disabling unused clock "gpt10_ick"
+> Disabling unused clock "gpt11_ick"
+> Disabling unused clock "uart1_ick"
+> Disabling unused clock "uart2_ick"
+> Disabling unused clock "usbtll_ick"
+> Disabling unused clock "ssi_ssr_fck"
+> Disabling unused clock "uart1_fck"
+> Disabling unused clock "uart2_fck"
+> Disabling unused clock "usbtll_fck"
+> Disabling unused clock "ts_fck"
+> Disabling unused clock "cpefuse_fck"
+> Disabling unused clock "gpt11_fck"
+> Disabling unused clock "gpt10_fck"
+> Disabling unused clock "dpll5_ck"
+> Disabling unused clock "dpll4_m6x2_ck"
+> Disabling unused clock "dpll4_m5x2_ck"
+> Disabling unused clock "dpll3_m3x2_ck"
+> Disabling unused clock "sys_clkout1"
+>=20
+> The messages have KERN_INFO level and if you have serial
+> console, they normally go there. I do not think it is good
+> idea to print that much stuff there. Moreover, messages
+> are not properly prefixed and for mortals it is not
+> immeadietly clear where they come from.
+>=20
+> Let's give them debugging level instead.
+>=20
+> Signed-off-by: Artem Bityutskiy <Artem.Bityutskiy@nokia.com>
+> ---
+>  arch/arm/mach-omap2/clock.c |    2 +-
+>  1 files changed, 1 insertions(+), 1 deletions(-)
+>=20
+> diff --git a/arch/arm/mach-omap2/clock.c b/arch/arm/mach-omap2/clock.=
+c
+> index 4247a15..c4169ee 100644
+> --- a/arch/arm/mach-omap2/clock.c
+> +++ b/arch/arm/mach-omap2/clock.c
+> @@ -1035,7 +1035,7 @@ void omap2_clk_disable_unused(struct clk *clk)
+>  	if ((regval32 & (1 << clk->enable_bit)) =3D=3D v)
+>  		return;
+> =20
+> -	printk(KERN_INFO "Disabling unused clock \"%s\"\n", clk->name);
+> +	printk(KERN_DEBUG "Disabling unused clock \"%s\"\n", clk->name);
+>  	if (cpu_is_omap34xx()) {
+>  		omap2_clk_enable(clk);
+>  		omap2_clk_disable(clk);
 
-I'm running a l-o git-based 2.6.28-omap1 kernel with
-omap3_beagle_defconfig.  Beagle board works fine (with patch to
-ehci-omap.c and with CONFIG_USB_EHCI_HCD turned on), but my hardware
-(with virtually same xcvr and and onboard hub) does not.
+=46ew notes. I'm just trying to clean up our system, because
+it prints too much to serial line. The clocks prints are
+not very bad, but I still find them a little bit excessive.
+Thus, suggested a patch.
 
-Kind of new to this low level USB functionality, so a few questions...
-1.  Any ideas why we'd see PORTSC_1[PO] = 1?
-2.  Any suggestions on debugging basic connectivity between 35xx EHCI
-controller and transceiver + hub?
+But if you think PM is in a stage when it still needs
+some debugging printing, I'm not going to insist, of course.
+You could do this later, when stuff is more stable.
 
-Thanks,
-twebb
+--=20
+Best Regards,
+Artem Bityutskiy (=D0=90=D1=80=D1=82=D1=91=D0=BC =D0=91=D0=B8=D1=82=D1=8E=
+=D1=86=D0=BA=D0=B8=D0=B9)
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
