@@ -1,112 +1,75 @@
-From: Artem Bityutskiy <dedekind@yandex.ru>
-Subject: Re: [PATCH] OMAP3: lessen amount of noisy messages
-Date: Wed, 15 Apr 2009 19:06:21 +0300
-Message-ID: <49E605FD.2020509@yandex.ru>
-References: <1239288072.3390.8.camel@localhost.localdomain>	 <49E5D188.8060508@yandex.ru>	 <alpine.DEB.2.00.0904150917520.3313@utopia.booyaka.com> <1239810161.3390.190.camel@localhost.localdomain>
+From: "Nayak, Rajendra" <rnayak@ti.com>
+Subject: [PATCH 05/10] OMAP3: SR: Disable SR autocomp only for CORE trans
+Date: Wed, 15 Apr 2009 22:18:38 +0530
+Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB02FB2518BE@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:27427 "EHLO
-	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752916AbZDOQGq (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 15 Apr 2009 12:06:46 -0400
-In-Reply-To: <1239810161.3390.190.camel@localhost.localdomain>
+Received: from comal.ext.ti.com ([198.47.26.152]:57612 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752208AbZDOQss convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 15 Apr 2009 12:48:48 -0400
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: Tony Lindgen <tony@atomide.com>, linux-omap@vger.kernel.org
+To: linux-omap <linux-omap@vger.kernel.org>
+Cc: Kevin Hilman <khilman@deeprootsystems.com>
 
-Artem Bityutskiy wrote:
-> Disabling unused clock "gpt2_ick"
-> Disabling unused clock "gpt3_ick"
-> Disabling unused clock "gpt4_ick"
-> Disabling unused clock "gpt5_ick"
-> Disabling unused clock "gpt6_ick"
-> Disabling unused clock "gpt7_ick"
-> Disabling unused clock "gpt8_ick"
-> Disabling unused clock "gpt9_ick"
-> Disabling unused clock "gpio2_dbck"
-> Disabling unused clock "gpio3_dbck"
-> Disabling unused clock "gpio4_dbck"
-> Disabling unused clock "gpio5_dbck"
-> Disabling unused clock "gpio6_dbck"
-> Disabling unused clock "gpt9_fck"
-> Disabling unused clock "gpt8_fck"
-> Disabling unused clock "gpt7_fck"
-> Disabling unused clock "gpt6_fck"
-> Disabling unused clock "gpt5_fck"
-> Disabling unused clock "gpt4_fck"
-> Disabling unused clock "gpt3_fck"
-> Disabling unused clock "gpt2_fck"
-> Disabling unused clock "wdt2_ick"
-> Disabling unused clock "wdt2_fck"
-> Disabling unused clock "gpio1_dbck"
-> Disabling unused clock "rng_ick"
-> Disabling unused clock "ssi_ick"
-> Disabling unused clock "gpt10_ick"
-> Disabling unused clock "gpt11_ick"
-> Disabling unused clock "uart1_ick"
-> Disabling unused clock "uart2_ick"
-> Disabling unused clock "usbtll_ick"
-> Disabling unused clock "ssi_ssr_fck"
-> Disabling unused clock "uart1_fck"
-> Disabling unused clock "uart2_fck"
-> Disabling unused clock "usbtll_fck"
-> Disabling unused clock "ts_fck"
-> Disabling unused clock "cpefuse_fck"
-> Disabling unused clock "gpt11_fck"
-> Disabling unused clock "gpt10_fck"
-> Disabling unused clock "dpll5_ck"
-> Disabling unused clock "dpll4_m6x2_ck"
-> Disabling unused clock "dpll4_m5x2_ck"
-> Disabling unused clock "dpll3_m3x2_ck"
-> Disabling unused clock "sys_clkout1"
->=20
-> The messages have KERN_INFO level and if you have serial
-> console, they normally go there. I do not think it is good
-> idea to print that much stuff there. Moreover, messages
-> are not properly prefixed and for mortals it is not
-> immeadietly clear where they come from.
->=20
-> Let's give them debugging level instead.
->=20
-> Signed-off-by: Artem Bityutskiy <Artem.Bityutskiy@nokia.com>
-> ---
->  arch/arm/mach-omap2/clock.c |    2 +-
->  1 files changed, 1 insertions(+), 1 deletions(-)
->=20
-> diff --git a/arch/arm/mach-omap2/clock.c b/arch/arm/mach-omap2/clock.=
-c
-> index 4247a15..c4169ee 100644
-> --- a/arch/arm/mach-omap2/clock.c
-> +++ b/arch/arm/mach-omap2/clock.c
-> @@ -1035,7 +1035,7 @@ void omap2_clk_disable_unused(struct clk *clk)
->  	if ((regval32 & (1 << clk->enable_bit)) =3D=3D v)
->  		return;
-> =20
-> -	printk(KERN_INFO "Disabling unused clock \"%s\"\n", clk->name);
-> +	printk(KERN_DEBUG "Disabling unused clock \"%s\"\n", clk->name);
->  	if (cpu_is_omap34xx()) {
->  		omap2_clk_enable(clk);
->  		omap2_clk_disable(clk);
+Re-sending only this patch as the previous one in the patch-set had issues.
 
-=46ew notes. I'm just trying to clean up our system, because
-it prints too much to serial line. The clocks prints are
-not very bad, but I still find them a little bit excessive.
-Thus, suggested a patch.
+From: Rajendra Nayak <rnayak@ti.com>
 
-But if you think PM is in a stage when it still needs
-some debugging printing, I'm not going to insist, of course.
-You could do this later, when stuff is more stable.
+This patch disables the Smartreflex auto compensation for
+both VDD1 and VDD2 only during CORE transitions in idle path.
 
---=20
-Best Regards,
-Artem Bityutskiy (=D0=90=D1=80=D1=82=D1=91=D0=BC =D0=91=D0=B8=D1=82=D1=8E=
-=D1=86=D0=BA=D0=B8=D0=B9)
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Signed-off-by: Rajendra Nayak <rnayak@ti.com>
+Signed-off-by: Jouni Hogander <jouni.hogander@nokia.com>
+---
+ arch/arm/mach-omap2/pm34xx.c |   12 ++++++------
+ 1 files changed, 6 insertions(+), 6 deletions(-)
+
+Index: linux-omap-2.6/arch/arm/mach-omap2/pm34xx.c
+===================================================================
+--- linux-omap-2.6.orig/arch/arm/mach-omap2/pm34xx.c	2009-04-15 11:44:51.000000000 +0530
++++ linux-omap-2.6/arch/arm/mach-omap2/pm34xx.c	2009-04-15 11:46:13.000000000 +0530
+@@ -349,9 +349,6 @@ void omap_sram_idle(void)
+ 		printk(KERN_ERR "Invalid mpu state in sram_idle\n");
+ 		return;
+ 	}
+-	/* Disable smartreflex before entering WFI */
+-	disable_smartreflex(SR1);
+-	disable_smartreflex(SR2);
+ 
+ 	pwrdm_pre_transition();
+ 
+@@ -380,6 +377,9 @@ void omap_sram_idle(void)
+ 
+ 	/* CORE */
+ 	if (core_next_state < PWRDM_POWER_ON) {
++		/* Disable smartreflex before entering WFI */
++		disable_smartreflex(SR1);
++		disable_smartreflex(SR2);
+ 		omap_uart_prepare_idle(0);
+ 		omap_uart_prepare_idle(1);
+ 		if (core_next_state == PWRDM_POWER_OFF) {
+@@ -444,6 +444,9 @@ void omap_sram_idle(void)
+ 			prm_clear_mod_reg_bits(OMAP3430_AUTO_OFF,
+ 					       OMAP3430_GR_MOD,
+ 					       OMAP3_PRM_VOLTCTRL_OFFSET);
++		/* Enable smartreflex after WFI */
++		enable_smartreflex(SR1);
++		enable_smartreflex(SR2);
+ 	}
+ 
+ 	/* PER */
+@@ -466,9 +469,6 @@ void omap_sram_idle(void)
+ 		omap3_disable_io_chain();
+ 	}
+ 
+-	/* Enable smartreflex after WFI */
+-	enable_smartreflex(SR1);
+-	enable_smartreflex(SR2);
+ 
+ 	pwrdm_post_transition();
+
