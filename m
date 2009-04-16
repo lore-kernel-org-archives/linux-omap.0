@@ -1,103 +1,80 @@
-From: Roger Quadros <ext-roger.quadros@nokia.com>
-Subject: Re: [PATCH take 2] PM: OMAP: Fix build with CONFIG_OMAP_PM_NONE set
-Date: Thu, 16 Apr 2009 11:43:26 +0300
-Message-ID: <49E6EFAE.2020601@nokia.com>
-References: <49DCB1D2.9070405@nokia.com>
+From: Tomi Valkeinen <tomi.valkeinen@nokia.com>
+Subject: Re: Fwd: dss2 with dsi
+Date: Thu, 16 Apr 2009 12:58:56 +0300
+Message-ID: <1239875936.6696.125.camel@tubuntu>
+References: <aed62de90904151916h5a218e9bgf3419ea96c3ed262@mail.gmail.com>
+	 <aed62de90904151917l21419edo12df2dc3ad5c707c@mail.gmail.com>
+Reply-To: tomi.valkeinen@nokia.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:42918 "EHLO
+Received: from smtp.nokia.com ([192.100.122.233]:51907 "EHLO
 	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752516AbZDPIoU (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 16 Apr 2009 04:44:20 -0400
-In-Reply-To: <49DCB1D2.9070405@nokia.com>
+	with ESMTP id S1753050AbZDPJ71 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 16 Apr 2009 05:59:27 -0400
+In-Reply-To: <aed62de90904151917l21419edo12df2dc3ad5c707c@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: ext Roger Quadros <ext-roger.quadros@nokia.com>
-Cc: Kevin Hilman <khilman@deeprootsystems.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: ext Rebecca Schultz Zavin <rebecca@android.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-ext Roger Quadros wrote:
-> From: Roger Quadros <ext-roger.quadros@nokia.com>
-> Date: Wed, 8 Apr 2009 17:12:43 +0300
-> Subject: [PATCH] PM: OMAP: Fix build with CONFIG_OMAP_PM_NONE set
-> 
-> Removes undefined symbol link errors when CONFIG_OMAP_PM is set.
-> The required symbols are defined in common.c and omap-pm.h
-> Dummy variables mpu_oops, dsp_oops and l3_oops have to be defined
-> because they are used in a number of places
-> 
-> It fixes the following link errors
-> 
-> arch/arm/mach-omap2/built-in.o: In function `omap3_round_to_table_rate':
-> arch/arm/mach-omap2/clock34xx.c:956: undefined reference to `mpu_opps'
-> arch/arm/mach-omap2/clock34xx.c:956: undefined reference to `dsp_opps'
-> arch/arm/mach-omap2/clock34xx.c:956: undefined reference to `l3_opps'
-> arch/arm/mach-omap2/built-in.o: In function `omap2_init_common_hw':
-> arch/arm/mach-omap2/io.c:241: undefined reference to
-> `omap_pm_if_early_init'
-> arch/arm/mach-omap2/io.c:246: undefined reference to `omap_pm_if_init'
-> make: *** [.tmp_vmlinux1] Error 1
-> 
-> Signed-off-by: Roger Quadros <ext-roger.quadros@nokia.com>
-> ---
->  arch/arm/plat-omap/common.c               |    6 ++++++
->  arch/arm/plat-omap/include/mach/omap-pm.h |    8 ++++++++
->  2 files changed, 14 insertions(+), 0 deletions(-)
-> 
-> diff --git a/arch/arm/plat-omap/common.c b/arch/arm/plat-omap/common.c
-> index 2866612..634ca39 100644
-> --- a/arch/arm/plat-omap/common.c
-> +++ b/arch/arm/plat-omap/common.c
-> @@ -46,6 +46,12 @@ int omap_bootloader_tag_len;
->  struct omap_board_config_kernel *omap_board_config;
->  int omap_board_config_size;
-> 
-> +#ifdef CONFIG_OMAP_PM_NONE
-> +struct omap_opp *mpu_opps;
-> +struct omap_opp *dsp_opps;
-> +struct omap_opp *l3_opps;
-> +#endif
-> +
->  #ifdef CONFIG_OMAP_BOOT_TAG
-> 
->  static int __init parse_tag_omap(const struct tag *tag)
-> diff --git a/arch/arm/plat-omap/include/mach/omap-pm.h 
-> b/arch/arm/plat-omap/include/mach/omap-pm.h
-> index f0bbd36..5526e89 100644
-> --- a/arch/arm/plat-omap/include/mach/omap-pm.h
-> +++ b/arch/arm/plat-omap/include/mach/omap-pm.h
-> @@ -58,9 +58,13 @@ extern struct omap_opp *l3_opps;
->   * framework starts.  The "_if_" is to avoid name collisions with the
->   * PM idle-loop code.
->   */
-> +#ifdef CONFIG_OMAP_PM_NONE
-> +#define omap_pm_if_early_init(a, b, c) 0
-> +#else
->  int __init omap_pm_if_early_init(struct omap_opp *mpu_opp_table,
->                   struct omap_opp *dsp_opp_table,
->                   struct omap_opp *l3_opp_table);
-> +#endif
-> 
->  /**
->   * omap_pm_if_init - OMAP PM init code called after clock fw init
-> @@ -68,7 +72,11 @@ int __init omap_pm_if_early_init(struct omap_opp 
-> *mpu_opp_table,
->   * The main initialization code.  OPP tables are passed in here.  The
->   * "_if_" is to avoid name collisions with the PM idle-loop code.
->   */
-> +#ifdef CONFIG_OMAP_PM_NONE
-> +#define omap_pm_if_init() 0
-> +#else
->  int __init omap_pm_if_init(void);
-> +#endif
-> 
->  /**
->   * omap_pm_if_exit - OMAP PM exit code
+Hi,
 
-Hi Kevin,
+Please send DSS2 issues directly to me (cc l-o if you want to). I may
+miss them otherwise.
 
-is this patch making into PM?
+On Thu, 2009-04-16 at 04:17 +0200, ext Rebecca Schultz Zavin wrote:
+> I'm using dss2 on a dsi panel and I've run into a few limitations in
+> the present implementation.  I'd like to post the fixes, but I'd
+> appreciate some guidance, especially since I'm working without the
+> mipi spec so it isn't always clear to me what's a function of the
+> implementation vs. the spec.
 
-regards,
--roger
+The DSI implementation is generally quite limited currently. I have only
+one DSI display configuration to test it with, so I opted to leave out
+the complexity of full VC control for now. There has been enough
+problems just to get it working properly with one DSI peripheral =).
+
+> 1- I think the destination vc set in dsi.vc[n].dest_per should be
+> specifiable from either the dsi controller or the board file?  Any
+> preference on which?  Could be added to omap_ctrl or to
+> omap_dss_display_type.
+
+I believe it should be in the board file. As I said I have only one DSI
+display with hardcoded vc-id, but I imagine it would be possible to have
+DSI peripherals that can respond to a configurable vc-id. Thus board
+file would be the only place where they can be spesified.
+
+> 
+> 2- The code hard codes vc0 for L4 and v1 for dispc.  My controller
+> exepects the reverse.  Again I think this should come from some struct
+> in either the controller or the board file.  Preferences?
+
+The OMAP DSI virtual channel implementation is a bit confusing at first.
+The VC register sets do not say where the packets go. So if you send
+data with VC0, it doesn't mean that the packets go to the peripheral
+with vc-id 0.
+
+So even if L4 and DISPC code use different VC register sets, they both
+go to the same peripheral with id 0. This id is defined in the dest_per
+field mentioned above.
+
+I used two separate VCs just to make debugging simpler, as I only need
+to configure the VC once and thats it. Otherwise I would need to change
+the VC0 back and forth between L4 mode to DISPC mode. I don't see why
+this wouldn't work, and my plan is to use just one VC register set for
+one peripheral at some point.
+
+> 
+> 3- The code hard codes the complexio timing values used for setting
+> DSIPHY_CFG0, 1 and 2.  I think these values should be specified in the
+> omap_ctrl the way rfbi_timings are.
+
+I don't remember what settings there is but aren't they specified in
+MIPI DSI spec? If so, they should be the same for all peripherals. At
+least in theory =).
+
+ Tomi
+
+
