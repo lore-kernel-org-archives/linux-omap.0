@@ -1,43 +1,55 @@
-From: Tim Yamin <plasm@roo.me.uk>
-Subject: Re: YUV rotation support for DSS2 - 2.6.29 [WAS Re: Hello Tomi
-	Valkeinen, I have some questions about dss2 driver.]
-Date: Wed, 15 Apr 2009 12:16:53 -0700
-Message-ID: <792f5f410904151216j263eec47n5047c25442083420@mail.gmail.com>
-References: <792f5f410904131400v3199fa09w14c24f01f468d1c2@mail.gmail.com>
-	 <5A47E75E594F054BAF48C5E4FC4B92AB02FB1A208D@dbde02.ent.ti.com>
+From: Rebecca Schultz Zavin <rebecca@android.com>
+Subject: Fwd: dss2 with dsi
+Date: Wed, 15 Apr 2009 19:17:43 -0700
+Message-ID: <aed62de90904151917l21419edo12df2dc3ad5c707c@mail.gmail.com>
+References: <aed62de90904151916h5a218e9bgf3419ea96c3ed262@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from rv-out-0506.google.com ([209.85.198.230]:39725 "EHLO
-	rv-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753179AbZDOTQz convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 15 Apr 2009 15:16:55 -0400
-Received: by rv-out-0506.google.com with SMTP id f9so48136rvb.1
-        for <linux-omap@vger.kernel.org>; Wed, 15 Apr 2009 12:16:53 -0700 (PDT)
-In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB02FB1A208D@dbde02.ent.ti.com>
+Received: from smtp-out.google.com ([216.239.33.17]:32693 "EHLO
+	smtp-out.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752254AbZDPCRs convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 15 Apr 2009 22:17:48 -0400
+Received: from spaceape12.eur.corp.google.com (spaceape12.eur.corp.google.com [172.28.16.146])
+	by smtp-out.google.com with ESMTP id n3G2Hi6r010357
+	for <linux-omap@vger.kernel.org>; Thu, 16 Apr 2009 03:17:45 +0100
+Received: from qw-out-1920.google.com (qwj9.prod.google.com [10.241.195.73])
+	by spaceape12.eur.corp.google.com with ESMTP id n3G2HMpd024389
+	for <linux-omap@vger.kernel.org>; Wed, 15 Apr 2009 19:17:43 -0700
+Received: by qw-out-1920.google.com with SMTP id 9so147294qwj.48
+        for <linux-omap@vger.kernel.org>; Wed, 15 Apr 2009 19:17:43 -0700 (PDT)
+In-Reply-To: <aed62de90904151916h5a218e9bgf3419ea96c3ed262@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Shah, Hardik" <hardik.shah@ti.com>
-Cc: "gregoire@gentil.com" <gregoire@gentil.com>, "tomi.valkeinen@nokia.com" <tomi.valkeinen@nokia.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "beagleboard@googlegroups.com" <beagleboard@googlegroups.com>
+To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Hi Hardik,
+I'm using dss2 on a dsi panel and I've run into a few limitations in
+the present implementation.=A0 I'd like to post the fixes, but I'd
+appreciate some guidance, especially since I'm working without the
+mipi spec so it isn't always clear to me what's a function of the
+implementation vs. the spec.
 
-2009/4/15 Shah, Hardik <hardik.shah@ti.com>:
-> [Shah, Hardik] Hi Tim,
-> Try to increase the pixel clock to functional clock ratio to 6 or 8. =
-=A0This may help as you are getting under run errors.
+1- I think the destination vc set in dsi.vc[n].dest_per should be
+specifiable from either the dsi controller or the board file?=A0 Any
+preference on which?=A0 Could be added to omap_ctrl or to
+omap_dss_display_type.
 
-Thanks for the help -- so it seems that it's a clock issue. At 800x600
-rotation of both planes simultaneously by 90 degrees is working just
-fine. At 1024x768 it seems that it's not possible because of the
-clocking: the pixel clock is 56MHz so the maximum
-OMAP2_DSS_MIN_FCK_PER_PCK constant is 3, which does not seem to be
-sufficient.
+2- The code hard codes vc0 for L4 and v1 for dispc.=A0 My controller
+exepects the reverse.=A0 Again I think this should come from some struc=
+t
+in either the controller or the board file.=A0 Preferences?
 
-Cheers,
+3- The code hard codes the complexio timing values used for setting
+DSIPHY_CFG0, 1 and 2.=A0 I think these values should be specified in th=
+e
+omap_ctrl the way rfbi_timings are.
 
-Tim
+If no one has any thoughts on this I'll just pick something and throw
+some patches for Tomi's tree up, but I thought it was worth pinging on
+it.
+
+Rebecca
 --
 To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
 n
