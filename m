@@ -1,110 +1,134 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH take 2] PM: OMAP: Fix build with CONFIG_OMAP_PM_NONE set
-Date: Thu, 16 Apr 2009 07:26:45 -0500
-Message-ID: <8763h4zsvu.fsf@deeprootsystems.com>
-References: <49DCB1D2.9070405@nokia.com> <49E6EFAE.2020601@nokia.com>
+From: <harish.hanumanthappa@wipro.com>
+Subject: Unable to mount android rootfs
+Date: Thu, 16 Apr 2009 18:10:56 +0530
+Message-ID: <8EFA81424BDADF4EB943E5A53420D7E308D6E86A@BLR-EC-MBX03.wipro.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from wf-out-1314.google.com ([209.85.200.171]:50253 "EHLO
-	wf-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754562AbZDPM0s (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 16 Apr 2009 08:26:48 -0400
-Received: by wf-out-1314.google.com with SMTP id 29so372441wff.4
-        for <linux-omap@vger.kernel.org>; Thu, 16 Apr 2009 05:26:47 -0700 (PDT)
-In-Reply-To: <49E6EFAE.2020601@nokia.com> (Roger Quadros's message of "Thu\, 16 Apr 2009 11\:43\:26 +0300")
+Received: from wipro-blr-out01.wipro.com ([203.91.198.74]:12810 "EHLO
+	wipro-blr-out01.wipro.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752695AbZDPNDd convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 16 Apr 2009 09:03:33 -0400
+Received: from blr-ec-aa03.wipro.com (unknown [10.201.18.42])
+	by wipro-blr-out01.wipro.com (Symantec Mail Security) with ESMTP id C11D1355C005
+	for <linux-omap@vger.kernel.org>; Thu, 16 Apr 2009 18:10:57 +0530 (IST)
+Content-class: urn:content-classes:message
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Roger Quadros <ext-roger.quadros@nokia.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: linux-omap@vger.kernel.org
 
-Roger Quadros <ext-roger.quadros@nokia.com> writes:
+Hi,
 
-> ext Roger Quadros wrote:
->> From: Roger Quadros <ext-roger.quadros@nokia.com>
->> Date: Wed, 8 Apr 2009 17:12:43 +0300
->> Subject: [PATCH] PM: OMAP: Fix build with CONFIG_OMAP_PM_NONE set
->>
->> Removes undefined symbol link errors when CONFIG_OMAP_PM is set.
->> The required symbols are defined in common.c and omap-pm.h
->> Dummy variables mpu_oops, dsp_oops and l3_oops have to be defined
->> because they are used in a number of places
->>
->> It fixes the following link errors
->>
->> arch/arm/mach-omap2/built-in.o: In function `omap3_round_to_table_rate':
->> arch/arm/mach-omap2/clock34xx.c:956: undefined reference to `mpu_opps'
->> arch/arm/mach-omap2/clock34xx.c:956: undefined reference to `dsp_opps'
->> arch/arm/mach-omap2/clock34xx.c:956: undefined reference to `l3_opps'
->> arch/arm/mach-omap2/built-in.o: In function `omap2_init_common_hw':
->> arch/arm/mach-omap2/io.c:241: undefined reference to
->> `omap_pm_if_early_init'
->> arch/arm/mach-omap2/io.c:246: undefined reference to `omap_pm_if_init'
->> make: *** [.tmp_vmlinux1] Error 1
->>
->> Signed-off-by: Roger Quadros <ext-roger.quadros@nokia.com>
->> ---
->>  arch/arm/plat-omap/common.c               |    6 ++++++
->>  arch/arm/plat-omap/include/mach/omap-pm.h |    8 ++++++++
->>  2 files changed, 14 insertions(+), 0 deletions(-)
->>
->> diff --git a/arch/arm/plat-omap/common.c b/arch/arm/plat-omap/common.c
->> index 2866612..634ca39 100644
->> --- a/arch/arm/plat-omap/common.c
->> +++ b/arch/arm/plat-omap/common.c
->> @@ -46,6 +46,12 @@ int omap_bootloader_tag_len;
->>  struct omap_board_config_kernel *omap_board_config;
->>  int omap_board_config_size;
->>
->> +#ifdef CONFIG_OMAP_PM_NONE
->> +struct omap_opp *mpu_opps;
->> +struct omap_opp *dsp_opps;
->> +struct omap_opp *l3_opps;
->> +#endif
->> +
->>  #ifdef CONFIG_OMAP_BOOT_TAG
->>
->>  static int __init parse_tag_omap(const struct tag *tag)
->> diff --git a/arch/arm/plat-omap/include/mach/omap-pm.h
->> b/arch/arm/plat-omap/include/mach/omap-pm.h
->> index f0bbd36..5526e89 100644
->> --- a/arch/arm/plat-omap/include/mach/omap-pm.h
->> +++ b/arch/arm/plat-omap/include/mach/omap-pm.h
->> @@ -58,9 +58,13 @@ extern struct omap_opp *l3_opps;
->>   * framework starts.  The "_if_" is to avoid name collisions with the
->>   * PM idle-loop code.
->>   */
->> +#ifdef CONFIG_OMAP_PM_NONE
->> +#define omap_pm_if_early_init(a, b, c) 0
->> +#else
->>  int __init omap_pm_if_early_init(struct omap_opp *mpu_opp_table,
->>                   struct omap_opp *dsp_opp_table,
->>                   struct omap_opp *l3_opp_table);
->> +#endif
->>
->>  /**
->>   * omap_pm_if_init - OMAP PM init code called after clock fw init
->> @@ -68,7 +72,11 @@ int __init omap_pm_if_early_init(struct omap_opp
->> *mpu_opp_table,
->>   * The main initialization code.  OPP tables are passed in here.  The
->>   * "_if_" is to avoid name collisions with the PM idle-loop code.
->>   */
->> +#ifdef CONFIG_OMAP_PM_NONE
->> +#define omap_pm_if_init() 0
->> +#else
->>  int __init omap_pm_if_init(void);
->> +#endif
->>
->>  /**
->>   * omap_pm_if_exit - OMAP PM exit code
->
-> Hi Kevin,
->
-> is this patch making into PM?
->
+I am trying to get android up on omapzoom I.I am using the latest source
+synced from android site. From the console logs captured looks like
+mounting of rootfs is not mounted completely due to mmc driver errors.
+Any help on how to proceed further will be appreciated
 
-Sorry, a combination of conference travel and vacation has got me a
-bit behind on reviewing PM branch submissions.  I'll be catching up on
-PM branch submissions early next week.
+Regards
+Harish.H
 
-Kevin
+VFS: Mounted root (ext2 filesystem).
+
+VFS: Mounted root (ext2 filesystem).
+
+<6>Freeing init memory: 160K
+
+Freeing init memory: 160K
+
+<4>Warning: unable to open an initial console.
+
+Warning: unable to open an initial console.
+
+<3>init: cannot open '/initlogo.rle'
+
+init: cannot open '/initlogo.rle'
+
+<7>omap24xxfb_get_flipbuffers::flipping buffers =3
+
+<3>init: cannot find '/system/bin/playmp3', disabling 'bootsound'
+
+init: cannot find '/system/bin/playmp3', disabling 'bootsound'
+
+sh: can't access tty; job control turned off
+
+# <6>warning: `rild' uses 32-bit capabilities (legacy support in use)
+
+warning: `rild' uses 32-bit capabilities (legacy support in use)
+
+<6>mmci-omap mmci-omap.0: MMC DATA CRC
+
+mmci-omap mmci-omap.0: MMC DATA CRC
+
+<3>mmcblk0: error -84 transferring data
+
+mmcblk0: error -84 transferring data
+
+<3>end_request: I/O error, dev mmcblk0, sector 4618153
+
+end_request: I/O error, dev mmcblk0, sector 4618153
+
+<3>end_request: I/O error, dev mmcblk0, sector 4618161
+
+end_request: I/O error, dev mmcblk0, sector 4618161
+
+<3>end_request: I/O error, dev mmcblk0, sector 4618169
+
+end_request: I/O error, dev mmcblk0, sector 4618169
+
+<3>end_request: I/O error, dev mmcblk0, sector 4618177
+
+end_request: I/O error, dev mmcblk0, sector 4618177
+
+<3>end_request: I/O error, dev mmcblk0, sector 4618185
+
+end_request: I/O error, dev mmcblk0, sector 4618185
+
+<3>end_request: I/O error, dev mmcblk0, sector 4618193
+
+end_request: I/O error, dev mmcblk0, sector 4618193
+
+<3>end_request: I/O error, dev mmcblk0, sector 4618201
+
+end_request: I/O error, dev mmcblk0, sector 4618201
+
+<3>end_request: I/O error, dev mmcblk0, sector 4618209
+
+end_request: I/O error, dev mmcblk0, sector 4618209
+
+<3>end_request: I/O error, dev mmcblk0, sector 4618217
+
+end_request: I/O error, dev mmcblk0, sector 4618217
+
+<3>end_request: I/O error, dev mmcblk0, sector 4618225
+
+end_request: I/O error, dev mmcblk0, sector 4618225
+
+<3>end_request: I/O error, dev mmcblk0, sector 4618233
+
+end_request: I/O error, dev mmcblk0, sector 4618233
+
+<3>end_request: I/O error, dev mmcblk0, sector 4618241
+
+end_request: I/O error, dev mmcblk0, sector 4618241
+
+<3>end_request: I/O error, dev mmcblk0, sector 4618249
+
+end_request: I/O error, dev mmcblk0, sector 4618249
+
+<3>end_request: I/O error, dev mmcblk0, sector 4618257
+
+end_request: I/O error, dev mmcblk0, sector 4618257
+
+<3>end_request: I/O error, dev mmcblk0, sector 4618265
+
+end_request: I/O error, dev mmcblk0, sector 4618265
+
+<3>end_request: I/O error, dev mmcblk0, sector 4618273
+
+end_request: I/O error, dev mmcblk0, sector 4618273
+
+ 
+
+#                                                           
