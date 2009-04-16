@@ -1,39 +1,46 @@
 From: Ben Nizette <bn@niasdigital.com>
-Subject: [PATCH 0/9] Fix unsafe disable_irq usage
-Date: Thu, 16 Apr 2009 15:54:05 +1000
-Message-ID: <1239861245.29831.113.camel@linux-51e8.site>
+Subject: [PATCH 9/9] omap mmc host: Use disable_irq_nosync() from within
+	irq handlers.
+Date: Thu, 16 Apr 2009 15:55:21 +1000
+Message-ID: <1239861321.29831.130.camel@linux-51e8.site>
 Mime-Version: 1.0
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1755511AbZDPFyu@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-kernel <linux-kernel@vger.kernel.org>
-Cc: dan.j.williams@intel.com, Eric Miao <eric.miao@marvell.com>, linux@arm.linux.org.uk, dmitry.torokhov@gmail.com, p_gortmaker@yahoo.com, David Brownell <david-b@pacbell.net>, sameo@linux.intel.com, linux-omap@vger.kernel.org, pierre@ossman.eu, linux-input@vger.kernel.org
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from outbound.icp-qv1-irony-out3.iinet.net.au ([203.59.1.148]:7672
+	"EHLO outbound.icp-qv1-irony-out3.iinet.net.au" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1756629AbZDPFz4 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Thu, 16 Apr 2009 01:55:56 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-
-After being bitten by unsafe usage of disable_irq from within that irq's
-handler [1], I went through and used Coccinelle to audit the rest of
-drivers/ too.  This turned up 9 more unsafe usages.
-
-As Haavard pointed out in that thread, disable_irq waits for running
-handlers of an irq to complete before returning.  When a handler
-disable_irq's its own irq then we see a deadlock.
-
-Note that this wasn't actually observed in the wild until the recent
-merge of
-
-commit 3aa551c9b4c40018f0e261a178e3d25478dc04a9
-Author: Thomas Gleixner <tglx@linutronix.de>
-Date:   Mon Mar 23 18:28:15 2009 +0100
-
-    genirq: add threaded interrupt handler support
-
-    Add support for threaded interrupt handlers
+To: linux-omap@vger.kernel.org
+Cc: pierre@ossman.eu, linux-kernel <linux-kernel@vger.kernel.org>
 
 
+disable_irq() should wait for all running handlers to complete
+before returning.  As such, if it's used to disable an interrupt
+from that interrupt's handler it will deadlock.  This replaces
+the dangerous instances with the _nosync() variant which doesn't
+have this problem.
 
-Regards,
-	--Ben.
+Signed-off-by: Ben Nizette <bn@niasdigital.com>
+---
+diff --git a/drivers/mmc/host/omap.c b/drivers/mmc/host/omap.c
+index 5570849..d5ea652 100644
+--- a/drivers/mmc/host/omap.c
++++ b/drivers/mmc/host/omap.c
+@@ -824,7 +824,7 @@ static irqreturn_t mmc_omap_irq(int irq, void *dev_id)
+ 		del_timer(&host->cmd_abort_timer);
+ 		host->abort = 1;
+ 		OMAP_MMC_WRITE(host, IE, 0);
+-		disable_irq(host->irq);
++		disable_irq_nosync(host->irq);
+ 		schedule_work(&host->cmd_abort_work);
+ 		return IRQ_HANDLED;
+ 	}
+-- 
+1.6.0.2
 
 
-[1] http://lkml.org/lkml/2009/4/15/498
+
