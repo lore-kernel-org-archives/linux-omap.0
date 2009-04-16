@@ -1,148 +1,38 @@
 From: "Pandita, Vikram" <vikram.pandita@ti.com>
-Subject: RE: Unable to mount android rootfs
-Date: Thu, 16 Apr 2009 18:39:34 +0530
-Message-ID: <FCCFB4CDC6E5564B9182F639FC35608702EAA6ABFD@dbde02.ent.ti.com>
-References: <8EFA81424BDADF4EB943E5A53420D7E308D6E86A@BLR-EC-MBX03.wipro.com>
+Subject: RE: ehci problem on OMAP35xx
+Date: Thu, 16 Apr 2009 19:11:21 +0530
+Message-ID: <FCCFB4CDC6E5564B9182F639FC35608702EAA6AC27@dbde02.ent.ti.com>
+References: <dbdb2ea60904150904j232e2803wb1dc973d727b941c@mail.gmail.com>
+ <19F8576C6E063C45BE387C64729E739404280467EF@dbde02.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:51521 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754938AbZDPNJq convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 16 Apr 2009 09:09:46 -0400
-In-Reply-To: <8EFA81424BDADF4EB943E5A53420D7E308D6E86A@BLR-EC-MBX03.wipro.com>
+Received: from comal.ext.ti.com ([198.47.26.152]:38948 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751662AbZDPNlg convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 16 Apr 2009 09:41:36 -0400
+In-Reply-To: <19F8576C6E063C45BE387C64729E739404280467EF@dbde02.ent.ti.com>
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "harish.hanumanthappa@wipro.com" <harish.hanumanthappa@wipro.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: "Gupta, Ajay Kumar" <ajay.gupta@ti.com>, twebb <taliaferro62@gmail.com>, "linux-omap@vger.kernel.org Mailing List" <linux-omap@vger.kernel.org>
 
 
->-----Original Message-----
->Sent: Thursday, April 16, 2009 7:41 AM
->To: linux-omap@vger.kernel.org
->Subject: Unable to mount android rootfs
->
->Hi,
->
->I am trying to get android up on omapzoom I.I am using the latest source
->synced from android site. From the console logs captured looks like
+>> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of twebb
+>> Sent: Wednesday, April 15, 2009 9:35 PM
+>> To: linux-omap@vger.kernel.org Mailing List
+>> Subject: ehci problem on OMAP35xx
+>>
+>> I'm having issues getting USB up and going on HSUSB2/EHCI on
+>> OMAP35xx-based hardware (very similar to beagle board).  We're using
+>> an SMSC3317 connected to HSUSB2, and in turn, the 3317 is connected to
 
-Which android site and which latest code?
-You can give more details and also copy omapandroid-discussion@omapzoom.org
-That mailing list actively works on omap android.
+Does SMSC3317 support Input clocking mode for the 60Mhz ULPI clk?
 
->mounting of rootfs is not mounted completely due to mmc driver errors.
->Any help on how to proceed further will be appreciated
->
->Regards
->Harish.H
->
->VFS: Mounted root (ext2 filesystem).
->
->VFS: Mounted root (ext2 filesystem).
->
-><6>Freeing init memory: 160K
->
->Freeing init memory: 160K
->
-><4>Warning: unable to open an initial console.
->
->Warning: unable to open an initial console.
->
-><3>init: cannot open '/initlogo.rle'
->
->init: cannot open '/initlogo.rle'
->
-><7>omap24xxfb_get_flipbuffers::flipping buffers =3
->
-><3>init: cannot find '/system/bin/playmp3', disabling 'bootsound'
->
->init: cannot find '/system/bin/playmp3', disabling 'bootsound'
->
->sh: can't access tty; job control turned off
->
-># <6>warning: `rild' uses 32-bit capabilities (legacy support in use)
->
->warning: `rild' uses 32-bit capabilities (legacy support in use)
->
-><6>mmci-omap mmci-omap.0: MMC DATA CRC
->
->mmci-omap mmci-omap.0: MMC DATA CRC
->
-><3>mmcblk0: error -84 transferring data
->
->mmcblk0: error -84 transferring data
->
-><3>end_request: I/O error, dev mmcblk0, sector 4618153
->
->end_request: I/O error, dev mmcblk0, sector 4618153
->
-><3>end_request: I/O error, dev mmcblk0, sector 4618161
->
->end_request: I/O error, dev mmcblk0, sector 4618161
->
-><3>end_request: I/O error, dev mmcblk0, sector 4618169
->
->end_request: I/O error, dev mmcblk0, sector 4618169
->
-><3>end_request: I/O error, dev mmcblk0, sector 4618177
->
->end_request: I/O error, dev mmcblk0, sector 4618177
->
-><3>end_request: I/O error, dev mmcblk0, sector 4618185
->
->end_request: I/O error, dev mmcblk0, sector 4618185
->
-><3>end_request: I/O error, dev mmcblk0, sector 4618193
->
->end_request: I/O error, dev mmcblk0, sector 4618193
->
-><3>end_request: I/O error, dev mmcblk0, sector 4618201
->
->end_request: I/O error, dev mmcblk0, sector 4618201
->
-><3>end_request: I/O error, dev mmcblk0, sector 4618209
->
->end_request: I/O error, dev mmcblk0, sector 4618209
->
-><3>end_request: I/O error, dev mmcblk0, sector 4618217
->
->end_request: I/O error, dev mmcblk0, sector 4618217
->
-><3>end_request: I/O error, dev mmcblk0, sector 4618225
->
->end_request: I/O error, dev mmcblk0, sector 4618225
->
-><3>end_request: I/O error, dev mmcblk0, sector 4618233
->
->end_request: I/O error, dev mmcblk0, sector 4618233
->
-><3>end_request: I/O error, dev mmcblk0, sector 4618241
->
->end_request: I/O error, dev mmcblk0, sector 4618241
->
-><3>end_request: I/O error, dev mmcblk0, sector 4618249
->
->end_request: I/O error, dev mmcblk0, sector 4618249
->
-><3>end_request: I/O error, dev mmcblk0, sector 4618257
->
->end_request: I/O error, dev mmcblk0, sector 4618257
->
-><3>end_request: I/O error, dev mmcblk0, sector 4618265
->
->end_request: I/O error, dev mmcblk0, sector 4618265
->
-><3>end_request: I/O error, dev mmcblk0, sector 4618273
->
->end_request: I/O error, dev mmcblk0, sector 4618273
->
->
->
->#
->--
->To unsubscribe from this list: send the line "unsubscribe linux-omap" in
->the body of a message to majordomo@vger.kernel.org
->More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
+>> an onboard hub - a SMSC USB2513.  When the hub is removed from reset,
+>> it appears that handshaking/chirping starts to happen between xcvr and
+>> hub, but ends with the code announcing that it is "unable to enumerate
+>> USB device on port 2".  I'm guessing it's failing because we never see
+>> PED set in the PORTSC_1 reg (and we are seeing PO=1 which doesn't make
+>> any sense).
