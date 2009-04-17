@@ -1,79 +1,47 @@
-From: "Kanigeri, Hari" <h-kanigeri2@ti.com>
-Subject: RE: [PATCH][UPDATED] DSPBRIDGE: CLK_Enable and CLK_Disable Code
- cleanup
-Date: Fri, 17 Apr 2009 14:31:26 -0500
-Message-ID: <8F7AF80515AF0D4D93307E594F3CB40E239D2906@dlee03.ent.ti.com>
-References: <49E89649.9050103@yandex.ru>
- <1239981547-30944-1-git-send-email-ameya.palande@nokia.com>
- <49E8A50D.2010602@yandex.ru>
- <27F9C60D11D683428E133F85D2BB4A530404A089E0@dlee03.ent.ti.com>
+From: Kalle Valo <kalle.valo@iki.fi>
+Subject: n800 build error in clock24xx.c: 'secure_32k_ck' undeclared
+Date: Fri, 17 Apr 2009 23:44:16 +0300
+Message-ID: <873ac7ko2n.fsf@litku.valot.fi>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:36446 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751359AbZDQTbl convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 17 Apr 2009 15:31:41 -0400
-In-Reply-To: <27F9C60D11D683428E133F85D2BB4A530404A089E0@dlee03.ent.ti.com>
-Content-Language: en-US
+Received: from mail-bw0-f211.google.com ([209.85.218.211]:57283 "EHLO
+	mail-bw0-f211.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752250AbZDQUvN (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 17 Apr 2009 16:51:13 -0400
+Received: by bwz7 with SMTP id 7so326609bwz.37
+        for <linux-omap@vger.kernel.org>; Fri, 17 Apr 2009 13:51:10 -0700 (PDT)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Ramirez Luna, Omar" <x00omar@ti.com>, Artem Bityutskiy <dedekind@yandex.ru>, Ameya Palande <ameya.palande@nokia.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: linux-omap@vger.kernel.org
 
-> Artem Bityutskiy wrote:
-> >
-> >I'm sorry. Authors of the code may delete this e-mail.
-> >More flame and suggestions.
-> >
-> 
-> Thanks for your suggestions; it is true that bridge code has been out for
-> a while, almost a year I think, and we are still trying to enhance it and
-> clean it up along the way, although it may seem we have stalled on the
-> task.
-> 
-> Please friendly flame about other parts of bridge code too ;) as we can
-> take very good points of your's/everyone's comments and try to put in
-> better shape the driver to be pushed into mainline (as this has been the
-> goal all the time). Thanks for the time reviewing the code.
-> 
--- Good point, Omar. Artem, please continue sending your comments so that we can continue to improve this code. Progressing from the stage where the Bridge code used to be delivered in the form of tarballs a year ago to delivering it on GIT tree where the patches can be applied was only possible because of comments/suggestions/flames that were received on this mailing list.  
+Hello,
 
-Thank you,
-Best regards,
-Hari
+I'm trying to compile n800 kernel with latest linux-omap tree. First I
+got strange build error:
 
-> -----Original Message-----
-> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
-> owner@vger.kernel.org] On Behalf Of Ramirez Luna, Omar
-> Sent: Friday, April 17, 2009 12:45 PM
-> To: Artem Bityutskiy; Ameya Palande
-> Cc: linux-omap@vger.kernel.org
-> Subject: RE: [PATCH][UPDATED] DSPBRIDGE: CLK_Enable and CLK_Disable Code
-> cleanup
-> 
-> Hi,
-> 
-> Artem Bityutskiy wrote:
-> >
-> >I'm sorry. Authors of the code may delete this e-mail.
-> >More flame and suggestions.
-> >
-> 
-> Thanks for your suggestions; it is true that bridge code has been out for
-> a while, almost a year I think, and we are still trying to enhance it and
-> clean it up along the way, although it may seem we have stalled on the
-> task.
-> 
-> Please friendly flame about other parts of bridge code too ;) as we can
-> take very good points of your's/everyone's comments and try to put in
-> better shape the driver to be pushed into mainline (as this has been the
-> goal all the time). Thanks for the time reviewing the code.
-> 
-> - omar ramirez
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+arch/arm/kernel/sys_oabi-compat.c: In function 'sys_oabi_epoll_wait':
+arch/arm/kernel/sys_oabi-compat.c:289: error: implicit declaration of function 'kmalloc'
+arch/arm/kernel/sys_oabi-compat.c:289: warning: assignment makes pointer from integer without a cast
+arch/arm/kernel/sys_oabi-compat.c:302: error: implicit declaration of function 'kfree'
+arch/arm/kernel/sys_oabi-compat.c: In function 'sys_oabi_semtimedop':
+arch/arm/kernel/sys_oabi-compat.c:325: warning: assignment makes pointer from integer without a cast
 
+Adding include <linux/slab.h> made it go away but then I got this:
+
+In file included from arch/arm/mach-omap2/clock24xx.c:46:
+arch/arm/mach-omap2/clock24xx.h:1801: error: 'secure_32k_ck' undeclared here (not in a function)
+
+Any hints?
+
+The latest commit I have is:
+
+commit 8e58316ba38aa6ffd53e2ada59142ad40cf47744
+Merge: 1232332 0932667
+Author: Tony Lindgren <tony@atomide.com>
+Date:   Wed Apr 15 11:22:24 2009 -0700
+
+    Merge branch 'omap-pool'
+
+-- 
+Kalle Valo
