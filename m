@@ -1,52 +1,42 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH] OMAP3: lessen amount of noisy messages
-Date: Fri, 17 Apr 2009 08:41:21 -0500
-Message-ID: <87myaf8kji.fsf@deeprootsystems.com>
-References: <1239288072.3390.8.camel@localhost.localdomain>
-	<49E5D188.8060508@yandex.ru>
-	<alpine.DEB.2.00.0904150917520.3313@utopia.booyaka.com>
-	<1239810161.3390.190.camel@localhost.localdomain>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Ameya Palande <ameya.palande@nokia.com>
+Subject: [PATCH] omap_iommu: Correct function name in the comment
+Date: Fri, 17 Apr 2009 16:54:05 +0300
+Message-ID: <1239976445-18356-1-git-send-email-ameya.palande@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from rv-out-0506.google.com ([209.85.198.239]:43842 "EHLO
-	rv-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753134AbZDQNl0 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 17 Apr 2009 09:41:26 -0400
-Received: by rv-out-0506.google.com with SMTP id f9so917335rvb.1
-        for <linux-omap@vger.kernel.org>; Fri, 17 Apr 2009 06:41:23 -0700 (PDT)
-In-Reply-To: <1239810161.3390.190.camel@localhost.localdomain> (Artem Bityutskiy's message of "Wed\, 15 Apr 2009 18\:42\:41 +0300")
+Received: from smtp.nokia.com ([192.100.122.230]:63278 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756208AbZDQNzR (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 17 Apr 2009 09:55:17 -0400
+Received: from esebh105.NOE.Nokia.com (esebh105.ntc.nokia.com [172.21.138.211])
+	by mgw-mx03.nokia.com (Switch-3.2.6/Switch-3.2.6) with ESMTP id n3HDsqfO012048
+	for <linux-omap@vger.kernel.org>; Fri, 17 Apr 2009 16:55:13 +0300
+Received: from localhost.localdomain (esdhcp040101.research.nokia.com [172.21.40.101])
+	by mgw-int01.ntc.nokia.com (Switch-3.2.5/Switch-3.2.5) with ESMTP id n3HDs4mk001307
+	for <linux-omap@vger.kernel.org>; Fri, 17 Apr 2009 16:54:04 +0300
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: dedekind@infradead.org
-Cc: Paul Walmsley <paul@pwsan.com>, Artem Bityutskiy <dedekind@yandex.ru>, Tony Lindgen <tony@atomide.com>, linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
 
-Artem Bityutskiy <dedekind@infradead.org> writes:
+From: Ameya Palande <ameya.palande@nokia.com>
 
-> Hi,
->
-> On Wed, 2009-04-15 at 09:22 -0600, Paul Walmsley wrote:
->> stil thinking about it.  These messages have made it easy to catch bugs 
->> with the PM code in the past (e.g., sad2d).  Making them debug-level will 
->> require booting a kernel with clock debugging specifically 
->> compiled in.  So I wonder if there might be a better way to deal with 
->> these...
->
-> Yeah, I see your concern. I'm your user, and from my perspective this is
-> an excessive output to slow serial line.
->
-> If you do not want re-compilation, I may send a different patch
-> like this:
->
-> -	printk(KERN_INFO "Disabling unused clock \"%s\"\n", clk->name);
-> +	printk(KERN_DEBUG "Disabling unused clock \"%s\"\n", clk->name);
->
-> in which case you would not loose the messages, but the messages
-> would not go to the serial line.
->
+Signed-off-by: Ameya Palande <ameya.palande@nokia.com>
+---
+ arch/arm/plat-omap/iommu.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-I prefer this method as well since i can see them simply by adding
-debug to the cmdline.
-
-Kevin
+diff --git a/arch/arm/plat-omap/iommu.c b/arch/arm/plat-omap/iommu.c
+index 40e089f..0cec3f0 100644
+--- a/arch/arm/plat-omap/iommu.c
++++ b/arch/arm/plat-omap/iommu.c
+@@ -779,7 +779,7 @@ static int device_match_by_alias(struct device *dev, void *data)
+ }
+ 
+ /**
+- * iommu_put() - Get iommu handler
++ * iommu_get() - Get iommu handler
+  * @name:	target iommu name
+  **/
+ struct iommu *iommu_get(const char *name)
+-- 
+1.6.2.2
 
