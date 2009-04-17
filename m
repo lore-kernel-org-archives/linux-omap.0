@@ -1,212 +1,55 @@
-From: Ameya Palande <ameya.palande@nokia.com>
-Subject: [PATCH][UPDATED] DSPBRIDGE: CLK_Enable and CLK_Disable Code cleanup
-Date: Fri, 17 Apr 2009 18:19:07 +0300
-Message-ID: <1239981547-30944-1-git-send-email-ameya.palande@nokia.com>
-References: <49E89649.9050103@yandex.ru>
+From: Artem Bityutskiy <dedekind@yandex.ru>
+Subject: Re: [PATCH][UPDATED] DSPBRIDGE: CLK_Enable and CLK_Disable Code cleanup
+Date: Fri, 17 Apr 2009 18:38:52 +0300
+Message-ID: <49E8A28C.1020104@yandex.ru>
+References: <49E89649.9050103@yandex.ru> <1239981547-30944-1-git-send-email-ameya.palande@nokia.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8;
+	format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:29042 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757485AbZDQPTN (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 17 Apr 2009 11:19:13 -0400
-Received: from vaebh105.NOE.Nokia.com (vaebh105.europe.nokia.com [10.160.244.31])
-	by mgw-mx03.nokia.com (Switch-3.2.6/Switch-3.2.6) with ESMTP id n3HFIp95030853
-	for <linux-omap@vger.kernel.org>; Fri, 17 Apr 2009 18:19:09 +0300
-Received: from localhost.localdomain (esdhcp040101.research.nokia.com [172.21.40.101])
-	by mgw-int02.ntc.nokia.com (Switch-3.2.5/Switch-3.2.5) with ESMTP id n3HFJ7Rn006586
-	for <linux-omap@vger.kernel.org>; Fri, 17 Apr 2009 18:19:07 +0300
-In-Reply-To: <49E89649.9050103@yandex.ru>
+Received: from smtp.nokia.com ([192.100.105.134]:56815 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753827AbZDQPi6 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 17 Apr 2009 11:38:58 -0400
+Received: from vaebh106.NOE.Nokia.com (vaebh106.europe.nokia.com [10.160.244.32])
+	by mgw-mx09.nokia.com (Switch-3.2.6/Switch-3.2.6) with ESMTP id n3HFcT5e030623
+	for <linux-omap@vger.kernel.org>; Fri, 17 Apr 2009 10:38:58 -0500
+In-Reply-To: <1239981547-30944-1-git-send-email-ameya.palande@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
+To: Ameya Palande <ameya.palande@nokia.com>
+Cc: linux-omap@vger.kernel.org
 
-From: Ameya Palande <ameya.palande@nokia.com>
+Ameya Palande wrote:
+>  	}
+> -	return status;
+> +	return ((int_clk_status | fun_clk_status) !=3D DSP_SOK) ? DSP_EFAIL=
+ :
+> +								DSP_SOK;
+>  }
 
-This patch does following things:
-1. Instead of GT_2trace() use pr_err(), since failure to enable or disable a
-   clock is error which should be notified.
-2. There is no need to check the return value of CLK_Enable and CLK_Disable
-   and print error message, since these functions internally print the error.
-3. Indentation changes and a typo fix.
+Side note:
 
-Signed-off-by: Ameya Palande <ameya.palande@nokia.com>
-Acked-by: Hari Kanigeri <h-kanigeri2@ti.com>
----
- drivers/dsp/bridge/services/clk.c       |   42 ++++++++++++++----------------
- drivers/dsp/bridge/wmd/tiomap3430.c     |   13 +--------
- drivers/dsp/bridge/wmd/tiomap3430_pwr.c |   23 +++++-----------
- 3 files changed, 29 insertions(+), 49 deletions(-)
+Is it possible to rework the code and remove thse insane
+DSP_EFAIL and DSP_SOK? Wouldn't it be possible to use
+the good practices we have in kernel? Namely,
 
-diff --git a/drivers/dsp/bridge/services/clk.c b/drivers/dsp/bridge/services/clk.c
-index 440706f..b45603f 100644
---- a/drivers/dsp/bridge/services/clk.c
-+++ b/drivers/dsp/bridge/services/clk.c
-@@ -188,7 +188,7 @@ DSP_STATUS CLK_Enable(IN enum SERVICES_ClkId clk_id)
- 	struct clk *pClk;
- 
- 	DBC_Require(clk_id < SERVICESCLK_NOT_DEFINED);
--       GT_2trace(CLK_debugMask, GT_6CLASS, "CLK_Enable: CLK %s, "
-+	GT_2trace(CLK_debugMask, GT_6CLASS, "CLK_Enable: CLK %s, "
- 		"CLK dev id = %d\n", SERVICES_Clks[clk_id].clk_name,
- 		SERVICES_Clks[clk_id].id);
- 
-@@ -197,18 +197,16 @@ DSP_STATUS CLK_Enable(IN enum SERVICES_ClkId clk_id)
- 		if (clk_enable(pClk) == 0x0) {
- 			/* Success ? */
- 		} else {
--		       GT_2trace(CLK_debugMask, GT_7CLASS,
--				 "CLK_Enable: failed to Enable CLK %s, "
--				 "CLK dev id = %d\n",
--				 SERVICES_Clks[clk_id].clk_name,
--				 SERVICES_Clks[clk_id].id);
-+			pr_err("CLK_Enable: failed to Enable CLK %s, "
-+					"CLK dev id = %d\n",
-+					SERVICES_Clks[clk_id].clk_name,
-+					SERVICES_Clks[clk_id].id);
- 			status = DSP_EFAIL;
- 		}
- 	} else {
--	       GT_2trace(CLK_debugMask, GT_7CLASS,
--			 "CLK_Enable: failed to get CLK %s, CLK dev id = %d\n",
--			 SERVICES_Clks[clk_id].clk_name,
--			 SERVICES_Clks[clk_id].id);
-+		pr_err("CLK_Enable: failed to get CLK %s, CLK dev id = %d\n",
-+					SERVICES_Clks[clk_id].clk_name,
-+					SERVICES_Clks[clk_id].id);
- 		status = DSP_EFAIL;
- 	}
- 	/* The SSI module need to configured not to have the Forced idle for
-@@ -274,15 +272,15 @@ DSP_STATUS CLK_Disable(IN enum SERVICES_ClkId clk_id)
- 
- 	clkUseCnt = CLK_Get_UseCnt(clk_id);
- 	if (clkUseCnt == -1) {
--	       GT_2trace(CLK_debugMask, GT_7CLASS, "CLK_Disable: failed to "
--			"get CLK Use count for CLK %s, CLK dev id = %d\n",
--			SERVICES_Clks[clk_id].clk_name,
--			SERVICES_Clks[clk_id].id);
-+		pr_err("CLK_Disable: failed to get CLK Use count for CLK %s,"
-+				"CLK dev id = %d\n",
-+				SERVICES_Clks[clk_id].clk_name,
-+				SERVICES_Clks[clk_id].id);
- 	} else if (clkUseCnt == 0) {
--	       GT_2trace(CLK_debugMask, GT_7CLASS, "CLK_Disable: CLK %s, "
--			"CLK dev id= %d is already disabled\n",
--			SERVICES_Clks[clk_id].clk_name,
--			SERVICES_Clks[clk_id].id);
-+		pr_err("CLK_Disable: CLK %s, CLK dev id= %d is already"
-+				"disabled\n",
-+				SERVICES_Clks[clk_id].clk_name,
-+				SERVICES_Clks[clk_id].id);
- 		 return status;
- 	}
- 	if (clk_id == SERVICESCLK_ssi_ick)
-@@ -291,10 +289,10 @@ DSP_STATUS CLK_Disable(IN enum SERVICES_ClkId clk_id)
- 		if (pClk) {
- 			clk_disable(pClk);
- 		} else {
--		       GT_2trace(CLK_debugMask, GT_7CLASS, "CLK_Disable: "
--				"failed to get CLK %s, CLK dev id = %d\n",
--				SERVICES_Clks[clk_id].clk_name,
--				SERVICES_Clks[clk_id].id);
-+			pr_err("CLK_Disable: failed to get CLK %s,"
-+					"CLK dev id = %d\n",
-+					SERVICES_Clks[clk_id].clk_name,
-+					SERVICES_Clks[clk_id].id);
- 			status = DSP_EFAIL;
- 		}
- 	return status;
-diff --git a/drivers/dsp/bridge/wmd/tiomap3430.c b/drivers/dsp/bridge/wmd/tiomap3430.c
-index df350c6..fb71e96 100644
---- a/drivers/dsp/bridge/wmd/tiomap3430.c
-+++ b/drivers/dsp/bridge/wmd/tiomap3430.c
-@@ -2240,7 +2240,6 @@ static DSP_STATUS run_IdleBoot(u32 prm_base, u32 cm_base,
- {
- 	u32 temp;
- 	DSP_STATUS status = DSP_SOK;
--	DSP_STATUS clk_status = DSP_SOK;
- 	enum HW_PwrState_t    pwrState;
- 
- 	/* Read PM_PWSTST_IVA2 */
-@@ -2255,11 +2254,7 @@ static DSP_STATUS run_IdleBoot(u32 prm_base, u32 cm_base,
- 		/* Wait until the state has moved to ON */
- 		HW_PWR_IVA2StateGet(prm_base, HW_PWR_DOMAIN_DSP, &pwrState);
- 	}
--	clk_status = CLK_Disable(SERVICESCLK_iva2_ck);
--	if (DSP_FAILED(clk_status)) {
--		DBG_Trace(DBG_LEVEL6, "CLK_Disbale failed for clk = 0x%x \n",
--			  SERVICESCLK_iva2_ck);
--	}
-+	CLK_Disable(SERVICESCLK_iva2_ck);
- 	udelay(10);
- 	/* Assert IVA2-RST1 and IVA2-RST2  */
- 	*((REG_UWORD32 *)((u32)(prm_base) + 0x50)) = (u32)0x07;
-@@ -2276,11 +2271,7 @@ static DSP_STATUS run_IdleBoot(u32 prm_base, u32 cm_base,
-                temp =  (temp & 0xFFFFFC8) | 0x37;
-                *((REG_UWORD32 *) ((u32) (cm_base) + 0x4)) =
-                        (u32) temp;
--	clk_status = CLK_Enable(SERVICESCLK_iva2_ck);
--	if (DSP_FAILED(clk_status)) {
--		DBG_Trace(DBG_LEVEL6, "CLK_Enable failed for clk = 0x%x \n",
--			  SERVICESCLK_iva2_ck);
--	}
-+	CLK_Enable(SERVICESCLK_iva2_ck);
- 	udelay(20);
- 	GetHWRegs(prm_base, cm_base);
- 	/* Release Reset1 and Reset2 */
-diff --git a/drivers/dsp/bridge/wmd/tiomap3430_pwr.c b/drivers/dsp/bridge/wmd/tiomap3430_pwr.c
-index 488a512..ffe2e3c 100644
---- a/drivers/dsp/bridge/wmd/tiomap3430_pwr.c
-+++ b/drivers/dsp/bridge/wmd/tiomap3430_pwr.c
-@@ -285,7 +285,7 @@ DSP_STATUS WakeDSP(struct WMD_DEV_CONTEXT *pDevContext, IN void *pArgs)
- #ifdef CONFIG_PM
- 	struct CFG_HOSTRES resources;
- 	enum HW_PwrState_t pwrState;
--       u32 temp;
-+	u32 temp;
- 
- 	status = CFG_GetHostResources(
- 		 (struct CFG_DEVNODE *)DRV_GetFirstDevExtension(), &resources);
-@@ -306,7 +306,7 @@ DSP_STATUS WakeDSP(struct WMD_DEV_CONTEXT *pDevContext, IN void *pArgs)
- 		 pDevContext->uDspPerClks);
- 	status = DSP_PeripheralClocks_Enable(pDevContext, NULL);
- 
--       /* Enablifg Dppll in lock mode*/
-+	/* Enabling Dppll in lock mode */
-                temp = (u32) *((REG_UWORD32 *)
-                        ((u32) (resources.dwCmBase) + 0x34));
-                temp = (temp & 0xFFFFFFFE) | 0x1;
-@@ -546,27 +546,18 @@ DSP_STATUS DSP_PeripheralClocks_Enable(struct WMD_DEV_CONTEXT *pDevContext,
- 				      IN void *pArgs)
- {
- 	u32 clkIdx;
--	DSP_STATUS status = DSP_SOK;
-+	DSP_STATUS int_clk_status = DSP_EFAIL, fun_clk_status = DSP_EFAIL;
- 
- 	for (clkIdx = 0; clkIdx < MBX_PM_MAX_RESOURCES; clkIdx++) {
- 		if (((pDevContext->uDspPerClks) >> clkIdx) & 0x01) {
- 			/* Enable the interface clock of the peripheral */
--			status = CLK_Enable(BPWR_Clks[clkIdx].intClk);
--			if (DSP_FAILED(status)) {
--				DBG_Trace(DBG_LEVEL7,
--					 "Failed to Enable the DSP Peripheral"
--					 "Clk 0x%x \n", BPWR_Clks[clkIdx]);
--			}
-+			int_clk_status = CLK_Enable(BPWR_Clks[clkIdx].intClk);
- 			/* Enable the functional clock of the periphearl */
--			status = CLK_Enable(BPWR_Clks[clkIdx].funClk);
--			if (DSP_FAILED(status)) {
--				DBG_Trace(DBG_LEVEL7,
--					 "Failed to Enable the DSP Peripheral"
--					 "Clk 0x%x \n", BPWR_Clks[clkIdx]);
--			}
-+			fun_clk_status = CLK_Enable(BPWR_Clks[clkIdx].funClk);
- 		}
- 	}
--	return status;
-+	return ((int_clk_status | fun_clk_status) != DSP_SOK) ? DSP_EFAIL :
-+								DSP_SOK;
- }
- 
- void DSPClkWakeupEventCtrl(u32 ClkId, bool enable)
--- 
-1.6.2.2
+1. Return 0 on success.
+2. Return negative error code on failure?=20
 
+This is C, not visual basic, after all...
+
+P.S. Ameya, do not take this as a personal attack. The
+code is just so ugly and embarrassing, that I cannot stop
+flaming :-)
+
+--=20
+Best Regards,
+Artem Bityutskiy (=D0=90=D1=80=D1=82=D1=91=D0=BC =D0=91=D0=B8=D1=82=D1=8E=
+=D1=86=D0=BA=D0=B8=D0=B9)
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
