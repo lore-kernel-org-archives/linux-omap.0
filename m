@@ -1,59 +1,40 @@
-From: "Peter 'p2' De Schrijver" <peter.de-schrijver@nokia.com>
-Subject: [PATCH] OMAP: Make sure all resources used by the gpio-switch IRQ handler are initialized before use.
-Date: Fri, 17 Apr 2009 12:39:41 +0300
-Message-ID: <1239961181-5777-1-git-send-email-peter.de-schrijver@nokia.com>
+From: Jarkko Nikula <jarkko.nikula@nokia.com>
+Subject: [PATCH] ARM: OMAP: Update contact address of I2C registration helper
+Date: Fri, 17 Apr 2009 14:15:05 +0300
+Message-ID: <1239966905-24040-1-git-send-email-jarkko.nikula@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:61988 "EHLO
+Received: from smtp.nokia.com ([192.100.122.230]:32494 "EHLO
 	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757998AbZDQJkW (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 17 Apr 2009 05:40:22 -0400
-Received: from esebh105.NOE.Nokia.com (esebh105.ntc.nokia.com [172.21.138.211])
-	by mgw-mx03.nokia.com (Switch-3.2.6/Switch-3.2.6) with ESMTP id n3H9eCG7006583
-	for <linux-omap@vger.kernel.org>; Fri, 17 Apr 2009 12:40:17 +0300
+	with ESMTP id S1755305AbZDQLOg (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 17 Apr 2009 07:14:36 -0400
+Received: from vaebh105.NOE.Nokia.com (vaebh105.europe.nokia.com [10.160.244.31])
+	by mgw-mx03.nokia.com (Switch-3.2.6/Switch-3.2.6) with ESMTP id n3HBE2T9005237
+	for <linux-omap@vger.kernel.org>; Fri, 17 Apr 2009 14:14:31 +0300
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
-Cc: Peter 'p2' De Schrijver <peter.de-schrijver@nokia.com>
+Cc: Jarkko Nikula <jarkko.nikula@nokia.com>
 
-Initialize the workqueue and timer used by the gpio-switch IRQ handler before
-we register the IRQ handler itself.
+This email address is going to expire soon so update it.
 
-Signed-off-by: Peter 'p2' De Schrijver <peter.de-schrijver@nokia.com>
+Signed-off-by: Jarkko Nikula <jarkko.nikula@nokia.com>
 ---
- arch/arm/plat-omap/gpio-switch.c |   13 +++++++------
- 1 files changed, 7 insertions(+), 6 deletions(-)
+ arch/arm/plat-omap/i2c.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-diff --git a/arch/arm/plat-omap/gpio-switch.c b/arch/arm/plat-omap/gpio-switch.c
-index e9041af..d88b6de 100644
---- a/arch/arm/plat-omap/gpio-switch.c
-+++ b/arch/arm/plat-omap/gpio-switch.c
-@@ -318,6 +318,13 @@ static int __init new_switch(struct gpio_switch *sw)
- 		else
- 			trigger = IRQF_TRIGGER_RISING;
- 	}
-+
-+	INIT_WORK(&sw->work, gpio_sw_handler);
-+	init_timer(&sw->timer);
-+
-+	sw->timer.function = gpio_sw_timer;
-+	sw->timer.data = (unsigned long)sw;
-+
- 	r = request_irq(gpio_to_irq(sw->gpio), gpio_sw_irq_handler,
- 			IRQF_SHARED | trigger, sw->name, sw);
- 	if (r < 0) {
-@@ -328,12 +335,6 @@ static int __init new_switch(struct gpio_switch *sw)
- 		return r;
- 	}
- 
--	INIT_WORK(&sw->work, gpio_sw_handler);
--	init_timer(&sw->timer);
--
--	sw->timer.function = gpio_sw_timer;
--	sw->timer.data = (unsigned long)sw;
--
- 	list_add(&sw->node, &gpio_switches);
- 
- 	return 0;
+diff --git a/arch/arm/plat-omap/i2c.c b/arch/arm/plat-omap/i2c.c
+index a303071..8b84839 100644
+--- a/arch/arm/plat-omap/i2c.c
++++ b/arch/arm/plat-omap/i2c.c
+@@ -5,7 +5,7 @@
+  *
+  * Copyright (C) 2007 Nokia Corporation.
+  *
+- * Contact: Jarkko Nikula <jarkko.nikula@nokia.com>
++ * Contact: Jarkko Nikula <jhnikula@gmail.com>
+  *
+  * This program is free software; you can redistribute it and/or
+  * modify it under the terms of the GNU General Public License
 -- 
-1.5.6.3
+1.6.2.1
 
