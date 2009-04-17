@@ -1,40 +1,52 @@
 From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH 00/10] OMAP3: SR: Fixes in Smartreflex driver
-Date: Fri, 17 Apr 2009 08:35:24 -0500
-Message-ID: <87tz4n8ktf.fsf@deeprootsystems.com>
-References: <5A47E75E594F054BAF48C5E4FC4B92AB02FB25180A@dbde02.ent.ti.com>
+Subject: Re: [PATCH] OMAP3: lessen amount of noisy messages
+Date: Fri, 17 Apr 2009 08:41:21 -0500
+Message-ID: <87myaf8kji.fsf@deeprootsystems.com>
+References: <1239288072.3390.8.camel@localhost.localdomain>
+	<49E5D188.8060508@yandex.ru>
+	<alpine.DEB.2.00.0904150917520.3313@utopia.booyaka.com>
+	<1239810161.3390.190.camel@localhost.localdomain>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from wa-out-1112.google.com ([209.85.146.178]:44414 "EHLO
-	wa-out-1112.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752618AbZDQNf2 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 17 Apr 2009 09:35:28 -0400
-Received: by wa-out-1112.google.com with SMTP id j5so501515wah.21
-        for <linux-omap@vger.kernel.org>; Fri, 17 Apr 2009 06:35:26 -0700 (PDT)
-In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB02FB25180A@dbde02.ent.ti.com> (Rajendra Nayak's message of "Wed\, 15 Apr 2009 18\:25\:05 +0530")
+Received: from rv-out-0506.google.com ([209.85.198.239]:43842 "EHLO
+	rv-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753134AbZDQNl0 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 17 Apr 2009 09:41:26 -0400
+Received: by rv-out-0506.google.com with SMTP id f9so917335rvb.1
+        for <linux-omap@vger.kernel.org>; Fri, 17 Apr 2009 06:41:23 -0700 (PDT)
+In-Reply-To: <1239810161.3390.190.camel@localhost.localdomain> (Artem Bityutskiy's message of "Wed\, 15 Apr 2009 18\:42\:41 +0300")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Nayak, Rajendra" <rnayak@ti.com>
-Cc: linux-omap <linux-omap@vger.kernel.org>
+To: dedekind@infradead.org
+Cc: Paul Walmsley <paul@pwsan.com>, Artem Bityutskiy <dedekind@yandex.ru>, Tony Lindgen <tony@atomide.com>, linux-omap@vger.kernel.org
 
-"Nayak, Rajendra" <rnayak@ti.com> writes:
+Artem Bityutskiy <dedekind@infradead.org> writes:
 
-> Re-sending this patch-set with some mailer issues resolved. They now apply cleanly
-> with a git-am/git-apply.
->
 > Hi,
 >
-> This series fixes a set of defects/issues in Smartreflex driver. SR autocompensation is now
-> functional and is validated with these patches on a ES3.1 based SDP with the N values in Efuse.
+> On Wed, 2009-04-15 at 09:22 -0600, Paul Walmsley wrote:
+>> stil thinking about it.  These messages have made it easy to catch bugs 
+>> with the PM code in the past (e.g., sad2d).  Making them debug-level will 
+>> require booting a kernel with clock debugging specifically 
+>> compiled in.  So I wonder if there might be a better way to deal with 
+>> these...
 >
-> The patches also make the Smartreflex driver independent of SRF by using the OMAP PM apis
-> instead of calls to SRF.
+> Yeah, I see your concern. I'm your user, and from my perspective this is
+> an excessive output to slow serial line.
 >
-> Patches apply on top of the latest pm branch from Kevin's pm tree.
-> git://git.kernel.org/pub/scm/linux/kernel/git/khilman/linux-omap-pm.git 
+> If you do not want re-compilation, I may send a different patch
+> like this:
+>
+> -	printk(KERN_INFO "Disabling unused clock \"%s\"\n", clk->name);
+> +	printk(KERN_DEBUG "Disabling unused clock \"%s\"\n", clk->name);
+>
+> in which case you would not loose the messages, but the messages
+> would not go to the serial line.
 >
 
-Thanks, pushing this series to PM branch.
+I prefer this method as well since i can see them simply by adding
+debug to the cmdline.
 
 Kevin
+
