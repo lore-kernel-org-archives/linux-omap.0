@@ -1,45 +1,47 @@
-From: "Woodruff, Richard" <r-woodruff2@ti.com>
-Subject: RE: 2.6.29 and SDP3430
-Date: Fri, 17 Apr 2009 20:45:30 -0500
-Message-ID: <13B9B4C6EF24D648824FF11BE8967162037BE5AC90@dlee02.ent.ti.com>
-References: <782515bb0904082345j2a44da65s909a6834bab07330@mail.gmail.com>
- <20090409100343.71d34c16.jarkko.nikula@nokia.com>
- <13B9B4C6EF24D648824FF11BE8967162037BCF18A5@dlee02.ent.ti.com>
- <7A436F7769CA33409C6B44B358BFFF0CFFB1EEE1@dlee02.ent.ti.com>
- <13B9B4C6EF24D648824FF11BE8967162037BCF1CFB@dlee02.ent.ti.com>
+From: "Siemens News Center" <info@winners.com>
+Subject: **Winners Notification**
+Date: Sat, 18 Apr 2009 10:16:27 +0800 (HKT)
+Message-ID: <3134.65.120.56.2.1240020987.squirrel@mail.hrline.ro>
+Reply-To: siemens1146@mail.hrline.ro
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:41350 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752259AbZDRBpl convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 17 Apr 2009 21:45:41 -0400
-In-Reply-To: <13B9B4C6EF24D648824FF11BE8967162037BCF1CFB@dlee02.ent.ti.com>
-Content-Language: en-US
+Received: from mail.hrline.ro ([195.225.40.8]:45475 "EHLO mail.hrline.ro"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751124AbZDRIcc (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Sat, 18 Apr 2009 04:32:32 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Menon, Nishanth" <nm@ti.com>, Jarkko Nikula <jarkko.nikula@nokia.com>
-Cc: linux-omap <linux-omap@vger.kernel.org>
 
->
-> > > I wonder if the timer stopped ticking.  If you connect with emulator take
-> > > a look at GPT1 registers and see if time base is moving.
-> > >
-> > > Another quick test is to shut off tickles, nohz=off.
-> > nohz=off did not work with either 2007q3 or 2008q3.. have'nt looked at the
-> GPT
-> > regs though..
->
-> Hmm, something is broke.
 
-One clue.
 
-I see that the TLDR/TCRR are not being written too before the calibration loop starts.  The write watch point is never hit.  So no interrupts have ever fired.
 
-The TIER is enabled but no one gets around to writing to actually set an interrupt wake.  If you setup the timer to generate an interrupt it will take off and run till some USB clock related failure.
+--=20
+You have been approve for a lump sum payout (=A3750.000.00  GBP),  in t=
+he
+Siemens Award Promotion Please fill the form below and send it to our
+payment department with the  contact given below.
 
-For some reason system_timer init is not being fully done before jiffy loop.
+1.Full Name:
+2.Full Address:
+3.Status:
+4.Occupation:
+5.Phone Number:
+6.Country:
 
-Regards,
-Richard W.
+Yours faithfully,
+Mrs Joan Thomas
+
+
+
+--=20
+This message has been scanned for viruses and
+dangerous content by MailScanner, and is
+believed to be clean.
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
