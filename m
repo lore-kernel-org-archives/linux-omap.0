@@ -1,53 +1,62 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH 00/02] OMAP3 clock: Remove virtual clock nodes
-Date: Mon, 20 Apr 2009 11:44:21 -0500
-Message-ID: <87ocurcm1m.fsf@deeprootsystems.com>
-References: <5A47E75E594F054BAF48C5E4FC4B92AB02FB251DD1@dbde02.ent.ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: [PATCH] musb_hdrc: Fix compile omap3 boards if CONFIG_PM is not set
+Date: Mon, 20 Apr 2009 10:15:55 -0700
+Message-ID: <20090420171553.GH27304@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/mixed; boundary="9amGYk9869ThD9tj"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from rv-out-0506.google.com ([209.85.198.230]:52127 "EHLO
-	rv-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751178AbZDTQo0 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 20 Apr 2009 12:44:26 -0400
-Received: by rv-out-0506.google.com with SMTP id f9so1976710rvb.1
-        for <linux-omap@vger.kernel.org>; Mon, 20 Apr 2009 09:44:26 -0700 (PDT)
-In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB02FB251DD1@dbde02.ent.ti.com> (Rajendra Nayak's message of "Fri\, 17 Apr 2009 11\:27\:42 +0530")
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:64074 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750951AbZDTRQA (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 20 Apr 2009 13:16:00 -0400
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Nayak, Rajendra" <rnayak@ti.com>
-Cc: linux-omap <linux-omap@vger.kernel.org>, Jean Pihet <jpihet@mvista.com>
+To: Greg KH <gregkh@suse.de>
+Cc: linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, David Brownell <dbrownell@users.sourceforge.net>, Felipe Balbi <felipe.balbi@nokia.com>
 
-"Nayak, Rajendra" <rnayak@ti.com> writes:
 
-> Resending this patch-set with some issues of tabs-to-spaces reported by Kevin Hilman
-> fixed and also some warning removals from Jean Pihet.
->
-> Patches apply on latest linux-omap pm branch  +
-> [PATCH 00/10] OMAP3: SR: Fixes in Smartreflex driver sent on 04/15/09
-> http://marc.info/?l=linux-omap&m=123980012121460&w=2
->
+--9amGYk9869ThD9tj
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-Thanks, pushing this whitespace-fixed version of series to PM branch
-today.
+Hi,
 
-Kevin
+Here's a minimal build fix, please queue.
 
->
-> This patch set removes the virtual clock node implementation for
-> VDD1/2 on omap3 which was causing issues with recursive locking of spinlocks.
-> All references to virtual clock nodes from resource framework and cpufreq
-> driver are removed. Resource framework now uses individual dpll clock
-> nodes to do frequency scaling.
-> Most of the functionality implemented as part of the virtual clock nodes
-> is now implemented internally in the resource framework.
->
-> Thanks to Tero Kristo <tero.kristo@nokia.com> who has implemented 
-> most of these changes.
->
-> regards,
-> Rajendra
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Regards,
+
+Tony
+
+--9amGYk9869ThD9tj
+Content-Type: text/x-diff; charset=us-ascii
+Content-Disposition: inline; filename="musb-fix-compile-no-pm.patch"
+
+>From 4b1d3e9c32fb21056a1a8a20374be82e1d97d2c0 Mon Sep 17 00:00:00 2001
+From: Tony Lindgren <tony@atomide.com>
+Date: Mon, 20 Apr 2009 10:06:35 -0700
+Subject: [PATCH] musb_hdrc: Fix compile omap3 boards if CONFIG_PM is not set
+
+Otherwise we'll get:
+
+drivers/usb/musb/musb_core.c:2206: error: 'musb_resume_early' undeclared
+here (not in a function)
+
+CONFIG_PM is not merged yet to mainline three for omap3.
+
+Signed-off-by: Tony Lindgren <tony@atomide.com>
+
+diff --git a/drivers/usb/musb/musb_core.c b/drivers/usb/musb/musb_core.c
+index 0112353..6c1cc8e 100644
+--- a/drivers/usb/musb/musb_core.c
++++ b/drivers/usb/musb/musb_core.c
+@@ -2192,6 +2192,7 @@ static int musb_resume_early(struct platform_device *pdev)
+ #else
+ #define	musb_suspend	NULL
+ #define	musb_resume	NULL
++#define	musb_resume_early	NULL
+ #endif
+ 
+ static struct platform_driver musb_driver = {
+
+--9amGYk9869ThD9tj--
