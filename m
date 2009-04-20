@@ -1,52 +1,35 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: n800 build error in clock24xx.c: 'secure_32k_ck' undeclared
-Date: Mon, 20 Apr 2009 11:56:27 -0600 (MDT)
-Message-ID: <alpine.DEB.2.00.0904201155540.13457@utopia.booyaka.com>
-References: <873ac7ko2n.fsf@litku.valot.fi> <alpine.DEB.2.00.0904201141380.13457@utopia.booyaka.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: [APPLIED] n800 build error in clock24xx.c: &#39;secure_32k_ck&#39; undeclared
+Date: Mon, 20 Apr 2009 14:06:17 -0400
+Message-ID: <notify-1240250774@atomide.com>
+References: <alpine.DEB.2.00.0904201155540.13457@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:40500 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752721AbZDTR42 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 20 Apr 2009 13:56:28 -0400
-In-Reply-To: <alpine.DEB.2.00.0904201141380.13457@utopia.booyaka.com>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:55080 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752219AbZDTSGR (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 20 Apr 2009 14:06:17 -0400
+Received: from c-67-160-239-110.hsd1.ca.comcast.net ([67.160.239.110] helo=localhost.localdomain)
+	by mho-02-ewr.mailhop.org with esmtpa (Exim 4.68)
+	(envelope-from <tony@atomide.com>)
+	id 1Lvxsm-0004Ce-Bz
+	for linux-omap@vger.kernel.org; Mon, 20 Apr 2009 18:06:16 +0000
+In-Reply-To: <alpine.DEB.2.00.0904201155540.13457@utopia.booyaka.com>
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kalle Valo <kalle.valo@iki.fi>
-Cc: linux-omap@vger.kernel.org, tony@atomide.com
+To: linux-omap@vger.kernel.org
 
-On Mon, 20 Apr 2009, Paul Walmsley wrote:
+This patch has been applied to the linux-omap
+by youw fwiendly patch wobot.
 
-> On Fri, 17 Apr 2009, Kalle Valo wrote:
-> 
-> > In file included from arch/arm/mach-omap2/clock24xx.c:46:
-> > arch/arm/mach-omap2/clock24xx.h:1801: error: 'secure_32k_ck' undeclared here (not in a function)
-> >
-> > Any hints?
-> 
-> This is a bug in the version of fa9ef57a1efdd4e7c41a42db71d99b9b69e9b356 I 
-> pushed.  The new clock definition in clock24xx.h for "secure_32k_fck" 
-> should be for "secure_32k_ck".  Just talked with Tony about this; he's 
-> going to re-pull a fixed version of that patch today.
+Initial commit ID (Likely to change): dc1ac9cea15e3317badd0fdece931926413f6759
 
-Here's the patch BTW:
+PatchWorks
+http://patchwork.kernel.org/patch/19037/
 
-- Paul
+Git
+http://git.kernel.org/?p=linux/kernel/git/tmlind/linux-omap-2.6.git;a=commit;h=dc1ac9cea15e3317badd0fdece931926413f6759
 
 
-Index: linux-omap-2.6/arch/arm/mach-omap2/clock24xx.h
-===================================================================
---- linux-omap-2.6.orig/arch/arm/mach-omap2/clock24xx.h	2009-04-20 10:42:21.000000000 -0700
-+++ linux-omap-2.6/arch/arm/mach-omap2/clock24xx.h	2009-04-20 10:46:09.000000000 -0700
-@@ -625,8 +625,8 @@ static struct clk func_32k_ck = {
- 	.clkdm_name	= "wkup_clkdm",
- };
- 
--static struct clk secure_32k_fck = {
--	.name		= "secure_32k_fck",
-+static struct clk secure_32k_ck = {
-+	.name		= "secure_32k_ck",
- 	.ops		= &clkops_null,
- 	.rate		= 32768,
- 	.flags		= RATE_FIXED,
