@@ -1,152 +1,104 @@
-From: Amit Kucheria <amit.kucheria@verdurent.com>
-Subject: [PATCH] twl4030: Add some error checking to twl4030 init
-Date: Tue, 21 Apr 2009 00:28:06 +0300
-Message-ID: <1240262886-24538-1-git-send-email-amit.kucheria@verdurent.com>
-References: <B85A65D85D7EB246BE421B3FB0FBB59301CCA98FDA@dbde02.ent.ti.com>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: [PATCH take 2] PM: OMAP: Fix build with CONFIG_OMAP_PM_NONE set
+Date: Mon, 20 Apr 2009 14:49:40 -0700
+Message-ID: <87ab6bc7wr.fsf@deeprootsystems.com>
+References: <49DCB1D2.9070405@nokia.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-bw0-f163.google.com ([209.85.218.163]:35946 "EHLO
-	mail-bw0-f163.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755527AbZDTV2P (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 20 Apr 2009 17:28:15 -0400
-Received: by bwz7 with SMTP id 7so1451648bwz.37
-        for <linux-omap@vger.kernel.org>; Mon, 20 Apr 2009 14:28:12 -0700 (PDT)
-In-Reply-To: <B85A65D85D7EB246BE421B3FB0FBB59301CCA98FDA@dbde02.ent.ti.com>
+Received: from wf-out-1314.google.com ([209.85.200.175]:2011 "EHLO
+	wf-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753838AbZDTVtn (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 20 Apr 2009 17:49:43 -0400
+Received: by wf-out-1314.google.com with SMTP id 29so2050615wff.4
+        for <linux-omap@vger.kernel.org>; Mon, 20 Apr 2009 14:49:43 -0700 (PDT)
+In-Reply-To: <49DCB1D2.9070405@nokia.com> (Roger Quadros's message of "Wed\, 08 Apr 2009 17\:16\:50 +0300")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
+To: Roger Quadros <ext-roger.quadros@nokia.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Whitespace-fixed version and passed through checkpatch.pl
+Roger Quadros <ext-roger.quadros@nokia.com> writes:
 
-Check for return values of i2c read/write operations and size of scripts being
-uploaded to TWL4030
+> From: Roger Quadros <ext-roger.quadros@nokia.com>
+> Date: Wed, 8 Apr 2009 17:12:43 +0300
+> Subject: [PATCH] PM: OMAP: Fix build with CONFIG_OMAP_PM_NONE set
+>
+> Removes undefined symbol link errors when CONFIG_OMAP_PM is set.
+> The required symbols are defined in common.c and omap-pm.h
+> Dummy variables mpu_oops, dsp_oops and l3_oops have to be defined
+> because they are used in a number of places
+>
+> It fixes the following link errors
+>
+> arch/arm/mach-omap2/built-in.o: In function `omap3_round_to_table_rate':
+> arch/arm/mach-omap2/clock34xx.c:956: undefined reference to `mpu_opps'
+> arch/arm/mach-omap2/clock34xx.c:956: undefined reference to `dsp_opps'
+> arch/arm/mach-omap2/clock34xx.c:956: undefined reference to `l3_opps'
+> arch/arm/mach-omap2/built-in.o: In function `omap2_init_common_hw':
+> arch/arm/mach-omap2/io.c:241: undefined reference to
+> `omap_pm_if_early_init'
+> arch/arm/mach-omap2/io.c:246: undefined reference to `omap_pm_if_init'
+> make: *** [.tmp_vmlinux1] Error 1
+>
+> Signed-off-by: Roger Quadros <ext-roger.quadros@nokia.com>
 
-Signed-off-by: Amit Kucheria <amit.kucheria@verdurent.com>
----
- drivers/mfd/twl4030-core.c  |    2 +-
- drivers/mfd/twl4030-power.c |   49 ++++++++++++++++++++++++++++++------------
- 2 files changed, 36 insertions(+), 15 deletions(-)
+Thanks, pushing to PM branch today.
 
-diff --git a/drivers/mfd/twl4030-core.c b/drivers/mfd/twl4030-core.c
-index 769b34b..067b02e 100644
---- a/drivers/mfd/twl4030-core.c
-+++ b/drivers/mfd/twl4030-core.c
-@@ -358,7 +358,7 @@ EXPORT_SYMBOL(twl4030_i2c_read);
- int twl4030_i2c_write_u8(u8 mod_no, u8 value, u8 reg)
- {
- 
--	/* 2 bytes offset 1 contains the data offset 0 is used by i2c_write */
-+	/* 2 bytes: offset 1 contains the data, offset 0 is used by i2c_write */
- 	u8 temp_buffer[2] = { 0 };
- 	/* offset 1 contains the data */
- 	temp_buffer[1] = value;
-diff --git a/drivers/mfd/twl4030-power.c b/drivers/mfd/twl4030-power.c
-index 9dc493b..b4b636d 100644
---- a/drivers/mfd/twl4030-power.c
-+++ b/drivers/mfd/twl4030-power.c
-@@ -257,36 +257,38 @@ static int __init config_warmreset_sequence(u8 address)
- 	return err;
- }
- 
--void twl4030_configure_resource(struct twl4030_resconfig *rconfig)
-+static int __init twl4030_configure_resource(struct twl4030_resconfig *rconfig)
- {
- 	int rconfig_addr;
-+	int err;
- 	u8 type;
- 
- 	if (rconfig->resource > NUM_OF_RESOURCES) {
- 		printk(KERN_ERR
- 			"TWL4030 Resource %d does not exist\n",
- 			rconfig->resource);
--		return;
-+		return -EINVAL;
- 	}
- 
- 	rconfig_addr = res_config_addrs[rconfig->resource];
- 
- 	/* Set resource group */
--
- 	if (rconfig->devgroup >= 0)
--		twl4030_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER,
-+		err = twl4030_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER,
- 					rconfig->devgroup << 5,
- 					rconfig_addr + DEVGROUP_OFFSET);
-+	if (err < 0) {
-+		printk(KERN_ERR "TWL4030 failed to program devgroup");
-+		return err;
-+	}
- 
- 	/* Set resource types */
--
--	if (twl4030_i2c_read_u8(TWL4030_MODULE_PM_RECEIVER,
--					&type,
--					rconfig_addr + TYPE_OFFSET) < 0) {
--		printk(KERN_ERR
--			"TWL4030 Resource %d type could not read\n",
-+	err = twl4030_i2c_read_u8(TWL4030_MODULE_PM_RECEIVER, &type,
-+				  rconfig_addr + TYPE_OFFSET);
-+	if (err < 0) {
-+		printk(KERN_ERR "TWL4030 Resource %d type could not be read\n",
- 			rconfig->resource);
--		return;
-+		return err;
- 	}
- 
- 	if (rconfig->type >= 0) {
-@@ -299,8 +301,14 @@ void twl4030_configure_resource(struct twl4030_resconfig *rconfig)
- 		type |= rconfig->type2 << 3;
- 	}
- 
--	twl4030_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER,
-+	err = twl4030_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER,
- 				type, rconfig_addr + TYPE_OFFSET);
-+	if (err < 0) {
-+		printk(KERN_ERR "TWL4030 failed to program resource type");
-+		return err;
-+	}
-+
-+	return 0;
- 
- }
- 
-@@ -309,6 +317,12 @@ static int __init load_triton_script(struct twl4030_script *tscript)
- 	u8 address = triton_next_free_address;
- 	int err;
- 
-+	/* Make sure the script isn't going beyond last valid address */
-+	if ((address + tscript->size) > (END_OF_SCRIPT-1)) {
-+		printk(KERN_ERR "TWL4030 script too big error\n");
-+		return -EINVAL;
-+	}
-+
- 	err = twl4030_write_script(address, tscript->script, tscript->size);
- 	if (err)
- 		return err;
-@@ -346,15 +360,22 @@ void __init twl4030_power_init(struct twl4030_power_data *triton2_scripts)
- 
- 	for (i = 0; i < triton2_scripts->size; i++) {
- 		err = load_triton_script(triton2_scripts->scripts[i]);
--		if (err)
-+		if (err < 0) {
-+			printk(KERN_ERR "TWL4030 failed to load scripts");
- 			break;
-+		}
- 	}
- 
- 	resconfig = triton2_scripts->resource_config;
- 	if (resconfig) {
- 		while (resconfig->resource) {
--			twl4030_configure_resource(resconfig);
-+			err = twl4030_configure_resource(resconfig);
- 			resconfig++;
-+			if (err < 0) {
-+				printk(KERN_ERR
-+					"TWL4030 failed to configure resource");
-+				break;
-+			}
- 		}
- 	}
- 
--- 
-1.6.0.4
+Kevin
 
+> ---
+>  arch/arm/plat-omap/common.c               |    6 ++++++
+>  arch/arm/plat-omap/include/mach/omap-pm.h |    8 ++++++++
+>  2 files changed, 14 insertions(+), 0 deletions(-)
+>
+> diff --git a/arch/arm/plat-omap/common.c b/arch/arm/plat-omap/common.c
+> index 2866612..634ca39 100644
+> --- a/arch/arm/plat-omap/common.c
+> +++ b/arch/arm/plat-omap/common.c
+> @@ -46,6 +46,12 @@ int omap_bootloader_tag_len;
+>  struct omap_board_config_kernel *omap_board_config;
+>  int omap_board_config_size;
+>
+> +#ifdef CONFIG_OMAP_PM_NONE
+> +struct omap_opp *mpu_opps;
+> +struct omap_opp *dsp_opps;
+> +struct omap_opp *l3_opps;
+> +#endif
+> +
+>  #ifdef CONFIG_OMAP_BOOT_TAG
+>
+>  static int __init parse_tag_omap(const struct tag *tag)
+> diff --git a/arch/arm/plat-omap/include/mach/omap-pm.h
+> b/arch/arm/plat-omap/include/mach/omap-pm.h
+> index f0bbd36..5526e89 100644
+> --- a/arch/arm/plat-omap/include/mach/omap-pm.h
+> +++ b/arch/arm/plat-omap/include/mach/omap-pm.h
+> @@ -58,9 +58,13 @@ extern struct omap_opp *l3_opps;
+>   * framework starts.  The "_if_" is to avoid name collisions with the
+>   * PM idle-loop code.
+>   */
+> +#ifdef CONFIG_OMAP_PM_NONE
+> +#define omap_pm_if_early_init(a, b, c) 0
+> +#else
+>  int __init omap_pm_if_early_init(struct omap_opp *mpu_opp_table,
+>  				 struct omap_opp *dsp_opp_table,
+>  				 struct omap_opp *l3_opp_table);
+> +#endif
+>
+>  /**
+>   * omap_pm_if_init - OMAP PM init code called after clock fw init
+> @@ -68,7 +72,11 @@ int __init omap_pm_if_early_init(struct omap_opp *mpu_opp_table,
+>   * The main initialization code.  OPP tables are passed in here.  The
+>   * "_if_" is to avoid name collisions with the PM idle-loop code.
+>   */
+> +#ifdef CONFIG_OMAP_PM_NONE
+> +#define omap_pm_if_init() 0
+> +#else
+>  int __init omap_pm_if_init(void);
+> +#endif
+>
+>  /**
+>   * omap_pm_if_exit - OMAP PM exit code
+> -- 
+> 1.5.6.3
