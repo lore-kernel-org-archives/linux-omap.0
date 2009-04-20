@@ -1,69 +1,53 @@
-From: Remith Ravi <remithmailinglist@gmail.com>
-Subject: Re: ehci problem on OMAP35xx
-Date: Mon, 20 Apr 2009 19:52:51 +0530
-Message-ID: <814dfab70904200722y34a5f70fv7708d6240ae03c27@mail.gmail.com>
-References: <dbdb2ea60904150904j232e2803wb1dc973d727b941c@mail.gmail.com>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: [PATCH 00/02] OMAP3 clock: Remove virtual clock nodes
+Date: Mon, 20 Apr 2009 11:44:21 -0500
+Message-ID: <87ocurcm1m.fsf@deeprootsystems.com>
+References: <5A47E75E594F054BAF48C5E4FC4B92AB02FB251DD1@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ti-out-0910.google.com ([209.85.142.185]:30837 "EHLO
-	ti-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755744AbZDTOWx convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 20 Apr 2009 10:22:53 -0400
-Received: by ti-out-0910.google.com with SMTP id 11so1352056tim.23
-        for <linux-omap@vger.kernel.org>; Mon, 20 Apr 2009 07:22:51 -0700 (PDT)
-In-Reply-To: <dbdb2ea60904150904j232e2803wb1dc973d727b941c@mail.gmail.com>
+Received: from rv-out-0506.google.com ([209.85.198.230]:52127 "EHLO
+	rv-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751178AbZDTQo0 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 20 Apr 2009 12:44:26 -0400
+Received: by rv-out-0506.google.com with SMTP id f9so1976710rvb.1
+        for <linux-omap@vger.kernel.org>; Mon, 20 Apr 2009 09:44:26 -0700 (PDT)
+In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB02FB251DD1@dbde02.ent.ti.com> (Rajendra Nayak's message of "Fri\, 17 Apr 2009 11\:27\:42 +0530")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org, twebb <taliaferro62@gmail.com>
+To: "Nayak, Rajendra" <rnayak@ti.com>
+Cc: linux-omap <linux-omap@vger.kernel.org>, Jean Pihet <jpihet@mvista.com>
 
-On Wed, Apr 15, 2009 at 9:34 PM, twebb <taliaferro62@gmail.com> wrote:
-> I'm having issues getting USB up and going on HSUSB2/EHCI on
-> OMAP35xx-based hardware (very similar to beagle board). =A0We're usin=
-g
-> an SMSC3317 connected to HSUSB2, and in turn, the 3317 is connected t=
-o
-> an onboard hub - a SMSC USB2513. =A0When the hub is removed from rese=
-t,
-> it appears that handshaking/chirping starts to happen between xcvr an=
-d
-> hub, but ends with the code announcing that it is "unable to enumerat=
-e
-> USB device on port 2". =A0I'm guessing it's failing because we never =
-see
-> PED set in the PORTSC_1 reg (and we are seeing PO=3D1 which doesn't m=
-ake
-> any sense).
+"Nayak, Rajendra" <rnayak@ti.com> writes:
 
-Is the driver chirping properly? Is it identifying the speed properly?
-I had a similar problem. Please check the D+ and D- line for loading.
-I used SMSC3320 which also had similar problems because of
-ESD protection thermistors placed in the board.
-
-
-> I'm running a l-o git-based 2.6.28-omap1 kernel with
-> omap3_beagle_defconfig. =A0Beagle board works fine (with patch to
-> ehci-omap.c and with CONFIG_USB_EHCI_HCD turned on), but my hardware
-> (with virtually same xcvr and and onboard hub) does not.
+> Resending this patch-set with some issues of tabs-to-spaces reported by Kevin Hilman
+> fixed and also some warning removals from Jean Pihet.
 >
-> Kind of new to this low level USB functionality, so a few questions..=
-=2E
-> 1. =A0Any ideas why we'd see PORTSC_1[PO] =3D 1?
-> 2. =A0Any suggestions on debugging basic connectivity between 35xx EH=
-CI
-> controller and transceiver + hub?
+> Patches apply on latest linux-omap pm branch  +
+> [PATCH 00/10] OMAP3: SR: Fixes in Smartreflex driver sent on 04/15/09
+> http://marc.info/?l=linux-omap&m=123980012121460&w=2
 >
-> Thanks,
-> twebb
+
+Thanks, pushing this whitespace-fixed version of series to PM branch
+today.
+
+Kevin
+
+>
+> This patch set removes the virtual clock node implementation for
+> VDD1/2 on omap3 which was causing issues with recursive locking of spinlocks.
+> All references to virtual clock nodes from resource framework and cpufreq
+> driver are removed. Resource framework now uses individual dpll clock
+> nodes to do frequency scaling.
+> Most of the functionality implemented as part of the virtual clock nodes
+> is now implemented internally in the resource framework.
+>
+> Thanks to Tero Kristo <tero.kristo@nokia.com> who has implemented 
+> most of these changes.
+>
+> regards,
+> Rajendra
 > --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap"=
- in
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
 > the body of a message to majordomo@vger.kernel.org
-> More majordomo info at =A0http://vger.kernel.org/majordomo-info.html
->
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
