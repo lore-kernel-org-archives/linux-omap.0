@@ -1,73 +1,52 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PM PATCH] OMAP3: PM: Save and restore I2C wakeup sources
-Date: Mon, 20 Apr 2009 16:15:32 -0700
-Message-ID: <87d4b6apd7.fsf@deeprootsystems.com>
-References: <1237988300-25985-1-git-send-email-aaro.koskinen@nokia.com>
+From: "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>
+Subject: RE: 2.6.29 and SDP3430
+Date: Mon, 20 Apr 2009 18:39:27 -0500
+Message-ID: <A24693684029E5489D1D202277BE89442EEB55E4@dlee02.ent.ti.com>
+References: <782515bb0904082345j2a44da65s909a6834bab07330@mail.gmail.com>
+ <20090409100343.71d34c16.jarkko.nikula@nokia.com>
+ <13B9B4C6EF24D648824FF11BE8967162037BCF18A5@dlee02.ent.ti.com>
+ <7A436F7769CA33409C6B44B358BFFF0CFFB1EEE1@dlee02.ent.ti.com>
+ <20090409213420.GA7042@sirena.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from wf-out-1314.google.com ([209.85.200.168]:28109 "EHLO
-	wf-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756258AbZDTXPg (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 20 Apr 2009 19:15:36 -0400
-Received: by wf-out-1314.google.com with SMTP id 29so2078447wff.4
-        for <linux-omap@vger.kernel.org>; Mon, 20 Apr 2009 16:15:35 -0700 (PDT)
-In-Reply-To: <1237988300-25985-1-git-send-email-aaro.koskinen@nokia.com> (Aaro Koskinen's message of "Wed\, 25 Mar 2009 15\:38\:20 +0200")
+Received: from comal.ext.ti.com ([198.47.26.152]:39888 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752269AbZDTXjt convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 20 Apr 2009 19:39:49 -0400
+In-Reply-To: <20090409213420.GA7042@sirena.org.uk>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Aaro Koskinen <aaro.koskinen@nokia.com>
-Cc: linux-omap@vger.kernel.org
+To: Mark Brown <broonie@sirena.org.uk>, "Menon, Nishanth" <nm@ti.com>
+Cc: "Woodruff, Richard" <r-woodruff2@ti.com>, Jarkko Nikula <jarkko.nikula@nokia.com>, linux-omap <linux-omap@vger.kernel.org>
 
-Aaro Koskinen <aaro.koskinen@nokia.com> writes:
 
-> Save and restore I2C wakeup sources.
->
-> Signed-off-by: Aaro Koskinen <aaro.koskinen@nokia.com>
 
-Sorry for the delay, this one slipped through the cracks.
-Pushing to PM branch.
+> -----Original Message-----
+> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
+> owner@vger.kernel.org] On Behalf Of Mark Brown
+> Sent: Thursday, April 09, 2009 4:34 PM
+> To: Menon, Nishanth
+> Cc: Woodruff, Richard; Jarkko Nikula; linux-omap
+> Subject: Re: 2.6.29 and SDP3430
+> 
+> On Thu, Apr 09, 2009 at 01:32:27PM -0500, Menon, Nishanth wrote:
+> 
+> > implementor 41 architecture 3 part 30 variant c rev 1
+> > regulator_init_complete: incomplete constraints, leaving VAUX3 on
+> 
+> That last message shouldn't be a problem - it means that if the machine
+> init code had requested it the regulator core would've powered off the
+> VAUX3 regulator since it has no users.
 
-Kevin
+Well, I just disabled TWL4030 regulator support (CONFIG_REGULATOR_TWL4030) and now it boots without problem...
 
-> ---
->  drivers/i2c/busses/i2c-omap.c |    6 ++++--
->  1 files changed, 4 insertions(+), 2 deletions(-)
->
-> diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
-> index 50f3285..5ce055c 100644
-> --- a/drivers/i2c/busses/i2c-omap.c
-> +++ b/drivers/i2c/busses/i2c-omap.c
-> @@ -183,6 +183,7 @@ struct omap_i2c_dev {
->  	u16			sclhstate;
->  	u16			bufstate;
->  	u16			syscstate;
-> +	u16			westate;
->  };
->  
->  static inline void omap_i2c_write_reg(struct omap_i2c_dev *i2c_dev,
-> @@ -242,6 +243,7 @@ static void omap_i2c_unidle(struct omap_i2c_dev *dev)
->  		omap_i2c_write_reg(dev, OMAP_I2C_SCLH_REG, dev->sclhstate);
->  		omap_i2c_write_reg(dev, OMAP_I2C_BUF_REG, dev->bufstate);
->  		omap_i2c_write_reg(dev, OMAP_I2C_SYSC_REG, dev->syscstate);
-> +		omap_i2c_write_reg(dev, OMAP_I2C_WE_REG, dev->westate);
->  	}
->  	dev->idle = 0;
->  	omap_i2c_write_reg(dev, OMAP_I2C_IE_REG, dev->iestate);
-> @@ -316,8 +318,8 @@ static int omap_i2c_init(struct omap_i2c_dev *dev)
->  			 * WFI instruction.
->  			 * REVISIT: Some wkup sources might not be needed.
->  			 */
-> -			omap_i2c_write_reg(dev, OMAP_I2C_WE_REG,
-> -							OMAP_I2C_WE_ALL);
-> +			dev->westate = OMAP_I2C_WE_ALL;
-> +			omap_i2c_write_reg(dev, OMAP_I2C_WE_REG, dev->westate);
->  
->  		}
->  	}
-> -- 
-> 1.5.4.3
->
+I'm using a SDP3430 VG9.0.0 with an ES3.1 chip.
+
 > --
 > To unsubscribe from this list: send the line "unsubscribe linux-omap" in
 > the body of a message to majordomo@vger.kernel.org
 > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
