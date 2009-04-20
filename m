@@ -1,35 +1,126 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: n800 build error in clock24xx.c: 'secure_32k_ck' undeclared
-Date: Mon, 20 Apr 2009 11:47:04 -0600 (MDT)
-Message-ID: <alpine.DEB.2.00.0904201141380.13457@utopia.booyaka.com>
-References: <873ac7ko2n.fsf@litku.valot.fi>
+From: "Aggarwal, Anuj" <anuj.aggarwal@ti.com>
+Subject: RFC for supporting multiple PMICs
+Date: Mon, 20 Apr 2009 23:20:54 +0530
+Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB02FB25259E@dbde02.ent.ti.com>
+References: <B85A65D85D7EB246BE421B3FB0FBB59301CC987192@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: multipart/mixed;
+	boundary="_002_5A47E75E594F054BAF48C5E4FC4B92AB02FB25259Edbde02enttico_"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:34770 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750966AbZDTRrH (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 20 Apr 2009 13:47:07 -0400
-In-Reply-To: <873ac7ko2n.fsf@litku.valot.fi>
+Received: from devils.ext.ti.com ([198.47.26.153]:36178 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752085AbZDTRvD (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 20 Apr 2009 13:51:03 -0400
+Received: from dbdp20.itg.ti.com ([172.24.170.38])
+	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id n3KHouih020573
+	for <linux-omap@vger.kernel.org>; Mon, 20 Apr 2009 12:51:02 -0500
+Received: from dbde71.ent.ti.com (localhost [127.0.0.1])
+	by dbdp20.itg.ti.com (8.13.8/8.13.8) with ESMTP id n3KHouEl001026
+	for <linux-omap@vger.kernel.org>; Mon, 20 Apr 2009 23:20:56 +0530 (IST)
+In-Reply-To: <B85A65D85D7EB246BE421B3FB0FBB59301CC987192@dbde02.ent.ti.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kalle Valo <kalle.valo@iki.fi>
-Cc: linux-omap@vger.kernel.org, tony@atomide.com
+To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Cc: "Premi, Sanjeev" <premi@ti.com>, "Pillai, Manikandan" <mani.pillai@ti.com>
 
-Hi Kalle,
+--_002_5A47E75E594F054BAF48C5E4FC4B92AB02FB25259Edbde02enttico_
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 
-On Fri, 17 Apr 2009, Kalle Valo wrote:
+All,
 
-> In file included from arch/arm/mach-omap2/clock24xx.c:46:
-> arch/arm/mach-omap2/clock24xx.h:1801: error: 'secure_32k_ck' undeclared here (not in a function)
->
-> Any hints?
+Based on our understanding/experiences till so far, we suggest the=20
+following:
 
-This is a bug in the version of fa9ef57a1efdd4e7c41a42db71d99b9b69e9b356 I 
-pushed.  The new clock definition in clock24xx.h for "secure_32k_fck" 
-should be for "secure_32k_ck".  Just talked with Tony about this; he's 
-going to re-pull a fixed version of that patch today.
+a) Remove all the PMIC-board related stuff from the EVM specific file (
+like board-omap3evm.c) and keep it in a separate file (board-omap3evm-
+pmic.c). All platform related Inits should be done here.
 
-Thanks for the find,
+b) PMIC initialization and other PMIC specific routines (enable/disable,=20
+get/set voltage/current) should be done in the PMIC specific file like
+drivers/regulator/pmic.c
 
-- Paul
+c) Probing for PMIC during runtime could be done in either of the ways=20
+specified in the attached sample template.
+
+d) Generic wrappers should be provided to have a consistent interface
+for accessing PMIC registers and to use its supported features.
+
+Please find attached the sample implementation of the things mentioned
+above and provide your feedback.
+
+Thanks and Regards,
+Anuj Aggarwal
+=20
+Platform Support Products
+Texas Instruments Incorporated
+
+
+--_002_5A47E75E594F054BAF48C5E4FC4B92AB02FB25259Edbde02enttico_
+Content-Type: text/plain; name="board-omap3evm-pmic.c"
+Content-Description: board-omap3evm-pmic.c
+Content-Disposition: attachment; filename="board-omap3evm-pmic.c"; size=3207;
+	creation-date="Mon, 20 Apr 2009 23:01:21 GMT";
+	modification-date="Mon, 20 Apr 2009 23:19:24 GMT"
+Content-Transfer-Encoding: base64
+
+LyoKICogbGludXgvYXJjaC9hcm0vbWFjaC1vbWFwMi9ib2FyZC1vbWFwM2V2bS1wbWljLmMKICoK
+ICogQ29weXJpZ2h0IChDKSAyMDA5IFRleGFzIEluc3RydW1lbnRzIEluY29ycG9yYXRlZAogKgog
+KiA8dGJkPiBjb3B5cmlnaHQKICovCgojaW5jbHVkZSA8bGludXgva2VybmVsLmg+CiNpbmNsdWRl
+IDxsaW51eC9pbml0Lmg+CiNpbmNsdWRlIDxsaW51eC9wbGF0Zm9ybV9kZXZpY2UuaD4KCiNpbmNs
+dWRlIDxsaW51eC9pMmMvdHdsNDAzMC5oPgojaW5jbHVkZSA8bGludXgvaTJjL3RwczY1MzV4Lmg+
+CgovKiAtLS0gb3RoZXIgZ2VuZXJpYyBoZWFkZXJzIC0tLSAqLwoKCi8qCiAqCiAqIElmIHdlIGFy
+ZSBva2F5IHdpdGggY29udHJvbGxlZCBpZmRlZiBpbiB0aGlzIGZpbGUgdGhlbiB3ZSBjYW4gZm9s
+bG93CiAqIHRoZSBzY2hlbWUgYmVsb3cuLi4KICoKICovCgoKI2lmZGVmIENPTkZJR19UV0w0MDMw
+X0NPUkUKLyoKICogRGVmaW5pdGlvbnMgc3BlY2lmaWMgdG8gVFdMNDAzMAogKi8KCiNlbmRpZgkv
+KiBDT05GSUdfVFdMNDAzMF9DT1JFICovCgojaWZkZWYgQ09ORklHX1BNSUNfVFBTNjIzNTAKLyoK
+ICogRGVmaW5pdGlvbnMgc3BlY2lmaWMgdG8gVFBTNjIzNTAKICovCgojZW5kaWYJLyogQ09ORklH
+X1BNSUNfVFBTNjIzNTAgKi8KCiNpZmRlZiBDT05GSUdfUE1JQ19UUFM2NTAyMwovKgogKiBEZWZp
+bml0aW9ucyBzcGVjaWZpYyB0byBUUFM2NTAyMwogKi8KCiNlbmRpZgkvKiBDT05GSUdfUE1JQ19U
+UFM2NTAyMyAqLwoKCmludCBvbWFwM19ldm1fcG1pY19pbml0KCkKewojaWZkZWYgQ09ORklHX1RX
+TDQwMzBfQ09SRQoJLyogZG8gc3R1ZmYgc3BlY2lmaWMgdG8gVFdMNDAzMCAqLwojZWxpZiBDT05G
+SUdfUE1JQ19UUFM2MjM1MAoJLyogZG8gc3R1ZmYgc3BlY2lmaWMgdG8gVFBTNjIzNTAgKi8KI2Vs
+aWYgQ09ORklHX1BNSUNfVFBTNjUwMjMKCS8qIGRvIHN0dWZmIHNwZWNpZmljIHRvIFRQUzY1MDIz
+ICovCiNlbmRpZgp9CgoKLyogPT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
+PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT0KICoKICogSWYgd2Ugd291bGQg
+bGlrZSB0byBydW4gc2FtZSBpbWFnZSBvbiBtdWx0aXBsZSBPTUFQM0VWTXMgYW5kIGRvbid0IHJl
+YWxseQogKiBjYXJlIGFib3V0IHRoZSBpbWFnZSBzaXplLCB0aGVuIHdlIGNhbiBmb2xsb3cgdGhl
+IHNjaGVtZSBiZWxvdy4uLgogKgogKiBUaG91Z2ggdGhlcmUgaXMgc3RpbGwgYW4gb3BlbiBxdWVz
+dGlvbiBvZiBob3cgdG8gZGV0ZWN0IFBNSUMgYXQgcnVudGltZT8KICogPT09PT09PT09PT09PT09
+PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
+PT09PT0KICovCgovKgogKiBEZWZpbml0aW9ucyBzcGVjaWZpYyB0byBUV0w0MDMwCiAqLwoKLyoK
+ICogRGVmaW5pdGlvbnMgc3BlY2lmaWMgdG8gVFBTNjIzNTAKICovCgovKgogKiBEZWZpbml0aW9u
+cyBzcGVjaWZpYyB0byBUUFM2NTAyMwogKi8KCnN0YXRpYyBpbnQgZmxhZ19wbWljX3R3bDQwMzAg
+ID0gMDsKc3RhdGljIGludCBmbGFnX3BtaWNfdHBzNjIzNXggPSAwOwpzdGF0aWMgaW50IGZsYWdf
+cG1pY190cHM2NTAyMyA9IDA7CgovKgogKiBEZXRlY3QgdGhlIGN1cnJlbnQgUE1JQwogKiBTZXQg
+b25lIG9mIHRoZSBmbGFncwogKi8Kc3RhdGljIGlubGluZSBpbnQgZGV0ZWN0X3BtaWMoKQp7Cgkv
+KiBIb3c/IEFueSBzdWdnZXN0aW9ucz8/ICovCn0KCnN0YXRpYyBpbmxpbmUgaW50IHVzZV9wbWlj
+X3R3bDQwMzAoKQp7CglyZXR1cm4gZmxhZ19wbWljX3R3bDQwMzA7Cn0KCnN0YXRpYyBpbmxpbmUg
+aW50IHVzZV9wbWljX3RwczYyMzV4KCkKewoJcmV0dXJuIGZsYWdfcG1pY190cHM2MjM1eDsKfQoK
+c3RhdGljIGlubGluZSBpbnQgdXNlX3BtaWNfdHBzNjUwMjMoKQp7CglyZXR1cm4gZmxhZ19wbWlj
+X3RwczY1MDIzOwp9CgppbnQgb21hcDNfZXZtX3BtaWNfaW5pdCgpCnsKCWlmICh1c2VfcG1pY190
+d2w0MDMwKCkpCgl7CgkJLyogZG8gc3R1ZmYgc3BlY2lmaWMgdG8gVFdMNDAzMCAqLwoJfQoJZWxz
+ZSBpZiAodXNlX3BtaWNfdHBzNjIzNXgoKSkKCXsKCQkvKiBkbyBzdHVmZiBzcGVjaWZpYyB0byBU
+UFM2MjM1MCAqLwoJfQoJZWxzZSBpZiAodXNlX3BtaWNfdHBzNjUwMjMoKSkKCXsKCQkvKiBkbyBz
+dHVmZiBzcGVjaWZpYyB0byBUUFM2NTAyMyAqLwoJfQp9CgoKCi8qCiAqCiAqIEdlbmVyaWMgd3Jh
+cHBlcnMgdG8gYWNjZXNzIFBNSUMgcmVnaXN0ZXJzIGFuZCB1c2UgaXRzIHN1cHBvcnRlZCBmZWF0
+dXJlcy4uLgogKgogKi8KCmludCBvbWFwM19wbWljX2kyY19yZWFkKCkKewoJLyogQXBwcm9hY2gg
+MSAqLwojaWZkZWYgQ09ORklHX1RXTDQwMzBfQ09SRQoJLyogZG8gc3R1ZmYgc3BlY2lmaWMgdG8g
+VFdMNDAzMCAqLwojZWxpZiBDT05GSUdfUE1JQ19UUFM2MjM1MAoJLyogZG8gc3R1ZmYgc3BlY2lm
+aWMgdG8gVFBTNjIzNTAgKi8KI2VsaWYgQ09ORklHX1BNSUNfVFBTNjUwMjMKCS8qIGRvIHN0dWZm
+IHNwZWNpZmljIHRvIFRQUzY1MDIzICovCiNlbmRpZgoKCS8qIEFwcHJvYWNoIDIgKi8KCWlmICh1
+c2VfcG1pY190d2w0MDMwKCkpCgl7CgkJLyogZG8gc3R1ZmYgc3BlY2lmaWMgdG8gVFdMNDAzMCAq
+LwoJfQoJZWxzZSBpZiAodXNlX3BtaWNfdHBzNjIzNXgoKSkKCXsKCQkvKiBkbyBzdHVmZiBzcGVj
+aWZpYyB0byBUUFM2MjM1MCAqLwoJfQoJZWxzZSBpZiAodXNlX3BtaWNfdHBzNjUwMjMoKSkKCXsK
+CQkvKiBkbyBzdHVmZiBzcGVjaWZpYyB0byBUUFM2NTAyMyAqLwoJfQp9CgppbnQgb21hcDNfcG1p
+Y19pMmNfd3JpdGUoKQp7CgkvKiBqdXN0IGZvciBpbGx1c3RyYXRpb24gKi8KfQoKaW50IG9tYXAz
+X2V2bV9lbmFibGVfbGNkKCkKewoJLyoganVzdCBmb3IgaWxsdXN0cmF0aW9uICovCn0KCmludCBv
+bWFwM19ldm1fZGlzYWJsZV9sY2QoKQp7CgkvKiBqdXN0IGZvciBpbGx1c3RyYXRpb24gKi8KfQoK
+aW50IG9tYXAzX2V2bV9lbmFibGVfZHZpKCkKewoJLyoganVzdCBmb3IgaWxsdXN0cmF0aW9uICov
+Cn0KCmludCBvbWFwM19ldm1fZGlzYWJsZV9kdmkoKQp7CgkvKiBqdXN0IGZvciBpbGx1c3RyYXRp
+b24gKi8KfQoKaW50IG9tYXAzX2V2bV9lbmFibGVfdHYoKQp7CgkvKiBqdXN0IGZvciBpbGx1c3Ry
+YXRpb24gKi8KfQoKaW50IG9tYXAzX2V2bV9kaXNhYmxlX3R2KCkKewoJLyoganVzdCBmb3IgaWxs
+dXN0cmF0aW9uICovCn0K
+
+--_002_5A47E75E594F054BAF48C5E4FC4B92AB02FB25259Edbde02enttico_--
