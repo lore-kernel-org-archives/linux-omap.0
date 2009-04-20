@@ -1,155 +1,67 @@
-From: Amit Kucheria <amit.kucheria@verdurent.com>
-Subject: [PATCH] twl4030: Add some error checking to twl4030 init
-Date: Mon, 20 Apr 2009 15:49:51 +0300
-Message-ID: <1240231791-21636-1-git-send-email-amit.kucheria@verdurent.com>
+From: "Kanigeri, Hari" <h-kanigeri2@ti.com>
+Subject: RE: [PATCH] [DSPBRIDGE] Various compile warning fixes
+Date: Mon, 20 Apr 2009 07:59:28 -0500
+Message-ID: <8F7AF80515AF0D4D93307E594F3CB40E239D2D7B@dlee03.ent.ti.com>
+References: <1239960602-32309-1-git-send-email-ameya.palande@nokia.com>
+ <EAF47CD23C76F840A9E7FCE10091EFAB02A9985148@dbde02.ent.ti.com>
+ <8F7AF80515AF0D4D93307E594F3CB40E23958BAC@dlee03.ent.ti.com>
+ <20D73E2631F7914F868646E119DEC1CE061E6923E9@NOK-EUMSG-02.mgdnok.nokia.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:35472 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754633AbZDTMuZ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 20 Apr 2009 08:50:25 -0400
-Received: from vaebh105.NOE.Nokia.com (vaebh105.europe.nokia.com [10.160.244.31])
-	by mgw-mx09.nokia.com (Switch-3.2.6/Switch-3.2.6) with ESMTP id n3KCo6Xl024122
-	for <linux-omap@vger.kernel.org>; Mon, 20 Apr 2009 07:50:24 -0500
-Received: from localhost.localdomain (esdhcp041167.research.nokia.com [172.21.41.167])
-	by mgw-int02.ntc.nokia.com (Switch-3.2.5/Switch-3.2.5) with ESMTP id n3KCnqaf005821
-	for <linux-omap@vger.kernel.org>; Mon, 20 Apr 2009 15:49:53 +0300
+Received: from bear.ext.ti.com ([192.94.94.41]:42838 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752043AbZDTM7k convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 20 Apr 2009 08:59:40 -0400
+In-Reply-To: <20D73E2631F7914F868646E119DEC1CE061E6923E9@NOK-EUMSG-02.mgdnok.nokia.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
+To: "mika.kukkonen@nokia.com" <mika.kukkonen@nokia.com>, "Gupta, Ramesh" <grgupta@ti.com>, "ameya.palande@nokia.com" <ameya.palande@nokia.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Check for return values of i2c read/write operations and size of scripts being
-uploaded to TWL4030
+Miku,
 
-Signed-off-by: Amit Kucheria <amit.kucheria@verdurent.com>
----
- drivers/mfd/twl4030-core.c  |    2 +-
- drivers/mfd/twl4030-power.c |   52 +++++++++++++++++++++++++++++++-----------
- 2 files changed, 39 insertions(+), 15 deletions(-)
+> The field in question is declared in
+> arch/arm/plat-omap/include/dspbridge/_chnl_sm.h in line 120 as
+> u32, so checking for negative value makes no sense unless you
+> modify struct SHM too.
 
-diff --git a/drivers/mfd/twl4030-core.c b/drivers/mfd/twl4030-core.c
-index 769b34b..067b02e 100644
---- a/drivers/mfd/twl4030-core.c
-+++ b/drivers/mfd/twl4030-core.c
-@@ -358,7 +358,7 @@ EXPORT_SYMBOL(twl4030_i2c_read);
- int twl4030_i2c_write_u8(u8 mod_no, u8 value, u8 reg)
- {
- 
--	/* 2 bytes offset 1 contains the data offset 0 is used by i2c_write */
-+	/* 2 bytes: offset 1 contains the data, offset 0 is used by i2c_write */
- 	u8 temp_buffer[2] = { 0 };
- 	/* offset 1 contains the data */
- 	temp_buffer[1] = value;
-diff --git a/drivers/mfd/twl4030-power.c b/drivers/mfd/twl4030-power.c
-index 9dc493b..8f5d149 100644
---- a/drivers/mfd/twl4030-power.c
-+++ b/drivers/mfd/twl4030-power.c
-@@ -257,36 +257,40 @@ static int __init config_warmreset_sequence(u8 address)
- 	return err;
- }
- 
--void twl4030_configure_resource(struct twl4030_resconfig *rconfig)
-+static int __init twl4030_configure_resource(struct twl4030_resconfig *rconfig)
- {
- 	int rconfig_addr;
-+	int err;
- 	u8 type;
- 
- 	if (rconfig->resource > NUM_OF_RESOURCES) {
- 		printk(KERN_ERR
- 			"TWL4030 Resource %d does not exist\n",
- 			rconfig->resource);
--		return;
-+		return -EINVAL;
- 	}
- 
- 	rconfig_addr = res_config_addrs[rconfig->resource];
- 
- 	/* Set resource group */
--
- 	if (rconfig->devgroup >= 0)
--		twl4030_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER,
-+		err = twl4030_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER,
- 					rconfig->devgroup << 5,
- 					rconfig_addr + DEVGROUP_OFFSET);
-+	if (err < 0) {
-+		printk(KERN_ERR
-+		       "TWL4030 failed to program devgroup");
-+		return err;
-+	}
- 
- 	/* Set resource types */
--
--	if (twl4030_i2c_read_u8(TWL4030_MODULE_PM_RECEIVER,
--					&type,
--					rconfig_addr + TYPE_OFFSET) < 0) {
-+	err = twl4030_i2c_read_u8(TWL4030_MODULE_PM_RECEIVER, &type,
-+				  rconfig_addr + TYPE_OFFSET);
-+	if (err < 0) {
- 		printk(KERN_ERR
--			"TWL4030 Resource %d type could not read\n",
--			rconfig->resource);
--		return;
-+		       "TWL4030 Resource %d type could not be read\n",
-+		       rconfig->resource);
-+		return err;
- 	}
- 
- 	if (rconfig->type >= 0) {
-@@ -299,8 +303,15 @@ void twl4030_configure_resource(struct twl4030_resconfig *rconfig)
- 		type |= rconfig->type2 << 3;
- 	}
- 
--	twl4030_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER,
-+	err = twl4030_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER,
- 				type, rconfig_addr + TYPE_OFFSET);
-+	if (err < 0) {
-+		printk(KERN_ERR
-+		       "TWL4030 failed to program resource type");
-+		return err;
-+	}
-+
-+	return 0;
- 
- }
- 
-@@ -309,6 +320,12 @@ static int __init load_triton_script(struct twl4030_script *tscript)
- 	u8 address = triton_next_free_address;
- 	int err;
- 
-+	/* Make sure the script isn't going beyond last valid address */
-+	if ((address + tscript->size) > (END_OF_SCRIPT-1)) {
-+		printk(KERN_ERR "TWL4030 script too big error\n");
-+		return -EINVAL;
-+	}
-+
- 	err = twl4030_write_script(address, tscript->script, tscript->size);
- 	if (err)
- 		return err;
-@@ -346,15 +363,22 @@ void __init twl4030_power_init(struct twl4030_power_data *triton2_scripts)
- 
- 	for (i = 0; i < triton2_scripts->size; i++) {
- 		err = load_triton_script(triton2_scripts->scripts[i]);
--		if (err)
-+		if (err < 0) {
-+			printk(KERN_ERR "TWL4030 failed to load scripts");
- 			break;
-+		}
- 	}
- 
- 	resconfig = triton2_scripts->resource_config;
- 	if (resconfig) {
- 		while (resconfig->resource) {
--			twl4030_configure_resource(resconfig);
-+			err = twl4030_configure_resource(resconfig);
- 			resconfig++;
-+			if (err < 0) {
-+				printk(KERN_ERR
-+				       "TWL4030 failed to configure resource");
-+				break;
-+			}
- 		}
- 	}
- 
--- 
-1.5.6.3
+-- You are right. I missed checking the declaration in _chnl_sm.h
+
+Thank you,
+Best regards,
+Hari
+
+> -----Original Message-----
+> From: mika.kukkonen@nokia.com [mailto:mika.kukkonen@nokia.com]
+> Sent: Monday, April 20, 2009 12:23 AM
+> To: Kanigeri, Hari; Gupta, Ramesh; ameya.palande@nokia.com
+> Cc: linux-omap@vger.kernel.org
+> Subject: RE: [PATCH] [DSPBRIDGE] Various compile warning fixes
+> 
+> >-----Original Message-----
+> >From: linux-omap-owner@vger.kernel.org
+> >[mailto:linux-omap-owner@vger.kernel.org] On Behalf Of ext
+> >Kanigeri, Hari
+> >Sent: 17 April, 2009 17:21
+> >To: Gupta, Ramesh; Palande Ameya (Nokia-D/Helsinki);
+> >linux-omap@vger.kernel.org
+> >Subject: RE: [PATCH] [DSPBRIDGE] Various compile warning fixes
+> >
+> >Ameya,
+> >
+> >-	if (!(chnlId >= 0) || !(chnlId < CHNL_MAXCHANNELS)) {
+> >+	if (chnlId >= CHNL_MAXCHANNELS) {
+> >
+> >-- How about declaring chnlId as s32 so that the checks can be
+> >extended to negative values too ?
+> 
+> The field in question is declared in
+> arch/arm/plat-omap/include/dspbridge/_chnl_sm.h in line 120 as
+> u32, so checking for negative value makes no sense unless you
+> modify struct SHM too.
+> 
+> --MiKu
 
