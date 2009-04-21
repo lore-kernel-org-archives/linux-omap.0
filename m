@@ -1,63 +1,149 @@
-From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Subject: RE: 2.6.29 and SDP3430 <now 2.6.30-rc2, q3-2007 compiler error>
-Date: Tue, 21 Apr 2009 10:08:35 +0530
-Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB02A9985B81@dbde02.ent.ti.com>
-References: <782515bb0904082345j2a44da65s909a6834bab07330@mail.gmail.com>
- <20090409100343.71d34c16.jarkko.nikula@nokia.com>
- <13B9B4C6EF24D648824FF11BE8967162037BCF18A5@dlee02.ent.ti.com>
- <7A436F7769CA33409C6B44B358BFFF0CFFB1EEE1@dlee02.ent.ti.com>
- <20090409213420.GA7042@sirena.org.uk>
- <A24693684029E5489D1D202277BE89442EEB55E4@dlee02.ent.ti.com>
- <13B9B4C6EF24D648824FF11BE8967162037BE5B5F4@dlee02.ent.ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: git pull request for omap fixes, v2 (Re: [PATCH 00/11] Omap
+	fixes for 2.6.30-rc1)
+Date: Mon, 20 Apr 2009 21:57:32 -0700
+Message-ID: <20090421045732.GA25864@atomide.com>
+References: <20090414214638.9878.17987.stgit@localhost> <20090417012301.GB8316@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: multipart/mixed; boundary="2oS5YaxWCcQjTEyO"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:60106 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751056AbZDUEjA convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 21 Apr 2009 00:39:00 -0400
-In-Reply-To: <13B9B4C6EF24D648824FF11BE8967162037BE5B5F4@dlee02.ent.ti.com>
-Content-Language: en-US
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:61834 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750919AbZDUE6R (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 21 Apr 2009 00:58:17 -0400
+Content-Disposition: inline
+In-Reply-To: <20090417012301.GB8316@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Woodruff, Richard" <r-woodruff2@ti.com>, "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>, Mark Brown <broonie@sirena.org.uk>, "Menon, Nishanth" <nm@ti.com>, Tony Lindgren <ton>
-Cc: Jarkko Nikula <jarkko.nikula@nokia.com>, linux-omap <linux-omap@vger.kernel.org>, "Pandita, Vikram" <vikram.pandita@ti.com>
-
-Thanks Richard for root casing the issue.
-
-Yes I also did observed this. Second time when framework calls "omap2_gp_timer_set_mode" set the periodic mode, R0 contains 0 (CLOCK_EVT_MODE_UNUSED) instead of 2(CLOCK_EVT_MODE_PERIODIC).
-
-The assembly generated looks shocking because it prepares the second function arguments in register R1 as expected and then 'pop' destroys it. A "push" before a function call is reasonable but this not quite understandable.
-
-Can this be taken up with Codesorcery team to check what is triggering compiler to generate such an assembly ?
+To: Russell King <linux@arm.linux.org.uk>
+Cc: linux-arm-kernel@lists.arm.linux.org.uk, linux-omap@vger.kernel.org
 
 
+--2oS5YaxWCcQjTEyO
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+
+* Tony Lindgren <tony@atomide.com> [090416 18:23]:
+> * Tony Lindgren <tony@atomide.com> [090414 14:48]:
+> > Hi all,
+> > 
+> > Here are some omap fixes for review.
+> 
+> Also merged in Paul's clock fixes posted here earlier.
+> 
+> Russell, here's the pull request for you.
+
+I merged in Paul's updated patch "OMAP2/3 GPTIMER: allow system tick
+GPTIMER to be changed in board-*.c files".
+
+The diff to earlier series and the updated pull request are attached.
+
+Cheers,
+
+Tony
+
+
+--2oS5YaxWCcQjTEyO
+Content-Type: text/x-diff; charset=us-ascii
+Content-Disposition: inline; filename="compile-fix.patch"
+
+Index: linux-omap-2.6/arch/arm/mach-omap2/clock24xx.h
+===================================================================
+--- linux-omap-2.6.orig/arch/arm/mach-omap2/clock24xx.h	2009-04-20 10:42:21.000000000 -0700
++++ linux-omap-2.6/arch/arm/mach-omap2/clock24xx.h	2009-04-20 10:46:09.000000000 -0700
+@@ -625,8 +625,8 @@ static struct clk func_32k_ck = {
+ 	.clkdm_name	= "wkup_clkdm",
+ };
  
-> -----Original Message-----
-> From: Woodruff, Richard 
-> Sent: Tuesday, April 21, 2009 6:34 AM
-> To: Aguirre Rodriguez, Sergio Alberto; Mark Brown; Menon, 
-> Nishanth; Tony Lindgren
-> Cc: Jarkko Nikula; linux-omap; Shilimkar, Santosh; Pandita, Vikram
-> Subject: RE: 2.6.29 and SDP3430 <now 2.6.30-rc2, q3-2007 
-> compiler error>
-> 
-> So using defconfig and float I debugged around a bit and for 
-> q3-2007 I see what looks to be compiler error.
-> 
-> The parameter in R1 which sets PERIODIC mode for call to 
-> clockevnet_set_mode()is destroyed.  See PNG.  I did make sure 
-> at start_kernel the correct opcode was in place (no overwrite 
-> later, no cache flush issue).
-> 
-> If I apply hacks to reduce optimization scope the code does 
-> go past hang.  See attached hack.
-> 
-> It seems kind of odd this would bite now after a lot of new 
-> use.  Perhaps the new mix of functions and layout triggered it.
-> 
-> Regards,
-> Richard W.
-> 
-> 
+-static struct clk secure_32k_fck = {
+-	.name		= "secure_32k_fck",
++static struct clk secure_32k_ck = {
++	.name		= "secure_32k_ck",
+ 	.ops		= &clkops_null,
+ 	.rate		= 32768,
+ 	.flags		= RATE_FIXED,
+
+--2oS5YaxWCcQjTEyO
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline; filename="pull.txt"
+
+The following changes since commit 0882e8dd3aad33eca41696d463bb896e6c8817eb:
+  Linus Torvalds (1):
+        Linux 2.6.30-rc2
+
+are available in the git repository at:
+
+  master.kernel.org:/pub/scm/linux/kernel/git/tmlind/linux-omap-2.6.git omap-fixes
+
+Arun KS (1):
+      OMAP1: clock: Typo fix for clock in omap1
+
+Huang Weiyi (1):
+      ARM: OMAP3: remove duplicated #include
+
+Jarkko Nikula (1):
+      ARM: OMAP2: Remove defines and resource init for OMAP24XX EAC
+
+Kevin Hilman (2):
+      ARM: OMAP2/3: GPIO: do not attempt to wake-enable
+      OMAP: dmtimer: enable all timers to be wakeup events
+
+Ladislav Michl (3):
+      ARM: OMAP: MMC: Remove unused power_pin
+      ARM: OMAP1: Simplify board-h2 MMC setup
+      ARM: OMAP1: Fix mmc_set_power GPIO usage
+
+Paul Walmsley (4):
+      OMAP2xxx clock: init osc_ck, sys_ck internal lists early
+      OMAP2xxx clock: fix broken cpu_mask code
+      OMAP3 GPTIMER: fix GPTIMER12 IRQ
+      OMAP2/3 GPTIMER: allow system tick GPTIMER to be changed in board-*.c files
+
+Roel Kluin (1):
+      ARM: OMAP2: possible division by 0
+
+Roger Quadros (2):
+      ARM: OMAP3: Fixed spurious IRQ issue for GPIO interrupts
+      ARM: OMAP3: Clean up spurious interrupt check logic
+
+Santosh Shilimkar (1):
+      ARM: OMAP: Fix for possible race condition in omap_free_dma()
+
+Sergio Aguirre (1):
+      OMAP3: clock: Camera module doesn't have IDLEST bit
+
+Tony Lindgren (2):
+      ARM: OMAP: Remove old dead gpio expander code
+      Merge branch 'omap-clock-fixes' into omap-fixes
+
+ arch/arm/mach-omap1/board-h2-mmc.c             |   14 +---
+ arch/arm/mach-omap1/board-h3-mmc.c             |    6 +-
+ arch/arm/mach-omap1/board-h3.c                 |  101 ------------------------
+ arch/arm/mach-omap1/board-nokia770.c           |    6 +-
+ arch/arm/mach-omap1/mcbsp.c                    |    4 +-
+ arch/arm/mach-omap2/board-h4.c                 |   95 ----------------------
+ arch/arm/mach-omap2/board-omap3beagle.c        |    4 +
+ arch/arm/mach-omap2/board-rx51.c               |    1 -
+ arch/arm/mach-omap2/clock24xx.c                |   15 ++--
+ arch/arm/mach-omap2/clock24xx.h                |   10 ++-
+ arch/arm/mach-omap2/clock34xx.h                |    7 +-
+ arch/arm/mach-omap2/devices.c                  |   33 --------
+ arch/arm/mach-omap2/irq.c                      |    4 +-
+ arch/arm/mach-omap2/timer-gp.c                 |   48 +++++++++++-
+ arch/arm/mach-omap2/usb-tusb6010.c             |    2 +-
+ arch/arm/plat-omap/dma.c                       |   13 ++--
+ arch/arm/plat-omap/dmtimer.c                   |   28 ++++---
+ arch/arm/plat-omap/gpio.c                      |   20 ++---
+ arch/arm/plat-omap/include/mach/dmtimer.h      |    2 +-
+ arch/arm/plat-omap/include/mach/eac.h          |  100 -----------------------
+ arch/arm/plat-omap/include/mach/gpioexpander.h |   35 --------
+ arch/arm/plat-omap/include/mach/irda.h         |    4 -
+ arch/arm/plat-omap/include/mach/mmc.h          |    1 -
+ arch/arm/plat-omap/include/mach/timer-gp.h     |   17 ++++
+ drivers/mmc/host/omap.c                        |    2 -
+ 25 files changed, 128 insertions(+), 444 deletions(-)
+ delete mode 100644 arch/arm/plat-omap/include/mach/eac.h
+ delete mode 100644 arch/arm/plat-omap/include/mach/gpioexpander.h
+ create mode 100644 arch/arm/plat-omap/include/mach/timer-gp.h
+
+--2oS5YaxWCcQjTEyO--
