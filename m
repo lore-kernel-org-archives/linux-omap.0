@@ -1,890 +1,277 @@
 From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: [PATCH 7/7][RFC] OMAP4: Enable basic build support.
-Date: Tue, 21 Apr 2009 18:38:13 +0530
-Message-ID: <1240319293-19662-7-git-send-email-santosh.shilimkar@ti.com>
+Subject: [PATCH 2/7][RFC] OMAP4: Create board support for OMAP_4430SDP.
+Date: Tue, 21 Apr 2009 18:38:08 +0530
+Message-ID: <1240319293-19662-2-git-send-email-santosh.shilimkar@ti.com>
 References: <1240319293-19662-1-git-send-email-santosh.shilimkar@ti.com>
- <1240319293-19662-2-git-send-email-santosh.shilimkar@ti.com>
- <1240319293-19662-3-git-send-email-santosh.shilimkar@ti.com>
- <1240319293-19662-4-git-send-email-santosh.shilimkar@ti.com>
- <1240319293-19662-5-git-send-email-santosh.shilimkar@ti.com>
- <1240319293-19662-6-git-send-email-santosh.shilimkar@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:47184 "EHLO comal.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:55086 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754306AbZDUNIX (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 21 Apr 2009 09:08:23 -0400
+	id S1754164AbZDUNIW (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 21 Apr 2009 09:08:22 -0400
 Received: from dbdp31.itg.ti.com ([172.24.170.98])
-	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id n3LD8FkV017193
+	by bear.ext.ti.com (8.13.7/8.13.7) with ESMTP id n3LD8Fl9029873
 	for <linux-omap@vger.kernel.org>; Tue, 21 Apr 2009 08:08:21 -0500
-In-Reply-To: <1240319293-19662-6-git-send-email-santosh.shilimkar@ti.com>
+In-Reply-To: <1240319293-19662-1-git-send-email-santosh.shilimkar@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
 
-This patch updates the Makefile and defconfig for OMAP4. Minimal set of
-drivers are enabled fot the kernel bootup.
+This patch creates the bare minimal board files  to support
+OMAP_4430SDP. Additinaly new omap44xx.h is created which contains
+the base addresses for OMAP4430.File omap34xx.h is adapted to avoid
+multiple definitions of common omap base address definitions.
 
 Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
 ---
- arch/arm/Makefile                       |    1 +
- arch/arm/configs/omap_4430sdp_defconfig |  807 +++++++++++++++++++++++++++++++
- arch/arm/mach-omap2/Makefile            |    6 +-
- 3 files changed, 813 insertions(+), 1 deletions(-)
- create mode 100644 arch/arm/configs/omap_4430sdp_defconfig
+ arch/arm/mach-omap2/board-4430sdp.c             |   91 +++++++++++++++++++++++
+ arch/arm/plat-omap/include/mach/board-4430sdp.h |   28 +++++++
+ arch/arm/plat-omap/include/mach/hardware.h      |    1 +
+ arch/arm/plat-omap/include/mach/omap34xx.h      |    8 +-
+ arch/arm/plat-omap/include/mach/omap44xx.h      |   61 +++++++++++++++
+ 5 files changed, 185 insertions(+), 4 deletions(-)
+ create mode 100644 arch/arm/mach-omap2/board-4430sdp.c
+ create mode 100644 arch/arm/plat-omap/include/mach/board-4430sdp.h
+ create mode 100644 arch/arm/plat-omap/include/mach/omap44xx.h
 
-diff --git a/arch/arm/Makefile b/arch/arm/Makefile
-index e84729b..676d10d 100644
---- a/arch/arm/Makefile
-+++ b/arch/arm/Makefile
-@@ -127,6 +127,7 @@ endif
-  machine-$(CONFIG_ARCH_OMAP1)	   := omap1
-  machine-$(CONFIG_ARCH_OMAP2)	   := omap2
-  machine-$(CONFIG_ARCH_OMAP3)	   := omap2
-+ machine-$(CONFIG_ARCH_OMAP4)	   := omap2
-     plat-$(CONFIG_ARCH_OMAP)	   := omap
-  machine-$(CONFIG_ARCH_S3C2410)	   := s3c2410 s3c2400 s3c2412 s3c2440 s3c2442 s3c2443
-  machine-$(CONFIG_ARCH_S3C24A0)	   := s3c24a0
-diff --git a/arch/arm/configs/omap_4430sdp_defconfig b/arch/arm/configs/omap_4430sdp_defconfig
+diff --git a/arch/arm/mach-omap2/board-4430sdp.c b/arch/arm/mach-omap2/board-4430sdp.c
 new file mode 100644
-index 0000000..1b509f3
+index 0000000..157e9e4
 --- /dev/null
-+++ b/arch/arm/configs/omap_4430sdp_defconfig
-@@ -0,0 +1,807 @@
-+#
-+# Automatically generated make config: don't edit
-+# Linux kernel version: 2.6.29
-+# Fri April 19 19:58:24 20089
-+#
-+CONFIG_ARM=y
-+CONFIG_SYS_SUPPORTS_APM_EMULATION=y
-+CONFIG_GENERIC_GPIO=y
-+CONFIG_GENERIC_TIME=y
-+CONFIG_GENERIC_CLOCKEVENTS=y
-+CONFIG_MMU=y
-+# CONFIG_NO_IOPORT is not set
-+CONFIG_GENERIC_HARDIRQS=y
-+CONFIG_STACKTRACE_SUPPORT=y
-+CONFIG_HAVE_LATENCYTOP_SUPPORT=y
-+CONFIG_LOCKDEP_SUPPORT=y
-+CONFIG_TRACE_IRQFLAGS_SUPPORT=y
-+CONFIG_HARDIRQS_SW_RESEND=y
-+CONFIG_GENERIC_IRQ_PROBE=y
-+CONFIG_RWSEM_GENERIC_SPINLOCK=y
-+# CONFIG_ARCH_HAS_ILOG2_U32 is not set
-+# CONFIG_ARCH_HAS_ILOG2_U64 is not set
-+CONFIG_GENERIC_HWEIGHT=y
-+CONFIG_GENERIC_CALIBRATE_DELAY=y
-+CONFIG_GENERIC_HARDIRQS_NO__DO_IRQ=y
-+CONFIG_VECTORS_BASE=0xffff0000
-+CONFIG_DEFCONFIG_LIST="/lib/modules/$UNAME_RELEASE/.config"
++++ b/arch/arm/mach-omap2/board-4430sdp.c
+@@ -0,0 +1,91 @@
++/*
++ * Board support file for OMAP4430 SDP.
++ *
++ * Copyright (C) 2009 Texas Instruments
++ *
++ * Author: Santosh Shilimkar <santosh.shilimkar@ti.com>
++ *
++ * Based on mach-omap2/board-3430sdp.c
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
 +
-+#
-+# General setup
-+#
-+CONFIG_EXPERIMENTAL=y
-+CONFIG_BROKEN_ON_SMP=y
-+CONFIG_INIT_ENV_ARG_LIMIT=32
-+CONFIG_LOCALVERSION=""
-+CONFIG_LOCALVERSION_AUTO=y
-+CONFIG_SWAP=y
-+CONFIG_SYSVIPC=y
-+CONFIG_SYSVIPC_SYSCTL=y
-+CONFIG_BSD_PROCESS_ACCT=y
-+# CONFIG_BSD_PROCESS_ACCT_V3 is not set
++#include <linux/kernel.h>
++#include <linux/init.h>
++#include <linux/platform_device.h>
++#include <linux/io.h>
 +
-+#
-+# RCU Subsystem
-+#
-+CONFIG_CLASSIC_RCU=y
-+# CONFIG_TREE_RCU is not set
-+# CONFIG_PREEMPT_RCU is not set
-+# CONFIG_TREE_RCU_TRACE is not set
-+# CONFIG_PREEMPT_RCU_TRACE is not set
-+# CONFIG_IKCONFIG is not set
-+CONFIG_LOG_BUF_SHIFT=14
-+CONFIG_GROUP_SCHED=y
-+CONFIG_FAIR_GROUP_SCHED=y
-+# CONFIG_RT_GROUP_SCHED is not set
-+CONFIG_USER_SCHED=y
-+# CONFIG_CGROUP_SCHED is not set
-+# CONFIG_CGROUPS is not set
-+CONFIG_SYSFS_DEPRECATED=y
-+CONFIG_SYSFS_DEPRECATED_V2=y
-+# CONFIG_RELAY is not set
-+# CONFIG_NAMESPACES is not set
-+CONFIG_BLK_DEV_INITRD=y
-+CONFIG_INITRAMFS_SOURCE=""
-+CONFIG_CC_OPTIMIZE_FOR_SIZE=y
-+CONFIG_SYSCTL=y
-+CONFIG_ANON_INODES=y
-+CONFIG_EMBEDDED=y
-+CONFIG_UID16=y
-+# CONFIG_SYSCTL_SYSCALL is not set
-+CONFIG_KALLSYMS=y
-+# CONFIG_KALLSYMS_ALL is not set
-+# CONFIG_KALLSYMS_EXTRA_PASS is not set
-+CONFIG_HOTPLUG=y
-+CONFIG_PRINTK=y
-+CONFIG_BUG=y
-+# CONFIG_ELF_CORE is not set
-+CONFIG_BASE_FULL=y
-+CONFIG_FUTEX=y
-+CONFIG_EPOLL=y
-+CONFIG_SIGNALFD=y
-+CONFIG_TIMERFD=y
-+CONFIG_EVENTFD=y
-+CONFIG_SHMEM=y
-+CONFIG_AIO=y
-+CONFIG_VM_EVENT_COUNTERS=y
-+CONFIG_COMPAT_BRK=y
-+# CONFIG_SLAB is not set
-+# CONFIG_SLUB is not set
-+# CONFIG_SLOB is not set
-+# CONFIG_PROFILING is not set
-+CONFIG_HAVE_OPROFILE=y
-+# CONFIG_KPROBES is not set
-+CONFIG_HAVE_KPROBES=y
-+CONFIG_HAVE_KRETPROBES=y
-+CONFIG_HAVE_CLK=y
-+CONFIG_HAVE_GENERIC_DMA_COHERENT=y
-+CONFIG_SLABINFO=y
-+CONFIG_RT_MUTEXES=y
-+CONFIG_BASE_SMALL=0
-+CONFIG_MODULES=y
-+# CONFIG_MODULE_FORCE_LOAD is not set
-+CONFIG_MODULE_UNLOAD=y
-+# CONFIG_MODULE_FORCE_UNLOAD is not set
-+CONFIG_MODVERSIONS=y
-+CONFIG_MODULE_SRCVERSION_ALL=y
-+CONFIG_BLOCK=y
-+# CONFIG_LBD is not set
-+# CONFIG_BLK_DEV_IO_TRACE is not set
-+# CONFIG_BLK_DEV_BSG is not set
-+# CONFIG_BLK_DEV_INTEGRITY is not set
++#include <mach/hardware.h>
++#include <asm/mach-types.h>
++#include <asm/mach/arch.h>
++#include <asm/mach/map.h>
 +
-+#
-+# IO Schedulers
-+#
-+CONFIG_IOSCHED_NOOP=y
-+CONFIG_IOSCHED_AS=y
-+CONFIG_IOSCHED_DEADLINE=y
-+CONFIG_IOSCHED_CFQ=y
-+CONFIG_DEFAULT_AS=y
-+# CONFIG_DEFAULT_DEADLINE is not set
-+# CONFIG_DEFAULT_CFQ is not set
-+# CONFIG_DEFAULT_NOOP is not set
-+CONFIG_DEFAULT_IOSCHED="anticipatory"
-+# CONFIG_FREEZER is not set
++#include <mach/gpio.h>
++#include <mach/board.h>
++#include <mach/common.h>
++#include <mach/control.h>
++#include <asm/hardware/gic.h>
 +
-+#
-+# System Type
-+#
-+# CONFIG_ARCH_AAEC2000 is not set
-+# CONFIG_ARCH_INTEGRATOR is not set
-+# CONFIG_ARCH_REALVIEW is not set
-+# CONFIG_ARCH_VERSATILE is not set
-+# CONFIG_ARCH_AT91 is not set
-+# CONFIG_ARCH_CLPS711X is not set
-+# CONFIG_ARCH_EBSA110 is not set
-+# CONFIG_ARCH_EP93XX is not set
-+# CONFIG_ARCH_FOOTBRIDGE is not set
-+# CONFIG_ARCH_NETX is not set
-+# CONFIG_ARCH_H720X is not set
-+# CONFIG_ARCH_IMX is not set
-+# CONFIG_ARCH_IOP13XX is not set
-+# CONFIG_ARCH_IOP32X is not set
-+# CONFIG_ARCH_IOP33X is not set
-+# CONFIG_ARCH_IXP23XX is not set
-+# CONFIG_ARCH_IXP2000 is not set
-+# CONFIG_ARCH_IXP4XX is not set
-+# CONFIG_ARCH_L7200 is not set
-+# CONFIG_ARCH_KIRKWOOD is not set
-+# CONFIG_ARCH_KS8695 is not set
-+# CONFIG_ARCH_NS9XXX is not set
-+# CONFIG_ARCH_LOKI is not set
-+# CONFIG_ARCH_MV78XX0 is not set
-+# CONFIG_ARCH_MXC is not set
-+# CONFIG_ARCH_ORION5X is not set
-+# CONFIG_ARCH_PNX4008 is not set
-+# CONFIG_ARCH_PXA is not set
-+# CONFIG_ARCH_RPC is not set
-+# CONFIG_ARCH_SA1100 is not set
-+# CONFIG_ARCH_S3C2410 is not set
-+# CONFIG_ARCH_S3C64XX is not set
-+# CONFIG_ARCH_SHARK is not set
-+# CONFIG_ARCH_LH7A40X is not set
-+# CONFIG_ARCH_DAVINCI is not set
-+CONFIG_ARCH_OMAP=y
-+# CONFIG_ARCH_MSM is not set
-+# CONFIG_ARCH_W90X900 is not set
++static struct platform_device sdp4430_lcd_device = {
++	.name		= "sdp4430_lcd",
++	.id		= -1,
++};
 +
-+#
-+# TI OMAP Implementations
-+#
-+# CONFIG_ARCH_OMAP1 is not set
-+# CONFIG_ARCH_OMAP2 is not set
-+# CONFIG_ARCH_OMAP3 is not set
-+CONFIG_ARCH_OMAP4=y
++static struct platform_device *sdp4430_devices[] __initdata = {
++	&sdp4430_lcd_device,
++};
 +
-+#
-+# OMAP Feature Selections
-+#
-+# CONFIG_OMAP_RESET_CLOCKS is not set
-+# CONFIG_OMAP_COMPONENT_VERSION is not set
-+# CONFIG_OMAP_GPIO_SWITCH is not set
-+# CONFIG_OMAP_MUX is not set
-+# CONFIG_OMAP_MCBSP is not set
-+# CONFIG_OMAP_MBOX_FWK is not set
-+# CONFIG_OMAP_MPU_TIMER is not set
-+CONFIG_OMAP_32K_TIMER=y
-+CONFIG_OMAP_32K_TIMER_HZ=128
-+CONFIG_OMAP_DM_TIMER=y
-+CONFIG_OMAP_LL_DEBUG_UART1=y
-+# CONFIG_OMAP_LL_DEBUG_UART2 is not set
-+# CONFIG_OMAP_LL_DEBUG_UART3 is not set
-+CONFIG_ARCH_OMAP44XX=y
-+CONFIG_ARCH_OMAP4430=y
++static struct omap_uart_config sdp4430_uart_config __initdata = {
++	.enabled_uarts	= ((1 << 0) | (1 << 1) | (1 << 2)),
++};
 +
-+#
-+# OMAP Board Type
-+#
-+CONFIG_MACH_OMAP_4430SDP=y
++static struct omap_lcd_config sdp4430_lcd_config __initdata = {
++	.ctrl_name	= "internal",
++};
 +
-+#
-+# Processor Type
-+#
-+CONFIG_CPU_32=y
-+CONFIG_CPU_32v6K=y
-+CONFIG_CPU_V7=y
-+CONFIG_CPU_32v7=y
-+CONFIG_CPU_ABRT_EV7=y
-+CONFIG_CPU_PABRT_IFAR=y
-+CONFIG_CPU_CACHE_V7=y
-+CONFIG_CPU_CACHE_VIPT=y
-+CONFIG_CPU_COPY_V6=y
-+CONFIG_CPU_TLB_V7=y
-+CONFIG_CPU_HAS_ASID=y
-+CONFIG_CPU_CP15=y
-+CONFIG_CPU_CP15_MMU=y
++static struct omap_board_config_kernel sdp4430_config[] __initdata = {
++	{ OMAP_TAG_UART,	&sdp4430_uart_config },
++	{ OMAP_TAG_LCD,		&sdp4430_lcd_config },
++};
 +
-+#
-+# Processor Features
-+#
-+# CONFIG_ARM_THUMB is not set
-+# CONFIG_ARM_THUMBEE is not set
-+# CONFIG_CPU_ICACHE_DISABLE is not set
-+CONFIG_CPU_DCACHE_DISABLE=y
-+# CONFIG_CPU_BPREDICT_DISABLE is not set
-+CONFIG_HAS_TLS_REG=y
-+# CONFIG_OUTER_CACHE is not set
-+CONFIG_ARM_GIC=y
++static void __init gic_init_irq(void)
++{
++	gic_dist_init(0, IO_ADDRESS(OMAP44XX_GIC_DIST_BASE), 29);
++	gic_cpu_init(0, IO_ADDRESS(OMAP44XX_GIC_CPU_BASE));
++}
 +
-+#
-+# Bus support
-+#
-+# CONFIG_PCI_SYSCALL is not set
-+# CONFIG_ARCH_SUPPORTS_MSI is not set
-+# CONFIG_PCCARD is not set
++static void __init omap_4430sdp_init_irq(void)
++{
++	omap2_init_common_hw(NULL);
++	gic_init_irq();
++	omap_gpio_init();
++}
 +
-+#
-+# Kernel Features
-+#
-+# CONFIG_NO_HZ is not set
-+# CONFIG_HIGH_RES_TIMERS is not set
-+CONFIG_GENERIC_CLOCKEVENTS_BUILD=y
-+CONFIG_VMSPLIT_3G=y
-+# CONFIG_VMSPLIT_2G is not set
-+# CONFIG_VMSPLIT_1G is not set
-+CONFIG_PAGE_OFFSET=0xC0000000
-+# CONFIG_PREEMPT is not set
-+CONFIG_HZ=128
-+CONFIG_AEABI=y
-+# CONFIG_OABI_COMPAT is not set
-+CONFIG_ARCH_FLATMEM_HAS_HOLES=y
-+# CONFIG_ARCH_SPARSEMEM_DEFAULT is not set
-+# CONFIG_ARCH_SELECT_MEMORY_MODEL is not set
-+CONFIG_SELECT_MEMORY_MODEL=y
-+CONFIG_FLATMEM_MANUAL=y
-+# CONFIG_DISCONTIGMEM_MANUAL is not set
-+# CONFIG_SPARSEMEM_MANUAL is not set
-+CONFIG_FLATMEM=y
-+CONFIG_FLAT_NODE_MEM_MAP=y
-+CONFIG_PAGEFLAGS_EXTENDED=y
-+CONFIG_SPLIT_PTLOCK_CPUS=4
-+# CONFIG_PHYS_ADDR_T_64BIT is not set
-+CONFIG_ZONE_DMA_FLAG=0
-+CONFIG_VIRT_TO_BUS=y
-+# CONFIG_UNEVICTABLE_LRU is not set
-+# CONFIG_LEDS is not set
-+CONFIG_ALIGNMENT_TRAP=y
 +
-+#
-+# Boot options
-+#
-+CONFIG_ZBOOT_ROM_TEXT=0x0
-+CONFIG_ZBOOT_ROM_BSS=0x0
-+CONFIG_CMDLINE="root=/dev/ram0 rw mem=128M console=ttyS0,115200n8 initrd=0x81600000,20M ramdisk_size=20480"
-+# CONFIG_XIP_KERNEL is not set
-+# CONFIG_KEXEC is not set
++static void __init omap_4430sdp_init(void)
++{
++	platform_add_devices(sdp4430_devices, ARRAY_SIZE(sdp4430_devices));
++	omap_board_config = sdp4430_config;
++	omap_board_config_size = ARRAY_SIZE(sdp4430_config);
++	omap_serial_init();
 +
-+#
-+# CPU Power Management
-+#
-+# CONFIG_CPU_FREQ is not set
-+# CONFIG_CPU_IDLE is not set
++}
 +
-+#
-+# Floating point emulation
-+#
++static void __init omap_4430sdp_map_io(void)
++{
++	omap2_set_globals_443x();
++	omap2_map_common_io();
++}
 +
-+#
-+# At least one emulation must be selected
-+#
-+CONFIG_FPE_NWFPE=y
-+# CONFIG_FPE_NWFPE_XP is not set
-+# CONFIG_FPE_FASTFPE is not set
-+CONFIG_VFP=y
-+CONFIG_VFPv3=y
-+# CONFIG_NEON is not set
++MACHINE_START(OMAP_4430SDP, "OMAP4430 4430SDP board")
++	/* Maintainer: Santosh Shilimkar - Texas Instruments Inc */
++	.phys_io	= 0x48000000,
++	.io_pg_offst	= ((0xd8000000) >> 18) & 0xfffc,
++	.boot_params	= 0x80000100,
++	.map_io		= omap_4430sdp_map_io,
++	.init_irq	= omap_4430sdp_init_irq,
++	.init_machine	= omap_4430sdp_init,
++	.timer		= &omap_timer,
++MACHINE_END
+diff --git a/arch/arm/plat-omap/include/mach/board-4430sdp.h b/arch/arm/plat-omap/include/mach/board-4430sdp.h
+new file mode 100644
+index 0000000..5296779
+--- /dev/null
++++ b/arch/arm/plat-omap/include/mach/board-4430sdp.h
+@@ -0,0 +1,28 @@
++/*
++ * Board support header for OMAP4430 SDP.
++ *
++ * Copyright (C) 2009 Texas Instruments
++ *
++ * Author: Santosh Shilimkar <santosh.shilimkar@ti.com>
++ *
++ * Based on arch/arm/plat-omap/include/mach/board-3430sdp.h
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++#ifndef __ARCH_ARM_MACH_OMAP4_BOARD_4430SDP_H
++#define __ARCH_ARM_MACH_OMAP4_BOARD_4430SDP_H
 +
-+#
-+# Userspace binary formats
-+#
-+CONFIG_BINFMT_ELF=y
-+# CONFIG_CORE_DUMP_DEFAULT_ELF_HEADERS is not set
-+CONFIG_HAVE_AOUT=y
-+# CONFIG_BINFMT_AOUT is not set
-+CONFIG_BINFMT_MISC=y
++extern void sdp4430_flash_init(void);
 +
-+#
-+# Power management options
-+#
-+# CONFIG_PM is not set
-+CONFIG_ARCH_SUSPEND_POSSIBLE=y
-+# CONFIG_NET is not set
++/* NAND */
++#define DEBUG_BASE		0x08000000 /* debug board */
++#define NAND_BASE		0x0C000000 /* NAND flash */
++#define ONENAND_MAP		0x20000000 /* OneNand flash */
 +
-+#
-+# Device Drivers
-+#
++/* various memory sizes */
++#define FLASH_SIZE_SDPV1	SZ_64M
++#define FLASH_SIZE_SDPV2	SZ_128M
++#endif
 +
-+#
-+# Generic Driver Options
-+#
-+CONFIG_UEVENT_HELPER_PATH="/sbin/hotplug"
-+CONFIG_STANDALONE=y
-+CONFIG_PREVENT_FIRMWARE_BUILD=y
-+# CONFIG_FW_LOADER is not set
-+# CONFIG_DEBUG_DRIVER is not set
-+# CONFIG_DEBUG_DEVRES is not set
-+# CONFIG_SYS_HYPERVISOR is not set
-+# CONFIG_MTD is not set
-+# CONFIG_PARPORT is not set
-+CONFIG_BLK_DEV=y
-+# CONFIG_BLK_DEV_COW_COMMON is not set
-+CONFIG_BLK_DEV_LOOP=y
-+# CONFIG_BLK_DEV_CRYPTOLOOP is not set
-+CONFIG_BLK_DEV_RAM=y
-+CONFIG_BLK_DEV_RAM_COUNT=16
-+CONFIG_BLK_DEV_RAM_SIZE=16384
-+# CONFIG_BLK_DEV_XIP is not set
-+# CONFIG_CDROM_PKTCDVD is not set
-+# CONFIG_MISC_DEVICES is not set
-+CONFIG_HAVE_IDE=y
-+# CONFIG_IDE is not set
-+
-+#
-+# SCSI device support
-+#
-+# CONFIG_RAID_ATTRS is not set
-+# CONFIG_SCSI is not set
-+# CONFIG_SCSI_DMA is not set
-+# CONFIG_SCSI_NETLINK is not set
-+# CONFIG_ATA is not set
-+# CONFIG_MD is not set
-+
-+#
-+# Input device support
-+#
-+CONFIG_INPUT=y
-+# CONFIG_INPUT_FF_MEMLESS is not set
-+# CONFIG_INPUT_POLLDEV is not set
-+
-+#
-+# Userland interfaces
-+#
-+# CONFIG_INPUT_MOUSEDEV is not set
-+# CONFIG_INPUT_JOYDEV is not set
-+CONFIG_INPUT_EVDEV=y
-+# CONFIG_INPUT_EVBUG is not set
-+
-+#
-+# Input Device Drivers
-+#
-+# CONFIG_INPUT_KEYBOARD is not set
-+# CONFIG_INPUT_MOUSE is not set
-+# CONFIG_INPUT_JOYSTICK is not set
-+# CONFIG_INPUT_TABLET is not set
-+# CONFIG_INPUT_TOUCHSCREEN is not set
-+# CONFIG_INPUT_MISC is not set
-+
-+#
-+# Hardware I/O ports
-+#
-+# CONFIG_SERIO is not set
-+# CONFIG_GAMEPORT is not set
-+
-+#
-+# Character devices
-+#
-+CONFIG_VT=y
-+CONFIG_CONSOLE_TRANSLATIONS=y
-+CONFIG_VT_CONSOLE=y
-+CONFIG_HW_CONSOLE=y
-+# CONFIG_VT_HW_CONSOLE_BINDING is not set
-+CONFIG_DEVKMEM=y
-+# CONFIG_SERIAL_NONSTANDARD is not set
-+
-+#
-+# Serial drivers
-+#
-+CONFIG_SERIAL_8250=y
-+CONFIG_SERIAL_8250_CONSOLE=y
-+CONFIG_SERIAL_8250_NR_UARTS=32
-+CONFIG_SERIAL_8250_RUNTIME_UARTS=4
-+CONFIG_SERIAL_8250_EXTENDED=y
-+CONFIG_SERIAL_8250_MANY_PORTS=y
-+CONFIG_SERIAL_8250_SHARE_IRQ=y
-+CONFIG_SERIAL_8250_DETECT_IRQ=y
-+CONFIG_SERIAL_8250_RSA=y
-+
-+#
-+# Non-8250 serial port support
-+#
-+CONFIG_SERIAL_CORE=y
-+CONFIG_SERIAL_CORE_CONSOLE=y
-+CONFIG_UNIX98_PTYS=y
-+# CONFIG_DEVPTS_MULTIPLE_INSTANCES is not set
-+# CONFIG_LEGACY_PTYS is not set
-+# CONFIG_IPMI_HANDLER is not set
-+CONFIG_HW_RANDOM=y
-+# CONFIG_R3964 is not set
-+# CONFIG_RAW_DRIVER is not set
-+# CONFIG_TCG_TPM is not set
-+# CONFIG_I2C is not set
-+# CONFIG_SPI is not set
-+CONFIG_ARCH_REQUIRE_GPIOLIB=y
-+CONFIG_GPIOLIB=y
-+# CONFIG_DEBUG_GPIO is not set
-+# CONFIG_GPIO_SYSFS is not set
-+
-+#
-+# Memory mapped GPIO expanders:
-+#
-+
-+#
-+# I2C GPIO expanders:
-+#
-+
-+#
-+# PCI GPIO expanders:
-+#
-+
-+#
-+# SPI GPIO expanders:
-+#
-+# CONFIG_W1 is not set
-+# CONFIG_POWER_SUPPLY is not set
-+# CONFIG_HWMON is not set
-+# CONFIG_THERMAL is not set
-+# CONFIG_THERMAL_HWMON is not set
-+# CONFIG_WATCHDOG is not set
-+CONFIG_SSB_POSSIBLE=y
-+
-+#
-+# Sonics Silicon Backplane
-+#
-+# CONFIG_SSB is not set
-+
-+#
-+# Multifunction device drivers
-+#
-+# CONFIG_MFD_CORE is not set
-+# CONFIG_MFD_SM501 is not set
-+# CONFIG_MFD_ASIC3 is not set
-+# CONFIG_HTC_EGPIO is not set
-+# CONFIG_HTC_PASIC3 is not set
-+# CONFIG_MFD_TMIO is not set
-+# CONFIG_MFD_T7L66XB is not set
-+# CONFIG_MFD_TC6387XB is not set
-+# CONFIG_MFD_TC6393XB is not set
-+
-+#
-+# Multimedia devices
-+#
-+
-+#
-+# Multimedia core support
-+#
-+# CONFIG_VIDEO_DEV is not set
-+# CONFIG_VIDEO_MEDIA is not set
-+
-+#
-+# Multimedia drivers
-+#
-+CONFIG_DAB=y
-+
-+#
-+# Graphics support
-+#
-+# CONFIG_VGASTATE is not set
-+# CONFIG_VIDEO_OUTPUT_CONTROL is not set
-+# CONFIG_FB is not set
-+# CONFIG_BACKLIGHT_LCD_SUPPORT is not set
-+
-+#
-+# Display device support
-+#
-+# CONFIG_DISPLAY_SUPPORT is not set
-+
-+#
-+# Console display driver support
-+#
-+# CONFIG_VGA_CONSOLE is not set
-+CONFIG_DUMMY_CONSOLE=y
-+# CONFIG_SOUND is not set
-+# CONFIG_HID_SUPPORT is not set
-+# CONFIG_USB_SUPPORT is not set
-+# CONFIG_MMC is not set
-+# CONFIG_MEMSTICK is not set
-+# CONFIG_ACCESSIBILITY is not set
-+# CONFIG_NEW_LEDS is not set
-+CONFIG_RTC_LIB=y
-+# CONFIG_RTC_CLASS is not set
-+# CONFIG_DMADEVICES is not set
-+# CONFIG_REGULATOR is not set
-+# CONFIG_UIO is not set
-+# CONFIG_STAGING is not set
-+
-+#
-+# CBUS support
-+#
-+# CONFIG_CBUS is not set
-+
-+#
-+# File systems
-+#
-+CONFIG_EXT2_FS=y
-+# CONFIG_EXT2_FS_XATTR is not set
-+# CONFIG_EXT2_FS_XIP is not set
-+CONFIG_EXT3_FS=y
-+# CONFIG_EXT3_FS_XATTR is not set
-+# CONFIG_EXT4_FS is not set
-+CONFIG_JBD=y
-+# CONFIG_REISERFS_FS is not set
-+# CONFIG_JFS_FS is not set
-+# CONFIG_FS_POSIX_ACL is not set
-+CONFIG_FILE_LOCKING=y
-+# CONFIG_XFS_FS is not set
-+# CONFIG_BTRFS_FS is not set
-+CONFIG_DNOTIFY=y
-+CONFIG_INOTIFY=y
-+CONFIG_INOTIFY_USER=y
-+CONFIG_QUOTA=y
-+CONFIG_PRINT_QUOTA_WARNING=y
-+CONFIG_QUOTA_TREE=y
-+# CONFIG_QFMT_V1 is not set
-+CONFIG_QFMT_V2=y
-+CONFIG_QUOTACTL=y
-+# CONFIG_AUTOFS_FS is not set
-+# CONFIG_AUTOFS4_FS is not set
-+# CONFIG_FUSE_FS is not set
-+
-+#
-+# CD-ROM/DVD Filesystems
-+#
-+# CONFIG_ISO9660_FS is not set
-+# CONFIG_UDF_FS is not set
-+
-+#
-+# DOS/FAT/NT Filesystems
-+#
-+CONFIG_FAT_FS=y
-+CONFIG_MSDOS_FS=y
-+CONFIG_VFAT_FS=y
-+CONFIG_FAT_DEFAULT_CODEPAGE=437
-+CONFIG_FAT_DEFAULT_IOCHARSET="iso8859-1"
-+# CONFIG_NTFS_FS is not set
-+
-+#
-+# Pseudo filesystems
-+#
-+CONFIG_PROC_FS=y
-+CONFIG_PROC_SYSCTL=y
-+CONFIG_SYSFS=y
-+CONFIG_TMPFS=y
-+# CONFIG_TMPFS_POSIX_ACL is not set
-+# CONFIG_HUGETLB_PAGE is not set
-+# CONFIG_CONFIGFS_FS is not set
-+CONFIG_MISC_FILESYSTEMS=y
-+# CONFIG_ADFS_FS is not set
-+# CONFIG_AFFS_FS is not set
-+# CONFIG_HFS_FS is not set
-+# CONFIG_HFSPLUS_FS is not set
-+# CONFIG_BEFS_FS is not set
-+# CONFIG_BFS_FS is not set
-+# CONFIG_EFS_FS is not set
-+# CONFIG_CRAMFS is not set
-+# CONFIG_SQUASHFS is not set
-+# CONFIG_VXFS_FS is not set
-+# CONFIG_MINIX_FS is not set
-+# CONFIG_OMFS_FS is not set
-+# CONFIG_HPFS_FS is not set
-+# CONFIG_QNX4FS_FS is not set
-+# CONFIG_ROMFS_FS is not set
-+# CONFIG_SYSV_FS is not set
-+# CONFIG_UFS_FS is not set
-+
-+#
-+# Partition Types
-+#
-+CONFIG_PARTITION_ADVANCED=y
-+# CONFIG_ACORN_PARTITION is not set
-+# CONFIG_OSF_PARTITION is not set
-+# CONFIG_AMIGA_PARTITION is not set
-+# CONFIG_ATARI_PARTITION is not set
-+# CONFIG_MAC_PARTITION is not set
-+CONFIG_MSDOS_PARTITION=y
-+# CONFIG_BSD_DISKLABEL is not set
-+# CONFIG_MINIX_SUBPARTITION is not set
-+# CONFIG_SOLARIS_X86_PARTITION is not set
-+# CONFIG_UNIXWARE_DISKLABEL is not set
-+# CONFIG_LDM_PARTITION is not set
-+# CONFIG_SGI_PARTITION is not set
-+# CONFIG_ULTRIX_PARTITION is not set
-+# CONFIG_SUN_PARTITION is not set
-+# CONFIG_KARMA_PARTITION is not set
-+# CONFIG_EFI_PARTITION is not set
-+# CONFIG_SYSV68_PARTITION is not set
-+CONFIG_NLS=y
-+CONFIG_NLS_DEFAULT="iso8859-1"
-+CONFIG_NLS_CODEPAGE_437=y
-+# CONFIG_NLS_CODEPAGE_737 is not set
-+# CONFIG_NLS_CODEPAGE_775 is not set
-+# CONFIG_NLS_CODEPAGE_850 is not set
-+# CONFIG_NLS_CODEPAGE_852 is not set
-+# CONFIG_NLS_CODEPAGE_855 is not set
-+# CONFIG_NLS_CODEPAGE_857 is not set
-+# CONFIG_NLS_CODEPAGE_860 is not set
-+# CONFIG_NLS_CODEPAGE_861 is not set
-+# CONFIG_NLS_CODEPAGE_862 is not set
-+# CONFIG_NLS_CODEPAGE_863 is not set
-+# CONFIG_NLS_CODEPAGE_864 is not set
-+# CONFIG_NLS_CODEPAGE_865 is not set
-+# CONFIG_NLS_CODEPAGE_866 is not set
-+# CONFIG_NLS_CODEPAGE_869 is not set
-+# CONFIG_NLS_CODEPAGE_936 is not set
-+# CONFIG_NLS_CODEPAGE_950 is not set
-+# CONFIG_NLS_CODEPAGE_932 is not set
-+# CONFIG_NLS_CODEPAGE_949 is not set
-+# CONFIG_NLS_CODEPAGE_874 is not set
-+# CONFIG_NLS_ISO8859_8 is not set
-+# CONFIG_NLS_CODEPAGE_1250 is not set
-+# CONFIG_NLS_CODEPAGE_1251 is not set
-+# CONFIG_NLS_ASCII is not set
-+CONFIG_NLS_ISO8859_1=y
-+# CONFIG_NLS_ISO8859_2 is not set
-+# CONFIG_NLS_ISO8859_3 is not set
-+# CONFIG_NLS_ISO8859_4 is not set
-+# CONFIG_NLS_ISO8859_5 is not set
-+# CONFIG_NLS_ISO8859_6 is not set
-+# CONFIG_NLS_ISO8859_7 is not set
-+# CONFIG_NLS_ISO8859_9 is not set
-+# CONFIG_NLS_ISO8859_13 is not set
-+# CONFIG_NLS_ISO8859_14 is not set
-+# CONFIG_NLS_ISO8859_15 is not set
-+# CONFIG_NLS_KOI8_R is not set
-+# CONFIG_NLS_KOI8_U is not set
-+# CONFIG_NLS_UTF8 is not set
-+
-+#
-+# Kernel hacking
-+#
-+# CONFIG_PRINTK_TIME is not set
-+# CONFIG_ENABLE_WARN_DEPRECATED is not set
-+# CONFIG_ENABLE_MUST_CHECK is not set
-+CONFIG_FRAME_WARN=1024
-+CONFIG_MAGIC_SYSRQ=y
-+# CONFIG_UNUSED_SYMBOLS is not set
-+# CONFIG_DEBUG_FS is not set
-+# CONFIG_HEADERS_CHECK is not set
-+CONFIG_DEBUG_KERNEL=y
-+# CONFIG_DEBUG_BUGVERBOSE is not set
-+CONFIG_DEBUG_INFO=y
-+# CONFIG_DEBUG_VM is not set
-+# CONFIG_DEBUG_WRITECOUNT is not set
-+# CONFIG_DEBUG_MEMORY_INIT is not set
-+CONFIG_FRAME_POINTER=y
-+# CONFIG_BOOT_PRINTK_DELAY is not set
-+# CONFIG_RCU_TORTURE_TEST is not set
-+# CONFIG_RCU_CPU_STALL_DETECTOR is not set
-+# CONFIG_BACKTRACE_SELF_TEST is not set
-+# CONFIG_DEBUG_BLOCK_EXT_DEVT is not set
-+# CONFIG_FAULT_INJECTION is not set
-+# CONFIG_LATENCYTOP is not set
-+CONFIG_HAVE_FUNCTION_TRACER=y
-+
-+#
-+# Tracers
-+#
-+# CONFIG_FUNCTION_TRACER is not set
-+# CONFIG_IRQSOFF_TRACER is not set
-+# CONFIG_SCHED_TRACER is not set
-+# CONFIG_CONTEXT_SWITCH_TRACER is not set
-+# CONFIG_BOOT_TRACER is not set
-+# CONFIG_TRACE_BRANCH_PROFILING is not set
-+# CONFIG_STACK_TRACER is not set
-+# CONFIG_DYNAMIC_PRINTK_DEBUG is not set
-+# CONFIG_SAMPLES is not set
-+CONFIG_HAVE_ARCH_KGDB=y
-+# CONFIG_KGDB is not set
-+# CONFIG_DEBUG_USER is not set
-+# CONFIG_DEBUG_ERRORS is not set
-+# CONFIG_DEBUG_STACK_USAGE is not set
-+CONFIG_DEBUG_LL=y
-+# CONFIG_DEBUG_ICEDCC is not set
-+
-+#
-+# Security options
-+#
-+# CONFIG_KEYS is not set
-+# CONFIG_SECURITY is not set
-+# CONFIG_SECURITYFS is not set
-+# CONFIG_SECURITY_FILE_CAPABILITIES is not set
-+CONFIG_CRYPTO=y
-+
-+#
-+# Crypto core or helper
-+#
-+CONFIG_CRYPTO_ALGAPI=y
-+CONFIG_CRYPTO_BLKCIPHER=y
-+CONFIG_CRYPTO_MANAGER=y
-+# CONFIG_CRYPTO_GF128MUL is not set
-+# CONFIG_CRYPTO_NULL is not set
-+# CONFIG_CRYPTO_CRYPTD is not set
-+# CONFIG_CRYPTO_AUTHENC is not set
-+# CONFIG_CRYPTO_TEST is not set
-+
-+#
-+# Authenticated Encryption with Associated Data
-+#
-+# CONFIG_CRYPTO_CCM is not set
-+# CONFIG_CRYPTO_GCM is not set
-+# CONFIG_CRYPTO_SEQIV is not set
-+
-+#
-+# Block modes
-+#
-+CONFIG_CRYPTO_CBC=y
-+# CONFIG_CRYPTO_CTR is not set
-+# CONFIG_CRYPTO_CTS is not set
-+CONFIG_CRYPTO_ECB=m
-+# CONFIG_CRYPTO_LRW is not set
-+CONFIG_CRYPTO_PCBC=m
-+# CONFIG_CRYPTO_XTS is not set
-+
-+#
-+# Hash modes
-+#
-+# CONFIG_CRYPTO_HMAC is not set
-+# CONFIG_CRYPTO_XCBC is not set
-+
-+#
-+# Digest
-+#
-+CONFIG_CRYPTO_CRC32C=y
-+# CONFIG_CRYPTO_MD4 is not set
-+CONFIG_CRYPTO_MD5=y
-+# CONFIG_CRYPTO_MICHAEL_MIC is not set
-+# CONFIG_CRYPTO_RMD128 is not set
-+# CONFIG_CRYPTO_RMD160 is not set
-+# CONFIG_CRYPTO_RMD256 is not set
-+# CONFIG_CRYPTO_RMD320 is not set
-+# CONFIG_CRYPTO_SHA1 is not set
-+# CONFIG_CRYPTO_SHA256 is not set
-+# CONFIG_CRYPTO_SHA512 is not set
-+# CONFIG_CRYPTO_TGR192 is not set
-+# CONFIG_CRYPTO_WP512 is not set
-+
-+#
-+# Ciphers
-+#
-+# CONFIG_CRYPTO_AES is not set
-+# CONFIG_CRYPTO_ANUBIS is not set
-+# CONFIG_CRYPTO_ARC4 is not set
-+# CONFIG_CRYPTO_BLOWFISH is not set
-+# CONFIG_CRYPTO_CAMELLIA is not set
-+# CONFIG_CRYPTO_CAST5 is not set
-+# CONFIG_CRYPTO_CAST6 is not set
-+CONFIG_CRYPTO_DES=y
-+# CONFIG_CRYPTO_FCRYPT is not set
-+# CONFIG_CRYPTO_KHAZAD is not set
-+# CONFIG_CRYPTO_SALSA20 is not set
-+# CONFIG_CRYPTO_SEED is not set
-+# CONFIG_CRYPTO_SERPENT is not set
-+# CONFIG_CRYPTO_TEA is not set
-+# CONFIG_CRYPTO_TWOFISH is not set
-+
-+#
-+# Compression
-+#
-+# CONFIG_CRYPTO_DEFLATE is not set
-+# CONFIG_CRYPTO_LZO is not set
-+CONFIG_CRYPTO_HW=y
-+
-+#
-+# Library routines
-+#
-+CONFIG_BITREVERSE=y
-+CONFIG_GENERIC_FIND_LAST_BIT=y
-+CONFIG_CRC_CCITT=y
-+# CONFIG_CRC16 is not set
-+CONFIG_CRC_T10DIF=y
-+# CONFIG_CRC_ITU_T is not set
-+CONFIG_CRC32=y
-+# CONFIG_CRC7 is not set
-+CONFIG_LIBCRC32C=y
-+CONFIG_PLIST=y
-+CONFIG_HAS_IOMEM=y
-+CONFIG_HAS_IOPORT=y
-+CONFIG_HAS_DMA=y
-diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
-index c49d9bf..68d50a8 100644
---- a/arch/arm/mach-omap2/Makefile
-+++ b/arch/arm/mach-omap2/Makefile
-@@ -3,9 +3,13 @@
- #
+diff --git a/arch/arm/plat-omap/include/mach/hardware.h b/arch/arm/plat-omap/include/mach/hardware.h
+index 3dc423e..26c1fbf 100644
+--- a/arch/arm/plat-omap/include/mach/hardware.h
++++ b/arch/arm/plat-omap/include/mach/hardware.h
+@@ -285,5 +285,6 @@
+ #include "omap16xx.h"
+ #include "omap24xx.h"
+ #include "omap34xx.h"
++#include "omap44xx.h"
  
- # Common support
-+ifeq ($(CONFIG_ARCH_OMAP4),y)
-+obj-y := id.o io.o control.o mux.o devices.o serial.o gpmc.o timer-gp.o
-+else
- obj-y := irq.o id.o io.o sdrc.o control.o prcm.o clock.o mux.o \
- 		devices.o serial.o gpmc.o timer-gp.o powerdomain.o \
- 		clockdomain.o
-+endif
+ #endif	/* __ASM_ARCH_OMAP_HARDWARE_H */
+diff --git a/arch/arm/plat-omap/include/mach/omap34xx.h b/arch/arm/plat-omap/include/mach/omap34xx.h
+index ab64015..32f2bde 100644
+--- a/arch/arm/plat-omap/include/mach/omap34xx.h
++++ b/arch/arm/plat-omap/include/mach/omap34xx.h
+@@ -31,13 +31,9 @@
  
- obj-$(CONFIG_OMAP_MCBSP) += mcbsp.o
+ #define L4_34XX_BASE		0x48000000
+ #define L4_WK_34XX_BASE		0x48300000
+-#define L4_WK_OMAP_BASE		L4_WK_34XX_BASE
+ #define L4_PER_34XX_BASE	0x49000000
+-#define L4_PER_OMAP_BASE	L4_PER_34XX_BASE
+ #define L4_EMU_34XX_BASE	0x54000000
+-#define L4_EMU_BASE		L4_EMU_34XX_BASE
+ #define L3_34XX_BASE		0x68000000
+-#define L3_OMAP_BASE		L3_34XX_BASE
  
-@@ -44,7 +48,7 @@ obj-$(CONFIG_MACH_OMAP3_PANDORA)	+= board-omap3pandora.o \
- 					   mmc-twl4030.o
- obj-$(CONFIG_MACH_OMAP_3430SDP)		+= board-3430sdp.o \
- 					   mmc-twl4030.o
--
-+obj-$(CONFIG_MACH_OMAP_4430SDP)		+= board-4430sdp.o
- obj-$(CONFIG_MACH_NOKIA_RX51)		+= board-rx51.o \
- 					   board-rx51-peripherals.o \
- 					   mmc-twl4030.o
+ #define OMAP3430_32KSYNCT_BASE	0x48320000
+ #define OMAP3430_CM_BASE	0x48004800
+@@ -85,6 +81,10 @@
+ 
+ #if defined(CONFIG_ARCH_OMAP3430)
+ 
++#define L4_WK_OMAP_BASE			L4_WK_34XX_BASE
++#define L4_PER_OMAP_BASE		L4_PER_34XX_BASE
++#define L4_EMU_BASE			L4_EMU_34XX_BASE
++#define L3_OMAP_BASE			L3_34XX_BASE
+ #define OMAP2_32KSYNCT_BASE		OMAP3430_32KSYNCT_BASE
+ #define OMAP2_CM_BASE			OMAP3430_CM_BASE
+ #define OMAP2_PRM_BASE			OMAP3430_PRM_BASE
+diff --git a/arch/arm/plat-omap/include/mach/omap44xx.h b/arch/arm/plat-omap/include/mach/omap44xx.h
+new file mode 100644
+index 0000000..7852ea6
+--- /dev/null
++++ b/arch/arm/plat-omap/include/mach/omap44xx.h
+@@ -0,0 +1,61 @@
++/*
++ * Address mappings and base address for OMAP4 interconnects
++ * and peripherals.
++ *
++ * Copyright (C) 2009 Texas Instruments
++ *
++ * Author: Santosh Shilimkar <santosh.shilimkar@ti.com>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++#ifndef __ASM_ARCH_OMAP44XX_H
++#define __ASM_ARCH_OMAP44XX_H
++
++/*
++ * Please place only base defines here and put the rest in device
++ * specific headers.
++ */
++#define L4_44XX_BASE			0x4A000000
++#define L4_WK_44XX_BASE			0x4A300000
++#define L4_PER_44XX_BASE		0x48000000
++#define L4_EMU_44XX_BASE		0x54000000
++#define L3_44XX_BASE			0x44000000
++#define OMAP4430_32KSYNCT_BASE		0x4A304000
++#define OMAP4430_CM_BASE		0x4A004000
++#define OMAP4430_PRM_BASE		0x48306000
++#define OMAP44XX_GPMC_BASE		0x50000000
++#define OMAP443X_SCM_BASE		0x4A002000
++#define OMAP443X_CTRL_BASE		OMAP443X_SCM_BASE
++#define OMAP44XX_IC_BASE		0x48200000
++#define OMAP44XX_IVA_INTC_BASE		0x40000000
++#define IRQ_SIR_IRQ			0x0040
++#define	OMAP44XX_GIC_DIST_BASE		0x48241000
++#define OMAP44XX_GIC_CPU_BASE		0x48240100
++#define	OMAP44XX_VA_GIC_CPU_BASE	IO_ADDRESS(OMAP44XX_GIC_CPU_BASE)
++#define OMAP44XX_SCU_BASE		0x48240000
++#define OMAP44XX_VA_SCU_BASE		IO_ADDRESS(OMAP44XX_SCU_BASE)
++#define OMAP44XX_LOCAL_TWD_BASE		0x48240600
++#define OMAP44XX_VA_LOCAL_TWD_BASE	IO_ADDRESS(OMAP44XX_LOCAL_TWD_BASE)
++#define OMAP44XX_LOCAL_TWD_SIZE		0x00000100
++#define OMAP44XX_WKUPGEN_BASE		0x48281000
++#define OMAP44XX_VA_WKUPGEN_BASE	IO_ADDRESS(OMAP44XX_WKUPGEN_BASE)
++
++/* Common macros between OMAPs */
++
++#if defined(CONFIG_ARCH_OMAP44XX)
++
++#define L4_WK_OMAP_BASE			L4_WK_44XX_BASE
++#define L4_PER_OMAP_BASE		L4_PER_44XX_BASE
++#define L4_EMU_BASE			L4_EMU_44XX_BASE
++#define L3_OMAP_BASE			L3_44XX_BASE
++#define OMAP2_32KSYNCT_BASE		OMAP4430_32KSYNCT_BASE
++#define OMAP2_CM_BASE			OMAP4430_CM_BASE
++#define OMAP2_PRM_BASE			OMAP4430_PRM_BASE
++#define OMAP2_VA_IC_BASE		IO_ADDRESS(OMAP44XX_IC_BASE)
++
++#endif
++
++#endif /* __ASM_ARCH_OMAP44XX_H */
++
 -- 
 1.5.4.7
 
