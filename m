@@ -1,692 +1,943 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH] OMAP3: PM: Add the wakeup source driver, v3
-Date: Mon, 20 Apr 2009 17:15:13 -0700
-Message-ID: <87tz4i981a.fsf@deeprootsystems.com>
-References: <4d34a0a70904030343h4f1562b5y3dbc9467aac9967@mail.gmail.com>
+From: "Pandita, Vikram" <vikram.pandita@ti.com>
+Subject: RE: LDP broken in 2.6.30-rc 2
+Date: Tue, 21 Apr 2009 06:22:46 +0530
+Message-ID: <FCCFB4CDC6E5564B9182F639FC35608702EAADB6A1@dbde02.ent.ti.com>
+References: <E49DAF743FB3E9469ED423C0D3DB5F1C9E8D7960@dnce01.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="=-=-="
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from rv-out-0506.google.com ([209.85.198.235]:4046 "EHLO
-	rv-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751630AbZDUAPV (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 20 Apr 2009 20:15:21 -0400
-Received: by rv-out-0506.google.com with SMTP id f9so2144749rvb.1
-        for <linux-omap@vger.kernel.org>; Mon, 20 Apr 2009 17:15:20 -0700 (PDT)
-In-Reply-To: <4d34a0a70904030343h4f1562b5y3dbc9467aac9967@mail.gmail.com> (Kim Kyuwon's message of "Fri\, 3 Apr 2009 19\:43\:42 +0900")
+Received: from devils.ext.ti.com ([198.47.26.153]:54607 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754320AbZDUAxD convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 20 Apr 2009 20:53:03 -0400
+Received: from dbdp20.itg.ti.com ([172.24.170.38])
+	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id n3L0qtux001621
+	for <linux-omap@vger.kernel.org>; Mon, 20 Apr 2009 19:53:01 -0500
+Received: from dbde71.ent.ti.com (localhost [127.0.0.1])
+	by dbdp20.itg.ti.com (8.13.8/8.13.8) with ESMTP id n3L0qsTh000358
+	for <linux-omap@vger.kernel.org>; Tue, 21 Apr 2009 06:22:54 +0530 (IST)
+In-Reply-To: <E49DAF743FB3E9469ED423C0D3DB5F1C9E8D7960@dnce01.ent.ti.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kim Kyuwon <chammoru@gmail.com>
-Cc: OMAP <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, =?utf-8?B?67CV6rK966+8?= <kyungmin.park@samsung.com>, riverful@gmail.com
+To: "Christensen, Mikkel" <mlc@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
---=-=-=
 
-Kim Kyuwon <chammoru@gmail.com> writes:
-
-> Sometimes, it is necessary to find out "what does wake up my board
-> from suspend?". Notifying wake-up source feature may be used to blame
-> unexpected wake-up events which increase power consumption. And user
-> mode applications can act smartly according to the wake-up event from
-> Suspend-to-RAM state to minimize power consumption. Note that this
-> driver can't inform wake-up events from idle state. This driver uses
-> sysfs interface to give information to user mode applications like:
+>-----Original Message-----
+>From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of
+>Christensen, Mikkel
+>Sent: Monday, April 20, 2009 3:28 PM
+>To: linux-omap@vger.kernel.org
+>Subject: LDP broken in 2.6.30-rc 2
 >
-> cat /sys/power/omap_resume_irq
-> cat /sys/power/omap_resume_event
+>Hi,
 >
-> This driver also privides the unified GPIO wake-up source
-> configuration. specific GPIO settings in the board files are:
 >
-> /* Wakeup source configuration */
-> static struct gpio_wake boardname_gpio_wake[] = {
-> 	{ 23,	IRQF_TRIGGER_RISING,	"BT_WAKEUP",	1},
-> 	{ 24,	IRQF_TRIGGER_RISING,	"USB_DETECT",	1},
-> };
+>I cloned master a few days ago and when I boot up the OMAP3 LDP, the board seem to hang in the "i2c
+>/dev entries driver" dialog and after a minute the kernel dumps. Have anybody else seen this problem?
 >
-> static struct omap_wake_platform_data boardname_wake_data = {
-> 	.gpio_wakes		= boardname_gpio_wake,
-> 	.gpio_wake_num		= ARRAY_SIZE(boardname_gpio_wake),
-> };
+>Log is below.
 >
-> static struct platform_device boardname_wakeup = {
-> 	.name			= "omap-wake",
-> 	.id			= -1,
-> 	.dev			= {
-> 		.platform_data	= &boardname_wake_data,
-> 	},
-> };
+>Best regards,
+> Mikkel
+
+Here is the crash log after enabling all kernel debugging options on LDP with master of L-O tree.
+Code base: linux-omap master
+Platform: LDP
+Defconfig: enabled debugging options
+
+
+[   97.854797] i2c /dev entries driver
+<1>Unable to handle kernel NULL pointer dereference at virtual address 0000009b
+[  113.881439] Unable to handle kernel NULL pointer dereference at virtual addre
+ss 0000009b
+<1>pgd = c0004000
+[  113.891387] pgd = c0004000
+<1>[0000009b] *pgd=00000000[  113.896545] [0000009b] *pgd=00000000
+
+Internal error: Oops: 5 [#1]
+[  113.903076] Internal error: Oops: 5 [#1]
+Modules linked in:[  113.908630] Modules linked in:
+
+CPU: 0    Not tainted  (2.6.30-rc2-omap1-05650-gdc1ac9c-dirty #5)
+[  113.917877] CPU: 0    Not tainted  (2.6.30-rc2-omap1-05650-gdc1ac9c-dirty #5)
+PC is at device_add+0x2d8/0x630
+[  113.928039] PC is at device_add+0x2d8/0x630
+LR is at __mutex_unlock_slowpath+0x70/0x10c
+[  113.936279] LR is at __mutex_unlock_slowpath+0x70/0x10c
+pc : [<c01bdf58>]    lr : [<c02ba844>]    psr: 20000013
+sp : c7817e80  ip : c78b8674  fp : 00000000
+[  113.950653] pc : [<c01bdf58>]    lr : [<c02ba844>]    psr: 20000013
+[  113.950653] sp : c7817e80  ip : c78b8674  fp : 00000000
+r10: 00000000  r9 : c7840928  r8 : c7841a60
+[  113.966217] r10: 00000000  r9 : c7840928  r8 : c7841a60
+r7 : c03b8d04  r6 : c7802be0  r5 : c7840920  r4 : 00000000
+[  113.976837] r7 : c03b8d04  r6 : c7802be0  r5 : c7840920  r4 : 00000000
+r3 : 00000007  r2 : c7840aa8  r1 : 00000007  r0 : c7840aa8
+[  113.988739] r3 : 00000007  r2 : c7840aa8  r1 : 00000007  r0 : c7840aa8
+Flags: nzCv  IRQs on  FIQs on  Mode SVC_32  ISA ARM  Segment kernel
+[  114.001464] Flags: nzCv  IRQs on  FIQs on  Mode SVC_32  ISA ARM  Segment kern
+el
+Control: 10c5387d  Table: 80004019  DAC: 00000017
+[  114.013366] Control: 10c5387d  Table: 80004019  DAC: 00000017
+Process swapper (pid: 1, stack limit = 0xc78162e0)
+[  114.023803] Process swapper (pid: 1, stack limit = 0xc78162e0)
+Stack: (0xc7817e80 to 0xc7818000)
+[  114.032806] Stack: (0xc7817e80 to 0xc7818000)
+7e80: [  114.037719] 7e80: 00000000 00000000 c785e090 c785e090 3a393800 3a393800
+ c7840033 c7840033 00000021 00000021 00000000 00000000 00000000 00000000 c784092
+0 c7840920
+
+7ea0: [  114.053222] 7ea0: c7841a60 c7841a60 05900003 05900003 c785e090 c785e090
+ 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 c01be36
+4 c01be364
+
+7ec0: [  114.068756] 7ec0: c03570f4 c03570f4 c78513c0 c78513c0 c03c86dc c03c86dc
+ c785e038 c785e038 c03e1dc0 c03e1dc0 c01be394 c01be394 c03570f4 c03570f4 c7817ef
+4 c7817ef4
+
+7ee0: [  114.084259] 7ee0: c03c86f8 c03c86f8 c7817ef4 c7817ef4 c01ca380 c01ca380
+ c01c9918 c01c9918 c03570f4 c03570f4 00000003 00000003 c03c86f8 c03c86f8 c785e03
+8 c785e038
+
+7f00: [  114.099792] 7f00: c03c86f8 c03c86f8 c01c9330 c01c9330 c01ca380 c01ca380
+ c01c9358 c01c9358 00000000 00000000 c7817f2c c7817f2c c03c86f8 c03c86f8 c01c0af
+4 c01c0af4
+
+7f20: [  114.115295] 7f20: c03c8584 c03c8584 c03c85c0 c03c85c0 c03c8584 c03c8584
+ c784b6b0 c784b6b0 c785e114 c785e114 00000000 00000000 00000000 00000000 c03c86f
+8 c03c86f8
+
+7f40: [  114.130828] 7f40: c03c8584 c03c8584 00000000 00000000 00000000 00000000
+ c01c8b0c c01c8b0c c03e1dc0 c03e1dc0 00000000 00000000 c03d0760 c03d0760 c01ca41
+0 c01ca410
+
+7f60: [  114.146331] 7f60: c002391c c002391c c00239ec c00239ec c03d0760 c03d0760
+ c002e2dc c002e2dc 00000000 00000000 c00e9338 c00e9338 c03d880c c03d880c c033ee2
+4 c033ee24
+
+7f80: [  114.161865] 7f80: 00000100 00000100 0000024e 0000024e c78370a0 c78370a0
+ c03d880c c03d880c c03b6908 c03b6908 0000015f 0000015f 00000000 00000000 c00e958
+8 c00e9588
+
+7fa0: [  114.177368] 7fa0: c007e594 c007e594 c7838680 c7838680 c7817fb6 c7817fb6
+ c007e5b8 c007e5b8 c7810f60 c7810f60 353339ec 353339ec 00000031 00000031 0000000
+0 00000000
+
+7fc0: [  114.192901] 7fc0: 00000000 00000000 c002391c c002391c c00239ec c00239ec
+ c002366c c002366c 00000000 00000000 00000000 00000000 00000000 00000000 0000000
+0 00000000
+
+7fe0: [  114.208404] 7fe0: 00000000 00000000 c0008554 c0008554 00000000 00000000
+ 00000000 00000000 00000000 00000000 c005795c c005795c 107fff11 107fff11 00fbff2
+0 00fbff20
+
+[<c01bdf58>] [  114.224578] [<c01bdf58>] (device_add+0x2d8/0x630) (device_add+0x
+2d8/0x630) from [<c01be364>] from [<c01be364>] (device_create_vargs+0x9c/0xac)
+(device_create_vargs+0x9c/0xac)
+[<c01be364>] [  114.241668] [<c01be364>] (device_create_vargs+0x9c/0xac) (device
+_create_vargs+0x9c/0xac) from [<c01be394>] from [<c01be394>] (device_create+0x20
+/0x28)
+(device_create+0x20/0x28)
+[<c01be394>] [  114.258941] [<c01be394>] (device_create+0x20/0x28) (device_creat
+e+0x20/0x28) from [<c01c9918>] from [<c01c9918>] (i2cdev_attach_adapter+0xa0/0x1
+1c)
+(i2cdev_attach_adapter+0xa0/0x11c)
+[<c01c9918>] [  114.276763] [<c01c9918>] (i2cdev_attach_adapter+0xa0/0x11c) (i2c
+dev_attach_adapter+0xa0/0x11c) from [<c01c9358>] from [<c01c9358>] (__attach_ada
+pter+0x28/0x30)
+(__attach_adapter+0x28/0x30)
+[<c01c9358>] [  114.295074] [<c01c9358>] (__attach_adapter+0x28/0x30) (__attach_
+adapter+0x28/0x30) from [<c01c0af4>] from [<c01c0af4>] (class_for_each_device+0x
+64/0xb8)
+(class_for_each_device+0x64/0xb8)
+[<c01c0af4>] [  114.313232] [<c01c0af4>] (class_for_each_device+0x64/0xb8) (clas
+s_for_each_device+0x64/0xb8) from [<c01c8b0c>] from [<c01c8b0c>] (i2c_register_d
+river+0xb8/0xdc)
+(i2c_register_driver+0xb8/0xdc)
+[<c01c8b0c>] [  114.331909] [<c01c8b0c>] (i2c_register_driver+0xb8/0xdc) (i2c_re
+gister_driver+0xb8/0xdc) from [<c01ca410>] from [<c01ca410>] (i2c_dev_init+0x90/
+0xa8)
+(i2c_dev_init+0x90/0xa8)
+[<c01ca410>] [  114.348968] [<c01ca410>] (i2c_dev_init+0x90/0xa8) (i2c_dev_init+
+0x90/0xa8) from [<c002e2dc>] from [<c002e2dc>] (do_one_initcall+0x34/0x1a8)
+(do_one_initcall+0x34/0x1a8)
+[<c002e2dc>] [  114.365539] [<c002e2dc>] (do_one_initcall+0x34/0x1a8) (do_one_in
+itcall+0x34/0x1a8) from [<c0008554>] from [<c0008554>] (kernel_init+0x9c/0xf8)
+(kernel_init+0x9c/0xf8)
+[<c0008554>] [  114.381927] [<c0008554>] (kernel_init+0x9c/0xf8) (kernel_init+0x
+9c/0xf8) from [<c005795c>] from [<c005795c>] (do_exit+0x0/0x5ec)
+(do_exit+0x0/0x5ec)
+[<c005795c>] [  114.396728] [<c005795c>] (do_exit+0x0/0x5ec) (do_exit+0x0/0x5ec)
+ from [<00000003>] from [<00000003>] (0x3)
+(0x3)
+Code: [  114.407714] Code: e5913000 e5913000 e3530000 e3530000 0a000003 0a000003
+ e1a01003 e1a01003 (e5913094) (e5913094)
+
+<4>---[ end trace 452756dfc4a6fe7e ]---
+[  114.422058] ---[ end trace 452756dfc4a6fe7e ]---
+<0>Kernel panic - not syncing: Attempted to kill init!
+[  114.431823] Kernel panic - not syncing: Attempted to kill init!
+
+
+
 >
-> The patch adds Kconfig options "OMAP34xx wakeup source support" under
-> "System type"->"TI OMAP implementations" menu.
 >
-> Signed-off-by: Kim Kyuwon <q1.kim@samsung.com>
-
-Hi Kyuwon,
-
-While I still like the concept of this driver, I'm still not quite
-happy about how it is implemented for various reasons.  Most of which
-have to do with the fact that this driver does many things that really
-should be the job of other layers.  In particular, the list of
-omap3_wake_events is a bit troubling.  It really should be handled by
-the omapdev layer.  You'll see that you are duplicating the data that
-is handled there.  Rather, we should just extend the omapdev data to
-handle the wakeup events for that device.
-
-Also, I still think the WKST register reading should be done in the
-PRCM interrupt handler.  In your previous attempt, you were seeing a
-bunch of non-device wakeup related interrupts.   Can you try again
-with the attached patch (thanks to Paul Walmseley) which should help
-us debug why you were seeing spurious PRCM interrupts.
-
-Also, I know we discussed this before, but I think the GPIO wakeup
-source stuff really belongs in a separate patch, and if you think it
-is still useful, and cannot be done by just enabling a GPIO IRQ from
-the board file, I suggest you propose a patch to the generic GPIO
-layer to add this interface.
-
-> ---
->  arch/arm/mach-omap2/Makefile           |    1 +
->  arch/arm/mach-omap2/irq.c              |   21 +-
->  arch/arm/mach-omap2/prcm-common.h      |    4 +
->  arch/arm/mach-omap2/prm-regbits-34xx.h |    5 +
->  arch/arm/mach-omap2/wake34xx.c         |  681 ++++++++++++++++++++++++++++++++
->  arch/arm/plat-omap/Kconfig             |    9 +
->  arch/arm/plat-omap/include/mach/irqs.h |    4 +
->  arch/arm/plat-omap/include/mach/wake.h |   30 ++
->  8 files changed, 752 insertions(+), 3 deletions(-)
->  create mode 100644 arch/arm/mach-omap2/wake34xx.c
->  create mode 100644 arch/arm/plat-omap/include/mach/wake.h
 >
-> diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
-> index e693efd..4d7dbca 100644
-> --- a/arch/arm/mach-omap2/Makefile
-> +++ b/arch/arm/mach-omap2/Makefile
-> @@ -25,6 +25,7 @@ obj-$(CONFIG_ARCH_OMAP2)		+= pm24xx.o
->  obj-$(CONFIG_ARCH_OMAP24XX)		+= sleep24xx.o
->  obj-$(CONFIG_ARCH_OMAP3)		+= pm34xx.o sleep34xx.o cpuidle34xx.o
->  obj-$(CONFIG_PM_DEBUG)			+= pm-debug.o
-> +obj-$(CONFIG_OMAP_WAKE)			+= wake34xx.o
->  endif
+>Bytes transferred = 1851164 (1c3f1c hex)
 >
->  # SmartReflex driver
-> diff --git a/arch/arm/mach-omap2/irq.c b/arch/arm/mach-omap2/irq.c
-> index 700fc3d..18ac725 100644
-> --- a/arch/arm/mach-omap2/irq.c
-> +++ b/arch/arm/mach-omap2/irq.c
-> @@ -33,9 +33,6 @@
->  #define INTC_MIR_SET0		0x008c
->  #define INTC_PENDING_IRQ0	0x0098
+>## Booting image at 80000000 ...
 >
-> -/* Number of IRQ state bits in each MIR register */
-> -#define IRQ_BITS_PER_REG	32
-> -
->  /*
->   * OMAP2 has a number of different interrupt controllers, each interrupt
->   * controller is identified as its own "bank". Register definitions are
-> @@ -193,6 +190,24 @@ int omap_irq_pending(void)
->  	return 0;
->  }
+>   Image Name:   Linux-2.6.30-rc2-omap1-05648-g8e
 >
-> +void omap_get_pending_irqs(u32 *pending_irqs, unsigned len)
-> +{
-> +	int i, j = 0;
-> +
-> +	for (i = 0; i < ARRAY_SIZE(irq_banks); i++) {
-> +		struct omap_irq_bank *bank = irq_banks + i;
-> +		int irq;
-> +
-> +		for (irq = 0; irq < bank->nr_irqs && j < len;
-> +						irq += IRQ_BITS_PER_REG) {
-> +			int offset = irq & (~(IRQ_BITS_PER_REG - 1));
-> +
-> +			pending_irqs[j++] = intc_bank_read_reg(bank,
-> +					(INTC_PENDING_IRQ0 + offset));
-> +		}
-> +	}
-> +}
-> +
->  void __init omap_init_irq(void)
->  {
->  	unsigned long nr_of_irqs = 0;
-> diff --git a/arch/arm/mach-omap2/prcm-common.h
-> b/arch/arm/mach-omap2/prcm-common.h
-> index cb1ae84..1f340aa 100644
-> --- a/arch/arm/mach-omap2/prcm-common.h
-> +++ b/arch/arm/mach-omap2/prcm-common.h
-> @@ -273,6 +273,10 @@
->  #define OMAP3430_ST_D2D_SHIFT				3
->  #define OMAP3430_ST_D2D_MASK				(1 << 3)
+>   Image Type:   ARM Linux Kernel Image (uncompressed)
 >
-> +/* PM_WKST3_CORE, CM_IDLEST3_CORE shared bits */
-> +#define OMAP3430_ST_USBTLL_SHIFT			2
-> +#define OMAP3430_ST_USBTLL_MASK				(1 << 2)
-> +
->  /* CM_FCLKEN_WKUP, CM_ICLKEN_WKUP, PM_WKEN_WKUP shared bits */
->  #define OMAP3430_EN_GPIO1				(1 << 3)
->  #define OMAP3430_EN_GPIO1_SHIFT				3
-> diff --git a/arch/arm/mach-omap2/prm-regbits-34xx.h
-> b/arch/arm/mach-omap2/prm-regbits-34xx.h
-> index 06fee29..f0a6395 100644
-> --- a/arch/arm/mach-omap2/prm-regbits-34xx.h
-> +++ b/arch/arm/mach-omap2/prm-regbits-34xx.h
-> @@ -332,6 +332,8 @@
->  /* PM_IVA2GRPSEL1_CORE specific bits */
+>   Data Size:    1851100 Bytes =  1.8 MB
 >
->  /* PM_WKST1_CORE specific bits */
-> +#define OMAP3430_ST_MMC3_SHIFT				30
-> +#define OMAP3430_ST_MMC3_MASK				(1 << 30)
+>   Load Address: 80008000
 >
->  /* PM_PWSTCTRL_CORE specific bits */
->  #define OMAP3430_MEM2ONSTATE_SHIFT			18
-> @@ -432,6 +434,9 @@
+>   Entry Point:  80008000
 >
->  /* PM_PREPWSTST_PER specific bits */
+>   Verifying Checksum ... OK
 >
-> +/* PM_WKST_USBHOST specific bits */
-> +#define OMAP3430_ST_USBHOST				(1 << 0)
-> +
->  /* RM_RSTST_EMU specific bits */
+>OK
+>
+>
+>
+>Starting kernel ...
+>
+>
+>
+>Uncompressing
+>Linux................................................................................................
+>...........
+>
+><5>Linux version 2.6.30-rc2-omap1-05648-g8e58316-dirty (a0389005@a0389005-desktop) (gcc version 4.2.3
+>(Sourcery G++ Lite 20089
+>
+>CPU: ARMv7 Processor [411fc082] revision 2 (ARMv7), cr=10c5387f
+>
+>CPU: VIPT nonaliasing data cache, VIPT nonaliasing instruction cache
+>
+>Machine: OMAP LDP board
+>
+>Memory policy: ECC disabled, Data cache writeback
+>
+><7>On node 0 totalpages: 28672
+>
+><7>free_area_init_node: node 0, pgdat c0391ac8, node_mem_map c03ad000
+>
+><7>  Normal zone: 224 pages used for memmap
+>
+><7>  Normal zone: 0 pages reserved
+>
+><7>  Normal zone: 28448 pages, LIFO batch:7
+>
+><6>OMAP3430 ES2.1
+>
+><6>SRAM: Mapped pa 0x40200000 to va 0xd7000000 size: 0x100000
+>
+>Built 1 zonelists in Zone order, mobility grouping on.  Total pages: 28448
+>
+><5>Kernel command line: console=ttyS2,115200n8 noinitrd mem=112M root=/dev/nfs rw
+>nfsroot=128.247.85.60:/home/a0389051/omap34p
+>
+><6>NR_IRQS:402
+>
+><6>Clocking rate (Crystal/DPLL/ARM core): 26.0/332/500 MHz
+>
+><6>GPMC revision 5.0
+>
+><6>IRQ: Found an INTC at 0xd8200000 (revision 4.0) with 96 interrupts
+>
+><6>Total of 96 interrupts on 1 active controller
+>
+><6>OMAP34xx GPIO hardware version 2.5
+>
+>PID hash table entries: 512 (order: 9, 2048 bytes)
+>
+><6>OMAP clockevent source: GPTIMER1 at 32768 Hz
+>
+>Console: colour dummy device 80x30
+>
+><6>Dentry cache hash table entries: 16384 (order: 4, 65536 bytes)
+>
+><6>Inode-cache hash table entries: 8192 (order: 3, 32768 bytes)
+>
+><6>Memory: 112MB = 112MB total
+>
+><5>Memory: 109780KB available (3176K code, 292K data, 144K init, 0K highmem)
+>
+><6>Calibrating delay loop... 499.92 BogoMIPS (lpj=1949696)
+>
+>Mount-cache hash table entries: 512
+>
+><6>CPU: Testing write buffer coherency: ok
+>
+><6>net_namespace: 520 bytes
+>
+><6>regulator: core version 0.5
+>
+><6>NET: Registered protocol family 16
+>
+><3>mmci-omap-hs.0: use which platform_data?
+>
+><6>OMAP DMA hardware revision 4.0
+>
+>bio: create slab <bio-0> at 0
+>
+><6>i2c_omap i2c_omap.1: bus 1 rev3.12 at 2600 kHz
+>
+><6>twl4030: PIH (irq 7) chaining IRQs 368..375
+>
+><6>twl4030: power (irq 373) chaining IRQs 376..383
+>
+><3>twl4030_bci: use which platform_data?
+>
+><3>twl4030_gpio: use which platform_data?
+>
+><6>twl4030: gpio (irq 368) chaining IRQs 384..401
+>
+><3>twl4030_keypad: use which platform_data?
+>
+><3>twl4030_madc: use which platform_data?
+>
+><3>twl4030_usb: use which platform_data?
+>
+><3>twl4030_reg.17: use which platform_data?
+>
+><3>set_machine_constraints: invalid 'VUSB1V5' voltage constraints
+>
+><3>twl4030_reg twl4030_reg.17: can't register VUSB1V5, -22
+>
+><4>twl4030_reg: probe of twl4030_reg.17 failed with error -22
+>
+><3>twl4030_reg.18: use which platform_data?
+>
+><3>set_machine_constraints: invalid 'VUSB1V8' voltage constraints
+>
+><3>twl4030_reg twl4030_reg.18: can't register VUSB1V8, -22
+>
+><4>twl4030_reg: probe of twl4030_reg.18 failed with error -22
+>
+><3>twl4030_reg.19: use which platform_data?
+>
+><3>set_machine_constraints: invalid 'VUSB3V1' voltage constraints
+>
+><3>twl4030_reg twl4030_reg.19: can't register VUSB3V1, -22
+>
+><4>twl4030_reg: probe of twl4030_reg.19 failed with error -22
+>
+><6>i2c_omap i2c_omap.2: bus 2 rev3.12 at 400 kHz
+>
+><6>i2c_omap i2c_omap.3: bus 3 rev3.12 at 400 kHz
+>
+><5>SCSI subsystem initialized
+>
+><3>twl4030_usb twl4030_usb: ldo init failed
+>
+><6>usbcore: registered new interface driver usbfs
+>
+><6>usbcore: registered new interface driver hub
+>
+><6>usbcore: registered new device driver usb
+>
+><6>musb_hdrc: version 6.0, musb-dma, otg (peripheral+host), debug=0
+>
+><7>Switched to high resolution mode on CPU 0
+>
+><7>musb_hdrc: ConfigData=0x55 (UTMI-16, dyn FIFOs, bulk split (X), HB-ISO Rx (X))
+>
+><7>musb_hdrc: MHDRC RTL version 1.400
+>
+><7>musb_hdrc: setup fifo_mode 4
+>
+><7>musb_hdrc: 29/31 max ep, 15424/16384 memory
+>
+><7>musb_hdrc: hw_ep 0shared, max 64
+>
+><7>musb_hdrc: hw_ep 1tx, max 512
+>
+><7>musb_hdrc: hw_ep 1rx, max 512
+>
+><7>musb_hdrc: hw_ep 2tx, max 512
+>
+><7>musb_hdrc: hw_ep 2rx, max 512
+>
+><7>musb_hdrc: hw_ep 3tx, max 512
+>
+><7>musb_hdrc: hw_ep 3rx, max 512
+>
+><7>musb_hdrc: hw_ep 4tx, max 512
+>
+><7>musb_hdrc: hw_ep 4rx, max 512
+>
+><7>musb_hdrc: hw_ep 5tx, max 512
+>
+><7>musb_hdrc: hw_ep 5rx, max 512
+>
+><7>musb_hdrc: hw_ep 6tx, max 512
+>
+><7>musb_hdrc: hw_ep 6rx, max 512
+>
+><7>musb_hdrc: hw_ep 7tx, max 512
+>
+><7>musb_hdrc: hw_ep 7rx, max 512
+>
+><7>musb_hdrc: hw_ep 8tx, max 512
+>
+><7>musb_hdrc: hw_ep 8rx, max 512
+>
+><7>musb_hdrc: hw_ep 9tx, max 512
+>
+><7>musb_hdrc: hw_ep 9rx, max 512
+>
+><7>musb_hdrc: hw_ep 10tx, max 512
+>
+><7>musb_hdrc: hw_ep 10rx, max 512
+>
+><7>musb_hdrc: hw_ep 11tx, max 512
+>
+><7>musb_hdrc: hw_ep 11rx, max 512
+>
+><7>musb_hdrc: hw_ep 12tx, max 512
+>
+><7>musb_hdrc: hw_ep 12rx, max 512
+>
+><7>musb_hdrc: hw_ep 13tx, max 512
+>
+><7>musb_hdrc: hw_ep 13rx, max 512
+>
+><7>musb_hdrc: hw_ep 14shared, max 1024
+>
+><7>musb_hdrc: hw_ep 15shared, max 1024
+>
+><6>musb_hdrc: USB OTG mode controller at d80ab000 using DMA, IRQ 92
+>
+><6>NET: Registered protocol family 2
+>
+><6>IP route cache hash table entries: 1024 (order: 0, 4096 bytes)
+>
+><6>TCP established hash table entries: 4096 (order: 3, 32768 bytes)
+>
+><6>TCP bind hash table entries: 4096 (order: 2, 16384 bytes)
+>
+><6>TCP: Hash tables configured (established 4096 bind 4096)
+>
+><6>TCP reno registered
+>
+><6>NET: Registered protocol family 1
+>
+><4>NetWinder Floating Point Emulator V0.97 (double precision)
+>
+><5>VFS: Disk quotas dquot_6.5.2
+>
+>Dquot-cache hash table entries: 1024 (order 0, 4096 bytes)
+>
+><6>msgmni has been set to 214
+>
+><6>alg: No test for stdrng (krng)
+>
+><6>io scheduler noop registered
+>
+><6>io scheduler anticipatory registered (default)
+>
+><6>io scheduler deadline registered
+>
+><6>io scheduler cfq registered
+>
+><6>omapfb: configured for panel ldp
+>
+><6>omapfb: DISPC version 3.0 initialized
+>
+>Console: switching to colour frame buffer device 60x40
+>
+><6>omapfb: Framebuffer initialized. Total vram 614400 planes 1
+>
+><6>omapfb: Pixclock 32000 kHz hfreq 60.3 kHz vfreq 93.7 Hz
+>
+><6>Serial: 8250/16550 driver, 4 ports, IRQ sharing enabled
+>
+><6>serial8250.0: ttyS0 at MMIO 0x4806a000 (irq = 72) is a ST16654
+>
+><6>serial8250.0: ttyS1 at MMIO 0x4806c000 (irq = 73) is a ST16654
+>
+><6>serial8250.0: ttyS2 at MMIO 0x49020000 (irq = 74) is a ST16654
+>
+><6>console [ttyS2] enabled
+>
+>Linux version 2.6.30-rc2-omap1-05648-g8e58316-dirty (a0389005@a0389005-desktop) (gcc version 4.2.3
+>(Sourcery G++ Lite 2008q1-9
+>
+>CPU: ARMv7 Processor [411fc082] revision 2 (ARMv7), cr=10c5387f
+>
+>CPU: VIPT nonaliasing data cache, VIPT nonaliasing instruction cache
+>
+>Machine: OMAP LDP board
+>
+>Memory policy: ECC disabled, Data cache writeback
+>
+>OMAP3430 ES2.1
+>
+>SRAM: Mapped pa 0x40200000 to va 0xd7000000 size: 0x100000
+>
+>Built 1 zonelists in Zone order, mobility grouping on.  Total pages: 28448
+>
+>Kernel command line: console=ttyS2,115200n8 noinitrd mem=112M root=/dev/nfs rw
+>nfsroot=128.247.85.60:/home/a0389051/omap3430/p
+>
+>NR_IRQS:402
+>
+>Clocking rate (Crystal/DPLL/ARM core): 26.0/332/500 MHz
+>
+>GPMC revision 5.0
+>
+>IRQ: Found an INTC at 0xd8200000 (revision 4.0) with 96 interrupts
+>
+>Total of 96 interrupts on 1 active controller
+>
+>OMAP34xx GPIO hardware version 2.5
+>
+>PID hash table entries: 512 (order: 9, 2048 bytes)
+>
+>OMAP clockevent source: GPTIMER1 at 32768 Hz
+>
+>Console: colour dummy device 80x30
+>
+>Dentry cache hash table entries: 16384 (order: 4, 65536 bytes)
+>
+>Inode-cache hash table entries: 8192 (order: 3, 32768 bytes)
+>
+>Memory: 112MB = 112MB total
+>
+>Memory: 109780KB available (3176K code, 292K data, 144K init, 0K highmem)
+>
+>Calibrating delay loop... 499.92 BogoMIPS (lpj=1949696)
+>
+>Mount-cache hash table entries: 512
+>
+>CPU: Testing write buffer coherency: ok
+>
+>net_namespace: 520 bytes
+>
+>regulator: core version 0.5
+>
+>NET: Registered protocol family 16
+>
+>mmci-omap-hs.0: use which platform_data?
+>
+>OMAP DMA hardware revision 4.0
+>
+>bio: create slab <bio-0> at 0
+>
+>i2c_omap i2c_omap.1: bus 1 rev3.12 at 2600 kHz
+>
+>twl4030: PIH (irq 7) chaining IRQs 368..375
+>
+>twl4030: power (irq 373) chaining IRQs 376..383
+>
+>twl4030_bci: use which platform_data?
+>
+>twl4030_gpio: use which platform_data?
+>
+>twl4030: gpio (irq 368) chaining IRQs 384..401
+>
+>twl4030_keypad: use which platform_data?
+>
+>twl4030_madc: use which platform_data?
+>
+>twl4030_usb: use which platform_data?
+>
+>twl4030_reg.17: use which platform_data?
+>
+>set_machine_constraints: invalid 'VUSB1V5' voltage constraints
+>
+>twl4030_reg twl4030_reg.17: can't register VUSB1V5, -22
+>
+>twl4030_reg: probe of twl4030_reg.17 failed with error -22
+>
+>twl4030_reg.18: use which platform_data?
+>
+>set_machine_constraints: invalid 'VUSB1V8' voltage constraints
+>
+>twl4030_reg twl4030_reg.18: can't register VUSB1V8, -22
+>
+>twl4030_reg: probe of twl4030_reg.18 failed with error -22
+>
+>twl4030_reg.19: use which platform_data?
+>
+>set_machine_constraints: invalid 'VUSB3V1' voltage constraints
+>
+>twl4030_reg twl4030_reg.19: can't register VUSB3V1, -22
+>
+>twl4030_reg: probe of twl4030_reg.19 failed with error -22
+>
+>i2c_omap i2c_omap.2: bus 2 rev3.12 at 400 kHz
+>
+>i2c_omap i2c_omap.3: bus 3 rev3.12 at 400 kHz
+>
+>SCSI subsystem initialized
+>
+>twl4030_usb twl4030_usb: ldo init failed
+>
+>usbcore: registered new interface driver usbfs
+>
+>usbcore: registered new interface driver hub
+>
+>usbcore: registered new device driver usb
+>
+>musb_hdrc: version 6.0, musb-dma, otg (peripheral+host), debug=0
+>
+>musb_hdrc: USB OTG mode controller at d80ab000 using DMA, IRQ 92
+>
+>NET: Registered protocol family 2
+>
+>IP route cache hash table entries: 1024 (order: 0, 4096 bytes)
+>
+>TCP established hash table entries: 4096 (order: 3, 32768 bytes)
+>
+>TCP bind hash table entries: 4096 (order: 2, 16384 bytes)
+>
+>TCP: Hash tables configured (established 4096 bind 4096)
+>
+>TCP reno registered
+>
+>NET: Registered protocol family 1
+>
+>NetWinder Floating Point Emulator V0.97 (double precision)
+>
+>VFS: Disk quotas dquot_6.5.2
+>
+>Dquot-cache hash table entries: 1024 (order 0, 4096 bytes)
+>
+>msgmni has been set to 214
+>
+>alg: No test for stdrng (krng)
+>
+>io scheduler noop registered
+>
+>io scheduler anticipatory registered (default)
+>
+>io scheduler deadline registered
+>
+>io scheduler cfq registered
+>
+>omapfb: configured for panel ldp
+>
+>omapfb: DISPC version 3.0 initialized
+>
+>Console: switching to colour frame buffer device 60x40
+>
+>omapfb: Framebuffer initialized. Total vram 614400 planes 1
+>
+>omapfb: Pixclock 32000 kHz hfreq 60.3 kHz vfreq 93.7 Hz
+>
+>Serial: 8250/16550 driver, 4 ports, IRQ sharing enabled
+>
+>serial8250.0: ttyS0 at MMIO 0x4806a000 (irq = 72) is a ST16654
+>
+>serial8250.0: ttyS1 at MMIO 0x4806c000 (irq = 73) is a ST16654
+>
+>serial8250.0: ttyS2 at MMIO 0x49020000 (irq = 74) is a ST16654
+>
+>console [ttyS2] enabled
+>
+><6>brd: module loaded
+>
+>brd: module loaded
+>
+><6>loop: module loaded
+>
+>loop: module loaded
+>
+><6>i2c /dev entries driver
+>
+>i2c /dev entries driver
+>
+><4>swapper: page allocation failure. order:0, mode:0x20
+>
+>swapper: page allocation failure. order:0, mode:0x20
+>
+>[<c0032254>] [<c0032254>] (unwind_backtrace+0x0/0xe0) (unwind_backtrace+0x0/0xe0) from [<c007b324>]
+>from [<c007b324>] (__allo)
+>
+>(__alloc_pages_internal+0x37c/0x394)
+>
+>[<c007b324>] [<c007b324>] (__alloc_pages_internal+0x37c/0x394) (__alloc_pages_internal+0x37c/0x394)
+>from [<c009578c>] from [<)
+>
+>(cache_alloc_refill+0x268/0x500)
+>
+>[<c009578c>] [<c009578c>] (cache_alloc_refill+0x268/0x500) (cache_alloc_refill+0x268/0x500) from
+>[<c0095b54>] from [<c0095b54)
+>
+>(kmem_cache_alloc+0x5c/0x94)
+>
+>[<c0095b54>] [<c0095b54>] (kmem_cache_alloc+0x5c/0x94) (kmem_cache_alloc+0x5c/0x94) from [<c005d454>]
+>from [<c005d454>] (call)
+>
+>(call_usermodehelper_setup+0x20/0x78)
+>
+>[<c005d454>] [<c005d454>] (call_usermodehelper_setup+0x20/0x78) (call_usermodehelper_setup+0x20/0x78)
+>from [<c0158ff4>] from )
+>
+>(kobject_uevent_env+0x304/0x384)
+>
+>[<c0158ff4>] [<c0158ff4>] (kobject_uevent_env+0x304/0x384) (kobject_uevent_env+0x304/0x384) from
+>[<c0197270>] from [<c0197270)
+>
+>(device_add+0x4e4/0x540)
+>
+>[<c0197270>] [<c0197270>] (device_add+0x4e4/0x540) (device_add+0x4e4/0x540) from [<c0197358>] from
+>[<c0197358>] (device_creat)
+>
+>(device_create_vargs+0x74/0xa4)
+>
+>[<c0197358>] [<c0197358>] (device_create_vargs+0x74/0xa4) (device_create_vargs+0x74/0xa4) from
+>[<c01973a4>] from [<c01973a4>])
+>
+>(device_create+0x1c/0x24)
+>
+>[<c01973a4>] [<c01973a4>] (device_create+0x1c/0x24) (device_create+0x1c/0x24) from [<c01a22b4>] from
+>[<c01a22b4>] (i2cdev_att)
+>
+>(i2cdev_attach_adapter+0x90/0xe8)
+>
+>[<c01a22b4>] [<c01a22b4>] (i2cdev_attach_adapter+0x90/0xe8) (i2cdev_attach_adapter+0x90/0xe8) from
+>[<c01a0de8>] from [<c01a0d)
+>
+>(__attach_adapter+0x28/0x30)
+>
+>[<c01a0de8>] [<c01a0de8>] (__attach_adapter+0x28/0x30) (__attach_adapter+0x28/0x30) from [<c0199ae0>]
+>from [<c0199ae0>] (clas)
+>
+>(class_for_each_device+0x70/0xac)
+>
+>[<c0199ae0>] [<c0199ae0>] (class_for_each_device+0x70/0xac) (class_for_each_device+0x70/0xac) from
+>[<c01a0920>] from [<c01a09)
+>
+>(i2c_register_driver+0xb8/0xec)
+>
+>[<c01a0920>] [<c01a0920>] (i2c_register_driver+0xb8/0xec) (i2c_register_driver+0xb8/0xec) from
+>[<c00180b4>] from [<c00180b4>])
+>
+>(i2c_dev_init+0x50/0xa0)
+>
+>[<c00180b4>] [<c00180b4>] (i2c_dev_init+0x50/0xa0) (i2c_dev_init+0x50/0xa0) from [<c002c280>] from
+>[<c002c280>] (do_one_initc)
+>
+>(do_one_initcall+0x50/0x17c)
+>
+>[<c002c280>] [<c002c280>] (do_one_initcall+0x50/0x17c) (do_one_initcall+0x50/0x17c) from [<c0008834>]
+>from [<c0008834>] (kern)
+>
+>(kernel_init+0x70/0xe0)
+>
+>[<c0008834>] [<c0008834>] (kernel_init+0x70/0xe0) (kernel_init+0x70/0xe0) from [<c0051e54>] from
+>[<c0051e54>] (do_exit+0x0/0x)
+>
+>(do_exit+0x0/0x57c)
+>
+>[<c0051e54>] [<c0051e54>] (do_exit+0x0/0x57c) (do_exit+0x0/0x57c) from [<00000001>] from [<00000001>]
+>(0x1)
+>
+>(0x1)
+>
+>Mem-info:
+>
+>Mem-info:
+>
+>Normal per-cpu:
+>
+>Normal per-cpu:
+>
+>CPU    0: hi:   42, btch:   7 usd:   6
+>
+>CPU    0: hi:   42, btch:   7 usd:   6
+>
+>Active_anon:0 active_file:0 inactive_anon:0
+>
+> inactive_file:0 unevictable:0 dirty:0 writeback:0 unstable:0
+>
+> free:125 slab:27112 mapped:0 pagetables:0 bounce:0
+>
+>Active_anon:0 active_file:0 inactive_anon:0
+>
+> inactive_file:0 unevictable:0 dirty:0 writeback:0 unstable:0
+>
+> free:125 slab:27112 mapped:0 pagetables:0 bounce:0
+>
+>Normal free:500kB min:1348kB low:1684kB high:2020kB active_anon:0kB inactive_anon:0kB active_file:0kB
+>inactive_file:0kB unevio
+>
+>Normal free:500kB min:1348kB low:1684kB high:2020kB active_anon:0kB inactive_anon:0kB active_file:0kB
+>inactive_file:0kB unevio
+>
+>lowmem_reserve[]:lowmem_reserve[]: 0 0 0 0
+>
+>
+>
+>Normal: Normal: 1*4kB 1*4kB 0*8kB 0*8kB 1*16kB 1*16kB 1*32kB 1*32kB 1*64kB 1*64kB 1*128kB 1*128kB
+>1*256kB 1*256kB 0*512kB 0*5B
+>
+>= 500kB
+>
+>0 total pagecache pages
+>
+>0 total pagecache pages
+>
+>0 pages in swap cache
+>
+>0 pages in swap cache
+>
+>Swap cache stats: add 0, delete 0, find 0/0
+>
+>Swap cache stats: add 0, delete 0, find 0/0
+>
+>Free swap  = 0kB
+>
+>Free swap  = 0kB
+>
+>Total swap = 0kB
+>
+>Total swap = 0kB
+>
+>28672 pages of RAM
+>
+>28672 pages of RAM
+>
+>158 free pages
+>
+>158 free pages
+>
+>1341 reserved pages
+>
+>1341 reserved pages
+>
+>27112 slab pages
+>
+>27112 slab pages
+>
+>0 pages shared
+>
+>0 pages shared
+>
+>0 pages swap cached
+>
+>0 pages swap cached
+>
+><4>swapper: page allocation failure. order:0, mode:0x20
+>
+>swapper: page allocation failure. order:0, mode:0x20
+>
+>[<c0032254>] [<c0032254>] (unwind_backtrace+0x0/0xe0) (unwind_backtrace+0x0/0xe0) from [<c007b324>]
+>from [<c007b324>] (__allo)
+>
+>(__alloc_pages_internal+0x37c/0x394)
+>
+>[<c007b324>] [<c007b324>] (__alloc_pages_internal+0x37c/0x394) (__alloc_pages_internal+0x37c/0x394)
+>from [<c009578c>] from [<)
+>
+>(cache_alloc_refill+0x268/0x500)
+>
+>[<c009578c>] [<c009578c>] (cache_alloc_refill+0x268/0x500) (cache_alloc_refill+0x268/0x500) from
+>[<c0095b54>] from [<c0095b54)
+>
+>(kmem_cache_alloc+0x5c/0x94)
+>
+>[<c0095b54>] [<c0095b54>] (kmem_cache_alloc+0x5c/0x94) (kmem_cache_alloc+0x5c/0x94) from [<c005d454>]
+>from [<c005d454>] (call)
+>
+>(call_usermodehelper_setup+0x20/0x78)
+>
+>[<c005d454>] [<c005d454>] (call_usermodehelper_setup+0x20/0x78) (call_usermodehelper_setup+0x20/0x78)
+>from [<c0158ff4>] from )
+>
+>(kobject_uevent_env+0x304/0x384)
+>
+>[<c0158ff4>] [<c0158ff4>] (kobject_uevent_env+0x304/0x384) (kobject_uevent_env+0x304/0x384) from
+>[<c0197270>] from [<c0197270)
+>
+>(device_add+0x4e4/0x540)
+>
+>[<c0197270>] [<c0197270>] (device_add+0x4e4/0x540) (device_add+0x4e4/0x540) from [<c0197358>] from
+>[<c0197358>] (device_creat)
+>
+>(device_create_vargs+0x74/0xa4)
+>
+>[<c0197358>] [<c0197358>] (device_create_vargs+0x74/0xa4) (device_create_vargs+0x74/0xa4) from
+>[<c01973a4>] from [<c01973a4>])
+>
+>(device_create+0x1c/0x24)
+>
+>[<c01973a4>] [<c01973a4>] (device_create+0x1c/0x24) (device_create+0x1c/0x24) from [<c01a22b4>] from
+>[<c01a22b4>] (i2cdev_att)
+>
+>(i2cdev_attach_adapter+0x90/0xe8)
+>
+>[<c01a22b4>] [<c01a22b4>] (i2cdev_attach_adapter+0x90/0xe8) (i2cdev_attach_adapter+0x90/0xe8) from
+>[<c01a0de8>] from [<c01a0d)
+>
+>(__attach_adapter+0x28/0x30)
+>
+>[<c01a0de8>] [<c01a0de8>] (__attach_adapter+0x28/0x30) (__attach_adapter+0x28/0x30) from [<c0199ae0>]
+>from [<c0199ae0>] (clas)
+>
+>(class_for_each_device+0x70/0xac)
+>
+>[<c0199ae0>] [<c0199ae0>] (class_for_each_device+0x70/0xac) (class_for_each_device+0x70/0xac) from
+>[<c01a0920>] from [<c01a09)
+>
+>(i2c_register_driver+0xb8/0xec)
+>
+>[<c01a0920>] [<c01a0920>] (i2c_register_driver+0xb8/0xec) (i2c_register_driver+0xb8/0xec) from
+>[<c00180b4>] from [<c00180b4>])
+>
+>(i2c_dev_init+0x50/0xa0)
+>
+>[<c00180b4>] [<c00180b4>] (i2c_dev_init+0x50/0xa0) (i2c_dev_init+0x50/0xa0) from [<c002c280>] from
+>[<c002c280>] (do_one_initc)
+>
+>(do_one_initcall+0x50/0x17c)
+>
+>[<c002c280>] [<c002c280>] (do_one_initcall+0x50/0x17c) (do_one_initcall+0x50/0x17c) from [<c0008834>]
+>from [<c0008834>] (kern)
+>
+>(kernel_init+0x70/0xe0)
+>
+>[<c0008834>] [<c0008834>] (kernel_init+0x70/0xe0) (kernel_init+0x70/0xe0) from [<c0051e54>] from
+>[<c0051e54>] (do_exit+0x0/0x)
+>
+>(do_exit+0x0/0x57c)
+>
+>[<c0051e54>] [<c0051e54>] (do_exit+0x0/0x57c) (do_exit+0x0/0x57c) from [<00000001>] from [<00000001>]
+>(0x1)
+>
+>(0x1)
+>
+>
+>
+>Best regards
+>
+>
+>
+>Mikkel L. Christensen M.Sc.E.E
+>
+>
+>OMAP Modem Control and Adaptation - Linux
+>
+>--
+>Wireless Terminals Software Development
+>
+>Texas Instruments Inc.
+>
+>Phone (+1)(214)567-5476
+>
+>Cell     (+1)(214)606-4710
+>
+>--
+>To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+>the body of a message to majordomo@vger.kernel.org
+>More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
-All these new bit defines should all be 3430ES2_*.
-
->  /* PM_PWSTST_EMU specific bits */
-> diff --git a/arch/arm/mach-omap2/wake34xx.c b/arch/arm/mach-omap2/wake34xx.c
-> new file mode 100644
-> index 0000000..86aac4f
-> --- /dev/null
-> +++ b/arch/arm/mach-omap2/wake34xx.c
-> @@ -0,0 +1,681 @@
-> +/*
-> + * wake34xx.c
-> + *
-> + * Copyright (c) 2009 Samsung Eletronics
-> + *
-> + * Author: Kim Kyuwon <q1.kim@samsung.com>
-> + *
-> + * This program is free software; you can redistribute it and/or modify
-> + * it under the terms of the GNU General Public License version 2 as
-> + * published by the Free Software Foundation.
-> + *
-> + */
-> +
-> +#include <linux/kernel.h>
-> +#include <linux/init.h>
-> +#include <linux/platform_device.h>
-> +#include <linux/interrupt.h>
-> +
-> +#include <mach/pm.h>
-> +#include <mach/gpio.h>
-> +#include <mach/wake.h>
-> +
-> +#include "prm-regbits-34xx.h"
-> +
-> +/*
-> + * Sometimes, it is necessary to find out "what does wake up my board from
-> + * suspend?". Notifying wake-up source feature may be used to blame
-> + * unexpected wake-up events which increase power consumption. And user
-> + * mode applications can act smartly according to the wake-up event from
-> + * Suspend-to-RAM state to minimize power consumption. Note that this
-> + * driver can't inform wake-up events from idle state. This driver uses
-> + * sysfs interface to give information to user mode applications.
-> + */
-> +
-> +#define DOMAIN_IS_WKUP		(1 << 0)
-> +#define DOMAIN_IS_PER		(1 << 1)
-> +#define DOMAIN_IS_CORE1		(1 << 2)
-> +#define DOMAIN_IS_CORE3		(1 << 3)
-> +#define DOMAIN_IS_USBHOST	(1 << 4)
-> +
-> +#define WAKE_STR_LEN		64
-> +#define WAKE_BUF_LEN		32
-> +
-> +static char wakeup_gpio[WAKE_STR_LEN];
-> +
-> +struct pm_wakeup_status {
-> +	u32	wkup;
-> +	u32	per;
-> +	u32	core1;
-> +	u32	core3;
-> +	u32	usbhost;
-> +};
-> +
-> +struct omap_wake {
-> +	u32			pending_irqs[INTCPS_NR_MIR_REGS];
-> +
-> +	struct pm_wakeup_status	pm_wkst;
-> +};
-> +
-> +struct wake_event {
-> +	const u32			mask;
-> +	const u32			domain;
-> +	const char			*name;
-> +
-> +	/* OMAP chip types that this wakeup status is valid on */
-> +	const struct omap_chip_id	omap_chip;
-> +};
-> +
-> +
-> +/* Note: Allowed to use Only in the wakeup_source_show() function */
-> +static struct omap_wake *g_wake;
-> +
-> +static struct wake_event omap3_wake_events[] = {
-> +	{	/* WKUP */
-> +		.mask = OMAP3430_ST_IO_CHAIN,
-> +		.domain = DOMAIN_IS_WKUP,
-> +		.name = "ST_IO_CHAIN",
-> +		.omap_chip = OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
-> +	}, {
-> +		.mask = OMAP3430_ST_IO,
-> +		.domain = DOMAIN_IS_WKUP,
-> +		.name = "ST_IO",
-> +		.omap_chip = OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
-> +	}, {
-> +		.mask = OMAP3430_ST_SR2_MASK,
-> +		.domain = DOMAIN_IS_WKUP,
-> +		.name = "ST_SR2",
-> +		.omap_chip = OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
-> +	}, {
-> +		.mask = OMAP3430_ST_SR1_MASK,
-> +		.domain = DOMAIN_IS_WKUP,
-> +		.name = "ST_SR1",
-> +		.omap_chip = OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
-> +	}, {
-> +		.mask = OMAP3430_ST_GPIO1_MASK,
-> +		.domain = DOMAIN_IS_WKUP,
-> +		.name = "ST_GPIO1",
-> +		.omap_chip = OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
-> +	}, {
-> +		.mask = OMAP3430_ST_GPT12_MASK,
-> +		.domain = DOMAIN_IS_WKUP,
-> +		.name = "ST_GPT12",
-> +		.omap_chip = OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
-> +	}, {
-> +		.mask = OMAP3430_ST_GPT1_MASK,
-> +		.domain = DOMAIN_IS_WKUP,
-> +		.name = "ST_GPT1",
-> +		.omap_chip = OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
-> +	}, {	/* PER */
-> +		.mask = OMAP3430_ST_GPIO6_MASK,
-> +		.domain = DOMAIN_IS_PER,
-> +		.name = "ST_GPIO6",
-> +		.omap_chip = OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
-> +	}, {
-> +		.mask = OMAP3430_ST_GPIO5_MASK,
-> +		.domain = DOMAIN_IS_PER,
-> +		.name = "ST_GPIO5",
-> +		.omap_chip = OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
-> +	}, {
-> +		.mask = OMAP3430_ST_GPIO4_MASK,
-> +		.domain = DOMAIN_IS_PER,
-> +		.name = "ST_GPIO4",
-> +		.omap_chip = OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
-> +	}, {
-> +		.mask = OMAP3430_ST_GPIO3_MASK,
-> +		.domain = DOMAIN_IS_PER,
-> +		.name = "ST_GPIO3",
-> +		.omap_chip = OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
-> +	}, {
-> +		.mask = OMAP3430_ST_GPIO2_MASK,
-> +		.domain = DOMAIN_IS_PER,
-> +		.name = "ST_GPIO2",
-> +		.omap_chip = OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
-> +	}, {
-> +		.mask = OMAP3430_ST_UART3_MASK,
-> +		.domain = DOMAIN_IS_PER,
-> +		.name = "ST_UART3",
-> +		.omap_chip = OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
-> +	}, {
-> +		.mask = OMAP3430_ST_GPT9_MASK,
-> +		.domain = DOMAIN_IS_PER,
-> +		.name = "ST_GPT9",
-> +		.omap_chip = OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
-> +	}, {
-> +		.mask = OMAP3430_ST_GPT8_MASK,
-> +		.domain = DOMAIN_IS_PER,
-> +		.name = "ST_GPT8",
-> +		.omap_chip = OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
-> +	}, {
-> +		.mask = OMAP3430_ST_GPT7_MASK,
-> +		.domain = DOMAIN_IS_PER,
-> +		.name = "ST_GPT7",
-> +		.omap_chip = OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
-> +	}, {
-> +		.mask = OMAP3430_ST_GPT6_MASK,
-> +		.domain = DOMAIN_IS_PER,
-> +		.name = "ST_GPT6",
-> +		.omap_chip = OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
-> +	}, {
-> +		.mask = OMAP3430_ST_GPT5_MASK,
-> +		.domain = DOMAIN_IS_PER,
-> +		.name = "ST_GPT5",
-> +		.omap_chip =  OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
-> +	},  {
-> +		.mask = OMAP3430_ST_GPT4_MASK,
-> +		.domain = DOMAIN_IS_PER,
-> +		.name = "ST_GPT4",
-> +		.omap_chip = OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
-> +	}, {
-> +		.mask = OMAP3430_ST_GPT3_MASK,
-> +		.domain = DOMAIN_IS_PER,
-> +		.name = "ST_GPT3",
-> +		.omap_chip = OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
-> +	}, {
-> +		.mask = OMAP3430_ST_GPT2_MASK,
-> +		.domain = DOMAIN_IS_PER,
-> +		.name = "ST_GPT2",
-> +		.omap_chip = OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
-> +	}, {
-> +		.mask = OMAP3430_EN_MCBSP4,
-> +		.domain = DOMAIN_IS_PER,
-> +		.name = "EN_MCBSP4",
-> +		.omap_chip = OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
-> +	}, {
-> +		.mask = OMAP3430_EN_MCBSP3,
-> +		.domain = DOMAIN_IS_PER,
-> +		.name = "EN_MCBSP3",
-> +		.omap_chip = OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
-> +	}, {
-> +		.mask = OMAP3430_EN_MCBSP2,
-> +		.domain = DOMAIN_IS_PER,
-> +		.name = "EN_MCBSP2",
-> +		.omap_chip = OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
-> +	}, {	/* CORE1 */
-> +		.mask = OMAP3430_ST_MMC3_MASK,
-> +		.domain = DOMAIN_IS_CORE1,
-> +		.name = "ST_MMC3",
-> +		.omap_chip = OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
-> +	}, {
-> +		.mask = OMAP3430_ST_MMC2_MASK,
-> +		.domain = DOMAIN_IS_CORE1,
-> +		.name = "ST_MMC2",
-> +		.omap_chip = OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
-> +	}, {
-> +		.mask = OMAP3430_ST_MMC1_MASK,
-> +		.domain = DOMAIN_IS_CORE1,
-> +		.name = "ST_MMC1",
-> +		.omap_chip = OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
-> +	}, {
-> +		.mask = OMAP3430_ST_MCSPI4_MASK,
-> +		.domain = DOMAIN_IS_CORE1,
-> +		.name = "ST_MCSPI4",
-> +		.omap_chip = OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
-> +	}, {
-> +		.mask = OMAP3430_ST_MCSPI3_MASK,
-> +		.domain = DOMAIN_IS_CORE1,
-> +		.name = "ST_MCSPI3",
-> +		.omap_chip = OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
-> +	}, {
-> +		.mask = OMAP3430_ST_MCSPI2_MASK,
-> +		.domain = DOMAIN_IS_CORE1,
-> +		.name = "ST_MCSPI2",
-> +		.omap_chip = OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
-> +	}, {
-> +		.mask = OMAP3430_ST_MCSPI1_MASK,
-> +		.domain = DOMAIN_IS_CORE1,
-> +		.name = "ST_MCSPI1",
-> +		.omap_chip = OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
-> +	}, {
-> +		.mask = OMAP3430_ST_I2C3_MASK,
-> +		.domain = DOMAIN_IS_CORE1,
-> +		.name = "ST_I2C3",
-> +		.omap_chip = OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
-> +	}, {
-> +		.mask = OMAP3430_ST_I2C2_MASK,
-> +		.domain = DOMAIN_IS_CORE1,
-> +		.name = "ST_I2C2",
-> +		.omap_chip = OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
-> +	}, {
-> +		.mask = OMAP3430_ST_I2C1_MASK,
-> +		.domain = DOMAIN_IS_CORE1,
-> +		.name = "ST_I2C1",
-> +		.omap_chip = OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
-> +	}, {
-> +		.mask = OMAP3430_ST_UART1_MASK,
-> +		.domain = DOMAIN_IS_CORE1,
-> +		.name = "ST_UART1",
-> +		.omap_chip = OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
-> +	}, {
-> +		.mask = OMAP3430_ST_GPT11_MASK,
-> +		.domain = DOMAIN_IS_CORE1,
-> +		.name = "ST_GPT11",
-> +		.omap_chip = OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
-> +	}, {
-> +		.mask = OMAP3430_ST_GPT10_MASK,
-> +		.domain = DOMAIN_IS_CORE1,
-> +		.name = "ST_GPT10",
-> +		.omap_chip = OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
-> +	}, {
-> +		.mask = OMAP3430_ST_MCBSP5_MASK,
-> +		.domain = DOMAIN_IS_CORE1,
-> +		.name = "ST_MCBSP5",
-> +		.omap_chip = OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
-> +	}, {
-> +		.mask = OMAP3430_ST_MCBSP1_MASK,
-> +		.domain = DOMAIN_IS_CORE1,
-> +		.name = "ST_MCBSP1",
-> +		.omap_chip = OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
-> +	}, {
-> +		.mask = OMAP3430ES1_ST_FSHOSTUSB_MASK,
-> +		.domain = DOMAIN_IS_CORE1,
-> +		.name = "ST_FSHOSTUSB",
-> +		.omap_chip = OMAP_CHIP_INIT(CHIP_IS_OMAP3430ES1),
-> +	}, {
-> +		.mask = OMAP3430ES1_ST_HSOTGUSB_MASK,
-> +		.domain = DOMAIN_IS_CORE1,
-> +		.name = "ST_HSOTGUSB",
-> +		.omap_chip = OMAP_CHIP_INIT(CHIP_IS_OMAP3430ES1),
-> +	}, {
-> +		.mask = OMAP3430_ST_D2D_MASK,
-> +		.domain = DOMAIN_IS_CORE1,
-> +		.name = "ST_D2D",
-> +		.omap_chip = OMAP_CHIP_INIT(CHIP_IS_OMAP3430ES1),
-> +	}, {
-> +		.mask = OMAP3430ES2_ST_HSOTGUSB_STDBY_MASK,
-> +		.domain = DOMAIN_IS_CORE1,
-> +		.name = "ST_HSOTGUSB",
-> +		.omap_chip = OMAP_CHIP_INIT(CHIP_GE_OMAP3430ES2),
-> +	}, {	/* CORE3 */
-> +		.mask = OMAP3430_ST_USBTLL_MASK,
-> +		.domain = DOMAIN_IS_CORE3,
-> +		.name = "ST_USBTLL",
-> +		.omap_chip = OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
-> +	}, {	/* USBHOST */
-> +		.mask = OMAP3430_ST_USBHOST,
-> +		.domain = DOMAIN_IS_USBHOST,
-> +		.name = "ST_USBHOST",
-> +		.omap_chip = OMAP_CHIP_INIT(CHIP_IS_OMAP3430ES1),
-> +	},
-> +};
-
-This is the list that should disappear and be handled by exending
-omapdev.
-
-[...]
-
-Kevin
-
-
-
---=-=-=
-Content-Type: text/x-diff
-Content-Disposition: attachment;
- filename=0001-OMAP3-PM-improve-PRCM-interrupt-handler.patch
-
->From 114168fca85ba38421c84a7163ea4ae98b452577 Mon Sep 17 00:00:00 2001
-From: Paul Walmsley <paul@pwsan.com>
-Date: Mon, 20 Apr 2009 17:49:04 -0600
-Subject: [PATCH] OMAP3 PM: improve PRCM interrupt handler
-
-This test patch fixes a few obvious bugs in the OMAP3xxx PRCM
-interrupt handler.
-
-Clearing wakeup sources is now only done when the PRM indicates a
-wakeup source interrupt.  Since we don't handle any other types of
-PRCM interrupts right now, warn if we get any other type of PRCM
-interrupt.  Either code needs to be added to the PRCM interrupt
-handler to react to these, or these other interrupts should be masked
-off at init.
-
-Also, PM_WKST register contents should be ANDed with the contents of
-the MPUGRPSEL registers.  Otherwise the MPU PRCM interrupt handler
-could wind up clearing wakeup events meant for the IVA PRCM interrupt
-handler.  For a production version of this patch, we should not read
-MPUGRPSEL from the PRM, since those reads are very slow; rather, we
-should use a cached version from struct powerdomain (not yet
-implemented)
-
-Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
----
- arch/arm/mach-omap2/pm34xx.c |   78 +++++++++++++++++++++++++++++++++--------
- 1 files changed, 62 insertions(+), 16 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
-index 7474cfa..7e78a3b 100644
---- a/arch/arm/mach-omap2/pm34xx.c
-+++ b/arch/arm/mach-omap2/pm34xx.c
-@@ -194,14 +194,18 @@ static void omap3_save_secure_ram_context(u32 target_mpu_state)
- 	}
- }
- 
--/* PRCM Interrupt Handler for wakeups */
--static irqreturn_t prcm_interrupt_handler (int irq, void *dev_id)
-+static int _prcm_int_handle_wakeup(void)
- {
--	u32 wkst, irqstatus_mpu;
--	u32 fclk, iclk;
-+	u32 wkst, fclk, iclk;
-+	int c = 0;
-+
-+        /* FIXME: MPUGRPSEL reads beow should be done from an SDRAM
-+	 *        local copy in the struct powerdomain since PRM reads
-+	 *        are very slow. */
- 
- 	/* WKUP */
- 	wkst = prm_read_mod_reg(WKUP_MOD, PM_WKST);
-+	wkst &= prm_read_mod_reg(WKUP_MOD, OMAP3430_PM_MPUGRPSEL);
- 	if (wkst) {
- 		iclk = cm_read_mod_reg(WKUP_MOD, CM_ICLKEN);
- 		fclk = cm_read_mod_reg(WKUP_MOD, CM_FCLKEN);
-@@ -211,10 +215,12 @@ static irqreturn_t prcm_interrupt_handler (int irq, void *dev_id)
- 		while (prm_read_mod_reg(WKUP_MOD, PM_WKST));
- 		cm_write_mod_reg(iclk, WKUP_MOD, CM_ICLKEN);
- 		cm_write_mod_reg(fclk, WKUP_MOD, CM_FCLKEN);
-+		c++;
- 	}
- 
- 	/* CORE */
- 	wkst = prm_read_mod_reg(CORE_MOD, PM_WKST1);
-+	wkst &= prm_read_mod_reg(CORE_MOD, OMAP3430_PM_MPUGRPSEL1);
- 	if (wkst) {
- 		iclk = cm_read_mod_reg(CORE_MOD, CM_ICLKEN1);
- 		fclk = cm_read_mod_reg(CORE_MOD, CM_FCLKEN1);
-@@ -224,21 +230,32 @@ static irqreturn_t prcm_interrupt_handler (int irq, void *dev_id)
- 		while (prm_read_mod_reg(CORE_MOD, PM_WKST1));
- 		cm_write_mod_reg(iclk, CORE_MOD, CM_ICLKEN1);
- 		cm_write_mod_reg(fclk, CORE_MOD, CM_FCLKEN1);
-+		c++;
- 	}
--	wkst = prm_read_mod_reg(CORE_MOD, OMAP3430ES2_PM_WKST3);
--	if (wkst) {
--		iclk = cm_read_mod_reg(CORE_MOD, CM_ICLKEN3);
--		fclk = cm_read_mod_reg(CORE_MOD, OMAP3430ES2_CM_FCLKEN3);
--		cm_set_mod_reg_bits(wkst, CORE_MOD, CM_ICLKEN3);
--		cm_set_mod_reg_bits(wkst, CORE_MOD, OMAP3430ES2_CM_FCLKEN3);
--		prm_write_mod_reg(wkst, CORE_MOD, OMAP3430ES2_PM_WKST3);
--		while (prm_read_mod_reg(CORE_MOD, OMAP3430ES2_PM_WKST3));
--		cm_write_mod_reg(iclk, CORE_MOD, CM_ICLKEN3);
--		cm_write_mod_reg(fclk, CORE_MOD, OMAP3430ES2_CM_FCLKEN3);
-+	if (omap_rev() > OMAP3430_REV_ES1_0) {
-+		wkst = prm_read_mod_reg(CORE_MOD, OMAP3430ES2_PM_WKST3);
-+		wkst &= prm_read_mod_reg(CORE_MOD, OMAP3430ES2_PM_MPUGRPSEL3);
-+		if (wkst) {
-+			iclk = cm_read_mod_reg(CORE_MOD, CM_ICLKEN3);
-+			fclk = cm_read_mod_reg(CORE_MOD,
-+					       OMAP3430ES2_CM_FCLKEN3);
-+			cm_set_mod_reg_bits(wkst, CORE_MOD, CM_ICLKEN3);
-+			cm_set_mod_reg_bits(wkst, CORE_MOD,
-+					    OMAP3430ES2_CM_FCLKEN3);
-+			prm_write_mod_reg(wkst, CORE_MOD,
-+					  OMAP3430ES2_PM_WKST3);
-+			while (prm_read_mod_reg(CORE_MOD,
-+						OMAP3430ES2_PM_WKST3));
-+			cm_write_mod_reg(iclk, CORE_MOD, CM_ICLKEN3);
-+			cm_write_mod_reg(fclk, CORE_MOD,
-+					 OMAP3430ES2_CM_FCLKEN3);
-+			c++;
-+		}
- 	}
- 
- 	/* PER */
- 	wkst = prm_read_mod_reg(OMAP3430_PER_MOD, PM_WKST);
-+	wkst &= prm_read_mod_reg(OMAP3430_PER_MOD, OMAP3430_PM_MPUGRPSEL);
- 	if (wkst) {
- 		iclk = cm_read_mod_reg(OMAP3430_PER_MOD, CM_ICLKEN);
- 		fclk = cm_read_mod_reg(OMAP3430_PER_MOD, CM_FCLKEN);
-@@ -248,11 +265,14 @@ static irqreturn_t prcm_interrupt_handler (int irq, void *dev_id)
- 		while (prm_read_mod_reg(OMAP3430_PER_MOD, PM_WKST));
- 		cm_write_mod_reg(iclk, OMAP3430_PER_MOD, CM_ICLKEN);
- 		cm_write_mod_reg(fclk, OMAP3430_PER_MOD, CM_FCLKEN);
-+		c++;
- 	}
- 
- 	if (omap_rev() > OMAP3430_REV_ES1_0) {
- 		/* USBHOST */
- 		wkst = prm_read_mod_reg(OMAP3430ES2_USBHOST_MOD, PM_WKST);
-+		wkst &= prm_read_mod_reg(OMAP3430ES2_USBHOST_MOD,
-+					 OMAP3430_PM_MPUGRPSEL);
- 		if (wkst) {
- 			iclk = cm_read_mod_reg(OMAP3430ES2_USBHOST_MOD,
- 					       CM_ICLKEN);
-@@ -271,12 +291,38 @@ static irqreturn_t prcm_interrupt_handler (int irq, void *dev_id)
- 			cm_write_mod_reg(fclk, OMAP3430ES2_USBHOST_MOD,
- 					 CM_FCLKEN);
- 		}
-+		c++;
- 	}
- 
-+	return c;
-+}
-+
-+/* PRCM Interrupt Handler for wakeups */
-+static irqreturn_t prcm_interrupt_handler (int irq, void *dev_id)
-+{
-+	u32 irqstatus_mpu;
-+	int c;
-+
- 	irqstatus_mpu = prm_read_mod_reg(OCP_MOD,
- 					OMAP2_PRM_IRQSTATUS_MPU_OFFSET);
-+
-+	if (irqstatus_mpu & OMAP3430_WKUP_ST) {
-+		c = _prcm_int_handle_wakeup();
-+
-+		/*
-+		 * Is the MPU PRCM interrupt handler racing with the
-+		 * IVA2 PRCM interrupt handler ?
-+		 */
-+		WARN(c == 0, "prcm: WARNING: PRCM indicated MPU wakeup "
-+		     "but no wakeup sources are marked\n");
-+	} else {
-+		/* XXX we need to expand our PRCM interrupt handler */
-+		WARN(1, "prcm: WARNING: PRCM interrupt received, but no "
-+		     "code to handle it (%08x)\n", irqstatus_mpu);
-+	}
-+
- 	prm_write_mod_reg(irqstatus_mpu, OCP_MOD,
--					OMAP2_PRM_IRQSTATUS_MPU_OFFSET);
-+			  OMAP2_PRM_IRQSTATUS_MPU_OFFSET);
- 
- 	while (prm_read_mod_reg(OCP_MOD, OMAP2_PRM_IRQSTATUS_MPU_OFFSET));
- 
-@@ -969,7 +1015,7 @@ int __init omap3_pm_init(void)
- 	 * supervised mode for powerdomains */
- 	prcm_setup_regs();
- 
--	ret = request_irq(INT_34XX_PRCM_MPU_IRQ,
-+	ret = request_irq(INT_34XX_PRCM_MPU_IRQ,	
- 			  (irq_handler_t)prcm_interrupt_handler,
- 			  IRQF_DISABLED, "prcm", NULL);
- 	if (ret) {
--- 
-1.6.2.2
-
-
---=-=-=--
