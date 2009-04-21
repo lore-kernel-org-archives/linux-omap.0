@@ -1,8 +1,8 @@
-From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Subject: RE: [RFC] Stand-alone Resizer/Previewer Driver support under V4L2
- 	framework
-Date: Tue, 21 Apr 2009 17:38:50 +0530
-Message-ID: <19F8576C6E063C45BE387C64729E739404280C5F44@dbde02.ent.ti.com>
+From: "Dongsoo, Nathaniel Kim" <dongsoo.kim@gmail.com>
+Subject: Re: [RFC] Stand-alone Resizer/Previewer Driver support under V4L2
+	framework
+Date: Tue, 21 Apr 2009 22:04:12 +0900
+Message-ID: <5e9665e10904210604u6d206a85h78e7bc3363b28b89@mail.gmail.com>
 References: <19F8576C6E063C45BE387C64729E73940427E3F70B@dbde02.ent.ti.com>
 	 <200903301902.21783.hverkuil@xs4all.nl>
 	 <19F8576C6E063C45BE387C64729E73940427E3F8F1@dbde02.ent.ti.com>
@@ -11,269 +11,524 @@ References: <19F8576C6E063C45BE387C64729E73940427E3F70B@dbde02.ent.ti.com>
 	 <19F8576C6E063C45BE387C64729E739404280C5B46@dbde02.ent.ti.com>
 	 <5e9665e10904200345x7272a24fs6a3e8c72af2e3fe@mail.gmail.com>
 	 <19F8576C6E063C45BE387C64729E739404280C5EAF@dbde02.ent.ti.com>
- <5e9665e10904210313j5d141903o7652a4d5a107066c@mail.gmail.com>
+	 <5e9665e10904210313j5d141903o7652a4d5a107066c@mail.gmail.com>
+	 <19F8576C6E063C45BE387C64729E739404280C5F44@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-media-owner@vger.kernel.org>
-In-Reply-To: <5e9665e10904210313j5d141903o7652a4d5a107066c@mail.gmail.com>
-Content-Language: en-US
-Sender: linux-media-owner@vger.kernel.org
-To: "Dongsoo, Nathaniel Kim" <dongsoo.kim@gmail.com>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>, "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>, "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>, "Toivonen Tuukka.O (Nokia-D/Oulu)" <tuukka.o.toivonen@nokia.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Nagalla, Hari" <hnagalla@ti.com>, Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>, "Jadav, Brijesh R" <brijesh.j@ti.com>, "R, Sivaraj" <sivaraj@ti.com>, "Hadli, Manjunath" <mrh@ti.com>, "Shah, Hardik" <hardik.shah@ti.com>, "Kumar, Purushotam" <purushotam@ti.com>
+Content-Type: text/plain; charset=EUC-KR
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from rv-out-0506.google.com ([209.85.198.238]:44209 "EHLO
+	rv-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751076AbZDUNEN convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 21 Apr 2009 09:04:13 -0400
+In-Reply-To: <19F8576C6E063C45BE387C64729E739404280C5F44@dbde02.ent.ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>, "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>, "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>, "Toivonen Tuukka.O (Nokia-D/Oulu)" <tuukka.o.toivonen@nokia.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Nagalla, Hari" <hnagalla@ti.com>, Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>, "Jadav, Brijesh R" <brijesh.j@ti.com>, "R, Sivaraj" <sivaraj@ti.com>, "Hadli, Manjunath" <mrh@ti.com>, "Shah, Hardik" <hardik.shah@ti.com>, "Kumar, Purushotam" <purushotam@ti.com>
 
-PiAtLS0tLU9yaWdpbmFsIE1lc3NhZ2UtLS0tLQ0KPiBGcm9tOiBEb25nc29vLCBOYXRoYW5pZWwg
-S2ltIFttYWlsdG86ZG9uZ3Nvby5raW1AZ21haWwuY29tXQ0KPiBTZW50OiBUdWVzZGF5LCBBcHJp
-bCAyMSwgMjAwOSAzOjQ0IFBNDQo+IFRvOiBIaXJlbWF0aCwgVmFpYmhhdg0KPiBDYzogSGFucyBW
-ZXJrdWlsOyBsaW51eC1tZWRpYUB2Z2VyLmtlcm5lbC5vcmc7IEFndWlycmUgUm9kcmlndWV6LA0K
-PiBTZXJnaW8gQWxiZXJ0bzsgVG9pdm9uZW4gVHV1a2thLk8gKE5va2lhLUQvT3VsdSk7IGxpbnV4
-LQ0KPiBvbWFwQHZnZXIua2VybmVsLm9yZzsgTmFnYWxsYSwgSGFyaTsgU2FrYXJpIEFpbHVzOyBK
-YWRhdiwgQnJpamVzaCBSOw0KPiBSLCBTaXZhcmFqOyBIYWRsaSwgTWFuanVuYXRoOyBTaGFoLCBI
-YXJkaWs7IEt1bWFyLCBQdXJ1c2hvdGFtDQo+IFN1YmplY3Q6IFJlOiBbUkZDXSBTdGFuZC1hbG9u
-ZSBSZXNpemVyL1ByZXZpZXdlciBEcml2ZXIgc3VwcG9ydA0KPiB1bmRlciBWNEwyIGZyYW1ld29y
-aw0KPg0KPiBIZWxsbywgVmFpYmhhdiwNCj4NCj4NCj4gT24gVHVlLCBBcHIgMjEsIDIwMDkgYXQg
-NzowMSBQTSwgSGlyZW1hdGgsIFZhaWJoYXYgPGh2YWliaGF2QHRpLmNvbT4NCj4gd3JvdGU6DQo+
-ID4NCj4gPj4gLS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0NCj4gPj4gRnJvbTogSGlyZW1hdGgs
-IFZhaWJoYXYNCj4gPj4gU2VudDogVHVlc2RheSwgQXByaWwgMjEsIDIwMDkgMzoxNiBQTQ0KPiA+
-PiBUbzogJ0Rvbmdzb28sIE5hdGhhbmllbCBLaW0nDQo+ID4+IENjOiBIYW5zIFZlcmt1aWw7IGxp
-bnV4LW1lZGlhQHZnZXIua2VybmVsLm9yZzsgQWd1aXJyZSBSb2RyaWd1ZXosDQo+ID4+IFNlcmdp
-byBBbGJlcnRvOyBUb2l2b25lbiBUdXVra2EuTyAoTm9raWEtRC9PdWx1KTsgbGludXgtDQo+ID4+
-IG9tYXBAdmdlci5rZXJuZWwub3JnOyBOYWdhbGxhLCBIYXJpOyBTYWthcmkgQWlsdXM7IEphZGF2
-LCBCcmlqZXNoDQo+IFI7DQo+ID4+IFIsIFNpdmFyYWo7IEhhZGxpLCBNYW5qdW5hdGg7IFNoYWgs
-IEhhcmRpazsgS3VtYXIsIFB1cnVzaG90YW0NCj4gPj4gU3ViamVjdDogUkU6IFtSRkNdIFN0YW5k
-LWFsb25lIFJlc2l6ZXIvUHJldmlld2VyIERyaXZlciBzdXBwb3J0DQo+ID4+IHVuZGVyIFY0TDIg
-ZnJhbWV3b3JrDQo+ID4+DQo+ID4+ID4gLS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0NCj4gPj4g
-PiBGcm9tOiBEb25nc29vLCBOYXRoYW5pZWwgS2ltIFttYWlsdG86ZG9uZ3Nvby5raW1AZ21haWwu
-Y29tXQ0KPiA+PiA+IFNlbnQ6IE1vbmRheSwgQXByaWwgMjAsIDIwMDkgNDoxNSBQTQ0KPiA+PiA+
-IFRvOiBIaXJlbWF0aCwgVmFpYmhhdg0KPiA+PiA+IENjOiBIYW5zIFZlcmt1aWw7IGxpbnV4LW1l
-ZGlhQHZnZXIua2VybmVsLm9yZzsgQWd1aXJyZQ0KPiBSb2RyaWd1ZXosDQo+ID4+ID4gU2VyZ2lv
-IEFsYmVydG87IFRvaXZvbmVuIFR1dWtrYS5PIChOb2tpYS1EL091bHUpOyBsaW51eC0NCj4gPj4g
-PiBvbWFwQHZnZXIua2VybmVsLm9yZzsgTmFnYWxsYSwgSGFyaTsgU2FrYXJpIEFpbHVzOyBKYWRh
-diwNCj4gQnJpamVzaA0KPiA+PiBSOw0KPiA+PiA+IFIsIFNpdmFyYWo7IEhhZGxpLCBNYW5qdW5h
-dGg7IFNoYWgsIEhhcmRpazsgS3VtYXIsIFB1cnVzaG90YW0NCj4gPj4gPiBTdWJqZWN0OiBSZTog
-W1JGQ10gU3RhbmQtYWxvbmUgUmVzaXplci9QcmV2aWV3ZXIgRHJpdmVyIHN1cHBvcnQNCj4gPj4g
-PiB1bmRlciBWNEwyIGZyYW1ld29yaw0KPiA+PiA+DQo+ID4+ID4gSGVsbG8gVmFpYmhhdiwNCj4g
-Pj4gPg0KPiA+PiA+IFRoaXMgaXMgdXNlciBtYW51YWwgb2YgUzNDNjQwMCAobm90IG11Y2ggZGlm
-ZmVyZW50IGZyb20NCj4gUzNDNjQxMCkNCj4gPj4gPg0KPiA+Pg0KPiBodHRwOi8vd3d3LmVidi5j
-b20vZmlsZWFkbWluL3Byb2R1Y3RzL1Byb2R1Y3RzL1NhbXN1bmcvUzNDNjQwMC9TM0M2NA0KPiA+
-PiA+IDAwWF9Vc2VyTWFudWFsX3JldjEtMF8yMDA4LTAyXzY2MTU1OHVtLnBkZg0KPiA+PiA+DQo+
-ID4+ID4gVGhhdCBTb0MgaXMgZnJvbSBteSBjb21wYW55IGJ1dCBub3QgZnJvbSB0aGUgc2FtZSBk
-aXZpc2lvbiBvZg0KPiA+PiBtaW5lLg0KPiA+PiA+IEFjdHVhbGx5IEknbSBkb2luZyB0aGlzIGRy
-aXZlciBqb2Igd2l0aG91dCBhbnkgcmVxdWVzdCBmcm9tDQo+IGNoaXANCj4gPj4gPiBkZWxpdmVy
-aW5nIGRpdmlzaW9uLiBJJ20gZG9pbmcgdGhpcyBiZWNhdXNlIHRoaXMgaXMgc28NCj4gY2hhbGxl
-bmdpbmcNCj4gPj4gPiBhbmQNCj4gPj4gPiB3YW50IGJldHRlciBnZW5lcmljIGRyaXZlciA6LSkN
-Cj4gPj4gPg0KPiA+PiA+IFRha2UgYSBsb29rIGF0IHRoZSB1c2VyIG1hbnVhbCBhbmQgcGxlYXNl
-IGxldCBtZSBrbm93IHlvdXINCj4gPj4gb3Bpbmlvbi4NCj4gPj4gPiBJbiBteSB1bmRlcnN0YW5k
-aW5nIHNjYWxlciBhbmQgc29tZSBjYW1lcmEgaW50ZXJmYWNlIGZlYXR1cmUgaW4NCj4gPj4gPiBT
-M0M2NFhYIGFyZSB2ZXJ5IHNpbWlsYXIgdG8gdGhlIGZlYXR1cmVzIGluIE9tYXAzLg0KPiA+PiA+
-DQo+ID4+IFtIaXJlbWF0aCwgVmFpYmhhdl0gSGkgS2ltLA0KPiA+Pg0KPiA+PiBJIHdlbnQgdGhy
-b3VnaCB0aGUgZG9jdW1lbnQgYW5kIGJlbG93IGFyZSBzb21lIG9ic2VydmF0aW9ucyBhbmQNCj4g
-Pj4gcXVlc3Rpb25zIEkgaGF2ZSAtDQo+ID4+DQo+ID4+ICAgICAgIC0gSWYgSSBjb21wYXJlIGl0
-IHdpdGggT01BUCB0aGVuIHRoZXJlIGlzIG5vdGhpbmcNCj4gYXBwbGljYXRpb24NCj4gPj4gbmVl
-ZHMgdG8gY29uZmlndXJlIHNwZWNpZmljIHRvIGhhcmR3YXJlLiBBbGwgdGhlIHBhcmFtZXRlcnMN
-Cj4gPj4gc3VwcG9ydGVkIHRocm91Z2ggInY0bDJfZm9ybWF0IiBvbmUgd2l0aCBUWVBFX1ZJREVP
-X09VVFBVVCBhbmQNCj4gPj4gYW5vdGhlciB3aXRoIFRZUEVfVklERU9fQ0FQVFVSRSBleGNlcHQg
-dGhlIHBhcmFtZXRlciAib2Zmc2V0IiAoSWYNCj4gPj4gZHJpdmVyIGlzIHN1cHBvcnRpbmcgaXQp
-DQo+ID4+DQo+DQo+IEknbSBub3Qgc3VyZSB3aGV0aGVyIEknbSBmb2xsb3dpbmcgeW91ciBxdWVz
-dGlvbiwgYnV0IFMzQzY0WFggY2FtZXJhDQo+IGludGVyZmFjZSBpcyBvYnZpb3VzbHkgc2ltcGxl
-ciB0aGFuIE9NQVAuIFNvIHRoZXJlIGlzIG5vIHdvbmRlciB0aGF0DQo+IHVzZXIgZG9lc24ndCBu
-ZWVkIHRvIGNvbmZpZ3VyZSBIL1cgc3BlY2lmaWMgdGhpbmdzLiBBbmQgSSBkb24ndCBnZXQNCj4g
-dGhlIHF1ZXN0aW9uIGFib3V0ICJvZmZzZXQiIHBhcmFtZXRlci4gQ2FuIHlvdSBleHBsYWluIG1l
-IG1vcmUNCj4gc3BlY2lmaWNhbGx5Pw0KPg0KW0hpcmVtYXRoLCBWYWliaGF2XSBQbGVhc2UgcmVm
-ZXIgdG8gdGhlIHNlY3Rpb24gMTYuNS4xIChQYWdlIG5vIDUzMiAoMTYtMTEpKSAxNi43LjExIGFu
-ZCAxNi43LjE2Lg0KDQpZb3UgY2FuIHNwZWNpZnkgb2Zmc2V0IGZyb20gdGhlIGlucHV0IGltYWdl
-IHRvIHN0YXJ0LCBzbyB0aGF0IHlvdSBjYW4gaGF2ZSBwYXJ0IG9mIGltYWdlIGZvciBzY2FsaW5n
-Lg0KDQo+DQo+ID4+ICAgICAgIC0gSSB3YW50ZWQgdG8gdW5kZXJzdGFuZCBob3cgYXJlIHlvdSBj
-b25maWd1cmluZyBvZmZzZXQNCj4gPj4gcmVnaXN0ZXI/IEhvdyBhcmUgeW91IGV4cG9ydGluZyBp
-dCB0byB1c2VyIGFwcGxpY2F0aW9uPw0KPiA+Pg0KPg0KPiBBZ2FpbiwgSSBkb24ndCBnZXQgdGhl
-IHBvaW50LiBTb3JyeS4NCj4NCj4gPj4gUmVzdCBldmVyeXRoaW5nIHdlIGNhbiBoYW5kbGUgaW4g
-ZHJpdmVyIG9uY2UgaW5wdXQgc291cmNlIGFuZA0KPiBvdXRwdXQNCj4gPj4gZGVzdGluYXRpb24g
-Zm9ybWF0IHJlY2VpdmVzIGZyb20gYXBwbGljYXRpb24uDQo+ID4+DQo+ID4gW0hpcmVtYXRoLCBW
-YWliaGF2XSBNaXNzZWQgb25lIHBvaW50IGluIGxhc3QgZHJhZnQsIGFib3V0IGJ1ZmZlcg0KPiBo
-YW5kbGluZy4gSG93IGFyZSB5b3UgaGFuZGxpbmcgYnVmZmVycz8gQXJlIHlvdSBzdXBwb3J0aW5n
-IGJvdGgNCj4gVVNFUl9QT0lOVEVSIGFuZCBNTUFQIGJ1ZmZlcnM/DQo+ID4gV2hhdCBpcyB0aGUg
-c2l6ZSBvZiBidWZmZXJzLCBpcyB0aGF0IGRpZmZlcmVudCBmb3IgaW5wdXQgYW5kDQo+IG91dHB1
-dD8NCj4gPiBJZiB5ZXMsIHRoZW4gaG93IGFyZSB5b3UgbWFuYWdpbmcgaXQ/DQo+ID4NCj4gPiBJ
-ZiBubywgZG9uJ3QgeW91IHNlZSByZXF1aXJlbWVudCBmb3IgaXQ/DQo+DQo+IFNvcnJ5LCBteSBk
-cml2ZXIgd29yayBpcyBub3QgdGhhdCBzdGFnZSB5ZXQuIEl0J3MganVzdCBzdGlsbCBpbg0KPiBk
-ZXNpZ25pbmcgbGV2ZWwsIGJlY2F1c2Ugb2Ygc29tZSBzcGVjaWFsIEgvVyBmZWF0dXJlcyAobGlr
-ZSBNU0RNQSwNCj4gc2NhbGVyIGFuZCBzbykgSSdtIHRvdGFsbHkgc3R1Y2sgYW5kIGNhbid0IGdv
-IGZ1cnRoZXIuDQo+IEJ1dCB5b3VyIGJ1ZmZlciB0aGVvcnkgc2VlbXMgdG8gbWFrZSBzZW5zZSBh
-bmQgSSBzdXBwb3NlIHRoYXQgaXMNCj4gbmVjZXNzYXJ5IGlmIHdlIGhhdmUgdGhhdCBraW5kIG9m
-IGRldmljZS4NCj4NCltIaXJlbWF0aCwgVmFpYmhhdl0gSSBhbSB0YWxraW5nIHRvIE1hdXJvLCBh
-bmQgd2lsbCBrZWVwIHlvdSB1cGRhdGVkIG9uIHRoaXMuDQoNClRoYW5rcywNClZhaWJoYXYgSGly
-ZW1hdGgNCg0KPiA+DQo+ID4gVGhhbmtzLA0KPiA+IFZhaWJoYXYNCj4gPg0KPiA+PiBGcm9tIE9N
-QVAgUG9pbnQgb2YgdmlldyAtDQo+ID4+IC0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tDQo+ID4+DQo+
-ID4+IFRoZSBleHRyYSBjb25maWd1cmF0aW9uIGlzIGNvZWZmaWNpZW50cywgd2hpY2ggaWYgd2Ug
-ZG9uJ3QgZXhwb3J0DQo+IHRvDQo+ID4+IHVzZXIgYXBwbGljYXRpb24gdGhlbiBJIHRoaW5rIHdl
-IGFyZSB2ZXJ5IGNsb3NlIHRvIHlvdXIgSVAuDQo+ID4+DQo+ID4+IEV4dHJhIGNvbmZpZ3VyYXRp
-b24gcmVxdWlyZWQgb3RoZXIgdGhhbiBjb2VmZi4NCj4gPj4NCj4gPj4gUlNaX1lFTkggLSB3aGlj
-aCB0YWtlcyA0IHBhcmFtcw0KPiA+Pg0KPiA+PiAgICAgICAtIEFsZ28NCj4gPj4gICAgICAgLSBH
-YWluDQo+ID4+ICAgICAgIC0gU2xvcGUNCj4gPj4gICAgICAgLSBDb3JlDQo+ID4+DQo+ID4+IEFs
-bCBhcmUgcGFydCBvZiBvbmUgcmVnaXN0ZXIgc28gd2UgY2FuIG1ha2UgdXNlIG9mICJwcml2IiBm
-aWVsZA0KPiBmb3INCj4gPj4gdGhpcyBjb25maWd1cmF0aW9uLg0KPiA+Pg0KPg0KPiBJIGdldCBp
-dC4gQnV0IFMzQzY0WFggaXMgbm90IHRoYXQgbXVjaCBjb25maWd1cmFibGUuIEFzIHlvdSBzZWUg
-aW4NCj4gdXNlciBtYW51YWwsIGl0J3MgYSBxdWl0ZSBzaW1wbGUgZGV2aWNlLg0KPiBGb3Igbm93
-IEknbSBzdGlsbCBkZXNpZ25pbmcgbXkgZHJpdmVyLCBzbyBJJ2xsIGxldCB5b3Uga25vdyBpZiBJ
-DQo+IGZhY2UNCj4gdGhvc2UgaXNzdWVzIGluIG15IGRyaXZlci4NCj4gQ2hlZXJzLA0KPg0KPiBO
-YXRlDQo+DQo+ID4+DQo+ID4+IFRoYW5rcywNCj4gPj4gVmFpYmhhdiBIaXJlbWF0aA0KPiA+Pg0K
-PiA+PiA+IENoZWVycywNCj4gPj4gPg0KPiA+PiA+IE5hdGUNCj4gPj4gPg0KPiA+PiA+IE9uIE1v
-biwgQXByIDIwLCAyMDA5IGF0IDc6MTEgUE0sIEhpcmVtYXRoLCBWYWliaGF2DQo+ID4+IDxodmFp
-YmhhdkB0aS5jb20+DQo+ID4+ID4gd3JvdGU6DQo+ID4+ID4gPg0KPiA+PiA+ID4NCj4gPj4gPiA+
-IFRoYW5rcywNCj4gPj4gPiA+IFZhaWJoYXYgSGlyZW1hdGgNCj4gPj4gPiA+DQo+ID4+ID4gPj4g
-LS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0NCj4gPj4gPiA+PiBGcm9tOiBsaW51eC1tZWRpYS1v
-d25lckB2Z2VyLmtlcm5lbC5vcmcgW21haWx0bzpsaW51eC1tZWRpYS0NCj4gPj4gPiA+PiBvd25l
-ckB2Z2VyLmtlcm5lbC5vcmddIE9uIEJlaGFsZiBPZiBEb25nc29vIEtpbQ0KPiA+PiA+ID4+IFNl
-bnQ6IFN1bmRheSwgQXByaWwgMTksIDIwMDkgMTI6MDYgUE0NCj4gPj4gPiA+PiBUbzogSGFucyBW
-ZXJrdWlsDQo+ID4+ID4gPj4gQ2M6IEhpcmVtYXRoLCBWYWliaGF2OyBsaW51eC1tZWRpYUB2Z2Vy
-Lmtlcm5lbC5vcmc7IEFndWlycmUNCj4gPj4gPiA+PiBSb2RyaWd1ZXosIFNlcmdpbyBBbGJlcnRv
-OyBUb2l2b25lbiBUdXVra2EuTyAoTm9raWEtRC9PdWx1KTsNCj4gPj4gPiBsaW51eC0NCj4gPj4g
-PiA+PiBvbWFwQHZnZXIua2VybmVsLm9yZzsgTmFnYWxsYSwgSGFyaTsgU2FrYXJpIEFpbHVzOyBK
-YWRhdiwNCj4gPj4gQnJpamVzaA0KPiA+PiA+IFI7DQo+ID4+ID4gPj4gUiwgU2l2YXJhajsgSGFk
-bGksIE1hbmp1bmF0aDsgU2hhaCwgSGFyZGlrOyBLdW1hciwNCj4gUHVydXNob3RhbQ0KPiA+PiA+
-ID4+IFN1YmplY3Q6IFJlOiBbUkZDXSBTdGFuZC1hbG9uZSBSZXNpemVyL1ByZXZpZXdlciBEcml2
-ZXINCj4gc3VwcG9ydA0KPiA+PiA+ID4+IHVuZGVyIFY0TDIgZnJhbWV3b3JrDQo+ID4+ID4gPj4N
-Cj4gPj4gPiA+PiBIZWxsbyBIYW5zIGFuZCBIaXJlbWF0aCwNCj4gPj4gPiA+Pg0KPiA+PiA+ID4+
-IE9uZSBvZiBteSByZWNlbnQgam9iIGlzIG1ha2luZyBTM0M2NFhYIGNhbWVyYSBpbnRlcmZhY2UN
-Cj4gZHJpdmVyDQo+ID4+ID4gKGV2ZW4NCj4gPj4gPiA+PiB0aG91Z2ggb3RoZXIgam9icyBvZiBt
-aW5lIGFyZSBub3QgZmluaXNoZWQgeWV0Li4uOy0oKQ0KPiA+PiA+ID4+IEFuZCwgd2hhdCBhIGlu
-Y2lkZW50ISBTM0M2NFhYIGhhcyBhbHNvIHNpbWlsYXIgSC9XIGJsb2NrIGluDQo+ID4+ID4gY2Ft
-ZXJhDQo+ID4+ID4gPj4gaW50ZXJmYWNlLg0KPiA+PiA+ID4+IFJlc2l6ZXIgaW4gUzNDIGNhbWVy
-YSBpbnRlcmZhY2UgY2FuIGJlIHVzZWQgaW4gc3lzdGVtIHdpZGUNCj4gbGlrZQ0KPiA+PiA+IHRo
-ZQ0KPiA+PiA+ID4+IG9uZSBpbiBPbWFwMy4NCj4gPj4gPiA+Pg0KPiA+PiA+ID4gW0hpcmVtYXRo
-LCBWYWliaGF2XSBDYW4geW91IHNoYXJlIHRoZSBzcGVjIGZvciB0aGUgc2FtZTsgSQ0KPiA+PiB3
-YW50ZWQNCj4gPj4gPiB0byB2ZXJpZnkgdGhlIGNvbmZpZ3VyYXRpb24gcGFydCBvZiBpdD8gV2hh
-dCBhbGwgY29uZmlndXJhdGlvbg0KPiBpcw0KPiA+PiA+IGV4cG9ydGVkIHRvIHRoZSB1c2VyPw0K
-PiA+PiA+ID4NCj4gPj4gPiA+PiBCdXQgaW4gY2FzZSBvZiBtaW5lLCBJIGRlY2lkZWQgdG8gbWFr
-ZSBpdCBhcyBhDQo+ID4+IFRZUEVfVklERU9fQ0FQVFVSRQ0KPiA+PiA+ID4+IGFuZA0KPiA+PiA+
-ID4+IFRZUEVfVklERU9fT1VUUFVULg0KPiA+PiA+ID4+IEkgdGhvdWdodCB0aGF0IGlzIHdhcyBl
-bm91Z2guIEFjdHVhbGx5IEkgdG9vayBvbWFwIHZpZGVvIG91dA0KPiA+PiA+ICh2b3V0PykNCj4g
-Pj4gPiA+PiBmb3IgcmVmZXJlbmNlIDotKQ0KPiA+PiA+ID4NCj4gPj4gPiA+IFtIaXJlbWF0aCwg
-VmFpYmhhdl0gSSBoYXZlIGFsc28gaW1wbGVtZW50ZWQgdGhlIGRyaXZlciBpcyB0aGUNCj4gPj4g
-c2FtZQ0KPiA+PiA+IHdheSBhbmQgYWxzbyB3b3JraW5nIHdpdGggSGFucyB0byBnZXQgaXQgcmV2
-aWV3ZWQuIEJ1dCB0aGVyZQ0KPiBhcmUNCj4gPj4gPiBzb21lIGNvbmZpZ3VyYXRpb24gbGlrZSBj
-b2VmZi4sIGx1bWEgZW5oYW5jZW1lbnQsIGV0Yy4uLiBuZWVkDQo+IHRvDQo+ID4+ID4gZXhwb3J0
-IHRvIHRoZSB1c2VyLCB3aGVyZSB3ZSBuZWVkIHRvIGFkZCBtZWNoYW5pc20gaW4gVjRMMg0KPiA+
-PiA+IGZyYW1ld29yay4NCj4gPj4gPiA+DQo+ID4+ID4gPiBTaW5jZSB3ZSBoYXZlIG9uZSBtb3Jl
-IGRldmljZSB3aGVyZSB3ZSBhcmUgZGVtYW5kaW5nIGZvciBNLQ0KPiB0by1NDQo+ID4+ID4gb3Bl
-cmF0aW9uLCBJIHRoaW5rIGl0IGlzIGltcG9ydGFudCB0byBnbyB0aHJvdWdoIGl0LiBDYW4geW91
-DQo+IHNoYXJlDQo+ID4+ID4gc29tZSBkb2N1bWVudHMgb2YgeW91ciBJUCBmb3IgYmV0dGVyIHVu
-ZGVyc3RhbmRpbmcuDQo+ID4+ID4gPg0KPiA+PiA+ID4NCj4gPj4gPiA+PiBDaGVlcnMsDQo+ID4+
-ID4gPj4NCj4gPj4gPiA+PiBOYXRlDQo+ID4+ID4gPj4NCj4gPj4gPiA+Pg0KPiA+PiA+ID4+IDIw
-MDkuIDA0LiAxOSwg7Jik7KCEIDEyOjUzLCBIYW5zIFZlcmt1aWwg7J6R7ISxOg0KPiA+PiA+ID4+
-DQo+ID4+ID4gPj4gPiBPbiBUdWVzZGF5IDMxIE1hcmNoIDIwMDkgMTA6NTM6MDIgSGlyZW1hdGgs
-IFZhaWJoYXYgd3JvdGU6DQo+ID4+ID4gPj4gPj4gVGhhbmtzLA0KPiA+PiA+ID4+ID4+IFZhaWJo
-YXYgSGlyZW1hdGgNCj4gPj4gPiA+PiA+Pg0KPiA+PiA+ID4+ID4+Pj4gQVBQUk9BQ0ggMyAtDQo+
-ID4+ID4gPj4gPj4+PiAtLS0tLS0tLS0tDQo+ID4+ID4gPj4gPj4+Pg0KPiA+PiA+ID4+ID4+Pj4g
-Li4uLi4NCj4gPj4gPiA+PiA+Pj4+DQo+ID4+ID4gPj4gPj4+PiAoQW55IG90aGVyIGFwcHJvYWNo
-IHdoaWNoIEkgY291bGQgbm90IHRoaW5rIG9mIHdvdWxkIGJlDQo+ID4+ID4gPj4gPj4+DQo+ID4+
-ID4gPj4gPj4+IGFwcHJlY2lhdGVkKQ0KPiA+PiA+ID4+ID4+Pg0KPiA+PiA+ID4+ID4+Pj4gSSB3
-b3VsZCBwcmVmZXIgc2Vjb25kIGFwcHJvYWNoLCBzaW5jZSB0aGlzIHdpbGwgcHJvdmlkZQ0KPiA+
-PiA+ID4+IHN0YW5kYXJkDQo+ID4+ID4gPj4gPj4+PiBpbnRlcmZhY2UgdG8gYXBwbGljYXRpb25z
-IGluZGVwZW5kZW50IG9uIHVuZGVybmVhdGgNCj4gPj4gPiBoYXJkd2FyZS4NCj4gPj4gPiA+PiA+
-Pj4+DQo+ID4+ID4gPj4gPj4+PiBUaGVyZSBtYXkgYmUgbWFueSBudW1iZXIgb2Ygc3VjaCBjb25m
-aWd1cmF0aW9uDQo+IHBhcmFtZXRlcnMNCj4gPj4gPiA+PiByZXF1aXJlZA0KPiA+PiA+ID4+ID4+
-Pg0KPiA+PiA+ID4+ID4+PiBmb3INCj4gPj4gPiA+PiA+Pj4NCj4gPj4gPiA+PiA+Pj4+IGRpZmZl
-cmVudCBzdWNoIGRldmljZXMsIHdlIG5lZWQgdG8gd29yayBvbiB0aGlzIGFuZA0KPiBjb21lDQo+
-ID4+IHVwDQo+ID4+ID4gPj4gd2l0aA0KPiA+PiA+ID4+ID4+Pg0KPiA+PiA+ID4+ID4+PiBzb21l
-DQo+ID4+ID4gPj4gPj4+DQo+ID4+ID4gPj4gPj4+PiBzdGFuZGFyZCBjYXBhYmlsaXR5IGZpZWxk
-cyBjb3ZlcmluZyBtb3N0IG9mIGF2YWlsYWJsZQ0KPiA+PiA+IGRldmljZXMuDQo+ID4+ID4gPj4g
-Pj4+Pg0KPiA+PiA+ID4+ID4+Pj4gRG9lcyBhbnlib2R5IGhhdmUgc29tZSBvdGhlciBvcGluaW9u
-cyBvbiB0aGlzPw0KPiA+PiA+ID4+ID4+Pj4gQW55IHN1Z2dlc3Rpb25zIHdpbGwgYmUgaGVscGZ1
-bCBoZXJlLA0KPiA+PiA+ID4+ID4+Pg0KPiA+PiA+ID4+ID4+PiBGWUk6IEkgaGF2ZSB2ZXJ5IGxp
-dHRsZSB0aW1lIHRvIGxvb2sgYXQgdGhpcyBmb3IgdGhlDQo+IG5leHQNCj4gPj4gMi0zDQo+ID4+
-ID4gPj4gd2Vla3MuDQo+ID4+ID4gPj4gPj4+IEFzIHlvdQ0KPiA+PiA+ID4+ID4+PiBrbm93IEkn
-bSB3b3JraW5nIG9uIHRoZSBsYXN0IHBpZWNlcyBvZiB0aGUgdjRsMl9zdWJkZXYNCj4gPj4gPiA+
-PiBjb252ZXJzaW9uDQo+ID4+ID4gPj4gPj4+IGZvciAyLjYuMzANCj4gPj4gPiA+PiA+Pj4gdGhh
-dCBzaG91bGQgYmUgZmluaXNoZWQgdGhpcyB3ZWVrLiBBZnRlciB0aGF0IEknbQ0KPiBhdHRlbmRp
-bmcNCj4gPj4gPiB0aGUNCj4gPj4gPiA+PiA+Pj4gRW1iZWRkZWQNCj4gPj4gPiA+PiA+Pj4gTGlu
-dXggQ29uZmVyZW5jZSBpbiBTYW4gRnJhbmNpc2NvLg0KPiA+PiA+ID4+ID4+Pg0KPiA+PiA+ID4+
-ID4+PiBCdXQgSSBhbHdheXMgdGhvdWdodCB0aGF0IHNvbWV0aGluZyBsaWtlIHRoaXMgd291bGQg
-YmUNCj4ganVzdA0KPiA+PiBhDQo+ID4+ID4gPj4gPj4+IHJlZ3VsYXIgdmlkZW8NCj4gPj4gPiA+
-PiA+Pj4gZGV2aWNlIHRoYXQgY2FuIGRvIGJvdGggJ291dHB1dCcgYW5kICdjYXB0dXJlJy4gRm9y
-IGENCj4gPj4gcmVzaXplcg0KPiA+PiA+IEkNCj4gPj4gPiA+PiA+Pj4gd291bGQNCj4gPj4gPiA+
-PiA+Pj4gZXhwZWN0IHRoYXQgeW91IHNldCB0aGUgJ291dHB1dCcgc2l6ZSAodGhlIHNpemUgb2Yg
-eW91cg0KPiA+PiA+IHNvdXJjZQ0KPiA+PiA+ID4+ID4+PiBpbWFnZSkgYW5kDQo+ID4+ID4gPj4g
-Pj4+IHRoZSAnY2FwdHVyZScgc2l6ZSAodGhlIHNpemUgb2YgdGhlIHJlc2l6ZWQgaW1hZ2UpLCB0
-aGVuDQo+ID4+IGp1c3QNCj4gPj4gPiA+PiBzZW5kDQo+ID4+ID4gPj4gPj4+IHRoZQ0KPiA+PiA+
-ID4+ID4+PiBmcmFtZXMgdG8gdGhlIGRldmljZSAoPT0gcmVzaXplcikgYW5kIGdldCB0aGVtIGJh
-Y2sgb24NCj4gdGhlDQo+ID4+ID4gPj4gY2FwdHVyZQ0KPiA+PiA+ID4+ID4+PiBzaWRlLg0KPiA+
-PiA+ID4+ID4+DQo+ID4+ID4gPj4gPj4gW0hpcmVtYXRoLCBWYWliaGF2XSBZZXMsIGl0IGlzIHBv
-c3NpYmxlIHRvIGRvIHRoYXQuDQo+ID4+ID4gPj4gPj4NCj4gPj4gPiA+PiA+PiBIYW5zLA0KPiA+
-PiA+ID4+ID4+DQo+ID4+ID4gPj4gPj4gSSB3ZW50IHRocm91Z2ggdGhlIGxpbmsgcmVmZXJyZWQg
-YnkgU2VyZ2lvIGFuZCBJIHRoaW5rIHdlDQo+ID4+ID4gc2hvdWxkDQo+ID4+ID4gPj4gPj4gaW5o
-ZXJpdA0KPiA+PiA+ID4+ID4+IHNvbWUgaW1wbGVtZW50YXRpb24gZm9yIENPREVDcyBoZXJlIGZv
-ciBzdWNoIGRldmljZXMuDQo+ID4+ID4gPj4gPj4NCj4gPj4gPiA+PiA+PiBWNEwyX0JVRl9UWVBF
-X0NPREVDSU4gLSBUbyBhY2Nlc3MgdGhlIGlucHV0IGZvcm1hdC4NCj4gPj4gPiA+PiA+PiBWNEwy
-X0JVRl9UWVBFX0NPREVDT1VUIC0gVG8gYWNjZXNzIHRoZSBvdXRwdXQgZm9ybWF0Lg0KPiA+PiA+
-ID4+ID4+DQo+ID4+ID4gPj4gPj4gSXQgbWFrZXMgc2Vuc2UsIHNpbmNlIHN1Y2ggbWVtb3J5LXRv
-LW1lbW9yeSBkZXZpY2VzIHdpbGwNCj4gPj4gPiBtb3N0bHkNCj4gPj4gPiA+PiBiZWluZw0KPiA+
-PiA+ID4+ID4+IHVzZWQgZnJvbSBjb2RlY3MgY29udGV4dC4gQW5kIHRoaXMgd291bGQgYmUgbW9y
-ZSBjbGVhcg0KPiBmcm9tDQo+ID4+ID4gdXNlcg0KPiA+PiA+ID4+ID4+IGFwcGxpY2F0aW9uLg0K
-PiA+PiA+ID4+ID4NCj4gPj4gPiA+PiA+IFRvIGJlIGhvbmVzdCwgSSBkb24ndCBzZWUgdGhlIG5l
-ZWQgZm9yIHRoaXMuIEkgdGhpbmsNCj4gPj4gPiA+PiA+IFRZUEVfVklERU9fQ0FQVFVSRSBhbmQN
-Cj4gPj4gPiA+PiA+IFRZUEVfVklERU9fT1VUUFVUIGFyZSBwZXJmZWN0bHkgZmluZS4NCj4gPj4g
-PiA+PiA+DQo+ID4+ID4gPj4gPj4gQW5kIGFzIGFja25vd2xlZGdlZCBieSB5b3UsIHdlIGNhbiB1
-c2UgVklESU9DX1NfRk1UIGZvcg0KPiA+PiA+IHNldHRpbmcNCj4gPj4gPiA+PiA+PiBwYXJhbWV0
-ZXJzLg0KPiA+PiA+ID4+ID4+DQo+ID4+ID4gPj4gPj4gT25lIHRoaW5nIEkgYW0gbm90IGFibGUg
-dG8gY29udmluY2UgbXlzZWxmIGlzIHRoYXQsIHVzaW5nDQo+ID4+ID4gInByaXYiDQo+ID4+ID4g
-Pj4gPj4gZmllbGQNCj4gPj4gPiA+PiA+PiBmb3IgY3VzdG9tIGNvbmZpZ3VyYXRpb24uDQo+ID4+
-ID4gPj4gPg0KPiA+PiA+ID4+ID4gSSBhZ3JlZS4gRXNwZWNpYWxseSBzaW5jZSB5b3UgY2Fubm90
-IHVzZSBpdCBhcyBhIHBvaW50ZXINCj4gdG8NCj4gPj4gPiA+PiBhZGRpdGlvbg0KPiA+PiA+ID4+
-ID4gaW5mb3JtYXRpb24uDQo+ID4+ID4gPj4gPg0KPiA+PiA+ID4+ID4+IEkgd291bGQgcHJlZmVy
-IGFuZCByZWNvbW1lbmQgY2FwYWJpbGl0eSBiYXNlZA0KPiA+PiA+ID4+ID4+IGludGVyZmFjZSwg
-d2hlcmUgYXBwbGljYXRpb24gd2lsbCBxdWVyeSB0aGUgY2FwYWJpbGl0eSBvZg0KPiA+PiB0aGUN
-Cj4gPj4gPiA+PiA+PiBkZXZpY2UgZm9yDQo+ID4+ID4gPj4gPj4gbHVtYSBlbmhhbmNlbWVudCwg
-ZmlsdGVyIGNvZWZmaWNpZW50cyAobnVtYmVyIG9mIGNvZWZmDQo+IGFuZA0KPiA+PiA+ID4+IGRl
-cHRoKSwNCj4gPj4gPiA+PiA+PiBpbnRlcnBvbGF0aW9uIHR5cGUsIGV0Yy4uLg0KPiA+PiA+ID4+
-ID4+DQo+ID4+ID4gPj4gPj4gVGhpcyB3YXkgd2UgY2FuIG1ha2Ugc3VyZSB0aGF0LCBhbnkgc3Vj
-aCBmdXR1cmUgZGV2aWNlcw0KPiBjYW4NCj4gPj4gYmUNCj4gPj4gPiA+PiA+PiBhZGFwdGVkIGJ5
-DQo+ID4+ID4gPj4gPj4gdGhpcyBmcmFtZXdvcmsuDQo+ID4+ID4gPj4gPg0KPiA+PiA+ID4+ID4g
-VGhlIGJpZyBxdWVzdGlvbiBpcyBob3cgbWFueSBvZiB0aGVzZSBjYXBhYmlsaXRpZXMgYXJlDQo+
-ID4+ID4gJ2dlbmVyaWMnDQo+ID4+ID4gPj4gYW5kDQo+ID4+ID4gPj4gPiBob3cNCj4gPj4gPiA+
-PiA+IG1hbnkgYXJlIHZlcnkgbXVjaCBoYXJkd2FyZSBzcGVjaWZpYy4gSSBhbSBsZWFuaW5nIHRv
-d2FyZHMNCj4gPj4gPiB1c2luZw0KPiA+PiA+ID4+IHRoZQ0KPiA+PiA+ID4+ID4gZXh0ZW5kZWQg
-Y29udHJvbCBBUEkgZm9yIHRoaXMuIEl0J3MgYSBiaXQgYXdrd2FyZCB0bw0KPiA+PiBpbXBsZW1l
-bnQNCj4gPj4gPiBpbg0KPiA+PiA+ID4+ID4gZHJpdmVycw0KPiA+PiA+ID4+ID4gYXQgdGhlIG1v
-bWVudCwgYnV0IHRoYXQgc2hvdWxkIGltcHJvdmUgaW4gdGhlIGZ1dHVyZSB3aGVuDQo+IGENCj4g
-Pj4gbG90DQo+ID4+ID4gb2YNCj4gPj4gPiA+PiB0aGUNCj4gPj4gPiA+PiA+IGNvbnRyb2wgaGFu
-ZGxpbmcgY29kZSB3aWxsIG1vdmUgaW50byB0aGUgbmV3IGNvcmUNCj4gZnJhbWV3b3JrLg0KPiA+
-PiA+ID4+ID4NCj4gPj4gPiA+PiA+IEkgcmVhbGx5IG5lZWQgdG8ga25vdyBtb3JlIGFib3V0IHRo
-ZSBzb3J0IG9mIGZlYXR1cmVzIHRoYXQNCj4gPj4gPiBvbWFwLw0KPiA+PiA+ID4+ID4gZGF2aW5j
-aQ0KPiA+PiA+ID4+ID4gb2ZmZXIgKGFuZCBwcmVmZXJhYmx5IGFsc28gZm9yIHNpbWlsYXIgZGV2
-aWNlcyBieSBvdGhlcg0KPiA+PiA+ID4+ID4gbWFudWZhY3R1cmVycykuDQo+ID4+ID4gPj4gPg0K
-PiA+PiA+ID4+ID4+DQo+ID4+ID4gPj4gPj4NCj4gPj4gPiA+PiA+PiBIYW5zLA0KPiA+PiA+ID4+
-ID4+IEhhdmUgeW91IGdldCBhIGNoYW5jZSB0byBsb29rIGF0IFZpZGVvLUJ1ZiBsYXllciBpc3N1
-ZXMgSQ0KPiA+PiA+ID4+IG1lbnRpb25lZA0KPiA+PiA+ID4+ID4+IGluDQo+ID4+ID4gPj4gPj4g
-b3JpZ2luYWwgZHJhZnQ/DQo+ID4+ID4gPj4gPg0KPiA+PiA+ID4+ID4gSSd2ZSBhc2tlZCBNYWdu
-dXMgRGFtbSB0byB0YWtlIGEgbG9vayBhdCB0aGlzLiBJIGtub3cgaGUNCj4gZGlkDQo+ID4+ID4g
-c29tZQ0KPiA+PiA+ID4+ID4gd29yayBpbg0KPiA+PiA+ID4+ID4gdGhpcyBhcmVhIGFuZCBoZSBt
-YXkgaGF2ZSBmaXhlZCBzb21lIG9mIHRoZXNlIGlzc3Vlcw0KPiBhbHJlYWR5Lg0KPiA+PiA+IFZl
-cnkNCj4gPj4gPiA+PiA+IHVzZWZ1bCwNCj4gPj4gPiA+PiA+IHRoYXQgRW1iZWRkZWQgTGludXgg
-Y29uZmVyZW5jZS4uLg0KPiA+PiA+ID4+ID4NCj4gPj4gPiA+PiA+IFJlZ2FyZHMsDQo+ID4+ID4g
-Pj4gPg0KPiA+PiA+ID4+ID4gICAgIEhhbnMNCj4gPj4gPiA+PiA+DQo+ID4+ID4gPj4gPiAtLQ0K
-PiA+PiA+ID4+ID4gSGFucyBWZXJrdWlsIC0gdmlkZW80bGludXggZGV2ZWxvcGVyIC0gc3BvbnNv
-cmVkIGJ5DQo+IFRBTkRCRVJHDQo+ID4+ID4gPj4NCj4gPj4gPiA+PiA9DQo+ID4+ID4gPj4gRG9u
-Z1NvbywgTmF0aGFuaWVsIEtpbQ0KPiA+PiA+ID4+IEVuZ2luZWVyDQo+ID4+ID4gPj4gTW9iaWxl
-IFMvVyBQbGF0Zm9ybSBMYWIuDQo+ID4+ID4gPj4gRGlnaXRhbCBNZWRpYSAmIENvbW11bmljYXRp
-b25zIFImRCBDZW50cmUNCj4gPj4gPiA+PiBTYW1zdW5nIEVsZWN0cm9uaWNzIENPLiwgTFRELg0K
-PiA+PiA+ID4+IGUtbWFpbCA6IGRvbmdzb28ua2ltQGdtYWlsLmNvbQ0KPiA+PiA+ID4+ICAgICAg
-ICAgICAgZG9uZ3NvbzQ1LmtpbUBzYW1zdW5nLmNvbQ0KPiA+PiA+ID4+DQo+ID4+ID4gPj4NCj4g
-Pj4gPiA+Pg0KPiA+PiA+ID4+IC0tDQo+ID4+ID4gPj4gVG8gdW5zdWJzY3JpYmUgZnJvbSB0aGlz
-IGxpc3Q6IHNlbmQgdGhlIGxpbmUgInVuc3Vic2NyaWJlDQo+ID4+IGxpbnV4LQ0KPiA+PiA+ID4+
-IG1lZGlhIiBpbg0KPiA+PiA+ID4+IHRoZSBib2R5IG9mIGEgbWVzc2FnZSB0byBtYWpvcmRvbW9A
-dmdlci5rZXJuZWwub3JnDQo+ID4+ID4gPj4gTW9yZSBtYWpvcmRvbW8gaW5mbyBhdCAgaHR0cDov
-L3ZnZXIua2VybmVsLm9yZy9tYWpvcmRvbW8tDQo+ID4+ID4gaW5mby5odG1sDQo+ID4+ID4gPg0K
-PiA+PiA+ID4NCj4gPj4gPg0KPiA+PiA+DQo+ID4+ID4NCj4gPj4gPiAtLQ0KPiA+PiA+ID09PT09
-PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09DQo+ID4+
-ID4gRG9uZ1NvbywgTmF0aGFuaWVsIEtpbQ0KPiA+PiA+IEVuZ2luZWVyDQo+ID4+ID4gTW9iaWxl
-IFMvVyBQbGF0Zm9ybSBMYWIuDQo+ID4+ID4gRGlnaXRhbCBNZWRpYSAmIENvbW11bmljYXRpb25z
-IFImRCBDZW50cmUNCj4gPj4gPiBTYW1zdW5nIEVsZWN0cm9uaWNzIENPLiwgTFRELg0KPiA+PiA+
-IGUtbWFpbCA6IGRvbmdzb28ua2ltQGdtYWlsLmNvbQ0KPiA+PiA+ICAgICAgICAgICBkb25nc29v
-NDUua2ltQHNhbXN1bmcuY29tDQo+ID4+ID4gPT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
-PT09PT09PT09PT09PT09PT09PT09PT09PT0NCj4gPg0KPiA+DQo+DQo+DQo+DQo+IC0tDQo+ID0N
-Cj4gRG9uZ1NvbywgTmF0aGFuaWVsIEtpbQ0KPiBFbmdpbmVlcg0KPiBNb2JpbGUgUy9XIFBsYXRm
-b3JtIExhYi4NCj4gRGlnaXRhbCBNZWRpYSAmIENvbW11bmljYXRpb25zIFImRCBDZW50cmUNCj4g
-U2Ftc3VuZyBFbGVjdHJvbmljcyBDTy4sIExURC4NCj4gZS1tYWlsIDogZG9uZ3Nvby5raW1AZ21h
-aWwuY29tDQo+ICAgICAgICAgICBkb25nc29vNDUua2ltQHNhbXN1bmcuY29tDQoNCg==
+Hello Vaibhav,
+
+
+On Tue, Apr 21, 2009 at 9:08 PM, Hiremath, Vaibhav <hvaibhav@ti.com> wr=
+ote:
+>> -----Original Message-----
+>> From: Dongsoo, Nathaniel Kim [mailto:dongsoo.kim@gmail.com]
+>> Sent: Tuesday, April 21, 2009 3:44 PM
+>> To: Hiremath, Vaibhav
+>> Cc: Hans Verkuil; linux-media@vger.kernel.org; Aguirre Rodriguez,
+>> Sergio Alberto; Toivonen Tuukka.O (Nokia-D/Oulu); linux-
+>> omap@vger.kernel.org; Nagalla, Hari; Sakari Ailus; Jadav, Brijesh R;
+>> R, Sivaraj; Hadli, Manjunath; Shah, Hardik; Kumar, Purushotam
+>> Subject: Re: [RFC] Stand-alone Resizer/Previewer Driver support
+>> under V4L2 framework
+>>
+>> Hello, Vaibhav,
+>>
+>>
+>> On Tue, Apr 21, 2009 at 7:01 PM, Hiremath, Vaibhav <hvaibhav@ti.com>
+>> wrote:
+>> >
+>> >> -----Original Message-----
+>> >> From: Hiremath, Vaibhav
+>> >> Sent: Tuesday, April 21, 2009 3:16 PM
+>> >> To: 'Dongsoo, Nathaniel Kim'
+>> >> Cc: Hans Verkuil; linux-media@vger.kernel.org; Aguirre Rodriguez,
+>> >> Sergio Alberto; Toivonen Tuukka.O (Nokia-D/Oulu); linux-
+>> >> omap@vger.kernel.org; Nagalla, Hari; Sakari Ailus; Jadav, Brijesh
+>> R;
+>> >> R, Sivaraj; Hadli, Manjunath; Shah, Hardik; Kumar, Purushotam
+>> >> Subject: RE: [RFC] Stand-alone Resizer/Previewer Driver support
+>> >> under V4L2 framework
+>> >>
+>> >> > -----Original Message-----
+>> >> > From: Dongsoo, Nathaniel Kim [mailto:dongsoo.kim@gmail.com]
+>> >> > Sent: Monday, April 20, 2009 4:15 PM
+>> >> > To: Hiremath, Vaibhav
+>> >> > Cc: Hans Verkuil; linux-media@vger.kernel.org; Aguirre
+>> Rodriguez,
+>> >> > Sergio Alberto; Toivonen Tuukka.O (Nokia-D/Oulu); linux-
+>> >> > omap@vger.kernel.org; Nagalla, Hari; Sakari Ailus; Jadav,
+>> Brijesh
+>> >> R;
+>> >> > R, Sivaraj; Hadli, Manjunath; Shah, Hardik; Kumar, Purushotam
+>> >> > Subject: Re: [RFC] Stand-alone Resizer/Previewer Driver support
+>> >> > under V4L2 framework
+>> >> >
+>> >> > Hello Vaibhav,
+>> >> >
+>> >> > This is user manual of S3C6400 (not much different from
+>> S3C6410)
+>> >> >
+>> >>
+>> http://www.ebv.com/fileadmin/products/Products/Samsung/S3C6400/S3C64
+>> >> > 00X_UserManual_rev1-0_2008-02_661558um.pdf
+>> >> >
+>> >> > That SoC is from my company but not from the same division of
+>> >> mine.
+>> >> > Actually I'm doing this driver job without any request from
+>> chip
+>> >> > delivering division. I'm doing this because this is so
+>> challenging
+>> >> > and
+>> >> > want better generic driver :-)
+>> >> >
+>> >> > Take a look at the user manual and please let me know your
+>> >> opinion.
+>> >> > In my understanding scaler and some camera interface feature in
+>> >> > S3C64XX are very similar to the features in Omap3.
+>> >> >
+>> >> [Hiremath, Vaibhav] Hi Kim,
+>> >>
+>> >> I went through the document and below are some observations and
+>> >> questions I have -
+>> >>
+>> >>       - If I compare it with OMAP then there is nothing
+>> application
+>> >> needs to configure specific to hardware. All the parameters
+>> >> supported through "v4l2_format" one with TYPE_VIDEO_OUTPUT and
+>> >> another with TYPE_VIDEO_CAPTURE except the parameter "offset" (If
+>> >> driver is supporting it)
+>> >>
+>>
+>> I'm not sure whether I'm following your question, but S3C64XX camera
+>> interface is obviously simpler than OMAP. So there is no wonder that
+>> user doesn't need to configure H/W specific things. And I don't get
+>> the question about "offset" parameter. Can you explain me more
+>> specifically?
+>>
+> [Hiremath, Vaibhav] Please refer to the section 16.5.1 (Page no 532 (=
+16-11)) 16.7.11 and 16.7.16.
+>
+> You can specify offset from the input image to start, so that you can=
+ have part of image for scaling.
+
+Oh! sorry I made you get confused.
+What I'm working on is not the TV scaler of S3C64XX but scaler and
+rotator in camera interface.
+Please take a look at "20-1 camera interface"
+This scaler/rotator feature can be used in general purpose.
+
+
+>
+>>
+>> >>       - I wanted to understand how are you configuring offset
+>> >> register? How are you exporting it to user application?
+>> >>
+>>
+>> Again, I don't get the point. Sorry.
+>>
+>> >> Rest everything we can handle in driver once input source and
+>> output
+>> >> destination format receives from application.
+>> >>
+>> > [Hiremath, Vaibhav] Missed one point in last draft, about buffer
+>> handling. How are you handling buffers? Are you supporting both
+>> USER_POINTER and MMAP buffers?
+>> > What is the size of buffers, is that different for input and
+>> output?
+>> > If yes, then how are you managing it?
+>> >
+>> > If no, don't you see requirement for it?
+>>
+>> Sorry, my driver work is not that stage yet. It's just still in
+>> designing level, because of some special H/W features (like MSDMA,
+>> scaler and so) I'm totally stuck and can't go further.
+>> But your buffer theory seems to make sense and I suppose that is
+>> necessary if we have that kind of device.
+>>
+> [Hiremath, Vaibhav] I am talking to Mauro, and will keep you updated =
+on this.
+>
+
+Thank you. I appreciate it.
+
+Nate
+
+> Thanks,
+> Vaibhav Hiremath
+>
+>> >
+>> > Thanks,
+>> > Vaibhav
+>> >
+>> >> From OMAP Point of view -
+>> >> -----------------------
+>> >>
+>> >> The extra configuration is coefficients, which if we don't export
+>> to
+>> >> user application then I think we are very close to your IP.
+>> >>
+>> >> Extra configuration required other than coeff.
+>> >>
+>> >> RSZ_YENH - which takes 4 params
+>> >>
+>> >>       - Algo
+>> >>       - Gain
+>> >>       - Slope
+>> >>       - Core
+>> >>
+>> >> All are part of one register so we can make use of "priv" field
+>> for
+>> >> this configuration.
+>> >>
+>>
+>> I get it. But S3C64XX is not that much configurable. As you see in
+>> user manual, it's a quite simple device.
+>> For now I'm still designing my driver, so I'll let you know if I
+>> face
+>> those issues in my driver.
+>> Cheers,
+>>
+>> Nate
+>>
+>> >>
+>> >> Thanks,
+>> >> Vaibhav Hiremath
+>> >>
+>> >> > Cheers,
+>> >> >
+>> >> > Nate
+>> >> >
+>> >> > On Mon, Apr 20, 2009 at 7:11 PM, Hiremath, Vaibhav
+>> >> <hvaibhav@ti.com>
+>> >> > wrote:
+>> >> > >
+>> >> > >
+>> >> > > Thanks,
+>> >> > > Vaibhav Hiremath
+>> >> > >
+>> >> > >> -----Original Message-----
+>> >> > >> From: linux-media-owner@vger.kernel.org [mailto:linux-media-
+>> >> > >> owner@vger.kernel.org] On Behalf Of Dongsoo Kim
+>> >> > >> Sent: Sunday, April 19, 2009 12:06 PM
+>> >> > >> To: Hans Verkuil
+>> >> > >> Cc: Hiremath, Vaibhav; linux-media@vger.kernel.org; Aguirre
+>> >> > >> Rodriguez, Sergio Alberto; Toivonen Tuukka.O (Nokia-D/Oulu);
+>> >> > linux-
+>> >> > >> omap@vger.kernel.org; Nagalla, Hari; Sakari Ailus; Jadav,
+>> >> Brijesh
+>> >> > R;
+>> >> > >> R, Sivaraj; Hadli, Manjunath; Shah, Hardik; Kumar,
+>> Purushotam
+>> >> > >> Subject: Re: [RFC] Stand-alone Resizer/Previewer Driver
+>> support
+>> >> > >> under V4L2 framework
+>> >> > >>
+>> >> > >> Hello Hans and Hiremath,
+>> >> > >>
+>> >> > >> One of my recent job is making S3C64XX camera interface
+>> driver
+>> >> > (even
+>> >> > >> though other jobs of mine are not finished yet...;-()
+>> >> > >> And, what a incident! S3C64XX has also similar H/W block in
+>> >> > camera
+>> >> > >> interface.
+>> >> > >> Resizer in S3C camera interface can be used in system wide
+>> like
+>> >> > the
+>> >> > >> one in Omap3.
+>> >> > >>
+>> >> > > [Hiremath, Vaibhav] Can you share the spec for the same; I
+>> >> wanted
+>> >> > to verify the configuration part of it? What all configuration
+>> is
+>> >> > exported to the user?
+>> >> > >
+>> >> > >> But in case of mine, I decided to make it as a
+>> >> TYPE_VIDEO_CAPTURE
+>> >> > >> and
+>> >> > >> TYPE_VIDEO_OUTPUT.
+>> >> > >> I thought that is was enough. Actually I took omap video out
+>> >> > (vout?)
+>> >> > >> for reference :-)
+>> >> > >
+>> >> > > [Hiremath, Vaibhav] I have also implemented the driver is the
+>> >> same
+>> >> > way and also working with Hans to get it reviewed. But there
+>> are
+>> >> > some configuration like coeff., luma enhancement, etc... need
+>> to
+>> >> > export to the user, where we need to add mechanism in V4L2
+>> >> > framework.
+>> >> > >
+>> >> > > Since we have one more device where we are demanding for M-
+>> to-M
+>> >> > operation, I think it is important to go through it. Can you
+>> share
+>> >> > some documents of your IP for better understanding.
+>> >> > >
+>> >> > >
+>> >> > >> Cheers,
+>> >> > >>
+>> >> > >> Nate
+>> >> > >>
+>> >> > >>
+>> >> > >> 2009. 04. 19, =BF=C0=C0=FC 12:53, Hans Verkuil =C0=DB=BC=BA:
+>> >> > >>
+>> >> > >> > On Tuesday 31 March 2009 10:53:02 Hiremath, Vaibhav wrote:
+>> >> > >> >> Thanks,
+>> >> > >> >> Vaibhav Hiremath
+>> >> > >> >>
+>> >> > >> >>>> APPROACH 3 -
+>> >> > >> >>>> ----------
+>> >> > >> >>>>
+>> >> > >> >>>> .....
+>> >> > >> >>>>
+>> >> > >> >>>> (Any other approach which I could not think of would be
+>> >> > >> >>>
+>> >> > >> >>> appreciated)
+>> >> > >> >>>
+>> >> > >> >>>> I would prefer second approach, since this will provide
+>> >> > >> standard
+>> >> > >> >>>> interface to applications independent on underneath
+>> >> > hardware.
+>> >> > >> >>>>
+>> >> > >> >>>> There may be many number of such configuration
+>> parameters
+>> >> > >> required
+>> >> > >> >>>
+>> >> > >> >>> for
+>> >> > >> >>>
+>> >> > >> >>>> different such devices, we need to work on this and
+>> come
+>> >> up
+>> >> > >> with
+>> >> > >> >>>
+>> >> > >> >>> some
+>> >> > >> >>>
+>> >> > >> >>>> standard capability fields covering most of available
+>> >> > devices.
+>> >> > >> >>>>
+>> >> > >> >>>> Does anybody have some other opinions on this?
+>> >> > >> >>>> Any suggestions will be helpful here,
+>> >> > >> >>>
+>> >> > >> >>> FYI: I have very little time to look at this for the
+>> next
+>> >> 2-3
+>> >> > >> weeks.
+>> >> > >> >>> As you
+>> >> > >> >>> know I'm working on the last pieces of the v4l2_subdev
+>> >> > >> conversion
+>> >> > >> >>> for 2.6.30
+>> >> > >> >>> that should be finished this week. After that I'm
+>> attending
+>> >> > the
+>> >> > >> >>> Embedded
+>> >> > >> >>> Linux Conference in San Francisco.
+>> >> > >> >>>
+>> >> > >> >>> But I always thought that something like this would be
+>> just
+>> >> a
+>> >> > >> >>> regular video
+>> >> > >> >>> device that can do both 'output' and 'capture'. For a
+>> >> resizer
+>> >> > I
+>> >> > >> >>> would
+>> >> > >> >>> expect that you set the 'output' size (the size of your
+>> >> > source
+>> >> > >> >>> image) and
+>> >> > >> >>> the 'capture' size (the size of the resized image), then
+>> >> just
+>> >> > >> send
+>> >> > >> >>> the
+>> >> > >> >>> frames to the device (=3D=3D resizer) and get them back =
+on
+>> the
+>> >> > >> capture
+>> >> > >> >>> side.
+>> >> > >> >>
+>> >> > >> >> [Hiremath, Vaibhav] Yes, it is possible to do that.
+>> >> > >> >>
+>> >> > >> >> Hans,
+>> >> > >> >>
+>> >> > >> >> I went through the link referred by Sergio and I think we
+>> >> > should
+>> >> > >> >> inherit
+>> >> > >> >> some implementation for CODECs here for such devices.
+>> >> > >> >>
+>> >> > >> >> V4L2_BUF_TYPE_CODECIN - To access the input format.
+>> >> > >> >> V4L2_BUF_TYPE_CODECOUT - To access the output format.
+>> >> > >> >>
+>> >> > >> >> It makes sense, since such memory-to-memory devices will
+>> >> > mostly
+>> >> > >> being
+>> >> > >> >> used from codecs context. And this would be more clear
+>> from
+>> >> > user
+>> >> > >> >> application.
+>> >> > >> >
+>> >> > >> > To be honest, I don't see the need for this. I think
+>> >> > >> > TYPE_VIDEO_CAPTURE and
+>> >> > >> > TYPE_VIDEO_OUTPUT are perfectly fine.
+>> >> > >> >
+>> >> > >> >> And as acknowledged by you, we can use VIDIOC_S_FMT for
+>> >> > setting
+>> >> > >> >> parameters.
+>> >> > >> >>
+>> >> > >> >> One thing I am not able to convince myself is that, using
+>> >> > "priv"
+>> >> > >> >> field
+>> >> > >> >> for custom configuration.
+>> >> > >> >
+>> >> > >> > I agree. Especially since you cannot use it as a pointer
+>> to
+>> >> > >> addition
+>> >> > >> > information.
+>> >> > >> >
+>> >> > >> >> I would prefer and recommend capability based
+>> >> > >> >> interface, where application will query the capability of
+>> >> the
+>> >> > >> >> device for
+>> >> > >> >> luma enhancement, filter coefficients (number of coeff
+>> and
+>> >> > >> depth),
+>> >> > >> >> interpolation type, etc...
+>> >> > >> >>
+>> >> > >> >> This way we can make sure that, any such future devices
+>> can
+>> >> be
+>> >> > >> >> adapted by
+>> >> > >> >> this framework.
+>> >> > >> >
+>> >> > >> > The big question is how many of these capabilities are
+>> >> > 'generic'
+>> >> > >> and
+>> >> > >> > how
+>> >> > >> > many are very much hardware specific. I am leaning towards
+>> >> > using
+>> >> > >> the
+>> >> > >> > extended control API for this. It's a bit awkward to
+>> >> implement
+>> >> > in
+>> >> > >> > drivers
+>> >> > >> > at the moment, but that should improve in the future when
+>> a
+>> >> lot
+>> >> > of
+>> >> > >> the
+>> >> > >> > control handling code will move into the new core
+>> framework.
+>> >> > >> >
+>> >> > >> > I really need to know more about the sort of features that
+>> >> > omap/
+>> >> > >> > davinci
+>> >> > >> > offer (and preferably also for similar devices by other
+>> >> > >> > manufacturers).
+>> >> > >> >
+>> >> > >> >>
+>> >> > >> >>
+>> >> > >> >> Hans,
+>> >> > >> >> Have you get a chance to look at Video-Buf layer issues I
+>> >> > >> mentioned
+>> >> > >> >> in
+>> >> > >> >> original draft?
+>> >> > >> >
+>> >> > >> > I've asked Magnus Damm to take a look at this. I know he
+>> did
+>> >> > some
+>> >> > >> > work in
+>> >> > >> > this area and he may have fixed some of these issues
+>> already.
+>> >> > Very
+>> >> > >> > useful,
+>> >> > >> > that Embedded Linux conference...
+>> >> > >> >
+>> >> > >> > Regards,
+>> >> > >> >
+>> >> > >> >     Hans
+>> >> > >> >
+>> >> > >> > --
+>> >> > >> > Hans Verkuil - video4linux developer - sponsored by
+>> TANDBERG
+>> >> > >>
+>> >> > >> =3D
+>> >> > >> DongSoo, Nathaniel Kim
+>> >> > >> Engineer
+>> >> > >> Mobile S/W Platform Lab.
+>> >> > >> Digital Media & Communications R&D Centre
+>> >> > >> Samsung Electronics CO., LTD.
+>> >> > >> e-mail : dongsoo.kim@gmail.com
+>> >> > >>            dongsoo45.kim@samsung.com
+>> >> > >>
+>> >> > >>
+>> >> > >>
+>> >> > >> --
+>> >> > >> To unsubscribe from this list: send the line "unsubscribe
+>> >> linux-
+>> >> > >> media" in
+>> >> > >> the body of a message to majordomo@vger.kernel.org
+>> >> > >> More majordomo info at  http://vger.kernel.org/majordomo-
+>> >> > info.html
+>> >> > >
+>> >> > >
+>> >> >
+>> >> >
+>> >> >
+>> >> > --
+>> >> > =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+>> >> > DongSoo, Nathaniel Kim
+>> >> > Engineer
+>> >> > Mobile S/W Platform Lab.
+>> >> > Digital Media & Communications R&D Centre
+>> >> > Samsung Electronics CO., LTD.
+>> >> > e-mail : dongsoo.kim@gmail.com
+>> >> >           dongsoo45.kim@samsung.com
+>> >> > =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+>> >
+>> >
+>>
+>>
+>>
+>> --
+>> =3D
+>> DongSoo, Nathaniel Kim
+>> Engineer
+>> Mobile S/W Platform Lab.
+>> Digital Media & Communications R&D Centre
+>> Samsung Electronics CO., LTD.
+>> e-mail : dongsoo.kim@gmail.com
+>>           dongsoo45.kim@samsung.com
+>
+>
+
+
+
+--=20
+=3D
+DongSoo, Nathaniel Kim
+Engineer
+Mobile S/W Platform Lab.
+Digital Media & Communications R&D Centre
+Samsung Electronics CO., LTD.
+e-mail : dongsoo.kim@gmail.com
+          dongsoo45.kim@samsung.com
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
