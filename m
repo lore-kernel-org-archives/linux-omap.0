@@ -1,121 +1,59 @@
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-Subject: RE: [Review PATCH 3/3] OMAP2/3 V4L2 Display Driver
-Date: Tue, 21 Apr 2009 13:59:46 +0200 (CEST)
-Message-ID: <30757.62.70.2.252.1240315186.squirrel@webmail.xs4all.nl>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
-Return-path: <linux-media-owner@vger.kernel.org>
-Sender: linux-media-owner@vger.kernel.org
-To: "Shah, Hardik" <hardik.shah@ti.com>
-Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Jadav, Brijesh R" <brijesh.j@ti.com>, "Hiremath, Vaibhav" <hvaibhav@ti.com>
+From: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Subject: [PATCH] OMAP: Remove IRQ hardcoding from serial.c
+Date: Tue, 21 Apr 2009 17:35:27 +0530
+Message-ID: <1240315527-16064-1-git-send-email-santosh.shilimkar@ti.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:51902 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753459AbZDUMFg (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 21 Apr 2009 08:05:36 -0400
+Received: from dbdp31.itg.ti.com ([172.24.170.98])
+	by bear.ext.ti.com (8.13.7/8.13.7) with ESMTP id n3LC5UpG025388
+	for <linux-omap@vger.kernel.org>; Tue, 21 Apr 2009 07:05:36 -0500
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
 
-Hi Hardik,
+This patch removes hardcoding done for UART IRQ lines
+from serial.c file.
 
-Just a few comments on your comments :-)
+Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+---
+ arch/arm/mach-omap2/serial.c |    6 +++---
+ 1 files changed, 3 insertions(+), 3 deletions(-)
 
-> Hi Hans,
-> My Comments inlined,
-> Most of the comments are taken care off.
-> Thanks for review.
->
-> Hardik,
->
->> -----Original Message-----
->> From: Hans Verkuil [mailto:hverkuil@xs4all.nl]
->> Sent: Saturday, April 18, 2009 7:29 PM
->> To: Shah, Hardik
->> Cc: linux-media@vger.kernel.org; linux-omap@vger.kernel.org; Jadav,
->> Brijesh R;
->> Hiremath, Vaibhav
->> Subject: Re: [Review PATCH 3/3] OMAP2/3 V4L2 Display Driver
-
->> > +config VID2_LCD_MANAGER
->> > +   bool "Use LCD Managaer"
->> > +   help
->> > +     Select this option if you want VID2 pipeline on LCD Overlay
->> manager
->> > +endchoice
->> > +
->> > +choice
->> > +        prompt "TV Mode"
->> > +        depends on VID2_TV_MANAGER || VID1_TV_MANAGER
->> > +        default NTSC_M
->> > +
->> > +config NTSC_M
->> > +        bool "Use NTSC_M mode"
->> > +        help
->> > +          Select this option if you want NTSC_M mode on TV
->> > +
->> > +config PAL_BDGHI
->> > +        bool "Use PAL_BDGHI mode"
->> > +        help
->> > +          Select this option if you want PAL_BDGHI mode on TV
->>
->> Terminology: PAL and NTSC etc. refer to broadcast standards. That is no
->> generally applicable to omap. When it comes to streaming digital video
->> there is only the 50 and 60 Hz SDTV standards. For output over a
->> Composite
->> or S-Video connector you can also choose between PAL and SECAM. There
->> are some differences between the two, although I'm not sure about the
->> details. The common saa7128 i2c device definitely has support for both.
->>
->> In this particular case you probably mean 50 or 60 Hz SDTV rather than
->> NTSC/PAL.
->>
-> [Shah, Hardik] OMAP DSS is having the internal video encoder for
-> converting the digital to analog standards like NTSC and PAL with a
-> s-video and composite output.  Currently DSS does not support changing of
-> the TV standards dynamically so I have made it as a compile time option.
-> Once DSS will support that I will add the S_STD and G_STD for standards.
-> Internally it will call the DSS2 library APIs to change the standard.
-
-I don't have a problem with these config options, it's more the names
-NTSC_M and PAL_BDGHI that are misleading IMHO, since it's really a matter
-of 50Hz vs 60Hz and not of NTSC vs PAL.
-
->> > +   if (1 == vout->mirror && vout->rotation >= 0) {
->> > +           rotation_deg = (vout->rotation == 1) ?
->> > +                   3 : (vout->rotation == 3) ?
->> > +                   1 : (vout->rotation ==  2) ?
->> > +                   0 : 2;
->>
->> Or: rotation = (4 - vout->rotation) % 4;
-> [Shah, Hardik] It will not work when rotation will be 0 and I want 2
-> because of mirroring. (4-0) % 2 is 0 I want 2 here.  So not changing it.
-
-You are right. Sorry about that.
-
->> > +static int vidioc_s_ctrl(struct file *file, void *fh, struct
->> v4l2_control
->> *a)
->> > +{
->> > +   struct omap_vout_device *vout = ((struct omap_vout_fh *)
->> fh)->vout;
->> > +
->> > +   switch (a->id) {
->> > +   case V4L2_CID_ROTATE:
->> > +   {
->> > +           int rotation = a->value;
->> > +
->> > +           if (vout->pix.pixelformat == V4L2_PIX_FMT_RGB24 &&
->> > +                           rotation != -1)
->>
->> Huh? Shouldn't this be rotation != 0?
-> [Shah, Hardik] Rotation 0 means the rotation using Virtual Frame Buffer
-> Rotation (VRFB) engine.  It does not support rotation with packed RGB24
-> format.  -1 means VRFB is not used.  So it should be -1;
-
-This really isn't right. a->value is the rotate control value. And that's
-defined as 0, 90, 180 or 270 according to queryctrl. Not -1. The value -1
-is a purely internal value which is also why I am opposed to its use. It
-is very confusing.
-
-Regards,
-
-        Hans
-
+diff --git a/arch/arm/mach-omap2/serial.c b/arch/arm/mach-omap2/serial.c
+index 4dcf39c..f7a3090 100644
+--- a/arch/arm/mach-omap2/serial.c
++++ b/arch/arm/mach-omap2/serial.c
+@@ -29,7 +29,7 @@ static struct plat_serial8250_port serial_platform_data[] = {
+ 	{
+ 		.membase	= IO_ADDRESS(OMAP_UART1_BASE),
+ 		.mapbase	= OMAP_UART1_BASE,
+-		.irq		= 72,
++		.irq		= INT_24XX_UART1_IRQ,
+ 		.flags		= UPF_BOOT_AUTOCONF,
+ 		.iotype		= UPIO_MEM,
+ 		.regshift	= 2,
+@@ -37,7 +37,7 @@ static struct plat_serial8250_port serial_platform_data[] = {
+ 	}, {
+ 		.membase	= IO_ADDRESS(OMAP_UART2_BASE),
+ 		.mapbase	= OMAP_UART2_BASE,
+-		.irq		= 73,
++		.irq		= INT_24XX_UART2_IRQ,
+ 		.flags		= UPF_BOOT_AUTOCONF,
+ 		.iotype		= UPIO_MEM,
+ 		.regshift	= 2,
+@@ -45,7 +45,7 @@ static struct plat_serial8250_port serial_platform_data[] = {
+ 	}, {
+ 		.membase	= IO_ADDRESS(OMAP_UART3_BASE),
+ 		.mapbase	= OMAP_UART3_BASE,
+-		.irq		= 74,
++		.irq		= INT_24XX_UART3_IRQ,
+ 		.flags		= UPF_BOOT_AUTOCONF,
+ 		.iotype		= UPIO_MEM,
+ 		.regshift	= 2,
 -- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG
+1.5.4.7
 
