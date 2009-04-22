@@ -1,44 +1,36 @@
-From: "Christensen, Mikkel" <mlc@ti.com>
-Subject: RE: LDP broken in 2.6.30-rc 2
-Date: Wed, 22 Apr 2009 22:13:00 +0200
-Message-ID: <E49DAF743FB3E9469ED423C0D3DB5F1CA8E5B54B@dnce01.ent.ti.com>
-References: <E49DAF743FB3E9469ED423C0D3DB5F1C9E8D7960@dnce01.ent.ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+From: Nishanth Menon <nm@ti.com>
+Subject: [PATCH]RESEND:OMAP3:configs: rename sdp and ldp defconfig
+Date: Wed, 22 Apr 2009 15:47:22 -0500
+Message-ID: <1240433242-29386-1-git-send-email-nm@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:37660 "EHLO bear.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:39726 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751312AbZDVUNI convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 22 Apr 2009 16:13:08 -0400
-Received: from dlep35.itg.ti.com ([157.170.170.118])
-	by bear.ext.ti.com (8.13.7/8.13.7) with ESMTP id n3MKD3Ct007261
-	for <linux-omap@vger.kernel.org>; Wed, 22 Apr 2009 15:13:08 -0500
-Received: from dlep20.itg.ti.com (localhost [127.0.0.1])
-	by dlep35.itg.ti.com (8.13.7/8.13.7) with ESMTP id n3MKD2bs018768
-	for <linux-omap@vger.kernel.org>; Wed, 22 Apr 2009 15:13:02 -0500 (CDT)
-Received: from dnce72.ent.ti.com (localhost [127.0.0.1])
-	by dlep20.itg.ti.com (8.12.11/8.12.11) with ESMTP id n3MKD2OT027207
-	for <linux-omap@vger.kernel.org>; Wed, 22 Apr 2009 15:13:02 -0500 (CDT)
-In-Reply-To: <E49DAF743FB3E9469ED423C0D3DB5F1C9E8D7960@dnce01.ent.ti.com>
-Content-Language: en-US
+	id S1756458AbZDVUr3 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 22 Apr 2009 16:47:29 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Christensen, Mikkel" <mlc@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: linux-omap <linux-omap@vger.kernel.org>
+Cc: Tony <tony@atomide.com>, Nishanth Menon <nm@ti.com>
 
+Rename the 3430sdp and ldp defconfig to make
+names to make them collected with omap3 filenames
 
------Original Message-----
-From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Christensen, Mikkel
-Sent: Monday, April 20, 2009 3:28 PM
-To: linux-omap@vger.kernel.org
-Subject: LDP broken in 2.6.30-rc 2
+Signed-off-by: Nishanth Menon <nm@ti.com>
+---
+ ...p_3430sdp_defconfig => omap3_3430sdp_defconfig} |    0 
+ .../{omap_ldp_defconfig => omap3_zoom1_defconfig}  |    0 
+ 2 files changed, 0 insertions(+), 0 deletions(-)
+ rename arch/arm/configs/{omap_3430sdp_defconfig => omap3_3430sdp_defconfig} (100%)
+ rename arch/arm/configs/{omap_ldp_defconfig => omap3_zoom1_defconfig} (100%)
 
-
->I cloned master a few days ago and when I boot up the OMAP3 LDP, the board >seem to hang in the "i2c /dev entries driver" dialog and after a minute the >kernel dumps. Have anybody else seen this problem?
-
- I found that the commit "92f00c2fa10629bad7206cd613d3b3357c8d6a81 - Extra omap code in linux-omap tree" breaks the LDP bootup.
-
-Best regards,
- Mikkel
-
+diff --git a/arch/arm/configs/omap_3430sdp_defconfig b/arch/arm/configs/omap3_3430sdp_defconfig
+similarity index 100%
+rename from arch/arm/configs/omap_3430sdp_defconfig
+rename to arch/arm/configs/omap3_3430sdp_defconfig
+diff --git a/arch/arm/configs/omap_ldp_defconfig b/arch/arm/configs/omap3_zoom1_defconfig
+similarity index 100%
+rename from arch/arm/configs/omap_ldp_defconfig
+rename to arch/arm/configs/omap3_zoom1_defconfig
+-- 
+1.5.4.3
 
