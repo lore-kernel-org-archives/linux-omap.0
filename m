@@ -1,135 +1,88 @@
-From: Tomi Valkeinen <tomi.valkeinen@nokia.com>
-Subject: [PATCH] OMAP2/3: DMA: implement trans copy and const fill
-Date: Wed, 22 Apr 2009 10:14:38 +0300
-Message-ID: <1240384478-9626-1-git-send-email-tomi.valkeinen@nokia.com>
+From: pramod gurav <pramodforum@gmail.com>
+Subject: Re: dma_alloc_coherent fragmentation
+Date: Wed, 22 Apr 2009 13:16:34 +0530
+Message-ID: <f502236f0904220046s50ff816cse752798deb895759@mail.gmail.com>
+References: <DFEF307E035C8647B119E6A60DB62D4A01793E6773@dlee02.ent.ti.com>
+	 <20090319.084248.183029086.Hiroshi.DOYU@nokia.com>
+	 <7A436F7769CA33409C6B44B358BFFF0CFF643980@dlee02.ent.ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:54111 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751126AbZDVHQV (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 22 Apr 2009 03:16:21 -0400
-Received: from esebh106.NOE.Nokia.com (esebh106.ntc.nokia.com [172.21.138.213])
-	by mgw-mx09.nokia.com (Switch-3.2.6/Switch-3.2.6) with ESMTP id n3M7FsKh023832
-	for <linux-omap@vger.kernel.org>; Wed, 22 Apr 2009 02:16:20 -0500
+Received: from an-out-0708.google.com ([209.85.132.245]:16653 "EHLO
+	an-out-0708.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752176AbZDVHqf convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 22 Apr 2009 03:46:35 -0400
+Received: by an-out-0708.google.com with SMTP id d40so1493315and.1
+        for <linux-omap@vger.kernel.org>; Wed, 22 Apr 2009 00:46:34 -0700 (PDT)
+In-Reply-To: <7A436F7769CA33409C6B44B358BFFF0CFF643980@dlee02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Tomi Valkeinen <tomi.valkeinen@nokia.com>
+To: "Menon, Nishanth" <nm@ti.com>
+Cc: linux-omap@vger.kernel.org
 
-Implement transparent copy and constant fill features for OMAP2/3.
+Hi Nishant,
+I am facing the same problem to allocate a chunk of 4MB on omap3evm
+using dma_alloc_coherent. I used the test driver mentioned here
+http://www.mail-archive.com/linux-omap@vger.kernel.org/msg11074.html
 
-Signed-off-by: Tomi Valkeinen <tomi.valkeinen@nokia.com>
----
- arch/arm/plat-omap/dma.c              |   81 +++++++++++++++++++++------------
- arch/arm/plat-omap/include/mach/dma.h |    1 +
- 2 files changed, 52 insertions(+), 30 deletions(-)
+I applied the patch for
+ioremap(24f11ec001920f1cfaeeed8e8b55725d900bbb56) suggested by
+Russell, but stiill seeing the error saying
 
-diff --git a/arch/arm/plat-omap/dma.c b/arch/arm/plat-omap/dma.c
-index 3fd0e77..060ac71 100755
---- a/arch/arm/plat-omap/dma.c
-+++ b/arch/arm/plat-omap/dma.c
-@@ -310,41 +310,62 @@ EXPORT_SYMBOL(omap_set_dma_transfer_params);
- 
- void omap_set_dma_color_mode(int lch, enum omap_dma_color_mode mode, u32 color)
- {
--	u16 w;
--
- 	BUG_ON(omap_dma_in_1510_mode());
- 
--	if (cpu_class_is_omap2()) {
--		REVISIT_24XX();
--		return;
--	}
-+	if (cpu_class_is_omap1()) {
-+		u16 w;
- 
--	w = dma_read(CCR2(lch));
--	w &= ~0x03;
-+		w = dma_read(CCR2(lch));
-+		w &= ~0x03;
- 
--	switch (mode) {
--	case OMAP_DMA_CONSTANT_FILL:
--		w |= 0x01;
--		break;
--	case OMAP_DMA_TRANSPARENT_COPY:
--		w |= 0x02;
--		break;
--	case OMAP_DMA_COLOR_DIS:
--		break;
--	default:
--		BUG();
-+		switch (mode) {
-+		case OMAP_DMA_CONSTANT_FILL:
-+			w |= 0x01;
-+			break;
-+		case OMAP_DMA_TRANSPARENT_COPY:
-+			w |= 0x02;
-+			break;
-+		case OMAP_DMA_COLOR_DIS:
-+			break;
-+		default:
-+			BUG();
-+		}
-+		dma_write(w, CCR2(lch));
-+
-+		w = dma_read(LCH_CTRL(lch));
-+		w &= ~0x0f;
-+		/* Default is channel type 2D */
-+		if (mode) {
-+			dma_write((u16)color, COLOR_L(lch));
-+			dma_write((u16)(color >> 16), COLOR_U(lch));
-+			w |= 1;		/* Channel type G */
-+		}
-+		dma_write(w, LCH_CTRL(lch));
- 	}
--	dma_write(w, CCR2(lch));
- 
--	w = dma_read(LCH_CTRL(lch));
--	w &= ~0x0f;
--	/* Default is channel type 2D */
--	if (mode) {
--		dma_write((u16)color, COLOR_L(lch));
--		dma_write((u16)(color >> 16), COLOR_U(lch));
--		w |= 1;		/* Channel type G */
-+	if (cpu_class_is_omap2()) {
-+		u32 val;
-+
-+		val = dma_read(CCR(lch));
-+		val &= ~((1 << 17) | (1 << 16));
-+
-+		switch (mode) {
-+		case OMAP_DMA_CONSTANT_FILL:
-+			val |= 1 << 16;
-+			break;
-+		case OMAP_DMA_TRANSPARENT_COPY:
-+			val |= 1 << 17;
-+			break;
-+		case OMAP_DMA_COLOR_DIS:
-+			break;
-+		default:
-+			BUG();
-+		}
-+		dma_write(val, CCR(lch));
-+
-+		color &= 0xffffff;
-+		dma_write(color, COLOR(lch));
- 	}
--	dma_write(w, LCH_CTRL(lch));
- }
- EXPORT_SYMBOL(omap_set_dma_color_mode);
- 
-diff --git a/arch/arm/plat-omap/include/mach/dma.h b/arch/arm/plat-omap/include/mach/dma.h
-index 224b077..4e34f47 100644
---- a/arch/arm/plat-omap/include/mach/dma.h
-+++ b/arch/arm/plat-omap/include/mach/dma.h
-@@ -144,6 +144,7 @@
- #define OMAP_DMA4_CSSA_U(n)		0
- #define OMAP_DMA4_CDSA_L(n)		0
- #define OMAP_DMA4_CDSA_U(n)		0
-+#define OMAP1_DMA_COLOR(n)		0
- 
- /*----------------------------------------------------------------------------*/
- 
--- 
-1.6.1.2
+coherent allocation too big (requested 0x400000 mask 0xffffffff)
+alloc[0] - virt=3D0x00000000 phy=3D0xFFFFFFFF size=3D0x00400000
+Allocation failed idx=3D0
+insmod: cannot insert `dummy.ko': Cannot allocate memory (-1): Cannot
+allocate memory
 
+I changed the GFP_KERNEL to GFP_TEMPORARY and also to (GFP_KERNEL |
+__GFP_RECLAIMABLE), but failed to insmod the module.
+I am working on linux-omap 2.6.28 kernel. Even I could not allocate
+memory size greater than 1MB.
+Has this been fixed? Are there any patches to fix this issue?
+
+On Thu, Mar 19, 2009 at 2:36 PM, Menon, Nishanth <nm@ti.com> wrote:
+> Hi Hiroshi,
+>> -----Original Message-----
+>> From: Hiroshi DOYU [mailto:Hiroshi.DOYU@nokia.com]
+>> Sent: Thursday, March 19, 2009 8:43 AM
+>
+>>
+>>
+>> What would happen with __GFP_RECLAIMABLE for dma_alloc_coherent()?
+> As per [1], GFP_TEMPORARY might be the right approach.. but yes,
+> Changing dummy to do:
+> dma_alloc_coherent(NULL, b[i].size, &b[i].phy, GFP_TEMPORARY);
+>
+> Seems to resolve the issue with the dummy driver.
+>
+> The question however still remains: For a driver to allocate a memory=
+ which is not temporary in nature we'd recommend GFP_KERNEL. But as par=
+t of the exit sequence the driver will deallocate that memory and as pa=
+rt of init sequence, reallocate. Given that the memory is not reclaimed=
+ immediately, it looks like the only way to ensure that would be to do =
+GFP_KERNEL | __GFP_RECLAIMABLE (which essentially is the definition of =
+GFP_TEMPORARY).
+>
+> Regards,
+> Nishanth Menon
+> Ref:
+> [1] http://lkml.indiana.edu/hypermail/linux/kernel/0705.2/0638.html
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap"=
+ in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at =A0http://vger.kernel.org/majordomo-info.html
+>
+
+
+
+--=20
+Best Regards
+Pramod
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
