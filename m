@@ -1,17 +1,18 @@
 From: "Peter 'p2' De Schrijver" <peter.de-schrijver@nokia.com>
 Subject: [PATCH] TWL4030: Make sure the regulator is active after calling twl4030reg_enable
-Date: Wed, 22 Apr 2009 16:43:53 +0300
-Message-ID: <1240407833-28060-2-git-send-email-peter.de-schrijver@nokia.com>
+Date: Wed, 22 Apr 2009 17:03:35 +0300
+Message-ID: <1240409015-2940-2-git-send-email-peter.de-schrijver@nokia.com>
 References: <1240407833-28060-1-git-send-email-peter.de-schrijver@nokia.com>
+ <1240409015-2940-1-git-send-email-peter.de-schrijver@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:17783 "EHLO
+Received: from smtp.nokia.com ([192.100.122.230]:20524 "EHLO
 	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752649AbZDVNpS (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 22 Apr 2009 09:45:18 -0400
-Received: from vaebh105.NOE.Nokia.com (vaebh105.europe.nokia.com [10.160.244.31])
-	by mgw-mx03.nokia.com (Switch-3.2.6/Switch-3.2.6) with ESMTP id n3MDj9RM021126
-	for <linux-omap@vger.kernel.org>; Wed, 22 Apr 2009 16:45:13 +0300
-In-Reply-To: <1240407833-28060-1-git-send-email-peter.de-schrijver@nokia.com>
+	with ESMTP id S1750860AbZDVODv (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 22 Apr 2009 10:03:51 -0400
+Received: from vaebh106.NOE.Nokia.com (vaebh106.europe.nokia.com [10.160.244.32])
+	by mgw-mx03.nokia.com (Switch-3.2.6/Switch-3.2.6) with ESMTP id n3ME3Twc031888
+	for <linux-omap@vger.kernel.org>; Wed, 22 Apr 2009 17:03:47 +0300
+In-Reply-To: <1240409015-2940-1-git-send-email-peter.de-schrijver@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
