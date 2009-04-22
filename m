@@ -1,39 +1,102 @@
-From: Jarkko Nikula <jarkko.nikula@nokia.com>
-Subject: Re: [PATCH] ARM: OMAP: Update contact address of I2C registration
- helper
-Date: Wed, 22 Apr 2009 08:49:15 +0300
-Message-ID: <20090422084915.925390af.jarkko.nikula@nokia.com>
-References: <1239966905-24040-1-git-send-email-jarkko.nikula@nokia.com>
-	<20090417144740.GA15602@kos.to>
+From: "Shah, Hardik" <hardik.shah@ti.com>
+Subject: RE: [PATCH 0/3] V4L2 driver for OMAP2/3 with new CIDs.
+Date: Wed, 22 Apr 2009 11:53:54 +0530
+Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB03051F7F1B@dbde02.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:43688 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751929AbZDVFsj (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 22 Apr 2009 01:48:39 -0400
-In-Reply-To: <20090417144740.GA15602@kos.to>
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
-To: ext Riku Voipio <riku.voipio@iki.fi>
+Content-Transfer-Encoding: 7BIT
+Return-path: <linux-media-owner@vger.kernel.org>
+Content-Language: en-US
+Sender: linux-media-owner@vger.kernel.org
+To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
 Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+List-Id: linux-omap@vger.kernel.org
 
-On Fri, 17 Apr 2009 16:47:41 +0200
-ext Riku Voipio <riku.voipio@iki.fi> wrote:
+Hi All,
 
-> On Fri, Apr 17, 2009 at 02:15:05PM +0300, Jarkko Nikula wrote:
-> > This email address is going to expire soon so update it.
+> -----Original Message-----
+> From: Shah, Hardik
+> Sent: Friday, March 20, 2009 10:49 AM
+> To: linux-media@vger.kernel.org
+> Cc: linux-omap@vger.kernel.org
+> Subject: [PATCH 0/3] V4L2 driver for OMAP2/3 with new CIDs.
 > 
-> You'll want to send this to the "trivial changes" git tree by Jiri
-> Kosina
+> Hi All,
+> I will be posting series of three patches for the V4L2 driver on the OMAP2/3
+> DSS.
 > 
-True. I was actually thinking to send these via LKML for 2.6.31 but end
-up sending via subsystems so that contact is correct before merge
-window is open for 2.6.31.
+> Patch 1 -
+> This is the second revision of the patch.
+> Documentation added for the following new CIDs and bit fields added in V4L2
+> framework.
+> 
+> V4L2_CID_BG_COLOR: Added new CID for setting of the back ground color on the
+> output device.
+> V4L2_CID_ROTATION: Added new CID for setting up of the rotation on the device.
+> Both of the above ioctls are discussed in detail.
+> 
+> V4L2_FBUF_FLAG_SRC_CHROMAKEY: Added the flags bit field to the flags field of
+> the v4l2_framebuffer structure for supporting the source chroma keying.  It's
+> exactly opposite of the chroma keying supported with the flag
+> V4L2_FBUF_FLAG_CHROMAKEY.
+> 
+> V4L2_FBUF_CAP_SRC_CHROMAKEY:  Added the capability bit field for the
+> capability field of the v4l2_framebuffer structure.
+> 
+> Documentation change related to the new bit field for the source chroma keying
+> is new from the previous version.
 
-But this is now up to Tony as accident already happened and since
-corresponding patches are already going via ASoC and linux-usb.
+
+[Shah, Hardik] No comment, on the earlier one.  So not sending it again.  Previous patch can be found at http://patchwork.kernel.org/patch/16519/
+
+> 
+> Patch 2 -
+> Added New Control IDs for OMAP class of Devices as discussed above.  This is
+> the third revision of the patch of adding the new control IDs and bit fields.
+> 
+> V4L2_FBUF_CAP_SRC_CHROMAKEY and V4L2_FBUF_FLAG_SRC_CHROMAKEY are newly added
+> compared to previous revision of patch.
+> 
+> New Ioctl for programming the color space conversion matrix is dropped from
+> this patch as the accompanying driver with this patch is not still having
+> implementation for the same.  Related documentation is also removed.
+> 
+> I will submit a separate patch for that with the necessary changes in driver
+> to support the programming of the color space conversion. Some changes are
+> required in DSS2 library also for doing the same.
+
+[Shah, Hardik] No comments received on this either. Not sending the patches again.  Previous patch can be found at http://patchwork.kernel.org/patch/16520/
+
+> 
+> Patch 3 -
+> This is a review patch since the DSS2 library is still to be accepted in
+> community
+> This is the third revision of the patch.
+> This patch contains the V4L2 driver on the OMAP3 DSS2 using all of the above
+> newly implemented CIDS and bit fields.  Following are the changes in the
+> driver compared to the previous version.
+> 
+> 1.  Added the chroma keying support.
+> 2.  Added alpha blending support.
+> 3.  Minor community comment fixed.
+> 4.  Ported to work with Tomi's latest DSS2 library with minor modification in
+> DSS2 library.  Path to Tomi's DSS2 library is
+> http://www.bat.org/~tomba/git/linux-omap-dss.git/ commit id
+> bc6dc4c7fabb8ba3bfe637a6c5dc271595a1bef6
+
+[Shah, Hardik] I am re-submitting the 3rd patch of this series with the bunch of community comments fixed specially from Hans.  This patch includes some new features like flip and yuv rotation.  Also the patch is rebased on the latest Tomi git tree.  Patch is tested on OMAP3evm board.  Board specific porting needs to be done on other boards.
+
+Tomi git tree with commit id on which this patch is based.
+http://www.bat.org/~tomba/git/linux-omap-dss.git/
+0f88992b2681aed4f31dc7dd3926b357bbc95154. 
+DSS2: DSI: decrease sync timeout from 60s to 2s
 
 
-Jarkko
+This is still a review patch since the DSS2 library is not submitted. 
+> All the comments and inputs are welcomed.
+> 
+> Thanks and Regards
+> Hardik Shah
+> 
+> 
+
