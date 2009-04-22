@@ -1,158 +1,34 @@
-From: twebb <taliaferro62@gmail.com>
-Subject: trouble with alsa, wolfson, and TI OMAP35xx McBSP
-Date: Wed, 22 Apr 2009 13:58:01 -0400
-Message-ID: <dbdb2ea60904221058w67b775f3occ07f55938fe4d03@mail.gmail.com>
+From: "Menon, Nishanth" <nm@ti.com>
+Subject: RE: trouble with alsa, wolfson, and TI OMAP35xx McBSP
+Date: Wed, 22 Apr 2009 13:05:40 -0500
+Message-ID: <7A436F7769CA33409C6B44B358BFFF0C0106373FD4@dlee02.ent.ti.com>
+References: <dbdb2ea60904221058w67b775f3occ07f55938fe4d03@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary=000e0cd56b48245abf0468288109
+Content-Type: text/plain; charset="Windows-1252"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from yw-out-2324.google.com ([74.125.46.31]:58885 "EHLO
-	yw-out-2324.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751603AbZDVR6C (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 22 Apr 2009 13:58:02 -0400
-Received: by yw-out-2324.google.com with SMTP id 5so62813ywb.1
-        for <linux-omap@vger.kernel.org>; Wed, 22 Apr 2009 10:58:01 -0700 (PDT)
+Received: from comal.ext.ti.com ([198.47.26.152]:52931 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751929AbZDVSFt convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 22 Apr 2009 14:05:49 -0400
+In-Reply-To: <dbdb2ea60904221058w67b775f3occ07f55938fe4d03@mail.gmail.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "linux-omap@vger.kernel.org Mailing List" <linux-omap@vger.kernel.org>, alsa-devel@alsa-project.org
+To: twebb <taliaferro62@gmail.com>, "linux-omap@vger.kernel.org Mailing List" <linux-omap@vger.kernel.org>, "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>
 
---000e0cd56b48245abf0468288109
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: quoted-printable
+> -----Original Message-----
+> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
+> owner@vger.kernel.org] On Behalf Of twebb
+> Sent: Wednesday, April 22, 2009 12:58 PM
 
-I'm having difficulties getting a Wolfson codec running on McBSP1 of
-an OMAP 35xx.  Here are the particulars:
+> Problem 2:
+> Test tone is being presented by the user application, providing a 1Khz
+> tone sampled at 44.1Khz. The data are S16_LE, right channel only. Left
+> channel is quiet. The data seems to slip back and forth from left to
+> right channel. This is reproducable and verified with a scope trace.
+I recollect this issue from years back of OSS driver -> i2s is configured as dual phase - mcbsp sends data on both edges, and if the data write happen on the wrong edge for the wrong phase, we might get mix up.. if I recollect right, configuration for mcbsp was done as a single phase with the right edge as a trigger for transfer, the transfer size was set as 32 bytes (both channels).. this essentially guarentees that mcbsp will never mix up channels.
 
-1) Using Linux kernel 2.6.27-omap1, with an ALSA sound driver ported
-from a Wolfson supplied source tree labeled 2.6.29 (=93dev=94 branch)
-2) Using the TI OMAP3530 SOC married to a Wolfson WM8978 codec via
-McBSP1. I2C control, I2S pcm data.
-3) We are running the codec digital block at 1.8V and the analog block at 3=
-.3V
-4) The WM8978 codec is synthesizing FCLK and BCLK, codec is the
-master. McBsp is the slave.
-5) FCLK=3D44.1KHz, BCLK=3D 32 * FCLK, MCLK =3D 13Mhz
-6) Framing is I2S stereo, 16 bit word
+Regards,
+Nishanth Menon
 
-I'm seeing two main problems:
-
-Problem 1:
-The WM8978 sample rate PLL does not seem to be stable while DCVDD =3D
-DBVDD =3D 1.8V.  FCLK mean =3D 44.5KHz and jittering. Increasing DCVDD and
-DBVDD voltage above 2V increases PLL stability. We have a workaround
-for this for now.
-
-Problem 2:
-Test tone is being presented by the user application, providing a 1Khz
-tone sampled at 44.1Khz. The data are S16_LE, right channel only. Left
-channel is quiet. The data seems to slip back and forth from left to
-right channel. This is reproducable and verified with a scope trace.
-
-Anybody have any ideas what might be going wrong here?  Traces for
-codec reg dump and mcbsp are attached.
-
-Thanks,
-twebb
-
---000e0cd56b48245abf0468288109
-Content-Type: text/plain; charset=US-ASCII; name="codec_regs.txt"
-Content-Disposition: attachment; filename="codec_regs.txt"
-Content-Transfer-Encoding: base64
-X-Attachment-Id: f_ftuby5ql0
-
-b21hcDJfZG1hX2hhbmRsZV9jaDogbmV3IERNQSBJUlEgZm9yIGxjaCAwDQpXTTg5NzggcmVnaXN0
-ZXJzDQogMDogICAgMA0KIDE6ICAxZmQNCiAyOiAgMWJmDQogMzogIDFlZg0KIDQ6ICAgMTANCiA1
-OiAgICAwDQogNjogIDE2ZA0KIDc6ICAgIDANCiA4OiAgICAwDQogOTogICAgMA0KIGE6ICAgNDAN
-CiBiOiAgIGZmDQogYzogICBmZg0KIGQ6ICAgIDANCiBlOiAgMTAwDQogZjogICBmZg0KMTA6ICAg
-ZmYNCjExOiAgICAwDQoxMjogIDEyYw0KMTM6ICAgMmMNCjE0OiAgIDJjDQoxNTogICAyYw0KMTY6
-ICAgMmMNCjE3OiAgICAwDQoxODogICAzMg0KMTk6ICAgIDANCjFhOiAgICAwDQoxYjogICAgMA0K
-MWM6ICAgIDANCjFkOiAgICAwDQoxZTogICAgMA0KMWY6ICAgIDANCjIwOiAgIDM4DQoyMTogICAg
-Yg0KMjI6ICAgMzINCjIzOiAgICAwDQoyNDogICAgYQ0KMjU6ICAgMWENCjI2OiAgMWU4DQoyNzog
-IDFiZg0KMjg6ICAgIDANCjI5OiAgICAwDQoyYTogICAgMA0KMmI6ICAgIDANCjJjOiAgIDMzDQoy
-ZDogICAxMA0KMmU6ICAgMTANCjJmOiAgMTAwDQozMDogIDEwMA0KMzE6ICAgIDINCjMyOiAgICAx
-DQozMzogICAgMQ0KMzQ6ICAgMzkNCjM1OiAgIDM5DQozNjogICAzOQ0KMzc6ICAgMzkNCjM4OiAg
-ICAxDQozOTogICAgMQ0K
---000e0cd56b48245abf0468288109
-Content-Type: text/plain; charset=US-ASCII; name="mcbsp_trace.txt"
-Content-Disposition: attachment; filename="mcbsp_trace.txt"
-Content-Transfer-Encoding: base64
-X-Attachment-Id: f_ftuby5ql1
-
-DQo8Nj5vbWFwX21jYnNwX2RhaV9zdGFydHVwOiBjcHVfZGFpX2FjdGl2ZTogMCBjcHVfZGFpOmMw
-MzUxOTAwIGMwMzlhNzFjIG1jYnNwX2RhdGEtPmJ1c19pZCA9IDAgZXJyID0gMA0Kb21hcF9tY2Jz
-cF9kYWlfc3RhcnR1cDogY3B1X2RhaV9hY3RpdmU6IDAgY3B1X2RhaTpjMDM1MTkwMCBjMDM5YTcx
-YyBtY2JzcF9kYXRhLT5idXNfaWQgPSAwIGVyciA9IDANCjw2Pm9tYXBfbWNic3BfcmVxdWVzdDog
-aWQgPSAwDQpvbWFwX21jYnNwX3JlcXVlc3Q6IGlkID0gMA0KPDY+b21hcDJfbWNic3BfcmVxdWVz
-dDogaWQgPSAwDQpvbWFwMl9tY2JzcF9yZXF1ZXN0OiBpZCA9IDANCjw2Pm9tYXBfbWNic3BfcmVx
-dWVzdDogcmV0dXJucyAwDQpvbWFwX21jYnNwX3JlcXVlc3Q6IHJldHVybnMgMA0Kd204OTc4X3dy
-aXRlOiBhZGRyOiAweDA2ICg2KSB2YWw6IDE2ZA0Kd204OTc4X3dyaXRlOiBhZGRyOiAweDA2ICg2
-KSB2YWw6IDE2ZA0Kd204OTc4X3dyaXRlOiBhZGRyOiAweDA0ICg0KSB2YWw6IDAxMA0Kd204OTc4
-X3dyaXRlOiBhZGRyOiAweDA0ICg0KSB2YWw6IDAxMA0KPDY+b21hcF9tY2JzcF9kYWlfc2V0X2Zt
-dDogZm9ybWF0OiAwMDAwMDAwMCBkYWkgZm9ybWF0OiBTTkRfU09DX0RBSUZNVF9JMlMNCm9tYXBf
-bWNic3BfZGFpX3NldF9mbXQ6IGZvcm1hdDogMDAwMDAwMDAgZGFpIGZvcm1hdDogU05EX1NPQ19E
-QUlGTVRfSTJTDQo8Nj5zbmRfc29jX3NldF9wbGw6IDExMjg5NjAwDQpzbmRfc29jX3NldF9wbGw6
-IDExMjg5NjAwDQp3bTg5Nzhfd3JpdGU6IGFkZHI6IDB4MjQgKDM2KSB2YWw6IDAwYQ0Kd204OTc4
-X3dyaXRlOiBhZGRyOiAweDI0ICgzNikgdmFsOiAwMGENCndtODk3OF93cml0ZTogYWRkcjogMHgy
-NSAoMzcpIHZhbDogMDFhDQp3bTg5Nzhfd3JpdGU6IGFkZHI6IDB4MjUgKDM3KSB2YWw6IDAxYQ0K
-d204OTc4X3dyaXRlOiBhZGRyOiAweDI2ICgzOCkgdmFsOiAxZTgNCndtODk3OF93cml0ZTogYWRk
-cjogMHgyNiAoMzgpIHZhbDogMWU4DQp3bTg5Nzhfd3JpdGU6IGFkZHI6IDB4MjcgKDM5KSB2YWw6
-IDFiZg0Kd204OTc4X3dyaXRlOiBhZGRyOiAweDI3ICgzOSkgdmFsOiAxYmYNCjw2PndtODk3OF9z
-ZXRfZGFpX2Nsa2RpdjogZGl2X2lkID0gV004OTc4X01DTEtESVYgZGl2ID0gMDA2MA0Kd204OTc4
-X3NldF9kYWlfY2xrZGl2OiBkaXZfaWQgPSBXTTg5NzhfTUNMS0RJViBkaXYgPSAwMDYwDQp3bTg5
-Nzhfd3JpdGU6IGFkZHI6IDB4MDYgKDYpIHZhbDogMTZkDQp3bTg5Nzhfd3JpdGU6IGFkZHI6IDB4
-MDYgKDYpIHZhbDogMTZkDQo8Nj53bTg5Nzhfc2V0X2RhaV9jbGtkaXY6IGRpdl9pZCA9IFdNODk3
-OF9CQ0xLRElWIGRpdiA9IDAwMGMNCndtODk3OF9zZXRfZGFpX2Nsa2RpdjogZGl2X2lkID0gV004
-OTc4X0JDTEtESVYgZGl2ID0gMDAwYw0Kd204OTc4X3dyaXRlOiBhZGRyOiAweDA2ICg2KSB2YWw6
-IDE2ZA0Kd204OTc4X3dyaXRlOiBhZGRyOiAweDA2ICg2KSB2YWw6IDE2ZA0Kd204OTc4X3dyaXRl
-OiBhZGRyOiAweDAxICgxKSB2YWw6IDFmZA0Kd204OTc4X3dyaXRlOiBhZGRyOiAweDAxICgxKSB2
-YWw6IDFmZA0KPDY+d204OTc4X3NldF9kYWlfY2xrZGl2OiBkaXZfaWQgPSBXTTg5NzhfTUNMS1NF
-TCBkaXYgPSAwMTAwDQp3bTg5Nzhfc2V0X2RhaV9jbGtkaXY6IGRpdl9pZCA9IFdNODk3OF9NQ0xL
-U0VMIGRpdiA9IDAxMDANCndtODk3OF93cml0ZTogYWRkcjogMHgwNiAoNikgdmFsOiAxNmQNCndt
-ODk3OF93cml0ZTogYWRkcjogMHgwNiAoNikgdmFsOiAxNmQNCjw2Pm9tYXBfbWNic3BfZGFpX3Nl
-dF9kYWlfc3lzY2xrOiBjbGtfaWQgPSBPTUFQX01DQlNQX1NZU0NMS19DTEtYX0VYVA0Kb21hcF9t
-Y2JzcF9kYWlfc2V0X2RhaV9zeXNjbGs6IGNsa19pZCA9IE9NQVBfTUNCU1BfU1lTQ0xLX0NMS1hf
-RVhUDQo8Nj5vbWFwX21jYnNwX2RhaV9zZXRfY2xrZGl2Og0Kb21hcF9tY2JzcF9kYWlfc2V0X2Ns
-a2RpdjoNCndtODk3OF93cml0ZTogYWRkcjogMHgwNCAoNCkgdmFsOiAwMTANCndtODk3OF93cml0
-ZTogYWRkcjogMHgwNCAoNCkgdmFsOiAwMTANCndtODk3OF93cml0ZTogYWRkcjogMHgwNyAoNykg
-dmFsOiAwMDANCndtODk3OF93cml0ZTogYWRkcjogMHgwNyAoNykgdmFsOiAwMDANCjw2Pm9tYXBf
-bWNic3BfZGFpX2h3X3BhcmFtczoNCm9tYXBfbWNic3BfZGFpX2h3X3BhcmFtczoNCjw2Pm9tYXBf
-bWNic3BfZGFpX2h3X3BhcmFtczogY2hhbm5lbHMgPSAyDQpvbWFwX21jYnNwX2RhaV9od19wYXJh
-bXM6IGNoYW5uZWxzID0gMg0KPDY+b21hcF9tY2JzcF9jb25maWc6IGlkID0gMA0Kb21hcF9tY2Jz
-cF9jb25maWc6IGlkID0gMA0KPDc+b21hcC1tY2JzcCBvbWFwLW1jYnNwLjE6IENvbmZpZ3VyaW5n
-IE1jQlNQMSAgcGh5c19iYXNlOiAweDQ4MDc0MDAwDQo8ND5vbWFwX3BjbV9wcmVwYXJlOiBlbmFi
-bGUgaXJxIGZvciBkbWFfY2ggMA0Kb21hcF9wY21fcHJlcGFyZTogZW5hYmxlIGlycSBmb3IgZG1h
-X2NoIDANCndtODk3OF93cml0ZTogYWRkcjogMHgwMSAoMSkgdmFsOiAxZmQNCndtODk3OF93cml0
-ZTogYWRkcjogMHgwMSAoMSkgdmFsOiAxZmQNCndtODk3OF93cml0ZTogYWRkcjogMHgwMiAoMikg
-dmFsOiAxYmYNCndtODk3OF93cml0ZTogYWRkcjogMHgwMiAoMikgdmFsOiAxYmYNCndtODk3OF93
-cml0ZTogYWRkcjogMHgwMyAoMykgdmFsOiAxZWYNCndtODk3OF93cml0ZTogYWRkcjogMHgwMyAo
-MykgdmFsOiAxZWYNCndtODk3OF93cml0ZTogYWRkcjogMHgwYSAoMTApIHZhbDogMDAwDQp3bTg5
-Nzhfd3JpdGU6IGFkZHI6IDB4MGEgKDEwKSB2YWw6IDAwMA0KPDY+b21hcF9tY2JzcF9kYWlfdHJp
-Z2dlcjogY21kID0gU05EUlZfUENNX1RSSUdHRVJfU1RBUlQNCm9tYXBfbWNic3BfZGFpX3RyaWdn
-ZXI6IGNtZCA9IFNORFJWX1BDTV9UUklHR0VSX1NUQVJUDQo8Nj5vbWFwX21jYnNwX3N0YXJ0OiBp
-ZCA9IDANCm9tYXBfbWNic3Bfc3RhcnQ6IGlkID0gMA0KPDc+b21hcC1tY2JzcCBvbWFwLW1jYnNw
-LjE6ICoqKiogTWNCU1AxIHJlZ3MgKioqKg0KPDc+b21hcC1tY2JzcCBvbWFwLW1jYnNwLjE6IERS
-UjI6ICAweGZmZjcNCjw3Pm9tYXAtbWNic3Agb21hcC1tY2JzcC4xOiBEUlIxOiAgMHgwMDAwDQo8
-Nz5vbWFwLW1jYnNwIG9tYXAtbWNic3AuMTogRFhSMjogIDB4MDAwMA0KPDc+b21hcC1tY2JzcCBv
-bWFwLW1jYnNwLjE6IERYUjE6ICAweDAwMDANCjw3Pm9tYXAtbWNic3Agb21hcC1tY2JzcC4xOiBT
-UENSMjogMHgwMmY1DQo8Nz5vbWFwLW1jYnNwIG9tYXAtbWNic3AuMTogU1BDUjE6IDB4MDAzNw0K
-PDc+b21hcC1tY2JzcCBvbWFwLW1jYnNwLjE6IFJDUjI6ICAweDgwNDENCjw3Pm9tYXAtbWNic3Ag
-b21hcC1tY2JzcC4xOiBSQ1IxOiAgMHgwMDQwDQo8Nz5vbWFwLW1jYnNwIG9tYXAtbWNic3AuMTog
-WENSMjogIDB4ODA0MQ0KPDc+b21hcC1tY2JzcCBvbWFwLW1jYnNwLjE6IFhDUjE6ICAweDAwNDAN
-Cjw3Pm9tYXAtbWNic3Agb21hcC1tY2JzcC4xOiBTUkdSMjogMHgyMDFmDQo8Nz5vbWFwLW1jYnNw
-IG9tYXAtbWNic3AuMTogU1JHUjE6IDB4MGYwMQ0KPDc+b21hcC1tY2JzcCBvbWFwLW1jYnNwLjE6
-IFBDUjA6ICAweDAwOGYNCjw3Pm9tYXAtbWNic3Agb21hcC1tY2JzcC4xOiAqKioqKioqKioqKioq
-KioqKioqKioqKg0KPDY+b21hcF9tY2JzcF9kYWlfdHJpZ2dlcjogcmV0dXJuIDANCm9tYXBfbWNi
-c3BfZGFpX3RyaWdnZXI6IHJldHVybiAwDQo8ND5fX3JhdGVsaW1pdDogMjAgY2FsbGJhY2tzIHN1
-cHByZXNzZWQNCl9fcmF0ZWxpbWl0OiAyMCBjYWxsYmFja3Mgc3VwcHJlc3NlZA0KPDQ+b21hcDJf
-ZG1hX2hhbmRsZV9jaDogbmV3IERNQSBJUlEgZm9yIGxjaCAwDQpvbWFwMl9kbWFfaGFuZGxlX2No
-OiBuZXcgRE1BIElSUSBmb3IgbGNoIDANCjw0Pm9tYXBfcGNtX2RtYV9pcnE6IGRtYV9jaCAwDQpv
-bWFwX3BjbV9kbWFfaXJxOiBkbWFfY2ggY2JzcF9kYWlfdHJpZ2dlcjogY21kID0gU05EUlZfUENN
-X1RSSUdHRVJfU1RPUA0Kb21hcF9tY2JzcF9kYWlfdHJpZ2dlcjogY21kID0gU05EUlZfUENNX1RS
-SUdHRVJfU1RPUA0KPDY+b21hcF9tY2JzcF9zdG9wOiBpZCA9IDANCm9tYXBfbWNic3Bfc3RvcDog
-aWQgPSAwDQo8Nj5vbWFwX21jYnNwX2RhaV90cmlnZ2VyOiByZXR1cm4gMA0Kb21hcF9tY2JzcF9k
-YWlfdHJpZ2dlcjogcmV0dXJuIDANCjw0Pm9tYXAyX2RtYV9oYW5kbGVfY2g6IG5ldyBETUEgSVJR
-IGZvciBsY2ggMA0Kb21hcDJfZG1hX2hhbmRsZV9jaDogbmV3IERNQSBJUlEgZm9yIGxjaCAwDQo8
-ND5vbWFwX3BjbV9kbWFfaXJxOiBkbWFfY2ggMA0Kb21hcF9wY21fZG1hX2lycTogZG1hX2NoIDAN
-Cjw0Pm9tYXBfcGNtX3ByZXBhcmU6IGVuYWJsZSBpcnEgZm9yIGRtYV9jaCAwDQpvbWFwX3BjbV9w
-cmVwYXJlOiBlbmFibGUgaXJxIGZvciBkbWFfY2ggMA0Kd204OTc4X3dyaXRlOiBhZGRyOiAweDBh
-ICgxMCkgdmFsOiAwMDANCndtODk3OF93cml0ZTogYWRkcjogMHgwYSAoMTApIHZhbDogMDAwDQo=
---000e0cd56b48245abf0468288109--
