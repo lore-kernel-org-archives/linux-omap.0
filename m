@@ -1,54 +1,44 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH 00/10] OMAP3: SR: Fixes in Smartreflex driver
-Date: Wed, 22 Apr 2009 13:04:33 -0700
-Message-ID: <87d4b4zc8e.fsf@deeprootsystems.com>
-References: <5A47E75E594F054BAF48C5E4FC4B92AB02FB25180A@dbde02.ent.ti.com>
+From: "Christensen, Mikkel" <mlc@ti.com>
+Subject: RE: LDP broken in 2.6.30-rc 2
+Date: Wed, 22 Apr 2009 22:13:00 +0200
+Message-ID: <E49DAF743FB3E9469ED423C0D3DB5F1CA8E5B54B@dnce01.ent.ti.com>
+References: <E49DAF743FB3E9469ED423C0D3DB5F1C9E8D7960@dnce01.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from wf-out-1314.google.com ([209.85.200.168]:45987 "EHLO
-	wf-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752307AbZDVUEg (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 22 Apr 2009 16:04:36 -0400
-Received: by wf-out-1314.google.com with SMTP id 26so135798wfd.4
-        for <linux-omap@vger.kernel.org>; Wed, 22 Apr 2009 13:04:36 -0700 (PDT)
-In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB02FB25180A@dbde02.ent.ti.com> (Rajendra Nayak's message of "Wed\, 15 Apr 2009 18\:25\:05 +0530")
+Received: from bear.ext.ti.com ([192.94.94.41]:37660 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751312AbZDVUNI convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 22 Apr 2009 16:13:08 -0400
+Received: from dlep35.itg.ti.com ([157.170.170.118])
+	by bear.ext.ti.com (8.13.7/8.13.7) with ESMTP id n3MKD3Ct007261
+	for <linux-omap@vger.kernel.org>; Wed, 22 Apr 2009 15:13:08 -0500
+Received: from dlep20.itg.ti.com (localhost [127.0.0.1])
+	by dlep35.itg.ti.com (8.13.7/8.13.7) with ESMTP id n3MKD2bs018768
+	for <linux-omap@vger.kernel.org>; Wed, 22 Apr 2009 15:13:02 -0500 (CDT)
+Received: from dnce72.ent.ti.com (localhost [127.0.0.1])
+	by dlep20.itg.ti.com (8.12.11/8.12.11) with ESMTP id n3MKD2OT027207
+	for <linux-omap@vger.kernel.org>; Wed, 22 Apr 2009 15:13:02 -0500 (CDT)
+In-Reply-To: <E49DAF743FB3E9469ED423C0D3DB5F1C9E8D7960@dnce01.ent.ti.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Nayak, Rajendra" <rnayak@ti.com>
-Cc: linux-omap <linux-omap@vger.kernel.org>
-
-"Nayak, Rajendra" <rnayak@ti.com> writes:
-
-> Re-sending this patch-set with some mailer issues resolved. They now apply cleanly
-> with a git-am/git-apply.
->
-> Hi,
->
-> This series fixes a set of defects/issues in Smartreflex driver. SR autocompensation is now
-> functional and is validated with these patches on a ES3.1 based SDP with the N values in Efuse.
->
-> The patches also make the Smartreflex driver independent of SRF by using the OMAP PM apis
-> instead of calls to SRF.
->
-> Patches apply on top of the latest pm branch from Kevin's pm tree.
-> git://git.kernel.org/pub/scm/linux/kernel/git/khilman/linux-omap-pm.git 
-
-Rajendra,
-
-This series seems to boot on SDP and Beagle but I recetly tried on
-RX51 and it hangs in omap3_sr_init().
-
-Using Lauterbach, I tracked it to hang in sr_configure_vp() at this
-PRM write to the PRM_VP1_VLIMITTO register:
-
-		prm_write_mod_reg(PRM_VP1_VLIMITTO_VDDMAX |
-					PRM_VP1_VLIMITTO_VDDMIN |
-					PRM_VP1_VLIMITTO_TIMEOUT,
-					OMAP3430_GR_MOD,
-					OMAP3_PRM_VP1_VLIMITTO_OFFSET);
+To: "Christensen, Mikkel" <mlc@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
 
-Should these min/max/timeout values be board specific?
+-----Original Message-----
+From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Christensen, Mikkel
+Sent: Monday, April 20, 2009 3:28 PM
+To: linux-omap@vger.kernel.org
+Subject: LDP broken in 2.6.30-rc 2
 
-Kevin
+
+>I cloned master a few days ago and when I boot up the OMAP3 LDP, the board >seem to hang in the "i2c /dev entries driver" dialog and after a minute the >kernel dumps. Have anybody else seen this problem?
+
+ I found that the commit "92f00c2fa10629bad7206cd613d3b3357c8d6a81 - Extra omap code in linux-omap tree" breaks the LDP bootup.
+
+Best regards,
+ Mikkel
+
+
