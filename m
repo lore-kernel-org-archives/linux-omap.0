@@ -1,102 +1,61 @@
-From: "Shah, Hardik" <hardik.shah@ti.com>
-Subject: RE: [PATCH 3/3] OMAP2/3 V4L2 Display Driver
-Date: Wed, 22 Apr 2009 13:57:40 +0530
-Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB03051F7FCB@dbde02.ent.ti.com>
-References: <1240388578.12545.14.camel@tubuntu>
+From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
+Subject: RE: dma_alloc_coherent fragmentation
+Date: Wed, 22 Apr 2009 14:21:55 +0530
+Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB02B3D8F6A7@dbde02.ent.ti.com>
+References: <DFEF307E035C8647B119E6A60DB62D4A01793E6773@dlee02.ent.ti.com>
+	 <20090319.084248.183029086.Hiroshi.DOYU@nokia.com>
+	 <7A436F7769CA33409C6B44B358BFFF0CFF643980@dlee02.ent.ti.com>
+	 <f502236f0904220046s50ff816cse752798deb895759@mail.gmail.com>
+	 <EAF47CD23C76F840A9E7FCE10091EFAB02B3D8F5F2@dbde02.ent.ti.com>
+ <f502236f0904220123i6d278fdcj34abca9a7f6d8356@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:55490 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753854AbZDVI1y convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 22 Apr 2009 04:27:54 -0400
-In-Reply-To: <1240388578.12545.14.camel@tubuntu>
+Received: from devils.ext.ti.com ([198.47.26.153]:60870 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752127AbZDVIwH convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 22 Apr 2009 04:52:07 -0400
+In-Reply-To: <f502236f0904220123i6d278fdcj34abca9a7f6d8356@mail.gmail.com>
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "tomi.valkeinen@nokia.com" <tomi.valkeinen@nokia.com>
-Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Jadav, Brijesh R" <brijesh.j@ti.com>, "Hiremath, Vaibhav" <hvaibhav@ti.com>
+To: pramod gurav <pramodforum@gmail.com>
+Cc: "Menon, Nishanth" <nm@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
+The actual apis are in mm/dmapool.c. There are quite a few users in the usb stack.
 
+Here are few examples.
+
+Amd5536udc.c (drivers\usb\gadget):	
+Buffer.c (drivers\usb\core):
+Ci13xxx_udc.c (drivers\usb\gadget)
+Ci13xxx_udc.c (drivers\usb\gadget)
+Cppi_dma.c (drivers\usb\musb):	
+Ehci-mem.c (drivers\usb\host):
+Ehci-mem.c (drivers\usb\host):
+Ehci-mem.c (drivers\usb\host):
+Ehci-mem.c (drivers\usb\host):
+Ixp4xx_crypto.c (drivers\crypto):	
+Ixp4xx_crypto.c (drivers\crypto):	
+Ohci-mem.c (drivers\usb\host):
+Ohci-mem.c (drivers\usb\host):
+Uhci-hcd.c (drivers\usb\host):
+Uhci-hcd.c (drivers\usb\host):
+
+Regards,
+Santosh
+ 
 
 > -----Original Message-----
-> From: Tomi Valkeinen [mailto:tomi.valkeinen@nokia.com]
-> Sent: Wednesday, April 22, 2009 1:53 PM
-> To: Shah, Hardik
-> Cc: linux-media@vger.kernel.org; linux-omap@vger.kernel.org; Jadav, Brijesh R;
-> Hiremath, Vaibhav
-> Subject: Re: [PATCH 3/3] OMAP2/3 V4L2 Display Driver
+> From: pramod gurav [mailto:pramodforum@gmail.com] 
+> Sent: Wednesday, April 22, 2009 1:54 PM
+> To: Shilimkar, Santosh
+> Cc: Menon, Nishanth; linux-omap@vger.kernel.org
+> Subject: Re: dma_alloc_coherent fragmentation
 > 
-> Hi,
-> 
-> On Wed, 2009-04-22 at 08:25 +0200, ext Hardik Shah wrote:
-> > This is the version 5th of the Driver.
-> >
-> > Following are the features supported.
-> > 1. Provides V4L2 user interface for the video pipelines of DSS
-> > 2. Basic streaming working on LCD and TV.
-> > 3. Support for various pixel formats like YUV, UYVY, RGB32, RGB24, RGB565
-> > 4. Supports Alpha blending.
-> > 5. Supports Color keying both source and destination.
-> > 6. Supports rotation with RGB565 and RGB32 pixels formats.
-> > 7. Supports cropping.
-> > 8. Supports Background color setting.
-> > 9. Works on latest DSS2 library from Tomi
-> > http://www.bat.org/~tomba/git/linux-omap-dss.git/
-> > 10. 1/4x scaling added.  Detail testing left
-> >
-> > TODOS
-> > 1. Ioctls needs to be added for color space conversion matrix
-> > coefficient programming.
-> > 2. To be tested on DVI resolutions.
-> >
-> > Comments fixed from community.
-> > 1. V4L2 Driver for OMAP3/3 DSS.
-> > 2.  Conversion of the custom ioctls to standard V4L2 ioctls like alpha
-> blending,
-> > color keying, rotation and back ground color setting
-> > 3.  Re-organised the code as per community comments.
-> > 4.  Added proper copyright year.
-> > 5.  Added module name in printk
-> > 6.  Kconfig option copy/paste error
-> > 7.  Module param desc addded.
-> > 8.  Query control implemented using standard query_fill
-> > 9.  Re-arranged if-else constructs.
-> > 10. Changed to use mutex instead of semaphore.
-> > 11. Removed dual usage of rotation angles.
-> > 12. Implemented function to convert the V4L2 angle to DSS angle.
-> > 13. Y-position was set half by video driver for TV output
-> > Now its done by DSS so removed that.
-> > 14. Minor cleanup
-> > 15. Added support to pass the page offset to application.
-> > 14. Minor cleanup
-> > 15. Added support to pass the page offset to application.
-> > 16. Renamed V4L2_CID_ROTATION to V4L2_CID_ROTATE
-> > 17. Major comment from Hans fixed.
-> > 18. Copy right year changed.
-> > 19. Added module name for each error/warning print message.
-> >
-> > Changes from Previous Version.
-> > 1. Supported YUV rotation.
-> > 2. Supported Flipping.
-> > 3. Rebased line with Tomi's latest DSS2 master branch with commit  id
-> > f575a02edf2218a18d6f2ced308b4f3e26b44ce2.
-> > 4. Kconfig option removed to select between the TV and LCD.
-> > Now supported dynamically by DSS2 library.
-> > 5. Kconfig option for the NTSC_M and PAL_BDGHI mode but not
-> > supported by DSS2.  so it will not work now.
-> 
-> There is basic support for this. See the DSS doc:
-> 
-> /sys/devices/platform/omapdss/display? directory:
-> ...
-> timings         Display timings (pixclock,xres/hfp/hbp/hsw,yres/vfp/vbp/vsw)
->                 When writing, two special timings are accepted for tv-out:
->                 "pal" and "ntsc"
-[Shah, Hardik] I was not aware of it will remove the compile time option and for now let the sysfs entry change the standard.  In future I will try to do it with the S_STD and G_STD ioctls of the V4L2 framework.
-> 
->  Tomi
-> 
-> 
-
+> Thanks for the quick reply.
+> Can you please point me to some links on DMA pools. I am just 
+> blank on this. :(
+> I will still search for this in net.
+> -- 
