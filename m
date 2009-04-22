@@ -1,20 +1,23 @@
 From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Subject: RE: [PATCH 3/7][RFC] OMAP4: Update common omap platform headers.
-Date: Wed, 22 Apr 2009 09:40:53 +0530
-Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB02B3D8F3B0@dbde02.ent.ti.com>
+Subject: RE: [PATCH 5/7][RFC] OMAP4: Update common omap machine specific
+	sources.
+Date: Wed, 22 Apr 2009 10:10:20 +0530
+Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB02B3D8F3EA@dbde02.ent.ti.com>
 References: <1240319293-19662-1-git-send-email-santosh.shilimkar@ti.com>
  <1240319293-19662-2-git-send-email-santosh.shilimkar@ti.com>
  <1240319293-19662-3-git-send-email-santosh.shilimkar@ti.com>
- <20090421182635.GJ25864@atomide.com>
+ <1240319293-19662-4-git-send-email-santosh.shilimkar@ti.com>
+ <1240319293-19662-5-git-send-email-santosh.shilimkar@ti.com>
+ <20090421183644.GL25864@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:40303 "EHLO comal.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:41269 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750704AbZDVELG convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 22 Apr 2009 00:11:06 -0400
-In-Reply-To: <20090421182635.GJ25864@atomide.com>
+	id S1750728AbZDVEka convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 22 Apr 2009 00:40:30 -0400
+In-Reply-To: <20090421183644.GL25864@atomide.com>
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
@@ -22,71 +25,75 @@ To: Tony Lindgren <tony@atomide.com>
 Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
 
+
+Regards,
+Santosh
+ 
+
 > -----Original Message-----
-> From: linux-omap-owner@vger.kernel.org 
-> [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Tony Lindgren
-> Sent: Tuesday, April 21, 2009 11:57 PM
+> From: Tony Lindgren [mailto:tony@atomide.com] 
+> Sent: Wednesday, April 22, 2009 12:07 AM
 > To: Shilimkar, Santosh
 > Cc: linux-omap@vger.kernel.org
-> Subject: Re: [PATCH 3/7][RFC] OMAP4: Update common omap 
-> platform headers.
+> Subject: Re: [PATCH 5/7][RFC] OMAP4: Update common omap 
+> machine specific sources.
 > 
+> * Santosh Shilimkar <santosh.shilimkar@ti.com> [090421 06:08]:
+> > This patch updates the common machine spcific source files 
+> for OMAP4430.
+> > Few OMAP4 peripherals are common with OMAP3 architecture. 
+> Lot of code
+> > gets re-used because of this.
+> > 
+> > Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+> > ---
+> >  arch/arm/mach-omap2/gpmc.c     |    3 ++
+> >  arch/arm/mach-omap2/id.c       |    5 +++-
+> >  arch/arm/mach-omap2/io.c       |   48 
+> ++++++++++++++++++++++++++++++++++++++++
+> >  arch/arm/mach-omap2/timer-gp.c |    6 ++++-
+> >  4 files changed, 60 insertions(+), 2 deletions(-)
+> > 
 
-> > -#define INT_24XX_SPI3_IRQ	91
-> > +#ifdef	CONFIG_ARCH_OMAP4
-> > +#define IRQ_GIC_START		32
-> > +#else
-> > +#define	IRQ_GIC_START		0
-> > +#endif
-> 
-> This ifdef we don't want to do as it blocks the compile
-> for multi-omap.
-Not sure why this should break multi-omap. As I mentioned in one of the patch OMAP4 may not be
-able to support multi-omap because of major differences on Memory controller and Interrupt handling.
-This macro ensures that only for OMAP4 all the IRQ lines are offseted by 32 and for rest of the OMAPs the offset is zero. Because that's the only change necessary.
-
-May be I haven't understood your point here.
-
-> 
-> How about just add extra + 32 to the omap4 specific
-> defines? Something like this maybe:
-> 
-> #define OMAP4_GIC_OFFSET	32
-> #define INT_44XX_SP15_IRQ (69 + IRQ_GIC_START + OMAP4_GIC_OFFSET)
-> 
-> It's OK to define the numbers separately for each processors:
-
-I thought about this but this will have impact on the drivers as well. In every driver you need to put different IRQ line macros depending on the OMAP2/3/4.
-Just as an example UART1 uses "INT_24XX_UART1_IRQ" as the IRQ line number for OMAP2, OMAP3 and now for OMAP4 ( just offseted by 32).
-If we define separate macros for each processor, we would be unnecessarily polluting the driver code with switches. Secondly, in this file itself we will be adding around 100 + lines of code just to take care of 32 offset.
-If we are not breaking multi-omap for OMAP2/3, then this should be ok.
-
-> > diff --git a/arch/arm/plat-omap/include/mach/system.h 
-> b/arch/arm/plat-omap/include/mach/system.h
-> > index 1060e34..371f98a 100644
-> > --- a/arch/arm/plat-omap/include/mach/system.h
-> > +++ b/arch/arm/plat-omap/include/mach/system.h
-> > @@ -48,4 +48,11 @@ static inline void arch_reset(char mode, 
-> const char *cmd)
-> >  		omap_prcm_arch_reset(mode);
-> >  }
+  
+> >  void __init omap2_map_common_io(void)
+> >  {
+> > @@ -183,6 +225,10 @@ void __init omap2_map_common_io(void)
+> >  	iotable_init(omap34xx_io_desc, ARRAY_SIZE(omap34xx_io_desc));
+> >  #endif
 > >  
-> > +#ifdef CONFIG_ARCH_OMAP4
-> > +void omap_prcm_arch_reset(char mode)
-> > +{
-> > +	/* dummy hook for Linking */
-> > +}
+> > +#if defined(CONFIG_ARCH_OMAP44XX)
+> > +	iotable_init(omap44xx_io_desc, ARRAY_SIZE(omap44xx_io_desc));
 > > +#endif
 > > +
-> >  #endif
 > 
-> This should be named omap4_prcm_arch_reset() and then we just set
-> the right function pointer. Otherwise we'll break multi-omap
-> unnecessarily!
-omap_prcm_arch_reset() is called from arch_reset(). Currently since prcm files are not present/used for omap4, I get linking problem for just this API. Even if I make omap4_prcm_arch_reset(), I still need to compile out 
-omap_prcm_arch_reset() from arch_reset() which will look worser than this one. 
+> This will break multi-omap. The cpu_is_omap44xx() works very early
+> during the boot nowadays as the omap2_set_globals_44xx() initializes
+> that, so please use that instead.
 
-Thanks !!
+Looks possible to correct this. But I need to do this for OMAP2 and OMAp3 as well because for both the compile time switch is used. It was done for OMAP2/3 and hence I just maintained same way for OMAP4
+
+
+/* Normally devicemaps_init() would flush caches and tlb after
+> >  	 * mdesc->map_io(), but we must also do it here because 
+> of the CPU
+> >  	 * revision check below.
+> > @@ -198,9 +244,11 @@ void __init omap2_map_common_io(void)
+> >  void __init omap2_init_common_hw(struct omap_sdrc_params *sp)
+> >  {
+> >  	omap2_mux_init();
+> > +#ifndef CONFIG_ARCH_OMAP4 /* REVISIT: to avoid build errors */
+> >  	pwrdm_init(powerdomains_omap);
+> >  	clkdm_init(clockdomains_omap, clkdm_pwrdm_autodeps);
+> >  	omap2_clk_init();
+> >  	omap2_sdrc_init(sp);
+> > +#endif
+> >  	gpmc_init();
+> >  }
+> 
+> Please use cpu_is_omap44xx() here too instead of the ifndef.
+
+If I use cpu_is_omap44xx(), then I need to write stub functions under OMAP4 macro. Kevin also suggested to write stubs. So this can be done.
 
 Regards
 Santosh
