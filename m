@@ -1,43 +1,50 @@
-From: Jarkko Nikula <jarkko.nikula@nokia.com>
-Subject: [PATCH] ARM: OMAP: Fix tusb6010 init error and compilation warning
-Date: Thu, 23 Apr 2009 09:30:27 +0300
-Message-ID: <1240468227-15393-1-git-send-email-jarkko.nikula@nokia.com>
+From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
+Subject: RE: [PATCH] ARM: OMAP2/3: Reorganize Makefile to add omap4 support
+	(Re: [PATCH 7/7][RFC] OMAP4: Enable basic build support.)
+Date: Thu, 23 Apr 2009 12:00:01 +0530
+Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB02B3D8FB05@dbde02.ent.ti.com>
+References: <1240319293-19662-2-git-send-email-santosh.shilimkar@ti.com>
+ <1240319293-19662-3-git-send-email-santosh.shilimkar@ti.com>
+ <1240319293-19662-4-git-send-email-santosh.shilimkar@ti.com>
+ <1240319293-19662-5-git-send-email-santosh.shilimkar@ti.com>
+ <1240319293-19662-6-git-send-email-santosh.shilimkar@ti.com>
+ <1240319293-19662-7-git-send-email-santosh.shilimkar@ti.com>
+ <20090421183940.GN25864@atomide.com>
+ <EAF47CD23C76F840A9E7FCE10091EFAB02B3D8F40C@dbde02.ent.ti.com>
+ <20090422190456.GW25864@atomide.com>
+ <EAF47CD23C76F840A9E7FCE10091EFAB02B3D8FADB@dbde02.ent.ti.com>
+ <20090423062129.GE25864@atomide.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:52134 "EHLO
-	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751776AbZDWG3m (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 23 Apr 2009 02:29:42 -0400
+Received: from comal.ext.ti.com ([198.47.26.152]:32796 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752276AbZDWGaK convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 23 Apr 2009 02:30:10 -0400
+In-Reply-To: <20090423062129.GE25864@atomide.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Jarkko Nikula <jarkko.nikula@nokia.com>, Roel Kluin <roel.kluin@gmail.com>
+To: Tony Lindgren <tony@atomide.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Fix "tusb6010 init error 5, -19" and compilation warning from function
-tusb6010_platform_retime "warning: 'sysclk_ps' is used uninitialized in this
-function".
 
-I suppose commit c094ba34b8f780885d029ce3c2715a194b780e5d was meant to test
-for zero fclk_ps instead of sysclk_ps.
+> > > should do their builds with the multi-omap selected.
+> > > 
+> > > Also the distros want multi-omap. Only the product 
+> specific kernels
+> > > should be built with only one option selected to optimize for 
+> > > speed and size.
+> > I think most of the things are in place for multi-omap for 
+> OMAP4 as well if all the comments are taken care. 
+> 
+> Yeah cool. Looks like the gic interrupt code can also be initialized
+> from the init_common_hw or so. Of course the entry-macro.S still
+> needs a separate non-optimized handler for things to boot, I'll
+> update an earlier patch for that at some point.
+> 
+Yes it is initialised from common hw init.
 
-Signed-off-by: Jarkko Nikula <jarkko.nikula@nokia.com>
-Cc: Roel Kluin <roel.kluin@gmail.com>
----
- arch/arm/mach-omap2/usb-tusb6010.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/usb-tusb6010.c b/arch/arm/mach-omap2/usb-tusb6010.c
-index 59c1d57..c05df28 100644
---- a/arch/arm/mach-omap2/usb-tusb6010.c
-+++ b/arch/arm/mach-omap2/usb-tusb6010.c
-@@ -185,7 +185,7 @@ int tusb6010_platform_retime(unsigned is_refclk)
- 	unsigned	sysclk_ps;
- 	int		status;
- 
--	if (!refclk_psec || sysclk_ps == 0)
-+	if (!refclk_psec || fclk_ps == 0)
- 		return -ENODEV;
- 
- 	sysclk_ps = is_refclk ? refclk_psec : TUSB6010_OSCCLK_60;
--- 
-1.6.2.1
-
+Regards
+Santosh
