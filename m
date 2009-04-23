@@ -1,65 +1,80 @@
-From: "Woodruff, Richard" <r-woodruff2@ti.com>
-Subject: RE: PM: 4 Problems in OMAP3430 DVFS (SmartReflex, Cpufreq)
-Date: Thu, 23 Apr 2009 10:39:00 -0500
-Message-ID: <13B9B4C6EF24D648824FF11BE896716203821CC314@dlee02.ent.ti.com>
-References: <4d34a0a70904222200oc699378k56367cf3b378b5d9@mail.gmail.com>
- <alpine.DEB.2.00.0904230245440.6400@utopia.booyaka.com>
+From: "Alejandro Blanca G." <alex.blanca@gmail.com>
+Subject: Re: trouble with alsa, wolfson, and TI OMAP35xx McBSP
+Date: Thu, 23 Apr 2009 11:50:25 -0500
+Message-ID: <b6ab3a160904230950g61ae6e78mac2f02ada111c40c@mail.gmail.com>
+References: <dbdb2ea60904221058w67b775f3occ07f55938fe4d03@mail.gmail.com>
+	 <200904231220.14465.peter.ujfalusi@nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ks_c_5601-1987"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:33359 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752665AbZDWPjN (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 23 Apr 2009 11:39:13 -0400
-In-Reply-To: <alpine.DEB.2.00.0904230245440.6400@utopia.booyaka.com>
-Content-Language: en-US
+Received: from qw-out-2122.google.com ([74.125.92.26]:15349 "EHLO
+	qw-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756032AbZDWQu0 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 23 Apr 2009 12:50:26 -0400
+Received: by qw-out-2122.google.com with SMTP id 5so537961qwd.37
+        for <linux-omap@vger.kernel.org>; Thu, 23 Apr 2009 09:50:26 -0700 (PDT)
+In-Reply-To: <200904231220.14465.peter.ujfalusi@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: Kim Kyuwon <chammoru@gmail.com>, Kevin Hilman <khilman@deeprootsystems.com>, OMAP <linux-omap@vger.kernel.org>, "Nayak, Rajendra" <rnayak@ti.com>, ??? <kyungmin.park@samsung.com>, ??? <bhmin@samsung.com>, Tony Lindgren <tony@atomide.com>
+To: Peter Ujfalusi <peter.ujfalusi@nokia.com>
+Cc: ext twebb <taliaferro62@gmail.com>, "linux-omap@vger.kernel.org Mailing List" <linux-omap@vger.kernel.org>, "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>, etorres@dextratech.com
 
-DQo+IEZyb206IFBhdWwgV2FsbXNsZXkgW21haWx0bzpwYXVsQHB3c2FuLmNvbV0NCj4gU2VudDog
-VGh1cnNkYXksIEFwcmlsIDIzLCAyMDA5IDM6NTMgQU0NCj4gVG86IFdvb2RydWZmLCBSaWNoYXJk
-DQoNCj4gPiA0LiBDdXJyZW50IFBNIGNvZGUgZGlkbid0IGVuYWJsZSB0aGUgbWF4aW11bSBjbG9j
-ayAoaS5lLiBDUFU6IDYwME1oeikNCj4gPiBhY2NvcmRpbmcgdG8gdGhlIGNvbW1lbnQgYXMgYmVs
-b3c6DQo+ID4NCj4gPiAgICAgLyogQXZvaWQgcmVnaXN0ZXJpbmcgdGhlIDEyMCUgT3ZlcmRyaXZl
-IHdpdGggQ1BVRnJlcSAqLw0KPiA+ICAgICBwcmNtID0gbXB1X29wcHMgKyBNQVhfVkREMV9PUFAg
-LSAxOw0KPiA+DQo+ID4gQnV0IGluIHNvbWUgY2FzZXMsIHdlIHNob3VsZCB1c2UgNjAwTWh6IGZv
-ciBtdWx0aW1lZGlhIGFwcGxpY2F0aW9uLg0KPiA+IEFuZCwgZXZlbiB0aG91Z2h0IHdlIGVuYWJs
-ZSB0aGUgbWF4aW11bSBjbG9jaywgQ1BVIGZyZXF1ZW5jeSBzZWxkb20NCj4gPiBnb2VzIGludG8g
-bWF4aW11bSBjbG9jay4gSSB0aGluayB3ZSBkb24ndCBoYXZlIHRvIGF2b2lkIHJlZ2lzdGVyaW5n
-DQo+ID4gdGhlIG1heCBPUFAuDQo+DQo+IERvIHlvdSBrbm93IGlmIHRoaXMgcmVzdHJpY3Rpb24g
-Y2FuIGJlIGxpZnRlZCBub3csIGkuZS4sIGNhbiB0aGUgc2lsaWNvbg0KPiBydW4gYXQgVkREMSBP
-UFAxIDEwMCUgb2YgdGhlIHRpbWUgYW5kIG1lZXQgdGhlIGRldmljZSBsaWZlc3BhbiB0YXJnZXRz
-Pw0KDQpTbywgdGhlcmUgaGF2ZSBiZWVuIHNvbWUgY2hhcmFjdGVyaXphdGlvbiBjaGFuZ2VzIHdo
-aWNoIGdpdmUgbW9yZSBsZWV3YXkgZm9yIHNvZnR3YXJlIHVzYWdlIG9mZiBvdmVyZHJpdmUuDQoN
-CldoYXQgeW91IGZvdW5kIGJlZm9yZSB3YXMgZ3VhcmFudGVlcyBhZ2FpbnN0IHR5cGljYWwgbW9i
-aWxlIHVzYWdlIGZvciBhIGZldyBjbGFzc2VzIG9mIGRldmljZXMuIFRoaXMgd2FzIGRvbmUgdXNp
-bmcgYSBtaXggb2YgT1BQcyB3aXRoIHRoZSBtYWpvcml0eSBvZiBhY3RpdmUgdGltZSBpbiBsb3dl
-ciBPUFBzIGFuZCBpbmFjdGl2ZSB0aW1lIGluIGxvdyBpZGxlcyAob3B0aW1hbCB1c2FnZSBmb3Ig
-bWl4IG9mIHR5cGljYWwgb3BlcmF0aW9ucywgdGhpcyBpcyB0aGUgd2F5IHlvdSB3b3VsZCB3YW50
-IHRvIHJ1biBpZGVhbGx5KS4gQWdhaW5zdCB0aGlzIGFuZCBtYW55IG1vcmUgdmFyaWFibGVzLCBy
-ZWxpYWJpbGl0eSBkYXRhIHdhcyB2YWxpZGF0ZWQgYW5kIHB1Ymxpc2hlZC4NCg0KUmVjZW50bHkg
-dGhlcmUgd2FzIHNvbWUgY2hhbmdlIHRvIGFsc28gbWVhc3VyZSBhY3RpdmUgdGltZSBhdCBtYXgg
-b3ZlcmRyaXZlIGZvciBzYW1lIHVzYWdlIG1peC4gVGhpcyByZXN1bHRlZCBpbiBzdGlsbCBtZWV0
-aW5nIGxpZmV0aW1lIGdvYWxzIGZvciB0eXBpY2FsIHVzYWdlLg0KDQpUaGlzIGNhbiB0cmFuc2xh
-dGUgdG8gYSBzbWFydCBwaG9uZSBtYWtlciBvZiBiZWluZyBhYmxlIHRvIHVzZSBvdmVyZHJpdmUg
-YXMgdGhleSBzZWUgZml0IGFuZCBzdGlsbCBoYXZlIGxvbmcgbGlmZSAoYXNzdW1pbmcgdGhleSBj
-YW4gc3VwcGx5IGFkZXF1YXRlIHBvd2VyIGFuZCBzdGlsbCBkaXNzaXBhdGUgd2hhdCBldmVyIGFk
-ZGl0aW9uYWwgaGVhdCB0aGVyZSBpcykuIFRoaXMgaXMgc3RpbGwgbm90IDEwMCUgb2YgdGhlIHRp
-bWUgaW4gYWN0aXZlIG1vZGUuDQoNCkkgc3VzcGVjdCBUSSB3aWxsIGNvbnRpbnVlIHRvIGNyZWF0
-ZSBwYXJ0cyBmb3IgY2VydGFpbiBtYXJrZXRzIHdoZW4gdGhlIG5lZWQgaXMgdGhlcmUuIFRoZSBw
-YXJ0IG1pZ2h0IGJlIG5lYXJseSBpZGVudGljYWwgYnV0IHRoZSB3YXkgaXQncyByYXRlZCAod2l0
-aCBjaGlwIGJpbm5pbmcgYW5kIG90aGVyIHRyaWNrcykgd2lsbCBhbGxvdyBkaWZmZXJlbnQgZ3Vh
-cmFudGVlcy4gVGhpcyBmaXRzIHdlbGwgd2l0aCBtb2JpbGUgYnVzaW5lc3MgY3VzdG9tZXIgbmVl
-ZHMuDQoNCkFzIGFuIG9wZW4gc291cmNlIGluZGl2aWR1YWwgb3duZXIgb2YgYSBkZXZpY2UsIHlv
-dSBtaWdodCBkbyB0aGluZ3MgaW4gYSBub24tdHlwaWNhbCB3YXkuIFlvdSBhcmUgZnJlZSB0byBk
-byB0aGlzLiBEZXBlbmRpbmcgb24gd2hpY2ggYmFzZSBjaGlwIHZhcmlhbnQgeW91IGFyZSB1c2lu
-ZywgaXRzIGxpZmUgbWF5IGhhdmUgc29tZSBpbXBhY3QgKG9yIG5vdCkuIFlvdXIgY2hpcCBsaWtl
-bHkgd2lsbCBzdGlsbCBsYXN0IG1hbnkgeWVhcnMuIFRoZSBwaG9uZSBvciBvdGhlciBkZXZpY2Ug
-bWlnaHQgZGllIGZpcnN0Lg0KDQpBbGwgdGhhdCBzYWlkLCB0b2RheSBwZXJzb25hbGx5LCBJIGZl
-ZWwgbXVjaCBtb3JlIGNvbWZvcnRhYmxlIGV4cG9zaW5nIG92ZXJkcml2ZXMgaW4gdGhlIHJlZmVy
-ZW5jZSBjb2RlLiBNb2JpbGUgdXNlcnMgYW5kIHRoZWlyIGRldmljZXMgd2hpY2ggYWN0dWFsbHkg
-c2xlZXAgYXQgbmlnaHQgc2hvdWxkIGJlIHByZXR0eSBzYWZlLg0KDQpXYXRjaCBkYXRhIHNoZWV0
-cyBmb3IgZGV0YWlscyA6KQ0KDQpSZWdhcmRzLA0KUmljaGFyZCBXLg0KDQo=
+Hi everyone.
+
+We are working with bringing up another audio codec with the Beagle Boa=
+rd.
+
+Probably the issue we are seeing is related: we are having problems
+when doing playback and observe that the information corresponding to
+2 channels is being sent only through the left channel. We might have
+some other problems too, since we are new to this kind of development,
+but maybe our observations or yours could be useful to stabilize the
+Beagle platform code.
+
+Best regards,
+
+Alex B.
+
+On Thu, Apr 23, 2009 at 4:20 AM, Peter Ujfalusi
+<peter.ujfalusi@nokia.com> wrote:
+> On Wednesday 22 April 2009 20:58:01 ext twebb wrote:
+>> Problem 2:
+>> Test tone is being presented by the user application, providing a 1K=
+hz
+>> tone sampled at 44.1Khz. The data are S16_LE, right channel only. Le=
+ft
+>> channel is quiet. The data seems to slip back and forth from left to
+>> right channel. This is reproducable and verified with a scope trace.
+>>
+>> Anybody have any ideas what might be going wrong here? =A0Traces for
+>> codec reg dump and mcbsp are attached.
+>
+> As Jarkko already asked: are you seeing the channel switch while runn=
+ing or is
+> it happens on playback start?
+>
+> AFAIK this phenomena can be also seen on Beagle board.
+>
+> I have done some investigation regarding to these, but so far I can n=
+ot say
+> that I know what causes it.
+>
+> BTW: these are separate issues (startup switch and runtime switch).
+>
+>> Thanks,
+>> twebb
+>
+> --
+> P=E9ter
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap"=
+ in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at =A0http://vger.kernel.org/majordomo-info.html
+>
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
