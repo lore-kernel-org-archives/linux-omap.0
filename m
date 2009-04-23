@@ -1,39 +1,36 @@
-From: Mark Brown <broonie@sirena.org.uk>
-Subject: Re: trouble with alsa, wolfson, and TI OMAP35xx McBSP
-Date: Thu, 23 Apr 2009 19:30:38 +0100
-Message-ID: <20090423183038.GA6642@sirena.org.uk>
-References: <dbdb2ea60904221058w67b775f3occ07f55938fe4d03@mail.gmail.com>
-	<200904231220.14465.peter.ujfalusi@nokia.com>
-	<b6ab3a160904230950g61ae6e78mac2f02ada111c40c@mail.gmail.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 1/1] Activate VDD1, VDD2 and VPLL1 at startup
+Date: Thu, 23 Apr 2009 11:54:47 -0700
+Message-ID: <20090423185447.GH22457@atomide.com>
+References: <1240414529-16258-1-git-send-email-peter.de-schrijver@nokia.com> <20090423101711.GN30105@sirena.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <alsa-devel-bounces@alsa-project.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:53678 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752989AbZDWSy6 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 23 Apr 2009 14:54:58 -0400
 Content-Disposition: inline
-In-Reply-To: <b6ab3a160904230950g61ae6e78mac2f02ada111c40c@mail.gmail.com>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Sender: alsa-devel-bounces@alsa-project.org
-Errors-To: alsa-devel-bounces@alsa-project.org
-To: "Alejandro Blanca G." <alex.blanca@gmail.com>
-Cc: ext twebb <taliaferro62@gmail.com>, "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>, "linux-omap@vger.kernel.org Mailing List" <linux-omap@vger.kernel.org>, Peter Ujfalusi <peter.ujfalusi@nokia.com>, etorres@dextratech.com
+In-Reply-To: <20090423101711.GN30105@sirena.org.uk>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Mark Brown <broonie@sirena.org.uk>
+Cc: Peter 'p2' De Schrijver <peter.de-schrijver@nokia.com>, linux-omap@vger.kernel.org, dbrownell@users.sourceforge.net
 
-On Thu, Apr 23, 2009 at 11:50:25AM -0500, Alejandro Blanca G. wrote:
+* Mark Brown <broonie@sirena.org.uk> [090423 03:17]:
+> On Wed, Apr 22, 2009 at 06:35:29PM +0300, Peter 'p2' De Schrijver wrote:
+> 
+> > This patch activates VDD1, VDD2 and VPLL1 when booting. This is necessary
+> > because these resources are in warm reset state after a reboot. This means
+> > their voltage levels cannot be modified so DVFS and smartreflex don't work.
+> 
+> > Signed-off-by: Peter 'p2' De Schrijver <peter.de-schrijver@nokia.com>
+> 
+> Since TWL4030 is in mainline now you really ought to submit this and
+> the other patches you posted immediately before this one to mainline.
+> It'd be best to CC David Brownell (added here) on TWL4030 regulator
+> changes too, he's the expert on the regulator features of the chip.
 
-> Probably the issue we are seeing is related: we are having problems
-> when doing playback and observe that the information corresponding to
-> 2 channels is being sent only through the left channel. We might have
-> some other problems too, since we are new to this kind of development,
-> but maybe our observations or yours could be useful to stabilize the
-> Beagle platform code.
+Agreed.
 
-Please check out the current ASoC branch - as previously mentioned there
-has been quite a bit of work recently on the McBSP audio formatting:
-
-	git://git.kernel.org/pub/scm/linux/kernel/git/tiwai/sound-2.6
+Tony
