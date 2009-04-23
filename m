@@ -1,36 +1,48 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 1/1] Activate VDD1, VDD2 and VPLL1 at startup
-Date: Thu, 23 Apr 2009 11:54:47 -0700
-Message-ID: <20090423185447.GH22457@atomide.com>
-References: <1240414529-16258-1-git-send-email-peter.de-schrijver@nokia.com> <20090423101711.GN30105@sirena.org.uk>
+From: green <greenfreedom10@gmail.com>
+Subject: Re: stlc45xx in 2.6.30-rc1
+Date: Thu, 23 Apr 2009 13:54:31 -0500
+Message-ID: <20090423185431.GK1736@swansys>
+References: <87skjz6xrn.fsf@litku.valot.fi>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="RVlUGXxwBj5SDcM9"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:53678 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752989AbZDWSy6 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 23 Apr 2009 14:54:58 -0400
+Received: from mu-out-0910.google.com ([209.85.134.186]:23506 "EHLO
+	mu-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753524AbZDWS6v (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 23 Apr 2009 14:58:51 -0400
+Received: by mu-out-0910.google.com with SMTP id i2so143260mue.1
+        for <linux-omap@vger.kernel.org>; Thu, 23 Apr 2009 11:58:50 -0700 (PDT)
 Content-Disposition: inline
-In-Reply-To: <20090423101711.GN30105@sirena.org.uk>
+In-Reply-To: <87skjz6xrn.fsf@litku.valot.fi>
+Content-Language: en
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Mark Brown <broonie@sirena.org.uk>
-Cc: Peter 'p2' De Schrijver <peter.de-schrijver@nokia.com>, linux-omap@vger.kernel.org, dbrownell@users.sourceforge.net
+To: linux-omap@vger.kernel.org
 
-* Mark Brown <broonie@sirena.org.uk> [090423 03:17]:
-> On Wed, Apr 22, 2009 at 06:35:29PM +0300, Peter 'p2' De Schrijver wrote:
-> 
-> > This patch activates VDD1, VDD2 and VPLL1 when booting. This is necessary
-> > because these resources are in warm reset state after a reboot. This means
-> > their voltage levels cannot be modified so DVFS and smartreflex don't work.
-> 
-> > Signed-off-by: Peter 'p2' De Schrijver <peter.de-schrijver@nokia.com>
-> 
-> Since TWL4030 is in mainline now you really ought to submit this and
-> the other patches you posted immediately before this one to mainline.
-> It'd be best to CC David Brownell (added here) on TWL4030 regulator
-> changes too, he's the expert on the regulator features of the chip.
 
-Agreed.
+--RVlUGXxwBj5SDcM9
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
 
-Tony
+Kalle Valo wrote at 2009-04-23 13:16 -0500:
+> I just want to inform that stlc45xx (wi-fi driver for n800/n810) is now
+> in 2.6.30-rc1 staging directory. I just tried with latest linux-omap and
+> I was able to associate to an AP and ping.
+
+I did notice it in there.  That's good news; thanks.
+
+--RVlUGXxwBj5SDcM9
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.9 (GNU/Linux)
+
+iEYEARECAAYFAknwuWYACgkQ682C+dBP+oSsEQCfaWE1z91iKD2iEEI+YYicY6/v
+JsMAn1zDDOFhksL6QipgBg+Opun6m/aG
+=x4qk
+-----END PGP SIGNATURE-----
+
+--RVlUGXxwBj5SDcM9--
