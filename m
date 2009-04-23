@@ -1,37 +1,53 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: PM: 4 Problems in OMAP3430 DVFS (SmartReflex, Cpufreq)
-Date: Thu, 23 Apr 2009 02:52:51 -0600 (MDT)
-Message-ID: <alpine.DEB.2.00.0904230245440.6400@utopia.booyaka.com>
-References: <4d34a0a70904222200oc699378k56367cf3b378b5d9@mail.gmail.com>
+From: Peter Ujfalusi <peter.ujfalusi@nokia.com>
+Subject: Re: trouble with alsa, wolfson, and TI OMAP35xx McBSP
+Date: Thu, 23 Apr 2009 12:20:14 +0300
+Message-ID: <200904231220.14465.peter.ujfalusi@nokia.com>
+References: <dbdb2ea60904221058w67b775f3occ07f55938fe4d03@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:42012 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752347AbZDWIww (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 23 Apr 2009 04:52:52 -0400
-In-Reply-To: <4d34a0a70904222200oc699378k56367cf3b378b5d9@mail.gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <alsa-devel-bounces@alsa-project.org>
+In-Reply-To: <dbdb2ea60904221058w67b775f3occ07f55938fe4d03@mail.gmail.com>
+Content-Disposition: inline
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Sender: alsa-devel-bounces@alsa-project.org
+Errors-To: alsa-devel-bounces@alsa-project.org
+To: ext twebb <taliaferro62@gmail.com>
+Cc: "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>, "linux-omap@vger.kernel.org Mailing List" <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
-To: r-woodruff2@ti.com
-Cc: Kim Kyuwon <chammoru@gmail.com>, Kevin Hilman <khilman@deeprootsystems.com>, OMAP <linux-omap@vger.kernel.org>, "Nayak, Rajendra" <rnayak@ti.com>, =?EUC-KR?B?udqw5rnO?= <kyungmin.park@samsung.com>, =?EUC-KR?B?uc66tMij?= <bhmin@samsung.com>, Tony Lindgren <tony@atomide.com>
 
-Hello Richard,
+On Wednesday 22 April 2009 20:58:01 ext twebb wrote:
+> Problem 2:
+> Test tone is being presented by the user application, providing a 1Khz
+> tone sampled at 44.1Khz. The data are S16_LE, right channel only. Left
+> channel is quiet. The data seems to slip back and forth from left to
+> right channel. This is reproducable and verified with a scope trace.
+>
+> Anybody have any ideas what might be going wrong here?  Traces for
+> codec reg dump and mcbsp are attached.
 
-On Thu, 23 Apr 2009, Kim Kyuwon wrote:
+As Jarkko already asked: are you seeing the channel switch while running or=
+ is =
 
-> 4. Current PM code didn't enable the maximum clock (i.e. CPU: 600Mhz)
-> according to the comment as below:
-> 
-> 	/* Avoid registering the 120% Overdrive with CPUFreq */
-> 	prcm = mpu_opps + MAX_VDD1_OPP - 1;
-> 
-> But in some cases, we should use 600Mhz for multimedia application.
-> And, even thought we enable the maximum clock, CPU frequency seldom
-> goes into maximum clock. I think we don't have to avoid registering
-> the max OPP.
+it happens on playback start?
 
-Do you know if this restriction can be lifted now, i.e., can the silicon 
-run at VDD1 OPP1 100% of the time and meet the device lifespan targets?
+AFAIK this phenomena can be also seen on Beagle board.
 
-- Paul
+I have done some investigation regarding to these, but so far I can not say =
+
+that I know what causes it.
+
+BTW: these are separate issues (startup switch and runtime switch).
+
+> Thanks,
+> twebb
+
+-- =
+
+P=E9ter
