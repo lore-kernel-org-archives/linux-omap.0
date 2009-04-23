@@ -1,112 +1,54 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH] ARM: OMAP3: Fix OMAP_CHIP_INIT usage
-Date: Thu, 23 Apr 2009 17:21:22 -0600 (MDT)
-Message-ID: <alpine.DEB.2.00.0904231720270.6673@utopia.booyaka.com>
-References: <> <1240479787-16921-1-git-send-email-kalle.jokiniemi@digia.com> <1240479787-16921-2-git-send-email-kalle.jokiniemi@digia.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 1/7] OMAP24xx/25xx clock: init osc_ck, sys_ck internal
+	lists early
+Date: Thu, 23 Apr 2009 16:55:27 -0700
+Message-ID: <20090423235527.GM22457@atomide.com>
+References: <20090414182039.22344.49790.stgit@localhost.localdomain> <20090414182324.22344.71159.stgit@localhost.localdomain> <alpine.DEB.2.00.0904141229580.32081@utopia.booyaka.com> <20090421195421.GB29943@n2100.arm.linux.org.uk> <alpine.DEB.2.00.0904222000240.24299@utopia.booyaka.com> <20090423075337.GA20250@n2100.arm.linux.org.uk> <alpine.DEB.2.00.0904230221190.6400@utopia.booyaka.com> <20090423180031.GD22457@atomide.com> <20090423222612.GA6095@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:41011 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752486AbZDWX2G (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 23 Apr 2009 19:28:06 -0400
-In-Reply-To: <1240479787-16921-2-git-send-email-kalle.jokiniemi@digia.com>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:55507 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751096AbZDWX4I (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 23 Apr 2009 19:56:08 -0400
+Content-Disposition: inline
+In-Reply-To: <20090423222612.GA6095@n2100.arm.linux.org.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kalle Jokiniemi <kalle.jokiniemi@digia.com>
-Cc: khilman@deeprootsystems.com, linux-omap@vger.kernel.org
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: Paul Walmsley <paul@pwsan.com>, linux-arm-kernel@lists.arm.linux.org.uk, linux-omap@vger.kernel.org
 
-On Thu, 23 Apr 2009, Kalle Jokiniemi wrote:
-
-> Some modules have been specified only to exist in ES2.0
-> devices while they should exist on >= ES2.0 devices.
-> Fixed OMAP_CHIP_INIT() calls to take this to account.
+* Russell King - ARM Linux <linux@arm.linux.org.uk> [090423 15:26]:
+> On Thu, Apr 23, 2009 at 11:00:31AM -0700, Tony Lindgren wrote:
+> > * Paul Walmsley <paul@pwsan.com> [090423 01:35]:
+> > > Hello Russell,
+> > > 
+> > > On Thu, 23 Apr 2009, Russell King - ARM Linux wrote:
+> > > 
+> > > > On Wed, Apr 22, 2009 at 08:01:29PM -0600, Paul Walmsley wrote:
+> > > > > The patch also renames clk_init_one() to clk_preinit() to
+> > > > > distinguish its function from clk_init() and the individual struct clk
+> > > > > init functions.
+> > > > 
+> > > > That's rather unnecessary.  'clk_init_one' is already unique.  In the
+> > > > long run, it's clk_init that needs to go.
+> > > 
+> > > Even if clk_init() were to disappear, the struct clk .init function 
+> > > pointer would still be present.  clk->init() performs a very different 
+> > > kind of initialization than clk_init_one().
+> > 
+> > I'm OK doing the rename in this fix. The original naming can cause
+> > confusion while reading the code.
 > 
-> Signed-off-by: Kalle Jokiniemi <kalle.jokiniemi@digia.com>
+> Well I'm not, and I want to discuss it some more.  And I'm sending Linus
+> a pull request tonight, so I'm dropping the OMAP stuff from that.
 
-At least the omapdev3xxx.h changes are:
+OK. Paul, can you please separate out the rename part into a separate
+patch so we only have a minimal fix & then repost it here?
 
-Acked-by: Paul Walmsley <paul@pwsan.com>
+That way we'll get the necessary fixes in and you guys can schedule
+other changes for next merge window.
 
-This patch is specific to the PM branch.
+Thanks,
 
-- Paul
-
-> ---
->  arch/arm/mach-omap2/omapdev3xxx.h  |    8 ++++----
->  arch/arm/mach-omap2/resource34xx.h |    4 ++--
->  2 files changed, 6 insertions(+), 6 deletions(-)
-> 
-> diff --git a/arch/arm/mach-omap2/omapdev3xxx.h b/arch/arm/mach-omap2/omapdev3xxx.h
-> index dce87df..d2772c4 100644
-> --- a/arch/arm/mach-omap2/omapdev3xxx.h
-> +++ b/arch/arm/mach-omap2/omapdev3xxx.h
-> @@ -374,7 +374,7 @@ static struct omapdev neon_3xxx_omapdev = {
->  static struct omapdev sgx_3xxx_omapdev = {
->  	.name		= "sgx_omapdev",
->  	.pwrdm		= { .name = "sgx_pwrdm" },
-> -	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430ES2),
-> +	.omap_chip	= OMAP_CHIP_INIT(CHIP_GE_OMAP3430ES2),
->  };
->  
->  /* CORE */
-> @@ -435,7 +435,7 @@ static struct omapdev hsmmc3_3xxx_omapdev = {
->  	.pwrdm		= { .name = "core_pwrdm" },
->  	.pdev_name	= "mmci-omap",
->  	.pdev_id	= 2,
-> -	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430ES2),
-> +	.omap_chip	= OMAP_CHIP_INIT(CHIP_GE_OMAP3430ES2),
->  };
->  
->  static struct omapdev mcspi4_3xxx_omapdev = {
-> @@ -658,7 +658,7 @@ static struct omapdev usbhost_3xxx_omapdev = {
->  	.pwrdm		= { .name = "usbhost_pwrdm" },
->  	.pdev_name	= "ehci-omap",
->  	.pdev_id	= 0,
-> -	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430ES2),
-> +	.omap_chip	= OMAP_CHIP_INIT(CHIP_GE_OMAP3430ES2),
->  };
->  
->  static struct omapdev usbotg_3xxx_omapdev = {
-> @@ -666,7 +666,7 @@ static struct omapdev usbotg_3xxx_omapdev = {
->  	.pwrdm		= { .name = "usbhost_pwrdm" },
->  	.pdev_name	= "musb_hdrc",
->  	.pdev_id	= -1,
-> -	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430ES2),
-> +	.omap_chip	= OMAP_CHIP_INIT(CHIP_GE_OMAP3430ES2),
->  };
->  
->  static struct omapdev usbtll_3xxx_omapdev = {
-> diff --git a/arch/arm/mach-omap2/resource34xx.h b/arch/arm/mach-omap2/resource34xx.h
-> index b847208..8d95a00 100644
-> --- a/arch/arm/mach-omap2/resource34xx.h
-> +++ b/arch/arm/mach-omap2/resource34xx.h
-> @@ -133,7 +133,7 @@ static struct shared_resource gfx_pwrdm_latency = {
->  
->  static struct shared_resource sgx_pwrdm_latency = {
->  	.name 		= "sgx_pwrdm_latency",
-> -	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430ES2),
-> +	.omap_chip	= OMAP_CHIP_INIT(CHIP_GE_OMAP3430ES2),
->  	.resource_data  = &sgx_pwrdm_lat_db,
->  	.ops		= &pd_lat_res_ops,
->  };
-> @@ -208,7 +208,7 @@ static struct pd_latency_db usbhost_pwrdm_lat_db = {
->  
->  static struct shared_resource usbhost_pwrdm_latency = {
->  	.name		= "usbhost_pwrdm_latency",
-> -	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430ES2),
-> +	.omap_chip	= OMAP_CHIP_INIT(CHIP_GE_OMAP3430ES2),
->  	.resource_data  = &usbhost_pwrdm_lat_db,
->  	.ops		= &pd_lat_res_ops,
->  };
-> -- 
-> 1.5.4.3
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
-
-
-- Paul
+Tony
