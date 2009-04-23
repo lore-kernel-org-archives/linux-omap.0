@@ -1,48 +1,65 @@
-From: Kalle Valo <kalle.valo@iki.fi>
-Subject: Re: n800 build error in clock24xx.c: 'secure_32k_ck' undeclared
-Date: Thu, 23 Apr 2009 18:37:24 +0300
-Message-ID: <87eivjbcuj.fsf@litku.valot.fi>
-References: <873ac7ko2n.fsf@litku.valot.fi>
-	<alpine.DEB.2.00.0904201141380.13457@utopia.booyaka.com>
+From: "Woodruff, Richard" <r-woodruff2@ti.com>
+Subject: RE: PM: 4 Problems in OMAP3430 DVFS (SmartReflex, Cpufreq)
+Date: Thu, 23 Apr 2009 10:39:00 -0500
+Message-ID: <13B9B4C6EF24D648824FF11BE896716203821CC314@dlee02.ent.ti.com>
+References: <4d34a0a70904222200oc699378k56367cf3b378b5d9@mail.gmail.com>
+ <alpine.DEB.2.00.0904230245440.6400@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="ks_c_5601-1987"
+Content-Transfer-Encoding: base64
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-bw0-f163.google.com ([209.85.218.163]:50254 "EHLO
-	mail-bw0-f163.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751520AbZDWPh3 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 23 Apr 2009 11:37:29 -0400
-Received: by bwz7 with SMTP id 7so611372bwz.37
-        for <linux-omap@vger.kernel.org>; Thu, 23 Apr 2009 08:37:26 -0700 (PDT)
-In-Reply-To: <alpine.DEB.2.00.0904201141380.13457@utopia.booyaka.com> (Paul Walmsley's message of "Mon\, 20 Apr 2009 11\:47\:04 -0600 \(MDT\)")
+Received: from bear.ext.ti.com ([192.94.94.41]:33359 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752665AbZDWPjN (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 23 Apr 2009 11:39:13 -0400
+In-Reply-To: <alpine.DEB.2.00.0904230245440.6400@utopia.booyaka.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Paul Walmsley <paul@pwsan.com>
-Cc: linux-omap@vger.kernel.org, tony@atomide.com
+Cc: Kim Kyuwon <chammoru@gmail.com>, Kevin Hilman <khilman@deeprootsystems.com>, OMAP <linux-omap@vger.kernel.org>, "Nayak, Rajendra" <rnayak@ti.com>, ??? <kyungmin.park@samsung.com>, ??? <bhmin@samsung.com>, Tony Lindgren <tony@atomide.com>
 
-Paul Walmsley <paul@pwsan.com> writes:
-
-> Hi Kalle,
-
-Hi Paul,
-
-sorry for a late answer.
-
-> On Fri, 17 Apr 2009, Kalle Valo wrote:
->
->> arch/arm/mach-omap2/clock24xx.h:1801: error: 'secure_32k_ck'
->> undeclared here (not in a function)
->>
->> Any hints?
->
-> This is a bug in the version of fa9ef57a1efdd4e7c41a42db71d99b9b69e9b356 I 
-> pushed.  The new clock definition in clock24xx.h for "secure_32k_fck" 
-> should be for "secure_32k_ck".  Just talked with Tony about this; he's 
-> going to re-pull a fixed version of that patch today.
-
-I updated to latest linux-omap (commit 55b1274c). It now compiles and
-boots on N800. 
-
-Thank you for fixing this.
-
--- 
-Kalle Valo
+DQo+IEZyb206IFBhdWwgV2FsbXNsZXkgW21haWx0bzpwYXVsQHB3c2FuLmNvbV0NCj4gU2VudDog
+VGh1cnNkYXksIEFwcmlsIDIzLCAyMDA5IDM6NTMgQU0NCj4gVG86IFdvb2RydWZmLCBSaWNoYXJk
+DQoNCj4gPiA0LiBDdXJyZW50IFBNIGNvZGUgZGlkbid0IGVuYWJsZSB0aGUgbWF4aW11bSBjbG9j
+ayAoaS5lLiBDUFU6IDYwME1oeikNCj4gPiBhY2NvcmRpbmcgdG8gdGhlIGNvbW1lbnQgYXMgYmVs
+b3c6DQo+ID4NCj4gPiAgICAgLyogQXZvaWQgcmVnaXN0ZXJpbmcgdGhlIDEyMCUgT3ZlcmRyaXZl
+IHdpdGggQ1BVRnJlcSAqLw0KPiA+ICAgICBwcmNtID0gbXB1X29wcHMgKyBNQVhfVkREMV9PUFAg
+LSAxOw0KPiA+DQo+ID4gQnV0IGluIHNvbWUgY2FzZXMsIHdlIHNob3VsZCB1c2UgNjAwTWh6IGZv
+ciBtdWx0aW1lZGlhIGFwcGxpY2F0aW9uLg0KPiA+IEFuZCwgZXZlbiB0aG91Z2h0IHdlIGVuYWJs
+ZSB0aGUgbWF4aW11bSBjbG9jaywgQ1BVIGZyZXF1ZW5jeSBzZWxkb20NCj4gPiBnb2VzIGludG8g
+bWF4aW11bSBjbG9jay4gSSB0aGluayB3ZSBkb24ndCBoYXZlIHRvIGF2b2lkIHJlZ2lzdGVyaW5n
+DQo+ID4gdGhlIG1heCBPUFAuDQo+DQo+IERvIHlvdSBrbm93IGlmIHRoaXMgcmVzdHJpY3Rpb24g
+Y2FuIGJlIGxpZnRlZCBub3csIGkuZS4sIGNhbiB0aGUgc2lsaWNvbg0KPiBydW4gYXQgVkREMSBP
+UFAxIDEwMCUgb2YgdGhlIHRpbWUgYW5kIG1lZXQgdGhlIGRldmljZSBsaWZlc3BhbiB0YXJnZXRz
+Pw0KDQpTbywgdGhlcmUgaGF2ZSBiZWVuIHNvbWUgY2hhcmFjdGVyaXphdGlvbiBjaGFuZ2VzIHdo
+aWNoIGdpdmUgbW9yZSBsZWV3YXkgZm9yIHNvZnR3YXJlIHVzYWdlIG9mZiBvdmVyZHJpdmUuDQoN
+CldoYXQgeW91IGZvdW5kIGJlZm9yZSB3YXMgZ3VhcmFudGVlcyBhZ2FpbnN0IHR5cGljYWwgbW9i
+aWxlIHVzYWdlIGZvciBhIGZldyBjbGFzc2VzIG9mIGRldmljZXMuIFRoaXMgd2FzIGRvbmUgdXNp
+bmcgYSBtaXggb2YgT1BQcyB3aXRoIHRoZSBtYWpvcml0eSBvZiBhY3RpdmUgdGltZSBpbiBsb3dl
+ciBPUFBzIGFuZCBpbmFjdGl2ZSB0aW1lIGluIGxvdyBpZGxlcyAob3B0aW1hbCB1c2FnZSBmb3Ig
+bWl4IG9mIHR5cGljYWwgb3BlcmF0aW9ucywgdGhpcyBpcyB0aGUgd2F5IHlvdSB3b3VsZCB3YW50
+IHRvIHJ1biBpZGVhbGx5KS4gQWdhaW5zdCB0aGlzIGFuZCBtYW55IG1vcmUgdmFyaWFibGVzLCBy
+ZWxpYWJpbGl0eSBkYXRhIHdhcyB2YWxpZGF0ZWQgYW5kIHB1Ymxpc2hlZC4NCg0KUmVjZW50bHkg
+dGhlcmUgd2FzIHNvbWUgY2hhbmdlIHRvIGFsc28gbWVhc3VyZSBhY3RpdmUgdGltZSBhdCBtYXgg
+b3ZlcmRyaXZlIGZvciBzYW1lIHVzYWdlIG1peC4gVGhpcyByZXN1bHRlZCBpbiBzdGlsbCBtZWV0
+aW5nIGxpZmV0aW1lIGdvYWxzIGZvciB0eXBpY2FsIHVzYWdlLg0KDQpUaGlzIGNhbiB0cmFuc2xh
+dGUgdG8gYSBzbWFydCBwaG9uZSBtYWtlciBvZiBiZWluZyBhYmxlIHRvIHVzZSBvdmVyZHJpdmUg
+YXMgdGhleSBzZWUgZml0IGFuZCBzdGlsbCBoYXZlIGxvbmcgbGlmZSAoYXNzdW1pbmcgdGhleSBj
+YW4gc3VwcGx5IGFkZXF1YXRlIHBvd2VyIGFuZCBzdGlsbCBkaXNzaXBhdGUgd2hhdCBldmVyIGFk
+ZGl0aW9uYWwgaGVhdCB0aGVyZSBpcykuIFRoaXMgaXMgc3RpbGwgbm90IDEwMCUgb2YgdGhlIHRp
+bWUgaW4gYWN0aXZlIG1vZGUuDQoNCkkgc3VzcGVjdCBUSSB3aWxsIGNvbnRpbnVlIHRvIGNyZWF0
+ZSBwYXJ0cyBmb3IgY2VydGFpbiBtYXJrZXRzIHdoZW4gdGhlIG5lZWQgaXMgdGhlcmUuIFRoZSBw
+YXJ0IG1pZ2h0IGJlIG5lYXJseSBpZGVudGljYWwgYnV0IHRoZSB3YXkgaXQncyByYXRlZCAod2l0
+aCBjaGlwIGJpbm5pbmcgYW5kIG90aGVyIHRyaWNrcykgd2lsbCBhbGxvdyBkaWZmZXJlbnQgZ3Vh
+cmFudGVlcy4gVGhpcyBmaXRzIHdlbGwgd2l0aCBtb2JpbGUgYnVzaW5lc3MgY3VzdG9tZXIgbmVl
+ZHMuDQoNCkFzIGFuIG9wZW4gc291cmNlIGluZGl2aWR1YWwgb3duZXIgb2YgYSBkZXZpY2UsIHlv
+dSBtaWdodCBkbyB0aGluZ3MgaW4gYSBub24tdHlwaWNhbCB3YXkuIFlvdSBhcmUgZnJlZSB0byBk
+byB0aGlzLiBEZXBlbmRpbmcgb24gd2hpY2ggYmFzZSBjaGlwIHZhcmlhbnQgeW91IGFyZSB1c2lu
+ZywgaXRzIGxpZmUgbWF5IGhhdmUgc29tZSBpbXBhY3QgKG9yIG5vdCkuIFlvdXIgY2hpcCBsaWtl
+bHkgd2lsbCBzdGlsbCBsYXN0IG1hbnkgeWVhcnMuIFRoZSBwaG9uZSBvciBvdGhlciBkZXZpY2Ug
+bWlnaHQgZGllIGZpcnN0Lg0KDQpBbGwgdGhhdCBzYWlkLCB0b2RheSBwZXJzb25hbGx5LCBJIGZl
+ZWwgbXVjaCBtb3JlIGNvbWZvcnRhYmxlIGV4cG9zaW5nIG92ZXJkcml2ZXMgaW4gdGhlIHJlZmVy
+ZW5jZSBjb2RlLiBNb2JpbGUgdXNlcnMgYW5kIHRoZWlyIGRldmljZXMgd2hpY2ggYWN0dWFsbHkg
+c2xlZXAgYXQgbmlnaHQgc2hvdWxkIGJlIHByZXR0eSBzYWZlLg0KDQpXYXRjaCBkYXRhIHNoZWV0
+cyBmb3IgZGV0YWlscyA6KQ0KDQpSZWdhcmRzLA0KUmljaGFyZCBXLg0KDQo=
