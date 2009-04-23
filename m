@@ -1,51 +1,48 @@
-From: Trilok Soni <soni.trilok@gmail.com>
-Subject: Re: Problems while designing TPS65023 regulator driver
-Date: Thu, 23 Apr 2009 19:00:06 +0530
-Message-ID: <5d5443650904230630v454c2c7ft526b020731278010@mail.gmail.com>
-References: <5A47E75E594F054BAF48C5E4FC4B92AB02FAA91D06@dbde02.ent.ti.com>
-	 <20090226140450.GB8595@sirena.org.uk>
-	 <5A47E75E594F054BAF48C5E4FC4B92AB02FB102A76@dbde02.ent.ti.com>
-	 <20090403085335.GA3759@sirena.org.uk>
-	 <20090404000531.GE8840@atomide.com>
+From: Kalle Valo <kalle.valo@iki.fi>
+Subject: Re: n800 build error in clock24xx.c: 'secure_32k_ck' undeclared
+Date: Thu, 23 Apr 2009 18:37:24 +0300
+Message-ID: <87eivjbcuj.fsf@litku.valot.fi>
+References: <873ac7ko2n.fsf@litku.valot.fi>
+	<alpine.DEB.2.00.0904201141380.13457@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-qy0-f118.google.com ([209.85.221.118]:61365 "EHLO
-	mail-qy0-f118.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751693AbZDWNaH (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 23 Apr 2009 09:30:07 -0400
-Received: by qyk16 with SMTP id 16so1082216qyk.33
-        for <linux-omap@vger.kernel.org>; Thu, 23 Apr 2009 06:30:06 -0700 (PDT)
-In-Reply-To: <20090404000531.GE8840@atomide.com>
+Received: from mail-bw0-f163.google.com ([209.85.218.163]:50254 "EHLO
+	mail-bw0-f163.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751520AbZDWPh3 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 23 Apr 2009 11:37:29 -0400
+Received: by bwz7 with SMTP id 7so611372bwz.37
+        for <linux-omap@vger.kernel.org>; Thu, 23 Apr 2009 08:37:26 -0700 (PDT)
+In-Reply-To: <alpine.DEB.2.00.0904201141380.13457@utopia.booyaka.com> (Paul Walmsley's message of "Mon\, 20 Apr 2009 11\:47\:04 -0600 \(MDT\)")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Aggarwal, Anuj" <anuj.aggarwal@ti.com>
-Cc: Mark Brown <broonie@sirena.org.uk>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>
+To: Paul Walmsley <paul@pwsan.com>
+Cc: linux-omap@vger.kernel.org, tony@atomide.com
 
-Hi Anuj,
+Paul Walmsley <paul@pwsan.com> writes:
 
-On Sat, Apr 4, 2009 at 5:35 AM, Tony Lindgren <tony@atomide.com> wrote:
-> * Mark Brown <broonie@sirena.org.uk> [090403 01:53]:
->> On Fri, Apr 03, 2009 at 01:33:58PM +0530, Aggarwal, Anuj wrote:
->>
->> > I could not find the commit in linux-OMAP git where the init data is
->> > passed as a parameter to the regulator_register(). I am dependent
->> > on this commit for my TPS65023 regulator driver and could not push
->> > my patch without the commit being in l-o.
->>
->> > Any idea when this would be available in l-o?
->>
->> I can't speak for the OMAP tree but the patch should appear in
->> 2.6.30-rc1 so presumably it'll get merged into OMAP some time after that
->> is released.
+> Hi Kalle,
+
+Hi Paul,
+
+sorry for a late answer.
+
+> On Fri, 17 Apr 2009, Kalle Valo wrote:
 >
-> Sounds good to me.
+>> arch/arm/mach-omap2/clock24xx.h:1801: error: 'secure_32k_ck'
+>> undeclared here (not in a function)
+>>
+>> Any hints?
+>
+> This is a bug in the version of fa9ef57a1efdd4e7c41a42db71d99b9b69e9b356 I 
+> pushed.  The new clock definition in clock24xx.h for "secure_32k_fck" 
+> should be for "secure_32k_ck".  Just talked with Tony about this; he's 
+> going to re-pull a fixed version of that patch today.
 
-Any updates on tps65023 regulator driver? Could you please submit the
-WIP patches to the list?
+I updated to latest linux-omap (commit 55b1274c). It now compiles and
+boots on N800. 
+
+Thank you for fixing this.
 
 -- 
----Trilok Soni
-http://triloksoni.wordpress.com
-http://www.linkedin.com/in/triloksoni
+Kalle Valo
