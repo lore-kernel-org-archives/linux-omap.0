@@ -1,45 +1,37 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH 1/7] OMAP24xx/25xx clock: init osc_ck, sys_ck internal
- lists early
-Date: Thu, 23 Apr 2009 02:32:25 -0600 (MDT)
-Message-ID: <alpine.DEB.2.00.0904230221190.6400@utopia.booyaka.com>
-References: <20090414182039.22344.49790.stgit@localhost.localdomain> <20090414182324.22344.71159.stgit@localhost.localdomain> <alpine.DEB.2.00.0904141229580.32081@utopia.booyaka.com> <20090421195421.GB29943@n2100.arm.linux.org.uk>
- <alpine.DEB.2.00.0904222000240.24299@utopia.booyaka.com> <20090423075337.GA20250@n2100.arm.linux.org.uk>
+Subject: Re: PM: 4 Problems in OMAP3430 DVFS (SmartReflex, Cpufreq)
+Date: Thu, 23 Apr 2009 02:52:51 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.0904230245440.6400@utopia.booyaka.com>
+References: <4d34a0a70904222200oc699378k56367cf3b378b5d9@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:45749 "EHLO
+Received: from utopia.booyaka.com ([72.9.107.138]:42012 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752456AbZDWIc0 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 23 Apr 2009 04:32:26 -0400
-In-Reply-To: <20090423075337.GA20250@n2100.arm.linux.org.uk>
+	with ESMTP id S1752347AbZDWIww (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 23 Apr 2009 04:52:52 -0400
+In-Reply-To: <4d34a0a70904222200oc699378k56367cf3b378b5d9@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: linux-arm-kernel@lists.arm.linux.org.uk, linux-omap@vger.kernel.org
+To: r-woodruff2@ti.com
+Cc: Kim Kyuwon <chammoru@gmail.com>, Kevin Hilman <khilman@deeprootsystems.com>, OMAP <linux-omap@vger.kernel.org>, "Nayak, Rajendra" <rnayak@ti.com>, =?EUC-KR?B?udqw5rnO?= <kyungmin.park@samsung.com>, =?EUC-KR?B?uc66tMij?= <bhmin@samsung.com>, Tony Lindgren <tony@atomide.com>
 
-Hello Russell,
+Hello Richard,
 
-On Thu, 23 Apr 2009, Russell King - ARM Linux wrote:
+On Thu, 23 Apr 2009, Kim Kyuwon wrote:
 
-> On Wed, Apr 22, 2009 at 08:01:29PM -0600, Paul Walmsley wrote:
-> > The patch also renames clk_init_one() to clk_preinit() to
-> > distinguish its function from clk_init() and the individual struct clk
-> > init functions.
+> 4. Current PM code didn't enable the maximum clock (i.e. CPU: 600Mhz)
+> according to the comment as below:
 > 
-> That's rather unnecessary.  'clk_init_one' is already unique.  In the
-> long run, it's clk_init that needs to go.
-
-Even if clk_init() were to disappear, the struct clk .init function 
-pointer would still be present.  clk->init() performs a very different 
-kind of initialization than clk_init_one().
-
-> >  Incorporates review comments from Russell King
-> > <linux@arm.linux.org.uk>.
+> 	/* Avoid registering the 120% Overdrive with CPUFreq */
+> 	prcm = mpu_opps + MAX_VDD1_OPP - 1;
 > 
-> Please don't add this email address to git commit comments.  Thanks.
+> But in some cases, we should use 600Mhz for multimedia application.
+> And, even thought we enable the maximum clock, CPU frequency seldom
+> goes into maximum clock. I think we don't have to avoid registering
+> the max OPP.
 
-Updated in the git branch to rmk+kernel.
-
+Do you know if this restriction can be lifted now, i.e., can the silicon 
+run at VDD1 OPP1 100% of the time and meet the device lifespan targets?
 
 - Paul
