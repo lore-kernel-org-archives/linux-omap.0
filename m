@@ -1,37 +1,66 @@
-From: David Brownell <david-b@pacbell.net>
-Subject: Re: Problems while designing TPS65023 regulator driver
-Date: Thu, 23 Apr 2009 23:32:31 -0700
-Message-ID: <200904232332.32088.david-b@pacbell.net>
-References: <5A47E75E594F054BAF48C5E4FC4B92AB02FAA91D06@dbde02.ent.ti.com> <200904231517.11338.david-b@pacbell.net> <5d5443650904232301wb01150eu33e65074cf6223e8@mail.gmail.com>
+From: Roger Quadros <ext-roger.quadros@nokia.com>
+Subject: Re: [PATCH 00/10] OMAP3: SR: Fixes in Smartreflex driver
+Date: Fri, 24 Apr 2009 09:46:28 +0300
+Message-ID: <49F16044.6000603@nokia.com>
+References: <5A47E75E594F054BAF48C5E4FC4B92AB02FB25180A@dbde02.ent.ti.com> <87d4b4zc8e.fsf@deeprootsystems.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from n23b.bullet.mail.mud.yahoo.com ([68.142.206.142]:28381 "HELO
-	n23b.bullet.mail.mud.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1756987AbZDXGce (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Fri, 24 Apr 2009 02:32:34 -0400
-In-Reply-To: <5d5443650904232301wb01150eu33e65074cf6223e8@mail.gmail.com>
-Content-Disposition: inline
+Received: from smtp.nokia.com ([192.100.105.134]:48770 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753943AbZDXGsT (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 24 Apr 2009 02:48:19 -0400
+In-Reply-To: <87d4b4zc8e.fsf@deeprootsystems.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Trilok Soni <soni.trilok@gmail.com>
-Cc: "Aggarwal, Anuj" <anuj.aggarwal@ti.com>, Mark Brown <broonie@sirena.org.uk>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>
+To: ext Kevin Hilman <khilman@deeprootsystems.com>
+Cc: "Nayak, Rajendra" <rnayak@ti.com>, linux-omap <linux-omap@vger.kernel.org>
 
-On Thursday 23 April 2009, Trilok Soni wrote:
-> Thanks but I was requesting tps 6 5 0 2 3 not tps 6 2 3 5 x =A0:).
+ext Kevin Hilman wrote:
+> "Nayak, Rajendra" <rnayak@ti.com> writes:
+> 
+>> Re-sending this patch-set with some mailer issues resolved. They now apply cleanly
+>> with a git-am/git-apply.
+>>
+>> Hi,
+>>
+>> This series fixes a set of defects/issues in Smartreflex driver. SR autocompensation is now
+>> functional and is validated with these patches on a ES3.1 based SDP with the N values in Efuse.
+>>
+>> The patches also make the Smartreflex driver independent of SRF by using the OMAP PM apis
+>> instead of calls to SRF.
+>>
+>> Patches apply on top of the latest pm branch from Kevin's pm tree.
+>> git://git.kernel.org/pub/scm/linux/kernel/git/khilman/linux-omap-pm.git 
+> 
+> Rajendra,
+> 
+> This series seems to boot on SDP and Beagle but I recetly tried on
+> RX51 and it hangs in omap3_sr_init().
+> 
+> Using Lauterbach, I tracked it to hang in sr_configure_vp() at this
+> PRM write to the PRM_VP1_VLIMITTO register:
+> 
+> 		prm_write_mod_reg(PRM_VP1_VLIMITTO_VDDMAX |
+> 					PRM_VP1_VLIMITTO_VDDMIN |
+> 					PRM_VP1_VLIMITTO_TIMEOUT,
+> 					OMAP3430_GR_MOD,
+> 					OMAP3_PRM_VP1_VLIMITTO_OFFSET);
+> 
+> 
+> Should these min/max/timeout values be board specific?
+> 
+> Kevin
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
 
-Sorry ... maybe they'll help some other time.  :)
+It runs on rx51 if we set CONFIG_OMAP_PM_SRF instead of CONFIG_OMAP_PM_NOOP.
 
-I was wondering what happened to the tps6235x drivers,
-which seemed to have gotten lost.  I don't recall having
-seen tps65023 code.
+Should Smartreflex option be dependent or independent of the CONFIG_OMAP_PM_??? 
+setting?
 
-
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-roger
