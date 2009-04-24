@@ -1,63 +1,60 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 1/7] OMAP24xx/25xx clock: init osc_ck, sys_ck internal
-	lists early
-Date: Thu, 23 Apr 2009 22:23:06 -0700
-Message-ID: <20090424052306.GN22457@atomide.com>
-References: <20090414182324.22344.71159.stgit@localhost.localdomain> <alpine.DEB.2.00.0904141229580.32081@utopia.booyaka.com> <20090421195421.GB29943@n2100.arm.linux.org.uk> <alpine.DEB.2.00.0904222000240.24299@utopia.booyaka.com> <20090423075337.GA20250@n2100.arm.linux.org.uk> <alpine.DEB.2.00.0904230221190.6400@utopia.booyaka.com> <20090423180031.GD22457@atomide.com> <20090423222612.GA6095@n2100.arm.linux.org.uk> <20090423235527.GM22457@atomide.com> <alpine.DEB.2.00.0904232111290.29285@utopia.booyaka.com>
+From: Trilok Soni <soni.trilok@gmail.com>
+Subject: Re: Problems while designing TPS65023 regulator driver
+Date: Fri, 24 Apr 2009 11:31:35 +0530
+Message-ID: <5d5443650904232301wb01150eu33e65074cf6223e8@mail.gmail.com>
+References: <5A47E75E594F054BAF48C5E4FC4B92AB02FAA91D06@dbde02.ent.ti.com>
+	 <20090404000531.GE8840@atomide.com>
+	 <5d5443650904230630v454c2c7ft526b020731278010@mail.gmail.com>
+	 <200904231517.11338.david-b@pacbell.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:51669 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751948AbZDXFXP (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 24 Apr 2009 01:23:15 -0400
-Content-Disposition: inline
-In-Reply-To: <alpine.DEB.2.00.0904232111290.29285@utopia.booyaka.com>
+Received: from mail-qy0-f118.google.com ([209.85.221.118]:58397 "EHLO
+	mail-qy0-f118.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755093AbZDXGBh convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 24 Apr 2009 02:01:37 -0400
+Received: by qyk16 with SMTP id 16so1921399qyk.33
+        for <linux-omap@vger.kernel.org>; Thu, 23 Apr 2009 23:01:35 -0700 (PDT)
+In-Reply-To: <200904231517.11338.david-b@pacbell.net>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, linux-arm-kernel@lists.arm.linux.org.uk, linux-omap@vger.kernel.org
+To: David Brownell <david-b@pacbell.net>
+Cc: "Aggarwal, Anuj" <anuj.aggarwal@ti.com>, Mark Brown <broonie@sirena.org.uk>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>
 
-* Paul Walmsley <paul@pwsan.com> [090423 20:13]:
-> On Thu, 23 Apr 2009, Tony Lindgren wrote:
-> 
-> > * Russell King - ARM Linux <linux@arm.linux.org.uk> [090423 15:26]:
-> > > On Thu, Apr 23, 2009 at 11:00:31AM -0700, Tony Lindgren wrote:
-> > > > * Paul Walmsley <paul@pwsan.com> [090423 01:35]:
-> > > > > Hello Russell,
-> > > > > 
-> > > > > On Thu, 23 Apr 2009, Russell King - ARM Linux wrote:
-> > > > > 
-> > > > > > On Wed, Apr 22, 2009 at 08:01:29PM -0600, Paul Walmsley wrote:
-> > > > > > > The patch also renames clk_init_one() to clk_preinit() to
-> > > > > > > distinguish its function from clk_init() and the individual struct clk
-> > > > > > > init functions.
-> > > > > > 
-> > > > > > That's rather unnecessary.  'clk_init_one' is already unique.  In the
-> > > > > > long run, it's clk_init that needs to go.
-> > > > > 
-> > > > > Even if clk_init() were to disappear, the struct clk .init function 
-> > > > > pointer would still be present.  clk->init() performs a very different 
-> > > > > kind of initialization than clk_init_one().
-> > > > 
-> > > > I'm OK doing the rename in this fix. The original naming can cause
-> > > > confusion while reading the code.
-> > > 
-> > > Well I'm not, and I want to discuss it some more.  And I'm sending Linus
-> > > a pull request tonight, so I'm dropping the OMAP stuff from that.
-> > 
-> > OK. Paul, can you please separate out the rename part into a separate
-> > patch so we only have a minimal fix & then repost it here?
-> > 
-> > That way we'll get the necessary fixes in and you guys can schedule
-> > other changes for next merge window.
-> 
-> The omap-clock-fixes branch has been updated to remove the rename.
-> 
-> Not that this should stop the discussion, but at least this should no 
-> longer prevent these needed fixes from going upstream.
+Hi David,
 
-Care to post the updated patch here too? Temporay git branches are 
-not too readable by most people..
+On Fri, Apr 24, 2009 at 3:47 AM, David Brownell <david-b@pacbell.net> w=
+rote:
+> On Thursday 23 April 2009, Trilok Soni wrote:
+>> Any updates on tps65023 regulator driver? Could you please submit th=
+e
+>> WIP patches to the list?
+>
+> FWIW, here's the last version I saw ... it includes a
+> build hack for the regulator_register() call. =A0I haven't
+> build-tested it since that API change went to mainline.
+>
+> =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D
+> From: Manikandan Pillai <mani.pillai@ti.com>
+> Subject: regulator: add support for TPS6235x
+>
+> The patch has been fixed for comments given by David Brownell
+> and Mark Brown for adding TPS6235x support on OMAP3 EVM.
+> Comments fixed include
+> moving Makefile changes to this patch
+> dev_err used
+> removed the extra configuration option from Kconfig
 
-Tony
+Thanks but I was requesting tps 6 5 0 2 3 not tps 6 2 3 5 x  :).
+
+--=20
+---Trilok Soni
+http://triloksoni.wordpress.com
+http://www.linkedin.com/in/triloksoni
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
