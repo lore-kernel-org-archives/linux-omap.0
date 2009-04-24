@@ -1,29 +1,69 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: git pull request for omap fixes, v4 (Re: [PATCH 00/11] Omap
-	fixes for 2.6.30-rc1)
-Date: Fri, 24 Apr 2009 14:33:25 -0700
-Message-ID: <20090424213325.GU22457@atomide.com>
-References: <20090414214638.9878.17987.stgit@localhost> <20090417012301.GB8316@atomide.com> <20090421045732.GA25864@atomide.com> <20090421155506.GE25864@atomide.com> <20090423182054.GG22457@atomide.com> <20090424175307.GS22457@atomide.com> <20090424211629.GS28748@n2100.arm.linux.org.uk>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: [PATCH 00/10] OMAP3: SR: Fixes in Smartreflex driver
+Date: Fri, 24 Apr 2009 15:50:30 -0700
+Message-ID: <874owdy8cp.fsf@deeprootsystems.com>
+References: <5A47E75E594F054BAF48C5E4FC4B92AB02FB25180A@dbde02.ent.ti.com>
+	<87d4b4zc8e.fsf@deeprootsystems.com> <49F16044.6000603@nokia.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:64780 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756692AbZDXVdg (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 24 Apr 2009 17:33:36 -0400
-Content-Disposition: inline
-In-Reply-To: <20090424211629.GS28748@n2100.arm.linux.org.uk>
+Received: from wf-out-1314.google.com ([209.85.200.172]:51937 "EHLO
+	wf-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753642AbZDXWuc (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 24 Apr 2009 18:50:32 -0400
+Received: by wf-out-1314.google.com with SMTP id 26so1164936wfd.4
+        for <linux-omap@vger.kernel.org>; Fri, 24 Apr 2009 15:50:31 -0700 (PDT)
+In-Reply-To: <49F16044.6000603@nokia.com> (Roger Quadros's message of "Fri\, 24 Apr 2009 09\:46\:28 +0300")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: linux-arm-kernel@lists.arm.linux.org.uk, linux-omap@vger.kernel.org
+To: Roger Quadros <ext-roger.quadros@nokia.com>
+Cc: "Nayak, Rajendra" <rnayak@ti.com>, linux-omap <linux-omap@vger.kernel.org>
 
-* Russell King - ARM Linux <linux@arm.linux.org.uk> [090424 14:16]:
-> On Fri, Apr 24, 2009 at 10:53:08AM -0700, Tony Lindgren wrote:
-> > Updated the same patch again. Updated pull request below.
-> 
-> Pulled.  Will probably go upstream in about 6 days time.
+Roger Quadros <ext-roger.quadros@nokia.com> writes:
 
-OK & thanks.
+> ext Kevin Hilman wrote:
+[...]
+>>
+>> Rajendra,
+>>
+>> This series seems to boot on SDP and Beagle but I recetly tried on
+>> RX51 and it hangs in omap3_sr_init().
+>>
+>> Using Lauterbach, I tracked it to hang in sr_configure_vp() at this
+>> PRM write to the PRM_VP1_VLIMITTO register:
+>>
+>> 		prm_write_mod_reg(PRM_VP1_VLIMITTO_VDDMAX |
+>> 					PRM_VP1_VLIMITTO_VDDMIN |
+>> 					PRM_VP1_VLIMITTO_TIMEOUT,
+>> 					OMAP3430_GR_MOD,
+>> 					OMAP3_PRM_VP1_VLIMITTO_OFFSET);
+>>
+>>
+>> Should these min/max/timeout values be board specific?
+>>
 
-Tony
+[...]
+
+>
+> It runs on rx51 if we set CONFIG_OMAP_PM_SRF instead of CONFIG_OMAP_PM_NOOP.
+>
+> Should Smartreflex option be dependent or independent of the
+> CONFIG_OMAP_PM_??? setting?
+>
+
+I see the same thing on SDP as well as RX51.
+
+It looks like the new SR code assumes a range of OPPs, but when
+OMAP_PM_NONE is enabled, the omap_pm_vddX_get_opp() calls always
+return zero.
+
+In the mpu_opps array, the first entry is all zeros, resulting
+in a zero VSEL which is then used to (re)program the VP.
+
+The SR code should probably be a bit smarter about checking for valid
+values.
+
+Kevin
+
+
+
