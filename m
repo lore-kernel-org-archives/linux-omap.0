@@ -1,54 +1,240 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 1/7] OMAP24xx/25xx clock: init osc_ck, sys_ck internal
-	lists early
-Date: Thu, 23 Apr 2009 16:55:27 -0700
-Message-ID: <20090423235527.GM22457@atomide.com>
-References: <20090414182039.22344.49790.stgit@localhost.localdomain> <20090414182324.22344.71159.stgit@localhost.localdomain> <alpine.DEB.2.00.0904141229580.32081@utopia.booyaka.com> <20090421195421.GB29943@n2100.arm.linux.org.uk> <alpine.DEB.2.00.0904222000240.24299@utopia.booyaka.com> <20090423075337.GA20250@n2100.arm.linux.org.uk> <alpine.DEB.2.00.0904230221190.6400@utopia.booyaka.com> <20090423180031.GD22457@atomide.com> <20090423222612.GA6095@n2100.arm.linux.org.uk>
+From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Subject: Re: [patch 2.6.29-rc3-git] input:  twl4030_keypad driver
+Date: Thu, 23 Apr 2009 19:12:11 -0700
+Message-ID: <20090424021159.GB11726@dtor-d630.eng.vmware.com>
+References: <200902060057.04108.david-b@pacbell.net> <200904202322.41523.david-b@pacbell.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:55507 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751096AbZDWX4I (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 23 Apr 2009 19:56:08 -0400
+Return-path: <linux-input-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20090423222612.GA6095@n2100.arm.linux.org.uk>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <200904202322.41523.david-b@pacbell.net>
+Sender: linux-input-owner@vger.kernel.org
+To: David Brownell <david-b@pacbell.net>
+Cc: linux-input@vger.kernel.org, OMAP <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: Paul Walmsley <paul@pwsan.com>, linux-arm-kernel@lists.arm.linux.org.uk, linux-omap@vger.kernel.org
 
-* Russell King - ARM Linux <linux@arm.linux.org.uk> [090423 15:26]:
-> On Thu, Apr 23, 2009 at 11:00:31AM -0700, Tony Lindgren wrote:
-> > * Paul Walmsley <paul@pwsan.com> [090423 01:35]:
-> > > Hello Russell,
-> > > 
-> > > On Thu, 23 Apr 2009, Russell King - ARM Linux wrote:
-> > > 
-> > > > On Wed, Apr 22, 2009 at 08:01:29PM -0600, Paul Walmsley wrote:
-> > > > > The patch also renames clk_init_one() to clk_preinit() to
-> > > > > distinguish its function from clk_init() and the individual struct clk
-> > > > > init functions.
-> > > > 
-> > > > That's rather unnecessary.  'clk_init_one' is already unique.  In the
-> > > > long run, it's clk_init that needs to go.
-> > > 
-> > > Even if clk_init() were to disappear, the struct clk .init function 
-> > > pointer would still be present.  clk->init() performs a very different 
-> > > kind of initialization than clk_init_one().
+On Mon, Apr 20, 2009 at 11:22:41PM -0700, David Brownell wrote:
+> On Friday 06 February 2009, David Brownell wrote:
+> > From: David Brownell <dbrownell@users.sourceforge.net>
 > > 
-> > I'm OK doing the rename in this fix. The original naming can cause
-> > confusion while reading the code.
+> > Add a driver for the keypad controller on TWL4030 family chips.
 > 
-> Well I'm not, and I want to discuss it some more.  And I'm sending Linus
-> a pull request tonight, so I'm dropping the OMAP stuff from that.
+> PING?  I was told this was in the input queue, but it's not in
+> 
+>   http://git.kernel.org/?p=linux/kernel/git/dtor/input.git
+> 
+> Here's a current version of the patch.
+> 
 
-OK. Paul, can you please separate out the rename part into a separate
-patch so we only have a minimal fix & then repost it here?
+Dave,
 
-That way we'll get the necessary fixes in and you guys can schedule
-other changes for next merge window.
+It waqs sitting in my local queue, I had some concerns over the keymap
+change as it was implemented in the version you sent me. The problem is
+that you mangle key codes in your keymap table (encoding row/col data in
+them) but input core is not aware of that and when you try using
+EVIOCSETKEYCODE it will do wierd things. I was wondering what you would
+think about the following patch that should rectify this issue.
 
-Thanks,
+Also, I don't think we need the special handling for "persistant" keys.
+Just let these keys generate KEY_RESERVED and input core will not
+propagate their events.
 
-Tony
+Thanks!
+
+-- 
+Dmitry
+
+
+Input: twl4030_kepad fixups
+
+Signed-off-by: Dmitry Torokhov <dtor@mail.ru>
+---
+
+ drivers/input/keyboard/twl4030_keypad.c |   62 ++++++++++---------------------
+ include/linux/i2c/twl4030.h             |   18 +++++++--
+ 2 files changed, 32 insertions(+), 48 deletions(-)
+
+
+diff --git a/drivers/input/keyboard/twl4030_keypad.c b/drivers/input/keyboard/twl4030_keypad.c
+index 987f13c..b761cac 100644
+--- a/drivers/input/keyboard/twl4030_keypad.c
++++ b/drivers/input/keyboard/twl4030_keypad.c
+@@ -48,23 +48,18 @@
+  * See the TPS65950 documentation; that's the general availability
+  * version of the TWL5030 second generation part.
+  */
+-#define MAX_ROWS		8	/* TWL4030 hard limit */
+ 
+ struct twl4030_keypad {
+-	unsigned	*keymap;
+-	unsigned int	keymapsize;
+-	u16		kp_state[MAX_ROWS];
+-	unsigned	n_rows;
+-	unsigned	n_cols;
++	unsigned short	keymap[TWL4030_KEYMAP_SIZE];
++	u16		kp_state[TWL4030_MAX_ROWS];
++	u8		n_rows;
++	u8		n_cols;
+ 	unsigned	irq;
+ 
+ 	struct device	*dbg_dev;
+ 	struct input_dev *input;
+ };
+ 
+-#define ROWCOL_MASK	KEY(0xf, 0xf, 0)
+-#define KEYNUM_MASK	~PERSISTENT_KEY(0xf, 0xf)
+-
+ /*----------------------------------------------------------------------*/
+ 
+ /* arbitrary prescaler value 0..7 */
+@@ -156,18 +151,6 @@ static int twl4030_kpwrite_u8(struct twl4030_keypad *kp, u8 data, u32 reg)
+ 	return ret;
+ }
+ 
+-static int twl4030_find_key(struct twl4030_keypad *kp, int col, int row)
+-{
+-	int i, rc;
+-
+-	rc = KEY(col, row, 0);
+-	for (i = 0; i < kp->keymapsize; i++)
+-		if ((kp->keymap[i] & ROWCOL_MASK) == rc)
+-			return kp->keymap[i] & (KEYNUM_MASK | KEY_PERSISTENT);
+-
+-	return -EINVAL;
+-}
+-
+ static inline u16 twl4030_col_xlate(struct twl4030_keypad *kp, u8 col)
+ {
+ 	/* If all bits in a row are active for all coloumns then
+@@ -183,7 +166,7 @@ static inline u16 twl4030_col_xlate(struct twl4030_keypad *kp, u8 col)
+ 
+ static int twl4030_read_kp_matrix_state(struct twl4030_keypad *kp, u16 *state)
+ {
+-	u8 new_state[MAX_ROWS];
++	u8 new_state[TWL4030_MAX_ROWS];
+ 	int row;
+ 	int ret = twl4030_kpread(kp,
+ 				 new_state, KEYP_FULL_CODE_7_0, kp->n_rows);
+@@ -213,7 +196,8 @@ static int twl4030_is_in_ghost_state(struct twl4030_keypad *kp, u16 *key_state)
+ 
+ static void twl4030_kp_scan(struct twl4030_keypad *kp, int release_all)
+ {
+-	u16 new_state[MAX_ROWS];
++	struct input_dev *input = kp->input;
++	u16 new_state[TWL4030_MAX_ROWS];
+ 	int col, row;
+ 
+ 	if (release_all)
+@@ -246,20 +230,13 @@ static void twl4030_kp_scan(struct twl4030_keypad *kp, int release_all)
+ 				(new_state[row] & (1 << col)) ?
+ 				"press" : "release");
+ 
+-			key = twl4030_find_key(kp, col, row);
+-			if (key < 0)
+-				dev_warn(kp->dbg_dev,
+-					"Spurious key event %d-%d\n",
+-					 col, row);
+-			else if (key & KEY_PERSISTENT)
+-				continue;
+-			else
+-				input_report_key(kp->input, key,
+-						 new_state[row] & (1 << col));
++			key = kp->keymap[(row << 3) | col];
++			input_report_key(input, key,
++					 new_state[row] & (1 << col));
+ 		}
+ 		kp->kp_state[row] = new_state[row];
+ 	}
+-	input_sync(kp->input);
++	input_sync(input);
+ }
+ 
+ /*
+@@ -358,8 +335,8 @@ static int __devinit twl4030_kp_probe(struct platform_device *pdev)
+ 	int i;
+ 	int error;
+ 
+-	if (!pdata || !pdata->rows || !pdata->cols || !pdata->keymap
+-			|| pdata->rows > 8 || pdata->cols > 8) {
++	if (!pdata || !pdata->rows || !pdata->cols ||
++	    pdata->rows > TWL4030_MAX_ROWS || pdata->cols > TWL4030_MAX_COLS) {
+ 		dev_err(&pdev->dev, "Invalid platform_data\n");
+ 		return -EINVAL;
+ 	}
+@@ -373,11 +350,9 @@ static int __devinit twl4030_kp_probe(struct platform_device *pdev)
+ 
+ 	/* Get the debug Device */
+ 	kp->dbg_dev = &pdev->dev;
+-
+ 	kp->input = input;
+ 
+-	kp->keymap = pdata->keymap;
+-	kp->keymapsize = pdata->keymapsize;
++	memcpy(kp->keymap, pdata->keymap, sizeof(pdata->keymap));
+ 	kp->n_rows = pdata->rows;
+ 	kp->n_cols = pdata->cols;
+ 	kp->irq = platform_get_irq(pdev, 0);
+@@ -389,8 +364,9 @@ static int __devinit twl4030_kp_probe(struct platform_device *pdev)
+ 	if (pdata->rep)
+ 		__set_bit(EV_REP, kp->input->evbit);
+ 
+-	for (i = 0; i < kp->keymapsize; i++)
+-		__set_bit(kp->keymap[i] & KEYNUM_MASK, input->keybit);
++	for (i = 0; i < ARRAY_SIZE(kp->keymap); i++)
++		__set_bit(kp->keymap[i], input->keybit);
++	__clear_bit(KEY_RESERVED, input->keybit);
+ 
+ 	input->name		= "TWL4030 Keypad";
+ 	input->phys		= "twl4030_keypad/input0";
+@@ -402,8 +378,8 @@ static int __devinit twl4030_kp_probe(struct platform_device *pdev)
+ 	input->id.version	= 0x0003;
+ 
+ 	input->keycode		= kp->keymap;
+-	input->keycodesize	= sizeof(unsigned int);
+-	input->keycodemax	= kp->keymapsize;
++	input->keycodesize	= sizeof(kp->keymap[0]);
++	input->keycodemax	= ARRAY_SIZE(kp->keymap);
+ 
+ 	error = input_register_device(input);
+ 	if (error) {
+diff --git a/include/linux/i2c/twl4030.h b/include/linux/i2c/twl4030.h
+index 6b9722d..e493d2a 100644
+--- a/include/linux/i2c/twl4030.h
++++ b/include/linux/i2c/twl4030.h
+@@ -25,6 +25,8 @@
+ #ifndef __TWL4030_H_
+ #define __TWL4030_H_
+ 
++#include <linux/types.h>
++
+ /*
+  * Using the twl4030 core we address registers using a pair
+  *	{ module id, relative register offset }
+@@ -306,16 +308,22 @@ struct twl4030_madc_platform_data {
+  * Column and row are 4 bits, but range only from 0..7;
+  * a PERSISTENT_KEY is "always on" and never reported.
+  */
++
++#define TWL4030_MAX_ROWS	8
++#define TWL4030_MAX_COLS	8
++#define TWL4030_KEYMAP_SIZE	(TWL4030_MAX_ROWS * TWL4030_MAX_COLS)
++
++/*
+ #define KEY_PERSISTENT		0x00800000
+ #define KEY(col, row, keycode)	(((col) << 28) | ((row) << 24) | (keycode))
+ #define PERSISTENT_KEY(c, r)	KEY((c), (r), KEY_PERSISTENT)
++*/
+ 
+ struct twl4030_keypad_data {
+-	unsigned rows;
+-	unsigned cols;
+-	unsigned *keymap;
+-	unsigned short keymapsize;
+-	unsigned int rep:1;
++	unsigned short keymap[TWL4030_KEYMAP_SIZE];
++	u8 rows;
++	u8 cols;
++	bool rep;
+ };
+ 
+ enum twl4030_usb_mode {
