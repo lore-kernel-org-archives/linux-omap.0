@@ -1,82 +1,76 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: [PATCH] OMAP2 H4: fix build by removing IRDA support
-Date: Sat, 25 Apr 2009 15:52:43 -0600 (MDT)
-Message-ID: <alpine.DEB.2.00.0904251551150.28378@utopia.booyaka.com>
+From: David Brownell <david-b@pacbell.net>
+Subject: Re: [PATCH] regulator core: fix double-free in regulator_register() error path
+Date: Sat, 25 Apr 2009 15:11:56 -0700
+Message-ID: <200904251511.57390.david-b@pacbell.net>
+References: <alpine.DEB.2.00.0904250526210.28378@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:35214 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751638AbZDYVwp (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 25 Apr 2009 17:52:45 -0400
+Received: from n15b.bullet.mail.mud.yahoo.com ([68.142.207.236]:21449 "HELO
+	n15b.bullet.mail.mud.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1752713AbZDYWMD (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Sat, 25 Apr 2009 18:12:03 -0400
+In-Reply-To: <alpine.DEB.2.00.0904250526210.28378@utopia.booyaka.com>
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Tony Lindgren <tony@atomide.com>
+To: lrg@slimlogic.co.uk, broonie@opensource.wolfsonmicro.com
+Cc: Paul Walmsley <paul@pwsan.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+
+On Saturday 25 April 2009, Paul Walmsley wrote:
+> 
+> During regulator registration, any error after device_register() will 
+> cause a double-free on the struct regulator_dev 'rdev'.  The bug is in 
+> drivers/regulator/core.c:regulator_register():
+> 
+> ...
+> scrub:
+> 	device_unregister(&rdev->dev);
+> clean:
+> 	kfree(rdev);                           <---
+> 	rdev = ERR_PTR(ret);
+> 	goto out;
+> ...
+> 
+> device_unregister() calls regulator_dev_release() which frees rdev.  The 
+> subsequent kfree corrupts memory and causes some OMAP3 systems to oops on 
+> boot in regulator_get().
+> 
+> Applies against 2.6.30-rc3.
+> 
+> Signed-off-by: Paul Walmsley <paul@pwsan.com>
+
+This looks like it would address the oopsing I mentioned a
+while back, since affects cleanup paths after errors during
+driver probe().
 
 
-Commit 5c2c33ae65b949b8c901754090eb95d7b77dc5e4 breaks H4 builds, so 
-remove the gpio_expa IRDA support in the same manner as that commit did 
-for H3.
+> ---
+>  drivers/regulator/core.c |    4 ++++
+>  1 files changed, 4 insertions(+), 0 deletions(-)
+> 
+> diff --git a/drivers/regulator/core.c b/drivers/regulator/core.c
+> index 01f7702..fabd2e0 100644
+> --- a/drivers/regulator/core.c
+> +++ b/drivers/regulator/core.c
+> @@ -2080,6 +2080,10 @@ out:
+>  
+>  scrub:
+>  	device_unregister(&rdev->dev);
+> +	/* device core frees rdev */
+> +	rdev = ERR_PTR(ret);
+> +	goto out;
+> +
+>  clean:
+>  	kfree(rdev);
+>  	rdev = ERR_PTR(ret);
+> -- 
+> 1.6.3.rc1.51.gea0b7
+> 
+> 
 
-Signed-off-by: Paul Walmsley <paul@pwsan.com>
-Cc: Tony Lindgren <tony@atomide.com>
----
- arch/arm/mach-omap2/board-h4.c |   39 ++++-----------------------------------
- 1 files changed, 4 insertions(+), 35 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/board-h4.c b/arch/arm/mach-omap2/board-h4.c
-index cbca22a..6145139 100644
---- a/arch/arm/mach-omap2/board-h4.c
-+++ b/arch/arm/mach-omap2/board-h4.c
-@@ -186,43 +186,12 @@ static struct platform_device h4_flash_device = {
- 	.resource	= &h4_flash_resource,
- };
- 
--#if defined(CONFIG_OMAP_IR) || defined(CONFIG_OMAP_IR_MODULE)
--
--/* Select between the IrDA and aGPS module */
--static int h4_select_irda(struct device *dev, int state)
--{
--	/* U192.P0 = high for IRDA; else AGPS */
--	gpio_set_value_cansleep(H4_GPIO_IRDA_AGPSn, state & IR_SEL);
--
--	/* NOTE:  UART3 can also hook up to a DB9 or to GSM ... */
--	return 0;
--}
--
--static void set_trans_mode(struct work_struct *work)
--{
--	struct omap_irda_config *irda_config =
--		container_of(work, struct omap_irda_config, gpio_expa.work);
--	int mode = irda_config->mode;
--
--	/* U191.P0 = low for SIR; else MIR/FIR */
--	gpio_set_value_cansleep(H4_GPIO_IRDA_FIRSEL, !(mode & IR_SIRMODE));
--}
--
--static int h4_transceiver_mode(struct device *dev, int mode)
--{
--	struct omap_irda_config *irda_config = dev->platform_data;
--
--	irda_config->mode = mode;
--	cancel_delayed_work(&irda_config->gpio_expa);
--	PREPARE_DELAYED_WORK(&irda_config->gpio_expa, set_trans_mode);
--	schedule_delayed_work(&irda_config->gpio_expa, 0);
--
--	return 0;
--}
--#else
-+/*
-+ * IRDA code removed due to dependency on dead gpio_expa code -
-+ * feel free to fix and add back in if you are a user
-+ */
- static int h4_select_irda(struct device *dev, int state) { return 0; }
- static int h4_transceiver_mode(struct device *dev, int mode) { return 0; }
--#endif
- 
- static struct omap_irda_config h4_irda_data = {
- 	.transceiver_cap	= IR_SIRMODE | IR_MIRMODE | IR_FIRMODE,
--- 
-1.6.3.rc1.51.gea0b7
 
