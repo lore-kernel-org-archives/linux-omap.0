@@ -1,56 +1,54 @@
-From: Koen Kooi <k.kooi@student.utwente.nl>
-Subject: Re: [PATCH][UPDATED] DSPBRIDGE: CLK_Enable and CLK_Disable Code  cleanup
-Date: Sat, 25 Apr 2009 16:47:33 +0200
-Message-ID: <BA44A5A6-F51F-4ED0-88E4-9AD8BB6785A2@student.utwente.nl>
-References: <49E89649.9050103@yandex.ru> <1239981547-30944-1-git-send-email-ameya.palande@nokia.com> <49E8A50D.2010602@yandex.ru> <27F9C60D11D683428E133F85D2BB4A530404A089E0@dlee03.ent.ti.com> <94a0d4530904250442h5888d61fie0f2ec60f6384ab7@mail.gmail.com>
-Mime-Version: 1.0 (Apple Message framework v930.3)
-Content-Type: multipart/signed; protocol="application/pgp-signature"; micalg=pgp-sha1; boundary="Apple-Mail-10-370648400"
+From: Marek Vasut <marek.vasut@gmail.com>
+Subject: Re: lcd rotation in omapfb_main.c
+Date: Sat, 25 Apr 2009 17:31:36 +0200
+Message-ID: <200904251731.36722.marek.vasut@gmail.com>
+References: <dbdb2ea60904211518o2539b4e1y80750587bebc30a1@mail.gmail.com> <1f11a5490904220625g26876f68wf5b9a77ed0ed2f4e@mail.gmail.com> <dbdb2ea60904220838j2dca852bq402c11de5ae67f4e@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mx3.utsp.utwente.nl ([130.89.2.14]:48590 "EHLO mx.utwente.nl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752409AbZDYOrs (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Sat, 25 Apr 2009 10:47:48 -0400
-Received: from [172.20.1.5] (vpn006011.vpn.utwente.nl [130.89.6.11])
-          by mx.utwente.nl (8.12.10/SuSE Linux 0.7) with ESMTP id n3PElZIS019765
-          for <linux-omap@vger.kernel.org>; Sat, 25 Apr 2009 16:47:35 +0200
-In-Reply-To: <94a0d4530904250442h5888d61fie0f2ec60f6384ab7@mail.gmail.com>
+Received: from mail-bw0-f163.google.com ([209.85.218.163]:62197 "EHLO
+	mail-bw0-f163.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752749AbZDYPbe (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 25 Apr 2009 11:31:34 -0400
+Received: by bwz7 with SMTP id 7so1550296bwz.37
+        for <linux-omap@vger.kernel.org>; Sat, 25 Apr 2009 08:31:32 -0700 (PDT)
+In-Reply-To: <dbdb2ea60904220838j2dca852bq402c11de5ae67f4e@mail.gmail.com>
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap List <linux-omap@vger.kernel.org>
+To: twebb <taliaferro62@gmail.com>
+Cc: Ashwin Bihari <abihari@gmail.com>, "linux-omap@vger.kernel.org Mailing List" <linux-omap@vger.kernel.org>, Koen Kooi <k.kooi@student.utwente.nl>
 
-This is an OpenPGP/MIME signed message (RFC 2440 and 3156)
---Apple-Mail-10-370648400
-Content-Type: text/plain; charset=US-ASCII; format=flowed
-Content-Transfer-Encoding: 7bit
+On Wednesday 22 of April 2009 17:38:20 twebb wrote:
+> > The L-O tree is already about 2.6.30, so you're essentially 3
+> > revisions out and you're just setting yourself up for a bunch of work
+> > to port numerous changes into your Kernel.
+> >
+> > And as Greg KH would probably say, 5 months in Kernel development land
+> > is a really long period of time. :)
+> >
+> > -- Ashwin
+>
+> Thanks for the clarification.  Maybe you could help me understand
+> something about the l-o tree.  From what I see on the git, the latest
+> tagged l-o version is 2.6.30-rc2, but my understanding is that only
+> tags that include "-omapX" have had the latest omap patches applied to
+> it.  So I'm not sure what the best choice would be for the 'newest
+> kernel I can find'.  Maybe another way to ask this is which would
+> offer better, reasonably stable, omap support: tagged tree
+> v2.6.28-omap1 or v2.6.29, or head omap-2.6.28 or omap-2.6.29 or
+> omap-fixes?
 
-Op 25 apr 2009, om 13:42 heeft Felipe Contreras het volgende geschreven:
+I'm not an omap person anymore (though I'll miss working on my omap devices). 
+But, according to README[1], the git address is [2] and you should be fine 
+just doing git clone [3] on it.
 
-> While there has been good progress in the bridgedriver, it is still
-> *very* far away from meeting mainline standards and this makes many
-> people uneasy, including me.
-
-
-Is it "good enough" to go into Greg KHs staging tree?
-
-regards,
-
-Koen
-
-
---Apple-Mail-10-370648400
-content-type: application/pgp-signature; x-mac-type=70674453;
-	name=PGP.sig
-content-description: Dit deel van het bericht is digitaal ondertekend
-content-disposition: inline; filename=PGP.sig
-content-transfer-encoding: 7bit
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.5 (Darwin)
-
-iD8DBQFJ8yKHMkyGM64RGpERAh6VAJ0ef+dnRJWeljdWQPWt3wtlv869lgCffPvl
-nkpjAOZ0VkUJDyLcxGUl/EY=
-=mjIu
------END PGP SIGNATURE-----
-
---Apple-Mail-10-370648400--
+[1] http://www.muru.com/linux/omap/README_OMAP_GIT
+[2] 
+http://git.kernel.org/git/?p=linux/kernel/git/tmlind/linux-omap-2.6.git;a=summary
+[3] git clone 
+git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap-2.6.git
+>
+> Thanks.
