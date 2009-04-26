@@ -1,112 +1,74 @@
-From: Grazvydas Ignotas <notasas@gmail.com>
-Subject: [PATCH] OMAP: pandora: setup regulator framework for MMC
-Date: Sun, 26 Apr 2009 23:45:19 +0300
-Message-ID: <1240778719-26353-1-git-send-email-notasas@gmail.com>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mu-out-0910.google.com ([209.85.134.186]:16311 "EHLO
-	mu-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751750AbZDZUp0 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 26 Apr 2009 16:45:26 -0400
-Received: by mu-out-0910.google.com with SMTP id i2so586756mue.1
-        for <linux-omap@vger.kernel.org>; Sun, 26 Apr 2009 13:45:25 -0700 (PDT)
-Sender: linux-omap-owner@vger.kernel.org
+From: Pierre Ossman <pierre@ossman.eu>
+Subject: Re: [PATCH 9/9] omap mmc host: Use disable_irq_nosync() from within
+ irq handlers.
+Date: Sun, 26 Apr 2009 21:21:18 +0200
+Message-ID: <20090426212118.19526712@mjolnir.ossman.eu>
+References: <1239861321.29831.130.camel@linux-51e8.site>
+Mime-Version: 1.0
+Content-Type: multipart/signed; micalg=PGP-SHA1; protocol="application/pgp-signature"; boundary="=_freyr.ossman.eu-16764-1240773681-0001-2"
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1756535AbZDZTVk@vger.kernel.org>
+In-Reply-To: <1239861321.29831.130.camel@linux-51e8.site>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Carlos Aguiar <carlos.aguiar@indt.org.br>, Anderson Briglia <briglia.anderson@gmail.com>, "Syed Mohammed, Khasim" <x0khasim@ti.com>
+Cc: Ben Nizette <bn@niasdigital.com>, linux-omap@vger.kernel.org, linux-kernel <linux-kernel@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Grazvydas Ignotas <notasas@gmail.com>, David Brownell <david-b@pacbell.net>
 
-Setup regulators for MMC1 and MMC2 to get those SD slots
-working again.
+This is a MIME-formatted message.  If you see this text it means that your
+E-mail software does not support MIME-formatted messages.
 
-Signed-off-by: Grazvydas Ignotas <notasas@gmail.com>
-CC: David Brownell <david-b@pacbell.net>
----
- arch/arm/mach-omap2/board-omap3pandora.c |   45 ++++++++++++++++++++++++++++++
- 1 files changed, 45 insertions(+), 0 deletions(-)
+--=_freyr.ossman.eu-16764-1240773681-0001-2
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: quoted-printable
 
-diff --git a/arch/arm/mach-omap2/board-omap3pandora.c b/arch/arm/mach-omap2/board-omap3pandora.c
-index c67f62f..c525b16 100644
---- a/arch/arm/mach-omap2/board-omap3pandora.c
-+++ b/arch/arm/mach-omap2/board-omap3pandora.c
-@@ -27,6 +27,7 @@
- 
- #include <linux/spi/spi.h>
- #include <linux/spi/ads7846.h>
-+#include <linux/regulator/machine.h>
- #include <linux/i2c/twl4030.h>
- 
- #include <linux/mtd/mtd.h>
-@@ -171,6 +172,14 @@ static struct omap_uart_config omap3pandora_uart_config __initdata = {
- 	.enabled_uarts	= (1 << 2), /* UART3 */
- };
- 
-+static struct regulator_consumer_supply pandora_vmmc1_supply = {
-+	.supply			= "vmmc",
-+};
-+
-+static struct regulator_consumer_supply pandora_vmmc2_supply = {
-+	.supply			= "vmmc",
-+};
-+
- static int omap3pandora_twl_gpio_setup(struct device *dev,
- 		unsigned gpio, unsigned ngpio)
- {
-@@ -179,6 +188,10 @@ static int omap3pandora_twl_gpio_setup(struct device *dev,
- 	omap3pandora_mmc[1].gpio_cd = gpio + 1;
- 	twl4030_mmc_init(omap3pandora_mmc);
- 
-+	/* link regulators to MMC adapters */
-+	pandora_vmmc1_supply.dev = omap3pandora_mmc[0].dev;
-+	pandora_vmmc2_supply.dev = omap3pandora_mmc[1].dev;
-+
- 	return 0;
- }
- 
-@@ -189,6 +202,36 @@ static struct twl4030_gpio_platform_data omap3pandora_gpio_data = {
- 	.setup		= omap3pandora_twl_gpio_setup,
- };
- 
-+/* VMMC1 for MMC1 pins CMD, CLK, DAT0..DAT3 (20 mA, plus card == max 220 mA) */
-+static struct regulator_init_data pandora_vmmc1 = {
-+	.constraints = {
-+		.min_uV			= 1850000,
-+		.max_uV			= 3150000,
-+		.valid_modes_mask	= REGULATOR_MODE_NORMAL
-+					| REGULATOR_MODE_STANDBY,
-+		.valid_ops_mask		= REGULATOR_CHANGE_VOLTAGE
-+					| REGULATOR_CHANGE_MODE
-+					| REGULATOR_CHANGE_STATUS,
-+	},
-+	.num_consumer_supplies	= 1,
-+	.consumer_supplies	= &pandora_vmmc1_supply,
-+};
-+
-+/* VMMC2 for MMC2 pins CMD, CLK, DAT0..DAT3 (max 100 mA) */
-+static struct regulator_init_data pandora_vmmc2 = {
-+	.constraints = {
-+		.min_uV			= 1850000,
-+		.max_uV			= 3150000,
-+		.valid_modes_mask	= REGULATOR_MODE_NORMAL
-+					| REGULATOR_MODE_STANDBY,
-+		.valid_ops_mask		= REGULATOR_CHANGE_VOLTAGE
-+					| REGULATOR_CHANGE_MODE
-+					| REGULATOR_CHANGE_STATUS,
-+	},
-+	.num_consumer_supplies	= 1,
-+	.consumer_supplies	= &pandora_vmmc2_supply,
-+};
-+
- static struct twl4030_usb_data omap3pandora_usb_data = {
- 	.usb_mode	= T2_USB_MODE_ULPI,
- };
-@@ -198,6 +241,8 @@ static struct twl4030_platform_data omap3pandora_twldata = {
- 	.irq_end	= TWL4030_IRQ_END,
- 	.gpio		= &omap3pandora_gpio_data,
- 	.usb		= &omap3pandora_usb_data,
-+	.vmmc1		= &pandora_vmmc1,
-+	.vmmc2		= &pandora_vmmc2,
- };
- 
- static struct i2c_board_info __initdata omap3pandora_i2c_boardinfo[] = {
--- 
-1.5.6.3
+Should I queue this up or do you want to do something differently for
+this?
 
+On Thu, 16 Apr 2009 15:55:21 +1000
+Ben Nizette <bn@niasdigital.com> wrote:
+
+>=20
+> disable_irq() should wait for all running handlers to complete
+> before returning.  As such, if it's used to disable an interrupt
+> from that interrupt's handler it will deadlock.  This replaces
+> the dangerous instances with the _nosync() variant which doesn't
+> have this problem.
+>=20
+> Signed-off-by: Ben Nizette <bn@niasdigital.com>
+> ---
+> diff --git a/drivers/mmc/host/omap.c b/drivers/mmc/host/omap.c
+> index 5570849..d5ea652 100644
+> --- a/drivers/mmc/host/omap.c
+> +++ b/drivers/mmc/host/omap.c
+> @@ -824,7 +824,7 @@ static irqreturn_t mmc_omap_irq(int irq, void *dev_id)
+>  		del_timer(&host->cmd_abort_timer);
+>  		host->abort =3D 1;
+>  		OMAP_MMC_WRITE(host, IE, 0);
+> -		disable_irq(host->irq);
+> +		disable_irq_nosync(host->irq);
+>  		schedule_work(&host->cmd_abort_work);
+>  		return IRQ_HANDLED;
+>  	}
+
+
+--=20
+     -- Pierre Ossman
+
+  WARNING: This correspondence is being monitored by the
+  Swedish government. Make sure your server uses encryption
+  for SMTP traffic and consider using PGP for end-to-end
+  encryption.
+
+--=_freyr.ossman.eu-16764-1240773681-0001-2
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment; filename=signature.asc
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2.0.11 (GNU/Linux)
+
+iEYEARECAAYFAkn0tDAACgkQ7b8eESbyJLhMjgCeIOsOCqpjAs8cLBQWxOG6RvLP
+rYAAoNOgjanoctKCYgD78Ds/b5YTsiJK
+=9vxk
+-----END PGP SIGNATURE-----
+
+--=_freyr.ossman.eu-16764-1240773681-0001-2--
