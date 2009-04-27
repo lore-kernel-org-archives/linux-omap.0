@@ -1,45 +1,41 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: [PATCH] OMAP3: PM: Ensure PRCM interrupts are cleared at boot
-Date: Mon, 27 Apr 2009 08:15:42 -0700
-Message-ID: <1240845342-3469-1-git-send-email-khilman@deeprootsystems.com>
+From: Ashwin Bihari <abihari@gmail.com>
+Subject: OMAP35x GP TIMER as a wakeup trigger
+Date: Mon, 27 Apr 2009 11:49:32 -0400
+Message-ID: <1f11a5490904270849j5130384avdbaa8da21bc2b668@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from rv-out-0506.google.com ([209.85.198.235]:62250 "EHLO
-	rv-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756294AbZD0PPp (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 27 Apr 2009 11:15:45 -0400
-Received: by rv-out-0506.google.com with SMTP id f9so1846258rvb.1
-        for <linux-omap@vger.kernel.org>; Mon, 27 Apr 2009 08:15:44 -0700 (PDT)
+Received: from yx-out-2324.google.com ([74.125.44.28]:7112 "EHLO
+	yx-out-2324.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755435AbZD0Ptd (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 27 Apr 2009 11:49:33 -0400
+Received: by yx-out-2324.google.com with SMTP id 3so1407350yxj.1
+        for <linux-omap@vger.kernel.org>; Mon, 27 Apr 2009 08:49:32 -0700 (PDT)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
+To: "linux-omap@vger.kernel.org Mailing List" <linux-omap@vger.kernel.org>
 
-Pending bits in IRQSTATUS can prevent the system from hitting
-retention.  The PRCM interrupt handler takes care of clearing the
-IRQSTATUS bits, but any pending bits before first suspend or idle may
-prevent the system from hitting retention.  Ensure they are cleared
-during PRCM setup.
+Greetings,
 
-Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
----
-Applies to current PM branch.
+I need to implement a timer as a wake up trigger while my custom board
+is in the suspended state. I read in the TRM that all of the GPTIMERs
+have the capability of generating a wake up interrupt. I'm using the
+2.6.28-rc8 PM Kernel which contains the patch to enable all the
+GPTIMERS as wake up sources.
 
- arch/arm/mach-omap2/pm34xx.c |    3 +++
- 1 files changed, 3 insertions(+), 0 deletions(-)
+Could someone familiar with this scheme quickly elaborate all the
+steps that I need to go through to get the system to come out of
+suspend purely on the timer? Is it is just enough to setup the timer
+correctly, enable the interrupt in the appropriate register and assume
+that the PM layer will get the interrupt and do the right thing, or is
+there more that I have to do?
 
-diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
-index 7a561db..d7b6596 100644
---- a/arch/arm/mach-omap2/pm34xx.c
-+++ b/arch/arm/mach-omap2/pm34xx.c
-@@ -854,6 +854,9 @@ static void __init prcm_setup_regs(void)
- 	prm_write_mod_reg(OMAP3430_IO_EN | OMAP3430_WKUP_EN,
- 			OCP_MOD, OMAP2_PRM_IRQENABLE_MPU_OFFSET);
- 
-+	/* Clear any pending PRCM interrupts */
-+	prm_write_mod_reg(0, OCP_MOD, OMAP2_PRM_IRQSTATUS_MPU_OFFSET);
-+
- 	omap3_iva_idle();
- }
- 
--- 
-1.6.2.2
+Also, as as additional thing, if the PM layer handles the interrupt
+and begins the wake-up process, if I could know where that
+specifically happens, that'd be great since I need to know that the
+wake-up process is being triggered by the GPTIMER as opposed to the
+other wakeup triggers and deal with that differently.
 
+Regards
+-- Ashwin
