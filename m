@@ -1,42 +1,149 @@
-From: "Dasgupta, Romit" <romit@ti.com>
-Subject: RE: OMAP35x GP TIMER as a wakeup trigger
-Date: Mon, 27 Apr 2009 23:37:09 +0530
-Message-ID: <B85A65D85D7EB246BE421B3FB0FBB59301D73E1210@dbde02.ent.ti.com>
-References: <1f11a5490904270849j5130384avdbaa8da21bc2b668@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+From: Russ Dill <russ.dill@gmail.com>
+Subject: [PATCH] Allow OMAP3 GPIO wakeup from power off.
+Date: Mon, 27 Apr 2009 12:26:47 -0700
+Message-ID: <1240860407-14883-1-git-send-email-Russ.Dill@gmail.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:38244 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758928AbZD0SHU convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 27 Apr 2009 14:07:20 -0400
-In-Reply-To: <1f11a5490904270849j5130384avdbaa8da21bc2b668@mail.gmail.com>
-Content-Language: en-US
+Received: from rv-out-0506.google.com ([209.85.198.230]:25164 "EHLO
+	rv-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753476AbZD0T0w (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 27 Apr 2009 15:26:52 -0400
+Received: by rv-out-0506.google.com with SMTP id f9so80369rvb.1
+        for <linux-omap@vger.kernel.org>; Mon, 27 Apr 2009 12:26:51 -0700 (PDT)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Ashwin Bihari <abihari@gmail.com>, "linux-omap@vger.kernel.org Mailing List" <linux-omap@vger.kernel.org>
+To: linux-omap@vger.kernel.org
+Cc: Russ Dill <Russ.Dill@gmail.com>
 
-Ashwin,
-              Please see below:
->Could someone familiar with this scheme quickly elaborate all the
->steps that I need to go through to get the system to come out of
->suspend purely on the timer? Is it is just enough to setup the timer
->correctly, enable the interrupt in the appropriate register and assume
->that the PM layer will get the interrupt and do the right thing, or is
->there more that I have to do?
-[Romit] Already this is being done during the CPU Idle path. Yes you need to program the GPT 1 into oneshot mode with expiry time as appropriate. Also set the CM_CLKSEL_WKUP.CLKSEL_GPT1 to sys_32K clock. 
-PM_MPUGRPSEL_WKUP.GRPSEL_GPT1, PM_WKEN_WKUP.EN_GPT1 should be set.
+This patch configures the wakeup padconf registers to reflect the sysfs
+power/wakeup settings. This allows a GPIO to wake the processor from
+off mode.
 
->
->Also, as as additional thing, if the PM layer handles the interrupt
->and begins the wake-up process, if I could know where that
->specifically happens, that'd be great since I need to know that the
->wake-up process is being triggered by the GPTIMER as opposed to the
->other wakeup triggers and deal with that differently.
+Signed-off-by: Russ Dill <Russ.Dill@gmail.com>
 
- [Romit] prcm_interrupt_handler. Look for PM_WKST_WKUP.
+---
+ arch/arm/plat-omap/gpio.c |   58 ++++++++++++++++++++++++++++++--------------
+ 1 files changed, 39 insertions(+), 19 deletions(-)
 
-Thanks,
--Romit
+diff --git a/arch/arm/plat-omap/gpio.c b/arch/arm/plat-omap/gpio.c
+index 64852db..3b2054b 100644
+--- a/arch/arm/plat-omap/gpio.c
++++ b/arch/arm/plat-omap/gpio.c
+@@ -277,7 +277,14 @@ static const struct gpio_pad_range gpio_pads_config[] = {
+ 	{ 170, 182, 0x1c6 },
+ 	{ 0, 0, 0x1e0 },
+ 	{ 186, 186, 0x1e2 },
++	{ 187, 187, 0x238 },
++	{ 32, 32, 0x23a },
+ 	{ 12, 29, 0x5d8 },
++	{ 1, 1, 0xa06 },
++	{ 30, 30, 0xa08 },
++	{ 2, 10, 0xa0a },
++	{ 11, 11, 0xa24 },
++	{ 31, 31, 0xa26 },
+ };
+ 
+ /* GPIO -> PAD config mapping for OMAP3 */
+@@ -289,7 +296,8 @@ struct gpio_pad {
+ 
+ #define OMAP34XX_GPIO_AMT	(32 * OMAP34XX_NR_GPIOS)
+ 
+-struct gpio_pad *gpio_pads;
++static struct gpio_pad *gpio_pads;
++static u16 gpio_pad_map[OMAP34XX_GPIO_AMT];
+ #endif
+ 
+ static struct gpio_bank *gpio_bank;
+@@ -1353,32 +1361,21 @@ static int __init omap3_gpio_pads_init(void)
+ {
+ 	int i, j, min, max, gpio_amt;
+ 	u16 offset;
+-	u16 *gpio_pad_map;
+ 
+ 	gpio_amt = 0;
+ 
+-	gpio_pad_map = kzalloc(sizeof(u16) * OMAP34XX_GPIO_AMT, GFP_KERNEL);
+-	if (gpio_pad_map == NULL) {
+-		printk(KERN_ERR "FATAL: Failed to allocate gpio_pad_map\n");
+-		return -ENOMEM;
+-	}
+-
+ 	for (i = 0; i < ARRAY_SIZE(gpio_pads_config); i++) {
+ 		min = gpio_pads_config[i].min;
+ 		max = gpio_pads_config[i].max;
+ 		offset = gpio_pads_config[i].offset;
+ 
+ 		for (j = min; j <= max; j++) {
+-			/*
+-			 * Check if pad has been configured as GPIO.
+-			 * First module (gpio 0...31) is ignored as it is
+-			 * in wakeup domain and does not need special
+-			 * handling during off mode.
+-			 */
+-			if (j > 31 && (omap_ctrl_readw(offset) &
++			/* Check if pad has been configured as GPIO. */
++			if ((omap_ctrl_readw(offset) &
+ 				OMAP34XX_MUX_MODE7) == OMAP34XX_MUX_MODE4) {
+ 				gpio_pad_map[j] = offset;
+-				gpio_amt++;
++				if (j > 31)
++					gpio_amt++;
+ 			}
+ 			offset += 2;
+ 		}
+@@ -1388,20 +1385,23 @@ static int __init omap3_gpio_pads_init(void)
+ 
+ 	if (gpio_pads == NULL) {
+ 		printk(KERN_ERR "FATAL: Failed to allocate gpio_pads\n");
+-		kfree(gpio_pad_map);
+ 		return -ENOMEM;
+ 	}
+ 
+ 	gpio_amt = 0;
+ 	for (i = 0; i < OMAP34XX_GPIO_AMT; i++) {
+-		if (gpio_pad_map[i] != 0) {
++		/*
++		 * First module (gpio 0...31) is ignored as it is
++		 * in wakeup domain and does not need special
++		 * handling during off mode.
++		 */
++		if (gpio_pad_map[i] && i > 31) {
+ 			gpio_pads[gpio_amt].gpio = i;
+ 			gpio_pads[gpio_amt].offset = gpio_pad_map[i];
+ 			gpio_amt++;
+ 		}
+ 	}
+ 	gpio_pads[gpio_amt].gpio = -1;
+-	kfree(gpio_pad_map);
+ 	return 0;
+ }
+ late_initcall(omap3_gpio_pads_init);
+@@ -1676,6 +1676,26 @@ static int omap_gpio_suspend(struct sys_device *dev, pm_message_t mesg)
+ 		__raw_writel(0xffffffff, wake_clear);
+ 		__raw_writel(bank->suspend_wakeup, wake_set);
+ 		spin_unlock_irqrestore(&bank->lock, flags);
++
++#ifdef CONFIG_ARCH_OMAP34XX
++		if (bank->method == METHOD_GPIO_24XX) {
++			int j;
++			for (j = 0; j < 32; j++) {
++				int offset = gpio_pad_map[j + i * 32];
++				u16 v;
++
++				if (!offset)
++					continue;
++
++				v = omap_ctrl_readw(offset);
++				if (bank->suspend_wakeup & (1 << j))
++					v |= OMAP3_PADCONF_WAKEUPENABLE0;
++				else
++					v &= ~OMAP3_PADCONF_WAKEUPENABLE0;
++				omap_ctrl_writew(v, offset);
++			}
++		}
++#endif
+ 	}
+ 
+ 	return 0;
+-- 
+1.6.0.4
 
