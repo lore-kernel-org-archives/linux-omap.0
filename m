@@ -1,72 +1,41 @@
-From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Subject: RE: [PATCH] ARM: OMAP2/3: Reorganize Makefile to add omap4 support
-	(Re: [PATCH 7/7][RFC] OMAP4: Enable basic build support.)
-Date: Thu, 23 Apr 2009 10:37:37 +0530
-Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB02B3D8FADB@dbde02.ent.ti.com>
-References: <1240319293-19662-1-git-send-email-santosh.shilimkar@ti.com>
- <1240319293-19662-2-git-send-email-santosh.shilimkar@ti.com>
- <1240319293-19662-3-git-send-email-santosh.shilimkar@ti.com>
- <1240319293-19662-4-git-send-email-santosh.shilimkar@ti.com>
- <1240319293-19662-5-git-send-email-santosh.shilimkar@ti.com>
- <1240319293-19662-6-git-send-email-santosh.shilimkar@ti.com>
- <1240319293-19662-7-git-send-email-santosh.shilimkar@ti.com>
- <20090421183940.GN25864@atomide.com>
- <EAF47CD23C76F840A9E7FCE10091EFAB02B3D8F40C@dbde02.ent.ti.com>
- <20090422190456.GW25864@atomide.com>
+From: "Kanigeri, Hari" <h-kanigeri2@ti.com>
+Subject: RE: [RFC] dspbridge: staging todo list
+Date: Sun, 26 Apr 2009 22:05:38 -0500
+Message-ID: <8F7AF80515AF0D4D93307E594F3CB40E2AA64125@dlee03.ent.ti.com>
+References: <983c694e0904260907o2e10da56xffeade20f1b3ff7c@mail.gmail.com>
+ <20090426.203643.35024594.Hiroshi.DOYU@nokia.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:47511 "EHLO arroyo.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:52291 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750791AbZDWFHr convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 23 Apr 2009 01:07:47 -0400
-In-Reply-To: <20090422190456.GW25864@atomide.com>
+	id S1752522AbZD0DFu convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 26 Apr 2009 23:05:50 -0400
+In-Reply-To: <20090426.203643.35024594.Hiroshi.DOYU@nokia.com>
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>, "or.rmz1@gmail.com" <or.rmz1@gmail.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "menon.nishanth@gmail.com" <menon.nishanth@gmail.com>, "felipe.contreras@gmail.com" <felipe.contreras@gmail.com>, "ameya.palande@nokia.com" <ameya.palande@nokia.com>, "dedekind@yandex.ru" <dedekind@yandex.ru>, "Gupta, Ramesh" <grgupta@ti.com>
 
-> > > This ifeq else we don't want to do as it breaks things 
-> for multi-omap.
-> > 
-> > How do we handle this. For OMAP4, those files are not 
-> common and needed at this point of time. More so if we agree 
-> that OMAP4 won't support multi-omap, then this should be ok.
-> 
-> No way we're dropping multi-omap for a few ifdefs.
+Hi,
+
+> This DMM feature should be replaced with "omap iommu" driver which
+> commonly supports omap iommu feature. Currently it supports just a
+> mapping of in-kernel buffers(contiguous/discontiguous), but will be
+> extened to an user buffer soon. Anyway, "bitmap_find_free_region"
+> would bring better performance if the number of VMAs becomes huge.
 >
-> We need to have code where we can compile in all the selected things.
-> In this case we should be able to select any combination of 
-> CONFIG_ARCH_OMAP2,
-> CONFIG_ARCH_OMAP3, CONFIG_ARCH_OMAP4. And the code already 
-> gets optimized if
-> only one is selected.
-> 
-> The recent omap2 clock breakage with trivial clock patches is 
-> already a
-> good enough reason to support the multi-omap. So basically 
-> all the developers
-> should do their builds with the multi-omap selected.
-> 
-> Also the distros want multi-omap. Only the product specific kernels
-> should be built with only one option selected to optimize for 
-> speed and size.
-I think most of the things are in place for multi-omap for OMAP4 as well if all the comments are taken care. 
-> > Some thing like this can be done but then Makefile will be 
-> completely rewamped. 
-> > 
-> > # Common support
-> > obj-y := id.o io.o control.o mux.o devices.o serial.o 
-> gpmc.o timer-gp.o
-> > 
-> > obj-$(CONFIG_ARCH_OMAP2) += display.o sdrc.o prcm.o clock.o 
-> powerdomain.o clockdomain.o
-> > obj-$(CONFIG_ARCH_OMAP3) += display.o sdrc.o prcm.o clock.o 
-> powerdomain.o clockdomain.o
-> > 
-> > Is this OK ?
-> 
-> How about the attached patch?
-Looks good. After adding clock support stubs we need to compile almost all files except 'clock.c' so we may not need this completely. But any case, the patch looks cleaner.
+
+-- DMM is dynamic memory mapping, where DSP VA is mapped to Physical address of the buffers allocated by Multimedia applications. At present, Bridge is using its own version of MMU module for mapping the DSP VA to physical address, and this Bridge's MMU module can be replaced with the omap iommu. But before we do that, following things need to happen:
+
+	- The iommu should reside in linux-omap tree :)
+	- IOMMU module provides support for preservation of TLB entries.
+	- IOMMU module provides support for notification of MMU faults.
+
+I did some basic sanity testing in Bridge by replacing the Bridge's MMU module with the iommu module and the above items need to happen before we migrate to use iommu.
+
+Thank you,
+Best regards,
+Hari
