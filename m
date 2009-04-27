@@ -1,149 +1,329 @@
 From: Russ Dill <russ.dill@gmail.com>
-Subject: [PATCH] Allow OMAP3 GPIO wakeup from power off.
-Date: Mon, 27 Apr 2009 12:26:47 -0700
-Message-ID: <1240860407-14883-1-git-send-email-Russ.Dill@gmail.com>
+Subject: [RFC] Allow disabling wakeup for serial ports, including during off mode.
+Date: Mon, 27 Apr 2009 12:27:36 -0700
+Message-ID: <1240860456-14937-1-git-send-email-Russ.Dill@gmail.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from rv-out-0506.google.com ([209.85.198.230]:25164 "EHLO
-	rv-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753476AbZD0T0w (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 27 Apr 2009 15:26:52 -0400
-Received: by rv-out-0506.google.com with SMTP id f9so80369rvb.1
-        for <linux-omap@vger.kernel.org>; Mon, 27 Apr 2009 12:26:51 -0700 (PDT)
+Received: from qw-out-2122.google.com ([74.125.92.25]:15040 "EHLO
+	qw-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752673AbZD0T1m (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 27 Apr 2009 15:27:42 -0400
+Received: by qw-out-2122.google.com with SMTP id 5so97864qwd.37
+        for <linux-omap@vger.kernel.org>; Mon, 27 Apr 2009 12:27:41 -0700 (PDT)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: Russ Dill <Russ.Dill@gmail.com>
 
-This patch configures the wakeup padconf registers to reflect the sysfs
-power/wakeup settings. This allows a GPIO to wake the processor from
-off mode.
+This patch causes the OMAP uarts to honor the sysfs power/wakeup file for
+IOPADs. Before the OMAP was always woken up from off mode on a rs232 signal
+change.
 
-Signed-off-by: Russ Dill <Russ.Dill@gmail.com>
+This patch also creates a different platform device for each serial
+port so that the wakeup properties can be control per port.
 
+The patch is not in a complete state, but for my testing it was necessary
+to disable rs232 wakeup as allowing the signals to float in off mode by
+powering off the level converters was causing a wakeup event.
 ---
- arch/arm/plat-omap/gpio.c |   58 ++++++++++++++++++++++++++++++--------------
- 1 files changed, 39 insertions(+), 19 deletions(-)
+ arch/arm/mach-omap2/serial.c |  165 ++++++++++++++++++++++++++++++++----------
+ 1 files changed, 126 insertions(+), 39 deletions(-)
 
-diff --git a/arch/arm/plat-omap/gpio.c b/arch/arm/plat-omap/gpio.c
-index 64852db..3b2054b 100644
---- a/arch/arm/plat-omap/gpio.c
-+++ b/arch/arm/plat-omap/gpio.c
-@@ -277,7 +277,14 @@ static const struct gpio_pad_range gpio_pads_config[] = {
- 	{ 170, 182, 0x1c6 },
- 	{ 0, 0, 0x1e0 },
- 	{ 186, 186, 0x1e2 },
-+	{ 187, 187, 0x238 },
-+	{ 32, 32, 0x23a },
- 	{ 12, 29, 0x5d8 },
-+	{ 1, 1, 0xa06 },
-+	{ 30, 30, 0xa08 },
-+	{ 2, 10, 0xa0a },
-+	{ 11, 11, 0xa24 },
-+	{ 31, 31, 0xa26 },
+diff --git a/arch/arm/mach-omap2/serial.c b/arch/arm/mach-omap2/serial.c
+index 0762165..95b047a 100644
+--- a/arch/arm/mach-omap2/serial.c
++++ b/arch/arm/mach-omap2/serial.c
+@@ -49,6 +49,7 @@ struct omap_uart_state {
+ 
+ 	struct plat_serial8250_port *p;
+ 	struct list_head node;
++	struct platform_device pdev;
+ 
+ #if defined(CONFIG_ARCH_OMAP3) && defined(CONFIG_PM)
+ 	int context_valid;
+@@ -63,10 +64,9 @@ struct omap_uart_state {
+ #endif
  };
  
- /* GPIO -> PAD config mapping for OMAP3 */
-@@ -289,7 +296,8 @@ struct gpio_pad {
+-static struct omap_uart_state omap_uart[OMAP_MAX_NR_PORTS];
+ static LIST_HEAD(uart_list);
  
- #define OMAP34XX_GPIO_AMT	(32 * OMAP34XX_NR_GPIOS)
+-static struct plat_serial8250_port serial_platform_data[] = {
++static struct plat_serial8250_port serial_platform_data0[] = {
+ 	{
+ 		.membase	= IO_ADDRESS(OMAP_UART1_BASE),
+ 		.mapbase	= OMAP_UART1_BASE,
+@@ -76,6 +76,12 @@ static struct plat_serial8250_port serial_platform_data[] = {
+ 		.regshift	= 2,
+ 		.uartclk	= OMAP24XX_BASE_BAUD * 16,
+ 	}, {
++		.flags		= 0
++	}
++};
++
++static struct plat_serial8250_port serial_platform_data1[] = {
++	{
+ 		.membase	= IO_ADDRESS(OMAP_UART2_BASE),
+ 		.mapbase	= OMAP_UART2_BASE,
+ 		.irq		= 73,
+@@ -84,6 +90,12 @@ static struct plat_serial8250_port serial_platform_data[] = {
+ 		.regshift	= 2,
+ 		.uartclk	= OMAP24XX_BASE_BAUD * 16,
+ 	}, {
++		.flags		= 0
++	}
++};
++
++static struct plat_serial8250_port serial_platform_data2[] = {
++	{
+ 		.membase	= IO_ADDRESS(OMAP_UART3_BASE),
+ 		.mapbase	= OMAP_UART3_BASE,
+ 		.irq		= 74,
+@@ -197,6 +209,40 @@ static inline void omap_uart_save_context(struct omap_uart_state *uart) {}
+ static inline void omap_uart_restore_context(struct omap_uart_state *uart) {}
+ #endif /* CONFIG_ARCH_OMAP3 */
  
--struct gpio_pad *gpio_pads;
-+static struct gpio_pad *gpio_pads;
-+static u16 gpio_pad_map[OMAP34XX_GPIO_AMT];
- #endif
- 
- static struct gpio_bank *gpio_bank;
-@@ -1353,32 +1361,21 @@ static int __init omap3_gpio_pads_init(void)
++static void omap_uart_enable_wakeup(struct omap_uart_state *uart)
++{
++	/* Set wake-enable bit */
++	if (uart->wk_en && uart->wk_mask) {
++		u32 v = __raw_readl(uart->wk_en);
++		v |= uart->wk_mask;
++		__raw_writel(v, uart->wk_en);
++	}
++
++	/* Ensure IOPAD wake-enables are set */
++	if (cpu_is_omap34xx() && uart->padconf) {
++		u16 v = omap_ctrl_readw(uart->padconf);
++		v |= OMAP3_PADCONF_WAKEUPENABLE0;
++		omap_ctrl_writew(v, uart->padconf);
++	}
++}
++
++static void omap_uart_disable_wakeup(struct omap_uart_state *uart)
++{
++	/* Clear wake-enable bit */
++	if (uart->wk_en && uart->wk_mask) {
++		u32 v = __raw_readl(uart->wk_en);
++		v &= ~uart->wk_mask;
++		__raw_writel(v, uart->wk_en);
++	}
++
++	/* Ensure IOPAD wake-enables are cleared */
++	if (cpu_is_omap34xx() && uart->padconf) {
++		u16 v = omap_ctrl_readw(uart->padconf);
++		v &= ~OMAP3_PADCONF_WAKEUPENABLE0;
++		omap_ctrl_writew(v, uart->padconf);
++	}
++}
++
+ static void omap_uart_smart_idle_enable(struct omap_uart_state *uart,
+ 					  int enable)
  {
- 	int i, j, min, max, gpio_amt;
- 	u16 offset;
--	u16 *gpio_pad_map;
+@@ -220,6 +266,11 @@ static inline void omap_uart_restore(struct omap_uart_state *uart)
  
- 	gpio_amt = 0;
+ static inline void omap_uart_disable_clocks(struct omap_uart_state *uart)
+ {
++	if (device_may_wakeup(&uart->pdev.dev))
++		omap_uart_enable_wakeup(uart);
++	else
++		omap_uart_disable_wakeup(uart);
++
+ 	if (!uart->clocked)
+ 		return;
  
--	gpio_pad_map = kzalloc(sizeof(u16) * OMAP34XX_GPIO_AMT, GFP_KERNEL);
--	if (gpio_pad_map == NULL) {
--		printk(KERN_ERR "FATAL: Failed to allocate gpio_pad_map\n");
--		return -ENOMEM;
+@@ -290,6 +341,7 @@ void omap_uart_resume_idle(int num)
+ 			if (__raw_readl(uart->wk_st) & uart->wk_mask)
+ 				omap_uart_block_sleep(uart);
+ 
++			omap_uart_enable_wakeup(uart);
+ 			return;
+ 		}
+ 	}
+@@ -300,6 +352,7 @@ void omap_uart_prepare_suspend(void)
+ 	struct omap_uart_state *uart;
+ 
+ 	list_for_each_entry(uart, &uart_list, node) {
++		omap_uart_enable_wakeup(uart);
+ 		omap_uart_allow_sleep(uart);
+ 	}
+ }
+@@ -343,16 +396,13 @@ static irqreturn_t omap_uart_interrupt(int irq, void *dev_id)
+ 	return IRQ_NONE;
+ }
+ 
+-static u32 sleep_timeout = DEFAULT_TIMEOUT;
+-
+ static void omap_uart_idle_init(struct omap_uart_state *uart)
+ {
+-	u32 v;
+ 	struct plat_serial8250_port *p = uart->p;
+ 	int ret;
+ 
+ 	uart->can_sleep = 0;
+-	uart->timeout = sleep_timeout;
++	uart->timeout = DEFAULT_TIMEOUT;
+ 	setup_timer(&uart->timer, omap_uart_idle_timer,
+ 		    (unsigned long) uart);
+ 	mod_timer(&uart->timer, jiffies + uart->timeout);
+@@ -410,22 +460,6 @@ static void omap_uart_idle_init(struct omap_uart_state *uart)
+ 		uart->padconf = 0;
+ 	}
+ 
+-	/* Set wake-enable bit */
+-	if (uart->wk_en && uart->wk_mask) {
+-		v = __raw_readl(uart->wk_en);
+-		v |= uart->wk_mask;
+-		__raw_writel(v, uart->wk_en);
 -	}
 -
- 	for (i = 0; i < ARRAY_SIZE(gpio_pads_config); i++) {
- 		min = gpio_pads_config[i].min;
- 		max = gpio_pads_config[i].max;
- 		offset = gpio_pads_config[i].offset;
- 
- 		for (j = min; j <= max; j++) {
--			/*
--			 * Check if pad has been configured as GPIO.
--			 * First module (gpio 0...31) is ignored as it is
--			 * in wakeup domain and does not need special
--			 * handling during off mode.
--			 */
--			if (j > 31 && (omap_ctrl_readw(offset) &
-+			/* Check if pad has been configured as GPIO. */
-+			if ((omap_ctrl_readw(offset) &
- 				OMAP34XX_MUX_MODE7) == OMAP34XX_MUX_MODE4) {
- 				gpio_pad_map[j] = offset;
--				gpio_amt++;
-+				if (j > 31)
-+					gpio_amt++;
- 			}
- 			offset += 2;
- 		}
-@@ -1388,20 +1385,23 @@ static int __init omap3_gpio_pads_init(void)
- 
- 	if (gpio_pads == NULL) {
- 		printk(KERN_ERR "FATAL: Failed to allocate gpio_pads\n");
--		kfree(gpio_pad_map);
- 		return -ENOMEM;
- 	}
- 
- 	gpio_amt = 0;
- 	for (i = 0; i < OMAP34XX_GPIO_AMT; i++) {
--		if (gpio_pad_map[i] != 0) {
-+		/*
-+		 * First module (gpio 0...31) is ignored as it is
-+		 * in wakeup domain and does not need special
-+		 * handling during off mode.
-+		 */
-+		if (gpio_pad_map[i] && i > 31) {
- 			gpio_pads[gpio_amt].gpio = i;
- 			gpio_pads[gpio_amt].offset = gpio_pad_map[i];
- 			gpio_amt++;
- 		}
- 	}
- 	gpio_pads[gpio_amt].gpio = -1;
--	kfree(gpio_pad_map);
- 	return 0;
+-	/* Ensure IOPAD wake-enables are set */
+-	if (cpu_is_omap34xx() && uart->padconf) {
+-		u16 v;
+-
+-		v = omap_ctrl_readw(uart->padconf);
+-		v |= OMAP3_PADCONF_WAKEUPENABLE0;
+-		omap_ctrl_writew(v, uart->padconf);
+-	}
+-
+ 	p->flags |= UPF_SHARE_IRQ;
+ 	ret = request_irq(p->irq, omap_uart_interrupt, IRQF_SHARED,
+ 			  "serial idle", (void *)uart);
+@@ -450,23 +484,30 @@ static ssize_t sleep_timeout_show(struct kobject *kobj,
+ 				  struct kobj_attribute *attr,
+ 				  char *buf)
+ {
+-	return sprintf(buf, "%u\n", sleep_timeout / HZ);
++	struct device *dev = container_of(kobj, struct device, kobj);
++	struct platform_device *pdev = container_of(dev,
++					struct platform_device, dev);
++	struct omap_uart_state *uart = container_of(pdev,
++					struct omap_uart_state, pdev);
++	return sprintf(buf, "%u\n", uart->timeout / HZ);
  }
- late_initcall(omap3_gpio_pads_init);
-@@ -1676,6 +1676,26 @@ static int omap_gpio_suspend(struct sys_device *dev, pm_message_t mesg)
- 		__raw_writel(0xffffffff, wake_clear);
- 		__raw_writel(bank->suspend_wakeup, wake_set);
- 		spin_unlock_irqrestore(&bank->lock, flags);
-+
-+#ifdef CONFIG_ARCH_OMAP34XX
-+		if (bank->method == METHOD_GPIO_24XX) {
-+			int j;
-+			for (j = 0; j < 32; j++) {
-+				int offset = gpio_pad_map[j + i * 32];
-+				u16 v;
-+
-+				if (!offset)
-+					continue;
-+
-+				v = omap_ctrl_readw(offset);
-+				if (bank->suspend_wakeup & (1 << j))
-+					v |= OMAP3_PADCONF_WAKEUPENABLE0;
-+				else
-+					v &= ~OMAP3_PADCONF_WAKEUPENABLE0;
-+				omap_ctrl_writew(v, offset);
-+			}
-+		}
-+#endif
- 	}
  
- 	return 0;
+ static ssize_t sleep_timeout_store(struct kobject *kobj,
+ 				   struct kobj_attribute *attr,
+ 				   const char *buf, size_t n)
+ {
+-	struct omap_uart_state *uart;
++	struct device *dev = container_of(kobj, struct device, kobj);
++	struct platform_device *pdev = container_of(dev,
++					struct platform_device, dev);
++	struct omap_uart_state *uart = container_of(pdev,
++					struct omap_uart_state, pdev);
+ 	unsigned int value;
+ 
+ 	if (sscanf(buf, "%u", &value) != 1) {
+ 		printk(KERN_ERR "sleep_timeout_store: Invalid value\n");
+ 		return -EINVAL;
+ 	}
+-	sleep_timeout = value * HZ;
+-	list_for_each_entry(uart, &uart_list, node)
+-		uart->timeout = sleep_timeout;
++	uart->timeout = value * HZ;
+ 	return n;
+ }
+ 
+@@ -477,6 +518,34 @@ static struct kobj_attribute sleep_timeout_attr =
+ static inline void omap_uart_idle_init(struct omap_uart_state *uart) {}
+ #endif /* CONFIG_PM */
+ 
++static struct omap_uart_state omap_uart[OMAP_MAX_NR_PORTS] = {
++	{
++		.pdev = {
++			.name			= "serial8250",
++			.id			= PLAT8250_DEV_PLATFORM,
++			.dev			= {
++				.platform_data	= serial_platform_data0,
++			},
++		},
++	}, {
++		.pdev = {
++			.name			= "serial8250",
++			.id			= PLAT8250_DEV_PLATFORM1,
++			.dev			= {
++				.platform_data	= serial_platform_data1,
++			},
++		},
++	}, {
++		.pdev = {
++			.name			= "serial8250",
++			.id			= PLAT8250_DEV_PLATFORM2,
++			.dev			= {
++				.platform_data	= serial_platform_data2,
++			},
++		},
++	},
++};
++
+ void __init omap_serial_init(void)
+ {
+ 	int i;
+@@ -495,8 +564,8 @@ void __init omap_serial_init(void)
+ 		return;
+ 
+ 	for (i = 0; i < OMAP_MAX_NR_PORTS; i++) {
+-		struct plat_serial8250_port *p = serial_platform_data + i;
+ 		struct omap_uart_state *uart = &omap_uart[i];
++		struct plat_serial8250_port *p = uart->pdev.dev.platform_data;
+ 
+ 		if (!(info->enabled_uarts & (1 << i))) {
+ 			p->membase = NULL;
+@@ -532,25 +601,43 @@ void __init omap_serial_init(void)
+ 	}
+ }
+ 
+-static struct platform_device serial_device = {
+-	.name			= "serial8250",
+-	.id			= PLAT8250_DEV_PLATFORM,
+-	.dev			= {
+-		.platform_data	= serial_platform_data,
+-	},
+-};
+-
+ static int __init omap_init(void)
+ {
+ 	int ret;
++	int i;
+ 
+-	ret = platform_device_register(&serial_device);
++	for (i = 0; i < ARRAY_SIZE(omap_uart); i++) {
++		ret = platform_device_register(&omap_uart[i].pdev);
++		if (ret < 0)
++			goto device_err;
++		if ((cpu_is_omap34xx() && omap_uart[i].padconf) ||
++		    (omap_uart[i].wk_en && omap_uart[i].wk_mask)) {
++			printk(KERN_ERR "%s: Setting init_wakeup\n", __func__);
++			device_init_wakeup(&omap_uart[i].pdev.dev, true);
++		}
++	}
+ 
+ #ifdef CONFIG_PM
+-	if (!ret)
+-		ret = sysfs_create_file(&serial_device.dev.kobj,
++	for (i = 0; i < ARRAY_SIZE(omap_uart); i++) {
++		ret = sysfs_create_file(&omap_uart[i].pdev.dev.kobj,
+ 					&sleep_timeout_attr.attr);
++		if (ret < 0)
++			goto sysfs_err;
++	}
++#endif
++	return ret;
++
++#ifdef CONFIG_PM
++sysfs_err:
++	for (i--; i >= 0; i--)
++		sysfs_remove_file(&omap_uart[i].pdev.dev.kobj,
++				&sleep_timeout_attr.attr);
++	i = ARRAY_SIZE(omap_uart);
+ #endif
++
++device_err:
++	for (i--; i >= 0; i--)
++		platform_device_unregister(&omap_uart[i].pdev);
+ 	return ret;
+ }
+ arch_initcall(omap_init);
 -- 
 1.6.0.4
 
