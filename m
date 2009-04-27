@@ -1,100 +1,44 @@
-From: Jean Pihet <jpihet@mvista.com>
-Subject: Re: [PATCH 00/10] OMAP3: SR: Fixes in Smartreflex driver
-Date: Mon, 27 Apr 2009 09:08:09 +0200
-Message-ID: <200904270908.09398.jpihet@mvista.com>
-References: <5A47E75E594F054BAF48C5E4FC4B92AB03051F8510@dbde02.ent.ti.com> <87ab66yz92.fsf@deeprootsystems.com>
+From: Grazvydas Ignotas <notasas@gmail.com>
+Subject: Card detect IRQ errors
+Date: Mon, 27 Apr 2009 12:13:13 +0300
+Message-ID: <6ed0b2680904270213s6ef02ad6i26173245019bca15@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from gateway-1237.mvista.com ([63.81.120.158]:6121 "EHLO
-	gateway-1237.mvista.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752849AbZD0HIa (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 27 Apr 2009 03:08:30 -0400
-In-Reply-To: <87ab66yz92.fsf@deeprootsystems.com>
-Content-Disposition: inline
+Received: from mail-bw0-f163.google.com ([209.85.218.163]:50727 "EHLO
+	mail-bw0-f163.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751979AbZD0JNP (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 27 Apr 2009 05:13:15 -0400
+Received: by bwz7 with SMTP id 7so2152013bwz.37
+        for <linux-omap@vger.kernel.org>; Mon, 27 Apr 2009 02:13:13 -0700 (PDT)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@deeprootsystems.com>
-Cc: "Nayak, Rajendra" <rnayak@ti.com>, linux-omap <linux-omap@vger.kernel.org>
+To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Cc: David Brownell <david-b@pacbell.net>
 
-Hi,
+With current l-o head when I insert or remove SD card I'm getting this:
 
-On Friday 24 April 2009 15:09:29 Kevin Hilman wrote:
-> "Nayak, Rajendra" <rnayak@ti.com> writes:
-> >> -----Original Message-----
-> >> From: Kevin Hilman [mailto:khilman@deeprootsystems.com]
-> >> Sent: Thursday, April 23, 2009 1:35 AM
-> >> To: Nayak, Rajendra
-> >> Cc: linux-omap
-> >> Subject: Re: [PATCH 00/10] OMAP3: SR: Fixes in Smartreflex driver
-> >>
-> >> "Nayak, Rajendra" <rnayak@ti.com> writes:
-> >> > Re-sending this patch-set with some mailer issues resolved.
-> >>
-> >> They now apply cleanly
-> >>
-> >> > with a git-am/git-apply.
-> >> >
-> >> > Hi,
-> >> >
-> >> > This series fixes a set of defects/issues in Smartreflex
-> >>
-> >> driver. SR autocompensation is now
-> >>
-> >> > functional and is validated with these patches on a ES3.1
-> >>
-> >> based SDP with the N values in Efuse.
-> >>
-> >> > The patches also make the Smartreflex driver independent of
-> >>
-> >> SRF by using the OMAP PM apis
-> >>
-> >> > instead of calls to SRF.
-> >> >
-> >> > Patches apply on top of the latest pm branch from Kevin's pm tree.
-> >>
-> >> git://git.kernel.org/pub/scm/linux/kernel/git/khilman/linux-om
-> >> ap-pm.git
-> >>
-> >> Rajendra,
-> >>
-> >> This series seems to boot on SDP and Beagle but I recetly tried on
-> >> RX51 and it hangs in omap3_sr_init().
-> >>
-> >> Using Lauterbach, I tracked it to hang in sr_configure_vp() at this
-> >> PRM write to the PRM_VP1_VLIMITTO register:
-> >>
-> >> 		prm_write_mod_reg(PRM_VP1_VLIMITTO_VDDMAX |
-> >> 					PRM_VP1_VLIMITTO_VDDMIN |
-> >> 					PRM_VP1_VLIMITTO_TIMEOUT,
-> >> 					OMAP3430_GR_MOD,
-> >> 					OMAP3_PRM_VP1_VLIMITTO_OFFSET);
-> >>
-> >>
-> >> Should these min/max/timeout values be board specific?
-> >
-> > Kevin,
-> >
-> > These values I remember we got from the SiVal team here at TI, I don't
-> > think they are board specific. I can check up more on that from them.
-> > Btw, does the hang happen only with my patchset applied, because the
-> > patchset does not change any of these values.
->
-> Yes, backing out your latest series results in a booting kernel.
-Using the latest SR patches on Beagleboard results in a booting kernel.
-BUT the problem is a board freeze when switching between OPPs. After a few 
-transitions the board hangs.
+[   20.733489] ------------[ cut here ]------------
+[   20.738159] WARNING: at kernel/irq/handle.c:366 handle_IRQ_event+0x4c/0x14c()
+[   20.745330] BUG: IRQ handler called from non-hardirq
+context!Modules linked in:
+[   20.752685] [<8002b388>] (unwind_backtrace+0x0/0xdc) from
+[<80048128>] (warn_slowpath+0x64/0x88)
+[   20.761596] [<80048128>] (warn_slowpath+0x64/0x88) from
+[<8006a80c>] (handle_IRQ_event+0x4c/0x14c)
+[   20.770629] [<8006a80c>] (handle_IRQ_event+0x4c/0x14c) from
+[<8006bde8>] (handle_edge_irq+0x10c/0x14c)
+[   20.780029] [<8006bde8>] (handle_edge_irq+0x10c/0x14c) from
+[<801862a8>] (handle_twl4030_sih+0x9c/0xd0)
+[   20.789520] [<801862a8>] (handle_twl4030_sih+0x9c/0xd0) from
+[<801861b0>] (twl4030_irq_thread+0x108/0x164)
+[   20.799255] [<801861b0>] (twl4030_irq_thread+0x108/0x164) from
+[<80059708>] (kthread+0x54/0x80)
+[   20.808044] [<80059708>] (kthread+0x54/0x80) from [<8004ab68>]
+(do_exit+0x0/0x56c)
+[   20.815704] [<8004ab68>] (do_exit+0x0/0x56c) from [<8ecf0ae0>] (0x8ecf0ae0)
+[   20.822753] ---[ end trace 2ca2d8ba630dd6b5 ]---
+[   20.869415] mmc0: card 8001 removed
 
-Regards,
-Jean
-
->
-> Kevin
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
-
+Has anyone else seen this?
