@@ -1,47 +1,87 @@
-From: Liam Girdwood <lrg@slimlogic.co.uk>
-Subject: Re: [PATCH] regulator core: fix double-free in
- regulator_register() error path
-Date: Mon, 27 Apr 2009 12:40:02 +0100
-Message-ID: <1240832402.14165.4.camel@vega.slimlogic.co.uk>
-References: <alpine.DEB.2.00.0904250526210.28378@utopia.booyaka.com>
+From: "Nayak, Rajendra" <rnayak@ti.com>
+Subject: RE: [PATCH 00/10] OMAP3: SR: Fixes in Smartreflex driver
+Date: Mon, 27 Apr 2009 17:39:46 +0530
+Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB03051F8BEC@dbde02.ent.ti.com>
+References: <874owdy8cp.fsf@deeprootsystems.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1755035AbZD0LkZ@vger.kernel.org>
-In-Reply-To: <alpine.DEB.2.00.0904250526210.28378@utopia.booyaka.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: broonie@opensource.wolfsonmicro.com, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, dbrownell@users.sourceforge.net
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:46457 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753533AbZD0MJ7 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 27 Apr 2009 08:09:59 -0400
+In-Reply-To: <874owdy8cp.fsf@deeprootsystems.com>
+Content-Language: en-US
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Kevin Hilman <khilman@deeprootsystems.com>, Roger Quadros <ext-roger.quadros@nokia.com>
+Cc: linux-omap <linux-omap@vger.kernel.org>
 
-On Sat, 2009-04-25 at 05:28 -0600, Paul Walmsley wrote:
-> During regulator registration, any error after device_register() will 
-> cause a double-free on the struct regulator_dev 'rdev'.  The bug is in 
-> drivers/regulator/core.c:regulator_register():
+ 
+
+> -----Original Message-----
+> From: Kevin Hilman [mailto:khilman@deeprootsystems.com] 
+> Sent: Saturday, April 25, 2009 4:21 AM
+> To: Roger Quadros
+> Cc: Nayak, Rajendra; linux-omap
+> Subject: Re: [PATCH 00/10] OMAP3: SR: Fixes in Smartreflex driver
 > 
-> ...
-> scrub:
-> 	device_unregister(&rdev->dev);
-> clean:
-> 	kfree(rdev);                           <---
-> 	rdev = ERR_PTR(ret);
-> 	goto out;
-> ...
+> Roger Quadros <ext-roger.quadros@nokia.com> writes:
 > 
-> device_unregister() calls regulator_dev_release() which frees rdev.  The 
-> subsequent kfree corrupts memory and causes some OMAP3 systems to oops on 
-> boot in regulator_get().
+> > ext Kevin Hilman wrote:
+> [...]
+> >>
+> >> Rajendra,
+> >>
+> >> This series seems to boot on SDP and Beagle but I recetly tried on
+> >> RX51 and it hangs in omap3_sr_init().
+> >>
+> >> Using Lauterbach, I tracked it to hang in sr_configure_vp() at this
+> >> PRM write to the PRM_VP1_VLIMITTO register:
+> >>
+> >> 		prm_write_mod_reg(PRM_VP1_VLIMITTO_VDDMAX |
+> >> 					PRM_VP1_VLIMITTO_VDDMIN |
+> >> 					PRM_VP1_VLIMITTO_TIMEOUT,
+> >> 					OMAP3430_GR_MOD,
+> >> 					OMAP3_PRM_VP1_VLIMITTO_OFFSET);
+> >>
+> >>
+> >> Should these min/max/timeout values be board specific?
+> >>
 > 
-> Applies against 2.6.30-rc3.
+> [...]
 > 
-> Signed-off-by: Paul Walmsley <paul@pwsan.com>
-> ---
->  drivers/regulator/core.c |    4 ++++
->  1 files changed, 4 insertions(+), 0 deletions(-)
+> >
+> > It runs on rx51 if we set CONFIG_OMAP_PM_SRF instead of 
+> CONFIG_OMAP_PM_NOOP.
+> >
+> > Should Smartreflex option be dependent or independent of the
+> > CONFIG_OMAP_PM_??? setting?
+> >
+> 
+> I see the same thing on SDP as well as RX51.
+> 
+> It looks like the new SR code assumes a range of OPPs, but when
+> OMAP_PM_NONE is enabled, the omap_pm_vddX_get_opp() calls always
+> return zero.
+> 
+> In the mpu_opps array, the first entry is all zeros, resulting
+> in a zero VSEL which is then used to (re)program the VP.
+> 
+> The SR code should probably be a bit smarter about checking for valid
+> values.
 > 
 
-Applied.
+Kevin,
 
-Thanks
+I'll send in a patch to fix that.
 
-Liam
+thanks,
+Rajendra
+
+> 
+> 
+> 
+> 
+> 
