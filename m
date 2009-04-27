@@ -1,34 +1,47 @@
-From: Aaro Koskinen <aaro.koskinen@nokia.com>
-Subject: Re: [PATCH 0/2] I2C: OMAP: spurious IRQ fixes
-Date: Mon, 27 Apr 2009 14:56:57 +0300
-Message-ID: <49F59D89.3030008@nokia.com>
-References: <20090426042504.31316.68357.stgit@localhost.localdomain>
+From: Liam Girdwood <lrg@slimlogic.co.uk>
+Subject: Re: [PATCH] regulator core: fix double-free in
+ regulator_register() error path
+Date: Mon, 27 Apr 2009 12:40:02 +0100
+Message-ID: <1240832402.14165.4.camel@vega.slimlogic.co.uk>
+References: <alpine.DEB.2.00.0904250526210.28378@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:48757 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754677AbZD0L5S (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 27 Apr 2009 07:57:18 -0400
-In-Reply-To: <20090426042504.31316.68357.stgit@localhost.localdomain>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1755035AbZD0LkZ@vger.kernel.org>
+In-Reply-To: <alpine.DEB.2.00.0904250526210.28378@utopia.booyaka.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Paul Walmsley <paul@pwsan.com>
+Cc: broonie@opensource.wolfsonmicro.com, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, dbrownell@users.sourceforge.net
 List-Id: linux-omap@vger.kernel.org
-To: ext Paul Walmsley <paul@pwsan.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Hello,
-
-Paul Walmsley wrote:
-> It seems to work: under constant I2C load, no spurious IRQ messages
-> showed up after several hours of testing.  (Without these patches,
-> spurious IRQs usually show up in a few minutes.)  Some of the code has
-> also been cleaned up.
+On Sat, 2009-04-25 at 05:28 -0600, Paul Walmsley wrote:
+> During regulator registration, any error after device_register() will 
+> cause a double-free on the struct regulator_dev 'rdev'.  The bug is in 
+> drivers/regulator/core.c:regulator_register():
 > 
-> Any feedback on how this series works for others is appreciated.
+> ...
+> scrub:
+> 	device_unregister(&rdev->dev);
+> clean:
+> 	kfree(rdev);                           <---
+> 	rdev = ERR_PTR(ret);
+> 	goto out;
+> ...
 > 
-> Tested on N800, Beagle and 3430SDP.
+> device_unregister() calls regulator_dev_release() which frees rdev.  The 
+> subsequent kfree corrupts memory and causes some OMAP3 systems to oops on 
+> boot in regulator_get().
+> 
+> Applies against 2.6.30-rc3.
+> 
+> Signed-off-by: Paul Walmsley <paul@pwsan.com>
+> ---
+>  drivers/regulator/core.c |    4 ++++
+>  1 files changed, 4 insertions(+), 0 deletions(-)
+> 
 
-With these patches I'm getting receive overruns quite easily on rx51 when doing large reads from TWL4030 RTC.
+Applied.
 
-A.
+Thanks
+
+Liam
