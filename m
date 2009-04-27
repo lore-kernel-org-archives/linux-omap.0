@@ -1,72 +1,72 @@
-From: Juha Kuikka <juha.kuikka@gmail.com>
-Subject: Re: trouble with alsa, wolfson, and TI OMAP35xx McBSP
-Date: Thu, 23 Apr 2009 11:16:14 -0700
-Message-ID: <a46a26fd0904231116y4abc7ab2k93bb02806e029f6e@mail.gmail.com>
-References: <dbdb2ea60904221058w67b775f3occ07f55938fe4d03@mail.gmail.com>
-	<200904231220.14465.peter.ujfalusi@nokia.com>
+From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+Subject: Re: [RFC] dspbridge: staging todo list
+Date: Mon, 27 Apr 2009 06:52:31 +0300 (EEST)
+Message-ID: <20090427.065231.116358333.Hiroshi.DOYU@nokia.com>
+References: <983c694e0904260907o2e10da56xffeade20f1b3ff7c@mail.gmail.com>
+	<20090426.203643.35024594.Hiroshi.DOYU@nokia.com>
+	<8F7AF80515AF0D4D93307E594F3CB40E2AA64125@dlee03.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-Return-path: <alsa-devel-bounces@alsa-project.org>
-In-Reply-To: <200904231220.14465.peter.ujfalusi@nokia.com>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Sender: alsa-devel-bounces@alsa-project.org
-Errors-To: alsa-devel-bounces@alsa-project.org
-To: Peter Ujfalusi <peter.ujfalusi@nokia.com>
-Cc: "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>, "linux-omap@vger.kernel.org Mailing List" <linux-omap@vger.kernel.org>, ext twebb <taliaferro62@gmail.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from smtp.nokia.com ([192.100.105.134]:39738 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754235AbZD0Dwp (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 26 Apr 2009 23:52:45 -0400
+In-Reply-To: <8F7AF80515AF0D4D93307E594F3CB40E2AA64125@dlee03.ent.ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: h-kanigeri2@ti.com, tony@atomide.com
+Cc: or.rmz1@gmail.com, linux-omap@vger.kernel.org, menon.nishanth@gmail.com, felipe.contreras@gmail.com, ameya.palande@nokia.com, dedekind@yandex.ru, grgupta@ti.com
 
-On Thu, Apr 23, 2009 at 2:20 AM, Peter Ujfalusi <peter.ujfalusi@nokia.com>wrote:
+Hi Hari,
 
-> On Wednesday 22 April 2009 20:58:01 ext twebb wrote:
-> > Problem 2:
-> > Test tone is being presented by the user application, providing a 1Khz
-> > tone sampled at 44.1Khz. The data are S16_LE, right channel only. Left
-> > channel is quiet. The data seems to slip back and forth from left to
-> > right channel. This is reproducable and verified with a scope trace.
+From: "ext Kanigeri, Hari" <h-kanigeri2@ti.com>
+Subject: RE: [RFC] dspbridge: staging todo list
+Date: Mon, 27 Apr 2009 05:05:38 +0200
+
+> Hi,
+> 
+> > This DMM feature should be replaced with "omap iommu" driver which
+> > commonly supports omap iommu feature. Currently it supports just a
+> > mapping of in-kernel buffers(contiguous/discontiguous), but will be
+> > extened to an user buffer soon. Anyway, "bitmap_find_free_region"
+> > would bring better performance if the number of VMAs becomes huge.
 > >
-> > Anybody have any ideas what might be going wrong here?  Traces for
-> > codec reg dump and mcbsp are attached.
->
-> As Jarkko already asked: are you seeing the channel switch while running or
-> is
-> it happens on playback start?
->
-> AFAIK this phenomena can be also seen on Beagle board.
->
-> I have done some investigation regarding to these, but so far I can not say
-> that I know what causes it.
->
-> BTW: these are separate issues (startup switch and runtime switch).
->
+> 
+> -- DMM is dynamic memory mapping, where DSP VA is mapped to Physical
+> address of the buffers allocated by Multimedia applications. At
+> present, Bridge is using its own version of MMU module for mapping
+> the DSP VA to physical address, and this Bridge's MMU module can be
+> replaced with the omap iommu. But before we do that, following
+> things need to happen:
+> 
+> 	- The iommu should reside in linux-omap tree :)
 
-I have seen the startup switch happening and I investigated it a bit.
-The XDISABLE bit solution discussed on the list earlier did not solve the
-problem fully, additionally I needed to add check for the FIFO state before
-clearing XDISABLE.
+Tony may keep it on one of the l-o branches. Anyway, I'll send them
+again to Russell.
 
-Simplified:
+> 	- IOMMU module provides support for preservation of TLB
+> 	  entries.
 
-1. Set XDISABLE bit
-2. Start DMA
-3. Start serial port.
-4. Wait for the DMA to put data into McBSP FIFO (there is status you can
-poll for this)
-5. Clear XDISABLE bit.
+Yes, it's necessary for the performance.
 
-I found that without step #4 the FIFO would sometimes be empty on step #5
-and switching happened because first word sent was bogus and second was the
-first audio word.
+> 	- IOMMU module provides support for notification of MMU
+> 	  faults.
 
-This was on OMAP2430.
+Actually the mmu fault hander can be set by a client module, but at
+present, the registration interface is missing. I'll add this
+interface.
 
- - Juha
+> I did some basic sanity testing in Bridge by replacing the Bridge's
+> MMU module with the iommu module and the above items need to happen
+> before we migrate to use iommu.
 
--- 
-Madness takes it's toll. Please have exact change.
+Thank you for your evaluation. I'll send the update version of iommu
+patchset soon.
+
+	 Hiroshi DOYU
+
+
+
+
