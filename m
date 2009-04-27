@@ -1,63 +1,48 @@
-From: "Gadiyar, Anand" <gadiyar@ti.com>
-Subject: RE: Card detect IRQ errors
-Date: Mon, 27 Apr 2009 14:46:28 +0530
-Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB03051F8ADD@dbde02.ent.ti.com>
-References: <6ed0b2680904270213s6ef02ad6i26173245019bca15@mail.gmail.com>
+From: Felipe Balbi <felipe.balbi@nokia.com>
+Subject: Re: [rft/rfc/patch-v2.6.29-rc5+ 00/23] ehci cleanup series
+Date: Mon, 27 Apr 2009 12:18:00 +0300
+Message-ID: <20090427091800.GA6624@scadufax.research.nokia.com>
+References: <1235415335-17408-1-git-send-email-me@felipebalbi.com> <6ed0b2680904270218r4a3843bata8d18a352053b9ec@mail.gmail.com>
+Reply-To: felipe.balbi@nokia.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:48651 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751696AbZD0JQi convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 27 Apr 2009 05:16:38 -0400
-In-Reply-To: <6ed0b2680904270213s6ef02ad6i26173245019bca15@mail.gmail.com>
-Content-Language: en-US
+Received: from smtp.nokia.com ([192.100.105.134]:28052 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752740AbZD0JXe (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 27 Apr 2009 05:23:34 -0400
+Content-Disposition: inline
+In-Reply-To: <6ed0b2680904270218r4a3843bata8d18a352053b9ec@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Grazvydas Ignotas <notasas@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
-Cc: David Brownell <david-b@pacbell.net>
+To: ext Grazvydas Ignotas <notasas@gmail.com>
+Cc: Felipe Balbi <me@felipebalbi.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Steve Sakoman <steve@sakoman.com>, Anand Gadiyar <gadiyar@ti.com>
 
-> -----Original Message-----
-> From: linux-omap-owner@vger.kernel.org 
-> [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of 
-> Grazvydas Ignotas
-> Sent: Monday, April 27, 2009 2:43 PM
-> To: linux-omap@vger.kernel.org
-> Cc: David Brownell
-> Subject: Card detect IRQ errors
+On Mon, Apr 27, 2009 at 11:18:32AM +0200, ext Grazvydas Ignotas wrote:
+> On Mon, Feb 23, 2009 at 9:55 PM, Felipe Balbi <me@felipebalbi.com> wrote:
+> > Hi all,
+> >
+> > Please give the following patches a good test. I don't have
+> > hw to test them so any comments will be really welcome.
+> >
+> > We still have lots to do before getting this driver upstream,
+> > let's try to keep track of our TODO list and get this driver in
+> > mainline for 2.6.31 merge window (2.6.30 is too close already).
+> >
+> > Let's not try to push this driver until ES2.x and ES3.x are fully
+> > supported, that will probably have to be done by an omap_rev
+> > check in ehci-omap driver, also, this driver doesn't really
+> > enumerate any attached devices, but that's old problem as Tony
+> > told me off list.
+> >
+> > Anyways, I guess this driver is finally walking. Me and Anand (and anyone
+> > interested) will be discussing how to get EHCI and OHCI working fine, I'm
+> > guessing we won't have really big issues with OHCI but you never know.
 > 
-> With current l-o head when I insert or remove SD card I'm getting this:
-> 
-> [   20.733489] ------------[ cut here ]------------
-> [   20.738159] WARNING: at kernel/irq/handle.c:366 
-> handle_IRQ_event+0x4c/0x14c()
-> [   20.745330] BUG: IRQ handler called from non-hardirq
-> context!Modules linked in:
-> [   20.752685] [<8002b388>] (unwind_backtrace+0x0/0xdc) from
-> [<80048128>] (warn_slowpath+0x64/0x88)
-> [   20.761596] [<80048128>] (warn_slowpath+0x64/0x88) from
-> [<8006a80c>] (handle_IRQ_event+0x4c/0x14c)
-> [   20.770629] [<8006a80c>] (handle_IRQ_event+0x4c/0x14c) from
-> [<8006bde8>] (handle_edge_irq+0x10c/0x14c)
-> [   20.780029] [<8006bde8>] (handle_edge_irq+0x10c/0x14c) from
-> [<801862a8>] (handle_twl4030_sih+0x9c/0xd0)
-> [   20.789520] [<801862a8>] (handle_twl4030_sih+0x9c/0xd0) from
-> [<801861b0>] (twl4030_irq_thread+0x108/0x164)
-> [   20.799255] [<801861b0>] (twl4030_irq_thread+0x108/0x164) from
-> [<80059708>] (kthread+0x54/0x80)
-> [   20.808044] [<80059708>] (kthread+0x54/0x80) from [<8004ab68>]
-> (do_exit+0x0/0x56c)
-> [   20.815704] [<8004ab68>] (do_exit+0x0/0x56c) from 
-> [<8ecf0ae0>] (0x8ecf0ae0)
-> [   20.822753] ---[ end trace 2ca2d8ba630dd6b5 ]---
-> [   20.869415] mmc0: card 8001 removed
-> 
-> Has anyone else seen this?
+> Any news on this? Hope this hasn't been abandoned.
 
+Quite busy with some nokia stuff, but I'll get back to this maybe next
+week.
 
-Me too. Was just about to report it.
-
-I get this with a 3430 SDP and mainline kernel. No MMC card inserted.
-
-- Anand
+-- 
+balbi
