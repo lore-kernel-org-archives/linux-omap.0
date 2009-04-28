@@ -1,72 +1,45 @@
-From: "Aggarwal, Anuj" <anuj.aggarwal@ti.com>
-Subject: RE: [RFC] [Patch 0/2] Proposal for changes to TWL4030/TWL5030
- framework for integrating the new TWL6030 chip
-Date: Tue, 28 Apr 2009 16:25:19 +0530
-Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB030548B2AF@dbde02.ent.ti.com>
-References: <EAF47CD23C76F840A9E7FCE10091EFAB02B42BDE9B@dbde02.ent.ti.com>
- <20090428084013.GA3909@scadufax.research.nokia.com>
- <EAF47CD23C76F840A9E7FCE10091EFAB02B42BE0EB@dbde02.ent.ti.com>
+From: Mark Brown <broonie@sirena.org.uk>
+Subject: Re: [PATCH] regulator core: fix double-free in
+	regulator_register() error path
+Date: Tue, 28 Apr 2009 12:00:52 +0100
+Message-ID: <20090428110052.GH14626@sirena.org.uk>
+References: <alpine.DEB.2.00.0904250526210.28378@utopia.booyaka.com> <200904272008.50268.david-b@pacbell.net> <20090428081646.GC20027@rakim.wolfsonmicro.main> <200904280232.56329.david-b@pacbell.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:60665 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752450AbZD1Kzf convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 28 Apr 2009 06:55:35 -0400
-In-Reply-To: <EAF47CD23C76F840A9E7FCE10091EFAB02B42BE0EB@dbde02.ent.ti.com>
-Content-Language: en-US
+Received: from cassiel.sirena.org.uk ([80.68.93.111]:52962 "EHLO
+	cassiel.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757150AbZD1LAz (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 28 Apr 2009 07:00:55 -0400
+Content-Disposition: inline
+In-Reply-To: <200904280232.56329.david-b@pacbell.net>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Pakaravoor, Jagadeesh" <j-pakaravoor@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "felipe.balbi@nokia.com" <felipe.balbi@nokia.com>
+To: David Brownell <david-b@pacbell.net>
+Cc: Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org, lrg@slimlogic.co.uk, linux-kernel@vger.kernel.org
 
-Jagadeesh,
+On Tue, Apr 28, 2009 at 02:32:56AM -0700, David Brownell wrote:
+> On Tuesday 28 April 2009, Mark Brown wrote:
 
-We are also working on similar lines and I have already sent a RFC to 
-discuss it further in the community. Please have a look at the below 
-link and provide your comments:
+> > It's not VAUX3 that it's saying has incomplete constraints, it's the
+> > board as a whole - if the constraints for the board were fully specified
 
-http://marc.info/?l=linux-omap&m=124083364321017&w=2
+> No; driver support != constraint.  Only one of the
+> issues is packaged as a "constraint".
 
-Regards,
-Anuj Aggarwal
+Driver support isn't particularly relevant here.  If there are devices
+that don't have drivers or don't have drivers with regulator support but
+need a regulator enabling then the board should mark the regulator as
+always_on when setting full constraints; the always_on flag can be
+removed when the required consumers are added.
 
-> -----Original Message-----
-> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
-> owner@vger.kernel.org] On Behalf Of Pakaravoor, Jagadeesh
-> Sent: Tuesday, April 28, 2009 2:42 PM
-> To: felipe.balbi@nokia.com
-> Cc: linux-omap@vger.kernel.org
-> Subject: RE: [RFC] [Patch 0/2] Proposal for changes to TWL4030/TWL5030
-> framework for integrating the new TWL6030 chip
-> 
-> > -       if (twl_has_keypad() && pdata->keypad) {
-> > +       if (twl_has_keypad() && pdata->keypad &&
-> > +                       !(features & TLW6030)) {
-> >                 child = add_child(2, "twl4030_keypad",
-> >                                 pdata->keypad, sizeof(*pdata->keypad),
-> >                                 true, pdata->irq_base + 1, 0);
-> >
-> > You'd probably only need to make changes to register defines but almost
-> > everything else could remain as is. There shouldn't be any need for
-> > creating separate files.
-> >
-> Patch 0, of the series explains the differences between TWL4030 and TWL6030.
-> 
-> Going the aforesaid way, we will need checks like this in almost every other
-> line of code. And I believe having a separate file would be more modular, and
-> hence readable (a twl.c which will bind with twl4030-core.c and twl4030-irq.c if
-> TWL4030 is selected, and twl6030-core.c and twl6030-irq.c if TWL6030 is
-> selected).
-> 
-> I am not sure how we can incorporate all the hardware changes by just
-> changing register addresses.
-> 
-> --
-> Jagadeesh
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> > > Mark and/or Liam ... you might want to fix that diagnostic, to
+> > > avoid leading more developers astray!
 
+> > Probably shove a "board has" in there or something I guess.
+
+> How about:  "VAUX3 board support is incomplete".
+> That's accurate.
+
+No.  The constraints being complete is a property of the board as a
+whole and not the particular regulator.
