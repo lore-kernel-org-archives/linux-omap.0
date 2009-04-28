@@ -1,41 +1,53 @@
-From: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Subject: Re: [PATCH] regulator core: fix double-free in
-	regulator_register() error path
-Date: Tue, 28 Apr 2009 09:16:46 +0100
-Message-ID: <20090428081646.GC20027@rakim.wolfsonmicro.main>
-References: <alpine.DEB.2.00.0904250526210.28378@utopia.booyaka.com> <alpine.DEB.2.00.0904252250230.4291@utopia.booyaka.com> <200904272008.50268.david-b@pacbell.net>
+From: Kim Kyuwon <chammoru@gmail.com>
+Subject: Question about OABI_COMPAT feature in do_signal() function
+Date: Tue, 28 Apr 2009 17:23:19 +0900
+Message-ID: <4d34a0a70904280123y6d0d95b6if5ddfdc3d2c09ca6@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=EUC-KR
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from opensource.wolfsonmicro.com ([80.75.67.52]:44018 "EHLO
-	opensource2.wolfsonmicro.com" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1760192AbZD1IQs (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Tue, 28 Apr 2009 04:16:48 -0400
-Content-Disposition: inline
-In-Reply-To: <200904272008.50268.david-b@pacbell.net>
+Received: from rv-out-0506.google.com ([209.85.198.226]:51542 "EHLO
+	rv-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751963AbZD1IXj convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 28 Apr 2009 04:23:39 -0400
+Received: by rv-out-0506.google.com with SMTP id f6so1708107rvb.5
+        for <linux-omap@vger.kernel.org>; Tue, 28 Apr 2009 01:23:39 -0700 (PDT)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: David Brownell <david-b@pacbell.net>
-Cc: Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org, lrg@slimlogic.co.uk, linux-kernel@vger.kernel.org
+To: Russell King <linux@arm.linux.org.uk>
+Cc: linux-arm-kernel@lists.arm.linux.org.uk, OMAP <linux-omap@vger.kernel.org>, =?EUC-KR?B?udqw5rnO?= <kyungmin.park@samsung.com>, Kevin Hilman <khilman@deeprootsystems.com>
 
-On Mon, Apr 27, 2009 at 08:08:50PM -0700, David Brownell wrote:
-> On Saturday 25 April 2009, Paul Walmsley wrote:
+Hello Russell,
 
-> > For the 3430SDP users out there, this patch also fixes the boot hang after 
-> > "regulator_init_complete: incomplete constraints, leaving VAUX3 on"
-> > on that device.
+It's an honor to mail you. I'm writing this mail to ask you about the
+OABI_COMPAT feature in do_signal() function.
+After freezing and thawing user processes for Suspend-To-Ram, I found
+that some user processes(e.g. daemon processes) make prefetch abort
+continuously. And finally, I found that the following code in
+do_signal() was the root cause:
 
-> For the record, that "incomplete constraints" message is bogus.
-> On that board, VAUX3 has a complete set of constraints:  it may
-> only emit 2.8V.
+	/* arch/arm/kernel/signal.c: near 677 line */
 
-It's not VAUX3 that it's saying has incomplete constraints, it's the
-board as a whole - if the constraints for the board were fully specified
-(and the core had been told about it) then it would power off VAUX3 at
-that point.
+	put_user(regs->ARM_pc, &usp[0]);
+	/* swi __NR_restart_syscall */
+	put_user(0xef000000 | swival, &usp[1]);
+	/* ldr  pc, [sp], #12 */
+	put_user(0xe49df00c, &usp[2]);
 
-> Mark and/or Liam ... you might want to fix that diagnostic, to
-> avoid leading more developers astray!
+It seems that this code makes processes execute in stack area to
+re-enter kernel area. However, when PC is in stack area, I saw that it
+*continuously* make data abort exception. (Process stack area is in
+general non executable area)
 
-Probably shove a "board has" in there or something I guess.
+I'm using OMAP3430 board whose core is Cotex-A8 and with enabling both
+CONFIG_AEABI and CONFIG_OABI_COMPAT.
+
+Can I ask your comments or idea about this problem?
+
+Regards,
+Kyuwon (=B1=D4=BF=F8)
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
