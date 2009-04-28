@@ -1,590 +1,72 @@
 From: "Pakaravoor, Jagadeesh" <j-pakaravoor@ti.com>
-Subject: [RFC] [Patch 2/2] Proposal for changes to TWL4030/TWL5030 framework
+Subject: [RFC] [Patch 0/2] Proposal for changes to TWL4030/TWL5030 framework
  for integrating the new TWL6030 chip
-Date: Tue, 28 Apr 2009 10:54:35 +0530
-Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB02B42BDE9D@dbde02.ent.ti.com>
+Date: Tue, 28 Apr 2009 10:54:30 +0530
+Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB02B42BDE9B@dbde02.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:40151 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757742AbZD1FYn convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 28 Apr 2009 01:24:43 -0400
+Received: from devils.ext.ti.com ([198.47.26.153]:46957 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754567AbZD1FYj convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 28 Apr 2009 01:24:39 -0400
 Received: from dbdp20.itg.ti.com ([172.24.170.38])
-	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id n3S5OaxL005775
-	for <linux-omap@vger.kernel.org>; Tue, 28 Apr 2009 00:24:42 -0500
+	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id n3S5OXj2004974
+	for <linux-omap@vger.kernel.org>; Tue, 28 Apr 2009 00:24:39 -0500
 Received: from dbde70.ent.ti.com (localhost [127.0.0.1])
-	by dbdp20.itg.ti.com (8.13.8/8.13.8) with ESMTP id n3S5OZfZ015488
-	for <linux-omap@vger.kernel.org>; Tue, 28 Apr 2009 10:54:35 +0530 (IST)
+	by dbdp20.itg.ti.com (8.13.8/8.13.8) with ESMTP id n3S5OVsW015461
+	for <linux-omap@vger.kernel.org>; Tue, 28 Apr 2009 10:54:32 +0530 (IST)
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-This patch:
-        - Creates a new file twl.c
-        - Segregates functions common between TWL4030 and TWL6030 and moves them from twl4030-core.c            into twl.c
+Hi folks,
+  We have a new TWL6030 chip that is coming in. In brief, the following are the changes w.r.t. TWL5030:
 
-Index: linux-omap-2.6/drivers/mfd/twl.c
-===================================================================
---- /dev/null
-+++ linux-omap-2.6/drivers/mfd/twl.c
-@@ -0,0 +1,279 @@
-+/*
-+ * twl.c - driver for TWL device
-+ *
-+ * Copyright (C) 2005-2009 Texas Instruments, Inc.
-+ *
-+ * Modifications to defer interrupt handling to a kernel thread:
-+ * Copyright (C) 2006 MontaVista Software, Inc.
-+ *
-+ * Based on tlv320aic23.c:
-+ * Copyright (c) by Kai Svahn <kai.svahn@nokia.com>
-+ *
-+ * Code cleanup and modifications to IRQ handler.
-+ * by syed khasim <x0khasim@ti.com>
-+ *
-+ * Moved twl generic code from twl4030-core.c to twl.c
-+ * - Jagadeesh Pakaravoor <j-pakaravoor@ti.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation; either version 2 of the License, or
-+ * (at your option) any later version.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program; if not, write to the Free Software
-+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
-+ */
-+
-+
-+
-+/*----------------------------------------------------------------------*/
-+
-+/* Exported Functions */
-+
-+/**
-+ * twl_i2c_write - Writes a n bit register in TWL
-+ * @mod_no: module number
-+ * @value: an array of num_bytes+1 containing data to write
-+ * @reg: register address (just offset will do)
-+ * @num_bytes: number of bytes to transfer
-+ *
-+ * IMPORTANT: for 'value' parameter: Allocate value num_bytes+1 and
-+ * valid data starts at Offset 1.
-+ *
-+ * Returns the result of operation - 0 is success
-+ */
-+int twl_i2c_write(u8 mod_no, u8 *value, u8 reg, unsigned num_bytes)
-+{
-+       int ret;
-+       int sid;
-+       struct twl_client *twl;
-+       struct i2c_msg *msg;
-+
-+       if (unlikely(mod_no > TWL_MODULE_LAST)) {
-+               pr_err("%s: invalid module number %d\n", DRIVER_NAME, mod_no);
-+               return -EPERM;
-+       }
-+       sid = twl_map[mod_no].sid;
-+       twl = &twl_modules[sid];
-+
-+       if (unlikely(!inuse)) {
-+               pr_err("%s: client %d is not initialized\n", DRIVER_NAME, sid);
-+               return -EPERM;
-+       }
-+       mutex_lock(&twl->xfer_lock);
-+       /*
-+        * [MSG1]: fill the register address data
-+        * fill the data Tx buffer
-+        */
-+       msg = &twl->xfer_msg[0];
-+       msg->addr = twl->address;
-+       msg->len = num_bytes + 1;
-+       msg->flags = 0;
-+       msg->buf = value;
-+       /* over write the first byte of buffer with the register address */
-+       *value = twl_map[mod_no].base + reg;
-+       ret = i2c_transfer(twl->client->adapter, twl->xfer_msg, 1);
-+       mutex_unlock(&twl->xfer_lock);
-+
-+       /* i2cTransfer returns num messages.translate it pls.. */
-+       if (ret >= 0)
-+               ret = 0;
-+       return ret;
-+}
-+EXPORT_SYMBOL(twl_i2c_write);
-+
-+/**
-+ * twl_i2c_read - Reads a n bit register in TWL
-+ * @mod_no: module number
-+ * @value: an array of num_bytes containing data to be read
-+ * @reg: register address (just offset will do)
-+ * @num_bytes: number of bytes to transfer
-+ *
-+ * Returns result of operation - num_bytes is success else failure.
-+ */
-+int twl_i2c_read(u8 mod_no, u8 *value, u8 reg, unsigned num_bytes)
-+{
-+       int ret;
-+       u8 val;
-+       int sid;
-+       struct twl_client *twl;
-+       struct i2c_msg *msg;
-+
-+       if (unlikely(mod_no > TWL_MODULE_LAST)) {
-+               pr_err("%s: invalid module number %d\n", DRIVER_NAME, mod_no);
-+               return -EPERM;
-+       }
-+       sid = twl_map[mod_no].sid;
-+       twl = &twl_modules[sid];
-+
-+       if (unlikely(!inuse)) {
-+               pr_err("%s: client %d is not initialized\n", DRIVER_NAME, sid);
-+               return -EPERM;
-+       }
-+       mutex_lock(&twl->xfer_lock);
-+       /* [MSG1] fill the register address data */
-+       msg = &twl->xfer_msg[0];
-+       msg->addr = twl->address;
-+       msg->len = 1;
-+       msg->flags = 0; /* Read the register value */
-+       val = twl_map[mod_no].base + reg;
-+       msg->buf = &val;
-+       /* [MSG2] fill the data rx buffer */
-+       msg = &twl->xfer_msg[1];
-+       msg->addr = twl->address;
-+       msg->flags = I2C_M_RD;  /* Read the register value */
-+       msg->len = num_bytes;   /* only n bytes */
-+       msg->buf = value;
-+       ret = i2c_transfer(twl->client->adapter, twl->xfer_msg, 2);
-+       mutex_unlock(&twl->xfer_lock);
-+
-+       /* i2cTransfer returns num messages.translate it pls.. */
-+       if (ret >= 0)
-+               ret = 0;
-+       return ret;
-+}
-+EXPORT_SYMBOL(twl_i2c_read);
-+
-+/**
-+ * twl_i2c_write_u8 - Writes a 8 bit register in TWL
-+ * @mod_no: module number
-+ * @value: the value to be written 8 bit
-+ * @reg: register address (just offset will do)
-+ *
-+ * Returns result of operation - 0 is success
-+ */
-+int twl_i2c_write_u8(u8 mod_no, u8 value, u8 reg)
-+{
-+
-+       /* 2 bytes offset 1 contains the data offset 0 is used by i2c_write */
-+       u8 temp_buffer[2] = { 0 };
-+       /* offset 1 contains the data */
-+       temp_buffer[1] = value;
-+       return twl_i2c_write(mod_no, temp_buffer, reg, 1);
-+}
-+EXPORT_SYMBOL(twl_i2c_write_u8);
-+
-+/**
-+ * twl_i2c_read_u8 - Reads a 8 bit register from TWL
-+ * @mod_no: module number
-+ * @value: the value read 8 bit
-+ * @reg: register address (just offset will do)
-+ *
-+ * Returns result of operation - 0 is success
-+ */
-+int twl_i2c_read_u8(u8 mod_no, u8 *value, u8 reg)
-+{
-+       return twl_i2c_read(mod_no, value, reg, 1);
-+}
-+EXPORT_SYMBOL(twl_i2c_read_u8);
-+
-+/*----------------------------------------------------------------------*/
-+
-+int twl_init_irq(int irq_num, unsigned irq_base, unsigned irq_end);
-+int twl_exit_irq(void);
-+int add_children(struct twl_platform_data *pdata, unsigned long features);
-+
-+static int twl_remove(struct i2c_client *client)
-+{
-+       unsigned i;
-+       int status;
-+
-+       status = twl_exit_irq();
-+       if (status < 0)
-+               return status;
-+
-+       for (i = 0; i < TWL_NUM_SLAVES; i++) {
-+               struct twl_client       *twl = &twl_modules[i];
-+
-+               if (twl->client && twl->client != client)
-+                       i2c_unregister_device(twl->client);
-+               twl_modules[i].client = NULL;
-+       }
-+       inuse = false;
-+       return 0;
-+}
-+
-+/* NOTE:  this driver only handles a single twl/tps659x0 chip */
-+static int
-+twl_probe(struct i2c_client *client, const struct i2c_device_id *id)
-+{
-+       int                             status;
-+       unsigned                        i;
-+       struct twl_platform_data        *pdata = client->dev.platform_data;
-+
-+       if (!pdata) {
-+               dev_dbg(&client->dev, "no platform data?\n");
-+               return -EINVAL;
-+       }
-+
-+       if (i2c_check_functionality(client->adapter, I2C_FUNC_I2C) == 0) {
-+               dev_dbg(&client->dev, "can't talk I2C?\n");
-+               return -EIO;
-+       }
-+
-+       if (inuse) {
-+               dev_dbg(&client->dev, "driver is already in use\n");
-+               return -EBUSY;
-+       }
-+
-+       for (i = 0; i < TWL_NUM_SLAVES; i++) {
-+               struct twl_client       *twl = &twl_modules[i];
-+
-+               twl->address = client->addr + i;
-+               if (i == 0)
-+                       twl->client = client;
-+               else {
-+                       twl->client = i2c_new_dummy(client->adapter,
-+                                       twl->address);
-+                       if (!twl->client) {
-+                               dev_err(&twl->client->dev,
-+                                       "can't attach client %d\n", i);
-+                               status = -ENOMEM;
-+                               goto fail;
-+                       }
-+                       strlcpy(twl->client->name, id->name,
-+                                       sizeof(twl->client->name));
-+               }
-+               mutex_init(&twl->xfer_lock);
-+       }
-+       inuse = true;
-+
-+       /* setup clock framework */
-+       clocks_init(&client->dev);
-+
-+       /* load power event scripts */
-+       if (twl_has_power() && pdata->power)
-+               twl_power_init(pdata->power);
-+
-+       /* Maybe init the T2 Interrupt subsystem */
-+       if (client->irq
-+                       && pdata->irq_base
-+                       && pdata->irq_end > pdata->irq_base) {
-+               status = twl_init_irq(client->irq, pdata->irq_base, pdata->irq_end);
-+               if (status < 0)
-+                       goto fail;
-+       }
-+
-+       status = add_children(pdata, id->driver_data);
-+fail:
-+       if (status < 0)
-+               twl_remove(client);
-+       return status;
-+}
-+static int __init twl_init(void)
-+{
-+       return i2c_add_driver(&twl_driver);
-+}
-+subsys_initcall(twl_init);
-+
-+static void __exit twl_exit(void)
-+{
-+       i2c_del_driver(&twl_driver);
-+}
-+module_exit(twl_exit);
-Index: linux-omap-2.6/drivers/mfd/twl4030-core.c
-===================================================================
---- linux-omap-2.6.orig/drivers/mfd/twl4030-core.c
-+++ linux-omap-2.6/drivers/mfd/twl4030-core.c
-@@ -241,147 +241,6 @@ extern void twl_power_init(struct twl_po
+0. This is the companion chip for OMAP4430.
+1. Unlike in TWL5030, audio and power chips are going to be separate chips as TWL6030 and TWL6031.
+2. Keypad and GPIO features are no more present in TWL6030 (the power companion chip). They all move into OMAP.
+4. Register and module base names/addresses changes (as expected from 2).
+5. Changes in interrupt framework:
+	- No more PIH and SIH
+	- 3 ISRs INT_STS_A, INT_STS_B and INT_STS_C at 3 consecutive address locations (that will allow an I2C burst read).
+6. The modules that are inherited from TWL5030 to TWL6030 remain same (like RTC, BCI) except MADC with some minor changes making it a General Purpose ADC (GPADC).
 
- /*----------------------------------------------------------------------*/
 
--/* Exported Functions */
--
--/**
-- * twl_i2c_write - Writes a n bit register in TWL
-- * @mod_no: module number
-- * @value: an array of num_bytes+1 containing data to write
-- * @reg: register address (just offset will do)
-- * @num_bytes: number of bytes to transfer
-- *
-- * IMPORTANT: for 'value' parameter: Allocate value num_bytes+1 and
-- * valid data starts at Offset 1.
-- *
-- * Returns the result of operation - 0 is success
-- */
--int twl_i2c_write(u8 mod_no, u8 *value, u8 reg, unsigned num_bytes)
--{
--       int ret;
--       int sid;
--       struct twl_client *twl;
--       struct i2c_msg *msg;
--
--       if (unlikely(mod_no > TWL_MODULE_LAST)) {
--               pr_err("%s: invalid module number %d\n", DRIVER_NAME, mod_no);
--               return -EPERM;
--       }
--       sid = twl_map[mod_no].sid;
--       twl = &twl_modules[sid];
--
--       if (unlikely(!inuse)) {
--               pr_err("%s: client %d is not initialized\n", DRIVER_NAME, sid);
--               return -EPERM;
--       }
--       mutex_lock(&twl->xfer_lock);
--       /*
--        * [MSG1]: fill the register address data
--        * fill the data Tx buffer
--        */
--       msg = &twl->xfer_msg[0];
--       msg->addr = twl->address;
--       msg->len = num_bytes + 1;
--       msg->flags = 0;
--       msg->buf = value;
--       /* over write the first byte of buffer with the register address */
--       *value = twl_map[mod_no].base + reg;
--       ret = i2c_transfer(twl->client->adapter, twl->xfer_msg, 1);
--       mutex_unlock(&twl->xfer_lock);
--
--       /* i2cTransfer returns num messages.translate it pls.. */
--       if (ret >= 0)
--               ret = 0;
--       return ret;
--}
--EXPORT_SYMBOL(twl_i2c_write);
--
--/**
-- * twl_i2c_read - Reads a n bit register in TWL
-- * @mod_no: module number
-- * @value: an array of num_bytes containing data to be read
-- * @reg: register address (just offset will do)
-- * @num_bytes: number of bytes to transfer
-- *
-- * Returns result of operation - num_bytes is success else failure.
-- */
--int twl_i2c_read(u8 mod_no, u8 *value, u8 reg, unsigned num_bytes)
--{
--       int ret;
--       u8 val;
--       int sid;
--       struct twl_client *twl;
--       struct i2c_msg *msg;
--
--       if (unlikely(mod_no > TWL_MODULE_LAST)) {
--               pr_err("%s: invalid module number %d\n", DRIVER_NAME, mod_no);
--               return -EPERM;
--       }
--       sid = twl_map[mod_no].sid;
--       twl = &twl_modules[sid];
--
--       if (unlikely(!inuse)) {
--               pr_err("%s: client %d is not initialized\n", DRIVER_NAME, sid);
--               return -EPERM;
--       }
--       mutex_lock(&twl->xfer_lock);
--       /* [MSG1] fill the register address data */
--       msg = &twl->xfer_msg[0];
--       msg->addr = twl->address;
--       msg->len = 1;
--       msg->flags = 0; /* Read the register value */
--       val = twl_map[mod_no].base + reg;
--       msg->buf = &val;
--       /* [MSG2] fill the data rx buffer */
--       msg = &twl->xfer_msg[1];
--       msg->addr = twl->address;
--       msg->flags = I2C_M_RD;  /* Read the register value */
--       msg->len = num_bytes;   /* only n bytes */
--       msg->buf = value;
--       ret = i2c_transfer(twl->client->adapter, twl->xfer_msg, 2);
--       mutex_unlock(&twl->xfer_lock);
--
--       /* i2cTransfer returns num messages.translate it pls.. */
--       if (ret >= 0)
--               ret = 0;
--       return ret;
--}
--EXPORT_SYMBOL(twl_i2c_read);
--
--/**
-- * twl_i2c_write_u8 - Writes a 8 bit register in TWL
-- * @mod_no: module number
-- * @value: the value to be written 8 bit
-- * @reg: register address (just offset will do)
-- *
-- * Returns result of operation - 0 is success
-- */
--int twl_i2c_write_u8(u8 mod_no, u8 value, u8 reg)
--{
--
--       /* 2 bytes offset 1 contains the data offset 0 is used by i2c_write */
--       u8 temp_buffer[2] = { 0 };
--       /* offset 1 contains the data */
--       temp_buffer[1] = value;
--       return twl_i2c_write(mod_no, temp_buffer, reg, 1);
--}
--EXPORT_SYMBOL(twl_i2c_write_u8);
--
--/**
-- * twl_i2c_read_u8 - Reads a 8 bit register from TWL
-- * @mod_no: module number
-- * @value: the value read 8 bit
-- * @reg: register address (just offset will do)
-- *
-- * Returns result of operation - 0 is success
-- */
--int twl_i2c_read_u8(u8 mod_no, u8 *value, u8 reg)
--{
--       return twl_i2c_read(mod_no, value, reg, 1);
--}
--EXPORT_SYMBOL(twl_i2c_read_u8);
--
--/*----------------------------------------------------------------------*/
--
- static struct device *
- add_numbered_child(unsigned chip, const char *name, int num,
-                void *pdata, unsigned pdata_len,
-@@ -724,98 +583,6 @@ static void __init clocks_init(struct de
-                pr_err("%s: clock init err [%d]\n", DRIVER_NAME, e);
- }
+I'd like to propose a new generic framework that will incorporate TWL4030/TWL5030 and TWL6030 functionalities/changes seamlessly.
 
--/*----------------------------------------------------------------------*/
--
--int twl_init_irq(int irq_num, unsigned irq_base, unsigned irq_end);
--int twl_exit_irq(void);
--
--static int twl_remove(struct i2c_client *client)
--{
--       unsigned i;
--       int status;
--
--       status = twl_exit_irq();
--       if (status < 0)
--               return status;
--
--       for (i = 0; i < TWL_NUM_SLAVES; i++) {
--               struct twl_client       *twl = &twl_modules[i];
--
--               if (twl->client && twl->client != client)
--                       i2c_unregister_device(twl->client);
--               twl_modules[i].client = NULL;
--       }
--       inuse = false;
--       return 0;
--}
--
--/* NOTE:  this driver only handles a single twl/tps659x0 chip */
--static int
--twl_probe(struct i2c_client *client, const struct i2c_device_id *id)
--{
--       int                             status;
--       unsigned                        i;
--       struct twl_platform_data        *pdata = client->dev.platform_data;
--
--       if (!pdata) {
--               dev_dbg(&client->dev, "no platform data?\n");
--               return -EINVAL;
--       }
--
--       if (i2c_check_functionality(client->adapter, I2C_FUNC_I2C) == 0) {
--               dev_dbg(&client->dev, "can't talk I2C?\n");
--               return -EIO;
--       }
--
--       if (inuse) {
--               dev_dbg(&client->dev, "driver is already in use\n");
--               return -EBUSY;
--       }
--
--       for (i = 0; i < TWL_NUM_SLAVES; i++) {
--               struct twl_client       *twl = &twl_modules[i];
--
--               twl->address = client->addr + i;
--               if (i == 0)
--                       twl->client = client;
--               else {
--                       twl->client = i2c_new_dummy(client->adapter,
--                                       twl->address);
--                       if (!twl->client) {
--                               dev_err(&twl->client->dev,
--                                       "can't attach client %d\n", i);
--                               status = -ENOMEM;
--                               goto fail;
--                       }
--                       strlcpy(twl->client->name, id->name,
--                                       sizeof(twl->client->name));
--               }
--               mutex_init(&twl->xfer_lock);
--       }
--       inuse = true;
--
--       /* setup clock framework */
--       clocks_init(&client->dev);
--
--       /* load power event scripts */
--       if (twl_has_power() && pdata->power)
--               twl_power_init(pdata->power);
--
--       /* Maybe init the T2 Interrupt subsystem */
--       if (client->irq
--                       && pdata->irq_base
--                       && pdata->irq_end > pdata->irq_base) {
--               status = twl_init_irq(client->irq, pdata->irq_base, pdata->irq_end);
--               if (status < 0)
--                       goto fail;
--       }
--
--       status = add_children(pdata, id->driver_data);
--fail:
--       if (status < 0)
--               twl_remove(client);
--       return status;
--}
+Proposal
+========
+1. Rename all registers/functions etc. from twl4030/TWL4030 to twl/TWL.
+	- This would allow unchanged modules (like RTC) to work in the same way, transparent to whether it is part of TWL4030 or TWL6030.
+2. Have a new twl.c file, that will define functions like
+	- twl_i2c_write
+	- twl_i2c_write_u8
+	- twl_i2c_read
+	- twl_i2c_read_u8
+	- twl_init
+	- twl_exit
+	- twl_probe
+	- twl_remove
+These functions implement the functionalities common to both TWL4030 and TWL6030, doing away with the need to have a copy of these functions in two places.
+3. twl4030-core.c and twl4030-irq.c files will define functions that changes between TWL4030 and TWL6030, like:
+	- add_children(): We do not need keypad and GPIO; MADC changes to GPADC in case of TWL6030.
+	- twl_irq_thread() <<twl4030-irq.c>>: We have new registers to read interrupts from. No more PIH and SIH. So the core loop that dispatches the interrupt changes. We can also use an I2C burst read to get 3 interrupt registers in one shot for TWL6030.
 
- static const struct i2c_device_id twl_ids[] = {
-        { "twl", TWL_VAUX2 },   /* "Triton 2" */
-@@ -835,18 +602,6 @@ static struct i2c_driver twl_driver = {
-        .remove         = twl_remove,
- };
+4. New twl6030-core.c and twl6030-irq.c that implements the TWL6030 counter parts of functions applicable in (3).
 
--static int __init twl_init(void)
--{
--       return i2c_add_driver(&twl_driver);
--}
--subsys_initcall(twl_init);
--
--static void __exit twl_exit(void)
--{
--       i2c_del_driver(&twl_driver);
--}
--module_exit(twl_exit);
--
- MODULE_AUTHOR("Texas Instruments, Inc.");
--MODULE_DESCRIPTION("I2C Core interface for TWL");
-+MODULE_DESCRIPTION("I2C Core interface for TWL4030");
- MODULE_LICENSE("GPL");
+5. A config option will determine whether TWL4030 or TWL6030 will be compiled as a part of the kernel.
+
+NB:
+==
+Please note that the patches are for RFC, and they might not even compile properly. These are draft patches to convey the idea across. So please ignore styling and formatting errors.
+
 --
 With Regards,
 Jagadeesh Bhaskar P
-
+ 
 ----------------------------
 Some men see things as they are and say why - I dream things that never were and say why not.
 - George Bernard Shaw
