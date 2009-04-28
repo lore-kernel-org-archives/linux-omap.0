@@ -1,83 +1,52 @@
-From: Ameya Palande <ameya.palande@nokia.com>
-Subject: [PATCH][DSPBRIDGE][v2] Add the device after driver initialization
-Date: Tue, 28 Apr 2009 16:15:54 +0300
-Message-ID: <1240924554-26025-1-git-send-email-ameya.palande@nokia.com>
-References: <1240918303-16888-1-git-send-email-ameya.palande@nokia.com>
+From: Ashwin Bihari <abihari@gmail.com>
+Subject: Re: OMAP35x GP TIMER as a wakeup trigger
+Date: Tue, 28 Apr 2009 09:58:03 -0400
+Message-ID: <1f11a5490904280658j4e3c3abbyb4d9069055f6ae71@mail.gmail.com>
+References: <1f11a5490904270849j5130384avdbaa8da21bc2b668@mail.gmail.com>
+	 <87bpqhspvo.fsf@deeprootsystems.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:26786 "EHLO
-	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758785AbZD1NP5 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 28 Apr 2009 09:15:57 -0400
-In-Reply-To: <1240918303-16888-1-git-send-email-ameya.palande@nokia.com>
+Received: from wa-out-1112.google.com ([209.85.146.178]:9751 "EHLO
+	wa-out-1112.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756176AbZD1N6E convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 28 Apr 2009 09:58:04 -0400
+Received: by wa-out-1112.google.com with SMTP id j5so283463wah.21
+        for <linux-omap@vger.kernel.org>; Tue, 28 Apr 2009 06:58:04 -0700 (PDT)
+In-Reply-To: <87bpqhspvo.fsf@deeprootsystems.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: h-kanigeri2@ti.com
+To: Kevin Hilman <khilman@deeprootsystems.com>
+Cc: "linux-omap@vger.kernel.org Mailing List" <linux-omap@vger.kernel.org>
 
-From: Ameya Palande <ameya.palande@nokia.com>
+On Mon, Apr 27, 2009 at 6:17 PM, Kevin Hilman
+<khilman@deeprootsystems.com> wrote:
+> Ashwin Bihari <abihari@gmail.com> writes:
+>
+>> I need to implement a timer as a wake up trigger while my custom boa=
+rd
+>> is in the suspended state. I read in the TRM that all of the GPTIMER=
+s
+>> have the capability of generating a wake up interrupt. I'm using the
+>> 2.6.28-rc8 PM Kernel which contains the patch to enable all the
+>> GPTIMERS as wake up sources.
+>
+> Try the patch below on the current PM branch. =A0I use this for
+> debugging PM code when no other wakeup sources (keypad, UART, etc. ar=
+e
+> working.)
+>
+> Kevin
+>
 
-This prevents a panic caused by an IOCTL call before driver completes its
-initialization.
+Kevin.
 
-Signed-off-by: Ameya Palande <ameya.palande@nokia.com>
----
- drivers/dsp/bridge/rmgr/drv_interface.c |   29 +++++++++++++----------------
- 1 files changed, 13 insertions(+), 16 deletions(-)
+The patch worked like a charm, thank you very much.
 
-diff --git a/drivers/dsp/bridge/rmgr/drv_interface.c b/drivers/dsp/bridge/rmgr/drv_interface.c
-index 9466409..79f75c9 100755
---- a/drivers/dsp/bridge/rmgr/drv_interface.c
-+++ b/drivers/dsp/bridge/rmgr/drv_interface.c
-@@ -298,14 +298,6 @@ static int __devinit omap34xx_bridge_probe(struct platform_device *pdev)
- 	bridge_device->cdev.owner = THIS_MODULE;
- 	bridge_device->cdev.ops = &bridge_fops;
- 
--	status = cdev_add(&bridge_device->cdev, dev, 1);
--
--	if (status) {
--		GT_0trace(driverTrace, GT_7CLASS,
--				"Failed to add the bridge device \n");
--		return status;
--	}
--
- 	/* udev support */
- 	bridge_class = class_create(THIS_MODULE, "ti_bridge");
- 
-@@ -328,14 +320,6 @@ static int __devinit omap34xx_bridge_probe(struct platform_device *pdev)
- 
- 	GT_0trace(driverTrace, GT_ENTER, "-> driver_init\n");
- 
--#ifdef CONFIG_PM
--	/* Initialize the wait queue */
--	if (!status) {
--		bridge_suspend_data.suspended = 0;
--		init_waitqueue_head(&bridge_suspend_data.suspend_wq);
--	}
--#endif
--
- 	SERVICES_Init();
- 
- 	/*  Autostart flag.  This should be set to true if the DSP image should
-@@ -429,6 +413,19 @@ static int __devinit omap34xx_bridge_probe(struct platform_device *pdev)
- 		} else {
- 			GT_0trace(driverTrace, GT_5CLASS,
- 					"DSP/BIOS Bridge driver loaded\n");
-+			/* Announce to kernel that we are ready */
-+			status = cdev_add(&bridge_device->cdev, dev, 1);
-+			if (status) {
-+				GT_0trace(driverTrace, GT_7CLASS,
-+				"Failed to add the bridge device \n");
-+			}
-+			else {
-+				#ifdef CONFIG_PM
-+				/* Initialize the wait queue */
-+				bridge_suspend_data.suspended = 0;
-+				init_waitqueue_head(&bridge_suspend_data.suspend_wq);
-+				#endif
-+			}
- 		}
- 	}
- 
--- 
-1.6.2.4
-
+-- Ashwin
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
