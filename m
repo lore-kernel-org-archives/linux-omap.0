@@ -1,104 +1,349 @@
 From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: [PATCH 3/3][RFC]OMAP4: SMP: Enable SMP support for OMAP4430
-Date: Tue, 28 Apr 2009 21:27:20 +0530
-Message-ID: <1240934240-21769-1-git-send-email-santosh.shilimkar@ti.com>
+Subject: [PATCH 2/3][RFC]OMAP4: SMP: Add mpu timer support for OMAP4430
+Date: Tue, 28 Apr 2009 21:27:07 +0530
+Message-ID: <1240934227-21713-1-git-send-email-santosh.shilimkar@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:45747 "EHLO bear.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:51179 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752668AbZD1P51 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 28 Apr 2009 11:57:27 -0400
+	id S1762399AbZD1P5P (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 28 Apr 2009 11:57:15 -0400
 Received: from dbdp31.itg.ti.com ([172.24.170.98])
-	by bear.ext.ti.com (8.13.7/8.13.7) with ESMTP id n3SFvL28012541
-	for <linux-omap@vger.kernel.org>; Tue, 28 Apr 2009 10:57:27 -0500
+	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id n3SFv8xh006243
+	for <linux-omap@vger.kernel.org>; Tue, 28 Apr 2009 10:57:14 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
 
-This patch enables SMP on OMAP4430 SDP platform.
+This patch adds SMP platform specific parts for local(mpu) timer support
+for OMAP4430 platform. Each Cortex-a9 core has it's own local timer in the
+MPU domain. These timers are not in wakeup domain.
 
 Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
 ---
- arch/arm/Kconfig                        |    4 ++--
- arch/arm/configs/omap_4430sdp_defconfig |    7 ++++++-
- arch/arm/mach-omap2/Makefile            |    3 +++
- 3 files changed, 11 insertions(+), 3 deletions(-)
+ arch/arm/mach-omap2/timer-gp.c                |   11 ++
+ arch/arm/mach-omap2/timer-mpu.c               |  214 +++++++++++++++++++++++++
+ arch/arm/plat-omap/include/mach/common.h      |    3 +
+ arch/arm/plat-omap/include/mach/entry-macro.S |   28 ++++
+ arch/arm/plat-omap/include/mach/irqs.h        |    2 +
+ 5 files changed, 258 insertions(+), 0 deletions(-)
+ create mode 100644 arch/arm/mach-omap2/timer-mpu.c
 
-diff --git a/arch/arm/Kconfig b/arch/arm/Kconfig
-index e02b893..dc9f9fd 100644
---- a/arch/arm/Kconfig
-+++ b/arch/arm/Kconfig
-@@ -807,7 +807,7 @@ source "kernel/time/Kconfig"
+diff --git a/arch/arm/mach-omap2/timer-gp.c b/arch/arm/mach-omap2/timer-gp.c
+index 080868d..08c6ded 100644
+--- a/arch/arm/mach-omap2/timer-gp.c
++++ b/arch/arm/mach-omap2/timer-gp.c
+@@ -36,6 +36,7 @@
  
- config SMP
- 	bool "Symmetric Multi-Processing (EXPERIMENTAL)"
--	depends on EXPERIMENTAL && (REALVIEW_EB_ARM11MP || MACH_REALVIEW_PB11MP)
-+	depends on EXPERIMENTAL && (REALVIEW_EB_ARM11MP || MACH_REALVIEW_PB11MP || ARCH_OMAP4)
- 	select USE_GENERIC_SMP_HELPERS
- 	help
- 	  This enables support for systems with more than one CPU. If you have
-@@ -864,7 +864,7 @@ config HOTPLUG_CPU
+ #include <asm/mach/time.h>
+ #include <mach/dmtimer.h>
++#include <mach/common.h>
  
- config LOCAL_TIMERS
- 	bool "Use local timer interrupts"
--	depends on SMP && (REALVIEW_EB_ARM11MP || MACH_REALVIEW_PB11MP || REALVIEW_EB_A9MP)
-+	depends on SMP && (REALVIEW_EB_ARM11MP || MACH_REALVIEW_PB11MP || REALVIEW_EB_A9MP || ARCH_OMAP4)
- 	default y
- 	help
- 	  Enable support for local timers on SMP platforms, rather then the
-diff --git a/arch/arm/configs/omap_4430sdp_defconfig b/arch/arm/configs/omap_4430sdp_defconfig
-index 43532bc..fe2690e 100644
---- a/arch/arm/configs/omap_4430sdp_defconfig
-+++ b/arch/arm/configs/omap_4430sdp_defconfig
-@@ -30,7 +30,7 @@ CONFIG_DEFCONFIG_LIST="/lib/modules/$UNAME_RELEASE/.config"
- # General setup
- #
- CONFIG_EXPERIMENTAL=y
--CONFIG_BROKEN_ON_SMP=y
-+CONFIG_LOCK_KERNEL=y
- CONFIG_INIT_ENV_ARG_LIMIT=32
- CONFIG_LOCALVERSION=""
- CONFIG_LOCALVERSION_AUTO=y
-@@ -104,6 +104,7 @@ CONFIG_MODULE_UNLOAD=y
- # CONFIG_MODULE_FORCE_UNLOAD is not set
- CONFIG_MODVERSIONS=y
- CONFIG_MODULE_SRCVERSION_ALL=y
-+CONFIG_STOP_MACHINE=y
- CONFIG_BLOCK=y
- # CONFIG_LBD is not set
- # CONFIG_BLK_DEV_IO_TRACE is not set
-@@ -244,6 +245,9 @@ CONFIG_VMSPLIT_3G=y
- # CONFIG_VMSPLIT_2G is not set
- # CONFIG_VMSPLIT_1G is not set
- CONFIG_PAGE_OFFSET=0xC0000000
-+CONFIG_SMP=y
-+CONFIG_NR_CPUS=2
-+CONFIG_LOCAL_TIMERS=y
- # CONFIG_PREEMPT is not set
- CONFIG_HZ=128
- CONFIG_AEABI=y
-@@ -695,6 +699,7 @@ CONFIG_HAVE_FUNCTION_TRACER=y
- # CONFIG_SAMPLES is not set
- CONFIG_HAVE_ARCH_KGDB=y
- # CONFIG_KGDB is not set
-+# CONFIG_ARM_UNWIND is not set
- # CONFIG_DEBUG_USER is not set
- # CONFIG_DEBUG_ERRORS is not set
- # CONFIG_DEBUG_STACK_USAGE is not set
-diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
-index bfb21e0..8fbbb35 100644
---- a/arch/arm/mach-omap2/Makefile
-+++ b/arch/arm/mach-omap2/Makefile
-@@ -14,6 +14,9 @@ obj-$(CONFIG_ARCH_OMAP3)		+= $(omap-2-3-common)
+ static struct omap_dm_timer *gptimer;
+ static struct clock_event_device clockevent_gpt;
+@@ -187,6 +188,16 @@ static void __init omap2_gp_clocksource_init(void)
  
- obj-$(CONFIG_OMAP_MCBSP) += mcbsp.o
+ static void __init omap2_gp_timer_init(void)
+ {
++#ifdef CONFIG_LOCAL_TIMERS
++	twd_base = IO_ADDRESS(OMAP44XX_LOCAL_TWD_BASE);
++#endif
++#ifdef CONFIG_GENERIC_CLOCKEVENTS_BROADCAST
++	/*
++	 * The dummy clock device has to be registered before the main device
++	 * so that the latter will broadcast the clock events
++	 */
++	local_timer_setup();
++#endif
+ 	omap_dm_timer_init();
  
-+# SMP support ONLY available for OMAP4
-+obj-$(CONFIG_SMP)			+= omap-smp.o omap-headsmp.o \
-+					   timer-mpu.o
- # Functions loaded to SRAM
- obj-$(CONFIG_ARCH_OMAP2420)		+= sram242x.o
- obj-$(CONFIG_ARCH_OMAP2430)		+= sram243x.o
+ 	omap2_gp_clockevent_init();
+diff --git a/arch/arm/mach-omap2/timer-mpu.c b/arch/arm/mach-omap2/timer-mpu.c
+new file mode 100644
+index 0000000..bb91b24
+--- /dev/null
++++ b/arch/arm/mach-omap2/timer-mpu.c
+@@ -0,0 +1,214 @@
++/*
++ * The MPU local timer source file. In OMAP4, both cortex-a9 cores have
++ * own timer in it's MPU domain. These timers will be driving the
++ * linux kernel SMP tick framework when active. These timers are not
++ * part of the wake up domain.
++ *
++ * Copyright (C) 2009 Texas Instruments, Inc.
++ *
++ * Author:
++ *      Santosh Shilimkar <santosh.shilimkar@ti.com>
++ *
++ * This file is based on arm realview smp platform file.
++ * Copyright (C) 2002 ARM Ltd.
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++#include <linux/init.h>
++#include <linux/kernel.h>
++#include <linux/delay.h>
++#include <linux/device.h>
++#include <linux/smp.h>
++#include <linux/jiffies.h>
++#include <linux/percpu.h>
++#include <linux/clockchips.h>
++#include <linux/irq.h>
++
++#include <asm/hardware/arm_twd.h>
++#include <asm/hardware/gic.h>
++#include <asm/irq.h>
++
++#include <mach/hardware.h>
++#include <mach/common.h>
++
++static DEFINE_PER_CPU(struct clock_event_device, local_clockevent);
++
++/*
++ * Used on SMP for either the local timer or IPI_TIMER
++ */
++void local_timer_interrupt(void)
++{
++	struct clock_event_device *clk = &__get_cpu_var(local_clockevent);
++
++	clk->event_handler(clk);
++}
++
++#ifdef CONFIG_LOCAL_TIMERS
++
++/* set up by the platform code */
++void __iomem *twd_base;
++
++static unsigned long mpcore_timer_rate;
++
++static void local_timer_set_mode(enum clock_event_mode mode,
++				 struct clock_event_device *clk)
++{
++	unsigned long ctrl;
++
++	switch (mode) {
++	case CLOCK_EVT_MODE_PERIODIC:
++		/* timer load already set up */
++		ctrl = TWD_TIMER_CONTROL_ENABLE | TWD_TIMER_CONTROL_IT_ENABLE
++			| TWD_TIMER_CONTROL_PERIODIC;
++		break;
++	case CLOCK_EVT_MODE_ONESHOT:
++		/* period set, and timer enabled in 'next_event' hook */
++		ctrl = TWD_TIMER_CONTROL_IT_ENABLE | TWD_TIMER_CONTROL_ONESHOT;
++		break;
++	case CLOCK_EVT_MODE_UNUSED:
++	case CLOCK_EVT_MODE_SHUTDOWN:
++	default:
++		ctrl = 0;
++	}
++
++	__raw_writel(ctrl, twd_base + TWD_TIMER_CONTROL);
++}
++
++static int local_timer_set_next_event(unsigned long evt,
++				      struct clock_event_device *unused)
++{
++	unsigned long ctrl = __raw_readl(twd_base + TWD_TIMER_CONTROL);
++
++	__raw_writel(evt, twd_base + TWD_TIMER_COUNTER);
++	__raw_writel(ctrl | TWD_TIMER_CONTROL_ENABLE,
++				twd_base + TWD_TIMER_CONTROL);
++
++	return 0;
++}
++
++/*
++ * local_timer_ack: checks for a local timer interrupt.
++ *
++ * If a local timer interrupt has occurred, acknowledge and return 1.
++ * Otherwise, return 0.
++ */
++int local_timer_ack(void)
++{
++	if (__raw_readl(twd_base + TWD_TIMER_INTSTAT)) {
++		__raw_writel(1, twd_base + TWD_TIMER_INTSTAT);
++		return 1;
++	}
++
++	return 0;
++}
++
++static void __cpuinit twd_calibrate_rate(void)
++{
++	unsigned long load, count;
++	u64 waitjiffies;
++
++	/*
++	 * If this is the first time round, we need to work out how fast
++	 * the timer ticks
++	 */
++	if (mpcore_timer_rate == 0) {
++		printk(KERN_INFO "Calibrating local timer... ");
++
++		/* Wait for a tick to start */
++		waitjiffies = get_jiffies_64() + 1;
++
++		while (get_jiffies_64() < waitjiffies)
++			udelay(10);
++
++		/* OK, now the tick has started, let's get the timer going */
++		waitjiffies += 5;
++
++				 /* enable, no interrupt or reload */
++		__raw_writel(0x1, twd_base + TWD_TIMER_CONTROL);
++
++				 /* maximum value */
++		__raw_writel(0xFFFFFFFFU, twd_base + TWD_TIMER_COUNTER);
++
++		while (get_jiffies_64() < waitjiffies)
++			udelay(10);
++
++		count = __raw_readl(twd_base + TWD_TIMER_COUNTER);
++
++		mpcore_timer_rate = (0xFFFFFFFFU - count) * (HZ / 5);
++
++		printk("%lu.%02luMHz.\n", mpcore_timer_rate / 1000000,
++			(mpcore_timer_rate / 100000) % 100);
++	}
++
++	load = mpcore_timer_rate / HZ;
++
++	__raw_writel(load, twd_base + TWD_TIMER_LOAD);
++}
++
++/*
++ * Setup the local clock events for a CPU.
++ */
++void __cpuinit local_timer_setup(void)
++{
++	unsigned int cpu = smp_processor_id();
++	struct clock_event_device *clk = &per_cpu(local_clockevent, cpu);
++	unsigned long flags;
++
++	twd_calibrate_rate();
++
++	clk->name		= "local_timer";
++	clk->features		= CLOCK_EVT_FEAT_PERIODIC
++					| CLOCK_EVT_FEAT_ONESHOT;
++	clk->rating		= 350;
++	clk->set_mode		= local_timer_set_mode;
++	clk->set_next_event	= local_timer_set_next_event;
++	clk->irq		= INT_44XX_LOCALTIMER_IRQ;
++	clk->cpumask		= cpumask_of(cpu);
++	clk->shift		= 20;
++	clk->mult		= div_sc(mpcore_timer_rate,
++						NSEC_PER_SEC, clk->shift);
++	clk->max_delta_ns	= clockevent_delta2ns(0xffffffff, clk);
++	clk->min_delta_ns	= clockevent_delta2ns(0xf, clk);
++
++	/* Make sure our local interrupt controller has this enabled */
++	local_irq_save(flags);
++	get_irq_chip(INT_44XX_LOCALTIMER_IRQ)->unmask(INT_44XX_LOCALTIMER_IRQ);
++	local_irq_restore(flags);
++
++	clockevents_register_device(clk);
++}
++
++/*
++ * take a local timer down
++ */
++void __cpuexit local_timer_stop(void)
++{
++	__raw_writel(0, twd_base + TWD_TIMER_CONTROL);
++}
++
++#else	/* CONFIG_LOCAL_TIMERS */
++
++static void dummy_timer_set_mode(enum clock_event_mode mode,
++				 struct clock_event_device *clk)
++{
++}
++
++void __cpuinit local_timer_setup(void)
++{
++	unsigned int cpu = smp_processor_id();
++	struct clock_event_device *clk = &per_cpu(local_clockevent, cpu);
++
++	clk->name		= "dummy_timer";
++	clk->features		= CLOCK_EVT_FEAT_DUMMY;
++	clk->rating		= 200;
++	clk->mult               = 1;
++	clk->set_mode		= dummy_timer_set_mode;
++	clk->broadcast		= smp_timer_broadcast;
++	clk->cpumask		= cpumask_of(cpu);
++
++	clockevents_register_device(clk);
++}
++
++#endif	/* !CONFIG_LOCAL_TIMERS */
+diff --git a/arch/arm/plat-omap/include/mach/common.h b/arch/arm/plat-omap/include/mach/common.h
+index 4b18833..99381df 100644
+--- a/arch/arm/plat-omap/include/mach/common.h
++++ b/arch/arm/plat-omap/include/mach/common.h
+@@ -30,6 +30,9 @@
+ #include <linux/i2c.h>
+ 
+ struct sys_timer;
++#ifdef CONFIG_LOCAL_TIMERS /* Base address of mpu timer */
++extern void __iomem *twd_base;
++#endif
+ 
+ extern void omap_map_common_io(void);
+ extern struct sys_timer omap_timer;
+diff --git a/arch/arm/plat-omap/include/mach/entry-macro.S b/arch/arm/plat-omap/include/mach/entry-macro.S
+index cf4c532..347189d 100644
+--- a/arch/arm/plat-omap/include/mach/entry-macro.S
++++ b/arch/arm/plat-omap/include/mach/entry-macro.S
+@@ -135,6 +135,34 @@
+ 		cmpne   \irqnr, \tmp
+ 		cmpcs   \irqnr, \irqnr
+ 		.endm
++
++		/* We assume that irqstat (the raw value of the IRQ acknowledge
++		 * register) is preserved from the macro above.
++		 * If there is an IPI, we immediately signal end of interrupt
++		 * on the controller, since this requires the original irqstat
++		 * value which we won't easily be able to recreate later.
++		 */
++
++		.macro test_for_ipi, irqnr, irqstat, base, tmp
++		bic	\irqnr, \irqstat, #0x1c00
++		cmp	\irqnr, #16
++		it	cc
++		strcc	\irqstat, [\base, #GIC_CPU_EOI]
++		it	cs
++		cmpcs	\irqnr, \irqnr
++		.endm
++
++		/* As above, this assumes that irqstat and base are preserved */
++
++		.macro test_for_ltirq, irqnr, irqstat, base, tmp
++		bic	\irqnr, \irqstat, #0x1c00
++		mov 	\tmp, #0
++		cmp	\irqnr, #29
++		itt	eq
++		moveq	\tmp, #1
++		streq	\irqstat, [\base, #GIC_CPU_EOI]
++		cmp	\tmp, #0
++		.endm
+ #endif
+ 
+ 		.macro	irq_prio_table
+diff --git a/arch/arm/plat-omap/include/mach/irqs.h b/arch/arm/plat-omap/include/mach/irqs.h
+index 5bc331e..e8f84a0 100644
+--- a/arch/arm/plat-omap/include/mach/irqs.h
++++ b/arch/arm/plat-omap/include/mach/irqs.h
+@@ -427,6 +427,8 @@
+ 
+ 
+ #define IRQ_GIC_START		32
++#define INT_44XX_LOCALTIMER_IRQ	29
++#define INT_44XX_LOCALWDT_IRQ	30
+ 
+ #define INT_44XX_BENCH_MPU_EMUL	(3 + IRQ_GIC_START)
+ #define INT_44XX_SSM_ABORT_IRQ	(6 + IRQ_GIC_START)
 -- 
 1.5.4.7
 
