@@ -1,349 +1,91 @@
-From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: [PATCH 2/3][RFC]OMAP4: SMP: Add mpu timer support for OMAP4430
-Date: Tue, 28 Apr 2009 21:27:07 +0530
-Message-ID: <1240934227-21713-1-git-send-email-santosh.shilimkar@ti.com>
+From: Abraham Arce <abraham.arce.moreno@gmail.com>
+Subject: Issues with PM Branch
+Date: Tue, 28 Apr 2009 11:17:22 -0500
+Message-ID: <cb8016980904280917r453eee32tb582a212a6f529e5@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:51179 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1762399AbZD1P5P (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 28 Apr 2009 11:57:15 -0400
-Received: from dbdp31.itg.ti.com ([172.24.170.98])
-	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id n3SFv8xh006243
-	for <linux-omap@vger.kernel.org>; Tue, 28 Apr 2009 10:57:14 -0500
+Received: from yx-out-2324.google.com ([74.125.44.29]:40663 "EHLO
+	yx-out-2324.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751679AbZD1QRY convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 28 Apr 2009 12:17:24 -0400
+Received: by yx-out-2324.google.com with SMTP id 3so362316yxj.1
+        for <linux-omap@vger.kernel.org>; Tue, 28 Apr 2009 09:17:23 -0700 (PDT)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
-Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
 
-This patch adds SMP platform specific parts for local(mpu) timer support
-for OMAP4430 platform. Each Cortex-a9 core has it's own local timer in the
-MPU domain. These timers are not in wakeup domain.
+Hi,
 
-Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
----
- arch/arm/mach-omap2/timer-gp.c                |   11 ++
- arch/arm/mach-omap2/timer-mpu.c               |  214 +++++++++++++++++++++++++
- arch/arm/plat-omap/include/mach/common.h      |    3 +
- arch/arm/plat-omap/include/mach/entry-macro.S |   28 ++++
- arch/arm/plat-omap/include/mach/irqs.h        |    2 +
- 5 files changed, 258 insertions(+), 0 deletions(-)
- create mode 100644 arch/arm/mach-omap2/timer-mpu.c
+I am having some hangs using origin/pm branch. SDPs used to test, same
+behaviour:
 
-diff --git a/arch/arm/mach-omap2/timer-gp.c b/arch/arm/mach-omap2/timer-gp.c
-index 080868d..08c6ded 100644
---- a/arch/arm/mach-omap2/timer-gp.c
-+++ b/arch/arm/mach-omap2/timer-gp.c
-@@ -36,6 +36,7 @@
- 
- #include <asm/mach/time.h>
- #include <mach/dmtimer.h>
-+#include <mach/common.h>
- 
- static struct omap_dm_timer *gptimer;
- static struct clock_event_device clockevent_gpt;
-@@ -187,6 +188,16 @@ static void __init omap2_gp_clocksource_init(void)
- 
- static void __init omap2_gp_timer_init(void)
- {
-+#ifdef CONFIG_LOCAL_TIMERS
-+	twd_base = IO_ADDRESS(OMAP44XX_LOCAL_TWD_BASE);
-+#endif
-+#ifdef CONFIG_GENERIC_CLOCKEVENTS_BROADCAST
-+	/*
-+	 * The dummy clock device has to be registered before the main device
-+	 * so that the latter will broadcast the clock events
-+	 */
-+	local_timer_setup();
-+#endif
- 	omap_dm_timer_init();
- 
- 	omap2_gp_clockevent_init();
-diff --git a/arch/arm/mach-omap2/timer-mpu.c b/arch/arm/mach-omap2/timer-mpu.c
-new file mode 100644
-index 0000000..bb91b24
---- /dev/null
-+++ b/arch/arm/mach-omap2/timer-mpu.c
-@@ -0,0 +1,214 @@
-+/*
-+ * The MPU local timer source file. In OMAP4, both cortex-a9 cores have
-+ * own timer in it's MPU domain. These timers will be driving the
-+ * linux kernel SMP tick framework when active. These timers are not
-+ * part of the wake up domain.
-+ *
-+ * Copyright (C) 2009 Texas Instruments, Inc.
-+ *
-+ * Author:
-+ *      Santosh Shilimkar <santosh.shilimkar@ti.com>
-+ *
-+ * This file is based on arm realview smp platform file.
-+ * Copyright (C) 2002 ARM Ltd.
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
-+#include <linux/init.h>
-+#include <linux/kernel.h>
-+#include <linux/delay.h>
-+#include <linux/device.h>
-+#include <linux/smp.h>
-+#include <linux/jiffies.h>
-+#include <linux/percpu.h>
-+#include <linux/clockchips.h>
-+#include <linux/irq.h>
-+
-+#include <asm/hardware/arm_twd.h>
-+#include <asm/hardware/gic.h>
-+#include <asm/irq.h>
-+
-+#include <mach/hardware.h>
-+#include <mach/common.h>
-+
-+static DEFINE_PER_CPU(struct clock_event_device, local_clockevent);
-+
-+/*
-+ * Used on SMP for either the local timer or IPI_TIMER
-+ */
-+void local_timer_interrupt(void)
-+{
-+	struct clock_event_device *clk = &__get_cpu_var(local_clockevent);
-+
-+	clk->event_handler(clk);
-+}
-+
-+#ifdef CONFIG_LOCAL_TIMERS
-+
-+/* set up by the platform code */
-+void __iomem *twd_base;
-+
-+static unsigned long mpcore_timer_rate;
-+
-+static void local_timer_set_mode(enum clock_event_mode mode,
-+				 struct clock_event_device *clk)
-+{
-+	unsigned long ctrl;
-+
-+	switch (mode) {
-+	case CLOCK_EVT_MODE_PERIODIC:
-+		/* timer load already set up */
-+		ctrl = TWD_TIMER_CONTROL_ENABLE | TWD_TIMER_CONTROL_IT_ENABLE
-+			| TWD_TIMER_CONTROL_PERIODIC;
-+		break;
-+	case CLOCK_EVT_MODE_ONESHOT:
-+		/* period set, and timer enabled in 'next_event' hook */
-+		ctrl = TWD_TIMER_CONTROL_IT_ENABLE | TWD_TIMER_CONTROL_ONESHOT;
-+		break;
-+	case CLOCK_EVT_MODE_UNUSED:
-+	case CLOCK_EVT_MODE_SHUTDOWN:
-+	default:
-+		ctrl = 0;
-+	}
-+
-+	__raw_writel(ctrl, twd_base + TWD_TIMER_CONTROL);
-+}
-+
-+static int local_timer_set_next_event(unsigned long evt,
-+				      struct clock_event_device *unused)
-+{
-+	unsigned long ctrl = __raw_readl(twd_base + TWD_TIMER_CONTROL);
-+
-+	__raw_writel(evt, twd_base + TWD_TIMER_COUNTER);
-+	__raw_writel(ctrl | TWD_TIMER_CONTROL_ENABLE,
-+				twd_base + TWD_TIMER_CONTROL);
-+
-+	return 0;
-+}
-+
-+/*
-+ * local_timer_ack: checks for a local timer interrupt.
-+ *
-+ * If a local timer interrupt has occurred, acknowledge and return 1.
-+ * Otherwise, return 0.
-+ */
-+int local_timer_ack(void)
-+{
-+	if (__raw_readl(twd_base + TWD_TIMER_INTSTAT)) {
-+		__raw_writel(1, twd_base + TWD_TIMER_INTSTAT);
-+		return 1;
-+	}
-+
-+	return 0;
-+}
-+
-+static void __cpuinit twd_calibrate_rate(void)
-+{
-+	unsigned long load, count;
-+	u64 waitjiffies;
-+
-+	/*
-+	 * If this is the first time round, we need to work out how fast
-+	 * the timer ticks
-+	 */
-+	if (mpcore_timer_rate == 0) {
-+		printk(KERN_INFO "Calibrating local timer... ");
-+
-+		/* Wait for a tick to start */
-+		waitjiffies = get_jiffies_64() + 1;
-+
-+		while (get_jiffies_64() < waitjiffies)
-+			udelay(10);
-+
-+		/* OK, now the tick has started, let's get the timer going */
-+		waitjiffies += 5;
-+
-+				 /* enable, no interrupt or reload */
-+		__raw_writel(0x1, twd_base + TWD_TIMER_CONTROL);
-+
-+				 /* maximum value */
-+		__raw_writel(0xFFFFFFFFU, twd_base + TWD_TIMER_COUNTER);
-+
-+		while (get_jiffies_64() < waitjiffies)
-+			udelay(10);
-+
-+		count = __raw_readl(twd_base + TWD_TIMER_COUNTER);
-+
-+		mpcore_timer_rate = (0xFFFFFFFFU - count) * (HZ / 5);
-+
-+		printk("%lu.%02luMHz.\n", mpcore_timer_rate / 1000000,
-+			(mpcore_timer_rate / 100000) % 100);
-+	}
-+
-+	load = mpcore_timer_rate / HZ;
-+
-+	__raw_writel(load, twd_base + TWD_TIMER_LOAD);
-+}
-+
-+/*
-+ * Setup the local clock events for a CPU.
-+ */
-+void __cpuinit local_timer_setup(void)
-+{
-+	unsigned int cpu = smp_processor_id();
-+	struct clock_event_device *clk = &per_cpu(local_clockevent, cpu);
-+	unsigned long flags;
-+
-+	twd_calibrate_rate();
-+
-+	clk->name		= "local_timer";
-+	clk->features		= CLOCK_EVT_FEAT_PERIODIC
-+					| CLOCK_EVT_FEAT_ONESHOT;
-+	clk->rating		= 350;
-+	clk->set_mode		= local_timer_set_mode;
-+	clk->set_next_event	= local_timer_set_next_event;
-+	clk->irq		= INT_44XX_LOCALTIMER_IRQ;
-+	clk->cpumask		= cpumask_of(cpu);
-+	clk->shift		= 20;
-+	clk->mult		= div_sc(mpcore_timer_rate,
-+						NSEC_PER_SEC, clk->shift);
-+	clk->max_delta_ns	= clockevent_delta2ns(0xffffffff, clk);
-+	clk->min_delta_ns	= clockevent_delta2ns(0xf, clk);
-+
-+	/* Make sure our local interrupt controller has this enabled */
-+	local_irq_save(flags);
-+	get_irq_chip(INT_44XX_LOCALTIMER_IRQ)->unmask(INT_44XX_LOCALTIMER_IRQ);
-+	local_irq_restore(flags);
-+
-+	clockevents_register_device(clk);
-+}
-+
-+/*
-+ * take a local timer down
-+ */
-+void __cpuexit local_timer_stop(void)
-+{
-+	__raw_writel(0, twd_base + TWD_TIMER_CONTROL);
-+}
-+
-+#else	/* CONFIG_LOCAL_TIMERS */
-+
-+static void dummy_timer_set_mode(enum clock_event_mode mode,
-+				 struct clock_event_device *clk)
-+{
-+}
-+
-+void __cpuinit local_timer_setup(void)
-+{
-+	unsigned int cpu = smp_processor_id();
-+	struct clock_event_device *clk = &per_cpu(local_clockevent, cpu);
-+
-+	clk->name		= "dummy_timer";
-+	clk->features		= CLOCK_EVT_FEAT_DUMMY;
-+	clk->rating		= 200;
-+	clk->mult               = 1;
-+	clk->set_mode		= dummy_timer_set_mode;
-+	clk->broadcast		= smp_timer_broadcast;
-+	clk->cpumask		= cpumask_of(cpu);
-+
-+	clockevents_register_device(clk);
-+}
-+
-+#endif	/* !CONFIG_LOCAL_TIMERS */
-diff --git a/arch/arm/plat-omap/include/mach/common.h b/arch/arm/plat-omap/include/mach/common.h
-index 4b18833..99381df 100644
---- a/arch/arm/plat-omap/include/mach/common.h
-+++ b/arch/arm/plat-omap/include/mach/common.h
-@@ -30,6 +30,9 @@
- #include <linux/i2c.h>
- 
- struct sys_timer;
-+#ifdef CONFIG_LOCAL_TIMERS /* Base address of mpu timer */
-+extern void __iomem *twd_base;
-+#endif
- 
- extern void omap_map_common_io(void);
- extern struct sys_timer omap_timer;
-diff --git a/arch/arm/plat-omap/include/mach/entry-macro.S b/arch/arm/plat-omap/include/mach/entry-macro.S
-index cf4c532..347189d 100644
---- a/arch/arm/plat-omap/include/mach/entry-macro.S
-+++ b/arch/arm/plat-omap/include/mach/entry-macro.S
-@@ -135,6 +135,34 @@
- 		cmpne   \irqnr, \tmp
- 		cmpcs   \irqnr, \irqnr
- 		.endm
-+
-+		/* We assume that irqstat (the raw value of the IRQ acknowledge
-+		 * register) is preserved from the macro above.
-+		 * If there is an IPI, we immediately signal end of interrupt
-+		 * on the controller, since this requires the original irqstat
-+		 * value which we won't easily be able to recreate later.
-+		 */
-+
-+		.macro test_for_ipi, irqnr, irqstat, base, tmp
-+		bic	\irqnr, \irqstat, #0x1c00
-+		cmp	\irqnr, #16
-+		it	cc
-+		strcc	\irqstat, [\base, #GIC_CPU_EOI]
-+		it	cs
-+		cmpcs	\irqnr, \irqnr
-+		.endm
-+
-+		/* As above, this assumes that irqstat and base are preserved */
-+
-+		.macro test_for_ltirq, irqnr, irqstat, base, tmp
-+		bic	\irqnr, \irqstat, #0x1c00
-+		mov 	\tmp, #0
-+		cmp	\irqnr, #29
-+		itt	eq
-+		moveq	\tmp, #1
-+		streq	\irqstat, [\base, #GIC_CPU_EOI]
-+		cmp	\tmp, #0
-+		.endm
- #endif
- 
- 		.macro	irq_prio_table
-diff --git a/arch/arm/plat-omap/include/mach/irqs.h b/arch/arm/plat-omap/include/mach/irqs.h
-index 5bc331e..e8f84a0 100644
---- a/arch/arm/plat-omap/include/mach/irqs.h
-+++ b/arch/arm/plat-omap/include/mach/irqs.h
-@@ -427,6 +427,8 @@
- 
- 
- #define IRQ_GIC_START		32
-+#define INT_44XX_LOCALTIMER_IRQ	29
-+#define INT_44XX_LOCALWDT_IRQ	30
- 
- #define INT_44XX_BENCH_MPU_EMUL	(3 + IRQ_GIC_START)
- #define INT_44XX_SSM_ABORT_IRQ	(6 + IRQ_GIC_START)
--- 
-1.5.4.7
+ SDP3430 PROCESSOR BD, ES2.0
+ SDP3430 PROCESSOR BD III, OMAP3430 ES3.0 EMU(MT), TWL5030 ES1.0
 
+The commit taken is latest:
+
+ commit	9d76f46e79302058464b569dbad9af8c594dbe53
+ author	Roger Quadros <ext-roger.quadros@nokia.com>
+ PM: OMAP: Fix build with CONFIG_OMAP_PM_NONE set
+
+If default configuration is used (omap_3430sdp_defconfig) then a
+kernel panic will occur:
+
+ <7>Switched to high resolution mode on CPU 0
+ <6>musb_hdrc: version 6.0, musb-dma, otg (peripheral+host), debug=3D0
+ <1>Unhandled fault: external abort on non-linefetch (0x1028) at 0xd80a=
+b404
+ Internal error: : 1028 [#1]
+ Modules linked in:
+ CPU: 0    Not tainted  (2.6.29-omap1-05686-g9d76f46 #1)
+ PC is at musb_platform_init+0x5c/0xf8
+ LR is at omap2_clk_enable+0x114/0x184
+ pc : [<c001f6d0>]    lr : [<c003b84c>]    psr: 40000013
+ sp : c7817d50  ip : 00000001  fp : c7817d64
+ r10: 00000000  r9 : c78281f0  r8 : c03ad128
+ r7 : c7831240  r6 : c78280d8  r5 : 00000000  r4 : c78280d8
+ r3 : d80ab000  r2 : 00000200  r1 : 00000000  r0 : 00000000
+ Flags: nZcv  IRQs on  FIQs on  Mode SVC_32  ISA ARM  Segment kernel
+ Control: 10c5387d  Table: 80004019  DAC: 00000017
+ Process swapper (pid: 1, stack limit =3D 0xc78162e0)
+ Stack: (0xc7817d50 to 0xc7818000)
+ ...
+ [<c001f674>] (musb_platform_init+0x0/0xf8) from [<c001ecd0>]
+(musb_probe+0x244/0xbe8) r5:00000000 r4:c0394db8
+ [<c001ea8c>] (musb_probe+0x0/0xbe8) from [<c01c0930>]
+(platform_drv_probe+0x20/0x24)
+ [<c01c0910>] (platform_drv_probe+0x0/0x24) from [<c01bfb20>]
+(driver_probe_device+0xd4/0x180)
+
+If USB is disabled then a hang now will be present in Power Management
+for TI OMAP3
+
+ <6>RPC: Registered udp transport module.
+ RPC: Registered udp transport module.
+ <6>RPC: Registered tcp transport module.
+ RPC: Registered tcp transport module.
+ <3>Power Management for TI OMAP3.
+ Power Management for TI OMAP3.
+ <=F6
+
+To avoid this last hang going back to the previous commit is needed,
+after this, the boot is Ok
+
+ commit 90c3bdfb394ff2ddd87a72defb49c2f2456dd621
+ Author: Rajendra Nayak <rnayak@ti.com>
+     OMAP3 clock: Update cpufreq driver
+
+If minimal defconfig (omap_3430sdp_min_defconfig) is used, boot will be=
+ ok.
+
+Has anyone faced same issue?
+
+Best Regards
+Abraham
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
