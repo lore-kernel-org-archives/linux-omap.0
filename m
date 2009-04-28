@@ -1,38 +1,48 @@
-From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Subject: [PATCH 0/3] [RFC] OMAP4: SMP: Patch series
-Date: Tue, 28 Apr 2009 21:15:15 +0530
-Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB02B42BE444@dbde02.ent.ti.com>
+From: Felix Radensky <felix@embedded-sol.com>
+Subject: Re: Previewer and resizer demo
+Date: Tue, 28 Apr 2009 18:53:16 +0300
+Message-ID: <49F7266C.3000706@embedded-sol.com>
+References: <49EDDDD9.8080207@embedded-sol.com> <19F8576C6E063C45BE387C64729E739404280C6022@dbde02.ent.ti.com> <49EEA97D.9040409@embedded-sol.com> <19F8576C6E063C45BE387C64729E73940432094FD4@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:50459 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1762076AbZD1PpX convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 28 Apr 2009 11:45:23 -0400
-Received: from dbdp20.itg.ti.com ([172.24.170.38])
-	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id n3SFjGB2031601
-	for <linux-omap@vger.kernel.org>; Tue, 28 Apr 2009 10:45:22 -0500
-Received: from dbde71.ent.ti.com (localhost [127.0.0.1])
-	by dbdp20.itg.ti.com (8.13.8/8.13.8) with ESMTP id n3SFjGNG004039
-	for <linux-omap@vger.kernel.org>; Tue, 28 Apr 2009 21:15:16 +0530 (IST)
-Content-Language: en-US
+Received: from vega.surpasshosting.com ([72.29.83.9]:60940 "EHLO
+	vega.surpasshosting.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1760985AbZD1PxX (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 28 Apr 2009 11:53:23 -0400
+In-Reply-To: <19F8576C6E063C45BE387C64729E73940432094FD4@dbde02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+Cc: "linux-omap@vger.kernel.org Mailing List" <linux-omap@vger.kernel.org>
 
-Following is the patch series to enable SMP support for OMAP4430 development platform. This series is on top of the first series sent on the mailing list.
+Hiremath, Vaibhav wrote:
+>>
+> [Hiremath, Vaibhav] From where you got these patches? Kernel version should be enough for me to understand the release package.
+>
+>   
+>> What I know is that
+>> previewer
+>> is accessible via separate character device.
+>>
+>>     
+> [Hiremath, Vaibhav] Yes, very true. Irrespective of release package you are using Resizer and Previewer modules are exported to the user space as a stand-alone character driver.
+>
+> There are some changes in the IOCTL's (New Ioctl added), so I just wanted to make sure that I share buildable version of application.
+>  
+> Thanks,
+> Vaibhav Hiremath
+>
+>   
+>
 
-The patches are generated against mainline version 2.6.30 -rc2. The kernel is validated on the OMAP4430 software simulator platform. SMP kernel is functional with debug UART. No additional drivers are supported yet.
+Hi,
 
-TI's OMAP4430 SOC is based on ARM Cortex-A9 SMP architecture. It's a dual core SOC with GIC used for interrupt handling and SCU for cache coherency.
+I hope you did not forget me. I just need some skeleton that shows how 
+captured frame is forwarded to previewer.
+I can work out build problems if there are any.
 
-The series contains:
-[PATCH 1/3][RFC]OMAP4: SMP: Add OMAP4430 SMP board files
-[PATCH 2/3][RFC]OMAP4: SMP: Add mpu timer support for OMAP4430
-[PATCH 3/3][RFC]OMAP4: SMP: Enable SMP support for OMAP4430
+Thanks a lot.
 
-Thanks in advance for the review !!
-
-Regards,
-Santosh
+Felix.
