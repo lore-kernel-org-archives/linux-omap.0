@@ -1,54 +1,62 @@
-From: Mika Korhonen <mika.j.korhonen@gmail.com>
-Subject: [PATCH] OMAP OneNAND: add missing __devexit_p wrappers
-Date: Wed, 29 Apr 2009 14:59:11 +0300
-Message-ID: <7948530904290459q36d9c3fcq2db0dedcf88549d2@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary=0015174c358cc576640468b04e84
+From: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Subject: [PATCH] OMAP: sDMA: Correct the the omap_request_dma_chain() signature
+Date: Wed, 29 Apr 2009 17:39:16 +0530
+Message-ID: <1241006956-29268-1-git-send-email-santosh.shilimkar@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-fx0-f158.google.com ([209.85.220.158]:35486 "EHLO
-	mail-fx0-f158.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752130AbZD2L7N (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 29 Apr 2009 07:59:13 -0400
-Received: by fxm2 with SMTP id 2so1125702fxm.37
-        for <linux-omap@vger.kernel.org>; Wed, 29 Apr 2009 04:59:12 -0700 (PDT)
+Received: from arroyo.ext.ti.com ([192.94.94.40]:57489 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1758057AbZD2MJZ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 29 Apr 2009 08:09:25 -0400
+Received: from dbdp31.itg.ti.com ([172.24.170.98])
+	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id n3TC9IP4021560
+	for <linux-omap@vger.kernel.org>; Wed, 29 Apr 2009 07:09:24 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
+Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
 
---0015174c358cc576640468b04e84
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Original OMAP DMA chaining design has chain_id as one of the callback
+parameters. The below patch broke the desing.
+http://git.omapzoom.org/?p=repo/omapkernel.git;a=commitdiff;h=538528de0cb256f65716ab2e9613d9e920f97fe2
+Now callback returns logical channel number and not chain_id. 
+Hence the signature of the omap_request_dma_chain() functions needs to be
+corrected to avoid any confusion.
 
-The patch follows as attachment as gmail damages whitespaces and
-git-send-mail is right now out of question.
+More details are on this email thread :
+http://marc.info/?l=linux-omap&m=122961071931459&w=2
 
-Mika
+Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+---
+ arch/arm/plat-omap/dma.c              |    2 +-
+ arch/arm/plat-omap/include/mach/dma.h |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
---0015174c358cc576640468b04e84
-Content-Type: text/x-patch; charset=US-ASCII;
-	name="0001-OMAP-OneNAND-add-missing-__devexit_p-wrappers.patch"
-Content-Disposition: attachment;
-	filename="0001-OMAP-OneNAND-add-missing-__devexit_p-wrappers.patch"
-Content-Transfer-Encoding: base64
-X-Attachment-Id: f_fu3yz9580
+diff --git a/arch/arm/plat-omap/dma.c b/arch/arm/plat-omap/dma.c
+index 6093018..fcc6f69 100644
+--- a/arch/arm/plat-omap/dma.c
++++ b/arch/arm/plat-omap/dma.c
+@@ -1199,7 +1199,7 @@ static void create_dma_lch_chain(int lch_head, int lch_queue)
+  * 	     Failure: -EINVAL/-ENOMEM
+  */
+ int omap_request_dma_chain(int dev_id, const char *dev_name,
+-			   void (*callback) (int chain_id, u16 ch_status,
++			   void (*callback) (int lch, u16 ch_status,
+ 					     void *data),
+ 			   int *chain_id, int no_of_chans, int chain_mode,
+ 			   struct omap_dma_channel_params params)
+diff --git a/arch/arm/plat-omap/include/mach/dma.h b/arch/arm/plat-omap/include/mach/dma.h
+index 224b077..2d5af41 100644
+--- a/arch/arm/plat-omap/include/mach/dma.h
++++ b/arch/arm/plat-omap/include/mach/dma.h
+@@ -546,7 +546,7 @@ extern int omap_get_dma_index(int lch, int *ei, int *fi);
+ /* Chaining APIs */
+ #ifndef CONFIG_ARCH_OMAP1
+ extern int omap_request_dma_chain(int dev_id, const char *dev_name,
+-				  void (*callback) (int chain_id, u16 ch_status,
++				  void (*callback) (int lch, u16 ch_status,
+ 						    void *data),
+ 				  int *chain_id, int no_of_chans,
+ 				  int chain_mode,
+-- 
+1.5.4.7
 
-RnJvbSBiNzJiNTM3ZmYyMjlhOGQ2MjU0MDU2OWJjNTQzYzQxOTcwMmVjYjA1IE1vbiBTZXAgMTcg
-MDA6MDA6MDAgMjAwMQpGcm9tOiBNaWthIEtvcmhvbmVuIDxtaWthLmoua29yaG9uZW5AZ21haWwu
-Y29tPgpEYXRlOiBXZWQsIDI5IEFwciAyMDA5IDE0OjEwOjM0ICswMzAwClN1YmplY3Q6IFtQQVRD
-SF0gT01BUCBPbmVOQU5EOiBhZGQgbWlzc2luZyBfX2RldmV4aXRfcCB3cmFwcGVycwoKRml4ZXMg
-YnVpbGQgaW4gY29uZmlndXJhdGlvbnMgd2hlcmUgZGV2ZXhpdCBmdW5jdGlvbnMgZ2V0IGRpc2Nh
-cmRlZAoKU2lnbmVkLW9mZi1ieTogTWlrYSBLb3Job25lbiA8bWlrYS5qLmtvcmhvbmVuQGdtYWls
-LmNvbT4KLS0tCiBkcml2ZXJzL210ZC9vbmVuYW5kL29tYXAyLmMgfCAgICA0ICsrLS0KIDEgZmls
-ZXMgY2hhbmdlZCwgMiBpbnNlcnRpb25zKCspLCAyIGRlbGV0aW9ucygtKQoKZGlmZiAtLWdpdCBh
-L2RyaXZlcnMvbXRkL29uZW5hbmQvb21hcDIuYyBiL2RyaXZlcnMvbXRkL29uZW5hbmQvb21hcDIu
-YwppbmRleCBmMmU5ZGUxLi40ODgyOTM1IDEwMDY0NAotLS0gYS9kcml2ZXJzL210ZC9vbmVuYW5k
-L29tYXAyLmMKKysrIGIvZHJpdmVycy9tdGQvb25lbmFuZC9vbWFwMi5jCkBAIC03NzgsOCArNzc4
-LDggQEAgc3RhdGljIGludCBfX2RldmV4aXQgb21hcDJfb25lbmFuZF9yZW1vdmUoc3RydWN0IHBs
-YXRmb3JtX2RldmljZSAqcGRldikKIAogc3RhdGljIHN0cnVjdCBwbGF0Zm9ybV9kcml2ZXIgb21h
-cDJfb25lbmFuZF9kcml2ZXIgPSB7CiAJLnByb2JlCQk9IG9tYXAyX29uZW5hbmRfcHJvYmUsCi0J
-LnJlbW92ZQkJPSBvbWFwMl9vbmVuYW5kX3JlbW92ZSwKLQkuc2h1dGRvd24JPSBvbWFwMl9vbmVu
-YW5kX3NodXRkb3duLAorCS5yZW1vdmUJCT0gX19kZXZleGl0X3Aob21hcDJfb25lbmFuZF9yZW1v
-dmUpLAorCS5zaHV0ZG93bgk9IF9fZGV2ZXhpdF9wKG9tYXAyX29uZW5hbmRfc2h1dGRvd24pLAog
-CS5kcml2ZXIJCT0gewogCQkubmFtZQk9IERSSVZFUl9OQU1FLAogCQkub3duZXIgID0gVEhJU19N
-T0RVTEUsCi0tIAoxLjUuNi41Cgo=
---0015174c358cc576640468b04e84--
