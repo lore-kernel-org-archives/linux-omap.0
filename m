@@ -1,55 +1,37 @@
 From: Roger Quadros <ext-roger.quadros@nokia.com>
-Subject: Re: [PATCH] OMAP3: SR: Fix SR driver to check for omap-pm return
- values
-Date: Wed, 29 Apr 2009 10:49:51 +0300
-Message-ID: <49F8069F.9020205@nokia.com>
-References: <1240988319-30282-1-git-send-email-rnayak@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Subject: [PATCH] RX51: Remove multiple definition of MACH_NOKIA_RX51 in Kconfig
+Date: Wed, 29 Apr 2009 12:38:25 +0300
+Message-ID: <1240997905-5199-1-git-send-email-ext-roger.quadros@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:62709 "EHLO
+Received: from smtp.nokia.com ([192.100.105.134]:27732 "EHLO
 	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757523AbZD2Hui (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 29 Apr 2009 03:50:38 -0400
-In-Reply-To: <1240988319-30282-1-git-send-email-rnayak@ti.com>
+	with ESMTP id S1752219AbZD2JjL (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 29 Apr 2009 05:39:11 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: ext Rajendra Nayak <rnayak@ti.com>
-Cc: linux-omap@vger.kernel.org
+To: tony@atomide.com
+Cc: linux-omap@vger.kernel.org, Roger Quadros <ext-roger.quadros@nokia.com>
 
-ext Rajendra Nayak wrote:
-> This patch checks for the return values of omap_pm_vddx_get_opp()
-> in SR driver and acts accordingly. With no SRF layer enabled the OMAP-PM layer
-> api is unable to return the current OPP.
-> 
-> Signed-off-by: Rajendra Nayak <rnayak@ti.com>
-> ---
->  arch/arm/mach-omap2/smartreflex.c |   42 +++++++++++++++++++++++++++++++++---
->  1 files changed, 38 insertions(+), 4 deletions(-)
-> 
+This patch prevents "Nokia RX-51 board" from being shown twice in
+'System Type' within Menuconfig.
 
-> +		if (!omap_pm_vdd1_get_opp())
-> +			/* Assume Nominal OPP as current OPP unknown */
-> +			vsel = mpu_opps[VDD1_OPP3].vsel;
-> +		else
-> +			vsel = mpu_opps[omap_pm_vdd1_get_opp()].vsel;
-> +
+Signed-off-by: Roger Quadros <ext-roger.quadros@nokia.com>
+---
+ arch/arm/mach-omap2/Kconfig |    4 ----
+ 1 files changed, 0 insertions(+), 4 deletions(-)
 
-Hi Rajendra,
+diff --git a/arch/arm/mach-omap2/Kconfig b/arch/arm/mach-omap2/Kconfig
+index 3a2214c..c7b05ac 100644
+--- a/arch/arm/mach-omap2/Kconfig
++++ b/arch/arm/mach-omap2/Kconfig
+@@ -140,7 +140,3 @@ config MACH_OMAP3_PANDORA
+ config MACH_OMAP_3430SDP
+ 	bool "OMAP 3430 SDP board"
+ 	depends on ARCH_OMAP3 && ARCH_OMAP34XX
+-
+-config MACH_NOKIA_RX51
+-	bool "Nokia RX-51 board"
+-	depends on ARCH_OMAP3 && ARCH_OMAP34XX
+-- 
+1.6.0.4
 
-   By this approach, what will be the implications if the bootloader had set the 
-OPP to something different than your assumption?
-   I think the best approach would be to modify the PM layer to at least return 
-correct OPP and Frequency values. What do you think?
-   We should not expect every driver using X_get_opp to assume the OPP if it 
-returns error.
-
-Please see this thread to see the alternative solution.
-http://www.mail-archive.com/linux-omap@vger.kernel.org/msg12021.html
-
-I know it uses resource framework even if we set PM_NONE or PM_NOOP, but only 
-for getting the correct OPP/frequency values.
-
-regards,
--roger
