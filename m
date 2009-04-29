@@ -1,36 +1,49 @@
-From: David Brownell <david-b@pacbell.net>
-Subject: Re: [PATCH] OMAP OneNAND: add missing __devexit_p wrappers
-Date: Wed, 29 Apr 2009 10:55:51 -0700
-Message-ID: <200904291055.51333.david-b@pacbell.net>
-References: <7948530904290459q36d9c3fcq2db0dedcf88549d2@mail.gmail.com>
-	<49F852EB.1080701@nokia.com>
+From: Jarkko Nikula <jhnikula@gmail.com>
+Subject: Re: [PATCH] OMAP: sDMA: Correct the the omap_request_dma_chain()
+ signature
+Date: Wed, 29 Apr 2009 22:08:04 +0300
+Message-ID: <20090429220804.2d130ceb.jhnikula@gmail.com>
+References: <1241006956-29268-1-git-send-email-santosh.shilimkar@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org>
-In-Reply-To: <49F852EB.1080701@nokia.com>
-Content-Disposition: inline
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-mtd>,
-	<mailto:linux-mtd-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-mtd>
-List-Post: <mailto:linux-mtd@lists.infradead.org>
-List-Help: <mailto:linux-mtd-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-mtd>,
-	<mailto:linux-mtd-request@lists.infradead.org?subject=subscribe>
-Sender: linux-mtd-bounces@lists.infradead.org
-Errors-To: linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org
-To: Adrian Hunter <adrian.hunter@nokia.com>
-Cc: Mika Korhonen <mika.j.korhonen@gmail.com>, linux-mtd Mailing List <linux-mtd@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, David Woodhouse <dwmw2@infradead.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-ew0-f176.google.com ([209.85.219.176]:39384 "EHLO
+	mail-ew0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752077AbZD2THD (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 29 Apr 2009 15:07:03 -0400
+Received: by ewy24 with SMTP id 24so1453109ewy.37
+        for <linux-omap@vger.kernel.org>; Wed, 29 Apr 2009 12:07:02 -0700 (PDT)
+In-Reply-To: <1241006956-29268-1-git-send-email-santosh.shilimkar@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: linux-omap@vger.kernel.org
 
-On Wednesday 29 April 2009, Adrian Hunter wrote:
-> +       .shutdown       = __devexit_p(omap2_onenand_shutdown),
+On Wed, 29 Apr 2009 17:39:16 +0530
+Santosh Shilimkar <santosh.shilimkar@ti.com> wrote:
 
-That looks wrong.  Shutdown functions shouldn't get discarded
-like exit functions.  I'd think the fix for that would be taking
-away any __devexit annotation on the shutdown function.
+> Original OMAP DMA chaining design has chain_id as one of the callback
+> parameters. The below patch broke the desing.
+> http://git.omapzoom.org/?p=repo/omapkernel.git;a=commitdiff;h=538528de0cb256f65716ab2e9613d9e920f97fe2
+> Now callback returns logical channel number and not chain_id. 
+> Hence the signature of the omap_request_dma_chain() functions needs
+> to be corrected to avoid any confusion.
+> 
+> More details are on this email thread :
+> http://marc.info/?l=linux-omap&m=122961071931459&w=2
+> 
+Thanks! And this thread where I promised to send a patch but never done
+it...
 
+http://marc.info/?l=linux-omap&m=122770291205164&w=2
 
-______________________________________________________
-Linux MTD discussion mailing list
-http://lists.infradead.org/mailman/listinfo/linux-mtd/
+Two comments:
+"Now callback returns logical channel number and not chain_id. "
+You mean callback gets lch instead of chain_id as an argument?
+
+Change also kernel-doc function comment for omap_request_dma_chain.
+I.e. those comment lines few lines before the function itself.
+
+-- 
+Jarkko
