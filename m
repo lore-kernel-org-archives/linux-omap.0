@@ -1,50 +1,45 @@
-From: Steve Sakoman <sakoman@gmail.com>
-Subject: Overo broken with current top of tree
-Date: Wed, 29 Apr 2009 09:03:11 -0700
-Message-ID: <5e088bd90904290903q1e13afb6g2df13364a7ec0ddf@mail.gmail.com>
+From: Rebecca Schultz Zavin <rebecca@android.com>
+Subject: Fwd: dss2 and dsi
+Date: Wed, 29 Apr 2009 10:26:59 -0700
+Message-ID: <aed62de90904291026t6c18908ax86abfb8343f68a0e@mail.gmail.com>
+References: <aed62de90904291024s3b90dae5v742c72c4b8bdbe3@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from qw-out-2122.google.com ([74.125.92.24]:2711 "EHLO
-	qw-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751450AbZD2QDL (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 29 Apr 2009 12:03:11 -0400
-Received: by qw-out-2122.google.com with SMTP id 5so1081155qwd.37
-        for <linux-omap@vger.kernel.org>; Wed, 29 Apr 2009 09:03:11 -0700 (PDT)
+Received: from smtp-out.google.com ([216.239.33.17]:15409 "EHLO
+	smtp-out.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750799AbZD2R2N convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 29 Apr 2009 13:28:13 -0400
+Received: from wpaz37.hot.corp.google.com (wpaz37.hot.corp.google.com [172.24.198.101])
+	by smtp-out.google.com with ESMTP id n3THR12X012408
+	for <linux-omap@vger.kernel.org>; Wed, 29 Apr 2009 18:27:07 +0100
+Received: from qw-out-2122.google.com (qwe3.prod.google.com [10.241.194.3])
+	by wpaz37.hot.corp.google.com with ESMTP id n3THQxSg026539
+	for <linux-omap@vger.kernel.org>; Wed, 29 Apr 2009 10:27:00 -0700
+Received: by qw-out-2122.google.com with SMTP id 3so1343280qwe.31
+        for <linux-omap@vger.kernel.org>; Wed, 29 Apr 2009 10:26:59 -0700 (PDT)
+In-Reply-To: <aed62de90904291024s3b90dae5v742c72c4b8bdbe3@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-I tried an Overo build from the current top of tree and ran into a
-number of twl4030 platform data errors:
+I have a question on the intended use of pan_display v. the
+update_window ioctl in dss2. =A0I'm using a dsi panel and it seems like
+the only way I can get new data out to the display is by calling
+display->update. =A0The only place that seems to be called is from a
+couple of the ioctls, mainly update_window. =A0Is the intention that yo=
+u
+use update_window to compose the screen? =A0Android uses pan_display to
+flip between a front and back copy of the frame buffer, and if it's
+available on the hardware, to send a partial update. =A0On the dss2
+framework those calls never cause anything to be sent to the dsi
+panel. =A0Should we be calling the update_window ioctl?
 
-twl4030: PIH (irq 7) chaining IRQs 368..375
-twl4030: power (irq 373) chaining IRQs 376..383
-twl4030_gpio: use which platform_data?
-twl4030: gpio (irq 368) chaining IRQs 384..401
-mmci-omap-hs.0: use which platform_data?
-mmci-omap-hs.1: use which platform_data?
-twl4030_usb: use which platform_data?
-twl4030_reg.6: use which platform_data?
-regulator: VMMC1: 1850 <--> 3150 mV normal standby
-twl4030_reg.17: use which platform_data?
-set_machine_constraints: invalid 'VUSB1V5' voltage constraints
-twl4030_reg twl4030_reg.17: can't register VUSB1V5, -22
-twl4030_reg: probe of twl4030_reg.17 failed with error -22
-twl4030_reg.18: use which platform_data?
-set_machine_constraints: invalid 'VUSB1V8' voltage constraints
-twl4030_reg twl4030_reg.18: can't register VUSB1V8, -22
-twl4030_reg: probe of twl4030_reg.18 failed with error -22
-twl4030_reg.19: use which platform_data?
-set_machine_constraints: invalid 'VUSB3V1' voltage constraints
-twl4030_reg twl4030_reg.19: can't register VUSB3V1, -22
-twl4030_reg: probe of twl4030_reg.19 failed with error -22
-i2c_omap i2c_omap.3: bus 3 rev3.12 at 400 kHz
-SCSI subsystem initialized
-twl4030_usb twl4030_usb: ldo init failed
 
-Before I go digging, have there been any recent changes in 4030 init
-that require me to update the Overo board file?
-
-Steve
+Rebecca
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
