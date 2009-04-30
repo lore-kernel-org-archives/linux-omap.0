@@ -1,44 +1,69 @@
-From: Grazvydas Ignotas <notasas@gmail.com>
-Subject: Re: dss2 and dsi
-Date: Thu, 30 Apr 2009 12:54:35 +0300
-Message-ID: <6ed0b2680904300254u271520f6uf623e6bc261f1305@mail.gmail.com>
-References: <aed62de90904291024s3b90dae5v742c72c4b8bdbe3@mail.gmail.com>
-	 <aed62de90904291026t6c18908ax86abfb8343f68a0e@mail.gmail.com>
+From: Mark Brown <broonie@sirena.org.uk>
+Subject: Re: Overo broken with current top of tree
+Date: Thu, 30 Apr 2009 11:16:19 +0100
+Message-ID: <20090430101619.GE10190@sirena.org.uk>
+References: <5e088bd90904290903q1e13afb6g2df13364a7ec0ddf@mail.gmail.com> <6ed0b2680904300231y2afa25a7ge192eb3333d7353b@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-fx0-f158.google.com ([209.85.220.158]:54915 "EHLO
-	mail-fx0-f158.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1762415AbZD3Jyg convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 30 Apr 2009 05:54:36 -0400
-Received: by fxm2 with SMTP id 2so1703230fxm.37
-        for <linux-omap@vger.kernel.org>; Thu, 30 Apr 2009 02:54:35 -0700 (PDT)
-In-Reply-To: <aed62de90904291026t6c18908ax86abfb8343f68a0e@mail.gmail.com>
+Received: from cassiel.sirena.org.uk ([80.68.93.111]:55709 "EHLO
+	cassiel.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751797AbZD3KQV (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 30 Apr 2009 06:16:21 -0400
+Content-Disposition: inline
+In-Reply-To: <6ed0b2680904300231y2afa25a7ge192eb3333d7353b@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Rebecca Schultz Zavin <rebecca@android.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Tomi Valkeinen <tomi.valkeinen@nokia.com>
+To: Grazvydas Ignotas <notasas@gmail.com>
+Cc: Steve Sakoman <sakoman@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, David Brownell <david-b@pacbell.net>
 
-On Wed, Apr 29, 2009 at 8:26 PM, Rebecca Schultz Zavin
-<rebecca@android.com> wrote:
-> I have a question on the intended use of pan_display v. the
-> update_window ioctl in dss2. =A0I'm using a dsi panel and it seems li=
-ke
-> the only way I can get new data out to the display is by calling
-> display->update. =A0The only place that seems to be called is from a
-> couple of the ioctls, mainly update_window. =A0Is the intention that =
-you
-> use update_window to compose the screen? =A0Android uses pan_display =
-to
-> flip between a front and back copy of the frame buffer, and if it's
-> available on the hardware, to send a partial update. =A0On the dss2
-> framework those calls never cause anything to be sent to the dsi
-> panel. =A0Should we be calling the update_window ioctl?
+On Thu, Apr 30, 2009 at 12:31:47PM +0300, Grazvydas Ignotas wrote:
+> On Wed, Apr 29, 2009 at 7:03 PM, Steve Sakoman <sakoman@gmail.com> wrote:
 
-I think Tomi asked to CC him (added) when mailing about DSS2 issues.
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> > set_machine_constraints: invalid 'VUSB1V5' voltage constraints
+
+> I get the same on pandora, although it continues booting fine after
+> that. Maybe regulator folks will comment about regulator errors.
+
+I suspect this may be due to the buggy defaults that are provided when
+no voltage constraints are given for a fixed voltage regulator.  There's
+a patch on its way to mainline fixing this:
+
+commit 14d32bb077f7cc6f78bd012e5b1489899dddf749
+Author: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Date:   Tue Apr 28 11:09:38 2009 +0100
+
+    regulator: Fix default constraints for fixed voltage regulators
+    
+    Default voltage constraints were being provided for fixed voltage
+    regulator where board constraints were not provided but these constraints
+    used INT_MIN as the default minimum voltage which is not a valid value
+    since it is less than zero. Use 1uV instead.
+    
+    Also set the default values we set in the constraints themselves since
+    otherwise the max_uV constraint we determine will not be stored in the
+    actual constraint strucutre and will therefore not be used.
+    
+    Signed-off-by: Mark Brown <broonie@opensource.wolfsonmicro.com>
+    Signed-off-by: Liam Girdwood <lrg@slimlogic.co.uk>
+
+diff --git a/drivers/regulator/core.c b/drivers/regulator/core.c
+index 2f14c16..98c3a74 100644
+--- a/drivers/regulator/core.c
++++ b/drivers/regulator/core.c
+@@ -703,10 +703,13 @@ static int set_machine_constraints(struct regulator_dev *rdev,
+ 		int	cmin = constraints->min_uV;
+ 		int	cmax = constraints->max_uV;
+ 
+-		/* it's safe to autoconfigure fixed-voltage supplies */
++		/* it's safe to autoconfigure fixed-voltage supplies
++		   and the constraints are used by list_voltage. */
+ 		if (count == 1 && !cmin) {
+-			cmin = INT_MIN;
++			cmin = 1;
+ 			cmax = INT_MAX;
++			constraints->min_uV = cmin;
++			constraints->max_uV = cmax;
+ 		}
+ 
+ 		/* voltage constraints are optional */
