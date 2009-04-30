@@ -1,84 +1,93 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 1/4] onenand init: Rename board-n800-flash.c to
-	gpmc-onenand.c
-Date: Thu, 30 Apr 2009 07:03:37 -0700
-Message-ID: <20090430140336.GC12986@atomide.com>
-References: <40106.192.168.10.89.1241073191.squirrel@dbdmail.itg.ti.com>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: [PATCH] OMAP3: PM: Add the wakeup source driver, v3
+Date: Thu, 30 Apr 2009 07:21:09 -0700
+Message-ID: <87my9yte7e.fsf@deeprootsystems.com>
+References: <4d34a0a70904030343h4f1562b5y3dbc9467aac9967@mail.gmail.com>
+	<87tz4i981a.fsf@deeprootsystems.com>
+	<4d34a0a70904300017p1ff38048oae675a4e93e68124@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:63757 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753917AbZD3ODl (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 30 Apr 2009 10:03:41 -0400
-Content-Disposition: inline
-In-Reply-To: <40106.192.168.10.89.1241073191.squirrel@dbdmail.itg.ti.com>
+Received: from wf-out-1314.google.com ([209.85.200.172]:31749 "EHLO
+	wf-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754368AbZD3OVM (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 30 Apr 2009 10:21:12 -0400
+Received: by wf-out-1314.google.com with SMTP id 26so1384834wfd.4
+        for <linux-omap@vger.kernel.org>; Thu, 30 Apr 2009 07:21:12 -0700 (PDT)
+In-Reply-To: <4d34a0a70904300017p1ff38048oae675a4e93e68124@mail.gmail.com> (Kim Kyuwon's message of "Thu\, 30 Apr 2009 16\:17\:38 +0900")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: vimal singh <vimalsingh@ti.com>
-Cc: dedekind@infradead.org, linux-omap@vger.kernel.org, adrian.hunter@nokia.com, Tony Lindgren <tony@atommide.com>
+To: Kim Kyuwon <chammoru@gmail.com>
+Cc: OMAP <linux-omap@vger.kernel.org>, =?utf-8?B?67CV6rK966+8?= <kyungmin.park@samsung.com>, Paul Walmsley <paul@pwsan.com>
 
-* vimal singh <vimalsingh@ti.com> [090429 23:33]:
-> 'gpmc-onenand.c' is still confusing name. This is not going to used in
-> all boards anyway.
+Kyuwon,
 
-Why do you think this cannot be used for all boards?
+Kim Kyuwon <chammoru@gmail.com> writes:
 
-The GPMC timings are totally based on the onenand chip features.
+> Hi Kevin,
+> Thank you for showing steady interest in this driver.
+>
+> On Tue, Apr 21, 2009 at 9:15 AM, Kevin Hilman
+> <khilman@deeprootsystems.com> wrote:
+>>
+>> Hi Kyuwon,
+>>
+>> While I still like the concept of this driver, I'm still not quite
+>> happy about how it is implemented for various reasons.  Most of which
+>> have to do with the fact that this driver does many things that really
+>> should be the job of other layers.  In particular, the list of
+>> omap3_wake_events is a bit troubling.  It really should be handled by
+>> the omapdev layer.  You'll see that you are duplicating the data that
+>> is handled there.  Rather, we should just extend the omapdev data to
+>> handle the wakeup events for that device.
+>
+> If you allow me to insert a new field whose name is "mask" in the
+> omapdev struct, I think I can extend the omapdev to handle the wakeup
+> events.
 
-Regards,
+Extending omapdev would be fine.
 
-Tony
+>> Also, I still think the WKST register reading should be done in the
+>> PRCM interrupt handler.  In your previous attempt, you were seeing a
+>> bunch of non-device wakeup related interrupts.   Can you try again
+>> with the attached patch (thanks to Paul Walmseley) which should help
+>> us debug why you were seeing spurious PRCM interrupts.
+>
+> First of all, sorry for giving you the wrong information in the
+> previous mail. I found that we actually have configured GPTIMER12 as
+> the system timer.  And I tried with the attached patch, but I can't
+> see any debug message.  However even now, PRCM interrupt handler is
+> invoked quite often due to the system timer.
 
- 
-> On Thu, Apr 30, 2009 at 3:20 AM, Tony Lindgren <tony@atomide.com> wrote:
-> > Rename board-n800-flash.c to gpmc-onenand.c.
-> >
-> > Signed-off-by: Tony Lindgren <tony@atommide.com>
-> > ---
-> >  arch/arm/mach-omap2/Makefile           |    4 ++--
-> >  arch/arm/mach-omap2/gpmc-onenand.c     |    0
-> >  2 files changed, 2 insertions(+), 2 deletions(-)
-> >  rename arch/arm/mach-omap2/{board-n800-flash.c => gpmc-onenand.c} (100%)
-> >
-> > diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
-> > index 76acefa..9127a94 100644
-> > --- a/arch/arm/mach-omap2/Makefile
-> > +++ b/arch/arm/mach-omap2/Makefile
-> > @@ -55,14 +55,14 @@ obj-$(CONFIG_MACH_OMAP_LDP)         += board-ldp.o \
-> >  obj-$(CONFIG_MACH_OMAP_APOLLON)                += board-apollon.o \
-> >                                           board-apollon-mmc.o  \
-> >                                           board-apollon-keys.o
-> > -obj-$(CONFIG_MACH_NOKIA_N800)          += board-n800.o board-n800-flash.o \
-> > +obj-$(CONFIG_MACH_NOKIA_N800)          += board-n800.o gpmc-onenand.o \
-> >                                           board-n800-mmc.o board-n800-bt.o \
-> >                                           board-n800-usb.o \
-> >                                           board-n800-dsp.o \
-> >                                           board-n800-camera.o
-> >  obj-$(CONFIG_MACH_NOKIA_N810)          += board-n810.o
-> >  obj-$(CONFIG_MACH_NOKIA_RX51)          += board-rx51.o \
-> > -                                          board-n800-flash.o \
-> > +                                          gpmc-onenand.o \
-> >                                           board-rx51-flash.o \
-> >                                           board-rx51-sdram.o \
-> >                                           board-rx51-video.o \
-> > diff --git a/arch/arm/mach-omap2/board-n800-flash.c
-> b/arch/arm/mach-omap2/gpmc-onenand.c
-> > similarity index 100%
-> > rename from arch/arm/mach-omap2/board-n800-flash.c
-> > rename to arch/arm/mach-omap2/gpmc-onenand.c
-> >
-> > --
-> > To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> > the body of a message to majordomo@vger.kernel.org
-> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> >
-> 
-> 
-> 
-> -- 
-> ---
-> Regards,
-> \/ | |\/| /-\ |_
-> 
-> 
+That's what I assumed was happening.
+
+> As far as I know, after Peter's [OMAP3: PM: CPUidle: Add new
+> lower-latency C1 state] patch is applied, the system is in 'wfi' state
+> in every idle state. So whenever the system timer wake up the system
+> from idle, I think PRCM interrupt occurs. Do you think still the WKST
+> register should be read in the PRCM interrupt handler? ;)
+
+Yes. The WKST registers are already being read in the handler so they
+can be properly cleared.  All you are adding is the saving of them.
+
+In addition, you should not enter idle between the time the system
+wakes from resume and your resume handler runs so you should be able
+to get the correct WKST values.
+
+>> Also, I know we discussed this before, but I think the GPIO wakeup
+>> source stuff really belongs in a separate patch, and if you think it
+>> is still useful, and cannot be done by just enabling a GPIO IRQ from
+>> the board file, I suggest you propose a patch to the generic GPIO
+>> layer to add this interface.
+>
+> OK, I will remove this GPIO wakeup feature. But I want to know more
+> detailed information about wakeup event . So, instead of using the
+> GPIO wakeup, I'm planning using WAKEUPEVENT bit in CONTROL_PADCONF_x
+> registers.
+
+That sounds OK.  The current mux layer is lacking any knowledge of the
+wake bits in the PADCONF regs, so I'd be interested in any ideas you
+have of adding that support.
+
+Kevin
+
