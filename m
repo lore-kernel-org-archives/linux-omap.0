@@ -1,93 +1,129 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH] OMAP3: PM: Add the wakeup source driver, v3
-Date: Thu, 30 Apr 2009 07:21:09 -0700
-Message-ID: <87my9yte7e.fsf@deeprootsystems.com>
-References: <4d34a0a70904030343h4f1562b5y3dbc9467aac9967@mail.gmail.com>
-	<87tz4i981a.fsf@deeprootsystems.com>
-	<4d34a0a70904300017p1ff38048oae675a4e93e68124@mail.gmail.com>
+From: Steve Sakoman <sakoman@gmail.com>
+Subject: Re: Overo broken with current top of tree
+Date: Thu, 30 Apr 2009 08:07:16 -0700
+Message-ID: <5e088bd90904300807r2ddecfb3vd3f16ae8d2bfb4ce@mail.gmail.com>
+References: <5e088bd90904290903q1e13afb6g2df13364a7ec0ddf@mail.gmail.com>
+	 <6ed0b2680904300231y2afa25a7ge192eb3333d7353b@mail.gmail.com>
+	 <20090430101619.GE10190@sirena.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from wf-out-1314.google.com ([209.85.200.172]:31749 "EHLO
-	wf-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754368AbZD3OVM (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 30 Apr 2009 10:21:12 -0400
-Received: by wf-out-1314.google.com with SMTP id 26so1384834wfd.4
-        for <linux-omap@vger.kernel.org>; Thu, 30 Apr 2009 07:21:12 -0700 (PDT)
-In-Reply-To: <4d34a0a70904300017p1ff38048oae675a4e93e68124@mail.gmail.com> (Kim Kyuwon's message of "Thu\, 30 Apr 2009 16\:17\:38 +0900")
+Received: from qw-out-2122.google.com ([74.125.92.26]:38810 "EHLO
+	qw-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1761219AbZD3PHQ convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 30 Apr 2009 11:07:16 -0400
+Received: by qw-out-2122.google.com with SMTP id 5so1578178qwd.37
+        for <linux-omap@vger.kernel.org>; Thu, 30 Apr 2009 08:07:16 -0700 (PDT)
+In-Reply-To: <20090430101619.GE10190@sirena.org.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kim Kyuwon <chammoru@gmail.com>
-Cc: OMAP <linux-omap@vger.kernel.org>, =?utf-8?B?67CV6rK966+8?= <kyungmin.park@samsung.com>, Paul Walmsley <paul@pwsan.com>
+To: Mark Brown <broonie@sirena.org.uk>
+Cc: Grazvydas Ignotas <notasas@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, David Brownell <david-b@pacbell.net>
 
-Kyuwon,
-
-Kim Kyuwon <chammoru@gmail.com> writes:
-
-> Hi Kevin,
-> Thank you for showing steady interest in this driver.
+On Thu, Apr 30, 2009 at 3:16 AM, Mark Brown <broonie@sirena.org.uk> wro=
+te:
+> On Thu, Apr 30, 2009 at 12:31:47PM +0300, Grazvydas Ignotas wrote:
+>> On Wed, Apr 29, 2009 at 7:03 PM, Steve Sakoman <sakoman@gmail.com> w=
+rote:
 >
-> On Tue, Apr 21, 2009 at 9:15 AM, Kevin Hilman
-> <khilman@deeprootsystems.com> wrote:
->>
->> Hi Kyuwon,
->>
->> While I still like the concept of this driver, I'm still not quite
->> happy about how it is implemented for various reasons.  Most of which
->> have to do with the fact that this driver does many things that really
->> should be the job of other layers.  In particular, the list of
->> omap3_wake_events is a bit troubling.  It really should be handled by
->> the omapdev layer.  You'll see that you are duplicating the data that
->> is handled there.  Rather, we should just extend the omapdev data to
->> handle the wakeup events for that device.
+>> > set_machine_constraints: invalid 'VUSB1V5' voltage constraints
 >
-> If you allow me to insert a new field whose name is "mask" in the
-> omapdev struct, I think I can extend the omapdev to handle the wakeup
-> events.
-
-Extending omapdev would be fine.
-
->> Also, I still think the WKST register reading should be done in the
->> PRCM interrupt handler.  In your previous attempt, you were seeing a
->> bunch of non-device wakeup related interrupts.   Can you try again
->> with the attached patch (thanks to Paul Walmseley) which should help
->> us debug why you were seeing spurious PRCM interrupts.
+>> I get the same on pandora, although it continues booting fine after
+>> that. Maybe regulator folks will comment about regulator errors.
 >
-> First of all, sorry for giving you the wrong information in the
-> previous mail. I found that we actually have configured GPTIMER12 as
-> the system timer.  And I tried with the attached patch, but I can't
-> see any debug message.  However even now, PRCM interrupt handler is
-> invoked quite often due to the system timer.
+> I suspect this may be due to the buggy defaults that are provided whe=
+n
+> no voltage constraints are given for a fixed voltage regulator. =A0Th=
+ere's
+> a patch on its way to mainline fixing this:
 
-That's what I assumed was happening.
+Thanks Mark!  This patch does indeed fix the regulator issues, and the
+system seems to operate normally once again.
 
-> As far as I know, after Peter's [OMAP3: PM: CPUidle: Add new
-> lower-latency C1 state] patch is applied, the system is in 'wfi' state
-> in every idle state. So whenever the system timer wake up the system
-> from idle, I think PRCM interrupt occurs. Do you think still the WKST
-> register should be read in the PRCM interrupt handler? ;)
+The platform data messages still appear, but a quick look at the code
+that generates them shows that we are at the start of a transition in
+how platform data is handled (both old and new style are handled at
+the moment).  Seems we will have a bit of work to do to adapt.
 
-Yes. The WKST registers are already being read in the handler so they
-can be properly cleared.  All you are adding is the saving of them.
+i2c_omap i2c_omap.1: bus 1 rev3.12 at 2600 kHz
+twl4030: PIH (irq 7) chaining IRQs 368..375
+twl4030: power (irq 373) chaining IRQs 376..383
+twl4030_gpio: use which platform_data?
+twl4030: gpio (irq 368) chaining IRQs 384..401
+mmci-omap-hs.0: use which platform_data?
+mmci-omap-hs.1: use which platform_data?
+twl4030_usb: use which platform_data?
+twl4030_reg.6: use which platform_data?
+regulator: VMMC1: 1850 <--> 3150 mV normal standby
+twl4030_reg.17: use which platform_data?
+regulator: VUSB1V5: 1500 mV normal standby
+twl4030_reg.18: use which platform_data?
+regulator: VUSB1V8: 1800 mV normal standby
+twl4030_reg.19: use which platform_data?
+regulator: VUSB3V1: 3100 mV normal standby
 
-In addition, you should not enter idle between the time the system
-wakes from resume and your resume handler runs so you should be able
-to get the correct WKST values.
 
->> Also, I know we discussed this before, but I think the GPIO wakeup
->> source stuff really belongs in a separate patch, and if you think it
->> is still useful, and cannot be done by just enabling a GPIO IRQ from
->> the board file, I suggest you propose a patch to the generic GPIO
->> layer to add this interface.
+Steve
+
+
 >
-> OK, I will remove this GPIO wakeup feature. But I want to know more
-> detailed information about wakeup event . So, instead of using the
-> GPIO wakeup, I'm planning using WAKEUPEVENT bit in CONTROL_PADCONF_x
-> registers.
-
-That sounds OK.  The current mux layer is lacking any knowledge of the
-wake bits in the PADCONF regs, so I'd be interested in any ideas you
-have of adding that support.
-
-Kevin
-
+> commit 14d32bb077f7cc6f78bd012e5b1489899dddf749
+> Author: Mark Brown <broonie@opensource.wolfsonmicro.com>
+> Date: =A0 Tue Apr 28 11:09:38 2009 +0100
+>
+> =A0 =A0regulator: Fix default constraints for fixed voltage regulator=
+s
+>
+> =A0 =A0Default voltage constraints were being provided for fixed volt=
+age
+> =A0 =A0regulator where board constraints were not provided but these =
+constraints
+> =A0 =A0used INT_MIN as the default minimum voltage which is not a val=
+id value
+> =A0 =A0since it is less than zero. Use 1uV instead.
+>
+> =A0 =A0Also set the default values we set in the constraints themselv=
+es since
+> =A0 =A0otherwise the max_uV constraint we determine will not be store=
+d in the
+> =A0 =A0actual constraint strucutre and will therefore not be used.
+>
+> =A0 =A0Signed-off-by: Mark Brown <broonie@opensource.wolfsonmicro.com=
+>
+> =A0 =A0Signed-off-by: Liam Girdwood <lrg@slimlogic.co.uk>
+>
+> diff --git a/drivers/regulator/core.c b/drivers/regulator/core.c
+> index 2f14c16..98c3a74 100644
+> --- a/drivers/regulator/core.c
+> +++ b/drivers/regulator/core.c
+> @@ -703,10 +703,13 @@ static int set_machine_constraints(struct regul=
+ator_dev *rdev,
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0int =A0 =A0 cmin =3D constraints->min_=
+uV;
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0int =A0 =A0 cmax =3D constraints->max_=
+uV;
+>
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 /* it's safe to autoconfigure fixed-vol=
+tage supplies */
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 /* it's safe to autoconfigure fixed-vol=
+tage supplies
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0and the constraints are used by =
+list_voltage. */
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0if (count =3D=3D 1 && !cmin) {
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 cmin =3D INT_MIN;
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 cmin =3D 1;
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0cmax =3D INT_MAX;
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 constraints->min_uV =3D=
+ cmin;
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 constraints->max_uV =3D=
+ cmax;
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0}
+>
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0/* voltage constraints are optional */
+>
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
