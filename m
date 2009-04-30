@@ -1,247 +1,205 @@
-From: "Hemanth V" <hemanthv@ti.com>
-Subject: Re: [PATCHv2] ARM: OMAP: gptimer based event monitor driver for oprofile
-Date: Thu, 30 Apr 2009 11:38:12 +0530
-Message-ID: <006401c9c95a$0e2d76f0$LocalHost@wipultra793>
-References: <200901290521.08407.siarhei.siamashka@nokia.com>
+From: InKi Dae <daeinki@gmail.com>
+Subject: Re: [PATCH 3/3] OMAP2/3 V4L2 Display Driver
+Date: Thu, 30 Apr 2009 15:17:52 +0900
+Message-ID: <90b950fc0904292317m500820efv66755aed31b46853@mail.gmail.com>
+References: <1240388578.12545.14.camel@tubuntu>
+	 <5A47E75E594F054BAF48C5E4FC4B92AB03051F7FCB@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	format=flowed;
-	charset="iso-8859-1";
-	reply-type=original
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:58920 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751254AbZD3GI5 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 30 Apr 2009 02:08:57 -0400
+Received: from qw-out-2122.google.com ([74.125.92.25]:7985 "EHLO
+	qw-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751295AbZD3GRy convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 30 Apr 2009 02:17:54 -0400
+In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB03051F7FCB@dbde02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Siarhei Siamashka <siarhei.siamashka@nokia.com>, linux-arm-kernel@lists.arm.linux.org.uk
-Cc: linux-omap@vger.kernel.org, oprofile-list@lists.sourceforge.net
+To: "Shah, Hardik" <hardik.shah@ti.com>
+Cc: "tomi.valkeinen@nokia.com" <tomi.valkeinen@nokia.com>, "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Jadav, Brijesh R" <brijesh.j@ti.com>, "Hiremath, Vaibhav" <hvaibhav@ti.com>
 
-Hi Siarhei,
+hello Shah, Hardik..
 
-Could you let me know the advantage of the this patch over timer interrupt
-based profiling already supported by oprofile. I tested timer interrupt 
-based
-profiling on omap3 platform and found that it works well.
+your omap_vout.c has the problem that it disables video1 or fb1.
+so I have modified your code.
 
-Thanks
-Hemanth
+I defined and set platform_data for DSS2 in machine code.(or board file=
+)
 
-http://oprofile.sourceforge.net/doc/detailed-parameters.html#timer
-4.3. OProfile in timer interrupt mode
-Note
-This section applies to 2.6 kernels and above only.
+static struct omapfb_platform_data xxx_dss_platform_data =3D {
+    .mem_desc.region[0].format =3D OMAPFB_COLOR_ARGB32,
+    .mem_desc.region[0].format_used=3D1,
 
-In 2.6 kernels on CPUs without OProfile support for the hardware performance
-counters, the driver falls back to using the timer interrupt for profiling.
-Like the RTC mode in 2.4 kernels, this is not able to profile code that has
-interrupts disabled. Note that there are no configuration parameters for
-setting this, unlike the RTC and hardware performance counter setup.
+    .mem_desc.region[1].format =3D OMAPFB_COLOR_RGB24U,
+    .mem_desc.region[1].format_used=3D1,
 
-You can force use of the timer interrupt by using the timer=1 module
-parameter (or oprofile.timer=1 on the boot command line if OProfile is
-built-in).
+    .mem_desc.region[2].format =3D OMAPFB_COLOR_ARGB32,
+    .mem_desc.region[2].format_used=3D1,
+};
 
------ Original Message ----- 
-From: "Siarhei Siamashka" <siarhei.siamashka@nokia.com>
-To: <linux-arm-kernel@lists.arm.linux.org.uk>
-Cc: <linux-omap@vger.kernel.org>; <oprofile-list@lists.sourceforge.net>
-Sent: Thursday, January 29, 2009 8:51 AM
-Subject: [PATCHv2] ARM: OMAP: gptimer based event monitor driver for 
-oprofile
+omapfb_set_platform_data(&xxx_dss_platform_data);
+
+after that, omap_vout has resource count got referring to framebuffer c=
+ount,
+registers overlay as vout's one and would decide to use which overlay.
+
+at that time, your code would face with impact on some overlay(fb or vi=
+deo).
+
+this patch would solve that problem.
+when it sets overlay to vout, vout would get overlay array index to
+avoid overlapping with other overlay.
 
 
+sighed-off-by: InKi Dae. <inki.dae@samsung.com>
+---
+diff --git a/drivers/media/video/omap/omap_vout.c
+b/drivers/media/video/omap/omap_vout.c
+index 9b4a0d7..051298a 100644
+--- a/drivers/media/video/omap/omap_vout.c
++++ b/drivers/media/video/omap/omap_vout.c
+@@ -2246,11 +2246,13 @@ free_buffers:
+ /* Create video out devices */
+ static int __init omap_vout_create_video_devices(struct platform_devic=
+e *pdev)
+ {
+-	int r =3D 0, k;
++	int r =3D 0, k, vout_count;
+ 	struct omap_vout_device *vout;
+ 	struct video_device *vfd =3D NULL;
+ 	struct omap2video_device *vid_dev =3D platform_get_drvdata(pdev);
+
++	vout_count =3D 3 - pdev->num_resources;
++
+ 	for (k =3D 0; k < pdev->num_resources; k++) {
+
+ 		vout =3D kmalloc(sizeof(struct omap_vout_device), GFP_KERNEL);
+@@ -2266,9 +2268,9 @@ static int __init
+omap_vout_create_video_devices(struct platform_device *pdev)
+ 		vout->vid =3D k;
+ 		vid_dev->vouts[k] =3D vout;
+ 		vout->vid_info.vid_dev =3D vid_dev;
+-		vout->vid_info.overlays[0] =3D vid_dev->overlays[k + 1];
++		vout->vid_info.overlays[0] =3D vid_dev->overlays[k + vout_count];
+ 		vout->vid_info.num_overlays =3D 1;
+-		vout->vid_info.id =3D k + 1;
++		vout->vid_info.id =3D k + vout_count;
+ 		vid_dev->num_videos++;
+
+ 		/* Setup the default configuration for the video devices
+@@ -2289,7 +2291,7 @@ static int __init
+omap_vout_create_video_devices(struct platform_device *pdev)
+ 		/* Register the Video device with V4L2
+ 		 */
+ 		vfd =3D vout->vfd;
+-		if (video_register_device(vfd, VFL_TYPE_GRABBER, k + 1) < 0) {
++		if (video_register_device(vfd, VFL_TYPE_GRABBER, k + vout_count) < 0=
+) {
+ 			printk(KERN_ERR VOUT_NAME ": could not register \
+ 					Video for Linux device\n");
+ 			vfd->minor =3D -1;
+
+
+2009/4/22 Shah, Hardik <hardik.shah@ti.com>:
 >
-> Signed-off-by: Siarhei Siamashka <siarhei.siamashka@nokia.com>
-> ---
 >
-> A second revision of gptimer oprofile patch
-> http://marc.info/?l=linux-omap&m=123143937515088&w=2
-> with the fixes suggested by Tony Lindgren
->
-> Timers from the CORE domain seem to work best on OMAP3.
-> Also tested the patch on Nokia 770 (OMAP1710).
->
-> Please let me know if anything else needs to be fixed.
->
-> arch/arm/Kconfig                          |    6 ++
-> arch/arm/oprofile/Makefile                |    1 +
-> arch/arm/oprofile/common.c                |    5 ++
-> arch/arm/oprofile/op_arm_model.h          |    2 +
-> arch/arm/oprofile/op_model_omap_gptimer.c |   93 
-> +++++++++++++++++++++++++++++
-> 5 files changed, 107 insertions(+), 0 deletions(-)
-> create mode 100644 arch/arm/oprofile/op_model_omap_gptimer.c
->
-> diff --git a/arch/arm/Kconfig b/arch/arm/Kconfig
-> index e7fb201..8774136 100644
-> --- a/arch/arm/Kconfig
-> +++ b/arch/arm/Kconfig
-> @@ -160,6 +160,12 @@ config GENERIC_HARDIRQS_NO__DO_IRQ
->
-> if OPROFILE
->
-> +config OPROFILE_OMAP_GPTIMER
-> + def_bool y
-> + depends on ARCH_OMAP
-> + select CONFIG_OMAP_32K_TIMER
-> + select CONFIG_OMAP_DM_TIMER
-> +
-> config OPROFILE_ARMV6
->  def_bool y
->  depends on CPU_V6 && !SMP
-> diff --git a/arch/arm/oprofile/Makefile b/arch/arm/oprofile/Makefile
-> index 88e31f5..fc2bc02 100644
-> --- a/arch/arm/oprofile/Makefile
-> +++ b/arch/arm/oprofile/Makefile
-> @@ -8,6 +8,7 @@ DRIVER_OBJS = $(addprefix ../../../drivers/oprofile/, \
->
-> oprofile-y := $(DRIVER_OBJS) common.o backtrace.o
-> oprofile-$(CONFIG_CPU_XSCALE) += op_model_xscale.o
-> +oprofile-$(CONFIG_OPROFILE_OMAP_GPTIMER) += op_model_omap_gptimer.o
-> oprofile-$(CONFIG_OPROFILE_ARM11_CORE) += op_model_arm11_core.o
-> oprofile-$(CONFIG_OPROFILE_ARMV6) += op_model_v6.o
-> oprofile-$(CONFIG_OPROFILE_MPCORE) += op_model_mpcore.o
-> diff --git a/arch/arm/oprofile/common.c b/arch/arm/oprofile/common.c
-> index 3fcd752..add3cb4 100644
-> --- a/arch/arm/oprofile/common.c
-> +++ b/arch/arm/oprofile/common.c
-> @@ -133,6 +133,11 @@ int __init oprofile_arch_init(struct 
-> oprofile_operations *ops)
->
->  ops->backtrace = arm_backtrace;
->
-> +/* comes first, so that it can be overrided by a better implementation */
-> +#ifdef CONFIG_OPROFILE_OMAP_GPTIMER
-> + spec = &op_omap_gptimer_spec;
-> +#endif
-> +
-> #ifdef CONFIG_CPU_XSCALE
->  spec = &op_xscale_spec;
-> #endif
-> diff --git a/arch/arm/oprofile/op_arm_model.h 
-> b/arch/arm/oprofile/op_arm_model.h
-> index 8c4e4f6..db936da 100644
-> --- a/arch/arm/oprofile/op_arm_model.h
-> +++ b/arch/arm/oprofile/op_arm_model.h
-> @@ -24,6 +24,8 @@ struct op_arm_model_spec {
-> extern struct op_arm_model_spec op_xscale_spec;
-> #endif
->
-> +extern struct op_arm_model_spec op_omap_gptimer_spec;
-> +
-> extern struct op_arm_model_spec op_armv6_spec;
-> extern struct op_arm_model_spec op_mpcore_spec;
-> extern struct op_arm_model_spec op_armv7_spec;
-> diff --git a/arch/arm/oprofile/op_model_omap_gptimer.c 
-> b/arch/arm/oprofile/op_model_omap_gptimer.c
-> new file mode 100644
-> index 0000000..98f7d2b
-> --- /dev/null
-> +++ b/arch/arm/oprofile/op_model_omap_gptimer.c
-> @@ -0,0 +1,93 @@
-> +/**
-> + * OMAP gptimer based event monitor driver for oprofile
-> + *
-> + * Copyright (C) 2009 Nokia Corporation
-> + * Author: Siarhei Siamashka <siarhei.siamashka@nokia.com>
-> + *
-> + * This program is free software; you can redistribute it and/or modify
-> + * it under the terms of the GNU General Public License version 2 as
-> + * published by the Free Software Foundation.
-> + *
-> + */
-> +
-> +#include <linux/types.h>
-> +#include <linux/oprofile.h>
-> +#include <linux/interrupt.h>
-> +#include <linux/irq.h>
-> +
-> +#include <mach/dmtimer.h>
-> +
-> +#include "op_counter.h"
-> +#include "op_arm_model.h"
-> +
-> +static struct omap_dm_timer *gptimer;
-> +
-> +static int gptimer_init(void)
-> +{
-> + return 0;
-> +}
-> +
-> +static int gptimer_setup(void)
-> +{
-> + return 0;
-> +}
-> +
-> +static irqreturn_t gptimer_interrupt(int irq, void *arg)
-> +{
-> + omap_dm_timer_write_status(gptimer, OMAP_TIMER_INT_OVERFLOW);
-> + oprofile_add_sample(get_irq_regs(), 0);
-> + return IRQ_HANDLED;
-> +}
-> +
-> +static int gptimer_start(void)
-> +{
-> + int err;
-> + u32 count = counter_config[0].count;
-> +
-> + BUG_ON(gptimer != NULL);
-> + /* First try to request timers from CORE power domain for OMAP3 */
-> + if (cpu_is_omap34xx()) {
-> + gptimer = omap_dm_timer_request_specific(10);
-> + if (gptimer == NULL)
-> + gptimer = omap_dm_timer_request_specific(11);
-> + }
-> + /* Just any timer would be fine */
-> + if (gptimer == NULL)
-> + gptimer = omap_dm_timer_request();
-> + if (gptimer == NULL)
-> + return -ENODEV;
-> +
-> + omap_dm_timer_set_source(gptimer, OMAP_TIMER_SRC_32_KHZ);
-> + err = request_irq(omap_dm_timer_get_irq(gptimer), gptimer_interrupt,
-> + IRQF_DISABLED, "oprofile gptimer", NULL);
-> + if (err) {
-> + omap_dm_timer_free(gptimer);
-> + gptimer = NULL;
-> + printk(KERN_ERR "oprofile: unable to request gptimer IRQ\n");
-> + return err;
-> + }
-> +
-> + if (count < 1)
-> + count = 1;
-> +
-> + omap_dm_timer_set_load_start(gptimer, 1, 0xffffffff - count);
-> + omap_dm_timer_set_int_enable(gptimer, OMAP_TIMER_INT_OVERFLOW);
-> + return 0;
-> +}
-> +
-> +static void gptimer_stop(void)
-> +{
-> + omap_dm_timer_set_int_enable(gptimer, 0);
-> + free_irq(omap_dm_timer_get_irq(gptimer), NULL);
-> + omap_dm_timer_free(gptimer);
-> + gptimer = NULL;
-> +}
-> +
-> +struct op_arm_model_spec op_omap_gptimer_spec = {
-> + .init = gptimer_init,
-> + .num_counters = 1,
-> + .setup_ctrs = gptimer_setup,
-> + .start = gptimer_start,
-> + .stop = gptimer_stop,
-> + .name = "hrtimer",
-> +};
-> -- 
-> 1.5.6.5
+>> -----Original Message-----
+>> From: Tomi Valkeinen [mailto:tomi.valkeinen@nokia.com]
+>> Sent: Wednesday, April 22, 2009 1:53 PM
+>> To: Shah, Hardik
+>> Cc: linux-media@vger.kernel.org; linux-omap@vger.kernel.org; Jadav, =
+Brijesh R;
+>> Hiremath, Vaibhav
+>> Subject: Re: [PATCH 3/3] OMAP2/3 V4L2 Display Driver
+>>
+>> Hi,
+>>
+>> On Wed, 2009-04-22 at 08:25 +0200, ext Hardik Shah wrote:
+>> > This is the version 5th of the Driver.
+>> >
+>> > Following are the features supported.
+>> > 1. Provides V4L2 user interface for the video pipelines of DSS
+>> > 2. Basic streaming working on LCD and TV.
+>> > 3. Support for various pixel formats like YUV, UYVY, RGB32, RGB24,=
+ RGB565
+>> > 4. Supports Alpha blending.
+>> > 5. Supports Color keying both source and destination.
+>> > 6. Supports rotation with RGB565 and RGB32 pixels formats.
+>> > 7. Supports cropping.
+>> > 8. Supports Background color setting.
+>> > 9. Works on latest DSS2 library from Tomi
+>> > http://www.bat.org/~tomba/git/linux-omap-dss.git/
+>> > 10. 1/4x scaling added. =A0Detail testing left
+>> >
+>> > TODOS
+>> > 1. Ioctls needs to be added for color space conversion matrix
+>> > coefficient programming.
+>> > 2. To be tested on DVI resolutions.
+>> >
+>> > Comments fixed from community.
+>> > 1. V4L2 Driver for OMAP3/3 DSS.
+>> > 2. =A0Conversion of the custom ioctls to standard V4L2 ioctls like=
+ alpha
+>> blending,
+>> > color keying, rotation and back ground color setting
+>> > 3. =A0Re-organised the code as per community comments.
+>> > 4. =A0Added proper copyright year.
+>> > 5. =A0Added module name in printk
+>> > 6. =A0Kconfig option copy/paste error
+>> > 7. =A0Module param desc addded.
+>> > 8. =A0Query control implemented using standard query_fill
+>> > 9. =A0Re-arranged if-else constructs.
+>> > 10. Changed to use mutex instead of semaphore.
+>> > 11. Removed dual usage of rotation angles.
+>> > 12. Implemented function to convert the V4L2 angle to DSS angle.
+>> > 13. Y-position was set half by video driver for TV output
+>> > Now its done by DSS so removed that.
+>> > 14. Minor cleanup
+>> > 15. Added support to pass the page offset to application.
+>> > 14. Minor cleanup
+>> > 15. Added support to pass the page offset to application.
+>> > 16. Renamed V4L2_CID_ROTATION to V4L2_CID_ROTATE
+>> > 17. Major comment from Hans fixed.
+>> > 18. Copy right year changed.
+>> > 19. Added module name for each error/warning print message.
+>> >
+>> > Changes from Previous Version.
+>> > 1. Supported YUV rotation.
+>> > 2. Supported Flipping.
+>> > 3. Rebased line with Tomi's latest DSS2 master branch with commit =
+=A0id
+>> > f575a02edf2218a18d6f2ced308b4f3e26b44ce2.
+>> > 4. Kconfig option removed to select between the TV and LCD.
+>> > Now supported dynamically by DSS2 library.
+>> > 5. Kconfig option for the NTSC_M and PAL_BDGHI mode but not
+>> > supported by DSS2. =A0so it will not work now.
+>>
+>> There is basic support for this. See the DSS doc:
+>>
+>> /sys/devices/platform/omapdss/display? directory:
+>> ...
+>> timings =A0 =A0 =A0 =A0 Display timings (pixclock,xres/hfp/hbp/hsw,y=
+res/vfp/vbp/vsw)
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 When writing, two special timings ar=
+e accepted for tv-out:
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 "pal" and "ntsc"
+> [Shah, Hardik] I was not aware of it will remove the compile time opt=
+ion and for now let the sysfs entry change the standard. =A0In future I=
+ will try to do it with the S_STD and G_STD ioctls of the V4L2 framewor=
+k.
+>>
+>> =A0Tomi
+>>
+>>
 >
 > --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> To unsubscribe from this list: send the line "unsubscribe linux-media=
+" in
 > the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> More majordomo info at =A0http://vger.kernel.org/majordomo-info.html
 >
-> 
-
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
