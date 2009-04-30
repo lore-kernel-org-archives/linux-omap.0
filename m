@@ -1,80 +1,108 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] OMAP: HSMMC: Do not enable buffer ready interrupt if
-	using DMA
-Date: Thu, 30 Apr 2009 11:58:45 -0700
-Message-ID: <20090430185844.GG12986@atomide.com>
-References: <5A47E75E594F054BAF48C5E4FC4B92AB02FB2F2A90@dbde02.ent.ti.com> <20090428213833.18afbba0@mjolnir.ossman.eu>
+Subject: [PATCH] onenand init: Convert omap3430sdp to use gpmc-onenand (Re:
+	[PATCH] onenand_init: Allow disabling sync read and write based on
+	flags (Re: [PATCH 1/4] onenand init: Rename board-n800-flash.c to
+	gpmc-onenand.c))
+Date: Thu, 30 Apr 2009 11:59:46 -0700
+Message-ID: <20090430185945.GH12986@atomide.com>
+References: <40106.192.168.10.89.1241073191.squirrel@dbdmail.itg.ti.com> <20090430140336.GC12986@atomide.com> <20090430185307.GF12986@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/mixed; boundary="s9fJI615cBHmzTOP"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:62682 "EHLO
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:64137 "EHLO
 	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1762576AbZD3S6x (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 30 Apr 2009 14:58:53 -0400
+	with ESMTP id S1758491AbZD3S7s (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 30 Apr 2009 14:59:48 -0400
 Content-Disposition: inline
-In-Reply-To: <20090428213833.18afbba0@mjolnir.ossman.eu>
+In-Reply-To: <20090430185307.GF12986@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Pierre Ossman <pierre@ossman.eu>
-Cc: Jarkko Lavinen <jarkko.lavinen@nokia.com>, "Gadiyar, Anand" <gadiyar@ti.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Adrian Hunter <adrian.hunter@nokia.com>
+To: vimal singh <vimalsingh@ti.com>
+Cc: dedekind@infradead.org, linux-omap@vger.kernel.org, adrian.hunter@nokia.com, Tony Lindgren <tony@atommide.com>
 
-* Pierre Ossman <pierre@ossman.eu> [090428 12:38]:
-> Jarkko? Tony?
 
-Hmm, we haven't heard from Jarkko for a while.. Adrian, care to take
-a look at this patch?
+--s9fJI615cBHmzTOP
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-Tony
+
+
+--s9fJI615cBHmzTOP
+Content-Type: text/x-diff; charset=us-ascii
+Content-Disposition: inline; filename="convert-3430sdp.patch"
+
+>From b5c750c4d3f523df5759c3b7cbda321d056f7045 Mon Sep 17 00:00:00 2001
+From: Tony Lindgren <tony@atomide.com>
+Date: Thu, 30 Apr 2009 11:46:41 -0700
+Subject: [PATCH] onenand init: Convert omap3430sdp to use gpmc-onenand
+
+Convert omap3430sdp to use gpmc-onenand. Note that sync mode
+does not seem to work for some reason, so disable it with flags.
+
+Signed-off-by: Tony Lindgren <tony@atomide.com>
+
+diff --git a/arch/arm/mach-omap2/board-3430sdp-flash.c b/arch/arm/mach-omap2/board-3430sdp-flash.c
+index f0e25a4..ab3fc1a 100644
+--- a/arch/arm/mach-omap2/board-3430sdp-flash.c
++++ b/arch/arm/mach-omap2/board-3430sdp-flash.c
+@@ -103,8 +103,6 @@ static struct platform_device sdp_nor_device = {
+ 	.resource	= &sdp_nor_resource,
+ };
  
-> On Tue, 21 Apr 2009 13:09:22 +0530
-> "Gadiyar, Anand" <gadiyar@ti.com> wrote:
-> 
-> > From: Anand Gadiyar <gadiyar@ti.com>
-> > 
-> > OMAP: HSMMC: Do not enable buffer ready interrupt if using DMA
-> > 
-> > This considerably reduces the number of interrupts during a transfer
-> > and ought to result in some power saving.
-> > 
-> > Signed-off-by: Anand Gadiyar <gadiyar@ti.com>
-> > Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
-> > Acked-by: Kishore Kadiyala <kishore.kadiyala@ti.com>
-> > ---
-> > diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
-> > index e62a22a..2d83807 100644
-> > --- a/drivers/mmc/host/omap_hsmmc.c
-> > +++ b/drivers/mmc/host/omap_hsmmc.c
-> > @@ -70,6 +70,8 @@
-> >  #define DTO_MASK		0x000F0000
-> >  #define DTO_SHIFT		16
-> >  #define INT_EN_MASK		0x307F0033
-> > +#define BWR_ENABLE		(1 << 4)
-> > +#define BRR_ENABLE		(1 << 5)
-> >  #define INIT_STREAM		(1 << 1)
-> >  #define DP_SELECT		(1 << 21)
-> >  #define DDIR			(1 << 4)
-> > @@ -241,7 +243,12 @@ mmc_omap_start_command(struct mmc_omap_host *host, struct mmc_command *cmd,
-> >  	 */
-> >  	OMAP_HSMMC_WRITE(host->base, STAT, STAT_CLEAR);
-> >  	OMAP_HSMMC_WRITE(host->base, ISE, INT_EN_MASK);
-> > -	OMAP_HSMMC_WRITE(host->base, IE, INT_EN_MASK);
-> > +
-> > +	if (host->use_dma)
-> > +		OMAP_HSMMC_WRITE(host->base, IE,
-> > +				 INT_EN_MASK & ~(BRR_ENABLE | BWR_ENABLE));
-> > +	else
-> > +		OMAP_HSMMC_WRITE(host->base, IE, INT_EN_MASK);
-> >  
-> >  	host->response_busy = 0;
-> >  	if (cmd->flags & MMC_RSP_PRESENT) {
-> 
-> 
-> -- 
->      -- Pierre Ossman
-> 
->   WARNING: This correspondence is being monitored by the
->   Swedish government. Make sure your server uses encryption
->   for SMTP traffic and consider using PGP for end-to-end
->   encryption.
+-static int sdp_onenand_setup(void __iomem *, int freq);
+-
+ static struct mtd_partition sdp_onenand_partitions[] = {
+ 	{
+ 		.name		= "X-Loader-OneNAND",
+@@ -138,30 +136,10 @@ static struct mtd_partition sdp_onenand_partitions[] = {
+ static struct omap_onenand_platform_data sdp_onenand_data = {
+ 	.parts		= sdp_onenand_partitions,
+ 	.nr_parts	= ARRAY_SIZE(sdp_onenand_partitions),
+-	.onenand_setup	= sdp_onenand_setup,
+ 	.dma_channel	= -1,	/* disable DMA in OMAP OneNAND driver */
++	.flags		= ONENAND_DIS_SYNC_READ | ONENAND_DIS_SYNC_WRITE,
+ };
+ 
+-static struct platform_device sdp_onenand_device = {
+-	.name		= "omap2-onenand",
+-	.id		= -1,
+-	.dev = {
+-		.platform_data = &sdp_onenand_data,
+-	},
+-};
+-
+-/*
+- * sdp_onenand_setup - The function configures the onenand flash.
+- * @onenand_base: Onenand base address
+- *
+- * @return int:	Currently always returning zero.
+- */
+-static int sdp_onenand_setup(void __iomem *onenand_base, int freq)
+-{
+-	/* Onenand setup does nothing at present */
+-	return 0;
+-}
+-
+ static struct mtd_partition sdp_nand_partitions[] = {
+ 	/* All the partition sizes are listed in terms of NAND block size */
+ 	{
+@@ -262,7 +240,7 @@ void __init sdp3430_flash_init(void)
+ 		} else {
+ 			ret = gpmc_cs_read_reg(cs, GPMC_CS_CONFIG7);
+ 			if ((ret & 0x3F) == (ONENAND_MAP >> 24))
+-			onenandcs = cs;
++				onenandcs = cs;
+ 		}
+ 		cs++;
+ 	}
+@@ -284,7 +262,6 @@ void __init sdp3430_flash_init(void)
+ 
+ 	if (onenandcs < GPMC_CS_NUM) {
+ 		sdp_onenand_data.cs = onenandcs;
+-		if (platform_device_register(&sdp_onenand_device) < 0)
+-			printk(KERN_ERR "Unable to register OneNAND device\n");
++		gpmc_onenand_init(&sdp_onenand_data);
+ 	}
+ }
 
-
+--s9fJI615cBHmzTOP--
