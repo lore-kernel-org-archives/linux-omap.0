@@ -1,45 +1,42 @@
-From: Adrian Hunter <adrian.hunter@nokia.com>
-Subject: Re: [PATCH] onenand_init: Allow disabling sync read and write based
- on	flags (Re: [PATCH 1/4] onenand init: Rename board-n800-flash.c to	gpmc-onenand.c)
-Date: Mon, 04 May 2009 11:27:57 +0300
-Message-ID: <49FEA70D.8070704@nokia.com>
-References: <40106.192.168.10.89.1241073191.squirrel@dbdmail.itg.ti.com> <20090430140336.GC12986@atomide.com> <20090430185307.GF12986@atomide.com>
+From: Thierry Reding <thierry.reding@avionic-design.de>
+Subject: Re: [PATCH] input: Add support for the TSC2003 controller.
+Date: Mon, 4 May 2009 13:37:52 +0200
+Message-ID: <20090504113751.GA22603@avionic-design.de>
+References: <1241006627-22811-1-git-send-email-thierry.reding@avionic-design.de> <5d5443650904290623n3712cd7dja653a139cff2cf6d@mail.gmail.com> <483a38b80904291835p51044741p9bd83d33a40031c@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:18035 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751631AbZEDI1O (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 4 May 2009 04:27:14 -0400
-In-Reply-To: <20090430185307.GF12986@atomide.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-input-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <483a38b80904291835p51044741p9bd83d33a40031c@mail.gmail.com>
+Sender: linux-input-owner@vger.kernel.org
+To: Kwangwoo Lee <kwangwoo.lee@gmail.com>
+Cc: Trilok Soni <soni.trilok@gmail.com>, linux-input@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: vimal singh <vimalsingh@ti.com>, "dedekind@infradead.org" <dedekind@infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atommide.com>
 
-Tony Lindgren wrote:
-> * Tony Lindgren <tony@atomide.com> [090430 07:06]:
->> * vimal singh <vimalsingh@ti.com> [090429 23:33]:
->>> 'gpmc-onenand.c' is still confusing name. This is not going to used in
->>> all boards anyway.
->> Why do you think this cannot be used for all boards?
->>
->> The GPMC timings are totally based on the onenand chip features.
+* Kwangwoo Lee wrote:
+> Hi Thierry and Trilok,
 > 
-> And these two patches make omap3430sdp to work with the gpmc-onenand
-> code. Sync mode does not work, but it seems like it was never enabled
-> for sdp anyways.
+> On Wed, Apr 29, 2009 at 10:23 PM, Trilok Soni <soni.trilok@gmail.com> wrote:
+> > Hi Thierry,
+> >
+> > I have added linux-omap community. How different is this chip from
+> > tsc2007. It looks to me that this chip is not much different from
+> > tsc2007 (this is just quick look at the driver). If they
+> > are similar please consider using i2c_device_id feature in tsc2007 to
+> > accommodate this chip.
 > 
-> Similar patch should work for other boards too.
-> 
-> Tony
-> 
+> I agree with the Trilok's opinion.
+[snip]
 
-This is not quite right.  OneNAND only allows 3 possibilities:
+I only noticed the tsc2007 driver some time ago, when the tsc2003 was already
+finished (it's actually pretty old, I just never got around to submitting
+it). However I never got the tsc2007 to work on my platform because it uses
+sleeping functions inside the timer handler, which results in an oops right
+after the first touchscreen interrupt.
 
-1. Async: call 'omap2_onenand_set_async_mode()'
+I guess I could try and fix the tsc2007 properly instead of having a second,
+pretty similar driver in the tree.
 
-2. Sync Read: call 'omap2_onenand_set_sync_mode()' but force 'sync_write' variable to be always zero
+Cheers,
+Thierry
 
-3. Sync Read and Sync Write: call 'omap2_onenand_set_sync_mode()' as now
