@@ -1,104 +1,46 @@
-From: Felipe Contreras <felipe.contreras@gmail.com>
-Subject: Re: [PATCH 3/6] omap iommu: omap3 iommu device registration
-Date: Tue, 5 May 2009 22:32:34 +0300
-Message-ID: <94a0d4530905051232m1fe23987q8fee8cbcfa8f1854@mail.gmail.com>
-References: <20090505123905.4583.69865.stgit@oreo.research.nokia.com>
-	 <20090505124700.4583.69988.stgit@oreo.research.nokia.com>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: LDP support
+Date: Tue, 5 May 2009 20:52:31 +0100
+Message-ID: <20090505195231.GB8004@n2100.arm.linux.org.uk>
+References: <20090428220712.GF29277@n2100.arm.linux.org.uk> <20090428224237.GT22457@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-fx0-f158.google.com ([209.85.220.158]:39865 "EHLO
-	mail-fx0-f158.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751438AbZEETcg convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 5 May 2009 15:32:36 -0400
-Received: by fxm2 with SMTP id 2so4919215fxm.37
-        for <linux-omap@vger.kernel.org>; Tue, 05 May 2009 12:32:35 -0700 (PDT)
-In-Reply-To: <20090505124700.4583.69988.stgit@oreo.research.nokia.com>
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:40702 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756891AbZEETwn (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 5 May 2009 15:52:43 -0400
+Content-Disposition: inline
+In-Reply-To: <20090428224237.GT22457@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
-Cc: linux-arm-kernel@lists.arm.linux.org.uk, linux-omap@vger.kernel.org, h-kanigeri2@ti.com, omar.ramirez@ti.com, sakari.ailus@maxwell.research.nokia.com, tony@atomide.com
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org, Imre Deak <imre.deak@nokia.com>, Tomi Valkeinen <tomi.valkeinen@nokia.com>
 
-On Tue, May 5, 2009 at 3:47 PM, Hiroshi DOYU <Hiroshi.DOYU@nokia.com> w=
-rote:
-> Signed-off-by: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
-> ---
->
-> =C2=A0arch/arm/mach-omap2/omap3-iommu.c | =C2=A0105 +++++++++++++++++=
-++++++++++++++++++++
-> =C2=A01 files changed, 105 insertions(+), 0 deletions(-)
-> =C2=A0create mode 100644 arch/arm/mach-omap2/omap3-iommu.c
->
-> diff --git a/arch/arm/mach-omap2/omap3-iommu.c b/arch/arm/mach-omap2/=
-omap3-iommu.c
-> new file mode 100644
-> index 0000000..367f36a
-> --- /dev/null
-> +++ b/arch/arm/mach-omap2/omap3-iommu.c
-> @@ -0,0 +1,105 @@
-> +/*
-> + * omap iommu: omap3 device registration
-> + *
-> + * Copyright (C) 2008-2009 Nokia Corporation
-> + *
-> + * Written by Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
-> + *
-> + * This program is free software; you can redistribute it and/or mod=
-ify
-> + * it under the terms of the GNU General Public License version 2 as
-> + * published by the Free Software Foundation.
-> + */
-> +
-> +#include <linux/platform_device.h>
-> +
-> +#include <mach/iommu.h>
-> +
-> +#define OMAP3_MMU1_BASE =C2=A0 =C2=A0 =C2=A0 =C2=A00x480bd400
-> +#define OMAP3_MMU2_BASE =C2=A0 =C2=A0 =C2=A0 =C2=A00x5d000000
-> +#define OMAP3_MMU1_IRQ 24
-> +#define OMAP3_MMU2_IRQ 28
-> +
-> +static struct resource omap3_iommu_res[] =3D {
-> + =C2=A0 =C2=A0 =C2=A0 { /* Camera ISP MMU */
-> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 .start =C2=A0 =C2=A0=
- =C2=A0 =C2=A0 =C2=A0=3D OMAP3_MMU1_BASE,
-> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 .end =C2=A0 =C2=A0=
- =C2=A0 =C2=A0 =C2=A0 =C2=A0=3D OMAP3_MMU1_BASE + MMU_REG_SIZE - 1,
-> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 .flags =C2=A0 =C2=A0=
- =C2=A0 =C2=A0 =C2=A0=3D IORESOURCE_MEM,
-> + =C2=A0 =C2=A0 =C2=A0 },
-> + =C2=A0 =C2=A0 =C2=A0 {
-> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 .start =C2=A0 =C2=A0=
- =C2=A0 =C2=A0 =C2=A0=3D OMAP3_MMU1_IRQ,
-> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 .flags =C2=A0 =C2=A0=
- =C2=A0 =C2=A0 =C2=A0=3D IORESOURCE_IRQ,
-> + =C2=A0 =C2=A0 =C2=A0 },
-> + =C2=A0 =C2=A0 =C2=A0 { /* IVA2.2 MMU */
-> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 .start =C2=A0 =C2=A0=
- =C2=A0 =C2=A0 =C2=A0=3D OMAP3_MMU2_BASE,
-> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 .end =C2=A0 =C2=A0=
- =C2=A0 =C2=A0 =C2=A0 =C2=A0=3D OMAP3_MMU2_BASE + MMU_REG_SIZE - 1,
-> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 .flags =C2=A0 =C2=A0=
- =C2=A0 =C2=A0 =C2=A0=3D IORESOURCE_MEM,
-> + =C2=A0 =C2=A0 =C2=A0 },
-> + =C2=A0 =C2=A0 =C2=A0 {
-> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 .start =C2=A0 =C2=A0=
- =C2=A0 =C2=A0 =C2=A0=3D OMAP3_MMU2_IRQ,
-> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 .flags =C2=A0 =C2=A0=
- =C2=A0 =C2=A0 =C2=A0=3D IORESOURCE_IRQ,
-> + =C2=A0 =C2=A0 =C2=A0 },
-> +};
+On Tue, Apr 28, 2009 at 03:42:37PM -0700, Tony Lindgren wrote:
+> * Russell King - ARM Linux <linux@arm.linux.org.uk> [090428 15:07]:
+> > Tony, et.al.,
+> > 
+> > Any ideas when more LDP support will be pushed into mainline (such as
+> > the framebuffer support)?
+> 
+> I'll be looking at the board-*.c patches for the next merge window
+> hopefully this week or next week.
+> 
+> Looks like LDP keyboard, touchscreen & RTC are pretty much ready
+> to go. Then the MMC has some regulator updates, but AFAIK the MMC
+> should work OK already.
+> 
+> For the framebuffer, Imre and Tomi know the status the best, so
+> I've added them to Cc.
+> 
+> Imre has been meaning to send a bunch of drivers/video/omap changes
+> to the fbdev list for a while now and LDP framebuffer may depend on
+> those. Imre, any news on the status of sending the fb patches
+> upstream?
+> 
+> Then there are the upcoming DSS patches from Tomi, but those still
+> need some work before they're ready to go.
 
-This will break TI's bridgedriver, right?
-
-Can camera ISP and IVA request the registration of their respective
-IOMMU's from their codebase?
-
---=20
-=46elipe Contreras
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Is there any news on this?  Will we see more functional OMAP3 / LDP
+support queued for the next merge window?
