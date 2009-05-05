@@ -1,41 +1,31 @@
-From: Jarkko Lavinen <jarkko.lavinen@nokia.com>
-Subject: Re: [PATCH] OMAP: HSMMC: Do not enable buffer ready interrupt if
-	using DMA
-Date: Tue, 5 May 2009 12:57:21 +0300
-Message-ID: <20090505095721.GA12287@angel.research.nokia.com>
-References: <5A47E75E594F054BAF48C5E4FC4B92AB02FB2F2A90@dbde02.ent.ti.com>
-Reply-To: Jarkko Lavinen <jarkko.lavinen@nokia.com>
+From: Siemens News Center <feetfirst@winch.twcbc.com>
+Subject: Lucky..............Winner
+Date: Tue, 5 May 2009 6:25:36 -0500
+Message-ID: <7h9gbp$d24qvn@rrcs-agw-01b.hrndva.rr.com>
+Reply-To: s.agent@btinternet.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:45603 "EHLO
-	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754503AbZEEJ5j (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 5 May 2009 05:57:39 -0400
-Content-Disposition: inline
-In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB02FB2F2A90@dbde02.ent.ti.com>
+Received: from hrndva-commlb.mail.rr.com ([71.74.57.8]:55008 "EHLO
+	hrndva-commlb.mail.rr.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751041AbZEELZh (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 5 May 2009 07:25:37 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "ext Gadiyar, Anand" <gadiyar@ti.com>
-Cc: "pierre@ossman.eu" <pierre@ossman.eu>, Tony Lindgren <tony@atomide.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: info@co.uk
 
-On Tue, Apr 21, 2009 at 09:39:22AM +0200, ext Gadiyar, Anand wrote:
-> From: Anand Gadiyar <gadiyar@ti.com>
-> 
-> OMAP: HSMMC: Do not enable buffer ready interrupt if using DMA
-> 
-> This considerably reduces the number of interrupts during a transfer
-> and ought to result in some power saving.
+Your email ID has been awarded =A3750.000.00  GBP in our Siemens Electr=
+onics program,Reply this office via:=20
 
-I tried the patch with reading from the raw mmc block device to
-/dev/null with dd (with bs 32k and 1M).  I cannot see any
-difference in interrupt count from /proc/interrupts or in read
-speed. At least the patch works. Cpu was 34340es3.
+Name:....................
+Country:.................
+Sex:.....................
+Age: ....................
+Address:.................
 
-I also trid without the patch just disabling the Buffer
-Read/write Ready bits from INT_EN_MASK which is then written to
-both MMCHS_IE and MMCHS_ISE.  Still no change in read speed nor
-mmc irq count.
-
-Cheers
-Jarkko Lavinen
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
