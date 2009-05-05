@@ -1,37 +1,51 @@
-From: "Aggarwal, Anuj" <anuj.aggarwal@ti.com>
-Subject: Beep sound in the end of audio file
-Date: Tue, 5 May 2009 22:33:57 +0530
-Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB0305559FCC@dbde02.ent.ti.com>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: next PM branch preview
+Date: Tue, 05 May 2009 11:11:52 -0700
+Message-ID: <87hbzz8lnb.fsf@deeprootsystems.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:40019 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752564AbZEEREG convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 5 May 2009 13:04:06 -0400
-Received: from dbdp20.itg.ti.com ([172.24.170.38])
-	by bear.ext.ti.com (8.13.7/8.13.7) with ESMTP id n45H3xut029761
-	for <linux-omap@vger.kernel.org>; Tue, 5 May 2009 12:04:05 -0500
-Received: from dbde71.ent.ti.com (localhost [127.0.0.1])
-	by dbdp20.itg.ti.com (8.13.8/8.13.8) with ESMTP id n45H3w44005416
-	for <linux-omap@vger.kernel.org>; Tue, 5 May 2009 22:33:58 +0530 (IST)
-Content-Language: en-US
+Received: from gv-out-0910.google.com ([216.239.58.186]:15348 "EHLO
+	gv-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751975AbZEESL4 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 5 May 2009 14:11:56 -0400
+Received: by gv-out-0910.google.com with SMTP id p33so250396gvf.37
+        for <linux-omap@vger.kernel.org>; Tue, 05 May 2009 11:11:56 -0700 (PDT)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: linux-omap@vger.kernel.org
 
-Hi,
+Hello,
 
-After playing out any audio file on OMAP3 EVM, having TWL4030 codec,
-I am hearing a beep sound. I have also tried implementing a mute function 
-in which I disabled all the inputs/outputs but still that didn't help.
+I've rebased the PM branch on to current linux-omap HEAD (currently
+2.6.30-rc4) and it is available from my tree[1] as the branch named
+'pm-next'
 
-Any idea how this can be avoided?
+There's still a couple issues for me to work, out but since people
+have been asking, I've made it publicly available.
 
-Thanks and Regards,
-Anuj Aggarwal
+So far, I have only tested full-chip retention in suspend and PM idle
+(not CPUidle) using minimal kernels on the following platforms:
 
-Platform Support Products
-Texas Instruments Incorporated
+- 3430SDP: initramfs
+- RX51: OneNAND rootfs
+- OMAP3EVM: initramfs
+- Beagle: initramfs
 
+Not tested:
+- CPUidle
+- DVFS (CPUfreq)
+
+Known issues:
+- 3430SDP: CORE pwrdm does not hit retention
+- hangs on return from OFF
+- OMAP3EVM: debounce used on TS GPIO (in GPIO6) and result in
+  "Clock gpio6_dbck didn't enable in 100000 tries"
+
+Also note that I only build minimal kernels using very few drivers.
+So I've also added the defconfigs I used for the boards so it's clear
+what I'm using to test.  They are named *_pm_defconfig.
+
+Kevin
+
+[1] http://git.kernel.org/?p=linux/kernel/git/khilman/linux-omap-pm.git
