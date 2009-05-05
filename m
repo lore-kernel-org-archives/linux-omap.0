@@ -1,85 +1,37 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] onenand_init: Allow disabling sync read and write
-	based on flags, v2 (Re: [PATCH 1/4] onenand init: Rename
-	board-n800-flash.c to gpmc-onenand.c)
-Date: Tue, 5 May 2009 10:00:54 -0700
-Message-ID: <20090505170054.GG5593@atomide.com>
-References: <34082.192.168.10.89.1241502767.squirrel@dbdmail.itg.ti.com>
+From: "Aggarwal, Anuj" <anuj.aggarwal@ti.com>
+Subject: Beep sound in the end of audio file
+Date: Tue, 5 May 2009 22:33:57 +0530
+Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB0305559FCC@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:58934 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752000AbZEERA7 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 5 May 2009 13:00:59 -0400
-Content-Disposition: inline
-In-Reply-To: <34082.192.168.10.89.1241502767.squirrel@dbdmail.itg.ti.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:40019 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752564AbZEEREG convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 5 May 2009 13:04:06 -0400
+Received: from dbdp20.itg.ti.com ([172.24.170.38])
+	by bear.ext.ti.com (8.13.7/8.13.7) with ESMTP id n45H3xut029761
+	for <linux-omap@vger.kernel.org>; Tue, 5 May 2009 12:04:05 -0500
+Received: from dbde71.ent.ti.com (localhost [127.0.0.1])
+	by dbdp20.itg.ti.com (8.13.8/8.13.8) with ESMTP id n45H3w44005416
+	for <linux-omap@vger.kernel.org>; Tue, 5 May 2009 22:33:58 +0530 (IST)
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: vimal singh <vimalsingh@ti.com>
-Cc: dedekind@infradead.org, linux-omap@vger.kernel.org, adrian.hunter@nokia.com, Tony Lindgren <tony@atommide.com>
+To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-* vimal singh <vimalsingh@ti.com> [090504 22:52]:
-> 
-> 
-> On Mon, May 4, 2009 at 9:29 PM, Tony Lindgren <tony@atomide.com> wrote:
-> > * vimal singh <vimalsingh@ti.com> [090503 22:36]:
-> >>
-> >>
-> >> On Fri, May 1, 2009 at 11:08 PM, Tony Lindgren <tony@atomide.com> wrote:
-> >> > * Tony Lindgren <tony@atomide.com> [090430 11:56]:
-> >> >> * Tony Lindgren <tony@atomide.com> [090430 07:06]:
-> >> >> > * vimal singh <vimalsingh@ti.com> [090429 23:33]:
-> >> >> > > 'gpmc-onenand.c' is still confusing name. This is not going to used in
-> >> >> > > all boards anyway.
-> >> >> >
-> >> >> > Why do you think this cannot be used for all boards?
-> >> >> >
-> >> >> > The GPMC timings are totally based on the onenand chip features.
-> >> >>
-> >> >> And these two patches make omap3430sdp to work with the gpmc-onenand
-> >> >> code. Sync mode does not work, but it seems like it was never enabled
-> >> >> for sdp anyways.
-> >> >>
-> >> >> Similar patch should work for other boards too.
-> >> >
-> >> > Setting the sync_write depends on flags and processor, not just flags.
-> >> > Here's a fixed version of this patch.
-> >> OK, these both patches seems good to me...
-> >
-> > OK, thanks for looking.
-> >
-> >> Earlier I was in impression that this patch series is basically to remove
-> >> board-*-flash.c files. Since in 3430sdp boards we find out 'CS' number for
-> >> flash devices dynamically in different versions of boards. So, I was confused.
-> >
-> > Well looks like those functions are used for at least few boards, so we could
-> > have functions like gpmc_probe_onenand() and gpmc_probe_nor() functions that
-> > could be called from board-*.c files.
-> >
-> > That way we could have generic gpmc-onenand.c and gpmc-nor.c, and still do
-> > the necessary probe logic in the board-*.c files.
-> But then how we'll be taking care of timing parameter configuration, for
-> different chips (part numbers), as some of these parts may vary in timing
-> specifications, and also for different working frequencies.
+Hi,
 
-Well at least gpmc-onenand.c already configures things based on the onenand
-revision, see ONENAND_REG_VERSION_ID in gpmc_onenand.c.
+After playing out any audio file on OMAP3 EVM, having TWL4030 codec,
+I am hearing a beep sound. I have also tried implementing a mute function 
+in which I disabled all the inputs/outputs but still that didn't help.
 
-We should be able to calculate the timings for the connected chip rather than
-using hardcoded values for each board. This will save lots of time bringing
-up new boards.
+Any idea how this can be avoided?
 
-> And if we are going to put those information in board-*.c, then rather I will
-> prefer separate board-*-flash.c file to handle all this.
+Thanks and Regards,
+Anuj Aggarwal
 
-Sure we can have it that way if there's a need for that. It depends how much
-code is left to initialize there in the end.
+Platform Support Products
+Texas Instruments Incorporated
 
-To me it sounds like it would contain just the partition tables and few lines
-to query the GPMC for connected flash chips. The rest we should be able to
-initialize in a generic way.
-
-Regards,
-
-Tony
