@@ -1,51 +1,104 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: next PM branch preview
-Date: Tue, 05 May 2009 11:11:52 -0700
-Message-ID: <87hbzz8lnb.fsf@deeprootsystems.com>
+From: Felipe Contreras <felipe.contreras@gmail.com>
+Subject: Re: [PATCH 3/6] omap iommu: omap3 iommu device registration
+Date: Tue, 5 May 2009 22:32:34 +0300
+Message-ID: <94a0d4530905051232m1fe23987q8fee8cbcfa8f1854@mail.gmail.com>
+References: <20090505123905.4583.69865.stgit@oreo.research.nokia.com>
+	 <20090505124700.4583.69988.stgit@oreo.research.nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from gv-out-0910.google.com ([216.239.58.186]:15348 "EHLO
-	gv-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751975AbZEESL4 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 5 May 2009 14:11:56 -0400
-Received: by gv-out-0910.google.com with SMTP id p33so250396gvf.37
-        for <linux-omap@vger.kernel.org>; Tue, 05 May 2009 11:11:56 -0700 (PDT)
+Received: from mail-fx0-f158.google.com ([209.85.220.158]:39865 "EHLO
+	mail-fx0-f158.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751438AbZEETcg convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 5 May 2009 15:32:36 -0400
+Received: by fxm2 with SMTP id 2so4919215fxm.37
+        for <linux-omap@vger.kernel.org>; Tue, 05 May 2009 12:32:35 -0700 (PDT)
+In-Reply-To: <20090505124700.4583.69988.stgit@oreo.research.nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
+To: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+Cc: linux-arm-kernel@lists.arm.linux.org.uk, linux-omap@vger.kernel.org, h-kanigeri2@ti.com, omar.ramirez@ti.com, sakari.ailus@maxwell.research.nokia.com, tony@atomide.com
 
-Hello,
+On Tue, May 5, 2009 at 3:47 PM, Hiroshi DOYU <Hiroshi.DOYU@nokia.com> w=
+rote:
+> Signed-off-by: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+> ---
+>
+> =C2=A0arch/arm/mach-omap2/omap3-iommu.c | =C2=A0105 +++++++++++++++++=
+++++++++++++++++++++
+> =C2=A01 files changed, 105 insertions(+), 0 deletions(-)
+> =C2=A0create mode 100644 arch/arm/mach-omap2/omap3-iommu.c
+>
+> diff --git a/arch/arm/mach-omap2/omap3-iommu.c b/arch/arm/mach-omap2/=
+omap3-iommu.c
+> new file mode 100644
+> index 0000000..367f36a
+> --- /dev/null
+> +++ b/arch/arm/mach-omap2/omap3-iommu.c
+> @@ -0,0 +1,105 @@
+> +/*
+> + * omap iommu: omap3 device registration
+> + *
+> + * Copyright (C) 2008-2009 Nokia Corporation
+> + *
+> + * Written by Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+> + *
+> + * This program is free software; you can redistribute it and/or mod=
+ify
+> + * it under the terms of the GNU General Public License version 2 as
+> + * published by the Free Software Foundation.
+> + */
+> +
+> +#include <linux/platform_device.h>
+> +
+> +#include <mach/iommu.h>
+> +
+> +#define OMAP3_MMU1_BASE =C2=A0 =C2=A0 =C2=A0 =C2=A00x480bd400
+> +#define OMAP3_MMU2_BASE =C2=A0 =C2=A0 =C2=A0 =C2=A00x5d000000
+> +#define OMAP3_MMU1_IRQ 24
+> +#define OMAP3_MMU2_IRQ 28
+> +
+> +static struct resource omap3_iommu_res[] =3D {
+> + =C2=A0 =C2=A0 =C2=A0 { /* Camera ISP MMU */
+> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 .start =C2=A0 =C2=A0=
+ =C2=A0 =C2=A0 =C2=A0=3D OMAP3_MMU1_BASE,
+> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 .end =C2=A0 =C2=A0=
+ =C2=A0 =C2=A0 =C2=A0 =C2=A0=3D OMAP3_MMU1_BASE + MMU_REG_SIZE - 1,
+> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 .flags =C2=A0 =C2=A0=
+ =C2=A0 =C2=A0 =C2=A0=3D IORESOURCE_MEM,
+> + =C2=A0 =C2=A0 =C2=A0 },
+> + =C2=A0 =C2=A0 =C2=A0 {
+> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 .start =C2=A0 =C2=A0=
+ =C2=A0 =C2=A0 =C2=A0=3D OMAP3_MMU1_IRQ,
+> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 .flags =C2=A0 =C2=A0=
+ =C2=A0 =C2=A0 =C2=A0=3D IORESOURCE_IRQ,
+> + =C2=A0 =C2=A0 =C2=A0 },
+> + =C2=A0 =C2=A0 =C2=A0 { /* IVA2.2 MMU */
+> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 .start =C2=A0 =C2=A0=
+ =C2=A0 =C2=A0 =C2=A0=3D OMAP3_MMU2_BASE,
+> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 .end =C2=A0 =C2=A0=
+ =C2=A0 =C2=A0 =C2=A0 =C2=A0=3D OMAP3_MMU2_BASE + MMU_REG_SIZE - 1,
+> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 .flags =C2=A0 =C2=A0=
+ =C2=A0 =C2=A0 =C2=A0=3D IORESOURCE_MEM,
+> + =C2=A0 =C2=A0 =C2=A0 },
+> + =C2=A0 =C2=A0 =C2=A0 {
+> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 .start =C2=A0 =C2=A0=
+ =C2=A0 =C2=A0 =C2=A0=3D OMAP3_MMU2_IRQ,
+> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 .flags =C2=A0 =C2=A0=
+ =C2=A0 =C2=A0 =C2=A0=3D IORESOURCE_IRQ,
+> + =C2=A0 =C2=A0 =C2=A0 },
+> +};
 
-I've rebased the PM branch on to current linux-omap HEAD (currently
-2.6.30-rc4) and it is available from my tree[1] as the branch named
-'pm-next'
+This will break TI's bridgedriver, right?
 
-There's still a couple issues for me to work, out but since people
-have been asking, I've made it publicly available.
+Can camera ISP and IVA request the registration of their respective
+IOMMU's from their codebase?
 
-So far, I have only tested full-chip retention in suspend and PM idle
-(not CPUidle) using minimal kernels on the following platforms:
-
-- 3430SDP: initramfs
-- RX51: OneNAND rootfs
-- OMAP3EVM: initramfs
-- Beagle: initramfs
-
-Not tested:
-- CPUidle
-- DVFS (CPUfreq)
-
-Known issues:
-- 3430SDP: CORE pwrdm does not hit retention
-- hangs on return from OFF
-- OMAP3EVM: debounce used on TS GPIO (in GPIO6) and result in
-  "Clock gpio6_dbck didn't enable in 100000 tries"
-
-Also note that I only build minimal kernels using very few drivers.
-So I've also added the defconfigs I used for the boards so it's clear
-what I'm using to test.  They are named *_pm_defconfig.
-
-Kevin
-
-[1] http://git.kernel.org/?p=linux/kernel/git/khilman/linux-omap-pm.git
+--=20
+=46elipe Contreras
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
