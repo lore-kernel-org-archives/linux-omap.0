@@ -1,70 +1,112 @@
-From: "vimal singh" <vimalsingh@ti.com>
-Subject: Re: [PATCH] onenand_init: Allow disabling sync read and write
-     based on flags,
-      v2 (Re: [PATCH 1/4] onenand init: Rename board-n800-flash.c to
-     gpmc-onenand.c)
-Date: Tue, 5 May 2009 11:22:47 +0530 (IST)
-Message-ID: <34082.192.168.10.89.1241502767.squirrel@dbdmail.itg.ti.com>
+From: Thierry Reding <thierry.reding@avionic-design.de>
+Subject: Re: [PATCH] input: Add support for the TSC2003 controller.
+Date: Tue, 5 May 2009 08:22:05 +0200
+Message-ID: <20090505062205.GA28440@avionic-design.de>
+References: <1241006627-22811-1-git-send-email-thierry.reding@avionic-design.de> <5d5443650904290623n3712cd7dja653a139cff2cf6d@mail.gmail.com> <483a38b80904291835p51044741p9bd83d33a40031c@mail.gmail.com> <20090504113751.GA22603@avionic-design.de> <5d5443650905040503n501e3b47qc890dc4c71a85b1c@mail.gmail.com> <20090504145700.GA875@avionic-design.de> <5d5443650905041021n1f709ce1y382440d1285b09ec@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:57390 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751991AbZEEFxJ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 5 May 2009 01:53:09 -0400
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: multipart/mixed; boundary="A6N2fC+uXW/VQSAv"
+Return-path: <linux-input-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <5d5443650905041021n1f709ce1y382440d1285b09ec@mail.gmail.com>
+Sender: linux-input-owner@vger.kernel.org
+To: Trilok Soni <soni.trilok@gmail.com>
+Cc: Kwangwoo Lee <kwangwoo.lee@gmail.com>, linux-input@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: dedekind@infradead.org, linux-omap@vger.kernel.org, adrian.hunter@nokia.com, Tony Lindgren <tony@atommide.com>
 
 
+--A6N2fC+uXW/VQSAv
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-On Mon, May 4, 2009 at 9:29 PM, Tony Lindgren <tony@atomide.com> wrote:
-> * vimal singh <vimalsingh@ti.com> [090503 22:36]:
->>
->>
->> On Fri, May 1, 2009 at 11:08 PM, Tony Lindgren <tony@atomide.com> wrote:
->> > * Tony Lindgren <tony@atomide.com> [090430 11:56]:
->> >> * Tony Lindgren <tony@atomide.com> [090430 07:06]:
->> >> > * vimal singh <vimalsingh@ti.com> [090429 23:33]:
->> >> > > 'gpmc-onenand.c' is still confusing name. This is not going to used in
->> >> > > all boards anyway.
->> >> >
->> >> > Why do you think this cannot be used for all boards?
->> >> >
->> >> > The GPMC timings are totally based on the onenand chip features.
->> >>
->> >> And these two patches make omap3430sdp to work with the gpmc-onenand
->> >> code. Sync mode does not work, but it seems like it was never enabled
->> >> for sdp anyways.
->> >>
->> >> Similar patch should work for other boards too.
->> >
->> > Setting the sync_write depends on flags and processor, not just flags.
->> > Here's a fixed version of this patch.
->> OK, these both patches seems good to me...
->
-> OK, thanks for looking.
->
->> Earlier I was in impression that this patch series is basically to remove
->> board-*-flash.c files. Since in 3430sdp boards we find out 'CS' number for
->> flash devices dynamically in different versions of boards. So, I was confused.
->
-> Well looks like those functions are used for at least few boards, so we could
-> have functions like gpmc_probe_onenand() and gpmc_probe_nor() functions that
-> could be called from board-*.c files.
->
-> That way we could have generic gpmc-onenand.c and gpmc-nor.c, and still do
-> the necessary probe logic in the board-*.c files.
-But then how we'll be taking care of timing parameter configuration, for
-different chips (part numbers), as some of these parts may vary in timing
-specifications, and also for different working frequencies.
-And if we are going to put those information in board-*.c, then rather I will
-prefer separate board-*-flash.c file to handle all this.
+* Trilok Soni wrote:
+> Hi Therry,
+> 
+> On Mon, May 4, 2009 at 8:27 PM, Thierry Reding
+> <thierry.reding@avionic-design.de> wrote:
+> > * Trilok Soni wrote:
+> >> Hi Thierry,
+> >>
+> >> On Mon, May 4, 2009 at 5:07 PM, Thierry Reding
+> >> <thierry.reding@avionic-design.de> wrote:
+> >> > * Kwangwoo Lee wrote:
+> >> >> Hi Thierry and Trilok,
+> >> >>
+> >> >> On Wed, Apr 29, 2009 at 10:23 PM, Trilok Soni <soni.trilok@gmail.com> wrote:
+> >> >> > Hi Thierry,
+> >> >> >
+> >> >> > I have added linux-omap community. How different is this chip from
+> >> >> > tsc2007. It looks to me that this chip is not much different from
+> >> >> > tsc2007 (this is just quick look at the driver). If they
+> >> >> > are similar please consider using i2c_device_id feature in tsc2007 to
+> >> >> > accommodate this chip.
+> >> >>
+> >> >> I agree with the Trilok's opinion.
+> >> > [snip]
+> >> >
+> >> > I only noticed the tsc2007 driver some time ago, when the tsc2003 was already
+> >> > finished (it's actually pretty old, I just never got around to submitting
+> >> > it). However I never got the tsc2007 to work on my platform because it uses
+> >> > sleeping functions inside the timer handler, which results in an oops right
+> >> > after the first touchscreen interrupt.
+> >> >
+> >> > I guess I could try and fix the tsc2007 properly instead of having a second,
+> >> > pretty similar driver in the tree.
+> >> >
+> >>
+> >> This could be because of improper locking? If you share a crash we can
+> >> have look at it.
+> >
+> > Attached is a patch that fixes things for me. The problem was that the I2C
+> > transfers were done in interrupt context which fails for the controller I use
+> > (PXA270). The attached patch uses a struct work_struct to schedule the I2C
+> > transfers so they are executed in non-interrupt context.
+> >
+> > I've tested the patch on a minimal system with tslib and it work fine with
+> > ts_calibrate and friends.
+> 
+> Thanks for the patch. It looks good. Let's wait for Kwangwoo Lee to
+> verify it on his platform. Also please add "tsc2003" entry into
+> i2c_device_ids so that i2c_board_info can specify the .name as
+> "tsc2003".
+
+A second patch is attached that merely adds the tsc2003 to the list of
+supported device IDs. I've split the patch off because it has nothing to do
+with the other changes.
+
+Thierry
+
+
+--A6N2fC+uXW/VQSAv
+Content-Type: text/x-diff; charset=us-ascii
+Content-Disposition: inline; filename="tsc003.patch"
+Content-Transfer-Encoding: quoted-printable
+
+=46rom: Thierry Reding <thierry.reding@avionic-design.de>
+Subject: [PATCH] tsc2007: Add support for TSC2003 chips.
+
+The TSC2003 is very similar to the TSC2007 an can be supported by the same
+driver with no additional changes.
+
+Signed-off-by: Thierry Reding <thierry.reding@avionic-design.de>
 
 ---
-Regards,
-\/ | |\/| /-\ |_
+ drivers/input/touchscreen/tsc2007.c |    1 +
+ 1 files changed, 1 insertions(+), 0 deletions(-)
 
+diff --git a/drivers/input/touchscreen/tsc2007.c b/drivers/input/touchscree=
+n/tsc2007.c
+index 6efb54d..599aa67 100644
+--- a/drivers/input/touchscreen/tsc2007.c
++++ b/drivers/input/touchscreen/tsc2007.c
+@@ -360,6 +360,7 @@ static int tsc2007_remove(struct i2c_client *client)
+=20
+ static struct i2c_device_id tsc2007_idtable[] =3D {
+ 	{ "tsc2007", 0 },
++	{ "tsc2003", 0 },
+ 	{ }
+ };
+=20
+--=20
+tg: (84e274c..) adx/input/tsc2003 (depends on: adx/input/tsc2007)
 
+--A6N2fC+uXW/VQSAv--
