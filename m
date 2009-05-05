@@ -1,90 +1,41 @@
-From: Kim Kyuwon <chammoru@gmail.com>
-Subject: Re: [PATCH] OMAP3: PM: Add the wakeup source driver, v3
-Date: Tue, 5 May 2009 18:08:50 +0900
-Message-ID: <4d34a0a70905050208u5f64957drda5298cae027e550@mail.gmail.com>
-References: <4d34a0a70904030343h4f1562b5y3dbc9467aac9967@mail.gmail.com>
-	<87tz4i981a.fsf@deeprootsystems.com> <4d34a0a70904300017p1ff38048oae675a4e93e68124@mail.gmail.com>
-	<87my9yte7e.fsf@deeprootsystems.com>
+From: Jarkko Lavinen <jarkko.lavinen@nokia.com>
+Subject: Re: [PATCH] OMAP: HSMMC: Do not enable buffer ready interrupt if
+	using DMA
+Date: Tue, 5 May 2009 12:57:21 +0300
+Message-ID: <20090505095721.GA12287@angel.research.nokia.com>
+References: <5A47E75E594F054BAF48C5E4FC4B92AB02FB2F2A90@dbde02.ent.ti.com>
+Reply-To: Jarkko Lavinen <jarkko.lavinen@nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=EUC-KR
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-qy0-f133.google.com ([209.85.221.133]:59575 "EHLO
-	mail-qy0-f133.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752050AbZEEJOI convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 5 May 2009 05:14:08 -0400
-Received: by qyk39 with SMTP id 39so1101693qyk.33
-        for <linux-omap@vger.kernel.org>; Tue, 05 May 2009 02:14:08 -0700 (PDT)
-In-Reply-To: <87my9yte7e.fsf@deeprootsystems.com>
+Received: from smtp.nokia.com ([192.100.122.233]:45603 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754503AbZEEJ5j (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 5 May 2009 05:57:39 -0400
+Content-Disposition: inline
+In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB02FB2F2A90@dbde02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@deeprootsystems.com>
-Cc: OMAP <linux-omap@vger.kernel.org>, =?EUC-KR?B?udqw5rnO?= <kyungmin.park@samsung.com>, Paul Walmsley <paul@pwsan.com>
+To: "ext Gadiyar, Anand" <gadiyar@ti.com>
+Cc: "pierre@ossman.eu" <pierre@ossman.eu>, Tony Lindgren <tony@atomide.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Thu, Apr 30, 2009 at 11:21 PM, Kevin Hilman
-<khilman@deeprootsystems.com> wrote:
->>> Also, I still think the WKST register reading should be done in the
->>> PRCM interrupt handler.  In your previous attempt, you were seeing =
-a
->>> bunch of non-device wakeup related interrupts.   Can you try again
->>> with the attached patch (thanks to Paul Walmseley) which should hel=
-p
->>> us debug why you were seeing spurious PRCM interrupts.
->>
->> First of all, sorry for giving you the wrong information in the
->> previous mail. I found that we actually have configured GPTIMER12 as
->> the system timer.  And I tried with the attached patch, but I can't
->> see any debug message.  However even now, PRCM interrupt handler is
->> invoked quite often due to the system timer.
->
-> That's what I assumed was happening.
->
->> As far as I know, after Peter's [OMAP3: PM: CPUidle: Add new
->> lower-latency C1 state] patch is applied, the system is in 'wfi' sta=
-te
->> in every idle state. So whenever the system timer wake up the system
->> from idle, I think PRCM interrupt occurs. Do you think still the WKS=
-T
->> register should be read in the PRCM interrupt handler? ;)
->
-> Yes. The WKST registers are already being read in the handler so they
-> can be properly cleared.  All you are adding is the saving of them.
->
-> In addition, you should not enter idle between the time the system
-> wakes from resume and your resume handler runs so you should be able
-> to get the correct WKST values.
+On Tue, Apr 21, 2009 at 09:39:22AM +0200, ext Gadiyar, Anand wrote:
+> From: Anand Gadiyar <gadiyar@ti.com>
+> 
+> OMAP: HSMMC: Do not enable buffer ready interrupt if using DMA
+> 
+> This considerably reduces the number of interrupts during a transfer
+> and ought to result in some power saving.
 
-OK, Your idea is more reasonable.
-I modified as you said. thanks.
+I tried the patch with reading from the raw mmc block device to
+/dev/null with dd (with bs 32k and 1M).  I cannot see any
+difference in interrupt count from /proc/interrupts or in read
+speed. At least the patch works. Cpu was 34340es3.
 
->>> Also, I know we discussed this before, but I think the GPIO wakeup
->>> source stuff really belongs in a separate patch, and if you think i=
-t
->>> is still useful, and cannot be done by just enabling a GPIO IRQ fro=
-m
->>> the board file, I suggest you propose a patch to the generic GPIO
->>> layer to add this interface.
->>
->> OK, I will remove this GPIO wakeup feature. But I want to know more
->> detailed information about wakeup event . So, instead of using the
->> GPIO wakeup, I'm planning using WAKEUPEVENT bit in CONTROL_PADCONF_x
->> registers.
->
-> That sounds OK.  The current mux layer is lacking any knowledge of th=
-e
-> wake bits in the PADCONF regs, so I'd be interested in any ideas you
-> have of adding that support.
+I also trid without the patch just disabling the Buffer
+Read/write Ready bits from INT_EN_MASK which is then written to
+both MMCHS_IE and MMCHS_ISE.  Still no change in read speed nor
+mmc irq count.
 
-I added my ideas about CONTROL_PADCONF_x into the new version of wake
-source driver.
-I will send it soon.
-Please review this new version again and feel free to give your opinion=
-=2E
-
-Regards,
-Kyuwon (=B1=D4=BF=F8)
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Cheers
+Jarkko Lavinen
