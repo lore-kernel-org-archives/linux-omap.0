@@ -1,91 +1,76 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 7/7] onenand_init: Clean-up for checkpatch.pl
-Date: Mon, 04 May 2009 17:27:05 -0700
-Message-ID: <20090505002705.2894.14127.stgit@localhost>
-References: <20090505002144.2894.25201.stgit@localhost>
+From: Rebecca Schultz Zavin <rschultz@google.com>
+Subject: Re: Anyone have MUSB working on PM branch?
+Date: Mon, 4 May 2009 18:05:12 -0700
+Message-ID: <aed62de90905041805s74cba19cu2db014fa4f792cc4@mail.gmail.com>
+References: <1241201214.18100.362.camel@blackhole> <49FC137F.70809@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:61147 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757457AbZEEA1H (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 4 May 2009 20:27:07 -0400
-In-Reply-To: <20090505002144.2894.25201.stgit@localhost>
+Received: from smtp-out.google.com ([216.239.33.17]:2001 "EHLO
+	smtp-out.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753618AbZEEBFQ convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 4 May 2009 21:05:16 -0400
+Received: from wpaz33.hot.corp.google.com (wpaz33.hot.corp.google.com [172.24.198.97])
+	by smtp-out.google.com with ESMTP id n4515Ep5020082
+	for <linux-omap@vger.kernel.org>; Tue, 5 May 2009 02:05:15 +0100
+Received: from rv-out-0708.google.com (rvbf25.prod.google.com [10.140.82.25])
+	by wpaz33.hot.corp.google.com with ESMTP id n4515CHa002975
+	for <linux-omap@vger.kernel.org>; Mon, 4 May 2009 18:05:13 -0700
+Received: by rv-out-0708.google.com with SMTP id f25so3295946rvb.34
+        for <linux-omap@vger.kernel.org>; Mon, 04 May 2009 18:05:12 -0700 (PDT)
+In-Reply-To: <49FC137F.70809@gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: dedekind@infradead.org, juha.yrjola@solidboot.com, linux-omap@vger.kernel.org, adrian.hunter@nokia.com
+To: "Eugeny S. Mints" <eugeny.mints@gmail.com>
+Cc: Peter Barada <peterb@logicpd.com>, linux-omap <linux-omap@vger.kernel.org>
 
-Clean-up for checkpatch.pl
+I'm pretty sure we do, though I doubt we have it doing the right thing
+across power events, we're still in the process of getting all our
+drivers to behave.  Check out the android omap tree:
 
-Signed-off-by: Tony Lindgren <tony@atomide.com>
----
- arch/arm/mach-omap2/gpmc-onenand.c        |   15 +++++++++------
- arch/arm/plat-omap/include/mach/onenand.h |    5 ++---
- 2 files changed, 11 insertions(+), 9 deletions(-)
+http://android.git.kernel.org/?p=3Dkernel/omap.git;a=3Dshortlog;h=3Dref=
+s/heads/android-omap-2.6.29
 
-diff --git a/arch/arm/mach-omap2/gpmc-onenand.c b/arch/arm/mach-omap2/gpmc-onenand.c
-index d243228..71fc05a 100644
---- a/arch/arm/mach-omap2/gpmc-onenand.c
-+++ b/arch/arm/mach-omap2/gpmc-onenand.c
-@@ -1,8 +1,9 @@
- /*
-- * linux/arch/arm/mach-omap2/board-n800-flash.c
-+ * linux/arch/arm/mach-omap2/gpmc-onenand.c
-  *
-- * Copyright (C) 2006 Nokia Corporation
-- * Author: Juha Yrjola
-+ * Copyright (C) 2006 - 2009 Nokia Corporation
-+ * Contacts:	Juha Yrjola
-+ *		Tony Lindgren
-  *
-  * This program is free software; you can redistribute it and/or modify
-  * it under the terms of the GNU General Public License version 2 as
-@@ -14,7 +15,7 @@
- #include <asm/mach/flash.h>
- #include <linux/mtd/onenand_regs.h>
- 
--#include <asm/io.h>
-+#include <linux/io.h>
- #include <mach/onenand.h>
- #include <mach/board.h>
- #include <mach/gpmc.h>
-@@ -122,7 +123,8 @@ static int omap2_onenand_set_sync_mode(struct omap_onenand_platform_data *cfg,
- 	const int t_wph  = 30;
- 	int min_gpmc_clk_period, t_ces, t_avds, t_avdh, t_ach, t_aavdh, t_rdyo;
- 	int tick_ns, div, fclk_offset_ns, fclk_offset, gpmc_clk_ns, latency;
--	int err, ticks_cez, sync_read = 0, sync_write = 0, first_time = 0, hf = 0;
-+	int first_time = 0, hf = 0 sync_read = 0, sync_write = 0;
-+	int err, ticks_cez;
- 	int cs = cfg->cs;
- 	u32 reg;
- 
-@@ -267,7 +269,8 @@ static int omap2_onenand_set_sync_mode(struct omap_onenand_platform_data *cfg,
- 			t.wr_access = t.access;
- 		}
- 	} else {
--		t.adv_wr_off = gpmc_round_ns_to_ticks(max_t(int, t_avdp, t_cer));
-+		t.adv_wr_off = gpmc_round_ns_to_ticks(max_t(int,
-+							t_avdp, t_cer));
- 		t.we_on  = t.adv_wr_off + gpmc_round_ns_to_ticks(t_aavdh);
- 		t.we_off = t.we_on + gpmc_round_ns_to_ticks(t_wpl);
- 		t.cs_wr_off = t.we_off + gpmc_round_ns_to_ticks(t_wph);
-diff --git a/arch/arm/plat-omap/include/mach/onenand.h b/arch/arm/plat-omap/include/mach/onenand.h
-index bb66d0b..94cde73 100644
---- a/arch/arm/plat-omap/include/mach/onenand.h
-+++ b/arch/arm/plat-omap/include/mach/onenand.h
-@@ -27,11 +27,10 @@ struct omap_onenand_platform_data {
- 	u8			flags;
- };
- 
--int omap2_onenand_rephase(void);
--
- #define ONENAND_MAX_PARTITIONS 8
- 
--#if defined(CONFIG_MTD_ONENAND_OMAP2) || defined(CONFIG_MTD_ONENAND_OMAP2_MODULE)
-+#if defined(CONFIG_MTD_ONENAND_OMAP2) || \
-+	defined(CONFIG_MTD_ONENAND_OMAP2_MODULE)
- 
- extern void gpmc_onenand_init(struct omap_onenand_platform_data *d);
- 
+Rebecca
 
+On Sat, May 2, 2009 at 2:33 AM, Eugeny S. Mints <eugeny.mints@gmail.com=
+> wrote:
+> Peter,
+>
+> Peter Barada wrote:
+>>
+>> All,
+>>
+>>
+>
+> [skip]
+>>
+>> 1) Has anyone gotten the MUSB in the latest PM branch working?
+>>
+>
+> I believe MUSB has not yet been validated on the PM branch as of 4/29
+> according to Kevin.
+>
+> Eugeny
+>>
+>> 2) Outside of setting up the pinmux, is there anything else necessar=
+y to
+>> get the MUSB to come up?
+>>
+>> 3) Any ideas on how to fix this?
+>>
+>>
+>>
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap"=
+ in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at =A0http://vger.kernel.org/majordomo-info.html
+>
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
