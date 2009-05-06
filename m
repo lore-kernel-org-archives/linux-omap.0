@@ -1,63 +1,44 @@
-From: Peter Ujfalusi <peter.ujfalusi@nokia.com>
-Subject: Re: Beep sound in the end of audio file
-Date: Wed, 6 May 2009 08:33:10 +0300
-Message-ID: <200905060833.10998.peter.ujfalusi@nokia.com>
-References: <5A47E75E594F054BAF48C5E4FC4B92AB0305559FCC@dbde02.ent.ti.com>
+From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+Subject: Re: [PATCH 1/6] omap iommu: tlb and pagetable primitives
+Date: Wed, 06 May 2009 08:56:46 +0300 (EEST)
+Message-ID: <20090506.085646.70211243.Hiroshi.DOYU@nokia.com>
+References: <20090505123905.4583.69865.stgit@oreo.research.nokia.com>
+	<20090505124650.4583.39458.stgit@oreo.research.nokia.com>
+	<8F7AF80515AF0D4D93307E594F3CB40E2AE46B4D@dlee03.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <alsa-devel-bounces@alsa-project.org>
-In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB0305559FCC@dbde02.ent.ti.com>
-Content-Disposition: inline
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Sender: alsa-devel-bounces@alsa-project.org
-Errors-To: alsa-devel-bounces@alsa-project.org
-To: "ext Aggarwal, Anuj" <anuj.aggarwal@ti.com>
-Cc: alsa-devel@alsa-project.org, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from smtp.nokia.com ([192.100.105.134]:22567 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753126AbZEFF5H (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 6 May 2009 01:57:07 -0400
+In-Reply-To: <8F7AF80515AF0D4D93307E594F3CB40E2AE46B4D@dlee03.ent.ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: h-kanigeri2@ti.com
+Cc: linux-arm-kernel@lists.arm.linux.org.uk, linux-omap@vger.kernel.org, omar.ramirez@ti.com, sakari.ailus@maxwell.research.nokia.com, tony@atomide.com, vpasam@ti.com
 
-Hello,
+Hi Hari,
 
-On Tuesday 05 May 2009 20:03:57 ext Aggarwal, Anuj wrote:
-> Hi,
->
-> After playing out any audio file on OMAP3 EVM, having TWL4030 codec,
-> I am hearing a beep sound. I have also tried implementing a mute function
-> in which I disabled all the inputs/outputs but still that didn't help.
->
-> Any idea how this can be avoided?
+From: "ext Kanigeri, Hari" <h-kanigeri2@ti.com>
+Subject: RE: [PATCH 1/6] omap iommu: tlb and pagetable primitives
+Date: Tue, 5 May 2009 22:19:55 +0200
 
-I have not heard from this kind of problem so far, which does not mean, tha=
-t =
+> Hi Doyu-san,
+> 
+> +static void iotlb_lock_set(struct iommu *obj, struct iotlb_lock *l) {
+> +	u32 val;
+> +
+> +	BUG_ON(l->base != 0); /* Currently no preservation is used */
+> 
+> -- Did you notice any issues in the IOMMU driver by enabling the preservation? 
+> 
+> Bridge driver is locking the memory segment that is used for IPC in
+> the TLB and by not having the preservation we might see a hit in the
+> performance.
 
-it does not exist ;)
-Can you describe the beep sound?
-
-After a quick look I can not pin point the soc board file used with the =
-
-omap3evm board. Is it in the tree?
-
-Does the beep happens in these cases also (after stopping it with Ctrl+C):
-aplay -f dat /dev/zero
-aplay -f dat /dev/urandom
-
-
-CC-ing alsa-devel...
-
->
-> Thanks and Regards,
-> Anuj Aggarwal
->
-> Platform Support Products
-> Texas Instruments Incorporated
+The current user of this driver is "camera isp" and no need for tlb
+preservation for it, but it's on todo list for other clients.
 
 
--- =
-
-P=E9ter
