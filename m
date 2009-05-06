@@ -1,145 +1,88 @@
-From: Amit Kucheria <amit.kucheria@verdurent.com>
-Subject: [PATCH] [PATCH] twl4030: Add some error checking to twl4030 init
-Date: Wed,  6 May 2009 15:03:38 +0300
-Message-ID: <1241611418-19730-1-git-send-email-amit.kucheria@verdurent.com>
-References: <200904231416.37219.david-b@pacbell.net>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:61651 "EHLO
-	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751889AbZEFMD4 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 6 May 2009 08:03:56 -0400
-Received: from esebh106.NOE.Nokia.com (esebh106.ntc.nokia.com [172.21.138.213])
-	by mgw-mx06.nokia.com (Switch-3.2.6/Switch-3.2.6) with ESMTP id n46C3iTn026537
-	for <linux-omap@vger.kernel.org>; Wed, 6 May 2009 15:03:50 +0300
-Received: from localhost.localdomain (esdhcp041167.research.nokia.com [172.21.41.167])
-	by mgw-int02.ntc.nokia.com (Switch-3.2.5/Switch-3.2.5) with ESMTP id n46C3clO011754
-	for <linux-omap@vger.kernel.org>; Wed, 6 May 2009 15:03:39 +0300
-In-Reply-To: <200904231416.37219.david-b@pacbell.net>
-Sender: linux-omap-owner@vger.kernel.org
+From: "Aggarwal, Anuj" <anuj.aggarwal@ti.com>
+Subject: Re: Beep sound in the end of audio file
+Date: Wed, 6 May 2009 19:30:03 +0530
+Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB030555A348@dbde02.ent.ti.com>
+References: <5A47E75E594F054BAF48C5E4FC4B92AB0305559FCC@dbde02.ent.ti.com>
+	<200905060833.10998.peter.ujfalusi@nokia.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <alsa-devel-bounces@alsa-project.org>
+In-Reply-To: <200905060833.10998.peter.ujfalusi@nokia.com>
+Content-Language: en-US
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Sender: alsa-devel-bounces@alsa-project.org
+Errors-To: alsa-devel-bounces@alsa-project.org
+To: Peter Ujfalusi <peter.ujfalusi@nokia.com>
+Cc: "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
 
-Check for return values of i2c read/write operations and size of scripts being
-uploaded to TWL4030
+> -----Original Message-----
+> From: Peter Ujfalusi [mailto:peter.ujfalusi@nokia.com]
+> Sent: Wednesday, May 06, 2009 11:03 AM
+> To: Aggarwal, Anuj
+> Cc: linux-omap@vger.kernel.org; alsa-devel@alsa-project.org
+> Subject: Re: Beep sound in the end of audio file
+> =
 
-(Removed the unrelated string changes based on David Brownell's comment)
+> Hello,
+> =
 
-Signed-off-by: Amit Kucheria <amit.kucheria@verdurent.com>
----
- drivers/mfd/twl4030-power.c |   52 +++++++++++++++++++++++++++++++-----------
- 1 files changed, 38 insertions(+), 14 deletions(-)
+> On Tuesday 05 May 2009 20:03:57 ext Aggarwal, Anuj wrote:
+> > Hi,
+> >
+> > After playing out any audio file on OMAP3 EVM, having TWL4030 codec,
+> > I am hearing a beep sound. I have also tried implementing a mute functi=
+on
+> > in which I disabled all the inputs/outputs but still that didn't help.
+> >
+> > Any idea how this can be avoided?
+> =
 
-diff --git a/drivers/mfd/twl4030-power.c b/drivers/mfd/twl4030-power.c
-index 9dc493b..8f5d149 100644
---- a/drivers/mfd/twl4030-power.c
-+++ b/drivers/mfd/twl4030-power.c
-@@ -257,36 +257,40 @@ static int __init config_warmreset_sequence(u8 address)
- 	return err;
- }
- 
--void twl4030_configure_resource(struct twl4030_resconfig *rconfig)
-+static int __init twl4030_configure_resource(struct twl4030_resconfig *rconfig)
- {
- 	int rconfig_addr;
-+	int err;
- 	u8 type;
- 
- 	if (rconfig->resource > NUM_OF_RESOURCES) {
- 		printk(KERN_ERR
- 			"TWL4030 Resource %d does not exist\n",
- 			rconfig->resource);
--		return;
-+		return -EINVAL;
- 	}
- 
- 	rconfig_addr = res_config_addrs[rconfig->resource];
- 
- 	/* Set resource group */
--
- 	if (rconfig->devgroup >= 0)
--		twl4030_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER,
-+		err = twl4030_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER,
- 					rconfig->devgroup << 5,
- 					rconfig_addr + DEVGROUP_OFFSET);
-+	if (err < 0) {
-+		printk(KERN_ERR
-+		       "TWL4030 failed to program devgroup");
-+		return err;
-+	}
- 
- 	/* Set resource types */
--
--	if (twl4030_i2c_read_u8(TWL4030_MODULE_PM_RECEIVER,
--					&type,
--					rconfig_addr + TYPE_OFFSET) < 0) {
-+	err = twl4030_i2c_read_u8(TWL4030_MODULE_PM_RECEIVER, &type,
-+				  rconfig_addr + TYPE_OFFSET);
-+	if (err < 0) {
- 		printk(KERN_ERR
--			"TWL4030 Resource %d type could not read\n",
--			rconfig->resource);
--		return;
-+		       "TWL4030 Resource %d type could not be read\n",
-+		       rconfig->resource);
-+		return err;
- 	}
- 
- 	if (rconfig->type >= 0) {
-@@ -299,8 +303,15 @@ void twl4030_configure_resource(struct twl4030_resconfig *rconfig)
- 		type |= rconfig->type2 << 3;
- 	}
- 
--	twl4030_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER,
-+	err = twl4030_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER,
- 				type, rconfig_addr + TYPE_OFFSET);
-+	if (err < 0) {
-+		printk(KERN_ERR
-+		       "TWL4030 failed to program resource type");
-+		return err;
-+	}
-+
-+	return 0;
- 
- }
- 
-@@ -309,6 +320,12 @@ static int __init load_triton_script(struct twl4030_script *tscript)
- 	u8 address = triton_next_free_address;
- 	int err;
- 
-+	/* Make sure the script isn't going beyond last valid address */
-+	if ((address + tscript->size) > (END_OF_SCRIPT-1)) {
-+		printk(KERN_ERR "TWL4030 script too big error\n");
-+		return -EINVAL;
-+	}
-+
- 	err = twl4030_write_script(address, tscript->script, tscript->size);
- 	if (err)
- 		return err;
-@@ -346,15 +363,22 @@ void __init twl4030_power_init(struct twl4030_power_data *triton2_scripts)
- 
- 	for (i = 0; i < triton2_scripts->size; i++) {
- 		err = load_triton_script(triton2_scripts->scripts[i]);
--		if (err)
-+		if (err < 0) {
-+			printk(KERN_ERR "TWL4030 failed to load scripts");
- 			break;
-+		}
- 	}
- 
- 	resconfig = triton2_scripts->resource_config;
- 	if (resconfig) {
- 		while (resconfig->resource) {
--			twl4030_configure_resource(resconfig);
-+			err = twl4030_configure_resource(resconfig);
- 			resconfig++;
-+			if (err < 0) {
-+				printk(KERN_ERR
-+				       "TWL4030 failed to configure resource");
-+				break;
-+			}
- 		}
- 	}
- 
--- 
-1.6.0.4
+> I have not heard from this kind of problem so far, which does not mean, t=
+hat
+> it does not exist ;)
+> Can you describe the beep sound?
+[Aggarwal, Anuj] It's kind of a "tuck" sound coming in the end, after 1 or =
+ 2 seconds.
+> =
 
+> After a quick look I can not pin point the soc board file used with the
+> omap3evm board. Is it in the tree?
+[Aggarwal, Anuj] No, it is not. Reason being we already have beagle & =
+
+sdp3430 there, which are both similar to omap3evm, which I pushed. =
+
+So mine got rejected. We had some discussions on how to handle this
+scenario but nothing got finalized.
+> =
+
+> Does the beep happens in these cases also (after stopping it with Ctrl+C):
+> aplay -f dat /dev/zero
+> aplay -f dat /dev/urandom
+[Aggarwal, Anuj] Yes, it comes in both the cases.
+> =
+
+> =
+
+> CC-ing alsa-devel...
+> =
+
+> >
+> > Thanks and Regards,
+> > Anuj Aggarwal
+> >
+> > Platform Support Products
+> > Texas Instruments Incorporated
+> =
+
+> =
+
+> --
+> P=E9ter
