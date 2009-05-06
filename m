@@ -1,157 +1,145 @@
-From: Thierry Reding <thierry.reding@avionic-design.de>
-Subject: Re: [PATCH] input: Add support for the TSC2003 controller.
-Date: Wed, 6 May 2009 13:13:36 +0200
-Message-ID: <20090506111336.GB14326@avionic-design.de>
-References: <1241006627-22811-1-git-send-email-thierry.reding@avionic-design.de> <5d5443650904290623n3712cd7dja653a139cff2cf6d@mail.gmail.com> <483a38b80904291835p51044741p9bd83d33a40031c@mail.gmail.com> <20090504113751.GA22603@avionic-design.de> <5d5443650905040503n501e3b47qc890dc4c71a85b1c@mail.gmail.com> <20090504145700.GA875@avionic-design.de> <483a38b80905052125r76358182g7ce6b890c921b655@mail.gmail.com> <20090506064529.GA14326@avionic-design.de> <483a38b80905052354m221ddc03tcbe9d35ee902b467@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="k1lZvvs/B4yU6o8G"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-input-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <483a38b80905052354m221ddc03tcbe9d35ee902b467@mail.gmail.com>
-Sender: linux-input-owner@vger.kernel.org
-To: Kwangwoo Lee <kwangwoo.lee@gmail.com>
-Cc: Trilok Soni <soni.trilok@gmail.com>, linux-input@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+From: Amit Kucheria <amit.kucheria@verdurent.com>
+Subject: [PATCH] [PATCH] twl4030: Add some error checking to twl4030 init
+Date: Wed,  6 May 2009 15:03:38 +0300
+Message-ID: <1241611418-19730-1-git-send-email-amit.kucheria@verdurent.com>
+References: <200904231416.37219.david-b@pacbell.net>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from smtp.nokia.com ([192.100.122.233]:61651 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751889AbZEFMD4 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 6 May 2009 08:03:56 -0400
+Received: from esebh106.NOE.Nokia.com (esebh106.ntc.nokia.com [172.21.138.213])
+	by mgw-mx06.nokia.com (Switch-3.2.6/Switch-3.2.6) with ESMTP id n46C3iTn026537
+	for <linux-omap@vger.kernel.org>; Wed, 6 May 2009 15:03:50 +0300
+Received: from localhost.localdomain (esdhcp041167.research.nokia.com [172.21.41.167])
+	by mgw-int02.ntc.nokia.com (Switch-3.2.5/Switch-3.2.5) with ESMTP id n46C3clO011754
+	for <linux-omap@vger.kernel.org>; Wed, 6 May 2009 15:03:39 +0300
+In-Reply-To: <200904231416.37219.david-b@pacbell.net>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
 
+Check for return values of i2c read/write operations and size of scripts being
+uploaded to TWL4030
 
---k1lZvvs/B4yU6o8G
-Content-Type: text/plain; charset=utf8
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+(Removed the unrelated string changes based on David Brownell's comment)
 
-* Kwangwoo Lee wrote:
-> On Wed, May 6, 2009 at 3:45 PM, Thierry Reding
-> <thierry.reding@avionic-design.de> wrote:
-> > * Kwangwoo Lee wrote:
-> > [...]
-> >> Thanks for the patch. It looks good. :)
-> >> The code in the patch is already merged in the main kernel tree.
-> >>
-> >> @@ -235,7 +245,7 @@ static irqreturn_t tsc2007_irq(int irq, void *ha=
-ndle)
-> >> =C2=A0 =C2=A0 =C2=A0 spin_lock_irqsave(&ts->lock, flags);
-> >>
-> >> =C2=A0 =C2=A0 =C2=A0 if (likely(ts->get_pendown_state())) {
-> >> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 disable_irq(ts->irq);
-> >> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 disable_irq_nosync(ts->i=
-rq);
-> >> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 hrtimer_start(&ts->=
-timer, ktime_set(0, TS_POLL_DELAY),
-> >> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
- =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 HRTIMER_M=
-ODE_REL);
-> >> =C2=A0 =C2=A0 =C2=A0 }
-> >
-> > Oh, I hadn't noticed. I diffed against 2.6.30-rc4. Do you want me to =
-send a
-> > new patch or will you just rip that piece out?
->=20
-> Send fixed patch with your Signed-off-by line.
-
-Attached is the previous patch with said change removed.
-
-Thierry
-
-
---k1lZvvs/B4yU6o8G
-Content-Type: text/x-diff; charset=us-ascii
-Content-Disposition: inline; filename="tsc2007.patch"
-Content-Transfer-Encoding: quoted-printable
-
-=46rom: Thierry Reding <thierry.reding@avionic-design.de>
-Subject: [PATCH] tsc2007: Fix for I2C controllers that sleep during transfe=
-rs.
-
-This patch fixes the tsc2007 driver with I2C controllers that sleep during
-transfers. By moving the critical code to a workqueue, I2C transfers can be
-scheduled to run in non-interrupt context.
-
-Signed-off-by: Thierry Reding <thierry.reding@avionic-design.de>
-
+Signed-off-by: Amit Kucheria <amit.kucheria@verdurent.com>
 ---
- drivers/input/touchscreen/tsc2007.c |   23 +++++++++++++++++------
- 1 files changed, 17 insertions(+), 6 deletions(-)
+ drivers/mfd/twl4030-power.c |   52 +++++++++++++++++++++++++++++++-----------
+ 1 files changed, 38 insertions(+), 14 deletions(-)
 
-diff --git a/drivers/input/touchscreen/tsc2007.c b/drivers/input/touchscree=
-n/tsc2007.c
-index 4ab0702..2939355 100644
---- a/drivers/input/touchscreen/tsc2007.c
-+++ b/drivers/input/touchscreen/tsc2007.c
-@@ -70,6 +70,7 @@ struct ts_event {
- struct tsc2007 {
- 	struct input_dev	*input;
- 	char			phys[32];
-+	struct work_struct	work;
- 	struct hrtimer		timer;
- 	struct ts_event		tc;
-=20
-@@ -173,6 +174,9 @@ static void tsc2007_send_event(void *tsc)
-=20
- 		dev_dbg(&ts->client->dev, "point(%4d,%4d), pressure (%4u)\n",
- 			x, y, rt);
-+	} else {
-+		if (!ts->pendown)
-+			ts->pendown =3D 1;
- 	}
-=20
- 	hrtimer_start(&ts->timer, ktime_set(0, TS_POLL_PERIOD),
-@@ -197,11 +201,19 @@ static int tsc2007_read_values(struct tsc2007 *tsc)
- 	return 0;
+diff --git a/drivers/mfd/twl4030-power.c b/drivers/mfd/twl4030-power.c
+index 9dc493b..8f5d149 100644
+--- a/drivers/mfd/twl4030-power.c
++++ b/drivers/mfd/twl4030-power.c
+@@ -257,36 +257,40 @@ static int __init config_warmreset_sequence(u8 address)
+ 	return err;
  }
-=20
-+static void tsc2007_work(struct work_struct *work)
-+{
-+	struct tsc2007 *ts =3D container_of(work, struct tsc2007, work);
-+	tsc2007_read_values(ts);
-+	tsc2007_send_event(ts);
-+}
-+
- static enum hrtimer_restart tsc2007_timer(struct hrtimer *handle)
+ 
+-void twl4030_configure_resource(struct twl4030_resconfig *rconfig)
++static int __init twl4030_configure_resource(struct twl4030_resconfig *rconfig)
  {
- 	struct tsc2007 *ts =3D container_of(handle, struct tsc2007, timer);
-+	unsigned long flags =3D 0;
-=20
--	spin_lock_irq(&ts->lock);
-+	spin_lock_irqsave(&ts->lock, flags);
-=20
- 	if (unlikely(!ts->get_pendown_state() && ts->pendown)) {
- 		struct input_dev *input =3D ts->input;
-@@ -217,12 +229,10 @@ static enum hrtimer_restart tsc2007_timer(struct hrti=
-mer *handle)
- 	} else {
- 		/* pen is still down, continue with the measurement */
- 		dev_dbg(&ts->client->dev, "pen is still down\n");
+ 	int rconfig_addr;
++	int err;
+ 	u8 type;
+ 
+ 	if (rconfig->resource > NUM_OF_RESOURCES) {
+ 		printk(KERN_ERR
+ 			"TWL4030 Resource %d does not exist\n",
+ 			rconfig->resource);
+-		return;
++		return -EINVAL;
+ 	}
+ 
+ 	rconfig_addr = res_config_addrs[rconfig->resource];
+ 
+ 	/* Set resource group */
 -
--		tsc2007_read_values(ts);
--		tsc2007_send_event(ts);
-+		schedule_work(&ts->work);
+ 	if (rconfig->devgroup >= 0)
+-		twl4030_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER,
++		err = twl4030_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER,
+ 					rconfig->devgroup << 5,
+ 					rconfig_addr + DEVGROUP_OFFSET);
++	if (err < 0) {
++		printk(KERN_ERR
++		       "TWL4030 failed to program devgroup");
++		return err;
++	}
+ 
+ 	/* Set resource types */
+-
+-	if (twl4030_i2c_read_u8(TWL4030_MODULE_PM_RECEIVER,
+-					&type,
+-					rconfig_addr + TYPE_OFFSET) < 0) {
++	err = twl4030_i2c_read_u8(TWL4030_MODULE_PM_RECEIVER, &type,
++				  rconfig_addr + TYPE_OFFSET);
++	if (err < 0) {
+ 		printk(KERN_ERR
+-			"TWL4030 Resource %d type could not read\n",
+-			rconfig->resource);
+-		return;
++		       "TWL4030 Resource %d type could not be read\n",
++		       rconfig->resource);
++		return err;
  	}
-=20
--	spin_unlock_irq(&ts->lock);
-+	spin_unlock_irqrestore(&ts->lock, flags);
-=20
- 	return HRTIMER_NORESTART;
+ 
+ 	if (rconfig->type >= 0) {
+@@ -299,8 +303,15 @@ void twl4030_configure_resource(struct twl4030_resconfig *rconfig)
+ 		type |= rconfig->type2 << 3;
+ 	}
+ 
+-	twl4030_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER,
++	err = twl4030_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER,
+ 				type, rconfig_addr + TYPE_OFFSET);
++	if (err < 0) {
++		printk(KERN_ERR
++		       "TWL4030 failed to program resource type");
++		return err;
++	}
++
++	return 0;
+ 
  }
-@@ -252,7 +262,7 @@ static int tsc2007_probe(struct i2c_client *client,
- 			const struct i2c_device_id *id)
- {
- 	struct tsc2007 *ts;
--	struct tsc2007_platform_data *pdata =3D pdata =3D client->dev.platform_da=
-ta;
-+	struct tsc2007_platform_data *pdata =3D client->dev.platform_data;
- 	struct input_dev *input_dev;
+ 
+@@ -309,6 +320,12 @@ static int __init load_triton_script(struct twl4030_script *tscript)
+ 	u8 address = triton_next_free_address;
  	int err;
-=20
-@@ -279,6 +289,7 @@ static int tsc2007_probe(struct i2c_client *client,
-=20
- 	hrtimer_init(&ts->timer, CLOCK_MONOTONIC, HRTIMER_MODE_REL);
- 	ts->timer.function =3D tsc2007_timer;
-+	INIT_WORK(&ts->work, tsc2007_work);
-=20
- 	spin_lock_init(&ts->lock);
-=20
---=20
-tg: (091438d..) adx/input/tsc2007 (depends on: adx/master)
+ 
++	/* Make sure the script isn't going beyond last valid address */
++	if ((address + tscript->size) > (END_OF_SCRIPT-1)) {
++		printk(KERN_ERR "TWL4030 script too big error\n");
++		return -EINVAL;
++	}
++
+ 	err = twl4030_write_script(address, tscript->script, tscript->size);
+ 	if (err)
+ 		return err;
+@@ -346,15 +363,22 @@ void __init twl4030_power_init(struct twl4030_power_data *triton2_scripts)
+ 
+ 	for (i = 0; i < triton2_scripts->size; i++) {
+ 		err = load_triton_script(triton2_scripts->scripts[i]);
+-		if (err)
++		if (err < 0) {
++			printk(KERN_ERR "TWL4030 failed to load scripts");
+ 			break;
++		}
+ 	}
+ 
+ 	resconfig = triton2_scripts->resource_config;
+ 	if (resconfig) {
+ 		while (resconfig->resource) {
+-			twl4030_configure_resource(resconfig);
++			err = twl4030_configure_resource(resconfig);
+ 			resconfig++;
++			if (err < 0) {
++				printk(KERN_ERR
++				       "TWL4030 failed to configure resource");
++				break;
++			}
+ 		}
+ 	}
+ 
+-- 
+1.6.0.4
 
---k1lZvvs/B4yU6o8G--
