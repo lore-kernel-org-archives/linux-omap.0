@@ -1,59 +1,95 @@
-From: Kwangwoo Lee <kwangwoo.lee@gmail.com>
-Subject: Re: [PATCH] input: Add support for the TSC2003 controller.
-Date: Wed, 6 May 2009 15:54:20 +0900
-Message-ID: <483a38b80905052354m221ddc03tcbe9d35ee902b467@mail.gmail.com>
-References: <1241006627-22811-1-git-send-email-thierry.reding@avionic-design.de>
-	 <5d5443650904290623n3712cd7dja653a139cff2cf6d@mail.gmail.com>
-	 <483a38b80904291835p51044741p9bd83d33a40031c@mail.gmail.com>
-	 <20090504113751.GA22603@avionic-design.de>
-	 <5d5443650905040503n501e3b47qc890dc4c71a85b1c@mail.gmail.com>
-	 <20090504145700.GA875@avionic-design.de>
-	 <483a38b80905052125r76358182g7ce6b890c921b655@mail.gmail.com>
-	 <20090506064529.GA14326@avionic-design.de>
+From: "Gadiyar, Anand" <gadiyar@ti.com>
+Subject: RE: [PATCH] OMAP: HSMMC: Do not enable buffer ready interrupt if
+	using DMA
+Date: Wed, 6 May 2009 13:31:29 +0530
+Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB030555A1A2@dbde02.ent.ti.com>
+References: <20090505095721.GA12287@angel.research.nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from wf-out-1314.google.com ([209.85.200.169]:36451 "EHLO
-	wf-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750789AbZEFGyU convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 6 May 2009 02:54:20 -0400
-In-Reply-To: <20090506064529.GA14326@avionic-design.de>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:59184 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757567AbZEFIBv convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 6 May 2009 04:01:51 -0400
+In-Reply-To: <20090505095721.GA12287@angel.research.nokia.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Thierry Reding <thierry.reding@avionic-design.de>
-Cc: Trilok Soni <soni.trilok@gmail.com>, linux-input@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+To: Jarkko Lavinen <jarkko.lavinen@nokia.com>
+Cc: "pierre@ossman.eu" <pierre@ossman.eu>, Tony Lindgren <tony@atomide.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Wed, May 6, 2009 at 3:45 PM, Thierry Reding
-<thierry.reding@avionic-design.de> wrote:
-> * Kwangwoo Lee wrote:
-> [...]
->> Thanks for the patch. It looks good. :)
->> The code in the patch is already merged in the main kernel tree.
->>
->> @@ -235,7 +245,7 @@ static irqreturn_t tsc2007_irq(int irq, void *ha=
-ndle)
->> =A0 =A0 =A0 spin_lock_irqsave(&ts->lock, flags);
->>
->> =A0 =A0 =A0 if (likely(ts->get_pendown_state())) {
->> - =A0 =A0 =A0 =A0 =A0 =A0 disable_irq(ts->irq);
->> + =A0 =A0 =A0 =A0 =A0 =A0 disable_irq_nosync(ts->irq);
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 hrtimer_start(&ts->timer, ktime_set(0, T=
-S_POLL_DELAY),
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
-=A0 =A0 HRTIMER_MODE_REL);
->> =A0 =A0 =A0 }
->
-> Oh, I hadn't noticed. I diffed against 2.6.30-rc4. Do you want me to =
-send a
-> new patch or will you just rip that piece out?
+On Tue, May 5, 2009, Jarkko Lavinen wrote: 
+> On Tue, Apr 21, 2009 at 09:39:22AM +0200, ext Gadiyar, Anand wrote:
+> > From: Anand Gadiyar <gadiyar@ti.com>
+> > 
+> > OMAP: HSMMC: Do not enable buffer ready interrupt if using DMA
+> > 
+> > This considerably reduces the number of interrupts during a transfer
+> > and ought to result in some power saving.
+> 
+> I tried the patch with reading from the raw mmc block device to
+> /dev/null with dd (with bs 32k and 1M).  I cannot see any
+> difference in interrupt count from /proc/interrupts or in read
+> speed. At least the patch works. Cpu was 34340es3.
+> 
+> I also trid without the patch just disabling the Buffer
+> Read/write Ready bits from INT_EN_MASK which is then written to
+> both MMCHS_IE and MMCHS_ISE.  Still no change in read speed nor
+> mmc irq count.
+> 
+> Cheers
+> Jarkko Lavinen
 
-Send fixed patch with your Signed-off-by line.
+I discovered this while doing MMC writes. I did not check if there
+was any difference during a read. I notice you have only tested with
+MMC reads.
 
---=20
-Kwangwoo Lee <kwangwoo.lee@gmail.com>
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Here's what I get with and without the patch.
+
+- Anand
+
+Without patch
+/ # mount -t vfat /dev/mmcblk0 /mnt/mmc
+/ # cat /proc/interrupts | grep mmc
+ 83:         90        INTC  mmc0
+384:          1     twl4030  mmc0
+/ # dd if=/dev/zero of=/mnt/mmc/32kbs.txt bs=32k count=1000
+1000+0 records in
+1000+0 records out
+/ # cat /proc/interrupts | grep mmc
+ 83:       3760        INTC  mmc0
+384:          1     twl4030  mmc0
+/ # dd if=/dev/zero of=/mnt/mmc/1Mbs.txt bs=1M count=32
+32+0 records in
+32+0 records out
+/ # cat /proc/interrupts | grep mmc
+ 83:       7570        INTC  mmc0
+384:          1     twl4030  mmc0
+/ # ls -l /mnt/mmc
+-rwxr-xr-x    1 root     root     33554432 Dec 31 18:03 1Mbs.txt
+-rwxr-xr-x    1 root     root     32768000 Dec 31 18:03 32kbs.txt
+/ # umount /mnt/mmc
+
+
+With patch
+/ # mount -t vfat /dev/mmcblk0 /mnt/mmc
+/ # cat /proc/interrupts | grep mmc
+ 83:         67        INTC  mmc0
+384:          0     twl4030  mmc0
+/ # dd if=/dev/zero of=/mnt/mmc/32kbs.txt bs=32k count=1000
+1000+0 records in
+1000+0 records out
+/ # cat /proc/interrupts | grep mmc
+ 83:       3103        INTC  mmc0
+384:          0     twl4030  mmc0
+/ # dd if=/dev/zero of=/mnt/mmc/1Mbs.txt bs=1M count=32
+32+0 records in
+32+0 records out
+/ # cat /proc/interrupts | grep mmc
+ 83:       6170        INTC  mmc0
+384:          0     twl4030  mmc0
+/ # ls -l /mnt/mmc
+-rwxr-xr-x    1 root     root     33554432 Dec 31 18:01 1Mbs.txt
+-rwxr-xr-x    1 root     root     32768000 Dec 31 18:00 32kbs.txt
+/ # umount /mnt/mmc
