@@ -1,91 +1,52 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: [PATCH] OMAP clock: GPIO de-bounce clocks don't affect module idle
- state
-Date: Tue, 5 May 2009 16:55:14 -0600 (MDT)
-Message-ID: <alpine.DEB.2.00.0905051654160.17514@utopia.booyaka.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: LDP support
+Date: Tue, 5 May 2009 21:00:16 -0700
+Message-ID: <20090506040015.GM5593@atomide.com>
+References: <20090428220712.GF29277@n2100.arm.linux.org.uk> <20090428224237.GT22457@atomide.com> <20090505195231.GB8004@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:32991 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752021AbZEEWzP (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 5 May 2009 18:55:15 -0400
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:63033 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750702AbZEFEAY (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 6 May 2009 00:00:24 -0400
+Content-Disposition: inline
+In-Reply-To: <20090505195231.GB8004@n2100.arm.linux.org.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: khilman@deeprootsystems.com
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: linux-omap@vger.kernel.org, Imre Deak <imre.deak@nokia.com>, Tomi Valkeinen <tomi.valkeinen@nokia.com>
 
+* Russell King - ARM Linux <linux@arm.linux.org.uk> [090505 12:52]:
+> On Tue, Apr 28, 2009 at 03:42:37PM -0700, Tony Lindgren wrote:
+> > * Russell King - ARM Linux <linux@arm.linux.org.uk> [090428 15:07]:
+> > > Tony, et.al.,
+> > > 
+> > > Any ideas when more LDP support will be pushed into mainline (such as
+> > > the framebuffer support)?
+> > 
+> > I'll be looking at the board-*.c patches for the next merge window
+> > hopefully this week or next week.
+> > 
+> > Looks like LDP keyboard, touchscreen & RTC are pretty much ready
+> > to go. Then the MMC has some regulator updates, but AFAIK the MMC
+> > should work OK already.
+> > 
+> > For the framebuffer, Imre and Tomi know the status the best, so
+> > I've added them to Cc.
+> > 
+> > Imre has been meaning to send a bunch of drivers/video/omap changes
+> > to the fbdev list for a while now and LDP framebuffer may depend on
+> > those. Imre, any news on the status of sending the fb patches
+> > upstream?
+> > 
+> > Then there are the upcoming DSS patches from Tomi, but those still
+> > need some work before they're ready to go.
+> 
+> Is there any news on this?  Will we see more functional OMAP3 / LDP
+> support queued for the next merge window?
 
-GPIO de-bounce clocks don't have any impact on the module idle state, so
-the clock code should not wait for the module to enable after the de-bounce
-clocks are enabled.
+Yes fro the stuff listed above, but still no news on the framebuffer
+patches. Imre?
 
-Problem found by Kevin Hilman <khilman@deeprootsystems.com>.
-
-Signed-off-by: Paul Walmsley <paul@pwsan.com>
-Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
----
- arch/arm/mach-omap2/clock34xx.h |   12 ++++++------
- 1 files changed, 6 insertions(+), 6 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/clock34xx.h b/arch/arm/mach-omap2/clock34xx.h
-index 6763b8f..017a30e 100644
---- a/arch/arm/mach-omap2/clock34xx.h
-+++ b/arch/arm/mach-omap2/clock34xx.h
-@@ -2182,7 +2182,7 @@ static struct clk wkup_32k_fck = {
- 
- static struct clk gpio1_dbck = {
- 	.name		= "gpio1_dbck",
--	.ops		= &clkops_omap2_dflt_wait,
-+	.ops		= &clkops_omap2_dflt,
- 	.parent		= &wkup_32k_fck,
- 	.enable_reg	= OMAP_CM_REGADDR(WKUP_MOD, CM_FCLKEN),
- 	.enable_bit	= OMAP3430_EN_GPIO1_SHIFT,
-@@ -2427,7 +2427,7 @@ static struct clk per_32k_alwon_fck = {
- 
- static struct clk gpio6_dbck = {
- 	.name		= "gpio6_dbck",
--	.ops		= &clkops_omap2_dflt_wait,
-+	.ops		= &clkops_omap2_dflt,
- 	.parent		= &per_32k_alwon_fck,
- 	.enable_reg	= OMAP_CM_REGADDR(OMAP3430_PER_MOD, CM_FCLKEN),
- 	.enable_bit	= OMAP3430_EN_GPIO6_SHIFT,
-@@ -2437,7 +2437,7 @@ static struct clk gpio6_dbck = {
- 
- static struct clk gpio5_dbck = {
- 	.name		= "gpio5_dbck",
--	.ops		= &clkops_omap2_dflt_wait,
-+	.ops		= &clkops_omap2_dflt,
- 	.parent		= &per_32k_alwon_fck,
- 	.enable_reg	= OMAP_CM_REGADDR(OMAP3430_PER_MOD, CM_FCLKEN),
- 	.enable_bit	= OMAP3430_EN_GPIO5_SHIFT,
-@@ -2447,7 +2447,7 @@ static struct clk gpio5_dbck = {
- 
- static struct clk gpio4_dbck = {
- 	.name		= "gpio4_dbck",
--	.ops		= &clkops_omap2_dflt_wait,
-+	.ops		= &clkops_omap2_dflt,
- 	.parent		= &per_32k_alwon_fck,
- 	.enable_reg	= OMAP_CM_REGADDR(OMAP3430_PER_MOD, CM_FCLKEN),
- 	.enable_bit	= OMAP3430_EN_GPIO4_SHIFT,
-@@ -2457,7 +2457,7 @@ static struct clk gpio4_dbck = {
- 
- static struct clk gpio3_dbck = {
- 	.name		= "gpio3_dbck",
--	.ops		= &clkops_omap2_dflt_wait,
-+	.ops		= &clkops_omap2_dflt,
- 	.parent		= &per_32k_alwon_fck,
- 	.enable_reg	= OMAP_CM_REGADDR(OMAP3430_PER_MOD, CM_FCLKEN),
- 	.enable_bit	= OMAP3430_EN_GPIO3_SHIFT,
-@@ -2467,7 +2467,7 @@ static struct clk gpio3_dbck = {
- 
- static struct clk gpio2_dbck = {
- 	.name		= "gpio2_dbck",
--	.ops		= &clkops_omap2_dflt_wait,
-+	.ops		= &clkops_omap2_dflt,
- 	.parent		= &per_32k_alwon_fck,
- 	.enable_reg	= OMAP_CM_REGADDR(OMAP3430_PER_MOD, CM_FCLKEN),
- 	.enable_bit	= OMAP3430_EN_GPIO2_SHIFT,
--- 
-1.6.3.rc1.51.gea0b7
-
+Tony
