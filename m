@@ -1,79 +1,63 @@
-From: Kwangwoo Lee <kwangwoo.lee@gmail.com>
-Subject: Re: [PATCH] input: Add support for the TSC2003 controller.
-Date: Wed, 6 May 2009 13:28:14 +0900
-Message-ID: <483a38b80905052128s33c39403r996ca35e09eeabc4@mail.gmail.com>
-References: <1241006627-22811-1-git-send-email-thierry.reding@avionic-design.de>
-	 <5d5443650904290623n3712cd7dja653a139cff2cf6d@mail.gmail.com>
-	 <483a38b80904291835p51044741p9bd83d33a40031c@mail.gmail.com>
-	 <20090504113751.GA22603@avionic-design.de>
-	 <5d5443650905040503n501e3b47qc890dc4c71a85b1c@mail.gmail.com>
-	 <20090504145700.GA875@avionic-design.de>
-	 <5d5443650905041021n1f709ce1y382440d1285b09ec@mail.gmail.com>
+From: Peter Ujfalusi <peter.ujfalusi@nokia.com>
+Subject: Re: Beep sound in the end of audio file
+Date: Wed, 6 May 2009 08:33:10 +0300
+Message-ID: <200905060833.10998.peter.ujfalusi@nokia.com>
+References: <5A47E75E594F054BAF48C5E4FC4B92AB0305559FCC@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-input-owner@vger.kernel.org>
-In-Reply-To: <5d5443650905041021n1f709ce1y382440d1285b09ec@mail.gmail.com>
-Sender: linux-input-owner@vger.kernel.org
-To: Trilok Soni <soni.trilok@gmail.com>
-Cc: Thierry Reding <thierry.reding@avionic-design.de>, linux-input@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <alsa-devel-bounces@alsa-project.org>
+In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB0305559FCC@dbde02.ent.ti.com>
+Content-Disposition: inline
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Sender: alsa-devel-bounces@alsa-project.org
+Errors-To: alsa-devel-bounces@alsa-project.org
+To: "ext Aggarwal, Anuj" <anuj.aggarwal@ti.com>
+Cc: alsa-devel@alsa-project.org, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
+Hello,
 
-On Tue, May 5, 2009 at 2:21 AM, Trilok Soni <soni.trilok@gmail.com> wrote:
-> Hi Therry,
+On Tuesday 05 May 2009 20:03:57 ext Aggarwal, Anuj wrote:
+> Hi,
 >
-> On Mon, May 4, 2009 at 8:27 PM, Thierry Reding
-> <thierry.reding@avionic-design.de> wrote:
->> * Trilok Soni wrote:
->>> Hi Thierry,
->>>
->>> On Mon, May 4, 2009 at 5:07 PM, Thierry Reding
->>> <thierry.reding@avionic-design.de> wrote:
->>> > * Kwangwoo Lee wrote:
->>> >> Hi Thierry and Trilok,
->>> >>
->>> >> On Wed, Apr 29, 2009 at 10:23 PM, Trilok Soni <soni.trilok@gmail.com> wrote:
->>> >> > Hi Thierry,
->>> >> >
->>> >> > I have added linux-omap community. How different is this chip from
->>> >> > tsc2007. It looks to me that this chip is not much different from
->>> >> > tsc2007 (this is just quick look at the driver). If they
->>> >> > are similar please consider using i2c_device_id feature in tsc2007 to
->>> >> > accommodate this chip.
->>> >>
->>> >> I agree with the Trilok's opinion.
->>> > [snip]
->>> >
->>> > I only noticed the tsc2007 driver some time ago, when the tsc2003 was already
->>> > finished (it's actually pretty old, I just never got around to submitting
->>> > it). However I never got the tsc2007 to work on my platform because it uses
->>> > sleeping functions inside the timer handler, which results in an oops right
->>> > after the first touchscreen interrupt.
->>> >
->>> > I guess I could try and fix the tsc2007 properly instead of having a second,
->>> > pretty similar driver in the tree.
->>> >
->>>
->>> This could be because of improper locking? If you share a crash we can
->>> have look at it.
->>
->> Attached is a patch that fixes things for me. The problem was that the I2C
->> transfers were done in interrupt context which fails for the controller I use
->> (PXA270). The attached patch uses a struct work_struct to schedule the I2C
->> transfers so they are executed in non-interrupt context.
->>
->> I've tested the patch on a minimal system with tslib and it work fine with
->> ts_calibrate and friends.
+> After playing out any audio file on OMAP3 EVM, having TWL4030 codec,
+> I am hearing a beep sound. I have also tried implementing a mute function
+> in which I disabled all the inputs/outputs but still that didn't help.
 >
-> Thanks for the patch. It looks good. Let's wait for Kwangwoo Lee to
-> verify it on his platform. Also please add "tsc2003" entry into
-> i2c_device_ids so that i2c_board_info can specify the .name as
-> "tsc2003".
+> Any idea how this can be avoided?
 
-I tested the patch in my platform with tslib. And it looks good.
-Thanks,
+I have not heard from this kind of problem so far, which does not mean, tha=
+t =
 
--- 
-Kwangwoo Lee <kwangwoo.lee@gmail.com>
+it does not exist ;)
+Can you describe the beep sound?
+
+After a quick look I can not pin point the soc board file used with the =
+
+omap3evm board. Is it in the tree?
+
+Does the beep happens in these cases also (after stopping it with Ctrl+C):
+aplay -f dat /dev/zero
+aplay -f dat /dev/urandom
+
+
+CC-ing alsa-devel...
+
+>
+> Thanks and Regards,
+> Anuj Aggarwal
+>
+> Platform Support Products
+> Texas Instruments Incorporated
+
+
+-- =
+
+P=E9ter
