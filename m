@@ -1,84 +1,79 @@
 From: Kwangwoo Lee <kwangwoo.lee@gmail.com>
 Subject: Re: [PATCH] input: Add support for the TSC2003 controller.
-Date: Wed, 6 May 2009 13:25:23 +0900
-Message-ID: <483a38b80905052125r76358182g7ce6b890c921b655@mail.gmail.com>
+Date: Wed, 6 May 2009 13:28:14 +0900
+Message-ID: <483a38b80905052128s33c39403r996ca35e09eeabc4@mail.gmail.com>
 References: <1241006627-22811-1-git-send-email-thierry.reding@avionic-design.de>
 	 <5d5443650904290623n3712cd7dja653a139cff2cf6d@mail.gmail.com>
 	 <483a38b80904291835p51044741p9bd83d33a40031c@mail.gmail.com>
 	 <20090504113751.GA22603@avionic-design.de>
 	 <5d5443650905040503n501e3b47qc890dc4c71a85b1c@mail.gmail.com>
 	 <20090504145700.GA875@avionic-design.de>
+	 <5d5443650905041021n1f709ce1y382440d1285b09ec@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-input-owner@vger.kernel.org>
-In-Reply-To: <20090504145700.GA875@avionic-design.de>
+In-Reply-To: <5d5443650905041021n1f709ce1y382440d1285b09ec@mail.gmail.com>
 Sender: linux-input-owner@vger.kernel.org
-To: Thierry Reding <thierry.reding@avionic-design.de>
-Cc: Trilok Soni <soni.trilok@gmail.com>, linux-input@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+To: Trilok Soni <soni.trilok@gmail.com>
+Cc: Thierry Reding <thierry.reding@avionic-design.de>, linux-input@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi Thierry,
+Hi,
 
-On Mon, May 4, 2009 at 11:57 PM, Thierry Reding
-<thierry.reding@avionic-design.de> wrote:
-> * Trilok Soni wrote:
->> Hi Thierry,
->>
->> On Mon, May 4, 2009 at 5:07 PM, Thierry Reding
->> <thierry.reding@avionic-design.de> wrote:
->> > * Kwangwoo Lee wrote:
->> >> Hi Thierry and Trilok,
->> >>
->> >> On Wed, Apr 29, 2009 at 10:23 PM, Trilok Soni <soni.trilok@gmail.com> wrote:
->> >> > Hi Thierry,
->> >> >
->> >> > I have added linux-omap community. How different is this chip from
->> >> > tsc2007. It looks to me that this chip is not much different from
->> >> > tsc2007 (this is just quick look at the driver). If they
->> >> > are similar please consider using i2c_device_id feature in tsc2007 to
->> >> > accommodate this chip.
->> >>
->> >> I agree with the Trilok's opinion.
->> > [snip]
->> >
->> > I only noticed the tsc2007 driver some time ago, when the tsc2003 was already
->> > finished (it's actually pretty old, I just never got around to submitting
->> > it). However I never got the tsc2007 to work on my platform because it uses
->> > sleeping functions inside the timer handler, which results in an oops right
->> > after the first touchscreen interrupt.
->> >
->> > I guess I could try and fix the tsc2007 properly instead of having a second,
->> > pretty similar driver in the tree.
->> >
->>
->> This could be because of improper locking? If you share a crash we can
->> have look at it.
+On Tue, May 5, 2009 at 2:21 AM, Trilok Soni <soni.trilok@gmail.com> wrote:
+> Hi Therry,
 >
-> Attached is a patch that fixes things for me. The problem was that the I2C
-> transfers were done in interrupt context which fails for the controller I use
-> (PXA270). The attached patch uses a struct work_struct to schedule the I2C
-> transfers so they are executed in non-interrupt context.
-
-Thanks for the patch. It looks good. :)
-The code in the patch is already merged in the main kernel tree.
-
-@@ -235,7 +245,7 @@ static irqreturn_t tsc2007_irq(int irq, void *handle)
- 	spin_lock_irqsave(&ts->lock, flags);
-
- 	if (likely(ts->get_pendown_state())) {
--		disable_irq(ts->irq);
-+		disable_irq_nosync(ts->irq);
- 		hrtimer_start(&ts->timer, ktime_set(0, TS_POLL_DELAY),
- 					HRTIMER_MODE_REL);
- 	}
-
-Thanks.
-
-> I've tested the patch on a minimal system with tslib and it work fine with
-> ts_calibrate and friends.
+> On Mon, May 4, 2009 at 8:27 PM, Thierry Reding
+> <thierry.reding@avionic-design.de> wrote:
+>> * Trilok Soni wrote:
+>>> Hi Thierry,
+>>>
+>>> On Mon, May 4, 2009 at 5:07 PM, Thierry Reding
+>>> <thierry.reding@avionic-design.de> wrote:
+>>> > * Kwangwoo Lee wrote:
+>>> >> Hi Thierry and Trilok,
+>>> >>
+>>> >> On Wed, Apr 29, 2009 at 10:23 PM, Trilok Soni <soni.trilok@gmail.com> wrote:
+>>> >> > Hi Thierry,
+>>> >> >
+>>> >> > I have added linux-omap community. How different is this chip from
+>>> >> > tsc2007. It looks to me that this chip is not much different from
+>>> >> > tsc2007 (this is just quick look at the driver). If they
+>>> >> > are similar please consider using i2c_device_id feature in tsc2007 to
+>>> >> > accommodate this chip.
+>>> >>
+>>> >> I agree with the Trilok's opinion.
+>>> > [snip]
+>>> >
+>>> > I only noticed the tsc2007 driver some time ago, when the tsc2003 was already
+>>> > finished (it's actually pretty old, I just never got around to submitting
+>>> > it). However I never got the tsc2007 to work on my platform because it uses
+>>> > sleeping functions inside the timer handler, which results in an oops right
+>>> > after the first touchscreen interrupt.
+>>> >
+>>> > I guess I could try and fix the tsc2007 properly instead of having a second,
+>>> > pretty similar driver in the tree.
+>>> >
+>>>
+>>> This could be because of improper locking? If you share a crash we can
+>>> have look at it.
+>>
+>> Attached is a patch that fixes things for me. The problem was that the I2C
+>> transfers were done in interrupt context which fails for the controller I use
+>> (PXA270). The attached patch uses a struct work_struct to schedule the I2C
+>> transfers so they are executed in non-interrupt context.
+>>
+>> I've tested the patch on a minimal system with tslib and it work fine with
+>> ts_calibrate and friends.
 >
-> Thierry
+> Thanks for the patch. It looks good. Let's wait for Kwangwoo Lee to
+> verify it on his platform. Also please add "tsc2003" entry into
+> i2c_device_ids so that i2c_board_info can specify the .name as
+> "tsc2003".
+
+I tested the patch in my platform with tslib. And it looks good.
+Thanks,
 
 -- 
 Kwangwoo Lee <kwangwoo.lee@gmail.com>
