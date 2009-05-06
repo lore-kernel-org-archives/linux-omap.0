@@ -1,115 +1,35 @@
-From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
-Subject: Re: [PATCH 3/6] omap iommu: omap3 iommu device registration
-Date: Wed, 06 May 2009 09:00:24 +0300 (EEST)
-Message-ID: <20090506.090024.232761548.Hiroshi.DOYU@nokia.com>
-References: <20090505123905.4583.69865.stgit@oreo.research.nokia.com>
-	<20090505124700.4583.69988.stgit@oreo.research.nokia.com>
-	<94a0d4530905051232m1fe23987q8fee8cbcfa8f1854@mail.gmail.com>
+From: Thierry Reding <thierry.reding@avionic-design.de>
+Subject: Re: [PATCH] input: Add support for the TSC2003 controller.
+Date: Wed, 6 May 2009 08:45:29 +0200
+Message-ID: <20090506064529.GA14326@avionic-design.de>
+References: <1241006627-22811-1-git-send-email-thierry.reding@avionic-design.de> <5d5443650904290623n3712cd7dja653a139cff2cf6d@mail.gmail.com> <483a38b80904291835p51044741p9bd83d33a40031c@mail.gmail.com> <20090504113751.GA22603@avionic-design.de> <5d5443650905040503n501e3b47qc890dc4c71a85b1c@mail.gmail.com> <20090504145700.GA875@avionic-design.de> <483a38b80905052125r76358182g7ce6b890c921b655@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:23176 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750789AbZEFGA5 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 6 May 2009 02:00:57 -0400
-In-Reply-To: <94a0d4530905051232m1fe23987q8fee8cbcfa8f1854@mail.gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-input-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <483a38b80905052125r76358182g7ce6b890c921b655@mail.gmail.com>
+Sender: linux-input-owner@vger.kernel.org
+To: Kwangwoo Lee <kwangwoo.lee@gmail.com>
+Cc: Trilok Soni <soni.trilok@gmail.com>, linux-input@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: felipe.contreras@gmail.com
-Cc: linux-arm-kernel@lists.arm.linux.org.uk, linux-omap@vger.kernel.org, h-kanigeri2@ti.com, omar.ramirez@ti.com, sakari.ailus@maxwell.research.nokia.com, tony@atomide.com
 
-=46rom: ext Felipe Contreras <felipe.contreras@gmail.com>
-Subject: Re: [PATCH 3/6] omap iommu: omap3 iommu device registration
-Date: Tue, 5 May 2009 21:32:34 +0200
+* Kwangwoo Lee wrote:
+[...]
+> Thanks for the patch. It looks good. :)
+> The code in the patch is already merged in the main kernel tree.
+> 
+> @@ -235,7 +245,7 @@ static irqreturn_t tsc2007_irq(int irq, void *handle)
+>  	spin_lock_irqsave(&ts->lock, flags);
+> 
+>  	if (likely(ts->get_pendown_state())) {
+> -		disable_irq(ts->irq);
+> +		disable_irq_nosync(ts->irq);
+>  		hrtimer_start(&ts->timer, ktime_set(0, TS_POLL_DELAY),
+>  					HRTIMER_MODE_REL);
+>  	}
 
-> On Tue, May 5, 2009 at 3:47 PM, Hiroshi DOYU <Hiroshi.DOYU@nokia.com>=
- wrote:
-> > Signed-off-by: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
-> > ---
-> >
-> > =A0arch/arm/mach-omap2/omap3-iommu.c | =A0105 +++++++++++++++++++++=
-++++++++++++++++
-> > =A01 files changed, 105 insertions(+), 0 deletions(-)
-> > =A0create mode 100644 arch/arm/mach-omap2/omap3-iommu.c
-> >
-> > diff --git a/arch/arm/mach-omap2/omap3-iommu.c b/arch/arm/mach-omap=
-2/omap3-iommu.c
-> > new file mode 100644
-> > index 0000000..367f36a
-> > --- /dev/null
-> > +++ b/arch/arm/mach-omap2/omap3-iommu.c
-> > @@ -0,0 +1,105 @@
-> > +/*
-> > + * omap iommu: omap3 device registration
-> > + *
-> > + * Copyright (C) 2008-2009 Nokia Corporation
-> > + *
-> > + * Written by Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
-> > + *
-> > + * This program is free software; you can redistribute it and/or m=
-odify
-> > + * it under the terms of the GNU General Public License version 2 =
-as
-> > + * published by the Free Software Foundation.
-> > + */
-> > +
-> > +#include <linux/platform_device.h>
-> > +
-> > +#include <mach/iommu.h>
-> > +
-> > +#define OMAP3_MMU1_BASE =A0 =A0 =A0 =A00x480bd400
-> > +#define OMAP3_MMU2_BASE =A0 =A0 =A0 =A00x5d000000
-> > +#define OMAP3_MMU1_IRQ 24
-> > +#define OMAP3_MMU2_IRQ 28
-> > +
-> > +static struct resource omap3_iommu_res[] =3D {
-> > + =A0 =A0 =A0 { /* Camera ISP MMU */
-> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 .start =A0 =A0 =A0 =A0 =A0=3D OMAP3_M=
-MU1_BASE,
-> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 .end =A0 =A0 =A0 =A0 =A0 =A0=3D OMAP3=
-_MMU1_BASE + MMU_REG_SIZE - 1,
-> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 .flags =A0 =A0 =A0 =A0 =A0=3D IORESOU=
-RCE_MEM,
-> > + =A0 =A0 =A0 },
-> > + =A0 =A0 =A0 {
-> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 .start =A0 =A0 =A0 =A0 =A0=3D OMAP3_M=
-MU1_IRQ,
-> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 .flags =A0 =A0 =A0 =A0 =A0=3D IORESOU=
-RCE_IRQ,
-> > + =A0 =A0 =A0 },
-> > + =A0 =A0 =A0 { /* IVA2.2 MMU */
-> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 .start =A0 =A0 =A0 =A0 =A0=3D OMAP3_M=
-MU2_BASE,
-> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 .end =A0 =A0 =A0 =A0 =A0 =A0=3D OMAP3=
-_MMU2_BASE + MMU_REG_SIZE - 1,
-> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 .flags =A0 =A0 =A0 =A0 =A0=3D IORESOU=
-RCE_MEM,
-> > + =A0 =A0 =A0 },
-> > + =A0 =A0 =A0 {
-> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 .start =A0 =A0 =A0 =A0 =A0=3D OMAP3_M=
-MU2_IRQ,
-> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 .flags =A0 =A0 =A0 =A0 =A0=3D IORESOU=
-RCE_IRQ,
-> > + =A0 =A0 =A0 },
-> > +};
->=20
-> This will break TI's bridgedriver, right?
+Oh, I hadn't noticed. I diffed against 2.6.30-rc4. Do you want me to send a
+new patch or will you just rip that piece out?
 
-Working around is easy, but let's go forward, correcting TI's bridgedri=
-ver;-)
+Thierry
 
-http://marc.info/?l=3Dlinux-omap&m=3D124148814309478&w=3D2
-
-
->=20
-> Can camera ISP and IVA request the registration of their respective
-> IOMMU's from their codebase?
->=20
-> --=20
-> Felipe Contreras
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
