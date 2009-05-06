@@ -1,16 +1,16 @@
-From: Peter Ujfalusi <peter.ujfalusi@nokia.com>
+From: Todd Fischer <todd.fischer@ridgerun.com>
 Subject: Re: Beep sound in the end of audio file
-Date: Thu, 7 May 2009 08:48:25 +0300
-Message-ID: <200905070848.25904.peter.ujfalusi@nokia.com>
+Date: Wed, 06 May 2009 08:19:49 -0600
+Message-ID: <1241619589.8928.2038.camel@sax-lx.fischerfamily.org>
 References: <5A47E75E594F054BAF48C5E4FC4B92AB0305559FCC@dbde02.ent.ti.com>
+	<200905060833.10998.peter.ujfalusi@nokia.com>
 	<5A47E75E594F054BAF48C5E4FC4B92AB030555A348@dbde02.ent.ti.com>
-	<1241619589.8928.2038.camel@sax-lx.fischerfamily.org>
+Reply-To: todd.fischer@ridgerun.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <alsa-devel-bounces@alsa-project.org>
-In-Reply-To: <1241619589.8928.2038.camel@sax-lx.fischerfamily.org>
-Content-Disposition: inline
+In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB030555A348@dbde02.ent.ti.com>
 List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
 	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
 List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
@@ -20,37 +20,55 @@ List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
 	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
 Sender: alsa-devel-bounces@alsa-project.org
 Errors-To: alsa-devel-bounces@alsa-project.org
-To: "todd.fischer@ridgerun.com" <todd.fischer@ridgerun.com>
-Cc: "Aggarwal, Anuj" <anuj.aggarwal@ti.com>, "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: "Aggarwal, Anuj" <anuj.aggarwal@ti.com>
+Cc: "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Peter Ujfalusi <peter.ujfalusi@nokia.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Wednesday 06 May 2009 17:19:49 ext Todd Fischer wrote:
-> Hi,
->
-> FWIW: while developing a GSTreamer presentation using a BegleBoard (rev C=
-),
-> I noticed the same "tuck" sound.  It also occurs a second or two after the
-> GST application exits.  I assumed it was some power management code that
-> was disabling the audio codec after it had gone idle, but never looked in=
-to
-> it.  BeagleBoard also uses TWL4030.
->
-> GST command: gst-launch audiotestsrc freq=3D1000 num-buffers=3D100 ! alsa=
-sink
->
-> /proc/version: Linux version 2.6.28-omap1 (ddompe@Aleph) (gcc version 4.3=
-.1
-> (GCC) ) #2 Thu Mar 5 08:55:58 CST 2009
-
-The "tuck" is coming from the codec, when it is powered down (in the old =
-
-twl4030 codec found in omap-2.6.28 branch of linux-omap).
-But, it still happens with the latest version, when the codec is muted only.
-I can observe the "tuck" on Headset output, but not on the PreDrive...
-The Headset enable and disable is implemented according to the TRM, but it =
-
-seams that additional tweaking is needed..
-
--- =
-
-P=E9ter
+SGksCgpGV0lXOiB3aGlsZSBkZXZlbG9waW5nIGEgR1NUcmVhbWVyIHByZXNlbnRhdGlvbiB1c2lu
+ZyBhIEJlZ2xlQm9hcmQgKHJldgpDKSwgSSBub3RpY2VkIHRoZSBzYW1lICJ0dWNrIiBzb3VuZC4g
+IEl0IGFsc28gb2NjdXJzIGEgc2Vjb25kIG9yIHR3bwphZnRlciB0aGUgR1NUIGFwcGxpY2F0aW9u
+IGV4aXRzLiAgSSBhc3N1bWVkIGl0IHdhcyBzb21lIHBvd2VyIG1hbmFnZW1lbnQKY29kZSB0aGF0
+IHdhcyBkaXNhYmxpbmcgdGhlIGF1ZGlvIGNvZGVjIGFmdGVyIGl0IGhhZCBnb25lIGlkbGUsIGJ1
+dApuZXZlciBsb29rZWQgaW50byBpdC4gIEJlYWdsZUJvYXJkIGFsc28gdXNlcyBUV0w0MDMwLgoK
+R1NUIGNvbW1hbmQ6IGdzdC1sYXVuY2ggYXVkaW90ZXN0c3JjIGZyZXE9MTAwMCBudW0tYnVmZmVy
+cz0xMDAgIQphbHNhc2luawoKL3Byb2MvdmVyc2lvbjogTGludXggdmVyc2lvbiAyLjYuMjgtb21h
+cDEgKGRkb21wZUBBbGVwaCkgKGdjYyB2ZXJzaW9uCjQuMy4xIChHQ0MpICkgIzIgVGh1IE1hciA1
+IDA4OjU1OjU4IENTVCAyMDA5CgpDb2RlIGltYWdlOiBodHRwOi8vd3d3LmJlYWdsZWJvYXJkLm9y
+Zy9+YXJhZ28vZXNjL2VzYzIwMDlzai52MTIuaW1nLmd6CgpUb2RkCgpPbiBXZWQsIDIwMDktMDUt
+MDYgYXQgMTk6MzAgKzA1MzAsIEFnZ2Fyd2FsLCBBbnVqIHdyb3RlOgoKPiA+IC0tLS0tT3JpZ2lu
+YWwgTWVzc2FnZS0tLS0tCj4gPiBGcm9tOiBQZXRlciBVamZhbHVzaSBbbWFpbHRvOnBldGVyLnVq
+ZmFsdXNpQG5va2lhLmNvbV0KPiA+IFNlbnQ6IFdlZG5lc2RheSwgTWF5IDA2LCAyMDA5IDExOjAz
+IEFNCj4gPiBUbzogQWdnYXJ3YWwsIEFudWoKPiA+IENjOiBsaW51eC1vbWFwQHZnZXIua2VybmVs
+Lm9yZzsgYWxzYS1kZXZlbEBhbHNhLXByb2plY3Qub3JnCj4gPiBTdWJqZWN0OiBSZTogQmVlcCBz
+b3VuZCBpbiB0aGUgZW5kIG9mIGF1ZGlvIGZpbGUKPiA+IAo+ID4gSGVsbG8sCj4gPiAKPiA+IE9u
+IFR1ZXNkYXkgMDUgTWF5IDIwMDkgMjA6MDM6NTcgZXh0IEFnZ2Fyd2FsLCBBbnVqIHdyb3RlOgo+
+ID4gPiBIaSwKPiA+ID4KPiA+ID4gQWZ0ZXIgcGxheWluZyBvdXQgYW55IGF1ZGlvIGZpbGUgb24g
+T01BUDMgRVZNLCBoYXZpbmcgVFdMNDAzMCBjb2RlYywKPiA+ID4gSSBhbSBoZWFyaW5nIGEgYmVl
+cCBzb3VuZC4gSSBoYXZlIGFsc28gdHJpZWQgaW1wbGVtZW50aW5nIGEgbXV0ZSBmdW5jdGlvbgo+
+ID4gPiBpbiB3aGljaCBJIGRpc2FibGVkIGFsbCB0aGUgaW5wdXRzL291dHB1dHMgYnV0IHN0aWxs
+IHRoYXQgZGlkbid0IGhlbHAuCj4gPiA+Cj4gPiA+IEFueSBpZGVhIGhvdyB0aGlzIGNhbiBiZSBh
+dm9pZGVkPwo+ID4gCj4gPiBJIGhhdmUgbm90IGhlYXJkIGZyb20gdGhpcyBraW5kIG9mIHByb2Js
+ZW0gc28gZmFyLCB3aGljaCBkb2VzIG5vdCBtZWFuLCB0aGF0Cj4gPiBpdCBkb2VzIG5vdCBleGlz
+dCA7KQo+ID4gQ2FuIHlvdSBkZXNjcmliZSB0aGUgYmVlcCBzb3VuZD8KPiBbQWdnYXJ3YWwsIEFu
+dWpdIEl0J3Mga2luZCBvZiBhICJ0dWNrIiBzb3VuZCBjb21pbmcgaW4gdGhlIGVuZCwgYWZ0ZXIg
+MSBvciAgMiBzZWNvbmRzLgo+ID4gCj4gPiBBZnRlciBhIHF1aWNrIGxvb2sgSSBjYW4gbm90IHBp
+biBwb2ludCB0aGUgc29jIGJvYXJkIGZpbGUgdXNlZCB3aXRoIHRoZQo+ID4gb21hcDNldm0gYm9h
+cmQuIElzIGl0IGluIHRoZSB0cmVlPwo+IFtBZ2dhcndhbCwgQW51al0gTm8sIGl0IGlzIG5vdC4g
+UmVhc29uIGJlaW5nIHdlIGFscmVhZHkgaGF2ZSBiZWFnbGUgJiAKPiBzZHAzNDMwIHRoZXJlLCB3
+aGljaCBhcmUgYm90aCBzaW1pbGFyIHRvIG9tYXAzZXZtLCB3aGljaCBJIHB1c2hlZC4gCj4gU28g
+bWluZSBnb3QgcmVqZWN0ZWQuIFdlIGhhZCBzb21lIGRpc2N1c3Npb25zIG9uIGhvdyB0byBoYW5k
+bGUgdGhpcwo+IHNjZW5hcmlvIGJ1dCBub3RoaW5nIGdvdCBmaW5hbGl6ZWQuCj4gPiAKPiA+IERv
+ZXMgdGhlIGJlZXAgaGFwcGVucyBpbiB0aGVzZSBjYXNlcyBhbHNvIChhZnRlciBzdG9wcGluZyBp
+dCB3aXRoIEN0cmwrQyk6Cj4gPiBhcGxheSAtZiBkYXQgL2Rldi96ZXJvCj4gPiBhcGxheSAtZiBk
+YXQgL2Rldi91cmFuZG9tCj4gW0FnZ2Fyd2FsLCBBbnVqXSBZZXMsIGl0IGNvbWVzIGluIGJvdGgg
+dGhlIGNhc2VzLgo+ID4gCj4gPiAKPiA+IENDLWluZyBhbHNhLWRldmVsLi4uCj4gPiAKPiA+ID4K
+PiA+ID4gVGhhbmtzIGFuZCBSZWdhcmRzLAo+ID4gPiBBbnVqIEFnZ2Fyd2FsCj4gPiA+Cj4gPiA+
+IFBsYXRmb3JtIFN1cHBvcnQgUHJvZHVjdHMKPiA+ID4gVGV4YXMgSW5zdHJ1bWVudHMgSW5jb3Jw
+b3JhdGVkCj4gPiAKPiA+IAo+ID4gLS0KPiA+IFDDqXRlcgo+IAo+IC0tCj4gVG8gdW5zdWJzY3Jp
+YmUgZnJvbSB0aGlzIGxpc3Q6IHNlbmQgdGhlIGxpbmUgInVuc3Vic2NyaWJlIGxpbnV4LW9tYXAi
+IGluCj4gdGhlIGJvZHkgb2YgYSBtZXNzYWdlIHRvIG1ham9yZG9tb0B2Z2VyLmtlcm5lbC5vcmcK
+PiBNb3JlIG1ham9yZG9tbyBpbmZvIGF0ICBodHRwOi8vdmdlci5rZXJuZWwub3JnL21ham9yZG9t
+by1pbmZvLmh0bWwKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X18KQWxzYS1kZXZlbCBtYWlsaW5nIGxpc3QKQWxzYS1kZXZlbEBhbHNhLXByb2plY3Qub3JnCmh0
+dHA6Ly9tYWlsbWFuLmFsc2EtcHJvamVjdC5vcmcvbWFpbG1hbi9saXN0aW5mby9hbHNhLWRldmVs
+Cg==
