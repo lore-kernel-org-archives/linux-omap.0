@@ -1,119 +1,41 @@
-From: Jean Pihet <jpihet@mvista.com>
-Subject: Re: Beagleboard rev C memory timings & suspend/resume
-Date: Thu, 7 May 2009 13:18:30 +0200
-Message-ID: <200905071318.30501.jpihet@mvista.com>
-References: <200904291553.49378.jpihet@mvista.com> <alpine.DEB.2.00.0905060009100.17514@utopia.booyaka.com>
+From: Peter Ujfalusi <peter.ujfalusi@nokia.com>
+Subject: Re: Beep sound in the end of audio file
+Date: Thu, 7 May 2009 14:24:45 +0300
+Message-ID: <200905071424.45431.peter.ujfalusi@nokia.com>
+References: <5A47E75E594F054BAF48C5E4FC4B92AB0305559FCC@dbde02.ent.ti.com>
+	<200905071408.14629.peter.ujfalusi@nokia.com>
+	<5A47E75E594F054BAF48C5E4FC4B92AB030555A662@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from gateway-1237.mvista.com ([63.81.120.158]:58019 "EHLO
-	gateway-1237.mvista.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753706AbZEGLSw (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 7 May 2009 07:18:52 -0400
-In-Reply-To: <alpine.DEB.2.00.0905060009100.17514@utopia.booyaka.com>
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <alsa-devel-bounces@alsa-project.org>
+In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB030555A662@dbde02.ent.ti.com>
 Content-Disposition: inline
-Sender: linux-omap-owner@vger.kernel.org
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Sender: alsa-devel-bounces@alsa-project.org
+Errors-To: alsa-devel-bounces@alsa-project.org
+To: alsa-devel@alsa-project.org
+Cc: "ext Aggarwal, Anuj" <anuj.aggarwal@ti.com>, "todd.fischer@ridgerun.com" <todd.fischer@ridgerun.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: linux-omap <linux-omap@vger.kernel.org>
 
-Hi Paul,
+On Thursday 07 May 2009 14:16:12 ext Aggarwal, Anuj wrote:
+> > [Anuj]: What kernel are you using where you have the beep?
+>
+> [Aggarwal, Anuj] 2.6.29-rc3
 
-On Thursday 07 May 2009 01:39:02 Paul Walmsley wrote:
-> Hello Jean,
->
-> sorry about the delay,
-Thanks for replying!
+That version still has the old power up/down code. Since than there were 23 =
 
-> On Wed, 29 Apr 2009, Jean Pihet wrote:
-> > The suspend/resume on Beagleboard has some problem due to bad memory
-> > timings. Suspending for more than 5 to 10 seconds shows memory
-> > corruption.
-> >
-> > The new chips on rev Cx boards are using 2 DDR chip selects and it looks
-> > like the 2nd memory part is not correctly put into self refresh. As an
-> > experimentation I tried the same kernel with 'mem=128M' and it resumes
-> > correctly after 1 min in suspend.
->
-> Nice work, this seems likely to be the cause.
->
-> > I could not find the latest DDR detailed specs from Micron. The part
-> > number is MT29C2G48MAKLCJI-6 IT. Are those available? Is this part
-> > identical to 2 1Gb parts?
->
-> The combined part's web page is:
->
-> http://www.micron.com/products/partdetail?part=MT29C2G48MAKLCJI-6%20IT
->
-> The SDRAM datasheet is the same that is used for all the other Micron
-> parts that we've run across so far:
->
-> http://download.micron.com/pdf/datasheets/dram/mobile/1gb_ddr_mobile_sdram_
->t48m.pdf
-Ok so we have 2 DDRs combined.
-That does not explain why the self-refresh is ok with only 1 part while it 
-fails with the 2 parts.
-Could it be that the timings are too tight? Is there something special for the 
-SDRC to support the 2 CSes correctly?
+patches for the twl4030 codec.
+The Headset enable/disable mantra could be still wrong in the latest =
 
-We already have used the self refresh with 2 parts hooked on a 3430, not 
-Micron parts though, so the code looks correct.
+version...
 
-I think we need help from the HW vendors here to identify the root cause: 
-SDRC, DDR parts, connections?
- 
-> > Now for the code in the kernel, there are some changes needed to support
-> > 2 CS'es:
-> > - the SDRC parameters need to be updated for the new memory part
-> > - the SDRC parameters need to include the ACTIM_CTRL_A_0, ACTIM_CTRL_A_1,
-> > ACTIM_CTRL_B_0, ACTIM_CTRL_B_1, RFR_CTRL_0 and RFR_CTRL_1 registers.
-> > Since the parameters for the 2nd CS are the same, this can be avoided by
-> > writing the same values to the 2 sets of registers
-> > - is there a need to differentiate between 1Gb and 2Gb chips, or can we
-> > just write the same params for both CS'es even if only one is being used?
-> > - the 'configure_sdrc' function in arch/arm/mach-omap2/sram34xx.S needs
-> > to program the 2 sets of registers. Here is a patch excerpt below. This
-> > patch only does not help the suspend/resume though.
-> >
-> > Any idea or suggestion?
->
-> Looks like a good start.  Since the two SDRC chip-selects can technically
-> address parts with different timings, we should not assume that the two
-> chip selects will be the same.  Admittedly this seems like an unlikely
-> situation, but it's not impossible for non-POP OMAPs.
-Makes sense. It is better to have correct and generic code.
+-- =
 
-> Re: suspend/resume, if you're talking about the code in sleep34xx.S, it
-> looks like this is already in good shape.
->
-> Re: board & SDRC changes: would suggest modifying omap2_sdrc_init() to
-> take either two struct omap_sdrc_params pointers, or one struct with two
-> pointers.  omap2_init_common_hw() will also need to be updated for that,
-> and all of the board-*.c files also.
->
-> Sound reasonable?
-Sure. I can write the new code, but I prefer to have the self refresh working 
-first.
-
-> >         ldr     r11, omap3_sdrc_mr_0
-> >         str     r6, [r11]
-> >         ldr     r6, [r11]               @ posted-write barrier for SDRC
-> > +       ldr     r11, omap3_sdrc_mr_1
-> > +       str     r6, [r11]
-> > +       ldr     r6, [r11]               @ posted-write barrier for SDRC
-> >         bx      lr
->
-> By the way, there's no need to duplicate the posted-write barrier.  There
-> should only be one, appearing right before the 'bx lr'.
-Ok I will take it into account.
-
->
-> regards,
->
-> - Paul
-
-Regards,
-Jean
-
+P=E9ter
