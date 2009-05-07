@@ -1,49 +1,82 @@
-From: "Kanigeri, Hari" <h-kanigeri2@ti.com>
-Subject: RE: [PATCH 2/6] omap iommu: omap2 architecture specific functions
-Date: Thu, 7 May 2009 09:40:35 -0500
-Message-ID: <8F7AF80515AF0D4D93307E594F3CB40E2AE47A12@dlee03.ent.ti.com>
-References: <20090505123905.4583.69865.stgit@oreo.research.nokia.com>
-	<20090505124655.4583.73497.stgit@oreo.research.nokia.com>
-	<8F7AF80515AF0D4D93307E594F3CB40E2AE46FB2@dlee03.ent.ti.com>
- <20090507.081259.233680638.Hiroshi.DOYU@nokia.com>
+From: "stanley.miao" <stanley.miao@windriver.com>
+Subject: Re: [PATCH] OMAP_LDP: Support LCD display as a FB device on ZOOM
+ MDK	(Re: LDP support)
+Date: Thu, 07 May 2009 23:01:35 +0800
+Message-ID: <4A02F7CF.1050803@windriver.com>
+References: <20090428220712.GF29277@n2100.arm.linux.org.uk> <20090428224237.GT22457@atomide.com> <20090505195231.GB8004@n2100.arm.linux.org.uk> <20090506040015.GM5593@atomide.com> <20090506224917.GS5593@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:50271 "EHLO arroyo.ext.ti.com"
+Received: from mail.windriver.com ([147.11.1.11]:55097 "EHLO mail.wrs.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752918AbZEGOlF convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 7 May 2009 10:41:05 -0400
-In-Reply-To: <20090507.081259.233680638.Hiroshi.DOYU@nokia.com>
-Content-Language: en-US
+	id S1753598AbZEGO7Y (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 7 May 2009 10:59:24 -0400
+In-Reply-To: <20090506224917.GS5593@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
-Cc: "linux-arm-kernel@lists.arm.linux.org.uk" <linux-arm-kernel@lists.arm.linux.org.uk>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Ramirez Luna, Omar" <omar.ramirez@ti.com>, "sakari.ailus@maxwell.research.nokia.com" <sakari.ailus@maxwell.research.nokia.com>, "tony@atomide.com" <tony@atomide.com>, "Pasam, Vijay" <vpasam@ti.com>
+To: Tony Lindgren <tony@atomide.com>
+Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, Imre Deak <imre.deak@nokia.com>, Tomi Valkeinen <tomi.valkeinen@nokia.com>
 
-Hi,
-
-> +static irqreturn_t iommu_fault_handler(int irq, void *data)
-> +{
-> +       u32 stat, da;
-> +       u32 *iopgd, *iopte;
-> +       int err = -EIO;
-> +       struct iommu *obj = data;
-> +
-> +       if (!obj->refcount)
-> +               return IRQ_NONE;
-> +
-> +       /* Dynamic loading TLB or PTE */
-> +       if (obj->isr)
-> +               err = obj->isr(obj);
-> 		      ^^^^^^^^^^^^^^
-> 
-> If the above "isr" function sets a new "tlb" or "pte" entry, then
-> further iommu fault won't happen anymore.
+Tony Lindgren wrote:
+> * Tony Lindgren <tony@atomide.com> [090505 21:00]:
+>   
+>> * Russell King - ARM Linux <linux@arm.linux.org.uk> [090505 12:52]:
+>>     
+>>> On Tue, Apr 28, 2009 at 03:42:37PM -0700, Tony Lindgren wrote:
+>>>       
+>>>> * Russell King - ARM Linux <linux@arm.linux.org.uk> [090428 15:07]:
+>>>>         
+>>>>> Tony, et.al.,
+>>>>>
+>>>>> Any ideas when more LDP support will be pushed into mainline (such as
+>>>>> the framebuffer support)?
+>>>>>           
+>>>> I'll be looking at the board-*.c patches for the next merge window
+>>>> hopefully this week or next week.
+>>>>
+>>>> Looks like LDP keyboard, touchscreen & RTC are pretty much ready
+>>>> to go. Then the MMC has some regulator updates, but AFAIK the MMC
+>>>> should work OK already.
+>>>>
+>>>> For the framebuffer, Imre and Tomi know the status the best, so
+>>>> I've added them to Cc.
+>>>>
+>>>> Imre has been meaning to send a bunch of drivers/video/omap changes
+>>>> to the fbdev list for a while now and LDP framebuffer may depend on
+>>>> those. Imre, any news on the status of sending the fb patches
+>>>> upstream?
+>>>>
+>>>> Then there are the upcoming DSS patches from Tomi, but those still
+>>>> need some work before they're ready to go.
+>>>>         
+>>> Is there any news on this?  Will we see more functional OMAP3 / LDP
+>>> support queued for the next merge window?
+>>>       
+>> Yes fro the stuff listed above, but still no news on the framebuffer
+>> patches. Imre?
+>>     
 >
+> Added Stanley Miao to Cc. Here's an updated version of Stanley's patch to
+> add fb support for LDP.
+>
+> I don't have an LDP, maybe you guys can give it a try against the mainline
+> kernel and see if it works! There might be some changes needed to 
+> drivers/video/omap/dispc.c too.. And those should be handled by Imre.
+>
+> But if this works, at least we can then add support for few more boards
+> easily while waiting for Imre to send his updates.
+>   
+Hi, Tony,
 
--- I think adding the new tlb entry or any other error recovery mechanism should be deferred to the registered callback function. 
+Now the kernel can't boot on LDP. The attached file is the boot log.
 
-Thank you,
-Best regards,
-Hari
+I will check it when I have  time.
+
+Stanley.
+
+> Cheers,
+>
+> Tony 
+>   
+
