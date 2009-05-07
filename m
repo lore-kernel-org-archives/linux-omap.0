@@ -1,428 +1,348 @@
 From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: [PATCH 1/3] OMAP4: SMP: Add OMAP4430 SMP board files
-Date: Thu,  7 May 2009 12:59:24 +0530
-Message-ID: <1241681366-21094-1-git-send-email-santosh.shilimkar@ti.com>
+Subject: [PATCH 2/3] OMAP4: SMP: Add mpu timer support for OMAP4430
+Date: Thu,  7 May 2009 12:59:25 +0530
+Message-ID: <1241681366-21094-2-git-send-email-santosh.shilimkar@ti.com>
+References: <1241681366-21094-1-git-send-email-santosh.shilimkar@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:53283 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751171AbZEGH3l (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 7 May 2009 03:29:41 -0400
+Received: from devils.ext.ti.com ([198.47.26.153]:50790 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753897AbZEGH3l (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 7 May 2009 03:29:41 -0400
+In-Reply-To: <1241681366-21094-1-git-send-email-santosh.shilimkar@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-arm-kernel@lists.arm.linux.org.uk
 Cc: linux-omap@vger.kernel.org, Santosh Shilimkar <santosh.shilimkar@ti.com>
 
-This patch adds SMP platform files support for OMAP4430SDP. TI's OMAP4430
-SOC is based on ARM Cortex-A9 SMP architecture. It's a dual core SOC
-with GIC used for interrupt handling and SCU for cache coherency.
+This patch adds SMP platform specific parts for local(mpu) timer support
+for OMAP4430 platform. Each Cortex-a9 core has it's own local timer in the
+MPU domain. These timers are not in wakeup domain.
 
 Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
 ---
- arch/arm/mach-omap2/omap-headsmp.S    |   49 +++++++
- arch/arm/mach-omap2/omap-smp.c        |  238 +++++++++++++++++++++++++++++++++
- arch/arm/plat-omap/include/mach/scu.h |   28 ++++
- arch/arm/plat-omap/include/mach/smp.h |   56 ++++++++
- 4 files changed, 371 insertions(+), 0 deletions(-)
- create mode 100644 arch/arm/mach-omap2/omap-headsmp.S
- create mode 100644 arch/arm/mach-omap2/omap-smp.c
- create mode 100644 arch/arm/plat-omap/include/mach/scu.h
- create mode 100644 arch/arm/plat-omap/include/mach/smp.h
+ arch/arm/mach-omap2/timer-gp.c                |   11 ++
+ arch/arm/mach-omap2/timer-mpu.c               |  214 +++++++++++++++++++++++++
+ arch/arm/plat-omap/include/mach/common.h      |    3 +
+ arch/arm/plat-omap/include/mach/entry-macro.S |   28 ++++
+ arch/arm/plat-omap/include/mach/irqs.h        |    2 +
+ 5 files changed, 258 insertions(+), 0 deletions(-)
+ create mode 100644 arch/arm/mach-omap2/timer-mpu.c
 
-diff --git a/arch/arm/mach-omap2/omap-headsmp.S b/arch/arm/mach-omap2/omap-headsmp.S
-new file mode 100644
-index 0000000..0afe039
---- /dev/null
-+++ b/arch/arm/mach-omap2/omap-headsmp.S
-@@ -0,0 +1,49 @@
-+/*
-+ * Secondary CPU startup routine source file.
-+ *
-+ * Copyright (C) 2009 Texas Instruments, Inc.
-+ *
-+ * Author:
-+ *      Santosh Shilimkar <santosh.shilimkar@ti.com>
-+ *
-+ * Interface functions needed for the SMP. This file is based on arm
-+ * realview smp platform.
-+ * Copyright (c) 2003 ARM Limited.
-+ *
-+ * This program is free software,you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
-+
-+#include <linux/linkage.h>
-+#include <linux/init.h>
-+
-+	__INIT
-+
-+/*
-+ * OMAP4 specific entry point for secondary CPU to jump from ROM
-+ * code.  This routine also provides a holding flag into which
-+ * secondary core is held until we're ready for it to initialise.
-+ * The primary core will update the this flag using a hardware
-+ * register AuxCoreBoot1.
-+ */
-+ENTRY(omap_secondary_startup)
-+	mrc	p15, 0, r0, c0, c0, 5
-+	and	r0, r0, #15
-+	adr	r4, 1f
-+	ldmia	r4, {r5, r6}
-+	sub	r4, r4, r5
-+	add	r6, r6, r4
-+hold:	ldr	r7, [r6]	 @ read from AuxCoreBoot1
-+	cmp	r7, r0
-+	bne	hold
-+
-+	/*
-+	 * we've been released from the holding pen: secondary_stack
-+	 * should now contain the SVC stack for this core
-+	 */
-+	b	secondary_startup
-+
-+1:	.long	.
-+	.long	cpu_release
-+
-diff --git a/arch/arm/mach-omap2/omap-smp.c b/arch/arm/mach-omap2/omap-smp.c
-new file mode 100644
-index 0000000..1d18acb
---- /dev/null
-+++ b/arch/arm/mach-omap2/omap-smp.c
-@@ -0,0 +1,238 @@
-+/*
-+ * OMAP4 SMP source file. It contains platform specific fucntions
-+ * needed for the linux smp kernel.
-+ *
-+ * Copyright (C) 2009 Texas Instruments, Inc.
-+ *
-+ * Author:
-+ *      Santosh Shilimkar <santosh.shilimkar@ti.com>
-+ *
-+ * Platform file needed for the OMAP4 SMP. This file is based on arm
-+ * realview smp platform.
-+ * * Copyright (c) 2002 ARM Limited.
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
-+#include <linux/init.h>
-+#include <linux/errno.h>
-+#include <linux/delay.h>
-+#include <linux/device.h>
-+#include <linux/jiffies.h>
-+#include <linux/smp.h>
-+#include <linux/io.h>
-+
-+#include <asm/cacheflush.h>
-+#include <mach/scu.h>
-+#include <mach/hardware.h>
-+#include <asm/mach-types.h>
-+
-+/* Registers used for communicating startup information */
-+#define OMAP4_AUXCOREBOOT_REG0		(OMAP44XX_VA_WKUPGEN_BASE + 0x800)
-+#define OMAP4_AUXCOREBOOT_REG1		(OMAP44XX_VA_WKUPGEN_BASE + 0x804)
-+
-+/* FIXME: Move to a common header file */
-+extern void omap_secondary_startup(void);
-+
-+/*
-+ * Control for which core is the next to come out of the secondary
-+ * boot "Auxcontrol_register"
-+ */
-+int __cpuinitdata cpu_release = -1;
-+
-+/*
-+ * Setup the SCU
-+ */
-+static void scu_enable(void)
-+{
-+	u32 scu_ctrl;
-+	void __iomem *scu_base = OMAP44XX_VA_SCU_BASE;
-+
-+	scu_ctrl = __raw_readl(scu_base + SCU_CTRL);
-+	scu_ctrl |= 1;
-+	__raw_writel(scu_ctrl, scu_base + SCU_CTRL);
-+}
-+
-+/*
-+ * Use SCU config register to count number of cores
-+ */
-+static unsigned int __init get_core_count(void)
-+{
-+	unsigned int ncores;
-+	void __iomem *scu_base = OMAP44XX_VA_SCU_BASE;
-+
-+	if (scu_base) {
-+		ncores = __raw_readl(scu_base + SCU_CONFIG);
-+		ncores = (ncores & 0x03) + 1;
-+	} else {
-+			ncores = 1;
-+	}
-+
-+	return ncores;
-+}
-+
-+static DEFINE_SPINLOCK(boot_lock);
-+
-+void __cpuinit platform_secondary_init(unsigned int cpu)
-+{
-+	trace_hardirqs_off();
-+
-+	/*
-+	 * If any interrupts are already enabled for the primary
-+	 * core (e.g. timer irq), then they will not have been enabled
-+	 * for us: do so
-+	 */
-+
-+	gic_cpu_init(0, IO_ADDRESS(OMAP44XX_GIC_CPU_BASE));
-+
-+	/*
-+	 * Let the primary processor know we're out of the
-+	 * pen, then head off into the C entry point
-+	 */
-+	cpu_release = -1;
-+	smp_wmb();
-+
-+	/*
-+	 * Synchronise with the boot thread.
-+	 */
-+	spin_lock(&boot_lock);
-+	spin_unlock(&boot_lock);
-+}
-+
-+int __cpuinit boot_secondary(unsigned int cpu, struct task_struct *idle)
-+{
-+	unsigned long timeout;
-+
-+	/*
-+	 * Set synchronisation state between this boot processor
-+	 * and the secondary one
-+	 */
-+	spin_lock(&boot_lock);
-+
-+	/*
-+	 * The secondary processor is waiting for an event to come out of
-+	 * wfe. Release it, then wait for it to flag that it has been
-+	 * released by resetting cpu_release.
-+	 *
-+	 * Singal the ROM code that the secondary core can be released
-+	 */
-+	cpu_release = cpu;
-+	__raw_writel(cpu, OMAP4_AUXCOREBOOT_REG1);
-+	flush_cache_all();
-+	/*
-+	 * Send a 'sev' to wake the secondary core again because
-+	 * ROM code will put core in WFE till the cpu_release
-+	 * flag is set.
-+	 */
-+	set_event();
-+	mb();
-+
-+	timeout = jiffies + (1 * HZ);
-+	while (time_before(jiffies, timeout)) {
-+		smp_rmb();
-+		if (cpu_release == -1)
-+			break;
-+
-+		udelay(10);
-+	}
-+
-+	/*
-+	 * Now the secondary core is starting up let it run its
-+	 * calibrations, then wait for it to finish
-+	 */
-+	spin_unlock(&boot_lock);
-+
-+	return cpu_release != -1 ? -ENOSYS : 0;
-+}
-+
-+static void __init wakeup_secondary(void)
-+{
-+
-+	/* cpu is not to be released from the hold yet */
-+	cpu_release = -1;
-+
-+	/*
-+	 * write the address of secondary startup into the system-wide
-+	 * AuxCoreBoot0 where ROM code will jump and start executing
-+	 * on secondary core
-+	 */
-+	__raw_writel(virt_to_phys(omap_secondary_startup),	   \
-+					OMAP4_AUXCOREBOOT_REG0);
-+	/*
-+	 * Send a 'sev' to wake the secondary core from WFE.
-+	 */
-+	set_event();
-+	mb();
-+}
-+
-+/*
-+ * Initialise the CPU possible map early - this describes the CPUs
-+ * which may be present or become present in the system.
-+ */
-+void __init smp_init_cpus(void)
-+{
-+	unsigned int i, ncores = get_core_count();
-+
-+	for (i = 0; i < ncores; i++)
-+		cpu_set(i, cpu_possible_map);
-+}
-+
-+void __init smp_prepare_cpus(unsigned int max_cpus)
-+{
-+	unsigned int ncores = get_core_count();
-+	unsigned int cpu = smp_processor_id();
-+	int i;
-+
-+	/* sanity check */
-+	if (ncores == 0) {
-+		printk(KERN_ERR
-+		       "OMAP4: strange core count of 0? Default to 1\n");
-+		ncores = 1;
-+	}
-+
-+	if (ncores > num_possible_cpus()) {
-+		printk(KERN_WARNING
-+		       "OMAP4: no. of cores (%d) greater than configured "
-+		       "maximum of %d - clipping\n",
-+		       ncores, num_possible_cpus());
-+		ncores = num_possible_cpus();
-+	}
-+	smp_store_cpu_info(cpu);
-+
-+	/*
-+	 * are we trying to boot more cores than exist?
-+	 */
-+	if (max_cpus > ncores)
-+		max_cpus = ncores;
-+
+diff --git a/arch/arm/mach-omap2/timer-gp.c b/arch/arm/mach-omap2/timer-gp.c
+index 080868d..08c6ded 100644
+--- a/arch/arm/mach-omap2/timer-gp.c
++++ b/arch/arm/mach-omap2/timer-gp.c
+@@ -36,6 +36,7 @@
+ 
+ #include <asm/mach/time.h>
+ #include <mach/dmtimer.h>
++#include <mach/common.h>
+ 
+ static struct omap_dm_timer *gptimer;
+ static struct clock_event_device clockevent_gpt;
+@@ -187,6 +188,16 @@ static void __init omap2_gp_clocksource_init(void)
+ 
+ static void __init omap2_gp_timer_init(void)
+ {
 +#ifdef CONFIG_LOCAL_TIMERS
++	twd_base = IO_ADDRESS(OMAP44XX_LOCAL_TWD_BASE);
++#endif
++#ifdef CONFIG_GENERIC_CLOCKEVENTS_BROADCAST
 +	/*
-+	 * Enable the local timer for primary CPU. If the device is
-+	 * dummy (!CONFIG_LOCAL_TIMERS), it was already registers in
-+	 * omap_timer_init
++	 * The dummy clock device has to be registered before the main device
++	 * so that the latter will broadcast the clock events
 +	 */
 +	local_timer_setup();
 +#endif
-+
-+	/*
-+	 * Initialise the present map, which describes the set of CPUs
-+	 * actually populated at the present time.
-+	 */
-+	for (i = 0; i < max_cpus; i++)
-+		cpu_set(i, cpu_present_map);
-+
-+	/*
-+	 * Initialise the SCU and wake up the secondary core using
-+	 *  wakeup_secondary().
-+	 */
-+	if (max_cpus > 1) {
-+		scu_enable();
-+		/*
-+		 * Ensure that the data accessed by CPU0 before the SCU was
-+		 * initialised is visible to CPU1.
-+		 */
-+		flush_cache_all();
-+		wakeup_secondary();
-+	}
-+}
-diff --git a/arch/arm/plat-omap/include/mach/scu.h b/arch/arm/plat-omap/include/mach/scu.h
+ 	omap_dm_timer_init();
+ 
+ 	omap2_gp_clockevent_init();
+diff --git a/arch/arm/mach-omap2/timer-mpu.c b/arch/arm/mach-omap2/timer-mpu.c
 new file mode 100644
-index 0000000..2ee6660
+index 0000000..bb91b24
 --- /dev/null
-+++ b/arch/arm/plat-omap/include/mach/scu.h
-@@ -0,0 +1,28 @@
++++ b/arch/arm/mach-omap2/timer-mpu.c
+@@ -0,0 +1,214 @@
 +/*
-+ * SCU regsiter header.
++ * The MPU local timer source file. In OMAP4, both cortex-a9 cores have
++ * own timer in it's MPU domain. These timers will be driving the
++ * linux kernel SMP tick framework when active. These timers are not
++ * part of the wake up domain.
 + *
 + * Copyright (C) 2009 Texas Instruments, Inc.
-+ *
 + *
 + * Author:
 + *      Santosh Shilimkar <santosh.shilimkar@ti.com>
 + *
-+ * Snoop Control Unit Registers. This file is based on arm
-+ * realview smp platform.
-+ * Copyright (c) 2003 ARM Limited.
++ * This file is based on arm realview smp platform file.
++ * Copyright (C) 2002 ARM Ltd.
 + *
 + * This program is free software; you can redistribute it and/or modify
 + * it under the terms of the GNU General Public License version 2 as
 + * published by the Free Software Foundation.
 + */
-+#ifndef __OMAP_ARCH_SCU_H
-+#define __OMAP_ARCH_SCU_H
-+/*
-+ * SCU registers
-+ */
-+#define SCU_CTRL		0x00
-+#define SCU_CONFIG		0x04
-+#define SCU_CPU_STATUS		0x08
-+#define SCU_INVALIDATE		0x0c
++#include <linux/init.h>
++#include <linux/kernel.h>
++#include <linux/delay.h>
++#include <linux/device.h>
++#include <linux/smp.h>
++#include <linux/jiffies.h>
++#include <linux/percpu.h>
++#include <linux/clockchips.h>
++#include <linux/irq.h>
 +
-+#endif
-diff --git a/arch/arm/plat-omap/include/mach/smp.h b/arch/arm/plat-omap/include/mach/smp.h
-new file mode 100644
-index 0000000..b6a3e67
---- /dev/null
-+++ b/arch/arm/plat-omap/include/mach/smp.h
-@@ -0,0 +1,56 @@
-+/*
-+ * OMAP4 machine specific smp.h
-+ *
-+ * Copyright (C) 2009 Texas Instruments, Inc.
-+ *
-+ * Author:
-+ *	Santosh Shilimkar <santosh.shilimkar@ti.com>
-+ *
-+ * Interface functions needed for the SMP. This file is based on arm
-+ * realview smp platform.
-+ * Copyright (c) 2003 ARM Limited.
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
-+#ifndef OMAP_ARCH_SMP_H
-+#define OMAP_ARCH_SMP_H
-+
-+
++#include <asm/hardware/arm_twd.h>
 +#include <asm/hardware/gic.h>
++#include <asm/irq.h>
++
++#include <mach/hardware.h>
++#include <mach/common.h>
++
++static DEFINE_PER_CPU(struct clock_event_device, local_clockevent);
 +
 +/*
-+ * set_event() is used to wake up secondary core from wfe using sev. ROM
-+ * code puts the second core into wfe(standby).
++ * Used on SMP for either the local timer or IPI_TIMER
++ */
++void local_timer_interrupt(void)
++{
++	struct clock_event_device *clk = &__get_cpu_var(local_clockevent);
++
++	clk->event_handler(clk);
++}
++
++#ifdef CONFIG_LOCAL_TIMERS
++
++/* set up by the platform code */
++void __iomem *twd_base;
++
++static unsigned long mpcore_timer_rate;
++
++static void local_timer_set_mode(enum clock_event_mode mode,
++				 struct clock_event_device *clk)
++{
++	unsigned long ctrl;
++
++	switch (mode) {
++	case CLOCK_EVT_MODE_PERIODIC:
++		/* timer load already set up */
++		ctrl = TWD_TIMER_CONTROL_ENABLE | TWD_TIMER_CONTROL_IT_ENABLE
++			| TWD_TIMER_CONTROL_PERIODIC;
++		break;
++	case CLOCK_EVT_MODE_ONESHOT:
++		/* period set, and timer enabled in 'next_event' hook */
++		ctrl = TWD_TIMER_CONTROL_IT_ENABLE | TWD_TIMER_CONTROL_ONESHOT;
++		break;
++	case CLOCK_EVT_MODE_UNUSED:
++	case CLOCK_EVT_MODE_SHUTDOWN:
++	default:
++		ctrl = 0;
++	}
++
++	__raw_writel(ctrl, twd_base + TWD_TIMER_CONTROL);
++}
++
++static int local_timer_set_next_event(unsigned long evt,
++				      struct clock_event_device *unused)
++{
++	unsigned long ctrl = __raw_readl(twd_base + TWD_TIMER_CONTROL);
++
++	__raw_writel(evt, twd_base + TWD_TIMER_COUNTER);
++	__raw_writel(ctrl | TWD_TIMER_CONTROL_ENABLE,
++				twd_base + TWD_TIMER_CONTROL);
++
++	return 0;
++}
++
++/*
++ * local_timer_ack: checks for a local timer interrupt.
 + *
++ * If a local timer interrupt has occurred, acknowledge and return 1.
++ * Otherwise, return 0.
 + */
-+ #define set_event()	__asm__ __volatile__ ("sev" : : : "memory")
-+
-+/*
-+ * We use Soft IRQ1 as the IPI
-+ */
-+static inline void smp_cross_call(cpumask_t callmap)
++int local_timer_ack(void)
 +{
-+	gic_raise_softirq(callmap, 1);
++	if (__raw_readl(twd_base + TWD_TIMER_INTSTAT)) {
++		__raw_writel(1, twd_base + TWD_TIMER_INTSTAT);
++		return 1;
++	}
++
++	return 0;
++}
++
++static void __cpuinit twd_calibrate_rate(void)
++{
++	unsigned long load, count;
++	u64 waitjiffies;
++
++	/*
++	 * If this is the first time round, we need to work out how fast
++	 * the timer ticks
++	 */
++	if (mpcore_timer_rate == 0) {
++		printk(KERN_INFO "Calibrating local timer... ");
++
++		/* Wait for a tick to start */
++		waitjiffies = get_jiffies_64() + 1;
++
++		while (get_jiffies_64() < waitjiffies)
++			udelay(10);
++
++		/* OK, now the tick has started, let's get the timer going */
++		waitjiffies += 5;
++
++				 /* enable, no interrupt or reload */
++		__raw_writel(0x1, twd_base + TWD_TIMER_CONTROL);
++
++				 /* maximum value */
++		__raw_writel(0xFFFFFFFFU, twd_base + TWD_TIMER_COUNTER);
++
++		while (get_jiffies_64() < waitjiffies)
++			udelay(10);
++
++		count = __raw_readl(twd_base + TWD_TIMER_COUNTER);
++
++		mpcore_timer_rate = (0xFFFFFFFFU - count) * (HZ / 5);
++
++		printk("%lu.%02luMHz.\n", mpcore_timer_rate / 1000000,
++			(mpcore_timer_rate / 100000) % 100);
++	}
++
++	load = mpcore_timer_rate / HZ;
++
++	__raw_writel(load, twd_base + TWD_TIMER_LOAD);
 +}
 +
 +/*
-+ * Can be useful for WFI boot strategy.
++ * Setup the local clock events for a CPU.
 + */
-+static inline void smp_cross_call_done(cpumask_t callmap)
++void __cpuinit local_timer_setup(void)
 +{
++	unsigned int cpu = smp_processor_id();
++	struct clock_event_device *clk = &per_cpu(local_clockevent, cpu);
++	unsigned long flags;
++
++	twd_calibrate_rate();
++
++	clk->name		= "local_timer";
++	clk->features		= CLOCK_EVT_FEAT_PERIODIC
++					| CLOCK_EVT_FEAT_ONESHOT;
++	clk->rating		= 350;
++	clk->set_mode		= local_timer_set_mode;
++	clk->set_next_event	= local_timer_set_next_event;
++	clk->irq		= INT_44XX_LOCALTIMER_IRQ;
++	clk->cpumask		= cpumask_of(cpu);
++	clk->shift		= 20;
++	clk->mult		= div_sc(mpcore_timer_rate,
++						NSEC_PER_SEC, clk->shift);
++	clk->max_delta_ns	= clockevent_delta2ns(0xffffffff, clk);
++	clk->min_delta_ns	= clockevent_delta2ns(0xf, clk);
++
++	/* Make sure our local interrupt controller has this enabled */
++	local_irq_save(flags);
++	get_irq_chip(INT_44XX_LOCALTIMER_IRQ)->unmask(INT_44XX_LOCALTIMER_IRQ);
++	local_irq_restore(flags);
++
++	clockevents_register_device(clk);
 +}
 +
 +/*
-+ * Read MPIDR: Multiprocessor affinity register
++ * take a local timer down
 + */
-+#define hard_smp_processor_id()			\
-+	({						\
-+		unsigned int cpunum;			\
-+		__asm__("mrc p15, 0, %0, c0, c0, 5"	\
-+			: "=r" (cpunum));		\
-+		cpunum &= 0x0F;				\
-+	})
++void __cpuexit local_timer_stop(void)
++{
++	__raw_writel(0, twd_base + TWD_TIMER_CONTROL);
++}
 +
++#else	/* CONFIG_LOCAL_TIMERS */
++
++static void dummy_timer_set_mode(enum clock_event_mode mode,
++				 struct clock_event_device *clk)
++{
++}
++
++void __cpuinit local_timer_setup(void)
++{
++	unsigned int cpu = smp_processor_id();
++	struct clock_event_device *clk = &per_cpu(local_clockevent, cpu);
++
++	clk->name		= "dummy_timer";
++	clk->features		= CLOCK_EVT_FEAT_DUMMY;
++	clk->rating		= 200;
++	clk->mult               = 1;
++	clk->set_mode		= dummy_timer_set_mode;
++	clk->broadcast		= smp_timer_broadcast;
++	clk->cpumask		= cpumask_of(cpu);
++
++	clockevents_register_device(clk);
++}
++
++#endif	/* !CONFIG_LOCAL_TIMERS */
+diff --git a/arch/arm/plat-omap/include/mach/common.h b/arch/arm/plat-omap/include/mach/common.h
+index 4b18833..99381df 100644
+--- a/arch/arm/plat-omap/include/mach/common.h
++++ b/arch/arm/plat-omap/include/mach/common.h
+@@ -30,6 +30,9 @@
+ #include <linux/i2c.h>
+ 
+ struct sys_timer;
++#ifdef CONFIG_LOCAL_TIMERS /* Base address of mpu timer */
++extern void __iomem *twd_base;
 +#endif
+ 
+ extern void omap_map_common_io(void);
+ extern struct sys_timer omap_timer;
+diff --git a/arch/arm/plat-omap/include/mach/entry-macro.S b/arch/arm/plat-omap/include/mach/entry-macro.S
+index 62bcb1b..388f239 100644
+--- a/arch/arm/plat-omap/include/mach/entry-macro.S
++++ b/arch/arm/plat-omap/include/mach/entry-macro.S
+@@ -133,6 +133,34 @@
+ 		cmpne   \irqnr, \tmp
+ 		cmpcs   \irqnr, \irqnr
+ 		.endm
++
++		/* We assume that irqstat (the raw value of the IRQ acknowledge
++		 * register) is preserved from the macro above.
++		 * If there is an IPI, we immediately signal end of interrupt
++		 * on the controller, since this requires the original irqstat
++		 * value which we won't easily be able to recreate later.
++		 */
++
++		.macro test_for_ipi, irqnr, irqstat, base, tmp
++		bic	\irqnr, \irqstat, #0x1c00
++		cmp	\irqnr, #16
++		it	cc
++		strcc	\irqstat, [\base, #GIC_CPU_EOI]
++		it	cs
++		cmpcs	\irqnr, \irqnr
++		.endm
++
++		/* As above, this assumes that irqstat and base are preserved */
++
++		.macro test_for_ltirq, irqnr, irqstat, base, tmp
++		bic	\irqnr, \irqstat, #0x1c00
++		mov 	\tmp, #0
++		cmp	\irqnr, #29
++		itt	eq
++		moveq	\tmp, #1
++		streq	\irqstat, [\base, #GIC_CPU_EOI]
++		cmp	\tmp, #0
++		.endm
+ #endif
+ 
+ 		.macro	irq_prio_table
+diff --git a/arch/arm/plat-omap/include/mach/irqs.h b/arch/arm/plat-omap/include/mach/irqs.h
+index 5bc331e..e8f84a0 100644
+--- a/arch/arm/plat-omap/include/mach/irqs.h
++++ b/arch/arm/plat-omap/include/mach/irqs.h
+@@ -427,6 +427,8 @@
+ 
+ 
+ #define IRQ_GIC_START		32
++#define INT_44XX_LOCALTIMER_IRQ	29
++#define INT_44XX_LOCALWDT_IRQ	30
+ 
+ #define INT_44XX_BENCH_MPU_EMUL	(3 + IRQ_GIC_START)
+ #define INT_44XX_SSM_ABORT_IRQ	(6 + IRQ_GIC_START)
 -- 
 1.5.4.7
 
