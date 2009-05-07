@@ -1,127 +1,34 @@
 From: Felipe Contreras <felipe.contreras@gmail.com>
-Subject: [RFC/PATCH 2/3] omap3-iommu: split init function into omap_iommu_add
-Date: Thu,  7 May 2009 23:11:08 +0300
-Message-ID: <1241727069-15168-3-git-send-email-felipe.contreras@gmail.com>
+Subject: [RFC/PATCH 0/3] omap3-iommu: cleanups and remote registration
+Date: Thu,  7 May 2009 23:11:06 +0300
+Message-ID: <1241727069-15168-1-git-send-email-felipe.contreras@gmail.com>
 References: <94a0d4530905071302g3510fdabne659a42bd9009909@mail.gmail.com>
- <1241727069-15168-1-git-send-email-felipe.contreras@gmail.com>
- <1241727069-15168-2-git-send-email-felipe.contreras@gmail.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
 Received: from fg-out-1718.google.com ([72.14.220.153]:59902 "EHLO
 	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753525AbZEGULZ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 7 May 2009 16:11:25 -0400
+	with ESMTP id S1751731AbZEGULX (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 7 May 2009 16:11:23 -0400
 Received: by fg-out-1718.google.com with SMTP id d23so1364924fga.17
-        for <linux-omap@vger.kernel.org>; Thu, 07 May 2009 13:11:25 -0700 (PDT)
-In-Reply-To: <1241727069-15168-2-git-send-email-felipe.contreras@gmail.com>
+        for <linux-omap@vger.kernel.org>; Thu, 07 May 2009 13:11:22 -0700 (PDT)
+In-Reply-To: <94a0d4530905071302g3510fdabne659a42bd9009909@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: Hiroshi DOYU <hiroshi.doyu@nokia.com>, Felipe Contreras <felipe.contreras@nokia.com>, Tony Lindgren <tony@atomide.com>, Felipe Contreras <felipe.contreras@gmail.com>
 
-In preparation for external registration.
+This patch series cleanups up a bit the opap3-iommu device registration and
+then allows registration from other parts of the code.
 
-Signed-off-by: Felipe Contreras <felipe.contreras@gmail.com>
----
- arch/arm/mach-omap2/omap3-iommu.c |   76 ++++++++++++++++++++++++-------------
- 1 files changed, 49 insertions(+), 27 deletions(-)
+Currently the iva2 code (tidspbridge) is not using iommu, therefore it can't be
+used as-is with the current omap iommu. By allowing devies to be registered
+externaly (either isp, or iva2) this problem goes away.
 
-diff --git a/arch/arm/mach-omap2/omap3-iommu.c b/arch/arm/mach-omap2/omap3-iommu.c
-index f4232ec..149c624 100644
---- a/arch/arm/mach-omap2/omap3-iommu.c
-+++ b/arch/arm/mach-omap2/omap3-iommu.c
-@@ -45,43 +45,65 @@ static struct iommu_device devices[] = {
- 
- static struct platform_device *omap3_iommu_pdev[NR_IOMMU_DEVICES];
- 
--static int __init omap3_iommu_init(void)
-+static struct platform_device *omap_iommu_add(const char *name)
- {
--	int i, err;
--
--	for (i = 0; i < NR_IOMMU_DEVICES; i++) {
--		struct platform_device *pdev;
--		const struct iommu_device *d = &devices[i];
--		struct resource res[] = {
--			{ .flags = IORESOURCE_MEM },
--			{ .flags = IORESOURCE_IRQ },
--		};
--
--		pdev = platform_device_alloc("omap-iommu", i + 1);
--		if (!pdev) {
--			err = -ENOMEM;
--			goto err_out;
-+	struct platform_device *pdev;
-+	const struct iommu_device *d = NULL;
-+	struct resource res[] = {
-+		{ .flags = IORESOURCE_MEM },
-+		{ .flags = IORESOURCE_IRQ },
-+	};
-+	int err, i;
-+
-+	for (i = 0; i < ARRAY_SIZE(devices); i++)
-+		if (strcmp(devices[i].pdata.name, name) == 0) {
-+			d = &devices[i];
-+			break;
- 		}
- 
--		res[0].start = d->base;
--		res[0].end = d->base + MMU_REG_SIZE - 1;
-+	if (!d)
-+		return NULL;
- 
--		res[1].start = d->irq;
-+	pdev = platform_device_alloc("omap-iommu", i + 1);
-+	if (!pdev)
-+		return NULL;
- 
--		err = platform_device_add_resources(pdev, res, ARRAY_SIZE(res));
--		if (err)
--			goto err_out;
-+	res[0].start = d->base;
-+	res[0].end = d->base + MMU_REG_SIZE - 1;
- 
--		err = platform_device_add_data(pdev, &d->pdata, sizeof(d->pdata));
--		if (err)
--			goto err_out;
-+	res[1].start = d->irq;
- 
--		err = platform_device_add(pdev);
--		if (err)
--			goto err_out;
-+	err = platform_device_add_resources(pdev, res, ARRAY_SIZE(res));
-+	if (err)
-+		goto err_out;
-+
-+	err = platform_device_add_data(pdev, &d->pdata, sizeof(d->pdata));
-+	if (err)
-+		goto err_out;
-+
-+	err = platform_device_add(pdev);
-+	if (err)
-+		goto err_out;
-+
-+	return pdev;
- 
-+err_out:
-+	platform_device_put(pdev);
-+	return NULL;
-+}
-+
-+static int __init omap3_iommu_init(void)
-+{
-+	struct platform_device *pdev;
-+	int i, err;
-+
-+	for (i = 0; i < ARRAY_SIZE(devices); i++) {
-+		pdev = omap_iommu_add(devices[i].pdata.name);
-+		if (!pdev)
-+			goto err_out;
- 		omap3_iommu_pdev[i] = pdev;
- 	}
-+
- 	return 0;
- 
- err_out:
--- 
-1.6.3.GIT
+Felipe Contreras (3):
+  omap3-iommu: reorganize
+  omap3-iommu: split init function into omap_iommu_add
+  omap3-iommu: remote registration
+
+ arch/arm/mach-omap2/omap3-iommu.c       |  130 ++++++++++++++-----------------
+ arch/arm/plat-omap/include/mach/iommu.h |    2 +
+ 2 files changed, 62 insertions(+), 70 deletions(-)
 
