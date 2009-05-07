@@ -1,67 +1,109 @@
-From: Kim Kyuwon <chammoru@gmail.com>
-Subject: Re: [PATCH] PM: suspend_device_irqs(): don't disable wakeup IRQs
-Date: Thu, 7 May 2009 11:04:06 +0900
-Message-ID: <4d34a0a70905061904w338457efna8a3cbb80537e0c9@mail.gmail.com>
-References: <1241483224-7113-1-git-send-email-khilman@deeprootsystems.com>
-	<87y6tb3x6r.fsf@deeprootsystems.com> <871vr22upr.fsf@deeprootsystems.com>
-	<200905062318.23572.rjw@sisk.pl> <87zldpu5rt.fsf@deeprootsystems.com>
-	<d6200be20905061818h58145d5fie5c55ceaf900a196@mail.gmail.com>
-	<4d34a0a70905061828l3e35a954k76967b30c1a241ab@mail.gmail.com>
-	<d6200be20905061844q8a4945y83daa86b336dc49a@mail.gmail.com>
+From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+Subject: Re: [PATCH 2/6] omap iommu: omap2 architecture specific functions
+Date: Thu, 07 May 2009 08:12:59 +0300 (EEST)
+Message-ID: <20090507.081259.233680638.Hiroshi.DOYU@nokia.com>
+References: <20090505123905.4583.69865.stgit@oreo.research.nokia.com>
+	<20090505124655.4583.73497.stgit@oreo.research.nokia.com>
+	<8F7AF80515AF0D4D93307E594F3CB40E2AE46FB2@dlee03.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-qy0-f125.google.com ([209.85.221.125]:58637 "EHLO
-	mail-qy0-f125.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751007AbZEGCE0 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 6 May 2009 22:04:26 -0400
-In-Reply-To: <d6200be20905061844q8a4945y83daa86b336dc49a@mail.gmail.com>
+Received: from smtp.nokia.com ([192.100.105.134]:60292 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751991AbZEGFNV (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 7 May 2009 01:13:21 -0400
+In-Reply-To: <8F7AF80515AF0D4D93307E594F3CB40E2AE46FB2@dlee03.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: =?ISO-8859-1?Q?Arve_Hj=F8nnev=E5g?= <arve@android.com>
-Cc: Kevin Hilman <khilman@deeprootsystems.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, Andrew Morton <akpm@linux-foundation.org>, linux-pm@lists.linux-foundation.org, linux-kernel@vger.kernel.org, Linus Torvalds <torvalds@linux-foundation.org>, Ingo Molnar <mingo@elte.hu>, OMAP <linux-omap@vger.kernel.org>
+To: h-kanigeri2@ti.com
+Cc: linux-arm-kernel@lists.arm.linux.org.uk, linux-omap@vger.kernel.org, omar.ramirez@ti.com, sakari.ailus@maxwell.research.nokia.com, tony@atomide.com, vpasam@ti.com
 
-2009/5/7 Arve Hj=F8nnev=E5g <arve@android.com>:
-> 2009/5/6 Kim Kyuwon <chammoru@gmail.com>:
->> 2009/5/7 Arve Hj=F8nnev=E5g <arve@android.com>:
->>> On Wed, May 6, 2009 at 5:16 PM, Kevin Hilman
->>> <khilman@deeprootsystems.com> wrote:
->>>> "Rafael J. Wysocki" <rjw@sisk.pl> writes:
->>>>
->>>>> On Wednesday 06 May 2009, Kevin Hilman wrote:
->>>>>> Kevin Hilman <khilman@deeprootsystems.com> writes:
->>>
->>>> There is at least one problem with that which is why Kyuwon Kim ad=
-ded
->>>> the ->disable hook to OMAP's irq_chip.  The problem is with driver=
-s
->>>> that call disable_irq() in their suspend hook, usually done to pre=
-vent
->>>> the device from waking the system since on OMAP, any IRQ can be
->>>> configured to wake the system.
->>>>
->>>
->>> This does not sound correct. disable_irq_wake should be used for th=
-is.
->>> A driver may need to mask its interrupt before suspending but this
->>> should not also disable it as a wakeup source.
->>
->> I wish I could use disable_irq_wake(), but it doesn't work in OMAP.
->
-> This does not sound like a hardware problem.
+From: "ext Kanigeri, Hari" <h-kanigeri2@ti.com>
+Subject: RE: [PATCH 2/6] omap iommu: omap2 architecture specific functions
+Date: Wed, 6 May 2009 16:31:37 +0200
 
-We may need advices of TI engineers.
-However, as far as I know, It is impossible to disable 'interrupt
-wake-up' with interrupt enabled. Because an interrupt itself generate
-a system wake-up event in OMAP3430 (Hardware level).
---=20
-Kyuwon
+> Hi,
+> 
+> > +static u32 omap2_iommu_fault_isr(struct iommu *obj, u32 *ra)
+> > +{
+> > +	int i;
+> > +	u32 stat, da;
+> > +	const char *err_msg[] =	{
+> > +		"tlb miss",
+> > +		"translation fault",
+> > +		"emulation miss",
+> > +		"table walk fault",
+> > +		"multi hit fault",
+> > +	};
+> > +
+> > +	stat = iommu_read_reg(obj, MMU_IRQSTATUS);
+> > +	stat &= MMU_IRQ_MASK;
+> > +	if (!stat)
+> > +		return 0;
+> > +
+> > +	da = iommu_read_reg(obj, MMU_FAULT_AD);
+> > +	*ra = da;
+> > +
+> > +	dev_err(obj->dev, "%s:\tda:%08x ", __func__, da);
+> > +
+> > +	for (i = 0; i < ARRAY_SIZE(err_msg); i++) {
+> > +		if (stat & (1 << i))
+> > +			printk("%s ", err_msg[i]);
+> > +	}
+> > +	printk("\n");
+> > +
+> > +	iommu_write_reg(obj, stat, MMU_IRQSTATUS);
+> > +	return stat;
+> > +}
+> > +
+> 
+> -- I see you are acking the MMU fault in the ISR, but I don't think
+> this will be enough to stop the further generation of MMU faults as
+> the device will again try to access the same fault address. 
 
-> --
-> Arve Hj=F8nnev=E5g
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+My idea is that, an iommu fault should be handled by a client
+specific/provided callback function enough flexibly that it can handle
+more complecated use cases like implementing on-demand dynamic memory
+mapping at getting an iommu fault.
+
+linux/arch/arm/plat-omap/iommu.c:
+
++static irqreturn_t iommu_fault_handler(int irq, void *data)
++{
++       u32 stat, da;
++       u32 *iopgd, *iopte;
++       int err = -EIO;
++       struct iommu *obj = data;
++
++       if (!obj->refcount)
++               return IRQ_NONE;
++
++       /* Dynamic loading TLB or PTE */
++       if (obj->isr)
++               err = obj->isr(obj);
+		      ^^^^^^^^^^^^^^
+
+If the above "isr" function sets a new "tlb" or "pte" entry, then
+further iommu fault won't happen anymore.
+
+> 
+> In the mean time before the callback mechanism is implemented, we
+> should consider disabling the MMU for the device that caused the MMU
+> fault to stop further generation of MMU faults.
+> 
+> +	printk("\n");
+> +
+> +	iommu_write_reg(obj, stat, MMU_IRQSTATUS);
+> +	omap2_iommu_disable(obj) -----------------------> [HK]
+> +	return stat;
+> +}
+
+It's not bad idea at all to disable iommu temporary as a default
+behavior, but maybe it should be done in the latter half of
+"iommu_fault_handler()".
+
+> 
+> Thank you,
+> Best regards,
+> Hari
