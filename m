@@ -1,60 +1,33 @@
-From: Adrian Hunter <adrian.hunter@nokia.com>
-Subject: [PATCH] OMAP: RX51: Add log partition
-Date: Thu, 07 May 2009 09:53:49 +0300
-Message-ID: <4A02857D.4000301@nokia.com>
+From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
+Subject: [PATCH 0/3]  OMAP4: SMP: Patch series
+Date: Thu, 7 May 2009 12:47:30 +0530
+Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB02B4687E57@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:20547 "EHLO
-	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757900AbZEGGw5 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 7 May 2009 02:52:57 -0400
+Received: from bear.ext.ti.com ([192.94.94.41]:52753 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750754AbZEGHRw convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 7 May 2009 03:17:52 -0400
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap Mailing List <linux-omap@vger.kernel.org>
+To: "linux-arm-kernel@lists.arm.linux.org.uk" <linux-arm-kernel@lists.arm.linux.org.uk>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
->From 22d5b418dd2535f326d7f3ee5661db8159b9845d Mon Sep 17 00:00:00 2001
-From: Adrian Hunter <adrian.hunter@nokia.com>
-Date: Thu, 7 May 2009 09:45:32 +0300
-Subject: [PATCH] OMAP: RX51: Add log partition
+This patch series enables SMP support for OMAP4430 development platform. This series depends on the earlier patch series sent on the mailing list. [1]
 
-Signed-off-by: Adrian Hunter <adrian.hunter@nokia.com>
----
- arch/arm/configs/rx51_defconfig              |    2 +-
- arch/arm/mach-omap2/board-rx51-peripherals.c |    5 +++++
- 2 files changed, 6 insertions(+), 1 deletions(-)
+The patches are generated against mainline version 2.6.30 -rc2. The kernel is validated on the OMAP4430 software simulator platform. SMP kernel is functional with debug UART. No additional drivers are supported yet.
 
-diff --git a/arch/arm/configs/rx51_defconfig b/arch/arm/configs/rx51_defconfig
-index 2672a70..7ee4b6a 100644
---- a/arch/arm/configs/rx51_defconfig
-+++ b/arch/arm/configs/rx51_defconfig
-@@ -288,7 +288,7 @@ CONFIG_ALIGNMENT_TRAP=y
- #
- CONFIG_ZBOOT_ROM_TEXT=0x0
- CONFIG_ZBOOT_ROM_BSS=0x0
--CONFIG_CMDLINE="init=/sbin/preinit ubi.mtd=4 root=ubi0:rootfs rootfstype=ubifs rw console=ttyMTD5"
-+CONFIG_CMDLINE="init=/sbin/preinit ubi.mtd=rootfs root=ubi0:rootfs rootfstype=ubifs rootflags=bulk_read,no_chk_data_crc rw console=ttyMTD,log console=tty0"
- # CONFIG_XIP_KERNEL is not set
- # CONFIG_KEXEC is not set
- 
-diff --git a/arch/arm/mach-omap2/board-rx51-peripherals.c b/arch/arm/mach-omap2/board-rx51-peripherals.c
-index 55e8568..4d10f5c 100644
---- a/arch/arm/mach-omap2/board-rx51-peripherals.c
-+++ b/arch/arm/mach-omap2/board-rx51-peripherals.c
-@@ -494,6 +494,11 @@ static struct mtd_partition onenand_partitions[] = {
- 		.size           = 0x60000,
- 	},
- 	{
-+		.name           = "log",
-+		.offset         = MTDPART_OFS_APPEND,
-+		.size           = 0x40000,
-+	},
-+	{
- 		.name           = "kernel",
- 		.offset         = MTDPART_OFS_APPEND,
- 		.size           = 0x200000,
--- 
-1.5.6.3
+The series contains:
 
+[PATCH 1/3]OMAP4: SMP: Add OMAP4430 SMP board files
+[PATCH 2/3]OMAP4: SMP: Add mpu timer support for OMAP4430
+[PATCH 3/3]OMAP4: SMP: Enable SMP support for OMAP4430
+
+Regards,
+Santosh
+
+[1]:	[PATCH 0/7] OMAP4: Basic board support patch series
+	http://lists.arm.linux.org.uk/lurker/message/20090428.094757.6642f1e3.en.html
