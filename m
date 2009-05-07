@@ -1,50 +1,74 @@
-From: Jarkko Nikula <jhnikula@gmail.com>
-Subject: Re: Beep sound in the end of audio file
-Date: Thu, 7 May 2009 17:15:22 +0300
-Message-ID: <20090507171522.afed1a86.jhnikula@gmail.com>
-References: <5A47E75E594F054BAF48C5E4FC4B92AB0305559FCC@dbde02.ent.ti.com>
-	<1241619589.8928.2038.camel@sax-lx.fischerfamily.org>
-	<200905070848.25904.peter.ujfalusi@nokia.com>
-	<200905071408.14629.peter.ujfalusi@nokia.com>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: [PATCH] PM: suspend_device_irqs(): don't disable wakeup IRQs
+Date: Thu, 07 May 2009 07:13:55 -0700
+Message-ID: <87ws8trof0.fsf@deeprootsystems.com>
+References: <1241483224-7113-1-git-send-email-khilman@deeprootsystems.com>
+	<87y6tb3x6r.fsf@deeprootsystems.com>
+	<871vr22upr.fsf@deeprootsystems.com> <200905062318.23572.rjw@sisk.pl>
+	<87zldpu5rt.fsf@deeprootsystems.com>
+	<d6200be20905061818h58145d5fie5c55ceaf900a196@mail.gmail.com>
+	<4d34a0a70905061828l3e35a954k76967b30c1a241ab@mail.gmail.com>
+	<d6200be20905061844q8a4945y83daa86b336dc49a@mail.gmail.com>
+	<4d34a0a70905061904w338457efna8a3cbb80537e0c9@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <alsa-devel-bounces@alsa-project.org>
-In-Reply-To: <200905071408.14629.peter.ujfalusi@nokia.com>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Sender: alsa-devel-bounces@alsa-project.org
-Errors-To: alsa-devel-bounces@alsa-project.org
-To: Peter Ujfalusi <peter.ujfalusi@nokia.com>
-Cc: "Aggarwal, Anuj" <anuj.aggarwal@ti.com>, "todd.fischer@ridgerun.com" <todd.fischer@ridgerun.com>, alsa-devel@alsa-project.org, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from qw-out-2122.google.com ([74.125.92.27]:48587 "EHLO
+	qw-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756053AbZEGOOB convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 7 May 2009 10:14:01 -0400
+In-Reply-To: <4d34a0a70905061904w338457efna8a3cbb80537e0c9@mail.gmail.com> (Kim Kyuwon's message of "Thu\, 7 May 2009 11\:04\:06 +0900")
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Kim Kyuwon <chammoru@gmail.com>
+Cc: Arve =?iso-8859-1?Q?Hj=F8nnev=E5g?= <arve@android.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, Andrew Morton <akpm@linux-foundation.org>, linux-pm@lists.linux-foundation.org, linux-kernel@vger.kernel.org, Linus Torvalds <torvalds@linux-foundation.org>, Ingo Molnar <mingo@elte.hu>, OMAP <linux-omap@vger.kernel.org>
 
-On Thu, 7 May 2009 14:08:14 +0300
-Peter Ujfalusi <peter.ujfalusi@nokia.com> wrote:
+Kim Kyuwon <chammoru@gmail.com> writes:
 
-> I need to revisit this...
-> After more testing and debugging, it seams that I can not confirm the 
-> existence of the "tuck" (with the latest twl4030  codec code).
-> As soon as I receive my Beagle board I will test it again (can anyone
-> test this with latest ASoC code on Beagle?)...
-> 
-I can hear somewhat audible (stetson guessed -20 db
-from /dev/urandom level) power-up/-down pop with "aplay -f
-dat /dev/zero" but no any other beeps or noises.
+> 2009/5/7 Arve Hj=F8nnev=E5g <arve@android.com>:
+>> 2009/5/6 Kim Kyuwon <chammoru@gmail.com>:
+>>> 2009/5/7 Arve Hj=F8nnev=E5g <arve@android.com>:
+>>>> On Wed, May 6, 2009 at 5:16 PM, Kevin Hilman
+>>>> <khilman@deeprootsystems.com> wrote:
+>>>>> "Rafael J. Wysocki" <rjw@sisk.pl> writes:
+>>>>>
+>>>>>> On Wednesday 06 May 2009, Kevin Hilman wrote:
+>>>>>>> Kevin Hilman <khilman@deeprootsystems.com> writes:
+>>>>
+>>>>> There is at least one problem with that which is why Kyuwon Kim a=
+dded
+>>>>> the ->disable hook to OMAP's irq_chip.  The problem is with drive=
+rs
+>>>>> that call disable_irq() in their suspend hook, usually done to pr=
+event
+>>>>> the device from waking the system since on OMAP, any IRQ can be
+>>>>> configured to wake the system.
+>>>>>
+>>>>
+>>>> This does not sound correct. disable_irq_wake should be used for t=
+his.
+>>>> A driver may need to mask its interrupt before suspending but this
+>>>> should not also disable it as a wakeup source.
+>>>
+>>> I wish I could use disable_irq_wake(), but it doesn't work in OMAP.
+>>
+>> This does not sound like a hardware problem.
+>
+> We may need advices of TI engineers.
+> However, as far as I know, It is impossible to disable 'interrupt
+> wake-up' with interrupt enabled. Because an interrupt itself generate
+> a system wake-up event in OMAP3430 (Hardware level).
 
-I cannot hear any difference in pop level am I using head of linux-omap
-or when merging sound-2.6/asoc on top of it.
+Interrupt wakeups can be disabled at the PRCM level.  Or more simply
+we can keep a mask of wakeup-enable interrupts and use that.
 
-Of cource this pop noise can be codec output & load dependent and also
-possible on-board amplifier with proper power sequencing can mask the
-noise. For reference, output jack of the Beagle is connected directly
-into HSOL and HSOR pins.
+I will experiment with getting disable_irq_wake() working.
 
+Kevin
 
--- 
-Jarkko
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
