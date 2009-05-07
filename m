@@ -1,34 +1,137 @@
 From: Felipe Contreras <felipe.contreras@gmail.com>
-Subject: [RFC/PATCH 0/3] omap3-iommu: cleanups and remote registration
-Date: Thu,  7 May 2009 23:11:06 +0300
-Message-ID: <1241727069-15168-1-git-send-email-felipe.contreras@gmail.com>
+Subject: [RFC/PATCH 1/3] omap3-iommu: reorganize
+Date: Thu,  7 May 2009 23:11:07 +0300
+Message-ID: <1241727069-15168-2-git-send-email-felipe.contreras@gmail.com>
 References: <94a0d4530905071302g3510fdabne659a42bd9009909@mail.gmail.com>
+ <1241727069-15168-1-git-send-email-felipe.contreras@gmail.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from fg-out-1718.google.com ([72.14.220.153]:59902 "EHLO
-	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751731AbZEGULX (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 7 May 2009 16:11:23 -0400
-Received: by fg-out-1718.google.com with SMTP id d23so1364924fga.17
-        for <linux-omap@vger.kernel.org>; Thu, 07 May 2009 13:11:22 -0700 (PDT)
-In-Reply-To: <94a0d4530905071302g3510fdabne659a42bd9009909@mail.gmail.com>
+Received: from mail-fx0-f158.google.com ([209.85.220.158]:43961 "EHLO
+	mail-fx0-f158.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753508AbZEGULY (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 7 May 2009 16:11:24 -0400
+Received: by fxm2 with SMTP id 2so1013856fxm.37
+        for <linux-omap@vger.kernel.org>; Thu, 07 May 2009 13:11:23 -0700 (PDT)
+In-Reply-To: <1241727069-15168-1-git-send-email-felipe.contreras@gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: Hiroshi DOYU <hiroshi.doyu@nokia.com>, Felipe Contreras <felipe.contreras@nokia.com>, Tony Lindgren <tony@atomide.com>, Felipe Contreras <felipe.contreras@gmail.com>
 
-This patch series cleanups up a bit the opap3-iommu device registration and
-then allows registration from other parts of the code.
+No functional changes.
 
-Currently the iva2 code (tidspbridge) is not using iommu, therefore it can't be
-used as-is with the current omap iommu. By allowing devies to be registered
-externaly (either isp, or iva2) this problem goes away.
+Signed-off-by: Felipe Contreras <felipe.contreras@gmail.com>
+---
+ arch/arm/mach-omap2/omap3-iommu.c |   72 ++++++++++++++++++------------------
+ 1 files changed, 36 insertions(+), 36 deletions(-)
 
-Felipe Contreras (3):
-  omap3-iommu: reorganize
-  omap3-iommu: split init function into omap_iommu_add
-  omap3-iommu: remote registration
-
- arch/arm/mach-omap2/omap3-iommu.c       |  130 ++++++++++++++-----------------
- arch/arm/plat-omap/include/mach/iommu.h |    2 +
- 2 files changed, 62 insertions(+), 70 deletions(-)
+diff --git a/arch/arm/mach-omap2/omap3-iommu.c b/arch/arm/mach-omap2/omap3-iommu.c
+index 367f36a..f4232ec 100644
+--- a/arch/arm/mach-omap2/omap3-iommu.c
++++ b/arch/arm/mach-omap2/omap3-iommu.c
+@@ -14,43 +14,31 @@
+ 
+ #include <mach/iommu.h>
+ 
+-#define OMAP3_MMU1_BASE	0x480bd400
+-#define OMAP3_MMU2_BASE	0x5d000000
+-#define OMAP3_MMU1_IRQ	24
+-#define OMAP3_MMU2_IRQ	28
+-
+-static struct resource omap3_iommu_res[] = {
+-	{ /* Camera ISP MMU */
+-		.start		= OMAP3_MMU1_BASE,
+-		.end		= OMAP3_MMU1_BASE + MMU_REG_SIZE - 1,
+-		.flags		= IORESOURCE_MEM,
+-	},
+-	{
+-		.start		= OMAP3_MMU1_IRQ,
+-		.flags		= IORESOURCE_IRQ,
+-	},
+-	{ /* IVA2.2 MMU */
+-		.start		= OMAP3_MMU2_BASE,
+-		.end		= OMAP3_MMU2_BASE + MMU_REG_SIZE - 1,
+-		.flags		= IORESOURCE_MEM,
+-	},
+-	{
+-		.start		= OMAP3_MMU2_IRQ,
+-		.flags		= IORESOURCE_IRQ,
+-	},
++struct iommu_device {
++	resource_size_t base;
++	resource_size_t irq;
++	struct iommu_platform_data pdata;
++	struct resource res[2];
+ };
+-#define NR_IOMMU_RES (ARRAY_SIZE(omap3_iommu_res) / 2)
+ 
+-static const struct iommu_platform_data omap3_iommu_pdata[] __initconst = {
++static struct iommu_device devices[] = {
+ 	{
+-		.name = "isp",
+-		.nr_tlb_entries = 8,
+-		.clk_name = "cam_ick",
++		.base = 0x480bd400,
++		.irq = 24,
++		.pdata = {
++			.name = "isp",
++			.nr_tlb_entries = 8,
++			.clk_name = "cam_ick",
++		},
+ 	},
+ 	{
+-		.name = "iva2",
+-		.nr_tlb_entries = 32,
+-		.clk_name = "iva2_ck",
++		.base = 0x5d000000,
++		.irq = 28,
++		.pdata = {
++			.name = "iva2",
++			.nr_tlb_entries = 32,
++			.clk_name = "iva2_ck",
++		},
+ 	},
+ };
+ #define NR_IOMMU_DEVICES ARRAY_SIZE(omap3_iommu_pdata)
+@@ -63,23 +51,35 @@ static int __init omap3_iommu_init(void)
+ 
+ 	for (i = 0; i < NR_IOMMU_DEVICES; i++) {
+ 		struct platform_device *pdev;
++		const struct iommu_device *d = &devices[i];
++		struct resource res[] = {
++			{ .flags = IORESOURCE_MEM },
++			{ .flags = IORESOURCE_IRQ },
++		};
+ 
+ 		pdev = platform_device_alloc("omap-iommu", i + 1);
+ 		if (!pdev) {
+ 			err = -ENOMEM;
+ 			goto err_out;
+ 		}
+-		err = platform_device_add_resources(pdev,
+-				    &omap3_iommu_res[2 * i], NR_IOMMU_RES);
++
++		res[0].start = d->base;
++		res[0].end = d->base + MMU_REG_SIZE - 1;
++
++		res[1].start = d->irq;
++
++		err = platform_device_add_resources(pdev, res, ARRAY_SIZE(res));
+ 		if (err)
+ 			goto err_out;
+-		err = platform_device_add_data(pdev, &omap3_iommu_pdata[i],
+-					       sizeof(omap3_iommu_pdata[0]));
++
++		err = platform_device_add_data(pdev, &d->pdata, sizeof(d->pdata));
+ 		if (err)
+ 			goto err_out;
++
+ 		err = platform_device_add(pdev);
+ 		if (err)
+ 			goto err_out;
++
+ 		omap3_iommu_pdev[i] = pdev;
+ 	}
+ 	return 0;
+-- 
+1.6.3.GIT
 
