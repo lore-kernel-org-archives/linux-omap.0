@@ -1,74 +1,49 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH] PM: suspend_device_irqs(): don't disable wakeup IRQs
-Date: Thu, 07 May 2009 07:13:55 -0700
-Message-ID: <87ws8trof0.fsf@deeprootsystems.com>
-References: <1241483224-7113-1-git-send-email-khilman@deeprootsystems.com>
-	<87y6tb3x6r.fsf@deeprootsystems.com>
-	<871vr22upr.fsf@deeprootsystems.com> <200905062318.23572.rjw@sisk.pl>
-	<87zldpu5rt.fsf@deeprootsystems.com>
-	<d6200be20905061818h58145d5fie5c55ceaf900a196@mail.gmail.com>
-	<4d34a0a70905061828l3e35a954k76967b30c1a241ab@mail.gmail.com>
-	<d6200be20905061844q8a4945y83daa86b336dc49a@mail.gmail.com>
-	<4d34a0a70905061904w338457efna8a3cbb80537e0c9@mail.gmail.com>
+From: "Kanigeri, Hari" <h-kanigeri2@ti.com>
+Subject: RE: [PATCH 2/6] omap iommu: omap2 architecture specific functions
+Date: Thu, 7 May 2009 09:40:35 -0500
+Message-ID: <8F7AF80515AF0D4D93307E594F3CB40E2AE47A12@dlee03.ent.ti.com>
+References: <20090505123905.4583.69865.stgit@oreo.research.nokia.com>
+	<20090505124655.4583.73497.stgit@oreo.research.nokia.com>
+	<8F7AF80515AF0D4D93307E594F3CB40E2AE46FB2@dlee03.ent.ti.com>
+ <20090507.081259.233680638.Hiroshi.DOYU@nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from qw-out-2122.google.com ([74.125.92.27]:48587 "EHLO
-	qw-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756053AbZEGOOB convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 7 May 2009 10:14:01 -0400
-In-Reply-To: <4d34a0a70905061904w338457efna8a3cbb80537e0c9@mail.gmail.com> (Kim Kyuwon's message of "Thu\, 7 May 2009 11\:04\:06 +0900")
+Received: from arroyo.ext.ti.com ([192.94.94.40]:50271 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752918AbZEGOlF convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 7 May 2009 10:41:05 -0400
+In-Reply-To: <20090507.081259.233680638.Hiroshi.DOYU@nokia.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kim Kyuwon <chammoru@gmail.com>
-Cc: Arve =?iso-8859-1?Q?Hj=F8nnev=E5g?= <arve@android.com>, "Rafael J. Wysocki" <rjw@sisk.pl>, Andrew Morton <akpm@linux-foundation.org>, linux-pm@lists.linux-foundation.org, linux-kernel@vger.kernel.org, Linus Torvalds <torvalds@linux-foundation.org>, Ingo Molnar <mingo@elte.hu>, OMAP <linux-omap@vger.kernel.org>
+To: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+Cc: "linux-arm-kernel@lists.arm.linux.org.uk" <linux-arm-kernel@lists.arm.linux.org.uk>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Ramirez Luna, Omar" <omar.ramirez@ti.com>, "sakari.ailus@maxwell.research.nokia.com" <sakari.ailus@maxwell.research.nokia.com>, "tony@atomide.com" <tony@atomide.com>, "Pasam, Vijay" <vpasam@ti.com>
 
-Kim Kyuwon <chammoru@gmail.com> writes:
+Hi,
 
-> 2009/5/7 Arve Hj=F8nnev=E5g <arve@android.com>:
->> 2009/5/6 Kim Kyuwon <chammoru@gmail.com>:
->>> 2009/5/7 Arve Hj=F8nnev=E5g <arve@android.com>:
->>>> On Wed, May 6, 2009 at 5:16 PM, Kevin Hilman
->>>> <khilman@deeprootsystems.com> wrote:
->>>>> "Rafael J. Wysocki" <rjw@sisk.pl> writes:
->>>>>
->>>>>> On Wednesday 06 May 2009, Kevin Hilman wrote:
->>>>>>> Kevin Hilman <khilman@deeprootsystems.com> writes:
->>>>
->>>>> There is at least one problem with that which is why Kyuwon Kim a=
-dded
->>>>> the ->disable hook to OMAP's irq_chip.  The problem is with drive=
-rs
->>>>> that call disable_irq() in their suspend hook, usually done to pr=
-event
->>>>> the device from waking the system since on OMAP, any IRQ can be
->>>>> configured to wake the system.
->>>>>
->>>>
->>>> This does not sound correct. disable_irq_wake should be used for t=
-his.
->>>> A driver may need to mask its interrupt before suspending but this
->>>> should not also disable it as a wakeup source.
->>>
->>> I wish I could use disable_irq_wake(), but it doesn't work in OMAP.
->>
->> This does not sound like a hardware problem.
+> +static irqreturn_t iommu_fault_handler(int irq, void *data)
+> +{
+> +       u32 stat, da;
+> +       u32 *iopgd, *iopte;
+> +       int err = -EIO;
+> +       struct iommu *obj = data;
+> +
+> +       if (!obj->refcount)
+> +               return IRQ_NONE;
+> +
+> +       /* Dynamic loading TLB or PTE */
+> +       if (obj->isr)
+> +               err = obj->isr(obj);
+> 		      ^^^^^^^^^^^^^^
+> 
+> If the above "isr" function sets a new "tlb" or "pte" entry, then
+> further iommu fault won't happen anymore.
 >
-> We may need advices of TI engineers.
-> However, as far as I know, It is impossible to disable 'interrupt
-> wake-up' with interrupt enabled. Because an interrupt itself generate
-> a system wake-up event in OMAP3430 (Hardware level).
 
-Interrupt wakeups can be disabled at the PRCM level.  Or more simply
-we can keep a mask of wakeup-enable interrupts and use that.
+-- I think adding the new tlb entry or any other error recovery mechanism should be deferred to the registered callback function. 
 
-I will experiment with getting disable_irq_wake() working.
-
-Kevin
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Thank you,
+Best regards,
+Hari
