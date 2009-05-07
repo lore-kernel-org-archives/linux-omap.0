@@ -1,45 +1,63 @@
-From: Arun KS <getarunks@gmail.com>
-Subject: Re: [alsa-devel] Beep sound in the end of audio file
-Date: Thu, 7 May 2009 16:18:15 +0530
-Message-ID: <dfeb90390905070348g1f9db6c6x477cc03f44955c7d@mail.gmail.com>
+From: Peter Ujfalusi <peter.ujfalusi@nokia.com>
+Subject: Re: Beep sound in the end of audio file
+Date: Thu, 7 May 2009 14:08:14 +0300
+Message-ID: <200905071408.14629.peter.ujfalusi@nokia.com>
 References: <5A47E75E594F054BAF48C5E4FC4B92AB0305559FCC@dbde02.ent.ti.com>
-	 <200905060833.10998.peter.ujfalusi@nokia.com>
-	 <5A47E75E594F054BAF48C5E4FC4B92AB030555A348@dbde02.ent.ti.com>
-	 <20090506140719.GF6573@sirena.org.uk>
-	 <dfeb90390905070235i47f9aed4lbd2298ba07a5b989@mail.gmail.com>
-	 <20090507093801.GA27897@sirena.org.uk>
+	<1241619589.8928.2038.camel@sax-lx.fischerfamily.org>
+	<200905070848.25904.peter.ujfalusi@nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from rv-out-0506.google.com ([209.85.198.239]:38052 "EHLO
-	rv-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753082AbZEGKsP (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 7 May 2009 06:48:15 -0400
-Received: by rv-out-0506.google.com with SMTP id f9so547243rvb.1
-        for <linux-omap@vger.kernel.org>; Thu, 07 May 2009 03:48:15 -0700 (PDT)
-In-Reply-To: <20090507093801.GA27897@sirena.org.uk>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <alsa-devel-bounces@alsa-project.org>
+In-Reply-To: <200905070848.25904.peter.ujfalusi@nokia.com>
+Content-Disposition: inline
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Sender: alsa-devel-bounces@alsa-project.org
+Errors-To: alsa-devel-bounces@alsa-project.org
+To: alsa-devel@alsa-project.org
+Cc: "Aggarwal, Anuj" <anuj.aggarwal@ti.com>, "todd.fischer@ridgerun.com" <todd.fischer@ridgerun.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
-To: Mark Brown <broonie@sirena.org.uk>
-Cc: "Aggarwal, Anuj" <anuj.aggarwal@ti.com>, Peter Ujfalusi <peter.ujfalusi@nokia.com>, "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Thu, May 7, 2009 at 3:08 PM, Mark Brown <broonie@sirena.org.uk> wrote:
-> On Thu, May 07, 2009 at 03:05:08PM +0530, Arun KS wrote:
+On Thursday 07 May 2009 08:48:25 Ujfalusi Peter (Nokia-D/Tampere) wrote:
+> On Wednesday 06 May 2009 17:19:49 ext Todd Fischer wrote:
+> > Hi,
+> >
+> > FWIW: while developing a GSTreamer presentation using a BegleBoard (rev
+> > C), I noticed the same "tuck" sound.  It also occurs a second or two
+> > after the GST application exits.  I assumed it was some power management
+> > code that was disabling the audio codec after it had gone idle, but nev=
+er
+> > looked into it.  BeagleBoard also uses TWL4030.
+> >
+> > GST command: gst-launch audiotestsrc freq=3D1000 num-buffers=3D100 ! al=
+sasink
+> >
+> > /proc/version: Linux version 2.6.28-omap1 (ddompe@Aleph) (gcc version
+> > 4.3.1 (GCC) ) #2 Thu Mar 5 08:55:58 CST 2009
 >
->> Since we are not going with the generic driver, are you going to push
->> this patch:
->
->> http://www.mail-archive.com/linux-omap@vger.kernel.org/msg07166.html
->
-> I can't see anything wrong with it looking in the web archive but somene
-> should send a copy tested against current ASoC.
->
+> The "tuck" is coming from the codec, when it is powered down (in the old
+> twl4030 codec found in omap-2.6.28 branch of linux-omap).
+> But, it still happens with the latest version, when the codec is muted
+> only. I can observe the "tuck" on Headset output, but not on the
+> PreDrive... The Headset enable and disable is implemented according to the
+> TRM, but it seams that additional tweaking is needed..
 
-I tested the patch with current ASoC and it is working.
+I need to revisit this...
+After more testing and debugging, it seams that I can not confirm the =
 
-Anuj,
+existence of the "tuck" (with the latest twl4030  codec code).
+As soon as I receive my Beagle board I will test it again (can anyone test =
 
-Can you send a patch against current ASoC.
+this with latest ASoC code on Beagle?)...
 
-Arun
+[Anuj]: What kernel are you using where you have the beep?
+
+-- =
+
+P=E9ter
