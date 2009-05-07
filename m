@@ -1,143 +1,83 @@
-From: Jean Pihet <jpihet@mvista.com>
-Subject: Re: Beagleboard rev C memory timings & suspend/resume
-Date: Thu, 7 May 2009 18:44:20 +0200
-Message-ID: <200905071844.20939.jpihet@mvista.com>
-References: <200904291553.49378.jpihet@mvista.com> <alpine.DEB.2.00.0905060009100.17514@utopia.booyaka.com> <200905071318.30501.jpihet@mvista.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+From: Koen Kooi <koen@dominion.thruhere.net>
+Subject: Re: [PATCH] OMAP_LDP: Support LCD display as a FB device on ZOOM MDK (Re: LDP support)
+Date: Thu, 7 May 2009 18:56:33 +0200
+Message-ID: <DE514120-BF18-4DB7-9B0F-D17F495B75B2@student.utwente.nl>
+References: <20090428220712.GF29277@n2100.arm.linux.org.uk> <20090428224237.GT22457@atomide.com> <20090505195231.GB8004@n2100.arm.linux.org.uk> <20090506040015.GM5593@atomide.com> <20090506224917.GS5593@atomide.com> <4A02F7CF.1050803@windriver.com> <20090507161936.GA26106@n2100.arm.linux.org.uk> <20090507162833.GZ5593@atomide.com>
+Mime-Version: 1.0 (Apple Message framework v930.3)
+Content-Type: multipart/signed; protocol="application/pgp-signature"; micalg=pgp-sha1; boundary="Apple-Mail-6--732295408"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from gateway-1237.mvista.com ([63.81.120.158]:11472 "EHLO
-	gateway-1237.mvista.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753837AbZEGQom convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 7 May 2009 12:44:42 -0400
-In-Reply-To: <200905071318.30501.jpihet@mvista.com>
-Content-Disposition: inline
+Received: from fg-out-1718.google.com ([72.14.220.153]:27775 "EHLO
+	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1760994AbZEGQ4j (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 7 May 2009 12:56:39 -0400
+Received: by fg-out-1718.google.com with SMTP id 16so314870fgg.17
+        for <linux-omap@vger.kernel.org>; Thu, 07 May 2009 09:56:39 -0700 (PDT)
+In-Reply-To: <20090507162833.GZ5593@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>Paul Walmsley <paul@pwsan.com>, "Syed Mohammed, Khasim" <khasim@ti.com>, "Kridner, Jason" <jdk@ti.com>
-Cc: linux-omap <linux-omap@vger.kernel.org>
+To: linux-omap List <linux-omap@vger.kernel.org>
 
-Hi,
-
-FYI I tried to relax the DDR timings (mainly tRC, tWTR, tXP, tXSR, ARCV) but 
-that did not help.
-
->From the OMAP datasheet it looks like the ARCV setting is off: shouldn't it be 
-(tREFI/tCK)+50=(7800/6)+50=0x546?
-
-Is there a way to know if the self refresh works on both parts?
-
-Regards,
-Jean
-
-On Thursday 07 May 2009 13:18:30 Jean Pihet wrote:
-> Hi Paul,
->
-> On Thursday 07 May 2009 01:39:02 Paul Walmsley wrote:
-> > Hello Jean,
-> >
-> > sorry about the delay,
->
-> Thanks for replying!
->
-> > On Wed, 29 Apr 2009, Jean Pihet wrote:
-> > > The suspend/resume on Beagleboard has some problem due to bad memory
-> > > timings. Suspending for more than 5 to 10 seconds shows memory
-> > > corruption.
-> > >
-> > > The new chips on rev Cx boards are using 2 DDR chip selects and it
-> > > looks like the 2nd memory part is not correctly put into self refresh.
-> > > As an experimentation I tried the same kernel with 'mem=128M' and it
-> > > resumes correctly after 1 min in suspend.
-> >
-> > Nice work, this seems likely to be the cause.
-> >
-> > > I could not find the latest DDR detailed specs from Micron. The part
-> > > number is MT29C2G48MAKLCJI-6 IT. Are those available? Is this part
-> > > identical to 2 1Gb parts?
-> >
-> > The combined part's web page is:
-> >
-> > http://www.micron.com/products/partdetail?part=MT29C2G48MAKLCJI-6%20IT
-> >
-> > The SDRAM datasheet is the same that is used for all the other Micron
-> > parts that we've run across so far:
-> >
-> > http://download.micron.com/pdf/datasheets/dram/mobile/1gb_ddr_mobile_sdra
-> >m_ t48m.pdf
->
-> Ok so we have 2 DDRs combined.
-> That does not explain why the self-refresh is ok with only 1 part while it
-> fails with the 2 parts.
-> Could it be that the timings are too tight? Is there something special for
-> the SDRC to support the 2 CSes correctly?
->
-> We already have used the self refresh with 2 parts hooked on a 3430, not
-> Micron parts though, so the code looks correct.
->
-> I think we need help from the HW vendors here to identify the root cause:
-> SDRC, DDR parts, connections?
->
-> > > Now for the code in the kernel, there are some changes needed to
-> > > support 2 CS'es:
-> > > - the SDRC parameters need to be updated for the new memory part
-> > > - the SDRC parameters need to include the ACTIM_CTRL_A_0,
-> > > ACTIM_CTRL_A_1, ACTIM_CTRL_B_0, ACTIM_CTRL_B_1, RFR_CTRL_0 and
-> > > RFR_CTRL_1 registers. Since the parameters for the 2nd CS are the same,
-> > > this can be avoided by writing the same values to the 2 sets of
-> > > registers
-> > > - is there a need to differentiate between 1Gb and 2Gb chips, or can we
-> > > just write the same params for both CS'es even if only one is being
-> > > used? - the 'configure_sdrc' function in arch/arm/mach-omap2/sram34xx.S
-> > > needs to program the 2 sets of registers. Here is a patch excerpt
-> > > below. This patch only does not help the suspend/resume though.
-> > >
-> > > Any idea or suggestion?
-> >
-> > Looks like a good start.  Since the two SDRC chip-selects can technically
-> > address parts with different timings, we should not assume that the two
-> > chip selects will be the same.  Admittedly this seems like an unlikely
-> > situation, but it's not impossible for non-POP OMAPs.
->
-> Makes sense. It is better to have correct and generic code.
->
-> > Re: suspend/resume, if you're talking about the code in sleep34xx.S, it
-> > looks like this is already in good shape.
-> >
-> > Re: board & SDRC changes: would suggest modifying omap2_sdrc_init() to
-> > take either two struct omap_sdrc_params pointers, or one struct with two
-> > pointers.  omap2_init_common_hw() will also need to be updated for that,
-> > and all of the board-*.c files also.
-> >
-> > Sound reasonable?
->
-> Sure. I can write the new code, but I prefer to have the self refresh
-> working first.
->
-> > >         ldr     r11, omap3_sdrc_mr_0
-> > >         str     r6, [r11]
-> > >         ldr     r6, [r11]               @ posted-write barrier for SDRC
-> > > +       ldr     r11, omap3_sdrc_mr_1
-> > > +       str     r6, [r11]
-> > > +       ldr     r6, [r11]               @ posted-write barrier for SDRC
-> > >         bx      lr
-> >
-> > By the way, there's no need to duplicate the posted-write barrier.  There
-> > should only be one, appearing right before the 'bx lr'.
->
-> Ok I will take it into account.
->
-> > regards,
-> >
-> > - Paul
->
-> Regards,
-> Jean
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+This is an OpenPGP/MIME signed message (RFC 2440 and 3156)
+--Apple-Mail-6--732295408
+Content-Type: text/plain; charset=US-ASCII; format=flowed; delsp=yes
+Content-Transfer-Encoding: 7bit
 
 
+Op 7 mei 2009, om 18:28 heeft Tony Lindgren het volgende geschreven:
+
+> * Russell King - ARM Linux <linux@arm.linux.org.uk> [090507 09:19]:
+>> On Thu, May 07, 2009 at 11:01:35PM +0800, stanley.miao wrote:
+>>> Hi, Tony,
+>>>
+>>> Now the kernel can't boot on LDP. The attached file is the boot log.
+>>
+>> No boot log found.
+>>
+>> My master branch, based upon 2.6.29-rc3 boots fine on the LDP.
+>>
+>> Uncompressing  
+>> Linux.............................................................
+>> ............................................ done, booting the  
+>> kernel.
+>> Linux version 2.6.29-rc3 (rmk@dyn-67.arm.linux.org.uk) (gcc version  
+>> 4.3.2 (GCC)) #125 Mon Feb 2 22:22:54 GMT 2009
+>
+> <snip snip>
+>
+>> omapfb: configured for panel ldp
+>> omapfb: DISPC version 3.0 initialized
+>> omapfb: Framebuffer initialized. Total vram 614400 planes 1
+>> omapfb: Pixclock 32000 kHz hfreq 60.3 kHz vfreq 93.7 Hz
+>
+> Can you see the penguin?
+
+2.6.29 does this on my zoom:
+
+http://www.flickr.com/photos/koenkooi/3406819626/
+
+Boots into X and all :) That's with DSS1, not Tomi's DSS2. As I said  
+earlier, the touchscreen is unusable.
+
+regards,
+
+Koen
+
+
+
+--Apple-Mail-6--732295408
+content-type: application/pgp-signature; x-mac-type=70674453;
+	name=PGP.sig
+content-description: Dit deel van het bericht is digitaal ondertekend
+content-disposition: inline; filename=PGP.sig
+content-transfer-encoding: 7bit
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.5 (Darwin)
+
+iD8DBQFKAxLEMkyGM64RGpERAkk8AKCW5VWogSmaQwW4YApxSpeY8k9qPACgpicF
+CCe48H0PijYeBbCWm0pCEKo=
+=BTrR
+-----END PGP SIGNATURE-----
+
+--Apple-Mail-6--732295408--
