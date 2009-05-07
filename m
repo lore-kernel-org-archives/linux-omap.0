@@ -1,35 +1,30 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: [APPLIED] [PATCH] OMAP: RX51: Add log partition
-Date: Thu, 7 May 2009 11:40:36 -0400
-Message-ID: <notify-1241710836@atomide.com>
-References: <4A02857D.4000301@nokia.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Anuj Aggarwal <anuj.aggarwal@ti.com>
+Subject: [PATCH 0/1] ASoC: Added OMAP3 EVM Support
+Date: Thu,  7 May 2009 21:38:30 +0530
+Message-ID: <1241712510-16191-1-git-send-email-anuj.aggarwal@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:62129 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753724AbZEGPkg (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 7 May 2009 11:40:36 -0400
-Received: from c-67-160-239-110.hsd1.ca.comcast.net ([67.160.239.110] helo=localhost.localdomain)
-	by mho-02-ewr.mailhop.org with esmtpa (Exim 4.68)
-	(envelope-from <tony@atomide.com>)
-	id 1M25i8-0008rg-Ob
-	for linux-omap@vger.kernel.org; Thu, 07 May 2009 15:40:36 +0000
-In-Reply-To: <4A02857D.4000301@nokia.com>
-Content-Disposition: inline
+Received: from comal.ext.ti.com ([198.47.26.152]:46857 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752438AbZEGQIn (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 7 May 2009 12:08:43 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
+To: alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, getarunks@gmail.com
+Cc: Anuj Aggarwal <anuj.aggarwal@ti.com>
 
-This patch has been applied to the linux-omap
-by youw fwiendly patch wobot.
+With refernce to the discussion at:
 
-Initial commit ID (Likely to change): 86822cc055878b6750a8a3e8c42702e3ac2fe255
+http://marc.info/?l=linux-omap&m=124169330310075&w=2
 
-PatchWorks
-http://patchwork.kernel.org/patch/22248/
+I am resending the patch to add OMAP3 EVM support in ASoC. It
+has been built/checked against the tip.
 
-Git (Likely to change, and takes a while to get mirrored)
-http://git.kernel.org/?p=linux/kernel/git/tmlind/linux-omap-2.6.git;a=commit;h=86822cc055878b6750a8a3e8c42702e3ac2fe255
+Anuj Aggarwal (1):
+  ASoC: Added OMAP3 EVM support in ASoC.
 
+ sound/soc/omap/Kconfig    |    8 +++
+ sound/soc/omap/Makefile   |    2 +
+ sound/soc/omap/omap3evm.c |  147 +++++++++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 157 insertions(+), 0 deletions(-)
+ create mode 100644 sound/soc/omap/omap3evm.c
 
