@@ -1,48 +1,56 @@
-From: Jarkko Nikula <jhnikula@gmail.com>
-Subject: Re: [PATCH] ARM: OMAP: Fix tusb6010 init error and compilation
- warning
-Date: Thu, 7 May 2009 08:17:49 +0300
-Message-ID: <20090507081749.97749b2e.jhnikula@gmail.com>
-References: <1240468227-15393-1-git-send-email-jarkko.nikula@nokia.com>
-	<8763gvb8ps.fsf@litku.valot.fi>
+From: Peter Ujfalusi <peter.ujfalusi@nokia.com>
+Subject: Re: Beep sound in the end of audio file
+Date: Thu, 7 May 2009 08:48:25 +0300
+Message-ID: <200905070848.25904.peter.ujfalusi@nokia.com>
+References: <5A47E75E594F054BAF48C5E4FC4B92AB0305559FCC@dbde02.ent.ti.com>
+	<5A47E75E594F054BAF48C5E4FC4B92AB030555A348@dbde02.ent.ti.com>
+	<1241619589.8928.2038.camel@sax-lx.fischerfamily.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ew0-f176.google.com ([209.85.219.176]:39996 "EHLO
-	mail-ew0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751970AbZEGFQZ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 7 May 2009 01:16:25 -0400
-Received: by ewy24 with SMTP id 24so774664ewy.37
-        for <linux-omap@vger.kernel.org>; Wed, 06 May 2009 22:16:25 -0700 (PDT)
-In-Reply-To: <8763gvb8ps.fsf@litku.valot.fi>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <alsa-devel-bounces@alsa-project.org>
+In-Reply-To: <1241619589.8928.2038.camel@sax-lx.fischerfamily.org>
+Content-Disposition: inline
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Sender: alsa-devel-bounces@alsa-project.org
+Errors-To: alsa-devel-bounces@alsa-project.org
+To: "todd.fischer@ridgerun.com" <todd.fischer@ridgerun.com>
+Cc: "Aggarwal, Anuj" <anuj.aggarwal@ti.com>, "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
-To: Kalle Valo <kalle.valo@iki.fi>
-Cc: Jarkko Nikula <jarkko.nikula@nokia.com>, linux-omap@vger.kernel.org, Roel Kluin <roel.kluin@gmail.com>
 
-On Thu, 23 Apr 2009 20:06:39 +0300
-Kalle Valo <kalle.valo@iki.fi> wrote:
+On Wednesday 06 May 2009 17:19:49 ext Todd Fischer wrote:
+> Hi,
+>
+> FWIW: while developing a GSTreamer presentation using a BegleBoard (rev C=
+),
+> I noticed the same "tuck" sound.  It also occurs a second or two after the
+> GST application exits.  I assumed it was some power management code that
+> was disabling the audio codec after it had gone idle, but never looked in=
+to
+> it.  BeagleBoard also uses TWL4030.
+>
+> GST command: gst-launch audiotestsrc freq=3D1000 num-buffers=3D100 ! alsa=
+sink
+>
+> /proc/version: Linux version 2.6.28-omap1 (ddompe@Aleph) (gcc version 4.3=
+.1
+> (GCC) ) #2 Thu Mar 5 08:55:58 CST 2009
 
-> Jarkko Nikula <jarkko.nikula@nokia.com> writes:
-> 
-> > Fix "tusb6010 init error 5, -19" and compilation warning from
-> > function tusb6010_platform_retime "warning: 'sysclk_ps' is used
-> > uninitialized in this function".
-> >
-> > I suppose commit c094ba34b8f780885d029ce3c2715a194b780e5d was meant
-> > to test for zero fclk_ps instead of sysclk_ps.
-> 
-> I was suffering exactly this problem and this patch fixed it. Now usb
-> network works again, thanks a lot for fixing this!
-> 
-> > Signed-off-by: Jarkko Nikula <jarkko.nikula@nokia.com>
-> > Cc: Roel Kluin <roel.kluin@gmail.com>
-> 
-> Tested-by: Kalle Valo <kalle.valo@iki.fi>
-> 
-Ping? This patch was a fix for 2.6.30-rcX.
+The "tuck" is coming from the codec, when it is powered down (in the old =
 
+twl4030 codec found in omap-2.6.28 branch of linux-omap).
+But, it still happens with the latest version, when the codec is muted only.
+I can observe the "tuck" on Headset output, but not on the PreDrive...
+The Headset enable and disable is implemented according to the TRM, but it =
 
--- 
-Jarkko
+seams that additional tweaking is needed..
+
+-- =
+
+P=E9ter
