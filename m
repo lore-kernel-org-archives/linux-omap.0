@@ -1,96 +1,57 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 1/3] OMAP4: SMP: Add OMAP4430 SMP board files
-Date: Thu, 7 May 2009 13:51:25 -0700
-Message-ID: <20090507205124.GE5593@atomide.com>
-References: <1241681366-21094-1-git-send-email-santosh.shilimkar@ti.com>
+From: "Kanigeri, Hari" <h-kanigeri2@ti.com>
+Subject: RE: [RFC/PATCH 0/3] omap3-iommu: cleanups and remote registration
+Date: Thu, 7 May 2009 15:54:38 -0500
+Message-ID: <8F7AF80515AF0D4D93307E594F3CB40E2AED099C@dlee03.ent.ti.com>
+References: <94a0d4530905071302g3510fdabne659a42bd9009909@mail.gmail.com>
+	 <1241727069-15168-1-git-send-email-felipe.contreras@gmail.com>
+	 <8F7AF80515AF0D4D93307E594F3CB40E2AED092B@dlee03.ent.ti.com>
+ <94a0d4530905071339i7e67d1fm236af1858a6f13c5@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:56262 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1763207AbZEGUvd (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 7 May 2009 16:51:33 -0400
-Content-Disposition: inline
-In-Reply-To: <1241681366-21094-1-git-send-email-santosh.shilimkar@ti.com>
+Received: from comal.ext.ti.com ([198.47.26.152]:35615 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751770AbZEGUyu convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 7 May 2009 16:54:50 -0400
+In-Reply-To: <94a0d4530905071339i7e67d1fm236af1858a6f13c5@mail.gmail.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Cc: linux-arm-kernel@lists.arm.linux.org.uk, linux-omap@vger.kernel.org
+To: Felipe Contreras <felipe.contreras@gmail.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Hiroshi DOYU <hiroshi.doyu@nokia.com>, Felipe Contreras <felipe.contreras@nokia.com>, Tony Lindgren <tony@atomide.com>
 
-One more comment on this patch below.
-
-* Santosh Shilimkar <santosh.shilimkar@ti.com> [090507 00:29]:
-> This patch adds SMP platform files support for OMAP4430SDP. TI's OMAP4430
-> SOC is based on ARM Cortex-A9 SMP architecture. It's a dual core SOC
-> with GIC used for interrupt handling and SCU for cache coherency.
+> -----Original Message-----
+> From: Felipe Contreras [mailto:felipe.contreras@gmail.com]
+> Sent: Thursday, May 07, 2009 3:40 PM
+> To: Kanigeri, Hari
+> Cc: linux-omap@vger.kernel.org; Hiroshi DOYU; Felipe Contreras; Tony
+> Lindgren
+> Subject: Re: [RFC/PATCH 0/3] omap3-iommu: cleanups and remote registration
 > 
-> Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
-> ---
->  arch/arm/mach-omap2/omap-headsmp.S    |   49 +++++++
->  arch/arm/mach-omap2/omap-smp.c        |  238 +++++++++++++++++++++++++++++++++
->  arch/arm/plat-omap/include/mach/scu.h |   28 ++++
->  arch/arm/plat-omap/include/mach/smp.h |   56 ++++++++
->  4 files changed, 371 insertions(+), 0 deletions(-)
->  create mode 100644 arch/arm/mach-omap2/omap-headsmp.S
->  create mode 100644 arch/arm/mach-omap2/omap-smp.c
->  create mode 100644 arch/arm/plat-omap/include/mach/scu.h
->  create mode 100644 arch/arm/plat-omap/include/mach/smp.h
+> On Thu, May 7, 2009 at 11:28 PM, Kanigeri, Hari <h-kanigeri2@ti.com>
+> wrote:
+> >> Currently the iva2 code (tidspbridge) is not using iommu, therefore it
+> >> can't be
+> >> used as-is with the current omap iommu.
+> >
+> > Bridge can use IOMMU module that Hiroshi has sent by calling below 2
+> lines of code.
+> >
+> > struct iommu *iva_iommu_ptr;
+> > iva_iommu_ptr = iommu_get("iva2");
+> 
+> From where? Care to send an actual patch?
 > 
 
-> diff --git a/arch/arm/mach-omap2/omap-smp.c b/arch/arm/mach-omap2/omap-smp.c
-> new file mode 100644
-> index 0000000..1d18acb
-> --- /dev/null
-> +++ b/arch/arm/mach-omap2/omap-smp.c
+I think it is in the initial set of patches that Hiroshi has sent some time ago.
 
-<snip snip>
+He provided the link to it in this first email [patch 0/6].
+http://marc.info/?l=linux-omap&m=122087083712670&w=2
 
-> +int __cpuinit boot_secondary(unsigned int cpu, struct task_struct *idle)
-> +{
-> +	unsigned long timeout;
-> +
-> +	/*
-> +	 * Set synchronisation state between this boot processor
-> +	 * and the secondary one
-> +	 */
-> +	spin_lock(&boot_lock);
-> +
-> +	/*
-> +	 * The secondary processor is waiting for an event to come out of
-> +	 * wfe. Release it, then wait for it to flag that it has been
-> +	 * released by resetting cpu_release.
-> +	 *
-> +	 * Singal the ROM code that the secondary core can be released
-> +	 */
-> +	cpu_release = cpu;
-> +	__raw_writel(cpu, OMAP4_AUXCOREBOOT_REG1);
-> +	flush_cache_all();
-> +	/*
-> +	 * Send a 'sev' to wake the secondary core again because
-> +	 * ROM code will put core in WFE till the cpu_release
-> +	 * flag is set.
-> +	 */
-> +	set_event();
-> +	mb();
-> +
-> +	timeout = jiffies + (1 * HZ);
-> +	while (time_before(jiffies, timeout)) {
-> +		smp_rmb();
-> +		if (cpu_release == -1)
-> +			break;
-> +
-> +		udelay(10);
-> +	}
-> +
-> +	/*
-> +	 * Now the secondary core is starting up let it run its
-> +	 * calibrations, then wait for it to finish
-> +	 */
-> +	spin_unlock(&boot_lock);
-> +
-> +	return cpu_release != -1 ? -ENOSYS : 0;
-> +}
 
-The "Singal" should be "Signal" above :)
+Thank you,
+Best regards,
+Hari
 
-Tony
+
