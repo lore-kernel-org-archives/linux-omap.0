@@ -1,123 +1,83 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 5/5] ARM: OMAP2/3: Remove OMAP_CM_REGADDR
-Date: Thu, 07 May 2009 13:43:21 -0700
-Message-ID: <20090507204321.7461.31324.stgit@localhost>
-References: <20090507203552.7461.35051.stgit@localhost>
+Subject: Re: [PATCH 1/3] OMAP4: SMP: Add OMAP4430 SMP board files
+Date: Thu, 7 May 2009 13:46:54 -0700
+Message-ID: <20090507204653.GD5593@atomide.com>
+References: <1241681366-21094-1-git-send-email-santosh.shilimkar@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:53580 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1763402AbZEGUnY (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 7 May 2009 16:43:24 -0400
-Received: from c-67-160-239-110.hsd1.ca.comcast.net ([67.160.239.110] helo=[127.0.0.1])
-	by mho-02-ewr.mailhop.org with esmtpa (Exim 4.68)
-	(envelope-from <tony@atomide.com>)
-	id 1M2AR8-000FVl-P2
-	for linux-omap@vger.kernel.org; Thu, 07 May 2009 20:43:23 +0000
-In-Reply-To: <20090507203552.7461.35051.stgit@localhost>
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:50967 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751954AbZEGUrD (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 7 May 2009 16:47:03 -0400
+Content-Disposition: inline
+In-Reply-To: <1241681366-21094-1-git-send-email-santosh.shilimkar@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
+To: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: linux-arm-kernel@lists.arm.linux.org.uk, linux-omap@vger.kernel.org
 
-Processor specific macros should be used instead.
+* Santosh Shilimkar <santosh.shilimkar@ti.com> [090507 00:29]:
+> This patch adds SMP platform files support for OMAP4430SDP. TI's OMAP4430
+> SOC is based on ARM Cortex-A9 SMP architecture. It's a dual core SOC
+> with GIC used for interrupt handling and SCU for cache coherency.
+> 
+> Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+> ---
+>  arch/arm/mach-omap2/omap-headsmp.S    |   49 +++++++
+>  arch/arm/mach-omap2/omap-smp.c        |  238 +++++++++++++++++++++++++++++++++
+>  arch/arm/plat-omap/include/mach/scu.h |   28 ++++
+>  arch/arm/plat-omap/include/mach/smp.h |   56 ++++++++
+>  4 files changed, 371 insertions(+), 0 deletions(-)
+>  create mode 100644 arch/arm/mach-omap2/omap-headsmp.S
+>  create mode 100644 arch/arm/mach-omap2/omap-smp.c
+>  create mode 100644 arch/arm/plat-omap/include/mach/scu.h
+>  create mode 100644 arch/arm/plat-omap/include/mach/smp.h
 
-Signed-off-by: Tony Lindgren <tony@atomide.com>
----
- arch/arm/mach-omap2/clock24xx.h            |    2 ++
- arch/arm/mach-omap2/clock34xx.h            |    2 ++
- arch/arm/mach-omap2/cm.h                   |    5 -----
- arch/arm/plat-omap/include/mach/omap24xx.h |   10 ----------
- arch/arm/plat-omap/include/mach/omap34xx.h |    6 ------
- 5 files changed, 4 insertions(+), 21 deletions(-)
+<snip snip>
+ 
+> --- /dev/null
+> +++ b/arch/arm/mach-omap2/omap-smp.c
+> @@ -0,0 +1,238 @@
+> +/*
+> + * OMAP4 SMP source file. It contains platform specific fucntions
+> + * needed for the linux smp kernel.
+> + *
+> + * Copyright (C) 2009 Texas Instruments, Inc.
+> + *
+> + * Author:
+> + *      Santosh Shilimkar <santosh.shilimkar@ti.com>
+> + *
+> + * Platform file needed for the OMAP4 SMP. This file is based on arm
+> + * realview smp platform.
+> + * * Copyright (c) 2002 ARM Limited.
+> + *
+> + * This program is free software; you can redistribute it and/or modify
+> + * it under the terms of the GNU General Public License version 2 as
+> + * published by the Free Software Foundation.
+> + */
+> +#include <linux/init.h>
+> +#include <linux/errno.h>
+> +#include <linux/delay.h>
+> +#include <linux/device.h>
+> +#include <linux/jiffies.h>
+> +#include <linux/smp.h>
+> +#include <linux/io.h>
+> +
+> +#include <asm/cacheflush.h>
+> +#include <mach/scu.h>
+> +#include <mach/hardware.h>
+> +#include <asm/mach-types.h>
+> +
+> +/* Registers used for communicating startup information */
+> +#define OMAP4_AUXCOREBOOT_REG0		(OMAP44XX_VA_WKUPGEN_BASE + 0x800)
+> +#define OMAP4_AUXCOREBOOT_REG1		(OMAP44XX_VA_WKUPGEN_BASE + 0x804)
+> +
+> +/* FIXME: Move to a common header file */
+> +extern void omap_secondary_startup(void);
 
-diff --git a/arch/arm/mach-omap2/clock24xx.h b/arch/arm/mach-omap2/clock24xx.h
-index f0e4480..458f00c 100644
---- a/arch/arm/mach-omap2/clock24xx.h
-+++ b/arch/arm/mach-omap2/clock24xx.h
-@@ -26,9 +26,11 @@
- 
- /* REVISIT: These should be set dynamically for CONFIG_MULTI_OMAP2 */
- #ifdef CONFIG_ARCH_OMAP2420
-+#define OMAP_CM_REGADDR			OMAP2420_CM_REGADDR
- #define OMAP24XX_PRCM_CLKOUT_CTRL	OMAP2420_PRCM_CLKOUT_CTRL
- #define OMAP24XX_PRCM_CLKEMUL_CTRL	OMAP2420_PRCM_CLKEMUL_CTRL
- #else
-+#define OMAP_CM_REGADDR			OMAP2430_CM_REGADDR
- #define OMAP24XX_PRCM_CLKOUT_CTRL	OMAP2430_PRCM_CLKOUT_CTRL
- #define OMAP24XX_PRCM_CLKEMUL_CTRL	OMAP2430_PRCM_CLKEMUL_CTRL
- #endif
-diff --git a/arch/arm/mach-omap2/clock34xx.h b/arch/arm/mach-omap2/clock34xx.h
-index 017a30e..496f0e9 100644
---- a/arch/arm/mach-omap2/clock34xx.h
-+++ b/arch/arm/mach-omap2/clock34xx.h
-@@ -27,6 +27,8 @@
- #include "prm.h"
- #include "prm-regbits-34xx.h"
- 
-+#define OMAP_CM_REGADDR		OMAP34XX_CM_REGADDR
-+
- static unsigned long omap3_dpll_recalc(struct clk *clk);
- static unsigned long omap3_clkoutx2_recalc(struct clk *clk);
- static void omap3_dpll_allow_idle(struct clk *clk);
-diff --git a/arch/arm/mach-omap2/cm.h b/arch/arm/mach-omap2/cm.h
-index 65fdf78..04c5fc5 100644
---- a/arch/arm/mach-omap2/cm.h
-+++ b/arch/arm/mach-omap2/cm.h
-@@ -16,17 +16,12 @@
- 
- #include "prcm-common.h"
- 
--#ifndef __ASSEMBLER__
--#define OMAP_CM_REGADDR(module, reg)					\
--			IO_ADDRESS(OMAP2_CM_BASE + (module) + (reg))
--#else
- #define OMAP2420_CM_REGADDR(module, reg)				\
- 			IO_ADDRESS(OMAP2420_CM_BASE + (module) + (reg))
- #define OMAP2430_CM_REGADDR(module, reg)				\
- 			IO_ADDRESS(OMAP2430_CM_BASE + (module) + (reg))
- #define OMAP34XX_CM_REGADDR(module, reg)				\
- 			IO_ADDRESS(OMAP3430_CM_BASE + (module) + (reg))
--#endif
- 
- /*
-  * Architecture-specific global CM registers
-diff --git a/arch/arm/plat-omap/include/mach/omap24xx.h b/arch/arm/plat-omap/include/mach/omap24xx.h
-index 60f8324..696edfc 100644
---- a/arch/arm/plat-omap/include/mach/omap24xx.h
-+++ b/arch/arm/plat-omap/include/mach/omap24xx.h
-@@ -85,15 +85,5 @@
- #define OMAP24XX_SEC_AES_BASE	(OMAP24XX_SEC_BASE + 0x6000)
- #define OMAP24XX_SEC_PKA_BASE	(OMAP24XX_SEC_BASE + 0x8000)
- 
--#if defined(CONFIG_ARCH_OMAP2420)
--
--#define OMAP2_CM_BASE		OMAP2420_CM_BASE
--
--#elif defined(CONFIG_ARCH_OMAP2430)
--
--#define OMAP2_CM_BASE		OMAP2430_CM_BASE
--
--#endif
--
- #endif /* __ASM_ARCH_OMAP24XX_H */
- 
-diff --git a/arch/arm/plat-omap/include/mach/omap34xx.h b/arch/arm/plat-omap/include/mach/omap34xx.h
-index 36c99ca..cc25733 100644
---- a/arch/arm/plat-omap/include/mach/omap34xx.h
-+++ b/arch/arm/plat-omap/include/mach/omap34xx.h
-@@ -83,12 +83,6 @@
- 
- #define OMAP34XX_MAILBOX_BASE		(L4_34XX_BASE + 0x94000)
- 
--#if defined(CONFIG_ARCH_OMAP3430)
--
--#define OMAP2_CM_BASE			OMAP3430_CM_BASE
--
--#endif
--
- #define OMAP34XX_DSP_BASE	0x58000000
- #define OMAP34XX_DSP_MEM_BASE	(OMAP34XX_DSP_BASE + 0x0)
- #define OMAP34XX_DSP_IPI_BASE	(OMAP34XX_DSP_BASE + 0x1000000)
+How about move this to cpu.h?
 
+Regards,
+
+Tony
