@@ -1,64 +1,68 @@
-From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Subject: RE: [PATCH 0/5] More header clean-up
-Date: Fri, 8 May 2009 10:50:26 +0530
-Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB02B4688430@dbde02.ent.ti.com>
-References: <20090507203552.7461.35051.stgit@localhost>
+From: "Hemanth V" <hemanthv@ti.com>
+Subject: Re: [PATCH 1/3] OMAP4: SMP: Add OMAP4430 SMP board files
+Date: Fri, 8 May 2009 11:15:59 +0530
+Message-ID: <04c801c9cfa0$4563dfa0$LocalHost@wipultra793>
+References: <1241681366-21094-1-git-send-email-santosh.shilimkar@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain;
+	format=flowed;
+	charset="iso-8859-1";
+	reply-type=original
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:34771 "EHLO bear.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:56448 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751659AbZEHFUf (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 8 May 2009 01:20:35 -0400
-In-Reply-To: <20090507203552.7461.35051.stgit@localhost>
-Content-Language: en-US
+	id S1752282AbZEHFqM (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 8 May 2009 01:46:12 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Santosh Shilimkar <santosh.shilimkar@ti.com>, linux-arm-kernel@lists.arm.linux.org.uk
+Cc: linux-omap@vger.kernel.org
 
-SWYgdGhpcyBzZXJpZXMgaXMgcGxhbm5lZCBmb3IgdGhpcyB3aW5kb3cgdGhlbiBPTUFQNCBzZXJp
-ZXMgYWxzbyBuZWVkcyBmZXcgY2hhbmdlcy4gSXMgaXQgPw0KDQo+IC0tLS0tT3JpZ2luYWwgTWVz
-c2FnZS0tLS0tDQo+IEZyb206IGxpbnV4LW9tYXAtb3duZXJAdmdlci5rZXJuZWwub3JnIA0KPiBb
-bWFpbHRvOmxpbnV4LW9tYXAtb3duZXJAdmdlci5rZXJuZWwub3JnXSBPbiBCZWhhbGYgT2YgVG9u
-eSBMaW5kZ3Jlbg0KPiBTZW50OiBGcmlkYXksIE1heSAwOCwgMjAwOSAyOjEyIEFNDQo+IFRvOiBs
-aW51eC1vbWFwQHZnZXIua2VybmVsLm9yZw0KPiBTdWJqZWN0OiBbUEFUQ0ggMC81XSBNb3JlIGhl
-YWRlciBjbGVhbi11cA0KPiANCj4gSGkgYWxsLA0KPiANCj4gVGhpcyBzZXJpZXMgY2xlYW5zIHVw
-IHRoZSBjb25mbGljdGluZyBkZWZpbmVzIGEgYml0IG1vcmUuDQo+IE5vdyB0aGUgYmlnZ2VzdCBw
-cm9ibGVtIGlzIHRpbGwgaW4gY2xvY2syNHh4LmgsIGJ1dCBhdCBsZWFzdCB0aGUNCj4gY29uZmxp
-Y3QgaXMgbG9jYWwuIE5vdyBjaGFuZ2luZyB0aGUgcHJvY2Vzc29ycyBzaG91bGQgbm90IGNhdXNl
-DQo+IGV2ZXJ5dGhpbmcgdG8gYmUgcmVidWlsdC4uDQo+IA0KPiBUaGUgZmlyc3QgcGF0Y2ggYWxz
-byBmaXhlcyB0aGUgQ09ORklHX1NQSU5MT0NLX0RFQlVHIHByb2JsZW0gd2hlcmUNCj4gc2NoZWRf
-Y2xvY2sgd2FzIGNhbGxlZCBiZWZvcmUgd2UgaGF2ZSB0aGluZ3MgaW5pdGlhbGl6ZWQuDQo+IA0K
-PiBUaGlzIHNlcmllcyBjYXVzZXMgc29tZSB1cGRhdGVzIHRvIHRoZSBvdGhlciBwZW5kaW5nIHBh
-dGNoIHNlcmllcywNCj4gbGlrZSB0aGUgUE0gc2VyaWVzLiBCdXQgaXQgd291bGQgYmUgbmljZSB0
-byBnZXQgaW4gYmVmb3JlIHdlIGFkZA0KPiBtb3JlIGNvZGUuDQo+IA0KPiBLZXZpbiwgdGhlIDIv
-NSBpcyBpbXByb3ZlZCB2ZXJzaW9uIG9mIHdoYXQgSSBzZW50IHlvdSBlYXJsaWVyLA0KPiB0aGUg
-ZWFybGllciB2ZXJzaW9uIGhhZCBpc3N1ZXMgYmV0d2VlbiAyNDIwIHZzIDI0MzAuIExldCBtZQ0K
-PiBrbm93IGlmIHRoZSBvdGhlciBwYXRjaGVzIGNhdXNlIGJpZyBoZWFkYWNoZXMgZm9yIHlvdXIg
-UE0NCj4gc2VyaWVzLg0KPiANCj4gUmVnYXJkcywNCj4gDQo+IFRvbnkNCj4gDQo+IC0tLQ0KPiAN
-Cj4gVG9ueSBMaW5kZ3JlbiAoNSk6DQo+ICAgICAgIEFSTTogT01BUDIvMzogUmVtb3ZlIE9NQVBf
-Q01fUkVHQUREUg0KPiAgICAgICBBUk06IE9NQVAyLzM6IFJlbW92ZSBPTUFQMl9QUkNNX0JBU0UN
-Cj4gICAgICAgQVJNOiBPTUFQMi8zOiBNb3ZlIGRlZmluZSBvZiBPTUFQMl9WQV9JQ19CQVNFIHRv
-IGJlIA0KPiBsb2NhbCB0byBlbnRyeS1tYWNyby5TDQo+ICAgICAgIEFSTTogT01BUDIvMzogUmVt
-b3ZlIE9NQVBfUFJNX1JFR0FERFIgYW5kIE9NQVAyX1BSTV9CQVNFDQo+ICAgICAgIEFSTTogT01B
-UDIvMzogUmVtb3ZlIE9NQVAyXzMyS1NZTkNUX0JBU0UNCj4gDQo+IA0KPiAgYXJjaC9hcm0vbWFj
-aC1vbWFwMi9jbG9jazI0eHguYyAgICAgICAgICAgICAgIHwgICAyMSArKy0tDQo+ICBhcmNoL2Fy
-bS9tYWNoLW9tYXAyL2Nsb2NrMjR4eC5oICAgICAgICAgICAgICAgfCAgIDExICsrDQo+ICBhcmNo
-L2FybS9tYWNoLW9tYXAyL2Nsb2NrMzR4eC5oICAgICAgICAgICAgICAgfCAgICAyIA0KPiAgYXJj
-aC9hcm0vbWFjaC1vbWFwMi9jbS5oICAgICAgICAgICAgICAgICAgICAgIHwgICAgNSAtDQo+ICBh
-cmNoL2FybS9tYWNoLW9tYXAyL3BybS5oICAgICAgICAgICAgICAgICAgICAgfCAgMTM2IA0KPiAr
-KysrKysrKysrKysrLS0tLS0tLS0tLS0tDQo+ICBhcmNoL2FybS9tYWNoLW9tYXAyL3NkcmMyeHh4
-LmMgICAgICAgICAgICAgICAgfCAgICA1ICsNCj4gIGFyY2gvYXJtL21hY2gtb21hcDIvc3JhbTI0
-MnguUyAgICAgICAgICAgICAgICB8ICAgIDQgLQ0KPiAgYXJjaC9hcm0vbWFjaC1vbWFwMi9zcmFt
-MjQzeC5TICAgICAgICAgICAgICAgIHwgICAgNCAtDQo+ICBhcmNoL2FybS9wbGF0LW9tYXAvY29t
-bW9uLmMgICAgICAgICAgICAgICAgICAgfCAgIDY5ICsrKysrKysrKysrLS0NCj4gIGFyY2gvYXJt
-L3BsYXQtb21hcC9pbmNsdWRlL21hY2gvZW50cnktbWFjcm8uUyB8ICAgIDkgKy0NCj4gIGFyY2gv
-YXJtL3BsYXQtb21hcC9pbmNsdWRlL21hY2gvb21hcDI0eHguaCAgICB8ICAgMTggLS0tDQo+ICBh
-cmNoL2FybS9wbGF0LW9tYXAvaW5jbHVkZS9tYWNoL29tYXAzNHh4LmggICAgfCAgICA5IC0tDQo+
-ICAxMiBmaWxlcyBjaGFuZ2VkLCAxNzAgaW5zZXJ0aW9ucygrKSwgMTIzIGRlbGV0aW9ucygtKQ0K
-PiANCj4gLS0gDQo+IFNpZ25hdHVyZQ0KPiAtLQ0KPiBUbyB1bnN1YnNjcmliZSBmcm9tIHRoaXMg
-bGlzdDogc2VuZCB0aGUgbGluZSAidW5zdWJzY3JpYmUgDQo+IGxpbnV4LW9tYXAiIGluDQo+IHRo
-ZSBib2R5IG9mIGEgbWVzc2FnZSB0byBtYWpvcmRvbW9Admdlci5rZXJuZWwub3JnDQo+IE1vcmUg
-bWFqb3Jkb21vIGluZm8gYXQgIGh0dHA6Ly92Z2VyLmtlcm5lbC5vcmcvbWFqb3Jkb21vLWluZm8u
-aHRtbA0KPiANCj4g
+---- Original Message ----- 
+From: "Santosh Shilimkar" <santosh.shilimkar@ti.com>
+Subject: [PATCH 1/3] OMAP4: SMP: Add OMAP4430 SMP board files
+
+
+> diff --git a/arch/arm/mach-omap2/omap-headsmp.S 
+> b/arch/arm/mach-omap2/omap-headsmp.S
+> new file mode 100644
+> index 0000000..0afe039
+> --- /dev/null
+> +++ b/arch/arm/mach-omap2/omap-headsmp.S
+> @@ -0,0 +1,49 @@
+> +/*
+> + * Secondary CPU startup routine source file.
+> + *
+> + * Copyright (C) 2009 Texas Instruments, Inc.
+> + *
+> + * Author:
+> + *      Santosh Shilimkar <santosh.shilimkar@ti.com>
+> + *
+> + * Interface functions needed for the SMP. This file is based on arm
+> + * realview smp platform.
+> + * Copyright (c) 2003 ARM Limited.
+> + *
+> + * This program is free software,you can redistribute it and/or modify
+> + * it under the terms of the GNU General Public License version 2 as
+> + * published by the Free Software Foundation.
+> + */
+> +
+> +#include <linux/linkage.h>
+> +#include <linux/init.h>
+> +
+> + __INIT
+> +
+> +/*
+> + * OMAP4 specific entry point for secondary CPU to jump from ROM
+> + * code.  This routine also provides a holding flag into which
+> + * secondary core is held until we're ready for it to initialise.
+> + * The primary core will update the this flag using a hardware
+> + * register AuxCoreBoot1.
+> + */
+
+Is initialization done by u-boot like icache_enable taken care somewhere
+for the secondary cpu.
+
+
+
