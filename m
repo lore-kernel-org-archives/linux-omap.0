@@ -1,77 +1,65 @@
-From: Felipe Contreras <felipe.contreras@gmail.com>
-Subject: Re: [PATCH 3/6] omap iommu: omap3 iommu device registration
-Date: Sat, 9 May 2009 01:27:34 +0300
-Message-ID: <94a0d4530905081527t16e320d6o9715ad17952c8901@mail.gmail.com>
-References: <20090505123905.4583.69865.stgit@oreo.research.nokia.com>
-	 <20090505124700.4583.69988.stgit@oreo.research.nokia.com>
-	 <94a0d4530905071305i3f604b4am39f4c467e4df65a9@mail.gmail.com>
-	 <20090508.071021.123989594.Hiroshi.DOYU@nokia.com>
-	 <94a0d4530905080032xd0f7bb0ld760a65bf54429f2@mail.gmail.com>
-	 <A24693684029E5489D1D202277BE89443DD434A7@dlee02.ent.ti.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: Beagleboard rev C memory timings & suspend/resume
+Date: Fri, 8 May 2009 16:43:43 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.0905081527330.17514@utopia.booyaka.com>
+References: <200904291553.49378.jpihet@mvista.com> <200905071844.20939.jpihet@mvista.com> <alpine.DEB.2.00.0905071257370.17514@utopia.booyaka.com> <200905080905.39102.jpihet@mvista.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from fg-out-1718.google.com ([72.14.220.157]:12960 "EHLO
-	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751626AbZEHW1g convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 8 May 2009 18:27:36 -0400
-Received: by fg-out-1718.google.com with SMTP id 16so569425fgg.17
-        for <linux-omap@vger.kernel.org>; Fri, 08 May 2009 15:27:34 -0700 (PDT)
-In-Reply-To: <A24693684029E5489D1D202277BE89443DD434A7@dlee02.ent.ti.com>
+Received: from utopia.booyaka.com ([72.9.107.138]:54481 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1763585AbZEHWno (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 8 May 2009 18:43:44 -0400
+In-Reply-To: <200905080905.39102.jpihet@mvista.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>
-Cc: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>, "linux-arm-kernel@lists.arm.linux.org.uk" <linux-arm-kernel@lists.arm.linux.org.uk>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Kanigeri, Hari" <h-kanigeri2@ti.com>, "Ramirez Luna, Omar" <omar.ramirez@ti.com>, "sakari.ailus@maxwell.research.nokia.com" <sakari.ailus@maxwell.research.nokia.com>, "tony@atomide.com" <tony@atomide.com>
+To: Jean Pihet <jpihet@mvista.com>
+Cc: "Syed Mohammed, Khasim" <khasim@ti.com>, "Kridner, Jason" <jdk@ti.com>, linux-omap <linux-omap@vger.kernel.org>
 
-On Fri, May 8, 2009 at 8:21 PM, Aguirre Rodriguez, Sergio Alberto
-<saaguirre@ti.com> wrote:
-> Hi,
->
-> Just one comment below:
->
->> > Does the following make sense?
->> >
->> > +#define NR_IOMMU_RES 2
->> >
->> > ....
->> >
->> > + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 err =3D platfor=
-m_device_add_resources(pdev,
->> > + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
-=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 omap3_iommu_res + =
-=C2=A0i * NR_IOMMU_RES,
->> NR_IOMMU_RES);
->>
->> Yeap, also:
->>
->> > + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 err =3D platfor=
-m_device_add_resources(pdev,
->> omap3_iommu_res + =C2=A0i * 2, 2);
->
-> IMHO, I don't think it's a good idea to add magical numbers to any co=
-de in the kernel. Why is it better to NOT use a define?
+Hello Jean,
 
-I agree, but even a define is not good enough. For example you can
-update the array without updating the define.
+On Fri, 8 May 2009, Jean Pihet wrote:
 
-A better solution is to do what I did on my follow up patch series:
+> On Thursday 07 May 2009 20:59:43 Paul Walmsley wrote:
+> > On Thu, 7 May 2009, Jean Pihet wrote:
+> > > From the OMAP datasheet it looks like the ARCV setting is off: shouldn't
+> > > it be (tREFI/tCK)+50=(7800/6)+50=0x546?
+> >
+> > Could you elaborate further what you're seeing?  It would help to
+> > see the register value that you're using to come to this conclusion.
+> The SDRC_RFR_CTRL_p registers are now programmed with 0x4dc01, which means the 
+> fiel ARCV has the value 0x4dc=1244.
+> From the DDR datasheet we need an average refresh period of 7.8us and a clock 
+> period of 6ns (166MHz). From the definition of the ARCV field in the OMAP TRM 
+> I need to program ARCV with: (tREFI/tCK)+50 = (7800/6)+50=1350=0x546.
+> The SDRC_RFR_CTRL_p registers would then have the value of 0x54601.
+> 
+> Does that make sense? Am I wrong with the calculation?
 
-+               struct resource res[] =3D {
-+                       { .flags =3D IORESOURCE_MEM },
-+                       { .flags =3D IORESOURCE_IRQ },
-+               };
+According to the TRM, the 50 cycles should be subtracted rather than added 
+(section 11.2.6.3.3.4).  One other thing is that the bootloaders I've seen 
+program DPLL3 such that the SDRC clock is 166000000 Hz, rather than 
+166666666 Hz, so tCK winds up being something like 6.024... ns.
 
-+               err =3D platform_device_add_resources(pdev, res, ARRAY_=
-SIZE(res));
+Auto-refresh is only used while the SDRC is active, though.  So unless 
+memory corruption is evident outside of suspend, the ARCV value is 
+unlikely to be the problem.  
 
-No need for a define, and as soon as the array is updated so will the
-second argument sent to platform_device_add_resources.
+It sounds like the problem is related to self-refresh, that the SDRAM bank 
+on one of the chipselects either can't enter or exit self-refresh.  You 
+have self-refresh working on a different board with both SDRC CS0 and CS1 
+in use, correct?  Is that with an ES2 or ES3 chip?
 
---=20
-=46elipe Contreras
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+One possibility: perhaps the problem is with Beagle's pin mux settings.  
+You might want to boot with mem=128M and make sure 
+CONTROL_PADCONF_SAD2D_SBUSFLAG and CONTROL_PADCONF_SDRC_CKE1 are in mode 0 
+before suspend and after resume.
+
+Another thought: it could be that the ROM code on Beagle is not 
+programming the correct SDRC register values after resume.  You might try 
+booting with mem=128M and dumping the SDRC register values before suspend 
+and after resume.
+
+
+- Paul
+
