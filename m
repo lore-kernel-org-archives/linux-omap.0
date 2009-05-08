@@ -1,50 +1,75 @@
 From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
-Subject: Re: [RFC/PATCH 0/3] omap3-iommu: cleanups and remote registration
-Date: Fri, 08 May 2009 07:14:10 +0300 (EEST)
-Message-ID: <20090508.071410.173868238.Hiroshi.DOYU@nokia.com>
-References: <94a0d4530905071302g3510fdabne659a42bd9009909@mail.gmail.com>
-	<1241727069-15168-1-git-send-email-felipe.contreras@gmail.com>
+Subject: Re: [RFC/PATCH 1/3] omap3-iommu: reorganize
+Date: Fri, 08 May 2009 07:15:10 +0300 (EEST)
+Message-ID: <20090508.071510.149819051.Hiroshi.DOYU@nokia.com>
+References: <1241727069-15168-1-git-send-email-felipe.contreras@gmail.com>
+	<1241727069-15168-2-git-send-email-felipe.contreras@gmail.com>
+	<20090507211447.GA30906@scadufax.research.nokia.com>
 Mime-Version: 1.0
 Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:33691 "EHLO
+Received: from smtp.nokia.com ([192.100.105.134]:33716 "EHLO
 	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751228AbZEHEOk (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 8 May 2009 00:14:40 -0400
-In-Reply-To: <1241727069-15168-1-git-send-email-felipe.contreras@gmail.com>
+	with ESMTP id S1751374AbZEHEPS (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 8 May 2009 00:15:18 -0400
+In-Reply-To: <20090507211447.GA30906@scadufax.research.nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: felipe.contreras@gmail.com
-Cc: linux-omap@vger.kernel.org, felipe.contreras@nokia.com, tony@atomide.com, h-kanigeri2@ti.com
+To: felipe.balbi@nokia.com
+Cc: felipe.contreras@gmail.com, linux-omap@vger.kernel.org, felipe.contreras@nokia.com, tony@atomide.com
 
-Hi Felipe,
+From: "Balbi Felipe (Nokia-D/Helsinki)" <felipe.balbi@nokia.com>
+Subject: Re: [RFC/PATCH 1/3] omap3-iommu: reorganize
+Date: Thu, 7 May 2009 23:14:47 +0200
 
-From: ext Felipe Contreras <felipe.contreras@gmail.com>
-Subject: [RFC/PATCH 0/3] omap3-iommu: cleanups and remote registration
-Date: Thu, 7 May 2009 22:11:06 +0200
+> On Thu, May 07, 2009 at 10:11:07PM +0200, ext Felipe Contreras wrote:
+> > -static struct resource omap3_iommu_res[] = {
+> > -	{ /* Camera ISP MMU */
+> > -		.start		= OMAP3_MMU1_BASE,
+> > -		.end		= OMAP3_MMU1_BASE + MMU_REG_SIZE - 1,
+> > -		.flags		= IORESOURCE_MEM,
+> > -	},
+> > -	{
+> > -		.start		= OMAP3_MMU1_IRQ,
+> > -		.flags		= IORESOURCE_IRQ,
+> > -	},
+> > -	{ /* IVA2.2 MMU */
+> > -		.start		= OMAP3_MMU2_BASE,
+> > -		.end		= OMAP3_MMU2_BASE + MMU_REG_SIZE - 1,
+> > -		.flags		= IORESOURCE_MEM,
+> > -	},
+> > -	{
+> > -		.start		= OMAP3_MMU2_IRQ,
+> > -		.flags		= IORESOURCE_IRQ,
+> > -	},
+> 
+> i find this one much more readable :-s
+> 
+> > +struct iommu_device {
+> > +	resource_size_t base;
+> > +	resource_size_t irq;
+> > +	struct iommu_platform_data pdata;
+> 
+> generally, platform_data is a void *. Don't know if it matters here.
+> 
+> > +	struct resource res[2];
+> >  };
+> > -#define NR_IOMMU_RES (ARRAY_SIZE(omap3_iommu_res) / 2)
+> >  
+> > -static const struct iommu_platform_data omap3_iommu_pdata[] __initconst = {
+> > +static struct iommu_device devices[] = {
+> >  	{
+> > -		.name = "isp",
+> > -		.nr_tlb_entries = 8,
+> > -		.clk_name = "cam_ick",
+> > +		.base = 0x480bd400,
+> > +		.irq = 24,
+> > +		.pdata = {
+> > +			.name = "isp",
+> > +			.nr_tlb_entries = 8,
+> > +			.clk_name = "cam_ick",
+> 
+> still passing clk names ? what about clkdev ?
 
-> This patch series cleanups up a bit the opap3-iommu device registration and
-> then allows registration from other parts of the code.
-
-I think that this part of code is just a simple conventional
-platform_device registration and there may be no need to add more
-complexicity by introducing a new special structure/function just for
-a workaround of a client module("tidspbridge"). Also having these
-device registrations here and there doesn't look so nice, looking at
-other ones around kernel.
-
-> Currently the iva2 code (tidspbridge) is not using iommu, therefore it can't be
-> used as-is with the current omap iommu. By allowing devies to be registered
-> externaly (either isp, or iva2) this problem goes away.
-
-Fixing tidspbridge itself is the way to go, and it seems that Hari has
-already verified this iommu with tidspbridge and he's pointed out some
-of missing features(*1). I hope that tidspbridge will start to use
-iommu soon.
-
-*1: http://marc.info/?l=linux-omap&m=124148814309478&w=2
-
-
-
-
+Useful comment, I'll update mine;) thanks
