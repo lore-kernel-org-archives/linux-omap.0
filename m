@@ -1,137 +1,84 @@
-From: Felipe Contreras <felipe.contreras@gmail.com>
-Subject: Re: [RFC/PATCH 1/3] omap3-iommu: reorganize
-Date: Fri, 8 May 2009 01:16:00 +0300
-Message-ID: <94a0d4530905071516qe7174a4g99586d76bcb96ed5@mail.gmail.com>
-References: <94a0d4530905071302g3510fdabne659a42bd9009909@mail.gmail.com>
-	 <1241727069-15168-1-git-send-email-felipe.contreras@gmail.com>
-	 <1241727069-15168-2-git-send-email-felipe.contreras@gmail.com>
-	 <20090507211447.GA30906@scadufax.research.nokia.com>
+From: "stanley.miao" <stanley.miao@windriver.com>
+Subject: Re: [PATCH] OMAP_LDP: Support LCD display as a FB device on ZOOM
+ MDK (Re: LDP support)
+Date: Fri, 08 May 2009 11:26:05 +0800
+Message-ID: <4A03A64D.2000809@windriver.com>
+References: <20090428220712.GF29277@n2100.arm.linux.org.uk> <20090428224237.GT22457@atomide.com> <20090505195231.GB8004@n2100.arm.linux.org.uk> <20090506040015.GM5593@atomide.com> <20090506224917.GS5593@atomide.com> <4A02F7CF.1050803@windriver.com> <20090507161936.GA26106@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: multipart/mixed;
+ boundary="------------000706060305030708090006"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from fg-out-1718.google.com ([72.14.220.153]:45157 "EHLO
-	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1760809AbZEGWQA convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 7 May 2009 18:16:00 -0400
-Received: by fg-out-1718.google.com with SMTP id d23so14468fga.17
-        for <linux-omap@vger.kernel.org>; Thu, 07 May 2009 15:16:00 -0700 (PDT)
-In-Reply-To: <20090507211447.GA30906@scadufax.research.nokia.com>
+Received: from mail.windriver.com ([147.11.1.11]:43091 "EHLO mail.wrs.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753538AbZEHDXr (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 7 May 2009 23:23:47 -0400
+In-Reply-To: <20090507161936.GA26106@n2100.arm.linux.org.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: felipe.balbi@nokia.com
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Doyu Hiroshi (Nokia-D/Helsinki)" <hiroshi.doyu@nokia.com>, "Contreras Felipe (Nokia-D/Helsinki)" <felipe.contreras@nokia.com>, Tony Lindgren <tony@atomide.com>
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, Imre Deak <imre.deak@nokia.com>, Tomi Valkeinen <tomi.valkeinen@nokia.com>
 
-On Fri, May 8, 2009 at 12:14 AM, Felipe Balbi <felipe.balbi@nokia.com> =
-wrote:
-> On Thu, May 07, 2009 at 10:11:07PM +0200, ext Felipe Contreras wrote:
->> -static struct resource omap3_iommu_res[] =3D {
->> - =C2=A0 =C2=A0 { /* Camera ISP MMU */
->> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 .start =C2=A0 =C2=A0 =C2=
-=A0 =C2=A0 =C2=A0=3D OMAP3_MMU1_BASE,
->> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 .end =C2=A0 =C2=A0 =C2=A0=
- =C2=A0 =C2=A0 =C2=A0=3D OMAP3_MMU1_BASE + MMU_REG_SIZE - 1,
->> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 .flags =C2=A0 =C2=A0 =C2=
-=A0 =C2=A0 =C2=A0=3D IORESOURCE_MEM,
->> - =C2=A0 =C2=A0 },
->> - =C2=A0 =C2=A0 {
->> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 .start =C2=A0 =C2=A0 =C2=
-=A0 =C2=A0 =C2=A0=3D OMAP3_MMU1_IRQ,
->> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 .flags =C2=A0 =C2=A0 =C2=
-=A0 =C2=A0 =C2=A0=3D IORESOURCE_IRQ,
->> - =C2=A0 =C2=A0 },
->> - =C2=A0 =C2=A0 { /* IVA2.2 MMU */
->> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 .start =C2=A0 =C2=A0 =C2=
-=A0 =C2=A0 =C2=A0=3D OMAP3_MMU2_BASE,
->> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 .end =C2=A0 =C2=A0 =C2=A0=
- =C2=A0 =C2=A0 =C2=A0=3D OMAP3_MMU2_BASE + MMU_REG_SIZE - 1,
->> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 .flags =C2=A0 =C2=A0 =C2=
-=A0 =C2=A0 =C2=A0=3D IORESOURCE_MEM,
->> - =C2=A0 =C2=A0 },
->> - =C2=A0 =C2=A0 {
->> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 .start =C2=A0 =C2=A0 =C2=
-=A0 =C2=A0 =C2=A0=3D OMAP3_MMU2_IRQ,
->> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 .flags =C2=A0 =C2=A0 =C2=
-=A0 =C2=A0 =C2=A0=3D IORESOURCE_IRQ,
->> - =C2=A0 =C2=A0 },
->
-> i find this one much more readable :-s
+This is a multi-part message in MIME format.
+--------------000706060305030708090006
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 
-You find an array of 'struct resource' more readable than this?
-
-+               .base =3D 0x480bd400,
-+               .irq =3D 24,
-
-+               .base =3D 0x5d000000,
-+               .irq =3D 28,
-
-+               res[0].start =3D d->base;
-+               res[0].end =3D d->base + MMU_REG_SIZE - 1;
-+
-+               res[1].start =3D d->irq;
-
-How would you calculate the number of resources per iommu device?
-
-How about these?
-
--               err =3D platform_device_add_resources(pdev,
--                                   &omap3_iommu_res[2 * i], NR_IOMMU_R=
-ES);
-+               err =3D platform_device_add_resources(pdev, res, ARRAY_=
-SIZE(res));
-               if (err)
-                       goto err_out;
--               err =3D platform_device_add_data(pdev, &omap3_iommu_pda=
-ta[i],
--                                              sizeof(omap3_iommu_pdata=
-[0]));
-+               err =3D platform_device_add_data(pdev, &d->pdata,
-sizeof(d->pdata));
-               if (err)
-                       goto err_out;
-
-Do you find the original version easier to read?
-
->> +struct iommu_device {
->> + =C2=A0 =C2=A0 resource_size_t base;
->> + =C2=A0 =C2=A0 resource_size_t irq;
->> + =C2=A0 =C2=A0 struct iommu_platform_data pdata;
->
-> generally, platform_data is a void *. Don't know if it matters here.
-
-Yes but we need to set the actual contents for platform_device_add_data=
-=2E
-
->> + =C2=A0 =C2=A0 struct resource res[2];
->> =C2=A0};
->> -#define NR_IOMMU_RES (ARRAY_SIZE(omap3_iommu_res) / 2)
+Russell King - ARM Linux wrote:
+> On Thu, May 07, 2009 at 11:01:35PM +0800, stanley.miao wrote:
+>   
+>> Hi, Tony,
 >>
->> -static const struct iommu_platform_data omap3_iommu_pdata[] __initc=
-onst =3D {
->> +static struct iommu_device devices[] =3D {
->> =C2=A0 =C2=A0 =C2=A0 {
->> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 .name =3D "isp",
->> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 .nr_tlb_entries =3D 8,
->> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 .clk_name =3D "cam_ick",
->> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 .base =3D 0x480bd400,
->> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 .irq =3D 24,
->> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 .pdata =3D {
->> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
-=A0 .name =3D "isp",
->> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
-=A0 .nr_tlb_entries =3D 8,
->> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
-=A0 .clk_name =3D "cam_ick",
+>> Now the kernel can't boot on LDP. The attached file is the boot log.
+>>     
 >
-> still passing clk names ? what about clkdev ?
+> No boot log found.
+>
+>
+>   
+Sorry, forgot to attach the boot log.
 
-That's for iommu to fix. I'm simply interested on decoupling iommu and
-a hypothetical tidspbridge that doesn't exists yet.
+It is linux-omap master branch.
 
---=20
-=46elipe Contreras
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Stanley.
+
+
+
+--------------000706060305030708090006
+Content-Type: text/plain;
+ name="ldp_boot_log.txt"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="ldp_boot_log.txt"
+
+Uncompressing Linux.................................................................................................................... done, booting the kernel.
+<5>Linux version 2.6.30-rc4-omap1-05873-g2489dcb (stanley@stanley-desktop) (gcc version 4.2.1 (CodeSourcery Sourcery G++ Lite 2007q3-53)) #1 Thu May 7 22:52:12 CST9
+CPU: ARMv7 Processor [411fc082] revision 2 (ARMv7), cr=10c5387f
+CPU: VIPT nonaliasing data cache, VIPT nonaliasing instruction cache
+Machine: OMAP LDP board
+Memory policy: ECC disabled, Data cache writeback
+<7>On node 0 totalpages: 32768
+<7>free_area_init_node: node 0, pgdat c038db50, node_mem_map c03a9000
+<7>  Normal zone: 256 pages used for memmap
+<7>  Normal zone: 0 pages reserved
+<7>  Normal zone: 32512 pages, LIFO batch:7
+<6>OMAP3430 ES2.1
+<6>SRAM: Mapped pa 0x40200000 to va 0xd7000000 size: 0x100000
+Built 1 zonelists in Zone order, mobility grouping on.  Total pages: 32512
+<5>Kernel command line: root=/dev/nfs rw nfsroot=128.224.163.169:/export/rootfs console=ttyS2,115200n8 mem=128M ip=128.224.163.125:128.224.163.169:128.224.162.1:25}
+<6>NR_IRQS:402
+<6>Clocking rate (Crystal/DPLL/ARM core): 26.0/266/500 MHz
+<6>GPMC revision 5.0
+<6>IRQ: Found an INTC at 0xd8200000 (revision 4.0) with 96 interrupts
+<6>Total of 96 interrupts on 1 active controller
+<6>OMAP34xx GPIO hardware version 2.5
+PID hash table entries: 512 (order: 9, 2048 bytes)
+<6>OMAP clockevent source: GPTIMER1 at 32768 Hz
+Console: colour dummy device 80x30
+<6>Dentry cache hash table entries: 16384 (order: 4, 65536 bytes)
+<6>Inode-cache hash table entries: 8192 (order: 3, 32768 bytes)
+<6>Memory: 128MB = 128MB total
+<5>Memory: 126036KB available (3176K code, 292K data, 132K init, 0K highmem)
+<6>Calibrating delay loop... 
+
+
+--------------000706060305030708090006--
