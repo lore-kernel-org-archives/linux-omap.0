@@ -1,64 +1,108 @@
-From: Peter Ujfalusi <peter.ujfalusi@nokia.com>
-Subject: Re: McBSP in Multi Channel mode
-Date: Fri, 8 May 2009 10:38:01 +0300
-Message-ID: <200905081038.01470.peter.ujfalusi@nokia.com>
-References: <29e1ddd50905071118i28bd16b8ub715cd2b5dafaca8@mail.gmail.com>
+From: Felipe Contreras <felipe.contreras@gmail.com>
+Subject: Re: [RFC/PATCH 0/3] omap3-iommu: cleanups and remote registration
+Date: Fri, 8 May 2009 11:04:54 +0300
+Message-ID: <94a0d4530905080104k38e01649q3b8c9617c0e8a5b0@mail.gmail.com>
+References: <94a0d4530905071302g3510fdabne659a42bd9009909@mail.gmail.com>
+	 <1241727069-15168-1-git-send-email-felipe.contreras@gmail.com>
+	 <20090508.071410.173868238.Hiroshi.DOYU@nokia.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:49228 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753435AbZEHHiN convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 8 May 2009 03:38:13 -0400
-In-Reply-To: <29e1ddd50905071118i28bd16b8ub715cd2b5dafaca8@mail.gmail.com>
-Content-Disposition: inline
+Received: from fg-out-1718.google.com ([72.14.220.158]:34764 "EHLO
+	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758037AbZEHIEz (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 8 May 2009 04:04:55 -0400
+Received: by fg-out-1718.google.com with SMTP id d23so70449fga.17
+        for <linux-omap@vger.kernel.org>; Fri, 08 May 2009 01:04:54 -0700 (PDT)
+In-Reply-To: <20090508.071410.173868238.Hiroshi.DOYU@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: ext Fernando Governatore <fergc@uol.com.br>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+Cc: linux-omap@vger.kernel.org, felipe.contreras@nokia.com, tony@atomide.com, h-kanigeri2@ti.com
 
-Hello,
-
-
-On Thursday 07 May 2009 21:18:34 ext Fernando Governatore wrote:
-> Hello,
+On Fri, May 8, 2009 at 7:14 AM, Hiroshi DOYU <Hiroshi.DOYU@nokia.com> wrote:
+> Hi Felipe,
 >
-> I'm new to kernel development and so I'm a bit confused on how to do
-> things here. I need to use the McBSP with Multi-Channel enabled and
-> using DMA to transfer the data.
+> From: ext Felipe Contreras <felipe.contreras@gmail.com>
+> Subject: [RFC/PATCH 0/3] omap3-iommu: cleanups and remote registration
+> Date: Thu, 7 May 2009 22:11:06 +0200
 >
-> The data will be PCM sound and I will have 4 cards attached to this
-> McBSP. I'm using OMAP35xx.
+>> This patch series cleanups up a bit the opap3-iommu device registration and
+>> then allows registration from other parts of the code.
 >
-> From what I've seen, I have to change the files:
->  - arch/arm/plat-omap/mcbsp.c
->  - arch/arm/mach-omap2/mcbsp.c
-> to support multi channel. Is that it? or I would need more changes?
+> I think that this part of code is just a simple conventional
+> platform_device registration and there may be no need to add more
+> complexicity by introducing a new special structure/function just for
+> a workaround of a client module("tidspbridge"). Also having these
+> device registrations here and there doesn't look so nice, looking at
+> other ones around kernel.
+
+First of all, it's not a workaround. Fake dependencies are bad. iommu
+should not depend on isp or iva2 (or how they are implemented), it's
+the other way around.
+
+Let's say you disable isp, do you want iommu to add the isp iommu
+device (same for iva2)? What happens if you don't want either isp or
+iva2 in the kernel, what is the point of having iommu?
+
+Second, it's not introducing any new structure, the structure is
+internal, you can remove it if you want and implement the same with a
+select or any way you want, I just thought an internal structure was
+easier to follow.
+
+And third, this kind of device registration is used all over the place, look at:
+omap_mmc_add
+pxa2xx_set_spi_info
+at32_add_device_psif
+at32_add_device_twi
+at32_add_device_mci
+at32_add_device_pwm
+at32_add_device_usba
+at32_add_device_ide
+at32_add_device_cf
+at32_add_device_nand
+at32_add_device_ac97c
+at32_add_device_abdac
+txx9_ethaddr_init
+txx9_physmap_flash_init
+txx9_iocled_init
+mv64x60_mpsc_device_setup
+mv64x60_eth_device_setup
+mv64x60_i2c_device_setup
+mv64x60_wdt_device_setup
+ipmi_bmc_register
+aem_init_aem1_inst
+aem_init_aem2_inst
+w1_ds2760_add_slave
+of_snd_soc_register_device
+
+>> Currently the iva2 code (tidspbridge) is not using iommu, therefore it can't be
+>> used as-is with the current omap iommu. By allowing devies to be registered
+>> externaly (either isp, or iva2) this problem goes away.
 >
-> Is there something that I would need to change in DMA implementation?
-> Do you know where I can get an example or documentation?
+> Fixing tidspbridge itself is the way to go, and it seems that Hari has
+> already verified this iommu with tidspbridge and he's pointed out some
+> of missing features(*1). I hope that tidspbridge will start to use
+> iommu soon.
 
-Take a look at the sound-2.6 tree's topic/asoc branch:
-http://git.kernel.org/?p=3Dlinux/kernel/git/tiwai/sound-2.6.git;a=3Dsho=
-rtlog;h=3Dtopic/asoc
+Yes, definitely, but that's not an excuse not to make iommu more
+extensible. With my patch the iommu can be merged as is and would not
+*require* any change in tidspbridge. When the tidspbridge is ready, it
+would be a matter of adding one line.
 
-The omap3beagle has support for 4 channel audio playback (combination o=
-f=20
-McBSP+TWL4030 codec).
-=46iles that could be interesting for you:
-sound/soc/omap/omap3beagle.c
-sound/soc/omap/omap-mcbsp.c
-sound/soc/codecs/twl4030.c
+Also, it's better to have independent branches. It would be ugly to
+modify iommu code from the tidspbridge branch depending on whether or
+not the migration to iommu have happened.
 
->
-> Thanks,
-> Fernando
+And finally, suppose you load the bridgedriver on-demand, with my
+patch the iva2 iommu device will be created *only* when the
+bridgedriver is loaded, and when the bridgedriver itself is unloaded
+it can remove the iva2 iommu device. So essentially we'll have only
+the iommu devices that we really need.
 
---=20
-P=C3=A9ter
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Now I ask the question the other way around, what do we loose if we
+apply these patches?
+
+-- 
+Felipe Contreras
