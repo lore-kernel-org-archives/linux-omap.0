@@ -1,33 +1,49 @@
-From: Kalle Valo <kalle.valo@iki.fi>
-Subject: Re: [PATCH] OMAP_LDP: Support LCD display as a FB device on ZOOM MDK (Re: LDP support)
-Date: Fri, 08 May 2009 19:47:09 +0300
-Message-ID: <87hbzv8rua.fsf@litku.valot.fi>
-References: <5A47E75E594F054BAF48C5E4FC4B92AB030555A7D9@dbde02.ent.ti.com>
-	<4A03F8DD.4070307@windriver.com>
+From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
+Subject: RE: [PATCH 0/5] More header clean-up
+Date: Fri, 8 May 2009 22:21:47 +0530
+Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB02B476BA69@dbde02.ent.ti.com>
+References: <20090507203552.7461.35051.stgit@localhost>
+ <EAF47CD23C76F840A9E7FCE10091EFAB02B4688430@dbde02.ent.ti.com>
+ <20090508152103.GJ5593@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from fk-out-0910.google.com ([209.85.128.188]:58346 "EHLO
-	fk-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753854AbZEHQrM (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 8 May 2009 12:47:12 -0400
-Received: by fk-out-0910.google.com with SMTP id 18so805993fkq.5
-        for <linux-omap@vger.kernel.org>; Fri, 08 May 2009 09:47:12 -0700 (PDT)
-In-Reply-To: <4A03F8DD.4070307@windriver.com> (stanley miao's message of "Fri\, 08 May 2009 17\:18\:21 +0800")
+Received: from comal.ext.ti.com ([198.47.26.152]:34953 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751702AbZEHQv7 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 8 May 2009 12:51:59 -0400
+In-Reply-To: <20090508152103.GJ5593@atomide.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "stanley.miao" <stanley.miao@windriver.com>
-Cc: "Gadiyar, Anand" <gadiyar@ti.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Tony Lindgren <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Imre Deak <imre.deak@nokia.com>, Tomi Valkeinen <tomi.valkeinen@nokia.com>
+To: Tony Lindgren <tony@atomide.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-"stanley.miao" <stanley.miao@windriver.com> writes:
 
->> Looks like you used the CodeSourcery 2007q3 toolchain. This had been
->> reported earlier. Switching to 2008q3 works.
->
-> Yeah, Now the kernel booted. it's compiler's problem.
+> -----Original Message-----
+> From: Tony Lindgren [mailto:tony@atomide.com] 
+> Sent: Friday, May 08, 2009 8:51 PM
+> To: Shilimkar, Santosh
+> Cc: linux-omap@vger.kernel.org
+> Subject: Re: [PATCH 0/5] More header clean-up
+> 
+> * Shilimkar, Santosh <santosh.shilimkar@ti.com> [090507 22:20]:
+> > If this series is planned for this window then OMAP4 series 
+> also needs few changes. Is it ?
+> 
+> Yeah. For omap4 those changes should be trivial though.
+> 
+> Maybe do a test rebase on top of these patches to see which ones
+> you need to rename?
+> 
+> But when posting patches to mailings lists, please keep them against
+> the mainline. I should be able to deal with the conflicts 
+> pretty easily
+> when adding them to for-next.
+> 
 
-I was bitten by the same problem few weeks ago. Any chance of getting a
-warning/error if using 2007q3 compiler until the problem is fixed?
+Sure.. I will keep you posted with delta changes.
 
--- 
-Kalle Valo
+Regards,
+Santosh
