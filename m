@@ -1,639 +1,333 @@
-From: Mark Brown <broonie@sirena.org.uk>
-Subject: Re: [PATCH 2/3] Regulator: Add TPS65023 Regulator Driver
-Date: Fri, 8 May 2009 20:31:00 +0100
-Message-ID: <20090508193100.GD11502@sirena.org.uk>
-References: <1241795532-15716-1-git-send-email-anuj.aggarwal@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 2/3] ARM: OMAP3: Add more devices for omap3430sdp
+Date: Fri, 8 May 2009 12:32:39 -0700
+Message-ID: <20090508193239.GN5593@atomide.com>
+References: <20090508191632.29249.92190.stgit@localhost> <20090508191902.29249.4421.stgit@localhost>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from cassiel.sirena.org.uk ([80.68.93.111]:60806 "EHLO
-	cassiel.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753520AbZEHTbB (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 8 May 2009 15:31:01 -0400
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:64310 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751678AbZEHTcm (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 8 May 2009 15:32:42 -0400
+Received: from c-67-160-239-110.hsd1.ca.comcast.net ([67.160.239.110] helo=localhost.localdomain)
+	by mho-01-ewr.mailhop.org with esmtpa (Exim 4.68)
+	(envelope-from <tony@atomide.com>)
+	id 1M2VoI-000GkS-ID
+	for linux-omap@vger.kernel.org; Fri, 08 May 2009 19:32:42 +0000
 Content-Disposition: inline
-In-Reply-To: <1241795532-15716-1-git-send-email-anuj.aggarwal@ti.com>
+In-Reply-To: <20090508191902.29249.4421.stgit@localhost>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Anuj Aggarwal <anuj.aggarwal@ti.com>
-Cc: linux-omap@vger.kernel.org, lrg@slimlogic.co.uk
+To: linux-omap@vger.kernel.org
 
-On Fri, May 08, 2009 at 08:42:12PM +0530, Anuj Aggarwal wrote:
-> Added regulator driver for TPS65023 and modified the Kconfig and Makefile for
-> the same.
-> 
-> Signed-off-by: Anuj Aggarwal <anuj.aggarwal@ti.com>
+* Tony Lindgren <tony@atomide.com> [090508 12:21]:
+> Add more devices for omap3430sdp
 
-This looks pretty good.  I've spotted a few issues, mostly to do with
-error handling or nitpicky stuff that it's nice to have but which
-shouldn't be a blocker to merge.  It would be good to get the initcall
-ordering addressed, though.
+This patch should be credited for Hunyue Yau <hyau@mvista.com>.
 
-CCing in Liam and not deleting any text as a result.
-
+Tony
+ 
+> Cc: Imre Deak <imre.deak@nokia.com>
+> Cc: linux-fbdev-devel@lists.sourceforge.net
+> Signed-off-by: Tony Lindgren <tony@atomide.com>
 > ---
->  drivers/regulator/Kconfig              |    8 +
->  drivers/regulator/Makefile             |    1 +
->  drivers/regulator/tps65023-regulator.c |  510 ++++++++++++++++++++++++++++++++
->  3 files changed, 519 insertions(+), 0 deletions(-)
->  create mode 100644 drivers/regulator/tps65023-regulator.c
+>  arch/arm/configs/omap_3430sdp_defconfig |   10 ++
+>  arch/arm/mach-omap2/board-2430sdp.c     |    6 +
+>  drivers/video/omap/Kconfig              |    4 +
+>  drivers/video/omap/Makefile             |    4 +
+>  drivers/video/omap/lcd_2430sdp.c        |  199 +++++++++++++++++++++++++++++++
+>  5 files changed, 223 insertions(+), 0 deletions(-)
+>  create mode 100644 drivers/video/omap/lcd_2430sdp.c
 > 
-> diff --git a/drivers/regulator/Kconfig b/drivers/regulator/Kconfig
-> index e58c0ce..28109e1 100644
-> --- a/drivers/regulator/Kconfig
-> +++ b/drivers/regulator/Kconfig
-> @@ -91,4 +91,12 @@ config REGULATOR_PCF50633
->  	 Say Y here to support the voltage regulators and convertors
->  	 on PCF50633
-> 
-> +config REGULATOR_TPS65023
-> +	tristate "TI TPS65023 Power regulators"
-> +	depends on OMAP3EVM_TPS65023
-> +	help
-> +	  This driver supports TPS65023 voltage regulator chips. TPS65023 provides
-> +	  three step-down converters and two general-purpose LDO voltage regulators.
-> +	  It supports TI's software based Class-2 SmartReflex implementation.
+> diff --git a/arch/arm/configs/omap_3430sdp_defconfig b/arch/arm/configs/omap_3430sdp_defconfig
+> index 8fb918d..2be930c 100644
+> --- a/arch/arm/configs/omap_3430sdp_defconfig
+> +++ b/arch/arm/configs/omap_3430sdp_defconfig
+> @@ -1331,6 +1331,16 @@ CONFIG_DISPLAY_SUPPORT=y
+>  #
+>  # CONFIG_VGA_CONSOLE is not set
+>  CONFIG_DUMMY_CONSOLE=y
+> +CONFIG_FRAMEBUFFER_CONSOLE=y
+> +# CONFIG_FRAMEBUFFER_CONSOLE_DETECT_PRIMARY is not set
+> +# CONFIG_FRAMEBUFFER_CONSOLE_ROTATION is not set
+> +# CONFIG_FONTS is not set
+> +CONFIG_FONT_8x8=y
+> +CONFIG_FONT_8x16=y
+> +CONFIG_LOGO=y
+> +CONFIG_LOGO_LINUX_MONO=y
+> +CONFIG_LOGO_LINUX_VGA16=y
+> +CONFIG_LOGO_LINUX_CLUT224=y
+>  CONFIG_SOUND=y
+>  CONFIG_SOUND_OSS_CORE=y
+>  CONFIG_SND=y
+> diff --git a/arch/arm/mach-omap2/board-2430sdp.c b/arch/arm/mach-omap2/board-2430sdp.c
+> index 2214365..017bebf 100644
+> --- a/arch/arm/mach-omap2/board-2430sdp.c
+> +++ b/arch/arm/mach-omap2/board-2430sdp.c
+> @@ -112,6 +112,11 @@ static struct resource sdp2430_smc91x_resources[] = {
+>  	},
+>  };
+>  
+> +static struct platform_device sdp2430_lcd_device = {
+> +	.name		= "sdp2430_lcd",
+> +	.id		= -1,
+> +};
 > +
->  endif
-> diff --git a/drivers/regulator/Makefile b/drivers/regulator/Makefile
-> index c0d87bf..28235b9 100644
-> --- a/drivers/regulator/Makefile
-> +++ b/drivers/regulator/Makefile
-> @@ -13,5 +13,6 @@ obj-$(CONFIG_REGULATOR_WM8350) += wm8350-regulator.o
->  obj-$(CONFIG_REGULATOR_WM8400) += wm8400-regulator.o
->  obj-$(CONFIG_REGULATOR_DA903X)	+= da903x.o
->  obj-$(CONFIG_REGULATOR_PCF50633) += pcf50633-regulator.o
-> +obj-$(CONFIG_REGULATOR_TPS65023) += tps65023-regulator.o
-> 
->  ccflags-$(CONFIG_REGULATOR_DEBUG) += -DDEBUG
-> diff --git a/drivers/regulator/tps65023-regulator.c b/drivers/regulator/tps65023-regulator.c
+>  static struct platform_device sdp2430_smc91x_device = {
+>  	.name		= "smc91x",
+>  	.id		= -1,
+> @@ -122,6 +127,7 @@ static struct platform_device sdp2430_smc91x_device = {
+>  static struct platform_device *sdp2430_devices[] __initdata = {
+>  	&sdp2430_smc91x_device,
+>  	&sdp2430_flash_device,
+> +	&sdp2430_lcd_device,
+>  };
+>  
+>  static inline void __init sdp2430_init_smc91x(void)
+> diff --git a/drivers/video/omap/Kconfig b/drivers/video/omap/Kconfig
+> index 4440885..7ca848c 100644
+> --- a/drivers/video/omap/Kconfig
+> +++ b/drivers/video/omap/Kconfig
+> @@ -7,6 +7,10 @@ config FB_OMAP
+>  	help
+>            Frame buffer driver for OMAP based boards.
+>  
+> +config FB_OMAP_LCD_VGA
+> +        bool "Use LCD in VGA mode"
+> +	  depends on MACH_OMAP_3430SDP
+> +
+>  config FB_OMAP_BOOTLOADER_INIT
+>  	bool "Check bootloader initialization"
+>  	depends on FB_OMAP
+> diff --git a/drivers/video/omap/Makefile b/drivers/video/omap/Makefile
+> index ed13889..e6d52f3 100644
+> --- a/drivers/video/omap/Makefile
+> +++ b/drivers/video/omap/Makefile
+> @@ -8,6 +8,7 @@ objs-yy := omapfb_main.o
+>  
+>  objs-y$(CONFIG_ARCH_OMAP1) += lcdc.o
+>  objs-y$(CONFIG_ARCH_OMAP2) += dispc.o
+> +objs-y$(CONFIG_ARCH_OMAP3) += dispc.o
+>  
+>  objs-$(CONFIG_ARCH_OMAP1)$(CONFIG_FB_OMAP_LCDC_EXTERNAL) += sossi.o
+>  objs-$(CONFIG_ARCH_OMAP2)$(CONFIG_FB_OMAP_LCDC_EXTERNAL) += rfbi.o
+> @@ -24,5 +25,8 @@ objs-$(CONFIG_ARCH_OMAP16XX)$(CONFIG_MACH_OMAP_INNOVATOR) += lcd_inn1610.o
+>  objs-$(CONFIG_ARCH_OMAP15XX)$(CONFIG_MACH_OMAP_INNOVATOR) += lcd_inn1510.o
+>  objs-y$(CONFIG_MACH_OMAP_OSK) += lcd_osk.o
+>  
+> +objs-y$(CONFIG_MACH_OMAP_2430SDP) += lcd_2430sdp.o
+> +objs-y$(CONFIG_MACH_OMAP_3430SDP) += lcd_2430sdp.o
+> +
+>  omapfb-objs := $(objs-yy)
+>  
+> diff --git a/drivers/video/omap/lcd_2430sdp.c b/drivers/video/omap/lcd_2430sdp.c
 > new file mode 100644
-> index 0000000..657c0c3
+> index 0000000..a22b452
 > --- /dev/null
-> +++ b/drivers/regulator/tps65023-regulator.c
-> @@ -0,0 +1,510 @@
+> +++ b/drivers/video/omap/lcd_2430sdp.c
+> @@ -0,0 +1,199 @@
 > +/*
-> + * tps65023-regulator.c -- Supports TPS65023 regulator
+> + * LCD panel support for the TI 2430SDP board
 > + *
-> + * Author : Anuj Aggarwal<anuj.aggarwal@ti.com>
+> + * Copyright (C) 2007 MontaVista
+> + * Author: Hunyue Yau <hyau@mvista.com>
 > + *
-> + * This program is free software; you can redistribute it and/or modify
-> + * it under the terms of the GNU General Public License as published by
-> + * the Free Software Foundation; either version 2 of the License, or
-> + * (at your option) any later version.
+> + * Derived from drivers/video/omap/lcd-apollon.c
+> + *
+> + * This program is free software; you can redistribute it and/or modify it
+> + * under the terms of the GNU General Public License as published by the
+> + * Free Software Foundation; either version 2 of the License, or (at your
+> + * option) any later version.
+> + *
+> + * This program is distributed in the hope that it will be useful, but
+> + * WITHOUT ANY WARRANTY; without even the implied warranty of
+> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+> + * General Public License for more details.
+> + *
+> + * You should have received a copy of the GNU General Public License along
+> + * with this program; if not, write to the Free Software Foundation, Inc.,
+> + * 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 > + */
 > +
-> +#include <linux/kernel.h>
 > +#include <linux/module.h>
-> +#include <linux/init.h>
-> +#include <linux/err.h>
 > +#include <linux/platform_device.h>
-> +#include <linux/regulator/driver.h>
-> +#include <linux/regulator/machine.h>
-> +#include <linux/i2c.h>
 > +#include <linux/delay.h>
+> +#include <linux/gpio.h>
+> +#include <linux/i2c/twl4030.h>
 > +
-> +/* Register definitions */
-> +#define	TPS65023_REG_VERSION		0
-> +#define	TPS65023_REG_PGOODZ		1
-> +#define	TPS65023_REG_MASK		2
-> +#define	TPS65023_REG_REG_CTRL		3
-> +#define	TPS65023_REG_CON_CTRL		4
-> +#define	TPS65023_REG_CON_CTRL2		5
-> +#define	TPS65023_REG_DEF_CORE		6
-> +#define	TPS65023_REG_DEFSLEW		7
-> +#define	TPS65023_REG_LDO_CTRL		8
+> +#include <mach/mux.h>
+> +#include <mach/omapfb.h>
+> +#include <asm/mach-types.h>
 > +
-> +/* PGOODZ bitfields */
-> +#define	TPS65023_PGOODZ_PWRFAILZ	BIT(7)
-> +#define	TPS65023_PGOODZ_LOWBATTZ	BIT(6)
-> +#define	TPS65023_PGOODZ_VDCDC1		BIT(5)
-> +#define	TPS65023_PGOODZ_VDCDC2		BIT(4)
-> +#define	TPS65023_PGOODZ_VDCDC3		BIT(3)
-> +#define	TPS65023_PGOODZ_LDO2		BIT(2)
-> +#define	TPS65023_PGOODZ_LDO1		BIT(1)
+> +#define SDP2430_LCD_PANEL_BACKLIGHT_GPIO	91
+> +#define SDP2430_LCD_PANEL_ENABLE_GPIO		154
+> +#define SDP3430_LCD_PANEL_BACKLIGHT_GPIO 	24
+> +#define SDP3430_LCD_PANEL_ENABLE_GPIO 		28
 > +
-> +/* MASK bitfields */
-> +#define	TPS65023_MASK_PWRFAILZ		BIT(7)
-> +#define	TPS65023_MASK_LOWBATTZ		BIT(6)
-> +#define	TPS65023_MASK_VDCDC1		BIT(5)
-> +#define	TPS65023_MASK_VDCDC2		BIT(4)
-> +#define	TPS65023_MASK_VDCDC3		BIT(3)
-> +#define	TPS65023_MASK_LDO2		BIT(2)
-> +#define	TPS65023_MASK_LDO1		BIT(1)
+> +static unsigned backlight_gpio;
+> +static unsigned enable_gpio;
 > +
-> +/* REG_CTRL bitfields */
-> +#define TPS65023_REG_CTRL_VDCDC1_EN	BIT(5)
-> +#define TPS65023_REG_CTRL_VDCDC2_EN	BIT(4)
-> +#define TPS65023_REG_CTRL_VDCDC3_EN	BIT(3)
-> +#define TPS65023_REG_CTRL_LDO2_EN	BIT(2)
-> +#define TPS65023_REG_CTRL_LDO1_EN	BIT(1)
+> +#define LCD_PIXCLOCK_MAX		5400 /* freq 5.4 MHz */
+> +#define PM_RECEIVER             TWL4030_MODULE_PM_RECEIVER
+> +#define ENABLE_VAUX2_DEDICATED  0x09
+> +#define ENABLE_VAUX2_DEV_GRP    0x20
+> +#define ENABLE_VAUX3_DEDICATED	0x03
+> +#define ENABLE_VAUX3_DEV_GRP	0x20
 > +
-> +/* LDO_CTRL bitfields */
-> +#define TPS65023_LDO_CTRL_LDOx_SHIFT	4
-> +#define TPS65023_LDO_CTRL_LDOx_MASK(ldo_id)		(0xF0 >> (ldo_id*4))
+> +#define ENABLE_VPLL2_DEDICATED          0x05
+> +#define ENABLE_VPLL2_DEV_GRP            0xE0
+> +#define TWL4030_VPLL2_DEV_GRP           0x33
+> +#define TWL4030_VPLL2_DEDICATED         0x36
 > +
-> +/* Number of step-down converters available */
-> +#define TPS65023_NUM_DCDC		3
-> +/* Number of LDO voltage regulators  available */
-> +#define TPS65023_NUM_LDO		2
-> +/* Number of total regulators available */
-> +#define TPS65023_NUM_REGULATOR	(TPS65023_NUM_DCDC + TPS65023_NUM_LDO)
+> +#define t2_out(c, r, v) twl4030_i2c_write_u8(c, r, v)
 > +
-> +struct tps_info {
-> +	const char 	*name;
-> +	unsigned		min_uV;
-> +	unsigned		max_uV;
-> +	bool			fixed;
-> +	u8			table_len;
-> +	const u16		*table;
-> +};
 > +
-> +struct tps {
-> +	struct regulator_desc	desc[TPS65023_NUM_REGULATOR];
-> +	struct i2c_client	*client;
-> +	struct regulator_dev	*rdev[TPS65023_NUM_REGULATOR];
-> +	const struct tps_info	*info[TPS65023_NUM_REGULATOR];
-> +};
-
-See comments in the probe() function regarding desc.
-
-> +static inline int tps_65023_read_reg(struct tps *tps, u8 reg, u8 *val)
+> +static int sdp2430_panel_init(struct lcd_panel *panel,
+> +				struct omapfb_device *fbdev)
 > +{
-> +	int status;
+> +	if (machine_is_omap_3430sdp()) {
+> +		enable_gpio    = SDP3430_LCD_PANEL_ENABLE_GPIO;
+> +		backlight_gpio = SDP3430_LCD_PANEL_BACKLIGHT_GPIO;
+> +	} else {
+> +		enable_gpio    = SDP2430_LCD_PANEL_ENABLE_GPIO;
+> +		backlight_gpio = SDP2430_LCD_PANEL_BACKLIGHT_GPIO;
+> +	}
 > +
-> +	status = i2c_smbus_read_byte_data(tps->client, reg);
-> +	*val = status;
-> +	if (status < 0)
-> +		return status;
+> +	gpio_request(enable_gpio, "LCD enable");	/* LCD panel */
+> +	gpio_request(backlight_gpio, "LCD bl");		/* LCD backlight */
+> +	gpio_direction_output(enable_gpio, 0);
+> +	gpio_direction_output(backlight_gpio, 0);
+> +
 > +	return 0;
 > +}
 > +
-> +static inline int tps_65023_write_reg(struct tps *tps, u8 reg, u8 val)
+> +static void sdp2430_panel_cleanup(struct lcd_panel *panel)
 > +{
-> +	return i2c_smbus_write_byte_data(tps->client, reg, val);
 > +}
 > +
-> +static int tps65023_dcdc_is_enabled(struct regulator_dev *dev)
+> +static int sdp2430_panel_enable(struct lcd_panel *panel)
 > +{
-> +	unsigned char reg_ctrl;
-> +	struct tps *tps = rdev_get_drvdata(dev);
-> +	int regulator_id = rdev_get_id(dev);
-> +	int ret;
+> +	u8 ded_val, ded_reg;
+> +	u8 grp_val, grp_reg;
 > +
-> +	ret = tps_65023_read_reg(tps, TPS65023_REG_REG_CTRL, &reg_ctrl);
+> +	if (machine_is_omap_3430sdp()) {
+> +		ded_reg = TWL4030_VAUX3_DEDICATED;
+> +		ded_val = ENABLE_VAUX3_DEDICATED;
+> +		grp_reg = TWL4030_VAUX3_DEV_GRP;
+> +		grp_val = ENABLE_VAUX3_DEV_GRP;
 > +
-> +	if (ret == 0) {
-> +		switch (regulator_id) {
-> +		case 0:
-> +			reg_ctrl &= TPS65023_REG_CTRL_VDCDC1_EN;
-> +			break;
-> +
-> +		case 1:
-> +			reg_ctrl &= TPS65023_REG_CTRL_VDCDC2_EN;
-> +			break;
-> +
-> +		case 2:
-> +			reg_ctrl &= TPS65023_REG_CTRL_VDCDC3_EN;
-> +			break;
-> +
-> +		case 3:
-> +			reg_ctrl &= TPS65023_REG_CTRL_LDO1_EN;
-> +			break;
-> +
-> +		case 4:
-> +			reg_ctrl &= TPS65023_REG_CTRL_LDO2_EN;
-> +			break;
-> +
-> +		default:
-> +			/* error message */
-
-This should set an error - probably -EINVAL.  Either the comment should
-go or an error message should be added, too.
-
-> +			break;
+> +		if (omap_rev() > OMAP3430_REV_ES1_0) {
+> +			t2_out(PM_RECEIVER, ENABLE_VPLL2_DEDICATED,
+> +					TWL4030_VPLL2_DEDICATED);
+> +			t2_out(PM_RECEIVER, ENABLE_VPLL2_DEV_GRP,
+> +					TWL4030_VPLL2_DEV_GRP);
 > +		}
-> +	}
-> +
-> +	if (ret == 0)
-> +		return reg_ctrl ? 1 : 0;
-> +	else
-> +		return ret;
-> +}
-> +
-> +static int tps65023_dcdc_enable(struct regulator_dev *dev)
-> +{
-> +	unsigned char reg_ctrl;
-> +	struct tps *tps = rdev_get_drvdata(dev);
-> +	int regulator_id = rdev_get_id(dev);
-> +	int ret;
-> +
-> +	ret = tps_65023_read_reg(tps, TPS65023_REG_REG_CTRL, &reg_ctrl);
-> +
-> +	if (ret == 0) {
-> +		switch (regulator_id) {
-> +		case 0:
-> +			reg_ctrl |= TPS65023_REG_CTRL_VDCDC1_EN;
-> +			break;
-> +
-> +		case 1:
-> +			reg_ctrl |= TPS65023_REG_CTRL_VDCDC2_EN;
-> +			break;
-> +
-> +		case 2:
-> +			reg_ctrl |= TPS65023_REG_CTRL_VDCDC3_EN;
-> +			break;
-> +
-> +		case 3:
-> +			reg_ctrl |= TPS65023_REG_CTRL_LDO1_EN;
-> +			break;
-> +
-> +		case 4:
-> +			reg_ctrl |= TPS65023_REG_CTRL_LDO2_EN;
-> +			break;
-> +
-> +		default:
-> +			/* error message */
-> +			break;
-
-Similar issue with the error reporting here.
-
-> +		}
-> +	}
-> +
-> +	if (ret == 0)
-> +		return tps_65023_write_reg(tps, TPS65023_REG_REG_CTRL,
-> +						reg_ctrl);
-> +	else
-> +		return ret;
-> +}
-> +
-> +static int tps65023_dcdc_disable(struct regulator_dev *dev)
-> +{
-> +	unsigned char reg_ctrl;
-> +	struct tps *tps = rdev_get_drvdata(dev);
-> +	int regulator_id = rdev_get_id(dev);
-> +	int ret;
-> +
-> +	ret = tps_65023_read_reg(tps, TPS65023_REG_REG_CTRL, &reg_ctrl);
-> +
-> +	if (ret == 0) {
-> +		switch (regulator_id) {
-> +		case 0:
-> +			reg_ctrl &= ~(TPS65023_REG_CTRL_VDCDC1_EN);
-> +			break;
-> +
-> +		case 1:
-> +			reg_ctrl &= ~(TPS65023_REG_CTRL_VDCDC2_EN);
-> +			break;
-> +
-> +		case 2:
-> +			reg_ctrl &= ~(TPS65023_REG_CTRL_VDCDC3_EN);
-> +			break;
-> +
-> +		case 3:
-> +			reg_ctrl &= ~(TPS65023_REG_CTRL_LDO1_EN);
-> +			break;
-> +
-> +		case 4:
-> +			reg_ctrl &= ~(TPS65023_REG_CTRL_LDO2_EN);
-> +			break;
-> +
-> +		default:
-> +			/* error message */
-> +			break;
-
-Ditto.
-
-> +		}
-> +	}
-> +
-> +	if (ret == 0)
-> +		return tps_65023_write_reg(tps, TPS65023_REG_REG_CTRL,
-> +						reg_ctrl);
-> +	else
-> +		return ret;
-> +}
-> +
-> +static int tps65023_fixed_get_voltage(struct regulator_dev *dev)
-> +{
-> +	struct tps *tps = rdev_get_drvdata(dev);
-> +	int regulator_id = rdev_get_id(dev);
-> +
-> +	return tps->info[regulator_id]->min_uV;
-> +}
-> +
-> +static int tps65023_dcdc_get_voltage(struct regulator_dev *dev)
-
-This and several of the related functions appears to cover both the
-DCDCs and the LDOs - it'd probably be easier to have separate functions
-for each to avoid the "if (regulator_id)" checks but if not the
-functions ought to be renamed since the _dcdc is definitely misleading.
-
-> +{
-> +	unsigned char reg_ctrl;
-> +	struct tps *tps = rdev_get_drvdata(dev);
-> +	int regulator_id = rdev_get_id(dev);
-> +	u8 reg;
-> +	int ret;
-> +
-> +	/* Choose the control register according to the regulator */
-> +	reg = (regulator_id ? TPS65023_REG_LDO_CTRL : TPS65023_REG_DEF_CORE);
-> +	ret = tps_65023_read_reg(tps, reg, &reg_ctrl);
-> +	if (ret < 0)
-> +		return ret;
-> +
-> +	if (regulator_id)	{
-
-Very nitpicky but odd spacing?
-
-> +		/* Select between LDO 1 and 2 */
-> +		int ldo_id = regulator_id - TPS65023_NUM_DCDC;
-> +
-> +		reg_ctrl >>= (TPS65023_LDO_CTRL_LDOx_SHIFT * ldo_id);
-> +		reg_ctrl &= (tps->info[regulator_id]->table_len - 1);
-> +		return tps->info[regulator_id]->table[reg_ctrl] * 1000;
 > +	} else {
-> +		/* VDCDC1 */
-> +		reg_ctrl &= (tps->info[regulator_id]->table_len - 1);
-> +		return tps->info[regulator_id]->table[reg_ctrl] * 1000;
+> +		ded_reg = TWL4030_VAUX2_DEDICATED;
+> +		ded_val = ENABLE_VAUX2_DEDICATED;
+> +		grp_reg = TWL4030_VAUX2_DEV_GRP;
+> +		grp_val = ENABLE_VAUX2_DEV_GRP;
 > +	}
-> +}
+> +		
+> +	gpio_set_value(enable_gpio, 1);
+> +	gpio_set_value(backlight_gpio, 1);
 > +
-> +static int tps65023_dcdc_set_voltage(struct regulator_dev *dev,
-> +				int min_uV, int max_uV)
-> +{
-> +	struct tps *tps = rdev_get_drvdata(dev);
-> +	int regulator_id = rdev_get_id(dev);
-> +	u8 reg;
-> +	int vsel;
-> +
-> +	/* Choose the control register according to the regulator */
-> +	reg = (regulator_id ? TPS65023_REG_LDO_CTRL : TPS65023_REG_DEF_CORE);
-> +
-> +	for (vsel = 0; vsel < tps->info[regulator_id]->table_len; vsel++) {
-> +		int mV = tps->info[regulator_id]->table[vsel];
-> +		int uV = mV * 1000;
-> +
-> +		/* Break at the first in-range value */
-> +		if (min_uV <= uV && uV <= max_uV)
-> +			break;
-> +	}
-
-There should be some error checking in case you fall off the end of the
-table due to getting an invalid voltage requsted.
-
-> +
-> +	if (regulator_id)	{
-> +		/* LDO 1 or 2 */
-> +		int ret;
-> +		unsigned char reg_ctrl;
-> +		int ldo_id = regulator_id - TPS65023_NUM_DCDC;
-> +
-> +		ret = tps_65023_read_reg(tps, reg, &reg_ctrl);
-> +		if (ret < 0)
-> +			return ret;
-> +
-> +		reg_ctrl &= TPS65023_LDO_CTRL_LDOx_MASK(ldo_id);
-> +		reg_ctrl |= (vsel << (ldo_id * TPS65023_LDO_CTRL_LDOx_SHIFT));
-> +		return tps_65023_write_reg(tps, reg, reg_ctrl);
-> +	} else {
-> +		/* VDCDC1 */
-> +		return tps_65023_write_reg(tps, reg, vsel);
-> +	}
-> +}
-> +
-> +/* Voltage set is not permitted on VDCDC2/3 */
-> +static struct regulator_ops tps65023_fixed_ops = {
-> +	.is_enabled	= tps65023_dcdc_is_enabled,
-> +	.enable		= tps65023_dcdc_enable,
-> +	.disable	= tps65023_dcdc_disable,
-> +	.get_voltage	= tps65023_fixed_get_voltage,
-> +};
-> +
-> +/* Operations permitted on VDCDC1 and LDO1/2 */
-> +static struct regulator_ops tps65023_adjustable_ops = {
-> +	.is_enabled	= tps65023_dcdc_is_enabled,
-> +	.enable		= tps65023_dcdc_enable,
-> +	.disable	= tps65023_dcdc_disable,
-> +	.get_voltage	= tps65023_dcdc_get_voltage,
-> +	.set_voltage	= tps65023_dcdc_set_voltage,
-> +};
-> +
-> +static
-> +int tps_65023_probe(struct i2c_client *client, const struct i2c_device_id *id)
-> +{
-> +	static int desc_id;
-> +	const struct tps_info *info = (void *)id->driver_data;
-> +	struct regulator_init_data *init_data;
-> +	struct regulator_dev *rdev;
-> +	struct tps *tps;
-> +	int i;
-> +	int num_regulators = 0;
-> +	unsigned char reg_val;
-> +
-> +	if (!i2c_check_functionality(client->adapter, I2C_FUNC_SMBUS_BYTE_DATA))
+> +	if (0 != t2_out(PM_RECEIVER, ded_val, ded_reg))
+> +		return -EIO;
+> +	if (0 != t2_out(PM_RECEIVER, grp_val, grp_reg))
 > +		return -EIO;
 > +
-> +	/**
-> +	 * init_data points to array of regulator_init structures
-> +	 * coming from the board-evm file.
-> +	 */
-> +	init_data = client->dev.platform_data;
-> +
-> +	if (!init_data)
-> +		return -EIO;
-> +
-> +	tps = kzalloc(sizeof(*tps), GFP_KERNEL);
-> +	if (!tps)
-> +		return -ENOMEM;
-> +
-> +	tps->client = client;
-> +
-> +	for (i = 0; i < TPS65023_NUM_REGULATOR; i++, info++, init_data++) {
-> +		/* Store regulator specific information */
-> +		tps->info[i] = info;
-> +
-> +		tps->desc[i].name = info->name;
-> +		tps->desc[i].id = desc_id++;
-> +		tps->desc[i].ops = (info->fixed ? &tps65023_fixed_ops
-> +					: &tps65023_adjustable_ops);
-> +		tps->desc[i].type = REGULATOR_VOLTAGE;
-> +		tps->desc[i].owner = THIS_MODULE;
-
-Would it not be possible to make the driver data coming from I2C be an
-array of structs with a regulator_desc and the tps_info in them - then
-all you'd need to do at probe time would be store a pointer to the
-driver data.  It doesn't make much practical difference but it's a bit
-less code and it's the more usual way to handle this.
-
-> +
-> +		/* Register the regulators */
-> +		rdev = regulator_register(&tps->desc[i], &client->dev,
-> +								init_data, tps);
-> +		if (IS_ERR(rdev)) {
-> +			dev_err(&client->dev, "failed to register %s\n",
-> +				id->name);
-> +			kfree(tps);
-> +			return PTR_ERR(rdev);
-> +		}
-> +
-> +		/* Save regulator for cleanup */
-> +		tps->rdev[i] = rdev;
-> +	}
-> +
-> +	i2c_set_clientdata(client, tps);
-> +
 > +	return 0;
 > +}
 > +
-> +/**
-> + * tps_65023_remove - TPS65023 driver i2c remove handler
-> + * @client: i2c driver client device structure
-> + *
-> + * Unregister TPS driver as an i2c client device driver
-> + */
-> +static int __devexit tps_65023_remove(struct i2c_client *client)
+> +static void sdp2430_panel_disable(struct lcd_panel *panel)
 > +{
-> +	struct tps *tps = i2c_get_clientdata(client);
+> +	gpio_set_value(enable_gpio, 0);
+> +	gpio_set_value(backlight_gpio, 0);
+> +	if (omap_rev() > OMAP3430_REV_ES1_0) {
+> +		t2_out(PM_RECEIVER, 0x0, TWL4030_VPLL2_DEDICATED);
+> +		t2_out(PM_RECEIVER, 0x0, TWL4030_VPLL2_DEV_GRP);
+> +		mdelay(4);
+> +	}
+> +}
 > +
-> +	regulator_unregister(tps->rdev);
-
-You're only unregistering one regulator here?
-
-> +	/* clear the client data in i2c */
-> +	i2c_set_clientdata(client, NULL);
-> +	kfree(tps);
-> +
+> +static unsigned long sdp2430_panel_get_caps(struct lcd_panel *panel)
+> +{
 > +	return 0;
 > +}
 > +
-> +/* Supported voltage values for regulators */
-> +static const u16 VDCDC1_VSEL_table[] = {
-> +	800, 825, 850, 875,
-> +	900, 925, 950, 975,
-> +	1000, 1025, 1050, 1075,
-> +	1100, 1125, 1150, 1175,
-> +	1200, 1225, 1250, 1275,
-> +	1300, 1325, 1350, 1375,
-> +	1400, 1425, 1450, 1475,
-> +	1500, 1525, 1550, 1600,
+> +struct lcd_panel sdp2430_panel = {
+> +	.name		= "sdp2430",
+> +	.config		= OMAP_LCDC_PANEL_TFT | OMAP_LCDC_INV_VSYNC |
+> +			  OMAP_LCDC_INV_HSYNC,
+> +
+> +	.bpp		= 16,
+> +	.data_lines	= 16,
+> +	.x_res		= 240,
+> +	.y_res		= 320,
+> +	.hsw		= 3,		/* hsync_len (4) - 1 */
+> +	.hfp		= 3,		/* right_margin (4) - 1 */
+> +	.hbp		= 39,		/* left_margin (40) - 1 */
+> +	.vsw		= 1,		/* vsync_len (2) - 1 */
+> +	.vfp		= 2,		/* lower_margin */
+> +	.vbp		= 7,		/* upper_margin (8) - 1 */
+> +
+> +	.pixel_clock	= LCD_PIXCLOCK_MAX,
+> +
+> +	.init		= sdp2430_panel_init,
+> +	.cleanup	= sdp2430_panel_cleanup,
+> +	.enable		= sdp2430_panel_enable,
+> +	.disable	= sdp2430_panel_disable,
+> +	.get_caps	= sdp2430_panel_get_caps,
 > +};
 > +
-> +static const u16 LDO1_VSEL_table[] = {
-> +	1000, 1100, 1300, 1800,
-> +	2200, 2600, 2800, 3150,
-> + };
+> +static int sdp2430_panel_probe(struct platform_device *pdev)
+> +{
+> +	omapfb_register_panel(&sdp2430_panel);
+> +	return 0;
+> +}
 > +
-> +static const u16 LDO2_VSEL_table[] = {
-> +	1050, 1200, 1300, 1800,
-> +	2500, 2800, 3000, 3300,
-> + };
+> +static int sdp2430_panel_remove(struct platform_device *pdev)
+> +{
+> +	return 0;
+> +}
 > +
-> +/*
-> + * These regulators have the same register structure, and differ
-> + * primarily according to supported voltages and default settings.
-> + */
-> +static const struct tps_info tps65023_regs[] = {
-> +	{
-
-Nitpicky but this isn't really Linux standard indentation.
-
-> +	.name = "VDCDC1",
-> +	.min_uV		=  800000,
-> +	.max_uV		= 1600000,
-> +	.fixed = 0,
-> +	.table_len = ARRAY_SIZE(VDCDC1_VSEL_table),
-> +	.table = VDCDC1_VSEL_table,
-> +	},
-> +	{
-> +	.name = "VDCDC2",
-> +	.min_uV		=  3300000,
-> +	.max_uV		= 3300000,
-> +	.fixed = 1,
-> +	.table_len = 0,
-> +	},
-> +	{
-> +	.name = "VDCDC3",
-> +	.min_uV		=  1800000,
-> +	.max_uV		= 1800000,
-> +	.fixed = 1,
-> +	.table_len = 0,
-> +	},
-> +	{
-> +	.name = "LDO1",
-> +	.min_uV		= 1000000,
-> +	.max_uV		= 3150000,
-> +	.fixed = 0,
-> +	.table_len = ARRAY_SIZE(LDO1_VSEL_table),
-> +	.table = LDO1_VSEL_table,
-> +	},
-> +	{
-> +	.name = "LDO2",
-> +	.min_uV		= 1000000,
-> +	.max_uV		= 3150000,
-> +	.fixed = 0,
-> +	.table_len = ARRAY_SIZE(LDO2_VSEL_table),
-> +	.table = LDO2_VSEL_table,
-> +	},
-> +};
+> +static int sdp2430_panel_suspend(struct platform_device *pdev, pm_message_t mesg)
+> +{
+> +	return 0;
+> +}
 > +
-> +static const struct i2c_device_id tps_65023_id = {
-> +	.name = "tps65023",
-> +	.driver_data = (unsigned long) &tps65023_regs[0],
-> +};
+> +static int sdp2430_panel_resume(struct platform_device *pdev)
+> +{
+> +	return 0;
+> +}
 > +
-> +MODULE_DEVICE_TABLE(i2c, tps_65023_id);
-
-I guess more device IDs are coming - do they all have the same number of
-regulators?  If not you'll need code to handle that in probe, but that
-can always be added along with the data for the new devices.
-
-> +
-> +static struct i2c_driver tps_65023_i2c_driver = {
-> +	.driver = {
-> +		.name	= "tps_65023_pwr",
+> +struct platform_driver sdp2430_panel_driver = {
+> +	.probe		= sdp2430_panel_probe,
+> +	.remove		= sdp2430_panel_remove,
+> +	.suspend	= sdp2430_panel_suspend,
+> +	.resume		= sdp2430_panel_resume,
+> +	.driver		= {
+> +		.name	= "sdp2430_lcd",
 > +		.owner	= THIS_MODULE,
 > +	},
-> +	.probe		= tps_65023_probe,
-> +	.remove		= __devexit_p(tps_65023_remove),
-> +	.id_table	= &tps_65023_id,
 > +};
 > +
-> +/**
-> + * tps_65023_init
-> + *
-> + * Module init function
-> + */
-> +static int __init tps_65023_init(void)
+> +static int __init sdp2430_panel_drv_init(void)
 > +{
-> +	return i2c_add_driver(&tps_65023_i2c_driver);
+> +	return platform_driver_register(&sdp2430_panel_driver);
 > +}
-> +late_initcall(tps_65023_init);
-
-This would normally be done at subsys_initcall() so that the regulator
-driver gets to register and become available before other drivers,
-allowing them to start using the regulators immediately.
-
 > +
-> +/**
-> + * tps_65023_cleanup
-> + *
-> + * Module exit function
-> + */
-> +static void __exit tps_65023_cleanup(void)
+> +static void __exit sdp2430_panel_drv_exit(void)
 > +{
-> +	i2c_del_driver(&tps_65023_i2c_driver);
+> +	platform_driver_unregister(&sdp2430_panel_driver);
 > +}
-> +module_exit(tps_65023_cleanup);
 > +
-> +MODULE_AUTHOR("Texas Instruments");
-> +MODULE_DESCRIPTION("TPS65023 voltage regulator driver");
-> +MODULE_LICENSE("GPLv2");
-> --
-> 1.6.2.4
+> +module_init(sdp2430_panel_drv_init);
+> +module_exit(sdp2430_panel_drv_exit);
 > 
 > --
 > To unsubscribe from this list: send the line "unsubscribe linux-omap" in
 > the body of a message to majordomo@vger.kernel.org
 > More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
