@@ -1,92 +1,278 @@
-From: "Hemanth V" <hemanthv@ti.com>
-Subject: Re: [PATCH 1/3] OMAP4: SMP: Add OMAP4430 SMP board files
-Date: Fri, 8 May 2009 11:43:03 +0530
-Message-ID: <001801c9cfa4$0cf99840$LocalHost@wipultra793>
-References: <1241681366-21094-1-git-send-email-santosh.shilimkar@ti.com> <04c801c9cfa0$4563dfa0$LocalHost@wipultra793> <EAF47CD23C76F840A9E7FCE10091EFAB02B4688490@dbde02.ent.ti.com>
+From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+Subject: RE: Status of Beagle Board
+Date: Fri, 8 May 2009 12:01:00 +0530
+Message-ID: <19F8576C6E063C45BE387C64729E739404323EDBDE@dbde02.ent.ti.com>
+References: <1228470882.25798.23.camel@david-nb.visualon.local>
+	 <2A3DCF3DA181AD40BDE86A3150B27B6B02D110A3FA@dbde02.ent.ti.com>
+	 <0680EC522D0CC943BC586913CF3768C002D97E9BA9@dbde02.ent.ti.com>
+	 <1228990380.29333.11.camel@david-nb.visualon.local>
+	 <0680EC522D0CC943BC586913CF3768C002DD2C6F5C@dbde02.ent.ti.com>
+	 <1241078747.19525.23.camel@localhost.localdomain>
+	 <FD6982799649459A93E724A62BF2E64F@LinHPNotebook>
+	 <0680EC522D0CC943BC586913CF3768C00378655555@dbde02.ent.ti.com>
+ <1241617391.3362.23.camel@localhost.localdomain>
+ <0680EC522D0CC943BC586913CF3768C003787AB074@dbde02.ent.ti.com>
+ <4A0259D5.6090204@visualon.com>
+ <0680EC522D0CC943BC586913CF3768C003787AB131@dbde02.ent.ti.com>
+ <19F8576C6E063C45BE387C64729E739404323ED91C@dbde02.ent.ti.com>
+ <4A028CBF.8030507@visualon.com>
+ <19F8576C6E063C45BE387C64729E739404323ED97B@dbde02.ent.ti.com>
+ <4A02B60A.2010006@visualon.com>
+ <19F8576C6E063C45BE387C64729E739404323ED9F7@dbde02.ent.ti.com>
+ <4A03D097.5090605@visualon.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	format=flowed;
-	charset="iso-8859-1";
-	reply-type=original
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:39600 "EHLO arroyo.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:37403 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751516AbZEHGN1 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 8 May 2009 02:13:27 -0400
+	id S1753435AbZEHGbK convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 8 May 2009 02:31:10 -0400
+In-Reply-To: <4A03D097.5090605@visualon.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, linux-arm-kernel@lists.arm.linux.org.uk
-Cc: linux-omap@vger.kernel.org
-
------ Original Message ----- 
-From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-To: "V, Hemanth" <hemanthv@ti.com>; 
-<linux-arm-kernel@lists.arm.linux.org.uk>
-Cc: <linux-omap@vger.kernel.org>
-Sent: Friday, May 08, 2009 11:18 AM
-Subject: RE: [PATCH 1/3] OMAP4: SMP: Add OMAP4430 SMP board files
-
+To: "George.Qiao" <qiao_shanshan@visualon.com>
+Cc: "Syed Mohammed, Khasim" <khasim@ti.com>, "Shah, Hardik" <hardik.shah@ti.com>, "wan_jinxue@visualon.com" <wan_jinxue@visualon.com>, Bill Lin <blin@visualon.com>, "shawnofarrell@visualon.com" <shawnofarrell@visualon.com>, "Chatterjee, Amit" <amit.chatterjee@ti.com>, "Andrews, Gerard" <gerard@ti.com>, "Kridner, Jason" <jdk@ti.com>, 'Bangfei Jin' <jin_bangfei@visualon.com>, 'Xuejun Dong' <dong_xuejun@visualon.com>, 'YangCai' <yangcai@visualon.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
 > -----Original Message-----
-> From: V, Hemanth
-> Sent: Friday, May 08, 2009 11:16 AM
-> To: Shilimkar, Santosh; linux-arm-kernel@lists.arm.linux.org.uk
-> Cc: linux-omap@vger.kernel.org
-> Subject: Re: [PATCH 1/3] OMAP4: SMP: Add OMAP4430 SMP board files
->
-> ---- Original Message ----- 
-> From: "Santosh Shilimkar" <santosh.shilimkar@ti.com>
-> Subject: [PATCH 1/3] OMAP4: SMP: Add OMAP4430 SMP board files
->
->
-> > diff --git a/arch/arm/mach-omap2/omap-headsmp.S
-> > b/arch/arm/mach-omap2/omap-headsmp.S
-> > new file mode 100644
-> > index 0000000..0afe039
-> > --- /dev/null
-> > +++ b/arch/arm/mach-omap2/omap-headsmp.S
-> > @@ -0,0 +1,49 @@
-> > +/*
-> > + * Secondary CPU startup routine source file.
-> > + *
-> > + * Copyright (C) 2009 Texas Instruments, Inc.
-> > + *
-> > + * Author:
-> > + *      Santosh Shilimkar <santosh.shilimkar@ti.com>
-> > + *
-> > + * Interface functions needed for the SMP. This file is
-> based on arm
-> > + * realview smp platform.
-> > + * Copyright (c) 2003 ARM Limited.
-> > + *
-> > + * This program is free software,you can redistribute it
-> and/or modify
-> > + * it under the terms of the GNU General Public License
-> version 2 as
-> > + * published by the Free Software Foundation.
-> > + */
-> > +
-> > +#include <linux/linkage.h>
-> > +#include <linux/init.h>
-> > +
-> > + __INIT
-> > +
-> > +/*
-> > + * OMAP4 specific entry point for secondary CPU to jump from ROM
-> > + * code.  This routine also provides a holding flag into which
-> > + * secondary core is held until we're ready for it to initialise.
-> > + * The primary core will update the this flag using a hardware
-> > + * register AuxCoreBoot1.
-> > + */
->
-> Is initialization done by u-boot like icache_enable taken
-> care somewhere
-> for the secondary cpu.
+> From: George.Qiao [mailto:qiao_shanshan@visualon.com]
+> Sent: Friday, May 08, 2009 11:57 AM
+> To: Hiremath, Vaibhav
+> Cc: Syed Mohammed, Khasim; Shah, Hardik; wan_jinxue@visualon.com;
+> Bill Lin; shawnofarrell@visualon.com; Chatterjee, Amit; Andrews,
+> Gerard; Kridner, Jason; 'Bangfei Jin'; 'Xuejun Dong'; 'YangCai';
+> linux-omap@vger.kernel.org
+> Subject: Re: Status of Beagle Board
+> 
+> Hi Vaibhav Hiremath,
+> 
+> My application can work in OMAP3 EVM and other v4l2 platform, but
+> there
+> is another issue in beagle board. as follow:
+> 
+[Hiremath, Vaibhav] Are you saying, same application works on OMAP3EVM but fails on beagle board?
 
->>U-boot has no knowledge of secondary CPUs. Kernel takes care of it with 
->>help of ROM code.
+> 1. NormalSize() -> RequestBuffer() -> mmap()
+> 2. playing...
+> 3. FullScreen() -> VIDIOC_STREAMOFF
+>                           -> munmap()
+>                           -> VIDIOC_REQBUFS
+>                           -> VIDIOC_QUERYBUF
+>                           -> RequestBuffer() -> mmap()
+>                           -> VIDIOC_S_CROP
+>                           -> VIDIOC_S_FMT
+>                           -> VIDIOC_QBUF
+>                           -> VIDIOC_STREAMON
+> 
+> When I want to call VIDIOC_REQBUFS in FullScreen(), it always fail.
+> 
+[Hiremath, Vaibhav] Is it possible for you to share your application, so that I can give try here at my end?
 
-For my information could you pl point to the routine which does this, i.e 
-enable instruction cache on the secondary cpu. 
+Thanks,
+Vaibhav Hiremath
+
+> 
+> Best Regards,
+> George.Qiao
+> 
+> ============================
+> > Great, please see my comments in-lined below -
+> >
+> >
+> > Thanks,
+> > Vaibhav Hiremath
+> > Platform Support Products
+> > Texas Instruments Inc
+> > Ph: +91-80-25099927
+> >
+> >
+> >> -----Original Message-----
+> >> From: George.Qiao [mailto:qiao_shanshan@visualon.com]
+> >> Sent: Thursday, May 07, 2009 3:51 PM
+> >> To: Hiremath, Vaibhav
+> >> Cc: Syed Mohammed, Khasim; Shah, Hardik; wan_jinxue@visualon.com;
+> >> Bill Lin; shawnofarrell@visualon.com; Chatterjee, Amit; Andrews,
+> >> Gerard; Kridner, Jason; 'Bangfei Jin'; 'Xuejun Dong'; 'YangCai';
+> >> linux-omap-open-source@linux.omap.com
+> >> Subject: Re: Status of Beagle Board
+> >>
+> >> Dear Vaibhav Hiremath,
+> >>
+> >> I can play video by v4l2 now!  Thank you!
+> >>
+> >> I have add code in board-omap3beagle.c :
+> >>
+> >> #ifdef CONFIG_FB_OMAP2
+> >> static struct resource omap3beagle_vout_resource[3 -
+> >> CONFIG_FB_OMAP2_NUM_FBS] = {
+> >> };
+> >> #else
+> >> static struct resource omap3beagle_vout_resource[2] = {
+> >> };
+> >> #endif
+> >>
+> >> static struct platform_device omap3beagle_vout_device = {
+> >>        .name                   = "omap_vout",
+> >>        .num_resources  = ARRAY_SIZE(omap3beagle_vout_resource),
+> >>        .resource               = &omap3beagle_vout_resource[0],
+> >>        .id             = -1,
+> >> };
+> >>
+> >> static struct platform_device *omap3_beagle_devices[] __initdata
+> = {
+> >>     &beagle_dss_device,
+> >>     &leds_gpio,
+> >>     &keys_gpio,
+> >>     &omap3beagle_vout_device,
+> >> };
+> >>
+> >>
+> >> I have got some omapdss error and voutBuffer Size. as follow:
+> >>
+> >> omapdss: Could not find exact pixel clock. Requested 23500 kHz,
+> got
+> >> 24000 kHz
+> >> omapdss error: display already enabled
+> >> omap_voutDisplay already enabled
+> >> omapdss error: display already enabled
+> >> omap_voutDisplay already enabled
+> >>
+> >
+> >
+> > [Hiremath, Vaibhav] This is not an error as such, it warning
+> message. Actually here we are trying to enable the display which has
+> already been enabled by Fbdev.
+> > We can suppress this message, atleast during init.
+> >
+> >
+> >> omap_voutBuffer Size = 3686400
+> >> omap_vout: registered and initialized video device 0 [v4l2]
+> >> omap_voutBuffer Size = 3686400
+> >> omap_vout: registered and initialized video device 1 [v4l2]
+> >>
+> >>
+> >
+> > [Hiremath, Vaibhav] This is just a debug massage; it is neither a
+> error nor a warning. So don't worry.
+> >
+> > Can you share the code-base or submit the patches to the list, so
+> that interested people can use it.
+> >
+> >
+> >> Could I change 'voutBuffer Size'?  How to fix it?
+> >>
+> >> Best Regards,
+> >> George.Qiao
+> >>
+> >> =======================
+> >>
+> >>> Yes Definitely this is the issue. If the platform_device.name
+> >>>
+> >> doesn't match with the platform_driver.driver.name then your
+> probe
+> >> function will not be called at all.
+> >>
+> >>> Can you just copy the board-omap3evm.c changes related to
+> >>>
+> >> V4L2/DSS2 and give a shot? I think it should work straight away.
+> >>
+> >>> Please let me know if you need any further clarification or
+> help.
+> >>>
+> >>> Thanks,
+> >>> Vaibhav Hiremath
+> >>> Platform Support Products
+> >>> Texas Instruments Inc
+> >>> Ph: +91-80-25099927
+> >>>
+> >>>
+> >>>
+> >>>> -----Original Message-----
+> >>>> From: George.Qiao [mailto:qiao_shanshan@visualon.com]
+> >>>> Sent: Thursday, May 07, 2009 12:55 PM
+> >>>> To: Hiremath, Vaibhav
+> >>>> Cc: Syed Mohammed, Khasim; Shah, Hardik;
+> wan_jinxue@visualon.com;
+> >>>> Bill Lin; shawnofarrell@visualon.com; Chatterjee, Amit;
+> Andrews,
+> >>>> Gerard; Kridner, Jason; 'Bangfei Jin'; 'Xuejun Dong';
+> 'YangCai';
+> >>>> linux-omap-open-source@linux.omap.com
+> >>>> Subject: Re: Status of Beagle Board
+> >>>>
+> >>>> Hi Hiremath, Vaibhav,
+> >>>>
+> >>>> Thank you very much for your instant response!
+> >>>>
+> >>>> I've checked the file 'board-omap3beagle.c' and found nothing
+> >>>> looking
+> >>>> like omap_vout in it, no platform_device, either. And I've also
+> >>>> compared
+> >>>> it with board-omap3evm.c.
+> >>>>
+> >>>> Below is some difference between them:
+> >>>>
+> >>>> board-omap3evm.c has:
+> >>>> *+static struct platform_device omap3evm_vout_device = {
+> >>>> **+       .name                   = "omap_vout",
+> >>>> ...
+> >>>> }
+> >>>> *
+> >>>> But 'board-omap3beagle.c' does not have anything looking like:
+> >>>>
+> >>>> *+static struct platform_device omap3beagle_vout_device = {*
+> >>>> *+       .name                   = "omap_vout",
+> >>>> ...
+> >>>> }
+> >>>> *
+> >>>> So, I think there's no patch on V4L2 for beagle done and this
+> is
+> >>>>
+> >> the
+> >>
+> >>>> root cause of this issue. Do you agree with me? Thanks a lot.
+> >>>>
+> >>>>
+> >>>> Best Regards,
+> >>>> George.Qiao
+> >>>> ===================================
+> >>>>
+> >>>>
+> >>>>
+> >>>>> Hi George,
+> >>>>>
+> >>>>> I have looked into your config file and it looks ok to me.
+> >>>>>
+> >>>>> Can you conform that, you have added "platform_device"
+> >>>>>
+> >> definitions
+> >>
+> >>>> in board-omap3beagle.c?
+> >>>>
+> >>>>
+> >>>>> Can you please create complete patch on top of your baseline
+> (O-
+> >>>>>
+> >> L
+> >>
+> >>>> and Tomi's tree), so that I can review that directly? I will be
+> >>>> seeing complete changes done for beagle.
+> >>>>
+> >>>>
+> >>>>> Thanks,
+> >>>>> Vaibhav Hiremath
+> >>>>> Platform Support Products
+> >>>>> Texas Instruments Inc
+> >>>>> Ph: +91-80-25099927
+> >>>>>
+> >>>>>
+> >>>>>
+> >>>>>
+> >>>
+> >>>
+> >
+> >
+> >
+> 
 
