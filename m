@@ -1,55 +1,36 @@
-From: "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>
-Subject: RE: [PATCH 3/6] omap iommu: omap3 iommu device registration
-Date: Fri, 8 May 2009 12:21:07 -0500
-Message-ID: <A24693684029E5489D1D202277BE89443DD434A7@dlee02.ent.ti.com>
-References: <20090505123905.4583.69865.stgit@oreo.research.nokia.com>
-	 <20090505124700.4583.69988.stgit@oreo.research.nokia.com>
-	 <94a0d4530905071305i3f604b4am39f4c467e4df65a9@mail.gmail.com>
-	 <20090508.071021.123989594.Hiroshi.DOYU@nokia.com>
- <94a0d4530905080032xd0f7bb0ld760a65bf54429f2@mail.gmail.com>
+From: Mark Brown <broonie@sirena.org.uk>
+Subject: Re: [PATCH 0/3] Support multiple PMICs in Voltage Regulator
+	Framework
+Date: Fri, 8 May 2009 19:17:31 +0100
+Message-ID: <20090508181731.GB11502@sirena.org.uk>
+References: <1241795473-15610-1-git-send-email-anuj.aggarwal@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:46310 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751678AbZEHRVh convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 8 May 2009 13:21:37 -0400
-In-Reply-To: <94a0d4530905080032xd0f7bb0ld760a65bf54429f2@mail.gmail.com>
-Content-Language: en-US
+Received: from cassiel.sirena.org.uk ([80.68.93.111]:59619 "EHLO
+	cassiel.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752866AbZEHSRb (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 8 May 2009 14:17:31 -0400
+Content-Disposition: inline
+In-Reply-To: <1241795473-15610-1-git-send-email-anuj.aggarwal@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Contreras <felipe.contreras@gmail.com>, Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
-Cc: "linux-arm-kernel@lists.arm.linux.org.uk" <linux-arm-kernel@lists.arm.linux.org.uk>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Kanigeri, Hari" <h-kanigeri2@ti.com>, "Ramirez Luna, Omar" <omar.ramirez@ti.com>, "sakari.ailus@maxwell.research.nokia.com" <sakari.ailus@maxwell.research.nokia.com>, "tony@atomide.com" <tony@atomide.com>
+To: Anuj Aggarwal <anuj.aggarwal@ti.com>
+Cc: linux-omap@vger.kernel.org, lrg@slimlogic.co.uk
 
-Hi,
+On Fri, May 08, 2009 at 08:41:13PM +0530, Anuj Aggarwal wrote:
+> Based on the discussion we had at:
+> 
+> http://marc.info/?l=linux-omap&m=124083364321017&w=2
+> 
+> I am sending the following patches which allows one to move the board-dependent
+> regulator-specific code to a newly created file drivers\regulator\pmic.c. This
+> file will have the board specific information for different regulators and
+> it will do the regulator initialization depending on one which is available.
 
-Just one comment below:
+You really need to submit changes like this to the relevant subsystem
+maintainers and mailing lists rather than linux-omap - changes to kernel
+subsystems will affect all users of the kernel, not just OMAP.
 
-> > Does the following make sense?
-> >
-> > +#define NR_IOMMU_RES 2
-> >
-> > ....
-> >
-> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 err =3D platform_device_add_resources=
-(pdev,
-> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- omap3_iommu_res + =A0i * NR_IOMMU_RES,
-> NR_IOMMU_RES);
->=20
-> Yeap, also:
->=20
-> > +               err =3D platform_device_add_resources(pdev,
-> omap3_iommu_res +  i * 2, 2);
-
-IMHO, I don't think it's a good idea to add magical numbers to any code=
- in the kernel. Why is it better to NOT use a define?
-
-Regards,
-Sergio
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+In this case your proposal should have been sent to myself, Liam
+Girdwood (CCed) and linux-kernel.
