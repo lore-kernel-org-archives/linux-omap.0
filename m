@@ -1,103 +1,101 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 1/3] OMAP4: SMP: Add OMAP4430 SMP board files
-Date: Fri, 8 May 2009 08:17:56 -0700
-Message-ID: <20090508151755.GI5593@atomide.com>
-References: <1241681366-21094-1-git-send-email-santosh.shilimkar@ti.com> <20090507204653.GD5593@atomide.com> <EAF47CD23C76F840A9E7FCE10091EFAB02B4688409@dbde02.ent.ti.com>
+Subject: Re: [PATCH 0/5] More header clean-up
+Date: Fri, 8 May 2009 08:21:03 -0700
+Message-ID: <20090508152103.GJ5593@atomide.com>
+References: <20090507203552.7461.35051.stgit@localhost> <EAF47CD23C76F840A9E7FCE10091EFAB02B4688430@dbde02.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:56718 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751702AbZEHPSI (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 8 May 2009 11:18:08 -0400
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:62149 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751481AbZEHPVG (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 8 May 2009 11:21:06 -0400
 Content-Disposition: inline
-In-Reply-To: <EAF47CD23C76F840A9E7FCE10091EFAB02B4688409@dbde02.ent.ti.com>
+In-Reply-To: <EAF47CD23C76F840A9E7FCE10091EFAB02B4688430@dbde02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Cc: "linux-arm-kernel@lists.arm.linux.org.uk" <linux-arm-kernel@lists.arm.linux.org.uk>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-* Shilimkar, Santosh <santosh.shilimkar@ti.com> [090507 22:10]:
-> > -----Original Message-----
-> > From: Tony Lindgren [mailto:tony@atomide.com] 
-> > Sent: Friday, May 08, 2009 2:17 AM
-> > To: Shilimkar, Santosh
-> > Cc: linux-arm-kernel@lists.arm.linux.org.uk; 
-> > linux-omap@vger.kernel.org
-> > Subject: Re: [PATCH 1/3] OMAP4: SMP: Add OMAP4430 SMP board files
-> > 
-> > * Santosh Shilimkar <santosh.shilimkar@ti.com> [090507 00:29]:
-> > > This patch adds SMP platform files support for OMAP4430SDP. 
-> > TI's OMAP4430
-> > > SOC is based on ARM Cortex-A9 SMP architecture. It's a dual core SOC
-> > > with GIC used for interrupt handling and SCU for cache coherency.
-> > > 
-> > > Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
-> > > ---
-> > >  arch/arm/mach-omap2/omap-headsmp.S    |   49 +++++++
-> > >  arch/arm/mach-omap2/omap-smp.c        |  238 
-> > +++++++++++++++++++++++++++++++++
-> > >  arch/arm/plat-omap/include/mach/scu.h |   28 ++++
-> > >  arch/arm/plat-omap/include/mach/smp.h |   56 ++++++++
-> > >  4 files changed, 371 insertions(+), 0 deletions(-)
-> > >  create mode 100644 arch/arm/mach-omap2/omap-headsmp.S
-> > >  create mode 100644 arch/arm/mach-omap2/omap-smp.c
-> > >  create mode 100644 arch/arm/plat-omap/include/mach/scu.h
-> > >  create mode 100644 arch/arm/plat-omap/include/mach/smp.h
-> > 
-> > <snip snip>
-> >  
-> > > --- /dev/null
-> > > +++ b/arch/arm/mach-omap2/omap-smp.c
-> > > @@ -0,0 +1,238 @@
-> > > +/*
-> > > + * OMAP4 SMP source file. It contains platform specific fucntions
-> > > + * needed for the linux smp kernel.
-> > > + *
-> > > + * Copyright (C) 2009 Texas Instruments, Inc.
-> > > + *
-> > > + * Author:
-> > > + *      Santosh Shilimkar <santosh.shilimkar@ti.com>
-> > > + *
-> > > + * Platform file needed for the OMAP4 SMP. This file is 
-> > based on arm
-> > > + * realview smp platform.
-> > > + * * Copyright (c) 2002 ARM Limited.
-> > > + *
-> > > + * This program is free software; you can redistribute it 
-> > and/or modify
-> > > + * it under the terms of the GNU General Public License 
-> > version 2 as
-> > > + * published by the Free Software Foundation.
-> > > + */
-> > > +#include <linux/init.h>
-> > > +#include <linux/errno.h>
-> > > +#include <linux/delay.h>
-> > > +#include <linux/device.h>
-> > > +#include <linux/jiffies.h>
-> > > +#include <linux/smp.h>
-> > > +#include <linux/io.h>
-> > > +
-> > > +#include <asm/cacheflush.h>
-> > > +#include <mach/scu.h>
-> > > +#include <mach/hardware.h>
-> > > +#include <asm/mach-types.h>
-> > > +
-> > > +/* Registers used for communicating startup information */
-> > > +#define OMAP4_AUXCOREBOOT_REG0		
-> > (OMAP44XX_VA_WKUPGEN_BASE + 0x800)
-> > > +#define OMAP4_AUXCOREBOOT_REG1		
-> > (OMAP44XX_VA_WKUPGEN_BASE + 0x804)
-> > > +
-> > > +/* FIXME: Move to a common header file */
-> > > +extern void omap_secondary_startup(void);
-> > 
-> > How about move this to cpu.h?
->  
-> Possible. The thing is this functions should be available only for OMAP4 SMP. We may need #ifdef ARCH_OMAP4. Is that ok ? 
+* Shilimkar, Santosh <santosh.shilimkar@ti.com> [090507 22:20]:
+> If this series is planned for this window then OMAP4 series also needs few changes. Is it ?
 
-Please rathar have a ifdef section in cpu.h for CONFIG_SMP.
+Yeah. For omap4 those changes should be trivial though.
+
+Maybe do a test rebase on top of these patches to see which ones
+you need to rename?
+
+But when posting patches to mailings lists, please keep them against
+the mainline. I should be able to deal with the conflicts pretty easily
+when adding them to for-next.
 
 Regards,
 
 Tony
+
+ 
+> > -----Original Message-----
+> > From: linux-omap-owner@vger.kernel.org 
+> > [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Tony Lindgren
+> > Sent: Friday, May 08, 2009 2:12 AM
+> > To: linux-omap@vger.kernel.org
+> > Subject: [PATCH 0/5] More header clean-up
+> > 
+> > Hi all,
+> > 
+> > This series cleans up the conflicting defines a bit more.
+> > Now the biggest problem is till in clock24xx.h, but at least the
+> > conflict is local. Now changing the processors should not cause
+> > everything to be rebuilt..
+> > 
+> > The first patch also fixes the CONFIG_SPINLOCK_DEBUG problem where
+> > sched_clock was called before we have things initialized.
+> > 
+> > This series causes some updates to the other pending patch series,
+> > like the PM series. But it would be nice to get in before we add
+> > more code.
+> > 
+> > Kevin, the 2/5 is improved version of what I sent you earlier,
+> > the earlier version had issues between 2420 vs 2430. Let me
+> > know if the other patches cause big headaches for your PM
+> > series.
+> > 
+> > Regards,
+> > 
+> > Tony
+> > 
+> > ---
+> > 
+> > Tony Lindgren (5):
+> >       ARM: OMAP2/3: Remove OMAP_CM_REGADDR
+> >       ARM: OMAP2/3: Remove OMAP2_PRCM_BASE
+> >       ARM: OMAP2/3: Move define of OMAP2_VA_IC_BASE to be 
+> > local to entry-macro.S
+> >       ARM: OMAP2/3: Remove OMAP_PRM_REGADDR and OMAP2_PRM_BASE
+> >       ARM: OMAP2/3: Remove OMAP2_32KSYNCT_BASE
+> > 
+> > 
+> >  arch/arm/mach-omap2/clock24xx.c               |   21 ++--
+> >  arch/arm/mach-omap2/clock24xx.h               |   11 ++
+> >  arch/arm/mach-omap2/clock34xx.h               |    2 
+> >  arch/arm/mach-omap2/cm.h                      |    5 -
+> >  arch/arm/mach-omap2/prm.h                     |  136 
+> > +++++++++++++------------
+> >  arch/arm/mach-omap2/sdrc2xxx.c                |    5 +
+> >  arch/arm/mach-omap2/sram242x.S                |    4 -
+> >  arch/arm/mach-omap2/sram243x.S                |    4 -
+> >  arch/arm/plat-omap/common.c                   |   69 +++++++++++--
+> >  arch/arm/plat-omap/include/mach/entry-macro.S |    9 +-
+> >  arch/arm/plat-omap/include/mach/omap24xx.h    |   18 ---
+> >  arch/arm/plat-omap/include/mach/omap34xx.h    |    9 --
+> >  12 files changed, 170 insertions(+), 123 deletions(-)
+> > 
+> > -- 
+> > Signature
+> > --
+> > To unsubscribe from this list: send the line "unsubscribe 
+> > linux-omap" in
+> > the body of a message to majordomo@vger.kernel.org
+> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> > 
+> > 
