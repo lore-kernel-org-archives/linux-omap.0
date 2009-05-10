@@ -1,33 +1,31 @@
-From: "Luke-Jr" <luke@dashjr.org>
-Subject: N810: latest linux-omap-2.6.git master
-Date: Sat, 9 May 2009 17:45:00 -0500
-Message-ID: <200905091745.06435.luke@dashjr.org>
+From: cokeprize <gbamford@nbnet.nb.ca>
+Subject: Winner
+Date: Sun, 10 May 2009 12:56:29 -0400
+Message-ID: <20090510165629.PGW1679.simmts7-srv.bellnexxia.net@simip9-ac.srvr.bell.ca>
+Reply-To: cokeprize1@btinternet.com
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="us-ascii"
+Content-Type: text/plain; charset=iso-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from wsip-70-184-212-11.om.om.cox.net ([70.184.212.11]:48772 "EHLO
-	hachi.dashjr.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752527AbZEIWzQ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 9 May 2009 18:55:16 -0400
-Received: from tsuruki.localnet (unknown [IPv6:2002:46bb:1a76:0:20e:a6ff:fec4:4e5d])
-	by hachi.dashjr.org (Postfix) with ESMTP id CC9799614A1
-	for <linux-omap@vger.kernel.org>; Sat,  9 May 2009 22:45:08 +0000 (UTC)
-Content-Disposition: inline
+Received: from simmts7-qfe0.srvr.bell.ca ([206.47.199.165]:59835 "EHLO
+	simmts7-srv.bellnexxia.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751345AbZEJQ43 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Sun, 10 May 2009 12:56:29 -0400
+Received: from simip9-ac.srvr.bell.ca ([206.47.199.87])
+          by simmts7-srv.bellnexxia.net
+          (InterMail vM.5.01.06.13 201-253-122-130-113-20050324) with ESMTP
+          id <20090510165629.PGW1679.simmts7-srv.bellnexxia.net@simip9-ac.srvr.bell.ca>
+          for <linux-omap@vger.kernel.org>; Sun, 10 May 2009 12:56:29 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
+To: info@winner.org
 
-Having trouble getting "2.6.30-rc4-omap1" to boot my US N810 (running Gentoo).
-The initial problem appears to be related to /dev/mmcblk* missing, but I can't 
-debug it very far due to the second problem I encountered:
-The keys "fghjvbnm" do not appear to work. I added debug info to print when 
-the keyboard FIFO is empty, and also when it has a valid mapping, but these 
-keys do not appear to be triggering the 'process_keys' function at all.
+Your email won 1,000,000.00GBP in our PROMO.Provide:Names,Age,
+Occupation,Tel,Country.
 
-Any suggestions?
+Regards
+Anthony Campbell
+Tel:+44-704-578-2447
+cokeprize1@btinternet.com
 
-Thanks,
-
-Luke
