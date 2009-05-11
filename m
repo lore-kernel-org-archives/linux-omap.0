@@ -1,61 +1,38 @@
-From: Felipe Contreras <felipe.contreras@gmail.com>
-Subject: Re: [PATCH 2/2] DSPBRIDGE: add checking 128 byte alignment for dsp
-	cache line size
-Date: Mon, 11 May 2009 23:30:42 +0300
-Message-ID: <94a0d4530905111330k47a8c28fkc78002e75ddd3e31@mail.gmail.com>
-References: <8F7AF80515AF0D4D93307E594F3CB40E2AF66245@dlee03.ent.ti.com>
-	 <20090511.184705.116375196.Hiroshi.DOYU@nokia.com>
-	 <94a0d4530905110931i3b81b991x9b7686c5bda25ff8@mail.gmail.com>
-	 <20090511.203528.258116329.Hiroshi.DOYU@nokia.com>
-	 <94a0d4530905111054x138375e3p5e2b6d08c9b31120@mail.gmail.com>
-	 <8F7AF80515AF0D4D93307E594F3CB40E2AF66543@dlee03.ent.ti.com>
+From: "Hunter, Jon" <jon-hunter@ti.com>
+Subject: linux-omap pm branch
+Date: Mon, 11 May 2009 16:15:22 -0500
+Message-ID: <7B4574D56E4ADF438756313E9A172A873958F6A4@dlee01.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from fg-out-1718.google.com ([72.14.220.155]:21402 "EHLO
-	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755171AbZEKUam convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 11 May 2009 16:30:42 -0400
-Received: by fg-out-1718.google.com with SMTP id 16so1005131fgg.17
-        for <linux-omap@vger.kernel.org>; Mon, 11 May 2009 13:30:42 -0700 (PDT)
-In-Reply-To: <8F7AF80515AF0D4D93307E594F3CB40E2AF66543@dlee03.ent.ti.com>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:50873 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751333AbZEKVPa convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 11 May 2009 17:15:30 -0400
+Received: from dlep33.itg.ti.com ([157.170.170.112])
+	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id n4BLFO5F002697
+	for <linux-omap@vger.kernel.org>; Mon, 11 May 2009 16:15:29 -0500
+Received: from dlep20.itg.ti.com (localhost [127.0.0.1])
+	by dlep33.itg.ti.com (8.13.7/8.13.7) with ESMTP id n4BLFNlp020208
+	for <linux-omap@vger.kernel.org>; Mon, 11 May 2009 16:15:23 -0500 (CDT)
+Received: from dlee75.ent.ti.com (localhost [127.0.0.1])
+	by dlep20.itg.ti.com (8.12.11/8.12.11) with ESMTP id n4BLFNEc011616
+	for <linux-omap@vger.kernel.org>; Mon, 11 May 2009 16:15:23 -0500 (CDT)
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Kanigeri, Hari" <h-kanigeri2@ti.com>
-Cc: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>, "Menon, Nishanth" <nm@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Mon, May 11, 2009 at 9:26 PM, Kanigeri, Hari <h-kanigeri2@ti.com> wr=
-ote:
-> To summarize the discussion.
->
-> We need to have the check for 128 bytes alignment (upper and lower). =
-The 2 places that this can be done are in flush function or in Map func=
-tion.
->
-> =C2=A0 =C2=A0 =C2=A0 =C2=A0- I prefer the check is done in Map functi=
-on as Felipe mentioned this function is bound to be called by MM compon=
-ents as opposed to Flush function. Also, another reason is the flush fu=
-nction in Bridge driver is going to be removed eventually.
->
-> The open issue is the impact on the OMX components. Once if we finali=
-ze that there is no impact on the existing OMX components or we have a =
-plan to take this into account we can enforce this check.
+Hi All,
 
-=46irst of all the check is not required on input buffers, enforcing it
-will make memory copy unavoidable on certain situations. That is not
-good.
+I want to run some tests using the linux-omap pm branch on the omap3430 and had a couple questions...
 
-Also, it will break OMX components. The fix is trivial (use
-posix_memalign for example) but code will need to be changed.
+1). What omap3430 board(s) are being using to validate the pm branch functionality?
 
-The easiest solution IMHO is to add a new ioctl which has other advanta=
-ges.
+2). Is there a list of pm features are currently supported/functional for omap3430? For example, cpuidle, cpufreq, retention, off-mode, smart-reflex, suspend/restore, etc. 
 
---=20
-=46elipe Contreras
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+3). Are there any userspace tools (such as powertop) that are recommended for monitoring power states?
+
+Cheers
+Jon
