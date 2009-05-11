@@ -1,194 +1,85 @@
-From: "Kanigeri, Hari" <h-kanigeri2@ti.com>
-Subject: RE: [PATCH 2/2] DSPBRIDGE: add checking 128 byte alignment for dsp
- 	cache line size
-Date: Mon, 11 May 2009 13:26:11 -0500
-Message-ID: <8F7AF80515AF0D4D93307E594F3CB40E2AF66543@dlee03.ent.ti.com>
-References: <8F7AF80515AF0D4D93307E594F3CB40E2AF66245@dlee03.ent.ti.com>
-	 <20090511.184705.116375196.Hiroshi.DOYU@nokia.com>
-	 <94a0d4530905110931i3b81b991x9b7686c5bda25ff8@mail.gmail.com>
-	 <20090511.203528.258116329.Hiroshi.DOYU@nokia.com>
- <94a0d4530905111054x138375e3p5e2b6d08c9b31120@mail.gmail.com>
+From: Jean Pihet <jpihet@mvista.com>
+Subject: Re: Beagleboard rev C memory timings & suspend/resume
+Date: Mon, 11 May 2009 21:10:34 +0200
+Message-ID: <200905112110.34589.jpihet@mvista.com>
+References: <200904291553.49378.jpihet@mvista.com> <200905080905.39102.jpihet@mvista.com> <alpine.DEB.2.00.0905081527330.17514@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:58965 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754983AbZEKS0Y convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 11 May 2009 14:26:24 -0400
-In-Reply-To: <94a0d4530905111054x138375e3p5e2b6d08c9b31120@mail.gmail.com>
-Content-Language: en-US
+Received: from gateway-1237.mvista.com ([63.81.120.158]:31619 "EHLO
+	gateway-1237.mvista.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753458AbZEKTK6 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 11 May 2009 15:10:58 -0400
+In-Reply-To: <alpine.DEB.2.00.0905081527330.17514@utopia.booyaka.com>
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Contreras <felipe.contreras@gmail.com>, Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
-Cc: "Menon, Nishanth" <nm@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Paul Walmsley <paul@pwsan.com>
+Cc: "Syed Mohammed, Khasim" <khasim@ti.com>, "Kridner, Jason" <jdk@ti.com>, linux-omap <linux-omap@vger.kernel.org>
 
-To summarize the discussion.
+Hi Paul,
 
-We need to have the check for 128 bytes alignment (upper and lower). Th=
-e 2 places that this can be done are in flush function or in Map functi=
-on.
-
-	- I prefer the check is done in Map function as Felipe mentioned this =
-function is bound to be called by MM components as opposed to Flush fun=
-ction. Also, another reason is the flush function in Bridge driver is g=
-oing to be removed eventually.
-=09
-The open issue is the impact on the OMX components. Once if we finalize=
- that there is no impact on the existing OMX components or we have a pl=
-an to take this into account we can enforce this check.
-
-Thank you,
-Best regards,
-Hari
-
-> -----Original Message-----
-> From: Felipe Contreras [mailto:felipe.contreras@gmail.com]
-> Sent: Monday, May 11, 2009 12:54 PM
-> To: Hiroshi DOYU
-> Cc: Kanigeri, Hari; Menon, Nishanth; linux-omap@vger.kernel.org
-> Subject: Re: [PATCH 2/2] DSPBRIDGE: add checking 128 byte alignment f=
-or
-> dsp cache line size
->=20
-> On Mon, May 11, 2009 at 8:35 PM, Hiroshi DOYU <Hiroshi.DOYU@nokia.com=
+On Saturday 09 May 2009 00:43:43 Paul Walmsley wrote:
+> Hello Jean,
 >
-> wrote:
-> > From: ext Felipe Contreras <felipe.contreras@gmail.com>
-> > Subject: Re: [PATCH 2/2] DSPBRIDGE: add checking 128 byte alignment=
- for
-> dsp cache line size
-> > Date: Mon, 11 May 2009 18:31:28 +0200
+> On Fri, 8 May 2009, Jean Pihet wrote:
+> > On Thursday 07 May 2009 20:59:43 Paul Walmsley wrote:
+> > > On Thu, 7 May 2009, Jean Pihet wrote:
+> > > > From the OMAP datasheet it looks like the ARCV setting is off:
+> > > > shouldn't it be (tREFI/tCK)+50=(7800/6)+50=0x546?
+> > >
+> > > Could you elaborate further what you're seeing?  It would help to
+> > > see the register value that you're using to come to this conclusion.
 > >
-> >> On Mon, May 11, 2009 at 6:47 PM, Hiroshi DOYU <Hiroshi.DOYU@nokia.=
-com>
-> wrote:
-> >> > Hi Hari,
-> >> >
-> >> > From: "ext Kanigeri, Hari" <h-kanigeri2@ti.com>
-> >> > Subject: RE: [PATCH 2/2] DSPBRIDGE: add checking 128 byte alignm=
-ent
-> for dsp cache line size
-> >> > Date: Mon, 11 May 2009 17:09:03 +0200
-> >> >
-> >> >> Hi Doyu-san,
-> >> >>
-> >> >> > A buffer shared with MPU and DSP has to be aligned on both ca=
-che
-> line
-> >> >> > size to avoid memory corrupton with some DSP cache operations=
-=2E
-> Since
-> >> >> > there's no way for dspbridge to know how the shared buffer wi=
-ll be
-> >> >> > used like: "read-only", "write-only", "rw" through its life s=
-pan,
-> any
-> >> >> > shared buffer passed to DSP should be on this alignment. This
-> patch
-> >> >> > adds checking those shared buffer alignement in bridgedriver =
-cache
-> >> >> > operations and prevents userland applications from causing th=
-e
-> above
-> >> >> > memory corruption.
-> >> >> >
-> >> >>
-> >> >> -- It looks like the buffer that are passed to the Bridge are n=
-ot
-> necessarily 128 byte aligned.
-> >> >>
-> >> >> This is the comment I received from Nikhil Mande (MM Engineer).
-> >> >>
-> >> >> [Nikhil Mande] "They are not necessarily "aligned" all the time=
-=2E
-> >> >> Sometimes they just have 128 byte padding at the start & end of=
- the
-> buffer and the buffer pointer passed to bridge is not guaranteed to b=
-e 128
-> aligned.
-> >> >> So if you are adding such a check, it will require modification=
-s OMX
-> >> >> components & test apps."
-> >> >
-> >> > The above means that passing unaligned address to dsp can cause
-> memory
-> >> > corruption in kernel and this problem can be avoided only in the=
- case
-> >> > where OMX(userland) is always supposed to pass aligned address. =
-=A0The
-> >> > above assumption cannot be accepted because kernel should always=
- be
-> >> > robust against any incorrect behaviour of userland application. =
-=46or
-> >> > example, even if an userland application passes any incorrect
-> >> > parameters to kernel through ioctl(), kernel shouldn't crash, bu=
-t
-> just
-> >> > returns -EINVAL.
-> >>
-> >> Yes, but flush and invalidate are not the right places to do that.=
- An
-> >> application in user-space might be buggy and decide not to do any
-> >> flush or invalidation, therefore the checks won't happen. A more
-> >> proper use-case could be to flush only parts of a big buffer.
+> > The SDRC_RFR_CTRL_p registers are now programmed with 0x4dc01, which
+> > means the fiel ARCV has the value 0x4dc=1244.
+> > From the DDR datasheet we need an average refresh period of 7.8us and a
+> > clock period of 6ns (166MHz). From the definition of the ARCV field in
+> > the OMAP TRM I need to program ARCV with: (tREFI/tCK)+50 =
+> > (7800/6)+50=1350=0x546. The SDRC_RFR_CTRL_p registers would then have the
+> > value of 0x54601.
 > >
-> > Without cache flushing/invalidating from ARM, memory won't be
-> > corrupted. The problem here is cache operation with incorrect addre=
-ss.
->=20
-> From ARM point of view flushing is done after ARM side writes to the
-> buffer and before DSP *reads*, right? So invalidate happens after DSP
-> *writes* to the buffer and before ARM reads it, right?
->=20
-> If that's the case then the check should happen only on invalidate,
-> not flush. But oh wait a second, omx is not invalidating any memory.
-> So can you explain to me what is happening?
->=20
-> But the DSP side also does the same; before reading a buffer from ARM
-> it invalidates it, and after writing it flushes it.
->=20
-> I thought the last operation (DSP flush) is the one that generated th=
-e
-> memory corruption.
->=20
-> >> Also, you are not checking for the upper limit, which also should =
-be
-> >> 128-byte aligned.
-> >
-> > The further sanity checking should be done with VMA. That's the uni=
-x
-> way.
->=20
-> The VMA would check the flush from DSP side is not touching wrong ARM
-> memory?
->=20
-> >> A more correct place to do this would be on PROC_Map, which user-s=
-pace
-> >> cannot avoid in any way, and also you have the upper limit too.
-> >> Unfortunately TI's OpenMAX IL is sending a fake upper limit (page
-> >> aligned).
-> >
-> > Mapping is done with page aligned at least. no sense to do it in
-> "PROC_Map()"
->=20
-> With page aligned what? MPU address or memory area size?
->=20
-> The omx code is page aligning the size but so is the the PROC_Map
-> code, so that's redundant.
->=20
-> In any case the ARM address (pMpuAddr) the one that should be 128-byt=
-e
-> aligned:
-> DSP_STATUS PROC_Map(DSP_HPROCESSOR hProcessor, void *pMpuAddr, u32 ul=
-Size,
-> 		   void *pReqAddr, void **ppMapAddr, u32 ulMapAttr)
->=20
-> --
-> Felipe Contreras
+> > Does that make sense? Am I wrong with the calculation?
+>
+> According to the TRM, the 50 cycles should be subtracted rather than added
+> (section 11.2.6.3.3.4).  One other thing is that the bootloaders I've seen
+> program DPLL3 such that the SDRC clock is 166000000 Hz, rather than
+> 166666666 Hz, so tCK winds up being something like 6.024... ns.
+The settings should be ok with tCK=6.024ns
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Auto-refresh is only used while the SDRC is active, though.  So unless
+> memory corruption is evident outside of suspend, the ARCV value is
+> unlikely to be the problem.
+Ok
+
+> It sounds like the problem is related to self-refresh, that the SDRAM bank
+> on one of the chipselects either can't enter or exit self-refresh.  You
+> have self-refresh working on a different board with both SDRC CS0 and CS1
+> in use, correct?  Is that with an ES2 or ES3 chip?
+>
+> One possibility: perhaps the problem is with Beagle's pin mux settings.
+> You might want to boot with mem=128M and make sure
+> CONTROL_PADCONF_SAD2D_SBUSFLAG and CONTROL_PADCONF_SDRC_CKE1 are in mode 0
+> before suspend and after resume.
+Yes that definitely is the root cause. I should have checked this first ;-(
+The U-Boot change is committed, cf. 
+http://gitorious.org/u-boot-omap3/mainline/commit/c6f01ad390308800693c62dbdb096ab59e03630b
+and
+http://gitorious.org/u-boot-omap3/mainline/commit/4025cfbde3611b14c0d4831a5524e5e061128e30
+
+> Another thought: it could be that the ROM code on Beagle is not
+> programming the correct SDRC register values after resume.  You might try
+> booting with mem=128M and dumping the SDRC register values before suspend
+> and after resume.
+Those are OK.
+
+I am looking at a fix for the SDRC setup with 2 CSes. I will propose the 
+changes asap.
+
+>
+> - Paul
+
+Thx & regards,
+Jean
