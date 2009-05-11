@@ -1,202 +1,126 @@
-From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Subject: RE: Status of Beagle Board
-Date: Mon, 11 May 2009 19:26:37 +0530
-Message-ID: <19F8576C6E063C45BE387C64729E739404323EE137@dbde02.ent.ti.com>
-References: <1228470882.25798.23.camel@david-nb.visualon.local>
-	 <0680EC522D0CC943BC586913CF3768C002D97E9BA9@dbde02.ent.ti.com>
-	 <1228990380.29333.11.camel@david-nb.visualon.local>
-	 <0680EC522D0CC943BC586913CF3768C002DD2C6F5C@dbde02.ent.ti.com>
-	 <1241078747.19525.23.camel@localhost.localdomain>
-	 <FD6982799649459A93E724A62BF2E64F@LinHPNotebook>
-	 <0680EC522D0CC943BC586913CF3768C00378655555@dbde02.ent.ti.com>
- <1241617391.3362.23.camel@localhost.localdomain>
- <0680EC522D0CC943BC586913CF3768C003787AB074@dbde02.ent.ti.com>
- <4A0259D5.6090204@visualon.com>
- <0680EC522D0CC943BC586913CF3768C003787AB131@dbde02.ent.ti.com>
- <19F8576C6E063C45BE387C64729E739404323ED91C@dbde02.ent.ti.com>
- <4A028CBF.8030507@visualon.com>
- <19F8576C6E063C45BE387C64729E739404323ED97B@dbde02.ent.ti.com>
- <4A02B60A.2010006@visualon.com>
- <19F8576C6E063C45BE387C64729E739404323ED9F7@dbde02.ent.ti.com>
- <4A03D097.5090605@visualon.com>
- <19F8576C6E063C45BE387C64729E739404323EDBDE@dbde02.ent.ti.com>
- <4A07CBF4.3000902@visualon.com>
+From: "Kanigeri, Hari" <h-kanigeri2@ti.com>
+Subject: RE: [PATCH 2/2] DSPBRIDGE: add checking 128 byte alignment for dsp
+ cache line size
+Date: Mon, 11 May 2009 10:09:03 -0500
+Message-ID: <8F7AF80515AF0D4D93307E594F3CB40E2AF66245@dlee03.ent.ti.com>
+References: <1242017713-25795-1-git-send-email-Hiroshi.DOYU@nokia.com>
+ <1242017713-25795-2-git-send-email-Hiroshi.DOYU@nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:51185 "EHLO bear.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:55677 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755662AbZEKN4o (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 11 May 2009 09:56:44 -0400
-In-Reply-To: <4A07CBF4.3000902@visualon.com>
+	id S1754518AbZEKPJR convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 11 May 2009 11:09:17 -0400
+In-Reply-To: <1242017713-25795-2-git-send-email-Hiroshi.DOYU@nokia.com>
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "George.Qiao" <qiao_shanshan@visualon.com>
-Cc: "Syed Mohammed, Khasim" <khasim@ti.com>, "Shah, Hardik" <hardik.shah@ti.com>, "wan_jinxue@visualon.com" <wan_jinxue@visualon.com>, Bill Lin <blin@visualon.com>, "shawnofarrell@visualon.com" <shawnofarrell@visualon.com>, "Chatterjee, Amit" <amit.chatterjee@ti.com>, "Andrews, Gerard" <gerard@ti.com>, "Kridner, Jason" <jdk@ti.com>, 'Bangfei Jin' <jin_bangfei@visualon.com>, 'Xuejun Dong' <dong_xuejun@visualon.com>, 'YangCai' <yangcai@visualon.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+Cc: "Menon, Nishanth" <nm@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-SGkgR2VvcmdlLA0KDQpZZXMgSSBkbyBhZ3JlZSwgYXQtbGVhc3QgZm9yIG1lIHRoaXMgbG9va3Mg
-bGlrZSBhIHNtYWxsIGJ1ZyBpbiBWNEwyIGRyaXZlci4gQnV0IGp1c3QgdG8gbWFrZSBkb3VibGUg
-c3VyZSBJIHdpbGwgZGlzY3VzcyB0aGlzIHdpdGggSGFyZGlrIGFuZCBsZXQgeW91IGtub3cuDQoN
-ClRoYW5rcywNClZhaWJoYXYgSGlyZW1hdGgNClBsYXRmb3JtIFN1cHBvcnQgUHJvZHVjdHMNClRl
-eGFzIEluc3RydW1lbnRzIEluYw0KUGg6ICs5MS04MC0yNTA5OTkyNw0KPiAtLS0tLU9yaWdpbmFs
-IE1lc3NhZ2UtLS0tLQ0KPiBGcm9tOiBHZW9yZ2UuUWlhbyBbbWFpbHRvOnFpYW9fc2hhbnNoYW5A
-dmlzdWFsb24uY29tXQ0KPiBTZW50OiBNb25kYXksIE1heSAxMSwgMjAwOSAxMjoyNiBQTQ0KPiBU
-bzogSGlyZW1hdGgsIFZhaWJoYXYNCj4gQ2M6IFN5ZWQgTW9oYW1tZWQsIEtoYXNpbTsgU2hhaCwg
-SGFyZGlrOyB3YW5famlueHVlQHZpc3VhbG9uLmNvbTsNCj4gQmlsbCBMaW47IHNoYXdub2ZhcnJl
-bGxAdmlzdWFsb24uY29tOyBDaGF0dGVyamVlLCBBbWl0OyBBbmRyZXdzLA0KPiBHZXJhcmQ7IEty
-aWRuZXIsIEphc29uOyAnQmFuZ2ZlaSBKaW4nOyAnWHVlanVuIERvbmcnOyAnWWFuZ0NhaSc7DQo+
-IGxpbnV4LW9tYXBAdmdlci5rZXJuZWwub3JnDQo+IFN1YmplY3Q6IFJlOiBTdGF0dXMgb2YgQmVh
-Z2xlIEJvYXJkDQo+IA0KPiBIaSBIaXJlbWF0aCBWYWliaGF2LA0KPiANCj4gSSBoYXZlIGZpeGVk
-IHRoaXMgYnVncyBpbiBvbWFwX3ZvdXQuYyA6DQo+IA0KPiB2aWRpb2Nfc3RyZWFtb2ZmKCkNCj4g
-ew0KPiAuLi4NCj4gLSByZXR1cm4gb3ZsLT5zZXRfb3ZlcmxheV9pbmZvKG92bCwgJmluZm8pOw0K
-PiArIG92bC0+c2V0X292ZXJsYXlfaW5mbyhvdmwsICZpbmZvKTsNCj4gLi4uDQo+IH0NCj4gDQo+
-IGJlY2F1c2UgaXQgc2hvdWxkIG5vdCByZXR1cm4gb3ZsLT5zZXRfb3ZlcmxheV9pbmZvKCkgaGVy
-ZSwgaW4gdGhpcw0KPiB3YXksDQo+IHRoZSBiZWxvdyBjb2RlIHdpbGwgbm90IGJlIGV4ZWN1dGVk
-Og0KPiB2aWRlb2J1Zl9zdHJlYW1vZmYoKSAtPiB2aWRlb2J1Zl9xdWV1ZV9jYW5jZWwoKQ0KPiB7
-DQo+IC4uLg0KPiBxLT5zdHJlYW1pbmcgPSAwDQo+IC4uLg0KPiB9DQo+IA0KPiBzbywgdmlkaW9j
-X3JlcWJ1ZnMtPnZpZGVvYnVmX3JlcWJ1ZnMoKSB3aWxsIGFsd2F5cyBmYWlsLg0KPiANCj4gRG8g
-eW91IGFncmVlIHdpdGggbWU/DQo+IA0KPiBUaGFua3MgJiBCZXN0IFJlZ2FyZHMsDQo+IEdlb3Jn
-ZS5RaWFvDQo+IA0KPiDvvJ3vvJ3vvJ3vvJ3vvJ3vvJ3vvJ3vvJ3vvJ3vvJ3vvJ3vvJ3vvJ3vvJ3v
-vJ3vvJ3vvJ3vvJ3vvJ3vvJ3vvJ3vvJ3vvJ3vvJ3vvJ3vvJ3vvJ3vvJ3vvJ3vvJ3vvJ3vvJ3vvJ3v
-vJ3vvJ0NCj4gPj4gLS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0NCj4gPj4gRnJvbTogR2Vvcmdl
-LlFpYW8gW21haWx0bzpxaWFvX3NoYW5zaGFuQHZpc3VhbG9uLmNvbV0NCj4gPj4gU2VudDogRnJp
-ZGF5LCBNYXkgMDgsIDIwMDkgMTE6NTcgQU0NCj4gPj4gVG86IEhpcmVtYXRoLCBWYWliaGF2DQo+
-ID4+IENjOiBTeWVkIE1vaGFtbWVkLCBLaGFzaW07IFNoYWgsIEhhcmRpazsgd2FuX2ppbnh1ZUB2
-aXN1YWxvbi5jb207DQo+ID4+IEJpbGwgTGluOyBzaGF3bm9mYXJyZWxsQHZpc3VhbG9uLmNvbTsg
-Q2hhdHRlcmplZSwgQW1pdDsgQW5kcmV3cywNCj4gPj4gR2VyYXJkOyBLcmlkbmVyLCBKYXNvbjsg
-J0JhbmdmZWkgSmluJzsgJ1h1ZWp1biBEb25nJzsgJ1lhbmdDYWknOw0KPiA+PiBsaW51eC1vbWFw
-QHZnZXIua2VybmVsLm9yZw0KPiA+PiBTdWJqZWN0OiBSZTogU3RhdHVzIG9mIEJlYWdsZSBCb2Fy
-ZA0KPiA+Pg0KPiA+PiBIaSBWYWliaGF2IEhpcmVtYXRoLA0KPiA+Pg0KPiA+PiBNeSBhcHBsaWNh
-dGlvbiBjYW4gd29yayBpbiBPTUFQMyBFVk0gYW5kIG90aGVyIHY0bDIgcGxhdGZvcm0sIGJ1dA0K
-PiA+PiB0aGVyZQ0KPiA+PiBpcyBhbm90aGVyIGlzc3VlIGluIGJlYWdsZSBib2FyZC4gYXMgZm9s
-bG93Og0KPiA+Pg0KPiA+Pg0KPiA+IFtIaXJlbWF0aCwgVmFpYmhhdl0gQXJlIHlvdSBzYXlpbmcs
-IHNhbWUgYXBwbGljYXRpb24gd29ya3Mgb24NCj4gT01BUDNFVk0gYnV0IGZhaWxzIG9uIGJlYWds
-ZSBib2FyZD8NCj4gPg0KPiA+DQo+ID4+IDEuIE5vcm1hbFNpemUoKSAtPiBSZXF1ZXN0QnVmZmVy
-KCkgLT4gbW1hcCgpDQo+ID4+IDIuIHBsYXlpbmcuLi4NCj4gPj4gMy4gRnVsbFNjcmVlbigpIC0+
-IFZJRElPQ19TVFJFQU1PRkYNCj4gPj4gICAgICAgICAgICAgICAgICAgICAgICAgICAtPiBtdW5t
-YXAoKQ0KPiA+PiAgICAgICAgICAgICAgICAgICAgICAgICAgIC0+IFZJRElPQ19SRVFCVUZTDQo+
-ID4+ICAgICAgICAgICAgICAgICAgICAgICAgICAgLT4gVklESU9DX1FVRVJZQlVGDQo+ID4+ICAg
-ICAgICAgICAgICAgICAgICAgICAgICAgLT4gUmVxdWVzdEJ1ZmZlcigpIC0+IG1tYXAoKQ0KPiA+
-PiAgICAgICAgICAgICAgICAgICAgICAgICAgIC0+IFZJRElPQ19TX0NST1ANCj4gPj4gICAgICAg
-ICAgICAgICAgICAgICAgICAgICAtPiBWSURJT0NfU19GTVQNCj4gPj4gICAgICAgICAgICAgICAg
-ICAgICAgICAgICAtPiBWSURJT0NfUUJVRg0KPiA+PiAgICAgICAgICAgICAgICAgICAgICAgICAg
-IC0+IFZJRElPQ19TVFJFQU1PTg0KPiA+Pg0KPiA+PiBXaGVuIEkgd2FudCB0byBjYWxsIFZJRElP
-Q19SRVFCVUZTIGluIEZ1bGxTY3JlZW4oKSwgaXQgYWx3YXlzDQo+IGZhaWwuDQo+ID4+DQo+ID4+
-DQo+ID4gW0hpcmVtYXRoLCBWYWliaGF2XSBJcyBpdCBwb3NzaWJsZSBmb3IgeW91IHRvIHNoYXJl
-IHlvdXINCj4gYXBwbGljYXRpb24sIHNvIHRoYXQgSSBjYW4gZ2l2ZSB0cnkgaGVyZSBhdCBteSBl
-bmQ/DQo+ID4NCj4gPiBUaGFua3MsDQo+ID4gVmFpYmhhdiBIaXJlbWF0aA0KPiA+DQo+ID4NCj4g
-Pj4gQmVzdCBSZWdhcmRzLA0KPiA+PiBHZW9yZ2UuUWlhbw0KPiA+Pg0KPiA+PiA9PT09PT09PT09
-PT09PT09PT09PT09PT09PT09DQo+ID4+DQo+ID4+PiBHcmVhdCwgcGxlYXNlIHNlZSBteSBjb21t
-ZW50cyBpbi1saW5lZCBiZWxvdyAtDQo+ID4+Pg0KPiA+Pj4NCj4gPj4+IFRoYW5rcywNCj4gPj4+
-IFZhaWJoYXYgSGlyZW1hdGgNCj4gPj4+IFBsYXRmb3JtIFN1cHBvcnQgUHJvZHVjdHMNCj4gPj4+
-IFRleGFzIEluc3RydW1lbnRzIEluYw0KPiA+Pj4gUGg6ICs5MS04MC0yNTA5OTkyNw0KPiA+Pj4N
-Cj4gPj4+DQo+ID4+Pg0KPiA+Pj4+IC0tLS0tT3JpZ2luYWwgTWVzc2FnZS0tLS0tDQo+ID4+Pj4g
-RnJvbTogR2VvcmdlLlFpYW8gW21haWx0bzpxaWFvX3NoYW5zaGFuQHZpc3VhbG9uLmNvbV0NCj4g
-Pj4+PiBTZW50OiBUaHVyc2RheSwgTWF5IDA3LCAyMDA5IDM6NTEgUE0NCj4gPj4+PiBUbzogSGly
-ZW1hdGgsIFZhaWJoYXYNCj4gPj4+PiBDYzogU3llZCBNb2hhbW1lZCwgS2hhc2ltOyBTaGFoLCBI
-YXJkaWs7DQo+IHdhbl9qaW54dWVAdmlzdWFsb24uY29tOw0KPiA+Pj4+IEJpbGwgTGluOyBzaGF3
-bm9mYXJyZWxsQHZpc3VhbG9uLmNvbTsgQ2hhdHRlcmplZSwgQW1pdDsNCj4gQW5kcmV3cywNCj4g
-Pj4+PiBHZXJhcmQ7IEtyaWRuZXIsIEphc29uOyAnQmFuZ2ZlaSBKaW4nOyAnWHVlanVuIERvbmcn
-Ow0KPiAnWWFuZ0NhaSc7DQo+ID4+Pj4gbGludXgtb21hcC1vcGVuLXNvdXJjZUBsaW51eC5vbWFw
-LmNvbQ0KPiA+Pj4+IFN1YmplY3Q6IFJlOiBTdGF0dXMgb2YgQmVhZ2xlIEJvYXJkDQo+ID4+Pj4N
-Cj4gPj4+PiBEZWFyIFZhaWJoYXYgSGlyZW1hdGgsDQo+ID4+Pj4NCj4gPj4+PiBJIGNhbiBwbGF5
-IHZpZGVvIGJ5IHY0bDIgbm93ISAgVGhhbmsgeW91IQ0KPiA+Pj4+DQo+ID4+Pj4gSSBoYXZlIGFk
-ZCBjb2RlIGluIGJvYXJkLW9tYXAzYmVhZ2xlLmMgOg0KPiA+Pj4+DQo+ID4+Pj4gI2lmZGVmIENP
-TkZJR19GQl9PTUFQMg0KPiA+Pj4+IHN0YXRpYyBzdHJ1Y3QgcmVzb3VyY2Ugb21hcDNiZWFnbGVf
-dm91dF9yZXNvdXJjZVszIC0NCj4gPj4+PiBDT05GSUdfRkJfT01BUDJfTlVNX0ZCU10gPSB7DQo+
-ID4+Pj4gfTsNCj4gPj4+PiAjZWxzZQ0KPiA+Pj4+IHN0YXRpYyBzdHJ1Y3QgcmVzb3VyY2Ugb21h
-cDNiZWFnbGVfdm91dF9yZXNvdXJjZVsyXSA9IHsNCj4gPj4+PiB9Ow0KPiA+Pj4+ICNlbmRpZg0K
-PiA+Pj4+DQo+ID4+Pj4gc3RhdGljIHN0cnVjdCBwbGF0Zm9ybV9kZXZpY2Ugb21hcDNiZWFnbGVf
-dm91dF9kZXZpY2UgPSB7DQo+ID4+Pj4gICAgICAgIC5uYW1lICAgICAgICAgICAgICAgICAgID0g
-Im9tYXBfdm91dCIsDQo+ID4+Pj4gICAgICAgIC5udW1fcmVzb3VyY2VzICA9IEFSUkFZX1NJWkUo
-b21hcDNiZWFnbGVfdm91dF9yZXNvdXJjZSksDQo+ID4+Pj4gICAgICAgIC5yZXNvdXJjZSAgICAg
-ICAgICAgICAgID0gJm9tYXAzYmVhZ2xlX3ZvdXRfcmVzb3VyY2VbMF0sDQo+ID4+Pj4gICAgICAg
-IC5pZCAgICAgICAgICAgICA9IC0xLA0KPiA+Pj4+IH07DQo+ID4+Pj4NCj4gPj4+PiBzdGF0aWMg
-c3RydWN0IHBsYXRmb3JtX2RldmljZSAqb21hcDNfYmVhZ2xlX2RldmljZXNbXQ0KPiBfX2luaXRk
-YXRhDQo+ID4+Pj4NCj4gPj4gPSB7DQo+ID4+DQo+ID4+Pj4gICAgICZiZWFnbGVfZHNzX2Rldmlj
-ZSwNCj4gPj4+PiAgICAgJmxlZHNfZ3BpbywNCj4gPj4+PiAgICAgJmtleXNfZ3BpbywNCj4gPj4+
-PiAgICAgJm9tYXAzYmVhZ2xlX3ZvdXRfZGV2aWNlLA0KPiA+Pj4+IH07DQo+ID4+Pj4NCj4gPj4+
-Pg0KPiA+Pj4+IEkgaGF2ZSBnb3Qgc29tZSBvbWFwZHNzIGVycm9yIGFuZCB2b3V0QnVmZmVyIFNp
-emUuIGFzIGZvbGxvdzoNCj4gPj4+Pg0KPiA+Pj4+IG9tYXBkc3M6IENvdWxkIG5vdCBmaW5kIGV4
-YWN0IHBpeGVsIGNsb2NrLiBSZXF1ZXN0ZWQgMjM1MDAga0h6LA0KPiA+Pj4+DQo+ID4+IGdvdA0K
-PiA+Pg0KPiA+Pj4+IDI0MDAwIGtIeg0KPiA+Pj4+IG9tYXBkc3MgZXJyb3I6IGRpc3BsYXkgYWxy
-ZWFkeSBlbmFibGVkDQo+ID4+Pj4gb21hcF92b3V0RGlzcGxheSBhbHJlYWR5IGVuYWJsZWQNCj4g
-Pj4+PiBvbWFwZHNzIGVycm9yOiBkaXNwbGF5IGFscmVhZHkgZW5hYmxlZA0KPiA+Pj4+IG9tYXBf
-dm91dERpc3BsYXkgYWxyZWFkeSBlbmFibGVkDQo+ID4+Pj4NCj4gPj4+Pg0KPiA+Pj4gW0hpcmVt
-YXRoLCBWYWliaGF2XSBUaGlzIGlzIG5vdCBhbiBlcnJvciBhcyBzdWNoLCBpdCB3YXJuaW5nDQo+
-ID4+Pg0KPiA+PiBtZXNzYWdlLiBBY3R1YWxseSBoZXJlIHdlIGFyZSB0cnlpbmcgdG8gZW5hYmxl
-IHRoZSBkaXNwbGF5IHdoaWNoDQo+IGhhcw0KPiA+PiBhbHJlYWR5IGJlZW4gZW5hYmxlZCBieSBG
-YmRldi4NCj4gPj4NCj4gPj4+IFdlIGNhbiBzdXBwcmVzcyB0aGlzIG1lc3NhZ2UsIGF0bGVhc3Qg
-ZHVyaW5nIGluaXQuDQo+ID4+Pg0KPiA+Pj4NCj4gPj4+DQo+ID4+Pj4gb21hcF92b3V0QnVmZmVy
-IFNpemUgPSAzNjg2NDAwDQo+ID4+Pj4gb21hcF92b3V0OiByZWdpc3RlcmVkIGFuZCBpbml0aWFs
-aXplZCB2aWRlbyBkZXZpY2UgMCBbdjRsMl0NCj4gPj4+PiBvbWFwX3ZvdXRCdWZmZXIgU2l6ZSA9
-IDM2ODY0MDANCj4gPj4+PiBvbWFwX3ZvdXQ6IHJlZ2lzdGVyZWQgYW5kIGluaXRpYWxpemVkIHZp
-ZGVvIGRldmljZSAxIFt2NGwyXQ0KPiA+Pj4+DQo+ID4+Pj4NCj4gPj4+Pg0KPiA+Pj4gW0hpcmVt
-YXRoLCBWYWliaGF2XSBUaGlzIGlzIGp1c3QgYSBkZWJ1ZyBtYXNzYWdlOyBpdCBpcyBuZWl0aGVy
-DQo+IGENCj4gPj4+DQo+ID4+IGVycm9yIG5vciBhIHdhcm5pbmcuIFNvIGRvbid0IHdvcnJ5Lg0K
-PiA+Pg0KPiA+Pj4gQ2FuIHlvdSBzaGFyZSB0aGUgY29kZS1iYXNlIG9yIHN1Ym1pdCB0aGUgcGF0
-Y2hlcyB0byB0aGUgbGlzdCwNCj4gc28NCj4gPj4+DQo+ID4+IHRoYXQgaW50ZXJlc3RlZCBwZW9w
-bGUgY2FuIHVzZSBpdC4NCj4gPj4NCj4gPj4+DQo+ID4+Pj4gQ291bGQgSSBjaGFuZ2UgJ3ZvdXRC
-dWZmZXIgU2l6ZSc/ICBIb3cgdG8gZml4IGl0Pw0KPiA+Pj4+DQo+ID4+Pj4gQmVzdCBSZWdhcmRz
-LA0KPiA+Pj4+IEdlb3JnZS5RaWFvDQo+ID4+Pj4NCj4gPj4+PiA9PT09PT09PT09PT09PT09PT09
-PT09PQ0KPiA+Pj4+DQo+ID4+Pj4NCj4gPj4+Pj4gWWVzIERlZmluaXRlbHkgdGhpcyBpcyB0aGUg
-aXNzdWUuIElmIHRoZSBwbGF0Zm9ybV9kZXZpY2UubmFtZQ0KPiA+Pj4+Pg0KPiA+Pj4+Pg0KPiA+
-Pj4+IGRvZXNuJ3QgbWF0Y2ggd2l0aCB0aGUgcGxhdGZvcm1fZHJpdmVyLmRyaXZlci5uYW1lIHRo
-ZW4geW91cg0KPiA+Pj4+DQo+ID4+IHByb2JlDQo+ID4+DQo+ID4+Pj4gZnVuY3Rpb24gd2lsbCBu
-b3QgYmUgY2FsbGVkIGF0IGFsbC4NCj4gPj4+Pg0KPiA+Pj4+DQo+ID4+Pj4+IENhbiB5b3UganVz
-dCBjb3B5IHRoZSBib2FyZC1vbWFwM2V2bS5jIGNoYW5nZXMgcmVsYXRlZCB0bw0KPiA+Pj4+Pg0K
-PiA+Pj4+Pg0KPiA+Pj4+IFY0TDIvRFNTMiBhbmQgZ2l2ZSBhIHNob3Q/IEkgdGhpbmsgaXQgc2hv
-dWxkIHdvcmsgc3RyYWlnaHQNCj4gYXdheS4NCj4gPj4+Pg0KPiA+Pj4+DQo+ID4+Pj4+IFBsZWFz
-ZSBsZXQgbWUga25vdyBpZiB5b3UgbmVlZCBhbnkgZnVydGhlciBjbGFyaWZpY2F0aW9uIG9yDQo+
-ID4+Pj4+DQo+ID4+IGhlbHAuDQo+ID4+DQo+ID4+Pj4+IFRoYW5rcywNCj4gPj4+Pj4gVmFpYmhh
-diBIaXJlbWF0aA0KPiA+Pj4+PiBQbGF0Zm9ybSBTdXBwb3J0IFByb2R1Y3RzDQo+ID4+Pj4+IFRl
-eGFzIEluc3RydW1lbnRzIEluYw0KPiA+Pj4+PiBQaDogKzkxLTgwLTI1MDk5OTI3DQo+ID4+Pj4+
-DQo+ID4+Pj4+DQo+ID4+Pj4+DQo+ID4+Pj4+DQo+ID4+Pj4+PiAtLS0tLU9yaWdpbmFsIE1lc3Nh
-Z2UtLS0tLQ0KPiA+Pj4+Pj4gRnJvbTogR2VvcmdlLlFpYW8gW21haWx0bzpxaWFvX3NoYW5zaGFu
-QHZpc3VhbG9uLmNvbV0NCj4gPj4+Pj4+IFNlbnQ6IFRodXJzZGF5LCBNYXkgMDcsIDIwMDkgMTI6
-NTUgUE0NCj4gPj4+Pj4+IFRvOiBIaXJlbWF0aCwgVmFpYmhhdg0KPiA+Pj4+Pj4gQ2M6IFN5ZWQg
-TW9oYW1tZWQsIEtoYXNpbTsgU2hhaCwgSGFyZGlrOw0KPiA+Pj4+Pj4NCj4gPj4gd2FuX2ppbnh1
-ZUB2aXN1YWxvbi5jb207DQo+ID4+DQo+ID4+Pj4+PiBCaWxsIExpbjsgc2hhd25vZmFycmVsbEB2
-aXN1YWxvbi5jb207IENoYXR0ZXJqZWUsIEFtaXQ7DQo+ID4+Pj4+Pg0KPiA+PiBBbmRyZXdzLA0K
-PiA+Pg0KPiA+Pj4+Pj4gR2VyYXJkOyBLcmlkbmVyLCBKYXNvbjsgJ0JhbmdmZWkgSmluJzsgJ1h1
-ZWp1biBEb25nJzsNCj4gPj4+Pj4+DQo+ID4+ICdZYW5nQ2FpJzsNCj4gPj4NCj4gPj4+Pj4+IGxp
-bnV4LW9tYXAtb3Blbi1zb3VyY2VAbGludXgub21hcC5jb20NCj4gPj4+Pj4+IFN1YmplY3Q6IFJl
-OiBTdGF0dXMgb2YgQmVhZ2xlIEJvYXJkDQo+ID4+Pj4+Pg0KPiA+Pj4+Pj4gSGkgSGlyZW1hdGgs
-IFZhaWJoYXYsDQo+ID4+Pj4+Pg0KPiA+Pj4+Pj4gVGhhbmsgeW91IHZlcnkgbXVjaCBmb3IgeW91
-ciBpbnN0YW50IHJlc3BvbnNlIQ0KPiA+Pj4+Pj4NCj4gPj4+Pj4+IEkndmUgY2hlY2tlZCB0aGUg
-ZmlsZSAnYm9hcmQtb21hcDNiZWFnbGUuYycgYW5kIGZvdW5kIG5vdGhpbmcNCj4gPj4+Pj4+IGxv
-b2tpbmcNCj4gPj4+Pj4+IGxpa2Ugb21hcF92b3V0IGluIGl0LCBubyBwbGF0Zm9ybV9kZXZpY2Us
-IGVpdGhlci4gQW5kIEkndmUNCj4gYWxzbw0KPiA+Pj4+Pj4gY29tcGFyZWQNCj4gPj4+Pj4+IGl0
-IHdpdGggYm9hcmQtb21hcDNldm0uYy4NCj4gPj4+Pj4+DQo+ID4+Pj4+PiBCZWxvdyBpcyBzb21l
-IGRpZmZlcmVuY2UgYmV0d2VlbiB0aGVtOg0KPiA+Pj4+Pj4NCj4gPj4+Pj4+IGJvYXJkLW9tYXAz
-ZXZtLmMgaGFzOg0KPiA+Pj4+Pj4gKitzdGF0aWMgc3RydWN0IHBsYXRmb3JtX2RldmljZSBvbWFw
-M2V2bV92b3V0X2RldmljZSA9IHsNCj4gPj4+Pj4+ICoqKyAgICAgICAubmFtZSAgICAgICAgICAg
-ICAgICAgICA9ICJvbWFwX3ZvdXQiLA0KPiA+Pj4+Pj4gLi4uDQo+ID4+Pj4+PiB9DQo+ID4+Pj4+
-PiAqDQo+ID4+Pj4+PiBCdXQgJ2JvYXJkLW9tYXAzYmVhZ2xlLmMnIGRvZXMgbm90IGhhdmUgYW55
-dGhpbmcgbG9va2luZw0KPiBsaWtlOg0KPiA+Pj4+Pj4NCj4gPj4+Pj4+ICorc3RhdGljIHN0cnVj
-dCBwbGF0Zm9ybV9kZXZpY2Ugb21hcDNiZWFnbGVfdm91dF9kZXZpY2UgPSB7Kg0KPiA+Pj4+Pj4g
-KisgICAgICAgLm5hbWUgICAgICAgICAgICAgICAgICAgPSAib21hcF92b3V0IiwNCj4gPj4+Pj4+
-IC4uLg0KPiA+Pj4+Pj4gfQ0KPiA+Pj4+Pj4gKg0KPiA+Pj4+Pj4gU28sIEkgdGhpbmsgdGhlcmUn
-cyBubyBwYXRjaCBvbiBWNEwyIGZvciBiZWFnbGUgZG9uZSBhbmQgdGhpcw0KPiA+Pj4+Pj4NCj4g
-Pj4gaXMNCj4gPj4NCj4gPj4+PiB0aGUNCj4gPj4+Pg0KPiA+Pj4+DQo+ID4+Pj4+PiByb290IGNh
-dXNlIG9mIHRoaXMgaXNzdWUuIERvIHlvdSBhZ3JlZSB3aXRoIG1lPyBUaGFua3MgYSBsb3QuDQo+
-ID4+Pj4+Pg0KPiA+Pj4+Pj4NCj4gPj4+Pj4+IEJlc3QgUmVnYXJkcywNCj4gPj4+Pj4+IEdlb3Jn
-ZS5RaWFvDQo+ID4+Pj4+PiA9PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PQ0KPiA+
-Pj4+Pj4NCj4gPj4+Pj4+DQo+ID4+Pj4+Pg0KPiA+Pj4+Pj4NCj4gPj4+Pj4+PiBIaSBHZW9yZ2Us
-DQo+ID4+Pj4+Pj4NCj4gPj4+Pj4+PiBJIGhhdmUgbG9va2VkIGludG8geW91ciBjb25maWcgZmls
-ZSBhbmQgaXQgbG9va3Mgb2sgdG8gbWUuDQo+ID4+Pj4+Pj4NCj4gPj4+Pj4+PiBDYW4geW91IGNv
-bmZvcm0gdGhhdCwgeW91IGhhdmUgYWRkZWQgInBsYXRmb3JtX2RldmljZSINCj4gPj4+Pj4+Pg0K
-PiA+Pj4+Pj4+DQo+ID4+Pj4gZGVmaW5pdGlvbnMNCj4gPj4+Pg0KPiA+Pj4+DQo+ID4+Pj4+PiBp
-biBib2FyZC1vbWFwM2JlYWdsZS5jPw0KPiA+Pj4+Pj4NCj4gPj4+Pj4+DQo+ID4+Pj4+Pg0KPiA+
-Pj4+Pj4+IENhbiB5b3UgcGxlYXNlIGNyZWF0ZSBjb21wbGV0ZSBwYXRjaCBvbiB0b3Agb2YgeW91
-ciBiYXNlbGluZQ0KPiA+Pj4+Pj4+DQo+ID4+IChPLQ0KPiA+Pg0KPiA+Pj4+IEwNCj4gPj4+Pg0K
-PiA+Pj4+DQo+ID4+Pj4+PiBhbmQgVG9taSdzIHRyZWUpLCBzbyB0aGF0IEkgY2FuIHJldmlldyB0
-aGF0IGRpcmVjdGx5PyBJIHdpbGwNCj4gYmUNCj4gPj4+Pj4+IHNlZWluZyBjb21wbGV0ZSBjaGFu
-Z2VzIGRvbmUgZm9yIGJlYWdsZS4NCj4gPj4+Pj4+DQo+ID4+Pj4+Pg0KPiA+Pj4+Pj4NCj4gPj4+
-Pj4+PiBUaGFua3MsDQo+ID4+Pj4+Pj4gVmFpYmhhdiBIaXJlbWF0aA0KPiA+Pj4+Pj4+IFBsYXRm
-b3JtIFN1cHBvcnQgUHJvZHVjdHMNCj4gPj4+Pj4+PiBUZXhhcyBJbnN0cnVtZW50cyBJbmMNCj4g
-Pj4+Pj4+PiBQaDogKzkxLTgwLTI1MDk5OTI3DQo+ID4+Pj4+Pj4NCj4gPj4+Pj4+Pg0KPiA+Pj4+
-Pj4+DQo+ID4+Pj4+Pj4NCj4gPj4+Pj4+Pg0KPiA+Pj4+Pg0KPiA+Pj4NCj4gPj4+DQo+ID4NCj4g
-Pg0KPiA+DQo+IA0KDQo=
+Hi Doyu-san,
+
+> A buffer shared with MPU and DSP has to be aligned on both cache line
+> size to avoid memory corrupton with some DSP cache operations. Since
+> there's no way for dspbridge to know how the shared buffer will be
+> used like: "read-only", "write-only", "rw" through its life span, any
+> shared buffer passed to DSP should be on this alignment. This patch
+> adds checking those shared buffer alignement in bridgedriver cache
+> operations and prevents userland applications from causing the above
+> memory corruption.
+>
+
+-- It looks like the buffer that are passed to the Bridge are not necessarily 128 byte aligned. 
+
+This is the comment I received from Nikhil Mande (MM Engineer).
+
+[Nikhil Mande] "They are not necessarily "aligned" all the time.
+Sometimes they just have 128 byte padding at the start & end of the buffer and the buffer pointer passed to bridge is not guaranteed to be 128 aligned.
+So if you are adding such a check, it will require modifications OMX components & test apps."
+
+[Hari K] - Even with the above change, this might still be a hack for time being until the flushing of the user space buffers is moved from the Bridge driver to User-mode.
+
+
+Thank you,
+Best regards,
+Hari
+
+> -----Original Message-----
+> From: Hiroshi DOYU [mailto:Hiroshi.DOYU@nokia.com]
+> Sent: Sunday, May 10, 2009 11:55 PM
+> To: Kanigeri, Hari
+> Cc: Menon, Nishanth; linux-omap@vger.kernel.org; Hiroshi DOYU
+> Subject: [PATCH 2/2] DSPBRIDGE: add checking 128 byte alignment for dsp
+> cache line size
+> 
+> From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+> 
+> A buffer shared with MPU and DSP has to be aligned on both cache line
+> size to avoid memory corrupton with some DSP cache operations. Since
+> there's no way for dspbridge to know how the shared buffer will be
+> used like: "read-only", "write-only", "rw" through its life span, any
+> shared buffer passed to DSP should be on this alignment. This patch
+> adds checking those shared buffer alignement in bridgedriver cache
+> operations and prevents userland applications from causing the above
+> memory corruption.
+> 
+> Please refer to:
+> https://omapzoom.org/gf/download/docmanfileversion/52/985/DSP_cache.pdf
+> 
+> Signed-off-by: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+> ---
+>  drivers/dsp/bridge/rmgr/proc.c |   17 +++++++++++++++++
+>  1 files changed, 17 insertions(+), 0 deletions(-)
+> 
+> diff --git a/drivers/dsp/bridge/rmgr/proc.c
+> b/drivers/dsp/bridge/rmgr/proc.c
+> index 59073dd..437c3fe 100644
+> --- a/drivers/dsp/bridge/rmgr/proc.c
+> +++ b/drivers/dsp/bridge/rmgr/proc.c
+> @@ -159,6 +159,8 @@
+>  #define PWR_TIMEOUT	 500	/* Sleep/wake timout in msec */
+>  #define EXTEND	      "_EXT_END"	/* Extmem end addr in DSP binary */
+> 
+> +#define DSP_CACHE_SIZE 128 /* DSP cacheline size */
+> +
+>  extern char *iva_img;
+>  /* The PROC_OBJECT structure.   */
+>  struct PROC_OBJECT {
+> @@ -722,6 +724,13 @@ DSP_STATUS PROC_FlushMemory(DSP_HPROCESSOR
+> hProcessor, void *pMpuAddr,
+>  	enum DSP_FLUSHTYPE FlushMemType = PROC_WRITEBACK_INVALIDATE_MEM;
+>  	DBC_Require(cRefs > 0);
+> 
+> +	if (!IS_ALIGNED((u32)pMpuAddr, DSP_CACHE_SIZE) ||
+> +	    !IS_ALIGNED(ulSize, DSP_CACHE_SIZE)) {
+> +		pr_err("%s: Invalid alignment %p %x\n",
+> +		       __func__, pMpuAddr, ulSize);
+> +		return DSP_EALIGNMENT;
+> +	}
+> +
+>  	GT_4trace(PROC_DebugMask, GT_ENTER,
+>  		 "Entered PROC_FlushMemory, args:\n\t"
+>  		 "hProcessor: 0x%x pMpuAddr: 0x%x ulSize 0x%x, ulFlags
+> 0x%x\n",
+> @@ -753,6 +762,14 @@ DSP_STATUS PROC_InvalidateMemory(DSP_HPROCESSOR
+> hProcessor, void *pMpuAddr,
+>  		 "Entered PROC_InvalidateMemory, args:\n\t"
+>  		 "hProcessor: 0x%x pMpuAddr: 0x%x ulSize 0x%x\n", hProcessor,
+>  		 pMpuAddr, ulSize);
+> +
+> +	if (!IS_ALIGNED((u32)pMpuAddr, DSP_CACHE_SIZE) ||
+> +	    !IS_ALIGNED(ulSize, DSP_CACHE_SIZE)) {
+> +		pr_err("%s: Invalid alignment %p %x\n",
+> +		       __func__, pMpuAddr, ulSize);
+> +		return DSP_EALIGNMENT;
+> +	}
+> +
+>  	(void)SYNC_EnterCS(hProcLock);
+>  	MEM_FlushCache(pMpuAddr, ulSize, FlushMemType);
+>  	(void)SYNC_LeaveCS(hProcLock);
+> --
+> 1.6.0.4
+> 
+
