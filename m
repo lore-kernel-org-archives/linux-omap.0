@@ -1,86 +1,42 @@
-From: Hugo Vincent <hugo.vincent@gmail.com>
-Subject: twl4030-madc conversions always time out
-Date: Mon, 11 May 2009 14:14:49 +1200
-Message-ID: <5a7b8b7b0905101914g7bef0069n812421454fac3419@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+Subject: [PATCH 1/2] DSPBRIDGE: fix L2 pagetable alignment for DSP MMU
+Date: Mon, 11 May 2009 07:55:12 +0300
+Message-ID: <1242017713-25795-1-git-send-email-Hiroshi.DOYU@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from yw-out-2324.google.com ([74.125.46.28]:43863 "EHLO
-	yw-out-2324.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753094AbZEKCOt (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 10 May 2009 22:14:49 -0400
-Received: by yw-out-2324.google.com with SMTP id 5so1518871ywb.1
-        for <linux-omap@vger.kernel.org>; Sun, 10 May 2009 19:14:49 -0700 (PDT)
+Received: from smtp.nokia.com ([192.100.105.134]:32347 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750765AbZEKEzZ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 11 May 2009 00:55:25 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org, "General mailing list for gumstix users." <gumstix-users@lists.sourceforge.net>
+To: h-kanigeri2@ti.com
+Cc: nm@ti.com, linux-omap@vger.kernel.org, Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
 
-Hi madc users,
+From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
 
-I'm trying to use the twl4030-madc driver on my Overo-based OMAP3 board.
 
-I'm using l-o 2.6.29 (git rev
-58cf2f1425abfd3a449f9fe985e48be2d2555022) built using the OE 2.6.29
-recipe.
+The L2 pagetable should align on 1KB since the lower 10 bits of L2
+pagetable address are not used by DSP H/W.
 
-I've made the changes to board-overo.c as per this thread:
-http://www.nabble.com/ADC-timeout-on-Overo-td21222714.html#a21222714
+Signed-off-by: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+---
+ drivers/dsp/bridge/wmd/tiomap3430.c |    3 +--
+ 1 files changed, 1 insertions(+), 2 deletions(-)
 
-and am using userspace test code like this:
-	int d = open("/dev/twl4030-madc", O_RDWR | O_NONBLOCK);
-	if (d == -1)
-	{
-		printf("could not open device\n");
-		return 1;
-	}
-	
-	struct twl4030_madc_user_parms *par;
-	par = malloc(sizeof(struct twl4030_madc_user_parms));
-	
-	for (int i = 2; i < 8; i++)
-	{
-		printf("channel = %d ", i);
-		memset(par, 0, sizeof(struct twl4030_madc_user_parms));
-		par->channel = i;
-		int ret = ioctl(d, TWL4030_MADC_IOCX_ADC_RAW_READ, par);
-		if (ret == 0 && par->status != -1)
-			printf("result = 0x%04x\n\n", par->result);
-		else
-		{
-			if (par->status == -1)
-				printf("timeout! ");
-			printf("ERROR\n");
-		}
+diff --git a/drivers/dsp/bridge/wmd/tiomap3430.c b/drivers/dsp/bridge/wmd/tiomap3430.c
+index 2ab585d..5a858bd 100644
+--- a/drivers/dsp/bridge/wmd/tiomap3430.c
++++ b/drivers/dsp/bridge/wmd/tiomap3430.c
+@@ -1080,8 +1080,7 @@ static DSP_STATUS WMD_DEV_Create(OUT struct WMD_DEV_CONTEXT **ppDevContext,
+ 		pPtAttrs->L2NumPages = ((DMMPOOLSIZE >> 20) + 6);
+ 		pPtAttrs->L2size = HW_MMU_COARSE_PAGE_SIZE *
+ 				   pPtAttrs->L2NumPages;
+-		align_size = 4; /* Make it u32 aligned  */
+-		/* we like to get aligned on L1 table size */
++		align_size = 1 << 10; /* L2 pagetable alignement */
+ 		pg_tbl_va = (u32)MEM_AllocPhysMem(pPtAttrs->L2size,
+ 			    align_size, &pg_tbl_pa);
+ 	pPtAttrs->L2TblAllocPa = pg_tbl_pa;
+-- 
+1.6.0.4
 
-		sleep(1); // avoid timing problems, just in case
-	}
-
-It consistently hits this timeout in the madc driver (i.e. -EAGAIN is
-returned) even if I increase the timeout to, say, 1000 ms:
-
-static int twl4030_madc_wait_conversion_ready(
-		struct twl4030_madc_data *madc,
-		unsigned int timeout_ms, u8 status_reg)
-{
-	unsigned long timeout;
-
-	timeout = jiffies + msecs_to_jiffies(timeout_ms);
-	do {
-		u8 reg;
-
-		reg = twl4030_madc_read(madc, status_reg);
-		if (!(reg & TWL4030_MADC_BUSY) && (reg & TWL4030_MADC_EOC_SW))
-			return 0;
-	} while (!time_after(jiffies, timeout));
-
-	return -EAGAIN;
-}
-
-It seems that the TWL4030_MADC_BUSY bit gets set and never cleared (as
-in the aforementioned nabble thread).
-
-Any ideas?
-
-Cheers,
-Hugo Vincent.
