@@ -1,48 +1,73 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH 0/2] I2C: OMAP: spurious IRQ fixes
-Date: Mon, 11 May 2009 01:29:18 -0600 (MDT)
-Message-ID: <alpine.DEB.2.00.0905071529070.17514@utopia.booyaka.com>
-References: <20090426042504.31316.68357.stgit@localhost.localdomain> <49F59D89.3030008@nokia.com>
+From: Kwangwoo Lee <kwangwoo.lee@gmail.com>
+Subject: [PATCH 1/2] Input: tsc2007: fix locking method against the current rc
+	kernel
+Date: Mon, 11 May 2009 20:41:35 +0900
+Message-ID: <483a38b80905110441t703adbd6sab31bcf19b507fc9@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:51731 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752551AbZEKH3S (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 11 May 2009 03:29:18 -0400
-In-Reply-To: <49F59D89.3030008@nokia.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-input-owner@vger.kernel.org>
+Sender: linux-input-owner@vger.kernel.org
+To: Dmitry Torokhov <dmitry.torokhov@gmail.com>, Thierry Reding <thierry.reding@avionic-design.de>
+Cc: Trilok Soni <soni.trilok@gmail.com>, linux-input@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
-Cc: Aaro Koskinen <aaro.koskinen@nokia.com>
 
-On Mon, 27 Apr 2009, Aaro Koskinen wrote:
+Hi Dmitry,
 
-> Paul Walmsley wrote:
-> > It seems to work: under constant I2C load, no spurious IRQ messages
-> > showed up after several hours of testing.  (Without these patches,
-> > spurious IRQs usually show up in a few minutes.)  Some of the code has
-> > also been cleaned up.
-> > 
-> > Any feedback on how this series works for others is appreciated.
-> > 
-> > Tested on N800, Beagle and 3430SDP.
-> 
-> With these patches I'm getting receive overruns quite easily on rx51 when
-> doing large reads from TWL4030 RTC.
+The following patch fixes bug in tsc2007.
+It is not working correctly in the current rc kernels.
+IMHO, this patch should go in the 2.6.30
 
-A brief update for anyone following along on the list: 
+Can you advise me about "From: email" part?
+I splited Thierry's patch. So the original "From: email" is followed:
 
-Aaro sent me a test-case.  It seems that the receive overruns only affect 
-PM kernels.  They are caused by the MPU going to sleep while it waits for 
-an I2C interrupt.  It turns out that the current driver causes receive 
-overruns also; it just hides them.  The receive overruns are fairly 
-straightforward to deal with by setting an MPU wakeup latency constraint 
-during I2C operations.
+From: Thierry Reding <thierry.reding@avionic-design.de>
 
-So the plan now is to send two sets of patches.  One set will resolve the 
-spurious IRQ problems.  The other will resolve the receive overrun 
-issues and will be mostly against the PM branch.
+Thank you,
+Kwangwoo Lee
 
+>From 749ee3a4a2c2fe1f41601481e47cb26d8ccec20d Mon Sep 17 00:00:00 2001
+From: Kwangwoo Lee <kwangwoo.lee@gmail.com>
+Date: Mon, 11 May 2009 20:00:01 +0900
+Subject: [PATCH 1/2] Input: tsc2007: fix locking method against the
+current rc kernel.
 
-- Paul
+Without this patch, current driver will emit panic message below:
+Kernel panic - not syncing: Fatal exception in interrupt.
+
+The original patch is written by Thierry.
+
+Signed-off-by: Thierry Reding <thierry.reding@avionic-design.de>
+Signed-off-by: Kwangwoo Lee <kwangwoo.lee@gmail.com>
+---
+ drivers/input/touchscreen/tsc2007.c |    5 +++--
+ 1 files changed, 3 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/input/touchscreen/tsc2007.c
+b/drivers/input/touchscreen/tsc2007.c
+index 536668f..948e167 100644
+--- a/drivers/input/touchscreen/tsc2007.c
++++ b/drivers/input/touchscreen/tsc2007.c
+@@ -200,8 +200,9 @@ static int tsc2007_read_values(struct tsc2007 *tsc)
+ static enum hrtimer_restart tsc2007_timer(struct hrtimer *handle)
+ {
+ 	struct tsc2007 *ts = container_of(handle, struct tsc2007, timer);
++	unsigned long flags;
+
+-	spin_lock_irq(&ts->lock);
++	spin_lock_irqsave(&ts->lock, flags);
+
+ 	if (unlikely(!ts->get_pendown_state() && ts->pendown)) {
+ 		struct input_dev *input = ts->input;
+@@ -222,7 +223,7 @@ static enum hrtimer_restart tsc2007_timer(struct
+hrtimer *handle)
+ 		tsc2007_send_event(ts);
+ 	}
+
+-	spin_unlock_irq(&ts->lock);
++	spin_unlock_irqrestore(&ts->lock, flags);
+
+ 	return HRTIMER_NORESTART;
+ }
+-- 
+1.5.6.5
