@@ -1,38 +1,48 @@
-From: <Mikko.K.Ylinen@nokia.com>
-Subject: RE: twl4030-madc conversions always time out
-Date: Mon, 11 May 2009 09:17:11 +0200
-Message-ID: <697A7C5C820BFF44B6906324D764CE010C93110B46@NOK-EUMSG-05.mgdnok.nokia.com>
-References: <5a7b8b7b0905101914g7bef0069n812421454fac3419@mail.gmail.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH 0/2] I2C: OMAP: spurious IRQ fixes
+Date: Mon, 11 May 2009 01:29:18 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.0905071529070.17514@utopia.booyaka.com>
+References: <20090426042504.31316.68357.stgit@localhost.localdomain> <49F59D89.3030008@nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:58912 "EHLO
-	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751113AbZEKHRq convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 11 May 2009 03:17:46 -0400
-In-Reply-To: <5a7b8b7b0905101914g7bef0069n812421454fac3419@mail.gmail.com>
-Content-Language: en-US
+Received: from utopia.booyaka.com ([72.9.107.138]:51731 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752551AbZEKH3S (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 11 May 2009 03:29:18 -0400
+In-Reply-To: <49F59D89.3030008@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: hugo.vincent@gmail.com, linux-omap@vger.kernel.org, gumstix-users@lists.sourceforge.net
+To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Cc: Aaro Koskinen <aaro.koskinen@nokia.com>
 
-Hi, 
+On Mon, 27 Apr 2009, Aaro Koskinen wrote:
 
->-----Original Message-----
->From: Hugo Vincent
->Sent: 11 May, 2009 05:15
->
->It seems that the TWL4030_MADC_BUSY bit gets set and never 
->cleared (as in the aforementioned nabble thread).
->
->Any ideas?
+> Paul Walmsley wrote:
+> > It seems to work: under constant I2C load, no spurious IRQ messages
+> > showed up after several hours of testing.  (Without these patches,
+> > spurious IRQs usually show up in a few minutes.)  Some of the code has
+> > also been cleaned up.
+> > 
+> > Any feedback on how this series works for others is appreciated.
+> > 
+> > Tested on N800, Beagle and 3430SDP.
+> 
+> With these patches I'm getting receive overruns quite easily on rx51 when
+> doing large reads from TWL4030 RTC.
 
-I believe Overo board has sysclk other than 26MHz. Please check
-GPBR1 register settings for MADC_HFCLK_EN and DEFAULT_MADC_CLK_EN
-bits.
+A brief update for anyone following along on the list: 
 
-Those bits should be configured *before* sysclk is set in CFG_BOOT.
+Aaro sent me a test-case.  It seems that the receive overruns only affect 
+PM kernels.  They are caused by the MPU going to sleep while it waits for 
+an I2C interrupt.  It turns out that the current driver causes receive 
+overruns also; it just hides them.  The receive overruns are fairly 
+straightforward to deal with by setting an MPU wakeup latency constraint 
+during I2C operations.
 
--- 
-Regards, Mikko
+So the plan now is to send two sets of patches.  One set will resolve the 
+spurious IRQ problems.  The other will resolve the receive overrun 
+issues and will be mostly against the PM branch.
+
+
+- Paul
