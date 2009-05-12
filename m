@@ -1,75 +1,130 @@
-From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
-Subject: Re: [PATCH 2/2] DSPBRIDGE: add checking 128 byte alignment for dsp
- cache line size
-Date: Tue, 12 May 2009 08:38:40 +0300 (EEST)
-Message-ID: <20090512.083840.42792590.Hiroshi.DOYU@nokia.com>
-References: <20090511.203528.258116329.Hiroshi.DOYU@nokia.com>
-	<94a0d4530905111054x138375e3p5e2b6d08c9b31120@mail.gmail.com>
-	<8F7AF80515AF0D4D93307E594F3CB40E2AF66543@dlee03.ent.ti.com>
+From: "Syed Rafiuddin" <rafiuddin.syed@ti.com>
+Subject: [PATCH 1/2][RFC] OMAP4: McBSP support for OMAP_4430SDP.
+Date: Tue, 12 May 2009 11:49:40 +0530 (IST)
+Message-ID: <54652.192.168.10.89.1242109180.squirrel@dbdmail.itg.ti.com>
+References: <EAF47CD23C76F840A9E7FCE10091EFAB02B4687E57@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:27857 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752643AbZELFi5 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 12 May 2009 01:38:57 -0400
-In-Reply-To: <8F7AF80515AF0D4D93307E594F3CB40E2AF66543@dlee03.ent.ti.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:36176 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754901AbZELGTw (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 12 May 2009 02:19:52 -0400
+In-Reply-To: <EAF47CD23C76F840A9E7FCE10091EFAB02B4687E57@dbde02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: h-kanigeri2@ti.com
-Cc: felipe.contreras@gmail.com, nm@ti.com, linux-omap@vger.kernel.org
+To: "linux-arm-kernel@lists.arm.linux.org.uk" <linux-arm-kernel@lists.arm.linux.org.uk>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-From: "ext Kanigeri, Hari" <h-kanigeri2@ti.com>
-Subject: RE: [PATCH 2/2] DSPBRIDGE: add checking 128 byte alignment for dsp cache line size
-Date: Mon, 11 May 2009 20:26:11 +0200
+This patch creates McBSP support on OMAP4430 development platform.
+This patch includes corresponding base address changes for OMAP4.
 
-> To summarize the discussion.
+Signed-off-by: Syed Rafiuddin <rafiuddin.syed@ti.com>
+---
+ arch/arm/mach-omap2/mcbsp.c             |   46 ++++++++++++++++++++++++++++++++
+ arch/arm/plat-omap/include/mach/mcbsp.h |    8 ++++-
+ 2 files changed, 53 insertions(+), 1 deletion(-)
 
-Thanks
+Index: linux-2.6/arch/arm/mach-omap2/mcbsp.c
+===================================================================
+--- linux-2.6.orig/arch/arm/mach-omap2/mcbsp.c	2009-05-12 10:57:12.000000000 +0530
++++ linux-2.6/arch/arm/mach-omap2/mcbsp.c	2009-05-12 10:57:32.000000000 +0530
+@@ -169,6 +169,47 @@
+ #define OMAP34XX_MCBSP_PDATA_SZ		0
+ #endif
 
-> We need to have the check for 128 bytes alignment (upper and
-> lower). The 2 places that this can be done are in flush function or
-> in Map function.
-> 
-> 	- I prefer the check is done in Map function as Felipe
-> mentioned this function is bound to be called by MM components as
-> opposed to Flush function.
++#ifdef CONFIG_ARCH_OMAP4
++static struct omap_mcbsp_platform_data omap44xx_mcbsp_pdata[] = {
++	{
++		.phys_base      = OMAP44XX_MCBSP1_BASE,
++		.dma_rx_sync    = OMAP44XX_DMA_MCBSP1_RX,
++		.dma_tx_sync    = OMAP44XX_DMA_MCBSP1_TX,
++		.rx_irq         = INT_24XX_MCBSP1_IRQ_RX,
++		.tx_irq         = INT_24XX_MCBSP1_IRQ_TX,
++		.ops            = &omap2_mcbsp_ops,
++	},
++	{
++		.phys_base      = OMAP44XX_MCBSP2_BASE,
++		.dma_rx_sync    = OMAP44XX_DMA_MCBSP2_RX,
++		.dma_tx_sync    = OMAP44XX_DMA_MCBSP2_TX,
++		.rx_irq         = INT_24XX_MCBSP2_IRQ_RX,
++		.tx_irq         = INT_24XX_MCBSP2_IRQ_TX,
++		.ops            = &omap2_mcbsp_ops,
++	},
++	{
++		.phys_base      = OMAP44XX_MCBSP3_BASE,
++		.dma_rx_sync    = OMAP44XX_DMA_MCBSP3_RX,
++		.dma_tx_sync    = OMAP44XX_DMA_MCBSP3_TX,
++		.rx_irq         = INT_24XX_MCBSP3_IRQ_RX,
++		.tx_irq         = INT_24XX_MCBSP3_IRQ_TX,
++		.ops            = &omap2_mcbsp_ops,
++	},
++	{
++		.phys_base      = OMAP44XX_MCBSP4_BASE,
++		.dma_rx_sync    = OMAP44XX_DMA_MCBSP4_RX,
++		.dma_tx_sync    = OMAP44XX_DMA_MCBSP4_TX,
++		.rx_irq         = INT_24XX_MCBSP4_IRQ_RX,
++		.tx_irq         = INT_24XX_MCBSP4_IRQ_TX,
++		.ops            = &omap2_mcbsp_ops,
++	},
++}
++#define OMAP44XX_MCBSP_PDATA_SZ		ARRAY_SIZE(omap44xx_mcbsp_pdata)
++#else
++#define omap44xx_mcbsp_pdata		NULL
++#define OMAP44XX_MCBSP_PDATA_SZ		0
++#endif
++
+ static int __init omap2_mcbsp_init(void)
+ {
+ 	if (cpu_is_omap2420())
+@@ -177,6 +218,8 @@
+ 		omap_mcbsp_count = OMAP2430_MCBSP_PDATA_SZ;
+ 	if (cpu_is_omap34xx())
+ 		omap_mcbsp_count = OMAP34XX_MCBSP_PDATA_SZ;
++	if (cpu_is_omap44xx())
++		omap_mcbsp_count = OMAP44XX_MCBSP_PDATA_SZ;
 
-Mapping is totally another thing from this problem.
+ 	mcbsp_ptr = kzalloc(omap_mcbsp_count * sizeof(struct omap_mcbsp *),
+ 								GFP_KERNEL);
+@@ -192,6 +235,9 @@
+ 	if (cpu_is_omap34xx())
+ 		omap_mcbsp_register_board_cfg(omap34xx_mcbsp_pdata,
+ 						OMAP34XX_MCBSP_PDATA_SZ);
++	if (cpu_is_omap44xx())
++		omap_mcbsp_register_board_cfg(omap44xx_mcbsp_pdata,
++						OMAP44XX_MCBSP_PDATA_SZ);
 
-Any page mapping is being done, forcing PAGE_SIZE as below, because
-PAGE_SIZE(4KB) is the mininum unit from (io)mmu H/W perspective. This
-is same as ARM too. They've been aligned on 4KB already. So no need to
-worry about 128-byte alignement for mapping.
+ 	return omap_mcbsp_init();
+ }
+Index: linux-2.6/arch/arm/plat-omap/include/mach/mcbsp.h
+===================================================================
+--- linux-2.6.orig/arch/arm/plat-omap/include/mach/mcbsp.h	2009-05-12
+10:57:12.000000000 +0530
++++ linux-2.6/arch/arm/plat-omap/include/mach/mcbsp.h	2009-05-12
+10:58:24.000000000 +0530
+@@ -53,6 +53,11 @@
+ #define OMAP34XX_MCBSP4_BASE	0x49026000
+ #define OMAP34XX_MCBSP5_BASE	0x48096000
 
-DSP_STATUS PROC_Map(DSP_HPROCESSOR hProcessor, void *pMpuAddr, u32 ulSize,
-		   void *pReqAddr, void **ppMapAddr, u32 ulMapAttr)
-{
-	.....
-	/* Calculate the page-aligned PA, VA and size */
-	vaAlign = PG_ALIGN_LOW((u32) pReqAddr, PG_SIZE_4K);
-	paAlign = PG_ALIGN_LOW((u32) pMpuAddr, PG_SIZE_4K);
-	sizeAlign = PG_ALIGN_HIGH(ulSize + (u32)pMpuAddr - paAlign,
-				 PG_SIZE_4K);
++#define OMAP44XX_MCBSP1_BASE	0x49022000
++#define OMAP44XX_MCBSP2_BASE	0x49024000
++#define OMAP44XX_MCBSP3_BASE	0x49026000
++#define OMAP44XX_MCBSP4_BASE	0x48074000
++
+ #if defined(CONFIG_ARCH_OMAP15XX) || defined(CONFIG_ARCH_OMAP16XX) ||
+defined(CONFIG_ARCH_OMAP730)
 
-The points which we should take care of are bridge cache
-operations("PROC_Flush/Invalidate..()") and we should/can handle this
-problem independently. It would cause another dependency and increase
-another complexity again if we have to assume something(ex:
-"read-only" or "write-only" buffer) on other modules or expecting
-something on its "protocol".
+ #define OMAP_MCBSP_REG_DRR2	0x00
+@@ -98,7 +103,8 @@
+ #define AUDIO_DMA_TX		OMAP_DMA_MCBSP1_TX
+ #define AUDIO_DMA_RX		OMAP_DMA_MCBSP1_RX
 
-> Also, another reason is the flush
-> function in Bridge driver is going to be removed eventually.
+-#elif defined(CONFIG_ARCH_OMAP24XX) || defined(CONFIG_ARCH_OMAP34XX)
++#elif defined(CONFIG_ARCH_OMAP24XX) || defined(CONFIG_ARCH_OMAP34XX) || \
++	defined(CONFIG_ARCH_OMAP4)
 
-Maybe this should be discussed separately from the current topic.
+ #define OMAP_MCBSP_REG_DRR2	0x00
+ #define OMAP_MCBSP_REG_DRR1	0x04
 
-> The open issue is the impact on the OMX components. Once if we
-> finalize that there is no impact on the existing OMX components or
-> we have a plan to take this into account we can enforce this check.
 
-This modification impact is a compatibility issue with the existing
-S/W. Fixing it is the way to go rather than working around the
-potential risk that userland can cause kernel crash / memory
-corruption.
