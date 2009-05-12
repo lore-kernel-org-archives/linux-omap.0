@@ -1,99 +1,75 @@
-From: "Nayak, Rajendra" <rnayak@ti.com>
-Subject: RE: linux-omap pm branch
-Date: Tue, 12 May 2009 10:22:53 +0530
-Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB0305601567@dbde02.ent.ti.com>
-References: <7B4574D56E4ADF438756313E9A172A873958F7E3@dlee01.ent.ti.com>
+From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+Subject: Re: [PATCH 2/2] DSPBRIDGE: add checking 128 byte alignment for dsp
+ cache line size
+Date: Tue, 12 May 2009 08:38:40 +0300 (EEST)
+Message-ID: <20090512.083840.42792590.Hiroshi.DOYU@nokia.com>
+References: <20090511.203528.258116329.Hiroshi.DOYU@nokia.com>
+	<94a0d4530905111054x138375e3p5e2b6d08c9b31120@mail.gmail.com>
+	<8F7AF80515AF0D4D93307E594F3CB40E2AF66543@dlee03.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:57644 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751576AbZELExB convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 12 May 2009 00:53:01 -0400
-Received: from dbdp20.itg.ti.com ([172.24.170.38])
-	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id n4C4quod009290
-	for <linux-omap@vger.kernel.org>; Mon, 11 May 2009 23:53:02 -0500
-Received: from dbde71.ent.ti.com (localhost [127.0.0.1])
-	by dbdp20.itg.ti.com (8.13.8/8.13.8) with ESMTP id n4C4qsdu004997
-	for <linux-omap@vger.kernel.org>; Tue, 12 May 2009 10:22:55 +0530 (IST)
-In-Reply-To: <7B4574D56E4ADF438756313E9A172A873958F7E3@dlee01.ent.ti.com>
-Content-Language: en-US
+Received: from smtp.nokia.com ([192.100.105.134]:27857 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752643AbZELFi5 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 12 May 2009 01:38:57 -0400
+In-Reply-To: <8F7AF80515AF0D4D93307E594F3CB40E2AF66543@dlee03.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Hunter, Jon" <jon-hunter@ti.com>, "Premi, Sanjeev" <premi@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: h-kanigeri2@ti.com
+Cc: felipe.contreras@gmail.com, nm@ti.com, linux-omap@vger.kernel.org
 
+From: "ext Kanigeri, Hari" <h-kanigeri2@ti.com>
+Subject: RE: [PATCH 2/2] DSPBRIDGE: add checking 128 byte alignment for dsp cache line size
+Date: Mon, 11 May 2009 20:26:11 +0200
 
->-----Original Message-----
->From: linux-omap-owner@vger.kernel.org 
->[mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Hunter, Jon
->Sent: Tuesday, May 12, 2009 4:09 AM
->To: Premi, Sanjeev; linux-omap@vger.kernel.org
->Subject: RE: linux-omap pm branch 
->
->Hi Sanjeev,
->
->> > 1). What omap3430 board(s) are being using to validate the pm
->> > branch functionality?
->> 
->> [sp] I believe most common are omap3evm and beagle.
->
->Do you know if we are doing any validation on the SDP3430 or 
->Zoom boards? 
+> To summarize the discussion.
 
-Jon,
+Thanks
 
-Most of the validation on the 3430SDP have been done using a minimal
-defconfig, omap_3430sdp_min_defconfig.
-
->
->Using defconfig for the SDP3430 the kernel failed to boot. I 
->found that this was due to the MUSB driver and SmartReflex. 
->Disabling these allows it to boot.
->
->> > 2). Is there a list of pm features are currently
->> > supported/functional for omap3430? For example, cpuidle,
->> > cpufreq, retention, off-mode, smart-reflex, suspend/restore, etc.
->> 
->> [sp] All of above - though all drivers may not support power
->>      management. Hence you may see some failures scenarios
->>      esp. with off mode.
->
->Off mode does not appear to be working currently on the SDP. 
->It hangs when enabled. Is off-mode stable on any of the boards?
-
-If you tried with the default config (omap_3430sdp_defconfig) it most probably does hang.
-Not all drivers do context save/restore today. Only the ones enabled in the minimal defconfig
-do.
-
->
+> We need to have the check for 128 bytes alignment (upper and
+> lower). The 2 places that this can be done are in flush function or
+> in Map function.
 > 
->> > 3). Are there any userspace tools (such as powertop) that are
->> > recommended for monitoring power states?
->> 
->> [sp] You can definitely use powertop.
->
->Is this what everyone is using or is there any other 
->diagnostics available through the proc or sys file-systems? 
->Powertop is fine but I am curious how people are validating 
->which c-states are being entered. 
+> 	- I prefer the check is done in Map function as Felipe
+> mentioned this function is bound to be called by MM components as
+> opposed to Flush function.
 
-There is a few debugfs entries which throw count of how many times
-a power/clock domain has been in a given state.
-Most of the implementation of these counters is in mach-omap2/pm-debug.c
+Mapping is totally another thing from this problem.
 
-http://marc.info/?l=linux-omap&m=122399525014763&w=2
+Any page mapping is being done, forcing PAGE_SIZE as below, because
+PAGE_SIZE(4KB) is the mininum unit from (io)mmu H/W perspective. This
+is same as ARM too. They've been aligned on 4KB already. So no need to
+worry about 128-byte alignement for mapping.
 
-regards,
-Rajendra
+DSP_STATUS PROC_Map(DSP_HPROCESSOR hProcessor, void *pMpuAddr, u32 ulSize,
+		   void *pReqAddr, void **ppMapAddr, u32 ulMapAttr)
+{
+	.....
+	/* Calculate the page-aligned PA, VA and size */
+	vaAlign = PG_ALIGN_LOW((u32) pReqAddr, PG_SIZE_4K);
+	paAlign = PG_ALIGN_LOW((u32) pMpuAddr, PG_SIZE_4K);
+	sizeAlign = PG_ALIGN_HIGH(ulSize + (u32)pMpuAddr - paAlign,
+				 PG_SIZE_4K);
 
->
->Cheers
->Jon
->--
->To unsubscribe from this list: send the line "unsubscribe 
->linux-omap" in
->the body of a message to majordomo@vger.kernel.org
->More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
->
+The points which we should take care of are bridge cache
+operations("PROC_Flush/Invalidate..()") and we should/can handle this
+problem independently. It would cause another dependency and increase
+another complexity again if we have to assume something(ex:
+"read-only" or "write-only" buffer) on other modules or expecting
+something on its "protocol".
+
+> Also, another reason is the flush
+> function in Bridge driver is going to be removed eventually.
+
+Maybe this should be discussed separately from the current topic.
+
+> The open issue is the impact on the OMX components. Once if we
+> finalize that there is no impact on the existing OMX components or
+> we have a plan to take this into account we can enforce this check.
+
+This modification impact is a compatibility issue with the existing
+S/W. Fixing it is the way to go rather than working around the
+potential risk that userland can cause kernel crash / memory
+corruption.
