@@ -1,76 +1,34 @@
 From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH 2/2][RFC] OMAP4: UART4 Support for OMAP_4430SDP.
-Date: Tue, 12 May 2009 07:32:52 -0700
-Message-ID: <877i0mfl2j.fsf@deeprootsystems.com>
-References: <51950.192.168.10.89.1241612607.squirrel@dbdmail.itg.ti.com>
-	<55287.192.168.10.89.1242109234.squirrel@dbdmail.itg.ti.com>
+Subject: OMAP4 naming conventions
+Date: Tue, 12 May 2009 07:58:45 -0700
+Message-ID: <87tz3qe5ay.fsf@deeprootsystems.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from rv-out-0506.google.com ([209.85.198.230]:61579 "EHLO
-	rv-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751665AbZELOcx (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 12 May 2009 10:32:53 -0400
-Received: by rv-out-0506.google.com with SMTP id f9so7787rvb.1
-        for <linux-omap@vger.kernel.org>; Tue, 12 May 2009 07:32:54 -0700 (PDT)
-In-Reply-To: <55287.192.168.10.89.1242109234.squirrel@dbdmail.itg.ti.com> (Syed Rafiuddin's message of "Tue\, 12 May 2009 11\:50\:34 +0530 \(IST\)")
+Received: from wf-out-1314.google.com ([209.85.200.172]:52725 "EHLO
+	wf-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752038AbZELO6r (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 12 May 2009 10:58:47 -0400
+Received: by wf-out-1314.google.com with SMTP id 26so18854wfd.4
+        for <linux-omap@vger.kernel.org>; Tue, 12 May 2009 07:58:48 -0700 (PDT)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Syed Rafiuddin <rafiuddin.syed@ti.com>
-Cc: "linux-arm-kernel@lists.arm.linux.org.uk" <linux-arm-kernel@lists.arm.linux.org.uk>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: linux-omap@vger.kernel.org
+Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
 
-"Syed Rafiuddin" <rafiuddin.syed@ti.com> writes:
+As the OMAP4 patches are coming in, there seems to be a bit of variety
+in the naming of functions/macros/variables etc.
 
-> This patch enables support for UART4 on OMAP4430 development platform.
->
-> Signed-off-by: Syed Rafiuddin <rafiuddin.syed@ti.com>
-> ---
-> arch/arm/mach-omap2/board-4430sdp.c |    2 +-
->  arch/arm/mach-omap2/serial.c        |   12 ++++++++++++
->  2 files changed, 13 insertions(+), 1 deletion(-)
->
-> Index: linux-2.6/arch/arm/mach-omap2/board-4430sdp.c
-> ===================================================================
-> --- linux-2.6.orig/arch/arm/mach-omap2/board-4430sdp.c	2009-05-12
-> 10:43:41.000000000 +0530
-> +++ linux-2.6/arch/arm/mach-omap2/board-4430sdp.c	2009-05-12 11:40:54.000000000
-> +0530
-> @@ -38,7 +38,7 @@
->  };
->
->  static struct omap_uart_config sdp4430_uart_config __initdata = {
-> -	.enabled_uarts	= ((1 << 0) | (1 << 1) | (1 << 2)),
-> +	.enabled_uarts	= ((1 << 0) | (1 << 1) | (1 << 2) | (1 << 3)),
->  };
->
->  static struct omap_lcd_config sdp4430_lcd_config __initdata = {
-> Index: linux-2.6/arch/arm/mach-omap2/serial.c
-> ===================================================================
-> --- linux-2.6.orig/arch/arm/mach-omap2/serial.c	2009-05-12 11:35:55.000000000
-> +0530
-> +++ linux-2.6/arch/arm/mach-omap2/serial.c	2009-05-12 11:46:13.000000000 +0530
-> @@ -53,8 +53,20 @@
->  		.iotype		= UPIO_MEM,
->  		.regshift	= 2,
->  		.uartclk	= OMAP24XX_BASE_BAUD * 16,
-> +
-> +	}, {
-> +#ifdef CONFIG_ARCH_OMAP4
-> +		.membase        = IO_ADDRESS(OMAP_UART3_BASE),
-> +		.mapbase        = OMAP_UART4_BASE,
-> +		.irq            = 70,
-> +		.flags          = UPF_BOOT_AUTOCONF,
-> +		.iotype         = UPIO_MEM,
-> +		.regshift       = 2,
-> +		.uartclk        = OMAP24XX_BASE_BAUD * 16,
->  	}, {
-> +#else
->  		.flags		= 0
-> +#endif
->  	}
->  };
+Could I propose that we just use omap4_* and OMAP4_* instead of
+OMAP44XX_* or OMAP4XXXX_* etc.
 
-You dropped the terminator entry (flags == 0) in the OMAP4 case.  That
-should remain the last entry whether or not OMAP4 support is enabled.
+I know that OMAP2 and OMAP3 have a variety of forms here too, but
+those should probably be cleaned up eventually too.
+
+With proper runtime revision detecting, IMO, we should only really
+have the OMAP4 prefix, and leave the sub revision handling to runtime
+code.
+
+Thoughts?
 
 Kevin
