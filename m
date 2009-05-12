@@ -1,34 +1,26 @@
-From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Subject: RE: OMAP4 naming conventions
-Date: Tue, 12 May 2009 20:48:13 +0530
-Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB02B48439C4@dbde02.ent.ti.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: OMAP4 naming conventions
+Date: Tue, 12 May 2009 09:24:30 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.0905120909370.17514@utopia.booyaka.com>
 References: <87tz3qe5ay.fsf@deeprootsystems.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:38899 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752181AbZELPSW convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 12 May 2009 11:18:22 -0400
+Received: from utopia.booyaka.com ([72.9.107.138]:54250 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750832AbZELPYa (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 12 May 2009 11:24:30 -0400
 In-Reply-To: <87tz3qe5ay.fsf@deeprootsystems.com>
-Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@deeprootsystems.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Kevin Hilman <khilman@deeprootsystems.com>
+Cc: linux-omap@vger.kernel.org, Santosh Shilimkar <santosh.shilimkar@ti.com>
 
+On Tue, 12 May 2009, Kevin Hilman wrote:
 
-
-> -----Original Message-----
-> From: Kevin Hilman [mailto:khilman@deeprootsystems.com] 
-> Sent: Tuesday, May 12, 2009 8:29 PM
-> To: linux-omap@vger.kernel.org
-> Cc: Shilimkar, Santosh
-> Subject: OMAP4 naming conventions
-> 
 > As the OMAP4 patches are coming in, there seems to be a bit of variety
 > in the naming of functions/macros/variables etc.
-> *
+> 
 > Could I propose that we just use omap4_* and OMAP4_* instead of
 > OMAP44XX_* or OMAP4XXXX_* etc.
 > 
@@ -41,8 +33,14 @@ To: Kevin Hilman <khilman@deeprootsystems.com>, "linux-omap@vger.kernel.org" <li
 > 
 > Thoughts?
 
-Tony has also proposed this during the review. Current macros are using only OMAP44XX_* . And these can be changed to OMAP4_*
+Here are some questions that we should figure out answers to before 
+deciding:
 
-Regards,
-Santosh
- 
+How should macros be named that only apply to specific OMAP4 chips (i.e., 
+what happens if TI repeats a OMAP2420 to 2430 transition)?
+
+How should macros be handled that are only applicable to later ES levels?  
+Tagging ES levels in macros has caught many bugs in the OMAP2/3 code.
+
+
+- Paul
