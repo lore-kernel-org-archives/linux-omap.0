@@ -1,42 +1,254 @@
-From: "Hunter, Jon" <jon-hunter@ti.com>
-Subject: ARM: CONFIG_FRAME_POINTER
-Date: Tue, 12 May 2009 16:46:30 -0500
-Message-ID: <7B4574D56E4ADF438756313E9A172A87396257F0@dlee01.ent.ti.com>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: [PATCH 2/5] ARM: OMAP2/3: Remove OMAP_PRM_REGADDR and OMAP2_PRM_BASE
+Date: Tue, 12 May 2009 15:31:33 -0700
+Message-ID: <87y6t2ar7e.fsf@deeprootsystems.com>
+References: <20090507203552.7461.35051.stgit@localhost>
+	<20090507204247.7461.8400.stgit@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:53895 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751772AbZELVqg convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 12 May 2009 17:46:36 -0400
-Received: from dlep36.itg.ti.com ([157.170.170.91])
-	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id n4CLkXmV012867
-	for <linux-omap@vger.kernel.org>; Tue, 12 May 2009 16:46:38 -0500
-Received: from dlep20.itg.ti.com (localhost [127.0.0.1])
-	by dlep36.itg.ti.com (8.13.8/8.13.8) with ESMTP id n4CLkWaP026430
-	for <linux-omap@vger.kernel.org>; Tue, 12 May 2009 16:46:32 -0500 (CDT)
-Received: from dsbe71.ent.ti.com (localhost [127.0.0.1])
-	by dlep20.itg.ti.com (8.12.11/8.12.11) with ESMTP id n4CLkW5V021782
-	for <linux-omap@vger.kernel.org>; Tue, 12 May 2009 16:46:32 -0500 (CDT)
-Content-Language: en-US
+Received: from wf-out-1314.google.com ([209.85.200.173]:33476 "EHLO
+	wf-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750974AbZELWbg (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 12 May 2009 18:31:36 -0400
+Received: by wf-out-1314.google.com with SMTP id 26so205337wfd.4
+        for <linux-omap@vger.kernel.org>; Tue, 12 May 2009 15:31:37 -0700 (PDT)
+In-Reply-To: <20090507204247.7461.8400.stgit@localhost> (Tony Lindgren's message of "Thu\, 07 May 2009 13\:42\:47 -0700")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org
 
-Hi All,
+Tony Lindgren <tony@atomide.com> writes:
 
-I have been doing some testing with the latest linux-omap kernel on the 3430sdp and the kernel appeared to hang on start-up during the delay loop calibration. 
+> Remove OMAP_PRM_REGADDR and use processor specific defines instead.
+> Also remove now unused OMAP2_PRM_BASE.
+>
 
-After debugging this I found that this was being caused because there was a difference in the compilation flags being used when compiling this kernel version and an earlier kernel version. Please note that I am using the code sourcery arm2007q3 compiler version (gcc 4.2.1) which is old I know!
+Tony,
 
-Investigating further I noticed that the source of the different kernel compilation flags was due to the fact that kernel option "CONFIG_FRAME_POINTER" was missing from the .config. Although this is declared in the defconfig for the 3430sdp but it was not getting copied over to the .config.
+For clean PM branch integration, the patch below is needed on top of
+this one.
 
-Looking at the lib/Kconfig.debug it appears that there is a new option added back in January called "ARCH_WANT_FRAME_POINTERS" [1]. And only if this new option is defined in the ARCH Kconfig will CONFIG_FRAME_POINTER be used. Today this is not defined for ARM. 
+The PM branch code uses almost entirely the [cm|prm]_[read|write]_*
+macros for accessing PRCM registers.  To do so, it needs the offsets
+defined.
 
-I know this is the linux-omap list and not linux-arm but wanted to see if anyone had any comments/inputs about this and whether I should be using a newer compiler. 
+You'll also notice I use OMAP2_* and OMAP3_* instead of OMAP2xxx_* and
+OMAP3xxx_* for these.
 
-[1] http://git.kernel.org/?p=linux/kernel/git/torvalds/linux-2.6.git;a=commitdiff;h=64dec40ddee9d36d7b83f8a0513fdeaffe260a0e;hp=a3c6018e565dc07cf3738ace6bbe412f97b1bba8 
+This was boot tested on OMAP3 and only build tested for OMAP2.
 
-Cheers
-Jon 
+Comments?
+
+Kevin
+
+>From 84dd07dfe504e241b8229476c9b417607b64835f Mon Sep 17 00:00:00 2001
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Date: Tue, 12 May 2009 14:22:39 -0700
+Subject: [PATCH] OMAP: PM: add PRCM register offsets
+
+---
+ arch/arm/mach-omap2/clock.c |    4 +-
+ arch/arm/mach-omap2/cm.h    |    1 +
+ arch/arm/mach-omap2/prm.h   |   75 +++++++++++++++++++++++++++++++++++++++---
+ 3 files changed, 72 insertions(+), 8 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/clock.c b/arch/arm/mach-omap2/clock.c
+index 4247a15..dd37483 100644
+--- a/arch/arm/mach-omap2/clock.c
++++ b/arch/arm/mach-omap2/clock.c
+@@ -91,9 +91,9 @@ static void _omap2xxx_clk_commit(struct clk *clk)
+ 		return;
+ 
+ 	prm_write_mod_reg(OMAP24XX_VALID_CONFIG, OMAP24XX_GR_MOD,
+-		OMAP24XX_PRCM_CLKCFG_CTRL_OFFSET);
++		OMAP2_PRCM_CLKCFG_CTRL_OFFSET);
+ 	/* OCP barrier */
+-	prm_read_mod_reg(OMAP24XX_GR_MOD, OMAP24XX_PRCM_CLKCFG_CTRL_OFFSET);
++	prm_read_mod_reg(OMAP24XX_GR_MOD, OMAP2_PRCM_CLKCFG_CTRL_OFFSET);
+ }
+ 
+ /*
+diff --git a/arch/arm/mach-omap2/cm.h b/arch/arm/mach-omap2/cm.h
+index 04c5fc5..1d3c93b 100644
+--- a/arch/arm/mach-omap2/cm.h
++++ b/arch/arm/mach-omap2/cm.h
+@@ -33,6 +33,7 @@
+ #define OMAP3430_CM_SYSCONFIG		OMAP_CM_REGADDR(OCP_MOD, 0x0010)
+ #define OMAP3430_CM_POLCTRL		OMAP_CM_REGADDR(OCP_MOD, 0x009c)
+ 
++#define OMAP3_CM_CLKOUT_CTRL_OFFSET	0x0070
+ #define OMAP3430_CM_CLKOUT_CTRL		OMAP_CM_REGADDR(OMAP3430_CCR_MOD, 0x0070)
+ 
+ /*
+diff --git a/arch/arm/mach-omap2/prm.h b/arch/arm/mach-omap2/prm.h
+index 2eb8399..9ab4ea1 100644
+--- a/arch/arm/mach-omap2/prm.h
++++ b/arch/arm/mach-omap2/prm.h
+@@ -34,93 +34,156 @@
+  */
+ 
+ /* Global 24xx registers in GR_MOD (Same as OCP_MOD for 24xx) */
+-#define OMAP24XX_PRCM_VOLTCTRL_OFFSET		0x0050
+-#define OMAP24XX_PRCM_CLKCFG_CTRL_OFFSET	0x0080
++#define OMAP2_PRCM_VOLTCTRL_OFFSET	0x0050
++#define OMAP2_PRCM_CLKCFG_CTRL_OFFSET	0x0080
+ 
+ /* 242x GR_MOD registers, use these only for assembly code */
+ #define OMAP242X_PRCM_VOLTCTRL		OMAP2420_PRM_REGADDR(OMAP24XX_GR_MOD,	\
+-						OMAP24XX_PRCM_VOLTCTRL_OFFSET)
++						OMAP2_PRCM_VOLTCTRL_OFFSET)
+ #define OMAP242X_PRCM_CLKCFG_CTRL	OMAP2420_PRM_REGADDR(OMAP24XX_GR_MOD,	\
+-						OMAP24XX_PRCM_CLKCFG_CTRL_OFFSET)
++						OMAP2_PRCM_CLKCFG_CTRL_OFFSET)
+ 
+ /* 243x GR_MOD registers, use these only for assembly code */
+ #define OMAP243X_PRCM_VOLTCTRL		OMAP2430_PRM_REGADDR(OMAP24XX_GR_MOD,	\
+-						OMAP24XX_PRCM_VOLTCTRL_OFFSET)
++						OMAP2_PRCM_VOLTCTRL_OFFSET)
+ #define OMAP243X_PRCM_CLKCFG_CTRL	OMAP2430_PRM_REGADDR(OMAP24XX_GR_MOD,	\
+-						OMAP24XX_PRCM_CLKCFG_CTRL_OFFSET)
++						OMAP2_PRCM_CLKCFG_CTRL_OFFSET)
+ 
++#define OMAP2_PRCM_REVISION_OFFSET	0x0000
+ #define OMAP2420_PRCM_REVISION		OMAP2420_PRM_REGADDR(OCP_MOD, 0x0000)
++#define OMAP2_PRCM_SYSCONFIG_OFFSET	0x0010
+ #define OMAP2420_PRCM_SYSCONFIG		OMAP2420_PRM_REGADDR(OCP_MOD, 0x0010)
+ 
++#define OMAP2_PRCM_IRQSTATUS_MPU_OFFSET	0x0018
+ #define OMAP2420_PRCM_IRQSTATUS_MPU	OMAP2420_PRM_REGADDR(OCP_MOD, 0x0018)
++#define OMAP2_PRCM_IRQENABLE_MPU_OFFSET	0x001c
+ #define OMAP2420_PRCM_IRQENABLE_MPU	OMAP2420_PRM_REGADDR(OCP_MOD, 0x001c)
+ 
++#define OMAP2_PRCM_VOLTST_OFFSET	0x0054
+ #define OMAP2420_PRCM_VOLTST		OMAP2420_PRM_REGADDR(OCP_MOD, 0x0054)
++#define OMAP2_PRCM_CLKSRC_CTRL_OFFSET	0x0060
+ #define OMAP2420_PRCM_CLKSRC_CTRL	OMAP2420_PRM_REGADDR(OCP_MOD, 0x0060)
++#define OMAP2_PRCM_CLKOUT_CTRL_OFFSET	0x0070
+ #define OMAP2420_PRCM_CLKOUT_CTRL	OMAP2420_PRM_REGADDR(OCP_MOD, 0x0070)
++#define OMAP2_PRCM_CLKEMUL_CTRL_OFFSET	0x0078
+ #define OMAP2420_PRCM_CLKEMUL_CTRL	OMAP2420_PRM_REGADDR(OCP_MOD, 0x0078)
++#define OMAP2_PRCM_CLKCFG_CTRL_OFFSET	0x0080
+ #define OMAP2420_PRCM_CLKCFG_CTRL	OMAP2420_PRM_REGADDR(OCP_MOD, 0x0080)
++#define OMAP2_PRCM_CLKCFG_STATUS_OFFSET	0x0084
+ #define OMAP2420_PRCM_CLKCFG_STATUS	OMAP2420_PRM_REGADDR(OCP_MOD, 0x0084)
++#define OMAP2_PRCM_VOLTSETUP_OFFSET	0x0090
+ #define OMAP2420_PRCM_VOLTSETUP		OMAP2420_PRM_REGADDR(OCP_MOD, 0x0090)
++#define OMAP2_PRCM_CLKSSETUP_OFFSET	0x0094
+ #define OMAP2420_PRCM_CLKSSETUP		OMAP2420_PRM_REGADDR(OCP_MOD, 0x0094)
++#define OMAP2_PRCM_POLCTRL_OFFSET	0x0098
+ #define OMAP2420_PRCM_POLCTRL		OMAP2420_PRM_REGADDR(OCP_MOD, 0x0098)
+ 
++#define OMAP2_PRCM_REVISION_OFFSET	0x0000
+ #define OMAP2430_PRCM_REVISION		OMAP2430_PRM_REGADDR(OCP_MOD, 0x0000)
++#define OMAP2_PRCM_SYSCONFIG_OFFSET	0x0010
+ #define OMAP2430_PRCM_SYSCONFIG		OMAP2430_PRM_REGADDR(OCP_MOD, 0x0010)
+ 
++#define OMAP2_PRCM_IRQSTATUS_MPU_OFFSET	0x0018
+ #define OMAP2430_PRCM_IRQSTATUS_MPU	OMAP2430_PRM_REGADDR(OCP_MOD, 0x0018)
++#define OMAP2_PRCM_IRQENABLE_MPU_OFFSET	0x001c
+ #define OMAP2430_PRCM_IRQENABLE_MPU	OMAP2430_PRM_REGADDR(OCP_MOD, 0x001c)
+ 
++#define OMAP2_PRCM_VOLTST_OFFSET	0x0054
+ #define OMAP2430_PRCM_VOLTST		OMAP2430_PRM_REGADDR(OCP_MOD, 0x0054)
++#define OMAP2_PRCM_CLKSRC_CTRL_OFFSET	0x0060
+ #define OMAP2430_PRCM_CLKSRC_CTRL	OMAP2430_PRM_REGADDR(OCP_MOD, 0x0060)
++#define OMAP2_PRCM_CLKOUT_CTRL_OFFSET	0x0070
+ #define OMAP2430_PRCM_CLKOUT_CTRL	OMAP2430_PRM_REGADDR(OCP_MOD, 0x0070)
++#define OMAP2_PRCM_CLKEMUL_CTRL_OFFSET	0x0078
+ #define OMAP2430_PRCM_CLKEMUL_CTRL	OMAP2430_PRM_REGADDR(OCP_MOD, 0x0078)
++#define OMAP2_PRCM_CLKCFG_CTRL_OFFSET	0x0080
+ #define OMAP2430_PRCM_CLKCFG_CTRL	OMAP2430_PRM_REGADDR(OCP_MOD, 0x0080)
++#define OMAP2_PRCM_CLKCFG_STATUS_OFFSET	0x0084
+ #define OMAP2430_PRCM_CLKCFG_STATUS	OMAP2430_PRM_REGADDR(OCP_MOD, 0x0084)
++#define OMAP2_PRCM_VOLTSETUP_OFFSET	0x0090
+ #define OMAP2430_PRCM_VOLTSETUP		OMAP2430_PRM_REGADDR(OCP_MOD, 0x0090)
++#define OMAP2_PRCM_CLKSSETUP_OFFSET	0x0094
+ #define OMAP2430_PRCM_CLKSSETUP		OMAP2430_PRM_REGADDR(OCP_MOD, 0x0094)
++#define OMAP2_PRCM_POLCTRL_OFFSET	0x0098
+ #define OMAP2430_PRCM_POLCTRL		OMAP2430_PRM_REGADDR(OCP_MOD, 0x0098)
+ 
++#define OMAP3_PRM_REVISION_OFFSET	0x0004
+ #define OMAP3430_PRM_REVISION		OMAP34XX_PRM_REGADDR(OCP_MOD, 0x0004)
++#define OMAP3_PRM_SYSCONFIG_OFFSET	0x0014
+ #define OMAP3430_PRM_SYSCONFIG		OMAP34XX_PRM_REGADDR(OCP_MOD, 0x0014)
+ 
++#define OMAP3_PRM_IRQSTATUS_MPU_OFFSET	0x0018
+ #define OMAP3430_PRM_IRQSTATUS_MPU	OMAP34XX_PRM_REGADDR(OCP_MOD, 0x0018)
++#define OMAP3_PRM_IRQENABLE_MPU_OFFSET	0x001c
+ #define OMAP3430_PRM_IRQENABLE_MPU	OMAP34XX_PRM_REGADDR(OCP_MOD, 0x001c)
+ 
+ 
++#define OMAP3_PRM_VC_SMPS_SA_OFFSET	0x0020
+ #define OMAP3430_PRM_VC_SMPS_SA		OMAP34XX_PRM_REGADDR(OMAP3430_GR_MOD, 0x0020)
++#define OMAP3_PRM_VC_SMPS_VOL_RA_OFFSET	0x0024
+ #define OMAP3430_PRM_VC_SMPS_VOL_RA	OMAP34XX_PRM_REGADDR(OMAP3430_GR_MOD, 0x0024)
++#define OMAP3_PRM_VC_SMPS_CMD_RA_OFFSET	0x0028
+ #define OMAP3430_PRM_VC_SMPS_CMD_RA	OMAP34XX_PRM_REGADDR(OMAP3430_GR_MOD, 0x0028)
++#define OMAP3_PRM_VC_CMD_VAL_0_OFFSET	0x002c
+ #define OMAP3430_PRM_VC_CMD_VAL_0	OMAP34XX_PRM_REGADDR(OMAP3430_GR_MOD, 0x002c)
++#define OMAP3_PRM_VC_CMD_VAL_1_OFFSET	0x0030
+ #define OMAP3430_PRM_VC_CMD_VAL_1	OMAP34XX_PRM_REGADDR(OMAP3430_GR_MOD, 0x0030)
++#define OMAP3_PRM_VC_CH_CONF_OFFSET	0x0034
+ #define OMAP3430_PRM_VC_CH_CONF		OMAP34XX_PRM_REGADDR(OMAP3430_GR_MOD, 0x0034)
++#define OMAP3_PRM_VC_I2C_CFG_OFFSET	0x0038
+ #define OMAP3430_PRM_VC_I2C_CFG		OMAP34XX_PRM_REGADDR(OMAP3430_GR_MOD, 0x0038)
++#define OMAP3_PRM_VC_BYPASS_VAL_OFFSET	0x003c
+ #define OMAP3430_PRM_VC_BYPASS_VAL	OMAP34XX_PRM_REGADDR(OMAP3430_GR_MOD, 0x003c)
++#define OMAP3_PRM_RSTCTRL_OFFSET	0x0050
+ #define OMAP3430_PRM_RSTCTRL		OMAP34XX_PRM_REGADDR(OMAP3430_GR_MOD, 0x0050)
++#define OMAP3_PRM_RSTTIME_OFFSET	0x0054
+ #define OMAP3430_PRM_RSTTIME		OMAP34XX_PRM_REGADDR(OMAP3430_GR_MOD, 0x0054)
++#define OMAP3_PRM_RSTST_OFFSET	0x0058
+ #define OMAP3430_PRM_RSTST		OMAP34XX_PRM_REGADDR(OMAP3430_GR_MOD, 0x0058)
++#define OMAP3_PRM_VOLTCTRL_OFFSET	0x0060
+ #define OMAP3430_PRM_VOLTCTRL		OMAP34XX_PRM_REGADDR(OMAP3430_GR_MOD, 0x0060)
++#define OMAP3_PRM_SRAM_PCHARGE_OFFSET	0x0064
+ #define OMAP3430_PRM_SRAM_PCHARGE	OMAP34XX_PRM_REGADDR(OMAP3430_GR_MOD, 0x0064)
++#define OMAP3_PRM_CLKSRC_CTRL_OFFSET	0x0070
+ #define OMAP3430_PRM_CLKSRC_CTRL	OMAP34XX_PRM_REGADDR(OMAP3430_GR_MOD, 0x0070)
++#define OMAP3_PRM_VOLTSETUP1_OFFSET	0x0090
+ #define OMAP3430_PRM_VOLTSETUP1		OMAP34XX_PRM_REGADDR(OMAP3430_GR_MOD, 0x0090)
++#define OMAP3_PRM_VOLTOFFSET_OFFSET	0x0094
+ #define OMAP3430_PRM_VOLTOFFSET		OMAP34XX_PRM_REGADDR(OMAP3430_GR_MOD, 0x0094)
++#define OMAP3_PRM_CLKSETUP_OFFSET	0x0098
+ #define OMAP3430_PRM_CLKSETUP		OMAP34XX_PRM_REGADDR(OMAP3430_GR_MOD, 0x0098)
++#define OMAP3_PRM_POLCTRL_OFFSET	0x009c
+ #define OMAP3430_PRM_POLCTRL		OMAP34XX_PRM_REGADDR(OMAP3430_GR_MOD, 0x009c)
++#define OMAP3_PRM_VOLTSETUP2_OFFSET	0x00a0
+ #define OMAP3430_PRM_VOLTSETUP2		OMAP34XX_PRM_REGADDR(OMAP3430_GR_MOD, 0x00a0)
++#define OMAP3_PRM_VP1_CONFIG_OFFSET	0x00b0
+ #define OMAP3430_PRM_VP1_CONFIG		OMAP34XX_PRM_REGADDR(OMAP3430_GR_MOD, 0x00b0)
++#define OMAP3_PRM_VP1_VSTEPMIN_OFFSET	0x00b4
+ #define OMAP3430_PRM_VP1_VSTEPMIN	OMAP34XX_PRM_REGADDR(OMAP3430_GR_MOD, 0x00b4)
++#define OMAP3_PRM_VP1_VSTEPMAX_OFFSET	0x00b8
+ #define OMAP3430_PRM_VP1_VSTEPMAX	OMAP34XX_PRM_REGADDR(OMAP3430_GR_MOD, 0x00b8)
++#define OMAP3_PRM_VP1_VLIMITTO_OFFSET	0x00bc
+ #define OMAP3430_PRM_VP1_VLIMITTO	OMAP34XX_PRM_REGADDR(OMAP3430_GR_MOD, 0x00bc)
++#define OMAP3_PRM_VP1_VOLTAGE_OFFSET	0x00c0
+ #define OMAP3430_PRM_VP1_VOLTAGE	OMAP34XX_PRM_REGADDR(OMAP3430_GR_MOD, 0x00c0)
++#define OMAP3_PRM_VP1_STATUS_OFFSET	0x00c4
+ #define OMAP3430_PRM_VP1_STATUS		OMAP34XX_PRM_REGADDR(OMAP3430_GR_MOD, 0x00c4)
++#define OMAP3_PRM_VP2_CONFIG_OFFSET	0x00d0
+ #define OMAP3430_PRM_VP2_CONFIG		OMAP34XX_PRM_REGADDR(OMAP3430_GR_MOD, 0x00d0)
++#define OMAP3_PRM_VP2_VSTEPMIN_OFFSET	0x00d4
+ #define OMAP3430_PRM_VP2_VSTEPMIN	OMAP34XX_PRM_REGADDR(OMAP3430_GR_MOD, 0x00d4)
++#define OMAP3_PRM_VP2_VSTEPMAX_OFFSET	0x00d8
+ #define OMAP3430_PRM_VP2_VSTEPMAX	OMAP34XX_PRM_REGADDR(OMAP3430_GR_MOD, 0x00d8)
++#define OMAP3_PRM_VP2_VLIMITTO_OFFSET	0x00dc
+ #define OMAP3430_PRM_VP2_VLIMITTO	OMAP34XX_PRM_REGADDR(OMAP3430_GR_MOD, 0x00dc)
++#define OMAP3_PRM_VP2_VOLTAGE_OFFSET	0x00e0
+ #define OMAP3430_PRM_VP2_VOLTAGE	OMAP34XX_PRM_REGADDR(OMAP3430_GR_MOD, 0x00e0)
++#define OMAP3_PRM_VP2_STATUS_OFFSET	0x00e4
+ #define OMAP3430_PRM_VP2_STATUS		OMAP34XX_PRM_REGADDR(OMAP3430_GR_MOD, 0x00e4)
+ 
++#define OMAP3_PRM_CLKSEL_OFFSET	0x0040
+ #define OMAP3430_PRM_CLKSEL		OMAP34XX_PRM_REGADDR(OMAP3430_CCR_MOD, 0x0040)
++#define OMAP3_PRM_CLKOUT_CTRL_OFFSET	0x0070
+ #define OMAP3430_PRM_CLKOUT_CTRL	OMAP34XX_PRM_REGADDR(OMAP3430_CCR_MOD, 0x0070)
+ 
+ /*
+-- 
+1.6.2.2
+
