@@ -1,46 +1,63 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: OMAP4 naming conventions
-Date: Tue, 12 May 2009 09:24:30 -0600 (MDT)
-Message-ID: <alpine.DEB.2.00.0905120909370.17514@utopia.booyaka.com>
-References: <87tz3qe5ay.fsf@deeprootsystems.com>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: linux-omap pm branch
+Date: Tue, 12 May 2009 08:53:55 -0700
+Message-ID: <871vque2r0.fsf@deeprootsystems.com>
+References: <7B4574D56E4ADF438756313E9A172A873958F6A4@dlee01.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:54250 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750832AbZELPYa (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 12 May 2009 11:24:30 -0400
-In-Reply-To: <87tz3qe5ay.fsf@deeprootsystems.com>
+Received: from rv-out-0506.google.com ([209.85.198.224]:56920 "EHLO
+	rv-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756136AbZELPyB (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 12 May 2009 11:54:01 -0400
+Received: by rv-out-0506.google.com with SMTP id f9so41086rvb.1
+        for <linux-omap@vger.kernel.org>; Tue, 12 May 2009 08:54:02 -0700 (PDT)
+In-Reply-To: <7B4574D56E4ADF438756313E9A172A873958F6A4@dlee01.ent.ti.com> (Jon Hunter's message of "Mon\, 11 May 2009 16\:15\:22 -0500")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@deeprootsystems.com>
-Cc: linux-omap@vger.kernel.org, Santosh Shilimkar <santosh.shilimkar@ti.com>
+To: "Hunter, Jon" <jon-hunter@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Tue, 12 May 2009, Kevin Hilman wrote:
+Hi Jon,
 
-> As the OMAP4 patches are coming in, there seems to be a bit of variety
-> in the naming of functions/macros/variables etc.
-> 
-> Could I propose that we just use omap4_* and OMAP4_* instead of
-> OMAP44XX_* or OMAP4XXXX_* etc.
-> 
-> I know that OMAP2 and OMAP3 have a variety of forms here too, but
-> those should probably be cleaned up eventually too.
-> 
-> With proper runtime revision detecting, IMO, we should only really
-> have the OMAP4 prefix, and leave the sub revision handling to runtime
-> code.
-> 
-> Thoughts?
+"Hunter, Jon" <jon-hunter@ti.com> writes:
 
-Here are some questions that we should figure out answers to before 
-deciding:
+> I want to run some tests using the linux-omap pm branch on the omap3430 and had a couple questions...
+>
+> 1). What omap3430 board(s) are being using to validate the pm branch functionality?
 
-How should macros be named that only apply to specific OMAP4 chips (i.e., 
-what happens if TI repeats a OMAP2420 to 2430 transition)?
+I typically validate on Beagle, OMAP3EVM and RX51.  Some folks in TII
+have done some validation on SDP as well.
 
-How should macros be handled that are only applicable to later ES levels?  
-Tagging ES levels in macros has caught many bugs in the OMAP2/3 code.
+On SDP, I have noted that CORE powerdomain does not hit retention on
+current PM branch yet the same code hits full-chip retention and OFF
+on the other OMAP3 boards.  I have not yet fully debugged this and I
+haven't heard from other TI folks if they have the same problem.
 
+> 2). Is there a list of pm features are currently supported/functional for omap3430? For example, cpuidle, cpufreq, retention, off-mode, smart-reflex, suspend/restore, etc. 
 
-- Paul
+All of the above.
+
+But as others have mentioned, these are validated on a minimal kernel
+since there is still driver/subsystem work required to support PM,
+especially the context save/restore needed for off mode.
+
+> 3). Are there any userspace tools (such as powertop) that are
+> recommended for monitoring power states?
+
+I use powertop when testing CPUidle, but but some of the in-kernel PM
+debug features are also useful.  For example, you can see some
+powerdomain and clockdomain accounting by enabling CONFIG_PM_DEBUG and
+CONFIG_DEBUG_FS, then mounting debugfs and doing:
+
+# cat /debug/pm_debug/count
+
+Also, there's a patch in the PM branch which saves the PRCM registers
+just before jumping to SRAM.  This snapshot can be dumped by doing:
+
+# cat /debug/pm_debug/registers/1
+
+This allows you to use the registers to check if there are any clocks
+enabled or any clockactivity.
+
+Kevin
