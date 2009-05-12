@@ -1,122 +1,315 @@
-From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: [PATCH] [RFC] OMAP4: sDMA: Update the request lines and new registers.
-Date: Tue, 12 May 2009 18:11:13 +0530
-Message-ID: <1242132073-16563-1-git-send-email-santosh.shilimkar@ti.com>
+From: "Syed Rafiuddin" <rafiuddin.syed@ti.com>
+Subject: [PATCH] I2C:Moving Register Defines to Header File
+Date: Tue, 12 May 2009 18:39:45 +0530 (IST)
+Message-ID: <52671.192.168.10.89.1242133785.squirrel@dbdmail.itg.ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:57603 "EHLO bear.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:49760 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1760779AbZELMlV (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 12 May 2009 08:41:21 -0400
-Received: from dbdp31.itg.ti.com ([172.24.170.98])
-	by bear.ext.ti.com (8.13.7/8.13.7) with ESMTP id n4CCfFBF005883
-	for <linux-omap@vger.kernel.org>; Tue, 12 May 2009 07:41:21 -0500
+	id S1750712AbZELNJu (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 12 May 2009 09:09:50 -0400
+Received: from dlep36.itg.ti.com ([157.170.170.91])
+	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id n4CD9kj4015183
+	for <linux-omap@vger.kernel.org>; Tue, 12 May 2009 08:09:51 -0500
+Received: from webmail.ti.com (localhost [127.0.0.1])
+	by dlep36.itg.ti.com (8.13.8/8.13.8) with ESMTP id n4CD9iE0021976
+	for <linux-omap@vger.kernel.org>; Tue, 12 May 2009 08:09:45 -0500 (CDT)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
-Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
 
-This patch updates the platform dma.h with new dma request lines
-for OMAP4 peripherals. Also additional hardware register of OMAP4
-sDMA module are included.
+This patch creates i2c-omap.h header and moves register and bit definition
+macros to it from i2c-omap.c
 
-Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Signed-off-by: Syed Rafiuddin <rafiuddin.syed@ti.com>
+Acked-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
 ---
- arch/arm/plat-omap/include/mach/dma.h |   65 ++++++++++++++++++++++++++++++++-
- 1 files changed, 64 insertions(+), 1 deletions(-)
- mode change 100644 => 100755 arch/arm/plat-omap/include/mach/dma.h
+ drivers/i2c/busses/i2c-omap.c |  120 ----------------------------------
+ drivers/i2c/busses/i2c-omap.h |  145 ++++++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 146 insertions(+), 119 deletions(-)
 
-diff --git a/arch/arm/plat-omap/include/mach/dma.h b/arch/arm/plat-omap/include/mach/dma.h
-old mode 100644
-new mode 100755
-index 8e05b6a..3dc1b14
---- a/arch/arm/plat-omap/include/mach/dma.h
-+++ b/arch/arm/plat-omap/include/mach/dma.h
-@@ -122,6 +122,10 @@
- #define OMAP_DMA4_CCFN(n)		(0x60 * (n) + 0xc0)
- #define OMAP_DMA4_COLOR(n)		(0x60 * (n) + 0xc4)
- 
-+#define OMAP_DMA4_CDP_REG(n)           (0x60 * (n) + 0xd0)
-+#define OMAP_DMA4_CNDP_REG(n)          (0x60 * (n) + 0xd4)
-+#define OMAP_DMA4_CCDN_REG(n)          (0x60 * (n) + 0xd8)
+Index: linux-2.6/drivers/i2c/busses/i2c-omap.c
+===================================================================
+--- linux-2.6.orig/drivers/i2c/busses/i2c-omap.c
++++ linux-2.6/drivers/i2c/busses/i2c-omap.c
+@@ -37,125 +37,7 @@
+ #include <linux/platform_device.h>
+ #include <linux/clk.h>
+ #include <linux/io.h>
+-
+-/* I2C controller revisions */
+-#define OMAP_I2C_REV_2			0x20
+-
+-/* I2C controller revisions present on specific hardware */
+-#define OMAP_I2C_REV_ON_2430		0x36
+-#define OMAP_I2C_REV_ON_3430		0x3C
+-
+-/* timeout waiting for the controller to respond */
+-#define OMAP_I2C_TIMEOUT (msecs_to_jiffies(1000))
+-
+-#define OMAP_I2C_REV_REG		0x00
+-#define OMAP_I2C_IE_REG			0x04
+-#define OMAP_I2C_STAT_REG		0x08
+-#define OMAP_I2C_IV_REG			0x0c
+-/* For OMAP3 I2C_IV has changed to I2C_WE (wakeup enable) */
+-#define OMAP_I2C_WE_REG			0x0c
+-#define OMAP_I2C_SYSS_REG		0x10
+-#define OMAP_I2C_BUF_REG		0x14
+-#define OMAP_I2C_CNT_REG		0x18
+-#define OMAP_I2C_DATA_REG		0x1c
+-#define OMAP_I2C_SYSC_REG		0x20
+-#define OMAP_I2C_CON_REG		0x24
+-#define OMAP_I2C_OA_REG			0x28
+-#define OMAP_I2C_SA_REG			0x2c
+-#define OMAP_I2C_PSC_REG		0x30
+-#define OMAP_I2C_SCLL_REG		0x34
+-#define OMAP_I2C_SCLH_REG		0x38
+-#define OMAP_I2C_SYSTEST_REG		0x3c
+-#define OMAP_I2C_BUFSTAT_REG		0x40
+-
+-/* I2C Interrupt Enable Register (OMAP_I2C_IE): */
+-#define OMAP_I2C_IE_XDR		(1 << 14)	/* TX Buffer drain int enable */
+-#define OMAP_I2C_IE_RDR		(1 << 13)	/* RX Buffer drain int enable */
+-#define OMAP_I2C_IE_XRDY	(1 << 4)	/* TX data ready int enable */
+-#define OMAP_I2C_IE_RRDY	(1 << 3)	/* RX data ready int enable */
+-#define OMAP_I2C_IE_ARDY	(1 << 2)	/* Access ready int enable */
+-#define OMAP_I2C_IE_NACK	(1 << 1)	/* No ack interrupt enable */
+-#define OMAP_I2C_IE_AL		(1 << 0)	/* Arbitration lost int ena */
+-
+-/* I2C Status Register (OMAP_I2C_STAT): */
+-#define OMAP_I2C_STAT_XDR	(1 << 14)	/* TX Buffer draining */
+-#define OMAP_I2C_STAT_RDR	(1 << 13)	/* RX Buffer draining */
+-#define OMAP_I2C_STAT_BB	(1 << 12)	/* Bus busy */
+-#define OMAP_I2C_STAT_ROVR	(1 << 11)	/* Receive overrun */
+-#define OMAP_I2C_STAT_XUDF	(1 << 10)	/* Transmit underflow */
+-#define OMAP_I2C_STAT_AAS	(1 << 9)	/* Address as slave */
+-#define OMAP_I2C_STAT_AD0	(1 << 8)	/* Address zero */
+-#define OMAP_I2C_STAT_XRDY	(1 << 4)	/* Transmit data ready */
+-#define OMAP_I2C_STAT_RRDY	(1 << 3)	/* Receive data ready */
+-#define OMAP_I2C_STAT_ARDY	(1 << 2)	/* Register access ready */
+-#define OMAP_I2C_STAT_NACK	(1 << 1)	/* No ack interrupt enable */
+-#define OMAP_I2C_STAT_AL	(1 << 0)	/* Arbitration lost int ena */
+-
+-/* I2C WE wakeup enable register */
+-#define OMAP_I2C_WE_XDR_WE	(1 << 14)	/* TX drain wakup */
+-#define OMAP_I2C_WE_RDR_WE	(1 << 13)	/* RX drain wakeup */
+-#define OMAP_I2C_WE_AAS_WE	(1 << 9)	/* Address as slave wakeup*/
+-#define OMAP_I2C_WE_BF_WE	(1 << 8)	/* Bus free wakeup */
+-#define OMAP_I2C_WE_STC_WE	(1 << 6)	/* Start condition wakeup */
+-#define OMAP_I2C_WE_GC_WE	(1 << 5)	/* General call wakeup */
+-#define OMAP_I2C_WE_DRDY_WE	(1 << 3)	/* TX/RX data ready wakeup */
+-#define OMAP_I2C_WE_ARDY_WE	(1 << 2)	/* Reg access ready wakeup */
+-#define OMAP_I2C_WE_NACK_WE	(1 << 1)	/* No acknowledgment wakeup */
+-#define OMAP_I2C_WE_AL_WE	(1 << 0)	/* Arbitration lost wakeup */
+-
+-#define OMAP_I2C_WE_ALL		(OMAP_I2C_WE_XDR_WE | OMAP_I2C_WE_RDR_WE | \
+-				OMAP_I2C_WE_AAS_WE | OMAP_I2C_WE_BF_WE | \
+-				OMAP_I2C_WE_STC_WE | OMAP_I2C_WE_GC_WE | \
+-				OMAP_I2C_WE_DRDY_WE | OMAP_I2C_WE_ARDY_WE | \
+-				OMAP_I2C_WE_NACK_WE | OMAP_I2C_WE_AL_WE)
+-
+-/* I2C Buffer Configuration Register (OMAP_I2C_BUF): */
+-#define OMAP_I2C_BUF_RDMA_EN	(1 << 15)	/* RX DMA channel enable */
+-#define OMAP_I2C_BUF_RXFIF_CLR	(1 << 14)	/* RX FIFO Clear */
+-#define OMAP_I2C_BUF_XDMA_EN	(1 << 7)	/* TX DMA channel enable */
+-#define OMAP_I2C_BUF_TXFIF_CLR	(1 << 6)	/* TX FIFO Clear */
+-
+-/* I2C Configuration Register (OMAP_I2C_CON): */
+-#define OMAP_I2C_CON_EN		(1 << 15)	/* I2C module enable */
+-#define OMAP_I2C_CON_BE		(1 << 14)	/* Big endian mode */
+-#define OMAP_I2C_CON_OPMODE_HS	(1 << 12)	/* High Speed support */
+-#define OMAP_I2C_CON_STB	(1 << 11)	/* Start byte mode (master) */
+-#define OMAP_I2C_CON_MST	(1 << 10)	/* Master/slave mode */
+-#define OMAP_I2C_CON_TRX	(1 << 9)	/* TX/RX mode (master only) */
+-#define OMAP_I2C_CON_XA		(1 << 8)	/* Expand address */
+-#define OMAP_I2C_CON_RM		(1 << 2)	/* Repeat mode (master only) */
+-#define OMAP_I2C_CON_STP	(1 << 1)	/* Stop cond (master only) */
+-#define OMAP_I2C_CON_STT	(1 << 0)	/* Start condition (master) */
+-
+-/* I2C SCL time value when Master */
+-#define OMAP_I2C_SCLL_HSSCLL	8
+-#define OMAP_I2C_SCLH_HSSCLH	8
+-
+-/* I2C System Test Register (OMAP_I2C_SYSTEST): */
+-#ifdef DEBUG
+-#define OMAP_I2C_SYSTEST_ST_EN		(1 << 15)	/* System test enable */
+-#define OMAP_I2C_SYSTEST_FREE		(1 << 14)	/* Free running mode */
+-#define OMAP_I2C_SYSTEST_TMODE_MASK	(3 << 12)	/* Test mode select */
+-#define OMAP_I2C_SYSTEST_TMODE_SHIFT	(12)		/* Test mode select */
+-#define OMAP_I2C_SYSTEST_SCL_I		(1 << 3)	/* SCL line sense in */
+-#define OMAP_I2C_SYSTEST_SCL_O		(1 << 2)	/* SCL line drive out */
+-#define OMAP_I2C_SYSTEST_SDA_I		(1 << 1)	/* SDA line sense in */
+-#define OMAP_I2C_SYSTEST_SDA_O		(1 << 0)	/* SDA line drive out */
+-#endif
+-
+-/* OCP_SYSSTATUS bit definitions */
+-#define SYSS_RESETDONE_MASK		(1 << 0)
+-
+-/* OCP_SYSCONFIG bit definitions */
+-#define SYSC_CLOCKACTIVITY_MASK		(0x3 << 8)
+-#define SYSC_SIDLEMODE_MASK		(0x3 << 3)
+-#define SYSC_ENAWAKEUP_MASK		(1 << 2)
+-#define SYSC_SOFTRESET_MASK		(1 << 1)
+-#define SYSC_AUTOIDLE_MASK		(1 << 0)
+-
+-#define SYSC_IDLEMODE_SMART		0x2
+-#define SYSC_CLOCKACTIVITY_FCLK		0x2
+-
++#include "i2c-omap.h"
+
+ struct omap_i2c_dev {
+ 	struct device		*dev;
+Index: linux-2.6/drivers/i2c/busses/i2c-omap.h
+===================================================================
+--- /dev/null	1970-01-01 00:00:00.000000000 +0000
++++ linux-2.6/drivers/i2c/busses/i2c-omap.h	2009-05-12 18:01:21.000000000 +0530
+@@ -0,0 +1,145 @@
++/*
++ * drivers/i2c/busses/i2c-omap.h
++ *
++ * Defines for I2C
++ *
++ * Copyright (C) 2009 Texas Instruments.
++ * Author: Syed Rafiuddin
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 2 of the License, or
++ * (at your option) any later version.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
++ * GNU General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
++ *
++ */
++#ifndef __ASM_ARCH_I2C_OMAP_H
++#define __ASM_ARCH_I2C_OMAP_H
 +
- /* Dummy defines to keep multi-omap compiles happy */
- #define OMAP1_DMA_REVISION		0
- #define OMAP1_DMA_IRQSTATUS_L0		0
-@@ -209,7 +213,7 @@
- #define OMAP_DMA_MMC2_RX		55
- #define OMAP_DMA_CRYPTO_DES_OUT		56
- 
--/* DMA channels for 24xx */
-+/* DMA channels for 24xx  34xx and 44xx*/
- #define OMAP24XX_DMA_NO_DEVICE		0
- #define OMAP24XX_DMA_XTI_DMA		1	/* S_DMA_0 */
- #define OMAP24XX_DMA_EXT_DMAREQ0	2	/* S_DMA_1 */
-@@ -310,6 +314,65 @@
- #define OMAP34XX_DMA_USIM_TX		79	/* S_DMA_78 */
- #define OMAP34XX_DMA_USIM_RX		80	/* S_DMA_79 */
- 
++/* I2C controller revisions */
++#define OMAP_I2C_REV_2                  0x20
 +
-+#define OMAP44XX_DMA_DSS_LINE_TRIG      6       /* S_DMA_5 */
-+#define OMAP44XX_DMA_MCASP1_AXEVT       8       /* S_DMA_7 */
-+#define OMAP44XX_DMA_ISS_DMA_REQ0       9       /* S_DMA_8 */
-+#define OMAP44XX_DMA_ISS_DMA_REQ1      10      /* S_DMA_9 */
-+#define OMAP44XX_DMA_MCASP1_AREVT      11      /* S_DMA_10 */
-+#define OMAP44XX_DMA_ISS_DMA_REQ2      12      /* S_DMA_11 */
-+#define OMAP44XX_DMA_ISS_DMA_REQ3      13      /* S_DMA_12 */
-+#define OMAP44XX_DMA_DSS_RFBI_DMA_REQ  14      /* S_DMA_13 */
-+#define OMAP44XX_DMA_MCBSP2_TX         17      /* S_DMA_16 */
-+#define OMAP44XX_DMA_MCBSP2_RX         18      /* S_DMA_17 */
-+#define OMAP44XX_DMA_MCBSP3_TX         19      /* S_DMA_18 */
-+#define OMAP44XX_DMA_MCBSP3_RX         20      /* S_DMA_19 */
-+#define OMAP44XX_DMA_MCBSP4_TX         31      /* S_DMA_30 */
-+#define OMAP44XX_DMA_MCBSP4_RX         32      /* S_DMA_31 */
-+#define OMAP44XX_DMA_MCBSP1_TX         33      /* S_DMA_32 */
-+#define OMAP44XX_DMA_MCBSP1_RX         34      /* S_DMA_33 */
-+#define OMAP44XX_DMA_UART4_DMA_TX      55      /* S_DMA_54 */
-+#define OMAP44XX_DMA_UART4_DMA_RX      56      /* S_DMA_55 */
-+#define OMAP44XX_DMA_MMC4_DMA_TX       57      /* S_DMA_56 */
-+#define OMAP44XX_DMA_MMC5_DMA_TX       59      /* S_DMA_58 */
-+#define OMAP44XX_DMA_MMC5_DMA_RX       60      /* S_DMA_59 */
-+#define OMAP44XX_DMA_MCPDM_UP          65      /* S_DMA_64 */
-+#define OMAP44XX_DMA_MCPDM_DL          66      /* S_DMA_65 */
-+#define OMAP44XX_DMA_DMIC_DMA_REQ      67      /* S_DMA_66 */
-+#define OMAP44XX_DSS_HDMI_DMA_REQ      76      /* S_DMA_75 */
++/* I2C controller revisions present on specific hardware */
++#define OMAP_I2C_REV_ON_2430            0x36
++#define OMAP_I2C_REV_ON_3430            0x3C
 +
++/* timeout waiting for the controller to respond */
++#define OMAP_I2C_TIMEOUT (msecs_to_jiffies(1000))
 +
-+#define OMAP44XX_DMM_DSS_DSI2_DMA0     81      /* S_DMA_80 */
-+#define OMAP44XX_DMM_DSS_DSI2_DMA1     82      /* S_DMA_81 */
-+#define OMAP44XX_DMM_DSS_DSI2_DMA2     83      /* S_DMA_82 */
-+#define OMAP44XX_DMM_DSS_DSI2_DMA3     84      /* S_DMA_83 */
-+#define OMAP44XX_DMM_SLIMBUS1_DMA_TX0  85      /* S_DMA_84 */
-+#define OMAP44XX_DMM_SLIMBUS1_DMA_TX1  86      /* S_DMA_85 */
-+#define OMAP44XX_DMM_SLIMBUS1_DMA_TX2  87      /* S_DMA_86 */
-+#define OMAP44XX_DMM_SLIMBUS1_DMA_TX3  88      /* S_DMA_87 */
-+#define OMAP44XX_DMM_SLIMBUS1_DMA_RX0  89      /* S_DMA_88 */
-+#define OMAP44XX_DMM_SLIMBUS1_DMA_RX1  90      /* S_DMA_89 */
-+#define OMAP44XX_DMM_SLIMBUS1_DMA_RX2  91      /* S_DMA_90 */
-+#define OMAP44XX_DMM_SLIMBUS1_DMA_RX3  92      /* S_DMA_91 */
-+#define OMAP44XX_DMM_SLIMBUS2_DMA_TX0  93      /* S_DMA_92 */
-+#define OMAP44XX_DMM_SLIMBUS2_DMA_TX1  94      /* S_DMA_93 */
-+#define OMAP44XX_DMM_SLIMBUS2_DMA_TX2  95      /* S_DMA_94 */
-+#define OMAP44XX_DMM_SLIMBUS2_DMA_TX3  96      /* S_DMA_95 */
-+#define OMAP44XX_DMM_SLIMBUS2_DMA_RX0  97      /* S_DMA_96 */
-+#define OMAP44XX_DMM_SLIMBUS2_DMA_RX1  98      /* S_DMA_97 */
-+#define OMAP44XX_DMM_SLIMBUS2_DMA_RX2  99      /* S_DMA_98 */
-+#define OMAP44XX_DMM_SLIMBUS2_DMA_RX3  100     /* S_DMA_99 */
-+#define OMAP44XX_DMM_ABE_DMAREQ0       101     /* S_DMA_100*/
-+#define OMAP44XX_DMM_ABE_DMAREQ1       102     /* S_DMA_101*/
-+#define OMAP44XX_DMM_ABE_DMAREQ2       103     /* S_DMA_102*/
-+#define OMAP44XX_DMM_ABE_DMAREQ3       104     /* S_DMA_103*/
-+#define OMAP44XX_DMM_ABE_DMAREQ4       105     /* S_DMA_104*/
-+#define OMAP44XX_DMM_ABE_DMAREQ5       106     /* S_DMA_105*/
-+#define OMAP44XX_DMM_ABE_DMAREQ6       107     /* S_DMA_106*/
-+#define OMAP44XX_DMM_ABE_DMAREQ7       108     /* S_DMA_107*/
-+#define OMAP44XX_DMM_I2C4_DMA_TX       124     /* S_DMA_123*/
-+#define OMAP44XX_DMM_I2C4_DMA_RX       125     /* S_DMA_124*/
++#define OMAP_I2C_REV_REG                0x00
++#define OMAP_I2C_IE_REG                 0x04
++#define OMAP_I2C_STAT_REG               0x08
++#define OMAP_I2C_IV_REG                 0x0c
++/* For OMAP3 I2C_IV has changed to I2C_WE (wakeup enable) */
++#define OMAP_I2C_WE_REG                 0x0c
++#define OMAP_I2C_SYSS_REG               0x10
++#define OMAP_I2C_BUF_REG                0x14
++#define OMAP_I2C_CNT_REG                0x18
++#define OMAP_I2C_DATA_REG               0x1c
++#define OMAP_I2C_SYSC_REG               0x20
++#define OMAP_I2C_CON_REG                0x24
++#define OMAP_I2C_OA_REG                 0x28
++#define OMAP_I2C_SA_REG                 0x2c
++#define OMAP_I2C_PSC_REG                0x30
++#define OMAP_I2C_SCLL_REG               0x34
++#define OMAP_I2C_SCLH_REG               0x38
++#define OMAP_I2C_SYSTEST_REG            0x3c
++#define OMAP_I2C_BUFSTAT_REG            0x40
 +
- /*----------------------------------------------------------------------------*/
- 
- /* Hardware registers for LCD DMA */
--- 
-1.5.4.7
++/* I2C Interrupt Enable Register (OMAP_I2C_IE): */
++#define OMAP_I2C_IE_XDR         (1 << 14)       /* TX Buffer drain int enable */
++#define OMAP_I2C_IE_RDR         (1 << 13)       /* RX Buffer drain int enable */
++#define OMAP_I2C_IE_XRDY        (1 << 4)        /* TX data ready int enable */
++#define OMAP_I2C_IE_RRDY        (1 << 3)        /* RX data ready int enable */
++#define OMAP_I2C_IE_ARDY        (1 << 2)        /* Access ready int enable */
++#define OMAP_I2C_IE_NACK        (1 << 1)        /* No ack interrupt enable */
++#define OMAP_I2C_IE_AL          (1 << 0)        /* Arbitration lost int ena */
++
++/* I2C Status Register (OMAP_I2C_STAT): */
++#define OMAP_I2C_STAT_XDR       (1 << 14)       /* TX Buffer draining */
++#define OMAP_I2C_STAT_RDR       (1 << 13)       /* RX Buffer draining */
++#define OMAP_I2C_STAT_BB        (1 << 12)       /* Bus busy */
++#define OMAP_I2C_STAT_ROVR      (1 << 11)       /* Receive overrun */
++#define OMAP_I2C_STAT_XUDF      (1 << 10)       /* Transmit underflow */
++#define OMAP_I2C_STAT_AAS       (1 << 9)        /* Address as slave */
++#define OMAP_I2C_STAT_AD0       (1 << 8)        /* Address zero */
++#define OMAP_I2C_STAT_XRDY      (1 << 4)        /* Transmit data ready */
++#define OMAP_I2C_STAT_RRDY      (1 << 3)        /* Receive data ready */
++#define OMAP_I2C_STAT_ARDY      (1 << 2)        /* Register access ready */
++#define OMAP_I2C_STAT_NACK      (1 << 1)        /* No ack interrupt enable */
++#define OMAP_I2C_STAT_AL        (1 << 0)        /* Arbitration lost int ena */
++
++/* I2C WE wakeup enable register */
++#define OMAP_I2C_WE_XDR_WE      (1 << 14)       /* TX drain wakup */
++#define OMAP_I2C_WE_RDR_WE      (1 << 13)       /* RX drain wakeup */
++#define OMAP_I2C_WE_AAS_WE      (1 << 9)        /* Address as slave wakeup*/
++#define OMAP_I2C_WE_BF_WE       (1 << 8)        /* Bus free wakeup */
++#define OMAP_I2C_WE_STC_WE      (1 << 6)        /* Start condition wakeup */
++#define OMAP_I2C_WE_GC_WE       (1 << 5)        /* General call wakeup */
++#define OMAP_I2C_WE_DRDY_WE     (1 << 3)        /* TX/RX data ready wakeup */
++#define OMAP_I2C_WE_ARDY_WE     (1 << 2)        /* Reg access ready wakeup */
++#define OMAP_I2C_WE_NACK_WE     (1 << 1)        /* No acknowledgment wakeup */
++#define OMAP_I2C_WE_AL_WE       (1 << 0)        /* Arbitration lost wakeup */
++
++#define OMAP_I2C_WE_ALL         (OMAP_I2C_WE_XDR_WE | OMAP_I2C_WE_RDR_WE | \
++				OMAP_I2C_WE_AAS_WE | OMAP_I2C_WE_BF_WE | \
++				OMAP_I2C_WE_STC_WE | OMAP_I2C_WE_GC_WE | \
++				OMAP_I2C_WE_DRDY_WE | OMAP_I2C_WE_ARDY_WE | \
++				OMAP_I2C_WE_NACK_WE | OMAP_I2C_WE_AL_WE)
++
++/* I2C Buffer Configuration Register (OMAP_I2C_BUF): */
++#define OMAP_I2C_BUF_RDMA_EN    (1 << 15)       /* RX DMA channel enable */
++#define OMAP_I2C_BUF_RXFIF_CLR  (1 << 14)       /* RX FIFO Clear */
++#define OMAP_I2C_BUF_XDMA_EN    (1 << 7)        /* TX DMA channel enable */
++#define OMAP_I2C_BUF_TXFIF_CLR  (1 << 6)        /* TX FIFO Clear */
++
++/* I2C Configuration Register (OMAP_I2C_CON): */
++#define OMAP_I2C_CON_EN         (1 << 15)       /* I2C module enable */
++#define OMAP_I2C_CON_BE         (1 << 14)       /* Big endian mode */
++#define OMAP_I2C_CON_OPMODE_HS  (1 << 12)       /* High Speed support */
++#define OMAP_I2C_CON_STB        (1 << 11)       /* Start byte mode (master) */
++#define OMAP_I2C_CON_MST        (1 << 10)       /* Master/slave mode */
++#define OMAP_I2C_CON_TRX        (1 << 9)        /* TX/RX mode (master only) */
++#define OMAP_I2C_CON_XA         (1 << 8)        /* Expand address */
++#define OMAP_I2C_CON_RM         (1 << 2)        /* Repeat mode (master only) */
++#define OMAP_I2C_CON_STP        (1 << 1)        /* Stop cond (master only) */
++#define OMAP_I2C_CON_STT        (1 << 0)        /* Start condition (master) */
++
++/* I2C SCL time value when Master */
++#define OMAP_I2C_SCLL_HSSCLL    8
++#define OMAP_I2C_SCLH_HSSCLH    8
++
++/* I2C System Test Register (OMAP_I2C_SYSTEST): */
++#ifdef DEBUG
++#define OMAP_I2C_SYSTEST_ST_EN          (1 << 15)       /* System test enable */
++#define OMAP_I2C_SYSTEST_FREE           (1 << 14)       /* Free running mode */
++#define OMAP_I2C_SYSTEST_TMODE_MASK     (3 << 12)       /* Test mode select */
++#define OMAP_I2C_SYSTEST_TMODE_SHIFT    (12)            /* Test mode select */
++#define OMAP_I2C_SYSTEST_SCL_I          (1 << 3)        /* SCL line sense in */
++#define OMAP_I2C_SYSTEST_SCL_O          (1 << 2)        /* SCL line drive out */
++#define OMAP_I2C_SYSTEST_SDA_I          (1 << 1)        /* SDA line sense in */
++#define OMAP_I2C_SYSTEST_SDA_O          (1 << 0)        /* SDA line drive out */
++#endif
++
++/* OCP_SYSSTATUS bit definitions */
++#define SYSS_RESETDONE_MASK             (1 << 0)
++
++/* OCP_SYSCONFIG bit definitions */
++#define SYSC_CLOCKACTIVITY_MASK         (0x3 << 8)
++#define SYSC_SIDLEMODE_MASK             (0x3 << 3)
++#define SYSC_ENAWAKEUP_MASK             (1 << 2)
++#define SYSC_SOFTRESET_MASK             (1 << 1)
++#define SYSC_AUTOIDLE_MASK              (1 << 0)
++
++#define SYSC_IDLEMODE_SMART             0x2
++#define SYSC_CLOCKACTIVITY_FCLK         0x2
++
++#endif
+
 
