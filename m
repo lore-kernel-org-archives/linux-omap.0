@@ -1,27 +1,122 @@
-From: Kalle Jokiniemi <kalle.jokiniemi@digia.com>
-Subject: [PATCH 0/1] ARM:OMAP3: Fix PLL_MOD CLKEN offset in scratchpad
-Date: Tue, 12 May 2009 14:02:15 +0300
-Message-ID: <1242126136-8419-1-git-send-email-kalle.jokiniemi@digia.com>
-Mime-Version: 1.0
-Content-Type: text/plain
+From: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Subject: [PATCH] [RFC] OMAP4: sDMA: Update the request lines and new registers.
+Date: Tue, 12 May 2009 18:11:13 +0530
+Message-ID: <1242132073-16563-1-git-send-email-santosh.shilimkar@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp1.digia.com ([82.118.214.156]:11123 "EHLO smtp1.digia.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:57603 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755253AbZELLCF (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 12 May 2009 07:02:05 -0400
-In-Reply-To: <>
-References: <>
+	id S1760779AbZELMlV (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 12 May 2009 08:41:21 -0400
+Received: from dbdp31.itg.ti.com ([172.24.170.98])
+	by bear.ext.ti.com (8.13.7/8.13.7) with ESMTP id n4CCfFBF005883
+	for <linux-omap@vger.kernel.org>; Tue, 12 May 2009 07:41:21 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: khilman@deeprootsystems.com
-Cc: linux-omap@vger.kernel.org, jouni.hogander@nokia.com
+To: linux-omap@vger.kernel.org
+Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
 
-Following patch should apply on top of pm-branch. Build tested for rx-51.
+This patch updates the platform dma.h with new dma request lines
+for OMAP4 peripherals. Also additional hardware register of OMAP4
+sDMA module are included.
 
-Kalle Jokiniemi (1):
-      ARM:OMAP3: Fix PLL_MOD CLKEN offset in scratchpad
+Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+---
+ arch/arm/plat-omap/include/mach/dma.h |   65 ++++++++++++++++++++++++++++++++-
+ 1 files changed, 64 insertions(+), 1 deletions(-)
+ mode change 100644 => 100755 arch/arm/plat-omap/include/mach/dma.h
 
- arch/arm/mach-omap2/control.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
-
+diff --git a/arch/arm/plat-omap/include/mach/dma.h b/arch/arm/plat-omap/include/mach/dma.h
+old mode 100644
+new mode 100755
+index 8e05b6a..3dc1b14
+--- a/arch/arm/plat-omap/include/mach/dma.h
++++ b/arch/arm/plat-omap/include/mach/dma.h
+@@ -122,6 +122,10 @@
+ #define OMAP_DMA4_CCFN(n)		(0x60 * (n) + 0xc0)
+ #define OMAP_DMA4_COLOR(n)		(0x60 * (n) + 0xc4)
+ 
++#define OMAP_DMA4_CDP_REG(n)           (0x60 * (n) + 0xd0)
++#define OMAP_DMA4_CNDP_REG(n)          (0x60 * (n) + 0xd4)
++#define OMAP_DMA4_CCDN_REG(n)          (0x60 * (n) + 0xd8)
++
+ /* Dummy defines to keep multi-omap compiles happy */
+ #define OMAP1_DMA_REVISION		0
+ #define OMAP1_DMA_IRQSTATUS_L0		0
+@@ -209,7 +213,7 @@
+ #define OMAP_DMA_MMC2_RX		55
+ #define OMAP_DMA_CRYPTO_DES_OUT		56
+ 
+-/* DMA channels for 24xx */
++/* DMA channels for 24xx  34xx and 44xx*/
+ #define OMAP24XX_DMA_NO_DEVICE		0
+ #define OMAP24XX_DMA_XTI_DMA		1	/* S_DMA_0 */
+ #define OMAP24XX_DMA_EXT_DMAREQ0	2	/* S_DMA_1 */
+@@ -310,6 +314,65 @@
+ #define OMAP34XX_DMA_USIM_TX		79	/* S_DMA_78 */
+ #define OMAP34XX_DMA_USIM_RX		80	/* S_DMA_79 */
+ 
++
++#define OMAP44XX_DMA_DSS_LINE_TRIG      6       /* S_DMA_5 */
++#define OMAP44XX_DMA_MCASP1_AXEVT       8       /* S_DMA_7 */
++#define OMAP44XX_DMA_ISS_DMA_REQ0       9       /* S_DMA_8 */
++#define OMAP44XX_DMA_ISS_DMA_REQ1      10      /* S_DMA_9 */
++#define OMAP44XX_DMA_MCASP1_AREVT      11      /* S_DMA_10 */
++#define OMAP44XX_DMA_ISS_DMA_REQ2      12      /* S_DMA_11 */
++#define OMAP44XX_DMA_ISS_DMA_REQ3      13      /* S_DMA_12 */
++#define OMAP44XX_DMA_DSS_RFBI_DMA_REQ  14      /* S_DMA_13 */
++#define OMAP44XX_DMA_MCBSP2_TX         17      /* S_DMA_16 */
++#define OMAP44XX_DMA_MCBSP2_RX         18      /* S_DMA_17 */
++#define OMAP44XX_DMA_MCBSP3_TX         19      /* S_DMA_18 */
++#define OMAP44XX_DMA_MCBSP3_RX         20      /* S_DMA_19 */
++#define OMAP44XX_DMA_MCBSP4_TX         31      /* S_DMA_30 */
++#define OMAP44XX_DMA_MCBSP4_RX         32      /* S_DMA_31 */
++#define OMAP44XX_DMA_MCBSP1_TX         33      /* S_DMA_32 */
++#define OMAP44XX_DMA_MCBSP1_RX         34      /* S_DMA_33 */
++#define OMAP44XX_DMA_UART4_DMA_TX      55      /* S_DMA_54 */
++#define OMAP44XX_DMA_UART4_DMA_RX      56      /* S_DMA_55 */
++#define OMAP44XX_DMA_MMC4_DMA_TX       57      /* S_DMA_56 */
++#define OMAP44XX_DMA_MMC5_DMA_TX       59      /* S_DMA_58 */
++#define OMAP44XX_DMA_MMC5_DMA_RX       60      /* S_DMA_59 */
++#define OMAP44XX_DMA_MCPDM_UP          65      /* S_DMA_64 */
++#define OMAP44XX_DMA_MCPDM_DL          66      /* S_DMA_65 */
++#define OMAP44XX_DMA_DMIC_DMA_REQ      67      /* S_DMA_66 */
++#define OMAP44XX_DSS_HDMI_DMA_REQ      76      /* S_DMA_75 */
++
++
++#define OMAP44XX_DMM_DSS_DSI2_DMA0     81      /* S_DMA_80 */
++#define OMAP44XX_DMM_DSS_DSI2_DMA1     82      /* S_DMA_81 */
++#define OMAP44XX_DMM_DSS_DSI2_DMA2     83      /* S_DMA_82 */
++#define OMAP44XX_DMM_DSS_DSI2_DMA3     84      /* S_DMA_83 */
++#define OMAP44XX_DMM_SLIMBUS1_DMA_TX0  85      /* S_DMA_84 */
++#define OMAP44XX_DMM_SLIMBUS1_DMA_TX1  86      /* S_DMA_85 */
++#define OMAP44XX_DMM_SLIMBUS1_DMA_TX2  87      /* S_DMA_86 */
++#define OMAP44XX_DMM_SLIMBUS1_DMA_TX3  88      /* S_DMA_87 */
++#define OMAP44XX_DMM_SLIMBUS1_DMA_RX0  89      /* S_DMA_88 */
++#define OMAP44XX_DMM_SLIMBUS1_DMA_RX1  90      /* S_DMA_89 */
++#define OMAP44XX_DMM_SLIMBUS1_DMA_RX2  91      /* S_DMA_90 */
++#define OMAP44XX_DMM_SLIMBUS1_DMA_RX3  92      /* S_DMA_91 */
++#define OMAP44XX_DMM_SLIMBUS2_DMA_TX0  93      /* S_DMA_92 */
++#define OMAP44XX_DMM_SLIMBUS2_DMA_TX1  94      /* S_DMA_93 */
++#define OMAP44XX_DMM_SLIMBUS2_DMA_TX2  95      /* S_DMA_94 */
++#define OMAP44XX_DMM_SLIMBUS2_DMA_TX3  96      /* S_DMA_95 */
++#define OMAP44XX_DMM_SLIMBUS2_DMA_RX0  97      /* S_DMA_96 */
++#define OMAP44XX_DMM_SLIMBUS2_DMA_RX1  98      /* S_DMA_97 */
++#define OMAP44XX_DMM_SLIMBUS2_DMA_RX2  99      /* S_DMA_98 */
++#define OMAP44XX_DMM_SLIMBUS2_DMA_RX3  100     /* S_DMA_99 */
++#define OMAP44XX_DMM_ABE_DMAREQ0       101     /* S_DMA_100*/
++#define OMAP44XX_DMM_ABE_DMAREQ1       102     /* S_DMA_101*/
++#define OMAP44XX_DMM_ABE_DMAREQ2       103     /* S_DMA_102*/
++#define OMAP44XX_DMM_ABE_DMAREQ3       104     /* S_DMA_103*/
++#define OMAP44XX_DMM_ABE_DMAREQ4       105     /* S_DMA_104*/
++#define OMAP44XX_DMM_ABE_DMAREQ5       106     /* S_DMA_105*/
++#define OMAP44XX_DMM_ABE_DMAREQ6       107     /* S_DMA_106*/
++#define OMAP44XX_DMM_ABE_DMAREQ7       108     /* S_DMA_107*/
++#define OMAP44XX_DMM_I2C4_DMA_TX       124     /* S_DMA_123*/
++#define OMAP44XX_DMM_I2C4_DMA_RX       125     /* S_DMA_124*/
++
+ /*----------------------------------------------------------------------------*/
+ 
+ /* Hardware registers for LCD DMA */
+-- 
+1.5.4.7
 
