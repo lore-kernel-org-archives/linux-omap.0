@@ -1,378 +1,454 @@
-From: "Shah, Hardik" <hardik.shah@ti.com>
-Subject: RE: [PATCH 3/3] OMAP2/3 V4L2 Display Driver
-Date: Tue, 12 May 2009 13:02:31 +0530
-Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB030560165E@dbde02.ent.ti.com>
-References: <90b950fc0904300549t26a3104u4fa1399753ec193c@mail.gmail.com>
+From: "George.Qiao" <qiao_shanshan@visualon.com>
+Subject: Re: Status of Beagle Board
+Date: Tue, 12 May 2009 16:05:25 +0800
+Message-ID: <4A092DC5.7020305@visualon.com>
+References: <1228470882.25798.23.camel@david-nb.visualon.local>	 <1228990380.29333.11.camel@david-nb.visualon.local>	 <0680EC522D0CC943BC586913CF3768C002DD2C6F5C@dbde02.ent.ti.com>	 <1241078747.19525.23.camel@localhost.localdomain>	 <FD6982799649459A93E724A62BF2E64F@LinHPNotebook>	 <0680EC522D0CC943BC586913CF3768C00378655555@dbde02.ent.ti.com> <1241617391.3362.23.camel@localhost.localdomain> <0680EC522D0CC943BC586913CF3768C003787AB074@dbde02.ent.ti.com> <4A0259D5.6090204@visualon.com> <0680EC522D0CC943BC586913CF3768C003787AB131@dbde02.ent.ti.com> <19F8576C6E063C45BE387C64729E739404323ED91C@dbde02.ent.ti.com> <4A028CBF.8030507@visualon.com> <19F8576C6E063C45BE387C64729E739404323ED97B@dbde02.ent.ti.com> <4A02B60A.2010006@visualon.com> <19F8576C6E063C45BE387C64729E739404323ED9F7@dbde02.ent.ti
+ .com> <4A03D097.5090605@visualon.com> <19F8576C6E063C45BE387C64729E739404323EDBDE@dbde02.ent.ti.com> <4A07CBF4.3000902@visualon.com> <19F8576C6E063C45BE387C64729E739404323EE137@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
+Content-Type: text/plain; charset=UTF-8;
+	format=flowed
 Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-media-owner@vger.kernel.org>
-In-Reply-To: <90b950fc0904300549t26a3104u4fa1399753ec193c@mail.gmail.com>
-Content-Language: en-US
-Sender: linux-media-owner@vger.kernel.org
-To: InKi Dae <daeinki@gmail.com>
-Cc: "tomi.valkeinen@nokia.com" <tomi.valkeinen@nokia.com>, "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Jadav, Brijesh R" <brijesh.j@ti.com>, "Hiremath, Vaibhav" <hvaibhav@ti.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from reserve.cableplus.com.cn ([218.242.229.234]:46840 "EHLO
+	mail.visualon.com" rhost-flags-OK-FAIL-OK-OK) by vger.kernel.org
+	with ESMTP id S1754301AbZELIF5 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 12 May 2009 04:05:57 -0400
+In-Reply-To: <19F8576C6E063C45BE387C64729E739404323EE137@dbde02.ent.ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+Cc: "Syed Mohammed, Khasim" <khasim@ti.com>, "Shah, Hardik" <hardik.shah@ti.com>, "wan_jinxue@visualon.com" <wan_jinxue@visualon.com>, Bill Lin <blin@visualon.com>, "shawnofarrell@visualon.com" <shawnofarrell@visualon.com>, "Chatterjee, Amit" <amit.chatterjee@ti.com>, "Andrews, Gerard" <gerard@ti.com>, "Kridner, Jason" <jdk@ti.com>, 'Bangfei Jin' <jin_bangfei@visualon.com>, 'Xuejun Dong' <dong_xuejun@visualon.com>, 'YangCai' <yangcai@visualon.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Hi Inki,
-I was on vacation just came,=20
-Below are my comments.
+Hi Hiremath Vaibhav,
 
-> -----Original Message-----
-> From: InKi Dae [mailto:daeinki@gmail.com]
-> Sent: Thursday, April 30, 2009 6:19 PM
-> To: Shah, Hardik
-> Cc: tomi.valkeinen@nokia.com; linux-media@vger.kernel.org; linux-
-> omap@vger.kernel.org; Jadav, Brijesh R; Hiremath, Vaibhav
-> Subject: Re: [PATCH 3/3] OMAP2/3 V4L2 Display Driver
->=20
-> Thank you Shah, Hardik.
-> I have patched your driver through that git.
->=20
-> but your patch recognizes video2 layer as video1 device node in case
-> that DSS2 has fb0 and fb1.
-[Shah, Hardik] There is no need to change the nodes.  If there is only =
-one video device present than it should be /dev/video1 and not /dev/vid=
-eo2.  Its upto the driver to use which video pipeline 1 or 2. So let th=
-e node nomenclature be same.
+Thank you very much for v4l2 on beagle!
 
-Regards,
-Hardik=20
->=20
-> you said my patch will give rise to couple of more bugs related to
-> global_alpha and pixel formats
-> maybe that would be because of vout->vid_info.id =3D k + vout_count;
->=20
-> so I have applied your patch to my way.
-> this patch is more flexible and recognizes video2 layer correctly as
-> video2 device node.
-> ---------------------------------------------------------------------=
----------
-> ---------------------------------------------------------------------=
----
-> --- a/drivers/media/video/omap/omap_vout.c
-> +++ b/drivers/media/video/omap/omap_vout.c
-> @@ -2204,7 +2204,7 @@ free_buffers:
->  /* Create video out devices */
->  static int __init omap_vout_create_video_devices(struct platform_dev=
-ice
-> *pdev)
->  {
-> -       int r =3D 0, k;
-> +       int r =3D 0, k, vout_count;
->         struct omap_vout_device *vout;
->         struct video_device *vfd =3D NULL;
->         struct v4l2_device *v4l2_dev =3D platform_get_drvdata(pdev);
-> @@ -2212,6 +2212,8 @@ static int __init
-> omap_vout_create_video_devices(struct platform_device *pdev)
->         struct omap2video_device *vid_dev =3D container_of(v4l2_dev, =
-struct
->                         omap2video_device, v4l2_dev);
->=20
-> +       vout_count =3D 3 - pdev->num_resources;
-> +
->         for (k =3D 0; k < pdev->num_resources; k++) {
->=20
->                 vout =3D kmalloc(sizeof(struct omap_vout_device), GFP=
-_KERNEL);
-> @@ -2225,12 +2227,7 @@ static int __init
-> omap_vout_create_video_devices(struct platform_device *pdev)
->                 vout->vid =3D k;
->                 vid_dev->vouts[k] =3D vout;
->                 vout->vid_dev =3D vid_dev;
-> -               /* Select video2 if only 1 overlay is controlled by V=
-4L2 */
-> -               if (pdev->num_resources =3D=3D 1)
-> -                       vout->vid_info.overlays[0] =3D vid_dev->overl=
-ays[k + 2];
-> -               else
-> -                       /* Else select video1 and video2 one by one. =
-*/
-> -                       vout->vid_info.overlays[0] =3D vid_dev->overl=
-ays[k + 1];
-> +               vout->vid_info.overlays[0] =3D vid_dev->overlays[k +
-> vout_count];
->                 vout->vid_info.num_overlays =3D 1;
->                 vout->vid_info.id =3D k + 1;
->                 vid_dev->num_videos++;
-> @@ -2253,7 +2250,7 @@ static int __init
-> omap_vout_create_video_devices(struct platform_device *pdev)
->                 /* Register the Video device with V4L2
->                 */
->                 vfd =3D vout->vfd;
-> -               if (video_register_device(vfd, VFL_TYPE_GRABBER, k + =
-1) < 0) {
-> +               if (video_register_device(vfd, VFL_TYPE_GRABBER, k +
-> vout_count) < 0) {
->                         printk(KERN_ERR VOUT_NAME ": could not regist=
-er "
->                                         "Video for Linux device\n");
->                         vfd->minor =3D -1
-> ---------------------------------------------------------------------=
----------
-> ---------------------------------------------------------------------=
----------
-> ---------
->=20
-> 2009/4/30 Shah, Hardik <hardik.shah@ti.com>:
->=20
-> >
-> >> -----Original Message-----
-> >> From: linux-media-owner@vger.kernel.org [mailto:linux-media-
-> >> owner@vger.kernel.org] On Behalf Of Shah, Hardik
-> >> Sent: Thursday, April 30, 2009 11:51 AM
-> >> To: InKi Dae
-> >> Cc: tomi.valkeinen@nokia.com; linux-media@vger.kernel.org; linux-
-> >> omap@vger.kernel.org; Jadav, Brijesh R; Hiremath, Vaibhav
-> >> Subject: RE: [PATCH 3/3] OMAP2/3 V4L2 Display Driver
-> >>
-> >>
-> >>
-> >> > -----Original Message-----
-> >> > From: InKi Dae [mailto:daeinki@gmail.com]
-> >> > Sent: Thursday, April 30, 2009 11:48 AM
-> >> > To: Shah, Hardik
-> >> > Cc: tomi.valkeinen@nokia.com; linux-media@vger.kernel.org; linux=
--
-> >> > omap@vger.kernel.org; Jadav, Brijesh R; Hiremath, Vaibhav
-> >> > Subject: Re: [PATCH 3/3] OMAP2/3 V4L2 Display Driver
-> >> >
-> >> > hello Shah, Hardik..
-> >> >
-> >> > your omap_vout.c has the problem that it disables video1 or fb1.
-> >> > so I have modified your code.
-> >> >
-> >> > I defined and set platform_data for DSS2 in machine code.(or boa=
-rd file)
-> >> >
-> >> > static struct omapfb_platform_data xxx_dss_platform_data =3D {
-> >> > =A0 =A0 .mem_desc.region[0].format =3D OMAPFB_COLOR_ARGB32,
-> >> > =A0 =A0 .mem_desc.region[0].format_used=3D1,
-> >> >
-> >> > =A0 =A0 .mem_desc.region[1].format =3D OMAPFB_COLOR_RGB24U,
-> >> > =A0 =A0 .mem_desc.region[1].format_used=3D1,
-> >> >
-> >> > =A0 =A0 .mem_desc.region[2].format =3D OMAPFB_COLOR_ARGB32,
-> >> > =A0 =A0 .mem_desc.region[2].format_used=3D1,
-> >> > };
-> >> >
-> >> > omapfb_set_platform_data(&xxx_dss_platform_data);
-> >> >
-> >> > after that, omap_vout has resource count got referring to frameb=
-uffer
-> count,
-> >> > registers overlay as vout's one and would decide to use which ov=
-erlay.
-> >> >
-> >> > at that time, your code would face with impact on some overlay(f=
-b or
-> video).
-> >> >
-> >> > this patch would solve that problem.
-> >> > when it sets overlay to vout, vout would get overlay array index=
- to
-> >> > avoid overlapping with other overlay.
-> >> >
-> >> >
-> >> > sighed-off-by: InKi Dae. <inki.dae@samsung.com>
-> >> > ---
-> >> > diff --git a/drivers/media/video/omap/omap_vout.c
-> >> > b/drivers/media/video/omap/omap_vout.c
-> >> > index 9b4a0d7..051298a 100644
-> >> > --- a/drivers/media/video/omap/omap_vout.c
-> >> > +++ b/drivers/media/video/omap/omap_vout.c
-> >> > @@ -2246,11 +2246,13 @@ free_buffers:
-> >> > =A0/* Create video out devices */
-> >> > =A0static int __init omap_vout_create_video_devices(struct platf=
-orm_device
-> >> > *pdev)
-> >> > =A0{
-> >> > - =A0 int r =3D 0, k;
-> >> > + =A0 int r =3D 0, k, vout_count;
-> >> > =A0 =A0 struct omap_vout_device *vout;
-> >> > =A0 =A0 struct video_device *vfd =3D NULL;
-> >> > =A0 =A0 struct omap2video_device *vid_dev =3D platform_get_drvda=
-ta(pdev);
-> >> >
-> >> > + =A0 vout_count =3D 3 - pdev->num_resources;
-> >> > +
-> >> > =A0 =A0 for (k =3D 0; k < pdev->num_resources; k++) {
-> >> >
-> >> > =A0 =A0 =A0 =A0 =A0 =A0 vout =3D kmalloc(sizeof(struct omap_vout=
-_device), GFP_KERNEL);
-> >> > @@ -2266,9 +2268,9 @@ static int __init
-> >> > omap_vout_create_video_devices(struct platform_device *pdev)
-> >> > =A0 =A0 =A0 =A0 =A0 =A0 vout->vid =3D k;
-> >> > =A0 =A0 =A0 =A0 =A0 =A0 vid_dev->vouts[k] =3D vout;
-> >> > =A0 =A0 =A0 =A0 =A0 =A0 vout->vid_info.vid_dev =3D vid_dev;
-> >> > - =A0 =A0 =A0 =A0 =A0 vout->vid_info.overlays[0] =3D vid_dev->ov=
-erlays[k + 1];
-> >> > + =A0 =A0 =A0 =A0 =A0 vout->vid_info.overlays[0] =3D vid_dev->ov=
-erlays[k +
-> vout_count];
-> >> > =A0 =A0 =A0 =A0 =A0 =A0 vout->vid_info.num_overlays =3D 1;
-> >> > - =A0 =A0 =A0 =A0 =A0 vout->vid_info.id =3D k + 1;
-> >> > + =A0 =A0 =A0 =A0 =A0 vout->vid_info.id =3D k + vout_count;
-> >> > =A0 =A0 =A0 =A0 =A0 =A0 vid_dev->num_videos++;
-> >> >
-> >> > =A0 =A0 =A0 =A0 =A0 =A0 /* Setup the default configuration for t=
-he video devices
-> >> > @@ -2289,7 +2291,7 @@ static int __init
-> >> > omap_vout_create_video_devices(struct platform_device *pdev)
-> >> > =A0 =A0 =A0 =A0 =A0 =A0 /* Register the Video device with V4L2
-> >> > =A0 =A0 =A0 =A0 =A0 =A0 =A0*/
-> >> > =A0 =A0 =A0 =A0 =A0 =A0 vfd =3D vout->vfd;
-> >> > - =A0 =A0 =A0 =A0 =A0 if (video_register_device(vfd, VFL_TYPE_GR=
-ABBER, k + 1) < 0)
-> {
-> >> > + =A0 =A0 =A0 =A0 =A0 if (video_register_device(vfd, VFL_TYPE_GR=
-ABBER, k +
-> vout_count) <
-> >> > 0) {
-> >> > =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 printk(KERN_ERR VOUT_NAM=
-E ": could not register \
-> >> > =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
-=A0 =A0 Video for Linux device\n");
-> >> > =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 vfd->minor =3D -1;
-> >> >
-> >> >
-> >> > 2009/4/22 Shah, Hardik <hardik.shah@ti.com>:
-> >> [Shah, Hardik] Yes this is correct,
-> >> I will apply this patch. =A0I already found it and fixed it in dif=
-ferent way
-> but
-> >> any way I will apply your patch.
-> > [Shah, Hardik] Further on this inki. =A0Solving this bug will give =
-rise to
-> couple of more bugs related to global_alpha and pixel formats. That a=
-lso is
-> fixed. You can refer http://arago-project.org/git/people/vaibhav/ti-p=
-sp-omap-
-> video.git?p=3Dpeople/vaibhav/ti-psp-omap-video.git;a=3Dsummary
-> >> > >
-> >> > >
-> >> > >> -----Original Message-----
-> >> > >> From: Tomi Valkeinen [mailto:tomi.valkeinen@nokia.com]
-> >> > >> Sent: Wednesday, April 22, 2009 1:53 PM
-> >> > >> To: Shah, Hardik
-> >> > >> Cc: linux-media@vger.kernel.org; linux-omap@vger.kernel.org; =
-Jadav,
-> >> Brijesh
-> >> > R;
-> >> > >> Hiremath, Vaibhav
-> >> > >> Subject: Re: [PATCH 3/3] OMAP2/3 V4L2 Display Driver
-> >> > >>
-> >> > >> Hi,
-> >> > >>
-> >> > >> On Wed, 2009-04-22 at 08:25 +0200, ext Hardik Shah wrote:
-> >> > >> > This is the version 5th of the Driver.
-> >> > >> >
-> >> > >> > Following are the features supported.
-> >> > >> > 1. Provides V4L2 user interface for the video pipelines of =
-DSS
-> >> > >> > 2. Basic streaming working on LCD and TV.
-> >> > >> > 3. Support for various pixel formats like YUV, UYVY, RGB32,=
- RGB24,
-> >> RGB565
-> >> > >> > 4. Supports Alpha blending.
-> >> > >> > 5. Supports Color keying both source and destination.
-> >> > >> > 6. Supports rotation with RGB565 and RGB32 pixels formats.
-> >> > >> > 7. Supports cropping.
-> >> > >> > 8. Supports Background color setting.
-> >> > >> > 9. Works on latest DSS2 library from Tomi
-> >> > >> > http://www.bat.org/~tomba/git/linux-omap-dss.git/
-> >> > >> > 10. 1/4x scaling added. =A0Detail testing left
-> >> > >> >
-> >> > >> > TODOS
-> >> > >> > 1. Ioctls needs to be added for color space conversion matr=
-ix
-> >> > >> > coefficient programming.
-> >> > >> > 2. To be tested on DVI resolutions.
-> >> > >> >
-> >> > >> > Comments fixed from community.
-> >> > >> > 1. V4L2 Driver for OMAP3/3 DSS.
-> >> > >> > 2. =A0Conversion of the custom ioctls to standard V4L2 ioct=
-ls like
-> alpha
-> >> > >> blending,
-> >> > >> > color keying, rotation and back ground color setting
-> >> > >> > 3. =A0Re-organised the code as per community comments.
-> >> > >> > 4. =A0Added proper copyright year.
-> >> > >> > 5. =A0Added module name in printk
-> >> > >> > 6. =A0Kconfig option copy/paste error
-> >> > >> > 7. =A0Module param desc addded.
-> >> > >> > 8. =A0Query control implemented using standard query_fill
-> >> > >> > 9. =A0Re-arranged if-else constructs.
-> >> > >> > 10. Changed to use mutex instead of semaphore.
-> >> > >> > 11. Removed dual usage of rotation angles.
-> >> > >> > 12. Implemented function to convert the V4L2 angle to DSS a=
-ngle.
-> >> > >> > 13. Y-position was set half by video driver for TV output
-> >> > >> > Now its done by DSS so removed that.
-> >> > >> > 14. Minor cleanup
-> >> > >> > 15. Added support to pass the page offset to application.
-> >> > >> > 14. Minor cleanup
-> >> > >> > 15. Added support to pass the page offset to application.
-> >> > >> > 16. Renamed V4L2_CID_ROTATION to V4L2_CID_ROTATE
-> >> > >> > 17. Major comment from Hans fixed.
-> >> > >> > 18. Copy right year changed.
-> >> > >> > 19. Added module name for each error/warning print message.
-> >> > >> >
-> >> > >> > Changes from Previous Version.
-> >> > >> > 1. Supported YUV rotation.
-> >> > >> > 2. Supported Flipping.
-> >> > >> > 3. Rebased line with Tomi's latest DSS2 master branch with =
-commit
-> =A0id
-> >> > >> > f575a02edf2218a18d6f2ced308b4f3e26b44ce2.
-> >> > >> > 4. Kconfig option removed to select between the TV and LCD.
-> >> > >> > Now supported dynamically by DSS2 library.
-> >> > >> > 5. Kconfig option for the NTSC_M and PAL_BDGHI mode but not
-> >> > >> > supported by DSS2. =A0so it will not work now.
-> >> > >>
-> >> > >> There is basic support for this. See the DSS doc:
-> >> > >>
-> >> > >> /sys/devices/platform/omapdss/display? directory:
-> >> > >> ...
-> >> > >> timings =A0 =A0 =A0 =A0 Display timings
-> >> > (pixclock,xres/hfp/hbp/hsw,yres/vfp/vbp/vsw)
-> >> > >> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 When writing, two special tim=
-ings are accepted for tv-
-> >> out:
-> >> > >> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 "pal" and "ntsc"
-> >> > > [Shah, Hardik] I was not aware of it will remove the compile t=
-ime
-> option
-> >> and
-> >> > for now let the sysfs entry change the standard. =A0In future I =
-will try to
-> do
-> >> > it with the S_STD and G_STD ioctls of the V4L2 framework.
-> >> > >>
-> >> > >> =A0Tomi
-> >> > >>
-> >> > >>
-> >> > >
-> >> > > --
-> >> > > To unsubscribe from this list: send the line "unsubscribe linu=
-x-media"
-> in
-> >> > > the body of a message to majordomo@vger.kernel.org
-> >> > > More majordomo info at =A0http://vger.kernel.org/majordomo-inf=
-o.html
-> >> > >
-> >>
-> >> --
-> >> To unsubscribe from this list: send the line "unsubscribe linux-me=
-dia" in
-> >> the body of a message to majordomo@vger.kernel.org
-> >> More majordomo info at =A0http://vger.kernel.org/majordomo-info.ht=
-ml
-> >
-> >
+We want to use your branch to demo our video player,  I can not enable=20
+sound and usb-mouse in beagle board.
+
+What's the difference between beagle kernel and your branch kernel for=20
+sound and usb driver?
+
+Thanks & Best Regards,
+George.Qiao
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+> Hi George,
+>
+> Yes I do agree, at-least for me this looks like a small bug in V4L2 d=
+river. But just to make double sure I will discuss this with Hardik and=
+ let you know.
+>
+> Thanks,
+> Vaibhav Hiremath
+> Platform Support Products
+> Texas Instruments Inc
+> Ph: +91-80-25099927
+>  =20
+>> -----Original Message-----
+>> From: George.Qiao [mailto:qiao_shanshan@visualon.com]
+>> Sent: Monday, May 11, 2009 12:26 PM
+>> To: Hiremath, Vaibhav
+>> Cc: Syed Mohammed, Khasim; Shah, Hardik; wan_jinxue@visualon.com;
+>> Bill Lin; shawnofarrell@visualon.com; Chatterjee, Amit; Andrews,
+>> Gerard; Kridner, Jason; 'Bangfei Jin'; 'Xuejun Dong'; 'YangCai';
+>> linux-omap@vger.kernel.org
+>> Subject: Re: Status of Beagle Board
+>>
+>> Hi Hiremath Vaibhav,
+>>
+>> I have fixed this bugs in omap_vout.c :
+>>
+>> vidioc_streamoff()
+>> {
+>> ...
+>> - return ovl->set_overlay_info(ovl, &info);
+>> + ovl->set_overlay_info(ovl, &info);
+>> ...
+>> }
+>>
+>> because it should not return ovl->set_overlay_info() here, in this
+>> way,
+>> the below code will not be executed:
+>> videobuf_streamoff() -> videobuf_queue_cancel()
+>> {
+>> ...
+>> q->streaming =3D 0
+>> ...
+>> }
+>>
+>> so, vidioc_reqbufs->videobuf_reqbufs() will always fail.
+>>
+>> Do you agree with me?
+>>
+>> Thanks & Best Regards,
+>> George.Qiao
+>>
+>> =EF=BC=9D=EF=BC=9D=EF=BC=9D=EF=BC=9D=EF=BC=9D=EF=BC=9D=EF=BC=9D=EF=BC=
+=9D=EF=BC=9D=EF=BC=9D=EF=BC=9D=EF=BC=9D=EF=BC=9D=EF=BC=9D=EF=BC=9D=EF=BC=
+=9D=EF=BC=9D=EF=BC=9D=EF=BC=9D=EF=BC=9D=EF=BC=9D=EF=BC=9D=EF=BC=9D=EF=BC=
+=9D=EF=BC=9D=EF=BC=9D=EF=BC=9D=EF=BC=9D=EF=BC=9D=EF=BC=9D=EF=BC=9D=EF=BC=
+=9D=EF=BC=9D=EF=BC=9D=EF=BC=9D
+>>    =20
+>>>> -----Original Message-----
+>>>> From: George.Qiao [mailto:qiao_shanshan@visualon.com]
+>>>> Sent: Friday, May 08, 2009 11:57 AM
+>>>> To: Hiremath, Vaibhav
+>>>> Cc: Syed Mohammed, Khasim; Shah, Hardik; wan_jinxue@visualon.com;
+>>>> Bill Lin; shawnofarrell@visualon.com; Chatterjee, Amit; Andrews,
+>>>> Gerard; Kridner, Jason; 'Bangfei Jin'; 'Xuejun Dong'; 'YangCai';
+>>>> linux-omap@vger.kernel.org
+>>>> Subject: Re: Status of Beagle Board
+>>>>
+>>>> Hi Vaibhav Hiremath,
+>>>>
+>>>> My application can work in OMAP3 EVM and other v4l2 platform, but
+>>>> there
+>>>> is another issue in beagle board. as follow:
+>>>>
+>>>>
+>>>>        =20
+>>> [Hiremath, Vaibhav] Are you saying, same application works on
+>>>      =20
+>> OMAP3EVM but fails on beagle board?
+>>    =20
+>>>      =20
+>>>> 1. NormalSize() -> RequestBuffer() -> mmap()
+>>>> 2. playing...
+>>>> 3. FullScreen() -> VIDIOC_STREAMOFF
+>>>>                           -> munmap()
+>>>>                           -> VIDIOC_REQBUFS
+>>>>                           -> VIDIOC_QUERYBUF
+>>>>                           -> RequestBuffer() -> mmap()
+>>>>                           -> VIDIOC_S_CROP
+>>>>                           -> VIDIOC_S_FMT
+>>>>                           -> VIDIOC_QBUF
+>>>>                           -> VIDIOC_STREAMON
+>>>>
+>>>> When I want to call VIDIOC_REQBUFS in FullScreen(), it always
+>>>>        =20
+>> fail.
+>>    =20
+>>>>        =20
+>>> [Hiremath, Vaibhav] Is it possible for you to share your
+>>>      =20
+>> application, so that I can give try here at my end?
+>>    =20
+>>> Thanks,
+>>> Vaibhav Hiremath
+>>>
+>>>
+>>>      =20
+>>>> Best Regards,
+>>>> George.Qiao
+>>>>
+>>>> =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D
+>>>>
+>>>>        =20
+>>>>> Great, please see my comments in-lined below -
+>>>>>
+>>>>>
+>>>>> Thanks,
+>>>>> Vaibhav Hiremath
+>>>>> Platform Support Products
+>>>>> Texas Instruments Inc
+>>>>> Ph: +91-80-25099927
+>>>>>
+>>>>>
+>>>>>
+>>>>>          =20
+>>>>>> -----Original Message-----
+>>>>>> From: George.Qiao [mailto:qiao_shanshan@visualon.com]
+>>>>>> Sent: Thursday, May 07, 2009 3:51 PM
+>>>>>> To: Hiremath, Vaibhav
+>>>>>> Cc: Syed Mohammed, Khasim; Shah, Hardik;
+>>>>>>            =20
+>> wan_jinxue@visualon.com;
+>>    =20
+>>>>>> Bill Lin; shawnofarrell@visualon.com; Chatterjee, Amit;
+>>>>>>            =20
+>> Andrews,
+>>    =20
+>>>>>> Gerard; Kridner, Jason; 'Bangfei Jin'; 'Xuejun Dong';
+>>>>>>            =20
+>> 'YangCai';
+>>    =20
+>>>>>> linux-omap-open-source@linux.omap.com
+>>>>>> Subject: Re: Status of Beagle Board
+>>>>>>
+>>>>>> Dear Vaibhav Hiremath,
+>>>>>>
+>>>>>> I can play video by v4l2 now!  Thank you!
+>>>>>>
+>>>>>> I have add code in board-omap3beagle.c :
+>>>>>>
+>>>>>> #ifdef CONFIG_FB_OMAP2
+>>>>>> static struct resource omap3beagle_vout_resource[3 -
+>>>>>> CONFIG_FB_OMAP2_NUM_FBS] =3D {
+>>>>>> };
+>>>>>> #else
+>>>>>> static struct resource omap3beagle_vout_resource[2] =3D {
+>>>>>> };
+>>>>>> #endif
+>>>>>>
+>>>>>> static struct platform_device omap3beagle_vout_device =3D {
+>>>>>>        .name                   =3D "omap_vout",
+>>>>>>        .num_resources  =3D ARRAY_SIZE(omap3beagle_vout_resource)=
+,
+>>>>>>        .resource               =3D &omap3beagle_vout_resource[0]=
+,
+>>>>>>        .id             =3D -1,
+>>>>>> };
+>>>>>>
+>>>>>> static struct platform_device *omap3_beagle_devices[]
+>>>>>>            =20
+>> __initdata
+>>    =20
+>>>> =3D {
+>>>>
+>>>>        =20
+>>>>>>     &beagle_dss_device,
+>>>>>>     &leds_gpio,
+>>>>>>     &keys_gpio,
+>>>>>>     &omap3beagle_vout_device,
+>>>>>> };
+>>>>>>
+>>>>>>
+>>>>>> I have got some omapdss error and voutBuffer Size. as follow:
+>>>>>>
+>>>>>> omapdss: Could not find exact pixel clock. Requested 23500 kHz,
+>>>>>>
+>>>>>>            =20
+>>>> got
+>>>>
+>>>>        =20
+>>>>>> 24000 kHz
+>>>>>> omapdss error: display already enabled
+>>>>>> omap_voutDisplay already enabled
+>>>>>> omapdss error: display already enabled
+>>>>>> omap_voutDisplay already enabled
+>>>>>>
+>>>>>>
+>>>>>>            =20
+>>>>> [Hiremath, Vaibhav] This is not an error as such, it warning
+>>>>>
+>>>>>          =20
+>>>> message. Actually here we are trying to enable the display which
+>>>>        =20
+>> has
+>>    =20
+>>>> already been enabled by Fbdev.
+>>>>
+>>>>        =20
+>>>>> We can suppress this message, atleast during init.
+>>>>>
+>>>>>
+>>>>>
+>>>>>          =20
+>>>>>> omap_voutBuffer Size =3D 3686400
+>>>>>> omap_vout: registered and initialized video device 0 [v4l2]
+>>>>>> omap_voutBuffer Size =3D 3686400
+>>>>>> omap_vout: registered and initialized video device 1 [v4l2]
+>>>>>>
+>>>>>>
+>>>>>>
+>>>>>>            =20
+>>>>> [Hiremath, Vaibhav] This is just a debug massage; it is neither
+>>>>>          =20
+>> a
+>>    =20
+>>>> error nor a warning. So don't worry.
+>>>>
+>>>>        =20
+>>>>> Can you share the code-base or submit the patches to the list,
+>>>>>          =20
+>> so
+>>    =20
+>>>> that interested people can use it.
+>>>>
+>>>>        =20
+>>>>>> Could I change 'voutBuffer Size'?  How to fix it?
+>>>>>>
+>>>>>> Best Regards,
+>>>>>> George.Qiao
+>>>>>>
+>>>>>> =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D
+>>>>>>
+>>>>>>
+>>>>>>            =20
+>>>>>>> Yes Definitely this is the issue. If the platform_device.name
+>>>>>>>
+>>>>>>>
+>>>>>>>              =20
+>>>>>> doesn't match with the platform_driver.driver.name then your
+>>>>>>
+>>>>>>            =20
+>>>> probe
+>>>>
+>>>>        =20
+>>>>>> function will not be called at all.
+>>>>>>
+>>>>>>
+>>>>>>            =20
+>>>>>>> Can you just copy the board-omap3evm.c changes related to
+>>>>>>>
+>>>>>>>
+>>>>>>>              =20
+>>>>>> V4L2/DSS2 and give a shot? I think it should work straight
+>>>>>>            =20
+>> away.
+>>    =20
+>>>>>>            =20
+>>>>>>> Please let me know if you need any further clarification or
+>>>>>>>
+>>>>>>>              =20
+>>>> help.
+>>>>
+>>>>        =20
+>>>>>>> Thanks,
+>>>>>>> Vaibhav Hiremath
+>>>>>>> Platform Support Products
+>>>>>>> Texas Instruments Inc
+>>>>>>> Ph: +91-80-25099927
+>>>>>>>
+>>>>>>>
+>>>>>>>
+>>>>>>>
+>>>>>>>              =20
+>>>>>>>> -----Original Message-----
+>>>>>>>> From: George.Qiao [mailto:qiao_shanshan@visualon.com]
+>>>>>>>> Sent: Thursday, May 07, 2009 12:55 PM
+>>>>>>>> To: Hiremath, Vaibhav
+>>>>>>>> Cc: Syed Mohammed, Khasim; Shah, Hardik;
+>>>>>>>>
+>>>>>>>>                =20
+>>>> wan_jinxue@visualon.com;
+>>>>
+>>>>        =20
+>>>>>>>> Bill Lin; shawnofarrell@visualon.com; Chatterjee, Amit;
+>>>>>>>>
+>>>>>>>>                =20
+>>>> Andrews,
+>>>>
+>>>>        =20
+>>>>>>>> Gerard; Kridner, Jason; 'Bangfei Jin'; 'Xuejun Dong';
+>>>>>>>>
+>>>>>>>>                =20
+>>>> 'YangCai';
+>>>>
+>>>>        =20
+>>>>>>>> linux-omap-open-source@linux.omap.com
+>>>>>>>> Subject: Re: Status of Beagle Board
+>>>>>>>>
+>>>>>>>> Hi Hiremath, Vaibhav,
+>>>>>>>>
+>>>>>>>> Thank you very much for your instant response!
+>>>>>>>>
+>>>>>>>> I've checked the file 'board-omap3beagle.c' and found nothing
+>>>>>>>> looking
+>>>>>>>> like omap_vout in it, no platform_device, either. And I've
+>>>>>>>>                =20
+>> also
+>>    =20
+>>>>>>>> compared
+>>>>>>>> it with board-omap3evm.c.
+>>>>>>>>
+>>>>>>>> Below is some difference between them:
+>>>>>>>>
+>>>>>>>> board-omap3evm.c has:
+>>>>>>>> *+static struct platform_device omap3evm_vout_device =3D {
+>>>>>>>> **+       .name                   =3D "omap_vout",
+>>>>>>>> ...
+>>>>>>>> }
+>>>>>>>> *
+>>>>>>>> But 'board-omap3beagle.c' does not have anything looking
+>>>>>>>>                =20
+>> like:
+>>    =20
+>>>>>>>> *+static struct platform_device omap3beagle_vout_device =3D {*
+>>>>>>>> *+       .name                   =3D "omap_vout",
+>>>>>>>> ...
+>>>>>>>> }
+>>>>>>>> *
+>>>>>>>> So, I think there's no patch on V4L2 for beagle done and this
+>>>>>>>>
+>>>>>>>>                =20
+>>>> is
+>>>>
+>>>>        =20
+>>>>>> the
+>>>>>>
+>>>>>>
+>>>>>>            =20
+>>>>>>>> root cause of this issue. Do you agree with me? Thanks a lot.
+>>>>>>>>
+>>>>>>>>
+>>>>>>>> Best Regards,
+>>>>>>>> George.Qiao
+>>>>>>>> =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+>>>>>>>>
+>>>>>>>>
+>>>>>>>>
+>>>>>>>>
+>>>>>>>>                =20
+>>>>>>>>> Hi George,
+>>>>>>>>>
+>>>>>>>>> I have looked into your config file and it looks ok to me.
+>>>>>>>>>
+>>>>>>>>> Can you conform that, you have added "platform_device"
+>>>>>>>>>
+>>>>>>>>>
+>>>>>>>>>                  =20
+>>>>>> definitions
+>>>>>>
+>>>>>>
+>>>>>>            =20
+>>>>>>>> in board-omap3beagle.c?
+>>>>>>>>
+>>>>>>>>
+>>>>>>>>
+>>>>>>>>                =20
+>>>>>>>>> Can you please create complete patch on top of your baseline
+>>>>>>>>>
+>>>>>>>>>                  =20
+>>>> (O-
+>>>>
+>>>>        =20
+>>>>>> L
+>>>>>>
+>>>>>>
+>>>>>>            =20
+>>>>>>>> and Tomi's tree), so that I can review that directly? I will
+>>>>>>>>                =20
+>> be
+>>    =20
+>>>>>>>> seeing complete changes done for beagle.
+>>>>>>>>
+>>>>>>>>
+>>>>>>>>
+>>>>>>>>                =20
+>>>>>>>>> Thanks,
+>>>>>>>>> Vaibhav Hiremath
+>>>>>>>>> Platform Support Products
+>>>>>>>>> Texas Instruments Inc
+>>>>>>>>> Ph: +91-80-25099927
+>>>>>>>>>
+>>>>>>>>>
+>>>>>>>>>
+>>>>>>>>>
+>>>>>>>>>
+>>>>>>>>>                  =20
+>>>>>          =20
+>>>
+>>>      =20
+>
+>  =20
 
 --
-To unsubscribe from this list: send the line "unsubscribe linux-media" =
-in
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
 the body of a message to majordomo@vger.kernel.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
