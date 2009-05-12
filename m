@@ -1,454 +1,249 @@
-From: "George.Qiao" <qiao_shanshan@visualon.com>
-Subject: Re: Status of Beagle Board
-Date: Tue, 12 May 2009 16:05:25 +0800
-Message-ID: <4A092DC5.7020305@visualon.com>
-References: <1228470882.25798.23.camel@david-nb.visualon.local>	 <1228990380.29333.11.camel@david-nb.visualon.local>	 <0680EC522D0CC943BC586913CF3768C002DD2C6F5C@dbde02.ent.ti.com>	 <1241078747.19525.23.camel@localhost.localdomain>	 <FD6982799649459A93E724A62BF2E64F@LinHPNotebook>	 <0680EC522D0CC943BC586913CF3768C00378655555@dbde02.ent.ti.com> <1241617391.3362.23.camel@localhost.localdomain> <0680EC522D0CC943BC586913CF3768C003787AB074@dbde02.ent.ti.com> <4A0259D5.6090204@visualon.com> <0680EC522D0CC943BC586913CF3768C003787AB131@dbde02.ent.ti.com> <19F8576C6E063C45BE387C64729E739404323ED91C@dbde02.ent.ti.com> <4A028CBF.8030507@visualon.com> <19F8576C6E063C45BE387C64729E739404323ED97B@dbde02.ent.ti.com> <4A02B60A.2010006@visualon.com> <19F8576C6E063C45BE387C64729E739404323ED9F7@dbde02.ent.ti
- .com> <4A03D097.5090605@visualon.com> <19F8576C6E063C45BE387C64729E739404323EDBDE@dbde02.ent.ti.com> <4A07CBF4.3000902@visualon.com> <19F8576C6E063C45BE387C64729E739404323EE137@dbde02.ent.ti.com>
+From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+Subject: RE: Status of Beagle Board
+Date: Tue, 12 May 2009 13:53:15 +0530
+Message-ID: <19F8576C6E063C45BE387C64729E739404323EE35C@dbde02.ent.ti.com>
+References: <1228470882.25798.23.camel@david-nb.visualon.local>
+	 <1228990380.29333.11.camel@david-nb.visualon.local>
+	 <0680EC522D0CC943BC586913CF3768C002DD2C6F5C@dbde02.ent.ti.com>
+	 <1241078747.19525.23.camel@localhost.localdomain>
+	 <FD6982799649459A93E724A62BF2E64F@LinHPNotebook>
+	 <0680EC522D0CC943BC586913CF3768C00378655555@dbde02.ent.ti.com>
+ <1241617391.3362.23.camel@localhost.localdomain>
+ <0680EC522D0CC943BC586913CF3768C003787AB074@dbde02.ent.ti.com>
+ <4A0259D5.6090204@visualon.com>
+ <0680EC522D0CC943BC586913CF3768C003787AB131@dbde02.ent.ti.com>
+ <19F8576C6E063C45BE387C64729E739404323ED91C@dbde02.ent.ti.com>
+ <4A028CBF.8030507@visualon.com>
+ <19F8576C6E063C45BE387C64729E739404323ED97B@dbde02.ent.ti.com>
+ <4A02B60A.2010006@visualon.com>
+ <19F8576C6E063C45BE387C64729E739404323ED9F7@dbde02.ent.ti.com>
+ <4A03D097.5090605@visualon.com>
+ <19F8576C6E063C45BE387C64729E739404323EDBDE@dbde02.ent.ti.com>
+ <4A07CBF4.3000902@visualon.com>
+ <19F8576C6E063C45BE387C64729E739404323EE137@dbde02.ent.ti .com>
+ <4A092DC5.7020305@visualon.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from reserve.cableplus.com.cn ([218.242.229.234]:46840 "EHLO
-	mail.visualon.com" rhost-flags-OK-FAIL-OK-OK) by vger.kernel.org
-	with ESMTP id S1754301AbZELIF5 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 12 May 2009 04:05:57 -0400
-In-Reply-To: <19F8576C6E063C45BE387C64729E739404323EE137@dbde02.ent.ti.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:47167 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756085AbZELIXW (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 12 May 2009 04:23:22 -0400
+In-Reply-To: <4A092DC5.7020305@visualon.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Cc: "Syed Mohammed, Khasim" <khasim@ti.com>, "Shah, Hardik" <hardik.shah@ti.com>, "wan_jinxue@visualon.com" <wan_jinxue@visualon.com>, Bill Lin <blin@visualon.com>, "shawnofarrell@visualon.com" <shawnofarrell@visualon.com>, "Chatterjee, Amit" <amit.chatterjee@ti.com>, "Andrews, Gerard" <gerard@ti.com>, "Kridner, Jason" <jdk@ti.com>, 'Bangfei Jin' <jin_bangfei@visualon.com>, 'Xuejun Dong' <dong_xuejun@visualon.com>, 'YangCai' <yangcai@visualon.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: "George.Qiao" <qiao_shanshan@visualon.com>
+Cc: "Syed Mohammed, Khasim" <khasim@ti.com>, "Shah, Hardik" <hardik.shah@ti.com>, "wan_jinxue@visualon.com" <wan_jinxue@visualon.com>, Bill Lin <blin@visualon.com>, "shawnofarrell@visualon.com" <shawnofarrell@visualon.com>, "Chatterjee, Amit" <amit.chatterjee@ti.com>, "Andrews, Gerard" <gerard@ti.com>, "Kridner, Jason" <jdk@ti.com>, 'Bangfei Jin' <jin_bangfei@visualon.com>, 'Xuejun Dong' <dong_xuejun@visualon.com>, 'YangCai' <yangcai@visualon.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Gadiyar, Anand" <gadiyar@ti.com>
 
-Hi Hiremath Vaibhav,
-
-Thank you very much for v4l2 on beagle!
-
-We want to use your branch to demo our video player,  I can not enable=20
-sound and usb-mouse in beagle board.
-
-What's the difference between beagle kernel and your branch kernel for=20
-sound and usb driver?
-
-Thanks & Best Regards,
-George.Qiao
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
-> Hi George,
->
-> Yes I do agree, at-least for me this looks like a small bug in V4L2 d=
-river. But just to make double sure I will discuss this with Hardik and=
- let you know.
->
-> Thanks,
-> Vaibhav Hiremath
-> Platform Support Products
-> Texas Instruments Inc
-> Ph: +91-80-25099927
->  =20
->> -----Original Message-----
->> From: George.Qiao [mailto:qiao_shanshan@visualon.com]
->> Sent: Monday, May 11, 2009 12:26 PM
->> To: Hiremath, Vaibhav
->> Cc: Syed Mohammed, Khasim; Shah, Hardik; wan_jinxue@visualon.com;
->> Bill Lin; shawnofarrell@visualon.com; Chatterjee, Amit; Andrews,
->> Gerard; Kridner, Jason; 'Bangfei Jin'; 'Xuejun Dong'; 'YangCai';
->> linux-omap@vger.kernel.org
->> Subject: Re: Status of Beagle Board
->>
->> Hi Hiremath Vaibhav,
->>
->> I have fixed this bugs in omap_vout.c :
->>
->> vidioc_streamoff()
->> {
->> ...
->> - return ovl->set_overlay_info(ovl, &info);
->> + ovl->set_overlay_info(ovl, &info);
->> ...
->> }
->>
->> because it should not return ovl->set_overlay_info() here, in this
->> way,
->> the below code will not be executed:
->> videobuf_streamoff() -> videobuf_queue_cancel()
->> {
->> ...
->> q->streaming =3D 0
->> ...
->> }
->>
->> so, vidioc_reqbufs->videobuf_reqbufs() will always fail.
->>
->> Do you agree with me?
->>
->> Thanks & Best Regards,
->> George.Qiao
->>
->> =EF=BC=9D=EF=BC=9D=EF=BC=9D=EF=BC=9D=EF=BC=9D=EF=BC=9D=EF=BC=9D=EF=BC=
-=9D=EF=BC=9D=EF=BC=9D=EF=BC=9D=EF=BC=9D=EF=BC=9D=EF=BC=9D=EF=BC=9D=EF=BC=
-=9D=EF=BC=9D=EF=BC=9D=EF=BC=9D=EF=BC=9D=EF=BC=9D=EF=BC=9D=EF=BC=9D=EF=BC=
-=9D=EF=BC=9D=EF=BC=9D=EF=BC=9D=EF=BC=9D=EF=BC=9D=EF=BC=9D=EF=BC=9D=EF=BC=
-=9D=EF=BC=9D=EF=BC=9D=EF=BC=9D
->>    =20
->>>> -----Original Message-----
->>>> From: George.Qiao [mailto:qiao_shanshan@visualon.com]
->>>> Sent: Friday, May 08, 2009 11:57 AM
->>>> To: Hiremath, Vaibhav
->>>> Cc: Syed Mohammed, Khasim; Shah, Hardik; wan_jinxue@visualon.com;
->>>> Bill Lin; shawnofarrell@visualon.com; Chatterjee, Amit; Andrews,
->>>> Gerard; Kridner, Jason; 'Bangfei Jin'; 'Xuejun Dong'; 'YangCai';
->>>> linux-omap@vger.kernel.org
->>>> Subject: Re: Status of Beagle Board
->>>>
->>>> Hi Vaibhav Hiremath,
->>>>
->>>> My application can work in OMAP3 EVM and other v4l2 platform, but
->>>> there
->>>> is another issue in beagle board. as follow:
->>>>
->>>>
->>>>        =20
->>> [Hiremath, Vaibhav] Are you saying, same application works on
->>>      =20
->> OMAP3EVM but fails on beagle board?
->>    =20
->>>      =20
->>>> 1. NormalSize() -> RequestBuffer() -> mmap()
->>>> 2. playing...
->>>> 3. FullScreen() -> VIDIOC_STREAMOFF
->>>>                           -> munmap()
->>>>                           -> VIDIOC_REQBUFS
->>>>                           -> VIDIOC_QUERYBUF
->>>>                           -> RequestBuffer() -> mmap()
->>>>                           -> VIDIOC_S_CROP
->>>>                           -> VIDIOC_S_FMT
->>>>                           -> VIDIOC_QBUF
->>>>                           -> VIDIOC_STREAMON
->>>>
->>>> When I want to call VIDIOC_REQBUFS in FullScreen(), it always
->>>>        =20
->> fail.
->>    =20
->>>>        =20
->>> [Hiremath, Vaibhav] Is it possible for you to share your
->>>      =20
->> application, so that I can give try here at my end?
->>    =20
->>> Thanks,
->>> Vaibhav Hiremath
->>>
->>>
->>>      =20
->>>> Best Regards,
->>>> George.Qiao
->>>>
->>>> =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D
->>>>
->>>>        =20
->>>>> Great, please see my comments in-lined below -
->>>>>
->>>>>
->>>>> Thanks,
->>>>> Vaibhav Hiremath
->>>>> Platform Support Products
->>>>> Texas Instruments Inc
->>>>> Ph: +91-80-25099927
->>>>>
->>>>>
->>>>>
->>>>>          =20
->>>>>> -----Original Message-----
->>>>>> From: George.Qiao [mailto:qiao_shanshan@visualon.com]
->>>>>> Sent: Thursday, May 07, 2009 3:51 PM
->>>>>> To: Hiremath, Vaibhav
->>>>>> Cc: Syed Mohammed, Khasim; Shah, Hardik;
->>>>>>            =20
->> wan_jinxue@visualon.com;
->>    =20
->>>>>> Bill Lin; shawnofarrell@visualon.com; Chatterjee, Amit;
->>>>>>            =20
->> Andrews,
->>    =20
->>>>>> Gerard; Kridner, Jason; 'Bangfei Jin'; 'Xuejun Dong';
->>>>>>            =20
->> 'YangCai';
->>    =20
->>>>>> linux-omap-open-source@linux.omap.com
->>>>>> Subject: Re: Status of Beagle Board
->>>>>>
->>>>>> Dear Vaibhav Hiremath,
->>>>>>
->>>>>> I can play video by v4l2 now!  Thank you!
->>>>>>
->>>>>> I have add code in board-omap3beagle.c :
->>>>>>
->>>>>> #ifdef CONFIG_FB_OMAP2
->>>>>> static struct resource omap3beagle_vout_resource[3 -
->>>>>> CONFIG_FB_OMAP2_NUM_FBS] =3D {
->>>>>> };
->>>>>> #else
->>>>>> static struct resource omap3beagle_vout_resource[2] =3D {
->>>>>> };
->>>>>> #endif
->>>>>>
->>>>>> static struct platform_device omap3beagle_vout_device =3D {
->>>>>>        .name                   =3D "omap_vout",
->>>>>>        .num_resources  =3D ARRAY_SIZE(omap3beagle_vout_resource)=
-,
->>>>>>        .resource               =3D &omap3beagle_vout_resource[0]=
-,
->>>>>>        .id             =3D -1,
->>>>>> };
->>>>>>
->>>>>> static struct platform_device *omap3_beagle_devices[]
->>>>>>            =20
->> __initdata
->>    =20
->>>> =3D {
->>>>
->>>>        =20
->>>>>>     &beagle_dss_device,
->>>>>>     &leds_gpio,
->>>>>>     &keys_gpio,
->>>>>>     &omap3beagle_vout_device,
->>>>>> };
->>>>>>
->>>>>>
->>>>>> I have got some omapdss error and voutBuffer Size. as follow:
->>>>>>
->>>>>> omapdss: Could not find exact pixel clock. Requested 23500 kHz,
->>>>>>
->>>>>>            =20
->>>> got
->>>>
->>>>        =20
->>>>>> 24000 kHz
->>>>>> omapdss error: display already enabled
->>>>>> omap_voutDisplay already enabled
->>>>>> omapdss error: display already enabled
->>>>>> omap_voutDisplay already enabled
->>>>>>
->>>>>>
->>>>>>            =20
->>>>> [Hiremath, Vaibhav] This is not an error as such, it warning
->>>>>
->>>>>          =20
->>>> message. Actually here we are trying to enable the display which
->>>>        =20
->> has
->>    =20
->>>> already been enabled by Fbdev.
->>>>
->>>>        =20
->>>>> We can suppress this message, atleast during init.
->>>>>
->>>>>
->>>>>
->>>>>          =20
->>>>>> omap_voutBuffer Size =3D 3686400
->>>>>> omap_vout: registered and initialized video device 0 [v4l2]
->>>>>> omap_voutBuffer Size =3D 3686400
->>>>>> omap_vout: registered and initialized video device 1 [v4l2]
->>>>>>
->>>>>>
->>>>>>
->>>>>>            =20
->>>>> [Hiremath, Vaibhav] This is just a debug massage; it is neither
->>>>>          =20
->> a
->>    =20
->>>> error nor a warning. So don't worry.
->>>>
->>>>        =20
->>>>> Can you share the code-base or submit the patches to the list,
->>>>>          =20
->> so
->>    =20
->>>> that interested people can use it.
->>>>
->>>>        =20
->>>>>> Could I change 'voutBuffer Size'?  How to fix it?
->>>>>>
->>>>>> Best Regards,
->>>>>> George.Qiao
->>>>>>
->>>>>> =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D
->>>>>>
->>>>>>
->>>>>>            =20
->>>>>>> Yes Definitely this is the issue. If the platform_device.name
->>>>>>>
->>>>>>>
->>>>>>>              =20
->>>>>> doesn't match with the platform_driver.driver.name then your
->>>>>>
->>>>>>            =20
->>>> probe
->>>>
->>>>        =20
->>>>>> function will not be called at all.
->>>>>>
->>>>>>
->>>>>>            =20
->>>>>>> Can you just copy the board-omap3evm.c changes related to
->>>>>>>
->>>>>>>
->>>>>>>              =20
->>>>>> V4L2/DSS2 and give a shot? I think it should work straight
->>>>>>            =20
->> away.
->>    =20
->>>>>>            =20
->>>>>>> Please let me know if you need any further clarification or
->>>>>>>
->>>>>>>              =20
->>>> help.
->>>>
->>>>        =20
->>>>>>> Thanks,
->>>>>>> Vaibhav Hiremath
->>>>>>> Platform Support Products
->>>>>>> Texas Instruments Inc
->>>>>>> Ph: +91-80-25099927
->>>>>>>
->>>>>>>
->>>>>>>
->>>>>>>
->>>>>>>              =20
->>>>>>>> -----Original Message-----
->>>>>>>> From: George.Qiao [mailto:qiao_shanshan@visualon.com]
->>>>>>>> Sent: Thursday, May 07, 2009 12:55 PM
->>>>>>>> To: Hiremath, Vaibhav
->>>>>>>> Cc: Syed Mohammed, Khasim; Shah, Hardik;
->>>>>>>>
->>>>>>>>                =20
->>>> wan_jinxue@visualon.com;
->>>>
->>>>        =20
->>>>>>>> Bill Lin; shawnofarrell@visualon.com; Chatterjee, Amit;
->>>>>>>>
->>>>>>>>                =20
->>>> Andrews,
->>>>
->>>>        =20
->>>>>>>> Gerard; Kridner, Jason; 'Bangfei Jin'; 'Xuejun Dong';
->>>>>>>>
->>>>>>>>                =20
->>>> 'YangCai';
->>>>
->>>>        =20
->>>>>>>> linux-omap-open-source@linux.omap.com
->>>>>>>> Subject: Re: Status of Beagle Board
->>>>>>>>
->>>>>>>> Hi Hiremath, Vaibhav,
->>>>>>>>
->>>>>>>> Thank you very much for your instant response!
->>>>>>>>
->>>>>>>> I've checked the file 'board-omap3beagle.c' and found nothing
->>>>>>>> looking
->>>>>>>> like omap_vout in it, no platform_device, either. And I've
->>>>>>>>                =20
->> also
->>    =20
->>>>>>>> compared
->>>>>>>> it with board-omap3evm.c.
->>>>>>>>
->>>>>>>> Below is some difference between them:
->>>>>>>>
->>>>>>>> board-omap3evm.c has:
->>>>>>>> *+static struct platform_device omap3evm_vout_device =3D {
->>>>>>>> **+       .name                   =3D "omap_vout",
->>>>>>>> ...
->>>>>>>> }
->>>>>>>> *
->>>>>>>> But 'board-omap3beagle.c' does not have anything looking
->>>>>>>>                =20
->> like:
->>    =20
->>>>>>>> *+static struct platform_device omap3beagle_vout_device =3D {*
->>>>>>>> *+       .name                   =3D "omap_vout",
->>>>>>>> ...
->>>>>>>> }
->>>>>>>> *
->>>>>>>> So, I think there's no patch on V4L2 for beagle done and this
->>>>>>>>
->>>>>>>>                =20
->>>> is
->>>>
->>>>        =20
->>>>>> the
->>>>>>
->>>>>>
->>>>>>            =20
->>>>>>>> root cause of this issue. Do you agree with me? Thanks a lot.
->>>>>>>>
->>>>>>>>
->>>>>>>> Best Regards,
->>>>>>>> George.Qiao
->>>>>>>> =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
->>>>>>>>
->>>>>>>>
->>>>>>>>
->>>>>>>>
->>>>>>>>                =20
->>>>>>>>> Hi George,
->>>>>>>>>
->>>>>>>>> I have looked into your config file and it looks ok to me.
->>>>>>>>>
->>>>>>>>> Can you conform that, you have added "platform_device"
->>>>>>>>>
->>>>>>>>>
->>>>>>>>>                  =20
->>>>>> definitions
->>>>>>
->>>>>>
->>>>>>            =20
->>>>>>>> in board-omap3beagle.c?
->>>>>>>>
->>>>>>>>
->>>>>>>>
->>>>>>>>                =20
->>>>>>>>> Can you please create complete patch on top of your baseline
->>>>>>>>>
->>>>>>>>>                  =20
->>>> (O-
->>>>
->>>>        =20
->>>>>> L
->>>>>>
->>>>>>
->>>>>>            =20
->>>>>>>> and Tomi's tree), so that I can review that directly? I will
->>>>>>>>                =20
->> be
->>    =20
->>>>>>>> seeing complete changes done for beagle.
->>>>>>>>
->>>>>>>>
->>>>>>>>
->>>>>>>>                =20
->>>>>>>>> Thanks,
->>>>>>>>> Vaibhav Hiremath
->>>>>>>>> Platform Support Products
->>>>>>>>> Texas Instruments Inc
->>>>>>>>> Ph: +91-80-25099927
->>>>>>>>>
->>>>>>>>>
->>>>>>>>>
->>>>>>>>>
->>>>>>>>>
->>>>>>>>>                  =20
->>>>>          =20
->>>
->>>      =20
->
->  =20
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+DQoNClRoYW5rcywNClZhaWJoYXYgSGlyZW1hdGgNClBsYXRmb3JtIFN1cHBvcnQgUHJvZHVjdHMN
+ClRleGFzIEluc3RydW1lbnRzIEluYw0KUGg6ICs5MS04MC0yNTA5OTkyNw0KDQo+IC0tLS0tT3Jp
+Z2luYWwgTWVzc2FnZS0tLS0tDQo+IEZyb206IEdlb3JnZS5RaWFvIFttYWlsdG86cWlhb19zaGFu
+c2hhbkB2aXN1YWxvbi5jb21dDQo+IFNlbnQ6IFR1ZXNkYXksIE1heSAxMiwgMjAwOSAxOjM1IFBN
+DQo+IFRvOiBIaXJlbWF0aCwgVmFpYmhhdg0KPiBDYzogU3llZCBNb2hhbW1lZCwgS2hhc2ltOyBT
+aGFoLCBIYXJkaWs7IHdhbl9qaW54dWVAdmlzdWFsb24uY29tOw0KPiBCaWxsIExpbjsgc2hhd25v
+ZmFycmVsbEB2aXN1YWxvbi5jb207IENoYXR0ZXJqZWUsIEFtaXQ7IEFuZHJld3MsDQo+IEdlcmFy
+ZDsgS3JpZG5lciwgSmFzb247ICdCYW5nZmVpIEppbic7ICdYdWVqdW4gRG9uZyc7ICdZYW5nQ2Fp
+JzsNCj4gbGludXgtb21hcEB2Z2VyLmtlcm5lbC5vcmcNCj4gU3ViamVjdDogUmU6IFN0YXR1cyBv
+ZiBCZWFnbGUgQm9hcmQNCj4gDQo+IEhpIEhpcmVtYXRoIFZhaWJoYXYsDQo+IA0KPiBUaGFuayB5
+b3UgdmVyeSBtdWNoIGZvciB2NGwyIG9uIGJlYWdsZSENCj4gDQo+IFdlIHdhbnQgdG8gdXNlIHlv
+dXIgYnJhbmNoIHRvIGRlbW8gb3VyIHZpZGVvIHBsYXllciwgIEkgY2FuIG5vdA0KPiBlbmFibGUN
+Cj4gc291bmQgYW5kIHVzYi1tb3VzZSBpbiBiZWFnbGUgYm9hcmQuDQo+IA0KW0hpcmVtYXRoLCBW
+YWliaGF2XSBJIGJlbGlldmUgeW91IGFyZSByZWZlcnJpbmcgdG8gcmVwb3NpdG9yeSBodHRwOi8v
+YXJhZ28tcHJvamVjdC5vcmcvZ2l0L3Blb3BsZS8/cD12YWliaGF2L3RpLXBzcC1vbWFwLXZpZGVv
+LmdpdDthPXN1bW1hcnkuDQoNClRoaXMgaXMgc3BlY2lmaWMgdG8gVmlkZW8gcmVsYXRlZCBjaGFu
+Z2VzIGFuZCBJIGFtIHRyYWNraW5nIGFuZCBmb2xsb3dpbmcgVmlkZW8gY2hhbmdlcyBvbmx5LiBJ
+IGFtIHJlYWxseSBub3Qgc3VyZSBhYm91dCBzb3VuZCBhbmQgVVNCIHJlbGF0ZWQgdG8gQmVhZ2xl
+IGJvYXJkLg0KDQo+IFdoYXQncyB0aGUgZGlmZmVyZW5jZSBiZXR3ZWVuIGJlYWdsZSBrZXJuZWwg
+YW5kIHlvdXIgYnJhbmNoIGtlcm5lbA0KPiBmb3INCj4gc291bmQgYW5kIHVzYiBkcml2ZXI/DQo+
+IA0KW0hpcmVtYXRoLCBWYWliaGF2XSBMb29waW5nIEFuYW5kIEdhZGl5YXIsIHdobyB3b3VsZCBi
+ZSBhYmxlIHRvIGFuc3dlciB0aGlzLg0KDQo+IFRoYW5rcyAmIEJlc3QgUmVnYXJkcywNCj4gR2Vv
+cmdlLlFpYW8NCj4gPT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09DQo+
+ID4gSGkgR2VvcmdlLA0KPiA+DQo+ID4gWWVzIEkgZG8gYWdyZWUsIGF0LWxlYXN0IGZvciBtZSB0
+aGlzIGxvb2tzIGxpa2UgYSBzbWFsbCBidWcgaW4NCj4gVjRMMiBkcml2ZXIuIEJ1dCBqdXN0IHRv
+IG1ha2UgZG91YmxlIHN1cmUgSSB3aWxsIGRpc2N1c3MgdGhpcyB3aXRoDQo+IEhhcmRpayBhbmQg
+bGV0IHlvdSBrbm93Lg0KPiA+DQo+ID4gVGhhbmtzLA0KPiA+IFZhaWJoYXYgSGlyZW1hdGgNCj4g
+PiBQbGF0Zm9ybSBTdXBwb3J0IFByb2R1Y3RzDQo+ID4gVGV4YXMgSW5zdHJ1bWVudHMgSW5jDQo+
+ID4gUGg6ICs5MS04MC0yNTA5OTkyNw0KPiA+DQo+ID4+IC0tLS0tT3JpZ2luYWwgTWVzc2FnZS0t
+LS0tDQo+ID4+IEZyb206IEdlb3JnZS5RaWFvIFttYWlsdG86cWlhb19zaGFuc2hhbkB2aXN1YWxv
+bi5jb21dDQo+ID4+IFNlbnQ6IE1vbmRheSwgTWF5IDExLCAyMDA5IDEyOjI2IFBNDQo+ID4+IFRv
+OiBIaXJlbWF0aCwgVmFpYmhhdg0KPiA+PiBDYzogU3llZCBNb2hhbW1lZCwgS2hhc2ltOyBTaGFo
+LCBIYXJkaWs7IHdhbl9qaW54dWVAdmlzdWFsb24uY29tOw0KPiA+PiBCaWxsIExpbjsgc2hhd25v
+ZmFycmVsbEB2aXN1YWxvbi5jb207IENoYXR0ZXJqZWUsIEFtaXQ7IEFuZHJld3MsDQo+ID4+IEdl
+cmFyZDsgS3JpZG5lciwgSmFzb247ICdCYW5nZmVpIEppbic7ICdYdWVqdW4gRG9uZyc7ICdZYW5n
+Q2FpJzsNCj4gPj4gbGludXgtb21hcEB2Z2VyLmtlcm5lbC5vcmcNCj4gPj4gU3ViamVjdDogUmU6
+IFN0YXR1cyBvZiBCZWFnbGUgQm9hcmQNCj4gPj4NCj4gPj4gSGkgSGlyZW1hdGggVmFpYmhhdiwN
+Cj4gPj4NCj4gPj4gSSBoYXZlIGZpeGVkIHRoaXMgYnVncyBpbiBvbWFwX3ZvdXQuYyA6DQo+ID4+
+DQo+ID4+IHZpZGlvY19zdHJlYW1vZmYoKQ0KPiA+PiB7DQo+ID4+IC4uLg0KPiA+PiAtIHJldHVy
+biBvdmwtPnNldF9vdmVybGF5X2luZm8ob3ZsLCAmaW5mbyk7DQo+ID4+ICsgb3ZsLT5zZXRfb3Zl
+cmxheV9pbmZvKG92bCwgJmluZm8pOw0KPiA+PiAuLi4NCj4gPj4gfQ0KPiA+Pg0KPiA+PiBiZWNh
+dXNlIGl0IHNob3VsZCBub3QgcmV0dXJuIG92bC0+c2V0X292ZXJsYXlfaW5mbygpIGhlcmUsIGlu
+DQo+IHRoaXMNCj4gPj4gd2F5LA0KPiA+PiB0aGUgYmVsb3cgY29kZSB3aWxsIG5vdCBiZSBleGVj
+dXRlZDoNCj4gPj4gdmlkZW9idWZfc3RyZWFtb2ZmKCkgLT4gdmlkZW9idWZfcXVldWVfY2FuY2Vs
+KCkNCj4gPj4gew0KPiA+PiAuLi4NCj4gPj4gcS0+c3RyZWFtaW5nID0gMA0KPiA+PiAuLi4NCj4g
+Pj4gfQ0KPiA+Pg0KPiA+PiBzbywgdmlkaW9jX3JlcWJ1ZnMtPnZpZGVvYnVmX3JlcWJ1ZnMoKSB3
+aWxsIGFsd2F5cyBmYWlsLg0KPiA+Pg0KPiA+PiBEbyB5b3UgYWdyZWUgd2l0aCBtZT8NCj4gPj4N
+Cj4gPj4gVGhhbmtzICYgQmVzdCBSZWdhcmRzLA0KPiA+PiBHZW9yZ2UuUWlhbw0KPiA+Pg0KPiA+
+PiDvvJ3vvJ3vvJ3vvJ3vvJ3vvJ3vvJ3vvJ3vvJ3vvJ3vvJ3vvJ3vvJ3vvJ3vvJ3vvJ3vvJ3vvJ3v
+vJ3vvJ3vvJ3vvJ3vvJ3vvJ3vvJ3vvJ3vvJ3vvJ3vvJ3vvJ3vvJ3vvJ3vvJ3vvJ3vvJ0NCj4gPj4N
+Cj4gPj4+PiAtLS0tLU9yaWdpbmFsIE1lc3NhZ2UtLS0tLQ0KPiA+Pj4+IEZyb206IEdlb3JnZS5R
+aWFvIFttYWlsdG86cWlhb19zaGFuc2hhbkB2aXN1YWxvbi5jb21dDQo+ID4+Pj4gU2VudDogRnJp
+ZGF5LCBNYXkgMDgsIDIwMDkgMTE6NTcgQU0NCj4gPj4+PiBUbzogSGlyZW1hdGgsIFZhaWJoYXYN
+Cj4gPj4+PiBDYzogU3llZCBNb2hhbW1lZCwgS2hhc2ltOyBTaGFoLCBIYXJkaWs7DQo+IHdhbl9q
+aW54dWVAdmlzdWFsb24uY29tOw0KPiA+Pj4+IEJpbGwgTGluOyBzaGF3bm9mYXJyZWxsQHZpc3Vh
+bG9uLmNvbTsgQ2hhdHRlcmplZSwgQW1pdDsNCj4gQW5kcmV3cywNCj4gPj4+PiBHZXJhcmQ7IEty
+aWRuZXIsIEphc29uOyAnQmFuZ2ZlaSBKaW4nOyAnWHVlanVuIERvbmcnOw0KPiAnWWFuZ0NhaSc7
+DQo+ID4+Pj4gbGludXgtb21hcEB2Z2VyLmtlcm5lbC5vcmcNCj4gPj4+PiBTdWJqZWN0OiBSZTog
+U3RhdHVzIG9mIEJlYWdsZSBCb2FyZA0KPiA+Pj4+DQo+ID4+Pj4gSGkgVmFpYmhhdiBIaXJlbWF0
+aCwNCj4gPj4+Pg0KPiA+Pj4+IE15IGFwcGxpY2F0aW9uIGNhbiB3b3JrIGluIE9NQVAzIEVWTSBh
+bmQgb3RoZXIgdjRsMiBwbGF0Zm9ybSwNCj4gYnV0DQo+ID4+Pj4gdGhlcmUNCj4gPj4+PiBpcyBh
+bm90aGVyIGlzc3VlIGluIGJlYWdsZSBib2FyZC4gYXMgZm9sbG93Og0KPiA+Pj4+DQo+ID4+Pj4N
+Cj4gPj4+Pg0KPiA+Pj4gW0hpcmVtYXRoLCBWYWliaGF2XSBBcmUgeW91IHNheWluZywgc2FtZSBh
+cHBsaWNhdGlvbiB3b3JrcyBvbg0KPiA+Pj4NCj4gPj4gT01BUDNFVk0gYnV0IGZhaWxzIG9uIGJl
+YWdsZSBib2FyZD8NCj4gPj4NCj4gPj4+DQo+ID4+Pj4gMS4gTm9ybWFsU2l6ZSgpIC0+IFJlcXVl
+c3RCdWZmZXIoKSAtPiBtbWFwKCkNCj4gPj4+PiAyLiBwbGF5aW5nLi4uDQo+ID4+Pj4gMy4gRnVs
+bFNjcmVlbigpIC0+IFZJRElPQ19TVFJFQU1PRkYNCj4gPj4+PiAgICAgICAgICAgICAgICAgICAg
+ICAgICAgIC0+IG11bm1hcCgpDQo+ID4+Pj4gICAgICAgICAgICAgICAgICAgICAgICAgICAtPiBW
+SURJT0NfUkVRQlVGUw0KPiA+Pj4+ICAgICAgICAgICAgICAgICAgICAgICAgICAgLT4gVklESU9D
+X1FVRVJZQlVGDQo+ID4+Pj4gICAgICAgICAgICAgICAgICAgICAgICAgICAtPiBSZXF1ZXN0QnVm
+ZmVyKCkgLT4gbW1hcCgpDQo+ID4+Pj4gICAgICAgICAgICAgICAgICAgICAgICAgICAtPiBWSURJ
+T0NfU19DUk9QDQo+ID4+Pj4gICAgICAgICAgICAgICAgICAgICAgICAgICAtPiBWSURJT0NfU19G
+TVQNCj4gPj4+PiAgICAgICAgICAgICAgICAgICAgICAgICAgIC0+IFZJRElPQ19RQlVGDQo+ID4+
+Pj4gICAgICAgICAgICAgICAgICAgICAgICAgICAtPiBWSURJT0NfU1RSRUFNT04NCj4gPj4+Pg0K
+PiA+Pj4+IFdoZW4gSSB3YW50IHRvIGNhbGwgVklESU9DX1JFUUJVRlMgaW4gRnVsbFNjcmVlbigp
+LCBpdCBhbHdheXMNCj4gPj4+Pg0KPiA+PiBmYWlsLg0KPiA+Pg0KPiA+Pj4+DQo+ID4+PiBbSGly
+ZW1hdGgsIFZhaWJoYXZdIElzIGl0IHBvc3NpYmxlIGZvciB5b3UgdG8gc2hhcmUgeW91cg0KPiA+
+Pj4NCj4gPj4gYXBwbGljYXRpb24sIHNvIHRoYXQgSSBjYW4gZ2l2ZSB0cnkgaGVyZSBhdCBteSBl
+bmQ/DQo+ID4+DQo+ID4+PiBUaGFua3MsDQo+ID4+PiBWYWliaGF2IEhpcmVtYXRoDQo+ID4+Pg0K
+PiA+Pj4NCj4gPj4+DQo+ID4+Pj4gQmVzdCBSZWdhcmRzLA0KPiA+Pj4+IEdlb3JnZS5RaWFvDQo+
+ID4+Pj4NCj4gPj4+PiA9PT09PT09PT09PT09PT09PT09PT09PT09PT09DQo+ID4+Pj4NCj4gPj4+
+Pg0KPiA+Pj4+PiBHcmVhdCwgcGxlYXNlIHNlZSBteSBjb21tZW50cyBpbi1saW5lZCBiZWxvdyAt
+DQo+ID4+Pj4+DQo+ID4+Pj4+DQo+ID4+Pj4+IFRoYW5rcywNCj4gPj4+Pj4gVmFpYmhhdiBIaXJl
+bWF0aA0KPiA+Pj4+PiBQbGF0Zm9ybSBTdXBwb3J0IFByb2R1Y3RzDQo+ID4+Pj4+IFRleGFzIElu
+c3RydW1lbnRzIEluYw0KPiA+Pj4+PiBQaDogKzkxLTgwLTI1MDk5OTI3DQo+ID4+Pj4+DQo+ID4+
+Pj4+DQo+ID4+Pj4+DQo+ID4+Pj4+DQo+ID4+Pj4+PiAtLS0tLU9yaWdpbmFsIE1lc3NhZ2UtLS0t
+LQ0KPiA+Pj4+Pj4gRnJvbTogR2VvcmdlLlFpYW8gW21haWx0bzpxaWFvX3NoYW5zaGFuQHZpc3Vh
+bG9uLmNvbV0NCj4gPj4+Pj4+IFNlbnQ6IFRodXJzZGF5LCBNYXkgMDcsIDIwMDkgMzo1MSBQTQ0K
+PiA+Pj4+Pj4gVG86IEhpcmVtYXRoLCBWYWliaGF2DQo+ID4+Pj4+PiBDYzogU3llZCBNb2hhbW1l
+ZCwgS2hhc2ltOyBTaGFoLCBIYXJkaWs7DQo+ID4+Pj4+Pg0KPiA+PiB3YW5famlueHVlQHZpc3Vh
+bG9uLmNvbTsNCj4gPj4NCj4gPj4+Pj4+IEJpbGwgTGluOyBzaGF3bm9mYXJyZWxsQHZpc3VhbG9u
+LmNvbTsgQ2hhdHRlcmplZSwgQW1pdDsNCj4gPj4+Pj4+DQo+ID4+IEFuZHJld3MsDQo+ID4+DQo+
+ID4+Pj4+PiBHZXJhcmQ7IEtyaWRuZXIsIEphc29uOyAnQmFuZ2ZlaSBKaW4nOyAnWHVlanVuIERv
+bmcnOw0KPiA+Pj4+Pj4NCj4gPj4gJ1lhbmdDYWknOw0KPiA+Pg0KPiA+Pj4+Pj4gbGludXgtb21h
+cC1vcGVuLXNvdXJjZUBsaW51eC5vbWFwLmNvbQ0KPiA+Pj4+Pj4gU3ViamVjdDogUmU6IFN0YXR1
+cyBvZiBCZWFnbGUgQm9hcmQNCj4gPj4+Pj4+DQo+ID4+Pj4+PiBEZWFyIFZhaWJoYXYgSGlyZW1h
+dGgsDQo+ID4+Pj4+Pg0KPiA+Pj4+Pj4gSSBjYW4gcGxheSB2aWRlbyBieSB2NGwyIG5vdyEgIFRo
+YW5rIHlvdSENCj4gPj4+Pj4+DQo+ID4+Pj4+PiBJIGhhdmUgYWRkIGNvZGUgaW4gYm9hcmQtb21h
+cDNiZWFnbGUuYyA6DQo+ID4+Pj4+Pg0KPiA+Pj4+Pj4gI2lmZGVmIENPTkZJR19GQl9PTUFQMg0K
+PiA+Pj4+Pj4gc3RhdGljIHN0cnVjdCByZXNvdXJjZSBvbWFwM2JlYWdsZV92b3V0X3Jlc291cmNl
+WzMgLQ0KPiA+Pj4+Pj4gQ09ORklHX0ZCX09NQVAyX05VTV9GQlNdID0gew0KPiA+Pj4+Pj4gfTsN
+Cj4gPj4+Pj4+ICNlbHNlDQo+ID4+Pj4+PiBzdGF0aWMgc3RydWN0IHJlc291cmNlIG9tYXAzYmVh
+Z2xlX3ZvdXRfcmVzb3VyY2VbMl0gPSB7DQo+ID4+Pj4+PiB9Ow0KPiA+Pj4+Pj4gI2VuZGlmDQo+
+ID4+Pj4+Pg0KPiA+Pj4+Pj4gc3RhdGljIHN0cnVjdCBwbGF0Zm9ybV9kZXZpY2Ugb21hcDNiZWFn
+bGVfdm91dF9kZXZpY2UgPSB7DQo+ID4+Pj4+PiAgICAgICAgLm5hbWUgICAgICAgICAgICAgICAg
+ICAgPSAib21hcF92b3V0IiwNCj4gPj4+Pj4+ICAgICAgICAubnVtX3Jlc291cmNlcyAgPQ0KPiBB
+UlJBWV9TSVpFKG9tYXAzYmVhZ2xlX3ZvdXRfcmVzb3VyY2UpLA0KPiA+Pj4+Pj4gICAgICAgIC5y
+ZXNvdXJjZSAgICAgICAgICAgICAgID0NCj4gJm9tYXAzYmVhZ2xlX3ZvdXRfcmVzb3VyY2VbMF0s
+DQo+ID4+Pj4+PiAgICAgICAgLmlkICAgICAgICAgICAgID0gLTEsDQo+ID4+Pj4+PiB9Ow0KPiA+
+Pj4+Pj4NCj4gPj4+Pj4+IHN0YXRpYyBzdHJ1Y3QgcGxhdGZvcm1fZGV2aWNlICpvbWFwM19iZWFn
+bGVfZGV2aWNlc1tdDQo+ID4+Pj4+Pg0KPiA+PiBfX2luaXRkYXRhDQo+ID4+DQo+ID4+Pj4gPSB7
+DQo+ID4+Pj4NCj4gPj4+Pg0KPiA+Pj4+Pj4gICAgICZiZWFnbGVfZHNzX2RldmljZSwNCj4gPj4+
+Pj4+ICAgICAmbGVkc19ncGlvLA0KPiA+Pj4+Pj4gICAgICZrZXlzX2dwaW8sDQo+ID4+Pj4+PiAg
+ICAgJm9tYXAzYmVhZ2xlX3ZvdXRfZGV2aWNlLA0KPiA+Pj4+Pj4gfTsNCj4gPj4+Pj4+DQo+ID4+
+Pj4+Pg0KPiA+Pj4+Pj4gSSBoYXZlIGdvdCBzb21lIG9tYXBkc3MgZXJyb3IgYW5kIHZvdXRCdWZm
+ZXIgU2l6ZS4gYXMgZm9sbG93Og0KPiA+Pj4+Pj4NCj4gPj4+Pj4+IG9tYXBkc3M6IENvdWxkIG5v
+dCBmaW5kIGV4YWN0IHBpeGVsIGNsb2NrLiBSZXF1ZXN0ZWQgMjM1MDANCj4ga0h6LA0KPiA+Pj4+
+Pj4NCj4gPj4+Pj4+DQo+ID4+Pj4gZ290DQo+ID4+Pj4NCj4gPj4+Pg0KPiA+Pj4+Pj4gMjQwMDAg
+a0h6DQo+ID4+Pj4+PiBvbWFwZHNzIGVycm9yOiBkaXNwbGF5IGFscmVhZHkgZW5hYmxlZA0KPiA+
+Pj4+Pj4gb21hcF92b3V0RGlzcGxheSBhbHJlYWR5IGVuYWJsZWQNCj4gPj4+Pj4+IG9tYXBkc3Mg
+ZXJyb3I6IGRpc3BsYXkgYWxyZWFkeSBlbmFibGVkDQo+ID4+Pj4+PiBvbWFwX3ZvdXREaXNwbGF5
+IGFscmVhZHkgZW5hYmxlZA0KPiA+Pj4+Pj4NCj4gPj4+Pj4+DQo+ID4+Pj4+Pg0KPiA+Pj4+PiBb
+SGlyZW1hdGgsIFZhaWJoYXZdIFRoaXMgaXMgbm90IGFuIGVycm9yIGFzIHN1Y2gsIGl0IHdhcm5p
+bmcNCj4gPj4+Pj4NCj4gPj4+Pj4NCj4gPj4+PiBtZXNzYWdlLiBBY3R1YWxseSBoZXJlIHdlIGFy
+ZSB0cnlpbmcgdG8gZW5hYmxlIHRoZSBkaXNwbGF5DQo+IHdoaWNoDQo+ID4+Pj4NCj4gPj4gaGFz
+DQo+ID4+DQo+ID4+Pj4gYWxyZWFkeSBiZWVuIGVuYWJsZWQgYnkgRmJkZXYuDQo+ID4+Pj4NCj4g
+Pj4+Pg0KPiA+Pj4+PiBXZSBjYW4gc3VwcHJlc3MgdGhpcyBtZXNzYWdlLCBhdGxlYXN0IGR1cmlu
+ZyBpbml0Lg0KPiA+Pj4+Pg0KPiA+Pj4+Pg0KPiA+Pj4+Pg0KPiA+Pj4+Pg0KPiA+Pj4+Pj4gb21h
+cF92b3V0QnVmZmVyIFNpemUgPSAzNjg2NDAwDQo+ID4+Pj4+PiBvbWFwX3ZvdXQ6IHJlZ2lzdGVy
+ZWQgYW5kIGluaXRpYWxpemVkIHZpZGVvIGRldmljZSAwIFt2NGwyXQ0KPiA+Pj4+Pj4gb21hcF92
+b3V0QnVmZmVyIFNpemUgPSAzNjg2NDAwDQo+ID4+Pj4+PiBvbWFwX3ZvdXQ6IHJlZ2lzdGVyZWQg
+YW5kIGluaXRpYWxpemVkIHZpZGVvIGRldmljZSAxIFt2NGwyXQ0KPiA+Pj4+Pj4NCj4gPj4+Pj4+
+DQo+ID4+Pj4+Pg0KPiA+Pj4+Pj4NCj4gPj4+Pj4gW0hpcmVtYXRoLCBWYWliaGF2XSBUaGlzIGlz
+IGp1c3QgYSBkZWJ1ZyBtYXNzYWdlOyBpdCBpcw0KPiBuZWl0aGVyDQo+ID4+Pj4+DQo+ID4+IGEN
+Cj4gPj4NCj4gPj4+PiBlcnJvciBub3IgYSB3YXJuaW5nLiBTbyBkb24ndCB3b3JyeS4NCj4gPj4+
+Pg0KPiA+Pj4+DQo+ID4+Pj4+IENhbiB5b3Ugc2hhcmUgdGhlIGNvZGUtYmFzZSBvciBzdWJtaXQg
+dGhlIHBhdGNoZXMgdG8gdGhlIGxpc3QsDQo+ID4+Pj4+DQo+ID4+IHNvDQo+ID4+DQo+ID4+Pj4g
+dGhhdCBpbnRlcmVzdGVkIHBlb3BsZSBjYW4gdXNlIGl0Lg0KPiA+Pj4+DQo+ID4+Pj4NCj4gPj4+
+Pj4+IENvdWxkIEkgY2hhbmdlICd2b3V0QnVmZmVyIFNpemUnPyAgSG93IHRvIGZpeCBpdD8NCj4g
+Pj4+Pj4+DQo+ID4+Pj4+PiBCZXN0IFJlZ2FyZHMsDQo+ID4+Pj4+PiBHZW9yZ2UuUWlhbw0KPiA+
+Pj4+Pj4NCj4gPj4+Pj4+ID09PT09PT09PT09PT09PT09PT09PT09DQo+ID4+Pj4+Pg0KPiA+Pj4+
+Pj4NCj4gPj4+Pj4+DQo+ID4+Pj4+Pj4gWWVzIERlZmluaXRlbHkgdGhpcyBpcyB0aGUgaXNzdWUu
+IElmIHRoZQ0KPiBwbGF0Zm9ybV9kZXZpY2UubmFtZQ0KPiA+Pj4+Pj4+DQo+ID4+Pj4+Pj4NCj4g
+Pj4+Pj4+Pg0KPiA+Pj4+Pj4gZG9lc24ndCBtYXRjaCB3aXRoIHRoZSBwbGF0Zm9ybV9kcml2ZXIu
+ZHJpdmVyLm5hbWUgdGhlbiB5b3VyDQo+ID4+Pj4+Pg0KPiA+Pj4+Pj4NCj4gPj4+PiBwcm9iZQ0K
+PiA+Pj4+DQo+ID4+Pj4NCj4gPj4+Pj4+IGZ1bmN0aW9uIHdpbGwgbm90IGJlIGNhbGxlZCBhdCBh
+bGwuDQo+ID4+Pj4+Pg0KPiA+Pj4+Pj4NCj4gPj4+Pj4+DQo+ID4+Pj4+Pj4gQ2FuIHlvdSBqdXN0
+IGNvcHkgdGhlIGJvYXJkLW9tYXAzZXZtLmMgY2hhbmdlcyByZWxhdGVkIHRvDQo+ID4+Pj4+Pj4N
+Cj4gPj4+Pj4+Pg0KPiA+Pj4+Pj4+DQo+ID4+Pj4+PiBWNEwyL0RTUzIgYW5kIGdpdmUgYSBzaG90
+PyBJIHRoaW5rIGl0IHNob3VsZCB3b3JrIHN0cmFpZ2h0DQo+ID4+Pj4+Pg0KPiA+PiBhd2F5Lg0K
+PiA+Pg0KPiA+Pj4+Pj4NCj4gPj4+Pj4+PiBQbGVhc2UgbGV0IG1lIGtub3cgaWYgeW91IG5lZWQg
+YW55IGZ1cnRoZXIgY2xhcmlmaWNhdGlvbiBvcg0KPiA+Pj4+Pj4+DQo+ID4+Pj4+Pj4NCj4gPj4+
+PiBoZWxwLg0KPiA+Pj4+DQo+ID4+Pj4NCj4gPj4+Pj4+PiBUaGFua3MsDQo+ID4+Pj4+Pj4gVmFp
+YmhhdiBIaXJlbWF0aA0KPiA+Pj4+Pj4+IFBsYXRmb3JtIFN1cHBvcnQgUHJvZHVjdHMNCj4gPj4+
+Pj4+PiBUZXhhcyBJbnN0cnVtZW50cyBJbmMNCj4gPj4+Pj4+PiBQaDogKzkxLTgwLTI1MDk5OTI3
+DQo+ID4+Pj4+Pj4NCj4gPj4+Pj4+Pg0KPiA+Pj4+Pj4+DQo+ID4+Pj4+Pj4NCj4gPj4+Pj4+Pg0K
+PiA+Pj4+Pj4+PiAtLS0tLU9yaWdpbmFsIE1lc3NhZ2UtLS0tLQ0KPiA+Pj4+Pj4+PiBGcm9tOiBH
+ZW9yZ2UuUWlhbyBbbWFpbHRvOnFpYW9fc2hhbnNoYW5AdmlzdWFsb24uY29tXQ0KPiA+Pj4+Pj4+
+PiBTZW50OiBUaHVyc2RheSwgTWF5IDA3LCAyMDA5IDEyOjU1IFBNDQo+ID4+Pj4+Pj4+IFRvOiBI
+aXJlbWF0aCwgVmFpYmhhdg0KPiA+Pj4+Pj4+PiBDYzogU3llZCBNb2hhbW1lZCwgS2hhc2ltOyBT
+aGFoLCBIYXJkaWs7DQo+ID4+Pj4+Pj4+DQo+ID4+Pj4+Pj4+DQo+ID4+Pj4gd2FuX2ppbnh1ZUB2
+aXN1YWxvbi5jb207DQo+ID4+Pj4NCj4gPj4+Pg0KPiA+Pj4+Pj4+PiBCaWxsIExpbjsgc2hhd25v
+ZmFycmVsbEB2aXN1YWxvbi5jb207IENoYXR0ZXJqZWUsIEFtaXQ7DQo+ID4+Pj4+Pj4+DQo+ID4+
+Pj4+Pj4+DQo+ID4+Pj4gQW5kcmV3cywNCj4gPj4+Pg0KPiA+Pj4+DQo+ID4+Pj4+Pj4+IEdlcmFy
+ZDsgS3JpZG5lciwgSmFzb247ICdCYW5nZmVpIEppbic7ICdYdWVqdW4gRG9uZyc7DQo+ID4+Pj4+
+Pj4+DQo+ID4+Pj4+Pj4+DQo+ID4+Pj4gJ1lhbmdDYWknOw0KPiA+Pj4+DQo+ID4+Pj4NCj4gPj4+
+Pj4+Pj4gbGludXgtb21hcC1vcGVuLXNvdXJjZUBsaW51eC5vbWFwLmNvbQ0KPiA+Pj4+Pj4+PiBT
+dWJqZWN0OiBSZTogU3RhdHVzIG9mIEJlYWdsZSBCb2FyZA0KPiA+Pj4+Pj4+Pg0KPiA+Pj4+Pj4+
+PiBIaSBIaXJlbWF0aCwgVmFpYmhhdiwNCj4gPj4+Pj4+Pj4NCj4gPj4+Pj4+Pj4gVGhhbmsgeW91
+IHZlcnkgbXVjaCBmb3IgeW91ciBpbnN0YW50IHJlc3BvbnNlIQ0KPiA+Pj4+Pj4+Pg0KPiA+Pj4+
+Pj4+PiBJJ3ZlIGNoZWNrZWQgdGhlIGZpbGUgJ2JvYXJkLW9tYXAzYmVhZ2xlLmMnIGFuZCBmb3Vu
+ZA0KPiBub3RoaW5nDQo+ID4+Pj4+Pj4+IGxvb2tpbmcNCj4gPj4+Pj4+Pj4gbGlrZSBvbWFwX3Zv
+dXQgaW4gaXQsIG5vIHBsYXRmb3JtX2RldmljZSwgZWl0aGVyLiBBbmQgSSd2ZQ0KPiA+Pj4+Pj4+
+Pg0KPiA+PiBhbHNvDQo+ID4+DQo+ID4+Pj4+Pj4+IGNvbXBhcmVkDQo+ID4+Pj4+Pj4+IGl0IHdp
+dGggYm9hcmQtb21hcDNldm0uYy4NCj4gPj4+Pj4+Pj4NCj4gPj4+Pj4+Pj4gQmVsb3cgaXMgc29t
+ZSBkaWZmZXJlbmNlIGJldHdlZW4gdGhlbToNCj4gPj4+Pj4+Pj4NCj4gPj4+Pj4+Pj4gYm9hcmQt
+b21hcDNldm0uYyBoYXM6DQo+ID4+Pj4+Pj4+ICorc3RhdGljIHN0cnVjdCBwbGF0Zm9ybV9kZXZp
+Y2Ugb21hcDNldm1fdm91dF9kZXZpY2UgPSB7DQo+ID4+Pj4+Pj4+ICoqKyAgICAgICAubmFtZSAg
+ICAgICAgICAgICAgICAgICA9ICJvbWFwX3ZvdXQiLA0KPiA+Pj4+Pj4+PiAuLi4NCj4gPj4+Pj4+
+Pj4gfQ0KPiA+Pj4+Pj4+PiAqDQo+ID4+Pj4+Pj4+IEJ1dCAnYm9hcmQtb21hcDNiZWFnbGUuYycg
+ZG9lcyBub3QgaGF2ZSBhbnl0aGluZyBsb29raW5nDQo+ID4+Pj4+Pj4+DQo+ID4+IGxpa2U6DQo+
+ID4+DQo+ID4+Pj4+Pj4+ICorc3RhdGljIHN0cnVjdCBwbGF0Zm9ybV9kZXZpY2Ugb21hcDNiZWFn
+bGVfdm91dF9kZXZpY2UgPQ0KPiB7Kg0KPiA+Pj4+Pj4+PiAqKyAgICAgICAubmFtZSAgICAgICAg
+ICAgICAgICAgICA9ICJvbWFwX3ZvdXQiLA0KPiA+Pj4+Pj4+PiAuLi4NCj4gPj4+Pj4+Pj4gfQ0K
+PiA+Pj4+Pj4+PiAqDQo+ID4+Pj4+Pj4+IFNvLCBJIHRoaW5rIHRoZXJlJ3Mgbm8gcGF0Y2ggb24g
+VjRMMiBmb3IgYmVhZ2xlIGRvbmUgYW5kDQo+IHRoaXMNCj4gPj4+Pj4+Pj4NCj4gPj4+Pj4+Pj4N
+Cj4gPj4+PiBpcw0KPiA+Pj4+DQo+ID4+Pj4NCj4gPj4+Pj4+IHRoZQ0KPiA+Pj4+Pj4NCj4gPj4+
+Pj4+DQo+ID4+Pj4+Pg0KPiA+Pj4+Pj4+PiByb290IGNhdXNlIG9mIHRoaXMgaXNzdWUuIERvIHlv
+dSBhZ3JlZSB3aXRoIG1lPyBUaGFua3MgYQ0KPiBsb3QuDQo+ID4+Pj4+Pj4+DQo+ID4+Pj4+Pj4+
+DQo+ID4+Pj4+Pj4+IEJlc3QgUmVnYXJkcywNCj4gPj4+Pj4+Pj4gR2VvcmdlLlFpYW8NCj4gPj4+
+Pj4+Pj4gPT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT0NCj4gPj4+Pj4+Pj4NCj4g
+Pj4+Pj4+Pj4NCj4gPj4+Pj4+Pj4NCj4gPj4+Pj4+Pj4NCj4gPj4+Pj4+Pj4NCj4gPj4+Pj4+Pj4+
+IEhpIEdlb3JnZSwNCj4gPj4+Pj4+Pj4+DQo+ID4+Pj4+Pj4+PiBJIGhhdmUgbG9va2VkIGludG8g
+eW91ciBjb25maWcgZmlsZSBhbmQgaXQgbG9va3Mgb2sgdG8gbWUuDQo+ID4+Pj4+Pj4+Pg0KPiA+
+Pj4+Pj4+Pj4gQ2FuIHlvdSBjb25mb3JtIHRoYXQsIHlvdSBoYXZlIGFkZGVkICJwbGF0Zm9ybV9k
+ZXZpY2UiDQo+ID4+Pj4+Pj4+Pg0KPiA+Pj4+Pj4+Pj4NCj4gPj4+Pj4+Pj4+DQo+ID4+Pj4+PiBk
+ZWZpbml0aW9ucw0KPiA+Pj4+Pj4NCj4gPj4+Pj4+DQo+ID4+Pj4+Pg0KPiA+Pj4+Pj4+PiBpbiBi
+b2FyZC1vbWFwM2JlYWdsZS5jPw0KPiA+Pj4+Pj4+Pg0KPiA+Pj4+Pj4+Pg0KPiA+Pj4+Pj4+Pg0K
+PiA+Pj4+Pj4+Pg0KPiA+Pj4+Pj4+Pj4gQ2FuIHlvdSBwbGVhc2UgY3JlYXRlIGNvbXBsZXRlIHBh
+dGNoIG9uIHRvcCBvZiB5b3VyDQo+IGJhc2VsaW5lDQo+ID4+Pj4+Pj4+Pg0KPiA+Pj4+Pj4+Pj4N
+Cj4gPj4+PiAoTy0NCj4gPj4+Pg0KPiA+Pj4+DQo+ID4+Pj4+PiBMDQo+ID4+Pj4+Pg0KPiA+Pj4+
+Pj4NCj4gPj4+Pj4+DQo+ID4+Pj4+Pj4+IGFuZCBUb21pJ3MgdHJlZSksIHNvIHRoYXQgSSBjYW4g
+cmV2aWV3IHRoYXQgZGlyZWN0bHk/IEkNCj4gd2lsbA0KPiA+Pj4+Pj4+Pg0KPiA+PiBiZQ0KPiA+
+Pg0KPiA+Pj4+Pj4+PiBzZWVpbmcgY29tcGxldGUgY2hhbmdlcyBkb25lIGZvciBiZWFnbGUuDQo+
+ID4+Pj4+Pj4+DQo+ID4+Pj4+Pj4+DQo+ID4+Pj4+Pj4+DQo+ID4+Pj4+Pj4+DQo+ID4+Pj4+Pj4+
+PiBUaGFua3MsDQo+ID4+Pj4+Pj4+PiBWYWliaGF2IEhpcmVtYXRoDQo+ID4+Pj4+Pj4+PiBQbGF0
+Zm9ybSBTdXBwb3J0IFByb2R1Y3RzDQo+ID4+Pj4+Pj4+PiBUZXhhcyBJbnN0cnVtZW50cyBJbmMN
+Cj4gPj4+Pj4+Pj4+IFBoOiArOTEtODAtMjUwOTk5MjcNCj4gPj4+Pj4+Pj4+DQo+ID4+Pj4+Pj4+
+Pg0KPiA+Pj4+Pj4+Pj4NCj4gPj4+Pj4+Pj4+DQo+ID4+Pj4+Pj4+Pg0KPiA+Pj4+Pj4+Pj4NCj4g
+Pj4+Pj4NCj4gPj4+DQo+ID4+Pg0KPiA+DQo+ID4NCj4gDQoNCg==
