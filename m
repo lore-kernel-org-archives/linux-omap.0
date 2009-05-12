@@ -1,46 +1,63 @@
-From: "Kanigeri, Hari" <h-kanigeri2@ti.com>
-Subject: RE: [PATCH 2/2] DSPBRIDGE: add checking 128 byte alignment for dsp
- 	cache line size
-Date: Mon, 11 May 2009 18:21:37 -0500
-Message-ID: <8F7AF80515AF0D4D93307E594F3CB40E2AF668B1@dlee03.ent.ti.com>
-References: <1242017713-25795-1-git-send-email-Hiroshi.DOYU@nokia.com>
-	 <1242017713-25795-2-git-send-email-Hiroshi.DOYU@nokia.com>
-	 <8F7AF80515AF0D4D93307E594F3CB40E2AF66245@dlee03.ent.ti.com>
-	 <20090511.184705.116375196.Hiroshi.DOYU@nokia.com>
- <94a0d4530905110931i3b81b991x9b7686c5bda25ff8@mail.gmail.com>
+From: Kwangwoo Lee <kwangwoo.lee@gmail.com>
+Subject: Re: [PATCH 2/2] Input: tsc2007: do I2C transfers in non-interrupt
+	context
+Date: Tue, 12 May 2009 10:40:38 +0900
+Message-ID: <483a38b80905111840k6b7e7aaao9b70f17753bebada@mail.gmail.com>
+References: <483a38b80905110444n7d55b967j70cf2639dff1c706@mail.gmail.com>
+	 <20090511153808.GA6973@dtor-d630.eng.vmware.com>
+	 <20090511154122.GB6973@dtor-d630.eng.vmware.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:53685 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756964AbZEKXVs convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 11 May 2009 19:21:48 -0400
-In-Reply-To: <94a0d4530905110931i3b81b991x9b7686c5bda25ff8@mail.gmail.com>
-Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-input-owner@vger.kernel.org>
+In-Reply-To: <20090511154122.GB6973@dtor-d630.eng.vmware.com>
+Sender: linux-input-owner@vger.kernel.org
+To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Cc: Thierry Reding <thierry.reding@avionic-design.de>, Trilok Soni <soni.trilok@gmail.com>, linux-input@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Contreras <felipe.contreras@gmail.com>, Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
-Cc: "Menon, Nishanth" <nm@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Felipe,
+Hi,
 
-> 
-> IMHO the only sensible way to approach this is to create a new ioctl
-> for a special restrictive mapping where user-space specifies if the
-> memory area is read-only or write-only and the size must be the real
-> size. This also has advantage that it does not break legacy
-> applications. 
+On Tue, May 12, 2009 at 12:41 AM, Dmitry Torokhov
+<dmitry.torokhov@gmail.com> wrote:
+> On Mon, May 11, 2009 at 08:38:09AM -0700, Dmitry Torokhov wrote:
+>> Hi,
+>> On Mon, May 11, 2009 at 08:44:00PM +0900, Kwangwoo Lee wrote:
+>> > From d5de0d22109de7564f9bf1df688acbe6b18f41db Mon Sep 17 00:00:00 =
+2001
+>> > From: Kwangwoo Lee <kwangwoo.lee@gmail.com>
+>> > Date: Mon, 11 May 2009 20:05:50 +0900
+>> > Subject: [PATCH 2/2] Input: tsc2007: do I2C transfers in non-inter=
+rupt context.
+>> >
+>> > This patch enhances pointer movements much smoother.
+>> > The original patch is written by Thierry.
+>> >
+>> > --- a/drivers/input/touchscreen/tsc2007.c
+>> > +++ b/drivers/input/touchscreen/tsc2007.c
+>> > @@ -70,6 +70,7 @@ struct ts_event {
+>> > =A0struct tsc2007 {
+>> > =A0 =A0 struct input_dev =A0 =A0 =A0 =A0*input;
+>> > =A0 =A0 char =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0phys[32];
+>> > + =A0 struct work_struct =A0 =A0 =A0work;
+>>
+>> Every time I see a work_struct in a driver and don't see
+>> cancel_work_sync() anywhere I know there are issues...
+>>
 
--- How are you planning to inform LCML about choosing this new ioctl as opposed to the regular one? Any ways, I think the ulMapAttr flag in DSPProcessor_Map function can be extended to provide the information about read-only or write-only. The only issue is with this we can enforce the checks on only the applications that set this check and it will not cover the buffer alignment issues with the applications that don't enforce this check.
+Thanks for your comment. I also missed that thing, sorry.
 
->While we are at it, this new mapping could do
-> PROC_ReserveMemory at the same time so that the user-space application
-> doesn't get a chance to modify the pa.
->
--- What does PROC_ReserveMemory has to do with pa ?
+> Also, why do we need to chain irq->timer->work now? Surely we can byp=
+ass
+> the timer if we have to read in process context.
 
-Thank you,
-Best regards,
-Hari
+It's good point. I'll check again.
+Thanks.
 
+--=20
+Kwangwoo Lee <kwangwoo.lee@gmail.com>
+--
+To unsubscribe from this list: send the line "unsubscribe linux-input" =
+in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
