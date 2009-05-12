@@ -1,92 +1,60 @@
-From: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
-Subject: Please help creating gpio-switch on ams-delta
-Date: Tue, 12 May 2009 12:53:35 +0200
-Message-ID: <4A09552F.5090402@tis.icnet.pl>
+From: Kalle Jokiniemi <kalle.jokiniemi@digia.com>
+Subject: [PATCH 1/1] ARM:OMAP3: Fix PLL_MOD CLKEN offset in scratchpad
+Date: Tue, 12 May 2009 14:02:16 +0300
+Message-ID: <1242126136-8419-2-git-send-email-kalle.jokiniemi@digia.com>
+References: <>
+ <1242126136-8419-1-git-send-email-kalle.jokiniemi@digia.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
- boundary="------------000306000909060909010809"
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from d1.icnet.pl ([212.160.220.21]:51167 "EHLO d1.icnet.pl"
+Received: from smtp1.digia.com ([82.118.214.156]:11122 "EHLO smtp1.digia.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755704AbZELKyF (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 12 May 2009 06:54:05 -0400
+	id S1754049AbZELLCF (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 12 May 2009 07:02:05 -0400
+In-Reply-To: <1242126136-8419-1-git-send-email-kalle.jokiniemi@digia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: e3-hacking@earth.li
+To: khilman@deeprootsystems.com
+Cc: linux-omap@vger.kernel.org, jouni.hogander@nokia.com, Kalle Jokiniemi <kalle.jokiniemi@digia.com>
 
-This is a multi-part message in MIME format.
---------------000306000909060909010809
-Content-Type: text/plain; charset=ISO-8859-2; format=flowed
-Content-Transfer-Encoding: 7bit
+The CM_CLKEN_PLL register saved in scratchpad memory
+was wrongly using offset of 0x0004 instead of 0x0000.
 
-Hi,
+The effect of this was that boot ROM code would
+restore the wrong value when waking up from off mode.
+This wrong value, however, will be overwritten by
+prcm context restore. Still, a short period of wrong
+clock settings in CM_CLKEN_PLL remained between ROM
+code and prcm context restore. This is fixed by the
+patch.
 
-I am playing with OMAP 5910 based Amstrad E3 videophone (ams-delta) 
-machine. I am trying to expose GPIO 4, that hook switch hangs off, to 
-userspace.
+Problem reported by: Jouni H=C3=B6gander <jouni.hogander@nokia.com>
 
-I can successfully access the pin by exporting it using gpiolib sysfs. I 
-can check its value, following hook switch state changes. However, I 
-would like the switch to generate events.
+Signed-off-by: Kalle Jokiniemi <kalle.jokiniemi@digia.com>
+---
+ arch/arm/mach-omap2/control.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-I have tried two methods: gpio-switch and gpio-keys. gpio-switch device 
-is able to report the switch initial state correctly, gpio-keys device 
-just initializes without errors. However, for both methods, after first 
-switch change, the system stops responding, giving no error messages.
+diff --git a/arch/arm/mach-omap2/control.c b/arch/arm/mach-omap2/contro=
+l.c
+index a0429fe..60de860 100644
+--- a/arch/arm/mach-omap2/control.c
++++ b/arch/arm/mach-omap2/control.c
+@@ -235,7 +235,7 @@ void omap3_save_scratchpad_contents(void)
+ 	prcm_block_contents.cm_clksel_wkup =3D
+ 			cm_read_mod_reg(WKUP_MOD, CM_CLKSEL);
+ 	prcm_block_contents.cm_clken_pll =3D
+-			cm_read_mod_reg(PLL_MOD, OMAP3430_CM_CLKEN_PLL);
++			cm_read_mod_reg(PLL_MOD, CM_CLKEN);
+ 	prcm_block_contents.cm_autoidle_pll =3D
+ 			cm_read_mod_reg(PLL_MOD, OMAP3430_CM_AUTOIDLE_PLL);
+ 	prcm_block_contents.cm_clksel1_pll =3D
+--=20
+1.5.4.3
 
-The code of goip-switch initialization sequence together with my 
-platform device definition (attached) does not look any different to me 
-than those for keyboard or modem (patches available from 
-http://the.earth.li/pub/e3/2.6.19/), that both also use GPIO interrupts 
-and do work for me.
-
-Any hints?
-
-Janusz
-
-PS. This is my first post to linux-omap list, I don't know if you accept 
-attachments. If not, next time I switch to a different mail user agent 
-that allows me for inline file inclusion (or learn how to do it in my 
-thunderbird).
-
-
---------------000306000909060909010809
-Content-Type: text/x-patch;
- name="ams-delta-gpio-switch.patch"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="ams-delta-gpio-switch.patch"
-
---- linux-2.6.27.22/arch/arm/mach-omap1/board-ams-delta.c.orig	2009-05-10 18:05:01.000000000 +0200
-+++ linux-2.6.27.22/arch/arm/mach-omap1/board-ams-delta.c	2009-05-10 18:19:18.000000000 +0200
-@@ -243,6 +243,17 @@ static struct uart_port ams_delta_modem_
- 	.line		= 1
- };
- 
-+static struct omap_gpio_switch ams_delta_switches[] __initdata = {
-+	/* Low when handset is picked up */
-+	{
-+		.name	= "handset",
-+		.gpio	= AMS_DELTA_GPIO_PIN_HOOK_SWITCH,
-+		.type	= OMAP_GPIO_SWITCH_TYPE_ACTIVITY,
-+		.flags	= OMAP_GPIO_SWITCH_FLAG_INVERTED,
-+		/* .notify	= ams_delta_handset_detect, */
-+	},
-+};
-+
- static void __init ams_delta_init(void)
- {
- 	printk("ams_delta_init\n\r");
-@@ -259,6 +270,9 @@ static void __init ams_delta_init(void)
- 
- 	platform_add_devices(ams_delta_devices, ARRAY_SIZE(ams_delta_devices));
- 
-+	omap_register_gpio_switches(ams_delta_switches,
-+			ARRAY_SIZE(ams_delta_switches));
-+
- 	early_serial_setup(&ams_delta_modem_port);
- 
- #ifdef CONFIG_AMS_DELTA_FIQ
-
---------------000306000909060909010809--
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
