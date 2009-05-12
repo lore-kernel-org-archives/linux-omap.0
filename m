@@ -1,32 +1,35 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: RE: [PATCH 0/2] I2C: OMAP: spurious IRQ fixes
-Date: Tue, 12 May 2009 12:41:43 -0600 (MDT)
-Message-ID: <alpine.DEB.2.00.0905121238040.17514@utopia.booyaka.com>
-References: <20090426042504.31316.68357.stgit@localhost.localdomain> <49F59D89.3030008@nokia.com> <alpine.DEB.2.00.0905071529070.17514@utopia.booyaka.com> <13B9B4C6EF24D648824FF11BE8967162038BBF5056@dlee02.ent.ti.com>
- <alpine.DEB.2.00.0905121139500.17514@utopia.booyaka.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: [APPLIED] [PATCH] OMAP2/3: DMA: implement trans copy and const fill
+Date: Tue, 12 May 2009 15:08:16 -0400
+Message-ID: <notify-1242155294@atomide.com>
+References: <1240384478-9626-1-git-send-email-tomi.valkeinen@nokia.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:46573 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752590AbZELSln (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 12 May 2009 14:41:43 -0400
-In-Reply-To: <alpine.DEB.2.00.0905121139500.17514@utopia.booyaka.com>
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:64588 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756719AbZELTIQ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 12 May 2009 15:08:16 -0400
+Received: from c-67-160-239-110.hsd1.ca.comcast.net ([67.160.239.110] helo=localhost.localdomain)
+	by mho-01-ewr.mailhop.org with esmtpa (Exim 4.68)
+	(envelope-from <tony@atomide.com>)
+	id 1M3xKr-000K2z-6k
+	for linux-omap@vger.kernel.org; Tue, 12 May 2009 19:08:17 +0000
+In-Reply-To: <1240384478-9626-1-git-send-email-tomi.valkeinen@nokia.com>
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Woodruff, Richard" <r-woodruff2@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Aaro Koskinen <aaro.koskinen@nokia.com>
+To: linux-omap@vger.kernel.org
 
-One correction:
+This patch has been applied to the linux-omap
+by youw fwiendly patch wobot.
 
-On Tue, 12 May 2009, Paul Walmsley wrote:
+Initial commit ID (Likely to change): 4d972088a40e3e51ef7ad790042b35f1cc97e35c
 
-> At least receive overruns are handled gracefully by the controller. 
-> Transmit FIFO underruns may be the more pressing problem.
+PatchWorks
+http://patchwork.kernel.org/patch/19326/
 
-Rather, transmit underruns are probably nonfatal in master mode also.  
-But both receive overruns and transmit underruns in I2C slave mode are 
-problematic, since the OMAP doesn't control the clock.
+Git (Likely to change, and takes a while to get mirrored)
+http://git.kernel.org/?p=linux/kernel/git/tmlind/linux-omap-2.6.git;a=commit;h=4d972088a40e3e51ef7ad790042b35f1cc97e35c
 
 
-- Paul
