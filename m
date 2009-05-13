@@ -1,96 +1,59 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: [PATCH 08/10] OMAP3 clock: use pr_debug() rather than pr_info() in
-	some clock change code
-Date: Tue, 12 May 2009 18:05:25 -0600
-Message-ID: <20090513000522.10349.51723.stgit@localhost.localdomain>
+Subject: [PATCH 09/10] OMAP3 clock: lessen amount of noisy messages
+Date: Tue, 12 May 2009 18:05:27 -0600
+Message-ID: <20090513000525.10349.18270.stgit@localhost.localdomain>
 References: <20090512235713.10349.49339.stgit@localhost.localdomain>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:56427 "EHLO
+Received: from utopia.booyaka.com ([72.9.107.138]:56432 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757527AbZEMAHo (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 12 May 2009 20:07:44 -0400
+	with ESMTP id S1757127AbZEMAHp (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 12 May 2009 20:07:45 -0400
 In-Reply-To: <20090512235713.10349.49339.stgit@localhost.localdomain>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-arm-kernel@lists.arm.linux.org.uk
-Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Paul Walmsley <paul@pwsan.com>
+Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Artem Bityutskiy <Artem.Bityutskiy@nokia.com>, Paul Walmsley <paul@pwsan.com>
 
-The CORE DPLL M2 frequency change code should use pr_debug(), not
-pr_info(), for its debug messages.  Same with
-omap2_clksel_round_rate_div().  While here, convert a few printk(KERN_ERR ..
-into pr_err().
+From: Artem Bityutskiy <Artem.Bityutskiy@nokia.com>
 
+On our system we see the following messages:
+
+Disabling unused clock "gpt2_ick"
+Disabling unused clock "gpt3_ick"
+Disabling unused clock "gpt4_ick"
+Disabling unused clock "gpt5_ick"
+...
+
+The messages have KERN_INFO level and if you have serial
+console, they normally go there. I do not think it is good
+idea to print that much stuff there. Moreover, messages
+are not properly prefixed and for mortals it is not
+immeadietly clear where they come from.
+
+Let's give them debugging level instead.
+
+Signed-off-by: Artem Bityutskiy <Artem.Bityutskiy@nokia.com>
 Signed-off-by: Paul Walmsley <paul@pwsan.com>
+[paul@pwsan.com: trimmed debugging output in patch description]
 ---
- arch/arm/mach-omap2/clock.c     |   12 ++++++------
- arch/arm/mach-omap2/clock34xx.c |    8 ++++----
- 2 files changed, 10 insertions(+), 10 deletions(-)
+ arch/arm/mach-omap2/clock.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
 diff --git a/arch/arm/mach-omap2/clock.c b/arch/arm/mach-omap2/clock.c
-index 4247a15..8935a8b 100644
+index 8935a8b..076f0a7 100644
 --- a/arch/arm/mach-omap2/clock.c
 +++ b/arch/arm/mach-omap2/clock.c
-@@ -547,8 +547,8 @@ u32 omap2_clksel_round_rate_div(struct clk *clk, unsigned long target_rate,
- 	const struct clksel_rate *clkr;
- 	u32 last_div = 0;
+@@ -1035,7 +1035,7 @@ void omap2_clk_disable_unused(struct clk *clk)
+ 	if ((regval32 & (1 << clk->enable_bit)) == v)
+ 		return;
  
--	printk(KERN_INFO "clock: clksel_round_rate_div: %s target_rate %ld\n",
--	       clk->name, target_rate);
-+	pr_debug("clock: clksel_round_rate_div: %s target_rate %ld\n",
-+		 clk->name, target_rate);
- 
- 	*new_div = 1;
- 
-@@ -562,7 +562,7 @@ u32 omap2_clksel_round_rate_div(struct clk *clk, unsigned long target_rate,
- 
- 		/* Sanity check */
- 		if (clkr->div <= last_div)
--			printk(KERN_ERR "clock: clksel_rate table not sorted "
-+			pr_err("clock: clksel_rate table not sorted "
- 			       "for clock %s", clk->name);
- 
- 		last_div = clkr->div;
-@@ -574,7 +574,7 @@ u32 omap2_clksel_round_rate_div(struct clk *clk, unsigned long target_rate,
- 	}
- 
- 	if (!clkr->div) {
--		printk(KERN_ERR "clock: Could not find divisor for target "
-+		pr_err("clock: Could not find divisor for target "
- 		       "rate %ld for clock %s parent %s\n", target_rate,
- 		       clk->name, clk->parent->name);
- 		return ~0;
-@@ -582,8 +582,8 @@ u32 omap2_clksel_round_rate_div(struct clk *clk, unsigned long target_rate,
- 
- 	*new_div = clkr->div;
- 
--	printk(KERN_INFO "clock: new_div = %d, new_rate = %ld\n", *new_div,
--	       (clk->parent->rate / clkr->div));
-+	pr_debug("clock: new_div = %d, new_rate = %ld\n", *new_div,
-+		 (clk->parent->rate / clkr->div));
- 
- 	return (clk->parent->rate / clkr->div);
- }
-diff --git a/arch/arm/mach-omap2/clock34xx.c b/arch/arm/mach-omap2/clock34xx.c
-index 811360a..2ee58fa 100644
---- a/arch/arm/mach-omap2/clock34xx.c
-+++ b/arch/arm/mach-omap2/clock34xx.c
-@@ -737,10 +737,10 @@ static int omap3_core_dpll_m2_set_rate(struct clk *clk, unsigned long rate)
- 		unlock_dll = 1;
- 	}
- 
--	pr_info("clock: changing CORE DPLL rate from %lu to %lu\n", clk->rate,
--		validrate);
--	pr_info("clock: SDRC timing params used: %08x %08x %08x\n",
--		sp->rfr_ctrl, sp->actim_ctrla, sp->actim_ctrlb);
-+	pr_debug("clock: changing CORE DPLL rate from %lu to %lu\n", clk->rate,
-+		 validrate);
-+	pr_debug("clock: SDRC timing params used: %08x %08x %08x\n",
-+		 sp->rfr_ctrl, sp->actim_ctrla, sp->actim_ctrlb);
- 
- 	/* REVISIT: SRAM code doesn't support other M2 divisors yet */
- 	WARN_ON(new_div != 1 && new_div != 2);
+-	printk(KERN_INFO "Disabling unused clock \"%s\"\n", clk->name);
++	printk(KERN_DEBUG "Disabling unused clock \"%s\"\n", clk->name);
+ 	if (cpu_is_omap34xx()) {
+ 		omap2_clk_enable(clk);
+ 		omap2_clk_disable(clk);
 
 
