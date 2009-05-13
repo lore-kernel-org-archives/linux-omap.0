@@ -1,15 +1,16 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: [PATCH 05/10] OMAP3 SDRC: initialize SDRC_POWER at boot
-Date: Tue, 12 May 2009 18:05:19 -0600
-Message-ID: <20090513000518.10349.64171.stgit@localhost.localdomain>
+Subject: [PATCH 08/10] OMAP3 clock: use pr_debug() rather than pr_info() in
+	some clock change code
+Date: Tue, 12 May 2009 18:05:25 -0600
+Message-ID: <20090513000522.10349.51723.stgit@localhost.localdomain>
 References: <20090512235713.10349.49339.stgit@localhost.localdomain>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:56420 "EHLO
+Received: from utopia.booyaka.com ([72.9.107.138]:56427 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757472AbZEMAHo (ORCPT
+	with ESMTP id S1757527AbZEMAHo (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>); Tue, 12 May 2009 20:07:44 -0400
 In-Reply-To: <20090512235713.10349.49339.stgit@localhost.localdomain>
 Sender: linux-omap-owner@vger.kernel.org
@@ -17,55 +18,79 @@ List-Id: linux-omap@vger.kernel.org
 To: linux-arm-kernel@lists.arm.linux.org.uk
 Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Paul Walmsley <paul@pwsan.com>
 
-Initialize SDRC_POWER to a known-good setting when the kernel boots.
-Necessary since some bootloaders don't initialize SDRC_POWER properly.
+The CORE DPLL M2 frequency change code should use pr_debug(), not
+pr_info(), for its debug messages.  Same with
+omap2_clksel_round_rate_div().  While here, convert a few printk(KERN_ERR ..
+into pr_err().
 
 Signed-off-by: Paul Walmsley <paul@pwsan.com>
 ---
- arch/arm/mach-omap2/sdrc.c |   19 ++++++++++++++++++-
- 1 files changed, 18 insertions(+), 1 deletions(-)
+ arch/arm/mach-omap2/clock.c     |   12 ++++++------
+ arch/arm/mach-omap2/clock34xx.c |    8 ++++----
+ 2 files changed, 10 insertions(+), 10 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/sdrc.c b/arch/arm/mach-omap2/sdrc.c
-index 2a30060..d62e4e1 100644
---- a/arch/arm/mach-omap2/sdrc.c
-+++ b/arch/arm/mach-omap2/sdrc.c
-@@ -37,6 +37,10 @@ static struct omap_sdrc_params *sdrc_init_params;
- void __iomem *omap2_sdrc_base;
- void __iomem *omap2_sms_base;
+diff --git a/arch/arm/mach-omap2/clock.c b/arch/arm/mach-omap2/clock.c
+index 4247a15..8935a8b 100644
+--- a/arch/arm/mach-omap2/clock.c
++++ b/arch/arm/mach-omap2/clock.c
+@@ -547,8 +547,8 @@ u32 omap2_clksel_round_rate_div(struct clk *clk, unsigned long target_rate,
+ 	const struct clksel_rate *clkr;
+ 	u32 last_div = 0;
  
-+/* SDRC_POWER register bits */
-+#define SDRC_POWER_EXTCLKDIS_SHIFT		3
-+#define SDRC_POWER_PWDENA_SHIFT			2
-+#define SDRC_POWER_PAGEPOLICY_SHIFT		0
+-	printk(KERN_INFO "clock: clksel_round_rate_div: %s target_rate %ld\n",
+-	       clk->name, target_rate);
++	pr_debug("clock: clksel_round_rate_div: %s target_rate %ld\n",
++		 clk->name, target_rate);
  
- /**
-  * omap2_sdrc_get_params - return SDRC register values for a given clock rate
-@@ -74,7 +78,14 @@ void __init omap2_set_globals_sdrc(struct omap_globals *omap2_globals)
- 	omap2_sms_base = omap2_globals->sms;
+ 	*new_div = 1;
+ 
+@@ -562,7 +562,7 @@ u32 omap2_clksel_round_rate_div(struct clk *clk, unsigned long target_rate,
+ 
+ 		/* Sanity check */
+ 		if (clkr->div <= last_div)
+-			printk(KERN_ERR "clock: clksel_rate table not sorted "
++			pr_err("clock: clksel_rate table not sorted "
+ 			       "for clock %s", clk->name);
+ 
+ 		last_div = clkr->div;
+@@ -574,7 +574,7 @@ u32 omap2_clksel_round_rate_div(struct clk *clk, unsigned long target_rate,
+ 	}
+ 
+ 	if (!clkr->div) {
+-		printk(KERN_ERR "clock: Could not find divisor for target "
++		pr_err("clock: Could not find divisor for target "
+ 		       "rate %ld for clock %s parent %s\n", target_rate,
+ 		       clk->name, clk->parent->name);
+ 		return ~0;
+@@ -582,8 +582,8 @@ u32 omap2_clksel_round_rate_div(struct clk *clk, unsigned long target_rate,
+ 
+ 	*new_div = clkr->div;
+ 
+-	printk(KERN_INFO "clock: new_div = %d, new_rate = %ld\n", *new_div,
+-	       (clk->parent->rate / clkr->div));
++	pr_debug("clock: new_div = %d, new_rate = %ld\n", *new_div,
++		 (clk->parent->rate / clkr->div));
+ 
+ 	return (clk->parent->rate / clkr->div);
  }
+diff --git a/arch/arm/mach-omap2/clock34xx.c b/arch/arm/mach-omap2/clock34xx.c
+index 811360a..2ee58fa 100644
+--- a/arch/arm/mach-omap2/clock34xx.c
++++ b/arch/arm/mach-omap2/clock34xx.c
+@@ -737,10 +737,10 @@ static int omap3_core_dpll_m2_set_rate(struct clk *clk, unsigned long rate)
+ 		unlock_dll = 1;
+ 	}
  
--/* turn on smart idle modes for SDRAM scheduler and controller */
-+/**
-+ * omap2_sdrc_init - initialize SMS, SDRC devices on boot
-+ * @sp: pointer to a null-terminated list of struct omap_sdrc_params
-+ *
-+ * Turn on smart idle modes for SDRAM scheduler and controller.
-+ * Program a known-good configuration for the SDRC to deal with buggy
-+ * bootloaders.
-+ */
- void __init omap2_sdrc_init(struct omap_sdrc_params *sp)
- {
- 	u32 l;
-@@ -90,4 +101,10 @@ void __init omap2_sdrc_init(struct omap_sdrc_params *sp)
- 	sdrc_write_reg(l, SDRC_SYSCONFIG);
+-	pr_info("clock: changing CORE DPLL rate from %lu to %lu\n", clk->rate,
+-		validrate);
+-	pr_info("clock: SDRC timing params used: %08x %08x %08x\n",
+-		sp->rfr_ctrl, sp->actim_ctrla, sp->actim_ctrlb);
++	pr_debug("clock: changing CORE DPLL rate from %lu to %lu\n", clk->rate,
++		 validrate);
++	pr_debug("clock: SDRC timing params used: %08x %08x %08x\n",
++		 sp->rfr_ctrl, sp->actim_ctrla, sp->actim_ctrlb);
  
- 	sdrc_init_params = sp;
-+
-+	/* XXX Enable SRFRONIDLEREQ here also? */
-+	l = (1 << SDRC_POWER_EXTCLKDIS_SHIFT) |
-+		(1 << SDRC_POWER_PWDENA_SHIFT) |
-+		(1 << SDRC_POWER_PAGEPOLICY_SHIFT);
-+	sdrc_write_reg(l, SDRC_POWER);
- }
+ 	/* REVISIT: SRAM code doesn't support other M2 divisors yet */
+ 	WARN_ON(new_div != 1 && new_div != 2);
 
 
