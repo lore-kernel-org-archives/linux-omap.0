@@ -1,170 +1,87 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH] Allow OMAP3 GPIO wakeup from power off.
-Date: Wed, 13 May 2009 07:07:33 -0700
-Message-ID: <87hbzp9jve.fsf@deeprootsystems.com>
-References: <1240860407-14883-1-git-send-email-Russ.Dill@gmail.com>
+From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+Subject: Re: [PATCH 2/2] DSPBRIDGE: add checking 128 byte alignment for dsp
+ cache line size
+Date: Wed, 13 May 2009 17:18:49 +0300 (EEST)
+Message-ID: <20090513.171849.260112797.Hiroshi.DOYU@nokia.com>
+References: <94a0d4530905130413t5bddfee4le797c5083df79226@mail.gmail.com>
+	<20090513.143241.189725295.Hiroshi.DOYU@nokia.com>
+	<94a0d4530905130550s657d9312g664efe6c418b2b61@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from wf-out-1314.google.com ([209.85.200.175]:56076 "EHLO
-	wf-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752267AbZEMOHg (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 13 May 2009 10:07:36 -0400
-Received: by wf-out-1314.google.com with SMTP id 26so444127wfd.4
-        for <linux-omap@vger.kernel.org>; Wed, 13 May 2009 07:07:36 -0700 (PDT)
-In-Reply-To: <1240860407-14883-1-git-send-email-Russ.Dill@gmail.com> (Russ Dill's message of "Mon\, 27 Apr 2009 12\:26\:47 -0700")
+Received: from smtp.nokia.com ([192.100.105.134]:28432 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753997AbZEMOTQ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 13 May 2009 10:19:16 -0400
+In-Reply-To: <94a0d4530905130550s657d9312g664efe6c418b2b61@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Russ Dill <russ.dill@gmail.com>
-Cc: linux-omap@vger.kernel.org
+To: h-kanigeri2@ti.com, felipe.contreras@gmail.com
+Cc: nm@ti.com, linux-omap@vger.kernel.org
 
-Russ Dill <russ.dill@gmail.com> writes:
+From: ext Felipe Contreras <felipe.contreras@gmail.com>
+Subject: Re: [PATCH 2/2] DSPBRIDGE: add checking 128 byte alignment for dsp cache line size
+Date: Wed, 13 May 2009 14:50:26 +0200
 
-> This patch configures the wakeup padconf registers to reflect the sysfs
-> power/wakeup settings. This allows a GPIO to wake the processor from
-> off mode.
->
-> Signed-off-by: Russ Dill <Russ.Dill@gmail.com>
+[...]
 
-Hi Russ,
+> >> >> If we are not going to have a read-only/write-only flag then I'm
+> >> >> against adding the alignment check. It will only force user-space to
+> >> >> do memory copies unnecessarily. That would kill performance
+> >> >> drastically. NAK!
+> >> >
+> >> > At least, better than allowing user to crash kernel.
+> >>
+> >> The kernel would crash even with that check because it's the software
+> >> running in the *DSP* side that is causing the corruption.
+> >>
+> >> It sounds you are still not convinced by that so I'll write a test
+> >> application to make sure my assumption is correct.
+> >
+> > You misunderstood.
+> >
+> > There are 2 patterns when kernel crashes from ARM cache flush and DSP
+> > cache flush(*1).
+> 
+> Let's suppose that's true, if you enforce ARM cache flushes to be
+> aligned (pattern 1) the DSP cache flushes (pattern 2) can still
+> corrupt the memory. Therefore even with your check the potential for
+> memory corruption is still there.
+> 
+> But it doesn't seem it's true; I modified my dsp-dummy test to detect
 
-This looks good for the PM branch.  For completeness, could you update
-the description to include a brief example of how you're using sysfs
-to test this.  That will help other folks test this feature and
-also setup some automated tests.
+We are not talking about the specific application program/case, but
+the general risk that kernel can be crashed by userland with incorrect
+parameters in dspbridge.
 
-Thanks,
+> memory corruption by constantly modifying the data before and after
+> the buffer sent to the DSP. Map, Flush and Invalidate are unaligned in
+> the ARM side, and not surprisingly there's memory corruption. *But* if
+> I modify the DSP socket node to don't flush/invalidate the first/last
+> 128 bytes of the buffer then there's no memory corruption.
+> 
+> So that's proof Flush/Invalidate on ARM side don't cause memory
+> corruption.
 
-Kevin
+No, the above doesn't prove that ARM side doesn't cause memory
+corruption(pattern 1).
 
-> ---
->  arch/arm/plat-omap/gpio.c |   58 ++++++++++++++++++++++++++++++--------------
->  1 files changed, 39 insertions(+), 19 deletions(-)
->
-> diff --git a/arch/arm/plat-omap/gpio.c b/arch/arm/plat-omap/gpio.c
-> index 64852db..3b2054b 100644
-> --- a/arch/arm/plat-omap/gpio.c
-> +++ b/arch/arm/plat-omap/gpio.c
-> @@ -277,7 +277,14 @@ static const struct gpio_pad_range gpio_pads_config[] = {
->  	{ 170, 182, 0x1c6 },
->  	{ 0, 0, 0x1e0 },
->  	{ 186, 186, 0x1e2 },
-> +	{ 187, 187, 0x238 },
-> +	{ 32, 32, 0x23a },
->  	{ 12, 29, 0x5d8 },
-> +	{ 1, 1, 0xa06 },
-> +	{ 30, 30, 0xa08 },
-> +	{ 2, 10, 0xa0a },
-> +	{ 11, 11, 0xa24 },
-> +	{ 31, 31, 0xa26 },
->  };
->  
->  /* GPIO -> PAD config mapping for OMAP3 */
-> @@ -289,7 +296,8 @@ struct gpio_pad {
->  
->  #define OMAP34XX_GPIO_AMT	(32 * OMAP34XX_NR_GPIOS)
->  
-> -struct gpio_pad *gpio_pads;
-> +static struct gpio_pad *gpio_pads;
-> +static u16 gpio_pad_map[OMAP34XX_GPIO_AMT];
->  #endif
->  
->  static struct gpio_bank *gpio_bank;
-> @@ -1353,32 +1361,21 @@ static int __init omap3_gpio_pads_init(void)
->  {
->  	int i, j, min, max, gpio_amt;
->  	u16 offset;
-> -	u16 *gpio_pad_map;
->  
->  	gpio_amt = 0;
->  
-> -	gpio_pad_map = kzalloc(sizeof(u16) * OMAP34XX_GPIO_AMT, GFP_KERNEL);
-> -	if (gpio_pad_map == NULL) {
-> -		printk(KERN_ERR "FATAL: Failed to allocate gpio_pad_map\n");
-> -		return -ENOMEM;
-> -	}
-> -
->  	for (i = 0; i < ARRAY_SIZE(gpio_pads_config); i++) {
->  		min = gpio_pads_config[i].min;
->  		max = gpio_pads_config[i].max;
->  		offset = gpio_pads_config[i].offset;
->  
->  		for (j = min; j <= max; j++) {
-> -			/*
-> -			 * Check if pad has been configured as GPIO.
-> -			 * First module (gpio 0...31) is ignored as it is
-> -			 * in wakeup domain and does not need special
-> -			 * handling during off mode.
-> -			 */
-> -			if (j > 31 && (omap_ctrl_readw(offset) &
-> +			/* Check if pad has been configured as GPIO. */
-> +			if ((omap_ctrl_readw(offset) &
->  				OMAP34XX_MUX_MODE7) == OMAP34XX_MUX_MODE4) {
->  				gpio_pad_map[j] = offset;
-> -				gpio_amt++;
-> +				if (j > 31)
-> +					gpio_amt++;
->  			}
->  			offset += 2;
->  		}
-> @@ -1388,20 +1385,23 @@ static int __init omap3_gpio_pads_init(void)
->  
->  	if (gpio_pads == NULL) {
->  		printk(KERN_ERR "FATAL: Failed to allocate gpio_pads\n");
-> -		kfree(gpio_pad_map);
->  		return -ENOMEM;
->  	}
->  
->  	gpio_amt = 0;
->  	for (i = 0; i < OMAP34XX_GPIO_AMT; i++) {
-> -		if (gpio_pad_map[i] != 0) {
-> +		/*
-> +		 * First module (gpio 0...31) is ignored as it is
-> +		 * in wakeup domain and does not need special
-> +		 * handling during off mode.
-> +		 */
-> +		if (gpio_pad_map[i] && i > 31) {
->  			gpio_pads[gpio_amt].gpio = i;
->  			gpio_pads[gpio_amt].offset = gpio_pad_map[i];
->  			gpio_amt++;
->  		}
->  	}
->  	gpio_pads[gpio_amt].gpio = -1;
-> -	kfree(gpio_pad_map);
->  	return 0;
->  }
->  late_initcall(omap3_gpio_pads_init);
-> @@ -1676,6 +1676,26 @@ static int omap_gpio_suspend(struct sys_device *dev, pm_message_t mesg)
->  		__raw_writel(0xffffffff, wake_clear);
->  		__raw_writel(bank->suspend_wakeup, wake_set);
->  		spin_unlock_irqrestore(&bank->lock, flags);
-> +
-> +#ifdef CONFIG_ARCH_OMAP34XX
-> +		if (bank->method == METHOD_GPIO_24XX) {
-> +			int j;
-> +			for (j = 0; j < 32; j++) {
-> +				int offset = gpio_pad_map[j + i * 32];
-> +				u16 v;
-> +
-> +				if (!offset)
-> +					continue;
-> +
-> +				v = omap_ctrl_readw(offset);
-> +				if (bank->suspend_wakeup & (1 << j))
-> +					v |= OMAP3_PADCONF_WAKEUPENABLE0;
-> +				else
-> +					v &= ~OMAP3_PADCONF_WAKEUPENABLE0;
-> +				omap_ctrl_writew(v, offset);
-> +			}
-> +		}
-> +#endif
->  	}
->  
->  	return 0;
-> -- 
-> 1.6.0.4
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Currently dspbridge doesn't have any parameter checking/validation
+from "bridge_ioctl()" to "v7_dma_*_range()". *Any* value/address can
+be passed to "v7_dma_*_range()" from userland. It means that any data
+which resides on cache can be , for exmaple, invalidated by userland
+spontaneously. That is why I mentioned the necessity of "VMA" checking
+to prevent this.
+
+For pattern 2, if a buffer is aligned on DSP cache size, then just
+adding VMA checking can prevent userland from corrupting other
+process/kernel address space. Also same kind of VMA checking for DSP
+mmaping can prevent other cases too. So I think that, at least, we can
+protect kernel address from crash with having VMA and alignment
+checking. I'll work on that if we can agree on this.
+
+> Do you want to see the code?
+
+Yes, I want!! it would be quite helpful to test something easily;)
+
