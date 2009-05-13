@@ -1,62 +1,63 @@
-From: "Pandita, Vikram" <vikram.pandita@ti.com>
-Subject: RE: [PATCH 0/3] Support for OMAP3 Zoom2 board
-Date: Wed, 13 May 2009 23:23:19 +0530
-Message-ID: <FCCFB4CDC6E5564B9182F639FC35608702F50018C7@dbde02.ent.ti.com>
-References: <1241732526-6218-1-git-send-email-mlc@ti.com>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: PM branch updates
+Date: Wed, 13 May 2009 11:03:42 -0700
+Message-ID: <87hbzo6fsx.fsf@deeprootsystems.com>
+References: <87pred6jff.fsf@deeprootsystems.com>
+	<87bppx6j0q.fsf@deeprootsystems.com>
+	<F59CF5AD-5251-4C08-9BEE-70B7E27A62C2@mac.com>
+	<87tz3p53j8.fsf@deeprootsystems.com>
+	<76CCCDC7-9E68-4965-AD8E-ABE8C11317FD@mac.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:53328 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754602AbZEMRx3 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 13 May 2009 13:53:29 -0400
-Received: from dbdp20.itg.ti.com ([172.24.170.38])
-	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id n4DHrOC0026705
-	for <linux-omap@vger.kernel.org>; Wed, 13 May 2009 12:53:30 -0500
-Received: from dbde71.ent.ti.com (localhost [127.0.0.1])
-	by dbdp20.itg.ti.com (8.13.8/8.13.8) with ESMTP id n4DHrNP5016312
-	for <linux-omap@vger.kernel.org>; Wed, 13 May 2009 23:23:23 +0530 (IST)
-In-Reply-To: <1241732526-6218-1-git-send-email-mlc@ti.com>
-Content-Language: en-US
+Received: from wf-out-1314.google.com ([209.85.200.168]:53415 "EHLO
+	wf-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751247AbZEMSDo (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 13 May 2009 14:03:44 -0400
+Received: by wf-out-1314.google.com with SMTP id 26so535441wfd.4
+        for <linux-omap@vger.kernel.org>; Wed, 13 May 2009 11:03:44 -0700 (PDT)
+In-Reply-To: <76CCCDC7-9E68-4965-AD8E-ABE8C11317FD@mac.com> (Elvis Dowson's message of "Wed\, 13 May 2009 20\:17\:19 +0300")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
-Cc: "Christensen, Mikkel" <mlc@ti.com>
+To: Elvis Dowson <elvis.dowson@mac.com>
+Cc: linux-omap@vger.kernel.org
 
-Tony/All
- Any comments on Zoom2 support patches? 
+Elvis Dowson <elvis.dowson@mac.com> writes:
 
+> Hi Kevin,
+> 			Thanks for the reply. I am working with the
+> gumstix overo TI OMAP  3503, and just finished porting android-2.6.29
+> to this platform.  Towards the end I noticed that there was no power
+> management available  for the OMAP !! And I used the same git
+> repository, pulled nearly all  the PM patches, except the SR ones,
+> which didn't work.
 
->-----Original Message-----
->From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of
->Christensen, Mikkel
->Sent: Thursday, May 07, 2009 4:42 PM
->To: linux-omap@vger.kernel.org
->Cc: Christensen, Mikkel
->Subject: [PATCH 0/3] Support for OMAP3 Zoom2 board
->
->The following patch series adds support for Zoom2 board.
->
->The board has:
-> - Modem attached to UART1
-> - WLAN attached to UART2
-> - GPS attached to UART3
->
->An external debug board is included for console and LAN.
->
->For details refer to this site:
->http://www.logicpd.com/products/development-kits/texas-instruments-zoom%E2%84%A2-omap34x-ii-mdp
->
->Future work:
-> - SMSC911x NFS mount problem
-> - Low level debug uart need to use debug board
-> - Dynamic detection of debug board presence
->
->TI wiki with FAQs on getting this board booting:
->https://omapzoom.org/gf/project/omapzoom/wiki/?pagename=GettingStartedWithZoomII_AKA_OMAP34XII_MDP
->--
->To unsubscribe from this list: send the line "unsubscribe linux-omap" in
->the body of a message to majordomo@vger.kernel.org
->More majordomo info at  http://vger.kernel.org/majordomo-info.html
+It's still not terribly clear to me what PM patches you are or aren't
+using.   Or what exactly you mean by "didn't work."
 
+Until today, there was a bug in the SR series in that you also had to
+have the OMAP_PM_SRF enabled.  That was fixed by Rajendra and pushed
+into today's PM branch.  The alternative was to just disable
+SmartReflex.
+
+I don't currently have any Gumstix hardware (hint, hint) but if I did,
+I could add it to the platforms where I validate the PM branch.
+
+Kevin
+
+> On May 13, 2009, at 8:14 PM, Kevin Hilman wrote:
+>
+>> Elvis Dowson <elvis.dowson@mac.com> writes:
+>>
+>>> When you say rebase to 2.6.30, where would I get this updated kernel
+>>> branch from? Can you tell me the git repository location, please?
+>>
+>> When I rebase the PM branch, it will still be called 'pm' and will be
+>> remain in my linux-omap-pm git tree[1].
+>>
+>> The current 2.6.29-based pm branch will be renamed pm-2.6.29 for those
+>> wanting to keep using a 2.6.29-based version.
+>>
+>> Kevin
+>>
+>> [1] http://git.kernel.org/?p=linux/kernel/git/khilman/linux-omap-pm.git;a=summary
