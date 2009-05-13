@@ -1,75 +1,183 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: [PATCH 03/10] OMAP3 clock: add interconnect barriers to CORE DPLL M2
-	change
-Date: Tue, 12 May 2009 18:05:17 -0600
-Message-ID: <20090513000516.10349.74452.stgit@localhost.localdomain>
+Subject: [PATCH 06/10] OMAP3 SRAM: renumber registers to make space for
+	argument passing
+Date: Tue, 12 May 2009 18:05:21 -0600
+Message-ID: <20090513000519.10349.22433.stgit@localhost.localdomain>
 References: <20090512235713.10349.49339.stgit@localhost.localdomain>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:56391 "EHLO
+Received: from utopia.booyaka.com ([72.9.107.138]:56409 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754997AbZEMAHi (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 12 May 2009 20:07:38 -0400
+	with ESMTP id S1757263AbZEMAHm (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 12 May 2009 20:07:42 -0400
 In-Reply-To: <20090512235713.10349.49339.stgit@localhost.localdomain>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-arm-kernel@lists.arm.linux.org.uk
 Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Paul Walmsley <paul@pwsan.com>
 
-Where necessary, add interconnect barriers to force posted writes to
-complete before continuing.
+Renumber registers in omap3_sram_configure_core_dpll() assembly code to
+make space for additional parameters.
 
 Signed-off-by: Paul Walmsley <paul@pwsan.com>
 ---
- arch/arm/mach-omap2/sram34xx.S |    9 ++++++---
- 1 files changed, 6 insertions(+), 3 deletions(-)
+ arch/arm/mach-omap2/sram34xx.S |  114 ++++++++++++++++++++--------------------
+ 1 files changed, 57 insertions(+), 57 deletions(-)
 
 diff --git a/arch/arm/mach-omap2/sram34xx.S b/arch/arm/mach-omap2/sram34xx.S
-index f4a356d..8d524f3 100644
+index 9a45415..35131e5 100644
 --- a/arch/arm/mach-omap2/sram34xx.S
 +++ b/arch/arm/mach-omap2/sram34xx.S
-@@ -66,22 +66,23 @@ unlock_dll:
- 	ldr	r4, omap3_sdrc_dlla_ctrl
- 	ldr	r5, [r4]
- 	orr	r5, r5, #0x4
--	str	r5, [r4]
-+	str	r5, [r4]		@ (no OCP barrier needed)
+@@ -63,50 +63,50 @@ ENTRY(omap3_sram_configure_core_dpll)
+ 	mov 	r0, #0 			@ return value
+ 	ldmfd	sp!, {r1-r12, pc}	@ restore regs and return
+ unlock_dll:
+-	ldr	r4, omap3_sdrc_dlla_ctrl
+-	ldr	r5, [r4]
+-	orr	r5, r5, #0x4
+-	str	r5, [r4]		@ (no OCP barrier needed)
++	ldr	r11, omap3_sdrc_dlla_ctrl
++	ldr	r12, [r11]
++	orr	r12, r12, #0x4
++	str	r12, [r11]		@ (no OCP barrier needed)
  	bx	lr
  lock_dll:
- 	ldr	r4, omap3_sdrc_dlla_ctrl
- 	ldr	r5, [r4]
- 	bic	r5, r5, #0x4
--	str	r5, [r4]
-+	str	r5, [r4]		@ (no OCP barrier needed)
+-	ldr	r4, omap3_sdrc_dlla_ctrl
+-	ldr	r5, [r4]
+-	bic	r5, r5, #0x4
+-	str	r5, [r4]		@ (no OCP barrier needed)
++	ldr	r11, omap3_sdrc_dlla_ctrl
++	ldr	r12, [r11]
++	bic	r12, r12, #0x4
++	str	r12, [r11]		@ (no OCP barrier needed)
  	bx	lr
  sdram_in_selfrefresh:
- 	ldr	r4, omap3_sdrc_power	@ read the SDRC_POWER register
- 	ldr	r5, [r4]		@ read the contents of SDRC_POWER
- 	orr 	r5, r5, #0x40		@ enable self refresh on idle req
- 	str 	r5, [r4]		@ write back to SDRC_POWER register
-+	ldr	r5, [r4]		@ posted-write barrier for SDRC
- 	ldr	r4, omap3_cm_iclken1_core	@ read the CM_ICLKEN1_CORE reg
- 	ldr	r5, [r4]
--	bic	r5, r5, #0x2		@ disable iclk bit for SRDC
-+	bic	r5, r5, #0x2		@ disable iclk bit for SDRC
- 	str 	r5, [r4]
+-	ldr	r4, omap3_sdrc_power	@ read the SDRC_POWER register
+-	ldr	r5, [r4]		@ read the contents of SDRC_POWER
+-	mov	r9, r5			@ keep a copy of SDRC_POWER bits
+-	orr 	r5, r5, #0x40		@ enable self refresh on idle req
+-	bic 	r5, r5, #0x4		@ clear PWDENA
+-	str 	r5, [r4]		@ write back to SDRC_POWER register
+-	ldr	r5, [r4]		@ posted-write barrier for SDRC
+-	ldr	r4, omap3_cm_iclken1_core	@ read the CM_ICLKEN1_CORE reg
+-	ldr	r5, [r4]
+-	bic	r5, r5, #0x2		@ disable iclk bit for SDRC
+-	str 	r5, [r4]
++	ldr	r11, omap3_sdrc_power	@ read the SDRC_POWER register
++	ldr	r12, [r11]		@ read the contents of SDRC_POWER
++	mov	r9, r12			@ keep a copy of SDRC_POWER bits
++	orr 	r12, r12, #0x40		@ enable self refresh on idle req
++	bic 	r12, r12, #0x4		@ clear PWDENA
++	str 	r12, [r11]		@ write back to SDRC_POWER register
++	ldr	r12, [r11]		@ posted-write barrier for SDRC
++	ldr	r11, omap3_cm_iclken1_core	@ read the CM_ICLKEN1_CORE reg
++	ldr	r12, [r11]
++	bic	r12, r12, #0x2		@ disable iclk bit for SDRC
++	str 	r12, [r11]
  wait_sdrc_idle:
- 	ldr 	r4, omap3_cm_idlest1_core
-@@ -97,6 +98,7 @@ configure_core_dpll:
- 	and	r5, r5, r6
- 	orr	r5, r5, r3, lsl #0x1B	@ r3 contains the M2 val
- 	str	r5, [r4]
-+	ldr	r5, [r4]		@ posted-write barrier for CM
- 	mov 	r5, #0x800		@ wait for the clock to stabilise
+-	ldr 	r4, omap3_cm_idlest1_core
+-	ldr 	r5, [r4]
+-	and 	r5, r5, #0x2		@ check for SDRC idle
+-	cmp 	r5, #2
++	ldr 	r11, omap3_cm_idlest1_core
++	ldr 	r12, [r11]
++	and 	r12, r12, #0x2		@ check for SDRC idle
++	cmp 	r12, #2
+ 	bne 	wait_sdrc_idle
+ 	bx 	lr
+ configure_core_dpll:
+-	ldr 	r4, omap3_cm_clksel1_pll
+-	ldr	r5, [r4]
+-	ldr	r6, core_m2_mask_val	@ modify m2 for core dpll
+-	and	r5, r5, r6
+-	orr	r5, r5, r3, lsl #0x1B	@ r3 contains the M2 val
+-	str	r5, [r4]
+-	ldr	r5, [r4]		@ posted-write barrier for CM
+-	mov 	r5, #0x800		@ wait for the clock to stabilise
++	ldr 	r11, omap3_cm_clksel1_pll
++	ldr	r12, [r11]
++	ldr	r10, core_m2_mask_val	@ modify m2 for core dpll
++	and	r12, r12, r10
++	orr	r12, r12, r3, lsl #0x1B	@ r3 contains the M2 val
++	str	r12, [r11]
++	ldr	r12, [r11]		@ posted-write barrier for CM
++	mov 	r12, #0x800		@ wait for the clock to stabilise
  	cmp	r3, #2
  	bne	wait_clk_stable
-@@ -152,6 +154,7 @@ configure_sdrc:
- 	str	r1, [r4]
- 	ldr	r4, omap3_sdrc_actim_ctrlb
- 	str	r2, [r4]
-+	ldr	r2, [r4]		@ posted-write barrier for SDRC
+ 	bx	lr
+ wait_clk_stable:
+-	subs 	r5, r5, #1
++	subs 	r12, r12, #1
+ 	bne	wait_clk_stable
+ 	nop
+ 	nop
+@@ -120,42 +120,42 @@ wait_clk_stable:
+ 	nop
+ 	bx	lr
+ enable_sdrc:
+-	ldr 	r4, omap3_cm_iclken1_core
+-	ldr	r5, [r4]
+-	orr 	r5, r5, #0x2		@ enable iclk bit for SDRC
+-	str 	r5, [r4]
++	ldr 	r11, omap3_cm_iclken1_core
++	ldr	r12, [r11]
++	orr 	r12, r12, #0x2		@ enable iclk bit for SDRC
++	str 	r12, [r11]
+ wait_sdrc_idle1:
+-	ldr 	r4, omap3_cm_idlest1_core
+-	ldr	r5, [r4]
+-	and 	r5, r5, #0x2
+-	cmp	r5, #0
++	ldr 	r11, omap3_cm_idlest1_core
++	ldr	r12, [r11]
++	and 	r12, r12, #0x2
++	cmp	r12, #0
+ 	bne	wait_sdrc_idle1
+ restore_sdrc_power_val:
+-	ldr	r4, omap3_sdrc_power
+-	str	r9, [r4]		@ restore SDRC_POWER, no barrier needed
++	ldr	r11, omap3_sdrc_power
++	str	r9, [r11]		@ restore SDRC_POWER, no barrier needed
+ 	bx	lr
+ wait_dll_lock:
+-	ldr	r4, omap3_sdrc_dlla_status
+-	ldr	r5, [r4]
+-	and 	r5, r5, #0x4
+-	cmp	r5, #0x4
++	ldr	r11, omap3_sdrc_dlla_status
++	ldr	r12, [r11]
++	and 	r12, r12, #0x4
++	cmp	r12, #0x4
+ 	bne	wait_dll_lock
+ 	bx	lr
+ wait_dll_unlock:
+-	ldr	r4, omap3_sdrc_dlla_status
+-	ldr	r5, [r4]
+-	and	r5, r5, #0x4
+-	cmp	r5, #0x0
++	ldr	r11, omap3_sdrc_dlla_status
++	ldr	r12, [r11]
++	and	r12, r12, #0x4
++	cmp	r12, #0x0
+ 	bne	wait_dll_unlock
+ 	bx	lr
+ configure_sdrc:
+-	ldr	r4, omap3_sdrc_rfr_ctrl
+-	str	r0, [r4]
+-	ldr	r4, omap3_sdrc_actim_ctrla
+-	str	r1, [r4]
+-	ldr	r4, omap3_sdrc_actim_ctrlb
+-	str	r2, [r4]
+-	ldr	r2, [r4]		@ posted-write barrier for SDRC
++	ldr	r11, omap3_sdrc_rfr_ctrl
++	str	r0, [r11]
++	ldr	r11, omap3_sdrc_actim_ctrla
++	str	r1, [r11]
++	ldr	r11, omap3_sdrc_actim_ctrlb
++	str	r2, [r11]
++	ldr	r2, [r11]		@ posted-write barrier for SDRC
  	bx	lr
  
  omap3_sdrc_power:
