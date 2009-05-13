@@ -1,50 +1,107 @@
-From: Jarkko Nikula <jhnikula@gmail.com>
-Subject: Re: N810: latest linux-omap-2.6.git master
-Date: Wed, 13 May 2009 12:12:19 +0300
-Message-ID: <20090513121219.43206b03.jhnikula@gmail.com>
-References: <200905091745.06435.luke@dashjr.org>
-	<20090512100658.86a99e98.jhnikula@gmail.com>
-	<200905121818.13785.luke@dashjr.org>
+From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+Subject: Re: [PATCH 2/2] DSPBRIDGE: add checking 128 byte alignment for dsp
+ cache line size
+Date: Wed, 13 May 2009 12:10:25 +0300 (EEST)
+Message-ID: <20090513.121025.176657725.Hiroshi.DOYU@nokia.com>
+References: <8F7AF80515AF0D4D93307E594F3CB40E2AF66543@dlee03.ent.ti.com>
+	<20090512.083840.42792590.Hiroshi.DOYU@nokia.com>
+	<94a0d4530905121441n4f1decf2y6c52d915459c1257@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: Text/Plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from an-out-0708.google.com ([209.85.132.246]:55832 "EHLO
-	an-out-0708.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753343AbZEMJKf (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 13 May 2009 05:10:35 -0400
-Received: by an-out-0708.google.com with SMTP id d40so699731and.1
-        for <linux-omap@vger.kernel.org>; Wed, 13 May 2009 02:10:36 -0700 (PDT)
-In-Reply-To: <200905121818.13785.luke@dashjr.org>
+Received: from smtp.nokia.com ([192.100.122.230]:26961 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755382AbZEMJKo convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 13 May 2009 05:10:44 -0400
+In-Reply-To: <94a0d4530905121441n4f1decf2y6c52d915459c1257@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Luke Dashjr <luke@dashjr.org>
-Cc: linux-omap@vger.kernel.org
+To: felipe.contreras@gmail.com
+Cc: h-kanigeri2@ti.com, nm@ti.com, linux-omap@vger.kernel.org
 
-On Tue, 12 May 2009 18:18:13 -0500
-Luke Dashjr <luke@dashjr.org> wrote:
+=46rom: ext Felipe Contreras <felipe.contreras@gmail.com>
+Subject: Re: [PATCH 2/2] DSPBRIDGE: add checking 128 byte alignment for=
+ dsp cache line size
+Date: Tue, 12 May 2009 23:41:04 +0200
 
-> > For me mmc is working. I'm booting through the modified initfs with
-> > official major number 179 for /dev/mmcblk* device nodes.
-> 
-> Modified initfs? Is there something needed beyond copying the
-> filesystem's modules?
-> 
-Actually I'm not using modules from initfs at all nor updating them but
-I have compiled the ext2 in so that initfs can mount the ext2 formatted
-root from mmc (flasher --set-root-device=mmc).
+> On Tue, May 12, 2009 at 8:38 AM, Hiroshi DOYU <Hiroshi.DOYU@nokia.com=
+> wrote:
+> > From: "ext Kanigeri, Hari" <h-kanigeri2@ti.com>
+> > Subject: RE: [PATCH 2/2] DSPBRIDGE: add checking 128 byte alignment=
+ for dsp cache line size
+> > Date: Mon, 11 May 2009 20:26:11 +0200
+> >
+> >> To summarize the discussion.
+> >
+> > Thanks
+> >
+> >> We need to have the check for 128 bytes alignment (upper and
+> >> lower). The 2 places that this can be done are in flush function o=
+r
+> >> in Map function.
+> >>
+> >> =A0 =A0 =A0 - I prefer the check is done in Map function as Felipe
+> >> mentioned this function is bound to be called by MM components as
+> >> opposed to Flush function.
+> >
+> > Mapping is totally another thing from this problem.
+> >
+> > Any page mapping is being done, forcing PAGE_SIZE as below, because
+> > PAGE_SIZE(4KB) is the mininum unit from (io)mmu H/W perspective. Th=
+is
+> > is same as ARM too. They've been aligned on 4KB already. So no need=
+ to
+> > worry about 128-byte alignement for mapping.
+>=20
+> It's the same address, you cannot flush an address that has not been
+> mapped. Look at the dsp-dummy code[1].
+>=20
+>  DSPProcessor_ReserveMemory(b->node, to_reserve, &b->reserve);
+>  DSPProcessor_Map(b->node, b->data, b->size, b->reserve, &b->map, 0);
+>  DSPProcessor_FlushMemory(b->node, b->data, b->size, 0);
+>=20
+> See? b->data is used for *both* Map and FlushMemory. The only
+> difference is that you can skip FlushMemory, or flush half of the
+> memory area:
+>  DSPProcessor_FlushMemory(b->node, b->data + (b->size / 2), b->size, =
+0);
+>=20
+> The only operation you cannot avoid is Map.
+>=20
+> > DSP_STATUS PROC_Map(DSP_HPROCESSOR hProcessor, void *pMpuAddr, u32 =
+ulSize,
+> > =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 void *pReqAddr, void **ppMapAdd=
+r, u32 ulMapAttr)
+> > {
+> > =A0 =A0 =A0 =A0.....
+> > =A0 =A0 =A0 =A0/* Calculate the page-aligned PA, VA and size */
+> > =A0 =A0 =A0 =A0vaAlign =3D PG_ALIGN_LOW((u32) pReqAddr, PG_SIZE_4K)=
+;
+> > =A0 =A0 =A0 =A0paAlign =3D PG_ALIGN_LOW((u32) pMpuAddr, PG_SIZE_4K)=
+;
+> > =A0 =A0 =A0 =A0sizeAlign =3D PG_ALIGN_HIGH(ulSize + (u32)pMpuAddr -=
+ paAlign,
+> > =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 PG_=
+SIZE_4K);
+> >
+> > The points which we should take care of are bridge cache
+> > operations("PROC_Flush/Invalidate..()") and we should/can handle th=
+is
+> > problem independently. It would cause another dependency and increa=
+se
+> > another complexity again if we have to assume something(ex:
+> > "read-only" or "write-only" buffer) on other modules or expecting
+> > something on its "protocol".
+>=20
+> If we are not going to have a read-only/write-only flag then I'm
+> against adding the alignment check. It will only force user-space to
+> do memory copies unnecessarily. That would kill performance
+> drastically. NAK!
 
-This device node update to initfs is required since Maemo 2.6.21
-kernel & initfs are using major number 254 for mmcblk whereas newer
-kernels are using 179.
-
-I basically copied initfs from running system or fiasco image, I don't
-remember, modified it on desktop and then created new jffs2 image out
-of it. That can be then flashed with "flasher -f -n initfs.jffs2".
-
-I think it would be possible to boot modified initfs also from another
-mmc partition so that initfs on NAND can be intact.
-
-
--- 
-Jarkko
+At least, better than allowing user to crash kernel.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
