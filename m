@@ -1,107 +1,92 @@
-From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
-Subject: Re: [PATCH 2/2] DSPBRIDGE: add checking 128 byte alignment for dsp
- cache line size
-Date: Wed, 13 May 2009 12:10:25 +0300 (EEST)
-Message-ID: <20090513.121025.176657725.Hiroshi.DOYU@nokia.com>
-References: <8F7AF80515AF0D4D93307E594F3CB40E2AF66543@dlee03.ent.ti.com>
-	<20090512.083840.42792590.Hiroshi.DOYU@nokia.com>
-	<94a0d4530905121441n4f1decf2y6c52d915459c1257@mail.gmail.com>
+From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
+Subject: RE: [PATCH] OMAP: sDMA: Correct the the omap_request_dma_chain()
+ 	signature
+Date: Wed, 13 May 2009 15:42:33 +0530
+Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB02B4843E8E@dbde02.ent.ti.com>
+References: <1241006956-29268-1-git-send-email-santosh.shilimkar@ti.com>
+	 <20090429220804.2d130ceb.jhnikula@gmail.com>
+	 <EAF47CD23C76F840A9E7FCE10091EFAB02B446F94B@dbde02.ent.ti.com>
+	 <EAF47CD23C76F840A9E7FCE10091EFAB02B446F96B@dbde02.ent.ti.com>
+	 <bd7b27490904300146p17cb127asf2013cc3f0840a26@mail.gmail.com>
+	 <EAF47CD23C76F840A9E7FCE10091EFAB02B446FC72@dbde02.ent.ti.com>
+ <bd7b27490904300236q458b8198x200a976b9941dc10@mail.gmail.com>
+ <EAF47CD23C76F840A9E7FCE10091EFAB02B446FCCF@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:26961 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755382AbZEMJKo convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 13 May 2009 05:10:44 -0400
-In-Reply-To: <94a0d4530905121441n4f1decf2y6c52d915459c1257@mail.gmail.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:53612 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758164AbZEMKMl convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 13 May 2009 06:12:41 -0400
+Received: from dbdp20.itg.ti.com ([172.24.170.38])
+	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id n4DACaPR007745
+	for <linux-omap@vger.kernel.org>; Wed, 13 May 2009 05:12:42 -0500
+Received: from dbde71.ent.ti.com (localhost [127.0.0.1])
+	by dbdp20.itg.ti.com (8.13.8/8.13.8) with ESMTP id n4DACZcR022097
+	for <linux-omap@vger.kernel.org>; Wed, 13 May 2009 15:42:35 +0530 (IST)
+In-Reply-To: <EAF47CD23C76F840A9E7FCE10091EFAB02B446FCCF@dbde02.ent.ti.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: felipe.contreras@gmail.com
-Cc: h-kanigeri2@ti.com, nm@ti.com, linux-omap@vger.kernel.org
+To: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-=46rom: ext Felipe Contreras <felipe.contreras@gmail.com>
-Subject: Re: [PATCH 2/2] DSPBRIDGE: add checking 128 byte alignment for=
- dsp cache line size
-Date: Tue, 12 May 2009 23:41:04 +0200
+Tony,
 
-> On Tue, May 12, 2009 at 8:38 AM, Hiroshi DOYU <Hiroshi.DOYU@nokia.com=
-> wrote:
-> > From: "ext Kanigeri, Hari" <h-kanigeri2@ti.com>
-> > Subject: RE: [PATCH 2/2] DSPBRIDGE: add checking 128 byte alignment=
- for dsp cache line size
-> > Date: Mon, 11 May 2009 20:26:11 +0200
-> >
-> >> To summarize the discussion.
-> >
-> > Thanks
-> >
-> >> We need to have the check for 128 bytes alignment (upper and
-> >> lower). The 2 places that this can be done are in flush function o=
-r
-> >> in Map function.
-> >>
-> >> =A0 =A0 =A0 - I prefer the check is done in Map function as Felipe
-> >> mentioned this function is bound to be called by MM components as
-> >> opposed to Flush function.
-> >
-> > Mapping is totally another thing from this problem.
-> >
-> > Any page mapping is being done, forcing PAGE_SIZE as below, because
-> > PAGE_SIZE(4KB) is the mininum unit from (io)mmu H/W perspective. Th=
-is
-> > is same as ARM too. They've been aligned on 4KB already. So no need=
- to
-> > worry about 128-byte alignement for mapping.
->=20
-> It's the same address, you cannot flush an address that has not been
-> mapped. Look at the dsp-dummy code[1].
->=20
->  DSPProcessor_ReserveMemory(b->node, to_reserve, &b->reserve);
->  DSPProcessor_Map(b->node, b->data, b->size, b->reserve, &b->map, 0);
->  DSPProcessor_FlushMemory(b->node, b->data, b->size, 0);
->=20
-> See? b->data is used for *both* Map and FlushMemory. The only
-> difference is that you can skip FlushMemory, or flush half of the
-> memory area:
->  DSPProcessor_FlushMemory(b->node, b->data + (b->size / 2), b->size, =
-0);
->=20
-> The only operation you cannot avoid is Map.
->=20
-> > DSP_STATUS PROC_Map(DSP_HPROCESSOR hProcessor, void *pMpuAddr, u32 =
-ulSize,
-> > =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 void *pReqAddr, void **ppMapAdd=
-r, u32 ulMapAttr)
-> > {
-> > =A0 =A0 =A0 =A0.....
-> > =A0 =A0 =A0 =A0/* Calculate the page-aligned PA, VA and size */
-> > =A0 =A0 =A0 =A0vaAlign =3D PG_ALIGN_LOW((u32) pReqAddr, PG_SIZE_4K)=
-;
-> > =A0 =A0 =A0 =A0paAlign =3D PG_ALIGN_LOW((u32) pMpuAddr, PG_SIZE_4K)=
-;
-> > =A0 =A0 =A0 =A0sizeAlign =3D PG_ALIGN_HIGH(ulSize + (u32)pMpuAddr -=
- paAlign,
-> > =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 PG_=
-SIZE_4K);
-> >
-> > The points which we should take care of are bridge cache
-> > operations("PROC_Flush/Invalidate..()") and we should/can handle th=
-is
-> > problem independently. It would cause another dependency and increa=
-se
-> > another complexity again if we have to assume something(ex:
-> > "read-only" or "write-only" buffer) on other modules or expecting
-> > something on its "protocol".
->=20
-> If we are not going to have a read-only/write-only flag then I'm
-> against adding the alignment check. It will only force user-space to
-> do memory copies unnecessarily. That would kill performance
-> drastically. NAK!
+Can you merge this.
 
-At least, better than allowing user to crash kernel.
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Regards,
+Santosh
+ 
+
+> -----Original Message-----
+> From: linux-omap-owner@vger.kernel.org 
+> [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of 
+> Shilimkar, Santosh
+> Sent: Thursday, April 30, 2009 3:15 PM
+> To: Jarkko Nikula
+> Cc: linux-omap@vger.kernel.org
+> Subject: RE: [PATCH] OMAP: sDMA: Correct the the 
+> omap_request_dma_chain() signature
+> 
+> ________________________________
+> 
+> From: Jarkko Nikula [mailto:jhnikula@gmail.com] 
+> Sent: Thursday, April 30, 2009 3:06 PM
+> To: Shilimkar, Santosh
+> Cc: linux-omap@vger.kernel.org
+> Subject: Re: [PATCH] OMAP: sDMA: Correct the the 
+> omap_request_dma_chain() signature
+> 
+> 
+> 
+> 	On Thu, Apr 30, 2009 at 12:18 PM, Shilimkar, Santosh 
+> <santosh.shilimkar@ti.com> wrote:
+> 	
+> 
+> 		 Yor tow comments....I think I answered 
+> both.....Just a correction you comment itself.
+> 		
+> 
+> 		> > You mean callback gets lch instead of 
+> chain_id as an argument?
+> 		
+> 		You mean callback **** returns *** lch instead 
+> of chain_id as an argument?
+> 		
+> 
+> 
+> 
+> 	I mean argument passed to the callback. Callback is 
+> void so not returning anything.
+> 	
+> 	        if (likely(dma_chan[ch].callback != NULL))
+> 	                dma_chan[ch].callback(ch, status, 
+> dma_chan[ch].data);
+> 
+> 	My ***return ** was from the dma user point of view and 
+> not the fucntion return :). Anyway the point is callback 
+> first argument is dma channel nubmer and not chain_id. So 
+> User will get the channel number and not chain_id via callback.
+> 	
