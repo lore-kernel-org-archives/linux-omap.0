@@ -1,52 +1,36 @@
 From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH 0/2] OMAP3: PM: More pedantic parameter and error checking in smartreflex
-Date: Wed, 13 May 2009 09:54:33 -0700
-Message-ID: <87ab5h6j06.fsf@deeprootsystems.com>
-References: <1240849585-14828-1-git-send-email-ext-phil.2.carmody@nokia.com>
-	<87bppx82du.fsf@deeprootsystems.com>
-	<1242228960.9103.119.camel@pcarmody-desktop>
+Subject: Re: PM branch updates
+Date: Wed, 13 May 2009 10:14:03 -0700
+Message-ID: <87tz3p53j8.fsf@deeprootsystems.com>
+References: <87pred6jff.fsf@deeprootsystems.com>
+	<87bppx6j0q.fsf@deeprootsystems.com>
+	<F59CF5AD-5251-4C08-9BEE-70B7E27A62C2@mac.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from wf-out-1314.google.com ([209.85.200.169]:51348 "EHLO
+Received: from wf-out-1314.google.com ([209.85.200.174]:47656 "EHLO
 	wf-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756081AbZEMQye (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 13 May 2009 12:54:34 -0400
-Received: by wf-out-1314.google.com with SMTP id 26so514098wfd.4
-        for <linux-omap@vger.kernel.org>; Wed, 13 May 2009 09:54:36 -0700 (PDT)
-In-Reply-To: <1242228960.9103.119.camel@pcarmody-desktop> (Phil Carmody's message of "Wed\, 13 May 2009 18\:36\:00 +0300")
+	with ESMTP id S1760424AbZEMROE (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 13 May 2009 13:14:04 -0400
+Received: by wf-out-1314.google.com with SMTP id 26so520406wfd.4
+        for <linux-omap@vger.kernel.org>; Wed, 13 May 2009 10:14:05 -0700 (PDT)
+In-Reply-To: <F59CF5AD-5251-4C08-9BEE-70B7E27A62C2@mac.com> (Elvis Dowson's message of "Wed\, 13 May 2009 19\:58\:22 +0300")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: ext-phil.2.carmody@nokia.com
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Elvis Dowson <elvis.dowson@mac.com>
+Cc: linux-omap@vger.kernel.org
 
-Phil Carmody <ext-phil.2.carmody@nokia.com> writes:
+Elvis Dowson <elvis.dowson@mac.com> writes:
 
-> On Wed, 2009-05-13 at 17:10 +0200, ext Kevin Hilman wrote:
->> Phil Carmody <ext-phil.2.carmody@nokia.com> writes:
->> 
->> > A couple of simple patches to improve error handling in smartreflex.
->> > The first has a practical benefit of avoiding a string-based search
->> > in situtations where the result wouldn't be needed. The second is
->> > simple paranoia.
->> 
->> Thanks, pushing this series today.
->> 
->> Note that I pushed this on top of Rajendra's patch:
->> "OMAP3: SR: Fix SR driver to check for omap-pm return values"
->> and had to resolve a couple of conflicts.
->> 
->> Could you please sanity check it?
->
-> Sanity check successful. Many thanks, Kevin.
->
+> When you say rebase to 2.6.30, where would I get this updated kernel
+> branch from? Can you tell me the git repository location, please?
 
-Hmm, you're too fast for me.
-Not sure how you tested as I hadn't pushed your changes yet ;)
+When I rebase the PM branch, it will still be called 'pm' and will be
+remain in my linux-omap-pm git tree[1].
 
-I just pushed them to my pm branch, but they are not yet sync'd to
-tony's tree.  Can you try now.
+The current 2.6.29-based pm branch will be renamed pm-2.6.29 for those
+wanting to keep using a 2.6.29-based version.
 
 Kevin
 
-[1] http://git.kernel.org/?p=linux/kernel/git/khilman/linux-omap-pm.git
+[1] http://git.kernel.org/?p=linux/kernel/git/khilman/linux-omap-pm.git;a=summary
