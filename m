@@ -1,91 +1,65 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: [PATCH 02/10] OMAP3 SRAM: add ARM barriers to
-	omap3_sram_configure_core_dpll
-Date: Tue, 12 May 2009 18:05:16 -0600
-Message-ID: <20090513000515.10349.36000.stgit@localhost.localdomain>
-References: <20090512235713.10349.49339.stgit@localhost.localdomain>
+Subject: [PATCH] PM: OMAP3 SDRC: set FIXEDDELAY when disabling SDRC DLL
+Date: Tue, 12 May 2009 19:39:50 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.0905121907430.17514@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:56385 "EHLO
+Received: from utopia.booyaka.com ([72.9.107.138]:53787 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754127AbZEMAHi (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 12 May 2009 20:07:38 -0400
-In-Reply-To: <20090512235713.10349.49339.stgit@localhost.localdomain>
+	with ESMTP id S1753277AbZEMBju (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 12 May 2009 21:39:50 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-arm-kernel@lists.arm.linux.org.uk
-Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Paul Walmsley <paul@pwsan.com>, Richard Woodruff <r-woodruff2@ti.com>
+To: linux-omap@vger.kernel.org
+Cc: khilman@deeprootsystems.com
 
-Add more barriers in the SRAM CORE DPLL M2 divider change code.
 
-- Add a DSB SY after the function's entry point to flush all cached
-  and buffered writes and wait for the interconnect to claim that they
-  have completed[1].  The idea here is to force all delayed write
-  traffic going to the SDRAM to at least post to the L3 interconnect
-  before continuing.  If these writes are allowed to occur after the
-  SDRC is idled, the writes will not be acknowledged and the ARM will
-  stall.
+Correspondence with the TI OMAP hardware team indicates that
+SDRC_DLLA_CTRL.FIXEDDELAY should be initialized to 0x0f.  This number
+was apparently derived from process validation.  This is only used
+when the SDRC DLL is unlocked (e.g., SDRC clock frequency less than
+83MHz).
 
-  Note that in this case, it does not matter if the writes actually
-  complete to the SDRAM - it is only necessary for the writes to leave
-  the ARM itself.  If the writes are posted by the interconnect when
-  the SDRC goes into idle, the writes will be delayed until the SDRC
-  returns from idle[2].  If the SDRC is in the middle of a write when
-  it is requested to enter idle, the SDRC will not acknowledge the
-  idle request until the writes complete to the SDRAM.[3]
-
-  The old-style DMB in sdram_in_selfrefresh is now superfluous, so,
-  remove it.
-
-- Add an ISB before the function's exit point to prevent the ARM from
-  speculatively executing into SDRAM before the SDRAM is enabled[4].
-
-...
-
-1. ARMv7 ARM (DDI 0406A) A3-47, A3-48.
-
-2. Private communication with Richard Woodruff <r-woodruff2@ti.com>.
-
-3. Private communication with Richard Woodruff <r-woodruff2@ti.com>.
-
-4. ARMv7 ARM (DDI 0406A) A3-48.
+This patch has been queued into the omap-clock-testing branch.
 
 Signed-off-by: Paul Walmsley <paul@pwsan.com>
-Cc: Richard Woodruff <r-woodruff2@ti.com>
 ---
- arch/arm/mach-omap2/sram34xx.S |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
+ arch/arm/mach-omap2/sram34xx.S |   12 ++++++++++++
+ 1 files changed, 12 insertions(+), 0 deletions(-)
 
 diff --git a/arch/arm/mach-omap2/sram34xx.S b/arch/arm/mach-omap2/sram34xx.S
-index 2c71461..f4a356d 100644
+index 487fa86..f41f8d9 100644
 --- a/arch/arm/mach-omap2/sram34xx.S
 +++ b/arch/arm/mach-omap2/sram34xx.S
-@@ -43,6 +43,7 @@
-  */
- ENTRY(omap3_sram_configure_core_dpll)
- 	stmfd	sp!, {r1-r12, lr}	@ store regs to stack
-+	dsb				@ flush buffered writes to interconnect
- 	cmp	r3, #0x2
- 	blne	configure_sdrc
- 	cmp	r3, #0x2
-@@ -58,6 +59,7 @@ ENTRY(omap3_sram_configure_core_dpll)
- 	blne	wait_dll_lock
- 	cmp	r3, #0x1
- 	blne	configure_sdrc
-+	isb				@ prevent speculative exec past here
- 	mov 	r0, #0 			@ return value
- 	ldmfd	sp!, {r1-r12, pc}	@ restore regs and return
+@@ -41,8 +41,18 @@
+ #define SDRC_UNLOCK_DLL			0x1
+ 
+ /* SDRC_DLLA_CTRL bit settings */
++#define FIXEDDELAY_SHIFT		24
++#define FIXEDDELAY_MASK			(0xff << FIXEDDELAY_SHIFT)
+ #define DLLIDLE_MASK			0x4
+ 
++/*
++ * SDRC_DLLA_CTRL default values: TI hardware team indicates that
++ * FIXEDDELAY should be initialized to 0xf.  This apparently was
++ * empirically determined during process testing, so no derivation
++ * was provided.
++ */
++#define FIXEDDELAY_DEFAULT		(0x0f << FIXEDDELAY_SHIFT)
++
+ /* SDRC_DLLA_STATUS bit settings */
+ #define LOCKSTATUS_MASK			0x4
+ 
+@@ -103,6 +113,8 @@ return_to_sdram:
  unlock_dll:
-@@ -73,8 +75,6 @@ lock_dll:
- 	str	r5, [r4]
+ 	ldr	r11, omap3_sdrc_dlla_ctrl
+ 	ldr	r12, [r11]
++	and	r12, r12, #FIXEDDELAY_MASK
++	orr	r12, r12, #FIXEDDELAY_DEFAULT
+ 	orr	r12, r12, #DLLIDLE_MASK
+ 	str	r12, [r11]		@ (no OCP barrier needed)
  	bx	lr
- sdram_in_selfrefresh:
--	mov	r5, #0x0		@ Move 0 to R5
--	mcr	p15, 0, r5, c7, c10, 5	@ memory barrier
- 	ldr	r4, omap3_sdrc_power	@ read the SDRC_POWER register
- 	ldr	r5, [r4]		@ read the contents of SDRC_POWER
- 	orr 	r5, r5, #0x40		@ enable self refresh on idle req
-
+-- 
+1.6.3.rc1.51.gea0b7
 
