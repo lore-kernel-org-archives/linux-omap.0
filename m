@@ -1,72 +1,38 @@
 From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PM PATCH] OMAP3: PM: Save and restore I2C wakeup sources
-Date: Wed, 13 May 2009 07:54:08 -0700
-Message-ID: <87octx835b.fsf@deeprootsystems.com>
-References: <1237988300-25985-1-git-send-email-aaro.koskinen@nokia.com>
+Subject: Re: [PATCH 0/2] OMAP3: PM: More pedantic parameter and error checking in smartreflex
+Date: Wed, 13 May 2009 08:10:37 -0700
+Message-ID: <87bppx82du.fsf@deeprootsystems.com>
+References: <1240849585-14828-1-git-send-email-ext-phil.2.carmody@nokia.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from rv-out-0506.google.com ([209.85.198.224]:14711 "EHLO
-	rv-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757535AbZEMOyK (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 13 May 2009 10:54:10 -0400
-Received: by rv-out-0506.google.com with SMTP id f6so2436752rvb.5
-        for <linux-omap@vger.kernel.org>; Wed, 13 May 2009 07:54:11 -0700 (PDT)
-In-Reply-To: <1237988300-25985-1-git-send-email-aaro.koskinen@nokia.com> (Aaro Koskinen's message of "Wed\, 25 Mar 2009 15\:38\:20 +0200")
+Received: from wf-out-1314.google.com ([209.85.200.172]:11186 "EHLO
+	wf-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752267AbZEMPKi (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 13 May 2009 11:10:38 -0400
+Received: by wf-out-1314.google.com with SMTP id 26so472471wfd.4
+        for <linux-omap@vger.kernel.org>; Wed, 13 May 2009 08:10:39 -0700 (PDT)
+In-Reply-To: <1240849585-14828-1-git-send-email-ext-phil.2.carmody@nokia.com> (Phil Carmody's message of "Mon\, 27 Apr 2009 19\:26\:23 +0300")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Aaro Koskinen <aaro.koskinen@nokia.com>
+To: Phil Carmody <ext-phil.2.carmody@nokia.com>
 Cc: linux-omap@vger.kernel.org
 
-Aaro Koskinen <aaro.koskinen@nokia.com> writes:
+Phil Carmody <ext-phil.2.carmody@nokia.com> writes:
 
-> Save and restore I2C wakeup sources.
->
-> Signed-off-by: Aaro Koskinen <aaro.koskinen@nokia.com>
+> A couple of simple patches to improve error handling in smartreflex.
+> The first has a practical benefit of avoiding a string-based search
+> in situtations where the result wouldn't be needed. The second is
+> simple paranoia.
 
-Thanks, pushing to PM branch.
+Thanks, pushing this series today.
+
+Note that I pushed this on top of Rajendra's patch:
+"OMAP3: SR: Fix SR driver to check for omap-pm return values"
+and had to resolve a couple of conflicts.
+
+Could you please sanity check it?
+
+Thanks,
 
 Kevin
-
-> ---
->  drivers/i2c/busses/i2c-omap.c |    6 ++++--
->  1 files changed, 4 insertions(+), 2 deletions(-)
->
-> diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
-> index 50f3285..5ce055c 100644
-> --- a/drivers/i2c/busses/i2c-omap.c
-> +++ b/drivers/i2c/busses/i2c-omap.c
-> @@ -183,6 +183,7 @@ struct omap_i2c_dev {
->  	u16			sclhstate;
->  	u16			bufstate;
->  	u16			syscstate;
-> +	u16			westate;
->  };
->  
->  static inline void omap_i2c_write_reg(struct omap_i2c_dev *i2c_dev,
-> @@ -242,6 +243,7 @@ static void omap_i2c_unidle(struct omap_i2c_dev *dev)
->  		omap_i2c_write_reg(dev, OMAP_I2C_SCLH_REG, dev->sclhstate);
->  		omap_i2c_write_reg(dev, OMAP_I2C_BUF_REG, dev->bufstate);
->  		omap_i2c_write_reg(dev, OMAP_I2C_SYSC_REG, dev->syscstate);
-> +		omap_i2c_write_reg(dev, OMAP_I2C_WE_REG, dev->westate);
->  	}
->  	dev->idle = 0;
->  	omap_i2c_write_reg(dev, OMAP_I2C_IE_REG, dev->iestate);
-> @@ -316,8 +318,8 @@ static int omap_i2c_init(struct omap_i2c_dev *dev)
->  			 * WFI instruction.
->  			 * REVISIT: Some wkup sources might not be needed.
->  			 */
-> -			omap_i2c_write_reg(dev, OMAP_I2C_WE_REG,
-> -							OMAP_I2C_WE_ALL);
-> +			dev->westate = OMAP_I2C_WE_ALL;
-> +			omap_i2c_write_reg(dev, OMAP_I2C_WE_REG, dev->westate);
->  
->  		}
->  	}
-> -- 
-> 1.5.4.3
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
