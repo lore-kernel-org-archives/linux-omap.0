@@ -1,114 +1,47 @@
 From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH 1/1] ARM: OMAP: Add missing SMS_SYSCONFIG save/restore
-Date: Wed, 13 May 2009 09:49:51 -0700
-Message-ID: <87hbzp6j80.fsf@deeprootsystems.com>
-References: <1242210731-26249-1-git-send-email-kalle.jokiniemi@digia.com>
-	<1242210731-26249-2-git-send-email-kalle.jokiniemi@digia.com>
+Subject: Re: PM branch updates
+Date: Wed, 13 May 2009 09:54:13 -0700
+Message-ID: <87bppx6j0q.fsf@deeprootsystems.com>
+References: <87pred6jff.fsf@deeprootsystems.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from rv-out-0506.google.com ([209.85.198.224]:22741 "EHLO
-	rv-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756659AbZEMQt5 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 13 May 2009 12:49:57 -0400
-Received: by rv-out-0506.google.com with SMTP id f9so479839rvb.1
-        for <linux-omap@vger.kernel.org>; Wed, 13 May 2009 09:49:59 -0700 (PDT)
-In-Reply-To: <1242210731-26249-2-git-send-email-kalle.jokiniemi@digia.com> (Kalle Jokiniemi's message of "Wed\, 13 May 2009 13\:32\:11 +0300")
+Received: from wf-out-1314.google.com ([209.85.200.169]:51348 "EHLO
+	wf-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1760568AbZEMQyP (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 13 May 2009 12:54:15 -0400
+Received: by wf-out-1314.google.com with SMTP id 26so514098wfd.4
+        for <linux-omap@vger.kernel.org>; Wed, 13 May 2009 09:54:16 -0700 (PDT)
+In-Reply-To: <87pred6jff.fsf@deeprootsystems.com> (Kevin Hilman's message of "Wed\, 13 May 2009 09\:45\:24 -0700")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kalle Jokiniemi <kalle.jokiniemi@digia.com>
-Cc: linux-omap@vger.kernel.org, jouni.hogander@nokia.com
+To: linux-omap@vger.kernel.org
 
-Kalle Jokiniemi <kalle.jokiniemi@digia.com> writes:
+Kevin Hilman <khilman@deeprootsystems.com> writes:
 
-> SMS_SYSCONFIG register gets reset in off mode, added
-> a save/restore mechanism for that.
->
-> Signed-off-by: Kalle Jokiniemi <kalle.jokiniemi@digia.com>
+> FYI... this small set of updates has been pushed to the pm branch[1].
+> This will be the last round of updates before the rebase to 2.6.30.
 
-Thanks, pushing to PM branch.
+Oops, shortlog was missing the two patches from Kalle.  Heres' the
+right log:
 
-Kevin
+Aaro Koskinen (1):
+      OMAP3: PM: Save and restore I2C wakeup sources
 
-> ---
->  arch/arm/mach-omap2/pm34xx.c           |    1 +
->  arch/arm/mach-omap2/sdrc.c             |   27 +++++++++++++++++++++++++++
->  arch/arm/plat-omap/include/mach/sdrc.h |    2 ++
->  3 files changed, 30 insertions(+), 0 deletions(-)
->
-> diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
-> index 60a1c4c..6e286ef 100644
-> --- a/arch/arm/mach-omap2/pm34xx.c
-> +++ b/arch/arm/mach-omap2/pm34xx.c
-> @@ -439,6 +439,7 @@ void omap_sram_idle(void)
->  			omap3_core_restore_context();
->  			omap3_prcm_restore_context();
->  			omap3_sram_restore_context();
-> +			omap2_sms_restore_context();
->  		}
->  		omap_uart_resume_idle(0);
->  		omap_uart_resume_idle(1);
-> diff --git a/arch/arm/mach-omap2/sdrc.c b/arch/arm/mach-omap2/sdrc.c
-> index 2045441..c832d83 100644
-> --- a/arch/arm/mach-omap2/sdrc.c
-> +++ b/arch/arm/mach-omap2/sdrc.c
-> @@ -37,12 +37,38 @@ static struct omap_sdrc_params *sdrc_init_params;
->  void __iomem *omap2_sdrc_base;
->  void __iomem *omap2_sms_base;
->  
-> +struct omap2_sms_regs {
-> +	u32	sms_sysconfig;
-> +};
-> +
-> +static struct omap2_sms_regs sms_context;
-> +
->  /* SDRC_POWER register bits */
->  #define SDRC_POWER_EXTCLKDIS_SHIFT		3
->  #define SDRC_POWER_PWDENA_SHIFT			2
->  #define SDRC_POWER_PAGEPOLICY_SHIFT		0
->  
->  /**
-> + * omap2_sms_save_context - Save SMS registers
-> + *
-> + * Save SMS registers that need to be restored after off mode.
-> + */
-> +void omap2_sms_save_context(void)
-> +{
-> +	sms_context.sms_sysconfig = sms_read_reg(SMS_SYSCONFIG);
-> +}
-> +
-> +/**
-> + * omap2_sms_restore_context - Restore SMS registers
-> + *
-> + * Restore SMS registers that need to be Restored after off mode.
-> + */
-> +void omap2_sms_restore_context(void)
-> +{
-> +	sms_write_reg(sms_context.sms_sysconfig, SMS_SYSCONFIG);
-> +}
-> +
-> +/**
->   * omap2_sdrc_get_params - return SDRC register values for a given clock rate
->   * @r: SDRC clock rate (in Hz)
->   *
-> @@ -110,4 +136,5 @@ void __init omap2_sdrc_init(struct omap_sdrc_params *sp)
->  		(1 << SDRC_POWER_PWDENA_SHIFT) |
->  		(1 << SDRC_POWER_PAGEPOLICY_SHIFT);
->  	sdrc_write_reg(l, SDRC_POWER);
-> +	omap2_sms_save_context();
->  }
-> diff --git a/arch/arm/plat-omap/include/mach/sdrc.h b/arch/arm/plat-omap/include/mach/sdrc.h
-> index a5a6cf9..a678bc8 100644
-> --- a/arch/arm/plat-omap/include/mach/sdrc.h
-> +++ b/arch/arm/plat-omap/include/mach/sdrc.h
-> @@ -112,6 +112,8 @@ struct omap_sdrc_params {
->  	u32 mr;
->  };
->  
-> +void omap2_sms_save_context(void);
-> +void omap2_sms_restore_context(void);
->  void __init omap2_sdrc_init(struct omap_sdrc_params *);
->  struct omap_sdrc_params *omap2_sdrc_get_params(unsigned long r);
->  
-> -- 
-> 1.5.4.3
+Kalle Jokiniemi (2):
+      ARM: OMAP3: Add missing iva2 clken_pll save/restore
+      ARM: OMAP: Add missing SMS_SYSCONFIG save/restore
+
+Kevin Hilman (1):
+      OMAP3: PM: set MUSB OTG into force-idle at boot
+
+Phil Carmody (2):
+      OMAP3: PM: Don't do unnecessary searches in omap_sr_vdd*_autocomp_store
+      OMAP3: PM: Early exit on invalid parameters
+
+Rajendra Nayak (1):
+      OMAP3: SR: Fix SR driver to check for omap-pm return values
+
+Russ Dill (1):
+      Allow OMAP3 GPIO wakeup from power off.
+
