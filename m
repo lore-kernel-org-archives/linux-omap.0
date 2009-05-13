@@ -1,66 +1,94 @@
-From: "Eugeny S. Mints" <eugeny.mints@gmail.com>
-Subject: Re: PM branch updates
-Date: Wed, 13 May 2009 23:41:22 +0400
-Message-ID: <4A0B2262.4020904@gmail.com>
-References: <87pred6jff.fsf@deeprootsystems.com> <87bppx6j0q.fsf@deeprootsystems.com> <F59CF5AD-5251-4C08-9BEE-70B7E27A62C2@mac.com> <87tz3p53j8.fsf@deeprootsystems.com> <76CCCDC7-9E68-4965-AD8E-ABE8C11317FD@mac.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] Fix the size of twl4030 script
+Date: Wed, 13 May 2009 16:40:14 -0700
+Message-ID: <20090513234013.GD5593@atomide.com>
+References: <4d34a0a70904092130r215f0eb3p6a45c4950c92e5c0@mail.gmail.com> <4d34a0a70905061835u4b6aaaabnb0819584e4d6ed8f@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from postoffice.embeddedalley.com ([65.114.89.228]:50563 "HELO
-	postoffice.embeddedalley.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1753292AbZEMTlR (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Wed, 13 May 2009 15:41:17 -0400
-In-Reply-To: <76CCCDC7-9E68-4965-AD8E-ABE8C11317FD@mac.com>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:65410 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753319AbZEMXkT (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 13 May 2009 19:40:19 -0400
+Content-Disposition: inline
+In-Reply-To: <4d34a0a70905061835u4b6aaaabnb0819584e4d6ed8f@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Elvis Dowson <elvis.dowson@mac.com>
-Cc: Kevin Hilman <khilman@deeprootsystems.com>, linux-omap@vger.kernel.org
+To: Kim Kyuwon <chammoru@gmail.com>, Peter 'p2' De Schrijver <peter.de-schrijver@nokia.com>
+Cc: OMAP <linux-omap@vger.kernel.org>
 
-Elvis,
+* Kim Kyuwon <chammoru@gmail.com> [090506 18:36]:
+> Hi All,
+>=20
+> I sent this patch about 1 month ago.
+> Can anybody check I'm sending correct patch?
 
-Elvis Dowson wrote:
-> Hi Kevin,
->             Thanks for the reply. I am working with the gumstix overo 
-> TI OMAP 3503, and just finished porting android-2.6.29 to this 
-> platform. Towards the end I noticed that there was no power management 
-> available for the OMAP !! And I used the same git repository, pulled 
-> nearly all the PM patches, except the SR ones, which didn't work.
-FYI, there is Google's android-2.6.29 omap git tree available at 
-http://android.git.kernel.org/?p=kernel/omap.git;a=shortlog;h=refs/heads/android-omap-2.6.29 
+Peter, care to ack? Any news on sending the scripts part of twl
+driver upstream?
 
-which has pretty much all (except recent changes) patches from PM branch 
-integrated.
+Regards,
 
-Eugeny
-
-
->
-> Elvis Dowson
->
-> On May 13, 2009, at 8:14 PM, Kevin Hilman wrote:
->
->> Elvis Dowson <elvis.dowson@mac.com> writes:
->>
->>> When you say rebase to 2.6.30, where would I get this updated kernel
->>> branch from? Can you tell me the git repository location, please?
->>
->> When I rebase the PM branch, it will still be called 'pm' and will be
->> remain in my linux-omap-pm git tree[1].
->>
->> The current 2.6.29-based pm branch will be renamed pm-2.6.29 for those
->> wanting to keep using a 2.6.29-based version.
->>
->> Kevin
->>
->> [1] 
->> http://git.kernel.org/?p=linux/kernel/git/khilman/linux-omap-pm.git;a=summary 
->>
->
-> -- 
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+Tony
+=20
+> Thanks you!
+> Kyuwon.
+>=20
+> 2009/4/10 Kim Kyuwon <chammoru@gmail.com>:
+> > The array size of wrst_seq is ARRAY_SIZE(wrst_seq)
+> >
+> > Signed-off-by: Kim Kyuwon <q1.kim@samsung.com>
+> > ---
+> >  arch/arm/mach-omap2/board-3430sdp.c |    2 +-
+> >  arch/arm/mach-omap2/board-ldp.c     |    2 +-
+> >  2 files changed, 2 insertions(+), 2 deletions(-)
+> >
+> > diff --git a/arch/arm/mach-omap2/board-3430sdp.c
+> > b/arch/arm/mach-omap2/board-3430sdp.c
+> > index 03acac7..38550e2 100644
+> > --- a/arch/arm/mach-omap2/board-3430sdp.c
+> > +++ b/arch/arm/mach-omap2/board-3430sdp.c
+> > @@ -473,7 +473,7 @@ static struct twl4030_ins wrst_seq[] __initdata=
+ =3D {
+> >  };
+> >  static struct twl4030_script wrst_script __initdata =3D {
+> >        .script =3D wrst_seq,
+> > -       .size   =3D ARRAY_SIZE(wakeup_seq),
+> > +       .size   =3D ARRAY_SIZE(wrst_seq),
+> >        .flags  =3D TRITON_WRST_SCRIPT,
+> >  };
+> >
+> > diff --git a/arch/arm/mach-omap2/board-ldp.c b/arch/arm/mach-omap2/=
+board-ldp.c
+> > index 804fd8e..da814d7 100644
+> > --- a/arch/arm/mach-omap2/board-ldp.c
+> > +++ b/arch/arm/mach-omap2/board-ldp.c
+> > @@ -450,7 +450,7 @@ static struct twl4030_ins wrst_seq[] __initdata=
+ =3D {
+> >
+> >  static struct twl4030_script wrst_script __initdata =3D {
+> >        .script =3D wrst_seq,
+> > -       .size   =3D ARRAY_SIZE(wakeup_seq),
+> > +       .size   =3D ARRAY_SIZE(wrst_seq),
+> >        .flags  =3D TRITON_WRST_SCRIPT,
+> >  };
+> >
+> > --
+> > 1.5.2.5
+> >
+> > --
+> > Kyuwon (=EA=B7=9C=EC=9B=90)
+> >
+>=20
+> --=20
+> Kyuwon
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap"=
+ in
 > the body of a message to majordomo@vger.kernel.org
 > More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
-
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
