@@ -1,68 +1,77 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: [PATCH 01/10] OMAP3 SRAM: mark OCM RAM as Non-cacheable Normal memory
-Date: Tue, 12 May 2009 18:05:15 -0600
-Message-ID: <20090513000509.10349.87859.stgit@localhost.localdomain>
+Subject: [PATCH 03/10] OMAP3 clock: add interconnect barriers to CORE DPLL M2
+	change
+Date: Tue, 12 May 2009 18:05:17 -0600
+Message-ID: <20090513000516.10349.74452.stgit@localhost.localdomain>
 References: <20090512235713.10349.49339.stgit@localhost.localdomain>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:56377 "EHLO
+Received: from utopia.booyaka.com ([72.9.107.138]:56391 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752439AbZEMAHi (ORCPT
+	with ESMTP id S1754997AbZEMAHi (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>); Tue, 12 May 2009 20:07:38 -0400
 In-Reply-To: <20090512235713.10349.49339.stgit@localhost.localdomain>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-arm-kernel@lists.arm.linux.org.uk
-Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Paul Walmsley <paul@pwsan.com>, Tero Kristo <tero.kristo@nokia.com>, Richard Woodruff <r-woodruff2@ti.com>
+Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Paul Walmsley <paul@pwsan.com>
 
-Mark the SRAM (aka OCM RAM) as Non-cacheable Normal memory[1].  This
-is to prevent the ARM from evicting existing cache lines to SDRAM
-while code is executing from the SRAM.  Necessary since one of the
-primary uses for the SRAM is to hold the code and data for the CORE
-DPLL M2 divider reprogramming code, which must execute while the SDRC
-is idled.  If the ARM attempts to write cache lines back to the while
-the SRAM code is running, the ARM will stall[2].
-
-TI deals with this problem in the CDP kernel by marking the SRAM as
-Strongly-ordered memory.
-
-Tero Kristo <tero.kristo@nokia.com> caught a bug in an earlier version of
-this patch - thanks Tero.
-
-...
-
-1. ARMv7 ARM (DDI 0406A) pp. A3-30, A3-31, B3-32.
-
-2. Private communication with Richard Woodruff <r-woodruff2@ti.com>
+Where necessary, add interconnect barriers to force posted writes to
+complete before continuing.
 
 Signed-off-by: Paul Walmsley <paul@pwsan.com>
-Cc: Tero Kristo <tero.kristo@nokia.com>
-Cc: Richard Woodruff <r-woodruff2@ti.com>
 ---
- arch/arm/plat-omap/sram.c |    9 +++++++++
- 1 files changed, 9 insertions(+), 0 deletions(-)
+ arch/arm/mach-omap2/sram34xx.S |    9 ++++++---
+ 1 files changed, 6 insertions(+), 3 deletions(-)
 
-diff --git a/arch/arm/plat-omap/sram.c b/arch/arm/plat-omap/sram.c
-index fa5297d..3835338 100644
---- a/arch/arm/plat-omap/sram.c
-+++ b/arch/arm/plat-omap/sram.c
-@@ -201,6 +201,15 @@ void __init omap_map_sram(void)
- 		base = OMAP3_SRAM_PA;
- 		base = ROUND_DOWN(base, PAGE_SIZE);
- 		omap_sram_io_desc[0].pfn = __phys_to_pfn(base);
-+
-+		/*
-+		 * SRAM must be marked as non-cached on OMAP3 since the
-+		 * CORE DPLL M2 divider change code (in SRAM) runs with the
-+		 * SDRAM controller disabled, and if it is marked cached,
-+		 * the ARM may attempt to write cache lines back to SDRAM
-+		 * which will cause the system to hang.
-+		 */
-+		omap_sram_io_desc[0].type = MT_MEMORY_NONCACHED;
- 	}
+diff --git a/arch/arm/mach-omap2/sram34xx.S b/arch/arm/mach-omap2/sram34xx.S
+index f4a356d..8d524f3 100644
+--- a/arch/arm/mach-omap2/sram34xx.S
++++ b/arch/arm/mach-omap2/sram34xx.S
+@@ -66,22 +66,23 @@ unlock_dll:
+ 	ldr	r4, omap3_sdrc_dlla_ctrl
+ 	ldr	r5, [r4]
+ 	orr	r5, r5, #0x4
+-	str	r5, [r4]
++	str	r5, [r4]		@ (no OCP barrier needed)
+ 	bx	lr
+ lock_dll:
+ 	ldr	r4, omap3_sdrc_dlla_ctrl
+ 	ldr	r5, [r4]
+ 	bic	r5, r5, #0x4
+-	str	r5, [r4]
++	str	r5, [r4]		@ (no OCP barrier needed)
+ 	bx	lr
+ sdram_in_selfrefresh:
+ 	ldr	r4, omap3_sdrc_power	@ read the SDRC_POWER register
+ 	ldr	r5, [r4]		@ read the contents of SDRC_POWER
+ 	orr 	r5, r5, #0x40		@ enable self refresh on idle req
+ 	str 	r5, [r4]		@ write back to SDRC_POWER register
++	ldr	r5, [r4]		@ posted-write barrier for SDRC
+ 	ldr	r4, omap3_cm_iclken1_core	@ read the CM_ICLKEN1_CORE reg
+ 	ldr	r5, [r4]
+-	bic	r5, r5, #0x2		@ disable iclk bit for SRDC
++	bic	r5, r5, #0x2		@ disable iclk bit for SDRC
+ 	str 	r5, [r4]
+ wait_sdrc_idle:
+ 	ldr 	r4, omap3_cm_idlest1_core
+@@ -97,6 +98,7 @@ configure_core_dpll:
+ 	and	r5, r5, r6
+ 	orr	r5, r5, r3, lsl #0x1B	@ r3 contains the M2 val
+ 	str	r5, [r4]
++	ldr	r5, [r4]		@ posted-write barrier for CM
+ 	mov 	r5, #0x800		@ wait for the clock to stabilise
+ 	cmp	r3, #2
+ 	bne	wait_clk_stable
+@@ -152,6 +154,7 @@ configure_sdrc:
+ 	str	r1, [r4]
+ 	ldr	r4, omap3_sdrc_actim_ctrlb
+ 	str	r2, [r4]
++	ldr	r2, [r4]		@ posted-write barrier for SDRC
+ 	bx	lr
  
- 	omap_sram_io_desc[0].length = 1024 * 1024;	/* Use section desc */
+ omap3_sdrc_power:
 
 
