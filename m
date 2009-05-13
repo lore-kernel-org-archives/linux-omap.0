@@ -1,19 +1,19 @@
 From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH 1/1] ARM: OMAP3: Add missing iva2 clken_pll save/restore
-Date: Wed, 13 May 2009 09:49:21 -0700
-Message-ID: <87ljp16j8u.fsf@deeprootsystems.com>
-References: <1242197333-26981-1-git-send-email-kalle.jokiniemi@digia.com>
-	<1242197333-26981-2-git-send-email-kalle.jokiniemi@digia.com>
+Subject: Re: [PATCH 1/1] ARM: OMAP: Add missing SMS_SYSCONFIG save/restore
+Date: Wed, 13 May 2009 09:49:51 -0700
+Message-ID: <87hbzp6j80.fsf@deeprootsystems.com>
+References: <1242210731-26249-1-git-send-email-kalle.jokiniemi@digia.com>
+	<1242210731-26249-2-git-send-email-kalle.jokiniemi@digia.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from rv-out-0506.google.com ([209.85.198.236]:23718 "EHLO
+Received: from rv-out-0506.google.com ([209.85.198.224]:22741 "EHLO
 	rv-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752139AbZEMQtZ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 13 May 2009 12:49:25 -0400
-Received: by rv-out-0506.google.com with SMTP id f9so479683rvb.1
-        for <linux-omap@vger.kernel.org>; Wed, 13 May 2009 09:49:26 -0700 (PDT)
-In-Reply-To: <1242197333-26981-2-git-send-email-kalle.jokiniemi@digia.com> (Kalle Jokiniemi's message of "Wed\, 13 May 2009 09\:48\:53 +0300")
+	with ESMTP id S1756659AbZEMQt5 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 13 May 2009 12:49:57 -0400
+Received: by rv-out-0506.google.com with SMTP id f9so479839rvb.1
+        for <linux-omap@vger.kernel.org>; Wed, 13 May 2009 09:49:59 -0700 (PDT)
+In-Reply-To: <1242210731-26249-2-git-send-email-kalle.jokiniemi@digia.com> (Kalle Jokiniemi's message of "Wed\, 13 May 2009 13\:32\:11 +0300")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Kalle Jokiniemi <kalle.jokiniemi@digia.com>
@@ -21,9 +21,8 @@ Cc: linux-omap@vger.kernel.org, jouni.hogander@nokia.com
 
 Kalle Jokiniemi <kalle.jokiniemi@digia.com> writes:
 
-> The CM_CLKEN_PLL_IVA2 register was not being saved by the
-> current prcm save/restore code. This patch adds the proper
-> save/restore for that register.
+> SMS_SYSCONFIG register gets reset in off mode, added
+> a save/restore mechanism for that.
 >
 > Signed-off-by: Kalle Jokiniemi <kalle.jokiniemi@digia.com>
 
@@ -32,38 +31,84 @@ Thanks, pushing to PM branch.
 Kevin
 
 > ---
->  arch/arm/mach-omap2/prcm.c |    5 +++++
->  1 files changed, 5 insertions(+), 0 deletions(-)
+>  arch/arm/mach-omap2/pm34xx.c           |    1 +
+>  arch/arm/mach-omap2/sdrc.c             |   27 +++++++++++++++++++++++++++
+>  arch/arm/plat-omap/include/mach/sdrc.h |    2 ++
+>  3 files changed, 30 insertions(+), 0 deletions(-)
 >
-> diff --git a/arch/arm/mach-omap2/prcm.c b/arch/arm/mach-omap2/prcm.c
-> index a24792a..4f7fd99 100644
-> --- a/arch/arm/mach-omap2/prcm.c
-> +++ b/arch/arm/mach-omap2/prcm.c
-> @@ -54,6 +54,7 @@ struct omap3_prcm_regs {
->  	u32 pll_cm_clken2;
->  	u32 cm_polctrl;
->  	u32 iva2_cm_fclken;
-> +	u32 iva2_cm_clken_pll;
->  	u32 core_cm_fclken1;
->  	u32 core_cm_fclken3;
->  	u32 sgx_cm_fclken;
-> @@ -260,6 +261,8 @@ void omap3_prcm_save_context(void)
->  	prcm_context.cm_polctrl = __raw_readl(OMAP3430_CM_POLCTRL);
->  	prcm_context.iva2_cm_fclken =
->  			 cm_read_mod_reg(OMAP3430_IVA2_MOD, CM_FCLKEN);
-> +	prcm_context.iva2_cm_clken_pll = cm_read_mod_reg(OMAP3430_IVA2_MOD,
-> +			OMAP3430_CM_CLKEN_PLL);
->  	prcm_context.core_cm_fclken1 =
->  			 cm_read_mod_reg(CORE_MOD, CM_FCLKEN1);
->  	prcm_context.core_cm_fclken3 =
-> @@ -414,6 +417,8 @@ void omap3_prcm_restore_context(void)
->  	__raw_writel(prcm_context.cm_polctrl, OMAP3430_CM_POLCTRL);
->  	cm_write_mod_reg(prcm_context.iva2_cm_fclken, OMAP3430_IVA2_MOD,
->  					 CM_FCLKEN);
-> +	cm_write_mod_reg(prcm_context.iva2_cm_clken_pll, OMAP3430_IVA2_MOD,
-> +					OMAP3430_CM_CLKEN_PLL);
->  	cm_write_mod_reg(prcm_context.core_cm_fclken1, CORE_MOD, CM_FCLKEN1);
->  	cm_write_mod_reg(prcm_context.core_cm_fclken3, CORE_MOD,
->  					 OMAP3430ES2_CM_FCLKEN3);
+> diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
+> index 60a1c4c..6e286ef 100644
+> --- a/arch/arm/mach-omap2/pm34xx.c
+> +++ b/arch/arm/mach-omap2/pm34xx.c
+> @@ -439,6 +439,7 @@ void omap_sram_idle(void)
+>  			omap3_core_restore_context();
+>  			omap3_prcm_restore_context();
+>  			omap3_sram_restore_context();
+> +			omap2_sms_restore_context();
+>  		}
+>  		omap_uart_resume_idle(0);
+>  		omap_uart_resume_idle(1);
+> diff --git a/arch/arm/mach-omap2/sdrc.c b/arch/arm/mach-omap2/sdrc.c
+> index 2045441..c832d83 100644
+> --- a/arch/arm/mach-omap2/sdrc.c
+> +++ b/arch/arm/mach-omap2/sdrc.c
+> @@ -37,12 +37,38 @@ static struct omap_sdrc_params *sdrc_init_params;
+>  void __iomem *omap2_sdrc_base;
+>  void __iomem *omap2_sms_base;
+>  
+> +struct omap2_sms_regs {
+> +	u32	sms_sysconfig;
+> +};
+> +
+> +static struct omap2_sms_regs sms_context;
+> +
+>  /* SDRC_POWER register bits */
+>  #define SDRC_POWER_EXTCLKDIS_SHIFT		3
+>  #define SDRC_POWER_PWDENA_SHIFT			2
+>  #define SDRC_POWER_PAGEPOLICY_SHIFT		0
+>  
+>  /**
+> + * omap2_sms_save_context - Save SMS registers
+> + *
+> + * Save SMS registers that need to be restored after off mode.
+> + */
+> +void omap2_sms_save_context(void)
+> +{
+> +	sms_context.sms_sysconfig = sms_read_reg(SMS_SYSCONFIG);
+> +}
+> +
+> +/**
+> + * omap2_sms_restore_context - Restore SMS registers
+> + *
+> + * Restore SMS registers that need to be Restored after off mode.
+> + */
+> +void omap2_sms_restore_context(void)
+> +{
+> +	sms_write_reg(sms_context.sms_sysconfig, SMS_SYSCONFIG);
+> +}
+> +
+> +/**
+>   * omap2_sdrc_get_params - return SDRC register values for a given clock rate
+>   * @r: SDRC clock rate (in Hz)
+>   *
+> @@ -110,4 +136,5 @@ void __init omap2_sdrc_init(struct omap_sdrc_params *sp)
+>  		(1 << SDRC_POWER_PWDENA_SHIFT) |
+>  		(1 << SDRC_POWER_PAGEPOLICY_SHIFT);
+>  	sdrc_write_reg(l, SDRC_POWER);
+> +	omap2_sms_save_context();
+>  }
+> diff --git a/arch/arm/plat-omap/include/mach/sdrc.h b/arch/arm/plat-omap/include/mach/sdrc.h
+> index a5a6cf9..a678bc8 100644
+> --- a/arch/arm/plat-omap/include/mach/sdrc.h
+> +++ b/arch/arm/plat-omap/include/mach/sdrc.h
+> @@ -112,6 +112,8 @@ struct omap_sdrc_params {
+>  	u32 mr;
+>  };
+>  
+> +void omap2_sms_save_context(void);
+> +void omap2_sms_restore_context(void);
+>  void __init omap2_sdrc_init(struct omap_sdrc_params *);
+>  struct omap_sdrc_params *omap2_sdrc_get_params(unsigned long r);
+>  
 > -- 
 > 1.5.4.3
