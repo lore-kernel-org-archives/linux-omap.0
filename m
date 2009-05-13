@@ -1,87 +1,365 @@
-From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
-Subject: Re: [PATCH 2/2] DSPBRIDGE: add checking 128 byte alignment for dsp
- cache line size
-Date: Wed, 13 May 2009 17:18:49 +0300 (EEST)
-Message-ID: <20090513.171849.260112797.Hiroshi.DOYU@nokia.com>
-References: <94a0d4530905130413t5bddfee4le797c5083df79226@mail.gmail.com>
-	<20090513.143241.189725295.Hiroshi.DOYU@nokia.com>
-	<94a0d4530905130550s657d9312g664efe6c418b2b61@mail.gmail.com>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: [RFC] Allow disabling wakeup for serial ports, including during off mode.
+Date: Wed, 13 May 2009 07:25:29 -0700
+Message-ID: <87y6t184h2.fsf@deeprootsystems.com>
+References: <1240860456-14937-1-git-send-email-Russ.Dill@gmail.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:28432 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753997AbZEMOTQ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 13 May 2009 10:19:16 -0400
-In-Reply-To: <94a0d4530905130550s657d9312g664efe6c418b2b61@mail.gmail.com>
+Received: from wf-out-1314.google.com ([209.85.200.171]:58780 "EHLO
+	wf-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750945AbZEMOZb (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 13 May 2009 10:25:31 -0400
+Received: by wf-out-1314.google.com with SMTP id 26so452021wfd.4
+        for <linux-omap@vger.kernel.org>; Wed, 13 May 2009 07:25:32 -0700 (PDT)
+In-Reply-To: <1240860456-14937-1-git-send-email-Russ.Dill@gmail.com> (Russ Dill's message of "Mon\, 27 Apr 2009 12\:27\:36 -0700")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: h-kanigeri2@ti.com, felipe.contreras@gmail.com
-Cc: nm@ti.com, linux-omap@vger.kernel.org
+To: Russ Dill <russ.dill@gmail.com>
+Cc: linux-omap@vger.kernel.org
 
-From: ext Felipe Contreras <felipe.contreras@gmail.com>
-Subject: Re: [PATCH 2/2] DSPBRIDGE: add checking 128 byte alignment for dsp cache line size
-Date: Wed, 13 May 2009 14:50:26 +0200
+Russ Dill <russ.dill@gmail.com> writes:
 
-[...]
+> This patch causes the OMAP uarts to honor the sysfs power/wakeup file for
+> IOPADs. Before the OMAP was always woken up from off mode on a rs232 signal
+> change.
+>
+> This patch also creates a different platform device for each serial
+> port so that the wakeup properties can be control per port.
+>
+> The patch is not in a complete state, but for my testing it was necessary
+> to disable rs232 wakeup as allowing the signals to float in off mode by
+> powering off the level converters was causing a wakeup event.
 
-> >> >> If we are not going to have a read-only/write-only flag then I'm
-> >> >> against adding the alignment check. It will only force user-space to
-> >> >> do memory copies unnecessarily. That would kill performance
-> >> >> drastically. NAK!
-> >> >
-> >> > At least, better than allowing user to crash kernel.
-> >>
-> >> The kernel would crash even with that check because it's the software
-> >> running in the *DSP* side that is causing the corruption.
-> >>
-> >> It sounds you are still not convinced by that so I'll write a test
-> >> application to make sure my assumption is correct.
-> >
-> > You misunderstood.
-> >
-> > There are 2 patterns when kernel crashes from ARM cache flush and DSP
-> > cache flush(*1).
-> 
-> Let's suppose that's true, if you enforce ARM cache flushes to be
-> aligned (pattern 1) the DSP cache flushes (pattern 2) can still
-> corrupt the memory. Therefore even with your check the potential for
-> memory corruption is still there.
-> 
-> But it doesn't seem it's true; I modified my dsp-dummy test to detect
+Hi Russ,
 
-We are not talking about the specific application program/case, but
-the general risk that kernel can be crashed by userland with incorrect
-parameters in dspbridge.
+Thanks for this feature.  This is a nice improvement for UART wakeups.
+I have a few comments below...
 
-> memory corruption by constantly modifying the data before and after
-> the buffer sent to the DSP. Map, Flush and Invalidate are unaligned in
-> the ARM side, and not surprisingly there's memory corruption. *But* if
-> I modify the DSP socket node to don't flush/invalidate the first/last
-> 128 bytes of the buffer then there's no memory corruption.
-> 
-> So that's proof Flush/Invalidate on ARM side don't cause memory
-> corruption.
+Again, can you update the description here to show how you're using
+the various sysfs files for your testing.  I want to make it easy
+for others to be able to test and use these sysfs features.
 
-No, the above doesn't prove that ARM side doesn't cause memory
-corruption(pattern 1).
+> ---
+>  arch/arm/mach-omap2/serial.c |  165 ++++++++++++++++++++++++++++++++----------
+>  1 files changed, 126 insertions(+), 39 deletions(-)
+>
+> diff --git a/arch/arm/mach-omap2/serial.c b/arch/arm/mach-omap2/serial.c
+> index 0762165..95b047a 100644
+> --- a/arch/arm/mach-omap2/serial.c
+> +++ b/arch/arm/mach-omap2/serial.c
+> @@ -49,6 +49,7 @@ struct omap_uart_state {
+>  
+>  	struct plat_serial8250_port *p;
+>  	struct list_head node;
+> +	struct platform_device pdev;
+>  
+>  #if defined(CONFIG_ARCH_OMAP3) && defined(CONFIG_PM)
+>  	int context_valid;
+> @@ -63,10 +64,9 @@ struct omap_uart_state {
+>  #endif
+>  };
+>  
+> -static struct omap_uart_state omap_uart[OMAP_MAX_NR_PORTS];
+>  static LIST_HEAD(uart_list);
+>  
+> -static struct plat_serial8250_port serial_platform_data[] = {
+> +static struct plat_serial8250_port serial_platform_data0[] = {
+>  	{
+>  		.membase	= IO_ADDRESS(OMAP_UART1_BASE),
+>  		.mapbase	= OMAP_UART1_BASE,
+> @@ -76,6 +76,12 @@ static struct plat_serial8250_port serial_platform_data[] = {
+>  		.regshift	= 2,
+>  		.uartclk	= OMAP24XX_BASE_BAUD * 16,
+>  	}, {
+> +		.flags		= 0
+> +	}
+> +};
+> +
+> +static struct plat_serial8250_port serial_platform_data1[] = {
+> +	{
+>  		.membase	= IO_ADDRESS(OMAP_UART2_BASE),
+>  		.mapbase	= OMAP_UART2_BASE,
+>  		.irq		= 73,
+> @@ -84,6 +90,12 @@ static struct plat_serial8250_port serial_platform_data[] = {
+>  		.regshift	= 2,
+>  		.uartclk	= OMAP24XX_BASE_BAUD * 16,
+>  	}, {
+> +		.flags		= 0
+> +	}
+> +};
+> +
+> +static struct plat_serial8250_port serial_platform_data2[] = {
+> +	{
+>  		.membase	= IO_ADDRESS(OMAP_UART3_BASE),
+>  		.mapbase	= OMAP_UART3_BASE,
+>  		.irq		= 74,
 
-Currently dspbridge doesn't have any parameter checking/validation
-from "bridge_ioctl()" to "v7_dma_*_range()". *Any* value/address can
-be passed to "v7_dma_*_range()" from userland. It means that any data
-which resides on cache can be , for exmaple, invalidated by userland
-spontaneously. That is why I mentioned the necessity of "VMA" checking
-to prevent this.
+Can you break the platform_data splitup out into a separate patch?
 
-For pattern 2, if a buffer is aligned on DSP cache size, then just
-adding VMA checking can prevent userland from corrupting other
-process/kernel address space. Also same kind of VMA checking for DSP
-mmaping can prevent other cases too. So I think that, at least, we can
-protect kernel address from crash with having VMA and alignment
-checking. I'll work on that if we can agree on this.
+> @@ -197,6 +209,40 @@ static inline void omap_uart_save_context(struct omap_uart_state *uart) {}
+>  static inline void omap_uart_restore_context(struct omap_uart_state *uart) {}
+>  #endif /* CONFIG_ARCH_OMAP3 */
+>  
+> +static void omap_uart_enable_wakeup(struct omap_uart_state *uart)
+> +{
+> +	/* Set wake-enable bit */
+> +	if (uart->wk_en && uart->wk_mask) {
+> +		u32 v = __raw_readl(uart->wk_en);
+> +		v |= uart->wk_mask;
+> +		__raw_writel(v, uart->wk_en);
+> +	}
+> +
+> +	/* Ensure IOPAD wake-enables are set */
+> +	if (cpu_is_omap34xx() && uart->padconf) {
+> +		u16 v = omap_ctrl_readw(uart->padconf);
+> +		v |= OMAP3_PADCONF_WAKEUPENABLE0;
+> +		omap_ctrl_writew(v, uart->padconf);
+> +	}
+> +}
+> +
+> +static void omap_uart_disable_wakeup(struct omap_uart_state *uart)
+> +{
+> +	/* Clear wake-enable bit */
+> +	if (uart->wk_en && uart->wk_mask) {
+> +		u32 v = __raw_readl(uart->wk_en);
+> +		v &= ~uart->wk_mask;
+> +		__raw_writel(v, uart->wk_en);
+> +	}
+> +
+> +	/* Ensure IOPAD wake-enables are cleared */
+> +	if (cpu_is_omap34xx() && uart->padconf) {
+> +		u16 v = omap_ctrl_readw(uart->padconf);
+> +		v &= ~OMAP3_PADCONF_WAKEUPENABLE0;
+> +		omap_ctrl_writew(v, uart->padconf);
+> +	}
+> +}
+> +
+>  static void omap_uart_smart_idle_enable(struct omap_uart_state *uart,
+>  					  int enable)
+>  {
+> @@ -220,6 +266,11 @@ static inline void omap_uart_restore(struct omap_uart_state *uart)
+>  
+>  static inline void omap_uart_disable_clocks(struct omap_uart_state *uart)
+>  {
+> +	if (device_may_wakeup(&uart->pdev.dev))
+> +		omap_uart_enable_wakeup(uart);
+> +	else
+> +		omap_uart_disable_wakeup(uart);
+> +
 
-> Do you want to see the code?
+When UART clocks are disabled, you always either disable or enable the
+wakeup feature...
 
-Yes, I want!! it would be quite helpful to test something easily;)
+>  	if (!uart->clocked)
+>  		return;
+>  
+> @@ -290,6 +341,7 @@ void omap_uart_resume_idle(int num)
+>  			if (__raw_readl(uart->wk_st) & uart->wk_mask)
+>  				omap_uart_block_sleep(uart);
+>  
+> +			omap_uart_enable_wakeup(uart);
 
+so is this 'enable' needed? ...
+
+>  			return;
+>  		}
+>  	}
+> @@ -300,6 +352,7 @@ void omap_uart_prepare_suspend(void)
+>  	struct omap_uart_state *uart;
+>  
+>  	list_for_each_entry(uart, &uart_list, node) {
+> +		omap_uart_enable_wakeup(uart);
+
+or this one?
+
+>  		omap_uart_allow_sleep(uart);
+>  	}
+>  }
+> @@ -343,16 +396,13 @@ static irqreturn_t omap_uart_interrupt(int irq, void *dev_id)
+>  	return IRQ_NONE;
+>  }
+>  
+> -static u32 sleep_timeout = DEFAULT_TIMEOUT;
+> -
+>  static void omap_uart_idle_init(struct omap_uart_state *uart)
+>  {
+> -	u32 v;
+>  	struct plat_serial8250_port *p = uart->p;
+>  	int ret;
+>  
+>  	uart->can_sleep = 0;
+> -	uart->timeout = sleep_timeout;
+> +	uart->timeout = DEFAULT_TIMEOUT;
+>  	setup_timer(&uart->timer, omap_uart_idle_timer,
+>  		    (unsigned long) uart);
+>  	mod_timer(&uart->timer, jiffies + uart->timeout);
+> @@ -410,22 +460,6 @@ static void omap_uart_idle_init(struct omap_uart_state *uart)
+>  		uart->padconf = 0;
+>  	}
+>  
+> -	/* Set wake-enable bit */
+> -	if (uart->wk_en && uart->wk_mask) {
+> -		v = __raw_readl(uart->wk_en);
+> -		v |= uart->wk_mask;
+> -		__raw_writel(v, uart->wk_en);
+> -	}
+> -
+> -	/* Ensure IOPAD wake-enables are set */
+> -	if (cpu_is_omap34xx() && uart->padconf) {
+> -		u16 v;
+> -
+> -		v = omap_ctrl_readw(uart->padconf);
+> -		v |= OMAP3_PADCONF_WAKEUPENABLE0;
+> -		omap_ctrl_writew(v, uart->padconf);
+> -	}
+> -
+>  	p->flags |= UPF_SHARE_IRQ;
+>  	ret = request_irq(p->irq, omap_uart_interrupt, IRQF_SHARED,
+>  			  "serial idle", (void *)uart);
+> @@ -450,23 +484,30 @@ static ssize_t sleep_timeout_show(struct kobject *kobj,
+>  				  struct kobj_attribute *attr,
+>  				  char *buf)
+>  {
+> -	return sprintf(buf, "%u\n", sleep_timeout / HZ);
+> +	struct device *dev = container_of(kobj, struct device, kobj);
+> +	struct platform_device *pdev = container_of(dev,
+> +					struct platform_device, dev);
+> +	struct omap_uart_state *uart = container_of(pdev,
+> +					struct omap_uart_state, pdev);
+> +	return sprintf(buf, "%u\n", uart->timeout / HZ);
+>  }
+>  
+>  static ssize_t sleep_timeout_store(struct kobject *kobj,
+>  				   struct kobj_attribute *attr,
+>  				   const char *buf, size_t n)
+>  {
+> -	struct omap_uart_state *uart;
+> +	struct device *dev = container_of(kobj, struct device, kobj);
+> +	struct platform_device *pdev = container_of(dev,
+> +					struct platform_device, dev);
+> +	struct omap_uart_state *uart = container_of(pdev,
+> +					struct omap_uart_state, pdev);
+>  	unsigned int value;
+>  
+>  	if (sscanf(buf, "%u", &value) != 1) {
+>  		printk(KERN_ERR "sleep_timeout_store: Invalid value\n");
+>  		return -EINVAL;
+>  	}
+> -	sleep_timeout = value * HZ;
+> -	list_for_each_entry(uart, &uart_list, node)
+> -		uart->timeout = sleep_timeout;
+> +	uart->timeout = value * HZ;
+>  	return n;
+>  }
+>  
+> @@ -477,6 +518,34 @@ static struct kobj_attribute sleep_timeout_attr =
+>  static inline void omap_uart_idle_init(struct omap_uart_state *uart) {}
+>  #endif /* CONFIG_PM */
+>  
+> +static struct omap_uart_state omap_uart[OMAP_MAX_NR_PORTS] = {
+> +	{
+> +		.pdev = {
+> +			.name			= "serial8250",
+> +			.id			= PLAT8250_DEV_PLATFORM,
+> +			.dev			= {
+> +				.platform_data	= serial_platform_data0,
+> +			},
+> +		},
+> +	}, {
+> +		.pdev = {
+> +			.name			= "serial8250",
+> +			.id			= PLAT8250_DEV_PLATFORM1,
+> +			.dev			= {
+> +				.platform_data	= serial_platform_data1,
+> +			},
+> +		},
+> +	}, {
+> +		.pdev = {
+> +			.name			= "serial8250",
+> +			.id			= PLAT8250_DEV_PLATFORM2,
+> +			.dev			= {
+> +				.platform_data	= serial_platform_data2,
+> +			},
+> +		},
+> +	},
+> +};
+> +
+>  void __init omap_serial_init(void)
+>  {
+>  	int i;
+> @@ -495,8 +564,8 @@ void __init omap_serial_init(void)
+>  		return;
+>  
+>  	for (i = 0; i < OMAP_MAX_NR_PORTS; i++) {
+> -		struct plat_serial8250_port *p = serial_platform_data + i;
+>  		struct omap_uart_state *uart = &omap_uart[i];
+> +		struct plat_serial8250_port *p = uart->pdev.dev.platform_data;
+>  
+>  		if (!(info->enabled_uarts & (1 << i))) {
+>  			p->membase = NULL;
+> @@ -532,25 +601,43 @@ void __init omap_serial_init(void)
+>  	}
+>  }
+>  
+> -static struct platform_device serial_device = {
+> -	.name			= "serial8250",
+> -	.id			= PLAT8250_DEV_PLATFORM,
+> -	.dev			= {
+> -		.platform_data	= serial_platform_data,
+> -	},
+> -};
+> -
+>  static int __init omap_init(void)
+>  {
+>  	int ret;
+> +	int i;
+>  
+> -	ret = platform_device_register(&serial_device);
+> +	for (i = 0; i < ARRAY_SIZE(omap_uart); i++) {
+> +		ret = platform_device_register(&omap_uart[i].pdev);
+> +		if (ret < 0)
+> +			goto device_err;
+> +		if ((cpu_is_omap34xx() && omap_uart[i].padconf) ||
+> +		    (omap_uart[i].wk_en && omap_uart[i].wk_mask)) {
+> +			printk(KERN_ERR "%s: Setting init_wakeup\n", __func__);
+
+This looks like a debug printk that can be dropped for the final version.
+
+> +			device_init_wakeup(&omap_uart[i].pdev.dev, true);
+> +		}
+> +	}
+>  
+>  #ifdef CONFIG_PM
+> -	if (!ret)
+> -		ret = sysfs_create_file(&serial_device.dev.kobj,
+> +	for (i = 0; i < ARRAY_SIZE(omap_uart); i++) {
+> +		ret = sysfs_create_file(&omap_uart[i].pdev.dev.kobj,
+>  					&sleep_timeout_attr.attr);
+> +		if (ret < 0)
+> +			goto sysfs_err;
+> +	}
+> +#endif
+> +	return ret;
+> +
+> +#ifdef CONFIG_PM
+> +sysfs_err:
+> +	for (i--; i >= 0; i--)
+> +		sysfs_remove_file(&omap_uart[i].pdev.dev.kobj,
+> +				&sleep_timeout_attr.attr);
+> +	i = ARRAY_SIZE(omap_uart);
+>  #endif
+> +
+> +device_err:
+> +	for (i--; i >= 0; i--)
+> +		platform_device_unregister(&omap_uart[i].pdev);
+>  	return ret;
+>  }
+>  arch_initcall(omap_init);
+> -- 
+> 1.6.0.4
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
