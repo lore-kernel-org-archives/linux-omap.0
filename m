@@ -1,106 +1,127 @@
-From: Kalle Jokiniemi <kalle.jokiniemi@digia.com>
-Subject: [PATCH 1/1] ARM: OMAP: Add missing SMS_SYSCONFIG save/restore
-Date: Wed, 13 May 2009 13:32:11 +0300
-Message-ID: <1242210731-26249-2-git-send-email-kalle.jokiniemi@digia.com>
-References: <>
- <1242210731-26249-1-git-send-email-kalle.jokiniemi@digia.com>
+From: Felipe Contreras <felipe.contreras@gmail.com>
+Subject: Re: [PATCH 2/2] DSPBRIDGE: add checking 128 byte alignment for dsp
+	cache line size
+Date: Wed, 13 May 2009 14:13:35 +0300
+Message-ID: <94a0d4530905130413t5bddfee4le797c5083df79226@mail.gmail.com>
+References: <8F7AF80515AF0D4D93307E594F3CB40E2AF66543@dlee03.ent.ti.com>
+	 <20090512.083840.42792590.Hiroshi.DOYU@nokia.com>
+	 <94a0d4530905121441n4f1decf2y6c52d915459c1257@mail.gmail.com>
+	 <20090513.121025.176657725.Hiroshi.DOYU@nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp1.digia.com ([82.118.214.156]:43984 "EHLO smtp1.digia.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758334AbZEMKb6 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 13 May 2009 06:31:58 -0400
-In-Reply-To: <1242210731-26249-1-git-send-email-kalle.jokiniemi@digia.com>
+Received: from mail-fx0-f158.google.com ([209.85.220.158]:55248 "EHLO
+	mail-fx0-f158.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755708AbZEMLNg convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 13 May 2009 07:13:36 -0400
+Received: by fxm2 with SMTP id 2so573336fxm.37
+        for <linux-omap@vger.kernel.org>; Wed, 13 May 2009 04:13:35 -0700 (PDT)
+In-Reply-To: <20090513.121025.176657725.Hiroshi.DOYU@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: khilman@deeprootsystems.com
-Cc: linux-omap@vger.kernel.org, jouni.hogander@nokia.com, Kalle Jokiniemi <kalle.jokiniemi@digia.com>
+To: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+Cc: h-kanigeri2@ti.com, nm@ti.com, linux-omap@vger.kernel.org
 
-SMS_SYSCONFIG register gets reset in off mode, added
-a save/restore mechanism for that.
+On Wed, May 13, 2009 at 12:10 PM, Hiroshi DOYU <Hiroshi.DOYU@nokia.com>=
+ wrote:
+> From: ext Felipe Contreras <felipe.contreras@gmail.com>
+> Subject: Re: [PATCH 2/2] DSPBRIDGE: add checking 128 byte alignment f=
+or dsp cache line size
+> Date: Tue, 12 May 2009 23:41:04 +0200
+>
+>> On Tue, May 12, 2009 at 8:38 AM, Hiroshi DOYU <Hiroshi.DOYU@nokia.co=
+m> wrote:
+>> > From: "ext Kanigeri, Hari" <h-kanigeri2@ti.com>
+>> > Subject: RE: [PATCH 2/2] DSPBRIDGE: add checking 128 byte alignmen=
+t for dsp cache line size
+>> > Date: Mon, 11 May 2009 20:26:11 +0200
+>> >
+>> >> To summarize the discussion.
+>> >
+>> > Thanks
+>> >
+>> >> We need to have the check for 128 bytes alignment (upper and
+>> >> lower). The 2 places that this can be done are in flush function =
+or
+>> >> in Map function.
+>> >>
+>> >> =C2=A0 =C2=A0 =C2=A0 - I prefer the check is done in Map function=
+ as Felipe
+>> >> mentioned this function is bound to be called by MM components as
+>> >> opposed to Flush function.
+>> >
+>> > Mapping is totally another thing from this problem.
+>> >
+>> > Any page mapping is being done, forcing PAGE_SIZE as below, becaus=
+e
+>> > PAGE_SIZE(4KB) is the mininum unit from (io)mmu H/W perspective. T=
+his
+>> > is same as ARM too. They've been aligned on 4KB already. So no nee=
+d to
+>> > worry about 128-byte alignement for mapping.
+>>
+>> It's the same address, you cannot flush an address that has not been
+>> mapped. Look at the dsp-dummy code[1].
+>>
+>> =C2=A0DSPProcessor_ReserveMemory(b->node, to_reserve, &b->reserve);
+>> =C2=A0DSPProcessor_Map(b->node, b->data, b->size, b->reserve, &b->ma=
+p, 0);
+>> =C2=A0DSPProcessor_FlushMemory(b->node, b->data, b->size, 0);
+>>
+>> See? b->data is used for *both* Map and FlushMemory. The only
+>> difference is that you can skip FlushMemory, or flush half of the
+>> memory area:
+>> =C2=A0DSPProcessor_FlushMemory(b->node, b->data + (b->size / 2), b->=
+size, 0);
+>>
+>> The only operation you cannot avoid is Map.
+>>
+>> > DSP_STATUS PROC_Map(DSP_HPROCESSOR hProcessor, void *pMpuAddr, u32=
+ ulSize,
+>> > =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 voi=
+d *pReqAddr, void **ppMapAddr, u32 ulMapAttr)
+>> > {
+>> > =C2=A0 =C2=A0 =C2=A0 =C2=A0.....
+>> > =C2=A0 =C2=A0 =C2=A0 =C2=A0/* Calculate the page-aligned PA, VA an=
+d size */
+>> > =C2=A0 =C2=A0 =C2=A0 =C2=A0vaAlign =3D PG_ALIGN_LOW((u32) pReqAddr=
+, PG_SIZE_4K);
+>> > =C2=A0 =C2=A0 =C2=A0 =C2=A0paAlign =3D PG_ALIGN_LOW((u32) pMpuAddr=
+, PG_SIZE_4K);
+>> > =C2=A0 =C2=A0 =C2=A0 =C2=A0sizeAlign =3D PG_ALIGN_HIGH(ulSize + (u=
+32)pMpuAddr - paAlign,
+>> > =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
+=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 PG_SIZE_4K);
+>> >
+>> > The points which we should take care of are bridge cache
+>> > operations("PROC_Flush/Invalidate..()") and we should/can handle t=
+his
+>> > problem independently. It would cause another dependency and incre=
+ase
+>> > another complexity again if we have to assume something(ex:
+>> > "read-only" or "write-only" buffer) on other modules or expecting
+>> > something on its "protocol".
+>>
+>> If we are not going to have a read-only/write-only flag then I'm
+>> against adding the alignment check. It will only force user-space to
+>> do memory copies unnecessarily. That would kill performance
+>> drastically. NAK!
+>
+> At least, better than allowing user to crash kernel.
 
-Signed-off-by: Kalle Jokiniemi <kalle.jokiniemi@digia.com>
----
- arch/arm/mach-omap2/pm34xx.c           |    1 +
- arch/arm/mach-omap2/sdrc.c             |   27 +++++++++++++++++++++++++++
- arch/arm/plat-omap/include/mach/sdrc.h |    2 ++
- 3 files changed, 30 insertions(+), 0 deletions(-)
+The kernel would crash even with that check because it's the software
+running in the *DSP* side that is causing the corruption.
 
-diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
-index 60a1c4c..6e286ef 100644
---- a/arch/arm/mach-omap2/pm34xx.c
-+++ b/arch/arm/mach-omap2/pm34xx.c
-@@ -439,6 +439,7 @@ void omap_sram_idle(void)
- 			omap3_core_restore_context();
- 			omap3_prcm_restore_context();
- 			omap3_sram_restore_context();
-+			omap2_sms_restore_context();
- 		}
- 		omap_uart_resume_idle(0);
- 		omap_uart_resume_idle(1);
-diff --git a/arch/arm/mach-omap2/sdrc.c b/arch/arm/mach-omap2/sdrc.c
-index 2045441..c832d83 100644
---- a/arch/arm/mach-omap2/sdrc.c
-+++ b/arch/arm/mach-omap2/sdrc.c
-@@ -37,12 +37,38 @@ static struct omap_sdrc_params *sdrc_init_params;
- void __iomem *omap2_sdrc_base;
- void __iomem *omap2_sms_base;
- 
-+struct omap2_sms_regs {
-+	u32	sms_sysconfig;
-+};
-+
-+static struct omap2_sms_regs sms_context;
-+
- /* SDRC_POWER register bits */
- #define SDRC_POWER_EXTCLKDIS_SHIFT		3
- #define SDRC_POWER_PWDENA_SHIFT			2
- #define SDRC_POWER_PAGEPOLICY_SHIFT		0
- 
- /**
-+ * omap2_sms_save_context - Save SMS registers
-+ *
-+ * Save SMS registers that need to be restored after off mode.
-+ */
-+void omap2_sms_save_context(void)
-+{
-+	sms_context.sms_sysconfig = sms_read_reg(SMS_SYSCONFIG);
-+}
-+
-+/**
-+ * omap2_sms_restore_context - Restore SMS registers
-+ *
-+ * Restore SMS registers that need to be Restored after off mode.
-+ */
-+void omap2_sms_restore_context(void)
-+{
-+	sms_write_reg(sms_context.sms_sysconfig, SMS_SYSCONFIG);
-+}
-+
-+/**
-  * omap2_sdrc_get_params - return SDRC register values for a given clock rate
-  * @r: SDRC clock rate (in Hz)
-  *
-@@ -110,4 +136,5 @@ void __init omap2_sdrc_init(struct omap_sdrc_params *sp)
- 		(1 << SDRC_POWER_PWDENA_SHIFT) |
- 		(1 << SDRC_POWER_PAGEPOLICY_SHIFT);
- 	sdrc_write_reg(l, SDRC_POWER);
-+	omap2_sms_save_context();
- }
-diff --git a/arch/arm/plat-omap/include/mach/sdrc.h b/arch/arm/plat-omap/include/mach/sdrc.h
-index a5a6cf9..a678bc8 100644
---- a/arch/arm/plat-omap/include/mach/sdrc.h
-+++ b/arch/arm/plat-omap/include/mach/sdrc.h
-@@ -112,6 +112,8 @@ struct omap_sdrc_params {
- 	u32 mr;
- };
- 
-+void omap2_sms_save_context(void);
-+void omap2_sms_restore_context(void);
- void __init omap2_sdrc_init(struct omap_sdrc_params *);
- struct omap_sdrc_params *omap2_sdrc_get_params(unsigned long r);
- 
--- 
-1.5.4.3
+It sounds you are still not convinced by that so I'll write a test
+application to make sure my assumption is correct.
 
+Cheers.
+
+--=20
+=46elipe Contreras
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
