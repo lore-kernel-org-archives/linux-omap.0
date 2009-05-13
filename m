@@ -1,32 +1,50 @@
-From: "Syed Rafiuddin" <rafiuddin.syed-l0cyMroinI0@public.gmane.org>
-Subject: Re: [PATCH] I2C:Moving Register Defines to Header File
-Date: Wed, 13 May 2009 13:56:17 +0530 (IST)
-Message-ID: <57428.192.168.10.89.1242203177.squirrel@dbdmail.itg.ti.com>
-References: <52671.192.168.10.89.1242133785.squirrel@dbdmail.itg.ti.com>
-    <87hbzqe55y.fsf@deeprootsystems.com>
+From: Jarkko Nikula <jhnikula@gmail.com>
+Subject: Re: N810: latest linux-omap-2.6.git master
+Date: Wed, 13 May 2009 12:12:19 +0300
+Message-ID: <20090513121219.43206b03.jhnikula@gmail.com>
+References: <200905091745.06435.luke@dashjr.org>
+	<20090512100658.86a99e98.jhnikula@gmail.com>
+	<200905121818.13785.luke@dashjr.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
-Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <87hbzqe55y.fsf-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org>
-Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Kevin Hilman <khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org>
-Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from an-out-0708.google.com ([209.85.132.246]:55832 "EHLO
+	an-out-0708.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753343AbZEMJKf (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 13 May 2009 05:10:35 -0400
+Received: by an-out-0708.google.com with SMTP id d40so699731and.1
+        for <linux-omap@vger.kernel.org>; Wed, 13 May 2009 02:10:36 -0700 (PDT)
+In-Reply-To: <200905121818.13785.luke@dashjr.org>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Luke Dashjr <luke@dashjr.org>
+Cc: linux-omap@vger.kernel.org
 
-> "Syed Rafiuddin" <rafiuddin.syed-l0cyMroinI0@public.gmane.org> writes:
->
->> This patch creates i2c-omap.h header and moves register and bit definition
->> macros to it from i2c-omap.c
->
-> Please use the description to describe the motivation for the changes
-> and the problems it is addressing/fixing.
->
-> In other words, you described what your patch does but not why.
+On Tue, 12 May 2009 18:18:13 -0500
+Luke Dashjr <luke@dashjr.org> wrote:
 
-The intention of the patch is to have a separate header which will have omap3
-and omap4 related register definitions. As omap4 has different offset addresses
-with respect to omap3,adding omap4 related stuff in the same file will leave
-the file look ugly.
+> > For me mmc is working. I'm booting through the modified initfs with
+> > official major number 179 for /dev/mmcblk* device nodes.
+> 
+> Modified initfs? Is there something needed beyond copying the
+> filesystem's modules?
+> 
+Actually I'm not using modules from initfs at all nor updating them but
+I have compiled the ext2 in so that initfs can mount the ext2 formatted
+root from mmc (flasher --set-root-device=mmc).
 
--Syed Rafiuddin
+This device node update to initfs is required since Maemo 2.6.21
+kernel & initfs are using major number 254 for mmcblk whereas newer
+kernels are using 179.
+
+I basically copied initfs from running system or fiasco image, I don't
+remember, modified it on desktop and then created new jffs2 image out
+of it. That can be then flashed with "flasher -f -n initfs.jffs2".
+
+I think it would be possible to boot modified initfs also from another
+mmc partition so that initfs on NAND can be intact.
+
+
+-- 
+Jarkko
