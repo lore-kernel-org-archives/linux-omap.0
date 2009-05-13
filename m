@@ -1,105 +1,162 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: [PATCH 10/10] OMAP2xxx clock: rename clk_init_one() to clk_preinit()
-Date: Tue, 12 May 2009 18:05:31 -0600
-Message-ID: <20090513000527.10349.36883.stgit@localhost.localdomain>
+Subject: [PATCH 07/10] OMAP3 clock: only unlock SDRC DLL if SDRC clk < 83MHz
+Date: Tue, 12 May 2009 18:05:22 -0600
+Message-ID: <20090513000521.10349.91810.stgit@localhost.localdomain>
 References: <20090512235713.10349.49339.stgit@localhost.localdomain>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:56453 "EHLO
+Received: from utopia.booyaka.com ([72.9.107.138]:56412 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757472AbZEMAHs (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 12 May 2009 20:07:48 -0400
+	with ESMTP id S1757338AbZEMAHm (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 12 May 2009 20:07:42 -0400
 In-Reply-To: <20090512235713.10349.49339.stgit@localhost.localdomain>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-arm-kernel@lists.arm.linux.org.uk
 Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Paul Walmsley <paul@pwsan.com>
 
-Rename clk_init_one() to clk_preinit() to distinguish its function
-from clk_init() and the individual struct clk init functions.
+According to the 34xx TRM Rev. K section 11.2.4.4.11.1 "Purpose of the
+DLL/CDL Module," the SDRC delay-locked-loop can be locked at any SDRC
+clock frequency from 83MHz to 166MHz.  CDP code unconditionally
+unlocked the DLL whenever shifting to a lower SDRC speed, but this
+seems unnecessary and error-prone, as the DLL is no longer able to
+compensate for process, voltage, and temperature variations.  Instead,
+only unlock the DLL when the SDRC clock rate would be less than 83MHz.
 
 Signed-off-by: Paul Walmsley <paul@pwsan.com>
 ---
- arch/arm/mach-omap1/clock.c             |    2 +-
- arch/arm/mach-omap2/clock24xx.c         |    2 +-
- arch/arm/mach-omap2/clock34xx.c         |    2 +-
- arch/arm/plat-omap/clock.c              |    4 ++--
- arch/arm/plat-omap/include/mach/clock.h |    2 +-
- 5 files changed, 6 insertions(+), 6 deletions(-)
+ arch/arm/mach-omap2/clock34xx.c        |   10 +++++++++-
+ arch/arm/mach-omap2/sram34xx.S         |   13 +++++++------
+ arch/arm/plat-omap/include/mach/sram.h |    6 ++++--
+ arch/arm/plat-omap/sram.c              |    7 ++++---
+ 4 files changed, 24 insertions(+), 12 deletions(-)
 
-diff --git a/arch/arm/mach-omap1/clock.c b/arch/arm/mach-omap1/clock.c
-index 336e51d..436eed2 100644
---- a/arch/arm/mach-omap1/clock.c
-+++ b/arch/arm/mach-omap1/clock.c
-@@ -776,7 +776,7 @@ int __init omap1_clk_init(void)
- 	arm_idlect1_mask = ~0;
- 
- 	for (c = omap_clks; c < omap_clks + ARRAY_SIZE(omap_clks); c++)
--		clk_init_one(c->lk.clk);
-+		clk_preinit(c->lk.clk);
- 
- 	cpu_mask = 0;
- 	if (cpu_is_omap16xx())
-diff --git a/arch/arm/mach-omap2/clock24xx.c b/arch/arm/mach-omap2/clock24xx.c
-index efc59c4..cc94672 100644
---- a/arch/arm/mach-omap2/clock24xx.c
-+++ b/arch/arm/mach-omap2/clock24xx.c
-@@ -722,7 +722,7 @@ int __init omap2_clk_init(void)
- 	clk_init(&omap2_clk_functions);
- 
- 	for (c = omap24xx_clks; c < omap24xx_clks + ARRAY_SIZE(omap24xx_clks); c++)
--		clk_init_one(c->lk.clk);
-+		clk_preinit(c->lk.clk);
- 
- 	osc_ck.rate = omap2_osc_clk_recalc(&osc_ck);
- 	propagate_rate(&osc_ck);
 diff --git a/arch/arm/mach-omap2/clock34xx.c b/arch/arm/mach-omap2/clock34xx.c
-index 2ee58fa..62092f2 100644
+index 0a14dca..811360a 100644
 --- a/arch/arm/mach-omap2/clock34xx.c
 +++ b/arch/arm/mach-omap2/clock34xx.c
-@@ -964,7 +964,7 @@ int __init omap2_clk_init(void)
- 	clk_init(&omap2_clk_functions);
+@@ -281,6 +281,8 @@ static struct omap_clk omap34xx_clks[] = {
  
- 	for (c = omap34xx_clks; c < omap34xx_clks + ARRAY_SIZE(omap34xx_clks); c++)
--		clk_init_one(c->lk.clk);
-+		clk_preinit(c->lk.clk);
+ #define MAX_DPLL_WAIT_TRIES		1000000
  
- 	for (c = omap34xx_clks; c < omap34xx_clks + ARRAY_SIZE(omap34xx_clks); c++)
- 		if (c->cpu & cpu_clkflg) {
-diff --git a/arch/arm/plat-omap/clock.c b/arch/arm/plat-omap/clock.c
-index 29efc27..508c96a 100644
---- a/arch/arm/plat-omap/clock.c
-+++ b/arch/arm/plat-omap/clock.c
-@@ -240,13 +240,13 @@ void recalculate_root_clocks(void)
- }
- 
++#define MIN_SDRC_DLL_LOCK_FREQ		83000000
++
  /**
-- * clk_init_one - initialize any fields in the struct clk before clk init
-+ * clk_preinit - initialize any fields in the struct clk before clk init
-  * @clk: struct clk * to initialize
-  *
-  * Initialize any struct clk fields needed before normal clk initialization
-  * can run.  No return value.
-  */
--void clk_init_one(struct clk *clk)
-+void clk_preinit(struct clk *clk)
+  * omap3_dpll_recalc - recalculate DPLL rate
+  * @clk: DPLL struct clk
+@@ -703,6 +705,7 @@ static int omap3_dpll4_set_rate(struct clk *clk, unsigned long rate)
+ static int omap3_core_dpll_m2_set_rate(struct clk *clk, unsigned long rate)
  {
- 	INIT_LIST_HEAD(&clk->children);
- }
-diff --git a/arch/arm/plat-omap/include/mach/clock.h b/arch/arm/plat-omap/include/mach/clock.h
-index 073a2c5..d7bd19c 100644
---- a/arch/arm/plat-omap/include/mach/clock.h
-+++ b/arch/arm/plat-omap/include/mach/clock.h
-@@ -119,7 +119,7 @@ struct clk_functions {
- extern unsigned int mpurate;
+ 	u32 new_div = 0;
++	u32 unlock_dll = 0;
+ 	unsigned long validrate, sdrcrate;
+ 	struct omap_sdrc_params *sp;
  
- extern int clk_init(struct clk_functions *custom_clocks);
--extern void clk_init_one(struct clk *clk);
-+extern void clk_preinit(struct clk *clk);
- extern int clk_register(struct clk *clk);
- extern void clk_reparent(struct clk *child, struct clk *parent);
- extern void clk_unregister(struct clk *clk);
+@@ -729,6 +732,11 @@ static int omap3_core_dpll_m2_set_rate(struct clk *clk, unsigned long rate)
+ 	if (!sp)
+ 		return -EINVAL;
+ 
++	if (sdrcrate < MIN_SDRC_DLL_LOCK_FREQ) {
++		pr_debug("clock: will unlock SDRC DLL\n");
++		unlock_dll = 1;
++	}
++
+ 	pr_info("clock: changing CORE DPLL rate from %lu to %lu\n", clk->rate,
+ 		validrate);
+ 	pr_info("clock: SDRC timing params used: %08x %08x %08x\n",
+@@ -739,7 +747,7 @@ static int omap3_core_dpll_m2_set_rate(struct clk *clk, unsigned long rate)
+ 
+ 	/* REVISIT: Add SDRC_MR changing to this code also */
+ 	omap3_configure_core_dpll(sp->rfr_ctrl, sp->actim_ctrla,
+-				  sp->actim_ctrlb, new_div);
++				  sp->actim_ctrlb, new_div, unlock_dll);
+ 
+ 	return 0;
+ }
+diff --git a/arch/arm/mach-omap2/sram34xx.S b/arch/arm/mach-omap2/sram34xx.S
+index 35131e5..c080c82 100644
+--- a/arch/arm/mach-omap2/sram34xx.S
++++ b/arch/arm/mach-omap2/sram34xx.S
+@@ -40,22 +40,23 @@
+ /*
+  * Change frequency of core dpll
+  * r0 = sdrc_rfr_ctrl r1 = sdrc_actim_ctrla r2 = sdrc_actim_ctrlb r3 = M2
++ * r4 = Unlock SDRC DLL? (1 = yes, 0 = no) -- only unlock DLL for
++ *      SDRC rates < 83MHz
+  */
+ ENTRY(omap3_sram_configure_core_dpll)
+ 	stmfd	sp!, {r1-r12, lr}	@ store regs to stack
++	ldr	r4, [sp, #52]		@ pull extra args off the stack
+ 	dsb				@ flush buffered writes to interconnect
+ 	cmp	r3, #0x2
+ 	blne	configure_sdrc
+-	cmp	r3, #0x2
++	cmp	r4, #0x1
++	bleq	unlock_dll
+ 	blne	lock_dll
+-	cmp	r3, #0x1
+-	blne	unlock_dll
+ 	bl	sdram_in_selfrefresh	@ put the SDRAM in self refresh
+ 	bl 	configure_core_dpll
+ 	bl	enable_sdrc
+-	cmp	r3, #0x1
+-	blne	wait_dll_unlock
+-	cmp	r3, #0x2
++	cmp	r4, #0x1
++	bleq	wait_dll_unlock
+ 	blne	wait_dll_lock
+ 	cmp	r3, #0x1
+ 	blne	configure_sdrc
+diff --git a/arch/arm/plat-omap/include/mach/sram.h b/arch/arm/plat-omap/include/mach/sram.h
+index ab35d62..dca7c16 100644
+--- a/arch/arm/plat-omap/include/mach/sram.h
++++ b/arch/arm/plat-omap/include/mach/sram.h
+@@ -23,7 +23,8 @@ extern u32 omap2_set_prcm(u32 dpll_ctrl_val, u32 sdrc_rfr_val, int bypass);
+ 
+ extern u32 omap3_configure_core_dpll(u32 sdrc_rfr_ctrl,
+ 				     u32 sdrc_actim_ctrla,
+-				     u32 sdrc_actim_ctrlb, u32 m2);
++				     u32 sdrc_actim_ctrlb, u32 m2,
++				     u32 unlock_dll);
+ 
+ /* Do not use these */
+ extern void omap1_sram_reprogram_clock(u32 ckctl, u32 dpllctl);
+@@ -60,7 +61,8 @@ extern unsigned long omap243x_sram_reprogram_sdrc_sz;
+ 
+ extern u32 omap3_sram_configure_core_dpll(u32 sdrc_rfr_ctrl,
+ 					  u32 sdrc_actim_ctrla,
+-					  u32 sdrc_actim_ctrlb, u32 m2);
++					  u32 sdrc_actim_ctrlb, u32 m2,
++					  u32 unlock_dll);
+ extern unsigned long omap3_sram_configure_core_dpll_sz;
+ 
+ #endif
+diff --git a/arch/arm/plat-omap/sram.c b/arch/arm/plat-omap/sram.c
+index 3835338..876f5a7 100644
+--- a/arch/arm/plat-omap/sram.c
++++ b/arch/arm/plat-omap/sram.c
+@@ -365,16 +365,17 @@ static inline int omap243x_sram_init(void)
+ static u32 (*_omap3_sram_configure_core_dpll)(u32 sdrc_rfr_ctrl,
+ 					      u32 sdrc_actim_ctrla,
+ 					      u32 sdrc_actim_ctrlb,
+-					      u32 m2);
++					      u32 m2, u32 unlock_dll);
+ u32 omap3_configure_core_dpll(u32 sdrc_rfr_ctrl, u32 sdrc_actim_ctrla,
+-			      u32 sdrc_actim_ctrlb, u32 m2)
++			      u32 sdrc_actim_ctrlb, u32 m2, u32 unlock_dll)
+ {
+ 	if (!_omap3_sram_configure_core_dpll)
+ 		omap_sram_error();
+ 
+ 	return _omap3_sram_configure_core_dpll(sdrc_rfr_ctrl,
+ 					       sdrc_actim_ctrla,
+-					       sdrc_actim_ctrlb, m2);
++					       sdrc_actim_ctrlb, m2,
++					       unlock_dll);
+ }
+ 
+ /* REVISIT: Should this be same as omap34xx_sram_init() after off-idle? */
 
 
