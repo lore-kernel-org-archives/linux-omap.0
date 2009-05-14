@@ -1,225 +1,99 @@
-From: Anuj Aggarwal <anuj.aggarwal@ti.com>
-Subject: [PATCH] ASoC: Added OMAP3 EVM support in ASoC.
-Date: Thu, 14 May 2009 13:59:19 +0530
-Message-ID: <1242289759-6577-1-git-send-email-anuj.aggarwal@ti.com>
+From: Kim Kyuwon <chammoru@gmail.com>
+Subject: [PATCH] OMAP: UART: don't initialize membase and mapbase when its
+	port is not enabled
+Date: Thu, 14 May 2009 17:41:44 +0900
+Message-ID: <4d34a0a70905140141t3f8e2b08uefb4141f904bfcc@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <alsa-devel-bounces@alsa-project.org>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Sender: alsa-devel-bounces@alsa-project.org
-Errors-To: alsa-devel-bounces@alsa-project.org
-To: alsa-devel@alsa-project.org, linux-omap@vger.kernel.org
-Cc: Anuj Aggarwal <anuj.aggarwal@ti.com>
+Content-Type: text/plain; charset=EUC-KR
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-qy0-f133.google.com ([209.85.221.133]:65504 "EHLO
+	mail-qy0-f133.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751423AbZENInM convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 14 May 2009 04:43:12 -0400
+Received: by qyk39 with SMTP id 39so2171593qyk.33
+        for <linux-omap@vger.kernel.org>; Thu, 14 May 2009 01:43:09 -0700 (PDT)
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: OMAP <linux-omap@vger.kernel.org>
+Cc: Kevin Hilman <khilman@deeprootsystems.com>, Kyungmin Park <kyungmin.park@samsung.com>, =?EUC-KR?B?seix1L/4?= <q1.kim@samsung.com>, Paul Mundt <paul.mundt@nokia.com>
 
-Resending the patch after fixing the minor issues.
+Hi All,
 
-Signed-off-by: Anuj Aggarwal <anuj.aggarwal@ti.com>
+We are using two UARTs port in OMAP3430 board shown as following
+ UART 1 - not used
+ UART 2 - BT
+ UART 3 - console ("console=3DttyS2,115200n8" in 'bootargs' of bootload=
+er)
+
+Because we are not using UART port 1, I configured our board file as fo=
+llowing
+ 735 static struct omap_uart_config omap3_boardname_uart_config __initd=
+ata =3D {
+ 736         .enabled_uarts  =3D ((1 << 1) | (1 << 2)),
+ 737 };
+However, I couldn't see any console message.
+
+If I configured like
+ 735 static struct omap_uart_config omap3_boardname_uart_config __initd=
+ata =3D {
+ 736         .enabled_uarts  =3D ((1 << 0) (1 << 1) | (1 << 2)),
+ 737 };
+I could see console messages. But I think this is not the real solution=
+=2E
+
+Is it correct to use ttyS2, if I use UART3 as console UART?
+
+Anyway, I kept track of this problem and I'm sending the patch.
+
+Please let me know your opinion about this patch.
+
 ---
- sound/soc/omap/Kconfig    |    8 +++
- sound/soc/omap/Makefile   |    2 +
- sound/soc/omap/omap3evm.c |  147 +++++++++++++++++++++++++++++++++++++++++++++
- 3 files changed, 157 insertions(+), 0 deletions(-)
- create mode 100644 sound/soc/omap/omap3evm.c
+=46rom 88fc1f0872fd2c6ac42501027e5bf69156cce37f Mon Sep 17 00:00:00 200=
+1
+=46rom: Kim Kyuwon <q1.kim@samsung.com>
+Date: Thu, 14 May 2009 17:05:35 +0900
+Subject: [PATCH] OMAP: UART: don't initialize membase and mapbase when
+its port is not enabled
 
-diff --git a/sound/soc/omap/Kconfig b/sound/soc/omap/Kconfig
-index 675732e..b771238 100644
---- a/sound/soc/omap/Kconfig
-+++ b/sound/soc/omap/Kconfig
-@@ -39,6 +39,14 @@ config SND_OMAP_SOC_OMAP2EVM
- 	help
- 	  Say Y if you want to add support for SoC audio on the omap2evm board.
- 
-+config SND_OMAP_SOC_OMAP3EVM
-+	tristate "SoC Audio support for OMAP3EVM board"
-+	depends on TWL4030_CORE && SND_OMAP_SOC && MACH_OMAP3EVM
-+	select SND_OMAP_SOC_MCBSP
-+	select SND_SOC_TWL4030
-+	help
-+	  Say Y if you want to add support for SoC audio on the omap3evm board.
-+
- config SND_OMAP_SOC_SDP3430
- 	tristate "SoC Audio support for Texas Instruments SDP3430"
- 	depends on TWL4030_CORE && SND_OMAP_SOC && MACH_OMAP_3430SDP
-diff --git a/sound/soc/omap/Makefile b/sound/soc/omap/Makefile
-index 0c9e4ac..a37f498 100644
---- a/sound/soc/omap/Makefile
-+++ b/sound/soc/omap/Makefile
-@@ -10,6 +10,7 @@ snd-soc-n810-objs := n810.o
- snd-soc-osk5912-objs := osk5912.o
- snd-soc-overo-objs := overo.o
- snd-soc-omap2evm-objs := omap2evm.o
-+snd-soc-omap3evm-objs := omap3evm.o
- snd-soc-sdp3430-objs := sdp3430.o
- snd-soc-omap3pandora-objs := omap3pandora.o
- snd-soc-omap3beagle-objs := omap3beagle.o
-@@ -18,6 +19,7 @@ obj-$(CONFIG_SND_OMAP_SOC_N810) += snd-soc-n810.o
- obj-$(CONFIG_SND_OMAP_SOC_OSK5912) += snd-soc-osk5912.o
- obj-$(CONFIG_SND_OMAP_SOC_OVERO) += snd-soc-overo.o
- obj-$(CONFIG_MACH_OMAP2EVM) += snd-soc-omap2evm.o
-+obj-$(CONFIG_MACH_OMAP3EVM) += snd-soc-omap3evm.o
- obj-$(CONFIG_SND_OMAP_SOC_SDP3430) += snd-soc-sdp3430.o
- obj-$(CONFIG_SND_OMAP_SOC_OMAP3_PANDORA) += snd-soc-omap3pandora.o
- obj-$(CONFIG_SND_OMAP_SOC_OMAP3_BEAGLE) += snd-soc-omap3beagle.o
-diff --git a/sound/soc/omap/omap3evm.c b/sound/soc/omap/omap3evm.c
-new file mode 100644
-index 0000000..9114c26
---- /dev/null
-+++ b/sound/soc/omap/omap3evm.c
-@@ -0,0 +1,147 @@
-+/*
-+ * omap3evm.c  -- ALSA SoC support for OMAP3 EVM
-+ *
-+ * Author: Anuj Aggarwal <anuj.aggarwal@ti.com>
-+ *
-+ * Based on sound/soc/omap/beagle.c by Steve Sakoman
-+ *
-+ * Copyright (C) 2008 Texas Instruments, Incorporated
-+ *
-+ * This program is free software; you can redistribute it and/or modify it
-+ * under the terms of the GNU General Public License as published by the
-+ * Free Software Foundation version 2.
-+ *
-+ * This program is distributed "as is" WITHOUT ANY WARRANTY of any kind,
-+ * whether express or implied; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-+ * General Public License for more details.
-+ */
-+
-+#include <linux/clk.h>
-+#include <linux/platform_device.h>
-+#include <sound/core.h>
-+#include <sound/pcm.h>
-+#include <sound/soc.h>
-+#include <sound/soc-dapm.h>
-+
-+#include <asm/mach-types.h>
-+#include <mach/hardware.h>
-+#include <mach/gpio.h>
-+#include <mach/mcbsp.h>
-+
-+#include "omap-mcbsp.h"
-+#include "omap-pcm.h"
-+#include "../codecs/twl4030.h"
-+
-+static int omap3evm_hw_params(struct snd_pcm_substream *substream,
-+	struct snd_pcm_hw_params *params)
-+{
-+	struct snd_soc_pcm_runtime *rtd = substream->private_data;
-+	struct snd_soc_dai *codec_dai = rtd->dai->codec_dai;
-+	struct snd_soc_dai *cpu_dai = rtd->dai->cpu_dai;
-+	int ret;
-+
-+	/* Set codec DAI configuration */
-+	ret = snd_soc_dai_set_fmt(codec_dai,
-+				  SND_SOC_DAIFMT_I2S |
-+				  SND_SOC_DAIFMT_NB_NF |
-+				  SND_SOC_DAIFMT_CBM_CFM);
-+	if (ret < 0) {
-+		printk(KERN_ERR "Can't set codec DAI configuration\n");
-+		return ret;
-+	}
-+
-+	/* Set cpu DAI configuration */
-+	ret = snd_soc_dai_set_fmt(cpu_dai,
-+				  SND_SOC_DAIFMT_I2S |
-+				  SND_SOC_DAIFMT_NB_NF |
-+				  SND_SOC_DAIFMT_CBM_CFM);
-+	if (ret < 0) {
-+		printk(KERN_ERR "Can't set cpu DAI configuration\n");
-+		return ret;
-+	}
-+
-+	/* Set the codec system clock for DAC and ADC */
-+	ret = snd_soc_dai_set_sysclk(codec_dai, 0, 26000000,
-+				     SND_SOC_CLOCK_IN);
-+	if (ret < 0) {
-+		printk(KERN_ERR "Can't set codec system clock\n");
-+		return ret;
-+	}
-+
-+	return 0;
-+}
-+
-+static struct snd_soc_ops omap3evm_ops = {
-+	.hw_params = omap3evm_hw_params,
-+};
-+
-+/* Digital audio interface glue - connects codec <--> CPU */
-+static struct snd_soc_dai_link omap3evm_dai = {
-+	.name 		= "TWL4030",
-+	.stream_name 	= "TWL4030",
-+	.cpu_dai 	= &omap_mcbsp_dai[0],
-+	.codec_dai 	= &twl4030_dai[TWL4030_DAI_HIFI],
-+	.ops 		= &omap3evm_ops,
-+};
-+
-+/* Audio machine driver */
-+static struct snd_soc_card snd_soc_omap3evm = {
-+	.name = "omap3evm",
-+	.platform = &omap_soc_platform,
-+	.dai_link = &omap3evm_dai,
-+	.num_links = 1,
-+};
-+
-+/* Audio subsystem */
-+static struct snd_soc_device omap3evm_snd_devdata = {
-+	.card = &snd_soc_omap3evm,
-+	.codec_dev = &soc_codec_dev_twl4030,
-+};
-+
-+static struct platform_device *omap3evm_snd_device;
-+
-+static int __init omap3evm_soc_init(void)
-+{
-+	int ret;
-+
-+	if (!machine_is_omap3evm()) {
-+		pr_err("Not OMAP3 EVM!\n");
-+		return -ENODEV;
-+	}
-+	pr_info("OMAP3 EVM SoC init\n");
-+
-+	omap3evm_snd_device = platform_device_alloc("soc-audio", -1);
-+	if (!omap3evm_snd_device) {
-+		printk(KERN_ERR "Platform device allocation failed\n");
-+		return -ENOMEM;
-+	}
-+
-+	platform_set_drvdata(omap3evm_snd_device, &omap3evm_snd_devdata);
-+	omap3evm_snd_devdata.dev = &omap3evm_snd_device->dev;
-+	*(unsigned int *)omap3evm_dai.cpu_dai->private_data = 1;
-+
-+	ret = platform_device_add(omap3evm_snd_device);
-+	if (ret)
-+		goto err1;
-+
-+	return 0;
-+
-+err1:
-+	printk(KERN_ERR "Unable to add platform device\n");
-+	platform_device_put(omap3evm_snd_device);
-+
-+	return ret;
-+}
-+
-+static void __exit omap3evm_soc_exit(void)
-+{
-+	platform_device_unregister(omap3evm_snd_device);
-+}
-+
-+module_init(omap3evm_soc_init);
-+module_exit(omap3evm_soc_exit);
-+
-+MODULE_AUTHOR("Anuj Aggarwal <anuj.aggarwal@ti.com>");
-+MODULE_DESCRIPTION("ALSA SoC OMAP3 EVM");
-+MODULE_LICENSE("GPLv2");
--- 
-1.6.2.4
+If membase and mapbase are zero, its uart port which is registered to
+serial8250(i.e serial8250_port[i]) is overridden, because the
+serial8250_find_match_or_unsed() function consider this port as a
+unused entry. This make the serial2850_console_setup function use
+incorrect uart port, because co->index is used as the index of
+serial8250_port. This patch prevent using wrong index of uart.
+
+Signed-off-by: Kim Kyuwon <q1.kim@samsung.com>
+---
+ arch/arm/mach-omap2/serial.c |    5 +----
+ 1 files changed, 1 insertions(+), 4 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/serial.c b/arch/arm/mach-omap2/serial.=
+c
+index 4dcf39c..01c2da7 100644
+--- a/arch/arm/mach-omap2/serial.c
++++ b/arch/arm/mach-omap2/serial.c
+@@ -118,11 +118,8 @@ void __init omap_serial_init(void)
+ 	for (i =3D 0; i < OMAP_MAX_NR_PORTS; i++) {
+ 		struct plat_serial8250_port *p =3D serial_platform_data + i;
+
+-		if (!(info->enabled_uarts & (1 << i))) {
+-			p->membase =3D NULL;
+-			p->mapbase =3D 0;
++		if (!(info->enabled_uarts & (1 << i)))
+ 			continue;
+-		}
+
+ 		sprintf(name, "uart%d_ick", i+1);
+ 		uart_ick[i] =3D clk_get(NULL, name);
+--=20
+1.5.2.5
+
+
+--=20
+Kyuwon (=B1=D4=BF=F8)
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
