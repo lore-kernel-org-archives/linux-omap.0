@@ -1,62 +1,68 @@
 From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH] PM: Disable usb host HW save and restore
-Date: Thu, 14 May 2009 10:10:21 -0700
-Message-ID: <87zldftxtu.fsf@deeprootsystems.com>
-References: <1240484331-18722-1-git-send-email-kalle.jokiniemi@digia.com>
+Subject: Re: [PATCH 1/1] ARM:OMAP3: Fix PLL_MOD CLKEN offset in scratchpad
+Date: Thu, 14 May 2009 10:11:46 -0700
+Message-ID: <87vdo3txrh.fsf@deeprootsystems.com>
+References: <1242126136-8419-1-git-send-email-kalle.jokiniemi@digia.com>
+	<1242126136-8419-2-git-send-email-kalle.jokiniemi@digia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from wf-out-1314.google.com ([209.85.200.170]:45972 "EHLO
-	wf-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1760888AbZENRKX (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 14 May 2009 13:10:23 -0400
-Received: by wf-out-1314.google.com with SMTP id 26so869710wfd.4
-        for <linux-omap@vger.kernel.org>; Thu, 14 May 2009 10:10:24 -0700 (PDT)
-In-Reply-To: <1240484331-18722-1-git-send-email-kalle.jokiniemi@digia.com> (Kalle Jokiniemi's message of "Thu\, 23 Apr 2009 13\:58\:51 +0300")
+Received: from mail-pz0-f115.google.com ([209.85.222.115]:35033 "EHLO
+	mail-pz0-f115.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751592AbZENRLr convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 14 May 2009 13:11:47 -0400
+Received: by pzk13 with SMTP id 13so694087pzk.33
+        for <linux-omap@vger.kernel.org>; Thu, 14 May 2009 10:11:48 -0700 (PDT)
+In-Reply-To: <1242126136-8419-2-git-send-email-kalle.jokiniemi@digia.com> (Kalle Jokiniemi's message of "Tue\, 12 May 2009 14\:02\:16 +0300")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Kalle Jokiniemi <kalle.jokiniemi@digia.com>
-Cc: tony@atomide.com, paul@pwsan.com, linux-omap@vger.kernel.org, nm@ti.com, r-woodruff2@ti.com, Kalle Jokiniemi <ext-kalle.jokiniemi@nokia.com>
+Cc: linux-omap@vger.kernel.org, jouni.hogander@nokia.com
 
 Kalle Jokiniemi <kalle.jokiniemi@digia.com> writes:
 
-> The hardware SAVEANDRESTORE mechanism seems to leave
-> USB HOST power domain permanently into active state
-> after one transition from off to active state.
-> Disabling for now.
+> The CM_CLKEN_PLL register saved in scratchpad memory
+> was wrongly using offset of 0x0004 instead of 0x0000.
 >
-> Signed-off-by: Kalle Jokiniemi <ext-kalle.jokiniemi@nokia.com>
+> The effect of this was that boot ROM code would
+> restore the wrong value when waking up from off mode.
+> This wrong value, however, will be overwritten by
+> prcm context restore. Still, a short period of wrong
+> clock settings in CM_CLKEN_PLL remained between ROM
+> code and prcm context restore. This is fixed by the
+> patch.
+>
+> Problem reported by: Jouni H=F6gander <jouni.hogander@nokia.com>
+>
+> Signed-off-by: Kalle Jokiniemi <kalle.jokiniemi@digia.com>
 
-Thanks, pushing to PM branch.
-
-Paul, will you incoporate this into your upstream queue as well?
-
-Thanks,
+Thanks, pushed to PM branch.
 
 Kevin
 
 > ---
->  arch/arm/mach-omap2/powerdomains34xx.h |    8 +++++++-
->  1 files changed, 7 insertions(+), 1 deletions(-)
+>  arch/arm/mach-omap2/control.c |    2 +-
+>  1 files changed, 1 insertions(+), 1 deletions(-)
 >
-> diff --git a/arch/arm/mach-omap2/powerdomains34xx.h b/arch/arm/mach-omap2/powerdomains34xx.h
-> index 4dcf94b..aa557b2 100644
-> --- a/arch/arm/mach-omap2/powerdomains34xx.h
-> +++ b/arch/arm/mach-omap2/powerdomains34xx.h
-> @@ -338,7 +338,13 @@ static struct powerdomain usbhost_pwrdm = {
->  	.sleepdep_srcs	  = dss_per_usbhost_sleepdeps,
->  	.pwrsts		  = PWRSTS_OFF_RET_ON,
->  	.pwrsts_logic_ret = PWRDM_POWER_RET,
-> -	.flags		  = PWRDM_HAS_HDWR_SAR, /* for USBHOST ctrlr only */
-> +	/*
-> +	 * REVISIT: Enabling usb host save and restore mechanism seems to
-> +	 * leave the usb host domain permanently in ACTIVE mode after
-> +	 * changing the usb host power domain state from OFF to active once.
-> +	 * Disabling for now.
-> +	 */
-> +	/*.flags	  = PWRDM_HAS_HDWR_SAR,*/ /* for USBHOST ctrlr only */
->  	.banks		  = 1,
->  	.pwrsts_mem_ret	  = {
->  		[0] = PWRDM_POWER_RET, /* MEMRETSTATE */
-> -- 
+> diff --git a/arch/arm/mach-omap2/control.c b/arch/arm/mach-omap2/cont=
+rol.c
+> index a0429fe..60de860 100644
+> --- a/arch/arm/mach-omap2/control.c
+> +++ b/arch/arm/mach-omap2/control.c
+> @@ -235,7 +235,7 @@ void omap3_save_scratchpad_contents(void)
+>  	prcm_block_contents.cm_clksel_wkup =3D
+>  			cm_read_mod_reg(WKUP_MOD, CM_CLKSEL);
+>  	prcm_block_contents.cm_clken_pll =3D
+> -			cm_read_mod_reg(PLL_MOD, OMAP3430_CM_CLKEN_PLL);
+> +			cm_read_mod_reg(PLL_MOD, CM_CLKEN);
+>  	prcm_block_contents.cm_autoidle_pll =3D
+>  			cm_read_mod_reg(PLL_MOD, OMAP3430_CM_AUTOIDLE_PLL);
+>  	prcm_block_contents.cm_clksel1_pll =3D
+> --=20
 > 1.5.4.3
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
