@@ -1,78 +1,45 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: LDP support
-Date: Thu, 14 May 2009 10:33:33 -0700
-Message-ID: <20090514173333.GL5593@atomide.com>
-References: <20090428220712.GF29277@n2100.arm.linux.org.uk> <20090428224237.GT22457@atomide.com> <20090505195231.GB8004@n2100.arm.linux.org.uk> <20090506040015.GM5593@atomide.com> <20090514090731.GB29164@localhost>
+From: "Woodruff, Richard" <r-woodruff2@ti.com>
+Subject: RE: [PATCH] PM: Disable usb host HW save and restore
+Date: Thu, 14 May 2009 12:40:15 -0500
+Message-ID: <13B9B4C6EF24D648824FF11BE8967162038BE09C66@dlee02.ent.ti.com>
+References: <1240484331-18722-1-git-send-email-kalle.jokiniemi@digia.com>
+ <87zldftxtu.fsf@deeprootsystems.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:62664 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751010AbZENRdp (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 14 May 2009 13:33:45 -0400
-Content-Disposition: inline
-In-Reply-To: <20090514090731.GB29164@localhost>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:60268 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751159AbZENRkc convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 14 May 2009 13:40:32 -0400
+In-Reply-To: <87zldftxtu.fsf@deeprootsystems.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Imre Deak <imre.deak@nokia.com>
-Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Valkeinen Tomi (Nokia-D/Helsinki)" <Tomi.Valkeinen@nokia.com>
+To: Kevin Hilman <khilman@deeprootsystems.com>, Kalle Jokiniemi <kalle.jokiniemi@digia.com>
+Cc: "tony@atomide.com" <tony@atomide.com>, "paul@pwsan.com" <paul@pwsan.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Menon, Nishanth" <nm@ti.com>, Kalle Jokiniemi <ext-kalle.jokiniemi@nokia.com>
 
-* Imre Deak <imre.deak@nokia.com> [090514 02:09]:
-> On Wed, May 06, 2009 at 06:00:16AM +0200, ext Tony Lindgren wrote:
-> > * Russell King - ARM Linux <linux@arm.linux.org.uk> [090505 12:52]:
-> > > On Tue, Apr 28, 2009 at 03:42:37PM -0700, Tony Lindgren wrote:
-> > > > * Russell King - ARM Linux <linux@arm.linux.org.uk> [090428 15:07]:
-> > > > > Tony, et.al.,
-> > > > > 
-> > > > > Any ideas when more LDP support will be pushed into mainline (such as
-> > > > > the framebuffer support)?
-> > > > 
-> > > > I'll be looking at the board-*.c patches for the next merge window
-> > > > hopefully this week or next week.
-> > > > 
-> > > > Looks like LDP keyboard, touchscreen & RTC are pretty much ready
-> > > > to go. Then the MMC has some regulator updates, but AFAIK the MMC
-> > > > should work OK already.
-> > > > 
-> > > > For the framebuffer, Imre and Tomi know the status the best, so
-> > > > I've added them to Cc.
-> > > > 
-> > > > Imre has been meaning to send a bunch of drivers/video/omap changes
-> > > > to the fbdev list for a while now and LDP framebuffer may depend on
-> > > > those. Imre, any news on the status of sending the fb patches
-> > > > upstream?
-> > > > 
-> > > > Then there are the upcoming DSS patches from Tomi, but those still
-> > > > need some work before they're ready to go.
-> > > 
-> > > Is there any news on this?  Will we see more functional OMAP3 / LDP
-> > > support queued for the next merge window?
-> > 
-> > Yes fro the stuff listed above, but still no news on the framebuffer
-> > patches. Imre?
-> 
-> There is a mainline based tree with the missing DSS1 FB stuff that I'm
-> planning to submit to fb-devel:
-> 
-> git clone git://koowaldah.org/people/imre/linux-2.6-fb
-> 
-> I could only compile test it for OMAP2/3 targets, it would be nice
-> if someone could check if it works too. Also if some DSS1 FB related things
-> are still missing from that tree, I could add them / submit them with
-> the rest of the things.
-> 
-> Sorry for the big delay.
 
-Great, I've started mirroring this as omapfb-upstream branch in the linux-omap
-tree for easy testing.
+> From: Kevin Hilman [mailto:khilman@deeprootsystems.com]
+> Sent: Thursday, May 14, 2009 12:10 PM
+> To: Kalle Jokiniemi
 
-Looks like your patch "ARM: OMAP: NOKIA-770: Add support for HWA742 LCD controller"
-needs fixing to just pass the clocks to the LCD driver as discussed in
-the recent 770 thread.
+> Kalle Jokiniemi <kalle.jokiniemi@digia.com> writes:
+>
+> > The hardware SAVEANDRESTORE mechanism seems to leave
+> > USB HOST power domain permanently into active state
+> > after one transition from off to active state.
+> > Disabling for now.
 
-Also your patch "ARM: OMAP: FB: Add OMAP3 DISPC support" will be obsolete,
-I have a fix in my omap-fixes queue that solves the problem with clkdev.
+Some are is needed around USB host domain handling.  There are a couple errata impacting different chip revs.
+
+Today in the older TI reference code this condition of a stuck on power domain does not happen.  However, we are using a software supervised method to disable the power domain.  May be this code has a bug or the hardware does around auto use for this domain.
+
+You will want TLL or host SAR activated to minimally work around a possible false cold reset issue.  There is a window coming back from OFF where a reset will be thrown.  Enabling SAR conclusively moves the internal window so there is no danger.  The error is fairly easily seen so if you start taking resets know this is likely the root cause.
+
+What Rev of CPU is the issue occurring on?
+
+The USBTLL SAR in 3.0 and before silicon will case a deadlock on 2nd sleep attempt.  On 3.1 and after its fixed.
 
 Regards,
-
-Tony
+Richard W.
