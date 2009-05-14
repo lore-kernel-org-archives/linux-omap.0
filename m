@@ -1,18 +1,18 @@
 From: Tero Kristo <tero.kristo@nokia.com>
-Subject: [PATCH] OMAP3: PM: Force USB to standby if not used
-Date: Thu, 14 May 2009 15:09:40 +0300
-Message-ID: <1242302980-4082-1-git-send-email-tero.kristo@nokia.com>
+Subject: [PATCH] OMAP: PM: Fixed omap_pm_set_min_bus_tput
+Date: Thu, 14 May 2009 15:09:50 +0300
+Message-ID: <1242302990-4104-1-git-send-email-tero.kristo@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:45640 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1760721AbZENMgT (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 14 May 2009 08:36:19 -0400
+Received: from smtp.nokia.com ([192.100.122.233]:17031 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759592AbZENMgY (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 14 May 2009 08:36:24 -0400
 Received: from esebh106.NOE.Nokia.com (esebh106.ntc.nokia.com [172.21.138.213])
-	by mgw-mx09.nokia.com (Switch-3.2.6/Switch-3.2.6) with ESMTP id n4ECZgEx023185
-	for <linux-omap@vger.kernel.org>; Thu, 14 May 2009 07:36:21 -0500
+	by mgw-mx06.nokia.com (Switch-3.2.6/Switch-3.2.6) with ESMTP id n4ECaJQw026236
+	for <linux-omap@vger.kernel.org>; Thu, 14 May 2009 15:36:20 +0300
 Received: from localhost.localdomain (sokoban.ntc.nokia.com [172.22.144.95])
-	by mgw-int02.ntc.nokia.com (Switch-3.2.5/Switch-3.2.5) with ESMTP id n4ECaAhO005847
-	for <linux-omap@vger.kernel.org>; Thu, 14 May 2009 15:36:10 +0300
+	by mgw-int01.ntc.nokia.com (Switch-3.2.5/Switch-3.2.5) with ESMTP id n4ECaKbB007538
+	for <linux-omap@vger.kernel.org>; Thu, 14 May 2009 15:36:20 +0300
 In-Reply-To: <>
 References: <>
 Sender: linux-omap-owner@vger.kernel.org
@@ -21,45 +21,47 @@ To: linux-omap@vger.kernel.org
 
 From: Tero Kristo <tero.kristo@nokia.com>
 
-This patch will allow device to enter sleep mode while a USB cable is
-connected and USB is either disabled or built as a module from kernel
-config.
+Parameter check for this function was bugged.
 
 Applies on top of PM branch.
 
 Signed-off-by: Tero Kristo <tero.kristo@nokia.com>
+Signed-off-by: Jouni Hogander <jouni.hogander@nokia.com>
 ---
- arch/arm/mach-omap2/usb-musb.c |   10 ++++++++--
- 1 files changed, 8 insertions(+), 2 deletions(-)
+ arch/arm/plat-omap/omap-pm-noop.c |    4 ++--
+ arch/arm/plat-omap/omap-pm-srf.c  |    4 ++--
+ 2 files changed, 4 insertions(+), 4 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/usb-musb.c b/arch/arm/mach-omap2/usb-musb.c
-index 12a9b0a..dd51d2f 100644
---- a/arch/arm/mach-omap2/usb-musb.c
-+++ b/arch/arm/mach-omap2/usb-musb.c
-@@ -32,7 +32,9 @@
- #include <mach/usb.h>
+diff --git a/arch/arm/plat-omap/omap-pm-noop.c b/arch/arm/plat-omap/omap-pm-noop.c
+index 490bc8e..4ba261a 100644
+--- a/arch/arm/plat-omap/omap-pm-noop.c
++++ b/arch/arm/plat-omap/omap-pm-noop.c
+@@ -62,8 +62,8 @@ void omap_pm_set_max_mpu_wakeup_lat(struct device *dev, long t)
  
- #define AUTOIDLE        (1 << 0)
-+#define FORCESTDBY	(1 << 0)
- #define OTG_SYSCONFIG	(OMAP34XX_HSUSB_OTG_BASE + 0x404)
-+#define OTG_FORCESTDBY	(OMAP34XX_HSUSB_OTG_BASE + 0x414)
- 
- static struct resource musb_resources[] = {
- 	[0] = { /* start and end set dynamically */
-@@ -185,7 +187,11 @@ void __init usb_musb_init(void)
+ void omap_pm_set_min_bus_tput(struct device *dev, u8 agent_id, unsigned long r)
+ {
+-	if (!dev || agent_id != OCP_INITIATOR_AGENT ||
+-	    agent_id != OCP_TARGET_AGENT) {
++	if (!dev || (agent_id != OCP_INITIATOR_AGENT &&
++	    agent_id != OCP_TARGET_AGENT)) {
+ 		WARN_ON(1);
  		return;
- 	}
+ 	};
+diff --git a/arch/arm/plat-omap/omap-pm-srf.c b/arch/arm/plat-omap/omap-pm-srf.c
+index 72e32de..226662d 100644
+--- a/arch/arm/plat-omap/omap-pm-srf.c
++++ b/arch/arm/plat-omap/omap-pm-srf.c
+@@ -76,8 +76,8 @@ void omap_pm_set_max_mpu_wakeup_lat(struct device *dev, long t)
  
--	/* Enable smartidle on MUSB to improve C1 wakeup latency */
--	if (cpu_is_omap34xx())
-+#if !defined(CONFIG_USB) || defined(CONFIG_USB_MODULE)
-+	/* Force MUSB to standby if not used */
-+	if (cpu_is_omap34xx()) {
- 		omap_writel(AUTOIDLE, OTG_SYSCONFIG);
-+		omap_writel(FORCESTDBY, OTG_FORCESTDBY);
-+	}
-+#endif
- }
+ void omap_pm_set_min_bus_tput(struct device *dev, u8 agent_id, unsigned long r)
+ {
+-	if (!dev || agent_id != OCP_INITIATOR_AGENT ||
+-	    agent_id != OCP_TARGET_AGENT) {
++	if (!dev || (agent_id != OCP_INITIATOR_AGENT &&
++	    agent_id != OCP_TARGET_AGENT)) {
+ 		WARN_ON(1);
+ 		return;
+ 	};
 -- 
 1.5.4.3
 
