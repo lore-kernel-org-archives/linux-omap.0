@@ -1,154 +1,55 @@
-From: Krzysztof Helt <krzysztof.h1@poczta.fm>
-Subject: Re: [PATCH 6/8] ARM: OMAP2/3: Change omapfb to use clkdev for dispc
- and rfbi
-Date: Thu, 14 May 2009 21:03:12 +0200
-Message-ID: <20090514210312.9fa02bb3.krzysztof.h1@poczta.fm>
-References: <20090514174100.12080.9736.stgit@localhost>
-	<20090514174959.12080.64417.stgit@localhost>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: [PATCH 0/2] PM: OMAP3 SDRC: fix some SDRAM settings for Qimonda parts
+Date: Thu, 14 May 2009 12:54:45 -0600
+Message-ID: <20090514185012.2152.36226.stgit@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp239.poczta.interia.pl ([217.74.64.239]:15358 "EHLO
-	smtp239.poczta.interia.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750906AbZENS5Y (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 14 May 2009 14:57:24 -0400
-In-Reply-To: <20090514174959.12080.64417.stgit@localhost>
+Received: from utopia.booyaka.com ([72.9.107.138]:52128 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752997AbZENTE6 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 14 May 2009 15:04:58 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-arm-kernel@lists.arm.linux.org.uk, Imre Deak <imre.deak@nokia.com>, linux-omap@vger.kernel.org, linux-fbdev-devel@lists.sourceforge.net
+To: linux-omap@vger.kernel.org
+Cc: Richard Woodruff <r-woodruff2@ti.com>
 
-On Thu, 14 May 2009 10:49:59 -0700
-Tony Lindgren <tony@atomide.com> wrote:
+Hi,
 
-> This makes the framebuffer work on omap3.
-> 
-> Also fix the clk_get usage for checkpatch.pl
-> "ERROR: do not use assignment in if condition".
-> 
-> Cc: Imre Deak <imre.deak@nokia.com>
-> Cc: linux-fbdev-devel@lists.sourceforge.net
-> Signed-off-by: Tony Lindgren <tony@atomide.com>
-> ---
+This series updates some SDRAM parameter settings for the Qimonda parts
+used on some 3430SDP boards.
 
-Acked-by: Krzysztof Helt <krzysztof.h1@wp.pl>
+Finally some 3430SDP boards are using bootloaders with rounded DPLL3 rates
+(e.g., 166000000 Hz rather than 165941176 Hz); update the Qimonda SDRAM
+parameters.
 
->  arch/arm/mach-omap2/clock24xx.c |    8 ++++----
->  arch/arm/mach-omap2/clock34xx.c |   10 +++++-----
->  drivers/video/omap/dispc.c      |   16 +++++++++-------
->  drivers/video/omap/rfbi.c       |    8 +++++---
->  4 files changed, 23 insertions(+), 19 deletions(-)
-> 
-> diff --git a/arch/arm/mach-omap2/clock24xx.c b/arch/arm/mach-omap2/clock24xx.c
-> index ff9b4c0..e4cef33 100644
-> --- a/arch/arm/mach-omap2/clock24xx.c
-> +++ b/arch/arm/mach-omap2/clock24xx.c
-> @@ -103,10 +103,10 @@ static struct omap_clk omap24xx_clks[] = {
->  	CLK(NULL,	"mdm_ick",	&mdm_ick,	CK_243X),
->  	CLK(NULL,	"mdm_osc_ck",	&mdm_osc_ck,	CK_243X),
->  	/* DSS domain clocks */
-> -	CLK(NULL,	"dss_ick",	&dss_ick,	CK_243X | CK_242X),
-> -	CLK(NULL,	"dss1_fck",	&dss1_fck,	CK_243X | CK_242X),
-> -	CLK(NULL,	"dss2_fck",	&dss2_fck,	CK_243X | CK_242X),
-> -	CLK(NULL,	"dss_54m_fck",	&dss_54m_fck,	CK_243X | CK_242X),
-> +	CLK("omapfb",	"ick",		&dss_ick,	CK_243X | CK_242X),
-> +	CLK("omapfb",	"dss1_fck",	&dss1_fck,	CK_243X | CK_242X),
-> +	CLK("omapfb",	"dss2_fck",	&dss2_fck,	CK_243X | CK_242X),
-> +	CLK("omapfb",	"tv_fck",	&dss_54m_fck,	CK_243X | CK_242X),
->  	/* L3 domain clocks */
->  	CLK(NULL,	"core_l3_ck",	&core_l3_ck,	CK_243X | CK_242X),
->  	CLK(NULL,	"ssi_fck",	&ssi_ssr_sst_fck, CK_243X | CK_242X),
-> diff --git a/arch/arm/mach-omap2/clock34xx.c b/arch/arm/mach-omap2/clock34xx.c
-> index a057539..ba05aa4 100644
-> --- a/arch/arm/mach-omap2/clock34xx.c
-> +++ b/arch/arm/mach-omap2/clock34xx.c
-> @@ -197,11 +197,11 @@ static struct omap_clk omap34xx_clks[] = {
->  	CLK("omap_rng",	"ick",		&rng_ick,	CK_343X),
->  	CLK(NULL,	"sha11_ick",	&sha11_ick,	CK_343X),
->  	CLK(NULL,	"des1_ick",	&des1_ick,	CK_343X),
-> -	CLK(NULL,	"dss1_alwon_fck", &dss1_alwon_fck, CK_343X),
-> -	CLK(NULL,	"dss_tv_fck",	&dss_tv_fck,	CK_343X),
-> -	CLK(NULL,	"dss_96m_fck",	&dss_96m_fck,	CK_343X),
-> -	CLK(NULL,	"dss2_alwon_fck", &dss2_alwon_fck, CK_343X),
-> -	CLK(NULL,	"dss_ick",	&dss_ick,	CK_343X),
-> +	CLK("omapfb",	"dss1_fck",	&dss1_alwon_fck, CK_343X),
-> +	CLK("omapfb",	"tv_fck",	&dss_tv_fck,	CK_343X),
-> +	CLK("omapfb",	"video_fck",	&dss_96m_fck,	CK_343X),
-> +	CLK("omapfb",	"dss2_fck",	&dss2_alwon_fck, CK_343X),
-> +	CLK("omapfb",	"ick",		&dss_ick,	CK_343X),
->  	CLK(NULL,	"cam_mclk",	&cam_mclk,	CK_343X),
->  	CLK(NULL,	"cam_ick",	&cam_ick,	CK_343X),
->  	CLK(NULL,	"csi2_96m_fck",	&csi2_96m_fck,	CK_343X),
-> diff --git a/drivers/video/omap/dispc.c b/drivers/video/omap/dispc.c
-> index dfb72f5..3668df2 100644
-> --- a/drivers/video/omap/dispc.c
-> +++ b/drivers/video/omap/dispc.c
-> @@ -880,23 +880,25 @@ static irqreturn_t omap_dispc_irq_handler(int irq, void *dev)
->  
->  static int get_dss_clocks(void)
->  {
-> -	if (IS_ERR((dispc.dss_ick = clk_get(dispc.fbdev->dev, "dss_ick")))) {
-> -		dev_err(dispc.fbdev->dev, "can't get dss_ick\n");
-> +	dispc.dss_ick = clk_get(dispc.fbdev->dev, "ick");
-> +	if (IS_ERR(dispc.dss_ick)) {
-> +		dev_err(dispc.fbdev->dev, "can't get ick\n");
->  		return PTR_ERR(dispc.dss_ick);
->  	}
->  
-> -	if (IS_ERR((dispc.dss1_fck = clk_get(dispc.fbdev->dev, "dss1_fck")))) {
-> +	dispc.dss1_fck = clk_get(dispc.fbdev->dev, "dss1_fck");
-> +	if (IS_ERR(dispc.dss1_fck)) {
->  		dev_err(dispc.fbdev->dev, "can't get dss1_fck\n");
->  		clk_put(dispc.dss_ick);
->  		return PTR_ERR(dispc.dss1_fck);
->  	}
->  
-> -	if (IS_ERR((dispc.dss_54m_fck =
-> -				clk_get(dispc.fbdev->dev, "dss_54m_fck")))) {
-> -		dev_err(dispc.fbdev->dev, "can't get dss_54m_fck\n");
-> +	dispc.dss_54m_fck = clk_get(dispc.fbdev->dev, "tv_fck");
-> +	if (IS_ERR(dispc.dss_54m_fck)) {
-> +		dev_err(dispc.fbdev->dev, "can't get tv_fck\n");
->  		clk_put(dispc.dss_ick);
->  		clk_put(dispc.dss1_fck);
-> -		return PTR_ERR(dispc.dss_54m_fck);
-> +
->  	}
->  
->  	return 0;
-> diff --git a/drivers/video/omap/rfbi.c b/drivers/video/omap/rfbi.c
-> index a13c8dc..9332d6c 100644
-> --- a/drivers/video/omap/rfbi.c
-> +++ b/drivers/video/omap/rfbi.c
-> @@ -83,12 +83,14 @@ static inline u32 rfbi_read_reg(int idx)
->  
->  static int rfbi_get_clocks(void)
->  {
-> -	if (IS_ERR((rfbi.dss_ick = clk_get(rfbi.fbdev->dev, "dss_ick")))) {
-> -		dev_err(rfbi.fbdev->dev, "can't get dss_ick\n");
-> +	rfbi.dss_ick = clk_get(rfbi.fbdev->dev, "ick");
-> +	if (IS_ERR(rfbi.dss_ick)) {
-> +		dev_err(rfbi.fbdev->dev, "can't get ick\n");
->  		return PTR_ERR(rfbi.dss_ick);
->  	}
->  
-> -	if (IS_ERR((rfbi.dss1_fck = clk_get(rfbi.fbdev->dev, "dss1_fck")))) {
-> +	rfbi.dss1_fck = clk_get(rfbi.fbdev->dev, "dss1_fck");
-> +	if (IS_ERR(rfbi.dss1_fck)) {
->  		dev_err(rfbi.fbdev->dev, "can't get dss1_fck\n");
->  		clk_put(rfbi.dss_ick);
->  		return PTR_ERR(rfbi.dss1_fck);
-> 
-> 
-> -------------------------------------------------------------------
-> List admin: http://lists.arm.linux.org.uk/mailman/listinfo/linux-arm-kernel
-> FAQ:        http://www.arm.linux.org.uk/mailinglists/faq.php
-> Etiquette:  http://www.arm.linux.org.uk/mailinglists/etiquette.php
-> 
+Also when reviewing the timing calculations, it appears that the lowest speed
+setting had an error in its autorefresh counter value.  I don't know if
+anything out there still uses this low-speed setting - my recollection is
+that it was added for some early Labrador boards that had speed restrictions -
+any comments from TI on whether these 133.3MHz/66.6MHz rates should be dropped
+is most welcome.
 
-----------------------------------------------------------------------
-Czy bede bogaty? 
-Zapytaj wrozke >> http://link.interia.pl/f216c 
+These patches will be queued up into the omap-clock-testing branch at the
+next possible opportunity.
 
+
+- Paul
+
+---
+
+size:
+  text    data     bss     dec     hex filename
+3667957  196224  113216 3977397  3cb0b5 vmlinux.3430sdp.orig
+3667957  196256  113216 3977429  3cb0d5 vmlinux.3430sdp
+
+
+Paul Walmsley (2):
+      OMAP3 SDRC: Add rounded rates for devices using the Qimonda SDRAM
+      OMAP3 SDRC: Fix autorefresh counter for Qimonda SDRAM 66.6MHz rate
+
+
+ .../mach-omap2/sdram-qimonda-hyb18m512160af-6.h    |   28 +++++++++++++++-----
+ 1 files changed, 21 insertions(+), 7 deletions(-)
 
