@@ -1,64 +1,78 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 9/9] omap mmc host: Use disable_irq_nosync() from
-	within irq handlers.
-Date: Thu, 14 May 2009 10:22:26 -0700
-Message-ID: <20090514172226.GK5593@atomide.com>
-References: <1239861321.29831.130.camel@linux-51e8.site> <20090426212118.19526712@mjolnir.ossman.eu>
+Subject: Re: LDP support
+Date: Thu, 14 May 2009 10:33:33 -0700
+Message-ID: <20090514173333.GL5593@atomide.com>
+References: <20090428220712.GF29277@n2100.arm.linux.org.uk> <20090428224237.GT22457@atomide.com> <20090505195231.GB8004@n2100.arm.linux.org.uk> <20090506040015.GM5593@atomide.com> <20090514090731.GB29164@localhost>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:52372 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752510AbZENRWg (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 14 May 2009 13:22:36 -0400
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:62664 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751010AbZENRdp (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 14 May 2009 13:33:45 -0400
 Content-Disposition: inline
-In-Reply-To: <20090426212118.19526712@mjolnir.ossman.eu>
+In-Reply-To: <20090514090731.GB29164@localhost>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Pierre Ossman <pierre@ossman.eu>
-Cc: Carlos Aguiar <carlos.aguiar@indt.org.br>, Anderson Briglia <briglia.anderson@gmail.com>, "Syed Mohammed, Khasim" <x0khasim@ti.com>, Ben Nizette <bn@niasdigital.com>, linux-omap@vger.kernel.org, linux-kernel <linux-kernel@vger.kernel.org>
+To: Imre Deak <imre.deak@nokia.com>
+Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Valkeinen Tomi (Nokia-D/Helsinki)" <Tomi.Valkeinen@nokia.com>
 
-* Pierre Ossman <pierre@ossman.eu> [090426 12:22]:
-> Should I queue this up or do you want to do something differently for
-> this?
-
-Looks like a valid fix to me.
-
-Acked-by: Tony Lindgren <tony@atomide.com>
- 
-> On Thu, 16 Apr 2009 15:55:21 +1000
-> Ben Nizette <bn@niasdigital.com> wrote:
-> 
+* Imre Deak <imre.deak@nokia.com> [090514 02:09]:
+> On Wed, May 06, 2009 at 06:00:16AM +0200, ext Tony Lindgren wrote:
+> > * Russell King - ARM Linux <linux@arm.linux.org.uk> [090505 12:52]:
+> > > On Tue, Apr 28, 2009 at 03:42:37PM -0700, Tony Lindgren wrote:
+> > > > * Russell King - ARM Linux <linux@arm.linux.org.uk> [090428 15:07]:
+> > > > > Tony, et.al.,
+> > > > > 
+> > > > > Any ideas when more LDP support will be pushed into mainline (such as
+> > > > > the framebuffer support)?
+> > > > 
+> > > > I'll be looking at the board-*.c patches for the next merge window
+> > > > hopefully this week or next week.
+> > > > 
+> > > > Looks like LDP keyboard, touchscreen & RTC are pretty much ready
+> > > > to go. Then the MMC has some regulator updates, but AFAIK the MMC
+> > > > should work OK already.
+> > > > 
+> > > > For the framebuffer, Imre and Tomi know the status the best, so
+> > > > I've added them to Cc.
+> > > > 
+> > > > Imre has been meaning to send a bunch of drivers/video/omap changes
+> > > > to the fbdev list for a while now and LDP framebuffer may depend on
+> > > > those. Imre, any news on the status of sending the fb patches
+> > > > upstream?
+> > > > 
+> > > > Then there are the upcoming DSS patches from Tomi, but those still
+> > > > need some work before they're ready to go.
+> > > 
+> > > Is there any news on this?  Will we see more functional OMAP3 / LDP
+> > > support queued for the next merge window?
 > > 
-> > disable_irq() should wait for all running handlers to complete
-> > before returning.  As such, if it's used to disable an interrupt
-> > from that interrupt's handler it will deadlock.  This replaces
-> > the dangerous instances with the _nosync() variant which doesn't
-> > have this problem.
-> > 
-> > Signed-off-by: Ben Nizette <bn@niasdigital.com>
-> > ---
-> > diff --git a/drivers/mmc/host/omap.c b/drivers/mmc/host/omap.c
-> > index 5570849..d5ea652 100644
-> > --- a/drivers/mmc/host/omap.c
-> > +++ b/drivers/mmc/host/omap.c
-> > @@ -824,7 +824,7 @@ static irqreturn_t mmc_omap_irq(int irq, void *dev_id)
-> >  		del_timer(&host->cmd_abort_timer);
-> >  		host->abort = 1;
-> >  		OMAP_MMC_WRITE(host, IE, 0);
-> > -		disable_irq(host->irq);
-> > +		disable_irq_nosync(host->irq);
-> >  		schedule_work(&host->cmd_abort_work);
-> >  		return IRQ_HANDLED;
-> >  	}
+> > Yes fro the stuff listed above, but still no news on the framebuffer
+> > patches. Imre?
 > 
+> There is a mainline based tree with the missing DSS1 FB stuff that I'm
+> planning to submit to fb-devel:
 > 
-> -- 
->      -- Pierre Ossman
+> git clone git://koowaldah.org/people/imre/linux-2.6-fb
 > 
->   WARNING: This correspondence is being monitored by the
->   Swedish government. Make sure your server uses encryption
->   for SMTP traffic and consider using PGP for end-to-end
->   encryption.
+> I could only compile test it for OMAP2/3 targets, it would be nice
+> if someone could check if it works too. Also if some DSS1 FB related things
+> are still missing from that tree, I could add them / submit them with
+> the rest of the things.
+> 
+> Sorry for the big delay.
 
+Great, I've started mirroring this as omapfb-upstream branch in the linux-omap
+tree for easy testing.
 
+Looks like your patch "ARM: OMAP: NOKIA-770: Add support for HWA742 LCD controller"
+needs fixing to just pass the clocks to the LCD driver as discussed in
+the recent 770 thread.
+
+Also your patch "ARM: OMAP: FB: Add OMAP3 DISPC support" will be obsolete,
+I have a fix in my omap-fixes queue that solves the problem with clkdev.
+
+Regards,
+
+Tony
