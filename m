@@ -1,67 +1,90 @@
-From: Tero Kristo <tero.kristo@nokia.com>
-Subject: [PATCH] OMAP: PM: Fixed omap_pm_set_min_bus_tput
-Date: Thu, 14 May 2009 15:09:50 +0300
-Message-ID: <1242302990-4104-1-git-send-email-tero.kristo@nokia.com>
+From: "Kanigeri, Hari" <h-kanigeri2@ti.com>
+Subject: RE: [PATCH 1/1] DSPBRIDGE: Convert ioctl() to unlocked_ioctl()
+Date: Thu, 14 May 2009 07:59:48 -0500
+Message-ID: <8F7AF80515AF0D4D93307E594F3CB40E2AFF361A@dlee03.ent.ti.com>
+References: <1242281536-4757-1-git-send-email-Hiroshi.DOYU@nokia.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:17031 "EHLO
-	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759592AbZENMgY (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 14 May 2009 08:36:24 -0400
-Received: from esebh106.NOE.Nokia.com (esebh106.ntc.nokia.com [172.21.138.213])
-	by mgw-mx06.nokia.com (Switch-3.2.6/Switch-3.2.6) with ESMTP id n4ECaJQw026236
-	for <linux-omap@vger.kernel.org>; Thu, 14 May 2009 15:36:20 +0300
-Received: from localhost.localdomain (sokoban.ntc.nokia.com [172.22.144.95])
-	by mgw-int01.ntc.nokia.com (Switch-3.2.5/Switch-3.2.5) with ESMTP id n4ECaKbB007538
-	for <linux-omap@vger.kernel.org>; Thu, 14 May 2009 15:36:20 +0300
-In-Reply-To: <>
-References: <>
+Received: from bear.ext.ti.com ([192.94.94.41]:36197 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752574AbZENNAG convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 14 May 2009 09:00:06 -0400
+In-Reply-To: <1242281536-4757-1-git-send-email-Hiroshi.DOYU@nokia.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
+To: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+Cc: "Menon, Nishanth" <nm@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-From: Tero Kristo <tero.kristo@nokia.com>
+Thanks, Doyu-san.
 
-Parameter check for this function was bugged.
+We will push this change once system level validation is completed with TI test suites.
 
-Applies on top of PM branch.
+Thank you,
+Best regards,
+Hari
 
-Signed-off-by: Tero Kristo <tero.kristo@nokia.com>
-Signed-off-by: Jouni Hogander <jouni.hogander@nokia.com>
----
- arch/arm/plat-omap/omap-pm-noop.c |    4 ++--
- arch/arm/plat-omap/omap-pm-srf.c  |    4 ++--
- 2 files changed, 4 insertions(+), 4 deletions(-)
-
-diff --git a/arch/arm/plat-omap/omap-pm-noop.c b/arch/arm/plat-omap/omap-pm-noop.c
-index 490bc8e..4ba261a 100644
---- a/arch/arm/plat-omap/omap-pm-noop.c
-+++ b/arch/arm/plat-omap/omap-pm-noop.c
-@@ -62,8 +62,8 @@ void omap_pm_set_max_mpu_wakeup_lat(struct device *dev, long t)
- 
- void omap_pm_set_min_bus_tput(struct device *dev, u8 agent_id, unsigned long r)
- {
--	if (!dev || agent_id != OCP_INITIATOR_AGENT ||
--	    agent_id != OCP_TARGET_AGENT) {
-+	if (!dev || (agent_id != OCP_INITIATOR_AGENT &&
-+	    agent_id != OCP_TARGET_AGENT)) {
- 		WARN_ON(1);
- 		return;
- 	};
-diff --git a/arch/arm/plat-omap/omap-pm-srf.c b/arch/arm/plat-omap/omap-pm-srf.c
-index 72e32de..226662d 100644
---- a/arch/arm/plat-omap/omap-pm-srf.c
-+++ b/arch/arm/plat-omap/omap-pm-srf.c
-@@ -76,8 +76,8 @@ void omap_pm_set_max_mpu_wakeup_lat(struct device *dev, long t)
- 
- void omap_pm_set_min_bus_tput(struct device *dev, u8 agent_id, unsigned long r)
- {
--	if (!dev || agent_id != OCP_INITIATOR_AGENT ||
--	    agent_id != OCP_TARGET_AGENT) {
-+	if (!dev || (agent_id != OCP_INITIATOR_AGENT &&
-+	    agent_id != OCP_TARGET_AGENT)) {
- 		WARN_ON(1);
- 		return;
- 	};
--- 
-1.5.4.3
+> -----Original Message-----
+> From: Hiroshi DOYU [mailto:Hiroshi.DOYU@nokia.com]
+> Sent: Thursday, May 14, 2009 1:12 AM
+> To: Kanigeri, Hari
+> Cc: Menon, Nishanth; linux-omap@vger.kernel.org; Doyu Hiroshi (Nokia-
+> D/Helsinki); Hiroshi DOYU
+> Subject: [PATCH 1/1] DSPBRIDGE: Convert ioctl() to unlocked_ioctl()
+> 
+> From: Doyu Hiroshi (Nokia-D/Helsinki) <hiroshi.doyu@nokia.com>
+> 
+> dspbridge doesn't need BKL.
+> 
+> Signed-off-by: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+> ---
+>  drivers/dsp/bridge/rmgr/drv_interface.c |    4 ++--
+>  drivers/dsp/bridge/rmgr/drv_interface.h |    2 +-
+>  2 files changed, 3 insertions(+), 3 deletions(-)
+> 
+> diff --git a/drivers/dsp/bridge/rmgr/drv_interface.c
+> b/drivers/dsp/bridge/rmgr/drv_interface.c
+> index 9466409..1659e2d 100755
+> --- a/drivers/dsp/bridge/rmgr/drv_interface.c
+> +++ b/drivers/dsp/bridge/rmgr/drv_interface.c
+> @@ -197,7 +197,7 @@ static struct GT_Mask driverTrace;
+>  static struct file_operations bridge_fops = {
+>  	.open		= bridge_open,
+>  	.release	= bridge_release,
+> -	.ioctl		= bridge_ioctl,
+> +	.unlocked_ioctl	= bridge_ioctl,
+>  	.mmap		= bridge_mmap,
+>  };
+> 
+> @@ -686,7 +686,7 @@ static int bridge_release(struct inode *ip, struct
+> file *filp)
+>  }
+> 
+>  /* This function provides IO interface to the bridge driver. */
+> -static int bridge_ioctl(struct inode *ip, struct file *filp, unsigned int
+> code,
+> +static int bridge_ioctl(struct file *filp, unsigned int code,
+>  		unsigned long args)
+>  {
+>  	int status;
+> diff --git a/drivers/dsp/bridge/rmgr/drv_interface.h
+> b/drivers/dsp/bridge/rmgr/drv_interface.h
+> index f5b068e..3e77ed0 100644
+> --- a/drivers/dsp/bridge/rmgr/drv_interface.h
+> +++ b/drivers/dsp/bridge/rmgr/drv_interface.h
+> @@ -34,7 +34,7 @@ static int __init bridge_init(void);	/* Initialize
+> bridge */
+>  static void __exit bridge_exit(void);	/* Opposite of initialize */
+>  static int bridge_open(struct inode *, struct file *);	/* Open */
+>  static int bridge_release(struct inode *, struct file *);	/* Release */
+> -static int bridge_ioctl(struct inode *, struct file *, unsigned int,
+> +static int bridge_ioctl(struct file *, unsigned int,
+>  			unsigned long);
+>  static int bridge_mmap(struct file *filp, struct vm_area_struct *vma);
+>  #endif				/* ifndef _DRV_INTERFACE_H_ */
+> --
+> 1.6.0.4
+> 
 
