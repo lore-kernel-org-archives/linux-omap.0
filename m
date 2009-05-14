@@ -1,47 +1,94 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 1/8] ARM: OMAP: Fix printing of reserved memory for frambuffer
-Date: Thu, 14 May 2009 10:43:12 -0700
-Message-ID: <20090514174312.12080.67286.stgit@localhost>
+Subject: [PATCH 2/8] ARM: OMAP: GPIO de-bounce clocks don't affect module idle
+	state
+Date: Thu, 14 May 2009 10:44:35 -0700
+Message-ID: <20090514174435.12080.75605.stgit@localhost>
 References: <20090514174100.12080.9736.stgit@localhost>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:58260 "EHLO
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:60147 "EHLO
 	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751220AbZENRnT (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 14 May 2009 13:43:19 -0400
+	with ESMTP id S1752390AbZENRoj (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 14 May 2009 13:44:39 -0400
 In-Reply-To: <20090514174100.12080.9736.stgit@localhost>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-arm-kernel@lists.arm.linux.org.uk
-Cc: Tomi Valkeinen <tomi.valkeinen@nokia.com>, linux-omap@vger.kernel.org
+Cc: Kevin Hilman <khilman@deeprootsystems.com>, Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org
 
-From: Tomi Valkeinen <tomi.valkeinen@nokia.com>
+From: Paul Walmsley <paul@pwsan.com>
 
-Print reserved memory only if it was actually reserved.
+GPIO de-bounce clocks don't have any impact on the module idle state, so
+the clock code should not wait for the module to enable after the de-bounce
+clocks are enabled.
 
-Signed-off-by: Tomi Valkeinen <tomi.valkeinen@nokia.com>
+Problem found by Kevin Hilman <khilman@deeprootsystems.com>.
+
+Signed-off-by: Paul Walmsley <paul@pwsan.com>
+Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
- arch/arm/plat-omap/fb.c |    5 +++--
- 1 files changed, 3 insertions(+), 2 deletions(-)
+ arch/arm/mach-omap2/clock34xx.h |   12 ++++++------
+ 1 files changed, 6 insertions(+), 6 deletions(-)
 
-diff --git a/arch/arm/plat-omap/fb.c b/arch/arm/plat-omap/fb.c
-index ce6b4ba..3746222 100644
---- a/arch/arm/plat-omap/fb.c
-+++ b/arch/arm/plat-omap/fb.c
-@@ -206,9 +206,10 @@ void __init omapfb_reserve_sdram(void)
- 			config_invalid = 1;
- 			return;
- 		}
--		if (rg.paddr)
-+		if (rg.paddr) {
- 			reserve_bootmem(rg.paddr, rg.size, BOOTMEM_DEFAULT);
--		reserved += rg.size;
-+			reserved += rg.size;
-+		}
- 		omapfb_config.mem_desc.region[i] = rg;
- 		configured_regions++;
- 	}
+diff --git a/arch/arm/mach-omap2/clock34xx.h b/arch/arm/mach-omap2/clock34xx.h
+index 6763b8f..017a30e 100644
+--- a/arch/arm/mach-omap2/clock34xx.h
++++ b/arch/arm/mach-omap2/clock34xx.h
+@@ -2182,7 +2182,7 @@ static struct clk wkup_32k_fck = {
+ 
+ static struct clk gpio1_dbck = {
+ 	.name		= "gpio1_dbck",
+-	.ops		= &clkops_omap2_dflt_wait,
++	.ops		= &clkops_omap2_dflt,
+ 	.parent		= &wkup_32k_fck,
+ 	.enable_reg	= OMAP_CM_REGADDR(WKUP_MOD, CM_FCLKEN),
+ 	.enable_bit	= OMAP3430_EN_GPIO1_SHIFT,
+@@ -2427,7 +2427,7 @@ static struct clk per_32k_alwon_fck = {
+ 
+ static struct clk gpio6_dbck = {
+ 	.name		= "gpio6_dbck",
+-	.ops		= &clkops_omap2_dflt_wait,
++	.ops		= &clkops_omap2_dflt,
+ 	.parent		= &per_32k_alwon_fck,
+ 	.enable_reg	= OMAP_CM_REGADDR(OMAP3430_PER_MOD, CM_FCLKEN),
+ 	.enable_bit	= OMAP3430_EN_GPIO6_SHIFT,
+@@ -2437,7 +2437,7 @@ static struct clk gpio6_dbck = {
+ 
+ static struct clk gpio5_dbck = {
+ 	.name		= "gpio5_dbck",
+-	.ops		= &clkops_omap2_dflt_wait,
++	.ops		= &clkops_omap2_dflt,
+ 	.parent		= &per_32k_alwon_fck,
+ 	.enable_reg	= OMAP_CM_REGADDR(OMAP3430_PER_MOD, CM_FCLKEN),
+ 	.enable_bit	= OMAP3430_EN_GPIO5_SHIFT,
+@@ -2447,7 +2447,7 @@ static struct clk gpio5_dbck = {
+ 
+ static struct clk gpio4_dbck = {
+ 	.name		= "gpio4_dbck",
+-	.ops		= &clkops_omap2_dflt_wait,
++	.ops		= &clkops_omap2_dflt,
+ 	.parent		= &per_32k_alwon_fck,
+ 	.enable_reg	= OMAP_CM_REGADDR(OMAP3430_PER_MOD, CM_FCLKEN),
+ 	.enable_bit	= OMAP3430_EN_GPIO4_SHIFT,
+@@ -2457,7 +2457,7 @@ static struct clk gpio4_dbck = {
+ 
+ static struct clk gpio3_dbck = {
+ 	.name		= "gpio3_dbck",
+-	.ops		= &clkops_omap2_dflt_wait,
++	.ops		= &clkops_omap2_dflt,
+ 	.parent		= &per_32k_alwon_fck,
+ 	.enable_reg	= OMAP_CM_REGADDR(OMAP3430_PER_MOD, CM_FCLKEN),
+ 	.enable_bit	= OMAP3430_EN_GPIO3_SHIFT,
+@@ -2467,7 +2467,7 @@ static struct clk gpio3_dbck = {
+ 
+ static struct clk gpio2_dbck = {
+ 	.name		= "gpio2_dbck",
+-	.ops		= &clkops_omap2_dflt_wait,
++	.ops		= &clkops_omap2_dflt,
+ 	.parent		= &per_32k_alwon_fck,
+ 	.enable_reg	= OMAP_CM_REGADDR(OMAP3430_PER_MOD, CM_FCLKEN),
+ 	.enable_bit	= OMAP3430_EN_GPIO2_SHIFT,
 
