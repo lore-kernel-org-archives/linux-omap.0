@@ -1,62 +1,53 @@
-From: Phil Carmody <ext-phil.2.carmody@nokia.com>
-Subject: Re: [PATCH 0/2] OMAP3: PM: More pedantic parameter and error
-	checking in smartreflex
-Date: Thu, 14 May 2009 11:03:59 +0300
-Message-ID: <1242288239.9103.123.camel@pcarmody-desktop>
-References: <1240849585-14828-1-git-send-email-ext-phil.2.carmody@nokia.com>
-	 <87bppx82du.fsf@deeprootsystems.com>
-	 <1242228960.9103.119.camel@pcarmody-desktop>
-	 <87ab5h6j06.fsf@deeprootsystems.com>
-Reply-To: ext-phil.2.carmody@nokia.com
+From: Felipe Balbi <felipe.balbi@nokia.com>
+Subject: Re: Patch "REMOVE OMAP LEGACY CODE: Reset mach-omap1/board-*.c
+	files to mainline" breaks nokia770
+Date: Thu, 14 May 2009 11:04:58 +0300
+Message-ID: <20090514080458.GC10386@nokia.com>
+References: <20090514004651.77342rqoq5tz86ww@lidskialf.net> <20090514002335.GA9538@nokia.com> <20090514014413.GE5593@atomide.com>
+Reply-To: felipe.balbi@nokia.com
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:53258 "EHLO
-	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754812AbZENIDS (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 14 May 2009 04:03:18 -0400
-In-Reply-To: <87ab5h6j06.fsf@deeprootsystems.com>
+Received: from smtp.nokia.com ([192.100.122.230]:17730 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750920AbZENIPR (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 14 May 2009 04:15:17 -0400
+Content-Disposition: inline
+In-Reply-To: <20090514014413.GE5593@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: ext Kevin Hilman <khilman@deeprootsystems.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: ext Tony Lindgren <tony@atomide.com>
+Cc: "Balbi Felipe (Nokia-D/Helsinki)" <felipe.balbi@nokia.com>, ext Andrew de Quincey <adq_dvb@lidskialf.net>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Wed, 2009-05-13 at 18:54 +0200, ext Kevin Hilman wrote:
-> Phil Carmody <ext-phil.2.carmody@nokia.com> writes:
+On Thu, May 14, 2009 at 03:44:14AM +0200, ext Tony Lindgren wrote:
+> * Felipe Balbi <felipe.balbi@nokia.com> [090513 17:33]:
+> > On Thu, May 14, 2009 at 01:46:51AM +0200, ext Andrew de Quincey wrote:
+> > > Hi, I've just discovered that the patch at:
+> > > 
+> > > http://git.kernel.org/?p=linux/kernel/git/tmlind/linux-omap-2.6.git;a=commitdiff;h=3eae3ea7c443fc4330574dffea65b6f2f53a2574
+> > > 
+> > > Breaks the nokia770's framebuffer as it removes the platform data for  
+> > > the HWA742 LCD controller.
+> > > 
+> > > As the patch says "Patches against the mainline tree are welcome to  
+> > > add back the missing functionality if needed!", I'm happy to do this.
+> > > 
+> > > However, since I'm fairly new to the linux-omap project, is simply  
+> > > extracting the removed nokia770 code and generating a patch against  
+> > > the mainline kernel sufficient? or is there a newer style of some sort  
+> > > that should be adopted for this?
+> > 
+> > You can start by generating the new patch against mainline and running
+> > scripts/checkpatch.pl, then you should probably find out if there are
+> > any API changes and stuff like that. Then send the patch to lkml ccing
+> > linux-omap and let's see what comments do you get from those guys :-)
 > 
-> > On Wed, 2009-05-13 at 17:10 +0200, ext Kevin Hilman wrote:
-> >> Phil Carmody <ext-phil.2.carmody@nokia.com> writes:
-> >> 
-> >> > A couple of simple patches to improve error handling in smartreflex.
-> >> > The first has a practical benefit of avoiding a string-based search
-> >> > in situtations where the result wouldn't be needed. The second is
-> >> > simple paranoia.
-> >> 
-> >> Thanks, pushing this series today.
-> >> 
-> >> Note that I pushed this on top of Rajendra's patch:
-> >> "OMAP3: SR: Fix SR driver to check for omap-pm return values"
-> >> and had to resolve a couple of conflicts.
-> >> 
-> >> Could you please sanity check it?
-> >
-> > Sanity check successful. Many thanks, Kevin.
-> 
-> Hmm, you're too fast for me.
+> Please change the code to pass the struct clock to drivers/video/omap/hwa742.c
+> in hwa742_platform_data. The hw742.c can just do standard clk_enable/disable
+> there. Otherwise we won't be able to get this missing part to the mainline
+> kernel.
 
-It's the time zone difference! 
+how about clkdev then ? are we gonna support that for omap1 still ?
 
-> Not sure how you tested as I hadn't pushed your changes yet ;)
->
-> I just pushed them to my pm branch, but they are not yet sync'd to
-> tony's tree.  Can you try now.
-
-Freshly pulled, indeed I now see the extent of the rework. I don't know
-whether -ENODEV or -EINVAL is better, the former just came to mind first
-when I was in the file.
-
-Either way, it looks fine. Thanks again.
-
-Phil
-
+-- 
+balbi
