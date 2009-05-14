@@ -1,283 +1,262 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH omap3-upstream] OMAP: PM: add PRCM register offsets
-Date: Thu, 14 May 2009 16:17:52 -0700
-Message-ID: <20090514231751.GX5593@atomide.com>
-References: <1242340569-16302-1-git-send-email-khilman@deeprootsystems.com>
+From: Andrew de Quincey <adq_dvb@lidskialf.net>
+Subject: Re: Patch "REMOVE OMAP LEGACY CODE: Reset mach-omap1/board-*.c
+	files to mainline" breaks nokia770
+Date: Fri, 15 May 2009 00:18:55 +0100
+Message-ID: <20090515001855.11164yyhzqzya58g@lidskialf.net>
+References: <20090514004651.77342rqoq5tz86ww@lidskialf.net>
+	<20090514002335.GA9538@nokia.com> <20090514014413.GE5593@atomide.com>
+	<20090514080458.GC10386@nokia.com> <20090514153048.GH5593@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/mixed;
+	boundary="=_4xf1yxb6e5ts"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:54791 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753688AbZENXRy (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 14 May 2009 19:17:54 -0400
-Content-Disposition: inline
-In-Reply-To: <1242340569-16302-1-git-send-email-khilman@deeprootsystems.com>
+Received: from 82-71-49-12.dsl.in-addr.zen.co.uk ([82.71.49.12]:33431 "EHLO
+	mail.lidskialf.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755732AbZENXSz (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 14 May 2009 19:18:55 -0400
+In-Reply-To: <20090514153048.GH5593@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@deeprootsystems.com>
-Cc: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Felipe Balbi <felipe.balbi@nokia.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-* Kevin Hilman <khilman@deeprootsystems.com> [090514 15:36]:
-> Add _OFFSET #defines for the PRCM registers to be used with the
-> prm_[read|write]_* macros.  These are used extensively in the
-> forthcoming OMAP PM support.
+This message is in MIME format.
 
-Thanks, I've merged this into "Remove OMAP_PRM_REGADDR and OMAP2_PRM_BASE",
-will post the series with LAKML Cc'd for review.
+--=_4xf1yxb6e5ts
+Content-Type: text/plain;
+	charset=UTF-8;
+	DelSp="Yes";
+	format="flowed"
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Tony
- 
-> Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
-> ---
->  arch/arm/mach-omap2/clock.c    |    4 +-
->  arch/arm/mach-omap2/cm.h       |    1 +
->  arch/arm/mach-omap2/prm.h      |   69 ++++++++++++++++++++++++++++++---------
->  arch/arm/mach-omap2/sram242x.S |    6 ++--
->  arch/arm/mach-omap2/sram243x.S |    6 ++--
->  5 files changed, 62 insertions(+), 24 deletions(-)
-> 
-> diff --git a/arch/arm/mach-omap2/clock.c b/arch/arm/mach-omap2/clock.c
-> index 4247a15..dd37483 100644
-> --- a/arch/arm/mach-omap2/clock.c
-> +++ b/arch/arm/mach-omap2/clock.c
-> @@ -91,9 +91,9 @@ static void _omap2xxx_clk_commit(struct clk *clk)
->  		return;
->  
->  	prm_write_mod_reg(OMAP24XX_VALID_CONFIG, OMAP24XX_GR_MOD,
-> -		OMAP24XX_PRCM_CLKCFG_CTRL_OFFSET);
-> +		OMAP2_PRCM_CLKCFG_CTRL_OFFSET);
->  	/* OCP barrier */
-> -	prm_read_mod_reg(OMAP24XX_GR_MOD, OMAP24XX_PRCM_CLKCFG_CTRL_OFFSET);
-> +	prm_read_mod_reg(OMAP24XX_GR_MOD, OMAP2_PRCM_CLKCFG_CTRL_OFFSET);
->  }
->  
->  /*
-> diff --git a/arch/arm/mach-omap2/cm.h b/arch/arm/mach-omap2/cm.h
-> index 04c5fc5..1d3c93b 100644
-> --- a/arch/arm/mach-omap2/cm.h
-> +++ b/arch/arm/mach-omap2/cm.h
-> @@ -33,6 +33,7 @@
->  #define OMAP3430_CM_SYSCONFIG		OMAP_CM_REGADDR(OCP_MOD, 0x0010)
->  #define OMAP3430_CM_POLCTRL		OMAP_CM_REGADDR(OCP_MOD, 0x009c)
->  
-> +#define OMAP3_CM_CLKOUT_CTRL_OFFSET	0x0070
->  #define OMAP3430_CM_CLKOUT_CTRL		OMAP_CM_REGADDR(OMAP3430_CCR_MOD, 0x0070)
->  
->  /*
-> diff --git a/arch/arm/mach-omap2/prm.h b/arch/arm/mach-omap2/prm.h
-> index 2eb8399..7c8e0c4 100644
-> --- a/arch/arm/mach-omap2/prm.h
-> +++ b/arch/arm/mach-omap2/prm.h
-> @@ -33,36 +33,35 @@
->   *
->   */
->  
-> -/* Global 24xx registers in GR_MOD (Same as OCP_MOD for 24xx) */
-> -#define OMAP24XX_PRCM_VOLTCTRL_OFFSET		0x0050
-> -#define OMAP24XX_PRCM_CLKCFG_CTRL_OFFSET	0x0080
-> -
-> -/* 242x GR_MOD registers, use these only for assembly code */
-> -#define OMAP242X_PRCM_VOLTCTRL		OMAP2420_PRM_REGADDR(OMAP24XX_GR_MOD,	\
-> -						OMAP24XX_PRCM_VOLTCTRL_OFFSET)
-> -#define OMAP242X_PRCM_CLKCFG_CTRL	OMAP2420_PRM_REGADDR(OMAP24XX_GR_MOD,	\
-> -						OMAP24XX_PRCM_CLKCFG_CTRL_OFFSET)
-> -
-> -/* 243x GR_MOD registers, use these only for assembly code */
-> -#define OMAP243X_PRCM_VOLTCTRL		OMAP2430_PRM_REGADDR(OMAP24XX_GR_MOD,	\
-> -						OMAP24XX_PRCM_VOLTCTRL_OFFSET)
-> -#define OMAP243X_PRCM_CLKCFG_CTRL	OMAP2430_PRM_REGADDR(OMAP24XX_GR_MOD,	\
-> -						OMAP24XX_PRCM_CLKCFG_CTRL_OFFSET)
-> -
-> +#define OMAP2_PRCM_REVISION_OFFSET	0x0000
->  #define OMAP2420_PRCM_REVISION		OMAP2420_PRM_REGADDR(OCP_MOD, 0x0000)
-> +#define OMAP2_PRCM_SYSCONFIG_OFFSET	0x0010
->  #define OMAP2420_PRCM_SYSCONFIG		OMAP2420_PRM_REGADDR(OCP_MOD, 0x0010)
->  
-> +#define OMAP2_PRCM_IRQSTATUS_MPU_OFFSET	0x0018
->  #define OMAP2420_PRCM_IRQSTATUS_MPU	OMAP2420_PRM_REGADDR(OCP_MOD, 0x0018)
-> +#define OMAP2_PRCM_IRQENABLE_MPU_OFFSET	0x001c
->  #define OMAP2420_PRCM_IRQENABLE_MPU	OMAP2420_PRM_REGADDR(OCP_MOD, 0x001c)
->  
-> +#define OMAP2_PRCM_VOLTCTRL_OFFSET	0x0050
-> +#define OMAP2420_PRCM_VOLTCTRL		OMAP2420_PRM_REGADDR(OCP_MOD, 0x0050)
-> +#define OMAP2_PRCM_VOLTST_OFFSET	0x0054
->  #define OMAP2420_PRCM_VOLTST		OMAP2420_PRM_REGADDR(OCP_MOD, 0x0054)
-> +#define OMAP2_PRCM_CLKSRC_CTRL_OFFSET	0x0060
->  #define OMAP2420_PRCM_CLKSRC_CTRL	OMAP2420_PRM_REGADDR(OCP_MOD, 0x0060)
-> +#define OMAP2_PRCM_CLKOUT_CTRL_OFFSET	0x0070
->  #define OMAP2420_PRCM_CLKOUT_CTRL	OMAP2420_PRM_REGADDR(OCP_MOD, 0x0070)
-> +#define OMAP2_PRCM_CLKEMUL_CTRL_OFFSET	0x0078
->  #define OMAP2420_PRCM_CLKEMUL_CTRL	OMAP2420_PRM_REGADDR(OCP_MOD, 0x0078)
-> +#define OMAP2_PRCM_CLKCFG_CTRL_OFFSET	0x0080
->  #define OMAP2420_PRCM_CLKCFG_CTRL	OMAP2420_PRM_REGADDR(OCP_MOD, 0x0080)
-> +#define OMAP2_PRCM_CLKCFG_STATUS_OFFSET	0x0084
->  #define OMAP2420_PRCM_CLKCFG_STATUS	OMAP2420_PRM_REGADDR(OCP_MOD, 0x0084)
-> +#define OMAP2_PRCM_VOLTSETUP_OFFSET	0x0090
->  #define OMAP2420_PRCM_VOLTSETUP		OMAP2420_PRM_REGADDR(OCP_MOD, 0x0090)
-> +#define OMAP2_PRCM_CLKSSETUP_OFFSET	0x0094
->  #define OMAP2420_PRCM_CLKSSETUP		OMAP2420_PRM_REGADDR(OCP_MOD, 0x0094)
-> +#define OMAP2_PRCM_POLCTRL_OFFSET	0x0098
->  #define OMAP2420_PRCM_POLCTRL		OMAP2420_PRM_REGADDR(OCP_MOD, 0x0098)
->  
->  #define OMAP2430_PRCM_REVISION		OMAP2430_PRM_REGADDR(OCP_MOD, 0x0000)
-> @@ -71,6 +70,7 @@
->  #define OMAP2430_PRCM_IRQSTATUS_MPU	OMAP2430_PRM_REGADDR(OCP_MOD, 0x0018)
->  #define OMAP2430_PRCM_IRQENABLE_MPU	OMAP2430_PRM_REGADDR(OCP_MOD, 0x001c)
->  
-> +#define OMAP2430_PRCM_VOLTCTRL		OMAP2430_PRM_REGADDR(OCP_MOD, 0x0050)
->  #define OMAP2430_PRCM_VOLTST		OMAP2430_PRM_REGADDR(OCP_MOD, 0x0054)
->  #define OMAP2430_PRCM_CLKSRC_CTRL	OMAP2430_PRM_REGADDR(OCP_MOD, 0x0060)
->  #define OMAP2430_PRCM_CLKOUT_CTRL	OMAP2430_PRM_REGADDR(OCP_MOD, 0x0070)
-> @@ -81,46 +81,83 @@
->  #define OMAP2430_PRCM_CLKSSETUP		OMAP2430_PRM_REGADDR(OCP_MOD, 0x0094)
->  #define OMAP2430_PRCM_POLCTRL		OMAP2430_PRM_REGADDR(OCP_MOD, 0x0098)
->  
-> +#define OMAP3_PRM_REVISION_OFFSET	0x0004
->  #define OMAP3430_PRM_REVISION		OMAP34XX_PRM_REGADDR(OCP_MOD, 0x0004)
-> +#define OMAP3_PRM_SYSCONFIG_OFFSET	0x0014
->  #define OMAP3430_PRM_SYSCONFIG		OMAP34XX_PRM_REGADDR(OCP_MOD, 0x0014)
->  
-> +#define OMAP3_PRM_IRQSTATUS_MPU_OFFSET	0x0018
->  #define OMAP3430_PRM_IRQSTATUS_MPU	OMAP34XX_PRM_REGADDR(OCP_MOD, 0x0018)
-> +#define OMAP3_PRM_IRQENABLE_MPU_OFFSET	0x001c
->  #define OMAP3430_PRM_IRQENABLE_MPU	OMAP34XX_PRM_REGADDR(OCP_MOD, 0x001c)
->  
->  
-> +#define OMAP3_PRM_VC_SMPS_SA_OFFSET	0x0020
->  #define OMAP3430_PRM_VC_SMPS_SA		OMAP34XX_PRM_REGADDR(OMAP3430_GR_MOD, 0x0020)
-> +#define OMAP3_PRM_VC_SMPS_VOL_RA_OFFSET	0x0024
->  #define OMAP3430_PRM_VC_SMPS_VOL_RA	OMAP34XX_PRM_REGADDR(OMAP3430_GR_MOD, 0x0024)
-> +#define OMAP3_PRM_VC_SMPS_CMD_RA_OFFSET	0x0028
->  #define OMAP3430_PRM_VC_SMPS_CMD_RA	OMAP34XX_PRM_REGADDR(OMAP3430_GR_MOD, 0x0028)
-> +#define OMAP3_PRM_VC_CMD_VAL_0_OFFSET	0x002c
->  #define OMAP3430_PRM_VC_CMD_VAL_0	OMAP34XX_PRM_REGADDR(OMAP3430_GR_MOD, 0x002c)
-> +#define OMAP3_PRM_VC_CMD_VAL_1_OFFSET	0x0030
->  #define OMAP3430_PRM_VC_CMD_VAL_1	OMAP34XX_PRM_REGADDR(OMAP3430_GR_MOD, 0x0030)
-> +#define OMAP3_PRM_VC_CH_CONF_OFFSET	0x0034
->  #define OMAP3430_PRM_VC_CH_CONF		OMAP34XX_PRM_REGADDR(OMAP3430_GR_MOD, 0x0034)
-> +#define OMAP3_PRM_VC_I2C_CFG_OFFSET	0x0038
->  #define OMAP3430_PRM_VC_I2C_CFG		OMAP34XX_PRM_REGADDR(OMAP3430_GR_MOD, 0x0038)
-> +#define OMAP3_PRM_VC_BYPASS_VAL_OFFSET	0x003c
->  #define OMAP3430_PRM_VC_BYPASS_VAL	OMAP34XX_PRM_REGADDR(OMAP3430_GR_MOD, 0x003c)
-> +#define OMAP3_PRM_RSTCTRL_OFFSET	0x0050
->  #define OMAP3430_PRM_RSTCTRL		OMAP34XX_PRM_REGADDR(OMAP3430_GR_MOD, 0x0050)
-> +#define OMAP3_PRM_RSTTIME_OFFSET	0x0054
->  #define OMAP3430_PRM_RSTTIME		OMAP34XX_PRM_REGADDR(OMAP3430_GR_MOD, 0x0054)
-> +#define OMAP3_PRM_RSTST_OFFSET	0x0058
->  #define OMAP3430_PRM_RSTST		OMAP34XX_PRM_REGADDR(OMAP3430_GR_MOD, 0x0058)
-> +#define OMAP3_PRM_VOLTCTRL_OFFSET	0x0060
->  #define OMAP3430_PRM_VOLTCTRL		OMAP34XX_PRM_REGADDR(OMAP3430_GR_MOD, 0x0060)
-> +#define OMAP3_PRM_SRAM_PCHARGE_OFFSET	0x0064
->  #define OMAP3430_PRM_SRAM_PCHARGE	OMAP34XX_PRM_REGADDR(OMAP3430_GR_MOD, 0x0064)
-> +#define OMAP3_PRM_CLKSRC_CTRL_OFFSET	0x0070
->  #define OMAP3430_PRM_CLKSRC_CTRL	OMAP34XX_PRM_REGADDR(OMAP3430_GR_MOD, 0x0070)
-> +#define OMAP3_PRM_VOLTSETUP1_OFFSET	0x0090
->  #define OMAP3430_PRM_VOLTSETUP1		OMAP34XX_PRM_REGADDR(OMAP3430_GR_MOD, 0x0090)
-> +#define OMAP3_PRM_VOLTOFFSET_OFFSET	0x0094
->  #define OMAP3430_PRM_VOLTOFFSET		OMAP34XX_PRM_REGADDR(OMAP3430_GR_MOD, 0x0094)
-> +#define OMAP3_PRM_CLKSETUP_OFFSET	0x0098
->  #define OMAP3430_PRM_CLKSETUP		OMAP34XX_PRM_REGADDR(OMAP3430_GR_MOD, 0x0098)
-> +#define OMAP3_PRM_POLCTRL_OFFSET	0x009c
->  #define OMAP3430_PRM_POLCTRL		OMAP34XX_PRM_REGADDR(OMAP3430_GR_MOD, 0x009c)
-> +#define OMAP3_PRM_VOLTSETUP2_OFFSET	0x00a0
->  #define OMAP3430_PRM_VOLTSETUP2		OMAP34XX_PRM_REGADDR(OMAP3430_GR_MOD, 0x00a0)
-> +#define OMAP3_PRM_VP1_CONFIG_OFFSET	0x00b0
->  #define OMAP3430_PRM_VP1_CONFIG		OMAP34XX_PRM_REGADDR(OMAP3430_GR_MOD, 0x00b0)
-> +#define OMAP3_PRM_VP1_VSTEPMIN_OFFSET	0x00b4
->  #define OMAP3430_PRM_VP1_VSTEPMIN	OMAP34XX_PRM_REGADDR(OMAP3430_GR_MOD, 0x00b4)
-> +#define OMAP3_PRM_VP1_VSTEPMAX_OFFSET	0x00b8
->  #define OMAP3430_PRM_VP1_VSTEPMAX	OMAP34XX_PRM_REGADDR(OMAP3430_GR_MOD, 0x00b8)
-> +#define OMAP3_PRM_VP1_VLIMITTO_OFFSET	0x00bc
->  #define OMAP3430_PRM_VP1_VLIMITTO	OMAP34XX_PRM_REGADDR(OMAP3430_GR_MOD, 0x00bc)
-> +#define OMAP3_PRM_VP1_VOLTAGE_OFFSET	0x00c0
->  #define OMAP3430_PRM_VP1_VOLTAGE	OMAP34XX_PRM_REGADDR(OMAP3430_GR_MOD, 0x00c0)
-> +#define OMAP3_PRM_VP1_STATUS_OFFSET	0x00c4
->  #define OMAP3430_PRM_VP1_STATUS		OMAP34XX_PRM_REGADDR(OMAP3430_GR_MOD, 0x00c4)
-> +#define OMAP3_PRM_VP2_CONFIG_OFFSET	0x00d0
->  #define OMAP3430_PRM_VP2_CONFIG		OMAP34XX_PRM_REGADDR(OMAP3430_GR_MOD, 0x00d0)
-> +#define OMAP3_PRM_VP2_VSTEPMIN_OFFSET	0x00d4
->  #define OMAP3430_PRM_VP2_VSTEPMIN	OMAP34XX_PRM_REGADDR(OMAP3430_GR_MOD, 0x00d4)
-> +#define OMAP3_PRM_VP2_VSTEPMAX_OFFSET	0x00d8
->  #define OMAP3430_PRM_VP2_VSTEPMAX	OMAP34XX_PRM_REGADDR(OMAP3430_GR_MOD, 0x00d8)
-> +#define OMAP3_PRM_VP2_VLIMITTO_OFFSET	0x00dc
->  #define OMAP3430_PRM_VP2_VLIMITTO	OMAP34XX_PRM_REGADDR(OMAP3430_GR_MOD, 0x00dc)
-> +#define OMAP3_PRM_VP2_VOLTAGE_OFFSET	0x00e0
->  #define OMAP3430_PRM_VP2_VOLTAGE	OMAP34XX_PRM_REGADDR(OMAP3430_GR_MOD, 0x00e0)
-> +#define OMAP3_PRM_VP2_STATUS_OFFSET	0x00e4
->  #define OMAP3430_PRM_VP2_STATUS		OMAP34XX_PRM_REGADDR(OMAP3430_GR_MOD, 0x00e4)
->  
-> +#define OMAP3_PRM_CLKSEL_OFFSET	0x0040
->  #define OMAP3430_PRM_CLKSEL		OMAP34XX_PRM_REGADDR(OMAP3430_CCR_MOD, 0x0040)
-> +#define OMAP3_PRM_CLKOUT_CTRL_OFFSET	0x0070
->  #define OMAP3430_PRM_CLKOUT_CTRL	OMAP34XX_PRM_REGADDR(OMAP3430_CCR_MOD, 0x0070)
->  
->  /*
-> diff --git a/arch/arm/mach-omap2/sram242x.S b/arch/arm/mach-omap2/sram242x.S
-> index cbb8930..bb29985 100644
-> --- a/arch/arm/mach-omap2/sram242x.S
-> +++ b/arch/arm/mach-omap2/sram242x.S
-> @@ -124,7 +124,7 @@ omap242x_sdi_cm_clksel2_pll:
->  omap242x_sdi_sdrc_dlla_ctrl:
->  	.word OMAP242X_SDRC_REGADDR(SDRC_DLLA_CTRL)
->  omap242x_sdi_prcm_voltctrl:
-> -	.word OMAP242X_PRCM_VOLTCTRL
-> +	.word OMAP2420_PRCM_VOLTCTRL
->  prcm_mask_val:
->  	.word 0xFFFF3FFC
->  omap242x_sdi_timer_32ksynct_cr:
-> @@ -220,7 +220,7 @@ omap242x_srs_sdrc_dlla_ctrl:
->  omap242x_srs_sdrc_rfr_ctrl:
->  	.word OMAP242X_SDRC_REGADDR(SDRC_RFR_CTRL_0)
->  omap242x_srs_prcm_voltctrl:
-> -	.word OMAP242X_PRCM_VOLTCTRL
-> +	.word OMAP2420_PRCM_VOLTCTRL
->  ddr_prcm_mask_val:
->  	.word 0xFFFF3FFC
->  omap242x_srs_timer_32ksynct:
-> @@ -305,7 +305,7 @@ wait_dll_lock:
->  	ldmfd	sp!, {r0-r12, pc}	@ restore regs and return
->  
->  omap242x_ssp_set_config:
-> -	.word OMAP242X_PRCM_CLKCFG_CTRL
-> +	.word OMAP2420_PRCM_CLKCFG_CTRL
->  omap242x_ssp_pll_ctl:
->  	.word OMAP2420_CM_REGADDR(PLL_MOD, CM_CLKEN)
->  omap242x_ssp_pll_stat:
-> diff --git a/arch/arm/mach-omap2/sram243x.S b/arch/arm/mach-omap2/sram243x.S
-> index 054b0f3..9955abc 100644
-> --- a/arch/arm/mach-omap2/sram243x.S
-> +++ b/arch/arm/mach-omap2/sram243x.S
-> @@ -124,7 +124,7 @@ omap243x_sdi_cm_clksel2_pll:
->  omap243x_sdi_sdrc_dlla_ctrl:
->  	.word OMAP243X_SDRC_REGADDR(SDRC_DLLA_CTRL)
->  omap243x_sdi_prcm_voltctrl:
-> -	.word OMAP243X_PRCM_VOLTCTRL
-> +	.word OMAP2430_PRCM_VOLTCTRL
->  prcm_mask_val:
->  	.word 0xFFFF3FFC
->  omap243x_sdi_timer_32ksynct_cr:
-> @@ -220,7 +220,7 @@ omap243x_srs_sdrc_dlla_ctrl:
->  omap243x_srs_sdrc_rfr_ctrl:
->  	.word OMAP243X_SDRC_REGADDR(SDRC_RFR_CTRL_0)
->  omap243x_srs_prcm_voltctrl:
-> -	.word OMAP243X_PRCM_VOLTCTRL
-> +	.word OMAP2430_PRCM_VOLTCTRL
->  ddr_prcm_mask_val:
->  	.word 0xFFFF3FFC
->  omap243x_srs_timer_32ksynct:
-> @@ -305,7 +305,7 @@ wait_dll_lock:
->  	ldmfd	sp!, {r0-r12, pc}	@ restore regs and return
->  
->  omap243x_ssp_set_config:
-> -	.word OMAP243X_PRCM_CLKCFG_CTRL
-> +	.word OMAP2430_PRCM_CLKCFG_CTRL
->  omap243x_ssp_pll_ctl:
->  	.word OMAP2430_CM_REGADDR(PLL_MOD, CM_CLKEN)
->  omap243x_ssp_pll_stat:
-> -- 
-> 1.6.2.2
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Quoting Tony Lindgren <tony@atomide.com>:
+
+> * Felipe Balbi <felipe.balbi@nokia.com> [090514 01:15]:
+>> On Thu, May 14, 2009 at 03:44:14AM +0200, ext Tony Lindgren wrote:
+>> > * Felipe Balbi <felipe.balbi@nokia.com> [090513 17:33]:
+>> > > On Thu, May 14, 2009 at 01:46:51AM +0200, ext Andrew de Quincey wrote=
+:
+>> > > > Hi, I've just discovered that the patch at:
+>> > > >
+>> > > > =20
+>> http://git.kernel.org/?p=3Dlinux/kernel/git/tmlind/linux-omap-2.6.git;a=
+=3Dcommitdiff;h=3D3eae3ea7c443fc4330574dffea65b6f2f53a2574
+>> > > >
+>> > > > Breaks the nokia770's framebuffer as it removes the platform data f=
+or
+>> > > > the HWA742 LCD controller.
+>> > > >
+>> > > > As the patch says "Patches against the mainline tree are welcome to
+>> > > > add back the missing functionality if needed!", I'm happy to do thi=
+s.
+>> > > >
+>> > > > However, since I'm fairly new to the linux-omap project, is simply
+>> > > > extracting the removed nokia770 code and generating a patch against
+>> > > > the mainline kernel sufficient? or is there a newer style of some s=
+ort
+>> > > > that should be adopted for this?
+>> > >
+>> > > You can start by generating the new patch against mainline and runnin=
+g
+>> > > scripts/checkpatch.pl, then you should probably find out if there are
+>> > > any API changes and stuff like that. Then send the patch to lkml ccin=
+g
+>> > > linux-omap and let's see what comments do you get from those guys :-)
+>> >
+>> > Please change the code to pass the struct clock to =20
+>> drivers/video/omap/hwa742.c
+>> > in hwa742_platform_data. The hw742.c can just do standard =20
+>> clk_enable/disable
+>> > there. Otherwise we won't be able to get this missing part to the mainl=
+ine
+>> > kernel.
+>>
+>> how about clkdev then ? are we gonna support that for omap1 still ?
+>
+> Yeah the clkdev is there, but in the case of the LCD the clock can be
+> any clock, so we cannot set just one "fck" for all the omap1 LCD panels.
+>
+> In this case the "bclk" is used for the LCD, but "bclk" could be used
+> for other devices as well, not just LCD.
+
+Hi, is the attached patch the sort of thing you had in mind? This is =20
+against linux-omap-2.6, latest git.
+
+Unfortunately, both mainline linux-2.6 and linux-omap-2.6 gits lock up =20
+on bootup before the LCD is initialised. However, the linux-omap =20
+2.6.29 that is compiled by openembedded still boots ok, and with the =20
+attached patch applied, the LCD works again!
+
+I guess my next task is to figure out why the mainline kernels freeze; =20
+I've seen that before, and it seemed to be something to do with =20
+changes to the mcbsp support.
+
+--=_4xf1yxb6e5ts
+Content-Type: text/x-patch;
+	charset=UTF-8;
+	name="hwa742.patch"
+Content-Disposition: attachment;
+	filename="hwa742.patch"
+Content-Transfer-Encoding: quoted-printable
+
+Reinstate HWA742 platform data for nokia 770 platform.
+
+Signed-off-by: Andrew de Quincey <adq_dvb@lidskialf.net>
+
+diff --git a/arch/arm/mach-omap1/board-nokia770.c b/arch/arm/mach-omap1/boar=
+d-nokia770.c
+index 8780ca6..df5f38b 100644
+--- a/arch/arm/mach-omap1/board-nokia770.c
++++ b/arch/arm/mach-omap1/board-nokia770.c
+@@ -33,6 +33,7 @@
+ #include <mach/common.h>
+ #include <mach/dsp_common.h>
+ #include <mach/omapfb.h>
++#include <mach/hwa742.h>
+ #include <mach/lcd_mipid.h>
+ #include <mach/mmc.h>
+ #include <mach/usb.h>
+@@ -163,6 +164,26 @@ static struct spi_board_info nokia770_spi_board_info[] =
+__initdata =3D {
+ =09},
+ };
+=20
++static struct hwa742_platform_data nokia770_hwa742_platform_data =3D {
++=09.sys_ck =09=09=3D NULL,
++=09.te_connected=09=09=3D 1,
++};
++
++static int hwa742_get_clocks(void)
++{
++=09nokia770_hwa742_platform_data.sys_ck =3D clk_get(NULL, "bclk");
++=09if (IS_ERR(nokia770_hwa742_platform_data.sys_ck)) {
++=09=09printk(KERN_ERR "can't get HWA742 clock\n");
++=09=09return PTR_ERR(nokia770_hwa742_platform_data.sys_ck);
++=09}
++=09return 0;
++}
++
++static void hwa742_dev_init(void)
++{
++=09hwa742_get_clocks();
++=09omapfb_set_ctrl_platform_data(&nokia770_hwa742_platform_data);
++}
+=20
+ /* assume no Mini-AB port */
+=20
+@@ -371,6 +392,7 @@ static void __init omap_nokia770_init(void)
+ =09omap_serial_init();
+ =09omap_register_i2c_bus(1, 100, NULL, 0);
+ =09omap_dsp_init();
++=09hwa742_dev_init();
+ =09ads7846_dev_init();
+ =09mipid_dev_init();
+ =09omap_usb_init(&nokia770_usb_config);
+diff --git a/arch/arm/plat-omap/include/mach/hwa742.h b/arch/arm/plat-omap/i=
+nclude/mach/hwa742.h
+index 577f492..c00e05d 100644
+--- a/arch/arm/plat-omap/include/mach/hwa742.h
++++ b/arch/arm/plat-omap/include/mach/hwa742.h
+@@ -2,10 +2,7 @@
+ #define _HWA742_H
+=20
+ struct hwa742_platform_data {
+-=09void=09=09(*power_up)(struct device *dev);
+-=09void=09=09(*power_down)(struct device *dev);
+-=09unsigned long=09(*get_clock_rate)(struct device *dev);
+-
++=09struct clk =09*sys_ck;
+ =09unsigned=09te_connected:1;
+ };
+=20
+diff --git a/drivers/video/omap/hwa742.c b/drivers/video/omap/hwa742.c
+index 8aa6e47..1230476 100644
+--- a/drivers/video/omap/hwa742.c
++++ b/drivers/video/omap/hwa742.c
+@@ -133,8 +133,7 @@ struct {
+ =09struct lcd_ctrl_extif=09*extif;
+ =09struct lcd_ctrl=09=09*int_ctrl;
+=20
+-=09void=09=09=09(*power_up)(struct device *dev);
+-=09void=09=09=09(*power_down)(struct device *dev);
++=09struct clk=09=09*sys_ck;
+ } hwa742;
+=20
+ struct lcd_ctrl hwa742_ctrl;
+@@ -915,14 +914,13 @@ static void hwa742_suspend(void)
+ =09hwa742_set_update_mode(OMAPFB_UPDATE_DISABLED);
+ =09/* Enable sleep mode */
+ =09hwa742_write_reg(HWA742_POWER_SAVE, 1 << 1);
+-=09if (hwa742.power_down !=3D NULL)
+-=09=09hwa742.power_down(hwa742.fbdev->dev);
++=09clk_disable(hwa742.sys_ck);
+ }
+=20
+ static void hwa742_resume(void)
+ {
+-=09if (hwa742.power_up !=3D NULL)
+-=09=09hwa742.power_up(hwa742.fbdev->dev);
++=09clk_enable(hwa742.sys_ck);
++
+ =09/* Disable sleep mode */
+ =09hwa742_write_reg(HWA742_POWER_SAVE, 0);
+ =09while (1) {
+@@ -955,14 +953,13 @@ static int hwa742_init(struct omapfb_device *fbdev, in=
+t ext_mode,
+ =09omapfb_conf =3D fbdev->dev->platform_data;
+ =09ctrl_conf =3D omapfb_conf->ctrl_platform_data;
+=20
+-=09if (ctrl_conf =3D=3D NULL || ctrl_conf->get_clock_rate =3D=3D NULL) {
++=09if (ctrl_conf =3D=3D NULL || ctrl_conf->sys_ck =3D=3D NULL) {
+ =09=09dev_err(fbdev->dev, "HWA742: missing platform data\n");
+ =09=09r =3D -ENOENT;
+ =09=09goto err1;
+ =09}
+=20
+-=09hwa742.power_down =3D ctrl_conf->power_down;
+-=09hwa742.power_up =3D ctrl_conf->power_up;
++=09hwa742.sys_ck =3D ctrl_conf->sys_ck;
+=20
+ =09spin_lock_init(&hwa742.req_lock);
+=20
+@@ -972,12 +969,11 @@ static int hwa742_init(struct omapfb_device *fbdev, in=
+t ext_mode,
+ =09if ((r =3D hwa742.extif->init(fbdev)) < 0)
+ =09=09goto err2;
+=20
+-=09ext_clk =3D ctrl_conf->get_clock_rate(fbdev->dev);
++=09ext_clk =3D clk_get_rate(hwa742.sys_ck);
+ =09if ((r =3D calc_extif_timings(ext_clk, &extif_mem_div)) < 0)
+ =09=09goto err3;
+ =09hwa742.extif->set_timings(&hwa742.reg_timings);
+-=09if (hwa742.power_up !=3D NULL)
+-=09=09hwa742.power_up(fbdev->dev);
++=09clk_enable(hwa742.sys_ck);
+=20
+ =09calc_hwa742_clk_rates(ext_clk, &sys_clk, &pix_clk);
+ =09if ((r =3D calc_extif_timings(sys_clk, &extif_mem_div)) < 0)
+@@ -1040,8 +1036,7 @@ static int hwa742_init(struct omapfb_device *fbdev, in=
+t ext_mode,
+=20
+ =09return 0;
+ err4:
+-=09if (hwa742.power_down !=3D NULL)
+-=09=09hwa742.power_down(fbdev->dev);
++=09clk_disable(hwa742.sys_ck);
+ err3:
+ =09hwa742.extif->cleanup();
+ err2:
+@@ -1055,8 +1050,7 @@ static void hwa742_cleanup(void)
+ =09hwa742_set_update_mode(OMAPFB_UPDATE_DISABLED);
+ =09hwa742.extif->cleanup();
+ =09hwa742.int_ctrl->cleanup();
+-=09if (hwa742.power_down !=3D NULL)
+-=09=09hwa742.power_down(hwa742.fbdev->dev);
++=09clk_disable(hwa742.sys_ck);
+ }
+=20
+ struct lcd_ctrl hwa742_ctrl =3D {
+--=_4xf1yxb6e5ts--
+
