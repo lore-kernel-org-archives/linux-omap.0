@@ -1,47 +1,71 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH v2 0/2] PM: OMAP3 SDRC: fix some SDRAM settings for
- Qimonda parts
-Date: Thu, 14 May 2009 14:54:43 -0600 (MDT)
-Message-ID: <alpine.DEB.2.00.0905141454350.17514@utopia.booyaka.com>
-References: <20090514194728.20623.60039.stgit@localhost.localdomain> <20090514205157.GS5593@atomide.com>
+Subject: Re: [PATCH] omap2: off by 1
+Date: Thu, 14 May 2009 15:15:42 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.0905141513010.17514@utopia.booyaka.com>
+References: <49A5425C.9050405@gmail.com>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:48901 "EHLO
+Received: from utopia.booyaka.com ([72.9.107.138]:56441 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752694AbZENUyn (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 14 May 2009 16:54:43 -0400
-In-Reply-To: <20090514205157.GS5593@atomide.com>
+	with ESMTP id S1754533AbZENVPl (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 14 May 2009 17:15:41 -0400
+In-Reply-To: <49A5425C.9050405@gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, r-woodruff2@ti.com, khilman@deeprootsystems.com
+To: Roel Kluin <roel.kluin@gmail.com>
+Cc: rmk+kernel@arm.linux.org.uk, linux-omap@vger.kernel.org, tony@atomide.com, Andrew Morton <akpm@linux-foundation.org>
 
-On Thu, 14 May 2009, Tony Lindgren wrote:
+On Wed, 25 Feb 2009, Roel Kluin wrote:
 
-> * Paul Walmsley <paul@pwsan.com> [090514 12:52]:
-> > Hi,
-> > 
-> > This series updates some SDRAM parameter settings for the Qimonda parts
-> > used on some 3430SDP boards.
-> > 
-> > Drop the 133.3MHz/66.6MHz rates from the Qimonda SDRAM file - these were only
-> > used on some early Labrador boards with slower SDRAM parts.  Thanks to
-> > Richard Woodruff <r-woodruff2@ti.com> for help with this patch.
-> > 
-> > Finally some 3430SDP boards are using bootloaders with rounded DPLL3 rates
-> > (e.g., 166000000 Hz rather than 165941176 Hz); update the Qimonda SDRAM
-> > parameters.  This resolves -EINVALs during boot-time "Reprogramming SDRC"
-> > on 3430SDPs with updated bootloaders.  Thanks to Kevin Hilman
-> > <khilman@deeprootsystems.com> for reporting this issue and testing
-> > the patch.
-> > 
-> > These patches will be queued up into the omap-clock-testing branch at the
-> > next opportunity.
+> with while (i++ < MAX_CLOCK_ENABLE_WAIT); i can reach MAX_CLOCK_ENABLE_WAIT + 1
+> after the loop, so if (i == MAX_CLOCK_ENABLE_WAIT) that's still success.
+
+Hi Roel
+
+it's a worst-case bailout value that is significantly larger than it needs 
+to be, so being off by 1 doesn't matter here.  But I'll take the patch on 
+pedantic grounds.  Queued in the omap-clocks-upstream branch.
+
+- Paul
+
+> Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
+> ---
+>  arch/arm/mach-omap2/clock.c       |    2 +-
+>  arch/arm/mach-omap2/powerdomain.c |    2 +-
+>  2 files changed, 2 insertions(+), 2 deletions(-)
 > 
-> I've merged these two patches already into your older sdram patches
-> in the omap3-upstream queue.
+> diff --git a/arch/arm/mach-omap2/clock.c b/arch/arm/mach-omap2/clock.c
+> index ce4d46a..da185ff 100644
+> --- a/arch/arm/mach-omap2/clock.c
+> +++ b/arch/arm/mach-omap2/clock.c
+> @@ -202,7 +202,7 @@ int omap2_wait_clock_ready(void __iomem *reg, u32 mask, const char *name)
+>  		udelay(1);
+>  	}
+>  
+> -	if (i < MAX_CLOCK_ENABLE_WAIT)
+> +	if (i <= MAX_CLOCK_ENABLE_WAIT)
+>  		pr_debug("Clock %s stable after %d loops\n", name, i);
+>  	else
+>  		printk(KERN_ERR "Clock %s didn't enable in %d tries\n",
+> diff --git a/arch/arm/mach-omap2/powerdomain.c b/arch/arm/mach-omap2/powerdomain.c
+> index 73e2971..983f1cb 100644
+> --- a/arch/arm/mach-omap2/powerdomain.c
+> +++ b/arch/arm/mach-omap2/powerdomain.c
+> @@ -1099,7 +1099,7 @@ int pwrdm_wait_transition(struct powerdomain *pwrdm)
+>  	       (c++ < PWRDM_TRANSITION_BAILOUT))
+>  		udelay(1);
+>  
+> -	if (c >= PWRDM_TRANSITION_BAILOUT) {
+> +	if (c > PWRDM_TRANSITION_BAILOUT) {
+>  		printk(KERN_ERR "powerdomain: waited too long for "
+>  		       "powerdomain %s to complete transition\n", pwrdm->name);
+>  		return -EAGAIN;
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
 
-Sweet!  Thanks!
 
 - Paul
