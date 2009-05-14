@@ -1,55 +1,54 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: [PATCH 0/2] PM: OMAP3 SDRC: fix some SDRAM settings for Qimonda parts
-Date: Thu, 14 May 2009 12:54:45 -0600
-Message-ID: <20090514185012.2152.36226.stgit@localhost.localdomain>
+Subject: [PATCH 1/2] OMAP3 SDRC: Fix autorefresh counter for Qimonda SDRAM
+	66.6MHz rate
+Date: Thu, 14 May 2009 12:55:04 -0600
+Message-ID: <20090514185445.2152.97428.stgit@localhost.localdomain>
+References: <20090514185012.2152.36226.stgit@localhost.localdomain>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:52128 "EHLO
+Received: from utopia.booyaka.com ([72.9.107.138]:52129 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752997AbZENTE6 (ORCPT
+	with ESMTP id S1753047AbZENTE6 (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>); Thu, 14 May 2009 15:04:58 -0400
+In-Reply-To: <20090514185012.2152.36226.stgit@localhost.localdomain>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
-Cc: Richard Woodruff <r-woodruff2@ti.com>
+Cc: Paul Walmsley <paul@pwsan.com>
 
-Hi,
+The autorefresh counter value for the 66.6MHz rate for the Qimonda SDRAM
+part is wrong; fix it.
 
-This series updates some SDRAM parameter settings for the Qimonda parts
-used on some 3430SDP boards.
-
-Finally some 3430SDP boards are using bootloaders with rounded DPLL3 rates
-(e.g., 166000000 Hz rather than 165941176 Hz); update the Qimonda SDRAM
-parameters.
-
-Also when reviewing the timing calculations, it appears that the lowest speed
-setting had an error in its autorefresh counter value.  I don't know if
-anything out there still uses this low-speed setting - my recollection is
-that it was added for some early Labrador boards that had speed restrictions -
-any comments from TI on whether these 133.3MHz/66.6MHz rates should be dropped
-is most welcome.
-
-These patches will be queued up into the omap-clock-testing branch at the
-next possible opportunity.
-
-
-- Paul
-
+Signed-off-by: Paul Walmsley <paul@pwsan.com>
 ---
+ .../mach-omap2/sdram-qimonda-hyb18m512160af-6.h    |    6 +++---
+ 1 files changed, 3 insertions(+), 3 deletions(-)
 
-size:
-  text    data     bss     dec     hex filename
-3667957  196224  113216 3977397  3cb0b5 vmlinux.3430sdp.orig
-3667957  196256  113216 3977429  3cb0d5 vmlinux.3430sdp
+diff --git a/arch/arm/mach-omap2/sdram-qimonda-hyb18m512160af-6.h b/arch/arm/mach-omap2/sdram-qimonda-hyb18m512160af-6.h
+index 74a92c8..304336b 100644
+--- a/arch/arm/mach-omap2/sdram-qimonda-hyb18m512160af-6.h
++++ b/arch/arm/mach-omap2/sdram-qimonda-hyb18m512160af-6.h
+@@ -1,8 +1,8 @@
+ /*
+  * SDRC register values for the Qimonda HYB18M512160AF-6
+  *
+- * Copyright (C) 2008 Texas Instruments, Inc.
+- * Copyright (C) 2008 Nokia Corporation
++ * Copyright (C) 2008-2009 Texas Instruments, Inc.
++ * Copyright (C) 2008-2009 Nokia Corporation
+  *
+  * Paul Walmsley
+  *
+@@ -44,7 +44,7 @@ static struct omap_sdrc_params hyb18m512160af6_sdrc_params[] = {
+ 		.rate	     = 66666666,
+ 		.actim_ctrla = 0x290d2243,
+ 		.actim_ctrlb = 0x00012208,
+-		.rfr_ctrl    = 0x0001d601,
++		.rfr_ctrl    = 0x0001d501,
+ 		.mr	     = 0x00000022,
+ 	},
+ 	[4] = {
 
-
-Paul Walmsley (2):
-      OMAP3 SDRC: Add rounded rates for devices using the Qimonda SDRAM
-      OMAP3 SDRC: Fix autorefresh counter for Qimonda SDRAM 66.6MHz rate
-
-
- .../mach-omap2/sdram-qimonda-hyb18m512160af-6.h    |   28 +++++++++++++++-----
- 1 files changed, 21 insertions(+), 7 deletions(-)
 
