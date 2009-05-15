@@ -1,35 +1,47 @@
-From: "Gadiyar, Anand" <gadiyar@ti.com>
-Subject: RE: [PATCH 7/8] ARM: OMAP3: Fix number of GPIO lines for 34xx
-Date: Fri, 15 May 2009 07:59:24 +0530
-Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB03056A0CE3@dbde02.ent.ti.com>
-References: <20090514175116.12080.12871.stgit@localhost>
+From: Kalle Jokiniemi <kalle.jokiniemi@digia.com>
+Subject: Re: PM: timeout waiting for write of PM_WKEN_WKUP.EN_IO_CHAIN
+Date: Fri, 15 May 2009 09:26:48 +0300
+Message-ID: <1242368808.6466.203.camel@ubuntu>
+References: <87r5yry8wr.fsf@deeprootsystems.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:58040 "EHLO bear.ext.ti.com"
+Received: from smtp1.digia.com ([82.118.214.156]:30296 "EHLO smtp1.digia.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754498AbZEOC3v (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 14 May 2009 22:29:51 -0400
-In-Reply-To: <20090514175116.12080.12871.stgit@localhost>
-Content-Language: en-US
+	id S1755135AbZEOG0q (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 15 May 2009 02:26:46 -0400
+In-Reply-To: <87r5yry8wr.fsf@deeprootsystems.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, "linux-arm-kernel@lists.arm.linux.org.uk" <linux-arm-kernel@lists.arm.linux.org.uk>
-Cc: "Pandita, Vikram" <vikram.pandita@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Tom Rix <Tom.Rix@windriver.com>
+To: Kevin Hilman <khilman@deeprootsystems.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-PiANCj4gRnJvbTogVG9ueSBMaW5kZ3JlbiA8UGFuZGl0YT4NCg0KVHlwbz8NCg0KPiANCj4gQXMg
-cGVyIDM0MzAgVFJNLCB0aGVyZSBhcmUgNiBiYW5rcyBbMCB0byAxOTFdDQo+IA0KPiBTaWduZWQt
-b2ZmLWJ5OiBUb20gUml4IDxUb20uUml4QHdpbmRyaXZlci5jb20+DQo+IFNpZ25lZC1vZmYtYnk6
-IFZpa3JhbSBQYW5kaXRhIDx2aWtyYW0ucGFuZGl0YUB0aS5jb20+DQo+IFNpZ25lZC1vZmYtYnk6
-IFRvbnkgTGluZGdyZW4gPHRvbnlAYXRvbWlkZS5jb20+DQo+IC0tLQ0KPiAgYXJjaC9hcm0vcGxh
-dC1vbWFwL2dwaW8uYyB8ICAgIDIgKy0NCj4gIDEgZmlsZXMgY2hhbmdlZCwgMSBpbnNlcnRpb25z
-KCspLCAxIGRlbGV0aW9ucygtKQ0KPiANCj4gZGlmZiAtLWdpdCBhL2FyY2gvYXJtL3BsYXQtb21h
-cC9ncGlvLmMgYi9hcmNoL2FybS9wbGF0LW9tYXAvZ3Bpby5jDQo+IGluZGV4IDE3ZDdhZmUuLmVl
-MGIyMWYgMTAwNjQ0DQo+IC0tLSBhL2FyY2gvYXJtL3BsYXQtb21hcC9ncGlvLmMNCj4gKysrIGIv
-YXJjaC9hcm0vcGxhdC1vbWFwL2dwaW8uYw0KPiBAQCAtMzA3LDcgKzMwNyw3IEBAIHN0YXRpYyBp
-bmxpbmUgaW50IGdwaW9fdmFsaWQoaW50IGdwaW8pDQo+ICAJCXJldHVybiAwOw0KPiAgCWlmIChj
-cHVfaXNfb21hcDI0eHgoKSAmJiBncGlvIDwgMTI4KQ0KPiAgCQlyZXR1cm4gMDsNCj4gLQlpZiAo
-Y3B1X2lzX29tYXAzNHh4KCkgJiYgZ3BpbyA8IDE2MCkNCj4gKwlpZiAoY3B1X2lzX29tYXAzNHh4
-KCkgJiYgZ3BpbyA8IDE5MikNCj4gIAkJcmV0dXJuIDA7DQo+ICAJcmV0dXJuIC0xOw0KPiAgfQ0K
-PiANCg==
+On Thu, 2009-05-14 at 18:57 +0300, Kevin Hilman wrote:
+> Kalle,
+> 
+> In your "Enable IO-CHAIN wakeup" patch[1], you set a timout based on
+> 1000 tries of reading back from PM_WKST_WKUP.
+> 
+> Just curious how you came up with that value. 
+
+I tested it around a few times, and the loop seemed to run 2 iterations
+max. 1000 is just a random (big enough) number that I think should work
+if everything is ok. 
+
+
+> 
+> On ES3.1 3430SDP, some TI folks are seeing that timeout warning
+> every time hitting idle.
+
+Then there is something wrong and the io-chain enable is not working.
+Please try removing the timeout and see if it hangs completely. I don't
+have a SDP to test on.
+
+- Kalle
+
+> 
+> Kevin
+> 
+> [1] http://marc.info/?l=linux-omap&m=123807750921423&w=2
+
