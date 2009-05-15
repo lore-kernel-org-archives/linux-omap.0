@@ -1,113 +1,83 @@
 From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: [PATCH 03/11] OMAP3: PM: Force IVA2 into idle during bootup
-Date: Fri, 15 May 2009 11:40:43 -0700
-Message-ID: <1242412851-16606-4-git-send-email-khilman@deeprootsystems.com>
-References: <1242412851-16606-1-git-send-email-khilman@deeprootsystems.com>
- <1242412851-16606-2-git-send-email-khilman@deeprootsystems.com>
- <1242412851-16606-3-git-send-email-khilman@deeprootsystems.com>
+Subject: [PATCH 00/11] OMAP2/3: PM sync-up
+Date: Fri, 15 May 2009 11:40:40 -0700
+Message-ID: <1242412851-16606-1-git-send-email-khilman@deeprootsystems.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
 Received: from mail-pz0-f115.google.com ([209.85.222.115]:64443 "EHLO
 	mail-pz0-f115.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755089AbZEOSlE (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 15 May 2009 14:41:04 -0400
-Received: by mail-pz0-f115.google.com with SMTP id 13so1205834pzk.33
-        for <linux-omap@vger.kernel.org>; Fri, 15 May 2009 11:41:04 -0700 (PDT)
-In-Reply-To: <1242412851-16606-3-git-send-email-khilman@deeprootsystems.com>
+	with ESMTP id S1754394AbZEOSkw (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 15 May 2009 14:40:52 -0400
+Received: by pzk13 with SMTP id 13so1205834pzk.33
+        for <linux-omap@vger.kernel.org>; Fri, 15 May 2009 11:40:53 -0700 (PDT)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-arm-kernel@lists.arm.linux.org.uk
 Cc: linux-omap@vger.kernel.org, Kevin Hilman <khilman@deeprootsystems.com>
 
-Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
----
- arch/arm/mach-omap2/pm34xx.c              |   50 +++++++++++++++++++++++++++++
- arch/arm/plat-omap/include/mach/control.h |    5 +++
- 2 files changed, 55 insertions(+), 0 deletions(-)
+This series is intended to push the core PM support from linux-omap
+into mainline.  It applies on top of Tony's two recent series:
 
-diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
-index 0fb6bec..1a13362 100644
---- a/arch/arm/mach-omap2/pm34xx.c
-+++ b/arch/arm/mach-omap2/pm34xx.c
-@@ -358,6 +358,54 @@ static struct platform_suspend_ops omap_pm_ops = {
- 	.valid		= suspend_valid_only_mem,
- };
- 
-+
-+/**
-+ * omap3_iva_idle(): ensure IVA is in idle so it can be put into
-+ *                   retention
-+ *
-+ * In cases where IVA2 is activated by bootcode, it may prevent
-+ * full-chip retention or off-mode because it is not idle.  This
-+ * function forces the IVA2 into idle state so it can go
-+ * into retention/off and thus allow full-chip retention/off.
-+ *
-+ **/
-+static void __init omap3_iva_idle(void)
-+{
-+	/* ensure IVA2 clock is disabled */
-+	cm_write_mod_reg(0, OMAP3430_IVA2_MOD, CM_FCLKEN);
-+
-+	/* if no clock activity, nothing else to do */
-+	if (!(cm_read_mod_reg(OMAP3430_IVA2_MOD, OMAP3430_CM_CLKSTST) &
-+	      OMAP3430_CLKACTIVITY_IVA2_MASK))
-+		return;
-+
-+	/* Reset IVA2 */
-+	prm_write_mod_reg(OMAP3430_RST1_IVA2 |
-+			  OMAP3430_RST2_IVA2 |
-+			  OMAP3430_RST3_IVA2,
-+			  OMAP3430_IVA2_MOD, RM_RSTCTRL);
-+
-+	/* Enable IVA2 clock */
-+	cm_write_mod_reg(OMAP3430_CM_FCLKEN_IVA2_EN_IVA2,
-+			 OMAP3430_IVA2_MOD, CM_FCLKEN);
-+
-+	/* Set IVA2 boot mode to 'idle' */
-+	omap_ctrl_writel(OMAP3_IVA2_BOOTMOD_IDLE,
-+			 OMAP343X_CONTROL_IVA2_BOOTMOD);
-+
-+	/* Un-reset IVA2 */
-+	prm_write_mod_reg(0, OMAP3430_IVA2_MOD, RM_RSTCTRL);
-+
-+	/* Disable IVA2 clock */
-+	cm_write_mod_reg(0, OMAP3430_IVA2_MOD, CM_FCLKEN);
-+
-+	/* Reset IVA2 */
-+	prm_write_mod_reg(OMAP3430_RST1_IVA2 |
-+			  OMAP3430_RST2_IVA2 |
-+			  OMAP3430_RST3_IVA2,
-+			  OMAP3430_IVA2_MOD, RM_RSTCTRL);
-+}
-+
- static void __init prcm_setup_regs(void)
- {
- 	/* reset modem */
-@@ -517,6 +565,8 @@ static void __init prcm_setup_regs(void)
- 	 * it is selected to mpu wakeup goup */
- 	prm_write_mod_reg(OMAP3430_IO_EN | OMAP3430_WKUP_EN,
- 			  OCP_MOD, OMAP3_PRM_IRQENABLE_MPU_OFFSET);
-+
-+	omap3_iva_idle();
- }
- 
- static int __init pwrdms_setup(struct powerdomain *pwrdm)
-diff --git a/arch/arm/plat-omap/include/mach/control.h b/arch/arm/plat-omap/include/mach/control.h
-index 269147f..d38697b 100644
---- a/arch/arm/plat-omap/include/mach/control.h
-+++ b/arch/arm/plat-omap/include/mach/control.h
-@@ -189,6 +189,11 @@
- #define OMAP2_PBIASLITEPWRDNZ0		(1 << 1)
- #define OMAP2_PBIASLITEVMODE0		(1 << 0)
- 
-+/* CONTROL_IVA2_BOOTMOD bits */
-+#define OMAP3_IVA2_BOOTMOD_SHIFT	0
-+#define OMAP3_IVA2_BOOTMOD_MASK		(0xf << 0)
-+#define OMAP3_IVA2_BOOTMOD_IDLE		(0x1 << 0)
-+
- #ifndef __ASSEMBLY__
- #if defined(CONFIG_ARCH_OMAP2) || defined(CONFIG_ARCH_OMAP3)
- extern void __iomem *omap_ctrl_base_get(void);
--- 
-1.6.2.2
+- [PATCH 0/8] Omap fixes for 2.6.30-rc5
+- [PATCH 0/5] More omap header clean-up for the merge window after 2.6.30
+
+Upon review/acceptance, Tony will merge into is for-next branch so
+all OMAP stuff can come from one place.
+
+In addition to the linux-omap sync, several OMAP3 init fixes are
+required to ensure that the chip can hit full-chip retention
+on idle and suspend.
+
+Compile tested on OMAP2, Boot tested on OMAP3430SDP and can
+hit full-chip retention in suspend and in idle.
+
+Jouni Hogander (1):
+  OMAP: Add new function to check wether there is irq pending
+
+Kevin Hilman (9):
+  OMAP2/3: PM: push core PM code from linux-omap
+  OMAP3: PM: Force IVA2 into idle during bootup
+  OMAP3: PM: Add wake-up bit defintiions for CONTROL_PADCONF_X
+  OMAP3: PM: UART: disable clocks when idle and off-mode support
+  OMAP3: PM: Add D2D clocks and auto-idle setup to PRCM init
+  OMAP3: PM: D2D clockdomain supports SW supervised transitions
+  OMAP3: PM: Ensure PRCM interrupts are cleared at boot
+  OMAP3: PM: Clear pending PRCM reset flags on init
+  OMAP3: PM: prevent module wakeups from waking IVA2
+
+Peter 'p2' De Schrijver (1):
+  OMAP3: PM: Ensure MUSB block can idle when driver not loaded
+
+ arch/arm/mach-omap2/Makefile              |    3 +
+ arch/arm/mach-omap2/clock34xx.c           |    3 +
+ arch/arm/mach-omap2/clock34xx.h           |   33 ++-
+ arch/arm/mach-omap2/clockdomains.h        |    2 +-
+ arch/arm/mach-omap2/cm-regbits-34xx.h     |   14 +
+ arch/arm/mach-omap2/irq.c                 |   17 +-
+ arch/arm/mach-omap2/pm-debug.c            |  152 ++++++
+ arch/arm/mach-omap2/pm.c                  |  155 ++++---
+ arch/arm/mach-omap2/pm.h                  |   53 +++
+ arch/arm/mach-omap2/pm24xx.c              |  558 ++++++++++++++++++++++
+ arch/arm/mach-omap2/pm34xx.c              |  711 +++++++++++++++++++++++++++++
+ arch/arm/mach-omap2/prcm-common.h         |    2 +
+ arch/arm/mach-omap2/prm.h                 |    2 +
+ arch/arm/mach-omap2/sdrc.c                |    5 +-
+ arch/arm/mach-omap2/serial.c              |  391 +++++++++++++++-
+ arch/arm/mach-omap2/sleep24xx.S           |    1 -
+ arch/arm/mach-omap2/sleep34xx.S           |  543 ++++++++++++++++++++++
+ arch/arm/mach-omap2/usb-musb.c            |    7 +-
+ arch/arm/plat-omap/Kconfig                |    2 +-
+ arch/arm/plat-omap/common.c               |    1 -
+ arch/arm/plat-omap/include/mach/common.h  |    2 -
+ arch/arm/plat-omap/include/mach/control.h |   13 +
+ arch/arm/plat-omap/include/mach/irqs.h    |    1 +
+ arch/arm/plat-omap/include/mach/pm.h      |  345 --------------
+ arch/arm/plat-omap/include/mach/serial.h  |    9 +
+ drivers/mtd/onenand/omap2.c               |    1 -
+ 26 files changed, 2570 insertions(+), 456 deletions(-)
+ create mode 100644 arch/arm/mach-omap2/pm-debug.c
+ create mode 100644 arch/arm/mach-omap2/pm.h
+ create mode 100644 arch/arm/mach-omap2/pm24xx.c
+ create mode 100644 arch/arm/mach-omap2/pm34xx.c
+ create mode 100644 arch/arm/mach-omap2/sleep34xx.S
+ delete mode 100644 arch/arm/plat-omap/include/mach/pm.h
 
