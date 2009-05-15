@@ -1,97 +1,56 @@
-From: <Tero.Kristo@nokia.com>
-Subject: RE: [PATCH] OMAP3: PM: Force USB to standby if not used
-Date: Fri, 15 May 2009 10:34:29 +0200
-Message-ID: <1F18D6510CF0474A8C9500565A7E41A2053ED06851@NOK-EUMSG-02.mgdnok.nokia.com>
-References: <1242302980-4082-1-git-send-email-tero.kristo@nokia.com>
- <87ws8jy8zq.fsf@deeprootsystems.com>
+From: "Govindraj.R" <govindraj.raja@ti.com>
+Subject: Re:[PATCH] OMAP: Remove IRQ hardcoding from serial.c
+Date: Fri, 15 May 2009 16:00:56 +0530 (IST)
+Message-ID: <47729.192.168.10.88.1242383456.squirrel@dbdmail.itg.ti.com>
+References: <1241681366-21094-1-git-send-email-santosh.shilimkar@ti.com>
+    <20090507204653.GD5593@atomide.com>
+    <EAF47CD23C76F840A9E7FCE10091EFAB02B4688409@dbde02.ent.ti.com>
+    <20090508151755.GI5593@atomide.com>
+    <EAF47CD23C76F840A9E7FCE10091EFAB02B48440F9@dbde02.ent.ti.com>
+    <d6a0f7aa0905150325u51104b24t945a7841074bb913@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:33778 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755392AbZEOIfE convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 15 May 2009 04:35:04 -0400
-In-Reply-To: <87ws8jy8zq.fsf@deeprootsystems.com>
-Content-Language: en-US
+Received: from comal.ext.ti.com ([198.47.26.152]:44173 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757872AbZEOKbF (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 15 May 2009 06:31:05 -0400
+In-Reply-To: <d6a0f7aa0905150325u51104b24t945a7841074bb913@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: khilman@deeprootsystems.com
-Cc: linux-omap@vger.kernel.org
+To: Shilimkar@dbdmail.itg.ti.com, Santosh <santosh.shilimkar@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
- 
+Hi Santosh,
 
->-----Original Message-----
->From: ext Kevin Hilman [mailto:khilman@deeprootsystems.com] 
->Sent: 14 May, 2009 18:56
->To: Kristo Tero (Nokia-D/Tampere)
->Cc: linux-omap@vger.kernel.org
->Subject: Re: [PATCH] OMAP3: PM: Force USB to standby if not used
->
->Tero Kristo <tero.kristo@nokia.com> writes:
->
->> From: Tero Kristo <tero.kristo@nokia.com>
->>
->> This patch will allow device to enter sleep mode while a USB 
->cable is 
->> connected and USB is either disabled or built as a module 
->from kernel 
->> config.
->>
->> Applies on top of PM branch.
->>
->> Signed-off-by: Tero Kristo <tero.kristo@nokia.com>
->> ---
->>  arch/arm/mach-omap2/usb-musb.c |   10 ++++++++--
->>  1 files changed, 8 insertions(+), 2 deletions(-)
->>
->> diff --git a/arch/arm/mach-omap2/usb-musb.c 
->> b/arch/arm/mach-omap2/usb-musb.c index 12a9b0a..dd51d2f 100644
->> --- a/arch/arm/mach-omap2/usb-musb.c
->> +++ b/arch/arm/mach-omap2/usb-musb.c
->> @@ -32,7 +32,9 @@
->>  #include <mach/usb.h>
->>  
->>  #define AUTOIDLE        (1 << 0)
->> +#define FORCESTDBY	(1 << 0)
->>  #define OTG_SYSCONFIG	(OMAP34XX_HSUSB_OTG_BASE + 0x404)
->> +#define OTG_FORCESTDBY	(OMAP34XX_HSUSB_OTG_BASE + 0x414)
->>  
->>  static struct resource musb_resources[] = {
->>  	[0] = { /* start and end set dynamically */ @@ -185,7 
->+187,11 @@ 
->> void __init usb_musb_init(void)
->>  		return;
->>  	}
->>  
->> -	/* Enable smartidle on MUSB to improve C1 wakeup latency */
->> -	if (cpu_is_omap34xx())
->> +#if !defined(CONFIG_USB) || defined(CONFIG_USB_MODULE)
->> +	/* Force MUSB to standby if not used */
->> +	if (cpu_is_omap34xx()) {
->>  		omap_writel(AUTOIDLE, OTG_SYSCONFIG);
->> +		omap_writel(FORCESTDBY, OTG_FORCESTDBY);
->> +	}
->> +#endif
->
->Tero,
->
->Is this needed if OTG_SYSCONFIG is set to force-idle?
->
->Yesterday, I pushed a patch changing OTG_SYSCONFIG to 
->force-idle instead of auto-idle since on ES3.0 3430SDP, having 
->it in auto-idle was keeping CORE from hitting retention.  
->IIUC, there's an errata where force-idle doesn't work properly.
->
->Also, why the #ifdefs?
->
->This code is already conditionally compiled based on 
->CONFIG_USB_MUSB_SOC (see mach-omap2/Makefile) which is set 
->whether MUSB is built-in or a module.
->
->#if !defined(CONFIG_USB) then CONFIG_USB_MUSB_SOC will not be 
->defined either.
+Where you will be defining INT_24XX_UART1_IRQ, INT_24XX_UART1_IRQ and
+INT_24XX_UART3_IRQ ?
 
-You are actually right, I missed that change to Makefile. The reason for this patch was to be able to hit retention / off when USB is not enabled, and this was possible with the #ifdef:s earlier. I think you can just ignore this patch.
+Is it in include/asm-arm/arch-omap/serial.h?
+-- 
+Regards,
+Govindraj.R
 
--Tero
+> ---------- Forwarded message ----------
+> From: Shilimkar, Santosh <santosh.shilimkar@ti.com>
+> Date: Wed, May 13, 2009 at 8:23 PM
+> Subject: [PATCH] OMAP: Remove IRQ hardcoding from serial.c
+> To: Tony Lindgren <tony@atomide.com>
+> Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+>
+>
+> Tony,
+> Any comments on this patch.
+> http://patchwork.kernel.org/patch/19161/
+>
+> Regards
+> Santosh
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
+
+
