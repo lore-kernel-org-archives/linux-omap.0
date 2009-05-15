@@ -1,48 +1,58 @@
-From: "Woodruff, Richard" <r-woodruff2@ti.com>
-Subject: RE: [PATCH] PM: Disable usb host HW save and restore
-Date: Fri, 15 May 2009 06:47:02 -0500
-Message-ID: <13B9B4C6EF24D648824FF11BE8967162038BE0A140@dlee02.ent.ti.com>
-References: <1240484331-18722-1-git-send-email-kalle.jokiniemi@digia.com>
-	 <87zldftxtu.fsf@deeprootsystems.com>
-	 <13B9B4C6EF24D648824FF11BE8967162038BE09C66@dlee02.ent.ti.com>
- <1242369874.6466.213.camel@ubuntu>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+From: Roger Quadros <ext-roger.quadros@nokia.com>
+Subject: [PATCH] OMAP3: PM: Fix Smartreflex when used with PM_NOOP layer
+Date: Fri, 15 May 2009 14:55:47 +0300
+Message-ID: <1242388547-4241-1-git-send-email-ext-roger.quadros@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:47635 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751220AbZEOLrW convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 15 May 2009 07:47:22 -0400
-In-Reply-To: <1242369874.6466.213.camel@ubuntu>
-Content-Language: en-US
+Received: from smtp.nokia.com ([192.100.105.134]:54764 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753198AbZEOL52 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 15 May 2009 07:57:28 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kalle Jokiniemi <kalle.jokiniemi@digia.com>
-Cc: Kevin Hilman <khilman@deeprootsystems.com>, "tony@atomide.com" <tony@atomide.com>, "paul@pwsan.com" <paul@pwsan.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Menon, Nishanth" <nm@ti.com>, Kalle Jokiniemi <ext-kalle.jokiniemi@nokia.com>
+To: khilman@deeprootsystems.com
+Cc: linux-omap@vger.kernel.org, ext-phil.2.carmody@nokia.com
 
+omap_pm_vddX_get_opp() returns 0 if PM layer is PM_NOOP or PM_NONE.
+This is not a valid OPP so we must sanity check this correctly before using.
 
-> > couple errata impacting different chip revs.
-> >
-> > Today in the older TI reference code this condition of a stuck on
-> > power domain does not happen.  However, we are using a software
-> > supervised method to disable the power domain.  May be this code has a
-> > bug or the hardware does around auto use for this domain.
->
-> Yes, usb-host autoidle was enabled when I was digging this issue.
+This patch fixes system lockup when we enable smartreflex
+"echo 1 > /sys/power/sr_vdd1_autocomp"
 
-Host domain?  (not host module).
+Signed-off-by: Roger Quadros <ext-roger.quadros@nokia.com>
+---
+ arch/arm/mach-omap2/smartreflex.c |   12 ++++++++----
+ 1 files changed, 8 insertions(+), 4 deletions(-)
 
-> > The USBTLL SAR in 3.0 and before silicon will case a deadlock on 2nd
-> > sleep attempt.  On 3.1 and after its fixed.
->
-> So ES3.0 devices are exposed to the cold reset issue (since USBTLL SAR
-> is only enabled in ES3.1). Would you suspect that we can enable USB host
-> SAR, if the AUTOIDLE is turned off? Then we would not need this patch.
+diff --git a/arch/arm/mach-omap2/smartreflex.c b/arch/arm/mach-omap2/smartreflex.c
+index 42e16a6..b032366 100644
+--- a/arch/arm/mach-omap2/smartreflex.c
++++ b/arch/arm/mach-omap2/smartreflex.c
+@@ -787,8 +787,10 @@ static ssize_t omap_sr_vdd1_autocomp_store(struct kobject *kobj,
+ 		sr_stop_vddautocomap(SR1);
+ 	} else {
+ 		u32 current_vdd1opp_no = omap_pm_vdd1_get_opp();
+-		if (IS_ERR_VALUE(current_vdd1opp_no))
+-			return -ENODEV;
++		if (!current_vdd1opp_no) {
++			pr_err("sr_vdd1_autocomp: Current VDD1 opp unknown\n");
++			return -EINVAL;
++		}
+ 		sr_start_vddautocomap(SR1, current_vdd1opp_no);
+ 	}
+ 	return n;
+@@ -825,8 +827,10 @@ static ssize_t omap_sr_vdd2_autocomp_store(struct kobject *kobj,
+ 		sr_stop_vddautocomap(SR2);
+ 	} else {
+ 		u32 current_vdd2opp_no = omap_pm_vdd2_get_opp();
+-		if (IS_ERR_VALUE(current_vdd2opp_no))
+-			return -ENODEV;
++		if (!current_vdd2opp_no) {
++			pr_err("sr_vdd2_autocomp: Current VDD2 opp unknown\n");
++			return -EINVAL;
++		}
+ 		sr_start_vddautocomap(SR2, current_vdd2opp_no);
+ 	}
+ 	return n;
+-- 
+1.6.0.4
 
-For 3.0 we used a software sar if ohci was in use.  For ehci its not good enough as there is state not accessible by software.
-
-Not as you wrote. I was thinking you need to try to go to idle using CM_CLKSTCTRL_USBHOST = 1.  Not at 0x3 and then waiting for a dependent event to trigger you.  Once your preconditions are met you can initiate and idle ack sequence.
-
-Regards,
-Richard W.
