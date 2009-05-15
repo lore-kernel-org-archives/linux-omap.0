@@ -1,76 +1,50 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH v2 3/3] OMAP3:zoom2: Makefile and Kconfig for Zoom2 board
-Date: Fri, 15 May 2009 11:07:44 -0700
-Message-ID: <87bppudytr.fsf@deeprootsystems.com>
+From: "Christensen, Mikkel" <mlc@ti.com>
+Subject: RE: [PATCH v2 1/3] OMAP3:zoom2: Add support for OMAP3 Zoom2 board
+Date: Fri, 15 May 2009 20:28:57 +0200
+Message-ID: <E49DAF743FB3E9469ED423C0D3DB5F1CA9646AEA@dnce01.ent.ti.com>
 References: <1242409235-18834-1-git-send-email-mlc@ti.com>
 	<1242409235-18834-2-git-send-email-mlc@ti.com>
-	<1242409235-18834-3-git-send-email-mlc@ti.com>
-	<1242409235-18834-4-git-send-email-mlc@ti.com>
+ <87ljoydyyt.fsf@deeprootsystems.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pz0-f115.google.com ([209.85.222.115]:64266 "EHLO
-	mail-pz0-f115.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755035AbZEOSHp (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 15 May 2009 14:07:45 -0400
-Received: by pzk13 with SMTP id 13so1191656pzk.33
-        for <linux-omap@vger.kernel.org>; Fri, 15 May 2009 11:07:46 -0700 (PDT)
-In-Reply-To: <1242409235-18834-4-git-send-email-mlc@ti.com> (Mikkel Christensen's message of "Fri\, 15 May 2009 12\:40\:35 -0500")
+Received: from arroyo.ext.ti.com ([192.94.94.40]:35081 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753310AbZEOS3E convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 15 May 2009 14:29:04 -0400
+In-Reply-To: <87ljoydyyt.fsf@deeprootsystems.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Mikkel Christensen <mlc@ti.com>
-Cc: linux-omap@vger.kernel.org, Vikram Pandita <vikram.pandita@ti.com>
+To: Kevin Hilman <khilman@deeprootsystems.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Pandita, Vikram" <vikram.pandita@ti.com>
 
-Mikkel Christensen <mlc@ti.com> writes:
+Hi Kevin
 
-> This patch adds OMAP3 Zoom2 board to the Makefile and Kconfig.
->
-> Signed-off-by: Mikkel Christensen <mlc@ti.com>
-> Signed-off-by: Vikram Pandita <vikram.pandita@ti.com>
+On Fri, May 15, 2009 at 13:04:42, Kevin Hilman wrote:
+> > ---
+> >  arch/arm/mach-omap2/board-zoom2-debugboard.c |  165
+> ++++++++++++++++++++++++++
+> >  arch/arm/mach-omap2/board-zoom2.c            |  109 
+> +++++++++++++++++
+> >  2 files changed, 274 insertions(+), 0 deletions(-)  create mode
+> > 100644 arch/arm/mach-omap2/board-zoom2-debugboard.c
+> >  create mode 100644 arch/arm/mach-omap2/board-zoom2.c
+> >
+> > diff --git a/arch/arm/mach-omap2/board-zoom2-debugboard.c
+> > b/arch/arm/mach-omap2/board-zoom2-debugboard.c
+> > new file mode 100644
+> > index 0000000..e89b3af
+> > --- /dev/null
+> > +++ b/arch/arm/mach-omap2/board-zoom2-debugboard.c
+> > @@ -0,0 +1,165 @@
+> > +/*
+> > + * arch/arm/mach-omap2/board-zoom2-debugboard.c
+> 
+> Can you drop the filename here, and in the other files as well.
 
-One more very minor nit...
+Sure I can do the change. Is this a new convention being used? I can see the file name in many other files as well.
 
-> ---
->  arch/arm/mach-omap2/Kconfig  |    4 ++++
->  arch/arm/mach-omap2/Makefile |    4 +++-
->  2 files changed, 7 insertions(+), 1 deletions(-)
->
-> diff --git a/arch/arm/mach-omap2/Kconfig b/arch/arm/mach-omap2/Kconfig
-> index 64ab386..0b16255 100644
-> --- a/arch/arm/mach-omap2/Kconfig
-> +++ b/arch/arm/mach-omap2/Kconfig
-> @@ -67,3 +67,7 @@ config MACH_OMAP_3430SDP
->  config MACH_NOKIA_RX51
->  	bool "Nokia RX-51 board"
->  	depends on ARCH_OMAP3 && ARCH_OMAP34XX
-> +
-> +config MACH_OMAP_ZOOM2
-> +	bool "OMAP3 Zoom2 board"
-> +	depends on ARCH_OMAP3 && ARCH_OMAP34XX
-> \ No newline at end of file
+/Mikkel
 
-Can you add a newline here.  I think Kconfig should parse this without
-problems, but not entirely sure.
-
-> diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
-> index c49d9bf..fe4485f 100644
-> --- a/arch/arm/mach-omap2/Makefile
-> +++ b/arch/arm/mach-omap2/Makefile
-> @@ -48,7 +48,9 @@ obj-$(CONFIG_MACH_OMAP_3430SDP)		+= board-3430sdp.o \
->  obj-$(CONFIG_MACH_NOKIA_RX51)		+= board-rx51.o \
->  					   board-rx51-peripherals.o \
->  					   mmc-twl4030.o
-> -
-> +obj-$(CONFIG_MACH_OMAP_ZOOM2)		+= board-zoom2.o \
-> +					   mmc-twl4030.o \
-> +					   board-zoom2-debugboard.o
->  # Platform specific device init code
->  ifeq ($(CONFIG_USB_MUSB_SOC),y)
->  obj-y					+= usb-musb.o
-> -- 
-> 1.5.4.3
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
