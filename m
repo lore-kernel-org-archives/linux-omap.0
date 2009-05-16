@@ -1,124 +1,79 @@
 From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [PATCH 3/6] omap iommu: omap3 iommu device registration
-Date: Sat, 16 May 2009 10:20:36 +0100
-Message-ID: <20090516092036.GD15328@n2100.arm.linux.org.uk>
-References: <20090505123905.4583.69865.stgit@oreo.research.nokia.com> <20090505124700.4583.69988.stgit@oreo.research.nokia.com>
+Subject: Re: [PATCH 4/6] omap iommu: simple virtual address space management
+Date: Sat, 16 May 2009 10:22:48 +0100
+Message-ID: <20090516092248.GE15328@n2100.arm.linux.org.uk>
+References: <20090505123905.4583.69865.stgit@oreo.research.nokia.com> <20090505124705.4583.28674.stgit@oreo.research.nokia.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:54523 "EHLO
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:54529 "EHLO
 	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752211AbZEPJUp (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 16 May 2009 05:20:45 -0400
+	with ESMTP id S1754416AbZEPJW5 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 16 May 2009 05:22:57 -0400
 Content-Disposition: inline
-In-Reply-To: <20090505124700.4583.69988.stgit@oreo.research.nokia.com>
+In-Reply-To: <20090505124705.4583.28674.stgit@oreo.research.nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
 Cc: linux-arm-kernel@lists.arm.linux.org.uk, linux-omap@vger.kernel.org, h-kanigeri2@ti.com, omar.ramirez@ti.com, sakari.ailus@maxwell.research.nokia.com, tony@atomide.com
 
-On Tue, May 05, 2009 at 03:47:00PM +0300, Hiroshi DOYU wrote:
-> +static struct resource omap3_iommu_res[] = {
-> +	{ /* Camera ISP MMU */
-> +		.start		= OMAP3_MMU1_BASE,
-> +		.end		= OMAP3_MMU1_BASE + MMU_REG_SIZE - 1,
-> +		.flags		= IORESOURCE_MEM,
-> +	},
-> +	{
-> +		.start		= OMAP3_MMU1_IRQ,
-> +		.flags		= IORESOURCE_IRQ,
-> +	},
-> +	{ /* IVA2.2 MMU */
-> +		.start		= OMAP3_MMU2_BASE,
-> +		.end		= OMAP3_MMU2_BASE + MMU_REG_SIZE - 1,
-> +		.flags		= IORESOURCE_MEM,
-> +	},
-> +	{
-> +		.start		= OMAP3_MMU2_IRQ,
-> +		.flags		= IORESOURCE_IRQ,
-> +	},
-> +};
-> +#define NR_IOMMU_RES (ARRAY_SIZE(omap3_iommu_res) / 2)
-
-This looks all very convoluted.  Why not do something like:
-
-static unsigned long iommu_base[] = {
-	OMAP3_MMU1_BASE,
-	OMAP3_MMU2_BASE,
-};
-
-static int iommu_irq[] = {
-	OMAP3_MMU1_IRQ,
-	OMAP3_MMU2_IRQ,
-};
-
-> +static struct platform_device *omap3_iommu_pdev[NR_IOMMU_DEVICES];
-> +
-> +static int __init omap3_iommu_init(void)
+On Tue, May 05, 2009 at 03:47:06PM +0300, Hiroshi DOYU wrote:
+> +int ioremap_page(unsigned long virt, unsigned long phys, unsigned int mtype)
 > +{
-> +	int i, err;
+> +	const struct mem_type *type;
 > +
-> +	for (i = 0; i < NR_IOMMU_DEVICES; i++) {
-> +		struct platform_device *pdev;
+> +	type = get_mem_type(mtype);
+> +	if (!type)
+> +		return -EINVAL;
+
+I think it would make more sense to move this lookup into the caller
+for this - you're going to be making quite a lot of calls into
+ioremap_page() so you really don't want to be doing the same lookup
+every time.
+
+> +/* map 'sglist' to a contiguous mpu virtual area and return 'va' */
+> +static void *vmap_sg(const struct sg_table *sgt)
+> +{
+> +	u32 va;
+> +	size_t total;
+> +	unsigned int i;
+> +	struct scatterlist *sg;
+> +	struct vm_struct *new;
 > +
-> +		pdev = platform_device_alloc("omap-iommu", i + 1);
+> +	total = sgtable_len(sgt);
+> +	if (!total)
+> +		return ERR_PTR(-EINVAL);
+> +
+> +	new = __get_vm_area(total, VM_IOREMAP, VMALLOC_START, VMALLOC_END);
+> +	if (!new)
+> +		return ERR_PTR(-ENOMEM);
+> +	va = (u32)new->addr;
 
-Why number them 1 and up when zero is perfectly fine?
+In other words, move it here.
 
-> +		if (!pdev) {
-> +			err = -ENOMEM;
-> +			goto err_out;
-> +		}
-> +		err = platform_device_add_resources(pdev,
-> +				    &omap3_iommu_res[2 * i], NR_IOMMU_RES);
-
-		struct resource res[2];
-
-		res[0].start = iommu_base[i];
-		res[0].end = iommu_base[i] + MMU_REG_SIZE - 1;
-		res[0].flags = IORESOURCE_MEM;
-		res[1].start = res[1].end = iommu_irq[i];
-		res[1].flags = IORESOURCE_IRQ;
-
-		err = platform_device_add_resources(pdev, &res, ARRAY_SIZE(res));
-
-There's no need to keep 'res' around since it's copied by add_resources.
-
+> +
+> +	for_each_sg(sgt->sgl, sg, sgt->nents, i) {
+> +		size_t bytes;
+> +		u32 pa;
+> +		int err;
+> +
+> +		pa = sg_phys(sg);
+> +		bytes = sg_dma_len(sg);
+> +
+> +		BUG_ON(bytes != PAGE_SIZE);
+> +
+> +		err = ioremap_page(va,  pa, MT_DEVICE);
 > +		if (err)
 > +			goto err_out;
-> +		err = platform_device_add_data(pdev, &omap3_iommu_pdata[i],
-> +					       sizeof(omap3_iommu_pdata[0]));
-> +		if (err)
-> +			goto err_out;
-> +		err = platform_device_add(pdev);
-> +		if (err)
-> +			goto err_out;
-> +		omap3_iommu_pdev[i] = pdev;
+> +
+> +		va += bytes;
 > +	}
-> +	return 0;
+> +
+> +	flush_cache_vmap(new->addr, total);
+> +	return new->addr;
 > +
 > +err_out:
-> +	while (i--)
-> +		platform_device_put(omap3_iommu_pdev[i]);
-> +	return err;
+> +	WARN_ON(1); /* FIXME: cleanup some mpu mappings */
+> +	vunmap(new->addr);
+> +	return ERR_PTR(-EAGAIN);
 > +}
-> +module_init(omap3_iommu_init);
-> +
-> +static void __exit omap3_iommu_exit(void)
-> +{
-> +	int i;
-> +
-> +	for (i = 0; i < NR_IOMMU_DEVICES; i++)
-> +		platform_device_unregister(omap3_iommu_pdev[i]);
-> +}
-> +module_exit(omap3_iommu_exit);
-> +
-> +MODULE_AUTHOR("Hiroshi DOYU");
-> +MODULE_DESCRIPTION("omap iommu: omap3 device registration");
-> +MODULE_LICENSE("GPL v2");
-> 
-> 
-> -------------------------------------------------------------------
-> List admin: http://lists.arm.linux.org.uk/mailman/listinfo/linux-arm-kernel
-> FAQ:        http://www.arm.linux.org.uk/mailinglists/faq.php
-> Etiquette:  http://www.arm.linux.org.uk/mailinglists/etiquette.php
