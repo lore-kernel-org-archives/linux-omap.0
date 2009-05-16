@@ -1,100 +1,88 @@
-From: Felipe Contreras <felipe.contreras@gmail.com>
-Subject: [RFC/PATCH 3/3] omap3-iommu: remote registration
-Date: Sat, 16 May 2009 13:05:50 +0300
-Message-ID: <1242468350-23190-4-git-send-email-felipe.contreras@gmail.com>
-References: <1242468350-23190-1-git-send-email-felipe.contreras@gmail.com>
- <1242468350-23190-2-git-send-email-felipe.contreras@gmail.com>
- <1242468350-23190-3-git-send-email-felipe.contreras@gmail.com>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: [RESUBMIT][PATCH 5/7] OMAP4: Update common omap machine
+	specific sources.
+Date: Sat, 16 May 2009 11:07:32 +0100
+Message-ID: <20090516100732.GK15328@n2100.arm.linux.org.uk>
+References: <1241677756-28756-1-git-send-email-santosh.shilimkar@ti.com> <1241677756-28756-2-git-send-email-santosh.shilimkar@ti.com> <1241677756-28756-3-git-send-email-santosh.shilimkar@ti.com> <1241677756-28756-4-git-send-email-santosh.shilimkar@ti.com> <1241677756-28756-5-git-send-email-santosh.shilimkar@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-fx0-f158.google.com ([209.85.220.158]:63079 "EHLO
-	mail-fx0-f158.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755204AbZEPKF7 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 16 May 2009 06:05:59 -0400
-Received: by mail-fx0-f158.google.com with SMTP id 2so2342832fxm.37
-        for <linux-omap@vger.kernel.org>; Sat, 16 May 2009 03:06:00 -0700 (PDT)
-In-Reply-To: <1242468350-23190-3-git-send-email-felipe.contreras@gmail.com>
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:33210 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754786AbZEPKHk (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 16 May 2009 06:07:40 -0400
+Content-Disposition: inline
+In-Reply-To: <1241677756-28756-5-git-send-email-santosh.shilimkar@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Hiroshi DOYU <hiroshi.doyu@nokia.com>, Hari Kanigeri <h-kanigeri2@ti.com>, linux-arm-kernel@lists.arm.linux.org.uk, Felipe Contreras <felipe.contreras@gmail.com>
+To: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: linux-arm-kernel@lists.arm.linux.org.uk, linux-omap@vger.kernel.org
 
-This allows devices to be registered only when they are used. The
-current dsp-bridge driver for example is not using iommu so registering
-the iommu iva2 device would conflict. By allowing remote registration
-the dsp-bridge can decide when the iommu iva2 device is registered.
+I think this is going to take several separate reviews to group stuff
+together.
 
-Signed-off-by: Felipe Contreras <felipe.contreras@gmail.com>
----
- arch/arm/mach-omap2/omap3-iommu.c       |   36 +-----------------------------
- arch/arm/plat-omap/include/mach/iommu.h |    2 +
- 2 files changed, 4 insertions(+), 34 deletions(-)
+On Thu, May 07, 2009 at 11:59:14AM +0530, Santosh Shilimkar wrote:
+> This patch updates the common machine spcific source files for OMAP4430.
 
-diff --git a/arch/arm/mach-omap2/omap3-iommu.c b/arch/arm/mach-omap2/omap3-iommu.c
-index 149c624..8380cd5 100644
---- a/arch/arm/mach-omap2/omap3-iommu.c
-+++ b/arch/arm/mach-omap2/omap3-iommu.c
-@@ -41,11 +41,8 @@ static struct iommu_device devices[] = {
- 		},
- 	},
- };
--#define NR_IOMMU_DEVICES ARRAY_SIZE(omap3_iommu_pdata)
- 
--static struct platform_device *omap3_iommu_pdev[NR_IOMMU_DEVICES];
--
--static struct platform_device *omap_iommu_add(const char *name)
-+struct platform_device *omap_iommu_add(const char *name)
- {
- 	struct platform_device *pdev;
- 	const struct iommu_device *d = NULL;
-@@ -91,36 +88,7 @@ err_out:
- 	platform_device_put(pdev);
- 	return NULL;
- }
--
--static int __init omap3_iommu_init(void)
--{
--	struct platform_device *pdev;
--	int i, err;
--
--	for (i = 0; i < ARRAY_SIZE(devices); i++) {
--		pdev = omap_iommu_add(devices[i].pdata.name);
--		if (!pdev)
--			goto err_out;
--		omap3_iommu_pdev[i] = pdev;
--	}
--
--	return 0;
--
--err_out:
--	while (i--)
--		platform_device_put(omap3_iommu_pdev[i]);
--	return err;
--}
--module_init(omap3_iommu_init);
--
--static void __exit omap3_iommu_exit(void)
--{
--	int i;
--
--	for (i = 0; i < NR_IOMMU_DEVICES; i++)
--		platform_device_unregister(omap3_iommu_pdev[i]);
--}
--module_exit(omap3_iommu_exit);
-+EXPORT_SYMBOL_GPL(omap_iommu_add);
- 
- MODULE_AUTHOR("Hiroshi DOYU");
- MODULE_DESCRIPTION("omap iommu: omap3 device registration");
-diff --git a/arch/arm/plat-omap/include/mach/iommu.h b/arch/arm/plat-omap/include/mach/iommu.h
-index 769b00b..e22a4a4 100644
---- a/arch/arm/plat-omap/include/mach/iommu.h
-+++ b/arch/arm/plat-omap/include/mach/iommu.h
-@@ -165,4 +165,6 @@ extern int foreach_iommu_device(void *data,
- extern ssize_t iommu_dump_ctx(struct iommu *obj, char *buf);
- extern size_t dump_tlb_entries(struct iommu *obj, char *buf);
- 
-+struct platform_device *omap_iommu_add(const char *name);
-+
- #endif /* __MACH_IOMMU_H */
--- 
-1.6.3.1
+Spelling - "specific".
 
+> diff --git a/arch/arm/mach-omap2/clockdomain.c b/arch/arm/mach-omap2/clockdomain.c
+> index 0e7d501..1497d18 100644
+> --- a/arch/arm/mach-omap2/clockdomain.c
+> +++ b/arch/arm/mach-omap2/clockdomain.c
+> @@ -177,6 +177,8 @@ void clkdm_init(struct clockdomain **clkdms,
+>  	struct clockdomain **c = NULL;
+>  	struct clkdm_pwrdm_autodep *autodep = NULL;
+>  
+> +	if (cpu_is_omap44xx())
+> +		return ; /* FIXME: Not yet support */
+>  	if (clkdms)
+>  		for (c = clkdms; *c; c++)
+>  			clkdm_register(*c);
+> diff --git a/arch/arm/mach-omap2/powerdomain.c b/arch/arm/mach-omap2/powerdomain.c
+> index 73e2971..7fc03b8 100644
+> --- a/arch/arm/mach-omap2/powerdomain.c
+> +++ b/arch/arm/mach-omap2/powerdomain.c
+> @@ -117,6 +117,8 @@ void pwrdm_init(struct powerdomain **pwrdm_list)
+>  {
+>  	struct powerdomain **p = NULL;
+>  
+> +	if (cpu_is_omap44xx())
+> +		return ; /* FIXME: Not supported yet */
+>  	if (pwrdm_list)
+>  		for (p = pwrdm_list; *p; p++)
+>  			pwrdm_register(*p);
+> diff --git a/arch/arm/mach-omap2/sdrc.c b/arch/arm/mach-omap2/sdrc.c
+> index 2a30060..944da57 100644
+> --- a/arch/arm/mach-omap2/sdrc.c
+> +++ b/arch/arm/mach-omap2/sdrc.c
+> @@ -79,6 +79,8 @@ void __init omap2_sdrc_init(struct omap_sdrc_params *sp)
+>  {
+>  	u32 l;
+>  
+> +	if (cpu_is_omap44xx())
+> +		return; /* SDRC not supported */
+>  	l = sms_read_reg(SMS_SYSCONFIG);
+>  	l &= ~(0x3 << 3);
+>  	l |= (0x2 << 3);
+> diff --git a/arch/arm/mach-omap2/io.c b/arch/arm/mach-omap2/io.c
+> index 916fcd3..6db7791 100644
+> --- a/arch/arm/mach-omap2/io.c
+> +++ b/arch/arm/mach-omap2/io.c
+> @@ -200,7 +247,9 @@ void __init omap2_init_common_hw(struct omap_sdrc_params *sp)
+>  	omap2_mux_init();
+>  	pwrdm_init(powerdomains_omap);
+>  	clkdm_init(clockdomains_omap, clkdm_pwrdm_autodeps);
+> +#ifndef CONFIG_ARCH_OMAP4 /* FIXME: Remove this once the clkdev is ready */
+>  	omap2_clk_init();
+> +#endif
+>  	omap2_sdrc_init(sp);
+>  	gpmc_init();
+>  }
+
+I'm not sure why:
+
+1. you're using a (possible) run time check in sdrc.c, clockdomain.c and
+   powerdomain.c, but a compile time check in io.c
+2. you don't leave sdrc.c, clockdomain.c and powerdomain.c alone and just
+   disable the three initialisation calls inside omap2_init_common_hw().
