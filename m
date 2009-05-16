@@ -1,89 +1,56 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: git pull request for omap-fixes, v3 (Re: [PATCH 0/8] Omap
-	fixes for 2.6.30-rc5)
-Date: Sat, 16 May 2009 11:05:02 -0700
-Message-ID: <20090516180502.GO19742@atomide.com>
-References: <20090514174100.12080.9736.stgit@localhost> <20090515224139.GF19742@atomide.com> <20090516154120.GM19742@atomide.com>
+From: Felipe Contreras <felipe.contreras@gmail.com>
+Subject: Re: [RFC/PATCH 0/3] omap3-iommu: cleanups and remote registration
+Date: Sat, 16 May 2009 21:32:10 +0300
+Message-ID: <94a0d4530905161132j23b109bbj6d62f7ff9fac8c7f@mail.gmail.com>
+References: <1242468350-23190-1-git-send-email-felipe.contreras@gmail.com>
+	 <20090516163635.GB25657@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="J+eNKFoVC4T1DV3f"
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:54648 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754739AbZEPSFG (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 16 May 2009 14:05:06 -0400
-Content-Disposition: inline
-In-Reply-To: <20090516154120.GM19742@atomide.com>
+Received: from fg-out-1718.google.com ([72.14.220.154]:60018 "EHLO
+	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752047AbZEPScL convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 16 May 2009 14:32:11 -0400
+Received: by fg-out-1718.google.com with SMTP id 16so888670fgg.17
+        for <linux-omap@vger.kernel.org>; Sat, 16 May 2009 11:32:10 -0700 (PDT)
+In-Reply-To: <20090516163635.GB25657@n2100.arm.linux.org.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Russell King <linux@arm.linux.org.uk>
-Cc: linux-arm-kernel@lists.arm.linux.org.uk, linux-omap@vger.kernel.org
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: linux-omap@vger.kernel.org, Hiroshi DOYU <hiroshi.doyu@nokia.com>, Hari Kanigeri <h-kanigeri2@ti.com>, linux-arm-kernel@lists.arm.linux.org.uk
 
+On Sat, May 16, 2009 at 7:36 PM, Russell King - ARM Linux
+<linux@arm.linux.org.uk> wrote:
+> On Sat, May 16, 2009 at 01:05:47PM +0300, Felipe Contreras wrote:
+>> This patch series cleanups up a bit the opap3-iommu device registrat=
+ion and
+>> then allows registration from other parts of the code.
+>>
+>> Currently the iva2 code (tidspbridge) is not using iommu, therefore =
+it can't be
+>> used as-is with the current omap iommu. By allowing devies to be reg=
+istered
+>> externaly (either isp, or iva2) this problem goes away.
+>
+> Hmm, so does this mean that the iommu patchset is going to grow by th=
+ree
+> patches? =C2=A0Hope not.
 
---J+eNKFoVC4T1DV3f
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+I hope Hiroshi integrates my patches.
 
-* Tony Lindgren <tony@atomide.com> [090516 08:41]:
-> * Tony Lindgren <tony@atomide.com> [090515 15:42]:
-> > Russell,
-> > 
-> > * Tony Lindgren <tony@atomide.com> [090514 10:42]:
-> > > Hi,
-> > > 
-> > > Here are some omap fixes for 2.6.30-rc5 for review.
-> > 
-> > Here's the pull request for you assuming you don't have any comments
-> > for these fixes.
-> 
-> Updated pull request below with the dispc clkdev patch dropped.
+> Also, please ensure that you address my other comments, some of which=
+ do
+> seem applicable to your cleanups as well - eg, the __initdata one.
 
-Added back the dispc clkdev patch as discussed in the other thread,
-updated pull request here.
+Right, I can improve my cleanup patch with your comments, but my final
+objective was to be able to register iommu devices independently, and
+for that __initdata on the 'devices' array didn't work.
 
-Tony
-
---J+eNKFoVC4T1DV3f
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline; filename="pull.txt"
-
-The following changes since commit 091bf7624d1c90cec9e578a18529f615213ff847:
-  Linus Torvalds (1):
-        Linux 2.6.30-rc5
-
-are available in the git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap-2.6.git omap-fixes
-
-Jarkko Nikula (2):
-      ARM: OMAP2: Fix tusb6010 init error and compilation warning
-      ARM: OMAP2: Fix SPI driver failure on 2420 when running multi-omap config
-
-Kalle Jokiniemi (1):
-      ARM: OMAP3: Fix HW SAVEANDRESTORE shift define
-
-Paul Walmsley (1):
-      ARM: OMAP: GPIO de-bounce clocks don't affect module idle state
-
-Tomi Valkeinen (1):
-      ARM: OMAP: Fix printing of reserved memory for frambuffer
-
-Tony Lindgren (2):
-      ARM: OMAP2/3: Add name for musb clocks
-      ARM: OMAP2/3: Change omapfb to use clkdev for dispc and rfbi, v2
-
-Vikram Pandita (1):
-      ARM: OMAP3: Fix number of GPIO lines for 34xx
-
- arch/arm/mach-omap2/clock24xx.c        |   10 +++++-----
- arch/arm/mach-omap2/clock34xx.c        |   12 ++++++------
- arch/arm/mach-omap2/clock34xx.h        |   12 ++++++------
- arch/arm/mach-omap2/devices.c          |    6 ++++--
- arch/arm/mach-omap2/prm-regbits-34xx.h |    2 +-
- arch/arm/mach-omap2/usb-tusb6010.c     |    2 +-
- arch/arm/plat-omap/fb.c                |    5 +++--
- arch/arm/plat-omap/gpio.c              |    2 +-
- drivers/video/omap/dispc.c             |   14 ++++++++------
- drivers/video/omap/rfbi.c              |    8 +++++---
- 10 files changed, 40 insertions(+), 33 deletions(-)
-
---J+eNKFoVC4T1DV3f--
+--=20
+=46elipe Contreras
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
