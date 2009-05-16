@@ -1,29 +1,134 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [PATCH 0/3]  OMAP4: SMP: Patch series
-Date: Sat, 16 May 2009 11:34:13 +0100
-Message-ID: <20090516103413.GS15328@n2100.arm.linux.org.uk>
-References: <EAF47CD23C76F840A9E7FCE10091EFAB02B4687E57@dbde02.ent.ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Felipe Contreras <felipe.contreras@gmail.com>
+Subject: [RFC/PATCH 1/3] omap3-iommu: reorganize
+Date: Sat, 16 May 2009 13:41:41 +0300
+Message-ID: <1242470501-23400-1-git-send-email-felipe.contreras@gmail.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:36322 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754537AbZEPKeW (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 16 May 2009 06:34:22 -0400
-Content-Disposition: inline
-In-Reply-To: <EAF47CD23C76F840A9E7FCE10091EFAB02B4687E57@dbde02.ent.ti.com>
+Received: from fg-out-1718.google.com ([72.14.220.159]:53153 "EHLO
+	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755885AbZEPKlr (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 16 May 2009 06:41:47 -0400
+Received: by fg-out-1718.google.com with SMTP id 16so836244fgg.17
+        for <linux-omap@vger.kernel.org>; Sat, 16 May 2009 03:41:47 -0700 (PDT)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Cc: "linux-arm-kernel@lists.arm.linux.org.uk" <linux-arm-kernel@lists.arm.linux.org.uk>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: linux-omap@vger.kernel.org
+Cc: Hiroshi DOYU <hiroshi.doyu@nokia.com>, Hari Kanigeri <h-kanigeri2@ti.com>, linux-arm-kernel@lists.arm.linux.org.uk, Felipe Contreras <felipe.contreras@gmail.com>
 
-On Thu, May 07, 2009 at 12:47:30PM +0530, Shilimkar, Santosh wrote:
-> [PATCH 1/3]OMAP4: SMP: Add OMAP4430 SMP board files
-> [PATCH 2/3]OMAP4: SMP: Add mpu timer support for OMAP4430
-> [PATCH 3/3]OMAP4: SMP: Enable SMP support for OMAP4430
+No functional changes.
 
-Overall comment - you seem to be re-using ARMs SCU and TWD blocks in
-OMAP, which is fine.  If this is the way other silicon vendors are
-going for SMP support, we should move that out of platform dependent
-code, so we don't end up with everyone having their own duplicated
-implementations of this code.
+Signed-off-by: Felipe Contreras <felipe.contreras@gmail.com>
+---
+ arch/arm/mach-omap2/omap3-iommu.c |   72 ++++++++++++++++++------------------
+ 1 files changed, 36 insertions(+), 36 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/omap3-iommu.c b/arch/arm/mach-omap2/omap3-iommu.c
+index 367f36a..f4232ec 100644
+--- a/arch/arm/mach-omap2/omap3-iommu.c
++++ b/arch/arm/mach-omap2/omap3-iommu.c
+@@ -14,43 +14,31 @@
+ 
+ #include <mach/iommu.h>
+ 
+-#define OMAP3_MMU1_BASE	0x480bd400
+-#define OMAP3_MMU2_BASE	0x5d000000
+-#define OMAP3_MMU1_IRQ	24
+-#define OMAP3_MMU2_IRQ	28
+-
+-static struct resource omap3_iommu_res[] = {
+-	{ /* Camera ISP MMU */
+-		.start		= OMAP3_MMU1_BASE,
+-		.end		= OMAP3_MMU1_BASE + MMU_REG_SIZE - 1,
+-		.flags		= IORESOURCE_MEM,
+-	},
+-	{
+-		.start		= OMAP3_MMU1_IRQ,
+-		.flags		= IORESOURCE_IRQ,
+-	},
+-	{ /* IVA2.2 MMU */
+-		.start		= OMAP3_MMU2_BASE,
+-		.end		= OMAP3_MMU2_BASE + MMU_REG_SIZE - 1,
+-		.flags		= IORESOURCE_MEM,
+-	},
+-	{
+-		.start		= OMAP3_MMU2_IRQ,
+-		.flags		= IORESOURCE_IRQ,
+-	},
++struct iommu_device {
++	resource_size_t base;
++	resource_size_t irq;
++	struct iommu_platform_data pdata;
++	struct resource res[2];
+ };
+-#define NR_IOMMU_RES (ARRAY_SIZE(omap3_iommu_res) / 2)
+ 
+-static const struct iommu_platform_data omap3_iommu_pdata[] __initconst = {
++static struct iommu_device devices[] = {
+ 	{
+-		.name = "isp",
+-		.nr_tlb_entries = 8,
+-		.clk_name = "cam_ick",
++		.base = 0x480bd400,
++		.irq = 24,
++		.pdata = {
++			.name = "isp",
++			.nr_tlb_entries = 8,
++			.clk_name = "cam_ick",
++		},
+ 	},
+ 	{
+-		.name = "iva2",
+-		.nr_tlb_entries = 32,
+-		.clk_name = "iva2_ck",
++		.base = 0x5d000000,
++		.irq = 28,
++		.pdata = {
++			.name = "iva2",
++			.nr_tlb_entries = 32,
++			.clk_name = "iva2_ck",
++		},
+ 	},
+ };
+ #define NR_IOMMU_DEVICES ARRAY_SIZE(omap3_iommu_pdata)
+@@ -63,23 +51,35 @@ static int __init omap3_iommu_init(void)
+ 
+ 	for (i = 0; i < NR_IOMMU_DEVICES; i++) {
+ 		struct platform_device *pdev;
++		const struct iommu_device *d = &devices[i];
++		struct resource res[] = {
++			{ .flags = IORESOURCE_MEM },
++			{ .flags = IORESOURCE_IRQ },
++		};
+ 
+ 		pdev = platform_device_alloc("omap-iommu", i + 1);
+ 		if (!pdev) {
+ 			err = -ENOMEM;
+ 			goto err_out;
+ 		}
+-		err = platform_device_add_resources(pdev,
+-				    &omap3_iommu_res[2 * i], NR_IOMMU_RES);
++
++		res[0].start = d->base;
++		res[0].end = d->base + MMU_REG_SIZE - 1;
++
++		res[1].start = d->irq;
++
++		err = platform_device_add_resources(pdev, res, ARRAY_SIZE(res));
+ 		if (err)
+ 			goto err_out;
+-		err = platform_device_add_data(pdev, &omap3_iommu_pdata[i],
+-					       sizeof(omap3_iommu_pdata[0]));
++
++		err = platform_device_add_data(pdev, &d->pdata, sizeof(d->pdata));
+ 		if (err)
+ 			goto err_out;
++
+ 		err = platform_device_add(pdev);
+ 		if (err)
+ 			goto err_out;
++
+ 		omap3_iommu_pdev[i] = pdev;
+ 	}
+ 	return 0;
+-- 
+1.6.3.1
+
