@@ -1,35 +1,42 @@
 From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [PATCH] OMAP_LDP: Support LCD display as a FB device on ZOOM
-	MDK (Re: LDP support)
-Date: Sat, 16 May 2009 09:19:04 +0100
-Message-ID: <20090516081904.GB15328@n2100.arm.linux.org.uk>
-References: <5A47E75E594F054BAF48C5E4FC4B92AB030555A7D9@dbde02.ent.ti.com> <4A03F8DD.4070307@windriver.com> <87hbzv8rua.fsf@litku.valot.fi>
+Subject: Re: [PATCH 6/8] ARM: OMAP2/3: Change omapfb to use clkdev for
+	dispc and rfbi
+Date: Sat, 16 May 2009 10:06:21 +0100
+Message-ID: <20090516090621.GC15328@n2100.arm.linux.org.uk>
+References: <20090514174100.12080.9736.stgit@localhost> <20090514174959.12080.64417.stgit@localhost> <20090514210312.9fa02bb3.krzysztof.h1@poczta.fm> <20090514202805.GQ5593@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:33908 "EHLO
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:59008 "EHLO
 	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753313AbZEPIT2 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 16 May 2009 04:19:28 -0400
+	with ESMTP id S1753964AbZEPJGg (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 16 May 2009 05:06:36 -0400
 Content-Disposition: inline
-In-Reply-To: <87hbzv8rua.fsf@litku.valot.fi>
+In-Reply-To: <20090514202805.GQ5593@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kalle Valo <kalle.valo@iki.fi>
-Cc: "stanley.miao" <stanley.miao@windriver.com>, "Gadiyar, Anand" <gadiyar@ti.com>, Tony Lindgren <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Imre Deak <imre.deak@nokia.com>, Tomi Valkeinen <tomi.valkeinen@nokia.com>
+To: Tony Lindgren <tony@atomide.com>
+Cc: Krzysztof Helt <krzysztof.h1@poczta.fm>, linux-arm-kernel@lists.arm.linux.org.uk, Imre Deak <imre.deak@nokia.com>, linux-omap@vger.kernel.org, linux-fbdev-devel@lists.sourceforge.net
 
-On Fri, May 08, 2009 at 07:47:09PM +0300, Kalle Valo wrote:
-> "stanley.miao" <stanley.miao@windriver.com> writes:
+On Thu, May 14, 2009 at 01:28:06PM -0700, Tony Lindgren wrote:
+> commit 27db33cfadd3c47c9499def6e71aaf5d2fd51e60
+> Author: Tony Lindgren <tony@atomide.com>
+> Date:   Tue May 12 11:20:03 2009 -0700
 > 
-> >> Looks like you used the CodeSourcery 2007q3 toolchain. This had been
-> >> reported earlier. Switching to 2008q3 works.
-> >
-> > Yeah, Now the kernel booted. it's compiler's problem.
-> 
-> I was bitten by the same problem few weeks ago. Any chance of getting a
-> warning/error if using 2007q3 compiler until the problem is fixed?
+>     ARM: OMAP2/3: Change omapfb to use clkdev for dispc and rfbi, v2
+>     
+>     This makes the framebuffer work on omap3.
+>     
+>     Also fix the clk_get usage for checkpatch.pl
+>     "ERROR: do not use assignment in if condition".
+>     
+>     Cc: Imre Deak <imre.deak@nokia.com>
+>     Cc: linux-fbdev-devel@lists.sourceforge.net
+>     Acked-by: Krzysztof Helt <krzysztof.h1@wp.pl>
+>     Signed-off-by: Tony Lindgren <tony@atomide.com>
 
-Is there any way of detecting the 2007q3 compiler?
+This isn't a bug fix - the current code works, although checkpatch will
+complain about the assignment in the if condition.
 
-With normal GCC versions, you can use __GNUC__, __GNUC_MINOR__ and
-__GNUC_PATCHLEVEL__ to identify the three digit version number.
+The rest of the patch is just a conversion from the old way of doing
+things to the new way, and I don't think is -rc material.
