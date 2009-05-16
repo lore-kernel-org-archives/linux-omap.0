@@ -1,91 +1,32 @@
 From: Felipe Contreras <felipe.contreras@gmail.com>
-Subject: Re: [PATCH 3/6] omap iommu: omap3 iommu device registration
-Date: Sat, 16 May 2009 12:56:31 +0300
-Message-ID: <94a0d4530905160256j1bcf1955mf9a62fd04f715cfa@mail.gmail.com>
-References: <20090505123905.4583.69865.stgit@oreo.research.nokia.com>
-	 <20090505124700.4583.69988.stgit@oreo.research.nokia.com>
-	 <20090516092036.GD15328@n2100.arm.linux.org.uk>
-	 <94a0d4530905160238g21db0519u2e0ad7a46c6e07b9@mail.gmail.com>
-	 <20090516095417.GI15328@n2100.arm.linux.org.uk>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Subject: [RFC/PATCH 0/3] omap3-iommu: cleanups and remote registration
+Date: Sat, 16 May 2009 13:05:47 +0300
+Message-ID: <1242468350-23190-1-git-send-email-felipe.contreras@gmail.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from fg-out-1718.google.com ([72.14.220.154]:44520 "EHLO
-	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754998AbZEPJ4b convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 16 May 2009 05:56:31 -0400
-Received: by fg-out-1718.google.com with SMTP id 16so831876fgg.17
-        for <linux-omap@vger.kernel.org>; Sat, 16 May 2009 02:56:31 -0700 (PDT)
-In-Reply-To: <20090516095417.GI15328@n2100.arm.linux.org.uk>
+Received: from mail-fx0-f158.google.com ([209.85.220.158]:63079 "EHLO
+	mail-fx0-f158.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754121AbZEPKFx (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 16 May 2009 06:05:53 -0400
+Received: by fxm2 with SMTP id 2so2342832fxm.37
+        for <linux-omap@vger.kernel.org>; Sat, 16 May 2009 03:05:54 -0700 (PDT)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>, linux-arm-kernel@lists.arm.linux.org.uk, linux-omap@vger.kernel.org, h-kanigeri2@ti.com, omar.ramirez@ti.com, sakari.ailus@maxwell.research.nokia.com, tony@atomide.com
+To: linux-omap@vger.kernel.org
+Cc: Hiroshi DOYU <hiroshi.doyu@nokia.com>, Hari Kanigeri <h-kanigeri2@ti.com>, linux-arm-kernel@lists.arm.linux.org.uk, Felipe Contreras <felipe.contreras@gmail.com>
 
-On Sat, May 16, 2009 at 12:54 PM, Russell King - ARM Linux
-<linux@arm.linux.org.uk> wrote:
-> On Sat, May 16, 2009 at 12:38:23PM +0300, Felipe Contreras wrote:
->> On Sat, May 16, 2009 at 12:20 PM, Russell King - ARM Linux
->> <linux@arm.linux.org.uk> wrote:
->> > On Tue, May 05, 2009 at 03:47:00PM +0300, Hiroshi DOYU wrote:
->> >> +static struct resource omap3_iommu_res[] =3D {
->> >> + =C2=A0 =C2=A0 { /* Camera ISP MMU */
->> >> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 .start =C2=A0 =C2=A0 =
-=C2=A0 =C2=A0 =C2=A0=3D OMAP3_MMU1_BASE,
->> >> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 .end =C2=A0 =C2=A0 =C2=
-=A0 =C2=A0 =C2=A0 =C2=A0=3D OMAP3_MMU1_BASE + MMU_REG_SIZE - 1,
->> >> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 .flags =C2=A0 =C2=A0 =
-=C2=A0 =C2=A0 =C2=A0=3D IORESOURCE_MEM,
->> >> + =C2=A0 =C2=A0 },
->> >> + =C2=A0 =C2=A0 {
->> >> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 .start =C2=A0 =C2=A0 =
-=C2=A0 =C2=A0 =C2=A0=3D OMAP3_MMU1_IRQ,
->> >> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 .flags =C2=A0 =C2=A0 =
-=C2=A0 =C2=A0 =C2=A0=3D IORESOURCE_IRQ,
->> >> + =C2=A0 =C2=A0 },
->> >> + =C2=A0 =C2=A0 { /* IVA2.2 MMU */
->> >> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 .start =C2=A0 =C2=A0 =
-=C2=A0 =C2=A0 =C2=A0=3D OMAP3_MMU2_BASE,
->> >> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 .end =C2=A0 =C2=A0 =C2=
-=A0 =C2=A0 =C2=A0 =C2=A0=3D OMAP3_MMU2_BASE + MMU_REG_SIZE - 1,
->> >> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 .flags =C2=A0 =C2=A0 =
-=C2=A0 =C2=A0 =C2=A0=3D IORESOURCE_MEM,
->> >> + =C2=A0 =C2=A0 },
->> >> + =C2=A0 =C2=A0 {
->> >> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 .start =C2=A0 =C2=A0 =
-=C2=A0 =C2=A0 =C2=A0=3D OMAP3_MMU2_IRQ,
->> >> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 .flags =C2=A0 =C2=A0 =
-=C2=A0 =C2=A0 =C2=A0=3D IORESOURCE_IRQ,
->> >> + =C2=A0 =C2=A0 },
->> >> +};
->> >> +#define NR_IOMMU_RES (ARRAY_SIZE(omap3_iommu_res) / 2)
->> >
->> > This looks all very convoluted. =C2=A0Why not do something like:
->> >
->> > static unsigned long iommu_base[] =3D {
->> > =C2=A0 =C2=A0 =C2=A0 =C2=A0OMAP3_MMU1_BASE,
->> > =C2=A0 =C2=A0 =C2=A0 =C2=A0OMAP3_MMU2_BASE,
->> > };
->> >
->> > static int iommu_irq[] =3D {
->> > =C2=A0 =C2=A0 =C2=A0 =C2=A0OMAP3_MMU1_IRQ,
->> > =C2=A0 =C2=A0 =C2=A0 =C2=A0OMAP3_MMU2_IRQ,
->> > };
->>
->> All your comments are pretty similar to my reorganize patch:
->> http://marc.info/?l=3Dlinux-omap&m=3D124172711303076&w=3D2
->
-> ... which hasn't been posted to linux-arm-kernel, and so I won't see =
-it.
+This patch series cleanups up a bit the opap3-iommu device registration and
+then allows registration from other parts of the code.
 
-You are not subscribed to linux-omap? I wasn't subscribed to
-linux-arm-kernel at that point, I'll resend to there.
+Currently the iva2 code (tidspbridge) is not using iommu, therefore it can't be
+used as-is with the current omap iommu. By allowing devies to be registered
+externaly (either isp, or iva2) this problem goes away.
 
---=20
-=46elipe Contreras
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Felipe Contreras (3):
+  omap3-iommu: reorganize
+  omap3-iommu: split init function into omap_iommu_add
+  omap3-iommu: remote registration
+
+ arch/arm/mach-omap2/omap3-iommu.c       |  130 ++++++++++++++-----------------
+ arch/arm/plat-omap/include/mach/iommu.h |    2 +
+ 2 files changed, 62 insertions(+), 70 deletions(-)
+
