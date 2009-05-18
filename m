@@ -1,32 +1,26 @@
 From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [PATCH 4/6] omap iommu: simple virtual address space management
-Date: Mon, 18 May 2009 14:10:39 +0100
-Message-ID: <20090518131039.GF3067@n2100.arm.linux.org.uk>
-References: <20090505123905.4583.69865.stgit@oreo.research.nokia.com> <20090505124705.4583.28674.stgit@oreo.research.nokia.com> <20090516092248.GE15328@n2100.arm.linux.org.uk> <20090518.093126.193701587.Hiroshi.DOYU@nokia.com>
+Subject: Re: [PATCH 08/11] OMAP3: PM: Ensure MUSB block can idle when
+	driver not loaded
+Date: Mon, 18 May 2009 14:16:11 +0100
+Message-ID: <20090518131611.GG3067@n2100.arm.linux.org.uk>
+References: <1242412851-16606-1-git-send-email-khilman@deeprootsystems.com> <1242412851-16606-2-git-send-email-khilman@deeprootsystems.com> <1242412851-16606-3-git-send-email-khilman@deeprootsystems.com> <1242412851-16606-4-git-send-email-khilman@deeprootsystems.com> <1242412851-16606-5-git-send-email-khilman@deeprootsystems.com> <1242412851-16606-6-git-send-email-khilman@deeprootsystems.com> <1242412851-16606-7-git-send-email-khilman@deeprootsystems.com> <1242412851-16606-8-git-send-email-khilman@deeprootsystems.com> <1242412851-16606-9-git-send-email-khilman@deeprootsystems.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:41497 "EHLO
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:42061 "EHLO
 	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750795AbZERNKu (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 18 May 2009 09:10:50 -0400
+	with ESMTP id S1751665AbZERNQT (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 18 May 2009 09:16:19 -0400
 Content-Disposition: inline
-In-Reply-To: <20090518.093126.193701587.Hiroshi.DOYU@nokia.com>
+In-Reply-To: <1242412851-16606-9-git-send-email-khilman@deeprootsystems.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
-Cc: linux-arm-kernel@lists.arm.linux.org.uk, linux-omap@vger.kernel.org, h-kanigeri2@ti.com, omar.ramirez@ti.com, sakari.ailus@maxwell.research.nokia.com, tony@atomide.com
+To: Kevin Hilman <khilman@deeprootsystems.com>
+Cc: linux-arm-kernel@lists.arm.linux.org.uk, linux-omap@vger.kernel.org, Peter 'p2' De Schrijver <peter.de-schrijver@nokia.com>
 
-On Mon, May 18, 2009 at 09:31:26AM +0300, Hiroshi DOYU wrote:
-> Right. In this change for better performance, I have to expose "struct
-> mem_type" and "get_mem_type()" a bit more as below. Is this change
-> acceptable, or do you have a better idea?
+On Fri, May 15, 2009 at 11:40:48AM -0700, Kevin Hilman wrote:
+> Otherwise, bootloaders may leave MUSB in a state which prevents
+> retention.
 
-You don't need to expose struct mem_type at all.  You only need to
-tell the compiler that it exists and is valid by:
-
-struct mem_type;
-
-Then you can use it in function prototypes without complaint.  I'd also
-prefer to hide ioremap_page() and get_mem_type() outside of the normal
-Linux headers - maybe in asm/mach/map.h.
+Hmm, so what happens if a boot loader has touched this MUSB thing, but
+the kernel which is being run doesn't have CONFIG_USB_MUSB_SOC enabled?
