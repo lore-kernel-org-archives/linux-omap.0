@@ -1,87 +1,111 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [RFC/PATCH 3/3] omap3-iommu: remote registration
-Date: Mon, 18 May 2009 14:40:18 +0100
-Message-ID: <20090518134018.GI3067@n2100.arm.linux.org.uk>
-References: <1242468350-23190-1-git-send-email-felipe.contreras@gmail.com> <1242468350-23190-2-git-send-email-felipe.contreras@gmail.com> <1242468350-23190-3-git-send-email-felipe.contreras@gmail.com> <1242468350-23190-4-git-send-email-felipe.contreras@gmail.com> <20090518121113.GB3067@n2100.arm.linux.org.uk> <94a0d4530905180546p47c887afj109b3b60cdd24a00@mail.gmail.com> <20090518130233.GD3067@n2100.arm.linux.org.uk> <94a0d4530905180621r35eebdf2o2f9b0b3e107e77a@mail.gmail.com>
+From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+Subject: Re: [RFC/PATCH 0/3] omap3-iommu: cleanups and remote registration
+Date: Mon, 18 May 2009 16:48:49 +0300 (EEST)
+Message-ID: <20090518.164849.70215248.Hiroshi.DOYU@nokia.com>
+References: <94a0d4530905161132j23b109bbj6d62f7ff9fac8c7f@mail.gmail.com>
+	<20090518.081627.200381155.Hiroshi.DOYU@nokia.com>
+	<94a0d4530905180448i344328e6hf3a1719b73721d75@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
+Content-Type: Text/Plain; charset=iso-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:54669 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751450AbZERNk1 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 18 May 2009 09:40:27 -0400
-Content-Disposition: inline
-In-Reply-To: <94a0d4530905180621r35eebdf2o2f9b0b3e107e77a@mail.gmail.com>
+Received: from smtp.nokia.com ([192.100.122.230]:17611 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751004AbZERNtJ convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 18 May 2009 09:49:09 -0400
+In-Reply-To: <94a0d4530905180448i344328e6hf3a1719b73721d75@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Contreras <felipe.contreras@gmail.com>
-Cc: linux-omap@vger.kernel.org, Hiroshi DOYU <hiroshi.doyu@nokia.com>, Hari Kanigeri <h-kanigeri2@ti.com>, linux-arm-kernel@lists.arm.linux.org.uk
+To: felipe.contreras@gmail.com
+Cc: linux@arm.linux.org.uk, linux-omap@vger.kernel.org, h-kanigeri2@ti.com, linux-arm-kernel@lists.arm.linux.org.uk
 
-On Mon, May 18, 2009 at 04:21:19PM +0300, Felipe Contreras wrote:
-> On Mon, May 18, 2009 at 4:02 PM, Russell King - ARM Linux
-> <linux@arm.linux.org.uk> wrote:
-> > On Mon, May 18, 2009 at 03:46:07PM +0300, Felipe Contreras wrote:
-> >> On Mon, May 18, 2009 at 3:11 PM, Russell King - ARM Linux
+=46rom: ext Felipe Contreras <felipe.contreras@gmail.com>
+Subject: Re: [RFC/PATCH 0/3] omap3-iommu: cleanups and remote registrat=
+ion
+Date: Mon, 18 May 2009 13:48:09 +0200
+
+> On Mon, May 18, 2009 at 8:16 AM, Hiroshi DOYU <Hiroshi.DOYU@nokia.com=
+> wrote:
+> > From: ext Felipe Contreras <felipe.contreras@gmail.com>
+> > Subject: Re: [RFC/PATCH 0/3] omap3-iommu: cleanups and remote regis=
+tration
+> > Date: Sat, 16 May 2009 20:32:10 +0200
+> >
+> >> On Sat, May 16, 2009 at 7:36 PM, Russell King - ARM Linux
 > >> <linux@arm.linux.org.uk> wrote:
-> >> > The real problem here seems to be the TI DSP bridge code, and if=
- that's
-> >> > the case why can't we just avoid registering IVA2 if the TI DSP =
-bridge
-> >> > code is enabled. =A0That solves your stated problem without crea=
-ting
-> >> > additional management issues.
-> >>
-> >> The bridgedriver is expected to move and use iommu eventually, but=
- not
-> >> right now, so I guess the iva2 device should be registered only if
-> >> MPU_BRIDGE_IOMMU is defined.
-> >>
-> >> But then what's the point of having the isp iommu device if the ca=
-mera
-> >> driver is disabled? Wouldn't that be wasting resources? Then if CA=
-MERA
-> >> is not defined the isp device should not be registered either.
+> >> > On Sat, May 16, 2009 at 01:05:47PM +0300, Felipe Contreras wrote=
+:
+> >> >> This patch series cleanups up a bit the opap3-iommu device regi=
+stration and
+> >> >> then allows registration from other parts of the code.
+> >> >>
+> >> >> Currently the iva2 code (tidspbridge) is not using iommu, there=
+fore it can't be
+> >> >> used as-is with the current omap iommu. By allowing devies to b=
+e registered
+> >> >> externaly (either isp, or iva2) this problem goes away.
+> >> >
+> >> > Hmm, so does this mean that the iommu patchset is going to grow =
+by three
+> >> > patches? =A0Hope not.
 > >
-> > So have something like:
+> > This series has been posted for a long time and I want to get this =
+in
+> > this time with minor fixes.
 > >
-> > config OMAP_IOMMU
-> > =A0 =A0 =A0 =A0tristate
+> >> I hope Hiroshi integrates my patches.
 > >
-> > and then have both MPU_BRIDGE_IOMMU and the camera support (and wha=
-tever
-> > else) select it. =A0That way, you only end up with the IOMMU suppor=
-t code
-> > built into the kernel if you have users of it.
-> >
-> > These low-level internal services drivers really don't need to be
-> > publically visible in the configuration system.
+> > I think that the problem of yours is that it's not necesary to allo=
+w
+> > device registration around kernel anywhere by "omap_iommu_add()" at
+> > all, but enough only in "omap3-iommu.c". Since eventually
+> > "tidspbridge" will use this iommu framework, no need for this
+> > flexibility. Keeping same kind of device registration in one place =
+is
+> > good thing from SoC perspective. So I want to avoid adding unnecess=
+ary
+> > flexibility to the code. I'll follow Russell's call, anyway.
 >=20
-> Yeap, that needs to be done too.
->=20
-> > As for the run-time size, that's truely minimal.
->=20
-> I thought creating iommu devices involved some kind of overhead,
-> allocating some resources probably. That's why the iva2 iommu device
-> conflicts with tidspbridge custom mmu.
+> The first patch has nothing to do with omap_iommu_add, it's just
+> cleanups, and you haven't provided any valid reason to reject them.
 
-I believe I've already said how to handle that - in fact it's in the
-quoted messages at the top of this mail.
+Your code doesn't work since the other members of "struct resource"
+haven't been initilialized like:
 
-> >> And finally if none of the two are enabled then you don't really
-> >> iommu. By having omap_iommu_add all the dependencies would be hand=
-led
-> >> automatically, right? 'modprobe bridgedriver' would load iommu.
-> >
-> > Think about it - the dependencies _already_ have to be there to use
-> > the iommu services.
++		memset(res, 0,  sizeof(res));
+
+Please refer to:
+
+http://marc.info/?l=3Dlinux-omap&m=3D124263966231599&w=3D2
+
+
+> The rest of the patches are *necessary* as of right now. IMHO iommu
+> should not be merged in it's current state because it will break
+> tidspbridge. Maybe after tidspbridge has been fully converted to use
+> iommu.
 >=20
-> Ok, yes, for iommu, but not for omap3-iommu which is a separate modul=
-e.
+> I think there will probably be a conversion period where the
+> tidspbridge will use iommu optionally, in that period iommu would nee=
+d
+> to be patched and add a #ifdef MPU_BRIDGE_IOMMU, that would be ugly.
 
-That is a point, but I think it's a relatively minor one.  We could
-get around that by ensuring that omap3-iommu is always built-in if
-we have the possibility of iommu support, and leave iommu as a module.
+How about:
+
+http://lists.arm.linux.org.uk/lurker/attach/3@20090518.133533.487a3dd4.=
+attach
+
+>=20
+> Also you haven't answered my questions: what happens if you disable
+> MPU_BRIDGE? What's the point of iommu to register the iva2 iommu
+> device?
+
+enough small to ignore.
+
+>=20
+> My patches solves all of those issues.
+>=20
+> --=20
+> Felipe Contreras
 --
 To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
 n
