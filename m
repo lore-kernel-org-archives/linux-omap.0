@@ -1,72 +1,107 @@
 From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [PATCH 01/11] OMAP2/3: PM: push core PM code from linux-omap
-Date: Mon, 18 May 2009 19:30:01 +0100
-Message-ID: <20090518183001.GK7042@n2100.arm.linux.org.uk>
-References: <1242412851-16606-1-git-send-email-khilman@deeprootsystems.com> <1242412851-16606-2-git-send-email-khilman@deeprootsystems.com> <20090518133241.GH3067@n2100.arm.linux.org.uk> <878wku8hkb.fsf@deeprootsystems.com>
+Subject: Re: [PATCH] OMAP_LDP: Support LCD display as a FB device on ZOOM
+	MDK (Re: LDP support)
+Date: Mon, 18 May 2009 19:59:34 +0100
+Message-ID: <20090518185934.GL7042@n2100.arm.linux.org.uk>
+References: <5A47E75E594F054BAF48C5E4FC4B92AB030555A7D9@dbde02.ent.ti.com> <4A03F8DD.4070307@windriver.com> <87hbzv8rua.fsf@litku.valot.fi> <20090516081904.GB15328@n2100.arm.linux.org.uk> <87ljoube3z.fsf@litku.valot.fi> <20090518160957.GD7042@n2100.arm.linux.org.uk> <87zlda72r0.fsf@deeprootsystems.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:33504 "EHLO
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:54504 "EHLO
 	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751958AbZERSaQ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 18 May 2009 14:30:16 -0400
+	with ESMTP id S1751270AbZERTAT (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 18 May 2009 15:00:19 -0400
 Content-Disposition: inline
-In-Reply-To: <878wku8hkb.fsf@deeprootsystems.com>
+In-Reply-To: <87zlda72r0.fsf@deeprootsystems.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@deeprootsystems.com>
-Cc: Richard Woodruff <r-woodruff2@ti.com>, linux-arm-kernel@lists.arm.linux.org.uk, linux-omap@vger.kernel.org, Jouni Hogander <jouni.hogander@nokia.com>, Paul Walmsley <paul@pwsan.com>
+To: Kevin Hilman <khilman@deeprootsystems.com>, Sam Ravnborg <sam@ravnborg.org>
+Cc: Kalle Valo <kalle.valo@iki.fi>, "stanley.miao" <stanley.miao@windriver.com>, "Gadiyar, Anand" <gadiyar@ti.com>, Tony Lindgren <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Imre Deak <imre.deak@nokia.com>, Tomi Valkeinen <tomi.valkeinen@nokia.com>, jon-hunter@ti.com
 
-On Mon, May 18, 2009 at 10:08:36AM -0700, Kevin Hilman wrote:
-> [ adding Richard W. to To: since he can probably shed some light here ]
-> 
+On Mon, May 18, 2009 at 10:13:55AM -0700, Kevin Hilman wrote:
 > Russell King - ARM Linux <linux@arm.linux.org.uk> writes:
 > 
-> > On Fri, May 15, 2009 at 11:40:41AM -0700, Kevin Hilman wrote:
-> >> This patch is to sync the core linux-omap PM code with mainline.  This
-> >> code has evolved and been used for a while the linux-omap tree, but
-> >> the attempt here is to finally get this into mainline.
+> > On Mon, May 18, 2009 at 06:54:56PM +0300, Kalle Valo wrote:
+> >> Russell King - ARM Linux <linux@arm.linux.org.uk> writes:
+> >> 
+> >> > On Fri, May 08, 2009 at 07:47:09PM +0300, Kalle Valo wrote:
+> >> >> "stanley.miao" <stanley.miao@windriver.com> writes:
+> >> >> 
+> >> >> >> Looks like you used the CodeSourcery 2007q3 toolchain. This had been
+> >> >> >> reported earlier. Switching to 2008q3 works.
+> >> >> >
+> >> >> > Yeah, Now the kernel booted. it's compiler's problem.
+> >> >> 
+> >> >> I was bitten by the same problem few weeks ago. Any chance of getting a
+> >> >> warning/error if using 2007q3 compiler until the problem is fixed?
+> >> >
+> >> > Is there any way of detecting the 2007q3 compiler?
+> >> >
+> >> > With normal GCC versions, you can use __GNUC__, __GNUC_MINOR__ and
+> >> > __GNUC_PATCHLEVEL__ to identify the three digit version number.
+> >> 
+> >> I don't know, most probably not. But Jon Hunter investigated the issue
+> >> and he found the issue was related to CONFIG_ARCH_WANT_FRAME_POINTERS:
+> >> 
+> >> http://www.mail-archive.com/linux-omap@vger.kernel.org/msg12403.html
+> >> 
+> >> So maybe we can fix or workaround this.
+> >
+> > Why does this change anything?  FRAME_POINTERS seems to be enabled
+> > anyway (and should be given the Kconfig setup we have.)
 > 
-> [...]
-> 
-> Upon a quick glance, using cpu_init() would not cover all the things
-> that this code does.  cpu_init() only handles the init of sp for the
-> various modes, where this code saves/resores all the banked registers:
-> sp, lr and spsr as well as r8-r12 of FIQ mode.
+> See the 'depends on' line in lib/Kconfig.debug.  The result is that
+> without the patch from Jon, even if you have CONFIG_FRAME_POINTERS=y
+> in your .config, it gets dropped if the arch doesn't set
+> CONFIG_ARCH_WANT_FRAME_POINTERS.
 
-It doesn't touch sp, lr and spsr for the other modes because there's
-no requirement to do so.  Think about it for a moment.
+Well, two things.
 
-Is there any point to saving LR and SPSR for the abort, FIQ and IRQ
-modes?  No - LR and SPSR are overwritten by the hardware immediately
-upon entry to the relevent mode via an exception.
+1. We don't want to force frame pointers on if unwinding support is enabled.
 
-What about SP?  We use SP in the vector entry code, and we need to
-ensure that this is re-initialized.  We never change their value, so
-we know that these are constant, and therefore if we initialize them
-once we can repeat the same initialization to restore their values
-when those values are lost.  This is precisely what cpu_init() does.
+2. The lib/Kconfig.debug entry is overridden by ARM's own version in
+   arch/arm/Kconfig.debug.  I've added samr into the discussion since
+   he created this.
 
-As for FIQ r8-r12, yes this is missing, and it's something that needs
-to be handled by _every_ platform which puts the CPU into low power
-state, be that PXA, S3C2410, and so forth.  We have code to allow the
-FIQ vector to be managed, and as yet those architectures which do
-support sleep modes don't use FIQ mode, hence why there's nothing for
-it yet.  Feel free to add the necessary suspend/resume code to (eg)
-arch/arm/kernel/fiq.c to fill this hole though.
+arch/arm/Kconfig.debug:
 
-Lastly is system mode.  The kernel doesn't use system mode, and this
-mode doesn't exist in all CPUs (its marked as unpredictable on many
-older CPUs.)  We need a _generic_ extension to support that mode _if_
-it is used.  Presently it is not used, and so we simply don't bother
-saving those registers.
+# RMK wants arm kernels compiled with frame pointers or stack unwinding.
+# If you know what you are doing and are willing to live without stack
+# traces, you can get a slightly smaller kernel by setting this option to
+# n, but then RMK will have to kill you ;).
+config FRAME_POINTER
+        bool
+        default y if !ARM_UNWIND
+        help
+          If you say N here, the resulting kernel will be slightly smaller and
+          faster. However, if neither FRAME_POINTER nor ARM_UNWIND are enabled,
+          when a problem occurs with the kernel, the information that is
+          reported is severely limited.
 
-> The question in my mind however is whether the lr and spsr need to be
-> saved/restored?  Do we really need to preserve the context of these
-> handlers across idle?
+And lib/Kconfig.debug:
 
-Idle is called essentially in process context, with the exception that
-it's SVC mode rather than user mode.  That means no exception handlers
-will be running.
+config FRAME_POINTER
+        bool "Compile the kernel with frame pointers"
+        depends on DEBUG_KERNEL && \
+                (CRIS || M68K || M68KNOMMU || FRV || UML || \
+                 AVR32 || SUPERH || BLACKFIN || MN10300) || \
+                ARCH_WANT_FRAME_POINTERS
+        default y if (DEBUG_INFO && UML) || ARCH_WANT_FRAME_POINTERS
+        help
+          If you say Y here the resulting kernel image will be slightly
+          larger and slower, but it gives very useful debugging information
+          in case of kernel bugs. (precise oopses/stacktraces/warnings)
 
-So I think you'll find cpu_init() does everything you require.
+this still results in frame pointers being enabled.  This is because the
+ARM version follows the one in lib/, it overrides it rather than
+supplementing the generic version.  I've just checked that by adding
+'n &&' to that depends on line in lib/Kconfig.debug, and making oldconfig.
+I still end up with FRAME_POINTER=y in my configs.  However, if I stub out
+the 'default y' line in arch/arm/Kconfig.debug, it goes away.
+
+So I think setting ARCH_WANT_FRAME_POINTERS will be ineffectual.
+
+Moreover, I don't think forcing frame pointers to be enabled even with
+unwinding support is the right solution - if we have frame pointers
+there's no need for unwind support (so maybe the right answer is to
+force unwind support off for the time being?)
