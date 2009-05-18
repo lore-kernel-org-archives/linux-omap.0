@@ -1,105 +1,113 @@
-From: "Hunter, Jon" <jon-hunter@ti.com>
-Subject: RE: [PATCH 08/11] ARM: OMAP2/3: GPIO: do not attempt to wake-enable
-Date: Mon, 18 May 2009 14:50:49 -0500
-Message-ID: <7B4574D56E4ADF438756313E9A172A87397A91F5@dlee01.ent.ti.com>
-References: <20090414214638.9878.17987.stgit@localhost>
- <20090414215826.9878.86819.stgit@localhost>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: [PATCH 01/11] OMAP2/3: PM: push core PM code from linux-omap
+Date: Mon, 18 May 2009 21:24:31 +0100
+Message-ID: <20090518202431.GM7042@n2100.arm.linux.org.uk>
+References: <1242412851-16606-1-git-send-email-khilman@deeprootsystems.com> <1242412851-16606-2-git-send-email-khilman@deeprootsystems.com> <20090518133241.GH3067@n2100.arm.linux.org.uk> <878wku8hkb.fsf@deeprootsystems.com> <13B9B4C6EF24D648824FF11BE8967162038BED5CA9@dlee02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:53354 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750898AbZERTu4 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 18 May 2009 15:50:56 -0400
-In-Reply-To: <20090414215826.9878.86819.stgit@localhost>
-Content-Language: en-US
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:42836 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752313AbZERUYo (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 18 May 2009 16:24:44 -0400
+Content-Disposition: inline
+In-Reply-To: <13B9B4C6EF24D648824FF11BE8967162038BED5CA9@dlee02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@deeprootsystems.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>
+To: "Woodruff, Richard" <r-woodruff2@ti.com>
+Cc: Kevin Hilman <khilman@deeprootsystems.com>, "linux-arm-kernel@lists.arm.linux.org.uk" <linux-arm-kernel@lists.arm.linux.org.uk>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Jouni Hogander <jouni.hogander@nokia.com>, Paul Walmsley <paul@pwsan.com>
 
-Hi Kevin,
+On Mon, May 18, 2009 at 02:04:19PM -0500, Woodruff, Richard wrote:
+> cpu_init() is not yet accessible at the point this code is running.
 
-> Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
-> Signed-off-by: Tony Lindgren <tony@atomide.com>
-> ---
->  arch/arm/plat-omap/gpio.c |   14 ++++----------
->  1 files changed, 4 insertions(+), 10 deletions(-)
+Not at that _exact_ point, but there's no need what so ever for it
+to be at that exact point.  There's nothing stopping a call to
+cpu_init() happening later.  Much later.
+
+> You could reduce the context perhaps trying to optimize to what the
+> Linux-ARM implementation is today or do a more generic save like is
+> there now.
 > 
-> diff --git a/arch/arm/plat-omap/gpio.c b/arch/arm/plat-omap/gpio.c
-> index d3fa41e..210a1c0 100644
-> --- a/arch/arm/plat-omap/gpio.c
-> +++ b/arch/arm/plat-omap/gpio.c
-> @@ -921,13 +921,10 @@ static int _set_gpio_wakeup(struct gpio_bank *bank,
-> int gpio, int enable)
->  	case METHOD_MPUIO:
->  	case METHOD_GPIO_1610:
->  		spin_lock_irqsave(&bank->lock, flags);
-> -		if (enable) {
-> +		if (enable)
->  			bank->suspend_wakeup |= (1 << gpio);
-> -			enable_irq_wake(bank->irq);
-> -		} else {
-> -			disable_irq_wake(bank->irq);
-> +		else
->  			bank->suspend_wakeup &= ~(1 << gpio);
-> -		}
->  		spin_unlock_irqrestore(&bank->lock, flags);
->  		return 0;
->  #endif
-> @@ -940,13 +937,10 @@ static int _set_gpio_wakeup(struct gpio_bank *bank,
-> int gpio, int enable)
->  			return -EINVAL;
->  		}
->  		spin_lock_irqsave(&bank->lock, flags);
-> -		if (enable) {
-> +		if (enable)
->  			bank->suspend_wakeup |= (1 << gpio);
-> -			enable_irq_wake(bank->irq);
-> -		} else {
-> -			disable_irq_wake(bank->irq);
-> +		else
->  			bank->suspend_wakeup &= ~(1 << gpio);
-> -		}
->  		spin_unlock_irqrestore(&bank->lock, flags);
->  		return 0;
->  #endif
+> This code is copied into place from the .S code into SRAM.  Its
+> position independent and is not linked for this address.  If you want
+> to call functions outside of it you need to manually setup linkage.
 
+I wouldn't want to.
 
-I have been looking into an issue that appears to be related to this. I have the following questions with regard to this patch. 
+> Calling functions on the way _UP_ from wake is NOT easy (like the one
+> you propose) as the MMU is not yet enabled.  The MMU is enabled only
+> below this.  Calling cpu_init() is not do able here.  Even if you
+> dress up the calling pointer to the physical address, it won't work
+> as cpu_init() makes a global variable dereferences (smp_processor_id
+> & stacks[]).
 
-1). Although, I agree with the above change was there any reason why we did not add some code to set/clear the appropriate bit in the WKUENA register in this function? If this function is called via a call to set_irq_wake it will not modify the WKUENA register. Therefore, we were thinking of something along the lines of:
+As long as IRQs and FIQs are disabled, you are in a 100% predictable
+environment.
 
-diff --git a/arch/arm/plat-omap/gpio.c b/arch/arm/plat-omap/gpio.c
-index 17d7afe..895c548 100644
---- a/arch/arm/plat-omap/gpio.c
-+++ b/arch/arm/plat-omap/gpio.c
-@@ -941,10 +941,13 @@ static int _set_gpio_wakeup(struct gpio_bank *bank, int gpio, int enable)
-                        return -EINVAL;
-                }
-                spin_lock_irqsave(&bank->lock, flags);
--               if (enable)
-+               if (enable) {
-                        bank->suspend_wakeup |= (1 << gpio);
--               else
-+                       __raw_writel(1 << gpio, bank->base + OMAP24XX_GPIO_SETWKUENA);
-+               } else {
-+                       __raw_writel(1 << gpio, bank->base + OMAP24XX_GPIO_CLEARWKUENA);
-                        bank->suspend_wakeup &= ~(1 << gpio);
-+               }
-                spin_unlock_irqrestore(&bank->lock, flags);
-                return 0;
- #endif
+1. No IRQ or FIQ will be entered; if they are the CPU is buggy.
+2. No data or prefetch abort will be entered _unless_ you purposely
+   access some non-present memory (and you're not exactly going to
+   start paging memory in with IRQs disabled.)
 
+So restoring the abort and IRQ mode register state is just plain not
+necessary in your SRAM code.
 
-2). We have found that a call to request_irq results in a call to the function "set_24xx_gpio_triggering()" (for OMAP3430). In addition to configuring the triggering for a given GPIO, this function is also programming the WKUENA register. Hence, the wake-up enable is enabled for GPIO without calling set_irq_wake(). 
+Let's look at the code.  Here are the pertinent bits from Kevin's patch:
 
-I am not sure if this is the intended behaviour or if drivers should explicitly be calling set_irq_wake to enable/disable the wake-up. 
+static void omap3_pm_idle(void)
+{
+        local_irq_disable();
+        local_fiq_disable();
 
-The other problem with this is that once request_irq is called for a gpio, then even if we call disable_irq the wake-up event is not cleared. So this means that a gpio event will still wake-up the device without the gpio being enabled and because the gpio is disabled the event will never be cleared and hence will prevent retention. 
+        omap_sram_idle();
 
-So should the wake-up event only be enabled/disabled by a call to set_irq_wake() or should we make sure that calling disable_irq in turn calls gpio_mask_irq and make sure this clears the wake-up event? 
+        local_fiq_enable();
+        local_irq_enable();
+}
 
-Cheers
-Jon
+static void omap_sram_idle(void)
+{
+        _omap_sram_idle(NULL, save_state);
+}
+
+        _omap_sram_idle = omap_sram_push(omap34xx_cpu_suspend,
+                                         omap34xx_cpu_suspend_sz);
+        pm_idle = omap3_pm_idle;
+
+_omap_sram_idle() is the assembly code we're discussing, and here we're
+referring to its version in SRAM.  From the above code, we can clearly
+see that this is entered with FIQs and IRQs disabled.  So everything
+inside omap_sram_idle() is running in a well defined environment provided
+prefetch and data aborts don't happen.
+
+There is nothing stopping this from becoming:
+
+static void omap3_pm_idle(void)
+{
+        local_irq_disable();
+        local_fiq_disable();
+
+        omap_sram_idle();
++	cpu_init();
+
+        local_fiq_enable();
+        local_irq_enable();
+}
+
+and having the saving of IRQ, FIQ and abort mode registers removed
+from the SRAM code.
+
+Other SoCs do precisely this - let's look at PXA:
+
+        pxa_cpu_pm_fns->enter(state);
+        cpu_init();
+
+The call to the enter method essentially calls the core specific suspend
+function (eg, pxa25x_cpu_suspend()), which is an assembly function which
+ultimately ends up powering down the core resulting in full loss of state
+in the CPU.  We seem to be able to avoid having to save the exception mode
+registers there.
+
+The same thing is done with sa11x0 and Samsung SoCs.
+
+I don't see any reason for OMAP to be "special" in this regard.
