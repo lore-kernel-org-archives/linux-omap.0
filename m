@@ -1,92 +1,76 @@
-From: Felipe Contreras <felipe.contreras@gmail.com>
-Subject: Re: [RFC/PATCH 0/3] omap3-iommu: cleanups and remote registration
-Date: Mon, 18 May 2009 14:51:06 +0300
-Message-ID: <94a0d4530905180451g7213887exb466dde18f358897@mail.gmail.com>
-References: <20090516163635.GB25657@n2100.arm.linux.org.uk>
-	 <94a0d4530905161132j23b109bbj6d62f7ff9fac8c7f@mail.gmail.com>
-	 <20090518.081627.200381155.Hiroshi.DOYU@nokia.com>
-	 <20090518.083341.233686060.Hiroshi.DOYU@nokia.com>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: [RFC/PATCH 1/3] omap3-iommu: reorganize
+Date: Mon, 18 May 2009 13:07:17 +0100
+Message-ID: <20090518120717.GA3067@n2100.arm.linux.org.uk>
+References: <1242468350-23190-1-git-send-email-felipe.contreras@gmail.com> <1242468350-23190-2-git-send-email-felipe.contreras@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from fg-out-1718.google.com ([72.14.220.156]:54835 "EHLO
-	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752494AbZERLvI convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 18 May 2009 07:51:08 -0400
-Received: by fg-out-1718.google.com with SMTP id d23so599528fga.17
-        for <linux-omap@vger.kernel.org>; Mon, 18 May 2009 04:51:07 -0700 (PDT)
-In-Reply-To: <20090518.083341.233686060.Hiroshi.DOYU@nokia.com>
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:59558 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755317AbZERMHa (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 18 May 2009 08:07:30 -0400
+Content-Disposition: inline
+In-Reply-To: <1242468350-23190-2-git-send-email-felipe.contreras@gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
-Cc: linux@arm.linux.org.uk, linux-omap@vger.kernel.org, h-kanigeri2@ti.com, linux-arm-kernel@lists.arm.linux.org.uk
+To: Felipe Contreras <felipe.contreras@gmail.com>
+Cc: linux-omap@vger.kernel.org, Hiroshi DOYU <hiroshi.doyu@nokia.com>, Hari Kanigeri <h-kanigeri2@ti.com>, linux-arm-kernel@lists.arm.linux.org.uk, Felipe Contreras <felipe.contreras@nokia.com>
 
-On Mon, May 18, 2009 at 8:33 AM, Hiroshi DOYU <Hiroshi.DOYU@nokia.com> =
-wrote:
-> From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
-> Subject: Re: [RFC/PATCH 0/3] omap3-iommu: cleanups and remote registr=
-ation
-> Date: Mon, 18 May 2009 08:16:27 +0300 (EEST)
->
->> From: ext Felipe Contreras <felipe.contreras@gmail.com>
->> Subject: Re: [RFC/PATCH 0/3] omap3-iommu: cleanups and remote regist=
-ration
->> Date: Sat, 16 May 2009 20:32:10 +0200
->>
->> > On Sat, May 16, 2009 at 7:36 PM, Russell King - ARM Linux
->> > <linux@arm.linux.org.uk> wrote:
->> > > On Sat, May 16, 2009 at 01:05:47PM +0300, Felipe Contreras wrote=
-:
->> > >> This patch series cleanups up a bit the opap3-iommu device regi=
-stration and
->> > >> then allows registration from other parts of the code.
->> > >>
->> > >> Currently the iva2 code (tidspbridge) is not using iommu, there=
-fore it can't be
->> > >> used as-is with the current omap iommu. By allowing devies to b=
-e registered
->> > >> externaly (either isp, or iva2) this problem goes away.
->> > >
->> > > Hmm, so does this mean that the iommu patchset is going to grow =
-by three
->> > > patches? =C2=A0Hope not.
->>
->> This series has been posted for a long time and I want to get this i=
-n
->> this time with minor fixes.
->>
->> > I hope Hiroshi integrates my patches.
->>
->> I think that the problem of yours is that it's not necesary to allow
->> device registration around kernel anywhere by "omap_iommu_add()" at
->> all, but enough only in "omap3-iommu.c". Since eventually
->> "tidspbridge" will use this iommu framework, no need for this
->> flexibility. Keeping same kind of device registration in one place i=
-s
->> good thing from SoC perspective. So I want to avoid adding unnecessa=
-ry
->> flexibility to the code. I'll follow Russell's call, anyway.
->
-> The other thing is about introducing a new structure type, "struct
-> iommu_device". I don't want to define new structure type just for thi=
-s
-> device registration. Since device registration part is kind of
-> conventional one in kernel, I want to keep things simple/conventional
-> as much as possible.
+On Sat, May 16, 2009 at 01:05:48PM +0300, Felipe Contreras wrote:
+> +struct iommu_device {
+> +	resource_size_t base;
+> +	resource_size_t irq;
+> +	struct iommu_platform_data pdata;
+> +	struct resource res[2];
+>  };
 
-It is an *internal* structure, just like you local 'omap3_iommu_pdata'
-nobody has not know about it outside omap3-iommu.c.
+The data which is needed per device is:
 
-The exported function is:
-struct platform_device *omap_iommu_add(const char *name);
+- base address
+- IRQ (no need for this to be resource_size_t - int will do)
+- platform data
 
-Nothing custom there.
+There's no need for that res[2] being there.
 
---=20
-=46elipe Contreras
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> @@ -63,23 +51,35 @@ static int __init omap3_iommu_init(void)
+>  
+>  	for (i = 0; i < NR_IOMMU_DEVICES; i++) {
+>  		struct platform_device *pdev;
+> +		const struct iommu_device *d = &devices[i];
+> +		struct resource res[] = {
+> +			{ .flags = IORESOURCE_MEM },
+> +			{ .flags = IORESOURCE_IRQ },
+> +		};
+
+This initialization doesn't buy you anything, in fact quite the opposite.
+The compiler actually interprets this as:
+
+static struct resource __initial_res[] = {
+	{ .flags = IORESOURCE_MEM },
+	{ .flags = IORESOURCE_IRQ },
+};
+...
+	for () {
+		struct resource res[...];
+		memcpy(res, __initial_res, sizeof(__initial_res));
+
+> +
+> +		res[0].start = d->base;
+> +		res[0].end = d->base + MMU_REG_SIZE - 1;
+> +
+> +		res[1].start = d->irq;
+
+It would be far better to initialize the flags element here for both.
+And please also set res[1].end as I did in my patch.
+
+> +
+> +		err = platform_device_add_resources(pdev, res, ARRAY_SIZE(res));
+>  		if (err)
+>  			goto err_out;
+> -		err = platform_device_add_data(pdev, &omap3_iommu_pdata[i],
+> -					       sizeof(omap3_iommu_pdata[0]));
+> +
+> +		err = platform_device_add_data(pdev, &d->pdata, sizeof(d->pdata));
+
+This will fail checkpatch.
