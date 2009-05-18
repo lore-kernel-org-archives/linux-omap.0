@@ -1,112 +1,75 @@
-From: Felipe Contreras <felipe.contreras@gmail.com>
-Subject: Re: [RFC/PATCH 3/3] omap3-iommu: remote registration
-Date: Mon, 18 May 2009 17:00:40 +0300
-Message-ID: <94a0d4530905180700m69254928v15c6d68f863c81bf@mail.gmail.com>
-References: <1242468350-23190-1-git-send-email-felipe.contreras@gmail.com>
-	 <1242468350-23190-2-git-send-email-felipe.contreras@gmail.com>
-	 <1242468350-23190-3-git-send-email-felipe.contreras@gmail.com>
-	 <1242468350-23190-4-git-send-email-felipe.contreras@gmail.com>
-	 <20090518121113.GB3067@n2100.arm.linux.org.uk>
-	 <94a0d4530905180546p47c887afj109b3b60cdd24a00@mail.gmail.com>
-	 <20090518130233.GD3067@n2100.arm.linux.org.uk>
-	 <94a0d4530905180621r35eebdf2o2f9b0b3e107e77a@mail.gmail.com>
-	 <20090518134018.GI3067@n2100.arm.linux.org.uk>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: [PATCH][RFC] McSPI Slave and DMA,FIFO support
+Date: Mon, 18 May 2009 07:14:53 -0700
+Message-ID: <87y6subiqq.fsf@deeprootsystems.com>
+References: <5A47E75E594F054BAF48C5E4FC4B92AB03056A123B@dbde02.ent.ti.com>
+	<005201c9d798$46355170$LocalHost@wipultra793>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from fg-out-1718.google.com ([72.14.220.154]:19662 "EHLO
-	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752896AbZEROAm convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 18 May 2009 10:00:42 -0400
-Received: by fg-out-1718.google.com with SMTP id 16so1170769fgg.17
-        for <linux-omap@vger.kernel.org>; Mon, 18 May 2009 07:00:41 -0700 (PDT)
-In-Reply-To: <20090518134018.GI3067@n2100.arm.linux.org.uk>
+Received: from mail-pz0-f115.google.com ([209.85.222.115]:46335 "EHLO
+	mail-pz0-f115.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752494AbZEROOz (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 18 May 2009 10:14:55 -0400
+Received: by pzk13 with SMTP id 13so2003964pzk.33
+        for <linux-omap@vger.kernel.org>; Mon, 18 May 2009 07:14:56 -0700 (PDT)
+In-Reply-To: <005201c9d798$46355170$LocalHost@wipultra793> (Hemanth V.'s message of "Mon\, 18 May 2009 14\:38\:55 +0530")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: linux-omap@vger.kernel.org, Hiroshi DOYU <hiroshi.doyu@nokia.com>, Hari Kanigeri <h-kanigeri2@ti.com>, linux-arm-kernel@lists.arm.linux.org.uk
+To: Hemanth V <hemanthv@ti.com>
+Cc: "Gadiyar, Anand" <gadiyar@ti.com>, linux-omap@vger.kernel.org
 
-On Mon, May 18, 2009 at 4:40 PM, Russell King - ARM Linux
-<linux@arm.linux.org.uk> wrote:
-> On Mon, May 18, 2009 at 04:21:19PM +0300, Felipe Contreras wrote:
->> On Mon, May 18, 2009 at 4:02 PM, Russell King - ARM Linux
->> <linux@arm.linux.org.uk> wrote:
->> > On Mon, May 18, 2009 at 03:46:07PM +0300, Felipe Contreras wrote:
->> >> On Mon, May 18, 2009 at 3:11 PM, Russell King - ARM Linux
->> >> <linux@arm.linux.org.uk> wrote:
->> >> > The real problem here seems to be the TI DSP bridge code, and i=
-f that's
->> >> > the case why can't we just avoid registering IVA2 if the TI DSP=
- bridge
->> >> > code is enabled. =C2=A0That solves your stated problem without =
-creating
->> >> > additional management issues.
+"Hemanth V" <hemanthv@ti.com> writes:
+
+> ----- Original Message ----- 
+> From: "Gadiyar, Anand" <gadiyar@ti.com>
+> To: "V, Hemanth" <hemanthv@ti.com>; "Kevin Hilman"
+> <khilman@deeprootsystems.com>
+>
+>
+>> >> Index: linux-omap-2.6/arch/arm/mach-omap2/devices.c
+>> >> ===================================================================
+>> >> --- linux-omap-2.6.orig/arch/arm/mach-omap2/devices.c 2009-05-14
+>> >> 12:38:50.000000000 +0530
+>> >> +++ linux-omap-2.6/arch/arm/mach-omap2/devices.c 2009-05-15 >>
+>> 16:53:38.000000000 +0530
+>
+> <snip>
+>
+>> >>  };
 >> >>
->> >> The bridgedriver is expected to move and use iommu eventually, bu=
-t not
->> >> right now, so I guess the iva2 device should be registered only i=
-f
->> >> MPU_BRIDGE_IOMMU is defined.
+>> >>  static struct resource omap2_mcspi2_resources[] = {
+>> >> @@ -351,6 +359,14 @@
 >> >>
->> >> But then what's the point of having the isp iommu device if the c=
-amera
->> >> driver is disabled? Wouldn't that be wasting resources? Then if C=
-AMERA
->> >> is not defined the isp device should not be registered either.
->> >
->> > So have something like:
->> >
->> > config OMAP_IOMMU
->> > =C2=A0 =C2=A0 =C2=A0 =C2=A0tristate
->> >
->> > and then have both MPU_BRIDGE_IOMMU and the camera support (and wh=
-atever
->> > else) select it. =C2=A0That way, you only end up with the IOMMU su=
-pport code
->> > built into the kernel if you have users of it.
->> >
->> > These low-level internal services drivers really don't need to be
->> > publically visible in the configuration system.
->>
->> Yeap, that needs to be done too.
->>
->> > As for the run-time size, that's truely minimal.
->>
->> I thought creating iommu devices involved some kind of overhead,
->> allocating some resources probably. That's why the iva2 iommu device
->> conflicts with tidspbridge custom mmu.
+>> >>  static void omap_init_mcspi(void)
+>> >>  {
+>> >> +
+>> >> + if (cpu_is_omap3430()) {
+>> >> + omap_cfg_reg(AA3_3430_McSPI2_CLK);
+>> >> + omap_cfg_reg(Y2_3430_McSPI2_SIMO);
+>> >> + omap_cfg_reg(Y3_3430_McSPI2_SOMI);
+>> >> + omap_cfg_reg(Y4_3430_McSPI2_CS0);
+>> >> + }
+>> >> +
 >
-> I believe I've already said how to handle that - in fact it's in the
-> quoted messages at the top of this mail.
+>>This will change the mux mode for these pads for all OMAP3 boards,
+>>even if they do not wish to use McSPI2. In particular, Beagleboard
+>>will be affected as it uses HSUSB on Port2 and these pads overlap.
 >
->> >> And finally if none of the two are enabled then you don't really
->> >> iommu. By having omap_iommu_add all the dependencies would be han=
-dled
->> >> automatically, right? 'modprobe bridgedriver' would load iommu.
->> >
->> > Think about it - the dependencies _already_ have to be there to us=
-e
->> > the iommu services.
->>
->> Ok, yes, for iommu, but not for omap3-iommu which is a separate modu=
-le.
+> I could add an option like below to plat-omap/Kconfig under
+> OMAP Feature Selections. Kevin, Your thoughts on this
 >
-> That is a point, but I think it's a relatively minor one. =C2=A0We co=
-uld
-> get around that by ensuring that omap3-iommu is always built-in if
-> we have the possibility of iommu support, and leave iommu as a module=
-=2E
+> config  OMAP3430_ENABLE_SPI2_PIN_MUX
+>        bool "Enable SPI2 pin mux configuration for OMAP3430"
+>        depends on ARCH_OMAP3430
+>        default n
+>        help
+>            Enable pin mux for SPI2 on OMAP3430 platform. Note
+>            that the same pins are used for EHCI port2 operation. Hence
+>            enabling this option effectively disables EHCI port 2
 
-You mean omap3-iommu will be built-in in the iommu module?
+Don't use compile-time setup for this, use runtime.  Mux setup is
+board-specific and should be done in board init code.
 
-That looks ok to me, *if* it's true that iommu devices don't waste any
-significant resources if nobody is using them.
+Kevin
 
---=20
-=46elipe Contreras
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
