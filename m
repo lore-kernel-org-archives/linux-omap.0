@@ -1,48 +1,121 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [PATCH] OMAP_LDP: Support LCD display as a FB device on ZOOM
-	MDK (Re: LDP support)
-Date: Mon, 18 May 2009 17:09:57 +0100
-Message-ID: <20090518160957.GD7042@n2100.arm.linux.org.uk>
-References: <5A47E75E594F054BAF48C5E4FC4B92AB030555A7D9@dbde02.ent.ti.com> <4A03F8DD.4070307@windriver.com> <87hbzv8rua.fsf@litku.valot.fi> <20090516081904.GB15328@n2100.arm.linux.org.uk> <87ljoube3z.fsf@litku.valot.fi>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Felipe Contreras <felipe.contreras@gmail.com>
+Subject: [PATCH] omap3-iommu: reorganize
+Date: Mon, 18 May 2009 19:43:00 +0300
+Message-ID: <1242664980-6324-1-git-send-email-felipe.contreras@gmail.com>
+References: <20090518.172613.116355729.Hiroshi.DOYU@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:36484 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756985AbZERQKW (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 18 May 2009 12:10:22 -0400
-Content-Disposition: inline
-In-Reply-To: <87ljoube3z.fsf@litku.valot.fi>
+Received: from fg-out-1718.google.com ([72.14.220.157]:55694 "EHLO
+	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751270AbZERQnI (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 18 May 2009 12:43:08 -0400
+Received: by fg-out-1718.google.com with SMTP id 16so1206457fgg.17
+        for <linux-omap@vger.kernel.org>; Mon, 18 May 2009 09:43:07 -0700 (PDT)
+In-Reply-To: <20090518.172613.116355729.Hiroshi.DOYU@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kalle Valo <kalle.valo@iki.fi>
-Cc: "stanley.miao" <stanley.miao@windriver.com>, "Gadiyar, Anand" <gadiyar@ti.com>, Tony Lindgren <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Imre Deak <imre.deak@nokia.com>, Tomi Valkeinen <tomi.valkeinen@nokia.com>, jon-hunter@ti.com
+To: linux-omap@vger.kernel.org
+Cc: Hiroshi DOYU <hiroshi.doyu@nokia.com>, Hari Kanigeri <h-kanigeri2@ti.com>, linux-arm-kernel@lists.arm.linux.org.uk, Felipe Contreras <felipe.contreras@gmail.com>
 
-On Mon, May 18, 2009 at 06:54:56PM +0300, Kalle Valo wrote:
-> Russell King - ARM Linux <linux@arm.linux.org.uk> writes:
-> 
-> > On Fri, May 08, 2009 at 07:47:09PM +0300, Kalle Valo wrote:
-> >> "stanley.miao" <stanley.miao@windriver.com> writes:
-> >> 
-> >> >> Looks like you used the CodeSourcery 2007q3 toolchain. This had been
-> >> >> reported earlier. Switching to 2008q3 works.
-> >> >
-> >> > Yeah, Now the kernel booted. it's compiler's problem.
-> >> 
-> >> I was bitten by the same problem few weeks ago. Any chance of getting a
-> >> warning/error if using 2007q3 compiler until the problem is fixed?
-> >
-> > Is there any way of detecting the 2007q3 compiler?
-> >
-> > With normal GCC versions, you can use __GNUC__, __GNUC_MINOR__ and
-> > __GNUC_PATCHLEVEL__ to identify the three digit version number.
-> 
-> I don't know, most probably not. But Jon Hunter investigated the issue
-> and he found the issue was related to CONFIG_ARCH_WANT_FRAME_POINTERS:
-> 
-> http://www.mail-archive.com/linux-omap@vger.kernel.org/msg12403.html
-> 
-> So maybe we can fix or workaround this.
+No functional changes.
 
-Why does this change anything?  FRAME_POINTERS seems to be enabled
-anyway (and should be given the Kconfig setup we have.)
+Signed-off-by: Felipe Contreras <felipe.contreras@gmail.com>
+---
+
+How about this?
+
+ arch/arm/mach-omap2/omap3-iommu.c |   53 ++++++++++++++++++-------------------
+ 1 files changed, 26 insertions(+), 27 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/omap3-iommu.c b/arch/arm/mach-omap2/omap3-iommu.c
+index 91ee38a..50bd445 100644
+--- a/arch/arm/mach-omap2/omap3-iommu.c
++++ b/arch/arm/mach-omap2/omap3-iommu.c
+@@ -14,32 +14,30 @@
+ 
+ #include <mach/iommu.h>
+ 
+-#define OMAP3_MMU1_BASE	0x480bd400
+-#define OMAP3_MMU2_BASE	0x5d000000
+-#define OMAP3_MMU1_IRQ	24
+-#define OMAP3_MMU2_IRQ	28
+-
+-
+-static unsigned long iommu_base[] __initdata = {
+-	OMAP3_MMU1_BASE,
+-	OMAP3_MMU2_BASE,
+-};
+-
+-static int iommu_irq[] __initdata = {
+-	OMAP3_MMU1_IRQ,
+-	OMAP3_MMU2_IRQ,
++struct iommu_device {
++	resource_size_t base;
++	int irq;
++	struct iommu_platform_data pdata;
+ };
+ 
+-static const struct iommu_platform_data omap3_iommu_pdata[] __initconst = {
++static struct iommu_device devices[] __initdata = {
+ 	{
+-		.name = "isp",
+-		.nr_tlb_entries = 8,
+-		.clk_name = "cam_ick",
++		.base = 0x480bd400,
++		.irq = 24,
++		.pdata = {
++			.name = "isp",
++			.nr_tlb_entries = 8,
++			.clk_name = "cam_ick",
++		},
+ 	},
+ 	{
+-		.name = "iva2",
+-		.nr_tlb_entries = 32,
+-		.clk_name = "iva2_ck",
++		.base = 0x5d000000,
++		.irq = 28,
++		.pdata = {
++			.name = "iva2",
++			.nr_tlb_entries = 32,
++			.clk_name = "iva2_ck",
++		},
+ 	},
+ };
+ #define NR_IOMMU_DEVICES ARRAY_SIZE(omap3_iommu_pdata)
+@@ -52,6 +50,7 @@ static int __init omap3_iommu_init(void)
+ 
+ 	for (i = 0; i < NR_IOMMU_DEVICES; i++) {
+ 		struct platform_device *pdev;
++		const struct iommu_device *d = &devices[i];
+ 		struct resource res[2];
+ 
+ 		pdev = platform_device_alloc("omap-iommu", i);
+@@ -60,19 +59,19 @@ static int __init omap3_iommu_init(void)
+ 			goto err_out;
+ 		}
+ 
+-		memset(res, 0,  sizeof(res));
+-		res[0].start = iommu_base[i];
+-		res[0].end = iommu_base[i] + MMU_REG_SIZE - 1;
++		memset(res, 0, sizeof(res));
++		res[0].start = d->base;
++		res[0].end = d->base + MMU_REG_SIZE - 1;
+ 		res[0].flags = IORESOURCE_MEM;
+-		res[1].start = res[1].end = iommu_irq[i];
++		res[1].start = res[1].end = d->irq;
+ 		res[1].flags = IORESOURCE_IRQ;
+ 
+ 		err = platform_device_add_resources(pdev, res,
+ 						    ARRAY_SIZE(res));
+ 		if (err)
+ 			goto err_out;
+-		err = platform_device_add_data(pdev, &omap3_iommu_pdata[i],
+-					       sizeof(omap3_iommu_pdata[0]));
++		err = platform_device_add_data(pdev, &d->pdata,
++					       sizeof(d->pdata));
+ 		if (err)
+ 			goto err_out;
+ 		err = platform_device_add(pdev);
+-- 
+1.6.3.1
+
