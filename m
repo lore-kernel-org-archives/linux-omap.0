@@ -1,80 +1,68 @@
 From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
 Subject: Re: [RFC/PATCH 3/3] omap3-iommu: remote registration
-Date: Mon, 18 May 2009 16:54:46 +0300 (EEST)
-Message-ID: <20090518.165446.232765807.Hiroshi.DOYU@nokia.com>
-References: <1242468350-23190-4-git-send-email-felipe.contreras@gmail.com>
-	<20090518121113.GB3067@n2100.arm.linux.org.uk>
+Date: Mon, 18 May 2009 16:59:15 +0300 (EEST)
+Message-ID: <20090518.165915.242148841.Hiroshi.DOYU@nokia.com>
+References: <20090518121113.GB3067@n2100.arm.linux.org.uk>
 	<20090518.163533.28796680.Hiroshi.DOYU@nokia.com>
+	<94a0d4530905180652y5c3d045fs99bb2b5bdb52948e@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: Multipart/Mixed;
- boundary="--Next_Part(Mon_May_18_16_54_46_2009_541)--"
-Content-Transfer-Encoding: 7bit
+Content-Type: Text/Plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:42142 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751359AbZERNzk (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 18 May 2009 09:55:40 -0400
-In-Reply-To: <20090518.163533.28796680.Hiroshi.DOYU@nokia.com>
+Received: from smtp.nokia.com ([192.100.122.233]:46459 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752400AbZERN7h convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 18 May 2009 09:59:37 -0400
+In-Reply-To: <94a0d4530905180652y5c3d045fs99bb2b5bdb52948e@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux@arm.linux.org.uk
-Cc: felipe.contreras@gmail.com, linux-omap@vger.kernel.org, h-kanigeri2@ti.com, linux-arm-kernel@lists.arm.linux.org.uk
+To: felipe.contreras@gmail.com
+Cc: linux@arm.linux.org.uk, linux-omap@vger.kernel.org, h-kanigeri2@ti.com, linux-arm-kernel@lists.arm.linux.org.uk
 
-----Next_Part(Mon_May_18_16_54_46_2009_541)--
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-
-From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+=46rom: ext Felipe Contreras <felipe.contreras@gmail.com>
 Subject: Re: [RFC/PATCH 3/3] omap3-iommu: remote registration
-Date: Mon, 18 May 2009 16:35:33 +0300 (EEST)
+Date: Mon, 18 May 2009 15:52:59 +0200
 
-> From: ext Russell King - ARM Linux <linux@arm.linux.org.uk>
-> Subject: Re: [RFC/PATCH 3/3] omap3-iommu: remote registration
-> Date: Mon, 18 May 2009 14:11:13 +0200
-> 
-> > On Sat, May 16, 2009 at 01:05:50PM +0300, Felipe Contreras wrote:
-> > > This allows devices to be registered only when they are used. The
-> > > current dsp-bridge driver for example is not using iommu so registering
-> > > the iommu iva2 device would conflict. By allowing remote registration
-> > > the dsp-bridge can decide when the iommu iva2 device is registered.
-> > 
-> > I don't think that this is a good idea - what happens if two people
-> > call omap_iommu_add() for the same IOMMU device independently?
-> > 
-> > The real problem here seems to be the TI DSP bridge code, and if that's
-> > the case why can't we just avoid registering IVA2 if the TI DSP bridge
-> > code is enabled.  That solves your stated problem without creating
-> > additional management issues.
-> 
-> How about the attached patch? I think this is enough.
+> On Mon, May 18, 2009 at 4:35 PM, Hiroshi DOYU <Hiroshi.DOYU@nokia.com=
+> wrote:
+> > From: ext Russell King - ARM Linux <linux@arm.linux.org.uk>
+> > Subject: Re: [RFC/PATCH 3/3] omap3-iommu: remote registration
+> > Date: Mon, 18 May 2009 14:11:13 +0200
+> >
+> >> On Sat, May 16, 2009 at 01:05:50PM +0300, Felipe Contreras wrote:
+> >> > This allows devices to be registered only when they are used. Th=
+e
+> >> > current dsp-bridge driver for example is not using iommu so regi=
+stering
+> >> > the iommu iva2 device would conflict. By allowing remote registr=
+ation
+> >> > the dsp-bridge can decide when the iommu iva2 device is register=
+ed.
+> >>
+> >> I don't think that this is a good idea - what happens if two peopl=
+e
+> >> call omap_iommu_add() for the same IOMMU device independently?
+> >>
+> >> The real problem here seems to be the TI DSP bridge code, and if t=
+hat's
+> >> the case why can't we just avoid registering IVA2 if the TI DSP br=
+idge
+> >> code is enabled. =A0That solves your stated problem without creati=
+ng
+> >> additional management issues.
+> >
+> > How about the attached patch? I think this is enough.
+>=20
+> That wouldn't work when bridgedriver moves to iommu, how about:
+>=20
+> +#if !defined(CONFIG_MPU_BRIDGE) && !defined(CONFIG_OMAP_DSP_MODULE)
+> +#if defined(CONFIG_MPU_BRIDGE_IOMMU)
 
-Oops, CONFIG_NAME was wrong. Attached new one.
+Just now I read Russell's proposal. This would be better. Agreed.
 
-
-----Next_Part(Mon_May_18_16_54_46_2009_541)--
-Content-Type: Application/Octet-Stream
-Content-Transfer-Encoding: base64
-Content-Disposition: attachment;
- filename="0001-omap-iommu-disable-iva2-iommu-device-registration-i.patch"
-
-RnJvbSAzNzg4NmQzZDg1ZDNiNDJiNjJlZGFhN2ZhYzIyZTAwMTg5NWI3NjE3IE1vbiBTZXAgMTcg
-MDA6MDA6MDAgMjAwMQpGcm9tOiBIaXJvc2hpIERPWVUgPEhpcm9zaGkuRE9ZVUBub2tpYS5jb20+
-CkRhdGU6IE1vbiwgMTggTWF5IDIwMDkgMTY6MzE6MzUgKzAzMDAKU3ViamVjdDogW1BBVENIIDEv
-MV0gb21hcCBpb21tdTogZGlzYWJsZSBpdmEyIGlvbW11IGRldmljZSByZWdpc3RyYXRpb24gaWYg
-dGlkc3BicmlkZ2UgZW5hYmxlZAoKdGlkc3BicmlkZ2Ugd2lsbCB1c2Ugb21hcCBpb21tdSBldmVu
-dHVhbGx5LiBVbnRpbCBpdCdzIHJlYWR5LCBkaXNhYmxlIGl0LgoKU2lnbmVkLW9mZi1ieTogSGly
-b3NoaSBET1lVIDxIaXJvc2hpLkRPWVVAbm9raWEuY29tPgotLS0KIGFyY2gvYXJtL21hY2gtb21h
-cDIvb21hcDMtaW9tbXUuYyB8ICAgIDIgKysKIDEgZmlsZXMgY2hhbmdlZCwgMiBpbnNlcnRpb25z
-KCspLCAwIGRlbGV0aW9ucygtKQoKZGlmZiAtLWdpdCBhL2FyY2gvYXJtL21hY2gtb21hcDIvb21h
-cDMtaW9tbXUuYyBiL2FyY2gvYXJtL21hY2gtb21hcDIvb21hcDMtaW9tbXUuYwppbmRleCA5MWVl
-MzhhLi43ZmQ4ZTRlIDEwMDY0NAotLS0gYS9hcmNoL2FybS9tYWNoLW9tYXAyL29tYXAzLWlvbW11
-LmMKKysrIGIvYXJjaC9hcm0vbWFjaC1vbWFwMi9vbWFwMy1pb21tdS5jCkBAIC0zNiwxMSArMzYs
-MTMgQEAgc3RhdGljIGNvbnN0IHN0cnVjdCBpb21tdV9wbGF0Zm9ybV9kYXRhIG9tYXAzX2lvbW11
-X3BkYXRhW10gX19pbml0Y29uc3QgPSB7CiAJCS5ucl90bGJfZW50cmllcyA9IDgsCiAJCS5jbGtf
-bmFtZSA9ICJjYW1faWNrIiwKIAl9LAorI2lmICFkZWZpbmVkKENPTkZJR19NUFVfQlJJREdFKSAm
-JiAhZGVmaW5lZChDT05GSUdfTVBVX0JSSURHRV9NT0RVTEUpCiAJewogCQkubmFtZSA9ICJpdmEy
-IiwKIAkJLm5yX3RsYl9lbnRyaWVzID0gMzIsCiAJCS5jbGtfbmFtZSA9ICJpdmEyX2NrIiwKIAl9
-LAorI2VuZGlmCiB9OwogI2RlZmluZSBOUl9JT01NVV9ERVZJQ0VTIEFSUkFZX1NJWkUob21hcDNf
-aW9tbXVfcGRhdGEpCiAKLS0gCjEuNi4wLjQKCg==
-
-----Next_Part(Mon_May_18_16_54_46_2009_541)----
+How about Hari? I think that he's been working on this for a while....
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
