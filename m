@@ -1,95 +1,69 @@
-From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Subject: RE: [RESUBMIT][PATCH 5/7] OMAP4: Update common omap machine
-	specific sources.
-Date: Mon, 18 May 2009 09:29:59 +0530
-Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB02B49043B1@dbde02.ent.ti.com>
-References: <1241677756-28756-1-git-send-email-santosh.shilimkar@ti.com>
- <1241677756-28756-2-git-send-email-santosh.shilimkar@ti.com>
- <1241677756-28756-3-git-send-email-santosh.shilimkar@ti.com>
- <1241677756-28756-4-git-send-email-santosh.shilimkar@ti.com>
- <1241677756-28756-5-git-send-email-santosh.shilimkar@ti.com>
- <20090516100732.GK15328@n2100.arm.linux.org.uk>
- <EAF47CD23C76F840A9E7FCE10091EFAB02B4904319@dbde02.ent.ti.com>
- <20090517153207.GA6585@n2100.arm.linux.org.uk>
+From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+Subject: Re: [RFC/PATCH 0/3] omap3-iommu: cleanups and remote registration
+Date: Mon, 18 May 2009 08:16:27 +0300 (EEST)
+Message-ID: <20090518.081627.200381155.Hiroshi.DOYU@nokia.com>
+References: <1242468350-23190-1-git-send-email-felipe.contreras@gmail.com>
+	<20090516163635.GB25657@n2100.arm.linux.org.uk>
+	<94a0d4530905161132j23b109bbj6d62f7ff9fac8c7f@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: Text/Plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:56534 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750701AbZEREA3 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 18 May 2009 00:00:29 -0400
-In-Reply-To: <20090517153207.GA6585@n2100.arm.linux.org.uk>
-Content-Language: en-US
+Received: from smtp.nokia.com ([192.100.105.134]:36718 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750739AbZERFRL convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 18 May 2009 01:17:11 -0400
+In-Reply-To: <94a0d4530905161132j23b109bbj6d62f7ff9fac8c7f@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: "linux-arm-kernel@lists.arm.linux.org.uk" <linux-arm-kernel@lists.arm.linux.org.uk>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: linux@arm.linux.org.uk, felipe.contreras@gmail.com
+Cc: linux-omap@vger.kernel.org, h-kanigeri2@ti.com, linux-arm-kernel@lists.arm.linux.org.uk
 
-> -----Original Message-----
-> From: Russell King - ARM Linux [mailto:linux@arm.linux.org.uk] 
-> Sent: Sunday, May 17, 2009 9:02 PM
-> To: Shilimkar, Santosh
-> Cc: linux-arm-kernel@lists.arm.linux.org.uk; 
-> linux-omap@vger.kernel.org
-> Subject: Re: [RESUBMIT][PATCH 5/7] OMAP4: Update common omap 
-> machine specific sources.
-> 
-> On Sun, May 17, 2009 at 06:30:27PM +0530, Shilimkar, Santosh wrote:
-> > Russell,
-> > 
-> > > > diff --git a/arch/arm/mach-omap2/io.c b/arch/arm/mach-omap2/io.c
-> > > > index 916fcd3..6db7791 100644
-> > > > --- a/arch/arm/mach-omap2/io.c
-> > > > +++ b/arch/arm/mach-omap2/io.c
-> > > > @@ -200,7 +247,9 @@ void __init omap2_init_common_hw(struct 
-> > > omap_sdrc_params *sp)
-> > > >  	omap2_mux_init();
-> > > >  	pwrdm_init(powerdomains_omap);
-> > > >  	clkdm_init(clockdomains_omap, clkdm_pwrdm_autodeps);
-> > > > +#ifndef CONFIG_ARCH_OMAP4 /* FIXME: Remove this once the 
-> > > clkdev is ready */
-> > > >  	omap2_clk_init();
-> > > > +#endif
-> > > >  	omap2_sdrc_init(sp);
-> > > >  	gpmc_init();
-> > > >  }
-> > > 
-> > > I'm not sure why:
-> > > 
-> > > 1. you're using a (possible) run time check in sdrc.c, 
-> > > clockdomain.c and
-> > >    powerdomain.c, but a compile time check in io.c
-> > This one I explained in the last email. And till we have 
-> the clean up
-> > done on clock.h I can't remove the compile time switch even 
-> though it
-> > looks ugly.
-> 
-> There's no point in using run-time checks here though.  This is a
-> temporary hack until OMAP4 gets the proper 
-> clock/clockdomain/powerdomain/
-> sdrc support.
-> 
-> Until that happens, there's no point in mixing this stuff up 
-> and making
-> more review work.  So just accept that OMAP4 won't live with anything
-> but itself for the time being and do as:
-> 
->  	omap2_mux_init();
-> +#ifndef CONFIG_ARCH_OMAP4 /* FIXME: Remove this once the 
-> clkdev is ready */
->  	pwrdm_init(powerdomains_omap);
->  	clkdm_init(clockdomains_omap, clkdm_pwrdm_autodeps);
->  	omap2_clk_init();
->  	omap2_sdrc_init(sp);
-> +#endif
->  	gpmc_init();
-> 
-> Nice and simple, fewer files touched and obvious what's going on.
+=46rom: ext Felipe Contreras <felipe.contreras@gmail.com>
+Subject: Re: [RFC/PATCH 0/3] omap3-iommu: cleanups and remote registrat=
+ion
+Date: Sat, 16 May 2009 20:32:10 +0200
 
-Thanks and I completely agree with you.
+> On Sat, May 16, 2009 at 7:36 PM, Russell King - ARM Linux
+> <linux@arm.linux.org.uk> wrote:
+> > On Sat, May 16, 2009 at 01:05:47PM +0300, Felipe Contreras wrote:
+> >> This patch series cleanups up a bit the opap3-iommu device registr=
+ation and
+> >> then allows registration from other parts of the code.
+> >>
+> >> Currently the iva2 code (tidspbridge) is not using iommu, therefor=
+e it can't be
+> >> used as-is with the current omap iommu. By allowing devies to be r=
+egistered
+> >> externaly (either isp, or iva2) this problem goes away.
+> >
+> > Hmm, so does this mean that the iommu patchset is going to grow by =
+three
+> > patches? =A0Hope not.
 
-Regards,
-Santosh
- 
+This series has been posted for a long time and I want to get this in
+this time with minor fixes.
+
+> I hope Hiroshi integrates my patches.
+
+I think that the problem of yours is that it's not necesary to allow
+device registration around kernel anywhere by "omap_iommu_add()" at
+all, but enough only in "omap3-iommu.c". Since eventually
+"tidspbridge" will use this iommu framework, no need for this
+flexibility. Keeping same kind of device registration in one place is
+good thing from SoC perspective. So I want to avoid adding unnecessary
+flexibility to the code. I'll follow Russell's call, anyway.
+
+> > Also, please ensure that you address my other comments, some of whi=
+ch do
+> > seem applicable to your cleanups as well - eg, the __initdata one.
+>=20
+> Right, I can improve my cleanup patch with your comments, but my fina=
+l
+> objective was to be able to register iommu devices independently, and
+> for that __initdata on the 'devices' array didn't work.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
