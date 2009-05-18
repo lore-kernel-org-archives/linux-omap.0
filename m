@@ -1,74 +1,28 @@
-From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
-Subject: Re: [RFC/PATCH 3/3] omap3-iommu: remote registration
-Date: Mon, 18 May 2009 16:35:33 +0300 (EEST)
-Message-ID: <20090518.163533.28796680.Hiroshi.DOYU@nokia.com>
-References: <1242468350-23190-3-git-send-email-felipe.contreras@gmail.com>
-	<1242468350-23190-4-git-send-email-felipe.contreras@gmail.com>
-	<20090518121113.GB3067@n2100.arm.linux.org.uk>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: [PATCH 5/6] omap iommu: entries for Kconfig and Makefile
+Date: Mon, 18 May 2009 14:36:47 +0100
+Message-ID: <20090518133647.GA5141@n2100.arm.linux.org.uk>
+References: <20090505123905.4583.69865.stgit@oreo.research.nokia.com> <20090505124711.4583.52382.stgit@oreo.research.nokia.com>
 Mime-Version: 1.0
-Content-Type: Multipart/Mixed;
- boundary="--Next_Part(Mon_May_18_16_35_33_2009_071)--"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:64684 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750905AbZERNf7 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 18 May 2009 09:35:59 -0400
-In-Reply-To: <20090518121113.GB3067@n2100.arm.linux.org.uk>
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:41355 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752231AbZERNg5 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 18 May 2009 09:36:57 -0400
+Content-Disposition: inline
+In-Reply-To: <20090505124711.4583.52382.stgit@oreo.research.nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux@arm.linux.org.uk
-Cc: felipe.contreras@gmail.com, linux-omap@vger.kernel.org, h-kanigeri2@ti.com, linux-arm-kernel@lists.arm.linux.org.uk
+To: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+Cc: linux-arm-kernel@lists.arm.linux.org.uk, linux-omap@vger.kernel.org, h-kanigeri2@ti.com, omar.ramirez@ti.com, sakari.ailus@maxwell.research.nokia.com, tony@atomide.com
 
-----Next_Part(Mon_May_18_16_35_33_2009_071)--
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+On Tue, May 05, 2009 at 03:47:11PM +0300, Hiroshi DOYU wrote:
+> +config OMAP_IOMMU
+> +	tristate "IOMMU support"
+> +	depends on ARCH_OMAP
+> +	default n
 
-From: ext Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [RFC/PATCH 3/3] omap3-iommu: remote registration
-Date: Mon, 18 May 2009 14:11:13 +0200
-
-> On Sat, May 16, 2009 at 01:05:50PM +0300, Felipe Contreras wrote:
-> > This allows devices to be registered only when they are used. The
-> > current dsp-bridge driver for example is not using iommu so registering
-> > the iommu iva2 device would conflict. By allowing remote registration
-> > the dsp-bridge can decide when the iommu iva2 device is registered.
-> 
-> I don't think that this is a good idea - what happens if two people
-> call omap_iommu_add() for the same IOMMU device independently?
-> 
-> The real problem here seems to be the TI DSP bridge code, and if that's
-> the case why can't we just avoid registering IVA2 if the TI DSP bridge
-> code is enabled.  That solves your stated problem without creating
-> additional management issues.
-
-How about the attached patch? I think this is enough.
-
-
-----Next_Part(Mon_May_18_16_35_33_2009_071)--
-Content-Type: Application/Octet-Stream
-Content-Transfer-Encoding: base64
-Content-Disposition: attachment;
- filename="0001-omap-iommu-disable-iva2-iommu-device-registration-i.patch"
-
-RnJvbSAwNjU4ZWZhMzFkNjg5MDQ5OTgzMDhhMTY5MjQ3ZTg3MjcwMTEwYTMwIE1vbiBTZXAgMTcg
-MDA6MDA6MDAgMjAwMQpGcm9tOiBIaXJvc2hpIERPWVUgPEhpcm9zaGkuRE9ZVUBub2tpYS5jb20+
-CkRhdGU6IE1vbiwgMTggTWF5IDIwMDkgMTY6MzE6MzUgKzAzMDAKU3ViamVjdDogW1BBVENIIDEv
-MV0gb21hcCBpb21tdTogZGlzYWJsZSBpdmEyIGlvbW11IGRldmljZSByZWdpc3RyYXRpb24gaWYg
-dGlkc3BicmlkZ2UgZW5hYmxlZAoKdGlkc3BicmlkZ2Ugd2lsbCB1c2Ugb21hcCBpb21tdSBldmVu
-dHVhbGx5LiBVbnRpbCBpdCdzIHJlYWR5LCBkaXNhYmxlIGl0LgoKU2lnbmVkLW9mZi1ieTogSGly
-b3NoaSBET1lVIDxIaXJvc2hpLkRPWVVAbm9raWEuY29tPgotLS0KIGFyY2gvYXJtL21hY2gtb21h
-cDIvb21hcDMtaW9tbXUuYyB8ICAgIDIgKysKIDEgZmlsZXMgY2hhbmdlZCwgMiBpbnNlcnRpb25z
-KCspLCAwIGRlbGV0aW9ucygtKQoKZGlmZiAtLWdpdCBhL2FyY2gvYXJtL21hY2gtb21hcDIvb21h
-cDMtaW9tbXUuYyBiL2FyY2gvYXJtL21hY2gtb21hcDIvb21hcDMtaW9tbXUuYwppbmRleCA5MWVl
-MzhhLi45NjQ5OTBiIDEwMDY0NAotLS0gYS9hcmNoL2FybS9tYWNoLW9tYXAyL29tYXAzLWlvbW11
-LmMKKysrIGIvYXJjaC9hcm0vbWFjaC1vbWFwMi9vbWFwMy1pb21tdS5jCkBAIC0zNiwxMSArMzYs
-MTMgQEAgc3RhdGljIGNvbnN0IHN0cnVjdCBpb21tdV9wbGF0Zm9ybV9kYXRhIG9tYXAzX2lvbW11
-X3BkYXRhW10gX19pbml0Y29uc3QgPSB7CiAJCS5ucl90bGJfZW50cmllcyA9IDgsCiAJCS5jbGtf
-bmFtZSA9ICJjYW1faWNrIiwKIAl9LAorI2lmICFkZWZpbmVkKENPTkZJR19NUFVfQlJJREdFKSAm
-JiAhZGVmaW5lZChDT05GSUdfT01BUF9EU1BfTU9EVUxFKQogCXsKIAkJLm5hbWUgPSAiaXZhMiIs
-CiAJCS5ucl90bGJfZW50cmllcyA9IDMyLAogCQkuY2xrX25hbWUgPSAiaXZhMl9jayIsCiAJfSwK
-KyNlbmRpZgogfTsKICNkZWZpbmUgTlJfSU9NTVVfREVWSUNFUyBBUlJBWV9TSVpFKG9tYXAzX2lv
-bW11X3BkYXRhKQogCi0tIAoxLjYuMC40Cgo=
-
-----Next_Part(Mon_May_18_16_35_33_2009_071)----
+default n is the default whatever.  There's no need for the depends line
+either - the whole file is protected by an "if ARCH_OMAP".."endif"
+encapsulation.
