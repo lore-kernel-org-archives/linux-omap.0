@@ -1,47 +1,50 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH 08/11] OMAP3: PM: Ensure MUSB block can idle when driver not loaded
-Date: Mon, 18 May 2009 07:50:32 -0700
-Message-ID: <87fxf2bh3b.fsf@deeprootsystems.com>
-References: <1242412851-16606-1-git-send-email-khilman@deeprootsystems.com>
-	<1242412851-16606-2-git-send-email-khilman@deeprootsystems.com>
-	<1242412851-16606-3-git-send-email-khilman@deeprootsystems.com>
-	<1242412851-16606-4-git-send-email-khilman@deeprootsystems.com>
-	<1242412851-16606-5-git-send-email-khilman@deeprootsystems.com>
-	<1242412851-16606-6-git-send-email-khilman@deeprootsystems.com>
-	<1242412851-16606-7-git-send-email-khilman@deeprootsystems.com>
-	<1242412851-16606-8-git-send-email-khilman@deeprootsystems.com>
-	<1242412851-16606-9-git-send-email-khilman@deeprootsystems.com>
-	<20090518131611.GG3067@n2100.arm.linux.org.uk>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-px0-f191.google.com ([209.85.216.191]:53344 "EHLO
-	mail-px0-f191.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751798AbZEROug (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 18 May 2009 10:50:36 -0400
-Received: by pxi29 with SMTP id 29so1983167pxi.33
-        for <linux-omap@vger.kernel.org>; Mon, 18 May 2009 07:50:37 -0700 (PDT)
-In-Reply-To: <20090518131611.GG3067@n2100.arm.linux.org.uk> (Russell King's message of "Mon\, 18 May 2009 14\:16\:11 +0100")
-Sender: linux-omap-owner@vger.kernel.org
+From: Niilo Minkkinen <ext-niilo.1.minkkinen-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH] usb: disable OTG AUTOIDLE only with omap3430
+Date: Mon, 18 May 2009 17:54:16 +0300
+Message-ID: <1242658456-5723-1-git-send-email-ext-niilo.1.minkkinen@nokia.com>
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, ext-niilo.1.minkkinen-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: linux-arm-kernel@lists.arm.linux.org.uk, linux-omap@vger.kernel.org, Peter 'p2' De Schrijver <peter.de-schrijver@nokia.com>, Tony Lindgren <tony@atomide.com>
 
-Russell King - ARM Linux <linux@arm.linux.org.uk> writes:
+Omap3 MUSB AUTOIDLE functionality configured through OTG_SYSCONFIG
+register prevents the device from going into retention.
+This is a workaround (by Richard Woodruff/TI), as his comment :
+> A new MUSB bug which is a match to data below was identified very
+> recently (on hardware and in simulation).
+> This bug is in 3430 and not 3630.
+> As a priority test (and as new default) you should have engineers
+> disable autoidle for MUSB block.
+> This is the workaround which will show up in next errata.
 
-> On Fri, May 15, 2009 at 11:40:48AM -0700, Kevin Hilman wrote:
->> Otherwise, bootloaders may leave MUSB in a state which prevents
->> retention.
->
-> Hmm, so what happens if a boot loader has touched this MUSB thing, but
-> the kernel which is being run doesn't have CONFIG_USB_MUSB_SOC enabled?
+Signed-off-by: Niilo Minkkinen <ext-niilo.1.minkkinen-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
+---
+ drivers/usb/musb/omap2430.c |    7 ++++++-
+ 1 files changed, 6 insertions(+), 1 deletions(-)
 
-Then the OMAP will not be able to hit retention.
+diff --git a/drivers/usb/musb/omap2430.c b/drivers/usb/musb/omap2430.c
+index 901dffd..396fc6d 100644
+--- a/drivers/usb/musb/omap2430.c
++++ b/drivers/usb/musb/omap2430.c
+@@ -241,7 +241,12 @@ int __init musb_platform_init(struct musb *musb)
+ 	l &= ~AUTOIDLE;		/* disable auto idle */
+ 	l &= ~NOIDLE;		/* remove possible noidle */
+ 	l |= SMARTIDLE;		/* enable smart idle */
+-	l |= AUTOIDLE;		/* enable auto idle */
++	/*
++	 * MUSB AUTOIDLE don't work in 3430.
++	 * Workaround by Richard Woodruff/TI
++	 */
++	if (!cpu_is_omap3430())
++		l |= AUTOIDLE;		/* enable auto idle */
+ 	omap_writel(l, OTG_SYSCONFIG);
+ 
+ 	l = omap_readl(OTG_INTERFSEL);
+-- 
+1.6.0.4
 
-That Makefile change happened after this series was initially made.
-I think we should change the Makefile back to always compile usb-musb.c
-and move the #ifdef CONFIG_USB_MUSB_SOC into usb-musb.c
-
-Tony, any objections?
-
-Kevin
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
