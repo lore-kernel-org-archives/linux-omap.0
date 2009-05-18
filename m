@@ -1,84 +1,41 @@
 From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
-Subject: Re: [RFC/PATCH 0/3] omap3-iommu: cleanups and remote registration
-Date: Mon, 18 May 2009 08:33:41 +0300 (EEST)
-Message-ID: <20090518.083341.233686060.Hiroshi.DOYU@nokia.com>
-References: <20090516163635.GB25657@n2100.arm.linux.org.uk>
-	<94a0d4530905161132j23b109bbj6d62f7ff9fac8c7f@mail.gmail.com>
-	<20090518.081627.200381155.Hiroshi.DOYU@nokia.com>
+Subject: Re: [PATCH 3/6] omap iommu: omap3 iommu device registration
+Date: Mon, 18 May 2009 08:36:03 +0300 (EEST)
+Message-ID: <20090518.083603.02283012.Hiroshi.DOYU@nokia.com>
+References: <20090505124700.4583.69988.stgit@oreo.research.nokia.com>
+	<20090516092036.GD15328@n2100.arm.linux.org.uk>
+	<20090516095514.GJ15328@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:27846 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750706AbZERFdz convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 18 May 2009 01:33:55 -0400
-In-Reply-To: <20090518.081627.200381155.Hiroshi.DOYU@nokia.com>
+Received: from smtp.nokia.com ([192.100.105.134]:38336 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750706AbZERFgr (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 18 May 2009 01:36:47 -0400
+In-Reply-To: <20090516095514.GJ15328@n2100.arm.linux.org.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux@arm.linux.org.uk, felipe.contreras@gmail.com
-Cc: linux-omap@vger.kernel.org, h-kanigeri2@ti.com, linux-arm-kernel@lists.arm.linux.org.uk
+To: linux@arm.linux.org.uk
+Cc: linux-arm-kernel@lists.arm.linux.org.uk, linux-omap@vger.kernel.org, h-kanigeri2@ti.com, omar.ramirez@ti.com, sakari.ailus@maxwell.research.nokia.com, tony@atomide.com
 
-=46rom: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
-Subject: Re: [RFC/PATCH 0/3] omap3-iommu: cleanups and remote registrat=
-ion
-Date: Mon, 18 May 2009 08:16:27 +0300 (EEST)
+From: ext Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: [PATCH 3/6] omap iommu: omap3 iommu device registration
+Date: Sat, 16 May 2009 11:55:14 +0200
 
-> From: ext Felipe Contreras <felipe.contreras@gmail.com>
-> Subject: Re: [RFC/PATCH 0/3] omap3-iommu: cleanups and remote registr=
-ation
-> Date: Sat, 16 May 2009 20:32:10 +0200
->=20
-> > On Sat, May 16, 2009 at 7:36 PM, Russell King - ARM Linux
-> > <linux@arm.linux.org.uk> wrote:
-> > > On Sat, May 16, 2009 at 01:05:47PM +0300, Felipe Contreras wrote:
-> > >> This patch series cleanups up a bit the opap3-iommu device regis=
-tration and
-> > >> then allows registration from other parts of the code.
-> > >>
-> > >> Currently the iva2 code (tidspbridge) is not using iommu, theref=
-ore it can't be
-> > >> used as-is with the current omap iommu. By allowing devies to be=
- registered
-> > >> externaly (either isp, or iva2) this problem goes away.
-> > >
-> > > Hmm, so does this mean that the iommu patchset is going to grow b=
-y three
-> > > patches? =A0Hope not.
->=20
-> This series has been posted for a long time and I want to get this in
-> this time with minor fixes.
->=20
-> > I hope Hiroshi integrates my patches.
->=20
-> I think that the problem of yours is that it's not necesary to allow
-> device registration around kernel anywhere by "omap_iommu_add()" at
-> all, but enough only in "omap3-iommu.c". Since eventually
-> "tidspbridge" will use this iommu framework, no need for this
-> flexibility. Keeping same kind of device registration in one place is
-> good thing from SoC perspective. So I want to avoid adding unnecessar=
-y
-> flexibility to the code. I'll follow Russell's call, anyway.
+> On Sat, May 16, 2009 at 10:20:36AM +0100, Russell King - ARM Linux wrote:
+> > This looks all very convoluted.  Why not do something like:
+> > 
+> > static unsigned long iommu_base[] = {
+> > 	OMAP3_MMU1_BASE,
+> > 	OMAP3_MMU2_BASE,
+> > };
+> > 
+> > static int iommu_irq[] = {
+> > 	OMAP3_MMU1_IRQ,
+> > 	OMAP3_MMU2_IRQ,
+> > };
+> 
+> BTW, both of these can be __initdata.
 
-The other thing is about introducing a new structure type, "struct
-iommu_device". I don't want to define new structure type just for this
-device registration. Since device registration part is kind of
-conventional one in kernel, I want to keep things simple/conventional
-as much as possible.
-
->=20
-> > > Also, please ensure that you address my other comments, some of w=
-hich do
-> > > seem applicable to your cleanups as well - eg, the __initdata one=
-=2E
-> >=20
-> > Right, I can improve my cleanup patch with your comments, but my fi=
-nal
-> > objective was to be able to register iommu devices independently, a=
-nd
-> > for that __initdata on the 'devices' array didn't work.
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+OK, I'll send the update ones. Thank you for reviewing them.
