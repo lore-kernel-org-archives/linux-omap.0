@@ -1,208 +1,74 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [PATCH 01/11] OMAP2/3: PM: push core PM code from linux-omap
-Date: Mon, 18 May 2009 14:32:41 +0100
-Message-ID: <20090518133241.GH3067@n2100.arm.linux.org.uk>
-References: <1242412851-16606-1-git-send-email-khilman@deeprootsystems.com> <1242412851-16606-2-git-send-email-khilman@deeprootsystems.com>
+From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+Subject: Re: [RFC/PATCH 3/3] omap3-iommu: remote registration
+Date: Mon, 18 May 2009 16:35:33 +0300 (EEST)
+Message-ID: <20090518.163533.28796680.Hiroshi.DOYU@nokia.com>
+References: <1242468350-23190-3-git-send-email-felipe.contreras@gmail.com>
+	<1242468350-23190-4-git-send-email-felipe.contreras@gmail.com>
+	<20090518121113.GB3067@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: Multipart/Mixed;
+ boundary="--Next_Part(Mon_May_18_16_35_33_2009_071)--"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:52090 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751140AbZERNcv (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 18 May 2009 09:32:51 -0400
-Content-Disposition: inline
-In-Reply-To: <1242412851-16606-2-git-send-email-khilman@deeprootsystems.com>
+Received: from smtp.nokia.com ([192.100.122.230]:64684 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750905AbZERNf7 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 18 May 2009 09:35:59 -0400
+In-Reply-To: <20090518121113.GB3067@n2100.arm.linux.org.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@deeprootsystems.com>
-Cc: linux-arm-kernel@lists.arm.linux.org.uk, linux-omap@vger.kernel.org, Jouni Hogander <jouni.hogander@nokia.com>, Paul Walmsley <paul@pwsan.com>
+To: linux@arm.linux.org.uk
+Cc: felipe.contreras@gmail.com, linux-omap@vger.kernel.org, h-kanigeri2@ti.com, linux-arm-kernel@lists.arm.linux.org.uk
 
-On Fri, May 15, 2009 at 11:40:41AM -0700, Kevin Hilman wrote:
-> This patch is to sync the core linux-omap PM code with mainline.  This
-> code has evolved and been used for a while the linux-omap tree, but
-> the attempt here is to finally get this into mainline.
+----Next_Part(Mon_May_18_16_35_33_2009_071)--
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+
+From: ext Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: [RFC/PATCH 3/3] omap3-iommu: remote registration
+Date: Mon, 18 May 2009 14:11:13 +0200
+
+> On Sat, May 16, 2009 at 01:05:50PM +0300, Felipe Contreras wrote:
+> > This allows devices to be registered only when they are used. The
+> > current dsp-bridge driver for example is not using iommu so registering
+> > the iommu iva2 device would conflict. By allowing remote registration
+> > the dsp-bridge can decide when the iommu iva2 device is registered.
 > 
-> Following this will be a series of patches from the 'PM branch' of the
-> linux-omap tree to add full PM hardware support from the linux-omap
-> tree.
+> I don't think that this is a good idea - what happens if two people
+> call omap_iommu_add() for the same IOMMU device independently?
 > 
-> Much of this PM core code was written by Jouni Hogander with
-> significant contributions from Paul Walmsley as well as many others
-> from Nokia, Texas Instruments and linux-omap community.
+> The real problem here seems to be the TI DSP bridge code, and if that's
+> the case why can't we just avoid registering IVA2 if the TI DSP bridge
+> code is enabled.  That solves your stated problem without creating
+> additional management issues.
 
-Overall comment, I think we need to rework the idle support code so
-that enable_hlt/disable_hlt can be used even when pm_idle has been
-overridden, rather than OMAP going off and inventing its own mechanisms.
+How about the attached patch? I think this is enough.
 
-> diff --git a/arch/arm/mach-omap2/pm24xx.c b/arch/arm/mach-omap2/pm24xx.c
-> new file mode 100644
-> index 0000000..2a2d1a3
-> --- /dev/null
-> +++ b/arch/arm/mach-omap2/pm24xx.c
-> @@ -0,0 +1,557 @@
-> +/*
-> + * OMAP2 Power Management Routines
-> + *
-> + * Copyright (C) 2005 Texas Instruments, Inc.
-> + * Copyright (C) 2006-2008 Nokia Corporation
-> + *
-> + * Written by:
-> + * Richard Woodruff <r-woodruff2@ti.com>
-> + * Tony Lindgren
-> + * Juha Yrjola
-> + * Amit Kucheria <amit.kucheria@nokia.com>
-> + * Igor Stoppa <igor.stoppa@nokia.com>
-> + *
-> + * Based on pm.c for omap1
-> + *
-> + * This program is free software; you can redistribute it and/or modify
-> + * it under the terms of the GNU General Public License version 2 as
-> + * published by the Free Software Foundation.
-> + */
-> +
-> +#include <linux/suspend.h>
-> +#include <linux/sched.h>
-> +#include <linux/proc_fs.h>
-> +#include <linux/interrupt.h>
-> +#include <linux/sysfs.h>
-> +#include <linux/module.h>
-> +#include <linux/delay.h>
-> +#include <linux/clk.h>
-> +#include <linux/io.h>
-> +#include <linux/irq.h>
-> +#include <linux/time.h>
-> +
-> +#include <asm/mach/time.h>
-> +#include <asm/mach/irq.h>
-> +#include <asm/mach-types.h>
-> +
-> +#include <mach/irqs.h>
-> +#include <mach/clock.h>
-> +#include <mach/sram.h>
-> +#include <mach/control.h>
-> +#include <mach/gpio.h>
 
-Should be linux/gpio.h
+----Next_Part(Mon_May_18_16_35_33_2009_071)--
+Content-Type: Application/Octet-Stream
+Content-Transfer-Encoding: base64
+Content-Disposition: attachment;
+ filename="0001-omap-iommu-disable-iva2-iommu-device-registration-i.patch"
 
-> +/*
-> + * Note that you can use clock_event_device->min_delta_ns if you want to
-> + * avoid reprogramming timer too often when using CONFIG_NO_HZ.
-> + */
-> +static void omap2_pm_idle(void)
-> +{
-> +	local_irq_disable();
-> +	local_fiq_disable();
-> +
-> +	if (!omap2_can_sleep()) {
-> +		if (!atomic_read(&sleep_block) && omap2_irq_pending())
-> +			goto out;
-> +		omap2_enter_mpu_retention();
-> +		goto out;
-> +	}
-> +
-> +	if (omap2_irq_pending())
-> +		goto out;
-> +
-> +	omap2_enter_full_retention();
-> +
-> +out:
-> +	local_fiq_enable();
-> +	local_irq_enable();
-> +}
+RnJvbSAwNjU4ZWZhMzFkNjg5MDQ5OTgzMDhhMTY5MjQ3ZTg3MjcwMTEwYTMwIE1vbiBTZXAgMTcg
+MDA6MDA6MDAgMjAwMQpGcm9tOiBIaXJvc2hpIERPWVUgPEhpcm9zaGkuRE9ZVUBub2tpYS5jb20+
+CkRhdGU6IE1vbiwgMTggTWF5IDIwMDkgMTY6MzE6MzUgKzAzMDAKU3ViamVjdDogW1BBVENIIDEv
+MV0gb21hcCBpb21tdTogZGlzYWJsZSBpdmEyIGlvbW11IGRldmljZSByZWdpc3RyYXRpb24gaWYg
+dGlkc3BicmlkZ2UgZW5hYmxlZAoKdGlkc3BicmlkZ2Ugd2lsbCB1c2Ugb21hcCBpb21tdSBldmVu
+dHVhbGx5LiBVbnRpbCBpdCdzIHJlYWR5LCBkaXNhYmxlIGl0LgoKU2lnbmVkLW9mZi1ieTogSGly
+b3NoaSBET1lVIDxIaXJvc2hpLkRPWVVAbm9raWEuY29tPgotLS0KIGFyY2gvYXJtL21hY2gtb21h
+cDIvb21hcDMtaW9tbXUuYyB8ICAgIDIgKysKIDEgZmlsZXMgY2hhbmdlZCwgMiBpbnNlcnRpb25z
+KCspLCAwIGRlbGV0aW9ucygtKQoKZGlmZiAtLWdpdCBhL2FyY2gvYXJtL21hY2gtb21hcDIvb21h
+cDMtaW9tbXUuYyBiL2FyY2gvYXJtL21hY2gtb21hcDIvb21hcDMtaW9tbXUuYwppbmRleCA5MWVl
+MzhhLi45NjQ5OTBiIDEwMDY0NAotLS0gYS9hcmNoL2FybS9tYWNoLW9tYXAyL29tYXAzLWlvbW11
+LmMKKysrIGIvYXJjaC9hcm0vbWFjaC1vbWFwMi9vbWFwMy1pb21tdS5jCkBAIC0zNiwxMSArMzYs
+MTMgQEAgc3RhdGljIGNvbnN0IHN0cnVjdCBpb21tdV9wbGF0Zm9ybV9kYXRhIG9tYXAzX2lvbW11
+X3BkYXRhW10gX19pbml0Y29uc3QgPSB7CiAJCS5ucl90bGJfZW50cmllcyA9IDgsCiAJCS5jbGtf
+bmFtZSA9ICJjYW1faWNrIiwKIAl9LAorI2lmICFkZWZpbmVkKENPTkZJR19NUFVfQlJJREdFKSAm
+JiAhZGVmaW5lZChDT05GSUdfT01BUF9EU1BfTU9EVUxFKQogCXsKIAkJLm5hbWUgPSAiaXZhMiIs
+CiAJCS5ucl90bGJfZW50cmllcyA9IDMyLAogCQkuY2xrX25hbWUgPSAiaXZhMl9jayIsCiAJfSwK
+KyNlbmRpZgogfTsKICNkZWZpbmUgTlJfSU9NTVVfREVWSUNFUyBBUlJBWV9TSVpFKG9tYXAzX2lv
+bW11X3BkYXRhKQogCi0tIAoxLjYuMC40Cgo=
 
-It's totally unclear what the comment above the function has to do with
-the function itself.
-
-> diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
-> new file mode 100644
-> index 0000000..0fb6bec
-> --- /dev/null
-> +++ b/arch/arm/mach-omap2/pm34xx.c
-> @@ -0,0 +1,607 @@
-> +/*
-> + * OMAP3 Power Management Routines
-> + *
-> + * Copyright (C) 2006-2008 Nokia Corporation
-> + * Tony Lindgren <tony@atomide.com>
-> + * Jouni Hogander
-> + *
-> + * Copyright (C) 2005 Texas Instruments, Inc.
-> + * Richard Woodruff <r-woodruff2@ti.com>
-> + *
-> + * Based on pm.c for omap1
-> + *
-> + * This program is free software; you can redistribute it and/or modify
-> + * it under the terms of the GNU General Public License version 2 as
-> + * published by the Free Software Foundation.
-> + */
-> +
-> +#include <linux/pm.h>
-> +#include <linux/suspend.h>
-> +#include <linux/interrupt.h>
-> +#include <linux/module.h>
-> +#include <linux/list.h>
-> +#include <linux/err.h>
-> +
-> +#include <mach/gpio.h>
-
-Should be linux/gpio.h
-
-> +static void omap3_pm_idle(void)
-> +{
-> +	local_irq_disable();
-> +	local_fiq_disable();
-> +
-> +	if (!omap3_can_sleep())
-> +		goto out;
-> +
-> +	if (omap_irq_pending())
-> +		goto out;
-
-So what happens if an IRQ becomes pending at this precise point?
-
-> +
-> +	omap_sram_idle();
-> +
-> +out:
-> +	local_fiq_enable();
-> +	local_irq_enable();
-> +}
-> +	/* IRQ mode */
-> +	bic    r0, r7, #0x1F
-> +	orr    r0, r0, #0x12
-> +	msr    cpsr, r0	/*go into IRQ mode*/
-> +	ldmia  r3!,{r4-r6}	/*load the SP and LR from SDRAM*/
-> +	mov    sp, r4	/*update the SP */
-> +	mov    lr, r5	/*update the LR */
-> +	msr    spsr, r6	/*update the SPSR */
-> +
-> +	/* ABORT mode */
-> +	bic    r0, r7, #0x1F
-> +	orr    r0, r0, #0x17
-> +	msr    cpsr, r0	/* go into ABORT mode */
-> +	ldmia  r3!,{r4-r6}	/*load the SP and LR from SDRAM */
-> +	mov    sp, r4		/*update the SP */
-> +	mov    lr, r5		/*update the LR */
-> +	msr    spsr, r6		/*update the SPSR */
-> +
-> +	/* UNDEEF mode */
-> +	bic    r0, r7, #0x1F
-> +	orr    r0, r0, #0x1B
-> +	msr    cpsr, r0		/*go into UNDEF mode */
-> +	ldmia  r3!,{r4-r6}	/*load the SP and LR from SDRAM */
-> +	mov    sp, r4		/*update the SP*/
-> +	mov    lr, r5		/*update the LR*/
-> +	msr    spsr, r6		/*update the SPSR*/
-> +
-> +	/* SYSTEM (USER) mode */
-> +	bic    r0, r7, #0x1F
-> +	orr    r0, r0, #0x1F
-> +	msr    cpsr, r0		/*go into USR mode */
-> +	ldmia  r3!,{r4-r6}	/*load the SP and LR from SDRAM*/
-> +	mov    sp, r4		/*update the SP */
-> +	mov    lr, r5		/*update the LR */
-> +	msr    spsr, r6		/*update the SPSR */
-> +	msr    cpsr, r7		/*back to original mode*/
-
-There is a function which re-initializes the abort mode registers already -
-cpu_init().  Please use that if possible instead.
+----Next_Part(Mon_May_18_16_35_33_2009_071)----
