@@ -1,64 +1,114 @@
 From: Felipe Contreras <felipe.contreras@gmail.com>
-Subject: Re: [RFC/PATCH 3/3] omap3-iommu: remote registration
-Date: Mon, 18 May 2009 15:46:07 +0300
-Message-ID: <94a0d4530905180546p47c887afj109b3b60cdd24a00@mail.gmail.com>
+Subject: Re: [RFC/PATCH 1/3] omap3-iommu: reorganize
+Date: Mon, 18 May 2009 15:59:42 +0300
+Message-ID: <94a0d4530905180559k4b3e13e9xd947ae8cb8849b66@mail.gmail.com>
 References: <1242468350-23190-1-git-send-email-felipe.contreras@gmail.com>
 	 <1242468350-23190-2-git-send-email-felipe.contreras@gmail.com>
-	 <1242468350-23190-3-git-send-email-felipe.contreras@gmail.com>
-	 <1242468350-23190-4-git-send-email-felipe.contreras@gmail.com>
-	 <20090518121113.GB3067@n2100.arm.linux.org.uk>
+	 <20090518120717.GA3067@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from fg-out-1718.google.com ([72.14.220.152]:24465 "EHLO
+Received: from fg-out-1718.google.com ([72.14.220.152]:32710 "EHLO
 	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751979AbZERMqJ convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 18 May 2009 08:46:09 -0400
-Received: by fg-out-1718.google.com with SMTP id d23so610118fga.17
-        for <linux-omap@vger.kernel.org>; Mon, 18 May 2009 05:46:08 -0700 (PDT)
-In-Reply-To: <20090518121113.GB3067@n2100.arm.linux.org.uk>
+	with ESMTP id S1753254AbZERM7n convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 18 May 2009 08:59:43 -0400
+Received: by fg-out-1718.google.com with SMTP id d23so612946fga.17
+        for <linux-omap@vger.kernel.org>; Mon, 18 May 2009 05:59:43 -0700 (PDT)
+In-Reply-To: <20090518120717.GA3067@n2100.arm.linux.org.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: linux-omap@vger.kernel.org, Hiroshi DOYU <hiroshi.doyu@nokia.com>, Hari Kanigeri <h-kanigeri2@ti.com>, linux-arm-kernel@lists.arm.linux.org.uk
+Cc: linux-omap@vger.kernel.org, Hiroshi DOYU <hiroshi.doyu@nokia.com>, Hari Kanigeri <h-kanigeri2@ti.com>, linux-arm-kernel@lists.arm.linux.org.uk, Felipe Contreras <felipe.contreras@nokia.com>
 
-On Mon, May 18, 2009 at 3:11 PM, Russell King - ARM Linux
+On Mon, May 18, 2009 at 3:07 PM, Russell King - ARM Linux
 <linux@arm.linux.org.uk> wrote:
-> On Sat, May 16, 2009 at 01:05:50PM +0300, Felipe Contreras wrote:
->> This allows devices to be registered only when they are used. The
->> current dsp-bridge driver for example is not using iommu so register=
-ing
->> the iommu iva2 device would conflict. By allowing remote registratio=
-n
->> the dsp-bridge can decide when the iommu iva2 device is registered.
+> On Sat, May 16, 2009 at 01:05:48PM +0300, Felipe Contreras wrote:
+>> +struct iommu_device {
+>> + =C2=A0 =C2=A0 resource_size_t base;
+>> + =C2=A0 =C2=A0 resource_size_t irq;
+>> + =C2=A0 =C2=A0 struct iommu_platform_data pdata;
+>> + =C2=A0 =C2=A0 struct resource res[2];
+>> =C2=A0};
 >
-> I don't think that this is a good idea - what happens if two people
-> call omap_iommu_add() for the same IOMMU device independently?
+> The data which is needed per device is:
+>
+> - base address
+> - IRQ (no need for this to be resource_size_t - int will do)
+> - platform data
+>
+> There's no need for that res[2] being there.
 
-Hmm, right, some extra checks would be needed to see if the device is
-already registered and then increase some refcount. That's more
-complicated that I was hoping for.
+Right, I was using 'res' but not any more; I forgot to remove it.
 
-> The real problem here seems to be the TI DSP bridge code, and if that=
-'s
-> the case why can't we just avoid registering IVA2 if the TI DSP bridg=
-e
-> code is enabled. =C2=A0That solves your stated problem without creati=
-ng
-> additional management issues.
+So resource_size_t is ok for 'base'?
 
-The bridgedriver is expected to move and use iommu eventually, but not
-right now, so I guess the iva2 device should be registered only if
-MPU_BRIDGE_IOMMU is defined.
+>> @@ -63,23 +51,35 @@ static int __init omap3_iommu_init(void)
+>>
+>> =C2=A0 =C2=A0 =C2=A0 for (i =3D 0; i < NR_IOMMU_DEVICES; i++) {
+>> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 struct platform_dev=
+ice *pdev;
+>> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 const struct iommu_devic=
+e *d =3D &devices[i];
+>> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 struct resource res[] =3D=
+ {
+>> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
+=A0 { .flags =3D IORESOURCE_MEM },
+>> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
+=A0 { .flags =3D IORESOURCE_IRQ },
+>> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 };
+>
+> This initialization doesn't buy you anything, in fact quite the oppos=
+ite.
+> The compiler actually interprets this as:
+>
+> static struct resource __initial_res[] =3D {
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0{ .flags =3D IORESOURCE_MEM },
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0{ .flags =3D IORESOURCE_IRQ },
+> };
+> ...
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0for () {
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0struct resourc=
+e res[...];
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0memcpy(res, __=
+initial_res, sizeof(__initial_res));
+>
+>> +
+>> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 res[0].start =3D d->base=
+;
+>> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 res[0].end =3D d->base +=
+ MMU_REG_SIZE - 1;
+>> +
+>> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 res[1].start =3D d->irq;
+>
+> It would be far better to initialize the flags element here for both.
+> And please also set res[1].end as I did in my patch.
 
-But then what's the point of having the isp iommu device if the camera
-driver is disabled? Wouldn't that be wasting resources? Then if CAMERA
-is not defined the isp device should not be registered either.
+I think I saw that res initialization somewhere and I found it much
+easier to read.
 
-And finally if none of the two are enabled then you don't really
-iommu. By having omap_iommu_add all the dependencies would be handled
-automatically, right? 'modprobe bridgedriver' would load iommu.
+Ok. Will do.
+
+>> +
+>> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 err =3D platform_device_=
+add_resources(pdev, res, ARRAY_SIZE(res));
+>> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 if (err)
+>> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
+ =C2=A0 goto err_out;
+>> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 err =3D platform_device_=
+add_data(pdev, &omap3_iommu_pdata[i],
+>> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
+=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
+ =C2=A0 =C2=A0sizeof(omap3_iommu_pdata[0]));
+>> +
+>> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 err =3D platform_device_=
+add_data(pdev, &d->pdata, sizeof(d->pdata));
+>
+> This will fail checkpatch.
+
+I'll make sure it passes.
+
+Cheers.
 
 --=20
 =46elipe Contreras
