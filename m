@@ -1,60 +1,133 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: N810: latest linux-omap-2.6.git master
-Date: Tue, 19 May 2009 10:15:21 -0700
-Message-ID: <20090519171521.GA19742@atomide.com>
-References: <200905091745.06435.luke@dashjr.org> <200905121818.13785.luke@dashjr.org> <20090513121219.43206b03.jhnikula@gmail.com> <200905190009.28222.luke@dashjr.org> <20090519094240.dbe5b959.jhnikula@gmail.com>
+Subject: Re: [PATCH 2/2] OMAP2/3: PM: remove
+	/sys/power/clocks_off_while_idle
+Date: Tue, 19 May 2009 10:16:29 -0700
+Message-ID: <20090519171629.GB19742@atomide.com>
+References: <1242753264-12600-1-git-send-email-khilman@deeprootsystems.com> <1242753264-12600-2-git-send-email-khilman@deeprootsystems.com> <1242753264-12600-3-git-send-email-khilman@deeprootsystems.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:56501 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753136AbZESRP0 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 19 May 2009 13:15:26 -0400
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:57252 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752741AbZESRQc (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 19 May 2009 13:16:32 -0400
 Content-Disposition: inline
-In-Reply-To: <20090519094240.dbe5b959.jhnikula@gmail.com>
+In-Reply-To: <1242753264-12600-3-git-send-email-khilman@deeprootsystems.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Jarkko Nikula <jhnikula@gmail.com>
-Cc: Luke-Jr <luke@dashjr.org>, linux-omap@vger.kernel.org
+To: Kevin Hilman <khilman@deeprootsystems.com>
+Cc: linux-omap@vger.kernel.org
 
-* Jarkko Nikula <jhnikula@gmail.com> [090518 23:41]:
-> On Tue, 19 May 2009 00:09:20 -0500
-> "Luke-Jr" <luke@dashjr.org> wrote:
+* Kevin Hilman <khilman@deeprootsystems.com> [090519 10:15]:
+> The sysfs control /sys/power/clocks_off_while_idle only affects
+> the UART clocks.  And these can now be controlled with a UART
+> specific timeout sysfs control.  The system default behavior
+> is to have the equivalent of clocks_off_while_idle == 1 and
+> a UART inactivity timeout of 5 seconds.
 > 
-> > Yes, that change seemed to get me booting... however, with "rc6", the
-> > keyboard no longer works *at all*, and in neither rc4 nor rc6 does
-> > p54spi actually work.
-> > 
-> For me keyboard still works as partially (commit
-> 0b2ce840c9fb58cf489bfdfc2d77f99a09a5dca3). I wonder what have caused it
-> to break during 2.6.30-rc since at quick look I don't point any special
-> from Tony's "Extra omap code in linux-omap tree" patches and patches
-> before those are from February?
+> Now one can use
 > 
-> git whatchanged arch/arm/mach-omap2/board-n800.c
-> git whatchanged drivers/input/keyboard/lm8323.c
+>   /sys/devices/platform/serial8250.<uart>/sleep_timeout
+> 
+> to set the inactivity timer for the UART in seconds.  Setting
+> this value to zero disables the timout and is the equivalent
+> of doing an
+> 
+>   echo 0 > /sys/power/clocks_off_while_idle
 
-While waiting to get things in sync with mainline, something like this
-might be handy too:
-
-$ git diff omap-2.6.28..master -- arch/arm/mach-omap2/board-n800.c
- 
-> > Tried setting up g_ether, but for some reason I couldn't get it to
-> > auto- configure (via Gentoo's boot scripts) for rc6.
-> > 
-> For me it works but usually only if cable has been plugged in while
-> booting. Same with Beagle as well. Any idea from MUSB guys?
-> 
-> > Is anyone actually trying to work on or maintain N8x0 support?
-> 
-> I think N8x0 support is a little bit behind from other boards. Lot of
-> active development is going around on newer and more open platforms like
-> Beagle and not all patches are necessary tested on N8x0 (or other boards
-> too!). Of course active hacker base helps to point out breakages.
-
-We should try to get the board-n8x0 stuff in shape for mainline maybe
-the next merge window after this, anybody willing to spend some cycles
-on preparing the patches against the mainline tree?
+Sounds like a nice improvment to me!
 
 Tony
 
+> 
+> Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
+> ---
+>  arch/arm/mach-omap2/pm.c     |   12 ------------
+>  arch/arm/mach-omap2/pm.h     |    1 -
+>  arch/arm/mach-omap2/serial.c |    3 ---
+>  3 files changed, 0 insertions(+), 16 deletions(-)
+> 
+> diff --git a/arch/arm/mach-omap2/pm.c b/arch/arm/mach-omap2/pm.c
+> index 58ed520..8633f86 100644
+> --- a/arch/arm/mach-omap2/pm.c
+> +++ b/arch/arm/mach-omap2/pm.c
+> @@ -39,7 +39,6 @@
+>  #include "pm.h"
+>  
+>  unsigned short enable_dyn_sleep;
+> -unsigned short clocks_off_while_idle;
+>  unsigned short enable_off_mode;
+>  unsigned short voltage_off_while_idle;
+>  unsigned short wakeup_timer_seconds;
+> @@ -52,9 +51,6 @@ static ssize_t idle_store(struct kobject *k, struct kobj_attribute *,
+>  static struct kobj_attribute sleep_while_idle_attr =
+>  	__ATTR(sleep_while_idle, 0644, idle_show, idle_store);
+>  
+> -static struct kobj_attribute clocks_off_while_idle_attr =
+> -	__ATTR(clocks_off_while_idle, 0644, idle_show, idle_store);
+> -
+>  static struct kobj_attribute enable_off_mode_attr =
+>  	__ATTR(enable_off_mode, 0644, idle_show, idle_store);
+>  
+> @@ -85,8 +81,6 @@ static ssize_t idle_show(struct kobject *kobj, struct kobj_attribute *attr,
+>  {
+>  	if (attr == &sleep_while_idle_attr)
+>  		return sprintf(buf, "%hu\n", enable_dyn_sleep);
+> -	else if (attr == &clocks_off_while_idle_attr)
+> -		return sprintf(buf, "%hu\n", clocks_off_while_idle);
+>  	else if (attr == &enable_off_mode_attr)
+>  		return sprintf(buf, "%hu\n", enable_off_mode);
+>  	else if (attr == &voltage_off_while_idle_attr)
+> @@ -109,8 +103,6 @@ static ssize_t idle_store(struct kobject *kobj, struct kobj_attribute *attr,
+>  
+>  	if (attr == &sleep_while_idle_attr) {
+>  		enable_dyn_sleep = value;
+> -	} else if (attr == &clocks_off_while_idle_attr) {
+> -		clocks_off_while_idle = value;
+>  	} else if (attr == &enable_off_mode_attr) {
+>  		enable_off_mode = value;
+>  		omap3_pm_off_mode_enable(enable_off_mode);
+> @@ -255,10 +247,6 @@ static int __init omap_pm_init(void)
+>  	if (error)
+>  		printk(KERN_ERR "sysfs_create_file failed: %d\n", error);
+>  	error = sysfs_create_file(power_kobj,
+> -				  &clocks_off_while_idle_attr.attr);
+> -	if (error)
+> -		printk(KERN_ERR "sysfs_create_file failed: %d\n", error);
+> -	error = sysfs_create_file(power_kobj,
+>  				  &enable_off_mode_attr.attr);
+>  	if (error) {
+>  		printk(KERN_ERR "sysfs_create_file failed: %d\n", error);
+> diff --git a/arch/arm/mach-omap2/pm.h b/arch/arm/mach-omap2/pm.h
+> index e523d75..2547e1b 100644
+> --- a/arch/arm/mach-omap2/pm.h
+> +++ b/arch/arm/mach-omap2/pm.h
+> @@ -24,7 +24,6 @@ static inline int omap3_idle_init(void) { return 0; }
+>  #endif
+>  
+>  extern unsigned short enable_dyn_sleep;
+> -extern unsigned short clocks_off_while_idle;
+>  extern unsigned short enable_off_mode;
+>  extern unsigned short voltage_off_while_idle;
+>  extern atomic_t sleep_block;
+> diff --git a/arch/arm/mach-omap2/serial.c b/arch/arm/mach-omap2/serial.c
+> index c9059fd..8c27700 100644
+> --- a/arch/arm/mach-omap2/serial.c
+> +++ b/arch/arm/mach-omap2/serial.c
+> @@ -263,9 +263,6 @@ void omap_uart_prepare_idle(int num)
+>  	struct omap_uart_state *uart;
+>  
+>  	list_for_each_entry(uart, &uart_list, node) {
+> -		if (!clocks_off_while_idle)
+> -			continue;
+> -
+>  		if (num == uart->num && uart->can_sleep) {
+>  			omap_uart_disable_clocks(uart);
+>  			return;
+> -- 
+> 1.6.2.2
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
