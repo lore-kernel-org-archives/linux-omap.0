@@ -1,66 +1,540 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 07/10] ARM: OMAP2/3: sDMA: Correct omap_request_dma_chain()
-Date: Tue, 19 May 2009 16:40:07 -0700
-Message-ID: <20090519234007.12760.1967.stgit@localhost>
+Subject: [PATCH 08/10] ARM: OMAP2/3: Add generic onenand support when
+	connected to GPMC
+Date: Tue, 19 May 2009 16:41:23 -0700
+Message-ID: <20090519234123.12760.11671.stgit@localhost>
 References: <20090519232905.12760.15490.stgit@localhost>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:59539 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754671AbZESXkH (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 19 May 2009 19:40:07 -0400
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:49914 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754684AbZESXl3 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 19 May 2009 19:41:29 -0400
 In-Reply-To: <20090519232905.12760.15490.stgit@localhost>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-arm-kernel@lists.arm.linux.org.uk
-Cc: linux-omap@vger.kernel.org, Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: linux-omap@vger.kernel.org
 
-From: Santosh Shilimkar <santosh.shilimkar@ti.com>
+From: Juha Yrjola <juha.yrjola@solidboot.com>
 
-Original OMAP DMA chaining design has chain_id as one of the callback
-parameters. Patch 538528de0cb256f65716ab2e9613d9e920f97fe2 broke
-the desing.
+Add generic onenand support when connected to GPMC and make the
+boards to use it.
 
-Change the callback to return the logical channel number and not
-chain_id.
+The patch has been modified to make it more generic to support all
+the boards with GPMC. The patch also remove unused prototype for
+omap2_onenand_rephase(void).
 
-More details are on this email thread:
+Note that board-apollon.c is currently using the MTD_ONENAND_GENERIC
+and setting the GPMC timings in the bootloader. Setting the GPMC
+timings in the bootloader will not allow supporting frequency
+scaling for the onenand source clock.
 
-http://marc.info/?l=linux-omap&m=122961071931459&w=2
-
-Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
- arch/arm/plat-omap/dma.c              |    2 +-
- arch/arm/plat-omap/include/mach/dma.h |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ arch/arm/configs/rx51_defconfig              |    2 
+ arch/arm/mach-omap2/Makefile                 |    3 
+ arch/arm/mach-omap2/board-rx51-peripherals.c |   52 ++++
+ arch/arm/mach-omap2/gpmc-onenand.c           |  340 ++++++++++++++++++++++++++
+ arch/arm/plat-omap/include/mach/onenand.h    |   29 ++
+ 5 files changed, 423 insertions(+), 3 deletions(-)
+ create mode 100644 arch/arm/mach-omap2/gpmc-onenand.c
 
-diff --git a/arch/arm/plat-omap/dma.c b/arch/arm/plat-omap/dma.c
-index 58d98ad..06e9cbe 100644
---- a/arch/arm/plat-omap/dma.c
-+++ b/arch/arm/plat-omap/dma.c
-@@ -1220,7 +1220,7 @@ static void create_dma_lch_chain(int lch_head, int lch_queue)
-  * 	     Failure: -EINVAL/-ENOMEM
+diff --git a/arch/arm/configs/rx51_defconfig b/arch/arm/configs/rx51_defconfig
+index 593102d..eb2cb31 100644
+--- a/arch/arm/configs/rx51_defconfig
++++ b/arch/arm/configs/rx51_defconfig
+@@ -282,7 +282,7 @@ CONFIG_ALIGNMENT_TRAP=y
+ #
+ CONFIG_ZBOOT_ROM_TEXT=0x0
+ CONFIG_ZBOOT_ROM_BSS=0x0
+-CONFIG_CMDLINE="init=/sbin/preinit ubi.mtd=4 root=ubi0:rootfs rootfstype=ubifs rw console=ttyMTD5"
++CONFIG_CMDLINE="init=/sbin/preinit ubi.mtd=rootfs root=ubi0:rootfs rootfstype=ubifs rootflags=bulk_read,no_chk_data_crc rw console=ttyMTD,log console=tty0"
+ # CONFIG_XIP_KERNEL is not set
+ # CONFIG_KEXEC is not set
+ 
+diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
+index bf3827a..11f7f66 100644
+--- a/arch/arm/mach-omap2/Makefile
++++ b/arch/arm/mach-omap2/Makefile
+@@ -58,3 +58,6 @@ obj-$(CONFIG_MACH_NOKIA_RX51)		+= board-rx51.o \
+ ifeq ($(CONFIG_USB_MUSB_SOC),y)
+ obj-y					+= usb-musb.o
+ endif
++
++onenand-$(CONFIG_MTD_ONENAND_OMAP2)	:= gpmc-onenand.o
++obj-y					+= $(onenand-m) $(onenand-y)
+diff --git a/arch/arm/mach-omap2/board-rx51-peripherals.c b/arch/arm/mach-omap2/board-rx51-peripherals.c
+index a738172..62a401a 100644
+--- a/arch/arm/mach-omap2/board-rx51-peripherals.c
++++ b/arch/arm/mach-omap2/board-rx51-peripherals.c
+@@ -27,6 +27,7 @@
+ #include <mach/dma.h>
+ #include <mach/gpmc.h>
+ #include <mach/keypad.h>
++#include <mach/onenand.h>
+ 
+ #include "mmc-twl4030.h"
+ 
+@@ -408,6 +409,56 @@ static int __init rx51_i2c_init(void)
+ 	return 0;
+ }
+ 
++#if defined(CONFIG_MTD_ONENAND_OMAP2) || \
++	defined(CONFIG_MTD_ONENAND_OMAP2_MODULE)
++
++static struct mtd_partition onenand_partitions[] = {
++	{
++		.name           = "bootloader",
++		.offset         = 0,
++		.size           = 0x20000,
++		.mask_flags     = MTD_WRITEABLE,	/* Force read-only */
++	},
++	{
++		.name           = "config",
++		.offset         = MTDPART_OFS_APPEND,
++		.size           = 0x60000,
++	},
++	{
++		.name           = "log",
++		.offset         = MTDPART_OFS_APPEND,
++		.size           = 0x40000,
++	},
++	{
++		.name           = "kernel",
++		.offset         = MTDPART_OFS_APPEND,
++		.size           = 0x200000,
++	},
++	{
++		.name           = "initfs",
++		.offset         = MTDPART_OFS_APPEND,
++		.size           = 0x200000,
++	},
++	{
++		.name           = "rootfs",
++		.offset         = MTDPART_OFS_APPEND,
++		.size           = MTDPART_SIZ_FULL,
++	},
++};
++
++static struct omap_onenand_platform_data board_onenand_data = {
++	.cs		= 0,
++	.gpio_irq	= 65,
++	.parts		= onenand_partitions,
++	.nr_parts	= ARRAY_SIZE(onenand_partitions),
++};
++
++static void __init board_onenand_init(void)
++{
++	gpmc_onenand_init(&board_onenand_data);
++}
++
++#endif
+ 
+ void __init rx51_peripherals_init(void)
+ {
+@@ -415,5 +466,6 @@ void __init rx51_peripherals_init(void)
+ 				ARRAY_SIZE(rx51_peripherals_devices));
+ 	rx51_i2c_init();
+ 	rx51_init_smc91x();
++	board_onenand_init();
+ }
+ 
+diff --git a/arch/arm/mach-omap2/gpmc-onenand.c b/arch/arm/mach-omap2/gpmc-onenand.c
+new file mode 100644
+index 0000000..712af59
+--- /dev/null
++++ b/arch/arm/mach-omap2/gpmc-onenand.c
+@@ -0,0 +1,340 @@
++/*
++ * linux/arch/arm/mach-omap2/gpmc-onenand.c
++ *
++ * Copyright (C) 2006 - 2009 Nokia Corporation
++ * Contacts:	Juha Yrjola
++ *		Tony Lindgren
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++
++#include <linux/kernel.h>
++#include <linux/platform_device.h>
++#include <asm/mach/flash.h>
++#include <linux/mtd/onenand_regs.h>
++
++#include <linux/io.h>
++#include <mach/onenand.h>
++#include <mach/board.h>
++#include <mach/gpmc.h>
++
++static struct omap_onenand_platform_data *gpmc_onenand_data;
++
++static struct platform_device gpmc_onenand_device = {
++	.name		= "omap2-onenand",
++	.id		= -1,
++};
++
++static int omap2_onenand_set_async_mode(int cs, void __iomem *onenand_base)
++{
++	struct gpmc_timings t;
++
++	const int t_cer = 15;
++	const int t_avdp = 12;
++	const int t_aavdh = 7;
++	const int t_ce = 76;
++	const int t_aa = 76;
++	const int t_oe = 20;
++	const int t_cez = 20; /* max of t_cez, t_oez */
++	const int t_ds = 30;
++	const int t_wpl = 40;
++	const int t_wph = 30;
++
++	memset(&t, 0, sizeof(t));
++	t.sync_clk = 0;
++	t.cs_on = 0;
++	t.adv_on = 0;
++
++	/* Read */
++	t.adv_rd_off = gpmc_round_ns_to_ticks(max_t(int, t_avdp, t_cer));
++	t.oe_on  = t.adv_rd_off + gpmc_round_ns_to_ticks(t_aavdh);
++	t.access = t.adv_on + gpmc_round_ns_to_ticks(t_aa);
++	t.access = max_t(int, t.access, t.cs_on + gpmc_round_ns_to_ticks(t_ce));
++	t.access = max_t(int, t.access, t.oe_on + gpmc_round_ns_to_ticks(t_oe));
++	t.oe_off = t.access + gpmc_round_ns_to_ticks(1);
++	t.cs_rd_off = t.oe_off;
++	t.rd_cycle  = t.cs_rd_off + gpmc_round_ns_to_ticks(t_cez);
++
++	/* Write */
++	t.adv_wr_off = t.adv_rd_off;
++	t.we_on  = t.oe_on;
++	if (cpu_is_omap34xx()) {
++		t.wr_data_mux_bus = t.we_on;
++		t.wr_access = t.we_on + gpmc_round_ns_to_ticks(t_ds);
++	}
++	t.we_off = t.we_on + gpmc_round_ns_to_ticks(t_wpl);
++	t.cs_wr_off = t.we_off + gpmc_round_ns_to_ticks(t_wph);
++	t.wr_cycle  = t.cs_wr_off + gpmc_round_ns_to_ticks(t_cez);
++
++	/* Configure GPMC for asynchronous read */
++	gpmc_cs_write_reg(cs, GPMC_CS_CONFIG1,
++			  GPMC_CONFIG1_DEVICESIZE_16 |
++			  GPMC_CONFIG1_MUXADDDATA);
++
++	return gpmc_cs_set_timings(cs, &t);
++}
++
++static unsigned short omap2_onenand_readw(void __iomem *addr)
++{
++	return readw(addr);
++}
++
++static void omap2_onenand_writew(unsigned short value, void __iomem *addr)
++{
++	writew(value, addr);
++}
++
++static void set_onenand_cfg(void __iomem *onenand_base, int latency,
++				int sync_read, int sync_write, int hf)
++{
++	u32 reg;
++
++	reg = omap2_onenand_readw(onenand_base + ONENAND_REG_SYS_CFG1);
++	reg &= ~((0x7 << ONENAND_SYS_CFG1_BRL_SHIFT) | (0x7 << 9));
++	reg |=	(latency << ONENAND_SYS_CFG1_BRL_SHIFT) |
++		ONENAND_SYS_CFG1_BL_16;
++	if (sync_read)
++		reg |= ONENAND_SYS_CFG1_SYNC_READ;
++	else
++		reg &= ~ONENAND_SYS_CFG1_SYNC_READ;
++	if (sync_write)
++		reg |= ONENAND_SYS_CFG1_SYNC_WRITE;
++	else
++		reg &= ~ONENAND_SYS_CFG1_SYNC_WRITE;
++	if (hf)
++		reg |= ONENAND_SYS_CFG1_HF;
++	else
++		reg &= ~ONENAND_SYS_CFG1_HF;
++	omap2_onenand_writew(reg, onenand_base + ONENAND_REG_SYS_CFG1);
++}
++
++static int omap2_onenand_set_sync_mode(struct omap_onenand_platform_data *cfg,
++					void __iomem *onenand_base,
++					int freq)
++{
++	struct gpmc_timings t;
++	const int t_cer  = 15;
++	const int t_avdp = 12;
++	const int t_cez  = 20; /* max of t_cez, t_oez */
++	const int t_ds   = 30;
++	const int t_wpl  = 40;
++	const int t_wph  = 30;
++	int min_gpmc_clk_period, t_ces, t_avds, t_avdh, t_ach, t_aavdh, t_rdyo;
++	int tick_ns, div, fclk_offset_ns, fclk_offset, gpmc_clk_ns, latency;
++	int first_time = 0, hf = 0, sync_read = 0, sync_write = 0;
++	int err, ticks_cez;
++	int cs = cfg->cs;
++	u32 reg;
++
++	if (cfg->flags & ONENAND_SYNC_READ) {
++		sync_read = 1;
++	} else if (cfg->flags & ONENAND_SYNC_READWRITE) {
++		sync_read = 1;
++		sync_write = 1;
++	}
++
++	if (!freq) {
++		/* Very first call freq is not known */
++		err = omap2_onenand_set_async_mode(cs, onenand_base);
++		if (err)
++			return err;
++		reg = omap2_onenand_readw(onenand_base +
++					  ONENAND_REG_VERSION_ID);
++		switch ((reg >> 4) & 0xf) {
++		case 0:
++			freq = 40;
++			break;
++		case 1:
++			freq = 54;
++			break;
++		case 2:
++			freq = 66;
++			break;
++		case 3:
++			freq = 83;
++			break;
++		case 4:
++			freq = 104;
++			break;
++		default:
++			freq = 54;
++			break;
++		}
++		first_time = 1;
++	}
++
++	switch (freq) {
++	case 83:
++		min_gpmc_clk_period = 12; /* 83 MHz */
++		t_ces   = 5;
++		t_avds  = 4;
++		t_avdh  = 2;
++		t_ach   = 6;
++		t_aavdh = 6;
++		t_rdyo  = 9;
++		break;
++	case 66:
++		min_gpmc_clk_period = 15; /* 66 MHz */
++		t_ces   = 6;
++		t_avds  = 5;
++		t_avdh  = 2;
++		t_ach   = 6;
++		t_aavdh = 6;
++		t_rdyo  = 11;
++		break;
++	default:
++		min_gpmc_clk_period = 18; /* 54 MHz */
++		t_ces   = 7;
++		t_avds  = 7;
++		t_avdh  = 7;
++		t_ach   = 9;
++		t_aavdh = 7;
++		t_rdyo  = 15;
++		sync_write = 0;
++		break;
++	}
++
++	tick_ns = gpmc_ticks_to_ns(1);
++	div = gpmc_cs_calc_divider(cs, min_gpmc_clk_period);
++	gpmc_clk_ns = gpmc_ticks_to_ns(div);
++	if (gpmc_clk_ns < 15) /* >66Mhz */
++		hf = 1;
++	if (hf)
++		latency = 6;
++	else if (gpmc_clk_ns >= 25) /* 40 MHz*/
++		latency = 3;
++	else
++		latency = 4;
++
++	if (first_time)
++		set_onenand_cfg(onenand_base, latency,
++					sync_read, sync_write, hf);
++
++	if (div == 1) {
++		reg = gpmc_cs_read_reg(cs, GPMC_CS_CONFIG2);
++		reg |= (1 << 7);
++		gpmc_cs_write_reg(cs, GPMC_CS_CONFIG2, reg);
++		reg = gpmc_cs_read_reg(cs, GPMC_CS_CONFIG3);
++		reg |= (1 << 7);
++		gpmc_cs_write_reg(cs, GPMC_CS_CONFIG3, reg);
++		reg = gpmc_cs_read_reg(cs, GPMC_CS_CONFIG4);
++		reg |= (1 << 7);
++		reg |= (1 << 23);
++		gpmc_cs_write_reg(cs, GPMC_CS_CONFIG4, reg);
++	} else {
++		reg = gpmc_cs_read_reg(cs, GPMC_CS_CONFIG2);
++		reg &= ~(1 << 7);
++		gpmc_cs_write_reg(cs, GPMC_CS_CONFIG2, reg);
++		reg = gpmc_cs_read_reg(cs, GPMC_CS_CONFIG3);
++		reg &= ~(1 << 7);
++		gpmc_cs_write_reg(cs, GPMC_CS_CONFIG3, reg);
++		reg = gpmc_cs_read_reg(cs, GPMC_CS_CONFIG4);
++		reg &= ~(1 << 7);
++		reg &= ~(1 << 23);
++		gpmc_cs_write_reg(cs, GPMC_CS_CONFIG4, reg);
++	}
++
++	/* Set synchronous read timings */
++	memset(&t, 0, sizeof(t));
++	t.sync_clk = min_gpmc_clk_period;
++	t.cs_on = 0;
++	t.adv_on = 0;
++	fclk_offset_ns = gpmc_round_ns_to_ticks(max_t(int, t_ces, t_avds));
++	fclk_offset = gpmc_ns_to_ticks(fclk_offset_ns);
++	t.page_burst_access = gpmc_clk_ns;
++
++	/* Read */
++	t.adv_rd_off = gpmc_ticks_to_ns(fclk_offset + gpmc_ns_to_ticks(t_avdh));
++	t.oe_on = gpmc_ticks_to_ns(fclk_offset + gpmc_ns_to_ticks(t_ach));
++	t.access = gpmc_ticks_to_ns(fclk_offset + (latency + 1) * div);
++	t.oe_off = t.access + gpmc_round_ns_to_ticks(1);
++	t.cs_rd_off = t.oe_off;
++	ticks_cez = ((gpmc_ns_to_ticks(t_cez) + div - 1) / div) * div;
++	t.rd_cycle = gpmc_ticks_to_ns(fclk_offset + (latency + 1) * div +
++		     ticks_cez);
++
++	/* Write */
++	if (sync_write) {
++		t.adv_wr_off = t.adv_rd_off;
++		t.we_on  = 0;
++		t.we_off = t.cs_rd_off;
++		t.cs_wr_off = t.cs_rd_off;
++		t.wr_cycle  = t.rd_cycle;
++		if (cpu_is_omap34xx()) {
++			t.wr_data_mux_bus = gpmc_ticks_to_ns(fclk_offset +
++					gpmc_ns_to_ticks(min_gpmc_clk_period +
++					t_rdyo));
++			t.wr_access = t.access;
++		}
++	} else {
++		t.adv_wr_off = gpmc_round_ns_to_ticks(max_t(int,
++							t_avdp, t_cer));
++		t.we_on  = t.adv_wr_off + gpmc_round_ns_to_ticks(t_aavdh);
++		t.we_off = t.we_on + gpmc_round_ns_to_ticks(t_wpl);
++		t.cs_wr_off = t.we_off + gpmc_round_ns_to_ticks(t_wph);
++		t.wr_cycle  = t.cs_wr_off + gpmc_round_ns_to_ticks(t_cez);
++		if (cpu_is_omap34xx()) {
++			t.wr_data_mux_bus = t.we_on;
++			t.wr_access = t.we_on + gpmc_round_ns_to_ticks(t_ds);
++		}
++	}
++
++	/* Configure GPMC for synchronous read */
++	gpmc_cs_write_reg(cs, GPMC_CS_CONFIG1,
++			  GPMC_CONFIG1_WRAPBURST_SUPP |
++			  GPMC_CONFIG1_READMULTIPLE_SUPP |
++			  (sync_read ? GPMC_CONFIG1_READTYPE_SYNC : 0) |
++			  (sync_write ? GPMC_CONFIG1_WRITEMULTIPLE_SUPP : 0) |
++			  (sync_write ? GPMC_CONFIG1_WRITETYPE_SYNC : 0) |
++			  GPMC_CONFIG1_CLKACTIVATIONTIME(fclk_offset) |
++			  GPMC_CONFIG1_PAGE_LEN(2) |
++			  (cpu_is_omap34xx() ? 0 :
++				(GPMC_CONFIG1_WAIT_READ_MON |
++				 GPMC_CONFIG1_WAIT_PIN_SEL(0))) |
++			  GPMC_CONFIG1_DEVICESIZE_16 |
++			  GPMC_CONFIG1_DEVICETYPE_NOR |
++			  GPMC_CONFIG1_MUXADDDATA);
++
++	err = gpmc_cs_set_timings(cs, &t);
++	if (err)
++		return err;
++
++	set_onenand_cfg(onenand_base, latency, sync_read, sync_write, hf);
++
++	return 0;
++}
++
++static int gpmc_onenand_setup(void __iomem *onenand_base, int freq)
++{
++	struct device *dev = &gpmc_onenand_device.dev;
++
++	/* Set sync timings in GPMC */
++	if (omap2_onenand_set_sync_mode(gpmc_onenand_data, onenand_base,
++			freq) < 0) {
++		dev_err(dev, "Unable to set synchronous mode\n");
++		return -EINVAL;
++	}
++
++	return 0;
++}
++
++void __init gpmc_onenand_init(struct omap_onenand_platform_data *_onenand_data)
++{
++	gpmc_onenand_data = _onenand_data;
++	gpmc_onenand_data->onenand_setup = gpmc_onenand_setup;
++	gpmc_onenand_device.dev.platform_data = gpmc_onenand_data;
++
++	if (cpu_is_omap24xx() &&
++			(gpmc_onenand_data->flags & ONENAND_SYNC_READWRITE)) {
++		printk(KERN_ERR "Onenand using only SYNC_READ on 24xx\n");
++		gpmc_onenand_data->flags &= ~ONENAND_SYNC_READWRITE;
++		gpmc_onenand_data->flags |= ONENAND_SYNC_READ;
++	}
++
++	if (platform_device_register(&gpmc_onenand_device) < 0) {
++		printk(KERN_ERR "Unable to register OneNAND device\n");
++		return;
++	}
++}
+diff --git a/arch/arm/plat-omap/include/mach/onenand.h b/arch/arm/plat-omap/include/mach/onenand.h
+index 4649d30..94cde73 100644
+--- a/arch/arm/plat-omap/include/mach/onenand.h
++++ b/arch/arm/plat-omap/include/mach/onenand.h
+@@ -9,8 +9,14 @@
+  * published by the Free Software Foundation.
   */
- int omap_request_dma_chain(int dev_id, const char *dev_name,
--			   void (*callback) (int chain_id, u16 ch_status,
-+			   void (*callback) (int lch, u16 ch_status,
- 					     void *data),
- 			   int *chain_id, int no_of_chans, int chain_mode,
- 			   struct omap_dma_channel_params params)
-diff --git a/arch/arm/plat-omap/include/mach/dma.h b/arch/arm/plat-omap/include/mach/dma.h
-index 35fefdb..19df76f 100644
---- a/arch/arm/plat-omap/include/mach/dma.h
-+++ b/arch/arm/plat-omap/include/mach/dma.h
-@@ -532,7 +532,7 @@ extern int omap_get_dma_index(int lch, int *ei, int *fi);
- /* Chaining APIs */
- #ifndef CONFIG_ARCH_OMAP1
- extern int omap_request_dma_chain(int dev_id, const char *dev_name,
--				  void (*callback) (int chain_id, u16 ch_status,
-+				  void (*callback) (int lch, u16 ch_status,
- 						    void *data),
- 				  int *chain_id, int no_of_chans,
- 				  int chain_mode,
+ 
++#include <linux/mtd/mtd.h>
+ #include <linux/mtd/partitions.h>
+ 
++#ifndef __ASM_ARCH_OMAP_ONENAND_H__
++
++#define ONENAND_SYNC_READ	(1 << 0)
++#define ONENAND_SYNC_READWRITE	(1 << 1)
++
+ struct omap_onenand_platform_data {
+ 	int			cs;
+ 	int			gpio_irq;
+@@ -18,8 +24,27 @@ struct omap_onenand_platform_data {
+ 	int			nr_parts;
+ 	int                     (*onenand_setup)(void __iomem *, int freq);
+ 	int			dma_channel;
++	u8			flags;
+ };
+ 
+-int omap2_onenand_rephase(void);
+-
+ #define ONENAND_MAX_PARTITIONS 8
++
++#if defined(CONFIG_MTD_ONENAND_OMAP2) || \
++	defined(CONFIG_MTD_ONENAND_OMAP2_MODULE)
++
++extern void gpmc_onenand_init(struct omap_onenand_platform_data *d);
++
++#else
++
++#define board_onenand_data	NULL
++
++static inline void board_onenand_init(void)
++{
++}
++
++static inline void gpmc_onenand_init(struct omap_onenand_platform_data *d)
++{
++}
++
++#endif
++#endif
 
