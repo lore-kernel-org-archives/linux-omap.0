@@ -1,51 +1,99 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH 01/11] OMAP2/3: PM: push core PM code from linux-omap
-Date: Tue, 19 May 2009 07:57:26 -0700
-Message-ID: <87fxf187jd.fsf@deeprootsystems.com>
-References: <1242412851-16606-1-git-send-email-khilman@deeprootsystems.com>
-	<1242412851-16606-2-git-send-email-khilman@deeprootsystems.com>
-	<20090518133241.GH3067@n2100.arm.linux.org.uk>
-	<87my9a8hxf.fsf@deeprootsystems.com>
-	<20090518170656.GJ7042@n2100.arm.linux.org.uk>
-	<87k54e721w.fsf@deeprootsystems.com> <4A124875.1080503@nokia.com>
+From: "Guzman Lugo, Fernando" <x0095840@ti.com>
+Subject: RE: slap corruption
+Date: Tue, 19 May 2009 10:46:41 -0500
+Message-ID: <496565EC904933469F292DDA3F1663E6029301E558@dlee06.ent.ti.com>
+References: <496565EC904933469F292DDA3F1663E60292F45E00@dlee06.ent.ti.com>
+	<94a0d4530905190247v3475fcc2g23ed9b6eb09a2fcd@mail.gmail.com>
+ <20090519.142718.191383581.Hiroshi.DOYU@nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pz0-f202.google.com ([209.85.222.202]:60680 "EHLO
-	mail-pz0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753715AbZESO51 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 19 May 2009 10:57:27 -0400
-Received: by pzk40 with SMTP id 40so252079pzk.33
-        for <linux-omap@vger.kernel.org>; Tue, 19 May 2009 07:57:29 -0700 (PDT)
-In-Reply-To: <4A124875.1080503@nokia.com> (Artem Bityutskiy's message of "Tue\, 19 May 2009 08\:49\:41 +0300")
+Received: from arroyo.ext.ti.com ([192.94.94.40]:52223 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750820AbZESPqu convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 19 May 2009 11:46:50 -0400
+In-Reply-To: <20090519.142718.191383581.Hiroshi.DOYU@nokia.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Artem.Bityutskiy@nokia.com
-Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, Richard Woodruff <r-woodruff2@ti.com>, linux-arm-kernel@lists.arm.linux.org.uk, linux-omap@vger.kernel.org, Jouni Hogander <jouni.hogander@nokia.com>, Paul Walmsley <paul@pwsan.com>
+To: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>, "felipe.contreras@gmail.com" <felipe.contreras@gmail.com>
+Cc: "Kanigeri, Hari" <h-kanigeri2@ti.com>, "Gupta, Ramesh" <grgupta@ti.com>, "Menon, Nishanth" <nm@ti.com>, "Ramirez Luna, Omar" <omar.ramirez@ti.com>, "Kargirwar, Pankaj" <p-kargirwar@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Artem Bityutskiy <Artem.Bityutskiy@nokia.com> writes:
 
-> Kevin Hilman wrote:
->>> The problem here is that such an interface is extremely fragile.  Consider
->>> what happens if a program disables HLT, and then gets killed off for some
->>> reason.  How does this reference get balanced again?
->>>
->>> I think a better solution would be a char device driver which has to be
->>> kept open as long as a reference is held.  When userspace closes it (be
->>> that because the program has exited, been killed, etc) you can drop any
->>> pending references.
->>
->> OK, this interface is not intended for users/applications. It is
->> intended only for OMAP PM developers who are developing the PM code
->> and want to prevent idle for various reasons during development.  It
->> is not intended for productions systems.
->>
->> What about leaving /sys/power/sleep_while_idle but only if
->> CONFIG_PM_DEBUG=y?
->
-> Sounds like debugfs is the good place for this then.
->
+Hi Hiroshi,
 
-Sound OK to me.
+	Yes, I can reproduce this running the ping.out sample, this are the st=
+eps:
 
-Kevin
+# insmod dspbridge.ko
+# insmod bridgedriver.ko
+# ./cexec.out ddspbase_tiomap3430.dof64P
+# ./ping.out 100
+^C
+# ./ping.out 10
+
+Thanks and regards,
+=46ernando.
+
+-----Original Message-----
+=46rom: Hiroshi DOYU [mailto:Hiroshi.DOYU@nokia.com]=20
+Sent: Tuesday, May 19, 2009 6:27 AM
+To: felipe.contreras@gmail.com
+Cc: Guzman Lugo, Fernando; Kanigeri, Hari; Gupta, Ramesh; Menon, Nishan=
+th; Ramirez Luna, Omar; Kargirwar, Pankaj; linux-omap@vger.kernel.org
+Subject: Re: slap corruption
+
+=46rom: ext Felipe Contreras <felipe.contreras@gmail.com>
+Subject: Re: slap corruption
+Date: Tue, 19 May 2009 11:47:11 +0200
+
+> On Tue, May 19, 2009 at 4:56 AM, Guzman Lugo, Fernando <x0095840@ti.c=
+om> wrote:
+> >
+> >
+> >
+> > Hi everyone,
+> >
+> > We have been looking into the Slab Corruption error and we have fou=
+nd the problem occurs after an application has been terminated abnormal=
+ly, e.g. Using CTL-C or Segmentation Fault or kill.
+> >
+> > The issue is observed not only for DMM test cases but for others te=
+st cases that don't use DMM.
+> >
+> > The problem is reported by 'slab.c' when a slab object which is ina=
+ctive, it supposed to be filled with POISON_FREE (6b) and has some 00 w=
+ithin the object, this seems to be corrupted.
+> >
+> > Slab corruption: size-64 start=3Dc6bc71e0, len=3D64
+> > <3>Redzone: 0x9f911029d74e35b/0x9f911029d74e35b.
+> > Redzone: 0x9f911029d74e35b/0x9f911029d74e35b.
+> > <3>Last user: [<bf063464>]Last user: [<bf063464>](MEM_Free+0x9c/0xe=
+0 [bridgedriv
+> > er])(MEM_Free+0x9c/0xe0 [bridgedriver])
+> >
+> > <3>010:010: 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6=
+b 6b 6b 6b 6b
+> > =A06b 00 00 00 00 00 00 00 00
+> >
+> >
+> > it seems it is not being freed correctly, because instead of being =
+filled only with 6b it has 00 maybe other process is overwriting it.
+> >
+> > Does anyone have any idea of what can be happening?
+>=20
+> Looping Hiroshi who is working on a similar issue... perhaps the same=
+?
+
+Thanks;) Maybe the same one, I guess.
+
+>=20
+> --=20
+> Felipe Contreras
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
