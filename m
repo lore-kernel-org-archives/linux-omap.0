@@ -1,43 +1,67 @@
-From: Ameya Palande <ameya.palande@nokia.com>
-Subject: [PATCH] DSPBRIDGE: Removal of unreachable code
-Date: Tue, 19 May 2009 16:47:56 +0530
-Message-ID: <1242731876-16119-1-git-send-email-ameya.palande@nokia.com>
+From: Pierre Ossman <pierre@ossman.eu>
+Subject: Re: Removed SD card causes kernel panic when a transfer is
+ on-going.
+Date: Tue, 19 May 2009 13:21:30 +0200
+Message-ID: <20090519132130.4c74ef39@mjolnir.ossman.eu>
+References: <437bd5150905150145k6d750c7er89fa9b02749f738d@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: multipart/signed; micalg=PGP-SHA1; protocol="application/pgp-signature"; boundary="=_freyr.ossman.eu-18778-1242732096-0001-2"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:38145 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750971AbZESLSI (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 19 May 2009 07:18:08 -0400
-Received: from esebh106.NOE.Nokia.com (esebh106.ntc.nokia.com [172.21.138.213])
-	by mgw-mx09.nokia.com (Switch-3.2.6/Switch-3.2.6) with ESMTP id n4JBI9ub015017
-	for <linux-omap@vger.kernel.org>; Tue, 19 May 2009 06:18:10 -0500
-Received: from localhost.localdomain (essapo-nirac253106.europe.nokia.com [10.162.253.106])
-	by mgw-da02.ext.nokia.com (Switch-3.2.6/Switch-3.2.6) with ESMTP id n4JBHtOJ008352
-	for <linux-omap@vger.kernel.org>; Tue, 19 May 2009 14:17:57 +0300
+Received: from 82-117-125-11.tcdsl.calypso.net ([82.117.125.11]:46034 "EHLO
+	smtp.ossman.eu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752092AbZESLVi (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 19 May 2009 07:21:38 -0400
+In-Reply-To: <437bd5150905150145k6d750c7er89fa9b02749f738d@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
+To: yingchao li <rjn637@gmail.com>
+Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 
-From: Ameya Palande <ameya.palande@nokia.com>
+This is a MIME-formatted message.  If you see this text it means that your
+E-mail software does not support MIME-formatted messages.
 
-Signed-off-by: Ameya Palande <ameya.palande@nokia.com>
----
- drivers/dsp/bridge/wmd/io_sm.c |    3 ---
- 1 files changed, 0 insertions(+), 3 deletions(-)
+--=_freyr.ossman.eu-18778-1242732096-0001-2
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: quoted-printable
 
-diff --git a/drivers/dsp/bridge/wmd/io_sm.c b/drivers/dsp/bridge/wmd/io_sm.c
-index 8d106e1..6f7e338 100644
---- a/drivers/dsp/bridge/wmd/io_sm.c
-+++ b/drivers/dsp/bridge/wmd/io_sm.c
-@@ -1742,9 +1742,6 @@ DSP_STATUS IO_SHMsetting(IN struct IO_MGR *hIOMgr, IN enum SHM_DESCTYPE desc,
- 		break;
- 	default:
- 		break;
--
--				queue_work(bridge_workqueue,
--							 &(hIOMgr->io_workq));
- 	}
- #endif
- 	return DSP_SOK;
--- 
-1.6.2.4
+On Fri, 15 May 2009 16:45:06 +0800
+yingchao li <rjn637@gmail.com> wrote:
 
+> In my omap3430 board, when a transfer is on-going(i.e. reading from sd
+> card), I unpluged directly sd card, then kernel panic.
+>=20
+
+Known issue unfortunately. Something is not properly reference counting
+the block queue, but the handling in mmc_block is correct as far as I
+can gather.
+
+Your patch works around the problem by basically keeping a reference to
+the queue longer than the driver needs (hiding any missing references
+in other layers).
+
+I've been trying to find this bug without much success. The block layer
+isn't that easy to understand. :/
+
+Rgds
+--=20
+     -- Pierre Ossman
+
+  WARNING: This correspondence is being monitored by the
+  Swedish government. Make sure your server uses encryption
+  for SMTP traffic and consider using PGP for end-to-end
+  encryption.
+
+--=_freyr.ossman.eu-18778-1242732096-0001-2
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment; filename=signature.asc
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2.0.11 (GNU/Linux)
+
+iEYEARECAAYFAkoSlj4ACgkQ7b8eESbyJLiymwCfQ88IAq7oRNasA1R/leR5SWn+
+8iIAoLvWaQ5v3tZXpx4oH23nv/JYGl1W
+=aDhY
+-----END PGP SIGNATURE-----
+
+--=_freyr.ossman.eu-18778-1242732096-0001-2--
