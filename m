@@ -1,55 +1,47 @@
 From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH] OMAP3: PM: Do not Enable SmartReflex if OPP tables not defined
-Date: Tue, 19 May 2009 09:54:16 -0700
-Message-ID: <87d4a56nk7.fsf@deeprootsystems.com>
-References: <1242736671-27268-1-git-send-email-ext-roger.quadros@nokia.com>
+Subject: Re: [PATCH] usb: disable OTG AUTOIDLE only with omap3430
+Date: Tue, 19 May 2009 09:57:14 -0700
+Message-ID: <874ovh6nf9.fsf@deeprootsystems.com>
+References: <1242658456-5723-1-git-send-email-ext-niilo.1.minkkinen@nokia.com>
+	<13B9B4C6EF24D648824FF11BE8967162038BED5CF1@dlee02.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pz0-f134.google.com ([209.85.222.134]:52217 "EHLO
+Received: from mail-pz0-f134.google.com ([209.85.222.134]:53198 "EHLO
 	mail-pz0-f134.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751462AbZESQyQ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 19 May 2009 12:54:16 -0400
-Received: by mail-pz0-f134.google.com with SMTP id 40so309251pzk.33
-        for <linux-omap@vger.kernel.org>; Tue, 19 May 2009 09:54:18 -0700 (PDT)
-In-Reply-To: <1242736671-27268-1-git-send-email-ext-roger.quadros@nokia.com> (Roger Quadros's message of "Tue\, 19 May 2009 15\:37\:51 +0300")
+	with ESMTP id S1751482AbZESQ5P (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 19 May 2009 12:57:15 -0400
+Received: by pzk40 with SMTP id 40so310806pzk.33
+        for <linux-omap@vger.kernel.org>; Tue, 19 May 2009 09:57:16 -0700 (PDT)
+In-Reply-To: <13B9B4C6EF24D648824FF11BE8967162038BED5CF1@dlee02.ent.ti.com> (Richard Woodruff's message of "Mon\, 18 May 2009 14\:23\:11 -0500")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Roger Quadros <ext-roger.quadros@nokia.com>
-Cc: linux-omap@vger.kernel.org
+To: "Woodruff, Richard" <r-woodruff2@ti.com>
+Cc: Niilo Minkkinen <ext-niilo.1.minkkinen@nokia.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "tony@atomide.com" <tony@atomide.com>
 
-Roger Quadros <ext-roger.quadros@nokia.com> writes:
+"Woodruff, Richard" <r-woodruff2@ti.com> writes:
 
-> Prevent SmartReflex driver driver from loading if OPP tables are
-> not defined by platform. This removes possibility of NULL pointer
-> reference in SmartReflex driver code.
+>> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
+>> owner@vger.kernel.org] On Behalf Of Niilo Minkkinen
+>> Sent: Monday, May 18, 2009 9:54 AM
 >
-> Signed-off-by: Roger Quadros <ext-roger.quadros@nokia.com>
+>> Omap3 MUSB AUTOIDLE functionality configured through OTG_SYSCONFIG
+>> register prevents the device from going into retention.
+>> This is a workaround (by Richard Woodruff/TI), as his comment :
+>> > A new MUSB bug which is a match to data below was identified very
+>> > recently (on hardware and in simulation).
+>> > This bug is in 3430 and not 3630.
+>> > As a priority test (and as new default) you should have engineers
+>> > disable autoidle for MUSB block.
+>> > This is the workaround which will show up in next errata.
+>>
+>> Signed-off-by: Niilo Minkkinen <ext-niilo.1.minkkinen@nokia.com>
+>
+> Signed-off-by: Richard Woodruff <r-woodruff2@ti.com>
+>
+> Yes this is needed for 34xx. Side note is this cost around 1mW of power during active mode of MUSB. When device is not active cost is not significant.  System impact depends on duty cycle of MUSB in usecase.
+>
 
-Thanks, pushing to PM branch.
+While this makes its way upstream, I'll pull into PM branch.
 
 Kevin
-
-> ---
->  arch/arm/mach-omap2/smartreflex.c |    6 ++++++
->  1 files changed, 6 insertions(+), 0 deletions(-)
->
-> diff --git a/arch/arm/mach-omap2/smartreflex.c b/arch/arm/mach-omap2/smartreflex.c
-> index b032366..4823ce8 100644
-> --- a/arch/arm/mach-omap2/smartreflex.c
-> +++ b/arch/arm/mach-omap2/smartreflex.c
-> @@ -852,6 +852,12 @@ static int __init omap3_sr_init(void)
->  	int ret = 0;
->  	u8 RdReg;
->  
-> +	/* Exit if OPP tables are not defined */
-> +        if (!(mpu_opps && l3_opps)) {
-> +                pr_err("SR: OPP rate tables not defined for platform, not enabling SmartReflex\n");
-> +		return -ENODEV;
-> +        }
-> +
->  	/* Enable SR on T2 */
->  	ret = twl4030_i2c_read_u8(TWL4030_MODULE_PM_RECEIVER, &RdReg,
->  					R_DCDC_GLOBAL_CFG);
-> -- 
-> 1.6.0.4
