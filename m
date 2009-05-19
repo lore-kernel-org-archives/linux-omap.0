@@ -1,41 +1,61 @@
 From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: [PATCH 0/2] PM: drop clocks_off_while_idle
-Date: Tue, 19 May 2009 10:14:22 -0700
-Message-ID: <1242753264-12600-1-git-send-email-khilman@deeprootsystems.com>
+Subject: [PATCH 1/2] OMAP: PM: UART: zero sleep_timeout will disable timeout feature
+Date: Tue, 19 May 2009 10:14:23 -0700
+Message-ID: <1242753264-12600-2-git-send-email-khilman@deeprootsystems.com>
+References: <1242753264-12600-1-git-send-email-khilman@deeprootsystems.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
 Received: from mail-px0-f191.google.com ([209.85.216.191]:46562 "EHLO
 	mail-px0-f191.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752689AbZESROb (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 19 May 2009 13:14:31 -0400
-Received: by pxi29 with SMTP id 29so2526560pxi.33
-        for <linux-omap@vger.kernel.org>; Tue, 19 May 2009 10:14:32 -0700 (PDT)
+	with ESMTP id S1753721AbZESROe (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 19 May 2009 13:14:34 -0400
+Received: by mail-px0-f191.google.com with SMTP id 29so2526560pxi.33
+        for <linux-omap@vger.kernel.org>; Tue, 19 May 2009 10:14:36 -0700 (PDT)
+In-Reply-To: <1242753264-12600-1-git-send-email-khilman@deeprootsystems.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 
-The sysfs control /sys/power/clocks_off_while_idle only affects
-the UART clocks.  And these can now be controlled with a UART
-specific timeout sysfs control.  The system default behavior
-is to have the equivalent of clocks_off_while_idle == 1 and
-a UART inactivity timeout of 5 seconds.
+Writing zero to /sys/devices/platform/serial8250.<uart>/sleep_timeout
+will disable the timeout feature and prevent UART clocks from being
+disabled.
 
-Now one can use
+Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
+---
+ arch/arm/mach-omap2/serial.c |   13 +++++++++++--
+ 1 files changed, 11 insertions(+), 2 deletions(-)
 
-  /sys/devices/platform/serial8250.<uart>/sleep_timeout
-
-to set the inactivity timer for the UART in seconds.  Setting
-this value to zero disables the timout and is the equivalent
-of doing an
-
-  echo 0 > /sys/power/clocks_off_while_idle
-
-
-Kevin Hilman (2):
-  OMAP: PM: UART: zero sleep_timeout will disable timeout feature
-  OMAP2/3: PM: remove /sys/power/clocks_off_while_idle
-
- arch/arm/mach-omap2/pm.c     |   12 ------------
- arch/arm/mach-omap2/pm.h     |    1 -
- arch/arm/mach-omap2/serial.c |   16 +++++++++++-----
- 3 files changed, 11 insertions(+), 18 deletions(-)
+diff --git a/arch/arm/mach-omap2/serial.c b/arch/arm/mach-omap2/serial.c
+index 0762165..c9059fd 100644
+--- a/arch/arm/mach-omap2/serial.c
++++ b/arch/arm/mach-omap2/serial.c
+@@ -235,7 +235,10 @@ static void omap_uart_block_sleep(struct omap_uart_state *uart)
+ 
+ 	omap_uart_smart_idle_enable(uart, 0);
+ 	uart->can_sleep = 0;
+-	mod_timer(&uart->timer, jiffies + uart->timeout);
++	if (uart->timeout)
++		mod_timer(&uart->timer, jiffies + uart->timeout);
++	else
++		del_timer(&uart->timer);
+ }
+ 
+ static void omap_uart_allow_sleep(struct omap_uart_state *uart)
+@@ -465,8 +468,14 @@ static ssize_t sleep_timeout_store(struct kobject *kobj,
+ 		return -EINVAL;
+ 	}
+ 	sleep_timeout = value * HZ;
+-	list_for_each_entry(uart, &uart_list, node)
++	list_for_each_entry(uart, &uart_list, node) {
+ 		uart->timeout = sleep_timeout;
++		if (uart->timeout)
++			mod_timer(&uart->timer, jiffies + uart->timeout);
++		else
++			/* A zero value means disable timeout feature */
++			omap_uart_block_sleep(uart);
++	}
+ 	return n;
+ }
+ 
+-- 
+1.6.2.2
 
