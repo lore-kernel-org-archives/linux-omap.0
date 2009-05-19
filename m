@@ -1,132 +1,73 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 2/2] OMAP2/3: PM: remove
-	/sys/power/clocks_off_while_idle
-Date: Tue, 19 May 2009 10:16:29 -0700
-Message-ID: <20090519171629.GB19742@atomide.com>
-References: <1242753264-12600-1-git-send-email-khilman@deeprootsystems.com> <1242753264-12600-2-git-send-email-khilman@deeprootsystems.com> <1242753264-12600-3-git-send-email-khilman@deeprootsystems.com>
+Subject: Re: [PATCH 0/5] More omap header clean-up for the merge window
+	after 2.6.30
+Date: Tue, 19 May 2009 10:21:31 -0700
+Message-ID: <20090519172130.GC19742@atomide.com>
+References: <20090514231820.19331.65419.stgit@localhost>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:57252 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752741AbZESRQc (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 19 May 2009 13:16:32 -0400
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:64583 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751979AbZESRVi (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 19 May 2009 13:21:38 -0400
 Content-Disposition: inline
-In-Reply-To: <1242753264-12600-3-git-send-email-khilman@deeprootsystems.com>
+In-Reply-To: <20090514231820.19331.65419.stgit@localhost>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@deeprootsystems.com>
+To: linux-arm-kernel@lists.arm.linux.org.uk
 Cc: linux-omap@vger.kernel.org
 
-* Kevin Hilman <khilman@deeprootsystems.com> [090519 10:15]:
-> The sysfs control /sys/power/clocks_off_while_idle only affects
-> the UART clocks.  And these can now be controlled with a UART
-> specific timeout sysfs control.  The system default behavior
-> is to have the equivalent of clocks_off_while_idle == 1 and
-> a UART inactivity timeout of 5 seconds.
+* Tony Lindgren <tony@atomide.com> [090514 16:22]:
+> Hi,
 > 
-> Now one can use
+> This series removes defines that are included from hardware.h via
+> various processor specific headers. The series makes the defines
+> processor specific where possible so they don't trigger recompile
+> and cause blocks for multi-omap booting.
 > 
->   /sys/devices/platform/serial8250.<uart>/sleep_timeout
-> 
-> to set the inactivity timer for the UART in seconds.  Setting
-> this value to zero disables the timout and is the equivalent
-> of doing an
-> 
->   echo 0 > /sys/power/clocks_off_while_idle
+> After this series, pretty much the only remaining problem code
+> is the clock24xx.h that should have clock registers set dynamically
+> for 2420 and 2430. This series just makes the problem defines
+> local to clock24xx.h.
 
-Sounds like a nice improvment to me!
+If no comments, I'll add these to the omap for-next branch to wait
+for the merge window.
 
 Tony
 
 > 
-> Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
+> Regards,
+> 
+> Tony
+> 
 > ---
->  arch/arm/mach-omap2/pm.c     |   12 ------------
->  arch/arm/mach-omap2/pm.h     |    1 -
->  arch/arm/mach-omap2/serial.c |    3 ---
->  3 files changed, 0 insertions(+), 16 deletions(-)
 > 
-> diff --git a/arch/arm/mach-omap2/pm.c b/arch/arm/mach-omap2/pm.c
-> index 58ed520..8633f86 100644
-> --- a/arch/arm/mach-omap2/pm.c
-> +++ b/arch/arm/mach-omap2/pm.c
-> @@ -39,7 +39,6 @@
->  #include "pm.h"
->  
->  unsigned short enable_dyn_sleep;
-> -unsigned short clocks_off_while_idle;
->  unsigned short enable_off_mode;
->  unsigned short voltage_off_while_idle;
->  unsigned short wakeup_timer_seconds;
-> @@ -52,9 +51,6 @@ static ssize_t idle_store(struct kobject *k, struct kobj_attribute *,
->  static struct kobj_attribute sleep_while_idle_attr =
->  	__ATTR(sleep_while_idle, 0644, idle_show, idle_store);
->  
-> -static struct kobj_attribute clocks_off_while_idle_attr =
-> -	__ATTR(clocks_off_while_idle, 0644, idle_show, idle_store);
-> -
->  static struct kobj_attribute enable_off_mode_attr =
->  	__ATTR(enable_off_mode, 0644, idle_show, idle_store);
->  
-> @@ -85,8 +81,6 @@ static ssize_t idle_show(struct kobject *kobj, struct kobj_attribute *attr,
->  {
->  	if (attr == &sleep_while_idle_attr)
->  		return sprintf(buf, "%hu\n", enable_dyn_sleep);
-> -	else if (attr == &clocks_off_while_idle_attr)
-> -		return sprintf(buf, "%hu\n", clocks_off_while_idle);
->  	else if (attr == &enable_off_mode_attr)
->  		return sprintf(buf, "%hu\n", enable_off_mode);
->  	else if (attr == &voltage_off_while_idle_attr)
-> @@ -109,8 +103,6 @@ static ssize_t idle_store(struct kobject *kobj, struct kobj_attribute *attr,
->  
->  	if (attr == &sleep_while_idle_attr) {
->  		enable_dyn_sleep = value;
-> -	} else if (attr == &clocks_off_while_idle_attr) {
-> -		clocks_off_while_idle = value;
->  	} else if (attr == &enable_off_mode_attr) {
->  		enable_off_mode = value;
->  		omap3_pm_off_mode_enable(enable_off_mode);
-> @@ -255,10 +247,6 @@ static int __init omap_pm_init(void)
->  	if (error)
->  		printk(KERN_ERR "sysfs_create_file failed: %d\n", error);
->  	error = sysfs_create_file(power_kobj,
-> -				  &clocks_off_while_idle_attr.attr);
-> -	if (error)
-> -		printk(KERN_ERR "sysfs_create_file failed: %d\n", error);
-> -	error = sysfs_create_file(power_kobj,
->  				  &enable_off_mode_attr.attr);
->  	if (error) {
->  		printk(KERN_ERR "sysfs_create_file failed: %d\n", error);
-> diff --git a/arch/arm/mach-omap2/pm.h b/arch/arm/mach-omap2/pm.h
-> index e523d75..2547e1b 100644
-> --- a/arch/arm/mach-omap2/pm.h
-> +++ b/arch/arm/mach-omap2/pm.h
-> @@ -24,7 +24,6 @@ static inline int omap3_idle_init(void) { return 0; }
->  #endif
->  
->  extern unsigned short enable_dyn_sleep;
-> -extern unsigned short clocks_off_while_idle;
->  extern unsigned short enable_off_mode;
->  extern unsigned short voltage_off_while_idle;
->  extern atomic_t sleep_block;
-> diff --git a/arch/arm/mach-omap2/serial.c b/arch/arm/mach-omap2/serial.c
-> index c9059fd..8c27700 100644
-> --- a/arch/arm/mach-omap2/serial.c
-> +++ b/arch/arm/mach-omap2/serial.c
-> @@ -263,9 +263,6 @@ void omap_uart_prepare_idle(int num)
->  	struct omap_uart_state *uart;
->  
->  	list_for_each_entry(uart, &uart_list, node) {
-> -		if (!clocks_off_while_idle)
-> -			continue;
-> -
->  		if (num == uart->num && uart->can_sleep) {
->  			omap_uart_disable_clocks(uart);
->  			return;
+> Tony Lindgren (5):
+>       ARM: OMAP2/3: Remove OMAP_CM_REGADDR
+>       ARM: OMAP2/3: Remove OMAP2_PRCM_BASE
+>       ARM: OMAP2/3: Move define of OMAP2_VA_IC_BASE to be local to entry-macro.S
+>       ARM: OMAP2/3: Remove OMAP_PRM_REGADDR and OMAP2_PRM_BASE
+>       ARM: OMAP2/3: Remove OMAP2_32KSYNCT_BASE
+> 
+> 
+>  arch/arm/mach-omap2/clock.c                   |    4 
+>  arch/arm/mach-omap2/clock24xx.c               |   21 +--
+>  arch/arm/mach-omap2/clock24xx.h               |   11 +
+>  arch/arm/mach-omap2/clock34xx.h               |    2 
+>  arch/arm/mach-omap2/cm.h                      |    6 -
+>  arch/arm/mach-omap2/prm.h                     |  205 +++++++++++++++----------
+>  arch/arm/mach-omap2/sdrc2xxx.c                |    5 -
+>  arch/arm/mach-omap2/sram242x.S                |   10 +
+>  arch/arm/mach-omap2/sram243x.S                |   10 +
+>  arch/arm/plat-omap/common.c                   |   69 +++++++-
+>  arch/arm/plat-omap/include/mach/entry-macro.S |    9 +
+>  arch/arm/plat-omap/include/mach/omap24xx.h    |   18 --
+>  arch/arm/plat-omap/include/mach/omap34xx.h    |    9 -
+>  13 files changed, 232 insertions(+), 147 deletions(-)
+> 
 > -- 
-> 1.6.2.2
-> 
+> Signature
 > --
 > To unsubscribe from this list: send the line "unsubscribe linux-omap" in
 > the body of a message to majordomo@vger.kernel.org
