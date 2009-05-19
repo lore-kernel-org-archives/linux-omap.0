@@ -1,82 +1,67 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 00/10] Omap updates for merge window after 2.6.30
-Date: Tue, 19 May 2009 16:30:48 -0700
-Message-ID: <20090519232905.12760.15490.stgit@localhost>
+Subject: [PATCH 01/10] ARM: OMAP: Increase VMALLOC_END to allow 256MB RAM
+Date: Tue, 19 May 2009 16:32:11 -0700
+Message-ID: <20090519233211.12760.40699.stgit@localhost>
+References: <20090519232905.12760.15490.stgit@localhost>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:49574 "EHLO
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:51037 "EHLO
 	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753707AbZESXaz (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 19 May 2009 19:30:55 -0400
+	with ESMTP id S1754063AbZESXcO (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 19 May 2009 19:32:14 -0400
+In-Reply-To: <20090519232905.12760.15490.stgit@localhost>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-arm-kernel@lists.arm.linux.org.uk
-Cc: linux-omap@vger.kernel.org
+Cc: Kevin Hilman <khilman@deeprootsystems.com>, Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org, Mans Rullgard <mans@mansr.com>
 
-Hi all,
+From: Mans Rullgard <mans@mansr.com>
 
-This series contains omap updates for review. There will be one more
-series after this for omap3 specific patches.
+This increases VMALLOC_END to 0x18000000, making room for 256MB
+RAM with the default 128MB vmalloc region.
 
-Regards,
+Note that after this patch there's no longer a hole between vmalloc
+space and the beginning of IO space on omap2 as the first virtual
+mapping starts at 0xd8000000.
 
-Tony
+Also fold in a related change from Paul Walmsley <paul@pwsan.com>
+to change the OMAP2_SRAM addresses accordingly.
 
+Signed-off-by: Mans Rullgard <mans@mansr.com>
+Signed-off-by: Paul Walmsley <paul@pwsan.com>
+Acked-by: Kevin Hilman <khilman@deeprootsystems.com>
+Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
+ arch/arm/plat-omap/include/mach/vmalloc.h |    2 +-
+ arch/arm/plat-omap/sram.c                 |    4 ++--
+ 2 files changed, 3 insertions(+), 3 deletions(-)
 
-Eero Nurkkala (1):
-      ARM: OMAP: McBSP: Fix legacy interrupts to clear their status
+diff --git a/arch/arm/plat-omap/include/mach/vmalloc.h b/arch/arm/plat-omap/include/mach/vmalloc.h
+index dc104cd..b97dfaf 100644
+--- a/arch/arm/plat-omap/include/mach/vmalloc.h
++++ b/arch/arm/plat-omap/include/mach/vmalloc.h
+@@ -17,5 +17,5 @@
+  * along with this program; if not, write to the Free Software
+  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+  */
+-#define VMALLOC_END	  (PAGE_OFFSET + 0x10000000)
++#define VMALLOC_END	  (PAGE_OFFSET + 0x18000000)
+ 
+diff --git a/arch/arm/plat-omap/sram.c b/arch/arm/plat-omap/sram.c
+index e1493d8..102c9f7 100644
+--- a/arch/arm/plat-omap/sram.c
++++ b/arch/arm/plat-omap/sram.c
+@@ -38,8 +38,8 @@
+ #define OMAP1_SRAM_VA		VMALLOC_END
+ #define OMAP2_SRAM_PA		0x40200000
+ #define OMAP2_SRAM_PUB_PA	0x4020f800
+-#define OMAP2_SRAM_VA		VMALLOC_END
+-#define OMAP2_SRAM_PUB_VA	(VMALLOC_END + 0x800)
++#define OMAP2_SRAM_VA		0xe3000000
++#define OMAP2_SRAM_PUB_VA	(OMAP2_SRAM_VA + 0x800)
+ #define OMAP3_SRAM_PA           0x40200000
+ #define OMAP3_SRAM_VA           0xd7000000
+ #define OMAP3_SRAM_PUB_PA       0x40208000
 
-Imre Deak (1):
-      ARM: OMAP2: 2430SDP: Add FB support to board file
-
-Jarkko Nikula (1):
-      ARM: OMAP: Update contact address of I2C registration helper
-
-Juha Yrjola (1):
-      ARM: OMAP2/3: Add generic onenand support when connected to GPMC
-
-Mans Rullgard (1):
-      ARM: OMAP: Increase VMALLOC_END to allow 256MB RAM
-
-Santosh Shilimkar (1):
-      ARM: OMAP2/3: sDMA: Correct omap_request_dma_chain()
-
-Tomi Valkeinen (1):
-      ARM: OMAP2/3: DMA: implement trans copy and const fill
-
-Tony Lindgren (3):
-      ARM: OMAP2/3: Add generic smc91x support when connected to GPMC
-      ARM: OMAP1: Make 770 LCD work
-      ARM: OMAP1: Misc clean-up
-
-
- arch/arm/configs/rx51_defconfig               |    2 
- arch/arm/mach-omap1/Kconfig                   |    1 
- arch/arm/mach-omap1/Makefile                  |    4 
- arch/arm/mach-omap1/board-nokia770.c          |   17 +
- arch/arm/mach-omap2/Makefile                  |    6 
- arch/arm/mach-omap2/board-2430sdp.c           |  112 ++------
- arch/arm/mach-omap2/board-3430sdp.c           |   78 ++----
- arch/arm/mach-omap2/board-rx51-peripherals.c  |  192 ++++++--------
- arch/arm/mach-omap2/gpmc-onenand.c            |  340 +++++++++++++++++++++++++
- arch/arm/mach-omap2/gpmc-smc91x.c             |  189 ++++++++++++++
- arch/arm/plat-omap/dma.c                      |   79 ++++--
- arch/arm/plat-omap/i2c.c                      |    2 
- arch/arm/plat-omap/include/mach/dma.h         |    3 
- arch/arm/plat-omap/include/mach/gpmc-smc91x.h |   46 +++
- arch/arm/plat-omap/include/mach/hwa742.h      |    5 
- arch/arm/plat-omap/include/mach/onenand.h     |   29 ++
- arch/arm/plat-omap/include/mach/vmalloc.h     |    2 
- arch/arm/plat-omap/mcbsp.c                    |   30 ++
- arch/arm/plat-omap/sram.c                     |    4 
- drivers/video/omap/hwa742.c                   |   26 +-
- 20 files changed, 851 insertions(+), 316 deletions(-)
- create mode 100644 arch/arm/mach-omap2/gpmc-onenand.c
- create mode 100644 arch/arm/mach-omap2/gpmc-smc91x.c
- create mode 100644 arch/arm/plat-omap/include/mach/gpmc-smc91x.h
-
--- 
-Signature
