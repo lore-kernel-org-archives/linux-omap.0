@@ -1,45 +1,38 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH 0/2] PM: drop clocks_off_while_idle
-Date: Tue, 19 May 2009 15:58:22 -0700
-Message-ID: <871vqk66pd.fsf@deeprootsystems.com>
-References: <1242753264-12600-1-git-send-email-khilman@deeprootsystems.com>
-	<13B9B4C6EF24D648824FF11BE8967162038BED6863@dlee02.ent.ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: Tracking N770 breakage
+Date: Tue, 19 May 2009 16:15:00 -0700
+Message-ID: <20090519231500.GM19742@atomide.com>
+References: <20090516140653.10104565olvxrwjk@lidskialf.net> <20090517031715.92503qopn0joudhc@lidskialf.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from wf-out-1314.google.com ([209.85.200.173]:15974 "EHLO
-	wf-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752859AbZESW6X (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 19 May 2009 18:58:23 -0400
-Received: by wf-out-1314.google.com with SMTP id 26so27959wfd.4
-        for <linux-omap@vger.kernel.org>; Tue, 19 May 2009 15:58:25 -0700 (PDT)
-In-Reply-To: <13B9B4C6EF24D648824FF11BE8967162038BED6863@dlee02.ent.ti.com> (Richard Woodruff's message of "Tue\, 19 May 2009 17\:40\:46 -0500")
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:49937 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754362AbZESXPB (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 19 May 2009 19:15:01 -0400
+Content-Disposition: inline
+In-Reply-To: <20090517031715.92503qopn0joudhc@lidskialf.net>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Woodruff, Richard" <r-woodruff2@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Andrew de Quincey <adq_dvb@lidskialf.net>
+Cc: linux-omap@vger.kernel.org
 
-"Woodruff, Richard" <r-woodruff2@ti.com> writes:
-
-> Kevin,
+* Andrew de Quincey <adq_dvb@lidskialf.net> [090516 19:17]:
+> Argh, my N770 seems to have just died; it has been behaving slightly  
+> oddly and now it simply won't turn on (black screen and no sign of life 
+> whatsoever).
 >
->> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
->> owner@vger.kernel.org] On Behalf Of Kevin Hilman
->
->>   echo 0 > /sys/power/clocks_off_while_idle
->>
->>
->
-> For PM branch are you keeping any kind of running readme file for
-> inclusion in Documentation directory?  It would be pretty useful to
-> capture interface changes.
+> It is well out of warranty and frankly I don't see myself buying another 
+> one, so this effectively ends my hacking on it :(
 
-No. Nothing in-kernel at the moment as this is all work-in-progress
-and changing.
+Bummer :(
 
-However, Vikram and company are mostly done with a Wiki page on
-omapzoom.org that documents all the sysfs knobs and other debugging
-techniques.
+After a quick try, CONFIG_OMAP_RESET_CLOCKS was the first stopper, then
+it could not mount the MMC root.
 
-Kevin
+I think there was a patch posted for the omap1 MMC by Ladislav few months
+ago that probably fixes it.
 
+Regards,
+
+Tony
