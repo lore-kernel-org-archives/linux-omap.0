@@ -1,56 +1,70 @@
-From: Jarkko Nikula <jhnikula@gmail.com>
-Subject: Re: N810: latest linux-omap-2.6.git master
-Date: Tue, 19 May 2009 09:42:40 +0300
-Message-ID: <20090519094240.dbe5b959.jhnikula@gmail.com>
-References: <200905091745.06435.luke@dashjr.org>
-	<200905121818.13785.luke@dashjr.org>
-	<20090513121219.43206b03.jhnikula@gmail.com>
-	<200905190009.28222.luke@dashjr.org>
+From: Felipe Contreras <felipe.contreras@gmail.com>
+Subject: Re: [PATCH] omap3-iommu: reorganize
+Date: Tue, 19 May 2009 12:43:49 +0300
+Message-ID: <94a0d4530905190243h773e7e77t854aa71edcc7d0f1@mail.gmail.com>
+References: <20090518.172613.116355729.Hiroshi.DOYU@nokia.com>
+	 <1242664980-6324-1-git-send-email-felipe.contreras@gmail.com>
+	 <20090519.090325.02296387.Hiroshi.DOYU@nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ew0-f224.google.com ([209.85.219.224]:64971 "EHLO
-	mail-ew0-f224.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752701AbZESGkW (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 19 May 2009 02:40:22 -0400
-Received: by ewy24 with SMTP id 24so4636348ewy.37
-        for <linux-omap@vger.kernel.org>; Mon, 18 May 2009 23:40:23 -0700 (PDT)
-In-Reply-To: <200905190009.28222.luke@dashjr.org>
+Received: from fg-out-1718.google.com ([72.14.220.158]:37050 "EHLO
+	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751520AbZESJnu (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 19 May 2009 05:43:50 -0400
+Received: by fg-out-1718.google.com with SMTP id d23so812070fga.17
+        for <linux-omap@vger.kernel.org>; Tue, 19 May 2009 02:43:49 -0700 (PDT)
+In-Reply-To: <20090519.090325.02296387.Hiroshi.DOYU@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Luke-Jr <luke@dashjr.org>
-Cc: linux-omap@vger.kernel.org
+To: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+Cc: linux-omap@vger.kernel.org, h-kanigeri2@ti.com, linux-arm-kernel@lists.arm.linux.org.uk
 
-On Tue, 19 May 2009 00:09:20 -0500
-"Luke-Jr" <luke@dashjr.org> wrote:
+On Tue, May 19, 2009 at 9:03 AM, Hiroshi DOYU <Hiroshi.DOYU@nokia.com> wrote:
+> From: ext Felipe Contreras <felipe.contreras@gmail.com>
+> Subject: [PATCH] omap3-iommu: reorganize
+> Date: Mon, 18 May 2009 18:43:00 +0200
+>
+>> No functional changes.
+>>
+>> Signed-off-by: Felipe Contreras <felipe.contreras@gmail.com>
+>> ---
+>>
+>> How about this?
+>
+> What's the advantage of introducing a new structure here?
 
-> Yes, that change seemed to get me booting... however, with "rc6", the
-> keyboard no longer works *at all*, and in neither rc4 nor rc6 does
-> p54spi actually work.
-> 
-For me keyboard still works as partially (commit
-0b2ce840c9fb58cf489bfdfc2d77f99a09a5dca3). I wonder what have caused it
-to break during 2.6.30-rc since at quick look I don't point any special
-from Tony's "Extra omap code in linux-omap tree" patches and patches
-before those are from February?
+That instead of having 3 arrays with potentially different sizes:
 
-git whatchanged arch/arm/mach-omap2/board-n800.c
-git whatchanged drivers/input/keyboard/lm8323.c
+iommu_base
+iommu_irq
+omap3_iommu_pdata
 
-> Tried setting up g_ether, but for some reason I couldn't get it to
-> auto- configure (via Gentoo's boot scripts) for rc6.
-> 
-For me it works but usually only if cable has been plugged in while
-booting. Same with Beagle as well. Any idea from MUSB guys?
+You have one:
 
-> Is anyone actually trying to work on or maintain N8x0 support?
+devices
 
-I think N8x0 support is a little bit behind from other boards. Lot of
-active development is going around on newer and more open platforms like
-Beagle and not all patches are necessary tested on N8x0 (or other boards
-too!). Of course active hacker base helps to point out breakages.
+Also, think about the hypothetical situation where you need 2 more
+iommu devices (maybe OMAP4?). What would you need to do? You'll need
+to add OMAP3_MMU3_BASE and OMAP3_MMU4_BASE add them to iommu_base,
+then add OMAP3_MMU3_IRQ and OMAP3_MMU4_IRQ and put them to iommu_irq,
+finally add the device data to omap3_iommu_pdata.
 
+In the process a simple mistake would be easy to overlook:
+
+static unsigned long iommu_base[] __initdata = {
+       OMAP3_MMU1_BASE,
+       OMAP3_MMU2_BASE,
++       OMAP3_MMU3_BASE,
++       OMAP3_MMU2_BASE,
+};
+
+With the 'devices' array you just need to add two more elements and
+that's it. It leaves less room for mistakes.
+
+However 'struct iommu_device' is a local structure, it could very well
+be called __foobar__, nobody outside omap3-iommu.c will see it anyway.
 
 -- 
-Jarkko
+Felipe Contreras
