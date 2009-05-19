@@ -1,97 +1,76 @@
 From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: [PATCH 3/4] ARM: OMAP: Remove useless omap_sram_error function.
-Date: Tue, 19 May 2009 18:58:45 +0530
-Message-ID: <1242739725-12275-1-git-send-email-santosh.shilimkar@ti.com>
+Subject: [PATCH 2/4] ARM: OMAP: Remove unwanted type casts and fix the compiler warning.
+Date: Tue, 19 May 2009 18:58:32 +0530
+Message-ID: <1242739712-12198-1-git-send-email-santosh.shilimkar@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:36369 "EHLO bear.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:43009 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753278AbZESN2z (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 19 May 2009 09:28:55 -0400
+	id S1753248AbZESN2w (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 19 May 2009 09:28:52 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-arm-kernel@lists.arm.linux.org.uk
 Cc: linux-omap@vger.kernel.org, Santosh Shilimkar <santosh.shilimkar@ti.com>
 
-This patch removes fixes omap_sram_error() function and replace the
-error paths with BUG_ON.
+This patch fixes the compiler warning "assignment from incompatible
+pointer type"  in dmtimer.c and removes the tye casts. These warnings
+were suppressed by type catsing.
 
 The proposed fix was suggested by Russell King <rmk+kernel@arm.linux.org.uk>
 
 Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
 ---
- arch/arm/plat-omap/sram.c |   25 +++++--------------------
- 1 files changed, 5 insertions(+), 20 deletions(-)
+ arch/arm/plat-omap/dmtimer.c |   14 +++++++-------
+ 1 files changed, 7 insertions(+), 7 deletions(-)
 
-diff --git a/arch/arm/plat-omap/sram.c b/arch/arm/plat-omap/sram.c
-index fa5297d..e1493d8 100644
---- a/arch/arm/plat-omap/sram.c
-+++ b/arch/arm/plat-omap/sram.c
-@@ -242,20 +242,13 @@ void * omap_sram_push(void * start, unsigned long size)
- 	return (void *)omap_sram_ceil;
- }
+diff --git a/arch/arm/plat-omap/dmtimer.c b/arch/arm/plat-omap/dmtimer.c
+index 55bb996..ee20612 100644
+--- a/arch/arm/plat-omap/dmtimer.c
++++ b/arch/arm/plat-omap/dmtimer.c
+@@ -214,7 +214,7 @@ static const char *omap2_dm_source_names[] __initdata = {
+ 	NULL
+ };
  
--static void omap_sram_error(void)
--{
--	panic("Uninitialized SRAM function\n");
--}
--
- #ifdef CONFIG_ARCH_OMAP1
+-static struct clk **omap2_dm_source_clocks[3];
++static struct clk *omap2_dm_source_clocks[3];
+ static const int dm_timer_count = ARRAY_SIZE(omap2_dm_timers);
  
- static void (*_omap_sram_reprogram_clock)(u32 dpllctl, u32 ckctl);
+ #elif defined(CONFIG_ARCH_OMAP3)
+@@ -247,7 +247,7 @@ static const char *omap3_dm_source_names[] __initdata = {
+ 	NULL
+ };
  
- void omap_sram_reprogram_clock(u32 dpllctl, u32 ckctl)
- {
--	if (!_omap_sram_reprogram_clock)
--		omap_sram_error();
--
-+	BUG_ON(!_omap_sram_reprogram_clock);
- 	_omap_sram_reprogram_clock(dpllctl, ckctl);
- }
+-static struct clk **omap3_dm_source_clocks[2];
++static struct clk *omap3_dm_source_clocks[2];
+ static const int dm_timer_count = ARRAY_SIZE(omap3_dm_timers);
  
-@@ -280,9 +273,7 @@ static void (*_omap2_sram_ddr_init)(u32 *slow_dll_ctrl, u32 fast_dll_ctrl,
- void omap2_sram_ddr_init(u32 *slow_dll_ctrl, u32 fast_dll_ctrl,
- 		   u32 base_cs, u32 force_unlock)
- {
--	if (!_omap2_sram_ddr_init)
--		omap_sram_error();
--
-+	BUG_ON(!_omap2_sram_ddr_init);
- 	_omap2_sram_ddr_init(slow_dll_ctrl, fast_dll_ctrl,
- 			     base_cs, force_unlock);
- }
-@@ -292,9 +283,7 @@ static void (*_omap2_sram_reprogram_sdrc)(u32 perf_level, u32 dll_val,
- 
- void omap2_sram_reprogram_sdrc(u32 perf_level, u32 dll_val, u32 mem_type)
- {
--	if (!_omap2_sram_reprogram_sdrc)
--		omap_sram_error();
--
-+	BUG_ON(!_omap2_sram_reprogram_sdrc);
- 	_omap2_sram_reprogram_sdrc(perf_level, dll_val, mem_type);
- }
- 
-@@ -302,9 +291,7 @@ static u32 (*_omap2_set_prcm)(u32 dpll_ctrl_val, u32 sdrc_rfr_val, int bypass);
- 
- u32 omap2_set_prcm(u32 dpll_ctrl_val, u32 sdrc_rfr_val, int bypass)
- {
--	if (!_omap2_set_prcm)
--		omap_sram_error();
--
-+	BUG_ON(!_omap2_set_prcm);
- 	return _omap2_set_prcm(dpll_ctrl_val, sdrc_rfr_val, bypass);
- }
+ #else
+@@ -257,7 +257,7 @@ static const int dm_timer_count = ARRAY_SIZE(omap3_dm_timers);
  #endif
-@@ -360,9 +347,7 @@ static u32 (*_omap3_sram_configure_core_dpll)(u32 sdrc_rfr_ctrl,
- u32 omap3_configure_core_dpll(u32 sdrc_rfr_ctrl, u32 sdrc_actim_ctrla,
- 			      u32 sdrc_actim_ctrlb, u32 m2)
- {
--	if (!_omap3_sram_configure_core_dpll)
--		omap_sram_error();
--
-+	BUG_ON(!_omap3_sram_configure_core_dpll);
- 	return _omap3_sram_configure_core_dpll(sdrc_rfr_ctrl,
- 					       sdrc_actim_ctrla,
- 					       sdrc_actim_ctrlb, m2);
+ 
+ static struct omap_dm_timer *dm_timers;
+-static char **dm_source_names;
++static const char **dm_source_names;
+ static struct clk **dm_source_clocks;
+ 
+ static spinlock_t dm_timer_lock;
+@@ -705,12 +705,12 @@ int __init omap_dm_timer_init(void)
+ 		dm_timers = omap1_dm_timers;
+ 	else if (cpu_is_omap24xx()) {
+ 		dm_timers = omap2_dm_timers;
+-		dm_source_names = (char **)omap2_dm_source_names;
+-		dm_source_clocks = (struct clk **)omap2_dm_source_clocks;
++		dm_source_names = omap2_dm_source_names;
++		dm_source_clocks = omap2_dm_source_clocks;
+ 	} else if (cpu_is_omap34xx()) {
+ 		dm_timers = omap3_dm_timers;
+-		dm_source_names = (char **)omap3_dm_source_names;
+-		dm_source_clocks = (struct clk **)omap3_dm_source_clocks;
++		dm_source_names = omap3_dm_source_names;
++		dm_source_clocks = omap3_dm_source_clocks;
+ 	}
+ 
+ 	if (cpu_class_is_omap2())
 -- 
 1.5.4.7
 
