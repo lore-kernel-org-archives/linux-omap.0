@@ -1,16 +1,58 @@
 From: Roger Quadros <ext-roger.quadros@nokia.com>
-Subject: [PATCH] OMAP3: PM: Make Smartreflex driver independent of SRF
-Date: Tue, 19 May 2009 14:57:57 +0300
-Message-ID: <1242734277-19890-1-git-send-email-ext-roger.quadros@nokia.com>
+Subject: Re: Smart Reflex pm patches causes a kernel panic
+Date: Tue, 19 May 2009 15:04:29 +0300
+Message-ID: <4A12A04D.1060109@nokia.com>
+References: <95B5E119-3C65-4739-A8BA-B66486850DD4@mac.com> <1F18D6510CF0474A8C9500565A7E41A205451369C0@NOK-EUMSG-02.mgdnok.nokia.com> <4A129CA9.5090804@nokia.com> <A580CA19-FD4B-4A4B-BF38-FC53444FC012@mac.com>
+Mime-Version: 1.0
+Content-Type: multipart/mixed;
+ boundary="------------020801090206040008080705"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:31432 "EHLO
-	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752339AbZESL6m (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 19 May 2009 07:58:42 -0400
+Received: from smtp.nokia.com ([192.100.105.134]:42979 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750971AbZESMFX (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 19 May 2009 08:05:23 -0400
+In-Reply-To: <A580CA19-FD4B-4A4B-BF38-FC53444FC012@mac.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: khilman@deeprootsystems.com
-Cc: linux-omap@vger.kernel.org
+To: ext Elvis Dowson <elvis.dowson@mac.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+
+This is a multi-part message in MIME format.
+--------------020801090206040008080705
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+
+ext Elvis Dowson wrote:
+> Thanks for the info, Roger! I'll wait for that patch!
+> 
+> Elvis
+> 
+>>
+>> Currently Smartreflex (SR) is dependent on SRF to get OPP levels. Just 
+>> make sure you select CONFIG_OMAP_PM_SRF when using SR. OR you can 
+>> disable Smartreflex till this issue is fixed.
+>>
+>> I am working on a patch that will make Smartreflex independent of SRF. 
+>> I will post this soon.
+> 
+
+Elvis,
+
+Can you please try and verify if the problem goes away with the attached patch.
+Thanks.
+
+-roger
+
+--------------020801090206040008080705
+Content-Type: text/x-patch;
+ name="0001-OMAP3-PM-Make-Smartreflex-driver-independent-of-SR.patch"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename*0="0001-OMAP3-PM-Make-Smartreflex-driver-independent-of-SR.patc";
+ filename*1="h"
+
+From: Roger Quadros <ext-roger.quadros@nokia.com>
+Date: Tue, 19 May 2009 14:15:56 +0300
+Subject: [PATCH] OMAP3: PM: Make Smartreflex driver independent of SRF
 
 This removes Smartreflex driver's dependency on SRF layer to get
 OPPs for VDD1 and VDD2. Now Smartreflex is usable irrespective of the
@@ -167,3 +209,5 @@ index b032366..b66d237 100644
 -- 
 1.6.0.4
 
+
+--------------020801090206040008080705--
