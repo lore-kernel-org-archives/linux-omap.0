@@ -1,72 +1,65 @@
-From: Ameya Palande <ameya.palande@nokia.com>
-Subject: [PATCH] DSPBRIDGE: Buffer size warning fixes
-Date: Tue, 19 May 2009 16:19:29 +0530
-Message-ID: <1242730169-14523-1-git-send-email-ameya.palande@nokia.com>
+From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+Subject: Re: slab corruption
+Date: Tue, 19 May 2009 13:58:16 +0300 (EEST)
+Message-ID: <20090519.135816.27795453.Hiroshi.DOYU@nokia.com>
+References: <496565EC904933469F292DDA3F1663E60292F45E00@dlee06.ent.ti.com>
+Mime-Version: 1.0
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:46307 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751772AbZESKt4 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 19 May 2009 06:49:56 -0400
-Received: from esebh106.NOE.Nokia.com (esebh106.ntc.nokia.com [172.21.138.213])
-	by mgw-mx03.nokia.com (Switch-3.2.6/Switch-3.2.6) with ESMTP id n4JAngQQ003704
-	for <linux-omap@vger.kernel.org>; Tue, 19 May 2009 13:49:53 +0300
-Received: from localhost.localdomain (essapo-nirac253106.europe.nokia.com [10.162.253.106])
-	by mgw-sa02.ext.nokia.com (Switch-3.2.6/Switch-3.2.6) with ESMTP id n4JAnTOQ024815
-	for <linux-omap@vger.kernel.org>; Tue, 19 May 2009 13:49:30 +0300
+Received: from smtp.nokia.com ([192.100.105.134]:36112 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750971AbZESK6r (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 19 May 2009 06:58:47 -0400
+In-Reply-To: <496565EC904933469F292DDA3F1663E60292F45E00@dlee06.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
+To: x0095840@ti.com
+Cc: h-kanigeri2@ti.com, grgupta@ti.com, nm@ti.com, omar.ramirez@ti.com, p-kargirwar@ti.com, linux-omap@vger.kernel.org
 
-From: Ameya Palande <ameya.palande@nokia.com>
+Hi Fernand,
 
-Signed-off-by: Ameya Palande <ameya.palande@nokia.com>
----
- drivers/dsp/bridge/pmgr/cod.c        |    2 +-
- drivers/dsp/bridge/rmgr/drv.c        |    2 +-
- drivers/dsp/bridge/services/regsup.c |    4 ++--
- 3 files changed, 4 insertions(+), 4 deletions(-)
+From: "ext Guzman Lugo, Fernando" <x0095840@ti.com>
+Subject: slap corruption
+Date: Tue, 19 May 2009 03:56:08 +0200
 
-diff --git a/drivers/dsp/bridge/pmgr/cod.c b/drivers/dsp/bridge/pmgr/cod.c
-index 6363f1e..5094201 100644
---- a/drivers/dsp/bridge/pmgr/cod.c
-+++ b/drivers/dsp/bridge/pmgr/cod.c
-@@ -628,7 +628,7 @@ DSP_STATUS COD_OpenBase(struct COD_MANAGER *hMgr, IN char *pszCoffPath,
- 	} else {
- 		/* hang onto the library for subsequent sym table usage */
- 		hMgr->baseLib = lib;
--               strncpy(hMgr->szZLFile, pszCoffPath, COD_MAXPATHLENGTH);
-+		strncpy(hMgr->szZLFile, pszCoffPath, COD_MAXPATHLENGTH - 1);
- 	}
- 
- 	return status;
-diff --git a/drivers/dsp/bridge/rmgr/drv.c b/drivers/dsp/bridge/rmgr/drv.c
-index 256ce12..60ca054 100644
---- a/drivers/dsp/bridge/rmgr/drv.c
-+++ b/drivers/dsp/bridge/rmgr/drv.c
-@@ -1510,7 +1510,7 @@ DSP_STATUS DRV_RequestResources(u32 dwContext, u32 *pDevNodeString)
- 		if (pszdevNode) {
- 			LST_InitElem(&pszdevNode->link);
-                        strncpy((char *) pszdevNode->szString,
--				 (char *)dwContext, MAXREGPATHLENGTH);
-+				 (char *)dwContext, MAXREGPATHLENGTH - 1);
- 			/* Update the Driver Object List */
- 			*pDevNodeString = (u32)pszdevNode->szString;
- 			LST_PutTail(pDRVObject->devNodeString,
-diff --git a/drivers/dsp/bridge/services/regsup.c b/drivers/dsp/bridge/services/regsup.c
-index 5251b68..b0c6e00 100644
---- a/drivers/dsp/bridge/services/regsup.c
-+++ b/drivers/dsp/bridge/services/regsup.c
-@@ -238,8 +238,8 @@ DSP_STATUS regsupSetValue(char *valName, void *pBuf, u32 dataSize)
- 		/*  No match, need to make a new entry  */
- 		/*  First check to see if we can make any more entries.  */
- 		if (pRegKey->numValueEntries < BRIDGE_MAX_NUM_REG_ENTRIES) {
--                       strncpy(pRegKey->values[pRegKey->numValueEntries].name,
--                               valName, BRIDGE_MAX_NAME_SIZE);
-+			strncpy(pRegKey->values[pRegKey->numValueEntries].name,
-+					valName, BRIDGE_MAX_NAME_SIZE - 1);
- 			pRegKey->values[pRegKey->numValueEntries].pData =
- 					MEM_Alloc(dataSize, MEM_NONPAGED);
- 			if (pRegKey->values[pRegKey->numValueEntries].pData !=
--- 
-1.6.2.4
+> 
+> 
+> 
+> Hi everyone,
+> 
+> We have been looking into the Slab Corruption error and we have found the problem occurs after an application has been terminated abnormally, e.g. Using CTL-C or Segmentation Fault or kill.
+> 
+> The issue is observed not only for DMM test cases but for others test cases that don't use DMM.
+> 
+> The problem is reported by 'slab.c' when a slab object which is inactive, it supposed to be filled with POISON_FREE (6b) and has some 00 within the object, this seems to be corrupted.
+> 
+> Slab corruption: size-64 start=c6bc71e0, len=64
+> <3>Redzone: 0x9f911029d74e35b/0x9f911029d74e35b.
+> Redzone: 0x9f911029d74e35b/0x9f911029d74e35b.
+> <3>Last user: [<bf063464>]Last user: [<bf063464>](MEM_Free+0x9c/0xe0 [bridgedriv
+> er])(MEM_Free+0x9c/0xe0 [bridgedriver])
+> 
+> <3>010:010: 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b
+>  6b 00 00 00 00 00 00 00 00
+> 
+> 
+> it seems it is not being freed correctly, because instead of being filled only with 6b it has 00 maybe other process is overwriting it.
+> 
+> Does anyone have any idea of what can be happening?
 
+We've seen this kind of problem with gst-launch. It seems that you can
+reproduce the problem with more simple operation.
+
+Would it be possible to tell us how to reproduce the problem?
+
+If you can with one of dsp sample applications, it's quite useful.
+
+
+> 
+> Regards,
+> Fernando.
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
