@@ -1,130 +1,56 @@
-From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
-Subject: Re: [PATCH] omap3-iommu: reorganize
-Date: Tue, 19 May 2009 09:03:25 +0300 (EEST)
-Message-ID: <20090519.090325.02296387.Hiroshi.DOYU@nokia.com>
-References: <20090518.172613.116355729.Hiroshi.DOYU@nokia.com>
-	<1242664980-6324-1-git-send-email-felipe.contreras@gmail.com>
+From: Jarkko Nikula <jhnikula@gmail.com>
+Subject: Re: N810: latest linux-omap-2.6.git master
+Date: Tue, 19 May 2009 09:42:40 +0300
+Message-ID: <20090519094240.dbe5b959.jhnikula@gmail.com>
+References: <200905091745.06435.luke@dashjr.org>
+	<200905121818.13785.luke@dashjr.org>
+	<20090513121219.43206b03.jhnikula@gmail.com>
+	<200905190009.28222.luke@dashjr.org>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:46905 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751882AbZESGEE (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 19 May 2009 02:04:04 -0400
-In-Reply-To: <1242664980-6324-1-git-send-email-felipe.contreras@gmail.com>
+Received: from mail-ew0-f224.google.com ([209.85.219.224]:64971 "EHLO
+	mail-ew0-f224.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752701AbZESGkW (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 19 May 2009 02:40:22 -0400
+Received: by ewy24 with SMTP id 24so4636348ewy.37
+        for <linux-omap@vger.kernel.org>; Mon, 18 May 2009 23:40:23 -0700 (PDT)
+In-Reply-To: <200905190009.28222.luke@dashjr.org>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: felipe.contreras@gmail.com
-Cc: linux-omap@vger.kernel.org, h-kanigeri2@ti.com, linux-arm-kernel@lists.arm.linux.org.uk
+To: Luke-Jr <luke@dashjr.org>
+Cc: linux-omap@vger.kernel.org
 
-From: ext Felipe Contreras <felipe.contreras@gmail.com>
-Subject: [PATCH] omap3-iommu: reorganize
-Date: Mon, 18 May 2009 18:43:00 +0200
+On Tue, 19 May 2009 00:09:20 -0500
+"Luke-Jr" <luke@dashjr.org> wrote:
 
-> No functional changes.
+> Yes, that change seemed to get me booting... however, with "rc6", the
+> keyboard no longer works *at all*, and in neither rc4 nor rc6 does
+> p54spi actually work.
 > 
-> Signed-off-by: Felipe Contreras <felipe.contreras@gmail.com>
-> ---
-> 
-> How about this?
+For me keyboard still works as partially (commit
+0b2ce840c9fb58cf489bfdfc2d77f99a09a5dca3). I wonder what have caused it
+to break during 2.6.30-rc since at quick look I don't point any special
+from Tony's "Extra omap code in linux-omap tree" patches and patches
+before those are from February?
 
-What's the advantage of introducing a new structure here?
+git whatchanged arch/arm/mach-omap2/board-n800.c
+git whatchanged drivers/input/keyboard/lm8323.c
 
+> Tried setting up g_ether, but for some reason I couldn't get it to
+> auto- configure (via Gentoo's boot scripts) for rc6.
 > 
->  arch/arm/mach-omap2/omap3-iommu.c |   53 ++++++++++++++++++-------------------
->  1 files changed, 26 insertions(+), 27 deletions(-)
-> 
-> diff --git a/arch/arm/mach-omap2/omap3-iommu.c b/arch/arm/mach-omap2/omap3-iommu.c
-> index 91ee38a..50bd445 100644
-> --- a/arch/arm/mach-omap2/omap3-iommu.c
-> +++ b/arch/arm/mach-omap2/omap3-iommu.c
-> @@ -14,32 +14,30 @@
->  
->  #include <mach/iommu.h>
->  
-> -#define OMAP3_MMU1_BASE	0x480bd400
-> -#define OMAP3_MMU2_BASE	0x5d000000
-> -#define OMAP3_MMU1_IRQ	24
-> -#define OMAP3_MMU2_IRQ	28
-> -
-> -
-> -static unsigned long iommu_base[] __initdata = {
-> -	OMAP3_MMU1_BASE,
-> -	OMAP3_MMU2_BASE,
-> -};
-> -
-> -static int iommu_irq[] __initdata = {
-> -	OMAP3_MMU1_IRQ,
-> -	OMAP3_MMU2_IRQ,
-> +struct iommu_device {
-> +	resource_size_t base;
-> +	int irq;
-> +	struct iommu_platform_data pdata;
->  };
->  
-> -static const struct iommu_platform_data omap3_iommu_pdata[] __initconst = {
-> +static struct iommu_device devices[] __initdata = {
->  	{
-> -		.name = "isp",
-> -		.nr_tlb_entries = 8,
-> -		.clk_name = "cam_ick",
-> +		.base = 0x480bd400,
-> +		.irq = 24,
-> +		.pdata = {
-> +			.name = "isp",
-> +			.nr_tlb_entries = 8,
-> +			.clk_name = "cam_ick",
-> +		},
->  	},
->  	{
-> -		.name = "iva2",
-> -		.nr_tlb_entries = 32,
-> -		.clk_name = "iva2_ck",
-> +		.base = 0x5d000000,
-> +		.irq = 28,
-> +		.pdata = {
-> +			.name = "iva2",
-> +			.nr_tlb_entries = 32,
-> +			.clk_name = "iva2_ck",
-> +		},
->  	},
->  };
->  #define NR_IOMMU_DEVICES ARRAY_SIZE(omap3_iommu_pdata)
-> @@ -52,6 +50,7 @@ static int __init omap3_iommu_init(void)
->  
->  	for (i = 0; i < NR_IOMMU_DEVICES; i++) {
->  		struct platform_device *pdev;
-> +		const struct iommu_device *d = &devices[i];
->  		struct resource res[2];
->  
->  		pdev = platform_device_alloc("omap-iommu", i);
-> @@ -60,19 +59,19 @@ static int __init omap3_iommu_init(void)
->  			goto err_out;
->  		}
->  
-> -		memset(res, 0,  sizeof(res));
-> -		res[0].start = iommu_base[i];
-> -		res[0].end = iommu_base[i] + MMU_REG_SIZE - 1;
-> +		memset(res, 0, sizeof(res));
-> +		res[0].start = d->base;
-> +		res[0].end = d->base + MMU_REG_SIZE - 1;
->  		res[0].flags = IORESOURCE_MEM;
-> -		res[1].start = res[1].end = iommu_irq[i];
-> +		res[1].start = res[1].end = d->irq;
->  		res[1].flags = IORESOURCE_IRQ;
->  
->  		err = platform_device_add_resources(pdev, res,
->  						    ARRAY_SIZE(res));
->  		if (err)
->  			goto err_out;
-> -		err = platform_device_add_data(pdev, &omap3_iommu_pdata[i],
-> -					       sizeof(omap3_iommu_pdata[0]));
-> +		err = platform_device_add_data(pdev, &d->pdata,
-> +					       sizeof(d->pdata));
->  		if (err)
->  			goto err_out;
->  		err = platform_device_add(pdev);
-> -- 
-> 1.6.3.1
-> 
+For me it works but usually only if cable has been plugged in while
+booting. Same with Beagle as well. Any idea from MUSB guys?
+
+> Is anyone actually trying to work on or maintain N8x0 support?
+
+I think N8x0 support is a little bit behind from other boards. Lot of
+active development is going around on newer and more open platforms like
+Beagle and not all patches are necessary tested on N8x0 (or other boards
+too!). Of course active hacker base helps to point out breakages.
+
+
+-- 
+Jarkko
