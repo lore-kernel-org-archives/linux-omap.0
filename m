@@ -1,36 +1,82 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: Doesn't power management switch off the LCD's LED backlight?
-Date: Tue, 19 May 2009 16:22:34 -0700
-Message-ID: <87ljos4r0l.fsf@deeprootsystems.com>
-References: <094F3A5A-9980-4F07-9CB2-3A90EA54C9DE@mac.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: [PATCH 00/10] Omap updates for merge window after 2.6.30
+Date: Tue, 19 May 2009 16:30:48 -0700
+Message-ID: <20090519232905.12760.15490.stgit@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from rv-out-0506.google.com ([209.85.198.234]:22008 "EHLO
-	rv-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754579AbZESXWg (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 19 May 2009 19:22:36 -0400
-Received: by rv-out-0506.google.com with SMTP id f9so29816rvb.1
-        for <linux-omap@vger.kernel.org>; Tue, 19 May 2009 16:22:37 -0700 (PDT)
-In-Reply-To: <094F3A5A-9980-4F07-9CB2-3A90EA54C9DE@mac.com> (Elvis Dowson's message of "Tue\, 19 May 2009 22\:52\:59 +0400")
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:49574 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753707AbZESXaz (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 19 May 2009 19:30:55 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Elvis Dowson <elvis.dowson@mac.com>
-Cc: Linux OMAP Users <linux-omap@vger.kernel.org>
+To: linux-arm-kernel@lists.arm.linux.org.uk
+Cc: linux-omap@vger.kernel.org
 
-Elvis Dowson <elvis.dowson@mac.com> writes:
+Hi all,
 
-> 	I just applied all the 191 pm patches successfully. I was just
-> wondering, doesn't the pm patches turn off the LCD LED backlight? I
-> have a samsung lcd touschreen, and although the screen turns dark when
-> it goes to suspend mode, I can still see the LED backlight on from if
-> I look at it at an angle.
+This series contains omap updates for review. There will be one more
+series after this for omap3 specific patches.
 
-As I've stated before, the PM branch currently focues on getting core
-PM infrastructure in place.  There are lots of drivers that do not
-have proper PM support in place.
+Regards,
 
-In this case, the screen blanking is a feature of the
-framebuffer/display drivers and has yet to be implemented.
+Tony
 
-Kevin
+---
+
+Eero Nurkkala (1):
+      ARM: OMAP: McBSP: Fix legacy interrupts to clear their status
+
+Imre Deak (1):
+      ARM: OMAP2: 2430SDP: Add FB support to board file
+
+Jarkko Nikula (1):
+      ARM: OMAP: Update contact address of I2C registration helper
+
+Juha Yrjola (1):
+      ARM: OMAP2/3: Add generic onenand support when connected to GPMC
+
+Mans Rullgard (1):
+      ARM: OMAP: Increase VMALLOC_END to allow 256MB RAM
+
+Santosh Shilimkar (1):
+      ARM: OMAP2/3: sDMA: Correct omap_request_dma_chain()
+
+Tomi Valkeinen (1):
+      ARM: OMAP2/3: DMA: implement trans copy and const fill
+
+Tony Lindgren (3):
+      ARM: OMAP2/3: Add generic smc91x support when connected to GPMC
+      ARM: OMAP1: Make 770 LCD work
+      ARM: OMAP1: Misc clean-up
+
+
+ arch/arm/configs/rx51_defconfig               |    2 
+ arch/arm/mach-omap1/Kconfig                   |    1 
+ arch/arm/mach-omap1/Makefile                  |    4 
+ arch/arm/mach-omap1/board-nokia770.c          |   17 +
+ arch/arm/mach-omap2/Makefile                  |    6 
+ arch/arm/mach-omap2/board-2430sdp.c           |  112 ++------
+ arch/arm/mach-omap2/board-3430sdp.c           |   78 ++----
+ arch/arm/mach-omap2/board-rx51-peripherals.c  |  192 ++++++--------
+ arch/arm/mach-omap2/gpmc-onenand.c            |  340 +++++++++++++++++++++++++
+ arch/arm/mach-omap2/gpmc-smc91x.c             |  189 ++++++++++++++
+ arch/arm/plat-omap/dma.c                      |   79 ++++--
+ arch/arm/plat-omap/i2c.c                      |    2 
+ arch/arm/plat-omap/include/mach/dma.h         |    3 
+ arch/arm/plat-omap/include/mach/gpmc-smc91x.h |   46 +++
+ arch/arm/plat-omap/include/mach/hwa742.h      |    5 
+ arch/arm/plat-omap/include/mach/onenand.h     |   29 ++
+ arch/arm/plat-omap/include/mach/vmalloc.h     |    2 
+ arch/arm/plat-omap/mcbsp.c                    |   30 ++
+ arch/arm/plat-omap/sram.c                     |    4 
+ drivers/video/omap/hwa742.c                   |   26 +-
+ 20 files changed, 851 insertions(+), 316 deletions(-)
+ create mode 100644 arch/arm/mach-omap2/gpmc-onenand.c
+ create mode 100644 arch/arm/mach-omap2/gpmc-smc91x.c
+ create mode 100644 arch/arm/plat-omap/include/mach/gpmc-smc91x.h
+
+-- 
+Signature
