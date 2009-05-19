@@ -1,51 +1,40 @@
-From: Koen Kooi <k.kooi@student.utwente.nl>
-Subject: Re: Smart Reflex pm patches causes a kernel panic
-Date: Tue, 19 May 2009 21:13:49 +0200
-Message-ID: <6D6ACBB3-0F84-49DA-BAFD-9103350BD4F6@student.utwente.nl>
-References: <95B5E119-3C65-4739-A8BA-B66486850DD4@mac.com> <1F18D6510CF0474A8C9500565A7E41A205451369C0@NOK-EUMSG-02.mgdnok.nokia.com> <4A129CA9.5090804@nokia.com> <A580CA19-FD4B-4A4B-BF38-FC53444FC012@mac.com> <4A12A04D.1060109@nokia.com> <94EF211A-2914-4BED-BCD2-86658B09F399@mac.com> <4A12A977.9070704@nokia.com> <5C433032-E215-4948-B535-1FCF96069EED@mac.com> <CB49EA74-EE64-4906-917E-FCFD21B19A57@mac.com>
-Mime-Version: 1.0 (Apple Message framework v935.3)
-Content-Type: multipart/signed; protocol="application/pgp-signature"; micalg=pgp-sha1; boundary="Apple-Mail-13-312741065"
+From: Jon Hunter <jon-hunter@ti.com>
+Subject: Re: [PATCH] OMAP_LDP: Support LCD display as a FB device on ZOOM
+ MDK (Re: LDP support)
+Date: Tue, 19 May 2009 15:54:15 -0500
+Message-ID: <4A131C77.1050001@ti.com>
+References: <5A47E75E594F054BAF48C5E4FC4B92AB030555A7D9@dbde02.ent.ti.com> <4A03F8DD.4070307@windriver.com> <87hbzv8rua.fsf@litku.valot.fi> <20090516081904.GB15328@n2100.arm.linux.org.uk> <87ljoube3z.fsf@litku.valot.fi> <20090518160957.GD7042@n2100.arm.linux.org.uk> <87zlda72r0.fsf@deeprootsystems.com> <20090518185934.GL7042@n2100.arm.linux.org.uk>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp2.utsp.utwente.nl ([130.89.2.9]:46862 "EHLO smtp.utwente.nl"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:44659 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753180AbZESTXp (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 19 May 2009 15:23:45 -0400
-In-Reply-To: <CB49EA74-EE64-4906-917E-FCFD21B19A57@mac.com>
+	id S1753063AbZESUzF (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 19 May 2009 16:55:05 -0400
+In-Reply-To: <20090518185934.GL7042@n2100.arm.linux.org.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Elvis Dowson <elvis.dowson@mac.com>
-Cc: Linux OMAP Users <linux-omap@vger.kernel.org>
-
-This is an OpenPGP/MIME signed message (RFC 2440 and 3156)
---Apple-Mail-13-312741065
-Content-Type: text/plain; charset=US-ASCII; format=flowed
-Content-Transfer-Encoding: 7bit
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: Kevin Hilman <khilman@deeprootsystems.com>, Sam Ravnborg <sam@ravnborg.org>, Kalle Valo <kalle.valo@iki.fi>, "stanley.miao" <stanley.miao@windriver.com>, "Gadiyar, Anand" <gadiyar@ti.com>, Tony Lindgren <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Imre Deak <imre.deak@nokia.com>, Tomi Valkeinen <tomi.valkeinen@nokia.com>
 
 
-Op 19 mei 2009, om 19:50 heeft Elvis Dowson het volgende geschreven:
+Russell King - ARM Linux wrote:
+> Moreover, I don't think forcing frame pointers to be enabled even with
+> unwinding support is the right solution - if we have frame pointers
+> there's no need for unwind support (so maybe the right answer is to
+> force unwind support off for the time being?)
 
-> I guess the answer is all three.
+Ok, so I have tested this and if we add the following to the omap 
+defconfigs then this will enable frame pointers and disable unwinding 
+support. Hence, this should avoid the problems seen with the 2007q3 code 
+sourcery compiler.
 
-This works for me: http://cgit.openembedded.net/cgit.cgi?url=openembedded/tree/recipes/linux/linux-omap-pm/overo-cpufreq.diff
+# CONFIG_ARM_UNWIND is not set
 
-regards,
+Tony, would this be ok with you?
 
-Koen
+Russell, sorry I did not see this thread earlier.
 
---Apple-Mail-13-312741065
-content-type: application/pgp-signature; x-mac-type=70674453;
-	name=PGP.sig
-content-description: Dit deel van het bericht is digitaal ondertekend
-content-disposition: inline; filename=PGP.sig
-content-transfer-encoding: 7bit
+Jon
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.5 (Darwin)
-
-iD8DBQFKEwTvMkyGM64RGpERAkFqAJ9G1PRvRP7Zuy7WJXcv4TQWC/5S0QCgmB5X
-cAFUgo44D/8H8cXL2mO2Vdk=
-=FeEV
------END PGP SIGNATURE-----
-
---Apple-Mail-13-312741065--
