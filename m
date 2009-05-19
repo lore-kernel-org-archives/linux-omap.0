@@ -1,67 +1,72 @@
-From: Pierre Ossman <pierre@ossman.eu>
-Subject: Re: Removed SD card causes kernel panic when a transfer is
- on-going.
-Date: Tue, 19 May 2009 13:21:30 +0200
-Message-ID: <20090519132130.4c74ef39@mjolnir.ossman.eu>
-References: <437bd5150905150145k6d750c7er89fa9b02749f738d@mail.gmail.com>
+From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+Subject: Re: slap corruption
+Date: Tue, 19 May 2009 14:27:18 +0300 (EEST)
+Message-ID: <20090519.142718.191383581.Hiroshi.DOYU@nokia.com>
+References: <496565EC904933469F292DDA3F1663E60292F45E00@dlee06.ent.ti.com>
+	<94a0d4530905190247v3475fcc2g23ed9b6eb09a2fcd@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=PGP-SHA1; protocol="application/pgp-signature"; boundary="=_freyr.ossman.eu-18778-1242732096-0001-2"
+Content-Type: Text/Plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from 82-117-125-11.tcdsl.calypso.net ([82.117.125.11]:46034 "EHLO
-	smtp.ossman.eu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752092AbZESLVi (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 19 May 2009 07:21:38 -0400
-In-Reply-To: <437bd5150905150145k6d750c7er89fa9b02749f738d@mail.gmail.com>
+Received: from smtp.nokia.com ([192.100.105.134]:39050 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752721AbZESL1g convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 19 May 2009 07:27:36 -0400
+In-Reply-To: <94a0d4530905190247v3475fcc2g23ed9b6eb09a2fcd@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: yingchao li <rjn637@gmail.com>
-Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+To: felipe.contreras@gmail.com
+Cc: x0095840@ti.com, h-kanigeri2@ti.com, grgupta@ti.com, nm@ti.com, omar.ramirez@ti.com, p-kargirwar@ti.com, linux-omap@vger.kernel.org
 
-This is a MIME-formatted message.  If you see this text it means that your
-E-mail software does not support MIME-formatted messages.
+=46rom: ext Felipe Contreras <felipe.contreras@gmail.com>
+Subject: Re: slap corruption
+Date: Tue, 19 May 2009 11:47:11 +0200
 
---=_freyr.ossman.eu-18778-1242732096-0001-2
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: quoted-printable
-
-On Fri, 15 May 2009 16:45:06 +0800
-yingchao li <rjn637@gmail.com> wrote:
-
-> In my omap3430 board, when a transfer is on-going(i.e. reading from sd
-> card), I unpluged directly sd card, then kernel panic.
+> On Tue, May 19, 2009 at 4:56 AM, Guzman Lugo, Fernando <x0095840@ti.c=
+om> wrote:
+> >
+> >
+> >
+> > Hi everyone,
+> >
+> > We have been looking into the Slab Corruption error and we have fou=
+nd the problem occurs after an application has been terminated abnormal=
+ly, e.g. Using CTL-C or Segmentation Fault or kill.
+> >
+> > The issue is observed not only for DMM test cases but for others te=
+st cases that don't use DMM.
+> >
+> > The problem is reported by 'slab.c' when a slab object which is ina=
+ctive, it supposed to be filled with POISON_FREE (6b) and has some 00 w=
+ithin the object, this seems to be corrupted.
+> >
+> > Slab corruption: size-64 start=3Dc6bc71e0, len=3D64
+> > <3>Redzone: 0x9f911029d74e35b/0x9f911029d74e35b.
+> > Redzone: 0x9f911029d74e35b/0x9f911029d74e35b.
+> > <3>Last user: [<bf063464>]Last user: [<bf063464>](MEM_Free+0x9c/0xe=
+0 [bridgedriv
+> > er])(MEM_Free+0x9c/0xe0 [bridgedriver])
+> >
+> > <3>010:010: 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6b 6=
+b 6b 6b 6b 6b
+> > =A06b 00 00 00 00 00 00 00 00
+> >
+> >
+> > it seems it is not being freed correctly, because instead of being =
+filled only with 6b it has 00 maybe other process is overwriting it.
+> >
+> > Does anyone have any idea of what can be happening?
 >=20
+> Looping Hiroshi who is working on a similar issue... perhaps the same=
+?
 
-Known issue unfortunately. Something is not properly reference counting
-the block queue, but the handling in mmc_block is correct as far as I
-can gather.
+Thanks;) Maybe the same one, I guess.
 
-Your patch works around the problem by basically keeping a reference to
-the queue longer than the driver needs (hiding any missing references
-in other layers).
-
-I've been trying to find this bug without much success. The block layer
-isn't that easy to understand. :/
-
-Rgds
---=20
-     -- Pierre Ossman
-
-  WARNING: This correspondence is being monitored by the
-  Swedish government. Make sure your server uses encryption
-  for SMTP traffic and consider using PGP for end-to-end
-  encryption.
-
---=_freyr.ossman.eu-18778-1242732096-0001-2
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment; filename=signature.asc
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2.0.11 (GNU/Linux)
-
-iEYEARECAAYFAkoSlj4ACgkQ7b8eESbyJLiymwCfQ88IAq7oRNasA1R/leR5SWn+
-8iIAoLvWaQ5v3tZXpx4oH23nv/JYGl1W
-=aDhY
------END PGP SIGNATURE-----
-
---=_freyr.ossman.eu-18778-1242732096-0001-2--
+>=20
+> --=20
+> Felipe Contreras
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
