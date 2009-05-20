@@ -1,35 +1,38 @@
-From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
-Subject: Re: [ANNOUNCE] Temporary L-B tree for bridge 2.6.29
-Date: Wed, 20 May 2009 15:31:12 +0300 (EEST)
-Message-ID: <20090520.153112.25158397.Hiroshi.DOYU@nokia.com>
-References: <27F9C60D11D683428E133F85D2BB4A53040B85D7A3@dlee03.ent.ti.com>
-	<7A436F7769CA33409C6B44B358BFFF0C0113817FA4@dlee02.ent.ti.com>
-	<8F7AF80515AF0D4D93307E594F3CB40E2B19311D@dlee03.ent.ti.com>
-Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+From: Roger Quadros <ext-roger.quadros@nokia.com>
+Subject: [PATCH] OMAP3: PM: Smartreflex: Fix VDD2 OPP determining logic
+Date: Wed, 20 May 2009 15:26:57 +0300
+Message-ID: <1242822417-17829-1-git-send-email-ext-roger.quadros@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:54169 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754979AbZETMcL (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 20 May 2009 08:32:11 -0400
-In-Reply-To: <8F7AF80515AF0D4D93307E594F3CB40E2B19311D@dlee03.ent.ti.com>
+Received: from smtp.nokia.com ([192.100.122.233]:21772 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756132AbZETMda (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 20 May 2009 08:33:30 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: h-kanigeri2@ti.com
-Cc: nm@ti.com, omar.ramirez@ti.com, linux-omap@vger.kernel.org, ameya.palande@nokia.com
+To: khilman@deeprootsystems.com
+Cc: linux-omap@vger.kernel.org
 
-From: "ext Kanigeri, Hari" <h-kanigeri2@ti.com>
-Subject: RE: [ANNOUNCE] Temporary L-B tree for bridge 2.6.29
-Date: Wed, 20 May 2009 14:15:21 +0200
+Use l3_ick clock rate to find out current VDD2 OPP since
+VDD2 OPP table uses rates corresponding to L3 clock.
 
-> Nishant,
-> 
-> As Omar mentioned this is temporary staging and this will be moved
-> to omapzoom portal in a Week or two. This version of tidspbridge has
-> the open source PM framework.
-> 
-> Myself and Omar will act as maintainers.
+Signed-off-by: Roger Quadros <ext-roger.quadros@nokia.com>
+---
+ arch/arm/mach-omap2/smartreflex.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-This would be nice and maybe it would be better to ask Tony to mirror
-it on "omap/tidspbridge" when o-z git for tidspbridge is ready.
+diff --git a/arch/arm/mach-omap2/smartreflex.c b/arch/arm/mach-omap2/smartreflex.c
+index 061cd4e..422c917 100644
+--- a/arch/arm/mach-omap2/smartreflex.c
++++ b/arch/arm/mach-omap2/smartreflex.c
+@@ -184,7 +184,7 @@ static u16 get_vdd2_opp(void)
+ 	u16 opp;
+ 	struct clk *clk;
+ 
+-	clk = clk_get(NULL, "dpll3_m2_ck");
++	clk = clk_get(NULL, "l3_ick");
+ 
+ 	if (clk == NULL || IS_ERR(clk) || l3_opps == NULL)
+ 		return 0;
+-- 
+1.6.0.4
+
