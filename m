@@ -1,47 +1,60 @@
-From: Kalle Valo <kalle.valo@iki.fi>
-Subject: Re: N810: latest linux-omap-2.6.git master
-Date: Wed, 20 May 2009 17:11:30 +0300
-Message-ID: <87bppneuel.fsf@litku.valot.fi>
-References: <200905091745.06435.luke@dashjr.org>
-	<200905121818.13785.luke@dashjr.org>
-	<20090513121219.43206b03.jhnikula@gmail.com>
-	<200905190009.28222.luke@dashjr.org>
-	<20090519094240.dbe5b959.jhnikula@gmail.com>
-	<20090519171521.GA19742@atomide.com>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: [PATCH] OMAP: PM: Clear DMA channel state after a wakeup
+Date: Wed, 20 May 2009 07:26:01 -0700
+Message-ID: <871vqju9za.fsf@deeprootsystems.com>
+References: <1242827910-16136-1-git-send-email-aaro.koskinen@nokia.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-fx0-f158.google.com ([209.85.220.158]:63817 "EHLO
-	mail-fx0-f158.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752557AbZETOLc (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 20 May 2009 10:11:32 -0400
-Received: by fxm2 with SMTP id 2so445087fxm.37
-        for <linux-omap@vger.kernel.org>; Wed, 20 May 2009 07:11:32 -0700 (PDT)
-In-Reply-To: <20090519171521.GA19742@atomide.com> (Tony Lindgren's message of "Tue\, 19 May 2009 10\:15\:21 -0700")
+Received: from wf-out-1314.google.com ([209.85.200.172]:10275 "EHLO
+	wf-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753013AbZETO0E (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 20 May 2009 10:26:04 -0400
+Received: by wf-out-1314.google.com with SMTP id 26so155244wfd.4
+        for <linux-omap@vger.kernel.org>; Wed, 20 May 2009 07:26:06 -0700 (PDT)
+In-Reply-To: <1242827910-16136-1-git-send-email-aaro.koskinen@nokia.com> (Aaro Koskinen's message of "Wed\, 20 May 2009 16\:58\:30 +0300")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Jarkko Nikula <jhnikula@gmail.com>, Luke-Jr <luke@dashjr.org>, linux-omap@vger.kernel.org
+To: Aaro Koskinen <aaro.koskinen@nokia.com>
+Cc: linux-omap@vger.kernel.org
 
-Tony Lindgren <tony@atomide.com> writes:
+Aaro Koskinen <aaro.koskinen@nokia.com> writes:
 
->> > Is anyone actually trying to work on or maintain N8x0 support?
->> 
->> I think N8x0 support is a little bit behind from other boards. Lot of
->> active development is going around on newer and more open platforms like
->> Beagle and not all patches are necessary tested on N8x0 (or other boards
->> too!). Of course active hacker base helps to point out breakages.
+> Clear DMA channel states so that users can assume a known initial state.
 >
-> We should try to get the board-n8x0 stuff in shape for mainline maybe
-> the next merge window after this, anybody willing to spend some cycles
-> on preparing the patches against the mainline tree?
+> Signed-off-by: Aaro Koskinen <aaro.koskinen@nokia.com>
 
-So that's something like three months from now? Hmm. If someone else
-doesn't volunteer I can try to spend some time on this. I would love to
-see n800 and n810 supported in mainline.
+Thanks, pushing to PM branch.
 
-But I cannot make any promises, though. It would be great if someone
-else can step up.
+Kevin
 
--- 
-Kalle Valo
+> ---
+>  arch/arm/plat-omap/dma.c |    6 ++++++
+>  1 files changed, 6 insertions(+), 0 deletions(-)
+>
+> diff --git a/arch/arm/plat-omap/dma.c b/arch/arm/plat-omap/dma.c
+> index 9796773..cd53b28 100755
+> --- a/arch/arm/plat-omap/dma.c
+> +++ b/arch/arm/plat-omap/dma.c
+> @@ -2322,6 +2322,8 @@ EXPORT_SYMBOL(omap_dma_global_context_save);
+>  
+>  void omap_dma_global_context_restore(void)
+>  {
+> +	int ch;
+> +
+>  	dma_write(omap_dma_global_context.dma_gcr, GCR);
+>  	dma_write(omap_dma_global_context.dma_ocp_sysconfig,
+>  		OCP_SYSCONFIG);
+> @@ -2336,6 +2338,10 @@ void omap_dma_global_context_restore(void)
+>  	 */
+>  	if (cpu_is_omap34xx() && (omap_type() != OMAP2_DEVICE_TYPE_GP))
+>  		dma_write(0x3 , IRQSTATUS_L0);
+> +
+> +	for (ch = 0; ch < dma_chan_count; ch++)
+> +		if (dma_chan[ch].dev_id != -1)
+> +			omap_clear_dma(ch);
+>  }
+>  EXPORT_SYMBOL(omap_dma_global_context_restore);
+>  
+> -- 
+> 1.5.4.3
