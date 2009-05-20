@@ -1,7 +1,7 @@
 From: Omar Ramirez Luna <x00omar@ti.com>
-Subject: [PATCH 08/14] DSPBRIDGE: trivial spacing cleanup for memory module
-Date: Wed, 20 May 2009 00:02:14 -0500
-Message-ID: <1242795740-21535-8-git-send-email-x00omar@ti.com>
+Subject: [PATCH 13/14] DSPBRIDGE: Stop and reset DSP before removing constraints
+Date: Wed, 20 May 2009 00:02:19 -0500
+Message-ID: <1242795740-21535-13-git-send-email-x00omar@ti.com>
 References: <1242795740-21535-1-git-send-email-x00omar@ti.com>
  <1242795740-21535-2-git-send-email-x00omar@ti.com>
  <1242795740-21535-3-git-send-email-x00omar@ti.com>
@@ -9,107 +9,68 @@ References: <1242795740-21535-1-git-send-email-x00omar@ti.com>
  <1242795740-21535-5-git-send-email-x00omar@ti.com>
  <1242795740-21535-6-git-send-email-x00omar@ti.com>
  <1242795740-21535-7-git-send-email-x00omar@ti.com>
+ <1242795740-21535-8-git-send-email-x00omar@ti.com>
+ <1242795740-21535-9-git-send-email-x00omar@ti.com>
+ <1242795740-21535-10-git-send-email-x00omar@ti.com>
+ <1242795740-21535-11-git-send-email-x00omar@ti.com>
+ <1242795740-21535-12-git-send-email-x00omar@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:57567 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752312AbZETE6e (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 20 May 2009 00:58:34 -0400
-In-Reply-To: <1242795740-21535-7-git-send-email-x00omar@ti.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:40808 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752459AbZETE6e (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 20 May 2009 00:58:34 -0400
+In-Reply-To: <1242795740-21535-12-git-send-email-x00omar@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap <linux-omap@vger.kernel.org>
-Cc: Hiroshi.DOYU@nokia.com, ameya.palande@nokia.com, Omar Ramirez Luna <omar.ramirez@ti.com>, Omar Ramirez Luna <x00omar@ti.com>
+Cc: Hiroshi.DOYU@nokia.com, ameya.palande@nokia.com, Omar Ramirez Luna <omar.ramirez@ti.com>, Hari Kanigeri <h-kanigeri2@ti.com>
 
 From: Omar Ramirez Luna <omar.ramirez@ti.com>
 
-trivial spacing cleanup for memory module
+This patch implements the DSP Reset procedure to be made
+on bridge exit before unregistering the constraints set by dsp.
 
-Signed-off-by: Omar Ramirez Luna <x00omar@ti.com>
+Signed-off-by: Hari Kanigeri <h-kanigeri2@ti.com>
+Signed-off-by: Omar Ramirez Luna <omar.ramirez@ti.com>
 ---
- drivers/dsp/bridge/services/mem.c |   26 +++++++++++++-------------
- 1 files changed, 13 insertions(+), 13 deletions(-)
+ drivers/dsp/bridge/rmgr/drv_interface.c |   17 ++++++++---------
+ 1 files changed, 8 insertions(+), 9 deletions(-)
 
-diff --git a/drivers/dsp/bridge/services/mem.c b/drivers/dsp/bridge/services/mem.c
-index 0a10304..47ec09b 100644
---- a/drivers/dsp/bridge/services/mem.c
-+++ b/drivers/dsp/bridge/services/mem.c
-@@ -281,11 +281,11 @@ void *MEM_Alloc(u32 cBytes, enum MEM_POOLATTRS type)
- 		/* If non-paged memory required, see note at top of file. */
- 		case MEM_PAGED:
- #ifndef MEM_CHECK
--                                  pMem = kmalloc(cBytes,
--                                              (in_atomic()) ? GFP_ATOMIC : GFP_KERNEL);
-+			pMem = kmalloc(cBytes,
-+				(in_atomic()) ? GFP_ATOMIC : GFP_KERNEL);
- #else
- 			pMem = kmalloc(cBytes + sizeof(struct memInfo),
--                                              (in_atomic()) ? GFP_ATOMIC : GFP_KERNEL);
-+				(in_atomic()) ? GFP_ATOMIC : GFP_KERNEL);
- 			if (pMem) {
- 				pMem->size = cBytes;
- 				pMem->caller = __builtin_return_address(0);
-@@ -304,12 +304,12 @@ void *MEM_Alloc(u32 cBytes, enum MEM_POOLATTRS type)
- 		case MEM_LARGEVIRTMEM:
- #ifndef MEM_CHECK
- 			/* FIXME - Replace with 'vmalloc' after BP fix */
--                                  pMem = __vmalloc(cBytes,
--                                  (in_atomic()) ? GFP_ATOMIC : GFP_KERNEL, PAGE_KERNEL);
-+			pMem = __vmalloc(cBytes,
-+				(in_atomic()) ? GFP_ATOMIC : GFP_KERNEL, PAGE_KERNEL);
- #else
- 			/* FIXME - Replace with 'vmalloc' after BP fix */
- 			pMem = __vmalloc((cBytes + sizeof(struct memInfo)),
--                                  (in_atomic()) ? GFP_ATOMIC : GFP_KERNEL, PAGE_KERNEL);
-+				(in_atomic()) ? GFP_ATOMIC : GFP_KERNEL, PAGE_KERNEL);
- 			if (pMem) {
- 				pMem->size = cBytes;
- 				pMem->caller = __builtin_return_address(0);
-@@ -359,7 +359,7 @@ void *MEM_AllocPhysMem(u32 cBytes, u32 ulAlign, OUT u32 *pPhysicalAddress)
- 						    (u32 *)&paMem);
- 		} else
- 			pVaMem = dma_alloc_coherent(NULL, cBytes, &paMem,
--                                              (in_atomic()) ? GFP_ATOMIC : GFP_KERNEL);
-+				(in_atomic()) ? GFP_ATOMIC : GFP_KERNEL);
- 		if (pVaMem == NULL) {
- 			*pPhysicalAddress = 0;
- 			GT_1trace(MEM_debugMask, GT_6CLASS,
-@@ -391,14 +391,14 @@ void *MEM_Calloc(u32 cBytes, enum MEM_POOLATTRS type)
- 		/* If non-paged memory required, see note at top of file. */
- 		case MEM_PAGED:
- #ifndef MEM_CHECK
--                                  pMem = kmalloc(cBytes,
--                                              (in_atomic()) ? GFP_ATOMIC : GFP_KERNEL);
-+			pMem = kmalloc(cBytes,
-+				(in_atomic()) ? GFP_ATOMIC : GFP_KERNEL);
- 			if (pMem)
- 				memset(pMem, 0, cBytes);
+diff --git a/drivers/dsp/bridge/rmgr/drv_interface.c b/drivers/dsp/bridge/rmgr/drv_interface.c
+index d17d3cf..d14e663 100644
+--- a/drivers/dsp/bridge/rmgr/drv_interface.c
++++ b/drivers/dsp/bridge/rmgr/drv_interface.c
+@@ -469,6 +469,14 @@ static int __devexit omap34xx_bridge_remove(struct platform_device *pdev)
+ 		pCtxtclosed = pTmp;
+ 	}
+ func_cont:
++	if (driverContext) {
++		/* Put the DSP in reset state */
++		ret = DSP_Deinit(driverContext);
++		driverContext = 0;
++		DBC_Assert(ret == true);
++	}
++	SERVICES_Exit();
++	GT_exit();
+ 	/* unregister the clock notifier */
+ #ifdef CONFIG_BRIDGE_DVFS
+ 	if (!clk_notifier_unregister(clk_handle, &iva_clk_notifier)) {
+@@ -483,15 +491,6 @@ func_cont:
+ 	clk_handle = NULL;
+ #endif /* #ifdef CONFIG_BRIDGE_DVFS */
  
- #else
- 			pMem = kmalloc(cBytes + sizeof(struct memInfo),
--                                              (in_atomic()) ? GFP_ATOMIC : GFP_KERNEL);
-+				(in_atomic()) ? GFP_ATOMIC : GFP_KERNEL);
- 			if (pMem) {
- 				memset((void *)((u32)pMem +
- 					sizeof(struct memInfo)), 0, cBytes);
-@@ -417,15 +417,15 @@ void *MEM_Calloc(u32 cBytes, enum MEM_POOLATTRS type)
- 		case MEM_LARGEVIRTMEM:
- #ifndef MEM_CHECK
- 			/* FIXME - Replace with 'vmalloc' after BP fix */
--                                  pMem = __vmalloc(cBytes,
--                                  (in_atomic()) ? GFP_ATOMIC : GFP_KERNEL, PAGE_KERNEL);
-+			pMem = __vmalloc(cBytes,
-+				(in_atomic()) ? GFP_ATOMIC : GFP_KERNEL, PAGE_KERNEL);
- 			if (pMem)
- 				memset(pMem, 0, cBytes);
- 
- #else
- 			/* FIXME - Replace with 'vmalloc' after BP fix */
- 			pMem = __vmalloc(cBytes + sizeof(struct memInfo),
--                                  (in_atomic()) ? GFP_ATOMIC : GFP_KERNEL, PAGE_KERNEL);
-+				(in_atomic()) ? GFP_ATOMIC : GFP_KERNEL, PAGE_KERNEL);
- 			if (pMem) {
- 				memset((void *)((u32)pMem +
- 					sizeof(struct memInfo)), 0, cBytes);
+-	if (driverContext) {
+-		ret = DSP_Deinit(driverContext);
+-		driverContext = 0;
+-
+-		DBC_Assert(ret == true);
+-	}
+-	SERVICES_Exit();
+-	GT_exit();
+-
+ 	devno = MKDEV(driver_major, driver_minor);
+ 	if (bridge_device) {
+ 		cdev_del(&bridge_device->cdev);
 -- 
 1.6.2.4
 
