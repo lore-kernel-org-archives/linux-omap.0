@@ -1,39 +1,42 @@
-From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Subject: RE: [PATCH 2/2] McSPI Slave and DMA,FIFO support
-Date: Wed, 20 May 2009 11:48:20 +0530
-Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB02B49CC02C@dbde02.ent.ti.com>
-References: <54349.10.24.255.18.1242799017.squirrel@dbdmail.itg.ti.com>
- <5A47E75E594F054BAF48C5E4FC4B92AB030574190F@dbde02.ent.ti.com>
+From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+Subject: [PATCH 6/7] omap2 iommu: entries for Kconfig and Makefile
+Date: Wed, 20 May 2009 09:42:37 +0300
+Message-ID: <20090520064237.24734.65782.stgit@oreo.research.nokia.com>
+References: <20090520064211.24734.80725.stgit@oreo.research.nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:60962 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752129AbZETGS1 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 20 May 2009 02:18:27 -0400
-Received: from dbdp20.itg.ti.com ([172.24.170.38])
-	by bear.ext.ti.com (8.13.7/8.13.7) with ESMTP id n4K6IM08027721
-	for <linux-omap@vger.kernel.org>; Wed, 20 May 2009 01:18:28 -0500
-In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB030574190F@dbde02.ent.ti.com>
-Content-Language: en-US
+Received: from smtp.nokia.com ([192.100.105.134]:17907 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752028AbZETGnL (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 20 May 2009 02:43:11 -0400
+In-Reply-To: <20090520064211.24734.80725.stgit@oreo.research.nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Gadiyar, Anand" <gadiyar@ti.com>, "V, Hemanth" <hemanthv@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: linux-arm-kernel@lists.arm.linux.org.uk
+Cc: linux-omap@vger.kernel.org, h-kanigeri2@ti.com, omar.ramirez@ti.com, sakari.ailus@maxwell.research.nokia.com, tony@atomide.com
 
+Signed-off-by: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+---
 
-> > +
-> > +	/* SPI2 Pin MUX */
-> > +	omap_cfg_reg(AA3_3430_McSPI2_CLK);
-> > +	omap_cfg_reg(Y2_3430_McSPI2_SIMO);
-> > +	omap_cfg_reg(Y3_3430_McSPI2_SOMI);
-> > +	omap_cfg_reg(Y4_3430_McSPI2_CS0);
-> > +
-> 
-> This will still change the padconf for this port unconditionally.
-> 
-> How do we handle the case where the same platform (SDP in this case)
-> could have different configurations McSPI2 vs USBHOST2, etc? Is there
-> a clean way, or do we have no option but to use a CONFIG option?
+ arch/arm/mach-omap2/Makefile |    5 +++++
+ 1 files changed, 5 insertions(+), 0 deletions(-)
 
-How about boot_arg or in case usb is a loadable module then module argument ?
+diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
+index c49d9bf..88629a7 100644
+--- a/arch/arm/mach-omap2/Makefile
++++ b/arch/arm/mach-omap2/Makefile
+@@ -28,6 +28,11 @@ endif
+ obj-$(CONFIG_ARCH_OMAP2)		+= clock24xx.o
+ obj-$(CONFIG_ARCH_OMAP3)		+= clock34xx.o
+ 
++iommu-y					+= iommu2.o
++iommu-$(CONFIG_ARCH_OMAP3)		+= omap3-iommu.o
++
++obj-$(CONFIG_OMAP_IOMMU)		+= $(iommu-y)
++
+ # Specific board support
+ obj-$(CONFIG_MACH_OMAP_GENERIC)		+= board-generic.o
+ obj-$(CONFIG_MACH_OMAP_H4)		+= board-h4.o
+
