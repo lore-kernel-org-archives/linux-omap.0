@@ -1,38 +1,30 @@
-From: Roger Quadros <ext-roger.quadros@nokia.com>
-Subject: [PATCH] OMAP3: PM: Smartreflex: Fix VDD2 OPP determining logic
-Date: Wed, 20 May 2009 15:26:57 +0300
-Message-ID: <1242822417-17829-1-git-send-email-ext-roger.quadros@nokia.com>
+From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
+Subject: [PATCH 0/4] ARM: OMPA4: Basic boot patch series based on linux-omap
+Date: Wed, 20 May 2009 18:11:08 +0530
+Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB02B4A84356@dbde02.ent.ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:21772 "EHLO
-	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756132AbZETMda (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 20 May 2009 08:33:30 -0400
+Received: from bear.ext.ti.com ([192.94.94.41]:49912 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755643AbZETMlv convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 20 May 2009 08:41:51 -0400
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: khilman@deeprootsystems.com
-Cc: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, "linux-arm-kernel@lists.arm.linux.org.uk" <linux-arm-kernel@lists.arm.linux.org.uk>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Use l3_ick clock rate to find out current VDD2 OPP since
-VDD2 OPP table uses rates corresponding to L3 clock.
+Tony,
+I have rebased this series on top of the 'for-next' branch (2.6.30-rc6) in linux-omap tree. Additionally the series is reorganized as you suggested.
 
-Signed-off-by: Roger Quadros <ext-roger.quadros@nokia.com>
----
- arch/arm/mach-omap2/smartreflex.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+As discussed earlier, there is a dependency on arch/arm/tools/mach-types(dated:18/04/2009).
 
-diff --git a/arch/arm/mach-omap2/smartreflex.c b/arch/arm/mach-omap2/smartreflex.c
-index 061cd4e..422c917 100644
---- a/arch/arm/mach-omap2/smartreflex.c
-+++ b/arch/arm/mach-omap2/smartreflex.c
-@@ -184,7 +184,7 @@ static u16 get_vdd2_opp(void)
- 	u16 opp;
- 	struct clk *clk;
- 
--	clk = clk_get(NULL, "dpll3_m2_ck");
-+	clk = clk_get(NULL, "l3_ick");
- 
- 	if (clk == NULL || IS_ERR(clk) || l3_opps == NULL)
- 		return 0;
--- 
-1.6.0.4
+	[PATCH 1/4] ARM: OMAP4: Add minimal support for omap4
+	[PATCH 2/4] ARM: OMAP4: Clock stubs since clock management framework not in
+	[PATCH 3/4] ARM: OMAP4: Add support for 4430 SDP
+	[PATCH 4/4] ARM: OMAP4: Add defconfig for 4430 SDP
 
+Regards,
+Santosh
