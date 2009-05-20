@@ -1,16 +1,16 @@
 From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
-Subject: [PATCH 6/7] omap2 iommu: entries for Kconfig and Makefile
-Date: Wed, 20 May 2009 09:42:37 +0300
-Message-ID: <20090520064237.24734.65782.stgit@oreo.research.nokia.com>
+Subject: [PATCH 5/7] omap iommu: entries for Kconfig and Makefile
+Date: Wed, 20 May 2009 09:42:32 +0300
+Message-ID: <20090520064232.24734.19153.stgit@oreo.research.nokia.com>
 References: <20090520064211.24734.80725.stgit@oreo.research.nokia.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:17907 "EHLO
+Received: from smtp.nokia.com ([192.100.105.134]:17881 "EHLO
 	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752028AbZETGnL (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 20 May 2009 02:43:11 -0400
+	with ESMTP id S1752220AbZETGnA (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 20 May 2009 02:43:00 -0400
 In-Reply-To: <20090520064211.24734.80725.stgit@oreo.research.nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
@@ -20,23 +20,37 @@ Cc: linux-omap@vger.kernel.org, h-kanigeri2@ti.com, omar.ramirez@ti.com, sakari.
 Signed-off-by: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
 ---
 
- arch/arm/mach-omap2/Makefile |    5 +++++
- 1 files changed, 5 insertions(+), 0 deletions(-)
+ arch/arm/plat-omap/Kconfig  |    6 ++++++
+ arch/arm/plat-omap/Makefile |    1 +
+ 2 files changed, 7 insertions(+), 0 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
-index c49d9bf..88629a7 100644
---- a/arch/arm/mach-omap2/Makefile
-+++ b/arch/arm/mach-omap2/Makefile
-@@ -28,6 +28,11 @@ endif
- obj-$(CONFIG_ARCH_OMAP2)		+= clock24xx.o
- obj-$(CONFIG_ARCH_OMAP3)		+= clock34xx.o
+diff --git a/arch/arm/plat-omap/Kconfig b/arch/arm/plat-omap/Kconfig
+index 9dd68fa..30e47a3 100644
+--- a/arch/arm/plat-omap/Kconfig
++++ b/arch/arm/plat-omap/Kconfig
+@@ -115,6 +115,12 @@ config OMAP_MBOX_FWK
+ 	  Say Y here if you want to use OMAP Mailbox framework support for
+ 	  DSP, IVA1.0 and IVA2 in OMAP1/2/3.
  
-+iommu-y					+= iommu2.o
-+iommu-$(CONFIG_ARCH_OMAP3)		+= omap3-iommu.o
++config OMAP_IOMMU
++	tristate "IOMMU support"
++	help
++	  Say Y here if you want to use OMAP IOMMU support for IVA2 and
++	  Camera in OMAP3.
 +
-+obj-$(CONFIG_OMAP_IOMMU)		+= $(iommu-y)
-+
- # Specific board support
- obj-$(CONFIG_MACH_OMAP_GENERIC)		+= board-generic.o
- obj-$(CONFIG_MACH_OMAP_H4)		+= board-h4.o
+ choice
+         prompt "System timer"
+ 	default OMAP_MPU_TIMER
+diff --git a/arch/arm/plat-omap/Makefile b/arch/arm/plat-omap/Makefile
+index 04a100c..a832795 100644
+--- a/arch/arm/plat-omap/Makefile
++++ b/arch/arm/plat-omap/Makefile
+@@ -13,6 +13,7 @@ obj-  :=
+ obj-$(CONFIG_ARCH_OMAP16XX) += ocpi.o
+ 
+ obj-$(CONFIG_OMAP_MCBSP) += mcbsp.o
++obj-$(CONFIG_OMAP_IOMMU) += iommu.o iovmm.o
+ 
+ obj-$(CONFIG_CPU_FREQ) += cpu-omap.o
+ obj-$(CONFIG_OMAP_DM_TIMER) += dmtimer.o
 
