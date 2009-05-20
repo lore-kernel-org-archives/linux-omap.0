@@ -1,39 +1,44 @@
-From: Max Filippov <jcmvbkbc@gmail.com>
-Subject: Re: N810: latest linux-omap-2.6.git master
-Date: Thu, 21 May 2009 02:07:42 +0400
-Message-ID: <200905210207.43061.jcmvbkbc@gmail.com>
-References: <200905091745.06435.luke@dashjr.org> <20090513121219.43206b03.jhnikula@gmail.com> <200905190009.28222.luke@dashjr.org>
-Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: [PATCH 01/13] Revert "ARM: OMAP: Mask interrupts when disabling interrupts, v2"
+Date: Wed, 20 May 2009 16:19:24 -0700
+Message-ID: <1242861576-13008-2-git-send-email-khilman@deeprootsystems.com>
+References: <1242861576-13008-1-git-send-email-khilman@deeprootsystems.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ew0-f176.google.com ([209.85.219.176]:57767 "EHLO
-	mail-ew0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754352AbZETWHv (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 20 May 2009 18:07:51 -0400
-Received: by ewy24 with SMTP id 24so857506ewy.37
-        for <linux-omap@vger.kernel.org>; Wed, 20 May 2009 15:07:52 -0700 (PDT)
-In-Reply-To: <200905190009.28222.luke@dashjr.org>
-Content-Disposition: inline
+Received: from wf-out-1314.google.com ([209.85.200.173]:37575 "EHLO
+	wf-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757363AbZETXTj (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 20 May 2009 19:19:39 -0400
+Received: by wf-out-1314.google.com with SMTP id 26so241368wfd.4
+        for <linux-omap@vger.kernel.org>; Wed, 20 May 2009 16:19:40 -0700 (PDT)
+In-Reply-To: <1242861576-13008-1-git-send-email-khilman@deeprootsystems.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Luke-Jr <luke@dashjr.org>
-Cc: Jarkko Nikula <jhnikula@gmail.com>, linux-omap@vger.kernel.org
+To: linux-arm-kernel@lists.arm.linux.org.uk
+Cc: linux-omap@vger.kernel.org
 
-> Yes, that change seemed to get me booting... however, with "rc6", the
-> keyboard no longer works *at all*, and in neither rc4 nor rc6 does p54spi
-> actually work.
+This reverts commit 5461af5af5c6a7fee78978aafe720541bf3a2f55.
 
-For p54spi to minimally work you need at least the following patches from 
-linux-wireless:
+Adding a disable hook to the irq_chip is not the way to fix the
+problem being addressed by this patch.  Instead, we need to fix
+support for [enable|disable]_irq_wake().
 
-320abdf21a27e9f662f70d7726f56cd458343d3b
-b4668d4eb59e0bc89059ba258c4aa278dcc3f872
+Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
+---
+ arch/arm/mach-omap2/irq.c |    1 -
+ 1 files changed, 0 insertions(+), 1 deletions(-)
 
-For it to work good, all patches to drivers/net/wireless/p54 from linux-
-wireless are required.
-
-Thanks.
--- Max
+diff --git a/arch/arm/mach-omap2/irq.c b/arch/arm/mach-omap2/irq.c
+index 998c5c4..08a3b99 100644
+--- a/arch/arm/mach-omap2/irq.c
++++ b/arch/arm/mach-omap2/irq.c
+@@ -134,7 +134,6 @@ static struct irq_chip omap_irq_chip = {
+ 	.ack	= omap_mask_ack_irq,
+ 	.mask	= omap_mask_irq,
+ 	.unmask	= omap_unmask_irq,
+-	.disable = omap_mask_irq,
+ };
+ 
+ static void __init omap_irq_bank_init_one(struct omap_irq_bank *bank)
+-- 
+1.6.2.2
 
