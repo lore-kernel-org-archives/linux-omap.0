@@ -1,49 +1,149 @@
-From: "Hemanth V" <hemanthv@ti.com>
-Subject: Re: [PATCH 1/2] McSPI Slave and DMA,FIFO support
-Date: Wed, 20 May 2009 11:36:56 +0530
-Message-ID: <006c01c9d911$2edc9810$LocalHost@wipultra793>
-References: <54322.10.24.255.18.1242799009.squirrel@dbdmail.itg.ti.com> <EAF47CD23C76F840A9E7FCE10091EFAB02B49CC007@dbde02.ent.ti.com>
+From: "Gadiyar, Anand" <gadiyar@ti.com>
+Subject: RE: [PATCH 2/2] McSPI Slave and DMA,FIFO support
+Date: Wed, 20 May 2009 11:44:52 +0530
+Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB030574190F@dbde02.ent.ti.com>
+References: <54349.10.24.255.18.1242799017.squirrel@dbdmail.itg.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	format=flowed;
-	charset="iso-8859-1";
-	reply-type=original
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:34126 "EHLO arroyo.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:42498 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751638AbZETGHH (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 20 May 2009 02:07:07 -0400
-Received: from dbdp31.itg.ti.com ([172.24.170.98])
-	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id n4K670tk002574
-	for <linux-omap@vger.kernel.org>; Wed, 20 May 2009 01:07:06 -0500
+	id S1751638AbZETGO7 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 20 May 2009 02:14:59 -0400
+Received: from dbdp20.itg.ti.com ([172.24.170.38])
+	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id n4K6EsUD008404
+	for <linux-omap@vger.kernel.org>; Wed, 20 May 2009 01:15:00 -0500
+In-Reply-To: <54349.10.24.255.18.1242799017.squirrel@dbdmail.itg.ti.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, linux-omap@vger.kernel.org
+To: "V, Hemanth" <hemanthv@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Santosh,
-
------ Original Message ----- 
-From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-To: "V, Hemanth" <hemanthv@ti.com>; <linux-omap@vger.kernel.org>
-Sent: Wednesday, May 20, 2009 11:34 AM
-Subject: RE: [PATCH 1/2] McSPI Slave and DMA,FIFO support
-
-
-
-Hemanth,
-
+> -----Original Message-----
+> From: linux-omap-owner@vger.kernel.org 
+> [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Hemanth V
+> Sent: Wednesday, May 20, 2009 11:27 AM
+> To: linux-omap@vger.kernel.org
+> Subject: [PATCH 2/2] McSPI Slave and DMA,FIFO support
+> 
+> This patch adds MUX changes for SPI2 and also adds an
+> option for test driver
+> 
 > Signed-off-by: Hemanth V <hemanthv@ti.com>
->  arch/arm/mach-omap2/devices.c           |    5
->  arch/arm/plat-omap/include/mach/mcspi.h |   16 +
->  drivers/spi/omap2_mcspi.c               |  343
-> ++++++++++++++++++++++++++++----
+> ---
+>  arch/arm/mach-omap2/board-3430sdp.c   |   26 ++++++++++++++++++++++++++
+>  arch/arm/mach-omap2/mux.c             |   11 +++++++++++
+>  arch/arm/plat-omap/include/mach/mux.h |    7 +++++++
+>  3 files changed, 44 insertions(+)
+> 
+> Index: linux-omap-2.6/arch/arm/mach-omap2/board-3430sdp.c
+> ===================================================================
+> --- linux-omap-2.6.orig/arch/arm/mach-omap2/board-3430sdp.c	2009-05-20 11:02:34.000000000 +0530
+> +++ linux-omap-2.6/arch/arm/mach-omap2/board-3430sdp.c	2009-05-20 11:05:22.000000000 +0530
+> @@ -228,6 +228,13 @@
+>  	.single_channel	= 1,	/* 0: slave, 1: master */
+>  };
+> 
+> +#ifdef CONFIG_SPI_DEBUG
+> +static struct omap2_mcspi_device_config dummy_mcspi_config = {
+> +	.turbo_mode	= 0,
+> +	.single_channel	= 1,  /* 0: slave, 1: master */
+> +};
+> +#endif
+> +
+>  static struct spi_board_info sdp3430_spi_board_info[] __initdata = {
+>  	[0] = {
+>  		/*
+> @@ -242,6 +249,18 @@
+>  		.irq			= 0,
+>  		.platform_data		= &tsc2046_config,
+>  	},
+> +#ifdef CONFIG_SPI_DEBUG
+> +	[1] = {
+> +		/* SPI test driver attached to SPI2 controller by
+> +		 * default
+> +		 */
+> +		.modalias		= "spitst",
+> +		.bus_num		= 2,
+> +		.chip_select		= 0,
+> +		.max_speed_hz		= 1500000,
+> +		.controller_data	= &dummy_mcspi_config,
+> +	},
+> +#endif
+>  };
+> 
+>  static struct platform_device sdp3430_lcd_device = {
+> @@ -666,6 +685,13 @@
+> 
+>  static void __init omap_3430sdp_init(void)
+>  {
+> +
+> +	/* SPI2 Pin MUX */
+> +	omap_cfg_reg(AA3_3430_McSPI2_CLK);
+> +	omap_cfg_reg(Y2_3430_McSPI2_SIMO);
+> +	omap_cfg_reg(Y3_3430_McSPI2_SOMI);
+> +	omap_cfg_reg(Y4_3430_McSPI2_CS0);
+> +
 
->> drivers/spi/omap2_mcspi.c........ This should be separate patch since 
->> this has touching drivers directory.
+This will still change the padconf for this port unconditionally.
 
-It would break compililation of the patch
+How do we handle the case where the same platform (SDP in this case)
+could have different configurations McSPI2 vs USBHOST2, etc? Is there
+a clean way, or do we have no option but to use a CONFIG option?
+
+- Anand
 
 
-
-
+>  	omap3430_i2c_init();
+>  	platform_add_devices(sdp3430_devices, ARRAY_SIZE(sdp3430_devices));
+>  	omap_board_config = sdp3430_config;
+> Index: linux-omap-2.6/arch/arm/mach-omap2/mux.c
+> ===================================================================
+> --- linux-omap-2.6.orig/arch/arm/mach-omap2/mux.c	2009-05-20 11:02:34.000000000 +0530
+> +++ linux-omap-2.6/arch/arm/mach-omap2/mux.c	2009-05-20 11:05:22.000000000 +0530
+> @@ -486,6 +486,17 @@
+>  		OMAP34XX_MUX_MODE4 | OMAP34XX_PIN_OUTPUT)
+>  MUX_CFG_34XX("J25_34XX_GPIO170", 0x1c6,
+>  		OMAP34XX_MUX_MODE4 | OMAP34XX_PIN_INPUT)
+> +
+> +/* McSPI */
+> +MUX_CFG_34XX("AA3_3430_McSPI2_CLK", 0x1d6,
+> +	OMAP34XX_MUX_MODE0 | OMAP34XX_PIN_INPUT)
+> +MUX_CFG_34XX("Y2_3430_McSPI2_SIMO", 0x1d8,
+> +	OMAP34XX_MUX_MODE0 | OMAP34XX_PIN_INPUT)
+> +MUX_CFG_34XX("Y3_3430_McSPI2_SOMI", 0x1da,
+> +	OMAP34XX_MUX_MODE0 | OMAP34XX_PIN_INPUT)
+> +MUX_CFG_34XX("Y4_3430_McSPI2_CS0", 0x1dc,
+> +	OMAP34XX_MUX_MODE0 | OMAP34XX_PIN_INPUT_PULLDOWN)
+> +
+>  };
+> 
+>  #define OMAP34XX_PINS_SZ	ARRAY_SIZE(omap34xx_pins)
+> Index: linux-omap-2.6/arch/arm/plat-omap/include/mach/mux.h
+> ===================================================================
+> --- linux-omap-2.6.orig/arch/arm/plat-omap/include/mach/mux.h	2009-05-20 11:02:34.000000000 +0530
+> +++ linux-omap-2.6/arch/arm/plat-omap/include/mach/mux.h	2009-05-20 11:05:22.000000000 +0530
+> @@ -853,6 +853,13 @@
+>  	AE5_34XX_GPIO143,
+>  	H19_34XX_GPIO164_OUT,
+>  	J25_34XX_GPIO170,
+> +
+> +	/* McSPI */
+> +	AA3_3430_McSPI2_CLK,
+> +	Y2_3430_McSPI2_SIMO,
+> +	Y3_3430_McSPI2_SOMI,
+> +	Y4_3430_McSPI2_CS0,
+> +
+>  };
+> 
+>  struct omap_mux_cfg {
+> 
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe 
+> linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+> 
