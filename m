@@ -1,62 +1,48 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: N810: latest linux-omap-2.6.git master
-Date: Wed, 20 May 2009 08:13:02 -0700
-Message-ID: <20090520151301.GB8308@atomide.com>
-References: <200905091745.06435.luke@dashjr.org> <200905121818.13785.luke@dashjr.org> <20090513121219.43206b03.jhnikula@gmail.com> <200905190009.28222.luke@dashjr.org> <20090519094240.dbe5b959.jhnikula@gmail.com> <20090519171521.GA19742@atomide.com> <87bppneuel.fsf@litku.valot.fi>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Blazej Kot <bjk45@cornell.edu>
+Subject: Gumstix Overo Low Power Standby?
+Date: Wed, 20 May 2009 11:18:23 -0400
+Message-ID: <E7CF933B-CAC8-4F9E-AA3F-C64F36063C8F@cornell.edu>
+Mime-Version: 1.0 (Apple Message framework v935.3)
+Content-Type: text/plain; charset=US-ASCII; format=flowed; delsp=yes
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:64079 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751411AbZETPNM (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 20 May 2009 11:13:12 -0400
-Content-Disposition: inline
-In-Reply-To: <87bppneuel.fsf@litku.valot.fi>
+Received: from granite1.mail.cornell.edu ([128.253.83.141]:64959 "EHLO
+	authusersmtp.mail.cornell.edu" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1753526AbZETPSW (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Wed, 20 May 2009 11:18:22 -0400
+Received: from dhcp103-57.cs.cornell.edu (dhcp103-57.cs.cornell.edu [128.84.103.57])
+	(authenticated bits=0)
+	by authusersmtp.mail.cornell.edu (8.13.1/8.12.10) with ESMTP id n4KFINmJ025208
+	(version=TLSv1/SSLv3 cipher=AES128-SHA bits=128 verify=NOT)
+	for <linux-omap@vger.kernel.org>; Wed, 20 May 2009 11:18:23 -0400 (EDT)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kalle Valo <kalle.valo@iki.fi>, ext-jani.1.nikula@nokia.com
-Cc: Jarkko Nikula <jhnikula@gmail.com>, Luke-Jr <luke@dashjr.org>, linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
 
-* Kalle Valo <kalle.valo@iki.fi> [090520 07:11]:
-> Tony Lindgren <tony@atomide.com> writes:
-> 
-> >> > Is anyone actually trying to work on or maintain N8x0 support?
-> >> 
-> >> I think N8x0 support is a little bit behind from other boards. Lot of
-> >> active development is going around on newer and more open platforms like
-> >> Beagle and not all patches are necessary tested on N8x0 (or other boards
-> >> too!). Of course active hacker base helps to point out breakages.
-> >
-> > We should try to get the board-n8x0 stuff in shape for mainline maybe
-> > the next merge window after this, anybody willing to spend some cycles
-> > on preparing the patches against the mainline tree?
-> 
-> So that's something like three months from now? Hmm. If someone else
-> doesn't volunteer I can try to spend some time on this. I would love to
-> see n800 and n810 supported in mainline.
-> 
-> But I cannot make any promises, though. It would be great if someone
-> else can step up.
+Hi,
 
-OK, I can help a bit too. Here's what I have in mind we should do:
+I have been working with the linux-pm kernel on the Gumstix Overo,  
+seeing how low it's power consumption can go, both during the cpu "on"  
+and especially while the CPU is suspended. Thus far, I've had some  
+disappointing results, the best I could get is about 500mW while on,  
+and 250mW while suspended (ie by running "echo mem > /sys/power/ 
+state"). I am led to believe that the OMAP processor is capable of  
+much lower power consumption during standby.
 
-- Rename the board-*c files to board-n8x0-*.c. I can do this assuming
-  people are OK with this.
+I am wondering if anybody in the gumstix community is looking into the  
+software support for very-low-power modes on the overo. If so, I am  
+wondering what the lowest power levels are which you have reached  
+during standby are.
 
-- Get the gpio-switch replacement completed and into mainline.
-  Jani, any news on that? There's a threaad about that at:
-  http://thread.gmane.org/gmane.linux.kernel/809866
+I have seen this:
 
-- Stop using omap specific ATAGs and pass all the gpio etc info
-  from platform_data. This should be easy with CONFIG_ATAGS_PROC
-  that shows the passed ATAGs in /proc. I can work on this too.
+http://markmail.org/message/ge5hec5f5asp7a67#query:omap%20linux 
+%2080%20ma+page:1+mid:t2erlwweknakm767+state:results
 
-- Get drivers/cbus into mainline. Kalle, do you want to do this?
+Which seems to indicate the lowest power reached is 80mA at 3.3V ->  
+0.264 W, which is about what I'm seeing. Is it really true that the  
+overo draws a quarter of a watt when doing absolutely nothing?
 
-I guess there's some other clean-up needed too that we can all
-work once we have the initial patches working against the mainline.
-
-Regards,
-
-Tony
-  
+Thank you,
+Blazej
