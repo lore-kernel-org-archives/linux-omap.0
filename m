@@ -1,116 +1,34 @@
-From: "Pandita, Vikram" <vikram.pandita@ti.com>
-Subject: RE: [PATCH v3 1/3] OMAP3:zoom2: Add support for OMAP3 Zoom2 board
-Date: Thu, 21 May 2009 02:45:57 +0530
-Message-ID: <FCCFB4CDC6E5564B9182F639FC35608702F51299FB@dbde02.ent.ti.com>
-References: <1242422451-21551-2-git-send-email-mlc@ti.com>
- <20090518212216.GR19742@atomide.com>
- <FCCFB4CDC6E5564B9182F639FC35608702F50963E1@dbde02.ent.ti.com>
- <20090518213902.GS19742@atomide.com>
- <FCCFB4CDC6E5564B9182F639FC35608702F5096447@dbde02.ent.ti.com>
- <20090519162940.GX19742@atomide.com>
- <FCCFB4CDC6E5564B9182F639FC35608702F50968B0@dbde02.ent.ti.com>
- <20090519235520.GO19742@atomide.com>
- <FCCFB4CDC6E5564B9182F639FC35608702F50968B2@dbde02.ent.ti.com>
- <FCCFB4CDC6E5564B9182F639FC35608702F50968B4@dbde02.ent.ti.com>
- <20090520211235.GI8308@atomide.com>
+From: Max Filippov <jcmvbkbc@gmail.com>
+Subject: Re: N810: latest linux-omap-2.6.git master
+Date: Thu, 21 May 2009 01:29:30 +0400
+Message-ID: <200905210129.31039.jcmvbkbc@gmail.com>
+References: <200905091745.06435.luke@dashjr.org> <20090520151301.GB8308@atomide.com> <20090520220524.f7f707a2.jhnikula@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:34931 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754037AbZETVQI convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 20 May 2009 17:16:08 -0400
-In-Reply-To: <20090520211235.GI8308@atomide.com>
-Content-Language: en-US
+Received: from mail-ew0-f176.google.com ([209.85.219.176]:64405 "EHLO
+	mail-ew0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755321AbZETV3j (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 20 May 2009 17:29:39 -0400
+Received: by ewy24 with SMTP id 24so836822ewy.37
+        for <linux-omap@vger.kernel.org>; Wed, 20 May 2009 14:29:39 -0700 (PDT)
+In-Reply-To: <20090520220524.f7f707a2.jhnikula@gmail.com>
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: "Christensen, Mikkel" <mlc@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Jarkko Nikula <jhnikula@gmail.com>
+Cc: Tony Lindgren <tony@atomide.com>, Kalle Valo <kalle.valo@iki.fi>, ext-jani.1.nikula@nokia.com, Luke-Jr <luke@dashjr.org>, linux-omap@vger.kernel.org
 
+> Tony Lindgren <tony@atomide.com> wrote:
+> > OK, I can help a bit too. Here's what I have in mind we should do:
+>
+> I can participate at least to testing if nothing else.
 
->From: Tony Lindgren [mailto:tony@atomide.com]
->To: Pandita, Vikram
->Cc: Christensen, Mikkel; linux-omap@vger.kernel.org
->Subject: Re: [PATCH v3 1/3] OMAP3:zoom2: Add support for OMAP3 Zoom2 board
->
->* Pandita, Vikram <vikram.pandita@ti.com> [090519 17:10]:
->> Tony
->>
->> >-----Original Message-----
->> >From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of
->> >Pandita, Vikram
->> >Sent: Tuesday, May 19, 2009 7:01 PM
->> >To: Tony Lindgren
->> >Cc: Christensen, Mikkel; linux-omap@vger.kernel.org
->> >Subject: RE: [PATCH v3 1/3] OMAP3:zoom2: Add support for OMAP3 Zoom2 board
->> >
->> >
->> >
->> <snip>
->> >>
->> >>Well you still cannot have it as a late_initcall(), you should just call the
->> >>function from board-zoom2.c. Otherwise it will run for all the boards.
->>
->> Way not execute the debug board function for other boards could be to put it under
->> #ifdef CONFIG_MACH_OMAP_ZOOM2
->>
->> static int __init omap_zoom2_debugboard_init(void)
->> {
->> #ifdef CONFIG_MACH_OMAP_ZOOM2
->>         if (!omap_zoom2_debugboard_detect())
->>                 return 0;
->>
->>         zoom2_init_smsc911x();
->>         zoom2_init_quaduart();
->>         return platform_add_devices(zoom2_devices, ARRAY_SIZE(zoom2_devices));
->> #endif
->> }
->> late_initcall(omap_zoom2_debugboard_init);
->>
->>
->> The registration order of the UARTS with 8250 driver is all the reason we have to do this
->_initcall()
->
->Hmm, OK. That sounds like a bug that's from some older code. We should probably
->just do the platform_device_register in omap_serial_init(), then you can call
->your zoom_debug_init() after omap_serial_init().
->
->Care to do a separate patch to get rid of omap_init in mach-omap2/serial.c, and do
->the registration in omap_serial_init()?
+So am I. Testing and bughunting are what I can do best.
+Or development of small comprehensible features.
 
-Yes I can do that. I will submit the patch for this change.
-Following this I will resubmit Zoom2-board support version4 
-
->
->Regards,
->
->Tony
->
->>
->>
->> >
->> >The problem is that serial.c: platform_device_register() for UART1/2/3 happens as arch_init().
->> >
->> >We want that Quard/Dbg-board Uart console to appear as UART4(ttyS3) and so the
->> >platform_device_register() has to happen after the arch_init() call from serial.c
->> >
->> >If we put the dbg-board init in .init_machine   = omap_zoom2_init() function, then this gets
->called
->> >first before the serial.c:arch_init() and assigns ttyS0(UART0) to the debug board uart.
->> >
->> >This is not what we want to do.
->> >
->> >
->> >>
->> >>Regards,
->> >>
->> >>Tony
->> >>
->> >
->> >--
->> >To unsubscribe from this list: send the line "unsubscribe linux-omap" in
->> >the body of a message to majordomo@vger.kernel.org
->> >More majordomo info at  http://vger.kernel.org/majordomo-info.html
->>
+Thanks.
+-- Max
 
