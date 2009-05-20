@@ -1,78 +1,55 @@
 From: "Pandita, Vikram" <vikram.pandita@ti.com>
-Subject: [PATCH] OMAP2: Serial: Remove arch_initcall dependency
-Date: Thu, 21 May 2009 05:09:51 +0530
-Message-ID: <FCCFB4CDC6E5564B9182F639FC35608702F5129A0B@dbde02.ent.ti.com>
+Subject: [PATCH v4 0/3]Add Zoom2 board support
+Date: Thu, 21 May 2009 05:27:53 +0530
+Message-ID: <FCCFB4CDC6E5564B9182F639FC35608702F5129A0D@dbde02.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:58675 "EHLO bear.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:59275 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753229AbZETXj6 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 20 May 2009 19:39:58 -0400
+	id S1753524AbZETX6A convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 20 May 2009 19:58:00 -0400
 Received: from dbdp20.itg.ti.com ([172.24.170.38])
-	by bear.ext.ti.com (8.13.7/8.13.7) with ESMTP id n4KNdrcO017012
-	for <linux-omap@vger.kernel.org>; Wed, 20 May 2009 18:39:59 -0500
-Received: from dbde71.ent.ti.com (localhost [127.0.0.1])
-	by dbdp20.itg.ti.com (8.13.8/8.13.8) with ESMTP id n4KNdqxq028854
-	for <linux-omap@vger.kernel.org>; Thu, 21 May 2009 05:09:52 +0530 (IST)
+	by bear.ext.ti.com (8.13.7/8.13.7) with ESMTP id n4KNvuG6026644
+	for <linux-omap@vger.kernel.org>; Wed, 20 May 2009 18:58:02 -0500
+Received: from dbde70.ent.ti.com (localhost [127.0.0.1])
+	by dbdp20.itg.ti.com (8.13.8/8.13.8) with ESMTP id n4KNvtrY008728
+	for <linux-omap@vger.kernel.org>; Thu, 21 May 2009 05:27:55 +0530 (IST)
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
+
 From: Vikram Pandita <vikram.pandita@ti.com>
 
-Move platform_device_register() for serial device to
-omap_serial_init()
+The following patch series adds support for Texas Instruments OMAP3 Zoom2 board.
+The board has Modem attached to UART1, WLAN to UART2 and GPS to UART3.
 
-There is no need to have arch_initcall() dependency in serial
-as already board files call the function omap_serial_init()
+An external debug board is included for console and LAN.
 
-Signed-off-by: Vikram Pandita <vikram.pandita@ti.com>
----
- arch/arm/mach-omap2/serial.c |   22 +++++++++-------------
- 1 files changed, 9 insertions(+), 13 deletions(-)
+Please see:
+http://www.logicpd.com/products/development-kits/texas-instruments-zoom%E2%84%A2-omap34x-ii-mdp
 
-diff --git a/arch/arm/mach-omap2/serial.c b/arch/arm/mach-omap2/serial.c
-index 4dcf39c..3c2d325 100644
---- a/arch/arm/mach-omap2/serial.c
-+++ b/arch/arm/mach-omap2/serial.c
-@@ -98,6 +98,14 @@ void omap_serial_enable_clocks(int enable)
- 	}
- }
- 
-+static struct platform_device serial_device = {
-+	.name			= "serial8250",
-+	.id			= PLAT8250_DEV_PLATFORM,
-+	.dev			= {
-+		.platform_data	= serial_platform_data,
-+	},
-+};
-+
- void __init omap_serial_init(void)
- {
- 	int i;
-@@ -142,18 +150,6 @@ void __init omap_serial_init(void)
- 
- 		omap_serial_reset(p);
- 	}
--}
- 
--static struct platform_device serial_device = {
--	.name			= "serial8250",
--	.id			= PLAT8250_DEV_PLATFORM,
--	.dev			= {
--		.platform_data	= serial_platform_data,
--	},
--};
--
--static int __init omap_init(void)
--{
--	return platform_device_register(&serial_device);
-+	platform_device_register(&serial_device);
- }
--arch_initcall(omap_init);
--- 
-1.6.0.3.613.g9f8f13
+There is still thing that needs to be worked on and includes:
+ - SMSC911x NFS mount problem
+ - Low level debug uart need to use debug board
+ - Dynamic detection of debug board presence
+
+
+Vikram Pandita (3):
+  OMAP3:zoom2: Add support for OMAP3 Zoom2 board
+  OMAP3:zoom2: Defconfig for Zoom2 board
+  OMAP3:zoom2: Makefile and Kconfig for Zoom2 board
+
+ arch/arm/configs/omap_zoom2_defconfig       | 1211 +++++++++++++++++++++++++++
+ arch/arm/mach-omap2/Kconfig                 |    4 +
+ arch/arm/mach-omap2/Makefile                |    4 +-
+ arch/arm/mach-omap2/board-zoom-debugboard.c |  160 ++++
+ arch/arm/mach-omap2/board-zoom2.c           |  110 +++
+ 5 files changed, 1488 insertions(+), 1 deletions(-)
+ create mode 100644 arch/arm/configs/omap_zoom2_defconfig
+ create mode 100644 arch/arm/mach-omap2/board-zoom-debugboard.c
+ create mode 100644 arch/arm/mach-omap2/board-zoom2.c
 
