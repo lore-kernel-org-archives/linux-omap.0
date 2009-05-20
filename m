@@ -1,48 +1,58 @@
-From: Blazej Kot <bjk45@cornell.edu>
-Subject: Gumstix Overo Low Power Standby?
-Date: Wed, 20 May 2009 11:18:23 -0400
-Message-ID: <E7CF933B-CAC8-4F9E-AA3F-C64F36063C8F@cornell.edu>
-Mime-Version: 1.0 (Apple Message framework v935.3)
-Content-Type: text/plain; charset=US-ASCII; format=flowed; delsp=yes
-Content-Transfer-Encoding: 7bit
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: Tracking N770 breakage
+Date: Wed, 20 May 2009 08:19:07 -0700
+Message-ID: <20090520151907.GC8308@atomide.com>
+References: <20090516140653.10104565olvxrwjk@lidskialf.net> <20090517031715.92503qopn0joudhc@lidskialf.net> <20090519231500.GM19742@atomide.com> <20090520061544.560957looc5zgav4@lidskialf.net>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from granite1.mail.cornell.edu ([128.253.83.141]:64959 "EHLO
-	authusersmtp.mail.cornell.edu" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1753526AbZETPSW (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Wed, 20 May 2009 11:18:22 -0400
-Received: from dhcp103-57.cs.cornell.edu (dhcp103-57.cs.cornell.edu [128.84.103.57])
-	(authenticated bits=0)
-	by authusersmtp.mail.cornell.edu (8.13.1/8.12.10) with ESMTP id n4KFINmJ025208
-	(version=TLSv1/SSLv3 cipher=AES128-SHA bits=128 verify=NOT)
-	for <linux-omap@vger.kernel.org>; Wed, 20 May 2009 11:18:23 -0400 (EDT)
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:57044 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753935AbZETPTJ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 20 May 2009 11:19:09 -0400
+Content-Disposition: inline
+In-Reply-To: <20090520061544.560957looc5zgav4@lidskialf.net>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
+To: Andrew de Quincey <adq_dvb@lidskialf.net>, ladis@linux-mips.org
+Cc: linux-omap@vger.kernel.org
 
-Hi,
+* Andrew de Quincey <adq_dvb@lidskialf.net> [090519 22:15]:
+> Quoting Tony Lindgren <tony@atomide.com>:
+>
+>> * Andrew de Quincey <adq_dvb@lidskialf.net> [090516 19:17]:
+>>> Argh, my N770 seems to have just died; it has been behaving slightly
+>>> oddly and now it simply won't turn on (black screen and no sign of life
+>>> whatsoever).
+>>>
+>>> It is well out of warranty and frankly I don't see myself buying another
+>>> one, so this effectively ends my hacking on it :(
+>>
+>> Bummer :(
+>>
+>> After a quick try, CONFIG_OMAP_RESET_CLOCKS was the first stopper, then
+>> it could not mount the MMC root.
+>
+> Ahh excellent, that was why I posted my progress, in case it rang a bell 
+> with anyone! I think the touchpad driver may be broken as well BTW.
+>
+>> I think there was a patch posted for the omap1 MMC by Ladislav few months
+>> ago that probably fixes it.
+>
+> Cool - I hope I may be back in the running soon (I was rather annoyed  
+> when I posted that message!); I've ordered a new battery in case its  
+> just that. A kind person has also offered me one thats broken in a  
+> different way that I can probably cobble together with the remains of  
+> mine if its something more critical that has died.
 
-I have been working with the linux-pm kernel on the Gumstix Overo,  
-seeing how low it's power consumption can go, both during the cpu "on"  
-and especially while the CPU is suspended. Thus far, I've had some  
-disappointing results, the best I could get is about 500mW while on,  
-and 250mW while suspended (ie by running "echo mem > /sys/power/ 
-state"). I am led to believe that the OMAP processor is capable of  
-much lower power consumption during standby.
+Good to hear, let's hope it just needs a new battery.
 
-I am wondering if anybody in the gumstix community is looking into the  
-software support for very-low-power modes on the overo. If so, I am  
-wondering what the lowest power levels are which you have reached  
-during standby are.
+See also the n8x0 thread. If we get drivers/cbus to mainline, we
+pretty much have everything we need for 770 in mainline too.
 
-I have seen this:
+It would be nice to get the drivers/mmc/host/omap.c patch integrated
+for 2.6.30 to make omap1 MMC work again. Ladislav, any news on that?
 
-http://markmail.org/message/ge5hec5f5asp7a67#query:omap%20linux 
-%2080%20ma+page:1+mid:t2erlwweknakm767+state:results
+Regards,
 
-Which seems to indicate the lowest power reached is 80mA at 3.3V ->  
-0.264 W, which is about what I'm seeing. Is it really true that the  
-overo draws a quarter of a watt when doing absolutely nothing?
-
-Thank you,
-Blazej
+Tony
