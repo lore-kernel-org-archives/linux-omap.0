@@ -1,18 +1,22 @@
 From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: [PATCH 03/13] OMAP: Add new function to check wether there is irq pending
-Date: Wed, 20 May 2009 16:19:26 -0700
-Message-ID: <1242861576-13008-4-git-send-email-khilman@deeprootsystems.com>
+Subject: [PATCH 07/13] OMAP: UART: Add sysfs interface for adjusting UART sleep timeout
+Date: Wed, 20 May 2009 16:19:30 -0700
+Message-ID: <1242861576-13008-8-git-send-email-khilman@deeprootsystems.com>
 References: <1242861576-13008-1-git-send-email-khilman@deeprootsystems.com>
  <1242861576-13008-2-git-send-email-khilman@deeprootsystems.com>
  <1242861576-13008-3-git-send-email-khilman@deeprootsystems.com>
+ <1242861576-13008-4-git-send-email-khilman@deeprootsystems.com>
+ <1242861576-13008-5-git-send-email-khilman@deeprootsystems.com>
+ <1242861576-13008-6-git-send-email-khilman@deeprootsystems.com>
+ <1242861576-13008-7-git-send-email-khilman@deeprootsystems.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pz0-f177.google.com ([209.85.222.177]:58170 "EHLO
-	mail-pz0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757425AbZETXTr (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 20 May 2009 19:19:47 -0400
-Received: by pzk7 with SMTP id 7so340439pzk.33
-        for <linux-omap@vger.kernel.org>; Wed, 20 May 2009 16:19:49 -0700 (PDT)
-In-Reply-To: <1242861576-13008-3-git-send-email-khilman@deeprootsystems.com>
+Received: from wf-out-1314.google.com ([209.85.200.173]:37575 "EHLO
+	wf-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757169AbZETXT4 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 20 May 2009 19:19:56 -0400
+Received: by wf-out-1314.google.com with SMTP id 26so241368wfd.4
+        for <linux-omap@vger.kernel.org>; Wed, 20 May 2009 16:19:58 -0700 (PDT)
+In-Reply-To: <1242861576-13008-7-git-send-email-khilman@deeprootsystems.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-arm-kernel@lists.arm.linux.org.uk
@@ -20,114 +24,123 @@ Cc: linux-omap@vger.kernel.org
 
 From: Jouni Hogander <jouni.hogander@nokia.com>
 
-Add common omap2/3 function to check wether there is irq pending.
-Switch to use it in omap2 pm code instead of its own.
+This patch makes it possible to change uart sleep timeout. New sysfs
+entry is added (/sys/devices/platform/serial8250.<uart>/sleep_timeout)
+Writing zero will disable the timeout feature and prevent UART clocks
+from being disabled.
 
+Also default timeout is increased to 5 second to make serial console
+more usable.
+
+Original patch was written by Tero Kristo.
+
+Cc: Tero Kristo <Tero.Kristo@nokia.com>
 Signed-off-by: Jouni Hogander <jouni.hogander@nokia.com>
-Signed-off-by: Tony Lindgren <tony@atomide.com>
 Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
 ---
- arch/arm/mach-omap2/irq.c              |   17 ++++++++++++++++-
- arch/arm/mach-omap2/pm24xx.c           |   19 +++----------------
- arch/arm/plat-omap/include/mach/irqs.h |    1 +
- 3 files changed, 20 insertions(+), 17 deletions(-)
+ arch/arm/mach-omap2/serial.c |   55 ++++++++++++++++++++++++++++++++++++++---
+ 1 files changed, 51 insertions(+), 4 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/irq.c b/arch/arm/mach-omap2/irq.c
-index 08a3b99..b828638 100644
---- a/arch/arm/mach-omap2/irq.c
-+++ b/arch/arm/mach-omap2/irq.c
-@@ -28,7 +28,6 @@
- #define INTC_MIR_CLEAR0		0x0088
- #define INTC_MIR_SET0		0x008c
- #define INTC_PENDING_IRQ0	0x0098
--
- /* Number of IRQ state bits in each MIR register */
- #define IRQ_BITS_PER_REG	32
+diff --git a/arch/arm/mach-omap2/serial.c b/arch/arm/mach-omap2/serial.c
+index 50bff3d..854ac94 100644
+--- a/arch/arm/mach-omap2/serial.c
++++ b/arch/arm/mach-omap2/serial.c
+@@ -30,7 +30,7 @@
+ #include "pm.h"
+ #include "prm-regbits-34xx.h"
  
-@@ -156,6 +155,22 @@ static void __init omap_irq_bank_init_one(struct omap_irq_bank *bank)
- 	intc_bank_write_reg(1 << 0, bank, INTC_SYSCONFIG);
+-#define DEFAULT_TIMEOUT (2 * HZ)
++#define DEFAULT_TIMEOUT (5 * HZ)
+ 
+ struct omap_uart_state {
+ 	int num;
+@@ -233,7 +233,10 @@ static void omap_uart_block_sleep(struct omap_uart_state *uart)
+ 
+ 	omap_uart_smart_idle_enable(uart, 0);
+ 	uart->can_sleep = 0;
+-	mod_timer(&uart->timer, jiffies + uart->timeout);
++	if (uart->timeout)
++		mod_timer(&uart->timer, jiffies + uart->timeout);
++	else
++		del_timer(&uart->timer);
  }
  
-+int omap_irq_pending(void)
+ static void omap_uart_allow_sleep(struct omap_uart_state *uart)
+@@ -338,6 +341,8 @@ static irqreturn_t omap_uart_interrupt(int irq, void *dev_id)
+ 	return IRQ_NONE;
+ }
+ 
++static u32 sleep_timeout = DEFAULT_TIMEOUT;
++
+ static void omap_uart_idle_init(struct omap_uart_state *uart)
+ {
+ 	u32 v;
+@@ -345,7 +350,7 @@ static void omap_uart_idle_init(struct omap_uart_state *uart)
+ 	int ret;
+ 
+ 	uart->can_sleep = 0;
+-	uart->timeout = DEFAULT_TIMEOUT;
++	uart->timeout = sleep_timeout;
+ 	setup_timer(&uart->timer, omap_uart_idle_timer,
+ 		    (unsigned long) uart);
+ 	mod_timer(&uart->timer, jiffies + uart->timeout);
+@@ -425,6 +430,39 @@ static void omap_uart_idle_init(struct omap_uart_state *uart)
+ 	WARN_ON(ret);
+ }
+ 
++static ssize_t sleep_timeout_show(struct kobject *kobj,
++				  struct kobj_attribute *attr,
++				  char *buf)
 +{
-+	int i;
-+
-+	for (i = 0; i < ARRAY_SIZE(irq_banks); i++) {
-+		struct omap_irq_bank *bank = irq_banks + i;
-+		int irq;
-+
-+		for (irq = 0; irq < bank->nr_irqs; irq += 32)
-+			if (intc_bank_read_reg(bank, INTC_PENDING_IRQ0 +
-+					       ((irq >> 5) << 5)))
-+				return 1;
-+	}
-+	return 0;
++	return sprintf(buf, "%u\n", sleep_timeout / HZ);
 +}
 +
- void __init omap_init_irq(void)
++static ssize_t sleep_timeout_store(struct kobject *kobj,
++				   struct kobj_attribute *attr,
++				   const char *buf, size_t n)
++{
++	struct omap_uart_state *uart;
++	unsigned int value;
++
++	if (sscanf(buf, "%u", &value) != 1) {
++		printk(KERN_ERR "sleep_timeout_store: Invalid value\n");
++		return -EINVAL;
++	}
++	sleep_timeout = value * HZ;
++	list_for_each_entry(uart, &uart_list, node) {
++		uart->timeout = sleep_timeout;
++		if (uart->timeout)
++			mod_timer(&uart->timer, jiffies + uart->timeout);
++		else
++			/* A zero value means disable timeout feature */
++			omap_uart_block_sleep(uart);
++	}
++	return n;
++}
++
++static struct kobj_attribute sleep_timeout_attr =
++	__ATTR(sleep_timeout, 0644, sleep_timeout_show, sleep_timeout_store);
++
+ #else
+ static inline void omap_uart_idle_init(struct omap_uart_state *uart) {}
+ #endif /* CONFIG_PM */
+@@ -494,6 +532,15 @@ static struct platform_device serial_device = {
+ 
+ static int __init omap_init(void)
  {
- 	unsigned long nr_of_irqs = 0;
-diff --git a/arch/arm/mach-omap2/pm24xx.c b/arch/arm/mach-omap2/pm24xx.c
-index 384a5b5..3fa9c7c 100644
---- a/arch/arm/mach-omap2/pm24xx.c
-+++ b/arch/arm/mach-omap2/pm24xx.c
-@@ -77,19 +77,6 @@ static int omap2_fclks_active(void)
- 	return 0;
+-	return platform_device_register(&serial_device);
++	int ret;
++
++	ret = platform_device_register(&serial_device);
++
++#ifdef CONFIG_PM
++	if (!ret)
++		ret = sysfs_create_file(&serial_device.dev.kobj,
++					&sleep_timeout_attr.attr);
++#endif
++	return ret;
  }
- 
--static int omap2_irq_pending(void)
--{
--	u32 pending_reg = 0x480fe098;
--	int i;
--
--	for (i = 0; i < 4; i++) {
--		if (omap_readl(pending_reg))
--			return 1;
--		pending_reg += 0x20;
--	}
--	return 0;
--}
--
- static void omap2_enter_full_retention(void)
- {
- 	u32 l;
-@@ -128,7 +115,7 @@ static void omap2_enter_full_retention(void)
- 
- 	/* One last check for pending IRQs to avoid extra latency due
- 	 * to sleeping unnecessarily. */
--	if (omap2_irq_pending())
-+	if (omap_irq_pending())
- 		goto no_sleep;
- 
- 	/* Jump to SRAM suspend code */
-@@ -265,13 +252,13 @@ static void omap2_pm_idle(void)
- 	local_fiq_disable();
- 
- 	if (!omap2_can_sleep()) {
--		if (omap2_irq_pending())
-+		if (omap_irq_pending())
- 			goto out;
- 		omap2_enter_mpu_retention();
- 		goto out;
- 	}
- 
--	if (omap2_irq_pending())
-+	if (omap_irq_pending())
- 		goto out;
- 
- 	omap2_enter_full_retention();
-diff --git a/arch/arm/plat-omap/include/mach/irqs.h b/arch/arm/plat-omap/include/mach/irqs.h
-index 7f57ee6..f5f7c92 100644
---- a/arch/arm/plat-omap/include/mach/irqs.h
-+++ b/arch/arm/plat-omap/include/mach/irqs.h
-@@ -467,6 +467,7 @@
- 
- #ifndef __ASSEMBLY__
- extern void omap_init_irq(void);
-+extern int omap_irq_pending(void);
- #endif
- 
- #include <mach/hardware.h>
+ arch_initcall(omap_init);
 -- 
 1.6.2.2
 
