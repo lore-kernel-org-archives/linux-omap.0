@@ -1,52 +1,41 @@
-From: Andrew de Quincey <adq_dvb@lidskialf.net>
-Subject: Re: Tracking N770 breakage
-Date: Wed, 20 May 2009 06:15:44 +0100
-Message-ID: <20090520061544.560957looc5zgav4@lidskialf.net>
-References: <20090516140653.10104565olvxrwjk@lidskialf.net>
-	<20090517031715.92503qopn0joudhc@lidskialf.net>
-	<20090519231500.GM19742@atomide.com>
+From: "Menon, Nishanth" <nm@ti.com>
+Subject: RE: [ANNOUNCE] Temporary L-B tree for bridge 2.6.29
+Date: Wed, 20 May 2009 00:15:43 -0500
+Message-ID: <7A436F7769CA33409C6B44B358BFFF0C0113817FA4@dlee02.ent.ti.com>
+References: <27F9C60D11D683428E133F85D2BB4A53040B85D7A3@dlee03.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset=UTF-8;
-	DelSp="Yes";
-	format="flowed"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from 82-71-49-12.dsl.in-addr.zen.co.uk ([82.71.49.12]:33367 "EHLO
-	mail.lidskialf.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750997AbZETFPo convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 20 May 2009 01:15:44 -0400
-In-Reply-To: <20090519231500.GM19742@atomide.com>
-Content-Disposition: inline
+Received: from bear.ext.ti.com ([192.94.94.41]:58389 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751304AbZETFPt convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 20 May 2009 01:15:49 -0400
+Received: from dlep36.itg.ti.com ([157.170.170.91])
+	by bear.ext.ti.com (8.13.7/8.13.7) with ESMTP id n4K5FjlE024994
+	for <linux-omap@vger.kernel.org>; Wed, 20 May 2009 00:15:50 -0500
+Received: from dlep20.itg.ti.com (localhost [127.0.0.1])
+	by dlep36.itg.ti.com (8.13.8/8.13.8) with ESMTP id n4K5FjVQ012657
+	for <linux-omap@vger.kernel.org>; Wed, 20 May 2009 00:15:45 -0500 (CDT)
+Received: from dlee74.ent.ti.com (localhost [127.0.0.1])
+	by dlep20.itg.ti.com (8.12.11/8.12.11) with ESMTP id n4K5FjCh017411
+	for <linux-omap@vger.kernel.org>; Wed, 20 May 2009 00:15:45 -0500 (CDT)
+In-Reply-To: <27F9C60D11D683428E133F85D2BB4A53040B85D7A3@dlee03.ent.ti.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org
+To: "Ramirez Luna, Omar" <omar.ramirez@ti.com>, linux-omap <linux-omap@vger.kernel.org>
 
-Quoting Tony Lindgren <tony@atomide.com>:
 
-> * Andrew de Quincey <adq_dvb@lidskialf.net> [090516 19:17]:
->> Argh, my N770 seems to have just died; it has been behaving slightly
->> oddly and now it simply won't turn on (black screen and no sign of life
->> whatsoever).
->>
->> It is well out of warranty and frankly I don't see myself buying another
->> one, so this effectively ends my hacking on it :(
->
-> Bummer :(
->
-> After a quick try, CONFIG_OMAP_RESET_CLOCKS was the first stopper, then
-> it could not mount the MMC root.
+> -----Original Message-----
+> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
+> 
+> In the mean time you can clone from:
+> 	git://gitorious.org/ti-dspbridge/linux-bridge.git
+How does this stand with [1] - are we saying that the above will be new tidspbridge tree? Who is the maintainer?
 
-Ahh excellent, that was why I posted my progress, in case it rang a  
-bell with anyone! I think the touchpad driver may be broken as well BTW.
-
-> I think there was a patch posted for the omap1 MMC by Ladislav few months
-> ago that probably fixes it.
-
-Cool - I hope I may be back in the running soon (I was rather annoyed  
-when I posted that message!); I've ordered a new battery in case its  
-just that. A kind person has also offered me one thats broken in a  
-different way that I can probably cobble together with the remains of  
-mine if its something more critical that has died.
+Regards,
+Nishanth Menon
+Ref:
+[1] http://gitorious.org/tidspbridge/
 
