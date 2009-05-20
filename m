@@ -1,75 +1,78 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: [PATCH 13/13] OMAP3: PM: prevent module wakeups from waking IVA2
-Date: Wed, 20 May 2009 16:19:36 -0700
-Message-ID: <1242861576-13008-14-git-send-email-khilman@deeprootsystems.com>
-References: <1242861576-13008-1-git-send-email-khilman@deeprootsystems.com>
- <1242861576-13008-2-git-send-email-khilman@deeprootsystems.com>
- <1242861576-13008-3-git-send-email-khilman@deeprootsystems.com>
- <1242861576-13008-4-git-send-email-khilman@deeprootsystems.com>
- <1242861576-13008-5-git-send-email-khilman@deeprootsystems.com>
- <1242861576-13008-6-git-send-email-khilman@deeprootsystems.com>
- <1242861576-13008-7-git-send-email-khilman@deeprootsystems.com>
- <1242861576-13008-8-git-send-email-khilman@deeprootsystems.com>
- <1242861576-13008-9-git-send-email-khilman@deeprootsystems.com>
- <1242861576-13008-10-git-send-email-khilman@deeprootsystems.com>
- <1242861576-13008-11-git-send-email-khilman@deeprootsystems.com>
- <1242861576-13008-12-git-send-email-khilman@deeprootsystems.com>
- <1242861576-13008-13-git-send-email-khilman@deeprootsystems.com>
+From: "Pandita, Vikram" <vikram.pandita@ti.com>
+Subject: [PATCH] OMAP2: Serial: Remove arch_initcall dependency
+Date: Thu, 21 May 2009 05:09:51 +0530
+Message-ID: <FCCFB4CDC6E5564B9182F639FC35608702F5129A0B@dbde02.ent.ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-px0-f171.google.com ([209.85.216.171]:43119 "EHLO
-	mail-px0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757267AbZETXUK (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 20 May 2009 19:20:10 -0400
-Received: by mail-px0-f171.google.com with SMTP id 1so365239pxi.33
-        for <linux-omap@vger.kernel.org>; Wed, 20 May 2009 16:20:11 -0700 (PDT)
-In-Reply-To: <1242861576-13008-13-git-send-email-khilman@deeprootsystems.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:58675 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753229AbZETXj6 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 20 May 2009 19:39:58 -0400
+Received: from dbdp20.itg.ti.com ([172.24.170.38])
+	by bear.ext.ti.com (8.13.7/8.13.7) with ESMTP id n4KNdrcO017012
+	for <linux-omap@vger.kernel.org>; Wed, 20 May 2009 18:39:59 -0500
+Received: from dbde71.ent.ti.com (localhost [127.0.0.1])
+	by dbdp20.itg.ti.com (8.13.8/8.13.8) with ESMTP id n4KNdqxq028854
+	for <linux-omap@vger.kernel.org>; Thu, 21 May 2009 05:09:52 +0530 (IST)
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-arm-kernel@lists.arm.linux.org.uk
-Cc: linux-omap@vger.kernel.org
+To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-By default, prevent functional wakeups from inside a module from
-waking up the IVA2.  Let DSP Bridge code handle this when loaded.
+From: Vikram Pandita <vikram.pandita@ti.com>
 
-Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
+Move platform_device_register() for serial device to
+omap_serial_init()
+
+There is no need to have arch_initcall() dependency in serial
+as already board files call the function omap_serial_init()
+
+Signed-off-by: Vikram Pandita <vikram.pandita@ti.com>
 ---
- arch/arm/mach-omap2/pm34xx.c |    6 ++++++
- arch/arm/mach-omap2/prm.h    |    2 ++
- 2 files changed, 8 insertions(+), 0 deletions(-)
+ arch/arm/mach-omap2/serial.c |   22 +++++++++-------------
+ 1 files changed, 9 insertions(+), 13 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
-index 8442286..deffafd 100644
---- a/arch/arm/mach-omap2/pm34xx.c
-+++ b/arch/arm/mach-omap2/pm34xx.c
-@@ -600,6 +600,12 @@ static void __init prcm_setup_regs(void)
- 	prm_write_mod_reg(OMAP3430_IO_EN | OMAP3430_WKUP_EN,
- 			  OCP_MOD, OMAP3_PRM_IRQENABLE_MPU_OFFSET);
+diff --git a/arch/arm/mach-omap2/serial.c b/arch/arm/mach-omap2/serial.c
+index 4dcf39c..3c2d325 100644
+--- a/arch/arm/mach-omap2/serial.c
++++ b/arch/arm/mach-omap2/serial.c
+@@ -98,6 +98,14 @@ void omap_serial_enable_clocks(int enable)
+ 	}
+ }
  
-+	/* Don't attach IVA interrupts */
-+	prm_write_mod_reg(0, WKUP_MOD, OMAP3430_PM_IVAGRPSEL);
-+	prm_write_mod_reg(0, CORE_MOD, OMAP3430_PM_IVAGRPSEL1);
-+	prm_write_mod_reg(0, CORE_MOD, OMAP3430ES2_PM_IVAGRPSEL3);
-+	prm_write_mod_reg(0, OMAP3430_PER_MOD, OMAP3430_PM_IVAGRPSEL);
++static struct platform_device serial_device = {
++	.name			= "serial8250",
++	.id			= PLAT8250_DEV_PLATFORM,
++	.dev			= {
++		.platform_data	= serial_platform_data,
++	},
++};
 +
- 	/* Clear any pending 'reset' flags */
- 	prm_write_mod_reg(0xffffffff, MPU_MOD, RM_RSTST);
- 	prm_write_mod_reg(0xffffffff, CORE_MOD, RM_RSTST);
-diff --git a/arch/arm/mach-omap2/prm.h b/arch/arm/mach-omap2/prm.h
-index 7c8e0c4..9937e28 100644
---- a/arch/arm/mach-omap2/prm.h
-+++ b/arch/arm/mach-omap2/prm.h
-@@ -203,9 +203,11 @@
+ void __init omap_serial_init(void)
+ {
+ 	int i;
+@@ -142,18 +150,6 @@ void __init omap_serial_init(void)
  
- #define OMAP3430_PM_MPUGRPSEL				0x00a4
- #define OMAP3430_PM_MPUGRPSEL1				OMAP3430_PM_MPUGRPSEL
-+#define OMAP3430ES2_PM_MPUGRPSEL3			0x00f8
+ 		omap_serial_reset(p);
+ 	}
+-}
  
- #define OMAP3430_PM_IVAGRPSEL				0x00a8
- #define OMAP3430_PM_IVAGRPSEL1				OMAP3430_PM_IVAGRPSEL
-+#define OMAP3430ES2_PM_IVAGRPSEL3			0x00f4
- 
- #define OMAP3430_PM_PREPWSTST				0x00e8
- 
+-static struct platform_device serial_device = {
+-	.name			= "serial8250",
+-	.id			= PLAT8250_DEV_PLATFORM,
+-	.dev			= {
+-		.platform_data	= serial_platform_data,
+-	},
+-};
+-
+-static int __init omap_init(void)
+-{
+-	return platform_device_register(&serial_device);
++	platform_device_register(&serial_device);
+ }
+-arch_initcall(omap_init);
 -- 
-1.6.2.2
+1.6.0.3.613.g9f8f13
 
