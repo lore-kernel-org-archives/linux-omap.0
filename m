@@ -1,41 +1,35 @@
-From: Tomi Valkeinen <tomi.valkeinen@nokia.com>
-Subject: Re: OpenGL flicker issue in Android
-Date: Wed, 20 May 2009 15:27:36 +0300
-Message-ID: <1242822456.16944.1.camel@tubuntu>
-References: <221265CC-5630-45D1-8046-08E6AE3B9F79@mac.com>
-Reply-To: tomi.valkeinen@nokia.com
+From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+Subject: Re: [ANNOUNCE] Temporary L-B tree for bridge 2.6.29
+Date: Wed, 20 May 2009 15:31:12 +0300 (EEST)
+Message-ID: <20090520.153112.25158397.Hiroshi.DOYU@nokia.com>
+References: <27F9C60D11D683428E133F85D2BB4A53040B85D7A3@dlee03.ent.ti.com>
+	<7A436F7769CA33409C6B44B358BFFF0C0113817FA4@dlee02.ent.ti.com>
+	<8F7AF80515AF0D4D93307E594F3CB40E2B19311D@dlee03.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:53993 "EHLO
+Received: from smtp.nokia.com ([192.100.105.134]:54169 "EHLO
 	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756346AbZETM3W (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 20 May 2009 08:29:22 -0400
-In-Reply-To: <221265CC-5630-45D1-8046-08E6AE3B9F79@mac.com>
+	with ESMTP id S1754979AbZETMcL (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 20 May 2009 08:32:11 -0400
+In-Reply-To: <8F7AF80515AF0D4D93307E594F3CB40E2B19311D@dlee03.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: ext Elvis Dowson <elvis.dowson@mac.com>
-Cc: Linux OMAP Users <linux-omap@vger.kernel.org>
+To: h-kanigeri2@ti.com
+Cc: nm@ti.com, omar.ramirez@ti.com, linux-omap@vger.kernel.org, ameya.palande@nokia.com
 
-On Wed, 2009-05-20 at 14:16 +0200, ext Elvis Dowson wrote:
-> Hi Tomi,
->             Would you be able to shed some light on the OpenGL flicker
-> issue when using Android with TI OMAP 3503 or 3530 hardware? 
-> 
-> 
-> 
-> I can see transient background image artifacts when working with the
-> widgets, and some say that this maybe a bug in the framebuffer
-> driver? 
-> 
-> 
-> OpenGL composition artefacts - android-porting | Google Groups
-> 
+From: "ext Kanigeri, Hari" <h-kanigeri2@ti.com>
+Subject: RE: [ANNOUNCE] Temporary L-B tree for bridge 2.6.29
+Date: Wed, 20 May 2009 14:15:21 +0200
 
-Are you using DSS2 driver? But sounds like a double buffering issue in
-the application to me. How do you do double buffering?
+> Nishant,
+> 
+> As Omar mentioned this is temporary staging and this will be moved
+> to omapzoom portal in a Week or two. This version of tidspbridge has
+> the open source PM framework.
+> 
+> Myself and Omar will act as maintainers.
 
- Tomi
-
-
+This would be nice and maybe it would be better to ask Tony to mirror
+it on "omap/tidspbridge" when o-z git for tidspbridge is ready.
