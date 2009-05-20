@@ -1,62 +1,63 @@
-From: Koen Kooi <k.kooi@student.utwente.nl>
-Subject: Re: Impact of SR reflex or pm patches on the ADS7846 touchscreen controller
-Date: Wed, 20 May 2009 09:38:49 +0200
-Message-ID: <63C6AFF7-93F4-4269-9676-71378AD0218E@student.utwente.nl>
-References: <1E88D8D2-FACB-42F8-8D48-319834A1A118@mac.com>
-Mime-Version: 1.0 (Apple Message framework v935.3)
-Content-Type: multipart/signed; protocol="application/pgp-signature"; micalg=pgp-sha1; boundary="Apple-Mail-18-357440888"
+From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+Subject: Re: [PATCH 1/7] omap iommu: tlb and pagetable primitives
+Date: Wed, 20 May 2009 12:48:14 +0300 (EEST)
+Message-ID: <20090520.124814.124079256.Hiroshi.DOYU@nokia.com>
+References: <20090520064211.24734.80725.stgit@oreo.research.nokia.com>
+Mime-Version: 1.0
+Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mx3.utsp.utwente.nl ([130.89.2.14]:64195 "EHLO mx.utwente.nl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752028AbZETHjX (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 20 May 2009 03:39:23 -0400
-Received: from [172.20.1.5] (vpn006011.vpn.utwente.nl [130.89.6.11])
-          by mx.utwente.nl (8.12.10/SuSE Linux 0.7) with ESMTP id n4K7cpkk030524
-          for <linux-omap@vger.kernel.org>; Wed, 20 May 2009 09:38:51 +0200
-In-Reply-To: <1E88D8D2-FACB-42F8-8D48-319834A1A118@mac.com>
+Received: from smtp.nokia.com ([192.100.122.233]:36700 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751776AbZETJsg (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 20 May 2009 05:48:36 -0400
+In-Reply-To: <20090520064211.24734.80725.stgit@oreo.research.nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Linux OMAP Users <linux-omap@vger.kernel.org>
+To: linux-arm-kernel@lists.arm.linux.org.uk
+Cc: linux-omap@vger.kernel.org, h-kanigeri2@ti.com, omar.ramirez@ti.com, sakari.ailus@maxwell.research.nokia.com, tony@atomide.com
 
-This is an OpenPGP/MIME signed message (RFC 2440 and 3156)
---Apple-Mail-18-357440888
-Content-Type: text/plain; charset=US-ASCII; format=flowed; delsp=yes
-Content-Transfer-Encoding: 7bit
+Hi,
 
+If there's no problem with those patches, please pull them from the following.
 
-Op 20 mei 2009, om 05:37 heeft Elvis Dowson het volgende geschreven:
+The following changes since commit 091438dd5668396328a3419abcbc6591159eb8d1:
+  Linus Torvalds (1):
+        Linux 2.6.30-rc4
 
-> Hi,
-> 	I just noticed that after incorporating the SR reflex and the  
-> recent patches from 187 onwards (using git format patch master on  
-> the pm branch),
->
-> my ADS7846 touchscreen controller's response has become modified.  
-> Any possible links or is there some dependency between the SR reflex  
-> patches and the pm patches for the ADS7846 touchscreen controller?
+are available in the git repository at:
 
-I've noticed that the TS behaves OK at ~500MHz and up, but becomes  
-troublesome at lower frequencies. I've 'solved' this by using the  
-performance cpufreq governor :)
+  http://git.gitorious.org/lk/mainline.git iommu
 
-regards,
+Hiroshi DOYU (7):
+      omap iommu: tlb and pagetable primitives
+      omap iommu: omap2 architecture specific functions
+      omap iommu: omap3 iommu device registration
+      omap iommu: simple virtual address space management
+      omap iommu: entries for Kconfig and Makefile
+      omap2 iommu: entries for Kconfig and Makefile
+      omap iommu: add MPU_BRIDGE_IOMMU for tidspbridge migration
 
-Koen
-
---Apple-Mail-18-357440888
-content-type: application/pgp-signature; x-mac-type=70674453;
-	name=PGP.sig
-content-description: Dit deel van het bericht is digitaal ondertekend
-content-disposition: inline; filename=PGP.sig
-content-transfer-encoding: 7bit
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.5 (Darwin)
-
-iD8DBQFKE7OLMkyGM64RGpERAtSeAJ0U8Wr3SR+9yeTFsTn06idjjgOGWgCgh/3L
-Yf3dKUH2TQXufabv216WcSI=
-=19od
------END PGP SIGNATURE-----
-
---Apple-Mail-18-357440888--
+ arch/arm/include/asm/mach/map.h          |    8 +
+ arch/arm/mach-omap2/Makefile             |    5 +
+ arch/arm/mach-omap2/iommu2.c             |  323 ++++++++++
+ arch/arm/mach-omap2/omap3-iommu.c        |  105 ++++
+ arch/arm/mm/ioremap.c                    |    6 +
+ arch/arm/mm/mmu.c                        |    1 +
+ arch/arm/plat-omap/Kconfig               |    6 +
+ arch/arm/plat-omap/Makefile              |    1 +
+ arch/arm/plat-omap/include/mach/iommu.h  |  168 +++++
+ arch/arm/plat-omap/include/mach/iommu2.h |   96 +++
+ arch/arm/plat-omap/include/mach/iovmm.h  |   94 +++
+ arch/arm/plat-omap/iommu.c               |  996 ++++++++++++++++++++++++++++++
+ arch/arm/plat-omap/iopgtable.h           |   72 +++
+ arch/arm/plat-omap/iovmm.c               |  896 +++++++++++++++++++++++++++
+ 14 files changed, 2777 insertions(+), 0 deletions(-)
+ create mode 100644 arch/arm/mach-omap2/iommu2.c
+ create mode 100644 arch/arm/mach-omap2/omap3-iommu.c
+ create mode 100644 arch/arm/plat-omap/include/mach/iommu.h
+ create mode 100644 arch/arm/plat-omap/include/mach/iommu2.h
+ create mode 100644 arch/arm/plat-omap/include/mach/iovmm.h
+ create mode 100644 arch/arm/plat-omap/iommu.c
+ create mode 100644 arch/arm/plat-omap/iopgtable.h
+ create mode 100644 arch/arm/plat-omap/iovmm.c
