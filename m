@@ -1,34 +1,62 @@
-From: "Ramirez Luna, Omar" <omar.ramirez@ti.com>
-Subject: RE: [PATCH 01/14] DSPBRIDGE: Remove SEEK_* redefinitions
-Date: Wed, 20 May 2009 10:04:54 -0500
-Message-ID: <27F9C60D11D683428E133F85D2BB4A53040B85D8BE@dlee03.ent.ti.com>
-References: <1242795740-21535-1-git-send-email-x00omar@ti.com>
- <94a0d4530905200642j3c81173elbc3f57747c1de38e@mail.gmail.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: N810: latest linux-omap-2.6.git master
+Date: Wed, 20 May 2009 08:13:02 -0700
+Message-ID: <20090520151301.GB8308@atomide.com>
+References: <200905091745.06435.luke@dashjr.org> <200905121818.13785.luke@dashjr.org> <20090513121219.43206b03.jhnikula@gmail.com> <200905190009.28222.luke@dashjr.org> <20090519094240.dbe5b959.jhnikula@gmail.com> <20090519171521.GA19742@atomide.com> <87bppneuel.fsf@litku.valot.fi>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:39934 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753579AbZETPFF convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 20 May 2009 11:05:05 -0400
-In-Reply-To: <94a0d4530905200642j3c81173elbc3f57747c1de38e@mail.gmail.com>
-Content-Language: en-US
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:64079 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751411AbZETPNM (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 20 May 2009 11:13:12 -0400
+Content-Disposition: inline
+In-Reply-To: <87bppneuel.fsf@litku.valot.fi>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Contreras <felipe.contreras@gmail.com>
-Cc: linux-omap <linux-omap@vger.kernel.org>, "Hiroshi.DOYU@nokia.com" <Hiroshi.DOYU@nokia.com>, "ameya.palande@nokia.com" <ameya.palande@nokia.com>, "Guzman Lugo, Fernando" <x0095840@ti.com>
+To: Kalle Valo <kalle.valo@iki.fi>, ext-jani.1.nikula@nokia.com
+Cc: Jarkko Nikula <jhnikula@gmail.com>, Luke-Jr <luke@dashjr.org>, linux-omap@vger.kernel.org
 
->From: linux-omap On Behalf Of Felipe Contreras
->Sent: Wednesday, May 20, 2009 8:43 AM
->
->On Wed, May 20, 2009 at 8:02 AM, Omar Ramirez Luna <x00omar@ti.com> wrote:
->> From: Guzman Lugo Fernando <x0095840@ti.com>
->>
->> This patch removes the SEEK_* redefinitions in host_os.h
->
->Nice patchset but a cover letter would make them even nicer :)
+* Kalle Valo <kalle.valo@iki.fi> [090520 07:11]:
+> Tony Lindgren <tony@atomide.com> writes:
+> 
+> >> > Is anyone actually trying to work on or maintain N8x0 support?
+> >> 
+> >> I think N8x0 support is a little bit behind from other boards. Lot of
+> >> active development is going around on newer and more open platforms like
+> >> Beagle and not all patches are necessary tested on N8x0 (or other boards
+> >> too!). Of course active hacker base helps to point out breakages.
+> >
+> > We should try to get the board-n8x0 stuff in shape for mainline maybe
+> > the next merge window after this, anybody willing to spend some cycles
+> > on preparing the patches against the mainline tree?
+> 
+> So that's something like three months from now? Hmm. If someone else
+> doesn't volunteer I can try to spend some time on this. I would love to
+> see n800 and n810 supported in mainline.
+> 
+> But I cannot make any promises, though. It would be great if someone
+> else can step up.
 
-I'll keep that in mind, thanks for the suggestion.
+OK, I can help a bit too. Here's what I have in mind we should do:
 
-- omar
+- Rename the board-*c files to board-n8x0-*.c. I can do this assuming
+  people are OK with this.
+
+- Get the gpio-switch replacement completed and into mainline.
+  Jani, any news on that? There's a threaad about that at:
+  http://thread.gmane.org/gmane.linux.kernel/809866
+
+- Stop using omap specific ATAGs and pass all the gpio etc info
+  from platform_data. This should be easy with CONFIG_ATAGS_PROC
+  that shows the passed ATAGs in /proc. I can work on this too.
+
+- Get drivers/cbus into mainline. Kalle, do you want to do this?
+
+I guess there's some other clean-up needed too that we can all
+work once we have the initial patches working against the mainline.
+
+Regards,
+
+Tony
+  
