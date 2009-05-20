@@ -1,49 +1,50 @@
-From: Aaro Koskinen <aaro.koskinen@nokia.com>
-Subject: [PATCH] OMAP: PM: Clear DMA channel state after a wakeup
-Date: Wed, 20 May 2009 16:58:30 +0300
-Message-ID: <1242827910-16136-1-git-send-email-aaro.koskinen@nokia.com>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: [PATCH] OMAP3: PM: Smartreflex: Fix VDD2 OPP determining logic
+Date: Wed, 20 May 2009 07:09:59 -0700
+Message-ID: <8763fvuaq0.fsf@deeprootsystems.com>
+References: <1242822417-17829-1-git-send-email-ext-roger.quadros@nokia.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:60799 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755106AbZETN6x (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 20 May 2009 09:58:53 -0400
-In-Reply-To: <>
-References: <>
+Received: from wf-out-1314.google.com ([209.85.200.175]:3502 "EHLO
+	wf-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753334AbZETOKA (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 20 May 2009 10:10:00 -0400
+Received: by wf-out-1314.google.com with SMTP id 26so152492wfd.4
+        for <linux-omap@vger.kernel.org>; Wed, 20 May 2009 07:10:01 -0700 (PDT)
+In-Reply-To: <1242822417-17829-1-git-send-email-ext-roger.quadros@nokia.com> (Roger Quadros's message of "Wed\, 20 May 2009 15\:26\:57 +0300")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: khilman@deeprootsystems.com, linux-omap@vger.kernel.org
+To: Roger Quadros <ext-roger.quadros@nokia.com>
+Cc: linux-omap@vger.kernel.org
 
-Clear DMA channel states so that users can assume a known initial state.
+Roger Quadros <ext-roger.quadros@nokia.com> writes:
 
-Signed-off-by: Aaro Koskinen <aaro.koskinen@nokia.com>
----
- arch/arm/plat-omap/dma.c |    6 ++++++
- 1 files changed, 6 insertions(+), 0 deletions(-)
+> Use l3_ick clock rate to find out current VDD2 OPP since
+> VDD2 OPP table uses rates corresponding to L3 clock.
+>
+> Signed-off-by: Roger Quadros <ext-roger.quadros@nokia.com>
 
-diff --git a/arch/arm/plat-omap/dma.c b/arch/arm/plat-omap/dma.c
-index 9796773..cd53b28 100755
---- a/arch/arm/plat-omap/dma.c
-+++ b/arch/arm/plat-omap/dma.c
-@@ -2322,6 +2322,8 @@ EXPORT_SYMBOL(omap_dma_global_context_save);
- 
- void omap_dma_global_context_restore(void)
- {
-+	int ch;
-+
- 	dma_write(omap_dma_global_context.dma_gcr, GCR);
- 	dma_write(omap_dma_global_context.dma_ocp_sysconfig,
- 		OCP_SYSCONFIG);
-@@ -2336,6 +2338,10 @@ void omap_dma_global_context_restore(void)
- 	 */
- 	if (cpu_is_omap34xx() && (omap_type() != OMAP2_DEVICE_TYPE_GP))
- 		dma_write(0x3 , IRQSTATUS_L0);
-+
-+	for (ch = 0; ch < dma_chan_count; ch++)
-+		if (dma_chan[ch].dev_id != -1)
-+			omap_clear_dma(ch);
- }
- EXPORT_SYMBOL(omap_dma_global_context_restore);
- 
--- 
-1.5.4.3
+Thanks, pushed to PM branch.
 
+Kevin
+
+> ---
+>  arch/arm/mach-omap2/smartreflex.c |    2 +-
+>  1 files changed, 1 insertions(+), 1 deletions(-)
+>
+> diff --git a/arch/arm/mach-omap2/smartreflex.c b/arch/arm/mach-omap2/smartreflex.c
+> index 061cd4e..422c917 100644
+> --- a/arch/arm/mach-omap2/smartreflex.c
+> +++ b/arch/arm/mach-omap2/smartreflex.c
+> @@ -184,7 +184,7 @@ static u16 get_vdd2_opp(void)
+>  	u16 opp;
+>  	struct clk *clk;
+>  
+> -	clk = clk_get(NULL, "dpll3_m2_ck");
+> +	clk = clk_get(NULL, "l3_ick");
+>  
+>  	if (clk == NULL || IS_ERR(clk) || l3_opps == NULL)
+>  		return 0;
+> -- 
+> 1.6.0.4
