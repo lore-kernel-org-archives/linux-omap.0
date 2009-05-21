@@ -1,126 +1,58 @@
 From: "Guzman Lugo, Fernando" <x0095840@ti.com>
-Subject: FW: [PATCH] DSPBRIDGE: Buffer size warning fixes
-Date: Thu, 21 May 2009 12:17:47 -0500
-Message-ID: <496565EC904933469F292DDA3F1663E602931073CA@dlee06.ent.ti.com>
+Subject: RE: [PATCH] DSPBRIDGE: Removal of unreachable code
+Date: Thu, 21 May 2009 12:25:10 -0500
+Message-ID: <496565EC904933469F292DDA3F1663E602931073D0@dlee06.ent.ti.com>
+References: <1242731876-16119-1-git-send-email-ameya.palande@nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="iso-2022-jp"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:38698 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751456AbZEURR5 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 21 May 2009 13:17:57 -0400
+Received: from arroyo.ext.ti.com ([192.94.94.40]:33319 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752836AbZEURZV convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 21 May 2009 13:25:21 -0400
+In-Reply-To: <1242731876-16119-1-git-send-email-ameya.palande@nokia.com>
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Ameya Palande <ameya.palande@nokia.com>
-Cc: "Kanigeri, Hari" <h-kanigeri2@ti.com>
+To: Ameya Palande <ameya.palande@nokia.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-
-Looping in linux-omap.
-
------Original Message-----
-From: Guzman Lugo, Fernando 
-Sent: Thursday, May 21, 2009 12:14 PM
-To: 'Ameya Palande'
-Cc: Kanigeri, Hari
-Subject: RE: [PATCH] DSPBRIDGE: Buffer size warning fixes
 
 
 Hi Ameya,
 
-	What is the problem that this patch resolves, I think you want to left the last byte of the string for the end of string character '\0', so avoid when we strncpy generates a not null-terminated string when the src string has a length >= COD_MAXPATHLENGTH. However the patch doesn’t fix this problem unless when we declared an array it is zero-initialized but I don’t think so.
-
-Example without this patch
-
-                              COD_MAXPATHLENGTH limit
-                                    ↓
-Src string      .....abcdefghijklmnop qst...
-Dst String      .....abcdefghijklmnop  <- not null-terminated esting 
-
-Example with this patch
-                              COD_MAXPATHLENGTH limit
-                                    ↓
-Src string      .....abcdefghijklmnop qst...
-Dst String      .....abcdefghijklmno   <- Also not null-terminated string
-                                   ↑
-                              We copy COD_MAXPATHLENGTH - 1 
-                              The last character of the array
-                              wouldn’t be ‘\0’
-                              It would be garbage
-
-Maybe to resolve that problem we could do:
-} else {
-
-            /* hang onto the library for subsequent sym table usage */
-            hMgr->baseLib = lib;
-            strncpy(hMgr->szZLFile, pszCoffPath, COD_MAXPATHLENGTH);
-            if (strlen(pszCoffPath) >= COD_MAXPATHLENGTH)
-                  hMgr->szZLFile[COD_MAXPATHLENGTH -1] = ‘\0’;
-
-      }
-
-Please let me know what you think or if this patch resolve something else.
+	The patch is ok. I think this was introduced by error in a patch.
 
 Regards,
 Fernando.
 
 -----Original Message-----
 From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Ameya Palande
-Sent: Tuesday, May 19, 2009 5:49 AM
+Sent: Tuesday, May 19, 2009 6:18 AM
 To: linux-omap@vger.kernel.org
-Subject: [PATCH] DSPBRIDGE: Buffer size warning fixes
+Subject: [PATCH] DSPBRIDGE: Removal of unreachable code
 
 From: Ameya Palande <ameya.palande@nokia.com>
 
 Signed-off-by: Ameya Palande <ameya.palande@nokia.com>
 ---
- drivers/dsp/bridge/pmgr/cod.c        |    2 +-
- drivers/dsp/bridge/rmgr/drv.c        |    2 +-
- drivers/dsp/bridge/services/regsup.c |    4 ++--
- 3 files changed, 4 insertions(+), 4 deletions(-)
+ drivers/dsp/bridge/wmd/io_sm.c |    3 ---
+ 1 files changed, 0 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/dsp/bridge/pmgr/cod.c b/drivers/dsp/bridge/pmgr/cod.c
-index 6363f1e..5094201 100644
---- a/drivers/dsp/bridge/pmgr/cod.c
-+++ b/drivers/dsp/bridge/pmgr/cod.c
-@@ -628,7 +628,7 @@ DSP_STATUS COD_OpenBase(struct COD_MANAGER *hMgr, IN char *pszCoffPath,
- 	} else {
- 		/* hang onto the library for subsequent sym table usage */
- 		hMgr->baseLib = lib;
--               strncpy(hMgr->szZLFile, pszCoffPath, COD_MAXPATHLENGTH);
-+		strncpy(hMgr->szZLFile, pszCoffPath, COD_MAXPATHLENGTH - 1);
+diff --git a/drivers/dsp/bridge/wmd/io_sm.c b/drivers/dsp/bridge/wmd/io_sm.c
+index 8d106e1..6f7e338 100644
+--- a/drivers/dsp/bridge/wmd/io_sm.c
++++ b/drivers/dsp/bridge/wmd/io_sm.c
+@@ -1742,9 +1742,6 @@ DSP_STATUS IO_SHMsetting(IN struct IO_MGR *hIOMgr, IN enum SHM_DESCTYPE desc,
+ 		break;
+ 	default:
+ 		break;
+-
+-				queue_work(bridge_workqueue,
+-							 &(hIOMgr->io_workq));
  	}
- 
- 	return status;
-diff --git a/drivers/dsp/bridge/rmgr/drv.c b/drivers/dsp/bridge/rmgr/drv.c
-index 256ce12..60ca054 100644
---- a/drivers/dsp/bridge/rmgr/drv.c
-+++ b/drivers/dsp/bridge/rmgr/drv.c
-@@ -1510,7 +1510,7 @@ DSP_STATUS DRV_RequestResources(u32 dwContext, u32 *pDevNodeString)
- 		if (pszdevNode) {
- 			LST_InitElem(&pszdevNode->link);
-                        strncpy((char *) pszdevNode->szString,
--				 (char *)dwContext, MAXREGPATHLENGTH);
-+				 (char *)dwContext, MAXREGPATHLENGTH - 1);
- 			/* Update the Driver Object List */
- 			*pDevNodeString = (u32)pszdevNode->szString;
- 			LST_PutTail(pDRVObject->devNodeString,
-diff --git a/drivers/dsp/bridge/services/regsup.c b/drivers/dsp/bridge/services/regsup.c
-index 5251b68..b0c6e00 100644
---- a/drivers/dsp/bridge/services/regsup.c
-+++ b/drivers/dsp/bridge/services/regsup.c
-@@ -238,8 +238,8 @@ DSP_STATUS regsupSetValue(char *valName, void *pBuf, u32 dataSize)
- 		/*  No match, need to make a new entry  */
- 		/*  First check to see if we can make any more entries.  */
- 		if (pRegKey->numValueEntries < BRIDGE_MAX_NUM_REG_ENTRIES) {
--                       strncpy(pRegKey->values[pRegKey->numValueEntries].name,
--                               valName, BRIDGE_MAX_NAME_SIZE);
-+			strncpy(pRegKey->values[pRegKey->numValueEntries].name,
-+					valName, BRIDGE_MAX_NAME_SIZE - 1);
- 			pRegKey->values[pRegKey->numValueEntries].pData =
- 					MEM_Alloc(dataSize, MEM_NONPAGED);
- 			if (pRegKey->values[pRegKey->numValueEntries].pData !=
+ #endif
+ 	return DSP_SOK;
 -- 
 1.6.2.4
 
