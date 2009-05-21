@@ -1,175 +1,161 @@
-From: "Hald, Ulrik Bech" <ubh@ti.com>
-Subject: RE: Kernel panic on ldp board
-Date: Thu, 21 May 2009 19:33:29 +0200
-Message-ID: <00695C9C8F8B4448856F48142B4AA201BD30F928@dnce02.ent.ti.com>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: Kernel panic on ldp board
+Date: Thu, 21 May 2009 10:55:25 -0700
+Message-ID: <87ab56cpde.fsf@deeprootsystems.com>
 References: <00695C9C8F8B4448856F48142B4AA201BD293890@dnce02.ent.ti.com>
- <4A155D69.90906@mlbassoc.com>
+	<4A155D69.90906@mlbassoc.com>
+	<00695C9C8F8B4448856F48142B4AA201BD30F928@dnce02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:55100 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752067AbZEURdi convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 21 May 2009 13:33:38 -0400
-In-Reply-To: <4A155D69.90906@mlbassoc.com>
-Content-Language: en-US
+Received: from mail-px0-f103.google.com ([209.85.216.103]:34767 "EHLO
+	mail-px0-f103.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752720AbZEURz1 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 21 May 2009 13:55:27 -0400
+Received: by pxi1 with SMTP id 1so842049pxi.33
+        for <linux-omap@vger.kernel.org>; Thu, 21 May 2009 10:55:27 -0700 (PDT)
+In-Reply-To: <00695C9C8F8B4448856F48142B4AA201BD30F928@dnce02.ent.ti.com> (Ulrik Bech Hald's message of "Thu\, 21 May 2009 19\:33\:29 +0200")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Gary Thomas <gary@mlbassoc.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: "Hald, Ulrik Bech" <ubh@ti.com>
+Cc: Gary Thomas <gary@mlbassoc.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-> -----Original Message-----
-> From: Gary Thomas [mailto:gary@mlbassoc.com]
-> Sent: Thursday, May 21, 2009 8:56 AM
-> To: Hald, Ulrik Bech
-> Cc: linux-omap@vger.kernel.org
-> Subject: Re: Kernel panic on ldp board
-> 
-> Hald, Ulrik Bech wrote:
-> > Hi,
-> >
-> > When booting on ldp (zoom1), I am seeing a kernel panic. I am using
-> latest kernel built from L-O master at:
-> >
-> > OMAP: sDMA: Correct the the omap_request_dma_chain() signature
-> > 0b2ce840c9fb58cf489bfdfc2d77f99a09a5dca3
-> >
-> > Any one having any idea as to why? Here's my boot trace
-> >
-> > ## Booting image at 80000000 ...
-> >    Image Name:   Linux-2.6.30-rc6-omap1-05706-g0b
-> >    Image Type:   ARM Linux Kernel Image (uncompressed)
-> >    Data Size:    1843272 Bytes =  1.8 MB
-> >    Load Address: 80008000
-> >    Entry Point:  80008000
-> >    Verifying Checksum ... OK
-> > OK
-> >
-> > Starting kernel ...
-> >
-> > Uncompressing
-> Linux.....................................................................
-> ............................................... don.
-> > <5>Linux version 2.6.30-rc6-omap1-05706-g0b2ce84 (a0389051@a0389051-
-> ubuntu) (gcc version 4.2.1 (CodeSourcery Sourcery G++ Lite 2007q3-51)) 9
-> > CPU: ARMv7 Processor [411fc082] revision 2 (ARMv7), cr=10c5387f
-> > CPU: VIPT nonaliasing data cache, VIPT nonaliasing instruction cache
-> > Machine: OMAP LDP board
-> > Memory policy: ECC disabled, Data cache writeback
-> > <7>On node 0 totalpages: 65536
-> > <7>free_area_init_node: node 0, pgdat c038daf8, node_mem_map c03aa000
-> > <7>  Normal zone: 512 pages used for memmap
-> > <7>  Normal zone: 0 pages reserved
-> > <7>  Normal zone: 65024 pages, LIFO batch:15
-> > <6>OMAP3430 ES2.1
-> > <6>SRAM: Mapped pa 0x40200000 to va 0xd7000000 size: 0x100000
-> > Built 1 zonelists in Zone order, mobility grouping on.  Total pages:
-> 65024
-> > <5>Kernel command line: console=ttyS2,115200n8 noinitrd mem=256M
-> root=/dev/nfs rw
-> nfsroot=128.247.85.232:/home/a0389051/omap3430/filesystemp
-> > <6>NR_IRQS:402
-> > <6>Clocking rate (Crystal/DPLL/ARM core): 26.0/332/500 MHz
-> > <6>GPMC revision 5.0
-> > <6>IRQ: Found an INTC at 0xd8200000 (revision 4.0) with 96 interrupts
-> > <6>Total of 96 interrupts on 1 active controller
-> > <6>OMAP34xx GPIO hardware version 2.5
-> > PID hash table entries: 1024 (order: 10, 4096 bytes)
-> > <6>OMAP clockevent source: GPTIMER1 at 32768 Hz
-> > Console: colour dummy device 80x30
-> > <6>Dentry cache hash table entries: 32768 (order: 5, 131072 bytes)
-> > <6>Inode-cache hash table entries: 16384 (order: 4, 65536 bytes)
-> > <6>Memory: 256MB = 256MB total
-> > <5>Memory: 255872KB available (3176K code, 292K data, 132K init, 0K
-> highmem)
-> > <1>Unhandled fault: external abort on non-linefetch (0x1008) at
-> 0xcf80000c
-> > Internal error: : 1008 [#1]
-> > Modules linked in:
-> > CPU: 0    Not tainted  (2.6.30-rc6-omap1-05706-g0b2ce84 #1)
-> > PC is at cache_alloc_refill+0x3f4/0x4f4
-> > LR is at 0x0
-> > pc : [<c00929e0>]    lr : [<00000000>]    psr: 80000153
-> > sp : c035ff28  ip : 00000002  fp : 000080d0
-> > r10: 000000d0  r9 : 00000010  r8 : c037612c
-> > r7 : c0023808  r6 : 00000000  r5 : cf800000  r4 : cf800000
-> > r3 : 00000028  r2 : 00000000  r1 : c059a020  r0 : c059a000
-> > Flags: Nzcv  IRQs on  FIQs off  Mode SVC_32  ISA ARM  Segment kernel
-> > Control: 10c5387f  Table: 80004019  DAC: 00000017
-> > Process swapper (pid: 0, stack limit = 0xc035e2e0)
-> > Stack: (0xc035ff28 to 0xc0360000)
-> > ff20:                   c037612c 00000020 c00238a4 60000153 c0376110
-> c037612c
-> > ff40: 000080d0 00000020 411fc082 00000008 c0300876 c0092c10 00000000
-> c0376110
-> > ff60: 00000020 00042000 00000020 c00937f4 00000000 c03b1540 0000fa25
-> 00000002
-> > ff80: c038e378 c0022e6b c0361ca0 00000000 c0023808 c0376184 c0376110
-> c0376184
-> > ffa0: 411fc082 0000001f 00000000 c00129c4 00000000 c0376148 00000000
-> 00000040
-> > ffc0: c0022eec c038e240 c0022ee8 c0361ca0 8002106c c0008a84 c00084e8
-> 00000000
-> > ffe0: 00000000 c0022eec 00000000 10c5387d c038e324 80008034 00000000
-> 00000000
-> > [<c00929e0>] (cache_alloc_refill+0x3f4/0x4f4) from [<c0092c10>]
-> (kmem_cache_alloc+0x5c/0x94)
-> > [<c0092c10>] (kmem_cache_alloc+0x5c/0x94) from [<c00937f4>]
-> (kmem_cache_create+0x1ec/0x438)
-> > [<c00937f4>] (kmem_cache_create+0x1ec/0x438) from [<c00129c4>]
-> (kmem_cache_init+0x14c/0x310)
-> > [<c00129c4>] (kmem_cache_init+0x14c/0x310) from [<c0008a84>]
-> (start_kernel+0x1d0/0x284)
-> > [<c0008a84>] (start_kernel+0x1d0/0x284) from [<80008034>] (0x80008034)
-> > Code: e1a06003 e1a05004 ea000009 e598203c (e594100c)
-> > <4>---[ end trace 1b75b31a2719ed1c ]---
-> > <0>Kernel panic - not syncing: Attempted to kill the idle task!
-> 
-> Incorrect command line - the LDP1 only has 128M
-> 
-> One has to be careful when using the instructions from the Wiki
-> 
-> https://omapzoom.org/gf/project/omapandroid/wiki/?pagename=Installing+the+
-> System
-> These have been tailored to the Zoom2 and are only close for Zoom1
-> 
-> --
-> ------------------------------------------------------------
-> Gary Thomas                 |  Consulting for the
-> MLB Associates              |    Embedded world
-> ------------------------------------------------------------
+"Hald, Ulrik Bech" <ubh@ti.com> writes:
 
-I tried with mem=128 also, and there it just hangs when "Calibrating delay loop...". Any idea what that problem could be?
+>> -----Original Message-----
+>> From: Gary Thomas [mailto:gary@mlbassoc.com]
+>> Sent: Thursday, May 21, 2009 8:56 AM
+>> To: Hald, Ulrik Bech
+>> Cc: linux-omap@vger.kernel.org
+>> Subject: Re: Kernel panic on ldp board
+>> 
+>> Hald, Ulrik Bech wrote:
+>> > Hi,
+>> >
+>> > When booting on ldp (zoom1), I am seeing a kernel panic. I am using
+>> latest kernel built from L-O master at:
+>> >
+>> > OMAP: sDMA: Correct the the omap_request_dma_chain() signature
+>> > 0b2ce840c9fb58cf489bfdfc2d77f99a09a5dca3
+>> >
+>> > Any one having any idea as to why? Here's my boot trace
+>> >
+>> > ## Booting image at 80000000 ...
+>> >    Image Name:   Linux-2.6.30-rc6-omap1-05706-g0b
+>> >    Image Type:   ARM Linux Kernel Image (uncompressed)
+>> >    Data Size:    1843272 Bytes =  1.8 MB
+>> >    Load Address: 80008000
+>> >    Entry Point:  80008000
+>> >    Verifying Checksum ... OK
+>> > OK
+>> >
+>> > Starting kernel ...
+>> >
+>> > Uncompressing
+>> Linux.....................................................................
+>> ............................................... don.
+>> > <5>Linux version 2.6.30-rc6-omap1-05706-g0b2ce84 (a0389051@a0389051-
+>> ubuntu) (gcc version 4.2.1 (CodeSourcery Sourcery G++ Lite 2007q3-51)) 9
+>> > CPU: ARMv7 Processor [411fc082] revision 2 (ARMv7), cr=10c5387f
+>> > CPU: VIPT nonaliasing data cache, VIPT nonaliasing instruction cache
+>> > Machine: OMAP LDP board
+>> > Memory policy: ECC disabled, Data cache writeback
+>> > <7>On node 0 totalpages: 65536
+>> > <7>free_area_init_node: node 0, pgdat c038daf8, node_mem_map c03aa000
+>> > <7>  Normal zone: 512 pages used for memmap
+>> > <7>  Normal zone: 0 pages reserved
+>> > <7>  Normal zone: 65024 pages, LIFO batch:15
+>> > <6>OMAP3430 ES2.1
+>> > <6>SRAM: Mapped pa 0x40200000 to va 0xd7000000 size: 0x100000
+>> > Built 1 zonelists in Zone order, mobility grouping on.  Total pages:
+>> 65024
+>> > <5>Kernel command line: console=ttyS2,115200n8 noinitrd mem=256M
+>> root=/dev/nfs rw
+>> nfsroot=128.247.85.232:/home/a0389051/omap3430/filesystemp
+>> > <6>NR_IRQS:402
+>> > <6>Clocking rate (Crystal/DPLL/ARM core): 26.0/332/500 MHz
+>> > <6>GPMC revision 5.0
+>> > <6>IRQ: Found an INTC at 0xd8200000 (revision 4.0) with 96 interrupts
+>> > <6>Total of 96 interrupts on 1 active controller
+>> > <6>OMAP34xx GPIO hardware version 2.5
+>> > PID hash table entries: 1024 (order: 10, 4096 bytes)
+>> > <6>OMAP clockevent source: GPTIMER1 at 32768 Hz
+>> > Console: colour dummy device 80x30
+>> > <6>Dentry cache hash table entries: 32768 (order: 5, 131072 bytes)
+>> > <6>Inode-cache hash table entries: 16384 (order: 4, 65536 bytes)
+>> > <6>Memory: 256MB = 256MB total
+>> > <5>Memory: 255872KB available (3176K code, 292K data, 132K init, 0K
+>> highmem)
+>> > <1>Unhandled fault: external abort on non-linefetch (0x1008) at
+>> 0xcf80000c
+>> > Internal error: : 1008 [#1]
+>> > Modules linked in:
+>> > CPU: 0    Not tainted  (2.6.30-rc6-omap1-05706-g0b2ce84 #1)
+>> > PC is at cache_alloc_refill+0x3f4/0x4f4
+>> > LR is at 0x0
+>> > pc : [<c00929e0>]    lr : [<00000000>]    psr: 80000153
+>> > sp : c035ff28  ip : 00000002  fp : 000080d0
+>> > r10: 000000d0  r9 : 00000010  r8 : c037612c
+>> > r7 : c0023808  r6 : 00000000  r5 : cf800000  r4 : cf800000
+>> > r3 : 00000028  r2 : 00000000  r1 : c059a020  r0 : c059a000
+>> > Flags: Nzcv  IRQs on  FIQs off  Mode SVC_32  ISA ARM  Segment kernel
+>> > Control: 10c5387f  Table: 80004019  DAC: 00000017
+>> > Process swapper (pid: 0, stack limit = 0xc035e2e0)
+>> > Stack: (0xc035ff28 to 0xc0360000)
+>> > ff20:                   c037612c 00000020 c00238a4 60000153 c0376110
+>> c037612c
+>> > ff40: 000080d0 00000020 411fc082 00000008 c0300876 c0092c10 00000000
+>> c0376110
+>> > ff60: 00000020 00042000 00000020 c00937f4 00000000 c03b1540 0000fa25
+>> 00000002
+>> > ff80: c038e378 c0022e6b c0361ca0 00000000 c0023808 c0376184 c0376110
+>> c0376184
+>> > ffa0: 411fc082 0000001f 00000000 c00129c4 00000000 c0376148 00000000
+>> 00000040
+>> > ffc0: c0022eec c038e240 c0022ee8 c0361ca0 8002106c c0008a84 c00084e8
+>> 00000000
+>> > ffe0: 00000000 c0022eec 00000000 10c5387d c038e324 80008034 00000000
+>> 00000000
+>> > [<c00929e0>] (cache_alloc_refill+0x3f4/0x4f4) from [<c0092c10>]
+>> (kmem_cache_alloc+0x5c/0x94)
+>> > [<c0092c10>] (kmem_cache_alloc+0x5c/0x94) from [<c00937f4>]
+>> (kmem_cache_create+0x1ec/0x438)
+>> > [<c00937f4>] (kmem_cache_create+0x1ec/0x438) from [<c00129c4>]
+>> (kmem_cache_init+0x14c/0x310)
+>> > [<c00129c4>] (kmem_cache_init+0x14c/0x310) from [<c0008a84>]
+>> (start_kernel+0x1d0/0x284)
+>> > [<c0008a84>] (start_kernel+0x1d0/0x284) from [<80008034>] (0x80008034)
+>> > Code: e1a06003 e1a05004 ea000009 e598203c (e594100c)
+>> > <4>---[ end trace 1b75b31a2719ed1c ]---
+>> > <0>Kernel panic - not syncing: Attempted to kill the idle task!
+>> 
+>> Incorrect command line - the LDP1 only has 128M
+>> 
+>> One has to be careful when using the instructions from the Wiki
+>> 
+>> https://omapzoom.org/gf/project/omapandroid/wiki/?pagename=Installing+the+
+>> System
+>> These have been tailored to the Zoom2 and are only close for Zoom1
+>> 
+>> --
+>> ------------------------------------------------------------
+>> Gary Thomas                 |  Consulting for the
+>> MLB Associates              |    Embedded world
+>> ------------------------------------------------------------
+>
+> I tried with mem=128 also, and there it just hangs when "Calibrating delay loop...". Any idea what that problem could be?
+>
 
-Here's my kernel trace:
+[...]
 
-Uncompressing Linux.................................................................................................................... don.
-<5>Linux version 2.6.30-rc6-omap1-05706-g0b2ce84 (a0389051@a0389051-ubuntu)(gcc version 4.2.1 (CodeSourcery Sourcery G++ Lite 2007q3-51)) 9
-CPU: ARMv7 Processor [411fc082] revision 2 (ARMv7), cr=10c5387f
-CPU: VIPT nonaliasing data cache, VIPT nonaliasing instruction cache
-Machine: OMAP LDP board
-Memory policy: ECC disabled, Data cache writeback
-<7>On node 0 totalpages: 32768
-<7>free_area_init_node: node 0, pgdat c038daf8, node_mem_map c03a9000
-<7>  Normal zone: 256 pages used for memmap
-<7>  Normal zone: 0 pages reserved
-<7>  Normal zone: 32512 pages, LIFO batch:7
-<6>OMAP3430 ES2.1
-<6>SRAM: Mapped pa 0x40200000 to va 0xd7000000 size: 0x100000
-Built 1 zonelists in Zone order, mobility grouping on.  Total pages: 32512
-<5>Kernel command line: console=ttyS2,115200n8 noinitrd mem=128 root=/dev/nfs rw nfsroot=128.247.85.232:/home/a0389051/omap3430/filesystemp
-<6>NR_IRQS:402
-<6>Clocking rate (Crystal/DPLL/ARM core): 26.0/332/500 MHz
-<6>GPMC revision 5.0
-<6>IRQ: Found an INTC at 0xd8200000 (revision 4.0) with 96 interrupts
-<6>Total of 96 interrupts on 1 active controller
-<6>OMAP34xx GPIO hardware version 2.5
-PID hash table entries: 512 (order: 9, 2048 bytes)
-<6>OMAP clockevent source: GPTIMER1 at 32768 Hz
-Console: colour dummy device 80x30
-<6>Dentry cache hash table entries: 16384 (order: 4, 65536 bytes)
-<6>Inode-cache hash table entries: 8192 (order: 3, 32768 bytes)
-<6>Memory: 128MB = 128MB total
-<5>Memory: 126036KB available (3176K code, 292K data, 132K init, 0K highmem)
-<6>Calibrating delay loop...
+What compiler are you using?  I'd guess CodeSourcery 2007-q3?  If so,
+there has been recent discussion of problems with that compiler.
+
+If so, there are two solutions:
+
+1) use a newer CodeSourcery toolchain
+2) use the solution discussed in the previous discussion[1]
+
+Kevin
+
+[1] http://marc.info/?l=linux-omap&m=124267322526315&w=2
