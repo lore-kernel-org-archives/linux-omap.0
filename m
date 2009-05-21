@@ -1,123 +1,110 @@
-From: "Hemanth V" <hemanthv@ti.com>
-Subject: Re: [PATCH 2/2] McSPI Slave and DMA,FIFO support
-Date: Thu, 21 May 2009 15:09:10 +0530
-Message-ID: <00c401c9d9f8$00dbc750$LocalHost@wipultra793>
-References: <5A47E75E594F054BAF48C5E4FC4B92AB030574190F@dbde02.ent.ti.com> <878wkrpuzp.fsf@deeprootsystems.com>
+From: Gary Thomas <gary@mlbassoc.com>
+Subject: Re: Kernel panic on ldp board
+Date: Thu, 21 May 2009 07:55:53 -0600
+Message-ID: <4A155D69.90906@mlbassoc.com>
+References: <00695C9C8F8B4448856F48142B4AA201BD293890@dnce02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	format=flowed;
-	charset="iso-8859-1";
-	reply-type=original
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:39373 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753441AbZEUJjV (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 21 May 2009 05:39:21 -0400
+Received: from hermes.mlbassoc.com ([76.76.67.137]:1165 "EHLO
+	mail.chez-thomas.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757416AbZEUOD6 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 21 May 2009 10:03:58 -0400
+In-Reply-To: <00695C9C8F8B4448856F48142B4AA201BD293890@dnce02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Gadiyar, Anand" <gadiyar@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>, Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org
+To: "Hald, Ulrik Bech" <ubh@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
------ Original Message ----- 
-From: "Kevin Hilman" <khilman@deeprootsystems.com>
-To: "Gadiyar, Anand" <gadiyar@ti.com>
-Cc: "V, Hemanth" <hemanthv@ti.com>; <linux-omap@vger.kernel.org>
-Sent: Wednesday, May 20, 2009 10:33 PM
-Subject: Re: [PATCH 2/2] McSPI Slave and DMA,FIFO support
-
-
-> "Gadiyar, Anand" <gadiyar@ti.com> writes:
->
->>> -----Original Message-----
->>> From: linux-omap-owner@vger.kernel.org
->>> [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Hemanth V
->>> Sent: Wednesday, May 20, 2009 11:27 AM
->>> To: linux-omap@vger.kernel.org
->>> Subject: [PATCH 2/2] McSPI Slave and DMA,FIFO support
->>>
->>> This patch adds MUX changes for SPI2 and also adds an
->>> option for test driver
->>>
->>> Signed-off-by: Hemanth V <hemanthv@ti.com>
->>> ---
->>>  arch/arm/mach-omap2/board-3430sdp.c   |   26 ++++++++++++++++++++++++++
->>>  arch/arm/mach-omap2/mux.c             |   11 +++++++++++
->>>  arch/arm/plat-omap/include/mach/mux.h |    7 +++++++
->>>  3 files changed, 44 insertions(+)
->>>
->>> Index: linux-omap-2.6/arch/arm/mach-omap2/board-3430sdp.c
->>> ===================================================================
->>> --- linux-omap-2.6.orig/arch/arm/mach-omap2/board-3430sdp.c 2009-05-20 
->>> 11:02:34.000000000 +0530
->>> +++ linux-omap-2.6/arch/arm/mach-omap2/board-3430sdp.c 2009-05-20 
->>> 11:05:22.000000000 +0530
->>> @@ -228,6 +228,13 @@
->>>  .single_channel = 1, /* 0: slave, 1: master */
->>>  };
->>>
->>> +#ifdef CONFIG_SPI_DEBUG
->>> +static struct omap2_mcspi_device_config dummy_mcspi_config = {
->>> + .turbo_mode = 0,
->>> + .single_channel = 1,  /* 0: slave, 1: master */
->>> +};
->>> +#endif
->>> +
->>>  static struct spi_board_info sdp3430_spi_board_info[] __initdata = {
->>>  [0] = {
->>>  /*
->>> @@ -242,6 +249,18 @@
->>>  .irq = 0,
->>>  .platform_data = &tsc2046_config,
->>>  },
->>> +#ifdef CONFIG_SPI_DEBUG
->>> + [1] = {
->>> + /* SPI test driver attached to SPI2 controller by
->>> + * default
->>> + */
->>> + .modalias = "spitst",
->>> + .bus_num = 2,
->>> + .chip_select = 0,
->>> + .max_speed_hz = 1500000,
->>> + .controller_data = &dummy_mcspi_config,
->>> + },
->>> +#endif
->>>  };
->>>
->>>  static struct platform_device sdp3430_lcd_device = {
->>> @@ -666,6 +685,13 @@
->>>
->>>  static void __init omap_3430sdp_init(void)
->>>  {
->>> +
->>> + /* SPI2 Pin MUX */
->>> + omap_cfg_reg(AA3_3430_McSPI2_CLK);
->>> + omap_cfg_reg(Y2_3430_McSPI2_SIMO);
->>> + omap_cfg_reg(Y3_3430_McSPI2_SOMI);
->>> + omap_cfg_reg(Y4_3430_McSPI2_CS0);
->>> +
->>
->> This will still change the padconf for this port unconditionally.
->>
->> How do we handle the case where the same platform (SDP in this case)
->> could have different configurations McSPI2 vs USBHOST2, etc? Is there
->> a clean way, or do we have no option but to use a CONFIG option?
->
-> What about building both as modules and doing the muxing on module
-> load with a warning if it's taking the pins away from antother
-> feature.
->
-> Longer term, we need a more dynamic way to request pins when there are
-> conflicts like this.
->
-> Kevin
-
-Might be the easiest option right now is to remove omap_cfg_reg calls and 
-allow
-users to add it when required.
-
-Hemanth
->
->
+Hald, Ulrik Bech wrote:
+> Hi,
 > 
+> When booting on ldp (zoom1), I am seeing a kernel panic. I am using latest kernel built from L-O master at:
+> 
+> OMAP: sDMA: Correct the the omap_request_dma_chain() signature
+> 0b2ce840c9fb58cf489bfdfc2d77f99a09a5dca3
+> 
+> Any one having any idea as to why? Here's my boot trace
+> 
+> ## Booting image at 80000000 ...
+>    Image Name:   Linux-2.6.30-rc6-omap1-05706-g0b
+>    Image Type:   ARM Linux Kernel Image (uncompressed)
+>    Data Size:    1843272 Bytes =  1.8 MB
+>    Load Address: 80008000
+>    Entry Point:  80008000
+>    Verifying Checksum ... OK
+> OK
+> 
+> Starting kernel ...
+> 
+> Uncompressing Linux.................................................................................................................... don.
+> <5>Linux version 2.6.30-rc6-omap1-05706-g0b2ce84 (a0389051@a0389051-ubuntu) (gcc version 4.2.1 (CodeSourcery Sourcery G++ Lite 2007q3-51)) 9
+> CPU: ARMv7 Processor [411fc082] revision 2 (ARMv7), cr=10c5387f
+> CPU: VIPT nonaliasing data cache, VIPT nonaliasing instruction cache
+> Machine: OMAP LDP board
+> Memory policy: ECC disabled, Data cache writeback
+> <7>On node 0 totalpages: 65536
+> <7>free_area_init_node: node 0, pgdat c038daf8, node_mem_map c03aa000
+> <7>  Normal zone: 512 pages used for memmap
+> <7>  Normal zone: 0 pages reserved
+> <7>  Normal zone: 65024 pages, LIFO batch:15
+> <6>OMAP3430 ES2.1
+> <6>SRAM: Mapped pa 0x40200000 to va 0xd7000000 size: 0x100000
+> Built 1 zonelists in Zone order, mobility grouping on.  Total pages: 65024
+> <5>Kernel command line: console=ttyS2,115200n8 noinitrd mem=256M root=/dev/nfs rw nfsroot=128.247.85.232:/home/a0389051/omap3430/filesystemp
+> <6>NR_IRQS:402
+> <6>Clocking rate (Crystal/DPLL/ARM core): 26.0/332/500 MHz
+> <6>GPMC revision 5.0
+> <6>IRQ: Found an INTC at 0xd8200000 (revision 4.0) with 96 interrupts
+> <6>Total of 96 interrupts on 1 active controller
+> <6>OMAP34xx GPIO hardware version 2.5
+> PID hash table entries: 1024 (order: 10, 4096 bytes)
+> <6>OMAP clockevent source: GPTIMER1 at 32768 Hz
+> Console: colour dummy device 80x30
+> <6>Dentry cache hash table entries: 32768 (order: 5, 131072 bytes)
+> <6>Inode-cache hash table entries: 16384 (order: 4, 65536 bytes)
+> <6>Memory: 256MB = 256MB total
+> <5>Memory: 255872KB available (3176K code, 292K data, 132K init, 0K highmem)
+> <1>Unhandled fault: external abort on non-linefetch (0x1008) at 0xcf80000c
+> Internal error: : 1008 [#1]
+> Modules linked in:
+> CPU: 0    Not tainted  (2.6.30-rc6-omap1-05706-g0b2ce84 #1)
+> PC is at cache_alloc_refill+0x3f4/0x4f4
+> LR is at 0x0
+> pc : [<c00929e0>]    lr : [<00000000>]    psr: 80000153
+> sp : c035ff28  ip : 00000002  fp : 000080d0
+> r10: 000000d0  r9 : 00000010  r8 : c037612c
+> r7 : c0023808  r6 : 00000000  r5 : cf800000  r4 : cf800000
+> r3 : 00000028  r2 : 00000000  r1 : c059a020  r0 : c059a000
+> Flags: Nzcv  IRQs on  FIQs off  Mode SVC_32  ISA ARM  Segment kernel
+> Control: 10c5387f  Table: 80004019  DAC: 00000017
+> Process swapper (pid: 0, stack limit = 0xc035e2e0)
+> Stack: (0xc035ff28 to 0xc0360000)
+> ff20:                   c037612c 00000020 c00238a4 60000153 c0376110 c037612c 
+> ff40: 000080d0 00000020 411fc082 00000008 c0300876 c0092c10 00000000 c0376110 
+> ff60: 00000020 00042000 00000020 c00937f4 00000000 c03b1540 0000fa25 00000002 
+> ff80: c038e378 c0022e6b c0361ca0 00000000 c0023808 c0376184 c0376110 c0376184 
+> ffa0: 411fc082 0000001f 00000000 c00129c4 00000000 c0376148 00000000 00000040 
+> ffc0: c0022eec c038e240 c0022ee8 c0361ca0 8002106c c0008a84 c00084e8 00000000 
+> ffe0: 00000000 c0022eec 00000000 10c5387d c038e324 80008034 00000000 00000000 
+> [<c00929e0>] (cache_alloc_refill+0x3f4/0x4f4) from [<c0092c10>] (kmem_cache_alloc+0x5c/0x94)
+> [<c0092c10>] (kmem_cache_alloc+0x5c/0x94) from [<c00937f4>] (kmem_cache_create+0x1ec/0x438)
+> [<c00937f4>] (kmem_cache_create+0x1ec/0x438) from [<c00129c4>] (kmem_cache_init+0x14c/0x310)
+> [<c00129c4>] (kmem_cache_init+0x14c/0x310) from [<c0008a84>] (start_kernel+0x1d0/0x284)
+> [<c0008a84>] (start_kernel+0x1d0/0x284) from [<80008034>] (0x80008034)
+> Code: e1a06003 e1a05004 ea000009 e598203c (e594100c) 
+> <4>---[ end trace 1b75b31a2719ed1c ]---
+> <0>Kernel panic - not syncing: Attempted to kill the idle task!
 
+Incorrect command line - the LDP1 only has 128M
+
+One has to be careful when using the instructions from the Wiki
+  https://omapzoom.org/gf/project/omapandroid/wiki/?pagename=Installing+the+System
+These have been tailored to the Zoom2 and are only close for Zoom1
+
+-- 
+------------------------------------------------------------
+Gary Thomas                 |  Consulting for the
+MLB Associates              |    Embedded world
+------------------------------------------------------------
