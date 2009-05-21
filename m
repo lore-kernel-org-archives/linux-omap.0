@@ -1,119 +1,133 @@
 From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH 2/2] McSPI Slave and DMA,FIFO support
-Date: Thu, 21 May 2009 07:08:38 -0700
-Message-ID: <87ws8aim55.fsf@deeprootsystems.com>
-References: <5A47E75E594F054BAF48C5E4FC4B92AB030574190F@dbde02.ent.ti.com>
-	<878wkrpuzp.fsf@deeprootsystems.com> <4A143A2C.8050307@balister.org>
+Subject: Re: [PATCH 08/11] ARM: OMAP2/3: GPIO: do not attempt to wake-enable
+Date: Thu, 21 May 2009 08:53:18 -0700
+Message-ID: <8763fufo5t.fsf@deeprootsystems.com>
+References: <20090414214638.9878.17987.stgit@localhost>
+	<20090414215826.9878.86819.stgit@localhost>
+	<7B4574D56E4ADF438756313E9A172A87397A91F5@dlee01.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-px0-f171.google.com ([209.85.216.171]:58570 "EHLO
-	mail-px0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754470AbZEUOIj (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 21 May 2009 10:08:39 -0400
-Received: by mail-px0-f171.google.com with SMTP id 1so714620pxi.33
-        for <linux-omap@vger.kernel.org>; Thu, 21 May 2009 07:08:41 -0700 (PDT)
-In-Reply-To: <4A143A2C.8050307@balister.org> (Philip Balister's message of "Wed\, 20 May 2009 13\:13\:16 -0400")
+Received: from mail-px0-f103.google.com ([209.85.216.103]:62425 "EHLO
+	mail-px0-f103.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753857AbZEUPxT (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 21 May 2009 11:53:19 -0400
+Received: by pxi1 with SMTP id 1so772769pxi.33
+        for <linux-omap@vger.kernel.org>; Thu, 21 May 2009 08:53:20 -0700 (PDT)
+In-Reply-To: <7B4574D56E4ADF438756313E9A172A87397A91F5@dlee01.ent.ti.com> (Jon Hunter's message of "Mon\, 18 May 2009 14\:50\:49 -0500")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Philip Balister <philip@balister.org>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: "Hunter, Jon" <jon-hunter@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>
 
-Philip Balister <philip@balister.org> writes:
+"Hunter, Jon" <jon-hunter@ti.com> writes:
 
-> Kevin Hilman wrote:
->> "Gadiyar, Anand" <gadiyar@ti.com> writes:
->>
->>>> -----Original Message-----
->>>> From: linux-omap-owner@vger.kernel.org
->>>> [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Hemanth V
->>>> Sent: Wednesday, May 20, 2009 11:27 AM
->>>> To: linux-omap@vger.kernel.org
->>>> Subject: [PATCH 2/2] McSPI Slave and DMA,FIFO support
->>>>
->>>> This patch adds MUX changes for SPI2 and also adds an
->>>> option for test driver
->>>>
->>>> Signed-off-by: Hemanth V <hemanthv@ti.com>
->>>> ---
->>>>  arch/arm/mach-omap2/board-3430sdp.c   |   26 ++++++++++++++++++++++++++
->>>>  arch/arm/mach-omap2/mux.c             |   11 +++++++++++
->>>>  arch/arm/plat-omap/include/mach/mux.h |    7 +++++++
->>>>  3 files changed, 44 insertions(+)
->>>>
->>>> Index: linux-omap-2.6/arch/arm/mach-omap2/board-3430sdp.c
->>>> ===================================================================
->>>> --- linux-omap-2.6.orig/arch/arm/mach-omap2/board-3430sdp.c	2009-05-20 11:02:34.000000000 +0530
->>>> +++ linux-omap-2.6/arch/arm/mach-omap2/board-3430sdp.c	2009-05-20 11:05:22.000000000 +0530
->>>> @@ -228,6 +228,13 @@
->>>>  	.single_channel	= 1,	/* 0: slave, 1: master */
->>>>  };
->>>>
->>>> +#ifdef CONFIG_SPI_DEBUG
->>>> +static struct omap2_mcspi_device_config dummy_mcspi_config = {
->>>> +	.turbo_mode	= 0,
->>>> +	.single_channel	= 1,  /* 0: slave, 1: master */
->>>> +};
->>>> +#endif
->>>> +
->>>>  static struct spi_board_info sdp3430_spi_board_info[] __initdata = {
->>>>  	[0] = {
->>>>  		/*
->>>> @@ -242,6 +249,18 @@
->>>>  		.irq			= 0,
->>>>  		.platform_data		= &tsc2046_config,
->>>>  	},
->>>> +#ifdef CONFIG_SPI_DEBUG
->>>> +	[1] = {
->>>> +		/* SPI test driver attached to SPI2 controller by
->>>> +		 * default
->>>> +		 */
->>>> +		.modalias		= "spitst",
->>>> +		.bus_num		= 2,
->>>> +		.chip_select		= 0,
->>>> +		.max_speed_hz		= 1500000,
->>>> +		.controller_data	= &dummy_mcspi_config,
->>>> +	},
->>>> +#endif
->>>>  };
->>>>
->>>>  static struct platform_device sdp3430_lcd_device = {
->>>> @@ -666,6 +685,13 @@
->>>>
->>>>  static void __init omap_3430sdp_init(void)
->>>>  {
->>>> +
->>>> +	/* SPI2 Pin MUX */
->>>> +	omap_cfg_reg(AA3_3430_McSPI2_CLK);
->>>> +	omap_cfg_reg(Y2_3430_McSPI2_SIMO);
->>>> +	omap_cfg_reg(Y3_3430_McSPI2_SOMI);
->>>> +	omap_cfg_reg(Y4_3430_McSPI2_CS0);
->>>> +
->>> This will still change the padconf for this port unconditionally.
->>>
->>> How do we handle the case where the same platform (SDP in this case)
->>> could have different configurations McSPI2 vs USBHOST2, etc? Is there
->>> a clean way, or do we have no option but to use a CONFIG option?
->>
->> What about building both as modules and doing the muxing on module
->> load with a warning if it's taking the pins away from antother
->> feature.
->>
->> Longer term, we need a more dynamic way to request pins when there are
->> conflicts like this.
+> Hi Kevin,
 >
-> I'm tempted to leave the pinmux setup to u-boot even. That is the
-> approach I'm using setting up SPI for the beagleboard.
+>> Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
+>> Signed-off-by: Tony Lindgren <tony@atomide.com>
+>> ---
+>>  arch/arm/plat-omap/gpio.c |   14 ++++----------
+>>  1 files changed, 4 insertions(+), 10 deletions(-)
+>> 
+>> diff --git a/arch/arm/plat-omap/gpio.c b/arch/arm/plat-omap/gpio.c
+>> index d3fa41e..210a1c0 100644
+>> --- a/arch/arm/plat-omap/gpio.c
+>> +++ b/arch/arm/plat-omap/gpio.c
+>> @@ -921,13 +921,10 @@ static int _set_gpio_wakeup(struct gpio_bank *bank,
+>> int gpio, int enable)
+>>  	case METHOD_MPUIO:
+>>  	case METHOD_GPIO_1610:
+>>  		spin_lock_irqsave(&bank->lock, flags);
+>> -		if (enable) {
+>> +		if (enable)
+>>  			bank->suspend_wakeup |= (1 << gpio);
+>> -			enable_irq_wake(bank->irq);
+>> -		} else {
+>> -			disable_irq_wake(bank->irq);
+>> +		else
+>>  			bank->suspend_wakeup &= ~(1 << gpio);
+>> -		}
+>>  		spin_unlock_irqrestore(&bank->lock, flags);
+>>  		return 0;
+>>  #endif
+>> @@ -940,13 +937,10 @@ static int _set_gpio_wakeup(struct gpio_bank *bank,
+>> int gpio, int enable)
+>>  			return -EINVAL;
+>>  		}
+>>  		spin_lock_irqsave(&bank->lock, flags);
+>> -		if (enable) {
+>> +		if (enable)
+>>  			bank->suspend_wakeup |= (1 << gpio);
+>> -			enable_irq_wake(bank->irq);
+>> -		} else {
+>> -			disable_irq_wake(bank->irq);
+>> +		else
+>>  			bank->suspend_wakeup &= ~(1 << gpio);
+>> -		}
+>>  		spin_unlock_irqrestore(&bank->lock, flags);
+>>  		return 0;
+>>  #endif
+>
+>
+> I have been looking into an issue that appears to be related to this. I have the following questions with regard to this patch. 
+>
+> 1). Although, I agree with the above change was there any reason why we did not add some code to set/clear the appropriate bit in the WKUENA register in this function? If this function is called via a call to set_irq_wake it will not modify the WKUENA register. Therefore, we were thinking of something along the lines of:
+>
+> diff --git a/arch/arm/plat-omap/gpio.c b/arch/arm/plat-omap/gpio.c
+> index 17d7afe..895c548 100644
+> --- a/arch/arm/plat-omap/gpio.c
+> +++ b/arch/arm/plat-omap/gpio.c
+> @@ -941,10 +941,13 @@ static int _set_gpio_wakeup(struct gpio_bank *bank, int gpio, int enable)
+>                         return -EINVAL;
+>                 }
+>                 spin_lock_irqsave(&bank->lock, flags);
+> -               if (enable)
+> +               if (enable) {
+>                         bank->suspend_wakeup |= (1 << gpio);
+> -               else
+> +                       __raw_writel(1 << gpio, bank->base + OMAP24XX_GPIO_SETWKUENA);
+> +               } else {
+> +                       __raw_writel(1 << gpio, bank->base + OMAP24XX_GPIO_CLEARWKUENA);
+>                         bank->suspend_wakeup &= ~(1 << gpio);
+> +               }
+>                 spin_unlock_irqrestore(&bank->lock, flags);
+>                 return 0;
+>  #endif
 
-That's cheating ;)
+You're right, ti doesn't enable the wakeup here, but it does
+eventually get enabled in the suspend hook.  See the handling of the
+bank->suspend_wakeup mask in the suspend hook.
 
-And in any case, that doesn't solve the problem if you have two
-different uses for the same pins on a given board.
+This brings up an interesting point though that GPIO IRQs that are
+configured as wakeups will cannot bring the system out of idle, but
+can only bring the system out of suspend.
 
-In this case, what if someone wants to use the pins for two different
-things (in this case McSPI2 and USB host) at switch between them at
-runtime?
+>
+> 2). We have found that a call to request_irq results in a call to the function "set_24xx_gpio_triggering()" (for OMAP3430). In addition to configuring the triggering for a given GPIO, this function is also programming the WKUENA register. Hence, the wake-up enable is enabled for GPIO without calling set_irq_wake(). 
+>
+> I am not sure if this is the intended behaviour or if drivers should explicitly be calling set_irq_wake to enable/disable the wake-up. 
+
+If a driver calls request_irq with one of the IRQF_TRIGGER* flags
+(other than _NONE, see <linux/interrupt.h>), then the triggering code
+should be called as internally, request_irq handles this.
+
+If no IRQF_TRIGGER* flag is handed to request_irq() and the triggering
+is still being enbabled, this is a bug.
+
+> The other problem with this is that once request_irq is called for a
+> gpio, then even if we call disable_irq the wake-up event is not
+> cleared. So this means that a gpio event will still wake-up the
+> device without the gpio being enabled and because the gpio is
+> disabled the event will never be cleared and hence will prevent
+> retention.
+>
+> So should the wake-up event only be enabled/disabled by a call to
+> set_irq_wake() or should we make sure that calling disable_irq in
+> turn calls gpio_mask_irq and make sure this clears the wake-up
+> event?
+
+IMHO, it should only be enabled/disabled by a call to *_irq_wake(), or
+a request_irq with (flags & IRQF_TRIGGER_MASK) != 0
 
 Kevin
-
-
