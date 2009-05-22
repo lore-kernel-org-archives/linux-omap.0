@@ -1,64 +1,49 @@
-From: Pierre Ossman <pierre@ossman.eu>
-Subject: Re: [PATCH 9/9] omap mmc host: Use disable_irq_nosync() from within
- irq handlers.
-Date: Fri, 22 May 2009 14:00:40 +0200
-Message-ID: <20090522140040.49bad92f@mjolnir.ossman.eu>
-References: <1239861321.29831.130.camel@linux-51e8.site>
-	<20090426212118.19526712@mjolnir.ossman.eu>
-	<20090514172226.GK5593@atomide.com>
-Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=PGP-SHA1; protocol="application/pgp-signature"; boundary="=_freyr.ossman.eu-27075-1242993646-0001-2"
+From: Roger Quadros <ext-roger.quadros@nokia.com>
+Subject: [PATCH] OMAP3: PM: Fix VDD2 OPP determining logic
+Date: Fri, 22 May 2009 15:48:49 +0300
+Message-ID: <1242996529-8655-1-git-send-email-ext-roger.quadros@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from 82-117-125-11.tcdsl.calypso.net ([82.117.125.11]:38498 "EHLO
-	smtp.ossman.eu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755233AbZEVMAr (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 22 May 2009 08:00:47 -0400
-In-Reply-To: <20090514172226.GK5593@atomide.com>
+Received: from smtp.nokia.com ([192.100.105.134]:33727 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752386AbZEVMtx (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 22 May 2009 08:49:53 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Carlos Aguiar <carlos.aguiar@indt.org.br>, Anderson Briglia <briglia.anderson@gmail.com>, "Syed Mohammed, Khasim" <x0khasim@ti.com>, Ben Nizette <bn@niasdigital.com>, linux-omap@vger.kernel.org, linux-kernel <linux-kernel@vger.kernel.org>
+To: khilman@deeprootsystems.com
+Cc: rnayak@ti.com, linux-omap@vger.kernel.org
 
-This is a MIME-formatted message.  If you see this text it means that your
-E-mail software does not support MIME-formatted messages.
+The VDD2 OPP table is as per L3 clock rates and not on DPLL2 rate.
+So, we use the correct clock rate to calculate the current OPP
+for VDD2.
 
---=_freyr.ossman.eu-27075-1242993646-0001-2
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: quoted-printable
+Signed-off-by: Roger Quadros <ext-roger.quadros@nokia.com>
+---
+ arch/arm/mach-omap2/resource34xx.c |    4 +++-
+ 1 files changed, 3 insertions(+), 1 deletions(-)
 
-On Thu, 14 May 2009 10:22:26 -0700
-Tony Lindgren <tony@atomide.com> wrote:
+diff --git a/arch/arm/mach-omap2/resource34xx.c b/arch/arm/mach-omap2/resource34xx.c
+index 9908e52..d55cc51 100644
+--- a/arch/arm/mach-omap2/resource34xx.c
++++ b/arch/arm/mach-omap2/resource34xx.c
+@@ -172,6 +172,7 @@ static unsigned short get_opp(struct omap_opp *opp_freq_table,
+  */
+ void init_opp(struct shared_resource *resp)
+ {
++	struct clk *l3_clk;
+ 	resp->no_of_users = 0;
+ 
+ 	if (!mpu_opps || !dsp_opps || !l3_opps)
+@@ -190,8 +191,9 @@ void init_opp(struct shared_resource *resp)
+ 	} else if (strcmp(resp->name, "vdd2_opp") == 0) {
+ 		vdd2_resp = resp;
+ 		dpll3_clk = clk_get(NULL, "dpll3_m2_ck");
++		l3_clk = clk_get(NULL, "l3_ick");
+ 		resp->curr_level = get_opp(l3_opps + MAX_VDD2_OPP,
+-				dpll2_clk->rate);
++				l3_clk->rate);
+ 		curr_vdd2_opp = resp->curr_level;
+ 	}
+ 	return;
+-- 
+1.6.0.4
 
-> * Pierre Ossman <pierre@ossman.eu> [090426 12:22]:
-> > Should I queue this up or do you want to do something differently for
-> > this?
->=20
-> Looks like a valid fix to me.
->=20
-> Acked-by: Tony Lindgren <tony@atomide.com>
-> =20
-
-Applied.
-
---=20
-     -- Pierre Ossman
-
-  WARNING: This correspondence is being monitored by the
-  Swedish government. Make sure your server uses encryption
-  for SMTP traffic and consider using PGP for end-to-end
-  encryption.
-
---=_freyr.ossman.eu-27075-1242993646-0001-2
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment; filename=signature.asc
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2.0.11 (GNU/Linux)
-
-iEYEARECAAYFAkoWk+wACgkQ7b8eESbyJLg2pgCeIYmTg9hqDN/kcgd6ZP7L7PHU
-WN0An0swv+dx+sau9SojZdZN7kaBVGF+
-=N90I
------END PGP SIGNATURE-----
-
---=_freyr.ossman.eu-27075-1242993646-0001-2--
