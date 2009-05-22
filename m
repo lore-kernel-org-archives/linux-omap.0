@@ -1,317 +1,146 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 6/6] ARM: OMAP3: Initialize more devices for LDP
-Date: Fri, 22 May 2009 15:45:41 -0700
-Message-ID: <20090522224541.31586.68943.stgit@localhost>
-References: <20090522223543.31586.44534.stgit@localhost>
+From: Kim Kyuwon <chammoru@gmail.com>
+Subject: Re: [PATCH 01/13] Revert "ARM: OMAP: Mask interrupts when disabling
+	interrupts, v2"
+Date: Sat, 23 May 2009 07:59:52 +0900
+Message-ID: <4d34a0a70905221559w43fd3363w9368631e5d0f6931@mail.gmail.com>
+References: <1242861576-13008-1-git-send-email-khilman@deeprootsystems.com>
+	<1242861576-13008-2-git-send-email-khilman@deeprootsystems.com>
+	<4A15E5D9.7090704@samsung.com> <87hbzd89xz.fsf@deeprootsystems.com>
+	<4d34a0a70905220851y240a2e71w89fe82f49270a813@mail.gmail.com>
+	<87hbzd57g9.fsf@deeprootsystems.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:56672 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757208AbZEVWpk (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 22 May 2009 18:45:40 -0400
-In-Reply-To: <20090522223543.31586.44534.stgit@localhost>
+Received: from mail-qy0-f122.google.com ([209.85.221.122]:53409 "EHLO
+	mail-qy0-f122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757575AbZEVXAN convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 22 May 2009 19:00:13 -0400
+Received: by qyk28 with SMTP id 28so1157944qyk.33
+        for <linux-omap@vger.kernel.org>; Fri, 22 May 2009 16:00:12 -0700 (PDT)
+In-Reply-To: <87hbzd57g9.fsf@deeprootsystems.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-arm-kernel@lists.arm.linux.org.uk
-Cc: linux-omap@vger.kernel.org
+To: Kevin Hilman <khilman@deeprootsystems.com>
+Cc: Kim Kyuwon <q1.kim@samsung.com>, linux-arm-kernel@lists.arm.linux.org.uk, linux-omap@vger.kernel.org, "Rafael J. Wysocki" <rjw@sisk.pl>
 
-Based on an earlier patches by Stanley.Miao <stanley.miao@windriver.com>
-and Nishant Kamat <nskamat@ti.com>.
+On Sat, May 23, 2009 at 3:16 AM, Kevin Hilman
+<khilman@deeprootsystems.com> wrote:
+> Kim Kyuwon <chammoru@gmail.com> writes:
+>
+>> On Fri, May 22, 2009 at 11:54 PM, Kevin Hilman
+>> <khilman@deeprootsystems.com> wrote:
+>>> Kim Kyuwon <q1.kim@samsung.com> writes:
+>>>
+>>>> Kevin Hilman wrote:
+>>>>> This reverts commit 5461af5af5c6a7fee78978aafe720541bf3a2f55.
+>>>>>
+>>>>> Adding a disable hook to the irq_chip is not the way to fix the
+>>>>> problem being addressed by this patch. =A0Instead, we need to fix
+>>>>> support for [enable|disable]_irq_wake().
+>>>>
+>>>> Agree with you if we can use disable_irq_wake for MPU Interrupt wi=
+th
+>>>> not masking the IRQ. Can you explain how we can fix support for
+>>>> disable_irq_wake() for omap_irq_chip?
+>>>
+>>> Yes. =A0The PRCM has a wake-enable per device bit that can be set (=
+see
+>>> PM_WKEN_<pwrdm>) to control device wakeup enables.
+>>
+>> PM_WKEN_<pwrdm> is not entirely matched to each MPU interrupt.
+>
+> Correct. =A0This bit disables the module from generating any wakeup
+> event to the PRCM.
+>
+>> If you want to use disable_irq_wake() with enabling PRCM_Interrupt,
+>> you should disable all PM_WKEN_<pwrdm> bits.
+>> And how can you make support of disable_irq_wake() for other MPU int=
+errupts?
+>
+> To control the ability of a module to wake the MPU directly, we would
+> need to use the PM_MPUGRPSEL_<pwrdm> regs.
 
-Note that at the ads7846 support still needs support for vaux_control
-for the touchscreen to work.
+Sorry but I can't believe until it is implemented in OMAP and I can con=
+firm it.
 
-Signed-off-by: Tony Lindgren <tony@atomide.com>
----
- arch/arm/mach-omap2/board-ldp.c          |  204 ++++++++++++++++++++++++++++++
- arch/arm/plat-omap/include/mach/keypad.h |    4 +
- 2 files changed, 207 insertions(+), 1 deletions(-)
+>>> But the implemenation of that should not hold up this revert becaus=
+e
+>>> this patch breaks *all* wakeups since the PRCM interrupt itself is
+>>> disabled in the suspend path.
+>>
+>> Yes, I saw the same problem. This is caused by resume_device_irqs()
+>> recently added by Rafael not by my patch.
+>
+> The point is, with your patch applied, *all* OMAP wakeups are broken
+> upstream.
+>
+> You're right, your patch didn't cause the broken wakeup problem by
+> itself, but your patch on top of Rafael's in combination with the new
+> lazy-disable support which are both already in mainline breaks *all*
+> OMAP wakeup capabilities. =A0Therefore it should be reverted and the
+> OMAP specific IRQ wake support fixed.
+>
+> I am working on fixing the OMAP IRQ wake support, but I do not want
+> that to hold up this series getting upstream.
 
-diff --git a/arch/arm/mach-omap2/board-ldp.c b/arch/arm/mach-omap2/board-ldp.c
-index 59ac8ed..d8bc0a7 100644
---- a/arch/arm/mach-omap2/board-ldp.c
-+++ b/arch/arm/mach-omap2/board-ldp.c
-@@ -16,11 +16,13 @@
- #include <linux/platform_device.h>
- #include <linux/delay.h>
- #include <linux/input.h>
-+#include <linux/gpio_keys.h>
- #include <linux/workqueue.h>
- #include <linux/err.h>
- #include <linux/clk.h>
- #include <linux/spi/spi.h>
- #include <linux/spi/ads7846.h>
-+#include <linux/regulator/machine.h>
- #include <linux/i2c/twl4030.h>
- #include <linux/io.h>
- #include <linux/smsc911x.h>
-@@ -39,6 +41,7 @@
- #include <asm/delay.h>
- #include <mach/control.h>
- #include <mach/usb.h>
-+#include <mach/keypad.h>
- 
- #include "mmc-twl4030.h"
- 
-@@ -77,6 +80,165 @@ static struct platform_device ldp_smsc911x_device = {
- 	},
- };
- 
-+static int ldp_twl4030_keymap[] = {
-+	KEY(0, 0, KEY_1),
-+	KEY(1, 0, KEY_2),
-+	KEY(2, 0, KEY_3),
-+	KEY(0, 1, KEY_4),
-+	KEY(1, 1, KEY_5),
-+	KEY(2, 1, KEY_6),
-+	KEY(3, 1, KEY_F5),
-+	KEY(0, 2, KEY_7),
-+	KEY(1, 2, KEY_8),
-+	KEY(2, 2, KEY_9),
-+	KEY(3, 2, KEY_F6),
-+	KEY(0, 3, KEY_F7),
-+	KEY(1, 3, KEY_0),
-+	KEY(2, 3, KEY_F8),
-+	PERSISTENT_KEY(4, 5),
-+	KEY(4, 4, KEY_VOLUMEUP),
-+	KEY(5, 5, KEY_VOLUMEDOWN),
-+	0
-+};
-+
-+static struct twl4030_keypad_data ldp_kp_twl4030_data = {
-+	.rows		= 6,
-+	.cols		= 6,
-+	.keymap		= ldp_twl4030_keymap,
-+	.keymapsize	= ARRAY_SIZE(ldp_twl4030_keymap),
-+	.rep		= 1,
-+};
-+
-+static struct gpio_keys_button ldp_gpio_keys_buttons[] = {
-+	[0] = {
-+		.code			= KEY_ENTER,
-+		.gpio			= 101,
-+		.desc			= "enter sw",
-+		.active_low		= 1,
-+		.debounce_interval	= 30,
-+	},
-+	[1] = {
-+		.code			= KEY_F1,
-+		.gpio			= 102,
-+		.desc			= "func 1",
-+		.active_low		= 1,
-+		.debounce_interval	= 30,
-+	},
-+	[2] = {
-+		.code			= KEY_F2,
-+		.gpio			= 103,
-+		.desc			= "func 2",
-+		.active_low		= 1,
-+		.debounce_interval	= 30,
-+	},
-+	[3] = {
-+		.code			= KEY_F3,
-+		.gpio			= 104,
-+		.desc			= "func 3",
-+		.active_low		= 1,
-+		.debounce_interval 	= 30,
-+	},
-+	[4] = {
-+		.code			= KEY_F4,
-+		.gpio			= 105,
-+		.desc			= "func 4",
-+		.active_low		= 1,
-+		.debounce_interval	= 30,
-+	},
-+	[5] = {
-+		.code			= KEY_LEFT,
-+		.gpio			= 106,
-+		.desc			= "left sw",
-+		.active_low		= 1,
-+		.debounce_interval	= 30,
-+	},
-+	[6] = {
-+		.code			= KEY_RIGHT,
-+		.gpio			= 107,
-+		.desc			= "right sw",
-+		.active_low		= 1,
-+		.debounce_interval	= 30,
-+	},
-+	[7] = {
-+		.code			= KEY_UP,
-+		.gpio			= 108,
-+		.desc			= "up sw",
-+		.active_low		= 1,
-+		.debounce_interval	= 30,
-+	},
-+	[8] = {
-+		.code			= KEY_DOWN,
-+		.gpio			= 109,
-+		.desc			= "down sw",
-+		.active_low		= 1,
-+		.debounce_interval	= 30,
-+	},
-+};
-+
-+static struct gpio_keys_platform_data ldp_gpio_keys = {
-+	.buttons		= ldp_gpio_keys_buttons,
-+	.nbuttons		= ARRAY_SIZE(ldp_gpio_keys_buttons),
-+	.rep			= 1,
-+};
-+
-+static struct platform_device ldp_gpio_keys_device = {
-+	.name		= "gpio-keys",
-+	.id		= -1,
-+	.dev		= {
-+		.platform_data	= &ldp_gpio_keys,
-+	},
-+};
-+
-+static int ts_gpio;
-+
-+/**
-+ * @brief ads7846_dev_init : Requests & sets GPIO line for pen-irq
-+ *
-+ * @return - void. If request gpio fails then Flag KERN_ERR.
-+ */
-+static void ads7846_dev_init(void)
-+{
-+	if (gpio_request(ts_gpio, "ads7846 irq") < 0) {
-+		printk(KERN_ERR "can't get ads746 pen down GPIO\n");
-+		return;
-+	}
-+
-+	gpio_direction_input(ts_gpio);
-+	omap_set_gpio_debounce(ts_gpio, 1);
-+	omap_set_gpio_debounce_time(ts_gpio, 0xa);
-+}
-+
-+static int ads7846_get_pendown_state(void)
-+{
-+	return !gpio_get_value(ts_gpio);
-+}
-+
-+static struct ads7846_platform_data tsc2046_config __initdata = {
-+	.get_pendown_state	= ads7846_get_pendown_state,
-+	.keep_vref_on		= 1,
-+};
-+
-+static struct omap2_mcspi_device_config tsc2046_mcspi_config = {
-+	.turbo_mode	= 0,
-+	.single_channel	= 1,	/* 0: slave, 1: master */
-+};
-+
-+static struct spi_board_info ldp_spi_board_info[] __initdata = {
-+	[0] = {
-+		/*
-+		 * TSC2046 operates at a max freqency of 2MHz, so
-+		 * operate slightly below at 1.5MHz
-+		 */
-+		.modalias		= "ads7846",
-+		.bus_num		= 1,
-+		.chip_select		= 0,
-+		.max_speed_hz		= 1500000,
-+		.controller_data	= &tsc2046_mcspi_config,
-+		.irq			= 0,
-+		.platform_data		= &tsc2046_config,
-+	},
-+};
-+
- static inline void __init ldp_init_smsc911x(void)
- {
- 	int eth_cs;
-@@ -132,18 +294,49 @@ static struct omap_board_config_kernel ldp_config[] __initdata = {
- 	{ OMAP_TAG_LCD,		&ldp_lcd_config },
- };
- 
-+static struct twl4030_usb_data ldp_usb_data = {
-+	.usb_mode	= T2_USB_MODE_ULPI,
-+};
-+
- static struct twl4030_gpio_platform_data ldp_gpio_data = {
- 	.gpio_base	= OMAP_MAX_GPIO_LINES,
- 	.irq_base	= TWL4030_GPIO_IRQ_BASE,
- 	.irq_end	= TWL4030_GPIO_IRQ_END,
- };
- 
-+static struct twl4030_madc_platform_data ldp_madc_data = {
-+	.irq_line	= 1,
-+};
-+
-+static struct regulator_consumer_supply ldp_vmmc1_supply = {
-+	.supply			= "vmmc",
-+};
-+
-+/* VMMC1 for MMC1 pins CMD, CLK, DAT0..DAT3 (20 mA, plus card == max 220 mA) */
-+static struct regulator_init_data ldp_vmmc1 = {
-+	.constraints = {
-+		.min_uV			= 1850000,
-+		.max_uV			= 3150000,
-+		.valid_modes_mask	= REGULATOR_MODE_NORMAL
-+					| REGULATOR_MODE_STANDBY,
-+		.valid_ops_mask		= REGULATOR_CHANGE_VOLTAGE
-+					| REGULATOR_CHANGE_MODE
-+					| REGULATOR_CHANGE_STATUS,
-+	},
-+	.num_consumer_supplies	= 1,
-+	.consumer_supplies	= &ldp_vmmc1_supply,
-+};
-+
- static struct twl4030_platform_data ldp_twldata = {
- 	.irq_base	= TWL4030_IRQ_BASE,
- 	.irq_end	= TWL4030_IRQ_END,
- 
- 	/* platform_data for children goes here */
-+	.madc		= &ldp_madc_data,
-+	.usb		= &ldp_usb_data,
-+	.vmmc1		= &ldp_vmmc1,
- 	.gpio		= &ldp_gpio_data,
-+	.keypad		= &ldp_kp_twl4030_data,
- };
- 
- static struct i2c_board_info __initdata ldp_i2c_boardinfo[] = {
-@@ -177,6 +370,7 @@ static struct twl4030_hsmmc_info mmc[] __initdata = {
- static struct platform_device *ldp_devices[] __initdata = {
- 	&ldp_smsc911x_device,
- 	&ldp_lcd_device,
-+	&ldp_gpio_keys_device,
- };
- 
- static void __init omap_ldp_init(void)
-@@ -185,9 +379,17 @@ static void __init omap_ldp_init(void)
- 	platform_add_devices(ldp_devices, ARRAY_SIZE(ldp_devices));
- 	omap_board_config = ldp_config;
- 	omap_board_config_size = ARRAY_SIZE(ldp_config);
-+	ts_gpio = 54;
-+	ldp_spi_board_info[0].irq = gpio_to_irq(ts_gpio);
-+	spi_register_board_info(ldp_spi_board_info,
-+				ARRAY_SIZE(ldp_spi_board_info));
-+	ads7846_dev_init();
- 	omap_serial_init();
--	twl4030_mmc_init(mmc);
- 	usb_musb_init();
-+
-+	twl4030_mmc_init(mmc);
-+	/* link regulators to MMC adapters */
-+	ldp_vmmc1_supply.dev = mmc[0].dev;
- }
- 
- static void __init omap_ldp_map_io(void)
-diff --git a/arch/arm/plat-omap/include/mach/keypad.h b/arch/arm/plat-omap/include/mach/keypad.h
-index 232923a..45ea3ae 100644
---- a/arch/arm/plat-omap/include/mach/keypad.h
-+++ b/arch/arm/plat-omap/include/mach/keypad.h
-@@ -33,7 +33,11 @@ struct omap_kp_platform_data {
- #define GROUP_3		(3 << 16)
- #define GROUP_MASK	GROUP_3
- 
-+#define KEY_PERSISTENT		0x00800000
-+#define KEYNUM_MASK		0x00EFFFFF
- #define KEY(col, row, val) (((col) << 28) | ((row) << 24) | (val))
-+#define PERSISTENT_KEY(col, row) (((col) << 28) | ((row) << 24) | \
-+						KEY_PERSISTENT)
- 
- #endif
- 
+However, we don't know yet OMAP IRQ wake support is well implemented or=
+ not.
 
+>> I'm asking him that he made a right decision.
+>
+> Yes, we had a long discussion on that on linux-pm and I came to the
+> conclusion that while his change was probably premature, it's the
+> right decision and platforms with wakeup capabilities should
+> use/fix their set_irq_wakeup() functionality.
+
+I know... I jumped into that discussion. But you insisted as following.=
+=2E.
+--
+> Interrupt wakeups can be disabled at the PRCM level.  Or more simply
+> we can keep a mask of wakeup-enable interrupts and use that.
+
+> I will experiment with getting disable_irq_wake() working.
+--
+So I quited. But I think we should have this discussion again.
+
+>>> As a workaround for your USB problem that this patch was initially
+>>> intended to fix you could manually disable USB OTG wakeups like thi=
+s:
+>>>
+>>> =A0 =A0 =A0 =A0wken =3D prm_read_mod_reg(CORE_MOD, PM_WKEN);
+>>> =A0 =A0 =A0 =A0wken &=3D ~OMAP3430_EN_HSOTGUSB;
+>>> =A0 =A0 =A0 =A0prm_write_mod_reg(wken, CORE_MOD, PM_WKEN);
+>>
+>> Did you checked this masking prevent waking up from the interrupt of=
+ USB HOST?
+>
+> No I did not test, nor was I able to reproduce your original problem
+> since the description wasn't that clear to me.
+>
+> This will disable the USB OTG controller module from generating
+> wakeups for any reason. =A0If disabling the device wakeup in PM_WKEN =
+is
+> still resutling in interrupts, then the powerdomain with that device
+> is most likely not in retention/off.
+>
+> I do know that disabling PM_WKEN for UARTs in the same powerdomain as
+> USB OTG (CORE) will stop the UART from waking, and thus from
+> generating interrupts, as long as the powerdomain has actually
+> transitioned to retention/off.
+>
+> Re: USB HOST. =A0The problem you reported in your original patch was
+> that you were waking from IRQ 92, which is the USB OTG interrupt. =A0=
+If
+> your problem is with USBHOST, that is in a different powerdomain.
+
+OK I will check it when I'm in my office. Now it's great weekend.
+Have a good weekend!.
+
+Regards,
+Kyuwon
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
