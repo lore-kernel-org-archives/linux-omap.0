@@ -1,120 +1,85 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH 01/13] Revert "ARM: OMAP: Mask interrupts when disabling  interrupts, v2"
-Date: Fri, 22 May 2009 11:16:38 -0700
-Message-ID: <87hbzd57g9.fsf@deeprootsystems.com>
-References: <1242861576-13008-1-git-send-email-khilman@deeprootsystems.com>
-	<1242861576-13008-2-git-send-email-khilman@deeprootsystems.com>
-	<4A15E5D9.7090704@samsung.com> <87hbzd89xz.fsf@deeprootsystems.com>
-	<4d34a0a70905220851y240a2e71w89fe82f49270a813@mail.gmail.com>
+From: Andrew de Quincey <adq@lidskialf.net>
+Subject: Re: Tracking N770 breakage
+Date: Fri, 22 May 2009 19:33:59 +0100
+Message-ID: <20090522193359.17514ptwyl8kdbls@lidskialf.net>
+References: <20090516140653.10104565olvxrwjk@lidskialf.net>
+	<20090517031715.92503qopn0joudhc@lidskialf.net>
+	<20090519231500.GM19742@atomide.com>
+	<20090520061544.560957looc5zgav4@lidskialf.net>
+	<20090520151907.GC8308@atomide.com>
+	<20090522184720.10616mt8vpjglk3k@lidskialf.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain;
+	charset=UTF-8;
+	DelSp="Yes";
+	format="flowed"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pz0-f177.google.com ([209.85.222.177]:36505 "EHLO
-	mail-pz0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751729AbZEVSQj convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 22 May 2009 14:16:39 -0400
-Received: by pzk7 with SMTP id 7so1436618pzk.33
-        for <linux-omap@vger.kernel.org>; Fri, 22 May 2009 11:16:41 -0700 (PDT)
-In-Reply-To: <4d34a0a70905220851y240a2e71w89fe82f49270a813@mail.gmail.com> (Kim Kyuwon's message of "Sat\, 23 May 2009 00\:51\:11 +0900")
+Received: from 82-71-49-12.dsl.in-addr.zen.co.uk ([82.71.49.12]:44791 "EHLO
+	mail.lidskialf.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754804AbZEVSmX convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 22 May 2009 14:42:23 -0400
+In-Reply-To: <20090522184720.10616mt8vpjglk3k@lidskialf.net>
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kim Kyuwon <chammoru@gmail.com>
-Cc: Kim Kyuwon <q1.kim@samsung.com>, linux-arm-kernel@lists.arm.linux.org.uk, linux-omap@vger.kernel.org
+To: Andrew de Quincey <adq_dvb@lidskialf.net>
+Cc: Tony Lindgren <tony@atomide.com>, ladis@linux-mips.org, linux-omap@vger.kernel.org
 
-Kim Kyuwon <chammoru@gmail.com> writes:
+Quoting Andrew de Quincey <adq_dvb@lidskialf.net>:
 
-> On Fri, May 22, 2009 at 11:54 PM, Kevin Hilman
-> <khilman@deeprootsystems.com> wrote:
->> Kim Kyuwon <q1.kim@samsung.com> writes:
->>
->>> Kevin Hilman wrote:
->>>> This reverts commit 5461af5af5c6a7fee78978aafe720541bf3a2f55.
->>>>
->>>> Adding a disable hook to the irq_chip is not the way to fix the
->>>> problem being addressed by this patch. =A0Instead, we need to fix
->>>> support for [enable|disable]_irq_wake().
+> Quoting Tony Lindgren <tony@atomide.com>:
+>
+>> * Andrew de Quincey <adq_dvb@lidskialf.net> [090519 22:15]:
+>>> Quoting Tony Lindgren <tony@atomide.com>:
 >>>
->>> Agree with you if we can use disable_irq_wake for MPU Interrupt wit=
-h
->>> not masking the IRQ. Can you explain how we can fix support for
->>> disable_irq_wake() for omap_irq_chip?
+>>>> * Andrew de Quincey <adq_dvb@lidskialf.net> [090516 19:17]:
+>>>>> Argh, my N770 seems to have just died; it has been behaving slightly
+>>>>> oddly and now it simply won't turn on (black screen and no sign of life
+>>>>> whatsoever).
+>>>>>
+>>>>> It is well out of warranty and frankly I don't see myself buying another
+>>>>> one, so this effectively ends my hacking on it :(
+>>>>
+>>>> Bummer :(
+>>>>
+>>>> After a quick try, CONFIG_OMAP_RESET_CLOCKS was the first stopper, then
+>>>> it could not mount the MMC root.
+>>>
+>>> Ahh excellent, that was why I posted my progress, in case it rang a bell
+>>> with anyone! I think the touchpad driver may be broken as well BTW.
+>>>
+>>>> I think there was a patch posted for the omap1 MMC by Ladislav few months
+>>>> ago that probably fixes it.
+>>>
+>>> Cool - I hope I may be back in the running soon (I was rather annoyed
+>>> when I posted that message!); I've ordered a new battery in case its
+>>> just that. A kind person has also offered me one thats broken in a
+>>> different way that I can probably cobble together with the remains of
+>>> mine if its something more critical that has died.
 >>
->> Yes. =A0The PRCM has a wake-enable per device bit that can be set (s=
-ee
->> PM_WKEN_<pwrdm>) to control device wakeup enables.
->
-> PM_WKEN_<pwrdm> is not entirely matched to each MPU interrupt.
-
-Correct.  This bit disables the module from generating any wakeup
-event to the PRCM.
-
-> If you want to use disable_irq_wake() with enabling PRCM_Interrupt,
-> you should disable all PM_WKEN_<pwrdm> bits.
-> And how can you make support of disable_irq_wake() for other MPU inte=
-rrupts?
-
-To control the ability of a module to wake the MPU directly, we would
-need to use the PM_MPUGRPSEL_<pwrdm> regs.
-
->> But the implemenation of that should not hold up this revert because
->> this patch breaks *all* wakeups since the PRCM interrupt itself is
->> disabled in the suspend path.
->
-> Yes, I saw the same problem. This is caused by resume_device_irqs()
-> recently added by Rafael not by my patch.=20
-
-The point is, with your patch applied, *all* OMAP wakeups are broken
-upstream.
-
-You're right, your patch didn't cause the broken wakeup problem by
-itself, but your patch on top of Rafael's in combination with the new
-lazy-disable support which are both already in mainline breaks *all*
-OMAP wakeup capabilities.  Therefore it should be reverted and the
-OMAP specific IRQ wake support fixed.
-
-I am working on fixing the OMAP IRQ wake support, but I do not want
-that to hold up this series getting upstream.
-
-> I'm asking him that he made a right decision.
-
-Yes, we had a long discussion on that on linux-pm and I came to the
-conclusion that while his change was probably premature, it's the
-right decision and platforms with wakeup capabilities should
-use/fix their set_irq_wakeup() functionality.
-
->> As a workaround for your USB problem that this patch was initially
->> intended to fix you could manually disable USB OTG wakeups like this=
-:
+>> Good to hear, let's hope it just needs a new battery.
 >>
->> =A0 =A0 =A0 =A0wken =3D prm_read_mod_reg(CORE_MOD, PM_WKEN);
->> =A0 =A0 =A0 =A0wken &=3D ~OMAP3430_EN_HSOTGUSB;
->> =A0 =A0 =A0 =A0prm_write_mod_reg(wken, CORE_MOD, PM_WKEN);
+>> See also the n8x0 thread. If we get drivers/cbus to mainline, we
+>> pretty much have everything we need for 770 in mainline too.
+>>
+>> It would be nice to get the drivers/mmc/host/omap.c patch integrated
+>> for 2.6.30 to make omap1 MMC work again. Ladislav, any news on that?
 >
-> Did you checked this masking prevent waking up from the interrupt of =
-USB HOST?
+> OK! My friend has lent me his N770 in the meantime so I can get  
+> going again. It seems the board is fried on mine as my battery works  
+> perfectly fine in his. gah!
+>
+> Anyway, I have just tried disabling RESET_CLOCKS, but it still  
+> doesn't work for me with the very latest linux-omap-2.6.
+>
+> With my HWA patch applied, at least the screen goes black, but I  
+> don't see any console output, and the thing doesn't appear as a USB  
+> gadget (I'm mounting NFS as root over USB with cdc_ether).
+>
+> I wish the thing had an LED I could turn on! Hmm, I wonder if I  
+> could turn off the backlight easily..
 
-No I did not test, nor was I able to reproduce your original problem
-since the description wasn't that clear to me.
+Actually, after playing a bit, I discovered I'm getting a boot penguin  
+logo ok, but no actual textual console output; weird!
 
-This will disable the USB OTG controller module from generating
-wakeups for any reason.  If disabling the device wakeup in PM_WKEN is
-still resutling in interrupts, then the powerdomain with that device
-is most likely not in retention/off.
-
-I do know that disabling PM_WKEN for UARTs in the same powerdomain as
-USB OTG (CORE) will stop the UART from waking, and thus from
-generating interrupts, as long as the powerdomain has actually
-transitioned to retention/off.
-
-Re: USB HOST.  The problem you reported in your original patch was
-that you were waking from IRQ 92, which is the USB OTG interrupt.  If
-your problem is with USBHOST, that is in a different powerdomain.
-
-Kevin
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
