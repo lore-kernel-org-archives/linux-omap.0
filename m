@@ -1,98 +1,60 @@
-From: Andrew de Quincey <adq_dvb@lidskialf.net>
-Subject: Re: Tracking N770 breakage
-Date: Fri, 22 May 2009 23:18:26 +0100
-Message-ID: <20090522231826.12833dwwkvi7rv0g@lidskialf.net>
-References: <20090516140653.10104565olvxrwjk@lidskialf.net>
-	<20090517031715.92503qopn0joudhc@lidskialf.net>
-	<20090519231500.GM19742@atomide.com>
-	<20090520061544.560957looc5zgav4@lidskialf.net>
-	<20090520151907.GC8308@atomide.com>
-	<20090522184720.10616mt8vpjglk3k@lidskialf.net>
-	<20090522193359.17514ptwyl8kdbls@lidskialf.net>
+From: Tony Lindgren <tony@atomide.com>
+Subject: [PATCH 0/6] Updates for omap3 for merge window after 2.6.30
+Date: Fri, 22 May 2009 15:37:41 -0700
+Message-ID: <20090522223543.31586.44534.stgit@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset=UTF-8;
-	DelSp="Yes";
-	format="flowed"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from 82-71-49-12.dsl.in-addr.zen.co.uk ([82.71.49.12]:42366 "EHLO
-	mail.lidskialf.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758575AbZEVWS0 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 22 May 2009 18:18:26 -0400
-In-Reply-To: <20090522193359.17514ptwyl8kdbls@lidskialf.net>
-Content-Disposition: inline
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:63366 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757811AbZEVWhr (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 22 May 2009 18:37:47 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Tony Lindgren <tony@atomide.com>, ladis@linux-mips.org
+To: linux-arm-kernel@lists.arm.linux.org.uk
+Cc: linux-omap@vger.kernel.org
 
-Quoting Andrew de Quincey <adq@lidskialf.net>:
+Hi all,
 
-> Quoting Andrew de Quincey <adq_dvb@lidskialf.net>:
->
->> Quoting Tony Lindgren <tony@atomide.com>:
->>
->>> * Andrew de Quincey <adq_dvb@lidskialf.net> [090519 22:15]:
->>>> Quoting Tony Lindgren <tony@atomide.com>:
->>>>
->>>>> * Andrew de Quincey <adq_dvb@lidskialf.net> [090516 19:17]:
->>>>>> Argh, my N770 seems to have just died; it has been behaving slightly
->>>>>> oddly and now it simply won't turn on (black screen and no sign of life
->>>>>> whatsoever).
->>>>>>
->>>>>> It is well out of warranty and frankly I don't see myself buying another
->>>>>> one, so this effectively ends my hacking on it :(
->>>>>
->>>>> Bummer :(
->>>>>
->>>>> After a quick try, CONFIG_OMAP_RESET_CLOCKS was the first stopper, then
->>>>> it could not mount the MMC root.
->>>>
->>>> Ahh excellent, that was why I posted my progress, in case it rang a bell
->>>> with anyone! I think the touchpad driver may be broken as well BTW.
->>>>
->>>>> I think there was a patch posted for the omap1 MMC by Ladislav few months
->>>>> ago that probably fixes it.
->>>>
->>>> Cool - I hope I may be back in the running soon (I was rather annoyed
->>>> when I posted that message!); I've ordered a new battery in case its
->>>> just that. A kind person has also offered me one thats broken in a
->>>> different way that I can probably cobble together with the remains of
->>>> mine if its something more critical that has died.
->>>
->>> Good to hear, let's hope it just needs a new battery.
->>>
->>> See also the n8x0 thread. If we get drivers/cbus to mainline, we
->>> pretty much have everything we need for 770 in mainline too.
->>>
->>> It would be nice to get the drivers/mmc/host/omap.c patch integrated
->>> for 2.6.30 to make omap1 MMC work again. Ladislav, any news on that?
->>
->> OK! My friend has lent me his N770 in the meantime so I can get  
->> going again. It seems the board is fried on mine as my battery  
->> works perfectly fine in his. gah!
->>
->> Anyway, I have just tried disabling RESET_CLOCKS, but it still  
->> doesn't work for me with the very latest linux-omap-2.6.
->>
->> With my HWA patch applied, at least the screen goes black, but I  
->> don't see any console output, and the thing doesn't appear as a USB  
->> gadget (I'm mounting NFS as root over USB with cdc_ether).
->>
->> I wish the thing had an LED I could turn on! Hmm, I wonder if I  
->> could turn off the backlight easily..
->
-> Actually, after playing a bit, I discovered I'm getting a boot  
-> penguin logo ok, but no actual textual console output; weird!
+Here are mostly omap3 specific updates for the coming merge window
+for review. Still to come few more boards and regulator framework
+changes for omap3 in one more series.
 
-I feel really silly; the N770's bootloader had "serial-console"  
-enabled, which meant all the kernel messages were being sent out that  
-instead of being displayed on the fb. So I can now see WTF is going on!
+Regards,
 
-Next problem for me: ohci-hcd.c is reporting an initialisation error  
-in the latest kernels, which is why my NFS-over-USB mount fails. I  
-can't see any changes in the initialisation *values* used, but there  
-have obviously been the "kill OMAP_TAG_USB" changes; I'm wondering if  
-its some initialisation ordering problem.
+Tony
 
+---
+
+Imre Deak (1):
+      ARM: OMAP3: ZOOM MDK: Add FB support to board file
+
+Paul Walmsley (2):
+      ARM: OMAP3: SDRC: add timing data for Qimonda HYB18M512160AF-6
+      ARM: OMAP3: SDRC: add timing data for Micron MT46H32M32LF-6
+
+Tony Lindgren (2):
+      ARM: OMAP3: Initialize more devices for LDP
+      ARM: OMAP2/3: Remove L4_WK_OMAP_BASE, L4_PER_OMAP_BASE, L4_EMU_BASE, L3_OMAP_BASE
+
+Vikram Pandita (1):
+      ARM: OMAP2/3: Serial: Remove arch_initcall dependency
+
+
+ arch/arm/mach-omap2/board-3430sdp.c                |    3 
+ arch/arm/mach-omap2/board-ldp.c                    |  219 ++++++++++++++++++++
+ arch/arm/mach-omap2/board-omap3beagle.c            |    4 
+ arch/arm/mach-omap2/board-omap3pandora.c           |    3 
+ arch/arm/mach-omap2/board-overo.c                  |    3 
+ arch/arm/mach-omap2/sdram-micron-mt46h32m32lf-6.h  |   69 ++++++
+ .../mach-omap2/sdram-qimonda-hyb18m512160af-6.h    |   54 +++++
+ arch/arm/mach-omap2/serial.c                       |   22 +-
+ arch/arm/plat-omap/include/mach/keypad.h           |    4 
+ arch/arm/plat-omap/include/mach/omap34xx.h         |    4 
+ 10 files changed, 361 insertions(+), 24 deletions(-)
+ create mode 100644 arch/arm/mach-omap2/sdram-micron-mt46h32m32lf-6.h
+ create mode 100644 arch/arm/mach-omap2/sdram-qimonda-hyb18m512160af-6.h
+
+-- 
+Signature
