@@ -1,105 +1,52 @@
-From: "Gadiyar, Anand" <gadiyar@ti.com>
-Subject: RE: [PATCH] OMAP: HSMMC: Do not enable buffer ready interrupt if
-	using DMA
-Date: Fri, 22 May 2009 19:27:39 +0530
-Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB03057422B4@dbde02.ent.ti.com>
-References: <5A47E75E594F054BAF48C5E4FC4B92AB030555A1A2@dbde02.ent.ti.com>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: [PATCH 01/13] Revert "ARM: OMAP: Mask interrupts when disabling interrupts, v2"
+Date: Fri, 22 May 2009 07:54:32 -0700
+Message-ID: <87hbzd89xz.fsf@deeprootsystems.com>
+References: <1242861576-13008-1-git-send-email-khilman@deeprootsystems.com>
+	<1242861576-13008-2-git-send-email-khilman@deeprootsystems.com>
+	<4A15E5D9.7090704@samsung.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:51258 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751000AbZEVN6B convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 22 May 2009 09:58:01 -0400
-In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB030555A1A2@dbde02.ent.ti.com>
-Content-Language: en-US
+Received: from mail-px0-f103.google.com ([209.85.216.103]:49906 "EHLO
+	mail-px0-f103.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756145AbZEVPAV (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 22 May 2009 11:00:21 -0400
+Received: by pxi1 with SMTP id 1so1380913pxi.33
+        for <linux-omap@vger.kernel.org>; Fri, 22 May 2009 08:00:23 -0700 (PDT)
+In-Reply-To: <4A15E5D9.7090704@samsung.com> (Kim Kyuwon's message of "Fri\, 22 May 2009 08\:38\:01 +0900")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Gadiyar, Anand" <gadiyar@ti.com>, Jarkko Lavinen <jarkko.lavinen@nokia.com>
-Cc: "pierre@ossman.eu" <pierre@ossman.eu>, Tony Lindgren <tony@atomide.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Kim Kyuwon <q1.kim@samsung.com>
+Cc: linux-arm-kernel@lists.arm.linux.org.uk, linux-omap@vger.kernel.org
 
-On Wed, May 06, 2009, Gadiyar, Anand wrote:
-> On Tue, May 5, 2009, Jarkko Lavinen wrote: 
-> > On Tue, Apr 21, 2009 at 09:39:22AM +0200, ext Gadiyar, Anand wrote:
-> > > From: Anand Gadiyar <gadiyar@ti.com>
-> > > 
-> > > OMAP: HSMMC: Do not enable buffer ready interrupt if using DMA
-> > > 
-> > > This considerably reduces the number of interrupts during a transfer
-> > > and ought to result in some power saving.
-> > 
-> > I tried the patch with reading from the raw mmc block device to
-> > /dev/null with dd (with bs 32k and 1M).  I cannot see any
-> > difference in interrupt count from /proc/interrupts or in read
-> > speed. At least the patch works. Cpu was 34340es3.
-> > 
-> > I also trid without the patch just disabling the Buffer
-> > Read/write Ready bits from INT_EN_MASK which is then written to
-> > both MMCHS_IE and MMCHS_ISE.  Still no change in read speed nor
-> > mmc irq count.
-> > 
-> > Cheers
-> > Jarkko Lavinen
-> 
-> I discovered this while doing MMC writes. I did not check if there
-> was any difference during a read. I notice you have only tested with
-> MMC reads.
-> 
-> Here's what I get with and without the patch.
-> 
-> - Anand
+Kim Kyuwon <q1.kim@samsung.com> writes:
 
+> Kevin Hilman wrote:
+>> This reverts commit 5461af5af5c6a7fee78978aafe720541bf3a2f55.
+>>
+>> Adding a disable hook to the irq_chip is not the way to fix the
+>> problem being addressed by this patch.  Instead, we need to fix
+>> support for [enable|disable]_irq_wake().
+>
+> Agree with you if we can use disable_irq_wake for MPU Interrupt with
+> not masking the IRQ. Can you explain how we can fix support for
+> disable_irq_wake() for omap_irq_chip?
 
-Any comments on this? Is it safe to merge?
+Yes.  The PRCM has a wake-enable per device bit that can be set (see
+PM_WKEN_<pwrdm>) to control device wakeup enables.
 
-Thanks,
-Anand
+But the implemenation of that should not hold up this revert because
+this patch breaks *all* wakeups since the PRCM interrupt itself is
+disabled in the suspend path.
 
+As a workaround for your USB problem that this patch was initially
+intended to fix you could manually disable USB OTG wakeups like this:
 
+	wken = prm_read_mod_reg(CORE_MOD, PM_WKEN);
+        wken &= ~OMAP3430_EN_HSOTGUSB; 
+	prm_write_mod_reg(wken, CORE_MOD, PM_WKEN);
+	
+At least until the irq_wake stuff is fixed.
 
-> 
-> Without patch
-> / # mount -t vfat /dev/mmcblk0 /mnt/mmc
-> / # cat /proc/interrupts | grep mmc
->  83:         90        INTC  mmc0
-> 384:          1     twl4030  mmc0
-> / # dd if=/dev/zero of=/mnt/mmc/32kbs.txt bs=32k count=1000
-> 1000+0 records in
-> 1000+0 records out
-> / # cat /proc/interrupts | grep mmc
->  83:       3760        INTC  mmc0
-> 384:          1     twl4030  mmc0
-> / # dd if=/dev/zero of=/mnt/mmc/1Mbs.txt bs=1M count=32
-> 32+0 records in
-> 32+0 records out
-> / # cat /proc/interrupts | grep mmc
->  83:       7570        INTC  mmc0
-> 384:          1     twl4030  mmc0
-> / # ls -l /mnt/mmc
-> -rwxr-xr-x    1 root     root     33554432 Dec 31 18:03 1Mbs.txt
-> -rwxr-xr-x    1 root     root     32768000 Dec 31 18:03 32kbs.txt
-> / # umount /mnt/mmc
-> 
-> 
-> With patch
-> / # mount -t vfat /dev/mmcblk0 /mnt/mmc
-> / # cat /proc/interrupts | grep mmc
->  83:         67        INTC  mmc0
-> 384:          0     twl4030  mmc0
-> / # dd if=/dev/zero of=/mnt/mmc/32kbs.txt bs=32k count=1000
-> 1000+0 records in
-> 1000+0 records out
-> / # cat /proc/interrupts | grep mmc
->  83:       3103        INTC  mmc0
-> 384:          0     twl4030  mmc0
-> / # dd if=/dev/zero of=/mnt/mmc/1Mbs.txt bs=1M count=32
-> 32+0 records in
-> 32+0 records out
-> / # cat /proc/interrupts | grep mmc
->  83:       6170        INTC  mmc0
-> 384:          0     twl4030  mmc0
-> / # ls -l /mnt/mmc
-> -rwxr-xr-x    1 root     root     33554432 Dec 31 18:01 1Mbs.txt
-> -rwxr-xr-x    1 root     root     32768000 Dec 31 18:00 32kbs.txt
-> / # umount /mnt/mmc 
+Kevin
