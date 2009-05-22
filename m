@@ -1,145 +1,105 @@
-From: "Hemanth V" <hemanthv@ti.com>
-Subject: Re: [PATCH 2/2] McSPI Slave and DMA,FIFO support
-Date: Fri, 22 May 2009 19:07:15 +0530
-Message-ID: <007601c9dae2$6c896ee0$LocalHost@wipultra793>
-References: <5A47E75E594F054BAF48C5E4FC4B92AB030574190F@dbde02.ent.ti.com> <878wkrpuzp.fsf@deeprootsystems.com> <00c401c9d9f8$00dbc750$LocalHost@wipultra793>
+From: "Gadiyar, Anand" <gadiyar@ti.com>
+Subject: RE: [PATCH] OMAP: HSMMC: Do not enable buffer ready interrupt if
+	using DMA
+Date: Fri, 22 May 2009 19:27:39 +0530
+Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB03057422B4@dbde02.ent.ti.com>
+References: <5A47E75E594F054BAF48C5E4FC4B92AB030555A1A2@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	format=flowed;
-	charset="iso-8859-1";
-	reply-type=response
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:50073 "EHLO bear.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:51258 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756982AbZEVNhZ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 22 May 2009 09:37:25 -0400
+	id S1751000AbZEVN6B convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 22 May 2009 09:58:01 -0400
+In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB030555A1A2@dbde02.ent.ti.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org
+To: "Gadiyar, Anand" <gadiyar@ti.com>, Jarkko Lavinen <jarkko.lavinen@nokia.com>
+Cc: "pierre@ossman.eu" <pierre@ossman.eu>, Tony Lindgren <tony@atomide.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Tony, would you be able merge the two patches if I removed omap_cfg_reg 
-calls
-
-Thanks
-Hemnath
------ Original Message ----- 
-From: "Hemanth V" <hemanthv@ti.com>
-To: "Gadiyar, Anand" <gadiyar@ti.com>; "Kevin Hilman" 
-<khilman@deeprootsystems.com>; "Tony Lindgren" <tony@atomide.com>
-Cc: <linux-omap@vger.kernel.org>
-Sent: Thursday, May 21, 2009 3:09 PM
-Subject: Re: [PATCH 2/2] McSPI Slave and DMA,FIFO support
-
-
-> ----- Original Message ----- 
-> From: "Kevin Hilman" <khilman@deeprootsystems.com>
-> To: "Gadiyar, Anand" <gadiyar@ti.com>
-> Cc: "V, Hemanth" <hemanthv@ti.com>; <linux-omap@vger.kernel.org>
-> Sent: Wednesday, May 20, 2009 10:33 PM
-> Subject: Re: [PATCH 2/2] McSPI Slave and DMA,FIFO support
->
->
->> "Gadiyar, Anand" <gadiyar@ti.com> writes:
->>
->>>> -----Original Message-----
->>>> From: linux-omap-owner@vger.kernel.org
->>>> [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Hemanth V
->>>> Sent: Wednesday, May 20, 2009 11:27 AM
->>>> To: linux-omap@vger.kernel.org
->>>> Subject: [PATCH 2/2] McSPI Slave and DMA,FIFO support
->>>>
->>>> This patch adds MUX changes for SPI2 and also adds an
->>>> option for test driver
->>>>
->>>> Signed-off-by: Hemanth V <hemanthv@ti.com>
->>>> ---
->>>>  arch/arm/mach-omap2/board-3430sdp.c   |   26 
->>>> ++++++++++++++++++++++++++
->>>>  arch/arm/mach-omap2/mux.c             |   11 +++++++++++
->>>>  arch/arm/plat-omap/include/mach/mux.h |    7 +++++++
->>>>  3 files changed, 44 insertions(+)
->>>>
->>>> Index: linux-omap-2.6/arch/arm/mach-omap2/board-3430sdp.c
->>>> ===================================================================
->>>> --- linux-omap-2.6.orig/arch/arm/mach-omap2/board-3430sdp.c 2009-05-20 
->>>> 11:02:34.000000000 +0530
->>>> +++ linux-omap-2.6/arch/arm/mach-omap2/board-3430sdp.c 2009-05-20 
->>>> 11:05:22.000000000 +0530
->>>> @@ -228,6 +228,13 @@
->>>>  .single_channel = 1, /* 0: slave, 1: master */
->>>>  };
->>>>
->>>> +#ifdef CONFIG_SPI_DEBUG
->>>> +static struct omap2_mcspi_device_config dummy_mcspi_config = {
->>>> + .turbo_mode = 0,
->>>> + .single_channel = 1,  /* 0: slave, 1: master */
->>>> +};
->>>> +#endif
->>>> +
->>>>  static struct spi_board_info sdp3430_spi_board_info[] __initdata = {
->>>>  [0] = {
->>>>  /*
->>>> @@ -242,6 +249,18 @@
->>>>  .irq = 0,
->>>>  .platform_data = &tsc2046_config,
->>>>  },
->>>> +#ifdef CONFIG_SPI_DEBUG
->>>> + [1] = {
->>>> + /* SPI test driver attached to SPI2 controller by
->>>> + * default
->>>> + */
->>>> + .modalias = "spitst",
->>>> + .bus_num = 2,
->>>> + .chip_select = 0,
->>>> + .max_speed_hz = 1500000,
->>>> + .controller_data = &dummy_mcspi_config,
->>>> + },
->>>> +#endif
->>>>  };
->>>>
->>>>  static struct platform_device sdp3430_lcd_device = {
->>>> @@ -666,6 +685,13 @@
->>>>
->>>>  static void __init omap_3430sdp_init(void)
->>>>  {
->>>> +
->>>> + /* SPI2 Pin MUX */
->>>> + omap_cfg_reg(AA3_3430_McSPI2_CLK);
->>>> + omap_cfg_reg(Y2_3430_McSPI2_SIMO);
->>>> + omap_cfg_reg(Y3_3430_McSPI2_SOMI);
->>>> + omap_cfg_reg(Y4_3430_McSPI2_CS0);
->>>> +
->>>
->>> This will still change the padconf for this port unconditionally.
->>>
->>> How do we handle the case where the same platform (SDP in this case)
->>> could have different configurations McSPI2 vs USBHOST2, etc? Is there
->>> a clean way, or do we have no option but to use a CONFIG option?
->>
->> What about building both as modules and doing the muxing on module
->> load with a warning if it's taking the pins away from antother
->> feature.
->>
->> Longer term, we need a more dynamic way to request pins when there are
->> conflicts like this.
->>
->> Kevin
->
-> Might be the easiest option right now is to remove omap_cfg_reg calls and 
-> allow
-> users to add it when required.
->
-> Hemanth
->>
->>
->>
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
+On Wed, May 06, 2009, Gadiyar, Anand wrote:
+> On Tue, May 5, 2009, Jarkko Lavinen wrote: 
+> > On Tue, Apr 21, 2009 at 09:39:22AM +0200, ext Gadiyar, Anand wrote:
+> > > From: Anand Gadiyar <gadiyar@ti.com>
+> > > 
+> > > OMAP: HSMMC: Do not enable buffer ready interrupt if using DMA
+> > > 
+> > > This considerably reduces the number of interrupts during a transfer
+> > > and ought to result in some power saving.
+> > 
+> > I tried the patch with reading from the raw mmc block device to
+> > /dev/null with dd (with bs 32k and 1M).  I cannot see any
+> > difference in interrupt count from /proc/interrupts or in read
+> > speed. At least the patch works. Cpu was 34340es3.
+> > 
+> > I also trid without the patch just disabling the Buffer
+> > Read/write Ready bits from INT_EN_MASK which is then written to
+> > both MMCHS_IE and MMCHS_ISE.  Still no change in read speed nor
+> > mmc irq count.
+> > 
+> > Cheers
+> > Jarkko Lavinen
 > 
+> I discovered this while doing MMC writes. I did not check if there
+> was any difference during a read. I notice you have only tested with
+> MMC reads.
+> 
+> Here's what I get with and without the patch.
+> 
+> - Anand
 
+
+Any comments on this? Is it safe to merge?
+
+Thanks,
+Anand
+
+
+
+> 
+> Without patch
+> / # mount -t vfat /dev/mmcblk0 /mnt/mmc
+> / # cat /proc/interrupts | grep mmc
+>  83:         90        INTC  mmc0
+> 384:          1     twl4030  mmc0
+> / # dd if=/dev/zero of=/mnt/mmc/32kbs.txt bs=32k count=1000
+> 1000+0 records in
+> 1000+0 records out
+> / # cat /proc/interrupts | grep mmc
+>  83:       3760        INTC  mmc0
+> 384:          1     twl4030  mmc0
+> / # dd if=/dev/zero of=/mnt/mmc/1Mbs.txt bs=1M count=32
+> 32+0 records in
+> 32+0 records out
+> / # cat /proc/interrupts | grep mmc
+>  83:       7570        INTC  mmc0
+> 384:          1     twl4030  mmc0
+> / # ls -l /mnt/mmc
+> -rwxr-xr-x    1 root     root     33554432 Dec 31 18:03 1Mbs.txt
+> -rwxr-xr-x    1 root     root     32768000 Dec 31 18:03 32kbs.txt
+> / # umount /mnt/mmc
+> 
+> 
+> With patch
+> / # mount -t vfat /dev/mmcblk0 /mnt/mmc
+> / # cat /proc/interrupts | grep mmc
+>  83:         67        INTC  mmc0
+> 384:          0     twl4030  mmc0
+> / # dd if=/dev/zero of=/mnt/mmc/32kbs.txt bs=32k count=1000
+> 1000+0 records in
+> 1000+0 records out
+> / # cat /proc/interrupts | grep mmc
+>  83:       3103        INTC  mmc0
+> 384:          0     twl4030  mmc0
+> / # dd if=/dev/zero of=/mnt/mmc/1Mbs.txt bs=1M count=32
+> 32+0 records in
+> 32+0 records out
+> / # cat /proc/interrupts | grep mmc
+>  83:       6170        INTC  mmc0
+> 384:          0     twl4030  mmc0
+> / # ls -l /mnt/mmc
+> -rwxr-xr-x    1 root     root     33554432 Dec 31 18:01 1Mbs.txt
+> -rwxr-xr-x    1 root     root     32768000 Dec 31 18:00 32kbs.txt
+> / # umount /mnt/mmc 
