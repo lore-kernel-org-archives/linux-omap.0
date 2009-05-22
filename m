@@ -1,74 +1,79 @@
-From: Kim Kyuwon <chammoru@gmail.com>
-Subject: Re: [PATCH 01/13] Revert "ARM: OMAP: Mask interrupts when disabling
-	interrupts, v2"
-Date: Sat, 23 May 2009 00:51:11 +0900
-Message-ID: <4d34a0a70905220851y240a2e71w89fe82f49270a813@mail.gmail.com>
-References: <1242861576-13008-1-git-send-email-khilman@deeprootsystems.com>
-	<1242861576-13008-2-git-send-email-khilman@deeprootsystems.com>
-	<4A15E5D9.7090704@samsung.com> <87hbzd89xz.fsf@deeprootsystems.com>
+From: Andrew de Quincey <adq_dvb@lidskialf.net>
+Subject: Re: Tracking N770 breakage
+Date: Fri, 22 May 2009 18:47:20 +0100
+Message-ID: <20090522184720.10616mt8vpjglk3k@lidskialf.net>
+References: <20090516140653.10104565olvxrwjk@lidskialf.net>
+	<20090517031715.92503qopn0joudhc@lidskialf.net>
+	<20090519231500.GM19742@atomide.com>
+	<20090520061544.560957looc5zgav4@lidskialf.net>
+	<20090520151907.GC8308@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain;
+	charset=UTF-8;
+	DelSp="Yes";
+	format="flowed"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-qy0-f122.google.com ([209.85.221.122]:41412 "EHLO
-	mail-qy0-f122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753349AbZEVPvd convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 22 May 2009 11:51:33 -0400
-Received: by qyk28 with SMTP id 28so813075qyk.33
-        for <linux-omap@vger.kernel.org>; Fri, 22 May 2009 08:51:34 -0700 (PDT)
-In-Reply-To: <87hbzd89xz.fsf@deeprootsystems.com>
+Received: from 82-71-49-12.dsl.in-addr.zen.co.uk ([82.71.49.12]:49424 "EHLO
+	mail.lidskialf.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757180AbZEVRrU convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 22 May 2009 13:47:20 -0400
+In-Reply-To: <20090520151907.GC8308@atomide.com>
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@deeprootsystems.com>
-Cc: Kim Kyuwon <q1.kim@samsung.com>, linux-arm-kernel@lists.arm.linux.org.uk, linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: ladis@linux-mips.org, linux-omap@vger.kernel.org
 
-On Fri, May 22, 2009 at 11:54 PM, Kevin Hilman
-<khilman@deeprootsystems.com> wrote:
-> Kim Kyuwon <q1.kim@samsung.com> writes:
->
->> Kevin Hilman wrote:
->>> This reverts commit 5461af5af5c6a7fee78978aafe720541bf3a2f55.
->>>
->>> Adding a disable hook to the irq_chip is not the way to fix the
->>> problem being addressed by this patch. =A0Instead, we need to fix
->>> support for [enable|disable]_irq_wake().
+Quoting Tony Lindgren <tony@atomide.com>:
+
+> * Andrew de Quincey <adq_dvb@lidskialf.net> [090519 22:15]:
+>> Quoting Tony Lindgren <tony@atomide.com>:
 >>
->> Agree with you if we can use disable_irq_wake for MPU Interrupt with
->> not masking the IRQ. Can you explain how we can fix support for
->> disable_irq_wake() for omap_irq_chip?
+>>> * Andrew de Quincey <adq_dvb@lidskialf.net> [090516 19:17]:
+>>>> Argh, my N770 seems to have just died; it has been behaving slightly
+>>>> oddly and now it simply won't turn on (black screen and no sign of life
+>>>> whatsoever).
+>>>>
+>>>> It is well out of warranty and frankly I don't see myself buying another
+>>>> one, so this effectively ends my hacking on it :(
+>>>
+>>> Bummer :(
+>>>
+>>> After a quick try, CONFIG_OMAP_RESET_CLOCKS was the first stopper, then
+>>> it could not mount the MMC root.
+>>
+>> Ahh excellent, that was why I posted my progress, in case it rang a bell
+>> with anyone! I think the touchpad driver may be broken as well BTW.
+>>
+>>> I think there was a patch posted for the omap1 MMC by Ladislav few months
+>>> ago that probably fixes it.
+>>
+>> Cool - I hope I may be back in the running soon (I was rather annoyed
+>> when I posted that message!); I've ordered a new battery in case its
+>> just that. A kind person has also offered me one thats broken in a
+>> different way that I can probably cobble together with the remains of
+>> mine if its something more critical that has died.
 >
-> Yes. =A0The PRCM has a wake-enable per device bit that can be set (se=
-e
-> PM_WKEN_<pwrdm>) to control device wakeup enables.
-
-PM_WKEN_<pwrdm> is not entirely matched to each MPU interrupt.
-If you want to use disable_irq_wake() with enabling PRCM_Interrupt,
-you should disable all PM_WKEN_<pwrdm> bits.
-And how can you make support of disable_irq_wake() for other MPU interr=
-upts?
-
-> But the implemenation of that should not hold up this revert because
-> this patch breaks *all* wakeups since the PRCM interrupt itself is
-> disabled in the suspend path.
-
-Yes, I saw the same problem. This is caused by resume_device_irqs()
-recently added by Rafael not by my patch. I'm asking him that he made
-a right decision.
-
-> As a workaround for your USB problem that this patch was initially
-> intended to fix you could manually disable USB OTG wakeups like this:
+> Good to hear, let's hope it just needs a new battery.
 >
-> =A0 =A0 =A0 =A0wken =3D prm_read_mod_reg(CORE_MOD, PM_WKEN);
-> =A0 =A0 =A0 =A0wken &=3D ~OMAP3430_EN_HSOTGUSB;
-> =A0 =A0 =A0 =A0prm_write_mod_reg(wken, CORE_MOD, PM_WKEN);
+> See also the n8x0 thread. If we get drivers/cbus to mainline, we
+> pretty much have everything we need for 770 in mainline too.
+>
+> It would be nice to get the drivers/mmc/host/omap.c patch integrated
+> for 2.6.30 to make omap1 MMC work again. Ladislav, any news on that?
 
-Did you checked this masking prevent waking up from the interrupt of US=
-B HOST?
+OK! My friend has lent me his N770 in the meantime so I can get going  
+again. It seems the board is fried on mine as my battery works  
+perfectly fine in his. gah!
 
-Regards,
-Kyuwon
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Anyway, I have just tried disabling RESET_CLOCKS, but it still doesn't  
+work for me with the very latest linux-omap-2.6.
+
+With my HWA patch applied, at least the screen goes black, but I don't  
+see any console output, and the thing doesn't appear as a USB gadget  
+(I'm mounting NFS as root over USB with cdc_ether).
+
+I wish the thing had an LED I could turn on! Hmm, I wonder if I could  
+turn off the backlight easily..
+
