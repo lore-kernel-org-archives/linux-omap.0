@@ -1,39 +1,64 @@
-From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
-Subject: Re: [PATCH 1/7] omap iommu: tlb and pagetable primitives
-Date: Fri, 22 May 2009 10:21:14 +0300 (EEST)
-Message-ID: <20090522.102114.216733168.Hiroshi.DOYU@nokia.com>
-References: <20090520064211.24734.80725.stgit@oreo.research.nokia.com>
-	<20090520.124814.124079256.Hiroshi.DOYU@nokia.com>
+From: Pierre Ossman <pierre@ossman.eu>
+Subject: Re: [PATCH 9/9] omap mmc host: Use disable_irq_nosync() from within
+ irq handlers.
+Date: Fri, 22 May 2009 14:00:40 +0200
+Message-ID: <20090522140040.49bad92f@mjolnir.ossman.eu>
+References: <1239861321.29831.130.camel@linux-51e8.site>
+	<20090426212118.19526712@mjolnir.ossman.eu>
+	<20090514172226.GK5593@atomide.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=PGP-SHA1; protocol="application/pgp-signature"; boundary="=_freyr.ossman.eu-27075-1242993646-0001-2"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:52683 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751519AbZEVHVo (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 22 May 2009 03:21:44 -0400
-In-Reply-To: <20090520.124814.124079256.Hiroshi.DOYU@nokia.com>
+Received: from 82-117-125-11.tcdsl.calypso.net ([82.117.125.11]:38498 "EHLO
+	smtp.ossman.eu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755233AbZEVMAr (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 22 May 2009 08:00:47 -0400
+In-Reply-To: <20090514172226.GK5593@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-arm-kernel@lists.arm.linux.org.uk
-Cc: linux-omap@vger.kernel.org, h-kanigeri2@ti.com, omar.ramirez@ti.com, sakari.ailus@maxwell.research.nokia.com, tony@atomide.com
+To: Tony Lindgren <tony@atomide.com>
+Cc: Carlos Aguiar <carlos.aguiar@indt.org.br>, Anderson Briglia <briglia.anderson@gmail.com>, "Syed Mohammed, Khasim" <x0khasim@ti.com>, Ben Nizette <bn@niasdigital.com>, linux-omap@vger.kernel.org, linux-kernel <linux-kernel@vger.kernel.org>
 
-From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
-Subject: Re: [PATCH 1/7] omap iommu: tlb and pagetable primitives
-Date: Wed, 20 May 2009 12:48:14 +0300 (EEST)
+This is a MIME-formatted message.  If you see this text it means that your
+E-mail software does not support MIME-formatted messages.
 
-> Hi,
-> 
-> If there's no problem with those patches, please pull them from the following.
-> 
-> The following changes since commit 091438dd5668396328a3419abcbc6591159eb8d1:
->   Linus Torvalds (1):
->         Linux 2.6.30-rc4
-> 
-> are available in the git repository at:
-> 
->   http://git.gitorious.org/lk/mainline.git iommu
+--=_freyr.ossman.eu-27075-1242993646-0001-2
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: quoted-printable
 
-Russell, are you okay with this going into the patch system?
+On Thu, 14 May 2009 10:22:26 -0700
+Tony Lindgren <tony@atomide.com> wrote:
 
-Kconfig patch is updated with your proposal.
+> * Pierre Ossman <pierre@ossman.eu> [090426 12:22]:
+> > Should I queue this up or do you want to do something differently for
+> > this?
+>=20
+> Looks like a valid fix to me.
+>=20
+> Acked-by: Tony Lindgren <tony@atomide.com>
+> =20
+
+Applied.
+
+--=20
+     -- Pierre Ossman
+
+  WARNING: This correspondence is being monitored by the
+  Swedish government. Make sure your server uses encryption
+  for SMTP traffic and consider using PGP for end-to-end
+  encryption.
+
+--=_freyr.ossman.eu-27075-1242993646-0001-2
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment; filename=signature.asc
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2.0.11 (GNU/Linux)
+
+iEYEARECAAYFAkoWk+wACgkQ7b8eESbyJLg2pgCeIYmTg9hqDN/kcgd6ZP7L7PHU
+WN0An0swv+dx+sau9SojZdZN7kaBVGF+
+=N90I
+-----END PGP SIGNATURE-----
+
+--=_freyr.ossman.eu-27075-1242993646-0001-2--
