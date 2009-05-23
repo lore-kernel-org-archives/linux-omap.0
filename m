@@ -1,14 +1,16 @@
 From: Ihar Hrachyshka <ihar.hrachyshka@gmail.com>
 Subject: [PATCH] Select PWL4030_CORE for boards which need twl4030_i2c_* functions.
-Date: Sat, 23 May 2009 16:39:24 +0300
-Message-ID: <1243085964-31024-1-git-send-email-ihar.hrachyshka@gmail.com>
+Date: Sat, 23 May 2009 16:50:53 +0300
+Message-ID: <1243086653-31091-1-git-send-email-ihar.hrachyshka@gmail.com>
+References: <1243085964-31024-1-git-send-email-ihar.hrachyshka@gmail.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-fx0-f168.google.com ([209.85.220.168]:62958 "EHLO
-	mail-fx0-f168.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752199AbZEWNjj (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 23 May 2009 09:39:39 -0400
-Received: by mail-fx0-f168.google.com with SMTP id 12so380128fxm.37
-        for <linux-omap@vger.kernel.org>; Sat, 23 May 2009 06:39:40 -0700 (PDT)
+Received: from fg-out-1718.google.com ([72.14.220.153]:50323 "EHLO
+	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752293AbZEWNvF (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 23 May 2009 09:51:05 -0400
+Received: by fg-out-1718.google.com with SMTP id d23so313436fga.17
+        for <linux-omap@vger.kernel.org>; Sat, 23 May 2009 06:51:04 -0700 (PDT)
+In-Reply-To: <1243085964-31024-1-git-send-email-ihar.hrachyshka@gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
@@ -16,7 +18,7 @@ Cc: Ihar Hrachyshka <ihar.hrachyshka@gmail.com>
 
 This fixes compilation for the following machines: MACH_OMAP_2430SDP,
 MACH_OMAP_LDP, MACH_OMAP2EVM, MACH_OMAP_3430SDP, MACH_OMAP3EVM,
-MACH_OMAP3_BEAGLE, MACH_OVERO, MACH_OMAP3_PANDORA, when PWL4030_CORE is not
+MACH_OMAP3_BEAGLE, MACH_OVERO, MACH_OMAP3_PANDORA, when TWL4030_CORE is not
 enabled.
 
 Signed-off-by: Ihar Hrachyshka <ihar.hrachyshka@gmail.com>
