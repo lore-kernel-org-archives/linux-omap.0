@@ -1,40 +1,76 @@
-From: pramod gurav <pramodforum-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: I2C1 controller timed out with twl4030-powerbutton
-Date: Sat, 23 May 2009 19:02:13 +0530
-Message-ID: <f502236f0905230632m4e259e9xcc597e6d89ece43f@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+From: Ihar Hrachyshka <ihar.hrachyshka@gmail.com>
+Subject: [PATCH] Select PWL4030_CORE for boards which need twl4030_i2c_* functions.
+Date: Sat, 23 May 2009 16:39:24 +0300
+Message-ID: <1243085964-31024-1-git-send-email-ihar.hrachyshka@gmail.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-fx0-f168.google.com ([209.85.220.168]:62958 "EHLO
+	mail-fx0-f168.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752199AbZEWNjj (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 23 May 2009 09:39:39 -0400
+Received: by mail-fx0-f168.google.com with SMTP id 12so380128fxm.37
+        for <linux-omap@vger.kernel.org>; Sat, 23 May 2009 06:39:40 -0700 (PDT)
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: Ihar Hrachyshka <ihar.hrachyshka@gmail.com>
 
-Hi all,
-I am working on omap3430 custom board with linux-omap-2.6
-(2.6.28-omap1 tag) on it.
-I am using twl4030 power buttom. Whenever I press the power key I get
-i2c controller timed out.
-I am seeing following logs and the keypad stops responding and I have
-to remove the board supply completely.
+This fixes compilation for the following machines: MACH_OMAP_2430SDP,
+MACH_OMAP_LDP, MACH_OMAP2EVM, MACH_OMAP_3430SDP, MACH_OMAP3EVM,
+MACH_OMAP3_BEAGLE, MACH_OVERO, MACH_OMAP3_PANDORA, when PWL4030_CORE is not
+enabled.
 
-i2c_omap i2c_omap.1: controller timed out
-i2c_omap i2c_omap.1: controller timed out
-twl4030: I2C error -110 reading PIH ISR
-i2c_omap i2c_omap.1: controller timed out
-twl4030: I2C error -110 reading PIH ISR
-i2c_omap i2c_omap.1: controller timed out
-twl4030: I2C error -110 reading PIH ISR
-i2c_omap i2c_omap.1: controller timed out
+Signed-off-by: Ihar Hrachyshka <ihar.hrachyshka@gmail.com>
+---
+ arch/arm/mach-omap2/Kconfig |    8 ++++++++
+ 1 files changed, 8 insertions(+), 0 deletions(-)
 
-When I enabled the logs I could see
-twl4030: i2c error -110 while reading TWL4030 PM_MASTER
-STS_HW_CONDITIONS register
-
-The behavior is seen mostly with power-button key. Is there any fix
-that has gone into the kernel for
-this(after 2.6.28-omap1)?
-
+diff --git a/arch/arm/mach-omap2/Kconfig b/arch/arm/mach-omap2/Kconfig
+index 27750f5..cffd979 100644
+--- a/arch/arm/mach-omap2/Kconfig
++++ b/arch/arm/mach-omap2/Kconfig
+@@ -105,34 +105,42 @@ config MACH_OMAP_APOLLON
+ config MACH_OMAP_2430SDP
+ 	bool "OMAP 2430 SDP board"
+ 	depends on ARCH_OMAP2 && ARCH_OMAP2430
++	select TWL4030_CORE
+ 
+ config MACH_OMAP_LDP
+ 	bool "OMAP3 LDP board"
+ 	depends on ARCH_OMAP3 && ARCH_OMAP34XX
++	select TWL4030_CORE
+ 
+ config MACH_OMAP2EVM 
+ 	bool "OMAP 2530 EVM board"
+ 	depends on ARCH_OMAP2 && ARCH_OMAP24XX
++	select TWL4030_CORE
+ 
+ config MACH_OMAP_3430SDP
+ 	bool "OMAP 3430 SDP board"
+ 	depends on ARCH_OMAP3 && ARCH_OMAP34XX
++	select TWL4030_CORE
+ 
+ config MACH_OMAP3EVM
+ 	bool "OMAP 3530 EVM board"
+ 	depends on ARCH_OMAP3 && ARCH_OMAP34XX
++	select TWL4030_CORE
+ 
+ config MACH_OMAP3_BEAGLE
+ 	bool "OMAP3 BEAGLE board"
+ 	depends on ARCH_OMAP3 && ARCH_OMAP34XX
++	select TWL4030_CORE
+ 
+ config MACH_OVERO
+ 	bool "Gumstix Overo board"
+ 	depends on ARCH_OMAP3 && ARCH_OMAP34XX
++	select TWL4030_CORE
+ 
+ config MACH_OMAP3_PANDORA
+ 	bool "OMAP3 Pandora"
+ 	depends on ARCH_OMAP3 && ARCH_OMAP34XX
++	select TWL4030_CORE
+ 
+ config OMAP_TICK_GPTIMER
+ 	int "GPTIMER used for system tick timer"
 -- 
-Best Regards
-Pramod
+1.6.3.1
+
