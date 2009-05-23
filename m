@@ -1,42 +1,59 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 1/7] omap iommu: tlb and pagetable primitives
-Date: Fri, 22 May 2009 16:31:57 -0700
-Message-ID: <20090522233156.GA9283@atomide.com>
-References: <20090520064211.24734.80725.stgit@oreo.research.nokia.com> <20090520.124814.124079256.Hiroshi.DOYU@nokia.com> <20090522.102114.216733168.Hiroshi.DOYU@nokia.com>
+From: Kim Kyuwon <chammoru@gmail.com>
+Subject: Re: [PATCH 01/13] Revert "ARM: OMAP: Mask interrupts when disabling
+	interrupts, v2"
+Date: Sat, 23 May 2009 09:47:25 +0900
+Message-ID: <4d34a0a70905221747x4453afccwe87765a2be853c7f@mail.gmail.com>
+References: <1242861576-13008-1-git-send-email-khilman@deeprootsystems.com>
+	<1242861576-13008-2-git-send-email-khilman@deeprootsystems.com>
+	<4A15E5D9.7090704@samsung.com> <87hbzd89xz.fsf@deeprootsystems.com>
+	<20090522232206.GA6999@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=EUC-KR
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:57819 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756973AbZEVXcJ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 22 May 2009 19:32:09 -0400
-Content-Disposition: inline
-In-Reply-To: <20090522.102114.216733168.Hiroshi.DOYU@nokia.com>
+Received: from qw-out-2122.google.com ([74.125.92.27]:25973 "EHLO
+	qw-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758128AbZEWAro convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 22 May 2009 20:47:44 -0400
+Received: by qw-out-2122.google.com with SMTP id 5so1440761qwd.37
+        for <linux-omap@vger.kernel.org>; Fri, 22 May 2009 17:47:45 -0700 (PDT)
+In-Reply-To: <20090522232206.GA6999@n2100.arm.linux.org.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
-Cc: linux-arm-kernel@lists.arm.linux.org.uk, linux-omap@vger.kernel.org, h-kanigeri2@ti.com, omar.ramirez@ti.com, sakari.ailus@maxwell.research.nokia.com
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: Kevin Hilman <khilman@deeprootsystems.com>, Kim Kyuwon <q1.kim@samsung.com>, linux-arm-kernel@lists.arm.linux.org.uk, linux-omap@vger.kernel.org
 
-* Hiroshi DOYU <Hiroshi.DOYU@nokia.com> [090522 00:21]:
-> From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
-> Subject: Re: [PATCH 1/7] omap iommu: tlb and pagetable primitives
-> Date: Wed, 20 May 2009 12:48:14 +0300 (EEST)
-> 
-> > Hi,
-> > 
-> > If there's no problem with those patches, please pull them from the following.
-> > 
-> > The following changes since commit 091438dd5668396328a3419abcbc6591159eb8d1:
-> >   Linus Torvalds (1):
-> >         Linux 2.6.30-rc4
-> > 
-> > are available in the git repository at:
-> > 
-> >   http://git.gitorious.org/lk/mainline.git iommu
-> 
-> Russell, are you okay with this going into the patch system?
+On Sat, May 23, 2009 at 8:22 AM, Russell King - ARM Linux
+<linux@arm.linux.org.uk> wrote:
+> On Fri, May 22, 2009 at 07:54:32AM -0700, Kevin Hilman wrote:
+>> But the implemenation of that should not hold up this revert because
+>> this patch breaks *all* wakeups since the PRCM interrupt itself is
+>> disabled in the suspend path.
+>
+> That is not mentioned in the patch description (and it should be).
+> What this paragraph is saying is that this revert is most definitely
+> fixing a regression.
+>
+> Any "fix" which causes other breakage is not a fix, and therefore
+> this revert needs to go in no matter what.
 
-I can also queue these to omap for-next once Russell is OK with
-them. Up to Russell as this series contains ARM generic changes too.
- 
-> Kconfig patch is updated with your proposal.
+The problem is that this patch(which is written by me) was merged much
+earlier than Rafael's patch. So I think Rafael's patch causes other
+breakage.
+
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap"=
+ in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
+
+
+
+--=20
+Kyuwon (=B1=D4=BF=F8)
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
