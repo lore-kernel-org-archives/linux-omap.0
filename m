@@ -1,67 +1,46 @@
-From: green <greenfreedom10@gmail.com>
-Subject: Re: n810 internal mmc boot
-Date: Fri, 22 May 2009 21:44:15 -0600
-Message-ID: <20090523034415.GP23063@swansys>
-References: <20090228012717.GB4366@swansys> <20090321193355.GG20072@swansys> <20090325132610.a859abaf.jarkko.nikula@nokia.com> <20090325212631.GG29844@swansys>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: Status of clock patches after mainline reset? Case: Beagle C2
+ and EHCI
+Date: Sat, 23 May 2009 00:57:18 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.0905230051270.26015@utopia.booyaka.com>
+References: <20090522092016.5e4a7da7.jhnikula@gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="0pkK7MCEo5hACTvx"
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ew0-f176.google.com ([209.85.219.176]:64165 "EHLO
-	mail-ew0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755976AbZEWDo3 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 22 May 2009 23:44:29 -0400
-Received: by ewy24 with SMTP id 24so2194113ewy.37
-        for <linux-omap@vger.kernel.org>; Fri, 22 May 2009 20:44:30 -0700 (PDT)
-Content-Disposition: inline
-In-Reply-To: <20090325212631.GG29844@swansys>
-Content-Language: en
+Received: from utopia.booyaka.com ([72.9.107.138]:44738 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751282AbZEWG5S (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 23 May 2009 02:57:18 -0400
+In-Reply-To: <20090522092016.5e4a7da7.jhnikula@gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Linux-OMAP List <linux-omap@vger.kernel.org>
+To: Jarkko Nikula <jhnikula@gmail.com>
+Cc: linux-omap@vger.kernel.org
 
+Hi Jarkko
 
---0pkK7MCEo5hACTvx
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+On Fri, 22 May 2009, Jarkko Nikula wrote:
 
-green wrote at 2009-03-25 15:26 -0600:
-> Jarkko Nikula wrote at 2009-03-25 05:26 -0600:
-> > green <greenfreedom10@gmail.com> wrote:
-> > > green wrote at 2009-02-27 18:27 -0700:
-> > > > Any news on booting n810 from internal mmc?  It hasn't worked for a
-> > > > while.
-> > >=20
-> > > The kernel detects the external mmc fine (for root=3D), but not the
-> > > internal... I'm just wondering whether any progress is being made or
-> > > expected.  Sorry if I'm being a nuisance.
-> >=20
-> > So it has been working at least sometime in linux-omap? I've been using
-> > prototype version of N810 with slightly different internal mmc and I
-> > have never noticed that internal mmc is working in linux-omap.
->=20
-> Yes, I was booting from internal mmc for a while.
->=20
-> If I remember correctly:
-> 401b285 DOES work
-> cb4befa does NOT work
->=20
-> That is before/after the v2.6.29-rc1 merge.
+> EHCI port is not working on my Beagle C2 with linux-omap but is working
+> with this one:
+> 
+> http://www.angstrom-distribution.org/demo/beagleboard/uImage-2.6.28-r17-beagleboard.bin
+> 
+> Looks like the error below was fixed by the
+> 205f37af718984ec67444bccc888cd575531bce1 but got reseted with Tony's
+> eba05254cb561dc27d5664503f91f7c21954e648.
+> 
+> ehci_hcd: USB 2.0 'Enhanced' Host Controller (EHCI) Drive
+> Clock usbhost_48m_fck didn't enable in 100000 tries
+> ehci-omap ehci-omap.0: OMAP-EHCI Host Controller
+>
+> Is this re-fixed with your last week set, in PM branch etc?
 
-At 401b285, does internal mmc work for you?
+Unfortunately, no.  Looking at the patches, this seems to have been one 
+of the upstream clock merge casualties.
 
---0pkK7MCEo5hACTvx
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-Content-Disposition: inline
+I will try to get a fix series out soon for 2.6.30-rcX for this.
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.9 (GNU/Linux)
+Thanks for the detailed bug report -
 
-iEYEARECAAYFAkoXcQ8ACgkQ682C+dBP+oTnzwCfZoKmhr985wFrExZxuEcM3PXL
-nYsAnjUWWXEbQMo806RxI8jLv4V3dU2S
-=pHbt
------END PGP SIGNATURE-----
-
---0pkK7MCEo5hACTvx--
+- Paul
