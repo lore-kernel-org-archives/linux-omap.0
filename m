@@ -1,46 +1,88 @@
-From: Andrew de Quincey <adq_dvb@lidskialf.net>
-Subject: Re: [PATCH 05/10] ARM: OMAP1: Make 770 LCD work
-Date: Mon, 25 May 2009 14:21:28 +0100
-Message-ID: <20090525142128.17675cl0tvdr0y1k@lidskialf.net>
-References: <20090519232905.12760.15490.stgit@localhost>
-	<20090519233732.12760.34595.stgit@localhost>
-	<20090525092911.GC28195@n2100.arm.linux.org.uk>
+From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
+Subject: RE: [PATCH 2/4] ARM: OMAP4: Clock stubs since CLKDEV not in yet.
+Date: Mon, 25 May 2009 18:58:30 +0530
+Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB02B4B33AD5@dbde02.ent.ti.com>
+References: <1242824343-5956-1-git-send-email-santosh.shilimkar@ti.com>
+ <1242824343-5956-2-git-send-email-santosh.shilimkar@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset=UTF-8;
-	DelSp="Yes";
-	format="flowed"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed;
+	boundary="_002_EAF47CD23C76F840A9E7FCE10091EFAB02B4B33AD5dbde02enttico_"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from 82-71-49-12.dsl.in-addr.zen.co.uk ([82.71.49.12]:41451 "EHLO
-	mail.lidskialf.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753145AbZEYNV1 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 25 May 2009 09:21:27 -0400
-In-Reply-To: <20090525092911.GC28195@n2100.arm.linux.org.uk>
-Content-Disposition: inline
+Received: from arroyo.ext.ti.com ([192.94.94.40]:54978 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751190AbZEYN2z (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 25 May 2009 09:28:55 -0400
+In-Reply-To: <1242824343-5956-2-git-send-email-santosh.shilimkar@ti.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: Tony Lindgren <tony@atomide.com>, linux-arm-kernel@lists.arm.linux.org.uk, Imre Deak <imre.deak@nokia.com>, linux-omap@vger.kernel.org, linux-fbdev-devel@lists.sourceforge.net
+To: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "tony@atomide.com" <tony@atomide.com>
+Cc: "linux@arm.linux.org.uk" <linux@arm.linux.org.uk>, "linux-arm-kernel@lists.arm.linux.org.uk" <linux-arm-kernel@lists.arm.linux.org.uk>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Quoting Russell King - ARM Linux <linux@arm.linux.org.uk>:
+--_002_EAF47CD23C76F840A9E7FCE10091EFAB02B4B33AD5dbde02enttico_
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 
-> On Tue, May 19, 2009 at 04:37:32PM -0700, Tony Lindgren wrote:
->> Make 770 LCD work by passing the clock from platform data.
->> Also remove the old unused functions.
->
-> I don't like this - because its passing struct clk's through platform
-> data.  That's not how things are supposed to work.
->
-> The way PXA solves this problem is to have clock aliases - see
-> clk_add_alias().
+Tony,
+Correcting the spelling error which RMK has pointed (sunctions --> function=
+s )
 
-Interesting idea - I now have a prototype patch implementing this,  
-which I'll send when I get home (otherwise it would be an "it  
-compiles" "test" :)
-
-There isn't a common definition of clk_add_alias() though - that  
-symbol is defined in arch/arm/mach-pxa/clock.c, so I had to copy it  
-into arch/arm/plat-omap/clock.c
+Regards,
+Santosh
+=20
 
 
+--_002_EAF47CD23C76F840A9E7FCE10091EFAB02B4B33AD5dbde02enttico_
+Content-Type: application/octet-stream;
+	name="0002-ARM-OMAP4-Clock-stubs-since-clock-management-frame.patch"
+Content-Description: 0002-ARM-OMAP4-Clock-stubs-since-clock-management-frame.patch
+Content-Disposition: attachment;
+	filename="0002-ARM-OMAP4-Clock-stubs-since-clock-management-frame.patch";
+	size=2371; creation-date="Mon, 25 May 2009 18:52:58 GMT";
+	modification-date="Mon, 25 May 2009 18:57:52 GMT"
+Content-Transfer-Encoding: base64
+
+RnJvbSAxNDcxNzE1YjVlYmZiM2M1ZjFlYzBlZWM4ODdjMWQ0MTk5NjA5N2MxIE1vbiBTZXAgMTcg
+MDA6MDA6MDAgMjAwMQpGcm9tOiBTYW50b3NoIFNoaWxpbWthciA8c2FudG9zaC5zaGlsaW1rYXJA
+dGkuY29tPgpEYXRlOiBXZWQsIDIwIE1heSAyMDA5IDE3OjIxOjM5ICswNTMwClN1YmplY3Q6IFtQ
+QVRDSCAyLzRdIEFSTTogT01BUDQ6IENsb2NrIHN0dWJzIHNpbmNlIENMS0RFViBub3QgaW4geWV0
+LgoKVGhpcyBwYXRjaCB1cGRhdGUgdGhlIGNvbW1vbiBjbG9jay5jIGZpbGUgZm9yIE9NQVA0LiBU
+aGUgY2xrX2dldCgpIGFuZApjbGtfcHV0KCkgZnVuY3Rpb25zIGFyZSBtb3ZlZCB0byAgY29tbW9u
+IHBsYWNlIGluIGFyY2gvYXJtL2NvbW1vbi9jbGtkZXYuYwpTaW5jZSBvbiBjdXJyZW50IE9NQVA0
+IHBsYXRmb3JtIGNsayBtYW5hZ2VtZW50IGlzIHN0aWxsIG5vdCBzdXBwb3J0ZWQsIHRoZQpwbGF0
+Zm9ybSBmaWxlIGlzIHN0dWJiZWQgd2l0aCB0aG9zZSBmdW5jdGlvbnMuCgpPbmNlIHRoZSBmcmFt
+ZXdvcmsgaXMgcmVhZHksIHRoaXMgV0lMTCBiZSByZXBsYWNlZCB3aXRoIGEgZnVsbApjbGtkZXYg
+aW1wbGVtZW50YXRpb24uCgpTaWduZWQtb2ZmLWJ5OiBTYW50b3NoIFNoaWxpbWthciA8c2FudG9z
+aC5zaGlsaW1rYXJAdGkuY29tPgpTaWduZWQtb2ZmLWJ5OiBUb255IExpbmRncmVuIDx0b255QGF0
+b21pZGUuY29tPgotLS0KIGFyY2gvYXJtL3BsYXQtb21hcC9jbG9jay5jIHwgICAzMyArKysrKysr
+KysrKysrKysrKysrKysrKysrKysrKysrKysKIDEgZmlsZXMgY2hhbmdlZCwgMzMgaW5zZXJ0aW9u
+cygrKSwgMCBkZWxldGlvbnMoLSkKCmRpZmYgLS1naXQgYS9hcmNoL2FybS9wbGF0LW9tYXAvY2xv
+Y2suYyBiL2FyY2gvYXJtL3BsYXQtb21hcC9jbG9jay5jCmluZGV4IDI5ZWZjMjcuLjBmY2ZjZDYg
+MTAwNjQ0Ci0tLSBhL2FyY2gvYXJtL3BsYXQtb21hcC9jbG9jay5jCisrKyBiL2FyY2gvYXJtL3Bs
+YXQtb21hcC9jbG9jay5jCkBAIC0zNiwxMCArMzYsNDAgQEAgc3RhdGljIHN0cnVjdCBjbGtfZnVu
+Y3Rpb25zICphcmNoX2Nsb2NrOwogICogU3RhbmRhcmQgY2xvY2sgZnVuY3Rpb25zIGRlZmluZWQg
+aW4gaW5jbHVkZS9saW51eC9jbGsuaAogICotLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tKi8KIAorLyogVGhpcyBm
+dW5jdGlvbnMgaXMgbW92ZWQgdG8gYXJjaC9hcm0vY29tbW9uL2Nsa2Rldi5jLiBGb3IgT01BUDQg
+c2luY2UKKyAqIGNsb2NrIGZyYW1ld29yayBpcyBub3QgdXAgLCBpdCBpcyBkZWZpbmVkIGhlcmUg
+dG8gYXZvaWQgcmV3b3JrIGluCisgKiBldmVyeSBkcml2ZXIuIEFsc28gZHVtbXkgcHJjbSByZXNl
+dCBmdW5jdGlvbiBpcyBhZGRlZCAqLworCisvKiBEdW1teSBob29rcyBvbmx5IGZvciBPTUFQNC5G
+b3IgcmVzdCBPTUFQcywgY29tbW9uIGNsa2RldiBpcyB1c2VkICovCisjaWYgZGVmaW5lZChDT05G
+SUdfQVJDSF9PTUFQNCkKK3N0cnVjdCBjbGsgKmNsa19nZXQoc3RydWN0IGRldmljZSAqZGV2LCBj
+b25zdCBjaGFyICppZCkKK3sKKwlyZXR1cm4gTlVMTDsKK30KK0VYUE9SVF9TWU1CT0woY2xrX2dl
+dCk7CisKK3ZvaWQgY2xrX3B1dChzdHJ1Y3QgY2xrICpjbGspCit7Cit9CitFWFBPUlRfU1lNQk9M
+KGNsa19wdXQpOworCit2b2lkIG9tYXAyX2Nsa19wcmVwYXJlX2Zvcl9yZWJvb3Qodm9pZCkKK3sK
+K30KK0VYUE9SVF9TWU1CT0wob21hcDJfY2xrX3ByZXBhcmVfZm9yX3JlYm9vdCk7CisKK3ZvaWQg
+b21hcF9wcmNtX2FyY2hfcmVzZXQoY2hhciBtb2RlKQoreworfQorRVhQT1JUX1NZTUJPTChvbWFw
+X3ByY21fYXJjaF9yZXNldCk7CisjZW5kaWYKIGludCBjbGtfZW5hYmxlKHN0cnVjdCBjbGsgKmNs
+aykKIHsKIAl1bnNpZ25lZCBsb25nIGZsYWdzOwogCWludCByZXQgPSAwOworCWlmIChjcHVfaXNf
+b21hcDQ0eHgoKSkKKwkJLyogT01BUDQgY2xrIGZyYW1ld29yayBub3Qgc3VwcG9ydGVkIHlldCAq
+LworCQlyZXR1cm4gMDsKIAogCWlmIChjbGsgPT0gTlVMTCB8fCBJU19FUlIoY2xrKSkKIAkJcmV0
+dXJuIC1FSU5WQUw7CkBAIC0xNDAsNiArMTcwLDkgQEAgaW50IGNsa19zZXRfcGFyZW50KHN0cnVj
+dCBjbGsgKmNsaywgc3RydWN0IGNsayAqcGFyZW50KQogCXVuc2lnbmVkIGxvbmcgZmxhZ3M7CiAJ
+aW50IHJldCA9IC1FSU5WQUw7CiAKKwlpZiAoY3B1X2lzX29tYXA0NHh4KCkpCisJLyogT01BUDQg
+Y2xrIGZyYW1ld29yayBub3Qgc3VwcG9ydGVkIHlldCAqLworCQlyZXR1cm4gMDsKIAlpZiAoY2xr
+ID09IE5VTEwgfHwgSVNfRVJSKGNsaykgfHwgcGFyZW50ID09IE5VTEwgfHwgSVNfRVJSKHBhcmVu
+dCkpCiAJCXJldHVybiByZXQ7CiAKLS0gCjEuNS40LjcKCg==
+
+--_002_EAF47CD23C76F840A9E7FCE10091EFAB02B4B33AD5dbde02enttico_--
