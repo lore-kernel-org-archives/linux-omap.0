@@ -1,45 +1,58 @@
-From: Jarkko Nikula <jhnikula@gmail.com>
-Subject: Re: [PATCH 03/10] ARM: OMAP: Update contact address of I2C
- registration helper
-Date: Mon, 25 May 2009 14:32:15 +0300
-Message-ID: <20090525143215.21f532fc.jhnikula@gmail.com>
-References: <20090519232905.12760.15490.stgit@localhost>
-	<20090519233453.12760.5337.stgit@localhost>
-	<20090525092350.GB28195@n2100.arm.linux.org.uk>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: [PATCH 6/6] ARM: OMAP3: Initialize more devices for LDP
+Date: Mon, 25 May 2009 13:59:20 +0100
+Message-ID: <20090525125920.GD30553@n2100.arm.linux.org.uk>
+References: <20090522223543.31586.44534.stgit@localhost> <20090522224541.31586.68943.stgit@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from yx-out-2324.google.com ([74.125.44.28]:25115 "EHLO
-	yx-out-2324.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751249AbZEYLcT (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 25 May 2009 07:32:19 -0400
-Received: by yx-out-2324.google.com with SMTP id 3so1824470yxj.1
-        for <linux-omap@vger.kernel.org>; Mon, 25 May 2009 04:32:19 -0700 (PDT)
-In-Reply-To: <20090525092350.GB28195@n2100.arm.linux.org.uk>
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:48439 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752148AbZEYM71 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 25 May 2009 08:59:27 -0400
+Content-Disposition: inline
+In-Reply-To: <20090522224541.31586.68943.stgit@localhost>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: Tony Lindgren <tony@atomide.com>, linux-arm-kernel@lists.arm.linux.org.uk, linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-arm-kernel@lists.arm.linux.org.uk, linux-omap@vger.kernel.org
 
-On Mon, 25 May 2009 10:23:50 +0100
-Russell King - ARM Linux <linux@arm.linux.org.uk> wrote:
+On Fri, May 22, 2009 at 03:45:41PM -0700, Tony Lindgren wrote:
+> +static struct regulator_consumer_supply ldp_vmmc1_supply = {
+> +	.supply			= "vmmc",
+> +};
+> +
+> +/* VMMC1 for MMC1 pins CMD, CLK, DAT0..DAT3 (20 mA, plus card == max 220 mA) */
+> +static struct regulator_init_data ldp_vmmc1 = {
+> +	.consumer_supplies	= &ldp_vmmc1_supply,
+> +};
+> +
+>  static struct twl4030_platform_data ldp_twldata = {
+> +	.vmmc1		= &ldp_vmmc1,
+>  };
+>  
+>  static struct i2c_board_info __initdata ldp_i2c_boardinfo[] = {
 
-> On Tue, May 19, 2009 at 04:34:53PM -0700, Tony Lindgren wrote:
-> > From: Jarkko Nikula <jarkko.nikula@nokia.com>
-> > 
-> > This email address is going to expire soon so update it.
-> 
-> Should also be in MAINTAINERS, especially as that is being scripted to
-> pull peoples contact information from that file (and git)
-> automatically.
+> @@ -185,9 +379,17 @@ static void __init omap_ldp_init(void)
+>  	platform_add_devices(ldp_devices, ARRAY_SIZE(ldp_devices));
+>  	omap_board_config = ldp_config;
+>  	omap_board_config_size = ARRAY_SIZE(ldp_config);
+> +	ts_gpio = 54;
+> +	ldp_spi_board_info[0].irq = gpio_to_irq(ts_gpio);
+> +	spi_register_board_info(ldp_spi_board_info,
+> +				ARRAY_SIZE(ldp_spi_board_info));
+> +	ads7846_dev_init();
+>  	omap_serial_init();
+> -	twl4030_mmc_init(mmc);
+>  	usb_musb_init();
+> +
+> +	twl4030_mmc_init(mmc);
+> +	/* link regulators to MMC adapters */
+> +	ldp_vmmc1_supply.dev = mmc[0].dev;
 
-My expired old address removed from cc.
+This feels wrong - setup after registering devices.  All it takes is to
+have to move various device drivers to be earlier in the initialization
+ordering and things start breaking in unexpected ways.
 
-Is the arch/arm/plat-omap/i2c.c so important piece that it would need
-own entry in MAINTAINERS? I think arch/arm/*omap* would cover well
-enough most of the files.
-
-
--- 
-Jarkko
+If MMC controls the Vmmc1 supply, then why does the Vmmc1 supply need
+the struct device pointer for the MMC controller?
