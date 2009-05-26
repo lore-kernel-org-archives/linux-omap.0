@@ -1,107 +1,138 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: [PATCH 02/10] OMAP3 clock: initialize SDRC timings at kernel start
-Date: Tue, 26 May 2009 16:12:29 -0600
-Message-ID: <20090526221228.25381.29813.stgit@localhost.localdomain>
+Subject: [PATCH 04/10] OMAP3 clock/SDRC: program SDRC_MR register during SDRC
+	clock change
+Date: Tue, 26 May 2009 16:12:31 -0600
+Message-ID: <20090526221230.25381.60924.stgit@localhost.localdomain>
 References: <20090526220517.25381.75976.stgit@localhost.localdomain>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:33548 "EHLO
+Received: from utopia.booyaka.com ([72.9.107.138]:33563 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758681AbZEZWWZ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 26 May 2009 18:22:25 -0400
+	with ESMTP id S1757659AbZEZWW1 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 26 May 2009 18:22:27 -0400
 In-Reply-To: <20090526220517.25381.75976.stgit@localhost.localdomain>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-arm-kernel@lists.arm.linux.org.uk
 Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Paul Walmsley <paul@pwsan.com>
 
-On the OMAP3, initialize SDRC timings when the kernel boots.  This ensures
-that the kernel is running with known, optimized SDRC timings, rather than
-whatever was configured by the bootloader.
+Program the SDRC_MR_0 register as well during SDRC clock changes.
+This register allows selection of the memory CAS latency.  Some SDRAM
+chips, such as the Qimonda HYB18M512160AF6, have a lower CAS latency
+at lower clock rates.
 
 Signed-off-by: Paul Walmsley <paul@pwsan.com>
 ---
- arch/arm/mach-omap2/clock34xx.c |    3 ---
- arch/arm/mach-omap2/io.c        |   38 ++++++++++++++++++++++++++++++++++++++
- 2 files changed, 38 insertions(+), 3 deletions(-)
+ arch/arm/mach-omap2/clock34xx.c        |    4 ++--
+ arch/arm/mach-omap2/sram34xx.S         |    8 +++++++-
+ arch/arm/plat-omap/include/mach/sram.h |    4 ++--
+ arch/arm/plat-omap/sram.c              |    6 +++---
+ 4 files changed, 14 insertions(+), 8 deletions(-)
 
 diff --git a/arch/arm/mach-omap2/clock34xx.c b/arch/arm/mach-omap2/clock34xx.c
-index 62092f2..a62e326 100644
+index 29d0f07..5d57047 100644
 --- a/arch/arm/mach-omap2/clock34xx.c
 +++ b/arch/arm/mach-omap2/clock34xx.c
-@@ -715,9 +715,6 @@ static int omap3_core_dpll_m2_set_rate(struct clk *clk, unsigned long rate)
- 	if (clk != &dpll3_m2_ck)
- 		return -EINVAL;
+@@ -768,9 +768,9 @@ static int omap3_core_dpll_m2_set_rate(struct clk *clk, unsigned long rate)
+ 	/* REVISIT: SRAM code doesn't support other M2 divisors yet */
+ 	WARN_ON(new_div != 1 && new_div != 2);
  
--	if (rate == clk->rate)
--		return 0;
--
- 	validrate = omap2_clksel_round_rate_div(clk, rate, &new_div);
- 	if (validrate != rate)
- 		return -EINVAL;
-diff --git a/arch/arm/mach-omap2/io.c b/arch/arm/mach-omap2/io.c
-index 916fcd3..2756f49 100644
---- a/arch/arm/mach-omap2/io.c
-+++ b/arch/arm/mach-omap2/io.c
-@@ -19,6 +19,7 @@
- #include <linux/kernel.h>
- #include <linux/init.h>
- #include <linux/io.h>
-+#include <linux/clk.h>
+-	/* REVISIT: Add SDRC_MR changing to this code also */
+ 	omap3_configure_core_dpll(sp->rfr_ctrl, sp->actim_ctrla,
+-				  sp->actim_ctrlb, new_div, unlock_dll, c);
++				  sp->actim_ctrlb, new_div, unlock_dll, c,
++				  sp->mr);
  
- #include <asm/tlb.h>
- 
-@@ -195,6 +196,40 @@ void __init omap2_map_common_io(void)
- 	omapfb_reserve_sdram();
+ 	return 0;
  }
+diff --git a/arch/arm/mach-omap2/sram34xx.S b/arch/arm/mach-omap2/sram34xx.S
+index 8d4a88c..d13f1cc 100644
+--- a/arch/arm/mach-omap2/sram34xx.S
++++ b/arch/arm/mach-omap2/sram34xx.S
+@@ -44,12 +44,14 @@
+  *      SDRC rates < 83MHz
+  * r5 = number of MPU cycles to wait for SDRC to stabilize after
+  *      reprogramming the SDRC when switching to a slower MPU speed
++ * r6 = SDRC_MR_0 register value
+  *
+  */
+ ENTRY(omap3_sram_configure_core_dpll)
+ 	stmfd	sp!, {r1-r12, lr}	@ store regs to stack
+ 	ldr	r4, [sp, #52]		@ pull extra args off the stack
+ 	ldr	r5, [sp, #56]		@ load extra args from the stack
++	ldr	r6, [sp, #60]		@ load extra args from the stack
+ 	dsb				@ flush buffered writes to interconnect
+ 	cmp	r3, #0x2
+ 	blne	configure_sdrc
+@@ -151,7 +153,9 @@ configure_sdrc:
+ 	str	r1, [r11]
+ 	ldr	r11, omap3_sdrc_actim_ctrlb
+ 	str	r2, [r11]
+-	ldr	r2, [r11]		@ posted-write barrier for SDRC
++	ldr	r11, omap3_sdrc_mr_0
++	str	r6, [r11]
++	ldr	r6, [r11]		@ posted-write barrier for SDRC
+ 	bx	lr
  
-+/*
-+ * omap2_init_reprogram_sdrc - reprogram SDRC timing parameters
-+ *
-+ * Sets the CORE DPLL3 M2 divider to the same value that it's at
-+ * currently.  This has the effect of setting the SDRC SDRAM AC timing
-+ * registers to the values currently defined by the kernel.  Currently
-+ * only defined for OMAP3; will return 0 if called on OMAP2.  Returns
-+ * -EINVAL if the dpll3_m2_ck cannot be found, 0 if called on OMAP2,
-+ * or passes along the return value of clk_set_rate().
-+ */
-+static int __init _omap2_init_reprogram_sdrc(void)
-+{
-+	struct clk *dpll3_m2_ck;
-+	int v = -EINVAL;
-+	long rate;
-+
-+	if (!cpu_is_omap34xx())
-+		return 0;
-+
-+	dpll3_m2_ck = clk_get(NULL, "dpll3_m2_ck");
-+	if (!dpll3_m2_ck)
-+		return -EINVAL;
-+
-+	rate = clk_get_rate(dpll3_m2_ck);
-+	pr_info("Reprogramming SDRC clock to %ld Hz\n", rate);
-+	v = clk_set_rate(dpll3_m2_ck, rate);
-+	if (v)
-+		pr_err("dpll3_m2_clk rate change failed: %d\n", v);
-+
-+	clk_put(dpll3_m2_ck);
-+
-+	return v;
-+}
-+
- void __init omap2_init_common_hw(struct omap_sdrc_params *sp)
+ omap3_sdrc_power:
+@@ -168,6 +172,8 @@ omap3_sdrc_actim_ctrla:
+ 	.word OMAP34XX_SDRC_REGADDR(SDRC_ACTIM_CTRL_A_0)
+ omap3_sdrc_actim_ctrlb:
+ 	.word OMAP34XX_SDRC_REGADDR(SDRC_ACTIM_CTRL_B_0)
++omap3_sdrc_mr_0:
++	.word OMAP34XX_SDRC_REGADDR(SDRC_MR_0)
+ omap3_sdrc_dlla_status:
+ 	.word OMAP34XX_SDRC_REGADDR(SDRC_DLLA_STATUS)
+ omap3_sdrc_dlla_ctrl:
+diff --git a/arch/arm/plat-omap/include/mach/sram.h b/arch/arm/plat-omap/include/mach/sram.h
+index c32fa0a..4f87056 100644
+--- a/arch/arm/plat-omap/include/mach/sram.h
++++ b/arch/arm/plat-omap/include/mach/sram.h
+@@ -24,7 +24,7 @@ extern u32 omap2_set_prcm(u32 dpll_ctrl_val, u32 sdrc_rfr_val, int bypass);
+ extern u32 omap3_configure_core_dpll(u32 sdrc_rfr_ctrl,
+ 				     u32 sdrc_actim_ctrla,
+ 				     u32 sdrc_actim_ctrlb, u32 m2,
+-				     u32 unlock_dll, u32 f);
++				     u32 unlock_dll, u32 f, u32 sdrc_mr);
+ 
+ /* Do not use these */
+ extern void omap1_sram_reprogram_clock(u32 ckctl, u32 dpllctl);
+@@ -62,7 +62,7 @@ extern unsigned long omap243x_sram_reprogram_sdrc_sz;
+ extern u32 omap3_sram_configure_core_dpll(u32 sdrc_rfr_ctrl,
+ 					  u32 sdrc_actim_ctrla,
+ 					  u32 sdrc_actim_ctrlb, u32 m2,
+-					  u32 unlock_dll, u32 f);
++					  u32 unlock_dll, u32 f, u32 sdrc_mr);
+ extern unsigned long omap3_sram_configure_core_dpll_sz;
+ 
+ #endif
+diff --git a/arch/arm/plat-omap/sram.c b/arch/arm/plat-omap/sram.c
+index ae3627a..81048b3 100644
+--- a/arch/arm/plat-omap/sram.c
++++ b/arch/arm/plat-omap/sram.c
+@@ -366,10 +366,10 @@ static u32 (*_omap3_sram_configure_core_dpll)(u32 sdrc_rfr_ctrl,
+ 					      u32 sdrc_actim_ctrla,
+ 					      u32 sdrc_actim_ctrlb,
+ 					      u32 m2, u32 unlock_dll,
+-					      u32 f);
++					      u32 f, u32 sdrc_mr);
+ u32 omap3_configure_core_dpll(u32 sdrc_rfr_ctrl, u32 sdrc_actim_ctrla,
+ 			      u32 sdrc_actim_ctrlb, u32 m2, u32 unlock_dll,
+-			      u32 f)
++			      u32 f, u32 sdrc_mr)
  {
- 	omap2_mux_init();
-@@ -202,5 +237,8 @@ void __init omap2_init_common_hw(struct omap_sdrc_params *sp)
- 	clkdm_init(clockdomains_omap, clkdm_pwrdm_autodeps);
- 	omap2_clk_init();
- 	omap2_sdrc_init(sp);
-+
-+	_omap2_init_reprogram_sdrc();
-+
- 	gpmc_init();
+ 	if (!_omap3_sram_configure_core_dpll)
+ 		omap_sram_error();
+@@ -377,7 +377,7 @@ u32 omap3_configure_core_dpll(u32 sdrc_rfr_ctrl, u32 sdrc_actim_ctrla,
+ 	return _omap3_sram_configure_core_dpll(sdrc_rfr_ctrl,
+ 					       sdrc_actim_ctrla,
+ 					       sdrc_actim_ctrlb, m2,
+-					       unlock_dll, f);
++					       unlock_dll, f, sdrc_mr);
  }
+ 
+ /* REVISIT: Should this be same as omap34xx_sram_init() after off-idle? */
 
 
