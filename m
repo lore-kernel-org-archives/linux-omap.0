@@ -1,27 +1,28 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 00/10] Omap updates for merge window after 2.6.30
-Date: Tue, 26 May 2009 16:18:59 -0700
-Message-ID: <20090526231858.GI11865@atomide.com>
-References: <20090519232905.12760.15490.stgit@localhost>
+Subject: Re: [PATCH 0/6] Updates for omap3 for merge window after 2.6.30
+Date: Tue, 26 May 2009 16:31:13 -0700
+Message-ID: <20090526233112.GJ11865@atomide.com>
+References: <20090522223543.31586.44534.stgit@localhost>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:50807 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759513AbZEZXTF (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 26 May 2009 19:19:05 -0400
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:64698 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754416AbZEZXbU (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 26 May 2009 19:31:20 -0400
 Content-Disposition: inline
-In-Reply-To: <20090519232905.12760.15490.stgit@localhost>
+In-Reply-To: <20090522223543.31586.44534.stgit@localhost>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-arm-kernel@lists.arm.linux.org.uk
 Cc: linux-omap@vger.kernel.org
 
-* Tony Lindgren <tony@atomide.com> [090519 16:31]:
+* Tony Lindgren <tony@atomide.com> [090522 15:37]:
 > Hi all,
 > 
-> This series contains omap updates for review. There will be one more
-> series after this for omap3 specific patches.
+> Here are mostly omap3 specific updates for the coming merge window
+> for review. Still to come few more boards and regulator framework
+> changes for omap3 in one more series.
 
 I've merged these into omap for-next branch.
  
@@ -31,57 +32,34 @@ I've merged these into omap for-next branch.
 > 
 > ---
 > 
-> Eero Nurkkala (1):
->       ARM: OMAP: McBSP: Fix legacy interrupts to clear their status
-> 
 > Imre Deak (1):
->       ARM: OMAP2: 2430SDP: Add FB support to board file
+>       ARM: OMAP3: ZOOM MDK: Add FB support to board file
 > 
-> Jarkko Nikula (1):
->       ARM: OMAP: Update contact address of I2C registration helper
+> Paul Walmsley (2):
+>       ARM: OMAP3: SDRC: add timing data for Qimonda HYB18M512160AF-6
+>       ARM: OMAP3: SDRC: add timing data for Micron MT46H32M32LF-6
 > 
-> Juha Yrjola (1):
->       ARM: OMAP2/3: Add generic onenand support when connected to GPMC
+> Tony Lindgren (2):
+>       ARM: OMAP3: Initialize more devices for LDP
+>       ARM: OMAP2/3: Remove L4_WK_OMAP_BASE, L4_PER_OMAP_BASE, L4_EMU_BASE, L3_OMAP_BASE
 > 
-> Mans Rullgard (1):
->       ARM: OMAP: Increase VMALLOC_END to allow 256MB RAM
-> 
-> Santosh Shilimkar (1):
->       ARM: OMAP2/3: sDMA: Correct omap_request_dma_chain()
-> 
-> Tomi Valkeinen (1):
->       ARM: OMAP2/3: DMA: implement trans copy and const fill
-> 
-> Tony Lindgren (3):
->       ARM: OMAP2/3: Add generic smc91x support when connected to GPMC
->       ARM: OMAP1: Make 770 LCD work
->       ARM: OMAP1: Misc clean-up
+> Vikram Pandita (1):
+>       ARM: OMAP2/3: Serial: Remove arch_initcall dependency
 > 
 > 
->  arch/arm/configs/rx51_defconfig               |    2 
->  arch/arm/mach-omap1/Kconfig                   |    1 
->  arch/arm/mach-omap1/Makefile                  |    4 
->  arch/arm/mach-omap1/board-nokia770.c          |   17 +
->  arch/arm/mach-omap2/Makefile                  |    6 
->  arch/arm/mach-omap2/board-2430sdp.c           |  112 ++------
->  arch/arm/mach-omap2/board-3430sdp.c           |   78 ++----
->  arch/arm/mach-omap2/board-rx51-peripherals.c  |  192 ++++++--------
->  arch/arm/mach-omap2/gpmc-onenand.c            |  340 +++++++++++++++++++++++++
->  arch/arm/mach-omap2/gpmc-smc91x.c             |  189 ++++++++++++++
->  arch/arm/plat-omap/dma.c                      |   79 ++++--
->  arch/arm/plat-omap/i2c.c                      |    2 
->  arch/arm/plat-omap/include/mach/dma.h         |    3 
->  arch/arm/plat-omap/include/mach/gpmc-smc91x.h |   46 +++
->  arch/arm/plat-omap/include/mach/hwa742.h      |    5 
->  arch/arm/plat-omap/include/mach/onenand.h     |   29 ++
->  arch/arm/plat-omap/include/mach/vmalloc.h     |    2 
->  arch/arm/plat-omap/mcbsp.c                    |   30 ++
->  arch/arm/plat-omap/sram.c                     |    4 
->  drivers/video/omap/hwa742.c                   |   26 +-
->  20 files changed, 851 insertions(+), 316 deletions(-)
->  create mode 100644 arch/arm/mach-omap2/gpmc-onenand.c
->  create mode 100644 arch/arm/mach-omap2/gpmc-smc91x.c
->  create mode 100644 arch/arm/plat-omap/include/mach/gpmc-smc91x.h
+>  arch/arm/mach-omap2/board-3430sdp.c                |    3 
+>  arch/arm/mach-omap2/board-ldp.c                    |  219 ++++++++++++++++++++
+>  arch/arm/mach-omap2/board-omap3beagle.c            |    4 
+>  arch/arm/mach-omap2/board-omap3pandora.c           |    3 
+>  arch/arm/mach-omap2/board-overo.c                  |    3 
+>  arch/arm/mach-omap2/sdram-micron-mt46h32m32lf-6.h  |   69 ++++++
+>  .../mach-omap2/sdram-qimonda-hyb18m512160af-6.h    |   54 +++++
+>  arch/arm/mach-omap2/serial.c                       |   22 +-
+>  arch/arm/plat-omap/include/mach/keypad.h           |    4 
+>  arch/arm/plat-omap/include/mach/omap34xx.h         |    4 
+>  10 files changed, 361 insertions(+), 24 deletions(-)
+>  create mode 100644 arch/arm/mach-omap2/sdram-micron-mt46h32m32lf-6.h
+>  create mode 100644 arch/arm/mach-omap2/sdram-qimonda-hyb18m512160af-6.h
 > 
 > -- 
 > Signature
