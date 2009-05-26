@@ -1,639 +1,872 @@
-From: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
-Subject: Please help in adding ams-delta support to ASoC
-Date: Tue, 26 May 2009 15:17:23 +0200
-Message-ID: <4A1BEBE3.8010306@tis.icnet.pl>
+From: Jean Pihet <jpihet@mvista.com>
+Subject: [RFC][PATCH] OMAP3: add support for 2 SDRAM chip selects (was: Re: Beagleboard rev C memory timings & suspend/resume)
+Date: Tue, 26 May 2009 15:27:16 +0200
+Message-ID: <200905261527.16648.jpihet@mvista.com>
+References: <200904291553.49378.jpihet@mvista.com> <200905112110.34589.jpihet@mvista.com> <alpine.DEB.2.00.0905111416350.17514@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
- boundary="------------030401020308010505050707"
+Content-Type: Multipart/Mixed;
+  boundary="Boundary-00=_04+GKjqjDpqIBqT"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from d1.icnet.pl ([212.160.220.21]:49349 "EHLO d1.icnet.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751550AbZEZNTZ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 26 May 2009 09:19:25 -0400
+Received: from gateway-1237.mvista.com ([63.81.120.158]:34519 "EHLO
+	gateway-1237.mvista.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751951AbZEZN1o (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 26 May 2009 09:27:44 -0400
+In-Reply-To: <alpine.DEB.2.00.0905111416350.17514@utopia.booyaka.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org, alsa-devel@vger.kernel.org
+To: Paul Walmsley <paul@pwsan.com>, Kevin Hilman <khilman@deeprootsystems.com>
+Cc: linux-omap <linux-omap@vger.kernel.org>
 
-This is a multi-part message in MIME format.
---------------030401020308010505050707
-Content-Type: text/plain; charset=ISO-8859-2; format=flowed
-Content-Transfer-Encoding: 7bit
+--Boundary-00=_04+GKjqjDpqIBqT
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+Content-Disposition: inline
 
-Hi,
+Hi Paul, Kevin,
 
-I am trying to add sound support for ams-delta omap machine, yet without 
-much success.
+Here is a patch for the SDRC 2nd CS support. It applies on top of the curre=
+nt=20
+pm branch.
 
-Three years ago, Mark Underwood created an omap-alsa compatible driver 
-that basically worked[1]. It was derieved from similiar driver for aic23 
-codec found on omap osk machine. It looks like Mark has never managed to 
-finish his work. It's not clear for me if he has found that getting a 
-working fullduplex sound is technically impossible on a voice modem 
-codec, shared among modem and cpu, controlable only from modem side 
-afaik, but I have decided to give it a try.
+I have some questions:
+=2D Is it OK to copy the micron sdram params file to a new file with the 2 =
+CSes=20
+params? One could use a unique file with #ifdef SDRC_SUPPORT_2_CSES.
+=2D Does the RX51 board have 2 sdram parts? If so I need to update the boar=
+d=20
+file as well.
 
-Since Mark's initial work, omap-alsa framework has been depreciated in 
-favour of soc-omap. API changes are so significant that Mark's code is 
-rather not useable directly any more. However, I am trying to use it as 
-a starting point, by comparing it against it's prototype osk/aic23 code.
-
-Following Mark, I am trying to derieve the new ams-delta sound driver 
-from current asoc driver for omap osk9512. For codec part, I decided to 
-base my work on much more simple ad73311 rather that tlv320aic23.
-
-Comparing Mark's code agaist it's osk/aic23 prototype, I can see the 
-folowing significant changes:
-1. rate tables/bitmaps found in hw_constraint_rates, 
-snd_omap_alsa_playback and snd_omap_alsa_capture structures limited to 8kHz,
-2. hardware related code found in codec_configure_dev(), 
-codec_clock_on() and codec_clock_off() callback functions replaced with 
-ams-delta hardware specific code that switches the codec DAI pins from 
-modem chip to mcbsp cpu interface and back,
-3. codec_set_samplerate() and all mixer related functions replaced with 
-stubs.
-4. the following McBSP register settings changes:
-
--	.xcr2 = XPHASE | XFRLEN2(OMAP_MCBSP_WORD_8) |
--	    XWDLEN2(OMAP_MCBSP_WORD_16) | XDATDLY(0) | XFIG,
-+	.xcr2 = XPHASE | XWDLEN2(OMAP_MCBSP_WORD_16) | XFRLEN2(0),
-
--	.srgr1 = FWID(DEFAULT_BITPERSAMPLE - 1),
-+	.srgr1 = CLKGDV(0),
-
--	.srgr2 = GSYNC | CLKSP | FSGM | FPER(DEFAULT_BITPERSAMPLE * 2 - 1),
-+       .srgr2 = GSYNC,
-
--	.pcr0 = CLKXP | CLKRP,  /* mcbsp: slave */
-
-I have found points 1. to 3. rather trivial to implement in new 
-framework. Regarding point 4., it looks like detailed register settings 
-are now done inside omap-mcbsp.c, based on machine specified format, so 
-I have to find out what format should be specified for ams-delta. Please 
-correct me if I am missing something.
-
-There was one more modification in Mark's code, addressing dma chaining 
-problem on omap15xx hardware, but as far as I could see, the problem was 
-already solved in the asoc omap framework.
-
-Initially, I based my work on ompenembedded provided linux-omap.git 
-revision 90e758af52ba803cba233fabee81176d99589f09. The results were 
-rather poor - total system hangup after first device access, with no 
-single message. So I have switched to linux-2.6.30-rc5 and now I can 
-safely access the device, however it does not work as expected. aplay 
-and arecord wait forever, cat to/from /dev/dsp breaks with hardware 
-error messgae. DMA interrput counters stay at 0. However, codec 
-switching that I do from machine->ops->startup/shutdown seems working, 
-as modem stops producing any sounds while the alsa device is in use and 
-gets back thereafter.
-
-First of all, I'd like to make sure if my problem is related to my code 
-only. As I am new in these areas, I would like to ask you if the omap 
-asoc framework is stable enough to relay on. If yes, could you please 
-look at my dirty code (attached) an give me some hints? I can provide 
-you with more information if necessary.
+Comments are welcome.
 
 Regards,
-Janusz
+Jean
 
-[1] http://www.earth.li/pipermail/e3-hacking/2006-April/000481.html
+=46rom 517f52f4bef8225c5921b55ecd96eda2e0c4b697 Mon Sep 17 00:00:00 2001
+=46rom: Jean Pihet <jpihet@mvista.com>
+Date: Tue, 26 May 2009 14:55:57 +0200
+Subject: [PATCH] OMAP3: add support for 2 SDRAM chip selects
 
---------------030401020308010505050707
-Content-Type: text/x-patch;
- name="ams-delta-sound.patch"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="ams-delta-sound.patch"
+Some boards (Beagle Cx, Overo) have 2 SDRAM parts
+connected to the SDRC.
 
-diff -Npru git/sound/soc/codecs/Kconfig git/sound/soc/codecs/Kconfig
---- git/sound/soc/codecs/Kconfig	2009-05-12 21:13:59.000000000 +0200
-+++ git/sound/soc/codecs/Kconfig	2009-05-18 22:31:15.000000000 +0200
-@@ -12,6 +12,7 @@ config SND_SOC_ALL_CODECS
- 	tristate "Build all ASoC CODEC drivers"
- 	select SND_SOC_AC97_CODEC if SND_SOC_AC97_BUS
- 	select SND_SOC_AD1980 if SND_SOC_AC97_BUS
-+	select SND_SOC_CX20442
- 	select SND_SOC_AD73311 if I2C
- 	select SND_SOC_AK4535 if I2C
- 	select SND_SOC_CS4270 if I2C
-@@ -55,6 +56,9 @@ config SND_SOC_AC97_CODEC
- config SND_SOC_AD1980
- 	tristate
- 
-+config SND_SOC_CX20442
-+	tristate
+This patch adds the following:
+=2D ensure that the CKE signals mux settings are correct
+=2D extend the omap_sdrc_params struct with the 2nd CS params
+=2D add a new file for the micron sdram params for 2 CSes
+=2D adapt the sram sleep code to configure the SDRC for the 2nd CS
+
+Thanks to Paul Walmsley and Kevin Hilman for the suggestions
+and code reviews.
+
+Tested on Beagleboard rev C2 and B5.
+
+Signed-off-by: Jean Pihet <jpihet@mvista.com>
+
+On Monday 11 May 2009 22:27:50 Paul Walmsley wrote:
+> Hi Jean,
+>
+> On Mon, 11 May 2009, Jean Pihet wrote:
+> > On Saturday 09 May 2009 00:43:43 Paul Walmsley wrote:
+> > > One possibility: perhaps the problem is with Beagle's pin mux setting=
+s.
+> > > You might want to boot with mem=3D128M and make sure
+> > > CONTROL_PADCONF_SAD2D_SBUSFLAG and CONTROL_PADCONF_SDRC_CKE1 are in
+> > > mode 0 before suspend and after resume.
+> >
+> > Yes that definitely is the root cause. I should have checked this first
+> > ;-( The U-Boot change is committed, cf.
+> > http://gitorious.org/u-boot-omap3/mainline/commit/c6f01ad390308800693c6=
+2d
+> >bdb096ab59e03630b and
+> > http://gitorious.org/u-boot-omap3/mainline/commit/4025cfbde3611b14c0d48=
+31
+> >a5524e5e061128e30
+>
+> Nice work!
+>
+> Sounds like we should also patch mach-omap2/sdrc.c:omap2_sdrc_init() to
+> warn if the sdrc_cke1 pin mux is wrong if a second struct omap_sdrc_params
+> * is passed.  Probably board-omap3beagle.c should also remux the pad if
+> it's wrong.  Otherwise there will be a lot of unhappy Rev C BeagleBoard
+> users.
+>
+> > I am looking at a fix for the SDRC setup with 2 CSes. I will propose the
+> > changes asap.
+>
+> Excellent, thanks Jean.
+>
+>
+> - Paul
+
+
+
+--Boundary-00=_04+GKjqjDpqIBqT
+Content-Type: text/x-diff;
+  charset="iso 8859-15";
+  name="0001-OMAP3-add-support-for-2-SDRAM-chip-selects.patch"
+Content-Transfer-Encoding: quoted-printable
+Content-Disposition: attachment;
+	filename="0001-OMAP3-add-support-for-2-SDRAM-chip-selects.patch"
+
+=46rom 517f52f4bef8225c5921b55ecd96eda2e0c4b697 Mon Sep 17 00:00:00 2001
+=46rom: Jean Pihet <jpihet@mvista.com>
+Date: Tue, 26 May 2009 14:55:57 +0200
+Subject: [PATCH] OMAP3: add support for 2 SDRAM chip selects
+
+Some boards (Beagle Cx, Overo) have 2 SDRAM parts
+connected to the SDRC.
+
+This patch adds the following:
+=2D ensure that the CKE signals mux settings are correct
+=2D extend the omap_sdrc_params struct with the 2nd CS params
+=2D add a new file for the micron sdram params for 2 CSes
+=2D adapt the sram sleep code to configure the SDRC for the 2nd CS
+
+Thanks to Paul Walmsley and Kevin Hilman for the suggestions
+and code reviews.
+
+Tested on Beagleboard rev C2 and B5.
+
+Signed-off-by: Jean Pihet <jpihet@mvista.com>
+=2D--
+ arch/arm/mach-omap2/board-omap3beagle.c            |    6 +-
+ arch/arm/mach-omap2/board-overo.c                  |    6 +-
+ arch/arm/mach-omap2/board-rx51-sdram.c             |    8 +-
+ arch/arm/mach-omap2/clock34xx.c                    |   18 ++-
+ arch/arm/mach-omap2/mux.c                          |    6 +
+ .../mach-omap2/sdram-micron-mt46h32m32lf-6-2cses.h |   93 ++++++++++++++
+ arch/arm/mach-omap2/sdram-micron-mt46h32m32lf-6.h  |   60 +++++-----
+ .../mach-omap2/sdram-qimonda-hyb18m512160af-6.h    |   40 +++---
+ arch/arm/mach-omap2/sdrc.c                         |   15 ++-
+ arch/arm/mach-omap2/sram34xx.S                     |  128 +++++++++++++++-=
+=2D---
+ arch/arm/plat-omap/include/mach/mux.h              |    4 +
+ arch/arm/plat-omap/include/mach/sdrc.h             |   23 +++--
+ arch/arm/plat-omap/include/mach/sram.h             |   12 +-
+ arch/arm/plat-omap/sram.c                          |   34 +++--
+ 14 files changed, 329 insertions(+), 124 deletions(-)
+ create mode 100644 arch/arm/mach-omap2/sdram-micron-mt46h32m32lf-6-2cses.h
+
+diff --git a/arch/arm/mach-omap2/board-omap3beagle.c b/arch/arm/mach-omap2/=
+board-omap3beagle.c
+index 7294dbf..7128213 100644
+=2D-- a/arch/arm/mach-omap2/board-omap3beagle.c
++++ b/arch/arm/mach-omap2/board-omap3beagle.c
+@@ -110,7 +110,7 @@ static struct platform_device omap3beagle_nand_device =
+=3D {
+ 	.resource	=3D &omap3beagle_nand_resource,
+ };
+=20
+=2D#include "sdram-micron-mt46h32m32lf-6.h"
++#include "sdram-micron-mt46h32m32lf-6-2cses.h"
+=20
+ static struct omap_uart_config omap3_beagle_uart_config __initdata =3D {
+ 	.enabled_uarts	=3D ((1 << 0) | (1 << 1) | (1 << 2)),
+@@ -441,6 +441,10 @@ static void __init omap3_beagle_init(void)
+ 	usb_musb_init();
+ 	usb_ehci_init();
+ 	omap3beagle_flash_init();
 +
- config SND_SOC_AD73311
- 	tristate
- 
-diff -Npru git/sound/soc/codecs/Makefile git/sound/soc/codecs/Makefile
---- git/sound/soc/codecs/Makefile	2009-05-12 21:13:59.000000000 +0200
-+++ git/sound/soc/codecs/Makefile	2009-05-18 22:33:32.000000000 +0200
-@@ -1,5 +1,6 @@
- snd-soc-ac97-objs := ac97.o
- snd-soc-ad1980-objs := ad1980.o
-+snd-soc-cx20442-objs := cx20442.o
- snd-soc-ad73311-objs := ad73311.o
- snd-soc-ak4535-objs := ak4535.o
- snd-soc-cs4270-objs := cs4270.o
-@@ -28,6 +29,7 @@ snd-soc-wm9713-objs := wm9713.o
- 
- obj-$(CONFIG_SND_SOC_AC97_CODEC)	+= snd-soc-ac97.o
- obj-$(CONFIG_SND_SOC_AD1980)	+= snd-soc-ad1980.o
-+obj-$(CONFIG_SND_SOC_CX20442) += snd-soc-cx20442.o
- obj-$(CONFIG_SND_SOC_AD73311) += snd-soc-ad73311.o
- obj-$(CONFIG_SND_SOC_AK4535)	+= snd-soc-ak4535.o
- obj-$(CONFIG_SND_SOC_CS4270)	+= snd-soc-cs4270.o
-diff -Npru git/sound/soc/codecs/cx20442.c git/sound/soc/codecs/cx20442.c
---- git/sound/soc/codecs/cx20442.c	1970-01-01 01:00:00.000000000 +0100
-+++ git/sound/soc/codecs/cx20442.c	2009-05-18 21:26:20.000000000 +0200
-@@ -0,0 +1,117 @@
++	/* Ensure SDRC pins are mux'd for self-refresh */
++	omap_cfg_reg(H16_34XX_SDRC_CKE0);
++	omap_cfg_reg(H17_34XX_SDRC_CKE1);
+ }
+=20
+ static void __init omap3_beagle_map_io(void)
+diff --git a/arch/arm/mach-omap2/board-overo.c b/arch/arm/mach-omap2/board-=
+overo.c
+index 9eae608..a6ac353 100644
+=2D-- a/arch/arm/mach-omap2/board-overo.c
++++ b/arch/arm/mach-omap2/board-overo.c
+@@ -47,7 +47,7 @@
+ #include <mach/nand.h>
+ #include <mach/usb.h>
+=20
+=2D#include "sdram-micron-mt46h32m32lf-6.h"
++#include "sdram-micron-mt46h32m32lf-6-2cses.h"
+ #include "twl4030-generic-scripts.h"
+ #include "mmc-twl4030.h"
+=20
+@@ -391,6 +391,10 @@ static void __init overo_init(void)
+ 	overo_init_smsc911x();
+ 	overo_ads7846_init();
+=20
++	/* Ensure SDRC pins are mux'd for self-refresh */
++	omap_cfg_reg(H16_34XX_SDRC_CKE0);
++	omap_cfg_reg(H17_34XX_SDRC_CKE1);
++
+ 	if ((gpio_request(OVERO_GPIO_W2W_NRESET,
+ 			  "OVERO_GPIO_W2W_NRESET") =3D=3D 0) &&
+ 	    (gpio_direction_output(OVERO_GPIO_W2W_NRESET, 1) =3D=3D 0)) {
+diff --git a/arch/arm/mach-omap2/board-rx51-sdram.c b/arch/arm/mach-omap2/b=
+oard-rx51-sdram.c
+index 32b5da4..2e37b0f 100644
+=2D-- a/arch/arm/mach-omap2/board-rx51-sdram.c
++++ b/arch/arm/mach-omap2/board-rx51-sdram.c
+@@ -204,10 +204,10 @@ struct omap_sdrc_params *rx51_get_sdram_timings(void)
+ 	rfr_ctrl =3D l | 0x3; /* autorefresh, reload counter with 8xARCV */
+=20
+ 	rx51_sdrc_params[0].rate =3D 133333333;
+=2D	rx51_sdrc_params[0].actim_ctrla =3D actim_ctrla;
+=2D	rx51_sdrc_params[0].actim_ctrlb =3D actim_ctrlb;
+=2D	rx51_sdrc_params[0].rfr_ctrl =3D rfr_ctrl;
+=2D	rx51_sdrc_params[0].mr =3D 0x32;
++	rx51_sdrc_params[0].actim_ctrl_a_0 =3D actim_ctrla;
++	rx51_sdrc_params[0].actim_ctrl_b_0 =3D actim_ctrlb;
++	rx51_sdrc_params[0].rfr_ctrl_0 =3D rfr_ctrl;
++	rx51_sdrc_params[0].mr_0 =3D 0x32;
+=20
+ 	rx51_sdrc_params[1].rate =3D 0;
+=20
+diff --git a/arch/arm/mach-omap2/clock34xx.c b/arch/arm/mach-omap2/clock34x=
+x.c
+index 3cee6b4..a019711 100644
+=2D-- a/arch/arm/mach-omap2/clock34xx.c
++++ b/arch/arm/mach-omap2/clock34xx.c
+@@ -518,12 +518,18 @@ static int omap3_core_dpll_m2_set_rate(struct clk *cl=
+k, unsigned long rate)
+=20
+ 	pr_debug("clock: changing CORE DPLL rate from %lu to %lu\n", clk->rate,
+ 		 validrate);
+=2D	pr_debug("clock: SDRC timing params used: %08x %08x %08x\n",
+=2D		 sp->rfr_ctrl, sp->actim_ctrla, sp->actim_ctrlb);
+=2D
+=2D	omap3_configure_core_dpll(sp->rfr_ctrl, sp->actim_ctrla,
+=2D				  sp->actim_ctrlb, new_div, unlock_dll, c,
+=2D				  sp->mr, rate > clk->rate);
++	pr_debug("Clock: SDRC timing params used: "
++		 "CS0 %08x %08x %08x %08x, CS1 %08x %08x %08x %08x\n",
++		 sp->rfr_ctrl_0, sp->actim_ctrl_a_0,
++		 sp->actim_ctrl_b_0, sp->mr_0,
++		 sp->rfr_ctrl_1, sp->actim_ctrl_a_1,
++		 sp->actim_ctrl_b_1, sp->mr_1);
++
++	omap3_configure_core_dpll(new_div, unlock_dll, c, rate > clk->rate,
++				  sp->rfr_ctrl_0, sp->actim_ctrl_a_0,
++				  sp->actim_ctrl_b_0, sp->mr_0,
++				  sp->rfr_ctrl_1, sp->actim_ctrl_a_1,
++				  sp->actim_ctrl_b_1, sp->mr_1);
+=20
+ 	return 0;
+ }
+diff --git a/arch/arm/mach-omap2/mux.c b/arch/arm/mach-omap2/mux.c
+index 026c4fc..43d6b92 100644
+=2D-- a/arch/arm/mach-omap2/mux.c
++++ b/arch/arm/mach-omap2/mux.c
+@@ -486,6 +486,12 @@ MUX_CFG_34XX("H19_34XX_GPIO164_OUT", 0x19c,
+ 		OMAP34XX_MUX_MODE4 | OMAP34XX_PIN_OUTPUT)
+ MUX_CFG_34XX("J25_34XX_GPIO170", 0x1c6,
+ 		OMAP34XX_MUX_MODE4 | OMAP34XX_PIN_INPUT)
++
++/* OMAP3 SDRC CKE signals to SDR/DDR ram chips */
++MUX_CFG_34XX("H16_34XX_SDRC_CKE0", 0x262,
++		OMAP34XX_MUX_MODE0 | OMAP34XX_PIN_OUTPUT)
++MUX_CFG_34XX("H17_34XX_SDRC_CKE1", 0x264,
++		OMAP34XX_MUX_MODE0 | OMAP34XX_PIN_OUTPUT)
+ };
+=20
+ #define OMAP34XX_PINS_SZ	ARRAY_SIZE(omap34xx_pins)
+diff --git a/arch/arm/mach-omap2/sdram-micron-mt46h32m32lf-6-2cses.h b/arch=
+/arm/mach-omap2/sdram-micron-mt46h32m32lf-6-2cses.h
+new file mode 100644
+index 0000000..5b9be9e
+=2D-- /dev/null
++++ b/arch/arm/mach-omap2/sdram-micron-mt46h32m32lf-6-2cses.h
+@@ -0,0 +1,93 @@
 +/*
-+ * cx20442.c  --  ALSA Soc cx20442 codec support
++ * SDRC register values for the Micron MT46H32M32LF-6
 + *
-+ * based on ad73311.c
++ * Copyright (C) 2008 Texas Instruments, Inc.
++ * Copyright (C) 2008 Nokia Corporation
 + *
-+ * Copyright:	Analog Device Inc.
-+ * Author:	Cliff Cai <cliff.cai@analog.com>
-+ *
-+ *  This program is free software; you can redistribute  it and/or modify it
-+ *  under  the terms of  the GNU General  Public License as published by the
-+ *  Free Software Foundation;  either version 2 of the  License, or (at your
-+ *  option) any later version.
-+ */
-+
-+#include <linux/init.h>
-+#include <linux/module.h>
-+#include <linux/kernel.h>
-+#include <linux/device.h>
-+#include <sound/core.h>
-+#include <sound/pcm.h>
-+#include <sound/ac97_codec.h>
-+#include <sound/initval.h>
-+#include <sound/soc.h>
-+
-+#include "cx20442.h"
-+
-+struct snd_soc_dai cx20442_dai = {
-+	.name = "CX20442",
-+	.playback = {
-+		.stream_name = "Playback",
-+		.channels_min = 2,
-+		.channels_max = 2,
-+		.rates = SNDRV_PCM_RATE_8000,
-+		.formats = SNDRV_PCM_FMTBIT_S16_LE, },
-+	.capture = {
-+		.stream_name = "Capture",
-+		.channels_min = 2,
-+		.channels_max = 2,
-+		.rates = SNDRV_PCM_RATE_8000,
-+		.formats = SNDRV_PCM_FMTBIT_S16_LE, },
-+};
-+EXPORT_SYMBOL_GPL(cx20442_dai);
-+
-+static int cx20442_soc_probe(struct platform_device *pdev)
-+{
-+	struct snd_soc_device *socdev = platform_get_drvdata(pdev);
-+	struct snd_soc_codec *codec;
-+	int ret = 0;
-+
-+	codec = kzalloc(sizeof(struct snd_soc_codec), GFP_KERNEL);
-+	if (codec == NULL)
-+		return -ENOMEM;
-+	mutex_init(&codec->mutex);
-+	codec->name = "CX20442";
-+	codec->owner = THIS_MODULE;
-+	codec->dai = &cx20442_dai;
-+	codec->num_dai = 1;
-+	socdev->card->codec = codec;
-+	INIT_LIST_HEAD(&codec->dapm_widgets);
-+	INIT_LIST_HEAD(&codec->dapm_paths);
-+
-+	/* register pcms */
-+	ret = snd_soc_new_pcms(socdev, SNDRV_DEFAULT_IDX1, SNDRV_DEFAULT_STR1);
-+	if (ret < 0) {
-+		printk(KERN_ERR "cx20442: failed to create pcms\n");
-+		goto pcm_err;
-+	}
-+
-+	ret = snd_soc_init_card(socdev);
-+	if (ret < 0) {
-+		printk(KERN_ERR "cx20442: failed to register card\n");
-+		goto register_err;
-+	}
-+
-+	return ret;
-+
-+register_err:
-+	snd_soc_free_pcms(socdev);
-+pcm_err:
-+	kfree(socdev->card->codec);
-+	socdev->card->codec = NULL;
-+	return ret;
-+}
-+
-+static int cx20442_soc_remove(struct platform_device *pdev)
-+{
-+	struct snd_soc_device *socdev = platform_get_drvdata(pdev);
-+	struct snd_soc_codec *codec = socdev->card->codec;
-+
-+	if (codec == NULL)
-+		return 0;
-+	snd_soc_free_pcms(socdev);
-+	kfree(codec);
-+	return 0;
-+}
-+
-+struct snd_soc_codec_device soc_codec_dev_cx20442 = {
-+	.probe = 	cx20442_soc_probe,
-+	.remove = 	cx20442_soc_remove,
-+};
-+EXPORT_SYMBOL_GPL(soc_codec_dev_cx20442);
-+
-+static int __init cx20442_init(void)
-+{
-+	return snd_soc_register_dai(&cx20442_dai);
-+}
-+module_init(cx20442_init);
-+
-+static void __exit cx20442_exit(void)
-+{
-+	snd_soc_unregister_dai(&cx20442_dai);
-+}
-+module_exit(cx20442_exit);
-+
-+MODULE_DESCRIPTION("ASoC cx20442 driver");
-+MODULE_AUTHOR("Cliff Cai ");
-+MODULE_LICENSE("GPL");
-diff -Npru git/sound/soc/codecs/cx20442.h git/sound/soc/codecs/cx20442.h
---- git/sound/soc/codecs/cx20442.h	1970-01-01 01:00:00.000000000 +0100
-+++ git/sound/soc/codecs/cx20442.h	2009-05-18 21:25:46.000000000 +0200
-@@ -0,0 +1,90 @@
-+/*
-+ * File:         sound/soc/codec/cx20442.h
-+ * Based on:     sound/soc/codec/ad73311.h
-+ * Author:       Cliff Cai <cliff.cai@analog.com>
-+ *
-+ * Created:      Thur Sep 25, 2008
-+ * Description:  definitions for cx20442 registers
-+ *
-+ *
-+ * Modified:
-+ *               Copyright 2006 Analog Devices Inc.
-+ *
-+ * Bugs:         Enter bugs at http://blackfin.uclinux.org/
++ * Paul Walmsley
 + *
 + * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation; either version 2 of the License, or
-+ * (at your option) any later version.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program; if not, see the file COPYING, or write
-+ * to the Free Software Foundation, Inc.,
-+ * 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
 + */
 +
-+#ifndef __CX20442_H__
-+#define __CX20442_H__
++#ifndef ARCH_ARM_MACH_OMAP2_SDRAM_MICRON_MT46H32M32LF
++#define ARCH_ARM_MACH_OMAP2_SDRAM_MICRON_MT46H32M32LF
 +
-+#define AD_CONTROL	0x8000
-+#define AD_DATA		0x0000
-+#define AD_READ		0x4000
-+#define AD_WRITE	0x0000
++#include <mach/sdrc.h>
 +
-+/* Control register A */
-+#define CTRL_REG_A	(0 << 8)
++/* Micron MT46H32M32LF-6, using 2 parts on CS0 and CS1 */
++/* XXX Using ARE =3D 0x1 (no autorefresh burst) -- can this be changed? */
++static struct omap_sdrc_params mt46h32m32lf6_sdrc_params[] =3D {
++	[0] =3D {
++		.rate			=3D 166000000,
++		.actim_ctrl_a_0		=3D 0x9a9db4c6,
++		.actim_ctrl_b_0 	=3D 0x00011217,
++		.rfr_ctrl_0		=3D 0x0004dc01,
++		.mr_0			=3D 0x00000032,
++		.actim_ctrl_a_1		=3D 0x9a9db4c6,
++		.actim_ctrl_b_1 	=3D 0x00011217,
++		.rfr_ctrl_1		=3D 0x0004dc01,
++		.mr_1			=3D 0x00000032,
++	},
++	[1] =3D {
++		.rate			=3D 165941176,
++		.actim_ctrl_a_0		=3D 0x9a9db4c6,
++		.actim_ctrl_b_0		=3D 0x00011217,
++		.rfr_ctrl_0		=3D 0x0004dc01,
++		.mr_0			=3D 0x00000032,
++		.actim_ctrl_a_1		=3D 0x9a9db4c6,
++		.actim_ctrl_b_1		=3D 0x00011217,
++		.rfr_ctrl_1		=3D 0x0004dc01,
++		.mr_1			=3D 0x00000032,
++	},
++	[2] =3D {
++		.rate			=3D 133333333,
++		.actim_ctrl_a_0		=3D 0x7a19b485,
++		.actim_ctrl_b_0		=3D 0x00011213,
++		.rfr_ctrl_0		=3D 0x0003de01,
++		.mr_0			=3D 0x00000032,
++		.actim_ctrl_a_1		=3D 0x7a19b485,
++		.actim_ctrl_b_1		=3D 0x00011213,
++		.rfr_ctrl_1		=3D 0x0003de01,
++		.mr_1			=3D 0x00000032,
++	},
++	[3] =3D {
++		.rate			=3D 83000000,
++		.actim_ctrl_a_0		=3D 0x51512283,
++		.actim_ctrl_b_0		=3D 0x0001120c,
++		.rfr_ctrl_0		=3D 0x00025501,
++		.mr_0			=3D 0x00000032,
++		.actim_ctrl_a_1		=3D 0x51512283,
++		.actim_ctrl_b_1		=3D 0x0001120c,
++		.rfr_ctrl_1		=3D 0x00025501,
++		.mr_1			=3D 0x00000032,
++	},
++	[4] =3D {
++		.rate			=3D 82970588,
++		.actim_ctrl_a_0		=3D 0x51512283,
++		.actim_ctrl_b_0		=3D 0x0001120c,
++		.rfr_ctrl_0		=3D 0x00025501,
++		.mr_0			=3D 0x00000032,
++		.actim_ctrl_a_1		=3D 0x51512283,
++		.actim_ctrl_b_1		=3D 0x0001120c,
++		.rfr_ctrl_1		=3D 0x00025501,
++		.mr_1			=3D 0x00000032,
++	},
++	[5] =3D {
++		.rate			=3D 66666666,
++		.actim_ctrl_a_0		=3D 0x410d2243,
++		.actim_ctrl_b_0		=3D 0x0001120a,
++		.rfr_ctrl_0		=3D 0x0001d601,
++		.mr_0			=3D 0x00000032,
++		.actim_ctrl_a_1		=3D 0x410d2243,
++		.actim_ctrl_b_1		=3D 0x0001120a,
++		.rfr_ctrl_1		=3D 0x0001d601,
++		.mr_1			=3D 0x00000032,
++	},
++	[6] =3D {
++		.rate	     =3D 0
++	},
++};
 +
-+#define REGA_MODE_PRO	0x00
-+#define REGA_MODE_DATA	0x01
-+#define REGA_MODE_MIXED	0x03
-+#define REGA_DLB		0x04
-+#define REGA_SLB		0x08
-+#define REGA_DEVC(x)		((x & 0x7) << 4)
-+#define REGA_RESET		0x80
-+
-+/* Control register B */
-+#define CTRL_REG_B	(1 << 8)
-+
-+#define REGB_DIRATE(x)	(x & 0x3)
-+#define REGB_SCDIV(x)	((x & 0x3) << 2)
-+#define REGB_MCDIV(x)	((x & 0x7) << 4)
-+#define REGB_CEE		(1 << 7)
-+
-+/* Control register C */
-+#define CTRL_REG_C	(2 << 8)
-+
-+#define REGC_PUDEV		(1 << 0)
-+#define REGC_PUADC		(1 << 3)
-+#define REGC_PUDAC		(1 << 4)
-+#define REGC_PUREF		(1 << 5)
-+#define REGC_REFUSE		(1 << 6)
-+
-+/* Control register D */
-+#define CTRL_REG_D	(3 << 8)
-+
-+#define REGD_IGS(x)		(x & 0x7)
-+#define REGD_RMOD		(1 << 3)
-+#define REGD_OGS(x)		((x & 0x7) << 4)
-+#define REGD_MUTE		(x << 7)
-+
-+/* Control register E */
-+#define CTRL_REG_E	(4 << 8)
-+
-+#define REGE_DA(x)		(x & 0x1f)
-+#define REGE_IBYP		(1 << 5)
-+
-+/* Control register F */
-+#define CTRL_REG_F	(5 << 8)
-+
-+#define REGF_SEEN		(1 << 5)
-+#define REGF_INV		(1 << 6)
-+#define REGF_ALB		(1 << 7)
-+
-+extern struct snd_soc_dai cx20442_dai;
-+extern struct snd_soc_codec_device soc_codec_dev_cx20442;
 +#endif
-diff -Npru git/sound/soc/omap/Kconfig git/sound/soc/omap/Kconfig
---- git/sound/soc/omap/Kconfig	2009-05-12 21:13:59.000000000 +0200
-+++ git/sound/soc/omap/Kconfig	2009-05-18 22:29:16.000000000 +0200
-@@ -15,6 +15,14 @@ config SND_OMAP_SOC_N810
- 	help
- 	  Say Y if you want to add support for SoC audio on Nokia N810.
- 
-+config SND_OMAP_SOC_AMS_DELTA
-+	tristate "SoC Audio support for Amstrad Delta"
-+	depends on SND_OMAP_SOC && MACH_AMS_DELTA
-+	select SND_OMAP_SOC_MCBSP
-+	select SND_SOC_CX20442
-+	help
-+	  Say Y if you want to add support for SoC audio on ams-delta.
-+
- config SND_OMAP_SOC_OSK5912
- 	tristate "SoC Audio support for omap osk5912"
- 	depends on SND_OMAP_SOC && MACH_OMAP_OSK
-diff -Npru git/sound/soc/omap/Makefile git/sound/soc/omap/Makefile
---- git/sound/soc/omap/Makefile	2009-05-12 21:13:59.000000000 +0200
-+++ git/sound/soc/omap/Makefile	2009-05-18 22:32:31.000000000 +0200
-@@ -7,6 +7,7 @@ obj-$(CONFIG_SND_OMAP_SOC_MCBSP) += snd-
- 
- # OMAP Machine Support
- snd-soc-n810-objs := n810.o
-+snd-soc-ams-delta-objs := ams-delta.o
- snd-soc-osk5912-objs := osk5912.o
- snd-soc-overo-objs := overo.o
- snd-soc-omap2evm-objs := omap2evm.o
-@@ -14,6 +15,7 @@ snd-soc-sdp3430-objs := sdp3430.o
- snd-soc-omap3pandora-objs := omap3pandora.o
- 
- obj-$(CONFIG_SND_OMAP_SOC_N810) += snd-soc-n810.o
-+obj-$(CONFIG_SND_OMAP_SOC_AMS_DELTA) += snd-soc-ams-delta.o
- obj-$(CONFIG_SND_OMAP_SOC_OSK5912) += snd-soc-osk5912.o
- obj-$(CONFIG_SND_OMAP_SOC_OVERO) += snd-soc-overo.o
- obj-$(CONFIG_MACH_OMAP2EVM) += snd-soc-omap2evm.o
-diff -Npru git/sound/soc/omap/ams-delta.c git/sound/soc/omap/ams-delta.c
---- git/sound/soc/omap/ams-delta.c	1970-01-01 01:00:00.000000000 +0100
-+++ git/sound/soc/omap/ams-delta.c	2009-05-19 10:11:51.000000000 +0200
-@@ -0,0 +1,236 @@
-+/*
-+ * ams-delta.c  --  SoC audio for Amstrad Delta (E3)
+diff --git a/arch/arm/mach-omap2/sdram-micron-mt46h32m32lf-6.h b/arch/arm/m=
+ach-omap2/sdram-micron-mt46h32m32lf-6.h
+index b6c1db3..3b0dce4 100644
+=2D-- a/arch/arm/mach-omap2/sdram-micron-mt46h32m32lf-6.h
++++ b/arch/arm/mach-omap2/sdram-micron-mt46h32m32lf-6.h
+@@ -20,46 +20,46 @@
+ /* XXX Using ARE =3D 0x1 (no autorefresh burst) -- can this be changed? */
+ static struct omap_sdrc_params mt46h32m32lf6_sdrc_params[] =3D {
+ 	[0] =3D {
+=2D		.rate	     =3D 166000000,
+=2D		.actim_ctrla =3D 0x9a9db4c6,
+=2D		.actim_ctrlb =3D 0x00011217,
+=2D		.rfr_ctrl    =3D 0x0004dc01,
+=2D		.mr	     =3D 0x00000032,
++		.rate		=3D 166000000,
++		.actim_ctrl_a_0	=3D 0x9a9db4c6,
++		.actim_ctrl_b_0	=3D 0x00011217,
++		.rfr_ctrl_0	=3D 0x0004dc01,
++		.mr_0		=3D 0x00000032,
+ 	},
+ 	[1] =3D {
+=2D		.rate	     =3D 165941176,
+=2D		.actim_ctrla =3D 0x9a9db4c6,
+=2D		.actim_ctrlb =3D 0x00011217,
+=2D		.rfr_ctrl    =3D 0x0004dc01,
+=2D		.mr	     =3D 0x00000032,
++		.rate		=3D 165941176,
++		.actim_ctrl_a_0	=3D 0x9a9db4c6,
++		.actim_ctrl_b_0	=3D 0x00011217,
++		.rfr_ctrl_0	=3D 0x0004dc01,
++		.mr_0		=3D 0x00000032,
+ 	},
+ 	[2] =3D {
+=2D		.rate	     =3D 133333333,
+=2D		.actim_ctrla =3D 0x7a19b485,
+=2D		.actim_ctrlb =3D 0x00011213,
+=2D		.rfr_ctrl    =3D 0x0003de01,
+=2D		.mr	     =3D 0x00000032,
++		.rate		=3D 133333333,
++		.actim_ctrl_a_0	=3D 0x7a19b485,
++		.actim_ctrl_b_0	=3D 0x00011213,
++		.rfr_ctrl_0	=3D 0x0003de01,
++		.mr_0		=3D 0x00000032,
+ 	},
+ 	[3] =3D {
+=2D		.rate	     =3D 83000000,
+=2D		.actim_ctrla =3D 0x51512283,
+=2D		.actim_ctrlb =3D 0x0001120c,
+=2D		.rfr_ctrl    =3D 0x00025501,
+=2D		.mr	     =3D 0x00000032,
++		.rate		=3D 83000000,
++		.actim_ctrl_a_0	=3D 0x51512283,
++		.actim_ctrl_b_0	=3D 0x0001120c,
++		.rfr_ctrl_0	=3D 0x00025501,
++		.mr_0		=3D 0x00000032,
+ 	},
+ 	[4] =3D {
+=2D		.rate	     =3D 82970588,
+=2D		.actim_ctrla =3D 0x51512283,
+=2D		.actim_ctrlb =3D 0x0001120c,
+=2D		.rfr_ctrl    =3D 0x00025501,
+=2D		.mr	     =3D 0x00000032,
++		.rate		=3D 82970588,
++		.actim_ctrl_a_0	=3D 0x51512283,
++		.actim_ctrl_b_0	=3D 0x0001120c,
++		.rfr_ctrl_0	=3D 0x00025501,
++		.mr_0		=3D 0x00000032,
+ 	},
+ 	[5] =3D {
+=2D		.rate	     =3D 66666666,
+=2D		.actim_ctrla =3D 0x410d2243,
+=2D		.actim_ctrlb =3D 0x0001120a,
+=2D		.rfr_ctrl    =3D 0x0001d601,
+=2D		.mr	     =3D 0x00000032,
++		.rate		=3D 66666666,
++		.actim_ctrl_a_0	=3D 0x410d2243,
++		.actim_ctrl_b_0	=3D 0x0001120a,
++		.rfr_ctrl_0	=3D 0x0001d601,
++		.mr_0		=3D 0x00000032,
+ 	},
+ 	[6] =3D {
+ 		.rate	     =3D 0
+diff --git a/arch/arm/mach-omap2/sdram-qimonda-hyb18m512160af-6.h b/arch/ar=
+m/mach-omap2/sdram-qimonda-hyb18m512160af-6.h
+index 74a92c8..b637460 100644
+=2D-- a/arch/arm/mach-omap2/sdram-qimonda-hyb18m512160af-6.h
++++ b/arch/arm/mach-omap2/sdram-qimonda-hyb18m512160af-6.h
+@@ -20,32 +20,32 @@
+ /* XXX Using ARE =3D 0x1 (no autorefresh burst) -- can this be changed? */
+ static struct omap_sdrc_params hyb18m512160af6_sdrc_params[] =3D {
+ 	[0] =3D {
+=2D		.rate	     =3D 165941176,
+=2D		.actim_ctrla =3D 0x629db4c6,
+=2D		.actim_ctrlb =3D 0x00012214,
+=2D		.rfr_ctrl    =3D 0x0004dc01,
+=2D		.mr	     =3D 0x00000032,
++		.rate		=3D 165941176,
++		.actim_ctrl_a_0	=3D 0x629db4c6,
++		.actim_ctrl_b_0	=3D 0x00012214,
++		.rfr_ctrl_0	=3D 0x0004dc01,
++		.mr_0		=3D 0x00000032,
+ 	},
+ 	[1] =3D {
+=2D		.rate	     =3D 133333333,
+=2D		.actim_ctrla =3D 0x5219b485,
+=2D		.actim_ctrlb =3D 0x00012210,
+=2D		.rfr_ctrl    =3D 0x0003de01,
+=2D		.mr	     =3D 0x00000032,
++		.rate		=3D 133333333,
++		.actim_ctrl_a_0	=3D 0x5219b485,
++		.actim_ctrl_b_0	=3D 0x00012210,
++		.rfr_ctrl_0	=3D 0x0003de01,
++		.mr_0		=3D 0x00000032,
+ 	},
+ 	[2] =3D {
+=2D		.rate	     =3D 82970588,
+=2D		.actim_ctrla =3D 0x31512283,
+=2D		.actim_ctrlb =3D 0x0001220a,
+=2D		.rfr_ctrl    =3D 0x00025501,
+=2D		.mr	     =3D 0x00000022,
++		.rate		=3D 82970588,
++		.actim_ctrl_a_0	=3D 0x31512283,
++		.actim_ctrl_b_0	=3D 0x0001220a,
++		.rfr_ctrl_0	=3D 0x00025501,
++		.mr_0		=3D 0x00000022,
+ 	},
+ 	[3] =3D {
+=2D		.rate	     =3D 66666666,
+=2D		.actim_ctrla =3D 0x290d2243,
+=2D		.actim_ctrlb =3D 0x00012208,
+=2D		.rfr_ctrl    =3D 0x0001d601,
+=2D		.mr	     =3D 0x00000022,
++		.rate		=3D 66666666,
++		.actim_ctrl_a_0	=3D 0x290d2243,
++		.actim_ctrl_b_0	=3D 0x00012208,
++		.rfr_ctrl_0	=3D 0x0001d601,
++		.mr_0		=3D 0x00000022,
+ 	},
+ 	[4] =3D {
+ 		.rate	     =3D 0
+diff --git a/arch/arm/mach-omap2/sdrc.c b/arch/arm/mach-omap2/sdrc.c
+index c832d83..072dcc9 100644
+=2D-- a/arch/arm/mach-omap2/sdrc.c
++++ b/arch/arm/mach-omap2/sdrc.c
+@@ -72,14 +72,19 @@ void omap2_sms_restore_context(void)
+  * omap2_sdrc_get_params - return SDRC register values for a given clock r=
+ate
+  * @r: SDRC clock rate (in Hz)
+  *
+=2D * Return pre-calculated values for the SDRC_ACTIM_CTRLA,
+=2D * SDRC_ACTIM_CTRLB, SDRC_RFR_CTRL, and SDRC_MR registers, for a given
+=2D * SDRC clock rate 'r'.  These parameters control various timing
++ * Return pre-calculated values for the SDRC_ACTIM_CTRL_A_[01],
++ * SDRC_ACTIM_CTRL_B_[01], SDRC_RFR_CTRL_[01], and SDRC_MR_[01] registers,
++ * for a given SDRC clock rate 'r'.
++ * These parameters control various timing
+  * delays in the SDRAM controller that are expressed in terms of the
+  * number of SDRC clock cycles to wait; hence the clock rate
+  * dependency. Note that sdrc_init_params must be sorted rate
+=2D * descending.  Also assumes that both chip-selects use the same
+=2D * timing parameters.  Returns a struct omap_sdrc_params * upon
++ * descending.
 + *
-+ * based on osk5912.c
++ * The omap_sdrc_params struct supports different timing parameters
++ * for 2 chip selects.
 + *
-+ * Copyright (C) 2008 Mistral Solutions
++ * Returns a struct omap_sdrc_params * upon
+  * success, or NULL upon failure.
+  */
+ struct omap_sdrc_params *omap2_sdrc_get_params(unsigned long r)
+diff --git a/arch/arm/mach-omap2/sram34xx.S b/arch/arm/mach-omap2/sram34xx.S
+index f41f8d9..ccfc008 100644
+=2D-- a/arch/arm/mach-omap2/sram34xx.S
++++ b/arch/arm/mach-omap2/sram34xx.S
+@@ -36,7 +36,7 @@
+=20
+ 	.text
+=20
+=2D/* r4 parameters */
++/* r1 parameters */
+ #define SDRC_NO_UNLOCK_DLL		0x0
+ #define SDRC_UNLOCK_DLL			0x1
+=20
+@@ -71,40 +71,65 @@
+=20
+ /*
+  * omap3_sram_configure_core_dpll - change DPLL3 M2 divider
+=2D * r0 =3D new SDRC_RFR_CTRL register contents
+=2D * r1 =3D new SDRC_ACTIM_CTRLA register contents
+=2D * r2 =3D new SDRC_ACTIM_CTRLB register contents
+=2D * r3 =3D new M2 divider setting (only 1 and 2 supported right now)
+=2D * r4 =3D unlock SDRC DLL? (1 =3D yes, 0 =3D no).  Only unlock DLL for
 + *
-+ * This program is free software; you can redistribute it and/or
-+ * modify it under the terms of the GNU General Public License
-+ * version 2 as published by the Free Software Foundation.
++ * Params passed in registers:
++ *  r0 =3D new M2 divider setting (only 1 and 2 supported right now)
++ *  r1 =3D unlock SDRC DLL? (1 =3D yes, 0 =3D no).  Only unlock DLL for
+  *      SDRC rates < 83MHz
+=2D * r5 =3D number of MPU cycles to wait for SDRC to stabilize after
++ *  r2 =3D number of MPU cycles to wait for SDRC to stabilize after
+  *      reprogramming the SDRC when switching to a slower MPU speed
+=2D * r6 =3D new SDRC_MR_0 register value
+=2D * r7 =3D increasing SDRC rate? (1 =3D yes, 0 =3D no)
++ *  r3 =3D increasing SDRC rate? (1 =3D yes, 0 =3D no)
+  *
++ * Params passed via the stack. Those will be copied in SRAM before use
++ *  by the code in SRAM (SDRAM is not accessible during SDRC
++ *  reconfiguration):
++ *  new SDRC_RFR_CTRL_0 register contents
++ *  new SDRC_ACTIM_CTRL_A_0 register contents
++ *  new SDRC_ACTIM_CTRL_B_0 register contents
++ *  new SDRC_MR_0 register value
++ *  new SDRC_RFR_CTRL_1 register contents
++ *  new SDRC_ACTIM_CTRL_A_1 register contents
++ *  new SDRC_ACTIM_CTRL_B_1 register contents
++ *  new SDRC_MR_1 register value
+  */
+ ENTRY(omap3_sram_configure_core_dpll)
+ 	stmfd	sp!, {r1-r12, lr}	@ store regs to stack
+=2D	ldr	r4, [sp, #52]		@ pull extra args off the stack
+=2D	ldr	r5, [sp, #56]		@ load extra args from the stack
+=2D	ldr	r6, [sp, #60]		@ load extra args from the stack
+=2D	ldr	r7, [sp, #64]		@ load extra args from the stack
++
++					@ pull the extra args off the stack
++					@  and store them in SRAM
++	ldr	r4, [sp, #52]
++	str     r4, omap_sdrc_rfr_ctrl_0_val
++	ldr	r4, [sp, #56]
++	str     r4, omap_sdrc_actim_ctrl_a_0_val
++	ldr	r4, [sp, #60]
++	str     r4, omap_sdrc_actim_ctrl_b_0_val
++	ldr	r4, [sp, #64]
++	str     r4, omap_sdrc_mr_0_val
++	ldr	r4, [sp, #68]
++	str     r4, omap_sdrc_rfr_ctrl_1_val
++	ldr	r4, [sp, #72]
++	str     r4, omap_sdrc_actim_ctrl_a_1_val
++	ldr	r4, [sp, #76]
++	str     r4, omap_sdrc_actim_ctrl_b_1_val
++	ldr	r4, [sp, #80]
++	str     r4, omap_sdrc_mr_1_val
+ 	dsb				@ flush buffered writes to interconnect
+=2D	cmp	r7, #1			@ if increasing SDRC clk rate,
++
++	cmp	r3, #1			@ if increasing SDRC clk rate,
+ 	bleq	configure_sdrc		@ program the SDRC regs early (for RFR)
+=2D	cmp	r4, #SDRC_UNLOCK_DLL	@ set the intended DLL state
++	cmp	r1, #SDRC_UNLOCK_DLL	@ set the intended DLL state
+ 	bleq	unlock_dll
+ 	blne	lock_dll
+ 	bl	sdram_in_selfrefresh	@ put SDRAM in self refresh, idle SDRC
+ 	bl 	configure_core_dpll	@ change the DPLL3 M2 divider
+ 	bl	enable_sdrc		@ take SDRC out of idle
+=2D	cmp	r4, #SDRC_UNLOCK_DLL	@ wait for DLL status to change
++	cmp	r1, #SDRC_UNLOCK_DLL	@ wait for DLL status to change
+ 	bleq	wait_dll_unlock
+ 	blne	wait_dll_lock
+=2D	cmp	r7, #1			@ if increasing SDRC clk rate,
++	cmp	r3, #1			@ if increasing SDRC clk rate,
+ 	beq	return_to_sdram		@ return to SDRAM code, otherwise,
+ 	bl	configure_sdrc		@ reprogram SDRC regs now
+=2D	mov	r12, r5
++	mov	r12, r2
+ 	bl	wait_clk_stable		@ wait for SDRC to stabilize
+ return_to_sdram:
+ 	isb				@ prevent speculative exec past here
+@@ -149,7 +174,7 @@ configure_core_dpll:
+ 	ldr	r12, [r11]
+ 	ldr	r10, core_m2_mask_val	@ modify m2 for core dpll
+ 	and	r12, r12, r10
+=2D	orr	r12, r12, r3, lsl #CORE_DPLL_CLKOUT_DIV_SHIFT
++	orr	r12, r12, r0, lsl #CORE_DPLL_CLKOUT_DIV_SHIFT
+ 	str	r12, [r11]
+ 	ldr	r12, [r11]		@ posted-write barrier for CM
+ 	bx	lr
+@@ -187,15 +212,31 @@ wait_dll_unlock:
+ 	bne	wait_dll_unlock
+ 	bx	lr
+ configure_sdrc:
+=2D	ldr	r11, omap3_sdrc_rfr_ctrl
+=2D	str	r0, [r11]
+=2D	ldr	r11, omap3_sdrc_actim_ctrla
+=2D	str	r1, [r11]
+=2D	ldr	r11, omap3_sdrc_actim_ctrlb
+=2D	str	r2, [r11]
++	ldr	r12, omap_sdrc_rfr_ctrl_0_val	@ fetch value from SRAM
++	ldr	r11, omap3_sdrc_rfr_ctrl_0	@ fetch addr from SRAM
++	str	r12, [r11]			@ store
++	ldr	r12, omap_sdrc_actim_ctrl_a_0_val
++	ldr	r11, omap3_sdrc_actim_ctrl_a_0
++	str	r12, [r11]
++	ldr	r12, omap_sdrc_actim_ctrl_b_0_val
++	ldr	r11, omap3_sdrc_actim_ctrl_b_0
++	str	r12, [r11]
++	ldr	r12, omap_sdrc_mr_0_val
+ 	ldr	r11, omap3_sdrc_mr_0
+=2D	str	r6, [r11]
+=2D	ldr	r6, [r11]		@ posted-write barrier for SDRC
++	str	r12, [r11]
++	ldr	r12, omap_sdrc_rfr_ctrl_1_val
++	ldr	r11, omap3_sdrc_rfr_ctrl_1
++	str	r12, [r11]
++	ldr	r12, omap_sdrc_actim_ctrl_a_1_val
++	ldr	r11, omap3_sdrc_actim_ctrl_a_1
++	str	r12, [r11]
++	ldr	r12, omap_sdrc_actim_ctrl_b_1_val
++	ldr	r11, omap3_sdrc_actim_ctrl_b_1
++	str	r12, [r11]
++	ldr	r12, omap_sdrc_mr_1_val
++	ldr	r11, omap3_sdrc_mr_1
++	str	r12, [r11]
++	ldr	r12, [r11]		@ posted-write barrier for SDRC
+ 	bx	lr
+=20
+ omap3_sdrc_power:
+@@ -206,14 +247,40 @@ omap3_cm_idlest1_core:
+ 	.word OMAP34XX_CM_REGADDR(CORE_MOD, CM_IDLEST)
+ omap3_cm_iclken1_core:
+ 	.word OMAP34XX_CM_REGADDR(CORE_MOD, CM_ICLKEN1)
+=2Domap3_sdrc_rfr_ctrl:
++
++omap3_sdrc_rfr_ctrl_0:
+ 	.word OMAP34XX_SDRC_REGADDR(SDRC_RFR_CTRL_0)
+=2Domap3_sdrc_actim_ctrla:
++omap3_sdrc_rfr_ctrl_1:
++	.word OMAP34XX_SDRC_REGADDR(SDRC_RFR_CTRL_1)
++omap3_sdrc_actim_ctrl_a_0:
+ 	.word OMAP34XX_SDRC_REGADDR(SDRC_ACTIM_CTRL_A_0)
+=2Domap3_sdrc_actim_ctrlb:
++omap3_sdrc_actim_ctrl_a_1:
++	.word OMAP34XX_SDRC_REGADDR(SDRC_ACTIM_CTRL_A_1)
++omap3_sdrc_actim_ctrl_b_0:
+ 	.word OMAP34XX_SDRC_REGADDR(SDRC_ACTIM_CTRL_B_0)
++omap3_sdrc_actim_ctrl_b_1:
++	.word OMAP34XX_SDRC_REGADDR(SDRC_ACTIM_CTRL_B_1)
+ omap3_sdrc_mr_0:
+ 	.word OMAP34XX_SDRC_REGADDR(SDRC_MR_0)
++omap3_sdrc_mr_1:
++	.word OMAP34XX_SDRC_REGADDR(SDRC_MR_1)
++omap_sdrc_rfr_ctrl_0_val:
++	.word 0xDEADBEEF
++omap_sdrc_rfr_ctrl_1_val:
++	.word 0xDEADBEEF
++omap_sdrc_actim_ctrl_a_0_val:
++	.word 0xDEADBEEF
++omap_sdrc_actim_ctrl_a_1_val:
++	.word 0xDEADBEEF
++omap_sdrc_actim_ctrl_b_0_val:
++	.word 0xDEADBEEF
++omap_sdrc_actim_ctrl_b_1_val:
++	.word 0xDEADBEEF
++omap_sdrc_mr_0_val:
++	.word 0xDEADBEEF
++omap_sdrc_mr_1_val:
++	.word 0xDEADBEEF
++
+ omap3_sdrc_dlla_status:
+ 	.word OMAP34XX_SDRC_REGADDR(SDRC_DLLA_STATUS)
+ omap3_sdrc_dlla_ctrl:
+@@ -223,3 +290,4 @@ core_m2_mask_val:
+=20
+ ENTRY(omap3_sram_configure_core_dpll_sz)
+ 	.word	. - omap3_sram_configure_core_dpll
++
+diff --git a/arch/arm/plat-omap/include/mach/mux.h b/arch/arm/plat-omap/inc=
+lude/mach/mux.h
+index f7e298a..7368aba 100644
+=2D-- a/arch/arm/plat-omap/include/mach/mux.h
++++ b/arch/arm/plat-omap/include/mach/mux.h
+@@ -803,6 +803,10 @@ enum omap34xx_index {
+ 	AE5_34XX_GPIO143,
+ 	H19_34XX_GPIO164_OUT,
+ 	J25_34XX_GPIO170,
++
++	/* OMAP3 SDRC CKE signals to SDR/DDR ram chips */
++	H16_34XX_SDRC_CKE0,
++	H17_34XX_SDRC_CKE1,
+ };
+=20
+ struct omap_mux_cfg {
+diff --git a/arch/arm/plat-omap/include/mach/sdrc.h b/arch/arm/plat-omap/in=
+clude/mach/sdrc.h
+index a678bc8..e14204c 100644
+=2D-- a/arch/arm/plat-omap/include/mach/sdrc.h
++++ b/arch/arm/plat-omap/include/mach/sdrc.h
+@@ -94,22 +94,29 @@
+ /**
+  * struct omap_sdrc_params - SDRC parameters for a given SDRC clock rate
+  * @rate: SDRC clock rate (in Hz)
+=2D * @actim_ctrla: Value to program to SDRC_ACTIM_CTRLA for this rate
+=2D * @actim_ctrlb: Value to program to SDRC_ACTIM_CTRLB for this rate
+=2D * @rfr_ctrl: Value to program to SDRC_RFR_CTRL for this rate
+=2D * @mr: Value to program to SDRC_MR for this rate
++ * @actim_ctrl_a_[01]: Value to program to SDRC_ACTIM_CTRL_A_[01] for this=
+ rate
++ * @actim_ctrl_b_[01]: Value to program to SDRC_ACTIM_CTRL_B_[01] for this=
+ rate
++ * @rfr_ctrl_[01]: Value to program to SDRC_RFR_CTRL_[01] for this rate
++ * @mr_[01]: Value to program to SDRC_MR_[01] for this rate
+  *
+  * This structure holds a pre-computed set of register values for the
+  * SDRC for a given SDRC clock rate and SDRAM chip.  These are
+  * intended to be pre-computed and specified in an array in the board-*.c
+  * files.  The structure is keyed off the 'rate' field.
 + *
-+ * This program is distributed in the hope that it will be useful, but
-+ * WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-+ * General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program; if not, write to the Free Software
-+ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
-+ * 02110-1301 USA
-+ *
-+ */
++ * The struct supports up to 2 CSes. The fields *_0 are used for the 1st
++ * CS, the fields *_1 are used for the 2nd one.
+  */
+ struct omap_sdrc_params {
+ 	unsigned long rate;
+=2D	u32 actim_ctrla;
+=2D	u32 actim_ctrlb;
+=2D	u32 rfr_ctrl;
+=2D	u32 mr;
++	u32 actim_ctrl_a_0;
++	u32 actim_ctrl_b_0;
++	u32 rfr_ctrl_0;
++	u32 mr_0;
++	u32 actim_ctrl_a_1;
++	u32 actim_ctrl_b_1;
++	u32 rfr_ctrl_1;
++	u32 mr_1;
+ };
+=20
+ void omap2_sms_save_context(void);
+diff --git a/arch/arm/plat-omap/include/mach/sram.h b/arch/arm/plat-omap/in=
+clude/mach/sram.h
+index ad0a600..2194b04 100644
+=2D-- a/arch/arm/plat-omap/include/mach/sram.h
++++ b/arch/arm/plat-omap/include/mach/sram.h
+@@ -21,11 +21,13 @@ extern void omap2_sram_reprogram_sdrc(u32 perf_level, u=
+32 dll_val,
+ 				      u32 mem_type);
+ extern u32 omap2_set_prcm(u32 dpll_ctrl_val, u32 sdrc_rfr_val, int bypass);
+=20
+=2Dextern u32 omap3_configure_core_dpll(u32 sdrc_rfr_ctrl,
+=2D				     u32 sdrc_actim_ctrla,
+=2D				     u32 sdrc_actim_ctrlb, u32 m2,
+=2D				     u32 unlock_dll, u32 f, u32 sdrc_mr,
+=2D				     u32 inc);
++extern u32 omap3_configure_core_dpll(
++			u32 m2, u32 unlock_dll, u32 f, u32 inc,
++			u32 sdrc_rfr_ctrl_0, u32 sdrc_actim_ctrl_a_0,
++			u32 sdrc_actim_ctrl_b_0, u32 sdrc_mr_0,
++			u32 sdrc_rfr_ctrl_1, u32 sdrc_actim_ctrl_a_1,
++			u32 sdrc_actim_ctrl_b_1, u32 sdrc_mr_1);
 +
-+#include <linux/clk.h>
-+#include <linux/platform_device.h>
-+#include <sound/core.h>
-+#include <sound/pcm.h>
-+#include <sound/soc.h>
-+#include <sound/soc-dapm.h>
+ extern void omap3_sram_restore_context(void);
+=20
+ /* Do not use these */
+diff --git a/arch/arm/plat-omap/sram.c b/arch/arm/plat-omap/sram.c
+index a2e60e7..517f45b 100644
+=2D-- a/arch/arm/plat-omap/sram.c
++++ b/arch/arm/plat-omap/sram.c
+@@ -368,23 +368,29 @@ static inline int omap243x_sram_init(void)
+=20
+ #ifdef CONFIG_ARCH_OMAP3
+=20
+=2Dstatic u32 (*_omap3_sram_configure_core_dpll)(u32 sdrc_rfr_ctrl,
+=2D					      u32 sdrc_actim_ctrla,
+=2D					      u32 sdrc_actim_ctrlb,
+=2D					      u32 m2, u32 unlock_dll,
+=2D					      u32 f, u32 sdrc_mr, u32 inc);
+=2Du32 omap3_configure_core_dpll(u32 sdrc_rfr_ctrl, u32 sdrc_actim_ctrla,
+=2D			      u32 sdrc_actim_ctrlb, u32 m2, u32 unlock_dll,
+=2D			      u32 f, u32 sdrc_mr, u32 inc)
+=2D {
++static u32 (*_omap3_sram_configure_core_dpll)(
++				u32 m2, u32 unlock_dll, u32 f, u32 inc,
++				u32 sdrc_rfr_ctrl_0, u32 sdrc_actim_ctrl_a_0,
++				u32 sdrc_actim_ctrl_b_0, u32 sdrc_mr_0,
++				u32 sdrc_rfr_ctrl_1, u32 sdrc_actim_ctrl_a_1,
++				u32 sdrc_actim_ctrl_b_1, u32 sdrc_mr_1);
 +
-+#include <asm/mach-types.h>
-+#include <mach/hardware.h>
-+#include <linux/gpio.h>
-+#include <mach/mcbsp.h>
-+#include <mach/board-ams-delta.h>
-+
-+#include "omap-mcbsp.h"
-+#include "omap-pcm.h"
-+#include "../codecs/cx20442.h"
-+
-+#define CODEC_CLOCK 	12000000
-+
-+static struct clk *cx20442_mclk;
-+
-+static int ams_delta_startup(struct snd_pcm_substream *substream)
++u32 omap3_configure_core_dpll(u32 m2, u32 unlock_dll, u32 f, u32 inc,
++			      u32 sdrc_rfr_ctrl_0, u32 sdrc_actim_ctrl_a_0,
++			      u32 sdrc_actim_ctrl_b_0, u32 sdrc_mr_0,
++			      u32 sdrc_rfr_ctrl_1, u32 sdrc_actim_ctrl_a_1,
++			      u32 sdrc_actim_ctrl_b_1, u32 sdrc_mr_1)
 +{
-+	ams_delta_latch2_write(AMS_DELTA_LATCH2_MODEM_CODEC, 0);
-+	return clk_enable(cx20442_mclk);
+ 	if (!_omap3_sram_configure_core_dpll)
+ 		omap_sram_error();
+=20
+=2D	return _omap3_sram_configure_core_dpll(sdrc_rfr_ctrl,
+=2D					       sdrc_actim_ctrla,
+=2D					       sdrc_actim_ctrlb, m2,
+=2D					       unlock_dll, f, sdrc_mr, inc);
+=2D }
++	return _omap3_sram_configure_core_dpll(
++				m2, unlock_dll, f, inc,
++				sdrc_rfr_ctrl_0, sdrc_actim_ctrl_a_0,
++				sdrc_actim_ctrl_b_0, sdrc_mr_0,
++				sdrc_rfr_ctrl_1, sdrc_actim_ctrl_a_1,
++				sdrc_actim_ctrl_b_1, sdrc_mr_1);
 +}
-+
-+static void ams_delta_shutdown(struct snd_pcm_substream *substream)
-+{
-+	clk_disable(cx20442_mclk);
-+	ams_delta_latch2_write(AMS_DELTA_LATCH2_MODEM_CODEC, AMS_DELTA_LATCH2_MODEM_CODEC);
-+}
-+
-+static int ams_delta_hw_params(struct snd_pcm_substream *substream,
-+			 struct snd_pcm_hw_params *params)
-+{
-+	struct snd_soc_pcm_runtime *rtd = substream->private_data;
-+	struct snd_soc_dai *codec_dai = rtd->dai->codec_dai;
-+	struct snd_soc_dai *cpu_dai = rtd->dai->cpu_dai;
-+	int err;
-+
-+	/* Set codec DAI configuration */
-+	/* err = snd_soc_dai_set_fmt(codec_dai,
-+				  SND_SOC_DAIFMT_DSP_B |
-+				  SND_SOC_DAIFMT_NB_IF |
-+				  SND_SOC_DAIFMT_CBM_CFM);
-+	if (err < 0) {
-+		printk(KERN_ERR "can't set codec DAI configuration\n");
-+		return err;
-+	} */
-+
-+	/* Set cpu DAI configuration */
-+	err = snd_soc_dai_set_fmt(cpu_dai,
-+				  SND_SOC_DAIFMT_DSP_B |
-+				  SND_SOC_DAIFMT_NB_NF |
-+				  SND_SOC_DAIFMT_CBM_CFM);
-+	if (err < 0) {
-+		printk(KERN_ERR "can't set cpu DAI configuration\n");
-+		return err;
-+	}
-+
-+	/* Set the codec system clock for DAC and ADC */
-+	/* err =
-+	    snd_soc_dai_set_sysclk(codec_dai, 0, CODEC_CLOCK, SND_SOC_CLOCK_IN);
-+
-+	if (err < 0) {
-+		printk(KERN_ERR "can't set codec system clock\n");
-+		return err;
-+	} */
-+
-+	return err;
-+}
-+
-+static struct snd_soc_ops ams_delta_ops = {
-+	.startup = ams_delta_startup,
-+	.hw_params = ams_delta_hw_params,
-+	.shutdown = ams_delta_shutdown,
-+};
-+
-+#if 0
-+static const struct snd_soc_dapm_widget cx20442_dapm_widgets[] = {
-+	SND_SOC_DAPM_HP("Headphone Jack", NULL),
-+	SND_SOC_DAPM_LINE("Line In", NULL),
-+	SND_SOC_DAPM_MIC("Mic Jack", NULL),
-+};
-+
-+static const struct snd_soc_dapm_route audio_map[] = {
-+	{"Headphone Jack", NULL, "LHPOUT"},
-+	{"Headphone Jack", NULL, "RHPOUT"},
-+
-+	{"LLINEIN", NULL, "Line In"},
-+	{"RLINEIN", NULL, "Line In"},
-+
-+	{"MICIN", NULL, "Mic Jack"},
-+};
-+#endif
-+
-+static int ams_delta_cx20442_init(struct snd_soc_codec *codec)
-+{
-+
-+#if 0
-+	/* Add osk5912 specific widgets */
-+	snd_soc_dapm_new_controls(codec, cx20442_dapm_widgets,
-+				  ARRAY_SIZE(cx20442_dapm_widgets));
-+
-+	/* Set up osk5912 specific audio path audio_map */
-+	snd_soc_dapm_add_routes(codec, audio_map, ARRAY_SIZE(audio_map));
-+
-+	snd_soc_dapm_enable_pin(codec, "Headphone Jack");
-+	snd_soc_dapm_enable_pin(codec, "Line In");
-+	snd_soc_dapm_enable_pin(codec, "Mic Jack");
-+
-+	snd_soc_dapm_sync(codec);
-+#endif
-+	ams_delta_latch2_write(AMS_DELTA_LATCH2_MODEM_CODEC, 0);
-+
-+	return 0;
-+}
-+
-+/* Digital audio interface glue - connects codec <--> CPU */
-+static struct snd_soc_dai_link ams_delta_dai = {
-+	.name = "CX20442",
-+	.stream_name = "CX20442",
-+	.cpu_dai = &omap_mcbsp_dai[0],
-+	.codec_dai = &cx20442_dai,
-+	// .init = ams_delta_cx20442_init,
-+	.ops = &ams_delta_ops,
-+};
-+
-+/* Audio machine driver */
-+static struct snd_soc_card snd_soc_card_ams_delta = {
-+	.name = "AMS_DELTA",
-+	.platform = &omap_soc_platform,
-+	.dai_link = &ams_delta_dai,
-+	.num_links = 1,
-+};
-+
-+/* Audio subsystem */
-+static struct snd_soc_device ams_delta_snd_devdata = {
-+	.card = &snd_soc_card_ams_delta,
-+	.codec_dev = &soc_codec_dev_cx20442,
-+};
-+
-+static struct platform_device *ams_delta_snd_device;
-+
-+static int __init ams_delta_soc_init(void)
-+{
-+	int err;
-+	u32 curRate;
-+	struct device *dev;
-+
-+	if (!(machine_is_ams_delta()))
-+		return -ENODEV;
-+
-+	ams_delta_snd_device = platform_device_alloc("soc-audio", -1);
-+	if (!ams_delta_snd_device)
-+		return -ENOMEM;
-+
-+	platform_set_drvdata(ams_delta_snd_device, &ams_delta_snd_devdata);
-+	ams_delta_snd_devdata.dev = &ams_delta_snd_device->dev;
-+	*(unsigned int *)ams_delta_dai.cpu_dai->private_data = 0;	/* McBSP1 */
-+	err = platform_device_add(ams_delta_snd_device);
-+	if (err)
-+		goto err1;
-+
-+	dev = &ams_delta_snd_device->dev;
-+
-+	cx20442_mclk = clk_get(dev, "mclk");
-+	if (IS_ERR(cx20442_mclk)) {
-+		printk(KERN_ERR "Could not get mclk clock\n");
-+		err = PTR_ERR(cx20442_mclk);
-+		goto err2;
-+	}
-+
-+	/*
-+	 * Configure 12 MHz output on MCLK.
-+	 */
-+	curRate = (uint) clk_get_rate(cx20442_mclk);
-+	if (curRate != CODEC_CLOCK) {
-+		if (clk_set_rate(cx20442_mclk, CODEC_CLOCK)) {
-+			printk(KERN_ERR "Cannot set MCLK for CX20442 CODEC\n");
-+			err = -ECANCELED;
-+			goto err3;
-+		}
-+	}
-+
-+	printk(KERN_INFO "MCLK = %d [%d]\n",
-+	       (uint) clk_get_rate(cx20442_mclk), CODEC_CLOCK);
-+
-+	ams_delta_latch2_write(AMS_DELTA_LATCH2_MODEM_CODEC, 0);
-+	return 0;
-+err3:
-+	clk_put(cx20442_mclk);
-+err2:
-+	platform_device_del(ams_delta_snd_device);
-+err1:
-+	platform_device_put(ams_delta_snd_device);
-+
-+	return err;
-+
-+}
-+
-+static void __exit ams_delta_soc_exit(void)
-+{
-+	platform_device_unregister(ams_delta_snd_device);
-+}
-+
-+module_init(ams_delta_soc_init);
-+module_exit(ams_delta_soc_exit);
-+
-+MODULE_AUTHOR("Arun KS <arunks@mistralsolutions.com>");
-+MODULE_DESCRIPTION("ALSA SoC Amstrad Delta");
-+MODULE_LICENSE("GPL");
+=20
+ #ifdef CONFIG_PM
+ void omap3_sram_restore_context(void)
+=2D-=20
+1.6.1.2.MVISTA.50.gdf8fd
 
---------------030401020308010505050707--
+
+--Boundary-00=_04+GKjqjDpqIBqT--
